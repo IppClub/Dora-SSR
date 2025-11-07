@@ -304,7 +304,7 @@ updateCheck = function() -- 190
 	return thread(function() -- 190
 		local res = HttpClient:getAsync("https://api.github.com/repos/IppClub/Dora-SSR/releases/latest") -- 191
 		if res then -- 191
-			local data = json.load(res) -- 192
+			local data = json.decode(res) -- 192
 			if data then -- 192
 				local major, minor, patch = App.version:match("(%d+)%.(%d+)%.(%d+)%.(%d+)") -- 193
 				local a, b, c = tonumber(major), tonumber(minor), tonumber(patch) -- 194
@@ -989,7 +989,7 @@ downloadFile = function(url, target) -- 586
 			if quit then -- 588
 				return true -- 588
 			end -- 588
-			emit("AppWS", "Send", json.dump({ -- 590
+			emit("AppWS", "Send", json.encode({ -- 590
 				name = "Download", -- 590
 				url = url, -- 590
 				status = "downloading", -- 590
@@ -997,7 +997,7 @@ downloadFile = function(url, target) -- 586
 			})) -- 589
 			return false -- 592
 		end) -- 587
-		return emit("AppWS", "Send", json.dump(success and { -- 594
+		return emit("AppWS", "Send", json.encode(success and { -- 594
 			name = "Download", -- 594
 			url = url, -- 594
 			status = "completed", -- 594

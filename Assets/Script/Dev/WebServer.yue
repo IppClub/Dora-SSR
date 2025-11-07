@@ -974,7 +974,7 @@ HttpServer\post "/editing-info", (req) ->
 	else
 		if not config.editingInfo?
 			folder = if App.locale\match '^zh' then 'zh-Hans' else 'en'
-			config.editingInfo = json.dump {
+			config.editingInfo = json.encode {
 				index: 0
 				files: [
 					{
@@ -1002,7 +1002,7 @@ HttpServer\post "/log/save", (): success: false ->
 HttpServer\post "/yarn/check", (req): success: false ->
 	import "yarncompile"
 	switch req when {body: {:code}}
-		if jsonObject := json.load code
+		if jsonObject := json.decode code
 			errors = []
 			for node in *jsonObject.nodes
 				:title, :body = node
@@ -1093,14 +1093,14 @@ HttpServer\postSchedule "/ts/build", (req): success: false ->
 			content = Content\load path
 			unless content
 				return success: false, message: "failed to read file"
-			emit "AppWS", "Send", json.dump name: "UpdateTSCode", file: path, :content
+			emit "AppWS", "Send", json.encode name: "UpdateTSCode", file: path, :content
 			if "d" ~= Path\getExt Path\getName path
 				done = false
 				with Node!
 					\gslot "AppWS", (eventType, msg) ->
 						if eventType == "Receive"
 							\removeFromParent!
-							if res := json.load msg
+							if res := json.decode msg
 								if res.name == "TranspileTS"
 									if res.success
 										luaFile = Path\replaceExt path, "lua"
@@ -1109,7 +1109,7 @@ HttpServer\postSchedule "/ts/build", (req): success: false ->
 									else
 										messages[] = success: false, file: path, message: res.message
 									done = true
-				emit "AppWS", "Send", json.dump name: "TranspileTS", file: path, :content
+				emit "AppWS", "Send", json.encode name: "TranspileTS", file: path, :content
 				wait -> done
 			return success: true, :messages
 		else
@@ -1121,7 +1121,7 @@ HttpServer\postSchedule "/ts/build", (req): success: false ->
 				file = Path path, f
 				if content := Content\load file
 					fileData[file] = content
-					emit "AppWS", "Send", json.dump name: "UpdateTSCode", :file, :content
+					emit "AppWS", "Send", json.encode name: "UpdateTSCode", :file, :content
 				else
 					messages[] = success: false, :file, message: "failed to read file"
 			for file, content in pairs fileData
@@ -1131,7 +1131,7 @@ HttpServer\postSchedule "/ts/build", (req): success: false ->
 					\gslot "AppWS", (eventType, msg) ->
 						if eventType == "Receive"
 							\removeFromParent!
-							if res := json.load msg
+							if res := json.decode msg
 								if res.name == "TranspileTS"
 									if res.success
 										luaFile = Path\replaceExt file, "lua"
@@ -1140,7 +1140,7 @@ HttpServer\postSchedule "/ts/build", (req): success: false ->
 									else
 										messages[] = success: false, :file, message: res.message
 									done = true
-				emit "AppWS", "Send", json.dump name: "TranspileTS", :file, :content
+				emit "AppWS", "Send", json.encode name: "TranspileTS", :file, :content
 				wait -> done
 			return success: true, :messages
 

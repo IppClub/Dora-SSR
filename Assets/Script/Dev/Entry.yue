@@ -189,7 +189,7 @@ export.connectWebIDE = ->
 
 updateCheck = -> thread ->
 	if res := HttpClient\getAsync "https://api.github.com/repos/IppClub/Dora-SSR/releases/latest"
-		if data := json.load res
+		if data := json.decode res
 			major, minor, patch = App.version\match "(%d+)%.(%d+)%.(%d+)%.(%d+)"
 			a, b, c = tonumber(major), tonumber(minor), tonumber patch
 			sa, sb, sc = data.tag_name\match "v(%d+)%.(%d+)%.(%d+)"
@@ -586,11 +586,11 @@ clearTempFiles!
 export downloadFile = (url, target) -> Director.systemScheduler\schedule once ->
 	success = HttpClient\downloadAsync url, target, 30, (current, total): false ->
 		return true if quit
-		emit "AppWS", "Send", json.dump {
+		emit "AppWS", "Send", json.encode {
 			name: "Download", :url, status: "downloading"
 			progress: current / total
 		}
-	emit "AppWS", "Send", json.dump success and {
+	emit "AppWS", "Send", json.encode success and {
 		name: "Download", :url, status: "completed"
 		progress: 1.0
 	} or {

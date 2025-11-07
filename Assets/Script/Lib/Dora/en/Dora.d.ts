@@ -7617,13 +7617,13 @@ interface json {
 	 * @param maxDepth The maximum depth to parse (default is 128).
 	 * @returns The object representing the JSON data, or null with an error message if the JSON text is invalid.
 	 */
-	load(this: void, json: string, maxDepth?: number): LuaMultiReturn<[any, null]> | LuaMultiReturn<[null, string]>;
+	decode(this: void, json: string, maxDepth?: number): LuaMultiReturn<[any, null]> | LuaMultiReturn<[null, string]>;
 	/**
 	 * Converts the specified object to JSON text.
 	 * @param obj The object to convert.
 	 * @returns The JSON text representing the object, or null with an error message if the object cannot be converted.
 	 */
-	dump(this: void, obj: object): LuaMultiReturn<[string, null]> | LuaMultiReturn<[null, string]>;
+	encode(this: void, obj: object): LuaMultiReturn<[string, null]> | LuaMultiReturn<[null, string]>;
 	/**
 	 * Represents the JSON null value.
 	 */

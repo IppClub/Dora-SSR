@@ -1056,7 +1056,7 @@ export const toBlocklyJSON = (root: Blk, procs?: Blk[]): string => {
 		j.x = (i + 1) * 500;
 		return j;
 	}) ?? [];
-	const [res] = json.dump({
+	const [res] = json.encode({
 		blocks: {
 			languageVersion: 0,
 			blocks: [root.toJSON(), ...procBlocks],

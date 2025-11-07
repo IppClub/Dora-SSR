@@ -7616,13 +7616,13 @@ interface json {
 	 * @param maxDepth 解析的最大深度（默认是 128）。
 	 * @returns 表示 JSON 数据的对象，如果文本不是有效的 JSON，则返回 null 和错误消息。
 	 */
-	load(this: void, json: string, maxDepth?: number): LuaMultiReturn<[any, null]> | LuaMultiReturn<[null, string]>;
+	decode(this: void, json: string, maxDepth?: number): LuaMultiReturn<[any, null]> | LuaMultiReturn<[null, string]>;
 	/**
 	 * 将指定的对象转换为 JSON 文本。
 	 * @param obj 要转换的对象。
 	 * @returns 表示对象的 JSON 文本，如果对象无法转换，则返回 null 和错误消息。
 	 */
-	dump(this: void, obj: object): LuaMultiReturn<[string, null]> | LuaMultiReturn<[null, string]>;
+	encode(this: void, obj: object): LuaMultiReturn<[string, null]> | LuaMultiReturn<[null, string]>;
 	/**
 	 * 表示 JSON null 值。
 	 */

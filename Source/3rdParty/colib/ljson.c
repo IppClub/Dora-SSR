@@ -857,9 +857,9 @@ static void dumpper_process_value(json_dumpper_t *d, lua_State *L, int depth) {
 // 接口
 #define DEF_MAX_DEPTH 128
 
-// 从字符串加载：json.load(str, maxdepth) -> obj
+// 从字符串加载：json.decode(str, maxdepth) -> obj
 // 要求字符串必须以0结尾
-int colibc_json_load(lua_State *L) {
+int colibc_json_decode(lua_State *L) {
 	size_t size;
 	const char *str = luaL_checklstring(L, 1, &size);
 	int maxdepth = (int)luaL_optinteger(L, 2, DEF_MAX_DEPTH);
@@ -868,8 +868,8 @@ int colibc_json_load(lua_State *L) {
 	return 1;
 }
 
-// 保存到字符串: json.dump(obj) -> str
-int colibc_json_dump(lua_State *L) {
+// 保存到字符串: json.encode(obj) -> str
+int colibc_json_encode(lua_State *L) {
 	luaL_checkany(L, 1);
 	json_dumpper_t dumpper;
 	membuffer_init(&dumpper.buff);
@@ -886,8 +886,8 @@ int colibc_json_dump(lua_State *L) {
 }
 
 static const luaL_Reg lib[] = {
-	{"load", colibc_json_load},
-	{"dump", colibc_json_dump},
+	{"decode", colibc_json_decode},
+	{"encode", colibc_json_encode},
 	{NULL, NULL},
 };
 
