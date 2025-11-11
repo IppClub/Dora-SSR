@@ -6,6 +6,8 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
+import "runtime"
+
 #wa:import dora dragonbone_type
 func dragonbone_type() => i32
 
@@ -41,7 +43,7 @@ func DragonBoneFrom(raw: i64) => *DragonBone {
 	}
 	object := DragonBone{}
 	object.raw = &raw
-	SetFinalizer(object.raw, ObjectFinalizer)
+	runtime.SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -113,7 +115,7 @@ func NewDragonBoneWithFiles(bone_file: string, atlas_file: string) => *DragonBon
 	}
 	object := DragonBone{}
 	object.raw = &raw
-	SetFinalizer(object.raw, ObjectFinalizer)
+	runtime.SetFinalizer(object.raw, ObjectFinalizer)
 	return &object
 }
 
@@ -133,7 +135,7 @@ func NewDragonBone(bone_str: string) => *DragonBone {
 	}
 	object := DragonBone{}
 	object.raw = &raw
-	SetFinalizer(object.raw, ObjectFinalizer)
+	runtime.SetFinalizer(object.raw, ObjectFinalizer)
 	return &object
 }
 

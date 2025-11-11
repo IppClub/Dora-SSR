@@ -6,6 +6,8 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
+import "runtime"
+
 #wa:import dora tilenode_type
 func tilenode_type() => i32
 
@@ -53,7 +55,7 @@ func TileNodeFrom(raw: i64) => *TileNode {
 	}
 	object := TileNode{}
 	object.raw = &raw
-	SetFinalizer(object.raw, ObjectFinalizer)
+	runtime.SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -142,7 +144,7 @@ func NewTileNode(tmx_file: string) => *TileNode {
 	}
 	object := TileNode{}
 	object.raw = &raw
-	SetFinalizer(object.raw, ObjectFinalizer)
+	runtime.SetFinalizer(object.raw, ObjectFinalizer)
 	return &object
 }
 
@@ -163,7 +165,7 @@ func NewTileNodeWithWithLayer(tmx_file: string, layer_name: string) => *TileNode
 	}
 	object := TileNode{}
 	object.raw = &raw
-	SetFinalizer(object.raw, ObjectFinalizer)
+	runtime.SetFinalizer(object.raw, ObjectFinalizer)
 	return &object
 }
 
@@ -184,6 +186,6 @@ func NewTileNodeWithWithLayers(tmx_file: string, layer_names: *[]string) => *Til
 	}
 	object := TileNode{}
 	object.raw = &raw
-	SetFinalizer(object.raw, ObjectFinalizer)
+	runtime.SetFinalizer(object.raw, ObjectFinalizer)
 	return &object
 }

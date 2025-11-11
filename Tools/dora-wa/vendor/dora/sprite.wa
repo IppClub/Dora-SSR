@@ -6,6 +6,8 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
+import "runtime"
+
 #wa:import dora sprite_type
 func sprite_type() => i32
 
@@ -83,7 +85,7 @@ func SpriteFrom(raw: i64) => *Sprite {
 	}
 	object := Sprite{}
 	object.raw = &raw
-	SetFinalizer(object.raw, ObjectFinalizer)
+	runtime.SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -204,7 +206,7 @@ func NewSprite() => Sprite {
 	raw := sprite_new()
 	object := Sprite{}
 	object.raw = &raw
-	SetFinalizer(object.raw, ObjectFinalizer)
+	runtime.SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }
 
@@ -222,7 +224,7 @@ func NewSpriteWithTextureRect(texture: Texture2D, texture_rect: Rect) => Sprite 
 	raw := sprite_with_texture_rect(texture.GetRaw(), texture_rect.GetRaw())
 	object := Sprite{}
 	object.raw = &raw
-	SetFinalizer(object.raw, ObjectFinalizer)
+	runtime.SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }
 
@@ -239,7 +241,7 @@ func NewSpriteWithTexture(texture: Texture2D) => Sprite {
 	raw := sprite_with_texture(texture.GetRaw())
 	object := Sprite{}
 	object.raw = &raw
-	SetFinalizer(object.raw, ObjectFinalizer)
+	runtime.SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }
 
@@ -259,6 +261,6 @@ func NewSpriteWithFile(clip_str: string) => *Sprite {
 	}
 	object := Sprite{}
 	object.raw = &raw
-	SetFinalizer(object.raw, ObjectFinalizer)
+	runtime.SetFinalizer(object.raw, ObjectFinalizer)
 	return &object
 }

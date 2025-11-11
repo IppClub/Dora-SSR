@@ -6,6 +6,8 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
+import "runtime"
+
 #wa:import dora rect_release
 func rect_release(raw: i64)
 
@@ -125,7 +127,7 @@ func RectFrom(raw: i64) => *Rect {
 	}
 	item := Rect{}
 	item.raw = &raw
-	SetFinalizer(item.raw, rect_finalizer)
+	runtime.SetFinalizer(item.raw, rect_finalizer)
 	result := &item
 	return result
 }
@@ -335,7 +337,7 @@ func NewRect(origin: Vec2, size: Size) => Rect {
 	raw := rect_new(origin.ToValue(), size.ToValue())
 	object := Rect{}
 	object.raw = &raw
-	SetFinalizer(object.raw, rect_finalizer)
+	runtime.SetFinalizer(object.raw, rect_finalizer)
 	return object
 }
 

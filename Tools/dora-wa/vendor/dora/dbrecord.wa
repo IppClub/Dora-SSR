@@ -6,6 +6,8 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
+import "runtime"
+
 #wa:import dora dbrecord_release
 func dbrecord_release(raw: i64)
 
@@ -29,7 +31,7 @@ func DBRecordFrom(raw: i64) => *DBRecord {
 	}
 	item := DBRecord{}
 	item.raw = &raw
-	SetFinalizer(item.raw, d_b_record_finalizer)
+	runtime.SetFinalizer(item.raw, d_b_record_finalizer)
 	result := &item
 	return result
 }
