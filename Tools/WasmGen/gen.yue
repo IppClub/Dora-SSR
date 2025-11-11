@@ -1094,6 +1094,7 @@ else
 	clsCount = 0
 	funcCount = 0
 	for cls in *result
+		waRuntime = false
 		if "string" == type cls
 			moduleScopes[] = cls
 			continue
@@ -1175,6 +1176,7 @@ impl I#{clsNewName} for #{clsNewName} { }"
 		unless isTrait
 			rustBinding[] = "impl #{clsNewName} {"
 		waBinding[] = if isObject
+			waRuntime = true
 			"type #{waNewName} :struct { #{clsParent\sub 2} }
 func #{waNewName}From(raw: i64) => *#{waNewName} {
 	if raw == 0 {
@@ -1182,7 +1184,7 @@ func #{waNewName}From(raw: i64) => *#{waNewName} {
 	}
 	object := #{waNewName}{}
 	object.raw = &raw
-	SetFinalizer(object.raw, ObjectFinalizer)
+	runtime.SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -1207,7 +1209,8 @@ func ObjectAs#{waNewName}(object: Object) => *#{waNewName} {
 }
 "
 				else ""
-				finalizerCall = if isValue then "	SetFinalizer(item.raw, #{finalizer})\n" else ""
+				waRuntime = isValue
+				finalizerCall = if isValue then "	runtime.SetFinalizer(item.raw, #{finalizer})\n" else ""
 				"type #{waNewName} :struct { raw: *i64 }
 func #{waNewName}.GetRaw() => i64 {
 	return *this.raw
@@ -1810,20 +1813,22 @@ func #{waNewName}.GetRaw() => i64 {
 							dealOptional = isOptional and "if raw == 0 {\n\t\treturn nil\n\t}\n\tobject := #{waNewName}{}" or "object := #{waNewName}{}"
 							waFuncName = if funcNewName == "new" then "" else snakeToPascal funcNewName
 							if isObject
+								waRuntime = true
 								"#{waDocText}func New#{waNewName}#{waFuncName}(#{argsList})#{waReturnType} {
 #{prepareStr}	raw := #{cppFuncName}(#{argsConverted})
 	#{dealOptional}
 	object.raw = &raw
-	SetFinalizer(object.raw, ObjectFinalizer)
+	runtime.SetFinalizer(object.raw, ObjectFinalizer)
 	return #{isOptional and '&object' or 'object'}
 }"
 							elseif isValue
+								waRuntime = true
 								finalizer = toSnakeCase "#{waNewName}Finalizer"
 								"#{waDocText}func New#{waNewName}#{waFuncName}(#{argsList})#{waReturnType} {
 #{prepareStr}	raw := #{cppFuncName}(#{argsConverted})
 	#{dealOptional}
 	object.raw = &raw
-	SetFinalizer(object.raw, #{finalizer})
+	runtime.SetFinalizer(object.raw, #{finalizer})
 	return #{isOptional and '&object' or 'object'}
 }"
 						elseif isStatic
@@ -1874,6 +1879,8 @@ func #{waNewName}.GetRaw() => i64 {
 		close _f3 = with io.open waFile, "w"
 			\write licenseText
 			\write "\n\n"
+			if waRuntime
+				\write "import \"runtime\"\n"
 			\write table.concat waExtern, "\n"
 			\write "\n"
 			\write table.concat waBinding, "\n"

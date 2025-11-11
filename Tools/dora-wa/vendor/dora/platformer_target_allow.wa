@@ -6,6 +6,8 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
+import "runtime"
+
 #wa:import dora platformer_targetallow_release
 func platformer_targetallow_release(raw: i64)
 
@@ -44,7 +46,7 @@ func PlatformerTargetAllowFrom(raw: i64) => *PlatformerTargetAllow {
 	}
 	item := PlatformerTargetAllow{}
 	item.raw = &raw
-	SetFinalizer(item.raw, platformer_target_allow_finalizer)
+	runtime.SetFinalizer(item.raw, platformer_target_allow_finalizer)
 	result := &item
 	return result
 }
@@ -96,7 +98,7 @@ func NewPlatformerTargetAllow() => PlatformerTargetAllow {
 	raw := platformer_targetallow_new()
 	object := PlatformerTargetAllow{}
 	object.raw = &raw
-	SetFinalizer(object.raw, platformer_target_allow_finalizer)
+	runtime.SetFinalizer(object.raw, platformer_target_allow_finalizer)
 	return object
 }
 
@@ -109,6 +111,6 @@ func NewPlatformerTargetAllowWithValue(value: i32) => PlatformerTargetAllow {
 	raw := platformer_targetallow_with_value(value)
 	object := PlatformerTargetAllow{}
 	object.raw = &raw
-	SetFinalizer(object.raw, platformer_target_allow_finalizer)
+	runtime.SetFinalizer(object.raw, platformer_target_allow_finalizer)
 	return object
 }

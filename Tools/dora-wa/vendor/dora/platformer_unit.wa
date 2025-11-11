@@ -6,6 +6,8 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
+import "runtime"
+
 #wa:import dora platformer_unit_type
 func platformer_unit_type() => i32
 
@@ -110,7 +112,7 @@ func PlatformerUnitFrom(raw: i64) => *PlatformerUnit {
 	}
 	object := PlatformerUnit{}
 	object.raw = &raw
-	SetFinalizer(object.raw, ObjectFinalizer)
+	runtime.SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -340,7 +342,7 @@ func NewPlatformerUnit(unit_def: Dictionary, physics_world: PhysicsWorld, entity
 	raw := platformer_unit_new(unit_def.GetRaw(), physics_world.GetRaw(), entity.GetRaw(), pos.ToValue(), rot)
 	object := PlatformerUnit{}
 	object.raw = &raw
-	SetFinalizer(object.raw, ObjectFinalizer)
+	runtime.SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }
 
@@ -361,6 +363,6 @@ func NewPlatformerUnitWithStore(unit_def_name: string, physics_world_name: strin
 	raw := platformer_unit_with_store(ToDoraString(unit_def_name), ToDoraString(physics_world_name), entity.GetRaw(), pos.ToValue(), rot)
 	object := PlatformerUnit{}
 	object.raw = &raw
-	SetFinalizer(object.raw, ObjectFinalizer)
+	runtime.SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }
