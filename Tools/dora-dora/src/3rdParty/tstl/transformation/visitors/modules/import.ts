@@ -4,6 +4,7 @@ import * as lua from "../../../LuaAST";
 import { createStaticPromiseFunctionAccessor } from "../../builtins/promise";
 import { FunctionVisitor, TransformationContext } from "../../context";
 import { AnnotationKind, getSymbolAnnotations } from "../../utils/annotations";
+import { unsupportedRelativePathImport } from "../../utils/diagnostics";
 import { createDefaultExportStringLiteral } from "../../utils/export";
 import { createHoistableVariableDeclarationStatement } from "../../utils/lua-ast";
 import { importLuaLibFeature, LuaLibFeature } from "../../utils/lualib";
@@ -64,6 +65,14 @@ function transformImportSpecifier(
 }
 
 export const transformImportDeclaration: FunctionVisitor<ts.ImportDeclaration> = (statement, context) => {
+    // Check for relative path imports (./ or ../)
+    if (ts.isStringLiteral(statement.moduleSpecifier)) {
+        const importPath = statement.moduleSpecifier.text;
+        if (importPath.startsWith("./") || importPath.startsWith("../")) {
+            context.diagnostics.push(unsupportedRelativePathImport(statement.moduleSpecifier, importPath));
+        }
+    }
+
     const scope = peekScope(context);
 
     if (!scope.importStatements) {
