@@ -1,5 +1,6 @@
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+import { version } from '@site/src/version';
 
 # Dora 启动！
 
@@ -25,6 +26,7 @@ import TabItem from '@theme/TabItem';
 			{ label: 'Gitee', to: 'https://gitee.com/ippclub/Dora-SSR/releases/latest', target: '_blank' },
 			{ label: 'AtomGit', to: 'https://atomgit.com/ippclub/Dora-SSR/tags?tab=release', target: '_blank' },
 			{ label: 'GitCode', to: 'https://gitcode.com/ippclub/Dora-SSR/releases', target: '_blank' },
+			{ label: '直接下载', to: `http://39.155.148.157:8866/zips/dora-ssr-v${version}-android.zip`, target: '_blank' },
 	]}/>
 
 2. 运行软件，通过局域网内的 PC（平板或其他开发设备）的浏览器访问软件显示的服务器地址。
@@ -33,7 +35,9 @@ import TabItem from '@theme/TabItem';
 </TabItem>
 <TabItem value="windows" label="Windows">
 
-1. 下载并运行软件。请确保您已安装 Visual Studio 2022 的 X86 Visual C++ 可再发行组件包（即包含 MSVC 编译的程序所需运行时的 vc_redist.x86 补丁），以运行此应用程序。您可以从[微软网站](https://learn.microsoft.com/zh-cn/cpp/windows/latest-supported-vc-redist?view=msvc-170)下载。
+1. 下载并安装 Visual Studio 2022 的 X86 Visual C++ 可再发行组件包（即包含 MSVC 编译的程序所需运行时的 vc_redist.x86 补丁）。您可以从这里[下载](https://aka.ms/vc14/vc_redist.x86.exe)（更多详情请参阅[微软官网](https://learn.microsoft.com/zh-cn/cpp/windows/latest-supported-vc-redist?view=msvc-170)）。
+
+2. 下载并运行软件。
 
 	<Dropdown
 		label="下载软件"
@@ -42,10 +46,11 @@ import TabItem from '@theme/TabItem';
 			{ label: 'Gitee', to: 'https://gitee.com/ippclub/Dora-SSR/releases/latest', target: '_blank' },
 			{ label: 'AtomGit', to: 'https://atomgit.com/ippclub/Dora-SSR/tags?tab=release', target: '_blank' },
 			{ label: 'GitCode', to: 'https://gitcode.com/ippclub/Dora-SSR/releases', target: '_blank' },
+			{ label: '直接下载', to: `http://39.155.148.157:8866/zips/dora-ssr-v${version}-windows-x86.zip`, target: '_blank' },
 	]}/>
 
-2. 通过浏览器访问软件显示的服务器地址。
-3. 开始游戏开发。
+3. 通过浏览器访问软件显示的服务器地址。
+4. 开始游戏开发。
 
 </TabItem>
 <TabItem value="macos" label="macOS">
@@ -59,11 +64,19 @@ import TabItem from '@theme/TabItem';
 			{ label: 'Gitee', to: 'https://gitee.com/ippclub/Dora-SSR/releases/latest', target: '_blank' },
 			{ label: 'AtomGit', to: 'https://atomgit.com/ippclub/Dora-SSR/tags?tab=release', target: '_blank' },
 			{ label: 'GitCode', to: 'https://gitcode.com/ippclub/Dora-SSR/releases', target: '_blank' },
+			{ label: '直接下载', to: `http://39.155.148.157:8866/zips/dora-ssr-v${version}-macos-universal.zip`, target: '_blank' },
 	]}/>
 
 	或者您也可以通过 [Homebrew](https://brew.sh) 使用以下命令安装：
 	```sh
 	brew install --cask ippclub/tap/dora-ssr
+	```
+	后续更新请使用以下命令：
+	```sh
+	brew update
+	brew upgrade dora-ssr
+	# 或者也可以尝试下面的命令来更新同一版本下的 bug 修订版
+	brew reinstall dora-ssr
 	```
 
 	首次运行软件时，您可能会看到“Dora 无法打开”的提示。请前往“系统偏好设置” > “安全性与隐私”并点击“仍要打开”。
@@ -100,7 +113,7 @@ import TabItem from '@theme/TabItem';
 
 	- 在浏览器中，鼠标右键点击 Dora Dora 编辑器左侧资源树的“工作空间”菜单。
 	- 点击菜单项 `新建`，选择新建文件夹，命名为 `Hello`。
-	- 或者您也可以跳过文件夹的创建，直接创建一个新的凹语言游戏项目，通过在新建文件对话框中选择 `Wa` 语言，然后再勾选 “创建为 Wa 项目” 选项来新建为凹语言工程目录。
+	- 如果您在尝试使用凹语言开发游戏，也可以跳过文件夹的创建，直接创建一个新的凹语言游戏项目，通过在新建文件对话框中选择 `Wa` 语言，然后再勾选 “创建为 Wa 项目” 选项来新建为凹语言工程目录。
 
 2. 第二步：编写游戏代码
 

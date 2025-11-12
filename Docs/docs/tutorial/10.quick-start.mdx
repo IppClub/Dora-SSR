@@ -1,5 +1,6 @@
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+import { version } from '@site/src/version';
 
 # Dora Start!
 
@@ -25,6 +26,7 @@ Dora SSR is a game engine for rapid development of games on various devices. It 
 			{ label: 'Gitee', to: 'https://gitee.com/ippclub/Dora-SSR/releases/latest', target: '_blank' },
 			{ label: 'AtomGit', to: 'https://atomgit.com/ippclub/Dora-SSR/tags?tab=release', target: '_blank' },
 			{ label: 'GitCode', to: 'https://gitcode.com/ippclub/Dora-SSR/releases', target: '_blank' },
+			{ label: 'Direct Download', to: `http://39.155.148.157:8866/zips/dora-ssr-v${version}-android.zip`, target: '_blank' },
 	]}/>
 
 2. Run the software and access the server address displayed by the software through the browser of the PC (tablet or other development device) in the LAN.
@@ -33,7 +35,8 @@ Dora SSR is a game engine for rapid development of games on various devices. It 
 </TabItem>
 <TabItem value="windows" label="Windows">
 
-1. Ensure that you have the X86 Visual C++ Redistributable for Visual Studio 2022 (the MSVC runtime package vc_redist.x86) installed to run this application. You can download it from the [Microsoft website](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170).
+1. Download and install the X86 Visual C++ Redistributable for Visual Studio 2022 (the MSVC runtime package vc_redist.x86) to run this application. You can download it from [here](https://aka.ms/vc14/vc_redist.x86.exe) (more details see [Microsoft website](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170)).
+
 2. Download and run the software.
 
 	<Dropdown
@@ -43,6 +46,7 @@ Dora SSR is a game engine for rapid development of games on various devices. It 
 			{ label: 'Gitee', to: 'https://gitee.com/ippclub/Dora-SSR/releases/latest', target: '_blank' },
 			{ label: 'AtomGit', to: 'https://atomgit.com/ippclub/Dora-SSR/tags?tab=release', target: '_blank' },
 			{ label: 'GitCode', to: 'https://gitcode.com/ippclub/Dora-SSR/releases', target: '_blank' },
+			{ label: 'Direct Download', to: `http://39.155.148.157:8866/zips/dora-ssr-v${version}-windows-x86.zip`, target: '_blank' },
 	]}/>
 
 3. Access the server address displayed by the software through a browser.
@@ -60,14 +64,23 @@ Dora SSR is a game engine for rapid development of games on various devices. It 
 			{ label: 'Gitee', to: 'https://gitee.com/ippclub/Dora-SSR/releases/latest', target: '_blank' },
 			{ label: 'AtomGit', to: 'https://atomgit.com/ippclub/Dora-SSR/tags?tab=release', target: '_blank' },
 			{ label: 'GitCode', to: 'https://gitcode.com/ippclub/Dora-SSR/releases', target: '_blank' },
+			{ label: 'Direct Download', to: `http://39.155.148.157:8866/zips/dora-ssr-v${version}-macos-universal.zip`, target: '_blank' },
+
 	]}/>
 
 	Or you can install with [Homebrew](https://brew.sh) using:
 	```sh
 	brew install --cask ippclub/tap/dora-ssr
 	```
+	Subsequent updates can be performed using the following commands:
+	```sh
+	brew update
+	brew upgrade dora-ssr
+	# or try to update the revision of the same version by reinstalling
+	brew reinstall dora-ssr
+	```
 
-	You may see a prompt saying "Dora cannot be opened" when you first run the software. Please go to "System Preferences" > "Security & Privacy" and click "Open Anyway".
+	When you first run the software, you may see a prompt saying "Dora cannot be opened". Please go to "System Preferences" > "Security & Privacy" and click "Open Anyway".
 
 2. Access the server address displayed by the software through a browser.
 3. Start game development.
@@ -100,7 +113,7 @@ Dora SSR is a game engine for rapid development of games on various devices. It 
 1. Step One: Create a new project
 	- In the browser, right click on the menu "Workspace" of the resource tree on the left side of the Dora Dora editor.
 	- Click the `New` menu item, select "New Folder", and name it `Hello`.
-	- Or you can skip the step of creating the project folder and create a new game project in Wa language named `Hello`, by selecting the `Wa` language in the new file dialog and then checking the "create as Wa project" option.
+	- If you are trying to use Wa language to develop games, you can skip the step of creating the project folder and create a new game project in Wa language named `Hello`, by selecting the `Wa` language in the new file dialog and then checking the "create as Wa project" option.
 2. Step Two: Write the game code
 	- Create a new game entry code file in the project folder, select the Lua language (or Teal, TypeScript, YueScript), and name it `init`.
 	- If you are using the Wa language project, you can just reuse the `main.wa` file as the game entry code file.
