@@ -176,3 +176,7 @@ export const incompleteFieldDecoratorWarning = createWarningDiagnosticFactory(
 export const unsupportedArrayWithLengthConstructor = createErrorDiagnosticFactory(
     `Constructing new Array with length is not supported.`
 );
+
+export const unsupportedRelativePathImport = createErrorDiagnosticFactory(
+    (importPath: string) => `Relative path imports (like '${importPath}') are not supported. Please use the Lua style module path instead.`
+);
