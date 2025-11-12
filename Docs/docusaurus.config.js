@@ -2,6 +2,7 @@
 // Note: type annotations allow type checking and IDEs autocompletion
 
 import { themes } from 'prism-react-renderer';
+const { getVersionLabel } = require('./src/version');
 
 const github = process.env.ATOM === undefined;
 
@@ -200,7 +201,7 @@ const config = {
 					lastVersion: 'current',
 					versions: {
 						current: {
-							label: 'v1.7.2',
+							label: getVersionLabel(),
 						},
 					},
 				},
