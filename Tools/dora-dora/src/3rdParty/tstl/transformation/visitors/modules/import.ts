@@ -75,9 +75,7 @@ export const transformImportDeclaration: FunctionVisitor<ts.ImportDeclaration> =
 
     const scope = peekScope(context);
 
-    if (!scope.importStatements) {
-        scope.importStatements = [];
-    }
+    scope.importStatements ??= [];
 
     const result: lua.Statement[] = [];
     const requireCall = createModuleRequire(context, statement.moduleSpecifier);

@@ -12,7 +12,7 @@ import { React, toNode } from 'DoraX';
 import { App, BlendFunc, BlendOp, Buffer, Cache, Color, Content, Label, Line, Node, Opacity, Path, RenderTarget, Sprite, TextureFilter, TypeName, Vec2, thread, threadLoop, tolua, Mouse } from 'Dora';
 import { InputTextFlag, SetCond, WindowFlag } from "ImGui";
 import * as ImGui from 'ImGui';
-import Packer, { Block } from './TexturePacker/Packer';
+import Packer, { Block } from 'TexturePacker/Packer';
 import * as Ruler from 'UI/Control/Basic/Ruler';
 
 let zh = false;
