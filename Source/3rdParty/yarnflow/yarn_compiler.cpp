@@ -136,7 +136,7 @@ AST_END(AttributeValue, "attribute_value"sv)
 
 AST_NODE(Attribute)
 	ast_ptr<true, Name_t> name;
-	ast_sel<true, Value_t, String_t, AttributeValue_t> value;
+	ast_sel<true, Value_t, AttributeValue_t> value;
 	AST_MEMBER(Attribute, &name, &value)
 AST_END(Attribute, "attribute"sv)
 
@@ -594,7 +594,7 @@ public:
 
 		AttributeValue = +(not_(line_break | space_one | ']' | "/]") >> any_char);
 
-		Attribute = Name >> '=' >> (String | AttributeValue);
+		Attribute = Name >> '=' >> (Value | AttributeValue);
 
 		MarkupClose = true_();
 
@@ -1017,9 +1017,6 @@ public:
 		switch (value->get_id()) {
 			case id<Value_t>():
 				transformValue(static_cast<Value_t*>(value), out);
-				break;
-			case id<String_t>():
-				transformString(static_cast<String_t*>(value), out);
 				break;
 			case id<AttributeValue_t>():
 				out.push_back(toLuaString(_parser.toString(value)));
