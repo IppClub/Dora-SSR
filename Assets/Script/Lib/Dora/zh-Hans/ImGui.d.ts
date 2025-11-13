@@ -366,7 +366,7 @@ export const enum TabItemFlag {
 }
 
 export function SetDefaultFont(this: void, ttfFontFile: string, fontSize: number): void;
-export function ShowStats(this: void, extra?: (this: void) => void): void;
+export function ShowStats(this: void): void;
 export function ShowStats(this: void, open: boolean, extra?: (this: void) => void): boolean;
 export function ShowConsole(this: void): void;
 export function ShowConsole(this: void, open: boolean, initOnly?: boolean): boolean;
