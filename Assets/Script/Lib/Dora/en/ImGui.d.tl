@@ -337,7 +337,7 @@ local record ImGui
 		"NoAssumedClosure"
 	end
 	SetDefaultFont: function(ttfFontFile: string, fontSize: number)
-	ShowStats: function(extra?: function())
+	ShowStats: function()
 	ShowStats: function(open: boolean, windowsFlags: {WindowFlag}, extra?: function()): boolean
 	ShowConsole: function(initOnly?: boolean)
 	Begin: function(
