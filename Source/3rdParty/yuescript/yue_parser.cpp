@@ -547,7 +547,7 @@ YueParser::YueParser() {
 
 	Assign = '=' >> space >> Seperator >> (
 		With | If | Switch | TableBlock |
-		Exp >> *(space >> set(",;") >> space >> Exp)
+		(SpreadListExp | Exp) >> *(space >> set(",;") >> space >> (SpreadListExp | Exp))
 	);
 
 	UpdateOp =

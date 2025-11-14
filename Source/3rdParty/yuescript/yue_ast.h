@@ -443,7 +443,7 @@ AST_END(CompInner)
 
 AST_NODE(Assign)
 	ast_ptr<true, Seperator_t> sep;
-	ast_sel_list<true, With_t, If_t, Switch_t, TableBlock_t, Exp_t> values;
+	ast_sel_list<true, With_t, If_t, Switch_t, TableBlock_t, Exp_t, SpreadListExp_t> values;
 	AST_MEMBER(Assign, &sep, &values)
 AST_END(Assign)
 
