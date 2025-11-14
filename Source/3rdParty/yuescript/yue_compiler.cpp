@@ -78,7 +78,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.29.7"sv;
+const std::string_view version = "0.29.8"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -2321,15 +2321,27 @@ private:
 						transformAssignment(newAssignment, temp);
 						varName = objVar;
 					}
-					auto newAssignment = x->new_ptr<ExpListAssign_t>();
-					newAssignment->expList.set(toAst<ExpList_t>(varName + "[#"s + varName + "+1]"s, x));
-					auto assign = x->new_ptr<Assign_t>();
-					if (vit == values.end()) {
-						throw CompileError("right value missing"sv, values.front());
+					if (auto spread = ast_cast<SpreadListExp_t>(*vit)) {
+						auto lenVar = getUnusedName("_len_"sv);
+						forceAddToScope(lenVar);
+						temp.push_back(indent() + "local "s + lenVar + " = #"s + varName + " + 1"s + nll(spread));
+						auto elmVar = getUnusedName("_elm_"sv);
+						_buf << varName << '[' << lenVar << "],"s << lenVar << "="s << elmVar << ',' << lenVar << "+1 for "s << elmVar << " in *nil"s;
+						auto stmt = toAst<Statement_t>(clearBuf(), spread);
+						auto comp = stmt->appendix->item.to<CompInner_t>();
+						ast_to<CompForEach_t>(comp->items.front())->loopValue.to<StarExp_t>()->value.set(spread->exp);
+						transformStatement(stmt, temp);
+					} else {
+						auto newAssignment = x->new_ptr<ExpListAssign_t>();
+						newAssignment->expList.set(toAst<ExpList_t>(varName + "[#"s + varName + "+1]"s, x));
+						auto assign = x->new_ptr<Assign_t>();
+						if (vit == values.end()) {
+							throw CompileError("right value missing"sv, values.front());
+						}
+						assign->values.push_back(*vit);
+						newAssignment->action.set(assign);
+						transformAssignment(newAssignment, temp);
 					}
-					assign->values.push_back(*vit);
-					newAssignment->action.set(assign);
-					transformAssignment(newAssignment, temp);
 					if (extraScoped) {
 						popScope();
 						temp.push_back(indent() + "end"s + nlr(x));
@@ -2848,6 +2860,7 @@ private:
 			case id<Switch_t>(): transformSwitch(static_cast<Switch_t*>(value), out, ExpUsage::Closure); break;
 			case id<TableBlock_t>(): transformTableBlock(static_cast<TableBlock_t*>(value), out); break;
 			case id<Exp_t>(): transformExp(static_cast<Exp_t*>(value), out, ExpUsage::Closure); break;
+			case id<SpreadListExp_t>(): throw CompileError("can only be used for ranged table append assignments"sv, value); break;
 			default: YUEE("AST node mismatch", value); break;
 		}
 	}
@@ -8268,9 +8281,16 @@ private:
 			}
 			return;
 		}
-		auto def = ast_cast<NormalDef_t>(comp->items.front());
-		if (!def || def->defVal) {
-			throw CompileError("invalid comprehension expression", comp->items.front());
+		ast_node* value = nullptr;
+		bool isSpread = ast_is<SpreadListExp_t>(comp->items.front());
+		if (isSpread) {
+			value = comp->items.front();
+		} else {
+			auto def = ast_cast<NormalDef_t>(comp->items.front());
+			if (!def || def->defVal) {
+				throw CompileError("invalid comprehension expression", comp->items.front());
+			}
+			value = def->item.get();
 		}
 		bool extraScope = false;
 		switch (usage) {
@@ -8294,13 +8314,15 @@ private:
 			default:
 				break;
 		}
-		auto value = def->item.get();
 		auto compInner = static_cast<CompInner_t*>(comp->items.back());
 		str_list temp;
 		std::string accumVar = getUnusedName("_accum_"sv);
-		std::string lenVar = getUnusedName("_len_"sv);
 		addToScope(accumVar);
-		addToScope(lenVar);
+		std::string lenVar;
+		if (!isSpread) {
+			lenVar = getUnusedName("_len_"sv);
+			addToScope(lenVar);
+		}
 		for (auto item : compInner->items.objects()) {
 			switch (item->get_id()) {
 				case id<CompForEach_t>():
@@ -8318,7 +8340,7 @@ private:
 			}
 		}
 		{
-			auto assignLeft = toAst<ExpList_t>(accumVar + '[' + lenVar + ']', x);
+			auto assignLeft = toAst<ExpList_t>(accumVar + '[' + (isSpread ? "]"s : lenVar + ']'), x);
 			auto assign = x->new_ptr<Assign_t>();
 			assign->values.push_back(value);
 			auto assignment = x->new_ptr<ExpListAssign_t>();
@@ -8332,10 +8354,15 @@ private:
 			popScope();
 		}
 		_buf << indent() << "local "sv << accumVar << " = { }"sv << nll(comp);
-		_buf << indent() << "local "sv << lenVar << " = 1"sv << nll(comp);
-		_buf << join(temp);
-		_buf << assignStr;
-		_buf << indent(int(temp.size())) << lenVar << " = "sv << lenVar << " + 1"sv << nll(comp);
+		if (isSpread) {
+			_buf << join(temp);
+			_buf << assignStr;
+		} else {
+			_buf << indent() << "local "sv << lenVar << " = 1"sv << nll(comp);
+			_buf << join(temp);
+			_buf << assignStr;
+			_buf << indent(int(temp.size())) << lenVar << " = "sv << lenVar << " + 1"sv << nll(comp);
+		}
 		for (int ind = int(temp.size()) - 1; ind > -1; --ind) {
 			_buf << indent(ind) << "end"sv << nll(comp);
 		}
