@@ -609,7 +609,7 @@ int luaV_equalobj (lua_State *L, const TValue *t1, const TValue *t2) {
         return (ivalue(t1) == ivalue(t2));
       case LUA_VNUMFLT:
         return (fltvalue(t1) == fltvalue(t2));
-      case LUA_VLIGHTUSERDATA: return pvalue(t1) == pvalue(t2);
+      case LUA_VLIGHTUSERDATA: return check_exp(ttislightuserdata(t1), val_(t1).i) == check_exp(ttislightuserdata(t2), val_(t2).i);
       case LUA_VSHRSTR:
         return eqshrstr(tsvalue(t1), tsvalue(t2));
       case LUA_VLNGSTR:
