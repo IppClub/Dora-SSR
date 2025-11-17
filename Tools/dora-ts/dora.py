@@ -20,7 +20,7 @@ try:
 	parser = argparse.ArgumentParser(description="Initialize, build and run Dora SSR TypeScript project")
 
 	# Add command line arguments
-	parser.add_argument('action', type=str, nargs='?', default='build', help='init|build|run|stop')
+	parser.add_argument('action', type=str, nargs='?', default='build', help='init|build|run|buildrun|stop')
 	parser.add_argument('-l', '--language', nargs='?', type=str, default='zh-Hans', help='API language for initializing project, should be one of zh-Hans, en, default is zh-Hans')
 	parser.add_argument('-f', '--file', nargs='?', type=str, help='File to build')
 
@@ -30,7 +30,10 @@ try:
 	# get directory from current file
 	path = os.path.dirname(os.path.abspath(__file__))
 
+	validAction = False
+
 	if args.action == 'init':
+		validAction = True
 		print("Initializing Dora SSR TypeScript project...")
 		language = args.language
 		if language not in ["zh-Hans", "en"]:
@@ -131,7 +134,8 @@ try:
 			}, indent=2))
 
 		print("API files set up.")
-	elif args.action == 'build':
+	if args.action == 'build' or args.action == 'buildrun':
+		validAction = True
 		# Compile the TypeScript project
 		if not args.file:
 			print("Compiling Dora SSR TypeScript project...")
@@ -164,7 +168,8 @@ try:
 		except ValueError as e:
 			print(f"Invalid response format.")
 			sys.exit(1)
-	elif args.action == 'run':
+	if args.action == 'run' or args.action == 'buildrun':
+		validAction = True
 		response = requests.post(
 			f"http://localhost:8866/run",
 			json={'file': os.path.join(path, "init.lua"), 'asProj': True}
@@ -176,7 +181,8 @@ try:
 		else:
 			print("Failed to run.")
 			sys.exit(1)
-	elif args.action == 'stop':
+	if args.action == 'stop':
+		validAction = True
 		response = requests.post(
 			f"http://localhost:8866/stop"
 		)
@@ -187,7 +193,7 @@ try:
 		else:
 			print("Failed to stop.")
 			sys.exit(1)
-	else:
+	if not validAction:
 		print("Invalid action.")
 		sys.exit(1)
 
