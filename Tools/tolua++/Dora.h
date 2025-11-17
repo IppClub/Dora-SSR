@@ -47,7 +47,6 @@ struct Vec2
 	Vec2 operator*(Vec2 vec);
 	Vec2 operator*(Size size);
 	Vec2 operator/(float value);
-	bool operator==(Vec2 vec);
 	float distance(Vec2 vec);
 	float distanceSquared(Vec2 vec);
 	tolua_outside Vec2 Vec2::normalize @ normalize();
