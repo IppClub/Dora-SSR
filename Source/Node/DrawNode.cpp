@@ -222,6 +222,8 @@ void DrawNode::drawPolygon(const std::vector<Vec2>& verts, Color fillColor, floa
 }
 
 void DrawNode::drawPolygon(const Vec2* verts, uint32_t count, Color fillColor, float borderWidth, Color borderColor) {
+	if (count < 3) return;
+
 	bool outline = (borderColor.a > 0 && borderWidth > 0.0f);
 	bool fillPoly = (fillColor.a > 0);
 
