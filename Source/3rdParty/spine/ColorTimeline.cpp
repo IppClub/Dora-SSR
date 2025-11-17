@@ -453,16 +453,11 @@ void RGB2Timeline::apply(Skeleton &skeleton, float lastTime, float time, Vector<
 		}
 		default: {
 			r = getBezierValue(time, i, RGB2Timeline::R, curveType - RGB2Timeline::BEZIER);
-			g = getBezierValue(time, i, RGB2Timeline::G,
-							   curveType + RGB2Timeline::BEZIER_SIZE - RGB2Timeline::BEZIER);
-			b = getBezierValue(time, i, RGB2Timeline::B,
-							   curveType + RGB2Timeline::BEZIER_SIZE * 2 - RGB2Timeline::BEZIER);
-			r2 = getBezierValue(time, i, RGB2Timeline::R2,
-								curveType + RGB2Timeline::BEZIER_SIZE * 4 - RGB2Timeline::BEZIER);
-			g2 = getBezierValue(time, i, RGB2Timeline::G2,
-								curveType + RGB2Timeline::BEZIER_SIZE * 5 - RGB2Timeline::BEZIER);
-			b2 = getBezierValue(time, i, RGB2Timeline::B2,
-								curveType + RGB2Timeline::BEZIER_SIZE * 6 - RGB2Timeline::BEZIER);
+			g = getBezierValue(time, i, RGB2Timeline::G, curveType + RGB2Timeline::BEZIER_SIZE - RGB2Timeline::BEZIER);
+			b = getBezierValue(time, i, RGB2Timeline::B, curveType + RGB2Timeline::BEZIER_SIZE * 2 - RGB2Timeline::BEZIER);
+			r2 = getBezierValue(time, i, RGB2Timeline::R2, curveType + RGB2Timeline::BEZIER_SIZE * 3 - RGB2Timeline::BEZIER);
+			g2 = getBezierValue(time, i, RGB2Timeline::G2, curveType + RGB2Timeline::BEZIER_SIZE * 4 - RGB2Timeline::BEZIER);
+			b2 = getBezierValue(time, i, RGB2Timeline::B2, curveType + RGB2Timeline::BEZIER_SIZE * 5 - RGB2Timeline::BEZIER);
 		}
 	}
 	Color &light = slot->_color, &dark = slot->_darkColor;
