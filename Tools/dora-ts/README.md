@@ -1,5 +1,7 @@
 # Dora SSR TypeScript Development Tool
 
+English | [简体中文](README.zh-CN.md)
+
 A Python-based development tool for the Dora SSR game engine that enables TypeScript development with full IntelliSense support and hot-reload capabilities in external code editors.
 
 ## Overview
@@ -70,6 +72,23 @@ Starts the project in the Dora SSR engine.
 ./dora.py run
 ```
 
+#### Build and Run (`buildrun`)
+Compiles the TypeScript project and then immediately starts it in the Dora SSR engine. This is a convenience command that combines `build` and `run` in sequence.
+
+```bash
+./dora.py buildrun
+```
+
+**Options:**
+- `-f, --file`: File or directory to build (optional, default: current directory)
+
+**Example:**
+```bash
+# If you specify a target file, only the target file will be built, not the entire project. Then the project will be run from the init program entry.
+# This allows faster building and running when the project is large.
+./dora.py buildrun -f src/module.ts
+```
+
 #### Stop Project (`stop`)
 Stops the currently running project.
 
@@ -96,6 +115,11 @@ Stops the currently running project.
 4. **Run** your project:
    ```bash
    ./dora.py run
+   ```
+
+   Or use **buildrun** to build and run in one step:
+   ```bash
+   ./dora.py buildrun
    ```
 
 5. **Iterate**: Make changes, rebuild, and run again
@@ -147,4 +171,4 @@ This software is provided under the MIT License. See the license header in `dora
 
 ## Support
 
-For issues and questions related to the Dora SSR engine, please refer to the main Dora SSR documentation and community resources.
+For issues and questions related to the Dora SSR engine, please refer to the Dora SSR documentation and community resources.
