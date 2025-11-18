@@ -52,7 +52,7 @@ void VGNode::cleanup() {
 }
 
 void VGNode::render(const std::function<void()>& func) {
-	AssertUnless(_flags.isOn(Node::Cleanup), "can not operate on an invalid VGNode");
+	AssertIf(_flags.isOn(Node::Cleanup), "can not operate on an invalid VGNode");
 	VGTexture* texture = s_cast<VGTexture*>(_surface->getTexture());
 	NVGLUframebuffer* framebuffer = texture->getFramebuffer();
 	NVGcontext* context = texture->getContext();

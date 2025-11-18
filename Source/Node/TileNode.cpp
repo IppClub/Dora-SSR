@@ -727,7 +727,7 @@ static Dictionary* getLayerDict(tmx::Layer* target, const tmx::Map& map) {
 }
 
 Dictionary* TileNode::getLayer(String layerName) const {
-	AssertUnless(_flags.isOn(Node::Cleanup), "can not operate on an invalid TileNode");
+	AssertIf(_flags.isOn(Node::Cleanup), "can not operate on an invalid TileNode");
 	const auto& map = _tmxDef->getMap();
 	tmx::Layer* target = nullptr;
 	for (const auto& layer : map.getLayers()) {
