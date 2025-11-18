@@ -452,6 +452,7 @@ DragonBone::DragonBone()
 }
 
 void DragonBone::setSpeed(float var) {
+	AssertUnless(_flags.isOn(Node::Cleanup), "can not operate on an invalid DragonBone");
 	Playable::setSpeed(var);
 	_armatureProxy->getAnimation()->timeScale = var;
 }
@@ -477,6 +478,7 @@ bool DragonBone::isHitTestEnabled() const noexcept {
 }
 
 void DragonBone::setShowDebug(bool var) {
+	AssertUnless(_flags.isOn(Node::Cleanup), "can not operate on an invalid DragonBone");
 	if (var) {
 		if (!_debugLine) {
 			_debugLine = Line::create();
@@ -497,11 +499,13 @@ DragonBone::DBArmatureProxy* DragonBone::getArmatureProxy() const noexcept {
 }
 
 void DragonBone::setLook(String name) {
+	AssertUnless(_flags.isOn(Node::Cleanup), "can not operate on an invalid DragonBone");
 	db::SkinData* skin = _armatureProxy->getArmature()->getArmatureData()->getSkin(name.toString());
 	SharedDragonBoneCache.replaceSkin(_armatureProxy->getArmature(), skin);
 }
 
 void DragonBone::setFliped(bool var) {
+	AssertUnless(_flags.isOn(Node::Cleanup), "can not operate on an invalid DragonBone");
 	Playable::setFliped(var);
 	_armatureProxy->getArmature()->setFlipX(var);
 }
@@ -515,6 +519,7 @@ const std::string& DragonBone::getLastCompleted() const {
 }
 
 Vec2 DragonBone::getKeyPoint(String name) {
+	AssertUnless(_flags.isOn(Node::Cleanup), "can not operate on an invalid DragonBone");
 	for (db::Slot* slot : _armatureProxy->getArmature()->getSlots()) {
 		if (slot->getName() == name) {
 			return s_cast<DBSlot*>(slot)->getNode()->getDBTransform().applyPoint(Vec2::zero);
@@ -524,6 +529,7 @@ Vec2 DragonBone::getKeyPoint(String name) {
 }
 
 float DragonBone::play(String name, bool loop) {
+	AssertUnless(_flags.isOn(Node::Cleanup), "can not operate on an invalid DragonBone");
 	if (_armatureProxy->getAnimation()->isPlaying()) {
 		_lastCompletedAnimationName.clear();
 	}
@@ -532,10 +538,12 @@ float DragonBone::play(String name, bool loop) {
 }
 
 void DragonBone::stop() {
+	AssertUnless(_flags.isOn(Node::Cleanup), "can not operate on an invalid DragonBone");
 	_armatureProxy->getAnimation()->stop(Slice::Empty);
 }
 
 void DragonBone::setSlot(String name, Node* item) {
+	AssertUnless(_flags.isOn(Node::Cleanup), "can not operate on an invalid DragonBone");
 	for (db::Slot* slot : _armatureProxy->getArmature()->getSlots()) {
 		if (slot->getName() == name) {
 			if (auto node = s_cast<DBSlot*>(slot)->getNode()) {
@@ -549,6 +557,7 @@ void DragonBone::setSlot(String name, Node* item) {
 }
 
 Node* DragonBone::getSlot(String name) {
+	AssertUnless(_flags.isOn(Node::Cleanup), "can not operate on an invalid DragonBone");
 	for (db::Slot* slot : _armatureProxy->getArmature()->getSlots()) {
 		if (slot->getName() == name) {
 			if (auto node = s_cast<DBSlot*>(slot)->getNode()) {
@@ -560,6 +569,7 @@ Node* DragonBone::getSlot(String name) {
 }
 
 std::string DragonBone::containsPoint(float x, float y) const {
+	AssertUnless(_flags.isOn(Node::Cleanup), "can not operate on an invalid DragonBone");
 	if (!isHitTestEnabled()) return Slice::Empty;
 	for (db::Slot* slot : _armatureProxy->getArmature()->getSlots()) {
 		if (slot->containsPoint(x, y)) {
@@ -570,6 +580,7 @@ std::string DragonBone::containsPoint(float x, float y) const {
 }
 
 std::string DragonBone::intersectsSegment(float x1, float y1, float x2, float y2) const {
+	AssertUnless(_flags.isOn(Node::Cleanup), "can not operate on an invalid DragonBone");
 	if (!isHitTestEnabled()) return Slice::Empty;
 	for (db::Slot* slot : _armatureProxy->getArmature()->getSlots()) {
 		if (slot->intersectsSegment(x1, y1, x2, y2)) {

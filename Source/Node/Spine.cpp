@@ -110,11 +110,13 @@ bool Spine::init() {
 }
 
 void Spine::setSpeed(float var) {
+	AssertUnless(_flags.isOn(Node::Cleanup), "can not operate on an invalid Spine");
 	_animationState->setTimeScale(var);
 	Playable::setSpeed(var);
 }
 
 void Spine::setRecovery(float var) {
+	AssertUnless(_flags.isOn(Node::Cleanup), "can not operate on an invalid Spine");
 	_animationStateData->setDefaultMix(var);
 	Playable::setRecovery(var);
 }
@@ -136,6 +138,7 @@ bool Spine::isHitTestEnabled() const noexcept {
 }
 
 void Spine::setShowDebug(bool var) {
+	AssertUnless(_flags.isOn(Node::Cleanup), "can not operate on an invalid Spine");
 	if (var) {
 		if (!_debugLine) {
 			_debugLine = Line::create();
@@ -151,6 +154,7 @@ void Spine::setShowDebug(bool var) {
 }
 
 void Spine::setLook(String name) {
+	AssertUnless(_flags.isOn(Node::Cleanup), "can not operate on an invalid Spine");
 	if (name.empty()) {
 		_skeleton->setSkin(nullptr);
 		_skeleton->setSlotsToSetupPose();
@@ -189,6 +193,7 @@ void Spine::setLook(String name) {
 }
 
 void Spine::setFliped(bool var) {
+	AssertUnless(_flags.isOn(Node::Cleanup), "can not operate on an invalid Spine");
 	_skeleton->setScaleX(var ? -1.0f : 1.0f);
 	Playable::setFliped(var);
 }
@@ -202,6 +207,7 @@ const std::string& Spine::getLastCompleted() const {
 }
 
 Vec2 Spine::getKeyPoint(String name) {
+	AssertUnless(_flags.isOn(Node::Cleanup), "can not operate on an invalid Spine");
 	auto tokens = name.split("/"_slice);
 	if (tokens.size() == 1) {
 		auto slotName = spine::String{name.begin(), name.size(), false, false};
@@ -240,6 +246,7 @@ Vec2 Spine::getKeyPoint(String name) {
 }
 
 float Spine::play(String name, bool loop) {
+	AssertUnless(_flags.isOn(Node::Cleanup), "can not operate on an invalid Spine");
 	auto animation = _skeletonData->getSkel()->findAnimation(spine::String{name.begin(), name.size(), false, false});
 	if (!animation) {
 		return 0.0f;
@@ -263,10 +270,12 @@ float Spine::play(String name, bool loop) {
 }
 
 void Spine::stop() {
+	AssertUnless(_flags.isOn(Node::Cleanup), "can not operate on an invalid Spine");
 	_animationState->clearTrack(0);
 }
 
 void Spine::setSlot(String name, Node* item) {
+	AssertUnless(_flags.isOn(Node::Cleanup), "can not operate on an invalid Spine");
 	if (!_slots) {
 		_slots = New<StringMap<Ref<Node>>>();
 	}
@@ -283,6 +292,7 @@ void Spine::setSlot(String name, Node* item) {
 }
 
 Node* Spine::getSlot(String name) {
+	AssertUnless(_flags.isOn(Node::Cleanup), "can not operate on an invalid Spine");
 	if (_slots) {
 		auto it = _slots->find(name);
 		if (it != _slots->end()) {
@@ -293,6 +303,7 @@ Node* Spine::getSlot(String name) {
 }
 
 bool Spine::setBoneRotation(String name, float rotation) {
+	AssertUnless(_flags.isOn(Node::Cleanup), "can not operate on an invalid Spine");
 	if (_skeleton) {
 		if (auto bone = _skeleton->findBone(spine::String{name.begin(), name.size(), false, false})) {
 			bone->setRotation(rotation);
@@ -303,6 +314,7 @@ bool Spine::setBoneRotation(String name, float rotation) {
 }
 
 std::string Spine::containsPoint(float x, float y) const {
+	AssertUnless(_flags.isOn(Node::Cleanup), "can not operate on an invalid Spine");
 	if (!_bounds || !isHitTestEnabled()) return Slice::Empty;
 	if (_bounds->aabbcontainsPoint(x, y)) {
 		if (auto attachment = _bounds->containsPoint(x, y)) {
@@ -315,6 +327,7 @@ std::string Spine::containsPoint(float x, float y) const {
 }
 
 std::string Spine::intersectsSegment(float x1, float y1, float x2, float y2) const {
+	AssertUnless(_flags.isOn(Node::Cleanup), "can not operate on an invalid Spine");
 	if (!_bounds || !isHitTestEnabled()) return Slice::Empty;
 	if (_bounds->aabbintersectsSegment(x1, y1, x2, y2)) {
 		if (auto attachment = _bounds->intersectsSegment(x1, y1, x2, y2)) {

@@ -344,10 +344,7 @@ void ParticleNode::addParticle() {
 }
 
 void ParticleNode::start() {
-	if (!_particleDef) {
-		Warn("got invalid particle node to start");
-		return;
-	}
+	AssertUnless(_flags.isOn(Node::Cleanup), "can not operate on an invalid ParticleNode");
 	_flags.setOn(ParticleNode::Active);
 	_flags.setOn(ParticleNode::Emitting);
 	_elapsed = 0;
@@ -355,10 +352,7 @@ void ParticleNode::start() {
 }
 
 void ParticleNode::stop() {
-	if (!_particleDef) {
-		Warn("got invalid particle node to stop");
-		return;
-	}
+	AssertUnless(_flags.isOn(Node::Cleanup), "can not operate on an invalid ParticleNode");
 	_flags.setOff(ParticleNode::Active);
 	_elapsed = _particleDef->duration;
 	_emitCounter = 0;
