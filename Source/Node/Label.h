@@ -43,8 +43,8 @@ public:
 	Sprite* getCharacter(int index) const;
 	int getCharacterCount() const;
 	virtual bool init() override;
-	virtual void cleanup() override;
 	virtual void render() override;
+	virtual void cleanup() override;
 	virtual const Matrix& getWorld() override;
 	static const float AutomaticWidth;
 	CREATE_FUNC_NULLABLE(Label);

@@ -606,7 +606,7 @@ void Spine::render() {
 
 void Spine::cleanup() {
 	if (_flags.isOff(Node::Cleanup)) {
-		Node::cleanup();
+		Playable::cleanup();
 		_slots = nullptr;
 		_effect = nullptr;
 		_skeletonData = nullptr;

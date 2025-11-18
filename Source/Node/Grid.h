@@ -28,6 +28,7 @@ public:
 	void moveUV(int x, int y, Vec2 offset);
 	virtual bool init() override;
 	virtual void render() override;
+	virtual void cleanup() override;
 	virtual const Matrix& getWorld() override;
 	virtual void updateRealColor3() override;
 	virtual void updateRealOpacity() override;

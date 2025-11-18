@@ -301,10 +301,11 @@ void AlignNode::removeChild(Node* child, bool cleanup) {
 }
 
 void AlignNode::cleanup() {
-	if (_flags.isOn(Node::Cleanup)) return;
-	YGNodeFree(_yogaNode);
-	_yogaNode = nullptr;
-	Node::cleanup();
+	if (_flags.isOff(Node::Cleanup)) {
+		Node::cleanup();
+		YGNodeFree(_yogaNode);
+		_yogaNode = nullptr;
+	}
 }
 
 void AlignNode::alignLayout() {

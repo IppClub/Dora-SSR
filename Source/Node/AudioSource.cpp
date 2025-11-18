@@ -128,9 +128,9 @@ void AudioSource::visit() {
 
 void AudioSource::cleanup() {
 	if (_flags.isOff(Node::Cleanup)) {
+		Node::cleanup();
 		_bus = nullptr;
 		_handle = 0;
-		Node::cleanup();
 	}
 }
 

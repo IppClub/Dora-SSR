@@ -75,6 +75,7 @@ public:
 	virtual ~Sprite();
 	virtual bool init() override;
 	virtual void render() override;
+	virtual void cleanup() override;
 	virtual const Matrix& getWorld() override;
 	static Sprite* from(String clipStr);
 	CREATE_FUNC_NOT_NULL(Sprite);

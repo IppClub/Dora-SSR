@@ -48,6 +48,7 @@ public:
 	PROPERTY(TextureFilter, Filter);
 	virtual void render() override;
 	virtual bool update(double deltaTime) override;
+	virtual void cleanup() override;
 	virtual const Matrix& getWorld() override;
 	Dictionary* getLayer(String layerName) const;
 	static TileNode* create(String tmxFile);

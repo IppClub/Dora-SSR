@@ -304,6 +304,14 @@ void Sprite::render() {
 	Node::render();
 }
 
+void Sprite::cleanup() {
+	if (_flags.isOff(Node::Cleanup)) {
+		Node::cleanup();
+		_texture = nullptr;
+		_effect = nullptr;
+	}
+}
+
 Sprite* Sprite::from(String clipStr) {
 	return SharedClipCache.loadSprite(clipStr);
 }

@@ -264,6 +264,14 @@ void Grid::render() {
 	Node::render();
 }
 
+void Grid::cleanup() {
+	if (_flags.isOff(Node::Cleanup)) {
+		Node::cleanup();
+		_texture = nullptr;
+		_effect = nullptr;
+	}
+}
+
 void Grid::updateRealColor3() {
 	Node::updateRealColor3();
 	_flags.setOn(Grid::VertexColorDirty);
