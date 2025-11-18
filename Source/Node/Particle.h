@@ -112,6 +112,7 @@ public:
 	virtual void visit() override;
 	virtual bool update(double deltaTime) override;
 	virtual void render() override;
+	virtual void cleanup() override;
 	void start();
 	void stop();
 	CREATE_FUNC_NULLABLE(ParticleNode);

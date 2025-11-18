@@ -22,8 +22,8 @@ public:
 	virtual bool init() override;
 	virtual void onEnter() override;
 	virtual void onExit() override;
-	virtual void cleanup() override;
 	virtual void visit() override;
+	virtual void cleanup() override;
 	CREATE_FUNC_NOT_NULL(ClipNode);
 
 protected:

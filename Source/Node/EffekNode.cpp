@@ -210,12 +210,12 @@ void EffekNode::render() {
 
 void EffekNode::cleanup() {
 	if (_flags.isOff(Node::Cleanup)) {
+		Node::cleanup();
 		auto manager = SharedEffekManager.instance->efkManager.Get();
 		for (auto& effek : _effeks) {
 			manager->StopEffect(effek->handle);
 		}
 		_effeks.clear();
-		Node::cleanup();
 	}
 }
 
