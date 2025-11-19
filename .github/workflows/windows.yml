@@ -41,6 +41,7 @@ jobs:
           (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip dora-wa && cd ..)
           (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Doc && cd ..)
           (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Font && cd ..)
+          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Image && cd ..)
           (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip gamecontrollerdb.txt && cd ..)
           (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip LICENSES && cd ..)
           (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Script && cd ..)
