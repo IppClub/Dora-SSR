@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 70;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -561,6 +561,7 @@
 		3CE7D3751EADF594008EADB3 /* libbimg_decode.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE7D3731EADF594008EADB3 /* libbimg_decode.a */; };
 		3CE7D3761EADF594008EADB3 /* libbimg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE7D3741EADF594008EADB3 /* libbimg.a */; };
 		3CE994642AFA43680073A973 /* gamecontrollerdb.txt in Resources */ = {isa = PBXBuildFile; fileRef = 3CE994632AFA43680073A973 /* gamecontrollerdb.txt */; };
+		3CFD21402ECD656900FD55EB /* Image in Resources */ = {isa = PBXBuildFile; fileRef = 3CFD213F2ECD656900FD55EB /* Image */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -1902,11 +1903,8 @@
 		3CE7D3731EADF594008EADB3 /* libbimg_decode.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg_decode.a; path = ../../Source/3rdParty/BGFX/Lib/macOS/libbimg_decode.a; sourceTree = "<group>"; };
 		3CE7D3741EADF594008EADB3 /* libbimg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg.a; path = ../../Source/3rdParty/BGFX/Lib/macOS/libbimg.a; sourceTree = "<group>"; };
 		3CE994632AFA43680073A973 /* gamecontrollerdb.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = gamecontrollerdb.txt; sourceTree = "<group>"; };
+		3CFD213F2ECD656900FD55EB /* Image */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Image; sourceTree = "<group>"; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		3CFD21362ECD4C2A00FD55EB /* Image */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Image; sourceTree = "<group>"; };
-/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		3CC81FE31D966770008C8B77 /* Frameworks */ = {
@@ -1972,7 +1970,7 @@
 				3C60DE122A2069CE007D7865 /* Doc */,
 				3CA8DF0C2A0CE6FD0022CC90 /* www */,
 				3CBC784A24CE7527003C9E83 /* Font */,
-				3CFD21362ECD4C2A00FD55EB /* Image */,
+				3CFD213F2ECD656900FD55EB /* Image */,
 				3CBC784524CE7527003C9E83 /* Script */,
 			);
 			name = Resources;
@@ -4160,9 +4158,6 @@
 			);
 			dependencies = (
 			);
-			fileSystemSynchronizedGroups = (
-				3CFD21362ECD4C2A00FD55EB /* Image */,
-			);
 			name = Dora;
 			productName = Dorothy;
 			productReference = 3CC81FE61D966770008C8B77 /* Dora.app */;
@@ -4212,6 +4207,7 @@
 				3CBED0992DD5C0A100E6F2FC /* dora-wa in Resources */,
 				3CA8DF0D2A0CE6FD0022CC90 /* www in Resources */,
 				3CBC785224CE7528003C9E83 /* Font in Resources */,
+				3CFD21402ECD656900FD55EB /* Image in Resources */,
 				3CBC784D24CE7528003C9E83 /* Script in Resources */,
 				3C60DE132A2069CE007D7865 /* Doc in Resources */,
 			);
