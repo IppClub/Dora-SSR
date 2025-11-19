@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -2463,6 +2463,10 @@
 		3CE994692AFB26820073A973 /* gamecontrollerdb.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = gamecontrollerdb.txt; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		3CFD21392ECD4C6B00FD55EB /* Image */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Image; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
 		3CBE0EEE26087F7B003F4F45 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
@@ -3097,6 +3101,7 @@
 				3C60DE142A2069FE007D7865 /* Doc */,
 				3CA8DF0E2A0CE83D0022CC90 /* www */,
 				3C030CF324CAE6570074786E /* Font */,
+				3CFD21392ECD4C6B00FD55EB /* Image */,
 				3C030CF024CAE6570074786E /* Script */,
 			);
 			name = Resources;
@@ -4738,6 +4743,9 @@
 			);
 			dependencies = (
 			);
+			fileSystemSynchronizedGroups = (
+				3CFD21392ECD4C6B00FD55EB /* Image */,
+			);
 			name = Simulator;
 			productName = Dora;
 			productReference = 3CBE0F1226087F7B003F4F45 /* Simulator.app */;
@@ -4755,6 +4763,9 @@
 			buildRules = (
 			);
 			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				3CFD21392ECD4C6B00FD55EB /* Image */,
 			);
 			name = Dora;
 			productName = Dora;

@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -1904,6 +1904,10 @@
 		3CE994632AFA43680073A973 /* gamecontrollerdb.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = gamecontrollerdb.txt; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		3CFD21362ECD4C2A00FD55EB /* Image */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Image; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
 		3CC81FE31D966770008C8B77 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
@@ -1962,12 +1966,13 @@
 		3C030CD824CAD9670074786E /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				3CBED0982DD5C08B00E6F2FC /* dora-wa */,
 				3CE994632AFA43680073A973 /* gamecontrollerdb.txt */,
 				3CA780A02AEB82B100B7BADA /* LICENSES */,
+				3CBED0982DD5C08B00E6F2FC /* dora-wa */,
 				3C60DE122A2069CE007D7865 /* Doc */,
 				3CA8DF0C2A0CE6FD0022CC90 /* www */,
 				3CBC784A24CE7527003C9E83 /* Font */,
+				3CFD21362ECD4C2A00FD55EB /* Image */,
 				3CBC784524CE7527003C9E83 /* Script */,
 			);
 			name = Resources;
@@ -4154,6 +4159,9 @@
 			buildRules = (
 			);
 			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				3CFD21362ECD4C2A00FD55EB /* Image */,
 			);
 			name = Dora;
 			productName = Dorothy;
