@@ -183,7 +183,7 @@ void Label::setBatched(bool var) {
 	if (var) {
 		for (const auto& fontChar : _characters) {
 			if (fontChar && fontChar->sprite) {
-				removeChild(fontChar->sprite);
+				fontChar->sprite->removeFromParent();
 				fontChar->sprite = nullptr;
 			}
 		}
@@ -308,26 +308,32 @@ void Label::updateCharacters(const std::vector<uint32_t>& chars) {
 			}
 		}
 
+		bool createSprite = false;
 		if (fontChar) {
 			if (fontChar->sprite) {
 				SharedFontCache.updateCharacter(fontChar->sprite, _font, ch);
 				fontChar->sprite->setVisible(ch != '\0');
+			} else if (_flags.isOff(Label::TextBatched)) {
+				createSprite = true;
 			}
 		} else {
 			_characters[i] = New<CharItem>();
 			fontChar = _characters[i].get();
 			if (_flags.isOff(Label::TextBatched)) {
-				Sprite* sprite = SharedFontCache.createCharacter(_font, ch);
-				sprite->setBlendFunc(_blendFunc);
-				sprite->setRenderOrder(getRenderOrder());
-				sprite->setDepthWrite(isDepthWrite());
-				sprite->setEffect(_effect);
-				sprite->setVisible(ch != '\0');
-				addChild(sprite);
-				fontChar->sprite = sprite;
+				createSprite = true;
 			}
 		}
 		fontChar->code = ch;
+		if (createSprite) {
+			Sprite* sprite = SharedFontCache.createCharacter(_font, ch);
+			sprite->setBlendFunc(_blendFunc);
+			sprite->setRenderOrder(getRenderOrder());
+			sprite->setDepthWrite(isDepthWrite());
+			sprite->setEffect(_effect);
+			sprite->setVisible(ch != '\0');
+			addChild(sprite);
+			fontChar->sprite = sprite;
+		}
 		std::tie(fontChar->texture, fontChar->rect) = SharedFontCache.getCharacterInfo(_font, ch);
 
 		float yOffset = -fontDef->offset_y;
