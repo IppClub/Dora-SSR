@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 70;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -1115,6 +1115,8 @@
 		3CE471CA2DD2EFDE0036716C /* libwa.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE471C82DD2EF9B0036716C /* libwa.a */; };
 		3CE9946A2AFB26820073A973 /* gamecontrollerdb.txt in Resources */ = {isa = PBXBuildFile; fileRef = 3CE994692AFB26820073A973 /* gamecontrollerdb.txt */; };
 		3CE9946B2AFB26820073A973 /* gamecontrollerdb.txt in Resources */ = {isa = PBXBuildFile; fileRef = 3CE994692AFB26820073A973 /* gamecontrollerdb.txt */; };
+		3CFD21452ECD65AF00FD55EB /* Image in Resources */ = {isa = PBXBuildFile; fileRef = 3CFD21442ECD65AF00FD55EB /* Image */; };
+		3CFD21472ECD65D500FD55EB /* Image in Resources */ = {isa = PBXBuildFile; fileRef = 3CFD21442ECD65AF00FD55EB /* Image */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -2461,11 +2463,8 @@
 		3CE471C82DD2EF9B0036716C /* libwa.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libwa.a; path = ../../Source/3rdParty/Wa/Lib/iOS/libwa.a; sourceTree = "<group>"; };
 		3CE606882D1109EC0073BB73 /* sdf_gen2d.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sdf_gen2d.h; sourceTree = "<group>"; };
 		3CE994692AFB26820073A973 /* gamecontrollerdb.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = gamecontrollerdb.txt; sourceTree = "<group>"; };
+		3CFD21442ECD65AF00FD55EB /* Image */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Image; sourceTree = "<group>"; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		3CFD21392ECD4C6B00FD55EB /* Image */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Image; sourceTree = "<group>"; };
-/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		3CBE0EEE26087F7B003F4F45 /* Frameworks */ = {
@@ -3101,7 +3100,7 @@
 				3C60DE142A2069FE007D7865 /* Doc */,
 				3CA8DF0E2A0CE83D0022CC90 /* www */,
 				3C030CF324CAE6570074786E /* Font */,
-				3CFD21392ECD4C6B00FD55EB /* Image */,
+				3CFD21442ECD65AF00FD55EB /* Image */,
 				3C030CF024CAE6570074786E /* Script */,
 			);
 			name = Resources;
@@ -4743,9 +4742,6 @@
 			);
 			dependencies = (
 			);
-			fileSystemSynchronizedGroups = (
-				3CFD21392ECD4C6B00FD55EB /* Image */,
-			);
 			name = Simulator;
 			productName = Dora;
 			productReference = 3CBE0F1226087F7B003F4F45 /* Simulator.app */;
@@ -4763,9 +4759,6 @@
 			buildRules = (
 			);
 			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				3CFD21392ECD4C6B00FD55EB /* Image */,
 			);
 			name = Dora;
 			productName = Dora;
@@ -4826,6 +4819,7 @@
 				3C60DE162A2069FE007D7865 /* Doc in Resources */,
 				3CA8DF102A0CE83D0022CC90 /* www in Resources */,
 				3CBE0F0826087F7B003F4F45 /* Font in Resources */,
+				3CFD21452ECD65AF00FD55EB /* Image in Resources */,
 				3CBE0F0926087F7B003F4F45 /* Script in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -4843,6 +4837,7 @@
 				3C60DE152A2069FE007D7865 /* Doc in Resources */,
 				3CA8DF0F2A0CE83D0022CC90 /* www in Resources */,
 				3C030CFB24CAE6580074786E /* Font in Resources */,
+				3CFD21472ECD65D500FD55EB /* Image in Resources */,
 				3C030CF824CAE6580074786E /* Script in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
