@@ -233,12 +233,14 @@ YueParser::YueParser() {
 	VarArg = "...";
 
 	auto getIndent = [](const item_t& item) -> int {
+		if (item.begin->m_it == item.end->m_it) return 0;
 		State* st = reinterpret_cast<State*>(item.user_data);
 		bool useTab = false;
 		if (st->useTab) {
 			useTab = st->useTab.value();
 		} else {
-			st->useTab = useTab = *item.begin->m_it == '\t';
+			useTab = *item.begin->m_it == '\t';
+			st->useTab = useTab;
 		}
 		int indent = 0;
 		if (useTab) {
@@ -935,7 +937,7 @@ YueParser::YueParser() {
 	MacroInPlace = '$' >> space >> "->" >> space >> Body;
 
 	NameList = Seperator >> Variable >> *(space >> ',' >> space >> Variable);
-	NameOrDestructure = Variable | TableLit | Comprehension;
+	NameOrDestructure = Variable | TableLit | Comprehension | SimpleTable;
 	AssignableNameList = Seperator >> NameOrDestructure >> *(space >> ',' >> space >> NameOrDestructure);
 
 	FnArrowBack = '<' >> set("-=");

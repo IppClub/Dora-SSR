@@ -8427,13 +8427,8 @@ private:
 						varConstAfter = vars.back();
 					}
 					break;
-				case id<TableLit_t>(): {
-					auto desVar = getUnusedName("_des_"sv);
-					destructPairs.emplace_back(item, toAst<Exp_t>(desVar, x));
-					vars.push_back(desVar);
-					varAfter.push_back(desVar);
-					break;
-				}
+				case id<SimpleTable_t>():
+				case id<TableLit_t>():
 				case id<Comprehension_t>(): {
 					auto desVar = getUnusedName("_des_"sv);
 					destructPairs.emplace_back(item, toAst<Exp_t>(desVar, x));
@@ -8642,11 +8637,18 @@ private:
 		if (!destructPairs.empty()) {
 			temp.clear();
 			for (auto& pair : destructPairs) {
-				auto sValue = x->new_ptr<SimpleValue_t>();
-				sValue->value.set(pair.first);
-				auto exp = newExp(sValue, x);
 				auto expList = x->new_ptr<ExpList_t>();
-				expList->exprs.push_back(exp);
+				if (ast_is<SimpleTable_t>(pair.first)) {
+					auto value = x->new_ptr<Value_t>();
+					value->item.set(pair.first);
+					auto exp = newExp(value, x);
+					expList->exprs.push_back(exp);
+				} else {
+					auto sValue = x->new_ptr<SimpleValue_t>();
+					sValue->value.set(pair.first);
+					auto exp = newExp(sValue, x);
+					expList->exprs.push_back(exp);
+				}
 				auto assign = x->new_ptr<Assign_t>();
 				assign->values.push_back(pair.second);
 				auto assignment = x->new_ptr<ExpListAssign_t>();
