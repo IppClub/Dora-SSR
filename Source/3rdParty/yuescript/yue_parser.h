@@ -119,6 +119,7 @@ protected:
 		int expLevel = 0;
 		size_t stringOpen = 0;
 		std::string buffer;
+		std::optional<bool> useTab;
 		std::stack<int> indents;
 		std::vector<bool> noDoStack;
 		std::vector<bool> noChainBlockStack;
