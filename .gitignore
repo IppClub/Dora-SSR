@@ -65,9 +65,6 @@ imgui.ini
 # Ignore vscode file
 .vscode/
 
-# include tolua tool
-!tolua++.exe
-
 # Ignore dev files
 Assets/www/
 Assets/dora-wa/
@@ -78,3 +75,13 @@ Projects/Linux/3rdParty/
 # Ignore rust files
 Source/Rust/lib/*
 Source/Rust/target/*
+
+# Ignore tolua++ files
+Tools/tolua++/**/*.o
+Tools/tolua++/**/*.a
+Tools/tolua++/**/*.dll
+Tools/tolua++/**/*.exp
+Tools/tolua++/**/*.lib
+Tools/tolua++/**/lua
+Tools/tolua++/**/luac
+Tools/tolua++/**/*.so

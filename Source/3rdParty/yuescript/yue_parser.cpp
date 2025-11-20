@@ -232,27 +232,41 @@ YueParser::YueParser() {
 	KeyName = SelfItem | Name | UnicodeName;
 	VarArg = "...";
 
-	check_indent = pl::user(plain_space, [](const item_t& item) {
+	auto getIndent = [](const item_t& item) -> int {
+		State* st = reinterpret_cast<State*>(item.user_data);
+		bool useTab = false;
+		if (st->useTab) {
+			useTab = st->useTab.value();
+		} else {
+			st->useTab = useTab = *item.begin->m_it == '\t';
+		}
 		int indent = 0;
-		for (input_it i = item.begin->m_it; i != item.end->m_it; ++i) {
-			switch (*i) {
-				case ' ': indent++; break;
-				case '\t': indent += 4; break;
+		if (useTab) {
+			for (input_it i = item.begin->m_it; i != item.end->m_it; ++i) {
+				switch (*i) {
+					case '\t': indent += 4; break;
+					default: throw ParserError("can not mix the use of tabs and spaces as indents"sv, item.begin); break;
+				}
+			}
+		} else {
+			for (input_it i = item.begin->m_it; i != item.end->m_it; ++i) {
+				switch (*i) {
+					case ' ': indent++; break;
+					default: throw ParserError("can not mix the use of tabs and spaces as indents"sv, item.begin); break;
+				}
 			}
 		}
+		return indent;
+	};
+
+	check_indent = pl::user(plain_space, [getIndent](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
-		return st->indents.top() == indent;
+		return st->indents.top() == getIndent(item);
 	});
 	check_indent_match = and_(check_indent);
 
-	advance = pl::user(plain_space, [](const item_t& item) {
-		int indent = 0;
-		for (input_it i = item.begin->m_it; i != item.end->m_it; ++i) {
-			switch (*i) {
-				case ' ': indent++; break;
-				case '\t': indent += 4; break;
-			}
-		}
+	advance = pl::user(plain_space, [getIndent](const item_t& item) {
+		int indent = getIndent(item);
 		State* st = reinterpret_cast<State*>(item.user_data);
 		int top = st->indents.top();
 		if (top != -1 && indent > top) {
