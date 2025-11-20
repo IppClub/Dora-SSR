@@ -1,6 +1,6 @@
 export macro Enum = (...) ->
-	items = {...}
-	items = [item\gsub('"', '') for item in *items]
+	items = [...,]
+	items = [item\gsub '"', '' for item in *items]
 	itemSet = {item, true for item in *items}
 	(...) ->
 		count = select "#", ...
