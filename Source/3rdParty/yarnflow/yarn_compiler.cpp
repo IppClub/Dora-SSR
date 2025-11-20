@@ -635,7 +635,7 @@ public:
 
 		Goto = key("jump") >> space >> (Title | node_name_error);
 
-		Call = not_((expr("endif") | "if" | "else" | "elseif" | "jump" | "set") >> not_alpha_num) >> Name >> space >> Seperator >> -(Exp >> *(space >> ',' >> space >> Exp));
+		Call = not_(key("endif") | key("if") | key("else") | key("elseif") | key("jump") | key("set")) >> Name >> space >> Seperator >> -(Exp >> *(space >> ',' >> space >> Exp));
 
 		Command = begin_command >> space >> (
 			If |
