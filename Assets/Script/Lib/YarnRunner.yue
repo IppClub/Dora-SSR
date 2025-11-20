@@ -164,7 +164,7 @@ class YarnRunner
 			when "Dialog"
 				"Text", body
 			when "Option"
-				@option = {:title, :branches}
+				@option = :title, :branches
 				"Option", body
 			when "Goto"
 				@advance!
