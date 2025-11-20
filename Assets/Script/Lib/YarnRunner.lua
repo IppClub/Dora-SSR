@@ -34,7 +34,10 @@ local parseVariables -- 26
 parseVariables = function(yarnText) -- 26
 	local variables = { } -- 27
 	local in_variables = false -- 28
-	local current_var = { } -- 29
+	local current_var = { -- 29
+		key = nil, -- 29
+		value = nil -- 29
+	} -- 29
 	for line in yarnText:gmatch("([^\r\n]*)\r?\n?") do -- 30
 		if not line:match("^%s*//") then -- 31
 			break -- 31
@@ -144,81 +147,81 @@ do -- 58
 				} -- 90
 			end -- 92
 			return true -- 93
-		end, -- 135
-		advance = function(self, choice) -- 135
-			if self.startTitle then -- 136
-				local success, err = self:gotoStory(self.startTitle) -- 137
-				self.startTitle = nil -- 138
-				if not success then -- 139
-					return "Error", err -- 139
-				end -- 139
-			end -- 136
-			if choice then -- 140
-				if not self.option then -- 141
-					return "Error", "there is no option to choose" -- 142
-				end -- 141
-				local title, branches -- 143
-				do -- 143
-					local _obj_0 = self.option -- 143
-					title, branches = _obj_0.title, _obj_0.branches -- 143
+		end, -- 134
+		advance = function(self, choice) -- 134
+			if self.startTitle then -- 135
+				local success, err = self:gotoStory(self.startTitle) -- 136
+				self.startTitle = nil -- 137
+				if not success then -- 138
+					return "Error", err -- 138
+				end -- 138
+			end -- 135
+			if choice then -- 139
+				if not self.option then -- 140
+					return "Error", "there is no option to choose" -- 141
+				end -- 140
+				local title, branches -- 142
+				do -- 142
+					local _obj_0 = self.option -- 142
+					title, branches = _obj_0.title, _obj_0.branches -- 142
+				end -- 142
+				if not (1 <= choice and choice <= #branches) then -- 143
+					return "Error", "choice " .. tostring(choice) .. " is out of range" -- 144
 				end -- 143
-				if not (1 <= choice and choice <= #branches) then -- 144
-					return "Error", "choice " .. tostring(choice) .. " is out of range" -- 145
-				end -- 144
-				local optionBranch = branches[choice] -- 146
-				self.option = nil -- 147
-				local _obj_0 = self.stories -- 148
-				_obj_0[#_obj_0 + 1] = { -- 148
-					title, -- 148
-					coroutine.create(optionBranch) -- 148
-				} -- 148
-			elseif self.option then -- 149
-				return "Error", "required a choice to continue" -- 150
-			end -- 140
-			local title -- 151
-			local success, resultType, body, branches -- 152
-			do -- 152
-				local storyItem = self.stories[#self.stories] -- 152
-				if storyItem then -- 152
-					local story -- 153
-					title, story = storyItem[1], storyItem[2] -- 153
-					success, resultType, body, branches = coroutine.resume(story) -- 154
-				end -- 152
-			end -- 152
-			if not success and #self.stories > 0 then -- 155
-				self.stories = { } -- 156
-				local err = rewriteError(resultType, self.codes[title], title) -- 157
-				return "Error", err -- 158
-			end -- 155
-			if not resultType then -- 159
-				if #self.stories > 0 then -- 160
-					self.stories[#self.stories] = nil -- 161
-					return self:advance() -- 162
-				end -- 160
-			end -- 159
-			if "Dialog" == resultType then -- 164
-				return "Text", body -- 165
-			elseif "Option" == resultType then -- 166
-				self.option = { -- 167
-					title = title, -- 167
-					branches = branches -- 167
-				} -- 167
-				return "Option", body -- 168
-			elseif "Goto" == resultType then -- 169
-				return self:advance() -- 170
-			elseif "Command" == resultType then -- 171
-				return "Command", body -- 172
-			elseif "Error" == resultType or "Stop" == resultType then -- 173
-				self.stories = { } -- 174
-				return "Error", body -- 175
-			else -- 177
-				return nil, "end of the story" -- 177
-			end -- 177
+				local optionBranch = branches[choice] -- 145
+				self.option = nil -- 146
+				local _obj_0 = self.stories -- 147
+				_obj_0[#_obj_0 + 1] = { -- 147
+					title, -- 147
+					coroutine.create(optionBranch) -- 147
+				} -- 147
+			elseif self.option then -- 148
+				return "Error", "required a choice to continue" -- 149
+			end -- 139
+			local title -- 150
+			local success, resultType, body, branches -- 151
+			do -- 151
+				local _des_0 = self.stories[#self.stories] -- 151
+				if _des_0 then -- 151
+					local story -- 151
+					title, story = _des_0[1], _des_0[2] -- 151
+					success, resultType, body, branches = coroutine.resume(story) -- 152
+				end -- 151
+			end -- 151
+			if not success and #self.stories > 0 then -- 153
+				self.stories = { } -- 154
+				local err = rewriteError(resultType, self.codes[title], title) -- 155
+				return "Error", err -- 156
+			end -- 153
+			if not resultType then -- 157
+				if #self.stories > 0 then -- 158
+					self.stories[#self.stories] = nil -- 159
+					return self:advance() -- 160
+				end -- 158
+			end -- 157
+			if "Dialog" == resultType then -- 162
+				return "Text", body -- 163
+			elseif "Option" == resultType then -- 164
+				self.option = { -- 165
+					title = title, -- 165
+					branches = branches -- 165
+				} -- 165
+				return "Option", body -- 166
+			elseif "Goto" == resultType then -- 167
+				return self:advance() -- 168
+			elseif "Command" == resultType then -- 169
+				return "Command", body -- 170
+			elseif "Error" == resultType or "Stop" == resultType then -- 171
+				self.stories = { } -- 172
+				return "Error", body -- 173
+			else -- 175
+				return nil, "end of the story" -- 175
+			end -- 175
 		end -- 58
 	} -- 58
 	if _base_0.__index == nil then -- 58
 		_base_0.__index = _base_0 -- 58
-	end -- 177
+	end -- 175
 	_class_0 = setmetatable({ -- 58
 		__init = function(self, filename, startTitle, state, command, testing) -- 95
 			if state == nil then -- 95
@@ -306,10 +309,10 @@ do -- 58
 				end -- 120
 			end -- 119
 			for _index_0 = 1, #nodes do -- 131
-				local node = nodes[_index_0] -- 131
-				local title, body = node.title, node.body -- 132
-				self.codes[title] = body -- 133
-			end -- 133
+				local _des_0 = nodes[_index_0] -- 131
+				local title, body = _des_0.title, _des_0.body -- 131
+				self.codes[title] = body -- 132
+			end -- 132
 		end, -- 58
 		__base = _base_0, -- 58
 		__name = "YarnRunner" -- 58
@@ -323,6 +326,6 @@ do -- 58
 	}) -- 58
 	_base_0.__class = _class_0 -- 58
 	YarnRunner = _class_0 -- 58
-end -- 177
-_module_0 = YarnRunner -- 179
-return _module_0 -- 179
+end -- 175
+_module_0 = YarnRunner -- 177
+return _module_0 -- 177

@@ -26,7 +26,7 @@ rewriteError = (err, luaCode, title) ->
 parseVariables = (yarnText): variables ->
 	variables = []
 	in_variables = false
-	current_var = {}
+	current_var = key: nil, value: nil
 	for line in yarnText\gmatch "([^\r\n]*)\r?\n?"
 		break unless line\match "^%s*//"
 		raw = line\gsub("^%s*//%s*", "")\gsub "%s+$", ""
@@ -118,7 +118,7 @@ class YarnRunner
 		@startTitle = startTitle
 		if testing
 			if variables := parseVariables yarnCode
-				for {:key, :value} in *variables
+				for :key, :value in *variables
 					switch value when "true"
 						state[key] = true
 					when "false"
@@ -128,8 +128,7 @@ class YarnRunner
 							state[key] = num
 						else
 							state[key] = value
-		for node in *nodes
-			:title, :body = node
+		for :title, :body in *nodes
 			@codes[title] = body
 
 	advance: (choice) =>
@@ -149,8 +148,7 @@ class YarnRunner
 		elseif @option
 			return "Error", "required a choice to continue"
 		local title
-		success, resultType, body, branches = if storyItem := @stories[#@stories]
-			[title, story] = storyItem
+		success, resultType, body, branches = if [title, story] := @stories[#@stories]
 			coroutine.resume story
 		if not success and #@stories > 0
 			@stories = []
