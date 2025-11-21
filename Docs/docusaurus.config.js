@@ -4,8 +4,6 @@
 import { themes } from 'prism-react-renderer';
 const { getVersionLabel } = require('./src/version');
 
-const github = process.env.ATOM === undefined;
-
 const darkCodeTheme = {
 	plain: {
 		color: '#D4D4D4',
@@ -164,10 +162,10 @@ const config = {
 	favicon: 'img/site/favicon.ico',
 
 	// Set the production url of your site here
-	url: github ? 'https://dora-ssr.net' : 'https://ippclub.atomgit.net',
+	url: 'https://dora-ssr.net',
 	// Set the /<baseUrl>/ pathname under which your site is served
 	// For GitHub pages deployment, it is often '/<projectName>/'
-	baseUrl: github ? '/' : '/Dora-SSR/',
+	baseUrl: '/',
 
 	// GitHub pages deployment config.
 	// If you aren't using GitHub pages, you don't need these.
@@ -193,9 +191,7 @@ const config = {
 					sidebarPath: require.resolve('./sidebars.js'),
 					// Please change this to your repo.
 					// Remove this to remove the "edit this page" links.
-					editUrl: github ?
-						'https://github.com/ippclub/Dora-SSR/tree/main/Docs' :
-						'https://atomgit.com/ippclub/Dora-SSR/blob/main/Docs',
+					editUrl: 'https://github.com/ippclub/Dora-SSR/tree/main/Docs',
 					showLastUpdateAuthor: true,
 					showLastUpdateTime: true,
 					lastVersion: 'current',
@@ -209,9 +205,7 @@ const config = {
 					showReadingTime: true,
 					// Please change this to your repo.
 					// Remove this to remove the "edit this page" links.
-					editUrl: github ?
-						'https://github.com/ippclub/Dora-SSR/tree/main/Docs' :
-						'https://atomgit.com/ippclub/Dora-SSR/blob/main/Docs',
+					editUrl: 'https://github.com/ippclub/Dora-SSR/tree/main/Docs',
 				},
 				theme: {
 					customCss: require.resolve('./src/css/custom.css'),
@@ -277,10 +271,6 @@ const config = {
 						{
 							type: 'html',
 							value: '<a href="https://gitee.com/ippclub/Dora-SSR" target="_blank"><div><div class="header-gitee-link"/></div></a>',
-						},
-						{
-							type: 'html',
-							value: '<a href="https://atomgit.com/ippclub/Dora-SSR" target="_blank"><div><div class="header-atomgit-link"/></div></a>',
 						},
 						{
 							type: 'html',

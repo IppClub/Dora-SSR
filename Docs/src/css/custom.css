@@ -144,22 +144,6 @@
 	width: 18px;
 }
 
-.header-atomgit-link:hover:before {
-	opacity: 0.6;
-}
-
-.header-atomgit-link:before {
-	background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' viewBox='0 0 75.47 75.47'%3E%3Cdefs%3E%3Cstyle%3E.cls-1%7Bfill-rule:evenodd;fill:url(%23linear-gradient);%7D%3C/style%3E%3ClinearGradient id='linear-gradient' x1='50.88' y1='59.05' x2='25.3' y2='17.8' gradientUnits='userSpaceOnUse'%3E%3Cstop offset='0' stop-color='%231281ff'/%3E%3Cstop offset='1' stop-color='%235ce9ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg id='图层_2' data-name='图层 2'%3E%3Cg id='图层_1-2' data-name='图层 1'%3E%3Cpath class='cls-1' d='M71.3,20.48a37.62,37.62,0,0,1,4.17,17.25A38.41,38.41,0,0,1,75.1,43,74.39,74.39,0,0,0,49,33.64L43.54,20.48ZM31.52,33q3.11-.27,6.21-.27T44,33L40.47,22.17a2.94,2.94,0,0,0-5.47,0L31.52,33ZM4.17,20.48H31.92L26.46,33.64A74.32,74.32,0,0,0,.37,43,38.41,38.41,0,0,1,0,37.73,37.49,37.49,0,0,1,4.17,20.48ZM72.86,51.54a51.4,51.4,0,0,0-22.28-14.1L61.17,62.93c1,2.33,2.2,2.58,3.67,1a37.62,37.62,0,0,0,8-12.44Zm-70.26,0a37.94,37.94,0,0,0,8,12.44c1.48,1.53,2.72,1.28,3.68-1L24.88,37.44A51.4,51.4,0,0,0,2.6,51.54Zm53.45,19.2L44.94,36.11a46,46,0,0,0-7.21-.63,46,46,0,0,0-7.2.63L19.42,70.74a37.82,37.82,0,0,0,36.63,0ZM37.73,0A37.65,37.65,0,0,1,67.41,14.43a128.43,128.43,0,0,1-29.68,3.48A128.41,128.41,0,0,1,8.06,14.43,37.63,37.63,0,0,1,37.73,0Z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")
-	no-repeat;
-	content: "AtomGit";
-	display: flex;
-	padding-left: 2em;
-	align-items: center;
-	margin-bottom: 10px;
-	height: 18px;
-	width: 18px;
-}
-
 .header-gitee-link:hover:before {
 	opacity: 0.6;
 }
