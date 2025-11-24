@@ -20,37 +20,35 @@ function compilationHook (wpModule) {
 
 	var endl = "\n";
 	var code = wpModule._source._value;
-	code = code.replace("export function localize", "       function _ocalize");
+	code = code.replace("function localize", "function _ocalize");
 	code += endl + "function localize(data, message) {";
 	code += endl + "	if (typeof(message) === 'string') {";
 	code += endl + "		var mapLang = localize.mapSelfLang[localize.selectLang] || {};";
 	code += endl + "		if (typeof(mapLang[message]) === 'string') {";
 	code += endl + "			message = mapLang[message];";
 	code += endl + "		} else {";
-	code += endl + "			var idx = localize.mapLangIdx[message] || -1;";
-	code += endl + "			var nlsLang = localize.mapNlsLang[localize.selectLang] || {};";
+	code += endl + "			var idx = localize.mapLangIdx[message];";
+	code += endl + "			if (idx === undefined) {";
+	code += endl + "				idx = -1;";
+	code += endl + "			}";
 	code += endl + "";
+	code += endl + "			var nlsLang = localize.mapNlsLang[localize.selectLang] || {};";
 	code += endl + "			if (idx in nlsLang) {";
 	code += endl + "				message = nlsLang[idx];";
 	code += endl + "			}";
 	if(local.options.logUnmatched){
 		code += endl + "			else {";
-		code += endl + "				console.info('unknown lang:' + message);";
+		code += endl + "				console.info('unknown lang: ' + message);";
 		code += endl + "			}";
 	}
 	code += endl + "		}";
 	code += endl + "	}";
 	code += endl + "";
-	code += endl + "	var args = [];";
-	code += endl + "	for(var i = 0; i < arguments.length; ++i){";
-	code += endl + "		args.push(arguments[i]);";
-	code += endl + "	}";
-	code += endl + "	args[1] = message;";
-	code += endl + "	return _ocalize.apply(this, args);";
+	code += endl + "	return _ocalize.apply(this, [data, message]);";
 	code += endl + "}";
 	code += endl + "localize.selectLang = " + langStr + ";";
 	if(langStr.indexOf('(') >= 0){
-		code += endl + "try{ localize.selectLang = eval(localize.selectLang); }catch(ex){}";
+		code += endl + "try { localize.selectLang = eval(localize.selectLang); } catch(ex){}";
 	}
 	code += endl + "localize.mapLangIdx = " + JSON.stringify(local.mapLangIdx) + ";";
 	code += endl + "localize.mapNlsLang = " + JSON.stringify(local.lang) + ";";
@@ -113,18 +111,17 @@ MonacoEditorLocalesPlugin.prototype.initLang = function(){
 	var arr = this.options.languages;
 
 	for(var i = 0 ;i < arr.length; ++i){
-		if(!(arr[i] in this.mapEmbedLangName)) {
+		if (!(arr[i] in this.mapEmbedLangName)) {
 			return;
 		}
 
 		var obj = this.mapEmbedLangName[arr[i]];
-		if(!obj){
+		if (!obj){
 			continue;
 		}
 
 		var rstObj = this.lang[arr[i]] || (this.lang[arr[i]] = {});
 		this.initOneLang(rstObj, this.mapEmbedLangName["en"], obj);
-
 
 		var objSelf = this.mapEmbedLangNameSelf[arr[i]];
 		if(!objSelf){

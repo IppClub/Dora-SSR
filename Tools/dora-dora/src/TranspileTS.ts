@@ -163,7 +163,7 @@ function createCompilerHost(rootFileName: string, content: string): [ts.Compiler
 					}
 				}
 			}
-			const lib = monaco.languages.typescript.typescriptDefaults.getExtraLibs()[fileName];
+			const lib = monaco.typescript.typescriptDefaults.getExtraLibs()[fileName];
 			if (lib) {
 				return ts.createSourceFile(fileName, lib.content, scriptTarget, false);
 			}
@@ -259,7 +259,7 @@ export async function transpileTypescript(
 
 export async function revalidateModel(model: monaco.editor.ITextModel) {
 	if (!model || model.isDisposed()) return;
-	const getWorker = await monaco.languages.typescript.getTypeScriptWorker();
+	const getWorker = await monaco.typescript.getTypeScriptWorker();
 	const worker = await getWorker(model.uri);
 	const diagnostics = (await Promise.all([
 		worker.getSyntacticDiagnostics(model.uri.toString()),

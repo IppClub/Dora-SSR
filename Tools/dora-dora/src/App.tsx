@@ -363,13 +363,6 @@ export default function PersistentDrawerLeft() {
 		return Service.assets().then((res: TreeDataType) => {
 			res.root = true;
 			res.title = t("tree.assets");
-			if (res.children === undefined) {
-				res.children = [{
-					key: '...',
-					dir: false,
-					title: '...',
-				}];
-			}
 			setTreeData([res]);
 			return res;
 		}).catch(() => {
@@ -428,7 +421,7 @@ export default function PersistentDrawerLeft() {
 			setDisconnected(true);
 		});
 		Service.openWebSocket();
-		monaco.languages.typescript.typescriptDefaults.setExtraLibs([]);
+		monaco.typescript.typescriptDefaults.setExtraLibs([]);
 		Promise.all([
 			Service.read({path: "es6-subset.d.ts"}),
 			Service.read({path: "lua.d.ts"}),
@@ -436,13 +429,13 @@ export default function PersistentDrawerLeft() {
 			loadAssets(),
 		]).then(([es6, lua, dora, res]) => {
 			if (es6.success) {
-				monaco.languages.typescript.typescriptDefaults.addExtraLib(es6.content, "es6-subset.d.ts");
+				monaco.typescript.typescriptDefaults.addExtraLib(es6.content, "es6-subset.d.ts");
 			}
 			if (lua.success) {
-				monaco.languages.typescript.typescriptDefaults.addExtraLib(lua.content, "lua.d.ts");
+				monaco.typescript.typescriptDefaults.addExtraLib(lua.content, "lua.d.ts");
 			}
 			if (dora.success) {
-				monaco.languages.typescript.typescriptDefaults.addExtraLib(dora.content, "Dora.d.ts");
+				monaco.typescript.typescriptDefaults.addExtraLib(dora.content, "Dora.d.ts");
 			}
 			if (res !== null) {
 				setExpandedKeys([res.key]);
@@ -572,6 +565,9 @@ export default function PersistentDrawerLeft() {
 		if (fileToFocus !== undefined) {
 			const file = fileToFocus;
 			setTreeData(prev => {
+				if (file.key === prev.at(0)?.key) {
+					return prev;
+				}
 				const visitedStack: TreeDataType[] = [];
 				function visitTree(node: TreeDataType): boolean {
 					if (node.key === file.key) {
@@ -805,7 +801,7 @@ export default function PersistentDrawerLeft() {
 						} else if (baseNameLower.startsWith('lua.')) {
 							return false;
 						}
-						const lib = monaco.languages.typescript.typescriptDefaults.getExtraLibs()[file];
+						const lib = monaco.typescript.typescriptDefaults.getExtraLibs()[file];
 						if (lib !== undefined) return true;
 						const model = monaco.editor.getModel(monaco.Uri.file(file));
 						if (model !== null) return true;
@@ -814,7 +810,7 @@ export default function PersistentDrawerLeft() {
 					},
 					getFile: async (uri: string) => {
 						const file = uri.startsWith("file:") ? monaco.Uri.parse(uri).fsPath : uri;
-						const lib = monaco.languages.typescript.typescriptDefaults.getExtraLibs()[file];
+						const lib = monaco.typescript.typescriptDefaults.getExtraLibs()[file];
 						if (lib !== undefined) return lib.content;
 						const model = monaco.editor.getModel(monaco.Uri.file(file));
 						if (model !== null) return model.getValue();
@@ -988,9 +984,6 @@ export default function PersistentDrawerLeft() {
 					addAlert(t("alert.reloaded"), "success");
 				}
 			});
-			return;
-		} else if (rootNode.children?.at(0)?.key === '...') {
-			setExpandedKeys([]);
 			return;
 		}
 		setExpandedKeys(keys);
@@ -1451,14 +1444,6 @@ export default function PersistentDrawerLeft() {
 						return "continue";
 					};
 					visitData(rootNode);
-					if (rootNode.children && rootNode.children.length === 0) {
-						rootNode.children = [{
-							key: '...',
-							dir: false,
-							title: '...',
-						}];
-						setExpandedKeys([]);
-					}
 					const newFiles = files.filter(f => path.relative(f.key, data.key) !== "" && !filesNotInTabs.has(f.key));
 					if (newFiles.length !== files.length) {
 						setFiles(newFiles);
@@ -1667,10 +1652,6 @@ export default function PersistentDrawerLeft() {
 												expandedKeys.push(rootNode.key);
 												setExpandedKeys(expandedKeys);
 											}
-										}
-										if (rootNode && rootNode.children?.at(0)?.key === '...') {
-											rootNode.children?.splice(0, 1);
-											setExpandedKeys([...expandedKeys]);
 										}
 										setTreeData([rootNode]);
 										setSelectedKeys([declaration.fileName]);
@@ -2144,10 +2125,6 @@ export default function PersistentDrawerLeft() {
 							expandedKeys.push(rootNode.key);
 							setExpandedKeys([...expandedKeys]);
 						}
-					}
-					if (rootNode && rootNode.children?.at(0)?.key === '...') {
-						rootNode.children?.splice(0, 1);
-						setExpandedKeys([...expandedKeys]);
 					}
 					setTreeData([rootNode]);
 					setSelectedKeys([newFile]);

@@ -130,12 +130,14 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 		name: 'file',
 		directory: true,
 		multiple: true,
+		showUploadList: false,
 		action: Service.addr(`/upload?path=${prop.path}`),
 		beforeUpload(file: RcFile, fileList: RcFile[]) {
-			if (fileList.length > 100) {
+			if (fileList.length > 51) {
 				notification.error({
+					title: t('upload.exceeded'),
 					key: "upload-exceeded-error",
-					message: t('upload.exceeded'),
+					message: t('upload.failed'),
 					placement: "top"
 				});
 				return Upload.LIST_IGNORE;
@@ -245,7 +247,7 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 			<Collapse
 				defaultActiveKey='1'
 				accordion
-				expandIconPosition="end"
+				expandIconPlacement="end"
 				style={{ marginBottom: 20, backgroundColor: Color.Background, borderColor: Color.Line }}
 				items={[
 					{
@@ -257,7 +259,7 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 							</Space>
 						),
 						children: (
-							<Space direction="vertical" style={{ width: '100%' }}>
+							<Space orientation="vertical" style={{ width: '100%' }}>
 								<Upload {...uprops} style={{marginBottom: 10}}>
 									<Button icon={<UploadOutlined/>}>{t("upload.selectFile")}</Button>
 								</Upload>

@@ -24,14 +24,14 @@ Service.addUpdateTSCodeListener((file, code) => {
 	}
 });
 
-const options = monaco.languages.typescript.typescriptDefaults.getCompilerOptions();
+const options = monaco.typescript.typescriptDefaults.getCompilerOptions();
 options.noLib = true;
 options.strict = true;
-options.jsx = monaco.languages.typescript.JsxEmit.React;
-options.target = monaco.languages.typescript.ScriptTarget.ESNext;
-options.module = monaco.languages.typescript.ModuleKind.ESNext;
-options.moduleResolution = monaco.languages.typescript.ModuleResolutionKind.Classic;
-monaco.languages.typescript.typescriptDefaults.setCompilerOptions(options);
+options.jsx = monaco.typescript.JsxEmit.React;
+options.target = monaco.typescript.ScriptTarget.ESNext;
+options.module = monaco.typescript.ModuleKind.ESNext;
+options.moduleResolution = monaco.typescript.ModuleResolutionKind.Classic;
+monaco.typescript.typescriptDefaults.setCompilerOptions(options);
 
 monaco.editor.defineTheme("dora-dark", {
 	base: "vs-dark",
