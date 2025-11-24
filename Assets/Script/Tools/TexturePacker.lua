@@ -27,7 +27,7 @@ local threadLoop = ____Dora.threadLoop -- 12
 local tolua = ____Dora.tolua -- 12
 local Mouse = ____Dora.Mouse -- 12
 local ImGui = require("ImGui") -- 14
-local ____Packer = require("TexturePacker.Packer") -- 15
+local ____Packer = require("Script.Tools.TexturePacker.Packer") -- 15
 local Packer = ____Packer.default -- 15
 local Ruler = require("UI.Control.Basic.Ruler") -- 16
 function getLabel(text) -- 58
