@@ -573,7 +573,7 @@ module.exports = function (webpackEnv) {
         languages: ["en", "zh-cn"],
         defaultLanguage: "window.getLanguageSetting()",
         logUnmatched: false,
-        mapLanguages: {},
+        mapLanguages: {"zh-cn": {"Go to References": "转到引用", "Peek": "查看", "Peek References": "查看引用"}},
       }),
       new codeInspectorPlugin({
         bundler: 'webpack',
