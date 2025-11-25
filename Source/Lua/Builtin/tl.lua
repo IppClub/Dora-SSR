@@ -11122,7 +11122,7 @@ tl.dora_infer = function(codes, line, row, search_path)
 			end
 			if current_type.types then
 				local id = current_type.types[1]
-				current_type = get_real_type(type_report, id)
+				current_type = get_real_type(type_report, id) or current_type
 			end
 			return {
 				str = str,
