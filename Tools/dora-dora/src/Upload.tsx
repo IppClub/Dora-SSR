@@ -11,10 +11,10 @@ import { ConfigProvider, theme, UploadProps } from 'antd';
 import { AiOutlineUpload } from 'react-icons/ai';
 import * as Service from './Service';
 import { useTranslation } from 'react-i18next';
-import { UploadOutlined, DownloadOutlined, LinkOutlined, FileTextOutlined } from '@ant-design/icons';
+import { UploadOutlined, DownloadOutlined, LinkOutlined, FileTextOutlined, CheckCircleOutlined, CloseCircleOutlined, LoadingOutlined } from '@ant-design/icons';
 import { Button, App, Upload, Input, Progress, Space, Typography, Collapse } from 'antd';
 import type { RcFile, UploadFile } from 'antd/es/upload/interface';
-import { memo, useState, useEffect, useCallback } from 'react';
+import { memo, useState, useEffect, useCallback, useRef } from 'react';
 import { Color } from './Frame';
 import Info from './Info';
 
@@ -133,7 +133,7 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 		showUploadList: false,
 		action: Service.addr(`/upload?path=${prop.path}`),
 		beforeUpload(file: RcFile, fileList: RcFile[]) {
-			if (fileList.length > 51) {
+			if (fileList.length > 501) {
 				notification.error({
 					title: t('upload.exceeded'),
 					key: "upload-exceeded-error",
@@ -142,16 +142,95 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 				});
 				return Upload.LIST_IGNORE;
 			}
+
 			if (file.name === ".DS_Store") {
 				return Upload.LIST_IGNORE;
 			}
-			return new File([file], file.webkitRelativePath !== "" ? file.webkitRelativePath : file.name);
+
+			// 添加到上传文件列表（使用文件名作为临时标识，antd 会在 onChange 中分配 uid）
+			const processedFile = new File([file], file.webkitRelativePath !== "" ? file.webkitRelativePath : file.name);
+			const fileName = processedFile.name;
+
+			setDraggerFileList(prevList => {
+				// 检查是否已存在同名且正在上传的文件（避免重复添加）
+				const existingFile = prevList.find(f => f.name === fileName && f.status === 'uploading');
+				if (existingFile) {
+					return prevList;
+				}
+				const tempUid = `temp-${Date.now()}-${Math.random()}-${fileName}`;
+				return [...prevList, {
+					uid: tempUid,
+					name: fileName,
+					status: 'uploading',
+					percent: 0,
+				}];
+			});
+
+			return processedFile;
 		},
 		onChange(info) {
-			const { status } = info.file;
-			if (status === 'done') {
-				prop.onUploaded(prop.path, info.file.name, false);
+			const { status, percent, uid, name } = info.file;
+
+			// 更新进度缓存（使用 antd 分配的 uid）
+			if (percent !== undefined && uid) {
+				draggerProgressCacheRef.current.set(uid, percent);
 			}
+
+			// 更新文件状态
+			setDraggerFileList(prevList => {
+				// 先尝试通过 uid 匹配（如果之前已经更新过）
+				let fileIndex = prevList.findIndex(f => f.uid === uid);
+				// 如果没找到，通过文件名和上传状态匹配（临时文件）
+				if (fileIndex === -1) {
+					fileIndex = prevList.findIndex(f => f.name === name && f.status === 'uploading' && f.uid.startsWith('temp-'));
+				}
+
+				// 如果找不到匹配的文件，说明 beforeUpload 中已经添加了，这里不应该再添加
+				// 只有在 beforeUpload 没有添加的情况下才添加（这种情况不应该发生）
+				if (fileIndex === -1) {
+					return prevList;
+				}
+
+				const updatedList = [...prevList];
+				if (status === 'done') {
+					updatedList[fileIndex] = {
+						...updatedList[fileIndex],
+						uid: uid, // 更新为 antd 的 uid
+						status: 'done',
+						percent: 100,
+					};
+					draggerProgressCacheRef.current.set(uid, 100);
+					draggerDisplayProgressRef.current.set(uid, 100);
+					// 完成后延迟移除
+					setTimeout(() => {
+						setDraggerFileList(prev => prev.filter(f => f.uid !== uid));
+						draggerProgressCacheRef.current.delete(uid);
+						draggerDisplayProgressRef.current.delete(uid);
+					}, 2000);
+					prop.onUploaded(prop.path, name, false);
+				} else if (status === 'error') {
+					updatedList[fileIndex] = {
+						...updatedList[fileIndex],
+						uid: uid,
+						status: 'error',
+					};
+					// 错误后延迟移除
+					setTimeout(() => {
+						setDraggerFileList(prev => prev.filter(f => f.uid !== uid));
+						if (uid) {
+							draggerProgressCacheRef.current.delete(uid);
+							draggerDisplayProgressRef.current.delete(uid);
+						}
+					}, 3000);
+				} else if (status === 'uploading') {
+					updatedList[fileIndex] = {
+						...updatedList[fileIndex],
+						uid: uid, // 更新为 antd 的 uid
+						status: 'uploading',
+					};
+				}
+				return updatedList;
+			});
 		},
 	};
 	const [fileList, setFileList] = useState<UploadFile[]>([]);
@@ -161,6 +240,44 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 	const [textContent, setTextContent] = useState('');
 	const [textFileName, setTextFileName] = useState('');
 	const [textCreating, setTextCreating] = useState(false);
+
+	// Dragger 上传文件列表相关状态
+	interface DraggerUploadFile {
+		uid: string;
+		name: string;
+		status: 'uploading' | 'done' | 'error';
+		percent: number;
+	}
+	const [draggerFileList, setDraggerFileList] = useState<DraggerUploadFile[]>([]);
+	const draggerProgressCacheRef = useRef<Map<string, number>>(new Map());
+	const draggerDisplayProgressRef = useRef<Map<string, number>>(new Map());
+
+	// 定时更新显示进度（每0.2秒）
+	useEffect(() => {
+		const interval = setInterval(() => {
+			setDraggerFileList(prevList => {
+				let hasChanges = false;
+				const updatedList = prevList.map(file => {
+					// 只更新正在上传的文件
+					if (file.status === 'uploading') {
+						const cachedPercent = draggerProgressCacheRef.current.get(file.uid);
+						if (cachedPercent !== undefined) {
+							const currentDisplayPercent = draggerDisplayProgressRef.current.get(file.uid);
+							if (cachedPercent !== currentDisplayPercent) {
+								hasChanges = true;
+								draggerDisplayProgressRef.current.set(file.uid, cachedPercent);
+								return { ...file, percent: cachedPercent };
+							}
+						}
+					}
+					return file;
+				});
+				return hasChanges ? updatedList : prevList;
+			});
+		}, 200);
+
+		return () => clearInterval(interval);
+	}, []);
 
 	const handleUpload = () => {
 		const formData = new FormData();
@@ -282,6 +399,105 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 										{t("upload.hint")}
 									</p>
 								</Dragger>
+
+								{/* 上传文件列表展示 */}
+								{draggerFileList.length > 0 && (
+									<div style={{
+										marginTop: 16,
+										padding: 12,
+										backgroundColor: Color.Background,
+										border: `1px solid ${Color.Line}`,
+										borderRadius: 6,
+									}}>
+										<Text type="secondary" style={{ display: 'block', marginBottom: 12, fontSize: 14 }}>
+											{t('upload.uploadingFiles')} ({draggerFileList.length})
+										</Text>
+										<div>
+											{draggerFileList.map((file, index) => (
+												<div
+													key={file.uid}
+													style={{
+														padding: '8px 0',
+														borderBottom: index < draggerFileList.length - 1 ? `1px solid ${Color.Line}` : 'none',
+													}}
+												>
+													<div style={{ width: '100%' }}>
+														<div style={{
+															display: 'flex',
+															alignItems: 'center',
+															justifyContent: 'space-between',
+															marginBottom: 6,
+														}}>
+															<div style={{
+																display: 'flex',
+																alignItems: 'center',
+																flex: 1,
+																minWidth: 0,
+															}}>
+																{file.status === 'done' && (
+																	<CheckCircleOutlined style={{
+																		color: '#52c41a',
+																		marginRight: 8,
+																		fontSize: 16,
+																	}} />
+																)}
+																{file.status === 'error' && (
+																	<CloseCircleOutlined style={{
+																		color: '#ff4d4f',
+																		marginRight: 8,
+																		fontSize: 16,
+																	}} />
+																)}
+																{file.status === 'uploading' && (
+																	<LoadingOutlined style={{
+																		color: Color.Primary,
+																		marginRight: 8,
+																		fontSize: 16,
+																	}} />
+																)}
+																<Text
+																	ellipsis
+																	style={{
+																		color: Color.TextPrimary,
+																		fontSize: 13,
+																		flex: 1,
+																		minWidth: 0,
+																	}}
+																	title={file.name}
+																>
+																	{file.name}
+																</Text>
+															</div>
+															{file.status === 'uploading' && (
+																<Text
+																	type="secondary"
+																	style={{
+																		marginLeft: 12,
+																		fontSize: 12,
+																		minWidth: 45,
+																		textAlign: 'right',
+																	}}
+																>
+																	{Math.round(file.percent)}%
+																</Text>
+															)}
+														</div>
+														{file.status === 'uploading' && (
+															<Progress
+																percent={Math.round(file.percent)}
+																status="active"
+																strokeColor={Color.Primary}
+																showInfo={false}
+																size="small"
+																style={{ marginTop: 4 }}
+															/>
+														)}
+													</div>
+												</div>
+											))}
+										</div>
+									</div>
+								)}
 							</Space>
 						),
 					},
