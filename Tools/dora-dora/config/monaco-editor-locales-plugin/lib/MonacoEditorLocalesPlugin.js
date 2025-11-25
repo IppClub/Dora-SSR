@@ -44,7 +44,43 @@ function compilationHook (wpModule) {
 	code += endl + "		}";
 	code += endl + "	}";
 	code += endl + "";
-	code += endl + "	return _ocalize.apply(this, [data, message]);";
+	code += endl + "	var args = [];";
+	code += endl + "	for(var i = 0; i < arguments.length; ++i){";
+	code += endl + "		args.push(arguments[i]);";
+	code += endl + "	}";
+	code += endl + "	args[1] = message;";
+	code += endl + "	return _ocalize.apply(this, args);";
+	code += endl + "}";
+	code = code.replace("function localize2", "function _ocalize2");
+	code += endl + "function localize2(data, message) {";
+	code += endl + "	if (typeof(message) === 'string') {";
+	code += endl + "		var mapLang = localize.mapSelfLang[localize.selectLang] || {};";
+	code += endl + "		if (typeof(mapLang[message]) === 'string') {";
+	code += endl + "			message = mapLang[message];";
+	code += endl + "		} else {";
+	code += endl + "			var idx = localize.mapLangIdx[message];";
+	code += endl + "			if (idx === undefined) {";
+	code += endl + "				idx = -1;";
+	code += endl + "			}";
+	code += endl + "";
+	code += endl + "			var nlsLang = localize.mapNlsLang[localize.selectLang] || {};";
+	code += endl + "			if (idx in nlsLang) {";
+	code += endl + "				message = nlsLang[idx];";
+	code += endl + "			}";
+	if(local.options.logUnmatched){
+		code += endl + "			else {";
+		code += endl + "				console.info('unknown lang: ' + message);";
+		code += endl + "			}";
+	}
+	code += endl + "		}";
+	code += endl + "	}";
+	code += endl + "";
+	code += endl + "	var args = [];";
+	code += endl + "	for(var i = 0; i < arguments.length; ++i){";
+	code += endl + "		args.push(arguments[i]);";
+	code += endl + "	}";
+	code += endl + "	args[1] = message;";
+	code += endl + "	return _ocalize2.apply(this, args);";
 	code += endl + "}";
 	code += endl + "localize.selectLang = " + langStr + ";";
 	if(langStr.indexOf('(') >= 0){
