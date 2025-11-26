@@ -83,6 +83,8 @@ public:
 
 	std::pair<Dora::OwnArray<uint8_t>, size_t> getFileData(const std::string& filename);
 
+	std::string getFileDataAsString(const std::string& filename);
+
 	bool getFileDataByChunks(const std::string& fileName, const std::function<bool(unsigned char*, int)>& handler);
 
 	std::list<std::string> getDirEntries(const std::string& path, bool isFolder);

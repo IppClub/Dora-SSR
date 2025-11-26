@@ -338,20 +338,16 @@ bool HttpServer::start(int port) {
 		}
 		auto content_type = httplib::detail::find_content_type(path, {}, "application/octet-stream"s);
 		OwnArray<uint8_t> data;
-		size_t dataSize = 0;
 		bx::Semaphore waitForLoaded;
+		std::string result;
 		SharedContent.getThread()->run([&]() {
-			int64_t size = 0;
-			auto result = SharedContent.loadUnsafe(path, size);
-			if (size > 0) {
-				data = MakeOwnArray(result);
-				dataSize = s_cast<size_t>(size);
-			}
+			result = SharedContent.loadUnsafe(path);
 			waitForLoaded.post();
 		});
 		waitForLoaded.wait();
-		if (dataSize > 0) {
-			res.set_content(r_cast<const char*>(data.get()), dataSize, content_type);
+		if (!result.empty()) {
+			res.set_header("Content-Type", content_type);
+			res.body = std::move(result);
 			return true;
 		}
 		return false;

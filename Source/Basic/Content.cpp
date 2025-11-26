@@ -412,26 +412,26 @@ void Content::insertSearchPath(int index, String path, bool withLock) {
 			if (Content::isPathFolder(searchPath)) {
 				if (index >= s_cast<int>(_searchPaths.size())) {
 					_searchPaths.push_back(searchPath);
-			} else {
-				_searchPaths.insert(_searchPaths.begin() + index, searchPath);
-				_fullPathCache.clear();
-			}
-		} else {
-			auto relativePath = fs::path(searchPath).lexically_relative(fs::path(Content::getAssetPath())).string();
-			auto relSlice = Slice(relativePath);
-			if (!relativePath.empty() && relSlice.left(3) != "..\\"_slice && relSlice.left(3) != "../"_slice) {
-				Error("can not set file \"{}\" under asset path as search package", path.toString());
-			} else {
-				auto zipFile = New<ZipFile>(searchPath);
-				if (zipFile->isOK()) {
-					if (index >= s_cast<int>(_searchPaths.size())) {
-						_searchPaths.push_back(searchPath);
-					} else {
-						_searchPaths.insert(_searchPaths.begin() + index, searchPath);
-						_fullPathCache.clear();
-					}
-					_searchZipPaths[searchPath] = std::move(zipFile);
 				} else {
+					_searchPaths.insert(_searchPaths.begin() + index, searchPath);
+					_fullPathCache.clear();
+				}
+			} else {
+				auto relativePath = fs::path(searchPath).lexically_relative(fs::path(Content::getAssetPath())).string();
+				auto relSlice = Slice(relativePath);
+				if (!relativePath.empty() && relSlice.left(3) != "..\\"_slice && relSlice.left(3) != "../"_slice) {
+					Error("can not set file \"{}\" under asset path as search package", path.toString());
+				} else {
+					auto zipFile = New<ZipFile>(searchPath);
+					if (zipFile->isOK()) {
+						if (index >= s_cast<int>(_searchPaths.size())) {
+							_searchPaths.push_back(searchPath);
+						} else {
+							_searchPaths.insert(_searchPaths.begin() + index, searchPath);
+							_fullPathCache.clear();
+						}
+						_searchZipPaths[searchPath] = std::move(zipFile);
+					} else {
 						Error("search path \"{}\" is neither a folder nor a zip file", path.toString());
 					}
 				}
@@ -877,6 +877,39 @@ uint8_t* Content::loadUnsafe(String filename, int64_t& size) {
 	return data;
 }
 
+std::string Content::loadUnsafe(String filename) {
+	if (filename.empty()) {
+		return {};
+	}
+	auto fullPathAndPackage = Content::getFullPathAndPackage(filename);
+	if (fullPathAndPackage.zipFile) {
+		return fullPathAndPackage.zipFile->getFileDataAsString(fullPathAndPackage.zipRelativePath);
+	}
+	std::string fullPath = fullPathAndPackage.fullPath;
+	if (isAndroidAsset(fullPath)) {
+		return _apkFile->getFileDataAsString(getAndroidAssetName(fullPath));
+	} else {
+		std::string data;
+		bool loaded = false;
+		BLOCK_START {
+			FILE* fp = fopen(fullPath.c_str(), "rb");
+			BREAK_IF(!fp);
+			fseek(fp, 0, SEEK_END);
+			unsigned long dataSize = ftell(fp);
+			fseek(fp, 0, SEEK_SET);
+			data.resize(dataSize);
+			dataSize = fread(data.data(), sizeof(data[0]), dataSize, fp);
+			fclose(fp);
+			loaded = true;
+		}
+		BLOCK_END
+		if (!loaded) {
+			Error("failed to load file: \"{}\"", fullPath);
+		}
+		return data;
+	}
+}
+
 bool Content::loadByChunks(String filename, const std::function<bool(uint8_t*, int)>& handler) {
 	if (filename.empty()) {
 		return false;
@@ -1019,6 +1052,29 @@ uint8_t* Content::loadUnsafe(String filename, int64_t& size) {
 	size = SDL_RWsize(io);
 	uint8_t* buffer = new uint8_t[s_cast<size_t>(size)];
 	SDL_RWread(io, buffer, sizeof(uint8_t), s_cast<size_t>(size));
+	SDL_RWclose(io);
+	return buffer;
+}
+
+std::string Content::loadUnsafe(String filename) {
+	if (filename.empty()) return {};
+	auto fullPathAndPackage = Content::getFullPathAndPackage(filename);
+	if (fullPathAndPackage.zipFile) {
+		return fullPathAndPackage.zipFile->getFileDataAsString(fullPathAndPackage.zipRelativePath);
+	}
+	if (fullPathAndPackage.fullPath.empty()) {
+		Error("failed to load file: \"{}\", due to: can not locate full path", filename.toString());
+		return {};
+	}
+	SDL_RWops* io = SDL_RWFromFile(fullPathAndPackage.fullPath.c_str(), "rb");
+	if (io == nullptr) {
+		Error("failed to load file: \"{}\", due to: {}", filename.toString(), SDL_GetError());
+		return {};
+	}
+	size_t size = s_cast<size_t>(SDL_RWsize(io));
+	std::string buffer;
+	buffer.resize(size);
+	SDL_RWread(io, buffer.data(), sizeof(uint8_t), size);
 	SDL_RWclose(io);
 	return buffer;
 }
