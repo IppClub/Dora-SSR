@@ -33,7 +33,8 @@ import 'mac-scrollbar/dist/mac-scrollbar.css';
 import FileFilter, { FilterOption } from './FileFilter';
 import { useTranslation } from 'react-i18next';
 import { Image } from 'antd';
-import YarnEditor, * as Yarn from './YarnEditor';
+import YarnEditor, { YarnEditorData } from './YarnEditor';
+import * as Yarn from './YarnConvert';
 import CodeWire, { CodeWireData } from './CodeWire';
 import { AutoTypings } from './3rdParty/monaco-editor-auto-typings';
 import { TbSwitchVertical } from "react-icons/tb";
@@ -136,7 +137,7 @@ interface EditingFile {
 	position?: monaco.IPosition;
 	mdEditing?: boolean;
 	yarnTextEditing?: boolean;
-	yarnData?: Yarn.YarnEditorData;
+	yarnData?: YarnEditorData;
 	codeWireData?: CodeWireData;
 	blocklyData?: string;
 	sortIndex?: number;
@@ -216,6 +217,7 @@ const Editor = memo((props: {
 		</div>
 	);
 });
+Editor.displayName = 'Editor';
 
 interface UseResizeProps {
 	minWidth: number;
@@ -589,7 +591,7 @@ export default function PersistentDrawerLeft() {
 				};
 				for (let i = 0; i < prev.length; i++) {
 					if (!visitTree(prev[i])) {
-						for (let node of visitedStack) {
+						for (const node of visitedStack) {
 							if (expandedKeys.indexOf(node.key) === -1) {
 								expandedKeys.push(node.key);
 							}
@@ -1179,11 +1181,11 @@ export default function PersistentDrawerLeft() {
 					reject("failed to save file");
 				})
 			} else if (file.codeWireData !== undefined) {
-				let {codeWireData} = file;
+				const {codeWireData} = file;
 				const vscript = codeWireData.getVisualScript();
 				if (file.contentModified !== null || file.content !== vscript) {
 					file.contentModified = vscript;
-					let tealCode = codeWireData.getScript();
+					const tealCode = codeWireData.getScript();
 					const extname = path.extname(file.key);
 					const name = path.basename(file.key, extname);
 					const tlFile = path.join(path.dirname(file.key), name + ".tl");
@@ -1208,7 +1210,7 @@ export default function PersistentDrawerLeft() {
 							} else if (res.info !== undefined) {
 								const lines = tealCode.split("\n");
 								const message = [];
-								for (let err of res.info) {
+								for (const err of res.info) {
 									const [, filename, row, , msg] = err;
 									let node = "";
 									if (path.relative(filename, tlFile) === "" && 1 <= row && row <= lines.length) {
@@ -1602,6 +1604,7 @@ export default function PersistentDrawerLeft() {
 									const fileExists = res.success;
 									Service.write({path: declaration.fileName, content: declaration.content}).then((res) => {
 										if (res.success) {
+											// do nothing
 										} else {
 											addAlert(t("alert.noDeclaration", {title: path.basename(key)}), "error");
 										}
@@ -2308,7 +2311,7 @@ export default function PersistentDrawerLeft() {
 				const markers: monaco.editor.IMarkerData[] = [];
 				if (!res.success) {
 					status = "error";
-					let message = res.message;
+					const message = res.message;
 					let startLineNumber = res.line;
 					let startColumn = res.column;
 					let endLineNumber = res.line;
@@ -2732,7 +2735,8 @@ export default function PersistentDrawerLeft() {
 			index: tabIndex ?? 0,
 			files: files.map(f => {
 				const {key, title, mdEditing, yarnTextEditing, editor, readOnly} = f;
-				let {position, folder = false} = f;
+				let {position} = f;
+				const {folder = false} = f;
 				if (position === undefined && editor !== undefined) {
 					position = editor.getPosition() ?? undefined;
 				}
@@ -2947,7 +2951,7 @@ export default function PersistentDrawerLeft() {
 										checked={fileInfo?.project}
 										onChange={(event) => {
 											if (fileInfo === null) return;
-											let newFileInfo = {...fileInfo, project: event.target.checked};
+											const newFileInfo = {...fileInfo, project: event.target.checked};
 											setFileInfo(newFileInfo);
 										}}
 									/>

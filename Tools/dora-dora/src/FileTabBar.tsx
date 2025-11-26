@@ -147,7 +147,7 @@ export default memo(function FileTabBar(props: FileTabBarProps) {
 		setValue(false);
 	}
 
-	const handleChange = (_event: React.ChangeEvent<{}>, newValue: number) => {
+	const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
 		setValue(newValue);
 		onChange(newValue);
 	};

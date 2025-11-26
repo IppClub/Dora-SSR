@@ -28,7 +28,7 @@ const dictCreateBlock = {
 	style: 'colour_blocks',
 };
 Blockly.Blocks['dict_create'] = { init: function() { this.jsonInit(dictCreateBlock); } };
-luaGenerator.forBlock['dict_create'] = function(block: Blockly.Block) {
+luaGenerator.forBlock['dict_create'] = function(_block: Blockly.Block) {
 	return ['{}', Order.ATOMIC];
 };
 dictCategory.contents.push({

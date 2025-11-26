@@ -47,9 +47,6 @@ export const StyledMenu = styled((props: MenuProps) => (
 	},
 }));
 
-export const StyledMenuItem = styled((props: MenuItemProps) => (
-	<MenuItem
-		disableRipple
-		{...props}
-	/>
-))(({ theme }) => ({}));
+export function StyledMenuItem(props: MenuItemProps) {
+	return <MenuItem disableRipple {...props}/>;
+}

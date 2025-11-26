@@ -67,7 +67,7 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 			const pathname = urlObj.pathname;
 			const fileName = pathname.split('/').pop() || 'downloaded_file';
 			return fileName;
-		} catch (error) {
+		} catch (_error) {
 			return 'downloaded_file';
 		}
 	}, []);
@@ -110,7 +110,7 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 				setDownloadError(t('download.startFailed'));
 				message.error(t('download.startFailed'));
 			}
-		} catch (error) {
+		} catch (_error) {
 			setDownloadStatus('failed');
 			setDownloadError(t('download.startFailed'));
 			message.error(t('download.startFailed'));
@@ -347,7 +347,7 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 			} else {
 				message.error(t('upload.textFileCreationFailed'));
 			}
-		} catch (error) {
+		} catch (_error) {
 			message.error(t('upload.textFileCreationFailed'));
 		} finally {
 			setTextCreating(false);

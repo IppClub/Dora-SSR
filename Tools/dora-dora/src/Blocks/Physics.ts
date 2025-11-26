@@ -61,7 +61,7 @@ Blockly.Blocks['physics_world_create'] = {
 		this.jsonInit(physicsWorldCreateBlock);
 	},
 };
-luaGenerator.forBlock['physics_world_create'] = function(block: Blockly.Block) {
+luaGenerator.forBlock['physics_world_create'] = function(_block: Blockly.Block) {
 	Require.add('PhysicsWorld');
 	return [`PhysicsWorld()`, Order.ATOMIC];
 };
@@ -388,6 +388,7 @@ Blockly.Blocks['rectangle_fixture'] = {
 			return;
 		}
 		let legal = false;
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		let block = this;
 		do {
 			if (block.type === 'body_create') {
@@ -541,6 +542,7 @@ Blockly.Blocks['disk_fixture'] = {
 			return;
 		}
 		let legal = false;
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		let block = this;
 		do {
 			if (block.type === 'body_create') {
@@ -671,6 +673,7 @@ Blockly.Blocks['polygon_fixture'] = {
 			return;
 		}
 		let legal = false;
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		let block = this;
 		do {
 			if (block.type === 'body_create') {
@@ -801,6 +804,7 @@ Blockly.Blocks['chain_fixture'] = {
 			return;
 		}
 		let legal = false;
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		let block = this;
 		do {
 			if (block.type === 'body_create') {

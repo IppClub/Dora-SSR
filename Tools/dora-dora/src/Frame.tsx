@@ -18,6 +18,7 @@ import { memo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Info from './Info';
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Color {
 	export const Background = '#1f1f1f';
 	export const BackgroundDark = '#181818';
