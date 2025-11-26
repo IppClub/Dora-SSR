@@ -7937,6 +7937,11 @@ inline bool Server::read_content_core(
 }
 
 inline bool Server::handle_file_request(const Request &req, Response &res) {
+  if (req.method != "HEAD" && file_request_handler_) {
+    if (file_request_handler_(req, res)) {
+      return true;
+    }
+  }
   for (const auto &entry : base_dirs_) {
     // Prefix match
     if (!req.path.compare(0, entry.mount_point.size(), entry.mount_point)) {
@@ -7973,12 +7978,6 @@ inline bool Server::handle_file_request(const Request &req, Response &res) {
               });
 
           return true;
-        }
-
-        if (req.method != "HEAD" && file_request_handler_) {
-          if (file_request_handler_(req, res)) {
-            return true;
-          }
         }
       }
     }
