@@ -29,7 +29,7 @@ const nodeCreateBlock = {
 	style: 'logic_blocks',
 };
 Blockly.Blocks['node_create'] = { init: function() { this.jsonInit(nodeCreateBlock); } };
-luaGenerator.forBlock['node_create'] = function(block: Blockly.Block) {
+luaGenerator.forBlock['node_create'] = function(_block: Blockly.Block) {
 	Require.add('Node');
 	return [`Node()`, Order.ATOMIC];
 };

@@ -266,7 +266,7 @@ export async function revalidateModel(model: monaco.editor.ITextModel) {
 		worker.getSemanticDiagnostics(model.uri.toString())
 	])).reduce((a, it) => a.concat(it)).filter(d => d.code !== 2497 && d.code !== 2666);
 	const markers = diagnostics.map(d => {
-		let {start = 0, length = 0} = d;
+		const {start = 0, length = 0} = d;
 		const startPos = model.getPositionAt(start);
 		const endPos = model.getPositionAt(start + length);
 		return {
@@ -296,7 +296,7 @@ export function setModelMarkers(model: monaco.editor.ITextModel, diagnostics: re
 			return false;
 		}
 	}).map(d => {
-		let {start = 0, length = 0} = d;
+		const {start = 0, length = 0} = d;
 		const startPos = model.getPositionAt(start);
 		const endPos = model.getPositionAt(start + length);
 		return {

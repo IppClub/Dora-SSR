@@ -494,7 +494,7 @@ const LogView = memo((props: LogViewProps) => {
 			marginRight: 10,
 		};
 		let totalCost = 0;
-		for (let cost of profilerInfo.updateCosts) {
+		for (const cost of profilerInfo.updateCosts) {
 			totalCost += cost.value;
 		}
 		pieConfig = {

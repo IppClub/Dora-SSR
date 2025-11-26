@@ -192,13 +192,13 @@ async function post<T>(url: string, data: any = {}) {
 };
 
 function postSync<T>(url: string, data: any): T | null {
-	let xhr = new XMLHttpRequest();
+	const xhr = new XMLHttpRequest();
 	xhr.open('POST', addr(url), false);
 	xhr.setRequestHeader('Content-Type', 'application/json');
 	xhr.send(JSON.stringify(data));
 	if (xhr.status === 200) {
 		try {
-			let json = JSON.parse(xhr.responseText);
+			const json = JSON.parse(xhr.responseText);
 			return json;
 		} catch (error) {
 			console.error(error);

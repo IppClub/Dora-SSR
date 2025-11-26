@@ -209,7 +209,7 @@ const completionItemProvider = (triggerCharacters: string[], lang: CompleteLang)
 				endColumn: position.column,
 			});
 			switch (context.triggerCharacter) {
-				case "\"": case "'": case "/":
+				case "\"": case "'": case "/": {
 					let available = line.match(/\brequire\b/) !== null;
 					if (lang === "yue") {
 						available = available || line.match(/\bimport\b/) !== null;
@@ -220,6 +220,7 @@ const completionItemProvider = (triggerCharacters: string[], lang: CompleteLang)
 						return {suggestions:[]};
 					}
 					break;
+				}
 			}
 			const word = model.getWordUntilPosition(position);
 			const range: monaco.IRange = {
@@ -389,7 +390,7 @@ type SignatureLang = "tl" | "lua" | "yue";
 const signatureHelpProvider = (signatureHelpTriggerCharacters: string[], lang: SignatureLang) => {
 	return {
 		signatureHelpTriggerCharacters,
-		provideSignatureHelp(model, position, token, context) {
+		provideSignatureHelp(model, position, _token, context) {
 			let activeSignature = context.activeSignatureHelp?.activeSignature ?? 0;
 			let activeParameter = 0;
 			const currentLine: string = model.getValueInRange({
@@ -426,7 +427,7 @@ const signatureHelpProvider = (signatureHelpTriggerCharacters: string[], lang: S
 				}
 				case "yue": {
 					newLine = newLine.replace(/\s*,\s*/g, ",");
-					let index = Math.max(newLine.lastIndexOf(" "), newLine.lastIndexOf("("));
+					const index = Math.max(newLine.lastIndexOf(" "), newLine.lastIndexOf("("));
 					line = newLine.substring(0, index);
 					if (index >= 0) {
 						for (let i = index; i < newLine.length; i++) {

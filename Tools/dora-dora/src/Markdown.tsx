@@ -36,7 +36,7 @@ const Markdown = memo((props: MarkdownProps) => {
 			children={props.content}
 			remarkPlugins={[remarkGfm]}
 			components={{
-				img({node, src, alt, ...iprops}) {
+				img({src, alt, ...iprops}) {
 					const {path} = props;
 					const tokens = (alt ?? "").split(':');
 					let width: number | undefined = undefined;
@@ -54,10 +54,8 @@ const Markdown = memo((props: MarkdownProps) => {
 				},
 				a({node, href, ...aprops}) {
 					if (href?.match("^http")) {
-						// eslint-disable-next-line
 						return <a href={href} target="_blank" rel="noreferrer" {...aprops}/>;
 					}
-					// eslint-disable-next-line
 					return <a href='#!' onClick={(e)=> {
 						e.preventDefault();
 						if (node?.properties !== undefined && node.properties.href !== undefined && typeof(node.properties.href) === "string") {
@@ -65,7 +63,7 @@ const Markdown = memo((props: MarkdownProps) => {
 						}
 					}} {...aprops}/>;
 				},
-				code({node, className, children, ...props}) {
+				code({className, children, ...props}) {
 					const match = /language-(\w+)/.exec(className || '');
 					return match ? (
 						<SyntaxHighlighter
