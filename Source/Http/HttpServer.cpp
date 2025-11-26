@@ -305,17 +305,36 @@ bool HttpServer::start(int port) {
 	if (server.is_running()) return false;
 	server.set_default_headers({{"Access-Control-Allow-Origin"s, "*"s},
 		{"Access-Control-Allow-Headers"s, "*"s}});
-	server.set_file_request_handler([](const httplib::Request& req, httplib::Response& res) {
+	server.set_file_request_handler([this](const httplib::Request& req, httplib::Response& res) {
 		std::string path = req.path;
+		if (!httplib::detail::is_valid_path(path)) {
+			return false;
+		}
+		if (path.back() == '/') {
+			path += "index.html";
+		}
 		if (path.size() > 0 && path[0] == '/') {
 			path.erase(path.begin());
 		}
-		if (httplib::detail::is_valid_path(path)) {
-			if (!SharedContent.exist(path)) {
+		if (!SharedContent.exist(path)) {
+			bool found = false;
+			if (!_wwwPath.empty()) {
+				auto checkPath = Path::concat({_wwwPath, path});
+				if (SharedContent.exist(checkPath)) {
+					path = checkPath;
+					found = true;
+				}
+			}
+			if (!found) {
+				auto checkPath = Path::concat({SharedContent.getWritablePath(), path});
+				if (SharedContent.exist(checkPath)) {
+					path = checkPath;
+					found = true;
+				}
+			}
+			if (!found) {
 				return false;
 			}
-		} else {
-			return false;
 		}
 		auto content_type = httplib::detail::find_content_type(path, {}, "application/octet-stream"s);
 		OwnArray<uint8_t> data;
@@ -332,12 +351,7 @@ bool HttpServer::start(int port) {
 		});
 		waitForLoaded.wait();
 		if (dataSize > 0) {
-			auto sd = std::make_shared<OwnArray<uint8_t>>(std::move(data));
-			res.set_chunked_content_provider(content_type, [sd = std::move(sd), dataSize](size_t, httplib::DataSink& sink) -> bool {
-				sink.write(r_cast<const char*>((*sd).get()), dataSize);
-				sink.done();
-				return true;
-			});
+			res.set_content(r_cast<const char*>(data.get()), dataSize, content_type);
 			return true;
 		}
 		return false;
@@ -345,13 +359,6 @@ bool HttpServer::start(int port) {
 	server.Options(".*", [](const httplib::Request& req, httplib::Response& res) { });
 	bool success = server.bind_to_port("0.0.0.0", port);
 	if (success) {
-		if (!_wwwPath.empty()) {
-			server.set_mount_point("/", _wwwPath);
-		}
-		server.set_mount_point("/", SharedContent.getAppPath());
-		if (SharedContent.getWritablePath() != SharedContent.getAppPath()) {
-			server.set_mount_point("/", SharedContent.getWritablePath());
-		}
 		for (const auto& post : _posts) {
 			server.Post(post.pattern, [this, &post](const httplib::Request& req, httplib::Response& res) {
 				HttpServer::Request request;
