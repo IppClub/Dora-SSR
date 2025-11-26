@@ -220,6 +220,26 @@ uint8_t* ZipFile::getFileDataUnsafe(const std::string& filename, size_t* size) {
 	return buffer;
 }
 
+std::string ZipFile::getFileDataAsString(const std::string& filename) {
+	std::string buffer;
+	BLOCK_START {
+		BREAK_IF(!_file);
+		BREAK_IF(filename.empty());
+		std::string searchName = getSearchName(filename);
+		auto it = _file->fileList.find(searchName);
+		BREAK_IF(it == _file->fileList.end());
+		auto archive = &_file->archive;
+		size_t bufSize = s_cast<size_t>(it->second.size);
+		buffer.resize(bufSize);
+		if (!mz_zip_reader_extract_file_to_mem(archive, it->second.name.c_str(), buffer.data(), bufSize, 0)) {
+			auto err = mz_zip_get_error_string(mz_zip_get_last_error(archive));
+			Error("failed to extract file \"{}\" from zip: {}.", it->second.name, err);
+		}
+	}
+	BLOCK_END
+	return buffer;
+}
+
 std::pair<Dora::OwnArray<uint8_t>, size_t> ZipFile::getFileData(const std::string& filename) {
 	size_t size = 0;
 	uint8_t* buf = getFileDataUnsafe(filename, &size);
