@@ -2495,7 +2495,16 @@ export default function PersistentDrawerLeft() {
 
 	const onPlayControlClick = useCallback((mode: PlayControlMode, noLog?: boolean) => {
 		if (isSaving && mode !== "View Log") {
-			addAlert(t("alert.waitForJob"), "info");
+			let isMD = false;
+			if (tabIndex !== null) {
+				const file = files.at(tabIndex);
+				if (file !== undefined) {
+					isMD = path.extname(file.title).toLowerCase() === ".md";
+				}
+			}
+			if (!isMD) {
+				addAlert(t("alert.waitForJob"), "info");
+			}
 			return;
 		}
 		if (mode === "Go to File") {
@@ -2525,7 +2534,7 @@ export default function PersistentDrawerLeft() {
 				}
 			}
 		});
-	}, [openLog, t, onStopRunning, saveAllTabs, onPlayControlRun]);
+	}, [openLog, t, onStopRunning, saveAllTabs, onPlayControlRun, files, tabIndex]);
 
 	const saveCurrentTab = useCallback(async () => {
 		if (tabIndex === null) return;
@@ -3208,7 +3217,7 @@ export default function PersistentDrawerLeft() {
 											content={file.contentModified ?? file.content}
 											onClick={onJumpLink}
 										/>
-										<Stack direction="row" spacing={1} style={{position: 'absolute', left: '20px', bottom: '20px', zIndex: 100}}>
+										{readOnly ? null : <Stack direction="row" spacing={1} style={{position: 'absolute', left: '20px', bottom: '20px', zIndex: 100}}>
 											<Tooltip title={t('markdown.editText')}>
 												<IconButton
 													onClick={() => {
@@ -3226,7 +3235,7 @@ export default function PersistentDrawerLeft() {
 													<CodeIcon />
 												</IconButton>
 											</Tooltip>
-										</Stack>
+										</Stack>}
 									</MacScrollbar>
 								</div> : null
 							}
@@ -3279,7 +3288,14 @@ export default function PersistentDrawerLeft() {
 										onValidate={onValidate}
 										readOnly={readOnly}
 									/>;
-									if (yarn && file.yarnTextEditing) {
+									if (yarn) {
+										if (!file.yarnTextEditing) {
+											return (
+												<div style={{display: 'flex', position: 'relative'}}>
+													{editorComponent}
+												</div>
+											);
+										}
 										return (
 											<div style={{display: 'flex', position: 'relative'}}>
 												{editorComponent}
@@ -3321,7 +3337,14 @@ export default function PersistentDrawerLeft() {
 											</div>
 										);
 									}
-									if (markdown && file.mdEditing) {
+									if (markdown) {
+										if (!file.mdEditing) {
+											return (
+												<div style={{display: 'flex', position: 'relative'}}>
+													{editorComponent}
+												</div>
+											);
+										}
 										return (
 											<div style={{display: 'flex', position: 'relative'}}>
 												{editorComponent}
