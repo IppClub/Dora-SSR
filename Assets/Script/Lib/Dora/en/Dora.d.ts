@@ -431,18 +431,12 @@ export namespace Color3 {
 /** A class for creating Color3 objects. */
 interface Color3Class {
 	/**
-	 * Creates a color with all channels set to 0.
-	 * @returns A new `Color3` object.
-	 */
-	(this: void): Color3;
-
-	/**
 	 * Creates a new `Color3` object from an RGB integer value.
-	 * @param rgb The RGB integer value to create the color from.
+	 * @param rgb [optional] The RGB integer value to create the color from. Default is 0.
 	 * For example 0xffffff (white), 0xff0000 (red).
 	 * @returns A new `Color3` object.
 	 */
-	(this: void, rgb: number): Color3;
+	(this: void, rgb?: number): Color3;
 
 	/**
 	 * Creates a new `Color3` object from RGB color channel values.
@@ -503,12 +497,6 @@ export namespace Color {
  */
 interface ColorClass {
 	/**
-	 * Creates a color with all channels set to 0.
-	 * @returns A new Color object.
-	 */
-	(this: void): Color;
-
-	/**
 	 * Creates a new Color object with a Color3 object and alpha value.
 	 * @param color The color as a Color3 object.
 	 * @param a [optional] The alpha value of the color ranging from 0 to 255.
@@ -518,11 +506,18 @@ interface ColorClass {
 
 	/**
 	 * Creates a new `Color` object from an ARGB integer value.
-	 * @param argb The ARGB integer value to create the color from.
+	 * @param argb [optional] The ARGB integer value to create the color from. Default is 0.
 	 * For example 0xffffffff (opaque white), 0x88ff0000 (half transparent red)
 	 * @returns A new `Color` object.
 	 */
-	(this: void, argb: number): Color;
+	(this: void, argb?: number): Color;
+
+	/**
+	 * Creates a new `Color` object from a RGBA string.
+	 * @param rgba The RGBA string to create the color from, format like "#RRGGBBAA".
+	 * @returns A new `Color` object.
+	 */
+	(this: void, rgba: string): Color;
 
 	/**
 	 * Creates a new `Color` object from RGBA color channel values.
@@ -7690,6 +7685,16 @@ interface Wasm {
 
 const wasm: Wasm;
 export {wasm as Wasm};
+
+/**
+ * Creates a new `Color` object using the RGBA color channel values.
+ * @param r The red channel value (0-255).
+ * @param g The green channel value (0-255).
+ * @param b The blue channel value (0-255).
+ * @param a The alpha channel value (0-1).
+ * @returns The new `Color` object.
+ */
+export function rgba(this: void, r: number, g: number, b: number, a: number): Color;
 
 } // module "Dora"
 

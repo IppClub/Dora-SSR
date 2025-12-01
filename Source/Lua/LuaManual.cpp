@@ -756,16 +756,6 @@ tolua_lerror:
 #endif
 }
 
-/* Size */
-
-Size* Size_create(float width, float height) {
-	return Mtolua_new((Size)({width, height}));
-}
-
-Size* Size_create(const Vec2& vec) {
-	return Mtolua_new((Size)({vec.x, vec.y}));
-}
-
 /* BlendFunc */
 
 uint32_t getBlendFuncVal(String name) {

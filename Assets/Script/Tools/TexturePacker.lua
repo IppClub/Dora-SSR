@@ -33,7 +33,7 @@ local Ruler = require("UI.Control.Basic.Ruler") -- 16
 function getLabel(text) -- 58
 	local label = Label( -- 59
 		"sarasa-mono-sc-regular", -- 59
-		math.tointeger(24 * pixelRatio) -- 59
+		math.floor(24 * pixelRatio) -- 59
 	) -- 59
 	if label then -- 59
 		label.text = text -- 61
@@ -235,8 +235,8 @@ local function generateClips(folder) -- 130
 		return -- 196
 	end -- 196
 	local target = RenderTarget( -- 199
-		math.tointeger(width), -- 199
-		math.tointeger(height) -- 199
+		math.floor(width), -- 199
+		math.floor(height) -- 199
 	) -- 199
 	target:renderWithClear( -- 200
 		node, -- 200
@@ -437,7 +437,7 @@ threadLoop(function() -- 291
 			if sprite then -- 346
 				ImGui.TextColored(themeColor, zh and "尺寸：" or "Size:") -- 348
 				ImGui.SameLine() -- 349
-				ImGui.Text((tostring(math.tointeger(sprite.width)) .. " x ") .. tostring(math.tointeger(sprite.height))) -- 350
+				ImGui.Text((tostring(math.floor(sprite.width)) .. " x ") .. tostring(math.floor(sprite.height))) -- 350
 				ImGui.TextColored(themeColor, zh and "切片名称：" or "Clip Name:") -- 351
 				ImGui.SameLine() -- 352
 				ImGui.Text(clipHover) -- 353

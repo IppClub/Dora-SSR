@@ -56,7 +56,7 @@ if (clipFolders.length > 0) {
 }
 
 function getLabel(text: string) {
-	const label = Label("sarasa-mono-sc-regular", math.tointeger(24 * pixelRatio));
+	const label = Label("sarasa-mono-sc-regular", math.floor(24 * pixelRatio));
 	if (label) {
 		label.text = text;
 	}
@@ -196,7 +196,7 @@ function generateClips(folder: string) {
 		return;
 	}
 
-	const target = RenderTarget(math.tointeger(width), math.tointeger(height));
+	const target = RenderTarget(math.floor(width), math.floor(height));
 	target.renderWithClear(node, Color(0x0));
 	node.visible = false;
 	node.removeAllChildren();
@@ -347,7 +347,7 @@ threadLoop(() => {
 		if (sprite) {
 			ImGui.TextColored(themeColor, zh ? "尺寸：" : "Size:");
 			ImGui.SameLine();
-			ImGui.Text(`${math.tointeger(sprite.width)} x ${math.tointeger(sprite.height)}`);
+			ImGui.Text(`${math.floor(sprite.width)} x ${math.floor(sprite.height)}`);
 			ImGui.TextColored(themeColor, zh ? "切片名称：" : "Clip Name:");
 			ImGui.SameLine();
 			ImGui.Text(clipHover);

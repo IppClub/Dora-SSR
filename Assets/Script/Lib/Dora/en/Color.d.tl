@@ -32,10 +32,6 @@ end
 local record ColorClass
 	type Type = Color
 
-	-- Creates a color with all channels set to 0.
-	-- @return (Color) A new Color object.
-	metamethod __call: function(self: ColorClass): Color
-
 	-- Creates a new Color object with a Color3 object and alpha value.
 	-- @param color (Color3) The color as a Color3 object.
 	-- @param a (number) [optional] The alpha value of the color ranging from 0 to 255.
@@ -43,10 +39,15 @@ local record ColorClass
 	metamethod __call: function(self: ColorClass, color: Color3, a: number): Color
 
 	-- Creates a new `Color` object from an ARGB integer value.
-	-- @param argb (integer) The ARGB integer value to create the color from.
+	-- @param argb (number) [optional] The ARGB integer value to create the color from. Default is 0.
 	-- For example 0xffffffff (opaque white), 0x88ff0000 (half transparent red)
 	-- @return (Color) A new `Color` object.
-	metamethod __call: function(self: ColorClass, argb: integer): Color
+	metamethod __call: function(self: ColorClass, argb?: number): Color
+
+	-- Creates a new `Color` object from a RGBA string.
+	-- @param rgba The RGBA string to create the color from, format like "#RRGGBBAA".
+	-- @return (Color) A new `Color` object.
+	metamethod __call: function(self: ColorClass, rgba: string): Color
 
 	-- Creates a new `Color` object from RGBA color channel values.
 	-- @param r (number) The red channel value (0-255).

@@ -431,18 +431,12 @@ export namespace Color3 {
 /** 用于创建Color3对象的类。 */
 interface Color3Class {
 	/**
-	 * 创建所有通道都设置为0的颜色。
-	 * @returns 新的`Color3`对象。
-	 */
-	(this: void): Color3;
-
-	/**
 	 * 从RGB整数值创建新的`Color3`对象。
-	 * @param rgb 用于创建颜色的RGB整数值。
+	 * @param rgb [可选] 用于创建颜色的RGB整数值。默认值为 0。
 	 * 例如 0xffffff（白色），0xff0000（红色）。
 	 * @returns 新的`Color3`对象。
 	 */
-	(this: void, rgb: number): Color3;
+	(this: void, rgb?: number): Color3;
 
 	/**
 	 * 从RGB颜色通道值创建新的`Color3`对象。
@@ -503,12 +497,6 @@ export namespace Color {
  */
 interface ColorClass {
 	/**
-	 * 创建所有通道都设置为0的颜色。
-	 * @returns 新的Color对象。
-	 */
-	(this: void): Color;
-
-	/**
 	 * 使用Color3对象和alpha值创建新的Color对象。
 	 * @param color 作为Color3对象的颜色。
 	 * @param a [可选] 颜色的alpha值，范围从0到255。
@@ -518,11 +506,18 @@ interface ColorClass {
 
 	/**
 	 * 从ARGB整数值创建新的`Color`对象。
-	 * @param argb 用于创建颜色的ARGB整数值。
+	 * @param argb [可选] 用于创建颜色的ARGB整数值。默认值为 0。
 	 * 例如 0xffffffff（不透明的白色），0x88ff0000（半透明的红色）
 	 * @returns 新的`Color`对象。
 	 */
-	(this: void, argb: number): Color;
+	(this: void, argb?: number): Color;
+
+	/**
+	 * 从RGBA字符串创建新的`Color`对象。
+	 * @param rgba 用于创建颜色的 RGBA 字符串，格式为"#RRGGBBAA"。
+	 * @returns 新的`Color`对象。
+	 */
+	(this: void, rgba: string): Color;
 
 	/**
 	 * 从RGBA颜色通道值创建新的`Color`对象。
@@ -7689,6 +7684,16 @@ interface Wasm {
 
 const wasm: Wasm;
 export {wasm as Wasm};
+
+/**
+ * 使用RGBA颜色通道值创建一个新的`Color`对象。
+ * @param r 红色通道值（0-255）。
+ * @param g 绿色通道值（0-255）。
+ * @param b 蓝色通道值（0-255）。
+ * @param a 透明通道值（0-1）。
+ * @returns 新的`Color`对象。
+ */
+export function rgba(this: void, r: number, g: number, b: number, a: number): Color;
 
 } // module "Dora"
 

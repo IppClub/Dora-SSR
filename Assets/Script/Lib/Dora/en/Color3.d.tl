@@ -20,15 +20,11 @@ end
 local record Color3Class
 	type Type = Color3
 
-	-- Creates a color with all channels set to 0.
-	-- @return (Color3) A new `Color3` object.
-	metamethod __call: function(self: Color3Class): Color3
-
 	-- Creates a new `Color3` object from an RGB integer value.
-	-- @param rgb (integer) The RGB integer value to create the color from.
+	-- @param rgb (number) [optional] The RGB integer value to create the color from. Default is 0.
 	-- For example 0xffffff (white), 0xff0000 (red)
 	-- @return (Color3) A new `Color3` object.
-	metamethod __call: function(self: Color3Class, rgb: integer): Color3
+	metamethod __call: function(self: Color3Class, rgb?: number): Color3
 
 	-- Creates a new `Color3` object from RGB color channel values.
 	-- @param r (number) The red channel value (0-255).

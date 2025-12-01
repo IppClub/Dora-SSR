@@ -115,6 +115,7 @@ local yue = require("yue")
 local json = require("json")
 global p = require("p")
 local Wasm = require("Wasm")
+local rgba = require("rgba")
 local Class: function(...: any): any
 local classmethod: function(...: any): any
 local property: function(...: any): any
@@ -241,4 +242,5 @@ global Dora = {
 	AudioBus = AudioBus,
 	AudioSource = AudioSource,
 	Wasm = Wasm,
+	rgba = rgba,
 }

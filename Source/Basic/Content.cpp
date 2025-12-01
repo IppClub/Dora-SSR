@@ -239,7 +239,10 @@ bool Content::remove(String filename) {
 
 bool Content::createFolder(String folder) {
 	fs::path path = folder.toString();
-	return fs::create_directories(path);
+	std::error_code err;
+	bool result = fs::create_directories(path, err);
+	WarnIf(err, "failed to create folder due to \"{}\".", err.message());
+	return result;
 }
 
 std::list<std::string> Content::getDirs(String path) {
@@ -265,11 +268,13 @@ std::list<std::string> Content::getAllFiles(String path) {
 	std::list<std::string> files;
 	if (Content::isFileExist(fullPath)) {
 		fs::path parentPath = fullPath;
-		for (const auto& item : fs::recursive_directory_iterator(parentPath)) {
+		std::error_code err;
+		for (const auto& item : fs::recursive_directory_iterator(parentPath, err)) {
 			if (!item.is_directory()) {
 				files.push_back(item.path().lexically_relative(parentPath).string());
 			}
 		}
+		WarnIf(err, "failed to get entry of \"{}\" due to \"{}\".", fullPath, err.message());
 	} else {
 		Error("Content failed to get entry of \"{}\"", fullPath);
 	}

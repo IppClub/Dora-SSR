@@ -20,15 +20,11 @@ end
 local record Color3Class
 	type Type = Color3
 
-	-- 创建所有通道设置为0的颜色。
-	-- @return (Color3) 新的`Color3`对象。
-	metamethod __call: function(self: Color3Class): Color3
-
 	-- 从RGB整数值创建新的`Color3`对象。
-	-- @param rgb (integer) 从中创建颜色的RGB整数值。
+	-- @param rgb (number) [可选] 从中创建颜色的 RGB 整数值。默认值为 0。
 	-- 例如：0xffffff（白色），0xff0000（红色）。
 	-- @return (Color3) 新的`Color3`对象。
-	metamethod __call: function(self: Color3Class, rgb: integer): Color3
+	metamethod __call: function(self: Color3Class, rgb?: number): Color3
 
 	-- 从RGB颜色通道值创建新的`Color3`对象。
 	-- @param r (number) 红色通道值（0-255）。
