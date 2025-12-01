@@ -11,11 +11,10 @@ struct Color3
 	uint8_t r;
 	uint8_t g;
 	uint8_t b;
-	Color3();
-	Color3(uint32_t rgb);
 	Color3(float r, float g, float b);
 	~Color3();
 	uint32_t toRGB();
+	static tolua_outside Color3 Color3_create @ create(double rgb = 0);
 };
 
 struct Color
@@ -25,13 +24,13 @@ struct Color
 	uint8_t b;
 	uint8_t a;
 	tolua_property__common float opacity;
-	Color();
 	Color(Color3 color, float a = 0.0f);
-	Color(uint32_t argb);
 	Color(float r, float g, float b, float a);
 	~Color();
 	Color3 toColor3();
 	uint32_t toARGB();
+	static tolua_outside Color Color_create @ create(String argb);
+	static tolua_outside Color Color_create @ create(double argb = 0);
 };
 
 struct Vec2

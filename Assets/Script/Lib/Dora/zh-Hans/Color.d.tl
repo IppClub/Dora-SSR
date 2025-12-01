@@ -32,10 +32,6 @@ end
 local record ColorClass
 	type Type = Color
 
-	-- 创建所有通道都设置为 0 的颜色。
-	-- @return (Color) 新的颜色对象。
-	metamethod __call: function(self: ColorClass): Color
-
 	-- 使用`Color3`对象和透明值创建新的颜色对象。
 	-- @param color (Color3) `Color3`颜色对象。
 	-- @param a (number) [可选] 颜色的透明值，范围从 0 到 255。
@@ -43,10 +39,15 @@ local record ColorClass
 	metamethod __call: function(self: ColorClass, color: Color3, a: number): Color
 
 	-- 从 ARGB 整数值创建新的颜色对象。
-	-- @param argb (integer) 创建颜色的 ARGB 整数值。
+	-- @param argb (number) [可选] 创建颜色的 ARGB 整数值。默认值为 0。
 	-- 示例：0xffffffff（不透明白色），0x88ff0000（半透明红色）。
 	-- @return (Color) 新的颜色对象。
-	metamethod __call: function(self: ColorClass, argb: integer): Color
+	metamethod __call: function(self: ColorClass, argb?: number): Color
+
+	-- 从 RGBA 字符串创建新的颜色对象。
+	-- @param rgba 用于创建颜色的 RGBA 字符串，格式为"#RRGGBBAA"。
+	-- @return (Color) 新的颜色对象。
+	metamethod __call: function(self: ColorClass, rgba: string): Color
 
 	-- 从 RGBA 颜色通道值创建新的颜色对象。
 	-- @param r (number) 红色通道值（0-255）。

@@ -1290,6 +1290,11 @@ do
 	end
 end
 
+-- Dora Color helper
+Dora.rgba = function(r, g, b, a)
+	return Dora.Color(r, g, b, a * 255)
+end
+
 -- Dora helpers
 do
 	_G.p = yue.p

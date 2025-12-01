@@ -111,8 +111,40 @@ inline Vec2 Vec2_create(float x, float y) { return {x, y}; }
 inline Vec2 Vec2_create(const Size& size) { return {size.width, size.height}; }
 
 /* Size */
-Size* Size_create(float width, float height);
-Size* Size_create(const Vec2& vec);
+inline Size* Size_create(float width, float height) {
+	return Mtolua_new((Size)({width, height}));
+}
+inline Size* Size_create(const Vec2& vec) {
+	return Mtolua_new((Size)({vec.x, vec.y}));
+}
+
+/* Color */
+inline Color* Color_create(double argb = 0) {
+	return Mtolua_new((Color)(s_cast<uint32_t>(argb)));
+}
+
+inline Color* Color_create(String argb) {
+	auto value = argb.trimSpace();
+	if (value.size() == 9 && value[0] == '#') {
+		value.skip(1);
+		try {
+			uint32_t rgba = static_cast<uint32_t>(std::stoul(value.toString(), nullptr, 16));
+			uint32_t r = (rgba >> 24) & 0xFF;
+			uint32_t g = (rgba >> 16) & 0xFF;
+			uint32_t b = (rgba >> 8) & 0xFF;
+			uint32_t a = rgba & 0xFF;
+			uint32_t argb_value = (a << 24) | (r << 16) | (g << 8) | b;
+			return Mtolua_new((Color)(argb_value));
+		} catch (const std::exception&) { }
+	}
+	Issue("failed to convert string \"{}\" to RGBA color value.", argb.toString());
+	return Mtolua_new((Color)(0));
+}
+
+/* Color3 */
+inline Color3* Color3_create(double rgb = 0) {
+	return Mtolua_new((Color3)(s_cast<uint32_t>(rgb)));
+}
 
 /* BlendFunc */
 BlendFunc* BlendFunc_create(String src, String dst);
