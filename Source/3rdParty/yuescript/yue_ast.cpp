@@ -210,9 +210,6 @@ std::string MultilineCommentInner_t::to_string(void* ud) const {
 std::string Variable_t::to_string(void* ud) const {
 	return name->to_string(ud);
 }
-std::string LabelName_t::to_string(void* ud) const {
-	return name->to_string(ud);
-}
 std::string LuaKeyword_t::to_string(void* ud) const {
 	return name->to_string(ud);
 }

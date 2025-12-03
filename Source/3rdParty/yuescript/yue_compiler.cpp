@@ -78,7 +78,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.29.9"sv;
+const std::string_view version = "0.30.0"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -9207,7 +9207,7 @@ private:
 		}
 		if (_config.lintGlobalVariable && !isLocal(name)) {
 			auto key = name + ':' + std::to_string(pair->name->m_begin.m_line) + ':' + std::to_string(pair->name->m_begin.m_col);
-			if (_globals.find(key) != _globals.end()) {
+			if (_globals.find(key) == _globals.end()) {
 				_globals[key] = {name, pair->name->m_begin.m_line, pair->name->m_begin.m_col, _funcLevel > 1 ? AccessType::Capture : AccessType::Read, isSolidDefined(name)};
 			}
 		}
@@ -12054,7 +12054,7 @@ private:
 		if (getLuaTarget(label) < 502) {
 			throw CompileError("label statement is not available when not targeting Lua version 5.2 or higher"sv, label);
 		}
-		auto labelStr = unicodeVariableFrom(label->label->name);
+		auto labelStr = unicodeVariableFrom(label->label);
 		int currentScope = _gotoScopes.top();
 		if (static_cast<int>(_labels.size()) <= currentScope) {
 			_labels.resize(currentScope + 1, std::nullopt);
@@ -12075,7 +12075,7 @@ private:
 		if (getLuaTarget(gotoNode) < 502) {
 			throw CompileError("goto statement is not available when not targeting Lua version 5.2 or higher"sv, gotoNode);
 		}
-		auto labelStr = unicodeVariableFrom(gotoNode->label->name);
+		auto labelStr = unicodeVariableFrom(gotoNode->label);
 		gotos.push_back({gotoNode, labelStr, _gotoScopes.top(), static_cast<int>(_scopes.size())});
 		out.push_back(indent() + "goto "s + labelStr + nll(gotoNode));
 	}

@@ -103,11 +103,6 @@ AST_NODE(Variable)
 	AST_MEMBER(Variable, &name)
 AST_END(Variable)
 
-AST_NODE(LabelName)
-	ast_ptr<true, UnicodeName_t> name;
-	AST_MEMBER(LabelName, &name)
-AST_END(LabelName)
-
 AST_NODE(LuaKeyword)
 	ast_ptr<true, Name_t> name;
 	AST_MEMBER(LuaKeyword, &name)
@@ -246,12 +241,12 @@ AST_NODE(Import)
 AST_END(Import)
 
 AST_NODE(Label)
-	ast_ptr<true, LabelName_t> label;
+	ast_ptr<true, UnicodeName_t> label;
 	AST_MEMBER(Label, &label)
 AST_END(Label)
 
 AST_NODE(Goto)
-	ast_ptr<true, LabelName_t> label;
+	ast_ptr<true, UnicodeName_t> label;
 	AST_MEMBER(Goto, &label)
 AST_END(Goto)
 

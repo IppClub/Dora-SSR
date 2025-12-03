@@ -250,13 +250,13 @@ luaCheckWithLineInfo = function(file, luaCodes) -- 114
 end -- 114
 local getCompiledYueLine -- 134
 getCompiledYueLine = function(content, line, row, file, lax) -- 134
-	local luaCodes, _info = yueCheck(file, content, lax) -- 135
+	local luaCodes = yueCheck(file, content, lax) -- 135
 	if not luaCodes then -- 136
 		return nil -- 136
 	end -- 136
 	local current = 1 -- 137
 	local lastLine = 1 -- 138
-	local targetLine = nil -- 139
+	local targetLine = line:gsub("::", "\\"):gsub(":", "="):gsub("\\", ":"):match("[%w_%.:]+$") -- 139
 	local targetRow = nil -- 140
 	local lineMap = { } -- 141
 	for lineCode in luaCodes:gmatch("([^\r\n]*)\r?\n?") do -- 142
@@ -265,15 +265,13 @@ getCompiledYueLine = function(content, line, row, file, lax) -- 134
 			lastLine = tonumber(num) -- 144
 		end -- 144
 		lineMap[current] = lastLine -- 145
-		if row <= lastLine and not targetLine then -- 146
+		if row <= lastLine and not targetRow then -- 146
 			targetRow = current -- 147
-			targetLine = line:gsub("::", "\\"):gsub(":", "="):gsub("\\", ":"):match("[%w_%.:]+$") -- 148
-			if targetLine then -- 149
-				break -- 149
-			end -- 149
+			break -- 148
 		end -- 146
-		current = current + 1 -- 150
-	end -- 150
+		current = current + 1 -- 149
+	end -- 149
+	targetRow = current -- 150
 	if targetLine and targetRow then -- 151
 		return luaCodes, targetLine, targetRow, lineMap -- 152
 	else -- 154
@@ -483,7 +481,7 @@ HttpServer:postSchedule("/infer", function(req) -- 209
 						} -- 216
 					end -- 214
 				elseif "yue" == lang then -- 217
-					local luaCodes, targetLine, targetRow, lineMap = getCompiledYueLine(content, line, row, file, false) -- 218
+					local luaCodes, targetLine, targetRow, lineMap = getCompiledYueLine(content, line, row, file, true) -- 218
 					if not luaCodes then -- 219
 						return { -- 219
 							success = false -- 219
@@ -676,7 +674,7 @@ HttpServer:postSchedule("/signature", function(req) -- 287
 						end -- 292
 					end -- 291
 				elseif "yue" == lang then -- 294
-					local luaCodes, targetLine, targetRow, _lineMap = getCompiledYueLine(content, line, row, file, false) -- 295
+					local luaCodes, targetLine, targetRow, _lineMap = getCompiledYueLine(content, line, row, file, true) -- 295
 					if not luaCodes then -- 296
 						return { -- 296
 							success = false -- 296

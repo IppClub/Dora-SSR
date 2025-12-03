@@ -149,7 +149,6 @@ private:
 	}
 
 	NONE_AST_RULE(empty_block_error);
-	NONE_AST_RULE(leading_spaces_error);
 	NONE_AST_RULE(indentation_error);
 	NONE_AST_RULE(braces_expression_error);
 	NONE_AST_RULE(brackets_expression_error);
@@ -159,11 +158,35 @@ private:
 	NONE_AST_RULE(confusing_unary_not_error);
 	NONE_AST_RULE(table_key_pair_error);
 	NONE_AST_RULE(assignment_expression_syntax_error);
+	NONE_AST_RULE(unclosed_single_string_error);
+	NONE_AST_RULE(unclosed_double_string_error);
+	NONE_AST_RULE(unclosed_lua_string_error);
+	NONE_AST_RULE(unexpected_comma_error);
+	NONE_AST_RULE(parenthesis_error);
+	NONE_AST_RULE(dangling_clause_error);
+	NONE_AST_RULE(keyword_as_label_error);
+	NONE_AST_RULE(check_vararg_position);
+	NONE_AST_RULE(vararg_position_error);
+	NONE_AST_RULE(invalid_import_syntax_error);
+	NONE_AST_RULE(invalid_import_as_syntax_error);
+	NONE_AST_RULE(expected_expression_error);
+	NONE_AST_RULE(invalid_from_import_error);
+	NONE_AST_RULE(invalid_export_syntax_error);
+	NONE_AST_RULE(invalid_macro_definition_error);
+	NONE_AST_RULE(invalid_global_declaration_error);
+	NONE_AST_RULE(invalid_local_declaration_error);
+	NONE_AST_RULE(invalid_with_syntax_error);
+	NONE_AST_RULE(invalid_try_syntax_error);
+	NONE_AST_RULE(keyword_as_identifier_syntax_error);
+	NONE_AST_RULE(check_keyword_as_identifier);
+	NONE_AST_RULE(invalid_number_literal_error);
+	NONE_AST_RULE(invalid_import_literal_error);
 
 	NONE_AST_RULE(inc_exp_level);
 	NONE_AST_RULE(dec_exp_level);
 
 	NONE_AST_RULE(num_char);
+	NONE_AST_RULE(must_num_char);
 	NONE_AST_RULE(num_char_hex);
 	NONE_AST_RULE(num_lit);
 	NONE_AST_RULE(num_bin_lit);
@@ -282,6 +305,8 @@ private:
 	NONE_AST_RULE(expo_value);
 	NONE_AST_RULE(expo_exp);
 	NONE_AST_RULE(exp_not_tab);
+	NONE_AST_RULE(must_exp);
+	NONE_AST_RULE(must_unary_exp);
 	NONE_AST_RULE(local_const_item);
 	NONE_AST_RULE(empty_line_break);
 	NONE_AST_RULE(yue_comment);
@@ -294,7 +319,6 @@ private:
 	AST_RULE(Name);
 	AST_RULE(UnicodeName);
 	AST_RULE(Variable);
-	AST_RULE(LabelName);
 	AST_RULE(LuaKeyword);
 	AST_RULE(Self);
 	AST_RULE(SelfName);
