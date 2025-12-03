@@ -4,6 +4,8 @@
 import { themes } from 'prism-react-renderer';
 const { getVersionLabel } = require('./src/version');
 
+const github = process.env.GITEE === undefined;
+
 const darkCodeTheme = {
 	plain: {
 		color: '#D4D4D4',
@@ -162,10 +164,10 @@ const config = {
 	favicon: 'img/site/favicon.ico',
 
 	// Set the production url of your site here
-	url: 'https://dora-ssr.net',
+	url: github ? 'https://dora-ssr.net' : 'https://ippclub.gitee.io',
 	// Set the /<baseUrl>/ pathname under which your site is served
 	// For GitHub pages deployment, it is often '/<projectName>/'
-	baseUrl: '/',
+	baseUrl: github ? '/' : '/Dora-SSR/',
 
 	// GitHub pages deployment config.
 	// If you aren't using GitHub pages, you don't need these.
@@ -191,7 +193,9 @@ const config = {
 					sidebarPath: require.resolve('./sidebars.js'),
 					// Please change this to your repo.
 					// Remove this to remove the "edit this page" links.
-					editUrl: 'https://github.com/ippclub/Dora-SSR/tree/main/Docs',
+					editUrl: github ?
+						'https://github.com/ippclub/Dora-SSR/tree/main/Docs' :
+						'https://gitee.com/ippclub/Dora-SSR/blob/main/Docs',
 					showLastUpdateAuthor: true,
 					showLastUpdateTime: true,
 					lastVersion: 'current',
@@ -205,7 +209,9 @@ const config = {
 					showReadingTime: true,
 					// Please change this to your repo.
 					// Remove this to remove the "edit this page" links.
-					editUrl: 'https://github.com/ippclub/Dora-SSR/tree/main/Docs',
+					editUrl: github ?
+						'https://github.com/ippclub/Dora-SSR/tree/main/Docs' :
+						'https://gitee.com/ippclub/Dora-SSR/blob/main/Docs',
 				},
 				theme: {
 					customCss: require.resolve('./src/css/custom.css'),

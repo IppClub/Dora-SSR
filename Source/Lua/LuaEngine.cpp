@@ -671,7 +671,7 @@ static int dora_yue_check_async(lua_State* L) {
 		auto result = yue::YueCompiler{nullptr, dora_open_threaded_compiler}.compile(codes, config);
 		return Values::alloc(result);
 	},
-		[handler](Own<Values> values) {
+		[handler, lax](Own<Values> values) {
 			yue::CompileInfo result;
 			values->get(result);
 			auto L = SharedLuaEngine.getState();
@@ -707,7 +707,7 @@ static int dora_yue_check_async(lua_State* L) {
 					lua_rawseti(L, -2, ++i);
 				}
 			}
-			if (result.error) {
+			if (!lax && result.error) {
 				LuaEngine::invoke(L, handler->get(), 1, 0);
 			} else {
 				tolua_pushslice(L, result.codes);
@@ -1165,7 +1165,7 @@ LuaEngine::LuaEngine()
 			pushOptions(L, -3);
 			BLOCK_START
 			if (lua_pcall(L, 3, 2, 0) != 0) {
-				LogErrorThreaded(lua_tostring(L, -1));
+				LogErrorThreaded(fmt::format("[command]: {}", lua_tostring(L, -1)));
 				break;
 			}
 			if (lua_isnil(L, -2) != 0) {
@@ -1179,7 +1179,7 @@ LuaEngine::LuaEngine()
 					int lineNum = std::stoi(err.substr(0, pos));
 					err = std::to_string(lineNum - 1) + err.substr(pos);
 				}
-				LogErrorThreaded(err);
+				LogErrorThreaded(fmt::format("[command]: {}", err));
 				break;
 			}
 			lua_pop(L, 1);
@@ -1187,7 +1187,7 @@ LuaEngine::LuaEngine()
 			lua_insert(L, -2);
 			int last = lua_gettop(L) - 2;
 			if (lua_pcall(L, 1, LUA_MULTRET, 0) != 0) {
-				LogErrorThreaded(lua_tostring(L, -1));
+				LogErrorThreaded(fmt::format("[command]: {}", lua_tostring(L, -1)));
 				break;
 			}
 			int cur = lua_gettop(L);
@@ -1201,7 +1201,7 @@ LuaEngine::LuaEngine()
 					}
 				}
 			} else {
-				LogErrorThreaded(lua_tostring(L, -1));
+				LogErrorThreaded(fmt::format("[command]: {}", lua_tostring(L, -1)));
 			}
 			BLOCK_END
 		}

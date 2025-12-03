@@ -255,7 +255,7 @@ static int yuecheck(lua_State* L) {
 			lua_rawseti(L, -2, ++i);
 		}
 	}
-	if (result.error) {
+	if (!config.lax && result.error) {
 		lua_pushboolean(L, 0);
 		lua_insert(L, -2);
 		return 2;

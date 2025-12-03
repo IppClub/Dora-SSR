@@ -323,8 +323,9 @@ export function getDiagnosticMessage(fileName: string, diagnostics: readonly ts.
 
 export function addDiagnosticToLog(fileName: string, diagnostics: readonly ts.Diagnostic[]) {
 	if (diagnostics.length === 0) return;
-	const message = getDiagnosticMessage(fileName, diagnostics);
-	Service.command({code: `Log "Error", "${message.replace('"', '\\"')}"`, log: false});
+	let message = getDiagnosticMessage(fileName, diagnostics);
+	message = message.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\r?\n/g, "\\n");
+	Service.command({code: `Log "Error", "${message}"`, log: false});
 }
 
 const options: ts.CompilerOptions = {
