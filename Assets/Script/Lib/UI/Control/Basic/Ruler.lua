@@ -79,8 +79,8 @@ _module_0 = Class(Ruler, { -- 14
 				self.intervalNode:addChild(label) -- 49
 				labels[pos] = label -- 50
 				table.insert(labelList, label) -- 51
-			end -- 51
-		end -- 51
+			end -- 42
+		end -- 37
 		local moveLabel -- 53
 		moveLabel = function(label, pos) -- 53
 			labels[tonumber(label.tag)] = nil -- 54
@@ -107,7 +107,7 @@ _module_0 = Class(Ruler, { -- 14
 					insertPos = insertPos + 1 -- 74
 					moveLabel(label, pos) -- 75
 				end -- 69
-			end -- 75
+			end -- 67
 			insertPos = #labelList -- 76
 			for i = right, left, -1 do -- 77
 				local pos = i * 100 -- 78
@@ -119,7 +119,7 @@ _module_0 = Class(Ruler, { -- 14
 					insertPos = insertPos - 1 -- 84
 					moveLabel(label, pos) -- 85
 				end -- 79
-			end -- 85
+			end -- 77
 			local scale = self.intervalNode.scaleX -- 87
 			local current = Round(self.intervalNode.anchor.x * width / interval) -- 88
 			local delta = 1 + math.ceil(halfW / scale / interval) -- 89
@@ -156,14 +156,14 @@ _module_0 = Class(Ruler, { -- 14
 				end -- 111
 				vs[count] = v -- 115
 				count = count + 1 -- 116
-			end -- 116
+			end -- 94
 			return self.intervalNode:set(vs, Color(0xffffffff)) -- 117
 		end -- 61
 		local updateIntervalTextScale -- 119
 		updateIntervalTextScale = function(scale) -- 119
 			return self.intervalNode:eachChild(function(child) -- 120
 				child.scaleX = scale -- 121
-			end) -- 121
+			end) -- 120
 		end -- 119
 		self.makeScale = function(self, scale) -- 123
 			scale = math.min(scale, 5) -- 124
@@ -200,13 +200,13 @@ _module_0 = Class(Ruler, { -- 14
 					end) -- 147
 					return _with_0 -- 143
 				end)()) -- 143
-			end -- 149
-		end -- 149
+			end -- 141
+		end -- 141
 		self.setIndent = function(_self, ind) -- 151
 			indent = ind -- 152
 			for i, label in pairs(labels) do -- 153
 				label.text = string.format("%.0f", ind * i / 100) -- 154
-			end -- 154
+			end -- 153
 		end -- 151
 		self.getIndent = function(_self) -- 155
 			return indent -- 155
@@ -335,7 +335,7 @@ _module_0 = Class(Ruler, { -- 14
 			elseif _v ~= 0 then -- 249
 				return self:schedule(updatePos) -- 250
 			end -- 247
-		end) -- 250
+		end) -- 246
 	end, -- 14
 	value = property(function(self) -- 252
 		return self:getValue() -- 252
@@ -349,7 +349,7 @@ _module_0 = Class(Ruler, { -- 14
 		self.lastValue = nil -- 259
 		self:setValue(default) -- 260
 		self.visible = true -- 261
-		return self:perform(Spawn(Y(0.5, self.endPosY + 30, self.endPosY, Ease.OutBack), Opacity(0.3, self.opacity, 1))) -- 265
+		return self:perform(Spawn(Y(0.5, self.endPosY + 30, self.endPosY, Ease.OutBack), Opacity(0.3, self.opacity, 1))) -- 262
 	end, -- 255
 	hide = function(self) -- 267
 		if not self.visible then -- 268
@@ -357,7 +357,7 @@ _module_0 = Class(Ruler, { -- 14
 		end -- 268
 		self:slot("Changed", nil) -- 269
 		self:unschedule() -- 270
-		return self:perform(Sequence(Spawn(Y(0.5, self.y, self.endPosY + 30, Ease.InBack), Opacity(0.5, self.opacity, 0)), Hide())) -- 277
+		return self:perform(Sequence(Spawn(Y(0.5, self.y, self.endPosY + 30, Ease.InBack), Opacity(0.5, self.opacity, 0)), Hide())) -- 271
 	end -- 267
 }) -- 13
-return _module_0 -- 277
+return _module_0 -- 1

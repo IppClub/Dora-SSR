@@ -203,9 +203,16 @@ std::string YueLineComment_t::to_string(void* ud) const {
 	auto info = reinterpret_cast<YueFormat*>(ud);
 	return "--"s + info->convert(this);
 }
-std::string MultilineCommentInner_t::to_string(void* ud) const {
+std::string YueMultilineComment_t::to_string(void* ud) const {
 	auto info = reinterpret_cast<YueFormat*>(ud);
-	return info->convert(this);
+	return "--[["s + info->convert(this) + "]]"s;
+}
+std::string YueComment_t::to_string(void* ud) const {
+	if (comment) {
+		return comment->to_string(ud);
+	} else {
+		return {};
+	}
 }
 std::string Variable_t::to_string(void* ud) const {
 	return name->to_string(ud);
@@ -1596,37 +1603,14 @@ std::string StatementAppendix_t::to_string(void* ud) const {
 	return item->to_string(ud);
 }
 std::string Statement_t::to_string(void* ud) const {
-	std::string line;
-	if (!comments.empty()) {
-		auto info = reinterpret_cast<YueFormat*>(ud);
-		str_list temp;
-		for (ast_node* comment : comments.objects()) {
-			if (comment == comments.front()) {
-				temp.push_back(comment->to_string(ud));
-			} else {
-				temp.push_back(info->ind() + comment->to_string(ud));
-			}
-		}
-		if (appendix) {
-			temp.push_back(info->ind() + content->to_string(ud) + ' ' + appendix->to_string(ud));
-			return join(temp, "\n"sv);
-		} else {
-			temp.push_back(info->ind() + content->to_string(ud));
-			return join(temp, "\n"sv);
-		}
+	if (appendix) {
+		return content->to_string(ud) + ' ' + appendix->to_string(ud);
 	} else {
-		if (appendix) {
-			return content->to_string(ud) + ' ' + appendix->to_string(ud);
-		} else {
-			return content->to_string(ud);
-		}
+		return content->to_string(ud);
 	}
 }
 std::string StatementSep_t::to_string(void*) const {
 	return {};
-}
-std::string YueMultilineComment_t::to_string(void* ud) const {
-	return "--[["s + inner->to_string(ud) + "]]"s;
 }
 std::string ChainAssign_t::to_string(void* ud) const {
 	str_list temp;
@@ -1641,14 +1625,22 @@ std::string Body_t::to_string(void* ud) const {
 std::string Block_t::to_string(void* ud) const {
 	auto info = reinterpret_cast<YueFormat*>(ud);
 	str_list temp;
-	for (auto stmt_ : statements.objects()) {
-		auto stmt = static_cast<Statement_t*>(stmt_);
-		if (stmt->content.is<PipeBody_t>()) {
-			info->pushScope();
-			temp.emplace_back(stmt->to_string(ud));
-			info->popScope();
-		} else {
-			temp.emplace_back(info->ind() + stmt->to_string(ud));
+	for (auto stmt_ : statementOrComments.objects()) {
+		if (auto stmt = ast_cast<Statement_t>(stmt_)) {
+			if (stmt->content.is<PipeBody_t>()) {
+				info->pushScope();
+				temp.emplace_back(stmt->to_string(ud));
+				info->popScope();
+			} else {
+				temp.emplace_back(info->ind() + stmt->to_string(ud));
+			}
+		} else if (info->reserveComment) {
+			auto comment = ast_to<YueComment_t>(stmt_);
+			if (comment->comment) {
+				temp.emplace_back(info->ind() + comment->to_string(ud));
+			} else {
+				temp.emplace_back(comment->to_string(ud));
+			}
 		}
 	}
 	return join(temp, "\n"sv);

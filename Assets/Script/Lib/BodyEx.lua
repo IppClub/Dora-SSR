@@ -54,7 +54,7 @@ loadFuncs = { -- 244
 	["Array"] = function(data, itemDict) -- 244
 		for i = 1, data:count() do -- 245
 			loadData(data:get(i), itemDict) -- 246
-		end -- 246
+		end -- 245
 	end, -- 244
 	["Phyx.Rect"] = function(data, itemDict) -- 248
 		local bodyDef = toDef(data) -- 249
@@ -73,7 +73,7 @@ loadFuncs = { -- 244
 			if subShapes then -- 258
 				for i = 1, subShapes:count() do -- 259
 					loadData(subShapes:get(i), bodyDef) -- 260
-				end -- 260
+				end -- 259
 			end -- 258
 		end -- 258
 		itemDict[data.name] = bodyDef -- 261
@@ -90,7 +90,7 @@ loadFuncs = { -- 244
 			if subShapes then -- 272
 				for i = 1, subShapes:count() do -- 273
 					loadData(subShapes:get(i), bodyDef) -- 274
-				end -- 274
+				end -- 273
 			end -- 272
 		end -- 272
 		itemDict[data.name] = bodyDef -- 275
@@ -107,7 +107,7 @@ loadFuncs = { -- 244
 			if subShapes then -- 286
 				for i = 1, subShapes:count() do -- 287
 					loadData(subShapes:get(i), bodyDef) -- 288
-				end -- 288
+				end -- 287
 			end -- 286
 		end -- 286
 		itemDict[data.name] = bodyDef -- 289
@@ -120,7 +120,7 @@ loadFuncs = { -- 244
 			if subShapes then -- 294
 				for i = 1, subShapes:count() do -- 295
 					loadData(subShapes:get(i), bodyDef) -- 296
-				end -- 296
+				end -- 295
 			end -- 294
 		end -- 294
 		itemDict[data.name] = bodyDef -- 297
@@ -134,21 +134,21 @@ loadFuncs = { -- 244
 		if data.sensor then -- 301
 			return bodyDef:attachPolygonSensor(data.sensorTag, data.center, width, height) -- 302
 		else -- 304
-			return bodyDef:attachPolygon(data.center, width, height, data.angle, data.density, data.friction, data.restitution) -- 307
+			return bodyDef:attachPolygon(data.center, width, height, data.angle, data.density, data.friction, data.restitution) -- 304
 		end -- 301
 	end, -- 299
 	["Phyx.SubDisk"] = function(data, bodyDef) -- 309
 		if data.sensor then -- 310
 			return bodyDef:attachDiskSensor(data.sensorTag, data.center, data.radius) -- 311
 		else -- 313
-			return bodyDef:attachDisk(data.center, data.radius, data.density, data.friction, data.restitution) -- 316
+			return bodyDef:attachDisk(data.center, data.radius, data.density, data.friction, data.restitution) -- 313
 		end -- 310
 	end, -- 309
 	["Phyx.SubPoly"] = function(data, bodyDef) -- 318
 		if data.sensor then -- 319
 			return bodyDef:attachPolygonSensor(data.sensorTag, data.vertices:toArray()) -- 320
 		else -- 322
-			return bodyDef:attachPolygon(data.vertices:toArray(), data.density, data.friction, data.restitution) -- 325
+			return bodyDef:attachPolygon(data.vertices:toArray(), data.density, data.friction, data.restitution) -- 322
 		end -- 319
 	end, -- 318
 	["Phyx.SubChain"] = function(data, bodyDef) -- 327
@@ -224,4 +224,4 @@ _module_0 = function(bodyData, world, pos, angle) -- 440
 	end) -- 446
 	return root -- 468
 end -- 440
-return _module_0 -- 468
+return _module_0 -- 1

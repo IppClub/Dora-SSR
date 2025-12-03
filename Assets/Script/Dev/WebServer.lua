@@ -61,8 +61,8 @@ getProjectDirFromFile = function(file) -- 17
 			if Path:getName(f):lower() == "init" then -- 31
 				return Path(parent, current, Path:getPath(f)) -- 32
 			end -- 31
-		end -- 32
-	until false -- 33
+		end -- 30
+	until false -- 27
 	return nil -- 34
 end -- 17
 local getSearchPath -- 36
@@ -73,7 +73,7 @@ getSearchPath = function(file) -- 36
 			return Path(dir, "Script", "?.lua") .. ";" .. Path(dir, "?.lua") -- 38
 		end -- 37
 	end -- 37
-	return "" -- 38
+	return "" -- 36
 end -- 36
 local getSearchFolders -- 40
 getSearchFolders = function(file) -- 40
@@ -83,7 +83,7 @@ getSearchFolders = function(file) -- 40
 			return { -- 43
 				Path(dir, "Script"), -- 43
 				dir -- 44
-			} -- 44
+			} -- 42
 		end -- 41
 	end -- 41
 	return { } -- 40
@@ -134,8 +134,8 @@ yueCheck = function(file, content, lax) -- 69
 				line, -- 78
 				col -- 78
 			} -- 78
-		end -- 78
-	end -- 78
+		end -- 75
+	end -- 74
 	if luaCodes then -- 79
 		local success, lintResult = LintYueGlobals(luaCodes, globals, false) -- 80
 		if success then -- 81
@@ -155,7 +155,7 @@ yueCheck = function(file, content, lax) -- 69
 					col, -- 86
 					"invalid global variable" -- 86
 				} -- 86
-			end -- 86
+			end -- 85
 		end -- 81
 	end -- 79
 	return luaCodes, info -- 87
@@ -192,7 +192,7 @@ luaCheck = function(file, content) -- 89
 						if item[5]:match(check) then -- 100
 							useCheck = false -- 101
 						end -- 100
-					end -- 101
+					end -- 99
 				end -- 98
 				if not useCheck then -- 102
 					goto _continue_0 -- 102
@@ -203,14 +203,14 @@ luaCheck = function(file, content) -- 89
 						item[1] = "warning" -- 105
 					elseif "parsing" == _exp_0 or "syntax" == _exp_0 then -- 106
 						goto _continue_0 -- 107
-					end -- 107
-				end -- 107
+					end -- 103
+				end -- 103
 				_accum_0[_len_0] = item -- 108
 				_len_0 = _len_0 + 1 -- 97
 				::_continue_0:: -- 97
-			end -- 108
+			end -- 96
 			info = _accum_0 -- 96
-		end -- 108
+		end -- 96
 		if #info == 0 then -- 109
 			info = nil -- 110
 			success = true -- 111
@@ -236,14 +236,14 @@ luaCheckWithLineInfo = function(file, luaCodes) -- 114
 			end -- 123
 			lineMap[current] = lastLine -- 125
 			current = current + 1 -- 126
-		end -- 126
+		end -- 121
 		local _list_0 = res.info -- 127
 		for _index_0 = 1, #_list_0 do -- 127
 			local item = _list_0[_index_0] -- 127
 			item[3] = lineMap[item[3]] or 0 -- 128
 			item[4] = 0 -- 129
 			info[#info + 1] = item -- 130
-		end -- 130
+		end -- 127
 		return false, info -- 131
 	end -- 117
 	return true, info -- 132
@@ -270,7 +270,7 @@ getCompiledYueLine = function(content, line, row, file, lax) -- 134
 			break -- 148
 		end -- 146
 		current = current + 1 -- 149
-	end -- 149
+	end -- 142
 	targetRow = current -- 150
 	if targetLine and targetRow then -- 151
 		return luaCodes, targetLine, targetRow, lineMap -- 152
@@ -289,16 +289,16 @@ HttpServer:postSchedule("/check", function(req) -- 156
 				local _type_1 = type(_obj_0) -- 157
 				if "table" == _type_1 or "userdata" == _type_1 then -- 157
 					file = _obj_0.file -- 157
-				end -- 187
-			end -- 187
+				end -- 157
+			end -- 157
 			local content -- 157
 			do -- 157
 				local _obj_0 = req.body -- 157
 				local _type_1 = type(_obj_0) -- 157
 				if "table" == _type_1 or "userdata" == _type_1 then -- 157
 					content = _obj_0.content -- 157
-				end -- 187
-			end -- 187
+				end -- 157
+			end -- 157
 			if file ~= nil and content ~= nil then -- 157
 				local ext = Path:getExt(file) -- 158
 				if "tl" == ext then -- 159
@@ -374,21 +374,21 @@ HttpServer:postSchedule("/check", function(req) -- 156
 									err -- 186
 								} -- 186
 								_len_0 = _len_0 + 1 -- 186
-							end -- 186
+							end -- 185
 							info = _accum_0 -- 185
-						end -- 186
+						end -- 185
 						return { -- 187
 							success = false, -- 187
 							info = info -- 187
 						} -- 187
 					end -- 178
-				end -- 187
+				end -- 159
 			end -- 157
-		end -- 187
-	end -- 187
+		end -- 157
+	end -- 157
 	return { -- 156
 		success = true -- 156
-	} -- 187
+	} -- 156
 end) -- 156
 local updateInferedDesc -- 189
 updateInferedDesc = function(infered) -- 189
@@ -420,7 +420,7 @@ updateInferedDesc = function(infered) -- 189
 				skipping = false -- 206
 			end -- 202
 			::_continue_0:: -- 197
-		end -- 206
+		end -- 196
 		infered.doc = table.concat(comments, "\n") -- 207
 	end -- 192
 end -- 189
@@ -435,40 +435,40 @@ HttpServer:postSchedule("/infer", function(req) -- 209
 				local _type_1 = type(_obj_0) -- 210
 				if "table" == _type_1 or "userdata" == _type_1 then -- 210
 					lang = _obj_0.lang -- 210
-				end -- 227
-			end -- 227
+				end -- 210
+			end -- 210
 			local file -- 210
 			do -- 210
 				local _obj_0 = req.body -- 210
 				local _type_1 = type(_obj_0) -- 210
 				if "table" == _type_1 or "userdata" == _type_1 then -- 210
 					file = _obj_0.file -- 210
-				end -- 227
-			end -- 227
+				end -- 210
+			end -- 210
 			local content -- 210
 			do -- 210
 				local _obj_0 = req.body -- 210
 				local _type_1 = type(_obj_0) -- 210
 				if "table" == _type_1 or "userdata" == _type_1 then -- 210
 					content = _obj_0.content -- 210
-				end -- 227
-			end -- 227
+				end -- 210
+			end -- 210
 			local line -- 210
 			do -- 210
 				local _obj_0 = req.body -- 210
 				local _type_1 = type(_obj_0) -- 210
 				if "table" == _type_1 or "userdata" == _type_1 then -- 210
 					line = _obj_0.line -- 210
-				end -- 227
-			end -- 227
+				end -- 210
+			end -- 210
 			local row -- 210
 			do -- 210
 				local _obj_0 = req.body -- 210
 				local _type_1 = type(_obj_0) -- 210
 				if "table" == _type_1 or "userdata" == _type_1 then -- 210
 					row = _obj_0.row -- 210
-				end -- 227
-			end -- 227
+				end -- 210
+			end -- 210
 			if lang ~= nil and file ~= nil and content ~= nil and line ~= nil and row ~= nil then -- 210
 				local searchPath = getSearchPath(file) -- 211
 				if "tl" == lang or "lua" == lang then -- 212
@@ -501,13 +501,13 @@ HttpServer:postSchedule("/infer", function(req) -- 209
 							infered = infered -- 227
 						} -- 227
 					end -- 221
-				end -- 227
+				end -- 212
 			end -- 210
-		end -- 227
-	end -- 227
+		end -- 210
+	end -- 210
 	return { -- 209
 		success = false -- 209
-	} -- 227
+	} -- 209
 end) -- 209
 local _anon_func_0 = function(doc) -- 278
 	local _accum_0 = { } -- 278
@@ -551,7 +551,7 @@ getParamDocs = function(signatures) -- 229
 					if not docs[i] then -- 249
 						needBreak = false -- 249
 					end -- 249
-				end -- 249
+				end -- 239
 				if needBreak then -- 250
 					break -- 250
 				end -- 250
@@ -587,7 +587,7 @@ getParamDocs = function(signatures) -- 229
 					params = { } -- 272
 					returnType = nil -- 273
 				end -- 251
-			end -- 273
+			end -- 236
 			local results = { } -- 274
 			for _index_0 = 1, #docs do -- 275
 				local doc = docs[_index_0] -- 275
@@ -605,7 +605,7 @@ getParamDocs = function(signatures) -- 229
 				end -- 281
 				results[#results + 1] = doc -- 284
 				::_continue_0:: -- 276
-			end -- 284
+			end -- 275
 			if #results > 0 then -- 285
 				return results -- 285
 			else -- 285
@@ -613,7 +613,7 @@ getParamDocs = function(signatures) -- 229
 			end -- 285
 		end -- 230
 	end -- 230
-	return nil -- 285
+	return nil -- 229
 end -- 229
 HttpServer:postSchedule("/signature", function(req) -- 287
 	do -- 288
@@ -626,40 +626,40 @@ HttpServer:postSchedule("/signature", function(req) -- 287
 				local _type_1 = type(_obj_0) -- 288
 				if "table" == _type_1 or "userdata" == _type_1 then -- 288
 					lang = _obj_0.lang -- 288
-				end -- 305
-			end -- 305
+				end -- 288
+			end -- 288
 			local file -- 288
 			do -- 288
 				local _obj_0 = req.body -- 288
 				local _type_1 = type(_obj_0) -- 288
 				if "table" == _type_1 or "userdata" == _type_1 then -- 288
 					file = _obj_0.file -- 288
-				end -- 305
-			end -- 305
+				end -- 288
+			end -- 288
 			local content -- 288
 			do -- 288
 				local _obj_0 = req.body -- 288
 				local _type_1 = type(_obj_0) -- 288
 				if "table" == _type_1 or "userdata" == _type_1 then -- 288
 					content = _obj_0.content -- 288
-				end -- 305
-			end -- 305
+				end -- 288
+			end -- 288
 			local line -- 288
 			do -- 288
 				local _obj_0 = req.body -- 288
 				local _type_1 = type(_obj_0) -- 288
 				if "table" == _type_1 or "userdata" == _type_1 then -- 288
 					line = _obj_0.line -- 288
-				end -- 305
-			end -- 305
+				end -- 288
+			end -- 288
 			local row -- 288
 			do -- 288
 				local _obj_0 = req.body -- 288
 				local _type_1 = type(_obj_0) -- 288
 				if "table" == _type_1 or "userdata" == _type_1 then -- 288
 					row = _obj_0.row -- 288
-				end -- 305
-			end -- 305
+				end -- 288
+			end -- 288
 			if lang ~= nil and file ~= nil and content ~= nil and line ~= nil and row ~= nil then -- 288
 				local searchPath = getSearchPath(file) -- 289
 				if "tl" == lang or "lua" == lang then -- 290
@@ -710,13 +710,13 @@ HttpServer:postSchedule("/signature", function(req) -- 287
 							end -- 304
 						end -- 303
 					end -- 300
-				end -- 305
+				end -- 290
 			end -- 288
-		end -- 305
-	end -- 305
+		end -- 288
+	end -- 288
 	return { -- 287
 		success = false -- 287
-	} -- 305
+	} -- 287
 end) -- 287
 local luaKeywords = { -- 308
 	'and', -- 308
@@ -817,40 +817,40 @@ HttpServer:postSchedule("/complete", function(req) -- 386
 				local _type_1 = type(_obj_0) -- 387
 				if "table" == _type_1 or "userdata" == _type_1 then -- 387
 					lang = _obj_0.lang -- 387
-				end -- 494
-			end -- 494
+				end -- 387
+			end -- 387
 			local file -- 387
 			do -- 387
 				local _obj_0 = req.body -- 387
 				local _type_1 = type(_obj_0) -- 387
 				if "table" == _type_1 or "userdata" == _type_1 then -- 387
 					file = _obj_0.file -- 387
-				end -- 494
-			end -- 494
+				end -- 387
+			end -- 387
 			local content -- 387
 			do -- 387
 				local _obj_0 = req.body -- 387
 				local _type_1 = type(_obj_0) -- 387
 				if "table" == _type_1 or "userdata" == _type_1 then -- 387
 					content = _obj_0.content -- 387
-				end -- 494
-			end -- 494
+				end -- 387
+			end -- 387
 			local line -- 387
 			do -- 387
 				local _obj_0 = req.body -- 387
 				local _type_1 = type(_obj_0) -- 387
 				if "table" == _type_1 or "userdata" == _type_1 then -- 387
 					line = _obj_0.line -- 387
-				end -- 494
-			end -- 494
+				end -- 387
+			end -- 387
 			local row -- 387
 			do -- 387
 				local _obj_0 = req.body -- 387
 				local _type_1 = type(_obj_0) -- 387
 				if "table" == _type_1 or "userdata" == _type_1 then -- 387
 					row = _obj_0.row -- 387
-				end -- 494
-			end -- 494
+				end -- 387
+			end -- 387
 			if lang ~= nil and file ~= nil and content ~= nil and line ~= nil and row ~= nil then -- 387
 				local searchPath = getSearchPath(file) -- 388
 				repeat -- 389
@@ -890,7 +890,7 @@ HttpServer:postSchedule("/complete", function(req) -- 386
 					for _index_0 = 1, #_list_0 do -- 407
 						local folder = _list_0[_index_0] -- 407
 						searchPaths[#searchPaths + 1] = folder -- 408
-					end -- 408
+					end -- 407
 					if searchType then -- 409
 						searchPaths[#searchPaths + 1] = Content.assetPath -- 409
 					end -- 409
@@ -928,7 +928,7 @@ HttpServer:postSchedule("/complete", function(req) -- 386
 										} -- 421
 									end -- 419
 									::_continue_1:: -- 419
-								end -- 421
+								end -- 418
 							end -- 417
 						end -- 415
 						local _list_1 = Content:getFiles(sPath) -- 422
@@ -946,8 +946,8 @@ HttpServer:postSchedule("/complete", function(req) -- 386
 											"image", -- 426
 											"field" -- 426
 										} -- 426
-									end -- 426
-								end -- 426
+									end -- 424
+								end -- 424
 								goto _continue_2 -- 427
 							elseif "Font" == searchType then -- 428
 								do -- 429
@@ -961,10 +961,10 @@ HttpServer:postSchedule("/complete", function(req) -- 386
 											"font", -- 431
 											"field" -- 431
 										} -- 431
-									end -- 431
-								end -- 431
+									end -- 429
+								end -- 429
 								goto _continue_2 -- 432
-							end -- 432
+							end -- 423
 							local _exp_0 = Path:getExt(f) -- 433
 							if "lua" == _exp_0 or "tl" == _exp_0 or "yue" == _exp_0 or "xml" == _exp_0 then -- 433
 								local name = Path:getName(f) -- 434
@@ -979,9 +979,9 @@ HttpServer:postSchedule("/complete", function(req) -- 386
 									"module", -- 437
 									"field" -- 437
 								} -- 437
-							end -- 437
+							end -- 433
 							::_continue_2:: -- 423
-						end -- 437
+						end -- 422
 						local _list_2 = Content:getDirs(sPath) -- 438
 						for _index_1 = 1, #_list_2 do -- 438
 							local dir = _list_2[_index_1] -- 438
@@ -994,9 +994,9 @@ HttpServer:postSchedule("/complete", function(req) -- 386
 								"variable" -- 440
 							} -- 440
 							::_continue_3:: -- 439
-						end -- 440
+						end -- 438
 						::_continue_0:: -- 413
-					end -- 440
+					end -- 412
 					if item == "" and not searchType then -- 441
 						local _list_1 = teal.completeAsync("", "Dora.", 1, searchPath) -- 442
 						for _index_0 = 1, #_list_1 do -- 442
@@ -1007,7 +1007,7 @@ HttpServer:postSchedule("/complete", function(req) -- 386
 								"dora module", -- 443
 								"function" -- 443
 							} -- 443
-						end -- 443
+						end -- 442
 					end -- 441
 					if #suggestions > 0 then -- 444
 						do -- 445
@@ -1028,7 +1028,7 @@ HttpServer:postSchedule("/complete", function(req) -- 386
 							success = false -- 448
 						} -- 448
 					end -- 444
-				until true -- 449
+				until true -- 389
 				if "tl" == lang or "lua" == lang then -- 450
 					local suggestions = teal.completeAsync(content, line, row, searchPath) -- 451
 					if not line:match("[%.:]$") then -- 452
@@ -1048,7 +1048,7 @@ HttpServer:postSchedule("/complete", function(req) -- 386
 							if not checkSet[item[1]] then -- 455
 								suggestions[#suggestions + 1] = item -- 455
 							end -- 455
-						end -- 455
+						end -- 454
 						for _index_0 = 1, #luaKeywords do -- 456
 							local word = luaKeywords[_index_0] -- 456
 							suggestions[#suggestions + 1] = { -- 457
@@ -1056,7 +1056,7 @@ HttpServer:postSchedule("/complete", function(req) -- 386
 								"keyword", -- 457
 								"keyword" -- 457
 							} -- 457
-						end -- 457
+						end -- 456
 						if lang == "tl" then -- 458
 							for _index_0 = 1, #tealKeywords do -- 459
 								local word = tealKeywords[_index_0] -- 459
@@ -1065,7 +1065,7 @@ HttpServer:postSchedule("/complete", function(req) -- 386
 									"keyword", -- 460
 									"keyword" -- 460
 								} -- 460
-							end -- 460
+							end -- 459
 						end -- 458
 					end -- 452
 					if #suggestions > 0 then -- 461
@@ -1128,7 +1128,7 @@ HttpServer:postSchedule("/complete", function(req) -- 386
 							if not checkSet[item[1]] then -- 480
 								suggestions[#suggestions + 1] = item -- 480
 							end -- 480
-						end -- 480
+						end -- 479
 						if not gotGlobals then -- 481
 							local _list_1 = teal.completeAsync("", "x", 1, searchPath) -- 482
 							for _index_0 = 1, #_list_1 do -- 482
@@ -1136,7 +1136,7 @@ HttpServer:postSchedule("/complete", function(req) -- 386
 								if not checkSet[item[1]] then -- 483
 									suggestions[#suggestions + 1] = item -- 483
 								end -- 483
-							end -- 483
+							end -- 482
 						end -- 481
 						for _index_0 = 1, #yueKeywords do -- 484
 							local word = yueKeywords[_index_0] -- 484
@@ -1147,7 +1147,7 @@ HttpServer:postSchedule("/complete", function(req) -- 386
 									"keyword" -- 486
 								} -- 486
 							end -- 485
-						end -- 486
+						end -- 484
 					end -- 477
 					if #suggestions > 0 then -- 487
 						return { -- 488
@@ -1171,21 +1171,21 @@ HttpServer:postSchedule("/complete", function(req) -- 386
 									"field" -- 493
 								} -- 493
 								_len_0 = _len_0 + 1 -- 493
-							end -- 493
+							end -- 492
 							suggestions = _accum_0 -- 492
-						end -- 493
+						end -- 492
 						return { -- 494
 							success = true, -- 494
 							suggestions = suggestions -- 494
 						} -- 494
 					end -- 491
-				end -- 494
+				end -- 450
 			end -- 387
-		end -- 494
-	end -- 494
+		end -- 387
+	end -- 387
 	return { -- 386
 		success = false -- 386
-	} -- 494
+	} -- 386
 end) -- 386
 HttpServer:upload("/upload", function(req, filename) -- 498
 	do -- 499
@@ -1198,8 +1198,8 @@ HttpServer:upload("/upload", function(req, filename) -- 498
 				local _type_1 = type(_obj_0) -- 499
 				if "table" == _type_1 or "userdata" == _type_1 then -- 499
 					path = _obj_0.path -- 499
-				end -- 505
-			end -- 505
+				end -- 499
+			end -- 499
 			if path ~= nil then -- 499
 				local uploadPath = Path(Content.appPath, ".upload") -- 500
 				if not Content:exist(uploadPath) then -- 501
@@ -1209,9 +1209,9 @@ HttpServer:upload("/upload", function(req, filename) -- 498
 				Content:mkdir(Path:getPath(targetPath)) -- 504
 				return targetPath -- 505
 			end -- 499
-		end -- 505
-	end -- 505
-	return nil -- 505
+		end -- 499
+	end -- 499
+	return nil -- 498
 end, function(req, file) -- 506
 	do -- 507
 		local _type_0 = type(req) -- 507
@@ -1223,8 +1223,8 @@ end, function(req, file) -- 506
 				local _type_1 = type(_obj_0) -- 507
 				if "table" == _type_1 or "userdata" == _type_1 then -- 507
 					path = _obj_0.path -- 507
-				end -- 514
-			end -- 514
+				end -- 507
+			end -- 507
 			if path ~= nil then -- 507
 				path = Path(Content.writablePath, path) -- 508
 				if Content:exist(path) then -- 509
@@ -1236,9 +1236,9 @@ end, function(req, file) -- 506
 					end -- 513
 				end -- 509
 			end -- 507
-		end -- 514
-	end -- 514
-	return false -- 514
+		end -- 507
+	end -- 507
+	return false -- 506
 end) -- 496
 HttpServer:post("/list", function(req) -- 517
 	do -- 518
@@ -1251,8 +1251,8 @@ HttpServer:post("/list", function(req) -- 517
 				local _type_1 = type(_obj_0) -- 518
 				if "table" == _type_1 or "userdata" == _type_1 then -- 518
 					path = _obj_0.path -- 518
-				end -- 540
-			end -- 540
+				end -- 518
+			end -- 518
 			if path ~= nil then -- 518
 				if Content:exist(path) then -- 519
 					local files = { } -- 520
@@ -1273,7 +1273,7 @@ HttpServer:post("/list", function(req) -- 517
 							files[#files + 1] = current -- 529
 							visitAssets(Path(path, dir), current) -- 530
 							::_continue_0:: -- 524
-						end -- 530
+						end -- 523
 						local fs = Content:getFiles(path) -- 531
 						for _index_0 = 1, #fs do -- 532
 							local f = fs[_index_0] -- 532
@@ -1286,7 +1286,7 @@ HttpServer:post("/list", function(req) -- 517
 								files[#files + 1] = Path(folder, f) -- 537
 							end -- 534
 							::_continue_1:: -- 533
-						end -- 537
+						end -- 532
 					end -- 521
 					visitAssets(path, "") -- 538
 					if #files == 0 then -- 539
@@ -1298,11 +1298,11 @@ HttpServer:post("/list", function(req) -- 517
 					} -- 540
 				end -- 519
 			end -- 518
-		end -- 540
-	end -- 540
+		end -- 518
+	end -- 518
 	return { -- 517
 		success = false -- 517
-	} -- 540
+	} -- 517
 end) -- 517
 HttpServer:post("/info", function() -- 542
 	local Entry = require("Script.Dev.Entry") -- 543
@@ -1320,7 +1320,7 @@ HttpServer:post("/info", function() -- 542
 		engineDev = engineDev, -- 551
 		webProfiler = webProfiler, -- 552
 		drawerWidth = drawerWidth -- 553
-	} -- 553
+	} -- 547
 end) -- 542
 HttpServer:post("/new", function(req) -- 555
 	do -- 556
@@ -1333,24 +1333,24 @@ HttpServer:post("/new", function(req) -- 555
 				local _type_1 = type(_obj_0) -- 556
 				if "table" == _type_1 or "userdata" == _type_1 then -- 556
 					path = _obj_0.path -- 556
-				end -- 578
-			end -- 578
+				end -- 556
+			end -- 556
 			local content -- 556
 			do -- 556
 				local _obj_0 = req.body -- 556
 				local _type_1 = type(_obj_0) -- 556
 				if "table" == _type_1 or "userdata" == _type_1 then -- 556
 					content = _obj_0.content -- 556
-				end -- 578
-			end -- 578
+				end -- 556
+			end -- 556
 			local folder -- 556
 			do -- 556
 				local _obj_0 = req.body -- 556
 				local _type_1 = type(_obj_0) -- 556
 				if "table" == _type_1 or "userdata" == _type_1 then -- 556
 					folder = _obj_0.folder -- 556
-				end -- 578
-			end -- 578
+				end -- 556
+			end -- 556
 			if path ~= nil and content ~= nil and folder ~= nil then -- 556
 				if not Content:exist(path) then -- 557
 					local parent = Path:getPath(path) -- 558
@@ -1364,7 +1364,7 @@ HttpServer:post("/new", function(req) -- 555
 									success = false -- 564
 								} -- 564
 							end -- 563
-						end -- 564
+						end -- 562
 						if Content:mkdir(path) then -- 565
 							return { -- 566
 								success = true -- 566
@@ -1386,7 +1386,7 @@ HttpServer:post("/new", function(req) -- 555
 								} -- 576
 							end -- 570
 							::_continue_0:: -- 570
-						end -- 576
+						end -- 569
 						if Content:save(path, content) then -- 577
 							return { -- 578
 								success = true -- 578
@@ -1395,11 +1395,11 @@ HttpServer:post("/new", function(req) -- 555
 					end -- 560
 				end -- 557
 			end -- 556
-		end -- 578
-	end -- 578
+		end -- 556
+	end -- 556
 	return { -- 555
 		success = false -- 555
-	} -- 578
+	} -- 555
 end) -- 555
 HttpServer:post("/delete", function(req) -- 580
 	do -- 581
@@ -1412,8 +1412,8 @@ HttpServer:post("/delete", function(req) -- 580
 				local _type_1 = type(_obj_0) -- 581
 				if "table" == _type_1 or "userdata" == _type_1 then -- 581
 					path = _obj_0.path -- 581
-				end -- 594
-			end -- 594
+				end -- 581
+			end -- 581
 			if path ~= nil then -- 581
 				if Content:exist(path) then -- 582
 					local parent = Path:getPath(path) -- 583
@@ -1432,9 +1432,9 @@ HttpServer:post("/delete", function(req) -- 580
 								if ("tl" == ext or "yue" == ext or "ts" == ext or "tsx" == ext or "vs" == ext or "bl" == ext or "xml" == ext) then -- 591
 									Content:remove(Path(parent, file)) -- 592
 								end -- 591
-							end -- 592
+							end -- 589
 						end -- 588
-					end -- 592
+					end -- 587
 					if Content:remove(path) then -- 593
 						return { -- 594
 							success = true -- 594
@@ -1442,11 +1442,11 @@ HttpServer:post("/delete", function(req) -- 580
 					end -- 593
 				end -- 582
 			end -- 581
-		end -- 594
-	end -- 594
+		end -- 581
+	end -- 581
 	return { -- 580
 		success = false -- 580
-	} -- 594
+	} -- 580
 end) -- 580
 HttpServer:post("/rename", function(req) -- 596
 	do -- 597
@@ -1459,16 +1459,16 @@ HttpServer:post("/rename", function(req) -- 596
 				local _type_1 = type(_obj_0) -- 597
 				if "table" == _type_1 or "userdata" == _type_1 then -- 597
 					old = _obj_0.old -- 597
-				end -- 630
-			end -- 630
+				end -- 597
+			end -- 597
 			local new -- 597
 			do -- 597
 				local _obj_0 = req.body -- 597
 				local _type_1 = type(_obj_0) -- 597
 				if "table" == _type_1 or "userdata" == _type_1 then -- 597
 					new = _obj_0.new -- 597
-				end -- 630
-			end -- 630
+				end -- 597
+			end -- 597
 			if old ~= nil and new ~= nil then -- 597
 				if Content:exist(old) and not Content:exist(new) then -- 598
 					local parent = Path:getPath(new) -- 599
@@ -1482,7 +1482,7 @@ HttpServer:post("/rename", function(req) -- 596
 									success = false -- 605
 								} -- 605
 							end -- 604
-						end -- 605
+						end -- 603
 					else -- 607
 						local name = Path:getName(new):lower() -- 607
 						local ext = Path:getExt(new) -- 608
@@ -1499,7 +1499,7 @@ HttpServer:post("/rename", function(req) -- 596
 								} -- 615
 							end -- 610
 							::_continue_0:: -- 610
-						end -- 615
+						end -- 609
 					end -- 601
 					if Content:move(old, new) then -- 616
 						local newParent = Path:getPath(new) -- 617
@@ -1521,20 +1521,20 @@ HttpServer:post("/rename", function(req) -- 596
 									if ("tl" == ext or "yue" == ext or "ts" == ext or "tsx" == ext or "vs" == ext or "bl" == ext or "xml" == ext) then -- 628
 										Content:move(Path(parent, file), Path(newParent, newName .. ".lua")) -- 629
 									end -- 628
-								end -- 629
+								end -- 626
 							end -- 625
-						end -- 629
+						end -- 624
 						return { -- 630
 							success = true -- 630
 						} -- 630
 					end -- 616
 				end -- 598
 			end -- 597
-		end -- 630
-	end -- 630
+		end -- 597
+	end -- 597
 	return { -- 596
 		success = false -- 596
-	} -- 630
+	} -- 596
 end) -- 596
 HttpServer:post("/exist", function(req) -- 632
 	do -- 633
@@ -1547,8 +1547,8 @@ HttpServer:post("/exist", function(req) -- 632
 				local _type_1 = type(_obj_0) -- 633
 				if "table" == _type_1 or "userdata" == _type_1 then -- 633
 					file = _obj_0.file -- 633
-				end -- 642
-			end -- 642
+				end -- 633
+			end -- 633
 			if file ~= nil then -- 633
 				do -- 634
 					local projFile = req.body.projFile -- 634
@@ -1578,11 +1578,11 @@ HttpServer:post("/exist", function(req) -- 632
 					success = Content:exist(file) -- 642
 				} -- 642
 			end -- 633
-		end -- 642
-	end -- 642
+		end -- 633
+	end -- 633
 	return { -- 632
 		success = false -- 632
-	} -- 642
+	} -- 632
 end) -- 632
 HttpServer:postSchedule("/read", function(req) -- 644
 	do -- 645
@@ -1595,8 +1595,8 @@ HttpServer:postSchedule("/read", function(req) -- 644
 				local _type_1 = type(_obj_0) -- 645
 				if "table" == _type_1 or "userdata" == _type_1 then -- 645
 					path = _obj_0.path -- 645
-				end -- 658
-			end -- 658
+				end -- 645
+			end -- 645
 			if path ~= nil then -- 645
 				local readFile -- 646
 				readFile = function() -- 646
@@ -1609,7 +1609,7 @@ HttpServer:postSchedule("/read", function(req) -- 644
 							} -- 649
 						end -- 648
 					end -- 647
-					return nil -- 649
+					return nil -- 646
 				end -- 646
 				do -- 650
 					local projFile = req.body.projFile -- 650
@@ -1641,11 +1641,11 @@ HttpServer:postSchedule("/read", function(req) -- 644
 					return result -- 658
 				end -- 658
 			end -- 645
-		end -- 658
-	end -- 658
+		end -- 645
+	end -- 645
 	return { -- 644
 		success = false -- 644
-	} -- 658
+	} -- 644
 end) -- 644
 HttpServer:post("/read-sync", function(req) -- 660
 	do -- 661
@@ -1658,16 +1658,16 @@ HttpServer:post("/read-sync", function(req) -- 660
 				local _type_1 = type(_obj_0) -- 661
 				if "table" == _type_1 or "userdata" == _type_1 then -- 661
 					path = _obj_0.path -- 661
-				end -- 678
-			end -- 678
+				end -- 661
+			end -- 661
 			local exts -- 661
 			do -- 661
 				local _obj_0 = req.body -- 661
 				local _type_1 = type(_obj_0) -- 661
 				if "table" == _type_1 or "userdata" == _type_1 then -- 661
 					exts = _obj_0.exts -- 661
-				end -- 678
-			end -- 678
+				end -- 661
+			end -- 661
 			if path ~= nil and exts ~= nil then -- 661
 				local readFile -- 662
 				readFile = function() -- 662
@@ -1684,8 +1684,8 @@ HttpServer:post("/read-sync", function(req) -- 660
 								} -- 667
 							end -- 666
 						end -- 665
-					end -- 667
-					return nil -- 667
+					end -- 663
+					return nil -- 662
 				end -- 662
 				local searchPaths = Content.searchPaths -- 668
 				local _ <close> = setmetatable({ }, { -- 669
@@ -1718,11 +1718,11 @@ HttpServer:post("/read-sync", function(req) -- 660
 					return result -- 678
 				end -- 678
 			end -- 661
-		end -- 678
-	end -- 678
+		end -- 661
+	end -- 661
 	return { -- 660
 		success = false -- 660
-	} -- 678
+	} -- 660
 end) -- 660
 local compileFileAsync -- 680
 compileFileAsync = function(inputFile, sourceCodes) -- 680
@@ -1793,15 +1793,15 @@ compileFileAsync = function(inputFile, sourceCodes) -- 680
 				Content:remove(outputFile) -- 723
 				resultCodes = false -- 724
 			end -- 719
-		end -- 724
-	end -- 724
+		end -- 693
+	end -- 693
 	wait(function() -- 725
 		return resultCodes ~= nil -- 725
 	end) -- 725
 	if resultCodes then -- 726
 		return resultCodes -- 726
 	end -- 726
-	return nil -- 726
+	return nil -- 680
 end -- 680
 HttpServer:postSchedule("/write", function(req) -- 728
 	do -- 729
@@ -1814,16 +1814,16 @@ HttpServer:postSchedule("/write", function(req) -- 728
 				local _type_1 = type(_obj_0) -- 729
 				if "table" == _type_1 or "userdata" == _type_1 then -- 729
 					path = _obj_0.path -- 729
-				end -- 735
-			end -- 735
+				end -- 729
+			end -- 729
 			local content -- 729
 			do -- 729
 				local _obj_0 = req.body -- 729
 				local _type_1 = type(_obj_0) -- 729
 				if "table" == _type_1 or "userdata" == _type_1 then -- 729
 					content = _obj_0.content -- 729
-				end -- 735
-			end -- 735
+				end -- 729
+			end -- 729
 			if path ~= nil and content ~= nil then -- 729
 				if Content:saveAsync(path, content) then -- 730
 					do -- 731
@@ -1836,18 +1836,18 @@ HttpServer:postSchedule("/write", function(req) -- 728
 									resultCodes = resultCodes -- 734
 								} -- 734
 							end -- 732
-						end -- 734
-					end -- 734
+						end -- 731
+					end -- 731
 					return { -- 735
 						success = true -- 735
 					} -- 735
 				end -- 730
 			end -- 729
-		end -- 735
-	end -- 735
+		end -- 729
+	end -- 729
 	return { -- 728
 		success = false -- 728
-	} -- 735
+	} -- 728
 end) -- 728
 HttpServer:postSchedule("/build", function(req) -- 737
 	do -- 738
@@ -1860,8 +1860,8 @@ HttpServer:postSchedule("/build", function(req) -- 737
 				local _type_1 = type(_obj_0) -- 738
 				if "table" == _type_1 or "userdata" == _type_1 then -- 738
 					path = _obj_0.path -- 738
-				end -- 743
-			end -- 743
+				end -- 738
+			end -- 738
 			if path ~= nil then -- 738
 				local _exp_0 = Path:getExt(path) -- 739
 				if "tl" == _exp_0 or "yue" == _exp_0 or "xml" == _exp_0 then -- 739
@@ -1877,13 +1877,13 @@ HttpServer:postSchedule("/build", function(req) -- 737
 							end -- 742
 						end -- 741
 					end -- 740
-				end -- 743
+				end -- 739
 			end -- 738
-		end -- 743
-	end -- 743
+		end -- 738
+	end -- 738
 	return { -- 737
 		success = false -- 737
-	} -- 743
+	} -- 737
 end) -- 737
 local extentionLevels = { -- 746
 	vs = 2, -- 746
@@ -1923,7 +1923,7 @@ HttpServer:post("/assets", function() -- 755
 			end -- 771
 			children[#children + 1] = visitAssets(Path(path, dir)) -- 772
 			::_continue_0:: -- 766
-		end -- 772
+		end -- 765
 		local files = Content:getFiles(path) -- 773
 		local names = { } -- 774
 		for _index_0 = 1, #files do -- 775
@@ -1967,7 +1967,7 @@ HttpServer:post("/assets", function() -- 755
 				end -- 788
 			end -- 778
 			::_continue_1:: -- 776
-		end -- 791
+		end -- 775
 		do -- 792
 			local _accum_0 = { } -- 792
 			local _len_0 = 1 -- 792
@@ -1988,7 +1988,7 @@ HttpServer:post("/assets", function() -- 755
 				title = file, -- 798
 				builtin = builtin -- 799
 			} -- 795
-		end -- 800
+		end -- 793
 		if children then -- 801
 			table.sort(children, function(a, b) -- 802
 				if a.dir == b.dir then -- 803
@@ -2007,7 +2007,7 @@ HttpServer:post("/assets", function() -- 755
 				title = Path:getFilename(path), -- 813
 				builtin = builtin, -- 814
 				children = children -- 815
-			} -- 816
+			} -- 810
 		end -- 807
 	end -- 760
 	local zh = (App.locale:match("^zh") ~= nil) -- 817
@@ -2070,7 +2070,7 @@ HttpServer:post("/assets", function() -- 755
 									end -- 844
 									break -- 845
 									::_continue_0:: -- 842
-								end -- 845
+								end -- 841
 							else -- 847
 								local _accum_0 = { } -- 847
 								local _len_0 = 1 -- 847
@@ -2109,9 +2109,9 @@ HttpServer:post("/assets", function() -- 755
 				_tab_0[_idx_0] = _value_0 -- 858
 				_idx_0 = _idx_0 + 1 -- 858
 			end -- 858
-			return _tab_0 -- 857
+			return _tab_0 -- 824
 		end)() -- 823
-	} -- 860
+	} -- 818
 end) -- 755
 HttpServer:postSchedule("/run", function(req) -- 862
 	do -- 863
@@ -2124,16 +2124,16 @@ HttpServer:postSchedule("/run", function(req) -- 862
 				local _type_1 = type(_obj_0) -- 863
 				if "table" == _type_1 or "userdata" == _type_1 then -- 863
 					file = _obj_0.file -- 863
-				end -- 884
-			end -- 884
+				end -- 863
+			end -- 863
 			local asProj -- 863
 			do -- 863
 				local _obj_0 = req.body -- 863
 				local _type_1 = type(_obj_0) -- 863
 				if "table" == _type_1 or "userdata" == _type_1 then -- 863
 					asProj = _obj_0.asProj -- 863
-				end -- 884
-			end -- 884
+				end -- 863
+			end -- 863
 			if file ~= nil and asProj ~= nil then -- 863
 				if not Content:isAbsolutePath(file) then -- 864
 					local devFile = Path(Content.writablePath, file) -- 865
@@ -2174,11 +2174,11 @@ HttpServer:postSchedule("/run", function(req) -- 862
 					err = err -- 884
 				} -- 884
 			end -- 863
-		end -- 884
-	end -- 884
+		end -- 863
+	end -- 863
 	return { -- 862
 		success = false -- 862
-	} -- 884
+	} -- 862
 end) -- 862
 HttpServer:postSchedule("/stop", function() -- 886
 	local Entry = require("Script.Dev.Entry") -- 887
@@ -2259,7 +2259,7 @@ minifyAsync = function(sourcePath, minifyPath) -- 890
 			end -- 911
 		end) -- 907
 		sleep() -- 921
-	end -- 921
+	end -- 906
 	wait(function() -- 922
 		return count == fileCount -- 922
 	end) -- 922
@@ -2281,24 +2281,24 @@ HttpServer:postSchedule("/zip", function(req) -- 930
 				local _type_1 = type(_obj_0) -- 931
 				if "table" == _type_1 or "userdata" == _type_1 then -- 931
 					path = _obj_0.path -- 931
-				end -- 960
-			end -- 960
+				end -- 931
+			end -- 931
 			local zipFile -- 931
 			do -- 931
 				local _obj_0 = req.body -- 931
 				local _type_1 = type(_obj_0) -- 931
 				if "table" == _type_1 or "userdata" == _type_1 then -- 931
 					zipFile = _obj_0.zipFile -- 931
-				end -- 960
-			end -- 960
+				end -- 931
+			end -- 931
 			local obfuscated -- 931
 			do -- 931
 				local _obj_0 = req.body -- 931
 				local _type_1 = type(_obj_0) -- 931
 				if "table" == _type_1 or "userdata" == _type_1 then -- 931
 					obfuscated = _obj_0.obfuscated -- 931
-				end -- 960
-			end -- 960
+				end -- 931
+			end -- 931
 			if path ~= nil and zipFile ~= nil and obfuscated ~= nil then -- 931
 				if zipping then -- 932
 					goto failed -- 932
@@ -2343,11 +2343,11 @@ HttpServer:postSchedule("/zip", function(req) -- 930
 					for _index_0 = 1, #scriptFiles do -- 951
 						local file = scriptFiles[_index_0] -- 951
 						Content:remove(Path(tempPath, file)) -- 952
-					end -- 952
+					end -- 951
 					for _index_0 = 1, #luaFiles do -- 953
 						local file = luaFiles[_index_0] -- 953
 						Content:move(Path(obfuscatedPath, file), Path(tempPath, file)) -- 954
-					end -- 954
+					end -- 953
 					if not Content:zipAsync(tempPath, zipFile, function(file) -- 955
 						return not (file:match('^%.') or file:match("[\\/]%.")) -- 956
 					end) then -- 955
@@ -2361,15 +2361,15 @@ HttpServer:postSchedule("/zip", function(req) -- 930
 						success = Content:zipAsync(path, zipFile, function(file) -- 959
 							return not (file:match('^%.') or file:match("[\\/]%.")) -- 960
 						end) -- 959
-					} -- 960
+					} -- 959
 				end -- 937
 			end -- 931
-		end -- 960
-	end -- 960
+		end -- 931
+	end -- 931
 	::failed:: -- 961
 	return { -- 930
 		success = false -- 930
-	} -- 961
+	} -- 930
 end) -- 930
 HttpServer:postSchedule("/unzip", function(req) -- 963
 	do -- 964
@@ -2382,28 +2382,28 @@ HttpServer:postSchedule("/unzip", function(req) -- 963
 				local _type_1 = type(_obj_0) -- 964
 				if "table" == _type_1 or "userdata" == _type_1 then -- 964
 					zipFile = _obj_0.zipFile -- 964
-				end -- 966
-			end -- 966
+				end -- 964
+			end -- 964
 			local path -- 964
 			do -- 964
 				local _obj_0 = req.body -- 964
 				local _type_1 = type(_obj_0) -- 964
 				if "table" == _type_1 or "userdata" == _type_1 then -- 964
 					path = _obj_0.path -- 964
-				end -- 966
-			end -- 966
+				end -- 964
+			end -- 964
 			if zipFile ~= nil and path ~= nil then -- 964
 				return { -- 965
 					success = Content:unzipAsync(zipFile, path, function(file) -- 965
 						return not (file:match('^%.') or file:match("[\\/]%.") or file:match("__MACOSX")) -- 966
 					end) -- 965
-				} -- 966
+				} -- 965
 			end -- 964
-		end -- 966
-	end -- 966
+		end -- 964
+	end -- 964
 	return { -- 963
 		success = false -- 963
-	} -- 966
+	} -- 963
 end) -- 963
 HttpServer:post("/editing-info", function(req) -- 968
 	local Entry = require("Script.Dev.Entry") -- 969
@@ -2418,8 +2418,8 @@ HttpServer:post("/editing-info", function(req) -- 968
 			local _type_1 = type(_obj_0) -- 971
 			if "table" == _type_1 or "userdata" == _type_1 then -- 971
 				editingInfo = _obj_0.editingInfo -- 971
-			end -- 973
-		end -- 973
+			end -- 971
+		end -- 971
 		if editingInfo ~= nil then -- 971
 			_match_0 = true -- 971
 			config.editingInfo = editingInfo -- 972
@@ -2450,7 +2450,7 @@ HttpServer:post("/editing-info", function(req) -- 968
 			success = true, -- 986
 			editingInfo = config.editingInfo -- 986
 		} -- 986
-	end -- 986
+	end -- 971
 end) -- 968
 HttpServer:post("/command", function(req) -- 988
 	do -- 989
@@ -2463,27 +2463,27 @@ HttpServer:post("/command", function(req) -- 988
 				local _type_1 = type(_obj_0) -- 989
 				if "table" == _type_1 or "userdata" == _type_1 then -- 989
 					code = _obj_0.code -- 989
-				end -- 991
-			end -- 991
+				end -- 989
+			end -- 989
 			local log -- 989
 			do -- 989
 				local _obj_0 = req.body -- 989
 				local _type_1 = type(_obj_0) -- 989
 				if "table" == _type_1 or "userdata" == _type_1 then -- 989
 					log = _obj_0.log -- 989
-				end -- 991
-			end -- 991
+				end -- 989
+			end -- 989
 			if code ~= nil and log ~= nil then -- 989
 				emit("AppCommand", code, log) -- 990
 				return { -- 991
 					success = true -- 991
 				} -- 991
 			end -- 989
-		end -- 991
-	end -- 991
+		end -- 989
+	end -- 989
 	return { -- 988
 		success = false -- 988
-	} -- 991
+	} -- 988
 end) -- 988
 HttpServer:post("/log/save", function() -- 993
 	local folder = ".download" -- 994
@@ -2499,7 +2499,7 @@ HttpServer:post("/log/save", function() -- 993
 	end -- 999
 	return { -- 993
 		success = false -- 993
-	} -- 1000
+	} -- 993
 end) -- 993
 HttpServer:post("/yarn/check", function(req) -- 1002
 	local yarncompile = require("yarncompile") -- 1003
@@ -2513,8 +2513,8 @@ HttpServer:post("/yarn/check", function(req) -- 1002
 				local _type_1 = type(_obj_0) -- 1004
 				if "table" == _type_1 or "userdata" == _type_1 then -- 1004
 					code = _obj_0.code -- 1004
-				end -- 1011
-			end -- 1011
+				end -- 1004
+			end -- 1004
 			if code ~= nil then -- 1004
 				local jsonObject = json.decode(code) -- 1005
 				if jsonObject then -- 1005
@@ -2527,18 +2527,18 @@ HttpServer:post("/yarn/check", function(req) -- 1002
 						if not luaCode then -- 1009
 							errors[#errors + 1] = title .. ":" .. err -- 1010
 						end -- 1009
-					end -- 1010
+					end -- 1007
 					return { -- 1011
 						success = true, -- 1011
 						syntaxError = table.concat(errors, "\n\n") -- 1011
 					} -- 1011
 				end -- 1005
 			end -- 1004
-		end -- 1011
-	end -- 1011
+		end -- 1004
+	end -- 1004
 	return { -- 1002
 		success = false -- 1002
-	} -- 1011
+	} -- 1002
 end) -- 1002
 HttpServer:post("/yarn/check-file", function(req) -- 1013
 	local yarncompile = require("yarncompile") -- 1014
@@ -2552,8 +2552,8 @@ HttpServer:post("/yarn/check-file", function(req) -- 1013
 				local _type_1 = type(_obj_0) -- 1015
 				if "table" == _type_1 or "userdata" == _type_1 then -- 1015
 					code = _obj_0.code -- 1015
-				end -- 1018
-			end -- 1018
+				end -- 1015
+			end -- 1015
 			if code ~= nil then -- 1015
 				local res, _, err = yarncompile(code, true) -- 1016
 				if not res then -- 1016
@@ -2567,11 +2567,11 @@ HttpServer:post("/yarn/check-file", function(req) -- 1013
 					} -- 1018
 				end -- 1016
 			end -- 1015
-		end -- 1018
-	end -- 1018
+		end -- 1015
+	end -- 1015
 	return { -- 1013
 		success = true -- 1013
-	} -- 1018
+	} -- 1013
 end) -- 1013
 local getWaProjectDirFromFile -- 1020
 getWaProjectDirFromFile = function(file) -- 1020
@@ -2596,8 +2596,8 @@ getWaProjectDirFromFile = function(file) -- 1020
 			if Path:getFilename(f):lower() == "wa.mod" then -- 1031
 				return Path(parent, current, Path:getPath(f)) -- 1032
 			end -- 1031
-		end -- 1032
-	until false -- 1033
+		end -- 1030
+	until false -- 1027
 	return nil -- 1034
 end -- 1020
 HttpServer:postSchedule("/wa/build", function(req) -- 1036
@@ -2611,8 +2611,8 @@ HttpServer:postSchedule("/wa/build", function(req) -- 1036
 				local _type_1 = type(_obj_0) -- 1037
 				if "table" == _type_1 or "userdata" == _type_1 then -- 1037
 					path = _obj_0.path -- 1037
-				end -- 1045
-			end -- 1045
+				end -- 1037
+			end -- 1037
 			if path ~= nil then -- 1037
 				local projDir = getWaProjectDirFromFile(path) -- 1038
 				if projDir then -- 1038
@@ -2634,8 +2634,8 @@ HttpServer:postSchedule("/wa/build", function(req) -- 1036
 					} -- 1045
 				end -- 1038
 			end -- 1037
-		end -- 1045
-	end -- 1045
+		end -- 1037
+	end -- 1037
 	return { -- 1046
 		success = false, -- 1046
 		message = 'failed to build' -- 1046
@@ -2652,8 +2652,8 @@ HttpServer:postSchedule("/wa/format", function(req) -- 1048
 				local _type_1 = type(_obj_0) -- 1049
 				if "table" == _type_1 or "userdata" == _type_1 then -- 1049
 					file = _obj_0.file -- 1049
-				end -- 1054
-			end -- 1054
+				end -- 1049
+			end -- 1049
 			if file ~= nil then -- 1049
 				local code = Wasm:formatWaAsync(file) -- 1050
 				if code == "" then -- 1051
@@ -2667,8 +2667,8 @@ HttpServer:postSchedule("/wa/format", function(req) -- 1048
 					} -- 1054
 				end -- 1051
 			end -- 1049
-		end -- 1054
-	end -- 1054
+		end -- 1049
+	end -- 1049
 	return { -- 1055
 		success = false -- 1055
 	} -- 1055
@@ -2684,8 +2684,8 @@ HttpServer:postSchedule("/wa/create", function(req) -- 1057
 				local _type_1 = type(_obj_0) -- 1058
 				if "table" == _type_1 or "userdata" == _type_1 then -- 1058
 					path = _obj_0.path -- 1058
-				end -- 1081
-			end -- 1081
+				end -- 1058
+			end -- 1058
 			if path ~= nil then -- 1058
 				if not Content:exist(Path:getPath(path)) then -- 1059
 					return { -- 1060
@@ -2739,12 +2739,12 @@ HttpServer:postSchedule("/wa/create", function(req) -- 1057
 					success = true -- 1081
 				} -- 1081
 			end -- 1058
-		end -- 1081
-	end -- 1081
+		end -- 1058
+	end -- 1058
 	return { -- 1057
 		success = false, -- 1057
 		message = "invalid call" -- 1057
-	} -- 1081
+	} -- 1057
 end) -- 1057
 local _anon_func_3 = function(Path, path) -- 1090
 	local _val_0 = Path:getExt(path) -- 1090
@@ -2765,8 +2765,8 @@ HttpServer:postSchedule("/ts/build", function(req) -- 1083
 				local _type_1 = type(_obj_0) -- 1084
 				if "table" == _type_1 or "userdata" == _type_1 then -- 1084
 					path = _obj_0.path -- 1084
-				end -- 1145
-			end -- 1145
+				end -- 1084
+			end -- 1084
 			if path ~= nil then -- 1084
 				if HttpServer.wsConnectionCount == 0 then -- 1085
 					return { -- 1086
@@ -2869,7 +2869,7 @@ HttpServer:postSchedule("/ts/build", function(req) -- 1083
 							} -- 1126
 						end -- 1122
 						::_continue_0:: -- 1120
-					end -- 1126
+					end -- 1119
 					for file, content in pairs(fileData) do -- 1127
 						if "d" == Path:getExt(Path:getName(file)) then -- 1128
 							goto _continue_1 -- 1128
@@ -2912,18 +2912,18 @@ HttpServer:postSchedule("/ts/build", function(req) -- 1083
 							return done -- 1144
 						end) -- 1144
 						::_continue_1:: -- 1128
-					end -- 1144
+					end -- 1127
 					return { -- 1145
 						success = true, -- 1145
 						messages = messages -- 1145
 					} -- 1145
 				end -- 1089
 			end -- 1084
-		end -- 1145
-	end -- 1145
+		end -- 1084
+	end -- 1084
 	return { -- 1083
 		success = false -- 1083
-	} -- 1145
+	} -- 1083
 end) -- 1083
 HttpServer:post("/download", function(req) -- 1147
 	do -- 1148
@@ -2936,16 +2936,16 @@ HttpServer:post("/download", function(req) -- 1147
 				local _type_1 = type(_obj_0) -- 1148
 				if "table" == _type_1 or "userdata" == _type_1 then -- 1148
 					url = _obj_0.url -- 1148
-				end -- 1151
-			end -- 1151
+				end -- 1148
+			end -- 1148
 			local target -- 1148
 			do -- 1148
 				local _obj_0 = req.body -- 1148
 				local _type_1 = type(_obj_0) -- 1148
 				if "table" == _type_1 or "userdata" == _type_1 then -- 1148
 					target = _obj_0.target -- 1148
-				end -- 1151
-			end -- 1151
+				end -- 1148
+			end -- 1148
 			if url ~= nil and target ~= nil then -- 1148
 				local Entry = require("Script.Dev.Entry") -- 1149
 				Entry.downloadFile(url, target) -- 1150
@@ -2953,11 +2953,11 @@ HttpServer:post("/download", function(req) -- 1147
 					success = true -- 1151
 				} -- 1151
 			end -- 1148
-		end -- 1151
-	end -- 1151
+		end -- 1148
+	end -- 1148
 	return { -- 1147
 		success = false -- 1147
-	} -- 1151
+	} -- 1147
 end) -- 1147
 local status = { } -- 1153
 _module_0 = status -- 1154
@@ -2990,4 +2990,4 @@ thread(function() -- 1156
 		return print("8866 Port not available!") -- 1178
 	end -- 1171
 end) -- 1156
-return _module_0 -- 1178
+return _module_0 -- 1

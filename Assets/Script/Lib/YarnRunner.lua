@@ -26,7 +26,7 @@ rewriteError = function(err, luaCode, title) -- 12
 		end -- 20
 		lineMap[current] = lastLine -- 21
 		current = current + 1 -- 22
-	end -- 22
+	end -- 18
 	line = lineMap[line] or line -- 23
 	return tostring(title) .. ":" .. tostring(line) .. ": " .. tostring(msg) -- 24
 end -- 12
@@ -54,11 +54,11 @@ parseVariables = function(yarnText) -- 26
 		elseif in_variables and raw:match("^value:") then -- 40
 			current_var.value = raw:match("^value:%s*(.+)") -- 41
 		end -- 33
-	end -- 41
+	end -- 30
 	if next(current_var) ~= nil then -- 42
 		variables[#variables + 1] = current_var -- 43
 	end -- 42
-	return variables -- 43
+	return variables -- 26
 end -- 26
 local extractYarnText -- 45
 extractYarnText = function(yarnCode) -- 45
@@ -77,8 +77,8 @@ extractYarnText = function(yarnCode) -- 45
 			error("missing title for node " .. tostring(count)) -- 55
 		end -- 50
 		count = count + 1 -- 56
-	end -- 56
-	return nodes -- 56
+	end -- 48
+	return nodes -- 45
 end -- 45
 local YarnRunner -- 58
 do -- 58
@@ -145,7 +145,7 @@ do -- 58
 						end)()) -- 91
 					end) -- 90
 				} -- 90
-			end -- 92
+			end -- 90
 			return true -- 93
 		end, -- 134
 		advance = function(self, choice) -- 134
@@ -216,12 +216,12 @@ do -- 58
 				return "Error", body -- 173
 			else -- 175
 				return nil, "end of the story" -- 175
-			end -- 175
+			end -- 161
 		end -- 58
 	} -- 58
 	if _base_0.__index == nil then -- 58
 		_base_0.__index = _base_0 -- 58
-	end -- 175
+	end -- 58
 	_class_0 = setmetatable({ -- 58
 		__init = function(self, filename, startTitle, state, command, testing) -- 95
 			if state == nil then -- 95
@@ -304,15 +304,15 @@ do -- 58
 							else -- 130
 								state[key] = value -- 130
 							end -- 127
-						end -- 130
-					end -- 130
+						end -- 122
+					end -- 121
 				end -- 120
 			end -- 119
 			for _index_0 = 1, #nodes do -- 131
 				local _des_0 = nodes[_index_0] -- 131
 				local title, body = _des_0.title, _des_0.body -- 131
 				self.codes[title] = body -- 132
-			end -- 132
+			end -- 131
 		end, -- 58
 		__base = _base_0, -- 58
 		__name = "YarnRunner" -- 58
@@ -326,6 +326,6 @@ do -- 58
 	}) -- 58
 	_base_0.__class = _class_0 -- 58
 	YarnRunner = _class_0 -- 58
-end -- 175
+end -- 58
 _module_0 = YarnRunner -- 177
-return _module_0 -- 177
+return _module_0 -- 1

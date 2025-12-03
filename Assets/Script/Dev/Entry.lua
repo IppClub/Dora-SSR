@@ -135,16 +135,16 @@ if DB:exist("Config") then -- 38
 				local _type_1 = type(_obj_0) -- 40
 				if "table" == _type_1 or "userdata" == _type_1 then -- 40
 					locale = _obj_0[1] -- 40
-				end -- 42
-			end -- 42
+				end -- 40
+			end -- 40
 			if locale ~= nil then -- 40
 				if App.locale ~= locale then -- 40
 					App.locale = locale -- 41
 					updateLocale() -- 42
 				end -- 40
 			end -- 40
-		end -- 42
-	end -- 42
+		end -- 39
+	end -- 39
 	if isDesktop then -- 43
 		local _exp_0 = DB:query("select value_str from Config where name = 'writablePath'") -- 44
 		local _type_0 = type(_exp_0) -- 45
@@ -156,12 +156,12 @@ if DB:exist("Config") then -- 38
 				local _type_1 = type(_obj_0) -- 45
 				if "table" == _type_1 or "userdata" == _type_1 then -- 45
 					writablePath = _obj_0[1] -- 45
-				end -- 46
-			end -- 46
+				end -- 45
+			end -- 45
 			if writablePath ~= nil then -- 45
 				Content.writablePath = writablePath -- 46
 			end -- 45
-		end -- 46
+		end -- 44
 	end -- 43
 end -- 38
 local Config = require("Config") -- 48
@@ -331,7 +331,7 @@ updateCheck = function() -- 190
 				config.lastUpdateCheck = os.time() -- 209
 			end -- 192
 		end -- 191
-	end) -- 209
+	end) -- 190
 end -- 190
 if (config.lastUpdateCheck ~= nil) then -- 211
 	local diffSeconds = os.difftime(os.time(), config.lastUpdateCheck) -- 212
@@ -371,10 +371,10 @@ getAllFiles = function(path, exts, recursive) -- 225
 		_accum_0[_len_0] = file -- 233
 		_len_0 = _len_0 + 1 -- 232
 		::_continue_0:: -- 232
-	end -- 233
-	return _accum_0 -- 233
+	end -- 231
+	return _accum_0 -- 231
 end -- 225
-_module_0["getAllFiles"] = getAllFiles -- 233
+_module_0["getAllFiles"] = getAllFiles -- 225
 local getFileEntries -- 235
 getFileEntries = function(path, recursive, excludeFiles) -- 235
 	if recursive == nil then -- 235
@@ -412,9 +412,9 @@ getFileEntries = function(path, recursive, excludeFiles) -- 235
 					_accum_0 = true -- 246
 					break -- 246
 				end -- 246
-			end -- 246
+			end -- 245
 			entryAdded = _accum_0 -- 245
-		end -- 246
+		end -- 245
 		if entryAdded then -- 247
 			goto _continue_0 -- 247
 		end -- 247
@@ -424,7 +424,7 @@ getFileEntries = function(path, recursive, excludeFiles) -- 235
 		} -- 248
 		entries[#entries + 1] = entry -- 249
 		::_continue_0:: -- 240
-	end -- 249
+	end -- 239
 	table.sort(entries, function(a, b) -- 250
 		return a[1] < b[1] -- 250
 	end) -- 250
@@ -462,9 +462,9 @@ getProjectEntries = function(path) -- 253
 							_accum_0 = true -- 263
 							break -- 263
 						end -- 263
-					end -- 263
+					end -- 262
 					entryAdded = _accum_0 -- 262
-				end -- 263
+				end -- 262
 				if entryAdded then -- 264
 					goto _continue_1 -- 264
 				end -- 264
@@ -482,7 +482,7 @@ getProjectEntries = function(path) -- 253
 							workDir = Path:getPath(fileName) -- 272
 						} -- 270
 						examples[#examples + 1] = entry -- 274
-					end -- 274
+					end -- 269
 				end -- 268
 				local testPath = Path(path, dir, Path:getPath(file), "Test") -- 275
 				if Content:exist(testPath) then -- 276
@@ -496,7 +496,7 @@ getProjectEntries = function(path) -- 253
 							workDir = Path:getPath(fileName) -- 280
 						} -- 278
 						tests[#tests + 1] = entry -- 282
-					end -- 282
+					end -- 277
 				end -- 276
 				local entry = { -- 283
 					entryName, -- 283
@@ -525,9 +525,9 @@ getProjectEntries = function(path) -- 253
 				entries[#entries + 1] = entry -- 293
 			end -- 258
 			::_continue_1:: -- 258
-		end -- 293
+		end -- 257
 		::_continue_0:: -- 256
-	end -- 293
+	end -- 255
 	table.sort(entries, function(a, b) -- 294
 		return a[1] < b[1] -- 294
 	end) -- 294
@@ -548,12 +548,12 @@ updateEntries = function() -- 301
 		for _index_1 = 1, #examples do -- 309
 			local example = examples[_index_1] -- 309
 			allEntries[#allEntries + 1] = example -- 310
-		end -- 310
+		end -- 309
 		for _index_1 = 1, #tests do -- 311
 			local test = tests[_index_1] -- 311
 			allEntries[#allEntries + 1] = test -- 312
-		end -- 312
-	end -- 312
+		end -- 311
+	end -- 306
 end -- 301
 updateEntries() -- 314
 local doCompile -- 316
@@ -585,7 +585,7 @@ doCompile = function(minify) -- 316
 			Path(writablePath, gamePath, "Script", "?.lua") .. ";" .. Path(writablePath, gamePath, "?.lua"), -- 337
 			gamePath -- 338
 		} -- 334
-	end -- 338
+	end -- 332
 	for _index_0 = 1, #buildPaths do -- 339
 		local _des_0 = buildPaths[_index_0] -- 339
 		local inputPath, outputPath, searchPath, gamePath = _des_0[1], _des_0[2], _des_0[3], _des_0[4] -- 339
@@ -603,7 +603,7 @@ doCompile = function(minify) -- 316
 				Path(outputPath, file), -- 346
 				gamePath -- 347
 			} -- 343
-		end -- 347
+		end -- 342
 		local _list_1 = getAllFiles(inputPath, { -- 349
 			yueext -- 349
 		}) -- 349
@@ -616,7 +616,7 @@ doCompile = function(minify) -- 316
 				searchPath, -- 354
 				gamePath -- 355
 			} -- 350
-		end -- 355
+		end -- 349
 		local _list_2 = getAllFiles(inputPath, { -- 357
 			"xml" -- 357
 		}) -- 357
@@ -628,7 +628,7 @@ doCompile = function(minify) -- 316
 				Path(outputPath, Path:replaceExt(file, "lua")), -- 361
 				gamePath -- 362
 			} -- 358
-		end -- 362
+		end -- 357
 		local _list_3 = getAllFiles(inputPath, { -- 364
 			"tl" -- 364
 		}) -- 364
@@ -643,9 +643,9 @@ doCompile = function(minify) -- 316
 					gamePath -- 371
 				} -- 366
 			end -- 365
-		end -- 371
+		end -- 364
 		::_continue_0:: -- 340
-	end -- 371
+	end -- 339
 	local paths -- 373
 	do -- 373
 		local _tbl_0 = { } -- 373
@@ -663,7 +663,7 @@ doCompile = function(minify) -- 316
 			end -- 373
 		end -- 373
 		paths = _tbl_0 -- 373
-	end -- 375
+	end -- 373
 	for path in pairs(paths) do -- 377
 		Content:mkdir(path) -- 377
 	end -- 377
@@ -708,9 +708,9 @@ doCompile = function(minify) -- 316
 								break -- 404
 							end -- 402
 							countLine = countLine + 1 -- 405
-						end -- 405
+						end -- 401
 						globalErrors[#globalErrors + 1] = "invalid global variable \"" .. tostring(name) .. "\"\nin \"" .. tostring(filename) .. "\", at line " .. tostring(line) .. ", col " .. tostring(col) .. ".\n" .. tostring(code:gsub("\t", " ") .. '\n' .. string.rep(" ", col - 1) .. "^") -- 406
-					end -- 406
+					end -- 398
 					errors[#errors + 1] = table.concat(globalErrors, "\n") -- 407
 				else -- 409
 					errors[#errors + 1] = "failed to load file " .. tostring(input) -- 409
@@ -722,7 +722,7 @@ doCompile = function(minify) -- 316
 			end -- 410
 			fileCount = fileCount + 1 -- 411
 		end) -- 384
-	end -- 411
+	end -- 382
 	thread(function() -- 413
 		for _index_0 = 1, #xmlFiles do -- 414
 			local _des_0 = xmlFiles[_index_0] -- 414
@@ -742,7 +742,7 @@ doCompile = function(minify) -- 316
 				print("Xml compiled: " .. tostring(filename)) -- 422
 			end -- 418
 			fileCount = fileCount + 1 -- 423
-		end -- 423
+		end -- 414
 	end) -- 413
 	thread(function() -- 425
 		for _index_0 = 1, #tlFiles do -- 426
@@ -763,7 +763,7 @@ doCompile = function(minify) -- 316
 				print("Teal compiled: " .. tostring(filename)) -- 434
 			end -- 430
 			fileCount = fileCount + 1 -- 435
-		end -- 435
+		end -- 426
 	end) -- 425
 	return thread(function() -- 437
 		wait(function() -- 438
@@ -785,8 +785,8 @@ doCompile = function(minify) -- 316
 						output, -- 444
 						output -- 445
 					} -- 442
-				end -- 445
-			end -- 445
+				end -- 440
+			end -- 440
 			local FormatMini -- 447
 			do -- 447
 				local _obj_0 = require("luaminify") -- 447
@@ -807,7 +807,7 @@ doCompile = function(minify) -- 316
 				else -- 458
 					errors[#errors + 1] = "Minify errors in " .. tostring(file) .. ".\nTarget file is not exist!" -- 458
 				end -- 449
-			end -- 458
+			end -- 448
 			package.loaded["luaminify.FormatMini"] = nil -- 459
 			package.loaded["luaminify.ParseLua"] = nil -- 460
 			package.loaded["luaminify.Scope"] = nil -- 461
@@ -824,7 +824,7 @@ doCompile = function(minify) -- 316
 		teal.clear() -- 469
 		yue.clear() -- 470
 		building = false -- 471
-	end) -- 471
+	end) -- 437
 end -- 316
 local doClean -- 473
 doClean = function() -- 473
@@ -855,13 +855,13 @@ allClear = function() -- 492
 			goto _continue_0 -- 496
 		else -- 498
 			Routine:remove(routine) -- 498
-		end -- 498
+		end -- 494
 		::_continue_0:: -- 494
-	end -- 498
+	end -- 493
 	for _index_0 = 1, #moduleCache do -- 499
 		local module = moduleCache[_index_0] -- 499
 		package.loaded[module] = nil -- 500
-	end -- 500
+	end -- 499
 	moduleCache = { } -- 501
 	Director:cleanup() -- 502
 	Entity:clear() -- 503
@@ -879,7 +879,7 @@ allClear = function() -- 492
 		if node then -- 514
 			node:cleanup() -- 514
 		end -- 514
-	end -- 514
+	end -- 513
 	collectgarbage() -- 515
 	collectgarbage() -- 516
 	Wasm:clear() -- 517
@@ -891,7 +891,7 @@ allClear = function() -- 492
 	Content.searchPaths = searchPaths -- 522
 	App.idled = true -- 523
 end -- 492
-_module_0["allClear"] = allClear -- 523
+_module_0["allClear"] = allClear -- 492
 local clearTempFiles -- 525
 clearTempFiles = function() -- 525
 	local writablePath = Content.writablePath -- 526
@@ -916,8 +916,8 @@ reloadDevEntry = function() -- 535
 			Routine:clear() -- 543
 			oldRequire("Script.Dev.Entry") -- 544
 			return true -- 545
-		end) -- 545
-	end) -- 545
+		end) -- 542
+	end) -- 535
 end -- 535
 local setWorkspace -- 547
 setWorkspace = function(path) -- 547
@@ -926,7 +926,7 @@ setWorkspace = function(path) -- 547
 	return thread(function() -- 550
 		sleep() -- 551
 		return reloadDevEntry() -- 552
-	end) -- 552
+	end) -- 550
 end -- 547
 local quit = false -- 554
 local _anon_func_1 = function(App, _with_0) -- 570
@@ -964,9 +964,9 @@ setupEventHandlers = function() -- 556
 					end -- 575
 					config.winWidth = width -- 576
 					config.winHeight = height -- 577
-				end -- 577
+				end -- 571
 			end -- 570
-		end -- 577
+		end -- 562
 	end) -- 562
 	_with_0:onAppWS(function(eventType) -- 578
 		if eventType == "Close" then -- 578
@@ -995,7 +995,7 @@ downloadFile = function(url, target) -- 586
 				status = "downloading", -- 590
 				progress = current / total -- 591
 			})) -- 589
-			return false -- 592
+			return false -- 587
 		end) -- 587
 		return emit("AppWS", "Send", json.encode(success and { -- 594
 			name = "Download", -- 594
@@ -1007,10 +1007,10 @@ downloadFile = function(url, target) -- 586
 			url = url, -- 597
 			status = "failed", -- 597
 			progress = 0.0 -- 598
-		})) -- 599
-	end)) -- 599
+		})) -- 593
+	end)) -- 586
 end -- 586
-_module_0["downloadFile"] = downloadFile -- 599
+_module_0["downloadFile"] = downloadFile -- 586
 local stop -- 601
 stop = function() -- 601
 	if isInEntry then -- 602
@@ -1021,8 +1021,8 @@ stop = function() -- 601
 	currentEntry = nil -- 605
 	return true -- 606
 end -- 601
-_module_0["stop"] = stop -- 606
-local _anon_func_2 = function(Content, Path, file, require, type, workDir) -- 623
+_module_0["stop"] = stop -- 601
+local _anon_func_2 = function(Content, Path, file, require, type, workDir) -- 616
 	if workDir == nil then -- 616
 		workDir = Path:getPath(file) -- 616
 	end -- 616
@@ -1037,7 +1037,7 @@ local _anon_func_2 = function(Content, Path, file, require, type, workDir) -- 62
 	end -- 622
 	return nil -- 623
 end -- 616
-local _anon_func_3 = function(Label, _with_0, err, fontSize, width) -- 655
+local _anon_func_3 = function(Label, _with_0, err, fontSize, width) -- 652
 	local label = Label("sarasa-mono-sc-regular", fontSize) -- 652
 	label.alignment = "Left" -- 653
 	label.textWidth = width - fontSize -- 654
@@ -1052,7 +1052,7 @@ enterEntryAsync = function(entry) -- 608
 	currentEntry = entry -- 612
 	local file, workDir = entry[2], entry.workDir -- 613
 	sleep() -- 614
-	return xpcall(_anon_func_2, function(msg) -- 656
+	return xpcall(_anon_func_2, function(msg) -- 623
 		local err = debug.traceback(msg) -- 625
 		Log("Error", err) -- 626
 		allClear() -- 627
@@ -1102,9 +1102,9 @@ enterEntryAsync = function(entry) -- 608
 			return root -- 632
 		end)()) -- 632
 		return err -- 656
-	end, Content, Path, file, require, type, workDir) -- 656
+	end, Content, Path, file, require, type, workDir) -- 615
 end -- 608
-_module_0["enterEntryAsync"] = enterEntryAsync -- 656
+_module_0["enterEntryAsync"] = enterEntryAsync -- 608
 local enterDemoEntry -- 658
 enterDemoEntry = function(entry) -- 658
 	return thread(function() -- 658
@@ -1169,7 +1169,7 @@ extraOperations = function() -- 671
 								text -- 698
 							} -- 698
 						end -- 697
-					end -- 698
+					end -- 696
 				end -- 694
 			else -- 700
 				ossLicenseOpen = true -- 700
@@ -1196,7 +1196,7 @@ extraOperations = function() -- 671
 						TreeNode(tostring(license) .. "##" .. tostring(name), function() -- 713
 							return TextWrapped(text) -- 713
 						end) -- 713
-					end -- 713
+					end -- 709
 				end) -- 705
 			end) -- 705
 		end -- 701
@@ -1221,7 +1221,7 @@ extraOperations = function() -- 671
 				if Selectable(zh and "清理" or "Clean") then -- 723
 					return doClean() -- 723
 				end -- 723
-			end) -- 723
+			end) -- 718
 		end) -- 718
 		if isInEntry then -- 724
 			if waitForWebStart then -- 725
@@ -1267,7 +1267,7 @@ extraOperations = function() -- 671
 					enterDemoEntry(entry) -- 746
 					sleep(2) -- 747
 					print("Stop " .. tostring(entry[1])) -- 748
-				end -- 748
+				end -- 743
 			end) -- 736
 		end -- 733
 	end) -- 716
@@ -1371,7 +1371,7 @@ footerWindow = threadLoop(function() -- 785
 			if currentEntry == entry then -- 815
 				currentIndex = i -- 816
 			end -- 815
-		end -- 816
+		end -- 814
 		if left then -- 817
 			allClear() -- 818
 			if currentIndex == nil then -- 819
@@ -1386,7 +1386,7 @@ footerWindow = threadLoop(function() -- 785
 			end -- 826
 			enterDemoEntry(_anon_func_5(allEntries, currentIndex)) -- 827
 		end -- 824
-	end -- 830
+	end -- 792
 	if not showEntry then -- 831
 		return -- 831
 	end -- 831
@@ -1438,7 +1438,7 @@ footerWindow = threadLoop(function() -- 785
 							if currentEntry == entry then -- 871
 								currentIndex = i -- 872
 							end -- 871
-						end -- 872
+						end -- 870
 						if currentIndex then -- 873
 							if currentIndex > 1 then -- 874
 								SameLine() -- 875
@@ -1513,8 +1513,8 @@ footerWindow = threadLoop(function() -- 785
 				return BeginTooltip(function() -- 917
 					return PushTextWrapPos(280, function() -- 918
 						return Text(zh and '在本机或是本地局域网连接的其他设备上，使用浏览器访问这个地址来使用 Web IDE' or 'You can use the Web IDE by accessing this address in a browser on this machine or other devices connected to the local network') -- 919
-					end) -- 919
-				end) -- 919
+					end) -- 918
+				end) -- 917
 			end -- 916
 		end) -- 902
 	end -- 899
@@ -1530,7 +1530,7 @@ footerWindow = threadLoop(function() -- 785
 						config.showFooter = showFooter -- 927
 					end -- 926
 				end -- 925
-			end) -- 927
+			end) -- 924
 		end) -- 924
 	end -- 921
 	if isInEntry or showFooter then -- 929
@@ -1662,7 +1662,7 @@ entryWindow = threadLoop(function() -- 954
 				return Dummy(Vec2(fullWidth - 20, 0)) -- 1017
 			end) -- 999
 		end) -- 998
-	end -- 1017
+	end -- 997
 	anyEntryMatched = false -- 1019
 	SetNextWindowPos(Vec2(0, 50)) -- 1020
 	SetNextWindowSize(Vec2(fullWidth, height - 100)) -- 1021
@@ -1738,9 +1738,9 @@ entryWindow = threadLoop(function() -- 954
 												_accum_0 = true -- 1075
 												break -- 1075
 											end -- 1075
-										end -- 1075
+										end -- 1074
 										showExample = _accum_0 -- 1074
-									end -- 1075
+									end -- 1074
 									if showExample then -- 1076
 										showSep = true -- 1077
 										Columns(1, false) -- 1078
@@ -1772,7 +1772,7 @@ entryWindow = threadLoop(function() -- 954
 													end) -- 1089
 													opened = true -- 1093
 													::_continue_0:: -- 1088
-												end -- 1093
+												end -- 1087
 											end) -- 1085
 										end) -- 1084
 										game.exampleOpen = opened -- 1094
@@ -1789,9 +1789,9 @@ entryWindow = threadLoop(function() -- 954
 												_accum_0 = true -- 1098
 												break -- 1098
 											end -- 1098
-										end -- 1098
+										end -- 1097
 										showTest = _accum_0 -- 1097
-									end -- 1098
+									end -- 1097
 									if showTest then -- 1099
 										showSep = true -- 1100
 										Columns(1, false) -- 1101
@@ -1823,7 +1823,7 @@ entryWindow = threadLoop(function() -- 954
 													end) -- 1112
 													opened = true -- 1116
 													::_continue_0:: -- 1111
-												end -- 1116
+												end -- 1110
 											end) -- 1108
 										end) -- 1107
 										game.testOpen = opened -- 1117
@@ -1834,7 +1834,7 @@ entryWindow = threadLoop(function() -- 954
 									thinSep() -- 1120
 									Columns(columns, false) -- 1121
 								end -- 1118
-							end -- 1121
+							end -- 1034
 						end -- 1030
 						if #doraTools > 0 then -- 1122
 							local showTool = false -- 1123
@@ -1847,9 +1847,9 @@ entryWindow = threadLoop(function() -- 954
 										_accum_0 = true -- 1125
 										break -- 1125
 									end -- 1125
-								end -- 1125
+								end -- 1124
 								showTool = _accum_0 -- 1124
-							end -- 1125
+							end -- 1124
 							if not showTool then -- 1126
 								goto endEntry -- 1126
 							end -- 1126
@@ -1879,7 +1879,7 @@ entryWindow = threadLoop(function() -- 954
 											end -- 1140
 											NextColumn() -- 1142
 											::_continue_0:: -- 1139
-										end -- 1142
+										end -- 1138
 										Columns(1, false) -- 1143
 										opened = true -- 1144
 									end) -- 1136
@@ -1905,7 +1905,7 @@ entryWindow = threadLoop(function() -- 954
 				end) -- 1025
 			end) -- 1024
 		end) -- 1023
-	end -- 1157
+	end -- 1022
 end) -- 954
 webStatus = require("Script.Dev.WebServer") -- 1159
-return _module_0 -- 1159
+return _module_0 -- 1

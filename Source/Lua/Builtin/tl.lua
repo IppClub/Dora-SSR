@@ -3222,6 +3222,8 @@ local function clear_redundant_errors(errors)
 	local lastx, lasty = 0, 0
 	for i, err in ipairs(errors) do
 		err.i = i
+		err.x = err.x or -1
+		err.y = err.y or -1
 	end
 	table.sort(errors, function(a, b)
 		local af = a.filename or ""
@@ -3233,10 +3235,14 @@ local function clear_redundant_errors(errors)
 	end)
 	for i, err in ipairs(errors) do
 		err.i = nil
-		if err.x == lastx and err.y == lasty then
+		if err.x >= 0 and err.y >= 0 then
+			if err.x == lastx and err.y == lasty then
+				table.insert(redundant, i)
+			end
+			lastx, lasty = err.x, err.y
+		else
 			table.insert(redundant, i)
 		end
-		lastx, lasty = err.x, err.y
 	end
 	for i = #redundant, 1, -1 do
 		table.remove(errors, redundant[i])

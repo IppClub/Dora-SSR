@@ -78,7 +78,7 @@ _module_0 = Class(ScrollArea, { -- 24
 			return self.view:schedule(once(function() -- 56
 				sleep() -- 57
 				self.view.touchEnabled = enabled -- 58
-			end)) -- 58
+			end)) -- 56
 		end) -- 53
 		local updateReset -- 60
 		updateReset = function(deltaTime) -- 60
@@ -168,7 +168,7 @@ _module_0 = Class(ScrollArea, { -- 24
 			deltaY = deltaY + dPosY -- 131
 			self:emit("Scrolled", Vec2(dPosX, dPosY)) -- 133
 			if not touching and (newPosY < -paddingY * 0.5 or newPosY > moveY + paddingY * 0.5 or newPosX > paddingX * 0.5 or newPosX < -moveX - paddingX * 0.5) then -- 135
-				return startReset() -- 139
+				return startReset() -- 135
 			end -- 135
 		end -- 98
 		local accel = screenSize * 2 -- 141
@@ -381,7 +381,7 @@ _module_0 = Class(ScrollArea, { -- 24
 	viewSize = property(function(self) -- 309
 		return self:getViewSize() -- 309
 	end, function(self, size) -- 310
-		return self:resetSize(self.contentSize.width, self.contentSize.height, size.width, size.height) -- 316
+		return self:resetSize(self.contentSize.width, self.contentSize.height, size.width, size.height) -- 311
 	end), -- 309
 	padding = property(function(self) -- 318
 		return self:getPadding() -- 318
@@ -401,7 +401,7 @@ _module_0 = Class(ScrollArea, { -- 24
 			if not menu.enabled then -- 329
 				menu.enabled = menuEnabled -- 329
 			end -- 329
-		end) -- 329
+		end) -- 328
 	end, -- 321
 	adjustSizeWithAlign = function(self, alignMode, padding, size, viewSize) -- 331
 		if alignMode == nil then -- 331
@@ -422,7 +422,7 @@ _module_0 = Class(ScrollArea, { -- 24
 			viewSize = self.view:alignItemsVertically(size, padding) -- 340
 		elseif "Horizontal" == alignMode then -- 341
 			viewSize = self.view:alignItemsHorizontally(size, padding) -- 342
-		end -- 342
+		end -- 336
 		self:resetSize(size.width, size.height, viewSize.width, viewSize.height + padding) -- 343
 		self.offset = offset -- 349
 	end, -- 331
@@ -450,7 +450,7 @@ _module_0 = Class(ScrollArea, { -- 24
 			end) -- 365
 			offset = Vec2(offset.x, endY) -- 368
 			return self:scrollTo(offset) -- 369
-		end)) -- 369
+		end)) -- 363
 	end -- 351
 }) -- 23
-return _module_0 -- 369
+return _module_0 -- 1

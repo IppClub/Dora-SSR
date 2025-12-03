@@ -21,8 +21,8 @@ _module_0 = Class(CircleButton, { -- 17
 			return self:schedule(once(function() -- 24
 				sleep() -- 25
 				self.touchEnabled = enabled -- 26
-			end)) -- 26
-		end) -- 26
+			end)) -- 24
+		end) -- 21
 	end, -- 17
 	text = property((function(self) -- 28
 		return self._text -- 28
@@ -33,4 +33,4 @@ _module_0 = Class(CircleButton, { -- 17
 		end -- 31
 	end) -- 28
 }) -- 16
-return _module_0 -- 31
+return _module_0 -- 1

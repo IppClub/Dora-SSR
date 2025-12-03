@@ -308,9 +308,9 @@ private:
 	NONE_AST_RULE(must_exp);
 	NONE_AST_RULE(must_unary_exp);
 	NONE_AST_RULE(local_const_item);
-	NONE_AST_RULE(empty_line_break);
-	NONE_AST_RULE(yue_comment);
+	NONE_AST_RULE(comment_line);
 	NONE_AST_RULE(yue_line_comment);
+	NONE_AST_RULE(yue_multiline_comment);
 	NONE_AST_RULE(line);
 	NONE_AST_RULE(shebang);
 	NONE_AST_RULE(lax_line);
@@ -471,8 +471,8 @@ private:
 	AST_RULE(Statement);
 	AST_RULE(StatementSep);
 	AST_RULE(YueLineComment);
-	AST_RULE(MultilineCommentInner);
 	AST_RULE(YueMultilineComment);
+	AST_RULE(YueComment);
 	AST_RULE(ChainAssign);
 	AST_RULE(Body);
 	AST_RULE(Block);
