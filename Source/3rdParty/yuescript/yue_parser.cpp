@@ -1082,48 +1082,35 @@ YueParser::YueParser() {
 	IfLine = IfType >> space >> IfCond;
 	WhileLine = WhileType >> space >> Exp;
 
-	YueLineComment = *(not_(set("\r\n")) >> any_char);
-	yue_line_comment = "--" >> YueLineComment >> and_(stop);
-	MultilineCommentInner = multi_line_content;
-	YueMultilineComment = multi_line_open >> MultilineCommentInner >> multi_line_close;
-	yue_comment = check_indent >> (
-		(
-			YueMultilineComment >>
-			*(set(" \t") | YueMultilineComment) >>
-			-yue_line_comment
-		) | yue_line_comment
-	) >> and_(line_break);
-
 	ChainAssign = Seperator >> Exp >> +(space >> '=' >> space >> Exp >> space >> and_('=')) >> space >> Assign;
 
 	StatementAppendix = (IfLine | WhileLine | CompInner) >> space;
 	Statement =
-		Seperator >>
-		-(
-			yue_comment >>
-			*(line_break >> yue_comment) >>
-			line_break >>
-			check_indent_match
-		) >>
-		space >> (
+		(
 			Import | While | Repeat | For | ForEach |
 			Return | Local | Global | Export | Macro |
 			MacroInPlace | BreakLoop | Label | Goto | ShortTabAppending |
 			LocalAttrib | Backcall | PipeBody | ExpListAssign | ChainAssign |
 			StatementAppendix >> empty_block_error |
 			and_(key("else") | key("elseif") | key("when")) >> dangling_clause_error
-		) >>
-		space >>
+		) >> space >>
 		-StatementAppendix;
 
 	StatementSep = white >> (set("('\"") | "[[" | "[=");
 
 	Body = in_block | Statement;
 
-	empty_line_break =
-		check_indent >> (multi_line_comment >> space | comment) >> and_(stop) |
-		advance >> ensure(multi_line_comment >> space | comment, pop_indent) >> and_(stop) |
-		plain_space >> and_(line_break);
+	YueLineComment = *(not_(set("\r\n")) >> any_char);
+	yue_line_comment = "--" >> YueLineComment >> and_(stop);
+	YueMultilineComment = multi_line_content;
+	yue_multiline_comment = multi_line_open >> YueMultilineComment >> multi_line_close;
+	comment_line =
+		yue_multiline_comment >> *(set(" \t") | yue_multiline_comment) >> plain_space >> -yue_line_comment |
+		yue_line_comment;
+	YueComment =
+		check_indent >> comment_line >> and_(stop) |
+		advance >> ensure(comment_line, pop_indent) >> and_(stop) |
+		plain_space >> and_(stop);
 
 	indentation_error = pl::user(not_(pipe_operator | eof()), [](const item_t& item) {
 		RaiseError("unexpected indent"sv, item);
@@ -1131,18 +1118,18 @@ YueParser::YueParser() {
 	});
 
 	line = (
-		check_indent_match >> Statement |
-		empty_line_break |
+		check_indent_match >> space >> Statement |
+		YueComment |
 		advance_match >> ensure(space >> (indentation_error | Statement), pop_indent)
 	);
 	Block = Seperator >> (pl::user(true_(), [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
 		return st->lax;
-	}) >> lax_line >> *(+line_break >> lax_line) | line >> *(+line_break >> line));
+	}) >> lax_line >> *(line_break >> lax_line) | line >> *(line_break >> line));
 
 	shebang = "#!" >> *(not_(stop) >> any_char);
-	BlockEnd = Block >> white >> stop;
-	File = -shebang >> -Block >> white >> stop;
+	BlockEnd = Block >> stop;
+	File = -shebang >> -Block >> stop;
 
 	lax_line = advance_match >> ensure(*(not_(stop) >> any()), pop_indent) | line >> and_(stop) | check_indent_match >> *(not_(stop) >> any());
 }

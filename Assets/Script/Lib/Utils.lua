@@ -28,7 +28,7 @@ StructUpdated = function(self) -- 14
 				end -- 18
 			end -- 18
 			return rawset(self, "__updateThread", nil) -- 19
-		end)) -- 19
+		end)) -- 17
 	end -- 16
 end -- 14
 local StructToString -- 20
@@ -56,7 +56,7 @@ StructToString = function(self) -- 20
 			end -- 32
 		end -- 27
 		::_continue_0:: -- 26
-	end -- 35
+	end -- 25
 	return "{" .. (concat(content, ',')) .. "}" -- 36
 end -- 20
 local StructDefMeta = { -- 38
@@ -113,7 +113,7 @@ local StructDefMeta = { -- 38
 				remove(self, index) -- 75
 				break -- 76
 			end -- 72
-		end -- 76
+		end -- 71
 		if index then -- 77
 			local notify = rawget(self, "__removed") -- 78
 			if notify then -- 78
@@ -158,27 +158,27 @@ local StructDefMeta = { -- 38
 				notify(index - 1, item) -- 106
 				StructUpdated(self) -- 107
 			end -- 105
-		end -- 107
+		end -- 103
 	end, -- 101
 	each = function(self, handler) -- 108
 		for index = 2, #self do -- 109
 			if true == handler(self[index], index - 1) then -- 110
 				return true -- 111
 			end -- 110
-		end -- 111
+		end -- 109
 		return false -- 112
 	end, -- 108
 	eachAttr = function(self, handler) -- 113
 		for i, v in ipairs(getmetatable(self)) do -- 114
 			handler(v, self[i + 1]) -- 115
-		end -- 115
+		end -- 114
 	end, -- 113
 	contains = function(self, item) -- 116
 		for index = 2, #self do -- 117
 			if item == self[index] then -- 118
 				return true -- 119
 			end -- 118
-		end -- 119
+		end -- 117
 		return false -- 120
 	end, -- 116
 	toArray = function(self) -- 121
@@ -201,7 +201,7 @@ local StructDefMeta = { -- 38
 		sort(arr, comparer) -- 125
 		for i = 1, #arr do -- 126
 			self:set(i, arr[i]) -- 127
-		end -- 127
+		end -- 126
 	end, -- 123
 	__tostring = function(self) -- 128
 		local content = { } -- 129
@@ -209,7 +209,7 @@ local StructDefMeta = { -- 38
 			if "number" == type(v) then -- 131
 				content[v - 1] = k -- 132
 			end -- 131
-		end -- 132
+		end -- 130
 		if #content > 1 then -- 133
 			return concat({ -- 134
 				"Struct.", -- 134
@@ -236,7 +236,7 @@ local StructDefMeta = { -- 38
 				else -- 147
 					error("Initialize to an invalid field named \"" .. tostring(k) .. "\" for \"" .. tostring(self) .. "\".") -- 147
 				end -- 142
-			end -- 147
+			end -- 140
 		end -- 139
 		setmetatable(item, self) -- 148
 		return item -- 149
@@ -280,7 +280,7 @@ local StructHelper = { -- 153
 							for i = 2, #self do -- 180
 								value(i - 1, self[i]) -- 181
 								initVar = true -- 182
-							end -- 182
+							end -- 180
 							if initVar then -- 183
 								return StructUpdated(self) -- 183
 							end -- 183
@@ -294,7 +294,7 @@ local StructHelper = { -- 153
 								value(key, v) -- 189
 								initVar = true -- 190
 							end -- 188
-						end -- 190
+						end -- 186
 						if initVar then -- 191
 							return StructUpdated(self) -- 191
 						end -- 191
@@ -314,13 +314,13 @@ local StructHelper = { -- 153
 				for i, name in ipairs(arg) do -- 202
 					tupleDef[i] = name -- 203
 					tupleDef[name] = i + 1 -- 204
-				end -- 204
+				end -- 202
 			else -- 206
 				for i = 1, count do -- 206
 					local name = select(i, ...) -- 207
 					tupleDef[i] = name -- 208
 					tupleDef[name] = i + 1 -- 209
-				end -- 209
+				end -- 206
 			end -- 201
 		end -- 199
 		StructDefs[structName] = tupleDef -- 210
@@ -341,7 +341,7 @@ local StructHelper = { -- 153
 				content[i] = tostring(v) -- 223
 				i = i + 1 -- 224
 			end -- 222
-		end -- 224
+		end -- 221
 		return concat(content, "\n") -- 225
 	end -- 217
 } -- 152
@@ -356,7 +356,7 @@ StructLoad = function(data) -- 229
 		for _index_0 = 1, #data do -- 234
 			local item = data[_index_0] -- 234
 			StructLoad(item) -- 235
-		end -- 235
+		end -- 234
 	end -- 230
 end -- 229
 local _anon_func_0 = function(StructDefs, pairs, tostring) -- 268
@@ -389,8 +389,8 @@ Struct = setmetatable({ -- 237
 					data = (load(arg))() -- 251
 				elseif "table" == _exp_0 then -- 252
 					data = arg -- 253
-				end -- 253
-			end -- 253
+				end -- 247
+			end -- 247
 			StructLoad(data) -- 254
 			return data -- 255
 		end -- 239
@@ -415,7 +415,7 @@ Struct = setmetatable({ -- 237
 		return concat(_anon_func_0(StructDefs, pairs, tostring), "\n") -- 268
 	end -- 267
 }) -- 236
-_module_0["Struct"] = Struct -- 269
+_module_0["Struct"] = Struct -- 236
 local Set -- 271
 Set = function(list) -- 271
 	local _tbl_0 = { } -- 271
@@ -435,7 +435,7 @@ CompareTable = function(olds, news) -- 273
 		if not itemSet[item] then -- 277
 			itemsToDel[#itemsToDel + 1] = item -- 278
 		end -- 277
-	end -- 278
+	end -- 276
 	local itemsToAdd = { } -- 279
 	itemSet = Set(olds) -- 280
 	for _index_0 = 1, #news do -- 281
@@ -443,19 +443,19 @@ CompareTable = function(olds, news) -- 273
 		if not itemSet[item] then -- 282
 			itemsToAdd[#itemsToAdd + 1] = item -- 283
 		end -- 282
-	end -- 283
+	end -- 281
 	return itemsToAdd, itemsToDel -- 284
 end -- 273
-_module_0["CompareTable"] = CompareTable -- 284
+_module_0["CompareTable"] = CompareTable -- 273
 local Round -- 286
 Round = function(val) -- 286
 	if type(val) == "number" then -- 287
 		return val > 0 and floor(val + 0.5) or ceil(val - 0.5) -- 288
 	else -- 290
-		return Vec2(val.x > 0 and floor(val.x + 0.5) or ceil(val.x - 0.5), val.y > 0 and floor(val.y + 0.5) or ceil(val.y - 0.5)) -- 293
+		return Vec2(val.x > 0 and floor(val.x + 0.5) or ceil(val.x - 0.5), val.y > 0 and floor(val.y + 0.5) or ceil(val.y - 0.5)) -- 290
 	end -- 287
 end -- 286
-_module_0["Round"] = Round -- 293
+_module_0["Round"] = Round -- 286
 local IsValidPath -- 295
 IsValidPath = function(filename) -- 295
 	return not filename:match("[\\/|:*?<>\"]") -- 295
@@ -497,7 +497,7 @@ LintYueGlobals = function(luaCodes, globals, globalInLocal) -- 302
 			} -- 312
 			_len_0 = _len_0 + 1 -- 309
 			::_continue_0:: -- 309
-		end -- 312
+		end -- 308
 		importItems = _accum_0 -- 308
 	else -- 313
 		importItems = { } -- 313
@@ -541,21 +541,21 @@ LintYueGlobals = function(luaCodes, globals, globalInLocal) -- 302
 						findModule = true -- 339
 						break -- 340
 					end -- 333
-				end -- 340
+				end -- 332
 			end -- 328
 		end -- 327
 		if not findModule then -- 341
 			errors[#errors + 1] = globalVar -- 342
 		end -- 341
 		::_continue_1:: -- 318
-	end -- 342
+	end -- 317
 	if #errors > 0 then -- 343
 		return false, errors -- 344
 	else -- 346
 		return true, table.concat(requireModules, "\n") -- 346
 	end -- 343
 end -- 302
-_module_0["LintYueGlobals"] = LintYueGlobals -- 346
+_module_0["LintYueGlobals"] = LintYueGlobals -- 302
 local GSplit -- 348
 GSplit = function(text, pattern, plain) -- 348
 	local splitStart, length = 1, #text -- 349
@@ -579,7 +579,7 @@ GSplit = function(text, pattern, plain) -- 348
 			end -- 354
 			return ret -- 366
 		end -- 351
-	end -- 366
+	end -- 350
 end -- 348
-_module_0["GSplit"] = GSplit -- 366
-return _module_0 -- 366
+_module_0["GSplit"] = GSplit -- 348
+return _module_0 -- 1

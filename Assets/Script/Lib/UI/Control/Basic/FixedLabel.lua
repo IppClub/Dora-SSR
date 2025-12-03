@@ -58,7 +58,7 @@ return Class(Node, { -- 13
 				_with_0.x = width -- 40
 				_with_0.y = height / 2 -- 41
 				_with_0.anchor = Vec2(1, 0.5) -- 42
-			end -- 42
+			end -- 33
 			label = _with_0 -- 28
 		end -- 28
 		self:addChild(label) -- 43
@@ -93,7 +93,7 @@ return Class(Node, { -- 13
 					break -- 67
 				end -- 63
 				::_continue_0:: -- 59
-			end -- 67
+			end -- 58
 		end -- 53
 	end) -- 47
-}) -- 67
+}) -- 12

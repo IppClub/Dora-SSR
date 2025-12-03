@@ -23,10 +23,10 @@ StarVertices = function(radius, line) -- 11
 		local cr = i % 2 == 1 and r or R -- 19
 		_accum_0[_len_0] = Vec2(cr * math.sin(angle), cr * math.cos(angle)) -- 20
 		_len_0 = _len_0 + 1 -- 18
-	end -- 20
-	return _accum_0 -- 20
+	end -- 17
+	return _accum_0 -- 17
 end -- 11
-local _anon_func_0 = function(Color, DrawNode, StarVertices, _with_0, args) -- 28
+local _anon_func_0 = function(Color, DrawNode, StarVertices, _with_0, args) -- 26
 	local _with_1 = DrawNode() -- 26
 	_with_1:drawPolygon(StarVertices(args.size, false), Color(args.fillColor)) -- 27
 	if args.fillOrder then -- 28
@@ -34,7 +34,7 @@ local _anon_func_0 = function(Color, DrawNode, StarVertices, _with_0, args) -- 2
 	end -- 28
 	return _with_1 -- 26
 end -- 26
-local _anon_func_1 = function(Color, Line, StarVertices, _with_0, args) -- 31
+local _anon_func_1 = function(Color, Line, StarVertices, _with_0, args) -- 30
 	local _with_1 = Line(StarVertices(args.size), Color(args.borderColor)) -- 30
 	if args.lineOrder then -- 31
 		_with_1.renderOrder = args.lineOrder -- 31
@@ -52,4 +52,4 @@ _module_0 = function(args) -- 22
 	end -- 29
 	return _with_0 -- 23
 end -- 22
-return _module_0 -- 31
+return _module_0 -- 1

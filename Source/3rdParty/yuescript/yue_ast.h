@@ -929,13 +929,13 @@ AST_END(StatementSep)
 AST_LEAF(YueLineComment)
 AST_END(YueLineComment)
 
-AST_LEAF(MultilineCommentInner)
-AST_END(MultilineCommentInner)
-
-AST_NODE(YueMultilineComment)
-	ast_ptr<true, MultilineCommentInner_t> inner;
-	AST_MEMBER(YueMultilineComment, &inner)
+AST_LEAF(YueMultilineComment)
 AST_END(YueMultilineComment)
+
+AST_NODE(YueComment)
+	ast_sel<false, YueLineComment_t, YueMultilineComment_t> comment;
+	AST_MEMBER(YueComment, &comment)
+AST_END(YueComment)
 
 AST_NODE(ChainAssign)
 	ast_ptr<true, Seperator_t> sep;
@@ -945,8 +945,6 @@ AST_NODE(ChainAssign)
 AST_END(ChainAssign)
 
 AST_NODE(Statement)
-	ast_ptr<true, Seperator_t> sep;
-	ast_sel_list<false, YueLineComment_t, YueMultilineComment_t> comments;
 	ast_sel<true,
 		Import_t, While_t, Repeat_t, For_t, ForEach_t,
 		Return_t, Local_t, Global_t, Export_t, Macro_t, MacroInPlace_t,
@@ -954,7 +952,7 @@ AST_NODE(Statement)
 		Backcall_t, LocalAttrib_t, PipeBody_t, ExpListAssign_t, ChainAssign_t
 	> content;
 	ast_ptr<false, StatementAppendix_t> appendix;
-	AST_MEMBER(Statement, &sep, &comments, &content, &appendix)
+	AST_MEMBER(Statement, &content, &appendix)
 AST_END(Statement)
 
 AST_NODE(Body)
@@ -964,8 +962,8 @@ AST_END(Body)
 
 AST_NODE(Block)
 	ast_ptr<true, Seperator_t> sep;
-	ast_list<false, Statement_t> statements;
-	AST_MEMBER(Block, &sep, &statements)
+	ast_sel_list<false, Statement_t, YueComment_t> statementOrComments;
+	AST_MEMBER(Block, &sep, &statementOrComments)
 AST_END(Block)
 
 AST_NODE(BlockEnd)
@@ -984,6 +982,7 @@ struct YueFormat {
 	int indent = 0;
 	bool spaceOverTab = false;
 	int tabSpaces = 4;
+	bool reserveComment = true;
 	std::string toString(ast_node* node);
 
 	void pushScope();
