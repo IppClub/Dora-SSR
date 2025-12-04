@@ -45,7 +45,7 @@ local record ColorClass
 	metamethod __call: function(self: ColorClass, argb?: number): Color
 
 	-- Creates a new `Color` object from a RGBA string.
-	-- @param rgba The RGBA string to create the color from, format like "#RRGGBBAA".
+	-- @param rgba (string) The RGBA string to create the color from, format like "#RRGGBBAA".
 	-- @return (Color) A new `Color` object.
 	metamethod __call: function(self: ColorClass, rgba: string): Color
 

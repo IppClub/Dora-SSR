@@ -1182,6 +1182,7 @@ const sidebars = {
 			items: [
 				"api/Module/Dora",
 				"api/Module/p",
+				"api/Module/rgba",
 				"api/Class/Buffer",
 				"api/Class Object/Buffer",
 				"api/Class/tolua",

@@ -10,25 +10,6 @@
 
 **Description:**
 
-&emsp;&emsp;Creates a color with all channels set to 0.
-
-**Signature:**
-```tl
-metamethod __call: function(self: ColorClass): Color
-```
-
-**Returns:**
-
-| Return Type | Description |
-| --- | --- |
-| Color | A new Color object. |
-
-## __call
-
-**Type:** Metamethod.
-
-**Description:**
-
 &emsp;&emsp;Creates a new Color object with a Color3 object and alpha value.
 
 **Signature:**
@@ -59,14 +40,39 @@ metamethod __call: function(self: ColorClass, color: Color3, a: number): Color
 
 **Signature:**
 ```tl
-metamethod __call: function(self: ColorClass, argb: integer): Color
+metamethod __call: function(self: ColorClass, argb?: number): Color
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| argb | integer | The ARGB integer value to create the color from.<br/>For example 0xffffffff (opaque white), 0x88ff0000 (half transparent red) |
+| argb | number | [optional] The ARGB integer value to create the color from. Default is 0.<br/>For example 0xffffffff (opaque white), 0x88ff0000 (half transparent red) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Color | A new `Color` object. |
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates a new `Color` object from a RGBA string.
+
+**Signature:**
+```tl
+metamethod __call: function(self: ColorClass, rgba: string): Color
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| rgba | string | The RGBA string to create the color from, format like "#RRGGBBAA". |
 
 **Returns:**
 

@@ -73,7 +73,7 @@ generate = (path, file, cn)->
 				newGroup[#newGroup] = last\gsub "^%s*local%s+[%w_]+:%s*", "#{modName}: "
 				newGroup[] = "__ITEM__"
 				newGroup[] = false
-			elseif last\match "^%s*global"
+			elseif last\match "^%s*global%s+"
 				newGroup[] = "__ITEM__"
 				newGroup[] = false
 			res[x] = newGroup

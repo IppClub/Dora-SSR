@@ -10,37 +10,18 @@
 
 **描述：**
 
-&emsp;&emsp;创建所有通道设置为0的颜色。
-
-**签名：**
-```tl
-metamethod __call: function(self: Color3Class): Color3
-```
-
-**返回值：**
-
-| 返回类型 | 描述 |
-| --- | --- |
-| Color3 | 新的`Color3`对象。 |
-
-## __call
-
-**类型：** 元方法。
-
-**描述：**
-
 &emsp;&emsp;从RGB整数值创建新的`Color3`对象。
 
 **签名：**
 ```tl
-metamethod __call: function(self: Color3Class, rgb: integer): Color3
+metamethod __call: function(self: Color3Class, rgb?: number): Color3
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| rgb | integer | 从中创建颜色的RGB整数值。<br/>例如：0xffffff（白色），0xff0000（红色）。 |
+| rgb | number | [可选] 从中创建颜色的 RGB 整数值。默认值为 0。<br/>例如：0xffffff（白色），0xff0000（红色）。 |
 
 **返回值：**
 
