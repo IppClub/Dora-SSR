@@ -348,7 +348,7 @@ static int yuetoast(lua_State* L) {
 								current.hasSep = true;
 								return false;
 							}
-							if (!reserveComment && yue::ast_is<yue::YueComment_t>(child)) {
+							if (!reserveComment && yue::ast_is<yue::YueComment_t, yue::EmptyLine_t>(child)) {
 								return false;
 							}
 							if (!current.children) {

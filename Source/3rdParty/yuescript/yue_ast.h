@@ -933,9 +933,12 @@ AST_LEAF(YueMultilineComment)
 AST_END(YueMultilineComment)
 
 AST_NODE(YueComment)
-	ast_sel<false, YueLineComment_t, YueMultilineComment_t> comment;
+	ast_sel<true, YueLineComment_t, YueMultilineComment_t> comment;
 	AST_MEMBER(YueComment, &comment)
 AST_END(YueComment)
+
+AST_LEAF(EmptyLine)
+AST_END(EmptyLine)
 
 AST_NODE(ChainAssign)
 	ast_ptr<true, Seperator_t> sep;
@@ -962,7 +965,7 @@ AST_END(Body)
 
 AST_NODE(Block)
 	ast_ptr<true, Seperator_t> sep;
-	ast_sel_list<false, Statement_t, YueComment_t> statementOrComments;
+	ast_sel_list<false, Statement_t, YueComment_t, EmptyLine_t> statementOrComments;
 	AST_MEMBER(Block, &sep, &statementOrComments)
 AST_END(Block)
 

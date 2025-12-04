@@ -66,6 +66,7 @@ YueParser::YueParser() {
 	space = -(and_(set(" \t-\\")) >> *space_one >> -comment);
 	space_break = space >> line_break;
 	white = space >> *(line_break >> space);
+	plain_white = plain_space >> *(line_break >> plain_space);
 	alpha_num = range('a', 'z') | range('A', 'Z') | range('0', '9') | '_';
 	not_alpha_num = not_(alpha_num);
 	Name = (range('a', 'z') | range('A', 'Z') | '_') >> *alpha_num >> not_(larger(255));
@@ -1109,15 +1110,16 @@ YueParser::YueParser() {
 		yue_line_comment;
 	YueComment =
 		check_indent >> comment_line >> and_(stop) |
-		advance >> ensure(comment_line, pop_indent) >> and_(stop) |
-		plain_space >> and_(stop);
+		advance >> ensure(comment_line, pop_indent) >> and_(stop);
+
+	EmptyLine = plain_space >> and_(stop);
 
 	indentation_error = pl::user(not_(pipe_operator | eof()), [](const item_t& item) {
 		RaiseError("unexpected indent"sv, item);
 		return false;
 	});
 
-	line = (
+	line = *(EmptyLine >> line_break) >> (
 		check_indent_match >> space >> Statement |
 		YueComment |
 		advance_match >> ensure(space >> (indentation_error | Statement), pop_indent)
@@ -1128,8 +1130,8 @@ YueParser::YueParser() {
 	}) >> lax_line >> *(line_break >> lax_line) | line >> *(line_break >> line));
 
 	shebang = "#!" >> *(not_(stop) >> any_char);
-	BlockEnd = Block >> stop;
-	File = -shebang >> -Block >> stop;
+	BlockEnd = Block >> plain_white >> stop;
+	File = -shebang >> -Block >> plain_white >> stop;
 
 	lax_line = advance_match >> ensure(*(not_(stop) >> any()), pop_indent) | line >> and_(stop) | check_indent_match >> *(not_(stop) >> any());
 }

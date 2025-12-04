@@ -78,7 +78,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.30.1"sv;
+const std::string_view version = "0.30.2"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -5288,6 +5288,9 @@ private:
 			for (auto node : nodes) {
 				if (auto comment = ast_cast<YueComment_t>(node)) {
 					transformComment(comment, temp);
+					continue;
+				}
+				if (!ast_is<Statement_t>(node)) {
 					continue;
 				}
 				auto transformNode = [&]() {
