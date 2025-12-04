@@ -16,3 +16,208 @@
 ```tl
 soundSpeed: number
 ```
+
+## globalVolume
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The global volume.
+
+**Signature:**
+```tl
+globalVolume: number
+```
+
+## listener
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The listener node of the 3D sound source.
+
+**Signature:**
+```tl
+listener: Node
+```
+
+## play
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Plays a sound effect and returns a handler for the audio.
+
+**Signature:**
+```tl
+play: function(
+		self: Audio,
+		filename: string,
+		loop?: boolean --[[false]]
+	): integer
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The path to the sound effect file (must be a WAV file). |
+| loop | boolean | [optional] Whether to loop the sound effect (default is false). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | A handler for the audio that can be used to stop the sound effect. |
+
+## stop
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Stops a sound effect that is currently playing.
+
+**Signature:**
+```tl
+stop: function(self: Audio, handler: integer)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| handler | integer | The handler for the audio that is returned by the `play` function. |
+
+## playStream
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Plays a streaming audio file.
+
+**Signature:**
+```tl
+playStream: function(
+		self: Audio,
+		filename: string,
+		loop?: boolean --[[false]],
+		crossFadeTime?: number --[[0.0]]
+	)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The path to the streaming audio file (can be OGG, WAV, MP3, or FLAC). |
+| loop | boolean | [optional] Whether to loop the streaming audio (default is false). |
+| crossFadeTime | number | [optional] The time (in seconds) to crossfade between the previous and new streaming audio (default is 0.0). |
+
+## stopStream
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Stops a streaming audio file that is currently playing.
+
+**Signature:**
+```tl
+stopStream: function(
+		self: Audio,
+		fadeTime?: number --[[0.0]]
+	)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| fadeTime | number | [optional] The time (in seconds) to fade out the streaming audio (default is 0.0). |
+
+## setPauseAllCurrent
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Pauses all currently playing audio.
+
+**Signature:**
+```tl
+setPauseAllCurrent: function(self: Audio, pause: boolean)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| pause | boolean | The pause state. |
+
+## setListenerAt
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the position of the listener.
+
+**Signature:**
+```tl
+setListenerAt: function(self: Audio, atX: number, atY: number, atZ: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| atX | number | The x-axis position. |
+| atY | number | The y-axis position. |
+| atZ | number | The z-axis position. |
+
+## setListenerUp
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the up direction of the listener.
+
+**Signature:**
+```tl
+setListenerUp: function(self: Audio, upX: number, upY: number, upZ: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| upX | number | The x-axis up direction. |
+| upY | number | The y-axis up direction. |
+| upZ | number | The z-axis up direction. |
+
+## setListenerVelocity
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the velocity of the listener.
+
+**Signature:**
+```tl
+setListenerVelocity: function(self: Audio, velocityX: number, velocityY: number, velocityZ: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| velocityX | number | The x-axis velocity. |
+| velocityY | number | The y-axis velocity. |
+| velocityZ | number | The z-axis velocity. |

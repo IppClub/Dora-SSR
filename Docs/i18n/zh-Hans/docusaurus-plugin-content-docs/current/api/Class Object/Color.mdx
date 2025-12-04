@@ -10,25 +10,6 @@
 
 **描述：**
 
-&emsp;&emsp;创建所有通道都设置为 0 的颜色。
-
-**签名：**
-```tl
-metamethod __call: function(self: ColorClass): Color
-```
-
-**返回值：**
-
-| 返回类型 | 描述 |
-| --- | --- |
-| Color | 新的颜色对象。 |
-
-## __call
-
-**类型：** 元方法。
-
-**描述：**
-
 &emsp;&emsp;使用`Color3`对象和透明值创建新的颜色对象。
 
 **签名：**
@@ -59,14 +40,39 @@ metamethod __call: function(self: ColorClass, color: Color3, a: number): Color
 
 **签名：**
 ```tl
-metamethod __call: function(self: ColorClass, argb: integer): Color
+metamethod __call: function(self: ColorClass, argb?: number): Color
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| argb | integer | 创建颜色的 ARGB 整数值。<br/>示例：0xffffffff（不透明白色），0x88ff0000（半透明红色）。 |
+| argb | number | [可选] 创建颜色的 ARGB 整数值。默认值为 0。<br/>示例：0xffffffff（不透明白色），0x88ff0000（半透明红色）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Color | 新的颜色对象。 |
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;从 RGBA 字符串创建新的颜色对象。
+
+**签名：**
+```tl
+metamethod __call: function(self: ColorClass, rgba: string): Color
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| rgba | string | 用于创建颜色的 RGBA 字符串，格式为"#RRGGBBAA"。 |
 
 **返回值：**
 

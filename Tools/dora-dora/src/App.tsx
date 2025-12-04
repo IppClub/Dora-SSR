@@ -1745,6 +1745,10 @@ export default function PersistentDrawerLeft() {
 							built = true;
 							const res = await Service.read({path: key});
 							if (res.success && res.content !== undefined) {
+								if (/^[\s\n\r]*<\?xml/.test(res.content)) {
+									// TiledMapEditor file format, skip transpiling
+									return;
+								}
 								const {transpileTypescript, addDiagnosticToLog} = await import('./TranspileTS');
 								const {luaCode, diagnostics} = await transpileTypescript(key, res.content);
 								if (diagnostics.length > 0) {
@@ -2073,6 +2077,9 @@ export default function PersistentDrawerLeft() {
 						break;
 					case ".bl":
 						content = '{"blocks":{"blocks":[{"type":"comment_block","fields":{"NOTE":"@preview-file on clear"}}]}}';
+						break;
+					case ".yarn":
+						content = `title: Start\ntags:\nposition: 50,50\ncolorID: 0\n---\nHello World!\n===\n`;
 						break;
 					default:
 						break;

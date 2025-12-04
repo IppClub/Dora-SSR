@@ -45,7 +45,7 @@ local record ColorClass
 	metamethod __call: function(self: ColorClass, argb?: number): Color
 
 	-- 从 RGBA 字符串创建新的颜色对象。
-	-- @param rgba 用于创建颜色的 RGBA 字符串，格式为"#RRGGBBAA"。
+	-- @param rgba (string) 用于创建颜色的 RGBA 字符串，格式为"#RRGGBBAA"。
 	-- @return (Color) 新的颜色对象。
 	metamethod __call: function(self: ColorClass, rgba: string): Color
 
