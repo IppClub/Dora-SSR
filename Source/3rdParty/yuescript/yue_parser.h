@@ -197,6 +197,7 @@ private:
 	NONE_AST_RULE(line_break);
 	NONE_AST_RULE(any_char);
 	NONE_AST_RULE(white);
+	NONE_AST_RULE(plain_white);
 	NONE_AST_RULE(stop);
 	NONE_AST_RULE(comment);
 	NONE_AST_RULE(multi_line_open);
@@ -473,6 +474,7 @@ private:
 	AST_RULE(YueLineComment);
 	AST_RULE(YueMultilineComment);
 	AST_RULE(YueComment);
+	AST_RULE(EmptyLine);
 	AST_RULE(ChainAssign);
 	AST_RULE(Body);
 	AST_RULE(Block);

@@ -1612,6 +1612,9 @@ std::string Statement_t::to_string(void* ud) const {
 std::string StatementSep_t::to_string(void*) const {
 	return {};
 }
+std::string EmptyLine_t::to_string(void*) const {
+	return {};
+}
 std::string ChainAssign_t::to_string(void* ud) const {
 	str_list temp;
 	for (auto exp : exprs.objects()) {
@@ -1635,11 +1638,11 @@ std::string Block_t::to_string(void* ud) const {
 				temp.emplace_back(info->ind() + stmt->to_string(ud));
 			}
 		} else if (info->reserveComment) {
-			auto comment = ast_to<YueComment_t>(stmt_);
-			if (comment->comment) {
+			if (auto comment = ast_cast<YueComment_t>(stmt_)) {
 				temp.emplace_back(info->ind() + comment->to_string(ud));
 			} else {
-				temp.emplace_back(comment->to_string(ud));
+				auto empty = ast_to<EmptyLine_t>(stmt_);
+				temp.emplace_back(empty->to_string(ud));
 			}
 		}
 	}
