@@ -178,9 +178,15 @@ private:
 	NONE_AST_RULE(invalid_with_syntax_error);
 	NONE_AST_RULE(invalid_try_syntax_error);
 	NONE_AST_RULE(keyword_as_identifier_syntax_error);
-	NONE_AST_RULE(check_keyword_as_identifier);
 	NONE_AST_RULE(invalid_number_literal_error);
 	NONE_AST_RULE(invalid_import_literal_error);
+	NONE_AST_RULE(expected_indentifier_error);
+
+	NONE_AST_RULE(must_exp);
+	NONE_AST_RULE(must_unary_exp);
+	NONE_AST_RULE(must_variable);
+	NONE_AST_RULE(end_braces_expression);
+	NONE_AST_RULE(end_brackets_expression);
 
 	NONE_AST_RULE(inc_exp_level);
 	NONE_AST_RULE(dec_exp_level);
@@ -274,6 +280,8 @@ private:
 	NONE_AST_RULE(fn_arg_def_lit_lines);
 	NONE_AST_RULE(destruct_def);
 	NONE_AST_RULE(macro_args_def);
+	NONE_AST_RULE(var_arg_def);
+	NONE_AST_RULE(outer_var_shadow_def);
 	NONE_AST_RULE(chain_call);
 	NONE_AST_RULE(chain_call_list);
 	NONE_AST_RULE(chain_index_chain);
@@ -290,7 +298,6 @@ private:
 	NONE_AST_RULE(table_value);
 	NONE_AST_RULE(table_lit_lines);
 	NONE_AST_RULE(table_lit_line);
-	NONE_AST_RULE(table_value_list);
 	NONE_AST_RULE(table_block_inner);
 	NONE_AST_RULE(class_line);
 	NONE_AST_RULE(key_value_line);
@@ -306,8 +313,6 @@ private:
 	NONE_AST_RULE(expo_value);
 	NONE_AST_RULE(expo_exp);
 	NONE_AST_RULE(exp_not_tab);
-	NONE_AST_RULE(must_exp);
-	NONE_AST_RULE(must_unary_exp);
 	NONE_AST_RULE(local_const_item);
 	NONE_AST_RULE(comment_line);
 	NONE_AST_RULE(yue_line_comment);
@@ -370,6 +375,7 @@ private:
 	AST_RULE(Repeat);
 	AST_RULE(ForStepValue);
 	AST_RULE(For);
+	AST_RULE(ForNum);
 	AST_RULE(ForEach);
 	AST_RULE(Do);
 	AST_RULE(CatchBlock);
@@ -379,8 +385,8 @@ private:
 	AST_RULE(TblComprehension);
 	AST_RULE(StarExp);
 	AST_RULE(CompForEach);
+	AST_RULE(CompForNum);
 	AST_RULE(CompFor);
-	AST_RULE(CompInner);
 	AST_RULE(Assign);
 	AST_RULE(UpdateOp);
 	AST_RULE(Update);

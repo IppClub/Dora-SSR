@@ -50,6 +50,15 @@ public:
 		} \
 	} while (false)
 
+#define RaiseErrorI(msg, item) \
+	do { \
+		if (reinterpret_cast<State*>(item.user_data)->lax) { \
+			return -1; \
+		} else { \
+			throw ParserError(msg, item.begin); \
+		} \
+	} while (false)
+
 // clang-format off
 YueParser::YueParser() {
 	plain_space = *set(" \t");
@@ -113,7 +122,7 @@ YueParser::YueParser() {
 	};
 
 	empty_block_error = expect_error(
-		"must be followed by a statement or an indented block"sv
+		"expected a valid statement or indented block"sv
 	);
 	export_expression_error = expect_error(
 		"invalid export expression"sv
@@ -170,7 +179,7 @@ YueParser::YueParser() {
 		"invalid import syntax, expected `import \"X.mod\" as modname` or `import \"X.mod\" as {:name}`"sv
 	);
 	expected_expression_error = expect_error(
-		"expected expression"sv
+		"expected valid expression"sv
 	);
 	invalid_from_import_error = expect_error(
 		"invalid import syntax, expected `from \"X.mod\" import name` or `from mod import name`"sv
@@ -201,6 +210,9 @@ YueParser::YueParser() {
 	);
 	invalid_import_literal_error = expect_error(
 		"invalid import path literal, expected a dotted path like X.Y.Z"sv
+	);
+	expected_indentifier_error = expect_error(
+		"expected valid identifer"sv
 	);
 
 	#define ensure(patt, finally) ((patt) >> (finally) | (finally) >> cut)
@@ -313,14 +325,14 @@ YueParser::YueParser() {
 			for (input_it i = item.begin->m_it; i != item.end->m_it; ++i) {
 				switch (*i) {
 					case '\t': indent += 4; break;
-					default: RaiseError("can not mix the use of tabs and spaces as indents"sv, item); break;
+					default: RaiseErrorI("can not mix the use of tabs and spaces as indents"sv, item); break;
 				}
 			}
 		} else {
 			for (input_it i = item.begin->m_it; i != item.end->m_it; ++i) {
 				switch (*i) {
 					case ' ': indent++; break;
-					default: RaiseError("can not mix the use of tabs and spaces as indents"sv, item); break;
+					default: RaiseErrorI("can not mix the use of tabs and spaces as indents"sv, item); break;
 				}
 			}
 		}
@@ -354,6 +366,12 @@ YueParser::YueParser() {
 			}
 		}
 		State* st = reinterpret_cast<State*>(item.user_data);
+		if (st->indents.empty()) {
+			RaiseError("unknown indent level"sv, item);
+		}
+		if (st->indents.top() > indent) {
+			RaiseError("unexpected dedent"sv, item);
+		}
 		st->indents.push(indent);
 		return true;
 	});
@@ -382,22 +400,24 @@ YueParser::YueParser() {
 	local_const_item = Variable | SimpleTable | TableLit | Comprehension;
 	LocalAttrib = (
 		ConstAttrib >> Seperator >> space >> local_const_item >> *(space >> ',' >> space >> local_const_item) |
-		CloseAttrib >> Seperator >> space >> Variable >> *(space >> ',' >> space >> Variable)
+		CloseAttrib >> Seperator >> space >> must_variable >> *(space >> ',' >> space >> must_variable)
 	) >> space >> Assign;
 
-	ColonImportName = '\\' >> space >> Variable;
-	import_name = ColonImportName | Variable;
-	import_name_list = Seperator >> *space_break >> space >> import_name >> *((+space_break | space >> ',' >> *space_break) >> space >> import_name);
+	ColonImportName = '\\' >> must_variable;
+	import_name = not_(key("from")) >> (ColonImportName | must_variable);
+	import_name_list = Seperator >> *space_break >> space >> import_name >> *(
+		(+space_break | space >> ',' >> *space_break) >> space >> import_name
+	);
 	ImportFrom = import_name_list >> *space_break >> space >> key("from") >> space >> (ImportLiteral | not_(String) >> must_exp);
-	from_import_name_list_line = import_name >> *(space >> ',' >> space >> import_name);
+	from_import_name_list_line = import_name >> *(space >> ',' >> space >> not_(line_break) >> import_name);
 	from_import_name_in_block = +space_break >> advance_match >> ensure(space >> from_import_name_list_line >> *(-(space >> ',') >> +space_break >> check_indent_match >> space >> from_import_name_list_line), pop_indent);
 	FromImport = key("from") >> space >> (
 			ImportLiteral | not_(String) >> Exp | invalid_from_import_error
 		) >> *space_break >> space >> (
 			key("import") | invalid_from_import_error
 		) >> space >> Seperator >> (
-			from_import_name_list_line >> -(space >> ',') >> -from_import_name_in_block |
 			from_import_name_in_block |
+			from_import_name_list_line >> -(space >> ',') >> -from_import_name_in_block |
 			invalid_from_import_error
 		);
 
@@ -432,16 +452,18 @@ YueParser::YueParser() {
 		-(space >> ',') >>
 		-import_tab_lines >>
 		white >>
-		'}'
+		end_braces_expression
 	) | (
 		Seperator >> import_tab_key_value >> *(space >> ',' >> space >> import_tab_key_value)
 	);
 
-	ImportAs = ImportLiteral >> -(space >> key("as") >> space >> (ImportTabLit | Variable | ImportAllMacro | invalid_import_as_syntax_error));
+	ImportAs = ImportLiteral >> -(space >> key("as") >> space >> (
+		ImportTabLit | Variable | ImportAllMacro | invalid_import_as_syntax_error
+	));
 
-	ImportGlobal = Seperator >> UnicodeName >> *('.' >> UnicodeName) >> -(space >> key("as") >> space >> Variable);
+	ImportGlobal = Seperator >> UnicodeName >> *('.' >> UnicodeName) >> space >> not_(',' | key("from")) >> -(key("as") >> space >> must_variable);
 
-	Import = key("import") >> space >> (ImportAs | ImportFrom | ImportGlobal | invalid_import_syntax_error) | FromImport;
+	Import = key("import") >> space >> (ImportGlobal | ImportAs | ImportFrom | invalid_import_syntax_error) | FromImport;
 
 	Label = "::" >> (and_(LuaKeyword >> "::") >> keyword_as_label_error | UnicodeName >> "::");
 
@@ -511,12 +533,14 @@ YueParser::YueParser() {
 	ForStepValue = ',' >> space >> must_exp;
 	for_args = Variable >> space >> '=' >> space >> must_exp >> space >> ',' >> space >> must_exp >> space >> -ForStepValue;
 
-	For = for_key >> space >> disable_do_chain_arg_table_block_rule(for_args) >> space >> opt_body_with("do");
+	ForNum = disable_do_chain_arg_table_block_rule(for_args) >> space >> opt_body_with("do");
 
 	for_in = StarExp | ExpList | expected_expression_error;
 
-	ForEach = for_key >> space >> AssignableNameList >> space >> key("in") >> space >>
+	ForEach = AssignableNameList >> space >> key("in") >> space >>
 		disable_do_chain_arg_table_block_rule(for_in) >> space >> opt_body_with("do");
+
+	For = for_key >> space >> (ForNum | ForEach);
 
 	Do = pl::user(key("do"), [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
@@ -599,7 +623,7 @@ YueParser::YueParser() {
 		return true;
 	});
 
-	CatchBlock = line_break >> *space_break >> check_indent_match >> space >> key("catch") >> space >> (Variable >> space >> in_block | invalid_try_syntax_error);
+	CatchBlock = line_break >> *space_break >> check_indent_match >> space >> key("catch") >> space >> must_variable >> space >> (in_block | invalid_try_syntax_error);
 	Try = key("try") >> -ExistentialOp >> space >> (in_block | Exp | invalid_try_syntax_error) >> -CatchBlock;
 
 	list_value =
@@ -622,24 +646,28 @@ YueParser::YueParser() {
 
 	list_lit_lines = +space_break >> list_lit_line >> *(-(space >> ',') >> space_break >> list_lit_line) >> -(space >> ',');
 
+	end_brackets_expression = ']' | brackets_expression_error;
+
 	Comprehension = '[' >> not_('[') >>
 		Seperator >> space >> (
 			disable_for_rule(list_value) >> space >> (
-				CompInner >> space >> ']' |
-				(list_value_list >> -(space >> ',') | space >> ',')  >> -list_lit_lines >> white >> ']'
+				CompFor >> space >> end_brackets_expression |
+				(list_value_list >> -(space >> ',') | space >> ',')  >> -list_lit_lines >> white >> end_brackets_expression
 			) |
-			list_lit_lines >> white >> ']' |
+			list_lit_lines >> white >> end_brackets_expression |
 			white >> ']' >> not_(space >> '=')
 		);
 
-	CompValue = ',' >> space >> Exp;
-	TblComprehension = and_('{') >> ('{' >> space >> disable_for_rule(Exp >> space >> -(CompValue >> space)) >> CompInner >> space >> '}' | braces_expression_error);
+	end_braces_expression = '}' | braces_expression_error;
 
-	CompInner = Seperator >> (CompForEach | CompFor) >> *(space >> comp_clause);
+	CompValue = ',' >> space >> must_exp;
+	TblComprehension = '{' >> space >> disable_for_rule(Exp >> space >> -(CompValue >> space)) >> (CompFor | braces_expression_error) >> space >> end_braces_expression;
+
+	CompFor = key("for") >> space >> Seperator >> (CompForNum | CompForEach) >> *(space >> comp_clause);
 	StarExp = '*' >> space >> must_exp;
-	CompForEach = key("for") >> space >> AssignableNameList >> space >> key("in") >> space >> (StarExp | must_exp);
-	CompFor = key("for") >> space >> Variable >> space >> '=' >> space >> must_exp >> space >> ',' >> space >> must_exp >> -ForStepValue;
-	comp_clause = CompFor | CompForEach | key("when") >> space >> must_exp;
+	CompForEach = AssignableNameList >> space >> key("in") >> space >> (StarExp | must_exp);
+	CompForNum = Variable >> space >> '=' >> space >> must_exp >> space >> ',' >> space >> must_exp >> -ForStepValue;
+	comp_clause = key("when") >> space >> must_exp | key("for") >> space >> (CompForNum | CompForEach);
 
 	Assign = '=' >> space >> Seperator >> (
 		With | If | Switch | TableBlock |
@@ -794,7 +822,7 @@ YueParser::YueParser() {
 	Metamethod = '<' >> space >> meta_index >> space >> '>';
 
 	ExistentialOp = '?' >> not_('?');
-	TableAppendingOp = and_('[') >> ("[]" | brackets_expression_error);
+	TableAppendingOp = and_('[') >> "[]";
 	PlainItem = +any_char;
 
 	chain_call = (
@@ -819,7 +847,7 @@ YueParser::YueParser() {
 	chain_with_colon = +chain_item >> -colon_chain;
 	chain_items = chain_with_colon | colon_chain;
 
-	index = '[' >> not_('[') >> space >> (ReversedIndex >> and_(space >> ']') | Exp) >> space >> (']' | brackets_expression_error);
+	index = '[' >> not_('[') >> space >> (ReversedIndex >> and_(space >> ']') | Exp) >> space >> ']';
 	ReversedIndex = '#' >> space >> -('-' >> space >> Exp);
 	chain_item =
 		Invoke >> -ExistentialOp |
@@ -859,10 +887,8 @@ YueParser::YueParser() {
 		SpreadExp |
 		NormalDef;
 
-	table_value_list = table_value >> *(space >> ',' >> space >> table_value);
-
 	table_lit_line = (
-		push_indent_match >> (space >> table_value_list >> pop_indent | pop_indent)
+		push_indent_match >> (space >> not_(line_break | '}') >> (table_value | expected_expression_error) >> *(space >> ',' >> space >> table_value) >> pop_indent | pop_indent)
 	) | (
 		space
 	);
@@ -871,9 +897,11 @@ YueParser::YueParser() {
 
 	TableLit =
 		'{' >> Seperator >>
-		-(space >> table_value_list >> -(space >> ',')) >>
-		-table_lit_lines >>
-		white >> '}';
+		-(space >> table_value >> *(space >> ',' >> space >> table_value) >> -(space >> ',')) >>
+		(
+			table_lit_lines >> white >> end_braces_expression |
+			white >> '}'
+		);
 
 	table_block_inner = Seperator >> key_value_line >> *(+space_break >> key_value_line);
 	TableBlock = +space_break >> advance_match >> ensure(table_block_inner, pop_indent);
@@ -955,22 +983,20 @@ YueParser::YueParser() {
 		invalid_export_syntax_error
 	) >> not_(space >> StatementAppendix);
 
-	check_keyword_as_identifier = and_(LuaKeyword >> not_alpha_num) >> keyword_as_identifier_syntax_error;
-
-	VariablePair = ':' >> (Variable | check_keyword_as_identifier);
+	VariablePair = ':' >> Variable;
 
 	NormalPair =
 		(
 			KeyName |
 			'[' >> not_('[') >> space >> Exp >> space >> ']' |
 			String
-		) >> ':' >> not_(':') >> space >>
-		(Exp | TableBlock | +space_break >> space >> Exp | check_keyword_as_identifier);
+		) >> ':' >> not_(':' | '=' >> not_('>')) >> space >>
+		(Exp | TableBlock | +space_break >> space >> Exp | expected_expression_error);
 
-	MetaVariablePair = ":<" >> space >> Variable >> space >> '>';
+	MetaVariablePair = ":<" >> space >> must_variable >> space >> '>';
 
 	MetaNormalPair = '<' >> space >> -meta_index >> space >> ">:" >> space >>
-		(Exp | TableBlock | +space_break >> space >> Exp | check_keyword_as_identifier);
+		(Exp | TableBlock | +space_break >> space >> Exp | expected_expression_error);
 
 	destruct_def = -(space >> '=' >> space >> Exp);
 	VariablePairDef = VariablePair >> destruct_def;
@@ -1003,16 +1029,24 @@ YueParser::YueParser() {
 
 	FnArgDef = (Variable | SelfItem >> -ExistentialOp) >> -(space >> '`' >> space >> Name) >> -(space >> '=' >> space >> Exp) | TableLit | SimpleTable;
 
-	check_vararg_position = and_(white >> ')') | white >> -(',' >> white) >> vararg_position_error;
+	check_vararg_position = and_(white >> (')' | key("using"))) | white >> -(',' >> white) >> vararg_position_error;
 
-	FnArgDefList = Seperator >> (
-		fn_arg_def_lit_lines >> -(-(space >> ',') >> white >> VarArg >> -(space >> '`' >> space >> Name) >> check_vararg_position) |
-		white >> VarArg >> -(space >> '`' >> space >> Name) >> check_vararg_position
-	);
+	var_arg_def = (
+		VarArg |
+		+space_break >> push_indent_match >> ensure(space >> VarArg >> -(space >> '`' >> space >> Name), pop_indent)
+	) >> check_vararg_position;
 
-	OuterVarShadow = key("using") >> space >> (NameList | key("nil"));
+	FnArgDefList = Seperator >>
+		-fn_arg_def_list >>
+		-(-(space >> ',') >> +space_break >> fn_arg_def_lit_lines) >>
+		-(-(space >> ',') >> space >> var_arg_def);
 
-	FnArgsDef = '(' >> *space_break >> -FnArgDefList >> -(white >> OuterVarShadow) >> white >> -(and_(',') >> unexpected_comma_error) >> ')';
+	OuterVarShadow = key("using") >> space >> (key("nil") | NameList);
+
+	outer_var_shadow_def = OuterVarShadow |
+		+space_break >> push_indent_match >> ensure(space >> OuterVarShadow, pop_indent);
+
+	FnArgsDef = '(' >> space >> -FnArgDefList >> -(space >> outer_var_shadow_def) >> white >> -(and_(',') >> unexpected_comma_error) >> ')';
 	FnArrow = expr("->") | "=>";
 	FunLit = pl::user(true_(), [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
@@ -1024,17 +1058,19 @@ YueParser::YueParser() {
 	) >> space >> FnArrow >> -(space >> Body);
 
 	MacroName = '$' >> UnicodeName;
-	macro_args_def = '(' >> white >> -FnArgDefList >> white >> -(and_(',') >> unexpected_comma_error) >> ')';
+	macro_args_def = '(' >> space >> -FnArgDefList >> white >> -(and_(',') >> unexpected_comma_error) >> ')';
 	MacroLit = -(macro_args_def >> space) >> "->" >> space >> Body;
 	MacroFunc = MacroName >> (Invoke | InvokeArgs);
 	Macro = key("macro") >> space >> (
-		UnicodeName >> space >> '=' >> space >> (MacroLit | MacroFunc) |
+		UnicodeName >> space >> '=' >> space >> (MacroLit | MacroFunc | invalid_macro_definition_error) |
 		invalid_macro_definition_error
 	);
 	MacroInPlace = '$' >> space >> "->" >> space >> Body;
 
-	NameList = Seperator >> Variable >> *(space >> ',' >> space >> Variable);
-	NameOrDestructure = Variable | TableLit | Comprehension | SimpleTable;
+	must_variable = Variable | and_(LuaKeyword >> not_alpha_num) >> keyword_as_identifier_syntax_error | expected_indentifier_error;
+
+	NameList = Seperator >> must_variable >> *(space >> ',' >> space >> must_variable);
+	NameOrDestructure = Variable | TableLit | Comprehension | SimpleTable | expected_expression_error;
 	AssignableNameList = Seperator >> NameOrDestructure >> *(space >> ',' >> space >> NameOrDestructure);
 
 	FnArrowBack = '<' >> set("-=");
@@ -1074,7 +1110,7 @@ YueParser::YueParser() {
 
 	SimpleValue =
 		TableLit | ConstValue | If | Switch | Try | With |
-		ClassDecl | ForEach | For | While | Repeat | Do |
+		ClassDecl | For | While | Repeat | Do |
 		UnaryValue | TblComprehension | Comprehension |
 		FunLit | Num | VarArg;
 
@@ -1085,10 +1121,10 @@ YueParser::YueParser() {
 
 	ChainAssign = Seperator >> Exp >> +(space >> '=' >> space >> Exp >> space >> and_('=')) >> space >> Assign;
 
-	StatementAppendix = (IfLine | WhileLine | CompInner) >> space;
+	StatementAppendix = (IfLine | WhileLine | CompFor) >> space;
 	Statement =
 		(
-			Import | While | Repeat | For | ForEach |
+			Import | While | Repeat | For |
 			Return | Local | Global | Export | Macro |
 			MacroInPlace | BreakLoop | Label | Goto | ShortTabAppending |
 			LocalAttrib | Backcall | PipeBody | ExpListAssign | ChainAssign |
@@ -1133,7 +1169,9 @@ YueParser::YueParser() {
 	BlockEnd = Block >> plain_white >> stop;
 	File = -shebang >> -Block >> plain_white >> stop;
 
-	lax_line = advance_match >> ensure(*(not_(stop) >> any()), pop_indent) | line >> and_(stop) | check_indent_match >> *(not_(stop) >> any());
+	lax_line = advance_match >> ensure(*(not_(stop) >> any()), pop_indent) |
+		line >> and_(stop) |
+		check_indent_match >> *(not_(stop) >> any());
 }
 // clang-format on
 

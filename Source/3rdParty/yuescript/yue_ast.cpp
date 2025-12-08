@@ -594,7 +594,7 @@ std::string Repeat_t::to_string(void* ud) const {
 std::string ForStepValue_t::to_string(void* ud) const {
 	return value->to_string(ud);
 }
-std::string For_t::to_string(void* ud) const {
+std::string ForNum_t::to_string(void* ud) const {
 	auto info = reinterpret_cast<YueFormat*>(ud);
 	auto line = "for "s + varName->to_string(ud) + " = "s + startValue->to_string(ud) + ", "s + stopValue->to_string(ud);
 	if (stepValue) {
@@ -632,6 +632,9 @@ std::string ForEach_t::to_string(void* ud) const {
 		info->popScope();
 		return line + '\n' + block;
 	}
+}
+std::string For_t::to_string(void* ud) const {
+	return forLoop->to_string(ud);
 }
 std::string Do_t::to_string(void* ud) const {
 	auto info = reinterpret_cast<YueFormat*>(ud);
@@ -784,7 +787,7 @@ static bool isInBlockExp(ast_node* node, bool last = false) {
 	return false;
 }
 std::string Comprehension_t::to_string(void* ud) const {
-	if (items.size() != 2 || !ast_is<CompInner_t>(items.back())) {
+	if (items.size() != 2 || !ast_is<CompFor_t>(items.back())) {
 		if (items.size() == 1) {
 			str_list temp;
 			for (const auto& item : items.objects()) {
@@ -851,14 +854,14 @@ std::string StarExp_t::to_string(void* ud) const {
 std::string CompForEach_t::to_string(void* ud) const {
 	return "for "s + nameList->to_string(ud) + " in "s + loopValue->to_string(ud);
 }
-std::string CompFor_t::to_string(void* ud) const {
+std::string CompForNum_t::to_string(void* ud) const {
 	auto line = "for "s + varName->to_string(ud) + " = "s + startValue->to_string(ud) + ", "s + stopValue->to_string(ud);
 	if (stepValue) {
 		line += stepValue->to_string(ud);
 	}
 	return line;
 }
-std::string CompInner_t::to_string(void* ud) const {
+std::string CompFor_t::to_string(void* ud) const {
 	str_list temp;
 	for (auto item : items.objects()) {
 		if (ast_is<Exp_t>(item)) {
