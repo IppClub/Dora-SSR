@@ -2006,6 +2006,12 @@ DragonBonesData* JSONDataParser::parseDragonBonesData(const char* rawData, float
     rapidjson::Document document;
     document.Parse(rawData);
 
+    if (document.GetParseError() != rapidjson::kParseErrorNone)
+    {
+        DRAGONBONES_ASSERT(false, "Nonsupport JSON bones data.");
+        return nullptr;
+    }
+
     return _parseDragonBonesData(document, scale);
 }
 
@@ -2031,6 +2037,11 @@ bool JSONDataParser::parseTextureAtlasData(const char* rawData, TextureAtlasData
 
     rapidjson::Document document;
     document.Parse(rawData);
+    if (document.GetParseError() != rapidjson::kParseErrorNone)
+    {
+        DRAGONBONES_ASSERT(false, "Nonsupport atlas data.");
+        return false;
+    }
     _parseTextureAtlasData(document, textureAtlasData, scale);
 
     return true;

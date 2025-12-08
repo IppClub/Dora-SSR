@@ -449,8 +449,8 @@ HttpServer\postSchedule "/complete", (req): success: false ->
 		until true
 		switch lang when "tl", "lua"
 			suggestions = teal.completeAsync content, line, row, searchPath
-			if not line\match("[%.:]$")
-				checkSet = {name, true for {name} in *suggestions}
+			if not line\match "[%.:]$"
+				checkSet = {name, true for [name,] in *suggestions}
 				for item in *teal.completeAsync "", "Dora.", 1, searchPath
 					suggestions[] = item if not checkSet[item[1]]
 				for word in *luaKeywords

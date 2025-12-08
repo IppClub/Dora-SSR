@@ -228,6 +228,12 @@ DragonBonesData* BinaryDataParser::parseDragonBonesData(const char* rawData, flo
     rapidjson::Document document;
     document.Parse(headerBytes, headerLength);
 
+    if (document.GetParseError() != rapidjson::kParseErrorNone)
+    {
+        DRAGONBONES_ASSERT(false, "Nonsupport binary bones data.");
+        return nullptr;
+    }
+
     _binaryOffset = 8 + 4 + (unsigned)headerLength;
     _binary = rawData;
 

@@ -78,7 +78,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.30.2"sv;
+const std::string_view version = "0.30.3"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -876,6 +876,10 @@ private:
 		return false;
 	}
 
+	bool isListComp(Comprehension_t* comp) const {
+		return comp->items.size() == 2 && ast_is<CompFor_t>(comp->items.back());
+	}
+
 	void markVarLocalConst(const std::string& name) {
 		auto& scope = _scopes.back();
 		scope.vars->insert_or_assign(name, VarType::LocalConst);
@@ -1474,7 +1478,7 @@ private:
 					if (simpleValue->value.is<TableLit_t>()) {
 						return true;
 					} else if (auto comp = simpleValue->value.as<Comprehension_t>()) {
-						if (comp->items.size() != 2 || !ast_is<CompInner_t>(comp->items.back())) {
+						if (!isListComp(comp)) {
 							return true;
 						}
 					}
@@ -1745,7 +1749,7 @@ private:
 						throw CompileError("while-loop line decorator is not supported here"sv, appendix->item.get());
 						break;
 					}
-					case id<CompInner_t>(): {
+					case id<CompFor_t>(): {
 						throw CompileError("for-loop line decorator is not supported here"sv, appendix->item.get());
 						break;
 					}
@@ -1806,8 +1810,8 @@ private:
 					statement->content.set(expListAssign);
 					break;
 				}
-				case id<CompInner_t>(): {
-					auto compInner = appendix->item.to<CompInner_t>();
+				case id<CompFor_t>(): {
+					auto compInner = appendix->item.to<CompFor_t>();
 					auto comp = x->new_ptr<Comprehension_t>();
 					auto stmt = x->new_ptr<Statement_t>();
 					stmt->content.set(statement->content);
@@ -1877,7 +1881,7 @@ private:
 								case id<Try_t>(): transformTry(static_cast<Try_t*>(value), out, ExpUsage::Common); break;
 								case id<Comprehension_t>(): {
 									auto comp = static_cast<Comprehension_t*>(value);
-									if (comp->items.size() == 2 && ast_is<CompInner_t>(comp->items.back())) {
+									if (isListComp(comp)) {
 										transformCompCommon(comp, out);
 									} else {
 										specialSingleValue = false;
@@ -2346,7 +2350,7 @@ private:
 						auto elmVar = getUnusedName("_elm_"sv);
 						_buf << varName << '[' << lenVar << "],"s << lenVar << "="s << elmVar << ',' << lenVar << "+1 for "s << elmVar << " in *nil"s;
 						auto stmt = toAst<Statement_t>(clearBuf(), spread);
-						auto comp = stmt->appendix->item.to<CompInner_t>();
+						auto comp = stmt->appendix->item.to<CompFor_t>();
 						ast_to<CompForEach_t>(comp->items.front())->loopValue.to<StarExp_t>()->value.set(spread->exp);
 						transformStatement(stmt, temp);
 					} else {
@@ -2468,7 +2472,7 @@ private:
 			case id<Comprehension_t>(): {
 				auto comp = static_cast<Comprehension_t*>(value);
 				auto expList = assignment->expList.get();
-				if (comp->items.size() == 2 && ast_is<CompInner_t>(comp->items.back())) {
+				if (isListComp(comp)) {
 					std::string preDefine = getPreDefineLine(assignment);
 					transformComprehension(comp, out, ExpUsage::Assignment, expList);
 					out.back().insert(0, preDefine);
@@ -2893,7 +2897,7 @@ private:
 				if (auto tbA = item->get_by_path<TableLit_t>()) {
 					tableItems = &tbA->values.objects();
 				} else if (auto tbB = item->get_by_path<Comprehension_t>()) {
-					if (tbB->items.size() == 2 && ast_is<CompInner_t>(tbB->items.back())) {
+					if (isListComp(tbB)) {
 						throw CompileError("invalid destructure value"sv, tbB);
 					}
 					tableItems = &tbB->items.objects();
@@ -2924,7 +2928,7 @@ private:
 			}
 			case id<Comprehension_t>(): {
 				auto table = static_cast<Comprehension_t*>(node);
-				if (table->items.size() == 2 && ast_is<CompInner_t>(table->items.back())) {
+				if (isListComp(table)) {
 					throw CompileError("invalid destructure value"sv, table);
 				}
 				tableItems = &table->items.objects();
@@ -3295,7 +3299,7 @@ private:
 					if (auto tab = sVal->value.as<TableLit_t>()) {
 						destructNode = tab;
 					} else if (auto comp = sVal->value.as<Comprehension_t>()) {
-						if (comp->items.size() != 2 || !ast_is<CompInner_t>(comp->items.back())) {
+						if (!isListComp(comp)) {
 							destructNode = comp;
 						}
 					}
@@ -4918,7 +4922,7 @@ private:
 							throw CompileError("while-loop line decorator is not supported here"sv, appendix->item.get());
 							break;
 						}
-						case id<CompInner_t>(): {
+						case id<CompFor_t>(): {
 							throw CompileError("for-loop line decorator is not supported here"sv, appendix->item.get());
 							break;
 						}
@@ -5259,7 +5263,7 @@ private:
 							break;
 					}
 				}
-				bool lastAssignable = (expListFrom(last) || ast_is<For_t, ForEach_t, While_t>(last->content));
+				bool lastAssignable = (expListFrom(last) || ast_is<For_t, While_t>(last->content));
 				if (lastAssignable) {
 					auto x = last;
 					auto newAssignment = x->new_ptr<ExpListAssign_t>();
@@ -5704,10 +5708,7 @@ private:
 							transformRepeatInPlace(static_cast<Repeat_t*>(value), out);
 							return;
 						case id<For_t>():
-							transformForInPlace(static_cast<For_t*>(value), out);
-							return;
-						case id<ForEach_t>():
-							transformForEachInPlace(static_cast<ForEach_t*>(value), out);
+							transformForInPlace(static_cast<For_t*>(value), out, nullptr);
 							return;
 						case id<If_t>():
 							transformIf(static_cast<If_t*>(value), out, ExpUsage::Return);
@@ -7425,7 +7426,7 @@ private:
 					}
 				}
 			} else if (auto comp = sval->value.as<Comprehension_t>()) {
-				if (comp->items.size() != 2 || !ast_is<CompInner_t>(comp->items.back())) {
+				if (!isListComp(comp)) {
 					discrete = inExp->new_ptr<ExpList_t>();
 					for (ast_node* val : comp->items.objects()) {
 						if (auto def = ast_cast<NormalDef_t>(val)) {
@@ -7844,8 +7845,8 @@ private:
 						 << "\n\t\t"sv << tableVar << "[]="sv << valueVar
 						 << "\n\t\t"sv << indexVar << "+=1"sv
 						 << "\n\telse "sv << tableVar << '[' << keyVar << "]="sv << valueVar;
-					auto forEach = toAst<ForEach_t>(clearBuf(), item);
-					transformForEach(forEach, temp);
+					auto forNode = toAst<For_t>(clearBuf(), item);
+					transformFor(forNode, temp);
 					break;
 				}
 				case id<SpreadListExp_t>(): {
@@ -7866,8 +7867,8 @@ private:
 					_buf << "for "sv << valueVar << " in *"sv << objVar
 						 << "\n\t"sv << tableVar << '[' << indexVar << "]="sv << valueVar
 						 << "\n\t"sv << indexVar << "+=1"sv;
-					auto forEach = toAst<ForEach_t>(clearBuf(), item);
-					transformForEach(forEach, temp);
+					auto forNode = toAst<For_t>(clearBuf(), item);
+					transformFor(forNode, temp);
 					break;
 				}
 				case id<VariablePair_t>():
@@ -8248,14 +8249,14 @@ private:
 	void transformCompCommon(Comprehension_t* comp, str_list& out) {
 		str_list temp;
 		auto x = comp;
-		auto compInner = static_cast<CompInner_t*>(comp->items.back());
-		for (auto item : compInner->items.objects()) {
+		auto compFor = static_cast<CompFor_t*>(comp->items.back());
+		for (auto item : compFor->items.objects()) {
 			switch (item->get_id()) {
 				case id<CompForEach_t>():
 					transformCompForEach(static_cast<CompForEach_t*>(item), temp);
 					break;
-				case id<CompFor_t>():
-					transformCompFor(static_cast<CompFor_t*>(item), temp);
+				case id<CompForNum_t>():
+					transformCompForNum(static_cast<CompForNum_t*>(item), temp);
 					break;
 				case id<Exp_t>():
 					transformExp(static_cast<Exp_t*>(item), temp, ExpUsage::Closure);
@@ -8279,7 +8280,7 @@ private:
 		auto value = std::move(temp.back());
 		temp.pop_back();
 		_buf << join(temp) << value;
-		for (size_t i = 0; i < compInner->items.objects().size(); ++i) {
+		for (size_t i = 0; i < compFor->items.objects().size(); ++i) {
 			popScope();
 			_buf << indent() << "end"sv << nl(comp);
 		}
@@ -8288,7 +8289,7 @@ private:
 
 	void transformComprehension(Comprehension_t* comp, str_list& out, ExpUsage usage, ExpList_t* assignList = nullptr) {
 		auto x = comp;
-		if (comp->items.size() != 2 || !ast_is<CompInner_t>(comp->items.back())) {
+		if (!isListComp(comp)) {
 			switch (usage) {
 				case ExpUsage::Assignment: {
 					auto tableLit = x->new_ptr<TableLit_t>();
@@ -8360,7 +8361,7 @@ private:
 			default:
 				break;
 		}
-		auto compInner = static_cast<CompInner_t*>(comp->items.back());
+		auto compFor = static_cast<CompFor_t*>(comp->items.back());
 		str_list temp;
 		std::string accumVar = getUnusedName("_accum_"sv);
 		addToScope(accumVar);
@@ -8369,13 +8370,13 @@ private:
 			lenVar = getUnusedName("_len_"sv);
 			addToScope(lenVar);
 		}
-		for (auto item : compInner->items.objects()) {
+		for (auto item : compFor->items.objects()) {
 			switch (item->get_id()) {
 				case id<CompForEach_t>():
 					transformCompForEach(static_cast<CompForEach_t*>(item), temp);
 					break;
-				case id<CompFor_t>():
-					transformCompFor(static_cast<CompFor_t*>(item), temp);
+				case id<CompForNum_t>():
+					transformCompForNum(static_cast<CompForNum_t*>(item), temp);
 					break;
 				case id<Exp_t>():
 					transformExp(static_cast<Exp_t*>(item), temp, ExpUsage::Closure);
@@ -8396,7 +8397,7 @@ private:
 		}
 		auto assignStr = std::move(temp.back());
 		temp.pop_back();
-		for (size_t i = 0; i < compInner->items.objects().size(); ++i) {
+		for (size_t i = 0; i < compFor->items.objects().size(); ++i) {
 			popScope();
 		}
 		_buf << indent() << "local "sv << accumVar << " = { }"sv << nl(comp);
@@ -8754,7 +8755,7 @@ private:
 		out.push_back('(' + join(temp, ", "sv) + ')');
 	}
 
-	void transformForHead(Variable_t* var, Exp_t* startVal, Exp_t* stopVal, ForStepValue_t* stepVal, str_list& out) {
+	void transformForNumHead(Variable_t* var, Exp_t* startVal, Exp_t* stopVal, ForStepValue_t* stepVal, str_list& out) {
 		str_list temp;
 		std::string varName = variableToString(var);
 		transformExp(startVal, temp, ExpUsage::Closure);
@@ -8775,8 +8776,8 @@ private:
 		out.push_back(clearBuf());
 	}
 
-	void transformForHead(For_t* forNode, str_list& out) {
-		transformForHead(forNode->varName, forNode->startValue, forNode->stopValue, forNode->stepValue, out);
+	void transformForNumHead(ForNum_t* forNum, str_list& out) {
+		transformForNumHead(forNum->varName, forNum->startValue, forNum->stopValue, forNum->stepValue, out);
 	}
 
 	void transform_plain_body(ast_node* bodyOrStmt, str_list& out, ExpUsage usage, ExpList_t* assignList = nullptr) {
@@ -9040,46 +9041,48 @@ private:
 		return conditionVar;
 	}
 
-	void transformFor(For_t* forNode, str_list& out) {
+	void transformForNum(ForNum_t* forNum, str_list& out) {
 		str_list temp;
-		transformForHead(forNode, temp);
-		auto breakLoopType = getBreakLoopType(forNode->body, Empty);
-		transformLoopBody(forNode->body, temp, breakLoopType, ExpUsage::Common);
+		transformForNumHead(forNum, temp);
+		auto breakLoopType = getBreakLoopType(forNum->body, Empty);
+		transformLoopBody(forNum->body, temp, breakLoopType, ExpUsage::Common);
 		popScope();
-		out.push_back(join(temp) + indent() + "end"s + nl(forNode));
+		out.push_back(join(temp) + indent() + "end"s + nl(forNum));
 	}
 
-	std::string transformForInner(For_t* forNode, str_list& out) {
-		auto x = forNode;
+	std::string transformForNumInner(ForNum_t* forNum, str_list& out) {
+		auto x = forNum;
 		std::string accum = getUnusedName("_accum_"sv);
 		addToScope(accum);
 		std::string len = getUnusedName("_len_"sv);
 		addToScope(len);
-		auto breakLoopType = getBreakLoopType(forNode->body, accum);
-		_buf << indent() << "local "sv << accum << (hasBreakWithValue(breakLoopType) ? ""sv : " = { }"sv) << nl(forNode);
+		auto breakLoopType = getBreakLoopType(forNum->body, accum);
+		_buf << indent() << "local "sv << accum << (hasBreakWithValue(breakLoopType) ? ""sv : " = { }"sv) << nl(forNum);
 		out.emplace_back(clearBuf());
-		_buf << indent() << "local "sv << len << " = 1"sv << nl(forNode);
+		_buf << indent() << "local "sv << len << " = 1"sv << nl(forNum);
 		auto& lenAssign = out.emplace_back(clearBuf());
-		transformForHead(forNode, out);
+		transformForNumHead(forNum, out);
 		if (hasBreakWithValue(breakLoopType)) {
 			lenAssign.clear();
-			transformLoopBody(forNode->body, out, breakLoopType, ExpUsage::Common);
+			transformLoopBody(forNum->body, out, breakLoopType, ExpUsage::Common);
 		} else {
 			auto expList = toAst<ExpList_t>(accum + '[' + len + ']', x);
-			auto followStmt = toAst<Statement_t>(len + "+=1"s, forNode->body);
+			auto followStmt = toAst<Statement_t>(len + "+=1"s, forNum->body);
 			expList->followStmt = followStmt.get();
-			transformLoopBody(forNode->body, out, breakLoopType, ExpUsage::Assignment, expList);
+			transformLoopBody(forNum->body, out, breakLoopType, ExpUsage::Assignment, expList);
 			if (!expList->followStmtProcessed) {
 				lenAssign.clear();
 			}
 		}
 		popScope();
-		out.push_back(indent() + "end"s + nl(forNode));
+		out.push_back(indent() + "end"s + nl(forNum));
 		return accum;
 	}
 
-	void transformForClosure(For_t* forNode, str_list& out) {
-		auto simpleValue = forNode->new_ptr<SimpleValue_t>();
+	void transformForNumClosure(ForNum_t* forNum, str_list& out) {
+		auto forNode = forNum->new_ptr<For_t>();
+		forNode->forLoop.set(forNum);
+		auto simpleValue = forNum->new_ptr<SimpleValue_t>();
 		simpleValue->value.set(forNode);
 		if (transformAsUpValueFunc(newExp(simpleValue, forNode), out)) {
 			return;
@@ -9089,26 +9092,26 @@ private:
 		pushAnonVarArg();
 		std::string& funcStart = temp.emplace_back();
 		pushScope();
-		auto accum = transformForInner(forNode, temp);
-		temp.push_back(indent() + "return "s + accum + nl(forNode));
+		auto accum = transformForNumInner(forNum, temp);
+		temp.push_back(indent() + "return "s + accum + nl(forNum));
 		popScope();
-		funcStart = anonFuncStart() + nl(forNode);
+		funcStart = anonFuncStart() + nl(forNum);
 		temp.push_back(indent() + anonFuncEnd());
 		popAnonVarArg();
 		popFunctionScope();
 		out.push_back(join(temp));
 	}
 
-	void transformForInPlace(For_t* forNode, str_list& out, ExpList_t* assignExpList = nullptr) {
-		auto x = forNode;
+	void transformForNumInPlace(ForNum_t* forNum, str_list& out, ExpList_t* assignExpList) {
+		auto x = forNum;
 		str_list temp;
 		bool isScoped = !currentScope().lastStatement;
 		if (assignExpList) {
 			if (isScoped) {
-				_buf << indent() << "do"sv << nl(forNode);
+				_buf << indent() << "do"sv << nl(forNum);
 				pushScope();
 			}
-			auto accum = transformForInner(forNode, temp);
+			auto accum = transformForNumInner(forNum, temp);
 			auto assign = x->new_ptr<Assign_t>();
 			assign->values.push_back(toAst<Exp_t>(accum, x));
 			auto assignment = x->new_ptr<ExpListAssign_t>();
@@ -9117,10 +9120,10 @@ private:
 			transformAssignment(assignment, temp);
 			if (isScoped) {
 				popScope();
-				temp.push_back(indent() + "end"s + nl(forNode));
+				temp.push_back(indent() + "end"s + nl(forNum));
 			}
 		} else {
-			auto accum = transformForInner(forNode, temp);
+			auto accum = transformForNumInner(forNum, temp);
 			auto returnNode = x->new_ptr<Return_t>();
 			returnNode->explicitReturn = false;
 			auto expListLow = toAst<ExpListLow_t>(accum, x);
@@ -9191,9 +9194,11 @@ private:
 	}
 
 	void transformForEachClosure(ForEach_t* forEach, str_list& out) {
+		auto forNode = forEach->new_ptr<For_t>();
+		forNode->forLoop.set(forEach);
 		auto simpleValue = forEach->new_ptr<SimpleValue_t>();
-		simpleValue->value.set(forEach);
-		if (transformAsUpValueFunc(newExp(simpleValue, forEach), out)) {
+		simpleValue->value.set(forNode);
+		if (transformAsUpValueFunc(newExp(simpleValue, forNode), out)) {
 			return;
 		}
 		str_list temp;
@@ -9211,7 +9216,7 @@ private:
 		out.push_back(join(temp));
 	}
 
-	void transformForEachInPlace(ForEach_t* forEach, str_list& out, ExpList_t* assignExpList = nullptr) {
+	void transformForEachInPlace(ForEach_t* forEach, str_list& out, ExpList_t* assignExpList) {
 		auto x = forEach;
 		str_list temp;
 		bool isScoped = !currentScope().lastStatement;
@@ -9240,6 +9245,48 @@ private:
 			transformReturn(returnNode, temp);
 		}
 		out.push_back(join(temp));
+	}
+
+	void transformFor(For_t* forNode, str_list& out) {
+		switch (forNode->forLoop->get_id()) {
+			case id<ForNum_t>():
+				transformForNum(static_cast<ForNum_t*>(forNode->forLoop.get()), out);
+				break;
+			case id<ForEach_t>():
+				transformForEach(static_cast<ForEach_t*>(forNode->forLoop.get()), out);
+				break;
+			default:
+				YUEE("AST node mismatch", forNode->forLoop.get());
+				break;
+		}
+	}
+
+	void transformForClosure(For_t* forNode, str_list& out) {
+		switch (forNode->forLoop->get_id()) {
+			case id<ForNum_t>():
+				transformForNumClosure(static_cast<ForNum_t*>(forNode->forLoop.get()), out);
+				break;
+			case id<ForEach_t>():
+				transformForEachClosure(static_cast<ForEach_t*>(forNode->forLoop.get()), out);
+				break;
+			default:
+				YUEE("AST node mismatch", forNode->forLoop.get());
+				break;
+		}
+	}
+
+	void transformForInPlace(For_t* forNode, str_list& out, ExpList_t* assignExpList) {
+		switch (forNode->forLoop->get_id()) {
+			case id<ForNum_t>():
+				transformForNumInPlace(static_cast<ForNum_t*>(forNode->forLoop.get()), out, assignExpList);
+				break;
+			case id<ForEach_t>():
+				transformForEachInPlace(static_cast<ForEach_t*>(forNode->forLoop.get()), out, assignExpList);
+				break;
+			default:
+				YUEE("AST node mismatch", forNode->forLoop.get());
+				break;
+		}
 	}
 
 	void transform_variable_pair(VariablePair_t* pair, str_list& out) {
@@ -10530,8 +10577,8 @@ private:
 				case id<CompForEach_t>():
 					transformCompForEach(static_cast<CompForEach_t*>(item), temp);
 					break;
-				case id<CompFor_t>():
-					transformCompFor(static_cast<CompFor_t*>(item), temp);
+				case id<CompForNum_t>():
+					transformCompForNum(static_cast<CompForNum_t*>(item), temp);
 					break;
 				case id<Exp_t>():
 					transformExp(static_cast<Exp_t*>(item), temp, ExpUsage::Closure);
@@ -10597,8 +10644,8 @@ private:
 		}
 	}
 
-	void transformCompFor(CompFor_t* comp, str_list& out) {
-		transformForHead(comp->varName, comp->startValue, comp->stopValue, comp->stepValue, out);
+	void transformCompForNum(CompForNum_t* comp, str_list& out) {
+		transformForNumHead(comp->varName, comp->startValue, comp->stopValue, comp->stepValue, out);
 	}
 
 	void transformTableBlockIndent(TableBlockIndent_t* table, str_list& out) {
