@@ -870,17 +870,17 @@ HttpServer\postSchedule "/run", (req): success: false ->
 			if workDir := getProjectDirFromFile file
 				Entry.allClear!
 				target = Path workDir, "init"
-				success, err = Entry.enterEntryAsync ["Project", target]
+				success, err = Entry.enterEntryAsync entryName: "Project", fileName: target
 				target = target |> Path\getPath |> Path\getName
 				return :success, :target, :err
 		else
 			workDir = getProjectDirFromFile file
 		Entry.allClear!
 		file = Path\replaceExt file, ""
-		success, err = Entry.enterEntryAsync {
-			Path\getName(file), file
+		success, err = Entry.enterEntryAsync
+			entryName: Path\getName file
+			fileName: file
 			:workDir
-		}
 		return :success, :err
 
 HttpServer\postSchedule "/stop", ->

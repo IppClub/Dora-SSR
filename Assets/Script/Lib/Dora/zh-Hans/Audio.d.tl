@@ -45,6 +45,10 @@ local record Audio
 		fadeTime?: number --[[0.0]]
 	)
 
+	-- 停止所有正在播放的音频。
+	-- @param fadeTime (number) [可选] 淡出音频的时间（默认为 0.0）。
+	stopAll: function(self: Audio, fadeTime?: number --[[0.0]])
+
 	-- 暂停所有当前正在播放的音频。
 	-- @param pause (boolean) 暂停状态。
 	setPauseAllCurrent: function(self: Audio, pause: boolean)

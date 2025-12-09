@@ -11207,15 +11207,17 @@ tl.dora_signature = function(codes, line, row, search_path)
 			elseif current_type.types then
 				for _, id in ipairs(current_type.types) do
 					local tp = get_real_type(type_report, id)
-					local item_id = tp.fields[item]
-					if item_id then
-						if i == #chains then
-							current_type = type_report.types[item_id]
-						else
-							current_type = get_real_type(type_report, item_id)
+					if tp and tp.fields then
+						local item_id = tp.fields[item]
+						if item_id then
+							if i == #chains then
+								current_type = type_report.types[item_id]
+							else
+								current_type = get_real_type(type_report, item_id)
+							end
+							matched = true
+							break
 						end
-						matched = true
-						break
 					end
 				end
 			elseif current_type.fields then

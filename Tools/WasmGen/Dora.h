@@ -3663,6 +3663,12 @@ singleton class Audio
 	///
 	/// * `fade_time` - The time (in seconds) to fade out the streaming audio.
 	void stopStream(float fadeTime);
+	/// Stops all the playing audio sources.
+	///
+	/// # Arguments
+	///
+	/// * `fade_time` - The time (in seconds) to fade out the audio sources.
+	void stopAll(float fadeTime);
 	/// Pauses all the current audio.
 	///
 	/// # Arguments

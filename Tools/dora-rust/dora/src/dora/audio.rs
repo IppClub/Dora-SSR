@@ -17,6 +17,7 @@ extern "C" {
 	fn audio_stop(handle: i32);
 	fn audio_play_stream(filename: i64, looping: i32, cross_fade_time: f32);
 	fn audio_stop_stream(fade_time: f32);
+	fn audio_stop_all(fade_time: f32);
 	fn audio_set_pause_all_current(pause: i32);
 	fn audio_set_listener_at(at_x: f32, at_y: f32, at_z: f32);
 	fn audio_set_listener_up(up_x: f32, up_y: f32, up_z: f32);
@@ -87,6 +88,14 @@ impl Audio {
 	/// * `fade_time` - The time (in seconds) to fade out the streaming audio.
 	pub fn stop_stream(fade_time: f32) {
 		unsafe { audio_stop_stream(fade_time); }
+	}
+	/// Stops all the playing audio sources.
+	///
+	/// # Arguments
+	///
+	/// * `fade_time` - The time (in seconds) to fade out the audio sources.
+	pub fn stop_all(fade_time: f32) {
+		unsafe { audio_stop_all(fade_time); }
 	}
 	/// Pauses all the current audio.
 	///

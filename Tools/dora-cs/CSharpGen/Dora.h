@@ -3473,6 +3473,11 @@ singleton class Audio
 	/// <param name="fadeTime">The time (in seconds) to fade out the streaming audio.</param>
 	void stopStream(float fadeTime = 0.0f);
 	/// <summary>
+	/// Stops all the playing audio sources.
+	/// </summary>
+	/// <param name="fadeTime">The time (in seconds) to fade out the audio sources.</param>
+	void stopAll(float fadeTime = 0.0f);
+	/// <summary>
 	/// Pauses all the current audio.
 	/// </summary>
 	/// <param name="pause">Whether to pause the audio.</param>

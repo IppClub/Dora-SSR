@@ -1476,6 +1476,13 @@ class Audio {
 	stopStream(fadeTime?: number): void;
 
 	/**
+	 * 停止所有正在播放的音频。
+	 *
+	 * @param fadeTime 淡出音频的时间（以秒为单位）。默认为0.0。
+	 */
+	stopAll(fadeTime?: number): void;
+
+	/**
 	 * 暂停所有当前正在播放的音频。
 	 *
 	 * @param pause 暂停状态。

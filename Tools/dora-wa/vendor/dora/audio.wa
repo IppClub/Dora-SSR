@@ -36,6 +36,9 @@ func audio_play_stream(filename: i64, looping: i32, cross_fade_time: f32)
 #wa:import dora audio_stop_stream
 func audio_stop_stream(fade_time: f32)
 
+#wa:import dora audio_stop_all
+func audio_stop_all(fade_time: f32)
+
 #wa:import dora audio_set_pause_all_current
 func audio_set_pause_all_current(pause: i32)
 
@@ -97,6 +100,9 @@ func _Audio.PlayStream(filename: string, looping: bool, cross_fade_time: f32) {
 }
 func _Audio.StopStream(fade_time: f32) {
 	audio_stop_stream(fade_time)
+}
+func _Audio.StopAll(fade_time: f32) {
+	audio_stop_all(fade_time)
 }
 func _Audio.SetPauseAllCurrent(pause: bool) {
 	audio_set_pause_all_current(ToDoraBool(pause))

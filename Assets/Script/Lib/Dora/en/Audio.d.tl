@@ -45,6 +45,10 @@ local record Audio
 		fadeTime?: number --[[0.0]]
 	)
 
+	-- Stops all the playing audio sources.
+	-- @param fadeTime (number) [optional] The time (in seconds) to fade out the audio sources (default is 0.0).
+	stopAll: function(self: Audio, fadeTime?: number --[[0.0]])
+
 	-- Pauses all currently playing audio.
 	-- @param pause (boolean) The pause state.
 	setPauseAllCurrent: function(self: Audio, pause: boolean)

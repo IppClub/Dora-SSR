@@ -1100,6 +1100,7 @@ class Audio
 	void stop(uint32_t handle);
 	void playStream(String filename, bool loop = false, float crossFadeTime = 0.0f);
 	void stopStream(float fadeTime = 0.0f);
+	void stopAll(float fadeTime = 0.0f);
 	void setPauseAllCurrent(bool aPause);
 	void setListenerAt(float aAtX, float aAtY, float aAtZ);
 	void setListenerUp(float aUpX, float aUpY, float aUpZ);

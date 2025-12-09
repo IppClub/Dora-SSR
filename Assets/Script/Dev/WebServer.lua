@@ -2149,8 +2149,8 @@ HttpServer:postSchedule("/run", function(req) -- 862
 						Entry.allClear() -- 871
 						local target = Path(workDir, "init") -- 872
 						local success, err = Entry.enterEntryAsync({ -- 873
-							"Project", -- 873
-							target -- 873
+							entryName = "Project", -- 873
+							fileName = target -- 873
 						}) -- 873
 						target = Path:getName(Path:getPath(target)) -- 874
 						return { -- 875
@@ -2165,9 +2165,9 @@ HttpServer:postSchedule("/run", function(req) -- 862
 				Entry.allClear() -- 878
 				file = Path:replaceExt(file, "") -- 879
 				local success, err = Entry.enterEntryAsync({ -- 881
-					Path:getName(file), -- 881
-					file, -- 881
-					workDir = workDir -- 882
+					entryName = Path:getName(file), -- 881
+					fileName = file, -- 882
+					workDir = workDir -- 883
 				}) -- 880
 				return { -- 884
 					success = success, -- 884
