@@ -294,6 +294,13 @@ class ResourceDownloader {
 				if (Content.unzipAsync(targetFile, unzipPath)) {
 					Content.remove(targetFile);
 					this.downloadedPackages.add(pkg.name);
+					const repo = this.repos.get(pkg.name);
+					if (repo) {
+						const [str] = json.encode(repo);
+						if (str) {
+							Content.save(Path(unzipPath, "repo.json"), str);
+						}
+					}
 					Director.postNode.emit("UpdateEntries");
 				} else {
 					Content.remove(unzipPath);
@@ -410,13 +417,15 @@ class ResourceDownloader {
 					}
 				}
 
+				const title = repo.title[zh ? "zh" : "en"];
+
 				if (this.filterText !== '') {
-					const [res] = string.match(repo.name.toLowerCase(), this.filterText);
+					const [res] = string.match(title.toLowerCase(), this.filterText);
 					if (!res) continue;
 				}
 
 				// Title
-				ImGui.TextColored(themeColor, repo.title[zh ? "zh" : "en"]);
+				ImGui.TextColored(themeColor, title);
 
 				// Preview image
 				const previewTexture = this.previewTextures.get(pkg.name);

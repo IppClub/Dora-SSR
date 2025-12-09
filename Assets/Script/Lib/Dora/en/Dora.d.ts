@@ -1472,6 +1472,13 @@ class Audio {
 	stopStream(fadeTime?: number): void;
 
 	/**
+	 * Stops all the playing audio sources.
+	 *
+	 * @param fadeTime The time (in seconds) to fade out the audio sources. Default is 0.0.
+	 */
+	stopAll(fadeTime?: number): void;
+
+	/**
 	 * Pauses all currently playing audio.
 	 *
 	 * @param pause The pause state.

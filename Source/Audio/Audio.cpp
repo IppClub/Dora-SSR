@@ -408,6 +408,20 @@ void Audio::stopStream(float fadeTime) {
 	_currentStream = nullptr;
 }
 
+void Audio::stopAll(float fadeTime) {
+	if (!_soloud) return;
+	if (fadeTime > 0.0f) {
+		for (const auto& res : _resources) {
+			_soloud->fadeVolume(res.first, 0.0f, fadeTime);
+			_soloud->scheduleStop(res.first, fadeTime);
+		}
+	} else {
+		for (const auto& res : _resources) {
+			_soloud->stop(res.first);
+		}
+	}
+}
+
 void Audio::setGlobalVolume(float var) {
 	_soloud->setGlobalVolume(var);
 }

@@ -242,12 +242,12 @@ getFileEntries = (path, recursive = true, excludeFiles = nil) ->
 			continue
 		fileName = Path\replaceExt file, ""
 		fileName = Path path, fileName
-		entryAdded = for [ename, efile] in *entries
+		entryAdded = for {entryName: ename, fileName: efile} in *entries
 			break true if entryName == ename and efile == fileName
 		continue if entryAdded
-		entry = [entryName, fileName]
+		entry = :entryName, :fileName
 		entries[] = entry
-	table.sort entries, (a, b) -> a[1] < b[1]
+	table.sort entries, (a, b) -> a.entryName < b.entryName
 	entries
 
 getProjectEntries = (path) ->
@@ -258,29 +258,36 @@ getProjectEntries = (path) ->
 			if "init" == Path\getName(file)\lower!
 				fileName = Path\replaceExt file, ""
 				fileName = Path path, dir, fileName
+				repoFile = Path Path\getPath(fileName), "repo.json"
+				repo = nil
+				if Content\exist repoFile
+					if str := Content\load repoFile
+						repo = json.decode str
 				entryName = Path\getName Path\getPath fileName
-				entryAdded = for [ename, efile] in *entries
+				entryAdded = for {entryName: ename, fileName: efile} in *entries
 					break true if entryName == ename and efile == fileName
 				continue if entryAdded
 				examples = []
 				tests = []
 				examplePath = Path path, dir, Path\getPath(file), "Example"
 				if Content\exist examplePath
-					for [name, ePath] in *getFileEntries examplePath
+					for {entryName: name, fileName: ePath} in *getFileEntries examplePath
 						entry = {
-							name, Path path, dir, Path\getPath(file), ePath
+							entryName: name
+							fileName: Path path, dir, Path\getPath(file), ePath
 							workDir: Path\getPath fileName
 						}
 						examples[] = entry
 				testPath = Path path, dir, Path\getPath(file), "Test"
 				if Content\exist testPath
-					for [name, tPath] in *getFileEntries testPath
+					for {entryName: name, fileName: tPath} in *getFileEntries testPath
 						entry = {
-							name, Path path, dir, Path\getPath(file), tPath
+							entryName: name
+							fileName: Path path, dir, Path\getPath(file), tPath
 							workDir: Path\getPath fileName
 						}
 						tests[] = entry
-				entry = [entryName, fileName, examples, tests]
+				entry = :entryName, :fileName, :examples, :tests, :repo
 				bannerFile = Path path, Path\getPath(fileName), "Image", "banner.png"
 				unless Content\exist bannerFile
 					bannerFile = Path path, Path\getPath(fileName), "Image", "banner.jpg"
@@ -288,10 +295,10 @@ getProjectEntries = (path) ->
 				if bannerFile then thread ->
 					if Cache\loadAsync bannerFile
 						if bannerTex := Texture2D bannerFile
-							entry[] = bannerFile
-							entry[] = bannerTex
+							entry.bannerFile = bannerFile
+							entry.bannerTex = bannerTex
 				entries[] = entry
-	table.sort entries, (a, b) -> a[1] < b[1]
+	table.sort entries, (a, b) -> a.entryName < b.entryName
 	entries
 
 local gamesInDev
@@ -305,7 +312,7 @@ updateEntries = ->
 	allEntries = []
 	for game in *gamesInDev
 		allEntries[] = game
-		[_, _, examples, tests] = game
+		:examples, :tests = game
 		for example in *examples
 			allEntries[] = example
 		for test in *tests
@@ -329,7 +336,7 @@ doCompile = (minify) ->
 			""
 		],
 	]
-	for [_, entryFile] in *gamesInDev
+	for :entryFile in *gamesInDev
 		gamePath = Path\getPath Path\getRelative entryFile, writablePath
 		buildPaths[] =
 			* Path writablePath, gamePath
@@ -503,7 +510,7 @@ export allClear = ->
 	Entity\clear!
 	Platformer.Data\clear!
 	Platformer.UnitAction\clear!
-	Audio\stopStream 0.5
+	Audio\stopAll 0.2
 	Struct\clear!
 	View.postEffect = nil
 	View.scale = scaleContent and screenScale or 1
@@ -610,7 +617,7 @@ export enterEntryAsync = (entry) ->
 	App.idled = false
 	emit Profiler.EventName, "ClearLoader"
 	currentEntry = entry
-	{_, file, :workDir} = entry
+	fileName: file, :workDir = entry
 	sleep!
 	try
 		workDir ??= Path\getPath file
@@ -742,10 +749,10 @@ extraOperations = ->
 				print "Testing done!"
 			for _, entry in ipairs allEntries
 				allClear!
-				print "Start #{entry[1]}"
+				print "Start #{entry.entryName}"
 				enterDemoEntry entry
 				sleep 2
-				print "Stop #{entry[1]}"
+				print "Stop #{entry.entryName}"
 
 icon = Path "Script", "Dev", "icon_s.png"
 iconTex = nil
@@ -859,10 +866,9 @@ footerWindow = threadLoop ->
 			if ImGui.Button zh and "更新可用" or "Update"
 				allClear!
 				config.updateNotification = false
-				enterDemoEntry [
-					"SelfUpdater"
-					Path Content.assetPath, "Script", "Tools", "SelfUpdater"
-				]
+				enterDemoEntry
+					entryName: "SelfUpdater"
+					fileName: Path Content.assetPath, "Script", "Tools", "SelfUpdater"
 		unless isInEntry
 			SameLine!
 			back = Button zh and "退出" or "Quit", Vec2 70, 30
@@ -1009,10 +1015,9 @@ entryWindow = threadLoop ->
 			SameLine!
 			if Button zh and '下载' or 'Download'
 				allClear!
-				enterDemoEntry [
-					"ResourceDownloader"
-					Path Content.assetPath, "Script", "Tools", "ResourceDownloader"
-				]
+				enterDemoEntry
+					entryName: "ResourceDownloader"
+					fileName: Path Content.assetPath, "Script", "Tools", "ResourceDownloader"
 		Separator!
 		Dummy Vec2 fullWidth - 20, 0
 
@@ -1032,11 +1037,22 @@ entryWindow = threadLoop ->
 			Columns columns, false
 			realViewWidth = GetColumnWidth! - 50
 			for game in *gamesInDev
-				[gameName, fileName, examples, tests, bannerFile, bannerTex] = game
-				if match gameName
+				{
+					entryName: gameName
+					:fileName
+					:examples
+					:tests
+					:repo
+					:bannerFile
+					:bannerTex
+				} = game
+				displayName = if repo
+					if zh then repo.title.zh else repo.title.en
+				displayName ??= gameName
+				if match displayName
 					TextColored themeColor, zh and "项目：" or "Project:"
 					SameLine!
-					TextWrapped gameName
+					TextWrapped displayName
 					if columns > 1
 						if bannerFile
 							width: texWidth, height: texHeight = bannerTex
@@ -1071,8 +1087,8 @@ entryWindow = threadLoop ->
 				showSep = false
 				if #examples > 0
 					showExample = false
-					showExample = for [name,] in *examples
-						break true if match name
+					showExample = for :entryName in *examples
+						break true if match entryName
 					if showExample
 						showSep = true
 						Columns 1, false
@@ -1085,17 +1101,18 @@ entryWindow = threadLoop ->
 							<- PushStyleVar "ItemSpacing", Vec2 20, 10
 							Columns maxColumns, false
 							for example in *examples
-								continue unless match example[1]
-								PushID "#{gameName} #{example[1]} example", ->
-									if Button example[1], Vec2 -1, 40
+								:entryName = example
+								continue unless match entryName
+								PushID "#{gameName} #{entryName} example", ->
+									if Button entryName, Vec2 -1, 40
 										enterDemoEntry example
 									NextColumn!
 								opened = true
 						game.exampleOpen = opened
 				if #tests > 0
 					showTest = false
-					showTest = for [name,] in *tests
-						break true if match name
+					showTest = for :entryName in *tests
+						break true if match entryName
 					if showTest
 						showSep = true
 						Columns 1, false
@@ -1108,9 +1125,10 @@ entryWindow = threadLoop ->
 							<- PushStyleVar "ItemSpacing", Vec2 20, 10
 							Columns maxColumns, false
 							for test in *tests
-								continue unless match test[1]
-								PushID "#{gameName} #{test[1]} test", ->
-									if Button test[1], Vec2 -1, 40
+								:entryName = test
+								continue unless match entryName
+								PushID "#{gameName} #{entryName} test", ->
+									if Button entryName, Vec2 -1, 40
 										enterDemoEntry test
 									NextColumn!
 								opened = true
@@ -1121,8 +1139,8 @@ entryWindow = threadLoop ->
 					Columns columns, false
 		if #doraTools > 0
 			showTool = false
-			showTool = for [name,] in *doraTools
-				break true if match name
+			showTool = for :entryName in *doraTools
+				break true if match entryName
 			goto endEntry unless showTool
 			Columns 1, false
 			TextColored themeColor, "Dora SSR:"
@@ -1136,8 +1154,9 @@ entryWindow = threadLoop ->
 					<- PushStyleVar "ItemSpacing", Vec2 20, 10
 					Columns maxColumns, false
 					for example in *doraTools
-						continue unless match example[1]
-						if Button example[1], Vec2 -1, 40
+						:entryName = example
+						continue unless match entryName
+						if Button entryName, Vec2 -1, 40
 							enterDemoEntry example
 						NextColumn!
 					Columns 1, false

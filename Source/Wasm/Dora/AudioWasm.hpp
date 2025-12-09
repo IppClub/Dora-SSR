@@ -38,6 +38,9 @@ DORA_EXPORT void audio_play_stream(int64_t filename, int32_t looping, float cros
 DORA_EXPORT void audio_stop_stream(float fade_time) {
 	SharedAudio.stopStream(fade_time);
 }
+DORA_EXPORT void audio_stop_all(float fade_time) {
+	SharedAudio.stopAll(fade_time);
+}
 DORA_EXPORT void audio_set_pause_all_current(int32_t pause) {
 	SharedAudio.setPauseAllCurrent(pause != 0);
 }
@@ -63,6 +66,7 @@ static void linkAudio(wasm3::module3& mod) {
 	mod.link_optional("*", "audio_stop", audio_stop);
 	mod.link_optional("*", "audio_play_stream", audio_play_stream);
 	mod.link_optional("*", "audio_stop_stream", audio_stop_stream);
+	mod.link_optional("*", "audio_stop_all", audio_stop_all);
 	mod.link_optional("*", "audio_set_pause_all_current", audio_set_pause_all_current);
 	mod.link_optional("*", "audio_set_listener_at", audio_set_listener_at);
 	mod.link_optional("*", "audio_set_listener_up", audio_set_listener_up);

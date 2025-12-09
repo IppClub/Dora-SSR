@@ -38,6 +38,8 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void audio_stop_stream(float fadeTime);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void audio_stop_all(float fadeTime);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void audio_set_pause_all_current(int32_t pause);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void audio_set_listener_at(float atX, float atY, float atZ);
@@ -118,6 +120,14 @@ namespace Dora
 		public static void StopStream(float fadeTime = 0.0f)
 		{
 			Native.audio_stop_stream(fadeTime);
+		}
+		/// <summary>
+		/// Stops all the playing audio sources.
+		/// </summary>
+		/// <param name="fadeTime">The time (in seconds) to fade out the audio sources.</param>
+		public static void StopAll(float fadeTime = 0.0f)
+		{
+			Native.audio_stop_all(fadeTime);
 		}
 		/// <summary>
 		/// Pauses all the current audio.
