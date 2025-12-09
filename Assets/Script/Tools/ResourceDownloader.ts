@@ -1,5 +1,5 @@
 // @preview-file on clear
-import { HttpClient, json, thread, App, Vec2, Path, Content, Node, Texture2D, Job, Cache, Buffer, Director } from 'Dora';
+import { HttpClient, json, thread, App, Vec2, Path, Content, Node, Texture2D, Job, Cache, Buffer, Director, sleep } from 'Dora';
 import { SetCond, WindowFlag, TabBarFlag } from "ImGui";
 import * as ImGui from 'ImGui';
 import * as Config from 'Config';
@@ -59,6 +59,7 @@ interface RepoInfo {
 		en: string;
 	};
 	categories?: string[];
+	exe?: boolean | string[];
 }
 
 const windowsNoScrollFlags = [
@@ -95,6 +96,14 @@ const themeColor = App.themeColor;
 
 const sep = () => ImGui.SeparatorText("");
 const thinSep = () => ImGui.PushStyleVar(ImGui.StyleVarNum.SeparatorTextBorderSize, 1, sep);
+
+const run = (fileName: string) => {
+	const Entry = require("Script.Dev.Entry");
+	Entry.allClear();
+	thread(() => {
+		Entry.enterEntryAsync({entryName: "Project", fileName});
+	});
+};
 
 class ResourceDownloader {
 	private packages: PackageInfo[] = [];
@@ -480,12 +489,18 @@ class ResourceDownloader {
 				// Download button
 				if (progress === undefined) {
 					const isDownloaded = this.isDownloaded(pkg.name);
+					const exeText = (zh ? "运行" : "Run") + `##run-${pkg.name}`;
 					const buttonText = (isDownloaded ?
 						(zh ? "重新下载" : "Re-Download") :
 						(zh ? "下载" : "Download")) + `##download-${pkg.name}`;
 					const deleteText = (zh ? "删除" : "Delete") + `##delete-${pkg.name}`;
+					const runable = repo.exe !== false;
 					if (this.isDownloading) {
 						ImGui.BeginDisabled(() => {
+							if (runable) {
+								ImGui.Button(exeText);
+								ImGui.SameLine();
+							}
 							ImGui.Button(buttonText);
 							if (isDownloaded) {
 								ImGui.SameLine();
@@ -493,6 +508,27 @@ class ResourceDownloader {
 							}
 						});
 					} else {
+						if (isDownloaded && runable) {
+							if (typeof repo.exe === 'object') {
+								const exeList = repo.exe;
+								const popupId = `select-${pkg.name}`;
+								if (ImGui.Button(exeText)) {
+									ImGui.OpenPopup(popupId);
+								}
+								ImGui.BeginPopup(popupId, () => {
+									for (const entry of exeList) {
+										if (ImGui.Selectable(`${entry}##run-${pkg.name}-${entry}`)) {
+											run(Path(Content.writablePath, "Download", pkg.name, entry, "init"));
+										}
+									}
+								});
+							} else {
+								if (ImGui.Button(exeText)) {
+									run(Path(Content.writablePath, "Download", pkg.name, "init"));
+								}
+							}
+							ImGui.SameLine();
+						}
 						if (ImGui.Button(buttonText)) {
 							this.downloadPackage(pkg);
 						}
