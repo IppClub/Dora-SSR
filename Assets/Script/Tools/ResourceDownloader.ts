@@ -1,5 +1,5 @@
 // @preview-file on clear
-import { HttpClient, json, thread, App, Vec2, Path, Content, Node, Texture2D, Job, Cache, Buffer, Director, sleep } from 'Dora';
+import { HttpClient, json, thread, App, Vec2, Path, Content, Node, Texture2D, Job, Cache, Buffer, Director } from 'Dora';
 import { SetCond, WindowFlag, TabBarFlag } from "ImGui";
 import * as ImGui from 'ImGui';
 import * as Config from 'Config';
@@ -477,6 +477,11 @@ class ResourceDownloader {
 					ImGui.Text(dateStr);
 				}
 
+				// Package info
+				ImGui.TextColored(themeColor, zh ? `文件大小：` : `File Size:`);
+				ImGui.SameLine();
+				ImGui.Text(`${(version.size / 1024 / 1024).toFixed(2)} MB`);
+
 				// Progress bar
 				const progress = this.downloadProgress.get(pkg.name);
 				if (progress !== undefined) {
@@ -543,9 +548,6 @@ class ResourceDownloader {
 					}
 				}
 
-				// Package info
-				ImGui.SameLine();
-				ImGui.Text(`${(version.size / 1024 / 1024).toFixed(2)} MB`);
 				if (!this.isDownloading && pkg.versionNames && pkg.currentVersion) {
 					ImGui.SameLine();
 					ImGui.SetNextItemWidth(-20);
