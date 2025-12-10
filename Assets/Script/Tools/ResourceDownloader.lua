@@ -489,107 +489,108 @@ function ResourceDownloader.prototype.update(self) -- 348
 								local dateStr = os.date("%Y-%m-%d %H:%M:%S", version.updatedAt) -- 476
 								ImGui.Text(dateStr) -- 477
 							end -- 477
-							local progress = self.downloadProgress:get(pkg.name) -- 481
-							if progress ~= nil then -- 481
-								ImGui.ProgressBar( -- 483
-									progress.progress, -- 483
-									Vec2(-1, 30) -- 483
-								) -- 483
-								ImGui.BeginDisabled(function() -- 484
-									ImGui.Button(progress.status) -- 485
-								end) -- 484
-							end -- 484
-							if progress == nil then -- 484
-								local isDownloaded = self:isDownloaded(pkg.name) -- 491
-								local exeText = (zh and "运行" or "Run") .. "##run-" .. pkg.name -- 492
-								local buttonText = (isDownloaded and (zh and "重新下载" or "Re-Download") or (zh and "下载" or "Download")) .. "##download-" .. pkg.name -- 493
-								local deleteText = (zh and "删除" or "Delete") .. "##delete-" .. pkg.name -- 496
-								local runable = repo.exe ~= false -- 497
-								if self.isDownloading then -- 497
-									ImGui.BeginDisabled(function() -- 499
-										if runable then -- 499
-											ImGui.Button(exeText) -- 501
-											ImGui.SameLine() -- 502
-										end -- 502
-										ImGui.Button(buttonText) -- 504
-										if isDownloaded then -- 504
-											ImGui.SameLine() -- 506
-											ImGui.Button(deleteText) -- 507
+							ImGui.TextColored(themeColor, zh and "文件大小：" or "File Size:") -- 481
+							ImGui.SameLine() -- 482
+							ImGui.Text(__TS__NumberToFixed(version.size / 1024 / 1024, 2) .. " MB") -- 483
+							local progress = self.downloadProgress:get(pkg.name) -- 486
+							if progress ~= nil then -- 486
+								ImGui.ProgressBar( -- 488
+									progress.progress, -- 488
+									Vec2(-1, 30) -- 488
+								) -- 488
+								ImGui.BeginDisabled(function() -- 489
+									ImGui.Button(progress.status) -- 490
+								end) -- 489
+							end -- 489
+							if progress == nil then -- 489
+								local isDownloaded = self:isDownloaded(pkg.name) -- 496
+								local exeText = (zh and "运行" or "Run") .. "##run-" .. pkg.name -- 497
+								local buttonText = (isDownloaded and (zh and "重新下载" or "Re-Download") or (zh and "下载" or "Download")) .. "##download-" .. pkg.name -- 498
+								local deleteText = (zh and "删除" or "Delete") .. "##delete-" .. pkg.name -- 501
+								local runable = repo.exe ~= false -- 502
+								if self.isDownloading then -- 502
+									ImGui.BeginDisabled(function() -- 504
+										if runable then -- 504
+											ImGui.Button(exeText) -- 506
+											ImGui.SameLine() -- 507
 										end -- 507
-									end) -- 499
-								else -- 499
-									if isDownloaded and runable then -- 499
-										if type(repo.exe) == "table" then -- 499
-											local exeList = repo.exe -- 513
-											local popupId = "select-" .. pkg.name -- 514
-											if ImGui.Button(exeText) then -- 514
-												ImGui.OpenPopup(popupId) -- 516
-											end -- 516
-											ImGui.BeginPopup( -- 518
-												popupId, -- 518
-												function() -- 518
-													for ____, entry in ipairs(exeList) do -- 519
-														if ImGui.Selectable((((entry .. "##run-") .. pkg.name) .. "-") .. entry) then -- 519
-															run(Path( -- 521
-																Content.writablePath, -- 521
-																"Download", -- 521
-																pkg.name, -- 521
-																entry, -- 521
-																"init" -- 521
-															)) -- 521
-														end -- 521
-													end -- 521
-												end -- 518
-											) -- 518
-										else -- 518
-											if ImGui.Button(exeText) then -- 518
-												run(Path(Content.writablePath, "Download", pkg.name, "init")) -- 527
-											end -- 527
-										end -- 527
-										ImGui.SameLine() -- 530
-									end -- 530
-									if ImGui.Button(buttonText) then -- 530
-										self:downloadPackage(pkg) -- 533
-									end -- 533
-									if isDownloaded then -- 533
-										ImGui.SameLine() -- 536
-										if ImGui.Button(deleteText) then -- 536
-											Content:remove(Path(Content.writablePath, "Download", pkg.name)) -- 538
-											self.downloadedPackages:delete(pkg.name) -- 539
-											Director.postNode:emit("UpdateEntries") -- 540
-										end -- 540
-									end -- 540
-								end -- 540
-							end -- 540
-							ImGui.SameLine() -- 547
-							ImGui.Text(__TS__NumberToFixed(version.size / 1024 / 1024, 2) .. " MB") -- 548
-							if not self.isDownloading and pkg.versionNames and pkg.currentVersion then -- 548
-								ImGui.SameLine() -- 550
-								ImGui.SetNextItemWidth(-20) -- 551
-								local changed, currentVersion = ImGui.Combo("##" .. pkg.name, pkg.currentVersion, pkg.versionNames) -- 552
-								if changed then -- 552
-									pkg.currentVersion = currentVersion -- 554
-								end -- 554
-							end -- 554
-							thinSep() -- 558
-							ImGui.NextColumn() -- 559
-						end -- 559
-						::__continue87:: -- 559
-					end -- 559
-					ImGui.Columns(1, false) -- 562
-					ImGui.ScrollWhenDraggingOnVoid() -- 563
-					if self.popupShow then -- 563
-						self.popupShow = false -- 566
-						ImGui.OpenPopup("MessagePopup") -- 567
-					end -- 567
-					ImGui.BeginPopupModal( -- 569
-						"MessagePopup", -- 569
-						function() return self:messagePopup() end -- 569
-					) -- 569
+										ImGui.Button(buttonText) -- 509
+										if isDownloaded then -- 509
+											ImGui.SameLine() -- 511
+											ImGui.Button(deleteText) -- 512
+										end -- 512
+									end) -- 504
+								else -- 504
+									if isDownloaded and runable then -- 504
+										if type(repo.exe) == "table" then -- 504
+											local exeList = repo.exe -- 518
+											local popupId = "select-" .. pkg.name -- 519
+											if ImGui.Button(exeText) then -- 519
+												ImGui.OpenPopup(popupId) -- 521
+											end -- 521
+											ImGui.BeginPopup( -- 523
+												popupId, -- 523
+												function() -- 523
+													for ____, entry in ipairs(exeList) do -- 524
+														if ImGui.Selectable((((entry .. "##run-") .. pkg.name) .. "-") .. entry) then -- 524
+															run(Path( -- 526
+																Content.writablePath, -- 526
+																"Download", -- 526
+																pkg.name, -- 526
+																entry, -- 526
+																"init" -- 526
+															)) -- 526
+														end -- 526
+													end -- 526
+												end -- 523
+											) -- 523
+										else -- 523
+											if ImGui.Button(exeText) then -- 523
+												run(Path(Content.writablePath, "Download", pkg.name, "init")) -- 532
+											end -- 532
+										end -- 532
+										ImGui.SameLine() -- 535
+									end -- 535
+									if ImGui.Button(buttonText) then -- 535
+										self:downloadPackage(pkg) -- 538
+									end -- 538
+									if isDownloaded then -- 538
+										ImGui.SameLine() -- 541
+										if ImGui.Button(deleteText) then -- 541
+											Content:remove(Path(Content.writablePath, "Download", pkg.name)) -- 543
+											self.downloadedPackages:delete(pkg.name) -- 544
+											Director.postNode:emit("UpdateEntries") -- 545
+										end -- 545
+									end -- 545
+								end -- 545
+							end -- 545
+							if not self.isDownloading and pkg.versionNames and pkg.currentVersion then -- 545
+								ImGui.SameLine() -- 552
+								ImGui.SetNextItemWidth(-20) -- 553
+								local changed, currentVersion = ImGui.Combo("##" .. pkg.name, pkg.currentVersion, pkg.versionNames) -- 554
+								if changed then -- 554
+									pkg.currentVersion = currentVersion -- 556
+								end -- 556
+							end -- 556
+							thinSep() -- 560
+							ImGui.NextColumn() -- 561
+						end -- 561
+						::__continue87:: -- 561
+					end -- 561
+					ImGui.Columns(1, false) -- 564
+					ImGui.ScrollWhenDraggingOnVoid() -- 565
+					if self.popupShow then -- 565
+						self.popupShow = false -- 568
+						ImGui.OpenPopup("MessagePopup") -- 569
+					end -- 569
+					ImGui.BeginPopupModal( -- 571
+						"MessagePopup", -- 571
+						function() return self:messagePopup() end -- 571
+					) -- 571
 				end -- 415
 			) end -- 415
 		) end -- 415
 	) -- 415
 end -- 348
-__TS__New(ResourceDownloader) -- 574
-return ____exports -- 574
+__TS__New(ResourceDownloader) -- 576
+return ____exports -- 576
