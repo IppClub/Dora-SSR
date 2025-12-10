@@ -787,6 +787,7 @@ displayWindowFlags = $WindowFlag(
 	NoMove
 	NoScrollWithMouse
 	AlwaysAutoResize
+	NoFocusOnAppearing
 )
 initFooter = true
 footerWindow = threadLoop ->
