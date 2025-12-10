@@ -232,6 +232,8 @@ class ResourceDownloader {
 				if (Content.exist(downloadPath)) {
 					this.downloadedPackages.add(pkg.name);
 				}
+			}
+			for (const pkg of this.packages) {
 				this.loadPreviewImage(pkg.name);
 			}
 			this.isLoading = false;
@@ -486,7 +488,7 @@ class ResourceDownloader {
 				const progress = this.downloadProgress.get(pkg.name);
 				if (progress !== undefined) {
 					ImGui.ProgressBar(progress.progress, Vec2(-1, 30));
-						ImGui.BeginDisabled(() => {
+					ImGui.BeginDisabled(() => {
 						ImGui.Button(progress.status);
 					});
 				}
