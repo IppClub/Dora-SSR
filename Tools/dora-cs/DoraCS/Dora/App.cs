@@ -291,7 +291,8 @@ namespace Dora
 			get => Native.application_is_always_on_top() != 0;
 		}
 		/// <summary>
-		/// Shuts down the game engine.
+		/// Shuts down and exits the game engine.
+		/// When in `devMode`, the `shutdown` function will only emit a "AppEvent" global event with type "Shutdown", instead of shutting down the game engine.
 		/// It is not working and acts as a dummy function for platform Android and iOS to follow the specification of how mobile platform applications should operate.
 		/// </summary>
 		public static void Shutdown()

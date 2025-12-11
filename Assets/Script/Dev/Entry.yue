@@ -12,6 +12,7 @@ const :Content, :Path = Dora
 const type = type
 
 App.idled = true
+App.devMode = true
 ShowConsole true
 
 moduleCache = []
@@ -258,12 +259,13 @@ getProjectEntries = (path) ->
 			if "init" == Path\getName(file)\lower!
 				fileName = Path\replaceExt file, ""
 				fileName = Path path, dir, fileName
-				repoFile = Path Path\getPath(fileName), "repo.json"
+				projectPath = Path\getPath fileName
+				repoFile = Path projectPath, ".dora", "repo.json"
 				repo = nil
 				if Content\exist repoFile
 					if str := Content\load repoFile
 						repo = json.decode str
-				entryName = Path\getName Path\getPath fileName
+				entryName = Path\getName projectPath
 				entryAdded = for {entryName: ename, fileName: efile} in *entries
 					break true if entryName == ename and efile == fileName
 				continue if entryAdded
@@ -275,7 +277,7 @@ getProjectEntries = (path) ->
 						entry = {
 							entryName: name
 							fileName: Path path, dir, Path\getPath(file), ePath
-							workDir: Path\getPath fileName
+							workDir: projectPath
 						}
 						examples[] = entry
 				testPath = Path path, dir, Path\getPath(file), "Test"
@@ -284,14 +286,20 @@ getProjectEntries = (path) ->
 						entry = {
 							entryName: name
 							fileName: Path path, dir, Path\getPath(file), tPath
-							workDir: Path\getPath fileName
+							workDir: projectPath
 						}
 						tests[] = entry
 				entry = :entryName, :fileName, :examples, :tests, :repo
-				bannerFile = Path path, Path\getPath(fileName), "Image", "banner.png"
-				unless Content\exist bannerFile
-					bannerFile = Path path, Path\getPath(fileName), "Image", "banner.jpg"
-					bannerFile = nil unless Content\exist bannerFile
+				bannerFile = repeat
+					f = Path projectPath, ".dora", "banner.jpg"
+					break f if Content\exist f
+					f = Path projectPath, ".dora", "banner.png"
+					break f if Content\exist f
+					f = Path projectPath, "Image", "banner.jpg"
+					break f if Content\exist f
+					f = Path projectPath, "Image", "banner.png"
+					break f if Content\exist f
+				until true
 				if bannerFile then thread ->
 					if Cache\loadAsync bannerFile
 						if bannerTex := Texture2D bannerFile
@@ -300,6 +308,15 @@ getProjectEntries = (path) ->
 				entries[] = entry
 	table.sort entries, (a, b) -> a.entryName < b.entryName
 	entries
+
+local defaultBannerFile
+local defaultBannerTex
+thread ->
+	bannerFile = Path Content.assetPath, "Image", "banner.jpg"
+	return unless Content\exist bannerFile
+	if Cache\loadAsync bannerFile
+		if defaultBannerTex := Texture2D bannerFile
+			defaultBannerFile = bannerFile
 
 local gamesInDev
 local doraTools
@@ -560,12 +577,22 @@ setWorkspace = (path) ->
 
 quit = false
 
+export stop = ->
+	return false if isInEntry
+	allClear!
+	isInEntry = true
+	currentEntry = nil
+	true
+
 setupEventHandlers = ->
 	with Director.postNode
-		\onAppEvent (eventType) -> if eventType == "Quit"
-			quit = true
-			allClear!
-			clearTempFiles!
+		\onAppEvent (eventType) -> switch eventType
+			when "Quit"
+				quit = true
+				allClear!
+				clearTempFiles!
+			when "Shutdown"
+				stop!
 		\onAppChange (settingName) -> switch settingName
 			when "Theme"
 				config.themeColor = App.themeColor\toARGB!
@@ -604,13 +631,6 @@ export downloadFile = (url, target) -> Director.systemScheduler\schedule once ->
 		name: "Download", :url, status: "failed"
 		progress: 0.0
 	}
-
-export stop = ->
-	return false if isInEntry
-	allClear!
-	isInEntry = true
-	currentEntry = nil
-	true
 
 export enterEntryAsync = (entry) ->
 	isInEntry = false
@@ -796,6 +816,7 @@ footerWindow = threadLoop ->
 		return
 	if Keyboard\isKeyDown "Escape"
 		allClear!
+		App.devMode = false
 		App\shutdown!
 	do
 		ctrl = Keyboard\isKeyPressed "LCtrl"
@@ -1030,7 +1051,7 @@ entryWindow = threadLoop ->
 		<- PushStyleVar "WindowPadding", Vec2 paddingX, 10
 		<- PushStyleVar "Alpha", 1
 		<- Begin "Content", windowFlags
-		const DemoViewWidth = 320
+		const DemoViewWidth = 220
 		filterText = filterBuf.text\match "[^%%%.%[]+"
 		filterText = filterText\lower! if filterText
 		if #gamesInDev > 0
@@ -1044,8 +1065,8 @@ entryWindow = threadLoop ->
 					:examples
 					:tests
 					:repo
-					:bannerFile
-					:bannerTex
+					:bannerFile = defaultBannerFile
+					:bannerTex = defaultBannerTex
 				} = game
 				displayName = if repo
 					if zh then repo.title.zh else repo.title.en
@@ -1063,7 +1084,7 @@ entryWindow = threadLoop ->
 							Dummy Vec2.zero
 							SameLine!
 							Image bannerFile, Vec2 texWidth + 10, texHeight
-						if Button "#{zh and "开始运行" or "Game Start"}###{fileName}", Vec2 -1, 40
+						if Button "#{zh and "开始测试" or "Game Test"}###{fileName}", Vec2 -1, 40
 							enterDemoEntry game
 					else
 						if bannerFile
@@ -1080,7 +1101,7 @@ entryWindow = threadLoop ->
 							Dummy Vec2 padding, 0
 							SameLine!
 							Image bannerFile, Vec2 texWidth, texHeight
-						if Button "#{zh and "开始运行" or "Game Start"}###{fileName}", Vec2 -1, 40
+						if Button "#{zh and "开始测试" or "Game Test"}###{fileName}", Vec2 -1, 40
 							enterDemoEntry game
 					if #tests == 0 and #examples == 0
 						thinSep!

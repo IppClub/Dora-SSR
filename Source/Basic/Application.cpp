@@ -30,7 +30,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <thread>
 
 #define DORA_VERSION "1.7.3"_slice
-#define DORA_REVISION "2"_slice
+#define DORA_REVISION "3"_slice
 
 #if BX_PLATFORM_ANDROID
 #include <jni.h>
@@ -91,6 +91,7 @@ Application::Application()
 	, _logicRunning(true)
 	, _fullScreen(false)
 	, _alwaysOnTop(true)
+	, _devMode(false)
 	, _frame(0)
 	, _visualWidth(1280)
 	, _visualHeight(720)
@@ -293,6 +294,14 @@ void Application::setAlwaysOnTop(bool var) {
 
 bool Application::isAlwaysOnTop() const noexcept {
 	return _alwaysOnTop;
+}
+
+void Application::setDevMode(bool var) {
+	_devMode = var;
+}
+
+bool Application::isDevMode() const noexcept {
+	return _devMode;
 }
 
 // This function runs in main (render) thread, and do render work
@@ -540,6 +549,10 @@ void Application::makeTimeNow() {
 }
 
 void Application::shutdown() {
+	if (_devMode) {
+		Event::send("AppEvent"sv, "Shutdown"s);
+		return;
+	}
 	switch (Switch::hash(getPlatform())) {
 		case "Windows"_hash:
 		case "macOS"_hash:

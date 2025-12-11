@@ -65,6 +65,7 @@ public:
 	PROPERTY_BOOL(Idled);
 	PROPERTY_BOOL(FullScreen);
 	PROPERTY_BOOL(AlwaysOnTop);
+	PROPERTY_BOOL(DevMode);
 	SDLEventHandler eventHandler;
 	QuitHandler quitHandler;
 	int run(MainFunc mainFunc = nullptr);
@@ -101,6 +102,7 @@ private:
 	bool _logicRunning;
 	bool _fullScreen;
 	bool _alwaysOnTop;
+	bool _devMode;
 	int _visualWidth;
 	int _visualHeight;
 	int _winWidth;

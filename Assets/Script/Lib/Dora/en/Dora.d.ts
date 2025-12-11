@@ -652,6 +652,12 @@ interface App {
 	alwayOnTop: boolean;
 
 	/**
+	 * Whether the game engine is running in development mode.
+	 * When `devMode` is set to true, the `shutdown` function will emit a "AppEvent" global event with type "Shutdown" instead of shutting down the game engine.
+	 */
+	devMode: boolean;
+
+	/**
 	 * The application window size.
 	 * May differ from visual size due to the different DPIs of display devices.
 	 * It is not available to set this property on platform Android and iOS.
@@ -698,7 +704,8 @@ interface App {
 	openFileDialog(folderOnly: boolean, callback: (path: string) => void): void;
 
 	/**
-	 * A function that shuts down the game engine.
+	 * A function that shuts down and exits the game engine.
+	 * When `devMode` is set to true, the `shutdown` function will only emit a "AppEvent" global event with type "Shutdown", instead of shutting down the game engine.
 	 * It is not working and acts as a dummy function for platform Android and iOS to follow the specification of how mobile platform applications should operate.
 	 */
 	shutdown(): void;
@@ -2739,7 +2746,7 @@ const enum GlobalEvent {
 
 export {GlobalEvent as GSlot};
 
-type AppEventType = "Quit" | "LowMemory" | "WillEnterBackground" | "DidEnterBackground" | "WillEnterForeground" | "DidEnterForeground";
+type AppEventType = "Quit" | "LowMemory" | "WillEnterBackground" | "DidEnterBackground" | "WillEnterForeground" | "DidEnterForeground" | "Shutdown";
 type AppSettingName = "Locale" | "Theme" | "FullScreen" | "Position" | "Size";
 type AppWSEventType = "Open" | "Close" | "Send" | "Receive";
 

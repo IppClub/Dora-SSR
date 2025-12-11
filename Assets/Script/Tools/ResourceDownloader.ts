@@ -309,7 +309,13 @@ class ResourceDownloader {
 					if (repo) {
 						const [str] = json.encode(repo);
 						if (str) {
-							Content.save(Path(unzipPath, "repo.json"), str);
+							if (Content.mkdir(Path(unzipPath, ".dora"))) {
+								Content.save(Path(unzipPath, ".dora", "repo.json"), str);
+								const previewFile = this.previewFiles.get(pkg.name);
+								if (previewFile && Content.exist(previewFile)) {
+									Content.copy(previewFile, Path(unzipPath, ".dora", "banner.jpg"));
+								}
+							}
 						}
 					}
 					Director.postNode.emit("UpdateEntries");
@@ -496,7 +502,7 @@ class ResourceDownloader {
 				// Download button
 				if (progress === undefined) {
 					const isDownloaded = this.isDownloaded(pkg.name);
-					const exeText = (zh ? "运行" : "Run") + `##run-${pkg.name}`;
+					const exeText = (zh ? "测试" : "Test") + `##test-${pkg.name}`;
 					const buttonText = (isDownloaded ?
 						(zh ? "重新下载" : "Re-Download") :
 						(zh ? "下载" : "Download")) + `##download-${pkg.name}`;
