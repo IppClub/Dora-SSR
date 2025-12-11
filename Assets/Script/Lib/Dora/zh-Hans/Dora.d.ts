@@ -656,6 +656,12 @@ interface App {
 	alwayOnTop: boolean;
 
 	/**
+	 * 游戏引擎是否运行在开发模式下。
+	 * 在开发模式下 `App:shutdown()` 函数会发出一个 "AppEvent" 全局事件，类型为 "Shutdown"，而不是关闭游戏引擎。
+	 */
+	devMode: boolean;
+
+	/**
 	 * 应用程序窗口大小。
 	 * 由于显示设备的DPI不同，可能会与实际的可视大小有差异。
 	 * 在Android和iOS平台上无法设置此属性。
@@ -702,8 +708,9 @@ interface App {
 	openFileDialog(folderOnly: boolean, callback: (path: string) => void): void;
 
 	/**
-	 * 关闭游戏引擎。
-	 * 该函数在Android和iOS平台不会生效，以遵循移动平台上应用程序规范。
+	 * 关闭并退出游戏引擎。
+	 * 当 `devMode` 设置为 true 时，该函数只会发出一个 "AppEvent" 全局事件，类型为 "Shutdown"，而不是关闭游戏引擎。
+	 * 该函数在Android和iOS平台不会真正关闭游戏引擎，以遵循移动平台上应用程序规范。
 	 */
 	shutdown(): void;
 }

@@ -125,6 +125,7 @@ class Application
 	tolua_property__bool bool idled;
 	tolua_property__bool bool fullScreen;
 	tolua_property__bool bool alwaysOnTop;
+	tolua_property__bool bool devMode;
 	void openURL(String url);
 	void install(String path);
 	bool saveLog(String filename);

@@ -99,6 +99,9 @@ local record App
 	-- It is not available to set this property on platform Android and iOS.
 	alwaysOnTop: boolean
 
+	-- Whether the game engine is running in development mode. The `App:shutdown()` function will emit a "AppEvent" global event with type "Shutdown" instead of shutting down the game engine.
+	devMode: boolean
+
 	-- The application window size.
 	-- May differ from visual size due to the different DPIs of display devices.
 	-- It is not available to set this property on platform Android and iOS.
@@ -131,7 +134,8 @@ local record App
 	-- @param callback (function) The callback function to be called when the file dialog is closed. The callback function should accept a string parameter which is the path of the selected file or folder. Get empty string if the user canceled the dialog.
 	openFileDialog: function(self: App, folderOnly: boolean, callback: function(path: string))
 
-	-- A function that shuts down the game engine.
+	-- A function that shuts down and exits the game engine.
+	-- When `devMode` is set to true, the `shutdown` function will only emit a "AppEvent" global event with type "Shutdown", instead of shutting down the game engine.
 	-- It is not working and acts as a dummy function for platform Android and iOS to follow the specification of how mobile platform applications should operate.
 	shutdown: function(self: App)
 end
@@ -146,7 +150,7 @@ end
 -- end)
 local record __GSLOT__
 
-	-- Triggers when the application receives an event. The event type could be "Quit", "LowMemory", "WillEnterBackground", "DidEnterBackground", "WillEnterForeground", "DidEnterForeground".
+	-- Triggers when the application receives an event. The event type could be "Quit", "LowMemory", "WillEnterBackground", "DidEnterBackground", "WillEnterForeground", "DidEnterForeground", "Shutdown".
 	["AppEvent"]: function(eventType: string)
 
 	-- Triggers when the application receives a low memory warning.

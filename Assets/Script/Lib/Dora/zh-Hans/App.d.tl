@@ -100,6 +100,10 @@ local record App
 	-- 在Android和iOS平台上无法设置此属性。
 	alwayOnTop: boolean
 
+	-- 游戏引擎是否运行在开发模式下。
+	-- 在开发模式下 `App:shutdown()` 函数会发出一个 "AppEvent" 全局事件，类型为 "Shutdown" 而不是关闭游戏引擎。
+	devMode: boolean
+
 	-- 应用程序窗口大小。
 	-- 由于显示设备的DPI不同，可能会与实际的可视大小有差异。
 	-- 在Android和iOS平台上无法设置此属性。
@@ -132,8 +136,9 @@ local record App
 	-- @param callback (function) 当文件对话框关闭时调用的回调函数。回调函数应接受一个字符串参数，该参数为选中的文件或文件夹的路径。如果用户取消对话框，则返回空字符串。
 	openFileDialog: function(self: App, folderOnly: boolean, callback: function(path: string))
 
-	-- 关闭游戏引擎。
-	-- 该函数在Android和iOS平台不会生效，以遵循移动平台上应用程序规范。
+	-- 关闭并退出游戏引擎。
+	-- 当 `devMode` 设置为 true 时，该函数只会发出一个 "AppEvent" 全局事件，类型为 "Shutdown"，而不是关闭游戏引擎。
+	-- 该函数在Android和iOS平台不会真正关闭游戏引擎，以遵循移动平台上应用程序规范。
 	shutdown: function(self: App)
 end
 
@@ -147,7 +152,7 @@ end
 -- end)
 local record __GSLOT__
 
-	-- 应用收到系统事件时触发。事件类型可以是 "Quit"、"LowMemory"、"WillEnterBackground"、"DidEnterBackground"、"WillEnterForeground"、"DidEnterForeground"。
+	-- 应用收到系统事件时触发。事件类型可以是 "Quit"、"LowMemory"、"WillEnterBackground"、"DidEnterBackground"、"WillEnterForeground"、"DidEnterForeground"、"Shutdown"。
 	["AppEvent"]: function(eventType: string)
 
 	-- 应用设置发生变化时触发。设置名称可以是 "Locale"、"Theme"、"FullScreen"、"Position"、"Size"。

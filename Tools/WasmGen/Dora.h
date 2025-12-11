@@ -221,7 +221,8 @@ singleton class Application @ App
 	/// whether the game engine window is always on top. Default is true.
 	/// It is not available to set this property on platform Android and iOS.
 	boolean bool alwaysOnTop;
-	/// Shuts down the game engine.
+	/// Shuts down and exits the game engine.
+	/// When in `devMode`, the `shutdown` function will only emit a "AppEvent" global event with type "Shutdown", instead of shutting down the game engine.
 	/// It is not working and acts as a dummy function for platform Android and iOS to follow the specification of how mobile platform applications should operate.
 	void shutdown();
 };
