@@ -74,6 +74,7 @@ config = Config(
 	"updateNotification"
 	"writablePath"
 	"webIDEConnected"
+	"showPreview"
 )
 config\load!
 
@@ -102,6 +103,9 @@ if config.fixedFPS?
 	Director.scheduler.fixedFPS = config.fixedFPS
 else
 	config.fixedFPS = Director.scheduler.fixedFPS
+
+unless config.showPreview?
+	config.showPreview = true
 
 showEntry = true
 
@@ -291,6 +295,7 @@ getProjectEntries = (path) ->
 						tests[] = entry
 				entry = :entryName, :fileName, :examples, :tests, :repo
 				bannerFile = repeat
+					break nil unless config.showPreview
 					f = Path projectPath, ".dora", "banner.jpg"
 					break f if Content\exist f
 					f = Path projectPath, ".dora", "banner.png"
@@ -298,6 +303,8 @@ getProjectEntries = (path) ->
 					f = Path projectPath, "Image", "banner.jpg"
 					break f if Content\exist f
 					f = Path projectPath, "Image", "banner.png"
+					break f if Content\exist f
+					f = Path Content.assetPath, "Image", "banner.jpg"
 					break f if Content\exist f
 				until true
 				if bannerFile then thread ->
@@ -308,15 +315,6 @@ getProjectEntries = (path) ->
 				entries[] = entry
 	table.sort entries, (a, b) -> a.entryName < b.entryName
 	entries
-
-local defaultBannerFile
-local defaultBannerTex
-thread ->
-	bannerFile = Path Content.assetPath, "Image", "banner.jpg"
-	return unless Content\exist bannerFile
-	if Cache\loadAsync bannerFile
-		if defaultBannerTex := Texture2D bannerFile
-			defaultBannerFile = bannerFile
 
 local gamesInDev
 local doraTools
@@ -691,88 +689,117 @@ reloadCurrentEntry = ->
 
 Director.clearColor = Color 0xff1a1a1a
 
-isOSSLicenseExist = Content\exist "LICENSES"
-ossLicenses = nil
-ossLicenseOpen = false
-
-extraOperations = ->
-	zh = useChinese
-	if isDesktop
-		:themeColor = App
-		:alwaysOnTop, :writablePath = config
-		if changed, alwaysOnTop := Checkbox zh and "窗口置顶" or "Always On Top", alwaysOnTop
-			App.alwaysOnTop = alwaysOnTop
-			config.alwaysOnTop = alwaysOnTop
-		SeparatorText zh and "工作目录" or "Workspace"
-		PushTextWrapPos 400, ->
-			TextColored themeColor, writablePath
-		if Button zh and "改变目录" or "Set Folder"
-			App\openFileDialog true, (path) ->
-				setWorkspace path if path ~= ""
-		SameLine!
-		if Button zh and "使用默认" or "Use Default"
-			setWorkspace Content.appPath
-		Separator!
-	if isOSSLicenseExist
-		if Button zh and '开源协议' or 'OSS Licenses'
-			unless ossLicenses
-				ossLicenses = []
-				licenseText = Content\load "LICENSES"
-				if ossLicenseOpen := licenseText?
-					licenseText = licenseText\gsub "\r\n", "\n"
-					for license in GSplit licenseText, "\n--------\n", true
-						if name, text := license\match "[%s\n]*([^\n]*)[\n]*(.*)"
-							ossLicenses[] = [name, text]
-			else
-				ossLicenseOpen = true
-		if ossLicenseOpen
-			visualSize: {:width, :height}, :themeColor = App
-			SetNextWindowPosCenter $SetCond(Appearing), Vec2 0.5, 0.5
-			SetNextWindowSize Vec2(math.min(width * 0.8, 750), height * 0.8), $SetCond Appearing
-			PushStyleVar "WindowPadding", Vec2(20, 10), -> ossLicenseOpen = Begin(
-				zh and '开源协议' or 'OSS Licenses'
-				ossLicenseOpen
-				["NoSavedSettings",]
-				-> for [firstLine, text] in *ossLicenses
-					name, license = firstLine\match "(.+): (.+)"
-					TextColored themeColor, name
-					SameLine!
-					TreeNode "#{license}###{name}", -> TextWrapped text
-			)
-	return unless App.debugging
-	<- TreeNode zh and "开发操作" or "Development"
-	OpenPopup "build" if Button zh and "脚本编译测试" or "Script Build Test"
-	PushStyleVar "WindowPadding", Vec2(10, 10), -> BeginPopup "build", ->
-		doCompile false if Selectable zh and "编译" or "Compile"
-		Separator!
-		doCompile true if Selectable zh and "压缩" or "Minify"
-		Separator!
-		doClean! if Selectable zh and "清理" or "Clean"
-	if isInEntry
-		if waitForWebStart
-			BeginDisabled -> Button zh and "重载开发程序(Ctrl+Z)" or "Reload Dev Entry(Ctrl+Z)"
-		elseif Button zh and "重载开发程序(Ctrl+Z)" or "Reload Dev Entry(Ctrl+Z)"
-			reloadDevEntry!
-	if changed, scaleContent := Checkbox string.format("%.1fx #{zh and '屏幕缩放' or 'Screen'}", screenScale), scaleContent
-		View.scale = scaleContent and screenScale or 1
-	if changed, engineDev := Checkbox zh and '引擎开发模式' or 'Engine Dev Mode', engineDev
-		config.engineDev = engineDev
-	if testingThread
-		BeginDisabled -> Button zh and "开始自动测试" or "Test automatically"
-	elseif Button zh and "开始自动测试" or "Test automatically"
-		testingThread = thread ->
-			close _ = <close>: ->
-				allClear!
-				testingThread = nil
-				isInEntry = true
-				currentEntry = nil
-				print "Testing done!"
-			for _, entry in ipairs allEntries
-				allClear!
-				print "Start #{entry.entryName}"
-				enterDemoEntry entry
-				sleep 2
-				print "Stop #{entry.entryName}"
+extraOperations = do
+	isOSSLicenseExist = Content\exist "LICENSES"
+	ossLicenses = nil
+	ossLicenseOpen = false
+	failedSetFolder = false
+	statusFlags = $WindowFlag(
+		NoResize
+		NoMove
+		NoCollapse
+		AlwaysAutoResize
+		NoSavedSettings
+	)
+	->
+		zh = useChinese
+		if isDesktop
+			:themeColor = App
+			:alwaysOnTop, :writablePath, :showPreview = config
+			if changed, alwaysOnTop := Checkbox zh and "窗口置顶" or "Always On Top", alwaysOnTop
+				App.alwaysOnTop = alwaysOnTop
+				config.alwaysOnTop = alwaysOnTop
+			if changed, showPreview := Checkbox zh and "显示预览图" or "Show Preview", showPreview
+				config.showPreview = showPreview
+				updateEntries!
+				unless showPreview
+					thread ->
+						collectgarbage!
+						Cache\removeUnused "Texture"
+			SeparatorText zh and "工作目录" or "Workspace"
+			PushTextWrapPos 400, ->
+				TextColored themeColor, writablePath
+			popupName = "#{zh and '工作目录错误' or 'Invalid Workspace Path'}##failedSetFolder"
+			if Button zh and "改变目录" or "Set Folder"
+				App\openFileDialog true, (path) ->
+					return if path == ""
+					relPath = Path\getRelative Content.assetPath, path
+					if "" == relPath or ".." == relPath\sub 1, 1
+						setWorkspace path
+					else
+						failedSetFolder = true
+			if failedSetFolder
+				failedSetFolder = false
+				OpenPopup popupName
+			SetNextWindowPosCenter $SetCond(Always), Vec2 0.5, 0.5
+			BeginPopupModal popupName, statusFlags, ->
+				TextWrapped zh and "工作目录不能包含引擎内置资源目录" or "Built-in assets path should not be under the workspace path"
+				if Button "#{zh and '确认' or 'Confirm'}##closeErrorPopup", Vec2 240, 30
+					CloseCurrentPopup!
+			SameLine!
+			if Button zh and "使用默认" or "Use Default"
+				setWorkspace Content.appPath
+			Separator!
+		if isOSSLicenseExist
+			if Button zh and '开源协议' or 'OSS Licenses'
+				unless ossLicenses
+					ossLicenses = []
+					licenseText = Content\load "LICENSES"
+					if ossLicenseOpen := licenseText?
+						licenseText = licenseText\gsub "\r\n", "\n"
+						for license in GSplit licenseText, "\n--------\n", true
+							if name, text := license\match "[%s\n]*([^\n]*)[\n]*(.*)"
+								ossLicenses[] = [name, text]
+				else
+					ossLicenseOpen = true
+			if ossLicenseOpen
+				visualSize: {:width, :height}, :themeColor = App
+				SetNextWindowPosCenter $SetCond(Appearing), Vec2 0.5, 0.5
+				SetNextWindowSize Vec2(math.min(width * 0.8, 750), height * 0.8), $SetCond Appearing
+				PushStyleVar "WindowPadding", Vec2(20, 10), -> ossLicenseOpen = Begin(
+					zh and '开源协议' or 'OSS Licenses'
+					ossLicenseOpen
+					["NoSavedSettings",]
+					-> for [firstLine, text] in *ossLicenses
+						name, license = firstLine\match "(.+): (.+)"
+						TextColored themeColor, name
+						SameLine!
+						TreeNode "#{license}###{name}", -> TextWrapped text
+				)
+		return unless App.debugging
+		<- TreeNode zh and "开发操作" or "Development"
+		OpenPopup "build" if Button zh and "脚本编译测试" or "Script Build Test"
+		PushStyleVar "WindowPadding", Vec2(10, 10), -> BeginPopup "build", ->
+			doCompile false if Selectable zh and "编译" or "Compile"
+			Separator!
+			doCompile true if Selectable zh and "压缩" or "Minify"
+			Separator!
+			doClean! if Selectable zh and "清理" or "Clean"
+		if isInEntry
+			if waitForWebStart
+				BeginDisabled -> Button zh and "重载开发程序(Ctrl+Z)" or "Reload Dev Entry(Ctrl+Z)"
+			elseif Button zh and "重载开发程序(Ctrl+Z)" or "Reload Dev Entry(Ctrl+Z)"
+				reloadDevEntry!
+		if changed, scaleContent := Checkbox string.format("%.1fx #{zh and '屏幕缩放' or 'Screen'}", screenScale), scaleContent
+			View.scale = scaleContent and screenScale or 1
+		if changed, engineDev := Checkbox zh and '引擎开发模式' or 'Engine Dev Mode', engineDev
+			config.engineDev = engineDev
+		if testingThread
+			BeginDisabled -> Button zh and "开始自动测试" or "Test automatically"
+		elseif Button zh and "开始自动测试" or "Test automatically"
+			testingThread = thread ->
+				close _ = <close>: ->
+					allClear!
+					testingThread = nil
+					isInEntry = true
+					currentEntry = nil
+					print "Testing done!"
+				for _, entry in ipairs allEntries
+					allClear!
+					print "Start #{entry.entryName}"
+					enterDemoEntry entry
+					sleep 2
+					print "Stop #{entry.entryName}"
 
 icon = Path "Script", "Dev", "icon_s.png"
 iconTex = nil
@@ -1065,8 +1092,8 @@ entryWindow = threadLoop ->
 					:examples
 					:tests
 					:repo
-					:bannerFile = defaultBannerFile
-					:bannerTex = defaultBannerTex
+					:bannerFile
+					:bannerTex
 				} = game
 				displayName = if repo
 					if zh then repo.title.zh else repo.title.en
