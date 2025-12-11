@@ -337,6 +337,19 @@ It is not available to set this property on platform Android and iOS.
 alwaysOnTop: boolean
 ```
 
+## devMode
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the game engine is running in development mode. The `App:shutdown()` function will emit a "AppEvent" global event with type "Shutdown" instead of shutting down the game engine.
+
+**Signature:**
+```tl
+devMode: boolean
+```
+
 ## winSize
 
 **Type:** Field.
@@ -480,7 +493,8 @@ openFileDialog: function(self: App, folderOnly: boolean, callback: function(path
 
 **Description:**
 
-&emsp;&emsp;A function that shuts down the game engine.
+&emsp;&emsp;A function that shuts down and exits the game engine.
+When `devMode` is set to true, the `shutdown` function will only emit a "AppEvent" global event with type "Shutdown", instead of shutting down the game engine.
 It is not working and acts as a dummy function for platform Android and iOS to follow the specification of how mobile platform applications should operate.
 
 **Signature:**

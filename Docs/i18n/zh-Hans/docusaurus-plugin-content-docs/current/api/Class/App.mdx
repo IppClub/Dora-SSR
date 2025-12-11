@@ -338,6 +338,20 @@ fullScreen: boolean
 alwayOnTop: boolean
 ```
 
+## devMode
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;游戏引擎是否运行在开发模式下。
+在开发模式下 `App:shutdown()` 函数会发出一个 "AppEvent" 全局事件，类型为 "Shutdown" 而不是关闭游戏引擎。
+
+**签名：**
+```tl
+devMode: boolean
+```
+
 ## winSize
 
 **类型：** 成员变量。
@@ -481,8 +495,9 @@ openFileDialog: function(self: App, folderOnly: boolean, callback: function(path
 
 **描述：**
 
-&emsp;&emsp;关闭游戏引擎。
-该函数在Android和iOS平台不会生效，以遵循移动平台上应用程序规范。
+&emsp;&emsp;关闭并退出游戏引擎。
+当 `devMode` 设置为 true 时，该函数只会发出一个 "AppEvent" 全局事件，类型为 "Shutdown"，而不是关闭游戏引擎。
+该函数在Android和iOS平台不会真正关闭游戏引擎，以遵循移动平台上应用程序规范。
 
 **签名：**
 ```tl
