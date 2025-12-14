@@ -19,7 +19,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Wasm/WasmRuntime.h"
 #include "Other/utf8.h"
 
+#if BX_PLATFORM_WINDOWS
+#define SPDLOG_USE_STD_FORMAT
 #define SPDLOG_WCHAR_FILENAMES
+#endif
 
 #include "spdlog/pattern_formatter.h"
 #include "spdlog/sinks/callback_sink.h"

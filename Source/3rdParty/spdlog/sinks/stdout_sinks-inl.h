@@ -4,25 +4,26 @@
 #pragma once
 
 #ifndef SPDLOG_HEADER_ONLY
-    #include "spdlog/sinks/stdout_sinks.h"
+#include "spdlog/sinks/stdout_sinks.h"
 #endif
 
 #include <memory>
 #include "spdlog/details/console_globals.h"
 #include "spdlog/pattern_formatter.h"
+#include "spdlog/details/os.h"
 
 #ifdef _WIN32
-    // under windows using fwrite to non-binary stream results in \r\r\n (see issue #1675)
-    // so instead we use ::FileWrite
-    #include "spdlog/details/windows_include.h"
+// under windows using fwrite to non-binary stream results in \r\r\n (see issue #1675)
+// so instead we use ::FileWrite
+#include "spdlog/details/windows_include.h"
 
-    #ifndef _USING_V110_SDK71_  // fileapi.h doesn't exist in winxp
-        #include <fileapi.h>    // WriteFile (..)
-    #endif
+#ifndef _USING_V110_SDK71_  // fileapi.h doesn't exist in winxp
+#include <fileapi.h>        // WriteFile (..)
+#endif
 
-    #include <io.h>     // _get_osfhandle(..)
-    #include <stdio.h>  // _fileno(..)
-#endif                  // WIN32
+#include <io.h>     // _get_osfhandle(..)
+#include <stdio.h>  // _fileno(..)
+#endif              // _WIN32
 
 namespace spdlog {
 
@@ -44,7 +45,7 @@ SPDLOG_INLINE stdout_sink_base<ConsoleMutex>::stdout_sink_base(FILE *file)
     if (handle_ == INVALID_HANDLE_VALUE && file != stdout && file != stderr) {
         throw_spdlog_ex("spdlog::stdout_sink_base: _get_osfhandle() failed", errno);
     }
-#endif  // WIN32
+#endif  // _WIN32
 }
 
 template <typename ConsoleMutex>
@@ -67,8 +68,8 @@ SPDLOG_INLINE void stdout_sink_base<ConsoleMutex>::log(const details::log_msg &m
     std::lock_guard<mutex_t> lock(mutex_);
     memory_buf_t formatted;
     formatter_->format(msg, formatted);
-    ::fwrite(formatted.data(), sizeof(char), formatted.size(), file_);
-#endif                // WIN32
+    details::os::fwrite_bytes(formatted.data(), formatted.size(), file_);
+#endif                // _WIN32
     ::fflush(file_);  // flush every line to terminal
 }
 
