@@ -23,6 +23,7 @@ public:
                              bool truncate = false,
                              const file_event_handlers &event_handlers = {});
     const filename_t &filename() const;
+    void truncate();
 
 protected:
     void sink_it_(const details::log_msg &msg) override;
@@ -61,5 +62,5 @@ inline std::shared_ptr<logger> basic_logger_st(const std::string &logger_name,
 }  // namespace spdlog
 
 #ifdef SPDLOG_HEADER_ONLY
-    #include "basic_file_sink-inl.h"
+#include "basic_file_sink-inl.h"
 #endif

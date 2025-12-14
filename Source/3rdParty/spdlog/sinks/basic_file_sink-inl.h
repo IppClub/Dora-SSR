@@ -4,7 +4,7 @@
 #pragma once
 
 #ifndef SPDLOG_HEADER_ONLY
-    #include "spdlog/sinks/basic_file_sink.h"
+#include "spdlog/sinks/basic_file_sink.h"
 #endif
 
 #include "spdlog/common.h"
@@ -24,6 +24,12 @@ SPDLOG_INLINE basic_file_sink<Mutex>::basic_file_sink(const filename_t &filename
 template <typename Mutex>
 SPDLOG_INLINE const filename_t &basic_file_sink<Mutex>::filename() const {
     return file_helper_.filename();
+}
+
+template <typename Mutex>
+SPDLOG_INLINE void basic_file_sink<Mutex>::truncate() {
+    std::lock_guard<Mutex> lock(base_sink<Mutex>::mutex_);
+    file_helper_.reopen(true);
 }
 
 template <typename Mutex>

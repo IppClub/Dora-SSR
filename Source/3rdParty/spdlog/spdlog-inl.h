@@ -4,7 +4,7 @@
 #pragma once
 
 #ifndef SPDLOG_HEADER_ONLY
-    #include "spdlog/spdlog.h"
+#include "spdlog/spdlog.h"
 #endif
 
 #include "spdlog/common.h"
@@ -57,6 +57,10 @@ SPDLOG_INLINE void set_error_handler(void (*handler)(const std::string &msg)) {
 
 SPDLOG_INLINE void register_logger(std::shared_ptr<logger> logger) {
     details::registry::instance().register_logger(std::move(logger));
+}
+
+SPDLOG_INLINE void register_or_replace(std::shared_ptr<logger> logger) {
+    details::registry::instance().register_or_replace(std::move(logger));
 }
 
 SPDLOG_INLINE void apply_all(const std::function<void(std::shared_ptr<logger>)> &fun) {

@@ -4,7 +4,7 @@
 #pragma once
 
 #ifndef SPDLOG_HEADER_ONLY
-    #include "spdlog/async_logger.h"
+#include "spdlog/async_logger.h"
 #endif
 
 #include "spdlog/details/thread_pool.h"
@@ -33,7 +33,7 @@ SPDLOG_INLINE spdlog::async_logger::async_logger(std::string logger_name,
 // send the log message to the thread pool
 SPDLOG_INLINE void spdlog::async_logger::sink_it_(const details::log_msg &msg){
     SPDLOG_TRY{if (auto pool_ptr = thread_pool_.lock()){
-        pool_ptr->post_log(shared_from_this(), msg, overflow_policy_);
+        pool_ptr -> post_log(shared_from_this(), msg, overflow_policy_);
 }
 else {
     throw_spdlog_ex("async log: thread pool doesn't exist anymore");
@@ -45,7 +45,7 @@ SPDLOG_LOGGER_CATCH(msg.source)
 // send flush request to the thread pool
 SPDLOG_INLINE void spdlog::async_logger::flush_(){
     SPDLOG_TRY{if (auto pool_ptr = thread_pool_.lock()){
-        pool_ptr->post_flush(shared_from_this(), overflow_policy_);
+        pool_ptr -> post_flush(shared_from_this(), overflow_policy_);
 }
 else {
     throw_spdlog_ex("async flush: thread pool doesn't exist anymore");
