@@ -18,6 +18,6 @@
         #endif
         #include "spdlog/fmt/bundled/compile.h"
     #else
-        #include <fmt/compile.h>
+        #include "fmt/compile.h"
     #endif
 #endif

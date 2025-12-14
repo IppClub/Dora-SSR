@@ -18,6 +18,6 @@
         #endif
         #include "spdlog/fmt/bundled/xchar.h"
     #else
-        #include <fmt/xchar.h>
+        #include "fmt/xchar.h"
     #endif
 #endif
