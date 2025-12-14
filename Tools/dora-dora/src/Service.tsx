@@ -408,6 +408,7 @@ export interface NewRequest {
 }
 export interface NewResponse {
 	success: boolean;
+	message: 'Failed' | 'TargetExisted' | 'SourceExisted';
 }
 export const newFile = (req: NewRequest) => {
 	return post<NewResponse>("/new", req);

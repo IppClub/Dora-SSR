@@ -157,7 +157,6 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "eslint-webpack-plugin": "^5.0.2",
-    "globals": "^16.5.0",
     "html-webpack-plugin": "^5.5.3",
     "mini-css-extract-plugin": "^2.7.6",
     "monaco-editor-webpack-plugin": "^7.1.1",

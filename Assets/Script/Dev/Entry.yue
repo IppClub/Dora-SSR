@@ -724,7 +724,7 @@ extraOperations = do
 				App\openFileDialog true, (path) ->
 					return if path == ""
 					relPath = Path\getRelative Content.assetPath, path
-					if "" == relPath or ".." == relPath\sub 1, 1
+					if "" == relPath or ".." == relPath\sub 1, 2
 						setWorkspace path
 					else
 						failedSetFolder = true

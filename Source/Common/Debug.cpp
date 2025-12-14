@@ -17,6 +17,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Lua/LuaEngine.h"
 #include "Wasm/WasmRuntime.h"
+#include "Other/utf8.h"
+
+#define SPDLOG_WCHAR_FILENAMES
 
 #include "spdlog/pattern_formatter.h"
 #include "spdlog/sinks/callback_sink.h"
@@ -27,10 +30,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #else
 #include "spdlog/sinks/ansicolor_sink.h"
 #endif // BX_PLATFORM_ANDROID
-
-#if BX_PLATFORM_WINDOWS
-std::string toMBString(const std::string& utf8Str);
-#endif // BX_PLATFORM_WINDOWS
 
 NS_DORA_BEGIN
 
@@ -72,11 +71,10 @@ public:
 				});
 			}
 		});
-		auto logFilename =
 #if BX_PLATFORM_WINDOWS
-			toMBString(getFilename());
+		auto logFilename = u8_to_w(getFilename());
 #else
-			getFilename();
+		auto logFilename = getFilename();
 #endif
 		auto fileSink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(logFilename, getMaxFileSize(), getMaxFiles());
 		_logger = std::make_shared<spdlog::logger>(std::string(), spdlog::sinks_init_list{consoleSink, doraSink, fileSink});
@@ -90,6 +88,17 @@ public:
 		return Path::concat({SharedContent.getAppPath(), "log.txt"sv});
 	}
 
+#if BX_PLATFORM_WINDOWS
+	std::wstring u8_to_w(const std::string& str) const {
+		auto u16Str = CodeCvt::utf8to16(str);
+		return std::wstring(r_cast<const wchar_t*>(u16Str.data()), u16Str.size());
+	}
+	std::string w_to_u8(const std::wstring& str) const {
+		auto u16Str = std::u16string(r_cast<const char16_t*>(str.data()), str.size());
+		return CodeCvt::utf16to8(u16Str);
+	}
+#endif
+
 	int getMaxFileSize() const {
 		return 1024 * 128; // 128 kb
 	}
@@ -101,7 +110,11 @@ public:
 		_logger->sinks().pop_back();
 		std::string logText;
 		for (int i = getMaxFiles(); i >= 0; i--) {
+#if BX_PLATFORM_WINDOWS
+			auto logFile = w_to_u8(spdlog::sinks::rotating_file_sink_mt::calc_filename(u8_to_w(getFilename()), i));
+#else
 			auto logFile = spdlog::sinks::rotating_file_sink_mt::calc_filename(getFilename(), i);
+#endif
 			if (!SharedContent.exist(logFile)) {
 				continue;
 			}
@@ -115,11 +128,10 @@ public:
 			}
 		}
 		bool result = SharedContent.save(filename, logText);
-		auto logFilename =
 #if BX_PLATFORM_WINDOWS
-			toMBString(getFilename());
+		auto logFilename = u8_to_w(getFilename());
 #else
-			getFilename();
+		auto logFilename = getFilename();
 #endif
 		_logger->sinks().push_back(std::make_shared<spdlog::sinks::rotating_file_sink_mt>(logFilename, getMaxFileSize(), getMaxFiles()));
 		return result;

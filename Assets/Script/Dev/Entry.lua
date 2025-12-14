@@ -1217,7 +1217,7 @@ do -- 692
 						return -- 725
 					end -- 725
 					local relPath = Path:getRelative(Content.assetPath, path) -- 726
-					if "" == relPath or ".." == relPath:sub(1, 1) then -- 727
+					if "" == relPath or ".." == relPath:sub(1, 2) then -- 727
 						return setWorkspace(path) -- 728
 					else -- 730
 						failedSetFolder = true -- 730

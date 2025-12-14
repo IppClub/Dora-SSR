@@ -552,30 +552,31 @@ HttpServer\post "/info", ->
 		:webProfiler
 		:drawerWidth
 
-HttpServer\post "/new", (req): success: false ->
+HttpServer\post "/new", (req): success: false, message: "Failed" ->
 	switch req when {body: {:path, :content, :folder}}
-		if not Content\exist path
-			parent = Path\getPath path
-			files = Content\getFiles parent
-			if folder
-				name = Path\getFilename(path)\lower!
-				for file in *files
-					if name == Path\getFilename(file)\lower!
-						return success: false
-				if Content\mkdir path
-					return success: true
-			else
-				name = Path\getName(path)\lower!
-				for file in *files
-					if name == Path\getName(file)\lower!
-						ext = Path\getExt file
-						if ext not in ["tl", "yue", "ts", "tsx", "vs", "bl", "xml", "lua"]
-							continue
-						elseif ("d" == Path\getExt name) and (ext ~= Path\getExt path)
-							continue
-						return success: false
-				if Content\save path, content
-					return success: true
+		if Content\exist path
+			return success: false, message: "TargetExisted" 
+		parent = Path\getPath path
+		files = Content\getFiles parent
+		if folder
+			name = Path\getFilename(path)\lower!
+			for file in *files
+				if name == Path\getFilename(file)\lower!
+					return success: false, message: "TargetExisted"
+			if Content\mkdir path
+				return success: true
+		else
+			name = Path\getName(path)\lower!
+			for file in *files
+				if name == Path\getName(file)\lower!
+					ext = Path\getExt file
+					if ext not in ["tl", "yue", "ts", "tsx", "vs", "bl", "xml", "lua"]
+						continue
+					elseif ("d" == Path\getExt name) and (ext ~= Path\getExt path)
+						continue
+					return success: false, message: "SourceExisted"
+			if Content\save path, content
+				return success: true
 
 HttpServer\post "/delete", (req): success: false ->
 	switch req when {body: {:path}}

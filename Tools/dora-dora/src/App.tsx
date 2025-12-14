@@ -2087,7 +2087,7 @@ export default function PersistentDrawerLeft() {
 				const folder = fileInfo.title === "file.newFolder";
 				Service.newFile({path: newFile, content, folder}).then((res) => {
 					if (!res.success) {
-						addAlert(t("alert.newFailed"), "error");
+						addAlert(t(`alert.new${res.message}`), "error");
 						return;
 					}
 					const rootNode = treeData.at(0);
@@ -2139,10 +2139,6 @@ export default function PersistentDrawerLeft() {
 					setTreeData([rootNode]);
 					setSelectedKeys([newFile]);
 					setSelectedNode(newNode);
-					const index = files.length;
-					if (ext === ".md") {
-						files[index].mdEditing = true;
-					}
 					const newItem: EditingFile = {
 						key: newFile,
 						title: newName,
@@ -2153,9 +2149,12 @@ export default function PersistentDrawerLeft() {
 						status: "normal",
 						onMount: () => {},
 					};
+					if (ext === ".md") {
+						newItem.mdEditing = true;
+					}
 					newItem.onMount = onEditorDidMount(newItem);
 					setFiles([...files, newItem]);
-					switchTab(index, newItem);
+					switchTab(files.length, newItem);
 				}).catch(() => {
 					addAlert(t("alert.newFailed"), "error");
 				});
