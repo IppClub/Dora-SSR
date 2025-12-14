@@ -33,7 +33,7 @@ public:
 	bool move(String src, String dst);
 	bool remove(String filename);
 	bool save(String filename, String content);
-	bool save(String filename, uint8_t* content, int64_t size);
+	bool save(String filename, const uint8_t* content, int64_t size);
 	bool createFolder(String path);
 	std::list<std::string> getDirs(String path);
 	std::list<std::string> getFiles(String path);

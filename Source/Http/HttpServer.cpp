@@ -52,7 +52,8 @@ namespace fs = std::filesystem;
 #endif // BX_PLATFORM_LINUX
 
 #include <atomic>
-#include <fstream>
+
+#include "SDL.h"
 
 #if BX_PLATFORM_WINDOWS
 static std::string get_local_ip() {
@@ -78,7 +79,6 @@ static std::string get_local_ip() {
 	}
 	return localIP;
 }
-std::string toMBString(const std::string& utf8Str);
 #else // BX_PLATFORM_WINDOWS
 #include <ifaddrs.h>
 
@@ -444,7 +444,7 @@ bool HttpServer::start(int port) {
 						request.contentType = it->second;
 					}
 					std::list<std::string> acceptedFiles;
-					std::list<std::ofstream> streams;
+					std::list<std::shared_ptr<SDL_RWops>> streams;
 					content_reader(
 						[&](const httplib::FormData& file) {
 							bool accepted = false;
@@ -452,12 +452,9 @@ bool HttpServer::start(int port) {
 							SharedApplication.invokeInLogic([&]() {
 								if (auto newFile = postFile.acceptHandler(request, file.filename)) {
 									auto fullPath = newFile.value();
-#if BX_PLATFORM_WINDOWS
-									fullPath = toMBString(fullPath);
-#endif
-									auto& stream = streams.emplace_back(fullPath,
-										std::ios::out | std::ios::trunc | std::ios::binary);
+									SDL_RWops* stream = SDL_RWFromFile(fullPath.c_str(), "wb+");
 									if (stream) {
+										streams.push_back({stream, [](SDL_RWops* io) { SDL_RWclose(io); }});
 										accepted = true;
 										acceptedFiles.emplace_back(newFile.value());
 									}
@@ -468,8 +465,11 @@ bool HttpServer::start(int port) {
 							return accepted;
 						},
 						[&](const char* data, size_t data_length) {
-							if (streams.back().write(data, data_length)) {
-								return true;
+							if (!streams.empty()) {
+								size_t written = SDL_RWwrite(streams.back().get(), data, 1, data_length);
+								if (written == data_length) {
+									return true;
+								}
 							}
 							acceptedFiles.pop_back();
 							return false;
@@ -772,49 +772,45 @@ void HttpClient::downloadAsync(String url, String filePath, float timeout, const
 			client.set_follow_location(true);
 			client.set_connection_timeout(timeout);
 			auto fullname = fileStr;
-#if BX_PLATFORM_WINDOWS
-			fullname = toMBString(fullname);
-#endif
-			std::ofstream out(fullname, std::ios::out | std::ios::trunc | std::ios::binary);
+			SDL_RWops* out = SDL_RWFromFile(fullname.c_str(), "wb+");
 			if (!out) {
 				Error("invalid local file path \"{}\" to download to", fileStr);
 				return nullptr;
 			}
+			auto stream = std::shared_ptr<SDL_RWops>{out, [](SDL_RWops* io) { SDL_RWclose(io); }};
 			auto result = client.Get(
 				pathToGet, [&](const char* data, size_t data_length) -> bool {
 					if (SharedHttpClient.isStopped()) {
 						return false;
-					} else if (!out.write(data, data_length)) {
-						Error("failed to write downloaded file for \"{}\"", urlStr);
-						out.close();
-						SharedApplication.invokeInLogic([progressFunc]() {
-							(*progressFunc)(true, 0, 0);
-						});
-						std::error_code err;
-						fs::remove_all(fileStr, err);
-						WarnIf(err, "failed to remove download file \"{}\" due to \"{}\".", fileStr, err.message());
-						return false;
+					} else {
+						size_t written = SDL_RWwrite(out, data, 1, data_length);
+						if (written != data_length) {
+							Error("failed to write downloaded file for \"{}\"", urlStr);
+							SharedApplication.invokeInLogic([progressFunc]() {
+								(*progressFunc)(true, 0, 0);
+							});
+							std::error_code err;
+							fs::remove_all(fileStr, err);
+							WarnIf(err, "failed to remove download file \"{}\" due to \"{}\".", fileStr, err.message());
+							return false;
+						}
+						return true;
 					}
-					return true;
+					return false;
 				},
-				[&, stopped = std::make_shared<std::atomic<bool>>(false)](uint64_t current, uint64_t total) -> bool {
-					if (current == total) {
-						out.close();
-					}
+				[&, stream, stopped = std::make_shared<std::atomic<bool>>(false)](uint64_t current, uint64_t total) -> bool {
 					SharedApplication.invokeInLogic([progressFunc, current, total, stopped]() {
 						if (!*stopped) {
 							*stopped = (*progressFunc)(false, current, total);
 						}
 					});
 					if (*stopped) {
-						out.close();
 						return false;
 					}
 					return true;
 				});
 			if (!result || result.error() != httplib::Error::Success) {
 				Info("failed to download \"{}\" due to {}", urlStr, httplib::to_string(result.error()));
-				out.close();
 				SharedApplication.invokeInLogic([progressFunc]() {
 					(*progressFunc)(true, 0, 0);
 				});

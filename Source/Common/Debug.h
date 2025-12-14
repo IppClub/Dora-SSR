@@ -33,7 +33,7 @@ const char* getShortFilename(const char* filename);
 
 bool IsInLuaOrWasm();
 
-#define println(...) Dora::LogInfoThreaded(fmt::format(__VA_ARGS__))
+#define Println(...) Dora::LogInfoThreaded(fmt::format(__VA_ARGS__))
 
 #if DORA_DISABLE_LOG
 #define Info(...) DORA_DUMMY

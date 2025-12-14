@@ -14,20 +14,20 @@ using namespace Dora;
 DORA_TEST_ENTRY(HelloWorldCpp) {
 	auto node = Node::create();
 	node->slot("Enter"sv, [](Event*) {
-		println("on enter event"sv);
+		Println("on enter event"sv);
 	});
 	node->slot("Exit"sv, [](Event*) {
-		println("on exit event"sv);
+		Println("on exit event"sv);
 	});
 	node->slot("Cleanup"sv, [](Event*) {
-		println("on node destoyed event"sv);
+		Println("on node destoyed event"sv);
 	});
 	node->schedule(once([]() -> Job {
 		for (int i = 5; i > 0; i--) {
-			println("{}", i);
+			Println("{}", i);
 			co_sleep(1);
 		}
-		println("Hello World!"sv);
+		Println("Hello World!"sv);
 	}));
 
 	//	auto time = std::make_shared<double>(0);
