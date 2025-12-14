@@ -844,6 +844,7 @@ void Application::install(String path) {
 		CloseHandle(pi.hProcess);
 		CloseHandle(pi.hThread);
 	}
+	Application::setDevMode(false);
 	Application::shutdown();
 #elif BX_PLATFORM_ANDROID
 	g_androidInstallFile = path.toString();
