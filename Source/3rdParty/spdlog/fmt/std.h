@@ -19,6 +19,6 @@
         #endif
         #include "spdlog/fmt/bundled/std.h"
     #else
-        #include <fmt/std.h>
+        #include "fmt/std.h"
     #endif
 #endif

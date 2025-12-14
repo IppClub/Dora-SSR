@@ -18,6 +18,6 @@
         #endif
         #include "spdlog/fmt/bundled/ostream.h"
     #else
-        #include <fmt/ostream.h>
+        #include "fmt/ostream.h"
     #endif
 #endif
