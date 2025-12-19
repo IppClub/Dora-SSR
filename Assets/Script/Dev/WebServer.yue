@@ -497,7 +497,7 @@ HttpServer\upload(
 	"/upload"
 	(req, filename): nil ->
 		switch req when {params: {:path}}
-			uploadPath = Path Content.appPath, ".upload"
+			uploadPath = Path Content.writablePath, ".upload"
 			if not Content\exist uploadPath
 				Content\mkdir uploadPath
 			targetPath = Path uploadPath, filename
@@ -507,7 +507,7 @@ HttpServer\upload(
 		switch req when {params: {:path}}
 			path = Path Content.writablePath, path
 			if Content\exist path
-				uploadPath = Path Content.appPath, ".upload"
+				uploadPath = Path Content.writablePath, ".upload"
 				targetPath = Path path, Path\getRelative file, uploadPath
 				Content\mkdir Path\getPath targetPath
 				if Content\move file, targetPath
@@ -936,9 +936,9 @@ HttpServer\postSchedule "/zip", (req): success: false ->
 		goto failed unless Content\exist path
 		Content\mkdir Path\getPath zipFile
 		if obfuscated
-			scriptPath = Path Content.appPath, ".download", ".script"
-			obfuscatedPath = Path Content.appPath, ".download", ".obfuscated"
-			tempPath = Path Content.appPath, ".download", ".temp"
+			scriptPath = Path Content.writablePath, ".download", ".script"
+			obfuscatedPath = Path Content.writablePath, ".download", ".obfuscated"
+			tempPath = Path Content.writablePath, ".download", ".temp"
 			Content\remove scriptPath
 			Content\remove obfuscatedPath
 			Content\remove tempPath
@@ -994,7 +994,7 @@ HttpServer\post "/command", (req): success: false ->
 HttpServer\post "/log/save", (): success: false ->
 	folder = ".download"
 	fullLogFile = "dora_full_logs.txt"
-	fullFolder = Path Content.appPath, folder
+	fullFolder = Path Content.writablePath, folder
 	Content\mkdir fullFolder
 	logPath = Path fullFolder, fullLogFile
 	if App\saveLog logPath

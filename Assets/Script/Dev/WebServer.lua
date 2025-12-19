@@ -1201,7 +1201,7 @@ HttpServer:upload("/upload", function(req, filename) -- 498
 				end -- 499
 			end -- 499
 			if path ~= nil then -- 499
-				local uploadPath = Path(Content.appPath, ".upload") -- 500
+				local uploadPath = Path(Content.writablePath, ".upload") -- 500
 				if not Content:exist(uploadPath) then -- 501
 					Content:mkdir(uploadPath) -- 502
 				end -- 501
@@ -1228,7 +1228,7 @@ end, function(req, file) -- 506
 			if path ~= nil then -- 507
 				path = Path(Content.writablePath, path) -- 508
 				if Content:exist(path) then -- 509
-					local uploadPath = Path(Content.appPath, ".upload") -- 510
+					local uploadPath = Path(Content.writablePath, ".upload") -- 510
 					local targetPath = Path(path, Path:getRelative(file, uploadPath)) -- 511
 					Content:mkdir(Path:getPath(targetPath)) -- 512
 					if Content:move(file, targetPath) then -- 513
@@ -2321,9 +2321,9 @@ HttpServer:postSchedule("/zip", function(req) -- 931
 				end -- 936
 				Content:mkdir(Path:getPath(zipFile)) -- 937
 				if obfuscated then -- 938
-					local scriptPath = Path(Content.appPath, ".download", ".script") -- 939
-					local obfuscatedPath = Path(Content.appPath, ".download", ".obfuscated") -- 940
-					local tempPath = Path(Content.appPath, ".download", ".temp") -- 941
+					local scriptPath = Path(Content.writablePath, ".download", ".script") -- 939
+					local obfuscatedPath = Path(Content.writablePath, ".download", ".obfuscated") -- 940
+					local tempPath = Path(Content.writablePath, ".download", ".temp") -- 941
 					Content:remove(scriptPath) -- 942
 					Content:remove(obfuscatedPath) -- 943
 					Content:remove(tempPath) -- 944
@@ -2495,7 +2495,7 @@ end) -- 989
 HttpServer:post("/log/save", function() -- 994
 	local folder = ".download" -- 995
 	local fullLogFile = "dora_full_logs.txt" -- 996
-	local fullFolder = Path(Content.appPath, folder) -- 997
+	local fullFolder = Path(Content.writablePath, folder) -- 997
 	Content:mkdir(fullFolder) -- 998
 	local logPath = Path(fullFolder, fullLogFile) -- 999
 	if App:saveLog(logPath) then -- 1000
