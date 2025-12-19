@@ -1505,9 +1505,9 @@ export default function PersistentDrawerLeft() {
 					break;
 				}
 				const downloadFile = (filename: string) => {
-					const assetPath = path.relative(rootNode.key, filename).replace("\\", "/");
+					const downloadPath = path.relative(writablePath, filename).replace("\\", "/");
 					const x = new XMLHttpRequest();
-					x.open("GET", Service.addr("/" + assetPath), true);
+					x.open("GET", Service.addr("/" + downloadPath), true);
 					x.responseType = 'blob';
 					x.onload = function() {
 						const url = window.URL.createObjectURL(x.response);
@@ -1527,7 +1527,7 @@ export default function PersistentDrawerLeft() {
 					}
 					waitingForDownload = true;
 					addAlert(t("alert.downloadStart"), "info");
-					const zipFile = path.join(rootNode.key, ".download", title + ".zip");
+					const zipFile = path.join(writablePath, ".download", title + ".zip");
 					Service.zip({zipFile, path: key, obfuscated: event === "Obfuscate"}).then(res => {
 						waitingForDownload = false;
 						if (res.success) {
@@ -1872,7 +1872,6 @@ export default function PersistentDrawerLeft() {
 				break;
 			}
 			case "Copy Path": {
-				const writablePath = treeData.at(0)?.key ?? "";
 				let relativePath: string;
 				if (isChildFolder(data.key, writablePath)) {
 					relativePath = path.relative(writablePath, data.key);

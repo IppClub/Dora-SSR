@@ -567,6 +567,7 @@ reloadDevEntry = -> thread ->
 		true
 
 setWorkspace = (path) ->
+	clearTempFiles!
 	Content.writablePath = path
 	config.writablePath = Content.writablePath
 	thread ->
