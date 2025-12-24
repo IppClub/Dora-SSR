@@ -308,6 +308,7 @@ YueParser::YueParser() {
 
 	SelfItem = SelfClassName | SelfClass | SelfName | Self;
 	KeyName = SelfItem | Name | UnicodeName;
+	VarArgDef = "..." >> -(space >> Variable);
 	VarArg = "...";
 
 	auto getIndent = [](const item_t& item) -> int {
@@ -1032,8 +1033,8 @@ YueParser::YueParser() {
 	check_vararg_position = and_(white >> (')' | key("using"))) | white >> -(',' >> white) >> vararg_position_error;
 
 	var_arg_def = (
-		VarArg |
-		+space_break >> push_indent_match >> ensure(space >> VarArg >> -(space >> '`' >> space >> Name), pop_indent)
+		VarArgDef |
+		+space_break >> push_indent_match >> ensure(space >> VarArgDef >> -(space >> '`' >> space >> Name), pop_indent)
 	) >> check_vararg_position;
 
 	FnArgDefList = Seperator >>
