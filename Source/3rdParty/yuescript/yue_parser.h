@@ -333,6 +333,7 @@ private:
 	AST_RULE(SelfItem);
 	AST_RULE(KeyName);
 	AST_RULE(VarArg);
+	AST_RULE(VarArgDef);
 	AST_RULE(Seperator);
 	AST_RULE(NameList);
 	AST_RULE(LocalFlag);

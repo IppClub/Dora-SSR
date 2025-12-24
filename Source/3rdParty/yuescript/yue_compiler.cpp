@@ -5872,18 +5872,33 @@ private:
 				temp.emplace_back(indent() + "local "s + join(names, ", "sv) + nl(def));
 				transformAssignment(arg.assignment, temp);
 			}
-			if (varNames.empty())
+			if (varNames.empty()) {
 				varNames = arg.name;
-			else
+			} else {
 				varNames.append(", "s + arg.name);
+			}
 		}
 		if (argDefList->varArg) {
+			std::string varStr;
+			if (auto varName = argDefList->varArg->name.get()) {
+				varStr = variableToString(varName);
+				int target = getLuaTarget(varName);
+				forceAddToScope(varStr);
+				if (target < 505) {
+					temp.push_back(indent() + "local "s + varStr + " = {"s + nl(varName));
+					temp.push_back(indent(1) + "n = "s + globalVar("select", varName, AccessType::Read) + "(\"#\", ...),"s + nl(varName));
+					temp.push_back(indent(1) + "..."s + nl(varName));
+					temp.push_back(indent() + '}' + nl(varName));
+					varStr.clear();
+				}
+			}
 			auto& arg = argItems.emplace_back();
 			arg.name = "..."sv;
-			if (varNames.empty())
-				varNames = arg.name;
-			else
-				varNames.append(", "s + arg.name);
+			if (varNames.empty()) {
+				varNames = arg.name + varStr;
+			} else {
+				varNames.append(", "s + arg.name + varStr);
+			}
 			_varArgs.top().hasVar = true;
 		}
 		if (assignSelf) {

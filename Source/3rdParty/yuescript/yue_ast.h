@@ -134,6 +134,11 @@ AST_NODE(KeyName)
 	AST_MEMBER(KeyName, &name)
 AST_END(KeyName)
 
+AST_NODE(VarArgDef)
+	ast_ptr<false, Variable_t> name;
+	AST_MEMBER(VarArgDef, &name)
+AST_END(VarArgDef)
+
 AST_LEAF(VarArg)
 AST_END(VarArg)
 
@@ -790,7 +795,7 @@ AST_END(FnArgDef)
 AST_NODE(FnArgDefList)
 	ast_ptr<true, Seperator_t> sep;
 	ast_list<false, FnArgDef_t> definitions;
-	ast_ptr<false, VarArg_t> varArg;
+	ast_ptr<false, VarArgDef_t> varArg;
 	ast_ptr<false, Name_t> label;
 	AST_MEMBER(FnArgDefList, &sep, &definitions, &varArg, &label)
 AST_END(FnArgDefList)
