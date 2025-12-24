@@ -304,7 +304,7 @@ static void check_readonly (LexState *ls, expdesc *e) {
       break;
     }
     case VVARGIND: {
-      fs->f->flag |= PF_VATAB;  /* function will need a vararg table */
+      needvatab(fs->f);  /* function will need a vararg table */
       e->k = VINDEXED;
     }  /* FALLTHROUGH */
     case VINDEXUP: case VINDEXSTR: case VINDEXED: {  /* global variable */
@@ -505,8 +505,8 @@ static void buildglobal (LexState *ls, TString *varname, expdesc *var) {
   init_exp(var, VGLOBAL, -1);  /* global by default */
   singlevaraux(fs, ls->envn, var, 1);  /* get environment variable */
   if (var->k == VGLOBAL)
-    luaK_semerror(ls, "_ENV is global when accessing variable '%s'",
-                      getstr(varname));
+    luaK_semerror(ls, "%s is global when accessing variable '%s'",
+                      LUA_ENV, getstr(varname));
   luaK_exp2anyregup(fs, var);  /* _ENV could be a constant */
   codestring(&key, varname);  /* key is variable name */
   luaK_indexed(fs, var, &key);  /* 'var' represents _ENV[varname] */
@@ -1056,9 +1056,8 @@ static void constructor (LexState *ls, expdesc *t) {
 /* }====================================================================== */
 
 
-static void setvararg (FuncState *fs, int kind) {
-  lua_assert(kind & PF_ISVARARG);
-  fs->f->flag |= cast_byte(kind);
+static void setvararg (FuncState *fs) {
+  fs->f->flag |= PF_VAHID;  /* by default, use hidden vararg arguments */
   luaK_codeABC(fs, OP_VARARGPREP, 0, 0, 0);
 }
 
@@ -1078,12 +1077,12 @@ static void parlist (LexState *ls) {
           break;
         }
         case TK_DOTS: {
-          varargk |= PF_ISVARARG;
-          luaX_next(ls);
-          if (testnext(ls, '|')) {
+          varargk = 1;
+          luaX_next(ls);  /* skip '...' */
+          if (ls->t.token == TK_NAME)
             new_varkind(ls, str_checkname(ls), RDKVAVAR);
-            varargk |= PF_VAVAR;
-          }
+          else
+            new_localvarliteral(ls, "(vararg table)");
           break;
         }
         default: luaX_syntaxerror(ls, "<name> or '...' expected");
@@ -1092,10 +1091,9 @@ static void parlist (LexState *ls) {
   }
   adjustlocalvars(ls, nparams);
   f->numparams = cast_byte(fs->nactvar);
-  if (varargk != 0) {
-    setvararg(fs, varargk);  /* declared vararg */
-    if (varargk & PF_VAVAR)
-      adjustlocalvars(ls, 1);  /* vararg parameter */
+  if (varargk) {
+    setvararg(fs);  /* declared vararg */
+    adjustlocalvars(ls, 1);  /* vararg parameter */
   }
   /* reserve registers for parameters (plus vararg parameter, if present) */
   luaK_reserveregs(fs, fs->nactvar);
@@ -1285,9 +1283,9 @@ static void simpleexp (LexState *ls, expdesc *v) {
     }
     case TK_DOTS: {  /* vararg */
       FuncState *fs = ls->fs;
-      check_condition(ls, fs->f->flag & PF_ISVARARG,
+      check_condition(ls, isvararg(fs->f),
                       "cannot use '...' outside a vararg function");
-      init_exp(v, VVARARG, luaK_codeABC(fs, OP_VARARG, 0, 0, 1));
+      init_exp(v, VVARARG, luaK_codeABC(fs, OP_VARARG, 0, fs->f->numparams, 1));
       break;
     }
     case '{' /*}*/: {  /* constructor */
@@ -1875,6 +1873,45 @@ static lu_byte getglobalattribute (LexState *ls, lu_byte df) {
 }
 
 
+static void checkglobal (LexState *ls, TString *varname, int line) {
+  FuncState *fs = ls->fs;
+  expdesc var;
+  int k;
+  buildglobal(ls, varname, &var);  /* create global variable in 'var' */
+  k = var.u.ind.keystr;  /* index of global name in 'k' */
+  luaK_codecheckglobal(fs, &var, k, line);
+}
+
+
+/*
+** Recursively traverse list of globals to be initalized. When
+** going, generate table description for the global. In the end,
+** after all indices have been generated, read list of initializing
+** expressions. When returning, generate the assignment of the value on
+** the stack to the corresponding table description. 'n' is the variable
+** being handled, range [0, nvars - 1].
+*/
+static void initglobal (LexState *ls, int nvars, int firstidx, int n,
+                        int line) {
+  if (n == nvars) {  /* traversed all variables? */
+    expdesc e;
+    int nexps = explist(ls, &e);  /* read list of expressions */
+    adjust_assign(ls, nvars, nexps, &e);
+  }
+  else {  /* handle variable 'n' */
+    FuncState *fs = ls->fs;
+    expdesc var;
+    TString *varname = getlocalvardesc(fs, firstidx + n)->vd.name;
+    buildglobal(ls, varname, &var);  /* create global variable in 'var' */
+    enterlevel(ls);  /* control recursion depth */
+    initglobal(ls, nvars, firstidx, n + 1, line);
+    leavelevel(ls);
+    checkglobal(ls, varname, line);
+    storevartop(fs, &var);
+  }
+}
+
+
 static void globalnames (LexState *ls, lu_byte defkind) {
   FuncState *fs = ls->fs;
   int nvars = 0;
@@ -1885,18 +1922,8 @@ static void globalnames (LexState *ls, lu_byte defkind) {
     lastidx = new_varkind(ls, vname, kind);
     nvars++;
   } while (testnext(ls, ','));
-  if (testnext(ls, '=')) {  /* initialization? */
-    expdesc e;
-    int i;
-    int nexps = explist(ls, &e);  /* read list of expressions */
-    adjust_assign(ls, nvars, nexps, &e);
-    for (i = 0; i < nvars; i++) {  /* for each variable */
-      expdesc var;
-      TString *varname = getlocalvardesc(fs, lastidx - i)->vd.name;
-      buildglobal(ls, varname, &var);  /* create global variable in 'var' */
-      storevartop(fs, &var);
-    }
-  }
+  if (testnext(ls, '='))  /* initialization? */
+    initglobal(ls, nvars, lastidx - nvars + 1, 0, ls->linenumber);
   fs->nactvar = cast_short(fs->nactvar + nvars);  /* activate declaration */
 }
 
@@ -1926,6 +1953,7 @@ static void globalfunc (LexState *ls, int line) {
   fs->nactvar++;  /* enter its scope */
   buildglobal(ls, fname, &var);
   body(ls, &b, 0, ls->linenumber);  /* compile and return closure in 'b' */
+  checkglobal(ls, fname, line);
   luaK_storevar(fs, &var, &b);
   luaK_fixline(fs, line);  /* definition "happens" in the first line */
 }
@@ -2123,7 +2151,7 @@ static void mainfunc (LexState *ls, FuncState *fs) {
   BlockCnt bl;
   Upvaldesc *env;
   open_func(ls, fs, &bl);
-  setvararg(fs, PF_ISVARARG);  /* main function is always vararg */
+  setvararg(fs);  /* main function is always vararg */
   env = allocupvalue(fs);  /* ...set environment upvalue */
   env->instack = 1;
   env->idx = 0;

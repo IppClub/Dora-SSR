@@ -622,8 +622,8 @@ doCompile = function(minify) -- 338
 	} -- 347
 	for _index_0 = 1, #gamesInDev do -- 354
 		local _des_0 = gamesInDev[_index_0] -- 354
-		local entryFile = _des_0.entryFile -- 354
-		local gamePath = Path:getPath(Path:getRelative(entryFile, writablePath)) -- 355
+		local fileName = _des_0.fileName -- 354
+		local gamePath = Path:getPath(Path:getRelative(fileName, writablePath)) -- 355
 		buildPaths[#buildPaths + 1] = { -- 357
 			Path(writablePath, gamePath), -- 357
 			Path(writablePath, ".build", gamePath), -- 358

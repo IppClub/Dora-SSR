@@ -373,6 +373,14 @@ void luaV_finishset (lua_State *L, const TValue *t, TValue *key,
 
 
 /*
+** Function to be used for 0-terminated string order comparison
+*/
+#if !defined(l_strcoll)
+#define l_strcoll	strcoll
+#endif
+
+
+/*
 ** Compare two strings 'ts1' x 'ts2', returning an integer less-equal-
 ** -greater than zero if 'ts1' is less-equal-greater than 'ts2'.
 ** The code is a little tricky because it allows '\0' in the strings
@@ -386,7 +394,7 @@ static int l_strcmp (const TString *ts1, const TString *ts2) {
   size_t rl2;
   const char *s2 = getlstr(ts2, rl2);
   for (;;) {  /* for each segment */
-    int temp = strcoll(s1, s2);
+    int temp = l_strcoll(s1, s2);
     if (temp != 0)  /* not equal? */
       return temp;  /* done */
     else {  /* strings are equal up to a '\0' */
@@ -609,7 +617,7 @@ int luaV_equalobj (lua_State *L, const TValue *t1, const TValue *t2) {
         return (ivalue(t1) == ivalue(t2));
       case LUA_VNUMFLT:
         return (fltvalue(t1) == fltvalue(t2));
-      case LUA_VLIGHTUSERDATA: return check_exp(ttislightuserdata(t1), val_(t1).i) == check_exp(ttislightuserdata(t2), val_(t2).i);
+      case LUA_VLIGHTUSERDATA: return pvalue(t1) == pvalue(t2);
       case LUA_VSHRSTR:
         return eqshrstr(tsvalue(t1), tsvalue(t2));
       case LUA_VLNGSTR:
@@ -649,6 +657,11 @@ int luaV_equalobj (lua_State *L, const TValue *t1, const TValue *t2) {
 #define tostring(L,o)  \
 	(ttisstring(o) || (cvt2str(o) && (luaO_tostring(L, o), 1)))
 
+/*
+** Check whether object is a short empty string to optimize concatenation.
+** (External strings can be empty too; they will be concatenated like
+** non-empty ones.)
+*/
 #define isemptystr(o)	(ttisshrstring(o) && tsvalue(o)->shrlen == 0)
 
 /* copy strings in stack from top - n up to top - 1 to buffer */
@@ -683,8 +696,8 @@ void luaV_concat (lua_State *L, int total) {
       setobjs2s(L, top - 2, top - 1);  /* result is second op. */
     }
     else {
-      /* at least two non-empty string values; get as many as possible */
-      size_t tl = tsslen(tsvalue(s2v(top - 1)));
+      /* at least two string values; get as many as possible */
+      size_t tl = tsslen(tsvalue(s2v(top - 1)));  /* total length */
       TString *ts;
       /* collect total length and number of strings */
       for (n = 1; n < total && tostring(L, s2v(top - n - 1)); n++) {
@@ -1922,14 +1935,21 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
       }
       vmcase(OP_VARARG) {
         StkId ra = RA(i);
-        int n = GETARG_C(i) - 1;  /* required results */
-        Protect(luaT_getvarargs(L, ci, ra, n));
+        int n = GETARG_C(i) - 1;  /* required results (-1 means all) */
+        int vatab = GETARG_k(i) ? GETARG_B(i) : -1;
+        Protect(luaT_getvarargs(L, ci, ra, n, vatab));
         vmbreak;
       }
       vmcase(OP_GETVARG) {
         StkId ra = RA(i);
         TValue *rc = vRC(i);
         luaT_getvararg(ci, ra, rc);
+        vmbreak;
+      }
+      vmcase(OP_ERRNNIL) {
+        TValue *ra = vRA(i);
+        if (!ttisnil(ra))
+          halfProtect(luaG_errnnil(L, cl, GETARG_Bx(i)));
         vmbreak;
       }
       vmcase(OP_VARARGPREP) {
