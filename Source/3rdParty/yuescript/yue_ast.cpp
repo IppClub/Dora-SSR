@@ -83,7 +83,11 @@ std::string VarArg_t::to_string(void*) const {
 	return "..."s;
 }
 std::string VarArgDef_t::to_string(void* ud) const {
-	return "..."s + name->to_string(ud);
+	if (name) {
+		return "..."s + name->to_string(ud);
+	} else {
+		return "..."s;
+	}
 }
 std::string Seperator_t::to_string(void*) const {
 	return {};
