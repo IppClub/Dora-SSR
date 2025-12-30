@@ -18,7 +18,7 @@ extern "C" {
 #include "3rdParty/h264bsd/h264bsd_vui.h"
 }
 
-#include "3rdParty/SDL2/Header/SDL_rwops.h"
+#include "SDL_rwops.h"
 
 NS_DORA_BEGIN
 
