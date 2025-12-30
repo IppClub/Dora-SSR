@@ -110,6 +110,7 @@ local objects = {
 	"TileNode",
 	"AudioBus",
 	"AudioSource",
+	"VideoNode",
 	"Platformer::Unit",
 	"Platformer::Face",
 	"Platformer::PlatformCamera",

@@ -20,6 +20,7 @@ include_directories(
 	src/main/cpp/3rdParty/Zip/zlib
 	src/main/cpp/3rdParty/OpenSSL/Header
 	src/main/cpp/3rdParty/Effekseer
+	src/main/cpp/3rdParty/h264bsd
 )
 
 add_library(SDL2-lib SHARED IMPORTED)
@@ -169,6 +170,7 @@ add_library(main SHARED
 	src/main/cpp/Node/EffekNode.cpp
 	src/main/cpp/Node/TileNode.cpp
 	src/main/cpp/Node/AudioSource.cpp
+	src/main/cpp/Node/VideoNode.cpp
 	src/main/cpp/Event/EventType.cpp
 	src/main/cpp/Event/EventQueue.cpp
 	src/main/cpp/Event/Listener.cpp
@@ -593,6 +595,32 @@ add_library(main SHARED
 	src/main/cpp/3rdParty/tmxlite/Map.cpp
 	src/main/cpp/3rdParty/tmxlite/ImageLayer.cpp
 	src/main/cpp/3rdParty/tmxlite/detail/pugixml.cpp
+	src/main/cpp/3rdParty/h264bsd/h264bsd_slice_header.c
+	src/main/cpp/3rdParty/h264bsd/h264bsd_dpb.c
+	src/main/cpp/3rdParty/h264bsd/h264bsd_transform.c
+	src/main/cpp/3rdParty/h264bsd/h264bsd_pic_order_cnt.c
+	src/main/cpp/3rdParty/h264bsd/h264bsd_intra_prediction.c
+	src/main/cpp/3rdParty/h264bsd/h264bsd_stream.c
+	src/main/cpp/3rdParty/h264bsd/h264bsd_byte_stream.c
+	src/main/cpp/3rdParty/h264bsd/h264bsd_slice_data.c
+	src/main/cpp/3rdParty/h264bsd/h264bsd_pic_param_set.c
+	src/main/cpp/3rdParty/h264bsd/h264bsd_conceal.c
+	src/main/cpp/3rdParty/h264bsd/h264bsd_sei.c
+	src/main/cpp/3rdParty/h264bsd/h264bsd_storage.c
+	src/main/cpp/3rdParty/h264bsd/h264bsd_cavlc.c
+	src/main/cpp/3rdParty/h264bsd/h264bsd_deblocking.c
+	src/main/cpp/3rdParty/h264bsd/h264bsd_decoder.c
+	src/main/cpp/3rdParty/h264bsd/h264bsd_reconstruct.c
+	src/main/cpp/3rdParty/h264bsd/h264bsd_macroblock_layer.c
+	src/main/cpp/3rdParty/h264bsd/h264bsd_image.c
+	src/main/cpp/3rdParty/h264bsd/h264bsd_inter_prediction.c
+	src/main/cpp/3rdParty/h264bsd/h264bsd_seq_param_set.c
+	src/main/cpp/3rdParty/h264bsd/h264bsd_nal_unit.c
+	src/main/cpp/3rdParty/h264bsd/h264bsd_vui.c
+	src/main/cpp/3rdParty/h264bsd/h264bsd_util.c
+	src/main/cpp/3rdParty/h264bsd/h264bsd_slice_group_map.c
+	src/main/cpp/3rdParty/h264bsd/h264bsd_neighbour.c
+	src/main/cpp/3rdParty/h264bsd/h264bsd_vlc.c
 )
 
 target_link_libraries(main android log EGL z GLESv1_CM GLESv2 SDL2-lib BGFX-lib BIMGDE-lib BIMG-lib BX-lib CRYPTO-lib SSL-lib DORA-lib)

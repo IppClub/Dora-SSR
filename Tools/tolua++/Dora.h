@@ -1145,6 +1145,11 @@ class AudioSource : public Node
 	static AudioSource* create(String filename, bool autoRemove = true, AudioBus* bus = nullptr);
 };
 
+class VideoNode : public Sprite
+{
+	static VideoNode* create(String filename, bool looped = false);
+};
+
 class Menu : public Node
 {
 	tolua_property__bool bool enabled;

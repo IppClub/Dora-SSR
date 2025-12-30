@@ -1,0 +1,35 @@
+# VideoNode Class
+
+**Description:**
+
+&emsp;&emsp;A class for creating VideoNode objects.
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;The constructor function for creating a VideoNode instance.
+
+**Signature:**
+```tl
+metamethod __call: function(
+		self: VideoNodeClass,
+		filename: string,
+		looped?: boolean --[[false]]
+	): VideoNode | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The path to the video file. It should be a valid video file path with `.h264` suffix.<br/>H.264 format requirements:<br/>- Video codec: H.264 / AVC only (no H.265/HEVC, VP9, AV1, etc.).<br/>- Bitstream format: Annex-B byte stream is required (NAL units separated by 0x000001 / 0x00000001 start codes).<br/>MP4/FLV-style AVCC (length-prefixed NAL units) is NOT supported unless converted to Annex-B beforehand.<br/>- Stream type: video-only elementary stream is recommended. Audio tracks (if any) are ignored.<br/>- Profile/level constraints (recommended for maximum compatibility and performance):<br/>* Baseline / Constrained Baseline profile is recommended.<br/>* Progressive frames only (no interlaced/field-coded content).<br/>* No B-frames is recommended (e.g., baseline) to avoid output reordering costs.<br/>- Color format: YUV 4:2:0 (8-bit) is recommended; other chroma formats may be unsupported.<br/>- Frame rate: Constant frame rate (CFR) is recommended. Variable frame rate streams may play with unstable timing.<br/>- Resolution/performance notes:<br/>* 4K and high-bitrate streams may be CPU intensive for software decoding.<br/>* For smooth playback on mid-range devices, 720p/1080p and moderate bitrates are recommended.<br/>- It is recommended to use the `ffmpeg` tool to convert the video file to H.264 format before using it. |
+| looped | boolean | [optional] Whether the video should loop. Default is false. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| VideoNode \| nil | The created VideoNode instance. If creation fails, returns nil. |
