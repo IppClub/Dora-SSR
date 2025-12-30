@@ -509,6 +509,16 @@ const sidebars = {
 						},
 						{
 							type: 'doc',
+							label: 'VideoNode',
+							id: 'api/Class/VideoNode',
+						},
+						{
+							type: 'doc',
+							label: 'VideoNode Class',
+							id: 'api/Class Object/VideoNode',
+						},
+						{
+							type: 'doc',
 							label: 'SVG',
 							id: 'api/Class/SVG',
 						},

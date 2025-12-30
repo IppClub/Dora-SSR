@@ -6243,7 +6243,7 @@ export const enum TextureFilter {
  * 用于在游戏场景树层次结构中渲染纹理的Sprite类。
  */
 class Sprite extends Node {
-	private constructor();
+	protected constructor();
 
 	/**
 	 * 当渲染图元时，是否应该写入深度缓冲区（默认为false）。
@@ -7127,7 +7127,6 @@ export const enum AudioFilter {
  * 音频总线。
  */
 class AudioBus extends Object {
-
 	private constructor();
 
 	/** 音频总线的音量。值在 0.0 和 1.0 之间。 */
@@ -7225,6 +7224,7 @@ export const enum AttenuationModel {
  * 音频源节点。
  */
 class AudioSource extends Node {
+	private constructor();
 
 	/**
 	 * 音频源的音量。值在 0.0 和 1.0 之间。
@@ -7345,6 +7345,48 @@ interface AudioSourceClass {
 
 const audioSourceClass: AudioSourceClass;
 export {audioSourceClass as AudioSource};
+
+/**
+ * 用于表示视频节点的类。
+ */
+class VideoNode extends Sprite {
+	private constructor();
+}
+
+export namespace VideoNode {
+	export type Type = VideoNode;
+}
+
+/**
+ * 用于创建 VideoNode 对象的类。
+ */
+interface VideoNodeClass {
+	/**
+	 * 创建一个新的 VideoNode 实例。
+	 * @param filename 视频文件路径。应为 `.h264` 后缀及格式有效的视频文件路径。
+	 *     H.264 格式要求：
+	 *     - 视频编码：仅支持 H.264 / AVC（不支持 H.265/HEVC，VP9，AV1 等）。
+	 *     - 比特流格式：需为 Annex-B 字节流（NAL 单元之间以 0x000001 / 0x00000001 起始码分隔）。
+	 *       MP4/FLV 格式的 AVCC（长度前缀 NAL 单元）不支持，除非预先转换为 Annex-B。
+	 *     - 流类型：推荐仅包含视频的流。音频轨道（如有）会被忽略。
+	 *     - 配置文件/级别建议（为最大兼容性和性能）：
+	 *         * 推荐 Baseline / Constrained Baseline profile。
+	 *         * 仅支持逐行扫描（progressive）帧（不支持隔行/场编码内容）。
+	 *         * 推荐不含 B 帧（如 baseline），以避免输出重排序开销。
+	 *     - 色彩格式：推荐 YUV 4:2:0（8 位）；其他色度格式可能不被支持。
+	 *     - 帧率：推荐恒定帧率（CFR），可变帧率可能导致播放时序不稳定。
+	 *     - 分辨率/性能说明：
+	 *         * 4K 与高码率流在纯软件解码时可能会有较高的 CPU 占用。
+	 *         * 中等性能设备建议使用 720p/1080p 及适中码率以保证流畅播放。
+	 *     - 建议使用 `ffmpeg` 工具将视频文件转换为 H.264 格式后再使用。
+	 * @param looped [可选] 是否循环播放，默认为 false。
+	 * @returns 新创建的 VideoNode 实例。如果视频文件未加载成功，则返回 null。
+	 */
+	(this: void, filename: string, looped?: boolean): VideoNode | null;
+}
+
+const videoNodeClass: VideoNodeClass;
+export {videoNodeClass as VideoNode};
 
 export const enum TypeName {
 	Size = "Size",

@@ -118,6 +118,7 @@ sidebar_position: 0
 * [EffekNode](/docs/api/Class/EffekNode)
 * [TileNode](/docs/api/Class/TileNode)
 * [VGNode](/docs/api/Class/VGNode)
+* [VideoNode](/docs/api/Class/VideoNode)
 * [SVG](/docs/api/Class/SVG)
 * [Particle](/docs/api/Class/Particle)
 

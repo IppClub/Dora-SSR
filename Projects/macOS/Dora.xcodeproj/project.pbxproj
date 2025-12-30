@@ -8,6 +8,33 @@
 
 /* Begin PBXBuildFile section */
 		3C030CA124CABDFE0074786E /* DecisionTree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C030C9F24CABDFD0074786E /* DecisionTree.cpp */; };
+		3C03A9E12EF2513100B706C8 /* h264bsd_nal_unit.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C03A9A22EF250FC00B706C8 /* h264bsd_nal_unit.c */; };
+		3C03A9E22EF2513100B706C8 /* h264bsd_conceal.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C03A9912EF250FC00B706C8 /* h264bsd_conceal.c */; };
+		3C03A9E42EF2513100B706C8 /* h264bsd_inter_prediction.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C03A99C2EF250FC00B706C8 /* h264bsd_inter_prediction.c */; };
+		3C03A9E52EF2513100B706C8 /* h264bsd_deblocking.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C03A9942EF250FC00B706C8 /* h264bsd_deblocking.c */; };
+		3C03A9E62EF2513100B706C8 /* h264bsd_slice_header.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C03A9B42EF250FC00B706C8 /* h264bsd_slice_header.c */; };
+		3C03A9E72EF2513100B706C8 /* h264bsd_vui.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C03A9C02EF250FC00B706C8 /* h264bsd_vui.c */; };
+		3C03A9E82EF2513100B706C8 /* h264bsd_dpb.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C03A9982EF250FC00B706C8 /* h264bsd_dpb.c */; };
+		3C03A9E92EF2513100B706C8 /* h264bsd_slice_data.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C03A9B02EF250FC00B706C8 /* h264bsd_slice_data.c */; };
+		3C03A9EA2EF2513100B706C8 /* h264bsd_macroblock_layer.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C03A9A02EF250FC00B706C8 /* h264bsd_macroblock_layer.c */; };
+		3C03A9EB2EF2513100B706C8 /* h264bsd_vlc.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C03A9BE2EF250FC00B706C8 /* h264bsd_vlc.c */; };
+		3C03A9EC2EF2513100B706C8 /* h264bsd_byte_stream.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C03A98C2EF250FC00B706C8 /* h264bsd_byte_stream.c */; };
+		3C03A9ED2EF2513100B706C8 /* h264bsd_seq_param_set.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C03A9AE2EF250FC00B706C8 /* h264bsd_seq_param_set.c */; };
+		3C03A9EE2EF2513100B706C8 /* h264bsd_pic_param_set.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C03A9A82EF250FC00B706C8 /* h264bsd_pic_param_set.c */; };
+		3C03A9EF2EF2513100B706C8 /* h264bsd_neighbour.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C03A9A42EF250FC00B706C8 /* h264bsd_neighbour.c */; };
+		3C03A9F02EF2513100B706C8 /* h264bsd_storage.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C03A9B62EF250FC00B706C8 /* h264bsd_storage.c */; };
+		3C03A9F12EF2513100B706C8 /* h264bsd_image.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C03A99A2EF250FC00B706C8 /* h264bsd_image.c */; };
+		3C03A9F22EF2513100B706C8 /* h264bsd_reconstruct.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C03A9AA2EF250FC00B706C8 /* h264bsd_reconstruct.c */; };
+		3C03A9F32EF2513100B706C8 /* h264bsd_pic_order_cnt.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C03A9A62EF250FC00B706C8 /* h264bsd_pic_order_cnt.c */; };
+		3C03A9F42EF2513100B706C8 /* h264bsd_sei.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C03A9AC2EF250FC00B706C8 /* h264bsd_sei.c */; };
+		3C03A9F52EF2513100B706C8 /* h264bsd_util.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C03A9BC2EF250FC00B706C8 /* h264bsd_util.c */; };
+		3C03A9F62EF2513100B706C8 /* h264bsd_stream.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C03A9B82EF250FC00B706C8 /* h264bsd_stream.c */; };
+		3C03A9F72EF2513100B706C8 /* h264bsd_transform.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C03A9BA2EF250FC00B706C8 /* h264bsd_transform.c */; };
+		3C03A9F82EF2513100B706C8 /* h264bsd_cavlc.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C03A98E2EF250FC00B706C8 /* h264bsd_cavlc.c */; };
+		3C03A9F92EF2513100B706C8 /* h264bsd_intra_prediction.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C03A99E2EF250FC00B706C8 /* h264bsd_intra_prediction.c */; };
+		3C03A9FA2EF2513100B706C8 /* h264bsd_decoder.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C03A9962EF250FC00B706C8 /* h264bsd_decoder.c */; };
+		3C03A9FB2EF2513100B706C8 /* h264bsd_slice_group_map.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C03A9B22EF250FC00B706C8 /* h264bsd_slice_group_map.c */; };
+		3C03AA012EF2522E00B706C8 /* VideoNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C03AA002EF2522E00B706C8 /* VideoNode.cpp */; };
 		3C078D7D2E14CD2D00C05BA4 /* AudioSource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C078D7C2E14CD2D00C05BA4 /* AudioSource.cpp */; };
 		3C0EBE301E2DB3FB0066450A /* libbx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C0EBE2F1E2DB3FB0066450A /* libbx.a */; };
 		3C1FE9822D6D64CB0017CD23 /* yarn_compiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C1FE9802D6D64CB0017CD23 /* yarn_compiler.cpp */; };
@@ -567,6 +594,63 @@
 /* Begin PBXFileReference section */
 		3C030C9F24CABDFD0074786E /* DecisionTree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DecisionTree.cpp; sourceTree = "<group>"; };
 		3C030CA024CABDFD0074786E /* DecisionTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DecisionTree.h; sourceTree = "<group>"; };
+		3C03A98A2EF250FC00B706C8 /* basetype.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = basetype.h; sourceTree = "<group>"; };
+		3C03A98B2EF250FC00B706C8 /* h264bsd_byte_stream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_byte_stream.h; sourceTree = "<group>"; };
+		3C03A98C2EF250FC00B706C8 /* h264bsd_byte_stream.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_byte_stream.c; sourceTree = "<group>"; };
+		3C03A98D2EF250FC00B706C8 /* h264bsd_cavlc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_cavlc.h; sourceTree = "<group>"; };
+		3C03A98E2EF250FC00B706C8 /* h264bsd_cavlc.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_cavlc.c; sourceTree = "<group>"; };
+		3C03A98F2EF250FC00B706C8 /* h264bsd_cfg.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_cfg.h; sourceTree = "<group>"; };
+		3C03A9902EF250FC00B706C8 /* h264bsd_conceal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_conceal.h; sourceTree = "<group>"; };
+		3C03A9912EF250FC00B706C8 /* h264bsd_conceal.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_conceal.c; sourceTree = "<group>"; };
+		3C03A9922EF250FC00B706C8 /* h264bsd_container.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_container.h; sourceTree = "<group>"; };
+		3C03A9932EF250FC00B706C8 /* h264bsd_deblocking.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_deblocking.h; sourceTree = "<group>"; };
+		3C03A9942EF250FC00B706C8 /* h264bsd_deblocking.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_deblocking.c; sourceTree = "<group>"; };
+		3C03A9952EF250FC00B706C8 /* h264bsd_decoder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_decoder.h; sourceTree = "<group>"; };
+		3C03A9962EF250FC00B706C8 /* h264bsd_decoder.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_decoder.c; sourceTree = "<group>"; };
+		3C03A9972EF250FC00B706C8 /* h264bsd_dpb.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_dpb.h; sourceTree = "<group>"; };
+		3C03A9982EF250FC00B706C8 /* h264bsd_dpb.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_dpb.c; sourceTree = "<group>"; };
+		3C03A9992EF250FC00B706C8 /* h264bsd_image.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_image.h; sourceTree = "<group>"; };
+		3C03A99A2EF250FC00B706C8 /* h264bsd_image.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_image.c; sourceTree = "<group>"; };
+		3C03A99B2EF250FC00B706C8 /* h264bsd_inter_prediction.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_inter_prediction.h; sourceTree = "<group>"; };
+		3C03A99C2EF250FC00B706C8 /* h264bsd_inter_prediction.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_inter_prediction.c; sourceTree = "<group>"; };
+		3C03A99D2EF250FC00B706C8 /* h264bsd_intra_prediction.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_intra_prediction.h; sourceTree = "<group>"; };
+		3C03A99E2EF250FC00B706C8 /* h264bsd_intra_prediction.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_intra_prediction.c; sourceTree = "<group>"; };
+		3C03A99F2EF250FC00B706C8 /* h264bsd_macroblock_layer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_macroblock_layer.h; sourceTree = "<group>"; };
+		3C03A9A02EF250FC00B706C8 /* h264bsd_macroblock_layer.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_macroblock_layer.c; sourceTree = "<group>"; };
+		3C03A9A12EF250FC00B706C8 /* h264bsd_nal_unit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_nal_unit.h; sourceTree = "<group>"; };
+		3C03A9A22EF250FC00B706C8 /* h264bsd_nal_unit.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_nal_unit.c; sourceTree = "<group>"; };
+		3C03A9A32EF250FC00B706C8 /* h264bsd_neighbour.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_neighbour.h; sourceTree = "<group>"; };
+		3C03A9A42EF250FC00B706C8 /* h264bsd_neighbour.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_neighbour.c; sourceTree = "<group>"; };
+		3C03A9A52EF250FC00B706C8 /* h264bsd_pic_order_cnt.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_pic_order_cnt.h; sourceTree = "<group>"; };
+		3C03A9A62EF250FC00B706C8 /* h264bsd_pic_order_cnt.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_pic_order_cnt.c; sourceTree = "<group>"; };
+		3C03A9A72EF250FC00B706C8 /* h264bsd_pic_param_set.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_pic_param_set.h; sourceTree = "<group>"; };
+		3C03A9A82EF250FC00B706C8 /* h264bsd_pic_param_set.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_pic_param_set.c; sourceTree = "<group>"; };
+		3C03A9A92EF250FC00B706C8 /* h264bsd_reconstruct.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_reconstruct.h; sourceTree = "<group>"; };
+		3C03A9AA2EF250FC00B706C8 /* h264bsd_reconstruct.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_reconstruct.c; sourceTree = "<group>"; };
+		3C03A9AB2EF250FC00B706C8 /* h264bsd_sei.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_sei.h; sourceTree = "<group>"; };
+		3C03A9AC2EF250FC00B706C8 /* h264bsd_sei.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_sei.c; sourceTree = "<group>"; };
+		3C03A9AD2EF250FC00B706C8 /* h264bsd_seq_param_set.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_seq_param_set.h; sourceTree = "<group>"; };
+		3C03A9AE2EF250FC00B706C8 /* h264bsd_seq_param_set.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_seq_param_set.c; sourceTree = "<group>"; };
+		3C03A9AF2EF250FC00B706C8 /* h264bsd_slice_data.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_slice_data.h; sourceTree = "<group>"; };
+		3C03A9B02EF250FC00B706C8 /* h264bsd_slice_data.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_slice_data.c; sourceTree = "<group>"; };
+		3C03A9B12EF250FC00B706C8 /* h264bsd_slice_group_map.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_slice_group_map.h; sourceTree = "<group>"; };
+		3C03A9B22EF250FC00B706C8 /* h264bsd_slice_group_map.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_slice_group_map.c; sourceTree = "<group>"; };
+		3C03A9B32EF250FC00B706C8 /* h264bsd_slice_header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_slice_header.h; sourceTree = "<group>"; };
+		3C03A9B42EF250FC00B706C8 /* h264bsd_slice_header.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_slice_header.c; sourceTree = "<group>"; };
+		3C03A9B52EF250FC00B706C8 /* h264bsd_storage.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_storage.h; sourceTree = "<group>"; };
+		3C03A9B62EF250FC00B706C8 /* h264bsd_storage.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_storage.c; sourceTree = "<group>"; };
+		3C03A9B72EF250FC00B706C8 /* h264bsd_stream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_stream.h; sourceTree = "<group>"; };
+		3C03A9B82EF250FC00B706C8 /* h264bsd_stream.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_stream.c; sourceTree = "<group>"; };
+		3C03A9B92EF250FC00B706C8 /* h264bsd_transform.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_transform.h; sourceTree = "<group>"; };
+		3C03A9BA2EF250FC00B706C8 /* h264bsd_transform.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_transform.c; sourceTree = "<group>"; };
+		3C03A9BB2EF250FC00B706C8 /* h264bsd_util.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_util.h; sourceTree = "<group>"; };
+		3C03A9BC2EF250FC00B706C8 /* h264bsd_util.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_util.c; sourceTree = "<group>"; };
+		3C03A9BD2EF250FC00B706C8 /* h264bsd_vlc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_vlc.h; sourceTree = "<group>"; };
+		3C03A9BE2EF250FC00B706C8 /* h264bsd_vlc.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_vlc.c; sourceTree = "<group>"; };
+		3C03A9BF2EF250FC00B706C8 /* h264bsd_vui.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_vui.h; sourceTree = "<group>"; };
+		3C03A9C02EF250FC00B706C8 /* h264bsd_vui.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_vui.c; sourceTree = "<group>"; };
+		3C03A9FF2EF2522E00B706C8 /* VideoNode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VideoNode.h; sourceTree = "<group>"; };
+		3C03AA002EF2522E00B706C8 /* VideoNode.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = VideoNode.cpp; sourceTree = "<group>"; };
 		3C078D7B2E14CD2D00C05BA4 /* AudioSource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AudioSource.h; sourceTree = "<group>"; };
 		3C078D7C2E14CD2D00C05BA4 /* AudioSource.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AudioSource.cpp; sourceTree = "<group>"; };
 		3C0EBE2F1E2DB3FB0066450A /* libbx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbx.a; path = ../../Source/3rdParty/BGFX/Lib/macOS/libbx.a; sourceTree = "<group>"; };
@@ -1977,6 +2061,68 @@
 			path = ../../Assets;
 			sourceTree = SOURCE_ROOT;
 		};
+		3C03A9FE2EF2518D00B706C8 /* h264bsd */ = {
+			isa = PBXGroup;
+			children = (
+				3C03A98A2EF250FC00B706C8 /* basetype.h */,
+				3C03A98B2EF250FC00B706C8 /* h264bsd_byte_stream.h */,
+				3C03A98C2EF250FC00B706C8 /* h264bsd_byte_stream.c */,
+				3C03A98D2EF250FC00B706C8 /* h264bsd_cavlc.h */,
+				3C03A98E2EF250FC00B706C8 /* h264bsd_cavlc.c */,
+				3C03A98F2EF250FC00B706C8 /* h264bsd_cfg.h */,
+				3C03A9902EF250FC00B706C8 /* h264bsd_conceal.h */,
+				3C03A9912EF250FC00B706C8 /* h264bsd_conceal.c */,
+				3C03A9922EF250FC00B706C8 /* h264bsd_container.h */,
+				3C03A9932EF250FC00B706C8 /* h264bsd_deblocking.h */,
+				3C03A9942EF250FC00B706C8 /* h264bsd_deblocking.c */,
+				3C03A9952EF250FC00B706C8 /* h264bsd_decoder.h */,
+				3C03A9962EF250FC00B706C8 /* h264bsd_decoder.c */,
+				3C03A9972EF250FC00B706C8 /* h264bsd_dpb.h */,
+				3C03A9982EF250FC00B706C8 /* h264bsd_dpb.c */,
+				3C03A9992EF250FC00B706C8 /* h264bsd_image.h */,
+				3C03A99A2EF250FC00B706C8 /* h264bsd_image.c */,
+				3C03A99B2EF250FC00B706C8 /* h264bsd_inter_prediction.h */,
+				3C03A99C2EF250FC00B706C8 /* h264bsd_inter_prediction.c */,
+				3C03A99D2EF250FC00B706C8 /* h264bsd_intra_prediction.h */,
+				3C03A99E2EF250FC00B706C8 /* h264bsd_intra_prediction.c */,
+				3C03A99F2EF250FC00B706C8 /* h264bsd_macroblock_layer.h */,
+				3C03A9A02EF250FC00B706C8 /* h264bsd_macroblock_layer.c */,
+				3C03A9A12EF250FC00B706C8 /* h264bsd_nal_unit.h */,
+				3C03A9A22EF250FC00B706C8 /* h264bsd_nal_unit.c */,
+				3C03A9A32EF250FC00B706C8 /* h264bsd_neighbour.h */,
+				3C03A9A42EF250FC00B706C8 /* h264bsd_neighbour.c */,
+				3C03A9A52EF250FC00B706C8 /* h264bsd_pic_order_cnt.h */,
+				3C03A9A62EF250FC00B706C8 /* h264bsd_pic_order_cnt.c */,
+				3C03A9A72EF250FC00B706C8 /* h264bsd_pic_param_set.h */,
+				3C03A9A82EF250FC00B706C8 /* h264bsd_pic_param_set.c */,
+				3C03A9A92EF250FC00B706C8 /* h264bsd_reconstruct.h */,
+				3C03A9AA2EF250FC00B706C8 /* h264bsd_reconstruct.c */,
+				3C03A9AB2EF250FC00B706C8 /* h264bsd_sei.h */,
+				3C03A9AC2EF250FC00B706C8 /* h264bsd_sei.c */,
+				3C03A9AD2EF250FC00B706C8 /* h264bsd_seq_param_set.h */,
+				3C03A9AE2EF250FC00B706C8 /* h264bsd_seq_param_set.c */,
+				3C03A9AF2EF250FC00B706C8 /* h264bsd_slice_data.h */,
+				3C03A9B02EF250FC00B706C8 /* h264bsd_slice_data.c */,
+				3C03A9B12EF250FC00B706C8 /* h264bsd_slice_group_map.h */,
+				3C03A9B22EF250FC00B706C8 /* h264bsd_slice_group_map.c */,
+				3C03A9B32EF250FC00B706C8 /* h264bsd_slice_header.h */,
+				3C03A9B42EF250FC00B706C8 /* h264bsd_slice_header.c */,
+				3C03A9B52EF250FC00B706C8 /* h264bsd_storage.h */,
+				3C03A9B62EF250FC00B706C8 /* h264bsd_storage.c */,
+				3C03A9B72EF250FC00B706C8 /* h264bsd_stream.h */,
+				3C03A9B82EF250FC00B706C8 /* h264bsd_stream.c */,
+				3C03A9B92EF250FC00B706C8 /* h264bsd_transform.h */,
+				3C03A9BA2EF250FC00B706C8 /* h264bsd_transform.c */,
+				3C03A9BB2EF250FC00B706C8 /* h264bsd_util.h */,
+				3C03A9BC2EF250FC00B706C8 /* h264bsd_util.c */,
+				3C03A9BD2EF250FC00B706C8 /* h264bsd_vlc.h */,
+				3C03A9BE2EF250FC00B706C8 /* h264bsd_vlc.c */,
+				3C03A9BF2EF250FC00B706C8 /* h264bsd_vui.h */,
+				3C03A9C02EF250FC00B706C8 /* h264bsd_vui.c */,
+			);
+			path = h264bsd;
+			sourceTree = "<group>";
+		};
 		3C03CBE02A18953400383FAE /* Xml */ = {
 			isa = PBXGroup;
 			children = (
@@ -2338,6 +2484,7 @@
 				3CC7943D2579F94600042394 /* yuescript */,
 				3C1FE9812D6D64CB0017CD23 /* yarnflow */,
 				3CC54E8E1E03C08200462FD7 /* Zip */,
+				3C03A9FE2EF2518D00B706C8 /* h264bsd */,
 			);
 			path = 3rdParty;
 			sourceTree = "<group>";
@@ -3849,6 +3996,8 @@
 		3CCBBA381E14B50B00C0416B /* Node */ = {
 			isa = PBXGroup;
 			children = (
+				3C03A9FF2EF2522E00B706C8 /* VideoNode.h */,
+				3C03AA002EF2522E00B706C8 /* VideoNode.cpp */,
 				3C078D7B2E14CD2D00C05BA4 /* AudioSource.h */,
 				3C078D7C2E14CD2D00C05BA4 /* AudioSource.cpp */,
 				3C592A792CA4EFBC00CAF224 /* AlignNode.h */,
@@ -4620,6 +4769,32 @@
 				3C592ADA2CA4EFE200CAF224 /* Unit.cpp in Sources */,
 				3C592ADB2CA4EFE200CAF224 /* Define.cpp in Sources */,
 				3C592ADC2CA4EFE200CAF224 /* Face.cpp in Sources */,
+				3C03A9E12EF2513100B706C8 /* h264bsd_nal_unit.c in Sources */,
+				3C03A9E22EF2513100B706C8 /* h264bsd_conceal.c in Sources */,
+				3C03A9E42EF2513100B706C8 /* h264bsd_inter_prediction.c in Sources */,
+				3C03A9E52EF2513100B706C8 /* h264bsd_deblocking.c in Sources */,
+				3C03A9E62EF2513100B706C8 /* h264bsd_slice_header.c in Sources */,
+				3C03A9E72EF2513100B706C8 /* h264bsd_vui.c in Sources */,
+				3C03A9E82EF2513100B706C8 /* h264bsd_dpb.c in Sources */,
+				3C03A9E92EF2513100B706C8 /* h264bsd_slice_data.c in Sources */,
+				3C03A9EA2EF2513100B706C8 /* h264bsd_macroblock_layer.c in Sources */,
+				3C03A9EB2EF2513100B706C8 /* h264bsd_vlc.c in Sources */,
+				3C03A9EC2EF2513100B706C8 /* h264bsd_byte_stream.c in Sources */,
+				3C03A9ED2EF2513100B706C8 /* h264bsd_seq_param_set.c in Sources */,
+				3C03A9EE2EF2513100B706C8 /* h264bsd_pic_param_set.c in Sources */,
+				3C03A9EF2EF2513100B706C8 /* h264bsd_neighbour.c in Sources */,
+				3C03A9F02EF2513100B706C8 /* h264bsd_storage.c in Sources */,
+				3C03A9F12EF2513100B706C8 /* h264bsd_image.c in Sources */,
+				3C03A9F22EF2513100B706C8 /* h264bsd_reconstruct.c in Sources */,
+				3C03A9F32EF2513100B706C8 /* h264bsd_pic_order_cnt.c in Sources */,
+				3C03A9F42EF2513100B706C8 /* h264bsd_sei.c in Sources */,
+				3C03A9F52EF2513100B706C8 /* h264bsd_util.c in Sources */,
+				3C03A9F62EF2513100B706C8 /* h264bsd_stream.c in Sources */,
+				3C03A9F72EF2513100B706C8 /* h264bsd_transform.c in Sources */,
+				3C03A9F82EF2513100B706C8 /* h264bsd_cavlc.c in Sources */,
+				3C03A9F92EF2513100B706C8 /* h264bsd_intra_prediction.c in Sources */,
+				3C03A9FA2EF2513100B706C8 /* h264bsd_decoder.c in Sources */,
+				3C03A9FB2EF2513100B706C8 /* h264bsd_slice_group_map.c in Sources */,
 				3C592ADD2CA4EFE200CAF224 /* VisualCache.cpp in Sources */,
 				3C592ADE2CA4EFE200CAF224 /* AINode.cpp in Sources */,
 				3C592ADF2CA4EFE200CAF224 /* Data.cpp in Sources */,
@@ -4710,6 +4885,7 @@
 				3C592ABA2CA4EFD100CAF224 /* Body.cpp in Sources */,
 				3C592ABB2CA4EFD100CAF224 /* Joint.cpp in Sources */,
 				3C592ABC2CA4EFD100CAF224 /* JointDef.cpp in Sources */,
+				3C03AA012EF2522E00B706C8 /* VideoNode.cpp in Sources */,
 				3C592ABD2CA4EFD100CAF224 /* Sensor.cpp in Sources */,
 				3CA77F102AE665C100B7BADA /* DistanceJointConf.cpp in Sources */,
 				3CA77EE92AE665C100B7BADA /* SeparationScenario.cpp in Sources */,
@@ -4954,6 +5130,7 @@
 					"$(SRCROOT)/../../Source/3rdParty/Zip/zlib",
 					"$(SRCROOT)/../../Source/3rdParty/OpenSSL/Header",
 					"$(SRCROOT)/../../Source/3rdParty/Effekseer",
+					"$(SRCROOT)/../../Source/3rdParty/h264bsd",
 				);
 				VALID_ARCHS = "x86_64 arm64";
 			};
@@ -5028,6 +5205,7 @@
 					"$(SRCROOT)/../../Source/3rdParty/Zip/zlib",
 					"$(SRCROOT)/../../Source/3rdParty/OpenSSL/Header",
 					"$(SRCROOT)/../../Source/3rdParty/Effekseer",
+					"$(SRCROOT)/../../Source/3rdParty/h264bsd",
 				);
 				VALID_ARCHS = "x86_64 arm64";
 			};

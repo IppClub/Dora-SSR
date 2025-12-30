@@ -29,6 +29,7 @@ include_directories(
 	../../Source/3rdParty/asio
 	../../Source/3rdParty/Zip/zlib
 	../../Source/3rdParty/Effekseer
+	../../Source/3rdParty/h264bsd
 )
 
 add_library(BGFX-lib STATIC IMPORTED)
@@ -170,6 +171,7 @@ add_executable(dora-ssr
 	../../Source/Node/EffekNode.cpp
 	../../Source/Node/TileNode.cpp
 	../../Source/Node/AudioSource.cpp
+	../../Source/Node/VideoNode.cpp
 	../../Source/Event/EventType.cpp
 	../../Source/Event/EventQueue.cpp
 	../../Source/Event/Listener.cpp
@@ -595,6 +597,32 @@ add_executable(dora-ssr
 	../../Source/3rdParty/tmxlite/ImageLayer.cpp
 	../../Source/3rdParty/tmxlite/detail/pugixml.cpp
 	../../Source/3rdParty/nfd/nfd_portal.cpp
+	../../Source/3rdParty/h264bsd/h264bsd_slice_header.c
+	../../Source/3rdParty/h264bsd/h264bsd_dpb.c
+	../../Source/3rdParty/h264bsd/h264bsd_transform.c
+	../../Source/3rdParty/h264bsd/h264bsd_pic_order_cnt.c
+	../../Source/3rdParty/h264bsd/h264bsd_intra_prediction.c
+	../../Source/3rdParty/h264bsd/h264bsd_stream.c
+	../../Source/3rdParty/h264bsd/h264bsd_byte_stream.c
+	../../Source/3rdParty/h264bsd/h264bsd_slice_data.c
+	../../Source/3rdParty/h264bsd/h264bsd_pic_param_set.c
+	../../Source/3rdParty/h264bsd/h264bsd_conceal.c
+	../../Source/3rdParty/h264bsd/h264bsd_sei.c
+	../../Source/3rdParty/h264bsd/h264bsd_storage.c
+	../../Source/3rdParty/h264bsd/h264bsd_cavlc.c
+	../../Source/3rdParty/h264bsd/h264bsd_deblocking.c
+	../../Source/3rdParty/h264bsd/h264bsd_decoder.c
+	../../Source/3rdParty/h264bsd/h264bsd_reconstruct.c
+	../../Source/3rdParty/h264bsd/h264bsd_macroblock_layer.c
+	../../Source/3rdParty/h264bsd/h264bsd_image.c
+	../../Source/3rdParty/h264bsd/h264bsd_inter_prediction.c
+	../../Source/3rdParty/h264bsd/h264bsd_seq_param_set.c
+	../../Source/3rdParty/h264bsd/h264bsd_nal_unit.c
+	../../Source/3rdParty/h264bsd/h264bsd_vui.c
+	../../Source/3rdParty/h264bsd/h264bsd_util.c
+	../../Source/3rdParty/h264bsd/h264bsd_slice_group_map.c
+	../../Source/3rdParty/h264bsd/h264bsd_neighbour.c
+	../../Source/3rdParty/h264bsd/h264bsd_vlc.c
 )
 
 target_link_libraries(dora-ssr z dl pthread rt ${SDL2_LIBRARIES} BGFX-lib BIMGDE-lib BIMG-lib BX-lib GL X11 OpenSSL::SSL OpenSSL::Crypto ${DBUS_LINK_LIBRARIES} DORA-lib WA-lib)
