@@ -17,6 +17,7 @@ THE OPEN SOURCE SOFTWARE IN THIS PRODUCT IS DISTRIBUTED IN THE HOPE THAT IT WILL
 - font ([bgfx-font](https://github.com/bkaradzic/bgfx/tree/master/examples/common/font)): [BSD-2 License](Source/3rdParty/bgfx/LICENSE)
 - ghc ([gulrak/filesystem](https://github.com/gulrak/filesystem)): [MIT License](Source/3rdParty/ghc/LICENSE)
 - [httplib](https://github.com/yhirose/cpp-httplib): [MIT License](Source/3rdParty/httplib/LICENSE)
+- [h264bsd](https://github.com/sleitch/h264bsd): [Apache License 2.0 and MIT License](Source/3rdParty/h264bsd/LICENSE.md)
 - [imgui](https://github.com/ocornut/imgui): [MIT License](Source/3rdParty/imgui/LICENSE.txt)
 - [implot](https://github.com/epezent/implot): [MIT License](Source/3rdParty/implot/LICENSE)
 - [lodepng](https://github.com/lvandeve/lodepng): [zlib License](Source/3rdParty/lodepng/LICENSE)

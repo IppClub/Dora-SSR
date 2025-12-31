@@ -304,6 +304,9 @@
     <Filter Include="Resources">
       <UniqueIdentifier>{3bd2de22-4a18-437b-9104-a49161d9c077}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rdParty\h264bsd">
+      <UniqueIdentifier>{17efbd68-04d4-40bb-85d3-bc6f16375f59}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\3rdParty\silly\Slice.cpp">
@@ -1865,6 +1868,87 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Cache\FontCache.cpp">
       <Filter>Cache</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_byte_stream.c">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_cavlc.c">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_conceal.c">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_deblocking.c">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_decoder.c">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_dpb.c">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_image.c">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_inter_prediction.c">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_intra_prediction.c">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_macroblock_layer.c">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_nal_unit.c">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_neighbour.c">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_pic_order_cnt.c">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_pic_param_set.c">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_reconstruct.c">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_sei.c">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_seq_param_set.c">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_slice_data.c">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_slice_group_map.c">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_slice_header.c">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_storage.c">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_stream.c">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_transform.c">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_util.c">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_vlc.c">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_vui.c">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\VideoNode.cpp">
+      <Filter>Node</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -4189,6 +4273,96 @@
     </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\basetype.h">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_byte_stream.h">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_cavlc.h">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_cfg.h">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_conceal.h">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_container.h">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_deblocking.h">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_decoder.h">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_dpb.h">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_image.h">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_inter_prediction.h">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_intra_prediction.h">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_macroblock_layer.h">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_nal_unit.h">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_neighbour.h">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_pic_order_cnt.h">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_pic_param_set.h">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_reconstruct.h">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_sei.h">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_seq_param_set.h">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_slice_data.h">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_slice_group_map.h">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_slice_header.h">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_storage.h">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_stream.h">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_transform.h">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_util.h">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_vlc.h">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_vui.h">
+      <Filter>3rdParty\h264bsd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Node\VideoNode.h">
+      <Filter>Node</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
