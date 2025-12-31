@@ -448,6 +448,110 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\font\font_manager.cpp" />
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_byte_stream.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_cavlc.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_conceal.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_deblocking.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_decoder.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_dpb.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_image.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_inter_prediction.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_intra_prediction.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_macroblock_layer.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_nal_unit.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_neighbour.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_pic_order_cnt.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_pic_param_set.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_reconstruct.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_sei.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_seq_param_set.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_slice_data.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_slice_group_map.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_slice_header.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_storage.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_stream.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_transform.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_util.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_vlc.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_vui.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\imgui\imgui.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
@@ -1719,6 +1823,7 @@
     <ClCompile Include="..\..\..\Source\Node\Sprite.cpp" />
     <ClCompile Include="..\..\..\Source\Node\TileNode.cpp" />
     <ClCompile Include="..\..\..\Source\Node\VGNode.cpp" />
+    <ClCompile Include="..\..\..\Source\Node\VideoNode.cpp" />
     <ClCompile Include="..\..\..\Source\Physics\Body.cpp" />
     <ClCompile Include="..\..\..\Source\Physics\BodyDef.cpp" />
     <ClCompile Include="..\..\..\Source\Physics\DebugDraw.cpp" />
@@ -1966,6 +2071,35 @@
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\std.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\xchar.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\font\font_manager.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\basetype.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_byte_stream.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_cavlc.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_cfg.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_conceal.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_container.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_deblocking.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_decoder.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_dpb.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_image.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_inter_prediction.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_intra_prediction.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_macroblock_layer.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_nal_unit.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_neighbour.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_pic_order_cnt.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_pic_param_set.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_reconstruct.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_sei.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_seq_param_set.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_slice_data.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_slice_group_map.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_slice_header.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_storage.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_stream.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_transform.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_util.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_vlc.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_vui.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\imgui\imconfig.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\imgui\imgui.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\imgui\imgui_internal.h" />
@@ -2502,6 +2636,7 @@
     <ClInclude Include="..\..\..\Source\Node\Sprite.h" />
     <ClInclude Include="..\..\..\Source\Node\TileNode.h" />
     <ClInclude Include="..\..\..\Source\Node\VGNode.h" />
+    <ClInclude Include="..\..\..\Source\Node\VideoNode.h" />
     <ClInclude Include="..\..\..\Source\Physics\Body.h" />
     <ClInclude Include="..\..\..\Source\Physics\BodyDef.h" />
     <ClInclude Include="..\..\..\Source\Physics\DebugDraw.h" />
