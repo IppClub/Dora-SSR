@@ -643,6 +643,121 @@ class Sprite extends Node {
 	onMount?(this: void, self: Dora.Sprite.Type): void;
 }
 
+class AudioSource extends Node {
+	ref?: Ref<Dora.AudioSource.Type>;
+
+	/**
+	 * 音频文件的路径。
+	 */
+	file: string;
+
+	/**
+	 * 是否在停止时删除音频源。默认为 `true`。
+	 */
+	autoRemove?: boolean;
+
+	/**
+	 * 播放音频源的总线。默认为 `undefined`。
+	 */
+	bus?: Dora.AudioBus.Type;
+
+	/**
+	 * 音频源的音量。值在 0.0 和 1.0 之间。
+	 */
+	volume?: number;
+
+	/**
+	 * 音频源的声道。值在 -1.0 和 1.0 之间。
+	 */
+	pan?: number;
+
+	/**
+	 * 是否循环播放音频源。
+	 */
+	looping?: boolean;
+
+	/**
+	 * 音频源的播放模式。可以是 "normal"、"background" 或 "3D"。
+	 */
+	playMode?: "normal" | "background" | "3D";
+
+	/**
+	 * 播放前的延迟时间（秒）。默认为 0 秒。不适用于 "background" 模式。
+	 */
+	delayTime?: number;
+
+	/**
+	 * 设置音频源的保护状态。如果音频源被保护，当没有发出足够的音量时，它也不会被停止。
+	 */
+	protected?: boolean;
+
+	/**
+	 * 设置音频源的循环点。音频源将从指定的时间位置开始循环播放。
+	 */
+	loopPoint?: number;
+
+	/**
+	 * 设置 3D 音频源的速度。值为数组 [vx, vy, vz]。
+	 */
+	velocity?: [number, number, number];
+
+	/**
+	 * 设置 3D 音频源的最小和最大距离。值为数组 [min, max]。
+	 */
+	minMaxDistance?: [number, number];
+
+	/**
+	 * 设置 3D 音频源的衰减模型和因子。值为数组 [model, factor]。
+	 */
+	attenuation?: [Dora.AttenuationModel, number];
+
+	/**
+	 * 设置 3D 音频源的多普勒效应因子。
+	 */
+	dopplerFactor?: number;
+
+	/**
+	 * 当前节点被实例化时，会触发该回调函数。
+	 * @param self 当前节点的实例。
+	 */
+	onMount?(this: void, self: Dora.AudioSource.Type): void;
+}
+
+class VideoNode extends Sprite {
+	ref?: Ref<Dora.VideoNode.Type>;
+
+	/**
+	 * 视频文件的路径。应为 `.h264` 后缀及格式有效的视频文件路径。
+	 * H.264 格式要求：
+	 * - 视频编码：仅支持 H.264 / AVC（不支持 H.265/HEVC，VP9，AV1 等）。
+	 * - 比特流格式：需为 Annex-B 字节流（NAL 单元之间以 0x000001 / 0x00000001 起始码分隔）。
+	 *   MP4/FLV 格式的 AVCC（长度前缀 NAL 单元）不支持，除非预先转换为 Annex-B。
+	 * - 流类型：推荐仅包含视频的流。音频轨道（如有）会被忽略。
+	 * - 配置文件/级别建议（为最大兼容性和性能）：
+	 *   * 推荐 Baseline / Constrained Baseline profile。
+	 *   * 仅支持逐行扫描（progressive）帧（不支持隔行/场编码内容）。
+	 *   * 推荐不含 B 帧（如 baseline），以避免输出重排序开销。
+	 * - 色彩格式：推荐 YUV 4:2:0（8 位）；其他色度格式可能不被支持。
+	 * - 帧率：推荐恒定帧率（CFR），可变帧率可能导致播放时序不稳定。
+	 * - 分辨率/性能说明：
+	 *   * 4K 与高码率流在纯软件解码时可能会有较高的 CPU 占用。
+	 *   * 中等性能设备建议使用 720p/1080p 及适中码率以保证流畅播放。
+	 * - 建议使用 `ffmpeg` 工具将视频文件转换为 H.264 格式后再使用。
+	 */
+	file: string;
+
+	/**
+	 * 是否循环播放。默认为 `false`。
+	 */
+	looped?: boolean;
+
+	/**
+	 * 当前节点被实例化时，会触发该回调函数。
+	 * @param self 当前节点的实例。
+	 */
+	onMount?(this: void, self: Dora.VideoNode.Type): void;
+}
+
 class Label extends Node {
 	ref?: Ref<Dora.Label.Type>;
 
@@ -1712,6 +1827,14 @@ interface IntrinsicElements {
 	 * 用于在游戏场景树层次结构中渲染纹理的图元类。
 	 */
 	sprite: Sprite;
+	/**
+	 * 用于播放音频的节点。
+	 */
+	'audio-source': AudioSource;
+	/**
+	 * 用于播放视频的节点。
+	 */
+	'video-node': VideoNode;
 	/**
 	 * 用于使用 TrueType 字体渲染文本的节点。
 	 */

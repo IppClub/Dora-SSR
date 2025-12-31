@@ -7243,7 +7243,7 @@ class AudioSource extends Node {
 	/**
 	 * Whether the audio source is playing.
 	 */
-	playing: boolean;
+	readonly playing: boolean;
 
 	/**
 	 * Seeks to the specified time of the audio source.

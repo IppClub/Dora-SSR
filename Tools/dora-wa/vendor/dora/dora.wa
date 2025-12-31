@@ -264,6 +264,9 @@ func object_release(obj: i64)
 #wa:import dora object_to_node
 func object_to_node(obj: i64) => i64
 
+#wa:import dora object_to_sprite
+func object_to_sprite(obj: i64) => i64
+
 #wa:import dora object_to_camera
 func object_to_camera(obj: i64) => i64
 
@@ -328,6 +331,15 @@ func ObjectCastToNode(object: Object) => *Node {
 	}
 	ObjectRetain(raw)
 	return NodeFrom(raw)
+}
+
+func ObjectCastToSprite(object: Object) => *Sprite {
+	raw := object_to_sprite(*object.raw)
+	if raw == 0 {
+		return nil
+	}
+	ObjectRetain(raw)
+	return SpriteFrom(raw)
 }
 
 func ObjectCastToCamera(object: Object) => *Camera {

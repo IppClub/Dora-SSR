@@ -7244,7 +7244,7 @@ class AudioSource extends Node {
 	/**
 	 * 是否正在播放音频源。
 	 */
-	playing: boolean;
+	readonly playing: boolean;
 
 	/**
 	 * 跳转到音频源的指定时间。

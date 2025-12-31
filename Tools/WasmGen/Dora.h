@@ -1588,7 +1588,7 @@ object class Texture2D
 };
 
 /// A struct to render texture in game scene tree hierarchy.
-object class Sprite : public INode
+interface object class Sprite : public INode
 {
 	/// whether the depth buffer should be written to when rendering the sprite.
 	boolean bool depthWrite;
@@ -3965,6 +3965,36 @@ object class AudioSource : public INode
 	///
 	/// * `AudioSource` - The created audio source node.
 	static optional AudioSource* create @ createBus(string filename, bool autoRemove, AudioBus* bus);
+};
+
+object class VideoNode : public ISprite
+{
+	/// Creates a new VideoNode object for playing a video.
+	///
+	/// # Arguments
+	///
+	/// * `filename` - The path to the video file. It should be a valid video file path with `.h264` suffix.
+	///     H.264 format requirements:
+	///       - Video codec: H.264 / AVC only (no H.265/HEVC, VP9, AV1, etc.).
+	///       - Bitstream format: Annex-B byte stream is required (NAL units separated by 0x000001 / 0x00000001 start codes).
+	///         MP4/FLV-style AVCC (length-prefixed NAL units) is NOT supported unless converted to Annex-B beforehand.
+	///       - Stream type: video-only elementary stream is recommended. Audio tracks (if any) are ignored.
+	///       - Profile/level constraints (recommended for maximum compatibility and performance):
+	///           * Baseline / Constrained Baseline profile is recommended.
+	///           * Progressive frames only (no interlaced/field-coded content).
+	///           * No B-frames is recommended (e.g., baseline) to avoid output reordering costs.
+	///       - Color format: YUV 4:2:0 (8-bit) is recommended; other chroma formats may be unsupported.
+	///       - Frame rate: Constant frame rate (CFR) is recommended. Variable frame rate streams may play with unstable timing.
+	///       - Resolution/performance notes:
+	///           * 4K and high-bitrate streams may be CPU intensive for software decoding.
+	///           * For smooth playback on mid-range devices, 720p/1080p and moderate bitrates are recommended.
+	///       - It is recommended to use the `ffmpeg` tool to convert the video file to H.264 format before using it.
+	/// * `looped` - (optional) Whether the video should loop. Default is false.
+	///
+	/// # Returns
+	///
+	/// * `VideoNode` - The created VideoNode instance. Returns `nil` if creation fails.
+	static optional VideoNode* create(string filename, bool looped);
 };
 
 /// An interface for handling keyboard inputs.

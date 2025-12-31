@@ -37,6 +37,83 @@ impl INode for Sprite { }
 /// A struct to render texture in game scene tree hierarchy.
 pub struct Sprite { raw: i64 }
 crate::dora_object!(Sprite);
+impl ISprite for Sprite { }
+pub trait ISprite: INode {
+	/// Sets whether the depth buffer should be written to when rendering the sprite.
+	fn set_depth_write(&mut self, val: bool) {
+		unsafe { sprite_set_depth_write(self.raw(), if val { 1 } else { 0 }) };
+	}
+	/// Gets whether the depth buffer should be written to when rendering the sprite.
+	fn is_depth_write(&self) -> bool {
+		return unsafe { sprite_is_depth_write(self.raw()) != 0 };
+	}
+	/// Sets the alpha reference value for alpha testing. Pixels with alpha values less than or equal to this value will be discarded.
+	/// Only works with `sprite.effect = SpriteEffect::new("builtin:vs_sprite", "builtin:fs_spritealphatest");`.
+	fn set_alpha_ref(&mut self, val: f32) {
+		unsafe { sprite_set_alpha_ref(self.raw(), val) };
+	}
+	/// Gets the alpha reference value for alpha testing. Pixels with alpha values less than or equal to this value will be discarded.
+	/// Only works with `sprite.effect = SpriteEffect::new("builtin:vs_sprite", "builtin:fs_spritealphatest");`.
+	fn get_alpha_ref(&self) -> f32 {
+		return unsafe { sprite_get_alpha_ref(self.raw()) };
+	}
+	/// Sets the texture rectangle for the sprite.
+	fn set_texture_rect(&mut self, val: &crate::dora::Rect) {
+		unsafe { sprite_set_texture_rect(self.raw(), val.raw()) };
+	}
+	/// Gets the texture rectangle for the sprite.
+	fn get_texture_rect(&self) -> crate::dora::Rect {
+		return unsafe { crate::dora::Rect::from(sprite_get_texture_rect(self.raw())) };
+	}
+	/// Gets the texture for the sprite.
+	fn get_texture(&self) -> Option<crate::dora::Texture2D> {
+		return unsafe { crate::dora::Texture2D::from(sprite_get_texture(self.raw())) };
+	}
+	/// Sets the blend function for the sprite.
+	fn set_blend_func(&mut self, val: crate::dora::BlendFunc) {
+		unsafe { sprite_set_blend_func(self.raw(), val.to_value()) };
+	}
+	/// Gets the blend function for the sprite.
+	fn get_blend_func(&self) -> crate::dora::BlendFunc {
+		return unsafe { crate::dora::BlendFunc::from(sprite_get_blend_func(self.raw())) };
+	}
+	/// Sets the sprite shader effect.
+	fn set_effect(&mut self, val: &crate::dora::SpriteEffect) {
+		unsafe { sprite_set_effect(self.raw(), val.raw()) };
+	}
+	/// Gets the sprite shader effect.
+	fn get_effect(&self) -> crate::dora::SpriteEffect {
+		return unsafe { crate::dora::SpriteEffect::from(sprite_get_effect(self.raw())).unwrap() };
+	}
+	/// Sets the texture wrapping mode for the U (horizontal) axis.
+	fn set_uwrap(&mut self, val: crate::dora::TextureWrap) {
+		unsafe { sprite_set_uwrap(self.raw(), val as i32) };
+	}
+	/// Gets the texture wrapping mode for the U (horizontal) axis.
+	fn get_uwrap(&self) -> crate::dora::TextureWrap {
+		return unsafe { core::mem::transmute(sprite_get_uwrap(self.raw())) };
+	}
+	/// Sets the texture wrapping mode for the V (vertical) axis.
+	fn set_vwrap(&mut self, val: crate::dora::TextureWrap) {
+		unsafe { sprite_set_vwrap(self.raw(), val as i32) };
+	}
+	/// Gets the texture wrapping mode for the V (vertical) axis.
+	fn get_vwrap(&self) -> crate::dora::TextureWrap {
+		return unsafe { core::mem::transmute(sprite_get_vwrap(self.raw())) };
+	}
+	/// Sets the texture filtering mode for the sprite.
+	fn set_filter(&mut self, val: crate::dora::TextureFilter) {
+		unsafe { sprite_set_filter(self.raw(), val as i32) };
+	}
+	/// Gets the texture filtering mode for the sprite.
+	fn get_filter(&self) -> crate::dora::TextureFilter {
+		return unsafe { core::mem::transmute(sprite_get_filter(self.raw())) };
+	}
+	/// Removes the sprite effect and sets the default effect.
+	fn set_effect_as_default(&mut self) {
+		unsafe { sprite_set_effect_as_default(self.raw()); }
+	}
+}
 impl Sprite {
 	pub(crate) fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
 		(unsafe { sprite_type() }, |raw: i64| -> Option<Box<dyn IObject>> {
@@ -45,80 +122,6 @@ impl Sprite {
 				_ => Some(Box::new(Sprite { raw: raw }))
 			}
 		})
-	}
-	/// Sets whether the depth buffer should be written to when rendering the sprite.
-	pub fn set_depth_write(&mut self, val: bool) {
-		unsafe { sprite_set_depth_write(self.raw(), if val { 1 } else { 0 }) };
-	}
-	/// Gets whether the depth buffer should be written to when rendering the sprite.
-	pub fn is_depth_write(&self) -> bool {
-		return unsafe { sprite_is_depth_write(self.raw()) != 0 };
-	}
-	/// Sets the alpha reference value for alpha testing. Pixels with alpha values less than or equal to this value will be discarded.
-	/// Only works with `sprite.effect = SpriteEffect::new("builtin:vs_sprite", "builtin:fs_spritealphatest");`.
-	pub fn set_alpha_ref(&mut self, val: f32) {
-		unsafe { sprite_set_alpha_ref(self.raw(), val) };
-	}
-	/// Gets the alpha reference value for alpha testing. Pixels with alpha values less than or equal to this value will be discarded.
-	/// Only works with `sprite.effect = SpriteEffect::new("builtin:vs_sprite", "builtin:fs_spritealphatest");`.
-	pub fn get_alpha_ref(&self) -> f32 {
-		return unsafe { sprite_get_alpha_ref(self.raw()) };
-	}
-	/// Sets the texture rectangle for the sprite.
-	pub fn set_texture_rect(&mut self, val: &crate::dora::Rect) {
-		unsafe { sprite_set_texture_rect(self.raw(), val.raw()) };
-	}
-	/// Gets the texture rectangle for the sprite.
-	pub fn get_texture_rect(&self) -> crate::dora::Rect {
-		return unsafe { crate::dora::Rect::from(sprite_get_texture_rect(self.raw())) };
-	}
-	/// Gets the texture for the sprite.
-	pub fn get_texture(&self) -> Option<crate::dora::Texture2D> {
-		return unsafe { crate::dora::Texture2D::from(sprite_get_texture(self.raw())) };
-	}
-	/// Sets the blend function for the sprite.
-	pub fn set_blend_func(&mut self, val: crate::dora::BlendFunc) {
-		unsafe { sprite_set_blend_func(self.raw(), val.to_value()) };
-	}
-	/// Gets the blend function for the sprite.
-	pub fn get_blend_func(&self) -> crate::dora::BlendFunc {
-		return unsafe { crate::dora::BlendFunc::from(sprite_get_blend_func(self.raw())) };
-	}
-	/// Sets the sprite shader effect.
-	pub fn set_effect(&mut self, val: &crate::dora::SpriteEffect) {
-		unsafe { sprite_set_effect(self.raw(), val.raw()) };
-	}
-	/// Gets the sprite shader effect.
-	pub fn get_effect(&self) -> crate::dora::SpriteEffect {
-		return unsafe { crate::dora::SpriteEffect::from(sprite_get_effect(self.raw())).unwrap() };
-	}
-	/// Sets the texture wrapping mode for the U (horizontal) axis.
-	pub fn set_uwrap(&mut self, val: crate::dora::TextureWrap) {
-		unsafe { sprite_set_uwrap(self.raw(), val as i32) };
-	}
-	/// Gets the texture wrapping mode for the U (horizontal) axis.
-	pub fn get_uwrap(&self) -> crate::dora::TextureWrap {
-		return unsafe { core::mem::transmute(sprite_get_uwrap(self.raw())) };
-	}
-	/// Sets the texture wrapping mode for the V (vertical) axis.
-	pub fn set_vwrap(&mut self, val: crate::dora::TextureWrap) {
-		unsafe { sprite_set_vwrap(self.raw(), val as i32) };
-	}
-	/// Gets the texture wrapping mode for the V (vertical) axis.
-	pub fn get_vwrap(&self) -> crate::dora::TextureWrap {
-		return unsafe { core::mem::transmute(sprite_get_vwrap(self.raw())) };
-	}
-	/// Sets the texture filtering mode for the sprite.
-	pub fn set_filter(&mut self, val: crate::dora::TextureFilter) {
-		unsafe { sprite_set_filter(self.raw(), val as i32) };
-	}
-	/// Gets the texture filtering mode for the sprite.
-	pub fn get_filter(&self) -> crate::dora::TextureFilter {
-		return unsafe { core::mem::transmute(sprite_get_filter(self.raw())) };
-	}
-	/// Removes the sprite effect and sets the default effect.
-	pub fn set_effect_as_default(&mut self) {
-		unsafe { sprite_set_effect_as_default(self.raw()); }
 	}
 	/// A method for creating a Sprite object.
 	///

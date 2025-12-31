@@ -643,6 +643,121 @@ class Sprite extends Node {
 	onMount?(this: void, self: Dora.Sprite.Type): void;
 }
 
+class AudioSource extends Node {
+	ref?: Ref<Dora.AudioSource.Type>;
+
+	/**
+	 * The path to the audio file.
+	 */
+	file: string;
+
+	/**
+	 * Whether to remove the audio source when it stops. Defaults to `true`.
+	 */
+	autoRemove?: boolean;
+
+	/**
+	 * The bus to play the audio source. Defaults to `undefined`.
+	 */
+	bus?: Dora.AudioBus.Type;
+
+	/**
+	 * The volume of the audio source. The value is between 0.0 and 1.0.
+	 */
+	volume?: number;
+
+	/**
+	 * The pan of the audio source. The value is between -1.0 and 1.0.
+	 */
+	pan?: number;
+
+	/**
+	 * Whether the audio source is looping.
+	 */
+	looping?: boolean;
+
+	/**
+	 * The play mode of the audio source. Can be "normal", "background", or "3D".
+	 */
+	playMode?: "normal" | "background" | "3D";
+
+	/**
+	 * The delay time before playing in seconds. Default is 0 seconds. Not applicable for "background" mode.
+	 */
+	delayTime?: number;
+
+	/**
+	 * Sets the protected state of the audio source. If the audio source is protected, it will not be stopped when there is not enough voice.
+	 */
+	protected?: boolean;
+
+	/**
+	 * Sets the loop point of the audio source. The audio source will loop play from the specified time.
+	 */
+	loopPoint?: number;
+
+	/**
+	 * Sets the velocity of the 3D audio source. The value is an array [vx, vy, vz].
+	 */
+	velocity?: [number, number, number];
+
+	/**
+	 * Sets the minimum and maximum distance of the 3D audio source. The value is an array [min, max].
+	 */
+	minMaxDistance?: [number, number];
+
+	/**
+	 * Sets the attenuation model and factor of the 3D audio source.
+	 */
+	attenuation?: [Dora.AttenuationModel, number];
+
+	/**
+	 * Sets the Doppler effect factor of the 3D audio source.
+	 */
+	dopplerFactor?: number;
+
+	/**
+	 * Triggers when this node element is instantialized.
+	 * @param self The node element that was instantialized.
+	 */
+	onMount?(this: void, self: Dora.AudioSource.Type): void;
+}
+
+class VideoNode extends Sprite {
+	ref?: Ref<Dora.VideoNode.Type>;
+
+	/**
+	 * The path to the video file. It should be a valid video file path with `.h264` suffix.
+	 * H.264 format requirements:
+	 * - Video codec: H.264 / AVC only (no H.265/HEVC, VP9, AV1, etc.).
+	 * - Bitstream format: Annex-B byte stream is required (NAL units separated by 0x000001 / 0x00000001 start codes).
+	 *   MP4/FLV-style AVCC (length-prefixed NAL units) is NOT supported unless converted to Annex-B beforehand.
+	 * - Stream type: video-only elementary stream is recommended. Audio tracks (if any) are ignored.
+	 * - Profile/level constraints (recommended for maximum compatibility and performance):
+	 *   * Baseline / Constrained Baseline profile is recommended.
+	 *   * Progressive frames only (no interlaced/field-coded content).
+	 *   * No B-frames is recommended (e.g., baseline) to avoid output reordering costs.
+	 * - Color format: YUV 4:2:0 (8-bit) is recommended; other chroma formats may be unsupported.
+	 * - Frame rate: Constant frame rate (CFR) is recommended. Variable frame rate streams may play with unstable timing.
+	 * - Resolution/performance notes:
+	 *   * 4K and high-bitrate streams may be CPU intensive for software decoding.
+	 *   * For smooth playback on mid-range devices, 720p/1080p and moderate bitrates are recommended.
+	 * - It is recommended to use the `ffmpeg` tool to convert the video file to H.264 format before using it.
+	 */
+	file: string;
+
+	/**
+	 * Whether the video should loop. Default is `false`.
+	 */
+	looped?: boolean;
+
+	/**
+	 * Triggers when this node element is instantialized.
+	 * @param self The node element that was instantialized.
+	 */
+	onMount?(this: void, self: Dora.VideoNode.Type): void;
+}
+
 class Label extends Node {
 	ref?: Ref<Dora.Label.Type>;
 
@@ -1719,6 +1834,14 @@ interface IntrinsicElements {
 	 * The Sprite class to render texture in game scene tree hierarchy.
 	 */
 	sprite: Sprite;
+	/**
+	 * A node that represents an audio source.
+	 */
+	'audio-source': AudioSource;
+	/**
+	 * A class that represents a video node.
+	 */
+	'video-node': VideoNode;
 	/**
 	 * A node for rendering text using a TrueType font.
 	 */

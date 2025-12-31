@@ -56,7 +56,7 @@ pub use node::{INode, Node};
 mod texture_2d;
 pub use texture_2d::Texture2D;
 mod sprite;
-pub use sprite::Sprite;
+pub use sprite::{ISprite, Sprite};
 mod grid;
 pub use grid::Grid;
 mod touch;
@@ -117,6 +117,8 @@ mod audio_bus;
 pub use audio_bus::AudioBus;
 mod audio_source;
 pub use audio_source::AudioSource;
+mod video_node;
+pub use video_node::VideoNode;
 mod keyboard;
 pub use keyboard::Keyboard;
 mod mouse;
@@ -206,6 +208,7 @@ thread_local! {
 			SVG::type_info(),
 			AudioBus::type_info(),
 			AudioSource::type_info(),
+			VideoNode::type_info(),
 			ml::QLearner::type_info(),
 			platformer::ActionUpdate::type_info(),
 			platformer::Face::type_info(),
@@ -244,6 +247,7 @@ extern "C" {
 	fn object_release(obj: i64);
 
 	fn object_to_node(obj: i64) -> i64;
+	fn object_to_sprite(obj: i64) -> i64;
 	fn object_to_camera(obj: i64) -> i64;
 	fn object_to_playable(obj: i64) -> i64;
 	fn object_to_physics_world(obj: i64) -> i64;
@@ -3242,6 +3246,29 @@ impl Node {
 			}
 		}
 		node
+	}
+}
+
+// Sprite
+
+impl Sprite {
+	/// Casts the object to a sprite.
+	///
+	/// # Arguments
+	///
+	/// * `obj` - The object to cast.
+	///
+	/// # Returns
+	///
+	/// * `Option<Sprite>` - The sprite if the object is a sprite, None otherwise.
+	pub fn cast(obj: &dyn IObject) -> Option<Sprite> {
+		let sprite = Sprite::from(unsafe { object_to_sprite(obj.raw()) });
+		if sprite.is_some() {
+			unsafe {
+				object_retain(obj.raw());
+			}
+		}
+		sprite
 	}
 }
 
