@@ -116,7 +116,8 @@ y = func "hello" + 100 -- func("hello" + 100)
 
 ```yue
 my_func 5, -- 调用 my_func(5, 8, another_func(6, 7, 9, 1, 2), 5, 4)
-	8, another_func 6, 7, -- 调用 another_func(6, 7, 9, 1, 2)
+	8, another_func 6, 7, -- 调用为
+		9, 1, 2, -- another_func(6, 7, 9, 1, 2)
 	5, 4
 ```
 
