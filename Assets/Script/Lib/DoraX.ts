@@ -390,6 +390,7 @@ let getGrid: (this: void, enode: React.Element) => Dora.Grid.Type;
 }
 
 let getSprite: (this: void, enode: React.Element) => Dora.Sprite.Type | null;
+let getVideoNode: (this: void, enode: React.Element) => Dora.VideoNode.Type | null;
 {
 	function handleSpriteAttribute(this: void, cnode: Dora.Sprite.Type, _enode: React.Element, k: any, v: any) {
 		switch (k as keyof JSX.Sprite) {
@@ -417,6 +418,68 @@ let getSprite: (this: void, enode: React.Element) => Dora.Sprite.Type | null;
 			const node = Dora.Sprite();
 			const cnode = getNode(enode, node, handleSpriteAttribute);
 			return cnode as Dora.Sprite.Type;
+		}
+		return null;
+	};
+	getVideoNode = (enode: React.Element) => {
+		const vn = enode.props as JSX.VideoNode;
+		const node = Dora.VideoNode(vn.file, vn.looped ?? false);
+		if (node !== null) {
+			const cnode = getNode(enode, node, handleSpriteAttribute);
+			return cnode as Dora.VideoNode.Type;
+		}
+		return null
+	};
+}
+
+let getAudioSource: (this: void, enode: React.Element) => Dora.AudioSource.Type | null;
+{
+	function handleAudioSourceAttribute(this: void, cnode: Dora.AudioSource.Type, enode: React.Element, k: any, v: any) {
+		switch (k as keyof JSX.AudioSource) {
+			case 'file': return true;
+			case 'autoRemove': return true;
+			case 'bus': return true;
+			case 'volume': cnode.volume = v; return true;
+			case 'pan': cnode.pan = v; return true;
+			case 'looping': cnode.looping = v; return true;
+			case 'playMode': {
+				const aus = enode.props as JSX.AudioSource;
+				switch (v as 'normal' | 'background' | '3D') {
+					case 'normal': cnode.play(aus.delayTime ?? 0); break;
+					case 'background': cnode.playBackground(); break;
+					case '3D': cnode.play3D(aus.delayTime ?? 0); break;
+				}
+				return true;
+			}
+			case 'delayTime': return true;
+			case 'protected': cnode.setProtected(v); return true;
+			case 'loopPoint': cnode.setLoopPoint(v); return true;
+			case 'velocity': {
+				const [vx, vy, vz] = v as [number, number, number];
+				cnode.setVelocity(vx, vy, vz);
+				return true;
+			}
+			case 'minMaxDistance': {
+				const [min, max] = v as [number, number];
+				cnode.setMinMaxDistance(min, max);
+				return true;
+			}
+			case 'attenuation': {
+				const [model, factor] = v as [Dora.AttenuationModel, number];
+				cnode.setAttenuation(model, factor);
+				return true;
+			}
+			case 'dopplerFactor': cnode.setDopplerFactor(v); return true;
+		}
+		return false;
+	}
+	getAudioSource = (enode: React.Element) => {
+		const aus = enode.props as JSX.AudioSource;
+		const autoRemove = aus.autoRemove ?? true;
+		const node = Dora.AudioSource(aus.file, autoRemove, aus.bus);
+		if (node !== null) {
+			const cnode = getNode(enode, node, handleAudioSourceAttribute);
+			return cnode as Dora.AudioSource.Type;
 		}
 		return null;
 	};
@@ -944,6 +1007,18 @@ const elementMap: ElementMap = {
 	},
 	sprite: (nodeStack: Dora.Node.Type[], enode: React.Element, parent?: React.Element) => {
 		const cnode = getSprite(enode);
+		if (cnode !== null) {
+			addChild(nodeStack, cnode, enode);
+		}
+	},
+	'audio-source': (nodeStack: Dora.Node.Type[], enode: React.Element, parent?: React.Element) => {
+		const cnode = getAudioSource(enode);
+		if (cnode !== null) {
+			addChild(nodeStack, cnode, enode);
+		}
+	},
+	'video-node': (nodeStack: Dora.Node.Type[], enode: React.Element, parent?: React.Element) => {
+		const cnode = getVideoNode(enode);
 		if (cnode !== null) {
 			addChild(nodeStack, cnode, enode);
 		}

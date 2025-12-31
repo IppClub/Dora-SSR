@@ -36,6 +36,7 @@ inheritances =
 	IPlayable: {"INode"}
 	IPhysicsWorld: {"INode"}
 	IBody: {"INode"}
+	ISprite: {"INode"}
 
 basicTypes =
 	bool: -- passingType, convertFrom, convertTo, argType, returnType, fromRust, toRust, cReturn, cPass

@@ -103,7 +103,7 @@ NS_DORA_BEGIN
 
 #define DoraVersion(major, minor, patch) ((major) << 16 | (minor) << 8 | (patch))
 
-static const int doraWASMVersion = DoraVersion(0, 5, 2);
+static const int doraWASMVersion = DoraVersion(0, 5, 3);
 
 static std::string VersionToStr(int version) {
 	return std::to_string((version & 0x00ff0000) >> 16) + '.' + std::to_string((version & 0x0000ff00) >> 8) + '.' + std::to_string(version & 0x000000ff);
@@ -1156,6 +1156,12 @@ DORA_EXPORT int64_t object_to_node(int64_t obj) {
 	}
 	return 0;
 }
+DORA_EXPORT int64_t object_to_sprite(int64_t obj) {
+	if (auto target = d_cast<Sprite*>(r_cast<Object*>(obj))) {
+		return r_cast<int64_t>(target);
+	}
+	return 0;
+}
 DORA_EXPORT int64_t object_to_camera(int64_t obj) {
 	if (auto target = d_cast<Camera*>(r_cast<Object*>(obj))) {
 		return r_cast<int64_t>(target);
@@ -1616,6 +1622,7 @@ DORA_EXPORT float math_tan(float v) { return std::tan(v); }
 #include "Dora/AudioWasm.hpp"
 #include "Dora/AudioBusWasm.hpp"
 #include "Dora/AudioSourceWasm.hpp"
+#include "Dora/VideoNodeWasm.hpp"
 #include "Dora/BodyDefWasm.hpp"
 #include "Dora/BodyWasm.hpp"
 #include "Dora/BufferWasm.hpp"
@@ -1755,6 +1762,7 @@ static void linkAutoModule(wasm3::module3& mod) {
 	linkAudio(mod);
 	linkAudioBus(mod);
 	linkAudioSource(mod);
+	linkVideoNode(mod);
 	linkKeyboard(mod);
 	linkController(mod);
 	linkMouse(mod);
