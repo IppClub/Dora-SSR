@@ -205,7 +205,7 @@ u32 h264bsdDecode(storage_t *pStorage, u8 *byteStrm, u32 len, u32 picId,
     /* Discard unspecified, reserved, SPS extension and auxiliary picture slices */
     if(nalUnit.nalUnitType == 0 || nalUnit.nalUnitType >= 13)
     {
-        DEBUG(("DISCARDED NAL (UNSPECIFIED, REGISTERED, SPS ext or AUX slice)\n"));
+        H264DEBUG(("DISCARDED NAL (UNSPECIFIED, REGISTERED, SPS ext or AUX slice)\n"));
         return(H264BSD_RDY);
     }
 
@@ -225,11 +225,11 @@ u32 h264bsdDecode(storage_t *pStorage, u8 *byteStrm, u32 len, u32 picId,
 
     if ( accessUnitBoundaryFlag )
     {
-        DEBUG(("Access unit boundary\n"));
+        H264DEBUG(("Access unit boundary\n"));
         /* conceal if picture started and param sets activated */
         if (pStorage->picStarted && pStorage->activeSps != NULL)
         {
-            DEBUG(("CONCEALING..."));
+            H264DEBUG(("CONCEALING..."));
 
             /* return error if second phase of
              * initialization is not completed */
@@ -256,7 +256,7 @@ u32 h264bsdDecode(storage_t *pStorage, u8 *byteStrm, u32 len, u32 picId,
              * readBytes to 0 */
             *readBytes = 0;
             pStorage->prevBufNotFinished = HANTRO_TRUE;
-            DEBUG(("...DONE\n"));
+            H264DEBUG(("...DONE\n"));
         }
         else
         {
@@ -270,7 +270,7 @@ u32 h264bsdDecode(storage_t *pStorage, u8 *byteStrm, u32 len, u32 picId,
         switch (nalUnit.nalUnitType)
         {
             case NAL_SEQ_PARAM_SET:
-                DEBUG(("SEQ PARAM SET\n"));
+                H264DEBUG(("SEQ PARAM SET\n"));
                 tmp = h264bsdDecodeSeqParamSet(&strm, &seqParamSet);
                 if (tmp != HANTRO_OK)
                 {
@@ -283,7 +283,7 @@ u32 h264bsdDecode(storage_t *pStorage, u8 *byteStrm, u32 len, u32 picId,
                 break;
 
             case NAL_PIC_PARAM_SET:
-                DEBUG(("PIC PARAM SET\n"));
+                H264DEBUG(("PIC PARAM SET\n"));
                 tmp = h264bsdDecodePicParamSet(&strm, &picParamSet);
                 if (tmp != HANTRO_OK)
                 {
@@ -298,10 +298,10 @@ u32 h264bsdDecode(storage_t *pStorage, u8 *byteStrm, u32 len, u32 picId,
                 break;
 
             case NAL_CODED_SLICE_IDR:
-                DEBUG(("IDR "));
+                H264DEBUG(("IDR "));
                 /* fall through */
             case NAL_CODED_SLICE:
-                DEBUG(("SLICE HEADER\n"));
+                H264DEBUG(("SLICE HEADER\n"));
 
                 /* picture successfully finished and still decoding same old
                  * access unit -> no need to decode redundant slices */
@@ -442,7 +442,7 @@ u32 h264bsdDecode(storage_t *pStorage, u8 *byteStrm, u32 len, u32 picId,
                     return(H264BSD_ERROR);
                 }
 
-                DEBUG(("SLICE DATA, FIRST %d\n",
+                H264DEBUG(("SLICE DATA, FIRST %d\n",
                         pStorage->sliceHeader->firstMbInSlice));
                 tmp = h264bsdDecodeSliceData(&strm, pStorage,
                     pStorage->currImage, pStorage->sliceHeader);
@@ -462,11 +462,11 @@ u32 h264bsdDecode(storage_t *pStorage, u8 *byteStrm, u32 len, u32 picId,
                 break;
 
             case NAL_SEI:
-                DEBUG(("SEI MESSAGE, NOT DECODED"));
+                H264DEBUG(("SEI MESSAGE, NOT DECODED"));
                 break;
 
             default:
-                DEBUG(("NOT IMPLEMENTED YET %d\n",nalUnit.nalUnitType));
+                H264DEBUG(("NOT IMPLEMENTED YET %d\n",nalUnit.nalUnitType));
         }
     }
 
@@ -1107,7 +1107,7 @@ u32 h264bsdProfile(storage_t *pStorage)
 
 ------------------------------------------------------------------------------*/
 
-storage_t* h264bsdAlloc()
+storage_t* h264bsdAlloc(void)
 {
     return (storage_t*)malloc(sizeof(storage_t));
 }

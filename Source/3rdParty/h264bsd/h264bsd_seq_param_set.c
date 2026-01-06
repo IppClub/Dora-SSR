@@ -101,7 +101,7 @@ u32 h264bsdDecodeSeqParamSet(strmData_t *pStrmData, seqParamSet_t *pSeqParamSet)
         return(HANTRO_NOK);
     if (tmp != 66)
     {
-        DEBUG(("NOT BASELINE PROFILE %d\n", tmp));
+        H264DEBUG(("NOT BASELINE PROFILE %d\n", tmp));
     }
     pSeqParamSet->profileIdc = tmp;
 
@@ -306,8 +306,8 @@ u32 h264bsdDecodeSeqParamSet(strmData_t *pStrmData, seqParamSet_t *pSeqParamSet)
     value = GetDpbSize(tmp, pSeqParamSet->levelIdc);
     if (value == INVALID_DPB_SIZE || pSeqParamSet->numRefFrames > value)
     {
-        DEBUG(("WARNING! Invalid DPB size based on SPS Level!\n"));
-        DEBUG(("WARNING! Using num_ref_frames =%d for DPB size!\n",
+        H264DEBUG(("WARNING! Invalid DPB size based on SPS Level!\n"));
+        H264DEBUG(("WARNING! Using num_ref_frames =%d for DPB size!\n",
                         pSeqParamSet->numRefFrames));
         value = pSeqParamSet->numRefFrames;
     }

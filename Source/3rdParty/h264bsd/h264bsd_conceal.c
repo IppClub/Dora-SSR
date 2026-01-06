@@ -137,7 +137,7 @@ u32 h264bsdConceal(storage_t *pStorage, image_t *currImage, u32 sliceType)
     ASSERT(pStorage);
     ASSERT(currImage);
 
-    DEBUG(("Concealing %s slice\n", IS_I_SLICE(sliceType) ?
+    H264DEBUG(("Concealing %s slice\n", IS_I_SLICE(sliceType) ?
             "intra" : "inter"));
 
     width = currImage->width;

@@ -110,9 +110,9 @@
 /* macro for debug printing, used only if compiler flag _DEBUG_PRINT is
  * defined */
 #ifdef _DEBUG_PRINT
-#define DEBUG(args) printf args
+#define H264DEBUG(args) printf args
 #else
-#define DEBUG(args)
+#define H264DEBUG(args)
 #endif
 
 /* macro for error printing, used only if compiler flag _ERROR_PRINT is

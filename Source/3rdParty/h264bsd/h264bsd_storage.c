@@ -384,7 +384,7 @@ u32 h264bsdActivateParamSets(storage_t *pStorage, u32 ppsId, u32 isIdr)
         /* sequence parameter set shall not change but before an IDR picture */
         if (pStorage->pps[ppsId]->seqParameterSetId != pStorage->activeSpsId)
         {
-            DEBUG(("SEQ PARAM SET CHANGING...\n"));
+            H264DEBUG(("SEQ PARAM SET CHANGING...\n"));
             if (isIdr)
             {
                 pStorage->activePpsId = ppsId;
@@ -403,7 +403,7 @@ u32 h264bsdActivateParamSets(storage_t *pStorage, u32 ppsId, u32 isIdr)
             }
             else
             {
-                DEBUG(("TRYING TO CHANGE SPS IN NON-IDR SLICE\n"));
+                H264DEBUG(("TRYING TO CHANGE SPS IN NON-IDR SLICE\n"));
                 return(HANTRO_NOK);
             }
         }
