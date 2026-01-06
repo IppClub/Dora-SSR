@@ -166,7 +166,7 @@ u32 h264bsdDecodeSliceData(strmData_t *pStrmData, storage_t *pStorage,
 
         if (skipRun)
         {
-            DEBUG(("Skipping macroblock %d\n", currMbAddr));
+            H264DEBUG(("Skipping macroblock %d\n", currMbAddr));
             skipRun--;
         }
         else

@@ -85,7 +85,7 @@ void h264bsdFlushBuffer(storage_t *pStorage);
 
 u32 h264bsdProfile(storage_t *pStorage);
 
-storage_t* h264bsdAlloc();
+storage_t* h264bsdAlloc(void);
 void h264bsdFree(storage_t *pStorage);
 
 void h264bsdConvertToRGBA(u32 width, u32 height, u8* data, u32 *pOutput);
