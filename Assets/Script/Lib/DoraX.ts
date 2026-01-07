@@ -391,6 +391,7 @@ let getGrid: (this: void, enode: React.Element) => Dora.Grid.Type;
 
 let getSprite: (this: void, enode: React.Element) => Dora.Sprite.Type | null;
 let getVideoNode: (this: void, enode: React.Element) => Dora.VideoNode.Type | null;
+let getTIC80Node: (this: void, enode: React.Element) => Dora.TIC80Node.Type | null;
 {
 	function handleSpriteAttribute(this: void, cnode: Dora.Sprite.Type, _enode: React.Element, k: any, v: any) {
 		switch (k as keyof JSX.Sprite) {
@@ -427,6 +428,15 @@ let getVideoNode: (this: void, enode: React.Element) => Dora.VideoNode.Type | nu
 		if (node !== null) {
 			const cnode = getNode(enode, node, handleSpriteAttribute);
 			return cnode as Dora.VideoNode.Type;
+		}
+		return null
+	};
+	getTIC80Node = (enode: React.Element) => {
+		const tic = enode.props as JSX.TIC80Node;
+		const node = Dora.TIC80Node(tic.file);
+		if (node !== null) {
+			const cnode = getNode(enode, node, handleSpriteAttribute);
+			return cnode as Dora.TIC80Node.Type;
 		}
 		return null
 	};
@@ -1019,6 +1029,12 @@ const elementMap: ElementMap = {
 	},
 	'video-node': (nodeStack: Dora.Node.Type[], enode: React.Element, parent?: React.Element) => {
 		const cnode = getVideoNode(enode);
+		if (cnode !== null) {
+			addChild(nodeStack, cnode, enode);
+		}
+	},
+	'tic80-node': (nodeStack: Dora.Node.Type[], enode: React.Element, parent?: React.Element) => {
+		const cnode = getTIC80Node(enode);
 		if (cnode !== null) {
 			addChild(nodeStack, cnode, enode);
 		}

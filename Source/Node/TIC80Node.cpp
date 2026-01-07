@@ -276,15 +276,15 @@ bool TIC80Node::init() {
 	_tic80->callback.trace = dora_tic_trace;
 	_tic80->callback.error = dora_tic_error;
 
-	std::string cartData = SharedContent.loadUnsafe(_cartFile);
-	if (cartData.empty()) {
+	auto cartData = SharedContent.load(_cartFile);
+	if (!cartData.first || cartData.second == 0) {
 		Error("TIC80Node: failed to load cart file: {}", _cartFile);
 		tic80_delete(_tic80);
 		_tic80 = nullptr;
 		return false;
 	}
 
-	tic80_load(_tic80, cartData.data(), s_cast<s32>(cartData.size()));
+	tic80_load(_tic80, cartData.first.get(), s_cast<s32>(cartData.second));
 
 	bgfx::TextureHandle textureHandle = bgfx::createTexture2D(
 		TIC80_FULLWIDTH,
@@ -348,8 +348,10 @@ void TIC80Node::cleanup() {
 		_audioHandle = 0;
 	}
 
-	_scheduler->cleanup();
-	_scheduler = nullptr;
+	if (_scheduler) {
+		_scheduler->cleanup();
+		_scheduler = nullptr;
+	}
 	_audioSource = nullptr;
 
 	if (_tic80) {

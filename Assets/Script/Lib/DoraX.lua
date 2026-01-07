@@ -13,48 +13,48 @@ local Dora = require("Dora") -- 11
 function Warn(msg) -- 13
 	Dora.Log("Warn", "[Dora Warning] " .. msg) -- 14
 end -- 14
-function visitNode(nodeStack, node, parent) -- 1443
-	if type(node) ~= "table" then -- 1443
-		return -- 1445
-	end -- 1445
-	local enode = node -- 1447
-	if enode.type == nil then -- 1447
-		local list = node -- 1449
-		if #list > 0 then -- 1449
-			for i = 1, #list do -- 1449
-				local stack = {} -- 1452
-				visitNode(stack, list[i], parent) -- 1453
-				for i = 1, #stack do -- 1453
-					nodeStack[#nodeStack + 1] = stack[i] -- 1455
-				end -- 1455
-			end -- 1455
-		end -- 1455
-	else -- 1455
-		local handler = elementMap[enode.type] -- 1460
-		if handler ~= nil then -- 1460
-			handler(nodeStack, enode, parent) -- 1462
-		else -- 1462
-			Warn(("unsupported tag <" .. enode.type) .. ">") -- 1464
-		end -- 1464
-	end -- 1464
-end -- 1464
-function ____exports.toNode(enode) -- 1469
-	local nodeStack = {} -- 1470
-	visitNode(nodeStack, enode) -- 1471
-	if #nodeStack == 1 then -- 1471
-		return nodeStack[1] -- 1473
-	elseif #nodeStack > 1 then -- 1473
-		local node = Dora.Node() -- 1475
-		for i = 1, #nodeStack do -- 1475
-			node:addChild(nodeStack[i]) -- 1477
-		end -- 1477
-		return node -- 1479
-	end -- 1479
-	return nil -- 1481
-end -- 1469
-____exports.React = {} -- 1469
-local React = ____exports.React -- 1469
-do -- 1469
+function visitNode(nodeStack, node, parent) -- 1459
+	if type(node) ~= "table" then -- 1459
+		return -- 1461
+	end -- 1461
+	local enode = node -- 1463
+	if enode.type == nil then -- 1463
+		local list = node -- 1465
+		if #list > 0 then -- 1465
+			for i = 1, #list do -- 1465
+				local stack = {} -- 1468
+				visitNode(stack, list[i], parent) -- 1469
+				for i = 1, #stack do -- 1469
+					nodeStack[#nodeStack + 1] = stack[i] -- 1471
+				end -- 1471
+			end -- 1471
+		end -- 1471
+	else -- 1471
+		local handler = elementMap[enode.type] -- 1476
+		if handler ~= nil then -- 1476
+			handler(nodeStack, enode, parent) -- 1478
+		else -- 1478
+			Warn(("unsupported tag <" .. enode.type) .. ">") -- 1480
+		end -- 1480
+	end -- 1480
+end -- 1480
+function ____exports.toNode(enode) -- 1485
+	local nodeStack = {} -- 1486
+	visitNode(nodeStack, enode) -- 1487
+	if #nodeStack == 1 then -- 1487
+		return nodeStack[1] -- 1489
+	elseif #nodeStack > 1 then -- 1489
+		local node = Dora.Node() -- 1491
+		for i = 1, #nodeStack do -- 1491
+			node:addChild(nodeStack[i]) -- 1493
+		end -- 1493
+		return node -- 1495
+	end -- 1495
+	return nil -- 1497
+end -- 1485
+____exports.React = {} -- 1485
+local React = ____exports.React -- 1485
+do -- 1485
 	React.Component = __TS__Class() -- 17
 	local Component = React.Component -- 17
 	Component.name = "Component" -- 19
@@ -632,1618 +632,1634 @@ do -- 372
 end -- 384
 local getSprite -- 392
 local getVideoNode -- 393
-do -- 393
-	local function handleSpriteAttribute(cnode, _enode, k, v) -- 395
-		repeat -- 395
-			local ____switch83 = k -- 395
-			local ____cond83 = ____switch83 == "file" -- 395
-			if ____cond83 then -- 395
-				return true -- 397
-			end -- 397
-			____cond83 = ____cond83 or ____switch83 == "textureRect" -- 397
-			if ____cond83 then -- 397
-				cnode.textureRect = v -- 398
+local getTIC80Node -- 394
+do -- 394
+	local function handleSpriteAttribute(cnode, _enode, k, v) -- 396
+		repeat -- 396
+			local ____switch83 = k -- 396
+			local ____cond83 = ____switch83 == "file" -- 396
+			if ____cond83 then -- 396
 				return true -- 398
 			end -- 398
-			____cond83 = ____cond83 or ____switch83 == "depthWrite" -- 398
+			____cond83 = ____cond83 or ____switch83 == "textureRect" -- 398
 			if ____cond83 then -- 398
-				cnode.depthWrite = v -- 399
+				cnode.textureRect = v -- 399
 				return true -- 399
 			end -- 399
-			____cond83 = ____cond83 or ____switch83 == "blendFunc" -- 399
+			____cond83 = ____cond83 or ____switch83 == "depthWrite" -- 399
 			if ____cond83 then -- 399
-				cnode.blendFunc = v -- 400
+				cnode.depthWrite = v -- 400
 				return true -- 400
 			end -- 400
-			____cond83 = ____cond83 or ____switch83 == "effect" -- 400
+			____cond83 = ____cond83 or ____switch83 == "blendFunc" -- 400
 			if ____cond83 then -- 400
-				cnode.effect = v -- 401
+				cnode.blendFunc = v -- 401
 				return true -- 401
 			end -- 401
-			____cond83 = ____cond83 or ____switch83 == "alphaRef" -- 401
+			____cond83 = ____cond83 or ____switch83 == "effect" -- 401
 			if ____cond83 then -- 401
-				cnode.alphaRef = v -- 402
+				cnode.effect = v -- 402
 				return true -- 402
 			end -- 402
-			____cond83 = ____cond83 or ____switch83 == "uwrap" -- 402
+			____cond83 = ____cond83 or ____switch83 == "alphaRef" -- 402
 			if ____cond83 then -- 402
-				cnode.uwrap = v -- 403
+				cnode.alphaRef = v -- 403
 				return true -- 403
 			end -- 403
-			____cond83 = ____cond83 or ____switch83 == "vwrap" -- 403
+			____cond83 = ____cond83 or ____switch83 == "uwrap" -- 403
 			if ____cond83 then -- 403
-				cnode.vwrap = v -- 404
+				cnode.uwrap = v -- 404
 				return true -- 404
 			end -- 404
-			____cond83 = ____cond83 or ____switch83 == "filter" -- 404
+			____cond83 = ____cond83 or ____switch83 == "vwrap" -- 404
 			if ____cond83 then -- 404
-				cnode.filter = v -- 405
+				cnode.vwrap = v -- 405
 				return true -- 405
 			end -- 405
-		until true -- 405
-		return false -- 407
-	end -- 395
-	getSprite = function(enode) -- 409
-		local sp = enode.props -- 410
-		if sp.file then -- 410
-			local node = Dora.Sprite(sp.file) -- 412
-			if node ~= nil then -- 412
-				local cnode = getNode(enode, node, handleSpriteAttribute) -- 414
-				return cnode -- 415
-			end -- 415
-		else -- 415
-			local node = Dora.Sprite() -- 418
-			local cnode = getNode(enode, node, handleSpriteAttribute) -- 419
-			return cnode -- 420
-		end -- 420
-		return nil -- 422
-	end -- 409
-	getVideoNode = function(enode) -- 424
-		local vn = enode.props -- 425
-		local ____Dora_VideoNode_10 = Dora.VideoNode -- 426
-		local ____vn_file_9 = vn.file -- 426
-		local ____vn_looped_8 = vn.looped -- 426
-		if ____vn_looped_8 == nil then -- 426
-			____vn_looped_8 = false -- 426
-		end -- 426
-		local node = ____Dora_VideoNode_10(____vn_file_9, ____vn_looped_8) -- 426
-		if node ~= nil then -- 426
-			local cnode = getNode(enode, node, handleSpriteAttribute) -- 428
-			return cnode -- 429
-		end -- 429
-		return nil -- 431
-	end -- 424
-end -- 424
-local getAudioSource -- 435
-do -- 435
-	local function handleAudioSourceAttribute(cnode, enode, k, v) -- 437
-		repeat -- 437
-			local ____switch92 = k -- 437
-			local ____cond92 = ____switch92 == "file" -- 437
-			if ____cond92 then -- 437
-				return true -- 439
-			end -- 439
-			____cond92 = ____cond92 or ____switch92 == "autoRemove" -- 439
-			if ____cond92 then -- 439
-				return true -- 440
-			end -- 440
-			____cond92 = ____cond92 or ____switch92 == "bus" -- 440
-			if ____cond92 then -- 440
-				return true -- 441
-			end -- 441
-			____cond92 = ____cond92 or ____switch92 == "volume" -- 441
-			if ____cond92 then -- 441
-				cnode.volume = v -- 442
-				return true -- 442
-			end -- 442
-			____cond92 = ____cond92 or ____switch92 == "pan" -- 442
-			if ____cond92 then -- 442
-				cnode.pan = v -- 443
-				return true -- 443
-			end -- 443
-			____cond92 = ____cond92 or ____switch92 == "looping" -- 443
-			if ____cond92 then -- 443
-				cnode.looping = v -- 444
-				return true -- 444
-			end -- 444
-			____cond92 = ____cond92 or ____switch92 == "playMode" -- 444
-			if ____cond92 then -- 444
-				do -- 444
-					local aus = enode.props -- 446
-					repeat -- 446
-						local ____switch94 = v -- 446
-						local ____cond94 = ____switch94 == "normal" -- 446
-						if ____cond94 then -- 446
-							cnode:play(aus.delayTime or 0) -- 448
-							break -- 448
-						end -- 448
-						____cond94 = ____cond94 or ____switch94 == "background" -- 448
-						if ____cond94 then -- 448
-							cnode:playBackground() -- 449
-							break -- 449
-						end -- 449
-						____cond94 = ____cond94 or ____switch94 == "3D" -- 449
-						if ____cond94 then -- 449
-							cnode:play3D(aus.delayTime or 0) -- 450
-							break -- 450
-						end -- 450
-					until true -- 450
-					return true -- 452
-				end -- 452
+			____cond83 = ____cond83 or ____switch83 == "filter" -- 405
+			if ____cond83 then -- 405
+				cnode.filter = v -- 406
+				return true -- 406
+			end -- 406
+		until true -- 406
+		return false -- 408
+	end -- 396
+	getSprite = function(enode) -- 410
+		local sp = enode.props -- 411
+		if sp.file then -- 411
+			local node = Dora.Sprite(sp.file) -- 413
+			if node ~= nil then -- 413
+				local cnode = getNode(enode, node, handleSpriteAttribute) -- 415
+				return cnode -- 416
+			end -- 416
+		else -- 416
+			local node = Dora.Sprite() -- 419
+			local cnode = getNode(enode, node, handleSpriteAttribute) -- 420
+			return cnode -- 421
+		end -- 421
+		return nil -- 423
+	end -- 410
+	getVideoNode = function(enode) -- 425
+		local vn = enode.props -- 426
+		local ____Dora_VideoNode_10 = Dora.VideoNode -- 427
+		local ____vn_file_9 = vn.file -- 427
+		local ____vn_looped_8 = vn.looped -- 427
+		if ____vn_looped_8 == nil then -- 427
+			____vn_looped_8 = false -- 427
+		end -- 427
+		local node = ____Dora_VideoNode_10(____vn_file_9, ____vn_looped_8) -- 427
+		if node ~= nil then -- 427
+			local cnode = getNode(enode, node, handleSpriteAttribute) -- 429
+			return cnode -- 430
+		end -- 430
+		return nil -- 432
+	end -- 425
+	getTIC80Node = function(enode) -- 434
+		local tic = enode.props -- 435
+		local node = Dora.TIC80Node(tic.file) -- 436
+		if node ~= nil then -- 436
+			local cnode = getNode(enode, node, handleSpriteAttribute) -- 438
+			return cnode -- 439
+		end -- 439
+		return nil -- 441
+	end -- 434
+end -- 434
+local getAudioSource -- 445
+do -- 445
+	local function handleAudioSourceAttribute(cnode, enode, k, v) -- 447
+		repeat -- 447
+			local ____switch94 = k -- 447
+			local ____cond94 = ____switch94 == "file" -- 447
+			if ____cond94 then -- 447
+				return true -- 449
+			end -- 449
+			____cond94 = ____cond94 or ____switch94 == "autoRemove" -- 449
+			if ____cond94 then -- 449
+				return true -- 450
+			end -- 450
+			____cond94 = ____cond94 or ____switch94 == "bus" -- 450
+			if ____cond94 then -- 450
+				return true -- 451
+			end -- 451
+			____cond94 = ____cond94 or ____switch94 == "volume" -- 451
+			if ____cond94 then -- 451
+				cnode.volume = v -- 452
+				return true -- 452
 			end -- 452
-			____cond92 = ____cond92 or ____switch92 == "delayTime" -- 452
-			if ____cond92 then -- 452
+			____cond94 = ____cond94 or ____switch94 == "pan" -- 452
+			if ____cond94 then -- 452
+				cnode.pan = v -- 453
+				return true -- 453
+			end -- 453
+			____cond94 = ____cond94 or ____switch94 == "looping" -- 453
+			if ____cond94 then -- 453
+				cnode.looping = v -- 454
 				return true -- 454
 			end -- 454
-			____cond92 = ____cond92 or ____switch92 == "protected" -- 454
-			if ____cond92 then -- 454
-				cnode:setProtected(v) -- 455
-				return true -- 455
-			end -- 455
-			____cond92 = ____cond92 or ____switch92 == "loopPoint" -- 455
-			if ____cond92 then -- 455
-				cnode:setLoopPoint(v) -- 456
-				return true -- 456
-			end -- 456
-			____cond92 = ____cond92 or ____switch92 == "velocity" -- 456
-			if ____cond92 then -- 456
-				do -- 456
-					local vx, vy, vz = table.unpack(v, 1, 3) -- 458
-					cnode:setVelocity(vx, vy, vz) -- 459
-					return true -- 460
-				end -- 460
-			end -- 460
-			____cond92 = ____cond92 or ____switch92 == "minMaxDistance" -- 460
-			if ____cond92 then -- 460
-				do -- 460
-					local min, max = table.unpack(v, 1, 2) -- 463
-					cnode:setMinMaxDistance(min, max) -- 464
-					return true -- 465
-				end -- 465
+			____cond94 = ____cond94 or ____switch94 == "playMode" -- 454
+			if ____cond94 then -- 454
+				do -- 454
+					local aus = enode.props -- 456
+					repeat -- 456
+						local ____switch96 = v -- 456
+						local ____cond96 = ____switch96 == "normal" -- 456
+						if ____cond96 then -- 456
+							cnode:play(aus.delayTime or 0) -- 458
+							break -- 458
+						end -- 458
+						____cond96 = ____cond96 or ____switch96 == "background" -- 458
+						if ____cond96 then -- 458
+							cnode:playBackground() -- 459
+							break -- 459
+						end -- 459
+						____cond96 = ____cond96 or ____switch96 == "3D" -- 459
+						if ____cond96 then -- 459
+							cnode:play3D(aus.delayTime or 0) -- 460
+							break -- 460
+						end -- 460
+					until true -- 460
+					return true -- 462
+				end -- 462
+			end -- 462
+			____cond94 = ____cond94 or ____switch94 == "delayTime" -- 462
+			if ____cond94 then -- 462
+				return true -- 464
+			end -- 464
+			____cond94 = ____cond94 or ____switch94 == "protected" -- 464
+			if ____cond94 then -- 464
+				cnode:setProtected(v) -- 465
+				return true -- 465
 			end -- 465
-			____cond92 = ____cond92 or ____switch92 == "attenuation" -- 465
-			if ____cond92 then -- 465
-				do -- 465
-					local model, factor = table.unpack(v, 1, 2) -- 468
-					cnode:setAttenuation(model, factor) -- 469
+			____cond94 = ____cond94 or ____switch94 == "loopPoint" -- 465
+			if ____cond94 then -- 465
+				cnode:setLoopPoint(v) -- 466
+				return true -- 466
+			end -- 466
+			____cond94 = ____cond94 or ____switch94 == "velocity" -- 466
+			if ____cond94 then -- 466
+				do -- 466
+					local vx, vy, vz = table.unpack(v, 1, 3) -- 468
+					cnode:setVelocity(vx, vy, vz) -- 469
 					return true -- 470
 				end -- 470
 			end -- 470
-			____cond92 = ____cond92 or ____switch92 == "dopplerFactor" -- 470
-			if ____cond92 then -- 470
-				cnode:setDopplerFactor(v) -- 472
-				return true -- 472
-			end -- 472
-		until true -- 472
-		return false -- 474
-	end -- 437
-	getAudioSource = function(enode) -- 476
-		local aus = enode.props -- 477
-		local ____aus_autoRemove_11 = aus.autoRemove -- 478
-		if ____aus_autoRemove_11 == nil then -- 478
-			____aus_autoRemove_11 = true -- 478
-		end -- 478
-		local autoRemove = ____aus_autoRemove_11 -- 478
-		local node = Dora.AudioSource(aus.file, autoRemove, aus.bus) -- 479
-		if node ~= nil then -- 479
-			local cnode = getNode(enode, node, handleAudioSourceAttribute) -- 481
-			return cnode -- 482
-		end -- 482
-		return nil -- 484
-	end -- 476
-end -- 476
-local getLabel -- 488
-do -- 488
-	local function handleLabelAttribute(cnode, _enode, k, v) -- 490
-		repeat -- 490
-			local ____switch102 = k -- 490
-			local ____cond102 = ____switch102 == "fontName" or ____switch102 == "fontSize" or ____switch102 == "text" or ____switch102 == "smoothLower" or ____switch102 == "smoothUpper" -- 490
-			if ____cond102 then -- 490
-				return true -- 492
-			end -- 492
-			____cond102 = ____cond102 or ____switch102 == "alphaRef" -- 492
-			if ____cond102 then -- 492
-				cnode.alphaRef = v -- 493
-				return true -- 493
-			end -- 493
-			____cond102 = ____cond102 or ____switch102 == "textWidth" -- 493
-			if ____cond102 then -- 493
-				cnode.textWidth = v -- 494
-				return true -- 494
-			end -- 494
-			____cond102 = ____cond102 or ____switch102 == "lineGap" -- 494
-			if ____cond102 then -- 494
-				cnode.lineGap = v -- 495
-				return true -- 495
-			end -- 495
-			____cond102 = ____cond102 or ____switch102 == "spacing" -- 495
-			if ____cond102 then -- 495
-				cnode.spacing = v -- 496
-				return true -- 496
-			end -- 496
-			____cond102 = ____cond102 or ____switch102 == "outlineColor" -- 496
-			if ____cond102 then -- 496
-				cnode.outlineColor = Dora.Color(v) -- 497
-				return true -- 497
-			end -- 497
-			____cond102 = ____cond102 or ____switch102 == "outlineWidth" -- 497
-			if ____cond102 then -- 497
-				cnode.outlineWidth = v -- 498
-				return true -- 498
-			end -- 498
-			____cond102 = ____cond102 or ____switch102 == "blendFunc" -- 498
-			if ____cond102 then -- 498
-				cnode.blendFunc = v -- 499
-				return true -- 499
-			end -- 499
-			____cond102 = ____cond102 or ____switch102 == "depthWrite" -- 499
-			if ____cond102 then -- 499
-				cnode.depthWrite = v -- 500
-				return true -- 500
-			end -- 500
-			____cond102 = ____cond102 or ____switch102 == "batched" -- 500
-			if ____cond102 then -- 500
-				cnode.batched = v -- 501
-				return true -- 501
-			end -- 501
-			____cond102 = ____cond102 or ____switch102 == "effect" -- 501
-			if ____cond102 then -- 501
-				cnode.effect = v -- 502
+			____cond94 = ____cond94 or ____switch94 == "minMaxDistance" -- 470
+			if ____cond94 then -- 470
+				do -- 470
+					local min, max = table.unpack(v, 1, 2) -- 473
+					cnode:setMinMaxDistance(min, max) -- 474
+					return true -- 475
+				end -- 475
+			end -- 475
+			____cond94 = ____cond94 or ____switch94 == "attenuation" -- 475
+			if ____cond94 then -- 475
+				do -- 475
+					local model, factor = table.unpack(v, 1, 2) -- 478
+					cnode:setAttenuation(model, factor) -- 479
+					return true -- 480
+				end -- 480
+			end -- 480
+			____cond94 = ____cond94 or ____switch94 == "dopplerFactor" -- 480
+			if ____cond94 then -- 480
+				cnode:setDopplerFactor(v) -- 482
+				return true -- 482
+			end -- 482
+		until true -- 482
+		return false -- 484
+	end -- 447
+	getAudioSource = function(enode) -- 486
+		local aus = enode.props -- 487
+		local ____aus_autoRemove_11 = aus.autoRemove -- 488
+		if ____aus_autoRemove_11 == nil then -- 488
+			____aus_autoRemove_11 = true -- 488
+		end -- 488
+		local autoRemove = ____aus_autoRemove_11 -- 488
+		local node = Dora.AudioSource(aus.file, autoRemove, aus.bus) -- 489
+		if node ~= nil then -- 489
+			local cnode = getNode(enode, node, handleAudioSourceAttribute) -- 491
+			return cnode -- 492
+		end -- 492
+		return nil -- 494
+	end -- 486
+end -- 486
+local getLabel -- 498
+do -- 498
+	local function handleLabelAttribute(cnode, _enode, k, v) -- 500
+		repeat -- 500
+			local ____switch104 = k -- 500
+			local ____cond104 = ____switch104 == "fontName" or ____switch104 == "fontSize" or ____switch104 == "text" or ____switch104 == "smoothLower" or ____switch104 == "smoothUpper" -- 500
+			if ____cond104 then -- 500
 				return true -- 502
 			end -- 502
-			____cond102 = ____cond102 or ____switch102 == "alignment" -- 502
-			if ____cond102 then -- 502
-				cnode.alignment = v -- 503
+			____cond104 = ____cond104 or ____switch104 == "alphaRef" -- 502
+			if ____cond104 then -- 502
+				cnode.alphaRef = v -- 503
 				return true -- 503
 			end -- 503
-		until true -- 503
-		return false -- 505
-	end -- 490
-	getLabel = function(enode) -- 507
-		local label = enode.props -- 508
-		local node = Dora.Label(label.fontName, label.fontSize, label.sdf) -- 509
-		if node ~= nil then -- 509
-			if label.smoothLower ~= nil or label.smoothUpper ~= nil then -- 509
-				local ____node_smooth_12 = node.smooth -- 512
-				local x = ____node_smooth_12.x -- 512
-				local y = ____node_smooth_12.y -- 512
-				node.smooth = Dora.Vec2(label.smoothLower or x, label.smoothUpper or y) -- 513
+			____cond104 = ____cond104 or ____switch104 == "textWidth" -- 503
+			if ____cond104 then -- 503
+				cnode.textWidth = v -- 504
+				return true -- 504
+			end -- 504
+			____cond104 = ____cond104 or ____switch104 == "lineGap" -- 504
+			if ____cond104 then -- 504
+				cnode.lineGap = v -- 505
+				return true -- 505
+			end -- 505
+			____cond104 = ____cond104 or ____switch104 == "spacing" -- 505
+			if ____cond104 then -- 505
+				cnode.spacing = v -- 506
+				return true -- 506
+			end -- 506
+			____cond104 = ____cond104 or ____switch104 == "outlineColor" -- 506
+			if ____cond104 then -- 506
+				cnode.outlineColor = Dora.Color(v) -- 507
+				return true -- 507
+			end -- 507
+			____cond104 = ____cond104 or ____switch104 == "outlineWidth" -- 507
+			if ____cond104 then -- 507
+				cnode.outlineWidth = v -- 508
+				return true -- 508
+			end -- 508
+			____cond104 = ____cond104 or ____switch104 == "blendFunc" -- 508
+			if ____cond104 then -- 508
+				cnode.blendFunc = v -- 509
+				return true -- 509
+			end -- 509
+			____cond104 = ____cond104 or ____switch104 == "depthWrite" -- 509
+			if ____cond104 then -- 509
+				cnode.depthWrite = v -- 510
+				return true -- 510
+			end -- 510
+			____cond104 = ____cond104 or ____switch104 == "batched" -- 510
+			if ____cond104 then -- 510
+				cnode.batched = v -- 511
+				return true -- 511
+			end -- 511
+			____cond104 = ____cond104 or ____switch104 == "effect" -- 511
+			if ____cond104 then -- 511
+				cnode.effect = v -- 512
+				return true -- 512
+			end -- 512
+			____cond104 = ____cond104 or ____switch104 == "alignment" -- 512
+			if ____cond104 then -- 512
+				cnode.alignment = v -- 513
+				return true -- 513
 			end -- 513
-			local cnode = getNode(enode, node, handleLabelAttribute) -- 515
-			local ____enode_13 = enode -- 516
-			local children = ____enode_13.children -- 516
-			local text = label.text or "" -- 517
-			for i = 1, #children do -- 517
-				local child = children[i] -- 519
-				if type(child) ~= "table" then -- 519
-					text = text .. tostring(child) -- 521
-				end -- 521
-			end -- 521
-			node.text = text -- 524
-			return cnode -- 525
-		end -- 525
-		return nil -- 527
-	end -- 507
-end -- 507
-local getLine -- 531
-do -- 531
-	local function handleLineAttribute(cnode, enode, k, v) -- 533
-		local line = enode.props -- 534
-		repeat -- 534
-			local ____switch110 = k -- 534
-			local ____cond110 = ____switch110 == "verts" -- 534
-			if ____cond110 then -- 534
-				cnode:set( -- 536
-					v, -- 536
-					Dora.Color(line.lineColor or 4294967295) -- 536
-				) -- 536
-				return true -- 536
-			end -- 536
-			____cond110 = ____cond110 or ____switch110 == "depthWrite" -- 536
-			if ____cond110 then -- 536
-				cnode.depthWrite = v -- 537
-				return true -- 537
-			end -- 537
-			____cond110 = ____cond110 or ____switch110 == "blendFunc" -- 537
-			if ____cond110 then -- 537
-				cnode.blendFunc = v -- 538
-				return true -- 538
-			end -- 538
-		until true -- 538
-		return false -- 540
-	end -- 533
-	getLine = function(enode) -- 542
-		local node = Dora.Line() -- 543
-		local cnode = getNode(enode, node, handleLineAttribute) -- 544
-		return cnode -- 545
-	end -- 542
-end -- 542
-local getParticle -- 549
-do -- 549
-	local function handleParticleAttribute(cnode, _enode, k, v) -- 551
-		repeat -- 551
-			local ____switch114 = k -- 551
-			local ____cond114 = ____switch114 == "file" -- 551
-			if ____cond114 then -- 551
-				return true -- 553
-			end -- 553
-			____cond114 = ____cond114 or ____switch114 == "emit" -- 553
-			if ____cond114 then -- 553
-				if v then -- 553
-					cnode:start() -- 554
-				end -- 554
-				return true -- 554
-			end -- 554
-			____cond114 = ____cond114 or ____switch114 == "onFinished" -- 554
-			if ____cond114 then -- 554
-				cnode:slot("Finished", v) -- 555
-				return true -- 555
-			end -- 555
-		until true -- 555
-		return false -- 557
-	end -- 551
-	getParticle = function(enode) -- 559
-		local particle = enode.props -- 560
-		local node = Dora.Particle(particle.file) -- 561
-		if node ~= nil then -- 561
-			local cnode = getNode(enode, node, handleParticleAttribute) -- 563
-			return cnode -- 564
-		end -- 564
-		return nil -- 566
-	end -- 559
-end -- 559
-local getMenu -- 570
-do -- 570
-	local function handleMenuAttribute(cnode, _enode, k, v) -- 572
-		repeat -- 572
-			local ____switch120 = k -- 572
-			local ____cond120 = ____switch120 == "enabled" -- 572
-			if ____cond120 then -- 572
-				cnode.enabled = v -- 574
-				return true -- 574
-			end -- 574
-		until true -- 574
-		return false -- 576
-	end -- 572
-	getMenu = function(enode) -- 578
-		local node = Dora.Menu() -- 579
-		local cnode = getNode(enode, node, handleMenuAttribute) -- 580
-		return cnode -- 581
-	end -- 578
-end -- 578
-local function getPhysicsWorld(enode) -- 585
-	local node = Dora.PhysicsWorld() -- 586
-	local cnode = getNode(enode, node) -- 587
-	return cnode -- 588
-end -- 585
-local getBody -- 591
-do -- 591
-	local function handleBodyAttribute(cnode, _enode, k, v) -- 593
-		repeat -- 593
-			local ____switch125 = k -- 593
-			local ____cond125 = ____switch125 == "type" or ____switch125 == "linearAcceleration" or ____switch125 == "fixedRotation" or ____switch125 == "bullet" or ____switch125 == "world" -- 593
-			if ____cond125 then -- 593
-				return true -- 600
-			end -- 600
-			____cond125 = ____cond125 or ____switch125 == "velocityX" -- 600
-			if ____cond125 then -- 600
-				cnode.velocityX = v -- 601
-				return true -- 601
-			end -- 601
-			____cond125 = ____cond125 or ____switch125 == "velocityY" -- 601
-			if ____cond125 then -- 601
-				cnode.velocityY = v -- 602
-				return true -- 602
-			end -- 602
-			____cond125 = ____cond125 or ____switch125 == "angularRate" -- 602
-			if ____cond125 then -- 602
-				cnode.angularRate = v -- 603
-				return true -- 603
-			end -- 603
-			____cond125 = ____cond125 or ____switch125 == "group" -- 603
-			if ____cond125 then -- 603
-				cnode.group = v -- 604
-				return true -- 604
-			end -- 604
-			____cond125 = ____cond125 or ____switch125 == "linearDamping" -- 604
-			if ____cond125 then -- 604
-				cnode.linearDamping = v -- 605
-				return true -- 605
-			end -- 605
-			____cond125 = ____cond125 or ____switch125 == "angularDamping" -- 605
-			if ____cond125 then -- 605
-				cnode.angularDamping = v -- 606
-				return true -- 606
-			end -- 606
-			____cond125 = ____cond125 or ____switch125 == "owner" -- 606
-			if ____cond125 then -- 606
-				cnode.owner = v -- 607
-				return true -- 607
-			end -- 607
-			____cond125 = ____cond125 or ____switch125 == "receivingContact" -- 607
-			if ____cond125 then -- 607
-				cnode.receivingContact = v -- 608
-				return true -- 608
-			end -- 608
-			____cond125 = ____cond125 or ____switch125 == "onBodyEnter" -- 608
-			if ____cond125 then -- 608
-				cnode:slot("BodyEnter", v) -- 609
-				return true -- 609
-			end -- 609
-			____cond125 = ____cond125 or ____switch125 == "onBodyLeave" -- 609
-			if ____cond125 then -- 609
-				cnode:slot("BodyLeave", v) -- 610
+		until true -- 513
+		return false -- 515
+	end -- 500
+	getLabel = function(enode) -- 517
+		local label = enode.props -- 518
+		local node = Dora.Label(label.fontName, label.fontSize, label.sdf) -- 519
+		if node ~= nil then -- 519
+			if label.smoothLower ~= nil or label.smoothUpper ~= nil then -- 519
+				local ____node_smooth_12 = node.smooth -- 522
+				local x = ____node_smooth_12.x -- 522
+				local y = ____node_smooth_12.y -- 522
+				node.smooth = Dora.Vec2(label.smoothLower or x, label.smoothUpper or y) -- 523
+			end -- 523
+			local cnode = getNode(enode, node, handleLabelAttribute) -- 525
+			local ____enode_13 = enode -- 526
+			local children = ____enode_13.children -- 526
+			local text = label.text or "" -- 527
+			for i = 1, #children do -- 527
+				local child = children[i] -- 529
+				if type(child) ~= "table" then -- 529
+					text = text .. tostring(child) -- 531
+				end -- 531
+			end -- 531
+			node.text = text -- 534
+			return cnode -- 535
+		end -- 535
+		return nil -- 537
+	end -- 517
+end -- 517
+local getLine -- 541
+do -- 541
+	local function handleLineAttribute(cnode, enode, k, v) -- 543
+		local line = enode.props -- 544
+		repeat -- 544
+			local ____switch112 = k -- 544
+			local ____cond112 = ____switch112 == "verts" -- 544
+			if ____cond112 then -- 544
+				cnode:set( -- 546
+					v, -- 546
+					Dora.Color(line.lineColor or 4294967295) -- 546
+				) -- 546
+				return true -- 546
+			end -- 546
+			____cond112 = ____cond112 or ____switch112 == "depthWrite" -- 546
+			if ____cond112 then -- 546
+				cnode.depthWrite = v -- 547
+				return true -- 547
+			end -- 547
+			____cond112 = ____cond112 or ____switch112 == "blendFunc" -- 547
+			if ____cond112 then -- 547
+				cnode.blendFunc = v -- 548
+				return true -- 548
+			end -- 548
+		until true -- 548
+		return false -- 550
+	end -- 543
+	getLine = function(enode) -- 552
+		local node = Dora.Line() -- 553
+		local cnode = getNode(enode, node, handleLineAttribute) -- 554
+		return cnode -- 555
+	end -- 552
+end -- 552
+local getParticle -- 559
+do -- 559
+	local function handleParticleAttribute(cnode, _enode, k, v) -- 561
+		repeat -- 561
+			local ____switch116 = k -- 561
+			local ____cond116 = ____switch116 == "file" -- 561
+			if ____cond116 then -- 561
+				return true -- 563
+			end -- 563
+			____cond116 = ____cond116 or ____switch116 == "emit" -- 563
+			if ____cond116 then -- 563
+				if v then -- 563
+					cnode:start() -- 564
+				end -- 564
+				return true -- 564
+			end -- 564
+			____cond116 = ____cond116 or ____switch116 == "onFinished" -- 564
+			if ____cond116 then -- 564
+				cnode:slot("Finished", v) -- 565
+				return true -- 565
+			end -- 565
+		until true -- 565
+		return false -- 567
+	end -- 561
+	getParticle = function(enode) -- 569
+		local particle = enode.props -- 570
+		local node = Dora.Particle(particle.file) -- 571
+		if node ~= nil then -- 571
+			local cnode = getNode(enode, node, handleParticleAttribute) -- 573
+			return cnode -- 574
+		end -- 574
+		return nil -- 576
+	end -- 569
+end -- 569
+local getMenu -- 580
+do -- 580
+	local function handleMenuAttribute(cnode, _enode, k, v) -- 582
+		repeat -- 582
+			local ____switch122 = k -- 582
+			local ____cond122 = ____switch122 == "enabled" -- 582
+			if ____cond122 then -- 582
+				cnode.enabled = v -- 584
+				return true -- 584
+			end -- 584
+		until true -- 584
+		return false -- 586
+	end -- 582
+	getMenu = function(enode) -- 588
+		local node = Dora.Menu() -- 589
+		local cnode = getNode(enode, node, handleMenuAttribute) -- 590
+		return cnode -- 591
+	end -- 588
+end -- 588
+local function getPhysicsWorld(enode) -- 595
+	local node = Dora.PhysicsWorld() -- 596
+	local cnode = getNode(enode, node) -- 597
+	return cnode -- 598
+end -- 595
+local getBody -- 601
+do -- 601
+	local function handleBodyAttribute(cnode, _enode, k, v) -- 603
+		repeat -- 603
+			local ____switch127 = k -- 603
+			local ____cond127 = ____switch127 == "type" or ____switch127 == "linearAcceleration" or ____switch127 == "fixedRotation" or ____switch127 == "bullet" or ____switch127 == "world" -- 603
+			if ____cond127 then -- 603
 				return true -- 610
 			end -- 610
-			____cond125 = ____cond125 or ____switch125 == "onContactStart" -- 610
-			if ____cond125 then -- 610
-				cnode:slot("ContactStart", v) -- 611
+			____cond127 = ____cond127 or ____switch127 == "velocityX" -- 610
+			if ____cond127 then -- 610
+				cnode.velocityX = v -- 611
 				return true -- 611
 			end -- 611
-			____cond125 = ____cond125 or ____switch125 == "onContactEnd" -- 611
-			if ____cond125 then -- 611
-				cnode:slot("ContactEnd", v) -- 612
+			____cond127 = ____cond127 or ____switch127 == "velocityY" -- 611
+			if ____cond127 then -- 611
+				cnode.velocityY = v -- 612
 				return true -- 612
 			end -- 612
-			____cond125 = ____cond125 or ____switch125 == "onContactFilter" -- 612
-			if ____cond125 then -- 612
-				cnode:onContactFilter(v) -- 613
+			____cond127 = ____cond127 or ____switch127 == "angularRate" -- 612
+			if ____cond127 then -- 612
+				cnode.angularRate = v -- 613
 				return true -- 613
 			end -- 613
-		until true -- 613
-		return false -- 615
-	end -- 593
-	getBody = function(enode, world) -- 617
-		local def = enode.props -- 618
-		local bodyDef = Dora.BodyDef() -- 619
-		bodyDef.type = def.type -- 620
-		if def.angle ~= nil then -- 620
-			bodyDef.angle = def.angle -- 621
-		end -- 621
-		if def.angularDamping ~= nil then -- 621
-			bodyDef.angularDamping = def.angularDamping -- 622
-		end -- 622
-		if def.bullet ~= nil then -- 622
-			bodyDef.bullet = def.bullet -- 623
-		end -- 623
-		if def.fixedRotation ~= nil then -- 623
-			bodyDef.fixedRotation = def.fixedRotation -- 624
-		end -- 624
-		bodyDef.linearAcceleration = def.linearAcceleration or Dora.Vec2(0, -9.8) -- 625
-		if def.linearDamping ~= nil then -- 625
-			bodyDef.linearDamping = def.linearDamping -- 626
-		end -- 626
-		bodyDef.position = Dora.Vec2(def.x or 0, def.y or 0) -- 627
-		local extraSensors = nil -- 628
-		for i = 1, #enode.children do -- 628
-			do -- 628
-				local child = enode.children[i] -- 630
-				if type(child) ~= "table" then -- 630
-					goto __continue132 -- 632
-				end -- 632
-				repeat -- 632
-					local ____switch134 = child.type -- 632
-					local ____cond134 = ____switch134 == "rect-fixture" -- 632
-					if ____cond134 then -- 632
-						do -- 632
-							local shape = child.props -- 636
-							if shape.sensorTag ~= nil then -- 636
-								bodyDef:attachPolygonSensor( -- 638
-									shape.sensorTag, -- 639
-									Dora.Vec2(shape.centerX or 0, shape.centerY or 0), -- 640
-									shape.width, -- 641
-									shape.height, -- 641
-									shape.angle or 0 -- 642
-								) -- 642
-							else -- 642
-								bodyDef:attachPolygon( -- 645
-									Dora.Vec2(shape.centerX or 0, shape.centerY or 0), -- 646
-									shape.width, -- 647
-									shape.height, -- 647
-									shape.angle or 0, -- 648
-									shape.density or 1, -- 649
-									shape.friction or 0.4, -- 650
-									shape.restitution or 0 -- 651
-								) -- 651
-							end -- 651
-							break -- 654
-						end -- 654
-					end -- 654
-					____cond134 = ____cond134 or ____switch134 == "polygon-fixture" -- 654
-					if ____cond134 then -- 654
-						do -- 654
-							local shape = child.props -- 657
-							if shape.sensorTag ~= nil then -- 657
-								bodyDef:attachPolygonSensor(shape.sensorTag, shape.verts) -- 659
-							else -- 659
-								bodyDef:attachPolygon(shape.verts, shape.density or 1, shape.friction or 0.4, shape.restitution or 0) -- 664
-							end -- 664
-							break -- 671
-						end -- 671
-					end -- 671
-					____cond134 = ____cond134 or ____switch134 == "multi-fixture" -- 671
-					if ____cond134 then -- 671
-						do -- 671
-							local shape = child.props -- 674
-							if shape.sensorTag ~= nil then -- 674
-								if extraSensors == nil then -- 674
-									extraSensors = {} -- 676
-								end -- 676
-								extraSensors[#extraSensors + 1] = { -- 677
-									shape.sensorTag, -- 677
-									Dora.BodyDef:multi(shape.verts) -- 677
-								} -- 677
-							else -- 677
-								bodyDef:attachMulti(shape.verts, shape.density or 1, shape.friction or 0.4, shape.restitution or 0) -- 679
-							end -- 679
-							break -- 686
-						end -- 686
-					end -- 686
-					____cond134 = ____cond134 or ____switch134 == "disk-fixture" -- 686
-					if ____cond134 then -- 686
-						do -- 686
-							local shape = child.props -- 689
-							if shape.sensorTag ~= nil then -- 689
-								bodyDef:attachDiskSensor( -- 691
-									shape.sensorTag, -- 692
-									Dora.Vec2(shape.centerX or 0, shape.centerY or 0), -- 693
-									shape.radius -- 694
-								) -- 694
-							else -- 694
-								bodyDef:attachDisk( -- 697
-									Dora.Vec2(shape.centerX or 0, shape.centerY or 0), -- 698
-									shape.radius, -- 699
-									shape.density or 1, -- 700
-									shape.friction or 0.4, -- 701
-									shape.restitution or 0 -- 702
-								) -- 702
-							end -- 702
-							break -- 705
-						end -- 705
-					end -- 705
-					____cond134 = ____cond134 or ____switch134 == "chain-fixture" -- 705
-					if ____cond134 then -- 705
-						do -- 705
-							local shape = child.props -- 708
-							if shape.sensorTag ~= nil then -- 708
-								if extraSensors == nil then -- 708
-									extraSensors = {} -- 710
-								end -- 710
-								extraSensors[#extraSensors + 1] = { -- 711
-									shape.sensorTag, -- 711
-									Dora.BodyDef:chain(shape.verts) -- 711
-								} -- 711
-							else -- 711
-								bodyDef:attachChain(shape.verts, shape.friction or 0.4, shape.restitution or 0) -- 713
-							end -- 713
-							break -- 719
-						end -- 719
-					end -- 719
-				until true -- 719
-			end -- 719
-			::__continue132:: -- 719
-		end -- 719
-		local body = Dora.Body(bodyDef, world) -- 723
-		if extraSensors ~= nil then -- 723
-			for i = 1, #extraSensors do -- 723
-				local tag, def = table.unpack(extraSensors[i], 1, 2) -- 726
-				body:attachSensor(tag, def) -- 727
-			end -- 727
-		end -- 727
-		local cnode = getNode(enode, body, handleBodyAttribute) -- 730
-		if def.receivingContact ~= false and (def.onContactStart or def.onContactEnd) then -- 730
-			body.receivingContact = true -- 735
-		end -- 735
-		return cnode -- 737
-	end -- 617
-end -- 617
-local getCustomNode -- 741
-do -- 741
-	local function handleCustomNode(_cnode, _enode, k, _v) -- 743
-		repeat -- 743
-			local ____switch155 = k -- 743
-			local ____cond155 = ____switch155 == "onCreate" -- 743
-			if ____cond155 then -- 743
-				return true -- 745
-			end -- 745
-		until true -- 745
-		return false -- 747
-	end -- 743
-	getCustomNode = function(enode) -- 749
-		local custom = enode.props -- 750
-		local node = custom.onCreate() -- 751
-		if node then -- 751
-			local cnode = getNode(enode, node, handleCustomNode) -- 753
-			return cnode -- 754
-		end -- 754
-		return nil -- 756
-	end -- 749
-end -- 749
-local getAlignNode -- 760
-do -- 760
-	local function handleAlignNode(_cnode, _enode, k, _v) -- 762
-		repeat -- 762
-			local ____switch160 = k -- 762
-			local ____cond160 = ____switch160 == "windowRoot" -- 762
-			if ____cond160 then -- 762
-				return true -- 764
-			end -- 764
-			____cond160 = ____cond160 or ____switch160 == "style" -- 764
-			if ____cond160 then -- 764
-				return true -- 765
-			end -- 765
-			____cond160 = ____cond160 or ____switch160 == "onLayout" -- 765
-			if ____cond160 then -- 765
-				return true -- 766
-			end -- 766
-		until true -- 766
-		return false -- 768
-	end -- 762
-	getAlignNode = function(enode) -- 770
-		local alignNode = enode.props -- 771
-		local node = Dora.AlignNode(alignNode.windowRoot) -- 772
-		if alignNode.style then -- 772
-			local items = {} -- 774
-			for k, v in pairs(alignNode.style) do -- 775
-				local name = string.gsub(k, "%u", "-%1") -- 776
-				name = string.lower(name) -- 777
-				repeat -- 777
-					local ____switch164 = k -- 777
-					local ____cond164 = ____switch164 == "margin" or ____switch164 == "padding" or ____switch164 == "border" or ____switch164 == "gap" -- 777
-					if ____cond164 then -- 777
-						do -- 777
-							if type(v) == "table" then -- 777
-								local valueStr = table.concat( -- 782
-									__TS__ArrayMap( -- 782
-										v, -- 782
-										function(____, item) return tostring(item) end -- 782
-									), -- 782
-									"," -- 782
-								) -- 782
-								items[#items + 1] = (name .. ":") .. valueStr -- 783
-							else -- 783
-								items[#items + 1] = (name .. ":") .. tostring(v) -- 785
-							end -- 785
-							break -- 787
-						end -- 787
-					end -- 787
-					do -- 787
-						items[#items + 1] = (name .. ":") .. tostring(v) -- 790
-						break -- 791
-					end -- 791
-				until true -- 791
-			end -- 791
-			local styleStr = table.concat(items, ";") -- 794
-			node:css(styleStr) -- 795
-		end -- 795
-		if alignNode.onLayout then -- 795
-			node:slot("AlignLayout", alignNode.onLayout) -- 798
-		end -- 798
-		local cnode = getNode(enode, node, handleAlignNode) -- 800
-		return cnode -- 801
-	end -- 770
-end -- 770
-local function getEffekNode(enode) -- 805
-	return getNode( -- 806
-		enode, -- 806
-		Dora.EffekNode() -- 806
-	) -- 806
-end -- 805
-local getTileNode -- 809
-do -- 809
-	local function handleTileNodeAttribute(cnode, _enode, k, v) -- 811
-		repeat -- 811
-			local ____switch173 = k -- 811
-			local ____cond173 = ____switch173 == "file" or ____switch173 == "layers" -- 811
-			if ____cond173 then -- 811
-				return true -- 813
-			end -- 813
-			____cond173 = ____cond173 or ____switch173 == "depthWrite" -- 813
-			if ____cond173 then -- 813
-				cnode.depthWrite = v -- 814
-				return true -- 814
-			end -- 814
-			____cond173 = ____cond173 or ____switch173 == "blendFunc" -- 814
-			if ____cond173 then -- 814
-				cnode.blendFunc = v -- 815
-				return true -- 815
-			end -- 815
-			____cond173 = ____cond173 or ____switch173 == "effect" -- 815
-			if ____cond173 then -- 815
-				cnode.effect = v -- 816
-				return true -- 816
-			end -- 816
-			____cond173 = ____cond173 or ____switch173 == "filter" -- 816
-			if ____cond173 then -- 816
-				cnode.filter = v -- 817
-				return true -- 817
-			end -- 817
-		until true -- 817
-		return false -- 819
-	end -- 811
-	getTileNode = function(enode) -- 821
-		local tn = enode.props -- 822
-		local ____tn_layers_14 -- 823
-		if tn.layers then -- 823
-			____tn_layers_14 = Dora.TileNode(tn.file, tn.layers) -- 823
-		else -- 823
-			____tn_layers_14 = Dora.TileNode(tn.file) -- 823
-		end -- 823
-		local node = ____tn_layers_14 -- 823
-		if node ~= nil then -- 823
-			local cnode = getNode(enode, node, handleTileNodeAttribute) -- 825
-			return cnode -- 826
-		end -- 826
-		return nil -- 828
+			____cond127 = ____cond127 or ____switch127 == "group" -- 613
+			if ____cond127 then -- 613
+				cnode.group = v -- 614
+				return true -- 614
+			end -- 614
+			____cond127 = ____cond127 or ____switch127 == "linearDamping" -- 614
+			if ____cond127 then -- 614
+				cnode.linearDamping = v -- 615
+				return true -- 615
+			end -- 615
+			____cond127 = ____cond127 or ____switch127 == "angularDamping" -- 615
+			if ____cond127 then -- 615
+				cnode.angularDamping = v -- 616
+				return true -- 616
+			end -- 616
+			____cond127 = ____cond127 or ____switch127 == "owner" -- 616
+			if ____cond127 then -- 616
+				cnode.owner = v -- 617
+				return true -- 617
+			end -- 617
+			____cond127 = ____cond127 or ____switch127 == "receivingContact" -- 617
+			if ____cond127 then -- 617
+				cnode.receivingContact = v -- 618
+				return true -- 618
+			end -- 618
+			____cond127 = ____cond127 or ____switch127 == "onBodyEnter" -- 618
+			if ____cond127 then -- 618
+				cnode:slot("BodyEnter", v) -- 619
+				return true -- 619
+			end -- 619
+			____cond127 = ____cond127 or ____switch127 == "onBodyLeave" -- 619
+			if ____cond127 then -- 619
+				cnode:slot("BodyLeave", v) -- 620
+				return true -- 620
+			end -- 620
+			____cond127 = ____cond127 or ____switch127 == "onContactStart" -- 620
+			if ____cond127 then -- 620
+				cnode:slot("ContactStart", v) -- 621
+				return true -- 621
+			end -- 621
+			____cond127 = ____cond127 or ____switch127 == "onContactEnd" -- 621
+			if ____cond127 then -- 621
+				cnode:slot("ContactEnd", v) -- 622
+				return true -- 622
+			end -- 622
+			____cond127 = ____cond127 or ____switch127 == "onContactFilter" -- 622
+			if ____cond127 then -- 622
+				cnode:onContactFilter(v) -- 623
+				return true -- 623
+			end -- 623
+		until true -- 623
+		return false -- 625
+	end -- 603
+	getBody = function(enode, world) -- 627
+		local def = enode.props -- 628
+		local bodyDef = Dora.BodyDef() -- 629
+		bodyDef.type = def.type -- 630
+		if def.angle ~= nil then -- 630
+			bodyDef.angle = def.angle -- 631
+		end -- 631
+		if def.angularDamping ~= nil then -- 631
+			bodyDef.angularDamping = def.angularDamping -- 632
+		end -- 632
+		if def.bullet ~= nil then -- 632
+			bodyDef.bullet = def.bullet -- 633
+		end -- 633
+		if def.fixedRotation ~= nil then -- 633
+			bodyDef.fixedRotation = def.fixedRotation -- 634
+		end -- 634
+		bodyDef.linearAcceleration = def.linearAcceleration or Dora.Vec2(0, -9.8) -- 635
+		if def.linearDamping ~= nil then -- 635
+			bodyDef.linearDamping = def.linearDamping -- 636
+		end -- 636
+		bodyDef.position = Dora.Vec2(def.x or 0, def.y or 0) -- 637
+		local extraSensors = nil -- 638
+		for i = 1, #enode.children do -- 638
+			do -- 638
+				local child = enode.children[i] -- 640
+				if type(child) ~= "table" then -- 640
+					goto __continue134 -- 642
+				end -- 642
+				repeat -- 642
+					local ____switch136 = child.type -- 642
+					local ____cond136 = ____switch136 == "rect-fixture" -- 642
+					if ____cond136 then -- 642
+						do -- 642
+							local shape = child.props -- 646
+							if shape.sensorTag ~= nil then -- 646
+								bodyDef:attachPolygonSensor( -- 648
+									shape.sensorTag, -- 649
+									Dora.Vec2(shape.centerX or 0, shape.centerY or 0), -- 650
+									shape.width, -- 651
+									shape.height, -- 651
+									shape.angle or 0 -- 652
+								) -- 652
+							else -- 652
+								bodyDef:attachPolygon( -- 655
+									Dora.Vec2(shape.centerX or 0, shape.centerY or 0), -- 656
+									shape.width, -- 657
+									shape.height, -- 657
+									shape.angle or 0, -- 658
+									shape.density or 1, -- 659
+									shape.friction or 0.4, -- 660
+									shape.restitution or 0 -- 661
+								) -- 661
+							end -- 661
+							break -- 664
+						end -- 664
+					end -- 664
+					____cond136 = ____cond136 or ____switch136 == "polygon-fixture" -- 664
+					if ____cond136 then -- 664
+						do -- 664
+							local shape = child.props -- 667
+							if shape.sensorTag ~= nil then -- 667
+								bodyDef:attachPolygonSensor(shape.sensorTag, shape.verts) -- 669
+							else -- 669
+								bodyDef:attachPolygon(shape.verts, shape.density or 1, shape.friction or 0.4, shape.restitution or 0) -- 674
+							end -- 674
+							break -- 681
+						end -- 681
+					end -- 681
+					____cond136 = ____cond136 or ____switch136 == "multi-fixture" -- 681
+					if ____cond136 then -- 681
+						do -- 681
+							local shape = child.props -- 684
+							if shape.sensorTag ~= nil then -- 684
+								if extraSensors == nil then -- 684
+									extraSensors = {} -- 686
+								end -- 686
+								extraSensors[#extraSensors + 1] = { -- 687
+									shape.sensorTag, -- 687
+									Dora.BodyDef:multi(shape.verts) -- 687
+								} -- 687
+							else -- 687
+								bodyDef:attachMulti(shape.verts, shape.density or 1, shape.friction or 0.4, shape.restitution or 0) -- 689
+							end -- 689
+							break -- 696
+						end -- 696
+					end -- 696
+					____cond136 = ____cond136 or ____switch136 == "disk-fixture" -- 696
+					if ____cond136 then -- 696
+						do -- 696
+							local shape = child.props -- 699
+							if shape.sensorTag ~= nil then -- 699
+								bodyDef:attachDiskSensor( -- 701
+									shape.sensorTag, -- 702
+									Dora.Vec2(shape.centerX or 0, shape.centerY or 0), -- 703
+									shape.radius -- 704
+								) -- 704
+							else -- 704
+								bodyDef:attachDisk( -- 707
+									Dora.Vec2(shape.centerX or 0, shape.centerY or 0), -- 708
+									shape.radius, -- 709
+									shape.density or 1, -- 710
+									shape.friction or 0.4, -- 711
+									shape.restitution or 0 -- 712
+								) -- 712
+							end -- 712
+							break -- 715
+						end -- 715
+					end -- 715
+					____cond136 = ____cond136 or ____switch136 == "chain-fixture" -- 715
+					if ____cond136 then -- 715
+						do -- 715
+							local shape = child.props -- 718
+							if shape.sensorTag ~= nil then -- 718
+								if extraSensors == nil then -- 718
+									extraSensors = {} -- 720
+								end -- 720
+								extraSensors[#extraSensors + 1] = { -- 721
+									shape.sensorTag, -- 721
+									Dora.BodyDef:chain(shape.verts) -- 721
+								} -- 721
+							else -- 721
+								bodyDef:attachChain(shape.verts, shape.friction or 0.4, shape.restitution or 0) -- 723
+							end -- 723
+							break -- 729
+						end -- 729
+					end -- 729
+				until true -- 729
+			end -- 729
+			::__continue134:: -- 729
+		end -- 729
+		local body = Dora.Body(bodyDef, world) -- 733
+		if extraSensors ~= nil then -- 733
+			for i = 1, #extraSensors do -- 733
+				local tag, def = table.unpack(extraSensors[i], 1, 2) -- 736
+				body:attachSensor(tag, def) -- 737
+			end -- 737
+		end -- 737
+		local cnode = getNode(enode, body, handleBodyAttribute) -- 740
+		if def.receivingContact ~= false and (def.onContactStart or def.onContactEnd) then -- 740
+			body.receivingContact = true -- 745
+		end -- 745
+		return cnode -- 747
+	end -- 627
+end -- 627
+local getCustomNode -- 751
+do -- 751
+	local function handleCustomNode(_cnode, _enode, k, _v) -- 753
+		repeat -- 753
+			local ____switch157 = k -- 753
+			local ____cond157 = ____switch157 == "onCreate" -- 753
+			if ____cond157 then -- 753
+				return true -- 755
+			end -- 755
+		until true -- 755
+		return false -- 757
+	end -- 753
+	getCustomNode = function(enode) -- 759
+		local custom = enode.props -- 760
+		local node = custom.onCreate() -- 761
+		if node then -- 761
+			local cnode = getNode(enode, node, handleCustomNode) -- 763
+			return cnode -- 764
+		end -- 764
+		return nil -- 766
+	end -- 759
+end -- 759
+local getAlignNode -- 770
+do -- 770
+	local function handleAlignNode(_cnode, _enode, k, _v) -- 772
+		repeat -- 772
+			local ____switch162 = k -- 772
+			local ____cond162 = ____switch162 == "windowRoot" -- 772
+			if ____cond162 then -- 772
+				return true -- 774
+			end -- 774
+			____cond162 = ____cond162 or ____switch162 == "style" -- 774
+			if ____cond162 then -- 774
+				return true -- 775
+			end -- 775
+			____cond162 = ____cond162 or ____switch162 == "onLayout" -- 775
+			if ____cond162 then -- 775
+				return true -- 776
+			end -- 776
+		until true -- 776
+		return false -- 778
+	end -- 772
+	getAlignNode = function(enode) -- 780
+		local alignNode = enode.props -- 781
+		local node = Dora.AlignNode(alignNode.windowRoot) -- 782
+		if alignNode.style then -- 782
+			local items = {} -- 784
+			for k, v in pairs(alignNode.style) do -- 785
+				local name = string.gsub(k, "%u", "-%1") -- 786
+				name = string.lower(name) -- 787
+				repeat -- 787
+					local ____switch166 = k -- 787
+					local ____cond166 = ____switch166 == "margin" or ____switch166 == "padding" or ____switch166 == "border" or ____switch166 == "gap" -- 787
+					if ____cond166 then -- 787
+						do -- 787
+							if type(v) == "table" then -- 787
+								local valueStr = table.concat( -- 792
+									__TS__ArrayMap( -- 792
+										v, -- 792
+										function(____, item) return tostring(item) end -- 792
+									), -- 792
+									"," -- 792
+								) -- 792
+								items[#items + 1] = (name .. ":") .. valueStr -- 793
+							else -- 793
+								items[#items + 1] = (name .. ":") .. tostring(v) -- 795
+							end -- 795
+							break -- 797
+						end -- 797
+					end -- 797
+					do -- 797
+						items[#items + 1] = (name .. ":") .. tostring(v) -- 800
+						break -- 801
+					end -- 801
+				until true -- 801
+			end -- 801
+			local styleStr = table.concat(items, ";") -- 804
+			node:css(styleStr) -- 805
+		end -- 805
+		if alignNode.onLayout then -- 805
+			node:slot("AlignLayout", alignNode.onLayout) -- 808
+		end -- 808
+		local cnode = getNode(enode, node, handleAlignNode) -- 810
+		return cnode -- 811
+	end -- 780
+end -- 780
+local function getEffekNode(enode) -- 815
+	return getNode( -- 816
+		enode, -- 816
+		Dora.EffekNode() -- 816
+	) -- 816
+end -- 815
+local getTileNode -- 819
+do -- 819
+	local function handleTileNodeAttribute(cnode, _enode, k, v) -- 821
+		repeat -- 821
+			local ____switch175 = k -- 821
+			local ____cond175 = ____switch175 == "file" or ____switch175 == "layers" -- 821
+			if ____cond175 then -- 821
+				return true -- 823
+			end -- 823
+			____cond175 = ____cond175 or ____switch175 == "depthWrite" -- 823
+			if ____cond175 then -- 823
+				cnode.depthWrite = v -- 824
+				return true -- 824
+			end -- 824
+			____cond175 = ____cond175 or ____switch175 == "blendFunc" -- 824
+			if ____cond175 then -- 824
+				cnode.blendFunc = v -- 825
+				return true -- 825
+			end -- 825
+			____cond175 = ____cond175 or ____switch175 == "effect" -- 825
+			if ____cond175 then -- 825
+				cnode.effect = v -- 826
+				return true -- 826
+			end -- 826
+			____cond175 = ____cond175 or ____switch175 == "filter" -- 826
+			if ____cond175 then -- 826
+				cnode.filter = v -- 827
+				return true -- 827
+			end -- 827
+		until true -- 827
+		return false -- 829
 	end -- 821
-end -- 821
-local function addChild(nodeStack, cnode, enode) -- 832
-	if #nodeStack > 0 then -- 832
-		local last = nodeStack[#nodeStack] -- 834
-		last:addChild(cnode) -- 835
-	end -- 835
-	nodeStack[#nodeStack + 1] = cnode -- 837
-	local ____enode_15 = enode -- 838
-	local children = ____enode_15.children -- 838
-	for i = 1, #children do -- 838
-		visitNode(nodeStack, children[i], enode) -- 840
-	end -- 840
-	if #nodeStack > 1 then -- 840
-		table.remove(nodeStack) -- 843
-	end -- 843
-end -- 832
-local function drawNodeCheck(_nodeStack, enode, parent) -- 851
-	if parent == nil or parent.type ~= "draw-node" then -- 851
-		Warn(("tag <" .. enode.type) .. "> must be placed under a <draw-node> to take effect") -- 853
+	getTileNode = function(enode) -- 831
+		local tn = enode.props -- 832
+		local ____tn_layers_14 -- 833
+		if tn.layers then -- 833
+			____tn_layers_14 = Dora.TileNode(tn.file, tn.layers) -- 833
+		else -- 833
+			____tn_layers_14 = Dora.TileNode(tn.file) -- 833
+		end -- 833
+		local node = ____tn_layers_14 -- 833
+		if node ~= nil then -- 833
+			local cnode = getNode(enode, node, handleTileNodeAttribute) -- 835
+			return cnode -- 836
+		end -- 836
+		return nil -- 838
+	end -- 831
+end -- 831
+local function addChild(nodeStack, cnode, enode) -- 842
+	if #nodeStack > 0 then -- 842
+		local last = nodeStack[#nodeStack] -- 844
+		last:addChild(cnode) -- 845
+	end -- 845
+	nodeStack[#nodeStack + 1] = cnode -- 847
+	local ____enode_15 = enode -- 848
+	local children = ____enode_15.children -- 848
+	for i = 1, #children do -- 848
+		visitNode(nodeStack, children[i], enode) -- 850
+	end -- 850
+	if #nodeStack > 1 then -- 850
+		table.remove(nodeStack) -- 853
 	end -- 853
-end -- 851
-local function visitAction(actionStack, enode) -- 857
-	local createAction = actionMap[enode.type] -- 858
-	if createAction ~= nil then -- 858
-		actionStack[#actionStack + 1] = createAction(enode.props.time, enode.props.start, enode.props.stop, enode.props.easing) -- 860
-		return -- 861
-	end -- 861
-	repeat -- 861
-		local ____switch184 = enode.type -- 861
-		local ____cond184 = ____switch184 == "delay" -- 861
-		if ____cond184 then -- 861
-			do -- 861
-				local item = enode.props -- 865
-				actionStack[#actionStack + 1] = Dora.Delay(item.time) -- 866
-				break -- 867
-			end -- 867
-		end -- 867
-		____cond184 = ____cond184 or ____switch184 == "event" -- 867
-		if ____cond184 then -- 867
-			do -- 867
-				local item = enode.props -- 870
-				actionStack[#actionStack + 1] = Dora.Event(item.name, item.param) -- 871
-				break -- 872
-			end -- 872
-		end -- 872
-		____cond184 = ____cond184 or ____switch184 == "hide" -- 872
-		if ____cond184 then -- 872
-			do -- 872
-				actionStack[#actionStack + 1] = Dora.Hide() -- 875
-				break -- 876
-			end -- 876
-		end -- 876
-		____cond184 = ____cond184 or ____switch184 == "show" -- 876
-		if ____cond184 then -- 876
-			do -- 876
-				actionStack[#actionStack + 1] = Dora.Show() -- 879
-				break -- 880
-			end -- 880
-		end -- 880
-		____cond184 = ____cond184 or ____switch184 == "move" -- 880
-		if ____cond184 then -- 880
-			do -- 880
-				local item = enode.props -- 883
-				actionStack[#actionStack + 1] = Dora.Move( -- 884
-					item.time, -- 884
-					Dora.Vec2(item.startX, item.startY), -- 884
-					Dora.Vec2(item.stopX, item.stopY), -- 884
-					item.easing -- 884
-				) -- 884
-				break -- 885
-			end -- 885
-		end -- 885
-		____cond184 = ____cond184 or ____switch184 == "frame" -- 885
-		if ____cond184 then -- 885
-			do -- 885
-				local item = enode.props -- 888
-				actionStack[#actionStack + 1] = Dora.Frame(item.file, item.time, item.frames) -- 889
+end -- 842
+local function drawNodeCheck(_nodeStack, enode, parent) -- 861
+	if parent == nil or parent.type ~= "draw-node" then -- 861
+		Warn(("tag <" .. enode.type) .. "> must be placed under a <draw-node> to take effect") -- 863
+	end -- 863
+end -- 861
+local function visitAction(actionStack, enode) -- 867
+	local createAction = actionMap[enode.type] -- 868
+	if createAction ~= nil then -- 868
+		actionStack[#actionStack + 1] = createAction(enode.props.time, enode.props.start, enode.props.stop, enode.props.easing) -- 870
+		return -- 871
+	end -- 871
+	repeat -- 871
+		local ____switch186 = enode.type -- 871
+		local ____cond186 = ____switch186 == "delay" -- 871
+		if ____cond186 then -- 871
+			do -- 871
+				local item = enode.props -- 875
+				actionStack[#actionStack + 1] = Dora.Delay(item.time) -- 876
+				break -- 877
+			end -- 877
+		end -- 877
+		____cond186 = ____cond186 or ____switch186 == "event" -- 877
+		if ____cond186 then -- 877
+			do -- 877
+				local item = enode.props -- 880
+				actionStack[#actionStack + 1] = Dora.Event(item.name, item.param) -- 881
+				break -- 882
+			end -- 882
+		end -- 882
+		____cond186 = ____cond186 or ____switch186 == "hide" -- 882
+		if ____cond186 then -- 882
+			do -- 882
+				actionStack[#actionStack + 1] = Dora.Hide() -- 885
+				break -- 886
+			end -- 886
+		end -- 886
+		____cond186 = ____cond186 or ____switch186 == "show" -- 886
+		if ____cond186 then -- 886
+			do -- 886
+				actionStack[#actionStack + 1] = Dora.Show() -- 889
 				break -- 890
 			end -- 890
 		end -- 890
-		____cond184 = ____cond184 or ____switch184 == "spawn" -- 890
-		if ____cond184 then -- 890
+		____cond186 = ____cond186 or ____switch186 == "move" -- 890
+		if ____cond186 then -- 890
 			do -- 890
-				local spawnStack = {} -- 893
-				for i = 1, #enode.children do -- 893
-					visitAction(spawnStack, enode.children[i]) -- 895
-				end -- 895
-				actionStack[#actionStack + 1] = Dora.Spawn(table.unpack(spawnStack)) -- 897
-				break -- 898
-			end -- 898
-		end -- 898
-		____cond184 = ____cond184 or ____switch184 == "sequence" -- 898
-		if ____cond184 then -- 898
-			do -- 898
-				local sequenceStack = {} -- 901
-				for i = 1, #enode.children do -- 901
-					visitAction(sequenceStack, enode.children[i]) -- 903
-				end -- 903
-				actionStack[#actionStack + 1] = Dora.Sequence(table.unpack(sequenceStack)) -- 905
-				break -- 906
-			end -- 906
-		end -- 906
-		do -- 906
-			Warn(("unsupported tag <" .. enode.type) .. "> under action definition") -- 909
-			break -- 910
-		end -- 910
-	until true -- 910
-end -- 857
-local function actionCheck(nodeStack, enode, parent) -- 914
-	local unsupported = false -- 915
-	if parent == nil then -- 915
-		unsupported = true -- 917
-	else -- 917
-		repeat -- 917
-			local ____switch198 = parent.type -- 917
-			local ____cond198 = ____switch198 == "action" or ____switch198 == "spawn" or ____switch198 == "sequence" -- 917
-			if ____cond198 then -- 917
-				break -- 920
-			end -- 920
-			do -- 920
-				unsupported = true -- 921
-				break -- 921
-			end -- 921
-		until true -- 921
-	end -- 921
-	if unsupported then -- 921
-		if #nodeStack > 0 then -- 921
-			local node = nodeStack[#nodeStack] -- 926
-			local actionStack = {} -- 927
-			visitAction(actionStack, enode) -- 928
-			if #actionStack == 1 then -- 928
-				node:runAction(actionStack[1]) -- 930
+				local item = enode.props -- 893
+				actionStack[#actionStack + 1] = Dora.Move( -- 894
+					item.time, -- 894
+					Dora.Vec2(item.startX, item.startY), -- 894
+					Dora.Vec2(item.stopX, item.stopY), -- 894
+					item.easing -- 894
+				) -- 894
+				break -- 895
+			end -- 895
+		end -- 895
+		____cond186 = ____cond186 or ____switch186 == "frame" -- 895
+		if ____cond186 then -- 895
+			do -- 895
+				local item = enode.props -- 898
+				actionStack[#actionStack + 1] = Dora.Frame(item.file, item.time, item.frames) -- 899
+				break -- 900
+			end -- 900
+		end -- 900
+		____cond186 = ____cond186 or ____switch186 == "spawn" -- 900
+		if ____cond186 then -- 900
+			do -- 900
+				local spawnStack = {} -- 903
+				for i = 1, #enode.children do -- 903
+					visitAction(spawnStack, enode.children[i]) -- 905
+				end -- 905
+				actionStack[#actionStack + 1] = Dora.Spawn(table.unpack(spawnStack)) -- 907
+				break -- 908
+			end -- 908
+		end -- 908
+		____cond186 = ____cond186 or ____switch186 == "sequence" -- 908
+		if ____cond186 then -- 908
+			do -- 908
+				local sequenceStack = {} -- 911
+				for i = 1, #enode.children do -- 911
+					visitAction(sequenceStack, enode.children[i]) -- 913
+				end -- 913
+				actionStack[#actionStack + 1] = Dora.Sequence(table.unpack(sequenceStack)) -- 915
+				break -- 916
+			end -- 916
+		end -- 916
+		do -- 916
+			Warn(("unsupported tag <" .. enode.type) .. "> under action definition") -- 919
+			break -- 920
+		end -- 920
+	until true -- 920
+end -- 867
+local function actionCheck(nodeStack, enode, parent) -- 924
+	local unsupported = false -- 925
+	if parent == nil then -- 925
+		unsupported = true -- 927
+	else -- 927
+		repeat -- 927
+			local ____switch200 = parent.type -- 927
+			local ____cond200 = ____switch200 == "action" or ____switch200 == "spawn" or ____switch200 == "sequence" -- 927
+			if ____cond200 then -- 927
+				break -- 930
 			end -- 930
-		else -- 930
-			Warn(("tag <" .. enode.type) .. "> must be placed under <action>, <spawn>, <sequence> or other scene node to take effect") -- 933
-		end -- 933
-	end -- 933
-end -- 914
-local function bodyCheck(_nodeStack, enode, parent) -- 938
-	if parent == nil or parent.type ~= "body" then -- 938
-		Warn(("tag <" .. enode.type) .. "> must be placed under a <body> to take effect") -- 940
-	end -- 940
-end -- 938
-actionMap = { -- 944
-	["anchor-x"] = Dora.AnchorX, -- 947
-	["anchor-y"] = Dora.AnchorY, -- 948
-	angle = Dora.Angle, -- 949
-	["angle-x"] = Dora.AngleX, -- 950
-	["angle-y"] = Dora.AngleY, -- 951
-	width = Dora.Width, -- 952
-	height = Dora.Height, -- 953
-	opacity = Dora.Opacity, -- 954
-	roll = Dora.Roll, -- 955
-	scale = Dora.Scale, -- 956
-	["scale-x"] = Dora.ScaleX, -- 957
-	["scale-y"] = Dora.ScaleY, -- 958
-	["skew-x"] = Dora.SkewX, -- 959
-	["skew-y"] = Dora.SkewY, -- 960
-	["move-x"] = Dora.X, -- 961
-	["move-y"] = Dora.Y, -- 962
-	["move-z"] = Dora.Z -- 963
-} -- 963
-elementMap = { -- 966
-	node = function(nodeStack, enode, parent) -- 967
-		addChild( -- 968
-			nodeStack, -- 968
-			getNode(enode), -- 968
-			enode -- 968
-		) -- 968
-	end, -- 967
-	["clip-node"] = function(nodeStack, enode, parent) -- 970
-		addChild( -- 971
-			nodeStack, -- 971
-			getClipNode(enode), -- 971
-			enode -- 971
-		) -- 971
-	end, -- 970
-	playable = function(nodeStack, enode, parent) -- 973
-		local cnode = getPlayable(enode) -- 974
-		if cnode ~= nil then -- 974
-			addChild(nodeStack, cnode, enode) -- 976
-		end -- 976
-	end, -- 973
-	["dragon-bone"] = function(nodeStack, enode, parent) -- 979
-		local cnode = getDragonBone(enode) -- 980
-		if cnode ~= nil then -- 980
-			addChild(nodeStack, cnode, enode) -- 982
-		end -- 982
-	end, -- 979
-	spine = function(nodeStack, enode, parent) -- 985
-		local cnode = getSpine(enode) -- 986
-		if cnode ~= nil then -- 986
-			addChild(nodeStack, cnode, enode) -- 988
-		end -- 988
-	end, -- 985
-	model = function(nodeStack, enode, parent) -- 991
-		local cnode = getModel(enode) -- 992
-		if cnode ~= nil then -- 992
-			addChild(nodeStack, cnode, enode) -- 994
-		end -- 994
-	end, -- 991
-	["draw-node"] = function(nodeStack, enode, parent) -- 997
-		addChild( -- 998
-			nodeStack, -- 998
-			getDrawNode(enode), -- 998
-			enode -- 998
-		) -- 998
-	end, -- 997
-	["dot-shape"] = drawNodeCheck, -- 1000
-	["segment-shape"] = drawNodeCheck, -- 1001
-	["rect-shape"] = drawNodeCheck, -- 1002
-	["polygon-shape"] = drawNodeCheck, -- 1003
-	["verts-shape"] = drawNodeCheck, -- 1004
-	grid = function(nodeStack, enode, parent) -- 1005
-		addChild( -- 1006
-			nodeStack, -- 1006
-			getGrid(enode), -- 1006
-			enode -- 1006
-		) -- 1006
-	end, -- 1005
-	sprite = function(nodeStack, enode, parent) -- 1008
-		local cnode = getSprite(enode) -- 1009
-		if cnode ~= nil then -- 1009
-			addChild(nodeStack, cnode, enode) -- 1011
-		end -- 1011
-	end, -- 1008
-	["audio-source"] = function(nodeStack, enode, parent) -- 1014
-		local cnode = getAudioSource(enode) -- 1015
-		if cnode ~= nil then -- 1015
-			addChild(nodeStack, cnode, enode) -- 1017
-		end -- 1017
-	end, -- 1014
-	["video-node"] = function(nodeStack, enode, parent) -- 1020
-		local cnode = getVideoNode(enode) -- 1021
-		if cnode ~= nil then -- 1021
-			addChild(nodeStack, cnode, enode) -- 1023
-		end -- 1023
-	end, -- 1020
-	label = function(nodeStack, enode, parent) -- 1026
-		local cnode = getLabel(enode) -- 1027
-		if cnode ~= nil then -- 1027
-			addChild(nodeStack, cnode, enode) -- 1029
-		end -- 1029
-	end, -- 1026
-	line = function(nodeStack, enode, parent) -- 1032
-		addChild( -- 1033
-			nodeStack, -- 1033
-			getLine(enode), -- 1033
-			enode -- 1033
-		) -- 1033
-	end, -- 1032
-	particle = function(nodeStack, enode, parent) -- 1035
-		local cnode = getParticle(enode) -- 1036
-		if cnode ~= nil then -- 1036
-			addChild(nodeStack, cnode, enode) -- 1038
-		end -- 1038
-	end, -- 1035
-	menu = function(nodeStack, enode, parent) -- 1041
-		addChild( -- 1042
-			nodeStack, -- 1042
-			getMenu(enode), -- 1042
-			enode -- 1042
-		) -- 1042
-	end, -- 1041
-	action = function(_nodeStack, enode, parent) -- 1044
-		if #enode.children == 0 then -- 1044
-			Warn("<action> tag has no children") -- 1046
-			return -- 1047
-		end -- 1047
-		local action = enode.props -- 1049
-		if action.ref == nil then -- 1049
-			Warn("<action> tag has no ref") -- 1051
-			return -- 1052
-		end -- 1052
-		local actionStack = {} -- 1054
-		for i = 1, #enode.children do -- 1054
-			visitAction(actionStack, enode.children[i]) -- 1056
-		end -- 1056
-		if #actionStack == 1 then -- 1056
-			action.ref.current = actionStack[1] -- 1059
-		elseif #actionStack > 1 then -- 1059
-			action.ref.current = Dora.Sequence(table.unpack(actionStack)) -- 1061
-		end -- 1061
-	end, -- 1044
-	["anchor-x"] = actionCheck, -- 1064
-	["anchor-y"] = actionCheck, -- 1065
-	angle = actionCheck, -- 1066
-	["angle-x"] = actionCheck, -- 1067
-	["angle-y"] = actionCheck, -- 1068
-	delay = actionCheck, -- 1069
-	event = actionCheck, -- 1070
-	width = actionCheck, -- 1071
-	height = actionCheck, -- 1072
-	hide = actionCheck, -- 1073
-	show = actionCheck, -- 1074
-	move = actionCheck, -- 1075
-	opacity = actionCheck, -- 1076
-	roll = actionCheck, -- 1077
-	scale = actionCheck, -- 1078
-	["scale-x"] = actionCheck, -- 1079
-	["scale-y"] = actionCheck, -- 1080
-	["skew-x"] = actionCheck, -- 1081
-	["skew-y"] = actionCheck, -- 1082
-	["move-x"] = actionCheck, -- 1083
-	["move-y"] = actionCheck, -- 1084
-	["move-z"] = actionCheck, -- 1085
-	frame = actionCheck, -- 1086
-	spawn = actionCheck, -- 1087
-	sequence = actionCheck, -- 1088
-	loop = function(nodeStack, enode, _parent) -- 1089
-		if #nodeStack > 0 then -- 1089
-			local node = nodeStack[#nodeStack] -- 1091
-			local actionStack = {} -- 1092
-			for i = 1, #enode.children do -- 1092
-				visitAction(actionStack, enode.children[i]) -- 1094
-			end -- 1094
-			if #actionStack == 1 then -- 1094
-				node:runAction(actionStack[1], true) -- 1097
-			else -- 1097
-				local loop = enode.props -- 1099
-				if loop.spawn then -- 1099
-					node:runAction( -- 1101
-						Dora.Spawn(table.unpack(actionStack)), -- 1101
-						true -- 1101
-					) -- 1101
-				else -- 1101
-					node:runAction( -- 1103
-						Dora.Sequence(table.unpack(actionStack)), -- 1103
-						true -- 1103
-					) -- 1103
-				end -- 1103
-			end -- 1103
-		else -- 1103
-			Warn("tag <loop> must be placed under a scene node to take effect") -- 1107
-		end -- 1107
-	end, -- 1089
-	["physics-world"] = function(nodeStack, enode, _parent) -- 1110
-		addChild( -- 1111
-			nodeStack, -- 1111
-			getPhysicsWorld(enode), -- 1111
-			enode -- 1111
-		) -- 1111
-	end, -- 1110
-	contact = function(nodeStack, enode, _parent) -- 1113
-		local world = Dora.tolua.cast(nodeStack[#nodeStack], "PhysicsWorld") -- 1114
-		if world ~= nil then -- 1114
-			local contact = enode.props -- 1116
-			world:setShouldContact(contact.groupA, contact.groupB, contact.enabled) -- 1117
-		else -- 1117
-			Warn(("tag <" .. enode.type) .. "> must be placed under <physics-world> or its derivatives to take effect") -- 1119
-		end -- 1119
-	end, -- 1113
-	body = function(nodeStack, enode, _parent) -- 1122
-		local def = enode.props -- 1123
-		if def.world then -- 1123
-			addChild( -- 1125
-				nodeStack, -- 1125
-				getBody(enode, def.world), -- 1125
-				enode -- 1125
-			) -- 1125
-			return -- 1126
-		end -- 1126
-		local world = Dora.tolua.cast(nodeStack[#nodeStack], "PhysicsWorld") -- 1128
-		if world ~= nil then -- 1128
-			addChild( -- 1130
-				nodeStack, -- 1130
-				getBody(enode, world), -- 1130
-				enode -- 1130
-			) -- 1130
-		else -- 1130
-			Warn(("tag <" .. enode.type) .. "> must be placed under <physics-world> or its derivatives to take effect") -- 1132
-		end -- 1132
-	end, -- 1122
-	["rect-fixture"] = bodyCheck, -- 1135
-	["polygon-fixture"] = bodyCheck, -- 1136
-	["multi-fixture"] = bodyCheck, -- 1137
-	["disk-fixture"] = bodyCheck, -- 1138
-	["chain-fixture"] = bodyCheck, -- 1139
-	["distance-joint"] = function(_nodeStack, enode, _parent) -- 1140
-		local joint = enode.props -- 1141
-		if joint.ref == nil then -- 1141
-			Warn(("not creating instance of tag <" .. enode.type) .. "> because it has no reference") -- 1143
-			return -- 1144
-		end -- 1144
-		if joint.bodyA.current == nil then -- 1144
-			Warn(("not creating instance of tag <" .. enode.type) .. "> because bodyA is invalid") -- 1147
-			return -- 1148
+			do -- 930
+				unsupported = true -- 931
+				break -- 931
+			end -- 931
+		until true -- 931
+	end -- 931
+	if unsupported then -- 931
+		if #nodeStack > 0 then -- 931
+			local node = nodeStack[#nodeStack] -- 936
+			local actionStack = {} -- 937
+			visitAction(actionStack, enode) -- 938
+			if #actionStack == 1 then -- 938
+				node:runAction(actionStack[1]) -- 940
+			end -- 940
+		else -- 940
+			Warn(("tag <" .. enode.type) .. "> must be placed under <action>, <spawn>, <sequence> or other scene node to take effect") -- 943
+		end -- 943
+	end -- 943
+end -- 924
+local function bodyCheck(_nodeStack, enode, parent) -- 948
+	if parent == nil or parent.type ~= "body" then -- 948
+		Warn(("tag <" .. enode.type) .. "> must be placed under a <body> to take effect") -- 950
+	end -- 950
+end -- 948
+actionMap = { -- 954
+	["anchor-x"] = Dora.AnchorX, -- 957
+	["anchor-y"] = Dora.AnchorY, -- 958
+	angle = Dora.Angle, -- 959
+	["angle-x"] = Dora.AngleX, -- 960
+	["angle-y"] = Dora.AngleY, -- 961
+	width = Dora.Width, -- 962
+	height = Dora.Height, -- 963
+	opacity = Dora.Opacity, -- 964
+	roll = Dora.Roll, -- 965
+	scale = Dora.Scale, -- 966
+	["scale-x"] = Dora.ScaleX, -- 967
+	["scale-y"] = Dora.ScaleY, -- 968
+	["skew-x"] = Dora.SkewX, -- 969
+	["skew-y"] = Dora.SkewY, -- 970
+	["move-x"] = Dora.X, -- 971
+	["move-y"] = Dora.Y, -- 972
+	["move-z"] = Dora.Z -- 973
+} -- 973
+elementMap = { -- 976
+	node = function(nodeStack, enode, parent) -- 977
+		addChild( -- 978
+			nodeStack, -- 978
+			getNode(enode), -- 978
+			enode -- 978
+		) -- 978
+	end, -- 977
+	["clip-node"] = function(nodeStack, enode, parent) -- 980
+		addChild( -- 981
+			nodeStack, -- 981
+			getClipNode(enode), -- 981
+			enode -- 981
+		) -- 981
+	end, -- 980
+	playable = function(nodeStack, enode, parent) -- 983
+		local cnode = getPlayable(enode) -- 984
+		if cnode ~= nil then -- 984
+			addChild(nodeStack, cnode, enode) -- 986
+		end -- 986
+	end, -- 983
+	["dragon-bone"] = function(nodeStack, enode, parent) -- 989
+		local cnode = getDragonBone(enode) -- 990
+		if cnode ~= nil then -- 990
+			addChild(nodeStack, cnode, enode) -- 992
+		end -- 992
+	end, -- 989
+	spine = function(nodeStack, enode, parent) -- 995
+		local cnode = getSpine(enode) -- 996
+		if cnode ~= nil then -- 996
+			addChild(nodeStack, cnode, enode) -- 998
+		end -- 998
+	end, -- 995
+	model = function(nodeStack, enode, parent) -- 1001
+		local cnode = getModel(enode) -- 1002
+		if cnode ~= nil then -- 1002
+			addChild(nodeStack, cnode, enode) -- 1004
+		end -- 1004
+	end, -- 1001
+	["draw-node"] = function(nodeStack, enode, parent) -- 1007
+		addChild( -- 1008
+			nodeStack, -- 1008
+			getDrawNode(enode), -- 1008
+			enode -- 1008
+		) -- 1008
+	end, -- 1007
+	["dot-shape"] = drawNodeCheck, -- 1010
+	["segment-shape"] = drawNodeCheck, -- 1011
+	["rect-shape"] = drawNodeCheck, -- 1012
+	["polygon-shape"] = drawNodeCheck, -- 1013
+	["verts-shape"] = drawNodeCheck, -- 1014
+	grid = function(nodeStack, enode, parent) -- 1015
+		addChild( -- 1016
+			nodeStack, -- 1016
+			getGrid(enode), -- 1016
+			enode -- 1016
+		) -- 1016
+	end, -- 1015
+	sprite = function(nodeStack, enode, parent) -- 1018
+		local cnode = getSprite(enode) -- 1019
+		if cnode ~= nil then -- 1019
+			addChild(nodeStack, cnode, enode) -- 1021
+		end -- 1021
+	end, -- 1018
+	["audio-source"] = function(nodeStack, enode, parent) -- 1024
+		local cnode = getAudioSource(enode) -- 1025
+		if cnode ~= nil then -- 1025
+			addChild(nodeStack, cnode, enode) -- 1027
+		end -- 1027
+	end, -- 1024
+	["video-node"] = function(nodeStack, enode, parent) -- 1030
+		local cnode = getVideoNode(enode) -- 1031
+		if cnode ~= nil then -- 1031
+			addChild(nodeStack, cnode, enode) -- 1033
+		end -- 1033
+	end, -- 1030
+	["tic80-node"] = function(nodeStack, enode, parent) -- 1036
+		local cnode = getTIC80Node(enode) -- 1037
+		if cnode ~= nil then -- 1037
+			addChild(nodeStack, cnode, enode) -- 1039
+		end -- 1039
+	end, -- 1036
+	label = function(nodeStack, enode, parent) -- 1042
+		local cnode = getLabel(enode) -- 1043
+		if cnode ~= nil then -- 1043
+			addChild(nodeStack, cnode, enode) -- 1045
+		end -- 1045
+	end, -- 1042
+	line = function(nodeStack, enode, parent) -- 1048
+		addChild( -- 1049
+			nodeStack, -- 1049
+			getLine(enode), -- 1049
+			enode -- 1049
+		) -- 1049
+	end, -- 1048
+	particle = function(nodeStack, enode, parent) -- 1051
+		local cnode = getParticle(enode) -- 1052
+		if cnode ~= nil then -- 1052
+			addChild(nodeStack, cnode, enode) -- 1054
+		end -- 1054
+	end, -- 1051
+	menu = function(nodeStack, enode, parent) -- 1057
+		addChild( -- 1058
+			nodeStack, -- 1058
+			getMenu(enode), -- 1058
+			enode -- 1058
+		) -- 1058
+	end, -- 1057
+	action = function(_nodeStack, enode, parent) -- 1060
+		if #enode.children == 0 then -- 1060
+			Warn("<action> tag has no children") -- 1062
+			return -- 1063
+		end -- 1063
+		local action = enode.props -- 1065
+		if action.ref == nil then -- 1065
+			Warn("<action> tag has no ref") -- 1067
+			return -- 1068
+		end -- 1068
+		local actionStack = {} -- 1070
+		for i = 1, #enode.children do -- 1070
+			visitAction(actionStack, enode.children[i]) -- 1072
+		end -- 1072
+		if #actionStack == 1 then -- 1072
+			action.ref.current = actionStack[1] -- 1075
+		elseif #actionStack > 1 then -- 1075
+			action.ref.current = Dora.Sequence(table.unpack(actionStack)) -- 1077
+		end -- 1077
+	end, -- 1060
+	["anchor-x"] = actionCheck, -- 1080
+	["anchor-y"] = actionCheck, -- 1081
+	angle = actionCheck, -- 1082
+	["angle-x"] = actionCheck, -- 1083
+	["angle-y"] = actionCheck, -- 1084
+	delay = actionCheck, -- 1085
+	event = actionCheck, -- 1086
+	width = actionCheck, -- 1087
+	height = actionCheck, -- 1088
+	hide = actionCheck, -- 1089
+	show = actionCheck, -- 1090
+	move = actionCheck, -- 1091
+	opacity = actionCheck, -- 1092
+	roll = actionCheck, -- 1093
+	scale = actionCheck, -- 1094
+	["scale-x"] = actionCheck, -- 1095
+	["scale-y"] = actionCheck, -- 1096
+	["skew-x"] = actionCheck, -- 1097
+	["skew-y"] = actionCheck, -- 1098
+	["move-x"] = actionCheck, -- 1099
+	["move-y"] = actionCheck, -- 1100
+	["move-z"] = actionCheck, -- 1101
+	frame = actionCheck, -- 1102
+	spawn = actionCheck, -- 1103
+	sequence = actionCheck, -- 1104
+	loop = function(nodeStack, enode, _parent) -- 1105
+		if #nodeStack > 0 then -- 1105
+			local node = nodeStack[#nodeStack] -- 1107
+			local actionStack = {} -- 1108
+			for i = 1, #enode.children do -- 1108
+				visitAction(actionStack, enode.children[i]) -- 1110
+			end -- 1110
+			if #actionStack == 1 then -- 1110
+				node:runAction(actionStack[1], true) -- 1113
+			else -- 1113
+				local loop = enode.props -- 1115
+				if loop.spawn then -- 1115
+					node:runAction( -- 1117
+						Dora.Spawn(table.unpack(actionStack)), -- 1117
+						true -- 1117
+					) -- 1117
+				else -- 1117
+					node:runAction( -- 1119
+						Dora.Sequence(table.unpack(actionStack)), -- 1119
+						true -- 1119
+					) -- 1119
+				end -- 1119
+			end -- 1119
+		else -- 1119
+			Warn("tag <loop> must be placed under a scene node to take effect") -- 1123
+		end -- 1123
+	end, -- 1105
+	["physics-world"] = function(nodeStack, enode, _parent) -- 1126
+		addChild( -- 1127
+			nodeStack, -- 1127
+			getPhysicsWorld(enode), -- 1127
+			enode -- 1127
+		) -- 1127
+	end, -- 1126
+	contact = function(nodeStack, enode, _parent) -- 1129
+		local world = Dora.tolua.cast(nodeStack[#nodeStack], "PhysicsWorld") -- 1130
+		if world ~= nil then -- 1130
+			local contact = enode.props -- 1132
+			world:setShouldContact(contact.groupA, contact.groupB, contact.enabled) -- 1133
+		else -- 1133
+			Warn(("tag <" .. enode.type) .. "> must be placed under <physics-world> or its derivatives to take effect") -- 1135
+		end -- 1135
+	end, -- 1129
+	body = function(nodeStack, enode, _parent) -- 1138
+		local def = enode.props -- 1139
+		if def.world then -- 1139
+			addChild( -- 1141
+				nodeStack, -- 1141
+				getBody(enode, def.world), -- 1141
+				enode -- 1141
+			) -- 1141
+			return -- 1142
+		end -- 1142
+		local world = Dora.tolua.cast(nodeStack[#nodeStack], "PhysicsWorld") -- 1144
+		if world ~= nil then -- 1144
+			addChild( -- 1146
+				nodeStack, -- 1146
+				getBody(enode, world), -- 1146
+				enode -- 1146
+			) -- 1146
+		else -- 1146
+			Warn(("tag <" .. enode.type) .. "> must be placed under <physics-world> or its derivatives to take effect") -- 1148
 		end -- 1148
-		if joint.bodyB.current == nil then -- 1148
-			Warn(("not creating instance of tag <" .. enode.type) .. "> because bodyB is invalid") -- 1151
-			return -- 1152
-		end -- 1152
-		local ____joint_ref_19 = joint.ref -- 1154
-		local ____self_17 = Dora.Joint -- 1154
-		local ____self_17_distance_18 = ____self_17.distance -- 1154
-		local ____joint_canCollide_16 = joint.canCollide -- 1155
-		if ____joint_canCollide_16 == nil then -- 1155
-			____joint_canCollide_16 = false -- 1155
-		end -- 1155
-		____joint_ref_19.current = ____self_17_distance_18( -- 1154
-			____self_17, -- 1154
-			____joint_canCollide_16, -- 1155
-			joint.bodyA.current, -- 1156
-			joint.bodyB.current, -- 1157
-			joint.anchorA or Dora.Vec2.zero, -- 1158
-			joint.anchorB or Dora.Vec2.zero, -- 1159
-			joint.frequency or 0, -- 1160
-			joint.damping or 0 -- 1161
-		) -- 1161
-	end, -- 1140
-	["friction-joint"] = function(_nodeStack, enode, _parent) -- 1163
-		local joint = enode.props -- 1164
-		if joint.ref == nil then -- 1164
-			Warn(("not creating instance of tag <" .. enode.type) .. "> because it has no reference") -- 1166
-			return -- 1167
-		end -- 1167
-		if joint.bodyA.current == nil then -- 1167
-			Warn(("not creating instance of tag <" .. enode.type) .. "> because bodyA is invalid") -- 1170
-			return -- 1171
+	end, -- 1138
+	["rect-fixture"] = bodyCheck, -- 1151
+	["polygon-fixture"] = bodyCheck, -- 1152
+	["multi-fixture"] = bodyCheck, -- 1153
+	["disk-fixture"] = bodyCheck, -- 1154
+	["chain-fixture"] = bodyCheck, -- 1155
+	["distance-joint"] = function(_nodeStack, enode, _parent) -- 1156
+		local joint = enode.props -- 1157
+		if joint.ref == nil then -- 1157
+			Warn(("not creating instance of tag <" .. enode.type) .. "> because it has no reference") -- 1159
+			return -- 1160
+		end -- 1160
+		if joint.bodyA.current == nil then -- 1160
+			Warn(("not creating instance of tag <" .. enode.type) .. "> because bodyA is invalid") -- 1163
+			return -- 1164
+		end -- 1164
+		if joint.bodyB.current == nil then -- 1164
+			Warn(("not creating instance of tag <" .. enode.type) .. "> because bodyB is invalid") -- 1167
+			return -- 1168
+		end -- 1168
+		local ____joint_ref_19 = joint.ref -- 1170
+		local ____self_17 = Dora.Joint -- 1170
+		local ____self_17_distance_18 = ____self_17.distance -- 1170
+		local ____joint_canCollide_16 = joint.canCollide -- 1171
+		if ____joint_canCollide_16 == nil then -- 1171
+			____joint_canCollide_16 = false -- 1171
 		end -- 1171
-		if joint.bodyB.current == nil then -- 1171
-			Warn(("not creating instance of tag <" .. enode.type) .. "> because bodyB is invalid") -- 1174
-			return -- 1175
-		end -- 1175
-		local ____joint_ref_23 = joint.ref -- 1177
-		local ____self_21 = Dora.Joint -- 1177
-		local ____self_21_friction_22 = ____self_21.friction -- 1177
-		local ____joint_canCollide_20 = joint.canCollide -- 1178
-		if ____joint_canCollide_20 == nil then -- 1178
-			____joint_canCollide_20 = false -- 1178
-		end -- 1178
-		____joint_ref_23.current = ____self_21_friction_22( -- 1177
-			____self_21, -- 1177
-			____joint_canCollide_20, -- 1178
-			joint.bodyA.current, -- 1179
-			joint.bodyB.current, -- 1180
-			joint.worldPos, -- 1181
-			joint.maxForce, -- 1182
-			joint.maxTorque -- 1183
-		) -- 1183
-	end, -- 1163
-	["gear-joint"] = function(_nodeStack, enode, _parent) -- 1186
-		local joint = enode.props -- 1187
-		if joint.ref == nil then -- 1187
-			Warn(("not creating instance of tag <" .. enode.type) .. "> because it has no reference") -- 1189
-			return -- 1190
-		end -- 1190
-		if joint.jointA.current == nil then -- 1190
-			Warn(("not creating instance of tag <" .. enode.type) .. "> because jointA is invalid") -- 1193
-			return -- 1194
+		____joint_ref_19.current = ____self_17_distance_18( -- 1170
+			____self_17, -- 1170
+			____joint_canCollide_16, -- 1171
+			joint.bodyA.current, -- 1172
+			joint.bodyB.current, -- 1173
+			joint.anchorA or Dora.Vec2.zero, -- 1174
+			joint.anchorB or Dora.Vec2.zero, -- 1175
+			joint.frequency or 0, -- 1176
+			joint.damping or 0 -- 1177
+		) -- 1177
+	end, -- 1156
+	["friction-joint"] = function(_nodeStack, enode, _parent) -- 1179
+		local joint = enode.props -- 1180
+		if joint.ref == nil then -- 1180
+			Warn(("not creating instance of tag <" .. enode.type) .. "> because it has no reference") -- 1182
+			return -- 1183
+		end -- 1183
+		if joint.bodyA.current == nil then -- 1183
+			Warn(("not creating instance of tag <" .. enode.type) .. "> because bodyA is invalid") -- 1186
+			return -- 1187
+		end -- 1187
+		if joint.bodyB.current == nil then -- 1187
+			Warn(("not creating instance of tag <" .. enode.type) .. "> because bodyB is invalid") -- 1190
+			return -- 1191
+		end -- 1191
+		local ____joint_ref_23 = joint.ref -- 1193
+		local ____self_21 = Dora.Joint -- 1193
+		local ____self_21_friction_22 = ____self_21.friction -- 1193
+		local ____joint_canCollide_20 = joint.canCollide -- 1194
+		if ____joint_canCollide_20 == nil then -- 1194
+			____joint_canCollide_20 = false -- 1194
 		end -- 1194
-		if joint.jointB.current == nil then -- 1194
-			Warn(("not creating instance of tag <" .. enode.type) .. "> because jointB is invalid") -- 1197
-			return -- 1198
-		end -- 1198
-		local ____joint_ref_27 = joint.ref -- 1200
-		local ____self_25 = Dora.Joint -- 1200
-		local ____self_25_gear_26 = ____self_25.gear -- 1200
-		local ____joint_canCollide_24 = joint.canCollide -- 1201
-		if ____joint_canCollide_24 == nil then -- 1201
-			____joint_canCollide_24 = false -- 1201
-		end -- 1201
-		____joint_ref_27.current = ____self_25_gear_26( -- 1200
-			____self_25, -- 1200
-			____joint_canCollide_24, -- 1201
-			joint.jointA.current, -- 1202
-			joint.jointB.current, -- 1203
-			joint.ratio or 1 -- 1204
-		) -- 1204
-	end, -- 1186
-	["spring-joint"] = function(_nodeStack, enode, _parent) -- 1207
-		local joint = enode.props -- 1208
-		if joint.ref == nil then -- 1208
-			Warn(("not creating instance of tag <" .. enode.type) .. "> because it has no reference") -- 1210
-			return -- 1211
-		end -- 1211
-		if joint.bodyA.current == nil then -- 1211
-			Warn(("not creating instance of tag <" .. enode.type) .. "> because bodyA is invalid") -- 1214
-			return -- 1215
-		end -- 1215
-		if joint.bodyB.current == nil then -- 1215
-			Warn(("not creating instance of tag <" .. enode.type) .. "> because bodyB is invalid") -- 1218
-			return -- 1219
-		end -- 1219
-		local ____joint_ref_31 = joint.ref -- 1221
-		local ____self_29 = Dora.Joint -- 1221
-		local ____self_29_spring_30 = ____self_29.spring -- 1221
-		local ____joint_canCollide_28 = joint.canCollide -- 1222
-		if ____joint_canCollide_28 == nil then -- 1222
-			____joint_canCollide_28 = false -- 1222
-		end -- 1222
-		____joint_ref_31.current = ____self_29_spring_30( -- 1221
-			____self_29, -- 1221
-			____joint_canCollide_28, -- 1222
-			joint.bodyA.current, -- 1223
-			joint.bodyB.current, -- 1224
-			joint.linearOffset, -- 1225
-			joint.angularOffset, -- 1226
-			joint.maxForce, -- 1227
-			joint.maxTorque, -- 1228
-			joint.correctionFactor or 1 -- 1229
-		) -- 1229
-	end, -- 1207
-	["move-joint"] = function(_nodeStack, enode, _parent) -- 1232
-		local joint = enode.props -- 1233
-		if joint.ref == nil then -- 1233
-			Warn(("not creating instance of tag <" .. enode.type) .. "> because it has no reference") -- 1235
-			return -- 1236
-		end -- 1236
-		if joint.body.current == nil then -- 1236
-			Warn(("not creating instance of tag <" .. enode.type) .. "> because body is invalid") -- 1239
-			return -- 1240
-		end -- 1240
-		local ____joint_ref_35 = joint.ref -- 1242
-		local ____self_33 = Dora.Joint -- 1242
-		local ____self_33_move_34 = ____self_33.move -- 1242
-		local ____joint_canCollide_32 = joint.canCollide -- 1243
-		if ____joint_canCollide_32 == nil then -- 1243
-			____joint_canCollide_32 = false -- 1243
-		end -- 1243
-		____joint_ref_35.current = ____self_33_move_34( -- 1242
-			____self_33, -- 1242
-			____joint_canCollide_32, -- 1243
-			joint.body.current, -- 1244
-			joint.targetPos, -- 1245
-			joint.maxForce, -- 1246
-			joint.frequency, -- 1247
-			joint.damping or 0.7 -- 1248
-		) -- 1248
-	end, -- 1232
-	["prismatic-joint"] = function(_nodeStack, enode, _parent) -- 1251
-		local joint = enode.props -- 1252
-		if joint.ref == nil then -- 1252
-			Warn(("not creating instance of tag <" .. enode.type) .. "> because it has no reference") -- 1254
-			return -- 1255
-		end -- 1255
-		if joint.bodyA.current == nil then -- 1255
-			Warn(("not creating instance of tag <" .. enode.type) .. "> because bodyA is invalid") -- 1258
-			return -- 1259
+		____joint_ref_23.current = ____self_21_friction_22( -- 1193
+			____self_21, -- 1193
+			____joint_canCollide_20, -- 1194
+			joint.bodyA.current, -- 1195
+			joint.bodyB.current, -- 1196
+			joint.worldPos, -- 1197
+			joint.maxForce, -- 1198
+			joint.maxTorque -- 1199
+		) -- 1199
+	end, -- 1179
+	["gear-joint"] = function(_nodeStack, enode, _parent) -- 1202
+		local joint = enode.props -- 1203
+		if joint.ref == nil then -- 1203
+			Warn(("not creating instance of tag <" .. enode.type) .. "> because it has no reference") -- 1205
+			return -- 1206
+		end -- 1206
+		if joint.jointA.current == nil then -- 1206
+			Warn(("not creating instance of tag <" .. enode.type) .. "> because jointA is invalid") -- 1209
+			return -- 1210
+		end -- 1210
+		if joint.jointB.current == nil then -- 1210
+			Warn(("not creating instance of tag <" .. enode.type) .. "> because jointB is invalid") -- 1213
+			return -- 1214
+		end -- 1214
+		local ____joint_ref_27 = joint.ref -- 1216
+		local ____self_25 = Dora.Joint -- 1216
+		local ____self_25_gear_26 = ____self_25.gear -- 1216
+		local ____joint_canCollide_24 = joint.canCollide -- 1217
+		if ____joint_canCollide_24 == nil then -- 1217
+			____joint_canCollide_24 = false -- 1217
+		end -- 1217
+		____joint_ref_27.current = ____self_25_gear_26( -- 1216
+			____self_25, -- 1216
+			____joint_canCollide_24, -- 1217
+			joint.jointA.current, -- 1218
+			joint.jointB.current, -- 1219
+			joint.ratio or 1 -- 1220
+		) -- 1220
+	end, -- 1202
+	["spring-joint"] = function(_nodeStack, enode, _parent) -- 1223
+		local joint = enode.props -- 1224
+		if joint.ref == nil then -- 1224
+			Warn(("not creating instance of tag <" .. enode.type) .. "> because it has no reference") -- 1226
+			return -- 1227
+		end -- 1227
+		if joint.bodyA.current == nil then -- 1227
+			Warn(("not creating instance of tag <" .. enode.type) .. "> because bodyA is invalid") -- 1230
+			return -- 1231
+		end -- 1231
+		if joint.bodyB.current == nil then -- 1231
+			Warn(("not creating instance of tag <" .. enode.type) .. "> because bodyB is invalid") -- 1234
+			return -- 1235
+		end -- 1235
+		local ____joint_ref_31 = joint.ref -- 1237
+		local ____self_29 = Dora.Joint -- 1237
+		local ____self_29_spring_30 = ____self_29.spring -- 1237
+		local ____joint_canCollide_28 = joint.canCollide -- 1238
+		if ____joint_canCollide_28 == nil then -- 1238
+			____joint_canCollide_28 = false -- 1238
+		end -- 1238
+		____joint_ref_31.current = ____self_29_spring_30( -- 1237
+			____self_29, -- 1237
+			____joint_canCollide_28, -- 1238
+			joint.bodyA.current, -- 1239
+			joint.bodyB.current, -- 1240
+			joint.linearOffset, -- 1241
+			joint.angularOffset, -- 1242
+			joint.maxForce, -- 1243
+			joint.maxTorque, -- 1244
+			joint.correctionFactor or 1 -- 1245
+		) -- 1245
+	end, -- 1223
+	["move-joint"] = function(_nodeStack, enode, _parent) -- 1248
+		local joint = enode.props -- 1249
+		if joint.ref == nil then -- 1249
+			Warn(("not creating instance of tag <" .. enode.type) .. "> because it has no reference") -- 1251
+			return -- 1252
+		end -- 1252
+		if joint.body.current == nil then -- 1252
+			Warn(("not creating instance of tag <" .. enode.type) .. "> because body is invalid") -- 1255
+			return -- 1256
+		end -- 1256
+		local ____joint_ref_35 = joint.ref -- 1258
+		local ____self_33 = Dora.Joint -- 1258
+		local ____self_33_move_34 = ____self_33.move -- 1258
+		local ____joint_canCollide_32 = joint.canCollide -- 1259
+		if ____joint_canCollide_32 == nil then -- 1259
+			____joint_canCollide_32 = false -- 1259
 		end -- 1259
-		if joint.bodyB.current == nil then -- 1259
-			Warn(("not creating instance of tag <" .. enode.type) .. "> because bodyB is invalid") -- 1262
-			return -- 1263
-		end -- 1263
-		local ____joint_ref_39 = joint.ref -- 1265
-		local ____self_37 = Dora.Joint -- 1265
-		local ____self_37_prismatic_38 = ____self_37.prismatic -- 1265
-		local ____joint_canCollide_36 = joint.canCollide -- 1266
-		if ____joint_canCollide_36 == nil then -- 1266
-			____joint_canCollide_36 = false -- 1266
-		end -- 1266
-		____joint_ref_39.current = ____self_37_prismatic_38( -- 1265
-			____self_37, -- 1265
-			____joint_canCollide_36, -- 1266
-			joint.bodyA.current, -- 1267
-			joint.bodyB.current, -- 1268
-			joint.worldPos, -- 1269
-			joint.axisAngle, -- 1270
-			joint.lowerTranslation or 0, -- 1271
-			joint.upperTranslation or 0, -- 1272
-			joint.maxMotorForce or 0, -- 1273
-			joint.motorSpeed or 0 -- 1274
-		) -- 1274
-	end, -- 1251
-	["pulley-joint"] = function(_nodeStack, enode, _parent) -- 1277
-		local joint = enode.props -- 1278
-		if joint.ref == nil then -- 1278
-			Warn(("not creating instance of tag <" .. enode.type) .. "> because it has no reference") -- 1280
-			return -- 1281
-		end -- 1281
-		if joint.bodyA.current == nil then -- 1281
-			Warn(("not creating instance of tag <" .. enode.type) .. "> because bodyA is invalid") -- 1284
-			return -- 1285
-		end -- 1285
-		if joint.bodyB.current == nil then -- 1285
-			Warn(("not creating instance of tag <" .. enode.type) .. "> because bodyB is invalid") -- 1288
-			return -- 1289
-		end -- 1289
-		local ____joint_ref_43 = joint.ref -- 1291
-		local ____self_41 = Dora.Joint -- 1291
-		local ____self_41_pulley_42 = ____self_41.pulley -- 1291
-		local ____joint_canCollide_40 = joint.canCollide -- 1292
-		if ____joint_canCollide_40 == nil then -- 1292
-			____joint_canCollide_40 = false -- 1292
-		end -- 1292
-		____joint_ref_43.current = ____self_41_pulley_42( -- 1291
-			____self_41, -- 1291
-			____joint_canCollide_40, -- 1292
-			joint.bodyA.current, -- 1293
-			joint.bodyB.current, -- 1294
-			joint.anchorA or Dora.Vec2.zero, -- 1295
-			joint.anchorB or Dora.Vec2.zero, -- 1296
-			joint.groundAnchorA, -- 1297
-			joint.groundAnchorB, -- 1298
-			joint.ratio or 1 -- 1299
-		) -- 1299
-	end, -- 1277
-	["revolute-joint"] = function(_nodeStack, enode, _parent) -- 1302
-		local joint = enode.props -- 1303
-		if joint.ref == nil then -- 1303
-			Warn(("not creating instance of tag <" .. enode.type) .. "> because it has no reference") -- 1305
-			return -- 1306
-		end -- 1306
-		if joint.bodyA.current == nil then -- 1306
-			Warn(("not creating instance of tag <" .. enode.type) .. "> because bodyA is invalid") -- 1309
-			return -- 1310
-		end -- 1310
-		if joint.bodyB.current == nil then -- 1310
-			Warn(("not creating instance of tag <" .. enode.type) .. "> because bodyB is invalid") -- 1313
-			return -- 1314
-		end -- 1314
-		local ____joint_ref_47 = joint.ref -- 1316
-		local ____self_45 = Dora.Joint -- 1316
-		local ____self_45_revolute_46 = ____self_45.revolute -- 1316
-		local ____joint_canCollide_44 = joint.canCollide -- 1317
-		if ____joint_canCollide_44 == nil then -- 1317
-			____joint_canCollide_44 = false -- 1317
-		end -- 1317
-		____joint_ref_47.current = ____self_45_revolute_46( -- 1316
-			____self_45, -- 1316
-			____joint_canCollide_44, -- 1317
-			joint.bodyA.current, -- 1318
-			joint.bodyB.current, -- 1319
-			joint.worldPos, -- 1320
-			joint.lowerAngle or 0, -- 1321
-			joint.upperAngle or 0, -- 1322
-			joint.maxMotorTorque or 0, -- 1323
-			joint.motorSpeed or 0 -- 1324
-		) -- 1324
-	end, -- 1302
-	["rope-joint"] = function(_nodeStack, enode, _parent) -- 1327
-		local joint = enode.props -- 1328
-		if joint.ref == nil then -- 1328
-			Warn(("not creating instance of tag <" .. enode.type) .. "> because it has no reference") -- 1330
-			return -- 1331
-		end -- 1331
-		if joint.bodyA.current == nil then -- 1331
-			Warn(("not creating instance of tag <" .. enode.type) .. "> because bodyA is invalid") -- 1334
-			return -- 1335
-		end -- 1335
-		if joint.bodyB.current == nil then -- 1335
-			Warn(("not creating instance of tag <" .. enode.type) .. "> because bodyB is invalid") -- 1338
-			return -- 1339
-		end -- 1339
-		local ____joint_ref_51 = joint.ref -- 1341
-		local ____self_49 = Dora.Joint -- 1341
-		local ____self_49_rope_50 = ____self_49.rope -- 1341
-		local ____joint_canCollide_48 = joint.canCollide -- 1342
-		if ____joint_canCollide_48 == nil then -- 1342
-			____joint_canCollide_48 = false -- 1342
-		end -- 1342
-		____joint_ref_51.current = ____self_49_rope_50( -- 1341
-			____self_49, -- 1341
-			____joint_canCollide_48, -- 1342
-			joint.bodyA.current, -- 1343
-			joint.bodyB.current, -- 1344
-			joint.anchorA or Dora.Vec2.zero, -- 1345
-			joint.anchorB or Dora.Vec2.zero, -- 1346
-			joint.maxLength or 0 -- 1347
-		) -- 1347
-	end, -- 1327
-	["weld-joint"] = function(_nodeStack, enode, _parent) -- 1350
-		local joint = enode.props -- 1351
-		if joint.ref == nil then -- 1351
-			Warn(("not creating instance of tag <" .. enode.type) .. "> because it has no reference") -- 1353
-			return -- 1354
-		end -- 1354
-		if joint.bodyA.current == nil then -- 1354
-			Warn(("not creating instance of tag <" .. enode.type) .. "> because bodyA is invalid") -- 1357
-			return -- 1358
+		____joint_ref_35.current = ____self_33_move_34( -- 1258
+			____self_33, -- 1258
+			____joint_canCollide_32, -- 1259
+			joint.body.current, -- 1260
+			joint.targetPos, -- 1261
+			joint.maxForce, -- 1262
+			joint.frequency, -- 1263
+			joint.damping or 0.7 -- 1264
+		) -- 1264
+	end, -- 1248
+	["prismatic-joint"] = function(_nodeStack, enode, _parent) -- 1267
+		local joint = enode.props -- 1268
+		if joint.ref == nil then -- 1268
+			Warn(("not creating instance of tag <" .. enode.type) .. "> because it has no reference") -- 1270
+			return -- 1271
+		end -- 1271
+		if joint.bodyA.current == nil then -- 1271
+			Warn(("not creating instance of tag <" .. enode.type) .. "> because bodyA is invalid") -- 1274
+			return -- 1275
+		end -- 1275
+		if joint.bodyB.current == nil then -- 1275
+			Warn(("not creating instance of tag <" .. enode.type) .. "> because bodyB is invalid") -- 1278
+			return -- 1279
+		end -- 1279
+		local ____joint_ref_39 = joint.ref -- 1281
+		local ____self_37 = Dora.Joint -- 1281
+		local ____self_37_prismatic_38 = ____self_37.prismatic -- 1281
+		local ____joint_canCollide_36 = joint.canCollide -- 1282
+		if ____joint_canCollide_36 == nil then -- 1282
+			____joint_canCollide_36 = false -- 1282
+		end -- 1282
+		____joint_ref_39.current = ____self_37_prismatic_38( -- 1281
+			____self_37, -- 1281
+			____joint_canCollide_36, -- 1282
+			joint.bodyA.current, -- 1283
+			joint.bodyB.current, -- 1284
+			joint.worldPos, -- 1285
+			joint.axisAngle, -- 1286
+			joint.lowerTranslation or 0, -- 1287
+			joint.upperTranslation or 0, -- 1288
+			joint.maxMotorForce or 0, -- 1289
+			joint.motorSpeed or 0 -- 1290
+		) -- 1290
+	end, -- 1267
+	["pulley-joint"] = function(_nodeStack, enode, _parent) -- 1293
+		local joint = enode.props -- 1294
+		if joint.ref == nil then -- 1294
+			Warn(("not creating instance of tag <" .. enode.type) .. "> because it has no reference") -- 1296
+			return -- 1297
+		end -- 1297
+		if joint.bodyA.current == nil then -- 1297
+			Warn(("not creating instance of tag <" .. enode.type) .. "> because bodyA is invalid") -- 1300
+			return -- 1301
+		end -- 1301
+		if joint.bodyB.current == nil then -- 1301
+			Warn(("not creating instance of tag <" .. enode.type) .. "> because bodyB is invalid") -- 1304
+			return -- 1305
+		end -- 1305
+		local ____joint_ref_43 = joint.ref -- 1307
+		local ____self_41 = Dora.Joint -- 1307
+		local ____self_41_pulley_42 = ____self_41.pulley -- 1307
+		local ____joint_canCollide_40 = joint.canCollide -- 1308
+		if ____joint_canCollide_40 == nil then -- 1308
+			____joint_canCollide_40 = false -- 1308
+		end -- 1308
+		____joint_ref_43.current = ____self_41_pulley_42( -- 1307
+			____self_41, -- 1307
+			____joint_canCollide_40, -- 1308
+			joint.bodyA.current, -- 1309
+			joint.bodyB.current, -- 1310
+			joint.anchorA or Dora.Vec2.zero, -- 1311
+			joint.anchorB or Dora.Vec2.zero, -- 1312
+			joint.groundAnchorA, -- 1313
+			joint.groundAnchorB, -- 1314
+			joint.ratio or 1 -- 1315
+		) -- 1315
+	end, -- 1293
+	["revolute-joint"] = function(_nodeStack, enode, _parent) -- 1318
+		local joint = enode.props -- 1319
+		if joint.ref == nil then -- 1319
+			Warn(("not creating instance of tag <" .. enode.type) .. "> because it has no reference") -- 1321
+			return -- 1322
+		end -- 1322
+		if joint.bodyA.current == nil then -- 1322
+			Warn(("not creating instance of tag <" .. enode.type) .. "> because bodyA is invalid") -- 1325
+			return -- 1326
+		end -- 1326
+		if joint.bodyB.current == nil then -- 1326
+			Warn(("not creating instance of tag <" .. enode.type) .. "> because bodyB is invalid") -- 1329
+			return -- 1330
+		end -- 1330
+		local ____joint_ref_47 = joint.ref -- 1332
+		local ____self_45 = Dora.Joint -- 1332
+		local ____self_45_revolute_46 = ____self_45.revolute -- 1332
+		local ____joint_canCollide_44 = joint.canCollide -- 1333
+		if ____joint_canCollide_44 == nil then -- 1333
+			____joint_canCollide_44 = false -- 1333
+		end -- 1333
+		____joint_ref_47.current = ____self_45_revolute_46( -- 1332
+			____self_45, -- 1332
+			____joint_canCollide_44, -- 1333
+			joint.bodyA.current, -- 1334
+			joint.bodyB.current, -- 1335
+			joint.worldPos, -- 1336
+			joint.lowerAngle or 0, -- 1337
+			joint.upperAngle or 0, -- 1338
+			joint.maxMotorTorque or 0, -- 1339
+			joint.motorSpeed or 0 -- 1340
+		) -- 1340
+	end, -- 1318
+	["rope-joint"] = function(_nodeStack, enode, _parent) -- 1343
+		local joint = enode.props -- 1344
+		if joint.ref == nil then -- 1344
+			Warn(("not creating instance of tag <" .. enode.type) .. "> because it has no reference") -- 1346
+			return -- 1347
+		end -- 1347
+		if joint.bodyA.current == nil then -- 1347
+			Warn(("not creating instance of tag <" .. enode.type) .. "> because bodyA is invalid") -- 1350
+			return -- 1351
+		end -- 1351
+		if joint.bodyB.current == nil then -- 1351
+			Warn(("not creating instance of tag <" .. enode.type) .. "> because bodyB is invalid") -- 1354
+			return -- 1355
+		end -- 1355
+		local ____joint_ref_51 = joint.ref -- 1357
+		local ____self_49 = Dora.Joint -- 1357
+		local ____self_49_rope_50 = ____self_49.rope -- 1357
+		local ____joint_canCollide_48 = joint.canCollide -- 1358
+		if ____joint_canCollide_48 == nil then -- 1358
+			____joint_canCollide_48 = false -- 1358
 		end -- 1358
-		if joint.bodyB.current == nil then -- 1358
-			Warn(("not creating instance of tag <" .. enode.type) .. "> because bodyB is invalid") -- 1361
-			return -- 1362
-		end -- 1362
-		local ____joint_ref_55 = joint.ref -- 1364
-		local ____self_53 = Dora.Joint -- 1364
-		local ____self_53_weld_54 = ____self_53.weld -- 1364
-		local ____joint_canCollide_52 = joint.canCollide -- 1365
-		if ____joint_canCollide_52 == nil then -- 1365
-			____joint_canCollide_52 = false -- 1365
-		end -- 1365
-		____joint_ref_55.current = ____self_53_weld_54( -- 1364
-			____self_53, -- 1364
-			____joint_canCollide_52, -- 1365
-			joint.bodyA.current, -- 1366
-			joint.bodyB.current, -- 1367
-			joint.worldPos, -- 1368
-			joint.frequency or 0, -- 1369
-			joint.damping or 0 -- 1370
-		) -- 1370
-	end, -- 1350
-	["wheel-joint"] = function(_nodeStack, enode, _parent) -- 1373
-		local joint = enode.props -- 1374
-		if joint.ref == nil then -- 1374
-			Warn(("not creating instance of tag <" .. enode.type) .. "> because it has no reference") -- 1376
-			return -- 1377
-		end -- 1377
-		if joint.bodyA.current == nil then -- 1377
-			Warn(("not creating instance of tag <" .. enode.type) .. "> because bodyA is invalid") -- 1380
-			return -- 1381
+		____joint_ref_51.current = ____self_49_rope_50( -- 1357
+			____self_49, -- 1357
+			____joint_canCollide_48, -- 1358
+			joint.bodyA.current, -- 1359
+			joint.bodyB.current, -- 1360
+			joint.anchorA or Dora.Vec2.zero, -- 1361
+			joint.anchorB or Dora.Vec2.zero, -- 1362
+			joint.maxLength or 0 -- 1363
+		) -- 1363
+	end, -- 1343
+	["weld-joint"] = function(_nodeStack, enode, _parent) -- 1366
+		local joint = enode.props -- 1367
+		if joint.ref == nil then -- 1367
+			Warn(("not creating instance of tag <" .. enode.type) .. "> because it has no reference") -- 1369
+			return -- 1370
+		end -- 1370
+		if joint.bodyA.current == nil then -- 1370
+			Warn(("not creating instance of tag <" .. enode.type) .. "> because bodyA is invalid") -- 1373
+			return -- 1374
+		end -- 1374
+		if joint.bodyB.current == nil then -- 1374
+			Warn(("not creating instance of tag <" .. enode.type) .. "> because bodyB is invalid") -- 1377
+			return -- 1378
+		end -- 1378
+		local ____joint_ref_55 = joint.ref -- 1380
+		local ____self_53 = Dora.Joint -- 1380
+		local ____self_53_weld_54 = ____self_53.weld -- 1380
+		local ____joint_canCollide_52 = joint.canCollide -- 1381
+		if ____joint_canCollide_52 == nil then -- 1381
+			____joint_canCollide_52 = false -- 1381
 		end -- 1381
-		if joint.bodyB.current == nil then -- 1381
-			Warn(("not creating instance of tag <" .. enode.type) .. "> because bodyB is invalid") -- 1384
-			return -- 1385
-		end -- 1385
-		local ____joint_ref_59 = joint.ref -- 1387
-		local ____self_57 = Dora.Joint -- 1387
-		local ____self_57_wheel_58 = ____self_57.wheel -- 1387
-		local ____joint_canCollide_56 = joint.canCollide -- 1388
-		if ____joint_canCollide_56 == nil then -- 1388
-			____joint_canCollide_56 = false -- 1388
-		end -- 1388
-		____joint_ref_59.current = ____self_57_wheel_58( -- 1387
-			____self_57, -- 1387
-			____joint_canCollide_56, -- 1388
-			joint.bodyA.current, -- 1389
-			joint.bodyB.current, -- 1390
-			joint.worldPos, -- 1391
-			joint.axisAngle, -- 1392
-			joint.maxMotorTorque or 0, -- 1393
-			joint.motorSpeed or 0, -- 1394
-			joint.frequency or 0, -- 1395
-			joint.damping or 0.7 -- 1396
-		) -- 1396
-	end, -- 1373
-	["custom-node"] = function(nodeStack, enode, _parent) -- 1399
-		local node = getCustomNode(enode) -- 1400
-		if node ~= nil then -- 1400
-			addChild(nodeStack, node, enode) -- 1402
-		end -- 1402
-	end, -- 1399
-	["custom-element"] = function() -- 1405
-	end, -- 1405
-	["align-node"] = function(nodeStack, enode, _parent) -- 1406
-		addChild( -- 1407
-			nodeStack, -- 1407
-			getAlignNode(enode), -- 1407
-			enode -- 1407
-		) -- 1407
-	end, -- 1406
-	["effek-node"] = function(nodeStack, enode, _parent) -- 1409
-		addChild( -- 1410
-			nodeStack, -- 1410
-			getEffekNode(enode), -- 1410
-			enode -- 1410
-		) -- 1410
-	end, -- 1409
-	effek = function(nodeStack, enode, parent) -- 1412
-		if #nodeStack > 0 then -- 1412
-			local node = Dora.tolua.cast(nodeStack[#nodeStack], "EffekNode") -- 1414
-			if node then -- 1414
-				local effek = enode.props -- 1416
-				local handle = node:play( -- 1417
-					effek.file, -- 1417
-					Dora.Vec2(effek.x or 0, effek.y or 0), -- 1417
-					effek.z or 0 -- 1417
-				) -- 1417
-				if handle >= 0 then -- 1417
-					if effek.ref then -- 1417
-						effek.ref.current = handle -- 1420
-					end -- 1420
-					if effek.onEnd then -- 1420
-						local onEnd = effek.onEnd -- 1420
-						node:slot( -- 1424
-							"EffekEnd", -- 1424
-							function(h) -- 1424
-								if handle == h then -- 1424
-									onEnd(nil) -- 1426
-								end -- 1426
-							end -- 1424
-						) -- 1424
-					end -- 1424
-				end -- 1424
-			else -- 1424
-				Warn(("tag <" .. enode.type) .. "> must be placed under a <effek-node> to take effect") -- 1432
-			end -- 1432
-		end -- 1432
-	end, -- 1412
-	["tile-node"] = function(nodeStack, enode, parent) -- 1436
-		local cnode = getTileNode(enode) -- 1437
-		if cnode ~= nil then -- 1437
-			addChild(nodeStack, cnode, enode) -- 1439
-		end -- 1439
-	end -- 1436
-} -- 1436
-function ____exports.useRef(item) -- 1484
-	local ____item_60 = item -- 1485
-	if ____item_60 == nil then -- 1485
-		____item_60 = nil -- 1485
-	end -- 1485
-	return {current = ____item_60} -- 1485
-end -- 1484
-local function getPreload(preloadList, node) -- 1488
-	if type(node) ~= "table" then -- 1488
-		return -- 1490
-	end -- 1490
-	local enode = node -- 1492
-	if enode.type == nil then -- 1492
-		local list = node -- 1494
-		if #list > 0 then -- 1494
-			for i = 1, #list do -- 1494
-				getPreload(preloadList, list[i]) -- 1497
-			end -- 1497
-		end -- 1497
-	else -- 1497
-		repeat -- 1497
-			local ____switch330 = enode.type -- 1497
-			local sprite, playable, frame, model, spine, dragonBone, label -- 1497
-			local ____cond330 = ____switch330 == "sprite" -- 1497
-			if ____cond330 then -- 1497
-				sprite = enode.props -- 1503
-				if sprite.file then -- 1503
-					preloadList[#preloadList + 1] = sprite.file -- 1505
-				end -- 1505
-				break -- 1507
-			end -- 1507
-			____cond330 = ____cond330 or ____switch330 == "playable" -- 1507
-			if ____cond330 then -- 1507
-				playable = enode.props -- 1509
-				preloadList[#preloadList + 1] = playable.file -- 1510
-				break -- 1511
-			end -- 1511
-			____cond330 = ____cond330 or ____switch330 == "frame" -- 1511
-			if ____cond330 then -- 1511
-				frame = enode.props -- 1513
-				preloadList[#preloadList + 1] = frame.file -- 1514
-				break -- 1515
-			end -- 1515
-			____cond330 = ____cond330 or ____switch330 == "model" -- 1515
-			if ____cond330 then -- 1515
-				model = enode.props -- 1517
-				preloadList[#preloadList + 1] = "model:" .. model.file -- 1518
-				break -- 1519
-			end -- 1519
-			____cond330 = ____cond330 or ____switch330 == "spine" -- 1519
-			if ____cond330 then -- 1519
-				spine = enode.props -- 1521
-				preloadList[#preloadList + 1] = "spine:" .. spine.file -- 1522
+		____joint_ref_55.current = ____self_53_weld_54( -- 1380
+			____self_53, -- 1380
+			____joint_canCollide_52, -- 1381
+			joint.bodyA.current, -- 1382
+			joint.bodyB.current, -- 1383
+			joint.worldPos, -- 1384
+			joint.frequency or 0, -- 1385
+			joint.damping or 0 -- 1386
+		) -- 1386
+	end, -- 1366
+	["wheel-joint"] = function(_nodeStack, enode, _parent) -- 1389
+		local joint = enode.props -- 1390
+		if joint.ref == nil then -- 1390
+			Warn(("not creating instance of tag <" .. enode.type) .. "> because it has no reference") -- 1392
+			return -- 1393
+		end -- 1393
+		if joint.bodyA.current == nil then -- 1393
+			Warn(("not creating instance of tag <" .. enode.type) .. "> because bodyA is invalid") -- 1396
+			return -- 1397
+		end -- 1397
+		if joint.bodyB.current == nil then -- 1397
+			Warn(("not creating instance of tag <" .. enode.type) .. "> because bodyB is invalid") -- 1400
+			return -- 1401
+		end -- 1401
+		local ____joint_ref_59 = joint.ref -- 1403
+		local ____self_57 = Dora.Joint -- 1403
+		local ____self_57_wheel_58 = ____self_57.wheel -- 1403
+		local ____joint_canCollide_56 = joint.canCollide -- 1404
+		if ____joint_canCollide_56 == nil then -- 1404
+			____joint_canCollide_56 = false -- 1404
+		end -- 1404
+		____joint_ref_59.current = ____self_57_wheel_58( -- 1403
+			____self_57, -- 1403
+			____joint_canCollide_56, -- 1404
+			joint.bodyA.current, -- 1405
+			joint.bodyB.current, -- 1406
+			joint.worldPos, -- 1407
+			joint.axisAngle, -- 1408
+			joint.maxMotorTorque or 0, -- 1409
+			joint.motorSpeed or 0, -- 1410
+			joint.frequency or 0, -- 1411
+			joint.damping or 0.7 -- 1412
+		) -- 1412
+	end, -- 1389
+	["custom-node"] = function(nodeStack, enode, _parent) -- 1415
+		local node = getCustomNode(enode) -- 1416
+		if node ~= nil then -- 1416
+			addChild(nodeStack, node, enode) -- 1418
+		end -- 1418
+	end, -- 1415
+	["custom-element"] = function() -- 1421
+	end, -- 1421
+	["align-node"] = function(nodeStack, enode, _parent) -- 1422
+		addChild( -- 1423
+			nodeStack, -- 1423
+			getAlignNode(enode), -- 1423
+			enode -- 1423
+		) -- 1423
+	end, -- 1422
+	["effek-node"] = function(nodeStack, enode, _parent) -- 1425
+		addChild( -- 1426
+			nodeStack, -- 1426
+			getEffekNode(enode), -- 1426
+			enode -- 1426
+		) -- 1426
+	end, -- 1425
+	effek = function(nodeStack, enode, parent) -- 1428
+		if #nodeStack > 0 then -- 1428
+			local node = Dora.tolua.cast(nodeStack[#nodeStack], "EffekNode") -- 1430
+			if node then -- 1430
+				local effek = enode.props -- 1432
+				local handle = node:play( -- 1433
+					effek.file, -- 1433
+					Dora.Vec2(effek.x or 0, effek.y or 0), -- 1433
+					effek.z or 0 -- 1433
+				) -- 1433
+				if handle >= 0 then -- 1433
+					if effek.ref then -- 1433
+						effek.ref.current = handle -- 1436
+					end -- 1436
+					if effek.onEnd then -- 1436
+						local onEnd = effek.onEnd -- 1436
+						node:slot( -- 1440
+							"EffekEnd", -- 1440
+							function(h) -- 1440
+								if handle == h then -- 1440
+									onEnd(nil) -- 1442
+								end -- 1442
+							end -- 1440
+						) -- 1440
+					end -- 1440
+				end -- 1440
+			else -- 1440
+				Warn(("tag <" .. enode.type) .. "> must be placed under a <effek-node> to take effect") -- 1448
+			end -- 1448
+		end -- 1448
+	end, -- 1428
+	["tile-node"] = function(nodeStack, enode, parent) -- 1452
+		local cnode = getTileNode(enode) -- 1453
+		if cnode ~= nil then -- 1453
+			addChild(nodeStack, cnode, enode) -- 1455
+		end -- 1455
+	end -- 1452
+} -- 1452
+function ____exports.useRef(item) -- 1500
+	local ____item_60 = item -- 1501
+	if ____item_60 == nil then -- 1501
+		____item_60 = nil -- 1501
+	end -- 1501
+	return {current = ____item_60} -- 1501
+end -- 1500
+local function getPreload(preloadList, node) -- 1504
+	if type(node) ~= "table" then -- 1504
+		return -- 1506
+	end -- 1506
+	local enode = node -- 1508
+	if enode.type == nil then -- 1508
+		local list = node -- 1510
+		if #list > 0 then -- 1510
+			for i = 1, #list do -- 1510
+				getPreload(preloadList, list[i]) -- 1513
+			end -- 1513
+		end -- 1513
+	else -- 1513
+		repeat -- 1513
+			local ____switch334 = enode.type -- 1513
+			local sprite, playable, frame, model, spine, dragonBone, label -- 1513
+			local ____cond334 = ____switch334 == "sprite" -- 1513
+			if ____cond334 then -- 1513
+				sprite = enode.props -- 1519
+				if sprite.file then -- 1519
+					preloadList[#preloadList + 1] = sprite.file -- 1521
+				end -- 1521
 				break -- 1523
 			end -- 1523
-			____cond330 = ____cond330 or ____switch330 == "dragon-bone" -- 1523
-			if ____cond330 then -- 1523
-				dragonBone = enode.props -- 1525
-				preloadList[#preloadList + 1] = "bone:" .. dragonBone.file -- 1526
+			____cond334 = ____cond334 or ____switch334 == "playable" -- 1523
+			if ____cond334 then -- 1523
+				playable = enode.props -- 1525
+				preloadList[#preloadList + 1] = playable.file -- 1526
 				break -- 1527
 			end -- 1527
-			____cond330 = ____cond330 or ____switch330 == "label" -- 1527
-			if ____cond330 then -- 1527
-				label = enode.props -- 1529
-				preloadList[#preloadList + 1] = (("font:" .. label.fontName) .. ";") .. tostring(label.fontSize) -- 1530
+			____cond334 = ____cond334 or ____switch334 == "frame" -- 1527
+			if ____cond334 then -- 1527
+				frame = enode.props -- 1529
+				preloadList[#preloadList + 1] = frame.file -- 1530
 				break -- 1531
 			end -- 1531
-		until true -- 1531
-	end -- 1531
-	getPreload(preloadList, enode.children) -- 1534
-end -- 1488
-function ____exports.preloadAsync(enode, handler) -- 1537
-	local preloadList = {} -- 1538
-	getPreload(preloadList, enode) -- 1539
-	Dora.Cache:loadAsync(preloadList, handler) -- 1540
-end -- 1537
-function ____exports.toAction(enode) -- 1543
-	local actionDef = ____exports.useRef() -- 1544
-	____exports.toNode(____exports.React.createElement("action", {ref = actionDef}, enode)) -- 1545
-	if not actionDef.current then -- 1545
-		error("failed to create action") -- 1546
-	end -- 1546
-	return actionDef.current -- 1547
-end -- 1543
-return ____exports -- 1543
+			____cond334 = ____cond334 or ____switch334 == "model" -- 1531
+			if ____cond334 then -- 1531
+				model = enode.props -- 1533
+				preloadList[#preloadList + 1] = "model:" .. model.file -- 1534
+				break -- 1535
+			end -- 1535
+			____cond334 = ____cond334 or ____switch334 == "spine" -- 1535
+			if ____cond334 then -- 1535
+				spine = enode.props -- 1537
+				preloadList[#preloadList + 1] = "spine:" .. spine.file -- 1538
+				break -- 1539
+			end -- 1539
+			____cond334 = ____cond334 or ____switch334 == "dragon-bone" -- 1539
+			if ____cond334 then -- 1539
+				dragonBone = enode.props -- 1541
+				preloadList[#preloadList + 1] = "bone:" .. dragonBone.file -- 1542
+				break -- 1543
+			end -- 1543
+			____cond334 = ____cond334 or ____switch334 == "label" -- 1543
+			if ____cond334 then -- 1543
+				label = enode.props -- 1545
+				preloadList[#preloadList + 1] = (("font:" .. label.fontName) .. ";") .. tostring(label.fontSize) -- 1546
+				break -- 1547
+			end -- 1547
+		until true -- 1547
+	end -- 1547
+	getPreload(preloadList, enode.children) -- 1550
+end -- 1504
+function ____exports.preloadAsync(enode, handler) -- 1553
+	local preloadList = {} -- 1554
+	getPreload(preloadList, enode) -- 1555
+	Dora.Cache:loadAsync(preloadList, handler) -- 1556
+end -- 1553
+function ____exports.toAction(enode) -- 1559
+	local actionDef = ____exports.useRef() -- 1560
+	____exports.toNode(____exports.React.createElement("action", {ref = actionDef}, enode)) -- 1561
+	if not actionDef.current then -- 1561
+		error("failed to create action") -- 1562
+	end -- 1562
+	return actionDef.current -- 1563
+end -- 1559
+return ____exports -- 1559
