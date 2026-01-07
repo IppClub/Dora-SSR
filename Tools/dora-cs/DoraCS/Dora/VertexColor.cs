@@ -48,13 +48,11 @@ namespace Dora
 		{
 			return new VertexColor(raw);
 		}
-
 		public Vec2 Vertex
 		{
 			set => Native.vertexcolor_set_vertex(Raw, value.Raw);
 			get => Vec2.From(Native.vertexcolor_get_vertex(Raw));
 		}
-
 		public Color Color
 		{
 			set => Native.vertexcolor_set_color(Raw, (int)value.ToARGB());

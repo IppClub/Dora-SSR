@@ -47,7 +47,6 @@ namespace Dora
 		{
 			return raw == 0 ? null : new Buffer(raw);
 		}
-
 		public string Text
 		{
 			set => Native.buffer_set_text(Raw, Bridge.FromString(value));
