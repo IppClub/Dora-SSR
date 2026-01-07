@@ -42,7 +42,6 @@ namespace Dora
 		{
 			return new DBRecord(raw);
 		}
-
 		public bool IsValid
 		{
 			get => Native.dbrecord_is_valid(Raw) != 0;

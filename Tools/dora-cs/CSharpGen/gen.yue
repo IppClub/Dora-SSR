@@ -1239,7 +1239,7 @@ else
 								"get"
 							when "boolean"
 								"is"
-						csBinding[] = "\t\t#{table.concat docs, '\n\t\t'}"
+						csBinding[] = "\t\t#{table.concat docs, '\n\t\t'}" if #docs > 0
 						csBinding[] = "\t\tpublic #{isSingleton and 'static ' or ''}#{isHide and 'new ' or ''}#{rtTypeOut or rt} #{prefix == 'is' and 'Is' or ''}#{snakeToPascal funcNewName}\n\t\t{"
 						if not isReadonly
 							cppSetterName = "#{namespace}#{clsNameL}_set_#{funcNewName}"
