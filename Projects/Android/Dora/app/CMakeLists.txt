@@ -171,6 +171,7 @@ add_library(main SHARED
 	src/main/cpp/Node/TileNode.cpp
 	src/main/cpp/Node/AudioSource.cpp
 	src/main/cpp/Node/VideoNode.cpp
+	src/main/cpp/Node/TIC80Node.cpp
 	src/main/cpp/Event/EventType.cpp
 	src/main/cpp/Event/EventQueue.cpp
 	src/main/cpp/Event/Listener.cpp
@@ -621,6 +622,22 @@ add_library(main SHARED
 	src/main/cpp/3rdParty/h264bsd/h264bsd_slice_group_map.c
 	src/main/cpp/3rdParty/h264bsd/h264bsd_neighbour.c
 	src/main/cpp/3rdParty/h264bsd/h264bsd_vlc.c
+	src/main/cpp/3rdParty/tic80/cart.c
+	src/main/cpp/3rdParty/tic80/tools.c
+	src/main/cpp/3rdParty/tic80/tic.c
+	src/main/cpp/3rdParty/tic80/zip.c
+	src/main/cpp/3rdParty/tic80/tilesheet.c
+	src/main/cpp/3rdParty/tic80/script.c
+	src/main/cpp/3rdParty/tic80/core/io.c
+	src/main/cpp/3rdParty/tic80/core/draw.c
+	src/main/cpp/3rdParty/tic80/core/core.c
+	src/main/cpp/3rdParty/tic80/core/sound.c
+	src/main/cpp/3rdParty/tic80/ext/png.cpp
+	src/main/cpp/3rdParty/tic80/api/yue.cpp
+	src/main/cpp/3rdParty/tic80/api/lua.c
+	src/main/cpp/3rdParty/tic80/api/parse_note.c
+	src/main/cpp/3rdParty/tic80/api/luaapi.c
+	src/main/cpp/3rdParty/tic80/vendor/blip-buf/blip_buf.c
 )
 
 target_link_libraries(main android log EGL z GLESv1_CM GLESv2 SDL2-lib BGFX-lib BIMGDE-lib BIMG-lib BX-lib CRYPTO-lib SSL-lib DORA-lib)

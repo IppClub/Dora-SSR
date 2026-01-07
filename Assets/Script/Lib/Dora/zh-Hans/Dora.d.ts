@@ -7388,6 +7388,39 @@ interface VideoNodeClass {
 const videoNodeClass: VideoNodeClass;
 export {videoNodeClass as VideoNode};
 
+/**
+ * 用于表示 TIC-80 虚拟机节点的类。
+ */
+class TIC80Node extends Sprite {
+	private constructor();
+}
+
+export namespace TIC80Node {
+	export type Type = TIC80Node;
+}
+
+/**
+ * 用于创建 TIC80Node 对象的类。
+ */
+interface TIC80NodeClass {
+	/**
+	 * 创建一个新的 TIC80Node 实例。
+	 * @param cartFile TIC-80 卡带文件路径。应为有效的 TIC-80 卡带文件（`.tic` 或 `.png` 格式）。
+	 *     TIC-80 卡带文件包含将在 TIC-80 虚拟机中运行的完整游戏或程序。
+	 *     支持的功能：
+	 *     - 完整的 TIC-80 API 支持（绘制、声音、输入等）。
+	 *     - 键盘、手柄和触摸输入处理。
+	 *     - 通过 TIC-80 声音引擎进行音频播放。
+	 *     - 以 TIC-80 原生分辨率运行（240x136 像素）。
+	 *     - 固定帧率，匹配 TIC-80 规范（60 FPS）。
+	 * @returns 新创建的 TIC80Node 实例。如果卡带文件未加载成功，则返回 null。
+	 */
+	(this: void, cartFile: string): TIC80Node | null;
+}
+
+const tic80NodeClass: TIC80NodeClass;
+export {tic80NodeClass as TIC80Node};
+
 export const enum TypeName {
 	Size = "Size",
 	Vec2 = "Vec2",

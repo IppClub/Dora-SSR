@@ -925,7 +925,11 @@ basicTypes =
 	void: {}
 
 
-toSnakeCase = (name)-> table.concat [sub\lower! for sub in (name\sub(1, 1)\lower! .. name\sub(2))\gsub("%d", "_%1")\gsub("%u", "_%1")\gsub("(%d)_", "%1")\gmatch "[^_]*"], "_"
+toSnakeCase = (name)->
+	snakeName = table.concat [sub\lower! for sub in (name\sub(1, 1)\lower! .. name\sub(2))\gsub("%d", "_%1")\gsub("%u", "_%1")\gsub("(%d)_", "%1")\gmatch "[^_]*"], "_"
+	if snakeName\match "_80node$"
+		snakeName = snakeName\gsub "_80node$", "80_node"
+	snakeName
 
 snakeToPascal = (snakeStr)->
 	prefix = if "_" == snakeStr\sub 1,1 then "_" else ""

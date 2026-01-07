@@ -36,7 +36,7 @@ using namespace lodepnglib;
 
 png_buffer png_create(s32 size)
 {
-    return (png_buffer){(u8*)malloc(size), size};
+    return png_buffer{(u8*)malloc(size), size};
 }
 
 png_img png_read(png_buffer buf, png_buffer *cart)
@@ -186,7 +186,7 @@ static_assert(sizeof(Header) == RGBA_SIZE, "header_size");
 
 static inline void bitcpy(u8* dst, u32 to, const u8* src, u32 from, u32 size)
 {
-    for(s32 i = 0; i < size; i++, to++, from++)
+    for(s32 i = 0; i < (s32)size; i++, to++, from++)
         BITCHECK(src[from >> 3], from & 7)
             ? _BITSET(dst[to >> 3], to & 7)
             : _BITCLEAR(dst[to >> 3], to & 7);
@@ -216,8 +216,10 @@ png_buffer png_encode(png_buffer cover, png_buffer cart)
         for (s32 i = 0; i < end; i++)
             bitcpy(dst, i << 3, cart.data, i * header.bits, header.bits);
 
-        for (s32 i = end; i < coverSize; i++)
-            bitcpy(dst, i << 3, (const u8[]){(u8)rand()}, 0, header.bits);
+        for (s32 i = end; i < coverSize; i++) {
+			const u8 src[]{(u8)rand()};
+			bitcpy(dst, i << 3, src, 0, header.bits);
+		}
     }
 
     png_buffer out = png_write(png, cart);
@@ -254,7 +256,7 @@ png_buffer png_decode(png_buffer cover)
             && header.size <= png.width * png.height * RGBA_SIZE * header.bits / BITS_IN_BYTE - HEADER_SIZE)
         {
             s32 aligned = header.size + ceildiv(header.size * BITS_IN_BYTE % header.bits, BITS_IN_BYTE);
-            png_buffer out = { (u8*)malloc(aligned), header.size };
+            png_buffer out = { (u8*)malloc(aligned), (s32)header.size };
 
             const u8* from = png.data + HEADER_SIZE;
             for (s32 i = 0, end = ceildiv(header.size * BITS_IN_BYTE, header.bits); i < end; i++)
@@ -266,5 +268,5 @@ png_buffer png_decode(png_buffer cover)
         }
     }
 
-    return (png_buffer) { 0 };
+    return png_buffer{ 0 };
 }

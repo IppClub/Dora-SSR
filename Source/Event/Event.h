@@ -175,6 +175,7 @@ public:
 	bool to(bool& value, int index);
 	bool to(Object*& value, int index);
 	bool to(std::string& value, int index);
+	bool to(Slice& value, int index);
 
 	template <class T>
 	typename std::enable_if_t<std::is_integral_v<T> && !std::is_same_v<T, bool>, bool> to(T& value, int index) {

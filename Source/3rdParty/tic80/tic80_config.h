@@ -22,6 +22,11 @@
 
 #pragma once
 
+#define TIC_RUNTIME_STATIC 1
+#define TIC80_FFT_UNSUPPORTED 1
+#define TIC_BUILD_WITH_LUA 1
+#define TIC_BUILD_WITH_YUE 1
+
 #if defined(__APPLE__)
 // TODO: this disables macos config
 #   include "AvailabilityMacros.h"
@@ -53,7 +58,6 @@
 #   endif
 #endif
 
-#define TIC_RUNTIME_STATIC 1
 #if defined(TIC_RUNTIME_STATIC)
 #   define TIC_EXPORT
 #else
@@ -76,6 +80,4 @@
 #   endif
 #endif
 
-#define TIC80_FFT_UNSUPPORTED 1
-#define TIC_BUILD_WITH_LUA 1
-#define TIC_BUILD_WITH_YUE 1
+#undef TIC_MODULE_EXT

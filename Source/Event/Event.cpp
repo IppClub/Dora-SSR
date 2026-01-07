@@ -186,6 +186,14 @@ bool WasmEventArgs::to(std::string& value, int index) {
 	return false;
 }
 
+bool WasmEventArgs::to(Slice& value, int index) {
+	if (index < s_cast<int>(_values.size()) && std::holds_alternative<std::string>(_values[index])) {
+		value = std::get<std::string>(_values[index]);
+		return true;
+	}
+	return false;
+}
+
 void WasmEventArgs::send(String name, CallStack* stack) {
 	WasmEventArgs event(name, stack);
 	Event::send(&event);

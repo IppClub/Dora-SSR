@@ -3997,6 +3997,27 @@ object class VideoNode : public ISprite
 	static optional VideoNode* create(string filename, bool looped);
 };
 
+object class TIC80Node : public ISprite
+{
+	/// Creates a new TIC80Node object for running a TIC-80 cart.
+	///
+	/// # Arguments
+	///
+	/// * `cartFile` - The path to the TIC-80 cart file. It should be a valid TIC-80 cart file (`.tic` or `.png` format).
+	///     The TIC-80 cart file contains the complete game or program that will run in the TIC-80 virtual machine.
+	///     Supported features:
+	///       - Full TIC-80 API support (drawing, sound, input, etc.).
+	///       - Keyboard, controller, and touch input handling.
+	///       - Audio playback through the TIC-80 sound engine.
+	///       - Runs at TIC-80's native resolution (240x136 pixels).
+	///       - Fixed frame rate matching TIC-80's specification (60 FPS).
+	///
+	/// # Returns
+	///
+	/// * `TIC80Node` - The created TIC80Node instance. Returns `nil` if creation fails.
+	static optional TIC80Node* create(string cartFile);
+};
+
 /// An interface for handling keyboard inputs.
 singleton class Keyboard
 {

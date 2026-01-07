@@ -1,4 +1,4 @@
-#include "tic.h"
+#include "tic80/tic.h"
 #include <string.h>
 
 bool parse_note(const char* noteStr, s32* note, s32* octave)

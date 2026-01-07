@@ -519,6 +519,16 @@ const sidebars = {
 						},
 						{
 							type: 'doc',
+							label: 'TIC80Node',
+							id: 'api/Class/TIC80Node',
+						},
+						{
+							type: 'doc',
+							label: 'TIC80Node Class',
+							id: 'api/Class Object/TIC80Node',
+						},
+						{
+							type: 'doc',
 							label: 'SVG',
 							id: 'api/Class/SVG',
 						},

@@ -3722,9 +3722,35 @@ object class VideoNode : public Sprite
 	/// (Optional) Whether the video should loop. Default is false.
 	/// </param>
 	/// <returns>
-	/// The created VideoNode instance. Returns `nil` if creation fails.
+	/// The created VideoNode instance.
 	/// </returns>
 	static optional VideoNode* create(string filename, bool looped = false);
+};
+
+/// <summary>
+/// A class that represents a TIC-80 virtual machine node.
+/// </summary>
+object class TIC80Node : public Sprite
+{
+	/// <summary>
+	/// Creates a new TIC80Node object for running a TIC-80 cart.
+	/// </summary>
+	/// <param name="cartFile">
+	/// The path to the TIC-80 cart file. It should be a valid TIC-80 cart file (`.tic` or `.png` format).
+	/// <para>
+	/// The TIC-80 cart file contains the complete game or program that will run in the TIC-80 virtual machine.<br/>
+	/// <b>Supported features:</b><br/>
+	/// - Full TIC-80 API support (drawing, sound, input, etc.).<br/>
+	/// - Keyboard, controller, and touch input handling.<br/>
+	/// - Audio playback through the TIC-80 sound engine.<br/>
+	/// - Runs at TIC-80's native resolution (240x136 pixels).<br/>
+	/// - Fixed frame rate matching TIC-80's specification (60 FPS).<br/>
+	/// </para>
+	/// </param>
+	/// <returns>
+	/// The created TIC80Node instance.
+	/// </returns>
+	static optional TIC80Node* create(string cartFile);
 };
 
 /// <summary>

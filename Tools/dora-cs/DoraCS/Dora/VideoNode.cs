@@ -69,7 +69,7 @@ namespace Dora
 		/// (Optional) Whether the video should loop. Default is false.
 		/// </param>
 		/// <returns>
-		/// The created VideoNode instance. Returns `nil` if creation fails.
+		/// The created VideoNode instance.
 		/// </returns>
 		public VideoNode(string filename, bool looped = false) : this(Native.videonode_new(Bridge.FromString(filename), looped ? 1 : 0)) { }
 		public static VideoNode? TryCreate(string filename, bool looped = false)

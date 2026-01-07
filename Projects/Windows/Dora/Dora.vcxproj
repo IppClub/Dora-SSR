@@ -1465,6 +1465,70 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tic80\api\lua.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tic80\api\luaapi.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tic80\api\parse_note.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tic80\api\yue.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tic80\cart.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tic80\core\core.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tic80\core\draw.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tic80\core\io.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tic80\core\sound.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tic80\ext\png.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tic80\script.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tic80\tic.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tic80\tilesheet.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tic80\tools.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tic80\vendor\blip-buf\blip_buf.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tic80\zip.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\tinyxml2\SAXParser.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
@@ -1821,6 +1885,7 @@
     <ClCompile Include="..\..\..\Source\Node\Playable.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Spine.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Sprite.cpp" />
+    <ClCompile Include="..\..\..\Source\Node\TIC80Node.cpp" />
     <ClCompile Include="..\..\..\Source\Node\TileNode.cpp" />
     <ClCompile Include="..\..\..\Source\Node\VGNode.cpp" />
     <ClCompile Include="..\..\..\Source\Node\VideoNode.cpp" />
@@ -2444,6 +2509,23 @@
     <ClInclude Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\VariadicBind.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\stb\stb_rect_pack.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\stb\stb_truetype.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\tic80\api.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\tic80\api\luaapi.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\tic80\cart.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\tic80\core\core.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\tic80\defines.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\tic80\ext\png.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\tic80\retro_endianness.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\tic80\retro_inline.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\tic80\script.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\tic80\tic.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\tic80\tic80.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\tic80\tic80_config.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\tic80\tic80_types.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\tic80\tic_assert.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\tic80\tilesheet.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\tic80\tools.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\tic80\vendor\blip-buf\blip_buf.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\tinyxml2\SAXParser.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\tinyxml2\tinyxml2.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\Config.hpp" />
@@ -2635,6 +2717,7 @@
     <ClInclude Include="..\..\..\Source\Node\Playable.h" />
     <ClInclude Include="..\..\..\Source\Node\Spine.h" />
     <ClInclude Include="..\..\..\Source\Node\Sprite.h" />
+    <ClInclude Include="..\..\..\Source\Node\TIC80Node.h" />
     <ClInclude Include="..\..\..\Source\Node\TileNode.h" />
     <ClInclude Include="..\..\..\Source\Node\VGNode.h" />
     <ClInclude Include="..\..\..\Source\Node\VideoNode.h" />

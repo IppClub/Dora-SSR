@@ -1150,6 +1150,11 @@ class VideoNode : public Sprite
 	static VideoNode* create(String filename, bool looped = false);
 };
 
+class TIC80Node : public Sprite
+{
+	static TIC80Node* create(String filename);
+};
+
 class Menu : public Node
 {
 	tolua_property__bool bool enabled;
