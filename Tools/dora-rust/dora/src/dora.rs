@@ -119,6 +119,8 @@ mod audio_source;
 pub use audio_source::AudioSource;
 mod video_node;
 pub use video_node::VideoNode;
+mod tic80_node;
+pub use tic80_node::TIC80Node;
 mod keyboard;
 pub use keyboard::Keyboard;
 mod mouse;
@@ -209,6 +211,7 @@ thread_local! {
 			AudioBus::type_info(),
 			AudioSource::type_info(),
 			VideoNode::type_info(),
+			TIC80Node::type_info(),
 			ml::QLearner::type_info(),
 			platformer::ActionUpdate::type_info(),
 			platformer::Face::type_info(),

@@ -81,7 +81,7 @@ u32 h264bsdDecodeNalUnit(strmData_t *pStrmData, nalUnit_t *pNalUnit)
 
     /* forbidden_zero_bit (not checked to be zero, errors ignored) */
     tmp = h264bsdGetBits(pStrmData, 1);
-    /* Assuming that NAL unit starts from byte boundary ­> don't have to check
+    /* Assuming that NAL unit starts from byte boundary > don't have to check
      * following 7 bits for END_OF_STREAM */
     if (tmp == END_OF_STREAM)
         return(HANTRO_NOK);

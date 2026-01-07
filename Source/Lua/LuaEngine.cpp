@@ -1791,6 +1791,14 @@ bool LuaEngine::to(std::string& value, int index) {
 	return false;
 }
 
+bool LuaEngine::to(Slice& value, int index) {
+	if (lua_isstring(L, index)) {
+		value = tolua_toslice(L, index, 0).toString();
+		return true;
+	}
+	return false;
+}
+
 bool LuaEngine::executeFunction(int handler, int paramCount) {
 	return LuaEngine::execute(L, handler, paramCount);
 }

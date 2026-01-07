@@ -307,6 +307,24 @@
     <Filter Include="3rdParty\h264bsd">
       <UniqueIdentifier>{17efbd68-04d4-40bb-85d3-bc6f16375f59}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rdParty\tic80">
+      <UniqueIdentifier>{c1635bfd-c810-483d-8527-f37cbd4c739a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\tic80\core">
+      <UniqueIdentifier>{c58319ca-eed3-4c5d-beab-d855c8e97a4d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\tic80\api">
+      <UniqueIdentifier>{80c16c03-747f-4297-b7ea-7bada2658902}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\tic80\ext">
+      <UniqueIdentifier>{c1310570-af30-4136-b0e6-da9d9bc50fe5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\tic80\vendor">
+      <UniqueIdentifier>{58c6324b-9171-458f-bc9e-96ae799f1c91}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\tic80\vendor\blip-buf">
+      <UniqueIdentifier>{bafb1eb9-4498-4f02-8c3a-93831d9d2a8a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\3rdParty\silly\Slice.cpp">
@@ -1948,6 +1966,57 @@
       <Filter>3rdParty\h264bsd</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Node\VideoNode.cpp">
+      <Filter>Node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tic80\cart.c">
+      <Filter>3rdParty\tic80</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tic80\script.c">
+      <Filter>3rdParty\tic80</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tic80\tic.c">
+      <Filter>3rdParty\tic80</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tic80\tilesheet.c">
+      <Filter>3rdParty\tic80</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tic80\tools.c">
+      <Filter>3rdParty\tic80</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tic80\zip.c">
+      <Filter>3rdParty\tic80</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tic80\core\core.c">
+      <Filter>3rdParty\tic80\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tic80\core\draw.c">
+      <Filter>3rdParty\tic80\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tic80\core\io.c">
+      <Filter>3rdParty\tic80\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tic80\core\sound.c">
+      <Filter>3rdParty\tic80\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tic80\api\lua.c">
+      <Filter>3rdParty\tic80\api</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tic80\api\luaapi.c">
+      <Filter>3rdParty\tic80\api</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tic80\api\parse_note.c">
+      <Filter>3rdParty\tic80\api</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tic80\api\yue.cpp">
+      <Filter>3rdParty\tic80\api</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tic80\ext\png.cpp">
+      <Filter>3rdParty\tic80\ext</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tic80\vendor\blip-buf\blip_buf.c">
+      <Filter>3rdParty\tic80\vendor\blip-buf</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\TIC80Node.cpp">
       <Filter>Node</Filter>
     </ClCompile>
   </ItemGroup>
@@ -4362,6 +4431,60 @@
       <Filter>3rdParty\h264bsd</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Node\VideoNode.h">
+      <Filter>Node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tic80\api.h">
+      <Filter>3rdParty\tic80</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tic80\cart.h">
+      <Filter>3rdParty\tic80</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tic80\defines.h">
+      <Filter>3rdParty\tic80</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tic80\retro_endianness.h">
+      <Filter>3rdParty\tic80</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tic80\retro_inline.h">
+      <Filter>3rdParty\tic80</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tic80\script.h">
+      <Filter>3rdParty\tic80</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tic80\tic.h">
+      <Filter>3rdParty\tic80</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tic80\tic_assert.h">
+      <Filter>3rdParty\tic80</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tic80\tic80.h">
+      <Filter>3rdParty\tic80</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tic80\tic80_config.h">
+      <Filter>3rdParty\tic80</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tic80\tic80_types.h">
+      <Filter>3rdParty\tic80</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tic80\tilesheet.h">
+      <Filter>3rdParty\tic80</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tic80\tools.h">
+      <Filter>3rdParty\tic80</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tic80\core\core.h">
+      <Filter>3rdParty\tic80\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tic80\api\luaapi.h">
+      <Filter>3rdParty\tic80\api</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tic80\ext\png.h">
+      <Filter>3rdParty\tic80\ext</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tic80\vendor\blip-buf\blip_buf.h">
+      <Filter>3rdParty\tic80\vendor\blip-buf</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Node\TIC80Node.h">
       <Filter>Node</Filter>
     </ClInclude>
   </ItemGroup>

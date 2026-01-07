@@ -29,8 +29,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <ctime>
 #include <thread>
 
-#define DORA_VERSION "1.7.4"_slice
-#define DORA_REVISION "3"_slice
+#define DORA_VERSION "1.7.5"_slice
+#define DORA_REVISION "1"_slice
 
 #if BX_PLATFORM_ANDROID
 #include <jni.h>

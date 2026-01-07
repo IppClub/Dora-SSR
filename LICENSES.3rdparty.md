@@ -11,6 +11,7 @@ THE OPEN SOURCE SOFTWARE IN THIS PRODUCT IS DISTRIBUTED IN THE HOPE THAT IT WILL
 ## Copyright Notice and License Texts
 
 - [bgfx](https://github.com/bkaradzic/bgfx): [BSD-2 License](Source/3rdParty/bgfx/LICENSE)
+- [blip-buf](http://www.slack.net/~ant/): [LGPL License](Source/3rdParty/tic80/vendor/blip-buf/license.txt)
 - [colib](https://github.com/colinsusie/colib): [MIT License](Source/3rdParty/colib/LICENSE)
 - [dragonBones](https://github.com/DragonBones/DragonBonesCPP): [MIT License](Source/3rdParty/dragonBones/LICENSE)
 - [fmt](https://github.com/fmtlib/fmt): [MIT License](Source/3rdParty/fmt/LICENSE.rst)
@@ -34,6 +35,7 @@ THE OPEN SOURCE SOFTWARE IN THIS PRODUCT IS DISTRIBUTED IN THE HOPE THAT IT WILL
 - [sqliteCpp](https://github.com/SRombauts/SQLiteCpp): [MIT License](Source/3rdParty/sqlite/sqliteCpp/LICENSE)
 - [nothings/stb](https://github.com/nothings/stb): [MIT License](Source/3rdParty/stb/LICENSE)
 - [tinyxml2](https://github.com/leethomason/tinyxml2): [zlib License](Source/3rdParty/tinyxml2/LICENSE.txt)
+- [TIC-80](https://github.com/nesbox/TIC-80): [MIT License](Source/3rdParty/tic80/LICENSE)
 - [wasm3](https://github.com/wasm3/wasm3): [MIT License](Source/3rdParty/wasm3/LICENSE)
 - [Yard](https://sourceforge.net/projects/yard-parser): [Public Domain](https://sourceforge.net/projects/yard-parser)
 - [YueScript](https://github.com/ippclub/YueScript): [MIT License](Source/3rdParty/yuescript/LICENSE)

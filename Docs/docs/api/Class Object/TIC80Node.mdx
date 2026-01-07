@@ -1,0 +1,33 @@
+# TIC80Node Class
+
+**Description:**
+
+&emsp;&emsp;A class for creating TIC80Node objects.
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;The constructor function for creating a TIC80Node instance.
+
+**Signature:**
+```tl
+metamethod __call: function(
+		self: TIC80NodeClass,
+		cartFile: string
+	): TIC80Node | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| cartFile | string | The path to the TIC-80 cart file. It should be a valid TIC-80 cart file (`.tic` or `.png` format).<br/>The TIC-80 cart file contains the complete game or program that will run in the TIC-80 virtual machine.<br/>Supported features:<br/>- Full TIC-80 API support (drawing, sound, input, etc.).<br/>- Keyboard, controller, and touch input handling.<br/>- Audio playback through the TIC-80 sound engine.<br/>- Runs at TIC-80's native resolution (240x136 pixels).<br/>- Fixed frame rate matching TIC-80's specification (60 FPS). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| TIC80Node \| nil | The created TIC80Node instance. If creation fails, returns nil. |

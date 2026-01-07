@@ -48,6 +48,7 @@ local Audio = require("Audio")
 local AudioBus = require("AudioBus")
 local AudioSource = require("AudioSource")
 local VideoNode = require("VideoNode")
+local TIC80Node = require("TIC80Node")
 local cycle = require("cycle")
 local App = require("App")
 local Texture2D = require("Texture2D")
@@ -243,6 +244,7 @@ global Dora = {
 	AudioBus = AudioBus,
 	AudioSource = AudioSource,
 	VideoNode = VideoNode,
+	TIC80Node = TIC80Node,
 	Wasm = Wasm,
 	rgba = rgba,
 }

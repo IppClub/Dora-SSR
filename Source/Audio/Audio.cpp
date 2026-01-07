@@ -331,7 +331,7 @@ Audio::~Audio() {
 
 bool Audio::init() {
 	_soloud = new SoLoud::Soloud();
-	SoLoud::result result = _soloud->init();
+	SoLoud::result result = _soloud->init(SoLoud::Soloud::CLIP_ROUNDOFF, SoLoud::Soloud::AUTO, DORA_SAMPLERATE);
 	if (result) {
 		Error("failed to init soloud engine deal to reason: {}.", _soloud->getErrorString(result));
 		delete _soloud;

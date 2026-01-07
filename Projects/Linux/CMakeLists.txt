@@ -172,6 +172,7 @@ add_executable(dora-ssr
 	../../Source/Node/TileNode.cpp
 	../../Source/Node/AudioSource.cpp
 	../../Source/Node/VideoNode.cpp
+	../../Source/Node/TIC80Node.cpp
 	../../Source/Event/EventType.cpp
 	../../Source/Event/EventQueue.cpp
 	../../Source/Event/Listener.cpp
@@ -623,6 +624,22 @@ add_executable(dora-ssr
 	../../Source/3rdParty/h264bsd/h264bsd_slice_group_map.c
 	../../Source/3rdParty/h264bsd/h264bsd_neighbour.c
 	../../Source/3rdParty/h264bsd/h264bsd_vlc.c
+	../../Source/3rdParty/tic80/cart.c
+	../../Source/3rdParty/tic80/tools.c
+	../../Source/3rdParty/tic80/tic.c
+	../../Source/3rdParty/tic80/zip.c
+	../../Source/3rdParty/tic80/tilesheet.c
+	../../Source/3rdParty/tic80/script.c
+	../../Source/3rdParty/tic80/core/io.c
+	../../Source/3rdParty/tic80/core/draw.c
+	../../Source/3rdParty/tic80/core/core.c
+	../../Source/3rdParty/tic80/core/sound.c
+	../../Source/3rdParty/tic80/ext/png.cpp
+	../../Source/3rdParty/tic80/api/yue.cpp
+	../../Source/3rdParty/tic80/api/lua.c
+	../../Source/3rdParty/tic80/api/parse_note.c
+	../../Source/3rdParty/tic80/api/luaapi.c
+	../../Source/3rdParty/tic80/vendor/blip-buf/blip_buf.c
 )
 
 target_link_libraries(dora-ssr z dl pthread rt ${SDL2_LIBRARIES} BGFX-lib BIMGDE-lib BIMG-lib BX-lib GL X11 OpenSSL::SSL OpenSSL::Crypto ${DBUS_LINK_LIBRARIES} DORA-lib WA-lib)

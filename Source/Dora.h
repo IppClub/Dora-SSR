@@ -63,6 +63,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Node/TileNode.h"
 #include "Node/VGNode.h"
 #include "Node/VideoNode.h"
+#include "Node/TIC80Node.h"
 #include "Physics/Body.h"
 #include "Physics/BodyDef.h"
 #include "Physics/Joint.h"

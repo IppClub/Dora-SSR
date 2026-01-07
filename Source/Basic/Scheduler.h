@@ -72,7 +72,7 @@ concept FixedUpdatable = requires(T t) {
 template <FixedUpdatable T>
 class FixedScheduledItemWrapper : public FixedScheduledItem {
 public:
-	FixedScheduledItemWrapper(Updatable auto* item)
+	FixedScheduledItemWrapper(FixedUpdatable auto* item)
 		: FixedScheduledItem(item) { }
 
 	virtual bool fixedUpdate(double deltaTime) override {
@@ -86,7 +86,9 @@ public:
 	PROPERTY(float, TimeScale);
 	PROPERTY(int, FixedFPS);
 	PROPERTY_READONLY(double, DeltaTime);
+	virtual void cleanup() override;
 	void schedule(NotNull<ScheduledItem, 1> item);
+	void scheduleFixed(const std::function<bool(double)>& handler);
 	void scheduleFixed(NotNull<FixedScheduledItem, 1> item);
 	void schedule(const std::function<bool(double)>& handler);
 	void schedule(NotNull<Action, 1> action);

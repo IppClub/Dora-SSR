@@ -39,6 +39,26 @@ public:
 	DORA_TYPE_OVERRIDE(FuncWrapper);
 };
 
+class FixedFuncWrapperBase : public Object {
+public:
+	FixedFuncWrapperBase(const std::function<bool(double)>& func)
+		: func(func) { }
+	bool fixedUpdate(double deltaTime) {
+		return func(deltaTime);
+	}
+	std::function<bool(double)> func;
+};
+
+class FixedFuncWrapper : public FixedFuncWrapperBase {
+public:
+	FixedFuncWrapper(const std::function<bool(double)>& func)
+		: FixedFuncWrapperBase(func)
+		, item(this) { }
+	FixedScheduledItemWrapper<FixedFuncWrapperBase> item;
+	CREATE_FUNC_NOT_NULL(FixedFuncWrapper);
+	DORA_TYPE_OVERRIDE(FixedFuncWrapper);
+};
+
 Scheduler::Scheduler()
 	: _fixedFPS(60)
 	, _deltaTime(0.0)
@@ -79,6 +99,12 @@ void Scheduler::schedule(NotNull<ScheduledItem, 1> item) {
 	AssertIf(item->iter, "target item is already scheduled");
 	item->target->retain();
 	item->iter = _updateList.emplace(_updateList.end(), item);
+}
+
+void Scheduler::scheduleFixed(const std::function<bool(double)>& handler) {
+	FixedFuncWrapper* func = FixedFuncWrapper::create(handler);
+	func->retain();
+	func->item.iter = _fixedUpdateList.emplace(_fixedUpdateList.end(), &func->item);
 }
 
 void Scheduler::scheduleFixed(NotNull<FixedScheduledItem, 1> item) {
@@ -206,6 +232,15 @@ bool Scheduler::update(double deltaTime) {
 	}
 	_updateObjects.clear();
 	return false;
+}
+
+void Scheduler::cleanup() {
+	_updateList.clear();
+	_fixedUpdateList.clear();
+	_fixedUpdateObjects.clear();
+	_updateObjects.clear();
+	_actionList->clear();
+	Object::cleanup();
 }
 
 /* SystemTimer */

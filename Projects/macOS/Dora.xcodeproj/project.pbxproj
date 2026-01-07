@@ -566,6 +566,7 @@
 		3CA77F1F2AE665C100B7BADA /* Math.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA77ED02AE665C100B7BADA /* Math.cpp */; };
 		3CA780A12AEB82B100B7BADA /* LICENSES in Resources */ = {isa = PBXBuildFile; fileRef = 3CA780A02AEB82B100B7BADA /* LICENSES */; };
 		3CA8DF0D2A0CE6FD0022CC90 /* www in Resources */ = {isa = PBXBuildFile; fileRef = 3CA8DF0C2A0CE6FD0022CC90 /* www */; };
+		3CAE49C02F0CA74300FBD51A /* TIC80Node.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CAE49BF2F0CA74300FBD51A /* TIC80Node.cpp */; };
 		3CB86C422F0BAFB80035A077 /* zip.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CB86C372F0BAFB80035A077 /* zip.c */; };
 		3CB86C442F0BAFB80035A077 /* tic.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CB86C2E2F0BAFB80035A077 /* tic.c */; };
 		3CB86C4A2F0BAFB80035A077 /* tilesheet.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CB86C342F0BAFB80035A077 /* tilesheet.c */; };
@@ -1974,6 +1975,8 @@
 		3CA77ED52AE665C100B7BADA /* Positive.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Positive.hpp; sourceTree = "<group>"; };
 		3CA780A02AEB82B100B7BADA /* LICENSES */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSES; sourceTree = "<group>"; };
 		3CA8DF0C2A0CE6FD0022CC90 /* www */ = {isa = PBXFileReference; lastKnownFileType = folder; path = www; sourceTree = "<group>"; };
+		3CAE49BE2F0CA74300FBD51A /* TIC80Node.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TIC80Node.h; sourceTree = "<group>"; };
+		3CAE49BF2F0CA74300FBD51A /* TIC80Node.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TIC80Node.cpp; sourceTree = "<group>"; };
 		3CB86BCD2F0BAFB80035A077 /* core.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = core.h; sourceTree = "<group>"; };
 		3CB86BCE2F0BAFB80035A077 /* core.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = core.c; sourceTree = "<group>"; };
 		3CB86BCF2F0BAFB80035A077 /* draw.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = draw.c; sourceTree = "<group>"; };
@@ -4126,6 +4129,8 @@
 		3CCBBA381E14B50B00C0416B /* Node */ = {
 			isa = PBXGroup;
 			children = (
+				3CAE49BE2F0CA74300FBD51A /* TIC80Node.h */,
+				3CAE49BF2F0CA74300FBD51A /* TIC80Node.cpp */,
 				3C03A9FF2EF2522E00B706C8 /* VideoNode.h */,
 				3C03AA002EF2522E00B706C8 /* VideoNode.cpp */,
 				3C078D7B2E14CD2D00C05BA4 /* AudioSource.h */,
@@ -4604,6 +4609,7 @@
 				3C5935EA2CA4F9C400CAF224 /* lstrlib.c in Sources */,
 				3C5935EB2CA4F9C400CAF224 /* lundump.c in Sources */,
 				3C5935EC2CA4F9C400CAF224 /* lobject.c in Sources */,
+				3CAE49C02F0CA74300FBD51A /* TIC80Node.cpp in Sources */,
 				3C5935ED2CA4F9C400CAF224 /* lutf8lib.c in Sources */,
 				3C5934812CA4F92600CAF224 /* ArmatureData.cpp in Sources */,
 				3C5934822CA4F92600CAF224 /* DisplayData.cpp in Sources */,

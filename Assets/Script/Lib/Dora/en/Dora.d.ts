@@ -7388,6 +7388,40 @@ interface VideoNodeClass {
 const videoNodeClass: VideoNodeClass;
 export {videoNodeClass as VideoNode};
 
+/**
+ * A class that represents a TIC-80 virtual machine node.
+ */
+class TIC80Node extends Sprite {
+	private constructor();
+}
+
+export namespace TIC80Node {
+	export type Type = TIC80Node;
+}
+
+/**
+ * A class for creating TIC80Node objects.
+ */
+
+interface TIC80NodeClass {
+	/**
+	 * Creates a new TIC80Node object.
+	 * @param cartFile The path to the TIC-80 cart file. It should be a valid TIC-80 cart file (`.tic` or `.png` format).
+	 *     The TIC-80 cart file contains the complete game or program that will run in the TIC-80 virtual machine.
+	 *     Supported features:
+	 *     - Full TIC-80 API support (drawing, sound, input, etc.).
+	 *     - Keyboard, controller, and touch input handling.
+	 *     - Audio playback through the TIC-80 sound engine.
+	 *     - Runs at TIC-80's native resolution (240x136 pixels).
+	 *     - Fixed frame rate matching TIC-80's specification (60 FPS).
+	 * @returns The created TIC80Node object. If the cart file is not loaded, it will return null.
+	 */
+	(this: void, cartFile: string): TIC80Node | null;
+}
+
+const tic80NodeClass: TIC80NodeClass;
+export {tic80NodeClass as TIC80Node};
+
 export const enum TypeName {
 	Size = "Size",
 	Vec2 = "Vec2",

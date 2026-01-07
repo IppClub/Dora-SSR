@@ -206,6 +206,7 @@ public:
 
 	bool to(bool& value, int index);
 	bool to(std::string& value, int index);
+	bool to(Slice& value, int index);
 
 	void executeReturn(LuaHandler*& luaHandler, int handler, int paramCount);
 

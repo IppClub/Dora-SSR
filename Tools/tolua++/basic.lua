@@ -111,6 +111,7 @@ local objects = {
 	"AudioBus",
 	"AudioSource",
 	"VideoNode",
+	"TIC80Node",
 	"Platformer::Unit",
 	"Platformer::Face",
 	"Platformer::PlatformCamera",

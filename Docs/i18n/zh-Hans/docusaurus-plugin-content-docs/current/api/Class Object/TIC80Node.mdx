@@ -1,0 +1,33 @@
+# TIC80Node的类对象
+
+**描述：**
+
+&emsp;&emsp;用于创建 TIC80Node 实例的类。
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;构造函数，用于创建一个 TIC80Node 实例。
+
+**签名：**
+```tl
+metamethod __call: function(
+		self: TIC80NodeClass,
+		cartFile: string
+	): TIC80Node | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| cartFile | string | TIC-80 卡带文件路径。应为有效的 TIC-80 卡带文件（`.tic` 或 `.png` 格式）。<br/>TIC-80 卡带文件包含将在 TIC-80 虚拟机中运行的完整游戏或程序。<br/>支持的功能：<br/>- 完整的 TIC-80 API 支持（绘制、声音、输入等）。<br/>- 键盘、手柄和触摸输入处理。<br/>- 通过 TIC-80 声音引擎进行音频播放。<br/>- 以 TIC-80 原生分辨率运行（240x136 像素）。<br/>- 固定帧率，匹配 TIC-80 规范（60 FPS）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| TIC80Node \| nil | 新创建的 TIC80Node 实例。如果创建失败，则返回 nil。 |
