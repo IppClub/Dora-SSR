@@ -758,6 +758,28 @@ class VideoNode extends Sprite {
 	onMount?(this: void, self: Dora.VideoNode.Type): void;
 }
 
+class TIC80Node extends Sprite {
+	ref?: Ref<Dora.TIC80Node.Type>;
+
+	/**
+	 * The path to the TIC-80 cart file. It should be a valid TIC-80 cart file (`.tic` or `.png` format).
+	 * The TIC-80 cart file contains the complete game or program that will run in the TIC-80 virtual machine.
+	 * Supported features:
+	 * - Full TIC-80 API support (drawing, sound, input, etc.).
+	 * - Keyboard, controller, and touch input handling.
+	 * - Audio playback through the TIC-80 sound engine.
+	 * - Runs at TIC-80's native resolution (240x136 pixels).
+	 * - Fixed frame rate matching TIC-80's specification (60 FPS).
+	 */
+	file: string;
+
+	/**
+	 * Triggers when this node element is instantialized.
+	 * @param self The node element that was instantialized.
+	 */
+	onMount?(this: void, self: Dora.TIC80Node.Type): void;
+}
+
 class Label extends Node {
 	ref?: Ref<Dora.Label.Type>;
 
@@ -1842,6 +1864,10 @@ interface IntrinsicElements {
 	 * A class that represents a video node.
 	 */
 	'video-node': VideoNode;
+	/**
+	 * A class that represents a TIC-80 virtual machine node.
+	 */
+	'tic80-node': TIC80Node;
 	/**
 	 * A node for rendering text using a TrueType font.
 	 */

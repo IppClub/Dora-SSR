@@ -758,6 +758,28 @@ class VideoNode extends Sprite {
 	onMount?(this: void, self: Dora.VideoNode.Type): void;
 }
 
+class TIC80Node extends Sprite {
+	ref?: Ref<Dora.TIC80Node.Type>;
+
+	/**
+	 * TIC-80 卡带文件路径。应为有效的 TIC-80 卡带文件（`.tic` 或 `.png` 格式）。
+	 * TIC-80 卡带文件包含将在 TIC-80 虚拟机中运行的完整游戏或程序。
+	 * 支持的功能：
+	 * - 完整的 TIC-80 API 支持（绘制、声音、输入等）。
+	 * - 键盘、手柄和触摸输入处理。
+	 * - 通过 TIC-80 声音引擎进行音频播放。
+	 * - 以 TIC-80 原生分辨率运行（240x136 像素）。
+	 * - 固定帧率，匹配 TIC-80 规范（60 FPS）。
+	 */
+	file: string;
+
+	/**
+	 * 当前节点被实例化时，会触发该回调函数。
+	 * @param self 当前节点的实例。
+	 */
+	onMount?(this: void, self: Dora.TIC80Node.Type): void;
+}
+
 class Label extends Node {
 	ref?: Ref<Dora.Label.Type>;
 
@@ -1835,6 +1857,10 @@ interface IntrinsicElements {
 	 * 用于播放视频的节点。
 	 */
 	'video-node': VideoNode;
+	/**
+	 * 用于表示 TIC-80 虚拟机节点的类。
+	 */
+	'tic80-node': TIC80Node;
 	/**
 	 * 用于使用 TrueType 字体渲染文本的节点。
 	 */
