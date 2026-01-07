@@ -165,7 +165,7 @@ dora-ts/
 
 ## 许可证
 
-Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+Copyright (c) 2016-2026 Li Jin <dragon-fly@qq.com>
 
 本软件在 MIT 许可证下提供。有关完整详细信息，请参阅 `dora.py` 中的许可证标头。
 
