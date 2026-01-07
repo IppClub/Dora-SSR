@@ -165,7 +165,7 @@ Choose your preferred language during initialization using the `-l` flag.
 
 ## License
 
-Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+Copyright (c) 2016-2026 Li Jin <dragon-fly@qq.com>
 
 This software is provided under the MIT License. See the license header in `dora.py` for full details.
 
