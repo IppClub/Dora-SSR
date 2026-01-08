@@ -1152,7 +1152,10 @@ class VideoNode : public Sprite
 
 class TIC80Node : public Sprite
 {
-	static TIC80Node* create(String filename);
+	static TIC80Node* create(String cartFile, String codeFile = "");
+	static string codeFromCart(String cartFile);
+	static bool mergeTic(String outputFile, String resourceCartFile, String codeFile);
+	static bool mergePng(String outputFile, String coverPngFile, String resourceCartFile, String codeFile = "");
 };
 
 class Menu : public Node

@@ -19,6 +19,14 @@ namespace Dora
 		public static extern int32_t tic80node_type();
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t tic80node_new(int64_t cartFile);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t tic80node_with_code(int64_t resourceCartFile, int64_t codeFile);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t tic80node_code_from_cart(int64_t cartFile);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int32_t tic80node_merge_tic(int64_t outputFile, int64_t resourceCartFile, int64_t codeFile);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int32_t tic80node_merge_png(int64_t outputFile, int64_t coverPngFile, int64_t resourceCartFile, int64_t codeFile);
 	}
 } // namespace Dora
 
@@ -65,6 +73,56 @@ namespace Dora
 		{
 			var raw = Native.tic80node_new(Bridge.FromString(cartFile));
 			return raw == 0 ? null : new TIC80Node(raw);
+		}
+		/// <summary>
+		/// Creates a new TIC80Node object with code from a file and resources from a cart file.
+		/// </summary>
+		/// <param name="resourceCartFile">
+		/// The path to the TIC-80 cart file containing art and audio resources (`.tic` or `.png` format).
+		/// </param>
+		/// <param name="codeFile">
+		/// The path to the code file (e.g., `.lua`, `.yue`).
+		/// </param>
+		/// <returns>
+		/// The created TIC80Node instance.
+		/// </returns>
+		public TIC80Node(string resourceCartFile, string codeFile) : this(Native.tic80node_with_code(Bridge.FromString(resourceCartFile), Bridge.FromString(codeFile))) { }
+		public static TIC80Node? TryCreate(string resourceCartFile, string codeFile)
+		{
+			var raw = Native.tic80node_with_code(Bridge.FromString(resourceCartFile), Bridge.FromString(codeFile));
+			return raw == 0 ? null : new TIC80Node(raw);
+		}
+		/// <summary>
+		/// Extracts code text from a TIC-80 cart file.
+		/// </summary>
+		/// <param name="cartFile">The path to the TIC-80 cart file (`.tic` or `.png` format).</param>
+		/// <returns>The extracted code text, or empty string if failed.</returns>
+		public static string CodeFromCart(string cartFile)
+		{
+			return Bridge.ToString(Native.tic80node_code_from_cart(Bridge.FromString(cartFile)));
+		}
+		/// <summary>
+		/// Merges resource cart and code file into a .tic cart file.
+		/// </summary>
+		/// <param name="outputFile">The path to save the merged .tic cart file.</param>
+		/// <param name="resourceCartFile">The path to the resource cart file.</param>
+		/// <param name="codeFile">The path to the code file.</param>
+		/// <returns>True if successful, false otherwise.</returns>
+		public static bool MergeTic(string outputFile, string resourceCartFile, string codeFile)
+		{
+			return Native.tic80node_merge_tic(Bridge.FromString(outputFile), Bridge.FromString(resourceCartFile), Bridge.FromString(codeFile)) != 0;
+		}
+		/// <summary>
+		/// Merges PNG cover, resource cart, and optional code file into a .png cart file.
+		/// </summary>
+		/// <param name="outputFile">The path to save the merged .png cart file.</param>
+		/// <param name="coverPngFile">The path to the cover PNG image file.</param>
+		/// <param name="resourceCartFile">The path to the resource cart file.</param>
+		/// <param name="codeFile">Optional path to the code file. If empty, uses code from resource cart.</param>
+		/// <returns>True if successful, false otherwise.</returns>
+		public static bool MergePng(string outputFile, string coverPngFile, string resourceCartFile, string codeFile = "")
+		{
+			return Native.tic80node_merge_png(Bridge.FromString(outputFile), Bridge.FromString(coverPngFile), Bridge.FromString(resourceCartFile), Bridge.FromString(codeFile)) != 0;
 		}
 	}
 } // namespace Dora

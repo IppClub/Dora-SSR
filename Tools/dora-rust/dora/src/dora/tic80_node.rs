@@ -9,6 +9,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 extern "C" {
 	fn tic80node_type() -> i32;
 	fn tic80node_new(cart_file: i64) -> i64;
+	fn tic80node_with_code(resource_cart_file: i64, code_file: i64) -> i64;
+	fn tic80node_code_from_cart(cart_file: i64) -> i64;
+	fn tic80node_merge_tic(output_file: i64, resource_cart_file: i64, code_file: i64) -> i32;
+	fn tic80node_merge_png(output_file: i64, cover_png_file: i64, resource_cart_file: i64, code_file: i64) -> i32;
 }
 use crate::dora::IObject;
 use crate::dora::ISprite;
@@ -44,5 +48,59 @@ impl TIC80Node {
 	/// * `TIC80Node` - The created TIC80Node instance. Returns `nil` if creation fails.
 	pub fn new(cart_file: &str) -> Option<TIC80Node> {
 		unsafe { return TIC80Node::from(tic80node_new(crate::dora::from_string(cart_file))); }
+	}
+	/// Creates a new TIC80Node object with code from a file and resources from a cart file.
+	///
+	/// # Arguments
+	///
+	/// * `resourceCartFile` - The path to the TIC-80 cart file containing art and audio resources (`.tic` or `.png` format).
+	/// * `codeFile` - The path to the code file (e.g., `.lua`, `.yue`).
+	///
+	/// # Returns
+	///
+	/// * `TIC80Node` - The created TIC80Node instance. Returns `nil` if creation fails.
+	pub fn with_code(resource_cart_file: &str, code_file: &str) -> Option<TIC80Node> {
+		unsafe { return TIC80Node::from(tic80node_with_code(crate::dora::from_string(resource_cart_file), crate::dora::from_string(code_file))); }
+	}
+	/// Extracts code text from a TIC-80 cart file.
+	///
+	/// # Arguments
+	///
+	/// * `cartFile` - The path to the TIC-80 cart file (`.tic` or `.png` format).
+	///
+	/// # Returns
+	///
+	/// * `string` - The extracted code text, or empty string if failed.
+	pub fn code_from_cart(cart_file: &str) -> String {
+		unsafe { return crate::dora::to_string(tic80node_code_from_cart(crate::dora::from_string(cart_file))); }
+	}
+	/// Merges resource cart and code file into a .tic cart file.
+	///
+	/// # Arguments
+	///
+	/// * `outputFile` - The path to save the merged .tic cart file.
+	/// * `resourceCartFile` - The path to the resource cart file.
+	/// * `codeFile` - The path to the code file.
+	///
+	/// # Returns
+	///
+	/// * `bool` - True if successful, false otherwise.
+	pub fn merge_tic(output_file: &str, resource_cart_file: &str, code_file: &str) -> bool {
+		unsafe { return tic80node_merge_tic(crate::dora::from_string(output_file), crate::dora::from_string(resource_cart_file), crate::dora::from_string(code_file)) != 0; }
+	}
+	/// Merges PNG cover, resource cart, and optional code file into a .png cart file.
+	///
+	/// # Arguments
+	///
+	/// * `outputFile` - The path to save the merged .png cart file.
+	/// * `coverPngFile` - The path to the cover PNG image file.
+	/// * `resourceCartFile` - The path to the resource cart file.
+	/// * `codeFile` - Optional path to the code file. If empty, uses code from resource cart.
+	///
+	/// # Returns
+	///
+	/// * `bool` - True if successful, false otherwise.
+	pub fn merge_png(output_file: &str, cover_png_file: &str, resource_cart_file: &str, code_file: &str) -> bool {
+		unsafe { return tic80node_merge_png(crate::dora::from_string(output_file), crate::dora::from_string(cover_png_file), crate::dora::from_string(resource_cart_file), crate::dora::from_string(code_file)) != 0; }
 	}
 }

@@ -14,6 +14,18 @@ func tic80node_type() => i32
 #wa:import dora tic80node_new
 func tic80node_new(cart_file: i64) => i64
 
+#wa:import dora tic80node_with_code
+func tic80node_with_code(resource_cart_file: i64, code_file: i64) => i64
+
+#wa:import dora tic80node_code_from_cart
+func tic80node_code_from_cart(cart_file: i64) => i64
+
+#wa:import dora tic80node_merge_tic
+func tic80node_merge_tic(output_file: i64, resource_cart_file: i64, code_file: i64) => i32
+
+#wa:import dora tic80node_merge_png
+func tic80node_merge_png(output_file: i64, cover_png_file: i64, resource_cart_file: i64, code_file: i64) => i32
+
 type TIC80Node :struct{ Sprite }
 
 func TIC80NodeFrom(raw: i64) => *TIC80Node {
@@ -62,4 +74,69 @@ func NewTIC80Node(cart_file: string) => *TIC80Node {
 	object.raw = &raw
 	runtime.SetFinalizer(object.raw, ObjectFinalizer)
 	return &object
+}
+
+/// Creates a new TIC80Node object with code from a file and resources from a cart file.
+///
+/// # Arguments
+///
+/// * `resourceCartFile` - The path to the TIC-80 cart file containing art and audio resources (`.tic` or `.png` format).
+/// * `codeFile` - The path to the code file (e.g., `.lua`, `.yue`).
+///
+/// # Returns
+///
+/// * `TIC80Node` - The created TIC80Node instance. Returns `nil` if creation fails.
+func NewTIC80NodeWithCode(resource_cart_file: string, code_file: string) => *TIC80Node {
+	raw := tic80node_with_code(ToDoraString(resource_cart_file), ToDoraString(code_file))
+	if raw == 0 {
+		return nil
+	}
+	object := TIC80Node{}
+	object.raw = &raw
+	runtime.SetFinalizer(object.raw, ObjectFinalizer)
+	return &object
+}
+
+/// Extracts code text from a TIC-80 cart file.
+///
+/// # Arguments
+///
+/// * `cartFile` - The path to the TIC-80 cart file (`.tic` or `.png` format).
+///
+/// # Returns
+///
+/// * `string` - The extracted code text, or empty string if failed.
+func TIC80NodeCodeFromCart(cart_file: string) => string {
+	return FromDoraString(tic80node_code_from_cart(ToDoraString(cart_file)))
+}
+
+/// Merges resource cart and code file into a .tic cart file.
+///
+/// # Arguments
+///
+/// * `outputFile` - The path to save the merged .tic cart file.
+/// * `resourceCartFile` - The path to the resource cart file.
+/// * `codeFile` - The path to the code file.
+///
+/// # Returns
+///
+/// * `bool` - True if successful, false otherwise.
+func TIC80NodeMergeTic(output_file: string, resource_cart_file: string, code_file: string) => bool {
+	return tic80node_merge_tic(ToDoraString(output_file), ToDoraString(resource_cart_file), ToDoraString(code_file)) != 0
+}
+
+/// Merges PNG cover, resource cart, and optional code file into a .png cart file.
+///
+/// # Arguments
+///
+/// * `outputFile` - The path to save the merged .png cart file.
+/// * `coverPngFile` - The path to the cover PNG image file.
+/// * `resourceCartFile` - The path to the resource cart file.
+/// * `codeFile` - Optional path to the code file. If empty, uses code from resource cart.
+///
+/// # Returns
+///
+/// * `bool` - True if successful, false otherwise.
+func TIC80NodeMergePng(output_file: string, cover_png_file: string, resource_cart_file: string, code_file: string) => bool {
+	return tic80node_merge_png(ToDoraString(output_file), ToDoraString(cover_png_file), ToDoraString(resource_cart_file), ToDoraString(code_file)) != 0
 }

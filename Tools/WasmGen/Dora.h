@@ -4016,6 +4016,52 @@ object class TIC80Node : public ISprite
 	///
 	/// * `TIC80Node` - The created TIC80Node instance. Returns `nil` if creation fails.
 	static optional TIC80Node* create(string cartFile);
+	/// Creates a new TIC80Node object with code from a file and resources from a cart file.
+	///
+	/// # Arguments
+	///
+	/// * `resourceCartFile` - The path to the TIC-80 cart file containing art and audio resources (`.tic` or `.png` format).
+	/// * `codeFile` - The path to the code file (e.g., `.lua`, `.yue`).
+	///
+	/// # Returns
+	///
+	/// * `TIC80Node` - The created TIC80Node instance. Returns `nil` if creation fails.
+	static optional TIC80Node* create @ createCode(string resourceCartFile, string codeFile);
+	/// Extracts code text from a TIC-80 cart file.
+	///
+	/// # Arguments
+	///
+	/// * `cartFile` - The path to the TIC-80 cart file (`.tic` or `.png` format).
+	///
+	/// # Returns
+	///
+	/// * `string` - The extracted code text, or empty string if failed.
+	static string codeFromCart(string cartFile);
+	/// Merges resource cart and code file into a .tic cart file.
+	///
+	/// # Arguments
+	///
+	/// * `outputFile` - The path to save the merged .tic cart file.
+	/// * `resourceCartFile` - The path to the resource cart file.
+	/// * `codeFile` - The path to the code file.
+	///
+	/// # Returns
+	///
+	/// * `bool` - True if successful, false otherwise.
+	static bool mergeTic(string outputFile, string resourceCartFile, string codeFile);
+	/// Merges PNG cover, resource cart, and optional code file into a .png cart file.
+	///
+	/// # Arguments
+	///
+	/// * `outputFile` - The path to save the merged .png cart file.
+	/// * `coverPngFile` - The path to the cover PNG image file.
+	/// * `resourceCartFile` - The path to the resource cart file.
+	/// * `codeFile` - Optional path to the code file. If empty, uses code from resource cart.
+	///
+	/// # Returns
+	///
+	/// * `bool` - True if successful, false otherwise.
+	static bool mergePng(string outputFile, string coverPngFile, string resourceCartFile, string codeFile);
 };
 
 /// An interface for handling keyboard inputs.

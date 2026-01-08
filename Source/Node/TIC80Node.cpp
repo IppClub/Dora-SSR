@@ -23,7 +23,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "soloud.h"
 
 extern "C" {
-#include "3rdParty/tic80/tic.h"
+#include "tic80/tic80.h"
+#include "tic80/cart.h"
+#include "tic80/tic.h"
+#include "tic80/ext/png.h"
 }
 
 NS_DORA_BEGIN
@@ -155,6 +158,29 @@ SoLoud::AudioSourceInstance* TIC80AudioSource::createInstance() {
 	return new TIC80AudioSourceInstance(_tic80, _audioMutex);
 }
 
+static void dora_tic_trace(const char* text, u8) {
+	Info("[TIC-80] {}", text);
+}
+
+static void dora_tic_error(const char* info) {
+	Error("[TIC-80] {}", info);
+}
+
+class TIC80 : public TIC80Impl {
+public:
+	virtual ~TIC80() {
+		tic80_delete(tic);
+	}
+	TIC80() {
+		tic->callback.trace = dora_tic_trace;
+		tic->callback.error = dora_tic_error;
+	}
+	tic80* tic = tic80_create(DORA_SAMPLERATE, TIC80_PIXEL_COLOR_RGBA8888);
+	tic80_input input {0};
+	Own<TIC80AudioSource> audioSource;
+	std::mutex audioMutex; // Protect tic80->samples.buffer access
+};
+
 static u64 counter(void*) {
 	return s_cast<u64>(SharedApplication.getCurrentTime() * 1000000.0);
 }
@@ -163,9 +189,9 @@ static u64 freq(void*) {
 	return 1000000; // microseconds per second
 }
 
-TIC80Node::TIC80Node(String cartFile)
+TIC80Node::TIC80Node(String cartFile, String codeFile)
 	: _cartFile(cartFile.toString())
-	, _tic80(nullptr)
+	, _codeFile(codeFile.toString())
 	, _audioHandle(0)
 	, _keyMap{
 		  {"A", tic_key_a},
@@ -248,43 +274,112 @@ TIC80Node::TIC80Node(String cartFile)
 		  {"`", tic_key_grave},
 		  {",", tic_key_comma},
 		  {".", tic_key_period},
-		  {"/", tic_key_slash}}
-	, _counterStart(0) {
-	memset(&_currentInput, 0, sizeof(_currentInput));
+		  {"/", tic_key_slash}} {
 }
 
-TIC80Node::~TIC80Node() { }
+static bool loadCodeFromFile(String codeFile, tic_cartridge* cart) {
+	if (!cart) return false;
 
-static void dora_tic_trace(const char* text, u8) {
-	Info("[TIC-80] {}", text);
+	auto codeData = SharedContent.load(codeFile);
+	if (!codeData.first || codeData.second == 0) {
+		Error("TIC80Node: failed to load code file: {}", codeFile.toString());
+		return false;
+	}
+
+	s32 codeSize = s_cast<s32>(codeData.second);
+	if (codeSize > TIC_CODE_SIZE) {
+		Error("TIC80Node: failed to load code file: {}\ncode file size ({}) exceeds TIC_CODE_SIZE ({})", codeFile.toString(), codeSize, TIC_CODE_SIZE);
+		return false;
+	}
+
+	memcpy(cart->code.data, codeData.first.get(), codeSize);
+	if (codeSize < TIC_CODE_SIZE) {
+		cart->code.data[codeSize] = '\0';
+	}
+
+	return true;
 }
 
-void dora_tic_error(const char* info) {
-	Error("[TIC-80] {}", info);
+static bool mergeCartResources(tic_cartridge* target, const tic_cartridge* source) {
+	if (!target || !source) return false;
+
+	for (s32 i = 0; i < TIC_BANKS; i++) {
+		memcpy(&target->banks[i].tiles, &source->banks[i].tiles, sizeof(tic_tiles));
+		memcpy(&target->banks[i].sprites, &source->banks[i].sprites, sizeof(tic_sprites));
+		memcpy(&target->banks[i].map, &source->banks[i].map, sizeof(tic_map));
+		memcpy(&target->banks[i].sfx.samples, &source->banks[i].sfx.samples, sizeof(tic_samples));
+		memcpy(&target->banks[i].sfx.waveforms, &source->banks[i].sfx.waveforms, sizeof(tic_waveforms));
+		memcpy(&target->banks[i].music.tracks, &source->banks[i].music.tracks, sizeof(tic_tracks));
+		memcpy(&target->banks[i].music.patterns, &source->banks[i].music.patterns, sizeof(tic_patterns));
+		memcpy(&target->banks[i].palette, &source->banks[i].palette, sizeof(tic_palettes));
+		memcpy(&target->banks[i].flags, &source->banks[i].flags, sizeof(tic_flags));
+		memcpy(&target->banks[i].screen, &source->banks[i].screen, sizeof(tic_screen));
+	}
+
+	if (source->binary.size > 0) {
+		s32 binarySize = MIN(source->binary.size, TIC_BINARY_SIZE);
+		memcpy(target->binary.data, source->binary.data, binarySize);
+		target->binary.size = binarySize;
+	}
+
+	target->lang = source->lang;
+
+	return true;
 }
 
 bool TIC80Node::init() {
 	if (!Sprite::init()) return false;
 
-	_tic80 = tic80_create(DORA_SAMPLERATE, TIC80_PIXEL_COLOR_RGBA8888);
+	if (!_codeFile.empty() && !_cartFile.empty()) {
+		auto resourceCartData = SharedContent.load(_cartFile);
+		if (!resourceCartData.first || resourceCartData.second == 0) {
+			Error("TIC80Node: failed to load resource cart file: {}", _cartFile);
+			return false;
+		}
 
-	if (!_tic80) {
-		Error("TIC80Node: failed to create TIC80 instance");
+		tic_cartridge mergedCart;
+		memset(&mergedCart, 0, sizeof(tic_cartridge));
+
+		tic_cartridge resourceCart;
+		tic_cart_load(&resourceCart, resourceCartData.first.get(), s_cast<s32>(resourceCartData.second));
+
+		if (!mergeCartResources(&mergedCart, &resourceCart)) {
+			Error("TIC80Node: failed to merge cart resources");
+			return false;
+		}
+
+		if (!loadCodeFromFile(_codeFile, &mergedCart)) {
+			Error("TIC80Node: failed to load code file: {}", _codeFile);
+			return false;
+		}
+
+		const s32 estimatedSize = sizeof(tic_cartridge) * 2;
+		std::vector<u8> cartBuffer(estimatedSize);
+		s32 actualSize = tic_cart_save(&mergedCart, cartBuffer.data());
+		if (actualSize <= 0 || actualSize > estimatedSize) {
+			Error("TIC80Node: failed to save merged cart");
+			return false;
+		}
+
+		_tic80 = New<TIC80>();
+		auto ticData = s_cast<TIC80*>(_tic80.get());
+		auto tic = ticData->tic;
+		tic80_load(tic, cartBuffer.data(), actualSize);
+	} else if (!_cartFile.empty()) {
+		auto cartData = SharedContent.load(_cartFile);
+		if (!cartData.first || cartData.second == 0) {
+			Error("TIC80Node: failed to load cart file: {}", _cartFile);
+			return false;
+		}
+
+		_tic80 = New<TIC80>();
+		auto ticData = s_cast<TIC80*>(_tic80.get());
+		auto tic = ticData->tic;
+		tic80_load(tic, cartData.first.get(), s_cast<s32>(cartData.second));
+	} else {
+		Error("TIC80Node: cart file not provided");
 		return false;
 	}
-
-	_tic80->callback.trace = dora_tic_trace;
-	_tic80->callback.error = dora_tic_error;
-
-	auto cartData = SharedContent.load(_cartFile);
-	if (!cartData.first || cartData.second == 0) {
-		Error("TIC80Node: failed to load cart file: {}", _cartFile);
-		tic80_delete(_tic80);
-		_tic80 = nullptr;
-		return false;
-	}
-
-	tic80_load(_tic80, cartData.first.get(), s_cast<s32>(cartData.second));
 
 	bgfx::TextureHandle textureHandle = bgfx::createTexture2D(
 		TIC80_FULLWIDTH,
@@ -294,8 +389,6 @@ bool TIC80Node::init() {
 
 	if (!bgfx::isValid(textureHandle)) {
 		Error("TIC80Node: failed to create texture");
-		tic80_delete(_tic80);
-		_tic80 = nullptr;
 		return false;
 	}
 
@@ -316,23 +409,24 @@ bool TIC80Node::init() {
 	setSize({s_cast<float>(TIC80_WIDTH), s_cast<float>(TIC80_HEIGHT)});
 	setFilter(TextureFilter::Point);
 
-	_audioSource = New<TIC80AudioSource>(_tic80, &_audioMutex);
-	_audioHandle = SharedAudio.getSoLoud()->play(*_audioSource);
+	auto ticData = s_cast<TIC80*>(_tic80.get());
+	auto tic = ticData->tic;
+	ticData->audioSource = New<TIC80AudioSource>(tic, &ticData->audioMutex);
+	_audioHandle = SharedAudio.getSoLoud()->play(*ticData->audioSource);
 	if (_audioHandle != 0) {
 		SharedAudio.getSoLoud()->setProtectVoice(_audioHandle, true);
 	}
 
 	setupInputHandlers();
 
-	_counterStart = counter(nullptr);
-
 	_scheduler = Scheduler::create();
 	_scheduler->setFixedFPS(TIC80_FRAMERATE);
 	_scheduler->scheduleFixed([this](double) {
 		if (!_tic80) return true;
+		auto tic = s_cast<TIC80*>(_tic80.get());
 		{
-			std::lock_guard<std::mutex> lock(_audioMutex);
-			tic80_tick(_tic80, _currentInput, counter, freq);
+			std::lock_guard<std::mutex> lock(tic->audioMutex);
+			tic80_tick(tic->tic, tic->input, counter, freq);
 		}
 		return false;
 	});
@@ -352,12 +446,7 @@ void TIC80Node::cleanup() {
 		_scheduler->cleanup();
 		_scheduler = nullptr;
 	}
-	_audioSource = nullptr;
-
-	if (_tic80) {
-		tic80_delete(_tic80);
-		_tic80 = nullptr;
-	}
+	_tic80 = nullptr;
 
 	Sprite::cleanup();
 }
@@ -396,11 +485,13 @@ void TIC80Node::handleKeyboardEvent(Event* event) {
 	Slice keyName;
 	if (!event->get(keyName)) return;
 
+	auto& input = s_cast<TIC80*>(_tic80.get())->input;
+
 	tic_key key = mapKeyNameToTIC80Key(keyName);
 	if (key == tic_key_unknown) return;
 
 	bool isDown = event->getName() == "KeyDown"_slice;
-	auto& first = _currentInput.gamepads.first;
+	auto& first = input.gamepads.first;
 
 	switch (key) {
 		case tic_key_z: first.a = isDown; break;
@@ -416,21 +507,21 @@ void TIC80Node::handleKeyboardEvent(Event* event) {
 	if (isDown) {
 		// Add key to keyboard buffer
 		for (int i = 0; i < TIC80_KEY_BUFFER; i++) {
-			if (_currentInput.keyboard.keys[i] == 0) {
-				_currentInput.keyboard.keys[i] = key;
+			if (input.keyboard.keys[i] == 0) {
+				input.keyboard.keys[i] = key;
 				break;
 			}
 		}
 	} else {
 		// Remove key from keyboard buffer
 		for (int i = 0; i < TIC80_KEY_BUFFER; i++) {
-			if (_currentInput.keyboard.keys[i] == key) {
-				_currentInput.keyboard.keys[i] = 0;
+			if (input.keyboard.keys[i] == key) {
+				input.keyboard.keys[i] = 0;
 				// Shift remaining keys
 				for (int j = i; j < TIC80_KEY_BUFFER - 1; j++) {
-					_currentInput.keyboard.keys[j] = _currentInput.keyboard.keys[j + 1];
+					input.keyboard.keys[j] = input.keyboard.keys[j + 1];
 				}
-				_currentInput.keyboard.keys[TIC80_KEY_BUFFER - 1] = 0;
+				input.keyboard.keys[TIC80_KEY_BUFFER - 1] = 0;
 				break;
 			}
 		}
@@ -444,15 +535,16 @@ void TIC80Node::handleControllerEvent(Event* event) {
 
 	if (controllerId < 0 || controllerId > 3) return;
 
+	auto& input = s_cast<TIC80*>(_tic80.get())->input;
+
 	String eventName = event->getName();
 	bool isDown = (eventName == "ButtonDown"_slice);
 
 	tic80_gamepad* pads[4] = {
-		&_currentInput.gamepads.first,
-		&_currentInput.gamepads.second,
-		&_currentInput.gamepads.third,
-		&_currentInput.gamepads.fourth
-	};
+		&input.gamepads.first,
+		&input.gamepads.second,
+		&input.gamepads.third,
+		&input.gamepads.fourth};
 
 	tic80_gamepad& gamepad = *pads[controllerId];
 
@@ -473,17 +565,17 @@ void TIC80Node::handleTouchEvent(Event* event) {
 	Touch* touch = nullptr;
 	if (!event->get(touch) || !touch) return;
 
+	auto& input = s_cast<TIC80*>(_tic80.get())->input;
+
 	Vec2 location = touch->getLocation();
 	String eventName = event->getName();
 
 	// Convert to TIC80 screen coordinates (0-239, 0-135)
-	tic80_mouse& mouse = _currentInput.mouse;
+	tic80_mouse& mouse = input.mouse;
 	mouse.x = s_cast<u8>(Math::clamp(
 		location.x * TIC80_WIDTH / getWidth(), 0.0f,
 		s_cast<float>(TIC80_WIDTH - 1)));
-	mouse.y = TIC80_HEIGHT - s_cast<u8>(Math::clamp(
-		location.y * TIC80_HEIGHT / getHeight(), 0.0f,
-		s_cast<float>(TIC80_HEIGHT - 1)));
+	mouse.y = TIC80_HEIGHT - s_cast<u8>(Math::clamp(location.y * TIC80_HEIGHT / getHeight(), 0.0f, s_cast<float>(TIC80_HEIGHT - 1)));
 
 	switch (Switch::hash(eventName)) {
 		case "TapBegan"_hash:
@@ -496,7 +588,7 @@ void TIC80Node::handleTouchEvent(Event* event) {
 	}
 }
 
-tic_key TIC80Node::mapKeyNameToTIC80Key(String keyName) {
+uint8_t TIC80Node::mapKeyNameToTIC80Key(String keyName) {
 	auto it = _keyMap.find(keyName);
 	if (it != _keyMap.end()) {
 		return s_cast<tic_key>(it->second);
@@ -505,14 +597,15 @@ tic_key TIC80Node::mapKeyNameToTIC80Key(String keyName) {
 }
 
 void TIC80Node::updateTexture() {
-	if (!_tic80 || !_tic80->screen) return;
+	auto tic = s_cast<TIC80*>(_tic80.get())->tic;
+	if (!tic || !tic->screen) return;
 
 	auto texture = getTexture();
 	if (!texture || texture->getWidth() < TIC80_FULLWIDTH || texture->getHeight() < TIC80_FULLHEIGHT) {
 		return;
 	}
 
-	const bgfx::Memory* mem = bgfx::copy(_tic80->screen, s_cast<uint32_t>(TIC80_FULLWIDTH * TIC80_FULLHEIGHT * sizeof(u32)));
+	const bgfx::Memory* mem = bgfx::copy(tic->screen, s_cast<uint32_t>(TIC80_FULLWIDTH * TIC80_FULLHEIGHT * sizeof(u32)));
 	bgfx::updateTexture2D(texture->getHandle(), 0, 0, 0, 0,
 		TIC80_FULLWIDTH,
 		TIC80_FULLHEIGHT,
@@ -524,6 +617,126 @@ bool TIC80Node::update(double deltaTime) {
 	_scheduler->update(deltaTime);
 	updateTexture();
 	return Sprite::update(deltaTime);
+}
+
+std::string TIC80Node::codeFromCart(String cartFile) {
+	auto cartData = SharedContent.load(cartFile);
+	if (!cartData.first || cartData.second == 0) {
+		Error("TIC80Node::codeFromCart: failed to load cart file: {}", cartFile.toString());
+		return Slice::Empty;
+	}
+
+	tic_cartridge cart;
+	tic_cart_load(&cart, cartData.first.get(), s_cast<s32>(cartData.second));
+
+	const char* code = cart.code.data;
+	for (size_t i = 0; i < TIC_CODE_SIZE; i++) {
+		if (code[i] == 0) {
+			return {code, i};
+		}
+	}
+	return {code, TIC_CODE_SIZE};
+}
+
+bool TIC80Node::mergeTic(String outputFile, String resourceCartFile, String codeFile) {
+	auto resourceCartData = SharedContent.load(resourceCartFile);
+	if (!resourceCartData.first || resourceCartData.second == 0) {
+		Error("TIC80Node::mergeTic: failed to load resource cart file: {}", resourceCartFile.toString());
+		return false;
+	}
+
+	tic_cartridge mergedCart;
+	memset(&mergedCart, 0, sizeof(tic_cartridge));
+
+	tic_cartridge resourceCart;
+	tic_cart_load(&resourceCart, resourceCartData.first.get(), s_cast<s32>(resourceCartData.second));
+
+	if (!mergeCartResources(&mergedCart, &resourceCart)) {
+		Error("TIC80Node::mergeTic: failed to merge cart resources");
+		return false;
+	}
+
+	if (!loadCodeFromFile(codeFile, &mergedCart)) {
+		Error("TIC80Node::mergeTic: failed to load code file: {}", codeFile.toString());
+		return false;
+	}
+
+	const s32 estimatedSize = sizeof(tic_cartridge) * 2;
+	std::vector<u8> cartBuffer(estimatedSize);
+	s32 actualSize = tic_cart_save(&mergedCart, cartBuffer.data());
+	if (actualSize <= 0 || actualSize > estimatedSize) {
+		Error("TIC80Node::mergeTic: failed to save merged cart");
+		return false;
+	}
+
+	if (!SharedContent.save(outputFile, cartBuffer.data(), actualSize)) {
+		Error("TIC80Node::mergeTic: failed to save output file: {}", outputFile.toString());
+		return false;
+	}
+
+	return true;
+}
+
+bool TIC80Node::mergePng(String outputFile, String coverPngFile, String resourceCartFile, String codeFile) {
+	auto coverPngData = SharedContent.load(coverPngFile);
+	if (!coverPngData.first || coverPngData.second == 0) {
+		Error("TIC80Node::mergePng: failed to load cover PNG file: {}", coverPngFile.toString());
+		return false;
+	}
+
+	png_buffer coverPng = {coverPngData.first.get(), s_cast<s32>(coverPngData.second)};
+
+	auto resourceCartData = SharedContent.load(resourceCartFile);
+	if (!resourceCartData.first || resourceCartData.second == 0) {
+		Error("TIC80Node::mergePng: failed to load resource cart file: {}", resourceCartFile.toString());
+		return false;
+	}
+
+	tic_cartridge mergedCart;
+	memset(&mergedCart, 0, sizeof(tic_cartridge));
+
+	tic_cartridge resourceCart;
+	tic_cart_load(&resourceCart, resourceCartData.first.get(), s_cast<s32>(resourceCartData.second));
+
+	if (!mergeCartResources(&mergedCart, &resourceCart)) {
+		Error("TIC80Node::mergePng: failed to merge cart resources");
+		return false;
+	}
+
+	if (!codeFile.empty()) {
+		if (!loadCodeFromFile(codeFile, &mergedCart)) {
+			Error("TIC80Node::mergePng: failed to load code file: {}", codeFile.toString());
+			return false;
+		}
+	}
+
+	const s32 estimatedSize = sizeof(tic_cartridge) * 2;
+	std::vector<u8> cartBuffer(estimatedSize);
+	s32 actualSize = tic_cart_save(&mergedCart, cartBuffer.data());
+	if (actualSize <= 0 || actualSize > estimatedSize) {
+		Error("TIC80Node::mergePng: failed to save merged cart");
+		return false;
+	}
+
+	cartBuffer.resize(actualSize);
+
+	png_buffer cartPng = {cartBuffer.data(), actualSize};
+	png_buffer encodedPng = png_encode(coverPng, cartPng);
+
+	if (!encodedPng.data || encodedPng.size == 0) {
+		Error("TIC80Node::mergePng: failed to encode PNG");
+		return false;
+	}
+
+	DEFER(free(encodedPng.data));
+	bool success = SharedContent.save(outputFile, encodedPng.data, encodedPng.size);
+
+	if (!success) {
+		Error("TIC80Node::mergePng: failed to save output file: {}", outputFile.toString());
+		return false;
+	}
+
+	return true;
 }
 
 NS_DORA_END
