@@ -141,71 +141,6 @@ static void evalLua(tic_mem* tic, const char* code)
     }
 }
 
-static const u8 DemoRom[] =
-{
-    #include "tic80/assets/luademo.tic.dat"
-};
-
-static const u8 MarkRom[] =
-{
-    #include "tic80/assets/luamark.tic.dat"
-};
-
-static const u8 DemoFire[] =
-{
-    #include "tic80/assets/fire.tic.dat"
-};
-
-static const u8 DemoP3d[] =
-{
-    #include "tic80/assets/p3d.tic.dat"
-};
-
-static const u8 DemoSfx[] =
-{
-    #include "tic80/assets/sfx.tic.dat"
-};
-
-static const u8 DemoPalette[] =
-{
-    #include "tic80/assets/palette.tic.dat"
-};
-
-static const u8 DemoFont[] =
-{
-    #include "tic80/assets/font.tic.dat"
-};
-
-static const u8 DemoMusic[] =
-{
-    #include "tic80/assets/music.tic.dat"
-};
-
-static const u8 DemoQuest[] =
-{
-    #include "tic80/assets/quest.tic.dat"
-};
-
-static const u8 DemoTetris[] =
-{
-    #include "tic80/assets/tetris.tic.dat"
-};
-
-static const u8 DemoBenchmark[] =
-{
-    #include "tic80/assets/benchmark.tic.dat"
-};
-
-static const u8 DemoBpp[] =
-{
-    #include "tic80/assets/bpp.tic.dat"
-};
-
-static const u8 DemoCar[] =
-{
-    #include "tic80/assets/car.tic.dat"
-};
-
 TIC_EXPORT const tic_script EXPORT_SCRIPT(Lua) =
 {
     .id                 = 10,
@@ -242,22 +177,11 @@ TIC_EXPORT const tic_script EXPORT_SCRIPT(Lua) =
     .keywords           = LuaKeywords,
     .keywordsCount      = COUNT_OF(LuaKeywords),
 
-    .demo = {DemoRom, sizeof DemoRom},
-    .mark = {MarkRom, sizeof MarkRom, "luamark.tic"},
+    .demo = {0},
+    .mark = {0},
 
     .demos = (struct tic_demo[])
     {
-        {DemoFire,      sizeof DemoFire,        "fire.tic"},
-        {DemoP3d,       sizeof DemoP3d,         "p3d.tic"},
-        {DemoSfx,       sizeof DemoSfx,         "sfx.tic"},
-        {DemoPalette,   sizeof DemoPalette,     "palette.tic"},
-        {DemoFont,      sizeof DemoFont,        "font.tic"},
-        {DemoMusic,     sizeof DemoMusic,       "music.tic"},
-        {DemoQuest,     sizeof DemoQuest,       "quest.tic"},
-        {DemoTetris,    sizeof DemoTetris,      "tetris.tic"},
-        {DemoBenchmark, sizeof DemoBenchmark,   "benchmark.tic"},
-        {DemoBpp,       sizeof DemoBpp,         "bpp.tic"},
-        {DemoCar,       sizeof DemoCar,         "car.tic"},
         {0},
     },
 };

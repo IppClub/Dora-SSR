@@ -176,16 +176,6 @@ static const tic_outline_item* getYueOutline(const char* code, s32* size)
     return items;
 }
 
-static const u8 DemoRom[] =
-    {
-#include "tic80/assets/yuedemo.tic.dat"
-};
-
-static const u8 MarkRom[] =
-    {
-#include "tic80/assets/yuemark.tic.dat"
-};
-
 extern "C" TIC_EXPORT const tic_script EXPORT_SCRIPT(Yue) = {
     21,     // id
     "yue",  // name
@@ -221,12 +211,8 @@ extern "C" TIC_EXPORT const tic_script EXPORT_SCRIPT(Yue) = {
     0,                     // api_keywordsCount
     nullptr,               // api_keywords
     {                      // demo
-     DemoRom,
-     sizeof DemoRom,
-     nullptr},
+     0},
     {// mark
-     MarkRom,
-     sizeof MarkRom,
-     "yuemark.tic"},
+    0},
     nullptr // demos
 };
