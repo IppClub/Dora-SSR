@@ -912,7 +912,7 @@ bool ImGuiDora::init() {
 	ImPlot::CreateContext();
 	ImGuiStyle& style = ImGui::GetStyle();
 	float rounding = 6.0f;
-	style.Alpha = 0.8f;
+	style.Alpha = 0.9f;
 	style.WindowPadding = ImVec2(10, 10);
 	style.WindowMinSize = ImVec2(100, 32);
 	style.WindowRounding = rounding;
