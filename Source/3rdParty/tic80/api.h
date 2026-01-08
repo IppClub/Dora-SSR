@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include "retro_endianness.h"
-#include "tic.h"
-#include "time.h"
+#include "tic80/retro_endianness.h"
+#include "tic80/tic.h"
+#include <time.h>
 
 typedef struct { u8 index; tic_flip flip; tic_rotate rotate; } RemapResult;
 typedef void(*RemapFunc)(void*, s32 x, s32 y, RemapResult* result);

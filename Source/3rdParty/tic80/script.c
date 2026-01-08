@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "script.h"
-#include "tools.h"
+#include "tic80/script.h"
+#include "tic80/tools.h"
 
 #include <stdio.h>
 

@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "api.h"
+#include "tic80/api.h"
 
 struct tic_script
 {

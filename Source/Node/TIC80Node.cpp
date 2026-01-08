@@ -21,12 +21,19 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Input/TouchDispather.h"
 
 #include "soloud.h"
+#include "zlib.h"
 
 extern "C" {
 #include "tic80/tic80.h"
 #include "tic80/cart.h"
 #include "tic80/tic.h"
 #include "tic80/ext/png.h"
+#include "tic80/tools.h"
+#include "tic80/script.h"
+#include "tic80/core/core.h"
+
+extern tic_script EXPORT_SCRIPT(Lua);
+extern tic_script EXPORT_SCRIPT(Yue);
 }
 
 NS_DORA_BEGIN
@@ -337,25 +344,29 @@ bool TIC80Node::init() {
 			return false;
 		}
 
-		tic_cartridge mergedCart;
-		memset(&mergedCart, 0, sizeof(tic_cartridge));
+		auto resourceCart = New<tic_cartridge>();
+		tic_cart_load(resourceCart.get(), resourceCartData.first.get(), s_cast<s32>(resourceCartData.second));
 
-		tic_cartridge resourceCart;
-		tic_cart_load(&resourceCart, resourceCartData.first.get(), s_cast<s32>(resourceCartData.second));
-
-		if (!mergeCartResources(&mergedCart, &resourceCart)) {
+		auto mergedCart = New<tic_cartridge>();
+		memset(mergedCart.get(), 0, sizeof(tic_cartridge));
+		if (!mergeCartResources(mergedCart.get(), resourceCart.get())) {
 			Error("TIC80Node: failed to merge cart resources");
 			return false;
 		}
 
-		if (!loadCodeFromFile(_codeFile, &mergedCart)) {
+		if (!mergeCartResources(mergedCart.get(), resourceCart.get())) {
+			Error("TIC80Node: failed to merge cart resources");
+			return false;
+		}
+
+		if (!loadCodeFromFile(_codeFile, mergedCart.get())) {
 			Error("TIC80Node: failed to load code file: {}", _codeFile);
 			return false;
 		}
 
 		const s32 estimatedSize = sizeof(tic_cartridge) * 2;
 		std::vector<u8> cartBuffer(estimatedSize);
-		s32 actualSize = tic_cart_save(&mergedCart, cartBuffer.data());
+		s32 actualSize = tic_cart_save(mergedCart.get(), cartBuffer.data());
 		if (actualSize <= 0 || actualSize > estimatedSize) {
 			Error("TIC80Node: failed to save merged cart");
 			return false;
@@ -426,7 +437,15 @@ bool TIC80Node::init() {
 		auto tic = s_cast<TIC80*>(_tic80.get());
 		{
 			std::lock_guard<std::mutex> lock(tic->audioMutex);
-			tic80_tick(tic->tic, tic->input, counter, freq);
+			auto core = r_cast<tic_core*>(tic->tic);
+			if (!core->state.initialized) {
+				tic80_tick(tic->tic, tic->input, counter, freq);
+				if (!core->state.initialized) {
+					return true;
+				}
+			} else {
+				tic80_tick(tic->tic, tic->input, counter, freq);
+			}
 		}
 		return false;
 	});
@@ -626,10 +645,10 @@ std::string TIC80Node::codeFromCart(String cartFile) {
 		return Slice::Empty;
 	}
 
-	tic_cartridge cart;
-	tic_cart_load(&cart, cartData.first.get(), s_cast<s32>(cartData.second));
+	auto cart = New<tic_cartridge>();
+	tic_cart_load(cart.get(), cartData.first.get(), s_cast<s32>(cartData.second));
 
-	const char* code = cart.code.data;
+	const char* code = cart->code.data;
 	for (size_t i = 0; i < TIC_CODE_SIZE; i++) {
 		if (code[i] == 0) {
 			return {code, i};
@@ -645,25 +664,33 @@ bool TIC80Node::mergeTic(String outputFile, String resourceCartFile, String code
 		return false;
 	}
 
-	tic_cartridge mergedCart;
-	memset(&mergedCart, 0, sizeof(tic_cartridge));
+	auto mergedCart = New<tic_cartridge>();
+	memset(mergedCart.get(), 0, sizeof(tic_cartridge));
 
-	tic_cartridge resourceCart;
-	tic_cart_load(&resourceCart, resourceCartData.first.get(), s_cast<s32>(resourceCartData.second));
+	auto resourceCart = New<tic_cartridge>();
+	tic_cart_load(resourceCart.get(), resourceCartData.first.get(), s_cast<s32>(resourceCartData.second));
 
-	if (!mergeCartResources(&mergedCart, &resourceCart)) {
+	if (!mergeCartResources(mergedCart.get(), resourceCart.get())) {
 		Error("TIC80Node::mergeTic: failed to merge cart resources");
 		return false;
 	}
 
-	if (!loadCodeFromFile(codeFile, &mergedCart)) {
+	switch (Switch::hash(Path::getExt(codeFile))) {
+		case "lua"_hash: mergedCart->lang = LuaScriptConfig.id; break;
+		case "yue"_hash: mergedCart->lang = YueScriptConfig.id; break;
+		default:
+			Error("TIC80Node::mergeTic: script not supported: {}", codeFile.toString());
+			return false;
+	}
+
+	if (!loadCodeFromFile(codeFile, mergedCart.get())) {
 		Error("TIC80Node::mergeTic: failed to load code file: {}", codeFile.toString());
 		return false;
 	}
 
 	const s32 estimatedSize = sizeof(tic_cartridge) * 2;
 	std::vector<u8> cartBuffer(estimatedSize);
-	s32 actualSize = tic_cart_save(&mergedCart, cartBuffer.data());
+	s32 actualSize = tic_cart_save(mergedCart.get(), cartBuffer.data());
 	if (actualSize <= 0 || actualSize > estimatedSize) {
 		Error("TIC80Node::mergeTic: failed to save merged cart");
 		return false;
@@ -692,19 +719,18 @@ bool TIC80Node::mergePng(String outputFile, String coverPngFile, String resource
 		return false;
 	}
 
-	tic_cartridge mergedCart;
-	memset(&mergedCart, 0, sizeof(tic_cartridge));
-
-	tic_cartridge resourceCart;
-	tic_cart_load(&resourceCart, resourceCartData.first.get(), s_cast<s32>(resourceCartData.second));
-
-	if (!mergeCartResources(&mergedCart, &resourceCart)) {
-		Error("TIC80Node::mergePng: failed to merge cart resources");
-		return false;
-	}
+	auto resourceCart = New<tic_cartridge>();
+	tic_cart_load(resourceCart.get(), resourceCartData.first.get(), s_cast<s32>(resourceCartData.second));
 
 	if (!codeFile.empty()) {
-		if (!loadCodeFromFile(codeFile, &mergedCart)) {
+		switch (Switch::hash(Path::getExt(codeFile))) {
+			case "lua"_hash: resourceCart->lang = LuaScriptConfig.id; break;
+			case "yue"_hash: resourceCart->lang = YueScriptConfig.id; break;
+			default:
+				Error("TIC80Node::mergeTic: script not supported: {}", codeFile.toString());
+				return false;
+		}
+		if (!loadCodeFromFile(codeFile, resourceCart.get())) {
 			Error("TIC80Node::mergePng: failed to load code file: {}", codeFile.toString());
 			return false;
 		}
@@ -712,7 +738,7 @@ bool TIC80Node::mergePng(String outputFile, String coverPngFile, String resource
 
 	const s32 estimatedSize = sizeof(tic_cartridge) * 2;
 	std::vector<u8> cartBuffer(estimatedSize);
-	s32 actualSize = tic_cart_save(&mergedCart, cartBuffer.data());
+	s32 actualSize = tic_cart_save(resourceCart.get(), cartBuffer.data());
 	if (actualSize <= 0 || actualSize > estimatedSize) {
 		Error("TIC80Node::mergePng: failed to save merged cart");
 		return false;
@@ -720,7 +746,18 @@ bool TIC80Node::mergePng(String outputFile, String coverPngFile, String resource
 
 	cartBuffer.resize(actualSize);
 
-	png_buffer cartPng = {cartBuffer.data(), actualSize};
+	// Compress cart data before encoding to PNG
+	// Use compressBound to get the maximum compressed size
+	const uLong compressedSizeBound = compressBound(actualSize);
+	std::vector<u8> compressedCart(compressedSizeBound);
+	u32 compressedSize = tic_tool_zip(compressedCart.data(), s_cast<s32>(compressedSizeBound), cartBuffer.data(), actualSize);
+	if (compressedSize == 0) {
+		Error("TIC80Node::mergePng: failed to compress cart data");
+		return false;
+	}
+	compressedCart.resize(compressedSize);
+
+	png_buffer cartPng = {compressedCart.data(), s_cast<s32>(compressedSize)};
 	png_buffer encodedPng = png_encode(coverPng, cartPng);
 
 	if (!encodedPng.data || encodedPng.size == 0) {

@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include "retro_endianness.h"
-#include "tic80_config.h"
-#include "tic80_types.h"
+#include "tic80/retro_endianness.h"
+#include "tic80/tic80_config.h"
+#include "tic80/tic80_types.h"
 
 #ifdef __cplusplus
 extern "C" {

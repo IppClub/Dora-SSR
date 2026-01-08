@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include "retro_endianness.h"
-#include "tic80.h"
-#include "defines.h"
+#include "tic80/retro_endianness.h"
+#include "tic80/tic80.h"
+#include "tic80/defines.h"
 
 #define TIC_VRAM_SIZE (16*1024) //16K
 #define TIC_RAM_SIZE (TIC_VRAM_SIZE+80*1024) //16K+80K
