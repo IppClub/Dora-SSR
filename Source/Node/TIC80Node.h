@@ -10,26 +10,34 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Node/Sprite.h"
 
-extern "C" {
-#include "3rdParty/tic80/tic80.h"
-}
-
 NS_DORA_BEGIN
 
-class TIC80AudioSource;
+class TIC80Impl {
+public:
+	virtual ~TIC80Impl() { }
+};
+
 class Scheduler;
 
 class TIC80Node : public Sprite {
 public:
-	virtual ~TIC80Node();
 	virtual bool init() override;
 	virtual void cleanup() override;
 	virtual bool update(double deltaTime) override;
 
+	/// Extract code text from a TIC-80 cart file
+	static std::string codeFromCart(String cartFile);
+
+	/// Merge resource cart and code file into a .tic cart file
+	static bool mergeTic(String outputFile, String resourceCartFile, String codeFile);
+
+	/// Merge PNG cover, resource cart, and optional code file into a .png cart file
+	static bool mergePng(String outputFile, String coverPngFile, String resourceCartFile, String codeFile = Slice::Empty);
+
 	CREATE_FUNC_NULLABLE(TIC80Node);
 
 protected:
-	TIC80Node(String cartFile);
+	TIC80Node(String cartFile, String codeFile = Slice::Empty);
 
 private:
 	void updateTexture();
@@ -37,20 +45,17 @@ private:
 	void handleKeyboardEvent(Event* event);
 	void handleControllerEvent(Event* event);
 	void handleTouchEvent(Event* event);
-	tic_key mapKeyNameToTIC80Key(String keyName);
+	uint8_t mapKeyNameToTIC80Key(String keyName);
 
-	tic80* _tic80;
 	std::string _cartFile;
-	tic80_input _currentInput;
+	std::string _codeFile;
+	Own<TIC80Impl> _tic80;
 	uint32_t _audioHandle;
-	Own<TIC80AudioSource> _audioSource;
 	Ref<Scheduler> _scheduler;
 	StringMap<int> _keyMap;
-	u64 _counterStart;
 	std::mutex _audioMutex; // Protect _tic80->samples.buffer access
 
 	DORA_TYPE_OVERRIDE(TIC80Node);
 };
 
 NS_DORA_END
-

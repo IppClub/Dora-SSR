@@ -7417,6 +7417,40 @@ interface TIC80NodeClass {
 	 * @returns The created TIC80Node object. If the cart file is not loaded, it will return null.
 	 */
 	(this: void, cartFile: string): TIC80Node | null;
+
+	/**
+	 * Creates a new TIC80Node object with code from a file and resources from a cart file.
+	 * @param resourceCartFile The path to the TIC-80 cart file containing art and audio resources (`.tic` or `.png` format).
+	 * @param codeFile The path to the code file (e.g., `.lua`, `.yue`).
+	 * @returns The created TIC80Node object. If creation fails, it will return null.
+	 */
+	(this: void, resourceCartFile: string, codeFile: string): TIC80Node | null;
+
+	/**
+	 * Extracts code text from a TIC-80 cart file.
+	 * @param cartFile The path to the TIC-80 cart file (`.tic` or `.png` format).
+	 * @returns The extracted code text, or empty string if failed.
+	 */
+	codeFromCart(cartFile: string): string;
+
+	/**
+	 * Merges resource cart and code file into a .tic cart file.
+	 * @param outputFile The path to save the merged .tic cart file.
+	 * @param resourceCartFile The path to the resource cart file.
+	 * @param codeFile The path to the code file.
+	 * @returns True if successful, false otherwise.
+	 */
+	mergeTic(outputFile: string, resourceCartFile: string, codeFile: string): boolean;
+
+	/**
+	 * Merges PNG cover, resource cart, and optional code file into a .png cart file.
+	 * @param outputFile The path to save the merged .png cart file.
+	 * @param coverPngFile The path to the cover PNG image file.
+	 * @param resourceCartFile The path to the resource cart file.
+	 * @param codeFile [optional] Path to the code file. If empty, uses code from resource cart.
+	 * @returns True if successful, false otherwise.
+	 */
+	mergePng(outputFile: string, coverPngFile: string, resourceCartFile: string, codeFile?: string): boolean;
 }
 
 const tic80NodeClass: TIC80NodeClass;

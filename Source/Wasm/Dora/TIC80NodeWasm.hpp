@@ -14,9 +14,25 @@ DORA_EXPORT int32_t tic80node_type() {
 DORA_EXPORT int64_t tic80node_new(int64_t cart_file) {
 	return Object_From(TIC80Node::create(*Str_From(cart_file)));
 }
+DORA_EXPORT int64_t tic80node_with_code(int64_t resource_cart_file, int64_t code_file) {
+	return Object_From(TIC80Node::create(*Str_From(resource_cart_file), *Str_From(code_file)));
+}
+DORA_EXPORT int64_t tic80node_code_from_cart(int64_t cart_file) {
+	return Str_Retain(TIC80Node::codeFromCart(*Str_From(cart_file)));
+}
+DORA_EXPORT int32_t tic80node_merge_tic(int64_t output_file, int64_t resource_cart_file, int64_t code_file) {
+	return TIC80Node::mergeTic(*Str_From(output_file), *Str_From(resource_cart_file), *Str_From(code_file)) ? 1 : 0;
+}
+DORA_EXPORT int32_t tic80node_merge_png(int64_t output_file, int64_t cover_png_file, int64_t resource_cart_file, int64_t code_file) {
+	return TIC80Node::mergePng(*Str_From(output_file), *Str_From(cover_png_file), *Str_From(resource_cart_file), *Str_From(code_file)) ? 1 : 0;
+}
 } // extern "C"
 
 static void linkTIC80Node(wasm3::module3& mod) {
 	mod.link_optional("*", "tic80node_type", tic80node_type);
 	mod.link_optional("*", "tic80node_new", tic80node_new);
+	mod.link_optional("*", "tic80node_with_code", tic80node_with_code);
+	mod.link_optional("*", "tic80node_code_from_cart", tic80node_code_from_cart);
+	mod.link_optional("*", "tic80node_merge_tic", tic80node_merge_tic);
+	mod.link_optional("*", "tic80node_merge_png", tic80node_merge_png);
 }
