@@ -1,7 +1,6 @@
 import path from "path";
 import * as ts from "typescript";
-import { CompilerOptions, isBundleEnabled, LuaLibImportKind, LuaTarget } from "../CompilerOptions";
-import { buildMinimalLualibBundle, findUsedLualibFeatures, getLuaLibBundle } from "../LuaLib";
+import { CompilerOptions, isBundleEnabled } from "../CompilerOptions";
 import { normalizeSlashes, trimExtension } from "../utils";
 import { getBundleResult } from "./bundle";
 import { resolveDependencies } from "./resolve";
@@ -100,15 +99,6 @@ export class Transpiler {
         if (lualibRequired) {
             // Remove lualib placeholders from resolution result
             resolutionResult.resolvedFiles = resolutionResult.resolvedFiles.filter(f => f.fileName !== "lualib_bundle");
-            /*
-            if (options.tstlVerbose) {
-                console.log("Including lualib bundle");
-            }
-            // Add lualib bundle to source dir 'virtually', will be moved to correct output dir in emitPlan
-            const fileName = normalizeSlashes(path.resolve(getSourceDir(program), "lualib_bundle.lua"));
-            const code = this.getLuaLibBundleContent(options, resolutionResult.resolvedFiles);
-            resolutionResult.resolvedFiles.unshift({ fileName, code });
-            */
         }
 
         let emitPlan: EmitFile[];
@@ -124,20 +114,6 @@ export class Transpiler {
         }
 
         return { emitPlan };
-    }
-
-    private getLuaLibBundleContent(options: CompilerOptions, resolvedFiles: ProcessedFile[]) {
-        const luaTarget = options.luaTarget ?? LuaTarget.Universal;
-        if (options.luaLibImport === LuaLibImportKind.RequireMinimal) {
-            const usedFeatures = findUsedLualibFeatures(
-                luaTarget,
-                this.emitHost,
-                resolvedFiles.map(f => f.code)
-            );
-            return buildMinimalLualibBundle(usedFeatures, luaTarget, this.emitHost);
-        } else {
-            return getLuaLibBundle(luaTarget, this.emitHost);
-        }
     }
 }
 

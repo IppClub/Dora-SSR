@@ -22,37 +22,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Lua/Xml/XmlResolver.h"
 #include "yarnflow/yarn_compiler.h"
 
-static int getTSLuaBundle(lua_State* L) {
-	using namespace Dora;
-	if (SharedContent.exist("lualib_bundle.lua"sv)) {
-		auto libCode = SharedContent.load("lualib_bundle.lua"sv);
-		if (libCode.first && libCode.second > 0) {
-			if (luaL_loadbuffer(L, r_cast<const char*>(libCode.first.get()), libCode.second, "lualib_bundle") != 0) {
-				luaL_error(L, "error loading module \"%s\" from file \"%s\" :\n\t%s",
-					lua_tostring(L, 1), "lualib_bundle.lua", lua_tostring(L, -1));
-			}
-			lua_call(L, 0, 1);
-			return 1;
-		}
-	}
-	lua_pushnil(L);
-	return 1;
-}
-
 extern "C" {
 int luaopen_yue(lua_State* L);
 int luaopen_colibc_json(lua_State* L);
-
-void dora_tic_lua_init(lua_State* L) {
-	int top = lua_gettop(L);
-	DEFER(lua_settop(L, top));
-	lua_getglobal(L, "package"); // package
-	lua_getfield(L, -1, "preload"); // package preload
-	lua_pushliteral(L, "lualib_bundle");
-	lua_pushcfunction(L, getTSLuaBundle);
-	lua_rawset(L, -3); // preload["lualib_bundle"] = getTSLuaBundle
-}
-
 } // extern "C"
 
 NS_DORA_BEGIN

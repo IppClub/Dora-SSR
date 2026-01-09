@@ -1630,8 +1630,6 @@ void luaapi_open(lua_State *lua)
     }
 }
 
-extern void dora_tic_lua_init(lua_State* L);
-
 void luaapi_init(tic_core* core)
 {
     static const struct{lua_CFunction func; const char* name;} ApiItems[] =
@@ -1650,8 +1648,6 @@ void luaapi_init(tic_core* core)
 
     registerLuaFunction(core, lua_dofile, "dofile");
     registerLuaFunction(core, lua_loadfile, "loadfile");
-
-    dora_tic_lua_init(core->currentVM);
 }
 
 void luaapi_close(tic_mem* tic)

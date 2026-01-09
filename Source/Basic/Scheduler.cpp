@@ -235,6 +235,12 @@ bool Scheduler::update(double deltaTime) {
 }
 
 void Scheduler::cleanup() {
+	for (auto item : _updateList) {
+		item->target->release();
+	}
+	for (auto item : _fixedUpdateList) {
+		item->target->release();
+	}
 	_updateList.clear();
 	_fixedUpdateList.clear();
 	_fixedUpdateObjects.clear();

@@ -3,7 +3,8 @@ import path from 'path';
 export class DependencyParser {
   //private REGEX_CLEAN = /[\n|\r]/g;
   private REGEX_DETECT_IMPORT =
-    /(?:(?:(?:import)|(?:export))(?:.)*?from\s+["']([^"']+)["'])|(?:require|import)\s*\(["']([^"']+)["']\)|(?:import)\s+["']([^"']+)["']|(?:\/+\s*<reference\s+path=["']([^"']+)["']\s*\/>)/g;
+  /(?:(?:(?:import)|(?:export))[\s\S]*?from\s+["']([^"']+)["'])|(?:require|import)\s*\(\s*["']([^"']+)["']\s*["']\)|(?:import)\s+["']([^"']+)["']|(?:\/+\s*<reference\s+path=["']([^"']+)["']\s*\/>)/g;
+
   private REGEX_NODE_MODULE = /^node:([\w\W/]+)$/;
 
   public parseDependencies(source: string, parent: ImportResourcePath | string): ImportResourcePath[] {
