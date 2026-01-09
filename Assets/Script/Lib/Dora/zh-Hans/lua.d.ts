@@ -962,7 +962,7 @@ declare function pcall<A extends any[], R>(
 ): LuaMultiReturn<[true, R] | [false, string]>;
 
 /**
- * 接收任意数量的参数，并将它们的值打印到 stdout，使用 tostring 函数将每个参数转换为字符串。print 不是用于格式化输出，而只是作为快速显示值的方式，例如用于调试。要完全控制输出，请使用 string.format 和 io.write。
+ * 接收任意数量的参数，并将它们的值打印到日志输出，使用 tostring 函数将每个参数转换为字符串。print 不是用于格式化输出，而只是作为快速显示值的方式，例如用于调试。要完全控制输出，请使用 string.format 和 io.write。
  */
 declare function print(...args: any[]): void;
 

@@ -78,7 +78,15 @@ export const transformImportDeclaration: FunctionVisitor<ts.ImportDeclaration> =
     scope.importStatements ??= [];
 
     const result: lua.Statement[] = [];
-    const requireCall = createModuleRequire(context, statement.moduleSpecifier);
+    const requireItem = createModuleRequire(context, statement.moduleSpecifier);
+    let requireCall: lua.Expression = requireItem;
+    const param = requireItem.params.at(0);
+    if (param?.kind === lua.SyntaxKind.StringLiteral) {
+      const stringLiteral = param as lua.StringLiteral;
+      if (stringLiteral.value === "tic80") {
+         requireCall = lua.createIdentifier("_G");
+      }
+    }
 
     // import "./module";
     // require("module")

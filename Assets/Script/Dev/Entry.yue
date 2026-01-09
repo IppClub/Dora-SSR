@@ -408,6 +408,13 @@ doCompile = (minify) ->
 				errors[] = "Compile errors in #{filename}.\n#{err}"
 				return
 			success, result = LintYueGlobals codes, globals
+			local yueCodes
+			unless success
+				if yueCodes := Content\load input
+					import CheckTIC80Code from "Utils"
+					isTIC80, tic80APIs = CheckTIC80Code yueCodes
+					if isTIC80
+						success, result = LintYueGlobals codes, globals, true, tic80APIs
 			if success
 				codes = codes\gsub "%s*local%s*_ENV%s*=%s*Dora%([^%)]-%)[^\n\r]+[\n\r%s]*", "\n"
 				codes = codes\gsub "%s*local%s*_ENV%s*=%s*Dora[^%w_$][^\n\r]+[\n\r%s]*", "\n"
@@ -415,7 +422,7 @@ doCompile = (minify) ->
 				result ..= "\n" unless result == ""
 				"-- [yue]: #{file}\n#{result}#{codes}"
 			else
-				if yueCodes := Content\load input
+				if yueCodes
 					globalErrors = []
 					for [name, line, col] in *result
 						countLine = 1
@@ -426,9 +433,10 @@ doCompile = (minify) ->
 								break
 							countLine += 1
 						globalErrors[] = "invalid global variable \"#{name}\"\nin \"#{filename}\", at line #{line}, col #{col}.\n#{code\gsub("\t", " ") .. '\n' .. string.rep(" ", col - 1) .. "^"}"
-					errors[] = table.concat globalErrors, "\n"
+					errors[] = table.concat globalErrors, "\n" if #globalErrors > 0
 				else
 					errors[] = "failed to load file #{input}"
+				codes if #errors == 0
 		print "Yue compiled: #{filename}" if success
 		fileCount += 1
 
