@@ -294,12 +294,20 @@ export Round = (val) ->
 
 export IsValidPath = (filename) -> not filename\match "[\\/|:*?<>\"]"
 
+local tic80APIs
+export CheckTIC80Code = (codes) ->
+	isTIC80 = codes\match "^%-%-[ \t]*tic80[ \t]*[$\r\n]"
+	if isTIC80
+		unless tic80APIs
+			tic80APIs = {api, true for api in "btn,btnp,key,keyp,mouse,clip,cls,circ,circb,elli,ellib,line,pix,rect,rectb,spr,tri,trib,ttri,font,map,mget,mset,fget,fset,sfx,music,peek,peek1,peek2,peek4,poke,poke1,poke2,poke4,pmem,memcpy,memset,exit,reset,sync,time,tstamp,trace,vbank"\gmatch "[^,]+"}
+	isTIC80, tic80APIs
+
 allowedUseOfGlobals = Set
 	* "Dora"
 	* "require"
 	* "_G"
 
-export LintYueGlobals = (luaCodes, globals, globalInLocal = true) ->
+export LintYueGlobals = (luaCodes, globals, globalInLocal = true, extraGlobals = nil) ->
 	errors = []
 	requireModules = []
 	luaCodes = luaCodes\gsub "^local _module_[^\r\n]*[^\r\n]+", ""
@@ -319,7 +327,7 @@ export LintYueGlobals = (luaCodes, globals, globalInLocal = true) ->
 		continue if globalSet[name]
 		globalSet[name] = true
 		continue if allowedUseOfGlobals[name]
-		if _G[name]
+		if _G[name] or (extraGlobals and extraGlobals[name])
 			if globalInLocal
 				requireModules[] = "local #{name} = _G.#{name} -- 1"
 			continue

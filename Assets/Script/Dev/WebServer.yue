@@ -12,7 +12,7 @@ HttpServer\stop!
 
 HttpServer.wwwPath = Path Content.appPath, ".www"
 
-from "Utils" import LintYueGlobals
+from "Utils" import LintYueGlobals, CheckTIC80Code
 
 getProjectDirFromFile = (file) ->
 	:writablePath, :assetPath = Content
@@ -67,6 +67,9 @@ disabledCheckForLua =
 	* "to%-be%-closed"
 
 yueCheck = (file, content, lax) ->
+	isTIC80, tic80APIs = CheckTIC80Code content
+	if isTIC80
+		content = content\gsub "^%-%-[ \t]*tic80[ \t]*", "require(\"tic80\")"
 	searchPath = getSearchPath file
 	checkResult, luaCodes = yue.checkAsync content, searchPath, lax
 	info = []
@@ -82,7 +85,8 @@ yueCheck = (file, content, lax) ->
 			luaCodes = luaCodes\gsub "%s*local%s*_ENV%s*=%s*Dora%([^%)]-%)[^\n\r]+[\n\r%s]*", "\n"
 			lintResult ..= "\n" unless lintResult == ""
 			luaCodes = "-- [yue]: #{file}\n#{lintResult}" .. luaCodes
-		else for [_name, line, col] in *lintResult
+		else for [name, line, col] in *lintResult
+			continue if isTIC80 and tic80APIs[name]
 			info[] = ["syntax", file, line, col, "invalid global variable"]
 	luaCodes, info
 
@@ -158,9 +162,13 @@ HttpServer\postSchedule "/check", (req): success: true ->
 		ext = Path\getExt file
 		switch ext when "tl"
 			searchPath = getSearchPath file
+			if isTIC80 := CheckTIC80Code content
+				content = content\gsub "^%-%-[ \t]*tic80[ \t]*", "require(\"tic80\")"
 			success, info = teal.checkAsync content, file, false, searchPath
 			return :success, :info
 		when "lua"
+			if isTIC80 := CheckTIC80Code content
+				content = content\gsub "^%-%-[ \t]*tic80[ \t]*", "require(\"tic80\")"
 			return luaCheck file, content
 		when "yue"
 			luaCodes, info = yueCheck file, content, false
@@ -210,6 +218,8 @@ HttpServer\postSchedule "/infer", (req): success: false ->
 	switch req when {body: {:lang, :file, :content, :line, :row}}
 		searchPath = getSearchPath file
 		switch lang when "tl", "lua"
+			if CheckTIC80Code content
+				content = content\gsub "^%-%-[ \t]*tic80[ \t]*", "require(\"tic80\")"
 			infered = teal.inferAsync content, line, row, searchPath
 			if infered?
 				updateInferedDesc infered
@@ -288,6 +298,8 @@ HttpServer\postSchedule "/signature", (req): success: false ->
 	switch req when {body: {:lang, :file, :content, :line, :row}}
 		searchPath = getSearchPath file
 		switch lang when "tl", "lua"
+			if CheckTIC80Code content
+				content = content\gsub "^%-%-[ \t]*tic80[ \t]*", "require(\"tic80\")"
 			if signatures := teal.getSignatureAsync content, line, row, searchPath
 				if signatures := getParamDocs signatures
 					return success: true, :signatures
@@ -448,6 +460,8 @@ HttpServer\postSchedule "/complete", (req): success: false ->
 				return success: false
 		until true
 		switch lang when "tl", "lua"
+			if isTIC80 := CheckTIC80Code content
+				content = content\gsub "^%-%-[ \t]*tic80[ \t]*", "require(\"tic80\")"
 			suggestions = teal.completeAsync content, line, row, searchPath
 			if not line\match "[%.:]$"
 				checkSet = {name, true for [name,] in *suggestions}
@@ -692,9 +706,11 @@ compileFileAsync = (inputFile, sourceCodes): nil ->
 	options: {extension: yueext} = yue
 	resultCodes = nil
 	switch Path\getExt inputFile when yueext
+		isTIC80, tic80APIs = CheckTIC80Code sourceCodes
 		(success) <- yue.compile inputFile, outputFile, searchPath, (codes, _err, globals) ->
 			return unless codes
-			success, result = LintYueGlobals codes, globals
+			extraGlobal = if isTIC80 then tic80APIs else nil
+			success, result = LintYueGlobals codes, globals, true, extraGlobal
 			return unless success
 			if codes == ""
 				resultCodes = ""
@@ -710,7 +726,12 @@ compileFileAsync = (inputFile, sourceCodes): nil ->
 			if resultCodes == nil
 				resultCodes = false
 	when "tl"
+		isTIC80 = CheckTIC80Code sourceCodes
+		if isTIC80
+			sourceCodes = sourceCodes\gsub "^%-%-[ \t]*tic80[ \t]*", "require(\"tic80\")"
 		if codes := teal.toluaAsync sourceCodes, file, searchPath
+			if isTIC80
+				codes = codes\gsub "^require%(\"tic80\"%)", "-- tic80"
 			resultCodes = codes
 			Content\saveAsync outputFile, codes
 		else

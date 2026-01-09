@@ -7572,17 +7572,8 @@ tl.type_check = function(ast, opts)
 		if existing then
 			if is_assigning and existing_attr then
 				node_error(node, "cannot reassign to <" .. existing_attr .. "> global: " .. var)
+				return nil
 			end
-			if existing_attr and not is_const then
-				node_error(node, "global was previously declared as <" .. existing_attr .. ">: " .. var)
-			end
-			if (not existing_attr) and is_const then
-				node_error(node, "global was previously declared as not <" .. node.attribute .. ">: " .. var)
-			end
-			if valtype and not same_type(existing.t, valtype) then
-				node_error(node, "cannot redeclare global with a different type: previous type of " .. var .. " is %s", existing.t)
-			end
-			return nil
 		end
 
 		st[1][var] = { t = valtype, attribute = is_const and "const" or nil }

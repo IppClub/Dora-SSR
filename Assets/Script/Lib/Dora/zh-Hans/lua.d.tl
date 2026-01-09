@@ -188,7 +188,7 @@ local record lua
 	-- @return (boolean, ...) 状态码及函数结果或错误对象。
 	pcall: function(f: function, ...: any): boolean, any...
 
-	-- 将值打印到标准输出。
+	-- 将值打印到日志输出。
 	-- 将每个参数转换为字符串并打印。
 	-- @param ... (any) 要打印的值。
 	print: function(...: any)

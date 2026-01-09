@@ -188,7 +188,7 @@ local record lua
 	-- @return (boolean, ...) Status code and function results or error object.
 	pcall: function(f: function, ...: any): boolean, any...
 
-	-- Prints values to stdout.
+	-- Prints values to log output.
 	-- Converts each argument to a string and prints them.
 	-- @param ... (any) The values to print.
 	print: function(...: any)
