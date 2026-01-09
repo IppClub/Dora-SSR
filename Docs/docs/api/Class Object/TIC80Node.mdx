@@ -31,3 +31,113 @@ metamethod __call: function(
 | Return Type | Description |
 | --- | --- |
 | TIC80Node \| nil | The created TIC80Node instance. If creation fails, returns nil. |
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;The constructor function for creating a TIC80Node instance with code from a file and resources from a cart file.
+
+**Signature:**
+```tl
+metamethod __call: function(
+		self: TIC80NodeClass,
+		resourceCartFile: string,
+		codeFile: string
+	): TIC80Node | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| resourceCartFile | string | The path to the TIC-80 cart file containing art and audio resources (`.tic` or `.png` format). |
+| codeFile | string | The path to the code file (e.g., `.lua`, `.yue`). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| TIC80Node \| nil | The created TIC80Node instance. If creation fails, returns nil. |
+
+## codeFromCart
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Extracts code text from a TIC-80 cart file.
+
+**Signature:**
+```tl
+codeFromCart: function(self: TIC80NodeClass, cartFile: string): string
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| cartFile | string | The path to the TIC-80 cart file (`.tic` or `.png` format). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The extracted code text, or empty string if failed. |
+
+## mergeTic
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Merges resource cart and code file into a .tic cart file.
+
+**Signature:**
+```tl
+mergeTic: function(self: TIC80NodeClass, outputFile: string, resourceCartFile: string, codeFile: string): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| outputFile | string | The path to save the merged .tic cart file. |
+| resourceCartFile | string | The path to the resource cart file. |
+| codeFile | string | The path to the code file. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if successful, false otherwise. |
+
+## mergePng
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Merges PNG cover, resource cart, and optional code file into a .png cart file.
+
+**Signature:**
+```tl
+mergePng: function(self: TIC80NodeClass, outputFile: string, coverPngFile: string, resourceCartFile: string, codeFile?: string): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| outputFile | string | The path to save the merged .png cart file. |
+| coverPngFile | string | The path to the cover PNG image file. |
+| resourceCartFile | string | The path to the resource cart file. |
+| codeFile | string | [optional] Path to the code file. If empty, uses code from resource cart. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if successful, false otherwise. |

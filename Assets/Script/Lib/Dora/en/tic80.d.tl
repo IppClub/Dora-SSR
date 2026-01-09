@@ -1,13 +1,9 @@
--- TIC-80 API
-
 -- Remap callback function type for map() function.
 -- @param tile (number) The tile ID at position (x, y)
 -- @param x (number) The X coordinate of the tile
 -- @param y (number) The Y coordinate of the tile
 -- @return (number, number | nil, number | nil) A tuple containing [tile, flip, rotate]
 local type MapRemapCallback = function(tile: number, x: number, y: number): number, number | nil, number | nil
-
---[[ Input Functions ]]
 
 -- Checks if a button is currently pressed.
 -- @param id (number) [optional] Button ID (0-31). If omitted, checks if any button is pressed.
@@ -73,8 +69,6 @@ global keyp: function(code?: number, hold?: number, period?: number): boolean
 -- Gets the current mouse state.
 -- @return (number, number, number, number, number, number, number) Multiple return values containing [x, y, left, middle, right, scrollx, scrolly]
 global mouse: function(): number, number, number, number, number, number, number
-
---[[ Graphics Functions ]]
 
 -- Sets the drawing clip region.
 -- @param x (number) The X coordinate of the clip region.
@@ -223,8 +217,6 @@ global ttri: function(x1: number, y1: number, x2: number, y2: number, x3: number
 -- @return (number) The width of the drawn text.
 global font: function(text: string, x: number, y: number, transparent?: number, charWidth?: number, charHeight?: number, fixed?: boolean, scale?: number): number
 
---[[ Map Functions ]]
-
 -- Draws a map tile layer.
 -- @param x (number) [optional] Map X coordinate (default: 0).
 -- @param y (number) [optional] Map Y coordinate (default: 0).
@@ -249,8 +241,6 @@ global mget: function(x: number, y: number): number
 -- @param id (number) The tile ID to set.
 global mset: function(x: number, y: number, id: number)
 
---[[ Sprite Functions ]]
-
 -- Gets a sprite flag.
 -- @param sprite_id (number) The sprite ID.
 -- @param flag (number) The flag index (0-7).
@@ -262,8 +252,6 @@ global fget: function(sprite_id: number, flag: number): boolean
 -- @param flag (number) The flag index (0-7).
 -- @param bool (boolean) The flag value to set.
 global fset: function(sprite_id: number, flag: number, bool: boolean)
-
---[[ Audio Functions ]]
 
 -- Plays a sound effect.
 -- @param id (number) The sound effect ID.
@@ -280,8 +268,6 @@ global sfx: function(id: number, note?: number, duration?: number, channel?: num
 -- @param row (number) [optional] Row number (default: -1).
 -- @param loop (boolean) [optional] Loop flag (default: true).
 global music: function(track?: number, frame?: number, row?: number, loop?: boolean)
-
---[[ Memory Functions ]]
 
 -- Reads a value from memory.
 -- @param addr (number) The memory address.
@@ -342,8 +328,6 @@ global memcpy: function(toaddr: number, fromaddr: number, len: number)
 -- @param len (number) The number of bytes to set.
 global memset: function(addr: number, val: number, len: number)
 
---[[ Callback Functions ]]
-
 -- The BDR (Between Display Rows) callback allows you to execute code between the rendering of each scan line.
 -- The primary reason to do this is to manipulate the palette. Doing so makes it possible to use a different
 -- palette for each scan line, and therefore more than 16 colors at a time.
@@ -363,8 +347,6 @@ global TIC: function()
 -- code in the global scope (Lua, etc.) using BOOT is preferred rather than including
 -- source code in the global scope.
 global BOOT: function()
-
---[[ System Functions ]]
 
 -- Exits the game.
 global exit: function()

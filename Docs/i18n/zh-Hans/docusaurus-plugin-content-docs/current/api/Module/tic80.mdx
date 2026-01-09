@@ -1,0 +1,1144 @@
+# tic80
+
+## MapRemapCallback
+
+**类型：** 类型定义。
+
+**描述：**
+
+&emsp;&emsp;map() 函数的重映射回调函数类型。
+
+**签名：**
+```tl
+local type MapRemapCallback = function(tile: number, x: number, y: number): number, number | nil, number | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| tile | number | 位置 (x, y) 处的图块 ID |
+| x | number | 图块的 X 坐标 |
+| y | number | 图块的 Y 坐标 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number, number \| nil, number \| nil | 包含 [tile, flip, rotate] 的元组 |
+
+## btn
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查按钮是否当前被按下。
+
+**签名：**
+```tl
+global btn: function(id?: number): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| id | number | [可选] 按钮 ID (0-31)。如果省略，检查任意按钮是否有按下。<br/>所有玩家的按钮 ID。<br/>玩家 1: 上 0、下 1、左 2、右 3、A 4、B 5、X 6、Y 7<br/>玩家 2: 上 8、下 9、左 10、右 11、A 12、B 13、X 14、Y 15<br/>玩家 3: 上 16、下 17、左 18、右 19、A 20、B 21、X 22、Y 23<br/>玩家 4: 上 24、下 25、左 26、右 27、A 28、B 29、X 30、Y 31 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果按钮被按下则返回 true，否则返回 false。 |
+
+## btnp
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查按钮是否刚刚被按下（在本帧）。
+
+**签名：**
+```tl
+global btnp: function(id?: number, hold?: number, period?: number): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| id | number | [可选] 按钮 ID (0-31)。如果省略，检查所有按钮。 |
+| hold | number | [可选] 按住时间（以帧为单位）。 |
+| period | number | [可选] 重复周期（以帧为单位）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果按钮刚刚被按下则返回 true，否则返回 false。 |
+
+## key
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查键盘按键是否当前被按下。
+
+**签名：**
+```tl
+global key: function(code?: number): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| code | number | [可选] 按键代码。如果省略，检查所有按键。<br/>字母 A-Z: 0-25<br/>数字 0-9: 27-36<br/>特殊键: 37-65<br/>Minus = 37<br/>Equals = 38<br/>LeftBracket = 39<br/>RightBracket = 40<br/>Backslash = 41<br/>Semicolon = 42<br/>Apostrophe = 43<br/>Grave = 44<br/>Comma = 45<br/>Period = 46<br/>Slash = 47<br/>Space = 48<br/>Tab = 49<br/>Return = 50<br/>Backspace = 51<br/>Delete = 52<br/>Insert = 53<br/>PageUp = 54<br/>PageDown = 55<br/>Home = 56<br/>End = 57<br/>Up = 58<br/>Down = 59<br/>Left = 60<br/>Right = 61<br/>CapsLock = 62<br/>Ctrl = 63<br/>Shift = 64<br/>Alt = 65 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果按键被按下则返回 true，否则返回 false。 |
+
+## keyp
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查键盘按键是否刚刚被按下（在本帧）。
+
+**签名：**
+```tl
+global keyp: function(code?: number, hold?: number, period?: number): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| code | number | [可选] 按键代码。如果省略，检查所有按键。 |
+| hold | number | [可选] 按住时间（以帧为单位）。 |
+| period | number | [可选] 重复周期（以帧为单位）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果按键刚刚被按下则返回 true，否则返回 false。 |
+
+## mouse
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取当前鼠标状态。
+
+**签名：**
+```tl
+global mouse: function(): number, number, number, number, number, number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number, number, number, number, number, number, number | 包含 [x, y, left, middle, right, scrollx, scrolly] 的多返回值 |
+
+## clip
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置绘制裁剪区域。
+
+**签名：**
+```tl
+global clip: function(x: number, y: number, w: number, h: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 裁剪区域的 X 坐标。 |
+| y | number | 裁剪区域的 Y 坐标。 |
+| w | number | 裁剪区域的宽度。 |
+| h | number | 裁剪区域的高度。 |
+
+## cls
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;用颜色清空屏幕。
+
+**签名：**
+```tl
+global cls: function(color?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| color | number | [可选] 颜色索引（默认: 0）。 |
+
+## circ
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;绘制填充圆形。
+
+**签名：**
+```tl
+global circ: function(x: number, y: number, radius: number, color: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 圆心的 X 坐标。 |
+| y | number | 圆心的 Y 坐标。 |
+| radius | number | 圆的半径。 |
+| color | number | 颜色索引。 |
+
+## circb
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;绘制圆形轮廓。
+
+**签名：**
+```tl
+global circb: function(x: number, y: number, radius: number, color: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 圆心的 X 坐标。 |
+| y | number | 圆心的 Y 坐标。 |
+| radius | number | 圆的半径。 |
+| color | number | 颜色索引。 |
+
+## elli
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;绘制填充椭圆。
+
+**签名：**
+```tl
+global elli: function(x: number, y: number, a: number, b: number, color: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 椭圆中心的 X 坐标。 |
+| y | number | 椭圆中心的 Y 坐标。 |
+| a | number | 水平半径。 |
+| b | number | 垂直半径。 |
+| color | number | 颜色索引。 |
+
+## ellib
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;绘制椭圆轮廓。
+
+**签名：**
+```tl
+global ellib: function(x: number, y: number, a: number, b: number, color: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 椭圆中心的 X 坐标。 |
+| y | number | 椭圆中心的 Y 坐标。 |
+| a | number | 水平半径。 |
+| b | number | 垂直半径。 |
+| color | number | 颜色索引。 |
+
+## line
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;绘制直线。
+
+**签名：**
+```tl
+global line: function(x0: number, y0: number, x1: number, y1: number, color: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x0 | number | 起点的 X 坐标。 |
+| y0 | number | 起点的 Y 坐标。 |
+| x1 | number | 终点的 X 坐标。 |
+| y1 | number | 终点的 Y 坐标。 |
+| color | number | 颜色索引。 |
+
+## pix
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取或设置像素颜色。
+
+**签名：**
+```tl
+global pix: function(x: number, y: number, color?: number): number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | X 坐标。 |
+| y | number | Y 坐标。 |
+| color | number? | 可选的颜色索引。如果提供，则设置像素颜色。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 指定位置的颜色索引。 |
+
+## print
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在屏幕上打印文本。
+
+**签名：**
+```tl
+global print: function(text: string, x?: number, y?: number, color?: number, fixed?: boolean, scale?: number, smallfont?: boolean): number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| text | string | 要打印的文本。 |
+| x | number | [可选] X 坐标（默认: 0）。 |
+| y | number | [可选] Y 坐标（默认: 0）。 |
+| color | number | [可选] 颜色索引（默认: 12）。 |
+| fixed | boolean | [可选] 等宽字体标志（默认: false）。 |
+| scale | number | [可选] 缩放因子（默认: 1）。 |
+| smallfont | boolean | [可选] 小字体标志（默认: false）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 打印文本的宽度。 |
+
+## rect
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;绘制填充矩形。
+
+**签名：**
+```tl
+global rect: function(x: number, y: number, w: number, h: number, color: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 左上角的 X 坐标。 |
+| y | number | 左上角的 Y 坐标。 |
+| w | number | 矩形的宽度。 |
+| h | number | 矩形的高度。 |
+| color | number | 颜色索引。 |
+
+## rectb
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;绘制矩形轮廓。
+
+**签名：**
+```tl
+global rectb: function(x: number, y: number, w: number, h: number, color: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 左上角的 X 坐标。 |
+| y | number | 左上角的 Y 坐标。 |
+| w | number | 矩形的宽度。 |
+| h | number | 矩形的高度。 |
+| color | number | 颜色索引。 |
+
+## spr
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;绘制精灵。
+
+**签名：**
+```tl
+global spr: function(id: number, x: number, y: number, transparent?: number, scale?: number, flip?: number, rotate?: number, w?: number, h?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| id | number | 精灵 ID。 |
+| x | number | X 坐标。 |
+| y | number | Y 坐标。 |
+| transparent | number | [可选] 透明颜色索引（默认: -1，无透明）。 |
+| scale | number | [可选] 缩放因子（默认: 1）。 |
+| flip | number | [可选] 翻转标志：1=水平，2=垂直，3=两者（默认: 0）。 |
+| rotate | number | [可选] 旋转：1=90°，2=180°，3=270° 顺时针（默认: 0）。 |
+| w | number | [可选] 精灵宽度（以图块为单位，默认: 1）。 |
+| h | number | [可选] 精灵高度（以图块为单位，默认: 1）。 |
+
+## tri
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;绘制填充三角形。
+
+**签名：**
+```tl
+global tri: function(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, color: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x1 | number | 第一个顶点的 X 坐标。 |
+| y1 | number | 第一个顶点的 Y 坐标。 |
+| x2 | number | 第二个顶点的 X 坐标。 |
+| y2 | number | 第二个顶点的 Y 坐标。 |
+| x3 | number | 第三个顶点的 X 坐标。 |
+| y3 | number | 第三个顶点的 Y 坐标。 |
+| color | number | 颜色索引。 |
+
+## trib
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;绘制三角形轮廓。
+
+**签名：**
+```tl
+global trib: function(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, color: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x1 | number | 第一个顶点的 X 坐标。 |
+| y1 | number | 第一个顶点的 Y 坐标。 |
+| x2 | number | 第二个顶点的 X 坐标。 |
+| y2 | number | 第二个顶点的 Y 坐标。 |
+| x3 | number | 第三个顶点的 X 坐标。 |
+| y3 | number | 第三个顶点的 Y 坐标。 |
+| color | number | 颜色索引。 |
+
+## ttri
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;绘制纹理三角形。
+
+**签名：**
+```tl
+global ttri: function(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, u1: number, v1: number, u2: number, v2: number, u3: number, v3: number, texsrc?: number, chromakey?: number, z1?: number, z2?: number, z3?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x1 | number | 第一个顶点的 X 坐标。 |
+| y1 | number | 第一个顶点的 Y 坐标。 |
+| x2 | number | 第二个顶点的 X 坐标。 |
+| y2 | number | 第二个顶点的 Y 坐标。 |
+| x3 | number | 第三个顶点的 X 坐标。 |
+| y3 | number | 第三个顶点的 Y 坐标。 |
+| u1 | number | 第一个顶点的 U 纹理坐标。 |
+| v1 | number | 第一个顶点的 V 纹理坐标。 |
+| u2 | number | 第二个顶点的 U 纹理坐标。 |
+| v2 | number | 第二个顶点的 V 纹理坐标。 |
+| u3 | number | 第三个顶点的 U 纹理坐标。 |
+| v3 | number | 第三个顶点的 V 纹理坐标。 |
+| texsrc | number | [可选] 纹理源（默认: 0）。 |
+| chromakey | number | [可选] 色度键颜色索引（默认: -1）。 |
+| z1 | number | [可选] 第一个顶点的 Z 坐标（默认: 0）。 |
+| z2 | number | [可选] 第二个顶点的 Z 坐标（默认: 0）。 |
+| z3 | number | [可选] 第三个顶点的 Z 坐标（默认: 0）。 |
+
+## font
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;使用自定义字体绘制文本。
+
+**签名：**
+```tl
+global font: function(text: string, x: number, y: number, transparent?: number, charWidth?: number, charHeight?: number, fixed?: boolean, scale?: number): number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| text | string | 要绘制的文本。 |
+| x | number | X 坐标。 |
+| y | number | Y 坐标。 |
+| transparent | number | [可选] 透明颜色索引。 |
+| charWidth | number | [可选] 字符宽度。 |
+| charHeight | number | [可选] 字符高度。 |
+| fixed | boolean | [可选] 等宽字体标志（默认: false）。 |
+| scale | number | [可选] 缩放因子（默认: 1）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 绘制文本的宽度。 |
+
+## map
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;绘制地图图块层。
+
+**签名：**
+```tl
+global map: function(x?: number, y?: number, w?: number, h?: number, sx?: number, sy?: number, colorkey?: number, scale?: number, remap?: MapRemapCallback)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | [可选] 地图 X 坐标（默认: 0）。 |
+| y | number | [可选] 地图 Y 坐标（默认: 0）。 |
+| w | number | [可选] 宽度（以图块为单位，默认: 30）。 |
+| h | number | [可选] 高度（以图块为单位，默认: 17）。 |
+| sx | number | [可选] 精灵 X 偏移（默认: 0）。 |
+| sy | number | [可选] 精灵 Y 偏移（默认: 0）。 |
+| colorkey | number | [可选] 透明颜色键（默认: -1）。 |
+| scale | number | [可选] 缩放因子（默认: 1）。 |
+| remap | MapRemapCallback | [可选] 重映射回调函数。 |
+
+## mget
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取地图位置的图块 ID。
+
+**签名：**
+```tl
+global mget: function(x: number, y: number): number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 图块的 X 坐标。 |
+| y | number | 图块的 Y 坐标。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 图块 ID。 |
+
+## mset
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置地图位置的图块 ID。
+
+**签名：**
+```tl
+global mset: function(x: number, y: number, id: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 图块的 X 坐标。 |
+| y | number | 图块的 Y 坐标。 |
+| id | number | 要设置的图块 ID。 |
+
+## fget
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取精灵标志。
+
+**签名：**
+```tl
+global fget: function(sprite_id: number, flag: number): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| sprite_id | number | 精灵 ID。 |
+| flag | number | 标志索引 (0-7)。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果标志已设置则返回 true，否则返回 false。 |
+
+## fset
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置精灵标志。
+
+**签名：**
+```tl
+global fset: function(sprite_id: number, flag: number, bool: boolean)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| sprite_id | number | 精灵 ID。 |
+| flag | number | 标志索引 (0-7)。 |
+| bool | boolean | 要设置的标志值。 |
+
+## sfx
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;播放音效。
+
+**签名：**
+```tl
+global sfx: function(id: number, note?: number, duration?: number, channel?: number, volume?: number, speed?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| id | number | 音效 ID。 |
+| note | number | [可选] 音符编号 (0-95，默认: 使用 SFX 音符)。 |
+| duration | number | [可选] 持续时间（以帧为单位，默认: -1，完整持续时间）。 |
+| channel | number | [可选] 通道编号 (0-3，默认: 0)。 |
+| volume | number | [可选] 音量 (0-15，默认: 15)。 |
+| speed | number | [可选] 速度 (0-15，默认: 0)。 |
+
+## music
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;播放音乐。
+
+**签名：**
+```tl
+global music: function(track?: number, frame?: number, row?: number, loop?: boolean)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| track | number | [可选] 音轨编号（默认: -1，停止音乐）。 |
+| frame | number | [可选] 帧编号（默认: -1）。 |
+| row | number | [可选] 行编号（默认: -1）。 |
+| loop | boolean | [可选] 循环标志（默认: true）。 |
+
+## peek
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从内存读取值。
+
+**签名：**
+```tl
+global peek: function(addr: number, bits?: number): number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| addr | number | 内存地址。 |
+| bits | number | [可选] 位宽：8、16 或 32（默认: 8）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 从内存读取的值。 |
+
+## peek1
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从内存读取单个位。
+
+**签名：**
+```tl
+global peek1: function(bitaddr: number): number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| bitaddr | number | 位地址。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 位值 (0 或 1)。 |
+
+## peek2
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从内存读取 2 字节值。
+
+**签名：**
+```tl
+global peek2: function(addr2: number): number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| addr2 | number | 内存地址（必须 2 字节对齐）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 从内存读取的 16 位值。 |
+
+## peek4
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从内存读取 4 字节值。
+
+**签名：**
+```tl
+global peek4: function(addr4: number): number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| addr4 | number | 内存地址（必须 4 字节对齐）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 从内存读取的 32 位值。 |
+
+## poke
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将值写入内存。
+
+**签名：**
+```tl
+global poke: function(addr: number, val: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| addr | number | 内存地址。 |
+| val | number | 要写入的值。 |
+
+## poke1
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将单个位写入内存。
+
+**签名：**
+```tl
+global poke1: function(bitaddr: number, bitval: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| bitaddr | number | 位地址。 |
+| bitval | number | 位值 (0 或 1)。 |
+
+## poke2
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将 2 字节值写入内存。
+
+**签名：**
+```tl
+global poke2: function(addr2: number, val2: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| addr2 | number | 内存地址（必须 2 字节对齐）。 |
+| val2 | number | 要写入的 16 位值。 |
+
+## poke4
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将 4 字节值写入内存。
+
+**签名：**
+```tl
+global poke4: function(addr4: number, val4: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| addr4 | number | 内存地址（必须 4 字节对齐）。 |
+| val4 | number | 要写入的 32 位值。 |
+
+## pmem
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取或设置持久内存值。
+
+**签名：**
+```tl
+global pmem: function(index: number, val?: number): number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| index | number | 持久内存索引 (0-255)。 |
+| val | number | [可选] 要设置的值。如果省略，返回当前值。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 持久内存值。 |
+
+## memcpy
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将内存从一个位置复制到另一个位置。
+
+**签名：**
+```tl
+global memcpy: function(toaddr: number, fromaddr: number, len: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| toaddr | number | 目标地址。 |
+| fromaddr | number | 源地址。 |
+| len | number | 要复制的字节数。 |
+
+## memset
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将内存块设置为值。
+
+**签名：**
+```tl
+global memset: function(addr: number, val: number, len: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| addr | number | 起始地址。 |
+| val | number | 要设置的值。 |
+| len | number | 要设置的字节数。 |
+
+## BDR
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;BDR（Between Display Rows，显示行之间）回调允许你在每行扫描线渲染之间执行代码。
+主要用于操作调色板。这样做可以为每行扫描线使用不同的调色板，因此一次可以使用超过 16 种颜色。
+
+**签名：**
+```tl
+global BDR: function(scanline: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| scanline | number | 即将绘制的扫描行 (0-143)。<br/>0-3: 顶部边框<br/>4-139: 第 0-135 行 (等价于 SCN(0-135))<br/>140-143: 底部边框 |
+
+## TIC
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;TIC 函数是主更新/绘制回调，必须在每个程序中存在。
+它不接受参数，每秒被调用 60 次（60fps）。
+在此处放置你的更新和绘制代码。
+
+**签名：**
+```tl
+global TIC: function()
+```
+
+## BOOT
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;BOOT 函数在卡带启动时被调用一次。
+它应用于启动/初始化代码。对于允许在全局作用域中编写代码的脚本语言（Lua 等），
+使用 BOOT 比在全局作用域中包含源代码更可取。
+
+**签名：**
+```tl
+global BOOT: function()
+```
+
+## exit
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;退出游戏。
+
+**签名：**
+```tl
+global exit: function()
+```
+
+## reset
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;重置游戏。
+
+**签名：**
+```tl
+global reset: function()
+```
+
+## sync
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;同步卡带数据。
+
+**签名：**
+```tl
+global sync: function(mask?: number, bank?: number, tocart?: boolean)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| mask | number | [可选] 同步掩码（默认: 0，同步所有）。<br/>Tiles = 1 \<\< 0<br/>Sprites = 1 \<\< 1<br/>Map = 1 \<\< 2<br/>Sfx = 1 \<\< 3<br/>Music = 1 \<\< 4<br/>Palette = 1 \<\< 5<br/>Flags = 1 \<\< 6<br/>Screen = 1 \<\< 7 |
+| bank | number | [可选] 库编号（默认: 0）。 |
+| tocart | boolean | [可选] 保存到卡带标志（默认: false）。 |
+
+## time
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取当前时间（以毫秒为单位）。
+
+**签名：**
+```tl
+global time: function(): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 当前时间（以毫秒为单位）。 |
+
+## tstamp
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取时间戳。
+
+**签名：**
+```tl
+global tstamp: function(): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 时间戳值。 |
+
+## trace
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;输出跟踪消息。
+
+**签名：**
+```tl
+global trace: function(msg: string, color?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| msg | string | 要输出的消息。 |
+| color | number | [可选] 颜色索引。 |
+
+## vbank
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;切换视频库。
+
+**签名：**
+```tl
+global vbank: function(bank: number)
+
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| bank | number | 库编号 (0 或 1)。 |

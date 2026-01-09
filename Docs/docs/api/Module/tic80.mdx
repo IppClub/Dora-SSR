@@ -1,0 +1,1146 @@
+# tic80
+
+## MapRemapCallback
+
+**Type:** Type Definition.
+
+**Description:**
+
+&emsp;&emsp;Remap callback function type for map() function.
+
+**Signature:**
+```tl
+local type MapRemapCallback = function(tile: number, x: number, y: number): number, number | nil, number | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| tile | number | The tile ID at position (x, y) |
+| x | number | The X coordinate of the tile |
+| y | number | The Y coordinate of the tile |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number, number \| nil, number \| nil | A tuple containing [tile, flip, rotate] |
+
+## btn
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Checks if a button is currently pressed.
+
+**Signature:**
+```tl
+global btn: function(id?: number): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| id | number | [optional] Button ID (0-31). If omitted, checks if any button is pressed.<br/>Button IDs for all players:<br/>Player 1: Up 0, Down 1, Left 2, Right 3, A 4, B 5, X 6, Y 7<br/>Player 2: Up 8, Down 9, Left 10, Right 11, A 12, B 13, X 14, Y 15<br/>Player 3: Up 16, Down 17, Left 18, Right 19, A 20, B 21, X 22, Y 23<br/>Player 4: Up 24, Down 25, Left 26, Right 27, A 28, B 29, X 30, Y 31 |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the button is pressed, false otherwise. |
+
+## btnp
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Checks if a button was just pressed (on this frame).
+
+**Signature:**
+```tl
+global btnp: function(id?: number, hold?: number, period?: number): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| id | number | [optional] Button ID (0-31). If omitted, checks all buttons. |
+| hold | number | [optional] Hold time in frames. |
+| period | number | [optional] Repeat period in frames. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the button was just pressed, false otherwise. |
+
+## key
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Checks if a keyboard key is currently pressed.
+
+**Signature:**
+```tl
+global key: function(code?: number): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| code | number | [optional] Key code. If omitted, checks all keys.<br/>Letters A-Z: 0-25<br/>Numbers 0-9: 27-36<br/>Special keys: 37-65<br/>Minus = 37<br/>Equals = 38<br/>LeftBracket = 39<br/>RightBracket = 40<br/>Backslash = 41<br/>Semicolon = 42<br/>Apostrophe = 43<br/>Grave = 44<br/>Comma = 45<br/>Period = 46<br/>Slash = 47<br/>Space = 48<br/>Tab = 49<br/>Return = 50<br/>Backspace = 51<br/>Delete = 52<br/>Insert = 53<br/>PageUp = 54<br/>PageDown = 55<br/>Home = 56<br/>End = 57<br/>Up = 58<br/>Down = 59<br/>Left = 60<br/>Right = 61<br/>CapsLock = 62<br/>Ctrl = 63<br/>Shift = 64<br/>Alt = 65 |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the key is pressed, false otherwise. |
+
+## keyp
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Checks if a keyboard key was just pressed (on this frame).
+
+**Signature:**
+```tl
+global keyp: function(code?: number, hold?: number, period?: number): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| code | number | [optional] Key code. If omitted, checks all keys. |
+| hold | number | [optional] Hold time in frames. |
+| period | number | [optional] Repeat period in frames. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the key was just pressed, false otherwise. |
+
+## mouse
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the current mouse state.
+
+**Signature:**
+```tl
+global mouse: function(): number, number, number, number, number, number, number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number, number, number, number, number, number, number | Multiple return values containing [x, y, left, middle, right, scrollx, scrolly] |
+
+## clip
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the drawing clip region.
+
+**Signature:**
+```tl
+global clip: function(x: number, y: number, w: number, h: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The X coordinate of the clip region. |
+| y | number | The Y coordinate of the clip region. |
+| w | number | The width of the clip region. |
+| h | number | The height of the clip region. |
+
+## cls
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Clears the screen with a color.
+
+**Signature:**
+```tl
+global cls: function(color?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| color | number | [optional] Color index (default: 0). |
+
+## circ
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws a filled circle.
+
+**Signature:**
+```tl
+global circ: function(x: number, y: number, radius: number, color: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The X coordinate of the center. |
+| y | number | The Y coordinate of the center. |
+| radius | number | The radius of the circle. |
+| color | number | The color index. |
+
+## circb
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws a circle outline.
+
+**Signature:**
+```tl
+global circb: function(x: number, y: number, radius: number, color: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The X coordinate of the center. |
+| y | number | The Y coordinate of the center. |
+| radius | number | The radius of the circle. |
+| color | number | The color index. |
+
+## elli
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws a filled ellipse.
+
+**Signature:**
+```tl
+global elli: function(x: number, y: number, a: number, b: number, color: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The X coordinate of the center. |
+| y | number | The Y coordinate of the center. |
+| a | number | The horizontal radius. |
+| b | number | The vertical radius. |
+| color | number | The color index. |
+
+## ellib
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws an ellipse outline.
+
+**Signature:**
+```tl
+global ellib: function(x: number, y: number, a: number, b: number, color: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The X coordinate of the center. |
+| y | number | The Y coordinate of the center. |
+| a | number | The horizontal radius. |
+| b | number | The vertical radius. |
+| color | number | The color index. |
+
+## line
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws a line.
+
+**Signature:**
+```tl
+global line: function(x0: number, y0: number, x1: number, y1: number, color: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x0 | number | The X coordinate of the start point. |
+| y0 | number | The Y coordinate of the start point. |
+| x1 | number | The X coordinate of the end point. |
+| y1 | number | The Y coordinate of the end point. |
+| color | number | The color index. |
+
+## pix
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets or sets a pixel color.
+
+**Signature:**
+```tl
+global pix: function(x: number, y: number, color?: number): number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The X coordinate. |
+| y | number | The Y coordinate. |
+| color | number? | Optional color index. If provided, sets the pixel color. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The color index at the specified position. |
+
+## print
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Prints text on the screen.
+
+**Signature:**
+```tl
+global print: function(text: string, x?: number, y?: number, color?: number, fixed?: boolean, scale?: number, smallfont?: boolean): number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| text | string | The text to print. |
+| x | number | [optional] X coordinate (default: 0). |
+| y | number | [optional] Y coordinate (default: 0). |
+| color | number | [optional] Color index (default: 12). |
+| fixed | boolean | [optional] Fixed-width font flag (default: false). |
+| scale | number | [optional] Scale factor (default: 1). |
+| smallfont | boolean | [optional] Small font flag (default: false). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The width of the printed text. |
+
+## rect
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws a filled rectangle.
+
+**Signature:**
+```tl
+global rect: function(x: number, y: number, w: number, h: number, color: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The X coordinate of the top-left corner. |
+| y | number | The Y coordinate of the top-left corner. |
+| w | number | The width of the rectangle. |
+| h | number | The height of the rectangle. |
+| color | number | The color index. |
+
+## rectb
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws a rectangle outline.
+
+**Signature:**
+```tl
+global rectb: function(x: number, y: number, w: number, h: number, color: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The X coordinate of the top-left corner. |
+| y | number | The Y coordinate of the top-left corner. |
+| w | number | The width of the rectangle. |
+| h | number | The height of the rectangle. |
+| color | number | The color index. |
+
+## spr
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws a sprite.
+
+**Signature:**
+```tl
+global spr: function(id: number, x: number, y: number, transparent?: number, scale?: number, flip?: number, rotate?: number, w?: number, h?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| id | number | The sprite ID. |
+| x | number | The X coordinate. |
+| y | number | The Y coordinate. |
+| transparent | number | [optional] Transparent color index (default: -1, no transparency). |
+| scale | number | [optional] Scale factor (default: 1). |
+| flip | number | [optional] Flip flag: 1=horizontal, 2=vertical, 3=both (default: 0). |
+| rotate | number | [optional] Rotation: 1=90°, 2=180°, 3=270° clockwise (default: 0). |
+| w | number | [optional] Sprite width in tiles (default: 1). |
+| h | number | [optional] Sprite height in tiles (default: 1). |
+
+## tri
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws a filled triangle.
+
+**Signature:**
+```tl
+global tri: function(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, color: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x1 | number | The X coordinate of the first vertex. |
+| y1 | number | The Y coordinate of the first vertex. |
+| x2 | number | The X coordinate of the second vertex. |
+| y2 | number | The Y coordinate of the second vertex. |
+| x3 | number | The X coordinate of the third vertex. |
+| y3 | number | The Y coordinate of the third vertex. |
+| color | number | The color index. |
+
+## trib
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws a triangle outline.
+
+**Signature:**
+```tl
+global trib: function(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, color: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x1 | number | The X coordinate of the first vertex. |
+| y1 | number | The Y coordinate of the first vertex. |
+| x2 | number | The X coordinate of the second vertex. |
+| y2 | number | The Y coordinate of the second vertex. |
+| x3 | number | The X coordinate of the third vertex. |
+| y3 | number | The Y coordinate of the third vertex. |
+| color | number | The color index. |
+
+## ttri
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws a textured triangle.
+
+**Signature:**
+```tl
+global ttri: function(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, u1: number, v1: number, u2: number, v2: number, u3: number, v3: number, texsrc?: number, chromakey?: number, z1?: number, z2?: number, z3?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x1 | number | The X coordinate of the first vertex. |
+| y1 | number | The Y coordinate of the first vertex. |
+| x2 | number | The X coordinate of the second vertex. |
+| y2 | number | The Y coordinate of the second vertex. |
+| x3 | number | The X coordinate of the third vertex. |
+| y3 | number | The Y coordinate of the third vertex. |
+| u1 | number | The U texture coordinate of the first vertex. |
+| v1 | number | The V texture coordinate of the first vertex. |
+| u2 | number | The U texture coordinate of the second vertex. |
+| v2 | number | The V texture coordinate of the second vertex. |
+| u3 | number | The U texture coordinate of the third vertex. |
+| v3 | number | The V texture coordinate of the third vertex. |
+| texsrc | number | [optional] Texture source (default: 0). |
+| chromakey | number | [optional] Chroma key color index (default: -1). |
+| z1 | number | [optional] Z coordinate of the first vertex (default: 0). |
+| z2 | number | [optional] Z coordinate of the second vertex (default: 0). |
+| z3 | number | [optional] Z coordinate of the third vertex (default: 0). |
+
+## font
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws text using a custom font.
+
+**Signature:**
+```tl
+global font: function(text: string, x: number, y: number, transparent?: number, charWidth?: number, charHeight?: number, fixed?: boolean, scale?: number): number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| text | string | The text to draw. |
+| x | number | The X coordinate. |
+| y | number | The Y coordinate. |
+| transparent | number | [optional] Transparent color index. |
+| charWidth | number | [optional] Character width. |
+| charHeight | number | [optional] Character height. |
+| fixed | boolean | [optional] Fixed-width font flag (default: false). |
+| scale | number | [optional] Scale factor (default: 1). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The width of the drawn text. |
+
+## map
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws a map tile layer.
+
+**Signature:**
+```tl
+global map: function(x?: number, y?: number, w?: number, h?: number, sx?: number, sy?: number, colorkey?: number, scale?: number, remap?: MapRemapCallback)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | [optional] Map X coordinate (default: 0). |
+| y | number | [optional] Map Y coordinate (default: 0). |
+| w | number | [optional] Width in tiles (default: 30). |
+| h | number | [optional] Height in tiles (default: 17). |
+| sx | number | [optional] Sprite X offset (default: 0). |
+| sy | number | [optional] Sprite Y offset (default: 0). |
+| colorkey | number | [optional] Color key for transparency (default: -1). |
+| scale | number | [optional] Scale factor (default: 1). |
+| remap | MapRemapCallback | [optional] Remap callback function. |
+
+## mget
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the tile ID at a map position.
+
+**Signature:**
+```tl
+global mget: function(x: number, y: number): number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The X coordinate in tiles. |
+| y | number | The Y coordinate in tiles. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The tile ID. |
+
+## mset
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the tile ID at a map position.
+
+**Signature:**
+```tl
+global mset: function(x: number, y: number, id: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The X coordinate in tiles. |
+| y | number | The Y coordinate in tiles. |
+| id | number | The tile ID to set. |
+
+## fget
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets a sprite flag.
+
+**Signature:**
+```tl
+global fget: function(sprite_id: number, flag: number): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| sprite_id | number | The sprite ID. |
+| flag | number | The flag index (0-7). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the flag is set, false otherwise. |
+
+## fset
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets a sprite flag.
+
+**Signature:**
+```tl
+global fset: function(sprite_id: number, flag: number, bool: boolean)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| sprite_id | number | The sprite ID. |
+| flag | number | The flag index (0-7). |
+| bool | boolean | The flag value to set. |
+
+## sfx
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Plays a sound effect.
+
+**Signature:**
+```tl
+global sfx: function(id: number, note?: number, duration?: number, channel?: number, volume?: number, speed?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| id | number | The sound effect ID. |
+| note | number | [optional] Note number (0-95, default: uses SFX note). |
+| duration | number | [optional] Duration in frames (default: -1, full duration). |
+| channel | number | [optional] Channel number (0-3, default: 0). |
+| volume | number | [optional] Volume (0-15, default: 15). |
+| speed | number | [optional] Speed (0-15, default: 0). |
+
+## music
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Plays music.
+
+**Signature:**
+```tl
+global music: function(track?: number, frame?: number, row?: number, loop?: boolean)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| track | number | [optional] Track number (default: -1, stops music). |
+| frame | number | [optional] Frame number (default: -1). |
+| row | number | [optional] Row number (default: -1). |
+| loop | boolean | [optional] Loop flag (default: true). |
+
+## peek
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Reads a value from memory.
+
+**Signature:**
+```tl
+global peek: function(addr: number, bits?: number): number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| addr | number | The memory address. |
+| bits | number | [optional] Bit width: 8, 16, or 32 (default: 8). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The value read from memory. |
+
+## peek1
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Reads a single bit from memory.
+
+**Signature:**
+```tl
+global peek1: function(bitaddr: number): number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| bitaddr | number | The bit address. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The bit value (0 or 1). |
+
+## peek2
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Reads a 2-byte value from memory.
+
+**Signature:**
+```tl
+global peek2: function(addr2: number): number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| addr2 | number | The memory address (must be 2-byte aligned). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The 16-bit value read from memory. |
+
+## peek4
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Reads a 4-byte value from memory.
+
+**Signature:**
+```tl
+global peek4: function(addr4: number): number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| addr4 | number | The memory address (must be 4-byte aligned). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The 32-bit value read from memory. |
+
+## poke
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Writes a value to memory.
+
+**Signature:**
+```tl
+global poke: function(addr: number, val: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| addr | number | The memory address. |
+| val | number | The value to write. |
+
+## poke1
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Writes a single bit to memory.
+
+**Signature:**
+```tl
+global poke1: function(bitaddr: number, bitval: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| bitaddr | number | The bit address. |
+| bitval | number | The bit value (0 or 1). |
+
+## poke2
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Writes a 2-byte value to memory.
+
+**Signature:**
+```tl
+global poke2: function(addr2: number, val2: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| addr2 | number | The memory address (must be 2-byte aligned). |
+| val2 | number | The 16-bit value to write. |
+
+## poke4
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Writes a 4-byte value to memory.
+
+**Signature:**
+```tl
+global poke4: function(addr4: number, val4: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| addr4 | number | The memory address (must be 4-byte aligned). |
+| val4 | number | The 32-bit value to write. |
+
+## pmem
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets or sets a persistent memory value.
+
+**Signature:**
+```tl
+global pmem: function(index: number, val?: number): number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| index | number | The persistent memory index (0-255). |
+| val | number | [optional] Value to set. If omitted, returns the current value. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The persistent memory value. |
+
+## memcpy
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Copies memory from one location to another.
+
+**Signature:**
+```tl
+global memcpy: function(toaddr: number, fromaddr: number, len: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| toaddr | number | The destination address. |
+| fromaddr | number | The source address. |
+| len | number | The number of bytes to copy. |
+
+## memset
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets a block of memory to a value.
+
+**Signature:**
+```tl
+global memset: function(addr: number, val: number, len: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| addr | number | The starting address. |
+| val | number | The value to set. |
+| len | number | The number of bytes to set. |
+
+## BDR
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;The BDR (Between Display Rows) callback allows you to execute code between the rendering of each scan line.
+The primary reason to do this is to manipulate the palette. Doing so makes it possible to use a different
+palette for each scan line, and therefore more than 16 colors at a time.
+
+**Signature:**
+```tl
+global BDR: function(scanline: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| scanline | number | The scan line about to be drawn (0-143).<br/>0-3: TOP BORDER<br/>4-139: ROW 0-135 (equiv SCN(0-135))<br/>140-143: BOTTOM BORDER |
+
+## TIC
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;The TIC function is the main update/draw callback and must be present in every program.
+It takes no parameters and is called sixty times per second (60fps).
+Put your update and draw code here.
+
+**Signature:**
+```tl
+global TIC: function()
+```
+
+## BOOT
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;The BOOT function is called a single time when your cartridge is booted.
+It should be used for startup/initialization code. For scripting languages that allow
+code in the global scope (Lua, etc.) using BOOT is preferred rather than including
+source code in the global scope.
+
+**Signature:**
+```tl
+global BOOT: function()
+```
+
+## exit
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Exits the game.
+
+**Signature:**
+```tl
+global exit: function()
+```
+
+## reset
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Resets the game.
+
+**Signature:**
+```tl
+global reset: function()
+```
+
+## sync
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Synchronizes cart data.
+
+**Signature:**
+```tl
+global sync: function(mask?: number, bank?: number, tocart?: boolean)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| mask | number | [optional] Sync mask (default: 0, syncs all).<br/>Tiles = 1 \<\< 0<br/>Sprites = 1 \<\< 1<br/>Map = 1 \<\< 2<br/>Sfx = 1 \<\< 3<br/>Music = 1 \<\< 4<br/>Palette = 1 \<\< 5<br/>Flags = 1 \<\< 6<br/>Screen = 1 \<\< 7 |
+| bank | number | [optional] Bank number (default: 0). |
+| tocart | boolean | [optional] Flag to save to cart (default: false). |
+
+## time
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the current time in milliseconds.
+
+**Signature:**
+```tl
+global time: function(): number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The current time in milliseconds. |
+
+## tstamp
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets a timestamp.
+
+**Signature:**
+```tl
+global tstamp: function(): number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | A timestamp value. |
+
+## trace
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Outputs a trace message.
+
+**Signature:**
+```tl
+global trace: function(msg: string, color?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| msg | string | The message to output. |
+| color | number | [optional] Color index. |
+
+## vbank
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Switches the video bank.
+
+**Signature:**
+```tl
+global vbank: function(bank: number)
+
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| bank | number | The bank number (0 or 1). |

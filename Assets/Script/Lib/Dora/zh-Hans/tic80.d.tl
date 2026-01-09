@@ -1,13 +1,9 @@
--- TIC-80 API
-
 -- map() 函数的重映射回调函数类型。
 -- @param tile (number) 位置 (x, y) 处的图块 ID
 -- @param x (number) 图块的 X 坐标
 -- @param y (number) 图块的 Y 坐标
 -- @return (number, number | nil, number | nil) 包含 [tile, flip, rotate] 的元组
 local type MapRemapCallback = function(tile: number, x: number, y: number): number, number | nil, number | nil
-
---[[ 输入函数 ]]
 
 -- 检查按钮是否当前被按下。
 -- @param id (number) [可选] 按钮 ID (0-31)。如果省略，检查任意按钮是否有按下。
@@ -73,8 +69,6 @@ global keyp: function(code?: number, hold?: number, period?: number): boolean
 -- 获取当前鼠标状态。
 -- @return (number, number, number, number, number, number, number) 包含 [x, y, left, middle, right, scrollx, scrolly] 的多返回值
 global mouse: function(): number, number, number, number, number, number, number
-
---[[ 图形函数 ]]
 
 -- 设置绘制裁剪区域。
 -- @param x (number) 裁剪区域的 X 坐标。
@@ -223,8 +217,6 @@ global ttri: function(x1: number, y1: number, x2: number, y2: number, x3: number
 -- @return (number) 绘制文本的宽度。
 global font: function(text: string, x: number, y: number, transparent?: number, charWidth?: number, charHeight?: number, fixed?: boolean, scale?: number): number
 
---[[ 地图函数 ]]
-
 -- 绘制地图图块层。
 -- @param x (number) [可选] 地图 X 坐标（默认: 0）。
 -- @param y (number) [可选] 地图 Y 坐标（默认: 0）。
@@ -249,8 +241,6 @@ global mget: function(x: number, y: number): number
 -- @param id (number) 要设置的图块 ID。
 global mset: function(x: number, y: number, id: number)
 
---[[ 精灵函数 ]]
-
 -- 获取精灵标志。
 -- @param sprite_id (number) 精灵 ID。
 -- @param flag (number) 标志索引 (0-7)。
@@ -262,8 +252,6 @@ global fget: function(sprite_id: number, flag: number): boolean
 -- @param flag (number) 标志索引 (0-7)。
 -- @param bool (boolean) 要设置的标志值。
 global fset: function(sprite_id: number, flag: number, bool: boolean)
-
---[[ 音频函数 ]]
 
 -- 播放音效。
 -- @param id (number) 音效 ID。
@@ -280,8 +268,6 @@ global sfx: function(id: number, note?: number, duration?: number, channel?: num
 -- @param row (number) [可选] 行编号（默认: -1）。
 -- @param loop (boolean) [可选] 循环标志（默认: true）。
 global music: function(track?: number, frame?: number, row?: number, loop?: boolean)
-
---[[ 内存函数 ]]
 
 -- 从内存读取值。
 -- @param addr (number) 内存地址。
@@ -342,8 +328,6 @@ global memcpy: function(toaddr: number, fromaddr: number, len: number)
 -- @param len (number) 要设置的字节数。
 global memset: function(addr: number, val: number, len: number)
 
---[[ 回调函数 ]]
-
 -- BDR（Between Display Rows，显示行之间）回调允许你在每行扫描线渲染之间执行代码。
 -- 主要用于操作调色板。这样做可以为每行扫描线使用不同的调色板，因此一次可以使用超过 16 种颜色。
 -- @param scanline (number) 即将绘制的扫描行 (0-143)。
@@ -361,8 +345,6 @@ global TIC: function()
 -- 它应用于启动/初始化代码。对于允许在全局作用域中编写代码的脚本语言（Lua 等），
 -- 使用 BOOT 比在全局作用域中包含源代码更可取。
 global BOOT: function()
-
---[[ 系统函数 ]]
 
 -- 退出游戏。
 global exit: function()
