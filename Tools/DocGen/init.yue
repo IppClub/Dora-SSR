@@ -46,7 +46,7 @@ generate = (path, file, cn)->
 	if res := match Doc, codes
 		for x = 1, #res
 			group = res[x]
-			newGroup = {}
+			newGroup = []
 			lastComment = false
 			for i = 1, #group
 				comment = group[i]\match "^%s*%-%-"
@@ -54,15 +54,15 @@ generate = (path, file, cn)->
 				if #newGroup == 0 or group[i]\match "^%s*@"
 					newGroup[] = group[i]
 				elseif (comment and lastComment) or (not comment and not lastComment)
-					newGroup[#newGroup] ..= ('\n' .. group[i])
+					newGroup[#] ..= ('\n' .. group[i])
 				else
 					newGroup[] = group[i]
 				lastComment = comment
-			last = newGroup[#newGroup]
+			last = newGroup[#]
 			className = last\match "^%s*local%s+record%s*([%w_]+)"
 			className or= last\match "^%s*record%s*([%w_]+)"
 			if className
-				newGroup[#newGroup] = className
+				newGroup[#] = className
 				newGroup[] = false
 			elseif #newGroup == 1 and newGroup[1] == "end"
 				newGroup[] = false
@@ -70,12 +70,13 @@ generate = (path, file, cn)->
 				newGroup[] = "__ITEM__"
 				newGroup[] = false
 			elseif last\match "^%s*local%s+"
-				newGroup[#newGroup] = last\gsub "^%s*local%s+[%w_]+:%s*", "#{modName}: "
+				newGroup[#] = last\gsub "^%s*local%s+[%w_]+:%s*", "#{modName}: "
 				newGroup[] = "__ITEM__"
 				newGroup[] = false
 			elseif last\match "^%s*global%s+"
-				newGroup[] = "__ITEM__"
-				newGroup[] = false
+				if "Dora" == last\match "^%s*global%s+([%w_]+)"
+					newGroup[] = "__ITEM__"
+					newGroup[] = false
 			res[x] = newGroup
 		mods = {}
 		docs = {}
@@ -86,7 +87,7 @@ generate = (path, file, cn)->
 			params = nil
 			returns = nil
 			lastParamName = nil
-			subFuns = {}
+			subFuns = []
 			local subFun
 			addSubFun = ->
 				return unless subFun
@@ -119,7 +120,7 @@ generate = (path, file, cn)->
 							name, typ, desc = group[i]\match "^%s*@param%s*(%.%.%.)%s*%(([^%)]-)%)%s*(.+)"
 						lastParamName = name
 						print group[i] if desc == nil
-						params[] = "| #{name} | #{typ} | #{desc\gsub('\n', '<br/>')} |"
+						params[] = "| #{name} | #{typ} | #{desc\gsub('<', '\\<')\gsub('\n', '<br/>')} |"
 				elseif group[i]\match "^%s*@return"
 					if group[i]\match "^%s+@return"
 						if not subFun
@@ -135,7 +136,7 @@ generate = (path, file, cn)->
 								"| --- | --- |"
 							}
 						typ, desc = group[i]\match "^%s*@return%s*%(([^%)]-)%)%s*(.+)"
-						returns[] = "| #{typ\gsub '|', '\\|'} | #{desc\gsub('\n', '<br/>')} |"
+						returns[] = "| #{typ\gsub '|', '\\|'} | #{desc\gsub('<', '\\<')\gsub('\n', '<br/>')} |"
 			if params
 				doc[] = table.concat params, "\n"
 			if returns
@@ -143,43 +144,47 @@ generate = (path, file, cn)->
 			if #subFuns > 0
 				doc[] = table.concat subFuns, "\n\n"
 		for group in *res
-			if not group[#group]
-				if group[#group - 1] == "end"
-					mods[#mods] = nil
-					docs[#docs] = nil
+			if not group[#]
+				if group[# - 1] == "end"
+					mods[#] = nil
+					docs[#] = nil
 				else
-					name = group[#group - 1]
+					name = group[# - 1]
 					docs[] = {}
-					doc = docs[#docs]
+					doc = docs[#]
 					prefix = path == "" and "" or path .. "."
 					switch name when "__SLOT__"
 						currentType = "Event"
 						mods[] = modName
-						nodeEvents[] = {prefix .. modName, doc}
+						nodeEvents[] = [prefix .. modName, doc]
 					when "__GSLOT__"
 						currentType = "GEvent"
 						mods[] = modName
-						globalEvents[] = {prefix .. modName, doc}
+						globalEvents[] = [prefix .. modName, doc]
 					when "__ITEM__"
 						currentType = "Item"
-						modules[] = {prefix .. modName, doc}
+						modules[] = [prefix .. modName, doc]
 					else
 						if className := name\match "([%w_]+)Class"
 							currentType = "Class"
 							mods[] = className
-							classes[] = {prefix .. className, doc}
+							classes[] = [prefix .. className, doc]
 						else
 							mods[] = name
 							currentType = "Record"
-							records[] = {prefix .. table.concat(mods, '.'), doc}
+							records[] = [prefix .. table.concat(mods, '.'), doc]
 					if currentType == "Item"
 						doc[] = "# #{modName}"
+						sig = group[# - 2]
+						if "MapRemapCallback" == sig\match "^%s*local%s*type%s*([%w_]+)"
+							doc[] = "## MapRemapCallback"
+							doc[] = cn and '**类型：** 类型定义。' or '**Type:** Type Definition.'
 						doc[] = "**#{cn and '描述：' or 'Description:'}**"
 						doc[] = "&emsp;&emsp;" .. group[1]
-						doc[] = "**#{cn and '签名：' or 'Signature:'}**\n```tl\n#{group[#group - 2]}\n```"
+						doc[] = "**#{cn and '签名：' or 'Signature:'}**\n```tl\n#{group[# - 2]}\n```"
 						transformDocs doc, group, 2, #group - 3
 					else
-						doc[] = "# #{mods[#mods]}" ..
+						doc[] = "# #{mods[#]}" ..
 							(currentType == "Class" and (cn and "的类对象" or " Class") or "") ..
 							(currentType == "Event" and (cn and "的节点事件" or " Event") or "") ..
 							(currentType == "GEvent" and (cn and "的全局事件" or " Global Event") or "")
@@ -187,8 +192,9 @@ generate = (path, file, cn)->
 						doc[] = "&emsp;&emsp;" .. group[1]
 						transformDocs doc, group, 2, #group - 2
 			else
-				doc = docs[#docs]
-				last = group[#group]
+				doc = docs[#]
+				last = group[#]
+				last = last\gsub "[ \t]+$", ""
 				metaField = last\match "^%s*metamethod%s*([%w_]+)"
 				fieldName or= metaField
 				constField = last\match "^%s*const%s*([%w_]+)"
@@ -200,6 +206,7 @@ generate = (path, file, cn)->
 				typeAlias or= last\match "^%s*local%s*type%s*([%w_]+)"
 				fieldName or= typeAlias
 				functionField = last\match "^%s*([%w_]+)%s*:%s*function%s*%("
+				functionField or= last\match "^global%s*([%w_]+)%s*:%s*function%s*%("
 				fieldName or= functionField
 				fieldName or= last\match '^%s*%["([%w_]+)"%]'
 				fieldName or= last\match '^%s*([%w_]+)'
@@ -212,14 +219,15 @@ generate = (path, file, cn)->
 					mods[] = enumField
 					doc[] = "## #{table.concat(mods, '.')}"
 					doc[] = cn and '**类型：** 枚举。' or '**Type:** Enumeration.'
-					mods[#mods] = nil
+					mods[#] = nil
 					last = last |> string.gsub("[ \t]+%-%-", "\t--") |> string.gsub("\n[ \t]+\"", "\n\t\"") |> string.gsub("[ \t]*end", "end")
 					doc[] = "**#{cn and '描述：' or 'Description:'}**"
 					doc[] = "&emsp;&emsp;" .. group[1]
 					doc[] = "**#{cn and '签名：' or 'Signature:'}**\n```tl\n#{last}\n```"
 				else
 					if not doc
-						p res
+						doc = []
+						docs[] = doc
 					doc[] = "## #{fieldName}"
 					if functionField
 						doc[] = cn and '**类型：** 函数。' or '**Type:** Function.'
@@ -229,6 +237,8 @@ generate = (path, file, cn)->
 						doc[] = cn and '**类型：** 节点事件。' or '**Type:** Node Event.'
 					elseif currentType == "GEvent"
 						doc[] = cn and '**类型：** 全局事件。' or '**Type:** Global Event.'
+					elseif typeAlias
+						doc[] = cn and '**类型：** 类型定义。' or '**Type:** Type Definition.'
 					else
 						if constField
 							doc[] = cn and '**类型：** 只读成员变量。' or '**Type:** Readonly Field.'
@@ -259,7 +269,7 @@ gen = (docPath, target, cn)->
 
 	targetPath = Path Content.writablePath, target, "Class"
 
-	for {name, doc} in *records
+	for [name, doc] in *records
 		for {clsName} in *classes
 			if clsName == name
 				table.insert doc, 4, cn and "**类对象：**[#{clsName} Class](/docs/api/Class%20Object/#{clsName\gsub '%.', '/'})。" or "**Class Object:** [#{clsName} Class](/docs/api/Class%20Object/#{clsName\gsub '%.', '/'})."

@@ -1230,6 +1230,7 @@ const sidebars = {
 						},
 					],
 				},
+				"api/Module/tic80",
 			]
 		},
 	],
