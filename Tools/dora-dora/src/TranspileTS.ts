@@ -198,6 +198,17 @@ export async function transpileTypescript(
 	fileName: string,
 	content: string
 ) {
+	if (Info.path.extname(fileName).toLowerCase() === ".ts") {
+		const tic80ImportRegex = /import\s*{[^}]*}\s*from\s*["']tic80["']/;
+		const hasTic80Import = tic80ImportRegex.test(content);
+		if (hasTic80Import) {
+			tstlOptions.luaLibImport = tstl.LuaLibImportKind.Inline;
+		} else {
+			tstlOptions.luaLibImport = tstl.LuaLibImportKind.Require;
+		}
+	} else {
+		tstlOptions.luaLibImport = tstl.LuaLibImportKind.Require;
+	}
 	const program = createTypescriptProgram(fileName, content);
 	let diagnostics = ts.getPreEmitDiagnostics(program);
 	const collector = createEmitOutputCollector();
@@ -206,7 +217,13 @@ export async function transpileTypescript(
 			directoryExists: () => false,
 			fileExists: () => true,
 			getCurrentDirectory: () => Info.path.dirname(fileName),
-			readFile: () => "",
+			readFile: (filename) => {
+				const res = Service.readSync({path: filename});
+				if (res?.success) {
+					return res.content;
+				}
+				return undefined;
+			},
 			writeFile: () => {}
 		}
 	}).emit({

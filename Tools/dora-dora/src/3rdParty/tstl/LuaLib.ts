@@ -132,11 +132,6 @@ export interface LuaLibFeatureInfo {
 
 export type LuaLibModulesInfo = Record<LuaLibFeature, LuaLibFeatureInfo>;
 
-export function resolveLuaLibDir(luaTarget: LuaTarget) {
-    const luaLibDir = luaTarget === LuaTarget.Lua50 ? "5.0" : "universal";
-    return path.resolve(__dirname, path.join("/", "dist", "lualib", luaLibDir));
-}
-
 const luaLibModulesInfo = new Map<LuaTarget, LuaLibModulesInfo>();
 
 export function getLuaLibModulesInfo(luaTarget: LuaTarget): LuaLibModulesInfo {
@@ -171,7 +166,7 @@ const lualibFeatureCache = new Map<LuaTarget, Map<LuaLibFeature, string>>();
 export function readLuaLibFeature(feature: LuaLibFeature, luaTarget: LuaTarget, emitHost: EmitHost): string {
     const featureMap = getOrUpdate(lualibFeatureCache, luaTarget, () => new Map());
     if (!featureMap.has(feature)) {
-        const featurePath = path.join(resolveLuaLibDir(luaTarget), `${feature}.lua`);
+        const featurePath = path.join("lualib", `${feature}.lua`);
         const luaLibFeature = emitHost.readFile(featurePath);
         if (luaLibFeature === undefined) {
             throw new Error(`Could not load lualib feature from '${featurePath}'`);
@@ -253,7 +248,7 @@ export function loadImportedLualibFeatures(
 const luaLibBundleContent = new Map<string, string>();
 
 export function getLuaLibBundle(luaTarget: LuaTarget, emitHost: EmitHost): string {
-    const lualibPath = path.join(resolveLuaLibDir(luaTarget), "lualib_bundle.lua");
+    const lualibPath = "lualib_bundle.lua";
     if (!luaLibBundleContent.has(lualibPath)) {
         const result = emitHost.readFile(lualibPath);
         if (result !== undefined) {
@@ -280,27 +275,4 @@ export function buildMinimalLualibBundle(
     const exports = Array.from(features).flatMap(feature => moduleInfo[feature].exports);
 
     return code + getLualibBundleReturn(exports);
-}
-
-export function findUsedLualibFeatures(
-    luaTarget: LuaTarget,
-    emitHost: EmitHost,
-    luaContents: string[]
-): Set<LuaLibFeature> {
-    const features = new Set<LuaLibFeature>();
-    const exportToFeatureMap = getLuaLibExportToFeatureMap(luaTarget);
-
-    for (const lua of luaContents) {
-        const regex = /^local (\w+) = ____lualib\.(\w+)$/gm;
-        while (true) {
-            const match = regex.exec(lua);
-            if (!match) break;
-            const [, localName, exportName] = match;
-            if (localName !== exportName) continue;
-            const feature = exportToFeatureMap.get(exportName);
-            if (feature) features.add(feature);
-        }
-    }
-
-    return features;
 }

@@ -53,7 +53,6 @@ private:
 	uint32_t _audioHandle;
 	Ref<Scheduler> _scheduler;
 	StringMap<int> _keyMap;
-	std::mutex _audioMutex; // Protect _tic80->samples.buffer access
 
 	DORA_TYPE_OVERRIDE(TIC80Node);
 };

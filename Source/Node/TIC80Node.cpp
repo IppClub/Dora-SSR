@@ -176,7 +176,9 @@ static void dora_tic_error(const char* info) {
 class TIC80 : public TIC80Impl {
 public:
 	virtual ~TIC80() {
+		audioSource = nullptr;
 		tic80_delete(tic);
+		tic = nullptr;
 	}
 	TIC80() {
 		tic->callback.trace = dora_tic_trace;
