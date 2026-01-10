@@ -19,8 +19,8 @@ import blocklyLogo from './blockly.png';
 import typescriptLogo from './typescript.png';
 import yarnLogo from './yarn.png';
 import waLogo from './wa.svg';
+import vscLogo from './vsc.png';
 import { AiFillFolderAdd } from 'react-icons/ai';
-import { SiNodered } from 'react-icons/si';
 import { DiCode } from 'react-icons/di';
 import { VscMarkdown } from 'react-icons/vsc';
 import { useTranslation } from 'react-i18next';
@@ -38,7 +38,7 @@ interface FileType {
 
 const fileTypes: FileType[] = [
 	{
-		icon: <img src={luaLogo} alt="Lua" width="50px" height="50px" style={{marginLeft: '0px'}}/>,
+		icon: <img src={luaLogo} alt="Lua" width="55px" height="55px" style={{marginLeft: '-2.5px'}}/>,
 		name: "Lua",
 		desc: "file.lua",
 		padding: '20px'
@@ -50,13 +50,13 @@ const fileTypes: FileType[] = [
 		padding: '10px'
 	},
 	{
-		icon: <img src={tealLogo} alt="Teal" width="45px" height="45px" style={{marginLeft: '5px'}}/>,
+		icon: <img src={tealLogo} alt="Teal" width="42px" height="42px" style={{marginLeft: '5px'}}/>,
 		name: "Teal",
 		desc: "file.teal",
 		padding: '20px'
 	},
 	{
-		icon: <img src={typescriptLogo} alt="TypeScript" width="40px" height="40px" style={{marginLeft: '5px'}}/>,
+		icon: <img src={typescriptLogo} alt="TypeScript" width="55px" height="55px" style={{marginLeft: '-2.5px'}}/>,
 		name: "TypeScript",
 		desc: "file.typescript",
 		padding: '20px'
@@ -68,7 +68,7 @@ const fileTypes: FileType[] = [
 		padding: '13px'
 	},
 	{
-		icon: <img src={yarnLogo} alt="Yarn" width="50px" height="50px" style={{marginLeft: '0px'}}/>,
+		icon: <img src={yarnLogo} alt="Yarn" width="55px" height="55px" style={{marginLeft: '0px'}}/>,
 		name: "Yarn",
 		desc: "file.yarn",
 		padding: '15px'
@@ -80,10 +80,10 @@ const fileTypes: FileType[] = [
 		padding: '15px'
 	},
 	{
-		icon: <SiNodered size={60} style={{marginLeft: '5px', width: '60px'}}/>,
+		icon: <img src={vscLogo} alt="Visual Script" width="40px" height="40px" style={{marginLeft: '8px'}}/>,
 		name: "Visual Script",
 		desc: "file.visualScript",
-		padding: '25px'
+		padding: '22px'
 	},
 	{
 		icon: <img src={blocklyLogo} alt="Blockly" width="40px" height="40px" style={{marginLeft: '8px'}}/>,

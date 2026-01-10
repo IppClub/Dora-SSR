@@ -67,12 +67,7 @@ Scheduler::Scheduler()
 	, _actionList(Array::create()) { }
 
 Scheduler::~Scheduler() {
-	for (auto item : _updateList) {
-		item->target->release();
-	}
-	for (auto item : _fixedUpdateList) {
-		item->target->release();
-	}
+	cleanup();
 }
 
 void Scheduler::setFixedFPS(int var) {
