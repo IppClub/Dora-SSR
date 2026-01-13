@@ -1,0 +1,793 @@
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Using TIC80 Node
+
+The **TIC80Node** is a node class in Dora SSR that allows you to run TIC-80 cart files in your game scenes. It inherits from `Sprite`, which means you can use all the properties and methods available to sprite nodes, such as positioning, scaling, rotation, and more. TIC80Node provides a complete TIC-80 virtual machine environment, enabling you to integrate retro-style games and programs created with the TIC-80 fantasy console into your Dora SSR projects.
+
+This tutorial will guide you through using TIC80Node, including how to work with TIC-80 cart files, how to use the Web IDE integration for editing, and how to create and use TIC80Node instances in your game.
+
+## 1. TIC-80 Cart File Format
+
+[TIC-80](https://tic80.com) is a fantasy computer for making, playing, and sharing tiny games. TIC80Node allows you to run TIC-80 cart files directly in your Dora SSR projects. A TIC-80 cart file contains a complete game or program, including code, graphics, sound, and other resources.
+
+### 1.1 Supported File Formats
+
+TIC80Node supports two cart file formats:
+
+- **`.tic` format**: The native TIC-80 cart file format
+- **`.png` format**: TIC-80 carts can also be embedded in PNG images for easy sharing
+
+### 1.2 TIC80Node Features
+
+When running a TIC-80 cart through TIC80Node, you get:
+
+- **Full TIC-80 API support**: Complete access to TIC-80's drawing, sound, input, and other APIs
+- **Keyboard, controller, and touch input handling**: Automatic input mapping to TIC-80 controls
+- **Audio playback**: Full audio support through the TIC-80 sound engine
+- **Native resolution**: Runs at TIC-80's native resolution of 240x136 pixels
+- **Fixed frame rate**: Runs at 60 FPS, matching TIC-80's specification
+
+## 2. Using Web IDE to Edit TIC-80 Carts
+
+Dora SSR's Web IDE provides integrated support for TIC80 Studio, making it easy to edit TIC-80 cart files directly within your development environment.
+
+### 2.1 Opening TIC-80 Terminal
+
+To edit a TIC-80 cart file:
+
+1. In the Web IDE file tree, click on a `.tic` file
+2. The TIC80 Studio terminal will open, allowing you to edit the cart
+
+### 2.2 Uploading Cart to TIC80 Studio
+
+Once the TIC80 terminal is open, you can upload your cart file for editing:
+
+1. Type the `add` command in the TIC80 terminal
+2. This will upload the currently opened `.tic` cart file to the TIC80 Studio environment
+3. You can now edit the code, graphics, and audio resources using TIC80 Studio's tools
+
+### 2.3 Saving Changes Back to File
+
+After editing your cart in TIC80 Studio:
+
+1. Type `get <filename>` in the TIC80 terminal, where `<filename>` is the name of the cart file
+2. This will synchronize the edited cart back to your project's `.tic` file
+3. The changes are saved to the file system, ready to be used in your game
+
+### 2.4 Workflow Example
+
+Here's a typical workflow for editing a TIC-80 cart:
+
+1. **Open the cart file**: Click on `TIC80/game.tic` in the file tree
+2. **Upload to Studio**: Type `add` in the TIC80 terminal
+3. **Edit in Studio**: Use TIC80 Studio's editor to modify code, sprites, maps, sounds, etc.
+4. **Save changes**: Type `get game.tic` to save your changes back to the file
+5. **Use in game**: The updated cart file is now ready to be loaded by TIC80Node
+
+:::tip Tip
+This integrated workflow allows you to iterate quickly on TIC-80 games without leaving the Dora SSR development environment. You can edit, test, and refine your carts seamlessly.
+:::
+
+## 3. Creating a TIC80Node Instance
+
+### 3.1 Creating from a Cart File
+
+The simplest way to create a TIC80Node is to load a complete cart file. This cart file contains all the code, graphics, and audio needed to run the game.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local TIC80Node <const> = require("TIC80Node")
+
+-- Create a TIC80Node from a cart file
+local tic80Game = TIC80Node("TIC80/game.tic")
+
+if tic80Game then
+	-- Use the node
+	print("TIC80 cart loaded successfully")
+else
+	print("Failed to load TIC80 cart")
+end
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local TIC80Node <const> = require("TIC80Node")
+
+-- Create a TIC80Node from a cart file
+local tic80Game = TIC80Node("TIC80/game.tic")
+
+if not tic80Game is nil then
+	-- Use the node
+	print("TIC80 cart loaded successfully")
+else
+	print("Failed to load TIC80 cart")
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { TIC80Node } from "Dora";
+
+// Create a TIC80Node from a cart file
+const tic80Game = TIC80Node("TIC80/game.tic");
+
+if (tic80Game !== null) {
+	// Use the node
+	print("TIC80 cart loaded successfully");
+} else {
+	print("Failed to load TIC80 cart");
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+-- Create a TIC80Node from a cart file
+tic80Game = TIC80Node "TIC80/game.tic"
+
+if tic80Game
+	print "TIC80 cart loaded successfully"
+else
+	print "Failed to load TIC80 cart"
+```
+
+</TabItem>
+</Tabs>
+
+You can also load PNG-format cart files:
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+-- Load a PNG-format cart file
+local tic80Game = TIC80Node("TIC80/game.png")
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- Load a PNG-format cart file
+local tic80Game = TIC80Node("TIC80/game.png")
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// Load a PNG-format cart file
+const tic80Game = TIC80Node("TIC80/game.png");
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- Load a PNG-format cart file
+tic80Game = TIC80Node "TIC80/game.png"
+```
+
+</TabItem>
+</Tabs>
+
+:::warning Important
+If the cart file cannot be loaded or is invalid, `TIC80Node()` will return `nil` (or `null` in TypeScript). Always check if the node was created successfully before using it.
+:::
+
+### 3.2 Creating from Resource Cart and Code File
+
+You can also create a TIC80Node by combining a resource cart file (containing graphics and audio) with a separate code file. This approach is useful for development workflows where you want to edit code separately from resources.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local TIC80Node <const> = require("TIC80Node")
+
+-- Create a TIC80Node from a resource cart and a code file
+local tic80Game = TIC80Node("TIC80/resources.tic", "TIC80/game.lua")
+
+if tic80Game then
+	print("TIC80 cart loaded with external code")
+end
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local TIC80Node <const> = require("TIC80Node")
+
+-- Create a TIC80Node from a resource cart and a code file
+local tic80Game = TIC80Node("TIC80/resources.tic", "TIC80/game.lua")
+
+if not tic80Game is nil then
+	print("TIC80 cart loaded with external code")
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { TIC80Node } from "Dora";
+
+// Create a TIC80Node from a resource cart and a code file
+const tic80Game = TIC80Node("TIC80/resources.tic", "TIC80/game.lua");
+
+if (tic80Game !== null) {
+	print("TIC80 cart loaded with external code");
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+-- Create a TIC80Node from a resource cart and a code file
+tic80Game = TIC80Node "TIC80/resources.tic", "TIC80/game.lua"
+
+if tic80Game
+	print "TIC80 cart loaded with external code"
+```
+
+</TabItem>
+</Tabs>
+
+The code file can be in `.lua` or `.yue` format. The resource cart file provides the graphics, audio, and other resources, while the code file contains the game logic.
+
+## 4. Adding TIC80Node to the Scene
+
+Once you create a TIC80Node, you need to add it to the scene for it to be displayed and start running. Since TIC80Node inherits from Sprite, you can use all sprite properties and methods to control its display.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local TIC80Node <const> = require("TIC80Node")
+local Vec2 <const> = require("Vec2")
+
+-- Create a TIC80Node
+local tic80Game = TIC80Node("TIC80/game.tic")
+
+if tic80Game then
+	-- Set position
+	tic80Game.position = Vec2(400, 300)
+
+	-- Set anchor point (0.5, 0.5 centers the node)
+	tic80Game.anchor = Vec2(0.5, 0.5)
+
+	-- Add to scene
+	scene:addChild(tic80Game)
+end
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local TIC80Node <const> = require("TIC80Node")
+local Vec2 <const> = require("Vec2")
+
+-- Create a TIC80Node
+local tic80Game = TIC80Node("TIC80/game.tic")
+
+if not tic80Game is nil then
+	-- Set position
+	tic80Game.position = Vec2(400, 300)
+
+	-- Set anchor point (0.5, 0.5 centers the node)
+	tic80Game.anchor = Vec2(0.5, 0.5)
+
+	-- Add to scene
+	scene:addChild(tic80Game)
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { TIC80Node, Vec2 } from "Dora";
+
+// Create a TIC80Node
+const tic80Game = TIC80Node("TIC80/game.tic");
+
+if (tic80Game !== null) {
+	// Set position
+	tic80Game.position = Vec2(400, 300);
+
+	// Set anchor point (0.5, 0.5 centers the node)
+	tic80Game.anchor = Vec2(0.5, 0.5);
+
+	// Add to scene
+	scene.addChild(tic80Game);
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+-- Create a TIC80Node
+with TIC80Node "TIC80/game.tic"
+	-- Set position
+	.position = Vec2 400, 300
+
+	-- Set anchor point (0.5, 0.5 centers the node)
+	.anchor = Vec2 0.5, 0.5
+
+	-- Add to scene
+	scene\addChild @
+```
+
+</TabItem>
+</Tabs>
+
+You can also scale the TIC80Node to make it larger or smaller:
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+-- Scale the TIC80Node (240x136 native resolution)
+tic80Game.scaleX = 2.0  -- 2x width
+tic80Game.scaleY = 2.0  -- 2x height
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- Scale the TIC80Node (240x136 native resolution)
+tic80Game.scaleX = 2.0  -- 2x width
+tic80Game.scaleY = 2.0  -- 2x height
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// Scale the TIC80Node (240x136 native resolution)
+tic80Game.scaleX = 2.0;  // 2x width
+tic80Game.scaleY = 2.0;  // 2x height
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- Scale the TIC80Node (240x136 native resolution)
+tic80Game.scaleX = 2.0  -- 2x width
+tic80Game.scaleY = 2.0  -- 2x height
+```
+
+</TabItem>
+</Tabs>
+
+:::info Automatic Execution
+Once a TIC80Node is added to the scene, the TIC-80 cart will start running automatically at 60 FPS. The cart will continue running as long as the node remains in the scene tree.
+:::
+
+## 5. Helper Methods
+
+TIC80Node provides several static helper methods for working with TIC-80 cart files.
+
+### 5.1 Extracting Code from a Cart
+
+You can extract the code from a cart file using the `codeFromCart` method:
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local TIC80Node <const> = require("TIC80Node")
+
+-- Extract code from a cart file
+local code = TIC80Node:codeFromCart("TIC80/game.tic")
+print(code)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local TIC80Node <const> = require("TIC80Node")
+
+-- Extract code from a cart file
+local code = TIC80Node:codeFromCart("TIC80/game.tic")
+print(code)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { TIC80Node } from "Dora";
+
+// Extract code from a cart file
+const code = TIC80Node.codeFromCart("TIC80/game.tic");
+print(code);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+-- Extract code from a cart file
+code = TIC80Node\codeFromCart "TIC80/game.tic"
+print code
+```
+
+</TabItem>
+</Tabs>
+
+### 5.2 Merging Resources and Code into a .tic File
+
+The `mergeTic` method allows you to combine a resource cart file with a code file and save it as a `.tic` file:
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local TIC80Node <const> = require("TIC80Node")
+
+-- Merge resource cart and code file into a .tic file
+local success = TIC80Node:mergeTic(
+	"TIC80/output.tic",
+	"TIC80/resources.tic",
+	"TIC80/game.lua"
+)
+
+if success then
+	print("Cart file created successfully")
+else
+	print("Failed to create cart file")
+end
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local TIC80Node <const> = require("TIC80Node")
+
+-- Merge resource cart and code file into a .tic file
+local success = TIC80Node:mergeTic(
+	"TIC80/output.tic",
+	"TIC80/resources.tic",
+	"TIC80/game.lua"
+)
+
+if success then
+	print("Cart file created successfully")
+else
+	print("Failed to create cart file")
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { TIC80Node } from "Dora";
+
+// Merge resource cart and code file into a .tic file
+const success = TIC80Node.mergeTic(
+	"TIC80/output.tic",
+	"TIC80/resources.tic",
+	"TIC80/game.lua"
+);
+
+if (success) {
+	print("Cart file created successfully");
+} else {
+	print("Failed to create cart file");
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+-- Merge resource cart and code file into a .tic file
+success = TIC80Node\mergeTic(
+	"TIC80/output.tic",
+	"TIC80/resources.tic",
+	"TIC80/game.lua"
+)
+
+if success
+	print "Cart file created successfully"
+else
+	print "Failed to create cart file"
+```
+
+</TabItem>
+</Tabs>
+
+### 5.3 Merging into a .png File
+
+The `mergePng` method allows you to create a PNG-format cart file with an optional cover image:
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local TIC80Node <const> = require("TIC80Node")
+
+-- Merge into a .png cart file with cover image
+local success = TIC80Node:mergePng(
+	"TIC80/output.png",
+	"TIC80/cover.png",
+	"TIC80/resources.tic",
+	"TIC80/game.lua"  -- Optional: if omitted, uses code from resource cart
+)
+
+-- Or without code file (uses code from resource cart)
+local success2 = TIC80Node:mergePng(
+	"TIC80/output.png",
+	"TIC80/cover.png",
+	"TIC80/resources.tic"
+)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local TIC80Node <const> = require("TIC80Node")
+
+-- Merge into a .png cart file with cover image
+local success = TIC80Node:mergePng(
+	"TIC80/output.png",
+	"TIC80/cover.png",
+	"TIC80/resources.tic",
+	"TIC80/game.lua"  -- Optional: if omitted, uses code from resource cart
+)
+
+-- Or without code file (uses code from resource cart)
+local success2 = TIC80Node:mergePng(
+	"TIC80/output.png",
+	"TIC80/cover.png",
+	"TIC80/resources.tic"
+)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { TIC80Node } from "Dora";
+
+// Merge into a .png cart file with cover image
+const success = TIC80Node.mergePng(
+	"TIC80/output.png",
+	"TIC80/cover.png",
+	"TIC80/resources.tic",
+	"TIC80/game.lua"  // Optional: if omitted, uses code from resource cart
+);
+
+// Or without code file (uses code from resource cart)
+const success2 = TIC80Node.mergePng(
+	"TIC80/output.png",
+	"TIC80/cover.png",
+	"TIC80/resources.tic"
+);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+-- Merge into a .png cart file with cover image
+success = TIC80Node\mergePng(
+	"TIC80/output.png",
+	"TIC80/cover.png",
+	"TIC80/resources.tic",
+	"TIC80/game.lua"  -- Optional: if omitted, uses code from resource cart
+)
+
+-- Or without code file (uses code from resource cart)
+success2 = TIC80Node\mergePng(
+	"TIC80/output.png",
+	"TIC80/cover.png",
+	"TIC80/resources.tic"
+)
+```
+
+</TabItem>
+</Tabs>
+
+## 6. Notes and Best Practices
+
+### 6.1 Obtaining Cart Files
+
+TIC-80 cart files can be obtained in several ways:
+
+- **Create your own**: Use the TIC-80 editor (or Web IDE integration) to create games
+- **Download from community**: Many TIC-80 games are available from the [TIC-80 community](https://tic80.com/play)
+- **Export from TIC-80**: If you're developing in the standalone TIC-80 editor, export your cart as a `.tic` or `.png` file
+
+### 6.2 Input Handling
+
+TIC80Node automatically handles input mapping:
+
+- **Keyboard**: Standard keyboard input is automatically mapped to TIC-80 controls
+- **Game Controllers**: Controller input is mapped to TIC-80's gamepad API
+- **Touch Input**: Touch events are mapped to TIC-80's mouse/touch API
+
+### 6.3 Performance Considerations
+
+- **Fixed Frame Rate**: TIC80Node runs at a fixed 60 FPS, matching TIC-80's specification. This ensures consistent gameplay timing.
+- **Resolution**: The native resolution is 240x136 pixels. You can scale the node, but the internal rendering remains at this resolution.
+- **Resource Usage**: Each TIC80Node instance runs a complete TIC-80 virtual machine, so having many instances may impact performance.
+
+### 6.4 Web IDE Integration Workflow
+
+Using the Web IDE integration provides several advantages:
+
+- **Seamless editing**: Edit carts directly within your development environment
+- **Quick iteration**: Use `add` and `get` commands to quickly test changes
+- **Integrated workflow**: No need to switch between different tools
+- **Version control friendly**: Cart files are regular project files that work with version control
+
+## 7. Complete Example
+
+Here's a complete example that demonstrates creating and using a TIC80Node:
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local TIC80Node <const> = require("TIC80Node")
+local Vec2 <const> = require("Vec2")
+
+-- Create a TIC80Node from a cart file
+local tic80Game = TIC80Node("TIC80/demo.tic")
+
+if tic80Game then
+	-- Center the game on screen
+	local visualSize = App.visualSize
+	tic80Game.position = Vec2(visualSize.width / 2, visualSize.height / 2)
+
+	-- Set anchor point to center
+	tic80Game.anchor = Vec2(0.5, 0.5)
+
+	-- Scale to 2x size
+	tic80Game.scaleX = 2.0
+	tic80Game.scaleY = 2.0
+
+	-- Add to scene (game will start running automatically)
+	scene:addChild(tic80Game)
+
+	print("TIC-80 game is running!")
+else
+	print("Failed to load TIC-80 cart file")
+end
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local TIC80Node <const> = require("TIC80Node")
+local Vec2 <const> = require("Vec2")
+
+-- Create a TIC80Node from a cart file
+local tic80Game = TIC80Node("TIC80/demo.tic")
+
+if not tic80Game is nil then
+	-- Center the game on screen
+	local visualSize = App.visualSize
+	tic80Game.position = Vec2(visualSize.width / 2, visualSize.height / 2)
+
+	-- Set anchor point to center
+	tic80Game.anchor = Vec2(0.5, 0.5)
+
+	-- Scale to 2x size
+	tic80Game.scaleX = 2.0
+	tic80Game.scaleY = 2.0
+
+	-- Add to scene (game will start running automatically)
+	scene:addChild(tic80Game)
+
+	print("TIC-80 game is running!")
+else
+	print("Failed to load TIC-80 cart file")
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { TIC80Node, Vec2, App } from "Dora";
+
+// Create a TIC80Node from a cart file
+const tic80Game = TIC80Node("TIC80/demo.tic");
+
+if (tic80Game !== null) {
+	// Center the game on screen
+	const visualSize = App.visualSize;
+	tic80Game.position = Vec2(visualSize.width / 2, visualSize.height / 2);
+
+	// Set anchor point to center
+	tic80Game.anchor = Vec2(0.5, 0.5);
+
+	// Scale to 2x size
+	tic80Game.scaleX = 2.0;
+	tic80Game.scaleY = 2.0;
+
+	// Add to scene (game will start running automatically)
+	scene.addChild(tic80Game);
+
+	print("TIC-80 game is running!");
+} else {
+	print("Failed to load TIC-80 cart file");
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+-- Create a TIC80Node from a cart file
+with TIC80Node "TIC80/demo.tic"
+	-- Center the game on screen
+	visualSize = App.visualSize
+	.position = Vec2 visualSize.width / 2, visualSize.height / 2
+
+	-- Set anchor point to center
+	.anchor = Vec2 0.5, 0.5
+
+	-- Scale to 2x size
+	.scaleX = 2.0
+	.scaleY = 2.0
+
+	-- Add to scene (game will start running automatically)
+	scene\addChild @
+
+	print "TIC-80 game is running!"
+```
+
+</TabItem>
+</Tabs>
+
+## 8. Conclusion
+
+In this tutorial, you learned how to:
+
+- Understand TIC-80 cart file formats and TIC80Node features
+- Use the Web IDE integration to edit TIC-80 carts with `add` and `get` commands
+- Create TIC80Node instances from cart files or by combining resource carts with code files
+- Add TIC80Node to scenes and control its display properties
+- Use helper methods to extract code and merge resources into cart files
+- Follow best practices for working with TIC-80 carts in Dora SSR
+
+TIC80Node provides a powerful way to integrate retro-style games and programs into your Dora SSR projects. The Web IDE integration makes it easy to develop and iterate on TIC-80 carts, while the node system allows you to seamlessly integrate them into your game scenes.
+
+For more information about TIC80Node, refer to the [TIC80Node API documentation](/docs/api/Class/TIC80Node).

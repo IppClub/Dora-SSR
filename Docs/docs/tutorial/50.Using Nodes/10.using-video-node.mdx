@@ -1,0 +1,528 @@
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Using Video Node
+
+The **VideoNode** is a node class in Dora SSR that allows you to play video files in your game scenes. It inherits from `Sprite`, which means you can use all the properties and methods available to sprite nodes, such as positioning, scaling, rotation, and more. Once a VideoNode is mounted to the game scene, it will automatically start playing the video and continue playing until the node is removed from the scene.
+
+This tutorial will guide you through using VideoNode, including how to prepare video files in the correct format and how to use VideoNode in your game.
+
+## 1. Video Format Requirements
+
+Before using VideoNode, you need to prepare your video files in the correct format. VideoNode supports H.264 encoded video files with specific requirements:
+
+### 1.1 Supported Video Format
+
+- **Video codec**: H.264 / AVC only (H.265/HEVC, VP9, AV1, etc. are not supported)
+- **Bitstream format**: Annex-B byte stream format is required (NAL units separated by `0x000001` or `0x00000001` start codes)
+  - MP4/FLV-style AVCC (length-prefixed NAL units) is NOT supported unless converted to Annex-B beforehand
+- **Stream type**: Video-only elementary stream is recommended (audio tracks, if any, are ignored)
+- **Profile/level**: Baseline / Constrained Baseline profile is recommended for maximum compatibility
+- **Frame type**: Progressive frames only (no interlaced/field-coded content)
+- **B-frames**: No B-frames is recommended (e.g., baseline) to avoid output reordering costs
+- **Color format**: YUV 4:2:0 (8-bit) is recommended; other chroma formats may be unsupported
+- **Frame rate**: Constant frame rate (CFR) is recommended; variable frame rate streams may play with unstable timing
+- **Resolution/performance**:
+  - 4K and high-bitrate streams may be CPU intensive for software decoding
+  - For smooth playback on mid-range devices, 720p/1080p and moderate bitrates are recommended
+
+### 1.2 Converting Videos Using FFmpeg
+
+It is recommended to use the `ffmpeg` tool to convert video files to the required H.264 format. Here are some example commands:
+
+#### Converting MP4 to H.264 Annex-B Format
+
+```bash
+# Basic conversion: Extract video stream and convert to H.264 Annex-B format
+ffmpeg -i input.mp4 -c:v libx264 -profile:v baseline -level 3.0 -pix_fmt yuv420p -an -bsf:v h264_mp4toannexb output.h264
+
+# With specific resolution and bitrate (recommended for better performance)
+ffmpeg -i input.mp4 -c:v libx264 -profile:v baseline -level 3.0 -pix_fmt yuv420p -s 1280x720 -b:v 2M -r 30 -an -bsf:v h264_mp4toannexb output.h264
+
+# For 1080p video
+ffmpeg -i input.mp4 -c:v libx264 -profile:v baseline -level 3.1 -pix_fmt yuv420p -s 1920x1080 -b:v 4M -r 30 -an -bsf:v h264_mp4toannexb output.h264
+```
+
+**Parameter explanations:**
+- `-c:v libx264`: Use H.264 codec
+- `-profile:v baseline`: Use Baseline profile for maximum compatibility
+- `-level 3.0` or `3.1`: Set H.264 level (adjust based on resolution)
+- `-pix_fmt yuv420p`: Set pixel format to YUV 4:2:0
+- `-s 1280x720`: Set resolution (optional, adjust as needed)
+- `-b:v 2M`: Set video bitrate (optional, adjust as needed)
+- `-r 30`: Set frame rate to 30 fps (optional, adjust as needed)
+- `-an`: Remove audio track
+- `-bsf:v h264_mp4toannexb`: Convert from MP4 format to Annex-B format (critical!)
+
+#### Converting Other Formats
+
+```bash
+# Convert from AVI
+ffmpeg -i input.avi -c:v libx264 -profile:v baseline -level 3.0 -pix_fmt yuv420p -an -bsf:v h264_mp4toannexb output.h264
+
+# Convert from MOV
+ffmpeg -i input.mov -c:v libx264 -profile:v baseline -level 3.0 -pix_fmt yuv420p -an -bsf:v h264_mp4toannexb output.h264
+```
+
+:::tip Tip
+After conversion, make sure the output file has the `.h264` extension. Place the converted video file in your project's resource directory so it can be loaded by VideoNode.
+:::
+
+## 2. Creating a VideoNode Instance
+
+To create a VideoNode, you need to provide the path to the video file. The VideoNode constructor accepts two parameters:
+
+- `filename`: The path to the video file (should have `.h264` extension)
+- `looped`: (Optional) Whether the video should loop. Default is `false`
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local VideoNode <const> = require("VideoNode")
+
+-- Create a VideoNode that plays once
+local video = VideoNode("assets/video.h264")
+
+-- Create a VideoNode that loops
+local loopingVideo = VideoNode("assets/video.h264", true)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local VideoNode <const> = require("VideoNode")
+
+-- Create a VideoNode that plays once
+local video = VideoNode("assets/video.h264")
+
+-- Create a VideoNode that loops
+local loopingVideo = VideoNode("assets/video.h264", true)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { VideoNode } from "Dora";
+
+// Create a VideoNode that plays once
+const video = VideoNode("assets/video.h264");
+
+// Create a VideoNode that loops
+const loopingVideo = VideoNode("assets/video.h264", true);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+-- Create a VideoNode that plays once
+video = VideoNode "assets/video.h264"
+
+-- Create a VideoNode that loops
+loopingVideo = VideoNode "assets/video.h264", true
+```
+
+</TabItem>
+</Tabs>
+
+:::warning Important
+If the video file cannot be loaded or the format is incorrect, `VideoNode()` will return `nil` (or `null` in TypeScript). Always check if the node was created successfully before using it.
+:::
+
+## 3. Mounting VideoNode to the Scene
+
+Once you create a VideoNode instance, you need to mount it to the game scene for it to be displayed and start playing. When a VideoNode is mounted to the scene, it will automatically begin playing the video and continue playing until the node is removed from the scene.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local VideoNode <const> = require("VideoNode")
+local Vec2 <const> = require("Vec2")
+
+-- Create a VideoNode
+local video = VideoNode("assets/video.h264")
+
+if video then
+	-- Set position
+	video.position = Vec2(400, 300)
+
+	-- Mount to the scene (video will start playing automatically)
+	-- The video will continue playing as long as the node is in the scene
+end
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local VideoNode <const> = require("VideoNode")
+local Vec2 <const> = require("Vec2")
+
+-- Create a VideoNode
+local video = VideoNode("assets/video.h264")
+
+if not video is nil then
+	-- Set position
+	video.position = Vec2(400, 300)
+
+	-- Mount to the scene (video will start playing automatically)
+	-- The video will continue playing as long as the node is in the scene
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { VideoNode, Vec2 } from "Dora";
+
+// Create a VideoNode
+const video = VideoNode("assets/video.h264");
+
+if (video) {
+	// Set position
+	video.position = Vec2(400, 300);
+
+	// Mount to the scene (video will start playing automatically)
+	// The video will continue playing as long as the node is in the scene
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+-- Create a VideoNode
+with VideoNode "assets/video.h264"
+	-- Set position
+	.position = Vec2 400, 300
+
+	-- Mount to the scene (video will start playing automatically)
+	-- The video will continue playing as long as the node is in the scene
+```
+
+</TabItem>
+</Tabs>
+
+:::info Automatic Playback
+Once a VideoNode is mounted to the game scene, it will automatically start playing the video. The video will continue playing frame by frame as long as the node remains in the scene tree. If you set `looped` to `true`, the video will automatically restart from the beginning when it reaches the end.
+:::
+
+## 4. Controlling Video Playback
+
+Since VideoNode inherits from Sprite, you can use all sprite properties and methods to control the video display:
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local VideoNode <const> = require("VideoNode")
+local Vec2 <const> = require("Vec2")
+local Scale <const> = require("Scale")
+
+local video = VideoNode("assets/video.h264", true) -- Loop enabled
+
+if video then
+	-- Position the video
+	video.position = Vec2(400, 300)
+
+	-- Scale the video
+	video.scaleX = 0.5
+	video.scaleY = 0.5
+
+	-- Rotate the video
+	video.angle = 45
+
+	-- Set opacity
+	video.opacity = 0.8
+
+	-- Or use action to animate
+	video:perform(Scale(2.0, 0.5, 1.0)) -- Scale from 0.5 to 2.0 over 1 second
+end
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local VideoNode <const> = require("VideoNode")
+local Vec2 <const> = require("Vec2")
+local Scale <const> = require("Scale")
+
+local video = VideoNode("assets/video.h264", true) -- Loop enabled
+
+if not video is nil then
+	-- Position the video
+	video.position = Vec2(400, 300)
+
+	-- Scale the video
+	video.scaleX = 0.5
+	video.scaleY = 0.5
+
+	-- Rotate the video
+	video.angle = 45
+
+	-- Set opacity
+	video.opacity = 0.8
+
+	-- Or use action to animate
+	video:perform(Scale(2.0, 0.5, 1.0)) -- Scale from 0.5 to 2.0 over 1 second
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { VideoNode, Vec2, Scale } from "Dora";
+
+const video = VideoNode("assets/video.h264", true); // Loop enabled
+
+if (video) {
+	// Position the video
+	video.position = Vec2(400, 300);
+
+	// Scale the video
+	video.scaleX = 0.5;
+	video.scaleY = 0.5;
+
+	// Rotate the video
+	video.angle = 45;
+
+	// Set opacity
+	video.opacity = 0.8;
+
+	// Or use action to animate
+	video.perform(Scale(2.0, 0.5, 1.0)); // Scale from 0.5 to 2.0 over 1 second
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+with VideoNode "assets/video.h264", true -- Loop enabled
+	-- Position the video
+	.position = Vec2 400, 300
+
+	-- Scale the video
+	.scaleX = 0.5
+	.scaleY = 0.5
+
+	-- Rotate the video
+	.angle = 45
+
+	-- Set opacity
+	.opacity = 0.8
+
+	-- Or use action to animate
+	\perform Scale 2.0, 0.5, 1.0 -- Scale from 0.5 to 2.0 over 1 second
+```
+
+</TabItem>
+</Tabs>
+
+## 5. Removing VideoNode from Scene
+
+To stop the video playback, simply remove the VideoNode from the scene:
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+-- Remove the video node from its parent (stops playback)
+video:removeFromParent()
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- Remove the video node from its parent (stops playback)
+video:removeFromParent()
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// Remove the video node from its parent (stops playback)
+video.removeFromParent();
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- Remove the video node from its parent (stops playback)
+video\removeFromParent()
+```
+
+</TabItem>
+</Tabs>
+
+## 6. Complete Example
+
+Here's a complete example that demonstrates creating a VideoNode, positioning it, and handling it in a game scene:
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local VideoNode <const> = require("VideoNode")
+local Vec2 <const> = require("Vec2")
+local Size <const> = require("Size")
+
+-- Create a looping video node
+local video = VideoNode("assets/background_video.h264", true)
+
+if video then
+	-- Center the video on screen
+	local visualSize = App.visualSize
+	video.position = Vec2(visualSize.width / 2, visualSize.height / 2)
+
+	-- Set anchor point to center
+	video.anchor = Vec2(0.5, 0.5)
+
+	-- Scale to fit screen if needed
+	local videoSize = video.size
+	local scaleX = visualSize.width / videoSize.width
+	local scaleY = visualSize.height / videoSize.height
+	local scale = math.min(scaleX, scaleY)
+	video.scaleX = scale
+	video.scaleY = scale
+
+	-- Video will start playing automatically when mounted to scene
+	-- It will continue playing and loop as long as the node is in the scene
+end
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local VideoNode <const> = require("VideoNode")
+local Vec2 <const> = require("Vec2")
+local Size <const> = require("Size")
+
+-- Create a looping video node
+local video = VideoNode("assets/background_video.h264", true)
+
+if not video is nil then
+	-- Center the video on screen
+	local visualSize = App.visualSize
+	video.position = Vec2(visualSize.width / 2, visualSize.height / 2)
+
+	-- Set anchor point to center
+	video.anchor = Vec2(0.5, 0.5)
+
+	-- Scale to fit screen if needed
+	local videoSize = video.size
+	local scaleX = visualSize.width / videoSize.width
+	local scaleY = visualSize.height / videoSize.height
+	local scale = math.min(scaleX, scaleY)
+	video.scaleX = scale
+	video.scaleY = scale
+
+	-- Video will start playing automatically when mounted to scene
+	-- It will continue playing and loop as long as the node is in the scene
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { VideoNode, Vec2, Size, App } from "Dora";
+
+// Create a looping video node
+const video = VideoNode("assets/background_video.h264", true);
+
+if (video) {
+	// Center the video on screen
+	const visualSize = App.visualSize;
+	video.position = Vec2(visualSize.width / 2, visualSize.height / 2);
+
+	// Set anchor point to center
+	video.anchor = Vec2(0.5, 0.5);
+
+	// Scale to fit screen if needed
+	const videoSize = video.size;
+	const scaleX = visualSize.width / videoSize.width;
+	const scaleY = visualSize.height / videoSize.height;
+	const scale = Math.min(scaleX, scaleY);
+	video.scaleX = scale;
+	video.scaleY = scale;
+
+	// Video will start playing automatically when mounted to scene
+	// It will continue playing and loop as long as the node is in the scene
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+-- Create a looping video node
+with VideoNode "assets/background_video.h264", true
+	-- Center the video on screen
+	visualSize = App.visualSize
+	.position = Vec2 visualSize.width / 2, visualSize.height / 2
+
+	-- Set anchor point to center
+	.anchor = Vec2 0.5, 0.5
+
+	-- Scale to fit screen if needed
+	videoSize = .size
+	scaleX = visualSize.width / videoSize.width
+	scaleY = visualSize.height / videoSize.height
+	scale = math.min scaleX, scaleY
+	.scaleX = scale
+	.scaleY = scale
+
+	-- Video will start playing automatically when mounted to scene
+	-- It will continue playing and loop as long as the node is in the scene
+```
+
+</TabItem>
+</Tabs>
+
+## 7. Performance Considerations
+
+When using VideoNode, keep the following performance tips in mind:
+
+1. **Resolution**: Use appropriate resolutions (720p or 1080p) for your target devices. Higher resolutions require more CPU power for decoding.
+
+2. **Bitrate**: Moderate bitrates provide a good balance between quality and performance. Very high bitrates can cause stuttering on lower-end devices.
+
+3. **Frame Rate**: Constant frame rates (CFR) are recommended. Variable frame rates may cause timing issues.
+
+4. **Multiple Videos**: Playing multiple videos simultaneously can be CPU intensive. Consider limiting the number of concurrent VideoNodes.
+
+5. **Background Processing**: VideoNode uses a background thread for decoding, which helps maintain smooth gameplay, but still requires CPU resources.
+
+## 8. Conclusion
+
+In this tutorial, you learned how to:
+
+- Prepare video files in the correct H.264 Annex-B format using FFmpeg
+- Create VideoNode instances
+- Mount VideoNodes to the game scene (which automatically starts playback)
+- Control video display using Sprite properties
+- Handle video looping
+
+Remember that VideoNode will automatically start playing when mounted to the scene and continue playing as long as it remains in the scene tree. This makes it perfect for background videos, cutscenes, or any scenario where you need continuous video playback in your game.
+
+For more information about VideoNode, refer to the [VideoNode API documentation](/docs/api/Class/VideoNode).

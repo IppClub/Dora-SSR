@@ -1,0 +1,793 @@
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# 使用 TIC80 节点
+
+**TIC80Node** 是 Dora SSR 引擎中的节点类，允许您在游戏场景中运行 TIC-80 卡带文件。它继承自 `Sprite`，这意味着您可以使用所有精灵节点可用的属性和方法，例如定位、缩放、旋转等。TIC80Node 提供了完整的 TIC-80 虚拟机环境，使您能够将在 TIC-80 幻想游戏机上创建的复古风格游戏和程序集成到 Dora SSR 项目中。
+
+本教程将指导您如何使用 TIC80Node，包括如何处理 TIC-80 卡带文件、如何使用 Web IDE 集成进行编辑，以及如何在游戏中创建和使用 TIC80Node 实例。
+
+## 1. TIC-80 卡带文件格式
+
+[TIC-80](https://tic80.com) 是一个用于制作、游玩和分享小游戏的幻想计算机。TIC80Node 允许您直接在 Dora SSR 项目中运行 TIC-80 卡带文件。TIC-80 卡带文件包含完整的游戏或程序，包括代码、图形、声音和其他资源。
+
+### 1.1 支持的文件格式
+
+TIC80Node 支持两种卡带文件格式：
+
+- **`.tic` 格式**：TIC-80 的原生卡带文件格式
+- **`.png` 格式**：TIC-80 卡带也可以嵌入到 PNG 图像中，方便分享
+
+### 1.2 TIC80Node 特性
+
+通过 TIC80Node 运行 TIC-80 卡带时，您将获得：
+
+- **完整的 TIC-80 API 支持**：完全访问 TIC-80 的绘制、声音、输入和其他 API
+- **键盘、手柄和触摸输入处理**：自动将输入映射到 TIC-80 控制
+- **音频播放**：通过 TIC-80 声音引擎提供完整的音频支持
+- **原生分辨率**：以 TIC-80 的原生分辨率 240x136 像素运行
+- **固定帧率**：以 60 FPS 运行，符合 TIC-80 的规范
+
+## 2. 使用 Web IDE 编辑 TIC-80 卡带
+
+Dora SSR 的 Web IDE 提供了对 TIC80 Studio 的集成支持，使您可以直接在开发环境中轻松编辑 TIC-80 卡带文件。
+
+### 2.1 打开 TIC-80 终端
+
+要编辑 TIC-80 卡带文件：
+
+1. 在 Web IDE 文件树中，点击一个 `.tic` 文件
+2. TIC80 Studio 终端将打开，允许您编辑卡带
+
+### 2.2 上传卡带到 TIC80 Studio
+
+打开 TIC80 终端后，您可以上传卡带文件进行编辑：
+
+1. 在 TIC80 终端中输入 `add` 命令
+2. 这将把当前打开的 `.tic` 卡带文件上传到 TIC80 Studio 环境
+3. 您现在可以使用 TIC80 Studio 的工具编辑代码、图形和音频资源
+
+### 2.3 将更改保存回文件
+
+在 TIC80 Studio 中编辑卡带后：
+
+1. 在 TIC80 终端中输入 `get <文件名>`，其中 `<文件名>` 是卡带文件的名称
+2. 这将把编辑后的卡带同步回项目的 `.tic` 文件
+3. 更改已保存到文件系统，可以在游戏中使用
+
+### 2.4 工作流程示例
+
+以下是编辑 TIC-80 卡带的典型工作流程：
+
+1. **打开卡带文件**：在文件树中点击 `TIC80/game.tic`
+2. **上传到 Studio**：在 TIC80 终端中输入 `add`
+3. **在 Studio 中编辑**：使用 TIC80 Studio 的编辑器修改代码、精灵、地图、声音等
+4. **保存更改**：输入 `get game.tic` 将更改保存回文件
+5. **在游戏中使用**：更新后的卡带文件现在可以由 TIC80Node 加载
+
+:::tip 提示
+这种集成的工作流程允许您在不离开 Dora SSR 开发环境的情况下快速迭代 TIC-80 游戏。您可以无缝地编辑、测试和完善您的卡带。
+:::
+
+## 3. 创建 TIC80Node 实例
+
+### 3.1 从卡带文件创建
+
+创建 TIC80Node 的最简单方法是加载完整的卡带文件。该卡带文件包含运行游戏所需的所有代码、图形和音频。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local TIC80Node <const> = require("TIC80Node")
+
+-- 从卡带文件创建 TIC80Node
+local tic80Game = TIC80Node("TIC80/game.tic")
+
+if tic80Game then
+	-- 使用节点
+	print("TIC80 卡带加载成功")
+else
+	print("加载 TIC80 卡带失败")
+end
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local TIC80Node <const> = require("TIC80Node")
+
+-- 从卡带文件创建 TIC80Node
+local tic80Game = TIC80Node("TIC80/game.tic")
+
+if not tic80Game is nil then
+	-- 使用节点
+	print("TIC80 卡带加载成功")
+else
+	print("加载 TIC80 卡带失败")
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { TIC80Node } from "Dora";
+
+// 从卡带文件创建 TIC80Node
+const tic80Game = TIC80Node("TIC80/game.tic");
+
+if (tic80Game !== null) {
+	// 使用节点
+	print("TIC80 卡带加载成功");
+} else {
+	print("加载 TIC80 卡带失败");
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+-- 从卡带文件创建 TIC80Node
+tic80Game = TIC80Node "TIC80/game.tic"
+
+if tic80Game
+	print "TIC80 卡带加载成功"
+else
+	print "加载 TIC80 卡带失败"
+```
+
+</TabItem>
+</Tabs>
+
+您也可以加载 PNG 格式的卡带文件：
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+-- 加载 PNG 格式的卡带文件
+local tic80Game = TIC80Node("TIC80/game.png")
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- 加载 PNG 格式的卡带文件
+local tic80Game = TIC80Node("TIC80/game.png")
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// 加载 PNG 格式的卡带文件
+const tic80Game = TIC80Node("TIC80/game.png");
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- 加载 PNG 格式的卡带文件
+tic80Game = TIC80Node "TIC80/game.png"
+```
+
+</TabItem>
+</Tabs>
+
+:::warning 重要提示
+如果卡带文件无法加载或无效，`TIC80Node()` 将返回 `nil`（在 TypeScript 中为 `null`）。在使用之前，请务必检查节点是否创建成功。
+:::
+
+### 3.2 从资源卡带和代码文件创建
+
+您也可以通过组合资源卡带文件（包含图形和音频）和单独的代码文件来创建 TIC80Node。这种方法适用于您希望将代码与资源分开编辑的开发工作流程。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local TIC80Node <const> = require("TIC80Node")
+
+-- 从资源卡带和代码文件创建 TIC80Node
+local tic80Game = TIC80Node("TIC80/resources.tic", "TIC80/game.lua")
+
+if tic80Game then
+	print("使用外部代码加载了 TIC80 卡带")
+end
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local TIC80Node <const> = require("TIC80Node")
+
+-- 从资源卡带和代码文件创建 TIC80Node
+local tic80Game = TIC80Node("TIC80/resources.tic", "TIC80/game.lua")
+
+if not tic80Game is nil then
+	print("使用外部代码加载了 TIC80 卡带")
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { TIC80Node } from "Dora";
+
+// 从资源卡带和代码文件创建 TIC80Node
+const tic80Game = TIC80Node("TIC80/resources.tic", "TIC80/game.lua");
+
+if (tic80Game !== null) {
+	print("使用外部代码加载了 TIC80 卡带");
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+-- 从资源卡带和代码文件创建 TIC80Node
+tic80Game = TIC80Node "TIC80/resources.tic", "TIC80/game.lua"
+
+if tic80Game
+	print "使用外部代码加载了 TIC80 卡带"
+```
+
+</TabItem>
+</Tabs>
+
+代码文件可以是 `.lua` 或 `.yue` 格式。资源卡带文件提供图形、音频和其他资源，而代码文件包含游戏逻辑。
+
+## 4. 将 TIC80Node 添加到场景
+
+创建 TIC80Node 后，您需要将其添加到场景中才能显示并开始运行。由于 TIC80Node 继承自 Sprite，您可以使用所有精灵属性和方法来控制其显示。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local TIC80Node <const> = require("TIC80Node")
+local Vec2 <const> = require("Vec2")
+
+-- 创建 TIC80Node
+local tic80Game = TIC80Node("TIC80/game.tic")
+
+if tic80Game then
+	-- 设置位置
+	tic80Game.position = Vec2(400, 300)
+
+	-- 设置锚点（0.5, 0.5 将节点居中）
+	tic80Game.anchor = Vec2(0.5, 0.5)
+
+	-- 添加到场景
+	scene:addChild(tic80Game)
+end
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local TIC80Node <const> = require("TIC80Node")
+local Vec2 <const> = require("Vec2")
+
+-- 创建 TIC80Node
+local tic80Game = TIC80Node("TIC80/game.tic")
+
+if not tic80Game is nil then
+	-- 设置位置
+	tic80Game.position = Vec2(400, 300)
+
+	-- 设置锚点（0.5, 0.5 将节点居中）
+	tic80Game.anchor = Vec2(0.5, 0.5)
+
+	-- 添加到场景
+	scene:addChild(tic80Game)
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { TIC80Node, Vec2 } from "Dora";
+
+// 创建 TIC80Node
+const tic80Game = TIC80Node("TIC80/game.tic");
+
+if (tic80Game !== null) {
+	// 设置位置
+	tic80Game.position = Vec2(400, 300);
+
+	// 设置锚点（0.5, 0.5 将节点居中）
+	tic80Game.anchor = Vec2(0.5, 0.5);
+
+	// 添加到场景
+	scene.addChild(tic80Game);
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+-- 创建 TIC80Node
+with TIC80Node "TIC80/game.tic"
+	-- 设置位置
+	.position = Vec2 400, 300
+
+	-- 设置锚点（0.5, 0.5 将节点居中）
+	.anchor = Vec2 0.5, 0.5
+
+	-- 添加到场景
+	scene\addChild @
+```
+
+</TabItem>
+</Tabs>
+
+您也可以缩放 TIC80Node 使其更大或更小：
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+-- 缩放 TIC80Node（240x136 原生分辨率）
+tic80Game.scaleX = 2.0  -- 2 倍宽度
+tic80Game.scaleY = 2.0  -- 2 倍高度
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- 缩放 TIC80Node（240x136 原生分辨率）
+tic80Game.scaleX = 2.0  -- 2 倍宽度
+tic80Game.scaleY = 2.0  -- 2 倍高度
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// 缩放 TIC80Node（240x136 原生分辨率）
+tic80Game.scaleX = 2.0;  // 2 倍宽度
+tic80Game.scaleY = 2.0;  // 2 倍高度
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- 缩放 TIC80Node（240x136 原生分辨率）
+tic80Game.scaleX = 2.0  -- 2 倍宽度
+tic80Game.scaleY = 2.0  -- 2 倍高度
+```
+
+</TabItem>
+</Tabs>
+
+:::info 自动执行
+一旦 TIC80Node 被添加到场景中，TIC-80 卡带将自动以 60 FPS 开始运行。只要节点仍在场景树中，卡带就会继续运行。
+:::
+
+## 5. 辅助方法
+
+TIC80Node 提供了多个静态辅助方法，用于处理 TIC-80 卡带文件。
+
+### 5.1 从卡带中提取代码
+
+您可以使用 `codeFromCart` 方法从卡带文件中提取代码：
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local TIC80Node <const> = require("TIC80Node")
+
+-- 从卡带文件中提取代码
+local code = TIC80Node:codeFromCart("TIC80/game.tic")
+print(code)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local TIC80Node <const> = require("TIC80Node")
+
+-- 从卡带文件中提取代码
+local code = TIC80Node:codeFromCart("TIC80/game.tic")
+print(code)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { TIC80Node } from "Dora";
+
+// 从卡带文件中提取代码
+const code = TIC80Node.codeFromCart("TIC80/game.tic");
+print(code);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+-- 从卡带文件中提取代码
+code = TIC80Node\codeFromCart "TIC80/game.tic"
+print code
+```
+
+</TabItem>
+</Tabs>
+
+### 5.2 将资源和代码合并为 .tic 文件
+
+`mergeTic` 方法允许您将资源卡带文件与代码文件合并，并保存为 `.tic` 文件：
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local TIC80Node <const> = require("TIC80Node")
+
+-- 将资源卡带和代码文件合并为 .tic 文件
+local success = TIC80Node:mergeTic(
+	"TIC80/output.tic",
+	"TIC80/resources.tic",
+	"TIC80/game.lua"
+)
+
+if success then
+	print("卡带文件创建成功")
+else
+	print("创建卡带文件失败")
+end
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local TIC80Node <const> = require("TIC80Node")
+
+-- 将资源卡带和代码文件合并为 .tic 文件
+local success = TIC80Node:mergeTic(
+	"TIC80/output.tic",
+	"TIC80/resources.tic",
+	"TIC80/game.lua"
+)
+
+if success then
+	print("卡带文件创建成功")
+else
+	print("创建卡带文件失败")
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { TIC80Node } from "Dora";
+
+// 将资源卡带和代码文件合并为 .tic 文件
+const success = TIC80Node.mergeTic(
+	"TIC80/output.tic",
+	"TIC80/resources.tic",
+	"TIC80/game.lua"
+);
+
+if (success) {
+	print("卡带文件创建成功");
+} else {
+	print("创建卡带文件失败");
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+-- 将资源卡带和代码文件合并为 .tic 文件
+success = TIC80Node\mergeTic(
+	"TIC80/output.tic",
+	"TIC80/resources.tic",
+	"TIC80/game.lua"
+)
+
+if success
+	print "卡带文件创建成功"
+else
+	print "创建卡带文件失败"
+```
+
+</TabItem>
+</Tabs>
+
+### 5.3 合并为 .png 文件
+
+`mergePng` 方法允许您创建带有可选封面图像的 PNG 格式卡带文件：
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local TIC80Node <const> = require("TIC80Node")
+
+-- 合并为带封面图像的 .png 卡带文件
+local success = TIC80Node:mergePng(
+	"TIC80/output.png",
+	"TIC80/cover.png",
+	"TIC80/resources.tic",
+	"TIC80/game.lua"  -- 可选：如果省略，则使用资源卡带中的代码
+)
+
+-- 或不使用代码文件（使用资源卡带中的代码）
+local success2 = TIC80Node:mergePng(
+	"TIC80/output.png",
+	"TIC80/cover.png",
+	"TIC80/resources.tic"
+)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local TIC80Node <const> = require("TIC80Node")
+
+-- 合并为带封面图像的 .png 卡带文件
+local success = TIC80Node:mergePng(
+	"TIC80/output.png",
+	"TIC80/cover.png",
+	"TIC80/resources.tic",
+	"TIC80/game.lua"  -- 可选：如果省略，则使用资源卡带中的代码
+)
+
+-- 或不使用代码文件（使用资源卡带中的代码）
+local success2 = TIC80Node:mergePng(
+	"TIC80/output.png",
+	"TIC80/cover.png",
+	"TIC80/resources.tic"
+)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { TIC80Node } from "Dora";
+
+// 合并为带封面图像的 .png 卡带文件
+const success = TIC80Node.mergePng(
+	"TIC80/output.png",
+	"TIC80/cover.png",
+	"TIC80/resources.tic",
+	"TIC80/game.lua"  // 可选：如果省略，则使用资源卡带中的代码
+);
+
+// 或不使用代码文件（使用资源卡带中的代码）
+const success2 = TIC80Node.mergePng(
+	"TIC80/output.png",
+	"TIC80/cover.png",
+	"TIC80/resources.tic"
+);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+-- 合并为带封面图像的 .png 卡带文件
+success = TIC80Node\mergePng(
+	"TIC80/output.png",
+	"TIC80/cover.png",
+	"TIC80/resources.tic",
+	"TIC80/game.lua"  -- 可选：如果省略，则使用资源卡带中的代码
+)
+
+-- 或不使用代码文件（使用资源卡带中的代码）
+success2 = TIC80Node\mergePng(
+	"TIC80/output.png",
+	"TIC80/cover.png",
+	"TIC80/resources.tic"
+)
+```
+
+</TabItem>
+</Tabs>
+
+## 6. 注意事项和最佳实践
+
+### 6.1 获取卡带文件
+
+TIC-80 卡带文件可以通过多种方式获得：
+
+- **创建您自己的**：使用 TIC-80 编辑器（或 Web IDE 集成）创建游戏
+- **从社区下载**：许多 TIC-80 游戏可以从 [TIC-80 社区](https://tic80.com/play) 获得
+- **从 TIC-80 导出**：如果您在独立的 TIC-80 编辑器中开发，可以将卡带导出为 `.tic` 或 `.png` 文件
+
+### 6.2 输入处理
+
+TIC80Node 自动处理输入映射：
+
+- **键盘**：标准键盘输入自动映射到 TIC-80 控制
+- **游戏手柄**：手柄输入映射到 TIC-80 的手柄 API
+- **触摸输入**：触摸事件映射到 TIC-80 的鼠标/触摸 API
+
+### 6.3 性能考虑
+
+- **固定帧率**：TIC80Node 以固定的 60 FPS 运行，符合 TIC-80 的规范。这确保了游戏时序的一致性。
+- **分辨率**：原生分辨率为 240x136 像素。您可以缩放节点，但内部渲染仍保持此分辨率。
+- **资源使用**：每个 TIC80Node 实例运行一个完整的 TIC-80 虚拟机，因此拥有多个实例可能会影响性能。
+
+### 6.4 Web IDE 集成工作流程
+
+使用 Web IDE 集成提供了几个优势：
+
+- **无缝编辑**：直接在开发环境中编辑卡带
+- **快速迭代**：使用 `add` 和 `get` 命令快速测试更改
+- **集成工作流程**：无需在不同工具之间切换
+- **版本控制友好**：卡带文件是常规项目文件，可与版本控制配合使用
+
+## 7. 完整示例
+
+以下是一个完整的示例，演示如何创建和使用 TIC80Node：
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local TIC80Node <const> = require("TIC80Node")
+local Vec2 <const> = require("Vec2")
+
+-- 从卡带文件创建 TIC80Node
+local tic80Game = TIC80Node("TIC80/demo.tic")
+
+if tic80Game then
+	-- 将游戏居中于屏幕
+	local visualSize = App.visualSize
+	tic80Game.position = Vec2(visualSize.width / 2, visualSize.height / 2)
+
+	-- 设置锚点居中
+	tic80Game.anchor = Vec2(0.5, 0.5)
+
+	-- 缩放至 2 倍大小
+	tic80Game.scaleX = 2.0
+	tic80Game.scaleY = 2.0
+
+	-- 添加到场景（游戏将自动开始运行）
+	scene:addChild(tic80Game)
+
+	print("TIC-80 游戏正在运行！")
+else
+	print("加载 TIC-80 卡带文件失败")
+end
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local TIC80Node <const> = require("TIC80Node")
+local Vec2 <const> = require("Vec2")
+
+-- 从卡带文件创建 TIC80Node
+local tic80Game = TIC80Node("TIC80/demo.tic")
+
+if not tic80Game is nil then
+	-- 将游戏居中于屏幕
+	local visualSize = App.visualSize
+	tic80Game.position = Vec2(visualSize.width / 2, visualSize.height / 2)
+
+	-- 设置锚点居中
+	tic80Game.anchor = Vec2(0.5, 0.5)
+
+	-- 缩放至 2 倍大小
+	tic80Game.scaleX = 2.0
+	tic80Game.scaleY = 2.0
+
+	-- 添加到场景（游戏将自动开始运行）
+	scene:addChild(tic80Game)
+
+	print("TIC-80 游戏正在运行！")
+else
+	print("加载 TIC-80 卡带文件失败")
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { TIC80Node, Vec2, App } from "Dora";
+
+// 从卡带文件创建 TIC80Node
+const tic80Game = TIC80Node("TIC80/demo.tic");
+
+if (tic80Game !== null) {
+	// 将游戏居中于屏幕
+	const visualSize = App.visualSize;
+	tic80Game.position = Vec2(visualSize.width / 2, visualSize.height / 2);
+
+	// 设置锚点居中
+	tic80Game.anchor = Vec2(0.5, 0.5);
+
+	// 缩放至 2 倍大小
+	tic80Game.scaleX = 2.0;
+	tic80Game.scaleY = 2.0;
+
+	// 添加到场景（游戏将自动开始运行）
+	scene.addChild(tic80Game);
+
+	print("TIC-80 游戏正在运行！");
+} else {
+	print("加载 TIC-80 卡带文件失败");
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+-- 从卡带文件创建 TIC80Node
+with TIC80Node "TIC80/demo.tic"
+	-- 将游戏居中于屏幕
+	visualSize = App.visualSize
+	.position = Vec2 visualSize.width / 2, visualSize.height / 2
+
+	-- 设置锚点居中
+	.anchor = Vec2 0.5, 0.5
+
+	-- 缩放至 2 倍大小
+	.scaleX = 2.0
+	.scaleY = 2.0
+
+	-- 添加到场景（游戏将自动开始运行）
+	scene\addChild @
+
+	print "TIC-80 游戏正在运行！"
+```
+
+</TabItem>
+</Tabs>
+
+## 8. 总结
+
+在本教程中，您学会了如何：
+
+- 理解 TIC-80 卡带文件格式和 TIC80Node 特性
+- 使用 Web IDE 集成，通过 `add` 和 `get` 命令编辑 TIC-80 卡带
+- 从卡带文件创建 TIC80Node 实例，或通过组合资源卡带与代码文件创建
+- 将 TIC80Node 添加到场景并控制其显示属性
+- 使用辅助方法从卡带文件中提取代码，并将资源合并为卡带文件
+- 遵循在 Dora SSR 中使用 TIC-80 卡带的最佳实践
+
+TIC80Node 提供了一种强大的方式，将复古风格的游戏和程序集成到您的 Dora SSR 项目中。Web IDE 集成使开发和迭代 TIC-80 卡带变得容易，而节点系统允许您将它们无缝集成到游戏场景中。
+
+有关 TIC80Node 的更多信息，请参阅 [TIC80Node API 文档](/docs/api/Class/TIC80Node)。

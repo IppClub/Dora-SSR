@@ -1,0 +1,528 @@
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# 使用视频节点
+
+**VideoNode** 是 Dora SSR 引擎中的节点类，允许您在游戏场景中播放视频文件。它继承自 `Sprite`，这意味着您可以使用所有精灵节点可用的属性和方法，例如定位、缩放、旋转等。一旦 VideoNode 被挂载到游戏场景中，它将自动开始播放视频，并持续播放直到节点从场景中移除。
+
+本教程将指导您如何使用 VideoNode，包括如何准备正确格式的视频文件以及如何在游戏中使用 VideoNode。
+
+## 1. 视频格式要求
+
+在使用 VideoNode 之前，您需要将视频文件准备为正确的格式。VideoNode 支持特定要求的 H.264 编码视频文件：
+
+### 1.1 支持的视频格式
+
+- **视频编码**：仅支持 H.264 / AVC（不支持 H.265/HEVC、VP9、AV1 等）
+- **比特流格式**：需要 Annex-B 字节流格式（NAL 单元之间以 `0x000001` 或 `0x00000001` 起始码分隔）
+  - MP4/FLV 格式的 AVCC（长度前缀 NAL 单元）不支持，除非预先转换为 Annex-B
+- **流类型**：推荐仅包含视频的基本流（音频轨道，如有，将被忽略）
+- **配置文件/级别**：推荐使用 Baseline / Constrained Baseline profile 以获得最大兼容性
+- **帧类型**：仅支持逐行扫描帧（不支持隔行/场编码内容）
+- **B 帧**：推荐不含 B 帧（例如 baseline），以避免输出重排序开销
+- **色彩格式**：推荐 YUV 4:2:0（8 位）；其他色度格式可能不被支持
+- **帧率**：推荐恒定帧率（CFR）；可变帧率流可能导致播放时序不稳定
+- **分辨率/性能**：
+  - 4K 和高码率流在纯软件解码时可能会占用大量 CPU
+  - 为了在中等性能设备上流畅播放，推荐使用 720p/1080p 和适中的码率
+
+### 1.2 使用 FFmpeg 转换视频
+
+建议使用 `ffmpeg` 工具将视频文件转换为所需的 H.264 格式。以下是一些示例命令：
+
+#### 将 MP4 转换为 H.264 Annex-B 格式
+
+```bash
+# 基本转换：提取视频流并转换为 H.264 Annex-B 格式
+ffmpeg -i input.mp4 -c:v libx264 -profile:v baseline -level 3.0 -pix_fmt yuv420p -an -bsf:v h264_mp4toannexb output.h264
+
+# 指定分辨率和码率（推荐以获得更好的性能）
+ffmpeg -i input.mp4 -c:v libx264 -profile:v baseline -level 3.0 -pix_fmt yuv420p -s 1280x720 -b:v 2M -r 30 -an -bsf:v h264_mp4toannexb output.h264
+
+# 1080p 视频
+ffmpeg -i input.mp4 -c:v libx264 -profile:v baseline -level 3.1 -pix_fmt yuv420p -s 1920x1080 -b:v 4M -r 30 -an -bsf:v h264_mp4toannexb output.h264
+```
+
+**参数说明：**
+- `-c:v libx264`：使用 H.264 编码器
+- `-profile:v baseline`：使用 Baseline profile 以获得最大兼容性
+- `-level 3.0` 或 `3.1`：设置 H.264 级别（根据分辨率调整）
+- `-pix_fmt yuv420p`：设置像素格式为 YUV 4:2:0
+- `-s 1280x720`：设置分辨率（可选，根据需要调整）
+- `-b:v 2M`：设置视频码率（可选，根据需要调整）
+- `-r 30`：设置帧率为 30 fps（可选，根据需要调整）
+- `-an`：移除音频轨道
+- `-bsf:v h264_mp4toannexb`：从 MP4 格式转换为 Annex-B 格式（关键！）
+
+#### 转换其他格式
+
+```bash
+# 从 AVI 转换
+ffmpeg -i input.avi -c:v libx264 -profile:v baseline -level 3.0 -pix_fmt yuv420p -an -bsf:v h264_mp4toannexb output.h264
+
+# 从 MOV 转换
+ffmpeg -i input.mov -c:v libx264 -profile:v baseline -level 3.0 -pix_fmt yuv420p -an -bsf:v h264_mp4toannexb output.h264
+```
+
+:::tip 提示
+转换后，确保输出文件具有 `.h264` 扩展名。将转换后的视频文件放置在项目的资源目录中，以便 VideoNode 可以加载它。
+:::
+
+## 2. 创建 VideoNode 实例
+
+要创建 VideoNode，您需要提供视频文件的路径。VideoNode 构造函数接受两个参数：
+
+- `filename`：视频文件的路径（应具有 `.h264` 扩展名）
+- `looped`：（可选）视频是否循环播放。默认为 `false`
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local VideoNode <const> = require("VideoNode")
+
+-- 创建一个播放一次的 VideoNode
+local video = VideoNode("assets/video.h264")
+
+-- 创建一个循环播放的 VideoNode
+local loopingVideo = VideoNode("assets/video.h264", true)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local VideoNode <const> = require("VideoNode")
+
+-- 创建一个播放一次的 VideoNode
+local video = VideoNode("assets/video.h264")
+
+-- 创建一个循环播放的 VideoNode
+local loopingVideo = VideoNode("assets/video.h264", true)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { VideoNode } from "Dora";
+
+// 创建一个播放一次的 VideoNode
+const video = VideoNode("assets/video.h264");
+
+// 创建一个循环播放的 VideoNode
+const loopingVideo = VideoNode("assets/video.h264", true);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+-- 创建一个播放一次的 VideoNode
+video = VideoNode "assets/video.h264"
+
+-- 创建一个循环播放的 VideoNode
+loopingVideo = VideoNode "assets/video.h264", true
+```
+
+</TabItem>
+</Tabs>
+
+:::warning 重要提示
+如果视频文件无法加载或格式不正确，`VideoNode()` 将返回 `nil`（在 TypeScript 中为 `null`）。在使用之前，请务必检查节点是否创建成功。
+:::
+
+## 3. 将 VideoNode 挂载到场景
+
+创建 VideoNode 实例后，您需要将其挂载到游戏场景中才能显示并开始播放。当 VideoNode 被挂载到场景时，它将自动开始播放视频，并持续播放直到节点从场景中移除。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local VideoNode <const> = require("VideoNode")
+local Vec2 <const> = require("Vec2")
+
+-- 创建一个 VideoNode
+local video = VideoNode("assets/video.h264")
+
+if video then
+	-- 设置位置
+	video.position = Vec2(400, 300)
+
+	-- 挂载到场景（视频将自动开始播放）
+	-- 只要节点在场景中，视频就会持续播放
+end
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local VideoNode <const> = require("VideoNode")
+local Vec2 <const> = require("Vec2")
+
+-- 创建一个 VideoNode
+local video = VideoNode("assets/video.h264")
+
+if not video is nil then
+	-- 设置位置
+	video.position = Vec2(400, 300)
+
+	-- 挂载到场景（视频将自动开始播放）
+	-- 只要节点在场景中，视频就会持续播放
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { VideoNode, Vec2 } from "Dora";
+
+// 创建一个 VideoNode
+const video = VideoNode("assets/video.h264");
+
+if (video) {
+	// 设置位置
+	video.position = Vec2(400, 300);
+
+	// 挂载到场景（视频将自动开始播放）
+	// 只要节点在场景中，视频就会持续播放
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+-- 创建一个 VideoNode
+with VideoNode "assets/video.h264"
+	-- 设置位置
+	.position = Vec2 400, 300
+
+	-- 挂载到场景（视频将自动开始播放）
+	-- 只要节点在场景中，视频就会持续播放
+```
+
+</TabItem>
+</Tabs>
+
+:::info 自动播放
+一旦 VideoNode 被挂载到游戏场景，它将自动开始播放视频。只要节点保留在场景树中，视频就会逐帧持续播放。如果您将 `looped` 设置为 `true`，视频在播放到结尾时会自动从头开始重新播放。
+:::
+
+## 4. 控制视频播放
+
+由于 VideoNode 继承自 Sprite，您可以使用所有精灵属性和方法来控制视频显示：
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local VideoNode <const> = require("VideoNode")
+local Vec2 <const> = require("Vec2")
+local Scale <const> = require("Scale")
+
+local video = VideoNode("assets/video.h264", true) -- 启用循环
+
+if video then
+	-- 定位视频
+	video.position = Vec2(400, 300)
+
+	-- 缩放视频
+	video.scaleX = 0.5
+	video.scaleY = 0.5
+
+	-- 旋转视频
+	video.angle = 45
+
+	-- 设置透明度
+	video.opacity = 0.8
+
+	-- 或使用动作来动画化
+	video:perform(Scale(2.0, 0.5, 1.0)) -- 在 1 秒内从 0.5 缩放到 2.0
+end
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local VideoNode <const> = require("VideoNode")
+local Vec2 <const> = require("Vec2")
+local Scale <const> = require("Scale")
+
+local video = VideoNode("assets/video.h264", true) -- 启用循环
+
+if not video is nil then
+	-- 定位视频
+	video.position = Vec2(400, 300)
+
+	-- 缩放视频
+	video.scaleX = 0.5
+	video.scaleY = 0.5
+
+	-- 旋转视频
+	video.angle = 45
+
+	-- 设置透明度
+	video.opacity = 0.8
+
+	-- 或使用动作来动画化
+	video:perform(Scale(2.0, 0.5, 1.0)) -- 在 1 秒内从 0.5 缩放到 2.0
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { VideoNode, Vec2, Scale } from "Dora";
+
+const video = VideoNode("assets/video.h264", true); // 启用循环
+
+if (video) {
+	// 定位视频
+	video.position = Vec2(400, 300);
+
+	// 缩放视频
+	video.scaleX = 0.5;
+	video.scaleY = 0.5;
+
+	// 旋转视频
+	video.angle = 45;
+
+	// 设置透明度
+	video.opacity = 0.8;
+
+	// 或使用动作来动画化
+	video.perform(Scale(2.0, 0.5, 1.0)); // 在 1 秒内从 0.5 缩放到 2.0
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+with VideoNode "assets/video.h264", true -- 启用循环
+	-- 定位视频
+	.position = Vec2 400, 300
+
+	-- 缩放视频
+	.scaleX = 0.5
+	.scaleY = 0.5
+
+	-- 旋转视频
+	.angle = 45
+
+	-- 设置透明度
+	.opacity = 0.8
+
+	-- 或使用动作来动画化
+	\perform Scale 2.0, 0.5, 1.0 -- 在 1 秒内从 0.5 缩放到 2.0
+```
+
+</TabItem>
+</Tabs>
+
+## 5. 从场景中移除 VideoNode
+
+要停止视频播放，只需从场景中移除 VideoNode：
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+-- 从父节点移除视频节点（停止播放）
+video:removeFromParent()
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- 从父节点移除视频节点（停止播放）
+video:removeFromParent()
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// 从父节点移除视频节点（停止播放）
+video.removeFromParent();
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- 从父节点移除视频节点（停止播放）
+video\removeFromParent()
+```
+
+</TabItem>
+</Tabs>
+
+## 6. 完整示例
+
+以下是一个完整示例，演示如何创建 VideoNode、定位它并在游戏场景中处理它：
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local VideoNode <const> = require("VideoNode")
+local Vec2 <const> = require("Vec2")
+local Size <const> = require("Size")
+
+-- 创建一个循环播放的视频节点
+local video = VideoNode("assets/background_video.h264", true)
+
+if video then
+	-- 将视频居中显示在屏幕上
+	local visualSize = App.visualSize
+	video.position = Vec2(visualSize.width / 2, visualSize.height / 2)
+
+	-- 设置锚点为中心
+	video.anchor = Vec2(0.5, 0.5)
+
+	-- 如果需要，缩放到适合屏幕
+	local videoSize = video.size
+	local scaleX = visualSize.width / videoSize.width
+	local scaleY = visualSize.height / videoSize.height
+	local scale = math.min(scaleX, scaleY)
+	video.scaleX = scale
+	video.scaleY = scale
+
+	-- 视频在挂载到场景时会自动开始播放
+	-- 只要节点在场景中，它就会持续播放并循环
+end
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local VideoNode <const> = require("VideoNode")
+local Vec2 <const> = require("Vec2")
+local Size <const> = require("Size")
+
+-- 创建一个循环播放的视频节点
+local video = VideoNode("assets/background_video.h264", true)
+
+if not video is nil then
+	-- 将视频居中显示在屏幕上
+	local visualSize = App.visualSize
+	video.position = Vec2(visualSize.width / 2, visualSize.height / 2)
+
+	-- 设置锚点为中心
+	video.anchor = Vec2(0.5, 0.5)
+
+	-- 如果需要，缩放到适合屏幕
+	local videoSize = video.size
+	local scaleX = visualSize.width / videoSize.width
+	local scaleY = visualSize.height / videoSize.height
+	local scale = math.min(scaleX, scaleY)
+	video.scaleX = scale
+	video.scaleY = scale
+
+	-- 视频在挂载到场景时会自动开始播放
+	-- 只要节点在场景中，它就会持续播放并循环
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { VideoNode, Vec2, Size, App } from "Dora";
+
+// 创建一个循环播放的视频节点
+const video = VideoNode("assets/background_video.h264", true);
+
+if (video) {
+	// 将视频居中显示在屏幕上
+	const visualSize = App.visualSize;
+	video.position = Vec2(visualSize.width / 2, visualSize.height / 2);
+
+	// 设置锚点为中心
+	video.anchor = Vec2(0.5, 0.5);
+
+	// 如果需要，缩放到适合屏幕
+	const videoSize = video.size;
+	const scaleX = visualSize.width / videoSize.width;
+	const scaleY = visualSize.height / videoSize.height;
+	const scale = Math.min(scaleX, scaleY);
+	video.scaleX = scale;
+	video.scaleY = scale;
+
+	// 视频在挂载到场景时会自动开始播放
+	// 只要节点在场景中，它就会持续播放并循环
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+-- 创建一个循环播放的视频节点
+with VideoNode "assets/background_video.h264", true
+	-- 将视频居中显示在屏幕上
+	visualSize = App.visualSize
+	.position = Vec2 visualSize.width / 2, visualSize.height / 2
+
+	-- 设置锚点为中心
+	.anchor = Vec2 0.5, 0.5
+
+	-- 如果需要，缩放到适合屏幕
+	videoSize = .size
+	scaleX = visualSize.width / videoSize.width
+	scaleY = visualSize.height / videoSize.height
+	scale = math.min scaleX, scaleY
+	.scaleX = scale
+	.scaleY = scale
+
+	-- 视频在挂载到场景时会自动开始播放
+	-- 只要节点在场景中，它就会持续播放并循环
+```
+
+</TabItem>
+</Tabs>
+
+## 7. 性能考虑
+
+使用 VideoNode 时，请注意以下性能提示：
+
+1. **分辨率**：为目标设备使用适当的分辨率（720p 或 1080p）。更高的分辨率需要更多的 CPU 资源进行解码。
+
+2. **码率**：适中的码率可以在质量和性能之间取得良好的平衡。非常高的码率可能导致低端设备出现卡顿。
+
+3. **帧率**：推荐使用恒定帧率（CFR）。可变帧率可能导致时序问题。
+
+4. **多个视频**：同时播放多个视频可能会占用大量 CPU。考虑限制并发 VideoNode 的数量。
+
+5. **后台处理**：VideoNode 使用后台线程进行解码，这有助于保持流畅的游戏体验，但仍需要 CPU 资源。
+
+## 8. 总结
+
+在本教程中，您学习了如何：
+
+- 使用 FFmpeg 将视频文件准备为正确的 H.264 Annex-B 格式
+- 创建 VideoNode 实例
+- 将 VideoNode 挂载到游戏场景（会自动开始播放）
+- 使用 Sprite 属性控制视频显示
+- 处理视频循环
+
+请记住，VideoNode 在挂载到场景时会自动开始播放，只要它保留在场景树中就会持续播放。这使得它非常适合背景视频、过场动画或任何需要在游戏中连续播放视频的场景。
+
+有关 VideoNode 的更多信息，请参阅 [VideoNode API 文档](/docs/api/Class/VideoNode)。
