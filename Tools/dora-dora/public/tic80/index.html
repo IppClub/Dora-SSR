@@ -23,14 +23,6 @@
 <body style="margin:0; padding:0;">
 
     <div class="game" style="margin: 0; position: relative; background: #1a1c2c;">
-
-        <div id="game-frame" style="cursor: pointer; position: absolute; margin: 0 auto; opacity: 1; background: #1a1c2c; width: 100%; height: 100%;">
-            <div style="text-align: center; color: white; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;">
-                <p style="margin: 0;">- CLICK TO BOOT -</p>
-            </div>
-
-        </div>
-
         <canvas style="width: 100%; height: 100%; margin: 0 auto; display: block; image-rendering: pixelated;" id="canvas" oncontextmenu="event.preventDefault()" onmousedown="window.focus()" tabindex="0"></canvas>
     </div>
 
@@ -202,20 +194,15 @@
             canvasEl.addEventListener('keydown', preventArrowDefault, { passive: false });
         })();
 
-        const gameFrame = document.getElementById('game-frame')
-
-        gameFrame.addEventListener('click', function() {
-            let scriptTag = document.createElement('script'), // create a script tag
-            firstScriptTag = document.getElementsByTagName('script')[0]; // find the first script tag in the document
-            scriptTag.src = 'tic80.js'; // set the source of the script to your script
-            scriptTag.onload = function() {
-                setTimeout(hookModuleMethods, 500);
-            };
-            firstScriptTag.parentNode.insertBefore(scriptTag, firstScriptTag); // append the script to the DOM
-            this.remove()
-            // Focus canvas to ensure keyboard events are routed to the game
-            document.getElementById('canvas').focus()
-        });
+        let scriptTag = document.createElement('script'), // create a script tag
+        firstScriptTag = document.getElementsByTagName('script')[0]; // find the first script tag in the document
+        scriptTag.src = 'tic80.js'; // set the source of the script to your script
+        scriptTag.onload = function() {
+            setTimeout(hookModuleMethods, 500);
+        };
+        firstScriptTag.parentNode.insertBefore(scriptTag, firstScriptTag); // append the script to the DOM
+        // Focus canvas to ensure keyboard events are routed to the game
+        document.getElementById('canvas').focus()
     </script>
 </body>
 </html>
