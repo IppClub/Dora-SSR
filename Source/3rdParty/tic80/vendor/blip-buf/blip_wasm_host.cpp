@@ -45,6 +45,7 @@ public:
 
 		try {
 			bool loaded = false;
+			const size_t STACK_SIZE = 4 * 1024;
 
 			// Try to load external WASM file first
 			const auto wasmPath = "blip_buf.wasm"sv;
@@ -53,7 +54,7 @@ public:
 				if (data && size > 0) {
 					try {
 						_env = New<wasm3::environment>();
-						_runtime = New<wasm3::runtime>(_env->new_runtime(8192));
+						_runtime = New<wasm3::runtime>(_env->new_runtime(STACK_SIZE));
 						auto mod = _env->parse_module(data.get(), size);
 						_runtime->load(mod);
 						mod.link_default();
@@ -70,7 +71,7 @@ public:
 			// Fall back to embedded WASM
 			if (!loaded) {
 				_env = New<wasm3::environment>();
-				_runtime = New<wasm3::runtime>(_env->new_runtime(1024 * 4));
+				_runtime = New<wasm3::runtime>(_env->new_runtime(STACK_SIZE));
 				auto mod = _env->parse_module(blip_buf_wasm, blip_buf_wasm_len);
 				_runtime->load(mod);
 				mod.link_default();
