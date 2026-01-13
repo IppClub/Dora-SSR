@@ -2013,11 +2013,11 @@
     <ClCompile Include="..\..\..\Source\3rdParty\tic80\ext\png.cpp">
       <Filter>3rdParty\tic80\ext</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\tic80\vendor\blip-buf\blip_buf.c">
-      <Filter>3rdParty\tic80\vendor\blip-buf</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\Node\TIC80Node.cpp">
       <Filter>Node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tic80\vendor\blip-buf\blip_wasm_host.cpp">
+      <Filter>3rdParty\tic80\vendor\blip-buf</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

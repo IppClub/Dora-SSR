@@ -152,6 +152,7 @@ i18n
 						visualScript: "write game logic by connecting visual nodes together",
 						blockly: "write game logic by connecting blocks together",
 						wa: "a simple, reliable, statically typed WASM language",
+						tic: "TIC-80 fantasy console game cartridge",
 						project: "create as {{name}} project",
 					},
 					editor: {
@@ -276,6 +277,11 @@ i18n
 					markdown: {
 						editText: "Edit Text",
 						view: "View",
+					},
+					tic: {
+						overridden: "Overridden {{oldFilename}} to {{newFilename}}",
+						updated: "Updated {{filename}}",
+						updateFailed: "Update {{basename}} failed",
 					},
 				}
 			},
@@ -418,6 +424,7 @@ i18n
 						visualScript: "通过将可视化节点连接在一起来写游戏逻辑",
 						blockly: "用积木块来写游戏逻辑",
 						wa: "简单可靠、静态类型的 WASM 编程语言",
+						tic: "TIC-80 幻想游戏机卡带",
 						project: "创建为 {{name}} 项目",
 					},
 					editor: {
@@ -542,6 +549,11 @@ i18n
 					markdown: {
 						editText: "编辑文本",
 						view: "查看",
+					},
+					tic: {
+						overridden: "已覆盖 {{oldFilename}} 为 {{newFilename}}",
+						updated: "已更新 {{filename}}",
+						updateFailed: "更新 {{basename}} 失败",
 					},
 				}
 			},

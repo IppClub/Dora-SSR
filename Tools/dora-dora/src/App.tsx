@@ -36,6 +36,7 @@ import { Image } from 'antd';
 import YarnEditor, { YarnEditorData } from './YarnEditor';
 import * as Yarn from './YarnConvert';
 import CodeWire, { CodeWireData } from './CodeWire';
+import TIC80Editor from './TIC80Editor';
 import { AutoTypings } from './3rdParty/monaco-editor-auto-typings';
 import { TbSwitchVertical } from "react-icons/tb";
 import './Editor';
@@ -854,7 +855,8 @@ export default function PersistentDrawerLeft() {
 			switch (ext) {
 				case ".png":
 				case ".jpg":
-				case ".skel": {
+				case ".skel":
+				case ".tic": {
 					const newFile: EditingFile = {
 						key,
 						title,
@@ -1909,6 +1911,7 @@ export default function PersistentDrawerLeft() {
 			case "Visual Script": ext = ".vs"; break;
 			case "Blockly": ext = ".bl"; break;
 			case "Wa": ext = ".wa"; break;
+			case "TIC80": ext = ".tic"; break;
 			case "Folder": ext = ""; break;
 			case "TypeScript": ext = ".tsx"; break;
 		}
@@ -2154,6 +2157,31 @@ export default function PersistentDrawerLeft() {
 					newItem.onMount = onEditorDidMount(newItem);
 					setFiles([...files, newItem]);
 					switchTab(files.length, newItem);
+				}).then(() => {
+					if (ext === ".tic") {
+						fetch('/tic80/cart.tic')
+						.then(res => {
+							if (!res.ok) throw new Error('Failed to download cart.tic');
+							return res.blob();
+						})
+						.then(blob => {
+							const formData = new FormData();
+							formData.append('file', blob, newFile);
+							const uploadPath = Service.addr(`/upload?path=${encodeURIComponent(newFile)}`);
+							return fetch(uploadPath, {
+								method: 'POST',
+								body: formData
+							});
+						})
+						.then(res => {
+							if (!res.ok) {
+								addAlert(t("alert.newFailed"), "error");
+							}
+						})
+						.catch(() => {
+							addAlert(t("alert.newFailed"), "error");
+						});
+					}
 				}).catch(() => {
 					addAlert(t("alert.newFailed"), "error");
 				});
@@ -3079,6 +3107,7 @@ export default function PersistentDrawerLeft() {
 						let yarn = false;
 						let visualScript = false;
 						let blockly = false;
+						let tic80 = false;
 						switch (ext.toLowerCase()) {
 							case ".lua": language = "lua"; break;
 							case ".tl": language = "tl"; break;
@@ -3093,6 +3122,7 @@ export default function PersistentDrawerLeft() {
 							case ".yarn": yarn = true; language = "yarn"; break;
 							case ".bl": blockly = true; break;
 							case ".vs": visualScript = true; break;
+							case ".tic": tic80 = true; break;
 							case "": language = null; break;
 							default: language = "txt"; break
 						}
@@ -3212,6 +3242,21 @@ export default function PersistentDrawerLeft() {
 										}
 									}}
 								/> : null
+							}
+							{tic80 ?
+								(() => {
+									return <TIC80Editor
+									title={file.key}
+									filePath={file.key}
+									resPath={path.relative(parentPath, file.key)}
+									defaultValue={file.content}
+									width={editorWidth}
+									height={editorHeight}
+									onKeydown={(e) => {
+										setKeyEvent(e);
+									}}
+									addAlert={addAlert}
+								/> })() : null
 							}
 							{markdown ?
 								<div style={{display: 'flex', position: 'relative'}}>

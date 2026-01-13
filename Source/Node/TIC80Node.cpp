@@ -56,99 +56,55 @@ class TIC80AudioSourceInstance : public SoLoud::AudioSourceInstance {
 public:
 	TIC80AudioSourceInstance(tic80* tic, std::mutex* audioMutex)
 		: _tic80(tic)
-		, _audioMutex(audioMutex)
-		, _remainingBytes(0) {
+		, _audioMutex(audioMutex) {
 		mBaseSamplerate = TIC80_SAMPLERATE;
 		mChannels = TIC80_SAMPLE_CHANNELS;
 	}
 
-	virtual unsigned int getAudio(float* aBuffer, unsigned int aSamplesToRead, unsigned int aBufferSize) override {
+	virtual unsigned int getAudio(float* aBuffer, unsigned int aSamplesToRead, unsigned int aBufferSize) override
+	{
 		if (!_tic80 || !_tic80->samples.buffer) {
-			// Clear buffer
-			for (unsigned int i = 0; i < aSamplesToRead; i++) {
-				for (unsigned int ch = 0; ch < mChannels; ch++) {
+			for (unsigned int i = 0; i < aSamplesToRead; i++)
+				for (unsigned int ch = 0; ch < mChannels; ch++)
 					aBuffer[ch * aBufferSize + i] = 0.0f;
-				}
-			}
 			return aSamplesToRead;
 		}
 
-		unsigned int samplesWritten = 0;
-		const float scale = 1.0f / std::numeric_limits<int16_t>::max();
-		const unsigned int sampleSize = TIC80_SAMPLESIZE; // sizeof(int16_t) = 2
+		const float scale = 1.0f / 32768.0f;
+		unsigned int writtenFrames = 0;
 
-		// Fill buffer with samples
-		while (samplesWritten < aSamplesToRead) {
+		while (writtenFrames < aSamplesToRead) {
 
-			// If we've consumed all samples from current frame, generate new frame
-			// when remaining <= 0, call tic80_sound()
-			if (_remainingBytes <= 0) {
+			if (_remainingI16 < (unsigned int)mChannels) {
 				{
 					std::lock_guard<std::mutex> lock(*_audioMutex);
 					tic80_sound(_tic80);
 				}
-				_remainingBytes = _tic80->samples.count * TIC80_SAMPLESIZE;
+
+				_remainingI16 = _tic80->samples.count;
+				_readI16Offset = 0;
 			}
 
-			// Calculate how many samples we can copy from current frame
-			unsigned int bytesAvailable = _remainingBytes;
-			unsigned int samplesAvailable = bytesAvailable / sampleSize;
-			unsigned int samplesToCopy = std::min(aSamplesToRead - samplesWritten, samplesAvailable);
+			const int16_t* src = reinterpret_cast<const int16_t*>(_tic80->samples.buffer);
 
-			if (samplesToCopy > 0) {
-				// Read samples from TIC80 buffer
-				// TIC80 buffer format (interleaved): [L0, R0, L1, R1, ..., Ln, Rn] as int16_t
-				// We need to convert to non-interleaved: [L0, L1, ..., Ln, R0, R1, ..., Rn] (11112222 format)
-				unsigned int totalBytes = _tic80->samples.count * TIC80_SAMPLESIZE;
-				unsigned int readOffset = totalBytes - _remainingBytes; // Byte offset from start of buffer
+			unsigned int framesAvail = _remainingI16 / mChannels;
+			unsigned int framesToCopy = std::min(aSamplesToRead - writtenFrames, framesAvail);
 
-				// Extract left and right channel samples and convert to non-interleaved format
-				// soloud expects: [L0, L1, ..., Ln, R0, R1, ..., Rn] (11112222 format)
-				const int16_t* srcSamples = r_cast<const int16_t*>(_tic80->samples.buffer);
+			for (unsigned int i = 0; i < framesToCopy; i++) {
+				unsigned int base = _readI16Offset + i * mChannels;
+				int16_t L = src[base + 0];
+				int16_t R = src[base + 1];
 
-				for (unsigned int i = 0; i < samplesToCopy; i++) {
-					// Calculate current byte position in buffer (similar to official example)
-					// We read samples in pairs (L, R), so we need to find which pair we're at
-					unsigned int currentBytePos = readOffset + (i * sampleSize);
-					unsigned int sampleIndex = currentBytePos / sampleSize; // Sample index in interleaved buffer
-
-					// TIC80 buffer is interleaved: [L0, R0, L1, R1, ..., Ln, Rn]
-					// sampleIndex points to a sample in this interleaved array
-					// We need to extract the left and right samples from the pair
-					unsigned int pairIndex = sampleIndex / mChannels; // Which L/R pair (0, 1, 2, ...)
-
-					// Get left and right samples from the pair
-					unsigned int leftSampleIndex = pairIndex * mChannels + 0;
-					unsigned int rightSampleIndex = pairIndex * mChannels + 1;
-
-					int16_t leftSample = srcSamples[leftSampleIndex];
-					int16_t rightSample = srcSamples[rightSampleIndex];
-
-					// Write to non-interleaved format: all left samples, then all right samples (11112222)
-					aBuffer[0 * aBufferSize + samplesWritten + i] = s_cast<float>(leftSample) * scale;
-					aBuffer[1 * aBufferSize + samplesWritten + i] = s_cast<float>(rightSample) * scale;
-				}
-
-				_remainingBytes -= samplesToCopy * sampleSize;
-				samplesWritten += samplesToCopy;
-			} else {
-				// No samples available, fill remaining with zeros
-				break;
+				aBuffer[0 * aBufferSize + (writtenFrames + i)] = (float)L * scale;
+				aBuffer[1 * aBufferSize + (writtenFrames + i)] = (float)R * scale;
 			}
+
+			writtenFrames += framesToCopy;
+			_readI16Offset += framesToCopy * mChannels;
+			_remainingI16  -= framesToCopy * mChannels;
 		}
 
-		// Fill remaining with zeros if needed
-		if (samplesWritten < aSamplesToRead) {
-			for (unsigned int i = samplesWritten; i < aSamplesToRead; i++) {
-				for (unsigned int ch = 0; ch < mChannels; ch++) {
-					aBuffer[ch * aBufferSize + i] = 0.0f;
-				}
-			}
-		}
-
-		// Return the number of samples we actually read
-		// soloud expects this to be <= aSamplesToRead
-		return samplesWritten;
+		return writtenFrames;
 	}
 
 	virtual bool hasEnded() override {
@@ -158,7 +114,8 @@ public:
 private:
 	tic80* _tic80;
 	std::mutex* _audioMutex;
-	unsigned int _remainingBytes;
+	unsigned int _remainingI16 = 0;   // 剩余 int16 元素个数（L/R 都算）
+	unsigned int _readI16Offset = 0;  // 已读取的 int16 元素偏移
 };
 
 SoLoud::AudioSourceInstance* TIC80AudioSource::createInstance() {

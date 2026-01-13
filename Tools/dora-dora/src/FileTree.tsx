@@ -42,6 +42,7 @@ import typescriptLogo from './typescript.png';
 import blocklyLogo from './blockly.png';
 import spineLogo from './spine.png';
 import waLogo from './wa.svg';
+import tic80Logo from './tic80.png';
 import { DiCode } from 'react-icons/di';
 import { TbMoodConfuzed, TbSql } from 'react-icons/tb';
 import { SiNodered } from 'react-icons/si';
@@ -124,6 +125,8 @@ const fileIcon = (props: TreeNodeProps) => {
 					return <AiFillFileZip color='fac03d'/>;
 				case ".wa":
 					return <img src={waLogo} alt="wa" width="12px" height="12px"/>;
+				case ".tic":
+					return <img src={tic80Logo} alt="tic80" width="14px" height="14px"/>;
 				case ".mod":
 					return <AiOutlineSetting size={14}/>;
 			}
