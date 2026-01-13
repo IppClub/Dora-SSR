@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>TIC-80 tiny computer</title>
+
+    <style type="text/css">
+        .modal{display:none;position:fixed;z-index:1;padding-top:100px;left:0;top:0;width:100%;height:100%;overflow:auto;background-color:#000;background-color:rgba(0,0,0,.4)}
+        .modal-content{color: #333c57;position:relative;background-color:#fefefe;margin:auto;padding:2px 16px;border:1px solid #888;width:500px;box-shadow:0 4px 8px 0 rgba(0,0,0,.2),0 6px 20px 0 rgba(0,0,0,.19);-webkit-animation-name:animatetop;-webkit-animation-duration:.4s;animation-name:animatetop;animation-duration:.4s}@keyframes animatetop{from{top:-300px;opacity:0}to{top:0;opacity:1}}
+        .close{color:#000;float:right;font-size:28px;font-weight:700}
+        .close:focus,
+        .close:hover{color:#000;text-decoration:none;cursor:pointer}
+
+        #game-frame > div { font-size: 44px; font-family: monospace; font-weight: bold;}
+
+        /* You can set custom dimensions here */
+        .game { width: 100vw; height: 100vh; }
+    </style>
+</head>
+<body style="margin:0; padding:0;">
+
+    <div class="game" style="margin: 0; position: relative; background: #1a1c2c;">
+
+        <div id="game-frame" style="cursor: pointer; position: absolute; margin: 0 auto; opacity: 1; background: #1a1c2c; width: 100%; height: 100%;">
+            <div style="text-align: center; color: white; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;">
+                <p style="margin: 0;">- CLICK TO BOOT -</p>
+            </div>
+
+        </div>
+
+        <canvas style="width: 100%; height: 100%; margin: 0 auto; display: block; image-rendering: pixelated;" id="canvas" oncontextmenu="event.preventDefault()" onmousedown="window.focus()" tabindex="0"></canvas>
+    </div>
+
+    <div id="add-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times</span>
+            <p>Select a file to add to the computer</p>
+            <p><input type="file" id="upload-input"></input></p>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        var Module = {canvas: document.getElementById('canvas')};
+        var tic80FilePath = null;
+
+        // Listen for messages from parent window
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type) {
+                switch (event.data.type) {
+                    case 'TIC80_INIT':
+                        tic80FilePath = event.data.filePath;
+                        break;
+                    case 'TIC80_READ_FILE_RESPONSE':
+                        if (event.data.success && event.data.rom) {
+                            // Handle file content received from parent
+                            if (window.tic80FileReadCallback) {
+                                window.tic80FileReadCallback(event.data.rom);
+                                window.tic80FileReadCallback = null;
+                            }
+                        } else {
+                            if (window.tic80FileReadCallback) {
+                                window.tic80FileReadCallback(null);
+                                window.tic80FileReadCallback = null;
+                            }
+                        }
+                        break;
+                    case 'TIC80_WRITE_FILE_RESPONSE':
+                        if (window.tic80FileWriteCallback) {
+                            window.tic80FileWriteCallback(event.data.success);
+                            window.tic80FileWriteCallback = null;
+                        }
+                        break;
+                }
+            }
+        });
+
+        // Function to request file read from parent
+        function requestReadFile() {
+            return new Promise(function(resolve, reject) {
+                window.tic80FileReadCallback = function(rom) {
+                    resolve(rom);
+                };
+                window.parent.postMessage({ type: 'TIC80_READ_FILE' }, '*');
+            });
+        }
+
+        // Function to request file write to parent
+        function requestWriteFile(blob, filename) {
+            window.parent.postMessage({ type: 'TIC80_WRITE_FILE', rom: blob, filename: filename }, '*');
+        }
+
+        // Hook Module methods after tic80.js loads
+        function hookModuleMethods() {
+            if (!Module || typeof Module.showAddPopup !== 'function' || typeof Module.saveAs !== 'function') {
+                setTimeout(hookModuleMethods, 100);
+                return;
+            }
+
+            // Save original methods
+            var originalShowAddPopup = Module.showAddPopup;
+            var originalSaveAs = Module.saveAs;
+
+            // Override showAddPopup
+            Module.showAddPopup = function(callback) {
+                if (!tic80FilePath) {
+                    if (originalShowAddPopup) {
+                        originalShowAddPopup.call(Module, callback);
+                    }
+                    return;
+                }
+
+                // Extract filename from file path
+                var filename = tic80FilePath.split('/').pop() || tic80FilePath.split('\\').pop() || 'cart.tic';
+
+                // If filename contains non-ASCII characters, set to 'cart.tic'
+                if (/[^\x00-\x7F]/.test(filename.replace(/\.[^/.]+$/, ""))) {
+                    filename = "cart.tic";
+                }
+
+                requestReadFile().then(function(rom) {
+                    if (rom && callback) {
+                        callback(filename, rom);
+                    } else if (callback) {
+                        callback(null, null);
+                    }
+                }).catch(function(error) {
+                    console.error("Error reading file:", error);
+                    if (callback) {
+                        callback(null, null);
+                    }
+                });
+            };
+
+            // Override saveAs
+            Module.saveAs = function(blob, filename) {
+                if (!tic80FilePath) {
+                    if (originalSaveAs) {
+                        originalSaveAs.call(Module, blob, filename);
+                    }
+                    return;
+                }
+
+                requestWriteFile(blob, filename);
+            };
+        }
+
+        // Safari/WebKit-only: remap Arrow keys with location 3 (numpad) to location 0.
+        (function(){
+            const ua = navigator.userAgent || '';
+            const isWebKit = /AppleWebKit/i.test(ua);
+            if (!isWebKit) return;
+
+            const synthesizeArrowWithLocation0 = (orig) => {
+                try {
+                    const ev = new KeyboardEvent(orig.type, {
+                        key: orig.key,
+                        code: orig.code,
+                        location: 0,
+                        repeat: orig.repeat,
+                        ctrlKey: orig.ctrlKey,
+                        shiftKey: orig.shiftKey,
+                        altKey: orig.altKey,
+                        metaKey: orig.metaKey,
+                        bubbles: true,
+                        cancelable: true,
+                    });
+                    Object.defineProperty(ev, 'which', { get: () => orig.which });
+                    Object.defineProperty(ev, 'keyCode', { get: () => orig.keyCode });
+                    return ev;
+                } catch { return null; }
+            };
+
+            const remapArrowLocationCapture = (e) => {
+                const isArrow = (e.key && e.key.startsWith('Arrow')) || (e.code && e.code.startsWith('Arrow'));
+                if (!isArrow) return;
+                if (e.location === 3) {
+                    const syn = synthesizeArrowWithLocation0(e);
+                    if (syn) {
+                        e.stopImmediatePropagation();
+                        e.preventDefault();
+                        (e.target || document.getElementById('canvas')).dispatchEvent(syn);
+                    }
+                }
+            };
+
+            ['keydown','keyup'].forEach(t => document.addEventListener(t, remapArrowLocationCapture, true));
+        })();
+
+        // Prevent page scrolling while the game canvas is focused
+        (function(){
+            const canvasEl = document.getElementById('canvas');
+            const preventArrowDefault = (e) => {
+                const key = e.key || e.code;
+                const kc = e.keyCode || e.which;
+                const isArrow = (key && ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(key)) || (kc >= 37 && kc <= 40);
+                if (isArrow && document.activeElement === canvasEl) e.preventDefault();
+            };
+            document.addEventListener('keydown', preventArrowDefault, { passive: false });
+            canvasEl.addEventListener('keydown', preventArrowDefault, { passive: false });
+        })();
+
+        const gameFrame = document.getElementById('game-frame')
+
+        gameFrame.addEventListener('click', function() {
+            let scriptTag = document.createElement('script'), // create a script tag
+            firstScriptTag = document.getElementsByTagName('script')[0]; // find the first script tag in the document
+            scriptTag.src = 'tic80.js'; // set the source of the script to your script
+            scriptTag.onload = function() {
+                setTimeout(hookModuleMethods, 500);
+            };
+            firstScriptTag.parentNode.insertBefore(scriptTag, firstScriptTag); // append the script to the DOM
+            this.remove()
+            // Focus canvas to ensure keyboard events are routed to the game
+            document.getElementById('canvas').focus()
+        });
+    </script>
+</body>
+</html>

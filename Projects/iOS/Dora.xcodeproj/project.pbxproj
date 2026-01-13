@@ -169,7 +169,6 @@
 		3C1038022F0E0E3300395953 /* tilesheet.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C1037FC2F0E0E3300395953 /* tilesheet.c */; };
 		3C1038032F0E0E3300395953 /* sound.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C1037E02F0E0E3300395953 /* sound.c */; };
 		3C1038042F0E0E3300395953 /* cart.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C1037EE2F0E0E3300395953 /* cart.c */; };
-		3C1038052F0E0E3300395953 /* blip_buf.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C1037E62F0E0E3300395953 /* blip_buf.c */; };
 		3C1038062F0E0E3300395953 /* zip.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C1037FF2F0E0E3300395953 /* zip.c */; };
 		3C1038072F0E0E3300395953 /* parse_note.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C1037C72F0E0E3300395953 /* parse_note.c */; };
 		3C1038082F0E0E3300395953 /* lua.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C1037C42F0E0E3300395953 /* lua.c */; };
@@ -185,7 +184,6 @@
 		3C1038272F0E0E3300395953 /* tilesheet.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C1037FC2F0E0E3300395953 /* tilesheet.c */; };
 		3C1038282F0E0E3300395953 /* sound.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C1037E02F0E0E3300395953 /* sound.c */; };
 		3C1038292F0E0E3300395953 /* cart.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C1037EE2F0E0E3300395953 /* cart.c */; };
-		3C10382A2F0E0E3300395953 /* blip_buf.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C1037E62F0E0E3300395953 /* blip_buf.c */; };
 		3C10382B2F0E0E3300395953 /* zip.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C1037FF2F0E0E3300395953 /* zip.c */; };
 		3C10382C2F0E0E3300395953 /* parse_note.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C1037C72F0E0E3300395953 /* parse_note.c */; };
 		3C10382D2F0E0E3300395953 /* lua.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C1037C42F0E0E3300395953 /* lua.c */; };
@@ -1203,6 +1201,8 @@
 		3CE471CA2DD2EFDE0036716C /* libwa.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE471C82DD2EF9B0036716C /* libwa.a */; };
 		3CE9946A2AFB26820073A973 /* gamecontrollerdb.txt in Resources */ = {isa = PBXBuildFile; fileRef = 3CE994692AFB26820073A973 /* gamecontrollerdb.txt */; };
 		3CE9946B2AFB26820073A973 /* gamecontrollerdb.txt in Resources */ = {isa = PBXBuildFile; fileRef = 3CE994692AFB26820073A973 /* gamecontrollerdb.txt */; };
+		3CF7CE872F160E0B00F35E6B /* blip_wasm_host.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF7CE862F160E0B00F35E6B /* blip_wasm_host.cpp */; };
+		3CF7CE882F160E0B00F35E6B /* blip_wasm_host.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF7CE862F160E0B00F35E6B /* blip_wasm_host.cpp */; };
 		3CFD21452ECD65AF00FD55EB /* Image in Resources */ = {isa = PBXBuildFile; fileRef = 3CFD21442ECD65AF00FD55EB /* Image */; };
 		3CFD21472ECD65D500FD55EB /* Image in Resources */ = {isa = PBXBuildFile; fileRef = 3CFD21442ECD65AF00FD55EB /* Image */; };
 /* End PBXBuildFile section */
@@ -1452,7 +1452,6 @@
 		3C1037E22F0E0E3300395953 /* png.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = png.h; sourceTree = "<group>"; };
 		3C1037E32F0E0E3300395953 /* png.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = png.cpp; sourceTree = "<group>"; };
 		3C1037E52F0E0E3300395953 /* blip_buf.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = blip_buf.h; sourceTree = "<group>"; };
-		3C1037E62F0E0E3300395953 /* blip_buf.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = blip_buf.c; sourceTree = "<group>"; };
 		3C1037EC2F0E0E3300395953 /* api.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = api.h; sourceTree = "<group>"; };
 		3C1037ED2F0E0E3300395953 /* cart.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cart.h; sourceTree = "<group>"; };
 		3C1037EE2F0E0E3300395953 /* cart.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cart.c; sourceTree = "<group>"; };
@@ -2643,6 +2642,7 @@
 		3CE471C82DD2EF9B0036716C /* libwa.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libwa.a; path = ../../Source/3rdParty/Wa/Lib/iOS/libwa.a; sourceTree = "<group>"; };
 		3CE606882D1109EC0073BB73 /* sdf_gen2d.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sdf_gen2d.h; sourceTree = "<group>"; };
 		3CE994692AFB26820073A973 /* gamecontrollerdb.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = gamecontrollerdb.txt; sourceTree = "<group>"; };
+		3CF7CE862F160E0B00F35E6B /* blip_wasm_host.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = blip_wasm_host.cpp; sourceTree = "<group>"; };
 		3CFD21442ECD65AF00FD55EB /* Image */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Image; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -3143,8 +3143,8 @@
 		3C1037EA2F0E0E3300395953 /* blip-buf */ = {
 			isa = PBXGroup;
 			children = (
+				3CF7CE862F160E0B00F35E6B /* blip_wasm_host.cpp */,
 				3C1037E52F0E0E3300395953 /* blip_buf.h */,
-				3C1037E62F0E0E3300395953 /* blip_buf.c */,
 			);
 			path = "blip-buf";
 			sourceTree = "<group>";
@@ -5520,6 +5520,7 @@
 				3C59322A2CA4F67300CAF224 /* LuaBinding.cpp in Sources */,
 				3C59322B2CA4F67300CAF224 /* Director.cpp in Sources */,
 				3C59322C2CA4F67300CAF224 /* JointDef.cpp in Sources */,
+				3CF7CE872F160E0B00F35E6B /* blip_wasm_host.cpp in Sources */,
 				3C59322D2CA4F67300CAF224 /* DragonBoneCache.cpp in Sources */,
 				3C59322E2CA4F67300CAF224 /* SVGCache.cpp in Sources */,
 				3C59322F2CA4F67300CAF224 /* PhysicsWorld.cpp in Sources */,
@@ -5591,7 +5592,6 @@
 				3C1038022F0E0E3300395953 /* tilesheet.c in Sources */,
 				3C1038032F0E0E3300395953 /* sound.c in Sources */,
 				3C1038042F0E0E3300395953 /* cart.c in Sources */,
-				3C1038052F0E0E3300395953 /* blip_buf.c in Sources */,
 				3C1038062F0E0E3300395953 /* zip.c in Sources */,
 				3C1038072F0E0E3300395953 /* parse_note.c in Sources */,
 				3C1038082F0E0E3300395953 /* lua.c in Sources */,
@@ -6094,6 +6094,7 @@
 				3C59314D2CA4F67300CAF224 /* LuaBinding.cpp in Sources */,
 				3C59314E2CA4F67300CAF224 /* Director.cpp in Sources */,
 				3C59314F2CA4F67300CAF224 /* JointDef.cpp in Sources */,
+				3CF7CE882F160E0B00F35E6B /* blip_wasm_host.cpp in Sources */,
 				3C5931502CA4F67300CAF224 /* DragonBoneCache.cpp in Sources */,
 				3C5931512CA4F67300CAF224 /* SVGCache.cpp in Sources */,
 				3C5931522CA4F67300CAF224 /* PhysicsWorld.cpp in Sources */,
@@ -6165,7 +6166,6 @@
 				3C1038272F0E0E3300395953 /* tilesheet.c in Sources */,
 				3C1038282F0E0E3300395953 /* sound.c in Sources */,
 				3C1038292F0E0E3300395953 /* cart.c in Sources */,
-				3C10382A2F0E0E3300395953 /* blip_buf.c in Sources */,
 				3C10382B2F0E0E3300395953 /* zip.c in Sources */,
 				3C10382C2F0E0E3300395953 /* parse_note.c in Sources */,
 				3C10382D2F0E0E3300395953 /* lua.c in Sources */,

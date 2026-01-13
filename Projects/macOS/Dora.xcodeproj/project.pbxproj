@@ -575,7 +575,6 @@
 		3CB86C5B2F0BAFB80035A077 /* io.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CB86BD22F0BAFB80035A077 /* io.c */; };
 		3CB86C602F0BAFB80035A077 /* core.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CB86BCE2F0BAFB80035A077 /* core.c */; };
 		3CB86C652F0BAFB80035A077 /* script.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CB86C2C2F0BAFB80035A077 /* script.c */; };
-		3CB86C692F0BAFB80035A077 /* blip_buf.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CB86C122F0BAFB80035A077 /* blip_buf.c */; };
 		3CB86C6D2F0BAFB80035A077 /* tools.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CB86C362F0BAFB80035A077 /* tools.c */; };
 		3CB86C702F0BB7530035A077 /* cart.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CB86C6F2F0BB7530035A077 /* cart.c */; };
 		3CB86CA72F0BC0120035A077 /* png.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB86CA12F0BC0120035A077 /* png.cpp */; };
@@ -605,6 +604,7 @@
 		3CE7D3751EADF594008EADB3 /* libbimg_decode.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE7D3731EADF594008EADB3 /* libbimg_decode.a */; };
 		3CE7D3761EADF594008EADB3 /* libbimg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE7D3741EADF594008EADB3 /* libbimg.a */; };
 		3CE994642AFA43680073A973 /* gamecontrollerdb.txt in Resources */ = {isa = PBXBuildFile; fileRef = 3CE994632AFA43680073A973 /* gamecontrollerdb.txt */; };
+		3CF7CE832F1600F000F35E6B /* blip_wasm_host.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF7CE822F1600F000F35E6B /* blip_wasm_host.cpp */; };
 		3CFD21402ECD656900FD55EB /* Image in Resources */ = {isa = PBXBuildFile; fileRef = 3CFD213F2ECD656900FD55EB /* Image */; };
 /* End PBXBuildFile section */
 
@@ -1983,7 +1983,6 @@
 		3CB86BD22F0BAFB80035A077 /* io.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = io.c; sourceTree = "<group>"; };
 		3CB86BD32F0BAFB80035A077 /* sound.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sound.c; sourceTree = "<group>"; };
 		3CB86C112F0BAFB80035A077 /* blip_buf.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = blip_buf.h; sourceTree = "<group>"; };
-		3CB86C122F0BAFB80035A077 /* blip_buf.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = blip_buf.c; sourceTree = "<group>"; };
 		3CB86C232F0BAFB80035A077 /* api.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = api.h; sourceTree = "<group>"; };
 		3CB86C262F0BAFB80035A077 /* defines.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = defines.h; sourceTree = "<group>"; };
 		3CB86C292F0BAFB80035A077 /* retro_endianness.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = retro_endianness.h; sourceTree = "<group>"; };
@@ -2039,6 +2038,7 @@
 		3CE7D3731EADF594008EADB3 /* libbimg_decode.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg_decode.a; path = ../../Source/3rdParty/BGFX/Lib/macOS/libbimg_decode.a; sourceTree = "<group>"; };
 		3CE7D3741EADF594008EADB3 /* libbimg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg.a; path = ../../Source/3rdParty/BGFX/Lib/macOS/libbimg.a; sourceTree = "<group>"; };
 		3CE994632AFA43680073A973 /* gamecontrollerdb.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = gamecontrollerdb.txt; sourceTree = "<group>"; };
+		3CF7CE822F1600F000F35E6B /* blip_wasm_host.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = blip_wasm_host.cpp; sourceTree = "<group>"; };
 		3CFD213F2ECD656900FD55EB /* Image */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Image; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -3882,8 +3882,8 @@
 		3CB86C162F0BAFB80035A077 /* blip-buf */ = {
 			isa = PBXGroup;
 			children = (
+				3CF7CE822F1600F000F35E6B /* blip_wasm_host.cpp */,
 				3CB86C112F0BAFB80035A077 /* blip_buf.h */,
-				3CB86C122F0BAFB80035A077 /* blip_buf.c */,
 			);
 			path = "blip-buf";
 			sourceTree = "<group>";
@@ -4878,7 +4878,6 @@
 				3CB86C5B2F0BAFB80035A077 /* io.c in Sources */,
 				3CB86C602F0BAFB80035A077 /* core.c in Sources */,
 				3CB86C652F0BAFB80035A077 /* script.c in Sources */,
-				3CB86C692F0BAFB80035A077 /* blip_buf.c in Sources */,
 				3CB86C6D2F0BAFB80035A077 /* tools.c in Sources */,
 				3C59355D2CA4F97500CAF224 /* CurveTimeline.cpp in Sources */,
 				3C59355E2CA4F97500CAF224 /* EventTimeline.cpp in Sources */,
@@ -4916,6 +4915,7 @@
 				3C592ADA2CA4EFE200CAF224 /* Unit.cpp in Sources */,
 				3C592ADB2CA4EFE200CAF224 /* Define.cpp in Sources */,
 				3C592ADC2CA4EFE200CAF224 /* Face.cpp in Sources */,
+				3CF7CE832F1600F000F35E6B /* blip_wasm_host.cpp in Sources */,
 				3C03A9E12EF2513100B706C8 /* h264bsd_nal_unit.c in Sources */,
 				3C03A9E22EF2513100B706C8 /* h264bsd_conceal.c in Sources */,
 				3C03A9E42EF2513100B706C8 /* h264bsd_inter_prediction.c in Sources */,

@@ -20,6 +20,7 @@ import typescriptLogo from './typescript.png';
 import yarnLogo from './yarn.png';
 import waLogo from './wa.svg';
 import vscLogo from './vsc.png';
+import tic80Logo from './tic80.png';
 import { AiFillFolderAdd } from 'react-icons/ai';
 import { DiCode } from 'react-icons/di';
 import { VscMarkdown } from 'react-icons/vsc';
@@ -27,7 +28,7 @@ import { useTranslation } from 'react-i18next';
 import { DialogActions } from '@mui/material';
 import Grid from '@mui/material/Grid';
 
-export type DoraFileType = "Lua" | "YueScript" | "Teal" | "TypeScript" | "Dora XML" | "Markdown" | "Yarn" | "Visual Script" | "Blockly" | "Folder" | "Wa"
+export type DoraFileType = "Lua" | "YueScript" | "Teal" | "TypeScript" | "Dora XML" | "Markdown" | "Yarn" | "Visual Script" | "Blockly" | "Folder" | "Wa" | "TIC80"
 
 interface FileType {
 	icon: React.ReactNode;
@@ -96,6 +97,12 @@ const fileTypes: FileType[] = [
 		name: "Wa",
 		desc: "file.wa",
 		padding: '22px'
+	},
+	{
+		icon: <img src={tic80Logo} alt="TIC80" width="45px" height="45px" style={{marginLeft: '5px'}}/>,
+		name: "TIC80",
+		desc: "file.tic",
+		padding: '20px'
 	},
 	{
 		icon: <AiFillFolderAdd size={50} style={{marginLeft: '0px'}}/>,
