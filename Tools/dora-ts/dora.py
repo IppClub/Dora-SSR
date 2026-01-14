@@ -69,6 +69,7 @@ try:
 			"Rectangle.d.ts",
 			"Star.d.ts",
 			"Utils.d.ts",
+			"tic80.d.ts",
 		])
 		API_list = []
 		def visit(node):
