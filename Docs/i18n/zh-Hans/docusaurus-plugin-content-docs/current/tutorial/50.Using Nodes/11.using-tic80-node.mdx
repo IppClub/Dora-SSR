@@ -339,9 +339,6 @@ if tic80Game then
 	-- 设置位置
 	tic80Game.position = Vec2(400, 300)
 
-	-- 设置锚点（0.5, 0.5 将节点居中）
-	tic80Game.anchor = Vec2(0.5, 0.5)
-
 	-- 添加到场景
 	Director.entry:addChild(tic80Game)
 end
@@ -362,9 +359,6 @@ if not tic80Game is nil then
 	-- 设置位置
 	tic80Game.position = Vec2(400, 300)
 
-	-- 设置锚点（0.5, 0.5 将节点居中）
-	tic80Game.anchor = Vec2(0.5, 0.5)
-
 	-- 添加到场景
 	Director.entry:addChild(tic80Game)
 end
@@ -383,9 +377,6 @@ if (tic80Game !== null) {
 	// 设置位置
 	tic80Game.position = Vec2(400, 300);
 
-	// 设置锚点（0.5, 0.5 将节点居中）
-	tic80Game.anchor = Vec2(0.5, 0.5);
-
 	// 添加到场景
 	Director.entry.addChild(tic80Game);
 }
@@ -401,9 +392,6 @@ _ENV = Dora
 with TIC80Node "TIC80/game.tic"
 	-- 设置位置
 	.position = Vec2 400, 300
-
-	-- 设置锚点（0.5, 0.5 将节点居中）
-	.anchor = Vec2 0.5, 0.5
 
 	-- 添加到场景
 	\addTo Director.entry
