@@ -69,6 +69,78 @@ Here's a typical workflow for editing a TIC-80 cart:
 This integrated workflow allows you to iterate quickly on TIC-80 games without leaving the Dora SSR development environment. You can edit, test, and refine your carts seamlessly.
 :::
 
+### 2.5 Code Editing Support
+
+The Web IDE provides special support for TIC-80 code editing, making it easier to develop TIC-80 games with autocomplete, type checking, and other editor features.
+
+#### For Lua, Teal, and YueScript
+
+When a code file starts with `-- tic80`, the built-in compiler automatically enables TIC-80 API support, including autocomplete and type checking. No additional import statements are needed since TIC-80 APIs are global by default.
+
+**Examples:**
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+-- tic80
+TIC = function()
+	cls()
+	print("Hello World", 100, 64, 15)
+end
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- tic80
+TIC = function()
+	cls()
+	print("Hello World", 100, 64, 15)
+end
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- tic80
+TIC = ->
+	cls!
+	print "Hello World", 100, 64, 15
+```
+
+</TabItem>
+</Tabs>
+
+With the `-- tic80` comment at the beginning, you'll get full autocomplete support for all TIC-80 APIs like `print`, `cls`, `rect`, `circ`, etc., as well as type checking for your code.
+
+#### For TypeScript
+
+When writing TypeScript code for TIC-80, import the TIC-80 module at the beginning of your file:
+
+```ts
+import { print, _G } from 'tic80';
+```
+
+This enables TIC-80 development mode. You can then register callback functions using the `_G` object:
+
+```ts
+import { print, cls, _G } from 'tic80';
+
+_G.TIC = () => {
+	cls();
+	print("Hello World", 100, 64, 15);
+};
+```
+
+The `_G` object provides access to TIC-80's callback functions like `TIC`, `BOOT`, `BDR`, etc. This allows you to develop TIC-80 games using TypeScript with full type safety and editor support.
+
+:::info Runtime Language Support
+Dora engine's TIC80 runtime only supports **Lua** and **YueScript** languages directly. Other languages like TypeScript and Teal need to be compiled to Lua code before execution in TIC-80. The code editing support mentioned above helps with development, but the actual execution always uses Lua or YueScript.
+:::
+
 ## 3. Creating a TIC80Node Instance
 
 ### 3.1 Creating from a Cart File
@@ -259,6 +331,7 @@ Once you create a TIC80Node, you need to add it to the scene for it to be displa
 ```lua
 local TIC80Node <const> = require("TIC80Node")
 local Vec2 <const> = require("Vec2")
+local Director <const> = require("Director")
 
 -- Create a TIC80Node
 local tic80Game = TIC80Node("TIC80/game.tic")
@@ -271,7 +344,7 @@ if tic80Game then
 	tic80Game.anchor = Vec2(0.5, 0.5)
 
 	-- Add to scene
-	scene:addChild(tic80Game)
+	Director.entry:addChild(tic80Game)
 end
 ```
 
@@ -281,6 +354,7 @@ end
 ```tl
 local TIC80Node <const> = require("TIC80Node")
 local Vec2 <const> = require("Vec2")
+local Director <const> = require("Director")
 
 -- Create a TIC80Node
 local tic80Game = TIC80Node("TIC80/game.tic")
@@ -293,7 +367,7 @@ if not tic80Game is nil then
 	tic80Game.anchor = Vec2(0.5, 0.5)
 
 	-- Add to scene
-	scene:addChild(tic80Game)
+	Director.entry:addChild(tic80Game)
 end
 ```
 
@@ -301,7 +375,7 @@ end
 <TabItem value="ts" label="TypeScript">
 
 ```ts
-import { TIC80Node, Vec2 } from "Dora";
+import { TIC80Node, Vec2, Director } from "Dora";
 
 // Create a TIC80Node
 const tic80Game = TIC80Node("TIC80/game.tic");
@@ -314,7 +388,7 @@ if (tic80Game !== null) {
 	tic80Game.anchor = Vec2(0.5, 0.5);
 
 	// Add to scene
-	scene.addChild(tic80Game);
+	Director.entry.addChild(tic80Game);
 }
 ```
 
@@ -333,7 +407,7 @@ with TIC80Node "TIC80/game.tic"
 	.anchor = Vec2 0.5, 0.5
 
 	-- Add to scene
-	scene\addChild @
+	\addTo Director.entry
 ```
 
 </TabItem>
@@ -663,24 +737,18 @@ Here's a complete example that demonstrates creating and using a TIC80Node:
 ```lua
 local TIC80Node <const> = require("TIC80Node")
 local Vec2 <const> = require("Vec2")
+local Director <const> = require("Director")
 
 -- Create a TIC80Node from a cart file
 local tic80Game = TIC80Node("TIC80/demo.tic")
 
 if tic80Game then
-	-- Center the game on screen
-	local visualSize = App.visualSize
-	tic80Game.position = Vec2(visualSize.width / 2, visualSize.height / 2)
-
-	-- Set anchor point to center
-	tic80Game.anchor = Vec2(0.5, 0.5)
-
 	-- Scale to 2x size
 	tic80Game.scaleX = 2.0
 	tic80Game.scaleY = 2.0
 
 	-- Add to scene (game will start running automatically)
-	scene:addChild(tic80Game)
+	Director.entry:addChild(tic80Game)
 
 	print("TIC-80 game is running!")
 else
@@ -694,24 +762,18 @@ end
 ```tl
 local TIC80Node <const> = require("TIC80Node")
 local Vec2 <const> = require("Vec2")
+local Director <const> = require("Director")
 
 -- Create a TIC80Node from a cart file
 local tic80Game = TIC80Node("TIC80/demo.tic")
 
 if not tic80Game is nil then
-	-- Center the game on screen
-	local visualSize = App.visualSize
-	tic80Game.position = Vec2(visualSize.width / 2, visualSize.height / 2)
-
-	-- Set anchor point to center
-	tic80Game.anchor = Vec2(0.5, 0.5)
-
 	-- Scale to 2x size
 	tic80Game.scaleX = 2.0
 	tic80Game.scaleY = 2.0
 
 	-- Add to scene (game will start running automatically)
-	scene:addChild(tic80Game)
+	Director.entry:addChild(tic80Game)
 
 	print("TIC-80 game is running!")
 else
@@ -723,25 +785,18 @@ end
 <TabItem value="ts" label="TypeScript">
 
 ```ts
-import { TIC80Node, Vec2, App } from "Dora";
+import { TIC80Node, Vec2, App, Director } from "Dora";
 
 // Create a TIC80Node from a cart file
 const tic80Game = TIC80Node("TIC80/demo.tic");
 
 if (tic80Game !== null) {
-	// Center the game on screen
-	const visualSize = App.visualSize;
-	tic80Game.position = Vec2(visualSize.width / 2, visualSize.height / 2);
-
-	// Set anchor point to center
-	tic80Game.anchor = Vec2(0.5, 0.5);
-
 	// Scale to 2x size
 	tic80Game.scaleX = 2.0;
 	tic80Game.scaleY = 2.0;
 
 	// Add to scene (game will start running automatically)
-	scene.addChild(tic80Game);
+	Director.entry.addChild(tic80Game);
 
 	print("TIC-80 game is running!");
 } else {
@@ -757,19 +812,12 @@ _ENV = Dora
 
 -- Create a TIC80Node from a cart file
 with TIC80Node "TIC80/demo.tic"
-	-- Center the game on screen
-	visualSize = App.visualSize
-	.position = Vec2 visualSize.width / 2, visualSize.height / 2
-
-	-- Set anchor point to center
-	.anchor = Vec2 0.5, 0.5
-
 	-- Scale to 2x size
 	.scaleX = 2.0
 	.scaleY = 2.0
 
 	-- Add to scene (game will start running automatically)
-	scene\addChild @
+	\addTo Director.entry
 
 	print "TIC-80 game is running!"
 ```

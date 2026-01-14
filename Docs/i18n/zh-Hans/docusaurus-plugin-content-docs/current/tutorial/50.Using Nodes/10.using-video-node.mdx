@@ -387,14 +387,8 @@ local Size <const> = require("Size")
 local video = VideoNode("assets/background_video.h264", true)
 
 if video then
-	-- 将视频居中显示在屏幕上
-	local visualSize = App.visualSize
-	video.position = Vec2(visualSize.width / 2, visualSize.height / 2)
-
-	-- 设置锚点为中心
-	video.anchor = Vec2(0.5, 0.5)
-
 	-- 如果需要，缩放到适合屏幕
+	local visualSize = App.visualSize
 	local videoSize = video.size
 	local scaleX = visualSize.width / videoSize.width
 	local scaleY = visualSize.height / videoSize.height
@@ -419,14 +413,8 @@ local Size <const> = require("Size")
 local video = VideoNode("assets/background_video.h264", true)
 
 if not video is nil then
-	-- 将视频居中显示在屏幕上
-	local visualSize = App.visualSize
-	video.position = Vec2(visualSize.width / 2, visualSize.height / 2)
-
-	-- 设置锚点为中心
-	video.anchor = Vec2(0.5, 0.5)
-
 	-- 如果需要，缩放到适合屏幕
+	local visualSize = App.visualSize
 	local videoSize = video.size
 	local scaleX = visualSize.width / videoSize.width
 	local scaleY = visualSize.height / videoSize.height
@@ -449,14 +437,8 @@ import { VideoNode, Vec2, Size, App } from "Dora";
 const video = VideoNode("assets/background_video.h264", true);
 
 if (video) {
-	// 将视频居中显示在屏幕上
-	const visualSize = App.visualSize;
-	video.position = Vec2(visualSize.width / 2, visualSize.height / 2);
-
-	// 设置锚点为中心
-	video.anchor = Vec2(0.5, 0.5);
-
 	// 如果需要，缩放到适合屏幕
+	const visualSize = App.visualSize;
 	const videoSize = video.size;
 	const scaleX = visualSize.width / videoSize.width;
 	const scaleY = visualSize.height / videoSize.height;
@@ -477,14 +459,8 @@ _ENV = Dora
 
 -- 创建一个循环播放的视频节点
 with VideoNode "assets/background_video.h264", true
-	-- 将视频居中显示在屏幕上
-	visualSize = App.visualSize
-	.position = Vec2 visualSize.width / 2, visualSize.height / 2
-
-	-- 设置锚点为中心
-	.anchor = Vec2 0.5, 0.5
-
 	-- 如果需要，缩放到适合屏幕
+	visualSize = App.visualSize
 	videoSize = .size
 	scaleX = visualSize.width / videoSize.width
 	scaleY = visualSize.height / videoSize.height

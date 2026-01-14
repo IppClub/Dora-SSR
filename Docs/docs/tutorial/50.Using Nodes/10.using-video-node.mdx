@@ -387,14 +387,8 @@ local Size <const> = require("Size")
 local video = VideoNode("assets/background_video.h264", true)
 
 if video then
-	-- Center the video on screen
-	local visualSize = App.visualSize
-	video.position = Vec2(visualSize.width / 2, visualSize.height / 2)
-
-	-- Set anchor point to center
-	video.anchor = Vec2(0.5, 0.5)
-
 	-- Scale to fit screen if needed
+	local visualSize = App.visualSize
 	local videoSize = video.size
 	local scaleX = visualSize.width / videoSize.width
 	local scaleY = visualSize.height / videoSize.height
@@ -419,14 +413,8 @@ local Size <const> = require("Size")
 local video = VideoNode("assets/background_video.h264", true)
 
 if not video is nil then
-	-- Center the video on screen
-	local visualSize = App.visualSize
-	video.position = Vec2(visualSize.width / 2, visualSize.height / 2)
-
-	-- Set anchor point to center
-	video.anchor = Vec2(0.5, 0.5)
-
 	-- Scale to fit screen if needed
+	local visualSize = App.visualSize
 	local videoSize = video.size
 	local scaleX = visualSize.width / videoSize.width
 	local scaleY = visualSize.height / videoSize.height
@@ -449,14 +437,8 @@ import { VideoNode, Vec2, Size, App } from "Dora";
 const video = VideoNode("assets/background_video.h264", true);
 
 if (video) {
-	// Center the video on screen
-	const visualSize = App.visualSize;
-	video.position = Vec2(visualSize.width / 2, visualSize.height / 2);
-
-	// Set anchor point to center
-	video.anchor = Vec2(0.5, 0.5);
-
 	// Scale to fit screen if needed
+	const visualSize = App.visualSize;
 	const videoSize = video.size;
 	const scaleX = visualSize.width / videoSize.width;
 	const scaleY = visualSize.height / videoSize.height;
@@ -477,14 +459,8 @@ _ENV = Dora
 
 -- Create a looping video node
 with VideoNode "assets/background_video.h264", true
-	-- Center the video on screen
-	visualSize = App.visualSize
-	.position = Vec2 visualSize.width / 2, visualSize.height / 2
-
-	-- Set anchor point to center
-	.anchor = Vec2 0.5, 0.5
-
 	-- Scale to fit screen if needed
+	visualSize = App.visualSize
 	videoSize = .size
 	scaleX = visualSize.width / videoSize.width
 	scaleY = visualSize.height / videoSize.height
