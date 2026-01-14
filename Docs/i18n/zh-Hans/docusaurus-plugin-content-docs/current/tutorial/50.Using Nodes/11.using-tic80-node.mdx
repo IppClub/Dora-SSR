@@ -69,6 +69,78 @@ Dora SSR 的 Web IDE 提供了对 TIC80 Studio 的集成支持，使您可以直
 这种集成的工作流程允许您在不离开 Dora SSR 开发环境的情况下快速迭代 TIC-80 游戏。您可以无缝地编辑、测试和完善您的卡带。
 :::
 
+### 2.5 代码编辑支持
+
+Web IDE 为 TIC-80 代码编辑提供了特别支持，使开发 TIC-80 游戏更加轻松，包括自动补全、类型检查和其他编辑器功能。
+
+#### 对于 Lua、Teal 和 YueScript
+
+当代码文件以 `-- tic80` 开始时，内置编译器会自动启用 TIC-80 API 支持，包括自动补全和类型检查。由于 TIC-80 API 默认是全局的，因此无需额外的导入语句。
+
+**示例：**
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+-- tic80
+TIC = function()
+	cls()
+	print("Hello World", 100, 64, 15)
+end
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- tic80
+TIC = function()
+	cls()
+	print("Hello World", 100, 64, 15)
+end
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- tic80
+TIC = ->
+	cls!
+	print "Hello World", 100, 64, 15
+```
+
+</TabItem>
+</Tabs>
+
+在文件开头添加 `-- tic80` 注释后，您将获得所有 TIC-80 API（如 `print`、`cls`、`rect`、`circ` 等）的完整自动补全支持，以及代码的类型检查。
+
+#### 对于 TypeScript
+
+在编写 TypeScript 代码开发 TIC-80 游戏时，在文件开头导入 TIC-80 模块：
+
+```ts
+import { print, _G } from 'tic80';
+```
+
+这将启用 TIC-80 开发模式。然后您可以使用 `_G` 对象注册回调函数：
+
+```ts
+import { print, cls, _G } from 'tic80';
+
+_G.TIC = () => {
+	cls();
+	print("Hello World", 100, 64, 15);
+};
+```
+
+`_G` 对象提供对 TIC-80 回调函数（如 `TIC`、`BOOT`、`BDR` 等）的访问。这允许您使用 TypeScript 开发 TIC-80 游戏，并获得完整的类型安全和编辑器支持。
+
+:::info 运行时语言支持
+Dora 引擎的 TIC80 运行时仅直接支持 **Lua** 和 **YueScript** 语言。其他语言（如 TypeScript 和 Teal）需要先编译为 Lua 代码，才能在 TIC-80 中执行。上述代码编辑支持有助于开发，但实际执行始终使用 Lua 或 YueScript。
+:::
+
 ## 3. 创建 TIC80Node 实例
 
 ### 3.1 从卡带文件创建
@@ -271,7 +343,7 @@ if tic80Game then
 	tic80Game.anchor = Vec2(0.5, 0.5)
 
 	-- 添加到场景
-	scene:addChild(tic80Game)
+	Director.entry:addChild(tic80Game)
 end
 ```
 
@@ -281,6 +353,7 @@ end
 ```tl
 local TIC80Node <const> = require("TIC80Node")
 local Vec2 <const> = require("Vec2")
+local Director <const> = require("Director")
 
 -- 创建 TIC80Node
 local tic80Game = TIC80Node("TIC80/game.tic")
@@ -293,7 +366,7 @@ if not tic80Game is nil then
 	tic80Game.anchor = Vec2(0.5, 0.5)
 
 	-- 添加到场景
-	scene:addChild(tic80Game)
+	Director.entry:addChild(tic80Game)
 end
 ```
 
@@ -301,7 +374,7 @@ end
 <TabItem value="ts" label="TypeScript">
 
 ```ts
-import { TIC80Node, Vec2 } from "Dora";
+import { TIC80Node, Vec2, Director } from "Dora";
 
 // 创建 TIC80Node
 const tic80Game = TIC80Node("TIC80/game.tic");
@@ -314,7 +387,7 @@ if (tic80Game !== null) {
 	tic80Game.anchor = Vec2(0.5, 0.5);
 
 	// 添加到场景
-	scene.addChild(tic80Game);
+	Director.entry.addChild(tic80Game);
 }
 ```
 
@@ -333,7 +406,7 @@ with TIC80Node "TIC80/game.tic"
 	.anchor = Vec2 0.5, 0.5
 
 	-- 添加到场景
-	scene\addChild @
+	\addTo Director.entry
 ```
 
 </TabItem>
@@ -663,24 +736,18 @@ TIC80Node 自动处理输入映射：
 ```lua
 local TIC80Node <const> = require("TIC80Node")
 local Vec2 <const> = require("Vec2")
+local Director <const> = require("Director")
 
 -- 从卡带文件创建 TIC80Node
 local tic80Game = TIC80Node("TIC80/demo.tic")
 
 if tic80Game then
-	-- 将游戏居中于屏幕
-	local visualSize = App.visualSize
-	tic80Game.position = Vec2(visualSize.width / 2, visualSize.height / 2)
-
-	-- 设置锚点居中
-	tic80Game.anchor = Vec2(0.5, 0.5)
-
 	-- 缩放至 2 倍大小
 	tic80Game.scaleX = 2.0
 	tic80Game.scaleY = 2.0
 
 	-- 添加到场景（游戏将自动开始运行）
-	scene:addChild(tic80Game)
+	Director.entry:addChild(tic80Game)
 
 	print("TIC-80 游戏正在运行！")
 else
@@ -694,24 +761,18 @@ end
 ```tl
 local TIC80Node <const> = require("TIC80Node")
 local Vec2 <const> = require("Vec2")
+local Director <const> = require("Director")
 
 -- 从卡带文件创建 TIC80Node
 local tic80Game = TIC80Node("TIC80/demo.tic")
 
 if not tic80Game is nil then
-	-- 将游戏居中于屏幕
-	local visualSize = App.visualSize
-	tic80Game.position = Vec2(visualSize.width / 2, visualSize.height / 2)
-
-	-- 设置锚点居中
-	tic80Game.anchor = Vec2(0.5, 0.5)
-
 	-- 缩放至 2 倍大小
 	tic80Game.scaleX = 2.0
 	tic80Game.scaleY = 2.0
 
 	-- 添加到场景（游戏将自动开始运行）
-	scene:addChild(tic80Game)
+	Director.entry:addChild(tic80Game)
 
 	print("TIC-80 游戏正在运行！")
 else
@@ -723,25 +784,18 @@ end
 <TabItem value="ts" label="TypeScript">
 
 ```ts
-import { TIC80Node, Vec2, App } from "Dora";
+import { TIC80Node, Vec2, App, Director } from "Dora";
 
 // 从卡带文件创建 TIC80Node
 const tic80Game = TIC80Node("TIC80/demo.tic");
 
 if (tic80Game !== null) {
-	// 将游戏居中于屏幕
-	const visualSize = App.visualSize;
-	tic80Game.position = Vec2(visualSize.width / 2, visualSize.height / 2);
-
-	// 设置锚点居中
-	tic80Game.anchor = Vec2(0.5, 0.5);
-
 	// 缩放至 2 倍大小
 	tic80Game.scaleX = 2.0;
 	tic80Game.scaleY = 2.0;
 
 	// 添加到场景（游戏将自动开始运行）
-	scene.addChild(tic80Game);
+	Director.entry.addChild(tic80Game);
 
 	print("TIC-80 游戏正在运行！");
 } else {
@@ -757,19 +811,12 @@ _ENV = Dora
 
 -- 从卡带文件创建 TIC80Node
 with TIC80Node "TIC80/demo.tic"
-	-- 将游戏居中于屏幕
-	visualSize = App.visualSize
-	.position = Vec2 visualSize.width / 2, visualSize.height / 2
-
-	-- 设置锚点居中
-	.anchor = Vec2 0.5, 0.5
-
 	-- 缩放至 2 倍大小
 	.scaleX = 2.0
 	.scaleY = 2.0
 
 	-- 添加到场景（游戏将自动开始运行）
-	scene\addChild @
+	\addTo Director.entry
 
 	print "TIC-80 游戏正在运行！"
 ```
