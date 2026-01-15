@@ -78,7 +78,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.30.4"sv;
+const std::string_view version = "0.31.0"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -434,6 +434,15 @@ private:
 		Global = 2,
 		GlobalConst = 3
 	};
+	struct Scope;
+	struct ImportedGlobal {
+		std::string* globalCodeLine = nullptr;
+		Scope* importingScope = nullptr;
+		std::string indent;
+		std::string nl;
+		std::unordered_set<std::string_view> globals;
+		str_list globalList;
+	};
 	struct Scope {
 		GlobalMode mode = GlobalMode::None;
 		bool lastStatement = false;
@@ -442,8 +451,10 @@ private:
 #endif
 		std::unique_ptr<std::unordered_map<std::string, VarType>> vars;
 		std::unique_ptr<std::unordered_set<std::string>> allows;
+		std::unique_ptr<ImportedGlobal> importedGlobal;
 	};
 	std::list<Scope> _scopes;
+	ImportedGlobal* _importedGlobal = nullptr;
 	static const std::string Empty;
 
 	enum class MemType {
@@ -1610,9 +1621,19 @@ private:
 		return !_varArgs.empty() && _varArgs.top().usedVar ? "end)(...)"s : "end)()"s;
 	}
 
+	void markGlobalImported(const std::string& name) {
+		if (_importedGlobal->globals.find(name) == _importedGlobal->globals.end() && !isSolidDefined(name)) {
+			const auto& global = _importedGlobal->globalList.emplace_back(name);
+			_importedGlobal->globals.insert(global);
+			_importedGlobal->importingScope->vars->insert_or_assign(name, VarType::LocalConst);
+		}
+	}
+
 	std::string globalVar(std::string_view var, ast_node* x, AccessType accessType) {
 		std::string str(var);
-		if (_config.lintGlobalVariable) {
+		if (_importedGlobal) {
+			markGlobalImported(str);
+		} else if (_config.lintGlobalVariable) {
 			if (!isLocal(str)) {
 				auto key = str + ':' + std::to_string(x->m_begin.m_line) + ':' + std::to_string(x->m_begin.m_col);
 				if (_globals.find(key) == _globals.end()) {
@@ -4617,13 +4638,17 @@ private:
 		switch (item->get_id()) {
 			case id<Variable_t>(): {
 				transformVariable(static_cast<Variable_t*>(item), out);
-				if (_config.lintGlobalVariable && accessType != AccessType::None && !isLocal(out.back())) {
-					auto key = out.back() + ':' + std::to_string(item->m_begin.m_line) + ':' + std::to_string(item->m_begin.m_col);
-					if (_globals.find(key) == _globals.end()) {
-						if (accessType == AccessType::Read && _funcLevel > 1) {
-							accessType = AccessType::Capture;
+				if (accessType != AccessType::None) {
+					if (_importedGlobal) {
+						markGlobalImported(out.back());
+					} else if (_config.lintGlobalVariable && !isLocal(out.back())) {
+						auto key = out.back() + ':' + std::to_string(item->m_begin.m_line) + ':' + std::to_string(item->m_begin.m_col);
+						if (_globals.find(key) == _globals.end()) {
+							if (accessType == AccessType::Read && _funcLevel > 1) {
+								accessType = AccessType::Capture;
+							}
+							_globals[key] = {out.back(), item->m_begin.m_line, item->m_begin.m_col, accessType, isSolidDefined(out.back())};
 						}
-						_globals[key] = {out.back(), item->m_begin.m_line, item->m_begin.m_col, accessType, isSolidDefined(out.back())};
 					}
 				}
 				break;
@@ -5299,7 +5324,23 @@ private:
 				}
 				auto transformNode = [&]() {
 					currentScope().lastStatement = (node == lastStmt) && currentScope().mode == GlobalMode::None;
-					transformStatement(static_cast<Statement_t*>(node), temp);
+					auto stmt = static_cast<Statement_t*>(node);
+					if (auto importNode = stmt->content.as<Import_t>();
+						importNode && importNode->content.is<ImportAllGlobal_t>()) {
+						if (_importedGlobal) {
+							throw CompileError("import global redeclared in same scope"sv, importNode);
+						} else {
+							auto& scope = currentScope();
+							scope.importedGlobal = std::make_unique<ImportedGlobal>();
+							_importedGlobal = scope.importedGlobal.get();
+							_importedGlobal->importingScope = &scope;
+							_importedGlobal->indent = indent();
+							_importedGlobal->nl = nl(stmt);
+							_importedGlobal->globalCodeLine = &temp.emplace_back();
+						}
+					} else {
+						transformStatement(stmt, temp);
+					}
 					if (isRoot && !_rootDefs.empty()) {
 						auto last = std::move(temp.back());
 						temp.pop_back();
@@ -5337,6 +5378,14 @@ private:
 				} else {
 					transformNode();
 				}
+			}
+			if (auto importedGlobal = currentScope().importedGlobal.get()) {
+				str_list globalCodes;
+				for (const auto& global : importedGlobal->globalList) {
+					globalCodes.emplace_back(importedGlobal->indent + "local "s + global + " = "s + global + importedGlobal->nl);
+				}
+				*importedGlobal->globalCodeLine = join(globalCodes);
+				_importedGlobal = nullptr;
 			}
 			out.push_back(join(temp));
 		} else {
@@ -9313,7 +9362,9 @@ private:
 		} else {
 			out.push_back(name + " = "s + name);
 		}
-		if (_config.lintGlobalVariable && !isLocal(name)) {
+		if (_importedGlobal) {
+			markGlobalImported(name);
+		} else if (_config.lintGlobalVariable && !isLocal(name)) {
 			auto key = name + ':' + std::to_string(pair->name->m_begin.m_line) + ':' + std::to_string(pair->name->m_begin.m_col);
 			if (_globals.find(key) == _globals.end()) {
 				_globals[key] = {name, pair->name->m_begin.m_line, pair->name->m_begin.m_col, _funcLevel > 1 ? AccessType::Capture : AccessType::Read, isSolidDefined(name)};
@@ -10348,8 +10399,10 @@ private:
 					}
 					assignment->action.set(assign);
 					transformAssignment(assignment, out);
-					for (const auto& name : varNames) {
-						markVarGlobalConst(name);
+					if (global->constAttrib) {
+						for (const auto& name : varNames) {
+							markVarGlobalConst(name);
+						}
 					}
 				} else {
 					for (auto name : values->nameList->names.objects()) {

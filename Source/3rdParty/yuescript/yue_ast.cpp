@@ -326,6 +326,9 @@ std::string ImportGlobal_t::to_string(void* ud) const {
 	}
 	return item;
 }
+std::string ImportAllGlobal_t::to_string(void*) const {
+	return "global"s;
+}
 std::string Import_t::to_string(void* ud) const {
 	if (ast_is<FromImport_t>(content)) {
 		return content->to_string(ud);

@@ -352,6 +352,7 @@ private:
 	AST_RULE(ImportTabLit);
 	AST_RULE(ImportAs);
 	AST_RULE(ImportGlobal);
+	AST_RULE(ImportAllGlobal);
 	AST_RULE(Import);
 	AST_RULE(Label);
 	AST_RULE(Goto);
