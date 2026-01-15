@@ -464,7 +464,9 @@ YueParser::YueParser() {
 
 	ImportGlobal = Seperator >> UnicodeName >> *('.' >> UnicodeName) >> space >> not_(',' | key("from")) >> -(key("as") >> space >> must_variable);
 
-	Import = key("import") >> space >> (ImportGlobal | ImportAs | ImportFrom | invalid_import_syntax_error) | FromImport;
+	ImportAllGlobal = key("global");
+
+	Import = key("import") >> space >> (ImportAllGlobal | ImportGlobal | ImportAs | ImportFrom | invalid_import_syntax_error) | FromImport;
 
 	Label = "::" >> (and_(LuaKeyword >> "::") >> keyword_as_label_error | UnicodeName >> "::");
 
@@ -982,7 +984,7 @@ YueParser::YueParser() {
 			return true;
 		}) |
 		invalid_export_syntax_error
-	) >> not_(space >> StatementAppendix);
+	);
 
 	VariablePair = ':' >> Variable;
 
@@ -1125,14 +1127,14 @@ YueParser::YueParser() {
 	StatementAppendix = (IfLine | WhileLine | CompFor) >> space;
 	Statement =
 		(
-			Import | While | Repeat | For |
-			Return | Local | Global | Export | Macro |
-			MacroInPlace | BreakLoop | Label | Goto | ShortTabAppending |
+			Import | Export | Global | Macro | MacroInPlace | Label
+		) >> space | (
+			Local | While | Repeat | For | Return |
+			BreakLoop | Goto | ShortTabAppending |
 			LocalAttrib | Backcall | PipeBody | ExpListAssign | ChainAssign |
 			StatementAppendix >> empty_block_error |
 			and_(key("else") | key("elseif") | key("when")) >> dangling_clause_error
-		) >> space >>
-		-StatementAppendix;
+		) >> space >> -StatementAppendix;
 
 	StatementSep = white >> (set("('\"") | "[[" | "[=");
 
