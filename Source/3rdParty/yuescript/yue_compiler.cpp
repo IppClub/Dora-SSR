@@ -5380,9 +5380,11 @@ private:
 				}
 			}
 			if (auto importedGlobal = currentScope().importedGlobal.get()) {
+				int target = getLuaTarget(block);
+				auto attrib = target >= 504 ? " <const>"s : Empty;
 				str_list globalCodes;
 				for (const auto& global : importedGlobal->globalList) {
-					globalCodes.emplace_back(importedGlobal->indent + "local "s + global + " = "s + global + importedGlobal->nl);
+					globalCodes.emplace_back(importedGlobal->indent + "local "s + global + attrib + " = "s + global + importedGlobal->nl);
 				}
 				*importedGlobal->globalCodeLine = join(globalCodes);
 				_importedGlobal = nullptr;
