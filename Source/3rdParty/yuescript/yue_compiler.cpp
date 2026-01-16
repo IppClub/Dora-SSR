@@ -78,7 +78,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.31.0"sv;
+const std::string_view version = "0.31.1"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -437,7 +437,7 @@ private:
 	struct Scope;
 	struct ImportedGlobal {
 		std::string* globalCodeLine = nullptr;
-		Scope* importingScope = nullptr;
+		std::unordered_map<std::string, VarType>* vars = nullptr;
 		std::string indent;
 		std::string nl;
 		std::unordered_set<std::string_view> globals;
@@ -1625,7 +1625,7 @@ private:
 		if (_importedGlobal->globals.find(name) == _importedGlobal->globals.end() && !isSolidDefined(name)) {
 			const auto& global = _importedGlobal->globalList.emplace_back(name);
 			_importedGlobal->globals.insert(global);
-			_importedGlobal->importingScope->vars->insert_or_assign(name, VarType::LocalConst);
+			_importedGlobal->vars->insert_or_assign(name, VarType::LocalConst);
 		}
 	}
 
@@ -5333,7 +5333,7 @@ private:
 							auto& scope = currentScope();
 							scope.importedGlobal = std::make_unique<ImportedGlobal>();
 							_importedGlobal = scope.importedGlobal.get();
-							_importedGlobal->importingScope = &scope;
+							_importedGlobal->vars = scope.vars.get();
 							_importedGlobal->indent = indent();
 							_importedGlobal->nl = nl(stmt);
 							_importedGlobal->globalCodeLine = &temp.emplace_back();
