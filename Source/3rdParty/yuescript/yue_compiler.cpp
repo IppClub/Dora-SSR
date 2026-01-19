@@ -1085,12 +1085,12 @@ private:
 		return nullptr;
 	}
 
-	Value_t* singleValueFrom(ast_node* item) const {
+	Value_t* singleValueFrom(ast_node* item, bool forceUnparened = false) const {
 		if (auto unary = singleUnaryExpFrom(item)) {
 			if (unary->ops.empty()) {
 				Value_t* value = static_cast<Value_t*>(unary->expos.back());
 				if (auto chain = ast_cast<ChainValue_t>(value->item); chain && chain->items.size() == 1) {
-					if (auto parens = chain->get_by_path<Callable_t, Parens_t>(); parens && parens->extra) {
+					if (auto parens = chain->get_by_path<Callable_t, Parens_t>(); parens && (forceUnparened || parens->extra)) {
 						if (auto insideValue = singleValueFrom(parens->expr)) {
 							return insideValue;
 						}
@@ -3726,7 +3726,7 @@ private:
 				bool oneLined = defs.size() == expList->exprs.objects().size();
 				bool nonRecursionFunLit = false;
 				for (auto val : assign->values.objects()) {
-					if (auto value = singleValueFrom(val)) {
+					if (auto value = singleValueFrom(val, true)) {
 						if (auto spValue = value->item.as<SimpleValue_t>()) {
 							if (auto funLit = spValue->value.as<FunLit_t>()) {
 								if (funLit->noRecursion) {
@@ -11857,7 +11857,7 @@ private:
 					assignment->action.set(assign);
 					bool oneLined = transformAssignment(assignment, temp);
 					for (auto val : assign->values.objects()) {
-						if (auto value = singleValueFrom(val)) {
+						if (auto value = singleValueFrom(val, true)) {
 							if (auto spValue = value->item.as<SimpleValue_t>()) {
 								if (auto funLit = spValue->value.as<FunLit_t>()) {
 									if (!funLit->noRecursion) {
