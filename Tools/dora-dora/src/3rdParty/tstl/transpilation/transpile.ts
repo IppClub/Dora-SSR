@@ -1,6 +1,6 @@
 import path from "path";
 import * as ts from "typescript";
-import { CompilerOptions, validateOptions } from "../CompilerOptions";
+import { CompilerOptions, LuaLibImportKind, validateOptions } from "../CompilerOptions";
 import { createPrinter } from "../LuaPrinter";
 import { createVisitorMap, transformSourceFile } from "../transformation";
 import { getTransformers } from "./transformers";
@@ -66,8 +66,14 @@ export function getProgramTranspileResult(
             console.log(`Transforming ${sourceFile.fileName}`);
         }
 
-        const { file, diagnostics: transformDiagnostics } = transformSourceFile(program, sourceFile, visitorMap);
+        const { file, diagnostics: transformDiagnostics, isTIC80 } = transformSourceFile(program, sourceFile, visitorMap);
         diagnostics.push(...transformDiagnostics);
+
+        if (isTIC80) {
+            options.luaLibImport = LuaLibImportKind.Inline;
+        } else {
+            options.luaLibImport = LuaLibImportKind.Require;
+        }
 
         if (!options.noEmit && !options.emitDeclarationOnly) {
             if (options.tstlVerbose) {

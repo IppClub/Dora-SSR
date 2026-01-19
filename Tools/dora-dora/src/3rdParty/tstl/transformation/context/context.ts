@@ -56,6 +56,8 @@ export class TransformationContext {
 
     private nextTempId = 0;
 
+    public isTIC80 = false;
+
     public transformNode(node: ts.Node): lua.Node[] {
         return unwrapVisitorResult(this.transformNodeRaw(node));
     }
