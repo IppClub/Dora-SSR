@@ -222,7 +222,7 @@ export async function transpileTypescript(
 				if (res?.success) {
 					return res.content;
 				}
-				return undefined;
+				return "";
 			},
 			writeFile: () => {}
 		}
