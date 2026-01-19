@@ -883,7 +883,7 @@ std::string Assign_t::to_string(void* ud) const {
 	for (auto value : values.objects()) {
 		temp.emplace_back(value->to_string(ud));
 	}
-	return "= "s + join(temp, "; "sv);
+	return "= "s + join(temp, ", "sv);
 }
 std::string Update_t::to_string(void* ud) const {
 	return op->to_string(ud) + "= "s + value->to_string(ud);
