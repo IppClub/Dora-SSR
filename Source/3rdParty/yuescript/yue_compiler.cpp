@@ -1057,13 +1057,6 @@ private:
 				}
 				break;
 			}
-			case id<ExpListLow_t>(): {
-				auto expList = static_cast<ExpListLow_t*>(item);
-				if (expList->exprs.size() == 1) {
-					exp = static_cast<Exp_t*>(expList->exprs.front());
-				}
-				break;
-			}
 			case id<SwitchList_t>(): {
 				auto expList = static_cast<SwitchList_t*>(item);
 				if (expList->exprs.size() == 1) {
@@ -1155,6 +1148,22 @@ private:
 		auto exp = x->new_ptr<Exp_t>();
 		exp->pipeExprs.push_back(unary);
 		return exp;
+	}
+
+	ast_ptr<false, Return_t> newReturn(Exp_t* value) {
+		auto returnNode = value->new_ptr<Return_t>();
+		returnNode->explicitReturn = false;
+		auto expList = value->new_ptr<ExpList_t>();
+		expList->exprs.push_back(value);
+		returnNode->valueList.set(expList);
+		return returnNode;
+	}
+
+	ast_ptr<false, Return_t> newReturn(ExpList_t* valueList) {
+		auto returnNode = valueList->new_ptr<Return_t>();
+		returnNode->explicitReturn = false;
+		returnNode->valueList.set(valueList);
+		return returnNode;
 	}
 
 	SimpleValue_t* simpleSingleValueFrom(ast_node* node) const {
@@ -1264,7 +1273,7 @@ private:
 			}
 			case id<Local_t>(): {
 				if (auto localValues = static_cast<Local_t*>(stmt->content.get())->item.as<LocalValues_t>()) {
-					if (auto expList = localValues->valueList.as<ExpListLow_t>()) {
+					if (auto expList = localValues->valueList.as<ExpList_t>()) {
 						return static_cast<Exp_t*>(expList->exprs.back());
 					}
 				}
@@ -1272,7 +1281,7 @@ private:
 			}
 			case id<Global_t>(): {
 				if (auto globalValues = static_cast<Global_t*>(stmt->content.get())->item.as<GlobalValues_t>()) {
-					if (auto expList = globalValues->valueList.as<ExpListLow_t>()) {
+					if (auto expList = globalValues->valueList.as<ExpList_t>()) {
 						return static_cast<Exp_t*>(expList->exprs.back());
 					}
 				}
@@ -3981,14 +3990,6 @@ private:
 		out.push_back(join(temp, ", "sv));
 	}
 
-	void transformExpListLow(ExpListLow_t* expListLow, str_list& out) {
-		str_list temp;
-		for (auto exp : expListLow->exprs.objects()) {
-			transformExp(static_cast<Exp_t*>(exp), temp, ExpUsage::Closure);
-		}
-		out.push_back(join(temp, ", "sv));
-	}
-
 	void transform_pipe_exp(const node_container& values, str_list& out, ExpUsage usage, ExpList_t* assignList = nullptr) {
 		if (values.size() == 1 && usage == ExpUsage::Closure) {
 			transformUnaryExp(static_cast<UnaryExp_t*>(values.front()), out, ExpUsage::Closure);
@@ -4060,11 +4061,7 @@ private:
 					return;
 				}
 				case ExpUsage::Return: {
-					auto ret = x->new_ptr<Return_t>();
-					ret->explicitReturn = false;
-					auto expListLow = x->new_ptr<ExpListLow_t>();
-					expListLow->exprs.push_back(arg);
-					ret->valueList.set(expListLow);
+					auto ret = newReturn(arg);
 					transformReturn(ret, out);
 					return;
 				}
@@ -4289,11 +4286,7 @@ private:
 						break;
 					}
 					case ExpUsage::Return: {
-						auto expListLow = exp->new_ptr<ExpListLow_t>();
-						expListLow->exprs.push_back(e);
-						auto returnNode = exp->new_ptr<Return_t>();
-						returnNode->explicitReturn = false;
-						returnNode->valueList.set(expListLow);
+						auto returnNode = newReturn(e);
 						transformReturn(returnNode, out);
 						break;
 					}
@@ -4470,11 +4463,7 @@ private:
 					return getUpValueFuncFromBlock(block, ensureArgListInTheEnd, false, blockRewrite);
 				}
 			}
-			auto returnNode = exp->new_ptr<Return_t>();
-			returnNode->explicitReturn = false;
-			auto returnList = exp->new_ptr<ExpListLow_t>();
-			returnList->exprs.push_back(exp);
-			returnNode->valueList.set(returnList);
+			auto returnNode = newReturn(exp);
 			auto stmt = exp->new_ptr<Statement_t>();
 			stmt->content.set(returnNode);
 			block->statementOrComments.push_back(stmt);
@@ -4561,12 +4550,8 @@ private:
 				_buf << indent(1) << "return "s << objVar << nl(x);
 				_buf << indent() << "else"s << nl(x);
 				temp.push_back(clearBuf());
-				auto ret = x->new_ptr<Return_t>();
-				ret->explicitReturn = false;
-				auto retList = x->new_ptr<ExpListLow_t>();
-				retList->exprs.push_back(exp->nilCoalesed);
-				ret->valueList.set(retList);
 				incIndentOffset();
+				auto ret = newReturn(exp->nilCoalesed);
 				transformReturn(ret, temp);
 				decIndentOffset();
 				temp.push_back(indent() + "end"s + nl(x));
@@ -4727,10 +4712,8 @@ private:
 					default: YUEE("AST node mismatch", content); break;
 				}
 			}
-			if (funLit->defaultReturn.is<ExpListLow_t>()) {
-				auto returnNode = newBlock->new_ptr<Return_t>();
-				returnNode->explicitReturn = false;
-				returnNode->valueList.set(funLit->defaultReturn);
+			if (auto defaultReturn = funLit->defaultReturn.as<ExpList_t>()) {
+				auto returnNode = newReturn(defaultReturn);
 				auto stmt = newBlock->new_ptr<Statement_t>();
 				stmt->content.set(returnNode);
 				newBlock->statementOrComments.push_back(stmt);
@@ -5264,11 +5247,9 @@ private:
 				auto expList = expListFrom(last);
 				BREAK_IF(!expList);
 				BREAK_IF(last->appendix && !last->appendix->item.is<IfLine_t>());
-				auto expListLow = x->new_ptr<ExpListLow_t>();
-				expListLow->exprs.dup(expList->exprs);
 				auto returnNode = x->new_ptr<Return_t>();
 				returnNode->explicitReturn = false;
-				returnNode->valueList.set(expListLow);
+				returnNode->valueList.set(expList);
 				returnNode->allowBlockMacroReturn = true;
 				last->content.set(returnNode);
 				BLOCK_END
@@ -5713,7 +5694,7 @@ private:
 			if (!target) target = returnNode;
 			throw CompileError("explicit return statement is not allowed in this context"sv, target);
 		}
-		if (auto valueList = returnNode->valueList.as<ExpListLow_t>()) {
+		if (auto valueList = returnNode->valueList.as<ExpList_t>()) {
 			if (valueList->exprs.size() == 1) {
 				auto exp = static_cast<Exp_t*>(valueList->exprs.back());
 				if (isPurePipeChain(exp)) {
@@ -5783,7 +5764,7 @@ private:
 				return;
 			} else {
 				str_list temp;
-				transformExpListLow(valueList, temp);
+				transformExpList(valueList, temp);
 				out.push_back(indent() + "return "s + temp.back() + nl(returnNode));
 			}
 		} else if (auto tableBlock = returnNode->valueList.as<TableBlock_t>()) {
@@ -6250,11 +6231,7 @@ private:
 				case ExpUsage::Return:
 				case ExpUsage::Closure: {
 					auto exp = newExp(partTwo, x);
-					auto ret = x->new_ptr<Return_t>();
-					ret->explicitReturn = false;
-					auto expListLow = x->new_ptr<ExpListLow_t>();
-					expListLow->exprs.push_back(exp);
-					ret->valueList.set(expListLow);
+					auto ret = newReturn(exp);
 					transformReturn(ret, temp);
 					break;
 				}
@@ -6349,11 +6326,7 @@ private:
 			switch (usage) {
 				case ExpUsage::Closure:
 				case ExpUsage::Return: {
-					auto returnNode = x->new_ptr<Return_t>();
-					returnNode->explicitReturn = false;
-					auto expListLow = x->new_ptr<ExpListLow_t>();
-					expListLow->exprs.push_back(funLit);
-					returnNode->valueList.set(expListLow);
+					auto returnNode = newReturn(funLit);
 					transformReturn(returnNode, temp);
 					break;
 				}
@@ -6484,11 +6457,7 @@ private:
 						}
 						switch (usage) {
 							case ExpUsage::Closure: {
-								auto returnNode = x->new_ptr<Return_t>();
-								returnNode->explicitReturn = false;
-								auto values = x->new_ptr<ExpListLow_t>();
-								values->exprs.push_back(newChainExp);
-								returnNode->valueList.set(values);
+								auto returnNode = newReturn(newChainExp);
 								transformReturn(returnNode, temp);
 								popScope();
 								*funcStart = anonFuncStart() + nl(x);
@@ -6498,11 +6467,7 @@ private:
 								break;
 							}
 							case ExpUsage::Return: {
-								auto returnNode = x->new_ptr<Return_t>();
-								returnNode->explicitReturn = false;
-								auto values = x->new_ptr<ExpListLow_t>();
-								values->exprs.push_back(newChainExp);
-								returnNode->valueList.set(values);
+								auto returnNode = newReturn(newChainExp);
 								transformReturn(returnNode, temp);
 								break;
 							}
@@ -7361,11 +7326,7 @@ private:
 						break;
 					}
 					case ExpUsage::Return: {
-						auto expListLow = x->new_ptr<ExpListLow_t>();
-						expListLow->exprs.push_back(node);
-						auto returnNode = x->new_ptr<Return_t>();
-						returnNode->explicitReturn = false;
-						returnNode->valueList.set(expListLow);
+						auto returnNode = newReturn(node.to<Exp_t>());
 						transformReturn(returnNode, out);
 						break;
 					}
@@ -8377,11 +8338,7 @@ private:
 					auto simpleValue = x->new_ptr<SimpleValue_t>();
 					simpleValue->value.set(tableLit);
 					auto exp = newExp(simpleValue, x);
-					auto returnNode = x->new_ptr<Return_t>();
-					returnNode->explicitReturn = false;
-					auto expList = x->new_ptr<ExpListLow_t>();
-					expList->exprs.push_back(exp);
-					returnNode->valueList.set(expList);
+					auto returnNode = newReturn(exp);
 					transformReturn(returnNode, out);
 					break;
 				}
@@ -9190,10 +9147,7 @@ private:
 			}
 		} else {
 			auto accum = transformForNumInner(forNum, temp);
-			auto returnNode = x->new_ptr<Return_t>();
-			returnNode->explicitReturn = false;
-			auto expListLow = toAst<ExpListLow_t>(accum, x);
-			returnNode->valueList.set(expListLow);
+			auto returnNode = newReturn(toAst<Exp_t>(accum, forNum));
 			transformReturn(returnNode, temp);
 		}
 		out.push_back(join(temp));
@@ -9304,10 +9258,7 @@ private:
 			}
 		} else {
 			auto accum = transformForEachInner(forEach, temp);
-			auto returnNode = x->new_ptr<Return_t>();
-			returnNode->explicitReturn = false;
-			auto expListLow = toAst<ExpListLow_t>(accum, x);
-			returnNode->valueList.set(expListLow);
+			auto returnNode = newReturn(toAst<Exp_t>(accum, forEach));
 			transformReturn(returnNode, temp);
 		}
 		out.push_back(join(temp));
@@ -10393,8 +10344,8 @@ private:
 					auto assignment = x->new_ptr<ExpListAssign_t>();
 					assignment->expList.set(expList);
 					auto assign = x->new_ptr<Assign_t>();
-					if (auto expListLow = values->valueList.as<ExpListLow_t>()) {
-						assign->values.dup(expListLow->exprs);
+					if (auto expList = values->valueList.as<ExpList_t>()) {
+						assign->values.dup(expList->exprs);
 					} else {
 						auto tableBlock = values->valueList.to<TableBlock_t>();
 						assign->values.push_back(tableBlock);
@@ -11897,8 +11848,8 @@ private:
 					auto assignment = x->new_ptr<ExpListAssign_t>();
 					assignment->expList.set(expList);
 					auto assign = x->new_ptr<Assign_t>();
-					if (auto expListLow = values->valueList.as<ExpListLow_t>()) {
-						assign->values.dup(expListLow->exprs);
+					if (auto expList = values->valueList.as<ExpList_t>()) {
+						assign->values.dup(expList->exprs);
 					} else {
 						auto tableBlock = values->valueList.to<TableBlock_t>();
 						assign->values.push_back(tableBlock);

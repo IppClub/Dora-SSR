@@ -393,7 +393,7 @@ YueParser::YueParser() {
 	in_block = space_break >> *(*set(" \t") >> line_break) >> advance_match >> ensure(Block, pop_indent);
 
 	LocalFlag = expr('*') | '^';
-	LocalValues = NameList >> -(space >> '=' >> space >> (TableBlock | ExpListLow | expected_expression_error));
+	LocalValues = NameList >> -(space >> '=' >> space >> (TableBlock | ExpList | expected_expression_error));
 	Local = key("local") >> space >> (LocalFlag | LocalValues | invalid_local_declaration_error);
 
 	ConstAttrib = key("const");
@@ -478,7 +478,7 @@ YueParser::YueParser() {
 	Continue = key("continue");
 	BreakLoop = (Break >> -(space >> Exp) | Continue) >> not_alpha_num;
 
-	Return = key("return") >> -(space >> (TableBlock | ExpListLow));
+	Return = key("return") >> -(space >> (TableBlock | ExpList));
 
 	must_exp = Exp | expected_expression_error;
 
@@ -674,7 +674,7 @@ YueParser::YueParser() {
 
 	Assign = '=' >> space >> Seperator >> (
 		With | If | Switch | TableBlock |
-		(SpreadListExp | Exp) >> *(space >> set(",;") >> space >> (SpreadListExp | Exp)) |
+		(SpreadListExp | Exp) >> *(space >> set(",") >> space >> (SpreadListExp | Exp)) |
 		expected_expression_error
 	);
 
@@ -927,7 +927,7 @@ YueParser::YueParser() {
 			-(space >> key("using") >> prevent_indent >> space >> ensure(ExpList | expected_expression_error, pop_indent))
 		) >> -ClassBlock;
 
-	GlobalValues = NameList >> -(space >> '=' >> space >> (TableBlock | ExpListLow | expected_expression_error));
+	GlobalValues = NameList >> -(space >> '=' >> space >> (TableBlock | ExpList | expected_expression_error));
 	GlobalOp = expr('*') | '^';
 	Global = key("global") >> space >> (
 		-(ConstAttrib >> space) >> ClassDecl |
@@ -1056,7 +1056,7 @@ YueParser::YueParser() {
 		return st->fnArrowAvailable;
 	}) >> -(FnArgsDef >>
 		-(':' >> space >>
-			disable_fun_lit >> ensure(ExpListLow | DefaultValue, enable_fun_lit)
+			disable_fun_lit >> ensure(ExpList | DefaultValue, enable_fun_lit)
 		)
 	) >> space >> FnArrow >> -(space >> Body);
 
@@ -1087,7 +1087,6 @@ YueParser::YueParser() {
 		*(+space_break >> check_indent_match >> space >> pipe_operator >> space >> must_unary_exp);
 
 	ExpList = Seperator >> Exp >> *(space >> ',' >> space >> Exp);
-	ExpListLow = Seperator >> Exp >> *(space >> set(",;") >> space >> Exp);
 
 	arg_line = check_indent_match >> space >> Exp >> *(space >> ',' >> space >> Exp);
 	arg_block = arg_line >> *(space >> ',' >> space_break >> arg_line) >> pop_indent;
@@ -1124,17 +1123,18 @@ YueParser::YueParser() {
 
 	ChainAssign = Seperator >> Exp >> +(space >> '=' >> space >> Exp >> space >> and_('=')) >> space >> Assign;
 
-	StatementAppendix = (IfLine | WhileLine | CompFor) >> space;
-	Statement =
+	StatementAppendix = IfLine | WhileLine | CompFor;
+	Statement = (
 		(
 			Import | Export | Global | Macro | MacroInPlace | Label
-		) >> space | (
+		) | (
 			Local | While | Repeat | For | Return |
 			BreakLoop | Goto | ShortTabAppending |
 			LocalAttrib | Backcall | PipeBody | ExpListAssign | ChainAssign |
 			StatementAppendix >> empty_block_error |
 			and_(key("else") | key("elseif") | key("when")) >> dangling_clause_error
-		) >> space >> -StatementAppendix;
+		) >> space >> -StatementAppendix
+	) >> space;
 
 	StatementSep = white >> (set("('\"") | "[[" | "[=");
 
@@ -1158,15 +1158,20 @@ YueParser::YueParser() {
 		return false;
 	});
 
+	is_lax = pl::user(true_(), [](const item_t& item) {
+		State* st = reinterpret_cast<State*>(item.user_data);
+		return st->lax;
+	});
+
 	line = *(EmptyLine >> line_break) >> (
-		check_indent_match >> space >> Statement |
+		check_indent_match >> space >> Statement >> *(';' >> -(space >> Statement)) |
 		YueComment |
 		advance_match >> ensure(space >> (indentation_error | Statement), pop_indent)
 	);
-	Block = Seperator >> (pl::user(true_(), [](const item_t& item) {
-		State* st = reinterpret_cast<State*>(item.user_data);
-		return st->lax;
-	}) >> lax_line >> *(line_break >> lax_line) | line >> *(line_break >> line));
+	Block = Seperator >> (
+		is_lax >> lax_line >> *(line_break >> lax_line) |
+		line >> *(line_break >> line)
+	);
 
 	shebang = "#!" >> *(not_(stop) >> any_char);
 	BlockEnd = Block >> plain_white >> stop;

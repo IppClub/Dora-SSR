@@ -370,13 +370,6 @@ std::string PipeBody_t::to_string(void* ud) const {
 	}
 	return join(temp, "\n"sv);
 }
-std::string ExpListLow_t::to_string(void* ud) const {
-	str_list temp;
-	for (auto exp : exprs.objects()) {
-		temp.emplace_back(exp->to_string(ud));
-	}
-	return join(temp, "; "sv);
-}
 std::string ExpList_t::to_string(void* ud) const {
 	str_list temp;
 	for (auto exp : exprs.objects()) {

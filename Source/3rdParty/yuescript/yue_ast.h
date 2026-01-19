@@ -50,7 +50,7 @@ std::string_view ast_name() { return {}; }
 // clang-format off
 
 namespace yue {
-class ExpListLow_t;
+class ExpList_t;
 class TableBlock_t;
 class SimpleTable_t;
 class TableLit_t;
@@ -156,7 +156,7 @@ AST_END(NameList)
 
 AST_NODE(LocalValues)
 	ast_ptr<true, NameList_t> nameList;
-	ast_sel<false, TableBlock_t, ExpListLow_t> valueList;
+	ast_sel<false, TableBlock_t, ExpList_t> valueList;
 	AST_MEMBER(LocalValues, &nameList, &valueList)
 AST_END(LocalValues)
 
@@ -273,12 +273,6 @@ AST_NODE(Backcall)
 	AST_MEMBER(Backcall, &argsDef, &arrow, &value)
 AST_END(Backcall)
 
-AST_NODE(ExpListLow)
-	ast_ptr<true, Seperator_t> sep;
-	ast_list<true, Exp_t> exprs;
-	AST_MEMBER(ExpListLow, &sep, &exprs)
-AST_END(ExpListLow)
-
 AST_NODE(ExpList)
 	ast_ptr<true, Seperator_t> sep;
 	ast_list<true, Exp_t> exprs;
@@ -290,7 +284,7 @@ AST_END(ExpList)
 AST_NODE(Return)
 	bool allowBlockMacroReturn = false;
 	bool explicitReturn = true;
-	ast_sel<false, TableBlock_t, ExpListLow_t> valueList;
+	ast_sel<false, TableBlock_t, ExpList_t> valueList;
 	AST_MEMBER(Return, &valueList)
 AST_END(Return)
 
@@ -764,7 +758,7 @@ AST_END(ClassDecl)
 
 AST_NODE(GlobalValues)
 	ast_ptr<true, NameList_t> nameList;
-	ast_sel<false, TableBlock_t, ExpListLow_t> valueList;
+	ast_sel<false, TableBlock_t, ExpList_t> valueList;
 	AST_MEMBER(GlobalValues, &nameList, &valueList)
 AST_END(GlobalValues)
 
@@ -819,7 +813,7 @@ AST_END(FnArrow)
 
 AST_NODE(FunLit)
 	ast_ptr<false, FnArgsDef_t> argsDef;
-	ast_sel<false, ExpListLow_t, DefaultValue_t> defaultReturn;
+	ast_sel<false, ExpList_t, DefaultValue_t> defaultReturn;
 	ast_ptr<true, FnArrow_t> arrow;
 	ast_ptr<false, Body_t> body;
 	bool noRecursion = false;

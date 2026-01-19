@@ -319,6 +319,7 @@ private:
 	NONE_AST_RULE(yue_multiline_comment);
 	NONE_AST_RULE(line);
 	NONE_AST_RULE(shebang);
+	NONE_AST_RULE(is_lax);
 	NONE_AST_RULE(lax_line);
 
 	AST_RULE(Num);
@@ -361,7 +362,6 @@ private:
 	AST_RULE(Backcall);
 	AST_RULE(SubBackcall);
 	AST_RULE(PipeBody);
-	AST_RULE(ExpListLow);
 	AST_RULE(ExpList);
 	AST_RULE(Return);
 	AST_RULE(With);

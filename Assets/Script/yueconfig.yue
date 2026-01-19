@@ -1,0 +1,31 @@
+return
+
+	-- Whether the vscode extension should build the code to Lua file on save.
+	build: false
+
+	-- The directories to be included when compiling the code. The paths are relative to the `yueconfig.yue` file.
+	include:
+		- "Lib"
+
+	-- The global variables to be recognized by the extension.
+	globals:
+		- "Dora"
+
+	-- Whether the compiler should collect the global variables appearing in the code.
+	lint_global: false
+
+	-- Whether the compiler should do an implicit return for the root code block.
+	implicit_return_root: true
+
+	-- Whether the compiler should reserve the original line number in the compiled code.
+	reserve_line_number: true
+
+	-- Whether the compiler should use the space character instead of the tab character in the compiled code.
+	space_over_tab: false
+
+	options:
+		-- The target Lua version to compile the code.
+		target: "5.5"
+
+		-- The path to be appended to the `package.path` for the compiler.
+		path: ""
