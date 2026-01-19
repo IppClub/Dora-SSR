@@ -85,6 +85,7 @@ export const transformImportDeclaration: FunctionVisitor<ts.ImportDeclaration> =
       const stringLiteral = param as lua.StringLiteral;
       if (stringLiteral.value === "tic80") {
          requireCall = lua.createIdentifier("_G");
+         context.isTIC80 = true;
       }
     }
 

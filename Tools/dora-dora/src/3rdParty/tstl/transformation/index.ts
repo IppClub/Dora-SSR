@@ -41,5 +41,5 @@ export function transformSourceFile(program: ts.Program, sourceFile: ts.SourceFi
     // TS -> Lua transformation
     const [file] = context.transformNode(result.transformed[0]) as [lua.File];
 
-    return { file, diagnostics: context.diagnostics };
+    return { file, diagnostics: context.diagnostics, isTIC80: context.isTIC80 };
 }
