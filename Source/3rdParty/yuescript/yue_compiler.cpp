@@ -78,7 +78,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.32.1"sv;
+const std::string_view version = "0.32.3"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -566,15 +566,30 @@ private:
 		return defined;
 	}
 
-	bool isLocal(const std::string& name) const {
+	bool isLocal(const std::string& name) {
 		bool local = false;
+		bool defined = false;
 		for (auto it = _scopes.rbegin(); it != _scopes.rend(); ++it) {
 			auto vars = it->vars.get();
 			auto vit = vars->find(name);
-			if (vit != vars->end() && (vit->second == VarType::Local || vit->second == VarType::LocalConst)) {
-				local = true;
-				break;
+			if (vit != vars->end()) {
+				defined = true;
+				switch (vit->second) {
+					case VarType::Local:
+					case VarType::LocalConst:
+						local = true;
+						break;
+					default: break;
+				}
 			}
+		}
+		if (!defined && _importedGlobal) {
+			if (_importedGlobal->globals.find(name) == _importedGlobal->globals.end()) {
+				const auto& global = _importedGlobal->globalList.emplace_back(name);
+				_importedGlobal->globals.insert(global);
+				_importedGlobal->vars->insert_or_assign(name, VarType::LocalConst);
+			}
+			return true;
 		}
 		return local;
 	}
@@ -584,9 +599,14 @@ private:
 		for (auto it = _scopes.rbegin(); it != _scopes.rend(); ++it) {
 			auto vars = it->vars.get();
 			auto vit = vars->find(name);
-			if (vit != vars->end() && (vit->second == VarType::Global || vit->second == VarType::GlobalConst)) {
-				global = true;
-				break;
+			if (vit != vars->end()) {
+				switch (vit->second) {
+					case VarType::Global:
+					case VarType::GlobalConst:
+						global = true;
+						break;
+					default: break;
+				}
 			}
 		}
 		return global;
@@ -4383,7 +4403,14 @@ private:
 							upVarsAssignedOrCaptured = true;
 							break;
 						} else if (std::find(args.begin(), args.end(), global.name) == args.end()) {
-							args.push_back(global.name);
+							if (_importedGlobal && _importedGlobal->vars == _scopes.front().vars.get()) {
+								markGlobalImported(global.name);
+								if (_importedGlobal->globals.find(global.name) == _importedGlobal->globals.end()) {
+									args.push_back(global.name);
+								}
+							} else {
+								args.push_back(global.name);
+							}
 						}
 						if (noGlobalVarPassing && !isLocal(global.name)) {
 							return std::nullopt;
