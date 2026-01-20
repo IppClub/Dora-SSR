@@ -1164,7 +1164,7 @@ YueParser::YueParser() {
 	});
 
 	line = *(EmptyLine >> line_break) >> (
-		check_indent_match >> space >> Statement >> *(';' >> -(space >> Statement)) |
+		check_indent_match >> space >> Statement >> *(';' >> space >> (Statement | not_(';'))) |
 		YueComment |
 		advance_match >> ensure(space >> (indentation_error | Statement), pop_indent)
 	);
