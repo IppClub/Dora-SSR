@@ -566,6 +566,24 @@ private:
 		return defined;
 	}
 
+	bool isSolidLocal(const std::string& name) {
+		bool local = false;
+		for (auto it = _scopes.rbegin(); it != _scopes.rend(); ++it) {
+			auto vars = it->vars.get();
+			auto vit = vars->find(name);
+			if (vit != vars->end()) {
+				switch (vit->second) {
+					case VarType::Local:
+					case VarType::LocalConst:
+						local = true;
+						break;
+					default: break;
+				}
+			}
+		}
+		return local;
+	}
+
 	bool isLocal(const std::string& name) {
 		bool local = false;
 		bool defined = false;
@@ -927,7 +945,7 @@ private:
 	}
 
 	void addGlobalVar(const std::string& name, ast_node* x) {
-		if (isLocal(name)) throw CompileError("can not declare a local variable to be global"sv, x);
+		if (isSolidLocal(name)) throw CompileError("can not declare a local variable to be global"sv, x);
 		auto& scope = _scopes.back();
 		scope.vars->insert_or_assign(name, VarType::Global);
 	}

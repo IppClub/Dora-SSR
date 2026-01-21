@@ -1342,40 +1342,78 @@ std::string ParseInfo::errorMessage(std::string_view msg, int errLine, int errCo
 		return buf.str();
 	}
 	const int ASCII = 255;
-	int length = errLine;
-	auto begin = codes->begin();
-	auto end = codes->end();
-	int count = 0;
+	const int contextLines = 2;
+
+	std::vector<std::pair<input::iterator, input::iterator>> lines;
+	auto lineStart = codes->begin();
+
 	for (auto it = codes->begin(); it != codes->end(); ++it) {
 		if (*it == '\n') {
-			if (count + 1 == length) {
-				end = it;
-				break;
-			} else {
-				begin = it + 1;
-			}
-			count++;
+			lines.emplace_back(lineStart, it);
+			lineStart = it + 1;
 		}
 	}
-	int oldCol = errCol;
-	int col = std::max(0, oldCol - 1);
-	auto it = begin;
-	for (int i = 0; i < oldCol && it != end; ++i) {
-		if (*it > ASCII) {
-			++col;
-		}
-		++it;
+
+	if (lineStart != codes->end()) {
+		lines.emplace_back(lineStart, codes->end());
 	}
-	auto line = utf8_encode({begin, end});
-	while (col < static_cast<int>(line.size())
-		   && (line[col] == ' ' || line[col] == '\t')) {
-		col++;
+
+	int totalLines = static_cast<int>(lines.size());
+	int startLine = std::max(1, errLine - contextLines);
+	int endLine = std::min(totalLines, errLine + contextLines);
+
+	int maxLineNum = endLine + lineOffset;
+	int lineNumWidth = 1;
+	int temp = maxLineNum;
+	while (temp >= 10) {
+		temp /= 10;
+		lineNumWidth++;
 	}
-	Utils::replace(line, "\t"sv, " "sv);
+
 	std::ostringstream buf;
-	buf << errLine + lineOffset << ": "sv << msg << '\n'
-		<< line << '\n'
-		<< std::string(col, ' ') << "^"sv;
+	buf << errLine + lineOffset << ": " << msg << '\n';
+
+	int errorDisplayCol = 0;
+	if (errLine >= 1 && errLine <= totalLines) {
+		auto& errorLineRange = lines[errLine - 1];
+
+		auto it = errorLineRange.first;
+		int displayCol = 0;
+		for (int i = 0; i < errCol && it != errorLineRange.second; ++i) {
+			if (*it == '\t') {
+				displayCol += 2;
+			} else if (*it > ASCII) {
+				displayCol += 2;
+			} else {
+				displayCol++;
+			}
+			++it;
+		}
+		errorDisplayCol = displayCol;
+	}
+
+	for (int lineNum = startLine; lineNum <= endLine; ++lineNum) {
+		int displayLineNum = lineNum + lineOffset;
+		if (displayLineNum <= 0) continue;
+		std::string lineNumStr = std::to_string(displayLineNum);
+
+		int padding = lineNumWidth - static_cast<int>(lineNumStr.size());
+		buf << std::string(padding, ' ') << lineNumStr << " | ";
+
+		if (lineNum >= 1 && lineNum <= totalLines) {
+			auto& lineRange = lines[lineNum - 1];
+			std::string line = utf8_encode({lineRange.first, lineRange.second});
+			Utils::replace(line, "\t"sv, "  "sv);
+			buf << line;
+		}
+		buf << '\n';
+
+		if (lineNum == errLine) {
+			buf << std::string(lineNumWidth, ' ') << "   ";
+			buf << std::string(errorDisplayCol - 1, ' ') << "^"sv << '\n';
+		}
+	}
+
 	return buf.str();
 }
 

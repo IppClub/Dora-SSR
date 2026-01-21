@@ -1174,11 +1174,6 @@ LuaEngine::LuaEngine()
 				if (err.substr(0, modName.size()) == modName) {
 					err = err.substr(modName.size());
 				}
-				auto pos = err.find(':');
-				if (pos != std::string::npos) {
-					int lineNum = std::stoi(err.substr(0, pos));
-					err = std::to_string(lineNum - 1) + err.substr(pos);
-				}
 				LogErrorThreaded(fmt::format("[command]: {}", err));
 				break;
 			}
