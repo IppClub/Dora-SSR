@@ -609,10 +609,6 @@ private:
 			if (_importedGlobal->globals.find(name) == _importedGlobal->globals.end()) {
 				const auto& global = _importedGlobal->globalList.emplace_back(name);
 				_importedGlobal->globals.insert(global);
-				if (name.empty()) {
-					int i = 0;
-					i++;
-				}
 				_importedGlobal->vars->insert_or_assign(name, VarType::LocalConst);
 			}
 			return true;
@@ -941,10 +937,6 @@ private:
 
 	void markVarLocalConst(const std::string& name) {
 		auto& scope = _scopes.back();
-		if (name.empty()) {
-			int i = 0;
-			i++;
-		}
 		scope.vars->insert_or_assign(name, VarType::LocalConst);
 	}
 
