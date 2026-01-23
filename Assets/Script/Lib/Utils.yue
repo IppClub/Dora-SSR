@@ -309,6 +309,7 @@ allowedUseOfGlobals = Set
 
 export LintYueGlobals = (luaCodes, globals, globalInLocal = true, extraGlobals = nil) ->
 	errors = []
+	requireModules = []
 	luaCodes = luaCodes\gsub "^local _module_[^\r\n]*[^\r\n]+", ""
 	importCodes = luaCodes\match "^%s*local%s*_ENV%s*=%s*Dora%(([^%)]-)%)"
 	importItems = if importCodes
@@ -327,16 +328,22 @@ export LintYueGlobals = (luaCodes, globals, globalInLocal = true, extraGlobals =
 		globalSet[name] = true
 		continue if allowedUseOfGlobals[name]
 		if _G[name] or (extraGlobals and extraGlobals[name])
+			if globalInLocal
+				requireModules[] = "local #{name} = _G.#{name} -- 1"
 			continue
 		findModule = false
 		if importCodes
 			if Dora[name]
+				requireModules[] = "local #{name} = Dora.#{name} -- 1"
 				findModule = true
 			else
-				for _, [mod,] in ipairs importItems
+				for i, [mod, modName] in ipairs importItems
 					if mod[name]?
+						moduleName = "_module_#{i - 1}"
 						if not importSet[mod]
 							importSet[mod] = true
+							requireModules[] = "local #{moduleName} = #{modName} -- 1"
+						requireModules[] = "local #{name} = #{moduleName}.#{name} -- 1"
 						findModule = true
 						break
 		if not findModule
@@ -344,7 +351,7 @@ export LintYueGlobals = (luaCodes, globals, globalInLocal = true, extraGlobals =
 	if #errors > 0
 		false, errors
 	else
-		true
+		true, table.concat requireModules, "\n"
 
 export GSplit = (text, pattern, plain) ->
 	splitStart, length = 1, #text
