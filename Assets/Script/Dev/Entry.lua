@@ -1179,10 +1179,6 @@ reloadCurrentEntry = function() -- 689
 	end -- 690
 end -- 689
 Director.clearColor = Color(0xff1a1a1a) -- 694
-local _anon_func_4 = function() -- 723
-	local _val_0 = App.platform -- 723
-	return "Linux" == _val_0 or "Windows" == _val_0 or "macOS" == _val_0 or "Android" == _val_0 -- 723
-end -- 723
 local extraOperations -- 696
 do -- 696
 	local isOSSLicenseExist = Content:exist("LICENSES") -- 697
@@ -1222,14 +1218,14 @@ do -- 696
 				end -- 719
 			end -- 716
 		end -- 716
-		if _anon_func_4() then -- 723
+		do -- 723
 			local themeColor = App.themeColor -- 724
 			local writablePath = config.writablePath -- 725
 			SeparatorText(zh and "工作目录" or "Workspace") -- 726
 			PushTextWrapPos(400, function() -- 727
 				return TextColored(themeColor, writablePath) -- 728
 			end) -- 727
-			if App.platform == "Android" then -- 729
+			if not isDesktop then -- 729
 				goto skipSetting -- 729
 			end -- 729
 			local popupName = tostring(zh and '工作目录错误' or 'Invalid Workspace Path') .. "##failedSetFolder" -- 730
@@ -1418,14 +1414,14 @@ local displayWindowFlags = { -- 839
 	"NoFocusOnAppearing" -- 839
 } -- 839
 local initFooter = true -- 848
-local _anon_func_5 = function(allEntries, currentIndex) -- 885
+local _anon_func_4 = function(allEntries, currentIndex) -- 885
 	if currentIndex > 1 then -- 885
 		return allEntries[currentIndex - 1] -- 886
 	else -- 888
 		return allEntries[#allEntries] -- 888
 	end -- 885
 end -- 885
-local _anon_func_6 = function(allEntries, currentIndex) -- 892
+local _anon_func_5 = function(allEntries, currentIndex) -- 892
 	if currentIndex < #allEntries then -- 892
 		return allEntries[currentIndex + 1] -- 893
 	else -- 895
@@ -1487,14 +1483,14 @@ footerWindow = threadLoop(function() -- 849
 			if currentIndex == nil then -- 884
 				currentIndex = #allEntries + 1 -- 884
 			end -- 884
-			enterDemoEntry(_anon_func_5(allEntries, currentIndex)) -- 885
+			enterDemoEntry(_anon_func_4(allEntries, currentIndex)) -- 885
 		end -- 882
 		if right then -- 889
 			allClear() -- 890
 			if currentIndex == nil then -- 891
 				currentIndex = 0 -- 891
 			end -- 891
-			enterDemoEntry(_anon_func_6(allEntries, currentIndex)) -- 892
+			enterDemoEntry(_anon_func_5(allEntries, currentIndex)) -- 892
 		end -- 889
 	end -- 857
 	if not showEntry then -- 896

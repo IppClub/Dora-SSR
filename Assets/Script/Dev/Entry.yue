@@ -720,13 +720,13 @@ extraOperations = do
 				thread ->
 					collectgarbage!
 					Cache\removeUnused "Texture"
-		if App.platform in ["Linux", "Windows", "macOS", "Android"]
+		do
 			:themeColor = App
 			:writablePath = config
 			SeparatorText zh and "工作目录" or "Workspace"
 			PushTextWrapPos 400, ->
 				TextColored themeColor, writablePath
-			goto skipSetting if App.platform == "Android"
+			goto skipSetting unless isDesktop
 			popupName = "#{zh and '工作目录错误' or 'Invalid Workspace Path'}##failedSetFolder"
 			if Button zh and "改变目录" or "Set Folder"
 				App\openFileDialog true, (path) ->
