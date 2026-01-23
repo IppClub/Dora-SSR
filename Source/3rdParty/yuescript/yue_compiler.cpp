@@ -78,7 +78,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.32.3"sv;
+const std::string_view version = "0.32.4"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -527,6 +527,7 @@ private:
 	}
 
 	bool isDefined(const std::string& name) const {
+		if (name.empty()) return false;
 		bool isDefined = false;
 		int mode = int(std::isupper(name[0]) ? GlobalMode::Capital : GlobalMode::Any);
 		const auto& current = _scopes.back();
@@ -554,6 +555,7 @@ private:
 	}
 
 	bool isSolidDefined(const std::string& name) const {
+		if (name.empty()) return false;
 		bool defined = false;
 		for (auto it = _scopes.rbegin(); it != _scopes.rend(); ++it) {
 			auto vars = it->vars.get();
@@ -567,6 +569,7 @@ private:
 	}
 
 	bool isSolidLocal(const std::string& name) {
+		if (name.empty()) return false;
 		bool local = false;
 		for (auto it = _scopes.rbegin(); it != _scopes.rend(); ++it) {
 			auto vars = it->vars.get();
@@ -585,6 +588,7 @@ private:
 	}
 
 	bool isLocal(const std::string& name) {
+		if (name.empty()) return false;
 		bool local = false;
 		bool defined = false;
 		for (auto it = _scopes.rbegin(); it != _scopes.rend(); ++it) {
@@ -605,6 +609,10 @@ private:
 			if (_importedGlobal->globals.find(name) == _importedGlobal->globals.end()) {
 				const auto& global = _importedGlobal->globalList.emplace_back(name);
 				_importedGlobal->globals.insert(global);
+				if (name.empty()) {
+					int i = 0;
+					i++;
+				}
 				_importedGlobal->vars->insert_or_assign(name, VarType::LocalConst);
 			}
 			return true;
@@ -613,6 +621,7 @@ private:
 	}
 
 	bool isDeclaredAsGlobal(const std::string& name) const {
+		if (name.empty()) return false;
 		bool global = false;
 		for (auto it = _scopes.rbegin(); it != _scopes.rend(); ++it) {
 			auto vars = it->vars.get();
@@ -631,6 +640,7 @@ private:
 	}
 
 	bool isConst(const std::string& name) const {
+		if (name.empty()) return false;
 		bool isConst = false;
 		decltype(_scopes.back().allows.get()) allows = nullptr;
 		for (auto it = _scopes.rbegin(); it != _scopes.rend(); ++it) {
@@ -931,6 +941,10 @@ private:
 
 	void markVarLocalConst(const std::string& name) {
 		auto& scope = _scopes.back();
+		if (name.empty()) {
+			int i = 0;
+			i++;
+		}
 		scope.vars->insert_or_assign(name, VarType::LocalConst);
 	}
 
@@ -1990,7 +2004,7 @@ private:
 		_config.lintGlobalVariable = false;
 		if (!assignment->action.is<Assign_t>()) return vars;
 		for (auto exp : assignment->expList->exprs.objects()) {
-			auto var = singleVariableFrom(exp, AccessType::Write);
+			auto var = singleVariableFrom(exp, AccessType::None);
 			vars.push_back(var.empty() ? Empty : var);
 		}
 		_config.lintGlobalVariable = lintGlobal;
@@ -2002,7 +2016,7 @@ private:
 		bool lintGlobal = _config.lintGlobalVariable;
 		_config.lintGlobalVariable = false;
 		for (auto exp : with->valueList->exprs.objects()) {
-			auto var = singleVariableFrom(exp, AccessType::Write);
+			auto var = singleVariableFrom(exp, AccessType::None);
 			vars.push_back(var.empty() ? Empty : var);
 		}
 		_config.lintGlobalVariable = lintGlobal;
@@ -4412,7 +4426,7 @@ private:
 				auto result = YueCompiler{}.compile(codes, config);
 #endif // YUE_NO_MACRO
 				if (result.error) {
-					YUEE("failed to compile dues to Yue formatter", x);
+					YUEE("failed to compile dues to Yue formatter\n"s + result.error.value().displayMessage, x);
 				}
 				usedVar = result.usedVar;
 				if (result.globals) {
@@ -5353,16 +5367,18 @@ private:
 					auto stmt = static_cast<Statement_t*>(node);
 					if (auto importNode = stmt->content.as<Import_t>();
 						importNode && importNode->content.is<ImportAllGlobal_t>()) {
-						if (_importedGlobal) {
-							throw CompileError("import global redeclared in same scope"sv, importNode);
-						} else {
-							auto& scope = currentScope();
-							scope.importedGlobal = std::make_unique<ImportedGlobal>();
-							_importedGlobal = scope.importedGlobal.get();
-							_importedGlobal->vars = scope.vars.get();
-							_importedGlobal->indent = indent();
-							_importedGlobal->nl = nl(stmt);
-							_importedGlobal->globalCodeLine = &temp.emplace_back();
+						if (!_config.disableGlobalImport) {
+							if (_importedGlobal) {
+								throw CompileError("import global redeclared in same scope"sv, importNode);
+							} else {
+								auto& scope = currentScope();
+								scope.importedGlobal = std::make_unique<ImportedGlobal>();
+								_importedGlobal = scope.importedGlobal.get();
+								_importedGlobal->vars = scope.vars.get();
+								_importedGlobal->indent = indent();
+								_importedGlobal->nl = nl(stmt);
+								_importedGlobal->globalCodeLine = &temp.emplace_back();
+							}
 						}
 					} else {
 						transformStatement(stmt, temp);
@@ -10872,13 +10888,13 @@ private:
 			}
 			BLOCK_END
 			if (wrapped) {
-				auto expList = x->new_ptr<ExpList_t>();
+				auto expList = tryFunc->new_ptr<ExpList_t>();
 				expList->exprs.push_back(tryFunc);
-				auto expListAssign = x->new_ptr<ExpListAssign_t>();
+				auto expListAssign = tryFunc->new_ptr<ExpListAssign_t>();
 				expListAssign->expList.set(expList);
-				auto stmt = x->new_ptr<Statement_t>();
+				auto stmt = tryFunc->new_ptr<Statement_t>();
 				stmt->content.set(expListAssign);
-				auto block = x->new_ptr<Block_t>();
+				auto block = tryFunc->new_ptr<Block_t>();
 				block->statementOrComments.push_back(stmt);
 				tryFunc.set(block);
 			}

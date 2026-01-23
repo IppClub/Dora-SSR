@@ -7,6 +7,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. ]]
 
 _ENV = Dora
+import global
 
 HttpServer\stop!
 
@@ -82,9 +83,7 @@ yueCheck = (file, content, lax) ->
 	if luaCodes
 		success, lintResult = LintYueGlobals luaCodes, globals, false
 		if success
-			luaCodes = luaCodes\gsub "%s*local%s*_ENV%s*=%s*Dora%([^%)]-%)[^\n\r]+[\n\r%s]*", "\n"
-			lintResult ..= "\n" unless lintResult == ""
-			luaCodes = "-- [yue]: #{file}\n#{lintResult}" .. luaCodes
+			luaCodes = "-- [yue]: #{file}\n#{luaCodes}"
 		else for [name, line, col] in *lintResult
 			continue if isTIC80 and tic80APIs[name]
 			info[] = ["syntax", file, line, col, "invalid global variable"]
@@ -710,16 +709,12 @@ compileFileAsync = (inputFile, sourceCodes): nil ->
 		(success) <- yue.compile inputFile, outputFile, searchPath, (codes, _err, globals) ->
 			return unless codes
 			extraGlobal = if isTIC80 then tic80APIs else nil
-			success, result = LintYueGlobals codes, globals, true, extraGlobal
+			success = LintYueGlobals codes, globals, true, extraGlobal
 			return unless success
 			if codes == ""
 				resultCodes = ""
 				return nil
-			codes = codes\gsub "%s*local%s*_ENV%s*=%s*Dora%([^%)]-%)[^\n\r]+[\n\r%s]*", "\n"
-			codes = codes\gsub "%s*local%s*_ENV%s*=%s*Dora[^%w_$][^\n\r]+[\n\r%s]*", "\n"
-			codes = codes\gsub "^\n*", ""
-			result ..= "\n" unless result == ""
-			resultCodes = "-- [yue]: #{file}\n#{result}#{codes}"
+			resultCodes = "-- [yue]: #{file}\n#{codes}"
 			resultCodes
 		if not success
 			Content\remove outputFile
