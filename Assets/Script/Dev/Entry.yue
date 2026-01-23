@@ -8,8 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 _ENV = Dora Dora.ImGui
 import "ImGuiEnum" as :$WindowFlag, :$SetCond
-const :Content, :Path = Dora
-const type = type
+import global
 
 App.idled = true
 App.devMode = true
@@ -416,11 +415,7 @@ doCompile = (minify) ->
 					if isTIC80
 						success, result = LintYueGlobals codes, globals, true, tic80APIs
 			if success
-				codes = codes\gsub "%s*local%s*_ENV%s*=%s*Dora%([^%)]-%)[^\n\r]+[\n\r%s]*", "\n"
-				codes = codes\gsub "%s*local%s*_ENV%s*=%s*Dora[^%w_$][^\n\r]+[\n\r%s]*", "\n"
-				codes = codes\gsub "^\n*", ""
-				result ..= "\n" unless result == ""
-				"-- [yue]: #{file}\n#{result}#{codes}"
+				"-- [yue]: #{file}\n#{codes}"
 			else
 				if yueCodes
 					globalErrors = []

@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 _ENV = Dora
 import "UI.View.Control.Basic.ScrollArea"
 import "UI.View.Shape.SolidRect"
+import global
 
 -- [signals]
 -- "ScrollTouchBegan", ->
@@ -171,7 +172,7 @@ export default Class ScrollArea,
 			if not touch.first or not Rect(-width / 2, -height / 2, width, height)\containsPoint touch.location
 				touch.enabled = false
 
-		@slot "TapBegan", (touch) ->
+		@slot "TapBegan", (_touch) ->
 			deltaMoveLength = 0
 			S = Vec2.zero
 			V = Vec2.zero

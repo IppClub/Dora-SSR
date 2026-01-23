@@ -664,6 +664,7 @@ static int dora_yue_check_async(lua_State* L) {
 		config.implicitReturnRoot = true;
 		config.reserveLineNumber = true;
 		config.lintGlobalVariable = true;
+		config.disableGlobalImport = true;
 		config.lax = lax;
 		if (!searchPath.empty()) {
 			config.options["path"s] = searchPath;

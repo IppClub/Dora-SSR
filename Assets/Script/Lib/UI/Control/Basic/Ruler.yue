@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 _ENV = Dora
 import "UI.View.Control.Basic.Ruler"
 import "Utils" as :Round
+import global
 
 export default Class Ruler,
 	__init: (args) =>

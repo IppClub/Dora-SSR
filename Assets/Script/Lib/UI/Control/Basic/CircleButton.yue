@@ -8,6 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 _ENV = Dora
 import "UI.View.Control.Basic.CircleButton"
+import global
 
 -- [signals]
 -- "Tapped",(button) ->

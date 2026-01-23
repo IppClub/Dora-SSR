@@ -33,6 +33,7 @@ struct YueConfig {
 	bool reserveComment = false;
 	bool lax = false;
 	// internal options
+	bool disableGlobalImport = false;
 	bool exporting = false;
 	bool profiling = false;
 	int lineOffset = 0;
