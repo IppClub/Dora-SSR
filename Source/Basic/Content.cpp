@@ -100,7 +100,7 @@ const std::string& Content::getAppPath() const noexcept {
 }
 
 void Content::setWritablePath(String writablePath) {
-#if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_LINUX
+#if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_LINUX || BX_PLATFORM_ANDROID
 	if (_writablePath == writablePath) {
 		return;
 	}
