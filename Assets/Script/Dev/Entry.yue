@@ -569,7 +569,7 @@ reloadDevEntry = -> thread ->
 		oldRequire "Script.Dev.Entry"
 		true
 
-setWorkspace = (path) ->
+export setWorkspace = (path) ->
 	clearTempFiles!
 	Content.writablePath = path
 	config.writablePath = Content.writablePath
@@ -708,21 +708,25 @@ extraOperations = do
 	->
 		zh = useChinese
 		if isDesktop
-			:themeColor = App
-			:alwaysOnTop, :writablePath, :showPreview = config
+			:alwaysOnTop = config
 			if changed, alwaysOnTop := Checkbox zh and "窗口置顶" or "Always On Top", alwaysOnTop
 				App.alwaysOnTop = alwaysOnTop
 				config.alwaysOnTop = alwaysOnTop
-			if changed, showPreview := Checkbox zh and "显示预览图" or "Show Preview", showPreview
-				config.showPreview = showPreview
-				updateEntries!
-				unless showPreview
-					thread ->
-						collectgarbage!
-						Cache\removeUnused "Texture"
+		:showPreview = config
+		if changed, showPreview := Checkbox zh and "显示预览图" or "Show Preview", showPreview
+			config.showPreview = showPreview
+			updateEntries!
+			unless showPreview
+				thread ->
+					collectgarbage!
+					Cache\removeUnused "Texture"
+		if App.platform in ["Linux", "Windows", "macOS", "Android"]
+			:themeColor = App
+			:writablePath = config
 			SeparatorText zh and "工作目录" or "Workspace"
 			PushTextWrapPos 400, ->
 				TextColored themeColor, writablePath
+			goto skipSetting if App.platform == "Android"
 			popupName = "#{zh and '工作目录错误' or 'Invalid Workspace Path'}##failedSetFolder"
 			if Button zh and "改变目录" or "Set Folder"
 				App\openFileDialog true, (path) ->
@@ -744,6 +748,7 @@ extraOperations = do
 			if Button zh and "使用默认" or "Use Default"
 				setWorkspace Content.appPath
 			Separator!
+			::skipSetting::
 		if isOSSLicenseExist
 			if Button zh and '开源协议' or 'OSS Licenses'
 				unless ossLicenses
