@@ -2050,9 +2050,9 @@ export default function PersistentDrawerLeft() {
 						};
 						break;
 					case ".yue":
-						content = "-- @preview-file on clear\n_ENV = Dora\n\n";
+						content = "-- @preview-file on clear\n_ENV = Dora\nimport global\n\n";
 						position = {
-							lineNumber: 4,
+							lineNumber: 5,
 							column: 1
 						};
 						break;
