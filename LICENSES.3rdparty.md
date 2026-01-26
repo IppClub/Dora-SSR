@@ -65,6 +65,7 @@ THE OPEN SOURCE SOFTWARE IN THIS PRODUCT IS DISTRIBUTED IN THE HOPE THAT IT WILL
 - [prism](https://github.com/PrismJS/prism): [MIT License](Tools/dora-dora/src/languages/LICENSE-prism)
 - [konva](https://github.com/konvajs/konva): [MIT License](Tools/dora-dora/public/code-wire/javascript/Dependencies/Konva/LICENSE)
 - [spdlog](https://github.com/gabime/spdlog): [MIT License](Source/3rdParty/spdlog/LICENSE)
+- [tiny-regex-c](https://github.com/kokke/tiny-regex-c): [Public Domain](Source/3rdParty/tiny-regex-c/LICENSE)
 
 
 

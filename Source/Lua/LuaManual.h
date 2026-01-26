@@ -51,6 +51,7 @@ int Content_SetSearchPaths(lua_State* L);
 void Content_insertSearchPath(Content* self, int index, String path);
 int Content_loadExcel(lua_State* L);
 int Content_loadExcelAsync(lua_State* L);
+int Content_searchFilesAsync(lua_State* L);
 inline Content* Content_shared() { return &SharedContent; }
 
 /* Director */

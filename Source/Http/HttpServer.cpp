@@ -337,7 +337,6 @@ bool HttpServer::start(int port) {
 			}
 		}
 		auto content_type = httplib::detail::find_content_type(path, {}, "application/octet-stream"s);
-		OwnArray<uint8_t> data;
 		bx::Semaphore waitForLoaded;
 		std::string result;
 		SharedContent.getThread()->run([&]() {
