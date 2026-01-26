@@ -39,6 +39,13 @@ namespace fs = std::filesystem;
 
 #include "SDL.h"
 
+#include <atomic>
+#include <thread>
+#include <unordered_set>
+
+#define TINY_REGEX_IMPLEMENTATION
+#include "tiny-regex-c/tiny_regex.h"
+
 static void releaseFileData(void* _ptr, void* _userData) {
 	DORA_UNUSED_PARAM(_userData);
 	if (_ptr) {
@@ -238,6 +245,141 @@ std::list<std::string> Content::getAllFiles(String path) {
 		Error("Content failed to get entry of \"{}\"", fullPath);
 	}
 	return files;
+}
+
+void Content::searchFilesAsync(String path, std::vector<std::string>&& exts, String pattern, bool useRegex, bool caseSensitive, bool includeContent, int contentWindow, const std::function<void(SearchResult&&)>& callbackFunc) {
+	std::string searchRoot = path.empty() ? _assetPath : path.toString();
+	auto filesList = Content::getAllFiles(searchRoot);
+	if (filesList.empty()) return;
+
+	std::string patternStr = pattern.toString();
+	if (patternStr.empty()) return;
+
+	std::unordered_set<std::string> extSet;
+	extSet.reserve(exts.size());
+	for (const auto& ext_ : exts) {
+		auto ext = Slice(ext_);
+		if (!ext.empty() && ext.front() == '.') ext.skip(1);
+		if (!ext.empty()) extSet.insert(ext.toLower());
+	}
+
+	auto callbackPtr = std::make_shared<std::function<void(SearchResult&&)>>(callbackFunc);
+
+	std::vector<std::string> files(filesList.begin(), filesList.end());
+	SharedAsyncThread.run([files = std::move(files), searchRoot, patternStr, useRegex, caseSensitive, includeContent, contentWindow, extSet = std::move(extSet), callbackPtr, this]() {
+		std::atomic<size_t> nextIndex{0};
+		size_t maxThreads = s_cast<size_t>(std::thread::hardware_concurrency());
+		if (maxThreads == 0) maxThreads = 1;
+		size_t workerCount = std::min(maxThreads, files.size());
+		std::vector<std::thread> workers;
+		workers.reserve(workerCount);
+
+		auto worker = [&]() {
+			while (true) {
+				size_t idx = nextIndex.fetch_add(1);
+				if (idx >= files.size()) break;
+
+				const auto& file = files[idx];
+				if (!extSet.empty()) {
+					auto ext = Path::getExt(file);
+					if (extSet.find(ext) == extSet.end()) continue;
+				}
+				std::list<Slice> segments;
+				segments.emplace_back(searchRoot);
+				segments.emplace_back(file);
+				auto relativePath = Path::concat(segments);
+				auto fullPath = Content::getFullPath(relativePath);
+				bx::Semaphore waitForLoaded;
+				std::string content;
+				SharedContent.getThread()->run([&]() {
+					content = SharedContent.loadUnsafe(fullPath);
+					waitForLoaded.post();
+				});
+				waitForLoaded.wait();
+				if (content.empty()) continue;
+
+				std::string target = content;
+				std::string targetPattern = patternStr;
+				if (!caseSensitive) {
+					for (auto& ch : target) ch = s_cast<char>(std::tolower(s_cast<unsigned char>(ch)));
+					for (auto& ch : targetPattern) ch = s_cast<char>(std::tolower(s_cast<unsigned char>(ch)));
+				}
+
+				std::vector<size_t> lineStarts;
+				lineStarts.reserve(128);
+				lineStarts.push_back(0);
+				for (size_t i = 0; i < content.size(); ++i) {
+					if (content[i] == '\n') lineStarts.push_back(i + 1);
+				}
+
+				auto pushResult = [&](size_t pos, size_t matchLen) {
+					int line = 1;
+					int column = 1;
+					auto it = std::upper_bound(lineStarts.begin(), lineStarts.end(), pos);
+					if (it != lineStarts.begin()) {
+						size_t lineIndex = s_cast<size_t>(it - lineStarts.begin() - 1);
+						line = s_cast<int>(lineIndex + 1);
+						column = s_cast<int>(pos - lineStarts[lineIndex] + 1);
+					}
+
+					SearchResult result;
+					result.file = fullPath;
+					result.pos = pos;
+					result.line = line;
+					result.column = column;
+					if (includeContent) {
+						if (contentWindow < 0) {
+							result.content = content;
+						} else {
+							size_t start = pos > s_cast<size_t>(contentWindow) ? pos - s_cast<size_t>(contentWindow) : 0;
+							size_t end = std::min(content.size(), pos + matchLen + s_cast<size_t>(contentWindow));
+							result.content = content.substr(start, end - start);
+						}
+					}
+					SharedApplication.invokeInLogic([callbackPtr, result = std::move(result)]() mutable {
+						(*callbackPtr)(std::move(result));
+					});
+				};
+
+				if (useRegex) {
+					re_t re = re_compile(targetPattern.c_str());
+					if (!re) continue;
+					const char* text = target.c_str();
+					size_t basePos = 0;
+					int matchLen = 0;
+					int m = re_matchp(re, text, &matchLen);
+					while (m >= 0) {
+						size_t pos = basePos + s_cast<size_t>(m);
+						size_t len = matchLen > 0 ? s_cast<size_t>(matchLen) : 0;
+						pushResult(pos, len);
+						size_t advance = len > 0 ? len : 1;
+						basePos += s_cast<size_t>(m) + advance;
+						text += m + s_cast<int>(advance);
+						matchLen = 0;
+						m = re_matchp(re, text, &matchLen);
+					}
+				} else {
+					size_t pos = 0;
+					size_t matchLen = targetPattern.size();
+					while ((pos = target.find(targetPattern, pos)) != std::string::npos) {
+						pushResult(pos, matchLen);
+						pos += matchLen > 0 ? matchLen : 1;
+					}
+				}
+			}
+		};
+
+		for (size_t i = 0; i < workerCount; ++i) {
+			workers.emplace_back(worker);
+		}
+		for (auto& t : workers) {
+			t.join();
+		}
+		SharedApplication.invokeInLogic([callbackPtr]() {
+			SearchResult done;
+			(*callbackPtr)(std::move(done));
+		});
+	});
 }
 
 bool Content::visitDir(String path, const std::function<bool(String, String)>& func) {

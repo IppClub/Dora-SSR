@@ -38,6 +38,14 @@ public:
 	std::list<std::string> getDirs(String path);
 	std::list<std::string> getFiles(String path);
 	std::list<std::string> getAllFiles(String path);
+	struct SearchResult {
+		std::string file;
+		size_t pos = 0;
+		int line = 0;
+		int column = 0;
+		std::string content;
+	};
+	void searchFilesAsync(String path, std::vector<std::string>&& exts, String pattern, bool useRegex, bool caseSensitive, bool includeContent, int contentWindow, const std::function<void(SearchResult&&)>& callback);
 	bool visitDir(String path, const std::function<bool(String, String)>& func);
 	void insertSearchPath(int index, String path);
 	void addSearchPath(String path);

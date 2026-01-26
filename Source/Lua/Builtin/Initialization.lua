@@ -383,6 +383,40 @@ do
 		return result
 	end
 
+	local Content_searchFilesAsync = Content.searchFilesAsync
+	Content.searchFilesAsync = function(self, path, exts, pattern, useRegex, caseSensitive, includeContent, contentWindow, callback)
+		local _, mainThread = coroutine.running()
+		assert(not mainThread, "Content.searchFilesAsync should be run in a thread")
+		if contentWindow == nil then
+			contentWindow = 0
+		end
+		if includeContent == nil then
+			includeContent = false
+		end
+		if caseSensitive == nil then
+			caseSensitive = false
+		end
+		if useRegex == nil then
+			useRegex = false
+		end
+		local results = {}
+		local done = false
+		Content_searchFilesAsync(self, path, exts, pattern, useRegex, caseSensitive, includeContent, contentWindow, function(result)
+			if result == nil then
+				done = true
+				return
+			end
+			if callback then
+				callback(result)
+			end
+			results[#results + 1] = result
+		end)
+		wait(function()
+			return done
+		end)
+		return results
+	end
+
 	local Cache = Dora.Cache
 	local Cache_loadAsync = Cache.loadAsync
 	Cache.loadAsync = function(self, target, handler)

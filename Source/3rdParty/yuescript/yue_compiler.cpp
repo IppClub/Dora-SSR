@@ -78,7 +78,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.32.4"sv;
+const std::string_view version = "0.32.5"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -10224,8 +10224,9 @@ private:
 						}
 						BLOCK_END
 					} else if (auto expList = expListFrom(statement)) {
-						auto value = singleValueFrom(expList);
-						clsDecl = value->get_by_path<SimpleValue_t, ClassDecl_t>();
+						if (auto value = singleValueFrom(expList)) {
+							clsDecl = value->get_by_path<SimpleValue_t, ClassDecl_t>();
+						}
 					}
 					if (clsDecl) {
 						auto variable = clsDecl->name.as<Variable_t>();
@@ -10243,10 +10244,18 @@ private:
 		}
 		_withVars.push(withVar);
 		std::string breakWithVar;
+		bool extraBreakVar = false;
 		if (assignList || returnValue) {
-			auto breakLoopType = getBreakLoopType(with->body, withVar);
-			if (hasBreakWithValue(breakLoopType)) {
-				breakWithVar = withVar;
+			if (assignList) {
+				breakWithVar = singleVariableFrom(assignList, AccessType::None);
+			}
+			if (breakWithVar.empty()) {
+				breakWithVar = getUnusedName("_val_"sv);
+				extraBreakVar = true;
+			}
+			auto breakLoopType = getBreakLoopType(with->body, breakWithVar);
+			if (!hasBreakWithValue(breakLoopType)) {
+				breakWithVar.clear();
 			}
 		}
 		if (with->eop) {
@@ -10327,17 +10336,19 @@ private:
 		}
 		_withVars.pop();
 		if (assignList) {
-			auto assignment = x->new_ptr<ExpListAssign_t>();
-			assignment->expList.set(assignList);
-			auto assign = x->new_ptr<Assign_t>();
-			assign->values.push_back(toAst<Exp_t>(withVar, x));
-			assignment->action.set(assign);
-			transformAssignment(assignment, temp);
+			if (breakWithVar.empty() || extraBreakVar) {
+				auto assignment = x->new_ptr<ExpListAssign_t>();
+				assignment->expList.set(assignList);
+				auto assign = x->new_ptr<Assign_t>();
+				assign->values.push_back(toAst<Exp_t>(breakWithVar.empty() ? withVar : breakWithVar, x));
+				assignment->action.set(assign);
+				transformAssignment(assignment, temp);
+			}
 		}
 		if (returnValue) {
 			auto last = lastStatementFrom(with->body);
 			if (last && !last->content.is<Return_t>()) {
-				temp.push_back(indent() + "return "s + withVar + nl(with));
+				temp.push_back(indent() + "return "s + (breakWithVar.empty() ? withVar : breakWithVar) + nl(with));
 			}
 		}
 		if (extraScope) {

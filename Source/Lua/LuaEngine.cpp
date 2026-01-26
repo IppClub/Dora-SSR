@@ -942,6 +942,7 @@ LuaEngine::LuaEngine()
 			tolua_variable(L, "searchPaths", Content_GetSearchPaths, Content_SetSearchPaths);
 			tolua_function(L, "loadExcel", Content_loadExcel);
 			tolua_function(L, "loadExcelAsync", Content_loadExcelAsync);
+			tolua_function(L, "searchFilesAsync", Content_searchFilesAsync);
 		}
 		tolua_endmodule(L);
 

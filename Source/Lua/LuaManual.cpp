@@ -378,6 +378,78 @@ tolua_lerror:
 #endif
 }
 
+int Content_searchFilesAsync(lua_State* L) {
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "Content"_slice, 0, &tolua_err)
+		|| !tolua_isstring(L, 2, 0, &tolua_err)
+		|| !tolua_istable(L, 3, 0, &tolua_err)
+		|| !tolua_isstring(L, 4, 0, &tolua_err)
+		|| !tolua_isboolean(L, 5, 0, &tolua_err)
+		|| !tolua_isboolean(L, 6, 0, &tolua_err)
+		|| !tolua_isboolean(L, 7, 0, &tolua_err)
+		|| !tolua_isnumber(L, 8, 0, &tolua_err)
+		|| !tolua_isfunction(L, 9, &tolua_err)
+		|| !tolua_isnoobj(L, 10, &tolua_err)) {
+		goto tolua_lerror;
+	} else
+#endif
+	{
+#ifndef TOLUA_RELEASE
+		Content* self = r_cast<Content*>(tolua_tousertype(L, 1, 0));
+		if (!self) tolua_error(L, "invalid 'self' in function 'Content_searchFilesAsync'", nullptr);
+#endif
+		std::string path = tolua_toslice(L, 2, 0).toString();
+		std::vector<std::string> exts;
+		if (lua_istable(L, 3) != 0) {
+			int length = s_cast<int>(lua_rawlen(L, 3));
+#ifndef TOLUA_RELEASE
+			if (!tolua_isstringarray(L, 3, length, 0, &tolua_err)) {
+				goto tolua_lerror;
+			}
+#endif
+			for (int i = 0; i < length; i++) {
+				lua_geti(L, 3, i + 1);
+				exts.push_back(tolua_toslice(L, -1, nullptr).toString());
+				lua_pop(L, 1);
+			}
+		}
+		std::string pattern = tolua_toslice(L, 4, 0).toString();
+		bool useRegex = tolua_toboolean(L, 5, 0) != 0;
+		bool caseSensitive = tolua_toboolean(L, 6, 0) != 0;
+		bool includeContent = tolua_toboolean(L, 7, 0) != 0;
+		int contentWindow = s_cast<int>(tolua_tonumber(L, 8, 0));
+		Ref<LuaHandler> handler(LuaHandler::create(tolua_ref_function(L, 9)));
+
+		self->searchFilesAsync(path, std::move(exts), pattern, useRegex, caseSensitive, includeContent, contentWindow, [handler](Content::SearchResult&& res) {
+			auto L = SharedLuaEngine.getState();
+			if (res.file.empty()) {
+				lua_pushnil(L);
+				SharedLuaEngine.executeFunction(handler->get(), 1);
+				return;
+			}
+			lua_createtable(L, 0, 5);
+			lua_pushlstring(L, res.file.c_str(), res.file.size());
+			lua_setfield(L, -2, "file");
+			lua_pushinteger(L, s_cast<lua_Integer>(res.pos));
+			lua_setfield(L, -2, "pos");
+			lua_pushinteger(L, s_cast<lua_Integer>(res.line));
+			lua_setfield(L, -2, "line");
+			lua_pushinteger(L, s_cast<lua_Integer>(res.column));
+			lua_setfield(L, -2, "column");
+			lua_pushlstring(L, res.content.c_str(), res.content.size());
+			lua_setfield(L, -2, "content");
+			SharedLuaEngine.executeFunction(handler->get(), 1);
+		});
+	}
+	return 0;
+#ifndef TOLUA_RELEASE
+tolua_lerror:
+	tolua_error(L, "#ferror in function 'Content_searchFilesAsync'.", &tolua_err);
+	return 0;
+#endif
+}
+
 /* Node */
 
 int Node_emit(lua_State* L) {
