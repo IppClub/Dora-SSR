@@ -78,7 +78,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.32.5"sv;
+const std::string_view version = "0.32.6"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -865,7 +865,7 @@ private:
 	}
 
 	bool isConstValue(Value_t* value) {
-		if (auto strNode = value->item.as<String_t>()) {
+		if (auto strNode = value->get_by_path<ChainValue_t, String_t>()) {
 			switch (strNode->str->get_id()) {
 				case id<SingleString_t>():
 				case id<LuaString_t>():
@@ -1154,7 +1154,9 @@ private:
 
 	ast_ptr<false, Exp_t> newExp(String_t* string, ast_node* x) {
 		auto value = x->new_ptr<Value_t>();
-		value->item.set(string);
+		auto chainValue = x->new_ptr<ChainValue_t>();
+		chainValue->items.push_back(string);
+		value->item.set(chainValue);
 		return newExp(value, x);
 	}
 
@@ -3487,9 +3489,7 @@ private:
 										newPair->key.set(mp->key);
 										break;
 									case id<String_t>(): {
-										auto value = mp->new_ptr<Value_t>();
-										value->item.set(mp->key);
-										newPair->key.set(newExp(value, mp));
+										newPair->key.set(newExp(mp->key.to<String_t>(), mp));
 										break;
 									}
 									default: YUEE("AST node mismatch", mp->key); break;
@@ -3622,7 +3622,7 @@ private:
 									continue;
 								}
 							}
-							if (auto value = singleValueFrom(exp); !value || !value->item.is<String_t>()) {
+							if (auto value = singleValueFrom(exp); !value || !value->item->get_by_path<String_t>()) {
 								auto var = singleVariableFrom(exp, AccessType::None);
 								if (var.empty()) {
 									if (!des.inlineAssignment) {
@@ -4664,7 +4664,6 @@ private:
 			case id<SimpleValue_t>(): transformSimpleValue(static_cast<SimpleValue_t*>(item), out); break;
 			case id<SimpleTable_t>(): transform_simple_table(static_cast<SimpleTable_t*>(item), out); break;
 			case id<ChainValue_t>(): transformChainValue(static_cast<ChainValue_t*>(item), out, ExpUsage::Closure); break;
-			case id<String_t>(): transformString(static_cast<String_t*>(item), out); break;
 			default: YUEE("AST node mismatch", value); break;
 		}
 	}
@@ -5931,6 +5930,14 @@ private:
 					arg.assignment = asmt;
 					break;
 				}
+				case id<Comprehension_t>(): {
+					arg.name = getUnusedName("_arg_"sv);
+					auto simpleValue = def->new_ptr<SimpleValue_t>();
+					simpleValue->value.set(def->name);
+					auto asmt = assignmentFrom(newExp(simpleValue, def), toAst<Exp_t>(arg.name, def), def);
+					arg.assignment = asmt;
+					break;
+				}
 				default: YUEE("AST node mismatch", def->name.get()); break;
 			}
 			forceAddToScope(arg.name);
@@ -6883,7 +6890,9 @@ private:
 				}
 				case id<String_t>():
 					transformString(static_cast<String_t*>(item), temp);
-					temp.back() = '(' + temp.back() + ')';
+					if (chainList.size() > 1) {
+						temp.back() = '(' + temp.back() + ')';
+					}
 					break;
 				case id<Exp_t>():
 					transformExp(static_cast<Exp_t*>(item), temp, ExpUsage::Closure);
@@ -7007,7 +7016,7 @@ private:
 						BREAK_IF(!exp);
 						auto value = singleValueFrom(exp);
 						BREAK_IF(!value);
-						auto lstr = value->get_by_path<String_t, LuaString_t>();
+						auto lstr = value->get_by_path<ChainValue_t, String_t, LuaString_t>();
 						BREAK_IF(!lstr);
 						str = _parser.toString(lstr->content);
 						rawString = true;
@@ -9606,7 +9615,7 @@ private:
 					if (auto dotChain = ast_cast<DotChainItem_t>(chain->items.back())) {
 						classTextName = '\"' + _parser.toString(dotChain->name) + '\"';
 					} else if (auto index = ast_cast<Exp_t>(chain->items.back())) {
-						if (auto name = index->get_by_path<UnaryExp_t, Value_t, String_t>()) {
+						if (auto name = index->get_by_path<UnaryExp_t, Value_t, ChainValue_t, String_t>()) {
 							transformString(name, temp);
 							classTextName = std::move(temp.back());
 							temp.pop_back();

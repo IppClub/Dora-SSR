@@ -689,12 +689,12 @@ AST_END(ChainValue)
 
 AST_NODE(AssignableChain)
 	ast_ptr<true, Seperator_t> sep;
-	ast_sel_list<true, Callable_t, Invoke_t, DotChainItem_t, ColonChainItem_t, Exp_t, String_t> items;
+	ast_sel_list<true, Callable_t, Invoke_t, DotChainItem_t, ColonChainItem_t, Exp_t> items;
 	AST_MEMBER(AssignableChain, &sep, &items)
 AST_END(AssignableChain)
 
 AST_NODE(Value)
-	ast_sel<true, SimpleValue_t, SimpleTable_t, ChainValue_t, String_t> item;
+	ast_sel<true, SimpleValue_t, SimpleTable_t, ChainValue_t> item;
 	AST_MEMBER(Value, &item)
 AST_END(Value)
 
@@ -782,7 +782,7 @@ AST_NODE(Export)
 AST_END(Export)
 
 AST_NODE(FnArgDef)
-	ast_sel<true, Variable_t, SelfItem_t, SimpleTable_t, TableLit_t> name;
+	ast_sel<true, Variable_t, SelfItem_t, SimpleTable_t, TableLit_t, Comprehension_t> name;
 	ast_ptr<false, ExistentialOp_t> op;
 	ast_ptr<false, Name_t> label;
 	ast_ptr<false, Exp_t> defaultValue;
