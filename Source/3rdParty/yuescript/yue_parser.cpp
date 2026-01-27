@@ -358,7 +358,7 @@ YueParser::YueParser() {
 	});
 	advance_match = and_(advance);
 
-	push_indent = pl::user(plain_space, [](const item_t& item) {
+	push_indent = pl::user(plain_space >> not_(stop), [](const item_t& item) {
 		int indent = 0;
 		for (input_it i = item.begin->m_it; i != item.end->m_it; ++i) {
 			switch (*i) {
@@ -738,12 +738,18 @@ YueParser::YueParser() {
 		return st->noChainBlockStack.empty() || !st->noChainBlockStack.back();
 	}) >> +space_break >> advance_match >> ensure(
 		chain_line >> *(+space_break >> chain_line), pop_indent);
-	ChainValue =
-		Seperator >>
-		chain >>
-		-ExistentialOp >>
-		-(InvokeArgs | chain_block) >>
-		-TableAppendingOp;
+	ChainValue = Seperator >> (
+		(
+			chain >>
+			-ExistentialOp >>
+			-(InvokeArgs | chain_block) >> -TableAppendingOp
+		) | String >> -(
+			and_(white >> set(".\\:")) >> (
+				chain_items >> -(InvokeArgs | chain_block) >> -TableAppendingOp |
+				chain_block >> -TableAppendingOp
+			)
+		)
+	);
 
 	inc_exp_level = pl::user(true_(), [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
@@ -762,7 +768,7 @@ YueParser::YueParser() {
 	});
 
 	SimpleTable = Seperator >> key_value >> *(space >> ',' >> space >> key_value);
-	Value = inc_exp_level >> ensure(SimpleValue | SimpleTable | ChainValue | String, dec_exp_level);
+	Value = inc_exp_level >> ensure(SimpleValue | SimpleTable | ChainValue, dec_exp_level);
 
 	single_string_inner = '\\' >> set("'\\") | not_('\'') >> any_char;
 	SingleString = '\'' >> *single_string_inner >> ('\'' | unclosed_single_string_error);
@@ -828,21 +834,13 @@ YueParser::YueParser() {
 	TableAppendingOp = and_('[') >> "[]";
 	PlainItem = +any_char;
 
-	chain_call = (
-		Callable >> -ExistentialOp >> -chain_items
-	) | (
-		String >> chain_items
-	);
+	chain_call = Callable >> -ExistentialOp >> -chain_items;
 	chain_index_chain = index >> -ExistentialOp >> -chain_items;
 	chain_dot_chain = DotChainItem >> -ExistentialOp >> -chain_items;
 
 	chain = chain_call | chain_dot_chain | colon_chain | chain_index_chain;
 
-	chain_call_list = (
-		Callable >> -ExistentialOp >> chain_items
-	) | (
-		String >> chain_items
-	);
+	chain_call_list = Callable >> -ExistentialOp >> chain_items;
 	chain_list = chain_call_list | chain_dot_chain | colon_chain | chain_index_chain;
 
 	AssignableChain = Seperator >> chain_list;
@@ -1030,7 +1028,7 @@ YueParser::YueParser() {
 
 	fn_arg_def_lit_lines = fn_arg_def_lit_line >> *(-(space >> ',') >> space_break >> fn_arg_def_lit_line);
 
-	FnArgDef = (Variable | SelfItem >> -ExistentialOp) >> -(space >> '`' >> space >> Name) >> -(space >> '=' >> space >> Exp) | TableLit | SimpleTable;
+	FnArgDef = (Variable | SelfItem >> -ExistentialOp) >> -(space >> '`' >> space >> Name) >> -(space >> '=' >> space >> Exp) | TableLit | SimpleTable | Comprehension;
 
 	check_vararg_position = and_(white >> (')' | key("using"))) | white >> -(',' >> white) >> vararg_position_error;
 
@@ -1391,6 +1389,7 @@ std::string ParseInfo::errorMessage(std::string_view msg, int errLine, int errCo
 		}
 		errorDisplayCol = displayCol;
 	}
+	errorDisplayCol = std::max(errorDisplayCol, 1);
 
 	for (int lineNum = startLine; lineNum <= endLine; ++lineNum) {
 		int displayLineNum = lineNum + lineOffset;
