@@ -14,6 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Common/Async.h"
 #include "Event/Event.h"
 #include "Render/VGRender.h"
+#include "Other/utf8.h"
 
 #if BX_PLATFORM_LINUX
 #include <limits.h>
@@ -41,7 +42,6 @@ namespace fs = std::filesystem;
 
 #include <atomic>
 #include <thread>
-#include <unordered_set>
 
 #define TINY_REGEX_IMPLEMENTATION
 #include "tiny-regex-c/tiny_regex.h"
@@ -247,13 +247,34 @@ std::list<std::string> Content::getAllFiles(String path) {
 	return files;
 }
 
-void Content::searchFilesAsync(String path, std::vector<std::string>&& exts, String pattern, bool useRegex, bool caseSensitive, bool includeContent, int contentWindow, const std::function<void(SearchResult&&)>& callbackFunc) {
+void Content::searchFilesAsync(String path, std::vector<std::string>&& exts, std::unordered_map<std::string, int>&& extensionLevels, std::vector<std::string>&& excludes, String pattern, bool useRegex, bool caseSensitive, bool includeContent, int contentWindow, const std::function<bool(SearchResult&&)>& callbackFunc) {
 	std::string searchRoot = path.empty() ? _assetPath : path.toString();
 	auto filesList = Content::getAllFiles(searchRoot);
 	if (filesList.empty()) return;
 
 	std::string patternStr = pattern.toString();
 	if (patternStr.empty()) return;
+
+	std::unordered_set<std::string> excludeSet;
+	if (!excludes.empty()) {
+		excludeSet.reserve(excludes.size());
+		for (const auto& item : excludes) {
+			auto name = Slice(item);
+			name.trimSpace();
+			if (!name.empty() && (name.back() == '\\' || name.back() == '/')) name.skipRight(1);
+			if (!name.empty()) excludeSet.insert(name.toString());
+		}
+	}
+
+	std::unordered_map<std::string, int> extLevels;
+	if (!extensionLevels.empty()) {
+		extLevels.reserve(extensionLevels.size());
+		for (const auto& item : extensionLevels) {
+			auto ext = Slice(item.first);
+			if (!ext.empty() && ext.front() == '.') ext.skip(1);
+			if (!ext.empty()) extLevels[ext.toLower()] = item.second;
+		}
+	}
 
 	std::unordered_set<std::string> extSet;
 	extSet.reserve(exts.size());
@@ -263,10 +284,96 @@ void Content::searchFilesAsync(String path, std::vector<std::string>&& exts, Str
 		if (!ext.empty()) extSet.insert(ext.toLower());
 	}
 
-	auto callbackPtr = std::make_shared<std::function<void(SearchResult&&)>>(callbackFunc);
+	auto callbackPtr = std::make_shared<std::function<bool(SearchResult&&)>>(callbackFunc);
+	auto stopToken = std::make_shared<std::atomic<bool>>(false);
+	auto stoped = [stopToken]() {
+		return stopToken->load(std::memory_order_relaxed);
+	};
+	auto markStoped = [stopToken]() {
+		return stopToken->store(true, std::memory_order_relaxed);
+	};
 
-	std::vector<std::string> files(filesList.begin(), filesList.end());
-	SharedAsyncThread.run([files = std::move(files), searchRoot, patternStr, useRegex, caseSensitive, includeContent, contentWindow, extSet = std::move(extSet), callbackPtr, this]() {
+	auto isExcluded = [&excludeSet](const std::string& file) {
+		if (excludeSet.empty()) return false;
+		fs::path filePath(file);
+		for (const auto& part : filePath) {
+			auto partStr = part.string();
+			if (excludeSet.find(partStr) != excludeSet.end()) return true;
+		}
+		return false;
+	};
+
+	std::vector<std::string> files;
+	files.reserve(filesList.size());
+	if (!extLevels.empty()) {
+		std::unordered_map<std::string, size_t> bestIndex;
+		std::unordered_map<std::string, int> bestLevel;
+		bestIndex.reserve(filesList.size());
+		bestLevel.reserve(filesList.size());
+		for (const auto& file : filesList) {
+			if (isExcluded(file)) continue;
+			auto ext = Path::getExt(file);
+			if (!extSet.empty()) {
+				if (extSet.find(ext) == extSet.end()) continue;
+			}
+			auto basePath = fs::path(file).replace_extension().string();
+			int level = 0;
+			auto levelIt = extLevels.find(ext);
+			if (levelIt != extLevels.end()) {
+				level = levelIt->second;
+			}
+			auto it = bestIndex.find(basePath);
+			if (it == bestIndex.end()) {
+				bestIndex[basePath] = files.size();
+				bestLevel[basePath] = level;
+				files.push_back(file);
+			} else if (level > bestLevel[basePath]) {
+				files[it->second] = file;
+				bestLevel[basePath] = level;
+			}
+		}
+	} else {
+		for (const auto& file : filesList) {
+			if (isExcluded(file)) continue;
+			files.push_back(file);
+		}
+	}
+
+	SharedAsyncThread.run([files = std::move(files), searchRoot, patternStr, useRegex, caseSensitive, includeContent, contentWindow, extSet = std::move(extSet), callbackPtr, stoped, markStoped, this]() {
+		auto isContinuationByte = [](unsigned char c) {
+			return (c & 0xC0) == 0x80;
+		};
+		auto adjustUtf8Bounds = [&](const std::string& str, size_t& start, size_t& end) {
+			if (start >= end || end > str.size()) return;
+			while (start < end && isContinuationByte(s_cast<unsigned char>(str[start]))) {
+				start++;
+			}
+			while (end > start) {
+				size_t lead = end - 1;
+				while (lead > start && isContinuationByte(s_cast<unsigned char>(str[lead]))) {
+					lead--;
+				}
+				unsigned char leadByte = s_cast<unsigned char>(str[lead]);
+				size_t expected = 1;
+				if ((leadByte & 0x80) == 0x00) {
+					expected = 1;
+				} else if ((leadByte & 0xE0) == 0xC0) {
+					expected = 2;
+				} else if ((leadByte & 0xF0) == 0xE0) {
+					expected = 3;
+				} else if ((leadByte & 0xF8) == 0xF0) {
+					expected = 4;
+				} else {
+					end = lead;
+					continue;
+				}
+				if (lead + expected <= end) {
+					break;
+				}
+				end = lead;
+			}
+		};
+
 		std::atomic<size_t> nextIndex{0};
 		size_t maxThreads = s_cast<size_t>(std::thread::hardware_concurrency());
 		if (maxThreads == 0) maxThreads = 1;
@@ -276,8 +383,10 @@ void Content::searchFilesAsync(String path, std::vector<std::string>&& exts, Str
 
 		auto worker = [&]() {
 			while (true) {
+				if (stoped()) break;
 				size_t idx = nextIndex.fetch_add(1);
 				if (idx >= files.size()) break;
+				if (stoped()) break;
 
 				const auto& file = files[idx];
 				if (!extSet.empty()) {
@@ -296,6 +405,7 @@ void Content::searchFilesAsync(String path, std::vector<std::string>&& exts, Str
 					waitForLoaded.post();
 				});
 				waitForLoaded.wait();
+				if (stoped()) break;
 				if (content.empty()) continue;
 
 				std::string target = content;
@@ -313,13 +423,18 @@ void Content::searchFilesAsync(String path, std::vector<std::string>&& exts, Str
 				}
 
 				auto pushResult = [&](size_t pos, size_t matchLen) {
+					if (stoped()) return;
 					int line = 1;
 					int column = 1;
 					auto it = std::upper_bound(lineStarts.begin(), lineStarts.end(), pos);
 					if (it != lineStarts.begin()) {
 						size_t lineIndex = s_cast<size_t>(it - lineStarts.begin() - 1);
 						line = s_cast<int>(lineIndex + 1);
-						column = s_cast<int>(pos - lineStarts[lineIndex] + 1);
+						size_t lineStart = lineStarts[lineIndex];
+						if (pos > lineStart) {
+							auto linePrefix = content.substr(lineStart, pos - lineStart);
+							column = CodeCvt::utf8_count_characters(linePrefix.c_str()) + 1;
+						}
 					}
 
 					SearchResult result;
@@ -333,11 +448,15 @@ void Content::searchFilesAsync(String path, std::vector<std::string>&& exts, Str
 						} else {
 							size_t start = pos > s_cast<size_t>(contentWindow) ? pos - s_cast<size_t>(contentWindow) : 0;
 							size_t end = std::min(content.size(), pos + matchLen + s_cast<size_t>(contentWindow));
+							adjustUtf8Bounds(content, start, end);
 							result.content = content.substr(start, end - start);
 						}
 					}
-					SharedApplication.invokeInLogic([callbackPtr, result = std::move(result)]() mutable {
-						(*callbackPtr)(std::move(result));
+					SharedApplication.invokeInLogic([callbackPtr, stoped, markStoped, result = std::move(result)]() mutable {
+						if (stoped()) return;
+						if ((*callbackPtr)(std::move(result))) {
+							markStoped();
+						}
 					});
 				};
 
@@ -349,6 +468,7 @@ void Content::searchFilesAsync(String path, std::vector<std::string>&& exts, Str
 					int matchLen = 0;
 					int m = re_matchp(re, text, &matchLen);
 					while (m >= 0) {
+						if (stoped()) break;
 						size_t pos = basePos + s_cast<size_t>(m);
 						size_t len = matchLen > 0 ? s_cast<size_t>(matchLen) : 0;
 						pushResult(pos, len);
@@ -362,6 +482,7 @@ void Content::searchFilesAsync(String path, std::vector<std::string>&& exts, Str
 					size_t pos = 0;
 					size_t matchLen = targetPattern.size();
 					while ((pos = target.find(targetPattern, pos)) != std::string::npos) {
+						if (stoped()) break;
 						pushResult(pos, matchLen);
 						pos += matchLen > 0 ? matchLen : 1;
 					}

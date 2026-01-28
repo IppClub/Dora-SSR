@@ -568,6 +568,52 @@ unzipAsync: function(self: Content, zipFile: string, folderPath: string, filter?
 | --- | --- |
 | boolean | 如果成功解压缩了文件，则为 `true`，否则为 `false`。 |
 
+## searchFilesAsync
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;异步搜索文件并返回匹配结果，应在协程线程中调用。
+
+**签名：**
+```tl
+searchFilesAsync: function(
+		self: Content,
+		path: string,
+		exts: {string},
+		extensionLevels: {string: integer},
+		excludes: {string},
+		pattern: string,
+		useRegex?: boolean,
+		caseSensitive?: boolean,
+		includeContent?: boolean,
+		contentWindow?: integer,
+		callback?: function(result: SearchFilesResult): boolean
+	): {SearchFilesResult}
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| path | string | 搜索根路径，空字符串表示资源根目录。 |
+| exts | \{string} | 需要包含的扩展名列表，空表表示不过滤。 |
+| extensionLevels | \{[string]: integer} | 扩展名到优先级的映射，用于同名不同后缀时选择优先级最高的文件。 |
+| excludes | \{string} | 需要跳过的目录名称列表。 |
+| pattern | string | 搜索的匹配模式。 |
+| useRegex | boolean | [可选] 是否使用正则匹配（默认 false）。 |
+| caseSensitive | boolean | [可选] 是否区分大小写（默认 false）。 |
+| includeContent | boolean | [可选] 是否返回匹配内容片段（默认 false）。 |
+| contentWindow | integer | [可选] includeContent 为 true 时返回匹配附近的字符数量。 |
+| callback | function | [可选] 每条结果回调，返回 true 可中止搜索。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| \{SearchFilesResult} | 搜索结果列表。参考 [SearchFilesResult](/docs/api/Class/Content/SearchFilesResult)。 |
+
 ## getDirs
 
 **类型：** 函数。

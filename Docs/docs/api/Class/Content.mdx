@@ -569,6 +569,52 @@ unzipAsync: function(self: Content, zipFile: string, folderPath: string, filter?
 | --- | --- |
 | boolean | `true` if the folder was decompressed successfully, `false` otherwise. |
 
+## searchFilesAsync
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Asynchronously searches files and returns the match results. Should be run in a thread.
+
+**Signature:**
+```tl
+searchFilesAsync: function(
+		self: Content,
+		path: string,
+		exts: {string},
+		extensionLevels: {string: integer},
+		excludes: {string},
+		pattern: string,
+		useRegex?: boolean,
+		caseSensitive?: boolean,
+		includeContent?: boolean,
+		contentWindow?: integer,
+		callback?: function(result: SearchFilesResult): boolean
+	): {SearchFilesResult}
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| path | string | The root path to search from, empty string means asset root. |
+| exts | \{string} | An array of filename extensions to include, empty table means all. |
+| extensionLevels | \{[string]: integer} | A map from extension to priority level for picking the preferred file when the same basename appears with different extensions. |
+| excludes | \{string} | An array of directory names to skip during searching. |
+| pattern | string | The search pattern. |
+| useRegex | boolean | [optional] Whether to treat pattern as regex (default false). |
+| caseSensitive | boolean | [optional] Whether to use case-sensitive matching (default false). |
+| includeContent | boolean | [optional] Whether to include the matched content snippet (default false). |
+| contentWindow | integer | [optional] Number of characters around the match to include when includeContent is true. |
+| callback | function | [optional] Called per result, return true to stop searching. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| \{SearchFilesResult} | An array of search results. See [SearchFilesResult](/docs/api/Class/Content/SearchFilesResult). |
+
 ## getDirs
 
 **Type:** Function.

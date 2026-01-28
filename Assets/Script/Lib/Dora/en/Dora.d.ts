@@ -3526,6 +3526,14 @@ interface ClipNodeClass {
 const clipNodeClass: ClipNodeClass;
 export {clipNodeClass as ClipNode};
 
+interface SearchFilesResult {
+	file: string;
+	pos: number;
+	line: number;
+	column: number;
+	content: string;
+}
+
 /**
  * The `Content` object manages file searching, loading, and other operations related to resources.
  *
@@ -3702,6 +3710,33 @@ class Content {
 	 * @returns `true` if the folder was decompressed successfully, `false` otherwise.
 	 */
 	unzipAsync(zipFile: string, folderPath: string, filter?: (this: void, filename: string) => boolean): boolean;
+
+	/**
+	 * Asynchronously searches files and returns the match results. Should be run in a thread.
+	 * @param path The root path to search from, empty string means asset root.
+	 * @param exts An array of filename extensions to include, empty array means all.
+	 * @param extensionLevels A map from extension to priority level for picking the preferred file when the same basename appears with different extensions.
+	 * @param excludes An array of directory names to skip during searching.
+	 * @param pattern The search pattern.
+	 * @param useRegex Whether to treat pattern as regex (default false).
+	 * @param caseSensitive Whether to use case-sensitive matching (default false).
+	 * @param includeContent Whether to include the matched content snippet (default false).
+	 * @param contentWindow Number of characters around the match to include when includeContent is true.
+	 * @param callback Called per result, return true to stop searching.
+	 * @returns An array of search results.
+	 */
+	searchFilesAsync(
+		path: string,
+		exts: string[],
+		extensionLevels: Record<string, number>,
+		excludes: string[],
+		pattern: string,
+		useRegex?: boolean,
+		caseSensitive?: boolean,
+		includeContent?: boolean,
+		contentWindow?: number,
+		callback?: (this: void, result: SearchFilesResult) => boolean
+	): SearchFilesResult[];
 
 	/**
 	 * Gets the names of all subdirectories in the specified directory.

@@ -88,6 +88,16 @@ export const addWSCloseListener = (listener: () => void) => {
 	eventEmitter.on(WsCloseEvent, listener);
 };
 
+type WebSocketPayload = Record<string, unknown>;
+
+const sendWebSocketMessage = (payload: WebSocketPayload) => {
+	if (!webSocket || webSocket.readyState !== WebSocket.OPEN) {
+		return false;
+	}
+	webSocket.send(new Blob([JSON.stringify(payload)]));
+	return true;
+};
+
 export function openWebSocket() {
 	let connected = false;
 	const connect = () => {
@@ -170,6 +180,65 @@ export function openWebSocket() {
 		};
 	};
 	connect();
+};
+
+// Search Files
+
+export interface SearchFilesRequest {
+	id: number;
+	path: string;
+	exts: string[];
+	extensionLevels?: Record<string, number>;
+	excludes?: string[];
+	pattern: string;
+	useRegex: boolean;
+	caseSensitive: boolean;
+	includeContent: boolean;
+	contentWindow: number;
+}
+
+export interface SearchFilesResult {
+	file: string;
+	pos: number;
+	line: number;
+	column: number;
+	content: string;
+}
+
+export interface SearchFilesResultMessage {
+	name: "SearchFilesResult";
+	id: number;
+	result: SearchFilesResult;
+}
+
+export interface SearchFilesDoneMessage {
+	name: "SearchFilesDone";
+	id: number;
+	stopped?: boolean;
+}
+
+export const searchFiles = (req: SearchFilesRequest) => {
+	return sendWebSocketMessage({name: "SearchFiles", ...req});
+};
+
+export const stopSearchFiles = (id: number) => {
+	return sendWebSocketMessage({name: "SearchFilesStop", id});
+};
+
+export const addSearchFilesResultListener = (listener: (message: SearchFilesResultMessage) => void) => {
+	eventEmitter.on("SearchFilesResult", listener);
+};
+
+export const removeSearchFilesResultListener = (listener: (message: SearchFilesResultMessage) => void) => {
+	eventEmitter.removeListener("SearchFilesResult", listener);
+};
+
+export const addSearchFilesDoneListener = (listener: (message: SearchFilesDoneMessage) => void) => {
+	eventEmitter.on("SearchFilesDone", listener);
+};
+
+export const removeSearchFilesDoneListener = (listener: (message: SearchFilesDoneMessage) => void) => {
+	eventEmitter.removeListener("SearchFilesDone", listener);
 };
 
 export function addr(url: string) {

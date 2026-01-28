@@ -139,6 +139,50 @@ local record Content
 	-- @return (boolean) `true` if the folder was decompressed successfully, `false` otherwise.
 	unzipAsync: function(self: Content, zipFile: string, folderPath: string, filter?: function(string): boolean): boolean
 
+	-- A search result item returned by `searchFilesAsync`.
+	record SearchFilesResult
+		-- The full path of the file.
+		file: string
+
+		-- The match position in bytes.
+		pos: integer
+
+		-- The line number of the match (1-based).
+		line: integer
+
+		-- The column number of the match (1-based).
+		column: integer
+
+		-- The matched content snippet.
+		content: string
+	end
+
+	-- Asynchronously searches files and returns the match results. Should be run in a thread.
+	-- @param path (string) The root path to search from, empty string means asset root.
+	-- @param exts ({string}) An array of filename extensions to include, empty table means all.
+	-- @param extensionLevels ({[string]: integer}) A map from extension to priority level for picking the preferred file when the same basename appears with different extensions.
+	-- @param excludes ({string}) An array of directory names to skip during searching.
+	-- @param pattern (string) The search pattern.
+	-- @param useRegex (boolean) [optional] Whether to treat pattern as regex (default false).
+	-- @param caseSensitive (boolean) [optional] Whether to use case-sensitive matching (default false).
+	-- @param includeContent (boolean) [optional] Whether to include the matched content snippet (default false).
+	-- @param contentWindow (integer) [optional] Number of characters around the match to include when includeContent is true.
+	-- @param callback (function) [optional] Called per result, return true to stop searching.
+	-- @return ({SearchFilesResult}) An array of search results. See [SearchFilesResult](/docs/api/Class/Content/SearchFilesResult).
+	searchFilesAsync: function(
+		self: Content,
+		path: string,
+		exts: {string},
+		extensionLevels: {string: integer},
+		excludes: {string},
+		pattern: string,
+		useRegex?: boolean,
+		caseSensitive?: boolean,
+		includeContent?: boolean,
+		contentWindow?: integer,
+		callback?: function(result: SearchFilesResult): boolean
+	): {SearchFilesResult}
+
 	-- Gets the names of all subdirectories in the specified directory.
 	-- @param path (string) The path of the directory to search.
 	-- @return (table) An array of the names of all subdirectories in the specified directory.

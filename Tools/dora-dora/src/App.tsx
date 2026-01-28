@@ -27,10 +27,11 @@ import DoraUpload from './Upload';
 import { TransitionGroup } from 'react-transition-group';
 import * as monaco from 'monaco-editor';
 import * as Service from './Service';
-import { AppBar, DrawerHeader, Entry, Main, PlayControl, PlayControlMode, StyledStack, Color, Separator } from './Frame';
+import { AppBar, DrawerHeader, Entry, Main, PlayControl, PlayControlMode, StyledStack, Color } from './Frame';
 import { MacScrollbar } from 'mac-scrollbar';
 import 'mac-scrollbar/dist/mac-scrollbar.css';
 import FileFilter, { FilterOption } from './FileFilter';
+import FileSearchPanel from './FileSearch';
 import { useTranslation } from 'react-i18next';
 import { Image } from 'antd';
 import YarnEditor, { YarnEditorData } from './YarnEditor';
@@ -39,6 +40,7 @@ import CodeWire, { CodeWireData } from './CodeWire';
 import TIC80Editor from './TIC80Editor';
 import { AutoTypings } from './3rdParty/monaco-editor-auto-typings';
 import { TbSwitchVertical } from "react-icons/tb";
+import { BsSearch } from 'react-icons/bs';
 import './Editor';
 import KeyboardShortcuts from './KeyboardShortcuts';
 import BottomLog from './BottomLog';
@@ -329,6 +331,7 @@ export default function PersistentDrawerLeft() {
 	}| null>(null);
 
 	const [openFilter, setOpenFilter] = useState(false);
+	const [leftDockTab, setLeftDockTab] = useState<"explorer" | "search">("explorer");
 	const [filterOptions, setFilterOptions] = useState<FilterOption[] | null>(null);
 	const {width: drawerWidth, enableResize, isResizing} = useResize({minWidth: 150, defaultWidth: Info.drawerWidth});
 	const [winSize, setWinSize] = useState({
@@ -337,6 +340,7 @@ export default function PersistentDrawerLeft() {
 	});
 	const editorWidth = winSize.width - (drawerOpen ? drawerWidth : 0);
 	const editorHeight = winSize.height - 48;
+	const showFullLogo = drawerWidth > 200;
 
 	const [openLog, setOpenLog] = useState<{title: string, stopOnClose: boolean} | null>(null);
 	const [openBottomLog, setOpenBottomLog] = useState(false);
@@ -2527,19 +2531,6 @@ export default function PersistentDrawerLeft() {
 	}, [openLog, t, tabIndex, files]);
 
 	const onPlayControlClick = useCallback((mode: PlayControlMode, noLog?: boolean) => {
-		if (isSaving && mode !== "View Log") {
-			let isMD = false;
-			if (tabIndex !== null) {
-				const file = files.at(tabIndex);
-				if (file !== undefined) {
-					isMD = path.extname(file.title).toLowerCase() === ".md";
-				}
-			}
-			if (!isMD) {
-				addAlert(t("alert.waitForJob"), "info");
-			}
-			return;
-		}
 		if (mode === "Go to File") {
 			setOpenFilter(true);
 			return;
@@ -2549,6 +2540,19 @@ export default function PersistentDrawerLeft() {
 					title: t("menu.viewLog"),
 					stopOnClose: false
 				});
+			}
+			return;
+		}
+		if (isSaving) {
+			let isMD = false;
+			if (tabIndex !== null) {
+				const file = files.at(tabIndex);
+				if (file !== undefined) {
+					isMD = path.extname(file.title).toLowerCase() === ".md";
+				}
+			}
+			if (!isMD) {
+				addAlert(t("alert.waitForJob"), "info");
 			}
 			return;
 		}
@@ -2850,6 +2854,27 @@ export default function PersistentDrawerLeft() {
 		openFileInTab(value.fileKey, value.title, false);
 	}, [setFilterOptions, openFileInTab]);
 
+	const onSearchOpenFile = useCallback((file: string, line: number, column: number) => {
+		if (tabIndex !== null && files[tabIndex]?.key === file) {
+			const editor = files[tabIndex]?.editor;
+			if (editor === undefined) return;
+			const pos = {
+				lineNumber: line,
+				column: column,
+			};
+			editor.setPosition(pos);
+			editor.revealPositionInCenterIfOutsideViewport(pos);
+			editor.focus();
+			return;
+		}
+		setJumpToFile({
+			key: file,
+			title: path.basename(file),
+			row: line,
+			col: column,
+		});
+	}, [setJumpToFile, tabIndex, files]);
+
 	return (
 		<Entry>
 			<Dialog
@@ -3058,31 +3083,97 @@ export default function PersistentDrawerLeft() {
 					anchor="left"
 					open={drawerOpen}
 				>
-					<a
-						href={Info.locale.match(/^zh/) ? 'https://ippclub.gitee.io/Dora-SSR/zh-Hans/docs/api/intro' : 'https://dora-ssr.net/docs/api/intro'}
-						target="_blank"
-						rel="noreferrer"
-						style={{
-							paddingTop: 8,
-							paddingLeft: 10,
-						}}
-					>
-						<img
-							src={logo}
-							alt="logo"
-							height={34}
-						/>
-					</a>
-					<Separator/>
-					<FileTree
-						selectedKeys={selectedKeys}
-						expandedKeys={expandedKeys}
-						treeData={treeData}
-						onMenuClick={onTreeMenuClick}
-						onSelect={onSelect}
-						onExpand={onExpand}
-						onDrop={onDrop}
-					/>
+					<div style={{display: 'flex', flexDirection: 'column', height: '100%'}}>
+						<div style={{
+							display: 'flex',
+							alignItems: 'center',
+							justifyContent: 'space-between',
+							gap: 8,
+							padding: '8px 10px',
+							background: Color.BackgroundDark,
+							borderBottom: `0.5px solid ${Color.Line}`
+						}}>
+							<a
+								href={Info.locale.match(/^zh/) ? 'https://ippclub.gitee.io/Dora-SSR/zh-Hans/docs/api/intro' : 'https://dora-ssr.net/docs/api/intro'}
+								target="_blank"
+								rel="noreferrer"
+								style={{
+									display: 'flex',
+									alignItems: 'center',
+									gap: 6,
+									textDecoration: 'none'
+								}}
+							>
+								{showFullLogo ? (
+									<img
+										src={logo}
+										alt="logo"
+										height={32}
+									/>
+								) : (
+									<div style={{width: 32, height: 32, overflow: 'hidden'}}>
+										<img
+											src={logo}
+											alt="logo"
+											height={32}
+										/>
+									</div>
+								)}
+							</a>
+							<Stack direction="row" spacing={1} alignItems="center">
+								<Tooltip title={t("menu.explorer")}>
+									<IconButton
+										size="small"
+										color="inherit"
+										disableRipple
+										aria-pressed={leftDockTab === "explorer"}
+										onClick={() => setLeftDockTab("explorer")}
+										sx={{
+											backgroundColor: leftDockTab === "explorer" ? Color.Theme + "11" : "transparent",
+											border: `1px solid ${leftDockTab === "explorer" ? Color.Theme + "55" : Color.Line}`,
+											borderRadius: 1.5,
+										}}
+									>
+										<AccountTreeIcon fontSize="small"/>
+									</IconButton>
+								</Tooltip>
+								<Tooltip title={t("menu.searchFiles")}>
+									<IconButton
+										size="small"
+										color="inherit"
+										disableRipple
+										aria-pressed={leftDockTab === "search"}
+										onClick={() => setLeftDockTab("search")}
+										sx={{
+											backgroundColor: leftDockTab === "search" ? Color.Theme + "11" : "transparent",
+											border: `1px solid ${leftDockTab === "search" ? Color.Theme + "55" : Color.Line}`,
+											borderRadius: 1.5,
+										}}
+									>
+										<BsSearch />
+									</IconButton>
+								</Tooltip>
+							</Stack>
+						</div>
+						<div style={{flex: 1, minHeight: 0, padding: 0}} hidden={leftDockTab === "search"}>
+							<FileTree
+								selectedKeys={selectedKeys}
+								expandedKeys={expandedKeys}
+								treeData={treeData}
+								onMenuClick={onTreeMenuClick}
+								onSelect={onSelect}
+								onExpand={onExpand}
+								onDrop={onDrop}
+							/>
+						</div>
+						<div style={{flex: 1, minHeight: 0, padding: 0}} hidden={leftDockTab === "explorer"}>
+							<FileSearchPanel
+								open={leftDockTab === "search"}
+								searchPath={writablePath}
+								onOpenFile={onSearchOpenFile}
+							/>
+						</div>
+					</div>
 					<div
 						style={{
 							position: 'absolute',
