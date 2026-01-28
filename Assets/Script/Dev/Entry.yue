@@ -579,6 +579,37 @@ export setWorkspace = (path) ->
 
 quit = false
 
+activeSearchId = 0
+
+handleSearchFiles = (payload) ->
+	return unless payload
+	:id = payload
+	return if id == nil
+	activeSearchId = id
+	path = payload.path or ""
+	exts = payload.exts or {}
+	extensionLevels = payload.extensionLevels or {}
+	excludes = payload.excludes or {}
+	pattern = payload.pattern or ""
+	return if pattern == ""
+	useRegex = payload.useRegex == true
+	caseSensitive = payload.caseSensitive == true
+	includeContent = payload.includeContent != false
+	contentWindow = payload.contentWindow or 0
+	Director.systemScheduler\schedule once ->
+		stopped = false
+		Content\searchFilesAsync path, exts, extensionLevels, excludes, pattern, useRegex, caseSensitive, includeContent, contentWindow, (result) ->
+			if activeSearchId != id
+				stopped = true
+				return true
+			emit "AppWS", "Send", json.encode {
+				name: "SearchFilesResult", :id, :result
+			}
+			false
+		emit "AppWS", "Send", json.encode {
+			name: "SearchFilesDone", :id, stopped: stopped
+		}
+
 export stop = ->
 	return false if isInEntry
 	allClear!
@@ -611,9 +642,20 @@ setupEventHandlers = ->
 							:width, :height = App.winSize
 							config.winWidth = width
 							config.winHeight = height
-		\onAppWS (eventType) -> if eventType == "Close"
-			if HttpServer.wsConnectionCount == 0
-				updateEntries!
+		\onAppWS (eventType, msg) ->
+			if eventType == "Close"
+				if HttpServer.wsConnectionCount == 0
+					updateEntries!
+				return
+			return unless eventType == "Receive"
+			data = json.decode msg
+			return unless data
+			switch data.name
+				when "SearchFiles"
+					handleSearchFiles data
+				when "SearchFilesStop"
+					if data.id == nil or data.id == activeSearchId
+						activeSearchId = 0
 		\slot "UpdateEntries", -> updateEntries!
 
 setupEventHandlers!

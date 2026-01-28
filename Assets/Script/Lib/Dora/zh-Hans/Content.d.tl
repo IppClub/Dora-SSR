@@ -138,6 +138,50 @@ local record Content
 	-- @return (boolean) 如果成功解压缩了文件，则为 `true`，否则为 `false`。
 	unzipAsync: function(self: Content, zipFile: string, folderPath: string, filter?: function(string): boolean): boolean
 
+	-- `searchFilesAsync` 返回的搜索结果项。
+	record SearchFilesResult
+		-- 匹配到的文件完整路径。
+		file: string
+
+		-- 匹配位置（字节偏移）。
+		pos: integer
+
+		-- 匹配所在行号（从 1 开始）。
+		line: integer
+
+		-- 匹配所在列号（从 1 开始）。
+		column: integer
+
+		-- 匹配到的内容片段。
+		content: string
+	end
+
+	-- 异步搜索文件并返回匹配结果，应在协程线程中调用。
+	-- @param path (string) 搜索根路径，空字符串表示资源根目录。
+	-- @param exts ({string}) 需要包含的扩展名列表，空表表示不过滤。
+	-- @param extensionLevels ({[string]: integer}) 扩展名到优先级的映射，用于同名不同后缀时选择优先级最高的文件。
+	-- @param excludes ({string}) 需要跳过的目录名称列表。
+	-- @param pattern (string) 搜索的匹配模式。
+	-- @param useRegex (boolean) [可选] 是否使用正则匹配（默认 false）。
+	-- @param caseSensitive (boolean) [可选] 是否区分大小写（默认 false）。
+	-- @param includeContent (boolean) [可选] 是否返回匹配内容片段（默认 false）。
+	-- @param contentWindow (integer) [可选] includeContent 为 true 时返回匹配附近的字符数量。
+	-- @param callback (function) [可选] 每条结果回调，返回 true 可中止搜索。
+	-- @return ({SearchFilesResult}) 搜索结果列表。参考 [SearchFilesResult](/docs/api/Class/Content/SearchFilesResult)。
+	searchFilesAsync: function(
+		self: Content,
+		path: string,
+		exts: {string},
+		extensionLevels: {string: integer},
+		excludes: {string},
+		pattern: string,
+		useRegex?: boolean,
+		caseSensitive?: boolean,
+		includeContent?: boolean,
+		contentWindow?: integer,
+		callback?: function(result: SearchFilesResult): boolean
+	): {SearchFilesResult}
+
 	-- 获取指定目录中所有子目录的名称。
 	-- @param path (string) 要搜索的目录的路径。
 	-- @return (table) 包含指定目录中所有子目录名称的列表。

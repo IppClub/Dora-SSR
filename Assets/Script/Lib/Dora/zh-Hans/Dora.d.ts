@@ -3525,6 +3525,14 @@ interface ClipNodeClass {
 const clipNodeClass: ClipNodeClass;
 export {clipNodeClass as ClipNode};
 
+interface SearchFilesResult {
+	file: string;
+	pos: number;
+	line: number;
+	column: number;
+	content: string;
+}
+
 /**
  * 用于管理文件搜索、加载和其他与资源相关的操作的单例对象。
  *
@@ -3701,6 +3709,33 @@ class Content {
 	 * @returns 如果文件夹成功解压缩，则返回`true`，否则返回`false`。
 	 */
 	unzipAsync(zipFile: string, folderPath: string, filter?: (this: void, filename: string) => boolean): boolean;
+
+	/**
+	 * 异步搜索文件并返回匹配结果，应在协程线程中调用。
+	 * @param path 搜索根路径，空字符串表示资源根目录。
+	 * @param exts 需要包含的扩展名列表，空数组表示不过滤。
+	 * @param extensionLevels 扩展名到优先级的映射，用于同名不同后缀时选择优先级最高的文件。
+	 * @param exclude 需要跳过的目录名称列表。
+	 * @param pattern 搜索的匹配模式。
+	 * @param useRegex 是否使用正则匹配（默认 false）。
+	 * @param caseSensitive 是否区分大小写（默认 false）。
+	 * @param includeContent 是否返回匹配内容片段（默认 false）。
+	 * @param contentWindow includeContent 为 true 时返回匹配附近的字符数量。
+	 * @param callback 每条结果回调，返回 true 可中止搜索。
+	 * @returns 搜索结果列表。
+	 */
+	searchFilesAsync(
+		path: string,
+		exts: string[],
+		extensionLevels: Record<string, number>,
+		excludes: string[],
+		pattern: string,
+		useRegex?: boolean,
+		caseSensitive?: boolean,
+		includeContent?: boolean,
+		contentWindow?: number,
+		callback?: (this: void, result: SearchFilesResult) => boolean
+	): SearchFilesResult[];
 
 	/**
 	 * 获取指定目录中所有子目录的名称。

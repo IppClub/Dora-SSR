@@ -384,13 +384,15 @@ int Content_searchFilesAsync(lua_State* L) {
 	if (!tolua_isusertype(L, 1, "Content"_slice, 0, &tolua_err)
 		|| !tolua_isstring(L, 2, 0, &tolua_err)
 		|| !tolua_istable(L, 3, 0, &tolua_err)
-		|| !tolua_isstring(L, 4, 0, &tolua_err)
-		|| !tolua_isboolean(L, 5, 0, &tolua_err)
-		|| !tolua_isboolean(L, 6, 0, &tolua_err)
+		|| !tolua_istable(L, 4, 0, &tolua_err)
+		|| !tolua_istable(L, 5, 0, &tolua_err)
+		|| !tolua_isstring(L, 6, 0, &tolua_err)
 		|| !tolua_isboolean(L, 7, 0, &tolua_err)
-		|| !tolua_isnumber(L, 8, 0, &tolua_err)
-		|| !tolua_isfunction(L, 9, &tolua_err)
-		|| !tolua_isnoobj(L, 10, &tolua_err)) {
+		|| !tolua_isboolean(L, 8, 0, &tolua_err)
+		|| !tolua_isboolean(L, 9, 0, &tolua_err)
+		|| !tolua_isnumber(L, 10, 0, &tolua_err)
+		|| !tolua_isfunction(L, 11, &tolua_err)
+		|| !tolua_isnoobj(L, 12, &tolua_err)) {
 		goto tolua_lerror;
 	} else
 #endif
@@ -414,19 +416,40 @@ int Content_searchFilesAsync(lua_State* L) {
 				lua_pop(L, 1);
 			}
 		}
-		std::string pattern = tolua_toslice(L, 4, 0).toString();
-		bool useRegex = tolua_toboolean(L, 5, 0) != 0;
-		bool caseSensitive = tolua_toboolean(L, 6, 0) != 0;
-		bool includeContent = tolua_toboolean(L, 7, 0) != 0;
-		int contentWindow = s_cast<int>(tolua_tonumber(L, 8, 0));
-		Ref<LuaHandler> handler(LuaHandler::create(tolua_ref_function(L, 9)));
+		std::unordered_map<std::string, int> extensionLevels;
+		if (lua_istable(L, 4) != 0) {
+			lua_pushnil(L);
+			while (lua_next(L, 4) != 0) {
+				if (lua_type(L, -2) == LUA_TSTRING && lua_type(L, -1) == LUA_TNUMBER) {
+					auto key = tolua_toslice(L, -2, nullptr);
+					auto value = s_cast<int>(lua_tonumber(L, -1));
+					extensionLevels[key.toString()] = value;
+				}
+				lua_pop(L, 1);
+			}
+		}
+		std::vector<std::string> excludes;
+		if (lua_istable(L, 5) != 0) {
+			int length = s_cast<int>(lua_rawlen(L, 5));
+			for (int i = 0; i < length; i++) {
+				lua_geti(L, 5, i + 1);
+				excludes.push_back(tolua_toslice(L, -1, nullptr).toString());
+				lua_pop(L, 1);
+			}
+		}
+		std::string pattern = tolua_toslice(L, 6, 0).toString();
+		bool useRegex = tolua_toboolean(L, 7, 0) != 0;
+		bool caseSensitive = tolua_toboolean(L, 8, 0) != 0;
+		bool includeContent = tolua_toboolean(L, 9, 0) != 0;
+		int contentWindow = s_cast<int>(tolua_tonumber(L, 10, 0));
+		Ref<LuaHandler> handler(LuaHandler::create(tolua_ref_function(L, 11)));
 
-		self->searchFilesAsync(path, std::move(exts), pattern, useRegex, caseSensitive, includeContent, contentWindow, [handler](Content::SearchResult&& res) {
+		self->searchFilesAsync(path, std::move(exts), std::move(extensionLevels), std::move(excludes), pattern, useRegex, caseSensitive, includeContent, contentWindow, [handler](Content::SearchResult&& res) {
 			auto L = SharedLuaEngine.getState();
 			if (res.file.empty()) {
 				lua_pushnil(L);
 				SharedLuaEngine.executeFunction(handler->get(), 1);
-				return;
+				return false;
 			}
 			lua_createtable(L, 0, 5);
 			lua_pushlstring(L, res.file.c_str(), res.file.size());
@@ -439,7 +462,7 @@ int Content_searchFilesAsync(lua_State* L) {
 			lua_setfield(L, -2, "column");
 			lua_pushlstring(L, res.content.c_str(), res.content.size());
 			lua_setfield(L, -2, "content");
-			SharedLuaEngine.executeFunction(handler->get(), 1);
+			return SharedLuaEngine.executeFunction(handler->get(), 1);
 		});
 	}
 	return 0;

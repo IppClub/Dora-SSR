@@ -383,12 +383,12 @@ do
 		return result
 	end
 
-	local Content_searchFilesAsync = Content.searchFilesAsync
-	Content.searchFilesAsync = function(self, path, exts, pattern, useRegex, caseSensitive, includeContent, contentWindow, callback)
-		local _, mainThread = coroutine.running()
-		assert(not mainThread, "Content.searchFilesAsync should be run in a thread")
-		if contentWindow == nil then
-			contentWindow = 0
+local Content_searchFilesAsync = Content.searchFilesAsync
+Content.searchFilesAsync = function(self, path, exts, extensionLevels, excludes, pattern, useRegex, caseSensitive, includeContent, contentWindow, callback)
+	local _, mainThread = coroutine.running()
+	assert(not mainThread, "Content.searchFilesAsync should be run in a thread")
+	if contentWindow == nil then
+		contentWindow = 0
 		end
 		if includeContent == nil then
 			includeContent = false
@@ -399,17 +399,26 @@ do
 		if useRegex == nil then
 			useRegex = false
 		end
-		local results = {}
-		local done = false
-		Content_searchFilesAsync(self, path, exts, pattern, useRegex, caseSensitive, includeContent, contentWindow, function(result)
+	local results = {}
+	local done = false
+	local stopped = false
+	Content_searchFilesAsync(self, path, exts, extensionLevels, excludes, pattern, useRegex, caseSensitive, includeContent, contentWindow, function(result)
+		if stopped then
+			return false
+		end
 			if result == nil then
 				done = true
-				return
-			end
-			if callback then
-				callback(result)
+				return false
 			end
 			results[#results + 1] = result
+			if callback then
+				if callback(result) then
+					done = true
+					stopped = true
+					return true
+				end
+			end
+			return false
 		end)
 		wait(function()
 			return done
