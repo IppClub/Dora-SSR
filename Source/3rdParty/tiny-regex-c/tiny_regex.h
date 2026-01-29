@@ -77,11 +77,11 @@ int re_match(const char* pattern, const char* text, int* matchlength);
 #define MAX_CHAR_CLASS_LEN      40    /* Max length of character-class buffer in.   */
 
 
-enum { UNUSED, DOT, BEGIN, END, QUESTIONMARK, STAR, PLUS, CHAR, CHAR_CLASS, INV_CHAR_CLASS, DIGIT, NOT_DIGIT, ALPHA, NOT_ALPHA, WHITESPACE, NOT_WHITESPACE, /* BRANCH */ };
+enum { UNUSED, DOT, BEGIN, END, QUESTIONMARK, STAR, PLUS, CHA, CHAR_CLASS, INV_CHAR_CLASS, DIGIT, NOT_DIGIT, ALPHA, NOT_ALPHA, WHITESPACE, NOT_WHITESPACE, /* BRANCH */ };
 
 typedef struct regex_t
 {
-  unsigned char  type;   /* CHAR, STAR, etc.                      */
+  unsigned char  type;   /* CHA, STAR, etc.                      */
   union
   {
     unsigned char  ch;   /*      the character itself             */
@@ -193,7 +193,7 @@ re_t re_compile(const char* pattern)
             /* Escaped character, e.g. '.' or '$' */
             default:
             {
-              re_compiled[j].type = CHAR;
+              re_compiled[j].type = CHA;
               re_compiled[j].u.ch = pattern[i];
             } break;
           }
@@ -202,7 +202,7 @@ re_t re_compile(const char* pattern)
 /*
         else
         {
-          re_compiled[j].type = CHAR;
+          re_compiled[j].type = CHA;
           re_compiled[j].ch = pattern[i];
         }
 */
@@ -267,7 +267,7 @@ re_t re_compile(const char* pattern)
       /* Other characters: */
       default:
       {
-        re_compiled[j].type = CHAR;
+        re_compiled[j].type = CHA;
         re_compiled[j].u.ch = c;
       } break;
     }
@@ -315,7 +315,7 @@ void re_print(regex_t* pattern)
       }
       printf("]");
     }
-    else if (pattern[i].type == CHAR)
+    else if (pattern[i].type == CHA)
     {
       printf(" '%c'", pattern[i].u.ch);
     }

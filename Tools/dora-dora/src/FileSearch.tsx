@@ -41,6 +41,8 @@ const FileSearchPanel = (props: FileSearchDialogProps) => {
 	const [searching, setSearching] = useState(false);
 	const [useRegex, setUseRegex] = useState(false);
 	const [caseSensitive, setCaseSensitive] = useState(false);
+	const [includeEnabled, setIncludeEnabled] = useState(false);
+	const [includePath, setIncludePath] = useState("");
 	const activeSearchIdRef = useRef(0);
 	const searchSeqRef = useRef(0);
 	const bufferedResultsRef = useRef<Service.SearchFilesResult[]>([]);
@@ -140,7 +142,24 @@ const FileSearchPanel = (props: FileSearchDialogProps) => {
 		};
 	}, [open]);
 
+	const getEffectiveSearchPath = useCallback(() => {
+		if (!includeEnabled) return searchPath;
+		const rawInclude = includePath.trim();
+		if (rawInclude.length === 0) return searchPath;
+		const cleaned = rawInclude.replace(/^[\\/]+/, "");
+		const joined = path.normalize(path.join(searchPath, cleaned));
+		const rel = path.relative(searchPath, joined);
+		if (rel.startsWith("..") || path.isAbsolute(rel)) return "";
+		return joined;
+	}, [searchPath, includeEnabled, includePath]);
+
 	const runSearch = useCallback(() => {
+		const targetPath = getEffectiveSearchPath();
+		if (targetPath.length === 0) {
+			setSearching(false);
+			setResults([]);
+			return;
+		}
 		const rawPattern = query.trim();
 		if (rawPattern.length === 0) {
 			setSearching(false);
@@ -161,7 +180,7 @@ const FileSearchPanel = (props: FileSearchDialogProps) => {
 		setSearching(true);
 		Service.searchFiles({
 			id,
-			path: searchPath,
+			path: targetPath,
 			exts: codeExtensions,
 			extensionLevels,
 			pattern,
@@ -171,7 +190,7 @@ const FileSearchPanel = (props: FileSearchDialogProps) => {
 			contentWindow: 20,
 			excludes: [".git", ".svn", ".hg", ".www", ".build", ".cache", ".upload", ".download"],
 		});
-	}, [searchPath, query, useRegex, caseSensitive, stopActiveSearch]);
+	}, [getEffectiveSearchPath, query, useRegex, caseSensitive, stopActiveSearch]);
 
 	const statusText = useMemo(() => {
 		if (searching) return t("popup.searchFilesSearching");
@@ -218,6 +237,7 @@ const FileSearchPanel = (props: FileSearchDialogProps) => {
 						label={t("popup.searchFiles")}
 						placeholder={t("popup.searchFilesPlaceholder")}
 						value={query}
+						autoComplete="off"
 						onChange={(event) => setQuery(event.target.value)}
 						onKeyDown={(event) => {
 							if (event.key === "Enter") {
@@ -240,6 +260,23 @@ const FileSearchPanel = (props: FileSearchDialogProps) => {
 								endAdornment: (
 									<InputAdornment position="end">
 										<Stack direction="row" spacing={0.5} alignItems="center">
+											<Tooltip title={t("popup.searchFilesInclude")}>
+												<IconButton
+													size="small"
+													onClick={() => setIncludeEnabled(prev => !prev)}
+													disableRipple
+													sx={{
+														width: 28,
+														height: 28,
+														borderRadius: 1,
+														border: `1px solid ${includeEnabled ? Color.Theme + "88" : Color.Line}`,
+														color: includeEnabled ? Color.TextPrimary : Color.TextSecondary,
+														backgroundColor: includeEnabled ? Color.Theme + "11" : "transparent",
+													}}
+												>
+													<Typography variant="caption">in</Typography>
+												</IconButton>
+											</Tooltip>
 											<Tooltip title={t("popup.searchFilesCaseSensitive")}>
 												<IconButton
 													size="small"
@@ -282,6 +319,30 @@ const FileSearchPanel = (props: FileSearchDialogProps) => {
 					/> : null
 				}
 			</Stack>
+			{includeEnabled ? (
+				<Box sx={{ paddingLeft: 1, paddingRight: 1 }}>
+					<TextField
+						fullWidth
+						size="small"
+						label={t("popup.searchFilesInclude")}
+						placeholder={t("popup.searchFilesIncludePlaceholder")}
+						value={includePath}
+						autoComplete="off"
+						onChange={(event) => setIncludePath(event.target.value)}
+						sx={{
+							"& .MuiInputBase-root": {
+								backgroundColor: Color.BackgroundDark,
+							},
+							"& .MuiOutlinedInput-notchedOutline": {
+								borderColor: Color.Line,
+							},
+							"&:hover .MuiOutlinedInput-notchedOutline": {
+								borderColor: Color.TextSecondary,
+							},
+						}}
+					/>
+				</Box>
+			) : null}
 			<Box>
 				<Typography variant="caption" color={Color.TextSecondary} sx={{ paddingLeft: 2 }}>
 					{statusText}

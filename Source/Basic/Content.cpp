@@ -249,6 +249,11 @@ std::list<std::string> Content::getAllFiles(String path) {
 
 void Content::searchFilesAsync(String path, std::vector<std::string>&& exts, std::unordered_map<std::string, int>&& extensionLevels, std::vector<std::string>&& excludes, String pattern, bool useRegex, bool caseSensitive, bool includeContent, int contentWindow, const std::function<bool(SearchResult&&)>& callbackFunc) {
 	std::string searchRoot = path.empty() ? _assetPath : path.toString();
+	if (!SharedContent.exist(searchRoot)) {
+		SearchResult done;
+		callbackFunc(std::move(done));
+		return;
+	}
 	auto filesList = Content::getAllFiles(searchRoot);
 	if (filesList.empty()) return;
 
