@@ -2912,6 +2912,7 @@ export default function PersistentDrawerLeft() {
 									fullWidth
 									hiddenLabel
 									multiline
+									autoComplete="off"
 									variant="outlined"
 									id="popupText"
 									defaultValue={popupInfo?.msg}
@@ -2964,6 +2965,7 @@ export default function PersistentDrawerLeft() {
 					<Box display="flex" flexDirection="column" gap={2}>
 						<TextField
 							autoFocus
+							autoComplete="off"
 							label={(
 								fileInfo?.title === "file.new" ?
 									t("file.enterFile") : undefined
