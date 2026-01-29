@@ -1230,6 +1230,7 @@ const sidebars = {
 						},
 					],
 				},
+				"api/Class/Content/SearchFilesResult",
 				"api/Module/tic80",
 			]
 		},
