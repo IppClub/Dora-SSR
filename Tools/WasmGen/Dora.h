@@ -581,6 +581,21 @@ singleton class Content
 	///
 	/// * `Vec<String>` - An array of the names of all files in the specified directory and its subdirectories.
 	VecStr getAllFiles(string path);
+	/// Asynchronously searches files and returns the match results. Should be run in a thread.
+	///
+	/// # Arguments
+	///
+	/// * `path` - The root path to search from, empty string means asset root.
+	/// * `exts` - An array of filename extensions to include, empty array means all.
+	/// * `extensionLevels` - A map from extension to priority level for picking the preferred file when the same basename appears with different extensions.
+	/// * `excludes` - An array of directory names to skip during searching.
+	/// * `pattern` - The search pattern.
+	/// * `useRegex` - Whether to treat pattern as regex (default false).
+	/// * `caseSensitive` - Whether to use case-sensitive matching (default false).
+	/// * `includeContent` - Whether to include the matched content snippet (default false).
+	/// * `contentWindow` - Number of characters around the match to include when includeContent is true.
+	/// * `callback` - Called per result, return true to stop searching. The callback receives empty dictionary when done.
+	outside void Content_SearchFilesAsync @ searchFilesAsync(string path, VecStr exts, Dictionary* extensionLevels, VecStr excludes, string pattern, bool useRegex, bool caseSensitive, bool includeContent, int contentWindow, function<def_true bool(Dictionary* result)> callback);
 	/// Asynchronously loads the content of the file with the specified filename.
 	///
 	/// # Arguments
@@ -643,7 +658,7 @@ singleton class Content
 	/// * `bool` - `true` if the folder was decompressed successfully, `false` otherwise.
 	void unzipAsync(string zipFile, string folderPath, function<def_false bool(string file)> filter, function<void(bool success)> callback);
 
-	outside WorkBook content_wasm_load_excel @ load_excel(string filename);
+	outside WorkBook Content_WasmLoadExcel @ load_excel(string filename);
 };
 
 /// A scheduler that manages the execution of scheduled tasks.

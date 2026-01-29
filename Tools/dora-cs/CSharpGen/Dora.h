@@ -585,6 +585,20 @@ singleton class Content
 	/// <returns>An array of the names of all files in the specified directory and its subdirectories.</returns>
 	VecStr getAllFiles(string path);
 	/// <summary>
+	/// Asynchronously searches files and returns the match results. Should be run in a thread.
+	/// </summary>
+	/// <param name="path">The root path to search from, empty string means asset root.</param>
+	/// <param name="exts">An array of filename extensions to include, empty array means all.</param>
+	/// <param name="extensionLevels">A map from extension to priority level for picking the preferred file when the same basename appears with different extensions.</param>
+	/// <param name="excludes">An array of directory names to skip during searching.</param>
+	/// <param name="pattern">The search pattern.</param>
+	/// <param name="useRegex">Whether to treat pattern as regex (default false).</param>
+	/// <param name="caseSensitive">Whether to use case-sensitive matching (default false).</param>
+	/// <param name="includeContent">Whether to include the matched content snippet (default false).</param>
+	/// <param name="contentWindow">Number of characters around the match to include when includeContent is true.</param>
+	/// <param name="callback">Called per result, return true to stop searching. The callback receives null when done.</param>
+	outside void Content_SearchFilesAsync @ searchFilesAsync(string path, VecStr exts, Dictionary* extensionLevels, VecStr excludes, string pattern, bool useRegex, bool caseSensitive, bool includeContent, int contentWindow, function<def_true bool(Dictionary* result)> callback);
+	/// <summary>
 	/// Asynchronously loads the content of the file with the specified filename.
 	/// </summary>
 	/// <param name="filename">The name of the file to load.</param>
