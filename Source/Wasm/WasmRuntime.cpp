@@ -103,7 +103,7 @@ NS_DORA_BEGIN
 
 #define DoraVersion(major, minor, patch) ((major) << 16 | (minor) << 8 | (patch))
 
-static const int doraWASMVersion = DoraVersion(0, 5, 4);
+static const int doraWASMVersion = DoraVersion(0, 5, 5);
 
 static std::string VersionToStr(int version) {
 	return std::to_string((version & 0x00ff0000) >> 16) + '.' + std::to_string((version & 0x0000ff00) >> 8) + '.' + std::to_string(version & 0x000000ff);
@@ -125,30 +125,30 @@ static_assert(sizeof(LightWasmValue) == sizeof(int64_t), "encode item with great
 
 extern "C" {
 #ifdef DORA_NO_STATIC_CALL_BACK
-	void call_function(int32_t func_id) {
-		DORA_UNUSED_PARAM(func_id);
-		Error("unexpected invoked call_function()");
-		std::abort();
-	}
-	void deref_function(int32_t func_id) {
-		DORA_UNUSED_PARAM(func_id);
-		Error("unexpected invoked deref_function()");
-		std::abort();
-	}
+void call_function(int32_t func_id) {
+	DORA_UNUSED_PARAM(func_id);
+	Error("unexpected invoked call_function()");
+	std::abort();
+}
+void deref_function(int32_t func_id) {
+	DORA_UNUSED_PARAM(func_id);
+	Error("unexpected invoked deref_function()");
+	std::abort();
+}
 #else // !DORA_NO_STATIC_CALL_BACK
-	void call_function(int32_t func_id);
-	void deref_function(int32_t func_id);
+void call_function(int32_t func_id);
+void deref_function(int32_t func_id);
 #endif // !DORA_NO_STATIC_CALL_BACK
-	typedef void (*DoraCallFunction)(int32_t func_id);
-	static DoraCallFunction doraCallFunction = nullptr;
-	DORA_EXPORT void dora_register_call_function(DoraCallFunction callFunc) {
-		doraCallFunction = callFunc;
-	}
-	typedef void (*DoraDerefFunction)(int32_t func_id);
-	static DoraDerefFunction doraDerefFunction = nullptr;
-	DORA_EXPORT void dora_register_deref_function(DoraDerefFunction derefFunc) {
-		doraDerefFunction = derefFunc;
-	}
+typedef void (*DoraCallFunction)(int32_t func_id);
+static DoraCallFunction doraCallFunction = nullptr;
+DORA_EXPORT void dora_register_call_function(DoraCallFunction callFunc) {
+	doraCallFunction = callFunc;
+}
+typedef void (*DoraDerefFunction)(int32_t func_id);
+static DoraDerefFunction doraDerefFunction = nullptr;
+DORA_EXPORT void dora_register_deref_function(DoraDerefFunction derefFunc) {
+	doraDerefFunction = derefFunc;
+}
 } // extern "C"
 
 /* Vec2 */
@@ -489,13 +489,50 @@ struct WorkBook {
 	std::shared_ptr<xlsxtext::workbook> workbook;
 };
 
-static WorkBook content_wasm_load_excel(String filename) {
+static WorkBook Content_WasmLoadExcel(String filename) {
 	auto workbook = std::make_shared<xlsxtext::workbook>(SharedContent.load(filename));
 	WorkBook book;
 	if (workbook->read()) {
 		book.workbook = workbook;
 	}
 	return book;
+}
+
+void Content_SearchFilesAsync(String path, std::vector<std::string>&& exts, Dictionary* extensionLevels, std::vector<std::string>&& excludes, String pattern, bool useRegex, bool caseSensitive, bool includeContent, int contentWindow, std::function<bool(Dictionary* result)> callback) {
+	std::unordered_map<std::string, int> extLevels;
+	auto keys = extensionLevels->getKeys();
+	extLevels.reserve(keys.size());
+	for (const auto& key : keys) {
+		const auto& value = extensionLevels->get(key);
+		if (!value) continue;
+		if (auto intVal = value->asVal<int64_t>()) {
+			extLevels[key.toString()] = s_cast<int>(*intVal);
+		} else if (auto floatVal = value->asVal<double>()) {
+			extLevels[key.toString()] = s_cast<int>(*floatVal);
+		}
+	}
+	SharedContent.searchFilesAsync(
+		path,
+		std::move(exts),
+		std::move(extLevels),
+		std::move(excludes),
+		pattern,
+		useRegex,
+		caseSensitive,
+		includeContent,
+		contentWindow,
+		[callback](Content::SearchResult&& res) {
+			if (res.file.empty()) {
+				return callback(Dictionary::create());
+			}
+			auto result = Dictionary::create();
+			result->set("file"sv, Value::alloc(res.file));
+			result->set("pos"sv, Value::alloc(s_cast<int64_t>(res.pos)));
+			result->set("line"sv, Value::alloc(res.line));
+			result->set("column"sv, Value::alloc(res.column));
+			result->set("content"sv, Value::alloc(res.content));
+			return callback(result);
+		});
 }
 
 /* Rect */
@@ -1619,11 +1656,9 @@ DORA_EXPORT float math_tan(float v) { return std::tan(v); }
 #include "Dora/AlignNodeWasm.hpp"
 #include "Dora/ApplicationWasm.hpp"
 #include "Dora/ArrayWasm.hpp"
-#include "Dora/AudioWasm.hpp"
 #include "Dora/AudioBusWasm.hpp"
 #include "Dora/AudioSourceWasm.hpp"
-#include "Dora/VideoNodeWasm.hpp"
-#include "Dora/TIC80NodeWasm.hpp"
+#include "Dora/AudioWasm.hpp"
 #include "Dora/BodyDefWasm.hpp"
 #include "Dora/BodyWasm.hpp"
 #include "Dora/BufferWasm.hpp"
@@ -1634,6 +1669,7 @@ DORA_EXPORT float math_tan(float v) { return std::tan(v); }
 #include "Dora/CameraWasm.hpp"
 #include "Dora/ClipNodeWasm.hpp"
 #include "Dora/ContentWasm.hpp"
+#include "Dora/ControllerWasm.hpp"
 #include "Dora/DBParamsWasm.hpp"
 #include "Dora/DBQueryWasm.hpp"
 #include "Dora/DBRecordWasm.hpp"
@@ -1656,7 +1692,6 @@ DORA_EXPORT float math_tan(float v) { return std::tan(v); }
 #include "Dora/JointDefWasm.hpp"
 #include "Dora/JointWasm.hpp"
 #include "Dora/KeyboardWasm.hpp"
-#include "Dora/ControllerWasm.hpp"
 #include "Dora/LabelWasm.hpp"
 #include "Dora/LineWasm.hpp"
 #include "Dora/MLQLearnerWasm.hpp"
@@ -1694,11 +1729,13 @@ DORA_EXPORT float math_tan(float v) { return std::tan(v); }
 #include "Dora/SpineWasm.hpp"
 #include "Dora/SpriteEffectWasm.hpp"
 #include "Dora/SpriteWasm.hpp"
+#include "Dora/TIC80NodeWasm.hpp"
 #include "Dora/Texture2DWasm.hpp"
 #include "Dora/TileNodeWasm.hpp"
 #include "Dora/TouchWasm.hpp"
 #include "Dora/VGNodeWasm.hpp"
 #include "Dora/VertexColorWasm.hpp"
+#include "Dora/VideoNodeWasm.hpp"
 #include "Dora/ViewWasm.hpp"
 #include "Dora/WorkBookWasm.hpp"
 #include "Dora/WorkSheetWasm.hpp"
@@ -2236,11 +2273,12 @@ void WasmRuntime::buildWaAsync(String fullPath, const std::function<void(String)
 		std::string data(result);
 		WaFreeCString(result);
 		return Values::alloc(std::move(data));
-	}, [callback](Own<Values> values) {
-		std::string data;
-		values->get(data);
-		callback(data);
-	});
+	},
+		[callback](Own<Values> values) {
+			std::string data;
+			values->get(data);
+			callback(data);
+		});
 #endif // BX_PLATFORM_ANDROID
 #endif // !DORA_NO_WA
 }
@@ -2268,11 +2306,12 @@ void WasmRuntime::formatWaAsync(String fullPath, const std::function<void(String
 		std::string data(result);
 		WaFreeCString(result);
 		return Values::alloc(std::move(data));
-	}, [callback](Own<Values> values) {
-		std::string data;
-		values->get(data);
-		callback(data);
-	});
+	},
+		[callback](Own<Values> values) {
+			std::string data;
+			values->get(data);
+			callback(data);
+		});
 #endif // BX_PLATFORM_ANDROID
 #endif // !DORA_NO_WA
 }
