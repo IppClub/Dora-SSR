@@ -7,35 +7,149 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 import monaco, { monacoTypescript } from './monacoBase';
-import * as tstl from './3rdParty/tstl';
-import * as ts from 'typescript';
-import { createEmitOutputCollector } from './3rdParty/tstl/transpilation/output-collector';
+import type { CompilerHost, CompilerOptions, Diagnostic, Program } from 'typescript';
+import type { CompilerOptions as TstlCompilerOptions } from './3rdParty/tstl';
 import { SourceMapConsumer } from 'source-map';
 import Info from './Info';
 import * as Service from './Service';
 
-const scriptTarget = ts.ScriptTarget.ESNext;
-const moduleKind = ts.ModuleKind.ESNext;
+type TsModule = typeof import('typescript');
+type TstlModule = typeof import('./3rdParty/tstl');
+type OutputCollectorModule = typeof import('./3rdParty/tstl/transpilation/output-collector');
 
-const tstlOptions: tstl.CompilerOptions = {
-	strict: true,
-	jsx: ts.JsxEmit.React,
-	luaTarget: tstl.LuaTarget.Lua54,
-	luaLibImport: tstl.LuaLibImportKind.Require,
-	noHeader: true,
-	sourceMap: true,
-	noImplicitSelf: true,
-	moduleResolution: ts.ModuleResolutionKind.Classic,
-	target: scriptTarget,
-	module: moduleKind,
-};
+let tsPromise: Promise<TsModule> | null = null;
+let cachedTs: TsModule | null = null;
+let cachedTstlOptions: TstlCompilerOptions | null = null;
+let cachedDeclarationOptions: CompilerOptions | null = null;
+let tstlPromise: Promise<TstlModule> | null = null;
+let outputCollectorPromise: Promise<OutputCollectorModule> | null = null;
 
-function createCompilerHost(rootFileName: string, content: string): [ts.CompilerHost, Map<string, string>] {
+function getTypescriptUrl() {
+	let url = "/typescript.js";
+	try {
+		const custom = (globalThis as any).__TYPESCRIPT_CUSTOM_URL__;
+		if (typeof custom === "string" && custom.length > 0) {
+			url = custom;
+		}
+	} catch {
+		// ignore
+	}
+	return url;
+}
+
+async function loadTypescriptCompiler(): Promise<TsModule> {
+	if (cachedTs) return cachedTs;
+	const existing = (globalThis as any).ts;
+	if (existing) {
+		cachedTs = existing as TsModule;
+		return cachedTs;
+	}
+	if (!tsPromise) {
+		tsPromise = new Promise((resolve, reject) => {
+			const url = getTypescriptUrl();
+			if (typeof document === "undefined") {
+				const scope = globalThis as any;
+				if (typeof scope.importScripts === "function") {
+					try {
+						scope.importScripts(url);
+						const loaded = scope.ts as TsModule | undefined;
+						if (loaded) {
+							cachedTs = loaded;
+							resolve(cachedTs);
+							return;
+						}
+					} catch (err) {
+						reject(err);
+						return;
+					}
+				}
+				reject(new Error(`TypeScript compiler is not available and cannot load ${url}`));
+				return;
+			}
+			const script = document.createElement("script");
+			script.src = url;
+			script.async = true;
+			script.onload = () => {
+				const loaded = (globalThis as any).ts;
+				if (!loaded) {
+					reject(new Error(`TypeScript compiler loaded from ${url} but global "ts" is missing`));
+					return;
+				}
+				cachedTs = loaded as TsModule;
+				resolve(cachedTs);
+			};
+			script.onerror = () => {
+				reject(new Error(`Failed to load TypeScript compiler from ${url}`));
+			};
+			document.head.appendChild(script);
+		});
+	}
+	return tsPromise;
+}
+
+async function loadTstl(): Promise<TstlModule> {
+	if (!tstlPromise) {
+		tstlPromise = import('./3rdParty/tstl');
+	}
+	return tstlPromise;
+}
+
+async function loadOutputCollector(): Promise<OutputCollectorModule> {
+	if (!outputCollectorPromise) {
+		outputCollectorPromise = import('./3rdParty/tstl/transpilation/output-collector');
+	}
+	return outputCollectorPromise;
+}
+
+function getTstlOptions(ts: TsModule, tstl: TstlModule): TstlCompilerOptions {
+	if (!cachedTstlOptions) {
+		const scriptTarget = ts.ScriptTarget.ESNext;
+		const moduleKind = ts.ModuleKind.ESNext;
+		cachedTstlOptions = {
+			strict: true,
+			jsx: ts.JsxEmit.React,
+			luaTarget: tstl.LuaTarget.Lua54,
+			luaLibImport: tstl.LuaLibImportKind.Require,
+			noHeader: true,
+			sourceMap: true,
+			noImplicitSelf: true,
+			moduleResolution: ts.ModuleResolutionKind.Classic,
+			target: scriptTarget,
+			module: moduleKind,
+		};
+	}
+	return cachedTstlOptions;
+}
+
+function getDeclarationOptions(ts: TsModule): CompilerOptions {
+	if (!cachedDeclarationOptions) {
+		const scriptTarget = ts.ScriptTarget.ESNext;
+		const moduleKind = ts.ModuleKind.ESNext;
+		cachedDeclarationOptions = {
+			declaration: true,
+			emitDeclarationOnly: true,
+			strict: true,
+			jsx: ts.JsxEmit.React,
+			sourceMap: true,
+			moduleResolution: ts.ModuleResolutionKind.Classic,
+			target: scriptTarget,
+			module: moduleKind,
+		};
+	}
+	return cachedDeclarationOptions;
+}
+
+function createCompilerHost(
+	ts: TsModule,
+	rootFileName: string,
+	content: string
+): [CompilerHost, Map<string, string>] {
 	const currentDirectory = Info.path.dirname(rootFileName);
 	const writeFiles = new Map<string, string>();
 	const pathMap = new Map<string, monaco.Uri>();
 	const unexistMap = new Set<string>();
-	const compilerHost: ts.CompilerHost = {
+	const scriptTarget = ts.ScriptTarget.ESNext;
+	const compilerHost: CompilerHost = {
 		fileExists: fileName => {
 			if (fileName.search("node_modules") > 0) {
 				return false;
@@ -184,8 +298,13 @@ function createCompilerHost(rootFileName: string, content: string): [ts.Compiler
 	return [compilerHost, writeFiles];
 }
 
-function createTypescriptProgram(rootFileName: string, content: string): ts.Program {
-	const [compilerHost] = createCompilerHost(rootFileName, content);
+function createTypescriptProgram(
+	ts: TsModule,
+	tstlOptions: TstlCompilerOptions,
+	rootFileName: string,
+	content: string
+): Program {
+	const [compilerHost] = createCompilerHost(ts, rootFileName, content);
 	tstlOptions.baseUrl = Info.path.dirname(rootFileName);
 	return ts.createProgram([rootFileName], tstlOptions, compilerHost);
 }
@@ -198,8 +317,12 @@ export async function transpileTypescript(
 	fileName: string,
 	content: string
 ) {
-	const program = createTypescriptProgram(fileName, content);
+	const ts = await loadTypescriptCompiler();
+	const tstl = await loadTstl();
+	const tstlOptions = getTstlOptions(ts, tstl);
+	const program = createTypescriptProgram(ts, tstlOptions, fileName, content);
 	let diagnostics = ts.getPreEmitDiagnostics(program);
+	const { createEmitOutputCollector } = await loadOutputCollector();
 	const collector = createEmitOutputCollector();
 	const res = new tstl.Transpiler({
 		emitHost: {
@@ -207,10 +330,10 @@ export async function transpileTypescript(
 			fileExists: () => true,
 			getCurrentDirectory: () => Info.path.dirname(fileName),
 			readFile: (filename) => {
-				if (tstlOptions.luaLibImport !== tstl.LuaLibImportKind.Inline) return "";
-				const res = Service.readSync({path: filename});
-				if (res?.success) {
-					return res.content;
+					if (tstlOptions.luaLibImport !== tstl.LuaLibImportKind.Inline) return "";
+					const res = Service.readSync({path: filename});
+					if (res?.success) {
+						return res.content;
 				}
 				return "";
 			},
@@ -229,7 +352,7 @@ export async function transpileTypescript(
 			return true;
 		}
 	});
-	addDiagnosticToLog(fileName, otherFileDiagnostics);
+	await addDiagnosticToLog(fileName, otherFileDiagnostics);
 
 	const success = diagnostics.length === 0;
 	const file = collector.files.find(({ sourceFiles }) => sourceFiles.some(f => {
@@ -266,14 +389,15 @@ export async function transpileTypescript(
 
 export async function revalidateModel(model: monaco.editor.ITextModel) {
 	if (!model || model.isDisposed()) return;
+	const ts = await loadTypescriptCompiler();
 	const getWorker = await monacoTypescript.getTypeScriptWorker();
 	const worker = await getWorker(model.uri);
 	const diagnostics = (await Promise.all([
 		worker.getSyntacticDiagnostics(model.uri.toString()),
 		worker.getSemanticDiagnostics(model.uri.toString())
 	]))
-		.reduce((a: import('typescript').Diagnostic[], it) => a.concat(it), [])
-		.filter((d: import('typescript').Diagnostic) => d.code !== 2497 && d.code !== 2666);
+		.reduce((a: Diagnostic[], it) => a.concat(it), [])
+		.filter((d: Diagnostic) => d.code !== 2497 && d.code !== 2666);
 	const markers = diagnostics.map(d => {
 		const {start = 0, length = 0} = d;
 		const startPos = model.getPositionAt(start);
@@ -290,7 +414,8 @@ export async function revalidateModel(model: monaco.editor.ITextModel) {
 	monaco.editor.setModelMarkers(model, model.getLanguageId(), markers);
 }
 
-export function setModelMarkers(model: monaco.editor.ITextModel, diagnostics: readonly ts.Diagnostic[]) {
+export async function setModelMarkers(model: monaco.editor.ITextModel, diagnostics: readonly Diagnostic[]) {
+	const ts = await loadTypescriptCompiler();
 	const markers = diagnostics.filter(d => {
 		const fileName = d.file?.fileName ?? "";
 		if (!Info.path.isAbsolute(fileName)) {
@@ -320,7 +445,8 @@ export function setModelMarkers(model: monaco.editor.ITextModel, diagnostics: re
 	monaco.editor.setModelMarkers(model, 'tstl', markers);
 }
 
-export function getDiagnosticMessage(fileName: string, diagnostics: readonly ts.Diagnostic[]) {
+export async function getDiagnosticMessage(fileName: string, diagnostics: readonly Diagnostic[]) {
+	const ts = await loadTypescriptCompiler();
 	if (diagnostics.length === 0) return "";
 	return `Compiling error: ${fileName}\n` +
 		ts.formatDiagnostics(diagnostics, {
@@ -330,29 +456,19 @@ export function getDiagnosticMessage(fileName: string, diagnostics: readonly ts.
 		});
 }
 
-export function addDiagnosticToLog(fileName: string, diagnostics: readonly ts.Diagnostic[]) {
+export async function addDiagnosticToLog(fileName: string, diagnostics: readonly Diagnostic[]) {
 	if (diagnostics.length === 0) return;
-	let message = getDiagnosticMessage(fileName, diagnostics);
+	let message = await getDiagnosticMessage(fileName, diagnostics);
 	message = message.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\r?\n/g, "\\n");
 	Service.command({code: `Log "Error", "${message}"`, log: false});
 }
 
-const options: ts.CompilerOptions = {
-	declaration: true,
-	emitDeclarationOnly: true,
-	strict: true,
-	jsx: ts.JsxEmit.React,
-	sourceMap: true,
-	moduleResolution: ts.ModuleResolutionKind.Classic,
-	target: scriptTarget,
-	module: moduleKind,
-};
-
-export function getDeclarationFile(fileName: string, content: string) {
-	const [host, writeFiles] = createCompilerHost(fileName, content);
-	const program = ts.createProgram([fileName], options, host);
+export async function getDeclarationFile(fileName: string, content: string) {
+	const ts = await loadTypescriptCompiler();
+	const [host, writeFiles] = createCompilerHost(ts, fileName, content);
+	const program = ts.createProgram([fileName], getDeclarationOptions(ts), host);
 	const result = program.emit();
-	addDiagnosticToLog(fileName, result.diagnostics);
+	await addDiagnosticToLog(fileName, result.diagnostics);
 	const baseName = Info.path.basename(fileName, Info.path.extname(fileName));
 	for (const [outputFileName, outputContent] of writeFiles.entries()) {
 		const outputBaseName = Info.path.basename(outputFileName, '.d.ts');

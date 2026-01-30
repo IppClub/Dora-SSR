@@ -2,9 +2,9 @@ import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 
 // Register only the language contributions we need to keep the bundle smaller.
 import * as tsContribution from 'monaco-editor/esm/vs/language/typescript/monaco.contribution';
-import 'monaco-editor/esm/vs/basic-languages/xml/xml';
-import 'monaco-editor/esm/vs/basic-languages/markdown/markdown';
-import 'monaco-editor/esm/vs/basic-languages/ini/ini';
+import 'monaco-editor/esm/vs/basic-languages/xml/xml.contribution';
+import 'monaco-editor/esm/vs/basic-languages/markdown/markdown.contribution';
+import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution';
 import 'monaco-editor/esm/vs/basic-languages/typescript/typescript.contribution';
 
 // monaco-editor full builds expose monaco.languages.typescript; reattach the
@@ -24,10 +24,6 @@ if (!languages.typescript) {
     ScriptTarget: tsAny.ScriptTarget,
   };
 }
-
-// Ensure base language IDs exist for TypeScript/JavaScript features.
-monaco.languages.register({ id: 'typescript' });
-monaco.languages.register({ id: 'javascript' });
 
 export default monaco;
 export { monaco };
