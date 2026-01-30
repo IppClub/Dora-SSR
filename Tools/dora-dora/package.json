@@ -73,6 +73,7 @@
     "@types/react-dom": "^19.2.3",
     "@types/react-lazylog": "^4.5.4",
     "@types/react-syntax-highlighter": "^15.5.13",
+    "@types/node": "^22.13.0",
     "@vitejs/plugin-react": "^4.3.3",
     "code-inspector-plugin": "^0.20.7",
     "eslint": "^9.39.1",

@@ -20,6 +20,10 @@ export class TypedEmitter<Events extends Record<string, unknown[]>> {
     }
   }
 
+  removeListener<K extends keyof Events>(event: K, handler: Handler<Events[K]>): void {
+    this.off(event, handler);
+  }
+
   emit<K extends keyof Events>(event: K, ...args: Events[K]): void {
     const set = this.handlers.get(event);
     if (!set) {

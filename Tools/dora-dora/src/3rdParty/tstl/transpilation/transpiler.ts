@@ -135,7 +135,7 @@ export function getEmitPathRelativeToOutDir(fileName: string, program: ts.Progra
     }
 
     // If source is in a parent directory of source dir, move it into the source dir
-    emitPathSplits = emitPathSplits.filter(s => s !== "..");
+    emitPathSplits = emitPathSplits.filter((s: string) => s !== "..");
 
     // To avoid overwriting lua sources in node_modules, emit into lua_modules
     if (emitPathSplits[0] === "node_modules") {

@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 import React, { useEffect, useRef, useState } from 'react';
 import MonacoEditor from "@monaco-editor/react";
-import * as monaco from 'monaco-editor';
+import monaco from './monacoBase';
 import * as Blockly from 'blockly';
 import '@blockly/field-colour-hsv-sliders';
 import { luaGenerator } from 'blockly/lua';

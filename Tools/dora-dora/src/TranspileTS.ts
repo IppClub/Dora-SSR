@@ -6,7 +6,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-import * as monaco from 'monaco-editor';
+import monaco, { monacoTypescript } from './monacoBase';
 import * as tstl from './3rdParty/tstl';
 import * as ts from 'typescript';
 import { createEmitOutputCollector } from './3rdParty/tstl/transpilation/output-collector';
@@ -163,7 +163,7 @@ function createCompilerHost(rootFileName: string, content: string): [ts.Compiler
 					}
 				}
 			}
-			const lib = monaco.typescript.typescriptDefaults.getExtraLibs()[fileName];
+			const lib = monacoTypescript.typescriptDefaults.getExtraLibs()[fileName];
 			if (lib) {
 				return ts.createSourceFile(fileName, lib.content, scriptTarget, false);
 			}
@@ -266,12 +266,14 @@ export async function transpileTypescript(
 
 export async function revalidateModel(model: monaco.editor.ITextModel) {
 	if (!model || model.isDisposed()) return;
-	const getWorker = await monaco.typescript.getTypeScriptWorker();
+	const getWorker = await monacoTypescript.getTypeScriptWorker();
 	const worker = await getWorker(model.uri);
 	const diagnostics = (await Promise.all([
 		worker.getSyntacticDiagnostics(model.uri.toString()),
 		worker.getSemanticDiagnostics(model.uri.toString())
-	])).reduce((a, it) => a.concat(it)).filter(d => d.code !== 2497 && d.code !== 2666);
+	]))
+		.reduce((a: import('typescript').Diagnostic[], it) => a.concat(it), [])
+		.filter((d: import('typescript').Diagnostic) => d.code !== 2497 && d.code !== 2666);
 	const markers = diagnostics.map(d => {
 		const {start = 0, length = 0} = d;
 		const startPos = model.getPositionAt(start);
