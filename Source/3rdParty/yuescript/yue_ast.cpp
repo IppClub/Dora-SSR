@@ -860,7 +860,7 @@ std::string CompForEach_t::to_string(void* ud) const {
 std::string CompForNum_t::to_string(void* ud) const {
 	auto line = "for "s + varName->to_string(ud) + " = "s + startValue->to_string(ud) + ", "s + stopValue->to_string(ud);
 	if (stepValue) {
-		line += stepValue->to_string(ud);
+		line += ", "s + stepValue->to_string(ud);
 	}
 	return line;
 }
