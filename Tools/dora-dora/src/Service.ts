@@ -16,6 +16,10 @@ type ServiceEvents = {
 	[WsEvent.Profiler]: [ProfilerInfo];
 	[WsEvent.UpdateTSCode]: [string, string];
 	[WsEvent.Download]: [string, WsDownloadStatus, number];
+	[WsOpenEvent]: [];
+	[WsCloseEvent]: [];
+	SearchFilesResult: [SearchFilesResultMessage];
+	SearchFilesDone: [SearchFilesDoneMessage];
 };
 
 const eventEmitter = new TypedEmitter<ServiceEvents>();
@@ -237,7 +241,7 @@ export const addSearchFilesResultListener = (listener: (message: SearchFilesResu
 };
 
 export const removeSearchFilesResultListener = (listener: (message: SearchFilesResultMessage) => void) => {
-	eventEmitter.removeListener("SearchFilesResult", listener);
+	eventEmitter.off("SearchFilesResult", listener);
 };
 
 export const addSearchFilesDoneListener = (listener: (message: SearchFilesDoneMessage) => void) => {
@@ -245,7 +249,7 @@ export const addSearchFilesDoneListener = (listener: (message: SearchFilesDoneMe
 };
 
 export const removeSearchFilesDoneListener = (listener: (message: SearchFilesDoneMessage) => void) => {
-	eventEmitter.removeListener("SearchFilesDone", listener);
+	eventEmitter.off("SearchFilesDone", listener);
 };
 
 export function addr(url: string) {

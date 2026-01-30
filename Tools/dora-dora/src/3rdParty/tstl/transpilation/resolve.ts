@@ -361,7 +361,7 @@ function isNodeModulesFile(filePath: string): boolean {
     return path
         .normalize(filePath)
         .split(path.sep)
-        .some(p => p === "node_modules");
+        .some((p: string) => p === "node_modules");
 }
 
 function isProjectFile(file: string, program: ts.Program): boolean {
@@ -383,7 +383,7 @@ function fallbackResolve(required: LuaRequire, sourceRootDir: string, fileDir: s
         path
             .normalize(path.join(path.relative(sourceRootDir, fileDir), required.requirePath))
             .split(path.sep)
-            .filter(s => s !== "." && s !== "..")
+            .filter((s: string) => s !== "." && s !== "..")
             .join(path.sep)
     );
 }

@@ -6,7 +6,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-import * as monaco from 'monaco-editor';
+import monaco, { monacoTypescript } from './monacoBase';
 import * as yuescript from './languages/yuescript';
 import * as teal from './languages/teal';
 import * as lua from './languages/lua';
@@ -24,14 +24,14 @@ Service.addUpdateTSCodeListener((file, code) => {
 	}
 });
 
-const options = monaco.typescript.typescriptDefaults.getCompilerOptions();
+const options = monacoTypescript.typescriptDefaults.getCompilerOptions();
 options.noLib = true;
 options.strict = true;
-options.jsx = monaco.typescript.JsxEmit.React;
-options.target = monaco.typescript.ScriptTarget.ESNext;
-options.module = monaco.typescript.ModuleKind.ESNext;
-options.moduleResolution = monaco.typescript.ModuleResolutionKind.Classic;
-monaco.typescript.typescriptDefaults.setCompilerOptions(options);
+options.jsx = monacoTypescript.JsxEmit.React;
+options.target = monacoTypescript.ScriptTarget.ESNext;
+options.module = monacoTypescript.ModuleKind.ESNext;
+options.moduleResolution = monacoTypescript.ModuleResolutionKind.Classic;
+monacoTypescript.typescriptDefaults.setCompilerOptions(options);
 
 monaco.editor.defineTheme("dora-dark", {
 	base: "vs-dark",
@@ -569,6 +569,7 @@ monaco.languages.registerHoverProvider("tl", hoverProvider("tl"));
 monaco.languages.registerSignatureHelpProvider("tl", signatureHelpProvider(["(", ","], "tl"));
 monaco.languages.registerCodeActionProvider("tl", codeActionProvider)
 
+monaco.languages.register({ id: 'lua' });
 const luaComplete = completionItemProvider([".", ":", "\"", "'", "/"], "lua");
 monaco.languages.setLanguageConfiguration("lua", lua.config);
 monaco.languages.setMonarchTokensProvider("lua", lua.language);

@@ -197,6 +197,24 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: 'build',
       sourcemap: env.GENERATE_SOURCEMAP !== 'false',
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules/monaco-editor')) {
+              return 'monaco';
+            }
+            if (id.includes('node_modules/@mui/') || id.includes('node_modules/@emotion/')) {
+              return 'mui';
+            }
+            if (id.includes('node_modules/antd')) {
+              return 'antd';
+            }
+            if (id.includes('node_modules/react-syntax-highlighter')) {
+              return 'syntax';
+            }
+          },
+        },
+      },
     },
     plugins: [
       react(),
@@ -206,6 +224,7 @@ export default defineConfig(({ mode }) => {
       }),
       monacoEditorPlugin({
         languages: ['xml', 'markdown', 'ini', 'typescript'],
+        languageWorkers: ['editorWorkerService', 'typescript'],
       }),
       monacoLocalePlugin({
         languages: ['en', 'zh-cn'],

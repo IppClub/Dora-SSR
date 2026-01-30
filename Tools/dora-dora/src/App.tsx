@@ -25,7 +25,7 @@ import NewFileDialog, { DoraFileType } from './NewFileDialog';
 import logo from './logo.svg';
 import DoraUpload from './Upload';
 import { TransitionGroup } from 'react-transition-group';
-import * as monaco from 'monaco-editor';
+import monaco, { monacoTypescript } from './monacoBase';
 import * as Service from './Service';
 import { AppBar, DrawerHeader, Entry, Main, PlayControl, PlayControlMode, StyledStack, Color } from './Frame';
 import { MacScrollbar } from 'mac-scrollbar';
@@ -34,10 +34,9 @@ import FileFilter, { FilterOption } from './FileFilter';
 import FileSearchPanel from './FileSearch';
 import { useTranslation } from 'react-i18next';
 import { Image } from 'antd';
-import YarnEditor, { YarnEditorData } from './YarnEditor';
+import type { YarnEditorData } from './YarnEditor';
 import * as Yarn from './YarnConvert';
-import CodeWire, { CodeWireData } from './CodeWire';
-import TIC80Editor from './TIC80Editor';
+import type { CodeWireData } from './CodeWire';
 import { AutoTypings } from './3rdParty/monaco-editor-auto-typings';
 import { TbSwitchVertical } from "react-icons/tb";
 import { BsSearch } from 'react-icons/bs';
@@ -54,6 +53,9 @@ const SpinePlayer = React.lazy(() => import('./SpinePlayer'));
 const Markdown = React.lazy(() => import('./Markdown'));
 const LogView = React.lazy(() => import('./LogView'));
 const Blockly = React.lazy(() => import('./Blockly'));
+const YarnEditor = React.lazy(() => import('./YarnEditor'));
+const CodeWire = React.lazy(() => import('./CodeWire'));
+const TIC80Editor = React.lazy(() => import('./TIC80Editor'));
 
 const { path } = Info;
 
@@ -428,7 +430,7 @@ export default function PersistentDrawerLeft() {
 			setDisconnected(true);
 		});
 		Service.openWebSocket();
-		monaco.typescript.typescriptDefaults.setExtraLibs([]);
+		monacoTypescript.typescriptDefaults.setExtraLibs([]);
 		Promise.all([
 			Service.read({path: "es6-subset.d.ts"}),
 			Service.read({path: "lua.d.ts"}),
@@ -436,13 +438,13 @@ export default function PersistentDrawerLeft() {
 			loadAssets(),
 		]).then(([es6, lua, dora, res]) => {
 			if (es6.success) {
-				monaco.typescript.typescriptDefaults.addExtraLib(es6.content, "es6-subset.d.ts");
+				monacoTypescript.typescriptDefaults.addExtraLib(es6.content, "es6-subset.d.ts");
 			}
 			if (lua.success) {
-				monaco.typescript.typescriptDefaults.addExtraLib(lua.content, "lua.d.ts");
+				monacoTypescript.typescriptDefaults.addExtraLib(lua.content, "lua.d.ts");
 			}
 			if (dora.success) {
-				monaco.typescript.typescriptDefaults.addExtraLib(dora.content, "Dora.d.ts");
+				monacoTypescript.typescriptDefaults.addExtraLib(dora.content, "Dora.d.ts");
 			}
 			if (res !== null) {
 				setExpandedKeys([res.key]);
@@ -795,6 +797,7 @@ export default function PersistentDrawerLeft() {
 			}
 			const projFile = model.uri.fsPath;
 			const autoTyping = await AutoTypings.create(editor, {
+				monaco: monaco as any,
 				debounceDuration: 2000,
 				sourceCache: {
 					isFileAvailable: async (uri: string) => {
@@ -808,7 +811,7 @@ export default function PersistentDrawerLeft() {
 						} else if (baseNameLower.startsWith('lua.')) {
 							return false;
 						}
-						const lib = monaco.typescript.typescriptDefaults.getExtraLibs()[file];
+						const lib = monacoTypescript.typescriptDefaults.getExtraLibs()[file];
 						if (lib !== undefined) return true;
 						const model = monaco.editor.getModel(monaco.Uri.file(file));
 						if (model !== null) return true;
@@ -817,7 +820,7 @@ export default function PersistentDrawerLeft() {
 					},
 					getFile: async (uri: string) => {
 						const file = uri.startsWith("file:") ? monaco.Uri.parse(uri).fsPath : uri;
-						const lib = monaco.typescript.typescriptDefaults.getExtraLibs()[file];
+						const lib = monacoTypescript.typescriptDefaults.getExtraLibs()[file];
 						if (lib !== undefined) return lib.content;
 						const model = monaco.editor.getModel(monaco.Uri.file(file));
 						if (model !== null) return model.getValue();
@@ -3237,21 +3240,23 @@ export default function PersistentDrawerLeft() {
 							<DrawerHeader/>
 							{yarn && !file.yarnTextEditing ?
 								<div style={{display: 'flex', position: 'relative'}}>
-									<YarnEditor
-										title={file.key}
-										defaultValue={file.content}
-										width={editorWidth}
-										height={editorHeight}
-										onLoad={(data) => {
-											file.yarnData = data;
-										}}
-										onChange={() => {
-											setModified({key: file.key, content: ""});
-										}}
-										onKeydown={(e) => {
-											setKeyEvent(e);
-										}}
-									/>
+									<Suspense fallback={<div/>}>
+										<YarnEditor
+											title={file.key}
+											defaultValue={file.content}
+											width={editorWidth}
+											height={editorHeight}
+											onLoad={(data) => {
+												file.yarnData = data;
+											}}
+											onChange={() => {
+												setModified({key: file.key, content: ""});
+											}}
+											onKeydown={(e) => {
+												setKeyEvent(e);
+											}}
+										/>
+									</Suspense>
 									<div hidden={readOnly} style={{
 										position: 'absolute',
 										left: '20px',
@@ -3297,22 +3302,24 @@ export default function PersistentDrawerLeft() {
 								</div> : null
 							}
 							{visualScript ?
-								<CodeWire
-									key={file.key}
-									title={file.key}
-									defaultValue={file.content}
-									width={editorWidth}
-									height={editorHeight}
-									onLoad={(data) => {
-										file.codeWireData = data;
-									}}
-									onChange={() => {
-										setModified({key: file.key, content: ""});
-									}}
-									onKeydown={(e) => {
-										setKeyEvent(e);
-									}}
-								/> : null
+								<Suspense fallback={<div/>}>
+									<CodeWire
+										key={file.key}
+										title={file.key}
+										defaultValue={file.content}
+										width={editorWidth}
+										height={editorHeight}
+										onLoad={(data) => {
+											file.codeWireData = data;
+										}}
+										onChange={() => {
+											setModified({key: file.key, content: ""});
+										}}
+										onKeydown={(e) => {
+											setKeyEvent(e);
+										}}
+									/>
+								</Suspense> : null
 							}
 							{blockly ?
 								<Blockly
@@ -3338,18 +3345,23 @@ export default function PersistentDrawerLeft() {
 							}
 							{tic80 ?
 								(() => {
-									return <TIC80Editor
-									title={file.key}
-									filePath={file.key}
-									resPath={path.relative(parentPath, file.key)}
-									defaultValue={file.content}
-									width={editorWidth}
-									height={editorHeight}
-									onKeydown={(e) => {
-										setKeyEvent(e);
-									}}
-									addAlert={addAlert}
-								/> })() : null
+									return (
+										<Suspense fallback={<div/>}>
+											<TIC80Editor
+												title={file.key}
+												filePath={file.key}
+												resPath={path.relative(parentPath, file.key)}
+												defaultValue={file.content}
+												width={editorWidth}
+												height={editorHeight}
+												onKeydown={(e) => {
+													setKeyEvent(e);
+												}}
+												addAlert={addAlert}
+											/>
+										</Suspense>
+									);
+								})() : null
 							}
 							{markdown ?
 								<div style={{display: 'flex', position: 'relative'}}>
