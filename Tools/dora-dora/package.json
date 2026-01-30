@@ -45,7 +45,7 @@
   "scripts": {
     "dev": "vite",
     "start": "vite",
-    "build": "vite build && node scripts/minify-typescript.js",
+    "build": "NODE_OPTIONS=--max-old-space-size=8192 vite build && node scripts/minify-typescript.js",
     "preview": "vite preview",
     "postinstall": "node scripts/copy-typescript.js"
   },
