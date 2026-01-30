@@ -26,12 +26,10 @@ jobs:
           xcodebuild ARCHS=x86_64 ONLY_ACTIVE_ARCH=NO -project ../../Projects/macOS/Dora.xcodeproj -target Dora -configuration Debug
       - name: Pack
         if: startsWith(github.ref, 'refs/tags/')
-        env:
-          NODE_OPTIONS: --max-old-space-size=8192
         run: |
           rm -rf Assets/www
           cd Tools/dora-dora/3rdParty/YarnEditor && unset NODE_OPTIONS && yarn && yarn build-linux && rm -rf ../../public/yarn-editor && mv dist ../../public/yarn-editor && cd ../../../..
-          cd Tools/dora-dora && yarn && yarn build && cd ../.. && mv Tools/dora-dora/build Assets/www
+          cd Tools/dora-dora && yarn && yarn build-mac && cd ../.. && mv Tools/dora-dora/build Assets/www
           cd Assets/www && zip -vr ../../web-ide-files.zip . && cd ../..
           cd $GITHUB_WORKSPACE
           cp Tools/dora-wa/wa.mod Assets/dora-wa

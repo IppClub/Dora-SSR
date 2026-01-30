@@ -45,7 +45,8 @@
   "scripts": {
     "dev": "vite",
     "start": "vite",
-    "build": "vite build && node scripts/minify-typescript.js",
+    "build": "vite build && node scripts/minify-javascript-codes.js",
+    "build-mac": "NODE_OPTIONS=\"--max-old-space-size=8192\" vite build && node scripts/minify-javascript-codes.js",
     "preview": "vite preview",
     "postinstall": "node scripts/copy-typescript.js"
   },
@@ -61,7 +62,7 @@
       "last 1 safari version"
     ]
   },
-  
+
   "devDependencies": {
     "@babel/core": "^7.23.3",
     "@babel/plugin-proposal-private-property-in-object": "^7.21.0",
