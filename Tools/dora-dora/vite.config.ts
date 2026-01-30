@@ -223,7 +223,6 @@ export default defineConfig(({ mode }) => {
         editor: 'code',
       }),
       monacoEditorPlugin({
-        languages: ['xml', 'markdown', 'ini', 'typescript'],
         languageWorkers: ['editorWorkerService', 'typescript'],
       }),
       monacoLocalePlugin({
