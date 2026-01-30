@@ -78,7 +78,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.32.6"sv;
+const std::string_view version = "0.32.7"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -442,6 +442,7 @@ private:
 		std::string nl;
 		std::unordered_set<std::string_view> globals;
 		str_list globalList;
+		ast_node* importContent = nullptr;
 	};
 	struct Scope {
 		GlobalMode mode = GlobalMode::None;
@@ -5369,6 +5370,7 @@ private:
 								_importedGlobal->indent = indent();
 								_importedGlobal->nl = nl(stmt);
 								_importedGlobal->globalCodeLine = &temp.emplace_back();
+								_importedGlobal->importContent = importNode->content.get();
 							}
 						}
 					} else {
@@ -5417,6 +5419,13 @@ private:
 				auto attrib = target >= 504 ? " <const>"s : Empty;
 				str_list globalCodes;
 				for (const auto& global : importedGlobal->globalList) {
+					if (_config.lintGlobalVariable) {
+						auto item = importedGlobal->importContent;
+						auto key = global + ':' + std::to_string(item->m_begin.m_line) + ':' + std::to_string(item->m_begin.m_col);
+						if (_globals.find(key) == _globals.end()) {
+							_globals[key] = {global, item->m_begin.m_line, item->m_begin.m_col, AccessType::Read, false};
+						}
+					}
 					globalCodes.emplace_back(importedGlobal->indent + "local "s + global + attrib + " = "s + global + importedGlobal->nl);
 				}
 				*importedGlobal->globalCodeLine = join(globalCodes);
