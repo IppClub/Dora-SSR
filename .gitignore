@@ -68,6 +68,7 @@ imgui.ini
 # Ignore dev files
 Assets/www/
 Assets/dora-wa/
+Tools/dora-dora/public/typescript.js
 
 # Ignore Linux lib files
 Projects/Linux/3rdParty/

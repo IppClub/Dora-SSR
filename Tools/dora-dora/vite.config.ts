@@ -244,10 +244,11 @@ export default defineConfig(({ mode }) => {
         { find: 'path', replacement: path.join(rootDir, 'src/3rdParty/Path') },
         { find: 'fs', replacement: emptyModule },
         { find: 'perf_hooks', replacement: emptyModule },
+        { find: 'typescript', replacement: path.join(rootDir, 'src/shims/typescript.ts') },
       ],
     },
     optimizeDeps: {
-      exclude: ['monaco-editor'],
+      exclude: ['monaco-editor', 'typescript'],
     },
     define: {
       'process.env.NODE_ENV': JSON.stringify(mode),

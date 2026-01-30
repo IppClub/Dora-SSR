@@ -1261,8 +1261,9 @@ export default function PersistentDrawerLeft() {
 				if (file.contentModified !== null && (ext === '.ts' || ext === '.tsx') && !file.key.toLocaleLowerCase().endsWith(".d.ts")) {
 					const {key, contentModified, editor} = file;
 					const model = editor?.getModel();
-					import('./TranspileTS').then(({transpileTypescript, setModelMarkers}) => {
-						transpileTypescript(key, contentModified).then(res => {
+					import('./TranspileTS').then(async ({transpileTypescript, setModelMarkers}) => {
+						try {
+							const res = await transpileTypescript(key, contentModified);
 							const {luaCode, success, diagnostics, extraError} = res;
 							if (!success) {
 								if (extraError) {
@@ -1271,7 +1272,7 @@ export default function PersistentDrawerLeft() {
 								preview = false;
 							}
 							if (model) {
-								setModelMarkers(model, diagnostics);
+								await setModelMarkers(model, diagnostics);
 							}
 							if (luaCode !== undefined) {
 								const extname = path.extname(file.key);
@@ -1297,10 +1298,10 @@ export default function PersistentDrawerLeft() {
 									reject("failed to save file");
 								});
 							}
-						}).catch(() => {
+						} catch {
 							addAlert(t("alert.saveCurrent"), "error");
 							reject("failed to save file");
-						});
+						}
 					});
 				} else {
 					saveFile();
@@ -1601,8 +1602,8 @@ export default function PersistentDrawerLeft() {
 				const {key} = data;
 				Service.read({path: key}).then((res) => {
 					if (res.success && res.content !== undefined) {
-						import('./TranspileTS').then(({getDeclarationFile}) => {
-							const declaration = getDeclarationFile(key, res.content);
+						import('./TranspileTS').then(async ({getDeclarationFile}) => {
+							const declaration = await getDeclarationFile(key, res.content);
 							if (declaration !== null) {
 								const uri = monaco.Uri.file(declaration.fileName);
 								const model = monaco.editor.getModel(uri);
@@ -1761,7 +1762,7 @@ export default function PersistentDrawerLeft() {
 								const {transpileTypescript, addDiagnosticToLog} = await import('./TranspileTS');
 								const {luaCode, diagnostics} = await transpileTypescript(key, res.content);
 								if (diagnostics.length > 0) {
-									addDiagnosticToLog(key, diagnostics);
+									await addDiagnosticToLog(key, diagnostics);
 									if (!preferLog) {
 										addAlert(t("alert.failedCompile", {title}), "warning");
 									}
@@ -3197,7 +3198,7 @@ export default function PersistentDrawerLeft() {
 				<>{
 					files.map((file, index) => {
 						const ext = file.folder ? "" : path.extname(file.title);
-						let language: "lua" | "tl" | "yue" | "typescript" | "xml" | "markdown" | "wa" | "yarn" | "txt" | null = null;
+						let language: "lua" | "tl" | "yue" | "typescript" | "xml" | "markdown" | "wa" | "yarn" | "ini" | "txt" | null = null;
 						let image = false;
 						let spine = false;
 						let yarn = false;
@@ -3212,6 +3213,7 @@ export default function PersistentDrawerLeft() {
 							case ".xml": language = "xml"; break;
 							case ".md": language = "markdown"; break;
 							case ".wa": language = "wa"; break;
+							case ".mod": language = "ini"; break;
 							case ".jpg": image = true; break;
 							case ".png": image = true; break;
 							case ".skel": spine = true; break;
