@@ -20,9 +20,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. */
 
-module.exports = lua
-lua.displayName = 'lua'
-lua.aliases = []
 function lua(Prism) {
 	Prism.languages.lua = {
 		comment: /^#!.+|--(?:\[(=*)\[[\s\S]*?\]\1\]|.*)/m,
@@ -49,3 +46,8 @@ function lua(Prism) {
 		punctuation: /[[\](){},;]|\.+|:+/
 	}
 }
+
+lua.displayName = 'lua';
+lua.aliases = [];
+
+export default lua;

@@ -6,12 +6,19 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-import EventEmitter from "events";
 import type { TreeDataType } from "./FileTree";
 import { ProfilerInfo } from "./ProfilerInfo";
+import { TypedEmitter } from "./utils/typedEmitter";
 
 let webSocket: WebSocket;
-const eventEmitter = new EventEmitter();
+type ServiceEvents = {
+	[WsEvent.Log]: [string, string];
+	[WsEvent.Profiler]: [ProfilerInfo];
+	[WsEvent.UpdateTSCode]: [string, string];
+	[WsEvent.Download]: [string, WsDownloadStatus, number];
+};
+
+const eventEmitter = new TypedEmitter<ServiceEvents>();
 
 function wsUrl() {
 	let url: string;
@@ -55,7 +62,7 @@ export const addLogListener = (listener: (newItem: string, allText: string) => v
 };
 
 export const removeLogListener = (listener: (newItem: string, allText: string) => void) => {
-	eventEmitter.removeListener(WsEvent.Log, listener);
+	eventEmitter.off(WsEvent.Log, listener);
 };
 
 export const addProfilerListener = (listener: (info: ProfilerInfo) => void) => {
@@ -63,7 +70,7 @@ export const addProfilerListener = (listener: (info: ProfilerInfo) => void) => {
 };
 
 export const removeProfilerListener = (listener: (info: ProfilerInfo) => void) => {
-	eventEmitter.removeListener(WsEvent.Profiler, listener);
+	eventEmitter.off(WsEvent.Profiler, listener);
 };
 
 export const addUpdateTSCodeListener = (listener: (file: string, code: string) => void) => {
@@ -77,7 +84,7 @@ export const addDownloadListener = (listener: (url: string, status: WsDownloadSt
 };
 
 export const removeDownloadListener = (listener: (url: string, status: WsDownloadStatus, progress: number) => void) => {
-	eventEmitter.removeListener(WsEvent.Download, listener);
+	eventEmitter.off(WsEvent.Download, listener);
 };
 
 export const addWSOpenListener = (listener: () => void) => {

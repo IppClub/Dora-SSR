@@ -20,9 +20,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. */
 
-module.exports = teal
-teal.displayName = 'teal'
-teal.aliases = ['tl']
 function teal(Prism) {
 	Prism.languages.teal = {
 		comment: /^#!.+|--(?:\[(=*)\[[\s\S]*?\]\1\]|.*)/m,
@@ -50,3 +47,8 @@ function teal(Prism) {
 	}
 	Prism.languages.tl = Prism.languages.teal
 }
+
+teal.displayName = 'teal';
+teal.aliases = ['tl'];
+
+export default teal;
