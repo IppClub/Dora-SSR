@@ -15,7 +15,7 @@
  *   '+'        Plus, match one or more (greedy)
  *   '?'        Question, match zero or one (non-greedy)
  *   '[abc]'    Character class, match if one of {'a', 'b', 'c'}
- *   '[^abc]'   Inverted class, match if NOT one of {'a', 'b', 'c'} -- NOTE: feature is currently broken!
+ *   '[^abc]'   Inverted class, match if NOT one of {'a', 'b', 'c'}
  *   '[a-zA-Z]' Character ranges, the character set of the ranges { a-z | A-Z }
  *   '\s'       Whitespace, \t \f \r \n \v and spaces
  *   '\S'       Non-whitespace
@@ -63,6 +63,7 @@ int re_match(const char* pattern, const char* text, int* matchlength);
 #ifdef TINY_REGEX_IMPLEMENTATION
 
 #include <ctype.h>
+#include <stdint.h>
 #include <stdio.h>
 
 #if defined(__cplusplus) && __cplusplus >= 201103L
@@ -84,8 +85,8 @@ typedef struct regex_t
   unsigned char  type;   /* CHA, STAR, etc.                      */
   union
   {
-    unsigned char  ch;   /*      the character itself             */
-    unsigned char* ccl;  /*  OR  a pointer to characters in class */
+    uint32_t  ch;        /*      the character (Unicode codepoint) */
+    uint32_t* ccl;       /*  OR  a pointer to characters in class */
   } u;
 } regex_t;
 
@@ -93,17 +94,20 @@ typedef struct regex_t
 
 /* Private function declarations: */
 static int matchpattern(regex_t* pattern, const char* text, int* matchlength);
-static int matchcharclass(char c, const char* str);
+static int matchcharclass(uint32_t c, const uint32_t* str);
 static int matchstar(regex_t p, regex_t* pattern, const char* text, int* matchlength);
 static int matchplus(regex_t p, regex_t* pattern, const char* text, int* matchlength);
-static int matchone(regex_t p, char c);
-static int matchdigit(char c);
-static int matchalpha(char c);
-static int matchwhitespace(char c);
-static int matchmetachar(char c, const char* str);
-static int matchrange(char c, const char* str);
-static int matchdot(char c);
-static int ismetachar(char c);
+static int matchone(regex_t p, uint32_t c);
+static int matchdigit(uint32_t c);
+static int matchalpha(uint32_t c);
+static int matchwhitespace(uint32_t c);
+static int matchmetachar(uint32_t c, const uint32_t* str);
+static int matchrange(uint32_t c, const uint32_t* str);
+static int matchdot(uint32_t c);
+static int ismetachar(uint32_t c);
+static int utf8_decode(const char* s, uint32_t* out);
+static const char* utf8_prev(const char* start, const char* cur);
+static int utf8_encode(uint32_t cp, char out[5]);
 
 
 
@@ -124,12 +128,10 @@ int re_matchp(re_t pattern, const char* text, int* matchlength)
     }
     else
     {
-      int idx = -1;
+      int idx = 0;
 
       do
       {
-        idx += 1;
-
         if (matchpattern(pattern, text, matchlength))
         {
           if (text[0] == '\0')
@@ -137,8 +139,18 @@ int re_matchp(re_t pattern, const char* text, int* matchlength)
 
           return idx;
         }
+        if (text[0] == '\0')
+        {
+          break;
+        }
+        {
+          uint32_t cp = 0;
+          int bytes = utf8_decode(text, &cp);
+          text += bytes;
+          idx += bytes;
+        }
       }
-      while (*text++ != '\0');
+      while (text[0] != '\0');
     }
   }
   return -1;
@@ -150,7 +162,7 @@ re_t re_compile(const char* pattern)
      MAX_REGEXP_OBJECTS is the max number of symbols in the expression.
      MAX_CHAR_CLASS_LEN determines the size of buffer for chars in all char-classes in the expression. */
   static TINY_REGEX_THREAD_LOCAL regex_t re_compiled[MAX_REGEXP_OBJECTS];
-  static TINY_REGEX_THREAD_LOCAL unsigned char ccl_buf[MAX_CHAR_CLASS_LEN];
+  static TINY_REGEX_THREAD_LOCAL uint32_t ccl_buf[MAX_CHAR_CLASS_LEN];
   int ccl_bufidx = 1;
 
   char c;     /* current char in pattern   */
@@ -193,8 +205,11 @@ re_t re_compile(const char* pattern)
             /* Escaped character, e.g. '.' or '$' */
             default:
             {
+              uint32_t cp = 0;
+              int bytes = utf8_decode(&pattern[i], &cp);
               re_compiled[j].type = CHA;
-              re_compiled[j].u.ch = pattern[i];
+              re_compiled[j].u.ch = cp;
+              i += (bytes - 1);
             } break;
           }
         }
@@ -230,12 +245,12 @@ re_t re_compile(const char* pattern)
         }
 
         /* Copy characters inside [..] to buffer */
-        while (    (pattern[++i] != ']')
-                && (pattern[i]   != '\0')) /* Missing ] */
+        i += 1;
+        while ((pattern[i] != ']') && (pattern[i] != '\0')) /* Missing ] */
         {
           if (pattern[i] == '\\')
           {
-            if (ccl_bufidx >= MAX_CHAR_CLASS_LEN - 1)
+            if (ccl_bufidx >= MAX_CHAR_CLASS_LEN - 2)
             {
               //fputs("exceeded internal buffer!\n", stderr);
               return 0;
@@ -244,14 +259,27 @@ re_t re_compile(const char* pattern)
             {
               return 0;
             }
-            ccl_buf[ccl_bufidx++] = pattern[i++];
+            ccl_buf[ccl_bufidx++] = '\\';
+            i += 1;
+            {
+              uint32_t cp = 0;
+              int bytes = utf8_decode(&pattern[i], &cp);
+              ccl_buf[ccl_bufidx++] = cp;
+              i += bytes;
+            }
+            continue;
           }
-          else if (ccl_bufidx >= MAX_CHAR_CLASS_LEN)
+          if (ccl_bufidx >= MAX_CHAR_CLASS_LEN - 1)
           {
               //fputs("exceeded internal buffer!\n", stderr);
               return 0;
           }
-          ccl_buf[ccl_bufidx++] = pattern[i];
+          {
+            uint32_t cp = 0;
+            int bytes = utf8_decode(&pattern[i], &cp);
+            ccl_buf[ccl_bufidx++] = cp;
+            i += bytes;
+          }
         }
         if (ccl_bufidx >= MAX_CHAR_CLASS_LEN)
         {
@@ -267,8 +295,11 @@ re_t re_compile(const char* pattern)
       /* Other characters: */
       default:
       {
+        uint32_t cp = 0;
+        int bytes = utf8_decode(&pattern[i], &cp);
         re_compiled[j].type = CHA;
-        re_compiled[j].u.ch = c;
+        re_compiled[j].u.ch = cp;
+        i += (bytes - 1);
       } break;
     }
     /* no buffer-out-of-bounds access on invalid patterns - see https://github.com/kokke/tiny-regex-c/commit/1a279e04014b70b0695fba559a7c05d55e6ee90b */
@@ -292,7 +323,7 @@ void re_print(regex_t* pattern)
 
   int i;
   int j;
-  char c;
+  uint32_t c;
   for (i = 0; i < MAX_REGEXP_OBJECTS; ++i)
   {
     if (pattern[i].type == UNUSED)
@@ -307,17 +338,33 @@ void re_print(regex_t* pattern)
       for (j = 0; j < MAX_CHAR_CLASS_LEN; ++j)
       {
         c = pattern[i].u.ccl[j];
-        if ((c == '\0') || (c == ']'))
+        if ((c == 0) || (c == ']'))
         {
           break;
         }
-        printf("%c", c);
+        {
+          char out[5] = {0,0,0,0,0};
+          int len = utf8_encode(c, out);
+          if (len > 0)
+          {
+            fwrite(out, 1, (size_t)len, stdout);
+          }
+        }
       }
       printf("]");
     }
     else if (pattern[i].type == CHA)
     {
-      printf(" '%c'", pattern[i].u.ch);
+      char out[5] = {0,0,0,0,0};
+      int len = utf8_encode(pattern[i].u.ch, out);
+      if (len > 0)
+      {
+        printf(" '%s'", out);
+      }
+      else
+      {
+        printf(" '?'");
+      }
     }
     printf("\n");
   }
@@ -326,33 +373,33 @@ void re_print(regex_t* pattern)
 
 
 /* Private functions: */
-static int matchdigit(char c)
+static int matchdigit(uint32_t c)
 {
-  return isdigit(c);
+  return (c < 128) ? isdigit((int)c) : 0;
 }
-static int matchalpha(char c)
+static int matchalpha(uint32_t c)
 {
-  return isalpha(c);
+  return (c < 128) ? isalpha((int)c) : 0;
 }
-static int matchwhitespace(char c)
+static int matchwhitespace(uint32_t c)
 {
-  return isspace(c);
+  return (c < 128) ? isspace((int)c) : 0;
 }
-static int matchalphanum(char c)
+static int matchalphanum(uint32_t c)
 {
   return ((c == '_') || matchalpha(c) || matchdigit(c));
 }
-static int matchrange(char c, const char* str)
+static int matchrange(uint32_t c, const uint32_t* str)
 {
   return (    (c != '-')
-           && (str[0] != '\0')
+           && (str[0] != 0)
            && (str[0] != '-')
            && (str[1] == '-')
-           && (str[2] != '\0')
+           && (str[2] != 0)
            && (    (c >= str[0])
                 && (c <= str[2])));
 }
-static int matchdot(char c)
+static int matchdot(uint32_t c)
 {
 #if defined(RE_DOT_MATCHES_NEWLINE) && (RE_DOT_MATCHES_NEWLINE == 1)
   (void)c;
@@ -361,12 +408,12 @@ static int matchdot(char c)
   return c != '\n' && c != '\r';
 #endif
 }
-static int ismetachar(char c)
+static int ismetachar(uint32_t c)
 {
   return ((c == 's') || (c == 'S') || (c == 'w') || (c == 'W') || (c == 'd') || (c == 'D'));
 }
 
-static int matchmetachar(char c, const char* str)
+static int matchmetachar(uint32_t c, const uint32_t* str)
 {
   switch (str[0])
   {
@@ -380,7 +427,7 @@ static int matchmetachar(char c, const char* str)
   }
 }
 
-static int matchcharclass(char c, const char* str)
+static int matchcharclass(uint32_t c, const uint32_t* str)
 {
   do
   {
@@ -405,7 +452,7 @@ static int matchcharclass(char c, const char* str)
     {
       if (c == '-')
       {
-        return ((str[-1] == '\0') || (str[1] == '\0'));
+        return ((str[-1] == 0) || (str[1] == 0));
       }
       else
       {
@@ -413,18 +460,18 @@ static int matchcharclass(char c, const char* str)
       }
     }
   }
-  while (*str++ != '\0');
+  while (*str++ != 0);
 
   return 0;
 }
 
-static int matchone(regex_t p, char c)
+static int matchone(regex_t p, uint32_t c)
 {
   switch (p.type)
   {
     case DOT:            return matchdot(c);
-    case CHAR_CLASS:     return  matchcharclass(c, (const char*)p.u.ccl);
-    case INV_CHAR_CLASS: return !matchcharclass(c, (const char*)p.u.ccl);
+    case CHAR_CLASS:     return  matchcharclass(c, (const uint32_t*)p.u.ccl);
+    case INV_CHAR_CLASS: return !matchcharclass(c, (const uint32_t*)p.u.ccl);
     case DIGIT:          return  matchdigit(c);
     case NOT_DIGIT:      return !matchdigit(c);
     case ALPHA:          return  matchalphanum(c);
@@ -439,16 +486,30 @@ static int matchstar(regex_t p, regex_t* pattern, const char* text, int* matchle
 {
   int prelen = *matchlength;
   const char* prepoint = text;
-  while ((text[0] != '\0') && matchone(p, *text))
+  while (text[0] != '\0')
   {
-    text++;
-    (*matchlength)++;
+    uint32_t cp = 0;
+    int bytes = utf8_decode(text, &cp);
+    if (!matchone(p, cp))
+    {
+      break;
+    }
+    text += bytes;
+    (*matchlength) += bytes;
   }
   while (text >= prepoint)
   {
-    if (matchpattern(pattern, text--, matchlength))
+    if (matchpattern(pattern, text, matchlength))
       return 1;
-    (*matchlength)--;
+    if (text == prepoint)
+    {
+      break;
+    }
+    {
+      const char* prev = utf8_prev(prepoint, text);
+      (*matchlength) -= (int)(text - prev);
+      text = prev;
+    }
   }
 
   *matchlength = prelen;
@@ -458,16 +519,26 @@ static int matchstar(regex_t p, regex_t* pattern, const char* text, int* matchle
 static int matchplus(regex_t p, regex_t* pattern, const char* text, int* matchlength)
 {
   const char* prepoint = text;
-  while ((text[0] != '\0') && matchone(p, *text))
+  while (text[0] != '\0')
   {
-    text++;
-    (*matchlength)++;
+    uint32_t cp = 0;
+    int bytes = utf8_decode(text, &cp);
+    if (!matchone(p, cp))
+    {
+      break;
+    }
+    text += bytes;
+    (*matchlength) += bytes;
   }
   while (text > prepoint)
   {
-    if (matchpattern(pattern, text--, matchlength))
+    if (matchpattern(pattern, text, matchlength))
       return 1;
-    (*matchlength)--;
+    {
+      const char* prev = utf8_prev(prepoint, text);
+      (*matchlength) -= (int)(text - prev);
+      text = prev;
+    }
   }
 
   return 0;
@@ -479,12 +550,18 @@ static int matchquestion(regex_t p, regex_t* pattern, const char* text, int* mat
     return 1;
   if (matchpattern(pattern, text, matchlength))
       return 1;
-  if (*text && matchone(p, *text++))
+  if (*text)
   {
-    if (matchpattern(pattern, text, matchlength))
+    uint32_t cp = 0;
+    int bytes = utf8_decode(text, &cp);
+    if (matchone(p, cp))
     {
-      (*matchlength)++;
-      return 1;
+      const char* next = text + bytes;
+      if (matchpattern(pattern, next, matchlength))
+      {
+        (*matchlength) += bytes;
+        return 1;
+      }
     }
   }
   return 0;
@@ -531,7 +608,7 @@ static int matchpattern(regex_t* pattern, const char* text, int *matchlength)
 static int matchpattern(regex_t* pattern, const char* text, int* matchlength)
 {
   int pre = *matchlength;
-  do
+  for (;;)
   {
     if ((pattern[0].type == UNUSED) || (pattern[1].type == QUESTIONMARK))
     {
@@ -555,15 +632,120 @@ static int matchpattern(regex_t* pattern, const char* text, int* matchlength)
       return (matchpattern(pattern, text) || matchpattern(&pattern[2], text));
     }
 */
-  (*matchlength)++;
+    if (text[0] == '\0')
+    {
+      break;
+    }
+    uint32_t cp = 0;
+    int bytes = utf8_decode(text, &cp);
+    if (!matchone(*pattern, cp))
+    {
+      break;
+    }
+    pattern += 1;
+    text += bytes;
+    (*matchlength) += bytes;
   }
-  while ((text[0] != '\0') && matchone(*pattern++, *text++));
 
   *matchlength = pre;
   return 0;
 }
 
 #endif
+
+/* UTF-8 helpers */
+static int utf8_decode(const char* s, uint32_t* out)
+{
+  unsigned char c = (unsigned char)s[0];
+  if (c < 0x80)
+  {
+    *out = c;
+    return 1;
+  }
+  if ((c & 0xE0) == 0xC0)
+  {
+    unsigned char c1 = (unsigned char)s[1];
+    if ((c1 & 0xC0) == 0x80)
+    {
+      *out = ((uint32_t)(c & 0x1F) << 6) | (uint32_t)(c1 & 0x3F);
+      return 2;
+    }
+  }
+  else if ((c & 0xF0) == 0xE0)
+  {
+    unsigned char c1 = (unsigned char)s[1];
+    unsigned char c2 = (unsigned char)s[2];
+    if (((c1 & 0xC0) == 0x80) && ((c2 & 0xC0) == 0x80))
+    {
+      *out = ((uint32_t)(c & 0x0F) << 12) | ((uint32_t)(c1 & 0x3F) << 6) | (uint32_t)(c2 & 0x3F);
+      return 3;
+    }
+  }
+  else if ((c & 0xF8) == 0xF0)
+  {
+    unsigned char c1 = (unsigned char)s[1];
+    unsigned char c2 = (unsigned char)s[2];
+    unsigned char c3 = (unsigned char)s[3];
+    if (((c1 & 0xC0) == 0x80) && ((c2 & 0xC0) == 0x80) && ((c3 & 0xC0) == 0x80))
+    {
+      *out = ((uint32_t)(c & 0x07) << 18) | ((uint32_t)(c1 & 0x3F) << 12) | ((uint32_t)(c2 & 0x3F) << 6) | (uint32_t)(c3 & 0x3F);
+      return 4;
+    }
+  }
+  *out = c;
+  return 1;
+}
+
+static const char* utf8_prev(const char* start, const char* cur)
+{
+  const char* p = cur;
+  if (p <= start)
+  {
+    return start;
+  }
+  p -= 1;
+  while (p > start && (((unsigned char)(*p) & 0xC0) == 0x80))
+  {
+    p -= 1;
+  }
+  return p;
+}
+
+static int utf8_encode(uint32_t cp, char out[5])
+{
+  if (cp <= 0x7F)
+  {
+    out[0] = (char)cp;
+    out[1] = '\0';
+    return 1;
+  }
+  if (cp <= 0x7FF)
+  {
+    out[0] = (char)(0xC0 | ((cp >> 6) & 0x1F));
+    out[1] = (char)(0x80 | (cp & 0x3F));
+    out[2] = '\0';
+    return 2;
+  }
+  if (cp <= 0xFFFF)
+  {
+    out[0] = (char)(0xE0 | ((cp >> 12) & 0x0F));
+    out[1] = (char)(0x80 | ((cp >> 6) & 0x3F));
+    out[2] = (char)(0x80 | (cp & 0x3F));
+    out[3] = '\0';
+    return 3;
+  }
+  if (cp <= 0x10FFFF)
+  {
+    out[0] = (char)(0xF0 | ((cp >> 18) & 0x07));
+    out[1] = (char)(0x80 | ((cp >> 12) & 0x3F));
+    out[2] = (char)(0x80 | ((cp >> 6) & 0x3F));
+    out[3] = (char)(0x80 | (cp & 0x3F));
+    out[4] = '\0';
+    return 4;
+  }
+  out[0] = '\0';
+  return 0;
+}
 
 #endif /* TINY_REGEX_IMPLEMENTATION */
 
