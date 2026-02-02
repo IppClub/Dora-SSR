@@ -254,7 +254,7 @@ getFileEntries = (path, recursive = true, excludeFiles = nil) ->
 	table.sort entries, (a, b) -> a.entryName < b.entryName
 	entries
 
-getProjectEntries = (path) ->
+export getProjectEntries = (path, noPreview = false) ->
 	entries = []
 	for dir in *Content\getDirs path
 		continue if dir\match "^%."
@@ -294,6 +294,7 @@ getProjectEntries = (path) ->
 						tests[] = entry
 				entry = :entryName, :fileName, :examples, :tests, :repo
 				bannerFile = repeat
+					break nil if noPreview
 					break nil unless config.showPreview
 					f = Path projectPath, ".dora", "banner.jpg"
 					break f if Content\exist f
