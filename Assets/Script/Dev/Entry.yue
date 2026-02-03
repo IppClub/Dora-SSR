@@ -861,6 +861,11 @@ webStatus = nil
 urlClicked = nil
 descColor = Color 0xffa1a1a1
 
+authCode = string.format "%06d", math.random 0, 999999
+macro MaxAuthCodeTTL = -> 30
+authCodeTTL = $MaxAuthCodeTTL
+export.getAuthCode = -> authCode
+
 transparant = Color 0x0
 windowFlags = $WindowFlag(
 	NoTitleBar
@@ -891,6 +896,10 @@ displayWindowFlags = $WindowFlag(
 initFooter = true
 footerWindow = threadLoop ->
 	zh = useChinese
+	authCodeTTL = math.max 0, authCodeTTL - App.deltaTime
+	if authCodeTTL <= 0
+		authCodeTTL = $MaxAuthCodeTTL
+		authCode = string.format "%06d", math.random 0, 999999
 	if HttpServer.wsConnectionCount > 0
 		return
 	if Keyboard\isKeyDown "Escape"
@@ -1018,12 +1027,16 @@ footerWindow = threadLoop ->
 					TextColored descColor, url
 			else
 				TextColored descColor, zh and '不可用' or 'not available'
+			hovered = IsItemHovered!
 			SameLine!
-			TextDisabled '(?)'
-			if IsItemHovered!
+			:themeColor = App
+			PushStyleColor "Text", themeColor, ->
+				ImGui.ProgressBar authCodeTTL / $MaxAuthCodeTTL, Vec2(60, -1), authCode
+				hovered or= IsItemHovered!
+			if hovered
 				BeginTooltip ->
 					PushTextWrapPos 280, ->
-						Text zh and '在本机或是本地局域网连接的其他设备上，使用浏览器访问这个地址来使用 Web IDE' or 'You can use the Web IDE by accessing this address in a browser on this machine or other devices connected to the local network'
+						Text zh and '在本机或是本地局域网连接的其他设备上，使用浏览器访问这个地址并输入后面的 PIN 码来使用 Web IDE' or 'You can use the Web IDE by accessing this address with the following PIN code in a browser on this machine or other devices connected to the local network'
 
 	unless isInEntry
 		SetNextWindowSize Vec2 50, 50
@@ -1077,8 +1090,8 @@ entryWindow = threadLoop ->
 	return unless showEntry
 	return unless isInEntry
 	zh = useChinese
+	:themeColor = App
 	if HttpServer.wsConnectionCount > 0
-		:themeColor = App
 		:width, :height = App.visualSize
 		SetNextWindowBgAlpha 0.5
 		SetNextWindowPos Vec2(width / 2, height / 2), $SetCond(Always), Vec2 0.5, 0.5
@@ -1093,7 +1106,6 @@ entryWindow = threadLoop ->
 			Separator!
 		return
 
-	:themeColor = App
 	width: fullWidth, :height = App.visualSize
 	width = math.min MaxWidth, fullWidth
 	paddingX = math.max 10, fullWidth / 2 - width / 2 - 10

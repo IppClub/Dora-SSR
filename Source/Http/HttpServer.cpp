@@ -52,6 +52,7 @@ namespace fs = std::filesystem;
 #endif // BX_PLATFORM_LINUX
 
 #include <atomic>
+#include <chrono>
 
 #include "SDL.h"
 
@@ -115,13 +116,39 @@ static std::string get_local_ip() {
 
 NS_DORA_BEGIN
 
+static std::string get_query_param(const std::string& resource, const std::string& key) {
+	auto qpos = resource.find('?');
+	if (qpos == std::string::npos) {
+		return std::string{};
+	}
+	auto query = resource.substr(qpos + 1);
+	size_t start = 0;
+	while (start < query.size()) {
+		auto amp = query.find('&', start);
+		if (amp == std::string::npos) {
+			amp = query.size();
+		}
+		auto part = query.substr(start, amp - start);
+		auto eq = part.find('=');
+		if (eq != std::string::npos) {
+			auto name = part.substr(0, eq);
+			if (name == key) {
+				return part.substr(eq + 1);
+			}
+		}
+		start = amp + 1;
+	}
+	return std::string{};
+}
+
 class WebSocketServer {
 	using Server = websocketpp::server<websocketpp::config::asio>;
 	using ConnectionSet = std::set<ws::connection_hdl, std::owner_less<ws::connection_hdl>>;
 
 public:
-	WebSocketServer()
-		: _thread(SharedAsyncThread.newThread()) { }
+	explicit WebSocketServer(HttpServer* owner)
+		: _thread(SharedAsyncThread.newThread())
+		, _owner(owner) { }
 
 	~WebSocketServer() {
 		stop();
@@ -168,6 +195,14 @@ public:
 
 	bool start(int port) {
 		try {
+			_server.set_validate_handler([this](ws::connection_hdl hdl) {
+				if (!_owner || !_owner->_authRequired) {
+					return true;
+				}
+				auto con = _server.get_con_from_hdl(hdl);
+				auto token = get_query_param(con->get_resource(), "auth"s);
+				return _owner->isTokenValid(token);
+			});
 			_server.set_message_handler([this](ws::connection_hdl hdl, Server::message_ptr msg) {
 				if (ws::frame::opcode::BINARY == msg->get_opcode()) {
 					auto message = std::make_shared<std::string>(msg->get_payload());
@@ -239,6 +274,7 @@ public:
 
 private:
 	Async* _thread;
+	HttpServer* _owner;
 	Server _server;
 	ConnectionSet _connections;
 	wsl::mutex _connectionLock;
@@ -262,8 +298,43 @@ static httplib::Server& getServer() {
 	return server;
 }
 
+static bool has_valid_auth(const httplib::Request& req, const std::string& token) {
+	auto it = req.headers.find("X-Dora-Auth"s);
+	if (it != req.headers.end() && it->second == token) {
+		return true;
+	}
+	it = req.headers.find("Authorization"s);
+	if (it != req.headers.end()) {
+		const std::string& auth = it->second;
+		if (auth == token) {
+			return true;
+		}
+		const std::string bearer = "Bearer "s;
+		if (auth.rfind(bearer, 0) == 0 && auth.substr(bearer.size()) == token) {
+			return true;
+		}
+		const std::string dora = "Dora "s;
+		if (auth.rfind(dora, 0) == 0 && auth.substr(dora.size()) == token) {
+			return true;
+		}
+	}
+	for (const auto& param : req.params) {
+		if (param.first == "auth"s && param.second == token) {
+			return true;
+		}
+	}
+	return false;
+}
+
+static void set_unauthorized(httplib::Response& res) {
+	res.status = 401;
+	res.set_content(R"({"success":false,"message":"unauthorized"})"s, "application/json"s);
+}
+
 HttpServer::HttpServer()
-	: _thread(SharedAsyncThread.newThread()) { }
+	: _thread(SharedAsyncThread.newThread())
+	, _authRequired(false)
+	, _authTokenHasExpiry(false) { }
 
 HttpServer::~HttpServer() {
 	stop();
@@ -286,6 +357,70 @@ void HttpServer::setWWWPath(String var) {
 
 const std::string& HttpServer::getWWWPath() const noexcept {
 	return _wwwPath;
+}
+
+void HttpServer::setAuthToken(String var) {
+	_authToken = var.toString();
+	if (_authToken.empty()) {
+		_authTokenHasExpiry = false;
+	} else {
+		_authTokenHasExpiry = true;
+		_authTokenExpiry = std::chrono::steady_clock::now() + std::chrono::seconds(AuthTokenTTLSeconds);
+	}
+}
+
+const std::string& HttpServer::getAuthToken() const noexcept {
+	return _authToken;
+}
+
+void HttpServer::setAuthRequired(bool var) {
+	_authRequired = var;
+}
+
+bool HttpServer::isAuthRequired() const noexcept {
+	return _authRequired;
+}
+
+bool HttpServer::isAuthorized(const httplib::Request& req) {
+	if (!_authRequired) {
+		return true;
+	}
+	if (_authToken.empty()) {
+		return false;
+	}
+	if (_authTokenHasExpiry && std::chrono::steady_clock::now() > _authTokenExpiry) {
+		_authToken.clear();
+		_authTokenHasExpiry = false;
+		return false;
+	}
+	if (!has_valid_auth(req, _authToken)) {
+		return false;
+	}
+	if (_authTokenHasExpiry) {
+		_authTokenExpiry = std::chrono::steady_clock::now() + std::chrono::seconds(AuthTokenTTLSeconds);
+	}
+	return true;
+}
+
+bool HttpServer::isTokenValid(const std::string& token) {
+	if (!_authRequired) {
+		return true;
+	}
+	if (_authToken.empty()) {
+		return false;
+	}
+	if (_authTokenHasExpiry && std::chrono::steady_clock::now() > _authTokenExpiry) {
+		_authToken.clear();
+		_authTokenHasExpiry = false;
+		return false;
+	}
+	if (token != _authToken) {
+		return false;
+	}
+	if (_authTokenHasExpiry) {
+		_authTokenExpiry = std::chrono::steady_clock::now() + std::chrono::seconds(AuthTokenTTLSeconds);
+	}
+	return true;
 }
 
 void HttpServer::post(String pattern, const PostHandler& handler) {
@@ -345,6 +480,9 @@ bool HttpServer::start(int port) {
 		});
 		waitForLoaded.wait();
 		if (!result.empty()) {
+			res.set_header("Set-Cookie", _authRequired
+					? "DoraAuthRequired=1; Path=/"s
+					: "DoraAuthRequired=0; Path=/"s);
 			res.set_header("Content-Type", content_type);
 			res.body = std::move(result);
 			return true;
@@ -356,6 +494,10 @@ bool HttpServer::start(int port) {
 	if (success) {
 		for (const auto& post : _posts) {
 			server.Post(post.pattern, [this, &post](const httplib::Request& req, httplib::Response& res) {
+				if (req.path != "/auth"sv && !isAuthorized(req)) {
+					set_unauthorized(res);
+					return;
+				}
 				HttpServer::Request request;
 				request.headers.reserve(req.headers.size() * 2);
 				for (const auto& header : req.headers) {
@@ -385,6 +527,10 @@ bool HttpServer::start(int port) {
 		}
 		for (const auto& post : _postScheduled) {
 			server.Post(post.pattern, [this, &post](const httplib::Request& req, httplib::Response& res) {
+				if (req.path != "/auth"sv && !isAuthorized(req)) {
+					set_unauthorized(res);
+					return;
+				}
 				HttpServer::Request request;
 				request.headers.reserve(req.headers.size() * 2);
 				for (const auto& header : req.headers) {
@@ -423,6 +569,10 @@ bool HttpServer::start(int port) {
 		for (const auto& postFile : _files) {
 			server.Post(postFile.pattern,
 				[&](const httplib::Request& req, httplib::Response& res, const httplib::ContentReader& content_reader) {
+					if (req.path != "/auth"sv && !isAuthorized(req)) {
+						set_unauthorized(res);
+						return;
+					}
 					if (!req.is_multipart_form_data()) {
 						res.status = 403;
 						return;
@@ -502,7 +652,7 @@ bool HttpServer::start(int port) {
 }
 
 bool HttpServer::startWS(int port) {
-	_webSocketServer = New<WebSocketServer>();
+	_webSocketServer = New<WebSocketServer>(this);
 	if (!_webSocketServer->init()) {
 		_webSocketServer = nullptr;
 		return false;

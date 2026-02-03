@@ -15,7 +15,7 @@ import { UploadOutlined, DownloadOutlined, LinkOutlined, FileTextOutlined, Check
 import { Button, App, Upload, Input, Progress, Space, Typography, Collapse } from 'antd';
 import type { RcFile, UploadFile } from 'antd/es/upload/interface';
 import { memo, useState, useEffect, useCallback, useRef } from 'react';
-import { Color } from './Frame';
+import { Color } from './Theme';
 import Info from './Info';
 
 const { Dragger } = Upload;

@@ -11,7 +11,7 @@ import { Box, IconButton, InputAdornment, ListItemButton, ListItemText, Stack, T
 import { MacScrollbar } from 'mac-scrollbar';
 import { useTranslation } from 'react-i18next';
 import * as Service from './Service';
-import { Color } from './Frame';
+import { Color } from './Theme';
 import Info from './Info';
 
 const { path } = Info;

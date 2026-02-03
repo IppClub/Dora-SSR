@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 import { LazyLog } from 'react-lazylog';
 import { useTranslation } from 'react-i18next';
-import { Color } from './Frame';
+import { Color } from './Theme';
 import * as Service from './Service';
 import { memo, useEffect, useState } from 'react';
 

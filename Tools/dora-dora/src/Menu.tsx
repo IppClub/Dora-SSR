@@ -9,7 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 import { styled } from '@mui/material/styles';
 import Menu, { MenuProps } from '@mui/material/Menu';
 import MenuItem, { MenuItemProps } from '@mui/material/MenuItem';
-import { Color } from './Frame';
+import { Color } from './Theme';
 
 export const StyledMenu = styled((props: MenuProps) => (
 	<Menu

@@ -345,7 +345,7 @@ static void DoraSetupTheme(Color color) {
 	colors[ImGuiCol_TabDimmedSelectedOverline] = HI(1.00f);
 	colors[ImGuiCol_PlotLines] = TEXT(0.63f);
 	colors[ImGuiCol_PlotLinesHovered] = MED(1.00f);
-	colors[ImGuiCol_PlotHistogram] = TEXT(0.63f);
+	colors[ImGuiCol_PlotHistogram] = TEXT(0.33f);
 	colors[ImGuiCol_PlotHistogramHovered] = MED(1.00f);
 	colors[ImGuiCol_TableHeaderBg] = ImVec4(0.19f, 0.19f, 0.19f, 1.00f);
 	colors[ImGuiCol_TableBorderStrong] = ImVec4(0.31f, 0.31f, 0.31f, 1.00f); // Prefer using Alpha=1.0 here

@@ -13,6 +13,41 @@ HttpServer\stop!
 
 HttpServer.wwwPath = Path Content.appPath, ".www"
 
+HttpServer.authRequired = true
+HttpServer.authToken = ""
+
+authFailedCount = 0
+authLockedUntil = 0.0
+
+genAuthToken = ->
+	parts = {}
+	for _ = 1, 4
+		parts[] = string.format "%08x", math.random 0, 0x7fffffff
+	table.concat parts
+
+HttpServer\post "/auth", (req) ->
+	import "Script.Dev.Entry"
+	authCode = Entry.getAuthCode!
+	now = os.time!
+	if now < authLockedUntil
+		return success: false, message: "locked", retryAfter: authLockedUntil - now
+	code = nil
+	switch req
+		when {body: {:code}}
+			code = code
+	if code and tostring(code) == authCode
+		authFailedCount = 0
+		token = genAuthToken!
+		HttpServer.authToken = token
+		return success: true, token: token
+	else
+		authFailedCount += 1
+		if authFailedCount >= 3
+			authFailedCount = 0
+			authLockedUntil = now + 30
+			return success: false, message: "locked", retryAfter: 30
+		return success: false, message: "invalid code"
+
 from "Utils" import LintYueGlobals, CheckTIC80Code
 
 getProjectDirFromFile = (file) ->
