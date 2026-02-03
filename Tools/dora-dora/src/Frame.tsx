@@ -7,7 +7,6 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 import { styled, ThemeProvider } from '@mui/material/styles';
-import { createTheme } from '@mui/material/styles';
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
 import Stack from '@mui/system/Stack';
 import { Divider, IconButton, ListItemIcon, ListItemText, Toolbar } from '@mui/material';
@@ -17,50 +16,7 @@ import { StyledMenu, StyledMenuItem } from './Menu';
 import { memo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Info from './Info';
-
-// eslint-disable-next-line @typescript-eslint/no-namespace
-export namespace Color {
-	export const Background = '#1f1f1f';
-	export const BackgroundDark = '#181818';
-
-	export const Primary = '#ccc';
-	export const Secondary = '#ccca';
-
-	export const TextPrimary = '#eee';
-	export const TextSecondary = '#eee8';
-
-	export const Theme = '#fac03d';
-
-	export const Line = '#ffffff20';
-
-	export const Error = '#f44336';
-	export const Warning = '#ff9800';
-	export const Info = '#abb85d';
-};
-
-const theme = createTheme({
-	palette: {
-		background: {
-			default: Color.Background,
-			paper: Color.BackgroundDark,
-		},
-		primary: {
-			main: Color.Primary,
-		},
-		secondary: {
-			main: Color.Secondary,
-		},
-		text: {
-			primary: Color.TextPrimary,
-			secondary: Color.TextSecondary,
-		},
-		action: {
-			hover: Color.Theme + '66',
-			focus: Color.Theme + '44',
-			active: Color.Theme + '22',
-		}
-	}
-});
+import { theme, Color } from './Theme';
 
 export const Separator = () => <Divider style={{backgroundColor: Color.Line}}/>;
 

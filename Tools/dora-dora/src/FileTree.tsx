@@ -50,7 +50,7 @@ import { VscMarkdown } from 'react-icons/vsc';
 import { MacScrollbar } from 'mac-scrollbar';
 import { useTranslation } from 'react-i18next';
 import Info from './Info';
-import { Color } from './Frame';
+import { Color } from './Theme';
 
 export interface TreeDataType extends DataNode {
 	key: string;

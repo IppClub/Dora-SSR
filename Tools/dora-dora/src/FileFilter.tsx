@@ -9,7 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 import { Autocomplete, TextField } from '@mui/material';
 import { matchSorter } from 'match-sorter';
 import { useTranslation } from 'react-i18next';
-import { Color } from './Frame';
+import { Color } from './Theme';
 
 export interface FilterOption {
 	title: string;

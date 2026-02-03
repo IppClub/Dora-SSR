@@ -11,6 +11,8 @@ import { ProfilerInfo } from "./ProfilerInfo";
 import { TypedEmitter } from "./utils/typedEmitter";
 
 let webSocket: WebSocket;
+export const getWebSocket = () => webSocket ? webSocket : null;
+
 type ServiceEvents = {
 	[WsEvent.Log]: [string, string];
 	[WsEvent.Profiler]: [ProfilerInfo];
@@ -102,7 +104,7 @@ export const addWSCloseListener = (listener: () => void) => {
 type WebSocketPayload = Record<string, unknown>;
 
 const sendWebSocketMessage = (payload: WebSocketPayload) => {
-	if (!webSocket || webSocket.readyState !== WebSocket.OPEN) {
+	if (!webSocket || webSocket.readyState === WebSocket.CLOSED || webSocket.readyState === WebSocket.CLOSING) {
 		return false;
 	}
 	webSocket.send(new Blob([JSON.stringify(payload)]));
@@ -113,6 +115,12 @@ export function openWebSocket() {
 	let connected = false;
 	const connect = () => {
 		connected = false;
+		const storageKey = 'doraWebAuthToken';
+		let token = localStorage.getItem(storageKey) || '';
+		if (token === '') {
+			setTimeout(connect, 1000);
+			return;
+		}
 		webSocket = new WebSocket(wsUrl());
 		webSocket.onmessage = async function(evt: MessageEvent) {
 			let dataStr: string;

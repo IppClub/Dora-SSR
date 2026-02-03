@@ -23,7 +23,7 @@ import {
 	AiOutlineCloseCircle,
 } from 'react-icons/ai';
 import { useTranslation } from 'react-i18next';
-import { Color } from './Frame';
+import { Color } from './Theme';
 import { IconButton, Tooltip } from '@mui/material';
 
 export type TabStatus = "normal" | "warning" | "error";

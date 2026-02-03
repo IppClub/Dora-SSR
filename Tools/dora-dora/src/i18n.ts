@@ -76,6 +76,17 @@ i18n
 						noDeclaration: "Failed to get declaration file for {{title}}",
 						waitForJob: "Please wait for current job completed",
 					},
+					auth: {
+						title: "Connect Dora Web IDE",
+						description: "Enter the 6-digit verification code shown in the engine window to complete authentication.",
+						error: {
+							authFailed: "Authentication failed. Please try again.",
+							tooManyAttempts: "Too many attempts. Please retry after {{seconds}}s.",
+							codeInvalid: "Invalid verification code. Please try again.",
+						},
+						waitRetry: "Please wait {{seconds}}s before retrying.",
+						verifying: "Verifying...",
+					},
 					popup: {
 						goToFile: "Go to File",
 						searchFiles: "Search Files",
@@ -358,6 +369,17 @@ i18n
 						noBuild: "无可编译文件 {{title}}",
 						noDeclaration: "无法提取 {{title}} 的声明文件",
 						waitForJob: "请等待当前任务完成",
+					},
+					auth: {
+						title: "连接 Dora Web IDE",
+						description: "请输入引擎窗口中显示的 6 位验证码完成验证。",
+						error: {
+							authFailed: "认证失败，请重试",
+							tooManyAttempts: "尝试过于频繁，请 {{seconds}}s 后再试",
+							codeInvalid: "验证码错误，请重试",
+						},
+						waitRetry: "请等待 {{seconds}}s 后重试",
+						verifying: "验证中...",
 					},
 					popup: {
 						goToFile: "跳转到文件",

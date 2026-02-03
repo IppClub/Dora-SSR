@@ -1209,6 +1209,8 @@ class DB
 
 class HttpServer
 {
+	tolua_property__common string authToken;
+	tolua_property__bool bool authRequired;
 	tolua_readonly tolua_property__common string localIP;
 	tolua_readonly tolua_property__common int wSConnectionCount @ wsConnectionCount;
 	tolua_property__common string wWWPath @ wwwPath;
