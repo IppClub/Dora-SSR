@@ -34,6 +34,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "yuescript/parser.hpp"
 
+#include "openssl/evp.h"
+#include "openssl/hmac.h"
+
 namespace ws = websocketpp;
 namespace wsl = websocketpp::lib;
 
@@ -52,7 +55,10 @@ namespace fs = std::filesystem;
 #endif // BX_PLATFORM_LINUX
 
 #include <atomic>
+#include <algorithm>
 #include <chrono>
+#include <cstdlib>
+#include <string_view>
 
 #include "SDL.h"
 
@@ -141,6 +147,97 @@ static std::string get_query_param(const std::string& resource, const std::strin
 	return std::string{};
 }
 
+static std::string to_hex(const unsigned char* data, size_t len) {
+	static constexpr char hex[] = "0123456789abcdef";
+	std::string out;
+	out.reserve(len * 2);
+	for (size_t i = 0; i < len; ++i) {
+		unsigned char byte = data[i];
+		out.push_back(hex[byte >> 4]);
+		out.push_back(hex[byte & 0x0F]);
+	}
+	return out;
+}
+
+static std::string sha256_hex(std::string_view data) {
+	if (data.empty()) {
+		return {};
+	}
+	unsigned char hash[EVP_MAX_MD_SIZE];
+	unsigned int hash_len = 0;
+	EVP_MD_CTX* ctx = EVP_MD_CTX_new();
+	if (!ctx) return {};
+	if (EVP_DigestInit_ex(ctx, EVP_sha256(), nullptr) != 1) {
+		EVP_MD_CTX_free(ctx);
+		return {};
+	}
+	if (!data.empty()) {
+		EVP_DigestUpdate(ctx, data.data(), data.size());
+	}
+	EVP_DigestFinal_ex(ctx, hash, &hash_len);
+	EVP_MD_CTX_free(ctx);
+	return to_hex(hash, hash_len);
+}
+
+static std::string hmac_sha256_hex(std::string_view key, std::string_view data) {
+	unsigned char hash[EVP_MAX_MD_SIZE];
+	unsigned int hash_len = 0;
+	HMAC(EVP_sha256(), key.data(), s_cast<int>(key.size()), r_cast<const unsigned char*>(data.data()), data.size(), hash, &hash_len);
+	return to_hex(hash, hash_len);
+}
+
+static std::string canonicalize_query(std::vector<std::pair<std::string, std::string>> params) {
+	if (params.empty()) return {};
+	std::sort(params.begin(), params.end(), [](const auto& a, const auto& b) {
+		if (a.first == b.first) {
+			return a.second < b.second;
+		}
+		return a.first < b.first;
+	});
+	std::string query;
+	for (size_t i = 0; i < params.size(); ++i) {
+		if (i > 0) query += '&';
+		query += httplib::detail::encode_url(params[i].first);
+		query += '=';
+		query += httplib::detail::encode_url(params[i].second);
+	}
+	return query;
+}
+
+static std::string canonicalize_path(const std::string& path, const httplib::Params& params) {
+	if (params.empty()) return path;
+	std::vector<std::pair<std::string, std::string>> pairs;
+	pairs.reserve(params.size());
+	for (const auto& param : params) {
+		pairs.emplace_back(param.first, param.second);
+	}
+	auto query = canonicalize_query(std::move(pairs));
+	return query.empty() ? path : path + "?"s + query;
+}
+
+static std::vector<std::pair<std::string, std::string>> parse_query_pairs(const std::string& resource) {
+	std::vector<std::pair<std::string, std::string>> params;
+	auto qpos = resource.find('?');
+	if (qpos == std::string::npos) return params;
+	auto query = resource.substr(qpos + 1);
+	size_t start = 0;
+	while (start < query.size()) {
+		auto amp = query.find('&', start);
+		if (amp == std::string::npos) {
+			amp = query.size();
+		}
+		auto part = query.substr(start, amp - start);
+		auto eq = part.find('=');
+		if (eq != std::string::npos) {
+			auto name = httplib::detail::decode_url(part.substr(0, eq), true);
+			auto value = httplib::detail::decode_url(part.substr(eq + 1), true);
+			params.emplace_back(std::move(name), std::move(value));
+		}
+		start = amp + 1;
+	}
+	return params;
+}
+
 class WebSocketServer {
 	using Server = websocketpp::server<websocketpp::config::asio>;
 	using ConnectionSet = std::set<ws::connection_hdl, std::owner_less<ws::connection_hdl>>;
@@ -200,8 +297,7 @@ public:
 					return true;
 				}
 				auto con = _server.get_con_from_hdl(hdl);
-				auto token = get_query_param(con->get_resource(), "auth"s);
-				return _owner->isTokenValid(token);
+				return _owner->isWebSocketAuthorized(con->get_resource());
 			});
 			_server.set_message_handler([this](ws::connection_hdl hdl, Server::message_ptr msg) {
 				if (ws::frame::opcode::BINARY == msg->get_opcode()) {
@@ -361,9 +457,22 @@ const std::string& HttpServer::getWWWPath() const noexcept {
 
 void HttpServer::setAuthToken(String var) {
 	_authToken = var.toString();
+	_authSessionId.clear();
+	_authSessionSecret.clear();
+	{
+		std::lock_guard<std::mutex> lock(_authNonceMutex);
+		_authNonces.clear();
+	}
 	if (_authToken.empty()) {
 		_authTokenHasExpiry = false;
 	} else {
+		auto pos = _authToken.find(':');
+		if (pos != std::string::npos) {
+			_authSessionId = _authToken.substr(0, pos);
+			_authSessionSecret = _authToken.substr(pos + 1);
+		} else {
+			_authSessionSecret = _authToken;
+		}
 		_authTokenHasExpiry = true;
 		_authTokenExpiry = std::chrono::steady_clock::now() + std::chrono::seconds(AuthTokenTTLSeconds);
 	}
@@ -390,10 +499,58 @@ bool HttpServer::isAuthorized(const httplib::Request& req) {
 	}
 	if (_authTokenHasExpiry && std::chrono::steady_clock::now() > _authTokenExpiry) {
 		_authToken.clear();
+		_authSessionId.clear();
+		_authSessionSecret.clear();
 		_authTokenHasExpiry = false;
 		return false;
 	}
-	if (!has_valid_auth(req, _authToken)) {
+	if (!_authSessionId.empty()) {
+		auto sessionIt = req.headers.find("X-Dora-Session"s);
+		auto timestampIt = req.headers.find("X-Dora-Timestamp"s);
+		auto nonceIt = req.headers.find("X-Dora-Nonce"s);
+		auto signatureIt = req.headers.find("X-Dora-Signature"s);
+		if (sessionIt == req.headers.end() || timestampIt == req.headers.end() || nonceIt == req.headers.end() || signatureIt == req.headers.end()) {
+			return false;
+		}
+		const auto& sessionId = sessionIt->second;
+		if (sessionId != _authSessionId) {
+			return false;
+		}
+		long long timestamp = 0;
+		try {
+			timestamp = std::stoll(timestampIt->second);
+		} catch (...) {
+			return false;
+		}
+		auto now = std::chrono::system_clock::now();
+		auto nowSeconds = std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count();
+		if (std::llabs(nowSeconds - timestamp) > AuthSignatureTTLSeconds) {
+			return false;
+		}
+		const auto& nonce = nonceIt->second;
+		auto path = canonicalize_path(req.path, req.params);
+		auto bodyHash = sha256_hex(req.body);
+		auto payload = fmt::format("{}\n{}\n{}\n{}\n{}\n{}", sessionId, req.method, path, timestampIt->second, nonce, bodyHash);
+		auto expected = hmac_sha256_hex(_authSessionSecret, payload);
+		if (expected != signatureIt->second) {
+			return false;
+		}
+		{
+			std::lock_guard<std::mutex> lock(_authNonceMutex);
+			auto cutoff = std::chrono::steady_clock::now() - std::chrono::seconds(AuthSignatureTTLSeconds);
+			for (auto it = _authNonces.begin(); it != _authNonces.end();) {
+				if (it->second < cutoff) {
+					it = _authNonces.erase(it);
+				} else {
+					++it;
+				}
+			}
+			if (_authNonces.find(nonce) != _authNonces.end()) {
+				return false;
+			}
+			_authNonces.emplace(nonce, std::chrono::steady_clock::now());
+		}
+	} else if (!has_valid_auth(req, _authToken)) {
 		return false;
 	}
 	if (_authTokenHasExpiry) {
@@ -411,11 +568,107 @@ bool HttpServer::isTokenValid(const std::string& token) {
 	}
 	if (_authTokenHasExpiry && std::chrono::steady_clock::now() > _authTokenExpiry) {
 		_authToken.clear();
+		_authSessionId.clear();
+		_authSessionSecret.clear();
 		_authTokenHasExpiry = false;
 		return false;
 	}
-	if (token != _authToken) {
+	if (!_authSessionId.empty()) {
 		return false;
+	} else if (token != _authToken) {
+		return false;
+	}
+	if (_authTokenHasExpiry) {
+		_authTokenExpiry = std::chrono::steady_clock::now() + std::chrono::seconds(AuthTokenTTLSeconds);
+	}
+	return true;
+}
+
+bool HttpServer::isWebSocketAuthorized(const std::string& resource) {
+	if (!_authRequired) {
+		return true;
+	}
+	if (_authToken.empty()) {
+		return false;
+	}
+	if (_authTokenHasExpiry && std::chrono::steady_clock::now() > _authTokenExpiry) {
+		_authToken.clear();
+		_authSessionId.clear();
+		_authSessionSecret.clear();
+		_authTokenHasExpiry = false;
+		return false;
+	}
+	if (_authSessionId.empty()) {
+		auto token = get_query_param(resource, "auth"s);
+		return isTokenValid(token);
+	}
+	auto params = parse_query_pairs(resource);
+	std::string sessionId;
+	std::string timestamp;
+	std::string nonce;
+	std::string signature;
+	std::vector<std::pair<std::string, std::string>> signParams;
+	signParams.reserve(params.size());
+	for (const auto& param : params) {
+		if (param.first == "session"s) {
+			sessionId = param.second;
+		} else if (param.first == "ts"s) {
+			timestamp = param.second;
+		} else if (param.first == "nonce"s) {
+			nonce = param.second;
+		} else if (param.first == "sig"s) {
+			signature = param.second;
+		} else {
+			signParams.push_back(param);
+		}
+	}
+	if (sessionId.empty() || timestamp.empty() || nonce.empty() || signature.empty()) {
+		return false;
+	}
+	if (sessionId != _authSessionId) {
+		return false;
+	}
+	long long tsValue = 0;
+	try {
+		tsValue = std::stoll(timestamp);
+	} catch (...) {
+		return false;
+	}
+	auto now = std::chrono::system_clock::now();
+	auto nowSeconds = std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count();
+	if (std::llabs(nowSeconds - tsValue) > AuthSignatureTTLSeconds) {
+		return false;
+	}
+	auto pathEnd = resource.find('?');
+	auto path = pathEnd == std::string::npos ? resource : resource.substr(0, pathEnd);
+	signParams.emplace_back("nonce"s, nonce);
+	signParams.emplace_back("session"s, sessionId);
+	signParams.emplace_back("ts"s, timestamp);
+	auto canonicalPath = canonicalize_query(signParams);
+	if (!canonicalPath.empty()) {
+		canonicalPath = path + "?"s + canonicalPath;
+	} else {
+		canonicalPath = path;
+	}
+	auto payload = fmt::format("{}\nGET\n{}\n{}\n{}\n{}", sessionId, canonicalPath, timestamp, nonce, ""s);
+	auto expected = hmac_sha256_hex(_authSessionSecret, payload);
+	if (expected != signature) {
+		return false;
+	}
+	{
+		std::lock_guard<std::mutex> lock(_authNonceMutex);
+		auto cutoff = std::chrono::steady_clock::now() - std::chrono::seconds(AuthSignatureTTLSeconds);
+		for (auto it = _authNonces.begin(); it != _authNonces.end();) {
+			if (it->second < cutoff) {
+				it = _authNonces.erase(it);
+			} else {
+				++it;
+			}
+		}
+		if (_authNonces.find(nonce) != _authNonces.end()) {
+			return false;
+		}
+		_authNonces.emplace(nonce, std::chrono::steady_clock::now());
 	}
 	if (_authTokenHasExpiry) {
 		_authTokenExpiry = std::chrono::steady_clock::now() + std::chrono::seconds(AuthTokenTTLSeconds);
@@ -494,7 +747,7 @@ bool HttpServer::start(int port) {
 	if (success) {
 		for (const auto& post : _posts) {
 			server.Post(post.pattern, [this, &post](const httplib::Request& req, httplib::Response& res) {
-				if (req.path != "/auth"sv && !isAuthorized(req)) {
+				if (req.path != "/auth"sv && req.path != "/auth/confirm"sv && !isAuthorized(req)) {
 					set_unauthorized(res);
 					return;
 				}
@@ -527,7 +780,7 @@ bool HttpServer::start(int port) {
 		}
 		for (const auto& post : _postScheduled) {
 			server.Post(post.pattern, [this, &post](const httplib::Request& req, httplib::Response& res) {
-				if (req.path != "/auth"sv && !isAuthorized(req)) {
+				if (req.path != "/auth"sv && req.path != "/auth/confirm"sv && !isAuthorized(req)) {
 					set_unauthorized(res);
 					return;
 				}
@@ -569,7 +822,7 @@ bool HttpServer::start(int port) {
 		for (const auto& postFile : _files) {
 			server.Post(postFile.pattern,
 				[&](const httplib::Request& req, httplib::Response& res, const httplib::ContentReader& content_reader) {
-					if (req.path != "/auth"sv && !isAuthorized(req)) {
+					if (req.path != "/auth"sv && req.path != "/auth/confirm"sv && !isAuthorized(req)) {
 						set_unauthorized(res);
 						return;
 					}

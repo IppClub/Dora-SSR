@@ -9,6 +9,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include <chrono>
+#include <mutex>
+#include <unordered_map>
 
 namespace httplib {
 struct Request;
@@ -81,12 +83,18 @@ private:
 	friend class WebSocketServer;
 	std::string _wwwPath;
 	std::string _authToken;
+	std::string _authSessionId;
+	std::string _authSessionSecret;
 	bool _authRequired;
 	bool _authTokenHasExpiry;
 	std::chrono::steady_clock::time_point _authTokenExpiry;
 	static constexpr int AuthTokenTTLSeconds = 1800;
+	static constexpr int AuthSignatureTTLSeconds = 60;
+	std::unordered_map<std::string, std::chrono::steady_clock::time_point> _authNonces;
+	std::mutex _authNonceMutex;
 	bool isAuthorized(const httplib::Request& req);
 	bool isTokenValid(const std::string& token);
+	bool isWebSocketAuthorized(const std::string& resource);
 	std::list<Post> _posts;
 	std::list<PostScheduled> _postScheduled;
 	std::list<File> _files;

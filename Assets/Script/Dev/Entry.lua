@@ -1458,6 +1458,11 @@ local authCodeTTL = 30 -- 866
 _module_0.getAuthCode = function() -- 867
 	return authCode -- 867
 end -- 867
+_module_0.invalidateAuthCode = function() -- 868
+	authCode = string.format("%06d", math.random(0, 999999)) -- 869
+	authCodeTTL = 30 -- 870
+end -- 868
+local AuthSession = require("Script.Dev.AuthSession") -- 872
 local transparant = Color(0x0) -- 869
 local windowFlags = { -- 870
 	"NoTitleBar", -- 870
@@ -1693,17 +1698,38 @@ footerWindow = threadLoop(function() -- 897
 			local hovered = IsItemHovered() -- 1030
 			SameLine() -- 1031
 			local themeColor = App.themeColor -- 1032
-			PushStyleColor("Text", themeColor, function() -- 1033
-				ImGui.ProgressBar(authCodeTTL / 30, Vec2(60, -1), authCode) -- 1034
-				hovered = hovered or IsItemHovered() -- 1035
-			end) -- 1033
-			if hovered then -- 1036
-				return BeginTooltip(function() -- 1037
-					return PushTextWrapPos(280, function() -- 1038
-						return Text(zh and '在本机或是本地局域网连接的其他设备上，使用浏览器访问这个地址并输入后面的 PIN 码来使用 Web IDE' or 'You can use the Web IDE by accessing this address with the following PIN code in a browser on this machine or other devices connected to the local network') -- 1039
-					end) -- 1038
+			local pending = AuthSession.getPending() -- 1033
+			if pending then -- 1034
+				local remaining = math.max(0, pending.expiresAt - os.time()) -- 1035
+				local ttl = pending.ttl or 1 -- 1036
+				PushStyleColor("Text", themeColor, function() -- 1037
+					ImGui.ProgressBar(remaining / ttl, Vec2(60, -1), pending.confirmCode) -- 1038
+					hovered = hovered or IsItemHovered() -- 1039
 				end) -- 1037
-			end -- 1036
+				SameLine() -- 1040
+				if Button(zh and "确认" or "Approve", Vec2(70, 30)) then -- 1041
+					AuthSession.approvePending(pending.sessionId) -- 1042
+				end -- 1041
+				if hovered then -- 1043
+					return BeginTooltip(function() -- 1044
+						return PushTextWrapPos(280, function() -- 1045
+							return Text(zh and 'Web IDE 正在等待确认，请核对浏览器中的会话码并点击确认' or 'Web IDE is waiting for confirmation. Match the session code in the browser and click approve.') -- 1046
+						end) -- 1045
+					end) -- 1044
+				end -- 1043
+			else -- 1048
+				PushStyleColor("Text", themeColor, function() -- 1049
+					ImGui.ProgressBar(authCodeTTL / 30, Vec2(60, -1), authCode) -- 1050
+					hovered = hovered or IsItemHovered() -- 1051
+				end) -- 1049
+				if hovered then -- 1052
+					return BeginTooltip(function() -- 1053
+						return PushTextWrapPos(280, function() -- 1054
+							return Text(zh and '在本机或是本地局域网连接的其他设备上，使用浏览器访问这个地址并输入后面的 PIN 码来使用 Web IDE（PIN 仅用于一次认证）' or 'Open this address in a browser on this machine or another device on the local network and enter the PIN below to start the Web IDE (PIN is one-time).') -- 1055
+						end) -- 1054
+					end) -- 1053
+				end -- 1052
+			end -- 1034
 		end) -- 1018
 	end -- 1015
 	if not isInEntry then -- 1041

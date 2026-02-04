@@ -14,22 +14,22 @@ import * as Service from './Service';
 import i18n from './i18n';
 import Info from './Info';
 import Path from './3rdParty/Path';
-import AuthDialog, { AuthDialogProps } from './AuthDialog';
+import AuthDialog, { AuthDialogProps, AuthSession } from './AuthDialog';
 
 export const showAuthDialog = ({origFetch, onToken}: AuthDialogProps) => {
 	const container = document.createElement('div');
 	document.body.appendChild(container);
 	const modalRoot = ReactDOM.createRoot(container);
-	return new Promise<string>((resolve) => {
-		const cleanup = (nextToken: string) => {
+	return new Promise<AuthSession>((resolve) => {
+		const cleanup = (nextToken: AuthSession) => {
 			modalRoot.unmount();
 			container.remove();
 			resolve(nextToken);
 		};
 
-		const handleToken = (token: string) => {
-			onToken(token);
-			cleanup(token);
+		const handleToken = (session: AuthSession) => {
+			onToken(session);
+			cleanup(session);
 		};
 
 		modalRoot.render(<AuthDialog origFetch={origFetch} onToken={handleToken} />);
@@ -44,34 +44,59 @@ const setupAuth = async (): Promise<void> => {
 		const url = input instanceof Request ? input.url : String(input);
 		return url.includes('/auth');
 	};
-	const storageKey = 'doraWebAuthToken';
-	let token = localStorage.getItem(storageKey) || '';
+	const storageKey = 'doraWebAuthSession';
+	const parseSession = (raw: string | null): AuthSession | null => {
+		if (!raw) return null;
+		try {
+			const parsed = JSON.parse(raw) as AuthSession;
+			if (parsed && parsed.sessionId && parsed.sessionSecret) {
+				return parsed;
+			}
+		} catch (err) {
+			void err;
+		}
+		return null;
+	};
+	let session = parseSession(localStorage.getItem(storageKey));
 	let authRequired = hasAuthRequiredCookie();
-	let authInFlight: Promise<string> | null = null;
+	let authInFlight: Promise<AuthSession | null> | null = null;
+	let signingKeyPromise: Promise<CryptoKey> | null = null;
 
-	const setToken = (nextToken: string) => {
-		token = (nextToken || '').trim();
-		if (token) {
-			localStorage.setItem(storageKey, token);
+	const normalizeSession = (nextSession: AuthSession | null) => {
+		if (nextSession && nextSession.sessionId && nextSession.sessionSecret) {
+			return nextSession;
+		}
+		return null;
+	};
+
+	const setSession = (nextSession: AuthSession | null) => {
+		session = normalizeSession(nextSession);
+		signingKeyPromise = null;
+		if (session) {
+			localStorage.setItem(storageKey, JSON.stringify(session));
 		} else {
 			localStorage.removeItem(storageKey);
 		}
 	};
 
-	(window as any).__setDoraAuthToken = (nextToken: string) => {
-		setToken(nextToken);
+	(window as any).__setDoraAuthToken = (nextToken: AuthSession | string) => {
+		if (typeof nextToken === 'string') {
+			setSession(parseSession(nextToken));
+		} else {
+			setSession(nextToken);
+		}
 	};
 
 	const origFetch = window.fetch ? window.fetch.bind(window) : null;
-	let modalInFlight: Promise<string> | null = null;
+	let modalInFlight: Promise<AuthSession> | null = null;
 
 	const showAuthModal = () => {
-		if (!origFetch) return Promise.resolve('');
+		if (!origFetch) return Promise.resolve({sessionId: '', sessionSecret: ''});
 		Service.getWebSocket()?.close();
 		return showAuthDialog({
 			origFetch,
-			onToken: (nextToken) => {
-				setToken(nextToken);
+			onToken: (nextSession) => {
+				setSession(nextSession);
 			},
 		});
 	};
@@ -85,15 +110,15 @@ const setupAuth = async (): Promise<void> => {
 	};
 
 	const ensureAuth = (force: boolean) => {
-		if (!authRequired) return Promise.resolve(token);
-		if (token && !force) return Promise.resolve(token);
+		if (!authRequired) return Promise.resolve(session);
+		if (session && !force) return Promise.resolve(session);
 		if (!authInFlight) {
 			authInFlight = (() => {
 				let attempts = 0;
-				const tryAuth = (): Promise<string> => {
+				const tryAuth = (): Promise<AuthSession | null> => {
 					attempts += 1;
-					return requestAuthToken().then((nextToken) => {
-						if (nextToken || attempts >= 3) return nextToken;
+					return requestAuthToken().then((nextSession) => {
+						if ((nextSession && nextSession.sessionSecret) || attempts >= 3) return nextSession;
 						return tryAuth();
 					});
 				};
@@ -105,101 +130,165 @@ const setupAuth = async (): Promise<void> => {
 		return authInFlight;
 	};
 
+	const encoder = new TextEncoder();
+
+	const bufferToHex = (buffer: ArrayBuffer) =>
+		Array.from(new Uint8Array(buffer))
+			.map((byte) => byte.toString(16).padStart(2, '0'))
+			.join('');
+
+	const sha256Hex = async (data: Uint8Array) => {
+		if (!data.length) return '';
+		const hash = await crypto.subtle.digest('SHA-256', data);
+		return bufferToHex(hash);
+	};
+
+	const getSigningKey = async () => {
+		if (!session) return null;
+		if (!signingKeyPromise) {
+			signingKeyPromise = crypto.subtle.importKey(
+				'raw',
+				encoder.encode(session.sessionSecret),
+				{name: 'HMAC', hash: 'SHA-256'},
+				false,
+				['sign'],
+			);
+		}
+		return signingKeyPromise;
+	};
+
+	const hmacHex = async (payload: string) => {
+		if (!session) return '';
+		const key = await getSigningKey();
+		if (!key) return '';
+		const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(payload));
+		return bufferToHex(signature);
+	};
+
+	const canonicalizePath = (url: URL) => {
+		if (!url.searchParams || Array.from(url.searchParams).length === 0) {
+			return url.pathname;
+		}
+		const params = Array.from(url.searchParams.entries());
+		params.sort(([keyA, valueA], [keyB, valueB]) => {
+			const keySort = keyA.localeCompare(keyB);
+			if (keySort !== 0) return keySort;
+			return valueA.localeCompare(valueB);
+		});
+		const query = params
+			.map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+			.join('&');
+		return query ? `${url.pathname}?${query}` : url.pathname;
+	};
+
+	const getBodyBytes = async (request: Request) => {
+		if (request.method === 'GET' || request.method === 'HEAD') {
+			return new Uint8Array();
+		}
+		try {
+			const buffer = await request.clone().arrayBuffer();
+			return new Uint8Array(buffer);
+		} catch (err) {
+			void err;
+			return new Uint8Array();
+		}
+	};
+
+	const buildAuthHeaders = async (request: Request) => {
+		if (!session) return null;
+		const url = new URL(request.url, window.location.href);
+		const path = canonicalizePath(url);
+		const timestamp = Math.floor(Date.now() / 1000).toString();
+		const nonce = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(16).slice(2);
+		const bodyBytes = await getBodyBytes(request);
+		const bodyHash = await sha256Hex(bodyBytes);
+		const payload = [session.sessionId, request.method.toUpperCase(), path, timestamp, nonce, bodyHash].join('\n');
+		const signature = await hmacHex(payload);
+		return {
+			'X-Dora-Session': session.sessionId,
+			'X-Dora-Timestamp': timestamp,
+			'X-Dora-Nonce': nonce,
+			'X-Dora-Signature': signature,
+		};
+	};
+
 	if (origFetch) {
-		window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
-			const doFetch = () => {
-				let headers: Headers;
-				if (input instanceof Request) {
-					headers = new Headers(input.headers);
-					if (token) headers.set('X-Dora-Auth', token);
-					const next = new Request(input, {headers});
-					return origFetch(next, init);
+		window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+			const doFetch = async () => {
+				const request = input instanceof Request ? new Request(input, init) : new Request(input, init);
+				const headers = new Headers(request.headers);
+				if (session) {
+					const authHeaders = await buildAuthHeaders(request);
+					if (authHeaders) {
+						Object.entries(authHeaders).forEach(([key, value]) => headers.set(key, value));
+					}
 				}
-				headers = new Headers(init?.headers || {});
-				if (token) headers.set('X-Dora-Auth', token);
-				return origFetch(input, {...init, headers});
+				const next = new Request(request, {headers});
+				return origFetch(next);
 			};
 
-			if (authRequired && !token && !isAuthBypassUrl(input)) {
-				return ensureAuth(false).then(() =>
-					doFetch().then((res) => {
-						if (res.status === 401) {
-							return ensureAuth(true).then(() => doFetch());
-						}
-						return res;
-					})
-				);
-			}
-
-			return doFetch().then((res) => {
-				if (res.status === 401 && authRequired && !isAuthBypassUrl(input)) {
-					setToken('');
-					return ensureAuth(true).then(() => doFetch());
+			if (authRequired && !session && !isAuthBypassUrl(input)) {
+				await ensureAuth(false);
+				const res = await doFetch();
+				if (res.status === 401) {
+					await ensureAuth(true);
+					return doFetch();
 				}
 				return res;
-			});
+			}
+
+			const res = await doFetch();
+			if (res.status === 401 && authRequired && !isAuthBypassUrl(input)) {
+				setSession(null);
+				await ensureAuth(true);
+				return doFetch();
+			}
+			return res;
 		};
 	}
 
-	const origSend = XMLHttpRequest.prototype.send;
-	XMLHttpRequest.prototype.send = function (body?: XMLHttpRequestBodyInit | Document | null) {
-		try {
-			if (token) {
-				this.setRequestHeader('X-Dora-Auth', token);
-			}
-		} catch (err) {
-			void err;
-		}
-		return origSend.call(this, body as XMLHttpRequestBodyInit | Document | null | undefined);
+	const origOpen = XMLHttpRequest.prototype.open;
+	XMLHttpRequest.prototype.open = function (method: string, url: string | URL, ...rest: any[]) {
+		(this as any).__doraMethod = method;
+		(this as any).__doraUrl = url;
+		return origOpen.call(this, method, url as string, ...rest);
 	};
 
-	const OrigWebSocket = window.WebSocket;
-	if (OrigWebSocket) {
-		const WrappedWebSocket = function (url: string | URL, protocols?: string | string[]) {
-			if (token) {
+	const origSend = XMLHttpRequest.prototype.send;
+	XMLHttpRequest.prototype.send = function (body?: XMLHttpRequestBodyInit | Document | null) {
+		const xhr = this;
+		const sendWithAuth = async () => {
+			if (authRequired && !session && origFetch) {
+				await ensureAuth(true);
+			}
+			if (session) {
 				try {
-					const nextUrl = new URL(url, window.location.href);
-					if (!nextUrl.searchParams.has('auth')) {
-						nextUrl.searchParams.set('auth', token);
-					}
-					url = nextUrl.toString();
+					const method = String((xhr as any).__doraMethod || 'GET').toUpperCase();
+					const rawUrl = (xhr as any).__doraUrl || '';
+					const url = new URL(rawUrl, window.location.href);
+					const path = canonicalizePath(url);
+					const timestamp = Math.floor(Date.now() / 1000).toString();
+					const nonce = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(16).slice(2);
+					const bodyBuffer = body
+						? await new Response(body as BodyInit).arrayBuffer()
+						: new ArrayBuffer(0);
+					const bodyHash = await sha256Hex(new Uint8Array(bodyBuffer));
+					const payload = [session.sessionId, method, path, timestamp, nonce, bodyHash].join('\n');
+					const signature = await hmacHex(payload);
+					xhr.setRequestHeader('X-Dora-Session', session.sessionId);
+					xhr.setRequestHeader('X-Dora-Timestamp', timestamp);
+					xhr.setRequestHeader('X-Dora-Nonce', nonce);
+					xhr.setRequestHeader('X-Dora-Signature', signature);
 				} catch (err) {
 					void err;
-					const suffix = `${url.toString().includes('?') ? '&' : '?'}auth=${encodeURIComponent(token)}`;
-					url = `${url.toString()}${suffix}`;
 				}
 			}
-			const socket = protocols ? new OrigWebSocket(url, protocols) : new OrigWebSocket(url);
-			let opened = false;
-			socket.addEventListener('open', () => {
-				opened = true;
-			});
-			socket.addEventListener('close', () => {
-				if (!opened && authRequired && origFetch) {
-					void (async () => {
-						try {
-							const probe = await origFetch(Service.addr('/info'), {
-								method: 'POST',
-								headers: {'Content-Type': 'application/json'},
-								body: '{}',
-							});
-							if (probe.status === 401) {
-								setToken('');
-								await ensureAuth(true);
-							}
-						} catch (err) {
-							void err;
-						}
-					})();
-				}
-			});
-			return socket;
-		} as unknown as typeof WebSocket;
-		WrappedWebSocket.prototype = OrigWebSocket.prototype;
-		window.WebSocket = WrappedWebSocket;
-	}
+			origSend.call(xhr, body as XMLHttpRequestBodyInit | Document | null | undefined);
+		};
+		void sendWithAuth();
+	};
 
-	if (!authRequired && !token && origFetch) {
+	if (!authRequired && !session && origFetch) {
 		try {
 			const probe = await origFetch(Service.addr('/info'), {
 				method: 'POST',
@@ -214,8 +303,8 @@ const setupAuth = async (): Promise<void> => {
 		}
 	}
 
-	if (authRequired && !token && origFetch) {
-		while (authRequired && !token) {
+	if (authRequired && !session && origFetch) {
+		while (authRequired && !session) {
 			await ensureAuth(true);
 		}
 	}

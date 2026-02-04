@@ -78,13 +78,19 @@ i18n
 					},
 					auth: {
 						title: "Connect Dora Web IDE",
-						description: "Enter the 6-digit verification code shown in the engine window to complete authentication.",
+						description: "Enter the 6-digit PIN shown in the engine window to start authentication.",
+						confirmDescription: "Confirm the session code in the engine window to finish pairing.",
+						confirmCodeLabel: "Session code",
 						error: {
 							authFailed: "Authentication failed. Please try again.",
 							tooManyAttempts: "Too many attempts. Please retry after {{seconds}}s.",
 							codeInvalid: "Invalid verification code. Please try again.",
+							confirmExpired: "Confirmation expired. Please request a new PIN.",
 						},
 						waitRetry: "Please wait {{seconds}}s before retrying.",
+						waitConfirm: "Confirm within {{seconds}}s.",
+						waitingApproval: "Waiting for approval...",
+						awaitingApproval: "Awaiting approval...",
 						verifying: "Verifying...",
 					},
 					popup: {
@@ -397,13 +403,19 @@ i18n
 					},
 					auth: {
 						title: "连接 Dora Web IDE",
-						description: "请输入引擎窗口中显示的 6 位验证码完成验证。",
+						description: "输入引擎窗口中显示的 6 位 PIN 码以开始认证。",
+						confirmDescription: "在引擎窗口中确认会话码以完成绑定。",
+						confirmCodeLabel: "会话码",
 						error: {
 							authFailed: "认证失败，请重试",
 							tooManyAttempts: "尝试过于频繁，请 {{seconds}}s 后再试",
 							codeInvalid: "验证码错误，请重试",
+							confirmExpired: "确认超时，请重新获取 PIN。",
 						},
 						waitRetry: "请等待 {{seconds}}s 后重试",
+						waitConfirm: "请在 {{seconds}}s 内确认。",
+						waitingApproval: "等待确认中...",
+						awaitingApproval: "等待确认中...",
 						verifying: "验证中...",
 					},
 					popup: {
