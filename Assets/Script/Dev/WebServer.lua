@@ -30,12 +30,14 @@ local json <const> = json -- 10
 local emit <const> = emit -- 10
 local Wasm <const> = Wasm -- 10
 local Node <const> = Node -- 10
+local AuthSession = require("Script.Dev.AuthSession") -- 11
 HttpServer:stop() -- 12
 HttpServer.wwwPath = Path(Content.appPath, ".www") -- 14
 HttpServer.authRequired = true -- 16
 HttpServer.authToken = "" -- 17
 local authFailedCount = 0 -- 19
 local authLockedUntil = 0.0 -- 20
+local PendingTTL = 60 -- 21
 local genAuthToken -- 22
 genAuthToken = function() -- 22
 	local parts = { } -- 23
@@ -44,66 +46,155 @@ genAuthToken = function() -- 22
 	end -- 24
 	return table.concat(parts) -- 26
 end -- 22
-HttpServer:post("/auth", function(req) -- 28
-	local Entry = require("Script.Dev.Entry") -- 29
-	local authCode = Entry.getAuthCode() -- 30
-	local now = os.time() -- 31
-	if now < authLockedUntil then -- 32
-		return { -- 33
-			success = false, -- 33
-			message = "locked", -- 33
-			retryAfter = authLockedUntil - now -- 33
-		} -- 33
-	end -- 32
-	local code = nil -- 34
-	do -- 36
-		local _type_0 = type(req) -- 36
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 36
-		if _tab_0 then -- 36
-			do -- 36
-				local _obj_0 = req.body -- 36
-				local _type_1 = type(_obj_0) -- 36
-				if "table" == _type_1 or "userdata" == _type_1 then -- 36
-					code = _obj_0.code -- 36
-				end -- 36
-			end -- 36
-			if code ~= nil then -- 36
-				code = code -- 37
-			end -- 36
-		end -- 35
-	end -- 35
-	if code and tostring(code) == authCode then -- 38
-		authFailedCount = 0 -- 39
-		local token = genAuthToken() -- 40
-		HttpServer.authToken = token -- 41
+local genSessionId -- 28
+genSessionId = function() -- 28
+	local parts = { } -- 29
+	for _ = 1, 2 do -- 30
+		parts[#parts + 1] = string.format("%08x", math.random(0, 0x7fffffff)) -- 31
+	end -- 30
+	return table.concat(parts) -- 32
+end -- 28
+local genConfirmCode -- 34
+genConfirmCode = function() -- 34
+	return string.format("%04d", math.random(0, 9999)) -- 35
+end -- 34
+HttpServer:post("/auth", function(req) -- 37
+	local Entry = require("Script.Dev.Entry") -- 38
+	local authCode = Entry.getAuthCode() -- 39
+	local now = os.time() -- 40
+	if now < authLockedUntil then -- 41
 		return { -- 42
-			success = true, -- 42
-			token = token -- 42
+			success = false, -- 42
+			message = "locked", -- 42
+			retryAfter = authLockedUntil - now -- 42
 		} -- 42
-	else -- 44
-		authFailedCount = authFailedCount + 1 -- 44
-		if authFailedCount >= 3 then -- 45
-			authFailedCount = 0 -- 46
-			authLockedUntil = now + 30 -- 47
-			return { -- 48
-				success = false, -- 48
-				message = "locked", -- 48
-				retryAfter = 30 -- 48
-			} -- 48
-		end -- 45
-		return { -- 49
-			success = false, -- 49
-			message = "invalid code" -- 49
-		} -- 49
-	end -- 38
-end) -- 28
-local LintYueGlobals, CheckTIC80Code -- 51
-do -- 51
-	local _obj_0 = require("Utils") -- 51
-	LintYueGlobals, CheckTIC80Code = _obj_0.LintYueGlobals, _obj_0.CheckTIC80Code -- 51
-end -- 51
-local getProjectDirFromFile -- 53
-getProjectDirFromFile = function(file) -- 53
+	end -- 41
+	local code = nil -- 43
+	do -- 45
+		local _type_0 = type(req) -- 45
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 45
+		if _tab_0 then -- 45
+			do -- 45
+				local _obj_0 = req.body -- 45
+				local _type_1 = type(_obj_0) -- 45
+				if "table" == _type_1 or "userdata" == _type_1 then -- 45
+					code = _obj_0.code -- 45
+				end -- 45
+			end -- 45
+			if code ~= nil then -- 45
+				code = code -- 46
+			end -- 45
+		end -- 44
+	end -- 44
+	if code and tostring(code) == authCode then -- 47
+		authFailedCount = 0 -- 48
+		Entry.invalidateAuthCode() -- 49
+		local pending = AuthSession.getPending() -- 50
+		if pending and now < pending.expiresAt and not pending.approved then -- 51
+			return { -- 52
+				success = true, -- 52
+				pending = true, -- 52
+				sessionId = pending.sessionId, -- 52
+				confirmCode = pending.confirmCode, -- 52
+				expiresIn = pending.expiresAt - now -- 52
+			} -- 52
+		end -- 51
+		local sessionId = genSessionId() -- 53
+		local confirmCode = genConfirmCode() -- 54
+		AuthSession.beginPending(sessionId, confirmCode, now + PendingTTL, PendingTTL) -- 55
+		return { -- 56
+			success = true, -- 56
+			pending = true, -- 56
+			sessionId = sessionId, -- 56
+			confirmCode = confirmCode, -- 56
+			expiresIn = PendingTTL -- 56
+		} -- 56
+	else -- 58
+		authFailedCount = authFailedCount + 1 -- 58
+		if authFailedCount >= 3 then -- 59
+			authFailedCount = 0 -- 60
+			authLockedUntil = now + 30 -- 61
+			return { -- 62
+				success = false, -- 62
+				message = "locked", -- 62
+				retryAfter = 30 -- 62
+			} -- 62
+		end -- 59
+		return { -- 63
+			success = false, -- 63
+			message = "invalid code" -- 63
+		} -- 63
+	end -- 47
+end) -- 37
+HttpServer:post("/auth/confirm", function(req) -- 65
+	local now = os.time() -- 66
+	local sessionId = nil -- 67
+	do -- 69
+		local _type_0 = type(req) -- 69
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 69
+		if _tab_0 then -- 69
+			do -- 69
+				local _obj_0 = req.body -- 69
+				local _type_1 = type(_obj_0) -- 69
+				if "table" == _type_1 or "userdata" == _type_1 then -- 69
+					sessionId = _obj_0.sessionId -- 69
+				end -- 69
+			end -- 69
+			if sessionId ~= nil then -- 69
+				sessionId = sessionId -- 70
+			end -- 69
+		end -- 68
+	end -- 68
+	if not sessionId then -- 71
+		return { -- 72
+			success = false, -- 72
+			message = "invalid session" -- 72
+		} -- 72
+	end -- 71
+	local pending = AuthSession.getPending() -- 73
+	if pending then -- 74
+		if pending.sessionId ~= sessionId then -- 75
+			return { -- 76
+				success = false, -- 76
+				message = "invalid session" -- 76
+			} -- 76
+		end -- 75
+		if now >= pending.expiresAt then -- 77
+			AuthSession.clearPending() -- 78
+			return { -- 79
+				success = false, -- 79
+				message = "expired" -- 79
+			} -- 79
+		end -- 77
+		if pending.approved then -- 80
+			local secret = genAuthToken() -- 81
+			HttpServer.authToken = sessionId .. ":" .. secret -- 82
+			AuthSession.setSession(sessionId, secret) -- 83
+			AuthSession.clearPending() -- 84
+			return { -- 85
+				success = true, -- 85
+				sessionId = sessionId, -- 85
+				sessionSecret = secret -- 85
+			} -- 85
+		end -- 80
+		return { -- 86
+			success = false, -- 86
+			message = "pending", -- 86
+			retryAfter = 2 -- 86
+		} -- 86
+	end -- 74
+	return { -- 87
+		success = false, -- 87
+		message = "invalid session" -- 87
+	} -- 87
+end) -- 65
+local LintYueGlobals, CheckTIC80Code -- 89
+do -- 89
+	local _obj_0 = require("Utils") -- 89
+	LintYueGlobals, CheckTIC80Code = _obj_0.LintYueGlobals, _obj_0.CheckTIC80Code -- 89
+end -- 89
+local getProjectDirFromFile -- 91
+getProjectDirFromFile = function(file) -- 91
 	local writablePath, assetPath = Content.writablePath, Content.assetPath -- 54
 	local parent, current -- 55
 	if (".." ~= Path:getRelative(file, writablePath):sub(1, 2)) and writablePath == file:sub(1, #writablePath) then -- 55

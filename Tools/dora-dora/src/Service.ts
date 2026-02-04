@@ -36,6 +36,71 @@ function wsUrl() {
 	return url;
 }
 
+type AuthSession = {
+	sessionId: string;
+	sessionSecret: string;
+};
+
+const parseSession = (raw: string | null): AuthSession | null => {
+	if (!raw) return null;
+	try {
+		const parsed = JSON.parse(raw) as AuthSession;
+		if (parsed && parsed.sessionId && parsed.sessionSecret) {
+			return parsed;
+		}
+	} catch (err) {
+		void err;
+	}
+	return null;
+};
+
+const canonicalizePath = (url: URL) => {
+	if (!url.searchParams || Array.from(url.searchParams).length === 0) {
+		return url.pathname;
+	}
+	const params = Array.from(url.searchParams.entries());
+	params.sort(([keyA, valueA], [keyB, valueB]) => {
+		const keySort = keyA.localeCompare(keyB);
+		if (keySort !== 0) return keySort;
+		return valueA.localeCompare(valueB);
+	});
+	const query = params
+		.map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+		.join('&');
+	return query ? `${url.pathname}?${query}` : url.pathname;
+};
+
+const hmacHex = async (secret: string, payload: string) => {
+	const encoder = new TextEncoder();
+	const key = await crypto.subtle.importKey(
+		'raw',
+		encoder.encode(secret),
+		{name: 'HMAC', hash: 'SHA-256'},
+		false,
+		['sign'],
+	);
+	const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(payload));
+	return Array.from(new Uint8Array(signature))
+		.map((byte) => byte.toString(16).padStart(2, '0'))
+		.join('');
+};
+
+const buildWebSocketUrl = async (baseUrl: string, session: AuthSession) => {
+	const url = new URL(baseUrl, window.location.href);
+	const timestamp = Math.floor(Date.now() / 1000).toString();
+	const nonce = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(16).slice(2);
+	const params = new URLSearchParams(url.searchParams);
+	params.set('session', session.sessionId);
+	params.set('ts', timestamp);
+	params.set('nonce', nonce);
+	const path = canonicalizePath(new URL(`${url.origin}${url.pathname}?${params.toString()}`));
+	const payload = [session.sessionId, 'GET', path, timestamp, nonce, ''].join('\n');
+	const signature = await hmacHex(session.sessionSecret, payload);
+	params.set('sig', signature);
+	url.search = params.toString();
+	return url.toString();
+};
+
 const WsOpenEvent = "Open";
 const WsCloseEvent = "Close";
 
@@ -115,88 +180,96 @@ export function openWebSocket() {
 	let connected = false;
 	const connect = () => {
 		connected = false;
-		const storageKey = 'doraWebAuthToken';
-		let token = localStorage.getItem(storageKey) || '';
-		if (token === '') {
+		const storageKey = 'doraWebAuthSession';
+		const session = parseSession(localStorage.getItem(storageKey));
+		if (!session) {
 			setTimeout(connect, 1000);
 			return;
 		}
-		webSocket = new WebSocket(wsUrl());
-		webSocket.onmessage = async function(evt: MessageEvent) {
-			let dataStr: string;
-			if (evt.data instanceof ArrayBuffer) {
-				const decoder = new TextDecoder("utf-8");
-				dataStr = decoder.decode(evt.data);
-			} else if (typeof evt.data === "string") {
-				dataStr = evt.data;
-			} else if (evt.data instanceof Blob) {
-				dataStr = await evt.data.text();
-			} else {
-				return;
-			}
-			let result: any;
+		void (async () => {
 			try {
-				result = JSON.parse(dataStr);
-			} catch (e) {
-				console.error("Failed to parse WebSocket message:", e, dataStr);
-				return;
-			}
-			if (result && typeof result === "object" && "name" in result) {
-				switch (result.name) {
-					case WsEvent.Log: {
-						logText += result.text as string;
-						eventEmitter.emit(result.name, result.text, logText);
-						break;
+				const signedUrl = await buildWebSocketUrl(wsUrl(), session);
+				webSocket = new WebSocket(signedUrl);
+				webSocket.onmessage = async function(evt: MessageEvent) {
+					let dataStr: string;
+					if (evt.data instanceof ArrayBuffer) {
+						const decoder = new TextDecoder("utf-8");
+						dataStr = decoder.decode(evt.data);
+					} else if (typeof evt.data === "string") {
+						dataStr = evt.data;
+					} else if (evt.data instanceof Blob) {
+						dataStr = await evt.data.text();
+					} else {
+						return;
 					}
-					case WsEvent.Profiler: {
-						eventEmitter.emit(result.name, result.info);
-						break;
+					let result: any;
+					try {
+						result = JSON.parse(dataStr);
+					} catch (e) {
+						console.error("Failed to parse WebSocket message:", e, dataStr);
+						return;
 					}
-					case WsEvent.UpdateTSCode: {
-						eventEmitter.emit(result.name, result.file, result.content);
-						break;
-					}
-					case WsEvent.Download: {
-						eventEmitter.emit(result.name, result.url, result.status, result.progress);
-						break;
-					}
-					case WsEvent.TranspileTS: {
-						const {transpileTypescript, getDiagnosticMessage} = await import('./TranspileTS');
-						const {file, content} = result;
-						if (typeof file === 'string' && typeof content === 'string') {
-							const {success, luaCode, diagnostics} = await transpileTypescript(file, content);
-							let data = "";
-							if (success) {
-								data = JSON.stringify({name: WsEvent.TranspileTS, success, luaCode, message: ""});
-							} else {
-								const message = await getDiagnosticMessage(file, diagnostics);
-								data = JSON.stringify({name: WsEvent.TranspileTS, success, luaCode: "", message});
+					if (result && typeof result === "object" && "name" in result) {
+						switch (result.name) {
+							case WsEvent.Log: {
+								logText += result.text as string;
+								eventEmitter.emit(result.name, result.text, logText);
+								break;
 							}
-							webSocket.send(new Blob([data]));
+							case WsEvent.Profiler: {
+								eventEmitter.emit(result.name, result.info);
+								break;
+							}
+							case WsEvent.UpdateTSCode: {
+								eventEmitter.emit(result.name, result.file, result.content);
+								break;
+							}
+							case WsEvent.Download: {
+								eventEmitter.emit(result.name, result.url, result.status, result.progress);
+								break;
+							}
+							case WsEvent.TranspileTS: {
+								const {transpileTypescript, getDiagnosticMessage} = await import('./TranspileTS');
+								const {file, content} = result;
+								if (typeof file === 'string' && typeof content === 'string') {
+									const {success, luaCode, diagnostics} = await transpileTypescript(file, content);
+									let data = "";
+									if (success) {
+										data = JSON.stringify({name: WsEvent.TranspileTS, success, luaCode, message: ""});
+									} else {
+										const message = await getDiagnosticMessage(file, diagnostics);
+										data = JSON.stringify({name: WsEvent.TranspileTS, success, luaCode: "", message});
+									}
+									webSocket.send(new Blob([data]));
+								}
+								break;
+							}
+							default: {
+								eventEmitter.emit(result.name, result);
+								break;
+							}
 						}
-						break;
 					}
-					default: {
-						eventEmitter.emit(result.name, result);
-						break;
+				};
+				webSocket.onopen = () => {
+					connected = true;
+					eventEmitter.emit(WsOpenEvent);
+				};
+				webSocket.onclose = () => {
+					if (connected) {
+						connected = false;
+						eventEmitter.emit(WsCloseEvent);
 					}
-				}
+					setTimeout(connect, 1000);
+				};
+				webSocket.onerror = () => {
+					webSocket.close();
+				};
+			} catch (err) {
+				void err;
+				setTimeout(connect, 1000);
 			}
-		};
-		webSocket.onopen = () => {
-			connected = true;
-			eventEmitter.emit(WsOpenEvent);
-		};
-		webSocket.onclose = () => {
-			if (connected) {
-				connected = false;
-				eventEmitter.emit(WsCloseEvent);
-			}
-			setTimeout(connect, 1000);
-		};
-		webSocket.onerror = () => {
-			webSocket.close();
-		};
+		})();
 	};
 	connect();
 };

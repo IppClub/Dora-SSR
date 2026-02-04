@@ -8,6 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 _ENV = Dora
 import global
+import "Script.Dev.AuthSession"
 
 HttpServer\stop!
 
@@ -19,11 +20,22 @@ HttpServer.authToken = ""
 authFailedCount = 0
 authLockedUntil = 0.0
 
+PendingTTL = 60
+
 genAuthToken = ->
 	parts = {}
 	for _ = 1, 4
 		parts[] = string.format "%08x", math.random 0, 0x7fffffff
 	table.concat parts
+
+genSessionId = ->
+	parts = {}
+	for _ = 1, 2
+		parts[] = string.format "%08x", math.random 0, 0x7fffffff
+	table.concat parts
+
+genConfirmCode = ->
+	string.format "%04d", math.random 0, 9999
 
 HttpServer\post "/auth", (req) ->
 	import "Script.Dev.Entry"
@@ -37,9 +49,14 @@ HttpServer\post "/auth", (req) ->
 			code = code
 	if code and tostring(code) == authCode
 		authFailedCount = 0
-		token = genAuthToken!
-		HttpServer.authToken = token
-		return success: true, token: token
+		Entry.invalidateAuthCode!
+		if pending := AuthSession.getPending!
+			if now < pending.expiresAt and not pending.approved
+				return success: true, pending: true, sessionId: pending.sessionId, confirmCode: pending.confirmCode, expiresIn: pending.expiresAt - now
+		sessionId = genSessionId!
+		confirmCode = genConfirmCode!
+		AuthSession.beginPending sessionId, confirmCode, now + PendingTTL, PendingTTL
+		return success: true, pending: true, sessionId: sessionId, confirmCode: confirmCode, expiresIn: PendingTTL
 	else
 		authFailedCount += 1
 		if authFailedCount >= 3
@@ -47,6 +64,29 @@ HttpServer\post "/auth", (req) ->
 			authLockedUntil = now + 30
 			return success: false, message: "locked", retryAfter: 30
 		return success: false, message: "invalid code"
+
+HttpServer\post "/auth/confirm", (req) ->
+	now = os.time!
+	sessionId = nil
+	switch req
+		when {body: {:sessionId}}
+			sessionId = sessionId
+	unless sessionId
+		return success: false, message: "invalid session"
+	if pending := AuthSession.getPending!
+		if pending.sessionId ~= sessionId
+			return success: false, message: "invalid session"
+		if now >= pending.expiresAt
+			AuthSession.clearPending!
+			return success: false, message: "expired"
+		if pending.approved
+			secret = genAuthToken!
+			HttpServer.authToken = "#{sessionId}:#{secret}"
+			AuthSession.setSession sessionId, secret
+			AuthSession.clearPending!
+			return success: true, sessionId: sessionId, sessionSecret: secret
+		return success: false, message: "pending", retryAfter: 2
+	return success: false, message: "invalid session"
 
 from "Utils" import LintYueGlobals, CheckTIC80Code
 
