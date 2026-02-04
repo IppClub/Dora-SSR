@@ -49,6 +49,7 @@ import { EditorTheme } from './Editor';
 import CodeIcon from '@mui/icons-material/Code';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import LLMConfigDialog from './LLMConfigDialog';
 
 const SpinePlayer = React.lazy(() => import('./SpinePlayer'));
 const Markdown = React.lazy(() => import('./Markdown'));
@@ -336,6 +337,7 @@ export default function PersistentDrawerLeft() {
 	const [openFilter, setOpenFilter] = useState(false);
 	const [leftDockTab, setLeftDockTab] = useState<"explorer" | "search">("explorer");
 	const [filterOptions, setFilterOptions] = useState<FilterOption[] | null>(null);
+	const [openLLMConfig, setOpenLLMConfig] = useState(false);
 	const {width: drawerWidth, enableResize, isResizing} = useResize({minWidth: 150, defaultWidth: Info.drawerWidth});
 	const [winSize, setWinSize] = useState({
 		width: window.innerWidth,
@@ -2536,6 +2538,10 @@ export default function PersistentDrawerLeft() {
 	}, [openLog, t, tabIndex, files]);
 
 	const onPlayControlClick = useCallback((mode: PlayControlMode, noLog?: boolean) => {
+		if (mode === "LLM Config") {
+			setOpenLLMConfig(true);
+			return;
+		}
 		if (mode === "Go to File") {
 			setOpenFilter(true);
 			return;
@@ -3044,6 +3050,7 @@ export default function PersistentDrawerLeft() {
 				</DialogActions>
 			</Dialog>
 			<NewFileDialog open={openNewFile !== null} onClose={onNewFileClose}/>
+			<LLMConfigDialog open={openLLMConfig} onClose={() => setOpenLLMConfig(false)}/>
 			<Box sx={{display: "flex", width: '100%', height: '100%'}}>
 				<CssBaseline/>
 				<AppBar

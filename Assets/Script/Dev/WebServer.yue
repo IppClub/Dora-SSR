@@ -605,6 +605,80 @@ HttpServer\post "/info", ->
 		:webProfiler
 		:drawerWidth
 
+ensureLLMConfigTable = ->
+	DB\exec [[
+		CREATE TABLE IF NOT EXISTS LLMConfig(
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			name TEXT NOT NULL,
+			url TEXT NOT NULL,
+			model TEXT NOT NULL,
+			api_key TEXT NOT NULL,
+			created_at INTEGER,
+			updated_at INTEGER
+		);
+	]]
+
+HttpServer\post "/llm/list", ->
+	ensureLLMConfigTable!
+	rows = DB\query "
+		select id, name, url, model, api_key
+		from LLMConfig
+		order by id asc"
+	items = if rows and #rows > 0
+		for [id, name, url, model, key] in *rows
+			:id, :name, :url, :model, :key
+	return success: true, :items
+
+HttpServer\post "/llm/create", (req): success: false, message: "invalid" ->
+	ensureLLMConfigTable!
+	switch req when {body: {:name, :url, :model, :key}}
+		now = os.time!
+		if name == nil or url == nil or model == nil or key == nil
+			return success: false, message: "invalid"
+		affected = DB\exec "
+			insert into LLMConfig (
+				name, url, model, api_key, created_at, updated_at
+			) values (
+				?, ?, ?, ?, ?, ?
+			)", [
+			tostring name
+			tostring url
+			tostring model
+			tostring key
+			now
+			now
+		]
+		return success: affected >= 0
+
+HttpServer\post "/llm/update", (req): success: false, message: "invalid" ->
+	ensureLLMConfigTable!
+	switch req when {body: {:id, :name, :url, :model, :key}}
+		now = os.time!
+		id = tonumber id
+		if id == nil
+			return success: false, message: "invalid"
+		affected = DB\exec "
+			update LLMConfig
+			set name = ?, url = ?, model = ?, api_key = ?, updated_at = ?
+			where id = ?", [
+			tostring name
+			tostring url
+			tostring model
+			tostring key
+			now
+			id
+		]
+		return success: affected >= 0
+
+HttpServer\post "/llm/delete", (req): success: false, message: "invalid" ->
+	ensureLLMConfigTable!
+	switch req when {body: {:id}}
+		id = tonumber id
+		if id == nil
+			return success: false, message: "invalid"
+		affected = DB\exec "delete from LLMConfig where id = ?", [id,]
+		return success: affected >= 0
+
 HttpServer\post "/new", (req): success: false, message: "Failed" ->
 	switch req when {body: {:path, :content, :folder}}
 		if Content\exist path

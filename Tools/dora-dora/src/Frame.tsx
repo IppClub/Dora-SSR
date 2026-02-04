@@ -11,7 +11,7 @@ import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
 import Stack from '@mui/system/Stack';
 import { Divider, IconButton, ListItemIcon, ListItemText, Toolbar } from '@mui/material';
 import SportsEsports from '@mui/icons-material/SportsEsports';
-import { BsFillFileEarmarkPlayFill, BsPlayCircle, BsStopCircle, BsSearch, BsTerminal } from 'react-icons/bs';
+import { BsFillFileEarmarkPlayFill, BsPlayCircle, BsStopCircle, BsSearch, BsTerminal, BsGear } from 'react-icons/bs';
 import { StyledMenu, StyledMenuItem } from './Menu';
 import { memo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -93,7 +93,7 @@ export const DrawerHeader = styled('div')(({ theme }) => ({
 	justifyContent: 'flex-end',
 }));
 
-export type PlayControlMode = "Run" | "Run This" | "Stop" | "Go to File" | "View Log";
+export type PlayControlMode = "Run" | "Run This" | "Stop" | "Go to File" | "View Log" | "LLM Config";
 
 export interface PlayControlProp {
 	width: number;
@@ -146,6 +146,12 @@ export const PlayControl = memo((prop: PlayControlProp) => {
 			{Info.version ?
 				<p style={{textAlign: "center", opacity: 0.6, fontSize: "12px", margin: '5px'}}>{t("menu.version", {version: Info.version})}</p> : null
 			}
+			<StyledMenuItem onClick={onClose("LLM Config")}>
+				<ListItemIcon>
+					<BsGear/>
+				</ListItemIcon>
+				<ListItemText primary={ t("menu.llmConfig") }/>
+			</StyledMenuItem>
 			<StyledMenuItem onClick={onClose("Go to File")}>
 				<ListItemIcon>
 					<BsSearch/>

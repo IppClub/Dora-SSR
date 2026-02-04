@@ -398,6 +398,43 @@ export const info = () => {
 	return post<InfoResponse>("/info");
 };
 
+// LLM Config
+
+export interface LLMConfigItem {
+	id: number;
+	name: string;
+	url: string;
+	model: string;
+	key: string;
+}
+
+export interface LLMConfigListResponse {
+	success: boolean;
+	items?: LLMConfigItem[];
+	message?: string;
+}
+
+export interface LLMConfigWriteResponse {
+	success: boolean;
+	message?: string;
+}
+
+export const listLLMConfigs = () => {
+	return post<LLMConfigListResponse>("/llm/list");
+};
+
+export const createLLMConfig = (item: Omit<LLMConfigItem, "id">) => {
+	return post<LLMConfigWriteResponse>("/llm/create", item);
+};
+
+export const updateLLMConfig = (item: LLMConfigItem) => {
+	return post<LLMConfigWriteResponse>("/llm/update", item);
+};
+
+export const deleteLLMConfig = (id: number) => {
+	return post<LLMConfigWriteResponse>("/llm/delete", {id});
+};
+
 // Read
 
 export interface ReadRequest {
