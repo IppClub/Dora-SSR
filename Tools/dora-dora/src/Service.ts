@@ -352,11 +352,10 @@ async function post<T>(url: string, data: any = {}) {
 	return json;
 };
 
-function postSync<T>(url: string, data: any): T | null {
+function getSync<T>(url: string, params: URLSearchParams): T | null {
 	const xhr = new XMLHttpRequest();
-	xhr.open('POST', addr(url), false);
-	xhr.setRequestHeader('Content-Type', 'application/json');
-	xhr.send(JSON.stringify(data));
+	xhr.open('GET', addr(url) + '?' + params.toString(), false);
+	xhr.send();
 	if (xhr.status === 200) {
 		try {
 			const json = JSON.parse(xhr.responseText);
@@ -366,7 +365,7 @@ function postSync<T>(url: string, data: any): T | null {
 			return null;
 		}
 	} else {
-		throw new Error('failed to post: ' + xhr.status);
+		throw new Error('failed to get: ' + xhr.status);
 	}
 }
 
@@ -539,8 +538,14 @@ export type ReadSyncResponse =  {
 	fullPath: string;
 };
 export const readSync = (req: ReadSyncRequest) => {
-	const {path, exts = [""], projFile} = req;
-	return postSync<ReadSyncResponse>("/read-sync", {path, exts, projFile});
+	const {path} = req;
+	const exts = req.exts ? req.exts.join("|") : "";
+	const projFile = req.projFile ? req.projFile : "";
+	const params = new URLSearchParams();
+	params.set('path', path);
+	if (exts !== "") params.set('exts', exts);
+	if (projFile !== "") params.set('projFile', projFile);
+	return getSync<ReadSyncResponse>("/read-sync", params);
 };
 
 // Write

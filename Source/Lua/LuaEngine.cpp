@@ -1068,6 +1068,7 @@ LuaEngine::LuaEngine()
 
 		tolua_beginmodule(L, "HttpServer");
 		{
+			tolua_function(L, "get", HttpServer_get);
 			tolua_function(L, "post", HttpServer_post);
 			tolua_function(L, "postSchedule", HttpServer_postSchedule);
 			tolua_function(L, "upload", HttpServer_upload);
