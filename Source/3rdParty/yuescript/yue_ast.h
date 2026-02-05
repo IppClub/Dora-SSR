@@ -940,8 +940,8 @@ AST_LEAF(YueMultilineComment)
 AST_END(YueMultilineComment)
 
 AST_NODE(YueComment)
-	ast_sel<true, YueLineComment_t, YueMultilineComment_t> comment;
-	AST_MEMBER(YueComment, &comment)
+	ast_sel_list<true, YueLineComment_t, YueMultilineComment_t> comments;
+	AST_MEMBER(YueComment, &comments)
 AST_END(YueComment)
 
 AST_LEAF(EmptyLine)

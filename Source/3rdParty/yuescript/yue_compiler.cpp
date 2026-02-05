@@ -78,7 +78,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.32.7"sv;
+const std::string_view version = "0.32.8"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -1742,23 +1742,26 @@ private:
 		if (!_config.reserveComment) {
 			return;
 		}
-		auto node = comment->comment.get();
-		if (!node) {
+		if (comment->comments.empty()) {
 			out.push_back("\n"s);
 			return;
 		}
-		switch (node->get_id()) {
-			case id<YueLineComment_t>(): {
-				auto content = static_cast<YueLineComment_t*>(node);
-				out.push_back(indent() + "--"s + _parser.toString(content) + '\n');
-				break;
-			}
-			case id<YueMultilineComment_t>(): {
-				auto content = static_cast<YueMultilineComment_t*>(node);
-				out.push_back(indent() + "--[["s + _parser.toString(content) + "]]\n"s);
-				break;
+		str_list temp;
+		for (auto node : comment->comments.objects()) {
+			switch (node->get_id()) {
+				case id<YueLineComment_t>(): {
+					auto content = static_cast<YueLineComment_t*>(node);
+					temp.emplace_back(indent() + "--"s + _parser.toString(content));
+					break;
+				}
+				case id<YueMultilineComment_t>(): {
+					auto content = static_cast<YueMultilineComment_t*>(node);
+					temp.emplace_back(indent() + "--[["s + _parser.toString(content) + "]]"s);
+					break;
+				}
 			}
 		}
+		out.push_back(join(temp, " "sv) + '\n');
 	}
 
 	void transformStatement(Statement_t* statement, str_list& out) {
