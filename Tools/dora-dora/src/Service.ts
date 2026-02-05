@@ -10,6 +10,11 @@ import type { TreeDataType } from "./FileTree";
 import { ProfilerInfo } from "./ProfilerInfo";
 import { TypedEmitter } from "./utils/typedEmitter";
 
+let authRequired = false;
+export const setAuthRequired = (required: boolean) => {
+	authRequired = required;
+};
+
 let webSocket: WebSocket;
 export const getWebSocket = () => webSocket ? webSocket : null;
 
@@ -180,16 +185,23 @@ export function openWebSocket() {
 	let connected = false;
 	const connect = () => {
 		connected = false;
-		const storageKey = 'doraWebAuthSession';
-		const session = parseSession(localStorage.getItem(storageKey));
-		if (!session) {
-			setTimeout(connect, 1000);
-			return;
+		let session: AuthSession | null = null;
+		if (authRequired) {
+			const storageKey = 'doraWebAuthSession';
+			session = parseSession(localStorage.getItem(storageKey));
+			if (!session) {
+				setTimeout(connect, 1000);
+				return;
+			}
 		}
 		void (async () => {
 			try {
-				const signedUrl = await buildWebSocketUrl(wsUrl(), session);
-				webSocket = new WebSocket(signedUrl);
+				if (session) {
+					const signedUrl = await buildWebSocketUrl(wsUrl(), session);
+					webSocket = new WebSocket(signedUrl);
+				} else {
+					webSocket = new WebSocket(wsUrl());
+				}
 				webSocket.onmessage = async function(evt: MessageEvent) {
 					let dataStr: string;
 					if (evt.data instanceof ArrayBuffer) {

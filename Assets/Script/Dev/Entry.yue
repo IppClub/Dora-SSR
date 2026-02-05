@@ -74,6 +74,7 @@ config = Config(
 	"writablePath"
 	"webIDEConnected"
 	"showPreview"
+	"authRequired"
 )
 config\load!
 
@@ -105,6 +106,10 @@ else
 
 unless config.showPreview?
 	config.showPreview = true
+
+unless config.authRequired?
+	config.authRequired = true
+HttpServer.authRequired = config.authRequired
 
 showEntry = true
 
@@ -735,6 +740,7 @@ reloadCurrentEntry = ->
 		enterDemoEntry currentEntry
 
 Director.clearColor = Color 0xff1a1a1a
+descColor = Color 0xffa1a1a1
 
 extraOperations = do
 	isOSSLicenseExist = Content\exist "LICENSES"
@@ -755,7 +761,7 @@ extraOperations = do
 			if changed, alwaysOnTop := Checkbox zh and "窗口置顶" or "Always On Top", alwaysOnTop
 				App.alwaysOnTop = alwaysOnTop
 				config.alwaysOnTop = alwaysOnTop
-		:showPreview = config
+		:showPreview, :authRequired = config
 		if changed, showPreview := Checkbox zh and "显示预览图" or "Show Preview", showPreview
 			config.showPreview = showPreview
 			updateEntries!
@@ -763,6 +769,15 @@ extraOperations = do
 				thread ->
 					collectgarbage!
 					Cache\removeUnused "Texture"
+		if changed, authRequired := Checkbox zh and "访问验证" or "Auth Required", authRequired
+			config.authRequired = authRequired
+			HttpServer.authRequired = authRequired
+		SameLine!
+		TextColored descColor, "(?)"
+		if IsItemHovered!
+			<- BeginTooltip
+			<- PushTextWrapPos 280
+			Text zh and '请勿在不安全的网络中关闭该选项' or 'Do not turn off this option on an insecure network'
 		do
 			:themeColor = App
 			:writablePath = config
@@ -859,7 +874,6 @@ thread -> iconTex = Texture2D icon if Cache\loadAsync icon
 
 webStatus = nil
 urlClicked = nil
-descColor = Color 0xffa1a1a1
 
 authCode = string.format "%06d", math.random 0, 999999
 macro MaxAuthCodeTTL = -> 30
@@ -1081,13 +1095,19 @@ footerWindow = threadLoop ->
 							PushTextWrapPos 280, ->
 								Text zh and 'Web IDE 正在等待确认，请核对浏览器中的会话码并点击确认' or 'Web IDE is waiting for confirmation. Match the session code in the browser and click approve.'
 			else
-				PushStyleColor "Text", themeColor, ->
-					ImGui.ProgressBar authCodeTTL / $MaxAuthCodeTTL, Vec2(60, -1), authCode
-					hovered or= IsItemHovered!
-				if hovered
-					BeginTooltip ->
-						PushTextWrapPos 280, ->
-							Text zh and '在本机或是本地局域网连接的其他设备上，使用浏览器访问这个地址并输入后面的 PIN 码来使用 Web IDE（PIN 仅用于一次认证）' or 'Open this address in a browser on this machine or another device on the local network and enter the PIN below to start the Web IDE (PIN is one-time).'
+				if config.authRequired
+					PushStyleColor "Text", themeColor, ->
+						ImGui.ProgressBar authCodeTTL / $MaxAuthCodeTTL, Vec2(60, -1), authCode
+						hovered or= IsItemHovered!
+					if hovered
+						BeginTooltip ->
+							PushTextWrapPos 280, ->
+								Text zh and '在本机或是本地局域网连接的其他设备上，使用浏览器访问这个地址并输入后面的 PIN 码来使用 Web IDE（PIN 仅用于一次认证）' or 'Open this address in a browser on this machine or another device on the local network and enter the PIN below to start the Web IDE (PIN is one-time)'
+				else
+					if hovered
+						BeginTooltip ->
+							PushTextWrapPos 280, ->
+								Text zh and '在本机或是本地局域网连接的其他设备上，使用浏览器访问这个地址' or 'Open this address in a browser on this machine or another device on the local network'
 
 	unless isInEntry
 		SetNextWindowSize Vec2 50, 50
