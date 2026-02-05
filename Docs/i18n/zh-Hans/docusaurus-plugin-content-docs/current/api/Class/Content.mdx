@@ -602,7 +602,7 @@ searchFilesAsync: function(
 | extensionLevels | \{[string]: integer} | 扩展名到优先级的映射，用于同名不同后缀时选择优先级最高的文件。 |
 | excludes | \{string} | 需要跳过的目录名称列表。 |
 | pattern | string | 搜索的匹配模式。 |
-| useRegex | boolean | [可选] 是否使用正则匹配（默认 false）。 |
+| useRegex | boolean | [可选] 是否使用正则匹配（默认 false）。<br/>正则通配符支持:<br/>'.'        点，匹配任意单个字符<br/>'^'        行首锚点，匹配字符串开始位置<br/>'$'        行尾锚点，匹配字符串结束位置<br/>'*'        星号，匹配前面的内容零次或多次（贪婪）<br/>'+'        加号，匹配前面的内容一次或多次（贪婪）<br/>'?'        问号，匹配前面的内容零次或一次（非贪婪）<br/>'[abc]'    字符集，匹配括号内的任意一个字符（如 'a'、'b'、'c'）<br/>'[^abc]'   反集，匹配不是括号内任意字符的内容<br/>'[a-zA-Z]' 字符范围，匹配 a 到 z 或 A 到 Z 范围内的字符<br/>'\s'       匹配任意空白字符（如：\t \f \r \n \v 和空格）<br/>'\S'       匹配任意非空白字符<br/>'\w'       匹配任意字母、数字或下划线（[a-zA-Z0-9_]）<br/>'\W'       匹配任意非字母、数字或下划线的字符<br/>'\d'       匹配任意数字（[0-9]）<br/>'\D'       匹配任意非数字字符 |
 | caseSensitive | boolean | [可选] 是否区分大小写（默认 false）。 |
 | includeContent | boolean | [可选] 是否返回匹配内容片段（默认 false）。 |
 | contentWindow | integer | [可选] includeContent 为 true 时返回匹配附近的字符数量。 |
