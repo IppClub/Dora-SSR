@@ -4,6 +4,9 @@ local record Request
 	-- A table containing the request headers.
 	headers: {string: string}
 
+	-- A table containing request parameters (e.g. URL query parameters).
+	params: {string: string}
+
 	-- The body of the request.
 	body: table | string
 end
@@ -29,6 +32,16 @@ local record HttpServer
 	-- @param port (integer) The port number on which to start the server.
 	-- @return (boolean) A boolean value indicating whether the server started successfully.
 	startWS: function(self: HttpServer, port: integer): boolean
+
+	-- Registers a handler function for handling GET requests.
+	-- @param pattern (string) The pattern to match the URL of the request.
+	-- @param handler (function) The handler function to call when the pattern is matched.
+	-- The function can return a Lua table which will be serialized to JSON, or return a string as plain text.
+	get: function(
+		self: HttpServer,
+		pattern: string,
+		handler: function(Request): (table | string)
+	)
 
 	-- Registers a handler function for handling POST requests.
 	-- @param pattern (string) The pattern to match the URL of the request.

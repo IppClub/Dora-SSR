@@ -7662,6 +7662,8 @@ export const tolua: tolua;
 interface Request {
 	/** A table containing the request headers. */
 	headers: {string: string}
+	/** A table containing request parameters (e.g. URL query parameters). */
+	params: {string: string}
 	/** The body of the request. */
 	body: LuaTable | string
 }
@@ -7694,6 +7696,16 @@ interface HttpServer {
 	 * @returns A boolean value indicating whether the server was started successfully.
 	 */
 	startWS(port: number): boolean;
+	/**
+	 * Registers a handler function for GET requests.
+	 * @param pattern The URL pattern to match.
+	 * @param handler The handler function to call when the pattern is matched.
+	 * The function can return a LuaTable which will be serialized to JSON, or return a string as plain text.
+	 */
+	get(
+		pattern: string,
+		handler: (this: void, req: Request) => LuaTable | string
+	): void;
 	/**
 	 * Registers a handler function for POST requests.
 	 * @param pattern The URL pattern to match.
