@@ -737,9 +737,6 @@ bool HttpServer::start(int port) {
 		});
 		waitForLoaded.wait();
 		if (!result.empty()) {
-			res.set_header("Set-Cookie", _authRequired
-					? "DoraAuthRequired=1; Path=/"s
-					: "DoraAuthRequired=0; Path=/"s);
 			res.set_header("Content-Type", content_type);
 			res.body = std::move(result);
 			return true;

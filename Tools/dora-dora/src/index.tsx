@@ -16,7 +16,25 @@ import Info from './Info';
 import Path from './3rdParty/Path';
 import AuthDialog, { AuthDialogProps, AuthSession } from './AuthDialog';
 
-export const showAuthDialog = ({origFetch, onToken}: AuthDialogProps) => {
+const origFetch = window.fetch.bind(window);
+
+const checkAuthRequired = async () => {
+	let authRequired = false;
+	try {
+		const probe = await origFetch(Service.addr('/info'), {
+			method: 'POST',
+			headers: {'Content-Type': 'application/json'},
+			body: '{}',
+		});
+		authRequired = probe.status === 401;
+	} catch (err) {
+		void err;
+	}
+	Service.setAuthRequired(authRequired);
+	return authRequired;
+};
+
+const showAuthDialog = ({origFetch, onToken}: AuthDialogProps) => {
 	const container = document.createElement('div');
 	document.body.appendChild(container);
 	const modalRoot = ReactDOM.createRoot(container);
@@ -37,9 +55,7 @@ export const showAuthDialog = ({origFetch, onToken}: AuthDialogProps) => {
 };
 
 const setupAuth = async (): Promise<void> => {
-	const hasAuthRequiredCookie = () => !document.cookie
-		.split(';')
-		.some((part) => part.trim().startsWith('DoraAuthRequired=0'));
+	let authRequired = await checkAuthRequired();
 	const isAuthBypassUrl = (input: RequestInfo | URL) => {
 		const url = input instanceof Request ? input.url : String(input);
 		return url.includes('/auth');
@@ -58,7 +74,6 @@ const setupAuth = async (): Promise<void> => {
 		return null;
 	};
 	let session = parseSession(localStorage.getItem(storageKey));
-	let authRequired = hasAuthRequiredCookie();
 	let authInFlight: Promise<AuthSession | null> | null = null;
 	let signingKeyPromise: Promise<CryptoKey> | null = null;
 
@@ -87,11 +102,9 @@ const setupAuth = async (): Promise<void> => {
 		}
 	};
 
-	const origFetch = window.fetch ? window.fetch.bind(window) : null;
 	let modalInFlight: Promise<AuthSession> | null = null;
 
 	const showAuthModal = () => {
-		if (!origFetch) return Promise.resolve({sessionId: '', sessionSecret: ''});
 		Service.getWebSocket()?.close();
 		return showAuthDialog({
 			origFetch,
@@ -212,86 +225,57 @@ const setupAuth = async (): Promise<void> => {
 		};
 	};
 
-	if (origFetch) {
-		window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
-			const doFetch = async () => {
-				const request = input instanceof Request ? new Request(input, init) : new Request(input, init);
-				const headers = new Headers(request.headers);
-				if (session) {
-					const authHeaders = await buildAuthHeaders(request);
-					if (authHeaders) {
-						Object.entries(authHeaders).forEach(([key, value]) => headers.set(key, value));
-					}
+	window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+		const doFetch = async () => {
+			const request = input instanceof Request ? new Request(input, init) : new Request(input, init);
+			const headers = new Headers(request.headers);
+			if (session) {
+				const authHeaders = await buildAuthHeaders(request);
+				if (authHeaders) {
+					Object.entries(authHeaders).forEach(([key, value]) => headers.set(key, value));
 				}
-				const next = new Request(request, {headers});
-				return origFetch(next);
-			};
-
-			if (authRequired && !session && !isAuthBypassUrl(input)) {
-				await ensureAuth(false);
-				const res = await doFetch();
-				if (res.status === 401) {
-					await ensureAuth(true);
-					return doFetch();
-				}
-				return res;
 			}
+			const next = new Request(request, {headers});
+			return origFetch(next);
+		};
 
+		if (authRequired && !session && !isAuthBypassUrl(input)) {
+			await ensureAuth(false);
 			const res = await doFetch();
-			if (res.status === 401 && authRequired && !isAuthBypassUrl(input)) {
-				setSession(null);
+			if (res.status === 401) {
 				await ensureAuth(true);
 				return doFetch();
 			}
 			return res;
-		};
-	}
+		}
+
+		const res = await doFetch();
+		if (res.status === 401 && authRequired && !isAuthBypassUrl(input)) {
+			setSession(null);
+			await ensureAuth(true);
+			return doFetch();
+		}
+		return res;
+	};
 
 	const OrigWebSocket = window.WebSocket;
-	if (OrigWebSocket) {
-		const WrappedWebSocket = function (url: string | URL, protocols?: string | string[]) {
-			const socket = protocols ? new OrigWebSocket(url, protocols) : new OrigWebSocket(url);
-			socket.addEventListener('close', () => {
-				if (authRequired && origFetch) {
-					void (async () => {
-						try {
-							const probe = await origFetch(Service.addr('/info'), {
-								method: 'POST',
-								headers: {'Content-Type': 'application/json'},
-								body: '{}',
-							});
-							if (probe.status === 401) {
-								setSession(null);
-								await ensureAuth(true);
-							}
-						} catch (err) {
-							void err;
-						}
-					})();
+	const WrappedWebSocket = function (url: string | URL, protocols?: string | string[]) {
+		const socket = protocols ? new OrigWebSocket(url, protocols) : new OrigWebSocket(url);
+		socket.addEventListener('close', () => {
+			void (async () => {
+				authRequired = await checkAuthRequired();
+				if (authRequired) {
+					setSession(null);
+					await ensureAuth(true);
 				}
-			});
-			return socket;
-		} as unknown as typeof WebSocket;
-		WrappedWebSocket.prototype = OrigWebSocket.prototype;
-		window.WebSocket = WrappedWebSocket;
-	}
+			})();
+		});
+		return socket;
+	} as unknown as typeof WebSocket;
+	WrappedWebSocket.prototype = OrigWebSocket.prototype;
+	window.WebSocket = WrappedWebSocket;
 
-	if (!authRequired && !session && origFetch) {
-		try {
-			const probe = await origFetch(Service.addr('/info'), {
-				method: 'POST',
-				headers: {'Content-Type': 'application/json'},
-				body: '{}',
-			});
-			if (probe.status === 401) {
-				authRequired = true;
-			}
-		} catch (err) {
-			void err;
-		}
-	}
-
-	if (authRequired && !session && origFetch) {
+	if (authRequired && !session) {
 		while (authRequired && !session) {
 			await ensureAuth(true);
 		}

@@ -9,7 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 import { SpinePlayer as Spine, SkeletonBinary, ManagedWebGLRenderingContext, AssetManager, AtlasAttachmentLoader, TextureAtlas } from '@esotericsoftware/spine-player';
 import { memo, useLayoutEffect, useRef } from 'react';
 import '@esotericsoftware/spine-player/dist/spine-player.css';
-import { Color } from './Frame';
+import { Color } from './Theme';
 import * as Service from './Service';
 import Info from './Info';
 import { useTranslation } from 'react-i18next';

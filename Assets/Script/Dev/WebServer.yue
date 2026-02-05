@@ -13,7 +13,6 @@ HttpServer\stop!
 
 HttpServer.wwwPath = Path Content.appPath, ".www"
 
-HttpServer.authRequired = true
 HttpServer.authToken = ""
 
 authFailedCount = 0
