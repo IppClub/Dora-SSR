@@ -139,7 +139,7 @@ const setupAuth = async (): Promise<void> => {
 
 	const sha256Hex = async (data: Uint8Array) => {
 		if (!data.length) return '';
-		const hash = await crypto.subtle.digest('SHA-256', data);
+		const hash = await crypto.subtle.digest('SHA-256', data as BufferSource);
 		return bufferToHex(hash);
 	};
 
@@ -247,46 +247,34 @@ const setupAuth = async (): Promise<void> => {
 		};
 	}
 
-	const origOpen = XMLHttpRequest.prototype.open;
-	XMLHttpRequest.prototype.open = function (method: string, url: string | URL, ...rest: any[]) {
-		(this as any).__doraMethod = method;
-		(this as any).__doraUrl = url;
-		return origOpen.call(this, method, url as string, ...rest);
-	};
-
-	const origSend = XMLHttpRequest.prototype.send;
-	XMLHttpRequest.prototype.send = function (body?: XMLHttpRequestBodyInit | Document | null) {
-		const xhr = this;
-		const sendWithAuth = async () => {
-			if (authRequired && !session && origFetch) {
-				await ensureAuth(true);
-			}
-			if (session) {
-				try {
-					const method = String((xhr as any).__doraMethod || 'GET').toUpperCase();
-					const rawUrl = (xhr as any).__doraUrl || '';
-					const url = new URL(rawUrl, window.location.href);
-					const path = canonicalizePath(url);
-					const timestamp = Math.floor(Date.now() / 1000).toString();
-					const nonce = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(16).slice(2);
-					const bodyBuffer = body
-						? await new Response(body as BodyInit).arrayBuffer()
-						: new ArrayBuffer(0);
-					const bodyHash = await sha256Hex(new Uint8Array(bodyBuffer));
-					const payload = [session.sessionId, method, path, timestamp, nonce, bodyHash].join('\n');
-					const signature = await hmacHex(payload);
-					xhr.setRequestHeader('X-Dora-Session', session.sessionId);
-					xhr.setRequestHeader('X-Dora-Timestamp', timestamp);
-					xhr.setRequestHeader('X-Dora-Nonce', nonce);
-					xhr.setRequestHeader('X-Dora-Signature', signature);
-				} catch (err) {
-					void err;
+	const OrigWebSocket = window.WebSocket;
+	if (OrigWebSocket) {
+		const WrappedWebSocket = function (url: string | URL, protocols?: string | string[]) {
+			const socket = protocols ? new OrigWebSocket(url, protocols) : new OrigWebSocket(url);
+			socket.addEventListener('close', () => {
+				if (authRequired && origFetch) {
+					void (async () => {
+						try {
+							const probe = await origFetch(Service.addr('/info'), {
+								method: 'POST',
+								headers: {'Content-Type': 'application/json'},
+								body: '{}',
+							});
+							if (probe.status === 401) {
+								setSession(null);
+								await ensureAuth(true);
+							}
+						} catch (err) {
+							void err;
+						}
+					})();
 				}
-			}
-			origSend.call(xhr, body as XMLHttpRequestBodyInit | Document | null | undefined);
-		};
-		void sendWithAuth();
-	};
+			});
+			return socket;
+		} as unknown as typeof WebSocket;
+		WrappedWebSocket.prototype = OrigWebSocket.prototype;
+		window.WebSocket = WrappedWebSocket;
+	}
 
 	if (!authRequired && !session && origFetch) {
 		try {

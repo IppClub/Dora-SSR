@@ -8,7 +8,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 _ENV = Dora
 import global
-import "Script.Dev.AuthSession"
 
 HttpServer\stop!
 
@@ -39,6 +38,7 @@ genConfirmCode = ->
 
 HttpServer\post "/auth", (req) ->
 	import "Script.Dev.Entry"
+	:AuthSession = Entry
 	authCode = Entry.getAuthCode!
 	now = os.time!
 	if now < authLockedUntil
@@ -73,6 +73,8 @@ HttpServer\post "/auth/confirm", (req) ->
 			sessionId = sessionId
 	unless sessionId
 		return success: false, message: "invalid session"
+	import "Script.Dev.Entry"
+	:AuthSession = Entry
 	if pending := AuthSession.getPending!
 		if pending.sessionId ~= sessionId
 			return success: false, message: "invalid session"
@@ -825,8 +827,13 @@ HttpServer\postSchedule "/read", (req): success: false ->
 				return result if result := readFile!
 		return result if result := readFile!
 
-HttpServer\post "/read-sync", (req): success: false ->
-	switch req when {body: {:path, :exts}}
+HttpServer\get "/read-sync", (req): success: false ->
+	switch req when :params
+		:path = params
+		exts = if params.exts
+			for ext in params.exts\gmatch "[^|]*"
+				ext
+		else ["",]
 		readFile = (): nil ->
 			for ext in *exts
 				targetPath = path .. ext
@@ -835,7 +842,7 @@ HttpServer\post "/read-sync", (req): success: false ->
 						return :content, success: true, fullPath: Content\getFullPath targetPath
 		:searchPaths = Content
 		close _ = <close>: -> Content.searchPaths = searchPaths
-		if projFile := req.body.projFile
+		if projFile := req.params.projFile
 			if projDir := getProjectDirFromFile projFile
 				scriptDir = Path projDir, "Script"
 				Content\addSearchPath scriptDir if Content\exist scriptDir

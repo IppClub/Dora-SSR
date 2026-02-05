@@ -7619,9 +7619,23 @@ inline void Server::stop() {
 }
 
 inline void Server::clear_posts() {
+  file_request_handler_ = nullptr;
+  get_handlers_.clear();
   post_handlers_.clear();
-  post_routing_handler_ = nullptr;
   post_handlers_for_content_reader_.clear();
+  put_handlers_.clear();
+  put_handlers_for_content_reader_.clear();
+  patch_handlers_.clear();
+  patch_handlers_for_content_reader_.clear();
+  delete_handlers_.clear();
+  delete_handlers_for_content_reader_.clear();
+  options_handlers_.clear();
+  error_handler_ = nullptr;
+  exception_handler_ = nullptr;
+  pre_routing_handler_ = nullptr;
+  post_routing_handler_ = nullptr;
+  pre_request_handler_ = nullptr;
+  expect_100_continue_handler_ = nullptr;
 }
 
 inline void Server::decommission() { is_decommissioned = true; }

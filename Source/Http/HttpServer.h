@@ -46,12 +46,13 @@ public:
 		int status;
 	};
 
-	using PostHandler = std::function<Response(const Request&)>;
-	struct Post {
+	using ServiceHandler = std::function<Response(const Request&)>;
+	struct Service {
 		std::string pattern;
-		PostHandler handler;
+		ServiceHandler handler;
 	};
-	void post(String pattern, const PostHandler& handler);
+	void post(String pattern, const ServiceHandler& handler);
+	void get(String pattern, const ServiceHandler& handler);
 
 	using PostScheduledFunc = std::function<std::optional<Response>()>;
 	using PostScheduledHandler = std::function<PostScheduledFunc(const Request&)>;
@@ -95,7 +96,8 @@ private:
 	bool isAuthorized(const httplib::Request& req);
 	bool isTokenValid(const std::string& token);
 	bool isWebSocketAuthorized(const std::string& resource);
-	std::list<Post> _posts;
+	std::list<Service> _posts;
+	std::list<Service> _gets;
 	std::list<PostScheduled> _postScheduled;
 	std::list<File> _files;
 	Async* _thread;

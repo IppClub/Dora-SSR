@@ -2893,6 +2893,89 @@ tolua_lerror:
 #endif
 }
 
+int HttpServer_get(lua_State* L) {
+	/* 1 self, 2 pattern, 3 handler */
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "HttpServer"_slice, 0, &tolua_err)
+		|| !tolua_isslice(L, 2, 0, &tolua_err)
+		|| !tolua_isfunction(L, 3, &tolua_err)
+		|| !tolua_isnoobj(L, 4, &tolua_err)) {
+		goto tolua_lerror;
+	}
+#endif
+	{
+		HttpServer* self = r_cast<HttpServer*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+		if (!self) tolua_error(L, "invalid 'self' in function 'HttpServer_get'", nullptr);
+#endif
+		Slice pattern = tolua_toslice(L, 2, nullptr);
+		Ref<LuaHandler> handler(LuaHandler::create(tolua_ref_function(L, 3)));
+		self->get(pattern, [handler](const HttpServer::Request& req) {
+			auto L = SharedLuaEngine.getState();
+			int top = lua_gettop(L);
+			DEFER(lua_settop(L, top));
+			lua_createtable(L, 0, 0);
+			lua_pushliteral(L, "headers");
+			lua_createtable(L, 0, 0);
+			std::string key;
+			bool startPair = true;
+			for (const auto& v : req.headers) {
+				if (startPair) {
+					startPair = false;
+					key = v.toString();
+				} else {
+					startPair = true;
+					tolua_pushslice(L, key);
+					tolua_pushslice(L, v);
+					lua_rawset(L, -3);
+				}
+			}
+			lua_rawset(L, -3);
+			lua_pushliteral(L, "params");
+			lua_createtable(L, 0, 0);
+			key.clear();
+			startPair = true;
+			for (const auto& v : req.params) {
+				if (startPair) {
+					startPair = false;
+					key = v.toString();
+				} else {
+					startPair = true;
+					tolua_pushslice(L, key);
+					tolua_pushslice(L, v);
+					lua_rawset(L, -3);
+				}
+			}
+			lua_rawset(L, -3);
+			LuaEngine::invoke(L, handler->get(), 1, 1);
+			HttpServer::Response res;
+			if (lua_istable(L, -1)) {
+				lua_pushcfunction(L, colibc_json_encode);
+				lua_insert(L, -2);
+				if (LuaEngine::call(L, 1, 1)) {
+					res.content = tolua_toslice(L, -1, nullptr).toString();
+					res.contentType = "application/json"s;
+				} else {
+					res.status = 500;
+				}
+			} else if (lua_isstring(L, -1)) {
+				res.content = tolua_toslice(L, -1, nullptr).toString();
+				res.contentType = "text/plain"s;
+			} else {
+				res.status = 500;
+			}
+			return res;
+		});
+		return 0;
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror:
+	tolua_error(L, "#ferror in function 'HttpServer_get'.", &tolua_err);
+	return 0;
+#endif
+}
+
 int HttpServer_post(lua_State* L) {
 	/* 1 self, 2 pattern, 3 handler */
 #ifndef TOLUA_RELEASE

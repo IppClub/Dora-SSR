@@ -197,9 +197,9 @@ static std::string canonicalize_query(std::vector<std::pair<std::string, std::st
 	std::string query;
 	for (size_t i = 0; i < params.size(); ++i) {
 		if (i > 0) query += '&';
-		query += httplib::detail::encode_url(params[i].first);
+		query += httplib::encode_uri(params[i].first);
 		query += '=';
-		query += httplib::detail::encode_url(params[i].second);
+		query += httplib::encode_uri(params[i].second);
 	}
 	return query;
 }
@@ -229,8 +229,8 @@ static std::vector<std::pair<std::string, std::string>> parse_query_pairs(const 
 		auto part = query.substr(start, amp - start);
 		auto eq = part.find('=');
 		if (eq != std::string::npos) {
-			auto name = httplib::detail::decode_url(part.substr(0, eq), true);
-			auto value = httplib::detail::decode_url(part.substr(eq + 1), true);
+			auto name = httplib::decode_uri(part.substr(0, eq));
+			auto value = httplib::decode_uri(part.substr(eq + 1));
 			params.emplace_back(std::move(name), std::move(value));
 		}
 		start = amp + 1;
@@ -676,8 +676,12 @@ bool HttpServer::isWebSocketAuthorized(const std::string& resource) {
 	return true;
 }
 
-void HttpServer::post(String pattern, const PostHandler& handler) {
+void HttpServer::post(String pattern, const ServiceHandler& handler) {
 	_posts.push_back({pattern.toString(), handler});
+}
+
+void HttpServer::get(String pattern, const ServiceHandler& handler) {
+	_gets.push_back({pattern.toString(), handler});
 }
 
 void HttpServer::postSchedule(String pattern, const PostScheduledHandler& handler) {
@@ -745,6 +749,34 @@ bool HttpServer::start(int port) {
 	server.Options(".*", [](const httplib::Request& req, httplib::Response& res) { });
 	bool success = server.bind_to_port("0.0.0.0", port);
 	if (success) {
+		for (const auto& get : _gets) {
+			server.Get(get.pattern, [this, &get](const httplib::Request& req, httplib::Response& res) {
+				HttpServer::Request request;
+				request.headers.reserve(req.headers.size() * 2);
+				for (const auto& header : req.headers) {
+					request.headers.emplace_back(header.first);
+					request.headers.emplace_back(header.second);
+				}
+				request.params.reserve(req.params.size() * 2);
+				for (const auto& param : req.params) {
+					request.params.emplace_back(param.first);
+					request.params.emplace_back(param.second);
+				}
+				if (auto it = req.headers.find("Content-Type"s);
+					it != req.headers.end()) {
+					request.contentType = it->second;
+				}
+				HttpServer::Response response;
+				bx::Semaphore waitForResponse;
+				SharedApplication.invokeInLogic([&]() {
+					response = get.handler(request);
+					waitForResponse.post();
+				});
+				waitForResponse.wait();
+				res.set_content(response.content, response.contentType);
+				res.status = response.status;
+			});
+		}
 		for (const auto& post : _posts) {
 			server.Post(post.pattern, [this, &post](const httplib::Request& req, httplib::Response& res) {
 				if (req.path != "/auth"sv && req.path != "/auth/confirm"sv && !isAuthorized(req)) {
