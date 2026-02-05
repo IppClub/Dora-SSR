@@ -93,6 +93,30 @@ startWS: function(self: HttpServer, port: integer): boolean
 | --- | --- |
 | boolean | 一个布尔值，表示服务器是否成功启动。 |
 
+## get
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;注册一个处理函数，用于处理GET请求。
+
+**签名：**
+```tl
+get: function(
+		self: HttpServer,
+		pattern: string,
+		handler: function(Request): (table | string)
+	)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| pattern | string | 匹配请求的URL的模式。 |
+| handler | function | 匹配模式时要调用的处理函数。<br/>函数可以返回一个 Lua 表并自动序列化为 JSON，或返回字符串作为纯文本响应。 |
+
 ## post
 
 **类型：** 函数。

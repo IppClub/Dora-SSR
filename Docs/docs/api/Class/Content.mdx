@@ -603,7 +603,7 @@ searchFilesAsync: function(
 | extensionLevels | \{[string]: integer} | A map from extension to priority level for picking the preferred file when the same basename appears with different extensions. |
 | excludes | \{string} | An array of directory names to skip during searching. |
 | pattern | string | The search pattern. |
-| useRegex | boolean | [optional] Whether to treat pattern as regex (default false). |
+| useRegex | boolean | [optional] Whether to treat pattern as regex (default false).<br/>Regex supports:<br/>'.'        Dot, matches any character<br/>'^'        Start anchor, matches beginning of string<br/>'$'        End anchor, matches end of string<br/>'*'        Asterisk, match zero or more (greedy)<br/>'+'        Plus, match one or more (greedy)<br/>'?'        Question, match zero or one (non-greedy)<br/>'[abc]'    Character class, match if one of \{'a', 'b', 'c'}<br/>'[^abc]'   Inverted class, match if NOT one of \{'a', 'b', 'c'}<br/>'[a-zA-Z]' Character ranges, the character set of the ranges \{ a-z | A-Z }<br/>'\s'       Whitespace, \t \f \r \n \v and spaces<br/>'\S'       Non-whitespace<br/>'\w'       Alphanumeric, [a-zA-Z0-9_]<br/>'\W'       Non-alphanumeric<br/>'\d'       Digits, [0-9]<br/>'\D'       Non-digits |
 | caseSensitive | boolean | [optional] Whether to use case-sensitive matching (default false). |
 | includeContent | boolean | [optional] Whether to include the matched content snippet (default false). |
 | contentWindow | integer | [optional] Number of characters around the match to include when includeContent is true. |
