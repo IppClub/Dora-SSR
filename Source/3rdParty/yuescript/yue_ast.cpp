@@ -215,11 +215,11 @@ std::string YueMultilineComment_t::to_string(void* ud) const {
 	return "--[["s + info->convert(this) + "]]"s;
 }
 std::string YueComment_t::to_string(void* ud) const {
-	if (comment) {
-		return comment->to_string(ud);
-	} else {
-		return {};
+	str_list coms;
+	for (auto comment : comments.objects()) {
+		coms.emplace_back(comment->to_string(ud));
 	}
+	return join(coms, " "sv);
 }
 std::string Variable_t::to_string(void* ud) const {
 	return name->to_string(ud);
