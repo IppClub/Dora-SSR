@@ -4,6 +4,9 @@ local record Request
 	-- 包含请求头信息的表。
 	headers: {string: string}
 
+	-- 包含请求参数的表（例如 URL 查询参数）。
+	params: {string: string}
+
 	-- 请求的内容体。
 	body: table | string
 end
@@ -29,6 +32,16 @@ local record HttpServer
 	-- @param port (integer) 要启动服务器的端口号。
 	-- @return (boolean) 一个布尔值，表示服务器是否成功启动。
 	startWS: function(self: HttpServer, port: integer): boolean
+
+	-- 注册一个处理函数，用于处理GET请求。
+	-- @param pattern (string) 匹配请求的URL的模式。
+	-- @param handler (function) 匹配模式时要调用的处理函数。
+	-- 函数可以返回一个 Lua 表并自动序列化为 JSON，或返回字符串作为纯文本响应。
+	get: function(
+		self: HttpServer,
+		pattern: string,
+		handler: function(Request): (table | string)
+	)
 
 	-- 注册一个处理函数，用于处理POST请求。
 	-- @param pattern (string) 匹配请求的URL的模式。

@@ -7661,6 +7661,8 @@ export const tolua: tolua;
 interface Request {
 	/** 包含请求头信息的表。 */
 	headers: {string: string}
+	/** 包含请求参数的表（例如 URL 查询参数）。 */
+	params: {string: string}
 	/** 请求的内容体。 */
 	body: LuaTable | string
 }
@@ -7693,6 +7695,16 @@ interface HttpServer {
 	 * @returns 一个布尔值，表示服务器是否成功启动。
 	 */
 	startWS(port: number): boolean;
+	/**
+	 * 注册一个处理函数，用于处理GET请求。
+	 * @param pattern 要匹配的URL模式。
+	 * @param handler 匹配模式时要调用的处理函数。
+	 * 函数可以返回一个 LuaTable 并自动序列化为 JSON，或返回字符串作为纯文本响应。
+	 */
+	get(
+		pattern: string,
+		handler: (this: void, req: Request) => LuaTable | string
+	): void;
 	/**
 	 * 注册一个处理函数，用于处理POST请求。
 	 * @param pattern 要匹配的URL模式。
