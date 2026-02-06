@@ -224,6 +224,7 @@ i18n
 						model: "Model",
 						url: "URL",
 						key: "API Key",
+						active: "Active",
 						actions: "Actions",
 						edit: "Edit",
 						delete: "Delete",
@@ -237,7 +238,7 @@ i18n
 						deleteConfirm: "Delete this config?",
 						loadFailed: "Failed to load configs.",
 						saveFailed: "Failed to save config.",
-						validationFailed: "Please fill in name, vendor, URL, model, and key.",
+						validationFailed: "Please fill in name, URL, model, and key.",
 					},
 					log: {
 						wait: "Wait for logging messages ...",
@@ -549,6 +550,7 @@ i18n
 						model: "模型",
 						url: "URL",
 						key: "API Key",
+						active: "激活",
 						actions: "操作",
 						edit: "编辑",
 						delete: "删除",
@@ -562,7 +564,7 @@ i18n
 						deleteConfirm: "确定删除该配置？",
 						loadFailed: "加载配置失败",
 						saveFailed: "保存配置失败",
-						validationFailed: "请填写名称、供应商、URL、模型与密钥。",
+						validationFailed: "请填写名称、URL、模型与密钥。",
 					},
 					log: {
 						wait: "接收日志消息中……",

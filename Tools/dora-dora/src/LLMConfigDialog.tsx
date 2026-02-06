@@ -1,14 +1,12 @@
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, InputAdornment, MenuItem, Stack, TextField, Tooltip, Typography } from '@mui/material';
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Stack, TextField, Tooltip, Typography } from '@mui/material';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
-import Visibility from '@mui/icons-material/Visibility';
-import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import * as Service from './Service';
 import { Color } from './Theme';
-import { Table, ConfigProvider, theme } from 'antd';
+import { Checkbox, Table, ConfigProvider, theme } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { MacScrollbar } from 'mac-scrollbar';
 import 'mac-scrollbar/dist/mac-scrollbar.css';
@@ -25,7 +23,8 @@ const emptyForm = {
 	name: '',
 	url: '',
 	model: '',
-	key: ''
+	key: '',
+	active: true,
 };
 
 const inputStyle = {
@@ -49,6 +48,7 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 	const [mode, setMode] = useState<Mode>('create');
 	const [form, setForm] = useState<Service.LLMConfigItem>(emptyForm);
 	const [templateId, setTemplateId] = useState('deepseek');
+	const [savingActiveId, setSavingActiveId] = useState<number | null>(null);
 
 	const templates = useMemo(() => [
 		{
@@ -89,7 +89,11 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 		try {
 			const res = await Service.listLLMConfigs();
 			if (res.success) {
-				setItems(res.items ?? []);
+				const normalized = (res.items ?? []).map((item) => ({
+					...item,
+					active: item.active === undefined ? true : Boolean(item.active),
+				}));
+				setItems(normalized);
 			} else {
 				setError(res.message ?? t('llm.loadFailed'));
 			}
@@ -109,7 +113,8 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 			name: template.label,
 			url: template.url,
 			model: template.model,
-			key: ''
+			key: '',
+			active: true,
 		});
 	}, [templates]);
 
@@ -136,7 +141,10 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 
 	const openEditForm = (item: Service.LLMConfigItem) => {
 		setMode('edit');
-		setForm(item);
+		setForm({
+			...item,
+			active: item.active === undefined ? true : Boolean(item.active),
+		});
 		setFormOpen(true);
 	};
 
@@ -155,7 +163,8 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 			name: form.name.trim(),
 			url: form.url.trim(),
 			model: form.model.trim(),
-			key: form.key.trim()
+			key: form.key.trim(),
+			active: form.active,
 		};
 		if (!payload.name || !payload.url || !payload.model || !payload.key) {
 			setError(t('llm.validationFailed'));
@@ -174,6 +183,27 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 		applyTemplate('deepseek');
 	};
 
+	const onToggleActive = async (record: Service.LLMConfigItem, nextActive: boolean) => {
+		if (savingActiveId !== null) return;
+		setSavingActiveId(record.id);
+		setError(null);
+		try {
+			const res = await Service.updateLLMConfig({
+				...record,
+				active: nextActive,
+			});
+			if (!res.success) {
+				setError(res.message ?? t('llm.saveFailed'));
+			} else {
+				setItems((prev) => prev.map((item) => (item.id === record.id ? {...item, active: nextActive} : item)));
+			}
+		} catch {
+			setError(t('llm.saveFailed'));
+		} finally {
+			setSavingActiveId(null);
+		}
+	};
+
 	const columns: ColumnsType<Service.LLMConfigItem> = [
 		{title: t('llm.name'), dataIndex: 'name', key: 'name'},
 		{title: t('llm.model'), dataIndex: 'model', key: 'model'},
@@ -182,15 +212,48 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 			title: t('llm.actions'),
 			key: 'actions',
 			render: (_, record) => (
-				<Stack direction="row" spacing={0.5} justifyContent="flex-end">
+				<Stack
+					direction="row"
+					spacing={0}
+					alignItems="center"
+					justifyContent="flex-end"
+				>
+					<Tooltip title={t('llm.active')}>
+						<span>
+							<Checkbox
+								checked={Boolean(record.active)}
+								disabled={savingActiveId === record.id}
+								onChange={(event) => void onToggleActive(record, event.target.checked)}
+								style={{paddingRight: 10}}
+							/>
+						</span>
+					</Tooltip>
 					<Tooltip title={t('llm.edit')}>
-						<IconButton size="small" onClick={() => openEditForm(record)}>
-							<EditIcon fontSize="small" sx={{color: Color.Secondary}}/>
+						<IconButton
+							size="small"
+							onClick={() => openEditForm(record)}
+							sx={{
+								color: Color.Secondary,
+								"&:hover": {
+									backgroundColor: Color.Theme + '22',
+								},
+							}}
+						>
+							<EditIcon fontSize="small"/>
 						</IconButton>
 					</Tooltip>
 					<Tooltip title={t('llm.delete')}>
-						<IconButton size="small" onClick={() => onDelete(record.id)}>
-							<DeleteIcon fontSize="small" sx={{color: Color.Secondary}}/>
+						<IconButton
+							size="small"
+							onClick={() => onDelete(record.id)}
+							sx={{
+								color: Color.Secondary,
+								"&:hover": {
+									backgroundColor: Color.Theme + '22',
+								},
+							}}
+						>
+							<DeleteIcon fontSize="small"/>
 						</IconButton>
 					</Tooltip>
 				</Stack>

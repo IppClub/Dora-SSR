@@ -654,6 +654,7 @@ ensureLLMConfigTable = ->
 			url TEXT NOT NULL,
 			model TEXT NOT NULL,
 			api_key TEXT NOT NULL,
+			active INTEGER NOT NULL DEFAULT 1,
 			created_at INTEGER,
 			updated_at INTEGER
 		);
@@ -662,30 +663,33 @@ ensureLLMConfigTable = ->
 HttpServer\post "/llm/list", ->
 	ensureLLMConfigTable!
 	rows = DB\query "
-		select id, name, url, model, api_key
+		select id, name, url, model, api_key, active
 		from LLMConfig
 		order by id asc"
 	items = if rows and #rows > 0
-		for [id, name, url, model, key] in *rows
-			:id, :name, :url, :model, :key
+		for [id, name, url, model, key, active] in *rows
+			:id, :name, :url, :model, :key, active: active ~= 0
 	return success: true, :items
 
 HttpServer\post "/llm/create", (req): success: false, message: "invalid" ->
 	ensureLLMConfigTable!
-	switch req when {body: {:name, :url, :model, :key}}
+	switch req when {body: body}
+		{:name, :url, :model, :key, :active} = body
 		now = os.time!
 		if name == nil or url == nil or model == nil or key == nil
 			return success: false, message: "invalid"
+		active = if active then 1 else 0
 		affected = DB\exec "
 			insert into LLMConfig (
-				name, url, model, api_key, created_at, updated_at
+				name, url, model, api_key, active, created_at, updated_at
 			) values (
-				?, ?, ?, ?, ?, ?
+				?, ?, ?, ?, ?, ?, ?
 			)", [
 			tostring name
 			tostring url
 			tostring model
 			tostring key
+			active
 			now
 			now
 		]
@@ -693,19 +697,22 @@ HttpServer\post "/llm/create", (req): success: false, message: "invalid" ->
 
 HttpServer\post "/llm/update", (req): success: false, message: "invalid" ->
 	ensureLLMConfigTable!
-	switch req when {body: {:id, :name, :url, :model, :key}}
+	switch req when {body: body}
+		{:id, :name, :url, :model, :key, :active} = body
 		now = os.time!
 		id = tonumber id
 		if id == nil
 			return success: false, message: "invalid"
+		active = if active then 1 else 0
 		affected = DB\exec "
 			update LLMConfig
-			set name = ?, url = ?, model = ?, api_key = ?, updated_at = ?
+			set name = ?, url = ?, model = ?, api_key = ?, active = ?, updated_at = ?
 			where id = ?", [
 			tostring name
 			tostring url
 			tostring model
 			tostring key
+			active
 			now
 			id
 		]
