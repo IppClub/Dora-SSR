@@ -1149,7 +1149,7 @@ YueParser::YueParser() {
 		check_indent >> comment_line >> and_(stop) |
 		advance >> ensure(comment_line, pop_indent) >> and_(stop);
 
-	EmptyLine = plain_space >> and_(stop);
+	EmptyLine = +(*set(" \t") >> line_break);
 
 	indentation_error = pl::user(not_(pipe_operator | eof()), [](const item_t& item) {
 		RaiseError("unexpected indent"sv, item);
@@ -1161,7 +1161,7 @@ YueParser::YueParser() {
 		return st->lax;
 	});
 
-	line = *(EmptyLine >> line_break) >> (
+	line = -EmptyLine >> (
 		check_indent_match >> space >> Statement >> *(';' >> space >> (Statement | not_(';'))) |
 		YueComment |
 		advance_match >> ensure(space >> (indentation_error | Statement), pop_indent)
