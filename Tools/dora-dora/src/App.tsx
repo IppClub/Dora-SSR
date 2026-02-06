@@ -79,7 +79,7 @@ let lastSaveEditingInfoTime = Date.now();
 const saveEditingInfoInterval = 10000;
 let lastEditingInfo: Service.EditingInfo | null = null;
 
-	const areEditingInfosEqual = (a: Service.EditingInfo | null, b: Service.EditingInfo | null): boolean => {
+const areEditingInfosEqual = (a: Service.EditingInfo | null, b: Service.EditingInfo | null): boolean => {
 	if (a === null && b === null) return true;
 	if (a === null || b === null) return false;
 
@@ -455,44 +455,7 @@ export default function PersistentDrawerLeft() {
 			Service.editingInfo().then(res => {
 				if (res.success && res.editingInfo) {
 					const editingInfo: Service.EditingInfo = JSON.parse(res.editingInfo);
-					let targetIndex = editingInfo.index;
-					Promise.all(editingInfo.files.map(async (file, i) => {
-						try {
-							const newFile = await openFile(file.key, file.title, file.folder);
-							newFile.position = file.position;
-							newFile.mdEditing = file.mdEditing;
-							newFile.yarnTextEditing = file.yarnTextEditing;
-							newFile.readOnly = file.readOnly;
-							newFile.sortIndex = i;
-							return newFile;
-						} catch {
-							addAlert(t("alert.read", {title: file.title}), "error");
-							return null;
-						}
-					})).then((files) => {
-						const filteredFiles = files.filter(file => file !== null);
-						const result = filteredFiles.sort((a, b) => {
-							const indexA = a.sortIndex ?? 0;
-							const indexB = b.sortIndex ?? 0;
-							if (indexA < indexB) {
-								return -1;
-							} else if (indexA > indexB) {
-								return 1;
-							} else {
-								return 0;
-							}
-						});
-						setFiles(result);
-						if (targetIndex >= result.length) {
-							targetIndex = result.length - 1;
-						}
-						if (targetIndex < 0) {
-							targetIndex = 0;
-						}
-						switchTab(targetIndex, result[targetIndex]);
-					}).catch(() => {
-						addAlert(t("alert.open"), "error");
-					});
+					openEditingInfoFiles(editingInfo);
 				}
 			});
 		});
@@ -924,6 +887,47 @@ export default function PersistentDrawerLeft() {
 		});
 	}, [checkFileReadonly, onEditorDidMount, t]);
 
+	const openEditingInfoFiles = useCallback((editingInfo: Service.EditingInfo) => {
+		let targetIndex = editingInfo.index;
+		Promise.all(editingInfo.files.map(async (file, i) => {
+			try {
+				const newFile = await openFile(file.key, file.title, file.folder);
+				newFile.position = file.position;
+				newFile.mdEditing = file.mdEditing;
+				newFile.yarnTextEditing = file.yarnTextEditing;
+				newFile.readOnly = file.readOnly;
+				newFile.sortIndex = i;
+				return newFile;
+			} catch {
+				addAlert(t("alert.read", {title: file.title}), "error");
+				return null;
+			}
+		})).then((files) => {
+			const filteredFiles = files.filter(file => file !== null);
+			const result = filteredFiles.sort((a, b) => {
+				const indexA = a.sortIndex ?? 0;
+				const indexB = b.sortIndex ?? 0;
+				if (indexA < indexB) {
+					return -1;
+				} else if (indexA > indexB) {
+					return 1;
+				} else {
+					return 0;
+				}
+			});
+			setFiles(result);
+			if (targetIndex >= result.length) {
+				targetIndex = result.length - 1;
+			}
+			if (targetIndex < 0) {
+				targetIndex = 0;
+			}
+			switchTab(targetIndex, result[targetIndex]);
+		}).catch(() => {
+			addAlert(t("alert.open"), "error");
+		});
+	}, [openFile, switchTab, t]);
+
 	const openFileInTab = useCallback((key: string, title: string, folder: boolean, position?: monaco.IPosition, readOnly? :boolean) => {
 		let index: number | null = null;
 		const file = files.find((file, i) => {
@@ -936,7 +940,14 @@ export default function PersistentDrawerLeft() {
 		if (index === null) {
 			openFile(key, title, folder).then((newFile) => {
 				newFile.readOnly = readOnly;
-				newFile.position = position;
+				if (position !== undefined) {
+					newFile.position = position;
+					const ext = path.extname(title).toLowerCase();
+					switch (ext) {
+						case ".yarn": newFile.yarnTextEditing = true; break;
+						case ".md": newFile.mdEditing = true; break;
+					}
+				}
 				setFiles(files => {
 					const newFiles = [...files, newFile];
 					const lastIndex = newFiles.length - 1;
@@ -948,6 +959,11 @@ export default function PersistentDrawerLeft() {
 			switchTab(index, file);
 			if (file && position) {
 				file.position = position;
+				const ext = path.extname(title).toLowerCase();
+				switch (ext) {
+					case ".yarn": file.yarnTextEditing = true; break;
+					case ".md": file.mdEditing = true; break;
+				}
 				setFiles([...files]);
 			}
 		}
@@ -990,18 +1006,23 @@ export default function PersistentDrawerLeft() {
 				addAlert(t("alert.reloading"), "warning");
 				return;
 			}
+			saveEditingInfo();
+			const editingInfo = lastEditingInfo;
+			setFiles([]);
+			switchTab(null);
+			setSelectedKeys([]);
 			loadAssets().then((res) => {
 				if (res !== null) {
-					setFiles([]);
-					switchTab(null);
-					setSelectedKeys([]);
 					addAlert(t("alert.reloaded"), "success");
+					if (editingInfo !== null) {
+						openEditingInfoFiles(editingInfo);
+					}
 				}
 			});
 			return;
 		}
 		setExpandedKeys(keys);
-	}, [expandedKeys, loadAssets, switchTab, t, treeData]);
+	}, [expandedKeys, loadAssets, switchTab, openEditingInfoFiles, t, treeData]);
 
 	const onPlayControlRun = useCallback((mode: "Run" | "Run This", noLog?: boolean, bottomLog?: boolean) => {
 		if (isEditorActioning) {

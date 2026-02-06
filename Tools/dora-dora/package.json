@@ -48,6 +48,7 @@
     "build": "vite build && node scripts/minify-javascript-codes.js",
     "build-mac": "NODE_OPTIONS=\"--max-old-space-size=8192\" vite build && node scripts/minify-javascript-codes.js",
     "preview": "vite preview",
+    "lint": "eslint src",
     "postinstall": "node scripts/copy-typescript.js"
   },
   "browserslist": {

@@ -490,6 +490,7 @@ export interface LLMConfigItem {
 	url: string;
 	model: string;
 	key: string;
+	active: boolean;
 }
 
 export interface LLMConfigListResponse {
