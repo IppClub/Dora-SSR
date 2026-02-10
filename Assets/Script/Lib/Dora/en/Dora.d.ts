@@ -7809,15 +7809,20 @@ interface json {
 	 * Parses the specified JSON text and returns the corresponding object.
 	 * @param json The JSON text to parse.
 	 * @param maxDepth The maximum depth to parse (default is 128).
+	 * @param allowcomments Whether to allow comments in the JSON text (default is false).
 	 * @returns The object representing the JSON data, or null with an error message if the JSON text is invalid.
 	 */
-	decode(this: void, json: string, maxDepth?: number): LuaMultiReturn<[any, null]> | LuaMultiReturn<[null, string]>;
+	decode(this: void, json: string, maxDepth?: number, allowcomments?: boolean): LuaMultiReturn<[any, null]> | LuaMultiReturn<[null, string]>;
 	/**
 	 * Converts the specified object to JSON text.
 	 * @param obj The object to convert.
+	 * @param format Whether to format the JSON text (default is false).
+	 * @param empty_as_array Whether to convert empty tables to arrays (default is false).
+	 * @param num_as_str Whether to convert numbers to strings (default is false).
+	 * @param maxdepth The maximum depth to convert (default is 128).
 	 * @returns The JSON text representing the object, or null with an error message if the object cannot be converted.
 	 */
-	encode(this: void, obj: object): LuaMultiReturn<[string, null]> | LuaMultiReturn<[null, string]>;
+	encode(this: void, obj: object, format?: boolean, empty_as_array?: boolean, num_as_str?: boolean, maxdepth?: number): LuaMultiReturn<[string, null]> | LuaMultiReturn<[null, string]>;
 	/**
 	 * Represents the JSON null value.
 	 */

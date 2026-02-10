@@ -1,4 +1,4 @@
-import { json } from 'Dora';
+import { json, Log } from 'Dora';
 
 namespace Gen {
 
@@ -1056,13 +1056,16 @@ export const toBlocklyJSON = (root: Blk, procs?: Blk[]): string => {
 		j.x = (i + 1) * 500;
 		return j;
 	}) ?? [];
-	const [res] = json.encode({
+	const [res, err] = json.encode({
 		blocks: {
 			languageVersion: 0,
 			blocks: [root.toJSON(), ...procBlocks],
 		},
 		variables: vars,
-	});
+	}, false, false, false, 4096);
+	if (err !== null) {
+		Log("Error", err);
+	}
 	return res ?? "{}";
 };
 

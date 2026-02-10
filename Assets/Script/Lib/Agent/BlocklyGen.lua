@@ -15,6 +15,7 @@ local __TS__ArrayConcat = ____lualib.__TS__ArrayConcat -- 1
 local ____exports = {} -- 1
 local ____Dora = require("Dora") -- 1
 local json = ____Dora.json -- 1
+local Log = ____Dora.Log -- 1
 local Gen = {} -- 1
 do -- 1
 	local vec2Calc -- 1
@@ -774,18 +775,27 @@ do -- 1
 				return j -- 1057
 			end -- 1054
 		) or ({}) -- 1054
-		local res = json.encode({ -- 1059
-			blocks = { -- 1060
-				languageVersion = 0, -- 1061
-				blocks = { -- 1062
-					root:toJSON(), -- 1062
-					table.unpack(procBlocks) -- 1062
-				} -- 1062
-			}, -- 1062
-			variables = vars -- 1064
-		}) -- 1064
-		return res or "{}" -- 1066
+		local res, err = json.encode( -- 1059
+			{ -- 1059
+				blocks = { -- 1060
+					languageVersion = 0, -- 1061
+					blocks = { -- 1062
+						root:toJSON(), -- 1062
+						table.unpack(procBlocks) -- 1062
+					} -- 1062
+				}, -- 1062
+				variables = vars -- 1064
+			}, -- 1064
+			false, -- 1065
+			false, -- 1065
+			false, -- 1065
+			4096 -- 1065
+		) -- 1065
+		if err ~= nil then -- 1065
+			Log("Error", err) -- 1067
+		end -- 1067
+		return res or "{}" -- 1069
 	end -- 1031
 end -- 1031
-____exports.default = Gen -- 1258
-return ____exports -- 1258
+____exports.default = Gen -- 1261
+return ____exports -- 1261
