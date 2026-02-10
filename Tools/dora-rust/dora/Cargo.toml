@@ -1,6 +1,6 @@
 [package]
 name = "dora-ssr"
-version = "0.5.5"
+version = "0.5.6"
 authors = ["Li Jin <dragon-fly@qq.com>"]
 edition = "2021"
 license = "MIT"
