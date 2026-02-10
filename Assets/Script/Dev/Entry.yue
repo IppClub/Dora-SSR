@@ -599,7 +599,6 @@ handleSearchFiles = (payload) ->
 		:extensionLevels = []
 		:pattern = ""
 	} = payload
-	p globs
 	return if pattern == ""
 	useRegex = payload.useRegex == true
 	caseSensitive = payload.caseSensitive == true
