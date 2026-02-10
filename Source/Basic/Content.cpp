@@ -236,57 +236,425 @@ std::list<std::string> Content::getAllFiles(String path) {
 		fs::path parentPath = fullPath;
 		std::error_code err;
 		for (const auto& item : fs::recursive_directory_iterator(parentPath, err)) {
-			if (!item.is_directory()) {
+			bool isDir = item.is_directory(err);
+			if (err) {
+				Warn("failed to get entry of \"{}\" due to \"{}\".", item.path().string(), err.message());
+				err.clear();
+				continue;
+			}
+			if (!isDir) {
 				files.push_back(item.path().lexically_relative(parentPath).string());
 			}
 		}
-		WarnIf(err, "failed to get entry of \"{}\" due to \"{}\".", fullPath, err.message());
+		ErrorIf(err, "failed to get entry of \"{}\" due to \"{}\".", fullPath, err.message());
 	} else {
 		Error("Content failed to get entry of \"{}\"", fullPath);
 	}
 	return files;
 }
 
-void Content::searchFilesAsync(String path, std::vector<std::string>&& exts, std::unordered_map<std::string, int>&& extensionLevels, std::vector<std::string>&& excludes, String pattern, bool useRegex, bool caseSensitive, bool includeContent, int contentWindow, const std::function<bool(SearchResult&&)>& callbackFunc) {
-	std::string searchRoot = path.empty() ? _assetPath : path.toString();
-	if (!SharedContent.exist(searchRoot)) {
+static std::string normalizeGlobPattern(String glob) {
+	if (glob.empty()) return std::string();
+	auto pattern = Slice(glob);
+	pattern.trimSpace();
+	if (pattern.empty()) return std::string();
+	std::string normalized = pattern.toString();
+	for (auto& ch : normalized) {
+		if (ch == '\\') ch = '/';
+	}
+	return normalized;
+}
+
+struct GlobRule {
+	std::string regex;
+	bool matchPath = false;
+	bool rootOnly = false;
+	bool negated = false;
+};
+
+static std::string globToRegex(const std::string& glob) {
+	if (glob.empty()) return std::string();
+	std::string regex;
+	regex.reserve(glob.size() * 4 + 2);
+	regex.push_back('^');
+	for (size_t i = 0; i < glob.size();) {
+		char ch = glob[i];
+		if (ch == '*') {
+			bool isDoubleStar = (i + 1 < glob.size() && glob[i + 1] == '*');
+			if (isDoubleStar) {
+				bool hasSlashAfter = (i + 2 < glob.size() && glob[i + 2] == '/');
+				if (hasSlashAfter) {
+					regex.append(".*");
+					i += 3;
+				} else {
+					regex.append(".*");
+					i += 2;
+				}
+			} else {
+				regex.append("[^/]*");
+				i += 1;
+			}
+			continue;
+		}
+		if (ch == '?') {
+			regex.append("[^/]");
+			i += 1;
+			continue;
+		}
+		if (ch == '[') {
+			size_t end = glob.find(']', i + 1);
+			if (end == std::string::npos) {
+				regex.append("\\[");
+				i += 1;
+				continue;
+			}
+			regex.push_back('[');
+			size_t j = i + 1;
+			if (j < end && (glob[j] == '!' || glob[j] == '^')) {
+				regex.push_back('^');
+				j++;
+			}
+			for (; j < end; ++j) {
+				char c = glob[j];
+				if (c == '\\') c = '/';
+				if (c == ']' || c == '\\') {
+					regex.push_back('\\');
+				}
+				regex.push_back(c);
+			}
+			regex.push_back(']');
+			i = end;
+			i += 1;
+			continue;
+		}
+		switch (ch) {
+			case '.':
+			case '^':
+			case '$':
+			case '+':
+			case '(':
+			case ')':
+			case '{':
+			case '}':
+			case '|':
+			case '\\':
+				regex.push_back('\\');
+				break;
+			default:
+				break;
+		}
+		regex.push_back(ch);
+		i += 1;
+	}
+	regex.push_back('$');
+	return regex;
+}
+
+static bool regexMatch(const std::string& regex, const std::string& text) {
+	if (regex.empty()) return true;
+	int matchLength = 0;
+	return re_match(regex.c_str(), text.c_str(), &matchLength) >= 0;
+}
+
+static bool globPatternMatches(const std::string& regex, bool matchPath, const std::string& file) {
+	if (regex.empty()) return true;
+	std::string normalized = file;
+	for (auto& ch : normalized) {
+		if (ch == '\\') ch = '/';
+	}
+	auto filename = Path::getFilename(normalized);
+	return regexMatch(regex, matchPath ? normalized : filename);
+}
+
+static std::vector<GlobRule> compileGlobRules(const std::vector<std::string>& globs) {
+	std::vector<GlobRule> rules;
+	rules.reserve(globs.size());
+	for (const auto& rawGlob : globs) {
+		auto glob = normalizeGlobPattern(Slice(rawGlob));
+		if (glob.empty()) continue;
+		GlobRule rule;
+		if (glob.front() == '!') {
+			rule.negated = true;
+			glob.erase(glob.begin());
+			if (glob.empty()) continue;
+		}
+		rule.matchPath = glob.find('/') != std::string::npos;
+		rule.rootOnly = !rule.matchPath && glob.find("**") == std::string::npos;
+		rule.regex = globToRegex(glob);
+		if (rule.regex.empty()) continue;
+		rules.push_back(std::move(rule));
+	}
+	return rules;
+}
+
+static bool globRuleMatches(const GlobRule& rule, const std::string& file) {
+	std::string normalized = file;
+	for (auto& ch : normalized) {
+		if (ch == '\\') ch = '/';
+	}
+	// For patterns like "*.yue", only match files directly under root path.
+	if (rule.rootOnly && normalized.find('/') != std::string::npos) return false;
+	return globPatternMatches(rule.regex, rule.matchPath, normalized);
+}
+
+static std::unordered_map<std::string, int> normalizeExtensionLevels(std::unordered_map<std::string, int>&& extensionLevels) {
+	std::unordered_map<std::string, int> result;
+	if (extensionLevels.empty()) return result;
+	result.reserve(extensionLevels.size());
+	for (const auto& item : extensionLevels) {
+		auto ext = Slice(item.first);
+		if (!ext.empty() && ext.front() == '.') ext.skip(1);
+		if (!ext.empty()) result[ext.toLower()] = item.second;
+	}
+	return result;
+}
+
+static bool matchGlobRules(const std::vector<GlobRule>& rules, const std::string& file) {
+	if (rules.empty()) return true;
+	bool hasPositiveRule = false;
+	for (const auto& rule : rules) {
+		if (!rule.negated) {
+			hasPositiveRule = true;
+			break;
+		}
+	}
+	bool matched = !hasPositiveRule;
+	for (const auto& rule : rules) {
+		if (globRuleMatches(rule, file)) {
+			matched = !rule.negated;
+		}
+	}
+	return matched;
+}
+
+static bool shouldSkipDirectoryByNegatedRules(const std::vector<GlobRule>& rules, const std::string& relativeDir) {
+	if (rules.empty()) return false;
+	std::string normalized = relativeDir;
+	for (auto& ch : normalized) {
+		if (ch == '\\') ch = '/';
+	}
+	std::string normalizedWithSlash = normalized;
+	if (!normalizedWithSlash.empty() && normalizedWithSlash.back() != '/') {
+		normalizedWithSlash.push_back('/');
+	}
+	for (const auto& rule : rules) {
+		if (!rule.negated) continue;
+		if (rule.rootOnly) continue;
+		if (globPatternMatches(rule.regex, rule.matchPath, normalized)) return true;
+		if (globPatternMatches(rule.regex, rule.matchPath, normalizedWithSlash)) return true;
+	}
+	return false;
+}
+
+static std::list<std::string> filterFilesByExtensionLevels(std::list<std::string>&& files, const std::unordered_map<std::string, int>& extensionLevels) {
+	if (extensionLevels.empty()) return std::move(files);
+	std::unordered_map<std::string, std::pair<int, std::list<std::string>::iterator>> bestEntries;
+	for (auto it = files.begin(); it != files.end();) {
+		auto current = it++;
+		auto ext = Path::getExt(*current);
+		int level = 0;
+		auto levelIt = extensionLevels.find(ext);
+		if (levelIt != extensionLevels.end()) {
+			level = levelIt->second;
+		}
+		auto basePath = fs::path(*current).replace_extension().string();
+		auto bestIt = bestEntries.find(basePath);
+		if (bestIt == bestEntries.end()) {
+			bestEntries.emplace(basePath, std::make_pair(level, current));
+			continue;
+		}
+		if (level > bestIt->second.first) {
+			files.erase(bestIt->second.second);
+			bestIt->second = std::make_pair(level, current);
+		} else {
+			files.erase(current);
+		}
+	}
+	return files;
+}
+
+static std::list<std::string> filterFilesByGlob(std::list<std::string>&& files, const std::vector<GlobRule>& rules) {
+	if (rules.empty()) return std::move(files);
+	std::list<std::string> filtered;
+	for (const auto& file : files) {
+		if (matchGlobRules(rules, file)) filtered.push_back(file);
+	}
+	return filtered;
+}
+
+std::list<std::string> Content::glob(String path, std::vector<std::string>&& globs, std::unordered_map<std::string, int>&& extensionLevels) {
+	std::string searchName = path.empty() ? _assetPath : path.toString();
+	auto globRules = compileGlobRules(globs);
+	auto normalizedExtensionLevels = normalizeExtensionLevels(std::move(extensionLevels));
+	auto fullPathAndPackage = Content::getFullPathAndPackage(searchName);
+	if (fullPathAndPackage.zipFile) {
+		auto files = filterFilesByExtensionLevels(fullPathAndPackage.zipFile->getAllFiles(), normalizedExtensionLevels);
+		return filterFilesByGlob(std::move(files), globRules);
+	}
+	auto fullPath = fullPathAndPackage.fullPath.empty() ? searchName : fullPathAndPackage.fullPath;
+#if BX_PLATFORM_ANDROID
+	if (isAndroidAsset(fullPath)) {
+		auto files = filterFilesByExtensionLevels(_apkFile->getAllFiles(getAndroidAssetName(fullPath)), normalizedExtensionLevels);
+		return filterFilesByGlob(std::move(files), globRules);
+	}
+#endif // BX_PLATFORM_ANDROID
+	std::list<std::string> files;
+	if (Content::isFileExist(fullPath)) {
+		fs::path parentPath = fullPath;
+		std::error_code err;
+		std::vector<fs::path> dirStack;
+		dirStack.push_back(parentPath);
+		if (normalizedExtensionLevels.empty()) {
+			while (!dirStack.empty()) {
+				fs::path currentDir = std::move(dirStack.back());
+				dirStack.pop_back();
+				fs::directory_iterator it(currentDir, err);
+				if (err) {
+					Warn("failed to get entry of \"{}\" due to \"{}\".", currentDir.string(), err.message());
+					err.clear();
+					continue;
+				}
+				fs::directory_iterator end;
+				for (; it != end; it.increment(err)) {
+					if (err) {
+						Warn("failed to get entry of \"{}\" due to \"{}\".", currentDir.string(), err.message());
+						err.clear();
+						break;
+					}
+					const auto& item = *it;
+					bool isDir = item.is_directory(err);
+					if (err) {
+						Warn("failed to get entry of \"{}\" due to \"{}\".", item.path().string(), err.message());
+						err.clear();
+						continue;
+					}
+					if (isDir) {
+						auto relativeDir = item.path().lexically_relative(parentPath).string();
+						if (!shouldSkipDirectoryByNegatedRules(globRules, relativeDir)) {
+							dirStack.push_back(item.path());
+						}
+						continue;
+					}
+					bool isFile = item.is_regular_file(err);
+					if (err) {
+						Warn("failed to get entry of \"{}\" due to \"{}\".", item.path().string(), err.message());
+						err.clear();
+						continue;
+					}
+					if (!isFile) continue;
+					auto relativePath = item.path().lexically_relative(parentPath).string();
+					if (matchGlobRules(globRules, relativePath)) {
+						files.push_back(std::move(relativePath));
+					}
+				}
+			}
+			return files;
+		}
+		std::unordered_map<std::string, std::pair<int, std::string>> bestFiles;
+		while (!dirStack.empty()) {
+			fs::path currentDir = std::move(dirStack.back());
+			dirStack.pop_back();
+			fs::directory_iterator it(currentDir, err);
+			if (err) {
+				Warn("failed to get entry of \"{}\" due to \"{}\".", currentDir.string(), err.message());
+				err.clear();
+				continue;
+			}
+			fs::directory_iterator end;
+			for (; it != end; it.increment(err)) {
+				if (err) {
+					Warn("failed to get entry of \"{}\" due to \"{}\".", currentDir.string(), err.message());
+					err.clear();
+					break;
+				}
+				const auto& item = *it;
+				bool isDir = item.is_directory(err);
+				if (err) {
+					Warn("failed to get entry of \"{}\" due to \"{}\".", item.path().string(), err.message());
+					err.clear();
+					continue;
+				}
+				if (isDir) {
+					auto relativeDir = item.path().lexically_relative(parentPath).string();
+					if (!shouldSkipDirectoryByNegatedRules(globRules, relativeDir)) {
+						dirStack.push_back(item.path());
+					}
+					continue;
+				}
+				bool isFile = item.is_regular_file(err);
+				if (err) {
+					Warn("failed to get entry of \"{}\" due to \"{}\".", item.path().string(), err.message());
+					err.clear();
+					continue;
+				}
+				if (!isFile) continue;
+				auto relativePath = item.path().lexically_relative(parentPath).string();
+				if (!matchGlobRules(globRules, relativePath)) continue;
+				auto ext = Path::getExt(relativePath);
+				int level = 0;
+				auto levelIt = normalizedExtensionLevels.find(ext);
+				if (levelIt != normalizedExtensionLevels.end()) {
+					level = levelIt->second;
+				}
+				auto basePath = fs::path(relativePath).replace_extension().string();
+				auto bestIt = bestFiles.find(basePath);
+				if (bestIt == bestFiles.end()) {
+					bestFiles.emplace(std::move(basePath), std::make_pair(level, std::move(relativePath)));
+				} else if (level > bestIt->second.first) {
+					bestIt->second = std::make_pair(level, std::move(relativePath));
+				}
+			}
+		}
+		for (auto& item : bestFiles) {
+			files.push_back(std::move(item.second.second));
+		}
+		return files;
+	} else {
+		Error("Content failed to get entry of \"{}\"", fullPath);
+	}
+	return files;
+}
+
+
+void Content::searchFilesAsync(String path, std::vector<std::string>&& exts, std::unordered_map<std::string, int>&& extensionLevels, std::vector<std::string>&& globs, String pattern, bool useRegex, bool caseSensitive, bool includeContent, int contentWindow, const std::function<bool(SearchResult&&)>& callbackFunc) {
+	auto notifyDone = [&]() {
 		SearchResult done;
 		callbackFunc(std::move(done));
+	};
+	std::string searchRoot = path.empty() ? _assetPath : path.toString();
+	if (!SharedContent.exist(searchRoot)) {
+		notifyDone();
 		return;
 	}
-	auto filesList = Content::getAllFiles(searchRoot);
-	if (filesList.empty()) return;
+	auto filesList = Content::glob(searchRoot, std::move(globs), std::move(extensionLevels));
+	if (filesList.empty()) {
+		notifyDone();
+		return;
+	}
 
 	std::string patternStr = pattern.toString();
-	if (patternStr.empty()) return;
-
-	std::unordered_set<std::string> excludeSet;
-	if (!excludes.empty()) {
-		excludeSet.reserve(excludes.size());
-		for (const auto& item : excludes) {
-			auto name = Slice(item);
-			name.trimSpace();
-			if (!name.empty() && (name.back() == '\\' || name.back() == '/')) name.skipRight(1);
-			if (!name.empty()) excludeSet.insert(name.toString());
-		}
+	if (patternStr.empty()) {
+		notifyDone();
+		return;
 	}
 
-	std::unordered_map<std::string, int> extLevels;
-	if (!extensionLevels.empty()) {
-		extLevels.reserve(extensionLevels.size());
-		for (const auto& item : extensionLevels) {
-			auto ext = Slice(item.first);
+	std::vector<std::string> files;
+	{
+		std::unordered_set<std::string> extSet;
+		extSet.reserve(exts.size());
+		for (const auto& ext_ : exts) {
+			auto ext = Slice(ext_);
 			if (!ext.empty() && ext.front() == '.') ext.skip(1);
-			if (!ext.empty()) extLevels[ext.toLower()] = item.second;
+			if (!ext.empty()) extSet.insert(ext.toLower());
 		}
-	}
-
-	std::unordered_set<std::string> extSet;
-	extSet.reserve(exts.size());
-	for (const auto& ext_ : exts) {
-		auto ext = Slice(ext_);
-		if (!ext.empty() && ext.front() == '.') ext.skip(1);
-		if (!ext.empty()) extSet.insert(ext.toLower());
+		files.reserve(filesList.size());
+		for (const auto& file : filesList) {
+			if (!extSet.empty()) {
+				auto ext = Path::getExt(file);
+				if (extSet.find(ext) == extSet.end()) continue;
+			}
+			files.push_back(file);
+		}
 	}
 
 	auto callbackPtr = std::make_shared<std::function<bool(SearchResult&&)>>(callbackFunc);
@@ -298,53 +666,7 @@ void Content::searchFilesAsync(String path, std::vector<std::string>&& exts, std
 		return stopToken->store(true, std::memory_order_relaxed);
 	};
 
-	auto isExcluded = [&excludeSet](const std::string& file) {
-		if (excludeSet.empty()) return false;
-		fs::path filePath(file);
-		for (const auto& part : filePath) {
-			auto partStr = part.string();
-			if (excludeSet.find(partStr) != excludeSet.end()) return true;
-		}
-		return false;
-	};
-
-	std::vector<std::string> files;
-	files.reserve(filesList.size());
-	if (!extLevels.empty()) {
-		std::unordered_map<std::string, size_t> bestIndex;
-		std::unordered_map<std::string, int> bestLevel;
-		bestIndex.reserve(filesList.size());
-		bestLevel.reserve(filesList.size());
-		for (const auto& file : filesList) {
-			if (isExcluded(file)) continue;
-			auto ext = Path::getExt(file);
-			if (!extSet.empty()) {
-				if (extSet.find(ext) == extSet.end()) continue;
-			}
-			auto basePath = fs::path(file).replace_extension().string();
-			int level = 0;
-			auto levelIt = extLevels.find(ext);
-			if (levelIt != extLevels.end()) {
-				level = levelIt->second;
-			}
-			auto it = bestIndex.find(basePath);
-			if (it == bestIndex.end()) {
-				bestIndex[basePath] = files.size();
-				bestLevel[basePath] = level;
-				files.push_back(file);
-			} else if (level > bestLevel[basePath]) {
-				files[it->second] = file;
-				bestLevel[basePath] = level;
-			}
-		}
-	} else {
-		for (const auto& file : filesList) {
-			if (isExcluded(file)) continue;
-			files.push_back(file);
-		}
-	}
-
-	SharedAsyncThread.run([files = std::move(files), searchRoot, patternStr, useRegex, caseSensitive, includeContent, contentWindow, extSet = std::move(extSet), callbackPtr, stoped, markStoped, this]() {
+	SharedAsyncThread.run([files = std::move(files), searchRoot, patternStr, useRegex, caseSensitive, includeContent, contentWindow, callbackPtr, stoped, markStoped, this]() {
 		auto isContinuationByte = [](unsigned char c) {
 			return (c & 0xC0) == 0x80;
 		};
@@ -394,10 +716,6 @@ void Content::searchFilesAsync(String path, std::vector<std::string>&& exts, std
 				if (stoped()) break;
 
 				const auto& file = files[idx];
-				if (!extSet.empty()) {
-					auto ext = Path::getExt(file);
-					if (extSet.find(ext) == extSet.end()) continue;
-				}
 				std::list<Slice> segments;
 				segments.emplace_back(searchRoot);
 				segments.emplace_back(file);
@@ -1025,10 +1343,20 @@ std::list<std::string> Content::getDirEntries(String path, bool isFolder) {
 	std::list<std::string> files;
 	if (Content::isFileExist(fullPath)) {
 		fs::path parentPath = fullPath;
-		for (const auto& item : fs::directory_iterator(parentPath)) {
-			if (isFolder == item.is_directory()) {
+		std::error_code err;
+		for (const auto& item : fs::directory_iterator(parentPath, err)) {
+			bool isDir = item.is_directory(err);
+			if (err) {
+				Warn("failed to get entry of \"{}\" due to \"{}\".", item.path().string(), err.message());
+				err.clear();
+				continue;
+			}
+			if (isFolder == isDir) {
 				files.push_back(item.path().lexically_relative(parentPath).string());
 			}
+		}
+		if (err) {
+			Error("Content failed to get entry of \"{}\"", fullPath);
 		}
 	} else {
 		Error("Content failed to get entry of \"{}\"", fullPath);

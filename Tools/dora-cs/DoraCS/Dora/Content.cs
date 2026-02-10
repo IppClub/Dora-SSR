@@ -62,7 +62,9 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t content_get_all_files(int64_t path);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void content_search_files_async(int64_t path, int64_t exts, int64_t extensionLevels, int64_t excludes, int64_t pattern, int32_t useRegex, int32_t caseSensitive, int32_t includeContent, int32_t contentWindow, int32_t func0, int64_t stack0);
+		public static extern int64_t content_glob(int64_t path, int64_t globs, int64_t extensionLevels);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void content_search_files_async(int64_t path, int64_t exts, int64_t extensionLevels, int64_t globs, int64_t pattern, int32_t useRegex, int32_t caseSensitive, int32_t includeContent, int32_t contentWindow, int32_t func0, int64_t stack0);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void content_load_async(int64_t filename, int32_t func0, int64_t stack0);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
@@ -263,19 +265,30 @@ namespace Dora
 			return Bridge.ToStringArray(Native.content_get_all_files(Bridge.FromString(path)));
 		}
 		/// <summary>
+		/// Gets the names of all files in the specified directory and its subdirectories.
+		/// </summary>
+		/// <param name="path">The path of the directory to search.</param>
+		/// <param name="globs">The glob pattern array used to filter matching filenames or relative paths.</param>
+		/// <param name="extensionLevels">A map from extension to priority level for picking the preferred file when the same basename appears with different extensions.</param>
+		/// <returns>An array of the names of all files in the specified directory and its subdirectories.</returns>
+		public static string[] Glob(string path, IEnumerable<string> globs, Dictionary extensionLevels)
+		{
+			return Bridge.ToStringArray(Native.content_glob(Bridge.FromString(path), Bridge.FromArray(globs), extensionLevels.Raw));
+		}
+		/// <summary>
 		/// Asynchronously searches files and returns the match results. Should be run in a thread.
 		/// </summary>
 		/// <param name="path">The root path to search from, empty string means asset root.</param>
 		/// <param name="exts">An array of filename extensions to include, empty array means all.</param>
 		/// <param name="extensionLevels">A map from extension to priority level for picking the preferred file when the same basename appears with different extensions.</param>
-		/// <param name="excludes">An array of directory names to skip during searching.</param>
+		/// <param name="globs">The glob pattern array used to filter matching filenames or relative paths.</param>
 		/// <param name="pattern">The search pattern.</param>
 		/// <param name="useRegex">Whether to treat pattern as regex (default false).</param>
 		/// <param name="caseSensitive">Whether to use case-sensitive matching (default false).</param>
 		/// <param name="includeContent">Whether to include the matched content snippet (default false).</param>
 		/// <param name="contentWindow">Number of characters around the match to include when includeContent is true.</param>
 		/// <param name="callback">Called per result, return true to stop searching. The callback receives null when done.</param>
-		public static void SearchFilesAsync(string path, IEnumerable<string> exts, Dictionary extensionLevels, IEnumerable<string> excludes, string pattern, bool useRegex, bool caseSensitive, bool includeContent, int contentWindow, Func<Dictionary, bool> callback)
+		public static void SearchFilesAsync(string path, IEnumerable<string> exts, Dictionary extensionLevels, IEnumerable<string> globs, string pattern, bool useRegex, bool caseSensitive, bool includeContent, int contentWindow, Func<Dictionary, bool> callback)
 		{
 			var stack0 = new CallStack();
 			var stack_raw0 = stack0.Raw;
@@ -284,7 +297,7 @@ namespace Dora
 				var result = callback((Dictionary)stack0.PopObject());
 				stack0.Push(result);
 			});
-			Native.content_search_files_async(Bridge.FromString(path), Bridge.FromArray(exts), extensionLevels.Raw, Bridge.FromArray(excludes), Bridge.FromString(pattern), useRegex ? 1 : 0, caseSensitive ? 1 : 0, includeContent ? 1 : 0, contentWindow, func_id0, stack_raw0);
+			Native.content_search_files_async(Bridge.FromString(path), Bridge.FromArray(exts), extensionLevels.Raw, Bridge.FromArray(globs), Bridge.FromString(pattern), useRegex ? 1 : 0, caseSensitive ? 1 : 0, includeContent ? 1 : 0, contentWindow, func_id0, stack_raw0);
 		}
 		/// <summary>
 		/// Asynchronously loads the content of the file with the specified filename.

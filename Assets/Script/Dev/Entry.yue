@@ -592,11 +592,14 @@ handleSearchFiles = (payload) ->
 	:id = payload
 	return if id == nil
 	activeSearchId = id
-	path = payload.path or ""
-	exts = payload.exts or {}
-	extensionLevels = payload.extensionLevels or {}
-	excludes = payload.excludes or {}
-	pattern = payload.pattern or ""
+	{
+		:path = ""
+		:exts = []
+		:globs = []
+		:extensionLevels = []
+		:pattern = ""
+	} = payload
+	p globs
 	return if pattern == ""
 	useRegex = payload.useRegex == true
 	caseSensitive = payload.caseSensitive == true
@@ -604,7 +607,7 @@ handleSearchFiles = (payload) ->
 	contentWindow = payload.contentWindow or 0
 	Director.systemScheduler\schedule once ->
 		stopped = false
-		Content\searchFilesAsync path, exts, extensionLevels, excludes, pattern, useRegex, caseSensitive, includeContent, contentWindow, (result) ->
+		Content\searchFilesAsync path, exts, extensionLevels, globs, pattern, useRegex, caseSensitive, includeContent, contentWindow, (result) ->
 			if activeSearchId != id
 				stopped = true
 				return true

@@ -378,6 +378,29 @@ tolua_lerror:
 #endif
 }
 
+void __Content_glob(lua_State* L, Content* self, String path, Slice globs[], int len, Dictionary* extensionLevels = nullptr) {
+	std::unordered_map<std::string, int> extLevels;
+	if (extensionLevels) {
+		auto keys = extensionLevels->getKeys();
+		extLevels.reserve(keys.size());
+		for (const auto& key : keys) {
+			const auto& value = extensionLevels->get(key);
+			if (!value) continue;
+			if (auto intVal = value->asVal<int64_t>()) {
+				extLevels[key.toString()] = s_cast<int>(*intVal);
+			} else if (auto floatVal = value->asVal<double>()) {
+				extLevels[key.toString()] = s_cast<int>(*floatVal);
+			}
+		}
+	}
+	std::vector<std::string> globArr{s_cast<size_t>(len)};
+	for (int i = 0; i < len; i++) {
+		globArr[i] = globs[i].toString();
+	}
+	auto files = self->glob(path, std::move(globArr), std::move(extLevels));
+	pushListString(L, files);
+}
+
 int Content_searchFilesAsync(lua_State* L) {
 #ifndef TOLUA_RELEASE
 	tolua_Error tolua_err;

@@ -46,6 +46,12 @@ void __Content_getAllFiles(lua_State* L, Content* self, String path);
 		__Content_getAllFiles(tolua_S, self, path); \
 		return 1; \
 	}
+void __Content_glob(lua_State* L, Content* self, String path, Slice globs[], int len, Dictionary* extensionLevels);
+#define Content_glob(self, path, globs, len, extensionLevels) \
+	{ \
+		__Content_glob(tolua_S, self, path, globs, len, extensionLevels); \
+		return 1; \
+	}
 int Content_GetSearchPaths(lua_State* L);
 int Content_SetSearchPaths(lua_State* L);
 void Content_insertSearchPath(Content* self, int index, String path);

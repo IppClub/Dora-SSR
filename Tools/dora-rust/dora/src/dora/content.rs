@@ -30,7 +30,8 @@ extern "C" {
 	fn content_get_dirs(path: i64) -> i64;
 	fn content_get_files(path: i64) -> i64;
 	fn content_get_all_files(path: i64) -> i64;
-	fn content_search_files_async(path: i64, exts: i64, extension_levels: i64, excludes: i64, pattern: i64, use_regex: i32, case_sensitive: i32, include_content: i32, content_window: i32, func0: i32, stack0: i64);
+	fn content_glob(path: i64, globs: i64, extension_levels: i64) -> i64;
+	fn content_search_files_async(path: i64, exts: i64, extension_levels: i64, globs: i64, pattern: i64, use_regex: i32, case_sensitive: i32, include_content: i32, content_window: i32, func0: i32, stack0: i64);
 	fn content_load_async(filename: i64, func0: i32, stack0: i64);
 	fn content_copy_async(src_file: i64, target_file: i64, func0: i32, stack0: i64);
 	fn content_save_async(filename: i64, content: i64, func0: i32, stack0: i64);
@@ -247,6 +248,20 @@ impl Content {
 	pub fn get_all_files(path: &str) -> Vec<String> {
 		unsafe { return crate::dora::Vector::to_str(content_get_all_files(crate::dora::from_string(path))); }
 	}
+	/// Gets the names of all files in the specified directory and its subdirectories.
+	///
+	/// # Arguments
+	///
+	/// * `path` - The path of the directory to search.
+	/// * `globs` - The glob pattern array used to filter matching filenames or relative paths.
+	/// * `extensionLevels` - A map from extension to priority level for picking the preferred file when the same basename appears with different extensions.
+	///
+	/// # Returns
+	///
+	/// * `Vec<String>` - An array of the names of all files in the specified directory and its subdirectories.
+	pub fn glob(path: &str, globs: &Vec<&str>, extension_levels: &crate::dora::Dictionary) -> Vec<String> {
+		unsafe { return crate::dora::Vector::to_str(content_glob(crate::dora::from_string(path), crate::dora::Vector::from_str(globs), extension_levels.raw())); }
+	}
 	/// Asynchronously searches files and returns the match results. Should be run in a thread.
 	///
 	/// # Arguments
@@ -254,21 +269,21 @@ impl Content {
 	/// * `path` - The root path to search from, empty string means asset root.
 	/// * `exts` - An array of filename extensions to include, empty array means all.
 	/// * `extensionLevels` - A map from extension to priority level for picking the preferred file when the same basename appears with different extensions.
-	/// * `excludes` - An array of directory names to skip during searching.
+	/// * `globs` - The glob pattern array used to filter matching filenames or relative paths.
 	/// * `pattern` - The search pattern.
 	/// * `useRegex` - Whether to treat pattern as regex (default false).
 	/// * `caseSensitive` - Whether to use case-sensitive matching (default false).
 	/// * `includeContent` - Whether to include the matched content snippet (default false).
 	/// * `contentWindow` - Number of characters around the match to include when includeContent is true.
 	/// * `callback` - Called per result, return true to stop searching. The callback receives empty dictionary when done.
-	pub fn search_files_async(path: &str, exts: &Vec<&str>, extension_levels: &crate::dora::Dictionary, excludes: &Vec<&str>, pattern: &str, use_regex: bool, case_sensitive: bool, include_content: bool, content_window: i32, mut callback: Box<dyn FnMut(&crate::dora::Dictionary) -> bool>) {
+	pub fn search_files_async(path: &str, exts: &Vec<&str>, extension_levels: &crate::dora::Dictionary, globs: &Vec<&str>, pattern: &str, use_regex: bool, case_sensitive: bool, include_content: bool, content_window: i32, mut callback: Box<dyn FnMut(&crate::dora::Dictionary) -> bool>) {
 		let mut stack0 = crate::dora::CallStack::new();
 		let stack_raw0 = stack0.raw();
 		let func_id0 = crate::dora::push_function(Box::new(move || {
 			let result = callback(&stack0.pop_cast::<crate::dora::Dictionary>().unwrap());
 			stack0.push_bool(result);
 		}));
-		unsafe { content_search_files_async(crate::dora::from_string(path), crate::dora::Vector::from_str(exts), extension_levels.raw(), crate::dora::Vector::from_str(excludes), crate::dora::from_string(pattern), if use_regex { 1 } else { 0 }, if case_sensitive { 1 } else { 0 }, if include_content { 1 } else { 0 }, content_window, func_id0, stack_raw0); }
+		unsafe { content_search_files_async(crate::dora::from_string(path), crate::dora::Vector::from_str(exts), extension_levels.raw(), crate::dora::Vector::from_str(globs), crate::dora::from_string(pattern), if use_regex { 1 } else { 0 }, if case_sensitive { 1 } else { 0 }, if include_content { 1 } else { 0 }, content_window, func_id0, stack_raw0); }
 	}
 	/// Asynchronously loads the content of the file with the specified filename.
 	///

@@ -138,6 +138,15 @@ local record Content
 	-- @return (boolean) 如果成功解压缩了文件，则为 `true`，否则为 `false`。
 	unzipAsync: function(self: Content, zipFile: string, folderPath: string, filter?: function(string): boolean): boolean
 
+	-- 获取指定目录及其子目录中所有文件的名称。
+	-- @param path (string) 要搜索的目录的路径。
+	-- @param globs ({string}) 用于匹配文件名或相对路径的 glob 模式列表。示例：
+	-- - 目标目录下（不包含子目录）的 .txt 文件和 .json 文件：["*.txt", "*.json"]
+	-- - 目标目录下的所有文件，但排除 .txt 文件：["**", "!**.txt"]
+	-- @param extensionLevels ({[string]: integer}) [可选] 扩展名到优先级的映射，用于同名不同后缀时选择优先级最高的文件。
+	-- @return (table) 包含指定目录及其子目录中所有文件名称的列表。
+	glob: function(self: Content, path: string, globs: {string}, extensionLevels?: {string: integer}): {string}
+
 	-- `searchFilesAsync` 返回的搜索结果项。
 	record SearchFilesResult
 		-- 匹配到的文件完整路径。
@@ -160,7 +169,7 @@ local record Content
 	-- @param path (string) 搜索根路径，空字符串表示资源根目录。
 	-- @param exts ({string}) 需要包含的扩展名列表，空表表示不过滤。
 	-- @param extensionLevels ({[string]: integer}) 扩展名到优先级的映射，用于同名不同后缀时选择优先级最高的文件。
-	-- @param excludes ({string}) 需要跳过的目录名称列表。
+	-- @param globs ({string}) 需要匹配的文件名通配符列表。
 	-- @param pattern (string) 搜索的匹配模式。
 	-- @param useRegex (boolean) [可选] 是否使用正则匹配（默认 false）。
 	-- 正则通配符支持:
@@ -189,7 +198,7 @@ local record Content
 		path: string,
 		exts: {string},
 		extensionLevels: {string: integer},
-		excludes: {string},
+		globs: {string},
 		pattern: string,
 		useRegex?: boolean,
 		caseSensitive?: boolean,

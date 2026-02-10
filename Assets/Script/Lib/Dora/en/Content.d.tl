@@ -139,6 +139,15 @@ local record Content
 	-- @return (boolean) `true` if the folder was decompressed successfully, `false` otherwise.
 	unzipAsync: function(self: Content, zipFile: string, folderPath: string, filter?: function(string): boolean): boolean
 
+	-- Gets the names of all files in the specified directory and its subdirectories.
+	-- @param path (string) The path of the directory to search.
+	-- @param globs ({string}) The glob pattern array used to filter matching filenames or relative paths. Example:
+	-- - All .txt and .json files in the directory (not including subdirectories): ["*.txt", "*.json"]
+	-- - All files in the directory, but exclude .txt files: ["**", "!**.txt"]
+	-- @param extensionLevels ({[string]: integer}) [optional] A map from extension to priority level for picking the preferred file when the same basename appears with different extensions.
+	-- @return (table) An array of the names of all files in the specified directory and its subdirectories.
+	glob: function(self: Content, path: string, globs: {string}, extensionLevels?: {string: integer}): {string}
+
 	-- A search result item returned by `searchFilesAsync`.
 	record SearchFilesResult
 		-- The full path of the file.
@@ -161,7 +170,7 @@ local record Content
 	-- @param path (string) The root path to search from, empty string means asset root.
 	-- @param exts ({string}) An array of filename extensions to include, empty table means all.
 	-- @param extensionLevels ({[string]: integer}) A map from extension to priority level for picking the preferred file when the same basename appears with different extensions.
-	-- @param excludes ({string}) An array of directory names to skip during searching.
+	-- @param globs ({string}) An array of glob patterns to match the file names.
 	-- @param pattern (string) The search pattern.
 	-- @param useRegex (boolean) [optional] Whether to treat pattern as regex (default false).
 	-- Regex supports:
@@ -190,7 +199,7 @@ local record Content
 		path: string,
 		exts: {string},
 		extensionLevels: {string: integer},
-		excludes: {string},
+		globs: {string},
 		pattern: string,
 		useRegex?: boolean,
 		caseSensitive?: boolean,

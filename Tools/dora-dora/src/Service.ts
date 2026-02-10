@@ -293,7 +293,7 @@ export interface SearchFilesRequest {
 	path: string;
 	exts: string[];
 	extensionLevels?: Record<string, number>;
-	excludes?: string[];
+	globs?: string[];
 	pattern: string;
 	useRegex: boolean;
 	caseSensitive: boolean;

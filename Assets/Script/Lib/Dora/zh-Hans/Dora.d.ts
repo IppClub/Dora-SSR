@@ -3702,6 +3702,17 @@ class Content {
 	zipAsync(folderPath: string, zipFile: string, filter?: (this: void, filename: string) => boolean): boolean;
 
 	/**
+	 * 获取指定目录及其子目录中所有文件的名称。
+	 * @param path 要搜索的目录的路径。
+	 * @param globs 用于匹配文件名或相对路径的 glob 模式列表。示例：
+	 * - 目标目录下（不包含子目录）的 .txt 文件和 .json 文件：["*.txt", "*.json"]
+	 * - 目标目录下的所有文件，但排除 .txt 文件：["**", "!**.txt"]
+	 * @param extensionLevels 可选的扩展名优先级映射，用于同名不同后缀时选择优先级最高的文件。
+	 * @returns 指定目录及其子目录中所有文件的名称的数组。
+	 */
+	glob(path: string, globs: string[], extensionLevels?: Record<string, number>): string[];
+
+	/**
 	 * 异步地将ZIP存档解压缩到指定的文件夹。
 	 * @param zipFile 要解压缩的ZIP存档的名称，应该是资产可写路径下的文件。
 	 * @param folderPath 要解压缩到的文件夹的路径，应在资产可写路径下。
@@ -3715,7 +3726,7 @@ class Content {
 	 * @param path 搜索根路径，空字符串表示资源根目录。
 	 * @param exts 需要包含的扩展名列表，空数组表示不过滤。
 	 * @param extensionLevels 扩展名到优先级的映射，用于同名不同后缀时选择优先级最高的文件。
-	 * @param exclude 需要跳过的目录名称列表。
+	 * @param globs 需要匹配的文件名通配符列表。
 	 * @param pattern 搜索的匹配模式。
 	 * @param useRegex 是否使用正则匹配（默认 false）。
 	 * 正则通配符支持:
@@ -3744,7 +3755,7 @@ class Content {
 		path: string,
 		exts: string[],
 		extensionLevels: Record<string, number>,
-		excludes: string[],
+		globs: string[],
 		pattern: string,
 		useRegex?: boolean,
 		caseSensitive?: boolean,
