@@ -188,7 +188,7 @@ const FileSearchPanel = (props: FileSearchDialogProps) => {
 			caseSensitive,
 			includeContent: true,
 			contentWindow: 20,
-			excludes: [".git", ".svn", ".hg", ".www", ".build", ".cache", ".upload", ".download"],
+			globs: ["**", "!**/.*/**", "!**/node_modules/**"],
 		});
 	}, [getEffectiveSearchPath, query, useRegex, caseSensitive, stopActiveSearch]);
 

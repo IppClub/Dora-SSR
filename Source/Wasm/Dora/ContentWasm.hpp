@@ -77,12 +77,15 @@ DORA_EXPORT int64_t content_get_files(int64_t path) {
 DORA_EXPORT int64_t content_get_all_files(int64_t path) {
 	return Vec_To(SharedContent.getAllFiles(*Str_From(path)));
 }
-DORA_EXPORT void content_search_files_async(int64_t path, int64_t exts, int64_t extension_levels, int64_t excludes, int64_t pattern, int32_t use_regex, int32_t case_sensitive, int32_t include_content, int32_t content_window, int32_t func0, int64_t stack0) {
+DORA_EXPORT int64_t content_glob(int64_t path, int64_t globs, int64_t extension_levels) {
+	return Vec_To(Content_glob(*Str_From(path), Vec_FromStr(globs), r_cast<Dictionary*>(extension_levels)));
+}
+DORA_EXPORT void content_search_files_async(int64_t path, int64_t exts, int64_t extension_levels, int64_t globs, int64_t pattern, int32_t use_regex, int32_t case_sensitive, int32_t include_content, int32_t content_window, int32_t func0, int64_t stack0) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
 	});
 	auto args0 = r_cast<CallStack*>(stack0);
-	Content_SearchFilesAsync(*Str_From(path), Vec_FromStr(exts), r_cast<Dictionary*>(extension_levels), Vec_FromStr(excludes), *Str_From(pattern), use_regex != 0, case_sensitive != 0, include_content != 0, s_cast<int>(content_window), [func0, args0, deref0](Dictionary* result) {
+	Content_SearchFilesAsync(*Str_From(path), Vec_FromStr(exts), r_cast<Dictionary*>(extension_levels), Vec_FromStr(globs), *Str_From(pattern), use_regex != 0, case_sensitive != 0, include_content != 0, s_cast<int>(content_window), [func0, args0, deref0](Dictionary* result) {
 		args0->clear();
 		args0->push(result);
 		SharedWasmRuntime.invoke(func0);
@@ -191,6 +194,7 @@ static void linkContent(wasm3::module3& mod) {
 	mod.link_optional("*", "content_get_dirs", content_get_dirs);
 	mod.link_optional("*", "content_get_files", content_get_files);
 	mod.link_optional("*", "content_get_all_files", content_get_all_files);
+	mod.link_optional("*", "content_glob", content_glob);
 	mod.link_optional("*", "content_search_files_async", content_search_files_async);
 	mod.link_optional("*", "content_load_async", content_load_async);
 	mod.link_optional("*", "content_copy_async", content_copy_async);

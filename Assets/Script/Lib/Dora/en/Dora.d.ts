@@ -3712,11 +3712,22 @@ class Content {
 	unzipAsync(zipFile: string, folderPath: string, filter?: (this: void, filename: string) => boolean): boolean;
 
 	/**
+	 * Gets the names of all files in the specified directory and its subdirectories.
+	 * @param path The path of the directory to search.
+	 * @param globs The glob pattern array used to filter matching filenames or relative paths. Example:
+	 * - All .txt and .json files in the directory (not including subdirectories): ["*.txt", "*.json"]
+	 * - All files in the directory, but exclude .txt files: ["**", "!**.txt"]
+	 * @param extensionLevels Optional map from extension to priority level for selecting the preferred file when files share the same basename.
+	 * @returns An array of the names of all files in the specified directory and its subdirectories.
+	 */
+	glob(path: string, globs: string[], extensionLevels?: Record<string, number>): string[];
+
+	/**
 	 * Asynchronously searches files and returns the match results. Should be run in a thread.
 	 * @param path The root path to search from, empty string means asset root.
 	 * @param exts An array of filename extensions to include, empty array means all.
 	 * @param extensionLevels A map from extension to priority level for picking the preferred file when the same basename appears with different extensions.
-	 * @param excludes An array of directory names to skip during searching.
+	 * @param globs An array of glob patterns to match the file names.
 	 * @param pattern The search pattern.
 	 * @param useRegex Whether to treat pattern as regex (default false).
 	 * Regex supports:
@@ -3745,7 +3756,7 @@ class Content {
 		path: string,
 		exts: string[],
 		extensionLevels: Record<string, number>,
-		excludes: string[],
+		globs: string[],
 		pattern: string,
 		useRegex?: boolean,
 		caseSensitive?: boolean,

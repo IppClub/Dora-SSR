@@ -38,6 +38,7 @@ public:
 	std::list<std::string> getDirs(String path);
 	std::list<std::string> getFiles(String path);
 	std::list<std::string> getAllFiles(String path);
+	std::list<std::string> glob(String path, std::vector<std::string>&& globs, std::unordered_map<std::string, int>&& extensionLevels);
 	struct SearchResult {
 		std::string file;
 		size_t pos = 0;
@@ -45,7 +46,7 @@ public:
 		int column = 0;
 		std::string content;
 	};
-	void searchFilesAsync(String path, std::vector<std::string>&& exts, std::unordered_map<std::string, int>&& extensionLevels, std::vector<std::string>&& excludes, String pattern, bool useRegex, bool caseSensitive, bool includeContent, int contentWindow, const std::function<bool(SearchResult&&)>& callback);
+	void searchFilesAsync(String path, std::vector<std::string>&& exts, std::unordered_map<std::string, int>&& extensionLevels, std::vector<std::string>&& globs, String pattern, bool useRegex, bool caseSensitive, bool includeContent, int contentWindow, const std::function<bool(SearchResult&&)>& callback);
 	bool visitDir(String path, const std::function<bool(String, String)>& func);
 	void insertSearchPath(int index, String path);
 	void addSearchPath(String path);

@@ -75,8 +75,11 @@ func content_get_files(path: i64) => i64
 #wa:import dora content_get_all_files
 func content_get_all_files(path: i64) => i64
 
+#wa:import dora content_glob
+func content_glob(path: i64, globs: i64, extension_levels: i64) => i64
+
 #wa:import dora content_search_files_async
-func content_search_files_async(path: i64, exts: i64, extension_levels: i64, excludes: i64, pattern: i64, use_regex: i32, case_sensitive: i32, include_content: i32, content_window: i32, func0: i32, stack0: i64)
+func content_search_files_async(path: i64, exts: i64, extension_levels: i64, globs: i64, pattern: i64, use_regex: i32, case_sensitive: i32, include_content: i32, content_window: i32, func0: i32, stack0: i64)
 
 #wa:import dora content_load_async
 func content_load_async(filename: i64, func0: i32, stack0: i64)
@@ -182,7 +185,10 @@ func _Content.GetFiles(path: string) => *[]string {
 func _Content.GetAllFiles(path: string) => *[]string {
 	return FromDoraStrBuf(content_get_all_files(ToDoraString(path)))
 }
-func _Content.SearchFilesAsync(path: string, exts: *[]string, extension_levels: Dictionary, excludes: *[]string, pattern: string, use_regex: bool, case_sensitive: bool, include_content: bool, content_window: i32, callback: func(result: Dictionary) => bool) {
+func _Content.Glob(path: string, globs: *[]string, extension_levels: Dictionary) => *[]string {
+	return FromDoraStrBuf(content_glob(ToDoraString(path), ToDoraStrBuf(globs), extension_levels.GetRaw()))
+}
+func _Content.SearchFilesAsync(path: string, exts: *[]string, extension_levels: Dictionary, globs: *[]string, pattern: string, use_regex: bool, case_sensitive: bool, include_content: bool, content_window: i32, callback: func(result: Dictionary) => bool) {
 	stack0 := NewCallStack()
 	func_id0 := PushFunction(func() {
 		result_obj := stack0.PopObject()
@@ -191,7 +197,7 @@ func _Content.SearchFilesAsync(path: string, exts: *[]string, extension_levels: 
 		result_ := callback(result)
 		stack0.Push(result_)
 	})
-	content_search_files_async(ToDoraString(path), ToDoraStrBuf(exts), extension_levels.GetRaw(), ToDoraStrBuf(excludes), ToDoraString(pattern), ToDoraBool(use_regex), ToDoraBool(case_sensitive), ToDoraBool(include_content), content_window, func_id0, *stack0.raw)
+	content_search_files_async(ToDoraString(path), ToDoraStrBuf(exts), extension_levels.GetRaw(), ToDoraStrBuf(globs), ToDoraString(pattern), ToDoraBool(use_regex), ToDoraBool(case_sensitive), ToDoraBool(include_content), content_window, func_id0, *stack0.raw)
 }
 func _Content.LoadAsync(filename: string, callback: func(content: string)) {
 	stack0 := NewCallStack()

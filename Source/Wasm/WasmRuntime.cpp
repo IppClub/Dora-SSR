@@ -498,6 +498,24 @@ static WorkBook Content_WasmLoadExcel(String filename) {
 	return book;
 }
 
+static std::list<std::string> Content_glob(String path, std::vector<std::string>&& globs, Dictionary* extensionLevels) {
+	std::unordered_map<std::string, int> extLevels;
+	if (extensionLevels) {
+		auto keys = extensionLevels->getKeys();
+		extLevels.reserve(keys.size());
+		for (const auto& key : keys) {
+			const auto& value = extensionLevels->get(key);
+			if (!value) continue;
+			if (auto intVal = value->asVal<int64_t>()) {
+				extLevels[key.toString()] = s_cast<int>(*intVal);
+			} else if (auto floatVal = value->asVal<double>()) {
+				extLevels[key.toString()] = s_cast<int>(*floatVal);
+			}
+		}
+	}
+	return SharedContent.glob(path, std::move(globs), std::move(extLevels));
+}
+
 void Content_SearchFilesAsync(String path, std::vector<std::string>&& exts, Dictionary* extensionLevels, std::vector<std::string>&& excludes, String pattern, bool useRegex, bool caseSensitive, bool includeContent, int contentWindow, std::function<bool(Dictionary* result)> callback) {
 	std::unordered_map<std::string, int> extLevels;
 	auto keys = extensionLevels->getKeys();
