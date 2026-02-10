@@ -3,6 +3,7 @@ import { HttpClient, json, thread, Buffer, Vec2, Node as DNode, Log, DB, Path, C
 import * as ImGui from "ImGui";
 import { InputTextFlag, SetCond, WindowFlag } from "ImGui";
 import { Node, Flow } from 'Agent/flow';
+import { createSSEJSONParser, LLMStreamData } from 'Agent/Utils';
 import * as Config from 'Config';
 
 let zh = false;
@@ -166,31 +167,32 @@ class LLMCode extends Node {
 	}
 	async exec(messages: Message[]) {
 		return new Promise<string>(async (resolve, reject) => {
-			let str = '';
+			let allContent = '';
+			let allReasoning = '';
 			root.emit('Output', 'Coder: ');
 			llmWorking = true;
+			const parser = createSSEJSONParser({
+				onJSON: (obj: LLMStreamData) => {
+					const {reasoning_content, content} = obj.choices[0].delta;
+					if (reasoning_content !== undefined) {
+						allReasoning += reasoning_content;
+					}
+					if (content !== undefined) {
+						allContent += content;
+					}
+					root.emit('Update', `Coder: ${allReasoning + (allContent !== '' ? '\n' + allContent : '')}`);
+				}
+			});
 			try {
 				await callLLM(messages, url.text, apiKey.text, model.text, (data) => {
 					if (!running) {
 						return true;
 					}
-					const [done] = string.match(data, 'data:%s*(%b[])');
-					if (done === '[DONE]') {
-						resolve(str);
-						return false;
-					}
-					for (let [item] of string.gmatch(data, 'data:%s*(%b{})')) {
-						const [res] = json.decode(item);
-						if (res) {
-							const part = (res as any)['choices'][1]['delta']['content'];
-							if (typeof part === 'string') {
-								str += part;
-							}
-						}
-					}
-					root.emit('Update', `Coder: ${str}`);
+					parser.feed(data);
 					return false;
 				});
+				parser.end();
+				resolve(allContent);
 			} catch (e) {
 				llmWorking = false;
 				reject(e);

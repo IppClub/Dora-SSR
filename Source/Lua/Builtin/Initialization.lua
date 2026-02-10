@@ -1313,8 +1313,8 @@ end
 do
 	local json = Dora.json
 	local jsonDecode = json.decode
-	json.decode = function(str, maxdepth)
-		local success, result = pcall(jsonDecode, str, maxdepth)
+	json.decode = function(str, maxdepth, allowcomment)
+		local success, result = pcall(jsonDecode, str, maxdepth, allowcomment)
 		if success then
 			return result
 		else
@@ -1323,8 +1323,8 @@ do
 	end
 
 	local jsonEncode = json.encode
-	json.encode = function(obj)
-		local success, result = pcall(jsonEncode, obj)
+	json.encode = function(obj, format, empty_as_array, num_as_str, maxdepth)
+		local success, result = pcall(jsonEncode, obj, format, empty_as_array, num_as_str, maxdepth)
 		if success then
 			return result
 		else
