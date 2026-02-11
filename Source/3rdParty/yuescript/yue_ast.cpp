@@ -201,8 +201,8 @@ std::string Continue_t::to_string(void*) const {
 	return "continue"s;
 }
 std::string BreakLoop_t::to_string(void* ud) const {
-	if (value) {
-		return type->to_string(ud) + ' ' + value->to_string(ud);
+	if (valueList) {
+		return type->to_string(ud) + ' ' + valueList->to_string(ud);
 	}
 	return type->to_string(ud);
 }

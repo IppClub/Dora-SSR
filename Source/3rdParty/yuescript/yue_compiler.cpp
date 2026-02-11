@@ -78,7 +78,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.32.9"sv;
+const std::string_view version = "0.33.0"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -1996,6 +1996,18 @@ private:
 		}
 	}
 
+	str_list getAssignVars(ExpList_t* assignList) {
+		str_list vars;
+		bool lintGlobal = _config.lintGlobalVariable;
+		_config.lintGlobalVariable = false;
+		for (auto exp : assignList->exprs.objects()) {
+			auto var = singleVariableFrom(exp, AccessType::None);
+			vars.push_back(var.empty() ? Empty : var);
+		}
+		_config.lintGlobalVariable = lintGlobal;
+		return vars;
+	}
+
 	str_list getAssignVars(ExpListAssign_t* assignment) {
 		str_list vars;
 		bool lintGlobal = _config.lintGlobalVariable;
@@ -2211,9 +2223,9 @@ private:
 		if (exprs.size() < values.size()) {
 			auto num = exprs.size();
 			if (num > 1) {
-				_buf << "no more than "sv << num << " right values expected, got "sv << values.size();
+				_buf << "expected no more than "sv << num << " right values, got "sv << values.size();
 			} else {
-				_buf << "only one right value expected, got "sv << values.size();
+				_buf << "expected only one right value, got "sv << values.size();
 			}
 			throw CompileError(clearBuf(), values.front());
 		}
@@ -2234,6 +2246,9 @@ private:
 							case id<Switch_t>():
 							case id<Do_t>():
 							case id<Try_t>():
+							case id<For_t>():
+							case id<While_t>():
+							case id<Repeat_t>():
 								needHoldValues = true;
 								break;
 						}
@@ -2245,7 +2260,7 @@ private:
 				}
 			}
 			if (!needHoldValues) {
-				_buf << exprs.size() << " right values expected, got "sv << values.size();
+				_buf << "expected "sv << exprs.size() << " right values, got "sv << values.size();
 				throw CompileError(clearBuf(), values.front());
 			}
 			auto newAssign = assign->new_ptr<Assign_t>();
@@ -8911,7 +8926,7 @@ private:
 		return (breakLoopType & int(BreakLoopType::Continue)) != 0;
 	}
 
-	uint32_t getBreakLoopType(ast_node* body, const std::string& varBWV) {
+	uint32_t getBreakLoopType(ast_node* body, bool allowBreakWithValues, str_list& breakWithValues) {
 		uint32_t type = 0;
 		body->traverse([&](ast_node* node) {
 			if (auto stmt = ast_cast<Statement_t>(node)) {
@@ -8920,12 +8935,25 @@ private:
 						type |= int(BreakLoopType::Continue);
 						return traversal::Return;
 					} else {
-						if (breakLoop->value) {
-							if (varBWV.empty()) {
-								throw CompileError("break with a value is not allowed here"sv, breakLoop->value);
+						if (breakLoop->valueList && breakLoop->vars.empty()) {
+							if (!allowBreakWithValues) {
+								throw CompileError("break with values is not allowed here"sv, breakLoop->valueList->exprs.front());
 							}
 							type |= int(BreakLoopType::BreakWithValue);
-							breakLoop->varBWV = varBWV;
+							if (breakWithValues.empty()) {
+								pushScope();
+								for (size_t i = 0; i < breakLoop->valueList->exprs.size(); i++) {
+									auto var = getUnusedName("_val_"sv);
+									breakWithValues.push_back(var);
+									addToScope(var);
+								}
+								popScope();
+							} else {
+								if (breakLoop->valueList->exprs.size() != breakWithValues.size()) {
+									throw CompileError("expecting "s + std::to_string(breakWithValues.size()) + " break values, got "s + std::to_string(breakLoop->valueList->exprs.size()), breakLoop->valueList->exprs.front());
+								}
+							}
+							breakLoop->vars = breakWithValues;
 						} else {
 							type |= int(BreakLoopType::Break);
 						}
@@ -8940,28 +8968,28 @@ private:
 					switch (sVal->get_id()) {
 						case id<With_t>(): {
 							auto withNode = static_cast<With_t*>(sVal);
-							type |= getBreakLoopType(withNode->body, varBWV);
+							type |= getBreakLoopType(withNode->body, allowBreakWithValues, breakWithValues);
 							return traversal::Return;
 						}
 						case id<Do_t>(): {
 							auto doNode = static_cast<Do_t*>(sVal);
-							type |= getBreakLoopType(doNode->body, varBWV);
+							type |= getBreakLoopType(doNode->body, allowBreakWithValues, breakWithValues);
 							return traversal::Return;
 						}
 						case id<If_t>(): {
 							auto ifNode = static_cast<If_t*>(sVal);
 							for (auto n : ifNode->nodes.objects()) {
-								type |= getBreakLoopType(n, varBWV);
+								type |= getBreakLoopType(n, allowBreakWithValues, breakWithValues);
 							}
 							return traversal::Return;
 						}
 						case id<Switch_t>(): {
 							auto switchNode = static_cast<Switch_t*>(sVal);
 							for (auto branch : switchNode->branches.objects()) {
-								type |= getBreakLoopType(static_cast<SwitchCase_t*>(branch)->body, varBWV);
+								type |= getBreakLoopType(static_cast<SwitchCase_t*>(branch)->body, allowBreakWithValues, breakWithValues);
 							}
 							if (switchNode->lastBranch) {
-								type |= getBreakLoopType(switchNode->lastBranch, varBWV);
+								type |= getBreakLoopType(switchNode->lastBranch, allowBreakWithValues, breakWithValues);
 							}
 							return traversal::Return;
 						}
@@ -8978,6 +9006,17 @@ private:
 			return traversal::Return;
 		});
 		return type;
+	}
+
+	uint32_t getBreakLoopTypeNoValues(ast_node* body) {
+		str_list values;
+		return getBreakLoopType(body, false, values);
+	}
+
+	std::pair<uint32_t, str_list> getBreakLoopTypeAllowValues(ast_node* body) {
+		str_list values;
+		auto breakLoopType = getBreakLoopType(body, true, values);
+		return {breakLoopType, std::move(values)};
 	}
 
 	void addDoToLastLineReturn(ast_node* body) {
@@ -9066,7 +9105,7 @@ private:
 		str_list temp;
 		bool extraDo = false;
 		auto body = repeatNode->body.get();
-		auto breakLoopType = getBreakLoopType(body, Empty);
+		auto breakLoopType = getBreakLoopTypeNoValues(body);
 		bool withContinue = hasContinue(breakLoopType);
 		std::string conditionVar;
 		std::string extraLabel;
@@ -9141,28 +9180,42 @@ private:
 	void transformForNum(ForNum_t* forNum, str_list& out) {
 		str_list temp;
 		transformForNumHead(forNum, temp);
-		auto breakLoopType = getBreakLoopType(forNum->body, Empty);
+		auto breakLoopType = getBreakLoopTypeNoValues(forNum->body);
 		transformLoopBody(forNum->body, temp, breakLoopType, ExpUsage::Common);
 		popScope();
 		out.push_back(join(temp) + indent() + "end"s + nl(forNum));
 	}
 
-	std::string transformForNumInner(ForNum_t* forNum, str_list& out) {
+	str_list transformForNumInner(ForNum_t* forNum, str_list& out, uint32_t breakLoopType, str_list&& vars) {
 		auto x = forNum;
-		std::string accum = getUnusedName("_accum_"sv);
-		addToScope(accum);
-		std::string len = getUnusedName("_len_"sv);
-		addToScope(len);
-		auto breakLoopType = getBreakLoopType(forNum->body, accum);
-		_buf << indent() << "local "sv << accum << (hasBreakWithValue(breakLoopType) ? ""sv : " = { }"sv) << nl(forNum);
-		out.emplace_back(clearBuf());
-		_buf << indent() << "local "sv << len << " = 1"sv << nl(forNum);
-		auto& lenAssign = out.emplace_back(clearBuf());
-		transformForNumHead(forNum, out);
+		std::string accum;
 		if (hasBreakWithValue(breakLoopType)) {
-			lenAssign.clear();
+			str_list vs;
+			for (const auto& var : vars) {
+				if (!isDefined(var)) {
+					addToScope(var);
+					vs.push_back(var);
+				}
+			}
+			if (!vs.empty()) {
+				_buf << indent() << "local "sv << join(vs, ", "sv) << nl(forNum);
+			}
+		} else {
+			accum = getUnusedName("_accum_"sv);
+			addToScope(accum);
+			vars = {accum};
+			_buf << indent() << "local "sv << accum << " = { }"sv << nl(forNum);
+		}
+		out.emplace_back(clearBuf());
+		if (hasBreakWithValue(breakLoopType)) {
+			transformForNumHead(forNum, out);
 			transformLoopBody(forNum->body, out, breakLoopType, ExpUsage::Common);
 		} else {
+			std::string len = getUnusedName("_len_"sv);
+			addToScope(len);
+			_buf << indent() << "local "sv << len << " = 1"sv << nl(forNum);
+			auto& lenAssign = out.emplace_back(clearBuf());
+			transformForNumHead(forNum, out);
 			auto expList = toAst<ExpList_t>(accum + '[' + len + ']', x);
 			auto followStmt = toAst<Statement_t>(len + "+=1"s, forNum->body);
 			expList->followStmt = followStmt.get();
@@ -9173,7 +9226,7 @@ private:
 		}
 		popScope();
 		out.push_back(indent() + "end"s + nl(forNum));
-		return accum;
+		return vars;
 	}
 
 	void transformForNumClosure(ForNum_t* forNum, str_list& out) {
@@ -9189,8 +9242,10 @@ private:
 		pushAnonVarArg();
 		std::string& funcStart = temp.emplace_back();
 		pushScope();
-		auto accum = transformForNumInner(forNum, temp);
-		temp.push_back(indent() + "return "s + accum + nl(forNum));
+		str_list vars;
+		auto breakLoopType = getBreakLoopType(forNum->body, true, vars);
+		vars = transformForNumInner(forNum, temp, breakLoopType, std::move(vars));
+		temp.push_back(indent() + "return "s + join(vars, ", "sv) + nl(forNum));
 		popScope();
 		funcStart = anonFuncStart() + nl(forNum);
 		temp.push_back(indent() + anonFuncEnd());
@@ -9200,29 +9255,45 @@ private:
 	}
 
 	void transformForNumInPlace(ForNum_t* forNum, str_list& out, ExpList_t* assignExpList) {
-		auto x = forNum;
 		str_list temp;
-		bool isScoped = !currentScope().lastStatement;
 		if (assignExpList) {
+			auto vars = getAssignVars(assignExpList);
+			bool extraVar = false;
+			for (const auto& var : vars) {
+				if (var.empty()) {
+					vars.clear();
+					extraVar = true;
+					break;
+				}
+			}
+			auto breakLoopType = getBreakLoopType(forNum->body, true, vars);
+			bool isScoped = true;
+			if (currentScope().lastStatement) {
+			 isScoped = false;
+			} else if (!extraVar && hasBreakWithValue(breakLoopType)) {
+				isScoped = false;
+			}
 			if (isScoped) {
 				_buf << indent() << "do"sv << nl(forNum);
 				pushScope();
 			}
-			auto accum = transformForNumInner(forNum, temp);
-			auto assign = x->new_ptr<Assign_t>();
-			assign->values.push_back(toAst<Exp_t>(accum, x));
-			auto assignment = x->new_ptr<ExpListAssign_t>();
-			assignment->expList.set(assignExpList);
-			assignment->action.set(assign);
-			transformAssignment(assignment, temp);
+			vars = transformForNumInner(forNum, temp, breakLoopType, std::move(vars));
+			if (extraVar || !hasBreakWithValue(breakLoopType)) {
+				auto assign = toAst<Assign_t>('=' + join(vars, ","sv), assignExpList);
+				auto assignment = assignExpList->new_ptr<ExpListAssign_t>();
+				assignment->expList.set(assignExpList);
+				assignment->action.set(assign);
+				transformAssignment(assignment, temp);
+			}
 			if (isScoped) {
 				popScope();
 				temp.push_back(indent() + "end"s + nl(forNum));
 			}
 		} else {
-			auto accum = transformForNumInner(forNum, temp);
-			auto returnNode = newReturn(toAst<Exp_t>(accum, forNum));
-			transformReturn(returnNode, temp);
+			str_list vars;
+			auto breakLoopType = getBreakLoopType(forNum->body, true, vars);
+			vars = transformForNumInner(forNum, temp, breakLoopType, std::move(vars));
+			temp.push_back(indent() + "return "s + join(vars, ", "sv) + nl(forNum));
 		}
 		out.push_back(join(temp));
 	}
@@ -9248,7 +9319,7 @@ private:
 	void transformForEach(ForEach_t* forEach, str_list& out) {
 		str_list temp;
 		bool extraScoped = transformForEachHead(forEach->nameList, forEach->loopValue, temp, false);
-		auto breakLoopType = getBreakLoopType(forEach->body, Empty);
+		auto breakLoopType = getBreakLoopTypeNoValues(forEach->body);
 		transformLoopBody(forEach->body, temp, breakLoopType, ExpUsage::Common);
 		popScope();
 		out.push_back(temp.front() + temp.back() + indent() + "end"s + nl(forEach));
@@ -9258,22 +9329,36 @@ private:
 		}
 	}
 
-	std::string transformForEachInner(ForEach_t* forEach, str_list& out) {
+	str_list transformForEachInner(ForEach_t* forEach, str_list& out, uint32_t breakLoopType, str_list&& vars) {
 		auto x = forEach;
-		std::string accum = getUnusedName("_accum_"sv);
-		addToScope(accum);
-		std::string len = getUnusedName("_len_"sv);
-		addToScope(len);
-		auto breakLoopType = getBreakLoopType(forEach->body, accum);
-		_buf << indent() << "local "sv << accum << (hasBreakWithValue(breakLoopType) ? ""sv : " = { }"sv) << nl(forEach);
-		out.emplace_back(clearBuf());
-		_buf << indent() << "local "sv << len << " = 1"sv << nl(forEach);
-		auto& lenAssign = out.emplace_back(clearBuf());
-		transformForEachHead(forEach->nameList, forEach->loopValue, out, true);
+		std::string accum;
 		if (hasBreakWithValue(breakLoopType)) {
-			lenAssign.clear();
+			str_list vs;
+			for (const auto& var : vars) {
+				if (!isDefined(var)) {
+					addToScope(var);
+					vs.push_back(var);
+				}
+			}
+			if (!vs.empty()) {
+				_buf << indent() << "local "sv << join(vs, ", "sv) << nl(forEach);
+			}
+		} else {
+			accum = getUnusedName("_accum_"sv);
+			addToScope(accum);
+			vars = {accum};
+			_buf << indent() << "local "sv << accum << " = { }"sv << nl(forEach);
+		}
+		out.emplace_back(clearBuf());
+		if (hasBreakWithValue(breakLoopType)) {
+			transformForEachHead(forEach->nameList, forEach->loopValue, out, true);
 			transformLoopBody(forEach->body, out, breakLoopType, ExpUsage::Common);
 		} else {
+			std::string len = getUnusedName("_len_"sv);
+			addToScope(len);
+			_buf << indent() << "local "sv << len << " = 1"sv << nl(forEach);
+			auto& lenAssign = out.emplace_back(clearBuf());
+			transformForEachHead(forEach->nameList, forEach->loopValue, out, true);
 			auto expList = toAst<ExpList_t>(accum + '[' + len + ']', x);
 			auto followStmt = toAst<Statement_t>(len + "+=1"s, forEach->body);
 			expList->followStmt = followStmt.get();
@@ -9284,7 +9369,7 @@ private:
 		}
 		popScope();
 		out.push_back(indent() + "end"s + nl(forEach));
-		return accum;
+		return vars;
 	}
 
 	void transformForEachClosure(ForEach_t* forEach, str_list& out) {
@@ -9300,8 +9385,10 @@ private:
 		pushAnonVarArg();
 		std::string& funcStart = temp.emplace_back();
 		pushScope();
-		auto accum = transformForEachInner(forEach, temp);
-		temp.push_back(indent() + "return "s + accum + nl(forEach));
+		str_list vars;
+		auto breakLoopType = getBreakLoopType(forEach->body, true, vars);
+		vars = transformForEachInner(forEach, temp, breakLoopType, std::move(vars));
+		temp.push_back(indent() + "return "s + join(vars, ", "sv) + nl(forEach));
 		popScope();
 		funcStart = anonFuncStart() + nl(forEach);
 		temp.push_back(indent() + anonFuncEnd());
@@ -9311,29 +9398,45 @@ private:
 	}
 
 	void transformForEachInPlace(ForEach_t* forEach, str_list& out, ExpList_t* assignExpList) {
-		auto x = forEach;
 		str_list temp;
-		bool isScoped = !currentScope().lastStatement;
 		if (assignExpList) {
+			auto vars = getAssignVars(assignExpList);
+			bool extraVar = false;
+			for (const auto& var : vars) {
+				if (var.empty()) {
+					vars.clear();
+					extraVar = true;
+					break;
+				}
+			}
+			auto breakLoopType = getBreakLoopType(forEach->body, true, vars);
+			bool isScoped = true;
+			if (currentScope().lastStatement) {
+				isScoped = false;
+			} else if (!extraVar && hasBreakWithValue(breakLoopType)) {
+				isScoped = false;
+			}
 			if (isScoped) {
 				_buf << indent() << "do"sv << nl(forEach);
 				pushScope();
 			}
-			auto accum = transformForEachInner(forEach, temp);
-			auto assign = x->new_ptr<Assign_t>();
-			assign->values.push_back(toAst<Exp_t>(accum, x));
-			auto assignment = x->new_ptr<ExpListAssign_t>();
-			assignment->expList.set(assignExpList);
-			assignment->action.set(assign);
-			transformAssignment(assignment, temp);
+			vars = transformForEachInner(forEach, temp, breakLoopType, std::move(vars));
+			if (extraVar || !hasBreakWithValue(breakLoopType)) {
+				auto assign = toAst<Assign_t>('=' + join(vars, ","sv), assignExpList);
+				auto assignment = assignExpList->new_ptr<ExpListAssign_t>();
+				assignment->expList.set(assignExpList);
+				assignment->action.set(assign);
+				transformAssignment(assignment, temp);
+			}
 			if (isScoped) {
 				popScope();
 				temp.push_back(indent() + "end"s + nl(forEach));
 			}
 		} else {
-			auto accum = transformForEachInner(forEach, temp);
-			auto returnNode = newReturn(toAst<Exp_t>(accum, forEach));
-			transformReturn(returnNode, temp);
+			str_list vars;
+			auto breakLoopType = getBreakLoopType(forEach->body, true, vars);
+			vars = transformForEachInner(forEach, temp, breakLoopType, std::move(vars));
+			temp.push_back(indent() + "return "s + join(vars, ", "sv) + nl(forEach));
 		}
 		out.push_back(join(temp));
 	}
@@ -10274,7 +10377,8 @@ private:
 				breakWithVar = getUnusedName("_val_"sv);
 				extraBreakVar = true;
 			}
-			auto breakLoopType = getBreakLoopType(with->body, breakWithVar);
+			str_list vars{breakWithVar};
+			auto breakLoopType = getBreakLoopType(with->body, true, vars);
 			if (!hasBreakWithValue(breakLoopType)) {
 				breakWithVar.clear();
 			}
@@ -10287,6 +10391,10 @@ private:
 			if (breakWithVar.empty()) {
 				transformIf(ifNode, temp, ExpUsage::Common);
 			} else {
+				if (extraBreakVar) {
+					addToScope(breakWithVar);
+					temp.push_back(indent() + "local "s + breakWithVar + nl(with));
+				}
 				auto simpleValue = x->new_ptr<SimpleValue_t>();
 				simpleValue->value.set(ifNode);
 				auto exp = newExp(simpleValue, x);
@@ -10300,14 +10408,15 @@ private:
 				auto block = x->new_ptr<Block_t>();
 				block->statementOrComments.push_back(stmt);
 				repeatNode->body.set(block);
-				auto sVal = x->new_ptr<SimpleValue_t>();
-				sVal->value.set(repeatNode);
-				auto asmt = assignmentFrom(toAst<Exp_t>(breakWithVar, x), newExp(sVal, x), x);
-				transformAssignment(asmt, temp);
+				transformRepeat(repeatNode, temp);
 			}
 		} else {
 			bool transformed = false;
 			if (!breakWithVar.empty()) {
+				if (extraBreakVar) {
+					addToScope(breakWithVar);
+					temp.push_back(indent() + "local "s + breakWithVar + nl(with));
+				}
 				auto repeatNode = toAst<Repeat_t>("repeat\n\t--\nuntil true"s, x);
 				auto block = x->new_ptr<Block_t>();
 				if (auto blk = with->body.as<Block_t>()) {
@@ -10317,10 +10426,7 @@ private:
 					block->statementOrComments.push_back(stmt);
 				}
 				repeatNode->body.set(block);
-				auto sVal = x->new_ptr<SimpleValue_t>();
-				sVal->value.set(repeatNode);
-				auto asmt = assignmentFrom(toAst<Exp_t>(breakWithVar, x), newExp(sVal, x), x);
-				transformAssignment(asmt, temp);
+				transformRepeat(repeatNode, temp);
 				transformed = true;
 			} else if (!extraScope && assignList) {
 				if (auto block = with->body.as<Block_t>()) {
@@ -10784,7 +10890,57 @@ private:
 			temp.push_back(indent() + "do"s + nl(doNode));
 			pushScope();
 		}
-		transformBody(doNode->body, temp, usage, assignList);
+		str_list breakVars;
+		bool extraVar = false;
+		switch (usage) {
+			case ExpUsage::Closure:
+			case ExpUsage::Return: {
+				uint32_t breakLoopType = 0;
+				std::tie(breakLoopType, breakVars) = getBreakLoopTypeAllowValues(doNode->body);
+				if (hasBreakWithValue(breakLoopType)) {
+					for (const auto& var : breakVars) addToScope(var);
+					temp.push_back(indent() + "local "s + join(breakVars, ", "sv) + nl(doNode));
+					extraVar = true;
+				}
+				break;
+			}
+			case ExpUsage::Assignment: {
+				auto vars = getAssignVars(assignList);
+				for (const auto& var : vars) {
+					if (var.empty()) {
+						vars.clear();
+						extraVar = true;
+						break;
+					}
+				}
+				auto breakLoopType = getBreakLoopType(doNode->body, true, vars);
+				if (hasBreakWithValue(breakLoopType)) {
+					breakVars = std::move(vars);
+				}
+				break;
+			}
+			case ExpUsage::Common: {
+				getBreakLoopTypeNoValues(doNode->body);
+				break;
+			}
+		}
+		if (breakVars.empty()) {
+			transformBody(doNode->body, temp, usage, assignList);
+		} else {
+			auto x = doNode;
+			auto repeatNode = toAst<Repeat_t>("repeat\n\t--\nuntil true"s, x);
+			repeatNode->body.set(doNode->body->content);
+			transformRepeat(repeatNode, temp);
+			if (assignList && extraVar) {
+				auto assignment = x->new_ptr<ExpListAssign_t>();
+				assignment->expList.set(assignList);
+				auto assign = toAst<Assign_t>('=' + join(breakVars, ","sv), x);
+				assignment->action.set(assign);
+				transformAssignment(assignment, temp);
+			} else if (usage == ExpUsage::Closure || usage == ExpUsage::Return) {
+				temp.push_back(indent() + "return "s + join(breakVars, ", "sv) + nl(doNode));
+			}
+		}
 		if (usage == ExpUsage::Closure) {
 			popScope();
 			*funcStart = anonFuncStart() + nl(doNode);
@@ -11438,13 +11594,20 @@ private:
 				pushScope();
 			}
 		}
-		auto accumVar = getUnusedName("_accum_"sv);
-		addToScope(accumVar);
+		std::string accumVar;
+		auto [breakLoopType, vars] = getBreakLoopTypeAllowValues(whileNode->body);
+		if (hasBreakWithValue(breakLoopType)) {
+			for (const auto& var : vars) addToScope(var);
+			_buf << indent() << "local "sv << join(vars, ", "sv) << nl(whileNode);
+		} else {
+			accumVar = getUnusedName("_accum_"sv);
+			addToScope(accumVar);
+			vars.push_back(accumVar);
+			_buf << indent() << "local "sv << accumVar << " = { }"sv << nl(whileNode);
+		}
+		temp.emplace_back(clearBuf());
 		auto lenVar = getUnusedName("_len_"sv);
 		addToScope(lenVar);
-		auto breakLoopType = getBreakLoopType(whileNode->body, accumVar);
-		_buf << indent() << "local "sv << accumVar << (hasBreakWithValue(breakLoopType) ? ""sv : " = { }"sv) << nl(whileNode);
-		temp.emplace_back(clearBuf());
 		_buf << indent() << "local "s << lenVar << " = 1"s << nl(whileNode);
 		auto& lenAssign = temp.emplace_back(clearBuf());
 		bool isUntil = _parser.toString(whileNode->type) == "until"sv;
@@ -11466,15 +11629,14 @@ private:
 		popScope();
 		temp.push_back(indent() + "end"s + nl(whileNode));
 		if (expList) {
-			auto assign = x->new_ptr<Assign_t>();
-			assign->values.push_back(toAst<Exp_t>(accumVar, x));
-			auto assignment = x->new_ptr<ExpListAssign_t>();
+			auto assign = toAst<Assign_t>('=' + join(vars, ","sv), expList);
+			auto assignment = expList->new_ptr<ExpListAssign_t>();
 			assignment->expList.set(expList);
 			assignment->action.set(assign);
 			transformAssignment(assignment, temp);
 			if (extraScope) popScope();
 		} else {
-			temp.push_back(indent() + "return "s + accumVar + nl(whileNode));
+			temp.push_back(indent() + "return "s + join(vars, ", "sv) + nl(whileNode));
 		}
 		if (expList && extraScope) {
 			temp.push_back(indent() + "end"s + nl(whileNode));
@@ -11494,13 +11656,20 @@ private:
 		pushAnonVarArg();
 		std::string& funcStart = temp.emplace_back();
 		pushScope();
-		auto accumVar = getUnusedName("_accum_"sv);
-		addToScope(accumVar);
+		std::string accumVar;
+		auto [breakLoopType, vars] = getBreakLoopTypeAllowValues(whileNode->body);
+		if (hasBreakWithValue(breakLoopType)) {
+			for (const auto& var : vars) addToScope(var);
+			_buf << indent() << "local "sv << join(vars, ", "sv) << nl(whileNode);
+		} else {
+			accumVar = getUnusedName("_accum_"sv);
+			addToScope(accumVar);
+			vars.push_back(accumVar);
+			_buf << indent() << "local "sv << accumVar << " = { }"sv << nl(whileNode);
+		}
+		temp.emplace_back(clearBuf());
 		auto lenVar = getUnusedName("_len_"sv);
 		addToScope(lenVar);
-		auto breakLoopType = getBreakLoopType(whileNode->body, accumVar);
-		_buf << indent() << "local "sv << accumVar << (hasBreakWithValue(breakLoopType) ? ""sv : " = { }"sv) << nl(whileNode);
-		temp.emplace_back(clearBuf());
 		auto& lenAssign = temp.emplace_back(indent() + "local "s + lenVar + " = 1"s + nl(whileNode));
 		bool isUntil = _parser.toString(whileNode->type) == "until"sv;
 		auto condStr = transformCondExp(whileNode->condition, isUntil);
@@ -11520,7 +11689,7 @@ private:
 		}
 		popScope();
 		temp.push_back(indent() + "end"s + nl(whileNode));
-		temp.push_back(indent() + "return "s + accumVar + nl(whileNode));
+		temp.push_back(indent() + "return "s + join(vars, ", "sv) + nl(whileNode));
 		popScope();
 		funcStart = anonFuncStart() + nl(whileNode);
 		temp.push_back(indent() + anonFuncEnd());
@@ -11560,7 +11729,7 @@ private:
 		pushScope();
 		bool isUntil = _parser.toString(whileNode->type) == "until"sv;
 		auto condStr = transformCondExp(whileNode->condition, isUntil);
-		auto breakLoopType = getBreakLoopType(whileNode->body, Empty);
+		auto breakLoopType = getBreakLoopTypeNoValues(whileNode->body);
 		transformLoopBody(whileNode->body, temp, breakLoopType, ExpUsage::Common);
 		popScope();
 		_buf << indent() << "while "sv << condStr << " do"sv << nl(whileNode);
@@ -11580,13 +11749,20 @@ private:
 				pushScope();
 			}
 		}
-		auto accumVar = getUnusedName("_accum_"sv);
-		addToScope(accumVar);
+		std::string accumVar;
+		auto [breakLoopType, vars] = getBreakLoopTypeAllowValues(repeatNode->body);
+		if (hasBreakWithValue(breakLoopType)) {
+			for (const auto& var : vars) addToScope(var);
+			_buf << indent() << "local "sv << join(vars, ", "sv) << nl(repeatNode);
+		} else {
+			accumVar = getUnusedName("_accum_"sv);
+			addToScope(accumVar);
+			vars.push_back(accumVar);
+			_buf << indent() << "local "sv << accumVar << " = { }"sv << nl(repeatNode);
+		}
+		temp.emplace_back(clearBuf());
 		auto lenVar = getUnusedName("_len_"sv);
 		addToScope(lenVar);
-		auto breakLoopType = getBreakLoopType(repeatNode->body, accumVar);
-		_buf << indent() << "local "sv << accumVar << (hasBreakWithValue(breakLoopType) ? ""sv : " = { }"sv) << nl(repeatNode);
-		temp.emplace_back(clearBuf());
 		_buf << indent() << "local "s << lenVar << " = 1"s << nl(repeatNode);
 		auto& lenAssign = temp.emplace_back(clearBuf());
 		auto condStr = transformCondExp(repeatNode->condition, false);
@@ -11607,15 +11783,14 @@ private:
 		popScope();
 		temp.push_back(indent() + "until "s + condStr + nl(repeatNode));
 		if (expList) {
-			auto assign = x->new_ptr<Assign_t>();
-			assign->values.push_back(toAst<Exp_t>(accumVar, x));
-			auto assignment = x->new_ptr<ExpListAssign_t>();
+			auto assign = toAst<Assign_t>('=' + join(vars, ","sv), expList);
+			auto assignment = expList->new_ptr<ExpListAssign_t>();
 			assignment->expList.set(expList);
 			assignment->action.set(assign);
 			transformAssignment(assignment, temp);
 			if (extraScope) popScope();
 		} else {
-			temp.push_back(indent() + "return "s + accumVar + nl(repeatNode));
+			temp.push_back(indent() + "return "s + join(vars, ", "sv) + nl(repeatNode));
 		}
 		if (expList && extraScope) {
 			temp.push_back(indent() + "end"s + nl(repeatNode));
@@ -11635,13 +11810,20 @@ private:
 		pushAnonVarArg();
 		std::string& funcStart = temp.emplace_back();
 		pushScope();
-		auto accumVar = getUnusedName("_accum_"sv);
-		addToScope(accumVar);
+		std::string accumVar;
+		auto [breakLoopType, vars] = getBreakLoopTypeAllowValues(repeatNode->body);
+		if (hasBreakWithValue(breakLoopType)) {
+			for (const auto& var : vars) addToScope(var);
+			_buf << indent() << "local "sv << join(vars, ", "sv) << nl(repeatNode);
+		} else {
+			accumVar = getUnusedName("_accum_"sv);
+			addToScope(accumVar);
+			vars.push_back(accumVar);
+			_buf << indent() << "local "sv << accumVar << " = { }"sv << nl(repeatNode);
+		}
+		temp.emplace_back(clearBuf());
 		auto lenVar = getUnusedName("_len_"sv);
 		addToScope(lenVar);
-		auto breakLoopType = getBreakLoopType(repeatNode->body, accumVar);
-		_buf << indent() << "local "sv << accumVar << (hasBreakWithValue(breakLoopType) ? ""sv : " = { }"sv) << nl(repeatNode);
-		temp.emplace_back(clearBuf());
 		auto& lenAssign = temp.emplace_back(indent() + "local "s + lenVar + " = 1"s + nl(repeatNode));
 		auto condStr = transformCondExp(repeatNode->condition, false);
 		temp.push_back(indent() + "repeat"s + nl(repeatNode));
@@ -11660,7 +11842,7 @@ private:
 		}
 		popScope();
 		temp.push_back(indent() + "until "s + condStr + nl(repeatNode));
-		temp.push_back(indent() + "return "s + accumVar + nl(repeatNode));
+		temp.push_back(indent() + "return "s + join(vars, ", "sv) + nl(repeatNode));
 		popScope();
 		funcStart = anonFuncStart() + nl(repeatNode);
 		temp.push_back(indent() + anonFuncEnd());
@@ -11975,9 +12157,9 @@ private:
 		if (x->leftList.size() < x->assign->values.size()) {
 			auto num = x->leftList.size();
 			if (num > 1) {
-				_buf << "no more than "sv << num << " right values expected, got "sv << x->assign->values.size();
+				_buf << "expected no more than "sv << num << " right values, got "sv << x->assign->values.size();
 			} else {
-				_buf << "only one right value expected, got "sv << x->assign->values.size();
+				_buf << "expected only one right value, got "sv << x->assign->values.size();
 			}
 			throw CompileError(clearBuf(), x->assign->values.front());
 		}
@@ -12044,7 +12226,7 @@ private:
 			auto value = singleValueFrom(assignA->values.back());
 			if (!value) {
 				if (listA->names.size() > assignA->values.size()) {
-					_buf << listA->names.size() << " right values expected, got "sv << assignA->values.size();
+					_buf << "expected "sv << listA->names.size() << " right values, got "sv << assignA->values.size();
 					throw CompileError(clearBuf(), assignA->values.front());
 				} else {
 					break;
@@ -12067,7 +12249,7 @@ private:
 			if (listA->names.size() > assignA->values.size()) {
 				auto chainValue = value->item.as<ChainValue_t>();
 				if (!chainValue || !ast_is<Invoke_t, InvokeArgs_t>(chainValue->items.back())) {
-					_buf << listA->names.size() << " right values expected, got "sv << assignA->values.size();
+					_buf << "expected "sv << listA->names.size() << " right values, got "sv << assignA->values.size();
 					throw CompileError(clearBuf(), assignA->values.front());
 				}
 			}
@@ -12223,9 +12405,13 @@ private:
 			throw CompileError(keyword + " is not inside a loop"s, breakLoop);
 		}
 		if (isBreak) {
-			if (breakLoop->value) {
-				auto exp = toAst<Exp_t>(breakLoop->varBWV, breakLoop->value);
-				auto assignment = assignmentFrom(exp, breakLoop->value, breakLoop);
+			if (breakLoop->valueList) {
+				auto expList = toAst<ExpList_t>(join(breakLoop->vars, ","sv), breakLoop);
+				auto assignment = breakLoop->new_ptr<ExpListAssign_t>();
+				assignment->expList.set(expList);
+				auto assign = breakLoop->new_ptr<Assign_t>();
+				assign->values.dup(breakLoop->valueList->exprs);
+				assignment->action.set(assign);
 				transformAssignment(assignment, out);
 			}
 			out.push_back(indent() + keyword + nl(breakLoop));
@@ -12293,7 +12479,7 @@ private:
 		auto x = chainAssign;
 		auto value = chainAssign->assign->values.front();
 		if (chainAssign->assign->values.size() != 1) {
-			throw CompileError("only one right value expected"sv, value);
+			throw CompileError("expected only one right value"sv, value);
 		}
 		str_list temp;
 		bool constVal = false;
