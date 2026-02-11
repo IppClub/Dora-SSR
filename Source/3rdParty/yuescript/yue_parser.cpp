@@ -476,7 +476,7 @@ YueParser::YueParser() {
 
 	Break = key("break");
 	Continue = key("continue");
-	BreakLoop = (Break >> -(space >> Exp) | Continue) >> not_alpha_num;
+	BreakLoop = (Break >> -(space >> ExpList) | Continue) >> not_alpha_num;
 
 	Return = key("return") >> -(space >> (TableBlock | ExpList));
 
