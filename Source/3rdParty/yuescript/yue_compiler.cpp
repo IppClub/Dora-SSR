@@ -8948,10 +8948,6 @@ private:
 									addToScope(var);
 								}
 								popScope();
-							} else {
-								if (breakLoop->valueList->exprs.size() != breakWithValues.size()) {
-									throw CompileError("expecting "s + std::to_string(breakWithValues.size()) + " break values, got "s + std::to_string(breakLoop->valueList->exprs.size()), breakLoop->valueList->exprs.front());
-								}
 							}
 							breakLoop->vars = breakWithValues;
 						} else {
