@@ -790,6 +790,7 @@ static bool isInBlockExp(ast_node* node, bool last = false) {
 	return false;
 }
 std::string Comprehension_t::to_string(void* ud) const {
+	auto info = reinterpret_cast<YueFormat*>(ud);
 	if (items.size() != 2 || !ast_is<CompFor_t>(items.back())) {
 		if (items.size() == 1) {
 			str_list temp;
@@ -798,6 +799,9 @@ std::string Comprehension_t::to_string(void* ud) const {
 			}
 			if (temp.size() > 0) {
 				temp.front().insert(0, temp.front()[0] == '[' ? " "s : ""s);
+			}
+			if (std::string_view{temp.front().c_str(), 3} == "for"sv) {
+				return "[\n"s + info->ind() + join(temp, ", "sv) + '\n' + info->ind() + ']';
 			}
 			return '[' + join(temp, ", "sv) + ",]"s;
 		} else {
@@ -809,7 +813,6 @@ std::string Comprehension_t::to_string(void* ud) const {
 				}
 			}
 			if (hasInBlockExp) {
-				auto info = reinterpret_cast<YueFormat*>(ud);
 				str_list temp;
 				temp.emplace_back("["s);
 				info->pushScope();
