@@ -108,7 +108,7 @@ function getTstlOptions(ts: TsModule, tstl: TstlModule): TstlCompilerOptions {
 		cachedTstlOptions = {
 			strict: true,
 			jsx: ts.JsxEmit.React,
-			luaTarget: tstl.LuaTarget.Lua54,
+			luaTarget: tstl.LuaTarget.Lua55,
 			luaLibImport: tstl.LuaLibImportKind.Require,
 			noHeader: true,
 			sourceMap: true,
