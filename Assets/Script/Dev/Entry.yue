@@ -1054,62 +1054,71 @@ footerWindow = threadLoop ->
 				isInEntry = true
 				currentEntry = nil
 
-	showWebIDE = isInEntry
-	if config.updateNotification
-		if width < 460
-			showWebIDE = false
-	else
-		if width < 360
-			showWebIDE = false
-	if showWebIDE
-		SetNextWindowBgAlpha 0.0
-		SetNextWindowPos Vec2(width, height - 50), $SetCond(Always), Vec2 1, 0
-		Begin "Web IDE", displayWindowFlags, ->
-			pending = AuthSession.getPending!
-			hovered = false
-			unless pending
-				if url := webStatus?.url
-					if isDesktop and not config.fullScreen
-						if urlClicked
-							BeginDisabled -> Button url
-						elseif Button url
-							urlClicked = once -> sleep 5
-							App\openURL "http://localhost:8866"
-					else
-						TextColored descColor, url
+	showURL = isInEntry
+	webIDEWidth = do
+		base = if config.updateNotification then 460 else 360
+		extra = if config.authRequired then 35 else 0
+		base + extra
+	showURL = false if width < webIDEWidth
+	SetNextWindowBgAlpha 0.0
+	SetNextWindowPos Vec2(width, height - 50), $SetCond(Always), Vec2 1, 0
+	Begin "Web IDE", displayWindowFlags, ->
+		pending = AuthSession.getPending!
+		hovered = false
+		if not pending and showURL
+			if url := webStatus?.url
+				if isDesktop and not config.fullScreen
+					if urlClicked
+						BeginDisabled -> Button url
+					elseif Button url
+						urlClicked = once -> sleep 5
+						App\openURL "http://localhost:8866"
 				else
-					TextColored descColor, zh and '不可用' or 'not available'
-				hovered = IsItemHovered!
-				SameLine!
-			:themeColor = App
-			if pending
-				unless pending.approved
-					remaining = math.max 0, pending.expiresAt - os.time!
-					ttl = pending.ttl or 1
-					PushStyleColor "Text", themeColor, ->
-						ImGui.ProgressBar remaining / ttl, Vec2(40, -1), pending.confirmCode
-						hovered or= IsItemHovered!
-					SameLine!
-					if Button zh and "确认" or "Approve", Vec2 70, 30
-						AuthSession.approvePending pending.sessionId
-					if hovered
-						BeginTooltip ->
-							PushTextWrapPos 280, ->
-								Text zh and 'Web IDE 正在等待确认，请核对浏览器中的会话码并点击确认' or 'Web IDE is waiting for confirmation. Match the session code in the browser and click approve.'
+					TextColored descColor, url
 			else
-				if config.authRequired
-					PushStyleColor "Text", themeColor, ->
-						ImGui.ProgressBar authCodeTTL / $MaxAuthCodeTTL, Vec2(60, -1), authCode
-						hovered or= IsItemHovered!
-					if hovered
-						BeginTooltip ->
-							PushTextWrapPos 280, ->
-								Text zh and '在本机或是本地局域网连接的其他设备上，使用浏览器访问这个地址并输入后面的 PIN 码来使用 Web IDE（PIN 仅用于一次认证）' or 'Open this address in a browser on this machine or another device on the local network and enter the PIN below to start the Web IDE (PIN is one-time)'
-				else
-					if hovered
-						BeginTooltip ->
-							PushTextWrapPos 280, ->
-								Text zh and '在本机或是本地局域网连接的其他设备上，使用浏览器访问这个地址' or 'Open this address in a browser on this machine or another device on the local network'
+				TextColored descColor, zh and '不可用' or 'not available'
+			hovered = IsItemHovered!
+		else
+			TextColored descColor, "(?)"
+			hovered = IsItemHovered!
+		SameLine!
+		:themeColor = App
+		if pending
+			unless pending.approved
+				remaining = math.max 0, pending.expiresAt - os.time!
+				ttl = pending.ttl or 1
+				PushStyleColor "Text", themeColor, ->
+					ImGui.ProgressBar remaining / ttl, Vec2(40, 30), pending.confirmCode
+					hovered or= IsItemHovered!
+				SameLine!
+				if Button zh and "确认" or "Approve", Vec2 70, 30
+					AuthSession.approvePending pending.sessionId
+				if hovered
+					BeginTooltip ->
+						PushTextWrapPos 280, ->
+							Text zh and 'Web IDE 正在等待确认，请核对浏览器中的会话码并点击确认' or 'Web IDE is waiting for confirmation. Match the session code in the browser and click approve.'
+		else
+			if config.authRequired
+				PushStyleColor "Text", themeColor, ->
+					ImGui.ProgressBar authCodeTTL / $MaxAuthCodeTTL, Vec2(60, 30), authCode
+					hovered or= IsItemHovered!
+				if hovered
+					BeginTooltip ->
+						PushTextWrapPos 280, ->
+							if url := webStatus?.url
+								address = if showURL then "Web IDE" else url
+								Text zh and "在本机或是本地局域网连接的其他设备上，使用浏览器访问 #{address} 并输入后面的 PIN 码进行使用 （PIN 仅用于一次认证）" or "Open #{address} in a browser on this machine or another device on the local network and enter the PIN below to start (PIN is one-time)"
+							else
+								Text zh and 'Web IDE 不可用' or 'Web IDE not available'
+			else
+				if hovered
+					BeginTooltip ->
+						PushTextWrapPos 280, ->
+							if url := webStatus?.url
+								address = if showURL then "Web IDE" else url
+								Text zh and "在本机或是本地局域网连接的其他设备上，使用浏览器访问 #{address}" or "Open #{address} in a browser on this machine or another device on the local network"
+							else
+								Text zh and 'Web IDE 不可用' or 'Web IDE not available'
 
 	unless isInEntry
 		SetNextWindowSize Vec2 50, 50
