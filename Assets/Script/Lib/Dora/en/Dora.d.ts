@@ -1799,9 +1799,9 @@ class Dictionary extends Object {
 	/**
 	 * A method for setting items in the dictionary.
 	 * @param key The key of the item to set.
-	 * @param item The Item to set for the given key, set to undefined or null to delete this key-value pair.
+	 * @param item The Item to set for the given key, set to undefined to delete this key-value pair.
 	 */
-	set(key: string, item: Item | null | undefined): void;
+	set(key: string, item: Item | undefined): void;
 
 	/**
 	 * A function that iterates over each item in the dictionary and calls a given function with the item and its key. The items in the dictionary can not be added or removed during the iteration.
@@ -1821,7 +1821,7 @@ class Dictionary extends Object {
 	 * @param key The key of the item to retrieve.
 	 * @returns The Item with the given key, or undefined if it does not exist.
 	 */
-	[key: string]: Item | undefined | null;
+	[key: string]: Item | undefined;
 }
 
 export namespace Dictionary {
@@ -2949,7 +2949,7 @@ class Node extends Object {
 	 * @param tag The tag of the child node to get.
 	 * @returns The child node, or nil if not found.
 	 */
-	getChildByTag(tag: string): Node | null;
+	getChildByTag(tag: string): Node | undefined;
 
 	/**
 	 * Schedules a main function to run every frame. Call this function again to replace the previous scheduled main function or coroutine.
@@ -3494,7 +3494,7 @@ class ClipNode extends Node {
 	/**
 	 * The stencil Node that defines the clipping shape.
 	 */
-	stencil: Node | null;
+	stencil: Node | undefined;
 
 	/**
 	 * The minimum alpha threshold for a pixel to be visible. Value ranges from 0 to 1.
@@ -3573,7 +3573,7 @@ class Content {
 	 */
 	loadExcel(filename: string, sheetNames?: string[]): {
 		[sheetName: string]: (/* column */ string | number)[][] | undefined
-	} | null;
+	} | undefined;
 
 	/**
 	 * Saves the specified content to a file with the specified filename.
@@ -3675,7 +3675,7 @@ class Content {
 	 */
 	loadExcelAsync(filename: string, sheetNames?: string[]): {
 		[sheetName: string]: (/* column */ string | number)[][]
-	} | null;
+	} | undefined;
 
 	/**
 	 * Asynchronously saves the specified content to a file with the specified filename.
@@ -3857,17 +3857,17 @@ interface DB {
 	 * @param sql The SQL statement to execute.
 	 * @param args [optional] A list of values to substitute into the SQL statement.
 	 * @param withColumn [optional] Whether to include column names in the result (default false).
-	 * @returns A list of rows returned by the query, or null if the query failed.
+	 * @returns A list of rows returned by the query, or undefined if the query failed.
 	 */
-	query(sql: string, args?: DBRow, withColumn?: boolean): DBRow[] | null;
+	query(sql: string, args?: DBRow, withColumn?: boolean): DBRow[] | undefined;
 
 	/**
 	 * Executes an SQL query and returns the results as a list of rows.
 	 * @param sql The SQL statement to execute.
 	 * @param withColumn [optional] Whether to include column names in the result (default false).
-	 * @returns A list of rows returned by the query, or null if the query failed.
+	 * @returns A list of rows returned by the query, or undefined if the query failed.
 	 */
-	query(sql: string, withColumn?: boolean): DBRow[] | null;
+	query(sql: string, withColumn?: boolean): DBRow[] | undefined;
 
 	/**
 	 * Inserts a row of data into a table within a transaction.
@@ -3931,17 +3931,17 @@ interface DB {
 	 * @param sql The SQL statement to execute.
 	 * @param args [optional] A list of values to substitute into the SQL statement.
 	 * @param withColumn [optional] Whether to include column names in the result (default false).
-	 * @returns A list of rows returned by the query, or null if the query failed.
+	 * @returns A list of rows returned by the query, or undefined if the query failed.
 	 */
-	queryAsync(sql: string, args?: DBRow, withColumn?: boolean): DBRow[] | null;
+	queryAsync(sql: string, args?: DBRow, withColumn?: boolean): DBRow[] | undefined;
 
 	/**
 	 * Executes an SQL query asynchronously and returns the results as a list of rows.
 	 * @param sql The SQL statement to execute.
 	 * @param withColumn [optional] Whether to include column names in the result (default false).
-	 * @returns A list of rows returned by the query, or null if the query failed.
+	 * @returns A list of rows returned by the query, or undefined if the query failed.
 	 */
-	queryAsync(sql: string, withColumn?: boolean): DBRow[] | null;
+	queryAsync(sql: string, withColumn?: boolean): DBRow[] | undefined;
 
 	/**
 	 * Executes an SQL statement with a list of values within a transaction asynchronously and returns the number of rows affected.
@@ -4124,14 +4124,14 @@ class Playable extends Node {
 	 * @param name The name of the slot to set.
 	 * @param item The node to set the slot to.
 	 */
-	setSlot(name: string, item: Node | null): void;
+	setSlot(name: string, item: Node | undefined): void;
 
 	/**
 	 * Gets the child node attached to the animation model.
 	 * @param name The name of the slot to get.
-	 * @returns The node in the slot, or null if there is no node in the slot.
+	 * @returns The node in the slot, or undefined if there is no node in the slot.
 	 */
-	getSlot(name: string): Node | null;
+	getSlot(name: string): Node | undefined;
 
 	/**
 	 * Registers a callback for the event triggered when an animation is finished.
@@ -4228,7 +4228,7 @@ interface DragonBoneClass {
 	 * And the an armature name can be added following a seperator of ';'. like "DragonBone/item;mainArmature" or "DragonBone/item_ske.json|DragonBone/item_tex.json;mainArmature".
 	 * @returns A new instance of 'DragonBone'.
 	 */
-	(this: void, boneStr: string): DragonBone | null;
+	(this: void, boneStr: string): DragonBone | undefined;
 
 	/**
 	 * Creates a new instance of 'DragonBone' using the specified bone file and atlas file. This function only loads the first armature.
@@ -4236,7 +4236,7 @@ interface DragonBoneClass {
 	 * @param atlasFile The filename of the atlas file to load.
 	 * @returns A new instance of 'DragonBone' with the specified bone file and atlas file.
 	 */
-	(this: void, boneFile: string, atlasFile: string): DragonBone | null;
+	(this: void, boneFile: string, atlasFile: string): DragonBone | undefined;
 }
 
 const dragonBoneClass: DragonBoneClass;
@@ -4266,19 +4266,19 @@ class Spine extends Playable {
 	 * Checks if a point in space is inside the boundaries of the Spine skeleton.
 	 * @param x The x-coordinate of the point to check.
 	 * @param y The y-coordinate of the point to check.
-	 * @returns The name of the bone at the point, or null if there is no bone at the point.
+	 * @returns The name of the bone at the point, or undefined if there is no bone at the point.
 	 */
-	containsPoint(x: number, y: number): string | null;
+	containsPoint(x: number, y: number): string | undefined;
 
 	/**
-	 * Checks if a line segment intersects the boundaries of the instance and returns the name of the bone or slot at the intersection point, or null if no bone or slot is found.
+	 * Checks if a line segment intersects the boundaries of the instance and returns the name of the bone or slot at the intersection point, or undefined if no bone or slot is found.
 	 * @param x1 The x-coordinate of the start point of the line segment.
 	 * @param y1 The y-coordinate of the start point of the line segment.
 	 * @param x2 The x-coordinate of the end point of the line segment.
 	 * @param y2 The y-coordinate of the end point of the line segment.
-	 * @returns The name of the bone or slot at the intersection point, or null if no bone or slot is found.
+	 * @returns The name of the bone or slot at the intersection point, or undefined if no bone or slot is found.
 	 */
-	intersectsSegment(x1: number, y1: number, x2: number, y2: number): string | null;
+	intersectsSegment(x1: number, y1: number, x2: number, y2: number): string | undefined;
 }
 
 export namespace Spine {
@@ -4309,7 +4309,7 @@ interface SpineClass {
 	 * A Spine file string can be a file path with the target file extention like "Spine/item" or file paths with all the related files like "Spine/item.skel|Spine/item.atlas" or "Spine/item.json|Spine/item.atlas".
 	 * @returns A new instance of 'Spine'.
 	 */
-	(this: void, spineStr: string): Spine | null;
+	(this: void, spineStr: string): Spine | undefined;
 
 	/**
 	 * Creates a new instance of 'Spine' using the specified skeleton file and atlas file.
@@ -4317,7 +4317,7 @@ interface SpineClass {
 	 * @param atlasFile The filename of the atlas file to load.
 	 * @returns A new instance of 'Spine' with the specified skeleton file and atlas file.
 	 */
-	(this: void, skelFile: string, atlasFile: string): Spine | null;
+	(this: void, skelFile: string, atlasFile: string): Spine | undefined;
 }
 
 const spineClass: SpineClass;
@@ -4436,7 +4436,7 @@ interface ModelClass {
 	 * Can be filename with or without extension like: "Model/item" or "Model/item.model".
 	 * @returns A new instance of 'Model'.
 	 */
-	(this: void, filename: string): Model | null;
+	(this: void, filename: string): Model | undefined;
 }
 
 const modelClass: ModelClass;
@@ -4658,7 +4658,7 @@ class TileNode extends Node {
 	 * @param layerName The name of the layer to get.
 	 * @returns The layer data as a dictionary.
 	 */
-	getLayer(layerName: string): Dictionary | null;
+	getLayer(layerName: string): Dictionary | undefined;
 }
 
 export namespace TileNode {
@@ -4672,25 +4672,25 @@ interface TileNodeClass {
 	/**
 	 * Creates a TileNode object that will render all the tile layers.
 	 * @param tmxFile The TMX file for the tilemap. Can be files created with Tiled Map Editor (http://www.mapeditor.org). The TMX file should be in XML format.
-	 * @returns A new instance of the TileNode class. If the tilemap file is not found, it will return null.
+	 * @returns A new instance of the TileNode class. If the tilemap file is not found, it will return undefined.
 	 */
-	(this: void, tmxFile: string): TileNode | null;
+	(this: void, tmxFile: string): TileNode | undefined;
 
 	/**
 	 * Creates a TileNode object that will render the specific tile layer.
 	 * @param tmxFile The TMX file for the tilemap.
 	 * @param layerName The name of the layer in the TMX file. Can be files created with Tiled Map Editor (http://www.mapeditor.org). The TMX file should be in XML format.
-	 * @returns A new instance of the TileNode class. If the tilemap file is not found, it will return null.
+	 * @returns A new instance of the TileNode class. If the tilemap file is not found, it will return undefined.
 	 */
-	(this: void, tmxFile: string, layerName: string): TileNode | null;
+	(this: void, tmxFile: string, layerName: string): TileNode | undefined;
 
 	/**
 	 * Creates a TileNode object that will render the specific tile layers.
 	 * @param tmxFile The TMX file for the tilemap.
 	 * @param layerNames The names of the layers in the TMX file. Can be files created with Tiled Map Editor (http://www.mapeditor.org). The TMX file should be in XML format.
-	 * @returns A new instance of the TileNode class. If the tilemap file is not found, it will return null.
+	 * @returns A new instance of the TileNode class. If the tilemap file is not found, it will return undefined.
 	 */
-	(this: void, tmxFile: string, layerNames: string[]): TileNode | null;
+	(this: void, tmxFile: string, layerNames: string[]): TileNode | undefined;
 }
 
 const tileNodeClass: TileNodeClass;
@@ -4732,7 +4732,7 @@ class Entity extends Object {
 	 * @param key The name of the property to set.
 	 * @param item The value to set the property to.
 	 */
-	set(key: string, item: Component | undefined | null): void;
+	set(key: string, item: Component | undefined): void;
 
 	/**
 	 * A function that retrieves the value of a property of the entity
@@ -4919,7 +4919,7 @@ interface Texture2DClass {
 	 * @param filename The filename of the image file to load.
 	 * @returns The new texture.
 	 */
-	(this: void, filename: string): Texture2D | null;
+	(this: void, filename: string): Texture2D | undefined;
 }
 
 const texture2DClass: Texture2DClass;
@@ -6364,7 +6364,7 @@ interface SpriteClass {
 	 * @param clipFile The clip file name to load, should end with ".clip".
 	 * @returns A table containing the clip names and rectangles.
 	 */
-	getClips(clipFile: string): LuaTable<string, Rect> | null;
+	getClips(clipFile: string): LuaTable<string, Rect> | undefined;
 
 	/**
 	 * A method for creating Sprite object.
@@ -6372,7 +6372,7 @@ interface SpriteClass {
 	 * Can be "Image/file.png" and "Image/items.clip|itemA". Supports image file format: jpg, png, dds, pvr, ktx.
 	 * @returns A new instance of the Sprite class.
 	 */
-	(this: void, clipStr: string): Sprite | null;
+	(this: void, clipStr: string): Sprite | undefined;
 
 	/**
 	 * A method for creating Sprite object.
@@ -6495,9 +6495,9 @@ class Label extends Node {
 	/**
 	 * Returns the sprite for the character at the specified index.
 	 * @param index The index of the character sprite to retrieve.
-	 * @returns The sprite for the character, or `null` if the index is out of range.
+	 * @returns The sprite for the character, or `undefined` if the index is out of range.
 	 */
-	getCharacter(index: number): Sprite | null;
+	getCharacter(index: number): Sprite | undefined;
 }
 
 export namespace Label {
@@ -6516,18 +6516,18 @@ interface LabelClass {
 	/**
 	 * Creates a new Label object with the specified font string.
 	 * @param fontStr The font string to use for the label. Should be in the format "fontName;fontSize;sdf", where `sdf` should be "true" or "false" and can be omitted as default is false.
-	 * @returns The new Label object. Returns `null` if the font could not be loaded.
+	 * @returns The new Label object. Returns `undefined` if the font could not be loaded.
 	 */
-	(this: void, fontStr: string): Label | null;
+	(this: void, fontStr: string): Label | undefined;
 
 	/**
 	 * Creates a new Label object with the specified font name and font size.
 	 * @param fontName The name of the font to use for the label. Can be a font file path with or without a file extension.
 	 * @param fontSize The size of the font to use for the label.
 	 * @param sdf [optional] Whether to use SDF rendering or not. With SDF rendering, the outline feature will be enabled. (Default is false)
-	 * @returns The new Label object. Returns `null` if the font could not be loaded.
+	 * @returns The new Label object. Returns `undefined` if the font could not be loaded.
 	 */
-	(this: void, fontName: string, fontSize: number, sdf?: boolean): Label | null;
+	(this: void, fontName: string, fontSize: number, sdf?: boolean): Label | undefined;
 }
 
 const labelClass: LabelClass;
@@ -6737,7 +6737,7 @@ class ML {
 			op: MLOperator,
 			value: string
 		) => void
-	): LuaMultiReturn<[number, null]> | LuaMultiReturn<[null, string]>;
+	): LuaMultiReturn<[number, undefined]> | LuaMultiReturn<[undefined, string]>;
 
 	/**
 	 * A field for accessing QLearner class.
@@ -6784,9 +6784,9 @@ interface ParticleClass {
 	/**
 	 * Creates a new Particle object from a particle system definition file.
 	 * @param filename The file path of the particle system definition file.
-	 * @returns A new Particle object. Returns `null` if the particle system file could not be loaded.
+	 * @returns A new Particle object. Returns `undefined` if the particle system file could not be loaded.
 	 */
-	(this: void, filename: string): Particle | null;
+	(this: void, filename: string): Particle | undefined;
 }
 
 const particleClass: ParticleClass;
@@ -7399,9 +7399,9 @@ interface AudioSourceClass {
 	 * @param filename The path to the audio file.
 	 * @param autoRemove [optional] Whether to remove the audio source when it stops. Defaults to `true`.
 	 * @param bus [optional] The bus to play the audio source. Defaults to `nil`.
-	 * @returns Created AudioSource node. If the audio file is not loaded, it will return null.
+	 * @returns Created AudioSource node. If the audio file is not loaded, it will return undefined.
 	 */
-	(this: void, filename: string, autoRemove?: boolean, bus?: AudioBus): AudioSource | null;
+	(this: void, filename: string, autoRemove?: boolean, bus?: AudioBus): AudioSource | undefined;
 }
 
 const audioSourceClass: AudioSourceClass;
@@ -7442,9 +7442,9 @@ interface VideoNodeClass {
 	 *         * For smooth playback on mid-range devices, 720p/1080p and moderate bitrates are recommended.
 	 *     - It is recommended to use the `ffmpeg` tool to convert the video file to H.264 format before using it.
 	 * @param looped [optional] Whether the video should loop. Default is `false`.
-	 * @returns The created VideoNode object. If the video file is not loaded, it will return null.
+	 * @returns The created VideoNode object. If the video file is not loaded, it will return undefined.
 	 */
-	(this: void, filename: string, looped?: boolean): VideoNode | null;
+	(this: void, filename: string, looped?: boolean): VideoNode | undefined;
 }
 
 const videoNodeClass: VideoNodeClass;
@@ -7476,17 +7476,17 @@ interface TIC80NodeClass {
 	 *     - Audio playback through the TIC-80 sound engine.
 	 *     - Runs at TIC-80's native resolution (240x136 pixels).
 	 *     - Fixed frame rate matching TIC-80's specification (60 FPS).
-	 * @returns The created TIC80Node object. If the cart file is not loaded, it will return null.
+	 * @returns The created TIC80Node object. If the cart file is not loaded, it will return undefined.
 	 */
-	(this: void, cartFile: string): TIC80Node | null;
+	(this: void, cartFile: string): TIC80Node | undefined;
 
 	/**
 	 * Creates a new TIC80Node object with code from a file and resources from a cart file.
 	 * @param resourceCartFile The path to the TIC-80 cart file containing art and audio resources (`.tic` or `.png` format).
 	 * @param codeFile The path to the code file (e.g., `.lua`, `.yue`).
-	 * @returns The created TIC80Node object. If creation fails, it will return null.
+	 * @returns The created TIC80Node object. If creation fails, it will return undefined.
 	 */
-	(this: void, resourceCartFile: string, codeFile: string): TIC80Node | null;
+	(this: void, resourceCartFile: string, codeFile: string): TIC80Node | undefined;
 
 	/**
 	 * Extracts code text from a TIC-80 cart file.
@@ -7639,16 +7639,16 @@ export interface tolua {
 	 * Attempts to cast a Lua object to a C++ type object.
 	 * @param item The Lua object to cast.
 	 * @param name The C++ object type name .
-	 * @returns The target object, or `null` if the cast fails.
+	 * @returns The target object, or `undefined` if the cast fails.
 	 */
-	cast<k extends TypeName>(this: void, item: any, name: k): TypeMap[typeof name] | null;
+	cast<k extends TypeName>(this: void, item: any, name: k): TypeMap[typeof name] | undefined;
 
 	/**
 	 * Gets the class object for a given class name.
 	 * @param className The name of the class to get the table for.
-	 * @returns The class table, or `null` if the class does not exist.
+	 * @returns The class table, or `undefined` if the class does not exist.
 	 */
-	class(this: void, className: string): { [key: string | number]: any } | null;
+	class(this: void, className: string): { [key: string | number]: any } | undefined;
 
 	/**
 	 * Sets the peer table for an object. A peer table is a table referenced by a Lua userdata providing custom fields for this userdata object.
@@ -7660,9 +7660,9 @@ export interface tolua {
 	/**
 	 * Gets the peer table for an object. A peer table is a table referenced by a Lua userdata providing custom fields for this userdata object.
 	 * @param obj The object to get the peer table for.
-	 * @returns The peer table, or `null` if the object has no peer table.
+	 * @returns The peer table, or `undefined` if the object has no peer table.
 	 */
-	getpeer(this: void, obj: Object): { [key: string | number]: any } | null;
+	getpeer(this: void, obj: Object): { [key: string | number]: any } | undefined;
 }
 
 export const tolua: tolua;
@@ -7738,12 +7738,12 @@ interface HttpServer {
 	/**
 	 * Registers a handler function for multipart POST requests as file uploads.
 	 * @param pattern The URL pattern to match.
-	 * @param acceptHandler The handler function to call when a file is being uploaded. The function should return the filename to save the file as, or `null` to reject the file.
+	 * @param acceptHandler The handler function to call when a file is being uploaded. The function should return the filename to save the file as, or `undefined` to reject the file.
 	 * @param doneHandler The handler function to call when the file upload is complete. The function should return `true` to accept the file, or `false` to reject it.
 	 */
 	upload(
 		pattern: string,
-		acceptHandler: (this: void, req: Request, filename: string) => string | null,
+		acceptHandler: (this: void, req: Request, filename: string) => string | undefined,
 		doneHandler: (this: void, req: Request, filename: string) => boolean
 	): void;
 	/**
@@ -7764,9 +7764,9 @@ interface HttpClient {
 	 * @param url The URL to send the request to.
 	 * @param json The JSON data to send in the request body.
 	 * @param timeout [optional] The timeout in seconds for the request. Defaults to 5.
-	 * @returns The response body text, or `null` if the request failed.
+	 * @returns The response body text, or `undefined` if the request failed.
 	 */
-	postAsync(url: string, json: string, timeout?: number): string | null;
+	postAsync(url: string, json: string, timeout?: number): string | undefined;
 	/**
 	 * Sends a POST request to the specified URL with custom headers and returns the response body.
 	 * @param url The URL to send the request to.
@@ -7774,16 +7774,16 @@ interface HttpClient {
 	 * @param json The JSON data to send in the request body.
 	 * @param timeout [optional] The timeout in seconds for the request. Defaults to 5.
 	 * @param partCallback [optional] A callback function that is called periodically to get part of the response content. Returns `true` to stop the request.
-	 * @returns The response body text, or `null` if the request failed.
+	 * @returns The response body text, or `undefined` if the request failed.
 	 */
-	postAsync(url: string, headers: string[], json: string, timeout?: number, partCallback?: (this: void, data: string) => boolean): string | null;
+	postAsync(url: string, headers: string[], json: string, timeout?: number, partCallback?: (this: void, data: string) => boolean): string | undefined;
 	/**
 	 * Sends a GET request to the specified URL and returns the response body.
 	 * @param url The URL to send the request to.
 	 * @param timeout [optional] The timeout in seconds for the request. Defaults to 5.
-	 * @returns The response body text, or `null` if the request failed.
+	 * @returns The response body text, or `undefined` if the request failed.
 	 */
-	getAsync(url: string, timeout?: number): string | null;
+	getAsync(url: string, timeout?: number): string | undefined;
 	/**
 	 * Downloads a file asynchronously from the specified URL and saves it to the specified path. Should be run in a coroutine.
 	 * @param url The URL of the file to download.
@@ -7810,9 +7810,9 @@ interface json {
 	 * @param json The JSON text to parse.
 	 * @param maxDepth The maximum depth to parse (default is 128).
 	 * @param allowcomments Whether to allow comments in the JSON text (default is false).
-	 * @returns The object representing the JSON data, or null with an error message if the JSON text is invalid.
+	 * @returns The object representing the JSON data, or undefined with an error message if the JSON text is invalid.
 	 */
-	decode(this: void, json: string, maxDepth?: number, allowcomments?: boolean): LuaMultiReturn<[any, null]> | LuaMultiReturn<[null, string]>;
+	decode(this: void, json: string, maxDepth?: number, allowcomments?: boolean): LuaMultiReturn<[any, undefined]> | LuaMultiReturn<[undefined, string]>;
 	/**
 	 * Converts the specified object to JSON text.
 	 * @param obj The object to convert.
@@ -7820,9 +7820,9 @@ interface json {
 	 * @param empty_as_array Whether to convert empty tables to arrays (default is false).
 	 * @param num_as_str Whether to convert numbers to strings (default is false).
 	 * @param maxdepth The maximum depth to convert (default is 128).
-	 * @returns The JSON text representing the object, or null with an error message if the object cannot be converted.
+	 * @returns The JSON text representing the object, or undefined with an error message if the object cannot be converted.
 	 */
-	encode(this: void, obj: object, format?: boolean, empty_as_array?: boolean, num_as_str?: boolean, maxdepth?: number): LuaMultiReturn<[string, null]> | LuaMultiReturn<[null, string]>;
+	encode(this: void, obj: object, format?: boolean, empty_as_array?: boolean, num_as_str?: boolean, maxdepth?: number): LuaMultiReturn<[string, undefined]> | LuaMultiReturn<[undefined, string]>;
 	/**
 	 * Represents the JSON null value.
 	 */

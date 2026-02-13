@@ -23,7 +23,7 @@ if (typeof config.url === "string") {
 let zh = false;
 {
 	const [res] = string.match(App.locale, "^zh");
-	zh = res !== null;
+	zh = res !== undefined;
 }
 
 interface PackageListVersion {
@@ -355,7 +355,7 @@ class ResourceDownloader {
 
 	public update() {
 		const {width, height} = App.visualSize;
-		let filterCategory: null | string = null;
+		let filterCategory: undefined | string = undefined;
 		ImGui.SetNextWindowPos(Vec2.zero, SetCond.Always, Vec2.zero);
 		ImGui.SetNextWindowSize(Vec2(width, this.headerHeight), SetCond.Always);
 		ImGui.PushStyleVar(ImGui.StyleVarVec.WindowPadding, Vec2(10, 0), () => ImGui.Begin("Dora Community Header", windowsNoScrollFlags, () => {
@@ -406,7 +406,7 @@ class ResourceDownloader {
 			}
 			ImGui.PushStyleVar(ImGui.StyleVarVec.WindowPadding, Vec2(10, 10), () => ImGui.BeginTabBar("categories", tabBarFlags, () => {
 				ImGui.BeginTabItem(zh ? '全部' : 'All', () => {
-					filterCategory = null;
+					filterCategory = undefined;
 				});
 				for (let cat of this.categories) {
 					ImGui.BeginTabItem(cat, () => {
@@ -427,9 +427,9 @@ class ResourceDownloader {
 			for (const pkg of this.packages) {
 				const repo = this.repos.get(pkg.name)
 				if (!repo) continue;
-				if (filterCategory !== null) {
+				if (filterCategory !== undefined) {
 					if (!repo.categories) continue;
-					if (repo.categories.find(matchCat) === null) {
+					if (repo.categories.find(matchCat) === undefined) {
 						continue;
 					}
 				}

@@ -1,32 +1,60 @@
 // @preview-file off clear
-import { json } from 'Dora';
+import { json, Director, once, HttpClient, DB, emit } from 'Dora';
+
+export interface Message {
+	role: string;
+	content: string;
+}
+
+const postLLM = (messages: Message[], url: string, apiKey: string, model: string, options: Record<string, any>, receiver: (this: void, data: string) => boolean) => {
+	const data: Record<string, any> = {
+		...options,
+		model,
+		messages,
+		stream: true,
+	};
+	return new Promise<string>((resolve, reject) => {
+		Director.systemScheduler.schedule(once(() => {
+			const [jsonStr, err] = json.encode(data);
+			if (jsonStr !== undefined) {
+				const res = HttpClient.postAsync(url, [
+					`Authorization: Bearer ${apiKey}`,
+				], jsonStr, 10, receiver);
+				if (res) {
+					resolve(res);
+				} else {
+					reject("failed to get http response");
+				}
+			} else {
+				reject(err);
+			}
+		}));
+	});
+};
 
 type OnJSON = (this: void, obj: any, raw: string) => void;
 type OnDone = (this: void, text: string) => void;
 type OnError = (this: void, err: unknown, context?: { raw?: string }) => void;
 
 export function createSSEJSONParser(opts: {
-	onJSON: OnJSON; // 每解析出一个完整 data JSON 调用
-	onDone?: OnDone; // 遇到非 JSON 的 data（比如 [DONE]）调用
-	onError?: OnError; // JSON 解析失败等
+	onJSON: OnJSON;
+	onDone?: OnDone;
+	onError?: OnError;
 }) {
-	let buffer = ""; // 原始字节拼接后的文本
-	let eventDataLines: string[] = []; // 当前事件累积的 data 行（去掉 "data:" 前缀）
+	let buffer = "";
+	let eventDataLines: string[] = [];
 
 	function flushEventIfAny() {
 		if (eventDataLines.length === 0) return;
 
-		// 按 SSE 规范：多行 data 用 \n 拼接
 		const dataPayload = eventDataLines.join("\n");
 		eventDataLines = [];
 
-		// 一些实现会发 data: [DONE]
 		if (dataPayload === "[DONE]") {
 			opts.onDone?.(dataPayload);
 			return;
 		}
 
-		// 尝试按 JSON 解析
 		const [obj, err] = json.decode(dataPayload);
 		if (err === null) {
 			opts.onJSON(obj, dataPayload);
@@ -35,53 +63,37 @@ export function createSSEJSONParser(opts: {
 		}
 	}
 
-	/**
-	 * 你的底层每收到一个 string chunk 就调用 feed(chunk)
-	 */
 	function feed(chunk: string) {
 		buffer += chunk;
 
-		// 只按 \n 做增量行解析（\r\n 也兼容）
 		while (true) {
 			const nl = buffer.indexOf("\n");
-			if (nl < 0) break; // 没有完整行，继续等下一包
+			if (nl < 0) break;
 
 			let line = buffer.slice(0, nl);
 			buffer = buffer.slice(nl + 1);
 
-			// 兼容 CRLF
 			if (line.endsWith("\r")) line = line.slice(0, -1);
 
-			// 空行：一个 SSE 事件结束
 			if (line === "") {
 				flushEventIfAny();
 				continue;
 			}
 
-			// 注释行（:xxx）直接忽略
+			// skip comments
 			if (line.startsWith(":")) continue;
 
-			// 只关心 data 字段（你给的例子就是 data: {...}）
 			if (line.startsWith("data:")) {
-				// data: 后面允许有一个空格
 				let v = line.slice(5);
 				if (v.startsWith(" ")) v = v.slice(1);
 				eventDataLines.push(v);
 				continue;
 			}
-
-			// 其他 SSE 字段（event:, id:, retry:）按需处理；不需要就忽略
-			// if (line.startsWith("id:")) ...
 		}
 	}
 
-	/**
-	 * 流结束时可调用，避免最后一个事件没有以空行收尾导致丢失
-	 */
 	function end() {
-		// 先尝试把 buffer 里最后一行也当作行（如果没有 \n）
 		if (buffer.length > 0) {
-			// 注意：这一步可能把“半行”当完整行；但 end() 说明不会再有数据了
 			let line = buffer;
 			buffer = "";
 			if (line.endsWith("\r")) line = line.slice(0, -1);
@@ -115,4 +127,90 @@ interface Delta {
 	role: string;
 	reasoning_content?: string;
 	content?: string;
+}
+
+interface CallEvent {
+	id: undefined;
+	onData: (this: void, data: LLMStreamData) => boolean;
+	onCancel?: (this: void, reason: string) => void;
+	onDone?: (this: void, content: string) => void;
+}
+
+interface CallStream {
+	id: number;
+	stopToken: boolean;
+}
+
+export const callLLM = (messages: Message[], options: Record<string, any>, event: CallEvent | CallStream): {success: true} | {success: false, message: string} => {
+	let callEvent: CallEvent;
+	if (event.id !== undefined) {
+		const id = event.id;
+		callEvent = {
+			id: undefined,
+			onData: (data) => {
+				emit("AppWS", "Send", {name: "LLMContent", id, data});
+				return event.stopToken;
+			},
+			onCancel: (reason) => {
+				emit("AppWS", "Send", {name: "LLMCancel", id, reason});
+			},
+			onDone: () => {
+				emit("AppWS", "Send", {name: "LLMDone", id});
+			}
+		};
+	} else {
+		callEvent = event;
+	}
+	const {onData, onDone} = callEvent;
+	let {onCancel} = callEvent;
+	const rows = DB.query("select * from LLMConfig", true);
+	const records: Record<string, any>[] = [];
+	if (rows && rows.length > 1) {
+		for (let i = 1; i < rows.length; i++) {
+			const record: Record<string, any> = {};
+			for (let c = 0; c < rows[i].length; c++) {
+				record[rows[0][c] as string] = rows[i][c];
+			}
+			records.push(record);
+		}
+	}
+	const config = records.find(r => r["active"] !== 0);
+	if (!config) return {success: false, message: "no active LLM config"};
+	const {url, model, api_key} = config;
+	if ("string" !== typeof url || "string" !== typeof model || "string" !== typeof api_key) {
+		return {success: false, message: "got invalude LLM config"};
+	}
+	let stopLLM = false;
+	const parser = createSSEJSONParser({
+		onJSON: (obj) => {
+			const result = onData(obj);
+			if (result) stopLLM = result;
+		}
+	});
+	(async () => {
+		try {
+			const result = await postLLM(messages, url, api_key, model, options, (data) => {
+				if (stopLLM) {
+					if (onCancel) {
+						onCancel("LLM Stopped");
+						onCancel = undefined;
+					}
+					return true;
+				}
+				parser.feed(data);
+				return false;
+			});
+			parser.end();
+			if (onDone) {
+				onDone(result);
+			}
+		} catch (e) {
+			stopLLM = true;
+			if (onCancel) {
+				onCancel(tostring(e));
+				onCancel = undefined;
+			}
+		}
+	})();
+	return {success: true};
 }

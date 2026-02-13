@@ -38,12 +38,12 @@ interface TextResult {
 	/**
 	 * Optional markup for the text.
 	 */
-	marks: Markup[] | null;
+	marks: Markup[] | undefined;
 
 	/**
 	 * A flag indicating that advancing will yield an OptionResult as the next result.
 	 */
-	optionsFollowed: boolean | null;
+	optionsFollowed: boolean | undefined;
 }
 
 /**
@@ -69,7 +69,7 @@ class YarnRunner {
 	 * nil and a string indicating the narrative ends.
 	 */
 	advance(choice?: number):
-		LuaMultiReturn<[null, string]> |
+		LuaMultiReturn<[undefined, string]> |
 		LuaMultiReturn<["Text", TextResult]> |
 		LuaMultiReturn<["Option", OptionResult]> |
 		LuaMultiReturn<["Error", string]> |

@@ -362,7 +362,7 @@ export async function transpileTypescript(
 		const luaSourceMap = file.luaSourceMap;
 		if (luaSourceMap !== undefined && file.lua !== undefined) {
 			const luaCode = file.lua.split('\n');
-			let modifiedLuaCode: string | undefined = undefined;
+			let modifiedLuaCode: string | undefined;
 			await SourceMapConsumer.with(luaSourceMap, null, consumer => {
 				let lastValidTsLineNumber: number | null = null;
 				modifiedLuaCode = `-- [${Info.path.extname(fileName).substring(1).toLowerCase()}]: ${Info.path.basename(fileName)}\n` + luaCode.map((line, index) => {

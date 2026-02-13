@@ -443,13 +443,13 @@ function visitBTree(this: void, treeStack: P.Behavior.Leaf[], node: JSX.CustomEl
 	return true;
 }
 
-export function toAI(this: void, node: DecisionTree.Leaf): P.Decision.Leaf | null {
+export function toAI(this: void, node: DecisionTree.Leaf): P.Decision.Leaf | undefined {
 	if (type(node) !== 'table') {
-		return null;
+		return undefined;
 	}
 	const treeStack: P.Decision.Leaf[] = [];
 	if (visitDTree(treeStack, node.props) && treeStack.length > 0) {
 		return treeStack[0];
 	}
-	return null;
+	return undefined;
 }

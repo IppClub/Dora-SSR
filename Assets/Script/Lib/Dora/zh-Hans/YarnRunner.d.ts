@@ -38,12 +38,12 @@ interface TextResult {
 	/**
 	 * 文本的可选标记。
 	 */
-	marks: Markup[] | null;
+	marks: Markup[] | undefined;
 
 	/**
 	 * 标志，指示前进将产生 OptionResult 作为下个结果。
 	 */
-	optionsFollowed: boolean | null;
+	optionsFollowed: boolean | undefined;
 }
 
 /**
@@ -69,7 +69,7 @@ class YarnRunner {
 	 * nil 和表示叙述结束的字符串。
 	 */
 	advance(choice?: number):
-		LuaMultiReturn<[null, string]> |
+		LuaMultiReturn<[undefined, string]> |
 		LuaMultiReturn<["Text", TextResult]> |
 		LuaMultiReturn<["Option", OptionResult]> |
 		LuaMultiReturn<["Error", string]> |

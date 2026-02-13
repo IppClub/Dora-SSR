@@ -1063,7 +1063,7 @@ export const toBlocklyJSON = (root: Blk, procs?: Blk[]): string => {
 		},
 		variables: vars,
 	}, false, false, false, 4096);
-	if (err !== null) {
+	if (err !== undefined) {
 		Log("Error", err);
 	}
 	return res ?? "{}";

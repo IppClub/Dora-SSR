@@ -181,8 +181,8 @@ end -- 61
 local function getNode(enode, cnode, attribHandler) -- 128
 	cnode = cnode or Dora.Node() -- 129
 	local jnode = enode.props -- 130
-	local anchor = nil -- 131
-	local color3 = nil -- 132
+	local anchor -- 131
+	local color3 -- 132
 	for k, v in pairs(enode.props) do -- 133
 		repeat -- 133
 			local ____switch32 = k -- 133
@@ -1124,7 +1124,7 @@ do -- 601
 			bodyDef.linearDamping = def.linearDamping -- 636
 		end -- 636
 		bodyDef.position = Dora.Vec2(def.x or 0, def.y or 0) -- 637
-		local extraSensors = nil -- 638
+		local extraSensors -- 638
 		for i = 1, #enode.children do -- 638
 			do -- 638
 				local child = enode.children[i] -- 640

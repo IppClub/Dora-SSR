@@ -21,7 +21,7 @@ import * as ImGui from 'ImGui';
 let zh = false;
 {
 	const [res] = string.match(App.locale, "^zh");
-	zh = res !== null;
+	zh = res !== undefined;
 }
 
 const testFilePaths: string[] = [];
@@ -100,7 +100,7 @@ const commands = setmetatable({}, {
 	}
 });
 
-let runner: Yarn.Type | null = null;
+let runner: Yarn.Type | undefined;
 if (filteredPaths.length > 0) {
 	runner = YarnRunner(filteredPaths[currentFile - 1], "Start", {}, commands, true);
 }
@@ -128,7 +128,7 @@ const advance = (option?: number) => {
 	const [action, result] = runner.advance(option);
 	if (action === "Text") {
 		let charName = "";
-		if (result.marks !== null) {
+		if (result.marks !== undefined) {
 			for (let mark of result.marks) {
 				if ((mark.name === "Character" || mark.name === "char") && mark.attrs !== undefined) {
 					charName = `${mark.attrs.name}: `;

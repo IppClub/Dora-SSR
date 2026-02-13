@@ -39,8 +39,8 @@ const Markdown = memo((props: MarkdownProps) => {
 				img({src, alt, ...iprops}) {
 					const {path} = props;
 					const tokens = (alt ?? "").split(':');
-					let width: number | undefined = undefined;
-					let height: number | undefined = undefined;
+					let width: number | undefined;
+					let height: number | undefined;
 					if (tokens.length === 2) {
 						const size = tokens[tokens.length - 1].split('x');
 						if (size.length === 1) {

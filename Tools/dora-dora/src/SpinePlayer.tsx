@@ -49,7 +49,7 @@ const SpinePlayer = memo((props: SpinePlayerProps) => {
 						try {
 							const skeletonData = binary.readSkeletonData(binaryData);
 							const animations = skeletonData.animations.map(a => a.name);
-							let animation: string | undefined = undefined;
+							let animation: string | undefined;
 							if (animations.indexOf("idle") > 0) {
 								animation = "idle";
 							}

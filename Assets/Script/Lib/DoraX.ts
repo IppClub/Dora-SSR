@@ -128,8 +128,8 @@ type AttribHandler = (this: void, cnode: any, enode: React.Element, k: any, v: a
 function getNode(this: void, enode: React.Element, cnode?: Dora.Node.Type, attribHandler?: AttribHandler) {
 	cnode = cnode ?? Dora.Node();
 	const jnode = enode.props as JSX.Node;
-	let anchor: Dora.Vec2.Type | null = null;
-	let color3: Dora.Color3.Type | null = null;
+	let anchor: Dora.Vec2.Type | undefined;
+	let color3: Dora.Color3.Type | undefined;
 	for (let [k, v] of pairs(enode.props)) {
 		switch (k as keyof JSX.Node) {
 			case 'ref': v.current = cnode; break;
@@ -196,8 +196,8 @@ function getNode(this: void, enode: React.Element, cnode?: Dora.Node.Type, attri
 		)) {
 		cnode.controllerEnabled = true;
 	}
-	if (anchor !== null) cnode.anchor = anchor;
-	if (color3 !== null) cnode.color3 = color3;
+	if (anchor !== undefined) cnode.anchor = anchor;
+	if (color3 !== undefined) cnode.color3 = color3;
 	if (jnode.onMount !== undefined) {
 		jnode.onMount(cnode);
 	}
@@ -222,10 +222,10 @@ let getClipNode: (this: void, enode: React.Element) => Dora.ClipNode.Type;
 	};
 }
 
-let getPlayable: (this: void, enode: React.Element, cnode?: Dora.Node.Type, attribHandler?: AttribHandler) => Dora.Playable.Type | null;
-let getDragonBone: (this: void, enode: React.Element) => Dora.DragonBone.Type | null;
-let getSpine: (this: void, enode: React.Element) => Dora.Spine.Type | null;
-let getModel: (this: void, enode: React.Element) => Dora.Model.Type | null;
+let getPlayable: (this: void, enode: React.Element, cnode?: Dora.Node.Type, attribHandler?: AttribHandler) => Dora.Playable.Type | undefined;
+let getDragonBone: (this: void, enode: React.Element) => Dora.DragonBone.Type | undefined;
+let getSpine: (this: void, enode: React.Element) => Dora.Spine.Type | undefined;
+let getModel: (this: void, enode: React.Element) => Dora.Model.Type | undefined;
 {
 	function handlePlayableAttribute(this: void, cnode: Dora.Playable.Type, enode: React.Element, k: any, v: any) {
 		switch (k as keyof JSX.Playable) {
@@ -242,7 +242,7 @@ let getModel: (this: void, enode: React.Element) => Dora.Model.Type | null;
 		if (cnode !== undefined) {
 			return getNode(enode, cnode, attribHandler) as Dora.Playable.Type;
 		}
-		return null;
+		return undefined;
 	};
 
 	function handleDragonBoneAttribute(this: void, cnode: Dora.DragonBone.Type, enode: React.Element, k: any, v: any) {
@@ -253,11 +253,11 @@ let getModel: (this: void, enode: React.Element) => Dora.Model.Type | null;
 	}
 	getDragonBone = (enode: React.Element) => {
 		const node = Dora.DragonBone(enode.props.file);
-		if (node !== null) {
+		if (node !== undefined) {
 			const cnode = getPlayable(enode, node, handleDragonBoneAttribute);
 			return cnode as Dora.DragonBone.Type;
 		}
-		return null;
+		return undefined;
 	};
 
 	function handleSpineAttribute(this: void, cnode: Dora.Spine.Type, enode: React.Element, k: any, v: any) {
@@ -268,11 +268,11 @@ let getModel: (this: void, enode: React.Element) => Dora.Model.Type | null;
 	}
 	getSpine = (enode: React.Element) => {
 		const node = Dora.Spine(enode.props.file);
-		if (node !== null) {
+		if (node !== undefined) {
 			const cnode = getPlayable(enode, node, handleSpineAttribute);
 			return cnode as Dora.Spine.Type;
 		}
-		return null;
+		return undefined;
 	};
 
 	function handleModelAttribute(this: void, cnode: Dora.Model.Type, enode: React.Element, k: any, v: any) {
@@ -283,11 +283,11 @@ let getModel: (this: void, enode: React.Element) => Dora.Model.Type | null;
 	}
 	getModel = (enode: React.Element) => {
 		const node = Dora.Model(enode.props.file);
-		if (node !== null) {
+		if (node !== undefined) {
 			const cnode = getPlayable(enode, node, handleModelAttribute);
 			return cnode as Dora.Model.Type;
 		}
-		return null;
+		return undefined;
 	};
 }
 
@@ -389,9 +389,9 @@ let getGrid: (this: void, enode: React.Element) => Dora.Grid.Type;
 	};
 }
 
-let getSprite: (this: void, enode: React.Element) => Dora.Sprite.Type | null;
-let getVideoNode: (this: void, enode: React.Element) => Dora.VideoNode.Type | null;
-let getTIC80Node: (this: void, enode: React.Element) => Dora.TIC80Node.Type | null;
+let getSprite: (this: void, enode: React.Element) => Dora.Sprite.Type | undefined;
+let getVideoNode: (this: void, enode: React.Element) => Dora.VideoNode.Type | undefined;
+let getTIC80Node: (this: void, enode: React.Element) => Dora.TIC80Node.Type | undefined;
 {
 	function handleSpriteAttribute(this: void, cnode: Dora.Sprite.Type, _enode: React.Element, k: any, v: any) {
 		switch (k as keyof JSX.Sprite) {
@@ -411,7 +411,7 @@ let getTIC80Node: (this: void, enode: React.Element) => Dora.TIC80Node.Type | nu
 		const sp = enode.props as JSX.Sprite;
 		if (sp.file) {
 			const node = Dora.Sprite(sp.file);
-			if (node !== null) {
+			if (node !== undefined) {
 				const cnode = getNode(enode, node, handleSpriteAttribute);
 				return cnode as Dora.Sprite.Type;
 			}
@@ -420,29 +420,29 @@ let getTIC80Node: (this: void, enode: React.Element) => Dora.TIC80Node.Type | nu
 			const cnode = getNode(enode, node, handleSpriteAttribute);
 			return cnode as Dora.Sprite.Type;
 		}
-		return null;
+		return undefined;
 	};
 	getVideoNode = (enode: React.Element) => {
 		const vn = enode.props as JSX.VideoNode;
 		const node = Dora.VideoNode(vn.file, vn.looped ?? false);
-		if (node !== null) {
+		if (node !== undefined) {
 			const cnode = getNode(enode, node, handleSpriteAttribute);
 			return cnode as Dora.VideoNode.Type;
 		}
-		return null
+		return undefined
 	};
 	getTIC80Node = (enode: React.Element) => {
 		const tic = enode.props as JSX.TIC80Node;
 		const node = Dora.TIC80Node(tic.file);
-		if (node !== null) {
+		if (node !== undefined) {
 			const cnode = getNode(enode, node, handleSpriteAttribute);
 			return cnode as Dora.TIC80Node.Type;
 		}
-		return null
+		return undefined
 	};
 }
 
-let getAudioSource: (this: void, enode: React.Element) => Dora.AudioSource.Type | null;
+let getAudioSource: (this: void, enode: React.Element) => Dora.AudioSource.Type | undefined;
 {
 	function handleAudioSourceAttribute(this: void, cnode: Dora.AudioSource.Type, enode: React.Element, k: any, v: any) {
 		switch (k as keyof JSX.AudioSource) {
@@ -487,15 +487,15 @@ let getAudioSource: (this: void, enode: React.Element) => Dora.AudioSource.Type 
 		const aus = enode.props as JSX.AudioSource;
 		const autoRemove = aus.autoRemove ?? true;
 		const node = Dora.AudioSource(aus.file, autoRemove, aus.bus);
-		if (node !== null) {
+		if (node !== undefined) {
 			const cnode = getNode(enode, node, handleAudioSourceAttribute);
 			return cnode as Dora.AudioSource.Type;
 		}
-		return null;
+		return undefined;
 	};
 }
 
-let getLabel: (this: void, enode: React.Element) => Dora.Label.Type | null;
+let getLabel: (this: void, enode: React.Element) => Dora.Label.Type | undefined;
 {
 	function handleLabelAttribute(this: void, cnode: Dora.Label.Type, _enode: React.Element, k: any, v: any) {
 		switch (k as keyof JSX.Label) {
@@ -517,7 +517,7 @@ let getLabel: (this: void, enode: React.Element) => Dora.Label.Type | null;
 	getLabel = (enode: React.Element) => {
 		const label = enode.props as JSX.Label;
 		const node = Dora.Label(label.fontName, label.fontSize, label.sdf);
-		if (node !== null) {
+		if (node !== undefined) {
 			if (label.smoothLower !== undefined || label.smoothUpper != undefined) {
 				const {x, y} = node.smooth;
 				node.smooth = Dora.Vec2(label.smoothLower ?? x, label.smoothUpper ?? y);
@@ -534,7 +534,7 @@ let getLabel: (this: void, enode: React.Element) => Dora.Label.Type | null;
 			node.text = text;
 			return cnode as Dora.Label.Type;
 		}
-		return null;
+		return undefined;
 	};
 }
 
@@ -556,7 +556,7 @@ let getLine: (this: void, enode: React.Element) => Dora.Line.Type;
 	};
 }
 
-let getParticle: (this: void, enode: React.Element) => Dora.Particle.Type | null;
+let getParticle: (this: void, enode: React.Element) => Dora.Particle.Type | undefined;
 {
 	function handleParticleAttribute(this: void, cnode: Dora.Particle.Type, _enode: React.Element, k: any, v: any) {
 		switch (k as keyof JSX.Particle) {
@@ -569,11 +569,11 @@ let getParticle: (this: void, enode: React.Element) => Dora.Particle.Type | null
 	getParticle = (enode: React.Element) => {
 		const particle = enode.props as JSX.Particle;
 		const node = Dora.Particle(particle.file);
-		if (node !== null) {
+		if (node !== undefined) {
 			const cnode = getNode(enode, node, handleParticleAttribute);
 			return cnode as Dora.Particle.Type;
 		}
-		return null;
+		return undefined;
 	};
 }
 
@@ -635,7 +635,7 @@ let getBody: (this: void, enode: React.Element, world: Dora.PhysicsWorld.Type) =
 		bodyDef.linearAcceleration = def.linearAcceleration ?? Dora.Vec2(0, -9.8);
 		if (def.linearDamping !== undefined) bodyDef.linearDamping = def.linearDamping;
 		bodyDef.position = Dora.Vec2(def.x ?? 0, def.y ?? 0);
-		let extraSensors: [tag: number, def: Dora.FixtureDef.Type][] | null = null;
+		let extraSensors: [tag: number, def: Dora.FixtureDef.Type][] | undefined;
 		for (let i of $range(1, enode.children.length)) {
 			const child = enode.children[i - 1];
 			if (type(child) !== 'table') {
@@ -731,7 +731,7 @@ let getBody: (this: void, enode: React.Element, world: Dora.PhysicsWorld.Type) =
 			}
 		}
 		const body = Dora.Body(bodyDef, world);
-		if (extraSensors !== null) {
+		if (extraSensors !== undefined) {
 			for (let i of $range(1, extraSensors.length)) {
 				const [tag, def] = extraSensors[i - 1];
 				body.attachSensor(tag, def);
@@ -748,7 +748,7 @@ let getBody: (this: void, enode: React.Element, world: Dora.PhysicsWorld.Type) =
 	};
 }
 
-let getCustomNode: (this: void, enode: React.Element) => Dora.Node.Type | null;
+let getCustomNode: (this: void, enode: React.Element) => Dora.Node.Type | undefined;
 {
 	function handleCustomNode(this: void, _cnode: Dora.Node.Type, _enode: React.Element, k: any, _v: any) {
 		switch (k as keyof JSX.CustomNode) {
@@ -763,7 +763,7 @@ let getCustomNode: (this: void, enode: React.Element) => Dora.Node.Type | null;
 			const cnode = getNode(enode, node, handleCustomNode);
 			return cnode;
 		}
-		return null;
+		return undefined;
 	};
 }
 
@@ -816,7 +816,7 @@ function getEffekNode(this: void, enode: React.Element): Dora.EffekNode.Type {
 	return getNode(enode, Dora.EffekNode()) as Dora.EffekNode.Type;
 }
 
-let getTileNode: (this: void, enode: React.Element) => Dora.TileNode.Type | null;
+let getTileNode: (this: void, enode: React.Element) => Dora.TileNode.Type | undefined;
 {
 	function handleTileNodeAttribute(this: void, cnode: Dora.TileNode.Type, _enode: React.Element, k: any, v: any) {
 		switch (k as keyof JSX.TileNode) {
@@ -831,11 +831,11 @@ let getTileNode: (this: void, enode: React.Element) => Dora.TileNode.Type | null
 	getTileNode = (enode: React.Element) => {
 		const tn = enode.props as JSX.TileNode;
 		const node = tn.layers ? Dora.TileNode(tn.file, tn.layers) : Dora.TileNode(tn.file);
-		if (node !== null) {
+		if (node !== undefined) {
 			const cnode = getNode(enode, node, handleTileNodeAttribute);
 			return cnode as Dora.TileNode.Type;
 		}
-		return null;
+		return undefined;
 	};
 }
 
@@ -982,25 +982,25 @@ const elementMap: ElementMap = {
 	},
 	playable: (nodeStack: Dora.Node.Type[], enode: React.Element, parent?: React.Element) => {
 		const cnode = getPlayable(enode);
-		if (cnode !== null) {
+		if (cnode !== undefined) {
 			addChild(nodeStack, cnode, enode);
 		}
 	},
 	'dragon-bone': (nodeStack: Dora.Node.Type[], enode: React.Element, parent?: React.Element) => {
 		const cnode = getDragonBone(enode);
-		if (cnode !== null) {
+		if (cnode !== undefined) {
 			addChild(nodeStack, cnode, enode);
 		}
 	},
 	spine: (nodeStack: Dora.Node.Type[], enode: React.Element, parent?: React.Element) => {
 		const cnode = getSpine(enode);
-		if (cnode !== null) {
+		if (cnode !== undefined) {
 			addChild(nodeStack, cnode, enode);
 		}
 	},
 	model: (nodeStack: Dora.Node.Type[], enode: React.Element, parent?: React.Element) => {
 		const cnode = getModel(enode);
-		if (cnode !== null) {
+		if (cnode !== undefined) {
 			addChild(nodeStack, cnode, enode);
 		}
 	},
@@ -1017,31 +1017,31 @@ const elementMap: ElementMap = {
 	},
 	sprite: (nodeStack: Dora.Node.Type[], enode: React.Element, parent?: React.Element) => {
 		const cnode = getSprite(enode);
-		if (cnode !== null) {
+		if (cnode !== undefined) {
 			addChild(nodeStack, cnode, enode);
 		}
 	},
 	'audio-source': (nodeStack: Dora.Node.Type[], enode: React.Element, parent?: React.Element) => {
 		const cnode = getAudioSource(enode);
-		if (cnode !== null) {
+		if (cnode !== undefined) {
 			addChild(nodeStack, cnode, enode);
 		}
 	},
 	'video-node': (nodeStack: Dora.Node.Type[], enode: React.Element, parent?: React.Element) => {
 		const cnode = getVideoNode(enode);
-		if (cnode !== null) {
+		if (cnode !== undefined) {
 			addChild(nodeStack, cnode, enode);
 		}
 	},
 	'tic80-node': (nodeStack: Dora.Node.Type[], enode: React.Element, parent?: React.Element) => {
 		const cnode = getTIC80Node(enode);
-		if (cnode !== null) {
+		if (cnode !== undefined) {
 			addChild(nodeStack, cnode, enode);
 		}
 	},
 	label: (nodeStack: Dora.Node.Type[], enode: React.Element, parent?: React.Element) => {
 		const cnode = getLabel(enode);
-		if (cnode !== null) {
+		if (cnode !== undefined) {
 			addChild(nodeStack, cnode, enode);
 		}
 	},
@@ -1050,7 +1050,7 @@ const elementMap: ElementMap = {
 	},
 	particle: (nodeStack: Dora.Node.Type[], enode: React.Element, parent?: React.Element) => {
 		const cnode = getParticle(enode);
-		if (cnode !== null) {
+		if (cnode !== undefined) {
 			addChild(nodeStack, cnode, enode);
 		}
 	},
@@ -1128,7 +1128,7 @@ const elementMap: ElementMap = {
 	},
 	contact: (nodeStack: Dora.Node.Type[], enode: React.Element, _parent?: React.Element) => {
 		const world = Dora.tolua.cast(nodeStack[nodeStack.length - 1], Dora.TypeName.PhysicsWorld);
-		if (world !== null) {
+		if (world !== undefined) {
 			const contact = enode.props as JSX.Contact;
 			world.setShouldContact(contact.groupA, contact.groupB, contact.enabled);
 		} else {
@@ -1142,7 +1142,7 @@ const elementMap: ElementMap = {
 			return;
 		}
 		const world = Dora.tolua.cast(nodeStack[nodeStack.length - 1], Dora.TypeName.PhysicsWorld);
-		if (world !== null) {
+		if (world !== undefined) {
 			addChild(nodeStack, getBody(enode, world), enode);
 		} else {
 			Warn(`tag <${enode.type}> must be placed under <physics-world> or its derivatives to take effect`);
@@ -1159,11 +1159,11 @@ const elementMap: ElementMap = {
 			Warn(`not creating instance of tag <${enode.type}> because it has no reference`);
 			return;
 		}
-		if (joint.bodyA.current === null) {
+		if (joint.bodyA.current === undefined) {
 			Warn(`not creating instance of tag <${enode.type}> because bodyA is invalid`);
 			return;
 		}
-		if (joint.bodyB.current === null) {
+		if (joint.bodyB.current === undefined) {
 			Warn(`not creating instance of tag <${enode.type}> because bodyB is invalid`);
 			return;
 		}
@@ -1182,11 +1182,11 @@ const elementMap: ElementMap = {
 			Warn(`not creating instance of tag <${enode.type}> because it has no reference`);
 			return;
 		}
-		if (joint.bodyA.current === null) {
+		if (joint.bodyA.current === undefined) {
 			Warn(`not creating instance of tag <${enode.type}> because bodyA is invalid`);
 			return;
 		}
-		if (joint.bodyB.current === null) {
+		if (joint.bodyB.current === undefined) {
 			Warn(`not creating instance of tag <${enode.type}> because bodyB is invalid`);
 			return;
 		}
@@ -1205,11 +1205,11 @@ const elementMap: ElementMap = {
 			Warn(`not creating instance of tag <${enode.type}> because it has no reference`);
 			return;
 		}
-		if (joint.jointA.current === null) {
+		if (joint.jointA.current === undefined) {
 			Warn(`not creating instance of tag <${enode.type}> because jointA is invalid`);
 			return;
 		}
-		if (joint.jointB.current === null) {
+		if (joint.jointB.current === undefined) {
 			Warn(`not creating instance of tag <${enode.type}> because jointB is invalid`);
 			return;
 		}
@@ -1226,11 +1226,11 @@ const elementMap: ElementMap = {
 			Warn(`not creating instance of tag <${enode.type}> because it has no reference`);
 			return;
 		}
-		if (joint.bodyA.current === null) {
+		if (joint.bodyA.current === undefined) {
 			Warn(`not creating instance of tag <${enode.type}> because bodyA is invalid`);
 			return;
 		}
-		if (joint.bodyB.current === null) {
+		if (joint.bodyB.current === undefined) {
 			Warn(`not creating instance of tag <${enode.type}> because bodyB is invalid`);
 			return;
 		}
@@ -1251,7 +1251,7 @@ const elementMap: ElementMap = {
 			Warn(`not creating instance of tag <${enode.type}> because it has no reference`);
 			return;
 		}
-		if (joint.body.current === null) {
+		if (joint.body.current === undefined) {
 			Warn(`not creating instance of tag <${enode.type}> because body is invalid`);
 			return;
 		}
@@ -1270,11 +1270,11 @@ const elementMap: ElementMap = {
 			Warn(`not creating instance of tag <${enode.type}> because it has no reference`);
 			return;
 		}
-		if (joint.bodyA.current === null) {
+		if (joint.bodyA.current === undefined) {
 			Warn(`not creating instance of tag <${enode.type}> because bodyA is invalid`);
 			return;
 		}
-		if (joint.bodyB.current === null) {
+		if (joint.bodyB.current === undefined) {
 			Warn(`not creating instance of tag <${enode.type}> because bodyB is invalid`);
 			return;
 		}
@@ -1296,11 +1296,11 @@ const elementMap: ElementMap = {
 			Warn(`not creating instance of tag <${enode.type}> because it has no reference`);
 			return;
 		}
-		if (joint.bodyA.current === null) {
+		if (joint.bodyA.current === undefined) {
 			Warn(`not creating instance of tag <${enode.type}> because bodyA is invalid`);
 			return;
 		}
-		if (joint.bodyB.current === null) {
+		if (joint.bodyB.current === undefined) {
 			Warn(`not creating instance of tag <${enode.type}> because bodyB is invalid`);
 			return;
 		}
@@ -1321,11 +1321,11 @@ const elementMap: ElementMap = {
 			Warn(`not creating instance of tag <${enode.type}> because it has no reference`);
 			return;
 		}
-		if (joint.bodyA.current === null) {
+		if (joint.bodyA.current === undefined) {
 			Warn(`not creating instance of tag <${enode.type}> because bodyA is invalid`);
 			return;
 		}
-		if (joint.bodyB.current === null) {
+		if (joint.bodyB.current === undefined) {
 			Warn(`not creating instance of tag <${enode.type}> because bodyB is invalid`);
 			return;
 		}
@@ -1346,11 +1346,11 @@ const elementMap: ElementMap = {
 			Warn(`not creating instance of tag <${enode.type}> because it has no reference`);
 			return;
 		}
-		if (joint.bodyA.current === null) {
+		if (joint.bodyA.current === undefined) {
 			Warn(`not creating instance of tag <${enode.type}> because bodyA is invalid`);
 			return;
 		}
-		if (joint.bodyB.current === null) {
+		if (joint.bodyB.current === undefined) {
 			Warn(`not creating instance of tag <${enode.type}> because bodyB is invalid`);
 			return;
 		}
@@ -1369,11 +1369,11 @@ const elementMap: ElementMap = {
 			Warn(`not creating instance of tag <${enode.type}> because it has no reference`);
 			return;
 		}
-		if (joint.bodyA.current === null) {
+		if (joint.bodyA.current === undefined) {
 			Warn(`not creating instance of tag <${enode.type}> because bodyA is invalid`);
 			return;
 		}
-		if (joint.bodyB.current === null) {
+		if (joint.bodyB.current === undefined) {
 			Warn(`not creating instance of tag <${enode.type}> because bodyB is invalid`);
 			return;
 		}
@@ -1392,11 +1392,11 @@ const elementMap: ElementMap = {
 			Warn(`not creating instance of tag <${enode.type}> because it has no reference`);
 			return;
 		}
-		if (joint.bodyA.current === null) {
+		if (joint.bodyA.current === undefined) {
 			Warn(`not creating instance of tag <${enode.type}> because bodyA is invalid`);
 			return;
 		}
-		if (joint.bodyB.current === null) {
+		if (joint.bodyB.current === undefined) {
 			Warn(`not creating instance of tag <${enode.type}> because bodyB is invalid`);
 			return;
 		}
@@ -1414,7 +1414,7 @@ const elementMap: ElementMap = {
 	},
 	'custom-node': (nodeStack: Dora.Node.Type[], enode: React.Element, _parent?: React.Element) => {
 		const node = getCustomNode(enode);
-		if (node !== null) {
+		if (node !== undefined) {
 			addChild(nodeStack, node, enode);
 		}
 	},
@@ -1451,7 +1451,7 @@ const elementMap: ElementMap = {
 	},
 	'tile-node': (nodeStack: Dora.Node.Type[], enode: React.Element, parent?: React.Element) => {
 		const cnode = getTileNode(enode);
-		if (cnode !== null) {
+		if (cnode !== undefined) {
 			addChild(nodeStack, cnode, enode);
 		}
 	},
@@ -1482,7 +1482,7 @@ function visitNode(this: void, nodeStack: Dora.Node.Type[], node: React.Element 
 	}
 }
 
-export function toNode(this: void, enode: React.Element | React.Element[]): Dora.Node.Type | null {
+export function toNode(this: void, enode: React.Element | React.Element[]): Dora.Node.Type | undefined {
 	const nodeStack: Dora.Node.Type[] = [];
 	visitNode(nodeStack, enode);
 	if (nodeStack.length === 1) {
@@ -1494,11 +1494,11 @@ export function toNode(this: void, enode: React.Element | React.Element[]): Dora
 		}
 		return node;
 	}
-	return null;
+	return undefined;
 }
 
 export function useRef<T>(this: void, item?: T): JSX.Ref<T> {
-	return {current: item ?? null};
+	return {current: item ?? undefined};
 }
 
 function getPreload(this: void, preloadList: string[], node: React.Element | React.Element[]) {

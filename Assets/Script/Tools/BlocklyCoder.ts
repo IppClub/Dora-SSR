@@ -1,9 +1,9 @@
 // @preview-file on clear
-import { HttpClient, json, thread, Buffer, Vec2, Node as DNode, Log, DB, Path, Content, Director, emit, GSlot, Node as DoraNode, App, HttpServer } from 'Dora';
+import { json, Buffer, Vec2, Node as DNode, Log, DB, Path, Content, Director, emit, GSlot, Node as DoraNode, App, HttpServer } from 'Dora';
 import * as ImGui from "ImGui";
 import { InputTextFlag, SetCond, WindowFlag } from "ImGui";
 import { Node, Flow } from 'Agent/flow';
-import { createSSEJSONParser, LLMStreamData } from 'Agent/Utils';
+import { callLLM, Message } from 'Agent/Utils';
 import * as Config from 'Config';
 
 let zh = false;
@@ -13,9 +13,6 @@ let zh = false;
 }
 
 interface LLM {
-	url: string;
-	model: string;
-	apiKey: string;
 	output: string;
 }
 
@@ -30,60 +27,15 @@ if (!DB.existDB('llm')) {
 	});
 }
 
-const config = Config<LLM>('llm', 'url', 'model', 'apiKey', 'output');
+const config = Config<LLM>('llm', 'output');
 config.load();
 
-const url = Buffer(512);
-if (typeof config.url === "string") {
-	url.text = config.url;
-} else {
-	url.text = config.url = "https://api.deepseek.com/chat/completions";
-}
-const apiKey = Buffer(256);
-if (typeof config.apiKey === "string") {
-	apiKey.text = config.apiKey;
-}
-const model = Buffer(128);
-if (typeof config.model === "string") {
-	model.text = config.model;
-} else {
-	model.text = config.model = "deepseek-chat";
-}
 const outputFile = Buffer(512);
 if (typeof config.output === "string") {
 	outputFile.text = config.output;
 } else {
 	outputFile.text = config.output = Path("Blockly", "Output.bl");
 }
-
-interface Message {
-	role: string;
-	content: string;
-}
-
-const callLLM = (messages: Message[], url: string, apiKey: string, model: string, receiver: (this: void, data: string) => boolean) => {
-	const data = {
-		model,
-		messages,
-		temperature: 0,
-		stream: true,
-	};
-	return new Promise<string>((resolve, reject) => {
-		thread(() => {
-			const [jsonStr] = json.encode(data);
-			if (jsonStr !== null) {
-				const res = HttpClient.postAsync(url, [
-					`Authorization: Bearer ${apiKey}`,
-				], jsonStr, 10, receiver);
-				if (res !== null) {
-					resolve(res);
-				} else {
-					reject("failed to get http response");
-				}
-			}
-		});
-	});
-};
 
 const extractTSBlocks = (text: string) => {
 	const blocks: string[] = [];
@@ -169,11 +121,11 @@ class LLMCode extends Node {
 		return new Promise<string>(async (resolve, reject) => {
 			let allContent = '';
 			let allReasoning = '';
-			root.emit('Output', 'Coder: ');
 			llmWorking = true;
-			const parser = createSSEJSONParser({
-				onJSON: (obj: LLMStreamData) => {
-					const {reasoning_content, content} = obj.choices[0].delta;
+			const result = callLLM(messages, {temperature: 0}, {
+				id: undefined,
+				onData: (data) => {
+					const {reasoning_content, content} = data.choices[0].delta;
 					if (reasoning_content !== undefined) {
 						allReasoning += reasoning_content;
 					}
@@ -181,21 +133,20 @@ class LLMCode extends Node {
 						allContent += content;
 					}
 					root.emit('Update', `Coder: ${allReasoning + (allContent !== '' ? '\n' + allContent : '')}`);
+					return !running;
+				},
+				onCancel: (reason) => {
+					llmWorking = false;
+					reject(reason);
+				},
+				onDone: () => {
+					resolve(allContent);
 				}
 			});
-			try {
-				await callLLM(messages, url.text, apiKey.text, model.text, (data) => {
-					if (!running) {
-						return true;
-					}
-					parser.feed(data);
-					return false;
-				});
-				parser.end();
-				resolve(allContent);
-			} catch (e) {
-				llmWorking = false;
-				reject(e);
+			if (!result.success) {
+				reject(result.message);
+			} else {
+				root.emit('Output', 'Coder: ');
 			}
 		});
 	}
@@ -348,7 +299,8 @@ const runFlow = async () => {
 	try {
 		await flow.run(chatInfo);
 	} catch (err: any) {
-		Log("Error", err);
+		llmWorking = false;
+		root.emit('Output', `Coder: ${err}`);
 		runFlow();
 	}
 };
@@ -371,7 +323,6 @@ const ChatButton = () => {
 	});
 };
 
-const inputFlags = [InputTextFlag.Password];
 const windowsFlags = [
 	WindowFlag.NoMove,
 	WindowFlag.NoCollapse,
@@ -393,7 +344,7 @@ root.loop(() => {
 		if (ImGui.IsItemHovered()) {
 			ImGui.BeginTooltip(() => {
 				ImGui.PushTextWrapPos(400, () => {
-					ImGui.Text(zh ? "请先配置大模型 API 密钥，然后输入自然语言需求，Agent 将自动生成 TypeScript 积木代码，编译成 Blockly 积木并翻译为 Lua 脚本运行。遇到编译失败会自动修正，无需手动干预。" : "First, configure the API key for the large language model. Then, input your natural language requirements. The Agent will automatically generate TypeScript building block code, compile it into Blockly blocks, and translate it into Lua scripts for execution. If any compilation errors occur, they will be automatically corrected without requiring manual intervention.");
+					ImGui.Text(zh ? "请先在 Web IDE 配置大模型 API 密钥，然后输入自然语言需求，Agent 将自动生成 TypeScript 积木代码，编译成 Blockly 积木并翻译为 Lua 脚本运行。遇到编译失败会自动修正，无需手动干预。" : "First, configure the API key for the large language model in Web IDE. Then, input your natural language requirements. The Agent will automatically generate TypeScript building block code, compile it into Blockly blocks, and translate it into Lua scripts for execution. If any compilation errors occur, they will be automatically corrected without requiring manual intervention.");
 				});
 			});
 		}
@@ -402,15 +353,6 @@ root.loop(() => {
 		ImGui.Dummy(Vec2(width - 290, 0));
 		ImGui.SameLine();
 		if (ImGui.CollapsingHeader(zh ? "配置" : "Config")) {
-			if (ImGui.InputText(zh ? "API 地址" : "API URL", url)) {
-				config.url = url.text;
-			}
-			if (ImGui.InputText(zh ? "API 密钥" : "API Key", apiKey, inputFlags)) {
-				config.apiKey = apiKey.text;
-			}
-			if (ImGui.InputText(zh ? "模型" : "Model", model)) {
-				config.model = model.text;
-			}
 			if (ImGui.InputText(zh ? "输出文件" : "Output File", outputFile)) {
 				config.output = outputFile.text;
 			}

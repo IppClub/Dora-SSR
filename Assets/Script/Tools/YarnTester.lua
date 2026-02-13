@@ -116,7 +116,7 @@ local commands = setmetatable( -- 90
 		end -- 92
 	end} -- 91
 ) -- 91
-local runner = nil -- 103
+local runner -- 103
 if #filteredPaths > 0 then -- 103
 	runner = YarnRunner( -- 105
 		filteredPaths[currentFile], -- 105

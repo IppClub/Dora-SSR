@@ -244,7 +244,7 @@ export class ImportResolver {
   ): Promise<string | undefined> {
     const uri = path.join(packageName + (version ? `@${version}` : ''), subPath ?? '', 'package.json');
     let isAvailable = false;
-    let content: string | undefined = undefined;
+    let content: string | undefined;
 
     if (this.cache.isFileAvailable) {
       isAvailable = await this.cache.isFileAvailable(uri);
@@ -267,7 +267,7 @@ export class ImportResolver {
   ): Promise<string | undefined> {
     const uri = path.join(packageName + (version ? `@${version}` : ''), filePath);
     let isAvailable = false;
-    let content: string | undefined = undefined;
+    let content: string | undefined;
 
     if (this.cache.isFileAvailable) {
       isAvailable = await this.cache.isFileAvailable(uri);

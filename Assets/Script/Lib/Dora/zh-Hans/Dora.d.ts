@@ -1795,9 +1795,9 @@ class Dictionary extends Object {
 	/**
 	 * 设置字典里的值的方法。
 	 * @param key 要设置的字典的键。
-	 * @param item 要在字典里存储的值，设置为undefined或null以删除此键值对。
+	 * @param item 要在字典里存储的值，设置为 undefined 以删除此键值对。
 	 */
-	set(key: string, item: Item | undefined | null): void;
+	set(key: string, item: Item | undefined): void;
 
 	/**
 	 * 遍历字典中每个键值对并调用处理函数。
@@ -1816,9 +1816,9 @@ class Dictionary extends Object {
 	/**
 	 * 允许使用索引表示法访问字典中的项目，例如 "dict['key']" 或 "dict.key"。
 	 * @param key 要检索的字典的键。
-	 * @returns 字典里存储的值，如果不存在则为undefined。
+	 * @returns 字典里存储的值，如果不存在则为 undefined。
 	 */
-	[key: string]: Item | undefined | null;
+	[key: string]: Item | undefined;
 }
 
 export namespace Dictionary {
@@ -2945,9 +2945,9 @@ class Node extends Object {
 	/**
 	 * 通过标签获取子节点。
 	 * @param tag 要获取的子节点的标签。
-	 * @returns 子节点，如果未找到则为null。
+	 * @returns 子节点，如果未找到则为 undefined。
 	 */
-	getChildByTag(tag: string): Node | null;
+	getChildByTag(tag: string): Node | undefined;
 
 	/**
 	 * 调度一个主更新函数在每一帧运行。重复调用会覆盖被调度的主更新函数或协程任务。
@@ -3493,7 +3493,7 @@ class ClipNode extends Node {
 	/**
 	 * 定义剪切形状的蒙版节点。
 	 */
-	stencil: Node | null;
+	stencil: Node | undefined;
 
 	/**
 	 * 使像素可见的最小alpha阈值。值的范围从0到1。
@@ -3565,14 +3565,14 @@ class Content {
 	load(filename: string): string;
 
 	/**
-	 * 加载具有指定文件名和可选表名的Excel文件的内容。
-	 * @param filename 要加载的Excel文件的名称。
+	 * 加载具有指定文件名和可选表名的 Excel 文件的内容。
+	 * @param filename 要加载的 Excel 文件的名称。
 	 * @param sheetNames 表示要加载的表的名称的字符串数组。如果未提供，将加载所有表。
-	 * @returns 包含Excel文件中数据的表。键是表名，值是包含表的行和列的表。
+	 * @returns 包含 Excel 文件中数据的表。键是表名，值是包含表的行和列的表。
 	 */
 	loadExcel(filename: string, sheetNames?: string[]): {
 		[sheetName: string]: (/* column */ string | number)[][] | undefined
-	} | null;
+	} | undefined;
 
 	/**
 	 * 将指定的内容保存到具有指定文件名的文件中。
@@ -3667,20 +3667,20 @@ class Content {
 	loadAsync(filename: string): string;
 
 	/**
-	 * 异步加载具有指定文件名和可选表名的Excel文件的内容。
-	 * @param filename 要加载的Excel文件的名称。
+	 * 异步加载具有指定文件名和可选表名的 Excel 文件的内容。
+	 * @param filename 要加载的 Excel 文件的名称。
 	 * @param sheetNames 表示要加载的表的名称的字符串数组。如果未提供，将加载所有表。
-	 * @returns 包含Excel文件中数据的表。键是表名，值是包含表的行和列的表。
+	 * @returns 包含 Excel 文件中数据的表。键是表名，值是包含表的行和列的表。
 	 */
 	loadExcelAsync(filename: string, sheetNames?: string[]): {
 		[sheetName: string]: (/* column */ string | number)[][]
-	} | null;
+	} | undefined;
 
 	/**
 	 * 异步将指定的内容保存到具有指定文件名的文件中。
 	 * @param filename 要保存的文件的名称。
 	 * @param content 要保存到文件的内容。
-	 * @returns 如果内容成功保存到文件，则为`true`，否则为`false`。
+	 * @returns 如果内容成功保存到文件，则为 `true`，否则为 `false`。
 	 */
 	saveAsync(filename: string, content: string): boolean;
 
@@ -3856,17 +3856,17 @@ interface DB {
 	 * @param sql 要执行的SQL语句。
 	 * @param args [可选] 要替换到SQL语句中的值列表。
 	 * @param withColumn [可选] 是否在结果中包含列名（默认为false）。
-	 * @returns 查询返回的行列表，如果执行失败，则返回null。
+	 * @returns 查询返回的行列表，如果执行失败，则返回 undefined。
 	 */
-	query(sql: string, args?: DBRow, withColumn?: boolean): DBRow[] | null;
+	query(sql: string, args?: DBRow, withColumn?: boolean): DBRow[] | undefined;
 
 	/**
 	 * 执行SQL查询并将结果返回为行列表。
 	 * @param sql 要执行的SQL语句。
 	 * @param withColumn [可选] 是否在结果中包含列名（默认为false）。
-	 * @returns 查询返回的行列表，如果执行失败，则返回null。
+	 * @returns 查询返回的行列表，如果执行失败，则返回 undefined。
 	 */
-	query(sql: string, withColumn?: boolean): DBRow[] | null;
+	query(sql: string, withColumn?: boolean): DBRow[] | undefined;
 
 	/**
 	 * 在一个事务中将数据行插入到表中。
@@ -3926,21 +3926,21 @@ interface DB {
 	insertAsync(tableSheets: [string, string][], excelFile: string, startRow: number): boolean;
 
 	/**
-	 * 异步地执行SQL查询并将结果返回为行列表。
-	 * @param sql 要执行的SQL语句。
-	 * @param args [可选] 要替换到SQL语句中的值列表。
-	 * @param withColumn [可选] 是否在结果中包含列名（默认为false）。
-	 * @returns 查询返回的行列表，如果执行失败，则返回null。
+	 * 异步地执行 SQL 查询并将结果返回为行列表。
+	 * @param sql 要执行的 SQL 语句。
+	 * @param args [可选] 要替换到 SQL 语句中的值列表。
+	 * @param withColumn [可选] 是否在结果中包含列名（默认为 false）。
+	 * @returns 查询返回的行列表，如果执行失败，则返回 undefined。
 	 */
-	queryAsync(sql: string, args?: DBRow, withColumn?: boolean): DBRow[] | null;
+	queryAsync(sql: string, args?: DBRow, withColumn?: boolean): DBRow[] | undefined;
 
 	/**
-	 * 异步地执行SQL查询并将结果返回为行列表。
-	 * @param sql 要执行的SQL语句。
-	 * @param withColumn [可选] 是否在结果中包含列名（默认为false）。
-	 * @returns 查询返回的行列表，如果执行失败，则返回null。
+	 * 异步地执行 SQL 查询并将结果返回为行列表。
+	 * @param sql 要执行的 SQL 语句。
+	 * @param withColumn [可选] 是否在结果中包含列名（默认为 false）。
+	 * @returns 查询返回的行列表，如果执行失败，则返回 undefined。
 	 */
-	queryAsync(sql: string, withColumn?: boolean): DBRow[] | null;
+	queryAsync(sql: string, withColumn?: boolean): DBRow[] | undefined;
 
 	/**
 	 * 异步地在一个事务中执行SQL语句并返回受影响的行数。
@@ -4123,14 +4123,14 @@ class Playable extends Node {
 	 * @param name 要设置的插槽的名称。
 	 * @param item 要设置插槽的节点。
 	 */
-	setSlot(name: string, item: Node | null): void;
+	setSlot(name: string, item: Node | undefined): void;
 
 	/**
 	 * 获取附加到动画模型的子节点。
 	 * @param name 要获取的插槽的名称。
-	 * @returns 插槽中的节点，如果插槽中没有节点，则返回null。
+	 * @returns 插槽中的节点，如果插槽中没有节点，则返回 undefined。
 	 */
-	getSlot(name: string): Node | null;
+	getSlot(name: string): Node | undefined;
 
 	/**
 	 * 注册一个回调函数，当动画播放完成时触发。
@@ -4155,9 +4155,9 @@ interface PlayableClass {
 	 *  "model:" + modelFile
 	 *  "spine:" + spineStr
 	 *  "bone:" + dragonBoneStr
-	 * @returns 新的'Playable'实例，如果加载失败，则为null。
+	 * @returns 新的'Playable'实例，如果加载失败，则为 undefined。
 	 */
-	(this: void, filename: string): Playable | null;
+	(this: void, filename: string): Playable | undefined;
 }
 
 const playableClass: PlayableClass;
@@ -4227,7 +4227,7 @@ interface DragonBoneClass {
 	 * 并且可以在分号后添加骨架名称。例如 "DragonBone/item;mainArmature" 或 "DragonBone/item_ske.json|DragonBone/item_tex.json;mainArmature"。
 	 * @returns 新的'DragonBone'实例。
 	 */
-	(this: void, boneStr: string): DragonBone | null;
+	(this: void, boneStr: string): DragonBone | undefined;
 
 	/**
 	 * 使用指定的骨骼文件和图集文件创建新的'DragonBone'实例。此函数只加载一个骨架。
@@ -4235,7 +4235,7 @@ interface DragonBoneClass {
 	 * @param atlasFile 要加载的图集文件的文件名。
 	 * @returns 具有指定骨骼文件和图集文件的新的'DragonBone'实例。
 	 */
-	(this: void, boneFile: string, atlasFile: string): DragonBone | null;
+	(this: void, boneFile: string, atlasFile: string): DragonBone | undefined;
 }
 
 const dragonBoneClass: DragonBoneClass;
@@ -4262,22 +4262,22 @@ class Spine extends Playable {
 	setBoneRotation(name: string, rotation: number): boolean;
 
 	/**
-	 * 检查空间中的点是否在Spine骨架的边界内。
+	 * 检查空间中的点是否在 Spine 骨架的边界内。
 	 * @param x 要检查的点的x坐标。
 	 * @param y 要检查的点的y坐标。
-	 * @returns 点处的骨骼的名称，如果点处没有骨骼，则返回null。
+	 * @returns 点处的骨骼的名称，如果点处没有骨骼，则返回 undefined。
 	 */
-	containsPoint(x: number, y: number): string | null;
+	containsPoint(x: number, y: number): string | undefined;
 
 	/**
-	 * 检查一条线段是否与实例的边界相交，并返回交点处的骨骼或插槽的名称，如果没有找到骨骼或插槽，则返回null。
-	 * @param x1 线段起点的x坐标。
-	 * @param y1 线段起点的y坐标。
-	 * @param x2 线段终点的x坐标。
-	 * @param y2 线段终点的y坐标。
-	 * @returns 交点处的骨骼或插槽的名称，如果没有找到骨骼或插槽，则返回null。
+	 * 检查一条线段是否与实例的边界相交，并返回交点处的骨骼或插槽的名称，如果没有找到骨骼或插槽，则返回 undefined。
+	 * @param x1 线段起点的 x 坐标。
+	 * @param y1 线段起点的 y 坐标。
+	 * @param x2 线段终点的 x 坐标。
+	 * @param y2 线段终点的 y 坐标。
+	 * @returns 交点处的骨骼或插槽的名称，如果没有找到骨骼或插槽，则返回 undefined。
 	 */
-	intersectsSegment(x1: number, y1: number, x2: number, y2: number): string | null;
+	intersectsSegment(x1: number, y1: number, x2: number, y2: number): string | undefined;
 }
 
 export namespace Spine {
@@ -4308,15 +4308,15 @@ interface SpineClass {
 	 * `Spine2D`文件名字符串可以是不带扩展名的文件路径，例如：“Spine/item”，也可以是带有所有相关文件的文件路径，例如 “Spine/item.skel|Spine/item.atlas” 或 “Spine/item.json|Spine/item.atlas”。
 	 * @returns 新的'Spine'实例。
 	 */
-	(this: void, spineStr: string): Spine | null;
+	(this: void, spineStr: string): Spine | undefined;
 
 	/**
-	 * 使用指定的骨架文件和图集文件创建新的'Spine'实例。
+	 * 使用指定的骨架文件和图集文件创建新的 `Spine` 实例。
 	 * @param skelFile 要加载的骨架文件的文件名。
 	 * @param atlasFile 要加载的图集文件的文件名。
-	 * @returns 具有指定骨架文件和图集文件的新的'Spine'实例。
+	 * @returns 具有指定骨架文件和图集文件的新的 `Spine` 实例。
 	 */
-	(this: void, skelFile: string, atlasFile: string): Spine | null;
+	(this: void, skelFile: string, atlasFile: string): Spine | undefined;
 }
 
 const spineClass: SpineClass;
@@ -4430,12 +4430,12 @@ interface ModelClass {
 	getAnimations(filename: string): string[];
 
 	/**
-	 * 从指定的模型文件创建新的'Model'实例。
+	 * 从指定的模型文件创建新的 `Model` 实例。
 	 * @param filename 要加载的模型文件的文件名。
 	 * 可以是带有或不带有扩展名的文件名，例如："Model/item" 或 "Model/item.model"。
-	 * @returns 新的'Model'实例。
+	 * @returns 新的 `Model` 实例。
 	 */
-	(this: void, filename: string): Model | null;
+	(this: void, filename: string): Model | undefined;
 }
 
 const modelClass: ModelClass;
@@ -4660,7 +4660,7 @@ class TileNode extends Node {
 	 * @param layerName 要获取的图层的名称。
 	 * @returns 包含图层数据的字典对象。
 	 */
-	getLayer(layerName: string): Dictionary | null;
+	getLayer(layerName: string): Dictionary | undefined;
 }
 
 export namespace TileNode {
@@ -4672,27 +4672,27 @@ export namespace TileNode {
  */
 interface TileNodeClass {
 	/**
-	 * A method for creating a TileNode object for rendering tile maps.
-	 * @param tmxFile The TMX file of the tile map. Must be created with Tiled Map Editor (http://www.mapeditor.org) and in XML format.
-	 * @returns A new instance of the TileNode class. Returns null if loading the tile map file fails.
+	 * 用于创建 TileNode 对象以渲染瓦片地图的方法。
+	 * @param tmxFile 瓦片地图的 TMX 文件。必须使用 Tiled Map Editor (http://www.mapeditor.org) 创建，并采用 XML 格式。
+	 * @returns TileNode 类的新实例。如果加载瓦片地图文件失败，则返回 undefined。
 	 */
-	(this: void, tmxFile: string): TileNode | null;
+	(this: void, tmxFile: string): TileNode | undefined;
 
 	/**
-	 * A method for creating a TileNode object for rendering tile maps, specifying a layer name.
-	 * @param tmxFile The TMX file of the tile map.
-	 * @param layerName The name of the map layer in the TMX file. Must be created with Tiled Map Editor (http://www.mapeditor.org) and in XML format.
-	 * @returns A new instance of the TileNode class. Returns null if loading the tile map file fails.
+	 * 用于创建 TileNode 对象以渲染瓦片地图的方法，指定图层名称。
+	 * @param tmxFile 瓦片地图的 TMX 文件。
+	 * @param layerName TMX 文件中地图图层的名称。必须使用 Tiled Map Editor (http://www.mapeditor.org) 创建，并采用 XML 格式。
+	 * @returns TileNode 类的新实例。如果加载瓦片地图文件失败，则返回 undefined。
 	 */
-	(this: void, tmxFile: string, layerName: string): TileNode | null;
+	(this: void, tmxFile: string, layerName: string): TileNode | undefined;
 
 	/**
-	 * A method for creating a TileNode object for rendering tile maps, specifying multiple layer names.
-	 * @param tmxFile The TMX file of the tile map.
-	 * @param layerNames An array of names of the map layers in the TMX file. Must be created with Tiled Map Editor (http://www.mapeditor.org) and in XML format.
-	 * @returns A new instance of the TileNode class. Returns null if loading the tile map file fails.
+	 * 用于创建 TileNode 对象以渲染瓦片地图的方法，指定多个图层名称。
+	 * @param tmxFile 瓦片地图的 TMX 文件。
+	 * @param layerNames TMX 文件中地图图层名称的数组。必须使用 Tiled Map Editor (http://www.mapeditor.org) 创建，并采用 XML 格式。
+	 * @returns TileNode 类的新实例。如果加载瓦片地图文件失败，则返回 undefined。
 	 */
-	(this: void, tmxFile: string, layerNames: string[]): TileNode | null;
+	(this: void, tmxFile: string, layerNames: string[]): TileNode | undefined;
 }
 
 const tileNodeClass: TileNodeClass;
@@ -4718,7 +4718,7 @@ class Entity extends Object {
 
 	/**
 	 * 访问实体属性旧值的快捷语法变量。
-	 * 旧值是指Entity的组件值上次更改之前的值。
+	 * 旧值是指 Entity 的组件值上次更改之前的值。
 	 * 不要对这个对象做引用，引用它会导致未定义的行为。
 	 */
 	readonly oldValues: Record<string, Component | undefined>;
@@ -4730,11 +4730,11 @@ class Entity extends Object {
 
 	/**
 	 * 将实体的属性设置为特定值的函数。
-	 * 此函数将触发Observer对象的监听事件。
+	 * 此函数将触发 Observer 对象的监听事件。
 	 * @param key 要设置的属性的名称。
 	 * @param item 要设置的属性值。
 	 */
-	set(key: string, item: Component | undefined | null): void;
+	set(key: string, item: Component | undefined): void;
 
 	/**
 	 * 获取实体的属性值的函数。
@@ -4921,7 +4921,7 @@ interface Texture2DClass {
 	 * @param filename 要加载的纹理文件的文件名。
 	 * @returns 新的纹理。
 	 */
-	(this: void, filename: string): Texture2D | null;
+	(this: void, filename: string): Texture2D | undefined;
 }
 
 const texture2DClass: Texture2DClass;
@@ -6367,15 +6367,15 @@ interface SpriteClass {
 	 * @param clipFile 要加载的图集切片文件，文件后缀名必须是".clip"。
 	 * @returns 包含切片名称和矩形区域的表。
 	 */
-	getClips(clipFile: string): LuaTable<string, Rect> | null;
+	getClips(clipFile: string): LuaTable<string, Rect> | undefined;
 
 	/**
 	 * 创建 Sprite 对象的构造函数。
 	 * @param clipStr 包含加载纹理文件格式的字符串。
 	 * 可以是 "Image/file.png" 或者 "Image/items.clip|itemA"。支持的图片文件格式有：jpg、png、dds、pvr、ktx。
-	 * @returns Sprite 类的新实例，如果创建失败则返回 `null`。
+	 * @returns Sprite 类的新实例，如果创建失败则返回 `undefined`。
 	 */
-	(this: void, clipStr: string): Sprite | null;
+	(this: void, clipStr: string): Sprite | undefined;
 
 	/**
 	 * 创建 Sprite 对象的构造函数。
@@ -6498,9 +6498,9 @@ class Label extends Node {
 	/**
 	 * 返回指定索引处字符的图元。
 	 * @param index 要检索的字符图元的索引。
-	 * @returns 字符的图元，如果索引超出范围则返回 `null`。
+	 * @returns 字符的图元，如果索引超出范围则返回 `undefined`。
 	 */
-	getCharacter(index: number): Sprite | null;
+	getCharacter(index: number): Sprite | undefined;
 }
 
 export namespace Label {
@@ -6519,18 +6519,18 @@ interface LabelClass {
 	/**
 	 * 使用指定的字体字符串创建新的 Label 对象。
 	 * @param fontStr 用于创建 Label 对象的字体字符串。应该以 "fontName;fontSize;sdf" 的格式表示，其中 `sdf` 应该是 "true" 或 "false"，并且可以省略，默认是 false。
-	 * @returns 新的 Label 对象，如果创建失败则返回 `null`。
+	 * @returns 新的 Label 对象，如果创建失败则返回 `undefined`。
 	 */
-	(this: void, fontStr: string): Label | null;
+	(this: void, fontStr: string): Label | undefined;
 
 	/**
 	 * 使用指定的字体名称和字体大小创建新的 Label 对象。
 	 * @param fontName 用于创建 Label 对象的字体名称。可以是带有或不带有文件扩展名的字体文件路径。
 	 * @param fontSize 用于创建 Label 对象的字体大小。
 	 * @param sdf [可选] 是否启用SDF渲染。启用SDF渲染后，描边功能将生效。(默认是false)
-	 * @returns 新的 Label 对象，如果创建失败则返回 `null`。
+	 * @returns 新的 Label 对象，如果创建失败则返回 `undefined`。
 	 */
-	(this: void, fontName: string, fontSize: number, sdf?: boolean): Label | null;
+	(this: void, fontName: string, fontSize: number, sdf?: boolean): Label | undefined;
 }
 
 const labelClass: LabelClass;
@@ -6738,7 +6738,7 @@ class ML {
 			op: MLOperator,
 			value: string
 		) => void
-	): LuaMultiReturn<[number, null]> | LuaMultiReturn<[null, string]>;
+	): LuaMultiReturn<[number, undefined]> | LuaMultiReturn<[undefined, string]>;
 
 	/**
 	 * 用于访问 QLearner 类的字段。
@@ -6785,9 +6785,9 @@ interface ParticleClass {
 	/**
 	 * 从粒子系统文件创建新的 Particle 对象。
 	 * @param filename 加载粒子系统定义文件的文件路径。
-	 * @returns 新的 Particle 对象。如果加载失败，则返回 `null`。
+	 * @returns 新的 Particle 对象。如果加载失败，则返回 `undefined`。
 	 */
-	(this: void, filename: string): Particle | null;
+	(this: void, filename: string): Particle | undefined;
 }
 
 const particleClass: ParticleClass;
@@ -7400,9 +7400,9 @@ interface AudioSourceClass {
 	 * @param filename 音频文件的路径。
 	 * @param autoRemove [可选] 是否在停止时删除音频源。默认为 `true`。
 	 * @param bus [可选] 播放音频源的总线。默认为 `undefined`。
-	 * @returns 创建的 AudioSource 节点。如果文件加载失败则返回 null。
+	 * @returns 创建的 AudioSource 节点。如果文件加载失败则返回 undefined。
 	 */
-	(this: void, filename: string, autoRemove?: boolean, bus?: AudioBus): AudioSource | null;
+	(this: void, filename: string, autoRemove?: boolean, bus?: AudioBus): AudioSource | undefined;
 }
 
 const audioSourceClass: AudioSourceClass;
@@ -7442,9 +7442,9 @@ interface VideoNodeClass {
 	 *         * 中等性能设备建议使用 720p/1080p 及适中码率以保证流畅播放。
 	 *     - 建议使用 `ffmpeg` 工具将视频文件转换为 H.264 格式后再使用。
 	 * @param looped [可选] 是否循环播放，默认为 false。
-	 * @returns 新创建的 VideoNode 实例。如果视频文件未加载成功，则返回 null。
+	 * @returns 新创建的 VideoNode 实例。如果视频文件未加载成功，则返回 undefined。
 	 */
-	(this: void, filename: string, looped?: boolean): VideoNode | null;
+	(this: void, filename: string, looped?: boolean): VideoNode | undefined;
 }
 
 const videoNodeClass: VideoNodeClass;
@@ -7475,17 +7475,17 @@ interface TIC80NodeClass {
 	 *     - 通过 TIC-80 声音引擎进行音频播放。
 	 *     - 以 TIC-80 原生分辨率运行（240x136 像素）。
 	 *     - 固定帧率，匹配 TIC-80 规范（60 FPS）。
-	 * @returns 新创建的 TIC80Node 实例。如果卡带文件未加载成功，则返回 null。
+	 * @returns 新创建的 TIC80Node 实例。如果卡带文件未加载成功，则返回 undefined。
 	 */
-	(this: void, cartFile: string): TIC80Node | null;
+	(this: void, cartFile: string): TIC80Node | undefined;
 
 	/**
 	 * 创建一个新的 TIC80Node 实例，从代码文件加载代码，从卡带文件加载美术和音频资源。
 	 * @param resourceCartFile 包含美术和音频资源的 TIC-80 卡带文件路径（`.tic` 或 `.png` 格式）。
 	 * @param codeFile 代码文件路径（例如：`.lua`、`.yue`）。
-	 * @returns 新创建的 TIC80Node 实例。如果创建失败，则返回 null。
+	 * @returns 新创建的 TIC80Node 实例。如果创建失败，则返回 undefined。
 	 */
-	(this: void, resourceCartFile: string, codeFile: string): TIC80Node | null;
+	(this: void, resourceCartFile: string, codeFile: string): TIC80Node | undefined;
 
 	/**
 	 * 从 TIC-80 卡带文件中提取代码文本。
@@ -7638,16 +7638,16 @@ export interface tolua {
 	 * 尝试将一个 Lua 对象转换为特定的 C++ 类型的对象。
 	 * @param item 要转换的 Lua 对象。
 	 * @param name C++ 类型对象的名称枚举。
-	 * @returns 转换后的对象，如果转换失败则返回 `null`。
+	 * @returns 转换后的对象，如果转换失败则返回 `undefined`。
 	 */
-	cast<k extends TypeName>(this: void, item: any, name: k): TypeMap[typeof name] | null;
+	cast<k extends TypeName>(this: void, item: any, name: k): TypeMap[typeof name] | undefined;
 
 	/**
 	 * 获取特定类名的类对象。
 	 * @param className 要获取表格的类名。
-	 * @returns 类表格，如果类不存在则返回 `null`。
+	 * @returns 类表格，如果类不存在则返回 `undefined`。
 	 */
-	class(this: void, className: string): { [key: string | number]: any } | null;
+	class(this: void, className: string): { [key: string | number]: any } | undefined;
 
 	/**
 	 * 为对象设置对等表。对等表是由 Lua userdata 引用的表，为该 userdata 对象提供自定义字段。
@@ -7659,9 +7659,9 @@ export interface tolua {
 	/**
 	 * 获取对象的对等表。对等表是由 Lua userdata 引用的表，为该 userdata 对象提供自定义字段。
 	 * @param obj 要获取对等表的对象。
-	 * @returns 对等表，如果对象没有对等表则返回 `null`。
+	 * @returns 对等表，如果对象没有对等表则返回 `undefined`。
 	 */
-	getpeer(this: void, obj: Object): { [key: string | number]: any } | null;
+	getpeer(this: void, obj: Object): { [key: string | number]: any } | undefined;
 }
 
 export const tolua: tolua;
@@ -7737,12 +7737,12 @@ interface HttpServer {
 	/**
 	 * 注册一个处理函数，用于处理文件上传的多部分POST请求。
 	 * @param pattern 要匹配的URL模式。
-	 * @param acceptHandler 匹配模式时要调用的处理函数。函数应返回要将文件保存为的文件名，或者返回 `null` 来拒绝文件。
+	 * @param acceptHandler 匹配模式时要调用的处理函数。函数应返回要将文件保存为的文件名，或者返回 `undefined` 来拒绝文件。
 	 * @param doneHandler 匹配模式时要调用的处理函数。函数应返回 `true` 来接受文件，或者返回 `false` 来拒绝文件。
 	 */
 	upload(
 		pattern: string,
-		acceptHandler: (this: void, req: Request, filename: string) => string | null,
+		acceptHandler: (this: void, req: Request, filename: string) => string | undefined,
 		doneHandler: (this: void, req: Request, filename: string) => boolean
 	): void;
 	/**
@@ -7763,9 +7763,9 @@ interface HttpClient {
 	 * @param url 要发送请求的URL。
 	 * @param json 要发送的JSON文本。
 	 * @param timeout [可选] 请求的超时时间（以秒为单位）。默认为5。
-	 * @returns 响应文本，如果请求失败则返回 `null`。
+	 * @returns 响应文本，如果请求失败则返回 `undefined`。
 	 */
-	postAsync(url: string, json: string, timeout?: number): string | null;
+	postAsync(url: string, json: string, timeout?: number): string | undefined;
 	/**
 	 * 向指定的URL发送自定义请求头和JSON文本的POST请求，并返回响应文本。
 	 * @param url 要发送请求的URL。
@@ -7773,16 +7773,16 @@ interface HttpClient {
 	 * @param json 要发送的JSON文本。
 	 * @param timeout [可选] 请求的超时时间（以秒为单位）。默认为5。
 	 * @param partCallback [可选] 一个定期报告部分接收到的响应内容的回调函数。返回 `true` 以停止请求。
-	 * @returns 响应文本，如果请求失败则返回 `null`。
+	 * @returns 响应文本，如果请求失败则返回 `undefined`。
 	 */
-	postAsync(url: string, headers: string[], json: string, timeout?: number, partCallback?: (this: void, data: string) => boolean): string | null;
+	postAsync(url: string, headers: string[], json: string, timeout?: number, partCallback?: (this: void, data: string) => boolean): string | undefined;
 	/**
 	 * 向指定的URL异步发送GET请求，并返回响应文本。
 	 * @param url 要发送请求的URL。
 	 * @param timeout [可选] 请求的超时时间（以秒为单位）。默认为5。
-	 * @returns 响应文本，如果请求失败则返回 `null`。
+	 * @returns 响应文本，如果请求失败则返回 `undefined`。
 	 */
-	getAsync(url: string, timeout?: number): string | null;
+	getAsync(url: string, timeout?: number): string | undefined;
 	/**
 	 * 从指定的URL异步下载文件，并保存到指定的路径。必须在一个协程中调用此方法。
 	 * @param url 需要下载的文件的URL。
@@ -7807,19 +7807,19 @@ interface json {
 	 * @param json 要解析的 JSON 文本。
 	 * @param maxDepth 解析的最大深度（默认是 128）。
 	 * @param allowcomments 是否允许注释（默认是 false）。
-	 * @returns 表示 JSON 数据的对象，如果文本不是有效的 JSON，则返回 null 和错误消息。
+	 * @returns 表示 JSON 数据的对象，如果文本不是有效的 JSON，则返回 undefined 和错误消息。
 	 */
-	decode(this: void, json: string, maxDepth?: number, allowcomments?: boolean): LuaMultiReturn<[any, null]> | LuaMultiReturn<[null, string]>;
+	decode(this: void, json: string, maxDepth?: number, allowcomments?: boolean): LuaMultiReturn<[any, undefined]> | LuaMultiReturn<[undefined, string]>;
 	/**
 	 * 将指定的对象转换为 JSON 文本。
 	 * @param obj 要转换的对象。
-	 * @param format Whether to format the JSON text (default is false).
-	 * @param empty_as_array Whether to convert empty tables to arrays (default is false).
-	 * @param num_as_str Whether to convert numbers to strings (default is false).
-	 * @param maxdepth The maximum depth to convert (default is 128).
-	 * @returns 表示对象的 JSON 文本，如果对象无法转换，则返回 null 和错误消息。
+	 * @param format 是否格式化 JSON 文本（默认为 false）。
+	 * @param empty_as_array 是否将空表转换为数组（默认为 false）。
+	 * @param num_as_str 是否将数字转换为字符串（默认为 false）。
+	 * @param maxdepth 转换的最大深度（默认为 128）。
+	 * @returns 表示对象的 JSON 文本，如果对象无法转换，则返回 undefined 和错误消息。
 	 */
-	encode(this: void, obj: object, format?: boolean, empty_as_array?: boolean, num_as_str?: boolean, maxdepth?: number): LuaMultiReturn<[string, null]> | LuaMultiReturn<[null, string]>;
+	encode(this: void, obj: object, format?: boolean, empty_as_array?: boolean, num_as_str?: boolean, maxdepth?: number): LuaMultiReturn<[string, undefined]> | LuaMultiReturn<[undefined, string]>;
 	/**
 	 * 表示 JSON null 值。
 	 */

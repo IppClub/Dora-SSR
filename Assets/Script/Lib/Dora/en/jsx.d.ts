@@ -3,7 +3,7 @@ import type * as Dora from 'Dora';
 declare global {
 namespace JSX {
 interface Ref<T> {
-	readonly current: T | null;
+	readonly current: T | undefined;
 }
 
 class Node {
@@ -1785,7 +1785,7 @@ class CustomNode extends Node {
 	 * Function to create a custom node.
 	 * @returns The custom node element.
 	 */
-	onCreate(this: void): Dora.Node.Type | null;
+	onCreate(this: void): Dora.Node.Type | undefined;
 }
 
 class CustomElement {

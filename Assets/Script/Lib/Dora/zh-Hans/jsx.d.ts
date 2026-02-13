@@ -3,7 +3,7 @@ import type * as Dora from 'Dora';
 declare global {
 namespace JSX {
 interface Ref<T> {
-	readonly current: T | null;
+	readonly current: T | undefined;
 }
 
 class Node {
@@ -1784,7 +1784,7 @@ class CustomNode extends Node {
 	 * 用于创建自定义节点的回调函数。
 	 * @returns 返回自定义节点的实例。
 	 */
-	onCreate(this: void): Dora.Node.Type | null;
+	onCreate(this: void): Dora.Node.Type | undefined;
 }
 
 class CustomElement {
