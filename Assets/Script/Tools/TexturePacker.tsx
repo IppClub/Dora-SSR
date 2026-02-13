@@ -18,7 +18,7 @@ import * as Ruler from 'UI/Control/Basic/Ruler';
 let zh = false;
 {
 	const [res] = string.match(App.locale, "^zh");
-	zh = res !== null;
+	zh = res !== undefined;
 }
 
 function getAllClipFolders() {
@@ -40,8 +40,8 @@ function getAllClipFolders() {
 const clipFolders = getAllClipFolders();
 const clipNames = clipFolders.map(f => Path.getFilename(f));
 
-let currentDisplay: Node.Type | null = null;
-let currentFolder: string | null = null;
+let currentDisplay: Node.Type | undefined;
+let currentFolder: string | undefined;
 
 const pixelRatio = App.devicePixelRatio;
 let scaledSize = 1;

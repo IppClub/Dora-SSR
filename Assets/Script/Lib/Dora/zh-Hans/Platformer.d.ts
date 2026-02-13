@@ -220,11 +220,11 @@ class Unit extends Body {
 	removeAllActions(): void;
 
 	/**
-	 * 返回具有指定名称的单位动作，如果单位动作不存在，则返回null。
+	 * 返回具有指定名称的单位动作，如果单位动作不存在，则返回 undefined。
 	 * @param name 需要检索的单位动作的名称。
-	 * @returns 具有指定名称的单位动作，或null。
+	 * @returns 具有指定名称的单位动作，或 undefined。
 	 */
-	getAction(name: string): UnitAction | null;
+	getAction(name: string): UnitAction | undefined;
 
 	/**
 	 * 对附加到游戏单位的每个单位动作调用指定的函数。

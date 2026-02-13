@@ -40,7 +40,7 @@ export namespace React {
  * @param enode 要转换的 React 元素。
  * @returns 转换后的 Dora 节点。
  */
-export function toNode(this: void, enode: React.Element | React.Element[]): Dora.Node.Type | null;
+export function toNode(this: void, enode: React.Element | React.Element[]): Dora.Node.Type | undefined;
 
 /**
  * 将 React 元素转换为 Dora 动作定义。

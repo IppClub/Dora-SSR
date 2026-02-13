@@ -13,7 +13,7 @@ import * as ImGui from 'ImGui';
 let zh = false;
 {
 	const [res] = string.match(App.locale, "^zh");
-	zh = res !== null;
+	zh = res !== undefined;
 }
 
 const [major, minor, patch, _revision] = string.match(App.version, "(%d+)%.(%d+)%.(%d+)%.(%d+)");
@@ -52,7 +52,7 @@ function getLatestVersion() {
 		const res = HttpClient.getAsync(url);
 		let success = false;
 		if (res) {
-			const info = json.decode(res)[0] as VersionInfo | null;
+			const info = json.decode(res)[0] as VersionInfo | undefined;
 			if (info) {
 				latestVersion = info.tag_name;
 				success = true;

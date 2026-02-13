@@ -1557,7 +1557,7 @@ HttpServer:post("/llm/list", function() -- 663
 			} -- 671
 			_len_0 = _len_0 + 1 -- 671
 		end -- 670
-		items = _accum_0 -- 670
+		items = _accum_0 -- 669
 	end -- 669
 	return { -- 672
 		success = true, -- 672
@@ -2031,7 +2031,7 @@ HttpServer:get("/read-sync", function(req) -- 836
 						_accum_0[_len_0] = ext -- 841
 						_len_0 = _len_0 + 1 -- 841
 					end -- 840
-					exts = _accum_0 -- 840
+					exts = _accum_0 -- 839
 				else -- 842
 					exts = { -- 842
 						"" -- 842

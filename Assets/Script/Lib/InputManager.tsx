@@ -1248,7 +1248,7 @@ class SelectorTrigger extends Trigger {
 
 class BlockTrigger extends Trigger {
 	private trigger: Trigger;
-	
+
 	constructor(trigger: Trigger) {
 		super();
 		this.trigger = trigger;
@@ -1580,12 +1580,12 @@ export function DPad(props: DPadProps) {
 	const right = useRef<Node.Type>();
 	const center = useRef<Node.Type>();
 
-	let current: Node.Type | null = null;
+	let current: Node.Type | undefined;
 
 	const clearButton = () => {
 		if (current) {
 			current.emit("TapEnded");
-			current = null;
+			current = undefined;
 		}
 	};
 
@@ -1764,7 +1764,7 @@ export function JoyStick(props: JoyStickProps) {
 					<dot-shape radius={hatSize} color={color}/>
 				</draw-node>
 			</node>
-			{props.noStickButton ? null :
+			{props.noStickButton ? undefined :
 				<Button
 					buttonSize={buttonSize}
 					x={moveSize}
@@ -1976,7 +1976,7 @@ export function TriggerPad(props: TriggerPadProps) {
 					x={buttonSize} y={buttonSize / 2}
 					onMount={onMountAxis(AxisName.LeftTrigger)}
 				/>
-				{props.noShoulder ? null :
+				{props.noShoulder ? undefined :
 					<Button text='LB'
 						x={buttonSize * 3 + 10} y={buttonSize / 2}
 						onMount={onMountButton(ButtonName.LeftShoulder)}
@@ -1984,7 +1984,7 @@ export function TriggerPad(props: TriggerPadProps) {
 				}
 			</align-node>
 			<align-node style={{width: buttonSize * 4 + 10, height: buttonSize}}>
-				{props.noShoulder ? null :
+				{props.noShoulder ? undefined :
 					<Button text='RB'
 						x={buttonSize} y={buttonSize / 2}
 						onMount={onMountButton(ButtonName.RightShoulder)}
@@ -2035,14 +2035,14 @@ export function GamePad(props: GamePadProps) {
 					flexDirection: 'row',
 					alignItems: 'flex-end'
 				}}>
-					{props.noDPad ? null :
+					{props.noDPad ? undefined :
 						<DPad
 							color={color}
 							primaryOpacity={primaryOpacity}
 							inputManager={inputManager}
 						/>
 					}
-					{props.noLeftStick ? null : <>
+					{props.noLeftStick ? undefined : <>
 						<align-node style={{width: 10}}/>
 						<JoyStick
 							stickType={JoyStickType.Left}
@@ -2059,7 +2059,7 @@ export function GamePad(props: GamePadProps) {
 					flexDirection: 'row',
 					alignItems: 'flex-end'
 				}}>
-					{props.noRightStick ? null : <>
+					{props.noRightStick ? undefined : <>
 						<JoyStick
 							stickType={JoyStickType.Right}
 							color={color}
@@ -2070,7 +2070,7 @@ export function GamePad(props: GamePadProps) {
 						/>
 						<align-node style={{width: 10}}/>
 					</>}
-					{props.noButtonPad ? null :
+					{props.noButtonPad ? undefined :
 						<ButtonPad
 							color={color}
 							primaryOpacity={primaryOpacity}
@@ -2079,7 +2079,7 @@ export function GamePad(props: GamePadProps) {
 					}
 				</align-node>
 			</align-node>
-			{props.noTriggerPad ? null :
+			{props.noTriggerPad ? undefined :
 				<align-node style={{paddingLeft: 20, paddingRight: 20, paddingTop: 20}}>
 					<TriggerPad
 						color={color}
@@ -2089,7 +2089,7 @@ export function GamePad(props: GamePadProps) {
 					/>
 				</align-node>
 			}
-			{props.noControlPad ? null :
+			{props.noControlPad ? undefined :
 				<align-node style={{paddingLeft: 20, paddingRight: 20}}>
 					<ControlPad
 						color={color}

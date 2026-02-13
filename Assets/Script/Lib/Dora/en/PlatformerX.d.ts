@@ -116,6 +116,6 @@ export namespace DecisionTree {
 	export function Behavior(props: BehaviorProps): Leaf;
 }
 
-export function toAI(this: void, node: DecisionTree.Leaf): P.Decision.Leaf | null;
+export function toAI(this: void, node: DecisionTree.Leaf): P.Decision.Leaf | undefined;
 
 } // module 'PlatformerX'

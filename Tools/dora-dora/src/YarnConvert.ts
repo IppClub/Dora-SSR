@@ -164,7 +164,7 @@ export function convertYarnTextToJson(yarnText: string): YarnSpinnerJSON {
 	}
 	header ??= {};
 	const content = contentLines.join('\n');
-	let nodes: YarnNode[] | undefined = undefined;
+	let nodes: YarnNode[] | undefined;
 	try {
 		nodes = parseYarnNodes(content);
 	} catch (e) {

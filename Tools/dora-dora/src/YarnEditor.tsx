@@ -36,7 +36,7 @@ const YarnEditor = memo((props: YarnEditorProps) => {
 				win.addEventListener("yarnSavedStateToLocalStorage", () => {
 					props.onChange();
 				});
-				let defaultValue: string | undefined = undefined;
+				let defaultValue: string | undefined;
 				if (props.defaultValue !== undefined) {
 					try {
 						defaultValue = JSON.stringify(convertYarnTextToJson(props.defaultValue));

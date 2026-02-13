@@ -1578,7 +1578,7 @@ function ____exports.DPad(props) -- 1530
 	local left = useRef() -- 1579
 	local right = useRef() -- 1580
 	local center = useRef() -- 1581
-	local current = nil -- 1583
+	local current -- 1583
 	local function clearButton() -- 1585
 		if current then -- 1585
 			current:emit("TapEnded") -- 1587

@@ -995,7 +995,7 @@ export default function PersistentDrawerLeft() {
 	const onExpand = useCallback((keys: string[]) => {
 		const rootNode = treeData.at(0);
 		if (rootNode === undefined) return;
-		let changedKey: string | undefined = undefined;
+		let changedKey: string | undefined;
 		if (expandedKeys.length > keys.length) {
 			changedKey = expandedKeys.filter(ek => (keys.find(k => k === ek) === undefined)).at(0);
 		} else {
@@ -2072,7 +2072,7 @@ export default function PersistentDrawerLeft() {
 				const newName = fileInfo.name + ext;
 				const newFile = path.join(dir, newName);
 				let content = "";
-				let position: monaco.IPosition | undefined = undefined;
+				let position: monaco.IPosition | undefined;
 				switch (ext) {
 					case ".lua":
 						content = "-- @preview-file on clear\n\n";

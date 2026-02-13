@@ -139,8 +139,6 @@ local clipNames = __TS__ArrayMap( -- 41
 	clipFolders, -- 41
 	function(____, f) return Path:getFilename(f) end -- 41
 ) -- 41
-currentDisplay = nil -- 43
-currentFolder = nil -- 44
 pixelRatio = App.devicePixelRatio -- 46
 scaledSize = 1 -- 47
 ruler = Ruler({y = -150 * pixelRatio, width = pixelRatio * 300, height = 75 * pixelRatio, fontSize = 15 * pixelRatio}) -- 48

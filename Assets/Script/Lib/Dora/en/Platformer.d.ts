@@ -220,11 +220,11 @@ class Unit extends Body {
 	removeAllActions(): void;
 
 	/**
-	 * Returns the "UnitAction" with the specified name, or null if the "UnitAction" does not exist.
+	 * Returns the "UnitAction" with the specified name, or undefined if the "UnitAction" does not exist.
 	 * @param name The name of the "UnitAction" to retrieve.
-	 * @returns The "UnitAction" with the specified name, or null.
+	 * @returns The "UnitAction" with the specified name, or undefined.
 	 */
-	getAction(name: string): UnitAction | null;
+	getAction(name: string): UnitAction | undefined;
 
 	/**
 	 * Calls the specified function for each "UnitAction" attached to the "Unit".

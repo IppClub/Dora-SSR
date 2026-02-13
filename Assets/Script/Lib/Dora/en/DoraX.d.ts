@@ -40,7 +40,7 @@ export namespace React {
  * @param enode The React element or array of React elements to convert.
  * @returns The converted Dora node.
  */
-export function toNode(this: void, enode: React.Element | React.Element[]): Dora.Node.Type | null;
+export function toNode(this: void, enode: React.Element | React.Element[]): Dora.Node.Type | undefined;
 
 /**
  * Converts a React element to a Dora action definition.
