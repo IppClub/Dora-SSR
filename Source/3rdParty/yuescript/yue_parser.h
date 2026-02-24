@@ -200,6 +200,7 @@ private:
 	NONE_AST_RULE(num_expo_hex);
 	NONE_AST_RULE(lj_num);
 	NONE_AST_RULE(plain_space);
+	NONE_AST_RULE(plain_space_break);
 	NONE_AST_RULE(line_break);
 	NONE_AST_RULE(any_char);
 	NONE_AST_RULE(white);
@@ -317,6 +318,7 @@ private:
 	NONE_AST_RULE(comment_line);
 	NONE_AST_RULE(yue_line_comment);
 	NONE_AST_RULE(yue_multiline_comment);
+	NONE_AST_RULE(yue_comment_block);
 	NONE_AST_RULE(line);
 	NONE_AST_RULE(shebang);
 	NONE_AST_RULE(is_lax);
