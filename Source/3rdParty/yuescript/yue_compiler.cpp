@@ -78,7 +78,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.33.4"sv;
+const std::string_view version = "0.33.5"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -10125,7 +10125,7 @@ private:
 			transformAssignment(assignment, tmp);
 		}
 		if (extend) {
-			_buf << indent() << "setmetatable("sv << baseVar << ", "sv << parentVar << ".__base)"sv << nl(classDecl);
+			_buf << indent() << globalVar("setmetatable"sv, classDecl, AccessType::Read) << '(' << baseVar << ", "sv << parentVar << ".__base)"sv << nl(classDecl);
 		}
 		_buf << indent() << classVar << " = "sv << globalVar("setmetatable"sv, classDecl, AccessType::Read) << "({"sv << nl(classDecl);
 		if (!builtinFields.empty()) {
@@ -10162,9 +10162,9 @@ private:
 		_buf << indent() << "}, {"sv << nl(classDecl);
 		if (extend) {
 			_buf << indent(1) << "__index = function(cls, name)"sv << nl(classDecl);
-			_buf << indent(2) << "local val = rawget("sv << baseVar << ", name)"sv << nl(classDecl);
+			_buf << indent(2) << "local val = "sv << globalVar("rawget", classDecl, AccessType::Read) << '(' << baseVar << ", name)"sv << nl(classDecl);
 			_buf << indent(2) << "if val == nil then"sv << nl(classDecl);
-			_buf << indent(3) << "local parent = rawget(cls, \"__parent\")"sv << nl(classDecl);
+			_buf << indent(3) << "local parent = "sv << globalVar("rawget", classDecl, AccessType::Read) << "(cls, \"__parent\")"sv << nl(classDecl);
 			_buf << indent(3) << "if parent then"sv << nl(classDecl);
 			_buf << indent(4) << "return parent[name]"sv << nl(classDecl);
 			_buf << indent(3) << "end"sv << nl(classDecl);
@@ -10179,7 +10179,7 @@ private:
 		pushScope();
 		auto selfVar = getUnusedName("_self_"sv);
 		addToScope(selfVar);
-		_buf << indent(1) << "local "sv << selfVar << " = setmetatable({ }, "sv << baseVar << ")"sv << nl(classDecl);
+		_buf << indent(1) << "local "sv << selfVar << " = "sv << globalVar("setmetatable", classDecl, AccessType::Read) << "({ }, "sv << baseVar << ")"sv << nl(classDecl);
 		_buf << indent(1) << "cls.__init("sv << selfVar << ", ...)"sv << nl(classDecl);
 		_buf << indent(1) << "return "sv << selfVar << nl(classDecl);
 		popScope();
