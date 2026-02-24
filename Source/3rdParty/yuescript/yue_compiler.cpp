@@ -65,7 +65,7 @@ namespace yue {
 		+ ",\n[Error] "s + msg, \
 	node)
 
-typedef std::list<std::string> str_list;
+typedef std::deque<std::string> str_list;
 
 static std::unordered_set<std::string> Metamethods = {
 	"add"s, "sub"s, "mul"s, "div"s, "mod"s,
@@ -78,7 +78,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.33.0"sv;
+const std::string_view version = "0.33.4"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -733,6 +733,9 @@ private:
 				auto pair = static_cast<MetaVariablePair_t*>(item);
 				return isLocal(variableToString(pair->name));
 			}
+			case id<YueComment_t>():
+			case id<EmptyLine_t>():
+				return true;
 			case id<MetaNormalPair_t>(): {
 				auto pair = static_cast<MetaNormalPair_t*>(item);
 				if (auto str = pair->key.as<String_t>()) {
@@ -1746,22 +1749,7 @@ private:
 			out.push_back("\n"s);
 			return;
 		}
-		str_list temp;
-		for (auto node : comment->comments.objects()) {
-			switch (node->get_id()) {
-				case id<YueLineComment_t>(): {
-					auto content = static_cast<YueLineComment_t*>(node);
-					temp.emplace_back(indent() + "--"s + _parser.toString(content));
-					break;
-				}
-				case id<YueMultilineComment_t>(): {
-					auto content = static_cast<YueMultilineComment_t*>(node);
-					temp.emplace_back(indent() + "--[["s + _parser.toString(content) + "]]"s);
-					break;
-				}
-			}
-		}
-		out.push_back(join(temp, " "sv) + '\n');
+		out.push_back(indent() + comment->to_string(&_config) + '\n');
 	}
 
 	void transformStatement(Statement_t* statement, str_list& out) {
@@ -4474,7 +4462,7 @@ private:
 					for (const auto& arg : vars) {
 						finalArgs.push_back(arg);
 					}
-					finalArgs.sort();
+					std::sort(finalArgs.begin(), finalArgs.end());
 					for (const auto& arg : *ensureArgListInTheEnd) {
 						finalArgs.push_back(arg);
 					}
@@ -4485,7 +4473,7 @@ private:
 					}
 					args = std::move(finalArgs);
 				} else {
-					args.sort();
+					std::sort(args.begin(), args.end());
 					if (usedVar) {
 						args.push_back("..."s);
 					}
@@ -7987,6 +7975,19 @@ private:
 					transformFor(forNode, temp);
 					break;
 				}
+				case id<YueComment_t>(): {
+					if (_config.reserveComment) {
+						auto comment = static_cast<YueComment_t*>(item);
+						temp.push_back(indent() + comment->to_string(&_config) + '\n');
+					}
+					break;
+				}
+				case id<EmptyLine_t>(): {
+					if (_config.reserveComment) {
+						temp.push_back("\n"s);
+					}
+					break;
+				}
 				case id<VariablePair_t>():
 				case id<VariablePairDef_t>(): {
 					if (auto pair = ast_cast<VariablePairDef_t>(item)) {
@@ -8201,11 +8202,23 @@ private:
 		auto x = values.front();
 		str_list temp;
 		incIndentOffset();
-		auto metatable = x->new_ptr<SimpleTable_t>();
-		ast_sel<false, Exp_t, TableBlock_t> metatableItem;
+		auto metatable = x->new_ptr<TableLit_t>();
+		struct MetatableItem {
+			ast_sel<false, Exp_t, TableBlock_t> item;
+			std::vector<ast_node*> commentOrEmpty;
+		};
+		std::optional<MetatableItem> metatableItem;
+		std::vector<ast_node*> commentOrEmpty;
+		std::vector<ast_node*> tableItems;
 		for (auto value : values) {
 			auto item = value;
 			switch (item->get_id()) {
+				case id<EmptyLine_t>():
+				case id<YueComment_t>():
+					if (_config.reserveComment) {
+						commentOrEmpty.emplace_back(item);
+					}
+					break;
 				case id<VariablePairDef_t>(): {
 					auto pair = static_cast<VariablePairDef_t*>(item);
 					if (pair->defVal) {
@@ -8247,15 +8260,8 @@ private:
 					break;
 				}
 			}
-			bool isMetamethod = false;
 			switch (item->get_id()) {
-				case id<Exp_t>(): transformExp(static_cast<Exp_t*>(item), temp, ExpUsage::Closure); break;
-				case id<VariablePair_t>(): transform_variable_pair(static_cast<VariablePair_t*>(item), temp); break;
-				case id<NormalPair_t>(): transform_normal_pair(static_cast<NormalPair_t*>(item), temp, false); break;
-				case id<TableBlockIndent_t>(): transformTableBlockIndent(static_cast<TableBlockIndent_t*>(item), temp); break;
-				case id<TableBlock_t>(): transformTableBlock(static_cast<TableBlock_t*>(item), temp); break;
 				case id<MetaVariablePair_t>(): {
-					isMetamethod = true;
 					auto mp = static_cast<MetaVariablePair_t*>(item);
 					if (metatableItem) {
 						throw CompileError("too many metatable declarations"sv, mp->name);
@@ -8264,11 +8270,16 @@ private:
 					checkMetamethod(name, mp->name);
 					_buf << "__"sv << name << ':' << name;
 					auto newPair = toAst<NormalPair_t>(clearBuf(), item);
-					metatable->pairs.push_back(newPair);
+					if (!commentOrEmpty.empty()) {
+						for (auto c : commentOrEmpty) {
+							metatable->values.push_back(c);
+						}
+						commentOrEmpty.clear();
+					}
+					metatable->values.push_back(newPair);
 					break;
 				}
 				case id<MetaNormalPair_t>(): {
-					isMetamethod = true;
 					auto mp = static_cast<MetaNormalPair_t*>(item);
 					auto newPair = item->new_ptr<NormalPair_t>();
 					if (mp->key) {
@@ -8295,22 +8306,73 @@ private:
 							default: YUEE("AST node mismatch", mp->key); break;
 						}
 						newPair->value.set(mp->value);
-						metatable->pairs.push_back(newPair);
+						if (!commentOrEmpty.empty()) {
+							for (auto c : commentOrEmpty) {
+								metatable->values.push_back(c);
+							}
+							commentOrEmpty.clear();
+						}
+						metatable->values.push_back(newPair);
 					} else {
-						if (!metatable->pairs.empty()) {
+						if (!metatable->values.empty()) {
 							throw CompileError("too many metatable declarations"sv, mp->value);
 						}
-						metatableItem.set(mp->value);
+						metatableItem = MetatableItem{};
+						if (!commentOrEmpty.empty()) {
+							metatableItem.value().commentOrEmpty = std::move(commentOrEmpty);
+						}
+						metatableItem.value().item.set(mp->value);
 					}
 					break;
 				}
-				default: YUEE("AST node mismatch", item); break;
-			}
-			if (!isMetamethod) {
-				temp.back() = indent() + (value == values.back() ? temp.back() : temp.back() + ',') + nl(value);
+				case id<EmptyLine_t>():
+				case id<YueComment_t>():
+					break;
+				default: {
+					if (!commentOrEmpty.empty()) {
+						for (auto c : commentOrEmpty) {
+							tableItems.emplace_back(c);
+						}
+						commentOrEmpty.clear();
+					}
+					tableItems.emplace_back(item);
+					break;
+				}
 			}
 		}
-		if (metatable->pairs.empty() && !metatableItem) {
+
+		ast_node* lastValueNode = tableItems.empty() ? nullptr : tableItems.back();
+		for (auto* item : tableItems) {
+			bool skipComma = false;
+			switch (item->get_id()) {
+				case id<Exp_t>(): {
+					transformExp(static_cast<Exp_t*>(item), temp, ExpUsage::Closure);
+					break;
+				}
+				case id<YueComment_t>(): {
+					auto comment = static_cast<YueComment_t*>(item);
+					temp.emplace_back(comment->to_string(&_config));
+					skipComma = true;
+					break;
+				}
+				case id<EmptyLine_t>(): {
+					temp.emplace_back(Empty);
+					skipComma = true;
+					break;
+				}
+				case id<VariablePair_t>(): transform_variable_pair(static_cast<VariablePair_t*>(item), temp); break;
+				case id<NormalPair_t>(): transform_normal_pair(static_cast<NormalPair_t*>(item), temp, false); break;
+				case id<TableBlockIndent_t>(): transformTableBlockIndent(static_cast<TableBlockIndent_t*>(item), temp); break;
+				case id<TableBlock_t>(): transformTableBlock(static_cast<TableBlock_t*>(item), temp); break;
+				default: YUEE("AST node mismatch", item); break;
+			}
+			if (skipComma) {
+				temp.back() = indent() + temp.back() + '\n';
+			} else {
+				temp.back() = indent() + (item == lastValueNode ? temp.back() : temp.back() + ',') + nl(item);
+			}
+		}
+		if (metatable->values.empty() && !metatableItem) {
 			out.push_back('{' + nl(x) + join(temp));
 			decIndentOffset();
 			out.back() += (indent() + '}');
@@ -8327,17 +8389,28 @@ private:
 			}
 			tabStr += ", "sv;
 			str_list tmp;
-			if (!metatable->pairs.empty()) {
-				transform_simple_table(metatable, tmp);
-			} else
-				switch (metatableItem->get_id()) {
+			if (metatableItem) {
+				if (_config.reserveComment) {
+					for (auto item : metatableItem.value().commentOrEmpty) {
+						if (ast_is<EmptyLine_t>(item)) {
+							tmp.push_back("\n"s);
+						} else {
+							transformComment(ast_to<YueComment_t>(item), tmp);
+						}
+					}
+				}
+				auto mt = metatableItem.value().item.get();
+				switch (mt->get_id()) {
 					case id<Exp_t>():
-						transformExp(static_cast<Exp_t*>(metatableItem.get()), tmp, ExpUsage::Closure);
+						transformExp(static_cast<Exp_t*>(mt), tmp, ExpUsage::Closure);
 						break;
 					case id<TableBlock_t>():
-						transformTableBlock(static_cast<TableBlock_t*>(metatableItem.get()), tmp);
+						transformTableBlock(static_cast<TableBlock_t*>(mt), tmp);
 						break;
 				}
+			} else {
+				transformTableLit(metatable, tmp);
+			}
 			tabStr += tmp.back();
 			tabStr += ')';
 			out.push_back(tabStr);
@@ -9766,8 +9839,19 @@ private:
 		str_list classConstVars;
 		if (body) {
 			str_list varDefs;
+			std::vector<ast_node*> commentOrEmpty;
 			for (auto item : body->contents.objects()) {
-				if (auto statement = ast_cast<Statement_t>(item)) {
+				if (ast_is<YueComment_t, EmptyLine_t>(item)) {
+					if (_config.reserveComment) {
+						commentOrEmpty.emplace_back(item);
+					}
+				} else if (auto statement = ast_cast<Statement_t>(item)) {
+					if (!commentOrEmpty.empty()) {
+						for (auto c : commentOrEmpty) {
+							block->statementOrComments.push_back(c);
+						}
+						commentOrEmpty.clear();
+					}
 					ClassDecl_t* clsDecl = nullptr;
 					if (auto assignment = assignmentFrom(statement)) {
 						block->statementOrComments.push_back(statement);
@@ -9886,6 +9970,8 @@ private:
 						std::tie(clsName, newDefined, clsTextName) = defineClassVariable(clsDecl->name);
 						if (newDefined) varDefs.push_back(clsName);
 					}
+				} else {
+					commentOrEmpty.clear();
 				}
 			}
 			if (!varDefs.empty()) {
@@ -9904,9 +9990,20 @@ private:
 		auto baseVar = getUnusedName("_base_"sv);
 		addToScope(baseVar);
 		temp.push_back(indent() + "local "s + baseVar + " = "s);
-		str_list builtins;
-		str_list commons;
-		str_list statements;
+		using ClassMemberEntry = std::tuple<std::string, std::string, bool>;
+		std::list<ClassMemberEntry> builtinFields;
+		std::list<ClassMemberEntry> classFields;
+		std::list<ClassMemberEntry> commentOrEmpty;
+		auto appendCommentOrEmpty = [&](std::list<ClassMemberEntry>& target) {
+			if (!commentOrEmpty.empty()) {
+				for (auto& item : commentOrEmpty) {
+					auto [content, newLine, isComment] = std::move(item);
+					target.emplace_back(indent(1) + content, newLine, isComment);
+				}
+				commentOrEmpty.clear();
+			}
+		};
+		str_list initStatements;
 		if (body) {
 			std::list<ClassMember> members;
 			for (auto content : classDecl->body->contents.objects()) {
@@ -9918,14 +10015,41 @@ private:
 						for (; it != members.end(); ++it) {
 							auto& member = *it;
 							if (member.type == MemType::Property) {
-								statements.push_back(indent() + member.item + nl(content));
+								if (!commentOrEmpty.empty()) {
+									for (auto& item : commentOrEmpty) {
+										auto [content, newLine, _] = std::move(item);
+										initStatements.emplace_back(indent() + content + newLine);
+									}
+									commentOrEmpty.clear();
+								}
+								initStatements.emplace_back(indent() + member.item + nl(content));
+							} else if (member.type == MemType::Builtin) {
+								appendCommentOrEmpty(builtinFields);
+								builtinFields.emplace_back(indent(1) + member.item, nl(member.node), false);
 							} else {
-								member.item = indent(1) + member.item;
+								appendCommentOrEmpty(classFields);
+								classFields.emplace_back(indent(1) + member.item, nl(member.node), false);
 							}
 						}
 						break;
 					}
-					case id<Statement_t>(): break;
+					case id<YueComment_t>(): {
+						if (_config.reserveComment) {
+							auto comment = static_cast<YueComment_t*>(content);
+							commentOrEmpty.emplace_back(comment->to_string(&_config), "\n"s, true);
+						}
+						break;
+					}
+					case id<EmptyLine_t>(): {
+						if (_config.reserveComment) {
+							commentOrEmpty.emplace_back(Empty, "\n"s, true);
+						}
+						break;
+					}
+					case id<Statement_t>(): {
+						commentOrEmpty.clear();
+						break;
+					}
 					default: YUEE("AST node mismatch", content); break;
 				}
 			}
@@ -9933,25 +10057,36 @@ private:
 				forceAddToScope(classVar);
 			}
 			forceAddToScope("self"s);
-			for (auto stmt_ : block->statementOrComments.objects()) {
-				if (auto stmt = ast_cast<Statement_t>(stmt_)) {
-					transformStatement(stmt, statements);
+			for (auto s : block->statementOrComments.objects()) {
+				switch (s->get_id()) {
+					case id<Statement_t>():
+						transformStatement(static_cast<Statement_t*>(s), initStatements);
+						break;
+					case id<EmptyLine_t>():
+						initStatements.push_back("\n"s);
+						break;
+					case id<YueComment_t>():
+						transformComment(static_cast<YueComment_t*>(s), initStatements);
+						break;
+					default:
+						YUEE("AST node mismatch", s);
+						break;
 				}
 			}
-			for (auto& member : members) {
-				switch (member.type) {
-					case MemType::Common:
-						commons.push_back((commons.empty() ? Empty : ',' + nl(member.node)) + member.item);
-						break;
-					case MemType::Builtin:
-						builtins.push_back((builtins.empty() ? Empty : ',' + nl(member.node)) + member.item);
-						break;
-					default: break;
-				}
-			}
-			if (!commons.empty()) {
+			if (!classFields.empty()) {
 				temp.back() += '{' + nl(body);
-				temp.push_back(join(commons) + nl(body));
+				str_list fieldItems;
+				for (auto& field : classFields) {
+					auto [item, newLine, isComment] = std::move(field);
+					bool isLast = &field == &classFields.back();
+					bool needComma = !isLast && !isComment;
+					if (needComma) {
+						fieldItems.emplace_back(item + ',' + newLine);
+					} else {
+						fieldItems.emplace_back(item + newLine);
+					}
+				}
+				temp.push_back(join(fieldItems));
 				temp.push_back(indent() + '}' + nl(body));
 			} else {
 				temp.back() += "{ }"s + nl(body);
@@ -9993,8 +10128,18 @@ private:
 			_buf << indent() << "setmetatable("sv << baseVar << ", "sv << parentVar << ".__base)"sv << nl(classDecl);
 		}
 		_buf << indent() << classVar << " = "sv << globalVar("setmetatable"sv, classDecl, AccessType::Read) << "({"sv << nl(classDecl);
-		if (!builtins.empty()) {
-			_buf << join(builtins) << ',' << nl(classDecl);
+		if (!builtinFields.empty()) {
+			str_list builtinItems;
+			for (auto& field : builtinFields) {
+				auto [item, newLine, isComment] = std::move(field);
+				bool needComma = !isComment;
+				if (needComma) {
+					builtinItems.emplace_back(item + ',' + newLine);
+				} else {
+					builtinItems.emplace_back(item + newLine);
+				}
+			}
+			_buf << join(builtinItems);
 		} else {
 			if (extend) {
 				_buf << indent(1) << "__init = function(self, ...)"sv << nl(classDecl);
@@ -10041,10 +10186,10 @@ private:
 		_buf << indent(1) << "end"sv << nl(classDecl);
 		_buf << indent() << "})"sv << nl(classDecl);
 		_buf << indent() << baseVar << ".__class = "sv << classVar << nl(classDecl);
-		if (!statements.empty()) {
+		if (!initStatements.empty()) {
 			_buf << indent() << "local self = "sv << classVar << ';' << nl(classDecl);
 		}
-		_buf << join(statements);
+		_buf << join(initStatements);
 		if (extend) {
 			_buf << indent() << "if "sv << parentVar << ".__inherited then"sv << nl(classDecl);
 			_buf << indent(1) << parentVar << ".__inherited("sv << parentVar << ", "sv << classVar << ")"sv << nl(classDecl);

@@ -87,6 +87,8 @@ class NormalDef_t;
 class SpreadListExp_t;
 class Comprehension_t;
 class Value_t;
+class YueComment_t;
+class EmptyLine_t;
 } // namespace yue
 
 AST_LEAF(Num)
@@ -718,6 +720,7 @@ AST_NODE(TableLit)
 		MetaVariablePairDef_t, MetaNormalPairDef_t,
 		VariablePair_t, NormalPair_t, Exp_t,
 		MetaVariablePair_t, MetaNormalPair_t,
+		YueComment_t, EmptyLine_t,
 		/*non-syntax-rule*/ TableBlockIndent_t, SpreadListExp_t> values;
 	AST_MEMBER(TableLit, &sep, &values)
 AST_END(TableLit)
@@ -726,13 +729,14 @@ AST_NODE(TableBlockIndent)
 	ast_ptr<true, Seperator_t> sep;
 	ast_sel_list<false,
 		VariablePair_t, NormalPair_t, Exp_t, TableBlockIndent_t,
-		MetaVariablePair_t, MetaNormalPair_t> values;
+		MetaVariablePair_t, MetaNormalPair_t,
+		YueComment_t, EmptyLine_t> values;
 	AST_MEMBER(TableBlockIndent, &sep, &values)
 AST_END(TableBlockIndent)
 
 AST_NODE(TableBlock)
 	ast_ptr<true, Seperator_t> sep;
-	ast_sel_list<false, VariablePair_t, NormalPair_t, TableBlockIndent_t, Exp_t, TableBlock_t, SpreadExp_t, MetaVariablePair_t, MetaNormalPair_t> values;
+	ast_sel_list<false, VariablePair_t, NormalPair_t, TableBlockIndent_t, Exp_t, TableBlock_t, SpreadExp_t, MetaVariablePair_t, MetaNormalPair_t, YueComment_t, EmptyLine_t> values;
 	AST_MEMBER(TableBlock, &sep, &values)
 AST_END(TableBlock)
 
@@ -744,7 +748,7 @@ AST_END(ClassMemberList)
 
 AST_NODE(ClassBlock)
 	ast_ptr<true, Seperator_t> sep;
-	ast_sel_list<true, ClassMemberList_t, Statement_t> contents;
+	ast_sel_list<true, ClassMemberList_t, Statement_t, YueComment_t, EmptyLine_t> contents;
 	AST_MEMBER(ClassBlock, &sep, &contents)
 AST_END(ClassBlock)
 
@@ -916,7 +920,7 @@ AST_NODE(BreakLoop)
 	ast_sel<true, Break_t, Continue_t> type;
 	ast_ptr<false, ExpList_t> valueList;
 	AST_MEMBER(BreakLoop, &type, &valueList)
-	std::list<std::string> vars;
+	std::deque<std::string> vars;
 AST_END(BreakLoop)
 
 AST_NODE(PipeBody)

@@ -13,6 +13,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <cassert>
 #include <list>
+#include <deque>
 #include <stdexcept>
 #include <string_view>
 #include <type_traits>
@@ -34,7 +35,7 @@ class ast;
 /** type of AST node stack.
  */
 typedef std::vector<ast_node*> ast_stack;
-typedef std::list<ast_node*> node_container;
+typedef std::deque<ast_node*> node_container;
 
 template <size_t Num>
 struct Counter {
