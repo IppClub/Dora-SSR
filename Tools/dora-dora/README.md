@@ -1,30 +1,44 @@
-# Getting Started with Vite
+# Dora Dora Web IDE
 
-This project uses [Vite](https://vitejs.dev/) for development and builds.
+This project uses [Vite](https://vitejs.dev/) for development and builds, and integrates the external `Tools/YarnEditor` build output into the Web IDE.
 
 ## Available Scripts
 
 In the project directory, you can run:
 
-### `yarn dev`
+### `pnpm dev` / `pnpm start`
 
-Runs the app in the development mode.\
+Runs the app in development mode.\
 Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
 The page will reload if you make edits.\
 You will also see any lint errors in the console.
 
-### `yarn build`
+### `pnpm build-yarn-editor`
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Builds `Tools/YarnEditor` (platform-aware: macOS/Linux/Windows) and copies its `dist` output into `public/yarn-editor`.\
+The target folder is refreshed automatically and `.gitkeep` is restored after copying.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Use this before `pnpm start` when you need the latest YarnEditor assets during local development.
 
-### `yarn preview`
+### `pnpm build`
+
+Full production build pipeline for Dora Dora Web IDE. It will:
+
+1. Build and copy YarnEditor into `public/yarn-editor`
+2. Run `vite build`
+3. Minify generated JavaScript helper outputs
+4. Copy the final `build` output to `../../Assets/www`
+
+Both `public/yarn-editor` and `../../Assets/www` are refreshed automatically, and `.gitkeep` is restored after copying.
+
+### `pnpm preview`
 
 Serves the production build locally for verification.
+
+### `pnpm lint`
+
+Runs ESLint for `src`.
 
 ## Learn More
 

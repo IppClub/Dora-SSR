@@ -208,63 +208,51 @@ git clone https://gitcode.com/ippclub/Dora-SSR.git
 <TabItem value="macos" label="macOS">
 
 	```sh
-	cd Tools/dora-dora/3rdParty/YarnEditor && yarn && yarn build
-	rm -rf ../../public/yarn-editor
-	mv dist ../../public/yarn-editor
-	cd ../.. && yarn
-	yarn start
+	cd Tools/dora-dora && pnpm install
+	pnpm build-yarn-editor
+	pnpm start
 	```
 
-	&emsp;&emsp;或者你可以将 Web IDE 发布文件进行生成后，复制到项目的 `Assets/www` 下面，然后再启动 Dora SSR 引擎，进行完整项目功能的测试使用。
+	&emsp;&emsp;或者你可以直接生成完整 Dora SSR 项目的 Web IDE 发布文件。`pnpm build` 现在会自动完成 YarnEditor 的构建与复制，并将最终 Web IDE 构建结果同步到 `Assets/www`。
 
 	```sh
-	# 确保之前步骤里的 YarnEditor 的编译和文件复制已完成
+	# `pnpm build` 还会自动把最终构建结果同步到 Assets/www
 	cd Tools/dora-dora
-	yarn build
-	rm -rf ../../Assets/www
-	mv build ../../Assets/www
+	pnpm build
 	```
 
 </TabItem>
 <TabItem value="linux" label="Linux">
 
 	```sh
-	cd Tools/dora-dora/3rdParty/YarnEditor && yarn && yarn build-linux
-	rm -rf ../../public/yarn-editor
-	mv dist ../../public/yarn-editor
-	cd ../.. && yarn
-	yarn start
+	cd Tools/dora-dora && pnpm install
+	pnpm build-yarn-editor
+	pnpm start
 	```
 
-	&emsp;&emsp;或者你可以将 Web IDE 发布文件进行生成后，复制到项目的 `Assets/www` 下面，然后再启动 Dora SSR 引擎，进行完整项目功能的测试使用。
+	&emsp;&emsp;或者你可以直接生成完整 Dora SSR 项目的 Web IDE 发布文件。`pnpm build` 现在会自动完成 YarnEditor 的构建与复制，并将最终 Web IDE 构建结果同步到 `Assets/www`。
 
 	```sh
-	# 确保之前步骤里的 YarnEditor 的编译和文件复制已完成
+	# `pnpm build` 还会自动把最终构建结果同步到 Assets/www
 	cd Tools/dora-dora
-	yarn build
-	rm -rf ../../Assets/www
-	mv build ../../Assets/www
+	pnpm build
 	```
 
 </TabItem>
 <TabItem value="windows" label="Windows">
 
 	```sh
-	cd Tools\dora-dora\3rdParty\YarnEditor && yarn && yarn build-win
-	rmdir /Q /S ..\..\public\yarn-editor
-	move dist ..\..\public\yarn-editor
-	cd ..\.. && yarn install --network-timeout 1000000
-	yarn start
+	cd Tools\dora-dora && pnpm install
+	pnpm build-yarn-editor
+	pnpm start
 	```
 
-	&emsp;&emsp;或者你可以将 Web IDE 发布文件进行生成后，复制到项目的 `Assets/www` 下面，然后再启动 Dora SSR 引擎，进行完整项目功能的测试使用。
+	&emsp;&emsp;或者你可以直接生成完整 Dora SSR 项目的 Web IDE 发布文件。`pnpm build` 现在会自动完成 YarnEditor 的构建与复制，并将最终 Web IDE 构建结果同步到 `Assets/www`。
 
 	```sh
-	# 确保之前步骤里的 YarnEditor 的编译和文件复制已完成
+	# `pnpm build` 还会自动把最终构建结果同步到 Assets/www
 	cd Tools\dora-dora
-	yarn build
-	rmdir /Q /S ..\..\Assets\www
-	move build ..\..\Assets\www
+	pnpm build
 	```
 </TabItem>
 </Tabs>

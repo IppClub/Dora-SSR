@@ -27,9 +27,8 @@ jobs:
       - name: Pack
         if: startsWith(github.ref, 'refs/tags/')
         run: |
-          rm -rf Assets/www
-          cd Tools/dora-dora/3rdParty/YarnEditor && unset NODE_OPTIONS && yarn && yarn build-linux && rm -rf ../../public/yarn-editor && mv dist ../../public/yarn-editor && cd ../../../..
-          cd Tools/dora-dora && yarn && yarn build-mac && cd ../.. && mv Tools/dora-dora/build Assets/www
+          corepack enable
+          cd Tools/dora-dora && pnpm install && pnpm build && cd ../..
           cd Assets/www && zip -vr ../../web-ide-files.zip . && cd ../..
           cd $GITHUB_WORKSPACE
           cp Tools/dora-wa/wa.mod Assets/dora-wa

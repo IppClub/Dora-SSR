@@ -47,7 +47,7 @@ let texts: string[] = [];
 const root = AlignNode(true);
 root.css('flex-direction: column-reverse');
 
-const {width: viewWidth, height: viewHeight} = View.size;
+const { width: viewWidth, height: viewHeight } = View.size;
 const width = viewWidth - 100;
 const height = viewHeight - 10;
 const scroll = ScrollArea({
@@ -75,7 +75,7 @@ root.onAlignLayout((w: number, h: number) => {
 	label.textWidth = (w - fontSize) * fontScale;
 	scroll.adjustSizeWithAlign(AlignMode.Auto, 10, Size(w, h));
 	scroll.area.getChildByTag('border')?.removeFromParent();
-	const border = LineRect({x: 1, y: 1, width: w - 2, height: h - 2, color: 0xffffffff});
+	const border = LineRect({ x: 1, y: 1, width: w - 2, height: h - 2, color: 0xffffffff });
 	scroll.area.addChild(border, 0, 'border');
 });
 
@@ -174,7 +174,7 @@ const windowFlags = [
 ];
 const inputTextFlags = [InputTextFlag.AutoSelectAll];
 threadLoop(() => {
-	const {width} = App.visualSize;
+	const { width } = App.visualSize;
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), SetCond.Always, Vec2(1, 0));
 	ImGui.SetNextWindowSize(Vec2(230, 0), SetCond.Always);
 	ImGui.Begin("Yarn Tester", windowFlags, () => {

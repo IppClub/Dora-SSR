@@ -45,7 +45,7 @@ let currentFolder: string | undefined;
 
 const pixelRatio = App.devicePixelRatio;
 let scaledSize = 1;
-const ruler = Ruler({y: -150 * pixelRatio, width: pixelRatio * 300, height: 75 * pixelRatio, fontSize: 15 * pixelRatio});
+const ruler = Ruler({ y: -150 * pixelRatio, width: pixelRatio * 300, height: 75 * pixelRatio, fontSize: 15 * pixelRatio });
 ruler.order = 2;
 
 let anisotropic = true;
@@ -104,8 +104,8 @@ function displayClips(folder: string) {
 			frame.y = sprite.height;
 			if (rects) {
 				frame.schedule(() => {
-					const {width: bw, height: bh} = App.bufferSize;
-					const {width: vw} = App.visualSize;
+					const { width: bw, height: bh } = App.bufferSize;
+					const { width: vw } = App.visualSize;
 					let pos = Mouse.position.mul(bw / vw);
 					pos = Vec2(pos.x - bw / 2, bh / 2 - pos.y);
 					const localPos = frame.convertToNodeSpace(pos);
@@ -164,7 +164,7 @@ function generateClips(folder: string) {
 	if (packer.root === undefined) {
 		return;
 	}
-	const {w: width, h: height} = packer.root;
+	const { w: width, h: height } = packer.root;
 	const frame = Line([
 		Vec2.zero,
 		Vec2(width, 0),
@@ -221,8 +221,8 @@ function generateClips(folder: string) {
 		const rects = Sprite.getClips(clipFile);
 		if (rects) {
 			frame.schedule(() => {
-				const {width: bw, height: bh} = App.bufferSize;
-				const {width: vw} = App.visualSize;
+				const { width: bw, height: bh } = App.bufferSize;
+				const { width: vw } = App.visualSize;
 				let pos = Mouse.position.mul(bw / vw);
 				pos = Vec2(pos.x - bw / 2, bh / 2 - pos.y);
 				const localPos = frame.convertToNodeSpace(pos);
@@ -262,7 +262,7 @@ toNode(
 		onGesture={(_center, fingers, deltaDist, _deltaAngle) => {
 			if (tapCount > 0) return;
 			if (currentDisplay && tolua.cast(currentDisplay, TypeName.Sprite) && fingers === 2) {
-				const {width, height} = currentDisplay;
+				const { width, height } = currentDisplay;
 				const size = Vec2(width, height).length;
 				scaledSize += deltaDist * length * 10 / size;
 				scaledSize = math.max(0.5, scaledSize);
@@ -289,7 +289,7 @@ let filteredFolders = clipFolders;
 let scaleChecked = false;
 const themeColor = App.themeColor;
 threadLoop(() => {
-	const {width} = App.visualSize;
+	const { width } = App.visualSize;
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), SetCond.Always, Vec2(1, 0));
 	ImGui.SetNextWindowSize(Vec2(230, 0), SetCond.Always);
 	ImGui.Begin("Texture Packer", windowFlags, () => {

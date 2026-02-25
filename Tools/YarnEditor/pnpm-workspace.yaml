@@ -1,0 +1,11 @@
+onlyBuiltDependencies:
+  - '@fortawesome/fontawesome-free'
+  - core-js
+  - cwebp-bin
+  - ejs
+  - fsevents
+  - gifsicle
+  - jss
+  - mozjpeg
+  - optipng-bin
+  - pngquant-bin
