@@ -2,10 +2,11 @@
   "name": "dora-ssr",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@10.13.0",
   "scripts": {
     "docusaurus": "docusaurus",
-    "start": "npm run update-version && docusaurus start",
-    "build": "npm run update-version && docusaurus build",
+    "start": "pnpm run update-version && docusaurus start",
+    "build": "pnpm run update-version && docusaurus build",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",
@@ -22,6 +23,7 @@
     "@easyops-cn/docusaurus-search-local": "^0.51.1",
     "@mdx-js/react": "^3.1.0",
     "clsx": "^2.1.1",
+    "prismjs": "^1.30.0",
     "prism-react-renderer": "^2.4.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"

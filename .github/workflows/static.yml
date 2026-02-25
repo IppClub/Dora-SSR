@@ -31,9 +31,10 @@ jobs:
         uses: actions/configure-pages@v5
       - name: Prepare doc site
         run: |
+          corepack enable
           cd Docs
-          yarn
-          yarn build
+          pnpm install
+          pnpm build
           cd ..
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
