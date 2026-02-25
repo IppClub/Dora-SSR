@@ -141,28 +141,28 @@ interface CallStream {
 	stopToken: boolean;
 }
 
-export const callLLM = (messages: Message[], options: Record<string, any>, event: CallEvent | CallStream): {success: true} | {success: false, message: string} => {
+export const callLLM = (messages: Message[], options: Record<string, any>, event: CallEvent | CallStream): { success: true } | { success: false, message: string } => {
 	let callEvent: CallEvent;
 	if (event.id !== undefined) {
 		const id = event.id;
 		callEvent = {
 			id: undefined,
 			onData: (data) => {
-				emit("AppWS", "Send", {name: "LLMContent", id, data});
+				emit("AppWS", "Send", { name: "LLMContent", id, data });
 				return event.stopToken;
 			},
 			onCancel: (reason) => {
-				emit("AppWS", "Send", {name: "LLMCancel", id, reason});
+				emit("AppWS", "Send", { name: "LLMCancel", id, reason });
 			},
 			onDone: () => {
-				emit("AppWS", "Send", {name: "LLMDone", id});
+				emit("AppWS", "Send", { name: "LLMDone", id });
 			}
 		};
 	} else {
 		callEvent = event;
 	}
-	const {onData, onDone} = callEvent;
-	let {onCancel} = callEvent;
+	const { onData, onDone } = callEvent;
+	let { onCancel } = callEvent;
 	const rows = DB.query("select * from LLMConfig", true);
 	const records: Record<string, any>[] = [];
 	if (rows && rows.length > 1) {
@@ -175,10 +175,10 @@ export const callLLM = (messages: Message[], options: Record<string, any>, event
 		}
 	}
 	const config = records.find(r => r["active"] !== 0);
-	if (!config) return {success: false, message: "no active LLM config"};
-	const {url, model, api_key} = config;
+	if (!config) return { success: false, message: "no active LLM config" };
+	const { url, model, api_key } = config;
 	if ("string" !== typeof url || "string" !== typeof model || "string" !== typeof api_key) {
-		return {success: false, message: "got invalude LLM config"};
+		return { success: false, message: "got invalude LLM config" };
 	}
 	let stopLLM = false;
 	const parser = createSSEJSONParser({
@@ -212,5 +212,5 @@ export const callLLM = (messages: Message[], options: Record<string, any>, event
 			}
 		}
 	})();
-	return {success: true};
+	return { success: true };
 }

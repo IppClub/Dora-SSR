@@ -22,20 +22,13 @@ jobs:
       - name: Pack
         if: startsWith(github.ref, 'refs/tags/')
         run: |
+          corepack enable
           cd Tools\dora-dora
-          yarn install --network-timeout 1000000
-          yarn build
+          pnpm install
+          pnpm build
           ren build www
           7z a -tzip ..\..\dora-ssr-windows-x86.zip www
           cd ..\..
-          cd Tools\dora-dora\3rdParty\YarnEditor
-          yarn
-          yarn build-win
-          ren dist yarn-editor
-          mkdir www
-          move yarn-editor www
-          7z a -tzip ..\..\..\..\dora-ssr-windows-x86.zip www\yarn-editor
-          cd ..\..\..\..
           xcopy Tools\dora-wa\wa.mod Assets\dora-wa\ /I /Y
           xcopy Tools\dora-wa\vendor Assets\dora-wa\vendor /I /E /Y
           (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip dora-wa && cd ..)

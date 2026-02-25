@@ -78,7 +78,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.33.5"sv;
+const std::string_view version = "0.33.6"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -436,6 +436,7 @@ private:
 	};
 	struct Scope;
 	struct ImportedGlobal {
+		Block_t* currentBlock = nullptr;
 		std::string* globalCodeLine = nullptr;
 		std::unordered_map<std::string, VarType>* vars = nullptr;
 		std::string indent;
@@ -5372,6 +5373,7 @@ private:
 								auto& scope = currentScope();
 								scope.importedGlobal = std::make_unique<ImportedGlobal>();
 								_importedGlobal = scope.importedGlobal.get();
+								_importedGlobal->currentBlock = block;
 								_importedGlobal->vars = scope.vars.get();
 								_importedGlobal->indent = indent();
 								_importedGlobal->nl = nl(stmt);
@@ -5420,7 +5422,9 @@ private:
 					transformNode();
 				}
 			}
-			if (auto importedGlobal = currentScope().importedGlobal.get()) {
+
+			if (auto importedGlobal = currentScope().importedGlobal.get();
+				importedGlobal && importedGlobal->currentBlock == block) {
 				int target = getLuaTarget(block);
 				auto attrib = target >= 504 ? " <const>"s : Empty;
 				str_list globalCodes;
@@ -9338,7 +9342,7 @@ private:
 			auto breakLoopType = getBreakLoopType(forNum->body, true, vars);
 			bool isScoped = true;
 			if (currentScope().lastStatement) {
-			 isScoped = false;
+				isScoped = false;
 			} else if (!extraVar && hasBreakWithValue(breakLoopType)) {
 				isScoped = false;
 			}
@@ -10162,9 +10166,9 @@ private:
 		_buf << indent() << "}, {"sv << nl(classDecl);
 		if (extend) {
 			_buf << indent(1) << "__index = function(cls, name)"sv << nl(classDecl);
-			_buf << indent(2) << "local val = "sv << globalVar("rawget", classDecl, AccessType::Read) << '(' << baseVar << ", name)"sv << nl(classDecl);
+			_buf << indent(2) << "local val = "sv << globalVar("rawget"sv, classDecl, AccessType::Read) << '(' << baseVar << ", name)"sv << nl(classDecl);
 			_buf << indent(2) << "if val == nil then"sv << nl(classDecl);
-			_buf << indent(3) << "local parent = "sv << globalVar("rawget", classDecl, AccessType::Read) << "(cls, \"__parent\")"sv << nl(classDecl);
+			_buf << indent(3) << "local parent = "sv << globalVar("rawget"sv, classDecl, AccessType::Read) << "(cls, \"__parent\")"sv << nl(classDecl);
 			_buf << indent(3) << "if parent then"sv << nl(classDecl);
 			_buf << indent(4) << "return parent[name]"sv << nl(classDecl);
 			_buf << indent(3) << "end"sv << nl(classDecl);
@@ -10179,7 +10183,7 @@ private:
 		pushScope();
 		auto selfVar = getUnusedName("_self_"sv);
 		addToScope(selfVar);
-		_buf << indent(1) << "local "sv << selfVar << " = "sv << globalVar("setmetatable", classDecl, AccessType::Read) << "({ }, "sv << baseVar << ")"sv << nl(classDecl);
+		_buf << indent(1) << "local "sv << selfVar << " = "sv << globalVar("setmetatable"sv, classDecl, AccessType::Read) << "({ }, "sv << baseVar << ")"sv << nl(classDecl);
 		_buf << indent(1) << "cls.__init("sv << selfVar << ", ...)"sv << nl(classDecl);
 		_buf << indent(1) << "return "sv << selfVar << nl(classDecl);
 		popScope();

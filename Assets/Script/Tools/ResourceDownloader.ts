@@ -101,14 +101,14 @@ const run = (fileName: string) => {
 	const Entry = require("Script.Dev.Entry");
 	Entry.allClear();
 	thread(() => {
-		Entry.enterEntryAsync({entryName: "Project", fileName});
+		Entry.enterEntryAsync({ entryName: "Project", fileName });
 	});
 };
 
 class ResourceDownloader {
 	private packages: PackageInfo[] = [];
 	private repos: Map<string, RepoInfo> = new Map();
-	private downloadProgress: Map<string, {progress: number, status: string}> = new Map();
+	private downloadProgress: Map<string, { progress: number, status: string }> = new Map();
 	private downloadTasks: Map<string, Job> = new Map();
 	private popupMessageTitle = "";
 	private popupMessage = "";
@@ -292,14 +292,14 @@ class ResourceDownloader {
 					if (this.cancelDownload) {
 						return true;
 					}
-					this.downloadProgress.set(pkg.name, {progress: current / total, status: downloadStatus});
+					this.downloadProgress.set(pkg.name, { progress: current / total, status: downloadStatus });
 					return false;
 				}
 			);
 
 			if (success) {
 				downloadStatus = zh ? `解压中：${pkg.name}` : `Unziping: ${pkg.name}`;
-				this.downloadProgress.set(pkg.name, {progress: 1, status: downloadStatus})
+				this.downloadProgress.set(pkg.name, { progress: 1, status: downloadStatus })
 				const unzipPath = Path(Content.writablePath, "Download", pkg.name);
 				Content.remove(unzipPath);
 				if (Content.unzipAsync(targetFile, unzipPath)) {
@@ -354,7 +354,7 @@ class ResourceDownloader {
 	}
 
 	public update() {
-		const {width, height} = App.visualSize;
+		const { width, height } = App.visualSize;
 		let filterCategory: undefined | string = undefined;
 		ImGui.SetNextWindowPos(Vec2.zero, SetCond.Always, Vec2.zero);
 		ImGui.SetNextWindowSize(Vec2(width, this.headerHeight), SetCond.Always);
@@ -447,7 +447,7 @@ class ResourceDownloader {
 				// Preview image
 				const previewTexture = this.previewTextures.get(pkg.name);
 				if (previewTexture) {
-					const {width, height} = previewTexture;
+					const { width, height } = previewTexture;
 					// 保持宽高比，适应宽度
 					const scale = (itemWidth - 30) / width;
 					const scaledSize = Vec2(width * scale, height * scale);

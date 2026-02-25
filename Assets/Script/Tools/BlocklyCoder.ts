@@ -104,8 +104,8 @@ class ChatNode extends Node {
 ${message}
 `;
 				shared.messages = [
-					{role: 'system', content: systemContent},
-					{role: 'user', content: userContent}
+					{ role: 'system', content: systemContent },
+					{ role: 'user', content: userContent }
 				];
 				resolve(undefined);
 			});
@@ -122,10 +122,10 @@ class LLMCode extends Node {
 			let allContent = '';
 			let allReasoning = '';
 			llmWorking = true;
-			const result = callLLM(messages, {temperature: 0}, {
+			const result = callLLM(messages, { temperature: 0 }, {
 				id: undefined,
 				onData: (data) => {
-					const {reasoning_content, content} = data.choices[0].delta;
+					const { reasoning_content, content } = data.choices[0].delta;
 					if (reasoning_content !== undefined) {
 						allReasoning += reasoning_content;
 					}
@@ -152,7 +152,7 @@ class LLMCode extends Node {
 	}
 	async post(shared: ChatInfo, _prepRes: Message[], execRes: string) {
 		const code = extractTSBlocks(execRes);
-		shared.messages.push({role: 'system', content: code});
+		shared.messages.push({ role: 'system', content: code });
 		return undefined;
 	}
 }
@@ -163,10 +163,10 @@ interface CompileResult {
 }
 
 const compileTS = (file: string, content: string) => {
-	const data = {name: "TranspileTS", file, content};
+	const data = { name: "TranspileTS", file, content };
 	return new Promise<CompileResult>((resolve) => {
 		if (HttpServer.wsConnectionCount == 0) {
-			resolve({success: false, result: "Web IDE not connected"});
+			resolve({ success: false, result: "Web IDE not connected" });
 			return;
 		}
 		const node = DoraNode();
@@ -176,9 +176,9 @@ const compileTS = (file: string, content: string) => {
 				const [res] = json.decode(msg);
 				if (res && res.name == "TranspileTS") {
 					if (res.success) {
-						resolve({success: true, result: res.luaCode});
+						resolve({ success: true, result: res.luaCode });
 					} else {
-						resolve({success: false, result: res.message});
+						resolve({ success: false, result: res.message });
 					}
 				}
 			}
@@ -199,11 +199,11 @@ class CompileNode extends Node {
 	}
 	async post(shared: ChatInfo, prepRes: string, execRes: CompileResult) {
 		if (execRes.success) {
-			shared.messages.push({role: 'user', content: prepRes});
+			shared.messages.push({ role: 'user', content: prepRes });
 			logs.push("代码编译成功！");
 			return "Success";
 		} else {
-			shared.messages.push({role: 'user', content: prepRes + '\n\n编译错误信息如下：\n' + execRes.result});
+			shared.messages.push({ role: 'user', content: prepRes + '\n\n编译错误信息如下：\n' + execRes.result });
 			logs.push("代码编译失败！");
 			logs.push(execRes.result);
 			return "Failed";
@@ -238,8 +238,8 @@ class FixNode extends Node {
 ${codeAndError}
 `;
 		shared.messages = [
-			{role: 'system', content: systemContent},
-			{role: 'user', content: userContent}
+			{ role: 'system', content: systemContent },
+			{ role: 'user', content: userContent }
 		];
 	}
 	async exec() {
@@ -334,7 +334,7 @@ const windowsFlags = [
 	WindowFlag.NoFocusOnAppearing,
 ];
 root.loop(() => {
-	const {width, height} = App.visualSize;
+	const { width, height } = App.visualSize;
 	ImGui.SetNextWindowPos(Vec2.zero, SetCond.Always, Vec2.zero);
 	ImGui.SetNextWindowSize(Vec2(width, height - 40), SetCond.Always);
 	ImGui.Begin("Blockly Coder", windowsFlags, () => {
@@ -348,7 +348,7 @@ root.loop(() => {
 				});
 			});
 		}
-		
+
 		ImGui.SameLine();
 		ImGui.Dummy(Vec2(width - 290, 0));
 		ImGui.SameLine();

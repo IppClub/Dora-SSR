@@ -213,63 +213,51 @@ Please select the target platform you want to build for.
 <TabItem value="macos" label="macOS">
 
 	```sh
-	cd Tools/dora-dora/3rdParty/YarnEditor && yarn && yarn build
-	rm -rf ../../public/yarn-editor
-	mv dist ../../public/yarn-editor
-	cd ../.. && yarn
-	yarn start
+	cd Tools/dora-dora && pnpm install
+	pnpm build-yarn-editor
+	pnpm start
 	```
 
-	Alternatively, you can generate the Web IDE release files, copy them to the project's `Assets/www` directory, and then start the Dora SSR engine to test the full project functionality.
+	Alternatively, you can generate the Web IDE release files for the full Dora SSR project. `pnpm build` now automatically builds and copies YarnEditor, then syncs the final Web IDE output to `Assets/www`.
 
 	```sh
-	# Ensure the previous steps of compiling and copying YarnEditor are completed
+	# `pnpm build` also syncs the final output to Assets/www automatically
 	cd Tools/dora-dora
-	yarn build
-	rm -rf ../../Assets/www
-	mv build ../../Assets/www
+	pnpm build
 	```
 
 	</TabItem>
 	<TabItem value="linux" label="Linux">
 
 	```sh
-	cd Tools/dora-dora/3rdParty/YarnEditor && yarn && yarn build-linux
-	rm -rf ../../public/yarn-editor
-	mv dist ../../public/yarn-editor
-	cd ../.. && yarn
-	yarn start
+	cd Tools/dora-dora && pnpm install
+	pnpm build-yarn-editor
+	pnpm start
 	```
 
-	Alternatively, you can generate the Web IDE release files, copy them to the project's `Assets/www` directory, and then start the Dora SSR engine to test the full project functionality.
+	Alternatively, you can generate the Web IDE release files for the full Dora SSR project. `pnpm build` now automatically builds and copies YarnEditor, then syncs the final Web IDE output to `Assets/www`.
 
 	```sh
-	# Ensure the previous steps of compiling and copying YarnEditor are completed
+	# `pnpm build` also syncs the final output to Assets/www automatically
 	cd Tools/dora-dora
-	yarn build
-	rm -rf ../../Assets/www
-	mv build ../../Assets/www
+	pnpm build
 	```
 
 </TabItem>
 <TabItem value="windows" label="Windows">
 
 	```sh
-	cd Tools\dora-dora\3rdParty\YarnEditor && yarn && yarn build-win
-	rmdir /Q /S ..\..\public\yarn-editor
-	move dist ..\..\public\yarn-editor
-	cd ..\.. && yarn install --network-timeout 1000000
-	yarn start
+	cd Tools\dora-dora && pnpm install
+	pnpm build-yarn-editor
+	pnpm start
 	```
 
-	Alternatively, you can generate the Web IDE release files, copy them to the project's `Assets/www` directory, and then start the Dora SSR engine to test the full project functionality.
+	Alternatively, you can generate the Web IDE release files for the full Dora SSR project. `pnpm build` now automatically builds and copies YarnEditor, then syncs the final Web IDE output to `Assets/www`.
 
 	```sh
-	# Ensure the previous steps of compiling and copying YarnEditor are completed
+	# `pnpm build` also syncs the final output to Assets/www automatically
 	cd Tools\dora-dora
-	yarn build
-	rmdir /Q /S ..\..\Assets\www
-	move build ..\..\Assets\www
+	pnpm build
 	```
 
 </TabItem>

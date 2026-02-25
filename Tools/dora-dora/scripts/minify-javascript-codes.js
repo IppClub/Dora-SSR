@@ -5,7 +5,7 @@ let esbuild;
 try {
   esbuild = require("esbuild");
 } catch (error) {
-  console.error("Missing esbuild. Please install it (e.g. `yarn add -D esbuild`).");
+  console.error("Missing esbuild. Please install it (e.g. `pnpm add -D esbuild`).");
   process.exit(1);
 }
 
@@ -26,7 +26,7 @@ function minifyFile(filePath) {
 }
 
 if (!fs.existsSync(typescriptPath)) {
-  console.error(`Missing build output at ${typescriptPath}. Run \`yarn build\` first.`);
+  console.error(`Missing build output at ${typescriptPath}. Run \`pnpm build\` first.`);
   process.exit(1);
 }
 
