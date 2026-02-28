@@ -2758,21 +2758,19 @@ impl GSlot {
 	///
 	/// # Callback Arguments
 	///
-	/// * event_type: string - The event type of the message received. Could be "Open", "Close", "Send", "Receive".
-	/// * msg: string - The message received.
+	/// * event: Dictionary - Event object with fields:
+	///   * `type`: string - Could be "Open", "Close", "Send", "Receive".
+	///   * `msg`: string - Message payload.
 	///
 	/// # Callback Example
 	///
 	/// ```
 	/// node.gslot(GSlot::APP_WS, Box::new(|stack| {
-	/// 	let (
-	/// 		event_type,
-	/// 		msg
-	/// 	) = match (stack.pop_str(), stack.pop_str()) {
-	/// 		(Some(event_type), Some(msg)) => (event_type, msg),
-	/// 		_ => return,
+	/// 	let event = match stack.pop_cast::<crate::dora::Dictionary>() {
+	/// 		Some(event) => event,
+	/// 		None => return,
 	/// 	};
-	/// 	p!(event_type, msg);
+	/// 	p!(event.get_keys());
 	/// }));
 	/// ```
 	pub const APP_WS: &'static str = "AppWS";
@@ -2825,21 +2823,22 @@ impl GSlot {
 	/// # Arguments
 	///
 	/// * node: &mut dyn INode - The node to register the callback on.
-	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
-	/// 	* event_type: String - The event type of the message received. Could be "Open", "Close", "Send", "Receive".
-	/// 	* msg: String - The message received.
+	/// * callback: F - The callback to be called when the event is triggered with one argument:
+	/// 	* event: Dictionary - Event object that contains `type` and `msg`.
+	///
+	/// To send AppWS, emit one Dictionary argument (for example: `{ type = "Send", msg = "..." }`).
 	pub fn on_app_ws<F>(node: &mut dyn INode, mut callback: F)
 	where
-		F: FnMut(/*event_type*/ String, /*msg*/ String) + 'static,
+		F: FnMut(/*event*/ crate::dora::Dictionary) + 'static,
 	{
 		node.gslot(
 			GSlot::APP_WS,
 			Box::new(move |stack| {
-				let (event_type, msg) = match (stack.pop_str(), stack.pop_str()) {
-					(Some(event_type), Some(msg)) => (event_type, msg),
+				let event = match stack.pop_cast::<crate::dora::Dictionary>() {
+					Some(event) => event,
 					_ => return,
 				};
-				callback(event_type, msg);
+				callback(event);
 			}),
 		);
 	}

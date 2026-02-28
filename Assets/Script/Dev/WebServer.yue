@@ -1281,10 +1281,10 @@ HttpServer\postSchedule "/ts/build", (req): success: false ->
 			if "d" ~= Path\getExt Path\getName path
 				done = false
 				with Node!
-					\gslot "AppWS", (eventType, msg) ->
-						if eventType == "Receive"
+					\gslot "AppWS", (event) ->
+						if event.type == "Receive"
 							\removeFromParent!
-							if res := json.decode msg
+							if res := json.decode event.msg
 								if res.name == "TranspileTS"
 									if res.success
 										luaFile = Path\replaceExt path, "lua"
@@ -1312,10 +1312,10 @@ HttpServer\postSchedule "/ts/build", (req): success: false ->
 				continue if "d" == Path\getExt Path\getName file
 				done = false
 				with Node!
-					\gslot "AppWS", (eventType, msg) ->
-						if eventType == "Receive"
+					\gslot "AppWS", (event) ->
+						if event.type == "Receive"
 							\removeFromParent!
-							if res := json.decode msg
+							if res := json.decode event.msg
 								if res.name == "TranspileTS"
 									if res.success
 										luaFile = Path\replaceExt file, "lua"

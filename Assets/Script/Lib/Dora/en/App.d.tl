@@ -1,6 +1,7 @@
 local Size = require("Size").Type
 local Vec2 = require("Vec2").Type
 local Color = require("Color").Type
+local Dictionary = require("Dictionary").Type
 
 -- A record representing an application singleton instance.
 local record App
@@ -171,8 +172,11 @@ local record __GSLOT__
 	-- Triggers when the application settings change. The setting name could be "Locale", "Theme", "FullScreen", "Position", "Size".
 	["AppChange"]: function(settingName: string)
 
-	-- Triggers when a websocket connection gets an event. The event type could be "Open", "Close", "Send", "Receive".
-	["AppWS"]: function(eventType: string, msg: string)
+	-- Triggers when a websocket connection gets an event.
+	-- The callback receives one object argument:
+	-- 	`event.type` could be "Open", "Close", "Send", "Receive".
+	-- 	`event.msg` contains the message payload.
+	["AppWS"]: function(event: Dictionary)
 end
 
 local app: App

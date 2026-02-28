@@ -2749,6 +2749,10 @@ export {GlobalEvent as GSlot};
 type AppEventType = "Quit" | "LowMemory" | "WillEnterBackground" | "DidEnterBackground" | "WillEnterForeground" | "DidEnterForeground" | "Shutdown";
 type AppSettingName = "Locale" | "Theme" | "FullScreen" | "Position" | "Size";
 type AppWSEventType = "Open" | "Close" | "Send" | "Receive";
+type AppWSMessage = {
+	type: AppWSEventType;
+	msg: string;
+};
 
 type GlobalEventHandlerMap = {
 	/** Triggers when the application receives an event. */
@@ -2758,7 +2762,7 @@ type GlobalEventHandlerMap = {
 	AppChange(this: void, settingName: AppSettingName): void;
 
 	/** Triggers when a websocket connection gets an event. */
-	AppWS(this: void, eventType: AppWSEventType, msg: string): void;
+	AppWS(this: void, event: AppWSMessage): void;
 };
 
 /**
@@ -3416,7 +3420,7 @@ class Node extends Object {
 	 * Registers a callback for the application websocket event.
 	 * @param callback The callback function to register.
 	 */
-	onAppWS(callback: (this: void, eventType: AppWSEventType, msg: string) => void): void;
+	onAppWS(callback: (this: void, event: AppWSMessage) => void): void;
 }
 
 export {Node as NodeType};

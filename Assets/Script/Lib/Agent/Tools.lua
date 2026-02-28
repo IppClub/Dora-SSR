@@ -367,11 +367,11 @@ function ____exports.runSingleTsTranspile(file, content, timeoutSec) -- 431
 		local listener = Node() -- 441
 		listener:gslot( -- 442
 			"AppWS", -- 442
-			function(eventType, msg) -- 442
-				if eventType ~= "Receive" then -- 442
+			function(event) -- 442
+				if event.type ~= "Receive" then -- 442
 					return -- 443
 				end -- 443
-				local res = json.decode(msg) -- 444
+				local res = json.decode(event.msg) -- 444
 				if not res or __TS__ArrayIsArray(res) or res.name ~= "TranspileTS" then -- 444
 					return -- 445
 				end -- 445

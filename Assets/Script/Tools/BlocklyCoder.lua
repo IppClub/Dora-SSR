@@ -173,10 +173,10 @@ local function compileTS(file, content) -- 165
 			local node = DoraNode() -- 172
 			node:gslot( -- 173
 				"AppWS", -- 173
-				function(eventType, msg) -- 173
-					if eventType == "Receive" then -- 173
+				function(event) -- 173
+					if event.type == "Receive" then -- 173
 						node:removeFromParent() -- 175
-						local res = json.decode(msg) -- 176
+						local res = json.decode(event.msg) -- 176
 						if res and res.name == "TranspileTS" then -- 176
 							if res.success then -- 176
 								resolve(nil, {success = true, result = res.luaCode}) -- 179

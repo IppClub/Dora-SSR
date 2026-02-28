@@ -1097,17 +1097,17 @@ setupEventHandlers = function() -- 628
 			end -- 645
 		end -- 637
 	end) -- 637
-	_with_0:onAppWS(function(eventType, msg) -- 653
-		if eventType == "Close" then -- 654
+	_with_0:onAppWS(function(event) -- 653
+		if event.type == "Close" then -- 654
 			if HttpServer.wsConnectionCount == 0 then -- 655
 				updateEntries() -- 656
 			end -- 655
 			return -- 657
 		end -- 654
-		if not (eventType == "Receive") then -- 658
+		if not (event.type == "Receive") then -- 658
 			return -- 658
 		end -- 658
-		local data = json.decode(msg) -- 659
+		local data = json.decode(event.msg) -- 659
 		if not data then -- 660
 			return -- 660
 		end -- 660
