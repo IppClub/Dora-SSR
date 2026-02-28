@@ -3525,7 +3525,7 @@ interface ClipNodeClass {
 const clipNodeClass: ClipNodeClass;
 export {clipNodeClass as ClipNode};
 
-interface SearchFilesResult {
+export interface SearchFilesResult {
 	file: string;
 	pos: number;
 	line: number;
@@ -7809,7 +7809,7 @@ interface json {
 	 * @param allowcomments 是否允许注释（默认是 false）。
 	 * @returns 表示 JSON 数据的对象，如果文本不是有效的 JSON，则返回 undefined 和错误消息。
 	 */
-	decode(this: void, json: string, maxDepth?: number, allowcomments?: boolean): LuaMultiReturn<[any, undefined]> | LuaMultiReturn<[undefined, string]>;
+	decode(this: void, json: string, maxDepth?: number, allowcomments?: boolean): LuaMultiReturn<[Record<string, any>, undefined]> | LuaMultiReturn<[any[], undefined]> | LuaMultiReturn<[undefined, string]>;
 	/**
 	 * 将指定的对象转换为 JSON 文本。
 	 * @param obj 要转换的对象。

@@ -247,10 +247,10 @@ export function openWebSocket() {
 									const {success, luaCode, diagnostics} = await transpileTypescript(file, content);
 									let data = "";
 									if (success) {
-										data = JSON.stringify({name: WsEvent.TranspileTS, success, luaCode, message: ""});
+										data = JSON.stringify({name: WsEvent.TranspileTS, success, file, luaCode, message: ""});
 									} else {
 										const message = await getDiagnosticMessage(file, diagnostics);
-										data = JSON.stringify({name: WsEvent.TranspileTS, success, luaCode: "", message});
+										data = JSON.stringify({name: WsEvent.TranspileTS, success, file, luaCode: "", message});
 									}
 									webSocket.send(new Blob([data]));
 								}

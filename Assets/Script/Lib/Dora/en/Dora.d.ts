@@ -3526,7 +3526,7 @@ interface ClipNodeClass {
 const clipNodeClass: ClipNodeClass;
 export {clipNodeClass as ClipNode};
 
-interface SearchFilesResult {
+export interface SearchFilesResult {
 	file: string;
 	pos: number;
 	line: number;
@@ -7812,7 +7812,7 @@ interface json {
 	 * @param allowcomments Whether to allow comments in the JSON text (default is false).
 	 * @returns The object representing the JSON data, or undefined with an error message if the JSON text is invalid.
 	 */
-	decode(this: void, json: string, maxDepth?: number, allowcomments?: boolean): LuaMultiReturn<[any, undefined]> | LuaMultiReturn<[undefined, string]>;
+	decode(this: void, json: string, maxDepth?: number, allowcomments?: boolean): LuaMultiReturn<[Record<string, any>, undefined]> | LuaMultiReturn<[any[], undefined]> | LuaMultiReturn<[undefined, string]>;
 	/**
 	 * Converts the specified object to JSON text.
 	 * @param obj The object to convert.

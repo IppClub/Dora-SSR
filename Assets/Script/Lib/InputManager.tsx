@@ -106,11 +106,11 @@ class KeyUpTrigger extends Trigger {
 			}
 			this.keyStates.set(keyName, false);
 			if (oldState) {
-					this.state = TriggerState.Completed;
-					if (this.onChange) {
-						this.onChange();
-					}
-					this.state = TriggerState.None;
+				this.state = TriggerState.Completed;
+				if (this.onChange) {
+					this.onChange();
+				}
+				this.state = TriggerState.None;
 			}
 		};
 	}
@@ -552,11 +552,11 @@ class ButtonUpTrigger extends Trigger {
 			}
 			this.buttonStates.set(buttonName, false);
 			if (oldState) {
-					this.state = TriggerState.Completed;
-					if (this.onChange) {
-						this.onChange();
-					}
-					this.state = TriggerState.None;
+				this.state = TriggerState.Completed;
+				if (this.onChange) {
+					this.onChange();
+				}
+				this.state = TriggerState.None;
 			}
 		};
 	}
@@ -1377,7 +1377,7 @@ class InputManager {
 	private contextMap: Map<string, InputAction[]>;
 	private contextStack: string[][];
 
-	constructor(contexts: {[contextName: string]: {[actionName: string]: Trigger}}) {
+	constructor(contexts: { [contextName: string]: { [actionName: string]: Trigger } }) {
 		this.manager = Node();
 		this.contextMap = new Map();
 		for (let [contextName, actionMap] of pairs(contexts)) {
@@ -1386,10 +1386,10 @@ class InputManager {
 				const name = actionName as string;
 				const eventName = `Input.${name}`;
 				trigger.onChange = () => {
-					const {state, progress, value} = trigger;
+					const { state, progress, value } = trigger;
 					emit(eventName, state, progress, value);
 				};
-				actions.push({name, trigger});
+				actions.push({ name, trigger });
 			}
 			this.contextMap.set(contextName as string, actions);
 		}
@@ -1514,7 +1514,7 @@ class InputManager {
 	}
 }
 
-export function CreateManager(this: void, contexts: {[contextName: string]: {[actionName: string]: Trigger}}): InputManager {
+export function CreateManager(this: void, contexts: { [contextName: string]: { [actionName: string]: Trigger } }): InputManager {
 	return new InputManager(contexts);
 }
 
@@ -1561,14 +1561,14 @@ export function DPad(props: DPadProps) {
 						Vec2(hw, hw),
 						Vec2.zero,
 						Vec2(-hw, hw)
-					]} fillColor={color}/>
+					]} fillColor={color} />
 				</draw-node>
 			</node>
 		);
 	}
 
 	function onMount(this: void, buttonName: ButtonName) {
-		return function(this: void, node: Node.Type) {
+		return function (this: void, node: Node.Type) {
 			node.slot(Slot.TapBegan, () => props.inputManager.emitButtonDown(buttonName));
 			node.slot(Slot.TapEnded, () => props.inputManager.emitButtonUp(buttonName));
 		};
@@ -1602,7 +1602,7 @@ export function DPad(props: DPadProps) {
 		const menu = up.current.parent;
 		if (!menu) return;
 		const wp = menu.convertToWorldSpace(touch.location);
-		let {x, y} = center.current.convertToNodeSpace(wp);
+		let { x, y } = center.current.convertToNodeSpace(wp);
 		const hw = (width + offset * 2) / 2;
 		x -= hw; y -= hw;
 		const angle = math.deg(math.atan(y, x));
@@ -1618,12 +1618,12 @@ export function DPad(props: DPadProps) {
 	};
 
 	return (
-		<align-node style={{width: halfSize * 2, height: halfSize * 2}}>
+		<align-node style={{ width: halfSize * 2, height: halfSize * 2 }}>
 			<menu x={halfSize} y={halfSize} width={halfSize * 2} height={halfSize * 2}>
-				<DPadButton ref={up} x={halfSize} y={dOffset + halfSize} onMount={onMount(ButtonName.Up)}/>
-				<DPadButton ref={down} x={halfSize} y={-dOffset + halfSize} angle={180} onMount={onMount(ButtonName.Down)}/>
-				<DPadButton ref={right} x={dOffset + halfSize} y={halfSize} angle={90} onMount={onMount(ButtonName.Right)}/>
-				<DPadButton ref={left} x={-dOffset + halfSize} y={halfSize} angle={-90} onMount={onMount(ButtonName.Left)}/>
+				<DPadButton ref={up} x={halfSize} y={dOffset + halfSize} onMount={onMount(ButtonName.Up)} />
+				<DPadButton ref={down} x={halfSize} y={-dOffset + halfSize} angle={180} onMount={onMount(ButtonName.Down)} />
+				<DPadButton ref={right} x={dOffset + halfSize} y={halfSize} angle={90} onMount={onMount(ButtonName.Right)} />
+				<DPadButton ref={left} x={-dOffset + halfSize} y={halfSize} angle={-90} onMount={onMount(ButtonName.Left)} />
 				<node ref={center} x={halfSize} y={halfSize} width={width + offset * 2} height={width + offset * 2}
 					onTapBegan={touch => touchForButton(touch)}
 					onTapMoved={touch => touchForButton(touch)}
@@ -1636,7 +1636,7 @@ export function DPad(props: DPadProps) {
 
 export function CreateDPad(this: void, props: DPadProps): Node.Type {
 	return toNode(
-		<DPad {...props}/>
+		<DPad {...props} />
 	) as Node.Type;
 }
 
@@ -1675,7 +1675,7 @@ function Button(props: ButtonProps) {
 			}}
 		>
 			<draw-node ref={drawNode} x={buttonSize} y={buttonSize} opacity={primaryOpacity}>
-				<dot-shape radius={buttonSize} color={color}/>
+				<dot-shape radius={buttonSize} color={color} />
 			</draw-node>
 			<label x={buttonSize} y={buttonSize} scaleX={0.5} scaleY={0.5} color3={color} opacity={primaryOpacity + 0.2}
 				fontName={fontName} fontSize={buttonSize * 2}>{text}</label>
@@ -1730,10 +1730,10 @@ export function JoyStick(props: JoyStickProps) {
 	}
 
 	return (
-		<align-node style={{width: moveSize * 2, height: moveSize * 2}}>
+		<align-node style={{ width: moveSize * 2, height: moveSize * 2 }}>
 			<node x={moveSize} y={moveSize}
 				onTapFilter={(touch) => {
-					const {location} = touch;
+					const { location } = touch;
 					if (location.length > moveSize) {
 						touch.enabled = false;
 					}
@@ -1758,10 +1758,10 @@ export function JoyStick(props: JoyStickProps) {
 				}}
 			>
 				<draw-node opacity={secondaryOpacity}>
-					<dot-shape radius={moveSize} color={color}/>
+					<dot-shape radius={moveSize} color={color} />
 				</draw-node>
 				<draw-node ref={hat} opacity={primaryOpacity}>
-					<dot-shape radius={hatSize} color={color}/>
+					<dot-shape radius={hatSize} color={color} />
 				</draw-node>
 			</node>
 			{props.noStickButton ? undefined :
@@ -1769,7 +1769,7 @@ export function JoyStick(props: JoyStickProps) {
 					buttonSize={buttonSize}
 					x={moveSize}
 					y={moveSize * 2 + buttonSize / 2 + 20}
-					text={stickType === JoyStickType.Left? "LS" : "RS"}
+					text={stickType === JoyStickType.Left ? "LS" : "RS"}
 					fontName={fontName}
 					color={color}
 					primaryOpacity={primaryOpacity}
@@ -1803,13 +1803,13 @@ export function ButtonPad(props: ButtonPadProps) {
 	const width = buttonSize * 5 + buttonPadding * 3 / 2;
 	const height = buttonSize * 4 + buttonPadding;
 	function onMount(this: void, buttonName: ButtonName) {
-		return function(this: void, node: Node.Type) {
+		return function (this: void, node: Node.Type) {
 			node.slot(Slot.TapBegan, () => props.inputManager.emitButtonDown(buttonName));
 			node.slot(Slot.TapEnded, () => props.inputManager.emitButtonUp(buttonName));
 		};
 	}
 	return (
-		<align-node style={{width, height}}>
+		<align-node style={{ width, height }}>
 			<node
 				x={(buttonSize + buttonPadding / 2) / 2 + width / 2}
 				y={buttonSize + buttonPadding / 2 + height / 2}
@@ -1823,7 +1823,7 @@ export function ButtonPad(props: ButtonPadProps) {
 				<Button text='Y' fontName={fontName}
 					color={color} primaryOpacity={primaryOpacity}
 					buttonSize={buttonSize}
-					onMount={onMount(ButtonName.Y)}/>
+					onMount={onMount(ButtonName.Y)} />
 				<Button text='A' fontName={fontName}
 					color={color} primaryOpacity={primaryOpacity}
 					buttonSize={buttonSize}
@@ -1845,7 +1845,7 @@ export function ButtonPad(props: ButtonPadProps) {
 
 export function CreateButtonPad(this: void, props: ButtonPadProps): Node.Type {
 	return toNode(
-		<ButtonPad {...props}/>
+		<ButtonPad {...props} />
 	) as Node.Type;
 }
 
@@ -1864,7 +1864,7 @@ export function ControlPad(props: ControlPadProps) {
 		color = 0xffffffff,
 		primaryOpacity = 0.3,
 	} = props;
-	function Button(props: JSX.Node & {text: string}) {
+	function Button(props: JSX.Node & { text: string }) {
 		const drawNode = useRef<DrawNode.Type>();
 		return (
 			<node {...props} width={buttonSize * 2} height={buttonSize}
@@ -1880,7 +1880,7 @@ export function ControlPad(props: ControlPadProps) {
 				}}
 			>
 				<draw-node ref={drawNode} x={buttonSize} y={buttonSize / 2} opacity={primaryOpacity}>
-					<rect-shape width={buttonSize * 2} height={buttonSize} fillColor={color}/>
+					<rect-shape width={buttonSize * 2} height={buttonSize} fillColor={color} />
 				</draw-node>
 				<label x={buttonSize} y={buttonSize / 2} scaleX={0.5} scaleY={0.5}
 					fontName={fontName}
@@ -1889,20 +1889,20 @@ export function ControlPad(props: ControlPadProps) {
 		);
 	}
 	function onMount(this: void, buttonName: ButtonName) {
-		return function(this: void, node: Node.Type) {
+		return function (this: void, node: Node.Type) {
 			node.slot(Slot.TapBegan, () => props.inputManager.emitButtonDown(buttonName));
 			node.slot(Slot.TapEnded, () => props.inputManager.emitButtonUp(buttonName));
 		};
 	}
 	return (
-		<align-node style={{minWidth: buttonSize * 4 + 20, justifyContent: 'space-between', flexDirection: 'row'}}>
-			<align-node style={{width: buttonSize * 2, height: buttonSize}}>
+		<align-node style={{ minWidth: buttonSize * 4 + 20, justifyContent: 'space-between', flexDirection: 'row' }}>
+			<align-node style={{ width: buttonSize * 2, height: buttonSize }}>
 				<Button text='Start'
 					x={buttonSize} y={buttonSize / 2}
 					onMount={onMount(ButtonName.Start)}
 				/>
 			</align-node>
-			<align-node style={{width: buttonSize * 2, height: buttonSize}}>
+			<align-node style={{ width: buttonSize * 2, height: buttonSize }}>
 				<Button text='Back'
 					x={buttonSize} y={buttonSize / 2}
 					onMount={onMount(ButtonName.Back)}
@@ -1914,7 +1914,7 @@ export function ControlPad(props: ControlPadProps) {
 
 export function CreateControlPad(this: void, props: ControlPadProps): Node.Type {
 	return toNode(
-		<ControlPad {...props}/>
+		<ControlPad {...props} />
 	) as Node.Type;
 }
 
@@ -1934,7 +1934,7 @@ export function TriggerPad(props: TriggerPadProps) {
 		color = 0xffffffff,
 		primaryOpacity = 0.3,
 	} = props;
-	function Button(props: JSX.Node & {text: string}) {
+	function Button(props: JSX.Node & { text: string }) {
 		const drawNode = useRef<DrawNode.Type>();
 		return (
 			<node {...props} width={buttonSize * 2} height={buttonSize}
@@ -1950,7 +1950,7 @@ export function TriggerPad(props: TriggerPadProps) {
 				}}
 			>
 				<draw-node ref={drawNode} x={buttonSize} y={buttonSize / 2} opacity={primaryOpacity}>
-					<rect-shape width={buttonSize * 2} height={buttonSize} fillColor={color}/>
+					<rect-shape width={buttonSize * 2} height={buttonSize} fillColor={color} />
 				</draw-node>
 				<label x={buttonSize} y={buttonSize / 2} scaleX={0.5} scaleY={0.5}
 					fontName={fontName} fontSize={math.floor(buttonSize * 1.5)} color3={color} opacity={primaryOpacity + 0.2}>{props.text}</label>
@@ -1958,20 +1958,20 @@ export function TriggerPad(props: TriggerPadProps) {
 		);
 	}
 	function onMountAxis(this: void, axisName: AxisName) {
-		return function(this: void, node: Node.Type) {
+		return function (this: void, node: Node.Type) {
 			node.slot(Slot.TapBegan, () => props.inputManager.emitAxis(axisName, 1, 0));
 			node.slot(Slot.TapEnded, () => props.inputManager.emitAxis(axisName, 0, 0));
 		};
 	}
 	function onMountButton(this: void, buttonName: ButtonName) {
-		return function(this: void, node: Node.Type) {
+		return function (this: void, node: Node.Type) {
 			node.slot(Slot.TapBegan, () => props.inputManager.emitButtonDown(buttonName, 0));
 			node.slot(Slot.TapEnded, () => props.inputManager.emitButtonUp(buttonName, 0));
 		};
 	}
 	return (
-		<align-node style={{minWidth: buttonSize * 4 + 20, justifyContent: 'space-between', flexDirection: 'row'}}>
-			<align-node style={{width: buttonSize * 4 + 10, height: buttonSize}}>
+		<align-node style={{ minWidth: buttonSize * 4 + 20, justifyContent: 'space-between', flexDirection: 'row' }}>
+			<align-node style={{ width: buttonSize * 4 + 10, height: buttonSize }}>
 				<Button text='LT'
 					x={buttonSize} y={buttonSize / 2}
 					onMount={onMountAxis(AxisName.LeftTrigger)}
@@ -1983,7 +1983,7 @@ export function TriggerPad(props: TriggerPadProps) {
 					/>
 				}
 			</align-node>
-			<align-node style={{width: buttonSize * 4 + 10, height: buttonSize}}>
+			<align-node style={{ width: buttonSize * 4 + 10, height: buttonSize }}>
 				{props.noShoulder ? undefined :
 					<Button text='RB'
 						x={buttonSize} y={buttonSize / 2}
@@ -2001,7 +2001,7 @@ export function TriggerPad(props: TriggerPadProps) {
 
 export function CreateTriggerPad(this: void, props: TriggerPadProps): Node.Type {
 	return toNode(
-		<TriggerPad {...props}/>
+		<TriggerPad {...props} />
 	) as Node.Type;
 }
 
@@ -2021,9 +2021,9 @@ export interface GamePadProps {
 }
 
 export function GamePad(props: GamePadProps) {
-	const {color, primaryOpacity, secondaryOpacity, inputManager} = props;
+	const { color, primaryOpacity, secondaryOpacity, inputManager } = props;
 	return (
-		<align-node style={{flexDirection: 'column-reverse'}} windowRoot>
+		<align-node style={{ flexDirection: 'column-reverse' }} windowRoot>
 			<align-node style={{
 				margin: 20,
 				justifyContent: 'space-between',
@@ -2043,7 +2043,7 @@ export function GamePad(props: GamePadProps) {
 						/>
 					}
 					{props.noLeftStick ? undefined : <>
-						<align-node style={{width: 10}}/>
+						<align-node style={{ width: 10 }} />
 						<JoyStick
 							stickType={JoyStickType.Left}
 							color={color}
@@ -2068,7 +2068,7 @@ export function GamePad(props: GamePadProps) {
 							inputManager={inputManager}
 							noStickButton={props.noStickButton}
 						/>
-						<align-node style={{width: 10}}/>
+						<align-node style={{ width: 10 }} />
 					</>}
 					{props.noButtonPad ? undefined :
 						<ButtonPad
@@ -2080,7 +2080,7 @@ export function GamePad(props: GamePadProps) {
 				</align-node>
 			</align-node>
 			{props.noTriggerPad ? undefined :
-				<align-node style={{paddingLeft: 20, paddingRight: 20, paddingTop: 20}}>
+				<align-node style={{ paddingLeft: 20, paddingRight: 20, paddingTop: 20 }}>
 					<TriggerPad
 						color={color}
 						noShoulder={props.noShoulder}
@@ -2090,7 +2090,7 @@ export function GamePad(props: GamePadProps) {
 				</align-node>
 			}
 			{props.noControlPad ? undefined :
-				<align-node style={{paddingLeft: 20, paddingRight: 20}}>
+				<align-node style={{ paddingLeft: 20, paddingRight: 20 }}>
 					<ControlPad
 						color={color}
 						primaryOpacity={primaryOpacity}
@@ -2104,6 +2104,6 @@ export function GamePad(props: GamePadProps) {
 
 export function CreateGamePad(this: void, props: GamePadProps): Node.Type {
 	return toNode(
-		<GamePad {...props}/>
+		<GamePad {...props} />
 	) as Node.Type;
 }

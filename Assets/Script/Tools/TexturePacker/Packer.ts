@@ -45,7 +45,7 @@ function CreatePacker() {
 			const len = blocks.length;
 			const w = len > 0 ? blocks[0].w : 0;
 			const h = len > 0 ? blocks[0].h : 0;
-			this.root = {x: 0, y: 0, w, h};
+			this.root = { x: 0, y: 0, w, h };
 			for (let block of blocks) {
 				const node = this.findNode(this.root, block.w, block.h);
 				if (node) {

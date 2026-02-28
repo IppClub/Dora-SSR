@@ -16,7 +16,7 @@ import Info from './Info';
 
 const { path } = Info;
 
-const codeExtensions = [".lua", ".tl", ".yue", ".ts", ".tsx", ".xml", ".md", ".yarn", ".vs", ".wa", ".mod"];
+const codeExtensions = [".lua", ".tl", ".yue", ".ts", ".tsx", ".xml", ".md", ".yarn", ".wa", ".mod"];
 const extensionLevels: Record<string, number> = {
 	vs: 2,
 	bl: 2,

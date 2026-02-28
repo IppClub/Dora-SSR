@@ -451,12 +451,12 @@ int Content_searchFilesAsync(lua_State* L) {
 				lua_pop(L, 1);
 			}
 		}
-		std::vector<std::string> excludes;
+		std::vector<std::string> globs;
 		if (lua_istable(L, 5) != 0) {
 			int length = s_cast<int>(lua_rawlen(L, 5));
 			for (int i = 0; i < length; i++) {
 				lua_geti(L, 5, i + 1);
-				excludes.push_back(tolua_toslice(L, -1, nullptr).toString());
+				globs.push_back(tolua_toslice(L, -1, nullptr).toString());
 				lua_pop(L, 1);
 			}
 		}
@@ -467,7 +467,7 @@ int Content_searchFilesAsync(lua_State* L) {
 		int contentWindow = s_cast<int>(tolua_tonumber(L, 10, 0));
 		Ref<LuaHandler> handler(LuaHandler::create(tolua_ref_function(L, 11)));
 
-		self->searchFilesAsync(path, std::move(exts), std::move(extensionLevels), std::move(excludes), pattern, useRegex, caseSensitive, includeContent, contentWindow, [handler](Content::SearchResult&& res) {
+		self->searchFilesAsync(path, std::move(exts), std::move(extensionLevels), std::move(globs), pattern, useRegex, caseSensitive, includeContent, contentWindow, [handler](Content::SearchResult&& res) {
 			auto L = SharedLuaEngine.getState();
 			if (res.file.empty()) {
 				lua_pushnil(L);

@@ -206,7 +206,7 @@ declare namespace Gen {
 	export const TouchGetLocation: (touchVar: string) => Blk;
 	export const TouchGetWorldLocation: (touchVar: string) => Blk;
 	export const toBlocklyJSON: (root: Blk, procs?: Blk[]) => string;
-	export {};
+	export { };
 }
 export default Gen;
 

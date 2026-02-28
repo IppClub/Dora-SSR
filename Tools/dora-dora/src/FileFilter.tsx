@@ -51,9 +51,9 @@ const FileFilter = (props: FileFilterProps) => {
 				}
 			}} {...params} label={t("popup.goToFile")}/>}
 		renderOption={(props, option) => {
-			delete props.key;
+			const { key, ...liProps } = props;
 			return (
-				<li key={option.fileKey} {...props as Omit<typeof props, "key">}>
+				<li key={option.fileKey} {...liProps}>
 					{option.title}&emsp;&emsp;
 					<p style={{textAlign: 'right', color: Color.TextSecondary, fontSize: '12px'}}>{option.path}</p>
 				</li>

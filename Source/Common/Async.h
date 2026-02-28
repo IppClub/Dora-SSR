@@ -8,12 +8,17 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
+#include <atomic>
+#include <mutex>
+
 #include "Event/EventQueue.h"
 #include "Support/Value.h"
 
 #include "bx/thread.h"
 
 NS_DORA_BEGIN
+
+class AsyncThread;
 
 /** @brief get a worker runs in another thread and returns a result,
  get a finisher receives the result and runs in main thread. */
@@ -22,6 +27,7 @@ class Async : public NonCopyable {
 	using Work = std::function<void()>;
 	using WorkPtr = Own<Work>;
 	using WorkDonePtr = Own<WorkDone>;
+	friend class AsyncThread;
 
 public:
 	Async();
@@ -34,7 +40,12 @@ public:
 	static int work(bx::Thread* thread, void* userData);
 
 private:
+	void bindPool(AsyncThread* pool, size_t index);
+	Own<QEvent> pollWorkerEvent();
+	void notifyWorker();
+	bool processWorkerEvent(Own<QEvent> event, Async* owner);
 	void initThreadOnce();
+	bool isPoolWorker() const;
 	bool _scheduled;
 	bx::Thread _thread;
 	bx::Semaphore _workerSemaphore;
@@ -42,11 +53,17 @@ private:
 	std::once_flag _initThreadFlag;
 	EventQueue _workerEvent;
 	EventQueue _finisherEvent;
+	std::mutex _stopMutex;
+	std::atomic_bool _stopped;
+	AsyncThread* _pool;
+	size_t _poolIndex;
 };
 
 class AsyncThread : public NonCopyable {
+	friend class Async;
 public:
 	AsyncThread();
+	~AsyncThread();
 	Async& getProcess(int index);
 	Async* newThread();
 	void run(const std::function<Own<Values>()>& worker, const std::function<void(Own<Values>)>& finisher);
@@ -61,7 +78,16 @@ public:
 	}
 #endif // BX_PLATFORM_WINDOWS
 private:
+	bool popTask(size_t workerIndex, Async*& source, Own<QEvent>& event);
+	void notifyTaskPosted();
+	bool isStopping() const;
+	void waitForTask();
+	size_t processCount() const;
+	void notifyAllWorkers();
 	std::atomic<size_t> _nextProcess;
+	std::atomic<size_t> _nextStealFrom;
+	std::atomic_bool _stopping;
+	bx::Semaphore _workSemaphore;
 	OwnVector<Async> _process;
 	OwnVector<Async> _userThreads;
 	SINGLETON_REF(AsyncThread, Director);

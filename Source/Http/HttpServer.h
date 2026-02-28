@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include <chrono>
+#include <atomic>
 #include <mutex>
 #include <unordered_map>
 
@@ -129,9 +130,8 @@ protected:
 	HttpClient();
 
 private:
-	Async* _requestThread;
 	Async* _downloadThread;
-	bool _stopped;
+	std::atomic_bool _stopped;
 	SINGLETON_REF(HttpClient, AsyncThread, Director);
 };
 
