@@ -26,7 +26,6 @@ include_directories(
 	../../Source/3rdParty/sqlite
 	../../Source/3rdParty/dragonBones
 	../../Source/3rdParty/wasm3
-	../../Source/3rdParty/asio
 	../../Source/3rdParty/Zip/zlib
 	../../Source/3rdParty/Effekseer
 	../../Source/3rdParty/h264bsd

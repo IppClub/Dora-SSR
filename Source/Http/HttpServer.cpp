@@ -24,13 +24,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #define CPPHTTPLIB_ZLIB_SUPPORT
 #include "httplib/httplib.h"
 
-#define ASIO_STANDALONE
-#include "asio.hpp"
-
-#include "websocketpp/config/asio_no_tls.hpp"
-
-#include "websocketpp/server.hpp"
-
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 
@@ -38,9 +31,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "openssl/evp.h"
 #include "openssl/hmac.h"
-
-namespace ws = websocketpp;
-namespace wsl = websocketpp::lib;
 
 #if BX_PLATFORM_LINUX
 #include <limits.h>
@@ -59,8 +49,10 @@ namespace fs = std::filesystem;
 #include <atomic>
 #include <algorithm>
 #include <chrono>
+#include <condition_variable>
 #include <cstdlib>
 #include <mutex>
+#include <set>
 #include <string_view>
 #include <unordered_map>
 #include <vector>
@@ -243,7 +235,7 @@ static std::vector<std::pair<std::string, std::string>> parse_query_pairs(const 
 	return params;
 }
 
-static Dictionary* makeAppWSMessage(String type, const std::string& msg = std::string{}) {
+static Dictionary* makeAppWSMessage(String type, std::string&& msg = std::string{}) {
 	auto payload = Dictionary::create();
 	payload->set("type"_slice, Value::alloc(type.toString()));
 	payload->set("msg"_slice, Value::alloc(msg));
@@ -251,8 +243,14 @@ static Dictionary* makeAppWSMessage(String type, const std::string& msg = std::s
 }
 
 class WebSocketServer {
-	using Server = websocketpp::server<websocketpp::config::asio>;
-	using ConnectionSet = std::set<ws::connection_hdl, std::owner_less<ws::connection_hdl>>;
+	struct Connection {
+		explicit Connection(httplib::ws::WebSocket* ws)
+			: webSocket(ws) { }
+		httplib::ws::WebSocket* webSocket = nullptr;
+		std::mutex lock;
+	};
+	using ConnectionPtr = std::shared_ptr<Connection>;
+	using ConnectionSet = std::set<ConnectionPtr>;
 
 public:
 	explicit WebSocketServer(HttpServer* owner)
@@ -264,28 +262,23 @@ public:
 	}
 
 	int getConnectionCount() const {
+		std::lock_guard<std::mutex> guard(_connectionLock);
 		return s_cast<int>(_connections.size());
 	}
 
 	bool init() {
-		try {
-			_server.set_access_channels(ws::log::alevel::none);
-			_server.set_error_channels(ws::log::elevel::none);
-			_server.init_asio();
-		} catch (const std::exception& e) {
-			Error("failed to init asio! {}", e.what());
-			return false;
-		}
 		return true;
 	}
 
 	void send(const std::string& msg) {
-		wsl::lock_guard<wsl::mutex> guard(_connectionLock);
-		wsl::error_code ec;
-		for (const auto& hdl : _connections) {
-			_server.send(hdl, msg, ws::frame::opcode::BINARY, ec);
-			if (ec) {
-				Error("failed to send message to websocket connection! {}", ec.message());
+		auto connections = snapshotConnections();
+		for (const auto& connection : connections) {
+			if (!connection) continue;
+			std::lock_guard<std::mutex> guard(connection->lock);
+			if (connection->webSocket && connection->webSocket->is_open()) {
+				if (!connection->webSocket->send(msg.data(), msg.size())) {
+					Error("failed to send message to websocket connection!");
+				}
 			}
 		}
 	}
@@ -304,90 +297,110 @@ public:
 
 	bool start(int port) {
 		try {
-			_server.set_validate_handler([this](ws::connection_hdl hdl) {
-				if (!_owner || !_owner->_authRequired) {
-					return true;
+			_server.WebSocket(".*", [this](const httplib::Request& req, httplib::ws::WebSocket& ws) {
+				auto resource = req.target.empty() ? req.path : req.target;
+				if (_owner && _owner->_authRequired && !_owner->isWebSocketAuthorized(resource)) {
+					ws.close(httplib::ws::CloseStatus::PolicyViolation, "unauthorized"s);
+					return;
 				}
-				auto con = _server.get_con_from_hdl(hdl);
-				return _owner->isWebSocketAuthorized(con->get_resource());
-			});
-			_server.set_message_handler([this](ws::connection_hdl hdl, Server::message_ptr msg) {
-				if (ws::frame::opcode::BINARY == msg->get_opcode()) {
-					auto message = std::make_shared<std::string>(msg->get_payload());
-					SharedApplication.invokeInLogic([message = std::move(message)]() {
-						Event::send("AppWS"sv, makeAppWSMessage("Receive"_slice, std::move(*message)));
-					});
-				}
-			});
-			_server.set_open_handler([this](ws::connection_hdl hdl) {
+				auto connection = std::make_shared<Connection>(&ws);
 				{
-					wsl::lock_guard<wsl::mutex> guard(_connectionLock);
-					_connections.insert(hdl);
+					std::lock_guard<std::mutex> guard(_connectionLock);
+					_connections.insert(connection);
 				}
 				SharedApplication.invokeInLogic([]() {
 					Event::send("AppWS"sv, makeAppWSMessage("Open"_slice));
 				});
-			});
-			_server.set_close_handler([this](ws::connection_hdl hdl) {
+				std::string msg;
+				httplib::ws::ReadResult ret;
+				while ((ret = ws.read(msg))) {
+					if (ret == httplib::ws::Binary) {
+						auto message = std::make_shared<std::string>(std::move(msg));
+						SharedApplication.invokeInLogic([message = std::move(message)]() {
+							Event::send("AppWS"sv, makeAppWSMessage("Receive"_slice, std::move(*message)));
+						});
+					}
+				}
 				{
-					wsl::lock_guard<wsl::mutex> guard(_connectionLock);
-					_connections.erase(hdl);
+					std::lock_guard<std::mutex> guard(connection->lock);
+					connection->webSocket = nullptr;
+				}
+				{
+					std::lock_guard<std::mutex> guard(_connectionLock);
+					_connections.erase(connection);
 				}
 				SharedApplication.invokeInLogic([]() {
 					Event::send("AppWS"sv, makeAppWSMessage("Close"_slice));
 				});
 			});
-			_server.set_reuse_addr(true);
-			_server.listen(port);
-			_server.start_accept();
+			if (!_server.bind_to_port("0.0.0.0", port)) {
+				Error("failed to bind websocket server port {}!", port);
+				return false;
+			}
+			{
+				std::lock_guard<std::mutex> guard(_shutdownLock);
+				_stopped = false;
+			}
 			_thread->run([this]() {
-				_server.run();
+				if (!_server.listen_after_bind()) {
+					Error("websocket server failed to start");
+				}
+				{
+					std::lock_guard<std::mutex> guard(_shutdownLock);
+					_stopped = true;
+				}
 				_waitForShutdown.notify_all();
 			});
 			LogHandler += std::make_pair(this, &WebSocketServer::sendLog);
 			return true;
-		} catch (const websocketpp::exception& e) {
-			Error("failed to start websocket server! {}", e.what());
-			return false;
 		} catch (const std::exception& e) {
-			Error("unexpected exception from websocket! {}", e.what());
+			Error("failed to start websocket server! {}", e.what());
 			return false;
 		}
 	}
 
 	void stop() {
-		if (_server.is_listening()) {
-			wsl::unique_lock<wsl::mutex> lock(_shutdownLock);
-			wsl::error_code ec;
-			_server.stop_listening(ec);
-			if (ec) {
-				Error("failed to stop websocket listening! {}", ec.message());
-			}
-			{
-				wsl::lock_guard<wsl::mutex> guard(_connectionLock);
-				for (auto hdl : _connections) {
-					if (!hdl.expired()) {
-						_server.close(hdl, websocketpp::close::status::going_away, "shutting down"s, ec);
-						if (ec) {
-							Error("failed to close websocket connection! {}", ec.message());
-						}
-					}
+		bool needStop = false;
+		{
+			std::lock_guard<std::mutex> guard(_shutdownLock);
+			needStop = !_stopped;
+		}
+		if (needStop) {
+			auto connections = snapshotConnections();
+			for (const auto& connection : connections) {
+				if (!connection) continue;
+				std::lock_guard<std::mutex> guard(connection->lock);
+				if (connection->webSocket && connection->webSocket->is_open()) {
+					connection->webSocket->close(httplib::ws::CloseStatus::GoingAway, "shutting down"s);
 				}
-				_connections.clear();
 			}
-			_waitForShutdown.wait(lock);
+			_server.stop();
+			std::unique_lock<std::mutex> lock(_shutdownLock);
+			_waitForShutdown.wait(lock, [this]() { return _stopped; });
 		}
 		LogHandler -= std::make_pair(this, &WebSocketServer::sendLog);
 	}
 
 private:
+	std::vector<ConnectionPtr> snapshotConnections() const {
+		std::vector<ConnectionPtr> connections;
+		std::lock_guard<std::mutex> guard(_connectionLock);
+		connections.reserve(_connections.size());
+		for (const auto& connection : _connections) {
+			connections.push_back(connection);
+		}
+		return connections;
+	}
+
+private:
 	Async* _thread;
 	HttpServer* _owner;
-	Server _server;
+	httplib::Server _server;
 	ConnectionSet _connections;
-	wsl::mutex _connectionLock;
-	wsl::mutex _shutdownLock;
-	wsl::condition_variable _waitForShutdown;
+	mutable std::mutex _connectionLock;
+	mutable std::mutex _shutdownLock;
+	std::condition_variable _waitForShutdown;
+	bool _stopped = true;
 };
 
 HttpServer::Response::Response(HttpServer::Response&& res)

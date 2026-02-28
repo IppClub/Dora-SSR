@@ -45,8 +45,6 @@ THE OPEN SOURCE SOFTWARE IN THIS PRODUCT IS DISTRIBUTED IN THE HOPE THAT IT WILL
 - [utf8](http://bjoern.hoehrmann.de/utf-8/decoder/dfa): [MIT License](http://bjoern.hoehrmann.de/utf-8/decoder/dfa)
 - [septbr/xlsxtext](https://github.com/septbr/xlsxtext): [MIT License](Source/3rdParty/Other/LICENSE-xlsxtext)
 - [timniederhausen/rapidxml](https://github.com/timniederhausen/rapidxml): [MIT License](Source/3rdParty/Other/LICENSE-rapidxml)
-- [asio](https://github.com/chriskohlhoff/asio): [Boost Software License](Source/3rdParty/asio/LICENSE_1_0.txt)
-- [websocketpp](https://github.com/zaphoyd/websocketpp): [BSD-3 License](Source/3rdParty/websocketpp/COPYING.txt)
 - ZipUtils([Cocos2d-x](https://github.com/cocos2d/cocos2d-x/tree/v2/cocos2dx/support/zip_support)): [MIT License](Source/3rdParty/Zip/LICENSE-ZipUtils)
 - [AcfDelegate](https://www.codeproject.com/articles/11464/yet-another-c-style-delegate-class-in-standard-c): [AcfDelegate License](Source/3rdParty/Other/LICENSE-AcfDelegate)
 - [teal-language](https://github.com/teal-language/tl): [MIT License](Source/Lua/Builtin/LICENSE-tl)
