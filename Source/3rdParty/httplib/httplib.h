@@ -338,7 +338,7 @@ using socket_t = int;
     !defined(CPPHTTPLIB_DISABLE_MACOSX_AUTOMATIC_ROOT_CERTIFICATES) &&         \
     (defined(CPPHTTPLIB_OPENSSL_SUPPORT) ||                                    \
      defined(CPPHTTPLIB_MBEDTLS_SUPPORT) ||                                    \
-     defined(CPPHTTPLIB_WOLFSSL_SUPPORT))
+     defined(CPPHTTPLIB_WOLFSSL_SUPPORT)) && BX_PLATFORM_OSX
 #ifndef CPPHTTPLIB_USE_CERTS_FROM_MACOSX_KEYCHAIN
 #define CPPHTTPLIB_USE_CERTS_FROM_MACOSX_KEYCHAIN
 #endif
