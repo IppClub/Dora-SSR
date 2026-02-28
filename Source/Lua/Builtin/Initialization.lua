@@ -383,12 +383,22 @@ do
 		return result
 	end
 
-local Content_searchFilesAsync = Content.searchFilesAsync
-Content.searchFilesAsync = function(self, path, exts, extensionLevels, excludes, pattern, useRegex, caseSensitive, includeContent, contentWindow, callback)
-	local _, mainThread = coroutine.running()
-	assert(not mainThread, "Content.searchFilesAsync should be run in a thread")
-	if contentWindow == nil then
-		contentWindow = 0
+	local Content_glob = Content.glob
+	local Dictionary = Dora.Dictionary
+	Content.glob = function(self, path, globs, extensionLevels)
+		local dict = Dictionary()
+		for k, v in pairs(extensionLevels) do
+			dict[k] = v
+		end
+		return Content_glob(self, path, globs, dict)
+	end
+
+	local Content_searchFilesAsync = Content.searchFilesAsync
+	Content.searchFilesAsync = function(self, path, exts, extensionLevels, excludes, pattern, useRegex, caseSensitive, includeContent, contentWindow, callback)
+		local _, mainThread = coroutine.running()
+		assert(not mainThread, "Content.searchFilesAsync should be run in a thread")
+		if contentWindow == nil then
+			contentWindow = 0
 		end
 		if includeContent == nil then
 			includeContent = false
@@ -399,13 +409,13 @@ Content.searchFilesAsync = function(self, path, exts, extensionLevels, excludes,
 		if useRegex == nil then
 			useRegex = false
 		end
-	local results = {}
-	local done = false
-	local stopped = false
-	Content_searchFilesAsync(self, path, exts, extensionLevels, excludes, pattern, useRegex, caseSensitive, includeContent, contentWindow, function(result)
-		if stopped then
-			return false
-		end
+		local results = {}
+		local done = false
+		local stopped = false
+		Content_searchFilesAsync(self, path, exts, extensionLevels, excludes, pattern, useRegex, caseSensitive, includeContent, contentWindow, function(result)
+			if stopped then
+				return false
+			end
 			if result == nil then
 				done = true
 				return false

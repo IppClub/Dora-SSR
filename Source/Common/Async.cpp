@@ -19,7 +19,10 @@ NS_DORA_BEGIN
 // Async
 
 Async::Async()
-	: _scheduled(false) { }
+	: _scheduled(false)
+	, _stopped(false)
+	, _pool(nullptr)
+	, _poolIndex(0) { }
 
 Async::~Async() {
 	if (_thread.isRunning()) {
@@ -37,16 +40,29 @@ void Async::initThreadOnce() {
 }
 
 void Async::stop() {
+	std::lock_guard<std::mutex> guard(_stopMutex);
+	if (_stopped.exchange(true, std::memory_order_acq_rel)) {
+		return;
+	}
 	if (_thread.isRunning()) {
-		_workerEvent.post("Stop"_slice);
-		_workerSemaphore.post();
+		if (isPoolWorker()) {
+			_pool->notifyAllWorkers();
+		} else {
+			_workerSemaphore.post();
+		}
 		_thread.shutdown();
 	}
 }
 
 void Async::run(const std::function<Own<Values>()>& worker, const std::function<void(Own<Values>)>& finisher) {
+	if (_stopped.load(std::memory_order_acquire)) {
+		return;
+	}
 	AssertUnless(SharedApplication.getLogicThread() == std::this_thread::get_id(), "Async runner with finisher should be invoked from logic thread");
 	initThreadOnce();
+	if (_stopped.load(std::memory_order_acquire)) {
+		return;
+	}
 	if (!_scheduled) {
 		_scheduled = true;
 		SharedDirector.getSystemScheduler()->schedule([this](double deltaTime) {
@@ -64,17 +80,26 @@ void Async::run(const std::function<Own<Values>()>& worker, const std::function<
 	}
 	auto workDone = New<WorkDone>(worker, finisher);
 	_workerEvent.post("WorkDone"_slice, std::move(workDone));
-	_workerSemaphore.post();
+	notifyWorker();
 }
 
 void Async::run(const std::function<void()>& worker) {
+	if (_stopped.load(std::memory_order_acquire)) {
+		return;
+	}
 	initThreadOnce();
+	if (_stopped.load(std::memory_order_acquire)) {
+		return;
+	}
 	auto work = New<std::function<void()>>(worker);
 	_workerEvent.post("Work"_slice, std::move(work));
-	_workerSemaphore.post();
+	notifyWorker();
 }
 
 void Async::runInMainSync(const std::function<void()>& worker) {
+	if (_stopped.load(std::memory_order_acquire)) {
+		return;
+	}
 	AssertUnless(SharedApplication.getLogicThread() == std::this_thread::get_id(), "Async runner should be invoked from logic thread");
 	std::list<std::variant<WorkPtr, WorkDonePtr>> jobs;
 	for (auto event = _workerEvent.poll();
@@ -99,6 +124,9 @@ void Async::runInMainSync(const std::function<void()>& worker) {
 		worker();
 		_mainThreadSemaphore.post();
 	});
+	if (_stopped.load(std::memory_order_acquire)) {
+		return;
+	}
 	_mainThreadSemaphore.wait();
 	for (auto& job : jobs) {
 		if (std::holds_alternative<WorkPtr>(job)) {
@@ -107,34 +135,35 @@ void Async::runInMainSync(const std::function<void()>& worker) {
 			_workerEvent.post("WorkDone"_slice, std::move(std::get<WorkDonePtr>(job)));
 		}
 	}
-	_workerSemaphore.post();
+	notifyWorker();
 }
 
 int Async::work(bx::Thread* thread, void* userData) {
 	DORA_UNUSED_PARAM(thread);
 	Async* worker = r_cast<Async*>(userData);
 	while (true) {
-		for (auto event = worker->_workerEvent.poll();
-			event != nullptr;
-			event = worker->_workerEvent.poll()) {
-			switch (Switch::hash(event->getName())) {
-				case "Work"_hash: {
-					Own<std::function<void()>> worker;
-					event->get(worker);
-					(*worker)();
-					break;
-				}
-				case "WorkDone"_hash: {
-					Own<WorkDone> workDone;
-					event->get(workDone);
-					Own<Values> result = workDone->first();
-					worker->_finisherEvent.post(Slice::Empty, std::move(workDone), std::move(result));
-					break;
-				}
-				case "Stop"_hash: {
-					return 0;
-				}
+		if (worker->isPoolWorker()) {
+			Async* source = nullptr;
+			Own<QEvent> event;
+			if (worker->_pool->popTask(worker->_poolIndex, source, event)) {
+				source->processWorkerEvent(std::move(event), source);
+				continue;
 			}
+			if (worker->_pool->isStopping()) {
+				return 0;
+			}
+			worker->_pool->waitForTask();
+			continue;
+		}
+		for (auto event = worker->pollWorkerEvent();
+			event != nullptr;
+			event = worker->pollWorkerEvent()) {
+			if (worker->processWorkerEvent(std::move(event), worker)) {
+				return 0;
+			}
+		}
+		if (worker->_stopped.load(std::memory_order_acquire)) {
+			return 0;
 		}
 		worker->_workerSemaphore.wait();
 	}
@@ -159,14 +188,67 @@ void Async::cancel() {
 	}
 }
 
+void Async::bindPool(AsyncThread* pool, size_t index) {
+	_pool = pool;
+	_poolIndex = index;
+}
+
+Own<QEvent> Async::pollWorkerEvent() {
+	return _workerEvent.poll();
+}
+
+void Async::notifyWorker() {
+	if (isPoolWorker()) {
+		_pool->notifyTaskPosted();
+	} else {
+		_workerSemaphore.post();
+	}
+}
+
+bool Async::processWorkerEvent(Own<QEvent> event, Async* owner) {
+	switch (Switch::hash(event->getName())) {
+		case "Work"_hash: {
+			Own<std::function<void()>> worker;
+			event->get(worker);
+			(*worker)();
+			return false;
+		}
+		case "WorkDone"_hash: {
+			Own<WorkDone> workDone;
+			event->get(workDone);
+			Own<Values> result = workDone->first();
+			owner->_finisherEvent.post(Slice::Empty, std::move(workDone), std::move(result));
+			return false;
+		}
+		case "Stop"_hash: {
+			return !owner->isPoolWorker();
+		}
+	}
+	return false;
+}
+
+bool Async::isPoolWorker() const {
+	return _pool != nullptr;
+}
+
 // AsyncThread
 
 AsyncThread::AsyncThread()
 	: _nextProcess(0)
+	, _nextStealFrom(0)
+	, _stopping(false)
 	, _process(std::max(std::thread::hardware_concurrency(), 4u) - 1) {
 	for (int i = 0; i < s_cast<int>(_process.size()); i++) {
 		_process[i] = New<Async>();
+		_process[i]->bindPool(this, s_cast<size_t>(i));
 	}
+	for (int i = 0; i < s_cast<int>(_process.size()); i++) {
+		_process[i]->initThreadOnce();
+	}
+}
+
+AsyncThread::~AsyncThread() {
+	cancel();
 }
 
 Async& AsyncThread::getProcess(int index) {
@@ -174,12 +256,18 @@ Async& AsyncThread::getProcess(int index) {
 }
 
 void AsyncThread::run(const std::function<Own<Values>()>& worker, const std::function<void(Own<Values>)>& finisher) {
+	if (_stopping.load(std::memory_order_relaxed)) {
+		return;
+	}
 	size_t idx = _nextProcess.fetch_add(1, std::memory_order_relaxed) % _process.size();
 	Async* async = _process[idx].get();
 	async->run(worker, finisher);
 }
 
 void AsyncThread::run(const std::function<void()>& worker) {
+	if (_stopping.load(std::memory_order_relaxed)) {
+		return;
+	}
 	size_t idx = _nextProcess.fetch_add(1, std::memory_order_relaxed) % _process.size();
 	Async* async = _process[idx].get();
 	async->run(worker);
@@ -191,9 +279,66 @@ Async* AsyncThread::newThread() {
 }
 
 void AsyncThread::cancel() {
+	_stopping.store(true, std::memory_order_relaxed);
+	notifyAllWorkers();
 	for (const auto& thread : _process) {
 		thread->cancel();
 		thread->stop();
+	}
+}
+
+bool AsyncThread::popTask(size_t workerIndex, Async*& source, Own<QEvent>& event) {
+	Async* self = _process[workerIndex].get();
+	if (!self) {
+		return false;
+	}
+	event = self->pollWorkerEvent();
+	if (event) {
+		source = self;
+		return true;
+	}
+	size_t count = processCount();
+	if (count <= 1) {
+		return false;
+	}
+	size_t start = _nextStealFrom.fetch_add(1, std::memory_order_relaxed) % count;
+	for (size_t i = 0; i < count; i++) {
+		size_t target = (start + i) % count;
+		if (target == workerIndex) {
+			continue;
+		}
+		Async* victim = _process[target].get();
+		if (!victim) {
+			continue;
+		}
+		event = victim->pollWorkerEvent();
+		if (event) {
+			source = victim;
+			return true;
+		}
+	}
+	return false;
+}
+
+void AsyncThread::notifyTaskPosted() {
+	_workSemaphore.post();
+}
+
+bool AsyncThread::isStopping() const {
+	return _stopping.load(std::memory_order_relaxed);
+}
+
+void AsyncThread::waitForTask() {
+	_workSemaphore.wait();
+}
+
+size_t AsyncThread::processCount() const {
+	return _process.size();
+}
+
+void AsyncThread::notifyAllWorkers() {
+	for (size_t i = 0; i < processCount(); i++) {
+		_workSemaphore.post();
 	}
 }
 

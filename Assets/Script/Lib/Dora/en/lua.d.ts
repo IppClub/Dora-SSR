@@ -2545,9 +2545,9 @@ declare namespace utf8 {
 	 * bytes) and c the code point of each character. It raises an error if it
 	 * meets any invalid byte sequence.
 	 */
-	function codes<S extends string>(
-		s: S
-	): [(s: S, index?: number) => LuaMultiReturn<[number, number]>, S, 0];
+	function codes(
+		s: string, lax?: boolean
+	): LuaIterable<LuaMultiReturn<[number, number]>>;
 
 	/**
 	 * Returns the codepoints (as integers) from all characters in s that start
@@ -2577,7 +2577,7 @@ declare namespace utf8 {
 	 *
 	 * This function assumes that s is a valid UTF-8 string.
 	 */
-	function offset(s: string, n?: number, i?: number): number;
+	function offset(s: string, n?: number, i?: number): number | undefined;
 }
 
 interface LuaMetatable<T> {

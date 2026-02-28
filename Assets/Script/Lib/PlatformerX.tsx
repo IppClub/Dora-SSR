@@ -25,7 +25,7 @@ export namespace BehaviorTree {
 	}
 
 	export class Leaf implements React.Element {
-		private constructor() {}
+		private constructor() { }
 		type!: string;
 		props: any;
 		children!: React.Element[];
@@ -36,11 +36,11 @@ export namespace BehaviorTree {
 	}
 
 	export function Selector(props: NodeProps): Leaf {
-		return <custom-element name={NodeType.Selector} data={props}/>;
+		return <custom-element name={NodeType.Selector} data={props} />;
 	}
 
 	export function Sequence(props: NodeProps): Leaf {
-		return <custom-element name={NodeType.Sequence} data={props}/>;
+		return <custom-element name={NodeType.Sequence} data={props} />;
 	}
 
 	export interface ConditionProps {
@@ -49,7 +49,7 @@ export namespace BehaviorTree {
 	}
 
 	export function Condition(props: ConditionProps): Leaf {
-		return <custom-element name={NodeType.Condition} data={props}/>;
+		return <custom-element name={NodeType.Condition} data={props} />;
 	}
 
 	export interface MatchProps {
@@ -59,7 +59,7 @@ export namespace BehaviorTree {
 	}
 
 	export function Match(props: MatchProps): Leaf {
-		return <custom-element name={NodeType.Match} data={props}/>;
+		return <custom-element name={NodeType.Match} data={props} />;
 	}
 
 	export interface ActionProps {
@@ -67,11 +67,11 @@ export namespace BehaviorTree {
 	}
 
 	export function Action(props: ActionProps): Leaf {
-		return <custom-element name={NodeType.Action} data={props}/>;
+		return <custom-element name={NodeType.Action} data={props} />;
 	}
 
 	export function Command(props: ActionProps): Leaf {
-		return <custom-element name={NodeType.Command} data={props}/>;
+		return <custom-element name={NodeType.Command} data={props} />;
 	}
 
 	export interface WaitProps {
@@ -79,7 +79,7 @@ export namespace BehaviorTree {
 	}
 
 	export function Wait(props: WaitProps): Leaf {
-		return <custom-element name={NodeType.Wait} data={props}/>;
+		return <custom-element name={NodeType.Wait} data={props} />;
 	}
 
 	export interface TimerProps {
@@ -88,11 +88,11 @@ export namespace BehaviorTree {
 	}
 
 	export function Countdown(props: TimerProps): Leaf {
-		return <custom-element name={NodeType.Countdown} data={props}/>;
+		return <custom-element name={NodeType.Countdown} data={props} />;
 	}
 
 	export function Timeout(props: TimerProps): Leaf {
-		return <custom-element name={NodeType.Timeout} data={props}/>;
+		return <custom-element name={NodeType.Timeout} data={props} />;
 	}
 
 	export interface CountProps {
@@ -101,11 +101,11 @@ export namespace BehaviorTree {
 	}
 
 	export function Repeat(props: CountProps): Leaf {
-		return <custom-element name={NodeType.Repeat} data={props}/>;
+		return <custom-element name={NodeType.Repeat} data={props} />;
 	}
 
 	export function Retry(props: CountProps): Leaf {
-		return <custom-element name={NodeType.Retry} data={props}/>;
+		return <custom-element name={NodeType.Retry} data={props} />;
 	}
 }
 
@@ -122,7 +122,7 @@ export namespace DecisionTree {
 	}
 
 	export class Leaf implements React.Element {
-		private constructor() {}
+		private constructor() { }
 		type!: string;
 		props: any;
 		children!: React.Element[];
@@ -133,11 +133,11 @@ export namespace DecisionTree {
 	}
 
 	export function Selector(props: NodeProps): Leaf {
-		return <custom-element name={NodeType.Selector} data={props}/>;
+		return <custom-element name={NodeType.Selector} data={props} />;
 	}
 
 	export function Sequence(props: NodeProps): Leaf {
-		return <custom-element name={NodeType.Sequence} data={props}/>;
+		return <custom-element name={NodeType.Sequence} data={props} />;
 	}
 
 	export interface ConditionProps {
@@ -146,7 +146,7 @@ export namespace DecisionTree {
 	}
 
 	export function Condition(props: ConditionProps): Leaf {
-		return <custom-element name={NodeType.Condition} data={props}/>;
+		return <custom-element name={NodeType.Condition} data={props} />;
 	}
 
 	export interface MatchProps {
@@ -156,7 +156,7 @@ export namespace DecisionTree {
 	}
 
 	export function Match(props: MatchProps): Leaf {
-		return <custom-element name={NodeType.Match} data={props}/>;
+		return <custom-element name={NodeType.Match} data={props} />;
 	}
 
 	export interface ActionProps {
@@ -164,15 +164,15 @@ export namespace DecisionTree {
 	}
 
 	export function Action(props: ActionProps): Leaf {
-		return <custom-element name={NodeType.Action} data={props}/>;
+		return <custom-element name={NodeType.Action} data={props} />;
 	}
 
 	export function Accept(): Leaf {
-		return <custom-element name={NodeType.Accept} data={undefined}/>;
+		return <custom-element name={NodeType.Accept} data={undefined} />;
 	}
 
 	export function Reject(): Leaf {
-		return <custom-element name={NodeType.Reject} data={undefined}/>;
+		return <custom-element name={NodeType.Reject} data={undefined} />;
 	}
 
 	export interface BehaviorProps extends BehaviorTree.NodeProps {
@@ -180,7 +180,7 @@ export namespace DecisionTree {
 	}
 
 	export function Behavior(props: BehaviorProps): Leaf {
-		return <custom-element name={NodeType.Behavior} data={props}/>;
+		return <custom-element name={NodeType.Behavior} data={props} />;
 	}
 }
 

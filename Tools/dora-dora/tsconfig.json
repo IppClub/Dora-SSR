@@ -20,7 +20,8 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "types": [
-      "node"
+      "node",
+      "react-transition-group"
     ]
   },
   "include": [

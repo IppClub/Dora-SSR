@@ -58,7 +58,10 @@ namespace fs = std::filesystem;
 #include <algorithm>
 #include <chrono>
 #include <cstdlib>
+#include <mutex>
 #include <string_view>
+#include <unordered_map>
+#include <vector>
 
 #include "SDL.h"
 
@@ -976,9 +979,67 @@ const char* HttpServer::getVersion() {
 
 /* HttpClient */
 
+namespace {
+std::mutex s_httpClientRequestMutex;
+std::unordered_map<uint64_t, std::shared_ptr<httplib::Client>> s_httpClientRequests;
+std::atomic_uint64_t s_httpClientRequestId{0};
+
+static uint64_t register_http_client_request(const std::shared_ptr<httplib::Client>& client) {
+	if (!client) {
+		return 0;
+	}
+	if (SharedHttpClient.isStopped()) {
+		client->stop();
+		return 0;
+	}
+	std::lock_guard<std::mutex> lock(s_httpClientRequestMutex);
+	if (SharedHttpClient.isStopped()) {
+		client->stop();
+		return 0;
+	}
+	uint64_t id = s_httpClientRequestId.fetch_add(1, std::memory_order_relaxed) + 1;
+	s_httpClientRequests.emplace(id, client);
+	return id;
+}
+
+static void unregister_http_client_request(uint64_t id) {
+	if (id == 0) {
+		return;
+	}
+	std::lock_guard<std::mutex> lock(s_httpClientRequestMutex);
+	s_httpClientRequests.erase(id);
+}
+
+static std::vector<std::shared_ptr<httplib::Client>> snapshot_http_client_requests() {
+	std::vector<std::shared_ptr<httplib::Client>> clients;
+	std::lock_guard<std::mutex> lock(s_httpClientRequestMutex);
+	clients.reserve(s_httpClientRequests.size());
+	for (const auto& item : s_httpClientRequests) {
+		clients.push_back(item.second);
+	}
+	return clients;
+}
+
+class ActiveHttpClientGuard {
+public:
+	explicit ActiveHttpClientGuard(const std::shared_ptr<httplib::Client>& client)
+		: _id(register_http_client_request(client)) { }
+
+	~ActiveHttpClientGuard() {
+		unregister_http_client_request(_id);
+	}
+
+	bool valid() const noexcept {
+		return _id != 0;
+	}
+
+private:
+	uint64_t _id;
+};
+} // namespace
+
 HttpClient::HttpClient()
-	: _requestThread(nullptr)
-	, _downloadThread(nullptr)
+	: _downloadThread(nullptr)
 	, _stopped(false) {
 }
 
@@ -987,7 +1048,7 @@ HttpClient::~HttpClient() {
 }
 
 bool HttpClient::isStopped() const noexcept {
-	return _stopped;
+	return _stopped.load(std::memory_order_relaxed);
 }
 
 static std::optional<std::pair<std::string, std::string>> getURLParts(String url) {
@@ -1027,12 +1088,9 @@ static std::optional<std::pair<std::string, std::string>> getURLParts(String url
 }
 
 void HttpClient::postAsync(String url, std::span<Slice> headers, String json, float timeout, const ContentPartHandler& partCallback, const ContentHandler& callback) {
-	if (_stopped) {
+	if (_stopped.load(std::memory_order_relaxed)) {
 		callback(std::nullopt);
 		return;
-	}
-	if (!_requestThread) {
-		_requestThread = SharedAsyncThread.newThread();
 	}
 	auto parts = getURLParts(url);
 	std::string schemeHostPort, pathToGet;
@@ -1052,12 +1110,21 @@ void HttpClient::postAsync(String url, std::span<Slice> headers, String json, fl
 	}
 	auto callbackFunc = std::make_shared<ContentHandler>(callback);
 	auto partCallbackFunc = std::make_shared<ContentPartHandler>(partCallback);
-	_requestThread->run([schemeHostPort, json = json.toString(), timeout, urlStr = url.toString(), partCallbackFunc, callbackFunc, pathToGet, headers = std::move(postHeaders)]() {
+	SharedAsyncThread.run([schemeHostPort, json = json.toString(), timeout, urlStr = url.toString(), partCallbackFunc, callbackFunc, pathToGet, headers = std::move(postHeaders)]() {
 		try {
-			httplib::Client client(schemeHostPort);
-			client.enable_server_certificate_verification(false);
-			client.set_follow_location(true);
-			client.set_connection_timeout(timeout);
+			auto client = std::make_shared<httplib::Client>(schemeHostPort);
+			ActiveHttpClientGuard activeClient(client);
+			if (!activeClient.valid()) {
+				SharedApplication.invokeInLogic([callbackFunc]() {
+					(*callbackFunc)(std::nullopt);
+				});
+				return nullptr;
+			}
+			client->enable_server_certificate_verification(false);
+			client->set_follow_location(true);
+			client->set_connection_timeout(timeout);
+			client->set_read_timeout(timeout);
+			client->set_write_timeout(timeout);
 			httplib::Request req;
 			req.method = "POST";
 			req.headers = headers;
@@ -1080,7 +1147,7 @@ void HttpClient::postAsync(String url, std::span<Slice> headers, String json, fl
 				};
 			}
 			req.body = std::move(json);
-			auto result = client.send(req);
+			auto result = client->send(req);
 			if (!result || result.error() != httplib::Error::Success) {
 				Info("failed to do HTTP POST \"{}\" due to {}", urlStr, httplib::to_string(result.error()));
 				SharedApplication.invokeInLogic([callbackFunc]() {
@@ -1112,7 +1179,7 @@ void HttpClient::postAsync(String url, const std::vector<std::string>& headers, 
 	for (size_t i = 0; i < headers.size(); i++) {
 		headerArray[i] = headers[i];
 	}
-	postAsync(url, headerArray, json, timeout, nullptr, callback);
+	postAsync(url, headerArray, json, timeout, partCallback, callback);
 }
 
 void HttpClient::postAsync(String url, Slice headers[], int count, String json, float timeout, const ContentHandler& callback) {
@@ -1136,12 +1203,9 @@ void HttpClient::postAsync(String url, Slice headers[], int count, String json, 
 }
 
 void HttpClient::getAsync(String url, float timeout, const ContentHandler& callback) {
-	if (_stopped) {
+	if (_stopped.load(std::memory_order_relaxed)) {
 		callback(std::nullopt);
 		return;
-	}
-	if (!_requestThread) {
-		_requestThread = SharedAsyncThread.newThread();
 	}
 	auto parts = getURLParts(url);
 	std::string schemeHostPort, pathToGet;
@@ -1152,13 +1216,20 @@ void HttpClient::getAsync(String url, float timeout, const ContentHandler& callb
 		callback(std::nullopt);
 		return;
 	}
-	_requestThread->run([schemeHostPort, timeout, urlStr = url.toString(), callback, pathToGet]() {
+	SharedAsyncThread.run([schemeHostPort, timeout, urlStr = url.toString(), callback, pathToGet]() {
 		try {
-			httplib::Client client(schemeHostPort);
-			client.enable_server_certificate_verification(false);
-			client.set_follow_location(true);
-			client.set_connection_timeout(timeout);
-			auto result = client.Get(pathToGet);
+			auto client = std::make_shared<httplib::Client>(schemeHostPort);
+			ActiveHttpClientGuard activeClient(client);
+			if (!activeClient.valid()) {
+				SharedApplication.invokeInLogic([callback]() {
+					callback(std::nullopt);
+				});
+				return;
+			}
+			client->enable_server_certificate_verification(false);
+			client->set_follow_location(true);
+			client->set_connection_timeout(timeout);
+			auto result = client->Get(pathToGet);
 			if (!result || result.error() != httplib::Error::Success) {
 				Info("failed to do HTTP GET \"{}\" due to {}", urlStr, httplib::to_string(result.error()));
 				SharedApplication.invokeInLogic([callback]() {
@@ -1179,7 +1250,7 @@ void HttpClient::getAsync(String url, float timeout, const ContentHandler& callb
 }
 
 void HttpClient::downloadAsync(String url, String filePath, float timeout, const std::function<bool(bool interrupted, uint64_t current, uint64_t total)>& progress) {
-	if (_stopped) {
+	if (_stopped.load(std::memory_order_relaxed)) {
 		progress(true, 0, 0);
 		return;
 	}
@@ -1198,10 +1269,17 @@ void HttpClient::downloadAsync(String url, String filePath, float timeout, const
 	auto progressFunc = std::make_shared<std::function<bool(bool interrupted, uint64_t current, uint64_t total)>>(progress);
 	_downloadThread->run([schemeHostPort, fileStr = filePath.toString(), urlStr = url.toString(), timeout, progressFunc, pathToGet]() -> Own<Values> {
 		try {
-			httplib::Client client(schemeHostPort);
-			client.enable_server_certificate_verification(false);
-			client.set_follow_location(true);
-			client.set_connection_timeout(timeout);
+			auto client = std::make_shared<httplib::Client>(schemeHostPort);
+			ActiveHttpClientGuard activeClient(client);
+			if (!activeClient.valid()) {
+				SharedApplication.invokeInLogic([progressFunc]() {
+					(*progressFunc)(true, 0, 0);
+				});
+				return nullptr;
+			}
+			client->enable_server_certificate_verification(false);
+			client->set_follow_location(true);
+			client->set_connection_timeout(timeout);
 			auto fullname = fileStr;
 			SDL_RWops* out = SDL_RWFromFile(fullname.c_str(), "wb+");
 			if (!out) {
@@ -1209,7 +1287,7 @@ void HttpClient::downloadAsync(String url, String filePath, float timeout, const
 				return nullptr;
 			}
 			auto stream = std::shared_ptr<SDL_RWops>{out, [](SDL_RWops* io) { SDL_RWclose(io); }};
-			auto result = client.Get(
+			auto result = client->Get(
 				pathToGet, [&](const char* data, size_t data_length) -> bool {
 					if (SharedHttpClient.isStopped()) {
 						return false;
@@ -1269,7 +1347,13 @@ void HttpClient::downloadAsync(String url, String filePath, float timeout, const
 }
 
 void HttpClient::stop() {
-	_stopped = true;
+	_stopped.store(true, std::memory_order_relaxed);
+	auto clients = snapshot_http_client_requests();
+	for (const auto& client : clients) {
+		if (client) {
+			client->stop();
+		}
+	}
 }
 
 NS_DORA_END

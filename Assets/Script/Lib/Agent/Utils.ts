@@ -1,5 +1,5 @@
 // @preview-file off clear
-import { json, Director, once, HttpClient, DB, emit } from 'Dora';
+import { json, HttpClient, DB, emit, Node } from 'Dora';
 
 export interface Message {
 	role: string;
@@ -14,12 +14,22 @@ const postLLM = (messages: Message[], url: string, apiKey: string, model: string
 		stream: true,
 	};
 	return new Promise<string>((resolve, reject) => {
-		Director.systemScheduler.schedule(once(() => {
+		const node = Node();
+		let quit = false;
+		node.onCleanup(() => {
+			quit = true;
+		});
+		node.once(() => {
 			const [jsonStr, err] = json.encode(data);
 			if (jsonStr !== undefined) {
 				const res = HttpClient.postAsync(url, [
 					`Authorization: Bearer ${apiKey}`,
-				], jsonStr, 10, receiver);
+				], jsonStr, 10, (data) => {
+					if (quit) {
+						return true;
+					}
+					return receiver(data);
+				});
 				if (res) {
 					resolve(res);
 				} else {
@@ -28,7 +38,7 @@ const postLLM = (messages: Message[], url: string, apiKey: string, model: string
 			} else {
 				reject(err);
 			}
-		}));
+		});
 	});
 };
 
@@ -56,7 +66,7 @@ export function createSSEJSONParser(opts: {
 		}
 
 		const [obj, err] = json.decode(dataPayload);
-		if (err === null) {
+		if (err === undefined) {
 			opts.onJSON(obj, dataPayload);
 		} else {
 			opts.onError?.(err, { raw: dataPayload });
@@ -175,9 +185,13 @@ export const callLLM = (messages: Message[], options: Record<string, any>, event
 		}
 	}
 	const config = records.find(r => r["active"] !== 0);
-	if (!config) return { success: false, message: "no active LLM config" };
+	if (!config) {
+		if (onCancel) onCancel("no active LLM config");
+		return { success: false, message: "no active LLM config" };
+	}
 	const { url, model, api_key } = config;
 	if ("string" !== typeof url || "string" !== typeof model || "string" !== typeof api_key) {
+		if (onCancel) onCancel("got invalude LLM config");
 		return { success: false, message: "got invalude LLM config" };
 	}
 	let stopLLM = false;

@@ -16,60 +16,60 @@ function Warn(this: void, msg: string) {
 
 export namespace React {
 
-export abstract class Component<T> {
-	constructor(props: T) {
-		this.props = props;
+	export abstract class Component<T> {
+		constructor(props: T) {
+			this.props = props;
+		}
+		props!: T;
+		abstract render(): React.Element;
+		static isComponent = true;
 	}
-	props!: T;
-	abstract render(): React.Element;
-	static isComponent = true;
-}
 
-export const Fragment = undefined;
+	export const Fragment = undefined;
 
-function flattenChild(this: void, child: any): LuaMultiReturn<[any, boolean]> {
-	if (type(child) !== "table") {
-		return $multi(child, true);
-	}
-	if (child.type !== undefined) {
-		return $multi(child, true);
-	} else if (child.children) {
-		child = child.children;
-	}
-	const list = child as [];
-	const flatChildren = [];
-	for (let i of $range(1, list.length)) {
-		const [child, flat] = flattenChild(list[i - 1]);
-		if (flat) {
-			flatChildren.push(child);
-		} else {
-			const listChild = child as [];
-			for (let i of $range(1, listChild.length)) {
-				flatChildren.push(listChild[i - 1]);
+	function flattenChild(this: void, child: any): LuaMultiReturn<[any, boolean]> {
+		if (type(child) !== "table") {
+			return $multi(child, true);
+		}
+		if (child.type !== undefined) {
+			return $multi(child, true);
+		} else if (child.children) {
+			child = child.children;
+		}
+		const list = child as [];
+		const flatChildren = [];
+		for (let i of $range(1, list.length)) {
+			const [child, flat] = flattenChild(list[i - 1]);
+			if (flat) {
+				flatChildren.push(child);
+			} else {
+				const listChild = child as [];
+				for (let i of $range(1, listChild.length)) {
+					flatChildren.push(listChild[i - 1]);
+				}
 			}
 		}
+		return $multi(flatChildren, false);
 	}
-	return $multi(flatChildren, false);
-}
 
-export interface Element {
-	type: string;
-	props: any;
-	children: Element[];
-}
-
-export function createElement(
-	typeName: any,
-	props: any,
-	...children: any[]
-): Element | Element[] {
-	const items: any[] = [];
-	for (let [, v] of pairs(children)) {
-		items.push(v);
+	export interface Element {
+		type: string;
+		props: any;
+		children: Element[];
 	}
-	children = items;
-	switch (type(typeName)) {
-		case 'function': {
+
+	export function createElement(
+		typeName: any,
+		props: any,
+		...children: any[]
+	): Element | Element[] {
+		const items: any[] = [];
+		for (let [, v] of pairs(children)) {
+			items.push(v);
+		}
+		children = items;
+		switch (type(typeName)) {
+			case 'function': {
 				props ??= {};
 				if (props.children) {
 					props.children = [...props.children, ...children];
@@ -77,49 +77,49 @@ export function createElement(
 					props.children = children;
 				}
 				return typeName(props);
-		}
-		case 'table': {
-			if (!typeName.isComponent) {
-				Warn('unsupported class object in element creation');
-				return [];
 			}
-			props ??= {};
-			if (props.children) {
-				props.children = [...props.children, ...children];
-			} else {
-				props.children = children;
-			}
-			const inst = new typeName(props) as React.Component<any>;
-			return inst.render();
-		}
-		default: {
-			if (props && props.children) {
-				children = [...props.children, ...children];
-				props.children = undefined;
-			}
-			const flatChildren = [];
-			for (let i of $range(1, children.length)) {
-				const [child, flat] = flattenChild(children[i - 1]);
-				if (flat) {
-					flatChildren.push(child);
+			case 'table': {
+				if (!typeName.isComponent) {
+					Warn('unsupported class object in element creation');
+					return [];
+				}
+				props ??= {};
+				if (props.children) {
+					props.children = [...props.children, ...children];
 				} else {
-					for (let i of $range(1, (child as []).length)) {
-						flatChildren.push((child as [])[i - 1]);
+					props.children = children;
+				}
+				const inst = new typeName(props) as React.Component<any>;
+				return inst.render();
+			}
+			default: {
+				if (props && props.children) {
+					children = [...props.children, ...children];
+					props.children = undefined;
+				}
+				const flatChildren = [];
+				for (let i of $range(1, children.length)) {
+					const [child, flat] = flattenChild(children[i - 1]);
+					if (flat) {
+						flatChildren.push(child);
+					} else {
+						for (let i of $range(1, (child as []).length)) {
+							flatChildren.push((child as [])[i - 1]);
+						}
 					}
 				}
+				children = flatChildren;
 			}
-			children = flatChildren;
 		}
+		if (typeName === undefined) {
+			return children;
+		}
+		return {
+			type: typeName,
+			props: props ?? {},
+			children
+		};
 	}
-	if (typeName === undefined) {
-		return children;
-	}
-	return {
-		type: typeName,
-		props: props ?? {},
-		children
-	};
-}
 
 } // namespace React
 
@@ -172,28 +172,28 @@ function getNode(this: void, enode: React.Element, cnode?: Dora.Node.Type, attri
 		}
 	}
 	if (jnode.touchEnabled !== false && (
-			jnode.onTapFilter ||
-			jnode.onTapBegan ||
-			jnode.onTapMoved ||
-			jnode.onTapEnded ||
-			jnode.onTapped ||
-			jnode.onMouseWheel ||
-			jnode.onGesture
-		)) {
+		jnode.onTapFilter ||
+		jnode.onTapBegan ||
+		jnode.onTapMoved ||
+		jnode.onTapEnded ||
+		jnode.onTapped ||
+		jnode.onMouseWheel ||
+		jnode.onGesture
+	)) {
 		cnode.touchEnabled = true;
 	}
 	if (jnode.keyboardEnabled !== false && (
-			jnode.onKeyDown ||
-			jnode.onKeyUp ||
-			jnode.onKeyPressed
-		)) {
+		jnode.onKeyDown ||
+		jnode.onKeyUp ||
+		jnode.onKeyPressed
+	)) {
 		cnode.keyboardEnabled = true;
 	}
 	if (jnode.controllerEnabled !== false && (
-			jnode.onButtonDown ||
-			jnode.onButtonUp ||
-			jnode.onAxis
-		)) {
+		jnode.onButtonDown ||
+		jnode.onButtonUp ||
+		jnode.onAxis
+	)) {
 		cnode.controllerEnabled = true;
 	}
 	if (anchor !== undefined) cnode.anchor = anchor;
@@ -303,7 +303,7 @@ let getDrawNode: (this: void, enode: React.Element) => Dora.DrawNode.Type;
 	getDrawNode = (enode: React.Element) => {
 		const node = Dora.DrawNode();
 		const cnode = getNode(enode, node, handleDrawNodeAttribute);
-		const {children} = enode;
+		const { children } = enode;
 		for (let i of $range(1, children.length)) {
 			const child = children[i - 1];
 			if (type(child) !== "table") {
@@ -519,11 +519,11 @@ let getLabel: (this: void, enode: React.Element) => Dora.Label.Type | undefined;
 		const node = Dora.Label(label.fontName, label.fontSize, label.sdf);
 		if (node !== undefined) {
 			if (label.smoothLower !== undefined || label.smoothUpper != undefined) {
-				const {x, y} = node.smooth;
+				const { x, y } = node.smooth;
 				node.smooth = Dora.Vec2(label.smoothLower ?? x, label.smoothUpper ?? y);
 			}
 			const cnode = getNode(enode, node, handleLabelAttribute);
-			const {children} = enode;
+			const { children } = enode;
 			let text = label.text ?? '';
 			for (let i of $range(1, children.length)) {
 				const child = children[i - 1];
@@ -561,7 +561,7 @@ let getParticle: (this: void, enode: React.Element) => Dora.Particle.Type | unde
 	function handleParticleAttribute(this: void, cnode: Dora.Particle.Type, _enode: React.Element, k: any, v: any) {
 		switch (k as keyof JSX.Particle) {
 			case 'file': return true;
-			case 'emit': if (v) {cnode.start();} return true;
+			case 'emit': if (v) { cnode.start(); } return true;
 			case 'onFinished': cnode.slot(Dora.Slot.Finished, v); return true;
 		}
 		return false;
@@ -845,7 +845,7 @@ function addChild(this: void, nodeStack: Dora.Node.Type[], cnode: Dora.Node.Type
 		last.addChild(cnode);
 	}
 	nodeStack.push(cnode);
-	const {children} = enode;
+	const { children } = enode;
 	for (let i of $range(1, children.length)) {
 		visitNode(nodeStack, children[i - 1], enode);
 	}
@@ -1418,7 +1418,7 @@ const elementMap: ElementMap = {
 			addChild(nodeStack, node, enode);
 		}
 	},
-	'custom-element': () => {},
+	'custom-element': () => { },
 	'align-node': (nodeStack: Dora.Node.Type[], enode: React.Element, _parent?: React.Element) => {
 		addChild(nodeStack, getAlignNode(enode), enode);
 	},
@@ -1436,7 +1436,7 @@ const elementMap: ElementMap = {
 						(effek.ref as any).current = handle;
 					}
 					if (effek.onEnd) {
-						const {onEnd} = effek;
+						const { onEnd } = effek;
 						node.slot(Dora.Slot.EffekEnd, (h) => {
 							if (handle == h) {
 								onEnd();
@@ -1498,7 +1498,7 @@ export function toNode(this: void, enode: React.Element | React.Element[]): Dora
 }
 
 export function useRef<T>(this: void, item?: T): JSX.Ref<T> {
-	return {current: item ?? undefined};
+	return { current: item ?? undefined };
 }
 
 function getPreload(this: void, preloadList: string[], node: React.Element | React.Element[]) {
@@ -1558,7 +1558,7 @@ export function preloadAsync(this: void, enode: React.Element | React.Element[],
 
 export function toAction(this: void, enode: React.Element): Dora.ActionDef.Type {
 	const actionDef = useRef<Dora.ActionDef.Type>();
-	toNode(React.createElement('action', {ref: actionDef}, enode));
+	toNode(React.createElement('action', { ref: actionDef }, enode));
 	if (!actionDef.current) error('failed to create action');
 	return actionDef.current;
 }

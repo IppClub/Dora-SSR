@@ -2051,9 +2051,9 @@ declare namespace utf8 {
 	 * 将遍历字符串 s 中的所有字符，其中 p 是位置（以字节为单位），
 	 * c 是每个字符的代码点。如果遇到任何无效的字节序列，它会引发错误。
 	 */
-	function codes<S extends string>(
-		s: S
-	): [(s: S, index?: number) => LuaMultiReturn<[number, number]>, S, 0];
+	function codes(
+		s: string, lax?: boolean
+	): LuaIterable<LuaMultiReturn<[number, number]>>;
 
 	/**
 	 * 返回从字符串 s 中开始在字节位置 i 和 j（都包括在内）的所有字符的代码点（作为整数）。
@@ -2065,7 +2065,7 @@ declare namespace utf8 {
 	 * 返回字符串 s 中开始在位置 i 和 j（都包括在内）的 UTF-8 字符的数量。
 	 * i 的默认值为 1，j 的默认值为 -1。如果找到任何无效的字节序列，返回一个 false 值加上第一个无效字节的位置。
 	 */
-	function len(s: string, i?: number, j?: number): number;
+	function len(s: string, i?: number, j?: number): number | undefined;
 
 	/**
 	 * 返回 s 中第 n 个字符的编码开始的位置（以字节为单位）。
@@ -2077,7 +2077,7 @@ declare namespace utf8 {
 	 *
 	 * 此函数假定 s 是有效的 UTF-8 字符串。
 	 */
-	function offset(s: string, n?: number, i?: number): number;
+	function offset(s: string, n?: number, i?: number): number | undefined;
 }
 
 interface LuaMetatable<T> {

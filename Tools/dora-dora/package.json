@@ -79,6 +79,7 @@
     "@types/react-dom": "^19.2.3",
     "@types/react-lazylog": "^4.5.4",
     "@types/react-syntax-highlighter": "^15.5.13",
+    "@types/react-transition-group": "^4.4.12",
     "@vitejs/plugin-react": "^4.7.0",
     "code-inspector-plugin": "^0.20.17",
     "esbuild": "^0.25.12",
