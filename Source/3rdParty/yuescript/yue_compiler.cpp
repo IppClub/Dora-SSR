@@ -78,7 +78,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.33.6"sv;
+const std::string_view version = "0.33.7"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -3028,6 +3028,9 @@ private:
 		auto subMetaDestruct = node->new_ptr<TableLit_t>();
 		for (auto pair : *tableItems) {
 			switch (pair->get_id()) {
+				case id<YueComment_t>():
+				case id<EmptyLine_t>():
+					break;
 				case id<Exp_t>():
 				case id<NormalDef_t>(): {
 					++index;
@@ -3429,6 +3432,9 @@ private:
 				}
 				for (auto item : *dlist) {
 					switch (item->get_id()) {
+						case id<YueComment_t>():
+						case id<EmptyLine_t>():
+							break;
 						case id<MetaVariablePairDef_t>(): {
 							auto mvp = static_cast<MetaVariablePairDef_t*>(item);
 							auto mp = mvp->pair.get();
