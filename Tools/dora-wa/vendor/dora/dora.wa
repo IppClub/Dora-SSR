@@ -2043,17 +2043,20 @@ func Node.OnAppChange(callback: func(setting_name: string)) {
 	})
 }
 
-func Node.OnAppWs(callback: func(event_type: string, msg: string)) {
+/// Registers callback for AppWS global event.
+/// The payload is a Dictionary with keys "type" and "msg".
+/// When sending AppWS, emit one Dictionary argument as payload.
+func Node.OnAppWs(callback: func(event: Dictionary)) {
 	this.Gslot("AppWS", func(stack: CallStack) {
-		event_type, ok := stack.PopStr()
-		if !ok {
+		event_obj := stack.PopObject()
+		if event_obj == nil {
 			panic("invalid app ws event")
 		}
-		msg, ok := stack.PopStr()
-		if !ok {
+		event := ObjectAsDictionary(*event_obj)
+		if event == nil {
 			panic("invalid app ws event")
 		}
-		callback(event_type, msg)
+		callback(*event)
 	})
 }
 

@@ -1,6 +1,7 @@
 local Size = require("Size").Type
 local Vec2 = require("Vec2").Type
 local Color = require("Color").Type
+local Dictionary = require("Dictionary").Type
 
 -- 管理应用程序信息的单例类。
 local record App
@@ -158,8 +159,11 @@ local record __GSLOT__
 	-- 应用设置发生变化时触发。设置名称可以是 "Locale"、"Theme"、"FullScreen"、"Position"、"Size"。
 	["AppChange"]: function(settingName: string)
 
-	-- 当一个客户端和应用建立 Websocket 连接时并收发到事件时触发。事件类型可以是 "Open"、"Close"、"Send"、"Receive"。
-	["AppWS"]: function(eventType: string, msg: string)
+	-- 当一个客户端和应用建立 Websocket 连接并收发消息时触发。
+	-- 回调接收一个对象参数：
+	-- 	`event.type` 事件类型，可为 "Open"、"Close"、"Send"、"Receive"。
+	-- 	`event.msg` 消息内容。
+	["AppWS"]: function(event: Dictionary)
 end
 
 local app: App

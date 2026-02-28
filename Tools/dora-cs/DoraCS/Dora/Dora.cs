@@ -2003,14 +2003,21 @@ namespace Dora
             });
         }
 
-        public delegate void AppWsHandler(string eventType, string msg);
+        /// <summary>
+        /// Handles AppWS global event payload. The payload is a Dictionary with keys "type" and "msg".
+        /// When sending AppWS, use Event.Emit("AppWS", dictionaryPayload).
+        /// </summary>
+        public delegate void AppWsHandler(Dictionary evt);
         public void OnAppWs(AppWsHandler func)
         {
-            this.Slot("AppWs", (stack) =>
+            this.Gslot("AppWS", (stack) =>
             {
-                var eventType = stack.PopString();
-                var msg = stack.PopString();
-                func(eventType, msg);
+                var evt = stack.PopObject() as Dictionary;
+                if (evt == null)
+                {
+                    throw new ArithmeticException("invalid app ws event");
+                }
+                func(evt);
             });
         }
     }

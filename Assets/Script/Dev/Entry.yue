@@ -650,13 +650,13 @@ setupEventHandlers = ->
 							:width, :height = App.winSize
 							config.winWidth = width
 							config.winHeight = height
-		\onAppWS (eventType, msg) ->
-			if eventType == "Close"
+		\onAppWS (event) ->
+			if event.type == "Close"
 				if HttpServer.wsConnectionCount == 0
 					updateEntries!
 				return
-			return unless eventType == "Receive"
-			data = json.decode msg
+			return unless event.type == "Receive"
+			data = json.decode event.msg
 			return unless data
 			switch data.name
 				when "SearchFiles"

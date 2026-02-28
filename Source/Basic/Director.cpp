@@ -17,6 +17,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Cache/FontCache.h"
 #include "Effect/Effect.h"
 #include "Entity/Entity.h"
+#include "Event/Event.h"
 #include "Event/Listener.h"
 #include "GUI/ImGuiDora.h"
 #include "Http/HttpServer.h"
@@ -28,6 +29,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Render/Renderer.h"
 #include "Render/VGRender.h"
 #include "Render/View.h"
+#include "Support/Dictionary.h"
+#include "Support/Value.h"
 
 #include "bx/timer.h"
 
@@ -41,6 +44,13 @@ extern "C" int32_t dora_rust_init();
 #endif // DORA_NO_RUST
 
 NS_DORA_BEGIN
+
+static Dictionary* makeAppWSMessage(String type, const std::string& msg = std::string{}) {
+	auto payload = Dictionary::create();
+	payload->set("type"_slice, Value::alloc(type.toString()));
+	payload->set("msg"_slice, Value::alloc(msg));
+	return payload;
+}
 
 Director::Director()
 	: _systemScheduler(Scheduler::create())
@@ -934,7 +944,7 @@ void Director::ProfilerInfo::update(double deltaTime) {
 			}
 			writer.EndObject();
 			writer.EndObject();
-			Event::send("AppWS"sv, "Send"s, std::string{buf.GetString(), buf.GetLength()});
+			Event::send("AppWS"sv, makeAppWSMessage("Send"_slice, std::string{buf.GetString(), buf.GetLength()}));
 		}
 	}
 }

@@ -2747,6 +2747,10 @@ export {GlobalEvent as GSlot};
 type AppEventType = "Quit" | "LowMemory" | "WillEnterBackground" | "DidEnterBackground" | "WillEnterForeground" | "DidEnterForeground";
 type AppSettingName = "Locale" | "Theme" | "FullScreen" | "Position" | "Size";
 type AppWSEventType = "Open" | "Close" | "Send" | "Receive";
+type AppWSMessage = {
+	type: AppWSEventType;
+	msg: string;
+};
 
 type GlobalEventHandlerMap = {
 	/** 应用接收到各种系统事件时触发。 */
@@ -2756,7 +2760,7 @@ type GlobalEventHandlerMap = {
 	AppChange(this: void, settingName: AppSettingName): void;
 
 	/** 当一个客户端和应用建立 Websocket 连接并收发消息时触发。 */
-	AppWS(this: void, eventType: AppWSEventType, msg: string): void;
+	AppWS(this: void, event: AppWSMessage): void;
 };
 
 /**
@@ -3415,7 +3419,7 @@ class Node extends Object {
 	 * 注册一个回调函数，当应用 Websocket 事件发生时触发。
 	 * @param callback 要注册的回调函数。
 	 */
-	onAppWS(callback: (this: void, eventType: AppWSEventType, msg: string) => void): void;
+	onAppWS(callback: (this: void, event: AppWSMessage) => void): void;
 }
 
 export {Node as NodeType};

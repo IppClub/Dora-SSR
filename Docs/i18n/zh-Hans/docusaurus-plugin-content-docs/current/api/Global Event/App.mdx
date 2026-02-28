@@ -46,9 +46,10 @@ end)
 
 **描述：**
 
-&emsp;&emsp;当一个客户端和应用建立 Websocket 连接时并收发到事件时触发。事件类型可以是 "Open"、"Close"、"Send"、"Receive"。
+&emsp;&emsp;当一个客户端和应用建立 Websocket 连接并收发消息时触发。回调接收一个 `Dictionary` 参数，包含 `type` 和 `msg` 字段。
+&emsp;&emsp;发送该事件时也应传入一个 `Dictionary` 参数（例如：`{ type = "Send", msg = "..." }`）。
 
 **签名：**
 ```tl
-["AppWS"]: function(eventType: string, msg: string)
+["AppWS"]: function(event: Dictionary)
 ```

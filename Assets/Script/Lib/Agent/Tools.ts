@@ -439,9 +439,9 @@ export async function runSingleTsTranspile(file: string, content: string, timeou
 		return result;
 	}
 	const listener = Node();
-	listener.gslot("AppWS", (eventType, msg) => {
-		if (eventType !== "Receive") return;
-		const [res] = json.decode(msg);
+	listener.gslot("AppWS", (event) => {
+		if (event.type !== "Receive") return;
+		const [res] = json.decode(event.msg);
 		if (!res || Array.isArray(res) || res.name !== "TranspileTS") return;
 		if (res.success) {
 			const luaFile = Path.replaceExt(file, "lua");

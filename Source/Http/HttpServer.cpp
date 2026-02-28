@@ -17,6 +17,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Common/Async.h"
 #include "Event/Event.h"
 #include "Event/Listener.h"
+#include "Support/Dictionary.h"
+#include "Support/Value.h"
 
 #define CPPHTTPLIB_OPENSSL_SUPPORT
 #define CPPHTTPLIB_ZLIB_SUPPORT
@@ -241,6 +243,13 @@ static std::vector<std::pair<std::string, std::string>> parse_query_pairs(const 
 	return params;
 }
 
+static Dictionary* makeAppWSMessage(String type, const std::string& msg = std::string{}) {
+	auto payload = Dictionary::create();
+	payload->set("type"_slice, Value::alloc(type.toString()));
+	payload->set("msg"_slice, Value::alloc(msg));
+	return payload;
+}
+
 class WebSocketServer {
 	using Server = websocketpp::server<websocketpp::config::asio>;
 	using ConnectionSet = std::set<ws::connection_hdl, std::owner_less<ws::connection_hdl>>;
@@ -290,7 +299,7 @@ public:
 		writer.Key("text");
 		writer.String(log.c_str(), log.size());
 		writer.EndObject();
-		Event::send("AppWS"sv, "Send"s, std::string{buf.GetString(), buf.GetLength()});
+		Event::send("AppWS"sv, makeAppWSMessage("Send"_slice, std::string{buf.GetString(), buf.GetLength()}));
 	}
 
 	bool start(int port) {
@@ -306,7 +315,7 @@ public:
 				if (ws::frame::opcode::BINARY == msg->get_opcode()) {
 					auto message = std::make_shared<std::string>(msg->get_payload());
 					SharedApplication.invokeInLogic([message = std::move(message)]() {
-						Event::send("AppWS"sv, "Receive"s, std::move(*message));
+						Event::send("AppWS"sv, makeAppWSMessage("Receive"_slice, std::move(*message)));
 					});
 				}
 			});
@@ -316,7 +325,7 @@ public:
 					_connections.insert(hdl);
 				}
 				SharedApplication.invokeInLogic([]() {
-					Event::send("AppWS"sv, "Open"s, Slice::Empty);
+					Event::send("AppWS"sv, makeAppWSMessage("Open"_slice));
 				});
 			});
 			_server.set_close_handler([this](ws::connection_hdl hdl) {
@@ -325,7 +334,7 @@ public:
 					_connections.erase(hdl);
 				}
 				SharedApplication.invokeInLogic([]() {
-					Event::send("AppWS"sv, "Close"s, Slice::Empty);
+					Event::send("AppWS"sv, makeAppWSMessage("Close"_slice));
 				});
 			});
 			_server.set_reuse_addr(true);
@@ -948,12 +957,27 @@ bool HttpServer::startWS(int port) {
 	}
 	_webSocketListener = Listener::create("AppWS"s, [this](Event* event) {
 		if (_webSocketServer) {
-			std::string eventType;
-			std::string msg;
-			if (event->get(eventType, msg)) {
-				if (eventType == "Send"sv) {
-					_webSocketServer->send(msg);
+			// Backward compatible:
+			// 1) New Lua/C++ style: emit("AppWS", payloadDictionary)
+			// 2) Legacy Lua style: emit("AppWS", "Send", msg)
+			if (DoraAs<LuaEventArgs>(event)) {
+				Dictionary* payload = nullptr;
+				if (event->get(payload) && payload) {
+					if (payload->get("type"_slice, std::string{}) == "Send"sv) {
+						_webSocketServer->send(payload->get("msg"_slice, std::string{}));
+					}
+				} else {
+					std::string eventType;
+					std::string msg;
+					if (event->get(eventType, msg) && eventType == "Send"sv) {
+						_webSocketServer->send(msg);
+					}
 				}
+				return;
+			}
+			Dictionary* payload = nullptr;
+			if (event->get(payload) && payload && payload->get("type"_slice, std::string{}) == "Send"sv) {
+				_webSocketServer->send(payload->get("msg"_slice, std::string{}));
 			}
 		}
 	});

@@ -683,9 +683,9 @@ local record Node
 
 	-- 注册应用程序 WebSocket 事件发生时触发的回调函数。
 	-- @param callback (function) 要注册的回调函数。
-	-- 	@param event (AppWSEvent) 发生的 WebSocket 事件类型。
-	-- 	@param message (string) 接收到或发送的消息。
-	onAppWS: function(self: Node, callback: function(event: AppWSEvent, message: string))
+	-- 	@param event (Dictionary) 事件对象。
+	-- 	`event.type` 是 WebSocket 事件类型，`event.msg` 是消息内容。
+	onAppWS: function(self: Node, callback: function(event: Dictionary))
 end
 
 -- 节点可监听的事件的定义。

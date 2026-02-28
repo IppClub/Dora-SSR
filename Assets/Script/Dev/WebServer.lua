@@ -3180,10 +3180,10 @@ HttpServer:postSchedule("/ts/build", function(req) -- 1267
 						local done = false -- 1282
 						do -- 1283
 							local _with_0 = Node() -- 1283
-							_with_0:gslot("AppWS", function(eventType, msg) -- 1284
-								if eventType == "Receive" then -- 1285
+							_with_0:gslot("AppWS", function(event) -- 1284
+								if event.type == "Receive" then -- 1285
 									_with_0:removeFromParent() -- 1286
-									local res = json.decode(msg) -- 1287
+									local res = json.decode(event.msg) -- 1287
 									if res then -- 1287
 										if res.name == "TranspileTS" then -- 1288
 											if res.success then -- 1289
@@ -3253,10 +3253,10 @@ HttpServer:postSchedule("/ts/build", function(req) -- 1267
 						local done = false -- 1313
 						do -- 1314
 							local _with_0 = Node() -- 1314
-							_with_0:gslot("AppWS", function(eventType, msg) -- 1315
-								if eventType == "Receive" then -- 1316
+							_with_0:gslot("AppWS", function(event) -- 1315
+								if event.type == "Receive" then -- 1316
 									_with_0:removeFromParent() -- 1317
-									local res = json.decode(msg) -- 1318
+									local res = json.decode(event.msg) -- 1318
 									if res then -- 1318
 										if res.name == "TranspileTS" then -- 1319
 											if res.success then -- 1320

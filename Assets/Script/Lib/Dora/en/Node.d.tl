@@ -681,9 +681,9 @@ local record Node
 
 	-- Registers callback for event triggered when an application WebSocket event occurs.
 	-- @param callback (function) The callback function to register.
-	-- 	@param event (AppWSEvent) The type of WebSocket event that occurred.
-	-- 	@param message (string) The message received or sent.
-	onAppWS: function(self: Node, callback: function(event: AppWSEvent, message: string))
+	-- 	@param event (Dictionary) The event object.
+	-- 	`event.type` is the WebSocket event type, and `event.msg` is the message payload.
+	onAppWS: function(self: Node, callback: function(event: Dictionary))
 end
 
 -- The available event slots for a Node.
