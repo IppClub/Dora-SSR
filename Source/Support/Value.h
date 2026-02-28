@@ -54,7 +54,7 @@ public:
 	virtual ValueType getType() const = 0;
 	virtual bool equals(Value* other) const = 0;
 	template <class T>
-	static Own<Value> alloc(const T& value);
+	static Own<Value> alloc(T&& value);
 	static const Own<Value> None;
 
 protected:
@@ -158,6 +158,9 @@ public:
 	inline void set(const T& value) {
 		_value = value;
 	}
+	inline void set(T&& value) {
+		_value = std::move(value);
+	}
 	inline T& get() {
 		return _value;
 	}
@@ -180,6 +183,8 @@ public:
 protected:
 	ValueStruct(const T& value)
 		: _value(value) { }
+	ValueStruct(T&& value)
+		: _value(std::move(value)) { }
 
 private:
 	T _value;
@@ -328,17 +333,18 @@ T Value::get() const {
 }
 
 template <class T>
-Own<Value> Value::alloc(const T& value) {
-	if constexpr (std::is_same_v<bool, T>) {
+Own<Value> Value::alloc(T&& value) {
+	using Decayed = std::decay_t<T>;
+	if constexpr (std::is_same_v<bool, Decayed>) {
 		return Own<Value>(new ValueBool(value));
-	} else if constexpr (std::is_integral_v<T>) {
+	} else if constexpr (std::is_integral_v<Decayed>) {
 		return Own<Value>(new ValueInt(s_cast<int64_t>(value)));
-	} else if constexpr (std::is_floating_point_v<T>) {
+	} else if constexpr (std::is_floating_point_v<Decayed>) {
 		return Own<Value>(new ValueFloat(s_cast<double>(value)));
-	} else if constexpr (std::is_base_of_v<Object, std::remove_pointer_t<special_decay_t<T>>>) {
-		return Own<Value>(new ValueObject(value));
-	} else if constexpr (!std::is_pointer_v<T> && std::is_class_v<T>) {
-		return Own<Value>(new ValueStruct<special_decay_t<T>>(value));
+	} else if constexpr (std::is_base_of_v<Object, std::remove_pointer_t<Decayed>>) {
+		return Own<Value>(new ValueObject(std::forward<T>(value)));
+	} else if constexpr (!std::is_pointer_v<Decayed> && std::is_class_v<Decayed>) {
+		return Own<Value>(new ValueStruct<Decayed>(std::forward<T>(value)));
 	}
 }
 

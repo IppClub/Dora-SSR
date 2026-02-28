@@ -16,7 +16,6 @@ include_directories(
 	src/main/cpp/3rdParty/sqlite
 	src/main/cpp/3rdParty/dragonBones
 	src/main/cpp/3rdParty/wasm3
-	src/main/cpp/3rdParty/asio
 	src/main/cpp/3rdParty/Zip/zlib
 	src/main/cpp/3rdParty/OpenSSL/Header
 	src/main/cpp/3rdParty/Effekseer
