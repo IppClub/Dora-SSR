@@ -99,6 +99,18 @@ static void get_config(lua_State* L, yue::YueConfig& config) {
 		config.lax = lua_toboolean(L, -1) != 0;
 	}
 	lua_pop(L, 1);
+	lua_pushliteral(L, "line_offset");
+	lua_gettable(L, -2);
+	if (lua_isnumber(L, -1) != 0) {
+		config.lineOffset = static_cast<int>(lua_tonumber(L, -1));
+	}
+	lua_pop(L, 1);
+	lua_pushliteral(L, "module");
+	lua_gettable(L, -2);
+	if (lua_isstring(L, -1) != 0) {
+		config.module = lua_tostring(L, -1);
+	}
+	lua_pop(L, 1);
 	lua_pushliteral(L, "options");
 	lua_gettable(L, -2);
 	if (lua_istable(L, -1) != 0) {
@@ -131,18 +143,6 @@ static int yuetolua(lua_State* L) {
 		lua_gettable(L, -2);
 		if (lua_isboolean(L, -1) != 0) {
 			sameModule = lua_toboolean(L, -1) != 0;
-		}
-		lua_pop(L, 1);
-		lua_pushliteral(L, "line_offset");
-		lua_gettable(L, -2);
-		if (lua_isnumber(L, -1) != 0) {
-			config.lineOffset = static_cast<int>(lua_tonumber(L, -1));
-		}
-		lua_pop(L, 1);
-		lua_pushliteral(L, "module");
-		lua_gettable(L, -2);
-		if (lua_isstring(L, -1) != 0) {
-			config.module = lua_tostring(L, -1);
 		}
 		lua_pop(L, 2);
 	}

@@ -147,7 +147,7 @@ do -- 59
 				} -- 91
 			end -- 91
 			return true -- 94
-		end, -- 135
+		end, -- 60
 		advance = function(self, choice) -- 135
 			if self.startTitle then -- 136
 				local success, err = self:gotoStory(self.startTitle) -- 137
@@ -217,7 +217,7 @@ do -- 59
 			else -- 176
 				return nil, "end of the story" -- 176
 			end -- 162
-		end -- 59
+		end -- 135
 	} -- 59
 	if _base_0.__index == nil then -- 59
 		_base_0.__index = _base_0 -- 59
@@ -313,7 +313,7 @@ do -- 59
 				local title, body = _des_0.title, _des_0.body -- 132
 				self.codes[title] = body -- 133
 			end -- 132
-		end, -- 59
+		end, -- 96
 		__base = _base_0, -- 59
 		__name = "YarnRunner" -- 59
 	}, { -- 59
