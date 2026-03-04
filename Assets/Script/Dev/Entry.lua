@@ -1478,13 +1478,13 @@ end) -- 875
 local webStatus = nil -- 877
 local urlClicked = nil -- 878
 local authCode = string.format("%06d", math.random(0, 999999)) -- 880
-local authCodeTTL = 30 -- 882
+local authCodeTTL = 30.0 -- 882
 _module_0.getAuthCode = function() -- 883
 	return authCode -- 883
 end -- 883
 _module_0.invalidateAuthCode = function() -- 884
 	authCode = string.format("%06d", math.random(0, 999999)) -- 885
-	authCodeTTL = 30 -- 886
+	authCodeTTL = 30.0 -- 886
 end -- 884
 local AuthSession -- 888
 do -- 888
@@ -1571,7 +1571,7 @@ footerWindow = threadLoop(function() -- 946
 	local zh = useChinese -- 947
 	authCodeTTL = math.max(0, authCodeTTL - App.deltaTime) -- 948
 	if authCodeTTL <= 0 then -- 949
-		authCodeTTL = 30 -- 950
+		authCodeTTL = 30.0 -- 950
 		authCode = string.format("%06d", math.random(0, 999999)) -- 951
 	end -- 949
 	if HttpServer.wsConnectionCount > 0 then -- 952
@@ -1799,7 +1799,7 @@ footerWindow = threadLoop(function() -- 946
 		else -- 1101
 			if config.authRequired then -- 1101
 				PushStyleColor("Text", themeColor, function() -- 1102
-					ImGui.ProgressBar(authCodeTTL / 30, Vec2(60, 30), authCode) -- 1103
+					ImGui.ProgressBar(authCodeTTL / 30.0, Vec2(60, 30), authCode) -- 1103
 					hovered = hovered or IsItemHovered() -- 1104
 				end) -- 1102
 				if hovered then -- 1105

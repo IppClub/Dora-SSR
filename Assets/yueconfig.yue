@@ -17,6 +17,7 @@ return
 	-- Whether the compiler should do an implicit return for the root code block.
 	implicit_return_root: true
 
+	-- Whether the compiler should reserve the original comment in statement in the compiled code.
 	reserve_comment: false
 
 	-- Whether the compiler should reserve the original line number in the compiled code.

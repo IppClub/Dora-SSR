@@ -78,7 +78,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.33.8"sv;
+const std::string_view version = "0.33.9"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -5363,8 +5363,12 @@ private:
 				if (auto comment = ast_cast<YueComment_t>(node)) {
 					transformComment(comment, temp);
 					continue;
-				}
-				if (!ast_is<Statement_t>(node)) {
+				} else if (ast_is<EmptyLine_t>(node)) {
+					if (_config.reserveComment) {
+						temp.push_back("\n"s);
+					}
+					continue;
+				} else if (!ast_is<Statement_t>(node)) {
 					continue;
 				}
 				auto transformNode = [&]() {
@@ -8376,10 +8380,11 @@ private:
 				case id<TableBlock_t>(): transformTableBlock(static_cast<TableBlock_t*>(item), temp); break;
 				default: YUEE("AST node mismatch", item); break;
 			}
+			auto ind = temp.back().empty() ? Empty : indent();
 			if (skipComma) {
-				temp.back() = indent() + temp.back() + '\n';
+				temp.back() = ind + temp.back() + '\n';
 			} else {
-				temp.back() = indent() + (item == lastValueNode ? temp.back() : temp.back() + ',') + nl(item);
+				temp.back() = ind + (item == lastValueNode ? temp.back() : temp.back() + ',') + nl(item);
 			}
 		}
 		if (metatable->values.empty() && !metatableItem) {
@@ -10008,7 +10013,8 @@ private:
 			if (!commentOrEmpty.empty()) {
 				for (auto& item : commentOrEmpty) {
 					auto [content, newLine, isComment] = std::move(item);
-					target.emplace_back(indent(1) + content, newLine, isComment);
+					auto ind = content.empty() ? Empty : indent(1);
+					target.emplace_back(ind + content, newLine, isComment);
 				}
 				commentOrEmpty.clear();
 			}

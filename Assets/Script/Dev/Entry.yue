@@ -878,7 +878,7 @@ webStatus = nil
 urlClicked = nil
 
 authCode = string.format "%06d", math.random 0, 999999
-macro MaxAuthCodeTTL = -> 30
+macro MaxAuthCodeTTL = -> 30.0
 authCodeTTL = $MaxAuthCodeTTL
 export.getAuthCode = -> authCode
 export.invalidateAuthCode = ->
