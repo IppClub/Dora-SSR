@@ -931,7 +931,7 @@ declare function ipairs<T>(
  *
  * 如果在遍历过程中，你给表中不存在的字段赋值，next 的行为是未定义的。然而，你可以修改现有的字段。特别地，你可以清除现有的字段。
  */
-declare function next(table: object, index?: any): LuaMultiReturn<[any, any] | []>;
+declare function next(table: object, index?: any): LuaMultiReturn<[undefined, undefined]> | LuaMultiReturn<[any, any]>;
 
 /**
  * 如果 t 有一个 __pairs 的元方法，调用它，参数为 t，并返回调用的前三个结果。否则，返回三个值：next 函数，表 t 和 nil，以便构造
@@ -954,12 +954,12 @@ declare function pcall<This, Args extends any[], R>(
 	f: (this: This, ...args: Args) => R,
 	context: This,
 	...args: Args
-): LuaMultiReturn<[true, R] | [false, string]>;
+): LuaMultiReturn<[true, R]> | LuaMultiReturn<[false, any]>;
 
 declare function pcall<A extends any[], R>(
 	f: (this: void, ...args: A) => R,
 	...args: A
-): LuaMultiReturn<[true, R] | [false, string]>;
+): LuaMultiReturn<[true, R]> | LuaMultiReturn<[false, any]>;
 
 /**
  * 接收任意数量的参数，并将它们的值打印到日志输出，使用 tostring 函数将每个参数转换为字符串。print 不是用于格式化输出，而只是作为快速显示值的方式，例如用于调试。要完全控制输出，请使用 string.format 和 io.write。
@@ -1057,7 +1057,7 @@ declare namespace coroutine {
 	function resume(
 		 co: LuaThread,
 		 ...val: any[]
-	): LuaMultiReturn<[true, ...any[]] | [false, string]>;
+	): LuaMultiReturn<[true, ...any[]]> | LuaMultiReturn<[false, any]>;
 
 	/**
 	 * 返回协程 co 的状态，作为字符串："running"，如果协程正在运行（即，它调用了 status）；"suspended"，如果协程在调用 yield 中挂起，或者如果它还没有开始运行；"normal" 如果协程是活动的但不在运行（即，它已经恢复了另一个协程）；和 "dead" 如果协程已经完成了其主体函数，或者如果它因错误而停止。
@@ -1095,7 +1095,7 @@ declare namespace debug {
 	 */
 	function gethook(
 		thread?: LuaThread
-	): LuaMultiReturn<[undefined, 0] | [Function, number, string?]>;
+	): LuaMultiReturn<[undefined, undefined, undefined]> | LuaMultiReturn<[Function, string, number]>;
 
 	interface FunctionInfo<T extends Function = Function> {
 		/**
@@ -1167,7 +1167,7 @@ declare namespace debug {
 	 *
 	 * 以'('（开括号）开头的变量名代表没有已知名称的变量（来自未保存调试信息的块的变量）。
 	 */
-	function getupvalue(f: Function, up: number): LuaMultiReturn<[string, any] | []>;
+	function getupvalue(f: Function, up: number): LuaMultiReturn<[undefined, undefined]> | LuaMultiReturn<[string, any]>;
 
 	/**
 	 * 返回与u关联的Lua值。如果u不是完整的用户数据，返回 nil。
@@ -1189,13 +1189,13 @@ declare namespace debug {
 	 */
 	function sethook(): void;
 	function sethook(
-		hook: (event: 'call' | 'return' | 'line' | 'count', line?: number) => any,
+		hook: (event: 'call' | 'tail call' | 'return' | 'line' | 'count', line?: number) => any,
 		mask: string,
 		count?: number
 	): void;
 	function sethook(
 		thread: LuaThread,
-		hook: (event: 'call' | 'return' | 'line' | 'count', line?: number) => any,
+		hook: (event: 'call' | 'tail call' | 'return' | 'line' | 'count', line?: number) => any,
 		mask: string,
 		count?: number
 	): void;
@@ -1543,7 +1543,7 @@ declare namespace package {
 	 *
 	 * 返回可以在读模式下打开的第一个文件的结果名称（关闭文件后），或者如果没有成功，则返回 nil 加上错误消息。（此错误消息列出了尝试打开的所有文件名。）
 	 */
-	function searchpath(name: string, path: string, sep?: string, rep?: string): string;
+	function searchpath(name: string, path: string, sep?: string, rep?: string): LuaMultiReturn<[string, undefined]> | LuaMultiReturn<[undefined, string]>;
 }
 
 // 基于 https://www.lua.org/manual/5.3/manual.html#6.4
@@ -1586,7 +1586,7 @@ declare namespace string {
 		pattern: string,
 		init?: number,
 		plain?: boolean
-	): LuaMultiReturn<[number, number, ...string[]] | []>;
+	): LuaMultiReturn<[undefined, undefined]> | LuaMultiReturn<[number, number, ...string[]]>;
 
 	/**
 	 * 返回其可变数量的参数的格式化版本，该版本遵循其第一个参数（必须为字符串）中给出的描述。格式字符串遵循 ISO C 函数 sprintf 的相同规则。唯一的区别是选项/修饰符 *, h, L, l, n, 和 p 不受支持，并且有一个额外的选项，q。
@@ -1856,7 +1856,7 @@ declare function load(
 	chunkname?: string,
 	mode?: 'b' | 't' | 'bt',
 	env?: object
-): LuaMultiReturn<[() => any] | [undefined, string]>;
+): LuaMultiReturn<[() => any, undefined]> | LuaMultiReturn<[undefined, string]>;
 
 /**
 * 类似于 load，但是从文件 filename 获取代码块，或者从标准输入获取，
@@ -1866,7 +1866,7 @@ declare function loadfile(
 	filename?: string,
 	mode?: 'b' | 't' | 'bt',
 	env?: object
-): LuaMultiReturn<[() => any] | [undefined, string]>;
+): LuaMultiReturn<[() => any, undefined]> | LuaMultiReturn<[undefined, string]>;
 
 /**
 * 此函数类似于 pcall，只是它设置了新的消息处理程序 msgh。
@@ -1876,13 +1876,13 @@ declare function xpcall<This, Args extends any[], R, E>(
 	msgh: (this: void, err: any) => E,
 	context: This,
 	...args: Args
-): LuaMultiReturn<[true, R] | [false, E]>;
+): LuaMultiReturn<[true, R]> | LuaMultiReturn<[false, E]>;
 
 declare function xpcall<Args extends any[], R, E>(
 	f: (this: void, ...args: Args) => R,
 	msgh: (err: any) => E,
 	...args: Args
-): LuaMultiReturn<[true, R] | [false, E]>;
+): LuaMultiReturn<[true, R]> | LuaMultiReturn<[false, E]>;
 
 declare namespace debug {
 	interface FunctionInfo<T extends Function = Function> {
@@ -1899,12 +1899,12 @@ declare namespace debug {
 	 *
 	 * 参数 f 也可以是函数。在这种情况下，getlocal 只返回函数参数的名称。
 	 */
-	function getlocal(f: Function | number, local: number): LuaMultiReturn<[string, any]>;
+	function getlocal(f: Function | number, local: number): LuaMultiReturn<[undefined, undefined]> | LuaMultiReturn<[string, any]>;
 	function getlocal(
 		thread: LuaThread,
 		f: Function | number,
 		local: number
-	): LuaMultiReturn<[string, any]>;
+	): LuaMultiReturn<[undefined, undefined]> | LuaMultiReturn<[string, any]>;
 
 	/**
 	 * 返回给定函数的编号为 n 的上值的唯一标识符（作为轻量级用户数据）。
@@ -1965,7 +1965,7 @@ declare namespace math {
 	/**
 	 * 如果值 x 可转换为整数，则返回该整数。否则，返回 nil。
 	 */
-	function tointeger(x: number): number;
+	function tointeger(x: number): number | undefined;
 
 	/**
 	 * 如果 x 是整数，则返回 "integer"，如果是浮点数，则返回 "float"，如果 x 不是数字，则返回 nil。
@@ -2063,9 +2063,10 @@ declare namespace utf8 {
 
 	/**
 	 * 返回字符串 s 中开始在位置 i 和 j（都包括在内）的 UTF-8 字符的数量。
+	 * 如果 lax 为 true，则把任意字节值视为有效续字节。
 	 * i 的默认值为 1，j 的默认值为 -1。如果找到任何无效的字节序列，返回一个 false 值加上第一个无效字节的位置。
 	 */
-	function len(s: string, i?: number, j?: number): number | undefined;
+	function len(s: string, i?: number, j?: number, lax?: boolean): LuaMultiReturn<[number, undefined]> | LuaMultiReturn<[false, number]>;
 
 	/**
 	 * 返回 s 中第 n 个字符的编码开始的位置（以字节为单位）。

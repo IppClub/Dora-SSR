@@ -1013,7 +1013,7 @@ declare function ipairs<T>(
  * value to a non-existent field in the table. You may however modify existing
  * fields. In particular, you may clear existing fields.
  */
-declare function next(table: object, index?: any): LuaMultiReturn<[any, any] | []>;
+declare function next(table: object, index?: any): LuaMultiReturn<[undefined, undefined]> | LuaMultiReturn<[any, any]>;
 
 /**
  * If t has a metamethod __pairs, calls it with t as argument and returns the
@@ -1044,12 +1044,12 @@ declare function pcall<This, Args extends any[], R>(
 	f: (this: This, ...args: Args) => R,
 	context: This,
 	...args: Args
-): LuaMultiReturn<[true, R] | [false, string]>;
+): LuaMultiReturn<[true, R]> | LuaMultiReturn<[false, any]>;
 
 declare function pcall<A extends any[], R>(
 	f: (this: void, ...args: A) => R,
 	...args: A
-): LuaMultiReturn<[true, R] | [false, string]>;
+): LuaMultiReturn<[true, R]> | LuaMultiReturn<[false, any]>;
 
 /**
  * Receives any number of arguments and prints their values to log output, using the
@@ -1187,7 +1187,7 @@ declare namespace coroutine {
 	function resume(
 		 co: LuaThread,
 		 ...val: any[]
-	): LuaMultiReturn<[true, ...any[]] | [false, string]>;
+	): LuaMultiReturn<[true, ...any[]]> | LuaMultiReturn<[false, any]>;
 
 	/**
 	 * Returns the status of coroutine co, as a string: "running", if the
@@ -1238,7 +1238,7 @@ declare namespace debug {
 	 */
 	function gethook(
 		 thread?: LuaThread
-	): LuaMultiReturn<[undefined, 0] | [Function, number, string?]>;
+	): LuaMultiReturn<[undefined, undefined, undefined]> | LuaMultiReturn<[Function, string, number]>;
 
 	interface FunctionInfo<T extends Function = Function> {
 		/**
@@ -1331,7 +1331,7 @@ declare namespace debug {
 	 * with no known names (variables from chunks saved without debug
 	 * information).
 	 */
-	function getupvalue(f: Function, up: number): LuaMultiReturn<[string, any] | []>;
+	function getupvalue(f: Function, up: number): LuaMultiReturn<[undefined, undefined]> | LuaMultiReturn<[string, any]>;
 
 	/**
 	 * Returns the Lua value associated to u. If u is not a full userdata, returns
@@ -1362,13 +1362,13 @@ declare namespace debug {
 	 */
 	function sethook(): void;
 	function sethook(
-		 hook: (event: 'call' | 'return' | 'line' | 'count', line?: number) => any,
+		 hook: (event: 'call' | 'tail call' | 'return' | 'line' | 'count', line?: number) => any,
 		 mask: string,
 		 count?: number
 	): void;
 	function sethook(
 		 thread: LuaThread,
-		 hook: (event: 'call' | 'return' | 'line' | 'count', line?: number) => any,
+		 hook: (event: 'call' | 'tail call' | 'return' | 'line' | 'count', line?: number) => any,
 		 mask: string,
 		 count?: number
 	): void;
@@ -1842,7 +1842,7 @@ declare namespace package {
 	 * (after closing the file), or nil plus an error message if none succeeds.
 	 * (This error message lists all file names it tried to open.)
 	 */
-	function searchpath(name: string, path: string, sep?: string, rep?: string): string;
+	function searchpath(name: string, path: string, sep?: string, rep?: string): LuaMultiReturn<[string, undefined]> | LuaMultiReturn<[undefined, string]>;
 }
 
 // Based on https://www.lua.org/manual/5.3/manual.html#6.4
@@ -1907,7 +1907,7 @@ declare namespace string {
 		 pattern: string,
 		 init?: number,
 		 plain?: boolean
-	): LuaMultiReturn<[number, number, ...string[]] | []>;
+	): LuaMultiReturn<[undefined, undefined]> | LuaMultiReturn<[number, number, ...string[]]>;
 
 	/**
 	 * Returns a formatted version of its variable number of arguments following
@@ -2296,7 +2296,7 @@ declare function load(
 	chunkname?: string,
 	mode?: 'b' | 't' | 'bt',
 	env?: object
-): LuaMultiReturn<[() => any] | [undefined, string]>;
+): LuaMultiReturn<[() => any, undefined]> | LuaMultiReturn<[undefined, string]>;
 
 /**
 * Similar to load, but gets the chunk from file filename or from the standard
@@ -2306,7 +2306,7 @@ declare function loadfile(
 	filename?: string,
 	mode?: 'b' | 't' | 'bt',
 	env?: object
-): LuaMultiReturn<[() => any] | [undefined, string]>;
+): LuaMultiReturn<[() => any, undefined]> | LuaMultiReturn<[undefined, string]>;
 
 /**
 * This function is similar to pcall, except that it sets a new message handler
@@ -2317,13 +2317,13 @@ declare function xpcall<This, Args extends any[], R, E>(
 	msgh: (this: void, err: any) => E,
 	context: This,
 	...args: Args
-): LuaMultiReturn<[true, R] | [false, E]>;
+): LuaMultiReturn<[true, R]> | LuaMultiReturn<[false, E]>;
 
 declare function xpcall<Args extends any[], R, E>(
 	f: (this: void, ...args: Args) => R,
 	msgh: (err: any) => E,
 	...args: Args
-): LuaMultiReturn<[true, R] | [false, E]>;
+): LuaMultiReturn<[true, R]> | LuaMultiReturn<[false, E]>;
 
 declare namespace debug {
 	interface FunctionInfo<T extends Function = Function> {
@@ -2351,12 +2351,12 @@ declare namespace debug {
 	 * The parameter f may also be a function. In that case, getlocal returns only
 	 * the name of function parameters.
 	 */
-	function getlocal(f: Function | number, local: number): LuaMultiReturn<[string, any]>;
+	function getlocal(f: Function | number, local: number): LuaMultiReturn<[undefined, undefined]> | LuaMultiReturn<[string, any]>;
 	function getlocal(
 		 thread: LuaThread,
 		 f: Function | number,
 		 local: number
-	): LuaMultiReturn<[string, any]>;
+	): LuaMultiReturn<[undefined, undefined]> | LuaMultiReturn<[string, any]>;
 
 	/**
 	 * Returns a unique identifier (as a light userdata) for the upvalue numbered
@@ -2433,7 +2433,7 @@ declare namespace math {
 	 * If the value x is convertible to an integer, returns that integer.
 	 * Otherwise, returns nil.
 	 */
-	function tointeger(x: number): number;
+	function tointeger(x: number): number | undefined;
 
 	/**
 	 * Returns "integer" if x is an integer, "float" if it is a float, or nil if x
@@ -2559,10 +2559,11 @@ declare namespace utf8 {
 	/**
 	 * Returns the number of UTF-8 characters in string s that start between
 	 * positions i and j (both inclusive). The default for i is 1 and for j is -1.
+	 * If lax is true, accepts any byte value as valid continuation bytes.
 	 * If it finds any invalid byte sequence, returns a false value plus the
 	 * position of the first invalid byte.
 	 */
-	function len(s: string, i?: number, j?: number): number;
+	function len(s: string, i?: number, j?: number, lax?: boolean): LuaMultiReturn<[number, undefined]> | LuaMultiReturn<[false, number]>;
 
 	/**
 	 * Returns the position (in bytes) where the encoding of the n-th character of
