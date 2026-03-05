@@ -2,7 +2,7 @@ import * as ts from "typescript";
 import * as lua from "../../LuaAST";
 import { FunctionVisitor, TransformationContext } from "../context";
 import { AnnotationKind, getTypeAnnotations } from "../utils/annotations";
-import { getSymbolExportScope } from "../utils/export";
+import { addExportToIdentifier, getSymbolExportScope } from "../utils/export";
 import { createLocalOrExportedOrGlobalDeclaration } from "../utils/lua-ast";
 import { isFirstDeclaration } from "../utils/typescript";
 import { transformIdentifier } from "./identifier";
@@ -32,7 +32,7 @@ export const transformEnumDeclaration: FunctionVisitor<ts.EnumDeclaration> = (no
     if (!membersOnly && isFirstDeclaration(context, node)) {
         const name = transformIdentifier(context, node.name);
         const table = lua.createBinaryExpression(
-            lua.cloneIdentifier(name),
+            addExportToIdentifier(context, name),
             lua.createTableExpression(),
             lua.SyntaxKind.OrOperator
         );
