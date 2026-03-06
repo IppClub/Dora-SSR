@@ -14,7 +14,7 @@
 
 **Signature:**
 ```tl
-decode: function(json: string, maxDepth?: integer): table | nil, nil | string
+decode: function(json: string, maxDepth?: integer, allowcomments?: boolean): table | nil, nil | string
 ```
 
 **Parameters:**
@@ -23,6 +23,7 @@ decode: function(json: string, maxDepth?: integer): table | nil, nil | string
 | --- | --- | --- |
 | json | string | The JSON text to parse. |
 | maxDepth | number | [optional] The maximum depth of parsing (default is 128). |
+| allowcomments | boolean | [optional] Whether to allow comments in the JSON text (default is false). |
 
 **Returns:**
 
@@ -40,7 +41,7 @@ decode: function(json: string, maxDepth?: integer): table | nil, nil | string
 
 **Signature:**
 ```tl
-encode: function(tab: table): string | nil, nil | string
+encode: function(tab: table, format?: boolean, empty_as_array?: boolean, num_as_str?: boolean, maxdepth?: integer): string | nil, nil | string
 ```
 
 **Parameters:**
@@ -48,6 +49,10 @@ encode: function(tab: table): string | nil, nil | string
 | Parameter | Type | Description |
 | --- | --- | --- |
 | tab | table | The table to dump. |
+| format | boolean | [optional] Whether to format the JSON text (default is false). |
+| empty_as_array | boolean | [optional] Whether to convert empty tables to arrays (default is false). |
+| num_as_str | boolean | [optional] Whether to convert numbers to strings (default is false). |
+| maxdepth | number | [optional] The maximum depth of conversion (default is 128). |
 
 **Returns:**
 

@@ -111,8 +111,10 @@ end)
 
 **Description:**
 
-&emsp;&emsp;Triggers when a websocket connection gets an event. Callback receives one `Dictionary` argument with fields `type` and `msg`.
-&emsp;&emsp;When sending this event, emit one `Dictionary` argument as well (for example: `{ type = "Send", msg = "..." }`).
+&emsp;&emsp;Triggers when a websocket connection gets an event.
+The callback receives one object argument:
+	`event.type` could be "Open", "Close", "Send", "Receive".
+	`event.msg` contains the message payload.
 
 **Signature:**
 ```tl

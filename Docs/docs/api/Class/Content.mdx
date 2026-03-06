@@ -569,6 +569,33 @@ unzipAsync: function(self: Content, zipFile: string, folderPath: string, filter?
 | --- | --- |
 | boolean | `true` if the folder was decompressed successfully, `false` otherwise. |
 
+## glob
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the names of all files in the specified directory and its subdirectories.
+
+**Signature:**
+```tl
+glob: function(self: Content, path: string, globs: {string}, extensionLevels?: {string: integer}): {string}
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| path | string | The path of the directory to search. |
+| globs | \{string} | The glob pattern array used to filter matching filenames or relative paths. Example:<br/>- All .txt and .json files in the directory (not including subdirectories): ["*.txt", "*.json"]<br/>- All files in the directory, but exclude .txt files: ["**", "!**.txt"] |
+| extensionLevels | \{[string]: integer} | [optional] A map from extension to priority level for picking the preferred file when the same basename appears with different extensions. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| table | An array of the names of all files in the specified directory and its subdirectories. |
+
 ## searchFilesAsync
 
 **Type:** Function.
@@ -584,7 +611,7 @@ searchFilesAsync: function(
 		path: string,
 		exts: {string},
 		extensionLevels: {string: integer},
-		excludes: {string},
+		globs: {string},
 		pattern: string,
 		useRegex?: boolean,
 		caseSensitive?: boolean,
@@ -601,7 +628,7 @@ searchFilesAsync: function(
 | path | string | The root path to search from, empty string means asset root. |
 | exts | \{string} | An array of filename extensions to include, empty table means all. |
 | extensionLevels | \{[string]: integer} | A map from extension to priority level for picking the preferred file when the same basename appears with different extensions. |
-| excludes | \{string} | An array of directory names to skip during searching. |
+| globs | \{string} | An array of glob patterns to match the file names. |
 | pattern | string | The search pattern. |
 | useRegex | boolean | [optional] Whether to treat pattern as regex (default false).<br/>Regex supports:<br/>'.'        Dot, matches any character<br/>'^'        Start anchor, matches beginning of string<br/>'$'        End anchor, matches end of string<br/>'*'        Asterisk, match zero or more (greedy)<br/>'+'        Plus, match one or more (greedy)<br/>'?'        Question, match zero or one (non-greedy)<br/>'[abc]'    Character class, match if one of \{'a', 'b', 'c'}<br/>'[^abc]'   Inverted class, match if NOT one of \{'a', 'b', 'c'}<br/>'[a-zA-Z]' Character ranges, the character set of the ranges \{ a-z | A-Z }<br/>'\s'       Whitespace, \t \f \r \n \v and spaces<br/>'\S'       Non-whitespace<br/>'\w'       Alphanumeric, [a-zA-Z0-9_]<br/>'\W'       Non-alphanumeric<br/>'\d'       Digits, [0-9]<br/>'\D'       Non-digits |
 | caseSensitive | boolean | [optional] Whether to use case-sensitive matching (default false). |

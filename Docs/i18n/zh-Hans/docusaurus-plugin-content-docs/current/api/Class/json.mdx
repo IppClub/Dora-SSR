@@ -14,7 +14,7 @@
 
 **签名：**
 ```tl
-decode: function(json: string, maxDepth?: integer): table | nil, nil | string
+decode: function(json: string, maxDepth?: integer, allowcomments?: boolean): table | nil, nil | string
 ```
 
 **参数：**
@@ -23,6 +23,7 @@ decode: function(json: string, maxDepth?: integer): table | nil, nil | string
 | --- | --- | --- |
 | json | string | 要解析的JSON文本。 |
 | maxDepth | number | [可选] 解析的最大深度（默认为128）。 |
+| allowcomments | boolean | [可选] 是否允许注释（默认是 false）。 |
 
 **返回值：**
 
@@ -40,7 +41,7 @@ decode: function(json: string, maxDepth?: integer): table | nil, nil | string
 
 **签名：**
 ```tl
-encode: function(tab: table): string | nil, nil | string
+encode: function(tab: table, format?: boolean, empty_as_array?: boolean, num_as_str?: boolean, maxdepth?: integer): string | nil, nil | string
 ```
 
 **参数：**
@@ -48,6 +49,10 @@ encode: function(tab: table): string | nil, nil | string
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
 | tab | table | 要转换的表。 |
+| format | boolean | [可选] 是否格式化JSON文本（默认是 false）。 |
+| empty_as_array | boolean | [可选] 是否将空表转换为数组（默认是 false）。 |
+| num_as_str | boolean | [可选] 是否将数字转换为字符串（默认是 false）。 |
+| maxdepth | number | [可选] 转换的最大深度（默认是 128）。 |
 
 **返回值：**
 

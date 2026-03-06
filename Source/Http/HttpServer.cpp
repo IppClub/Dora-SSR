@@ -1018,28 +1018,38 @@ const char* HttpServer::getVersion() {
 
 namespace {
 std::mutex s_httpClientRequestMutex;
-std::unordered_map<uint64_t, std::shared_ptr<httplib::Client>> s_httpClientRequests;
+struct HttpRequestState {
+	uint64_t id = 0;
+	std::atomic_bool cancelling = false;
+	std::atomic_bool finished = false;
+	std::mutex clientMutex;
+	std::shared_ptr<httplib::Client> client;
+};
+std::unordered_map<uint64_t, std::shared_ptr<HttpRequestState>> s_httpClientRequests;
 std::atomic_uint64_t s_httpClientRequestId{0};
 
-static uint64_t register_http_client_request(const std::shared_ptr<httplib::Client>& client) {
-	if (!client) {
-		return 0;
-	}
+static std::shared_ptr<HttpRequestState> register_http_client_request() {
 	if (SharedHttpClient.isStopped()) {
-		client->stop();
-		return 0;
+		return nullptr;
 	}
 	std::lock_guard<std::mutex> lock(s_httpClientRequestMutex);
 	if (SharedHttpClient.isStopped()) {
-		client->stop();
-		return 0;
+		return nullptr;
 	}
-	uint64_t id = s_httpClientRequestId.fetch_add(1, std::memory_order_relaxed) + 1;
-	s_httpClientRequests.emplace(id, client);
-	return id;
+	auto request = std::make_shared<HttpRequestState>();
+	request->id = s_httpClientRequestId.fetch_add(1, std::memory_order_relaxed) + 1;
+	s_httpClientRequests.emplace(request->id, request);
+	return request;
 }
 
-static void unregister_http_client_request(uint64_t id) {
+static void unregister_http_client_request(const std::shared_ptr<HttpRequestState>& request) {
+	if (!request) {
+		return;
+	}
+	if (request->finished.exchange(true, std::memory_order_relaxed)) {
+		return;
+	}
+	const auto id = request->id;
 	if (id == 0) {
 		return;
 	}
@@ -1047,32 +1057,39 @@ static void unregister_http_client_request(uint64_t id) {
 	s_httpClientRequests.erase(id);
 }
 
-static std::vector<std::shared_ptr<httplib::Client>> snapshot_http_client_requests() {
-	std::vector<std::shared_ptr<httplib::Client>> clients;
+static std::shared_ptr<HttpRequestState> get_http_client_request(uint64_t id) {
 	std::lock_guard<std::mutex> lock(s_httpClientRequestMutex);
-	clients.reserve(s_httpClientRequests.size());
-	for (const auto& item : s_httpClientRequests) {
-		clients.push_back(item.second);
+	if (auto it = s_httpClientRequests.find(id); it != s_httpClientRequests.end()) {
+		return it->second;
 	}
-	return clients;
+	return nullptr;
 }
 
-class ActiveHttpClientGuard {
-public:
-	explicit ActiveHttpClientGuard(const std::shared_ptr<httplib::Client>& client)
-		: _id(register_http_client_request(client)) { }
-
-	~ActiveHttpClientGuard() {
-		unregister_http_client_request(_id);
+static void set_http_client_request_client(const std::shared_ptr<HttpRequestState>& request, const std::shared_ptr<httplib::Client>& client) {
+	if (!request) {
+		return;
 	}
+	std::lock_guard<std::mutex> lock(request->clientMutex);
+	request->client = client;
+}
 
-	bool valid() const noexcept {
-		return _id != 0;
+static std::shared_ptr<httplib::Client> get_http_client_request_client(const std::shared_ptr<HttpRequestState>& request) {
+	if (!request) {
+		return nullptr;
 	}
+	std::lock_guard<std::mutex> lock(request->clientMutex);
+	return request->client;
+}
 
-private:
-	uint64_t _id;
-};
+static std::vector<std::shared_ptr<HttpRequestState>> snapshot_http_client_requests() {
+	std::vector<std::shared_ptr<HttpRequestState>> requests;
+	std::lock_guard<std::mutex> lock(s_httpClientRequestMutex);
+	requests.reserve(s_httpClientRequests.size());
+	for (const auto& item : s_httpClientRequests) {
+		requests.push_back(item.second);
+	}
+	return requests;
+}
 } // namespace
 
 HttpClient::HttpClient()
@@ -1086,6 +1103,23 @@ HttpClient::~HttpClient() {
 
 bool HttpClient::isStopped() const noexcept {
 	return _stopped.load(std::memory_order_relaxed);
+}
+
+bool HttpClient::cancel(RequestId requestId) {
+	auto request = get_http_client_request(requestId);
+	if (!request || request->finished.load(std::memory_order_relaxed)) {
+		return false;
+	}
+	request->cancelling.store(true, std::memory_order_relaxed);
+	if (auto client = get_http_client_request_client(request)) {
+		client->stop();
+	}
+	return true;
+}
+
+bool HttpClient::isRequestActive(RequestId requestId) const {
+	auto request = get_http_client_request(requestId);
+	return request && !request->finished.load(std::memory_order_relaxed);
 }
 
 static std::optional<std::pair<std::string, std::string>> getURLParts(String url) {
@@ -1124,10 +1158,10 @@ static std::optional<std::pair<std::string, std::string>> getURLParts(String url
 	}
 }
 
-void HttpClient::postAsync(String url, std::span<Slice> headers, String json, float timeout, const ContentPartHandler& partCallback, const ContentHandler& callback) {
+HttpClient::RequestId HttpClient::postAsync(String url, std::span<Slice> headers, String json, float timeout, const ContentPartHandler& partCallback, const ContentHandler& callback) {
 	if (_stopped.load(std::memory_order_relaxed)) {
 		callback(std::nullopt);
-		return;
+		return 0;
 	}
 	auto parts = getURLParts(url);
 	std::string schemeHostPort, pathToGet;
@@ -1136,7 +1170,12 @@ void HttpClient::postAsync(String url, std::span<Slice> headers, String json, fl
 		pathToGet = parts->second;
 	} else {
 		callback(std::nullopt);
-		return;
+		return 0;
+	}
+	auto request = register_http_client_request();
+	if (!request) {
+		callback(std::nullopt);
+		return 0;
 	}
 	httplib::Headers postHeaders;
 	for (const auto& header : headers) {
@@ -1147,14 +1186,16 @@ void HttpClient::postAsync(String url, std::span<Slice> headers, String json, fl
 	}
 	auto callbackFunc = std::make_shared<ContentHandler>(callback);
 	auto partCallbackFunc = std::make_shared<ContentPartHandler>(partCallback);
-	SharedAsyncThread.run([schemeHostPort, json = json.toString(), timeout, urlStr = url.toString(), partCallbackFunc, callbackFunc, pathToGet, headers = std::move(postHeaders)]() {
+	SharedAsyncThread.run([request, schemeHostPort, json = json.toString(), timeout, urlStr = url.toString(), partCallbackFunc, callbackFunc, pathToGet, headers = std::move(postHeaders)]() {
 		try {
 			auto client = std::make_shared<httplib::Client>(schemeHostPort);
-			ActiveHttpClientGuard activeClient(client);
-			if (!activeClient.valid()) {
+			set_http_client_request_client(request, client);
+			if (request->cancelling.load(std::memory_order_relaxed)) {
+				client->stop();
 				SharedApplication.invokeInLogic([callbackFunc]() {
 					(*callbackFunc)(std::nullopt);
 				});
+				unregister_http_client_request(request);
 				return nullptr;
 			}
 			client->enable_server_certificate_verification(false);
@@ -1171,15 +1212,23 @@ void HttpClient::postAsync(String url, std::span<Slice> headers, String json, fl
 				req.start_time_ = std::chrono::steady_clock::now();
 			}
 			if (*partCallbackFunc) {
-				req.content_receiver = [partCallbackFunc, stopped = std::make_shared<std::atomic<bool>>(false)](const char* data, size_t data_length, uint64_t offset, uint64_t total_length) -> bool {
-					SharedApplication.invokeInLogic([partCallbackFunc, part = std::string(data, data_length), stopped]() {
+				req.content_receiver = [request, partCallbackFunc, stopped = std::make_shared<std::atomic<bool>>(false)](const char* data, size_t data_length, uint64_t offset, uint64_t total_length) -> bool {
+					DORA_UNUSED_PARAM(offset);
+					DORA_UNUSED_PARAM(total_length);
+					if (request->cancelling.load(std::memory_order_relaxed)) {
+						return false;
+					}
+					SharedApplication.invokeInLogic([request, partCallbackFunc, part = std::string(data, data_length), stopped]() {
 						if (!*stopped) {
 							*stopped = (*partCallbackFunc)(part);
 						}
+						if (*stopped) {
+							request->cancelling.store(true, std::memory_order_relaxed);
+							if (auto activeClient = get_http_client_request_client(request)) {
+								activeClient->stop();
+							}
+						}
 					});
-					if (*stopped) {
-						return false;
-					}
 					return true;
 				};
 			}
@@ -1201,48 +1250,42 @@ void HttpClient::postAsync(String url, std::span<Slice> headers, String json, fl
 				(*callbackFunc)(Slice::Empty);
 			});
 		}
+		unregister_http_client_request(request);
 		return nullptr;
 	},
 		[partCallbackFunc, callbackFunc](Own<Values>) {
 		});
+	return request->id;
 }
 
-void HttpClient::postAsync(String url, const std::vector<std::string>& headers, String json, float timeout, const ContentHandler& callback) {
-	postAsync(url, headers, json, timeout, nullptr, callback);
+HttpClient::RequestId HttpClient::postAsync(String url, String json, float timeout, const ContentHandler& callback) {
+	return postAsync(url, std::span<Slice>{}, json, timeout, nullptr, callback);
 }
 
-void HttpClient::postAsync(String url, const std::vector<std::string>& headers, String json, float timeout, const ContentPartHandler& partCallback, const ContentHandler& callback) {
+HttpClient::RequestId HttpClient::postAsync(String url, const std::vector<std::string>& headers, String json, float timeout, const ContentPartHandler& partCallback, const ContentHandler& callback) {
 	std::vector<Slice> headerArray(headers.size());
 	for (size_t i = 0; i < headers.size(); i++) {
 		headerArray[i] = headers[i];
 	}
-	postAsync(url, headerArray, json, timeout, partCallback, callback);
+	return postAsync(url, std::span<Slice>(headerArray), json, timeout, partCallback, callback);
 }
 
-void HttpClient::postAsync(String url, Slice headers[], int count, String json, float timeout, const ContentHandler& callback) {
-	std::vector<Slice> headerArray(count);
-	for (int i = 0; i < count; i++) {
-		headerArray[i] = headers[i];
-	}
-	postAsync(url, headerArray, json, timeout, nullptr, callback);
+HttpClient::RequestId HttpClient::postAsync(String url, const std::vector<std::string>& headers, String json, float timeout, const ContentHandler& callback) {
+	return postAsync(url, headers, json, timeout, nullptr, callback);
 }
 
-void HttpClient::postAsync(String url, String json, float timeout, const ContentHandler& callback) {
-	postAsync(url, nullptr, 0, json, timeout, callback);
+HttpClient::RequestId HttpClient::postAsync(String url, Slice headers[], int count, String json, float timeout, const ContentPartHandler& partCallback, const ContentHandler& callback) {
+	return postAsync(url, std::span<Slice>(headers, s_cast<size_t>(count)), json, timeout, partCallback, callback);
 }
 
-void HttpClient::postAsync(String url, Slice headers[], int count, String json, float timeout, const ContentPartHandler& partCallback, const ContentHandler& callback) {
-	std::vector<Slice> headerArray(count);
-	for (int i = 0; i < count; i++) {
-		headerArray[i] = headers[i];
-	}
-	postAsync(url, headerArray, json, timeout, partCallback, callback);
+HttpClient::RequestId HttpClient::postAsync(String url, Slice headers[], int count, String json, float timeout, const ContentHandler& callback) {
+	return postAsync(url, std::span<Slice>(headers, s_cast<size_t>(count)), json, timeout, nullptr, callback);
 }
 
-void HttpClient::getAsync(String url, float timeout, const ContentHandler& callback) {
+HttpClient::RequestId HttpClient::getAsync(String url, float timeout, const ContentHandler& callback) {
 	if (_stopped.load(std::memory_order_relaxed)) {
 		callback(std::nullopt);
-		return;
+		return 0;
 	}
 	auto parts = getURLParts(url);
 	std::string schemeHostPort, pathToGet;
@@ -1251,21 +1294,30 @@ void HttpClient::getAsync(String url, float timeout, const ContentHandler& callb
 		pathToGet = parts->second;
 	} else {
 		callback(std::nullopt);
-		return;
+		return 0;
 	}
-	SharedAsyncThread.run([schemeHostPort, timeout, urlStr = url.toString(), callback, pathToGet]() {
+	auto request = register_http_client_request();
+	if (!request) {
+		callback(std::nullopt);
+		return 0;
+	}
+	SharedAsyncThread.run([request, schemeHostPort, timeout, urlStr = url.toString(), callback, pathToGet]() {
 		try {
 			auto client = std::make_shared<httplib::Client>(schemeHostPort);
-			ActiveHttpClientGuard activeClient(client);
-			if (!activeClient.valid()) {
+			set_http_client_request_client(request, client);
+			if (request->cancelling.load(std::memory_order_relaxed)) {
+				client->stop();
 				SharedApplication.invokeInLogic([callback]() {
 					callback(std::nullopt);
 				});
+				unregister_http_client_request(request);
 				return;
 			}
 			client->enable_server_certificate_verification(false);
 			client->set_follow_location(true);
 			client->set_connection_timeout(timeout);
+			client->set_read_timeout(timeout);
+			client->set_write_timeout(timeout);
 			auto result = client->Get(pathToGet);
 			if (!result || result.error() != httplib::Error::Success) {
 				Info("failed to do HTTP GET \"{}\" due to {}", urlStr, httplib::to_string(result.error()));
@@ -1283,13 +1335,15 @@ void HttpClient::getAsync(String url, float timeout, const ContentHandler& callb
 				callback(std::nullopt);
 			});
 		}
+		unregister_http_client_request(request);
 	});
+	return request->id;
 }
 
-void HttpClient::downloadAsync(String url, String filePath, float timeout, const std::function<bool(bool interrupted, uint64_t current, uint64_t total)>& progress) {
+HttpClient::RequestId HttpClient::downloadAsync(String url, String filePath, float timeout, const std::function<bool(bool interrupted, uint64_t current, uint64_t total)>& progress) {
 	if (_stopped.load(std::memory_order_relaxed)) {
 		progress(true, 0, 0);
-		return;
+		return 0;
 	}
 	if (!_downloadThread) {
 		_downloadThread = SharedAsyncThread.newThread();
@@ -1301,58 +1355,72 @@ void HttpClient::downloadAsync(String url, String filePath, float timeout, const
 		pathToGet = parts->second;
 	} else {
 		progress(true, 0, 0);
-		return;
+		return 0;
+	}
+	auto request = register_http_client_request();
+	if (!request) {
+		progress(true, 0, 0);
+		return 0;
 	}
 	auto progressFunc = std::make_shared<std::function<bool(bool interrupted, uint64_t current, uint64_t total)>>(progress);
-	_downloadThread->run([schemeHostPort, fileStr = filePath.toString(), urlStr = url.toString(), timeout, progressFunc, pathToGet]() -> Own<Values> {
+	_downloadThread->run([request, schemeHostPort, fileStr = filePath.toString(), urlStr = url.toString(), timeout, progressFunc, pathToGet]() -> Own<Values> {
 		try {
 			auto client = std::make_shared<httplib::Client>(schemeHostPort);
-			ActiveHttpClientGuard activeClient(client);
-			if (!activeClient.valid()) {
+			set_http_client_request_client(request, client);
+			if (request->cancelling.load(std::memory_order_relaxed)) {
+				client->stop();
 				SharedApplication.invokeInLogic([progressFunc]() {
 					(*progressFunc)(true, 0, 0);
 				});
+				unregister_http_client_request(request);
 				return nullptr;
 			}
 			client->enable_server_certificate_verification(false);
 			client->set_follow_location(true);
 			client->set_connection_timeout(timeout);
+			client->set_read_timeout(timeout);
+			client->set_write_timeout(timeout);
 			auto fullname = fileStr;
 			SDL_RWops* out = SDL_RWFromFile(fullname.c_str(), "wb+");
 			if (!out) {
 				Error("invalid local file path \"{}\" to download to", fileStr);
+				unregister_http_client_request(request);
 				return nullptr;
 			}
 			auto stream = std::shared_ptr<SDL_RWops>{out, [](SDL_RWops* io) { SDL_RWclose(io); }};
 			auto result = client->Get(
-				pathToGet, [&](const char* data, size_t data_length) -> bool {
-					if (SharedHttpClient.isStopped()) {
+				pathToGet, [request, &out, progressFunc, fileStr, urlStr](const char* data, size_t data_length) -> bool {
+					if (SharedHttpClient.isStopped() || request->cancelling.load(std::memory_order_relaxed)) {
 						return false;
-					} else {
-						size_t written = SDL_RWwrite(out, data, 1, data_length);
-						if (written != data_length) {
-							Error("failed to write downloaded file for \"{}\"", urlStr);
-							SharedApplication.invokeInLogic([progressFunc]() {
-								(*progressFunc)(true, 0, 0);
-							});
-							std::error_code err;
-							fs::remove_all(fileStr, err);
-							WarnIf(err, "failed to remove download file \"{}\" due to \"{}\".", fileStr, err.message());
-							return false;
-						}
-						return true;
 					}
-					return false;
+					size_t written = SDL_RWwrite(out, data, 1, data_length);
+					if (written != data_length) {
+						Error("failed to write downloaded file for \"{}\"", urlStr);
+						SharedApplication.invokeInLogic([progressFunc]() {
+							(*progressFunc)(true, 0, 0);
+						});
+						std::error_code err;
+						fs::remove_all(fileStr, err);
+						WarnIf(err, "failed to remove download file \"{}\" due to \"{}\".", fileStr, err.message());
+						return false;
+					}
+					return true;
 				},
-				[&, stream, stopped = std::make_shared<std::atomic<bool>>(false)](uint64_t current, uint64_t total) -> bool {
-					SharedApplication.invokeInLogic([progressFunc, current, total, stopped]() {
+				[request, progressFunc, stream, stopped = std::make_shared<std::atomic<bool>>(false)](uint64_t current, uint64_t total) -> bool {
+					if (request->cancelling.load(std::memory_order_relaxed)) {
+						return false;
+					}
+					SharedApplication.invokeInLogic([request, progressFunc, current, total, stopped]() {
 						if (!*stopped) {
 							*stopped = (*progressFunc)(false, current, total);
 						}
+						if (*stopped) {
+							request->cancelling.store(true, std::memory_order_relaxed);
+							if (auto activeClient = get_http_client_request_client(request)) {
+								activeClient->stop();
+							}
+						}
 					});
-					if (*stopped) {
-						return false;
-					}
 					return true;
 				});
 			if (!result || result.error() != httplib::Error::Success) {
@@ -1377,18 +1445,23 @@ void HttpClient::downloadAsync(String url, String filePath, float timeout, const
 				(*progressFunc)(true, 0, 0);
 			});
 		}
+		unregister_http_client_request(request);
 		return nullptr;
 	},
 		[progressFunc](Own<Values>) {
 		});
+	return request->id;
 }
 
 void HttpClient::stop() {
 	_stopped.store(true, std::memory_order_relaxed);
-	auto clients = snapshot_http_client_requests();
-	for (const auto& client : clients) {
-		if (client) {
-			client->stop();
+	auto requests = snapshot_http_client_requests();
+	for (const auto& request : requests) {
+		if (request) {
+			request->cancelling.store(true, std::memory_order_relaxed);
+			if (auto client = get_http_client_request_client(request)) {
+				client->stop();
+			}
 		}
 	}
 }
