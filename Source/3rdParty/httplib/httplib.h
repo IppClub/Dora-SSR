@@ -8,8 +8,8 @@
 #ifndef CPPHTTPLIB_HTTPLIB_H
 #define CPPHTTPLIB_HTTPLIB_H
 
-#define CPPHTTPLIB_VERSION "0.34.0"
-#define CPPHTTPLIB_VERSION_NUM "0x002200"
+#define CPPHTTPLIB_VERSION "0.36.0"
+#define CPPHTTPLIB_VERSION_NUM "0x002400"
 
 
 /*
@@ -548,6 +548,14 @@ inline unsigned char to_lower(int c) {
       255,
   };
   return table[(unsigned char)(char)c];
+}
+
+inline std::string to_lower(const std::string &s) {
+  std::string result = s;
+  std::transform(
+      result.begin(), result.end(), result.begin(),
+      [](unsigned char c) { return static_cast<char>(to_lower(c)); });
+  return result;
 }
 
 inline bool equal(const std::string &a, const std::string &b) {
@@ -1841,23 +1849,23 @@ public:
       : res_(std::move(res)), err_(err),
         request_headers_(std::move(request_headers)), ssl_error_(ssl_error) {}
   Result(std::unique_ptr<Response> &&res, Error err, Headers &&request_headers,
-         int ssl_error, unsigned long ssl_backend_error)
+         int ssl_error, uint64_t ssl_backend_error)
       : res_(std::move(res)), err_(err),
         request_headers_(std::move(request_headers)), ssl_error_(ssl_error),
         ssl_backend_error_(ssl_backend_error) {}
 
   int ssl_error() const { return ssl_error_; }
-  unsigned long ssl_backend_error() const { return ssl_backend_error_; }
+  uint64_t ssl_backend_error() const { return ssl_backend_error_; }
 
 private:
   int ssl_error_ = 0;
-  unsigned long ssl_backend_error_ = 0;
+  uint64_t ssl_backend_error_ = 0;
 #endif
 
 #ifdef CPPHTTPLIB_OPENSSL_SUPPORT
 public:
   [[deprecated("Use ssl_backend_error() instead")]]
-  unsigned long ssl_openssl_error() const {
+  uint64_t ssl_openssl_error() const {
     return ssl_backend_error_;
   }
 #endif
@@ -2327,7 +2335,7 @@ protected:
   bool server_hostname_verification_ = true;
   std::string ca_cert_pem_; // Store CA cert PEM for redirect transfer
   int last_ssl_error_ = 0;
-  unsigned long last_backend_error_ = 0;
+  uint64_t last_backend_error_ = 0;
 #endif
 
 #ifdef CPPHTTPLIB_OPENSSL_SUPPORT
@@ -4600,17 +4608,13 @@ inline bool is_websocket_upgrade(const Request &req) {
   // Check Upgrade: websocket (case-insensitive)
   auto upgrade_it = req.headers.find("Upgrade");
   if (upgrade_it == req.headers.end()) { return false; }
-  auto upgrade_val = upgrade_it->second;
-  std::transform(upgrade_val.begin(), upgrade_val.end(), upgrade_val.begin(),
-                 ::tolower);
+  auto upgrade_val = case_ignore::to_lower(upgrade_it->second);
   if (upgrade_val != "websocket") { return false; }
 
   // Check Connection header contains "Upgrade"
   auto connection_it = req.headers.find("Connection");
   if (connection_it == req.headers.end()) { return false; }
-  auto connection_val = connection_it->second;
-  std::transform(connection_val.begin(), connection_val.end(),
-                 connection_val.begin(), ::tolower);
+  auto connection_val = case_ignore::to_lower(connection_it->second);
   if (connection_val.find("upgrade") == std::string::npos) { return false; }
 
   // Check Sec-WebSocket-Key is a valid base64-encoded 16-byte value (24 chars)
@@ -6358,22 +6362,63 @@ find_content_type(const std::string &path,
   }
 }
 
+inline std::string
+extract_media_type(const std::string &content_type,
+                   std::map<std::string, std::string> *params = nullptr) {
+  // Extract type/subtype from Content-Type value (RFC 2045)
+  // e.g. "application/json; charset=utf-8" -> "application/json"
+  auto media_type = content_type;
+  auto semicolon_pos = media_type.find(';');
+  if (semicolon_pos != std::string::npos) {
+    auto param_str = media_type.substr(semicolon_pos + 1);
+    media_type = media_type.substr(0, semicolon_pos);
+
+    if (params) {
+      // Parse parameters: key=value pairs separated by ';'
+      split(param_str.data(), param_str.data() + param_str.size(), ';',
+            [&](const char *b, const char *e) {
+              std::string key;
+              std::string val;
+              split(b, e, '=', [&](const char *b2, const char *e2) {
+                if (key.empty()) {
+                  key.assign(b2, e2);
+                } else {
+                  val.assign(b2, e2);
+                }
+              });
+              if (!key.empty()) {
+                params->emplace(trim_copy(key), trim_double_quotes_copy(val));
+              }
+            });
+    }
+  }
+
+  // Trim whitespace from media type
+  return trim_copy(media_type);
+}
+
 inline bool can_compress_content_type(const std::string &content_type) {
   using udl::operator""_t;
 
-  auto tag = str2tag(content_type);
+  auto mime_type = extract_media_type(content_type);
+  auto tag = str2tag(mime_type);
 
   switch (tag) {
   case "image/svg+xml"_t:
   case "application/javascript"_t:
+  case "application/x-javascript"_t:
   case "application/json"_t:
+  case "application/ld+json"_t:
   case "application/xml"_t:
-  case "application/protobuf"_t:
-  case "application/xhtml+xml"_t: return true;
+  case "application/xhtml+xml"_t:
+  case "application/rss+xml"_t:
+  case "application/atom+xml"_t:
+  case "application/xslt+xml"_t:
+  case "application/protobuf"_t: return true;
 
   case "text/event-stream"_t: return false;
 
-  default: return !content_type.rfind("text/", 0);
+  default: return !mime_type.rfind("text/", 0);
   }
 }
 
@@ -6789,17 +6834,13 @@ inline bool read_websocket_upgrade_response(Stream &strm,
   // Verify Upgrade: websocket (case-insensitive)
   auto upgrade_it = headers.find("Upgrade");
   if (upgrade_it == headers.end()) { return false; }
-  auto upgrade_val = upgrade_it->second;
-  std::transform(upgrade_val.begin(), upgrade_val.end(), upgrade_val.begin(),
-                 ::tolower);
+  auto upgrade_val = case_ignore::to_lower(upgrade_it->second);
   if (upgrade_val != "websocket") { return false; }
 
   // Verify Connection header contains "Upgrade" (case-insensitive)
   auto connection_it = headers.find("Connection");
   if (connection_it == headers.end()) { return false; }
-  auto connection_val = connection_it->second;
-  std::transform(connection_val.begin(), connection_val.end(),
-                 connection_val.begin(), ::tolower);
+  auto connection_val = case_ignore::to_lower(connection_it->second);
   if (connection_val.find("upgrade") == std::string::npos) { return false; }
 
   // Verify Sec-WebSocket-Accept header value
@@ -6928,7 +6969,8 @@ inline bool is_chunked_transfer_encoding(const Headers &headers) {
 template <typename T, typename U>
 bool prepare_content_receiver(T &x, int &status,
                               ContentReceiverWithProgress receiver,
-                              bool decompress, U callback) {
+                              bool decompress, size_t payload_max_length,
+                              bool &exceed_payload_max_length, U callback) {
   if (decompress) {
     std::string encoding = x.get_header_value("Content-Encoding");
     std::unique_ptr<decompressor> decompressor;
@@ -6944,12 +6986,22 @@ bool prepare_content_receiver(T &x, int &status,
 
     if (decompressor) {
       if (decompressor->is_valid()) {
+        size_t decompressed_size = 0;
         ContentReceiverWithProgress out = [&](const char *buf, size_t n,
                                               size_t off, size_t len) {
-          return decompressor->decompress(buf, n,
-                                          [&](const char *buf2, size_t n2) {
-                                            return receiver(buf2, n2, off, len);
-                                          });
+          return decompressor->decompress(
+              buf, n, [&](const char *buf2, size_t n2) {
+                // Guard against zip-bomb: check
+                // decompressed size against limit.
+                if (payload_max_length > 0 &&
+                    (decompressed_size >= payload_max_length ||
+                     n2 > payload_max_length - decompressed_size)) {
+                  exceed_payload_max_length = true;
+                  return false;
+                }
+                decompressed_size += n2;
+                return receiver(buf2, n2, off, len);
+              });
         };
         return callback(std::move(out));
       } else {
@@ -6970,11 +7022,14 @@ template <typename T>
 bool read_content(Stream &strm, T &x, size_t payload_max_length, int &status,
                   DownloadProgress progress,
                   ContentReceiverWithProgress receiver, bool decompress) {
+  bool exceed_payload_max_length = false;
   return prepare_content_receiver(
-      x, status, std::move(receiver), decompress,
-      [&](const ContentReceiverWithProgress &out) {
+      x, status, std::move(receiver), decompress, payload_max_length,
+      exceed_payload_max_length, [&](const ContentReceiverWithProgress &out) {
         auto ret = true;
-        auto exceed_payload_max_length = false;
+        // Note: exceed_payload_max_length may also be set by the decompressor
+        // wrapper in prepare_content_receiver when the decompressed payload
+        // size exceeds the limit.
 
         if (is_chunked_transfer_encoding(x.headers)) {
           auto result = read_content_chunked(strm, x, payload_max_length, out);
@@ -7390,12 +7445,11 @@ inline std::string normalize_query_string(const std::string &query) {
 
 inline bool parse_multipart_boundary(const std::string &content_type,
                                      std::string &boundary) {
-  auto boundary_keyword = "boundary=";
-  auto pos = content_type.find(boundary_keyword);
-  if (pos == std::string::npos) { return false; }
-  auto end = content_type.find(';', pos);
-  auto beg = pos + strlen(boundary_keyword);
-  boundary = trim_double_quotes_copy(content_type.substr(beg, end - beg));
+  std::map<std::string, std::string> params;
+  extract_media_type(content_type, &params);
+  auto it = params.find("boundary");
+  if (it == params.end()) { return false; }
+  boundary = it->second;
   return !boundary.empty();
 }
 
@@ -7563,11 +7617,7 @@ inline bool parse_accept_header(const std::string &s,
     }
 
     // Remove additional parameters from media type
-    auto param_pos = accept_entry.media_type.find(';');
-    if (param_pos != std::string::npos) {
-      accept_entry.media_type =
-          trim_copy(accept_entry.media_type.substr(0, param_pos));
-    }
+    accept_entry.media_type = extract_media_type(accept_entry.media_type);
 
     // Basic validation of media type format
     if (accept_entry.media_type.empty()) {
@@ -7676,14 +7726,10 @@ public:
             file_.content_type =
                 trim_copy(header.substr(str_len(header_content_type)));
           } else {
-            thread_local const std::regex re_content_disposition(
-                R"~(^Content-Disposition:\s*form-data;\s*(.*)$)~",
-                std::regex_constants::icase);
-
-            std::smatch m;
-            if (std::regex_match(header, m, re_content_disposition)) {
+            std::string disposition_params;
+            if (parse_content_disposition(header, disposition_params)) {
               Params params;
-              parse_disposition_params(m[1], params);
+              parse_disposition_params(disposition_params, params);
 
               auto it = params.find("name");
               if (it != params.end()) {
@@ -7698,13 +7744,14 @@ public:
 
               it = params.find("filename*");
               if (it != params.end()) {
-                // Only allow UTF-8 encoding...
-                thread_local const std::regex re_rfc5987_encoding(
-                    R"~(^UTF-8''(.+?)$)~", std::regex_constants::icase);
-
-                std::smatch m2;
-                if (std::regex_match(it->second, m2, re_rfc5987_encoding)) {
-                  file_.filename = decode_path_component(m2[1]); // override...
+                // RFC 5987: only UTF-8 encoding is allowed
+                const auto &val = it->second;
+                constexpr const char utf8_prefix[] = "UTF-8''";
+                constexpr size_t prefix_len = str_len(utf8_prefix);
+                if (val.size() > prefix_len &&
+                    start_with_case_ignore(val, utf8_prefix)) {
+                  file_.filename = decode_path_component(
+                      val.substr(prefix_len)); // override...
                 } else {
                   is_valid_ = false;
                   return false;
@@ -7772,14 +7819,45 @@ private:
     file_.headers.clear();
   }
 
-  bool start_with_case_ignore(const std::string &a, const char *b) const {
+  bool start_with_case_ignore(const std::string &a, const char *b,
+                              size_t offset = 0) const {
     const auto b_len = strlen(b);
-    if (a.size() < b_len) { return false; }
+    if (a.size() < offset + b_len) { return false; }
     for (size_t i = 0; i < b_len; i++) {
-      if (case_ignore::to_lower(a[i]) != case_ignore::to_lower(b[i])) {
+      if (case_ignore::to_lower(a[offset + i]) != case_ignore::to_lower(b[i])) {
         return false;
       }
     }
+    return true;
+  }
+
+  // Parses "Content-Disposition: form-data; <params>" without std::regex.
+  // Returns true if header matches, with the params portion in `params_out`.
+  bool parse_content_disposition(const std::string &header,
+                                 std::string &params_out) const {
+    constexpr const char prefix[] = "Content-Disposition:";
+    constexpr size_t prefix_len = str_len(prefix);
+
+    if (!start_with_case_ignore(header, prefix)) { return false; }
+
+    // Skip whitespace after "Content-Disposition:"
+    auto pos = prefix_len;
+    while (pos < header.size() && (header[pos] == ' ' || header[pos] == '\t')) {
+      pos++;
+    }
+
+    // Match "form-data;" (case-insensitive)
+    constexpr const char form_data[] = "form-data;";
+    constexpr size_t form_data_len = str_len(form_data);
+    if (!start_with_case_ignore(header, form_data, pos)) { return false; }
+    pos += form_data_len;
+
+    // Skip whitespace after "form-data;"
+    while (pos < header.size() && (header[pos] == ' ' || header[pos] == '\t')) {
+      pos++;
+    }
+
+    params_out = header.substr(pos);
     return true;
   }
 
@@ -8734,9 +8812,10 @@ inline bool match_hostname(const std::string &pattern,
 // Verify certificate using Windows CertGetCertificateChain API.
 // This provides real-time certificate validation with Windows Update
 // integration, independent of the TLS backend (OpenSSL or MbedTLS).
-inline bool verify_cert_with_windows_schannel(
-    const std::vector<unsigned char> &der_cert, const std::string &hostname,
-    bool verify_hostname, unsigned long &out_error) {
+inline bool
+verify_cert_with_windows_schannel(const std::vector<unsigned char> &der_cert,
+                                  const std::string &hostname,
+                                  bool verify_hostname, uint64_t &out_error) {
   if (der_cert.empty()) { return false; }
 
   out_error = 0;
@@ -9397,7 +9476,7 @@ inline size_t Request::get_param_value_count(const std::string &key) const {
 
 inline bool Request::is_multipart_form_data() const {
   const auto &content_type = get_header_value("Content-Type");
-  return !content_type.rfind("multipart/form-data", 0);
+  return detail::extract_media_type(content_type) == "multipart/form-data";
 }
 
 // Multipart FormData implementation
@@ -10900,7 +10979,8 @@ inline bool Server::read_content(Stream &strm, Request &req, Response &res) {
             return true;
           })) {
     const auto &content_type = req.get_header_value("Content-Type");
-    if (!content_type.find("application/x-www-form-urlencoded")) {
+    if (detail::extract_media_type(content_type) ==
+        "application/x-www-form-urlencoded") {
       if (req.body.size() > CPPHTTPLIB_FORM_URL_ENCODED_PAYLOAD_MAX_LENGTH) {
         res.status = StatusCode::PayloadTooLarge_413; // NOTE: should be 414?
         output_error_log(Error::ExceedMaxPayloadSize, &req);
@@ -11288,45 +11368,63 @@ inline bool Server::routing(Request &req, Response &res, Stream &strm) {
   if (detail::expect_content(req)) {
     // Content reader handler
     {
+      // Track whether the ContentReader was aborted due to the decompressed
+      // payload exceeding `payload_max_length_`.
+      // The user handler runs after the lambda returns, so we must restore the
+      // 413 status if the handler overwrites it.
+      bool content_reader_payload_too_large = false;
+
       ContentReader reader(
           [&](ContentReceiver receiver) {
             auto result = read_content_with_content_receiver(
                 strm, req, res, std::move(receiver), nullptr, nullptr);
-            if (!result) { output_error_log(Error::Read, &req); }
+            if (!result) {
+              output_error_log(Error::Read, &req);
+              if (res.status == StatusCode::PayloadTooLarge_413) {
+                content_reader_payload_too_large = true;
+              }
+            }
             return result;
           },
           [&](FormDataHeader header, ContentReceiver receiver) {
             auto result = read_content_with_content_receiver(
                 strm, req, res, nullptr, std::move(header),
                 std::move(receiver));
-            if (!result) { output_error_log(Error::Read, &req); }
+            if (!result) {
+              output_error_log(Error::Read, &req);
+              if (res.status == StatusCode::PayloadTooLarge_413) {
+                content_reader_payload_too_large = true;
+              }
+            }
             return result;
           });
 
+      bool dispatched = false;
       if (req.method == "POST") {
-        if (dispatch_request_for_content_reader(
-                req, res, std::move(reader),
-                post_handlers_for_content_reader_)) {
-          return true;
-        }
+        dispatched = dispatch_request_for_content_reader(
+            req, res, std::move(reader), post_handlers_for_content_reader_);
       } else if (req.method == "PUT") {
-        if (dispatch_request_for_content_reader(
-                req, res, std::move(reader),
-                put_handlers_for_content_reader_)) {
-          return true;
-        }
+        dispatched = dispatch_request_for_content_reader(
+            req, res, std::move(reader), put_handlers_for_content_reader_);
       } else if (req.method == "PATCH") {
-        if (dispatch_request_for_content_reader(
-                req, res, std::move(reader),
-                patch_handlers_for_content_reader_)) {
-          return true;
-        }
+        dispatched = dispatch_request_for_content_reader(
+            req, res, std::move(reader), patch_handlers_for_content_reader_);
       } else if (req.method == "DELETE") {
-        if (dispatch_request_for_content_reader(
-                req, res, std::move(reader),
-                delete_handlers_for_content_reader_)) {
-          return true;
+        dispatched = dispatch_request_for_content_reader(
+            req, res, std::move(reader), delete_handlers_for_content_reader_);
+      }
+
+      if (dispatched) {
+        if (content_reader_payload_too_large) {
+          // Enforce the limit: override any status the handler may have set
+          // and return false so the error path sends a plain 413 response.
+          res.status = StatusCode::PayloadTooLarge_413;
+          res.body.clear();
+          res.content_length_ = 0;
+          res.content_provider_ = nullptr;
+          return false;
         }
+        return true;
       }
     }
 
@@ -11732,23 +11830,13 @@ Server::process_request(Stream &strm, const std::string &remote_addr,
 #else
   try {
     routed = routing(req, res, strm);
-  } catch (std::exception &e) {
+  } catch (std::exception &) {
     if (exception_handler_) {
       auto ep = std::current_exception();
       exception_handler_(req, res, ep);
       routed = true;
     } else {
       res.status = StatusCode::InternalServerError_500;
-      std::string val;
-      auto s = e.what();
-      for (size_t i = 0; s[i]; i++) {
-        switch (s[i]) {
-        case '\r': val += "\\r"; break;
-        case '\n': val += "\\n"; break;
-        default: val += s[i]; break;
-        }
-      }
-      res.set_header("EXCEPTION_WHAT", val);
     }
   } catch (...) {
     if (exception_handler_) {
@@ -11757,7 +11845,6 @@ Server::process_request(Stream &strm, const std::string &remote_addr,
       routed = true;
     } else {
       res.status = StatusCode::InternalServerError_500;
-      res.set_header("EXCEPTION_WHAT", "UNKNOWN");
     }
   }
 #endif
@@ -15567,7 +15654,7 @@ inline bool SSLClient::initialize_ssl(Socket &socket, Error &error) {
       server_certificate_verification_) {
     verify_result_ = tls::get_verify_result(session);
     if (verify_result_ != 0) {
-      last_backend_error_ = static_cast<unsigned long>(verify_result_);
+      last_backend_error_ = static_cast<uint64_t>(verify_result_);
       error = Error::SSLServerVerification;
       output_error_log(error, nullptr);
       return false;
@@ -15606,7 +15693,7 @@ inline bool SSLClient::initialize_ssl(Socket &socket, Error &error) {
         ca_cert_dir_path_.empty() && ca_cert_pem_.empty()) {
       std::vector<unsigned char> der;
       if (get_cert_der(server_cert, der)) {
-        unsigned long wincrypt_error = 0;
+        uint64_t wincrypt_error = 0;
         if (!detail::verify_cert_with_windows_schannel(
                 der, host_, server_hostname_verification_, wincrypt_error)) {
           last_backend_error_ = wincrypt_error;
@@ -15730,16 +15817,26 @@ inline bool is_ipv4_address(const std::string &str) {
 
 // Parse IPv4 address string to bytes
 inline bool parse_ipv4(const std::string &str, unsigned char *out) {
-  int parts[4];
-  if (sscanf(str.c_str(), "%d.%d.%d.%d", &parts[0], &parts[1], &parts[2],
-             &parts[3]) != 4) {
-    return false;
-  }
+  const char *p = str.c_str();
   for (int i = 0; i < 4; i++) {
-    if (parts[i] < 0 || parts[i] > 255) return false;
-    out[i] = static_cast<unsigned char>(parts[i]);
+    if (i > 0) {
+      if (*p != '.') { return false; }
+      p++;
+    }
+    int val = 0;
+    int digits = 0;
+    while (*p >= '0' && *p <= '9') {
+      val = val * 10 + (*p - '0');
+      if (val > 255) { return false; }
+      p++;
+      digits++;
+    }
+    if (digits == 0) { return false; }
+    // Reject leading zeros (e.g., "01.002.03.04") to prevent ambiguity
+    if (digits > 1 && *(p - digits) == '0') { return false; }
+    out[i] = static_cast<unsigned char>(val);
   }
-  return true;
+  return *p == '\0';
 }
 
 #ifdef _WIN32
@@ -17041,11 +17138,11 @@ inline void update_server_certs_from_x509(ctx_t ctx, X509 *cert, EVP_PKEY *key,
 
 inline ctx_t create_client_context_from_x509(X509 *cert, EVP_PKEY *key,
                                              const char *password,
-                                             unsigned long &out_error) {
+                                             uint64_t &out_error) {
   out_error = 0;
   auto ctx = create_client_context();
   if (!ctx) {
-    out_error = static_cast<unsigned long>(get_error());
+    out_error = get_error();
     return nullptr;
   }
 
@@ -17059,7 +17156,7 @@ inline ctx_t create_client_context_from_x509(X509 *cert, EVP_PKEY *key,
     }
     if (!set_client_cert_pem(ctx, cert_pem.c_str(), key_pem.c_str(),
                              password)) {
-      out_error = static_cast<unsigned long>(get_error());
+      out_error = get_error();
       free_context(ctx);
       return nullptr;
     }
