@@ -4112,52 +4112,80 @@ singleton class C45
 };
 
 /// <summary>
-/// An HTTP client interface.
+/// An HTTP client interface for asynchronous HTTP requests.
+/// All requests run on background threads and return a request id that can be used with <c>Cancel()</c> or <c>IsRequestActive()</c>.
+/// Completion and progress callbacks are dispatched back to the logic thread.
 /// </summary>
 singleton class HttpClient
 {
 	/// <summary>
-	/// Sends a POST request to the specified URL and returns the response body.
+	/// Sends a POST request with a JSON body.
 	/// </summary>
 	/// <param name="url">The URL to send the request to.</param>
 	/// <param name="json">The JSON data to send in the request body.</param>
 	/// <param name="timeout">The timeout in seconds for the request.</param>
-	/// <param name="callback">A callback function that is called when the request is complete. The function receives the response body as a parameter.</param>
-	void postAsync(string url, string json, float timeout, function<void(OptString body)> callback);
+	/// <param name="callback">A callback function invoked when the request finishes. It receives the response body, or <c>null</c> if the request fails or is cancelled.</param>
+	/// <returns>The request id. Returns <c>0</c> when the request cannot be scheduled.</returns>
+	int64_t postAsync(string url, string json, float timeout, function<void(OptString body)> callback);
 	/// <summary>
-	/// Sends a POST request to the specified URL with custom headers and returns the response body.
+	/// Sends a POST request with custom headers and a JSON body.
 	/// </summary>
 	/// <param name="url">The URL to send the request to.</param>
 	/// <param name="headers">A vector of headers to include in the request. Each header should be in the format `key: value`.</param>
 	/// <param name="json">The JSON data to send in the request body.</param>
 	/// <param name="timeout">The timeout in seconds for the request.</param>
-	/// <param name="callback">A callback function that is called when the request is complete. The function receives the response body as a parameter.</param>
-	void postAsync @ postWithHeadersAsync(string url, VecStr headers, string json, float timeout, function<void(OptString body)> callback);
+	/// <param name="callback">A callback function invoked when the request finishes. It receives the response body, or <c>null</c> if the request fails or is cancelled.</param>
+	/// <returns>The request id. Returns <c>0</c> when the request cannot be scheduled.</returns>
+	int64_t postAsync @ postWithHeadersAsync(string url, VecStr headers, string json, float timeout, function<void(OptString body)> callback);
 	/// <summary>
-	/// Sends a POST request to the specified URL with custom headers and returns the response body.
+	/// Sends a POST request with custom headers and a JSON body, while optionally consuming the response stream in chunks.
 	/// </summary>
 	/// <param name="url">The URL to send the request to.</param>
 	/// <param name="headers">A vector of headers to include in the request. Each header should be in the format `key: value`.</param>
 	/// <param name="json">The JSON data to send in the request body.</param>
 	/// <param name="timeout">The timeout in seconds for the request.</param>
-	/// <param name="partCallback">A callback function that is called periodically to get part of the response content. Returns `true` to stop the request.</param>
-	/// <param name="callback">A callback function that is called when the request is complete. The function receives the response body as a parameter.</param>
-	void postAsync @ postWithHeadersPartAsync(string url, VecStr headers, string json, float timeout, function<def_false bool(string body)> partCallback, function<void(OptString body)> callback);
+	/// <param name="partCallback">A callback function that receives response chunks as they arrive. Return <c>true</c> to stop and cancel the request early.</param>
+	/// <param name="callback">A callback function invoked when the request finishes. It receives the full response body, or <c>null</c> if the request fails or is cancelled.</param>
+	/// <returns>The request id. Returns <c>0</c> when the request cannot be scheduled.</returns>
+	int64_t postAsync @ postWithHeadersPartAsync(string url, VecStr headers, string json, float timeout, function<def_false bool(string body)> partCallback, function<void(OptString body)> callback);
 	/// <summary>
-	/// Sends a GET request to the specified URL and returns the response body.
+	/// Sends a GET request.
 	/// </summary>
 	/// <param name="url">The URL to send the request to.</param>
 	/// <param name="timeout">The timeout in seconds for the request.</param>
-	/// <param name="callback">A callback function that is called when the request is complete. The function receives the response body as a parameter.</param>
-	void getAsync(string url, float timeout, function<void(OptString body)> callback);
+	/// <param name="callback">A callback function invoked when the request finishes. It receives the response body, or <c>null</c> if the request fails or is cancelled.</param>
+	/// <returns>The request id. Returns <c>0</c> when the request cannot be scheduled.</returns>
+	int64_t getAsync(string url, float timeout, function<void(OptString body)> callback);
 	/// <summary>
-	/// Downloads a file asynchronously from the specified URL and saves it to the specified path.
+	/// Downloads a file asynchronously and saves it to the specified local path.
 	/// </summary>
 	/// <param name="url">The URL of the file to download.</param>
 	/// <param name="fullPath">The full path where the downloaded file should be saved.</param>
 	/// <param name="timeout">The timeout in seconds for the request.</param>
-	/// <param name="progress">A callback function that is called periodically to report the download progress.</param>
-	void downloadAsync(string url, string fullPath, float timeout, function<def_true bool(bool interrupted, uint64_t current, uint64_t total)> progress);
+	/// <param name="progress">A callback function that reports download progress. It receives <c>interrupted</c>, <c>current</c>, and <c>total</c>. Return <c>true</c> to cancel the download. If the download fails or is cancelled, the partially written file is removed.</param>
+	/// <returns>The request id. Returns <c>0</c> when the request cannot be scheduled.</returns>
+	int64_t downloadAsync(string url, string fullPath, float timeout, function<def_true bool(bool interrupted, uint64_t current, uint64_t total)> progress);
+	/// <summary>
+	/// Downloads a file and returns a request id that can be cancelled later.
+	/// </summary>
+	/// <param name="url">The URL of the file to download.</param>
+	/// <param name="fullPath">The full path where the downloaded file should be saved.</param>
+	/// <param name="timeout">The timeout in seconds for the request.</param>
+	/// <param name="progress">A callback function that reports download progress. It receives <c>interrupted</c>, <c>current</c>, and <c>total</c>. Return <c>true</c> to cancel the download. If the download fails or is cancelled, the partially written file is removed.</param>
+	/// <returns>The request id. Returns <c>0</c> when the request cannot be scheduled.</returns>
+	int64_t downloadAsyncWithHandle(string url, string fullPath, float timeout, function<def_true bool(bool interrupted, uint64_t current, uint64_t total)> progress);
+	/// <summary>
+	/// Requests cancellation for an in-flight HTTP request.
+	/// </summary>
+	/// <param name="requestId">The request id returned by an async HTTP method.</param>
+	/// <returns><c>true</c> if the request was found and cancellation was requested.</returns>
+	bool cancel(int64_t requestId);
+	/// <summary>
+	/// Checks whether a request is still active.
+	/// </summary>
+	/// <param name="requestId">The request id returned by an async HTTP method.</param>
+	/// <returns><c>true</c> if the request is still running.</returns>
+	bool isRequestActive(int64_t requestId);
 };
 
 namespace Platformer {

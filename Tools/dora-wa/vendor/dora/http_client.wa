@@ -7,25 +7,31 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #wa:import dora httpclient_post_async
-func httpclient_post_async(url: i64, json: i64, timeout: f32, func0: i32, stack0: i64)
+func httpclient_post_async(url: i64, json: i64, timeout: f32, func0: i32, stack0: i64) => i64
 
 #wa:import dora httpclient_post_with_headers_async
-func httpclient_post_with_headers_async(url: i64, headers: i64, json: i64, timeout: f32, func0: i32, stack0: i64)
+func httpclient_post_with_headers_async(url: i64, headers: i64, json: i64, timeout: f32, func0: i32, stack0: i64) => i64
 
 #wa:import dora httpclient_post_with_headers_part_async
-func httpclient_post_with_headers_part_async(url: i64, headers: i64, json: i64, timeout: f32, func0: i32, stack0: i64, func1: i32, stack1: i64)
+func httpclient_post_with_headers_part_async(url: i64, headers: i64, json: i64, timeout: f32, func0: i32, stack0: i64, func1: i32, stack1: i64) => i64
 
 #wa:import dora httpclient_get_async
-func httpclient_get_async(url: i64, timeout: f32, func0: i32, stack0: i64)
+func httpclient_get_async(url: i64, timeout: f32, func0: i32, stack0: i64) => i64
 
 #wa:import dora httpclient_download_async
-func httpclient_download_async(url: i64, full_path: i64, timeout: f32, func0: i32, stack0: i64)
+func httpclient_download_async(url: i64, full_path: i64, timeout: f32, func0: i32, stack0: i64) => i64
+
+#wa:import dora httpclient_cancel
+func httpclient_cancel(request_id: i64) => i32
+
+#wa:import dora httpclient_is_request_active
+func httpclient_is_request_active(request_id: i64) => i32
 
 type _HttpClient :struct{}
 
 global HttpClient = _HttpClient{}
 
-func _HttpClient.PostAsync(url: string, json: string, timeout: f32, callback: func(body: *string)) {
+func _HttpClient.PostAsync(url: string, json: string, timeout: f32, callback: func(body: *string)) => i64 {
 	stack0 := NewCallStack()
 	func_id0 := PushFunction(func() {
 		body: *string = nil
@@ -35,9 +41,9 @@ func _HttpClient.PostAsync(url: string, json: string, timeout: f32, callback: fu
 		}
 		callback(body)
 	})
-	httpclient_post_async(ToDoraString(url), ToDoraString(json), timeout, func_id0, *stack0.raw)
+	return httpclient_post_async(ToDoraString(url), ToDoraString(json), timeout, func_id0, *stack0.raw)
 }
-func _HttpClient.PostWithHeadersAsync(url: string, headers: *[]string, json: string, timeout: f32, callback: func(body: *string)) {
+func _HttpClient.PostWithHeadersAsync(url: string, headers: *[]string, json: string, timeout: f32, callback: func(body: *string)) => i64 {
 	stack0 := NewCallStack()
 	func_id0 := PushFunction(func() {
 		body: *string = nil
@@ -47,9 +53,9 @@ func _HttpClient.PostWithHeadersAsync(url: string, headers: *[]string, json: str
 		}
 		callback(body)
 	})
-	httpclient_post_with_headers_async(ToDoraString(url), ToDoraStrBuf(headers), ToDoraString(json), timeout, func_id0, *stack0.raw)
+	return httpclient_post_with_headers_async(ToDoraString(url), ToDoraStrBuf(headers), ToDoraString(json), timeout, func_id0, *stack0.raw)
 }
-func _HttpClient.PostWithHeadersPartAsync(url: string, headers: *[]string, json: string, timeout: f32, part_callback: func(body: string) => bool, callback: func(body: *string)) {
+func _HttpClient.PostWithHeadersPartAsync(url: string, headers: *[]string, json: string, timeout: f32, part_callback: func(body: string) => bool, callback: func(body: *string)) => i64 {
 	stack0 := NewCallStack()
 	func_id0 := PushFunction(func() {
 		body, _ := stack0.PopStr()
@@ -65,9 +71,9 @@ func _HttpClient.PostWithHeadersPartAsync(url: string, headers: *[]string, json:
 		}
 		callback(body)
 	})
-	httpclient_post_with_headers_part_async(ToDoraString(url), ToDoraStrBuf(headers), ToDoraString(json), timeout, func_id0, *stack0.raw, func_id1, *stack1.raw)
+	return httpclient_post_with_headers_part_async(ToDoraString(url), ToDoraStrBuf(headers), ToDoraString(json), timeout, func_id0, *stack0.raw, func_id1, *stack1.raw)
 }
-func _HttpClient.GetAsync(url: string, timeout: f32, callback: func(body: *string)) {
+func _HttpClient.GetAsync(url: string, timeout: f32, callback: func(body: *string)) => i64 {
 	stack0 := NewCallStack()
 	func_id0 := PushFunction(func() {
 		body: *string = nil
@@ -77,9 +83,9 @@ func _HttpClient.GetAsync(url: string, timeout: f32, callback: func(body: *strin
 		}
 		callback(body)
 	})
-	httpclient_get_async(ToDoraString(url), timeout, func_id0, *stack0.raw)
+	return httpclient_get_async(ToDoraString(url), timeout, func_id0, *stack0.raw)
 }
-func _HttpClient.DownloadAsync(url: string, full_path: string, timeout: f32, progress: func(interrupted: bool, current: i64, total: i64) => bool) {
+func _HttpClient.DownloadAsync(url: string, full_path: string, timeout: f32, progress: func(interrupted: bool, current: i64, total: i64) => bool) => i64 {
 	stack0 := NewCallStack()
 	func_id0 := PushFunction(func() {
 		interrupted, _ := stack0.PopBool()
@@ -88,5 +94,11 @@ func _HttpClient.DownloadAsync(url: string, full_path: string, timeout: f32, pro
 		result_ := progress(interrupted, current, total)
 		stack0.Push(result_)
 	})
-	httpclient_download_async(ToDoraString(url), ToDoraString(full_path), timeout, func_id0, *stack0.raw)
+	return httpclient_download_async(ToDoraString(url), ToDoraString(full_path), timeout, func_id0, *stack0.raw)
+}
+func _HttpClient.Cancel(request_id: i64) => bool {
+	return httpclient_cancel(request_id) != 0
+}
+func _HttpClient.IsRequestActive(request_id: i64) => bool {
+	return httpclient_is_request_active(request_id) != 0
 }

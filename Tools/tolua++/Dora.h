@@ -1223,11 +1223,13 @@ class HttpServer
 
 class HttpClient
 {
-	void postAsync(String url, String headers[tolua_len], String json, float timeout, tolua_function_void callback);
-	void postAsync(String url, String headers[tolua_len], String json, float timeout, tolua_function_bool partCallback, tolua_function_void callback);
-	void postAsync(String url, String json, float timeout, tolua_function_void callback);
-	void getAsync(String url, float timeout, tolua_function_void callback);
-	void downloadAsync(String url, String filePath, float timeout, tolua_function_bool progress);
+	uint64_t postAsync(String url, String headers[tolua_len], String json, float timeout, tolua_function_void callback);
+	uint64_t postAsync(String url, String headers[tolua_len], String json, float timeout, tolua_function_bool partCallback, tolua_function_void callback);
+	uint64_t postAsync(String url, String json, float timeout, tolua_function_void callback);
+	uint64_t getAsync(String url, float timeout, tolua_function_void callback);
+	uint64_t downloadAsync(String url, String filePath, float timeout, tolua_function_bool progress);
+	bool cancel(uint64_t requestId);
+	bool isRequestActive(uint64_t requestId);
 	static tolua_outside HttpClient* HttpClient_shared @ create();
 };
 

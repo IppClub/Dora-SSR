@@ -4462,19 +4462,25 @@ singleton class C45
 	static outside void MLBuildDecisionTreeAsync @ buildDecisionTreeAsync(string data, int maxDepth, function<void(double depth, string name, string op, string value)> treeVisitor);
 };
 
-/// An HTTP client interface.
+/// An HTTP client interface for asynchronous HTTP requests.
+/// All requests run on background threads and return a request id that can be used with `cancel()` or `isRequestActive()`.
+/// Completion and progress callbacks are dispatched back to the logic thread.
 singleton class HttpClient
 {
-	/// Sends a POST request to the specified URL and returns the response body.
+	/// Sends a POST request with a JSON body.
 	///
 	/// # Arguments
 	///
 	/// * `url` - The URL to send the request to.
 	/// * `json` - The JSON data to send in the request body.
 	/// * `timeout` - The timeout in seconds for the request.
-	/// * `callback` - A callback function that is called when the request is complete. The function receives the response body as a parameter.
-	void postAsync(string url, string json, float timeout, function<void(OptString body)> callback);
-	/// Sends a POST request to the specified URL with custom headers and returns the response body.
+	/// * `callback` - A callback function invoked when the request finishes. It receives the response body, or `nil` if the request fails or is cancelled.
+	///
+	/// # Returns
+	///
+	/// * `uint64_t` - The request id. Returns `0` when the request cannot be scheduled.
+	uint64_t postAsync(string url, string json, float timeout, function<void(OptString body)> callback);
+	/// Sends a POST request with custom headers and a JSON body.
 	///
 	/// # Arguments
 	///
@@ -4482,9 +4488,13 @@ singleton class HttpClient
 	/// * `headers` - A vector of headers to include in the request. Each header should be in the format `key: value`.
 	/// * `json` - The JSON data to send in the request body.
 	/// * `timeout` - The timeout in seconds for the request.
-	/// * `callback` - A callback function that is called when the request is complete. The function receives the response body as a parameter.
-	void postAsync @ postWithHeadersAsync(string url, VecStr headers, string json, float timeout, function<void(OptString body)> callback);
-	/// Sends a POST request to the specified URL with custom headers and returns the response body.
+	/// * `callback` - A callback function invoked when the request finishes. It receives the response body, or `nil` if the request fails or is cancelled.
+	///
+	/// # Returns
+	///
+	/// * `uint64_t` - The request id. Returns `0` when the request cannot be scheduled.
+	uint64_t postAsync @ postWithHeadersAsync(string url, VecStr headers, string json, float timeout, function<void(OptString body)> callback);
+	/// Sends a POST request with custom headers and a JSON body, while optionally consuming the response stream in chunks.
 	///
 	/// # Arguments
 	///
@@ -4492,27 +4502,60 @@ singleton class HttpClient
 	/// * `headers` - A vector of headers to include in the request. Each header should be in the format `key: value`.
 	/// * `json` - The JSON data to send in the request body.
 	/// * `timeout` - The timeout in seconds for the request.
-	/// * `part_callback` - A callback function that is called periodically to get part of the response content. Returns `true` to stop the request.
-	/// * `callback` - A callback function that is called when the request is complete. The function receives the response body as a parameter.
-	void postAsync @ postWithHeadersPartAsync(string url, VecStr headers, string json, float timeout, function<def_false bool(string body)> partCallback, function<void(OptString body)> callback);
-	/// Sends a GET request to the specified URL and returns the response body.
+	/// * `part_callback` - A callback function that receives response chunks as they arrive. Return `true` to stop and cancel the request early.
+	/// * `callback` - A callback function invoked when the request finishes. It receives the full response body, or `nil` if the request fails or is cancelled.
+	///
+	/// # Returns
+	///
+	/// * `uint64_t` - The request id. Returns `0` when the request cannot be scheduled.
+	uint64_t postAsync @ postWithHeadersPartAsync(string url, VecStr headers, string json, float timeout, function<def_false bool(string body)> partCallback, function<void(OptString body)> callback);
+	/// Sends a GET request.
 	///
 	/// # Arguments
 	///
 	/// * `url` - The URL to send the request to.
 	/// * `timeout` - The timeout in seconds for the request.
-	/// * `callback` - A callback function that is called when the request is complete. The function receives the response body as a parameter.
-	void getAsync(string url, float timeout, function<void(OptString body)> callback);
-	/// Downloads a file asynchronously from the specified URL and saves it to the specified path.
+	/// * `callback` - A callback function invoked when the request finishes. It receives the response body, or `nil` if the request fails or is cancelled.
+	///
+	/// # Returns
+	///
+	/// * `uint64_t` - The request id. Returns `0` when the request cannot be scheduled.
+	uint64_t getAsync(string url, float timeout, function<void(OptString body)> callback);
+	/// Downloads a file asynchronously and saves it to the specified local path.
 	///
 	/// # Arguments
 	///
 	/// * `url` - The URL of the file to download.
 	/// * `full_path` - The full path where the downloaded file should be saved.
 	/// * `timeout` - The timeout in seconds for the request.
-	/// * `progress` - A callback function that is called periodically to report the download progress.
-	///   The function receives three parameters: `interrupted` (a boolean value indicating whether the download was interrupted), `current` (the number of bytes downloaded so far) and `total` (the total number of bytes to be downloaded).
-	void downloadAsync(string url, string fullPath, float timeout, function<def_true bool(bool interrupted, uint64_t current, uint64_t total)> progress);
+	/// * `progress` - A callback function that reports download progress.
+	///   The function receives `interrupted` (whether the download failed or was cancelled), `current` (downloaded bytes), and `total` (total bytes when available).
+	///   Return `true` to cancel the download. If the download fails or is cancelled, the partially written file is removed.
+	///
+	/// # Returns
+	///
+	/// * `uint64_t` - The request id. Returns `0` when the request cannot be scheduled.
+	uint64_t downloadAsync(string url, string fullPath, float timeout, function<def_true bool(bool interrupted, uint64_t current, uint64_t total)> progress);
+	/// Requests cancellation for an in-flight HTTP request.
+	///
+	/// # Arguments
+	///
+	/// * `request_id` - The request id returned by an async HTTP method.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the request was found and cancellation was requested.
+	bool cancel(uint64_t requestId);
+	/// Checks whether a request is still active.
+	///
+	/// # Arguments
+	///
+	/// * `request_id` - The request id returned by an async HTTP method.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the request is still running.
+	bool isRequestActive(uint64_t requestId);
 };
 
 namespace Platformer {

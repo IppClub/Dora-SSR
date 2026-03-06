@@ -16,33 +16,42 @@ namespace Dora
 	internal static partial class Native
 	{
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void httpclient_post_async(int64_t url, int64_t json, float timeout, int32_t func0, int64_t stack0);
+		public static extern int64_t httpclient_post_async(int64_t url, int64_t json, float timeout, int32_t func0, int64_t stack0);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void httpclient_post_with_headers_async(int64_t url, int64_t headers, int64_t json, float timeout, int32_t func0, int64_t stack0);
+		public static extern int64_t httpclient_post_with_headers_async(int64_t url, int64_t headers, int64_t json, float timeout, int32_t func0, int64_t stack0);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void httpclient_post_with_headers_part_async(int64_t url, int64_t headers, int64_t json, float timeout, int32_t func0, int64_t stack0, int32_t func1, int64_t stack1);
+		public static extern int64_t httpclient_post_with_headers_part_async(int64_t url, int64_t headers, int64_t json, float timeout, int32_t func0, int64_t stack0, int32_t func1, int64_t stack1);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void httpclient_get_async(int64_t url, float timeout, int32_t func0, int64_t stack0);
+		public static extern int64_t httpclient_get_async(int64_t url, float timeout, int32_t func0, int64_t stack0);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void httpclient_download_async(int64_t url, int64_t fullPath, float timeout, int32_t func0, int64_t stack0);
+		public static extern int64_t httpclient_download_async(int64_t url, int64_t fullPath, float timeout, int32_t func0, int64_t stack0);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t httpclient_download_async_with_handle(int64_t url, int64_t fullPath, float timeout, int32_t func0, int64_t stack0);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int32_t httpclient_cancel(int64_t requestId);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int32_t httpclient_is_request_active(int64_t requestId);
 	}
 } // namespace Dora
 
 namespace Dora
 {
 	/// <summary>
-	/// An HTTP client interface.
+	/// An HTTP client interface for asynchronous HTTP requests.
+	/// All requests run on background threads and return a request id that can be used with <c>Cancel()</c> or <c>IsRequestActive()</c>.
+	/// Completion and progress callbacks are dispatched back to the logic thread.
 	/// </summary>
 	public static partial class HttpClient
 	{
 		/// <summary>
-		/// Sends a POST request to the specified URL and returns the response body.
+		/// Sends a POST request with a JSON body.
 		/// </summary>
 		/// <param name="url">The URL to send the request to.</param>
 		/// <param name="json">The JSON data to send in the request body.</param>
 		/// <param name="timeout">The timeout in seconds for the request.</param>
-		/// <param name="callback">A callback function that is called when the request is complete. The function receives the response body as a parameter.</param>
-		public static void PostAsync(string url, string json, float timeout, System.Action<string?> callback)
+		/// <param name="callback">A callback function invoked when the request finishes. It receives the response body, or <c>null</c> if the request fails or is cancelled.</param>
+		/// <returns>The request id. Returns <c>0</c> when the request cannot be scheduled.</returns>
+		public static long PostAsync(string url, string json, float timeout, System.Action<string?> callback)
 		{
 			var stack0 = new CallStack();
 			var stack_raw0 = stack0.Raw;
@@ -50,17 +59,18 @@ namespace Dora
 			{
 				callback(stack0.PopOptString());
 			});
-			Native.httpclient_post_async(Bridge.FromString(url), Bridge.FromString(json), timeout, func_id0, stack_raw0);
+			return Native.httpclient_post_async(Bridge.FromString(url), Bridge.FromString(json), timeout, func_id0, stack_raw0);
 		}
 		/// <summary>
-		/// Sends a POST request to the specified URL with custom headers and returns the response body.
+		/// Sends a POST request with custom headers and a JSON body.
 		/// </summary>
 		/// <param name="url">The URL to send the request to.</param>
 		/// <param name="headers">A vector of headers to include in the request. Each header should be in the format `key: value`.</param>
 		/// <param name="json">The JSON data to send in the request body.</param>
 		/// <param name="timeout">The timeout in seconds for the request.</param>
-		/// <param name="callback">A callback function that is called when the request is complete. The function receives the response body as a parameter.</param>
-		public static void PostAsync(string url, IEnumerable<string> headers, string json, float timeout, System.Action<string?> callback)
+		/// <param name="callback">A callback function invoked when the request finishes. It receives the response body, or <c>null</c> if the request fails or is cancelled.</param>
+		/// <returns>The request id. Returns <c>0</c> when the request cannot be scheduled.</returns>
+		public static long PostAsync(string url, IEnumerable<string> headers, string json, float timeout, System.Action<string?> callback)
 		{
 			var stack0 = new CallStack();
 			var stack_raw0 = stack0.Raw;
@@ -68,18 +78,19 @@ namespace Dora
 			{
 				callback(stack0.PopOptString());
 			});
-			Native.httpclient_post_with_headers_async(Bridge.FromString(url), Bridge.FromArray(headers), Bridge.FromString(json), timeout, func_id0, stack_raw0);
+			return Native.httpclient_post_with_headers_async(Bridge.FromString(url), Bridge.FromArray(headers), Bridge.FromString(json), timeout, func_id0, stack_raw0);
 		}
 		/// <summary>
-		/// Sends a POST request to the specified URL with custom headers and returns the response body.
+		/// Sends a POST request with custom headers and a JSON body, while optionally consuming the response stream in chunks.
 		/// </summary>
 		/// <param name="url">The URL to send the request to.</param>
 		/// <param name="headers">A vector of headers to include in the request. Each header should be in the format `key: value`.</param>
 		/// <param name="json">The JSON data to send in the request body.</param>
 		/// <param name="timeout">The timeout in seconds for the request.</param>
-		/// <param name="partCallback">A callback function that is called periodically to get part of the response content. Returns `true` to stop the request.</param>
-		/// <param name="callback">A callback function that is called when the request is complete. The function receives the response body as a parameter.</param>
-		public static void PostAsync(string url, IEnumerable<string> headers, string json, float timeout, Func<string, bool> partCallback, System.Action<string?> callback)
+		/// <param name="partCallback">A callback function that receives response chunks as they arrive. Return <c>true</c> to stop and cancel the request early.</param>
+		/// <param name="callback">A callback function invoked when the request finishes. It receives the full response body, or <c>null</c> if the request fails or is cancelled.</param>
+		/// <returns>The request id. Returns <c>0</c> when the request cannot be scheduled.</returns>
+		public static long PostAsync(string url, IEnumerable<string> headers, string json, float timeout, Func<string, bool> partCallback, System.Action<string?> callback)
 		{
 			var stack0 = new CallStack();
 			var stack_raw0 = stack0.Raw;
@@ -94,15 +105,16 @@ namespace Dora
 			{
 				callback(stack1.PopOptString());
 			});
-			Native.httpclient_post_with_headers_part_async(Bridge.FromString(url), Bridge.FromArray(headers), Bridge.FromString(json), timeout, func_id0, stack_raw0, func_id1, stack_raw1);
+			return Native.httpclient_post_with_headers_part_async(Bridge.FromString(url), Bridge.FromArray(headers), Bridge.FromString(json), timeout, func_id0, stack_raw0, func_id1, stack_raw1);
 		}
 		/// <summary>
-		/// Sends a GET request to the specified URL and returns the response body.
+		/// Sends a GET request.
 		/// </summary>
 		/// <param name="url">The URL to send the request to.</param>
 		/// <param name="timeout">The timeout in seconds for the request.</param>
-		/// <param name="callback">A callback function that is called when the request is complete. The function receives the response body as a parameter.</param>
-		public static void GetAsync(string url, float timeout, System.Action<string?> callback)
+		/// <param name="callback">A callback function invoked when the request finishes. It receives the response body, or <c>null</c> if the request fails or is cancelled.</param>
+		/// <returns>The request id. Returns <c>0</c> when the request cannot be scheduled.</returns>
+		public static long GetAsync(string url, float timeout, System.Action<string?> callback)
 		{
 			var stack0 = new CallStack();
 			var stack_raw0 = stack0.Raw;
@@ -110,16 +122,17 @@ namespace Dora
 			{
 				callback(stack0.PopOptString());
 			});
-			Native.httpclient_get_async(Bridge.FromString(url), timeout, func_id0, stack_raw0);
+			return Native.httpclient_get_async(Bridge.FromString(url), timeout, func_id0, stack_raw0);
 		}
 		/// <summary>
-		/// Downloads a file asynchronously from the specified URL and saves it to the specified path.
+		/// Downloads a file asynchronously and saves it to the specified local path.
 		/// </summary>
 		/// <param name="url">The URL of the file to download.</param>
 		/// <param name="fullPath">The full path where the downloaded file should be saved.</param>
 		/// <param name="timeout">The timeout in seconds for the request.</param>
-		/// <param name="progress">A callback function that is called periodically to report the download progress.</param>
-		public static void DownloadAsync(string url, string fullPath, float timeout, Func<bool, long, long, bool> progress)
+		/// <param name="progress">A callback function that reports download progress. It receives <c>interrupted</c>, <c>current</c>, and <c>total</c>. Return <c>true</c> to cancel the download. If the download fails or is cancelled, the partially written file is removed.</param>
+		/// <returns>The request id. Returns <c>0</c> when the request cannot be scheduled.</returns>
+		public static long DownloadAsync(string url, string fullPath, float timeout, Func<bool, long, long, bool> progress)
 		{
 			var stack0 = new CallStack();
 			var stack_raw0 = stack0.Raw;
@@ -128,7 +141,44 @@ namespace Dora
 				var result = progress(stack0.PopBool(), stack0.PopI64(), stack0.PopI64());
 				stack0.Push(result);
 			});
-			Native.httpclient_download_async(Bridge.FromString(url), Bridge.FromString(fullPath), timeout, func_id0, stack_raw0);
+			return Native.httpclient_download_async(Bridge.FromString(url), Bridge.FromString(fullPath), timeout, func_id0, stack_raw0);
+		}
+		/// <summary>
+		/// Downloads a file and returns a request id that can be cancelled later.
+		/// </summary>
+		/// <param name="url">The URL of the file to download.</param>
+		/// <param name="fullPath">The full path where the downloaded file should be saved.</param>
+		/// <param name="timeout">The timeout in seconds for the request.</param>
+		/// <param name="progress">A callback function that reports download progress. It receives <c>interrupted</c>, <c>current</c>, and <c>total</c>. Return <c>true</c> to cancel the download. If the download fails or is cancelled, the partially written file is removed.</param>
+		/// <returns>The request id. Returns <c>0</c> when the request cannot be scheduled.</returns>
+		public static long DownloadAsync(string url, string fullPath, float timeout, Func<bool, long, long, bool> progress)
+		{
+			var stack0 = new CallStack();
+			var stack_raw0 = stack0.Raw;
+			var func_id0 = Bridge.PushFunction(() =>
+			{
+				var result = progress(stack0.PopBool(), stack0.PopI64(), stack0.PopI64());
+				stack0.Push(result);
+			});
+			return Native.httpclient_download_async_with_handle(Bridge.FromString(url), Bridge.FromString(fullPath), timeout, func_id0, stack_raw0);
+		}
+		/// <summary>
+		/// Requests cancellation for an in-flight HTTP request.
+		/// </summary>
+		/// <param name="requestId">The request id returned by an async HTTP method.</param>
+		/// <returns><c>true</c> if the request was found and cancellation was requested.</returns>
+		public static bool Cancel(long requestId)
+		{
+			return Native.httpclient_cancel(requestId) != 0;
+		}
+		/// <summary>
+		/// Checks whether a request is still active.
+		/// </summary>
+		/// <param name="requestId">The request id returned by an async HTTP method.</param>
+		/// <returns><c>true</c> if the request is still running.</returns>
+		public static bool IsRequestActive(long requestId)
+		{
+			return Native.httpclient_is_request_active(requestId) != 0;
 		}
 	}
 } // namespace Dora

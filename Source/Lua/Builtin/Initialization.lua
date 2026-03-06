@@ -626,6 +626,7 @@ do
 
 	local HttpClient = getmetatable(Dora.HttpClient)
 	local HttpClient_downloadAsync = HttpClient.downloadAsync
+	HttpClient.download = HttpClient_downloadAsync
 	HttpClient.downloadAsync = function(self, url, filePath, timeout, progress)
 		local _, mainThread = coroutine.running()
 		assert(not mainThread, "HttpClient.downloadAsync should be run in a thread")
@@ -650,6 +651,7 @@ do
 	end
 
 	local HttpClient_postAsync = HttpClient.postAsync
+	HttpClient.post = HttpClient_postAsync
 	HttpClient.postAsync = function(self, url, ...)
 		local args = {...}
 		if #args < 4 and type(args[#args]) ~= "number" then
@@ -671,6 +673,7 @@ do
 	end
 
 	local HttpClient_getAsync = HttpClient.getAsync
+	HttpClient.get = HttpClient_getAsync
 	HttpClient.getAsync = function(self, url, timeout)
 		local _, mainThread = coroutine.running()
 		assert(not mainThread, "HttpClient.getAsync should be run in a thread")

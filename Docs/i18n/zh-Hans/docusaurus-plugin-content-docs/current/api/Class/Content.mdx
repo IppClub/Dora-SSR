@@ -568,6 +568,33 @@ unzipAsync: function(self: Content, zipFile: string, folderPath: string, filter?
 | --- | --- |
 | boolean | 如果成功解压缩了文件，则为 `true`，否则为 `false`。 |
 
+## glob
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取指定目录及其子目录中所有文件的名称。
+
+**签名：**
+```tl
+glob: function(self: Content, path: string, globs: {string}, extensionLevels?: {string: integer}): {string}
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| path | string | 要搜索的目录的路径。 |
+| globs | \{string} | 用于匹配文件名或相对路径的 glob 模式列表。示例：<br/>- 目标目录下（不包含子目录）的 .txt 文件和 .json 文件：["*.txt", "*.json"]<br/>- 目标目录下的所有文件，但排除 .txt 文件：["**", "!**.txt"] |
+| extensionLevels | \{[string]: integer} | [可选] 扩展名到优先级的映射，用于同名不同后缀时选择优先级最高的文件。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| table | 包含指定目录及其子目录中所有文件名称的列表。 |
+
 ## searchFilesAsync
 
 **类型：** 函数。
@@ -583,7 +610,7 @@ searchFilesAsync: function(
 		path: string,
 		exts: {string},
 		extensionLevels: {string: integer},
-		excludes: {string},
+		globs: {string},
 		pattern: string,
 		useRegex?: boolean,
 		caseSensitive?: boolean,
@@ -600,7 +627,7 @@ searchFilesAsync: function(
 | path | string | 搜索根路径，空字符串表示资源根目录。 |
 | exts | \{string} | 需要包含的扩展名列表，空表表示不过滤。 |
 | extensionLevels | \{[string]: integer} | 扩展名到优先级的映射，用于同名不同后缀时选择优先级最高的文件。 |
-| excludes | \{string} | 需要跳过的目录名称列表。 |
+| globs | \{string} | 需要匹配的文件名通配符列表。 |
 | pattern | string | 搜索的匹配模式。 |
 | useRegex | boolean | [可选] 是否使用正则匹配（默认 false）。<br/>正则通配符支持:<br/>'.'        点，匹配任意单个字符<br/>'^'        行首锚点，匹配字符串开始位置<br/>'$'        行尾锚点，匹配字符串结束位置<br/>'*'        星号，匹配前面的内容零次或多次（贪婪）<br/>'+'        加号，匹配前面的内容一次或多次（贪婪）<br/>'?'        问号，匹配前面的内容零次或一次（非贪婪）<br/>'[abc]'    字符集，匹配括号内的任意一个字符（如 'a'、'b'、'c'）<br/>'[^abc]'   反集，匹配不是括号内任意字符的内容<br/>'[a-zA-Z]' 字符范围，匹配 a 到 z 或 A 到 Z 范围内的字符<br/>'\s'       匹配任意空白字符（如：\t \f \r \n \v 和空格）<br/>'\S'       匹配任意非空白字符<br/>'\w'       匹配任意字母、数字或下划线（[a-zA-Z0-9_]）<br/>'\W'       匹配任意非字母、数字或下划线的字符<br/>'\d'       匹配任意数字（[0-9]）<br/>'\D'       匹配任意非数字字符 |
 | caseSensitive | boolean | [可选] 是否区分大小写（默认 false）。 |

@@ -7764,42 +7764,98 @@ export {httpServer as HttpServer};
  */
 interface HttpClient {
 	/**
-	 * Sends a POST request to the specified URL and returns the response body.
+	 * Starts a non-blocking POST request with a JSON body.
 	 * @param url The URL to send the request to.
 	 * @param json The JSON data to send in the request body.
 	 * @param timeout [optional] The timeout in seconds for the request. Defaults to 5.
-	 * @returns The response body text, or `undefined` if the request failed.
+	 * @param callback Called when the request finishes. It receives the response body text, or `undefined` if the request fails or is cancelled.
+	 * @returns The request handle. Returns `0` if the request cannot be scheduled.
 	 */
-	postAsync(url: string, json: string, timeout?: number): string | undefined;
+	post(url: string, json: string, timeout: number | undefined, callback: (this: void, data: string | undefined) => void): number;
 	/**
-	 * Sends a POST request to the specified URL with custom headers and returns the response body.
+	 * Starts a non-blocking POST request with custom headers and a JSON body.
 	 * @param url The URL to send the request to.
 	 * @param headers The headers to send with the request. Each header should be a string in the format "name: value".
 	 * @param json The JSON data to send in the request body.
 	 * @param timeout [optional] The timeout in seconds for the request. Defaults to 5.
-	 * @param partCallback [optional] A callback function that is called periodically to get part of the response content. Returns `true` to stop the request.
-	 * @returns The response body text, or `undefined` if the request failed.
+	 * @param callback Called when the request finishes. It receives the response body text, or `undefined` if the request fails or is cancelled.
+	 * @returns The request handle. Returns `0` if the request cannot be scheduled.
+	 */
+	post(url: string, headers: string[], json: string, timeout: number | undefined, callback: (this: void, data: string | undefined) => void): number;
+	/**
+	 * Starts a non-blocking POST request with custom headers and a JSON body, and optionally consumes the response stream in chunks before completion.
+	 * @param url The URL to send the request to.
+	 * @param headers The headers to send with the request. Each header should be a string in the format "name: value".
+	 * @param json The JSON data to send in the request body.
+	 * @param timeout [optional] The timeout in seconds for the request. Defaults to 5.
+	 * @param partCallback [optional] Called when response chunks arrive. Return `true` to stop and cancel the request early.
+	 * @param callback Called when the request finishes. It receives the full response body text, or `undefined` if the request fails or is cancelled.
+	 * @returns The request handle. Returns `0` if the request cannot be scheduled.
+	 */
+	post(url: string, headers: string[], json: string, timeout: number | undefined, partCallback: ((this: void, data: string) => boolean) | undefined, callback: (this: void, data: string | undefined) => void): number;
+	/**
+	 * Sends a POST request with a JSON body and waits for the response text.
+	 * @param url The URL to send the request to.
+	 * @param json The JSON data to send in the request body.
+	 * @param timeout [optional] The timeout in seconds for the request. Defaults to 5.
+	 * @returns The response body text, or `undefined` if the request fails.
+	 */
+	postAsync(url: string, json: string, timeout?: number): string | undefined;
+	/**
+	 * Sends a POST request with custom headers and a JSON body, and optionally consumes the response stream in chunks before completion.
+	 * @param url The URL to send the request to.
+	 * @param headers The headers to send with the request. Each header should be a string in the format "name: value".
+	 * @param json The JSON data to send in the request body.
+	 * @param timeout [optional] The timeout in seconds for the request. Defaults to 5.
+	 * @param partCallback [optional] Called when response chunks arrive. Return `true` to stop and cancel the request early.
+	 * @returns The response body text, or `undefined` if the request fails.
 	 */
 	postAsync(url: string, headers: string[], json: string, timeout?: number, partCallback?: (this: void, data: string) => boolean): string | undefined;
 	/**
-	 * Sends a GET request to the specified URL and returns the response body.
+	 * Starts a non-blocking GET request.
 	 * @param url The URL to send the request to.
 	 * @param timeout [optional] The timeout in seconds for the request. Defaults to 5.
-	 * @returns The response body text, or `undefined` if the request failed.
+	 * @param callback Called when the request finishes. It receives the response body text, or `undefined` if the request fails or is cancelled.
+	 * @returns The request handle. Returns `0` if the request cannot be scheduled.
+	 */
+	get(url: string, timeout: number | undefined, callback: (this: void, data: string | undefined) => void): number;
+	/**
+	 * Sends a GET request and waits for the response text.
+	 * @param url The URL to send the request to.
+	 * @param timeout [optional] The timeout in seconds for the request. Defaults to 5.
+	 * @returns The response body text, or `undefined` if the request fails.
 	 */
 	getAsync(url: string, timeout?: number): string | undefined;
 	/**
-	 * Downloads a file asynchronously from the specified URL and saves it to the specified path. Should be run in a coroutine.
+	 * Starts a non-blocking file download.
 	 * @param url The URL of the file to download.
 	 * @param fullPath The full path where the downloaded file should be saved.
 	 * @param timeout [optional] The timeout in seconds for the download. Defaults to 30.
-	 * @param progress [optional] A callback function that is called periodically to report the download progress.
-	 * The function receives two parameters: current (the number of bytes downloaded so far)
-	 * and total (the total number of bytes to be downloaded).
-	 * If the function returns true, the download will be canceled.
-	 * @returns A boolean value indicating whether the download was done successfully.
+	 * @param progress [optional] Reports download progress with `interrupted`, `current`, and `total`. Return `true` to cancel the download.
+	 * @returns The request handle. Returns `0` if the request cannot be scheduled.
+	 */
+	download(url: string, fullPath: string, timeout?: number, progress?: (this: void, interrupted: boolean, current: number, total: number) => boolean): number;
+	/**
+	 * Downloads a file and waits until it finishes. This method must be called from a coroutine/thread.
+	 * @param url The URL of the file to download.
+	 * @param fullPath The full path where the downloaded file should be saved.
+	 * @param timeout [optional] The timeout in seconds for the download. Defaults to 30.
+	 * @param progress [optional] Reports download progress with `current` and `total` byte counts. Return `true` to cancel the download.
+	 * @returns `true` if the download finishes successfully; otherwise `false`.
 	 */
 	downloadAsync(url: string, fullPath: string, timeout?: number, progress?: (this: void, current: number, total: number) => boolean): boolean;
+	/**
+	 * Requests cancellation for an in-flight request.
+	 * @param requestId The request handle returned by `post`, `get`, or `download`.
+	 * @returns `true` if the request was found and cancellation was requested.
+	 */
+	cancel(requestId: number): boolean;
+	/**
+	 * Checks whether a request is still active.
+	 * @param requestId The request handle returned by `post`, `get`, or `download`.
+	 * @returns `true` if the request is still running.
+	 */
+	isRequestActive(requestId: number): boolean;
 }
 
 const httpClient: HttpClient;

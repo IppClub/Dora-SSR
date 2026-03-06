@@ -4,17 +4,17 @@
 
 &emsp;&emsp;Represents an HTTP client.
 
-## postAsync
+## post
 
 **Type:** Function.
 
 **Description:**
 
-&emsp;&emsp;Makes a POST request to the specified URL with the specified JSON text and returns the response in text.
+&emsp;&emsp;Starts a non-blocking POST request with a JSON body.
 
 **Signature:**
 ```tl
-postAsync: function(self: HttpClient, url: string, json: string, timeout?: number, partCallback?: function(data: string): boolean): string | nil
+post: function(self: HttpClient, url: string, json: string, timeout: number, callback: function(data: string | nil)): integer
 ```
 
 **Parameters:**
@@ -24,25 +24,25 @@ postAsync: function(self: HttpClient, url: string, json: string, timeout?: numbe
 | url | string | The URL to make the request to. |
 | json | string | The JSON text to send in the request. |
 | timeout | number | [optional] The request timeout in seconds (default is 5 seconds). |
-| partCallback | function | [optional] A callback function that is called periodically to get part of the response content. Returns `true` to stop the request. |
+| callback | function | Called when the request finishes. It receives the response text, or nil if the request fails or is cancelled. |
 
 **Returns:**
 
 | Return Type | Description |
 | --- | --- |
-| string | The response in text，or nil if the request fails. |
+| integer | The request handle, or 0 if the request cannot be scheduled. |
 
-## postAsync
+## post
 
 **Type:** Function.
 
 **Description:**
 
-&emsp;&emsp;Makes a POST request to the specified URL with the specified headers and JSON text, and returns the response in text.
+&emsp;&emsp;Starts a non-blocking POST request with custom headers and a JSON body.
 
 **Signature:**
 ```tl
-postAsync: function(self: HttpClient, url: string, headers: {string}, json: string, timeout?: number): string | nil
+post: function(self: HttpClient, url: string, headers: {string}, json: string, timeout: number, callback: function(data: string | nil)): integer
 ```
 
 **Parameters:**
@@ -53,12 +53,126 @@ postAsync: function(self: HttpClient, url: string, headers: {string}, json: stri
 | headers | \{string} | The headers to send in the request. Each header should be in the format "name: value". |
 | json | string | The JSON text to send in the request. |
 | timeout | number | [optional] The request timeout in seconds (default is 5 seconds). |
+| callback | function | Called when the request finishes. It receives the response text, or nil if the request fails or is cancelled. |
 
 **Returns:**
 
 | Return Type | Description |
 | --- | --- |
-| string | The response in text，or nil if the request fails. |
+| integer | The request handle, or 0 if the request cannot be scheduled. |
+
+## post
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Starts a non-blocking POST request with custom headers and a JSON body, and optionally consumes the response stream in chunks before completion.
+
+**Signature:**
+```tl
+post: function(self: HttpClient, url: string, headers: {string}, json: string, timeout: number, partCallback: function(data: string): boolean, callback: function(data: string | nil)): integer
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| url | string | The URL to make the request to. |
+| headers | \{string} | The headers to send in the request. Each header should be in the format "name: value". |
+| json | string | The JSON text to send in the request. |
+| timeout | number | [optional] The request timeout in seconds (default is 5 seconds). |
+| partCallback | function | [optional] Called when response chunks arrive. Return `true` to stop and cancel the request early. |
+| callback | function | Called when the request finishes. It receives the full response text, or nil if the request fails or is cancelled. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | The request handle, or 0 if the request cannot be scheduled. |
+
+## postAsync
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sends a POST request with a JSON body and waits for the response text.
+
+**Signature:**
+```tl
+postAsync: function(self: HttpClient, url: string, json: string, timeout?: number): string | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| url | string | The URL to make the request to. |
+| json | string | The JSON text to send in the request. |
+| timeout | number | [optional] The request timeout in seconds (default is 5 seconds). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The response text, or nil if the request fails. |
+
+## postAsync
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sends a POST request with custom headers and a JSON body, and optionally consumes the response stream in chunks before completion.
+
+**Signature:**
+```tl
+postAsync: function(self: HttpClient, url: string, headers: {string}, json: string, timeout?: number, partCallback?: function(data: string): boolean): string | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| url | string | The URL to make the request to. |
+| headers | \{string} | The headers to send in the request. Each header should be in the format "name: value". |
+| json | string | The JSON text to send in the request. |
+| timeout | number | [optional] The request timeout in seconds (default is 5 seconds). |
+| partCallback | function | [optional] Called when response chunks arrive. Return `true` to stop and cancel the request early. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The response text, or nil if the request fails. |
+
+## get
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Starts a non-blocking GET request.
+
+**Signature:**
+```tl
+get: function(self: HttpClient, url: string, timeout: number, callback: function(data: string | nil)): integer
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| url | string | The URL to make the request to. |
+| timeout | number | [optional] The request timeout in seconds (default is 5 seconds). |
+| callback | function | Called when the request finishes. It receives the response text, or nil if the request fails or is cancelled. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | The request handle, or 0 if the request cannot be scheduled. |
 
 ## getAsync
 
@@ -66,7 +180,7 @@ postAsync: function(self: HttpClient, url: string, headers: {string}, json: stri
 
 **Description:**
 
-&emsp;&emsp;Makes a GET request to the specified URL and returns the response in text.
+&emsp;&emsp;Sends a GET request and waits for the response text.
 
 **Signature:**
 ```tl
@@ -84,7 +198,35 @@ getAsync: function(self: HttpClient, url: string, timeout?: number): string | ni
 
 | Return Type | Description |
 | --- | --- |
-| string | The response in text，or nil if the request fails. |
+| string | The response text, or nil if the request fails. |
+
+## download
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Starts a non-blocking file download.
+
+**Signature:**
+```tl
+download: function(self: HttpClient, url: string, fullPath: string, timeout?: number, progress?: function(interrupted: boolean, current: integer, total: integer): boolean): integer
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| url | string | The URL of the file to download. |
+| fullPath | string | The full path where the downloaded file should be saved. |
+| timeout | number | [optional] The download timeout in seconds (default is 30 seconds). |
+| progress | function | [optional] Reports download progress with interrupted, current, and total. Return `true` to cancel the download. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | The request handle, or 0 if the request cannot be scheduled. |
 
 ## downloadAsync
 
@@ -92,7 +234,7 @@ getAsync: function(self: HttpClient, url: string, timeout?: number): string | ni
 
 **Description:**
 
-&emsp;&emsp;Downloads a file asynchronously from the specified URL and saves it to the specified path. Should be run in a coroutine.
+&emsp;&emsp;Downloads a file and waits until it finishes. This method must be called from a coroutine/thread.
 
 **Signature:**
 ```tl
@@ -106,10 +248,60 @@ downloadAsync: function(self: HttpClient, url: string, fullPath: string, timeout
 | url | string | The URL of the file to download. |
 | fullPath | string | The full path where the downloaded file should be saved. |
 | timeout | number | [optional] The download timeout in seconds (default is 30 seconds). |
-| progress | string | [optional] A callback function that is called periodically to report the download progress.<br/>	The function receives two parameters: current (the number of bytes downloaded so far)<br/>	and total (the total number of bytes to be downloaded).<br/>If the function returns true, the download will be canceled. |
+| progress | function | [optional] Reports download progress with current and total byte counts. Return `true` to cancel the download. |
 
 **Returns:**
 
 | Return Type | Description |
 | --- | --- |
-| boolean | A boolean value indicating whether the download was done successfully. |
+| boolean | `true` if the download finishes successfully; otherwise `false`. |
+
+## cancel
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Requests cancellation for an in-flight request.
+
+**Signature:**
+```tl
+cancel: function(self: HttpClient, requestId: integer): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| requestId | integer | The request handle returned by post, get, or download. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | `true` if the request was found and cancellation was requested. |
+
+## isRequestActive
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Checks whether a request is still active.
+
+**Signature:**
+```tl
+isRequestActive: function(self: HttpClient, requestId: integer): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| requestId | integer | The request handle returned by post, get, or download. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | `true` if the request is still running. |
