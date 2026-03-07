@@ -40,6 +40,10 @@ jobs:
         with:
           xmake-version: latest
 
+      - name: Setup MSVC
+        if: matrix.os == 'windows-latest'
+        uses: ilammy/msvc-dev-cmd@v1
+
       - name: Install Linux dependencies
         if: matrix.os == 'ubuntu-latest'
         run: |
@@ -48,7 +52,7 @@ jobs:
 
       - name: Configure xmake
         working-directory: Source/3rdParty/bgfx
-        run: xmake f -p ${{ matrix.xmake_platform }} -a x86_64 -m release -y
+        run: xmake f -p ${{ matrix.xmake_platform }} -a x86_64 -m release -y --with-amalgamated=n
 
       - name: Build
         working-directory: Source/3rdParty/bgfx
