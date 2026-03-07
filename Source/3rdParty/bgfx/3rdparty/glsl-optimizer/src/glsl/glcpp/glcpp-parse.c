@@ -1989,7 +1989,7 @@ yyreduce:
 			glcpp_error(& (yylsp[-4]), parser, "Built-in (pre-defined)"
 				    " macro names can not be undefined.");
 
-		macro = hash_table_find (parser->defines, (yyvsp[-1].str));
+		macro = (macro_t *)hash_table_find (parser->defines, (yyvsp[-1].str));
 		if (macro) {
 			hash_table_remove (parser->defines, (yyvsp[-1].str));
 			ralloc_free (macro);
@@ -2059,7 +2059,7 @@ yyreduce:
   case 27:
 #line 339 "src/glsl/glcpp/glcpp-parse.y"
                                   {
-		macro_t *macro = hash_table_find (parser->defines, (yyvsp[-2].str));
+		macro_t *macro = (macro_t *)hash_table_find (parser->defines, (yyvsp[-2].str));
 		ralloc_free ((yyvsp[-2].str));
 		_glcpp_parser_skip_stack_push_if (parser, & (yylsp[-5]), macro != NULL);
 	}
@@ -2077,7 +2077,7 @@ yyreduce:
   case 29:
 #line 346 "src/glsl/glcpp/glcpp-parse.y"
                                   {
-		macro_t *macro = hash_table_find (parser->defines, (yyvsp[-2].str));
+		macro_t *macro = (macro_t *)hash_table_find (parser->defines, (yyvsp[-2].str));
 		ralloc_free ((yyvsp[-2].str));
 		_glcpp_parser_skip_stack_push_if (parser, & (yylsp[-3]), macro == NULL);
 	}
@@ -4097,7 +4097,7 @@ _glcpp_parser_expand_function (glcpp_parser_t *parser,
 
 	identifier = node->token->value.str;
 
-	macro = hash_table_find (parser->defines, identifier);
+	macro = (macro_t *)hash_table_find (parser->defines, identifier);
 
 	assert (macro->is_function);
 
@@ -4227,7 +4227,7 @@ _glcpp_parser_expand_node (glcpp_parser_t *parser,
 		return _token_list_create_with_one_integer (parser, node->token->location.source);
 
 	/* Look up this identifier in the hash table. */
-	macro = hash_table_find (parser->defines, identifier);
+	macro = (macro_t *)hash_table_find (parser->defines, identifier);
 
 	/* Not a macro, so no expansion needed. */
 	if (macro == NULL)
@@ -4503,7 +4503,7 @@ _define_object_macro (glcpp_parser_t *parser,
 	macro->replacements = replacements;
 	ralloc_steal (macro, replacements);
 
-	previous = hash_table_find (parser->defines, identifier);
+	previous = (macro_t *)hash_table_find (parser->defines, identifier);
 	if (previous) {
 		if (_macro_equal (macro, previous)) {
 			ralloc_free (macro);
@@ -4542,7 +4542,7 @@ _define_function_macro (glcpp_parser_t *parser,
 	macro->parameters = parameters;
 	macro->identifier = ralloc_strdup (macro, identifier);
 	macro->replacements = replacements;
-	previous = hash_table_find (parser->defines, identifier);
+	previous = (macro_t *)hash_table_find (parser->defines, identifier);
 	if (previous) {
 		if (_macro_equal (macro, previous)) {
 			ralloc_free (macro);
@@ -4607,7 +4607,7 @@ glcpp_parser_lex (YYSTYPE *yylval, YYLTYPE *yylloc, glcpp_parser_t *parser)
 		else if (ret == IDENTIFIER)
 		{
 			macro_t *macro;
-			macro = hash_table_find (parser->defines,
+			macro = (macro_t *)hash_table_find (parser->defines,
 						 yylval->str);
 			if (macro && macro->is_function) {
 				parser->newline_as_space = 1;
