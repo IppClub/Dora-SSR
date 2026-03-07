@@ -6,9 +6,9 @@ set_project("bgfx-libs")
 set_version("1.0.0")
 set_languages("c++20")
 
--- MSVC 需要此选项来正确报告 C++ 标准版本
+-- MSVC 需要这些选项来正确报告 C++ 标准版本和支持标准预处理器
 if is_plat("windows") then
-    add_cxxflags("/Zc:__cplusplus", {force = true})
+    add_cxxflags("/Zc:__cplusplus", "/Zc:preprocessor", {force = true})
 end
 
 -- 源码路径配置
