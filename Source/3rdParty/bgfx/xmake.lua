@@ -425,6 +425,7 @@ target("glslang")
 -- glsl-optimizer
 target("glsl_optimizer")
     set_kind("static")
+    set_languages("c99", "c++20")
     
     add_includedirs(
         path.join(GLSL_OPTIMIZER_DIR, "src"),
@@ -433,14 +434,14 @@ target("glsl_optimizer")
         path.join(GLSL_OPTIMIZER_DIR, "src/glsl")
     )
     
-    -- glcpp 预处理器
+    -- glcpp 预处理器 (C 文件)
     add_files(
         path.join(GLSL_OPTIMIZER_DIR, "src/glsl/glcpp/glcpp-lex.c"),
         path.join(GLSL_OPTIMIZER_DIR, "src/glsl/glcpp/glcpp-parse.c"),
         path.join(GLSL_OPTIMIZER_DIR, "src/glsl/glcpp/pp.c")
     )
     
-    -- glsl 优化器核心
+    -- glsl 优化器核心 (C++ 文件)
     add_files(
         path.join(GLSL_OPTIMIZER_DIR, "src/glsl/ast_array_index.cpp"),
         path.join(GLSL_OPTIMIZER_DIR, "src/glsl/ast_expr.cpp"),
@@ -538,7 +539,7 @@ target("glsl_optimizer")
         path.join(GLSL_OPTIMIZER_DIR, "src/glsl/strtod.c")
     )
     
-    -- mesa 支持
+    -- mesa 支持 (C 文件)
     add_files(
         path.join(GLSL_OPTIMIZER_DIR, "src/mesa/main/imports.c"),
         path.join(GLSL_OPTIMIZER_DIR, "src/mesa/program/prog_hash_table.c"),
@@ -557,10 +558,19 @@ target("glsl_optimizer")
             "-Wno-unused-parameter",
             {force = true}
         )
+        add_cflags(
+            "-Wno-implicit-fallthrough",
+            "-Wno-parentheses",
+            "-Wno-sign-compare",
+            "-Wno-unused-function",
+            "-Wno-unused-parameter",
+            {force = true}
+        )
     end
     
     if is_plat("macosx") then
         add_cxxflags("-Wno-deprecated-register", {force = true})
+        add_cflags("-Wno-deprecated-register", {force = true})
     end
 
 -- shaderc-lib - 着色器编译静态库
