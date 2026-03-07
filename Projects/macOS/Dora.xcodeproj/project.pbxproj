@@ -5265,13 +5265,15 @@
 				OTHER_LIBTOOLFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = IppClub.DoraSSR;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				USER_HEADER_SEARCH_PATHS = (
-					"$(SRCROOT)/../../Source",
-					"$(SRCROOT)/../../Source/3rdParty",
+				HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)/../../Source/3rdParty/bx/include",
 					"$(SRCROOT)/../../Source/3rdParty/bx/include/compat/osx",
 					"$(SRCROOT)/../../Source/3rdParty/bimg/include",
 					"$(SRCROOT)/../../Source/3rdParty/bgfx/include",
+				);
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/../../Source",
+					"$(SRCROOT)/../../Source/3rdParty",
 					"$(SRCROOT)/../../Source/3rdParty/SDL2/Header",
 					"$(SRCROOT)/../../Source/3rdParty/Lua",
 					"$(SRCROOT)/../../Source/3rdParty/soloud",
@@ -5342,13 +5344,15 @@
 				OTHER_LIBTOOLFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = IppClub.DoraSSR;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				USER_HEADER_SEARCH_PATHS = (
-					"$(SRCROOT)/../../Source",
-					"$(SRCROOT)/../../Source/3rdParty",
+				HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)/../../Source/3rdParty/bx/include",
 					"$(SRCROOT)/../../Source/3rdParty/bx/include/compat/osx",
 					"$(SRCROOT)/../../Source/3rdParty/bimg/include",
 					"$(SRCROOT)/../../Source/3rdParty/bgfx/include",
+				);
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/../../Source",
+					"$(SRCROOT)/../../Source/3rdParty",
 					"$(SRCROOT)/../../Source/3rdParty/SDL2/Header",
 					"$(SRCROOT)/../../Source/3rdParty/Lua",
 					"$(SRCROOT)/../../Source/3rdParty/soloud",
