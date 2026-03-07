@@ -1,0 +1,84 @@
+name: Build bgfx
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'Source/3rdParty/bgfx/**'
+      - 'Source/3rdParty/bimg/**'
+      - 'Source/3rdParty/bx/**'
+      - '.github/workflows/build-bgfx.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'Source/3rdParty/bgfx/**'
+      - 'Source/3rdParty/bimg/**'
+      - 'Source/3rdParty/bx/**'
+      - '.github/workflows/build-bgfx.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    if: "!contains(github.event.head_commit.message, '[skip CI]') && !contains(github.event.head_commit.message, '[skip bgfx]')"
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            platform: windows
+            xmake_platform: windows
+          - os: ubuntu-latest
+            platform: linux
+            xmake_platform: linux
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup xmake
+        uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: latest
+
+      - name: Install Linux dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libx11-dev libgl1-mesa-dev
+
+      - name: Configure xmake
+        working-directory: Source/3rdParty/bgfx
+        run: xmake f -p ${{ matrix.xmake_platform }} -a x86_64 -m release -y
+
+      - name: Build
+        working-directory: Source/3rdParty/bgfx
+        run: xmake -v
+
+      - name: Collect artifacts (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          mkdir -p artifacts/windows
+          find Source/3rdParty/bgfx/build -name "*.lib" -exec cp {} artifacts/windows/ \;
+        shell: bash
+
+      - name: Collect artifacts (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          mkdir -p artifacts/linux
+          find Source/3rdParty/bgfx/build -name "*.a" -exec cp {} artifacts/linux/ \;
+
+      - name: Upload artifacts (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: bgfx-libs-windows-x86_64
+          path: artifacts/windows/
+          retention-days: 7
+
+      - name: Upload artifacts (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: bgfx-libs-linux-x86_64
+          path: artifacts/linux/
+          retention-days: 7
