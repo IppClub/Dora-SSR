@@ -52,18 +52,19 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libx11-dev libgl1-mesa-dev
 
-      - name: Configure xmake
+      - name: Configure xmake (Windows)
+        if: matrix.os == 'windows-latest'
         working-directory: Source/3rdParty/bgfx
+        shell: pwsh
         run: |
           xmake global --clean
-          xmake f -c
-          xmake f -p ${{ matrix.xmake_platform }} -a x86_64 -m release -y --with-amalgamated=n --toolchain=msvc
-        if: matrix.os == 'windows-latest'
+          xmake f -c -p windows -a x64 -m release -y --with-amalgamated=n `
+            --cc=cl --cxx=cl --ld=link --sh=link --ar=lib --as=ml64
 
-      - name: Configure xmake
+      - name: Configure xmake (Linux)
+        if: matrix.os != 'windows-latest'
         working-directory: Source/3rdParty/bgfx
         run: xmake f -p ${{ matrix.xmake_platform }} -a x86_64 -m release -y --with-amalgamated=n
-        if: matrix.os != 'windows-latest'
 
       - name: Build
         working-directory: Source/3rdParty/bgfx

@@ -277,7 +277,9 @@ target("spirv-cross")
         path.join(SPIRV_CROSS_DIR, "spirv_reflect.cpp")
     )
     
-    add_cxxflags("-Wno-type-limits", {force = true})
+    if not is_plat("windows") then
+        add_cxxflags("-Wno-type-limits", {force = true})
+    end
 
 -- spirv-opt (来自 spirv-tools)
 target("spirv-opt")
@@ -330,7 +332,9 @@ target("spirv-opt")
     -- reduce
     add_files(path.join(SPIRV_TOOLS_DIR, "source/reduce/*.cpp"))
     
-    add_cxxflags("-Wno-switch", {force = true})
+    if not is_plat("windows") then
+        add_cxxflags("-Wno-switch", {force = true})
+    end
     if is_plat("linux", "android") then
         add_cxxflags("-fPIC", {force = true})
     end
@@ -385,23 +389,25 @@ target("glslang")
     -- SPIRV CInterface
     add_files(path.join(GLSLANG_DIR, "SPIRV/CInterface/*.cpp"))
     
-    add_cxxflags(
-        "-fno-strict-aliasing",
-        "-Wno-ignored-qualifiers",
-        "-Wno-implicit-fallthrough",
-        "-Wno-missing-field-initializers",
-        "-Wno-reorder",
-        "-Wno-return-type",
-        "-Wno-shadow",
-        "-Wno-sign-compare",
-        "-Wno-switch",
-        "-Wno-undef",
-        "-Wno-unknown-pragmas",
-        "-Wno-unused-function",
-        "-Wno-unused-parameter",
-        "-Wno-unused-variable",
-        {force = true}
-    )
+    if not is_plat("windows") then
+        add_cxxflags(
+            "-fno-strict-aliasing",
+            "-Wno-ignored-qualifiers",
+            "-Wno-implicit-fallthrough",
+            "-Wno-missing-field-initializers",
+            "-Wno-reorder",
+            "-Wno-return-type",
+            "-Wno-shadow",
+            "-Wno-sign-compare",
+            "-Wno-switch",
+            "-Wno-undef",
+            "-Wno-unknown-pragmas",
+            "-Wno-unused-function",
+            "-Wno-unused-parameter",
+            "-Wno-unused-variable",
+            {force = true}
+        )
+    end
     
     if is_plat("macosx") then
         add_cxxflags("-Wno-c++11-extensions", "-Wno-unused-const-variable", "-Wno-deprecated-register", {force = true})
@@ -536,15 +542,17 @@ target("glsl-optimizer")
         path.join(GLSL_OPTIMIZER_DIR, "src/util/ralloc.c")
     )
     
-    add_cxxflags(
-        "-fno-strict-aliasing",
-        "-Wno-implicit-fallthrough",
-        "-Wno-parentheses",
-        "-Wno-sign-compare",
-        "-Wno-unused-function",
-        "-Wno-unused-parameter",
-        {force = true}
-    )
+    if not is_plat("windows") then
+        add_cxxflags(
+            "-fno-strict-aliasing",
+            "-Wno-implicit-fallthrough",
+            "-Wno-parentheses",
+            "-Wno-sign-compare",
+            "-Wno-unused-function",
+            "-Wno-unused-parameter",
+            {force = true}
+        )
+    end
     
     if is_plat("macosx") then
         add_cxxflags("-Wno-deprecated-register", {force = true})
