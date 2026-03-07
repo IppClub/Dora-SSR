@@ -42,11 +42,6 @@ end
 -- bx 基础库
 target("bx")
     set_kind("static")
-    -- 确保 Windows 上只使用 MSVC 的 lib 作为静态库归档器
-    if is_plat("windows") then
-        set_ar("lib")
-        set_arflags("/nologo", "/out:")
-    end
     
     add_includedirs(path.join(BX_DIR, "include"), {public = true})
     add_includedirs(path.join(BX_DIR, "3rdparty"), {public = true})
@@ -84,11 +79,6 @@ target("bx")
 -- bimg 图像库核心
 target("bimg")
     set_kind("static")
-    -- 确保 Windows 上只使用 MSVC 的 lib 作为静态库归档器
-    if is_plat("windows") then
-        set_ar("lib")
-        set_arflags("/nologo", "/out:")
-    end
     add_deps("bx")
     
     add_includedirs(path.join(BIMG_DIR, "include"), {public = true})
@@ -109,11 +99,6 @@ target("bimg")
 -- bimg_decode 图像解码库
 target("bimg_decode")
     set_kind("static")
-    -- 确保 Windows 上只使用 MSVC 的 lib 作为静态库归档器
-    if is_plat("windows") then
-        set_ar("lib")
-        set_arflags("/nologo", "/out:")
-    end
     add_deps("bx")
     
     add_includedirs(path.join(BIMG_DIR, "include"), {public = true})
@@ -130,11 +115,6 @@ target("bimg_decode")
 -- bgfx 渲染库
 target("bgfx")
     set_kind("static")
-    -- 确保 Windows 上只使用 MSVC 的 lib 作为静态库归档器
-    if is_plat("windows") then
-        set_ar("lib")
-        set_arflags("/nologo", "/out:")
-    end
     add_deps("bx", "bimg", "bimg_decode")
     
     add_includedirs(path.join(BGFX_DIR, "include"), {public = true})
@@ -257,11 +237,6 @@ local FCPP_DIR = path.join(BGFX_DIR, "3rdparty/fcpp")
 -- fcpp - C 预处理器
 target("fcpp")
     set_kind("static")
-    -- 确保 Windows 上只使用 MSVC 的 lib 作为静态库归档器
-    if is_plat("windows") then
-        set_ar("lib")
-        set_arflags("/nologo", "/out:")
-    end
     set_languages("c11")
     
     add_files(
@@ -289,11 +264,6 @@ target("fcpp")
 -- spirv-cross
 target("spirv-cross")
     set_kind("static")
-    -- 确保 Windows 上只使用 MSVC 的 lib 作为静态库归档器
-    if is_plat("windows") then
-        set_ar("lib")
-        set_arflags("/nologo", "/out:")
-    end
     
     add_defines("SPIRV_CROSS_EXCEPTIONS_TO_ASSERTIONS")
     
@@ -319,11 +289,6 @@ target("spirv-cross")
 -- spirv-opt (来自 spirv-tools)
 target("spirv-opt")
     set_kind("static")
-    -- 确保 Windows 上只使用 MSVC 的 lib 作为静态库归档器
-    if is_plat("windows") then
-        set_ar("lib")
-        set_arflags("/nologo", "/out:")
-    end
     
     add_includedirs(
         SPIRV_TOOLS_DIR,
@@ -382,11 +347,6 @@ target("spirv-opt")
 -- glslang - GLSL/HLSL 解析器
 target("glslang")
     set_kind("static")
-    -- 确保 Windows 上只使用 MSVC 的 lib 作为静态库归档器
-    if is_plat("windows") then
-        set_ar("lib")
-        set_arflags("/nologo", "/out:")
-    end
     add_deps("spirv-opt")
     
     add_defines("ENABLE_OPT=1", "ENABLE_HLSL=1")
@@ -465,11 +425,6 @@ target("glslang")
 -- glsl-optimizer
 target("glsl_optimizer")
     set_kind("static")
-    -- 确保 Windows 上只使用 MSVC 的 lib 作为静态库归档器
-    if is_plat("windows") then
-        set_ar("lib")
-        set_arflags("/nologo", "/out:")
-    end
     set_languages("c++20")
 
     add_includedirs(
@@ -649,11 +604,6 @@ target("glsl_optimizer")
 -- shaderc-lib - 着色器编译静态库
 target("shaderc-lib")
     set_kind("static")
-    -- 确保 Windows 上只使用 MSVC 的 lib 作为静态库归档器
-    if is_plat("windows") then
-        set_ar("lib")
-        set_arflags("/nologo", "/out:")
-    end
     add_deps("bx", "fcpp", "glslang", "glsl_optimizer", "spirv-cross")
     
     add_includedirs(
