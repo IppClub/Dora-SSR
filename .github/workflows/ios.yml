@@ -13,10 +13,17 @@ jobs:
     if: "!contains(github.event.head_commit.message, '[skip CI]') && !contains(github.event.head_commit.message, '[skip iOS]')"
     steps:
       - uses: actions/checkout@v4
+      - uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: latest
       - uses: dtolnay/rust-toolchain@stable
       - uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: latest
+      - name: Build bgfx libraries
+        run: |
+          cd Source/3rdParty/bgfx
+          ./build_libs.sh ios
       - name: iOS build
         run: |
           Tools/tolua++/build.sh

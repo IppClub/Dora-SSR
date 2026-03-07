@@ -670,7 +670,7 @@
 		3C03AA002EF2522E00B706C8 /* VideoNode.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = VideoNode.cpp; sourceTree = "<group>"; };
 		3C078D7B2E14CD2D00C05BA4 /* AudioSource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AudioSource.h; sourceTree = "<group>"; };
 		3C078D7C2E14CD2D00C05BA4 /* AudioSource.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AudioSource.cpp; sourceTree = "<group>"; };
-		3C0EBE2F1E2DB3FB0066450A /* libbx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbx.a; path = ../../Source/3rdParty/BGFX/Lib/macOS/libbx.a; sourceTree = "<group>"; };
+		3C0EBE2F1E2DB3FB0066450A /* libbx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbx.a; path = ../../Source/3rdParty/bgfx/build/macosx/universal/libbx.a; sourceTree = "<group>"; };
 		3C1D40EE2702FD7C00202534 /* Class.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Class.lua; sourceTree = "<group>"; };
 		3C1D40EF2702FD7C00202534 /* Initialization.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Initialization.lua; sourceTree = "<group>"; };
 		3C1D40F02702FD7C00202534 /* tl.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = tl.lua; sourceTree = "<group>"; };
@@ -2015,7 +2015,7 @@
 		3CC81FE61D966770008C8B77 /* Dora.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dora.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3CC81FF51D966770008C8B77 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = Dora/Assets.xcassets; sourceTree = "<group>"; };
 		3CC81FFA1D966770008C8B77 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = Dora/Info.plist; sourceTree = "<group>"; };
-		3CD029131E07DD5F0016E1EC /* libbgfx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbgfx.a; path = ../../Source/3rdParty/BGFX/Lib/macOS/libbgfx.a; sourceTree = "<group>"; };
+		3CD029131E07DD5F0016E1EC /* libbgfx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbgfx.a; path = ../../Source/3rdParty/bgfx/build/macosx/universal/libbgfx.a; sourceTree = "<group>"; };
 		3CD029151E07DD720016E1EC /* libSDL2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSDL2.a; path = ../../Source/3rdParty/SDL2/Lib/macOS/libSDL2.a; sourceTree = "<group>"; };
 		3CD470A12D3A4C91000E59A7 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		3CD470A22D3A4C91000E59A7 /* nfd.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = nfd.h; sourceTree = "<group>"; };
@@ -2036,7 +2036,7 @@
 		3CE471C42DD2E85A0036716C /* libwa.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libwa.a; path = ../../Source/3rdParty/wa/Lib/macOS/libwa.a; sourceTree = "<group>"; };
 		3CE606872D1108F50073BB73 /* sdf_gen2d.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sdf_gen2d.h; sourceTree = "<group>"; };
 		3CE7D3731EADF594008EADB3 /* libbimg_decode.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg_decode.a; path = ../../Source/3rdParty/BGFX/Lib/macOS/libbimg_decode.a; sourceTree = "<group>"; };
-		3CE7D3741EADF594008EADB3 /* libbimg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg.a; path = ../../Source/3rdParty/BGFX/Lib/macOS/libbimg.a; sourceTree = "<group>"; };
+		3CE7D3741EADF594008EADB3 /* libbimg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg.a; path = ../../Source/3rdParty/bgfx/build/macosx/universal/libbimg.a; sourceTree = "<group>"; };
 		3CE994632AFA43680073A973 /* gamecontrollerdb.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = gamecontrollerdb.txt; sourceTree = "<group>"; };
 		3CF7CE822F1600F000F35E6B /* blip_wasm_host.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = blip_wasm_host.cpp; sourceTree = "<group>"; };
 		3CFD213F2ECD656900FD55EB /* Image */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Image; sourceTree = "<group>"; };
@@ -5268,8 +5268,10 @@
 				USER_HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)/../../Source",
 					"$(SRCROOT)/../../Source/3rdParty",
-					"$(SRCROOT)/../../Source/3rdParty/bgfx/Header",
-					"$(SRCROOT)/../../Source/3rdParty/bgfx/Header/compat/osx",
+					"$(SRCROOT)/../../Source/3rdParty/bx/include",
+					"$(SRCROOT)/../../Source/3rdParty/bx/include/compat/osx",
+					"$(SRCROOT)/../../Source/3rdParty/bimg/include",
+					"$(SRCROOT)/../../Source/3rdParty/bgfx/include",
 					"$(SRCROOT)/../../Source/3rdParty/SDL2/Header",
 					"$(SRCROOT)/../../Source/3rdParty/Lua",
 					"$(SRCROOT)/../../Source/3rdParty/soloud",
@@ -5343,8 +5345,10 @@
 				USER_HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)/../../Source",
 					"$(SRCROOT)/../../Source/3rdParty",
-					"$(SRCROOT)/../../Source/3rdParty/bgfx/Header",
-					"$(SRCROOT)/../../Source/3rdParty/bgfx/Header/compat/osx",
+					"$(SRCROOT)/../../Source/3rdParty/bx/include",
+					"$(SRCROOT)/../../Source/3rdParty/bx/include/compat/osx",
+					"$(SRCROOT)/../../Source/3rdParty/bimg/include",
+					"$(SRCROOT)/../../Source/3rdParty/bgfx/include",
 					"$(SRCROOT)/../../Source/3rdParty/SDL2/Header",
 					"$(SRCROOT)/../../Source/3rdParty/Lua",
 					"$(SRCROOT)/../../Source/3rdParty/soloud",
