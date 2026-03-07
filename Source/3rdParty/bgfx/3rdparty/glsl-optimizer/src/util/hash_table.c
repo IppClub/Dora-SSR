@@ -397,7 +397,7 @@ uint32_t
 _mesa_hash_data(const void *data, size_t size)
 {
    uint32_t hash = 2166136261ul;
-   const uint8_t *bytes = data;
+   const uint8_t *bytes = (const uint8_t *)data;
 
    while (size-- != 0) {
       hash ^= *bytes;
@@ -430,7 +430,7 @@ _mesa_hash_string(const char *key)
 bool
 _mesa_key_string_equal(const void *a, const void *b)
 {
-   return strcmp(a, b) == 0;
+   return strcmp((const char *)a, (const char *)b) == 0;
 }
 
 bool
