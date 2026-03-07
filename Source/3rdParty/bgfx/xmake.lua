@@ -423,7 +423,7 @@ target("glslang")
     end
 
 -- glsl-optimizer
-target("glsl-optimizer")
+target("glsl_optimizer")
     set_kind("static")
     
     add_includedirs(
@@ -566,7 +566,7 @@ target("glsl-optimizer")
 -- shaderc-lib - 着色器编译静态库
 target("shaderc-lib")
     set_kind("static")
-    add_deps("bx", "fcpp", "glslang", "glsl-optimizer", "spirv-cross")
+    add_deps("bx", "fcpp", "glslang", "glsl_optimizer", "spirv-cross")
     
     add_includedirs(
         path.join(BIMG_DIR, "include"),
