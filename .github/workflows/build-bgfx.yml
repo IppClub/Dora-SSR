@@ -39,6 +39,8 @@ jobs:
         uses: xmake-io/github-action-setup-xmake@v1
         with:
           xmake-version: latest
+          # Disable cache to force fresh VS detection
+          xmake-package-cache: false
 
       - name: Setup MSVC
         if: matrix.os == 'windows-latest'
@@ -52,7 +54,10 @@ jobs:
 
       - name: Configure xmake
         working-directory: Source/3rdParty/bgfx
-        run: xmake f -p ${{ matrix.xmake_platform }} -a x86_64 -m release -y --with-amalgamated=n --toolchain=msvc
+        run: |
+          xmake global --clean
+          xmake f -c
+          xmake f -p ${{ matrix.xmake_platform }} -a x86_64 -m release -y --with-amalgamated=n --toolchain=msvc
         if: matrix.os == 'windows-latest'
 
       - name: Configure xmake
