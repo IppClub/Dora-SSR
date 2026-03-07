@@ -170,7 +170,7 @@ _mesa_symbol_table_pop_scope(struct _mesa_symbol_table *table)
 void
 _mesa_symbol_table_push_scope(struct _mesa_symbol_table *table)
 {
-    struct scope_level *const scope = calloc(1, sizeof(*scope));
+    struct scope_level *const scope = (struct scope_level *)calloc(1, sizeof(*scope));
     
     if (scope == NULL) {
        _mesa_error_no_memory(__func__);
@@ -258,7 +258,7 @@ _mesa_symbol_table_add_symbol(struct _mesa_symbol_table *table,
     check_symbol_table(table);
 
     if (hdr == NULL) {
-       hdr = calloc(1, sizeof(*hdr));
+       hdr = (struct symbol_header *)calloc(1, sizeof(*hdr));
        if (hdr == NULL) {
           _mesa_error_no_memory(__func__);
           return -1;
@@ -290,7 +290,7 @@ _mesa_symbol_table_add_symbol(struct _mesa_symbol_table *table,
     if (sym && (sym->depth == table->depth))
        return -1;
 
-    sym = calloc(1, sizeof(*sym));
+    sym = (struct symbol *)calloc(1, sizeof(*sym));
     if (sym == NULL) {
        _mesa_error_no_memory(__func__);
        return -1;
@@ -330,7 +330,7 @@ _mesa_symbol_table_add_global_symbol(struct _mesa_symbol_table *table,
     check_symbol_table(table);
 
     if (hdr == NULL) {
-        hdr = calloc(1, sizeof(*hdr));
+        hdr = (struct symbol_header *)calloc(1, sizeof(*hdr));
         if (hdr == NULL) {
            _mesa_error_no_memory(__func__);
            return -1;
@@ -364,7 +364,7 @@ _mesa_symbol_table_add_global_symbol(struct _mesa_symbol_table *table,
        /* empty */
     }
 
-    sym = calloc(1, sizeof(*sym));
+    sym = (struct symbol *)calloc(1, sizeof(*sym));
     if (sym == NULL) {
        _mesa_error_no_memory(__func__);
        return -1;
@@ -401,7 +401,7 @@ _mesa_symbol_table_add_global_symbol(struct _mesa_symbol_table *table,
 struct _mesa_symbol_table *
 _mesa_symbol_table_ctor(void)
 {
-    struct _mesa_symbol_table *table = calloc(1, sizeof(*table));
+    struct _mesa_symbol_table *table = (struct _mesa_symbol_table *)calloc(1, sizeof(*table));
 
     if (table != NULL) {
        table->ht = hash_table_ctor(32, hash_table_string_hash,
