@@ -59,6 +59,7 @@ jobs:
         run: |
           xmake global --clean
           xmake f -c -p windows -a x64 -m release -y --with-amalgamated=n `
+            --toolchains=msvc `
             --cc=cl --cxx=cl --ld=link --sh=link --ar=lib --as=ml64
 
       - name: Configure xmake (Linux)
