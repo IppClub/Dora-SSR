@@ -6,6 +6,11 @@ set_project("bgfx-libs")
 set_version("1.0.0")
 set_languages("c++20")
 
+-- MSVC 需要此选项来正确报告 C++ 标准版本
+if is_plat("windows") then
+    add_cxxflags("/Zc:__cplusplus", {force = true})
+end
+
 -- 源码路径配置
 local BGFX_DIR = os.scriptdir()
 local BIMG_DIR = path.join(BGFX_DIR, "../bimg")
