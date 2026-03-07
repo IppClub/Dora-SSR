@@ -135,6 +135,21 @@ target("bgfx")
             add_mxxflags("-fno-objc-arc", {force = true})
         end
         remove_files(path.join(BGFX_DIR, "src/amalgamated.*"))
+        
+        -- 排除 Windows 专用文件（非 Windows 平台）
+        if not is_plat("windows") then
+            remove_files(path.join(BGFX_DIR, "src/dxgi.cpp"))
+            remove_files(path.join(BGFX_DIR, "src/glcontext_wgl.cpp"))
+            remove_files(path.join(BGFX_DIR, "src/nvapi.cpp"))
+            remove_files(path.join(BGFX_DIR, "src/renderer_d3d11.cpp"))
+            remove_files(path.join(BGFX_DIR, "src/renderer_d3d12.cpp"))
+        end
+        
+        -- 排除主机平台专用文件
+        remove_files(path.join(BGFX_DIR, "src/renderer_agc.cpp"))   -- PS5
+        remove_files(path.join(BGFX_DIR, "src/renderer_gnm.cpp"))   -- PS4
+        remove_files(path.join(BGFX_DIR, "src/renderer_nvn.cpp"))   -- Nintendo Switch
+        remove_files(path.join(BGFX_DIR, "src/glcontext_html5.cpp")) -- Web/Emscripten
     end
     
     add_includedirs(path.join(BGFX_DIR, "3rdparty/khronos"))
@@ -179,6 +194,21 @@ if has_config("with-shared") then
                 add_mxxflags("-fno-objc-arc", {force = true})
             end
             remove_files(path.join(BGFX_DIR, "src/amalgamated.*"))
+            
+            -- 排除 Windows 专用文件（非 Windows 平台）
+            if not is_plat("windows") then
+                remove_files(path.join(BGFX_DIR, "src/dxgi.cpp"))
+                remove_files(path.join(BGFX_DIR, "src/glcontext_wgl.cpp"))
+                remove_files(path.join(BGFX_DIR, "src/nvapi.cpp"))
+                remove_files(path.join(BGFX_DIR, "src/renderer_d3d11.cpp"))
+                remove_files(path.join(BGFX_DIR, "src/renderer_d3d12.cpp"))
+            end
+            
+            -- 排除主机平台专用文件
+            remove_files(path.join(BGFX_DIR, "src/renderer_agc.cpp"))
+            remove_files(path.join(BGFX_DIR, "src/renderer_gnm.cpp"))
+            remove_files(path.join(BGFX_DIR, "src/renderer_nvn.cpp"))
+            remove_files(path.join(BGFX_DIR, "src/glcontext_html5.cpp"))
         end
         
         add_platform_links()
