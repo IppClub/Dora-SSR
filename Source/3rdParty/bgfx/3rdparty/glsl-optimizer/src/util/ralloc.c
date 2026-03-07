@@ -352,7 +352,7 @@ cat(char **dest, const char *str, size_t n)
    assert(dest != NULL && *dest != NULL);
 
    existing_length = strlen(*dest);
-   both = resize(*dest, existing_length + n + 1);
+   both = (char *)resize(*dest, existing_length + n + 1);
    if (unlikely(both == NULL))
       return false;
 
@@ -426,7 +426,7 @@ ralloc_vasprintf(const void *ctx, const char *fmt, va_list args)
 {
    size_t size = printf_length(fmt, args) + 1;
 
-   char *ptr = ralloc_size(ctx, size);
+   char *ptr = (char *)ralloc_size(ctx, size);
    if (ptr != NULL)
       vsnprintf(ptr, size, fmt, args);
 
@@ -481,7 +481,7 @@ ralloc_vasprintf_rewrite_tail(char **str, size_t *start, const char *fmt,
 
    new_length = printf_length(fmt, args);
 
-   ptr = resize(*str, *start + new_length + 1);
+   ptr = (char *)resize(*str, *start + new_length + 1);
    if (unlikely(ptr == NULL))
       return false;
 
