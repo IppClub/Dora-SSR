@@ -425,21 +425,31 @@ target("glslang")
 -- glsl-optimizer
 target("glsl_optimizer")
     set_kind("static")
-    set_languages("c99", "c++20")
-    
+    set_languages("c++20")
+
     add_includedirs(
         path.join(GLSL_OPTIMIZER_DIR, "src"),
         path.join(GLSL_OPTIMIZER_DIR, "include"),
         path.join(GLSL_OPTIMIZER_DIR, "src/mesa"),
         path.join(GLSL_OPTIMIZER_DIR, "src/glsl")
     )
-    
-    -- glcpp 预处理器 (C 文件)
-    add_files(
-        path.join(GLSL_OPTIMIZER_DIR, "src/glsl/glcpp/glcpp-lex.c"),
-        path.join(GLSL_OPTIMIZER_DIR, "src/glsl/glcpp/glcpp-parse.c"),
-        path.join(GLSL_OPTIMIZER_DIR, "src/glsl/glcpp/pp.c")
-    )
+
+    -- glcpp 预处理器 (C 文件，在 Windows 上用 C++ 编译)
+    -- MSVC C 编译器不支持 void* 隐式转换，需要用 C++ 模式
+    if is_plat("windows") then
+        add_files(
+            path.join(GLSL_OPTIMIZER_DIR, "src/glsl/glcpp/glcpp-lex.c"),
+            path.join(GLSL_OPTIMIZER_DIR, "src/glsl/glcpp/glcpp-parse.c"),
+            path.join(GLSL_OPTIMIZER_DIR, "src/glsl/glcpp/pp.c"),
+            {sourcekind = "cxx"}
+        )
+    else
+        add_files(
+            path.join(GLSL_OPTIMIZER_DIR, "src/glsl/glcpp/glcpp-lex.c"),
+            path.join(GLSL_OPTIMIZER_DIR, "src/glsl/glcpp/glcpp-parse.c"),
+            path.join(GLSL_OPTIMIZER_DIR, "src/glsl/glcpp/pp.c")
+        )
+    end
     
     -- glsl 优化器核心 (C++ 文件)
     add_files(
