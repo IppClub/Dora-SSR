@@ -114,6 +114,7 @@ target("bgfx")
     
     add_includedirs(path.join(BGFX_DIR, "include"), {public = true})
     add_includedirs(path.join(BGFX_DIR, "3rdparty"), {public = true})
+    add_includedirs(path.join(BGFX_DIR, "3rdparty/renderdoc"), {public = true})
     add_includedirs(path.join(BIMG_DIR, "include"))
     add_includedirs(path.join(BX_DIR, "include"))
     
@@ -160,6 +161,7 @@ if has_config("with-shared") then
         
         add_includedirs(path.join(BGFX_DIR, "include"), {public = true})
         add_includedirs(path.join(BGFX_DIR, "3rdparty"), {public = true})
+        add_includedirs(path.join(BGFX_DIR, "3rdparty/renderdoc"), {public = true})
         add_includedirs(path.join(BIMG_DIR, "include"))
         add_includedirs(path.join(BX_DIR, "include"))
         
@@ -200,6 +202,7 @@ local FCPP_DIR = path.join(BGFX_DIR, "3rdparty/fcpp")
 -- fcpp - C 预处理器
 target("fcpp")
     set_kind("static")
+    set_languages("c11")
     
     add_files(
         path.join(FCPP_DIR, "cpp1.c"),
@@ -218,8 +221,10 @@ target("fcpp")
         "OLD_PREPROCESSOR=0"
     )
     
-    -- C 编译器警告抑制
-    add_cflags("-Wno-implicit-fallthrough", "-Wno-incompatible-pointer-types", "-Wno-parentheses-equality", {force = true})
+    -- C 编译器警告抑制 (GCC/Clang only)
+    if not is_plat("windows") then
+        add_cflags("-Wno-implicit-fallthrough", "-Wno-incompatible-pointer-types", "-Wno-parentheses-equality", {force = true})
+    end
 
 -- spirv-cross
 target("spirv-cross")
