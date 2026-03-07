@@ -8,7 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
 # 目标库列表
-LIBS="bx bimg bimg_decode bgfx fcpp spirv-cross spirv-opt glslang glsl-optimizer shaderc-lib"
+LIBS="bx bimg bimg_decode bgfx fcpp spirv_cross spirv_opt glslang glsl_optimizer shaderc_lib"
 
 # 颜色输出
 RED='\033[0;31m'
@@ -124,9 +124,9 @@ build_ios() {
     ls -lh build/ios/device/*.a | head -5
 }
 
-# Android: 编译 arm64-v8a 和 armeabi-v7a
+# Android: 编译 arm64-v8a、armeabi-v7a 和 x86_64
 build_android() {
-    log_info "=== Building Android (arm64-v8a + armeabi-v7a) ==="
+    log_info "=== Building Android (arm64-v8a + armeabi-v7a + x86_64) ==="
     
     # 检查 NDK 是否已配置
     if [ -z "$ANDROID_NDK_HOME" ] && [ -z "$NDK_ROOT" ]; then
@@ -144,9 +144,15 @@ build_android() {
     xmake f -c -y
     build_arch android armeabi-v7a
     
+    # 编译 x86_64 (for emulator)
+    log_info "Building x86_64..."
+    xmake f -c -y
+    build_arch android x86_64
+    
     # 创建输出目录
     mkdir -p build/android/arm64-v8a
     mkdir -p build/android/armeabi-v7a
+    mkdir -p build/android/x86_64
     
     # 复制 arm64-v8a 库
     log_info "Copying arm64-v8a libraries..."
@@ -160,9 +166,16 @@ build_android() {
         cp build/android/armeabi-v7a/release/lib${lib}.a build/android/armeabi-v7a/
     done
     
+    # 复制 x86_64 库
+    log_info "Copying x86_64 libraries..."
+    for lib in $LIBS; do
+        cp build/android/x86_64/release/lib${lib}.a build/android/x86_64/
+    done
+    
     log_info "Android libraries created:"
     echo "  ARM64-v8a:   build/android/arm64-v8a/"
     echo "  ARM v7-a:    build/android/armeabi-v7a/"
+    echo "  x86_64:      build/android/x86_64/"
     ls -lh build/android/arm64-v8a/*.a | head -5
 }
 
@@ -173,7 +186,7 @@ show_help() {
     echo "Commands:"
     echo "  macos    Build macOS universal libraries (x86_64 + arm64)"
     echo "  ios      Build iOS libraries (device + simulator)"
-    echo "  android  Build Android libraries (arm64-v8a + armeabi-v7a)"
+    echo "  android  Build Android libraries (arm64-v8a + armeabi-v7a + x86_64)"
     echo "  all      Build macOS, iOS and Android"
     echo "  clean    Clean build directory"
     echo "  help     Show this help"
@@ -191,6 +204,7 @@ show_help() {
     echo "  Android:"
     echo "    build/android/arm64-v8a/        - ARM64 library"
     echo "    build/android/armeabi-v7a/      - ARM v7-a library"
+    echo "    build/android/x86_64/           - x86_64 library (emulator)"
     echo ""
     echo "Note: For iOS, use xcodebuild -create-xcframework to create XCFramework"
     echo "      that includes both device and simulator libraries."
