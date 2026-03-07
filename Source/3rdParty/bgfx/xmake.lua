@@ -434,20 +434,48 @@ target("glsl_optimizer")
         path.join(GLSL_OPTIMIZER_DIR, "src/glsl")
     )
 
-    -- glcpp 预处理器 (C 文件，在 Windows 上用 C++ 编译)
-    -- MSVC C 编译器不支持 void* 隐式转换，需要用 C++ 模式
+    -- 在 Windows 上所有 C 文件都用 C++ 模式编译
+    -- MSVC C 编译器不支持 void* 隐式转换
     if is_plat("windows") then
+        -- glcpp 预处理器 (C 文件，用 C++ 编译)
         add_files(
             path.join(GLSL_OPTIMIZER_DIR, "src/glsl/glcpp/glcpp-lex.c"),
             path.join(GLSL_OPTIMIZER_DIR, "src/glsl/glcpp/glcpp-parse.c"),
             path.join(GLSL_OPTIMIZER_DIR, "src/glsl/glcpp/pp.c"),
             {sourcekind = "cxx"}
         )
+        -- strtod.c (用 C++ 编译)
+        add_files(
+            path.join(GLSL_OPTIMIZER_DIR, "src/glsl/strtod.c"),
+            {sourcekind = "cxx"}
+        )
+        -- mesa 支持 (C 文件，用 C++ 编译)
+        add_files(
+            path.join(GLSL_OPTIMIZER_DIR, "src/mesa/main/imports.c"),
+            path.join(GLSL_OPTIMIZER_DIR, "src/mesa/program/prog_hash_table.c"),
+            path.join(GLSL_OPTIMIZER_DIR, "src/mesa/program/symbol_table.c"),
+            path.join(GLSL_OPTIMIZER_DIR, "src/util/hash_table.c"),
+            path.join(GLSL_OPTIMIZER_DIR, "src/util/ralloc.c"),
+            {sourcekind = "cxx"}
+        )
     else
+        -- glcpp 预处理器 (C 文件)
         add_files(
             path.join(GLSL_OPTIMIZER_DIR, "src/glsl/glcpp/glcpp-lex.c"),
             path.join(GLSL_OPTIMIZER_DIR, "src/glsl/glcpp/glcpp-parse.c"),
             path.join(GLSL_OPTIMIZER_DIR, "src/glsl/glcpp/pp.c")
+        )
+        -- strtod.c
+        add_files(
+            path.join(GLSL_OPTIMIZER_DIR, "src/glsl/strtod.c")
+        )
+        -- mesa 支持 (C 文件)
+        add_files(
+            path.join(GLSL_OPTIMIZER_DIR, "src/mesa/main/imports.c"),
+            path.join(GLSL_OPTIMIZER_DIR, "src/mesa/program/prog_hash_table.c"),
+            path.join(GLSL_OPTIMIZER_DIR, "src/mesa/program/symbol_table.c"),
+            path.join(GLSL_OPTIMIZER_DIR, "src/util/hash_table.c"),
+            path.join(GLSL_OPTIMIZER_DIR, "src/util/ralloc.c")
         )
     end
     
@@ -545,17 +573,7 @@ target("glsl_optimizer")
         path.join(GLSL_OPTIMIZER_DIR, "src/glsl/opt_swizzle_swizzle.cpp"),
         path.join(GLSL_OPTIMIZER_DIR, "src/glsl/opt_tree_grafting.cpp"),
         path.join(GLSL_OPTIMIZER_DIR, "src/glsl/opt_vectorize.cpp"),
-        path.join(GLSL_OPTIMIZER_DIR, "src/glsl/s_expression.cpp"),
-        path.join(GLSL_OPTIMIZER_DIR, "src/glsl/strtod.c")
-    )
-    
-    -- mesa 支持 (C 文件)
-    add_files(
-        path.join(GLSL_OPTIMIZER_DIR, "src/mesa/main/imports.c"),
-        path.join(GLSL_OPTIMIZER_DIR, "src/mesa/program/prog_hash_table.c"),
-        path.join(GLSL_OPTIMIZER_DIR, "src/mesa/program/symbol_table.c"),
-        path.join(GLSL_OPTIMIZER_DIR, "src/util/hash_table.c"),
-        path.join(GLSL_OPTIMIZER_DIR, "src/util/ralloc.c")
+        path.join(GLSL_OPTIMIZER_DIR, "src/glsl/s_expression.cpp")
     )
     
     if not is_plat("windows") then
