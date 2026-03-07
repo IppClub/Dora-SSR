@@ -2577,20 +2577,20 @@
 		3CA780012AE66FB000B7BADA /* StackAllocator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StackAllocator.cpp; sourceTree = "<group>"; };
 		3CA780022AE66FB000B7BADA /* ConstraintSolverConf.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ConstraintSolverConf.hpp; sourceTree = "<group>"; };
 		3CA780032AE66FB000B7BADA /* ToiOutput.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ToiOutput.hpp; sourceTree = "<group>"; };
-		3CA780962AE770DC00B7BADA /* libbgfx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbgfx.a; path = ../../Source/3rdParty/bgfx/Lib/iOS/libbgfx.a; sourceTree = "<group>"; };
-		3CA780972AE770DC00B7BADA /* libbimg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg.a; path = ../../Source/3rdParty/bgfx/Lib/iOS/libbimg.a; sourceTree = "<group>"; };
+		3CA780962AE770DC00B7BADA /* libbgfx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbgfx.a; path = ../../Source/3rdParty/bgfx/build/ios/device/libbgfx.a; sourceTree = "<group>"; };
+		3CA780972AE770DC00B7BADA /* libbimg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg.a; path = ../../Source/3rdParty/bgfx/build/ios/device/libbimg.a; sourceTree = "<group>"; };
 		3CA780982AE770DC00B7BADA /* libbimg_decode.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg_decode.a; path = ../../Source/3rdParty/bgfx/Lib/iOS/libbimg_decode.a; sourceTree = "<group>"; };
-		3CA780992AE770DC00B7BADA /* libbx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbx.a; path = ../../Source/3rdParty/bgfx/Lib/iOS/libbx.a; sourceTree = "<group>"; };
+		3CA780992AE770DC00B7BADA /* libbx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbx.a; path = ../../Source/3rdParty/bgfx/build/ios/device/libbx.a; sourceTree = "<group>"; };
 		3CA7809E2AE770EE00B7BADA /* libSDL2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSDL2.a; path = ../../Source/3rdParty/SDL2/Lib/iOS/libSDL2.a; sourceTree = "<group>"; };
 		3CA780A22AEB88B600B7BADA /* LICENSES */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSES; sourceTree = "<group>"; };
 		3CA8DF0E2A0CE83D0022CC90 /* www */ = {isa = PBXFileReference; lastKnownFileType = folder; path = www; sourceTree = "<group>"; };
 		3CB410261E05B0C500A8804D /* Slice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Slice.cpp; sourceTree = "<group>"; };
 		3CB410271E05B0C500A8804D /* Slice.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Slice.h; sourceTree = "<group>"; };
 		3CBE0F1226087F7B003F4F45 /* Simulator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Simulator.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		3CBE0F1A26087FB3003F4F45 /* libbimg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg.a; path = "../../Source/3rdParty/bgfx/Lib/iOS-Simulator/libbimg.a"; sourceTree = "<group>"; };
-		3CBE0F1B26087FB3003F4F45 /* libbx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbx.a; path = "../../Source/3rdParty/bgfx/Lib/iOS-Simulator/libbx.a"; sourceTree = "<group>"; };
+		3CBE0F1A26087FB3003F4F45 /* libbimg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg.a; path = "../../Source/3rdParty/bgfx/build/ios/simulator/libbimg.a"; sourceTree = "<group>"; };
+		3CBE0F1B26087FB3003F4F45 /* libbx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbx.a; path = "../../Source/3rdParty/bgfx/build/ios/simulator/libbx.a"; sourceTree = "<group>"; };
 		3CBE0F1C26087FB3003F4F45 /* libbimg_decode.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg_decode.a; path = "../../Source/3rdParty/bgfx/Lib/iOS-Simulator/libbimg_decode.a"; sourceTree = "<group>"; };
-		3CBE0F1D26087FB3003F4F45 /* libbgfx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbgfx.a; path = "../../Source/3rdParty/bgfx/Lib/iOS-Simulator/libbgfx.a"; sourceTree = "<group>"; };
+		3CBE0F1D26087FB3003F4F45 /* libbgfx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbgfx.a; path = "../../Source/3rdParty/bgfx/build/ios/simulator/libbgfx.a"; sourceTree = "<group>"; };
 		3CBE0F2226087FC8003F4F45 /* libSDL2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSDL2.a; path = "../../Source/3rdParty/SDL2/Lib/iOS-Simulator/libSDL2.a"; sourceTree = "<group>"; };
 		3CBE0F5026088B89003F4F45 /* CoreHaptics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreHaptics.framework; path = System/Library/Frameworks/CoreHaptics.framework; sourceTree = SDKROOT; };
 		3CBE6FFE2CFA183F00A1C497 /* libdora_runtime.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libdora_runtime.a; path = ../../Source/Rust/lib/iOS/libdora_runtime.a; sourceTree = "<group>"; };
@@ -6434,8 +6434,10 @@
 					../../Source,
 					../../Source/3rdParty,
 					../../Source/3rdParty/SDL2/Header,
-					../../Source/3rdParty/bgfx/Header,
-					../../Source/3rdParty/bgfx/Header/compat/ios,
+					../../Source/3rdParty/bx/include,
+					../../Source/3rdParty/bx/include/compat/ios,
+					../../Source/3rdParty/bimg/include,
+					../../Source/3rdParty/bgfx/include,
 					../../Source/3rdParty/Lua,
 					../../Source/3rdParty/soloud,
 					../../Source/3rdParty/lodepng,
@@ -6507,8 +6509,10 @@
 					../../Source,
 					../../Source/3rdParty,
 					../../Source/3rdParty/SDL2/Header,
-					../../Source/3rdParty/bgfx/Header,
-					../../Source/3rdParty/bgfx/Header/compat/ios,
+					../../Source/3rdParty/bx/include,
+					../../Source/3rdParty/bx/include/compat/ios,
+					../../Source/3rdParty/bimg/include,
+					../../Source/3rdParty/bgfx/include,
 					../../Source/3rdParty/Lua,
 					../../Source/3rdParty/soloud,
 					../../Source/3rdParty/lodepng,
@@ -6588,8 +6592,10 @@
 					../../Source,
 					../../Source/3rdParty,
 					../../Source/3rdParty/SDL2/Header,
-					../../Source/3rdParty/bgfx/Header,
-					../../Source/3rdParty/bgfx/Header/compat/ios,
+					../../Source/3rdParty/bx/include,
+					../../Source/3rdParty/bx/include/compat/ios,
+					../../Source/3rdParty/bimg/include,
+					../../Source/3rdParty/bgfx/include,
 					../../Source/3rdParty/Lua/Header,
 					../../Source/3rdParty/soloud/Header,
 					../../Source/3rdParty/lodepng,
@@ -6657,8 +6663,10 @@
 					../../Source,
 					../../Source/3rdParty,
 					../../Source/3rdParty/SDL2/Header,
-					../../Source/3rdParty/bgfx/Header,
-					../../Source/3rdParty/bgfx/Header/compat/ios,
+					../../Source/3rdParty/bx/include,
+					../../Source/3rdParty/bx/include/compat/ios,
+					../../Source/3rdParty/bimg/include,
+					../../Source/3rdParty/bgfx/include,
 					../../Source/3rdParty/Lua/Header,
 					../../Source/3rdParty/soloud/Header,
 					../../Source/3rdParty/lodepng,
@@ -6726,8 +6734,10 @@
 					../../Source,
 					../../Source/3rdParty,
 					../../Source/3rdParty/SDL2/Header,
-					../../Source/3rdParty/bgfx/Header,
-					../../Source/3rdParty/bgfx/Header/compat/ios,
+					../../Source/3rdParty/bx/include,
+					../../Source/3rdParty/bx/include/compat/ios,
+					../../Source/3rdParty/bimg/include,
+					../../Source/3rdParty/bgfx/include,
 					../../Source/3rdParty/Lua,
 					../../Source/3rdParty/soloud,
 					../../Source/3rdParty/lodepng,
@@ -6798,8 +6808,10 @@
 					../../Source,
 					../../Source/3rdParty,
 					../../Source/3rdParty/SDL2/Header,
-					../../Source/3rdParty/bgfx/Header,
-					../../Source/3rdParty/bgfx/Header/compat/ios,
+					../../Source/3rdParty/bx/include,
+					../../Source/3rdParty/bx/include/compat/ios,
+					../../Source/3rdParty/bimg/include,
+					../../Source/3rdParty/bgfx/include,
 					../../Source/3rdParty/Lua,
 					../../Source/3rdParty/soloud,
 					../../Source/3rdParty/lodepng,
