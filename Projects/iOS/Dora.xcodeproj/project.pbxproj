@@ -6430,14 +6430,16 @@
 				PRODUCT_BUNDLE_IDENTIFIER = IppClub.DoraSSR;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				USER_HEADER_SEARCH_PATHS = (
-					../../Source,
-					../../Source/3rdParty,
-					../../Source/3rdParty/SDL2/Header,
+				HEADER_SEARCH_PATHS = (
 					../../Source/3rdParty/bx/include,
 					../../Source/3rdParty/bx/include/compat/ios,
 					../../Source/3rdParty/bimg/include,
 					../../Source/3rdParty/bgfx/include,
+				);
+				USER_HEADER_SEARCH_PATHS = (
+					../../Source,
+					../../Source/3rdParty,
+					../../Source/3rdParty/SDL2/Header,
 					../../Source/3rdParty/Lua,
 					../../Source/3rdParty/soloud,
 					../../Source/3rdParty/lodepng,
@@ -6505,14 +6507,16 @@
 				PRODUCT_BUNDLE_IDENTIFIER = IppClub.DoraSSR;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				USER_HEADER_SEARCH_PATHS = (
-					../../Source,
-					../../Source/3rdParty,
-					../../Source/3rdParty/SDL2/Header,
+				HEADER_SEARCH_PATHS = (
 					../../Source/3rdParty/bx/include,
 					../../Source/3rdParty/bx/include/compat/ios,
 					../../Source/3rdParty/bimg/include,
 					../../Source/3rdParty/bgfx/include,
+				);
+				USER_HEADER_SEARCH_PATHS = (
+					../../Source,
+					../../Source/3rdParty,
+					../../Source/3rdParty/SDL2/Header,
 					../../Source/3rdParty/Lua,
 					../../Source/3rdParty/soloud,
 					../../Source/3rdParty/lodepng,
@@ -6588,14 +6592,16 @@
 				OTHER_LDFLAGS = "";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				USER_HEADER_SEARCH_PATHS = (
-					../../Source,
-					../../Source/3rdParty,
-					../../Source/3rdParty/SDL2/Header,
+				HEADER_SEARCH_PATHS = (
 					../../Source/3rdParty/bx/include,
 					../../Source/3rdParty/bx/include/compat/ios,
 					../../Source/3rdParty/bimg/include,
 					../../Source/3rdParty/bgfx/include,
+				);
+				USER_HEADER_SEARCH_PATHS = (
+					../../Source,
+					../../Source/3rdParty,
+					../../Source/3rdParty/SDL2/Header,
 					../../Source/3rdParty/Lua/Header,
 					../../Source/3rdParty/soloud/Header,
 					../../Source/3rdParty/lodepng,
@@ -6659,14 +6665,16 @@
 				OTHER_LDFLAGS = "";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				USER_HEADER_SEARCH_PATHS = (
-					../../Source,
-					../../Source/3rdParty,
-					../../Source/3rdParty/SDL2/Header,
+				HEADER_SEARCH_PATHS = (
 					../../Source/3rdParty/bx/include,
 					../../Source/3rdParty/bx/include/compat/ios,
 					../../Source/3rdParty/bimg/include,
 					../../Source/3rdParty/bgfx/include,
+				);
+				USER_HEADER_SEARCH_PATHS = (
+					../../Source,
+					../../Source/3rdParty,
+					../../Source/3rdParty/SDL2/Header,
 					../../Source/3rdParty/Lua/Header,
 					../../Source/3rdParty/soloud/Header,
 					../../Source/3rdParty/lodepng,
@@ -6730,14 +6738,16 @@
 				PRODUCT_BUNDLE_IDENTIFIER = IppClub.DoraSSR;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				USER_HEADER_SEARCH_PATHS = (
-					../../Source,
-					../../Source/3rdParty,
-					../../Source/3rdParty/SDL2/Header,
+				HEADER_SEARCH_PATHS = (
 					../../Source/3rdParty/bx/include,
 					../../Source/3rdParty/bx/include/compat/ios,
 					../../Source/3rdParty/bimg/include,
 					../../Source/3rdParty/bgfx/include,
+				);
+				USER_HEADER_SEARCH_PATHS = (
+					../../Source,
+					../../Source/3rdParty,
+					../../Source/3rdParty/SDL2/Header,
 					../../Source/3rdParty/Lua,
 					../../Source/3rdParty/soloud,
 					../../Source/3rdParty/lodepng,
@@ -6804,14 +6814,16 @@
 				PRODUCT_BUNDLE_IDENTIFIER = IppClub.DoraSSR;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				USER_HEADER_SEARCH_PATHS = (
-					../../Source,
-					../../Source/3rdParty,
-					../../Source/3rdParty/SDL2/Header,
+				HEADER_SEARCH_PATHS = (
 					../../Source/3rdParty/bx/include,
 					../../Source/3rdParty/bx/include/compat/ios,
 					../../Source/3rdParty/bimg/include,
 					../../Source/3rdParty/bgfx/include,
+				);
+				USER_HEADER_SEARCH_PATHS = (
+					../../Source,
+					../../Source/3rdParty,
+					../../Source/3rdParty/SDL2/Header,
 					../../Source/3rdParty/Lua,
 					../../Source/3rdParty/soloud,
 					../../Source/3rdParty/lodepng,
