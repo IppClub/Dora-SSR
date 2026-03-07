@@ -144,7 +144,7 @@ resize(void *ptr, size_t size)
    ralloc_header *child, *old, *info;
 
    old = get_header(ptr);
-   info = realloc(old, size + sizeof(ralloc_header));
+   info = (ralloc_header *)realloc(old, size + sizeof(ralloc_header));
 
    if (info == NULL)
       return NULL;
