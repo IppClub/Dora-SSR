@@ -9,9 +9,6 @@ set_languages("c++20")
 -- MSVC 需要这些选项来正确报告 C++ 标准版本和支持标准预处理器
 if is_plat("windows") then
     add_cxxflags("/Zc:__cplusplus", "/Zc:preprocessor", {force = true})
-    -- 确保 Windows 上只使用 MSVC 的 lib 作为静态库归档器
-    set_ar("lib")
-    set_arflags("/nologo", "/out:")
 end
 
 -- 源码路径配置
@@ -45,6 +42,11 @@ end
 -- bx 基础库
 target("bx")
     set_kind("static")
+    -- 确保 Windows 上只使用 MSVC 的 lib 作为静态库归档器
+    if is_plat("windows") then
+        set_ar("lib")
+        set_arflags("/nologo", "/out:")
+    end
     
     add_includedirs(path.join(BX_DIR, "include"), {public = true})
     add_includedirs(path.join(BX_DIR, "3rdparty"), {public = true})
