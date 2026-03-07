@@ -7,8 +7,8 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
-# 目标库列表
-LIBS="bx bimg bimg_decode bgfx fcpp spirv_cross spirv_opt glslang glsl_optimizer shaderc_lib"
+# 目标库列表 (必须与 xmake.lua 中的 target 名称一致)
+LIBS="bx bimg bimg_decode bgfx fcpp spirv-cross spirv-opt glslang glsl_optimizer shaderc-lib"
 
 # 颜色输出
 RED='\033[0;31m'
