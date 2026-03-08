@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5.0)
 project(Dora-SSR)
 
-set(DORA_BGFX_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../Source/3rdParty/bgfx)
+set(DORA_BGFX_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../../../Source/3rdParty/bgfx)
 
 include_directories(
 	src/main/cpp
