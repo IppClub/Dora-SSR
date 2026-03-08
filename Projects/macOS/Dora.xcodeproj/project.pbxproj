@@ -2035,7 +2035,7 @@
 		3CE471C22DD2D8650036716C /* wa.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = wa.a; path = ../../Source/3rdParty/wa/Lib/macOS/wa.a; sourceTree = "<group>"; };
 		3CE471C42DD2E85A0036716C /* libwa.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libwa.a; path = ../../Source/3rdParty/wa/Lib/macOS/libwa.a; sourceTree = "<group>"; };
 		3CE606872D1108F50073BB73 /* sdf_gen2d.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sdf_gen2d.h; sourceTree = "<group>"; };
-		3CE7D3731EADF594008EADB3 /* libbimg_decode.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg_decode.a; path = ../../Source/3rdParty/BGFX/Lib/macOS/libbimg_decode.a; sourceTree = "<group>"; };
+		3CE7D3731EADF594008EADB3 /* libbimg_decode.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg_decode.a; path = ../../Source/3rdParty/bgfx/build/macosx/universal/libbimg_decode.a; sourceTree = "<group>"; };
 		3CE7D3741EADF594008EADB3 /* libbimg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg.a; path = ../../Source/3rdParty/bgfx/build/macosx/universal/libbimg.a; sourceTree = "<group>"; };
 		3CE994632AFA43680073A973 /* gamecontrollerdb.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = gamecontrollerdb.txt; sourceTree = "<group>"; };
 		3CF7CE822F1600F000F35E6B /* blip_wasm_host.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = blip_wasm_host.cpp; sourceTree = "<group>"; };
