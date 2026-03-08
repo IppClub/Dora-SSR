@@ -56,6 +56,8 @@ jobs:
         if: matrix.os == 'windows-latest'
         working-directory: Source/3rdParty/bgfx
         shell: pwsh
+        env:
+          XMAKE_RC_RUSTC: ''
         run: |
           xmake global --clean
           xmake f -c -p windows -a x64 -m release -y --with-amalgamated=n `
