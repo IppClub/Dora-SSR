@@ -38,7 +38,7 @@ jobs:
       - name: Setup xmake
         uses: xmake-io/github-action-setup-xmake@v1
         with:
-          xmake-version: latest
+          xmake-version: v2.9.4
           # Disable cache to force fresh VS detection
           xmake-package-cache: false
 
