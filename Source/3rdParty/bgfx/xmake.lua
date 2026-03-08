@@ -93,8 +93,13 @@ local bgfx_src = {
     "src/bgfx.cpp",
     "src/debug_renderdoc.cpp",
     "src/glcontext_egl.cpp",
+    "src/renderer_agc.cpp",
+    "src/renderer_d3d11.cpp",
+    "src/renderer_d3d12.cpp",
     "src/renderer_gl.cpp",
+    "src/renderer_gnm.cpp",
     "src/renderer_noop.cpp",
+    "src/renderer_nvn.cpp",
     "src/renderer_vk.cpp",
     "src/shader.cpp",
     "src/shader_dxbc.cpp",
@@ -107,8 +112,6 @@ local bgfx_windows_src = {
     "src/dxgi.cpp",
     "src/glcontext_wgl.cpp",
     "src/nvapi.cpp",
-    "src/renderer_d3d11.cpp",
-    "src/renderer_d3d12.cpp",
 }
 
 local bgfx_macos_src = {
