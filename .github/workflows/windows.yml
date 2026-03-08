@@ -24,7 +24,7 @@ jobs:
         shell: bash
         run: |
           cd Source/3rdParty/bgfx
-          xmake f -c -p windows -a x64 -m release -y
+          xmake f -c -p windows -a x86 -m release -y
           xmake -j8
       - name: Windows build
         run: Tools\build-scripts\build_windows.bat
