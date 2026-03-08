@@ -514,6 +514,12 @@ target("bgfx")
         add_cxxflags("-fPIC", {force = true})
     end
     
+    -- 禁用 D3D11/D3D12 渲染器（非 Windows 平台）
+    if not is_plat("windows") then
+        add_defines("BGFX_CONFIG_RENDERER_DIRECT3D11=0")
+        add_defines("BGFX_CONFIG_RENDERER_DIRECT3D12=0")
+    end
+    
     if is_mode("debug") then
         add_defines("BGFX_CONFIG_DEBUG=1")
     else
@@ -527,6 +533,12 @@ if has_config("with-shared") then
         add_deps("bx", "bimg", "bimg_decode")
         
         add_defines("BGFX_SHARED_LIB_BUILD=1", {public = true})
+        
+        -- 禁用 D3D11/D3D12 渲染器（非 Windows 平台）
+        if not is_plat("windows") then
+            add_defines("BGFX_CONFIG_RENDERER_DIRECT3D11=0")
+            add_defines("BGFX_CONFIG_RENDERER_DIRECT3D12=0")
+        end
         
         add_includedirs(path.join(BGFX_DIR, "include"), {public = true})
         add_includedirs(path.join(BGFX_DIR, "3rdparty"), {public = true})
