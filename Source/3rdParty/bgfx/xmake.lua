@@ -20,8 +20,381 @@ local BX_DIR = path.join(BGFX_DIR, "../bx")
 add_rules("mode.debug", "mode.release")
 
 -- 配置选项
-option("with-amalgamated", {default = true, description = "Use amalgamated build"})
 option("with-shared", {default = false, description = "Build shared library"})
+
+local function resolve_sources(base_dir, files)
+    local resolved = {}
+    for _, file in ipairs(files) do
+        table.insert(resolved, path.join(base_dir, file))
+    end
+    return resolved
+end
+
+local bx_src = {
+    "src/allocator.cpp",
+    "src/bounds.cpp",
+    "src/bx.cpp",
+    "src/commandline.cpp",
+    "src/crtnone.cpp",
+    "src/debug.cpp",
+    "src/dtoa.cpp",
+    "src/easing.cpp",
+    "src/file.cpp",
+    "src/filepath.cpp",
+    "src/hash.cpp",
+    "src/math.cpp",
+    "src/mutex.cpp",
+    "src/os.cpp",
+    "src/process.cpp",
+    "src/semaphore.cpp",
+    "src/settings.cpp",
+    "src/sort.cpp",
+    "src/string.cpp",
+    "src/thread.cpp",
+    "src/timer.cpp",
+    "src/url.cpp",
+}
+
+local bimg_src = {
+    "src/image.cpp",
+    "src/image_gnf.cpp",
+}
+
+local bimg_decode_src = {
+    "src/image_decode.cpp",
+}
+
+local astc_encoder_src = {
+    "3rdparty/astc-encoder/source/astcenc_averages_and_directions.cpp",
+    "3rdparty/astc-encoder/source/astcenc_block_sizes.cpp",
+    "3rdparty/astc-encoder/source/astcenc_color_quantize.cpp",
+    "3rdparty/astc-encoder/source/astcenc_color_unquantize.cpp",
+    "3rdparty/astc-encoder/source/astcenc_compress_symbolic.cpp",
+    "3rdparty/astc-encoder/source/astcenc_compute_variance.cpp",
+    "3rdparty/astc-encoder/source/astcenc_decompress_symbolic.cpp",
+    "3rdparty/astc-encoder/source/astcenc_diagnostic_trace.cpp",
+    "3rdparty/astc-encoder/source/astcenc_entry.cpp",
+    "3rdparty/astc-encoder/source/astcenc_find_best_partitioning.cpp",
+    "3rdparty/astc-encoder/source/astcenc_ideal_endpoints_and_weights.cpp",
+    "3rdparty/astc-encoder/source/astcenc_image.cpp",
+    "3rdparty/astc-encoder/source/astcenc_integer_sequence.cpp",
+    "3rdparty/astc-encoder/source/astcenc_mathlib.cpp",
+    "3rdparty/astc-encoder/source/astcenc_mathlib_softfloat.cpp",
+    "3rdparty/astc-encoder/source/astcenc_partition_tables.cpp",
+    "3rdparty/astc-encoder/source/astcenc_percentile_tables.cpp",
+    "3rdparty/astc-encoder/source/astcenc_pick_best_endpoint_format.cpp",
+    "3rdparty/astc-encoder/source/astcenc_quantization.cpp",
+    "3rdparty/astc-encoder/source/astcenc_symbolic_physical.cpp",
+    "3rdparty/astc-encoder/source/astcenc_weight_align.cpp",
+    "3rdparty/astc-encoder/source/astcenc_weight_quant_xfer_tables.cpp",
+}
+
+local bgfx_src = {
+    "src/bgfx.cpp",
+    "src/debug_renderdoc.cpp",
+    "src/glcontext_egl.cpp",
+    "src/renderer_gl.cpp",
+    "src/renderer_noop.cpp",
+    "src/renderer_vk.cpp",
+    "src/shader.cpp",
+    "src/shader_dxbc.cpp",
+    "src/shader_spirv.cpp",
+    "src/topology.cpp",
+    "src/vertexlayout.cpp",
+}
+
+local bgfx_windows_src = {
+    "src/dxgi.cpp",
+    "src/glcontext_wgl.cpp",
+    "src/nvapi.cpp",
+    "src/renderer_d3d11.cpp",
+    "src/renderer_d3d12.cpp",
+}
+
+local bgfx_macos_src = {
+    "src/renderer_mtl.mm",
+}
+
+local spirv_opt_src = {
+    "source/opt/aggressive_dead_code_elim_pass.cpp",
+    "source/opt/amd_ext_to_khr.cpp",
+    "source/opt/analyze_live_input_pass.cpp",
+    "source/opt/basic_block.cpp",
+    "source/opt/block_merge_pass.cpp",
+    "source/opt/block_merge_util.cpp",
+    "source/opt/build_module.cpp",
+    "source/opt/canonicalize_ids_pass.cpp",
+    "source/opt/ccp_pass.cpp",
+    "source/opt/cfg.cpp",
+    "source/opt/cfg_cleanup_pass.cpp",
+    "source/opt/code_sink.cpp",
+    "source/opt/combine_access_chains.cpp",
+    "source/opt/compact_ids_pass.cpp",
+    "source/opt/composite.cpp",
+    "source/opt/const_folding_rules.cpp",
+    "source/opt/constants.cpp",
+    "source/opt/control_dependence.cpp",
+    "source/opt/convert_to_half_pass.cpp",
+    "source/opt/convert_to_sampled_image_pass.cpp",
+    "source/opt/copy_prop_arrays.cpp",
+    "source/opt/dataflow.cpp",
+    "source/opt/dead_branch_elim_pass.cpp",
+    "source/opt/dead_insert_elim_pass.cpp",
+    "source/opt/dead_variable_elimination.cpp",
+    "source/opt/debug_info_manager.cpp",
+    "source/opt/decoration_manager.cpp",
+    "source/opt/def_use_manager.cpp",
+    "source/opt/desc_sroa.cpp",
+    "source/opt/desc_sroa_util.cpp",
+    "source/opt/dominator_analysis.cpp",
+    "source/opt/dominator_tree.cpp",
+    "source/opt/eliminate_dead_constant_pass.cpp",
+    "source/opt/eliminate_dead_functions_pass.cpp",
+    "source/opt/eliminate_dead_functions_util.cpp",
+    "source/opt/eliminate_dead_io_components_pass.cpp",
+    "source/opt/eliminate_dead_members_pass.cpp",
+    "source/opt/eliminate_dead_output_stores_pass.cpp",
+    "source/opt/feature_manager.cpp",
+    "source/opt/fix_func_call_arguments.cpp",
+    "source/opt/fix_storage_class.cpp",
+    "source/opt/flatten_decoration_pass.cpp",
+    "source/opt/fold.cpp",
+    "source/opt/fold_spec_constant_op_and_composite_pass.cpp",
+    "source/opt/folding_rules.cpp",
+    "source/opt/freeze_spec_constant_value_pass.cpp",
+    "source/opt/function.cpp",
+    "source/opt/graphics_robust_access_pass.cpp",
+    "source/opt/if_conversion.cpp",
+    "source/opt/inline_exhaustive_pass.cpp",
+    "source/opt/inline_opaque_pass.cpp",
+    "source/opt/inline_pass.cpp",
+    "source/opt/instruction.cpp",
+    "source/opt/instruction_list.cpp",
+    "source/opt/interface_var_sroa.cpp",
+    "source/opt/interp_fixup_pass.cpp",
+    "source/opt/invocation_interlock_placement_pass.cpp",
+    "source/opt/ir_context.cpp",
+    "source/opt/ir_loader.cpp",
+    "source/opt/licm_pass.cpp",
+    "source/opt/liveness.cpp",
+    "source/opt/local_access_chain_convert_pass.cpp",
+    "source/opt/local_redundancy_elimination.cpp",
+    "source/opt/local_single_block_elim_pass.cpp",
+    "source/opt/local_single_store_elim_pass.cpp",
+    "source/opt/loop_dependence.cpp",
+    "source/opt/loop_dependence_helpers.cpp",
+    "source/opt/loop_descriptor.cpp",
+    "source/opt/loop_fission.cpp",
+    "source/opt/loop_fusion.cpp",
+    "source/opt/loop_fusion_pass.cpp",
+    "source/opt/loop_peeling.cpp",
+    "source/opt/loop_unroller.cpp",
+    "source/opt/loop_unswitch_pass.cpp",
+    "source/opt/loop_utils.cpp",
+    "source/opt/mem_pass.cpp",
+    "source/opt/merge_return_pass.cpp",
+    "source/opt/modify_maximal_reconvergence.cpp",
+    "source/opt/module.cpp",
+    "source/opt/opextinst_forward_ref_fixup_pass.cpp",
+    "source/opt/optimizer.cpp",
+    "source/opt/pass.cpp",
+    "source/opt/pass_manager.cpp",
+    "source/opt/pch_source_opt.cpp",
+    "source/opt/private_to_local_pass.cpp",
+    "source/opt/propagator.cpp",
+    "source/opt/reduce_load_size.cpp",
+    "source/opt/redundancy_elimination.cpp",
+    "source/opt/register_pressure.cpp",
+    "source/opt/relax_float_ops_pass.cpp",
+    "source/opt/remove_dontinline_pass.cpp",
+    "source/opt/remove_duplicates_pass.cpp",
+    "source/opt/remove_unused_interface_variables_pass.cpp",
+    "source/opt/replace_desc_array_access_using_var_index.cpp",
+    "source/opt/replace_invalid_opc.cpp",
+    "source/opt/resolve_binding_conflicts_pass.cpp",
+    "source/opt/scalar_analysis.cpp",
+    "source/opt/scalar_analysis_simplification.cpp",
+    "source/opt/scalar_replacement_pass.cpp",
+    "source/opt/set_spec_constant_default_value_pass.cpp",
+    "source/opt/simplification_pass.cpp",
+    "source/opt/split_combined_image_sampler_pass.cpp",
+    "source/opt/spread_volatile_semantics.cpp",
+    "source/opt/ssa_rewrite_pass.cpp",
+    "source/opt/strength_reduction_pass.cpp",
+    "source/opt/strip_debug_info_pass.cpp",
+    "source/opt/strip_nonsemantic_info_pass.cpp",
+    "source/opt/struct_cfg_analysis.cpp",
+    "source/opt/struct_packing_pass.cpp",
+    "source/opt/switch_descriptorset_pass.cpp",
+    "source/opt/trim_capabilities_pass.cpp",
+    "source/opt/type_manager.cpp",
+    "source/opt/types.cpp",
+    "source/opt/unify_const_pass.cpp",
+    "source/opt/upgrade_memory_model.cpp",
+    "source/opt/value_number_table.cpp",
+    "source/opt/vector_dce.cpp",
+    "source/opt/workaround1209.cpp",
+    "source/opt/wrap_opkill.cpp",
+}
+
+local spirv_val_src = {
+    "source/val/basic_block.cpp",
+    "source/val/construct.cpp",
+    "source/val/function.cpp",
+    "source/val/instruction.cpp",
+    "source/val/validate.cpp",
+    "source/val/validate_adjacency.cpp",
+    "source/val/validate_annotation.cpp",
+    "source/val/validate_arithmetics.cpp",
+    "source/val/validate_atomics.cpp",
+    "source/val/validate_barriers.cpp",
+    "source/val/validate_bitwise.cpp",
+    "source/val/validate_builtins.cpp",
+    "source/val/validate_capability.cpp",
+    "source/val/validate_cfg.cpp",
+    "source/val/validate_composites.cpp",
+    "source/val/validate_constants.cpp",
+    "source/val/validate_conversion.cpp",
+    "source/val/validate_debug.cpp",
+    "source/val/validate_decorations.cpp",
+    "source/val/validate_derivatives.cpp",
+    "source/val/validate_execution_limitations.cpp",
+    "source/val/validate_extensions.cpp",
+    "source/val/validate_function.cpp",
+    "source/val/validate_graph.cpp",
+    "source/val/validate_id.cpp",
+    "source/val/validate_image.cpp",
+    "source/val/validate_instruction.cpp",
+    "source/val/validate_interfaces.cpp",
+    "source/val/validate_invalid_type.cpp",
+    "source/val/validate_layout.cpp",
+    "source/val/validate_literals.cpp",
+    "source/val/validate_logicals.cpp",
+    "source/val/validate_memory.cpp",
+    "source/val/validate_memory_semantics.cpp",
+    "source/val/validate_mesh_shading.cpp",
+    "source/val/validate_misc.cpp",
+    "source/val/validate_mode_setting.cpp",
+    "source/val/validate_non_uniform.cpp",
+    "source/val/validate_primitives.cpp",
+    "source/val/validate_ray_query.cpp",
+    "source/val/validate_ray_tracing.cpp",
+    "source/val/validate_ray_tracing_reorder.cpp",
+    "source/val/validate_scopes.cpp",
+    "source/val/validate_small_type_uses.cpp",
+    "source/val/validate_tensor.cpp",
+    "source/val/validate_tensor_layout.cpp",
+    "source/val/validate_type.cpp",
+    "source/val/validation_state.cpp",
+}
+
+local spirv_reduce_src = {
+    "source/reduce/change_operand_reduction_opportunity.cpp",
+    "source/reduce/change_operand_to_undef_reduction_opportunity.cpp",
+    "source/reduce/conditional_branch_to_simple_conditional_branch_opportunity_finder.cpp",
+    "source/reduce/conditional_branch_to_simple_conditional_branch_reduction_opportunity.cpp",
+    "source/reduce/merge_blocks_reduction_opportunity.cpp",
+    "source/reduce/merge_blocks_reduction_opportunity_finder.cpp",
+    "source/reduce/operand_to_const_reduction_opportunity_finder.cpp",
+    "source/reduce/operand_to_dominating_id_reduction_opportunity_finder.cpp",
+    "source/reduce/operand_to_undef_reduction_opportunity_finder.cpp",
+    "source/reduce/pch_source_reduce.cpp",
+    "source/reduce/reducer.cpp",
+    "source/reduce/reduction_opportunity.cpp",
+    "source/reduce/reduction_opportunity_finder.cpp",
+    "source/reduce/reduction_pass.cpp",
+    "source/reduce/reduction_util.cpp",
+    "source/reduce/remove_block_reduction_opportunity.cpp",
+    "source/reduce/remove_block_reduction_opportunity_finder.cpp",
+    "source/reduce/remove_function_reduction_opportunity.cpp",
+    "source/reduce/remove_function_reduction_opportunity_finder.cpp",
+    "source/reduce/remove_instruction_reduction_opportunity.cpp",
+    "source/reduce/remove_selection_reduction_opportunity.cpp",
+    "source/reduce/remove_selection_reduction_opportunity_finder.cpp",
+    "source/reduce/remove_struct_member_reduction_opportunity.cpp",
+    "source/reduce/remove_unused_instruction_reduction_opportunity_finder.cpp",
+    "source/reduce/remove_unused_struct_member_reduction_opportunity_finder.cpp",
+    "source/reduce/simple_conditional_branch_to_branch_opportunity_finder.cpp",
+    "source/reduce/simple_conditional_branch_to_branch_reduction_opportunity.cpp",
+    "source/reduce/structured_construct_to_block_reduction_opportunity.cpp",
+    "source/reduce/structured_construct_to_block_reduction_opportunity_finder.cpp",
+    "source/reduce/structured_loop_to_selection_reduction_opportunity.cpp",
+    "source/reduce/structured_loop_to_selection_reduction_opportunity_finder.cpp",
+}
+
+local glslang_generic_codegen_src = {
+    "glslang/GenericCodeGen/CodeGen.cpp",
+    "glslang/GenericCodeGen/Link.cpp",
+}
+
+local glslang_machine_independent_src = {
+    "glslang/MachineIndependent/Constant.cpp",
+    "glslang/MachineIndependent/InfoSink.cpp",
+    "glslang/MachineIndependent/Initialize.cpp",
+    "glslang/MachineIndependent/IntermTraverse.cpp",
+    "glslang/MachineIndependent/Intermediate.cpp",
+    "glslang/MachineIndependent/ParseContextBase.cpp",
+    "glslang/MachineIndependent/ParseHelper.cpp",
+    "glslang/MachineIndependent/PoolAlloc.cpp",
+    "glslang/MachineIndependent/RemoveTree.cpp",
+    "glslang/MachineIndependent/Scan.cpp",
+    "glslang/MachineIndependent/ShaderLang.cpp",
+    "glslang/MachineIndependent/SpirvIntrinsics.cpp",
+    "glslang/MachineIndependent/SymbolTable.cpp",
+    "glslang/MachineIndependent/Versions.cpp",
+    "glslang/MachineIndependent/attribute.cpp",
+    "glslang/MachineIndependent/glslang_tab.cpp",
+    "glslang/MachineIndependent/intermOut.cpp",
+    "glslang/MachineIndependent/iomapper.cpp",
+    "glslang/MachineIndependent/limits.cpp",
+    "glslang/MachineIndependent/linkValidate.cpp",
+    "glslang/MachineIndependent/parseConst.cpp",
+    "glslang/MachineIndependent/propagateNoContraction.cpp",
+    "glslang/MachineIndependent/reflection.cpp",
+}
+
+local glslang_preprocessor_src = {
+    "glslang/MachineIndependent/preprocessor/Pp.cpp",
+    "glslang/MachineIndependent/preprocessor/PpAtom.cpp",
+    "glslang/MachineIndependent/preprocessor/PpContext.cpp",
+    "glslang/MachineIndependent/preprocessor/PpScanner.cpp",
+    "glslang/MachineIndependent/preprocessor/PpTokens.cpp",
+}
+
+local glslang_os_windows_src = {
+    "glslang/OSDependent/Windows/ossource.cpp",
+}
+
+local glslang_os_unix_src = {
+    "glslang/OSDependent/Unix/ossource.cpp",
+}
+
+local glslang_cinterface_src = {
+    "glslang/CInterface/glslang_c_interface.cpp",
+}
+
+local glslang_hlsl_src = {
+    "glslang/HLSL/hlslAttributes.cpp",
+    "glslang/HLSL/hlslGrammar.cpp",
+    "glslang/HLSL/hlslOpMap.cpp",
+    "glslang/HLSL/hlslParseHelper.cpp",
+    "glslang/HLSL/hlslParseables.cpp",
+    "glslang/HLSL/hlslScanContext.cpp",
+    "glslang/HLSL/hlslTokenStream.cpp",
+}
+
+local glslang_spirv_cinterface_src = {
+    "SPIRV/CInterface/spirv_c_interface.cpp",
+}
+
+local shaderc_src = {
+    "tools/shaderc/shaderc.cpp",
+    "tools/shaderc/shaderc_glsl.cpp",
+    "tools/shaderc/shaderc_hlsl.cpp",
+    "tools/shaderc/shaderc_metal.cpp",
+    "tools/shaderc/shaderc_pssl.cpp",
+    "tools/shaderc/shaderc_spirv.cpp",
+}
 
 -- 平台相关链接库
 local function add_platform_links()
@@ -62,12 +435,7 @@ target("bx")
         add_includedirs(path.join(BX_DIR, "include/compat/linux"), {public = true})
     end
     
-    if has_config("with-amalgamated") then
-        add_files(path.join(BX_DIR, "src/amalgamated.cpp"))
-    else
-        add_files(path.join(BX_DIR, "src/*.cpp"))
-        remove_files(path.join(BX_DIR, "src/amalgamated.cpp"))
-    end
+    add_files(table.unpack(resolve_sources(BX_DIR, bx_src)))
     
     -- BX_CONFIG_DEBUG 必须对所有依赖 bx 的代码可见
     if is_mode("debug") then
@@ -85,9 +453,8 @@ target("bimg")
     add_includedirs(path.join(BIMG_DIR, "3rdparty"), {public = true})
     add_includedirs(path.join(BIMG_DIR, "3rdparty/astc-encoder/include"))
     
-    add_files(path.join(BIMG_DIR, "src/image.cpp"))
-    add_files(path.join(BIMG_DIR, "src/image_gnf.cpp"))
-    add_files(path.join(BIMG_DIR, "3rdparty/astc-encoder/source/*.cpp"))
+    add_files(table.unpack(resolve_sources(BIMG_DIR, bimg_src)))
+    add_files(table.unpack(resolve_sources(BIMG_DIR, astc_encoder_src)))
     
     -- astc-encoder 不支持 FastMath
     set_fpmodels("precise")
@@ -105,7 +472,7 @@ target("bimg_decode")
     add_includedirs(path.join(BIMG_DIR, "3rdparty"))
     add_includedirs(path.join(BIMG_DIR, "3rdparty/tinyexr/deps/miniz"))
     
-    add_files(path.join(BIMG_DIR, "src/image_decode.cpp"))
+    add_files(table.unpack(resolve_sources(BIMG_DIR, bimg_decode_src)))
     add_files(path.join(BIMG_DIR, "3rdparty/tinyexr/deps/miniz/miniz.c"))
     
     if is_plat("linux", "android") then
@@ -114,36 +481,14 @@ target("bimg_decode")
 
 -- bgfx 渲染库
 local function add_bgfx_sources()
-    -- bgfx's amalgamated source unconditionally pulls in Windows-only and
-    -- console-specific translation units, so only use it on Windows.
-    if has_config("with-amalgamated") and is_plat("windows") then
-        add_files(path.join(BGFX_DIR, "src/amalgamated.cpp"))
-        return
+    add_files(table.unpack(resolve_sources(BGFX_DIR, bgfx_src)))
+    if is_plat("windows") then
+        add_files(table.unpack(resolve_sources(BGFX_DIR, bgfx_windows_src)))
     end
-
-    add_files(path.join(BGFX_DIR, "src/*.cpp"))
     if is_plat("macosx", "iphoneos") then
-        -- GENie 只包含 renderer_*.mm，不是所有 .mm 文件
-        add_files(path.join(BGFX_DIR, "src/renderer_*.mm"))
+        add_files(table.unpack(resolve_sources(BGFX_DIR, bgfx_macos_src)))
         add_mxxflags("-fno-objc-arc", {force = true})
     end
-    remove_files(path.join(BGFX_DIR, "src/amalgamated.*"))
-
-    -- 注意：以下文件都有 #else 存根分支，可在任何平台编译
-    -- renderer_d3d11.cpp 和 renderer_d3d12.cpp 在非 Windows 上编译存根
-    -- renderer_agc/gnm/nvn.cpp 始终是存根
-    -- 只有 Windows 专用的辅助文件需要排除：
-    if not is_plat("windows") then
-        remove_files(path.join(BGFX_DIR, "src/dxgi.cpp"))
-        remove_files(path.join(BGFX_DIR, "src/glcontext_wgl.cpp"))
-        remove_files(path.join(BGFX_DIR, "src/nvapi.cpp"))
-    end
-
-    -- 注意：存根渲染器文件（renderer_agc.cpp, renderer_gnm.cpp, renderer_nvn.cpp）
-    -- 必须编译以提供符号，因为 bgfx.cpp 无条件引用它们。
-    -- 它们只返回 NULL，可在任何平台安全编译。
-    -- 只有 glcontext_html5.cpp 确实不需要
-    remove_files(path.join(BGFX_DIR, "src/glcontext_html5.cpp")) -- Web/Emscripten
 end
 
 target("bgfx")
@@ -301,13 +646,13 @@ target("spirv-opt")
     )
     
     -- opt 优化器
-    add_files(path.join(SPIRV_TOOLS_DIR, "source/opt/*.cpp"))
+    add_files(table.unpack(resolve_sources(SPIRV_TOOLS_DIR, spirv_opt_src)))
     
     -- val 验证器
-    add_files(path.join(SPIRV_TOOLS_DIR, "source/val/*.cpp"))
+    add_files(table.unpack(resolve_sources(SPIRV_TOOLS_DIR, spirv_val_src)))
     
     -- reduce
-    add_files(path.join(SPIRV_TOOLS_DIR, "source/reduce/*.cpp"))
+    add_files(table.unpack(resolve_sources(SPIRV_TOOLS_DIR, spirv_reduce_src)))
     
     if not is_plat("windows") then
         add_cxxflags("-Wno-switch", {force = true})
@@ -331,24 +676,22 @@ target("glslang")
     )
     
     -- glslang 核心
-    add_files(
-        path.join(GLSLANG_DIR, "glslang/GenericCodeGen/*.cpp"),
-        path.join(GLSLANG_DIR, "glslang/MachineIndependent/*.cpp"),
-        path.join(GLSLANG_DIR, "glslang/MachineIndependent/preprocessor/*.cpp")
-    )
+    add_files(table.unpack(resolve_sources(GLSLANG_DIR, glslang_generic_codegen_src)))
+    add_files(table.unpack(resolve_sources(GLSLANG_DIR, glslang_machine_independent_src)))
+    add_files(table.unpack(resolve_sources(GLSLANG_DIR, glslang_preprocessor_src)))
     
     -- OSDependent
     if is_plat("windows") then
-        add_files(path.join(GLSLANG_DIR, "glslang/OSDependent/Windows/*.cpp"))
+        add_files(table.unpack(resolve_sources(GLSLANG_DIR, glslang_os_windows_src)))
     else
-        add_files(path.join(GLSLANG_DIR, "glslang/OSDependent/Unix/*.cpp"))
+        add_files(table.unpack(resolve_sources(GLSLANG_DIR, glslang_os_unix_src)))
     end
     
     -- CInterface
-    add_files(path.join(GLSLANG_DIR, "glslang/CInterface/*.cpp"))
+    add_files(table.unpack(resolve_sources(GLSLANG_DIR, glslang_cinterface_src)))
     
     -- HLSL 支持
-    add_files(path.join(GLSLANG_DIR, "glslang/HLSL/*.cpp"))
+    add_files(table.unpack(resolve_sources(GLSLANG_DIR, glslang_hlsl_src)))
     
     -- SPIRV 输出
     add_files(
@@ -364,7 +707,7 @@ target("glslang")
     )
     
     -- SPIRV CInterface
-    add_files(path.join(GLSLANG_DIR, "SPIRV/CInterface/*.cpp"))
+    add_files(table.unpack(resolve_sources(GLSLANG_DIR, glslang_spirv_cinterface_src)))
     
     if not is_plat("windows") then
         add_cxxflags(
@@ -596,8 +939,8 @@ target("shaderc-lib")
         add_includedirs(path.join(BGFX_DIR, "3rdparty/dxsdk/include"))
     end
     
+    add_files(table.unpack(resolve_sources(BGFX_DIR, shaderc_src)))
     add_files(
-        path.join(BGFX_DIR, "tools/shaderc/*.cpp"),
         path.join(BGFX_DIR, "src/vertexlayout.cpp"),
         path.join(BGFX_DIR, "src/shader.cpp"),
         path.join(BGFX_DIR, "src/shader_dxbc.cpp"),
