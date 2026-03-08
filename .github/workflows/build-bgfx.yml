@@ -58,6 +58,7 @@ jobs:
         shell: pwsh
         run: |
           xmake global --clean
+          xmake config --global --r=n
           xmake f -c -p windows -a x64 -m release -y --with-amalgamated=n `
             --toolchain=msvc --rc=
 
