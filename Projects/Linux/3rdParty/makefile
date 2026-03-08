@@ -7,6 +7,7 @@ x86_64:
 	$(MAKE) -R -C bgfx/.build/projects/gmake-linux-gcc config=release64
 	mkdir -p ../../../Source/3rdParty/bgfx/build/linux/x86_64/release
 	cp bgfx/.build/linux64_gcc/bin/*.a ../../../Source/3rdParty/bgfx/build/linux/x86_64/release/
+	cp bgfx/.build/linux64_gcc/lib/*.a ../../../Source/3rdParty/bgfx/build/linux/x86_64/release/
 	[ -d libs ] || mkdir libs
 	cp -r bgfx/.build/linux64_gcc/bin/* libs
 	cp ../../../Source/3rdParty/Wa/Lib/Linux/amd64/libwa.a libs
@@ -21,6 +22,7 @@ arm:
 	$(MAKE) -R -C bgfx/.build/projects/gmake-linux-arm-gcc/ config=release
 	mkdir -p ../../../Source/3rdParty/bgfx/build/linux/aarch64/release
 	cp bgfx/.build/linux32_arm_gcc/bin/*.a ../../../Source/3rdParty/bgfx/build/linux/aarch64/release/
+	cp bgfx/.build/linux32_arm_gcc/lib/*.a ../../../Source/3rdParty/bgfx/build/linux/aarch64/release/
 	[ -d libs ] || mkdir libs
 	cp -r bgfx/.build/linux32_arm_gcc/bin/* libs
 	cp ../../../Source/3rdParty/Wa/Lib/Linux/aarch64/libwa.a libs
