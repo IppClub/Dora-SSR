@@ -56,13 +56,10 @@ jobs:
         if: matrix.os == 'windows-latest'
         working-directory: Source/3rdParty/bgfx
         shell: pwsh
-        env:
-          XMAKE_RUSTC: ''
-          XMAKE_DISABLE_RUST: 'y'
         run: |
           xmake global --clean
           xmake f -c -p windows -a x64 -m release -y --with-amalgamated=n `
-            --cc=cl --cxx=cl --ld=link --sh=link --ar=lib --as=ml64
+            --toolchain=msvc --rc=
 
       - name: Configure xmake (Linux)
         if: matrix.os != 'windows-latest'
