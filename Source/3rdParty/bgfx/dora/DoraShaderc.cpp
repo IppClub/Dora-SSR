@@ -25,105 +25,6 @@
 
 namespace {
 
-/* Global file ops (for shaderc callbacks) */
-static DoraShadercFileOps g_fileOps = {0};
-static bool g_hasCustomFileOps = false;
-
-/* Custom file reader that uses DoraShadercFileOps */
-class DoraFileReader : public bx::FileReader {
-public:
-    DoraFileReader() : m_data(nullptr), m_size(0), m_pos(0) {}
-    
-    virtual ~DoraFileReader() {
-        close();
-    }
-    
-    bool open(const char* _filePath) {
-        if (!g_hasCustomFileOps || !g_fileOps.readFile) {
-            /* Fall back to standard file I/O */
-            return bx::FileReader::open(_filePath);
-        }
-        
-        /* Get file size first */
-        long size = -1;
-        if (g_fileOps.getFileSize) {
-            size = g_fileOps.getFileSize(_filePath, g_fileOps.userData);
-        } else {
-            /* Read to get size */
-            char temp[256];
-            size = g_fileOps.readFile(_filePath, temp, sizeof(temp), g_fileOps.userData);
-            if (size < 0) return false;
-            /* We need to re-read, so this is inefficient without getFileSize */
-        }
-        
-        if (size < 0) return false;
-        
-        /* Allocate buffer */
-        m_data = (char*)malloc(size + 1);
-        if (!m_data) return false;
-        
-        /* Read entire file */
-        int bytesRead = g_fileOps.readFile(_filePath, m_data, (int)size, g_fileOps.userData);
-        if (bytesRead != size) {
-            free(m_data);
-            m_data = nullptr;
-            return false;
-        }
-        
-        m_size = size;
-        m_pos = 0;
-        m_path = _filePath;
-        return true;
-    }
-    
-    virtual void close() {
-        if (m_data) {
-            free(m_data);
-            m_data = nullptr;
-        }
-        m_size = 0;
-        m_pos = 0;
-    }
-    
-    virtual int64_t seek(int64_t _offset, bx::Whence::Enum _whence) {
-        int64_t newPos = m_pos;
-        switch (_whence) {
-            case bx::Whence::Begin:   newPos = _offset; break;
-            case bx::Whence::Current: newPos = m_pos + _offset; break;
-            case bx::Whence::End:     newPos = m_size + _offset; break;
-        }
-        if (newPos < 0 || newPos > m_size) return -1;
-        m_pos = (int64_t)newPos;
-        return m_pos;
-    }
-    
-    virtual int32_t read(void* _data, int32_t _size, bx::Error* _err) {
-        if (!m_data) {
-            if (m_file.isOpen()) {
-                return bx::FileReader::read(_data, _size, _err);
-            }
-            return 0;
-        }
-        
-        int32_t remaining = (int32_t)(m_size - m_pos);
-        int32_t toRead = (_size > remaining) ? remaining : _size;
-        memcpy(_data, m_data + m_pos, toRead);
-        m_pos += toRead;
-        return toRead;
-    }
-    
-    virtual int64_t getSize() {
-        if (m_data) return m_size;
-        return bx::FileReader::getSize();
-    }
-    
-private:
-    char* m_data;
-    int64_t m_size;
-    int64_t m_pos;
-    std::string m_path;
-};
-
 /* Memory writer for capturing compiled output */
 class MemoryWriter : public bx::WriterI {
 public:
@@ -191,6 +92,66 @@ private:
     std::string m_str;
 };
 
+/* Helper: read file using custom file ops or standard I/O */
+static char* readFile(
+    const char* path,
+    int* outSize,
+    const DoraShadercFileOps* fileOps
+) {
+    char* data = nullptr;
+    int size = 0;
+    
+    if (fileOps && fileOps->readFile) {
+        /* Use custom file I/O */
+        long fileSize = -1;
+        if (fileOps->getFileSize) {
+            fileSize = fileOps->getFileSize(path, fileOps->userData);
+        }
+        
+        if (fileSize < 0) {
+            return nullptr;
+        }
+        
+        data = (char*)malloc((size_t)fileSize + 1);
+        if (!data) {
+            return nullptr;
+        }
+        
+        int bytesRead = fileOps->readFile(path, data, (int)fileSize, fileOps->userData);
+        if (bytesRead != fileSize) {
+            free(data);
+            return nullptr;
+        }
+        data[fileSize] = '\0';
+        size = (int)fileSize;
+    } else {
+        /* Use standard file I/O */
+        FILE* f = fopen(path, "rb");
+        if (!f) {
+            return nullptr;
+        }
+        
+        fseek(f, 0, SEEK_END);
+        long fileSize = ftell(f);
+        fseek(f, 0, SEEK_SET);
+        
+        data = (char*)malloc((size_t)fileSize + 1);
+        if (!data) {
+            fclose(f);
+            return nullptr;
+        }
+        
+        size = (int)fread(data, 1, (size_t)fileSize, f);
+        data[size] = '\0';
+        fclose(f);
+    }
+    
+    if (outSize) {
+        *outSize = size;
+    }
+    return data;
+}
+
 } /* anonymous namespace */
 
 /* ============================================================
@@ -242,7 +203,7 @@ int DoraShadercIsRendererSupported(DoraShadercRenderer renderer) {
 #if BX_PLATFORM_WINDOWS
         case DoraShadercRenderer_Direct3D11:
         case DoraShadercRenderer_Direct3D12:
-        case DoraShadercRenderer_OpenGL:
+        case DoraShadercRenderer_OpenGL:  /* OpenGL and OpenGLES share the same value */
         case DoraShadercRenderer_Vulkan:
             return 1;
 #elif BX_PLATFORM_OSX
@@ -252,10 +213,10 @@ int DoraShadercIsRendererSupported(DoraShadercRenderer renderer) {
             return 1;
 #elif BX_PLATFORM_IOS
         case DoraShadercRenderer_Metal:
-        case DoraShadercRenderer_OpenGLES:
+        case DoraShadercRenderer_OpenGL:  /* OpenGL and OpenGLES share the same value */
             return 1;
 #elif BX_PLATFORM_ANDROID
-        case DoraShadercRenderer_OpenGLES:
+        case DoraShadercRenderer_OpenGL:  /* OpenGL and OpenGLES share the same value */
         case DoraShadercRenderer_Vulkan:
             return 1;
 #elif BX_PLATFORM_LINUX
@@ -331,15 +292,6 @@ DoraShadercResult DoraShadercCompile(
         sourceSize = (int)strlen(source);
     }
     
-    /* Setup file ops */
-    if (options->fileOps) {
-        g_fileOps = *options->fileOps;
-        g_hasCustomFileOps = true;
-    } else {
-        memset(&g_fileOps, 0, sizeof(g_fileOps));
-        g_hasCustomFileOps = false;
-    }
-    
     /* Convert to bgfx shaderc options */
     bgfx::Options bgfxOpts;
     
@@ -362,7 +314,6 @@ DoraShadercResult DoraShadercCompile(
     /* Platform and profile */
     switch (options->renderer) {
         case DoraShadercRenderer_OpenGL:
-        case DoraShadercRenderer_OpenGLES:
             bgfxOpts.platform = "glsl";
             bgfxOpts.profile = options->platform == DoraShadercPlatform_Android ? "100_es" : "430";
             break;
@@ -372,7 +323,7 @@ DoraShadercResult DoraShadercCompile(
             break;
         case DoraShadercRenderer_Direct3D11:
             bgfxOpts.platform = "hlsl";
-            bgfxOpts.profile = "vs_5_0";  /* or ps_5_0 for fragment */
+            bgfxOpts.profile = "vs_5_0";
             break;
         case DoraShadercRenderer_Direct3D12:
             bgfxOpts.platform = "hlsl";
@@ -415,11 +366,10 @@ DoraShadercResult DoraShadercCompile(
     
     /* Compile based on renderer type */
     bool success = false;
-    uint32_t version = 1;  /* Shader version */
+    uint32_t version = 1;
     
     switch (options->renderer) {
         case DoraShadercRenderer_OpenGL:
-        case DoraShadercRenderer_OpenGLES:
             success = bgfx::compileGLSLShader(bgfxOpts, version, sourceStr, &bytecodeWriter, &messageWriter);
             break;
             
@@ -475,74 +425,16 @@ DoraShadercResult DoraShadercCompileFromFile(
         return result;
     }
     
-    /* Setup file ops */
-    if (options->fileOps) {
-        g_fileOps = *options->fileOps;
-        g_hasCustomFileOps = true;
-    } else {
-        memset(&g_fileOps, 0, sizeof(g_fileOps));
-        g_hasCustomFileOps = false;
-    }
-    
     /* Read file */
-    char* source = nullptr;
     int sourceSize = 0;
+    char* source = readFile(sourceFile, &sourceSize, options->fileOps);
     
-    if (g_hasCustomFileOps && g_fileOps.readFile) {
-        /* Use custom file I/O */
-        long size = -1;
-        if (g_fileOps.getFileSize) {
-            size = g_fileOps.getFileSize(sourceFile, g_fileOps.userData);
-        }
-        
-        if (size < 0) {
-            result.success = 0;
-            result.errorMessage = strdup("Failed to get file size");
-            return result;
-        }
-        
-        source = (char*)malloc((size_t)size + 1);
-        if (!source) {
-            result.success = 0;
-            result.errorMessage = strdup("Failed to allocate memory");
-            return result;
-        }
-        
-        int bytesRead = g_fileOps.readFile(sourceFile, source, (int)size, g_fileOps.userData);
-        if (bytesRead != size) {
-            free(source);
-            result.success = 0;
-            result.errorMessage = strdup("Failed to read file");
-            return result;
-        }
-        source[size] = '\0';
-        sourceSize = (int)size;
-    } else {
-        /* Use standard file I/O */
-        FILE* f = fopen(sourceFile, "rb");
-        if (!f) {
-            result.success = 0;
-            char buf[256];
-            snprintf(buf, sizeof(buf), "Failed to open file: %s", sourceFile);
-            result.errorMessage = strdup(buf);
-            return result;
-        }
-        
-        fseek(f, 0, SEEK_END);
-        long size = ftell(f);
-        fseek(f, 0, SEEK_SET);
-        
-        source = (char*)malloc((size_t)size + 1);
-        if (!source) {
-            fclose(f);
-            result.success = 0;
-            result.errorMessage = strdup("Failed to allocate memory");
-            return result;
-        }
-        
-        sourceSize = (int)fread(source, 1, (size_t)size, f);
-        source[sourceSize] = '\0';
-        fclose(f);
+    if (!source) {
+        result.success = 0;
+        char buf[256];
+        snprintf(buf, sizeof(buf), "Failed to read file: %s", sourceFile);
+        result.errorMessage = strdup(buf);
+        return result;
     }
     
     /* Compile */
