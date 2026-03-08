@@ -57,7 +57,8 @@ jobs:
         working-directory: Source/3rdParty/bgfx
         shell: pwsh
         env:
-          XMAKE_RC_RUSTC: ''
+          XMAKE_RUSTC: ''
+          XMAKE_DISABLE_RUST: 'y'
         run: |
           xmake global --clean
           xmake f -c -p windows -a x64 -m release -y --with-amalgamated=n `
