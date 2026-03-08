@@ -5249,7 +5249,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(SRCROOT)/../../Source/3rdParty/SDL2/Lib/macOS",
-					"$(SRCROOT)/../../Source/3rdParty/bgfx/Lib/macOS",
+					"$(SRCROOT)/../../Source/3rdParty/bgfx/build/macosx/universal",
 					"$(SRCROOT)/../../Source/3rdParty/OpenSSL/Lib/macOS",
 					"$(SRCROOT)/../../Source/3rdParty/Wa/Lib/macOS",
 					"$(SRCROOT)/../../Source/Rust/Lib/macOS",
@@ -5328,7 +5328,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(SRCROOT)/../../Source/3rdParty/SDL2/Lib/macOS",
-					"$(SRCROOT)/../../Source/3rdParty/bgfx/Lib/macOS",
+					"$(SRCROOT)/../../Source/3rdParty/bgfx/build/macosx/universal",
 					"$(SRCROOT)/../../Source/3rdParty/OpenSSL/Lib/macOS",
 					"$(SRCROOT)/../../Source/3rdParty/Wa/Lib/macOS",
 					"$(SRCROOT)/../../Source/Rust/Lib/macOS",
