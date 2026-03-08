@@ -113,6 +113,38 @@ target("bimg_decode")
     end
 
 -- bgfx 渲染库
+local function add_bgfx_sources()
+    -- bgfx's amalgamated source unconditionally pulls in Windows-only and
+    -- console-specific translation units, so only use it on Windows.
+    if has_config("with-amalgamated") and is_plat("windows") then
+        add_files(path.join(BGFX_DIR, "src/amalgamated.cpp"))
+        return
+    end
+
+    add_files(path.join(BGFX_DIR, "src/*.cpp"))
+    if is_plat("macosx", "iphoneos") then
+        -- GENie 只包含 renderer_*.mm，不是所有 .mm 文件
+        add_files(path.join(BGFX_DIR, "src/renderer_*.mm"))
+        add_mxxflags("-fno-objc-arc", {force = true})
+    end
+    remove_files(path.join(BGFX_DIR, "src/amalgamated.*"))
+
+    -- 排除 Windows 专用文件（非 Windows 平台）
+    if not is_plat("windows") then
+        remove_files(path.join(BGFX_DIR, "src/dxgi.cpp"))
+        remove_files(path.join(BGFX_DIR, "src/glcontext_wgl.cpp"))
+        remove_files(path.join(BGFX_DIR, "src/nvapi.cpp"))
+        remove_files(path.join(BGFX_DIR, "src/renderer_d3d11.cpp"))
+        remove_files(path.join(BGFX_DIR, "src/renderer_d3d12.cpp"))
+    end
+
+    -- 排除主机平台专用文件
+    remove_files(path.join(BGFX_DIR, "src/renderer_agc.cpp"))    -- PS5
+    remove_files(path.join(BGFX_DIR, "src/renderer_gnm.cpp"))    -- PS4
+    remove_files(path.join(BGFX_DIR, "src/renderer_nvn.cpp"))    -- Nintendo Switch
+    remove_files(path.join(BGFX_DIR, "src/glcontext_html5.cpp")) -- Web/Emscripten
+end
+
 target("bgfx")
     set_kind("static")
     add_deps("bx", "bimg", "bimg_decode")
@@ -123,39 +155,7 @@ target("bgfx")
     add_includedirs(path.join(BIMG_DIR, "include"))
     add_includedirs(path.join(BX_DIR, "include"))
     
-    if has_config("with-amalgamated") then
-        -- macOS/iOS 使用 amalgamated.mm (包含 Metal 渲染器)
-        if is_plat("macosx", "iphoneos") then
-            add_files(path.join(BGFX_DIR, "src/amalgamated.mm"))
-            -- bgfx 使用手动引用计数，需要禁用 ARC
-            add_mxxflags("-fno-objc-arc", {force = true})
-        else
-            add_files(path.join(BGFX_DIR, "src/amalgamated.cpp"))
-        end
-    else
-        add_files(path.join(BGFX_DIR, "src/*.cpp"))
-        if is_plat("macosx", "iphoneos") then
-            -- GENie 只包含 renderer_*.mm，不是所有 .mm 文件
-            add_files(path.join(BGFX_DIR, "src/renderer_*.mm"))
-            add_mxxflags("-fno-objc-arc", {force = true})
-        end
-        remove_files(path.join(BGFX_DIR, "src/amalgamated.*"))
-        
-        -- 排除 Windows 专用文件（非 Windows 平台）
-        if not is_plat("windows") then
-            remove_files(path.join(BGFX_DIR, "src/dxgi.cpp"))
-            remove_files(path.join(BGFX_DIR, "src/glcontext_wgl.cpp"))
-            remove_files(path.join(BGFX_DIR, "src/nvapi.cpp"))
-            remove_files(path.join(BGFX_DIR, "src/renderer_d3d11.cpp"))
-            remove_files(path.join(BGFX_DIR, "src/renderer_d3d12.cpp"))
-        end
-        
-        -- 排除主机平台专用文件
-        remove_files(path.join(BGFX_DIR, "src/renderer_agc.cpp"))   -- PS5
-        remove_files(path.join(BGFX_DIR, "src/renderer_gnm.cpp"))   -- PS4
-        remove_files(path.join(BGFX_DIR, "src/renderer_nvn.cpp"))   -- Nintendo Switch
-        remove_files(path.join(BGFX_DIR, "src/glcontext_html5.cpp")) -- Web/Emscripten
-    end
+    add_bgfx_sources()
     
     add_includedirs(path.join(BGFX_DIR, "3rdparty/khronos"))
     
@@ -185,36 +185,7 @@ if has_config("with-shared") then
         add_includedirs(path.join(BIMG_DIR, "include"))
         add_includedirs(path.join(BX_DIR, "include"))
         
-        if has_config("with-amalgamated") then
-            if is_plat("macosx", "iphoneos") then
-                add_files(path.join(BGFX_DIR, "src/amalgamated.mm"))
-                add_mxxflags("-fno-objc-arc", {force = true})
-            else
-                add_files(path.join(BGFX_DIR, "src/amalgamated.cpp"))
-            end
-        else
-            add_files(path.join(BGFX_DIR, "src/*.cpp"))
-            if is_plat("macosx", "iphoneos") then
-                add_files(path.join(BGFX_DIR, "src/renderer_*.mm"))
-                add_mxxflags("-fno-objc-arc", {force = true})
-            end
-            remove_files(path.join(BGFX_DIR, "src/amalgamated.*"))
-            
-            -- 排除 Windows 专用文件（非 Windows 平台）
-            if not is_plat("windows") then
-                remove_files(path.join(BGFX_DIR, "src/dxgi.cpp"))
-                remove_files(path.join(BGFX_DIR, "src/glcontext_wgl.cpp"))
-                remove_files(path.join(BGFX_DIR, "src/nvapi.cpp"))
-                remove_files(path.join(BGFX_DIR, "src/renderer_d3d11.cpp"))
-                remove_files(path.join(BGFX_DIR, "src/renderer_d3d12.cpp"))
-            end
-            
-            -- 排除主机平台专用文件
-            remove_files(path.join(BGFX_DIR, "src/renderer_agc.cpp"))
-            remove_files(path.join(BGFX_DIR, "src/renderer_gnm.cpp"))
-            remove_files(path.join(BGFX_DIR, "src/renderer_nvn.cpp"))
-            remove_files(path.join(BGFX_DIR, "src/glcontext_html5.cpp"))
-        end
+        add_bgfx_sources()
         
         add_platform_links()
         
