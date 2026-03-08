@@ -59,13 +59,12 @@ jobs:
         run: |
           xmake global --clean
           xmake config --global --r=n
-          xmake f -c -p windows -a x64 -m release -y --with-amalgamated=n `
-            --toolchain=msvc --rc=
+          xmake f -c -p windows -a x64 -m release -y --toolchain=msvc --rc=
 
       - name: Configure xmake (Linux)
         if: matrix.os != 'windows-latest'
         working-directory: Source/3rdParty/bgfx
-        run: xmake f -p ${{ matrix.xmake_platform }} -a x86_64 -m release -y --with-amalgamated=n
+        run: xmake f -p ${{ matrix.xmake_platform }} -a x86_64 -m release -y
 
       - name: Build
         working-directory: Source/3rdParty/bgfx
