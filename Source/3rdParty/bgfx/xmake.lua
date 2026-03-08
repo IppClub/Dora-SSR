@@ -129,19 +129,20 @@ local function add_bgfx_sources()
     end
     remove_files(path.join(BGFX_DIR, "src/amalgamated.*"))
 
-    -- 排除 Windows 专用文件（非 Windows 平台）
+    -- 注意：以下文件都有 #else 存根分支，可在任何平台编译
+    -- renderer_d3d11.cpp 和 renderer_d3d12.cpp 在非 Windows 上编译存根
+    -- renderer_agc/gnm/nvn.cpp 始终是存根
+    -- 只有 Windows 专用的辅助文件需要排除：
     if not is_plat("windows") then
         remove_files(path.join(BGFX_DIR, "src/dxgi.cpp"))
         remove_files(path.join(BGFX_DIR, "src/glcontext_wgl.cpp"))
         remove_files(path.join(BGFX_DIR, "src/nvapi.cpp"))
-        remove_files(path.join(BGFX_DIR, "src/renderer_d3d11.cpp"))
-        remove_files(path.join(BGFX_DIR, "src/renderer_d3d12.cpp"))
     end
 
-    -- 排除主机平台专用文件
-    remove_files(path.join(BGFX_DIR, "src/renderer_agc.cpp"))    -- PS5
-    remove_files(path.join(BGFX_DIR, "src/renderer_gnm.cpp"))    -- PS4
-    remove_files(path.join(BGFX_DIR, "src/renderer_nvn.cpp"))    -- Nintendo Switch
+    -- 注意：存根渲染器文件（renderer_agc.cpp, renderer_gnm.cpp, renderer_nvn.cpp）
+    -- 必须编译以提供符号，因为 bgfx.cpp 无条件引用它们。
+    -- 它们只返回 NULL，可在任何平台安全编译。
+    -- 只有 glcontext_html5.cpp 确实不需要
     remove_files(path.join(BGFX_DIR, "src/glcontext_html5.cpp")) -- Web/Emscripten
 end
 
