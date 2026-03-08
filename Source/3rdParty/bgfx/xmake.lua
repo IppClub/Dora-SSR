@@ -968,3 +968,41 @@ target("shaderc-lib")
         add_syslinks("pthread")
         add_cxxflags("-fPIC", {force = true})
     end
+
+-- dora-shaderc - Dora 引擎着色器编译 API
+-- C API 封装，支持运行时着色器编译
+target("dora-shaderc")
+    set_kind("static")
+    add_deps("shaderc-lib", "bx")
+    
+    -- 头文件目录
+    add_includedirs(
+        path.join(BGFX_DIR, "dora"),
+        path.join(BGFX_DIR, "include"),
+        path.join(BGFX_DIR, "tools/shaderc"),
+        path.join(BIMG_DIR, "include"),
+        path.join(BX_DIR, "include"),
+        path.join(GLSLANG_DIR, "glslang/Public"),
+        path.join(GLSLANG_DIR, "glslang/Include"),
+        GLSLANG_DIR,
+        SPIRV_CROSS_DIR,
+        path.join(SPIRV_TOOLS_DIR, "include")
+    )
+    
+    -- Windows 特定
+    if is_plat("windows") then
+        add_includedirs(path.join(BGFX_DIR, "3rdparty/dxsdk/include"))
+    end
+    
+    -- 源文件
+    add_files(
+        path.join(BGFX_DIR, "dora/DoraShaderc.cpp")
+    )
+    
+    -- 平台特定设置
+    if is_plat("macosx") then
+        add_frameworks("Cocoa")
+    elseif is_plat("linux", "android") then
+        add_syslinks("pthread")
+        add_cxxflags("-fPIC", {force = true})
+    end
