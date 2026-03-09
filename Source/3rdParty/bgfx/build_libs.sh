@@ -44,7 +44,7 @@ build_arch() {
         shift
     fi
     local extra_opts="$@"
-    
+
     log_info "Building for $platform ($arch) ${extra_opts}..."
     xmake f -p "$platform" -a "$arch" -m "$mode" -y $extra_opts
     xmake -j8

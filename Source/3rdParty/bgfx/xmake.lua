@@ -1,10 +1,16 @@
 -- bgfx, bimg, bx, shaderc 构建脚本
 -- 用法: xmake build [bx|bimg|bimg_decode|bgfx|shaderc-libs]
 
+-- 版本相关配置，集中在这里便于统一调整
+local PROJECT_VERSION = "1.0.0"
+local CXX_LANGUAGE_STANDARD = "c++20"
+local MACOS_TARGET_MINVER = "11.3"
+local IOS_TARGET_MINVER = "13.0"
+
 -- 设置项目
 set_project("bgfx-libs")
-set_version("1.0.0")
-set_languages("c++20")
+set_version(PROJECT_VERSION)
+set_languages(CXX_LANGUAGE_STANDARD)
 
 -- MSVC 需要这些选项来正确报告 C++ 标准版本和支持标准预处理器
 if is_plat("windows") then
@@ -18,6 +24,7 @@ local BX_DIR = path.join(BGFX_DIR, "../bx")
 
 -- 通用配置
 add_rules("mode.debug", "mode.release")
+add_defines("__STDC_LIMIT_MACROS", "__STDC_FORMAT_MACROS", "__STDC_CONSTANT_MACROS")
 
 -- 配置选项
 option("with-shared", {default = false, description = "Build shared library"})
@@ -28,6 +35,125 @@ local function resolve_sources(base_dir, files)
         table.insert(resolved, path.join(base_dir, file))
     end
     return resolved
+end
+
+local function add_bgfx_renderer_config()
+    if is_plat("windows") then
+        add_defines("BGFX_CONFIG_RENDERER_DIRECT3D11=1")
+    elseif is_plat("linux") then
+        add_defines(
+            "BGFX_CONFIG_RENDERER_OPENGL_MIN_VERSION=33",
+            "BGFX_CONFIG_RENDERER_OPENGLES_MIN_VERSION=30"
+        )
+    elseif is_plat("android") then
+        add_defines("BGFX_CONFIG_RENDERER_OPENGLES=30")
+    elseif is_plat("macosx", "iphoneos") then
+        add_defines("BGFX_CONFIG_RENDERER_METAL=1")
+    end
+end
+
+local function add_apple_flags()
+    if not is_plat("macosx", "iphoneos") then
+        return
+    end
+
+    add_cxflags("-Wfatal-errors", "-Wunused-value", "-Wundef", {force = true})
+    add_mxflags("-Wfatal-errors", "-Wunused-value", "-Wundef", {force = true})
+
+    if is_plat("macosx") and is_arch("x86_64") then
+        add_cxflags("-msse4.2", {force = true})
+        add_mxflags("-msse4.2", {force = true})
+    end
+end
+
+local function apply_apple_toolchain_config()
+    if is_plat("macosx") then
+        set_toolchains("xcode", {target_minver = MACOS_TARGET_MINVER})
+    elseif is_plat("iphoneos") then
+        set_toolchains("xcode", {target_minver = IOS_TARGET_MINVER})
+    end
+end
+
+local function add_android_flags()
+    if not is_plat("android") then
+        return
+    end
+
+    add_defines("ANDROID")
+    add_cxflags(
+        "-fPIC",
+        "-fstack-protector-strong",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-Wundef",
+        "-Wunused-value",
+        "-Wa,--noexecstack",
+        "-no-canonical-prefixes",
+        {force = true}
+    )
+    add_asflags(
+        "-Wa,--noexecstack",
+        "-no-canonical-prefixes",
+        {force = true}
+    )
+    add_ldflags(
+        "-Wl,--no-undefined",
+        "-Wl,-z,noexecstack",
+        "-Wl,-z,relro",
+        "-Wl,-z,now",
+        "-no-canonical-prefixes",
+        {force = true}
+    )
+
+    if is_arch("armeabi-v7a") then
+        add_cxflags("-mthumb", "-march=armv7-a", "-mfloat-abi=softfp", "-mfpu=neon", {force = true})
+        add_ldflags("-march=armv7-a", {force = true})
+    end
+end
+
+local function add_common_target_settings(opt)
+    opt = opt or {}
+
+    apply_apple_toolchain_config()
+
+    if not opt.c_only then
+        set_exceptions("no-cxx")
+        if is_plat("windows") then
+            add_cxxflags("/GR-", {force = true})
+        else
+            add_cxxflags("-fno-rtti", {force = true})
+        end
+    end
+
+    if is_plat("windows") then
+        add_defines(
+            "WIN32",
+            "_WIN32",
+            "_HAS_EXCEPTIONS=0",
+            "_SCL_SECURE=0",
+            "_SECURE_SCL=0",
+            "_SCL_SECURE_NO_WARNINGS",
+            "_CRT_SECURE_NO_WARNINGS",
+            "_CRT_SECURE_NO_DEPRECATE"
+        )
+
+        if is_mode("debug") then
+            add_defines("_ITERATOR_DEBUG_LEVEL=0")
+            set_runtimes("MTd")
+        else
+            set_runtimes("MT")
+        end
+
+        add_cxflags("/wd4201", "/wd4324", "/Ob2", {force = true})
+        add_ldflags("/ignore:4221", {force = true})
+
+        if is_arch("x86", "i386") then
+            add_cxflags("/arch:SSE2", {force = true})
+        end
+    end
+
+    add_apple_flags()
+    add_android_flags()
 end
 
 local bx_src = {
@@ -408,16 +534,20 @@ local function add_platform_links()
         add_frameworks("Cocoa", "IOKit", "OpenGL", "QuartzCore")
         -- Metal 框架使用 weak linking（旧系统可能没有）
         add_ldflags("-weak_framework", "Metal", "-weak_framework", "MetalKit", {force = true})
+    elseif is_plat("iphoneos") then
+        add_frameworks("Foundation", "QuartzCore", "UIKit")
+        add_ldflags("-weak_framework", "Metal", "-weak_framework", "MetalKit", {force = true})
     elseif is_plat("windows") then
         add_syslinks("gdi32", "psapi", "dxgi", "d3d11", "d3d12", "opengl32")
     elseif is_plat("android") then
-        add_syslinks("EGL", "GLESv3", "android")
+        add_syslinks("EGL", "GLESv3", "android", "dl", "log", "m")
     end
 end
 
 -- bx 基础库
 target("bx")
     set_kind("static")
+    add_common_target_settings()
     
     add_includedirs(path.join(BX_DIR, "include"), {public = true})
     add_includedirs(path.join(BX_DIR, "3rdparty"), {public = true})
@@ -451,6 +581,7 @@ target("bx")
 target("bimg")
     set_kind("static")
     add_deps("bx")
+    add_common_target_settings()
     
     add_includedirs(path.join(BIMG_DIR, "include"), {public = true})
     add_includedirs(path.join(BIMG_DIR, "3rdparty"), {public = true})
@@ -470,6 +601,7 @@ target("bimg")
 target("bimg_decode")
     set_kind("static")
     add_deps("bx")
+    add_common_target_settings()
     
     add_includedirs(path.join(BIMG_DIR, "include"), {public = true})
     add_includedirs(path.join(BIMG_DIR, "3rdparty"))
@@ -494,65 +626,40 @@ local function add_bgfx_sources()
     end
 end
 
-target("bgfx")
-    set_kind("static")
-    add_deps("bx", "bimg", "bimg_decode")
-    
+local function add_bgfx_common_settings()
     add_includedirs(path.join(BGFX_DIR, "include"), {public = true})
     add_includedirs(path.join(BGFX_DIR, "3rdparty"), {public = true})
     add_includedirs(path.join(BGFX_DIR, "3rdparty/renderdoc"), {public = true})
+    add_includedirs(path.join(BGFX_DIR, "3rdparty/khronos"))
     add_includedirs(path.join(BIMG_DIR, "include"))
     add_includedirs(path.join(BX_DIR, "include"))
-    
+
     add_bgfx_sources()
-    
-    add_includedirs(path.join(BGFX_DIR, "3rdparty/khronos"))
-    
     add_platform_links()
-    
+    add_bgfx_renderer_config()
+
     if is_plat("linux", "android") then
         add_cxxflags("-fPIC", {force = true})
     end
-    
-    -- 禁用 D3D11/D3D12 渲染器（非 Windows 平台）
-    if not is_plat("windows") then
-        add_defines("BGFX_CONFIG_RENDERER_DIRECT3D11=0")
-        add_defines("BGFX_CONFIG_RENDERER_DIRECT3D12=0")
-    end
-    
-    if is_mode("debug") then
-        add_defines("BGFX_CONFIG_DEBUG=1")
-    else
-        add_defines("BGFX_CONFIG_DEBUG=0")
-    end
+end
+
+target("bgfx")
+    set_kind("static")
+    add_deps("bx", "bimg", "bimg_decode")
+    add_common_target_settings()
+
+    add_bgfx_common_settings()
 
 -- 共享库版本（可选）
 if has_config("with-shared") then
     target("bgfx-shared")
         set_kind("shared")
         add_deps("bx", "bimg", "bimg_decode")
+        add_common_target_settings()
         
         add_defines("BGFX_SHARED_LIB_BUILD=1", {public = true})
-        
-        -- 禁用 D3D11/D3D12 渲染器（非 Windows 平台）
-        if not is_plat("windows") then
-            add_defines("BGFX_CONFIG_RENDERER_DIRECT3D11=0")
-            add_defines("BGFX_CONFIG_RENDERER_DIRECT3D12=0")
-        end
-        
-        add_includedirs(path.join(BGFX_DIR, "include"), {public = true})
-        add_includedirs(path.join(BGFX_DIR, "3rdparty"), {public = true})
-        add_includedirs(path.join(BGFX_DIR, "3rdparty/renderdoc"), {public = true})
-        add_includedirs(path.join(BIMG_DIR, "include"))
-        add_includedirs(path.join(BX_DIR, "include"))
-        
-        add_bgfx_sources()
-        
-        add_platform_links()
-        
-        if is_plat("linux", "android") then
-            add_cxxflags("-fPIC", {force = true})
-        end
+
+        add_bgfx_common_settings()
 end
 
 -- ============================================================
@@ -570,6 +677,7 @@ local FCPP_DIR = path.join(BGFX_DIR, "3rdparty/fcpp")
 target("fcpp")
     set_kind("static")
     set_languages("c11")
+    add_common_target_settings({c_only = true})
     
     add_files(
         path.join(FCPP_DIR, "cpp1.c"),
@@ -596,6 +704,7 @@ target("fcpp")
 -- spirv-cross
 target("spirv-cross")
     set_kind("static")
+    add_common_target_settings()
     
     add_defines("SPIRV_CROSS_EXCEPTIONS_TO_ASSERTIONS")
     
@@ -621,6 +730,7 @@ target("spirv-cross")
 -- spirv-opt (来自 spirv-tools)
 target("spirv-opt")
     set_kind("static")
+    add_common_target_settings()
     
     add_includedirs(
         SPIRV_TOOLS_DIR,
@@ -680,6 +790,7 @@ target("spirv-opt")
 target("glslang")
     set_kind("static")
     add_deps("spirv-opt")
+    add_common_target_settings()
     
     add_defines("ENABLE_OPT=1", "ENABLE_HLSL=1")
     
@@ -755,7 +866,8 @@ target("glslang")
 -- glsl-optimizer
 target("glsl_optimizer")
     set_kind("static")
-    set_languages("c++20")
+    set_languages(CXX_LANGUAGE_STANDARD)
+    add_common_target_settings()
 
     add_includedirs(
         path.join(GLSL_OPTIMIZER_DIR, "src"),
@@ -935,6 +1047,7 @@ target("glsl_optimizer")
 target("shaderc-lib")
     set_kind("static")
     add_deps("bx", "fcpp", "glslang", "glsl_optimizer", "spirv-cross")
+    add_common_target_settings()
     
     add_includedirs(
         path.join(BIMG_DIR, "include"),
@@ -974,6 +1087,7 @@ target("shaderc-lib")
 target("dora-shaderc")
     set_kind("static")
     add_deps("shaderc-lib", "bx")
+    add_common_target_settings()
     
     -- 头文件目录
     add_includedirs(
