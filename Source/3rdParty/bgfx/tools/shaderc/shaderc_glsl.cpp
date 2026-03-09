@@ -4,6 +4,9 @@
  */
 
 #include "shaderc.h"
+
+#if SHADERC_CONFIG_GLSL
+
 #include "glsl_optimizer.h"
 
 namespace bgfx { namespace glsl
@@ -198,7 +201,7 @@ namespace bgfx { namespace glsl
 					}
 
 					Uniform un;
-					un.type = nameToUniformTypeEnum(uniformType);
+					un.type = shadercNameToUniformTypeEnum(uniformType);
 
 					if (UniformType::Count != un.type)
 					{
@@ -275,7 +278,7 @@ namespace bgfx { namespace glsl
 					}
 
 					Uniform un;
-					un.type = nameToUniformTypeEnum(uniformType);
+					un.type = shadercNameToUniformTypeEnum(uniformType);
 
 					if (UniformType::Count != un.type)
 					{
@@ -311,7 +314,7 @@ namespace bgfx { namespace glsl
 				if (!textureName.isEmpty())
 				{
 					Uniform un;
-					un.type = nameToUniformTypeEnum("int");	// int for sampler
+					un.type = shadercNameToUniformTypeEnum("int");	// int for sampler
 					const char* varNameEnd = textureName.getPtr() - 1;
 					parse.set(parse.getPtr(), varNameEnd - 1);
 					const char* varNameBeg = parse.getPtr();
@@ -369,7 +372,7 @@ namespace bgfx { namespace glsl
 
 			BX_TRACE("%s, %s, %d, %d, %d"
 				, un.name.c_str()
-				, getUniformTypeName(un.type)
+				, shadercGetUniformTypeName(un.type)
 				, un.num
 				, un.regIndex
 				, un.regCount
@@ -402,3 +405,19 @@ namespace bgfx { namespace glsl
 	}
 
 } // namespace bgfx
+
+#else
+
+namespace bgfx
+{
+	bool compileGLSLShader(const Options& _options, uint32_t _version, const std::string& _code, bx::WriterI* _shaderWriter, bx::WriterI* _messageWriter)
+	{
+		BX_UNUSED(_options, _version, _code, _shaderWriter);
+		bx::Error messageErr;
+		bx::write(_messageWriter, &messageErr, "GLSL compiler is not supported on this platform.\n");
+		return false;
+	}
+
+} // namespace bgfx
+
+#endif // SHADERC_CONFIG_GLSL

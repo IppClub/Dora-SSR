@@ -2019,6 +2019,10 @@
     <ClCompile Include="..\..\..\Source\3rdParty\tic80\vendor\blip-buf\blip_wasm_host.cpp">
       <Filter>3rdParty\tic80\vendor\blip-buf</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\Shader\Compiler\ShaderCompiler.cpp" />
+    <ClCompile Include="..\..\..\Source\Shader\ShaderCompiler.cpp">
+      <Filter>Shader</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\silly\Slice.h">
@@ -4487,6 +4491,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Node\TIC80Node.h">
       <Filter>Node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Shader\ShaderCompiler.h">
+      <Filter>Shader</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

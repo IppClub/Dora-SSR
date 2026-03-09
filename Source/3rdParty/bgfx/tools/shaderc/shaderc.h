@@ -15,6 +15,18 @@ namespace bgfx
 #	define SHADERC_CONFIG_HLSL BX_PLATFORM_WINDOWS
 #endif // SHADERC_CONFIG_HLSL
 
+#ifndef SHADERC_CONFIG_GLSL
+#	define SHADERC_CONFIG_GLSL 1
+#endif // SHADERC_CONFIG_GLSL
+
+#ifndef SHADERC_CONFIG_METAL
+#	define SHADERC_CONFIG_METAL (BX_PLATFORM_OSX || BX_PLATFORM_IOS)
+#endif // SHADERC_CONFIG_METAL
+
+#ifndef SHADERC_CONFIG_SPIRV
+#	define SHADERC_CONFIG_SPIRV 1
+#endif // SHADERC_CONFIG_SPIRV
+
 #include <bx/bx.h>
 #include <bx/debug.h>
 #include <bx/commandline.h>
@@ -48,8 +60,8 @@ namespace bgfx
 		| kUniformCompareBit
 		;
 
-	const char* getUniformTypeName(UniformType::Enum _enum);
-	UniformType::Enum nameToUniformTypeEnum(const char* _name);
+	const char* shadercGetUniformTypeName(UniformType::Enum _enum);
+	UniformType::Enum shadercNameToUniformTypeEnum(const char* _name);
 
 	struct Uniform
 	{

@@ -10,6 +10,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <vector>
 
 /* bgfx shaderc headers */
 #include "../tools/shaderc/shaderc.h"
@@ -19,11 +20,126 @@
 #include <bx/file.h>
 #include <bx/allocator.h>
 
+namespace bgfx {
+bool compileShader(const char* _varying, const char* _comment, char* _shader, uint32_t _shaderLen, const Options& _options, bx::WriterI* _shaderWriter, bx::WriterI* _messageWriter);
+}
+
 /* ============================================================
  * Internal: File I/O wrapper
  * ============================================================ */
 
 namespace {
+
+static DoraShadercRenderer getBuiltInRenderer() {
+#if SHADERC_CONFIG_HLSL
+    return DoraShadercRenderer_Direct3D11;
+#elif SHADERC_CONFIG_METAL
+    return DoraShadercRenderer_Metal;
+#elif SHADERC_CONFIG_GLSL
+    return BX_PLATFORM_ANDROID ? DoraShadercRenderer_OpenGLES : DoraShadercRenderer_OpenGL;
+#elif SHADERC_CONFIG_SPIRV
+    return DoraShadercRenderer_Vulkan;
+#else
+    return DoraShadercRenderer_OpenGL;
+#endif
+}
+
+static DoraShadercPlatform resolvePlatform(DoraShadercPlatform platform) {
+    if (platform != DoraShadercPlatform_Auto) {
+        return platform;
+    }
+    return DoraShadercGetDefaultPlatform();
+}
+
+static const char* getBgfxPlatformName(DoraShadercPlatform platform) {
+    switch (platform) {
+        case DoraShadercPlatform_Windows:
+            return "windows";
+        case DoraShadercPlatform_macOS:
+            return "osx";
+        case DoraShadercPlatform_iOS:
+            return "ios";
+        case DoraShadercPlatform_Android:
+            return "android";
+        case DoraShadercPlatform_Linux:
+            return "linux";
+        case DoraShadercPlatform_Web:
+            return "asm.js";
+        case DoraShadercPlatform_Auto:
+        default:
+            return "";
+    }
+}
+
+static bool isRendererBuilt(DoraShadercRenderer renderer) {
+    switch (renderer) {
+        case DoraShadercRenderer_OpenGL:
+#if SHADERC_CONFIG_GLSL
+            return true;
+#else
+            return false;
+#endif
+        case DoraShadercRenderer_Metal:
+#if SHADERC_CONFIG_METAL
+            return true;
+#else
+            return false;
+#endif
+        case DoraShadercRenderer_Direct3D11:
+#if SHADERC_CONFIG_HLSL
+            return true;
+#else
+            return false;
+#endif
+        case DoraShadercRenderer_Direct3D12:
+            return false;
+        case DoraShadercRenderer_Vulkan:
+#if SHADERC_CONFIG_SPIRV
+            return true;
+#else
+            return false;
+#endif
+        default:
+            return false;
+    }
+}
+
+static const char* getShaderProfile(
+    DoraShadercStage stage,
+    DoraShadercRenderer renderer,
+    DoraShadercPlatform platform,
+    const DoraShadercOptions* options
+) {
+    switch (renderer) {
+        case DoraShadercRenderer_OpenGL:
+            if (platform == DoraShadercPlatform_Android) {
+                return stage == DoraShadercStage_Compute ? "310_es" : "300_es";
+            }
+            return "430";
+        case DoraShadercRenderer_Metal:
+            return "metal";
+        case DoraShadercRenderer_Direct3D11:
+            return stage == DoraShadercStage_Compute ? "s_5_0" : "s_4_0";
+        case DoraShadercRenderer_Direct3D12:
+            return "s_5_0";
+        case DoraShadercRenderer_Vulkan:
+            return options->spirvUseSPIRV1_4 ? "spirv14-11" : "spirv";
+        default:
+            return nullptr;
+    }
+}
+
+static std::string getDefaultVaryingDefPath(const char* sourcePath) {
+    if (!sourcePath || *sourcePath == '\0') {
+        return {};
+    }
+    bx::FilePath filePath(sourcePath);
+    const bx::StringView dir = filePath.getPath();
+    if (dir.isEmpty()) {
+        return "varying.def.sc";
+    }
+    return std::string(dir.getPtr(), dir.getTerm()) + "varying.def.sc";
+}
 
 /* Memory writer for capturing compiled output */
 class MemoryWriter : public bx::WriterI {
@@ -152,6 +268,152 @@ static char* readFile(
     return data;
 }
 
+static void trimUtf8Bom(char* data, int& size) {
+    if (size >= 3
+        && data[0] == '\xef'
+        && data[1] == '\xbb'
+        && data[2] == '\xbf') {
+        memmove(data, data + 3, (size_t)(size - 3));
+        size -= 3;
+    }
+}
+
+static DoraShadercResult compileSourceInternal(
+    const char* source,
+    int sourceSize,
+    const DoraShadercOptions* options,
+    const char* sourcePath
+) {
+    DoraShadercResult result;
+    memset(&result, 0, sizeof(result));
+
+    if (!source || !options) {
+        result.success = 0;
+        result.errorMessage = strdup("Invalid parameters: source and options must not be NULL");
+        return result;
+    }
+
+    if (sourceSize < 0) {
+        sourceSize = (int)strlen(source);
+    }
+
+    if (!isRendererBuilt(options->renderer)) {
+        std::string message = "Renderer target is not available in this DoraShaderc build: ";
+        message += DoraShadercGetRendererName(options->renderer);
+        result.errorMessage = strdup(message.c_str());
+        return result;
+    }
+
+    const DoraShadercPlatform platform = resolvePlatform(options->platform);
+    const char* profile = getShaderProfile(options->stage, options->renderer, platform, options);
+    if (!profile) {
+        result.errorMessage = strdup("Unable to resolve a shader profile for the requested renderer");
+        return result;
+    }
+
+    bgfx::Options bgfxOpts;
+    switch (options->stage) {
+        case DoraShadercStage_Vertex:
+            bgfxOpts.shaderType = 'v';
+            break;
+        case DoraShadercStage_Fragment:
+            bgfxOpts.shaderType = 'f';
+            break;
+        case DoraShadercStage_Compute:
+            bgfxOpts.shaderType = 'c';
+            break;
+        default:
+            result.errorMessage = strdup("Unsupported shader stage");
+            return result;
+    }
+
+    bgfxOpts.platform = getBgfxPlatformName(platform);
+    bgfxOpts.profile = profile;
+    bgfxOpts.inputFilePath = sourcePath ? sourcePath : "memory.sc";
+    bgfxOpts.outputFilePath.clear();
+    bgfxOpts.optimize = options->optimize != 0;
+    bgfxOpts.debugInformation = options->debug != 0;
+
+    if (options->includeDirs && options->includeDirCount > 0) {
+        for (int i = 0; i < options->includeDirCount; i++) {
+            if (options->includeDirs[i]) {
+                bgfxOpts.includeDirs.push_back(options->includeDirs[i]);
+            }
+        }
+    }
+
+    if (options->defines && options->defineCount > 0) {
+        for (int i = 0; i < options->defineCount; i++) {
+            if (options->defines[i]) {
+                bgfxOpts.defines.push_back(options->defines[i]);
+            }
+        }
+    }
+
+    std::vector<char> varyingStorage;
+    const char* varying = nullptr;
+    if (bgfxOpts.shaderType != 'c') {
+        std::string varyingPath = options->varyingDefPath ? options->varyingDefPath : "";
+        if (varyingPath.empty()) {
+            varyingPath = getDefaultVaryingDefPath(sourcePath);
+        }
+        if (!varyingPath.empty()) {
+            int varyingSize = 0;
+            char* varyingData = readFile(varyingPath.c_str(), &varyingSize, options->fileOps);
+            if (varyingData) {
+                trimUtf8Bom(varyingData, varyingSize);
+                varyingStorage.assign(varyingData, varyingData + varyingSize);
+                varyingStorage.push_back('\0');
+                varying = varyingStorage.data();
+                bgfxOpts.dependencies.push_back(varyingPath);
+                free(varyingData);
+            }
+        }
+    }
+
+    const int extraPadding = 16384;
+    std::vector<char> shaderBuffer((size_t)sourceSize + extraPadding, 0);
+    memcpy(shaderBuffer.data(), source, (size_t)sourceSize);
+    int mutableSourceSize = sourceSize;
+    trimUtf8Bom(shaderBuffer.data(), mutableSourceSize);
+    shaderBuffer[(size_t)mutableSourceSize] = '\n';
+
+    MemoryWriter bytecodeWriter;
+    StringWriter messageWriter;
+    const char* comment = "// compiled by DoraShaderc\n\n";
+
+    const bool success = bgfx::compileShader(
+        varying,
+        comment,
+        shaderBuffer.data(),
+        (uint32_t)mutableSourceSize,
+        bgfxOpts,
+        &bytecodeWriter,
+        &messageWriter);
+
+    result.success = success ? 1 : 0;
+    if (success) {
+        result.bytecodeSize = (int)bytecodeWriter.getSize();
+        result.bytecode = bytecodeWriter.release();
+        if (result.bytecode && result.bytecodeSize > 0) {
+            bx::HashMurmur2A hash;
+            hash.begin();
+            hash.add(result.bytecode, result.bytecodeSize);
+            result.hash = (uint16_t)hash.end();
+        }
+    }
+
+    if (!messageWriter.empty()) {
+        if (success) {
+            result.warningMessage = strdup(messageWriter.get().c_str());
+        } else {
+            result.errorMessage = strdup(messageWriter.get().c_str());
+        }
+    }
+
+    return result;
+}
+
 } /* anonymous namespace */
 
 /* ============================================================
@@ -169,17 +431,7 @@ void DoraShadercGetVersion(int* major, int* minor, int* patch) {
  * ============================================================ */
 
 DoraShadercRenderer DoraShadercGetDefaultRenderer(void) {
-#if BX_PLATFORM_WINDOWS
-    return DoraShadercRenderer_Direct3D11;
-#elif BX_PLATFORM_OSX || BX_PLATFORM_IOS
-    return DoraShadercRenderer_Metal;
-#elif BX_PLATFORM_ANDROID
-    return DoraShadercRenderer_OpenGLES;
-#elif BX_PLATFORM_LINUX
-    return DoraShadercRenderer_OpenGL;
-#else
-    return DoraShadercRenderer_OpenGL;
-#endif
+    return getBuiltInRenderer();
 }
 
 DoraShadercPlatform DoraShadercGetDefaultPlatform(void) {
@@ -199,34 +451,7 @@ DoraShadercPlatform DoraShadercGetDefaultPlatform(void) {
 }
 
 int DoraShadercIsRendererSupported(DoraShadercRenderer renderer) {
-    switch (renderer) {
-#if BX_PLATFORM_WINDOWS
-        case DoraShadercRenderer_Direct3D11:
-        case DoraShadercRenderer_Direct3D12:
-        case DoraShadercRenderer_OpenGL:  /* OpenGL and OpenGLES share the same value */
-        case DoraShadercRenderer_Vulkan:
-            return 1;
-#elif BX_PLATFORM_OSX
-        case DoraShadercRenderer_Metal:
-        case DoraShadercRenderer_OpenGL:
-        case DoraShadercRenderer_Vulkan:
-            return 1;
-#elif BX_PLATFORM_IOS
-        case DoraShadercRenderer_Metal:
-        case DoraShadercRenderer_OpenGL:  /* OpenGL and OpenGLES share the same value */
-            return 1;
-#elif BX_PLATFORM_ANDROID
-        case DoraShadercRenderer_OpenGL:  /* OpenGL and OpenGLES share the same value */
-        case DoraShadercRenderer_Vulkan:
-            return 1;
-#elif BX_PLATFORM_LINUX
-        case DoraShadercRenderer_OpenGL:
-        case DoraShadercRenderer_Vulkan:
-            return 1;
-#endif
-        default:
-            return 0;
-    }
+    return isRendererBuilt(renderer) ? 1 : 0;
 }
 
 /* ============================================================
@@ -278,138 +503,7 @@ DoraShadercResult DoraShadercCompile(
     int sourceSize,
     const DoraShadercOptions* options
 ) {
-    DoraShadercResult result;
-    memset(&result, 0, sizeof(result));
-    
-    if (!source || !options) {
-        result.success = 0;
-        result.errorMessage = strdup("Invalid parameters: source and options must not be NULL");
-        return result;
-    }
-    
-    /* Get source length if not provided */
-    if (sourceSize < 0) {
-        sourceSize = (int)strlen(source);
-    }
-    
-    /* Convert to bgfx shaderc options */
-    bgfx::Options bgfxOpts;
-    
-    /* Shader type */
-    switch (options->stage) {
-        case DoraShadercStage_Vertex:
-            bgfxOpts.shaderType = 'v';
-            break;
-        case DoraShadercStage_Fragment:
-            bgfxOpts.shaderType = 'f';
-            break;
-        case DoraShadercStage_Compute:
-            bgfxOpts.shaderType = 'c';
-            break;
-        default:
-            bgfxOpts.shaderType = 'v';
-            break;
-    }
-    
-    /* Platform and profile */
-    switch (options->renderer) {
-        case DoraShadercRenderer_OpenGL:
-            bgfxOpts.platform = "glsl";
-            bgfxOpts.profile = options->platform == DoraShadercPlatform_Android ? "100_es" : "430";
-            break;
-        case DoraShadercRenderer_Metal:
-            bgfxOpts.platform = "metal";
-            bgfxOpts.profile = options->metalUseMSL2 ? "metal-osx" : "metal";
-            break;
-        case DoraShadercRenderer_Direct3D11:
-            bgfxOpts.platform = "hlsl";
-            bgfxOpts.profile = "vs_5_0";
-            break;
-        case DoraShadercRenderer_Direct3D12:
-            bgfxOpts.platform = "hlsl";
-            bgfxOpts.profile = "vs_5_1";
-            break;
-        case DoraShadercRenderer_Vulkan:
-            bgfxOpts.platform = "spirv";
-            bgfxOpts.profile = options->spirvUseSPIRV1_4 ? "spirv14" : "spirv";
-            break;
-    }
-    
-    /* Include directories */
-    if (options->includeDirs && options->includeDirCount > 0) {
-        for (int i = 0; i < options->includeDirCount; i++) {
-            if (options->includeDirs[i]) {
-                bgfxOpts.includeDirs.push_back(options->includeDirs[i]);
-            }
-        }
-    }
-    
-    /* Defines */
-    if (options->defines && options->defineCount > 0) {
-        for (int i = 0; i < options->defineCount; i++) {
-            if (options->defines[i]) {
-                bgfxOpts.defines.push_back(options->defines[i]);
-            }
-        }
-    }
-    
-    /* Optimization */
-    bgfxOpts.optimize = options->optimize != 0;
-    bgfxOpts.debugInformation = options->debug != 0;
-    
-    /* Create output writers */
-    MemoryWriter bytecodeWriter;
-    StringWriter messageWriter;
-    
-    /* Copy source to string (shaderc expects std::string) */
-    std::string sourceStr(source, sourceSize);
-    
-    /* Compile based on renderer type */
-    bool success = false;
-    uint32_t version = 1;
-    
-    switch (options->renderer) {
-        case DoraShadercRenderer_OpenGL:
-            success = bgfx::compileGLSLShader(bgfxOpts, version, sourceStr, &bytecodeWriter, &messageWriter);
-            break;
-            
-        case DoraShadercRenderer_Metal:
-            success = bgfx::compileMetalShader(bgfxOpts, version, sourceStr, &bytecodeWriter, &messageWriter);
-            break;
-            
-        case DoraShadercRenderer_Direct3D11:
-        case DoraShadercRenderer_Direct3D12:
-            success = bgfx::compileHLSLShader(bgfxOpts, version, sourceStr, &bytecodeWriter, &messageWriter);
-            break;
-            
-        case DoraShadercRenderer_Vulkan:
-            success = bgfx::compileSPIRVShader(bgfxOpts, version, sourceStr, &bytecodeWriter, &messageWriter);
-            break;
-    }
-    
-    /* Fill result */
-    result.success = success ? 1 : 0;
-    
-    if (success) {
-        /* Transfer bytecode ownership */
-        result.bytecodeSize = (int)bytecodeWriter.getSize();
-        result.bytecode = bytecodeWriter.release();
-        
-        /* Calculate hash from bytecode */
-        if (result.bytecode && result.bytecodeSize > 0) {
-            bx::HashMurmur2A hash;
-            hash.begin();
-            hash.add(result.bytecode, result.bytecodeSize);
-            result.hash = (uint16_t)hash.end();
-        }
-    }
-    
-    /* Copy error/warning messages */
-    if (!messageWriter.empty()) {
-        result.errorMessage = strdup(messageWriter.get().c_str());
-    }
-    
-    return result;
+    return compileSourceInternal(source, sourceSize, options, nullptr);
 }
 
 DoraShadercResult DoraShadercCompileFromFile(
@@ -437,11 +531,8 @@ DoraShadercResult DoraShadercCompileFromFile(
         return result;
     }
     
-    /* Compile */
     DoraShadercOptions opts = *options;
-    opts.fileOps = nullptr;  /* Already read the file */
-    
-    result = DoraShadercCompile(source, sourceSize, &opts);
+    result = compileSourceInternal(source, sourceSize, &opts, sourceFile);
     
     free(source);
     return result;

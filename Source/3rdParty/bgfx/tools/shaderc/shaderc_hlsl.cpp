@@ -766,7 +766,7 @@ namespace bgfx { namespace hlsl
 
 				BX_TRACE("%s, %s, %d, %d, %d"
 					, un.name.c_str()
-					, getUniformTypeName(UniformType::Enum(un.type & ~kUniformMask))
+					, shadercGetUniformTypeName(UniformType::Enum(un.type & ~kUniformMask))
 					, un.num
 					, un.regIndex
 					, un.regCount
