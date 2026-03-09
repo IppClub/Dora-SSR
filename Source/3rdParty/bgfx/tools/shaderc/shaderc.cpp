@@ -2646,6 +2646,7 @@ namespace bgfx
 		return compiled;
 	}
 
+	#if SHADERC_CONFIG_CLI
 	int compileShader(int _argc, const char* _argv[])
 	{
 		bx::CommandLine cmdLine(_argc, _argv);
@@ -2926,10 +2927,13 @@ namespace bgfx
 		bx::printf("Failed to build shader.\n");
 		return bx::kExitFailure;
 	}
+	#endif // SHADERC_CONFIG_CLI
 
 } // namespace bgfx
 
+#if SHADERC_CONFIG_CLI
 int main(int _argc, const char* _argv[])
 {
 	return bgfx::compileShader(_argc, _argv);
 }
+#endif // SHADERC_CONFIG_CLI

@@ -27,6 +27,10 @@ namespace bgfx
 #	define SHADERC_CONFIG_SPIRV 1
 #endif // SHADERC_CONFIG_SPIRV
 
+#ifndef SHADERC_CONFIG_CLI
+#	define SHADERC_CONFIG_CLI 1
+#endif // SHADERC_CONFIG_CLI
+
 #include <bx/bx.h>
 #include <bx/debug.h>
 #include <bx/commandline.h>
