@@ -675,4 +675,4 @@ add_executable(dora-ssr
 	../../Source/3rdParty/tic80/vendor/blip-buf/blip_wasm_host.cpp
 )
 
-target_link_libraries(dora-ssr z dl pthread rt ${SDL2_LIBRARIES} BGFX-lib BIMGDE-lib BIMG-lib BX-lib FCPP-lib GLSLO-lib SHADERC-lib GL X11 OpenSSL::SSL OpenSSL::Crypto ${DBUS_LINK_LIBRARIES} DORA-lib WA-lib)
+target_link_libraries(dora-ssr z dl pthread rt ${SDL2_LIBRARIES} BGFX-lib BIMGDE-lib BIMG-lib SHADERC-lib GLSLO-lib FCPP-lib BX-lib GL X11 OpenSSL::SSL OpenSSL::Crypto ${DBUS_LINK_LIBRARIES} DORA-lib WA-lib)

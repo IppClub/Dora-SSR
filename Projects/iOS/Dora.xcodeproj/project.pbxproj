@@ -167,6 +167,24 @@
 		3C0FB71C2BF1970C0098E88D /* bgfxrenderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB6792BF1970C0098E88D /* bgfxrenderer.cpp */; };
 		3C10306C2F5F16210029F68F /* ShaderCompiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C10306B2F5F16210029F68F /* ShaderCompiler.cpp */; };
 		3C10306D2F5F16210029F68F /* ShaderCompiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C10306B2F5F16210029F68F /* ShaderCompiler.cpp */; };
+		3C10306E2F5F243F0029F68F /* libbgfx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F1D26087FB3003F4F45 /* libbgfx.a */; };
+		3C10306F2F5F243F0029F68F /* libbimg_decode.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F1C26087FB3003F4F45 /* libbimg_decode.a */; };
+		3C1030702F5F243F0029F68F /* libbimg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F1A26087FB3003F4F45 /* libbimg.a */; };
+		3C1030712F5F243F0029F68F /* libbx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F1B26087FB3003F4F45 /* libbx.a */; };
+		3C1030772F5F24400029F68F /* libspirv-cross.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C1030722F5F243F0029F68F /* libspirv-cross.a */; };
+		3C1030782F5F24400029F68F /* libspirv-opt.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C1030732F5F243F0029F68F /* libspirv-opt.a */; };
+		3C1030792F5F24400029F68F /* libglslang.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C1030742F5F243F0029F68F /* libglslang.a */; };
+		3C10307A2F5F24400029F68F /* libfcpp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C1030752F5F243F0029F68F /* libfcpp.a */; };
+		3C10307B2F5F24400029F68F /* libshaderc-lib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C1030762F5F243F0029F68F /* libshaderc-lib.a */; };
+		3C10307C2F5F24580029F68F /* libbgfx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CA780962AE770DC00B7BADA /* libbgfx.a */; };
+		3C10307D2F5F24580029F68F /* libbimg_decode.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CA780982AE770DC00B7BADA /* libbimg_decode.a */; };
+		3C10307E2F5F24580029F68F /* libbimg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CA780972AE770DC00B7BADA /* libbimg.a */; };
+		3C10307F2F5F24580029F68F /* libbx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CA780992AE770DC00B7BADA /* libbx.a */; };
+		3C1030852F5F24590029F68F /* libfcpp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C1030802F5F24590029F68F /* libfcpp.a */; };
+		3C1030862F5F24590029F68F /* libspirv-cross.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C1030812F5F24590029F68F /* libspirv-cross.a */; };
+		3C1030872F5F24590029F68F /* libshaderc-lib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C1030822F5F24590029F68F /* libshaderc-lib.a */; };
+		3C1030882F5F24590029F68F /* libglslang.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C1030832F5F24590029F68F /* libglslang.a */; };
+		3C1030892F5F24590029F68F /* libspirv-opt.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C1030842F5F24590029F68F /* libspirv-opt.a */; };
 		3C1038012F0E0E3300395953 /* luaapi.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C1037C62F0E0E3300395953 /* luaapi.c */; };
 		3C1038022F0E0E3300395953 /* tilesheet.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C1037FC2F0E0E3300395953 /* tilesheet.c */; };
 		3C1038032F0E0E3300395953 /* sound.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C1037E02F0E0E3300395953 /* sound.c */; };
@@ -1120,10 +1138,6 @@
 		3CA780932AE66FB000B7BADA /* MovementConf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA780002AE66FB000B7BADA /* MovementConf.cpp */; };
 		3CA780942AE66FB000B7BADA /* StackAllocator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA780012AE66FB000B7BADA /* StackAllocator.cpp */; };
 		3CA780952AE66FB000B7BADA /* StackAllocator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA780012AE66FB000B7BADA /* StackAllocator.cpp */; };
-		3CA7809A2AE770DC00B7BADA /* libbgfx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CA780962AE770DC00B7BADA /* libbgfx.a */; };
-		3CA7809B2AE770DC00B7BADA /* libbimg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CA780972AE770DC00B7BADA /* libbimg.a */; };
-		3CA7809C2AE770DC00B7BADA /* libbimg_decode.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CA780982AE770DC00B7BADA /* libbimg_decode.a */; };
-		3CA7809D2AE770DC00B7BADA /* libbx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CA780992AE770DC00B7BADA /* libbx.a */; };
 		3CA7809F2AE770EE00B7BADA /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CA7809E2AE770EE00B7BADA /* libSDL2.a */; };
 		3CA780A32AEB88B600B7BADA /* LICENSES in Resources */ = {isa = PBXBuildFile; fileRef = 3CA780A22AEB88B600B7BADA /* LICENSES */; };
 		3CA780A42AEB88B600B7BADA /* LICENSES in Resources */ = {isa = PBXBuildFile; fileRef = 3CA780A22AEB88B600B7BADA /* LICENSES */; };
@@ -1144,10 +1158,6 @@
 		3CBE0F0126087F7B003F4F45 /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE3316F1D96D92700F9C3F6 /* CoreMotion.framework */; };
 		3CBE0F0826087F7B003F4F45 /* Font in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CF324CAE6570074786E /* Font */; };
 		3CBE0F0926087F7B003F4F45 /* Script in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CF024CAE6570074786E /* Script */; };
-		3CBE0F1E26087FB3003F4F45 /* libbimg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F1A26087FB3003F4F45 /* libbimg.a */; };
-		3CBE0F1F26087FB3003F4F45 /* libbx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F1B26087FB3003F4F45 /* libbx.a */; };
-		3CBE0F2026087FB3003F4F45 /* libbimg_decode.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F1C26087FB3003F4F45 /* libbimg_decode.a */; };
-		3CBE0F2126087FB3003F4F45 /* libbgfx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F1D26087FB3003F4F45 /* libbgfx.a */; };
 		3CBE0F4D26088937003F4F45 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F2226087FC8003F4F45 /* libSDL2.a */; };
 		3CBE0F5126088B89003F4F45 /* CoreHaptics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F5026088B89003F4F45 /* CoreHaptics.framework */; };
 		3CBE0F762608983E003F4F45 /* CoreHaptics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F5026088B89003F4F45 /* CoreHaptics.framework */; };
@@ -1443,6 +1453,16 @@
 		3C0FB67F2BF1970C0098E88D /* Effekseer.SIMD.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.SIMD.h; sourceTree = "<group>"; };
 		3C10306A2F5F16210029F68F /* ShaderCompiler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShaderCompiler.h; sourceTree = "<group>"; };
 		3C10306B2F5F16210029F68F /* ShaderCompiler.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ShaderCompiler.cpp; sourceTree = "<group>"; };
+		3C1030722F5F243F0029F68F /* libspirv-cross.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libspirv-cross.a"; path = "../../Source/3rdParty/bgfx/build/ios/simulator/libspirv-cross.a"; sourceTree = "<group>"; };
+		3C1030732F5F243F0029F68F /* libspirv-opt.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libspirv-opt.a"; path = "../../Source/3rdParty/bgfx/build/ios/simulator/libspirv-opt.a"; sourceTree = "<group>"; };
+		3C1030742F5F243F0029F68F /* libglslang.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libglslang.a; path = ../../Source/3rdParty/bgfx/build/ios/simulator/libglslang.a; sourceTree = "<group>"; };
+		3C1030752F5F243F0029F68F /* libfcpp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfcpp.a; path = ../../Source/3rdParty/bgfx/build/ios/simulator/libfcpp.a; sourceTree = "<group>"; };
+		3C1030762F5F243F0029F68F /* libshaderc-lib.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libshaderc-lib.a"; path = "../../Source/3rdParty/bgfx/build/ios/simulator/libshaderc-lib.a"; sourceTree = "<group>"; };
+		3C1030802F5F24590029F68F /* libfcpp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfcpp.a; path = ../../Source/3rdParty/bgfx/build/ios/device/libfcpp.a; sourceTree = "<group>"; };
+		3C1030812F5F24590029F68F /* libspirv-cross.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libspirv-cross.a"; path = "../../Source/3rdParty/bgfx/build/ios/device/libspirv-cross.a"; sourceTree = "<group>"; };
+		3C1030822F5F24590029F68F /* libshaderc-lib.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libshaderc-lib.a"; path = "../../Source/3rdParty/bgfx/build/ios/device/libshaderc-lib.a"; sourceTree = "<group>"; };
+		3C1030832F5F24590029F68F /* libglslang.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libglslang.a; path = ../../Source/3rdParty/bgfx/build/ios/device/libglslang.a; sourceTree = "<group>"; };
+		3C1030842F5F24590029F68F /* libspirv-opt.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libspirv-opt.a"; path = "../../Source/3rdParty/bgfx/build/ios/device/libspirv-opt.a"; sourceTree = "<group>"; };
 		3C1037C42F0E0E3300395953 /* lua.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lua.c; sourceTree = "<group>"; };
 		3C1037C52F0E0E3300395953 /* luaapi.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = luaapi.h; sourceTree = "<group>"; };
 		3C1037C62F0E0E3300395953 /* luaapi.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = luaapi.c; sourceTree = "<group>"; };
@@ -2655,15 +2675,20 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3C1030772F5F24400029F68F /* libspirv-cross.a in Frameworks */,
+				3C1030782F5F24400029F68F /* libspirv-opt.a in Frameworks */,
+				3C1030792F5F24400029F68F /* libglslang.a in Frameworks */,
+				3C10307A2F5F24400029F68F /* libfcpp.a in Frameworks */,
+				3C10307B2F5F24400029F68F /* libshaderc-lib.a in Frameworks */,
+				3C10306E2F5F243F0029F68F /* libbgfx.a in Frameworks */,
+				3C10306F2F5F243F0029F68F /* libbimg_decode.a in Frameworks */,
+				3C1030702F5F243F0029F68F /* libbimg.a in Frameworks */,
+				3C1030712F5F243F0029F68F /* libbx.a in Frameworks */,
 				3CE471C72DD2EF8A0036716C /* libwa.a in Frameworks */,
 				3CBE70012CFA185400A1C497 /* libdora_runtime.a in Frameworks */,
 				3C7FA3772B68A1F0005A8441 /* libssl.a in Frameworks */,
 				3C7FA3782B68A1F0005A8441 /* libcrypto.a in Frameworks */,
 				3CBE0F4D26088937003F4F45 /* libSDL2.a in Frameworks */,
-				3CBE0F1E26087FB3003F4F45 /* libbimg.a in Frameworks */,
-				3CBE0F1F26087FB3003F4F45 /* libbx.a in Frameworks */,
-				3CBE0F2026087FB3003F4F45 /* libbimg_decode.a in Frameworks */,
-				3CBE0F2126087FB3003F4F45 /* libbgfx.a in Frameworks */,
 				3CBE0EF726087F7B003F4F45 /* Metal.framework in Frameworks */,
 				3CBE0F5126088B89003F4F45 /* CoreHaptics.framework in Frameworks */,
 				3CBE0EF826087F7B003F4F45 /* CoreAudio.framework in Frameworks */,
@@ -2683,15 +2708,20 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3C1030852F5F24590029F68F /* libfcpp.a in Frameworks */,
+				3C1030862F5F24590029F68F /* libspirv-cross.a in Frameworks */,
+				3C1030872F5F24590029F68F /* libshaderc-lib.a in Frameworks */,
+				3C1030882F5F24590029F68F /* libglslang.a in Frameworks */,
+				3C1030892F5F24590029F68F /* libspirv-opt.a in Frameworks */,
+				3C10307C2F5F24580029F68F /* libbgfx.a in Frameworks */,
+				3C10307D2F5F24580029F68F /* libbimg_decode.a in Frameworks */,
+				3C10307E2F5F24580029F68F /* libbimg.a in Frameworks */,
+				3C10307F2F5F24580029F68F /* libbx.a in Frameworks */,
 				3CE471CA2DD2EFDE0036716C /* libwa.a in Frameworks */,
 				3CBE6FFF2CFA183F00A1C497 /* libdora_runtime.a in Frameworks */,
 				3C7FA3732B68A1DE005A8441 /* libcrypto.a in Frameworks */,
 				3C7FA3742B68A1DE005A8441 /* libssl.a in Frameworks */,
 				3CA7809F2AE770EE00B7BADA /* libSDL2.a in Frameworks */,
-				3CA7809A2AE770DC00B7BADA /* libbgfx.a in Frameworks */,
-				3CA7809B2AE770DC00B7BADA /* libbimg.a in Frameworks */,
-				3CA7809C2AE770DC00B7BADA /* libbimg_decode.a in Frameworks */,
-				3CA7809D2AE770DC00B7BADA /* libbx.a in Frameworks */,
 				3CD210611E663F8B004676F1 /* Metal.framework in Frameworks */,
 				3CBE0F762608983E003F4F45 /* CoreHaptics.framework in Frameworks */,
 				3CE3317C1D96D98D00F9C3F6 /* CoreAudio.framework in Frameworks */,
@@ -4574,6 +4604,16 @@
 		3C98626E1D9CA4500056A045 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				3C1030752F5F243F0029F68F /* libfcpp.a */,
+				3C1030742F5F243F0029F68F /* libglslang.a */,
+				3C1030832F5F24590029F68F /* libglslang.a */,
+				3C1030762F5F243F0029F68F /* libshaderc-lib.a */,
+				3C1030822F5F24590029F68F /* libshaderc-lib.a */,
+				3C1030722F5F243F0029F68F /* libspirv-cross.a */,
+				3C1030732F5F243F0029F68F /* libspirv-opt.a */,
+				3C1030802F5F24590029F68F /* libfcpp.a */,
+				3C1030812F5F24590029F68F /* libspirv-cross.a */,
+				3C1030842F5F24590029F68F /* libspirv-opt.a */,
 				3CE471C62DD2EF8A0036716C /* libwa.a */,
 				3CE471C82DD2EF9B0036716C /* libwa.a */,
 				3CBE6FFE2CFA183F00A1C497 /* libdora_runtime.a */,

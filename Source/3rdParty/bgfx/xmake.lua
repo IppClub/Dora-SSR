@@ -1058,6 +1058,7 @@ target("shaderc-lib")
 
     if is_plat("windows") then
         add_defines(
+            "SHADERC_CONFIG_CLI=0",
             "SHADERC_CONFIG_HLSL=1",
             "SHADERC_CONFIG_GLSL=0",
             "SHADERC_CONFIG_METAL=0",
@@ -1066,6 +1067,7 @@ target("shaderc-lib")
         add_deps("bx", "fcpp")
     elseif is_plat("macosx", "iphoneos") then
         add_defines(
+            "SHADERC_CONFIG_CLI=0",
             "SHADERC_CONFIG_HLSL=0",
             "SHADERC_CONFIG_GLSL=0",
             "SHADERC_CONFIG_METAL=1",
@@ -1074,6 +1076,7 @@ target("shaderc-lib")
         add_deps("bx", "fcpp", "glslang", "spirv-cross")
     elseif is_plat("linux", "android") then
         add_defines(
+            "SHADERC_CONFIG_CLI=0",
             "SHADERC_CONFIG_HLSL=0",
             "SHADERC_CONFIG_GLSL=1",
             "SHADERC_CONFIG_METAL=0",
