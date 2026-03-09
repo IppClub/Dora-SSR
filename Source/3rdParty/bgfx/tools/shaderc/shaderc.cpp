@@ -304,7 +304,7 @@ namespace bgfx
 		NULL
 	};
 
-	const char* s_uniformTypeName[] =
+	static const char* s_uniformTypeName[] =
 	{
 		"int",  "int",
 		NULL,   NULL,
@@ -342,7 +342,7 @@ namespace bgfx
 		NULL
 	};
 
-	void fatal(const char* _filePath, uint16_t _line, Fatal::Enum _code, const char* _format, ...)
+	static void fatal(const char* _filePath, uint16_t _line, Fatal::Enum _code, const char* _format, ...)
 	{
 		BX_UNUSED(_filePath, _line, _code);
 
@@ -356,7 +356,7 @@ namespace bgfx
 		abort();
 	}
 
-	void trace(const char* _filePath, uint16_t _line, const char* _format, ...)
+	static void trace(const char* _filePath, uint16_t _line, const char* _format, ...)
 	{
 		BX_UNUSED(_filePath, _line);
 
@@ -460,7 +460,7 @@ namespace bgfx
 		return _glsl; // centroid, noperspective
 	}
 
-	const char* getUniformTypeName(UniformType::Enum _enum)
+	const char* shadercGetUniformTypeName(UniformType::Enum _enum)
 	{
 		uint32_t idx = _enum & ~(kUniformFragmentBit|kUniformSamplerBit);
 		if (idx < UniformType::Count)
@@ -471,7 +471,7 @@ namespace bgfx
 		return "Unknown uniform type?!";
 	}
 
-	UniformType::Enum nameToUniformTypeEnum(const char* _name)
+	UniformType::Enum shadercNameToUniformTypeEnum(const char* _name)
 	{
 		for (uint32_t ii = 0; ii < UniformType::Count*2; ++ii)
 		{

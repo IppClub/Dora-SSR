@@ -5,6 +5,8 @@
 
 #include "shaderc.h"
 
+#if SHADERC_CONFIG_SPIRV
+
 #include <iostream> // std::cout
 
 BX_PRAGMA_DIAGNOSTIC_PUSH()
@@ -368,7 +370,7 @@ namespace bgfx { namespace spirv
 
 			BX_TRACE("%s, %s, %d, %d, %d"
 				, un.name.c_str()
-				, getUniformTypeName(UniformType::Enum(un.type & ~kUniformMask))
+				, shadercGetUniformTypeName(UniformType::Enum(un.type & ~kUniformMask))
 				, un.num
 				, un.regIndex
 				, un.regCount
@@ -901,3 +903,19 @@ namespace bgfx { namespace spirv
 	}
 
 } // namespace bgfx
+
+#else
+
+namespace bgfx
+{
+	bool compileSPIRVShader(const Options& _options, uint32_t _version, const std::string& _code, bx::WriterI* _shaderWriter, bx::WriterI* _messageWriter)
+	{
+		BX_UNUSED(_options, _version, _code, _shaderWriter);
+		bx::Error messageErr;
+		bx::write(_messageWriter, &messageErr, "SPIR-V compiler is not supported on this platform.\n");
+		return false;
+	}
+
+} // namespace bgfx
+
+#endif // SHADERC_CONFIG_SPIRV

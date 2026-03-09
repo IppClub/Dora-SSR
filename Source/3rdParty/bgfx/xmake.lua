@@ -57,8 +57,8 @@ local function add_apple_flags()
         return
     end
 
-    add_cxflags("-Wfatal-errors", "-Wunused-value", "-Wundef", {force = true})
-    add_mxflags("-Wfatal-errors", "-Wunused-value", "-Wundef", {force = true})
+    add_cxflags("-Wfatal-errors", "-Wunused-value", "-Wundef", "-Wno-constant-logical-operand", {force = true})
+    add_mxflags("-Wfatal-errors", "-Wunused-value", "-Wundef", "-Wno-constant-logical-operand", {force = true})
 
     if is_plat("macosx") and is_arch("x86_64") then
         add_cxflags("-msse4.2", {force = true})
@@ -86,6 +86,7 @@ local function add_android_flags()
         "-ffunction-sections",
         "-fdata-sections",
         "-Wundef",
+        "-Wno-constant-logical-operand",
         "-Wunused-value",
         "-Wa,--noexecstack",
         "-no-canonical-prefixes",
@@ -518,11 +519,11 @@ local glslang_spirv_cinterface_src = {
 
 local shaderc_src = {
     "tools/shaderc/shaderc.cpp",
-    "tools/shaderc/shaderc_glsl.cpp",
     "tools/shaderc/shaderc_hlsl.cpp",
     "tools/shaderc/shaderc_metal.cpp",
-    "tools/shaderc/shaderc_pssl.cpp",
     "tools/shaderc/shaderc_spirv.cpp",
+    "tools/shaderc/shaderc_glsl.cpp",
+	 "tools/shaderc/shaderc_pssl.cpp",
 }
 
 -- 平台相关链接库
@@ -676,6 +677,7 @@ local FCPP_DIR = path.join(BGFX_DIR, "3rdparty/fcpp")
 -- fcpp - C 预处理器
 target("fcpp")
     set_kind("static")
+    set_default(false)
     set_languages("c11")
     add_common_target_settings({c_only = true})
     
@@ -704,6 +706,7 @@ target("fcpp")
 -- spirv-cross
 target("spirv-cross")
     set_kind("static")
+    set_default(false)
     add_common_target_settings()
     
     add_defines("SPIRV_CROSS_EXCEPTIONS_TO_ASSERTIONS")
@@ -730,6 +733,7 @@ target("spirv-cross")
 -- spirv-opt (来自 spirv-tools)
 target("spirv-opt")
     set_kind("static")
+    set_default(false)
     add_common_target_settings()
     
     add_includedirs(
@@ -789,6 +793,7 @@ target("spirv-opt")
 -- glslang - GLSL/HLSL 解析器
 target("glslang")
     set_kind("static")
+    set_default(false)
     add_deps("spirv-opt")
     add_common_target_settings()
     
@@ -866,6 +871,7 @@ target("glslang")
 -- glsl-optimizer
 target("glsl_optimizer")
     set_kind("static")
+    set_default(false)
     set_languages(CXX_LANGUAGE_STANDARD)
     add_common_target_settings()
 
@@ -978,6 +984,7 @@ target("glsl_optimizer")
         path.join(GLSL_OPTIMIZER_DIR, "src/glsl/lower_instructions.cpp"),
         path.join(GLSL_OPTIMIZER_DIR, "src/glsl/lower_jumps.cpp"),
         path.join(GLSL_OPTIMIZER_DIR, "src/glsl/lower_mat_op_to_vec.cpp"),
+        path.join(GLSL_OPTIMIZER_DIR, "src/glsl/lower_named_interface_blocks.cpp"),
         path.join(GLSL_OPTIMIZER_DIR, "src/glsl/lower_noise.cpp"),
         path.join(GLSL_OPTIMIZER_DIR, "src/glsl/lower_offset_array.cpp"),
         path.join(GLSL_OPTIMIZER_DIR, "src/glsl/lower_output_reads.cpp"),
@@ -1015,7 +1022,8 @@ target("glsl_optimizer")
         path.join(GLSL_OPTIMIZER_DIR, "src/glsl/opt_swizzle_swizzle.cpp"),
         path.join(GLSL_OPTIMIZER_DIR, "src/glsl/opt_tree_grafting.cpp"),
         path.join(GLSL_OPTIMIZER_DIR, "src/glsl/opt_vectorize.cpp"),
-        path.join(GLSL_OPTIMIZER_DIR, "src/glsl/s_expression.cpp")
+        path.join(GLSL_OPTIMIZER_DIR, "src/glsl/s_expression.cpp"),
+        path.join(GLSL_OPTIMIZER_DIR, "src/glsl/standalone_scaffolding.cpp")
     )
     
     if not is_plat("windows") then
@@ -1046,8 +1054,33 @@ target("glsl_optimizer")
 -- shaderc-lib - 着色器编译静态库
 target("shaderc-lib")
     set_kind("static")
-    add_deps("bx", "fcpp", "glslang", "glsl_optimizer", "spirv-cross")
     add_common_target_settings()
+
+    if is_plat("windows") then
+        add_defines(
+            "SHADERC_CONFIG_HLSL=1",
+            "SHADERC_CONFIG_GLSL=0",
+            "SHADERC_CONFIG_METAL=0",
+            "SHADERC_CONFIG_SPIRV=0"
+        )
+        add_deps("bx", "fcpp")
+    elseif is_plat("macosx", "iphoneos") then
+        add_defines(
+            "SHADERC_CONFIG_HLSL=0",
+            "SHADERC_CONFIG_GLSL=0",
+            "SHADERC_CONFIG_METAL=1",
+            "SHADERC_CONFIG_SPIRV=0"
+        )
+        add_deps("bx", "fcpp", "glslang", "spirv-cross")
+    elseif is_plat("linux", "android") then
+        add_defines(
+            "SHADERC_CONFIG_HLSL=0",
+            "SHADERC_CONFIG_GLSL=1",
+            "SHADERC_CONFIG_METAL=0",
+            "SHADERC_CONFIG_SPIRV=0"
+        )
+        add_deps("bx", "fcpp", "glsl_optimizer")
+    end
     
     add_includedirs(
         path.join(BIMG_DIR, "include"),
@@ -1062,58 +1095,16 @@ target("shaderc-lib")
         path.join(SPIRV_TOOLS_DIR, "include")
     )
     
-    -- Windows 特定包含
-    if is_plat("windows") then
-        add_includedirs(path.join(BGFX_DIR, "3rdparty/dxsdk/include"))
-    end
-    
     add_files(table.unpack(resolve_sources(BGFX_DIR, shaderc_src)))
+
     add_files(
         path.join(BGFX_DIR, "src/vertexlayout.cpp"),
         path.join(BGFX_DIR, "src/shader.cpp"),
         path.join(BGFX_DIR, "src/shader_dxbc.cpp"),
-        path.join(BGFX_DIR, "src/shader_spirv.cpp")
-    )
-    
-    if is_plat("macosx") then
-        add_frameworks("Cocoa")
-    elseif is_plat("linux", "android") then
-        add_syslinks("pthread")
-        add_cxxflags("-fPIC", {force = true})
-    end
-
--- dora-shaderc - Dora 引擎着色器编译 API
--- C API 封装，支持运行时着色器编译
-target("dora-shaderc")
-    set_kind("static")
-    add_deps("shaderc-lib", "bx")
-    add_common_target_settings()
-    
-    -- 头文件目录
-    add_includedirs(
-        path.join(BGFX_DIR, "dora"),
-        path.join(BGFX_DIR, "include"),
-        path.join(BGFX_DIR, "tools/shaderc"),
-        path.join(BIMG_DIR, "include"),
-        path.join(BX_DIR, "include"),
-        path.join(GLSLANG_DIR, "glslang/Public"),
-        path.join(GLSLANG_DIR, "glslang/Include"),
-        GLSLANG_DIR,
-        SPIRV_CROSS_DIR,
-        path.join(SPIRV_TOOLS_DIR, "include")
-    )
-    
-    -- Windows 特定
-    if is_plat("windows") then
-        add_includedirs(path.join(BGFX_DIR, "3rdparty/dxsdk/include"))
-    end
-    
-    -- 源文件
-    add_files(
+        path.join(BGFX_DIR, "src/shader_spirv.cpp"),
         path.join(BGFX_DIR, "dora/DoraShaderc.cpp")
     )
     
-    -- 平台特定设置
     if is_plat("macosx") then
         add_frameworks("Cocoa")
     elseif is_plat("linux", "android") then

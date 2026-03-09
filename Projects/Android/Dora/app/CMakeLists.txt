@@ -1,15 +1,13 @@
 cmake_minimum_required(VERSION 3.5.0)
 project(Dora-SSR)
 
-set(DORA_BGFX_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../../../Source/3rdParty/bgfx)
-
 include_directories(
 	src/main/cpp
 	src/main/cpp/3rdParty
 	src/main/cpp/3rdParty/SDL2/Header
 	src/main/cpp/3rdParty/bx/include
 	src/main/cpp/3rdParty/bimg/include
-	${DORA_BGFX_ROOT}/include
+	src/main/cpp/3rdParty/bgfx/include
 	src/main/cpp/3rdParty/Lua
 	src/main/cpp/3rdParty/Zip
 	src/main/cpp/3rdParty/soloud
@@ -31,6 +29,8 @@ set_target_properties(
 	SDL2-lib PROPERTIES IMPORTED_LOCATION
 	${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/3rdParty/SDL2/Lib/Android/${ANDROID_ABI}/libSDL2.so
 )
+
+set(DORA_BGFX_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/3rdParty/bgfx)
 
 add_library(BGFX-lib STATIC IMPORTED)
 set_target_properties(
@@ -54,6 +54,24 @@ add_library(BIMGDE-lib STATIC IMPORTED)
 set_target_properties(
 	BIMGDE-lib PROPERTIES IMPORTED_LOCATION
 	${DORA_BGFX_ROOT}/build/android/${ANDROID_ABI}/libbimg_decode.a
+)
+
+add_library(FCPP-lib STATIC IMPORTED)
+set_target_properties(
+	FCPP-lib PROPERTIES IMPORTED_LOCATION
+	${DORA_BGFX_ROOT}/build/android/${ANDROID_ABI}/libfcpp.a
+)
+
+add_library(GLSLO-lib STATIC IMPORTED)
+set_target_properties(
+	GLSLO-lib PROPERTIES IMPORTED_LOCATION
+	${DORA_BGFX_ROOT}/build/android/${ANDROID_ABI}/libglsl_optimizer.a
+)
+
+add_library(SHADERC-lib STATIC IMPORTED)
+set_target_properties(
+	SHADERC-lib PROPERTIES IMPORTED_LOCATION
+	${DORA_BGFX_ROOT}/build/android/${ANDROID_ABI}/libshaderc-lib.a
 )
 
 add_library(SSL-lib STATIC IMPORTED)
@@ -149,6 +167,7 @@ add_library(main SHARED
 	src/main/cpp/Render/VGRender.cpp
 	src/main/cpp/Render/View.cpp
 	src/main/cpp/Shader/Builtin.cpp
+	src/main/cpp/Shader/ShaderCompiler.cpp
 	src/main/cpp/Physics/Joint.cpp
 	src/main/cpp/Physics/BodyDef.cpp
 	src/main/cpp/Physics/JointDef.cpp
@@ -643,4 +662,4 @@ add_library(main SHARED
 	src/main/cpp/3rdParty/tic80/vendor/blip-buf/blip_wasm_host.cpp
 )
 
-target_link_libraries(main android log EGL z GLESv1_CM GLESv2 SDL2-lib BGFX-lib BIMGDE-lib BIMG-lib BX-lib CRYPTO-lib SSL-lib DORA-lib)
+target_link_libraries(main android log EGL z GLESv1_CM GLESv2 SDL2-lib BGFX-lib BIMGDE-lib BIMG-lib BX-lib FCPP-lib GLSLO-lib SHADERC-lib CRYPTO-lib SSL-lib DORA-lib)

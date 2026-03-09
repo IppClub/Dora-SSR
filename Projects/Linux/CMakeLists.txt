@@ -70,6 +70,24 @@ set_target_properties(
 	${DORA_BGFX_BUILD_DIR}/libbimg_decode.a
 )
 
+add_library(FCPP-lib STATIC IMPORTED)
+set_target_properties(
+	FCPP-lib PROPERTIES IMPORTED_LOCATION
+	${DORA_BGFX_BUILD_DIR}/libfcpp.a
+)
+
+add_library(GLSLO-lib STATIC IMPORTED)
+set_target_properties(
+	GLSLO-lib PROPERTIES IMPORTED_LOCATION
+	${DORA_BGFX_BUILD_DIR}/libglsl_optimizer.a
+)
+
+add_library(SHADERC-lib STATIC IMPORTED)
+set_target_properties(
+	SHADERC-lib PROPERTIES IMPORTED_LOCATION
+	${DORA_BGFX_BUILD_DIR}/libshaderc-lib.a
+)
+
 add_library(WA-lib STATIC IMPORTED)
 set_target_properties(
 	WA-lib PROPERTIES IMPORTED_LOCATION
@@ -161,6 +179,7 @@ add_executable(dora-ssr
 	../../Source/Render/VGRender.cpp
 	../../Source/Render/View.cpp
 	../../Source/Shader/Builtin.cpp
+	../../Source/Shader/ShaderCompiler.cpp
 	../../Source/Physics/Joint.cpp
 	../../Source/Physics/BodyDef.cpp
 	../../Source/Physics/JointDef.cpp
@@ -656,4 +675,4 @@ add_executable(dora-ssr
 	../../Source/3rdParty/tic80/vendor/blip-buf/blip_wasm_host.cpp
 )
 
-target_link_libraries(dora-ssr z dl pthread rt ${SDL2_LIBRARIES} BGFX-lib BIMGDE-lib BIMG-lib BX-lib GL X11 OpenSSL::SSL OpenSSL::Crypto ${DBUS_LINK_LIBRARIES} DORA-lib WA-lib)
+target_link_libraries(dora-ssr z dl pthread rt ${SDL2_LIBRARIES} BGFX-lib BIMGDE-lib BIMG-lib BX-lib FCPP-lib GLSLO-lib SHADERC-lib GL X11 OpenSSL::SSL OpenSSL::Crypto ${DBUS_LINK_LIBRARIES} DORA-lib WA-lib)

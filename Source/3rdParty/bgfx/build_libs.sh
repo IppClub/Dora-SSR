@@ -8,7 +8,21 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
 # 目标库列表 (必须与 xmake.lua 中的 target 名称一致)
-LIBS="bx bimg bimg_decode bgfx fcpp spirv-cross spirv-opt glslang glsl_optimizer shaderc-lib dora-shaderc"
+get_libs_for_platform() {
+    local platform=$1
+    local libs="bx bimg bimg_decode bgfx fcpp shaderc-lib"
+
+    case "$platform" in
+        macosx|iphoneos)
+            libs="$libs spirv-cross spirv-opt glslang"
+            ;;
+        linux|android)
+            libs="$libs glsl_optimizer"
+            ;;
+    esac
+
+    echo "$libs"
+}
 
 # 颜色输出
 RED='\033[0;31m'
@@ -47,12 +61,15 @@ build_arch() {
 
     log_info "Building for $platform ($arch) ${extra_opts}..."
     xmake f -p "$platform" -a "$arch" -m "$mode" -y $extra_opts
-    xmake -j8
+    xmake build -j 8 bgfx
+    xmake build -j 8 shaderc-lib
 }
 
 # macOS: 编译 arm64 和 x86_64，合成 fat lib
 build_macos() {
     log_info "=== Building macOS (Universal) ==="
+    local libs
+    libs=$(get_libs_for_platform "macosx")
     
     clean_build
     
@@ -66,7 +83,7 @@ build_macos() {
     # 合成 fat lib
     log_info "Creating fat libraries..."
     mkdir -p build/macosx/universal
-    for lib in $LIBS; do
+    for lib in $libs; do
         lipo -create \
             build/macosx/arm64/release/lib${lib}.a \
             build/macosx/x86_64/release/lib${lib}.a \
@@ -80,6 +97,8 @@ build_macos() {
 # iOS: 编译 device 和 simulator
 build_ios() {
     log_info "=== Building iOS (Device + Simulator) ==="
+    local libs
+    libs=$(get_libs_for_platform "iphoneos")
     
     clean_build
     
@@ -102,13 +121,13 @@ build_ios() {
     
     # 复制 device 库
     log_info "Copying device libraries..."
-    for lib in $LIBS; do
+    for lib in $libs; do
         cp build/iphoneos/arm64/release/lib${lib}.a build/ios/device/
     done
     
     # 合成 simulator fat lib (x86_64 + arm64)
     log_info "Creating simulator fat libraries..."
-    for lib in $LIBS; do
+    for lib in $libs; do
         lipo -create \
             build/iphoneos/x86_64/release/lib${lib}.a \
             build/iphoneos/arm64/release/lib${lib}.a \
@@ -119,14 +138,16 @@ build_ios() {
     echo "  Device:     build/ios/device/"
     echo "  Simulator:  build/ios/simulator/"
     echo ""
-    echo "  Note: Device and simulator both contain arm64, so they cannot be"
-    echo "  merged into a single fat library. Use xcodebuild -create-xcframework."
+    echo "  Note: Device and simulator both contain arm64, so they are kept"
+    echo "  as separate outputs instead of being merged into a single fat library."
     ls -lh build/ios/device/*.a | head -5
 }
 
 # Android: 编译 arm64-v8a、armeabi-v7a 和 x86_64
 build_android() {
     log_info "=== Building Android (arm64-v8a + armeabi-v7a + x86_64) ==="
+    local libs
+    libs=$(get_libs_for_platform "android")
     
     # 检查 NDK 是否已配置
     if [ -z "$ANDROID_NDK_HOME" ] && [ -z "$NDK_ROOT" ]; then
@@ -156,19 +177,19 @@ build_android() {
     
     # 复制 arm64-v8a 库
     log_info "Copying arm64-v8a libraries..."
-    for lib in $LIBS; do
+    for lib in $libs; do
         cp build/android/arm64-v8a/release/lib${lib}.a build/android/arm64-v8a/
     done
     
     # 复制 armeabi-v7a 库
     log_info "Copying armeabi-v7a libraries..."
-    for lib in $LIBS; do
+    for lib in $libs; do
         cp build/android/armeabi-v7a/release/lib${lib}.a build/android/armeabi-v7a/
     done
     
     # 复制 x86_64 库
     log_info "Copying x86_64 libraries..."
-    for lib in $LIBS; do
+    for lib in $libs; do
         cp build/android/x86_64/release/lib${lib}.a build/android/x86_64/
     done
     
@@ -205,9 +226,6 @@ show_help() {
     echo "    build/android/arm64-v8a/        - ARM64 library"
     echo "    build/android/armeabi-v7a/      - ARM v7-a library"
     echo "    build/android/x86_64/           - x86_64 library (emulator)"
-    echo ""
-    echo "Note: For iOS, use xcodebuild -create-xcframework to create XCFramework"
-    echo "      that includes both device and simulator libraries."
 }
 
 # 主入口

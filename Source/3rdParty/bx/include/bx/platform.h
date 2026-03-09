@@ -164,17 +164,7 @@
 #	endif // defined(_MSC_VER) && (_MSC_VER >= 1700) && (!_USING_V110_SDK71_)
 #	if !defined(WINAPI_FAMILY) || (WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP)
 #		undef  BX_PLATFORM_WINDOWS
-#		if !defined(WINVER) && !defined(_WIN32_WINNT)
-#			if BX_ARCH_64BIT
-//				When building 64-bit target Win7 and above.
-#				define WINVER 0x0601
-#				define _WIN32_WINNT 0x0601
-#			else
-//				Windows Server 2003 with SP1, Windows XP with SP2 and above
-#				define WINVER 0x0502
-#				define _WIN32_WINNT 0x0502
-#			endif // BX_ARCH_64BIT
-#		endif // !defined(WINVER) && !defined(_WIN32_WINNT)
+#     include <sdkddkver.h>
 #		define BX_PLATFORM_WINDOWS _WIN32_WINNT
 #	else
 #		undef  BX_PLATFORM_WINRT
