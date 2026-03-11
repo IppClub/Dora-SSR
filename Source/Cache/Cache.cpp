@@ -239,6 +239,7 @@ bool Cache::unload(String name) {
 			case "svg"_hash:
 				return SharedSVGCache.unload(name);
 			case "bin"_hash:
+			case "sc"_hash:
 				return SharedShaderCache.unload(name);
 			case "wav"_hash:
 			case "ogg"_hash:

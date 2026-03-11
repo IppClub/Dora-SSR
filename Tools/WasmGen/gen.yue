@@ -831,6 +831,24 @@ basicTypes =
 			creturn: -> error "unsupported"
 			cpass: -> error "unsupported"
 		}
+	ShaderStage:
+		* "i32"
+		* (name)-> "s_cast<ShaderStage>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+		* "crate::dora::ShaderStage"
+		* "crate::dora::ShaderStage"
+		* (name)-> "#{name} as i32"
+		* (name)-> "core::mem::transmute(#{name})"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "ShaderStage{value: #{name}}"
+			convertTo: (name)-> "#{name}.ToValue()"
+			argType: "ShaderStage"
+			returnType: "ShaderStage"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
 	"Platformer::Relation":
 		* "i32"
 		* (name)-> "s_cast<Platformer::Relation>(#{name})"
@@ -1898,4 +1916,3 @@ func #{waNewName}.GetRaw() => i64 {
 		cppBinding = []
 		cppLink = []
 	print "#{clsCount} classes, #{funcCount} functions Done!"
-

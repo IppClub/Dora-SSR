@@ -92,6 +92,9 @@ namespace bgfx
 
 	struct Options
 	{
+		typedef long (*GetFileSizeFn)(const char* _path, void* _userData);
+		typedef int (*ReadFileFn)(const char* _path, char* _buffer, int _size, void* _userData);
+
 		Options();
 
 		void dump();
@@ -106,6 +109,10 @@ namespace bgfx
 		std::vector<std::string> includeDirs;
 		std::vector<std::string> defines;
 		std::vector<std::string> dependencies;
+
+		GetFileSizeFn getFileSize;
+		ReadFileFn readFile;
+		void* fileReaderUserData;
 
 		bool disasm;
 		bool raw;
@@ -128,7 +135,7 @@ namespace bgfx
 
 	typedef std::vector<Uniform> UniformArray;
 
-	void printCode(const char* _code, int32_t _line = 0, int32_t _start = 0, int32_t _end = INT32_MAX, int32_t _column = -1);
+	void printCode(bx::WriterI* _writer, const char* _code, int32_t _line = 0, int32_t _start = 0, int32_t _end = INT32_MAX, int32_t _column = -1);
 	void strReplace(char* _str, const char* _find, const char* _replace);
 	int32_t writef(bx::WriterI* _writer, const char* _format, ...);
 	void writeFile(const char* _filePath, const void* _data, int32_t _size);

@@ -816,6 +816,24 @@ basicTypes =
 			creturn: -> error "unsupported"
 			cpass: -> error "unsupported"
 		}
+	ShaderStage:
+		* "int"
+		* (name)-> "s_cast<ShaderStage>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+		* "ShaderStage"
+		* "ShaderStage"
+		* (name)-> "(int)#{name}"
+		* (name)-> "(ShaderStage)#{name}"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "ShaderStage{value: #{name}}"
+			convertTo: (name)-> "#{name}.ToValue()"
+			argType: "ShaderStage"
+			returnType: "ShaderStage"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
 	"Platformer::Relation":
 		* "int"
 		* (name)-> "s_cast<Platformer::Relation>(#{name})"
@@ -1636,4 +1654,3 @@ else
 		csNative = []
 		csBinding = []
 	print "#{clsCount} classes, #{funcCount} functions Done!"
-

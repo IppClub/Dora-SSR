@@ -780,10 +780,20 @@ object class Pass
 	///
 	/// # Arguments
 	///
-	/// * `vert_shader` - The vertex shader in binary form file string.
-	/// * `frag_shader` - The fragment shader file string. A shader file string must be one of the formats:
-	///     * "builtin:" + theBuiltinShaderName
-	///     * "Shader/compiled_shader_file.bin"
+	/// * `vert_shader` - The vertex shader file string.
+	/// * `frag_shader` - The fragment shader file string.
+	///
+	/// A shader file string must be one of the formats:
+	///     * `builtin:` + theBuiltinShaderName
+	///     * `shader_compiled_file.bin`
+	///     * `Shader/shader_source_file.sc`
+	///
+	/// Details:
+	///     * `"builtin:" + name` loads an embedded built-in shader.
+	///     * For `.sc` files, the given path is loaded as shader source and compiled immediately.
+	///     * For `.bin` files, if the given path exists, it is loaded directly.
+	///     * Otherwise the engine tries `renderer_dir/filename.bin`, where `renderer_dir`
+	///       depends on the active backend, such as `dx11`, `metal`, `glsl`, `essl`, or `spirv`.
 	///
 	/// # Returns
 	///
@@ -818,9 +828,19 @@ interface object class Effect
 	/// # Arguments
 	///
 	/// * `vert_shader` - The vertex shader file string.
-	/// * `frag_shader` - The fragment shader file string. A shader file string must be one of the formats:
-	///     * "builtin:" + theBuiltinShaderName
-	///     * "Shader/compiled_shader_file.bin"
+	/// * `frag_shader` - The fragment shader file string.
+	///
+	/// A shader file string must be one of the formats:
+	///     * `builtin:` + theBuiltinShaderName
+	///     * `shader_compiled_file.bin`
+	///     * `Shader/shader_source_file.sc`
+	///
+	/// Details:
+	///     * `"builtin:" + name` loads an embedded built-in shader.
+	///     * For `.sc` files, the given path is loaded as shader source and compiled immediately.
+	///     * For `.bin` files, if the given path exists, it is loaded directly.
+	///     * Otherwise the engine tries `renderer_dir/filename.bin`, where `renderer_dir`
+	///       depends on the active backend, such as `dx11`, `metal`, `glsl`, `essl`, or `spirv`.
 	///
 	/// # Returns
 	///
@@ -836,9 +856,19 @@ object class SpriteEffect : public IEffect
 	/// # Arguments
 	///
 	/// * `vert_shader` - The vertex shader file string.
-	/// * `frag_shader` - The fragment shader file string. A shader file string must be one of the formats:
-	///     * "builtin:" + theBuiltinShaderName
-	///     * "Shader/compiled_shader_file.bin"
+	/// * `frag_shader` - The fragment shader file string.
+	///
+	/// A shader file string must be one of the formats:
+	///     * `builtin:` + theBuiltinShaderName
+	///     * `shader_compiled_file.bin`
+	///     * `Shader/shader_source_file.sc`
+	///
+	/// Details:
+	///     * `"builtin:" + name` loads an embedded built-in shader.
+	///     * For `.sc` files, the given path is loaded as shader source and compiled immediately.
+	///     * For `.bin` files, if the given path exists, it is loaded directly.
+	///     * Otherwise the engine tries `renderer_dir/filename.bin`, where `renderer_dir`
+	///       depends on the active backend, such as `dx11`, `metal`, `glsl`, `essl`, or `spirv`.
 	///
 	/// # Returns
 	///
@@ -4556,6 +4586,32 @@ singleton class HttpClient
 	///
 	/// * `bool` - `true` if the request is still running.
 	bool isRequestActive(uint64_t requestId);
+};
+
+/// A singleton interface for compiling shader source files into binary shader files.
+singleton class ShaderCompiler @ Shader
+{
+	/// Compiles a shader source file and writes the compiled bytecode to the target file.
+	///
+	/// # Arguments
+	///
+	/// * `source_file` - The shader source file path.
+	/// * `target_file` - The output file path for the compiled shader bytecode. Use the `.bin` suffix.
+	/// * `stage` - The shader stage.
+	///
+	/// # Returns
+	///
+	/// * `string` - An empty string on success, or an error message on failure.
+	string compile(string sourceFile, string targetFile, ShaderStage stage);
+	/// Compiles a shader source file asynchronously and writes the compiled bytecode to the target file.
+	///
+	/// # Arguments
+	///
+	/// * `source_file` - The shader source file path.
+	/// * `target_file` - The output file path for the compiled shader bytecode. Use the `.bin` suffix.
+	/// * `stage` - The shader stage.
+	/// * `callback` - A callback function invoked when the compilation finishes. It receives an empty string on success, or an error message on failure.
+	void compileAsync(string sourceFile, string targetFile, ShaderStage stage, function<void(string error)> callback);
 };
 
 namespace Platformer {

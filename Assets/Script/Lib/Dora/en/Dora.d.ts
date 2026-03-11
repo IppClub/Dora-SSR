@@ -2065,11 +2065,17 @@ interface PassClass {
 	/**
 	 * A method that allows you to create a new Pass object.
 	 *
-	 * @param vertShader The vertex shader in binary form file string.
+	 * @param vertShader The vertex shader file string.
 	 * @param fragShader The fragment shader file string.
 	 * A shader file string must be one of the formats:
-	 * 	"builtin:" + theBuiltinShaderName
-	 * 	"Shader/compiled_shader_file.bin"
+	 * `builtin:` + theBuiltinShaderName
+	 * `shader_compiled_file.bin`
+	 * `Shader/shader_source_file.sc`
+	 * Details:
+	 * 1. `"builtin:" + name` loads an embedded built-in shader.
+	 * 2. For `.sc` files, the given path is loaded as shader source and compiled immediately.
+	 * 3. For `.bin` files, if the given path exists, it is loaded directly.
+	 * 4. Otherwise the engine tries `renderer_dir/filename.bin`, where `renderer_dir` depends on the active backend, such as `dx11`, `metal`, `glsl`, `essl`, or `spirv`.
 	 * @returns A new Pass object.
 	 */
 	(this: void, vertShader: string, fragShader: string): Pass;
@@ -2114,11 +2120,18 @@ export namespace Effect {
 interface EffectClass {
 	/**
 	 * A method that allows you to create a new Effect object.
+	 *
 	 * @param vertShader The vertex shader file string.
 	 * @param fragShader The fragment shader file string.
 	 * A shader file string must be one of the formats:
-	 * 	"builtin:" + theBuiltinShaderName
-	 * 	"Shader/compiled_shader_file.bin"
+	 * `builtin:` + theBuiltinShaderName
+	 * `shader_compiled_file.bin`
+	 * `Shader/shader_source_file.sc`
+	 * Details:
+	 * 1. `"builtin:" + name` loads an embedded built-in shader.
+	 * 2. For `.sc` files, the given path is loaded as shader source and compiled immediately.
+	 * 3. For `.bin` files, if the given path exists, it is loaded directly.
+	 * 4. Otherwise the engine tries `renderer_dir/filename.bin`, where `renderer_dir` depends on the active backend, such as `dx11`, `metal`, `glsl`, `essl`, or `spirv`.
 	 * @returns A new Effect object.
 	 */
 	(this: void, vertShader: string, fragShader: string): Effect;
@@ -2148,10 +2161,18 @@ export namespace SpriteEffect {
 interface SpriteEffectClass {
 	/**
 	 * A method that allows you to create a new SpriteEffect object.
-	 * @param vertShader The vertex shader file string. A shader file string must be one of the formats:
-	 * "builtin:" + theBuiltinShaderName
-	 * "Shader/compiled_shader_file.bin"
+	 *
+	 * @param vertShader The vertex shader file string.
 	 * @param fragShader The fragment shader file string.
+	 * A shader file string must be one of the formats:
+	 * `builtin:` + theBuiltinShaderName
+	 * `shader_compiled_file.bin`
+	 * `Shader/shader_source_file.sc`
+	 * Details:
+	 * 1. `"builtin:" + name` loads an embedded built-in shader.
+	 * 2. For `.sc` files, the given path is loaded as shader source and compiled immediately.
+	 * 3. For `.bin` files, if the given path exists, it is loaded directly.
+	 * 4. Otherwise the engine tries `renderer_dir/filename.bin`, where `renderer_dir` depends on the active backend, such as `dx11`, `metal`, `glsl`, `essl`, or `spirv`.
 	 * @returns A new SpriteEffect object.
 	 */
 	(this: void, vertShader: string, fragShader: string): SpriteEffect;
@@ -3798,6 +3819,46 @@ class Content {
 
 const content: Content;
 export {content as Content};
+
+/**
+ * Shader stage names accepted by `Shader`.
+ */
+export type ShaderStageName = "Vertex" | "Fragment" | "Compute";
+
+/**
+ * A singleton object used to compile Dora shaders at runtime.
+ */
+interface Shader {
+	/**
+	 * Compiles a shader source file and writes the compiled bytecode to the target file.
+	 * @param sourceFile Shader source file path.
+	 * @param targetFile Output file path for the compiled shader bytecode. Use the `.bin` suffix.
+	 * @param stage Shader stage name. One of `"Vertex"`, `"Fragment"` or `"Compute"`.
+	 * @returns `true` on success, or `false` with an error string on failure.
+	 */
+	compile(
+		sourceFile: string,
+		targetFile: string,
+		stage: ShaderStageName
+	): LuaMultiReturn<[true, undefined]> | LuaMultiReturn<[false, string]>;
+
+	/**
+	 * Compiles a shader source file asynchronously and writes the compiled bytecode to the target file.
+	 * This method must be called from a coroutine/thread.
+	 * @param sourceFile Shader source file path.
+	 * @param targetFile Output file path for the compiled shader bytecode. Use the `.bin` suffix.
+	 * @param stage Shader stage name. One of `"Vertex"`, `"Fragment"` or `"Compute"`.
+	 * @returns `true` on success, or `false` with an error string on failure.
+	 */
+	compileAsync(
+		sourceFile: string,
+		targetFile: string,
+		stage: ShaderStageName
+	): LuaMultiReturn<[true, undefined]> | LuaMultiReturn<[false, string]>;
+}
+
+const shader: Shader;
+export {shader as Shader};
 
 /**
  * Logs a message to the console.

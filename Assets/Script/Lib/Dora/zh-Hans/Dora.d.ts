@@ -2062,11 +2062,17 @@ interface PassClass {
 	/**
 	 * 用于创建新的渲染流程对象的方法。
 	 *
-	 * @param vertShader 顶点着色器的二进制形式文件字符串。
+	 * @param vertShader 顶点着色器文件字符串。
 	 * @param fragShader 片段着色器文件字符串。
 	 * 着色器文件字符串必须是以下格式之一：
-	 * 	"builtin:" + 内置着色器名称
-	 * 	"Shader/compiled_shader_file.bin"
+	 * `builtin:` + 内置着色器名称
+	 * `shader_compiled_file.bin`
+	 * `Shader/shader_source_file.sc`
+	 * 详细说明：
+	 * 1. `"builtin:" + 名称` 会加载内嵌的内置着色器。
+	 * 2. 对于 `.sc` 文件，会把给定路径当作着色器源码直接加载并立即编译。
+	 * 3. 对于 `.bin` 文件，如果给定路径存在，则直接加载该文件。
+	 * 4. 否则引擎会尝试加载 `renderer_dir/filename.bin`，其中 `renderer_dir` 取决于当前渲染后端，例如 `dx11`、`metal`、`glsl`、`essl` 或 `spirv`。
 	 * @returns 新的着色器渲染流程对象。
 	 */
 	(this: void, vertShader: string, fragShader: string): Pass;
@@ -2111,11 +2117,18 @@ export namespace Effect {
 interface EffectClass {
 	/**
 	 * 创建新的Effect对象。
+	 *
 	 * @param vertShader 顶点着色器文件字符串。
 	 * @param fragShader 片段着色器文件字符串。
 	 * 着色器文件字符串必须是以下格式之一：
-	 * 	"builtin:" + 内置着色器名称
-	 * 	"Shader/compiled_shader_file.bin"
+	 * `builtin:` + 内置着色器名称
+	 * `shader_compiled_file.bin`
+	 * `Shader/shader_source_file.sc`
+	 * 详细说明：
+	 * 1. `"builtin:" + 名称` 会加载内嵌的内置着色器。
+	 * 2. 对于 `.sc` 文件，会把给定路径当作着色器源码直接加载并立即编译。
+	 * 3. 对于 `.bin` 文件，如果给定路径存在，则直接加载该文件。
+	 * 4. 否则引擎会尝试加载 `renderer_dir/filename.bin`，其中 `renderer_dir` 取决于当前渲染后端，例如 `dx11`、`metal`、`glsl`、`essl` 或 `spirv`。
 	 * @returns 新的Effect对象。
 	 */
 	(this: void, vertShader: string, fragShader: string): Effect;
@@ -2145,11 +2158,18 @@ export namespace SpriteEffect {
 interface SpriteEffectClass {
 	/**
 	 * 创建新的2D图元着色器特效对象。
+	 *
 	 * @param vertShader 顶点着色器文件字符串。
-	 * 着色器文件名字符串必须是以下格式之一：
-	 * 	"builtin:" + theBuiltinShaderName
-	 * 	"Shader/compiled_shader_file.bin"
 	 * @param fragShader 片段着色器文件字符串。
+	 * 着色器文件字符串必须是以下格式之一：
+	 * `builtin:` + 内置着色器名称
+	 * `shader_compiled_file.bin`
+	 * `Shader/shader_source_file.sc`
+	 * 详细说明：
+	 * 1. `"builtin:" + 名称` 会加载内嵌的内置着色器。
+	 * 2. 对于 `.sc` 文件，会把给定路径当作着色器源码直接加载并立即编译。
+	 * 3. 对于 `.bin` 文件，如果给定路径存在，则直接加载该文件。
+	 * 4. 否则引擎会尝试加载 `renderer_dir/filename.bin`，其中 `renderer_dir` 取决于当前渲染后端，例如 `dx11`、`metal`、`glsl`、`essl` 或 `spirv`。
 	 * @returns 新的2D图元着色器特效对象。
 	 */
 	(this: void, vertShader: string, fragShader: string): SpriteEffect;
@@ -3797,6 +3817,46 @@ class Content {
 
 const content: Content;
 export {content as Content};
+
+/**
+ * `Shader` 接受的着色器阶段名称。
+ */
+export type ShaderStageName = "Vertex" | "Fragment" | "Compute";
+
+/**
+ * 用于在运行时编译 Dora 着色器的单例对象。
+ */
+interface Shader {
+	/**
+	 * 编译着色器源码文件，并将编译后的字节码写入目标文件。
+	 * @param sourceFile 着色器源码文件路径。
+	 * @param targetFile 编译后着色器字节码的输出文件路径，请使用 `.bin` 后缀。
+	 * @param stage 着色器阶段名称，只能是 `"Vertex"`、`"Fragment"` 或 `"Compute"`。
+	 * @returns 成功时返回 `true`，失败时返回 `false` 和错误字符串。
+	 */
+	compile(
+		sourceFile: string,
+		targetFile: string,
+		stage: ShaderStageName
+	): LuaMultiReturn<[true, undefined]> | LuaMultiReturn<[undefined, string]>;
+
+	/**
+	 * 使用引擎内部的着色器队列异步编译着色器源码文件，并将编译后的字节码写入目标文件。
+	 * 这个函数必须在协程线程中调用。
+	 * @param sourceFile 着色器源码文件路径。
+	 * @param targetFile 编译后着色器字节码的输出文件路径，请使用 `.bin` 后缀。
+	 * @param stage 着色器阶段名称，只能是 `"Vertex"`、`"Fragment"` 或 `"Compute"`。
+	 * @returns 成功时返回 `true`，失败时返回 `false` 和错误字符串。
+	 */
+	compileAsync(
+		sourceFile: string,
+		targetFile: string,
+		stage: ShaderStageName
+	): LuaMultiReturn<[true, undefined]> | LuaMultiReturn<[false, string]>;
+}
+
+const shader: Shader;
+export {shader as Shader};
 
 /**
  * 将日志消息打印到控制台。

@@ -1,6 +1,11 @@
 #!/bin/bash
 
+set -e
+
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+"$SCRIPT_DIR/build_lib_bgfx.sh" macos
+
 cd "$SCRIPT_DIR/../../Source/Rust"
 rustup target add aarch64-apple-darwin
 rustup target add x86_64-apple-darwin

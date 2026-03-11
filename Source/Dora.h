@@ -79,6 +79,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Support/Common.h"
 #include "Support/Dictionary.h"
 #include "Support/Geometry.h"
+#include "Shader/ShaderCompiler.h"
 
 #include "Platformer/Define.h"
 

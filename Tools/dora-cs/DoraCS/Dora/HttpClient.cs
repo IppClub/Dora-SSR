@@ -26,8 +26,6 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t httpclient_download_async(int64_t url, int64_t fullPath, float timeout, int32_t func0, int64_t stack0);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int64_t httpclient_download_async_with_handle(int64_t url, int64_t fullPath, float timeout, int32_t func0, int64_t stack0);
-		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int32_t httpclient_cancel(int64_t requestId);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int32_t httpclient_is_request_active(int64_t requestId);
@@ -142,25 +140,6 @@ namespace Dora
 				stack0.Push(result);
 			});
 			return Native.httpclient_download_async(Bridge.FromString(url), Bridge.FromString(fullPath), timeout, func_id0, stack_raw0);
-		}
-		/// <summary>
-		/// Downloads a file and returns a request id that can be cancelled later.
-		/// </summary>
-		/// <param name="url">The URL of the file to download.</param>
-		/// <param name="fullPath">The full path where the downloaded file should be saved.</param>
-		/// <param name="timeout">The timeout in seconds for the request.</param>
-		/// <param name="progress">A callback function that reports download progress. It receives <c>interrupted</c>, <c>current</c>, and <c>total</c>. Return <c>true</c> to cancel the download. If the download fails or is cancelled, the partially written file is removed.</param>
-		/// <returns>The request id. Returns <c>0</c> when the request cannot be scheduled.</returns>
-		public static long DownloadAsync(string url, string fullPath, float timeout, Func<bool, long, long, bool> progress)
-		{
-			var stack0 = new CallStack();
-			var stack_raw0 = stack0.Raw;
-			var func_id0 = Bridge.PushFunction(() =>
-			{
-				var result = progress(stack0.PopBool(), stack0.PopI64(), stack0.PopI64());
-				stack0.Push(result);
-			});
-			return Native.httpclient_download_async_with_handle(Bridge.FromString(url), Bridge.FromString(fullPath), timeout, func_id0, stack_raw0);
 		}
 		/// <summary>
 		/// Requests cancellation for an in-flight HTTP request.

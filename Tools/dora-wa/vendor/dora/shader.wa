@@ -6,48 +6,24 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#pragma once
+#wa:import dora shadercompiler_compile
+func shadercompiler_compile(source_file: i64, target_file: i64, stage: i32) => i64
 
-#include "Shader/ShaderCompiler.h"
+#wa:import dora shadercompiler_compile_async
+func shadercompiler_compile_async(source_file: i64, target_file: i64, stage: i32, func0: i32, stack0: i64)
 
-NS_DORA_BEGIN
+type _Shader :struct{}
 
-class Shader : public Object {
-public:
-	PROPERTY_READONLY(bgfx::ShaderHandle, Handle);
-	virtual ~Shader();
-	CREATE_FUNC_NOT_NULL(Shader);
+global Shader = _Shader{}
 
-protected:
-	Shader(bgfx::ShaderHandle handle);
-
-private:
-	bgfx::ShaderHandle _handle;
-};
-
-class ShaderCache : public NonCopyable {
-public:
-	virtual ~ShaderCache() { }
-	void update(String name, Shader* shader);
-	/** @brief fragment or vertex shader */
-	Shader* load(String filename);
-	Shader* load(String filename, ShaderStage stage);
-	void loadAsync(String filename, const std::function<void(Shader*)>& handler);
-	bool unload(Shader* shader);
-	bool unload(String filename);
-	bool unload();
-	void removeUnused();
-
-protected:
-	ShaderCache();
-	std::string getShaderPath() const;
-
-private:
-	StringMap<Ref<Shader>> _shaders;
-	SINGLETON_REF(ShaderCache, BGFXDora);
-};
-
-#define SharedShaderCache \
-	Dora::Singleton<Dora::ShaderCache>::shared()
-
-NS_DORA_END
+func _Shader.Compile(source_file: string, target_file: string, stage: ShaderStage) => string {
+	return FromDoraString(shadercompiler_compile(ToDoraString(source_file), ToDoraString(target_file), stage.ToValue()))
+}
+func _Shader.CompileAsync(source_file: string, target_file: string, stage: ShaderStage, callback: func(error: string)) {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		error, _ := stack0.PopStr()
+		callback(error)
+	})
+	shadercompiler_compile_async(ToDoraString(source_file), ToDoraString(target_file), stage.ToValue(), func_id0, *stack0.raw)
+}

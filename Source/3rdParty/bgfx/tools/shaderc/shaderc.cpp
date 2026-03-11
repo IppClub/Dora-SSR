@@ -369,6 +369,9 @@ namespace bgfx
 	}
 	Options::Options()
 		: shaderType(' ')
+		, getFileSize(NULL)
+		, readFile(NULL)
+		, fileReaderUserData(NULL)
 		, disasm(false)
 		, raw(false)
 		, preprocessOnly(false)
@@ -707,9 +710,15 @@ namespace bgfx
 		strReplace(_str, "\r",   "\n");
 	}
 
-	void printCode(const char* _code, int32_t _line, int32_t _start, int32_t _end, int32_t _column)
+	void printCode(bx::WriterI* _writer, const char* _code, int32_t _line, int32_t _start, int32_t _end, int32_t _column)
 	{
-		bx::printf("Code:\n---\n");
+		if (NULL == _writer)
+		{
+			return;
+		}
+
+		bx::ErrorAssert err;
+		bx::write(_writer, &err, "Code:\n---\n");
 
 		bx::LineReader reader(_code);
 		for (int32_t line = 1; !reader.isDone() && line < _end; ++line)
@@ -720,22 +729,22 @@ namespace bgfx
 			{
 				if (_line == line)
 				{
-					bx::printf("\n");
-					bx::printf(">>> %3d: %.*s\n", line, strLine.getLength(), strLine.getPtr() );
+					bx::write(_writer, &err, "\n");
+					bx::write(_writer, &err, ">>> %3d: %.*s\n", line, strLine.getLength(), strLine.getPtr() );
 					if (-1 != _column)
 					{
-						bx::printf(">>> %3d: %*s\n", _column, _column, "^");
+						bx::write(_writer, &err, ">>> %3d: %*s\n", _column, _column, "^");
 					}
-					bx::printf("\n");
+					bx::write(_writer, &err, "\n");
 				}
 				else
 				{
-					bx::printf("    %3d: %.*s\n", line, strLine.getLength(), strLine.getPtr() );
+					bx::write(_writer, &err, "    %3d: %.*s\n", line, strLine.getLength(), strLine.getPtr() );
 				}
 			}
 		}
 
-		bx::printf("---\n");
+		bx::write(_writer, &err, "---\n");
 	}
 
 	void writeFile(const char* _filePath, const void* _data, int32_t _size)
@@ -750,11 +759,14 @@ namespace bgfx
 
 	struct Preprocessor
 	{
-		Preprocessor(const char* _filePath, bool _essl, bx::WriterI* _messageWriter)
+		Preprocessor(const char* _filePath, bool _essl, bx::WriterI* _messageWriter, const Options& _options)
 			: m_tagptr(m_tags)
 			, m_scratchPos(0)
 			, m_fgetsPos(0)
 			, m_messageWriter(_messageWriter)
+			, m_getFileSize(_options.getFileSize)
+			, m_readFile(_options.readFile)
+			, m_fileReaderUserData(_options.fileReaderUserData)
 		{
 			m_tagptr->tag = FPPTAG_USERDATA;
 			m_tagptr->data = this;
@@ -787,6 +799,13 @@ namespace bgfx
 			m_tagptr->tag = FPPTAG_INPUT_NAME;
 			m_tagptr->data = scratch(_filePath);
 			m_tagptr++;
+
+			if (NULL != m_getFileSize && NULL != m_readFile)
+			{
+				m_tagptr->tag = FPPTAG_FILEOPENFUNC;
+				m_tagptr->data = (void*)fppFileOpen;
+				m_tagptr++;
+			}
 
 			if (!_essl)
 			{
@@ -922,6 +941,48 @@ namespace bgfx
 			bx::write(thisClass->m_messageWriter, _format, _vargs, &err);
 		}
 
+		static FILE* fppFileOpen(char* _fileName, char* _mode, void* _userData)
+		{
+			BX_UNUSED(_mode);
+
+			Preprocessor* thisClass = (Preprocessor*)_userData;
+			if (NULL == thisClass->m_getFileSize || NULL == thisClass->m_readFile)
+			{
+				return NULL;
+			}
+
+			const long fileSize = thisClass->m_getFileSize(_fileName, thisClass->m_fileReaderUserData);
+			if (fileSize < 0)
+			{
+				return NULL;
+			}
+
+			std::vector<char> data((size_t)fileSize);
+			if (fileSize > 0)
+			{
+				const int bytesRead = thisClass->m_readFile(_fileName, data.data(), (int)fileSize, thisClass->m_fileReaderUserData);
+				if (bytesRead != fileSize)
+				{
+					return NULL;
+				}
+			}
+
+			FILE* fp = tmpfile();
+			if (NULL == fp)
+			{
+				return NULL;
+			}
+
+			if (fileSize > 0 && fwrite(data.data(), 1, (size_t)fileSize, fp) != (size_t)fileSize)
+			{
+				fclose(fp);
+				return NULL;
+			}
+
+			rewind(fp);
+			return fp;
+		}
+
 		char* scratch(const char* _str)
 		{
 			char* result = &m_scratch[m_scratchPos];
@@ -942,6 +1003,9 @@ namespace bgfx
 		uint32_t m_scratchPos;
 		uint32_t m_fgetsPos;
 		bx::WriterI* m_messageWriter;
+		Options::GetFileSizeFn m_getFileSize;
+		Options::ReadFileFn m_readFile;
+		void* m_fileReaderUserData;
 	};
 
 	typedef std::vector<std::string> InOut;
@@ -1143,7 +1207,7 @@ namespace bgfx
 
 		const Profile* profile = &s_profiles[profileId];
 
-		Preprocessor preprocessor(_options.inputFilePath.c_str(), profile->lang == ShadingLang::ESSL, _messageWriter);
+		Preprocessor preprocessor(_options.inputFilePath.c_str(), profile->lang == ShadingLang::ESSL, _messageWriter, _options);
 
 		for (size_t ii = 0; ii < _options.includeDirs.size(); ++ii)
 		{

@@ -131,7 +131,7 @@ static const char* getShaderProfile(
 
 static std::string getDefaultVaryingDefPath(const char* sourcePath) {
     if (!sourcePath || *sourcePath == '\0') {
-        return {};
+        return "varying.def.sc";
     }
     bx::FilePath filePath(sourcePath);
     const bx::StringView dir = filePath.getPath();
@@ -209,73 +209,72 @@ private:
 };
 
 /* Helper: read file using custom file ops or standard I/O */
-static char* readFile(
+static bool readFile(
     const char* path,
+    std::vector<char>& outData,
     int* outSize,
     const DoraShadercFileOps* fileOps
 ) {
-    char* data = nullptr;
+    outData.clear();
+
     int size = 0;
-    
+
     if (fileOps && fileOps->readFile) {
         /* Use custom file I/O */
         long fileSize = -1;
         if (fileOps->getFileSize) {
             fileSize = fileOps->getFileSize(path, fileOps->userData);
         }
-        
+
         if (fileSize < 0) {
-            return nullptr;
+            return false;
         }
-        
-        data = (char*)malloc((size_t)fileSize + 1);
-        if (!data) {
-            return nullptr;
-        }
-        
-        int bytesRead = fileOps->readFile(path, data, (int)fileSize, fileOps->userData);
+
+        outData.resize((size_t)fileSize + 1);
+        int bytesRead = fileOps->readFile(path, outData.data(), (int)fileSize, fileOps->userData);
         if (bytesRead != fileSize) {
-            free(data);
-            return nullptr;
+            outData.clear();
+            return false;
         }
-        data[fileSize] = '\0';
+        outData[(size_t)fileSize] = '\0';
         size = (int)fileSize;
     } else {
         /* Use standard file I/O */
         FILE* f = fopen(path, "rb");
         if (!f) {
-            return nullptr;
+            return false;
         }
-        
+
         fseek(f, 0, SEEK_END);
         long fileSize = ftell(f);
         fseek(f, 0, SEEK_SET);
-        
-        data = (char*)malloc((size_t)fileSize + 1);
-        if (!data) {
+
+        if (fileSize < 0) {
             fclose(f);
-            return nullptr;
+            return false;
         }
-        
-        size = (int)fread(data, 1, (size_t)fileSize, f);
-        data[size] = '\0';
+
+        outData.resize((size_t)fileSize + 1);
+        size = (int)fread(outData.data(), 1, (size_t)fileSize, f);
+        outData[(size_t)size] = '\0';
         fclose(f);
     }
-    
+
     if (outSize) {
         *outSize = size;
     }
-    return data;
+    return true;
 }
 
-static void trimUtf8Bom(char* data, int& size) {
-    if (size >= 3
-        && data[0] == '\xef'
-        && data[1] == '\xbb'
-        && data[2] == '\xbf') {
-        memmove(data, data + 3, (size_t)(size - 3));
-        size -= 3;
+static int getUtf8BomSize(const char* data, int size) {
+    if (!data || size < 3) {
+        return 0;
     }
+    return data[0] == '\xef'
+        && data[1] == '\xbb'
+        && data[2] == '\xbf'
+        ? 3
+        : 0;
 }
 
 static DoraShadercResult compileSourceInternal(
@@ -333,6 +332,11 @@ static DoraShadercResult compileSourceInternal(
     bgfxOpts.outputFilePath.clear();
     bgfxOpts.optimize = options->optimize != 0;
     bgfxOpts.debugInformation = options->debug != 0;
+    if (options->fileOps) {
+        bgfxOpts.getFileSize = options->fileOps->getFileSize;
+        bgfxOpts.readFile = options->fileOps->readFile;
+        bgfxOpts.fileReaderUserData = options->fileOps->userData;
+    }
 
     if (options->includeDirs && options->includeDirCount > 0) {
         for (int i = 0; i < options->includeDirCount; i++) {
@@ -359,23 +363,24 @@ static DoraShadercResult compileSourceInternal(
         }
         if (!varyingPath.empty()) {
             int varyingSize = 0;
-            char* varyingData = readFile(varyingPath.c_str(), &varyingSize, options->fileOps);
-            if (varyingData) {
-                trimUtf8Bom(varyingData, varyingSize);
-                varyingStorage.assign(varyingData, varyingData + varyingSize);
+            std::vector<char> varyingData;
+            if (readFile(varyingPath.c_str(), varyingData, &varyingSize, options->fileOps) && !varyingData.empty()) {
+                const int bomSize = getUtf8BomSize(varyingData.data(), varyingSize);
+                varyingSize -= bomSize;
+                varyingStorage.assign(varyingData.data() + bomSize, varyingData.data() + bomSize + varyingSize);
                 varyingStorage.push_back('\0');
                 varying = varyingStorage.data();
                 bgfxOpts.dependencies.push_back(varyingPath);
-                free(varyingData);
             }
         }
     }
 
+    const int bomSize = getUtf8BomSize(source, sourceSize);
+    int mutableSourceSize = sourceSize - bomSize;
     const int extraPadding = 16384;
-    std::vector<char> shaderBuffer((size_t)sourceSize + extraPadding, 0);
-    memcpy(shaderBuffer.data(), source, (size_t)sourceSize);
-    int mutableSourceSize = sourceSize;
-    trimUtf8Bom(shaderBuffer.data(), mutableSourceSize);
+    char* shaderBuffer = new char[(size_t)mutableSourceSize + extraPadding + 1];
+    memset(shaderBuffer, 0, (size_t)mutableSourceSize + extraPadding + 1);
+    memcpy(shaderBuffer, source + bomSize, (size_t)mutableSourceSize);
     shaderBuffer[(size_t)mutableSourceSize] = '\n';
 
     MemoryWriter bytecodeWriter;
@@ -385,7 +390,7 @@ static DoraShadercResult compileSourceInternal(
     const bool success = bgfx::compileShader(
         varying,
         comment,
-        shaderBuffer.data(),
+        shaderBuffer,
         (uint32_t)mutableSourceSize,
         bgfxOpts,
         &bytecodeWriter,
@@ -521,9 +526,8 @@ DoraShadercResult DoraShadercCompileFromFile(
     
     /* Read file */
     int sourceSize = 0;
-    char* source = readFile(sourceFile, &sourceSize, options->fileOps);
-    
-    if (!source) {
+    std::vector<char> source;
+    if (!readFile(sourceFile, source, &sourceSize, options->fileOps) || source.empty()) {
         result.success = 0;
         char buf[256];
         snprintf(buf, sizeof(buf), "Failed to read file: %s", sourceFile);
@@ -532,9 +536,7 @@ DoraShadercResult DoraShadercCompileFromFile(
     }
     
     DoraShadercOptions opts = *options;
-    result = compileSourceInternal(source, sourceSize, &opts, sourceFile);
-    
-    free(source);
+    result = compileSourceInternal(source.data(), sourceSize, &opts, sourceFile);
     return result;
 }
 

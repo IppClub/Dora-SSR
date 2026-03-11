@@ -1172,6 +1172,13 @@ namespace Dora
         Kinematic = 2,
     }
 
+    public enum ShaderStage
+    {
+        Vertex = 1,
+        Fragment = 2,
+        Compute = 3,
+    }
+
     public enum EaseType
     {
         Linear = 0,

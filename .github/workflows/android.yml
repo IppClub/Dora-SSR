@@ -26,9 +26,7 @@ jobs:
           cd Tools/tolua++
           lua tolua++.lua
       - name: Build bgfx libraries
-        run: |
-          cd Source/3rdParty/bgfx
-          ./build_libs.sh android
+        run: Tools/build-scripts/build_lib_bgfx.sh android
       - uses: dtolnay/rust-toolchain@stable
       - name: Build Rust lib
         run: Tools/build-scripts/build_lib_android.sh
