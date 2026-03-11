@@ -57,7 +57,7 @@ namespace bgfx { namespace glsl
 				end   = start + 20;
 			}
 
-			printCode(_code.c_str(), line, start, end, column);
+			printCode(_messageWriter, _code.c_str(), line, start, end, column);
 			bx::write(_messageWriter, &messageErr, "Error: %s\n", log);
 			glslopt_shader_delete(shader);
 			glslopt_cleanup(ctx);

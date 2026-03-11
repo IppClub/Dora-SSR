@@ -136,14 +136,16 @@ Async* Content::getThread() const noexcept {
 }
 
 std::pair<OwnArray<uint8_t>, size_t> Content::load(String filename) {
-	PROFILE("FileIO"_slice);
 	int64_t size = 0;
 	uint8_t* data = loadInMainUnsafe(filename, size);
 	return {OwnArray<uint8_t>(data), s_cast<size_t>(size)};
 }
 
+std::string Content::loadStr(String filename) {
+	return loadInMainUnsafe(filename);
+}
+
 const bgfx::Memory* Content::loadBX(String filename) {
-	PROFILE("FileIO"_slice);
 	int64_t size = 0;
 	uint8_t* data = loadInMainUnsafe(filename, size);
 	return bgfx::makeRef(data, (uint32_t)size, releaseFileData);
@@ -1369,6 +1371,15 @@ uint8_t* Content::loadInMainUnsafe(String filename, int64_t& size) {
 	uint8_t* data = nullptr;
 	_thread->runInMainSync([&]() {
 		data = Content::loadUnsafe(filename, size);
+	});
+	return data;
+}
+
+std::string Content::loadInMainUnsafe(String filename) {
+	PROFILE("FileIO"_slice);
+	std::string data;
+	_thread->runInMainSync([&]() {
+		data = Content::loadUnsafe(filename);
 	});
 	return data;
 }

@@ -69,6 +69,29 @@ inline View* View_shared() { return &SharedView; }
 /* Log */
 inline void Dora_Log(String level, String msg) { LogThreaded(level.toString(), msg.toString()); }
 
+/* ShaderCompiler */
+inline ShaderStage ShaderCompiler_getStage(String stageName) {
+	switch (Switch::hash(stageName)) {
+		case "Vertex"_hash: return ShaderStage::Vertex;
+		case "Fragment"_hash: return ShaderStage::Fragment;
+		case "Compute"_hash: return ShaderStage::Compute;
+		default:
+			Issue(
+				"ShaderStage name \"{}\" is invalid. use one of \"Vertex\", \"Fragment\", \"Compute\"",
+				stageName.toString());
+			break;
+	}
+	return ShaderStage::Vertex;
+}
+
+#define ShaderCompiler_compile(self, sourceFile, targetFile, stageName) \
+	self->compile(sourceFile, targetFile, ShaderCompiler_getStage(stageName))
+
+#define ShaderCompiler_compileAsync(self, sourceFile, targetFile, stageName, callback) \
+	self->compileAsync(sourceFile, targetFile, ShaderCompiler_getStage(stageName), callback)
+
+inline ShaderCompiler* ShaderCompiler_shared() { return &SharedShaderCompiler; }
+
 /* Node */
 int Node_emit(lua_State* L);
 int Node_slot(lua_State* L);

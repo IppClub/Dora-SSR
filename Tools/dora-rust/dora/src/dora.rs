@@ -3540,6 +3540,16 @@ pub enum BodyType {
 	Kinematic = 2,
 }
 
+// Shader
+
+#[repr(i32)]
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum ShaderStage {
+	Vertex = 1,
+	Fragment = 2,
+	Compute = 3,
+}
+
 // Keyboard
 
 #[derive(Copy, Clone, Debug, PartialEq)]

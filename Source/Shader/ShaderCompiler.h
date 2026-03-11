@@ -8,31 +8,32 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#include "bgfx/bgfx.h"
-
-#include <string>
-#include <string_view>
-#include <vector>
-
 NS_DORA_BEGIN
 
+class Async;
+
 enum class ShaderStage {
-	Vertex,
-	Fragment,
-	Compute
+	Vertex = 1,
+	Fragment = 2,
+	Compute = 3
 };
 
-class ShaderCompiler {
+class ShaderCompiler : public NonCopyable {
 public:
-	static std::vector<uint8_t> compile(std::string_view source, ShaderStage stage);
-	static std::vector<uint8_t> compileFromFile(std::string_view file, ShaderStage stage);
-	static std::string_view getLastError();
+	std::string compile(String source, ShaderStage stage, bool fromFile, std::string& err);
+	void compileAsync(String source, ShaderStage stage, bool fromFile, const std::function<void(std::string, std::string)>& callback);
+	std::string compile(String sourceFile, String targetFile, ShaderStage stage);
+	void compileAsync(String sourceFile, String targetFile, ShaderStage stage, const std::function<void(std::string)>& callback);
+
+protected:
+	ShaderCompiler();
 
 private:
-	static int toDoraRenderer(bgfx::RendererType::Enum type);
-
-private:
-	static thread_local std::string s_lastError;
+	Async* _thread;
+	SINGLETON_REF(ShaderCompiler, AsyncThread);
 };
+
+#define SharedShaderCompiler \
+	Dora::Singleton<Dora::ShaderCompiler>::shared()
 
 NS_DORA_END

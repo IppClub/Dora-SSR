@@ -21,9 +21,7 @@ jobs:
         with:
           xcode-version: latest
       - name: Build bgfx libraries
-        run: |
-          cd Source/3rdParty/bgfx
-          ./build_libs.sh ios
+        run: Tools/build-scripts/build_lib_bgfx.sh ios
       - name: iOS build
         run: |
           Tools/tolua++/build.sh

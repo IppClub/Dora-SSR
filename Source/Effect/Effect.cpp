@@ -60,8 +60,8 @@ Pass::Pass(Shader* vertShader, Shader* fragShader)
 
 Pass::Pass(String vertShader, String fragShader)
 	: _program(BGFX_INVALID_HANDLE)
-	, _vertShader(SharedShaderCache.load(vertShader))
-	, _fragShader(SharedShaderCache.load(fragShader))
+	, _vertShader(SharedShaderCache.load(vertShader, ShaderStage::Vertex))
+	, _fragShader(SharedShaderCache.load(fragShader, ShaderStage::Fragment))
 	, _grabPass(false) { }
 
 Pass::~Pass() {

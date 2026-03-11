@@ -6,48 +6,25 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#pragma once
+extern "C" {
+using namespace Dora;
+DORA_EXPORT int64_t shadercompiler_compile(int64_t source_file, int64_t target_file, int32_t stage) {
+	return Str_Retain(SharedShaderCompiler.compile(*Str_From(source_file), *Str_From(target_file), s_cast<ShaderStage>(stage)));
+}
+DORA_EXPORT void shadercompiler_compile_async(int64_t source_file, int64_t target_file, int32_t stage, int32_t func0, int64_t stack0) {
+	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
+		SharedWasmRuntime.deref(func0);
+	});
+	auto args0 = r_cast<CallStack*>(stack0);
+	SharedShaderCompiler.compileAsync(*Str_From(source_file), *Str_From(target_file), s_cast<ShaderStage>(stage), [func0, args0, deref0](String error) {
+		args0->clear();
+		args0->push(error);
+		SharedWasmRuntime.invoke(func0);
+	});
+}
+} // extern "C"
 
-#include "Shader/ShaderCompiler.h"
-
-NS_DORA_BEGIN
-
-class Shader : public Object {
-public:
-	PROPERTY_READONLY(bgfx::ShaderHandle, Handle);
-	virtual ~Shader();
-	CREATE_FUNC_NOT_NULL(Shader);
-
-protected:
-	Shader(bgfx::ShaderHandle handle);
-
-private:
-	bgfx::ShaderHandle _handle;
-};
-
-class ShaderCache : public NonCopyable {
-public:
-	virtual ~ShaderCache() { }
-	void update(String name, Shader* shader);
-	/** @brief fragment or vertex shader */
-	Shader* load(String filename);
-	Shader* load(String filename, ShaderStage stage);
-	void loadAsync(String filename, const std::function<void(Shader*)>& handler);
-	bool unload(Shader* shader);
-	bool unload(String filename);
-	bool unload();
-	void removeUnused();
-
-protected:
-	ShaderCache();
-	std::string getShaderPath() const;
-
-private:
-	StringMap<Ref<Shader>> _shaders;
-	SINGLETON_REF(ShaderCache, BGFXDora);
-};
-
-#define SharedShaderCache \
-	Dora::Singleton<Dora::ShaderCache>::shared()
-
-NS_DORA_END
+static void linkShaderCompiler(wasm3::module3& mod) {
+	mod.link_optional("*", "shadercompiler_compile", shadercompiler_compile);
+	mod.link_optional("*", "shadercompiler_compile_async", shadercompiler_compile_async);
+}

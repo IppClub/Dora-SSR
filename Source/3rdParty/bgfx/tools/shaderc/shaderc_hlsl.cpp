@@ -667,7 +667,7 @@ namespace bgfx { namespace hlsl
 				end   = start + 20;
 			}
 
-			printCode(_code.c_str(), line, start, end, column);
+			printCode(_messageWriter, _code.c_str(), line, start, end, column);
 			bx::write(_messageWriter, &messageErr, "Error: D3DCompile failed 0x%08x %s\n", (uint32_t)hr, log);
 			errorMsg->Release();
 			return false;

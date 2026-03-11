@@ -18,13 +18,10 @@ jobs:
         with:
           xmake-version: latest
       - uses: dtolnay/rust-toolchain@stable
-      - name: Build bgfx libraries
-        run: |
-          cd Source/3rdParty/bgfx
-          ./build_libs.sh macos
       - name: macOS build
         if: "!startsWith(github.ref, 'refs/tags/')"
         run: |
+          Tools/build-scripts/build_lib_bgfx.sh macos -d
           Tools/tolua++/build.sh
           cd Source/Rust
           rustup target add x86_64-apple-darwin

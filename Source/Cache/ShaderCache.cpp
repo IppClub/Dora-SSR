@@ -113,6 +113,39 @@ Shader* ShaderCache::load(String filename) {
 	return shader;
 }
 
+Shader* ShaderCache::load(String filename, ShaderStage stage) {
+	auto ext = Path::getExt(filename);
+	if (ext != "sc"sv) {
+		return load(filename);
+	} else {
+		auto fullPath = SharedContent.getFullPath(filename);
+		auto it = _shaders.find(fullPath);
+		if (it != _shaders.end()) {
+			return it->second;
+		}
+		if (!SharedContent.exist(fullPath)) {
+			Error("failed to load shader \"{}\".", filename.toString());
+			return nullptr;
+		}
+		auto source = SharedContent.loadStr(fullPath);
+		std::string err;
+		auto compiled = SharedShaderCompiler.compile(source, stage, false, err);
+		if (!err.empty()) {
+			Error("failed to compile shader \"{}\", due to: {}.", filename.toString(), err);
+			return nullptr;
+		}
+		auto memory = bgfx::copy(compiled.data(), compiled.size());
+		bgfx::ShaderHandle handle = bgfx::createShader(memory);
+		if (!bgfx::isValid(handle)) {
+			Error("failed to load shader \"{}\".", filename.toString());
+			return nullptr;
+		}
+		Shader* shader = Shader::create(handle);
+		_shaders[fullPath] = shader;
+		return shader;
+	}
+}
+
 void ShaderCache::loadAsync(String filename, const std::function<void(Shader*)>& handler) {
 	std::string shaderFile = SharedContent.getFullPath(getShaderPath() + filename);
 	SharedContent.loadAsyncBX(shaderFile, [this, shaderFile, handler](const bgfx::Memory* mem) {
@@ -139,11 +172,18 @@ bool ShaderCache::unload(Shader* shader) {
 }
 
 bool ShaderCache::unload(String filename) {
-	std::string fullName = SharedContent.getFullPath(getShaderPath() + filename);
+	std::string fullName = SharedContent.getFullPath(filename);
 	auto it = _shaders.find(fullName);
 	if (it != _shaders.end()) {
 		_shaders.erase(it);
 		return true;
+	} else {
+		fullName = SharedContent.getFullPath(getShaderPath() + filename);
+		it = _shaders.find(fullName);
+		if (it != _shaders.end()) {
+			_shaders.erase(it);
+			return true;
+		}
 	}
 	return false;
 }

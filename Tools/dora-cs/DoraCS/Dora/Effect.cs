@@ -79,7 +79,21 @@ namespace Dora
 		/// A method that allows you to create a new Effect object.
 		/// </summary>
 		/// <param name="vertShader">The vertex shader file string.</param>
-		/// <param name="fragShader">The fragment shader file string. A shader file string must be one of the formats:</param>
+		/// <param name="fragShader">The fragment shader file string.</param>
+		/// <remarks>
+		/// A shader file string must be one of the formats:
+		/// <c>builtin:</c> + theBuiltinShaderName
+		/// <c>shader_compiled_file.bin</c>
+		/// <c>Shader/shader_source_file.sc</c>
+		///
+		/// Details:
+		/// <list type="bullet">
+		/// <item><description><c>"builtin:" + name</c> loads an embedded built-in shader.</description></item>
+		/// <item><description>For <c>.sc</c> files, the given path is loaded as shader source and compiled immediately.</description></item>
+		/// <item><description>For <c>.bin</c> files, if the given path exists, it is loaded directly.</description></item>
+		/// <item><description>Otherwise the engine tries <c>renderer_dir/filename.bin</c>, where <c>renderer_dir</c> depends on the active backend, such as <c>dx11</c>, <c>metal</c>, <c>glsl</c>, <c>essl</c>, or <c>spirv</c>.</description></item>
+		/// </list>
+		/// </remarks>
 		/// <returns>A new Effect object.</returns>
 		public Effect(string vertShader, string fragShader) : this(Native.effect_new(Bridge.FromString(vertShader), Bridge.FromString(fragShader))) { }
 	}

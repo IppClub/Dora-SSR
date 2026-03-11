@@ -37,6 +37,15 @@ local function resolve_sources(base_dir, files)
     return resolved
 end
 
+local function get_embedded_bgfx_shader_sources()
+    local generated_dir = path.join(BGFX_DIR, "dora/generated")
+    return {
+        generated_dir = generated_dir,
+        shader_output = path.join(generated_dir, "bgfx_shader.sh.h"),
+        compute_output = path.join(generated_dir, "bgfx_compute.sh.h"),
+    }
+end
+
 local function add_bgfx_renderer_config()
     if is_plat("windows") then
         add_defines("BGFX_CONFIG_RENDERER_DIRECT3D11=1")
@@ -1055,6 +1064,20 @@ target("glsl_optimizer")
 target("shaderc-lib")
     set_kind("static")
     add_common_target_settings()
+    add_rules("utils.bin2c", {extensions = {".sh"}})
+    add_files(
+        path.join(BGFX_DIR, "src/bgfx_shader.sh"),
+        path.join(BGFX_DIR, "src/bgfx_compute.sh")
+    )
+    after_buildcmd(function (target, batchcmds, opt)
+        local embedded = get_embedded_bgfx_shader_sources()
+        local autogen_dir = path.join(target:autogendir(), "rules", "utils", "bin2c")
+        batchcmds:show_progress(opt.progress, "${color.build.object}sync.embedded %s", "bgfx_shader.sh.h")
+        batchcmds:mkdir(embedded.generated_dir)
+        batchcmds:cp(path.join(autogen_dir, "bgfx_shader.sh.h"), embedded.shader_output)
+        batchcmds:show_progress(opt.progress, "${color.build.object}sync.embedded %s", "bgfx_compute.sh.h")
+        batchcmds:cp(path.join(autogen_dir, "bgfx_compute.sh.h"), embedded.compute_output)
+    end)
 
     if is_plat("windows") then
         add_defines(
