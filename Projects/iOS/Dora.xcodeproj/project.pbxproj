@@ -165,6 +165,26 @@
 		3C0FB71A2BF1970C0098E88D /* VertexBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB6762BF1970C0098E88D /* VertexBuffer.cpp */; };
 		3C0FB71B2BF1970C0098E88D /* bgfxrenderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB6792BF1970C0098E88D /* bgfxrenderer.cpp */; };
 		3C0FB71C2BF1970C0098E88D /* bgfxrenderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB6792BF1970C0098E88D /* bgfxrenderer.cpp */; };
+		3C10306C2F5F16210029F68F /* ShaderCompiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C10306B2F5F16210029F68F /* ShaderCompiler.cpp */; };
+		3C10306D2F5F16210029F68F /* ShaderCompiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C10306B2F5F16210029F68F /* ShaderCompiler.cpp */; };
+		3C10306E2F5F243F0029F68F /* libbgfx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F1D26087FB3003F4F45 /* libbgfx.a */; };
+		3C10306F2F5F243F0029F68F /* libbimg_decode.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F1C26087FB3003F4F45 /* libbimg_decode.a */; };
+		3C1030702F5F243F0029F68F /* libbimg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F1A26087FB3003F4F45 /* libbimg.a */; };
+		3C1030712F5F243F0029F68F /* libbx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F1B26087FB3003F4F45 /* libbx.a */; };
+		3C1030772F5F24400029F68F /* libspirv-cross.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C1030722F5F243F0029F68F /* libspirv-cross.a */; };
+		3C1030782F5F24400029F68F /* libspirv-opt.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C1030732F5F243F0029F68F /* libspirv-opt.a */; };
+		3C1030792F5F24400029F68F /* libglslang.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C1030742F5F243F0029F68F /* libglslang.a */; };
+		3C10307A2F5F24400029F68F /* libfcpp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C1030752F5F243F0029F68F /* libfcpp.a */; };
+		3C10307B2F5F24400029F68F /* libshaderc-lib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C1030762F5F243F0029F68F /* libshaderc-lib.a */; };
+		3C10307C2F5F24580029F68F /* libbgfx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CA780962AE770DC00B7BADA /* libbgfx.a */; };
+		3C10307D2F5F24580029F68F /* libbimg_decode.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CA780982AE770DC00B7BADA /* libbimg_decode.a */; };
+		3C10307E2F5F24580029F68F /* libbimg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CA780972AE770DC00B7BADA /* libbimg.a */; };
+		3C10307F2F5F24580029F68F /* libbx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CA780992AE770DC00B7BADA /* libbx.a */; };
+		3C1030852F5F24590029F68F /* libfcpp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C1030802F5F24590029F68F /* libfcpp.a */; };
+		3C1030862F5F24590029F68F /* libspirv-cross.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C1030812F5F24590029F68F /* libspirv-cross.a */; };
+		3C1030872F5F24590029F68F /* libshaderc-lib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C1030822F5F24590029F68F /* libshaderc-lib.a */; };
+		3C1030882F5F24590029F68F /* libglslang.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C1030832F5F24590029F68F /* libglslang.a */; };
+		3C1030892F5F24590029F68F /* libspirv-opt.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C1030842F5F24590029F68F /* libspirv-opt.a */; };
 		3C1038012F0E0E3300395953 /* luaapi.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C1037C62F0E0E3300395953 /* luaapi.c */; };
 		3C1038022F0E0E3300395953 /* tilesheet.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C1037FC2F0E0E3300395953 /* tilesheet.c */; };
 		3C1038032F0E0E3300395953 /* sound.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C1037E02F0E0E3300395953 /* sound.c */; };
@@ -1118,10 +1138,6 @@
 		3CA780932AE66FB000B7BADA /* MovementConf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA780002AE66FB000B7BADA /* MovementConf.cpp */; };
 		3CA780942AE66FB000B7BADA /* StackAllocator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA780012AE66FB000B7BADA /* StackAllocator.cpp */; };
 		3CA780952AE66FB000B7BADA /* StackAllocator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA780012AE66FB000B7BADA /* StackAllocator.cpp */; };
-		3CA7809A2AE770DC00B7BADA /* libbgfx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CA780962AE770DC00B7BADA /* libbgfx.a */; };
-		3CA7809B2AE770DC00B7BADA /* libbimg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CA780972AE770DC00B7BADA /* libbimg.a */; };
-		3CA7809C2AE770DC00B7BADA /* libbimg_decode.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CA780982AE770DC00B7BADA /* libbimg_decode.a */; };
-		3CA7809D2AE770DC00B7BADA /* libbx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CA780992AE770DC00B7BADA /* libbx.a */; };
 		3CA7809F2AE770EE00B7BADA /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CA7809E2AE770EE00B7BADA /* libSDL2.a */; };
 		3CA780A32AEB88B600B7BADA /* LICENSES in Resources */ = {isa = PBXBuildFile; fileRef = 3CA780A22AEB88B600B7BADA /* LICENSES */; };
 		3CA780A42AEB88B600B7BADA /* LICENSES in Resources */ = {isa = PBXBuildFile; fileRef = 3CA780A22AEB88B600B7BADA /* LICENSES */; };
@@ -1142,10 +1158,6 @@
 		3CBE0F0126087F7B003F4F45 /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE3316F1D96D92700F9C3F6 /* CoreMotion.framework */; };
 		3CBE0F0826087F7B003F4F45 /* Font in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CF324CAE6570074786E /* Font */; };
 		3CBE0F0926087F7B003F4F45 /* Script in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CF024CAE6570074786E /* Script */; };
-		3CBE0F1E26087FB3003F4F45 /* libbimg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F1A26087FB3003F4F45 /* libbimg.a */; };
-		3CBE0F1F26087FB3003F4F45 /* libbx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F1B26087FB3003F4F45 /* libbx.a */; };
-		3CBE0F2026087FB3003F4F45 /* libbimg_decode.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F1C26087FB3003F4F45 /* libbimg_decode.a */; };
-		3CBE0F2126087FB3003F4F45 /* libbgfx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F1D26087FB3003F4F45 /* libbgfx.a */; };
 		3CBE0F4D26088937003F4F45 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F2226087FC8003F4F45 /* libSDL2.a */; };
 		3CBE0F5126088B89003F4F45 /* CoreHaptics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F5026088B89003F4F45 /* CoreHaptics.framework */; };
 		3CBE0F762608983E003F4F45 /* CoreHaptics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F5026088B89003F4F45 /* CoreHaptics.framework */; };
@@ -1439,6 +1451,18 @@
 		3C0FB67D2BF1970C0098E88D /* Effekseer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.h; sourceTree = "<group>"; };
 		3C0FB67E2BF1970C0098E88D /* Effekseer.Modules.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.Modules.h; sourceTree = "<group>"; };
 		3C0FB67F2BF1970C0098E88D /* Effekseer.SIMD.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.SIMD.h; sourceTree = "<group>"; };
+		3C10306A2F5F16210029F68F /* ShaderCompiler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShaderCompiler.h; sourceTree = "<group>"; };
+		3C10306B2F5F16210029F68F /* ShaderCompiler.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ShaderCompiler.cpp; sourceTree = "<group>"; };
+		3C1030722F5F243F0029F68F /* libspirv-cross.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libspirv-cross.a"; path = "../../Source/3rdParty/bgfx/build/ios/simulator/libspirv-cross.a"; sourceTree = "<group>"; };
+		3C1030732F5F243F0029F68F /* libspirv-opt.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libspirv-opt.a"; path = "../../Source/3rdParty/bgfx/build/ios/simulator/libspirv-opt.a"; sourceTree = "<group>"; };
+		3C1030742F5F243F0029F68F /* libglslang.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libglslang.a; path = ../../Source/3rdParty/bgfx/build/ios/simulator/libglslang.a; sourceTree = "<group>"; };
+		3C1030752F5F243F0029F68F /* libfcpp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfcpp.a; path = ../../Source/3rdParty/bgfx/build/ios/simulator/libfcpp.a; sourceTree = "<group>"; };
+		3C1030762F5F243F0029F68F /* libshaderc-lib.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libshaderc-lib.a"; path = "../../Source/3rdParty/bgfx/build/ios/simulator/libshaderc-lib.a"; sourceTree = "<group>"; };
+		3C1030802F5F24590029F68F /* libfcpp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfcpp.a; path = ../../Source/3rdParty/bgfx/build/ios/device/libfcpp.a; sourceTree = "<group>"; };
+		3C1030812F5F24590029F68F /* libspirv-cross.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libspirv-cross.a"; path = "../../Source/3rdParty/bgfx/build/ios/device/libspirv-cross.a"; sourceTree = "<group>"; };
+		3C1030822F5F24590029F68F /* libshaderc-lib.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libshaderc-lib.a"; path = "../../Source/3rdParty/bgfx/build/ios/device/libshaderc-lib.a"; sourceTree = "<group>"; };
+		3C1030832F5F24590029F68F /* libglslang.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libglslang.a; path = ../../Source/3rdParty/bgfx/build/ios/device/libglslang.a; sourceTree = "<group>"; };
+		3C1030842F5F24590029F68F /* libspirv-opt.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libspirv-opt.a"; path = "../../Source/3rdParty/bgfx/build/ios/device/libspirv-opt.a"; sourceTree = "<group>"; };
 		3C1037C42F0E0E3300395953 /* lua.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lua.c; sourceTree = "<group>"; };
 		3C1037C52F0E0E3300395953 /* luaapi.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = luaapi.h; sourceTree = "<group>"; };
 		3C1037C62F0E0E3300395953 /* luaapi.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = luaapi.c; sourceTree = "<group>"; };
@@ -2577,20 +2601,20 @@
 		3CA780012AE66FB000B7BADA /* StackAllocator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StackAllocator.cpp; sourceTree = "<group>"; };
 		3CA780022AE66FB000B7BADA /* ConstraintSolverConf.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ConstraintSolverConf.hpp; sourceTree = "<group>"; };
 		3CA780032AE66FB000B7BADA /* ToiOutput.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ToiOutput.hpp; sourceTree = "<group>"; };
-		3CA780962AE770DC00B7BADA /* libbgfx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbgfx.a; path = ../../Source/3rdParty/bgfx/Lib/iOS/libbgfx.a; sourceTree = "<group>"; };
-		3CA780972AE770DC00B7BADA /* libbimg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg.a; path = ../../Source/3rdParty/bgfx/Lib/iOS/libbimg.a; sourceTree = "<group>"; };
-		3CA780982AE770DC00B7BADA /* libbimg_decode.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg_decode.a; path = ../../Source/3rdParty/bgfx/Lib/iOS/libbimg_decode.a; sourceTree = "<group>"; };
-		3CA780992AE770DC00B7BADA /* libbx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbx.a; path = ../../Source/3rdParty/bgfx/Lib/iOS/libbx.a; sourceTree = "<group>"; };
+		3CA780962AE770DC00B7BADA /* libbgfx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbgfx.a; path = ../../Source/3rdParty/bgfx/build/ios/device/libbgfx.a; sourceTree = "<group>"; };
+		3CA780972AE770DC00B7BADA /* libbimg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg.a; path = ../../Source/3rdParty/bgfx/build/ios/device/libbimg.a; sourceTree = "<group>"; };
+		3CA780982AE770DC00B7BADA /* libbimg_decode.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg_decode.a; path = ../../Source/3rdParty/bgfx/build/ios/device/libbimg_decode.a; sourceTree = "<group>"; };
+		3CA780992AE770DC00B7BADA /* libbx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbx.a; path = ../../Source/3rdParty/bgfx/build/ios/device/libbx.a; sourceTree = "<group>"; };
 		3CA7809E2AE770EE00B7BADA /* libSDL2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSDL2.a; path = ../../Source/3rdParty/SDL2/Lib/iOS/libSDL2.a; sourceTree = "<group>"; };
 		3CA780A22AEB88B600B7BADA /* LICENSES */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSES; sourceTree = "<group>"; };
 		3CA8DF0E2A0CE83D0022CC90 /* www */ = {isa = PBXFileReference; lastKnownFileType = folder; path = www; sourceTree = "<group>"; };
 		3CB410261E05B0C500A8804D /* Slice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Slice.cpp; sourceTree = "<group>"; };
 		3CB410271E05B0C500A8804D /* Slice.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Slice.h; sourceTree = "<group>"; };
 		3CBE0F1226087F7B003F4F45 /* Simulator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Simulator.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		3CBE0F1A26087FB3003F4F45 /* libbimg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg.a; path = "../../Source/3rdParty/bgfx/Lib/iOS-Simulator/libbimg.a"; sourceTree = "<group>"; };
-		3CBE0F1B26087FB3003F4F45 /* libbx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbx.a; path = "../../Source/3rdParty/bgfx/Lib/iOS-Simulator/libbx.a"; sourceTree = "<group>"; };
-		3CBE0F1C26087FB3003F4F45 /* libbimg_decode.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg_decode.a; path = "../../Source/3rdParty/bgfx/Lib/iOS-Simulator/libbimg_decode.a"; sourceTree = "<group>"; };
-		3CBE0F1D26087FB3003F4F45 /* libbgfx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbgfx.a; path = "../../Source/3rdParty/bgfx/Lib/iOS-Simulator/libbgfx.a"; sourceTree = "<group>"; };
+		3CBE0F1A26087FB3003F4F45 /* libbimg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg.a; path = ../../Source/3rdParty/bgfx/build/ios/simulator/libbimg.a; sourceTree = "<group>"; };
+		3CBE0F1B26087FB3003F4F45 /* libbx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbx.a; path = ../../Source/3rdParty/bgfx/build/ios/simulator/libbx.a; sourceTree = "<group>"; };
+		3CBE0F1C26087FB3003F4F45 /* libbimg_decode.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg_decode.a; path = ../../Source/3rdParty/bgfx/build/ios/simulator/libbimg_decode.a; sourceTree = "<group>"; };
+		3CBE0F1D26087FB3003F4F45 /* libbgfx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbgfx.a; path = ../../Source/3rdParty/bgfx/build/ios/simulator/libbgfx.a; sourceTree = "<group>"; };
 		3CBE0F2226087FC8003F4F45 /* libSDL2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSDL2.a; path = "../../Source/3rdParty/SDL2/Lib/iOS-Simulator/libSDL2.a"; sourceTree = "<group>"; };
 		3CBE0F5026088B89003F4F45 /* CoreHaptics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreHaptics.framework; path = System/Library/Frameworks/CoreHaptics.framework; sourceTree = SDKROOT; };
 		3CBE6FFE2CFA183F00A1C497 /* libdora_runtime.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libdora_runtime.a; path = ../../Source/Rust/lib/iOS/libdora_runtime.a; sourceTree = "<group>"; };
@@ -2651,15 +2675,20 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3C1030772F5F24400029F68F /* libspirv-cross.a in Frameworks */,
+				3C1030782F5F24400029F68F /* libspirv-opt.a in Frameworks */,
+				3C1030792F5F24400029F68F /* libglslang.a in Frameworks */,
+				3C10307A2F5F24400029F68F /* libfcpp.a in Frameworks */,
+				3C10307B2F5F24400029F68F /* libshaderc-lib.a in Frameworks */,
+				3C10306E2F5F243F0029F68F /* libbgfx.a in Frameworks */,
+				3C10306F2F5F243F0029F68F /* libbimg_decode.a in Frameworks */,
+				3C1030702F5F243F0029F68F /* libbimg.a in Frameworks */,
+				3C1030712F5F243F0029F68F /* libbx.a in Frameworks */,
 				3CE471C72DD2EF8A0036716C /* libwa.a in Frameworks */,
 				3CBE70012CFA185400A1C497 /* libdora_runtime.a in Frameworks */,
 				3C7FA3772B68A1F0005A8441 /* libssl.a in Frameworks */,
 				3C7FA3782B68A1F0005A8441 /* libcrypto.a in Frameworks */,
 				3CBE0F4D26088937003F4F45 /* libSDL2.a in Frameworks */,
-				3CBE0F1E26087FB3003F4F45 /* libbimg.a in Frameworks */,
-				3CBE0F1F26087FB3003F4F45 /* libbx.a in Frameworks */,
-				3CBE0F2026087FB3003F4F45 /* libbimg_decode.a in Frameworks */,
-				3CBE0F2126087FB3003F4F45 /* libbgfx.a in Frameworks */,
 				3CBE0EF726087F7B003F4F45 /* Metal.framework in Frameworks */,
 				3CBE0F5126088B89003F4F45 /* CoreHaptics.framework in Frameworks */,
 				3CBE0EF826087F7B003F4F45 /* CoreAudio.framework in Frameworks */,
@@ -2679,15 +2708,20 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3C1030852F5F24590029F68F /* libfcpp.a in Frameworks */,
+				3C1030862F5F24590029F68F /* libspirv-cross.a in Frameworks */,
+				3C1030872F5F24590029F68F /* libshaderc-lib.a in Frameworks */,
+				3C1030882F5F24590029F68F /* libglslang.a in Frameworks */,
+				3C1030892F5F24590029F68F /* libspirv-opt.a in Frameworks */,
+				3C10307C2F5F24580029F68F /* libbgfx.a in Frameworks */,
+				3C10307D2F5F24580029F68F /* libbimg_decode.a in Frameworks */,
+				3C10307E2F5F24580029F68F /* libbimg.a in Frameworks */,
+				3C10307F2F5F24580029F68F /* libbx.a in Frameworks */,
 				3CE471CA2DD2EFDE0036716C /* libwa.a in Frameworks */,
 				3CBE6FFF2CFA183F00A1C497 /* libdora_runtime.a in Frameworks */,
 				3C7FA3732B68A1DE005A8441 /* libcrypto.a in Frameworks */,
 				3C7FA3742B68A1DE005A8441 /* libssl.a in Frameworks */,
 				3CA7809F2AE770EE00B7BADA /* libSDL2.a in Frameworks */,
-				3CA7809A2AE770DC00B7BADA /* libbgfx.a in Frameworks */,
-				3CA7809B2AE770DC00B7BADA /* libbimg.a in Frameworks */,
-				3CA7809C2AE770DC00B7BADA /* libbimg_decode.a in Frameworks */,
-				3CA7809D2AE770DC00B7BADA /* libbx.a in Frameworks */,
 				3CD210611E663F8B004676F1 /* Metal.framework in Frameworks */,
 				3CBE0F762608983E003F4F45 /* CoreHaptics.framework in Frameworks */,
 				3CE3317C1D96D98D00F9C3F6 /* CoreAudio.framework in Frameworks */,
@@ -4380,6 +4414,8 @@
 		3C5930DD2CA4F67300CAF224 /* Shader */ = {
 			isa = PBXGroup;
 			children = (
+				3C10306A2F5F16210029F68F /* ShaderCompiler.h */,
+				3C10306B2F5F16210029F68F /* ShaderCompiler.cpp */,
 				3C5930DB2CA4F67300CAF224 /* Builtin.h */,
 				3C5930DC2CA4F67300CAF224 /* Builtin.cpp */,
 			);
@@ -4568,6 +4604,16 @@
 		3C98626E1D9CA4500056A045 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				3C1030752F5F243F0029F68F /* libfcpp.a */,
+				3C1030742F5F243F0029F68F /* libglslang.a */,
+				3C1030832F5F24590029F68F /* libglslang.a */,
+				3C1030762F5F243F0029F68F /* libshaderc-lib.a */,
+				3C1030822F5F24590029F68F /* libshaderc-lib.a */,
+				3C1030722F5F243F0029F68F /* libspirv-cross.a */,
+				3C1030732F5F243F0029F68F /* libspirv-opt.a */,
+				3C1030802F5F24590029F68F /* libfcpp.a */,
+				3C1030812F5F24590029F68F /* libspirv-cross.a */,
+				3C1030842F5F24590029F68F /* libspirv-opt.a */,
 				3CE471C62DD2EF8A0036716C /* libwa.a */,
 				3CE471C82DD2EF9B0036716C /* libwa.a */,
 				3CBE6FFE2CFA183F00A1C497 /* libdora_runtime.a */,
@@ -5517,6 +5563,7 @@
 				3C5932272CA4F67300CAF224 /* TMXCache.cpp in Sources */,
 				3C5932282CA4F67300CAF224 /* ModelDef.cpp in Sources */,
 				3C5932292CA4F67300CAF224 /* Action.cpp in Sources */,
+				3C10306D2F5F16210029F68F /* ShaderCompiler.cpp in Sources */,
 				3C59322A2CA4F67300CAF224 /* LuaBinding.cpp in Sources */,
 				3C59322B2CA4F67300CAF224 /* Director.cpp in Sources */,
 				3C59322C2CA4F67300CAF224 /* JointDef.cpp in Sources */,
@@ -6091,6 +6138,7 @@
 				3C59314A2CA4F67300CAF224 /* TMXCache.cpp in Sources */,
 				3C59314B2CA4F67300CAF224 /* ModelDef.cpp in Sources */,
 				3C59314C2CA4F67300CAF224 /* Action.cpp in Sources */,
+				3C10306C2F5F16210029F68F /* ShaderCompiler.cpp in Sources */,
 				3C59314D2CA4F67300CAF224 /* LuaBinding.cpp in Sources */,
 				3C59314E2CA4F67300CAF224 /* Director.cpp in Sources */,
 				3C59314F2CA4F67300CAF224 /* JointDef.cpp in Sources */,
@@ -6408,6 +6456,12 @@
 					SPDLOG_FMT_EXTERNAL,
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
+				HEADER_SEARCH_PATHS = (
+					../../Source/3rdParty/bx/include,
+					../../Source/3rdParty/bx/include/compat/ios,
+					../../Source/3rdParty/bimg/include,
+					../../Source/3rdParty/bgfx/include,
+				);
 				INFOPLIST_FILE = Dora/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -6415,7 +6469,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"../../Source/3rdParty/SDL2/Lib/iOS-Simulator",
-					"../../Source/3rdParty/bgfx/Lib/iOS-Simulator",
+					../../Source/3rdParty/bgfx/build/ios/simulator,
 					"../../Source/3rdParty/OpenSSL/Lib/iOS-Simulator",
 					"../../Source/3rdParty/Wa/Lib/iOS-Simulator",
 					"../../Source/Rust/lib/iOS-Simulator",
@@ -6434,8 +6488,6 @@
 					../../Source,
 					../../Source/3rdParty,
 					../../Source/3rdParty/SDL2/Header,
-					../../Source/3rdParty/bgfx/Header,
-					../../Source/3rdParty/bgfx/Header/compat/ios,
 					../../Source/3rdParty/Lua,
 					../../Source/3rdParty/soloud,
 					../../Source/3rdParty/lodepng,
@@ -6481,6 +6533,12 @@
 					SPDLOG_FMT_EXTERNAL,
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
+				HEADER_SEARCH_PATHS = (
+					../../Source/3rdParty/bx/include,
+					../../Source/3rdParty/bx/include/compat/ios,
+					../../Source/3rdParty/bimg/include,
+					../../Source/3rdParty/bgfx/include,
+				);
 				INFOPLIST_FILE = Dora/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -6488,7 +6546,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"../../Source/3rdParty/SDL2/Lib/iOS-Simulator",
-					"../../Source/3rdParty/bgfx/Lib/iOS-Simulator",
+					../../Source/3rdParty/bgfx/build/ios/simulator,
 					"../../Source/3rdParty/OpenSSL/Lib/iOS-Simulator",
 					"../../Source/3rdParty/Wa/Lib/iOS-Simulator",
 					"../../Source/Rust/lib/iOS-Simulator",
@@ -6507,8 +6565,6 @@
 					../../Source,
 					../../Source/3rdParty,
 					../../Source/3rdParty/SDL2/Header,
-					../../Source/3rdParty/bgfx/Header,
-					../../Source/3rdParty/bgfx/Header/compat/ios,
 					../../Source/3rdParty/Lua,
 					../../Source/3rdParty/soloud,
 					../../Source/3rdParty/lodepng,
@@ -6578,6 +6634,12 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					../../Source/3rdParty/bx/include,
+					../../Source/3rdParty/bx/include/compat/ios,
+					../../Source/3rdParty/bimg/include,
+					../../Source/3rdParty/bgfx/include,
+				);
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -6588,8 +6650,6 @@
 					../../Source,
 					../../Source/3rdParty,
 					../../Source/3rdParty/SDL2/Header,
-					../../Source/3rdParty/bgfx/Header,
-					../../Source/3rdParty/bgfx/Header/compat/ios,
 					../../Source/3rdParty/Lua/Header,
 					../../Source/3rdParty/soloud/Header,
 					../../Source/3rdParty/lodepng,
@@ -6648,6 +6708,12 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					../../Source/3rdParty/bx/include,
+					../../Source/3rdParty/bx/include/compat/ios,
+					../../Source/3rdParty/bimg/include,
+					../../Source/3rdParty/bgfx/include,
+				);
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OTHER_LDFLAGS = "";
@@ -6657,8 +6723,6 @@
 					../../Source,
 					../../Source/3rdParty,
 					../../Source/3rdParty/SDL2/Header,
-					../../Source/3rdParty/bgfx/Header,
-					../../Source/3rdParty/bgfx/Header/compat/ios,
 					../../Source/3rdParty/Lua/Header,
 					../../Source/3rdParty/soloud/Header,
 					../../Source/3rdParty/lodepng,
@@ -6699,6 +6763,12 @@
 					SPDLOG_FMT_EXTERNAL,
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
+				HEADER_SEARCH_PATHS = (
+					../../Source/3rdParty/bx/include,
+					../../Source/3rdParty/bx/include/compat/ios,
+					../../Source/3rdParty/bimg/include,
+					../../Source/3rdParty/bgfx/include,
+				);
 				INFOPLIST_FILE = Dora/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -6707,7 +6777,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					../../Source/3rdParty/SDL2/Lib/iOS,
-					../../Source/3rdParty/bgfx/Lib/iOS,
+					../../Source/3rdParty/bgfx/build/ios/device,
 					../../Source/3rdParty/OpenSSL/Lib/iOS,
 					../../Source/3rdParty/Wa/Lib/iOS,
 					../../Source/Rust/lib/iOS,
@@ -6726,8 +6796,6 @@
 					../../Source,
 					../../Source/3rdParty,
 					../../Source/3rdParty/SDL2/Header,
-					../../Source/3rdParty/bgfx/Header,
-					../../Source/3rdParty/bgfx/Header/compat/ios,
 					../../Source/3rdParty/Lua,
 					../../Source/3rdParty/soloud,
 					../../Source/3rdParty/lodepng,
@@ -6771,6 +6839,12 @@
 					SPDLOG_FMT_EXTERNAL,
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
+				HEADER_SEARCH_PATHS = (
+					../../Source/3rdParty/bx/include,
+					../../Source/3rdParty/bx/include/compat/ios,
+					../../Source/3rdParty/bimg/include,
+					../../Source/3rdParty/bgfx/include,
+				);
 				INFOPLIST_FILE = Dora/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -6779,7 +6853,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					../../Source/3rdParty/SDL2/Lib/iOS,
-					../../Source/3rdParty/bgfx/Lib/iOS,
+					../../Source/3rdParty/bgfx/build/ios/device,
 					../../Source/3rdParty/OpenSSL/Lib/iOS,
 					../../Source/3rdParty/Wa/Lib/iOS,
 					../../Source/Rust/lib/iOS,
@@ -6798,8 +6872,6 @@
 					../../Source,
 					../../Source/3rdParty,
 					../../Source/3rdParty/SDL2/Header,
-					../../Source/3rdParty/bgfx/Header,
-					../../Source/3rdParty/bgfx/Header/compat/ios,
 					../../Source/3rdParty/Lua,
 					../../Source/3rdParty/soloud,
 					../../Source/3rdParty/lodepng,

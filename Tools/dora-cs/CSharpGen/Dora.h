@@ -769,8 +769,22 @@ object class Pass
 	/// <summary>
 	/// Creates a new Pass object.
 	/// </summary>
-	/// <param name="vertShader">The vertex shader in binary form file string.</param>
-	/// <param name="fragShader">The fragment shader file string. A shader file string must be one of the formats:</param>
+	/// <param name="vertShader">The vertex shader file string.</param>
+	/// <param name="fragShader">The fragment shader file string.</param>
+	/// <remarks>
+	/// A shader file string must be one of the formats:
+	/// <c>builtin:</c> + theBuiltinShaderName
+	/// <c>shader_compiled_file.bin</c>
+	/// <c>Shader/shader_source_file.sc</c>
+	///
+	/// Details:
+	/// <list type="bullet">
+	/// <item><description><c>"builtin:" + name</c> loads an embedded built-in shader.</description></item>
+	/// <item><description>For <c>.sc</c> files, the given path is loaded as shader source and compiled immediately.</description></item>
+	/// <item><description>For <c>.bin</c> files, if the given path exists, it is loaded directly.</description></item>
+	/// <item><description>Otherwise the engine tries <c>renderer_dir/filename.bin</c>, where <c>renderer_dir</c> depends on the active backend, such as <c>dx11</c>, <c>metal</c>, <c>glsl</c>, <c>essl</c>, or <c>spirv</c>.</description></item>
+	/// </list>
+	/// </remarks>
 	/// <returns>A new Pass object.</returns>
 	static Pass* create(string vertShader, string fragShader);
 };
@@ -802,7 +816,21 @@ object class Effect
 	/// A method that allows you to create a new Effect object.
 	/// </summary>
 	/// <param name="vertShader">The vertex shader file string.</param>
-	/// <param name="fragShader">The fragment shader file string. A shader file string must be one of the formats:</param>
+	/// <param name="fragShader">The fragment shader file string.</param>
+	/// <remarks>
+	/// A shader file string must be one of the formats:
+	/// <c>builtin:</c> + theBuiltinShaderName
+	/// <c>shader_compiled_file.bin</c>
+	/// <c>Shader/shader_source_file.sc</c>
+	///
+	/// Details:
+	/// <list type="bullet">
+	/// <item><description><c>"builtin:" + name</c> loads an embedded built-in shader.</description></item>
+	/// <item><description>For <c>.sc</c> files, the given path is loaded as shader source and compiled immediately.</description></item>
+	/// <item><description>For <c>.bin</c> files, if the given path exists, it is loaded directly.</description></item>
+	/// <item><description>Otherwise the engine tries <c>renderer_dir/filename.bin</c>, where <c>renderer_dir</c> depends on the active backend, such as <c>dx11</c>, <c>metal</c>, <c>glsl</c>, <c>essl</c>, or <c>spirv</c>.</description></item>
+	/// </list>
+	/// </remarks>
 	/// <returns>A new Effect object.</returns>
 	static Effect* create(string vertShader, string fragShader);
 };
@@ -816,7 +844,21 @@ object class SpriteEffect : public Effect
 	/// A method that allows you to create a new SpriteEffect object.
 	/// </summary>
 	/// <param name="vertShader">The vertex shader file string.</param>
-	/// <param name="fragShader">The fragment shader file string. A shader file string must be one of the formats:</param>
+	/// <param name="fragShader">The fragment shader file string.</param>
+	/// <remarks>
+	/// A shader file string must be one of the formats:
+	/// <c>builtin:</c> + theBuiltinShaderName
+	/// <c>shader_compiled_file.bin</c>
+	/// <c>Shader/shader_source_file.sc</c>
+	///
+	/// Details:
+	/// <list type="bullet">
+	/// <item><description><c>"builtin:" + name</c> loads an embedded built-in shader.</description></item>
+	/// <item><description>For <c>.sc</c> files, the given path is loaded as shader source and compiled immediately.</description></item>
+	/// <item><description>For <c>.bin</c> files, if the given path exists, it is loaded directly.</description></item>
+	/// <item><description>Otherwise the engine tries <c>renderer_dir/filename.bin</c>, where <c>renderer_dir</c> depends on the active backend, such as <c>dx11</c>, <c>metal</c>, <c>glsl</c>, <c>essl</c>, or <c>spirv</c>.</description></item>
+	/// </list>
+	/// </remarks>
 	/// <returns>A new SpriteEffect object.</returns>
 	static SpriteEffect* create(string vertShader, string fragShader);
 };
@@ -3772,7 +3814,7 @@ object class TIC80Node : public Sprite
 	/// <returns>
 	/// The created TIC80Node instance.
 	/// </returns>
-	static optional TIC80Node* create(string cartFile);
+	static optional hide TIC80Node* create(string cartFile);
 	/// <summary>
 	/// Creates a new TIC80Node object with code from a file and resources from a cart file.
 	/// </summary>
@@ -4166,15 +4208,6 @@ singleton class HttpClient
 	/// <returns>The request id. Returns <c>0</c> when the request cannot be scheduled.</returns>
 	int64_t downloadAsync(string url, string fullPath, float timeout, function<def_true bool(bool interrupted, uint64_t current, uint64_t total)> progress);
 	/// <summary>
-	/// Downloads a file and returns a request id that can be cancelled later.
-	/// </summary>
-	/// <param name="url">The URL of the file to download.</param>
-	/// <param name="fullPath">The full path where the downloaded file should be saved.</param>
-	/// <param name="timeout">The timeout in seconds for the request.</param>
-	/// <param name="progress">A callback function that reports download progress. It receives <c>interrupted</c>, <c>current</c>, and <c>total</c>. Return <c>true</c> to cancel the download. If the download fails or is cancelled, the partially written file is removed.</param>
-	/// <returns>The request id. Returns <c>0</c> when the request cannot be scheduled.</returns>
-	int64_t downloadAsyncWithHandle(string url, string fullPath, float timeout, function<def_true bool(bool interrupted, uint64_t current, uint64_t total)> progress);
-	/// <summary>
 	/// Requests cancellation for an in-flight HTTP request.
 	/// </summary>
 	/// <param name="requestId">The request id returned by an async HTTP method.</param>
@@ -4186,6 +4219,29 @@ singleton class HttpClient
 	/// <param name="requestId">The request id returned by an async HTTP method.</param>
 	/// <returns><c>true</c> if the request is still running.</returns>
 	bool isRequestActive(int64_t requestId);
+};
+
+/// <summary>
+/// A singleton interface for compiling shader source files into binary shader files.
+/// </summary>
+singleton class ShaderCompiler @ Shader
+{
+	/// <summary>
+	/// Compiles a shader source file and writes the compiled bytecode to the target file.
+	/// </summary>
+	/// <param name="sourceFile">The shader source file path.</param>
+	/// <param name="targetFile">The output file path for the compiled shader bytecode. Use the <c>.bin</c> suffix.</param>
+	/// <param name="stage">The shader stage.</param>
+	/// <returns>An empty string on success, or an error message on failure.</returns>
+	string compile(string sourceFile, string targetFile, ShaderStage stage);
+	/// <summary>
+	/// Compiles a shader source file asynchronously and writes the compiled bytecode to the target file.
+	/// </summary>
+	/// <param name="sourceFile">The shader source file path.</param>
+	/// <param name="targetFile">The output file path for the compiled shader bytecode. Use the <c>.bin</c> suffix.</param>
+	/// <param name="stage">The shader stage.</param>
+	/// <param name="callback">A callback function invoked when the compilation finishes. It receives an empty string on success, or an error message on failure.</param>
+	void compileAsync(string sourceFile, string targetFile, ShaderStage stage, function<void(string error)> callback);
 };
 
 namespace Platformer {

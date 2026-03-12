@@ -3,6 +3,20 @@ project(Dora-SSR)
 
 set(CMAKE_CXX_STANDARD 20)
 
+set(DORA_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../..)
+set(DORA_SOURCE_ROOT ${DORA_ROOT}/Source)
+set(DORA_BGFX_ROOT ${DORA_SOURCE_ROOT}/3rdParty/bgfx)
+
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|amd64)$")
+	set(DORA_BGFX_ARCH x86_64)
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64|arm64)$")
+	set(DORA_BGFX_ARCH aarch64)
+else()
+	set(DORA_BGFX_ARCH ${CMAKE_SYSTEM_PROCESSOR})
+endif()
+
+set(DORA_BGFX_BUILD_DIR ${DORA_BGFX_ROOT}/build/linux/${DORA_BGFX_ARCH}/release)
+
 find_package(SDL2 REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(PkgConfig REQUIRED)
@@ -11,48 +25,67 @@ pkg_check_modules(DBUS REQUIRED dbus-1)
 include_directories(
 	${SDL2_INCLUDE_DIRS}
 	${DBUS_INCLUDE_DIRS}
-	3rdParty/bgfx/include
-	3rdParty/bimg/include
-	3rdParty/bx/include
-	../../Source
-	../../Source/3rdParty
-	../../Source/3rdParty/Lua
-	../../Source/3rdParty/Zip
-	../../Source/3rdParty/soloud
-	../../Source/3rdParty/lodepng
-	../../Source/3rdParty/imgui
-	../../Source/3rdParty/implot
-	../../Source/3rdParty/font
-	../../Source/3rdParty/sqlite
-	../../Source/3rdParty/dragonBones
-	../../Source/3rdParty/wasm3
-	../../Source/3rdParty/Zip/zlib
-	../../Source/3rdParty/Effekseer
-	../../Source/3rdParty/h264bsd
+	${DORA_BGFX_ROOT}/include
+	${DORA_SOURCE_ROOT}/3rdParty/bimg/include
+	${DORA_SOURCE_ROOT}/3rdParty/bx/include
+	${DORA_SOURCE_ROOT}/3rdParty/bx/include/compat/linux
+	${DORA_SOURCE_ROOT}
+	${DORA_SOURCE_ROOT}/3rdParty
+	${DORA_SOURCE_ROOT}/3rdParty/Lua
+	${DORA_SOURCE_ROOT}/3rdParty/Zip
+	${DORA_SOURCE_ROOT}/3rdParty/soloud
+	${DORA_SOURCE_ROOT}/3rdParty/lodepng
+	${DORA_SOURCE_ROOT}/3rdParty/imgui
+	${DORA_SOURCE_ROOT}/3rdParty/implot
+	${DORA_SOURCE_ROOT}/3rdParty/font
+	${DORA_SOURCE_ROOT}/3rdParty/sqlite
+	${DORA_SOURCE_ROOT}/3rdParty/dragonBones
+	${DORA_SOURCE_ROOT}/3rdParty/wasm3
+	${DORA_SOURCE_ROOT}/3rdParty/Zip/zlib
+	${DORA_SOURCE_ROOT}/3rdParty/Effekseer
+	${DORA_SOURCE_ROOT}/3rdParty/h264bsd
 )
 
 add_library(BGFX-lib STATIC IMPORTED)
 set_target_properties(
 	BGFX-lib PROPERTIES IMPORTED_LOCATION
-	${CMAKE_SOURCE_DIR}/3rdParty/libs/libbgfxRelease.a
+	${DORA_BGFX_BUILD_DIR}/libbgfx.a
 )
 
 add_library(BX-lib STATIC IMPORTED)
 set_target_properties(
 	BX-lib PROPERTIES IMPORTED_LOCATION
-	${CMAKE_SOURCE_DIR}/3rdParty/libs/libbxRelease.a
+	${DORA_BGFX_BUILD_DIR}/libbx.a
 )
 
 add_library(BIMG-lib STATIC IMPORTED)
 set_target_properties(
 	BIMG-lib PROPERTIES IMPORTED_LOCATION
-	${CMAKE_SOURCE_DIR}/3rdParty/libs/libbimgRelease.a
+	${DORA_BGFX_BUILD_DIR}/libbimg.a
 )
 
 add_library(BIMGDE-lib STATIC IMPORTED)
 set_target_properties(
 	BIMGDE-lib PROPERTIES IMPORTED_LOCATION
-	${CMAKE_SOURCE_DIR}/3rdParty/libs/libbimg_decodeRelease.a
+	${DORA_BGFX_BUILD_DIR}/libbimg_decode.a
+)
+
+add_library(FCPP-lib STATIC IMPORTED)
+set_target_properties(
+	FCPP-lib PROPERTIES IMPORTED_LOCATION
+	${DORA_BGFX_BUILD_DIR}/libfcpp.a
+)
+
+add_library(GLSLO-lib STATIC IMPORTED)
+set_target_properties(
+	GLSLO-lib PROPERTIES IMPORTED_LOCATION
+	${DORA_BGFX_BUILD_DIR}/libglsl_optimizer.a
+)
+
+add_library(SHADERC-lib STATIC IMPORTED)
+set_target_properties(
+	SHADERC-lib PROPERTIES IMPORTED_LOCATION
+	${DORA_BGFX_BUILD_DIR}/libshaderc-lib.a
 )
 
 add_library(WA-lib STATIC IMPORTED)
@@ -146,6 +179,7 @@ add_executable(dora-ssr
 	../../Source/Render/VGRender.cpp
 	../../Source/Render/View.cpp
 	../../Source/Shader/Builtin.cpp
+	../../Source/Shader/ShaderCompiler.cpp
 	../../Source/Physics/Joint.cpp
 	../../Source/Physics/BodyDef.cpp
 	../../Source/Physics/JointDef.cpp
@@ -641,5 +675,4 @@ add_executable(dora-ssr
 	../../Source/3rdParty/tic80/vendor/blip-buf/blip_wasm_host.cpp
 )
 
-target_link_libraries(dora-ssr z dl pthread rt ${SDL2_LIBRARIES} BGFX-lib BIMGDE-lib BIMG-lib BX-lib GL X11 OpenSSL::SSL OpenSSL::Crypto ${DBUS_LINK_LIBRARIES} DORA-lib WA-lib)
-
+target_link_libraries(dora-ssr z dl pthread rt ${SDL2_LIBRARIES} BGFX-lib BIMGDE-lib BIMG-lib SHADERC-lib GLSLO-lib FCPP-lib BX-lib GL X11 OpenSSL::SSL OpenSSL::Crypto ${DBUS_LINK_LIBRARIES} DORA-lib WA-lib)

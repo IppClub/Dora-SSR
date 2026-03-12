@@ -14,9 +14,14 @@ jobs:
     if: "startsWith(github.ref, 'refs/tags/') || (!contains(github.event.head_commit.message, '[skip CI]') && !contains(github.event.head_commit.message, '[skip Windows]'))"
     steps:
       - uses: actions/checkout@v4
+      - uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: latest
       - uses: dtolnay/rust-toolchain@stable
       - name: Setup msbuild
         uses: microsoft/setup-msbuild@v1.0.2
+      - name: Build bgfx libraries
+        run: Tools\build-scripts\build_lib_bgfx_windows.bat
       - name: Windows build
         run: Tools\build-scripts\build_windows.bat
       - name: Pack

@@ -91,3 +91,7 @@ Tools/tolua++/**/*.so
 Assets/Doc/en/Tutorial
 Assets/Doc/zh-Hans/Tutorial
 
+
+# xmake build cache
+.xmake/
+Source/3rdParty/bgfx/dora/generated

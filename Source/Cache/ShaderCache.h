@@ -8,6 +8,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
+#include "Shader/ShaderCompiler.h"
+
 NS_DORA_BEGIN
 
 class Shader : public Object {
@@ -29,6 +31,7 @@ public:
 	void update(String name, Shader* shader);
 	/** @brief fragment or vertex shader */
 	Shader* load(String filename);
+	Shader* load(String filename, ShaderStage stage);
 	void loadAsync(String filename, const std::function<void(Shader*)>& handler);
 	bool unload(Shader* shader);
 	bool unload(String filename);

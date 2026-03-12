@@ -22,7 +22,7 @@ metamethod __call: function(self: SpriteEffectClass, vertShader: string, fragSha
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
 | vertShader | string | 顶点着色器文件名字符串。 |
-| fragShader | string | 片段着色器文件名字符串。<br/>着色器文件名字符串必须是以下格式之一：<br/>	"builtin:" + theBuiltinShaderName<br/>	"Shader/compiled_shader_file.bin" |
+| fragShader | string | 片段着色器文件名字符串。<br/>着色器文件名字符串必须是以下格式之一：<br/>	builtin: + 内置着色器名称<br/>	shader_compiled_file.bin<br/>	Shader/shader_source_file.sc<br/>详细说明：<br/>	1. `"builtin:" + 名称` 会加载内嵌的内置着色器。<br/>	2. 对于 `.sc` 文件，会把给定路径当作着色器源码直接加载并立即编译。<br/>	3. 对于 `.bin` 文件，如果给定路径存在，则直接加载该文件。<br/>	4. 否则引擎会尝试加载 `renderer_dir/filename.bin`，其中 `renderer_dir`<br/>	   取决于当前渲染后端，例如 `dx11`、`metal`、`glsl`、`essl` 或 `spirv`。 |
 
 **返回值：**
 

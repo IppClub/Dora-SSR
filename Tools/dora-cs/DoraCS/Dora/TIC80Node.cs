@@ -69,7 +69,7 @@ namespace Dora
 		/// The created TIC80Node instance.
 		/// </returns>
 		public TIC80Node(string cartFile) : this(Native.tic80node_new(Bridge.FromString(cartFile))) { }
-		public static TIC80Node? TryCreate(string cartFile)
+		public static new TIC80Node? TryCreate(string cartFile)
 		{
 			var raw = Native.tic80node_new(Bridge.FromString(cartFile));
 			return raw == 0 ? null : new TIC80Node(raw);

@@ -38,6 +38,7 @@ do
 	Dora.HttpClient = Dora.HttpClient()
 	Dora.Platformer.Decision.AI = Dora.Platformer.Decision.AI()
 	Dora.Platformer.Data = Dora.Platformer.Data()
+	Dora.Shader = Dora.Shader()
 end
 
 -- remove some os lib APIs
@@ -788,6 +789,41 @@ do
 			return done
 		end)
 		return result
+	end
+end
+
+-- ShaderCompiler
+
+do
+	local Shader = Dora.Shader
+	local Shader_compile = Shader.compile
+	Shader.compile = function(self, sourceFile, targetFile, stageName)
+		local err = Shader_compile(self, sourceFile, targetFile, stageName)
+		if err == "" then
+			return true
+		else
+			return false, err
+		end
+	end
+
+	local Shader_compileAsync = Shader.compileAsync
+	Shader.compileAsync = function(self, sourceFile, targetFile, stageName)
+		local _, mainThread = coroutine.running()
+		assert(not mainThread, "Shader.compileAsync should be run in a thread")
+		local err
+		local done = false
+		Shader_compileAsync(self, sourceFile, targetFile, stageName, function(e)
+			err = e
+			done = true
+		end)
+		wait(function()
+			return done
+		end)
+		if err == "" then
+			return true
+		else
+			return false, err
+		end
 	end
 end
 

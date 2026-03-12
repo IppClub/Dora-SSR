@@ -2222,6 +2222,20 @@ global BodyTypeDynamic = BodyType{value: 0}
 global BodyTypeStatic = BodyType{value: 1}
 global BodyTypeKinematic = BodyType{value: 2}
 
+/* ShaderStage */
+
+type ShaderStage :struct {
+	value: i32
+}
+
+func ShaderStage.ToValue() => i32 {
+	return this.value
+}
+
+global ShaderStageVertex = ShaderStage{value: 1}
+global ShaderStageFragment = ShaderStage{value: 2}
+global ShaderStageCompute = ShaderStage{value: 3}
+
 /* EntityEvent */
 
 type EntityEvent :struct {
