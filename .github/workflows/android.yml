@@ -15,6 +15,9 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+      - uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: latest
       - name: Generate Lua bindings
         run: |
           sudo apt-get install lua5.1
@@ -22,6 +25,8 @@ jobs:
           sudo luarocks install luafilesystem
           cd Tools/tolua++
           lua tolua++.lua
+      - name: Build bgfx libraries
+        run: Tools/build-scripts/build_lib_bgfx.sh android
       - uses: dtolnay/rust-toolchain@stable
       - name: Build Rust lib
         run: Tools/build-scripts/build_lib_android.sh

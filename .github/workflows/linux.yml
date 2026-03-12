@@ -14,10 +14,12 @@ jobs:
     steps:
     - name: Checkout repo
       uses: actions/checkout@v4
+      with:
+        submodules: recursive
     - name: Install deps
       run: |
         sudo apt-get update
-        sudo apt-get install -y libsdl2-dev libgl1-mesa-dev libssl-dev
+        sudo apt-get install -y libsdl2-dev libgl1-mesa-dev libssl-dev libx11-dev
     - name: Generate Lua bindings
       run: |
         sudo apt-get install lua5.1
@@ -26,6 +28,15 @@ jobs:
         cd ./Tools/tolua++
         lua tolua++.lua
     - uses: dtolnay/rust-toolchain@stable
+    - name: Setup xmake
+      uses: xmake-io/github-action-setup-xmake@v1
+      with:
+        xmake-version: v2.9.4
+    - name: Build bgfx with xmake
+      run: |
+        cd Source/3rdParty/bgfx
+        xmake f -p linux -a x86_64 -m release -y
+        xmake -v
     - name: Make
       run: |
         cd Projects/Linux

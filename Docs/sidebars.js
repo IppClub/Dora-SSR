@@ -618,6 +618,11 @@ const sidebars = {
 							label: 'Grabber',
 							id: 'api/Class/Node/Grabber',
 						},
+						{
+							type: 'doc',
+							label: 'Shader',
+							id: 'api/Class/Shader',
+						},
 					]
 				},
 				{

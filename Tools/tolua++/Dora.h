@@ -1091,7 +1091,7 @@ struct Cache
 	static bool unload(String name);
 	static void removeUnused();
 	static void removeUnused(String type);
-}
+};
 
 class Audio
 {
@@ -1231,6 +1231,13 @@ class HttpClient
 	bool cancel(uint64_t requestId);
 	bool isRequestActive(uint64_t requestId);
 	static tolua_outside HttpClient* HttpClient_shared @ create();
+};
+
+class ShaderCompiler @ Shader
+{
+	tolua_outside string ShaderCompiler_compile @ compile(String sourceFile, String targetFile, String stage);
+	tolua_outside void ShaderCompiler_compileAsync @ compileAsync(String sourceFile, String targetFile, String stage, tolua_function_void callback);
+	static tolua_outside ShaderCompiler* ShaderCompiler_shared @ create();
 };
 
 namespace ML {
@@ -1479,5 +1486,3 @@ class Data
 };
 
 } // namespace Platformer
-
-

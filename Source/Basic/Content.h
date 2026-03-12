@@ -28,6 +28,7 @@ public:
 	std::string getFullPath(String filename);
 	std::list<std::string> getFullPathsToTry(String filename);
 	std::pair<OwnArray<uint8_t>, size_t> load(String filename);
+	std::string loadStr(String filename);
 	const bgfx::Memory* loadBX(String filename);
 	bool copy(String src, String dst);
 	bool move(String src, String dst);
@@ -64,6 +65,7 @@ public:
 public:
 	void loadAsyncUnsafe(String filename, const std::function<void(uint8_t*, int64_t)>& callback);
 	uint8_t* loadInMainUnsafe(String filename, int64_t& size);
+	std::string loadInMainUnsafe(String filename);
 	uint8_t* loadUnsafe(String filename, int64_t& size);
 	std::string loadUnsafe(String filename);
 

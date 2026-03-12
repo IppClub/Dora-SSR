@@ -22,7 +22,7 @@ metamethod __call: function(self: SpriteEffectClass, vertShader: string, fragSha
 | Parameter | Type | Description |
 | --- | --- | --- |
 | vertShader | string | The vertex shader file string. |
-| fragShader | string | The fragment shader file string.<br/>A shader file string must be one of the formats:<br/>	"builtin:" + theBuiltinShaderName<br/>	"Shader/compiled_shader_file.bin" |
+| fragShader | string | The fragment shader file string.<br/>A shader file string must be one of the formats:<br/>	builtin: + theBuiltinShaderName<br/>	shader_compiled_file.bin<br/>	Shader/shader_source_file.sc<br/>Details:<br/>	1. `"builtin:" + name` loads an embedded built-in shader.<br/>	2. For `.sc` files, the given path is loaded as shader source and compiled immediately.<br/>	3. For `.bin` files, if the given path exists, it is loaded directly.<br/>	4. Otherwise the engine tries `renderer_dir/filename.bin`, where `renderer_dir`<br/>	   depends on the active backend, such as `dx11`, `metal`, `glsl`, `essl`, or `spirv`. |
 
 **Returns:**
 

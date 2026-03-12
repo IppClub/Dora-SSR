@@ -134,6 +134,7 @@ sidebar_position: 0
 * [Pass](/docs/api/Class/Pass)
 * [RenderTarget](/docs/api/Class/RenderTarget)
 * [Grabber](/docs/api/Class/Node/Grabber)
+* [Shader](/docs/api/Class/Shader)
 
 ### 动画模型功能
 

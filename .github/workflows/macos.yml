@@ -14,10 +14,14 @@ jobs:
     if: "startsWith(github.ref, 'refs/tags/') || (!contains(github.event.head_commit.message, '[skip CI]') && !contains(github.event.head_commit.message, '[skip macOS]'))"
     steps:
       - uses: actions/checkout@v4
+      - uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: latest
       - uses: dtolnay/rust-toolchain@stable
       - name: macOS build
         if: "!startsWith(github.ref, 'refs/tags/')"
         run: |
+          Tools/build-scripts/build_lib_bgfx.sh macos -d
           Tools/tolua++/build.sh
           cd Source/Rust
           rustup target add x86_64-apple-darwin

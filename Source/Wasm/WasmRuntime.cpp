@@ -1744,6 +1744,7 @@ DORA_EXPORT float math_tan(float v) { return std::tan(v); }
 #include "Dora/SVGDefWasm.hpp"
 #include "Dora/SchedulerWasm.hpp"
 #include "Dora/SensorWasm.hpp"
+#include "Dora/ShaderCompilerWasm.hpp"
 #include "Dora/SpineWasm.hpp"
 #include "Dora/SpriteEffectWasm.hpp"
 #include "Dora/SpriteWasm.hpp"
@@ -1831,6 +1832,7 @@ static void linkAutoModule(wasm3::module3& mod) {
 	linkC45(mod);
 	linkMLQLearner(mod);
 	linkHttpClient(mod);
+	linkShaderCompiler(mod);
 	linkPlatformerTargetAllow(mod);
 	linkPlatformerFace(mod);
 	linkPlatformerBulletDef(mod);
