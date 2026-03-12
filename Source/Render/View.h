@@ -32,6 +32,7 @@ public:
 	PROPERTY_READONLY_BOOL(PostProcessNeeded);
 	PROPERTY_READONLY_EXCEPT(bgfx::ViewId, Id);
 	PROPERTY_READONLY_CREF_EXCEPT(std::string, Name);
+	bool hasView() const noexcept;
 	void clear();
 	void reset();
 

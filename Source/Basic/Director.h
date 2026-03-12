@@ -24,6 +24,7 @@ class Camera;
 class RenderTarget;
 class UITouchHandler;
 class Listener;
+class ComputePass;
 
 class Director : public NonCopyable {
 public:

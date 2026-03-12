@@ -45,6 +45,10 @@ void View::popInsertionMode() {
 	_insertionModes.pop();
 }
 
+bool View::hasView() const noexcept {
+	return !_views.empty();
+}
+
 bgfx::ViewId View::getId() const {
 	AssertIf(_views.empty(), "invalid view id.");
 	return _views.top().first;

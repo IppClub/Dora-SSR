@@ -413,6 +413,7 @@ void Director::doRender() {
 				if (_postNode) _postNode->visit();
 				SharedRendererManager.flush();
 			});
+
 			/* ui 3D node */
 			if (_ui3D) {
 				SharedView.pushBack("UI3D"_slice, [&]() {

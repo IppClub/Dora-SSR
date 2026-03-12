@@ -16,6 +16,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Scheduler.h"
 #include "Cache/TextureCache.h"
 #include "Common/Async.h"
+#include "Effect/ComputePass.h"
 #include "Node/Sprite.h"
 #include "Render/Camera.h"
 #include "Render/View.h"
@@ -26,10 +27,11 @@ NS_DORA_BEGIN
 
 std::stack<RenderTarget*> RenderTarget::_applyingStack;
 
-RenderTarget::RenderTarget(uint16_t width, uint16_t height, bgfx::TextureFormat::Enum format)
+RenderTarget::RenderTarget(uint16_t width, uint16_t height, bgfx::TextureFormat::Enum format, ComputeAccess computeAccess)
 	: _textureWidth(width)
 	, _textureHeight(height)
 	, _format(format)
+	, _computeAccess(computeAccess)
 	, _frameBufferHandle(BGFX_INVALID_HANDLE)
 	, _dummy(Node::create(false)) {
 }
@@ -65,10 +67,28 @@ Texture2D* RenderTarget::getDepthTexture() const noexcept {
 	return _depthTexture;
 }
 
+ComputeAccess RenderTarget::getComputeAccess() const noexcept {
+	return _computeAccess;
+}
+
 bool RenderTarget::init() {
 	if (!Object::init()) return false;
 
-	const uint64_t textureFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_TEXTURE_RT;
+	uint64_t computeTextureFlags = 0;
+	switch (_computeAccess) {
+		case ComputeAccess::Read:
+			// No special flag needed for compute read
+			break;
+		case ComputeAccess::Write:
+			computeTextureFlags = BGFX_TEXTURE_COMPUTE_WRITE;
+			break;
+		case ComputeAccess::ReadWrite:
+			computeTextureFlags = BGFX_TEXTURE_COMPUTE_WRITE;
+			break;
+		default:
+			break;
+	}
+	const uint64_t textureFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_TEXTURE_RT | computeTextureFlags;
 	bgfx::TextureHandle textureHandle = bgfx::createTexture2D(_textureWidth, _textureHeight, false, 1, _format, textureFlags);
 	if (!bgfx::isValid(textureHandle)) return false;
 
@@ -97,6 +117,7 @@ bool RenderTarget::init() {
 
 void RenderTarget::renderAfterClear(Node* target, bool clear, Color color, float depth, uint8_t stencil) {
 	SharedRendererManager.flush();
+
 	SharedView.pushFront("RenderTarget"_slice, [&]() {
 		bgfx::ViewId viewId = SharedView.getId();
 		bgfx::setViewFrameBuffer(viewId, _frameBufferHandle);

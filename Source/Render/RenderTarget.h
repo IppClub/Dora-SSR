@@ -17,6 +17,13 @@ class Camera;
 class Node;
 class Texture2D;
 
+enum class ComputeAccess {
+	None = 0,
+	Read = 1,
+	Write = 2,
+	ReadWrite = 3
+};
+
 class RenderTarget : public Object {
 public:
 	PROPERTY_READONLY(uint16_t, Width);
@@ -24,6 +31,8 @@ public:
 	PROPERTY(Camera*, Camera);
 	PROPERTY_READONLY(Texture2D*, Texture);
 	PROPERTY_READONLY(Texture2D*, DepthTexture);
+	PROPERTY_READONLY(ComputeAccess, ComputeAccess);
+	
 	virtual ~RenderTarget();
 	virtual bool init() override;
 	void render(Node* target);
@@ -34,7 +43,7 @@ public:
 	CREATE_FUNC_NULLABLE(RenderTarget);
 
 protected:
-	RenderTarget(uint16_t width, uint16_t height, bgfx::TextureFormat::Enum format = bgfx::TextureFormat::RGBA8);
+	RenderTarget(uint16_t width, uint16_t height, bgfx::TextureFormat::Enum format = bgfx::TextureFormat::RGBA8, ComputeAccess computeAccess = ComputeAccess::None);
 	void renderAfterClear(Node* target, bool clear, Color color = 0x0, float depth = 1.0f, uint8_t stencil = 0);
 	void renderOnly(Node* target);
 	void end();
@@ -43,6 +52,7 @@ private:
 	uint16_t _textureWidth;
 	uint16_t _textureHeight;
 	bgfx::TextureFormat::Enum _format;
+	ComputeAccess _computeAccess;
 	Ref<Texture2D> _texture;
 	Ref<Texture2D> _depthTexture;
 	Ref<Camera> _camera;
