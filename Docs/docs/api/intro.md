@@ -134,6 +134,7 @@ This category provides some rendering controlling objects.
 * [Pass](/docs/api/Class/Pass)
 * [RenderTarget](/docs/api/Class/RenderTarget)
 * [Grabber](/docs/api/Class/Node/Grabber)
+* [Shader](/docs/api/Class/Shader)
 
 ### Animation Models
 

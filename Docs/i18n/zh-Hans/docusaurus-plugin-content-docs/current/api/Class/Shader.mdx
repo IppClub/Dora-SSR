@@ -1,0 +1,78 @@
+# Shader
+
+**描述：**
+
+&emsp;&emsp;`Shader` 是一个用于在运行时编译 Dora 着色器的单例对象。
+
+**用法示例：**
+```tl
+local Shader = require("Shader")
+local ok, err = Shader:compile("vs_sprite.sc", "compiled/vs_sprite.bin", "Vertex")
+```
+
+## compile
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;编译着色器源码文件，并将编译后的字节码写入目标文件。
+
+**签名：**
+```tl
+compile: function(
+		self: Shader,
+		sourceFile: string,
+		targetFile: string,
+		stage: StageName
+	): boolean, string | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| sourceFile | string | 着色器源码文件路径。 |
+| targetFile | string | 编译后着色器字节码的输出文件路径，请使用 `.bin` 后缀。 |
+| stage | StageName | 着色器阶段名称，只能是 `"Vertex"`、`"Fragment"` 或 `"Compute"`。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 编译成功时返回 `true`；如果编译失败则返回 `false`。 |
+| string \| nil | 编译错误信息；如果编译成功则返回 `nil`。 |
+
+## compileAsync
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;使用引擎内部的着色器队列异步编译着色器源码文件，并将编译后的字节码写入目标文件。
+这个函数应在协程线程中调用。
+
+**签名：**
+```tl
+compileAsync: function(
+		self: Shader,
+		sourceFile: string,
+		targetFile: string,
+		stage: StageName
+	): boolean, string | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| sourceFile | string | 着色器源码文件路径。 |
+| targetFile | string | 编译后着色器字节码的输出文件路径，请使用 `.bin` 后缀。 |
+| stage | StageName | 着色器阶段名称，只能是 `"Vertex"`、`"Fragment"` 或 `"Compute"`。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 编译成功时返回 `true`；如果编译失败则返回 `false`。 |
+| string \| nil | 编译错误信息；如果编译成功则返回 `nil`。 |
