@@ -12,6 +12,7 @@ use clap::Parser;
 	disable_help_flag = true,
 	disable_version_flag = true,
 	disable_help_subcommand = true,
+	ignore_errors = true,
 	override_usage = "dora [OPTIONS]
 
 Options:
