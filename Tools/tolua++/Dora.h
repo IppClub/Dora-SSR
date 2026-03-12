@@ -1150,7 +1150,7 @@ class VideoNode : public Sprite
 {
 	void pause();
 	void resume();
-	readonly bool paused;
+	tolua_readonly tolua_property__bool bool paused;
 	static VideoNode* create(String filename, bool looped = false);
 };
 
