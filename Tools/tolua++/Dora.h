@@ -1148,6 +1148,9 @@ class AudioSource : public Node
 
 class VideoNode : public Sprite
 {
+	void pause();
+	void resume();
+	readonly bool paused;
 	static VideoNode* create(String filename, bool looped = false);
 };
 

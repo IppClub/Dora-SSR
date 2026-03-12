@@ -362,7 +362,8 @@ public:
 VideoNode::VideoNode(String filename, bool looped)
 	: _filename(filename.toString())
 	, _looped(looped)
-	, _frameAccumulator(0.0) {
+	, _frameAccumulator(0.0)
+	, _paused(false) {
 }
 
 VideoNode::~VideoNode() {
@@ -403,6 +404,18 @@ void VideoNode::cleanupResources() {
 		s_cast<VideoData*>(_videoData.get())->stoped = true;
 		_videoData = nullptr;
 	}
+}
+
+void VideoNode::pause() {
+	_paused = true;
+}
+
+void VideoNode::resume() {
+	_paused = false;
+}
+
+bool VideoNode::isPaused() const {
+	return _paused;
 }
 
 static void releaseFrame(void*, void* userData) {
@@ -476,7 +489,7 @@ VideoNode::UpdateFlag VideoNode::updateTexture() {
 bool VideoNode::update(double deltaTime) {
 	auto videoData = s_cast<VideoData*>(_videoData.get());
 	if (!videoData) return true;
-	if (videoData->frameRate > 0.0f) {
+	if (!_paused && videoData->frameRate > 0.0f) {
 		_frameAccumulator += deltaTime;
 		double frameTime = 1.0 / videoData->frameRate;
 		if (_frameAccumulator >= frameTime) {
