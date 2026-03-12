@@ -7477,6 +7477,15 @@ export {audioSourceClass as AudioSource};
  */
 class VideoNode extends Sprite {
 	private constructor();
+
+	/** Pauses the video playback. */
+	pause(): void;
+
+	/** Resumes the video playback. */
+	resume(): void;
+
+	/** Whether the video is currently paused. */
+	readonly paused: boolean;
 }
 
 export namespace VideoNode {

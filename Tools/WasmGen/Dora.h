@@ -4026,6 +4026,15 @@ object class AudioSource : public INode
 
 object class VideoNode : public ISprite
 {
+	/// Pauses the video playback.
+	void pause();
+
+	/// Resumes the video playback.
+	void resume();
+
+	/// Whether the video is currently paused.
+	readonly bool paused;
+
 	/// Creates a new VideoNode object for playing a video.
 	///
 	/// # Arguments

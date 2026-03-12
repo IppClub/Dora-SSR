@@ -1148,6 +1148,9 @@ class AudioSource : public Node
 
 class VideoNode : public Sprite
 {
+	void pause();
+	void resume();
+	tolua_readonly tolua_property__bool bool paused;
 	static VideoNode* create(String filename, bool looped = false);
 };
 

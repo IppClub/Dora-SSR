@@ -7477,6 +7477,15 @@ export {audioSourceClass as AudioSource};
  */
 class VideoNode extends Sprite {
 	private constructor();
+
+	/** 暂停视频播放。 */
+	pause(): void;
+
+	/** 继续视频播放。 */
+	resume(): void;
+
+	/** 视频当前是否暂停。 */
+	readonly paused: boolean;
 }
 
 export namespace VideoNode {

@@ -3760,6 +3760,21 @@ object class AudioSource : public Node
 object class VideoNode : public Sprite
 {
 	/// <summary>
+	/// Pauses the video playback.
+	/// </summary>
+	void pause();
+
+	/// <summary>
+	/// Resumes the video playback.
+	/// </summary>
+	void resume();
+
+	/// <summary>
+	/// Whether the video is currently paused.
+	/// </summary>
+	readonly bool paused;
+
+	/// <summary>
 	/// Creates a new VideoNode object for playing a video.
 	/// </summary>
 	/// <param name="filename">
