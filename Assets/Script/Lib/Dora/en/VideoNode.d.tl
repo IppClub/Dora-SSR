@@ -5,6 +5,15 @@ local record VideoNode
 
 	-- Inherits from `Sprite`.
 	embed Sprite
+
+	-- Pauses the video playback.
+	pause: function(self: VideoNode)
+
+	-- Resumes the video playback.
+	resume: function(self: VideoNode)
+
+	-- Whether the video is currently paused.
+	readonly paused: boolean
 end
 
 -- A class for creating VideoNode objects.

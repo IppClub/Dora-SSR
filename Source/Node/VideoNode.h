@@ -34,6 +34,10 @@ public:
 	virtual void cleanup() override;
 	virtual bool update(double deltaTime) override;
 
+	void pause();
+	void resume();
+	bool isPaused() const;
+
 	CREATE_FUNC_NULLABLE(VideoNode);
 
 protected:
@@ -54,6 +58,7 @@ private:
 
 	std::string _filename;
 	bool _looped;
+	bool _paused;
 
 	Own<Async> _thread;
 

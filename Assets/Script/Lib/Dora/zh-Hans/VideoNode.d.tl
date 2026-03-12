@@ -5,6 +5,15 @@ local record VideoNode
 
 	-- 继承自 `Sprite`。
 	embed Sprite
+
+	-- 暂停视频播放。
+	pause: function(self: VideoNode)
+
+	-- 继续视频播放。
+	resume: function(self: VideoNode)
+
+	-- 视频当前是否暂停。
+	readonly paused: boolean
 end
 
 -- 用于创建 VideoNode 实例的类。
