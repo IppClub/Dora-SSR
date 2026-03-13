@@ -101,6 +101,7 @@
 		3C592A1B2CA4EDE800CAF224 /* Async.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592A0B2CA4EDE800CAF224 /* Async.cpp */; };
 		3C592A202CA4EDF800CAF224 /* Header.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592A1E2CA4EDF800CAF224 /* Header.cpp */; };
 		3C592A232CA4EE0800CAF224 /* Effect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592A222CA4EE0800CAF224 /* Effect.cpp */; };
+		3C1E4F781279C2453B8BBF10 /* ComputePass.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C40277C18240447CBA0778C /* ComputePass.cpp */; };
 		3C592A262CA4EE1800CAF224 /* Entity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592A252CA4EE1800CAF224 /* Entity.cpp */; };
 		3C592A2F2CA4EE2800CAF224 /* EventQueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592A2A2CA4EE2800CAF224 /* EventQueue.cpp */; };
 		3C592A302CA4EE2800CAF224 /* Event.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592A282CA4EE2800CAF224 /* Event.cpp */; };
@@ -839,6 +840,8 @@
 		3C592A1F2CA4EDF800CAF224 /* XmlTag.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = XmlTag.h; sourceTree = "<group>"; };
 		3C592A212CA4EE0800CAF224 /* Effect.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Effect.h; sourceTree = "<group>"; };
 		3C592A222CA4EE0800CAF224 /* Effect.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Effect.cpp; sourceTree = "<group>"; };
+		3CE1F782CA4EE0800CAF2240 /* ComputePass.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ComputePass.h; sourceTree = "<group>"; };
+		3C40277C18240447CBA0778C /* ComputePass.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ComputePass.cpp; sourceTree = "<group>"; };
 		3C592A242CA4EE1800CAF224 /* Entity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Entity.h; sourceTree = "<group>"; };
 		3C592A252CA4EE1800CAF224 /* Entity.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Entity.cpp; sourceTree = "<group>"; };
 		3C592A272CA4EE2800CAF224 /* Event.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Event.h; sourceTree = "<group>"; };
@@ -3544,6 +3547,8 @@
 			children = (
 				3C592A212CA4EE0800CAF224 /* Effect.h */,
 				3C592A222CA4EE0800CAF224 /* Effect.cpp */,
+				3CE1F782CA4EE0800CAF2240 /* ComputePass.h */,
+				3C40277C18240447CBA0778C /* ComputePass.cpp */,
 			);
 			path = Effect;
 			sourceTree = "<group>";
@@ -4649,6 +4654,7 @@
 				3C592A032CA4ED5F00CAF224 /* Object.cpp in Sources */,
 				3C592A042CA4ED5F00CAF224 /* Scheduler.cpp in Sources */,
 				3C592A232CA4EE0800CAF224 /* Effect.cpp in Sources */,
+				3C1E4F781279C2453B8BBF10 /* ComputePass.cpp in Sources */,
 				3C592A052CA4ED5F00CAF224 /* Application.cpp in Sources */,
 				3C592A062CA4ED5F00CAF224 /* Director.cpp in Sources */,
 				3C592A072CA4ED5F00CAF224 /* AutoreleasePool.cpp in Sources */,
