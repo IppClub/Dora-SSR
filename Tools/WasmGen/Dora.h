@@ -776,6 +776,20 @@ object class Pass
 	/// * `name` - The name of the parameter to set.
 	/// * `val` - The Color object to set.
 	void set @ setColor(string name, Color val);
+	/// Binds a texture to a sampler uniform and texture slot.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The sampler name in the shader.
+	/// * `texture` - The texture to bind.
+	/// * `slot` - The texture slot index.
+	void set @ setTexture(string name, Texture2D* texture, int slot);
+	/// Removes a previously set uniform or sampler binding by name.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The uniform name in the shader.
+	void remove(string name);
 	/// Creates a new Pass object.
 	///
 	/// # Arguments

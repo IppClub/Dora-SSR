@@ -461,6 +461,8 @@ class Pass : public Object
 	tolua_property__bool bool grabPass;
 	void set(String name, float var1, float var2 = 0.0f, float var3 = 0.0f, float var4 = 0.0f);
 	void set(String name, Color var);
+	void set(String name, Texture2D* texture, int slot);
+	void remove(String name);
 	static Pass* create(String vertShader, String fragShader);
 };
 

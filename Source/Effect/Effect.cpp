@@ -11,6 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Effect/Effect.h"
 
 #include "Cache/ShaderCache.h"
+#include "Cache/TextureCache.h"
 
 NS_DORA_BEGIN
 
@@ -24,7 +25,8 @@ Pass::Uniform::~Uniform() {
 
 Pass::Uniform::Uniform(bgfx::UniformHandle handle, Own<Value>&& value)
 	: _handle(handle)
-	, _value(std::move(value)) { }
+	, _value(std::move(value))
+	, _slot(0) { }
 
 bgfx::UniformHandle Pass::Uniform::getHandle() const noexcept {
 	return _handle;
@@ -34,8 +36,18 @@ Value* Pass::Uniform::getValue() const noexcept {
 	return _value.get();
 }
 
+void Pass::Uniform::setSlot(uint8_t var) {
+	_slot = var;
+}
+
+uint8_t Pass::Uniform::getSlot() const noexcept {
+	return _slot;
+}
+
 void Pass::Uniform::apply() {
-	if (auto value = _value->asVal<float>()) {
+	if (auto texture = _value->as<Texture2D>()) {
+		bgfx::setTexture(_slot, _handle, texture->getHandle(), UINT32_MAX);
+	} else if (auto value = _value->asVal<float>()) {
 		Vec4 v4{*value, 0, 0, 0};
 		bgfx::setUniform(_handle, &v4.x);
 	} else if (auto value = _value->asVal<Vec4>()) {
@@ -90,7 +102,7 @@ bool Pass::isGrabPass() const noexcept {
 void Pass::set(String name, float var) {
 	std::string uname(name);
 	auto it = _uniforms.find(uname);
-	if (it != _uniforms.end()) {
+	if (it != _uniforms.end() && !it->second->getValue()->as<Texture2D>()) {
 		it->second->getValue()->set(var);
 	} else {
 		bgfx::UniformHandle handle = bgfx::createUniform(uname.c_str(), bgfx::UniformType::Vec4);
@@ -105,7 +117,7 @@ void Pass::set(String name, float var1, float var2, float var3, float var4) {
 void Pass::set(String name, const Vec4& var) {
 	std::string uname(name);
 	auto it = _uniforms.find(uname);
-	if (it != _uniforms.end()) {
+	if (it != _uniforms.end() && !it->second->getValue()->as<Texture2D>()) {
 		it->second->getValue()->set(var);
 	} else {
 		bgfx::UniformHandle handle = bgfx::createUniform(uname.c_str(), bgfx::UniformType::Vec4);
@@ -118,14 +130,32 @@ void Pass::set(String name, Color var) {
 }
 
 void Pass::set(String name, const Matrix& var) {
-	auto it = _uniforms.find(name);
-	if (it != _uniforms.end()) {
+	std::string uname(name.toString());
+	auto it = _uniforms.find(uname);
+	if (it != _uniforms.end() && !it->second->getValue()->as<Texture2D>()) {
 		it->second->getValue()->set(var);
 	} else {
-		std::string uname(name.toString());
 		bgfx::UniformHandle handle = bgfx::createUniform(uname.c_str(), bgfx::UniformType::Mat4);
 		_uniforms[uname] = Uniform::create(handle, Value::alloc(var));
 	}
+}
+
+void Pass::set(String name, Texture2D* texture, uint8_t slot) {
+	std::string uname(name);
+	auto it = _uniforms.find(uname);
+	if (it != _uniforms.end() && it->second->getValue()->as<Texture2D>()) {
+		it->second->getValue()->set(texture);
+		it->second->setSlot(slot);
+	} else {
+		bgfx::UniformHandle handle = bgfx::createUniform(uname.c_str(), bgfx::UniformType::Sampler);
+		auto uniform = Uniform::create(handle, Value::alloc(texture));
+		uniform->setSlot(slot);
+		_uniforms[uname] = uniform;
+	}
+}
+
+void Pass::remove(String name) {
+	_uniforms.erase(std::string(name));
 }
 
 Value* Pass::get(String name) const {

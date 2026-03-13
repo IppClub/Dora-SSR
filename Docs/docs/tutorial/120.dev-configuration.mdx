@@ -37,62 +37,88 @@ Please select the target platform you want to build for.
 <Tabs groupId="platform-select">
 <TabItem value="windows" label="Windows">
 
-1. Install **Rust** compiler.
+1. Install **Rust**, **xmake**, and **Visual Studio Community 2022** with MSBuild tools.
 
-2. Run the following script to generate the engine's dependent libraries.
-	```sh
-	Tools\build-scripts\build_lib_windows.bat
+2. Build bgfx libraries first, the same way as GitHub Actions.
+	```bat
+	Tools\build-scripts\build_lib_bgfx_windows.bat
 	```
 
-3. Install **Visual Studio Community 2022**.
+3. Build the Windows runtime and solution.
+	```bat
+	Tools\build-scripts\build_windows.bat
+	```
 
-4. Open the project file in the IDE: **Projects/Windows/Dora.sln**.
-
-5. Compile, debug, and run the project.
+4. For local debugging, open **Projects/Windows/Dora.sln** in Visual Studio and run the `Debug` configuration.
 
 </TabItem>
 <TabItem value="macos" label="macOS">
 
-1. Install **Rust** compiler.
+1. Install **Rust**, **xmake**, and the latest **Xcode**.
 
-2. Run the following script to generate the engine's dependent libraries.
+2. Build bgfx libraries, matching the CI workflow.
 	```sh
-	Tools/build-scripts/build_lib_macos.sh
+	Tools/build-scripts/build_lib_bgfx.sh macos
 	```
 
-3. Install latest **Xcode**.
+3. Generate Lua bindings.
+	```sh
+	cd Tools/tolua++
+	./build.sh
+	```
 
-4. Open the project file in the IDE: **Projects/macOS/Dora.xcodeproj**.
+4. Build the Rust runtime for macOS and copy the generated library.
+	```sh
+	cd Source/Rust
+	rustup target add x86_64-apple-darwin
+	cargo build --target x86_64-apple-darwin
+	cp target/x86_64-apple-darwin/debug/libdora_runtime.a lib/macOS/libdora_runtime.a
+	```
 
-5. Compile, debug, and run the project.
+5. Build and run the app locally.
+	```sh
+	xcodebuild ARCHS=x86_64 ONLY_ACTIVE_ARCH=NO -project Projects/macOS/Dora.xcodeproj -target Dora -configuration Debug
+	```
+
+6. For IDE debugging, open **Projects/macOS/Dora.xcodeproj** in Xcode and run the `Dora` target.
 
 </TabItem>
 <TabItem value="ios" label="iOS">
 
-1. Install **Rust** compiler.
+1. Install **Rust**, **xmake**, and the latest **Xcode**.
 
-2. Run the following script to generate the engine's dependent libraries.
+2. Build bgfx libraries first.
 	```sh
-	Tools/build-scripts/build_lib_ios.sh
+	Tools/build-scripts/build_lib_bgfx.sh ios
 	```
 
-3. Install latest **Xcode**.
+3. Generate Lua bindings.
+	```sh
+	cd Tools/tolua++
+	./build.sh
+	```
 
-4. Open the project file in the IDE: **Projects/iOS/Dora.xcodeproj**.
+4. Build the Rust runtime for the iOS simulator.
+	```sh
+	cd Source/Rust
+	rustup target add aarch64-apple-ios-sim
+	cargo build --target aarch64-apple-ios-sim
+	cp target/aarch64-apple-ios-sim/debug/libdora_runtime.a lib/iOS-Simulator/libdora_runtime.a
+	```
 
-5. Compile, debug, and run the project.
+5. Build the simulator target.
+	```sh
+	xcodebuild ARCHS=arm64 ONLY_ACTIVE_ARCH=NO -project Projects/iOS/Dora.xcodeproj -configuration Debug -target Simulator -sdk iphonesimulator
+	```
+
+6. For IDE debugging, open **Projects/iOS/Dora.xcodeproj** in Xcode and run the `Simulator` target.
 
 </TabItem>
 <TabItem value="android" label="Android">
 
-1. Install **Rust** compiler.
+1. Install **Rust**, **xmake**, and the latest **Android Studio**.
 
-2. Run the following script to generate the engine's dependent libraries.
-	```sh
-	Tools/build-scripts/build_lib_android.sh
-	```
-
-3. Manually generate Lua bindings.
+2. Generate Lua bindings first.
 	```sh
 	# Build on Ubuntu
 	sudo apt-get install lua5.1
@@ -110,38 +136,40 @@ Please select the target platform you want to build for.
 	build.bat
 	```
 
-4. Install latest **Android Studio**.
+3. Build bgfx libraries for Android.
+	```sh
+	Tools/build-scripts/build_lib_bgfx.sh android
+	```
 
-5. Open the project directory in the IDE: **Projects/Android/Dora**.
+4. Build the Rust runtime for Android ABIs.
+	```sh
+	Tools/build-scripts/build_lib_android.sh
+	```
 
-6. Compile, debug, and run the project.
+5. Build the Android app locally.
+	```sh
+	cd Projects/Android/Dora
+	./gradlew assembleDebug
+	```
+
+6. For IDE debugging, open **Projects/Android/Dora** in Android Studio and run the `app` module.
 
 </TabItem>
 <TabItem value="linux" label="Linux">
 
-1. Install **Rust** compiler.
-
-2. Run the following script to generate the engine's dependent libraries.
-	```sh title="For x86_64 architecture"
-	Tools/build-scripts/build_lib_linux_x86_64.sh
-	```
-
-	```sh title="For ARM64 architecture"
-	Tools/build-scripts/build_lib_linux_aarch64.sh
-	```
+1. Install **Rust** and **xmake**.
 
 <Tabs groupId="linux-distribution-select">
 <TabItem value="ubuntu" label="Ubuntu/Debian">
 
 3. Install dependent packages.
 	```sh
-	sudo apt-get install -y libsdl2-dev libgl1-mesa-dev libssl-dev
+	sudo apt-get update
+	sudo apt-get install -y libsdl2-dev libgl1-mesa-dev libssl-dev libx11-dev lua5.1 luarocks
 	```
 
 4. Manually generate Lua bindings.
 	```sh
-	sudo apt-get install lua5.1
-	sudo apt-get install -y luarocks
 	sudo luarocks install luafilesystem
 	cd Tools/tolua++
 	lua tolua++.lua
@@ -168,7 +196,23 @@ Please select the target platform you want to build for.
 </TabItem>
 </Tabs>
 
-5. Run the compile scripts.
+2. Build bgfx libraries, matching the Linux GitHub Action.
+	```sh
+	cd Source/3rdParty/bgfx
+	xmake f -p linux -a x86_64 -m release -y
+	xmake -v
+	```
+
+3. Build the Rust runtime.
+	```sh title="For x86_64 architecture"
+	Tools/build-scripts/build_lib_linux_x86_64.sh
+	```
+
+	```sh title="For ARM64 architecture"
+	Tools/build-scripts/build_lib_linux_aarch64.sh
+	```
+
+4. Run the compile scripts.
 
 	- For the first time build
 		```sh title="For ARM architecture"
@@ -187,7 +231,7 @@ Please select the target platform you want to build for.
 		make
 		```
 
-6. Run the generated software.
+5. Run the generated software.
 	```sh
 	cd Assets
 	../Projects/Linux/build/dora-ssr
@@ -218,10 +262,9 @@ Please select the target platform you want to build for.
 	pnpm start
 	```
 
-	Alternatively, you can generate the Web IDE release files for the full Dora SSR project. `pnpm build` now automatically builds and copies YarnEditor, then syncs the final Web IDE output to `Assets/www`.
+	Alternatively, you can generate the Web IDE release files for the full Dora SSR project. `pnpm build` now automatically builds and copies YarnEditor, then syncs the final Web IDE output to project folder `Assets/www`.
 
 	```sh
-	# `pnpm build` also syncs the final output to Assets/www automatically
 	cd Tools/dora-dora
 	pnpm build
 	```

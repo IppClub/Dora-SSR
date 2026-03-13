@@ -59,9 +59,19 @@ impl Effect {
 	/// # Arguments
 	///
 	/// * `vert_shader` - The vertex shader file string.
-	/// * `frag_shader` - The fragment shader file string. A shader file string must be one of the formats:
-	///     * "builtin:" + theBuiltinShaderName
-	///     * "Shader/compiled_shader_file.bin"
+	/// * `frag_shader` - The fragment shader file string.
+	///
+	/// A shader file string must be one of the formats:
+	///     * `builtin:` + theBuiltinShaderName
+	///     * `shader_compiled_file.bin`
+	///     * `Shader/shader_source_file.sc`
+	///
+	/// Details:
+	///     * `"builtin:" + name` loads an embedded built-in shader.
+	///     * For `.sc` files, the given path is loaded as shader source and compiled immediately.
+	///     * For `.bin` files, if the given path exists, it is loaded directly.
+	///     * Otherwise the engine tries `renderer_dir/filename.bin`, where `renderer_dir`
+	///       depends on the active backend, such as `dx11`, `metal`, `glsl`, `essl`, or `spirv`.
 	///
 	/// # Returns
 	///

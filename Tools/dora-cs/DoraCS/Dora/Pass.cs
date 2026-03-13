@@ -28,6 +28,10 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void pass_set_color(int64_t self, int64_t name, int32_t val);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void pass_set_texture(int64_t self, int64_t name, int64_t texture, int32_t slot);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void pass_remove(int64_t self, int64_t name);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t pass_new(int64_t vertShader, int64_t fragShader);
 	}
 } // namespace Dora
@@ -93,6 +97,24 @@ namespace Dora
 		public void SetColor(string name, Color val)
 		{
 			Native.pass_set_color(Raw, Bridge.FromString(name), (int)val.ToARGB());
+		}
+		/// <summary>
+		/// Binds a texture to a sampler uniform and texture slot.
+		/// </summary>
+		/// <param name="name">The sampler name in the shader.</param>
+		/// <param name="texture">The texture to bind.</param>
+		/// <param name="slot">The texture slot index.</param>
+		public void SetTexture(string name, Texture2D texture, int slot)
+		{
+			Native.pass_set_texture(Raw, Bridge.FromString(name), texture.Raw, slot);
+		}
+		/// <summary>
+		/// Removes a previously set uniform or sampler binding by name.
+		/// </summary>
+		/// <param name="name">The uniform name in the shader.</param>
+		public void Remove(string name)
+		{
+			Native.pass_remove(Raw, Bridge.FromString(name));
 		}
 		/// <summary>
 		/// Creates a new Pass object.
