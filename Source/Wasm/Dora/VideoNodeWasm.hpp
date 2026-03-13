@@ -18,7 +18,7 @@ DORA_EXPORT void videonode_resume(int64_t self) {
 	r_cast<VideoNode*>(self)->resume();
 }
 DORA_EXPORT int32_t videonode_get_paused(int64_t self) {
-	return r_cast<VideoNode*>(self)->paused ? 1 : 0;
+	return r_cast<VideoNode*>(self)->isPaused() ? 1 : 0;
 }
 DORA_EXPORT int64_t videonode_new(int64_t filename, int32_t looped) {
 	return Object_From(VideoNode::create(*Str_From(filename), looped != 0));
