@@ -42,8 +42,8 @@ public:
 	CREATE_FUNC_NULLABLE(RenderTarget);
 
 protected:
-	RenderTarget(uint16_t width, uint16_t height, bgfx::TextureFormat::Enum format, ComputeAccess computeAccess);
-	RenderTarget(uint16_t width, uint16_t height, ComputeAccess computeAccess);
+	RenderTarget(uint16_t width, uint16_t height, bgfx::TextureFormat::Enum format, ComputeAccess computeAccess = ComputeAccess::ReadWrite);
+	RenderTarget(uint16_t width, uint16_t height, ComputeAccess computeAccess = ComputeAccess::ReadWrite);
 	void renderAfterClear(Node* target, bool clear, Color color = 0x0, float depth = 1.0f, uint8_t stencil = 0);
 	void renderOnly(Node* target);
 	void end();
