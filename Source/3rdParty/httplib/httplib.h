@@ -8,8 +8,8 @@
 #ifndef CPPHTTPLIB_HTTPLIB_H
 #define CPPHTTPLIB_HTTPLIB_H
 
-#define CPPHTTPLIB_VERSION "0.36.0"
-#define CPPHTTPLIB_VERSION_NUM "0x002400"
+#define CPPHTTPLIB_VERSION "0.37.2"
+#define CPPHTTPLIB_VERSION_NUM "0x002502"
 
 
 /*
@@ -682,6 +682,18 @@ inline from_chars_result<double> from_chars(const char *first, const char *last,
     return {first + (endptr - s.c_str()), std::errc::result_out_of_range};
   }
   return {first + (endptr - s.c_str()), std::errc{}};
+}
+
+inline bool parse_port(const char *s, size_t len, int &port) {
+  int val = 0;
+  auto r = from_chars(s, s + len, val);
+  if (r.ec != std::errc{} || val < 1 || val > 65535) { return false; }
+  port = val;
+  return true;
+}
+
+inline bool parse_port(const std::string &s, int &port) {
+  return parse_port(s.data(), s.size(), port);
 }
 
 } // namespace detail
@@ -2779,7 +2791,7 @@ inline size_t get_header_value_u64(const Headers &headers,
   std::advance(it, static_cast<ssize_t>(id));
   if (it != rng.second) {
     if (is_numeric(it->second)) {
-      return std::strtoull(it->second.data(), nullptr, 10);
+      return static_cast<size_t>(std::strtoull(it->second.data(), nullptr, 10));
     } else {
       is_invalid_value = true;
     }
@@ -5790,9 +5802,9 @@ inline int getaddrinfo_with_timeout(const char *node, const char *service,
     memcpy((*current)->ai_addr, sockaddr_ptr, sockaddr_len);
 
     // Set port if service is specified
-    if (service && strlen(service) > 0) {
-      int port = atoi(service);
-      if (port > 0) {
+    if (service && *service) {
+      int port = 0;
+      if (parse_port(service, strlen(service), port)) {
         if (sockaddr_ptr->sa_family == AF_INET) {
           reinterpret_cast<struct sockaddr_in *>((*current)->ai_addr)
               ->sin_port = htons(static_cast<uint16_t>(port));
@@ -6809,6 +6821,16 @@ inline bool read_headers(Stream &strm, Headers &headers) {
     }
 
     header_count++;
+  }
+
+  // RFC 9110 Section 8.6: Reject requests with multiple Content-Length
+  // headers that have different values to prevent request smuggling.
+  auto cl_range = headers.equal_range("Content-Length");
+  if (cl_range.first != cl_range.second) {
+    const auto &first_val = cl_range.first->second;
+    for (auto it = std::next(cl_range.first); it != cl_range.second; ++it) {
+      if (it->second != first_val) { return false; }
+    }
   }
 
   return true;
@@ -8219,7 +8241,8 @@ get_range_offset_and_length(Range r, size_t content_length) {
   assert(r.first <= r.second &&
          r.second < static_cast<ssize_t>(content_length));
   (void)(content_length);
-  return std::make_pair(r.first, static_cast<size_t>(r.second - r.first) + 1);
+  return std::make_pair(static_cast<size_t>(r.first),
+                        static_cast<size_t>(r.second - r.first) + 1);
 }
 
 inline std::string make_content_range_header_field(
@@ -11338,6 +11361,10 @@ inline bool Server::listen_internal() {
       detail::set_socket_opt_time(sock, SOL_SOCKET, SO_SNDTIMEO,
                                   write_timeout_sec_, write_timeout_usec_);
 
+      if (tcp_nodelay_) {
+        detail::set_socket_opt(sock, IPPROTO_TCP, TCP_NODELAY, 1);
+      }
+
       if (!task_queue->enqueue(
               [this, sock]() { process_and_close_socket(sock); })) {
         output_error_log(Error::ResourceExhaustion, nullptr);
@@ -12433,11 +12460,17 @@ ClientImpl::open_stream(const std::string &method, const std::string &path,
   handle.body_reader_.stream = handle.stream_;
   handle.body_reader_.payload_max_length = payload_max_length_;
 
-  auto content_length_str = handle.response->get_header_value("Content-Length");
-  if (!content_length_str.empty()) {
+  if (handle.response->has_header("Content-Length")) {
+    bool is_invalid = false;
+    auto content_length = detail::get_header_value_u64(
+        handle.response->headers, "Content-Length", 0, 0, is_invalid);
+    if (is_invalid) {
+      handle.error = Error::Read;
+      handle.response.reset();
+      return handle;
+    }
     handle.body_reader_.has_content_length = true;
-    handle.body_reader_.content_length =
-        static_cast<size_t>(std::stoull(content_length_str));
+    handle.body_reader_.content_length = content_length;
   }
 
   auto transfer_encoding =
@@ -12721,7 +12754,7 @@ inline bool ClientImpl::redirect(Request &req, Response &res, Error &error) {
 
   auto next_port = port_;
   if (!port_str.empty()) {
-    next_port = std::stoi(port_str);
+    if (!detail::parse_port(port_str, next_port)) { return false; }
   } else if (!next_scheme.empty()) {
     next_port = next_scheme == "https" ? 443 : 80;
   }
@@ -12772,18 +12805,10 @@ inline bool ClientImpl::create_redirect_client(
     // Setup basic client configuration first
     setup_redirect_client(redirect_client);
 
-    // SSL-specific configuration for proxy environments
-    if (!proxy_host_.empty() && proxy_port_ != -1) {
-      // Critical: Disable SSL verification for proxy environments
-      redirect_client.enable_server_certificate_verification(false);
-      redirect_client.enable_server_hostname_verification(false);
-    } else {
-      // For direct SSL connections, copy SSL verification settings
-      redirect_client.enable_server_certificate_verification(
-          server_certificate_verification_);
-      redirect_client.enable_server_hostname_verification(
-          server_hostname_verification_);
-    }
+    redirect_client.enable_server_certificate_verification(
+        server_certificate_verification_);
+    redirect_client.enable_server_hostname_verification(
+        server_hostname_verification_);
 
     // Transfer CA certificate to redirect client
     if (!ca_cert_pem_.empty()) {
@@ -14500,7 +14525,8 @@ inline Client::Client(const std::string &scheme_host_port,
     if (host.empty()) { host = m[3].str(); }
 
     auto port_str = m[4].str();
-    auto port = !port_str.empty() ? std::stoi(port_str) : (is_ssl ? 443 : 80);
+    auto port = is_ssl ? 443 : 80;
+    if (!port_str.empty() && !detail::parse_port(port_str, port)) { return; }
 
     if (is_ssl) {
 #ifdef CPPHTTPLIB_SSL_ENABLED
@@ -19923,7 +19949,8 @@ inline WebSocketClient::WebSocketClient(
     if (host_.empty()) { host_ = m[3].str(); }
 
     auto port_str = m[4].str();
-    port_ = !port_str.empty() ? std::stoi(port_str) : (is_ssl ? 443 : 80);
+    port_ = is_ssl ? 443 : 80;
+    if (!port_str.empty() && !detail::parse_port(port_str, port_)) { return; }
 
     path_ = m[5].str();
 
