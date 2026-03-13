@@ -134,6 +134,7 @@ add_library(main SHARED
 	src/main/cpp/Basic/Content.cpp
 	src/main/cpp/Basic/Application.cpp
 	src/main/cpp/Effect/Effect.cpp
+	src/main/cpp/Effect/ComputePass.cpp
 	src/main/cpp/Animation/ModelDef.cpp
 	src/main/cpp/Animation/Animation.cpp
 	src/main/cpp/Animation/Action.cpp
