@@ -1928,6 +1928,14 @@ object class Label : public INode
 	static optional Label* create @ with_str(string fontStr);
 };
 
+/// An enum representing compute shader access modes.
+enum ComputeAccess
+{
+	Read = 0,
+	Write = 1,
+	ReadWrite = 2
+};
+
 /// A RenderTarget is a buffer that allows you to render a Node into a texture.
 object class RenderTarget
 {
@@ -1983,14 +1991,6 @@ object class RenderTarget
 	///
 	/// * `RenderTarget` - The created render target.
 	static RenderTarget* create(uint16_t width, uint16_t height, ComputeAccess computeAccess);
-};
-
-/// An enum representing compute shader access modes.
-enum ComputeAccess
-{
-	Read = 0,
-	Write = 2,
-	ReadWrite = 3
 };
 
 /// A class representing a compute shader pass.

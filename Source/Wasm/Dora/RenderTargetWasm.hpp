@@ -46,8 +46,8 @@ DORA_EXPORT void rendertarget_save_async(int64_t self, int64_t filename, int32_t
 		SharedWasmRuntime.invoke(func0);
 	});
 }
-DORA_EXPORT int64_t rendertarget_new(int32_t width, int32_t height) {
-	return Object_From(RenderTarget::create(s_cast<uint16_t>(width), s_cast<uint16_t>(height)));
+DORA_EXPORT int64_t rendertarget_new(int32_t width, int32_t height, int32_t computeAccess) {
+	return Object_From(RenderTarget::create(s_cast<uint16_t>(width), s_cast<uint16_t>(height), s_cast<ComputeAccess>(computeAccess)));
 }
 } // extern "C"
 
