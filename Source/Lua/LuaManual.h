@@ -12,11 +12,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DORA_BEGIN
 
-/* ComputeAccess enum values for tolua++ binding */
-constexpr auto Read = ComputeAccess::Read;
-constexpr auto Write = ComputeAccess::Write;
-constexpr auto ReadWrite = ComputeAccess::ReadWrite;
-
 /* Application */
 inline Application* Application_shared() { return &SharedApplication; }
 

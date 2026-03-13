@@ -120,6 +120,15 @@ void ComputePass::set(String name, const Matrix& var) {
 	}
 }
 
+void ComputePass::set(String name, Color var) {
+	// Convert Color (ARGB) to Vec4 (RGBA normalized 0-1)
+	float a = ((var >> 24) & 0xFF) / 255.0f;
+	float r = ((var >> 16) & 0xFF) / 255.0f;
+	float g = ((var >> 8) & 0xFF) / 255.0f;
+	float b = (var & 0xFF) / 255.0f;
+	set(name, Vec4{r, g, b, a});
+}
+
 Value* ComputePass::get(String name) const {
 	auto it = _uniforms.find(name);
 	if (it != _uniforms.end()) {

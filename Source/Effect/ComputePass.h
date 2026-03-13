@@ -27,6 +27,7 @@ public:
 	void set(String name, float x, float y, float z, float w);
 	void set(String name, const Vec4& var);
 	void set(String name, const Matrix& var);
+	void set(String name, Color var);
 	
 	Value* get(String name) const;
 	
