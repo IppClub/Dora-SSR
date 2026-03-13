@@ -6954,6 +6954,85 @@ const profiler: ProfilerClass;
 export {profiler as Profiler};
 
 /**
+ * An enumeration for compute shader access modes.
+ */
+export const enum ComputeAccess {
+	None = "None",
+	Read = "Read",
+	Write = "Write",
+	ReadWrite = "ReadWrite",
+}
+
+/**
+ * Represents a compute shader pass for GPU compute operations.
+ */
+class ComputePass extends Object {
+	private constructor();
+
+	/**
+	 * Sets a single float uniform value.
+	 * @param name The name of the uniform parameter.
+	 * @param value The float value to set.
+	 */
+	set(name: string, value: number): void;
+
+	/**
+	 * Sets a vec4 uniform value.
+	 * @param name The name of the uniform parameter.
+	 * @param x The x component.
+	 * @param y The y component.
+	 * @param z The z component.
+	 * @param w The w component.
+	 */
+	set(name: string, x: number, y: number, z: number, w: number): void;
+
+	/**
+	 * Sets a uniform value from a Color object.
+	 * @param name The name of the uniform parameter.
+	 * @param value The Color object to set.
+	 */
+	set(name: string, value: Color): void;
+
+	/**
+	 * Binds a texture as an image for compute shader access.
+	 * @param slot The texture slot to bind to.
+	 * @param texture The texture to bind.
+	 * @param access The access mode for the texture.
+	 */
+	setImage(slot: number, texture: Texture2D, access: ComputeAccess): void;
+
+	/**
+	 * Dispatches the compute shader.
+	 * Must be called within a valid render context (e.g., in Render slot callback).
+	 * @param x Number of work groups in the X dimension.
+	 * @param y Number of work groups in the Y dimension (default 1).
+	 * @param z Number of work groups in the Z dimension (default 1).
+	 */
+	dispatch(x: number, y?: number, z?: number): void;
+
+	/**
+	 * Checks if compute shaders are supported on the current platform.
+	 * @returns True if compute shaders are supported, false otherwise.
+	 */
+	static isSupported(): boolean;
+
+	/**
+	 * Creates a new ComputePass from a compute shader.
+	 * @param computeShader The compute shader file string.
+	 * A shader file string must be one of the formats:
+	 * `builtin:` + theBuiltinShaderName
+	 * `shader_compiled_file.bin`
+	 * `Shader/shader_source_file.sc`
+	 * @returns A new ComputePass instance, or undefined if creation failed.
+	 */
+	static create(computeShader: string): ComputePass | undefined;
+}
+
+export namespace ComputePass {
+	export type Type = ComputePass;
+}
+
+/**
  * A RenderTarget is a node with a buffer that allows you to render a Node into a texture.
  */
 class RenderTarget {
@@ -7017,9 +7096,10 @@ interface RenderTargetClass {
 	 * Creates a new RenderTarget object with the given width and height.
 	 * @param width The width of the render target.
 	 * @param height The height of the render target.
+	 * @param computeAccess [optional] The compute access mode for the render target texture. Default is ComputeAccess.ReadWrite.
 	 * @returns The created render target.
 	 */
-	(this: void, width: number, height: number): RenderTarget;
+	(this: void, width: number, height: number, computeAccess?: ComputeAccess): RenderTarget;
 }
 
 const renderTargetClass: RenderTargetClass;

@@ -744,6 +744,24 @@ basicTypes =
 			creturn: -> error "unsupported"
 			cpass: -> error "unsupported"
 		}
+	ComputeAccess:
+		* "int"
+		* (name)-> "s_cast<ComputeAccess>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+		* "ComputeAccess"
+		* "ComputeAccess"
+		* (name)-> "(int)#{name}"
+		* (name)-> "(ComputeAccess)#{name}"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "ComputeAccess{value: #{name}}"
+			convertTo: (name)-> "#{name}.ToValue()"
+			argType: "ComputeAccess"
+			returnType: "ComputeAccess"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
 	EaseType:
 		* "int"
 		* (name)-> "s_cast<Ease::Enum>(#{name})"

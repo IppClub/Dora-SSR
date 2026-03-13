@@ -6366,6 +6366,85 @@ export const enum TextureFilter {
 }
 
 /**
+ * 用于计算着色器访问模式的枚举。
+ */
+export const enum ComputeAccess {
+	None = "None",
+	Read = "Read",
+	Write = "Write",
+	ReadWrite = "ReadWrite",
+}
+
+/**
+ * 表示用于 GPU 计算操作的着色器通道。
+ */
+class ComputePass extends Object {
+	private constructor();
+
+	/**
+	 * 设置单个浮点数 uniform 值。
+	 * @param name uniform 参数的名称。
+	 * @param value 要设置的浮点数值。
+	 */
+	set(name: string, value: number): void;
+
+	/**
+	 * 设置 vec4 uniform 值。
+	 * @param name uniform 参数的名称。
+	 * @param x x 分量。
+	 * @param y y 分量。
+	 * @param z z 分量。
+	 * @param w w 分量。
+	 */
+	set(name: string, x: number, y: number, z: number, w: number): void;
+
+	/**
+	 * 从 Color 对象设置 uniform 值。
+	 * @param name uniform 参数的名称。
+	 * @param value 要设置的 Color 对象。
+	 */
+	set(name: string, value: Color): void;
+
+	/**
+	 * 将纹理绑定为图像供计算着色器访问。
+	 * @param slot 要绑定的纹理槽位。
+	 * @param texture 要绑定的纹理。
+	 * @param access 纹理的访问模式。
+	 */
+	setImage(slot: number, texture: Texture2D, access: ComputeAccess): void;
+
+	/**
+	 * 分发计算着色器。
+	 * 必须在有效的渲染上下文中调用（例如在 Render 插槽回调中）。
+	 * @param x X 维度的工作组数量。
+	 * @param y Y 维度的工作组数量（默认为 1）。
+	 * @param z Z 维度的工作组数量（默认为 1）。
+	 */
+	dispatch(x: number, y?: number, z?: number): void;
+
+	/**
+	 * 检查当前平台是否支持计算着色器。
+	 * @returns 如果支持计算着色器则返回 true，否则返回 false。
+	 */
+	static isSupported(): boolean;
+
+	/**
+	 * 从计算着色器创建新的 ComputePass。
+	 * @param computeShader 计算着色器文件字符串。
+	 * 着色器文件字符串必须是以下格式之一：
+	 * `builtin:` + 内置着色器名称
+	 * `shader_compiled_file.bin`
+	 * `Shader/shader_source_file.sc`
+	 * @returns 新的 ComputePass 实例，如果创建失败则返回 undefined。
+	 */
+	static create(computeShader: string): ComputePass | undefined;
+}
+
+export namespace ComputePass {
+	export type Type = ComputePass;
+}
+
+/**
  * 用于在游戏场景树层次结构中渲染纹理的Sprite类。
  */
 class Sprite extends Node {
@@ -7017,9 +7096,10 @@ interface RenderTargetClass {
 	 * 使用特定的宽度和高度创建新的 RenderTarget 对象。
 	 * @param width 渲染目标的宽度。
 	 * @param height 渲染目标的高度。
+	 * @param computeAccess [可选] 渲染目标纹理的计算访问模式。默认为 ComputeAccess.ReadWrite。
 	 * @returns 创建的渲染目标。
 	 */
-	(this: void, width: number, height: number): RenderTarget;
+	(this: void, width: number, height: number, computeAccess?: ComputeAccess): RenderTarget;
 }
 
 const renderTargetClass: RenderTargetClass;

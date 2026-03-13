@@ -18,10 +18,9 @@ class Node;
 class Texture2D;
 
 enum class ComputeAccess {
-	None = 0,
-	Read = 1,
-	Write = 2,
-	ReadWrite = 3
+	Read = 0,
+	Write = 1,
+	ReadWrite = 2
 };
 
 class RenderTarget : public Object {
@@ -43,7 +42,7 @@ public:
 	CREATE_FUNC_NULLABLE(RenderTarget);
 
 protected:
-	RenderTarget(uint16_t width, uint16_t height, bgfx::TextureFormat::Enum format = bgfx::TextureFormat::RGBA8, ComputeAccess computeAccess = ComputeAccess::None);
+	RenderTarget(uint16_t width, uint16_t height, bgfx::TextureFormat::Enum format = bgfx::TextureFormat::RGBA8, ComputeAccess computeAccess = ComputeAccess::ReadWrite);
 	void renderAfterClear(Node* target, bool clear, Color color = 0x0, float depth = 1.0f, uint8_t stencil = 0);
 	void renderOnly(Node* target);
 	void end();

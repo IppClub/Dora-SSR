@@ -1962,6 +1962,10 @@ object class RenderTarget
 	/// </summary>
 	readonly common Texture2D* texture;
 	/// <summary>
+	/// The compute access mode for the render target texture.
+	/// </summary>
+	readonly common ComputeAccess computeAccess;
+	/// <summary>
 	/// Renders a node to the target without replacing its previous contents.
 	/// </summary>
 	/// <param name="target">The node to be rendered onto the render target.</param>
@@ -1987,7 +1991,78 @@ object class RenderTarget
 	/// <param name="filename">The name of the file to save the contents to.</param>
 	/// <param name="handler">The function to call when the save operation is complete. The function will be passed a boolean value indicating whether the save operation was successful.</param>
 	void saveAsync(string filename, function<void(bool success)> handler);
-	static RenderTarget* create(uint16_t width, uint16_t height);
+	/// <summary>
+	/// Creates a new RenderTarget object with the given width and height.
+	/// </summary>
+	/// <param name="width">The width of the render target.</param>
+	/// <param name="height">The height of the render target.</param>
+	/// <param name="computeAccess">The compute access mode for the render target texture. Default is ReadWrite.</param>
+	/// <returns>The created render target.</returns>
+	static RenderTarget* create(uint16_t width, uint16_t height, ComputeAccess computeAccess = ComputeAccess::ReadWrite);
+};
+
+/// <summary>
+/// An enum representing compute shader access modes.
+/// </summary>
+enum ComputeAccess
+{
+	Read = 0,
+	Write = 1,
+	ReadWrite = 2
+};
+
+/// <summary>
+/// A class representing a compute shader pass.
+/// </summary>
+object class ComputePass : public Object
+{
+	/// <summary>
+	/// Sets the value of a shader parameter.
+	/// </summary>
+	/// <param name="name">The name of the parameter to set.</param>
+	/// <param name="var">The numeric value to set.</param>
+	void set(String name, float var);
+	/// <summary>
+	/// Sets the values of shader parameters.
+	/// </summary>
+	/// <param name="name">The name of the parameter to set.</param>
+	/// <param name="x">The first numeric value to set.</param>
+	/// <param name="y">The second numeric value to set (default 0.0).</param>
+	/// <param name="z">The third numeric value to set (default 0.0).</param>
+	/// <param name="w">The fourth numeric value to set (default 0.0).</param>
+	void set(String name, float x, float y = 0.0f, float z = 0.0f, float w = 0.0f);
+	/// <summary>
+	/// Sets the values of shader parameters.
+	/// Works the same as: pass.set("varName", color.r / 255.0, color.g / 255.0, color.b / 255.0, color.opacity)
+	/// </summary>
+	/// <param name="name">The name of the parameter to set.</param>
+	/// <param name="var">The Color object to set.</param>
+	void set(String name, Color var);
+	/// <summary>
+	/// Sets a texture to be used in the compute shader at the specified slot with the specified access mode.
+	/// </summary>
+	/// <param name="slot">The texture slot to bind to (0-7).</param>
+	/// <param name="texture">The texture to bind.</param>
+	/// <param name="access">The compute access mode for the texture.</param>
+	void setImage(uint8_t slot, Texture2D* texture, ComputeAccess access);
+	/// <summary>
+	/// Dispatches the compute shader with the specified work group sizes.
+	/// </summary>
+	/// <param name="x">The number of work groups in the X dimension.</param>
+	/// <param name="y">The number of work groups in the Y dimension (default 1).</param>
+	/// <param name="z">The number of work groups in the Z dimension (default 1).</param>
+	void dispatch(uint32_t x, uint32_t y = 1, uint32_t z = 1);
+	/// <summary>
+	/// Checks whether compute shaders are supported on the current platform.
+	/// </summary>
+	/// <returns>True if compute shaders are supported, false otherwise.</returns>
+	static bool isSupported();
+	/// <summary>
+	/// Creates a new ComputePass object.
+	/// </summary>
+	/// <param name="name">The name of the compiled compute shader file.</param>
+	/// <returns>A new ComputePass object or null if creation failed.</returns>
+	static ComputePass* create(String name);
 };
 
 /// <summary>

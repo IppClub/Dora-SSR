@@ -593,17 +593,36 @@ class Label : public Node
 	static Label* create(String fontName, uint32_t fontSize, bool sdf = false);
 };
 
+enum ComputeAccess
+{
+	Read = 0,
+	Write = 1,
+	ReadWrite = 2
+};
+
 class RenderTarget : public Object
 {
 	tolua_readonly tolua_property__common uint16_t width;
 	tolua_readonly tolua_property__common uint16_t height;
 	tolua_property__common Camera* camera;
 	tolua_readonly tolua_property__common Texture2D* texture;
+	tolua_readonly tolua_property__common ComputeAccess computeAccess;
 	void render(Node* target);
 	void renderWithClear(Color color, float depth = 1.0f, uint8_t stencil = 0);
 	void renderWithClear(Node* target, Color color, float depth = 1.0f, uint8_t stencil = 0);
 	void saveAsync(String filename, tolua_function_void handler);
-	static RenderTarget* create(uint16_t width, uint16_t height);
+	static RenderTarget* create(uint16_t width, uint16_t height, ComputeAccess computeAccess = ComputeAccess::ReadWrite);
+};
+
+class ComputePass : public Object
+{
+	void set(String name, float var);
+	void set(String name, float x, float y, float z, float w);
+	void set(String name, Color var);
+	tolua_outside void ComputePass_setImage @ setImage(uint8_t slot, Texture2D* texture, String access);
+	void dispatch(uint32_t x, uint32_t y = 1, uint32_t z = 1);
+	static tolua_outside bool ComputePass_isSupported @ isSupported();
+	static ComputePass* create(String name);
 };
 
 class ClipNode : public Node

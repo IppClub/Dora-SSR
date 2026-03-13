@@ -759,6 +759,24 @@ basicTypes =
 			creturn: -> error "unsupported"
 			cpass: -> error "unsupported"
 		}
+	ComputeAccess:
+		* "i32"
+		* (name)-> "s_cast<ComputeAccess>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+		* "crate::dora::ComputeAccess"
+		* "crate::dora::ComputeAccess"
+		* (name)-> "#{name} as i32"
+		* (name)-> "core::mem::transmute(#{name})"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "ComputeAccess{value: #{name}}"
+			convertTo: (name)-> "#{name}.ToValue()"
+			argType: "ComputeAccess"
+			returnType: "ComputeAccess"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
 	EaseType:
 		* "i32"
 		* (name)-> "s_cast<Ease::Enum>(#{name})"
