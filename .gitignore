@@ -90,7 +90,7 @@ Tools/tolua++/**/*.so
 # Ignore generated docs in assets
 Assets/Doc/en/Tutorial
 Assets/Doc/zh-Hans/Tutorial
-
+Docs/design
 
 # xmake build cache
 .xmake/
