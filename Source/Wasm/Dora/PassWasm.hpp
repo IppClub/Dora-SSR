@@ -26,6 +26,12 @@ DORA_EXPORT void pass_set_vec4(int64_t self, int64_t name, float val_1, float va
 DORA_EXPORT void pass_set_color(int64_t self, int64_t name, int32_t val) {
 	r_cast<Pass*>(self)->set(*Str_From(name), Color(s_cast<uint32_t>(val)));
 }
+DORA_EXPORT void pass_set_texture(int64_t self, int64_t name, int64_t texture, int32_t slot) {
+	r_cast<Pass*>(self)->set(*Str_From(name), r_cast<Texture2D*>(texture), s_cast<int>(slot));
+}
+DORA_EXPORT void pass_remove(int64_t self, int64_t name) {
+	r_cast<Pass*>(self)->remove(*Str_From(name));
+}
 DORA_EXPORT int64_t pass_new(int64_t vert_shader, int64_t frag_shader) {
 	return Object_From(Pass::create(*Str_From(vert_shader), *Str_From(frag_shader)));
 }
@@ -38,5 +44,7 @@ static void linkPass(wasm3::module3& mod) {
 	mod.link_optional("*", "pass_set", pass_set);
 	mod.link_optional("*", "pass_set_vec4", pass_set_vec4);
 	mod.link_optional("*", "pass_set_color", pass_set_color);
+	mod.link_optional("*", "pass_set_texture", pass_set_texture);
+	mod.link_optional("*", "pass_remove", pass_remove);
 	mod.link_optional("*", "pass_new", pass_new);
 }

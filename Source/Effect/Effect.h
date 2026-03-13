@@ -15,6 +15,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DORA_BEGIN
 
 class Shader;
+class Texture2D;
 
 class Pass : public Object {
 public:
@@ -26,6 +27,8 @@ public:
 	void set(String name, const Vec4& var);
 	void set(String name, Color var);
 	void set(String name, const Matrix& var);
+	void set(String name, Texture2D* texture, uint8_t slot);
+	void remove(String name);
 	Value* get(String name) const;
 	bgfx::ProgramHandle apply();
 	CREATE_FUNC_NULLABLE(Pass);
@@ -39,6 +42,7 @@ private:
 	public:
 		PROPERTY_READONLY(bgfx::UniformHandle, Handle);
 		PROPERTY_READONLY(Value*, Value);
+		PROPERTY(uint8_t, Slot);
 		virtual ~Uniform();
 		void apply();
 		CREATE_FUNC_NOT_NULL(Uniform);
@@ -49,6 +53,7 @@ private:
 	private:
 		bgfx::UniformHandle _handle;
 		Own<Value> _value;
+		uint8_t _slot;
 	};
 	bool _grabPass;
 	Ref<Shader> _fragShader;

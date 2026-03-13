@@ -8,6 +8,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 	fn videonode_type() -> i32;
+	fn videonode_pause(slf: i64);
+	fn videonode_resume(slf: i64);
+	fn videonode_get_paused(slf: i64) -> i32;
 	fn videonode_new(filename: i64, looped: i32) -> i64;
 }
 use crate::dora::IObject;
@@ -25,6 +28,18 @@ impl VideoNode {
 				_ => Some(Box::new(VideoNode { raw: raw }))
 			}
 		})
+	}
+	/// Pauses the video playback.
+	pub fn pause(&mut self) {
+		unsafe { videonode_pause(self.raw()); }
+	}
+	/// Resumes the video playback.
+	pub fn resume(&mut self) {
+		unsafe { videonode_resume(self.raw()); }
+	}
+	/// Gets Whether the video is currently paused.
+	pub fn get_paused(&self) -> bool {
+		return unsafe { videonode_get_paused(self.raw()) != 0 };
 	}
 	/// Creates a new VideoNode object for playing a video.
 	///

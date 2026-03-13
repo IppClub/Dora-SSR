@@ -11,6 +11,15 @@ import "runtime"
 #wa:import dora videonode_type
 func videonode_type() => i32
 
+#wa:import dora videonode_pause
+func videonode_pause(slf: i64)
+
+#wa:import dora videonode_resume
+func videonode_resume(slf: i64)
+
+#wa:import dora videonode_get_paused
+func videonode_get_paused(slf: i64) => i32
+
 #wa:import dora videonode_new
 func videonode_new(filename: i64, looped: i32) => i64
 
@@ -35,6 +44,21 @@ func ObjectAsVideoNode(object: Object) => *VideoNode {
 		return VideoNodeFrom(object.GetRaw())
 	}
 	return nil
+}
+
+/// Pauses the video playback.
+func VideoNode.Pause() {
+	videonode_pause(*this.raw)
+}
+
+/// Resumes the video playback.
+func VideoNode.Resume() {
+	videonode_resume(*this.raw)
+}
+
+/// Gets Whether the video is currently paused.
+func VideoNode.GetPaused() => bool {
+	return videonode_get_paused(*this.raw) != 0
 }
 
 /// Creates a new VideoNode object for playing a video.

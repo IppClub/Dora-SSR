@@ -18,6 +18,12 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int32_t videonode_type();
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void videonode_pause(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void videonode_resume(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int32_t videonode_get_paused(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t videonode_new(int64_t filename, int32_t looped);
 	}
 } // namespace Dora
@@ -41,6 +47,27 @@ namespace Dora
 		internal static new VideoNode? FromOpt(long raw)
 		{
 			return raw == 0 ? null : new VideoNode(raw);
+		}
+		/// <summary>
+		/// Pauses the video playback.
+		/// </summary>
+		public void Pause()
+		{
+			Native.videonode_pause(Raw);
+		}
+		/// <summary>
+		/// Resumes the video playback.
+		/// </summary>
+		public void Resume()
+		{
+			Native.videonode_resume(Raw);
+		}
+		/// <summary>
+		/// Whether the video is currently paused.
+		/// </summary>
+		public bool Paused
+		{
+			get => Native.videonode_get_paused(Raw) != 0;
 		}
 		/// <summary>
 		/// Creates a new VideoNode object for playing a video.

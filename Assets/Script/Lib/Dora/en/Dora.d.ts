@@ -2052,6 +2052,22 @@ class Pass extends Object {
 	 * @param cvar The Color object to set.
 	 */
 	set(name: string, cvar: Color): void;
+
+	/**
+	 * Binds a texture to a sampler uniform and texture slot.
+	 *
+	 * @param name The sampler name in the shader.
+	 * @param texture The texture to bind.
+	 * @param slot The texture slot index.
+	 */
+	set(name: string, texture: Texture2D, slot: number): void;
+
+	/**
+	 * Removes a previously set uniform or sampler binding by name.
+	 *
+	 * @param name The uniform name in the shader.
+	 */
+	remove(name: string): void;
 }
 
 export namespace Pass {

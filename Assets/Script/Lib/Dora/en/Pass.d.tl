@@ -1,5 +1,6 @@
 local Object = require("Object").Type
 local Color = require("Color").Type
+local Texture2D = require("Texture2D").Type
 
 -- A record representing a shader pass.
 local record Pass
@@ -31,6 +32,16 @@ local record Pass
 	-- @param name (string) The name of the parameter to set.
 	-- @param var (Color) The Color object to set.
 	set: function(self: Pass, name: string, var: Color)
+
+	-- Binds a texture to a sampler uniform and texture slot.
+	-- @param name (string) The sampler name in the shader.
+	-- @param texture (Texture2D) The texture to bind.
+	-- @param slot (integer) The texture slot index.
+	set: function(self: Pass, name: string, texture: Texture2D, slot: integer)
+
+	-- Removes a previously set uniform or sampler binding by name.
+	-- @param name (string) The uniform name in the shader.
+	remove: function(self: Pass, name: string)
 end
 
 -- A class for creating Pass objects.

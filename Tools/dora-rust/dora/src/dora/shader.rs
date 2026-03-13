@@ -18,7 +18,7 @@ impl Shader {
 	/// # Arguments
 	///
 	/// * `source_file` - The shader source file path.
-	/// * `target_file` - The output file path for the compiled shader bytecode.
+	/// * `target_file` - The output file path for the compiled shader bytecode. Use the `.bin` suffix.
 	/// * `stage` - The shader stage.
 	///
 	/// # Returns
@@ -32,7 +32,7 @@ impl Shader {
 	/// # Arguments
 	///
 	/// * `source_file` - The shader source file path.
-	/// * `target_file` - The output file path for the compiled shader bytecode.
+	/// * `target_file` - The output file path for the compiled shader bytecode. Use the `.bin` suffix.
 	/// * `stage` - The shader stage.
 	/// * `callback` - A callback function invoked when the compilation finishes. It receives an empty string on success, or an error message on failure.
 	pub fn compile_async(source_file: &str, target_file: &str, stage: crate::dora::ShaderStage, mut callback: Box<dyn FnMut(&str)>) {

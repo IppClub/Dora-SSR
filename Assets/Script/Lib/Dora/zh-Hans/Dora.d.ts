@@ -2049,6 +2049,22 @@ class Pass extends Object {
 	 * @param cvar 要设置的Color对象。
 	 */
 	set(name: string, cvar: Color): void;
+
+	/**
+	 * 绑定一个纹理到指定采样器和纹理槽位。
+	 *
+	 * @param name 着色器中的采样器名称。
+	 * @param texture 要绑定的纹理。
+	 * @param slot 纹理槽位索引。
+	 */
+	set(name: string, texture: Texture2D, slot: number): void;
+
+	/**
+	 * 移除指定名称的 uniform 或采样器绑定。
+	 *
+	 * @param name 着色器中的 uniform 名称。
+	 */
+	remove(name: string): void;
 }
 
 export namespace Pass {

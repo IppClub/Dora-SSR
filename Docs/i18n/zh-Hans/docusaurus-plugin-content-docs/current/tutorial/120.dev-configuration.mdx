@@ -36,62 +36,88 @@ git clone https://gitcode.com/ippclub/Dora-SSR.git
 <Tabs groupId="platform-select">
 <TabItem value="windows" label="Windows">
 
-1. 安装 **Rust** 语言环境。
+1. 安装 **Rust**、**xmake**，以及带有 MSBuild 工具的 **Visual Studio Community 2022**。
 
-2. 执行下面的脚本，生成引擎的依赖库。
-	```sh
-	Tools\build-scripts\build_lib_windows.bat
+2. 先构建 bgfx 依赖库，这一步与 GitHub Actions 保持一致。
+	```bat
+	Tools\build-scripts\build_lib_bgfx_windows.bat
 	```
 
-3. 安装 **Visual Studio Community 2022**。
+3. 构建 Windows 运行时与解决方案。
+	```bat
+	Tools\build-scripts\build_windows.bat
+	```
 
-4. 在 IDE 中打开工程文件：**Projects/Windows/Dora.sln**。
-
-5. 进行编译. 调试和运行。
+4. 如果需要本地调试，可在 Visual Studio 中打开 **Projects/Windows/Dora.sln**，运行 `Debug` 配置。
 
 </TabItem>
 <TabItem value="macos" label="macOS">
 
-1. 安装 **Rust** 语言环境。
+1. 安装 **Rust**、**xmake** 和最新版 **Xcode**。
 
-2. 执行下面的脚本，生成引擎的依赖库。
+2. 先构建 bgfx 依赖库，与 CI 流程保持一致。
 	```sh
-	Tools/build-scripts/build_lib_macos.sh
+	Tools/build-scripts/build_lib_bgfx.sh macos
 	```
 
-3. 安装最新版 **Xcode**。
+3. 生成 Lua 绑定。
+	```sh
+	cd Tools/tolua++
+	./build.sh
+	```
 
-4. 在 IDE 中打开工程文件：**Projects/macOS/Dora.xcodeproj**。
+4. 为 macOS 构建 Rust 运行时并复制静态库。
+	```sh
+	cd Source/Rust
+	rustup target add x86_64-apple-darwin
+	cargo build --target x86_64-apple-darwin
+	cp target/x86_64-apple-darwin/debug/libdora_runtime.a lib/macOS/libdora_runtime.a
+	```
 
-5. 进行编译. 调试和运行。
+5. 本地构建并运行应用。
+	```sh
+	xcodebuild ARCHS=x86_64 ONLY_ACTIVE_ARCH=NO -project Projects/macOS/Dora.xcodeproj -target Dora -configuration Debug
+	```
+
+6. 如果需要 IDE 调试，可在 Xcode 中打开 **Projects/macOS/Dora.xcodeproj**，运行 `Dora` target。
 
 </TabItem>
 <TabItem value="ios" label="iOS">
 
-1. 安装 **Rust** 语言环境。
+1. 安装 **Rust**、**xmake** 和最新版 **Xcode**。
 
-2. 执行下面的脚本，生成引擎的依赖库。
+2. 先构建 bgfx 依赖库。
 	```sh
-	Tools/build-scripts/build_lib_ios.sh
+	Tools/build-scripts/build_lib_bgfx.sh ios
 	```
 
-3. 安装最新版 **Xcode**。
+3. 生成 Lua 绑定。
+	```sh
+	cd Tools/tolua++
+	./build.sh
+	```
 
-4. 在 IDE 中打开工程文件：**Projects/iOS/Dora.xcodeproj**。
+4. 为 iOS 模拟器构建 Rust 运行时。
+	```sh
+	cd Source/Rust
+	rustup target add aarch64-apple-ios-sim
+	cargo build --target aarch64-apple-ios-sim
+	cp target/aarch64-apple-ios-sim/debug/libdora_runtime.a lib/iOS-Simulator/libdora_runtime.a
+	```
 
-5. 进行编译. 调试和运行。
+5. 构建模拟器目标。
+	```sh
+	xcodebuild ARCHS=arm64 ONLY_ACTIVE_ARCH=NO -project Projects/iOS/Dora.xcodeproj -configuration Debug -target Simulator -sdk iphonesimulator
+	```
+
+6. 如果需要 IDE 调试，可在 Xcode 中打开 **Projects/iOS/Dora.xcodeproj**，运行 `Simulator` target。
 
 </TabItem>
 <TabItem value="android" label="Android">
 
-1. 安装 **Rust** 语言环境。
+1. 安装 **Rust**、**xmake** 和最新版 **Android Studio**。
 
-2. 执行下面的脚本，生成引擎的依赖库。
-	```sh
-	Tools/build-scripts/build_lib_android.sh
-	```
-
-3. 手动生成 Lua 绑定。
+2. 先手动生成 Lua 绑定。
 	```sh
 	# 在 Ubuntu 系统上构建
 	sudo apt-get install lua5.1
@@ -109,36 +135,40 @@ git clone https://gitcode.com/ippclub/Dora-SSR.git
 	build.bat
 	```
 
-4. 安装最新版 **Android Studio**。
-5. 在 IDE 打开工程目录：**Projects/Android/Dora**。
-6. 进行编译. 调试和运行。
+3. 构建 Android 平台的 bgfx 依赖库。
+	```sh
+	Tools/build-scripts/build_lib_bgfx.sh android
+	```
+
+4. 构建 Android 各 ABI 对应的 Rust 运行时。
+	```sh
+	Tools/build-scripts/build_lib_android.sh
+	```
+
+5. 本地构建 Android 应用。
+	```sh
+	cd Projects/Android/Dora
+	./gradlew assembleDebug
+	```
+
+6. 如果需要 IDE 调试，可在 Android Studio 中打开 **Projects/Android/Dora**，运行 `app` 模块。
 
 </TabItem>
 <TabItem value="linux" label="Linux">
 
-1. 安装 **Rust** 语言环境。
-
-2. 执行下面的脚本，生成引擎的依赖库。
-	```sh title="在 x86_64 架构上"
-	Tools/build-scripts/build_lib_linux_x86_64.sh
-	```
-
-	```sh title="在 ARM64 架构上"
-	Tools/build-scripts/build_lib_linux_aarch64.sh
-	```
+1. 安装 **Rust** 和 **xmake**。
 
 <Tabs groupId="linux-distribution-select">
 <TabItem value="ubuntu" label="Ubuntu/Debian">
 
 3. 安装依赖包。
 	```sh
-	sudo apt-get install -y libsdl2-dev libgl1-mesa-dev libssl-dev
+	sudo apt-get update
+	sudo apt-get install -y libsdl2-dev libgl1-mesa-dev libssl-dev libx11-dev lua5.1 luarocks
 	```
 
 4. 手动生成 Lua 绑定。
 	```sh
-	sudo apt-get install lua5.1
-	sudo apt-get install -y luarocks
 	sudo luarocks install luafilesystem
 	cd Tools/tolua++
 	lua tolua++.lua
@@ -165,7 +195,23 @@ git clone https://gitcode.com/ippclub/Dora-SSR.git
 </TabItem>
 </Tabs>
 
-5. 运行编译脚本。
+2. 构建 bgfx 依赖库，这一步与 Linux GitHub Action 保持一致。
+	```sh
+	cd Source/3rdParty/bgfx
+	xmake f -p linux -a x86_64 -m release -y
+	xmake -v
+	```
+
+3. 构建 Rust 运行时。
+	```sh title="在 x86_64 架构上"
+	Tools/build-scripts/build_lib_linux_x86_64.sh
+	```
+
+	```sh title="在 ARM64 架构上"
+	Tools/build-scripts/build_lib_linux_aarch64.sh
+	```
+
+4. 运行编译脚本。
 
 	- 进行首次编译
 		```sh title="在 ARM 架构上"
@@ -184,7 +230,7 @@ git clone https://gitcode.com/ippclub/Dora-SSR.git
 		make
 		```
 
-6. 运行生成的软件。
+5. 运行生成的软件。
 	```sh
 	cd Assets
 	../Projects/Linux/build/dora-ssr
@@ -230,10 +276,9 @@ git clone https://gitcode.com/ippclub/Dora-SSR.git
 	pnpm start
 	```
 
-	&emsp;&emsp;或者你可以直接生成完整 Dora SSR 项目的 Web IDE 发布文件。`pnpm build` 现在会自动完成 YarnEditor 的构建与复制，并将最终 Web IDE 构建结果同步到 `Assets/www`。
+	&emsp;&emsp;或者你可以直接生成完整 Dora SSR 项目的 Web IDE 发布文件。`pnpm build` 现在会自动完成 YarnEditor 的构建与复制，并将最终 Web IDE 构建结果同步到项目下的 `Assets/www` 目录。
 
 	```sh
-	# `pnpm build` 还会自动把最终构建结果同步到 Assets/www
 	cd Tools/dora-dora
 	pnpm build
 	```

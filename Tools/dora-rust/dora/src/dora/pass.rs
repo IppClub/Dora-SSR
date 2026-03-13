@@ -13,6 +13,8 @@ extern "C" {
 	fn pass_set(slf: i64, name: i64, val: f32);
 	fn pass_set_vec4(slf: i64, name: i64, val_1: f32, val_2: f32, val_3: f32, val_4: f32);
 	fn pass_set_color(slf: i64, name: i64, val: i32);
+	fn pass_set_texture(slf: i64, name: i64, texture: i64, slot: i32);
+	fn pass_remove(slf: i64, name: i64);
 	fn pass_new(vert_shader: i64, frag_shader: i64) -> i64;
 }
 use crate::dora::IObject;
@@ -73,14 +75,42 @@ impl Pass {
 	pub fn set_color(&mut self, name: &str, val: &crate::dora::Color) {
 		unsafe { pass_set_color(self.raw(), crate::dora::from_string(name), val.to_argb() as i32); }
 	}
+	/// Binds a texture to a sampler uniform and texture slot.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The sampler name in the shader.
+	/// * `texture` - The texture to bind.
+	/// * `slot` - The texture slot index.
+	pub fn set_texture(&mut self, name: &str, texture: &crate::dora::Texture2D, slot: i32) {
+		unsafe { pass_set_texture(self.raw(), crate::dora::from_string(name), texture.raw(), slot); }
+	}
+	/// Removes a previously set uniform or sampler binding by name.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The uniform name in the shader.
+	pub fn remove(&mut self, name: &str) {
+		unsafe { pass_remove(self.raw(), crate::dora::from_string(name)); }
+	}
 	/// Creates a new Pass object.
 	///
 	/// # Arguments
 	///
-	/// * `vert_shader` - The vertex shader in binary form file string.
-	/// * `frag_shader` - The fragment shader file string. A shader file string must be one of the formats:
-	///     * "builtin:" + theBuiltinShaderName
-	///     * "Shader/compiled_shader_file.bin"
+	/// * `vert_shader` - The vertex shader file string.
+	/// * `frag_shader` - The fragment shader file string.
+	///
+	/// A shader file string must be one of the formats:
+	///     * `builtin:` + theBuiltinShaderName
+	///     * `shader_compiled_file.bin`
+	///     * `Shader/shader_source_file.sc`
+	///
+	/// Details:
+	///     * `"builtin:" + name` loads an embedded built-in shader.
+	///     * For `.sc` files, the given path is loaded as shader source and compiled immediately.
+	///     * For `.bin` files, if the given path exists, it is loaded directly.
+	///     * Otherwise the engine tries `renderer_dir/filename.bin`, where `renderer_dir`
+	///       depends on the active backend, such as `dx11`, `metal`, `glsl`, `essl`, or `spirv`.
 	///
 	/// # Returns
 	///
