@@ -17,7 +17,7 @@ class Camera;
 class Node;
 class Texture2D;
 
-enum class ComputeAccess {
+enum ComputeAccess {
 	Read = 0,
 	Write = 1,
 	ReadWrite = 2
@@ -42,7 +42,8 @@ public:
 	CREATE_FUNC_NULLABLE(RenderTarget);
 
 protected:
-	RenderTarget(uint16_t width, uint16_t height, bgfx::TextureFormat::Enum format = bgfx::TextureFormat::RGBA8, ComputeAccess computeAccess = ComputeAccess::ReadWrite);
+	RenderTarget(uint16_t width, uint16_t height, bgfx::TextureFormat::Enum format, ComputeAccess computeAccess);
+	RenderTarget(uint16_t width, uint16_t height, ComputeAccess computeAccess);
 	void renderAfterClear(Node* target, bool clear, Color color = 0x0, float depth = 1.0f, uint8_t stencil = 0);
 	void renderOnly(Node* target);
 	void end();

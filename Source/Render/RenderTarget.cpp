@@ -36,6 +36,10 @@ RenderTarget::RenderTarget(uint16_t width, uint16_t height, bgfx::TextureFormat:
 	, _dummy(Node::create(false)) {
 }
 
+RenderTarget::RenderTarget(uint16_t width, uint16_t height, ComputeAccess computeAccess)
+	: RenderTarget(width, height, bgfx::TextureFormat::RGBA8, computeAccess) {
+}
+
 RenderTarget::~RenderTarget() {
 	if (bgfx::isValid(_frameBufferHandle)) {
 		bgfx::destroy(_frameBufferHandle);

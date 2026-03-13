@@ -33,6 +33,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Cache/SkeletonCache.h"
 #include "Cache/TextureCache.h"
 #include "Common/Async.h"
+#include "Effect/ComputePass.h"
 #include "Effect/Effect.h"
 #include "Entity/Entity.h"
 #include "Event/Event.h"

@@ -12,6 +12,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DORA_BEGIN
 
+/* ComputeAccess enum values for tolua++ */
+using ::Dora::ComputeAccess::Read;
+using ::Dora::ComputeAccess::Write;
+using ::Dora::ComputeAccess::ReadWrite;
+
 /* Application */
 inline Application* Application_shared() { return &SharedApplication; }
 
