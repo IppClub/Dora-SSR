@@ -12,10 +12,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DORA_BEGIN
 
-/* ComputeAccess enum values for tolua++ */
-using ::Dora::ComputeAccess::Read;
-using ::Dora::ComputeAccess::Write;
-using ::Dora::ComputeAccess::ReadWrite;
+/* ComputeAccess enum values for tolua++ binding */
+constexpr auto Read = ComputeAccess::Read;
+constexpr auto Write = ComputeAccess::Write;
+constexpr auto ReadWrite = ComputeAccess::ReadWrite;
 
 /* Application */
 inline Application* Application_shared() { return &SharedApplication; }
@@ -325,6 +325,27 @@ inline HttpClient* HttpClient_shared() { return &SharedHttpClient; }
 
 /* Effect */
 inline Pass* Effect_get(Effect* self, size_t index) { return self->get(index - 1); }
+
+/* ComputePass */
+inline ComputeAccess ComputePass_getAccess(String accessName) {
+	switch (Switch::hash(accessName)) {
+		case "Read"_hash: return ComputeAccess::Read;
+		case "Write"_hash: return ComputeAccess::Write;
+		case "ReadWrite"_hash: return ComputeAccess::ReadWrite;
+		default:
+			Issue(
+				"ComputeAccess name \"{}\" is invalid. use one of \"Read\", \"Write\", \"ReadWrite\"",
+				accessName.toString());
+			break;
+	}
+	return ComputeAccess::ReadWrite;
+}
+inline void ComputePass_setImage(ComputePass* self, uint8_t slot, Texture2D* texture, String access) {
+	self->setImage(slot, texture, ComputePass_getAccess(access));
+}
+inline bool ComputePass_isSupported() {
+	return ComputePass::isSupported();
+}
 
 /* Wasm */
 void WasmRuntime_clear();
