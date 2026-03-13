@@ -3784,7 +3784,7 @@ object class VideoNode : public Sprite
 	/// <summary>
 	/// Whether the video is currently paused.
 	/// </summary>
-	readonly bool paused;
+	readonly boolean bool paused;
 
 	/// <summary>
 	/// Creates a new VideoNode object for playing a video.

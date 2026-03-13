@@ -4047,7 +4047,7 @@ object class VideoNode : public ISprite
 	void resume();
 
 	/// Whether the video is currently paused.
-	readonly bool paused;
+	readonly boolean bool paused;
 
 	/// Creates a new VideoNode object for playing a video.
 	///
