@@ -1,18 +1,6 @@
 // @preview-file off clear
-import { Content, DB, Path, Log as DoraLog, Director, once, SearchFilesResult, Node, emit, wait, json, App, HttpServer } from 'Dora';
-
-let logLevel = 3;
-
-export function setLogLevel(level: number) {
-	logLevel = level;
-}
-
-const Log = (type: "Info" | "Warn" | "Error", msg: string) => {
-	if (logLevel < 1) return;
-	else if (logLevel < 2 && (type === "Info" || type === "Warn")) return;
-	else if (logLevel < 3 && type === "Info") return;
-	DoraLog(type, msg);
-};
+import { Content, DB, Path, Director, once, SearchFilesResult, Node, emit, wait, json, App, HttpServer } from 'Dora';
+import { Log } from 'Agent/Utils';
 
 export type AgentTaskStatus = "RUNNING" | "DONE" | "FAILED" | "STOPPED";
 export type CheckpointStatus = "PREPARED" | "APPLIED" | "REVERTED" | "FAILED";
@@ -428,7 +416,7 @@ function encodeJSON(obj: object): string | undefined {
 	return text;
 }
 
-export async function runSingleTsTranspile(file: string, content: string, timeoutSec: number): Promise<TsBuildMessage> {
+export async function runSingleTsTranspile(file: string, content: string): Promise<TsBuildMessage> {
 	let done = false;
 	let result: TsBuildMessage = {
 		success: false,
@@ -465,15 +453,14 @@ export async function runSingleTsTranspile(file: string, content: string, timeou
 		return { success: false, file, message: "failed to encode transpile request" };
 	}
 	await new Promise<void>(resolve => {
-		listener.once(() => {
+		Director.systemScheduler.schedule(once(() => {
 			emit("AppWS", "Send", payload);
-			const start = App.runningTime;
-			wait(() => done || App.runningTime - start >= timeoutSec);
+			wait(() => done);
 			if (!done) {
 				listener.removeFromParent();
 			}
 			resolve();
-		});
+		}));
 	});
 	return result;
 }
@@ -925,10 +912,9 @@ export function getCheckpointEntriesForDebug(checkpointId: number) {
 	return getCheckpointEntries(checkpointId, false);
 }
 
-export async function runTsBuild(req: { workDir: string; path: string; timeoutSec?: number }): Promise<TsBuildResult> {
+export async function runTsBuild(req: { workDir: string; path: string }): Promise<TsBuildResult> {
 	const targetRel = req.path ?? "";
 	const target = resolveWorkspaceSearchPath(req.workDir, targetRel);
-	const timeoutSec = math.max(1, math.floor(req.timeoutSec ?? 20));
 	if (!target) {
 		return { success: false, message: "invalid path or workDir" };
 	}
@@ -950,7 +936,7 @@ export async function runTsBuild(req: { workDir: string; path: string; timeoutSe
 		}
 		emit("AppWS", "Send", updatePayload);
 		if (!isDtsFile(target)) {
-			messages.push(await runSingleTsTranspile(target, content, timeoutSec));
+			messages.push(await runSingleTsTranspile(target, content));
 		}
 		Log("Info", `[ts_build] file=${target} messages=${messages.length}`);
 		return {
@@ -981,7 +967,7 @@ export async function runTsBuild(req: { workDir: string; path: string; timeoutSe
 	}
 	for (const file in fileData) {
 		if (isDtsFile(file)) continue;
-		messages.push(await runSingleTsTranspile(file, fileData[file], timeoutSec));
+		messages.push(await runSingleTsTranspile(file, fileData[file]));
 	}
 	Log("Info", `[ts_build] dir=${target} messages=${messages.length}`);
 	return {

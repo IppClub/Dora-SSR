@@ -6,6 +6,7 @@ local __TS__Promise = ____lualib.__TS__Promise -- 1
 local __TS__New = ____lualib.__TS__New -- 1
 local __TS__AsyncAwaiter = ____lualib.__TS__AsyncAwaiter -- 1
 local __TS__Await = ____lualib.__TS__Await -- 1
+local __TS__ArrayIsArray = ____lualib.__TS__ArrayIsArray -- 1
 local ____exports = {} -- 1
 local logs -- 1
 local ____Dora = require("Dora") -- 2
@@ -27,7 +28,7 @@ local ____flow = require("Agent.flow") -- 5
 local Node = ____flow.Node -- 5
 local Flow = ____flow.Flow -- 5
 local ____Utils = require("Agent.Utils") -- 6
-local callLLM = ____Utils.callLLM -- 6
+local callLLMStream = ____Utils.callLLMStream -- 6
 local Config = require("Config") -- 7
 local zh = false -- 9
 do -- 9
@@ -115,7 +116,7 @@ function LLMCode.prototype.exec(self, messages) -- 120
 						local allContent = "" -- 122
 						local allReasoning = "" -- 123
 						llmWorking = true -- 124
-						local result = callLLM( -- 125
+						local result = callLLMStream( -- 125
 							messages, -- 125
 							{temperature = 0}, -- 125
 							{ -- 125
@@ -177,7 +178,7 @@ local function compileTS(file, content) -- 165
 					if event.type == "Receive" then -- 173
 						node:removeFromParent() -- 175
 						local res = json.decode(event.msg) -- 176
-						if res and res.name == "TranspileTS" then -- 176
+						if res and not __TS__ArrayIsArray(res) and res.name == "TranspileTS" then -- 176
 							if res.success then -- 176
 								resolve(nil, {success = true, result = res.luaCode}) -- 179
 							else -- 179

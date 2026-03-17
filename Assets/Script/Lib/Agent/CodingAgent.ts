@@ -1,9 +1,10 @@
 // @preview-file off clear
-import { json, sleep, Director, once, Content, wait, emit } from 'Dora';
+import { json, Director, once, Content, wait, emit } from 'Dora';
 import { Flow, Node } from 'Agent/flow';
-import { callLLM, Message } from 'Agent/Utils';
+import { callLLMStream, callLLM, Message, StopToken, Log } from 'Agent/Utils';
 import * as Tools from 'Agent/Tools';
 import * as yaml from 'yaml';
+import { MemoryCompressor } from 'Agent/Memory';
 
 export type CodingAgentRunResult =
 	| {
@@ -25,8 +26,14 @@ export interface CodingAgentRunOptions {
 	useChineseResponse?: boolean;
 	taskId?: number;
 	maxSteps?: number;
+	decisionMode?: "tool_calling" | "yaml";
+	llmMaxTry?: number;
 	llmOptions?: Record<string, unknown>;
+	stopToken?: StopToken;
+	memoryContext?: number;
 }
+
+type AgentDecisionMode = "tool_calling" | "yaml";
 
 type AgentToolName =
 	| "read_file"
@@ -39,7 +46,10 @@ type AgentToolName =
 	| "run_ts_build"
 	| "finish";
 
-interface AgentActionRecord {
+const HISTORY_READ_FILE_MAX_CHARS = 12000;
+const HISTORY_READ_FILE_MAX_LINES = 300;
+
+export interface AgentActionRecord {
 	step: number;
 	tool: AgentToolName;
 	reason: string;
@@ -53,19 +63,37 @@ interface AgentShared {
 	maxSteps: number;
 	step: number;
 	done: boolean;
-	cancelled: boolean;
+	stopToken: StopToken;
 	error?: string;
 	response?: string;
 	userQuery: string;
 	workingDir: string;
 	useChineseResponse: boolean;
+	decisionMode: AgentDecisionMode;
 	llmOptions: Record<string, unknown>;
+	llmMaxTry: number;
 	history: AgentActionRecord[];
 	lastDecision?: {
 		tool: AgentToolName;
 		reason: string;
 		params: Record<string, unknown>;
 	};
+	// Memory 相关字段
+	memory: {
+		/** 上次压缩的历史索引 */
+		lastConsolidatedIndex: number;
+
+		/** Memory 压缩器实例 */
+		compressor: MemoryCompressor;
+
+		/** 是否在当前任务中已执行过压缩 */
+		hasCompressedThisTask: boolean;
+	};
+}
+
+function getCancelledReason(shared: AgentShared): string {
+	if (shared.stopToken.reason && shared.stopToken.reason !== "") return shared.stopToken.reason;
+	return shared.useChineseResponse ? "已取消" : "cancelled";
 }
 
 function toJson(value: unknown): string {
@@ -96,6 +124,66 @@ function getReplyLanguageDirective(shared: AgentShared): string {
 	return shared.useChineseResponse
 		? "Use Simplified Chinese for natural-language fields (reason/message/summary)."
 		: "Use English for natural-language fields (reason/message/summary).";
+}
+
+function limitReadContentForHistory(content: string, tool: "read_file" | "read_file_range"): string {
+	const lines = content.split("\n");
+	const overLineLimit = lines.length > HISTORY_READ_FILE_MAX_LINES;
+	const limitedByLines = overLineLimit
+		? lines.slice(0, HISTORY_READ_FILE_MAX_LINES).join("\n")
+		: content;
+	if (limitedByLines.length <= HISTORY_READ_FILE_MAX_CHARS && !overLineLimit) {
+		return content;
+	}
+	const limited = limitedByLines.length > HISTORY_READ_FILE_MAX_CHARS
+		? limitedByLines.slice(0, HISTORY_READ_FILE_MAX_CHARS)
+		: limitedByLines;
+	const reasons: string[] = [];
+	if (content.length > HISTORY_READ_FILE_MAX_CHARS) reasons.push(`${content.length} chars`);
+	if (lines.length > HISTORY_READ_FILE_MAX_LINES) reasons.push(`${lines.length} lines`);
+	const hint = tool === "read_file"
+		? "Use read_file_range for the exact section you need."
+		: "Narrow the requested line range.";
+	return `[${tool} content truncated for history (${reasons.join(", ")}). ${hint}]\n${limited}`;
+}
+
+function summarizeEditTextParamForHistory(value: unknown, key: "old_str" | "new_str"): Record<string, unknown> | undefined {
+	if (type(value) !== "string") return undefined;
+	const text = value as string;
+	const lineCount = text === "" ? 0 : text.split("\n").length;
+	return {
+		charCount: text.length,
+		lineCount,
+		isMultiline: lineCount > 1,
+		summaryType: `${key}_summary`,
+	};
+}
+
+function sanitizeReadResultForHistory(tool: AgentToolName, result: Record<string, unknown>): Record<string, unknown> {
+	if ((tool !== "read_file" && tool !== "read_file_range") || result.success !== true || type(result.content) !== "string") {
+		return result;
+	}
+	const clone: Record<string, unknown> = {};
+	for (const key in result) {
+		clone[key] = result[key];
+	}
+	clone.content = limitReadContentForHistory(result.content as string, tool);
+	return clone;
+}
+
+function sanitizeActionParamsForHistory(tool: AgentToolName, params: Record<string, unknown>): Record<string, unknown> {
+	if (tool !== "edit_file") return params;
+	const clone: Record<string, unknown> = {};
+	for (const key in params) {
+		if (key === "old_str") {
+			clone.old_str_stats = summarizeEditTextParamForHistory(params[key], "old_str");
+		} else if (key === "new_str") {
+			clone.new_str_stats = summarizeEditTextParamForHistory(params[key], "new_str");
+		} else {
+			clone[key] = params[key];
+		}
+	}
+	return clone;
 }
 
 function isKnownToolName(name: string): name is AgentToolName {
@@ -134,7 +222,7 @@ function formatHistorySummary(history: AgentActionRecord[]): string {
 			lines.push(`- Result: ${success ? "Success" : "Failed"}`);
 			if (action.tool === "read_file" || action.tool === "read_file_range") {
 				if (success && type(result.content) === "string") {
-					lines.push(`- Content: ${result.content as string}`);
+					lines.push(`- Content: ${limitReadContentForHistory(result.content as string, action.tool)}`);
 				}
 			} else if (action.tool === "search_files") {
 				if (success && type(result.results) === "table") {
@@ -228,61 +316,83 @@ function parseYAMLObjectFromText(text: string): { success: true; obj: Record<str
 	return { success: true, obj: obj as Record<string, unknown> };
 }
 
-async function callLLMText(shared: AgentShared, messages: Message[]): Promise<{ success: true; text: string } | { success: false; message: string; text?: string }> {
+type LLMResult = {
+	success: true;
+	text: string
+} | {
+	success: false;
+	message: string;
+	text?: string
+};
+
+async function llm(shared: AgentShared, messages: Message[]): Promise<LLMResult> {
+	const res = await callLLM(messages, shared.llmOptions, shared.stopToken);
+	if (res.success) {
+		const text = res.response.choices?.[0]?.message?.content;
+		if (text) {
+			return { success: true, text };
+		} else {
+			return { success: false, message: "empty LLM response" };
+		}
+	} else {
+		return { success: false, message: res.message };
+	}
+}
+
+async function llmStream(shared: AgentShared, messages: Message[]): Promise<LLMResult> {
 	let text = "";
 	let cancelledReason: string | undefined;
 	let done = false;
 
-	for (let i = 0; i < 5; i++) {
-		done = false;
-		cancelledReason = undefined;
-		text = "";
-		emit("LLM_IN", messages.map((m, i) => i.toString() + ": " + m.content).join('\n'));
-		callLLM(
-			messages,
-			shared.llmOptions,
-			{
-				id: undefined,
-				onData: (data) => {
-					if (shared.cancelled) return true;
-					const choice = data.choices && data.choices[0];
-					const delta = choice && choice.delta;
-					if (delta && type(delta.content) === "string") {
-						text += delta.content as string;
-						emit("LLM_OUT", delta.content);
-					}
-					return false;
-				},
-				onCancel: (reason) => {
-					cancelledReason = reason;
-					done = true;
-				},
-				onDone: () => {
-					done = true;
-				},
-			},
-		);
-
-		await new Promise<void>(resolve => {
-			Director.systemScheduler.schedule(once(() => {
-				wait(() => done);
-				resolve();
-			}));
-		});
-
-		if (text === "") {
-			cancelledReason = "empty LLM output";
-		}
-		if (!cancelledReason) break;
-		emit("LLM_ABORT");
-		await new Promise<void>(resolve => {
-			Director.systemScheduler.schedule(once(() => {
-				sleep(2);
-				resolve();
-			}));
-		});
+	if (shared.stopToken.stopped) {
+		return { success: false, message: getCancelledReason(shared), text };
 	}
-	emit("LLMStream", "\n");
+	done = false;
+	cancelledReason = undefined;
+	text = "";
+	callLLMStream(
+		messages,
+		shared.llmOptions,
+		{
+			id: undefined,
+			onData: (data) => {
+				if (shared.stopToken.stopped) return true;
+				const choice = data.choices && data.choices[0];
+				const delta = choice && choice.delta;
+				if (delta && type(delta.content) === "string") {
+					const content = delta.content as string;
+					text += content;
+					const [res] = json.encode({ name: "LLMStream", content });
+					if (res !== undefined) {
+						emit("AppWS", "Send", res);
+					}
+				}
+				return false;
+			},
+			onCancel: (reason) => {
+				cancelledReason = reason;
+				done = true;
+			},
+			onDone: () => {
+				done = true;
+			},
+		},
+	);
+
+	await new Promise<void>(resolve => {
+		Director.systemScheduler.schedule(once(() => {
+			wait(() => done);
+			resolve();
+		}));
+	});
+	if (shared.stopToken.stopped) {
+		cancelledReason = getCancelledReason(shared);
+	}
+
+	if (!cancelledReason && text === "") {
+		cancelledReason = "empty LLM output";
+	}
+
 	if (cancelledReason) return { success: false, message: cancelledReason, text };
 	return { success: true, text };
 }
@@ -296,6 +406,116 @@ function parseDecisionObject(rawObj: Record<string, unknown>): { success: true; 
 	const reason = type(rawObj.reason) === "string" ? (rawObj.reason as string) : "";
 	const params = type(rawObj.params) === "table" ? (rawObj.params as Record<string, unknown>) : {};
 	return { success: true, tool, reason, params };
+}
+
+function buildDecisionToolSchema() {
+	return [{
+		type: "function" as const,
+		function: {
+			name: "next_step",
+			description: "Choose the next coding action for the agent.",
+			parameters: {
+				type: "object",
+				properties: {
+					tool: {
+						type: "string",
+						enum: [
+							"read_file",
+							"read_file_range",
+							"edit_file",
+							"delete_file",
+							"search_files",
+							"search_dora_api",
+							"list_files",
+							"run_ts_build",
+							"finish",
+						],
+					},
+					reason: {
+						type: "string",
+						description: "Explain why this is the next best action.",
+					},
+					params: {
+						type: "object",
+						description: "Shallow parameter object for the selected tool.",
+						properties: {
+							path: { type: "string" },
+							target_file: { type: "string" },
+							old_str: { type: "string" },
+							new_str: { type: "string" },
+							pattern: { type: "string" },
+							globs: {
+								type: "array",
+								items: { type: "string" },
+							},
+							useRegex: { type: "boolean" },
+							caseSensitive: { type: "boolean" },
+							includeContent: { type: "boolean" },
+							contentWindow: { type: "number" },
+							programmingLanguage: {
+								type: "string",
+								enum: ["ts", "tsx", "lua", "yue", "teal"],
+							},
+							topK: { type: "number" },
+							startLine: { type: "number" },
+							endLine: { type: "number" },
+						},
+					},
+				},
+				required: ["tool", "reason", "params"],
+			},
+		},
+	}];
+}
+
+function buildDecisionPrompt(shared: AgentShared, userQuery: string, historyText: string, memoryContext: string): string {
+	return `You are a coding assistant that helps modify and navigate code.
+Given the request and action history, decide which tool to use next.
+
+${memoryContext}
+
+User request: ${userQuery}
+
+Here are the actions you performed:
+${historyText}
+
+Available tools:
+1. read_file: Read content from a file
+	- Parameters: path (workspace-relative)
+1b. read_file_range: Read specific line range from a file
+	- Parameters: path, startLine, endLine
+
+2. edit_file: Make changes to a file
+	- Parameters: path, old_str, new_str
+		- Rules:
+			- old_str and new_str MUST be different
+			- old_str must match existing text exactly when it is non-empty
+			- If file doesn't exist, set old_str to empty string to create it with new_str
+
+3. delete_file: Remove a file
+	- Parameters: target_file
+
+4. search_files: Search patterns in workspace files
+	- Parameters: path, pattern, globs(optional), useRegex(optional), caseSensitive(optional)
+
+5. list_files: List files under a directory
+	- Parameters: path, globs(optional)
+
+6. search_dora_api: Search Dora SSR game engine API docs
+	- Parameters: pattern, programmingLanguage(ts/tsx/lua/yue/teal), topK(optional)
+
+7. run_ts_build: Run TS transpile/build checks
+	- Parameters: path(optional)
+
+8. finish: End and summarize
+	- Parameters: {}
+
+Decision rules:
+- Choose exactly one next action.
+- Keep params shallow and valid for the selected tool.
+- Prefer reading/searching before editing when information is missing.
+- Use finish only when no more actions are needed.
+${getReplyLanguageDirective(shared)}`;
 }
 
 function replaceAllAndCount(text: string, oldStr: string, newStr: string): { content: string; replaced: number } {
@@ -317,6 +537,51 @@ function replaceAllAndCount(text: string, oldStr: string, newStr: string): { con
 
 class MainDecisionAgent extends Node<AgentShared> {
 	async prep(shared: AgentShared): Promise<{ userQuery: string; history: AgentActionRecord[]; shared: AgentShared }> {
+		const { userQuery, history, memory } = shared;
+
+		if (shared.stopToken.stopped || shared.step >= shared.maxSteps) {
+			return {
+				userQuery: shared.userQuery,
+				history: shared.history,
+				shared,
+			};
+		}
+
+		// 检查是否需要压缩
+		if (!memory.hasCompressedThisTask) {
+			const systemPrompt = this.getSystemPrompt();
+			const toolDefs = this.getToolDefinitions();
+
+			if (memory.compressor.shouldCompress(
+				userQuery,
+				history,
+				memory.lastConsolidatedIndex,
+				systemPrompt,
+				toolDefs,
+				formatHistorySummary
+			)) {
+				// 执行压缩
+				const result = await memory.compressor.compress(
+					history,
+					memory.lastConsolidatedIndex,
+					shared.llmOptions,
+					formatHistorySummary,
+					shared.llmMaxTry,
+					shared.decisionMode
+				);
+
+				if (result && result.success) {
+					memory.lastConsolidatedIndex += result.compressedCount;
+					memory.hasCompressedThisTask = true;
+
+					Log(
+						'Info',
+						`[Memory] Compressed ${result.compressedCount} history records`
+					);
+				}
+			}
+		}
+
 		return {
 			userQuery: shared.userQuery,
 			history: shared.history,
@@ -324,86 +589,187 @@ class MainDecisionAgent extends Node<AgentShared> {
 		};
 	}
 
-	async exec(input: { userQuery: string; history: AgentActionRecord[]; shared: AgentShared }): Promise<{ success: true; tool: AgentToolName; reason: string; params: Record<string, unknown> } | { success: false; message: string }> {
-		const historyText = formatHistorySummary(input.history);
-		const prompt = [
-			"You are a coding assistant that helps modify and navigate code.",
-			"Given the request and action history, decide which tool to use next.",
-			"",
-			`User request: ${input.userQuery}`,
-			"",
-			"Here are the actions you performed:",
-			historyText,
-			"",
-			"Available tools:",
-			"1. read_file: Read content from a file",
-			"   - Parameters: path (workspace-relative)",
-			"1b. read_file_range: Read specific line range from a file",
-			"   - Parameters: path, startLine, endLine",
-			"",
-			"2. edit_file: Make changes to a file",
-			"   - Parameters: path, old_str, new_str",
-			"   - Rules:",
-			"     - old_str and new_str MUST be different",
-			"     - old_str must match existing text exactly when it is non-empty",
-			"     - If file doesn't exist, set old_str to empty string to create it with new_str",
-			"",
-			"3. delete_file: Remove a file",
-			"   - Parameters: target_file",
-			"",
-			"4. search_files: Search patterns in workspace files",
-			"   - Parameters: path, pattern, globs(optional), useRegex(optional), caseSensitive(optional)",
-			"",
-			"5. list_files: List files under a directory",
-			"   - Parameters: path, globs(optional)",
-			"",
-			"6. search_dora_api: Search Dora SSR game engine API docs",
-			"   - Parameters: pattern, programmingLanguage(ts/tsx/lua/yue/teal), topK(optional)",
-			"",
-			"7. run_ts_build: Run TS transpile/build checks",
-			"   - Parameters: path(optional), timeoutSec(optional)",
-			"",
-			"8. finish: End and summarize",
-			"   - Parameters: {}",
-			"",
-			"Respond with one YAML object:",
-			"```yaml",
-			'tool: "edit_file"',
-			"reason: |-",
-			"\tA readable multi-line explanation is allowed.",
-			"\tKeep indentation consistent.",
-			"params:",
-			'\tpath: "relative/path.ts"',
-			"\told_str: |-",
-			"\t\tfunction oldName() {",
-			'\t\t\tconsole.log("old");',
-			"\t\t}",
-			"\tnew_str: |-",
-			"\t\tfunction newName() {",
-			'\t\t\tconsole.log("hello");',
-			"\t\t}",
-			"```",
-			"Strict YAML formatting rules:",
-			"- Return YAML only, no prose before/after.",
-			"- Use exactly one YAML object with keys: tool, reason, params.",
-			"- Multi-line strings are allowed using block scalars (`|`, `|-`, `>`).",
-			"- If using a block scalar, all content lines must be indented consistently with tabs.",
-			"- For nested multi-line fields (for example params.new_str), indent the block content deeper than the key line using tabs.",
-			"- Keep params shallow and valid for the selected tool.",
-			"- Use tabs for all indentation, never spaces.",
-			"If no more actions are needed, use tool: finish.",
-			getReplyLanguageDirective(input.shared),
-		].join("\n");
+	private getSystemPrompt(): string {
+		return "You are a coding assistant that helps modify and navigate code.";
+	}
 
+	private getToolDefinitions(): string {
+		return `Available tools:
+1. read_file: Read content from a file
+1b. read_file_range: Read specific line range from a file
+2. edit_file: Make changes to a file
+3. delete_file: Remove a file
+4. search_files: Search patterns in workspace files
+5. list_files: List files under a directory
+6. search_dora_api: Search Dora SSR game engine API docs
+7. run_ts_build: Run TS transpile/build checks
+8. finish: End and summarize`;
+	}
+
+	private async callDecisionByToolCalling(
+		shared: AgentShared,
+		prompt: string,
+		lastError?: string
+	): Promise<{ success: true; tool: AgentToolName; reason: string; params: Record<string, unknown> } | { success: false; message: string; raw?: string }> {
+		if (shared.stopToken.stopped) {
+			return { success: false, message: getCancelledReason(shared) };
+		}
+		Log("Info", `[CodingAgent] tool-calling decision start step=${shared.step + 1}${lastError ? ` retry_error=${lastError}` : ""}`);
+		const tools = buildDecisionToolSchema();
+		const messages: Message[] = [
+			{
+				role: "system",
+				content: [
+					"You are a coding assistant that must decide the next action by calling the next_step tool exactly once.",
+					"Do not answer with plain text.",
+					getReplyLanguageDirective(shared),
+				].join("\n"),
+			},
+			{
+				role: "user",
+				content: lastError
+					? `${prompt}\n\nPrevious tool call was invalid (${lastError}). Retry with one valid next_step tool call only.`
+					: prompt,
+			},
+		];
+		const res = await callLLM(messages, {
+			...shared.llmOptions,
+			tools,
+			tool_choice: { type: "function", function: { name: "next_step" } },
+		}, shared.stopToken);
+		if (shared.stopToken.stopped) {
+			return { success: false, message: getCancelledReason(shared) };
+		}
+		if (!res.success) {
+			Log("Error", `[CodingAgent] tool-calling request failed: ${res.message}`);
+			return { success: false, message: res.message, raw: res.raw };
+		}
+		const choice = res.response.choices && res.response.choices[0];
+		const message = choice && choice.message;
+		const toolCalls = message && message.tool_calls;
+		const toolCall = toolCalls && toolCalls[0];
+		const fn = toolCall && toolCall.function;
+		const messageContent = message && type(message.content) === "string" ? (message.content as string) : undefined;
+		Log("Info", `[CodingAgent] tool-calling response finish_reason=${choice && choice.finish_reason ? choice.finish_reason : "unknown"} tool_calls=${toolCalls ? toolCalls.length : 0} content_len=${messageContent ? messageContent.length : 0}`);
+		if (!fn || fn.name !== "next_step") {
+			Log("Error", `[CodingAgent] missing next_step tool call`);
+			return {
+				success: false,
+				message: "missing next_step tool call",
+				raw: messageContent,
+			};
+		}
+		const argsText = typeof fn.arguments === "string" ? fn.arguments : "";
+		Log("Info", `[CodingAgent] tool-calling function=${fn.name} args_len=${argsText.length}`);
+		if (argsText.trim() === "") {
+			Log("Error", `[CodingAgent] empty next_step tool arguments`);
+			return { success: false, message: "empty next_step tool arguments" };
+		}
+		const [rawObj, err] = json.decode(argsText);
+		if (err !== undefined || rawObj === undefined || type(rawObj) !== "table") {
+			Log("Error", `[CodingAgent] invalid next_step tool arguments JSON: ${tostring(err)}`);
+			return {
+				success: false,
+				message: `invalid next_step tool arguments: ${tostring(err)}`,
+				raw: argsText,
+			};
+		}
+		const decision = parseDecisionObject(rawObj as Record<string, unknown>);
+		if (!decision.success) {
+			Log("Error", `[CodingAgent] invalid next_step tool arguments schema: ${decision.message}`);
+			return {
+				success: false,
+				message: decision.message,
+				raw: argsText,
+			};
+		}
+		Log("Info", `[CodingAgent] tool-calling selected tool=${decision.tool} reason_len=${decision.reason.length}`);
+		return decision;
+	}
+
+	async exec(input: { userQuery: string; history: AgentActionRecord[]; shared: AgentShared }): Promise<{ success: true; tool: AgentToolName; reason: string; params: Record<string, unknown> } | { success: false; message: string }> {
 		const shared = input.shared;
+		if (shared.stopToken.stopped) {
+			return { success: false, message: getCancelledReason(shared) };
+		}
+		const { memory } = shared;
+
+		// 获取长期记忆上下文
+		const memoryContext = memory.compressor
+			.getStorage()
+			.getMemoryContext();
+
+		// 只使用未压缩的历史
+		const uncompressedHistory = input.history.slice(memory.lastConsolidatedIndex);
+		const historyText = formatHistorySummary(uncompressedHistory);
+
+		const prompt = buildDecisionPrompt(input.shared, input.userQuery, historyText, memoryContext);
+
+		if (shared.decisionMode === "tool_calling") {
+			Log("Info", `[CodingAgent] decision mode=tool_calling step=${shared.step + 1} history=${uncompressedHistory.length}`);
+			let lastError = "tool calling validation failed";
+			let lastRaw = "";
+			for (let attempt = 0; attempt < shared.llmMaxTry; attempt++) {
+				Log("Info", `[CodingAgent] tool-calling attempt=${attempt + 1}`);
+				const decision = await this.callDecisionByToolCalling(
+					shared,
+					prompt,
+					attempt > 0 ? lastError : undefined
+				);
+				if (shared.stopToken.stopped) {
+					return { success: false, message: getCancelledReason(shared) };
+				}
+				if (decision.success) {
+					return decision;
+				}
+				lastError = decision.message;
+				lastRaw = decision.raw ?? "";
+				Log("Error", `[CodingAgent] tool-calling attempt failed: ${lastError}`);
+			}
+			Log("Error", `[CodingAgent] tool-calling exhausted retries: ${lastError}`);
+			return { success: false, message: `cannot produce valid tool call: ${lastError}; last_output=${truncateText(lastRaw, 400)}` };
+		}
+
+		const yamlPrompt = `${prompt}
+
+Respond with one YAML object:
+\`\`\`yaml
+'tool: "edit_file"
+reason: |-
+	A readable multi-line explanation is allowed.
+	Keep indentation consistent.
+params:
+	path: "relative/path.ts"
+	old_str: |-
+		function oldName() {
+			print("old");
+		}
+	new_str: |-
+		function newName() {
+			print("hello");
+		}
+\`\`\`
+Strict YAML formatting rules:
+- Return YAML only, no prose before/after.
+- Use exactly one YAML object with keys: tool, reason, params.
+- Multi-line strings are allowed using block scalars (\`|\`, \`|-\`, \`>\`).
+- If using a block scalar, all content lines must be indented consistently with tabs.
+- For nested multi-line fields (for example params.new_str), indent the block content deeper than the key line using tabs.
+- Keep params shallow and valid for the selected tool.
+- Use tabs for all indentation, never spaces.
+If no more actions are needed, use tool: finish.`;
+
 		let lastError = "yaml validation failed";
 		let lastRaw = "";
-		for (let attempt = 0; attempt < 3; attempt++) {
+		for (let attempt = 0; attempt < shared.llmMaxTry; attempt++) {
 			const feedback = attempt > 0
 				? `\n\nPrevious response was invalid (${lastError}). Return exactly one valid YAML object only and keep YAML indentation strictly consistent.`
 				: "";
-			const messages: Message[] = [{ role: "user", content: `${prompt}${feedback}` }];
-			const llmRes = await callLLMText(shared, messages);
+			const messages: Message[] = [{ role: "user", content: `${yamlPrompt}${feedback}` }];
+			const llmRes = await llm(shared, messages);
+			if (shared.stopToken.stopped) {
+				return { success: false, message: getCancelledReason(shared) };
+			}
 			if (!llmRes.success) {
 				lastError = llmRes.message;
 				continue;
@@ -442,7 +808,6 @@ class MainDecisionAgent extends Node<AgentShared> {
 			params: result.params,
 			timestamp: os.date("!%Y-%m-%dT%H:%M:%SZ"),
 		});
-		if (result.tool === "finish") return "finish";
 		return result.tool;
 	}
 }
@@ -480,10 +845,10 @@ class ReadFileAction extends Node<AgentShared> {
 		const result = execRes as Record<string, unknown>;
 		const last = shared.history[shared.history.length - 1];
 		if (last !== undefined) {
-			last.result = result;
+			last.result = sanitizeReadResultForHistory(last.tool, result);
 		}
 		shared.step += 1;
-		return shared.step >= shared.maxSteps ? "finish" : "main";
+		return "main";
 	}
 }
 
@@ -513,7 +878,7 @@ class SearchFilesAction extends Node<AgentShared> {
 		const last = shared.history[shared.history.length - 1];
 		if (last !== undefined) last.result = execRes as Record<string, unknown>;
 		shared.step += 1;
-		return shared.step >= shared.maxSteps ? "finish" : "main";
+		return "main";
 	}
 }
 
@@ -543,7 +908,7 @@ class SearchDoraAPIAction extends Node<AgentShared> {
 		const last = shared.history[shared.history.length - 1];
 		if (last !== undefined) last.result = execRes as Record<string, unknown>;
 		shared.step += 1;
-		return shared.step >= shared.maxSteps ? "finish" : "main";
+		return "main";
 	}
 }
 
@@ -568,7 +933,7 @@ class ListFilesAction extends Node<AgentShared> {
 		const last = shared.history[shared.history.length - 1];
 		if (last !== undefined) last.result = execRes as Record<string, unknown>;
 		shared.step += 1;
-		return shared.step >= shared.maxSteps ? "finish" : "main";
+		return "main";
 	}
 }
 
@@ -594,7 +959,7 @@ class DeleteFileAction extends Node<AgentShared> {
 		const last = shared.history[shared.history.length - 1];
 		if (last !== undefined) last.result = execRes as Record<string, unknown>;
 		shared.step += 1;
-		return shared.step >= shared.maxSteps ? "finish" : "main";
+		return "main";
 	}
 }
 
@@ -609,8 +974,7 @@ class RunTsBuildAction extends Node<AgentShared> {
 		const params = input.params;
 		const result = await Tools.runTsBuild({
 			workDir: input.workDir,
-			path: (params.path as string) ?? "",
-			timeoutSec: Number(params.timeoutSec ?? 20),
+			path: (params.path as string) ?? ""
 		});
 		return result as unknown as Record<string, unknown>;
 	}
@@ -619,7 +983,7 @@ class RunTsBuildAction extends Node<AgentShared> {
 		const last = shared.history[shared.history.length - 1];
 		if (last !== undefined) last.result = execRes as Record<string, unknown>;
 		shared.step += 1;
-		return shared.step >= shared.maxSteps ? "finish" : "main";
+		return "main";
 	}
 }
 
@@ -696,10 +1060,11 @@ class EditFileAction extends Node<AgentShared> {
 	async post(shared: AgentShared, _prepRes: unknown, execRes: unknown): Promise<string | undefined> {
 		const last = shared.history[shared.history.length - 1];
 		if (last !== undefined) {
+			last.params = sanitizeActionParamsForHistory(last.tool, last.params);
 			last.result = execRes as Record<string, unknown>;
 		}
 		shared.step += 1;
-		return shared.step >= shared.maxSteps ? "finish" : "main";
+		return "main";
 	}
 }
 
@@ -709,28 +1074,36 @@ class FormatResponseNode extends Node<AgentShared> {
 	}
 
 	async exec(input: { history: AgentActionRecord[]; shared: AgentShared }): Promise<string> {
+		if (input.shared.stopToken.stopped) {
+			return getCancelledReason(input.shared);
+		}
 		const history = input.history;
 		if (history.length === 0) {
 			return "No actions were performed.";
 		}
 		const summary = formatHistorySummary(history);
-		const prompt = [
-			"You are a coding assistant. Summarize what you did for the user.",
-			"",
-			"Here are the actions you performed:",
-			summary,
-			"",
-			"Generate a concise response that explains:",
-			"1. What actions were taken",
-			"2. What was found or modified",
-			"3. Any next steps",
-			"",
-			"IMPORTANT:",
-			"- Focus on outcomes, not tool names.",
-			"- Speak directly to the user.",
-			getReplyLanguageDirective(input.shared),
-		].join("\n");
-		const res = await callLLMText(input.shared, [{ role: "user", content: prompt }]);
+		const prompt = `You are a coding assistant. Summarize what you did for the user.
+
+Here are the actions you performed:
+${summary}
+
+Generate a concise response that explains:
+1. What actions were taken
+2. What was found or modified
+3. Any next steps
+
+IMPORTANT:
+- Focus on outcomes, not tool names.
+- Speak directly to the user.
+${getReplyLanguageDirective(input.shared)}`;
+		let res: LLMResult | undefined;
+		for (let i = 0; i < input.shared.llmMaxTry; i++) {
+			res = await llmStream(input.shared, [{ role: "user", content: prompt }]);
+			if (res.success) break;
+		}
+		if (!res) return input.shared.useChineseResponse
+				? `执行完成，但生成总结失败。`
+				: `Completed, but failed to generate summary.`;
 		if (!res.success) {
 			return input.shared.useChineseResponse
 				? `执行完成，但生成总结失败：${res.message}`
@@ -770,29 +1143,18 @@ class CodingAgentFlow extends Flow<AgentShared> {
 		main.on("error", format);
 
 		read.on("main", main);
-		read.on("finish", format);
 		search.on("main", main);
-		search.on("finish", format);
 		searchDora.on("main", main);
-		searchDora.on("finish", format);
 		list.on("main", main);
-		list.on("finish", format);
 		del.on("main", main);
-		del.on("finish", format);
 		build.on("main", main);
-		build.on("finish", format);
 		edit.on("main", main);
-		edit.on("finish", format);
 
 		super(main);
 	}
 }
 
-export function runCodingAgent(options: CodingAgentRunOptions, callback: (result: CodingAgentRunResult) => void) {
-	runCodingAgentAsync(options).then(result => callback(result));
-}
-
-export async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<CodingAgentRunResult> {
+async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<CodingAgentRunResult> {
 	if (!options.workDir || !Content.isAbsolutePath(options.workDir) || !Content.exist(options.workDir) || !Content.isdir(options.workDir)) {
 		return { success: false, message: "workDir must be an existing absolute directory path" };
 	}
@@ -803,30 +1165,49 @@ export async function runCodingAgentAsync(options: CodingAgentRunOptions): Promi
 		return { success: false, message: taskRes.message };
 	}
 
+	// 创建 Memory 压缩器
+	const compressor = new MemoryCompressor({
+		contextWindow: options.memoryContext ?? 32000,
+		compressionThreshold: 0.8,
+		projectDir: options.workDir,
+	});
+
 	const shared: AgentShared = {
 		taskId: taskRes.taskId,
-		maxSteps: Math.max(1, math.floor(options.maxSteps ?? 10)),
+		maxSteps: math.max(1, math.floor(options.maxSteps ?? 40)),
+		llmMaxTry: math.max(1, math.floor(options.llmMaxTry ?? 3)),
 		step: 0,
 		done: false,
-		cancelled: false,
+		stopToken: options.stopToken ?? { stopped: false },
 		response: "",
 		userQuery: options.prompt,
 		workingDir: options.workDir,
 		useChineseResponse: options.useChineseResponse === true,
+		decisionMode: options.decisionMode === "yaml" ? "yaml" : "tool_calling",
 		llmOptions: {
 			temperature: 0.2,
 			...(options.llmOptions ?? {}),
 		},
 		history: [],
+		// Memory 状态
+		memory: {
+			lastConsolidatedIndex: 0,
+			compressor,
+			hasCompressedThisTask: false,
+		},
 	};
 
 	try {
+		if (shared.stopToken.stopped) {
+			Tools.setTaskStatus(shared.taskId, "STOPPED");
+			return { success: false, taskId: shared.taskId, message: getCancelledReason(shared), steps: shared.step };
+		}
 		Tools.setTaskStatus(shared.taskId, "RUNNING");
 		const flow = new CodingAgentFlow();
 		await flow.run(shared);
-		if (shared.cancelled) {
+		if (shared.stopToken.stopped) {
 			Tools.setTaskStatus(shared.taskId, "STOPPED");
-			return { success: false, taskId: shared.taskId, message: "cancelled", steps: shared.step };
+			return { success: false, taskId: shared.taskId, message: getCancelledReason(shared), steps: shared.step };
 		}
 		if (shared.error) {
 			Tools.setTaskStatus(shared.taskId, "FAILED");
@@ -845,6 +1226,6 @@ export async function runCodingAgentAsync(options: CodingAgentRunOptions): Promi
 	}
 }
 
-export function cancelCodingAgent(shared: { cancelled?: boolean }) {
-	shared.cancelled = true;
+export function runCodingAgent(options: CodingAgentRunOptions, callback: (result: CodingAgentRunResult) => void) {
+	runCodingAgentAsync(options).then(result => callback(result));
 }

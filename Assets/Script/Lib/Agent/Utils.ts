@@ -1,44 +1,117 @@
 // @preview-file off clear
-import { json, HttpClient, DB, emit, Node } from 'Dora';
+import { json, HttpClient, DB, emit, Log as DoraLog, Director, once } from 'Dora';
+
+let LOG_LEVEL = 3;
+export function setLogLevel(level: number) {
+	LOG_LEVEL = level;
+}
+
+let LLM_TIMEOUT = 600;
+export function setLLMTimeout(timeout: number) {
+	LLM_TIMEOUT = timeout;
+}
+
+export const Log = (type: "Info" | "Warn" | "Error", msg: string) => {
+	if (LOG_LEVEL < 1) return;
+	else if (LOG_LEVEL < 2 && (type === "Info" || type === "Warn")) return;
+	else if (LOG_LEVEL < 3 && type === "Info") return;
+	DoraLog(type, msg);
+};
 
 export interface Message {
 	role: string;
 	content: string;
 }
 
-const postLLM = (messages: Message[], url: string, apiKey: string, model: string, options: Record<string, any>, receiver: (this: void, data: string) => boolean) => {
+export interface StopToken {
+	stopped: boolean;
+	reason?: string;
+}
+
+const postLLM = (
+	messages: Message[],
+	url: string,
+	apiKey: string,
+	model: string,
+	options: Record<string, any>,
+	stream: boolean,
+	receiver?: (this: void, data: string) => boolean,
+	stopToken?: StopToken
+) => {
 	const data: Record<string, any> = {
 		...options,
 		model,
 		messages,
-		stream: true,
+		stream,
 	};
+	stopToken ??= { stopped: false };
 	return new Promise<string>((resolve, reject) => {
-		const node = Node();
-		let quit = false;
-		node.onCleanup(() => {
-			quit = true;
+		let requestId = 0;
+		let settled = false;
+		const finishResolve = (text: string) => {
+			if (settled) return;
+			settled = true;
+			resolve(text);
+		};
+		const finishReject = (err: unknown) => {
+			if (settled) return;
+			settled = true;
+			reject(err);
+		};
+		Director.systemScheduler.schedule(() => {
+			if (!settled) {
+				if (stopToken.stopped) {
+					if (requestId !== 0) {
+						HttpClient.cancel(requestId);
+						requestId = 0;
+					}
+					finishReject("request cancelled");
+					return true;
+				}
+				return false;
+			}
+			return true;
 		});
-		node.once(() => {
+		Director.systemScheduler.schedule(once(() => {
+			emit("LLM_IN", messages.map((m, i) => i.toString() + ": " + m.content).join('\n'));
 			const [jsonStr, err] = json.encode(data);
 			if (jsonStr !== undefined) {
-				const res = HttpClient.postAsync(url, [
-					`Authorization: Bearer ${apiKey}`,
-				], jsonStr, 10, (data) => {
-					if (quit) {
-						return true;
-					}
-					return receiver(data);
-				});
-				if (res) {
-					resolve(res);
-				} else {
-					reject("failed to get http response");
+				const headers = [`Authorization: Bearer ${apiKey}`];
+				requestId = receiver
+					? HttpClient.post(url, headers, jsonStr, LLM_TIMEOUT, (data) => {
+						if (stopToken.stopped) return true;
+						return receiver(data);
+					}, (data) => {
+						requestId = 0;
+						if (data !== undefined) {
+							finishResolve(data);
+						} else {
+							finishReject("failed to get http response");
+						}
+					})
+					: HttpClient.post(url, headers, jsonStr, LLM_TIMEOUT, (data) => {
+						requestId = 0;
+						if (stopToken.stopped) {
+							finishReject("request cancelled");
+							return;
+						}
+						if (data !== undefined) {
+							finishResolve(data);
+						} else {
+							finishReject("failed to get http response");
+						}
+					});
+				if (requestId === 0) {
+					finishReject("failed to schedule http request");
+				} else if (stopToken.stopped) {
+					HttpClient.cancel(requestId);
+					requestId = 0;
+					finishReject("request cancelled");
 				}
 			} else {
-				reject(err);
+				finishReject(err);
 			}
-		});
+		}));
 	});
 };
 
@@ -139,6 +212,38 @@ interface Delta {
 	content?: string;
 }
 
+export interface ToolCallFunction {
+	name?: string;
+	arguments?: string;
+}
+
+interface ToolCall {
+	id?: string;
+	type?: string;
+	function?: ToolCallFunction;
+}
+
+interface NonStreamMessage {
+	role?: string;
+	content?: string;
+	reasoning_content?: string;
+	tool_calls?: ToolCall[];
+}
+
+interface NonStreamChoice {
+	index?: number;
+	message?: NonStreamMessage;
+	finish_reason?: string;
+}
+
+export interface LLMResponseData {
+	id?: string;
+	created?: number;
+	object?: string;
+	model?: string;
+	choices?: NonStreamChoice[];
+}
+
 interface CallEvent {
 	id: undefined;
 	onData: (this: void, data: LLMStreamData) => boolean;
@@ -148,31 +253,16 @@ interface CallEvent {
 
 interface CallStream {
 	id: number;
-	stopToken: boolean;
+	stopToken: StopToken;
 }
 
-export const callLLM = (messages: Message[], options: Record<string, any>, event: CallEvent | CallStream): { success: true } | { success: false, message: string } => {
-	let callEvent: CallEvent;
-	if (event.id !== undefined) {
-		const id = event.id;
-		callEvent = {
-			id: undefined,
-			onData: (data) => {
-				emit("AppWS", "Send", { name: "LLMContent", id, data });
-				return event.stopToken;
-			},
-			onCancel: (reason) => {
-				emit("AppWS", "Send", { name: "LLMCancel", id, reason });
-			},
-			onDone: () => {
-				emit("AppWS", "Send", { name: "LLMDone", id });
-			}
-		};
-	} else {
-		callEvent = event;
-	}
-	const { onData, onDone } = callEvent;
-	let { onCancel } = callEvent;
+type LLMConfig = {
+	url: string;
+	model: string;
+	api_key: string;
+};
+
+function getActiveLLMConfig(): { success: true; config: LLMConfig } | { success: false; message: string } {
 	const rows = DB.query("select * from LLMConfig", true);
 	const records: Record<string, any>[] = [];
 	if (rows && rows.length > 1) {
@@ -186,14 +276,50 @@ export const callLLM = (messages: Message[], options: Record<string, any>, event
 	}
 	const config = records.find(r => r["active"] !== 0);
 	if (!config) {
-		if (onCancel) onCancel("no active LLM config");
 		return { success: false, message: "no active LLM config" };
 	}
 	const { url, model, api_key } = config;
 	if ("string" !== typeof url || "string" !== typeof model || "string" !== typeof api_key) {
-		if (onCancel) onCancel("got invalude LLM config");
 		return { success: false, message: "got invalude LLM config" };
 	}
+	return {
+		success: true,
+		config: {
+			url,
+			model,
+			api_key,
+		},
+	};
+}
+
+export const callLLMStream = (messages: Message[], options: Record<string, any>, event: CallEvent | CallStream): { success: true } | { success: false, message: string } => {
+	let callEvent: CallEvent;
+	if (event.id !== undefined) {
+		const id = event.id;
+		callEvent = {
+			id: undefined,
+			onData: (data) => {
+				emit("AppWS", "Send", { name: "LLMContent", id, data });
+				return event.stopToken.stopped;
+			},
+			onCancel: (reason) => {
+				emit("AppWS", "Send", { name: "LLMCancel", id, reason });
+			},
+			onDone: () => {
+				emit("AppWS", "Send", { name: "LLMDone", id });
+			}
+		};
+	} else {
+		callEvent = event;
+	}
+	const { onData, onDone } = callEvent;
+	let { onCancel } = callEvent;
+	const configRes = getActiveLLMConfig();
+	if (!configRes.success) {
+		if (onCancel) onCancel(configRes.message);
+		return { success: false, message: configRes.message };
+	}
+	const { url, model, api_key } = configRes.config;
 	let stopLLM = false;
 	const parser = createSSEJSONParser({
 		onJSON: (obj) => {
@@ -203,7 +329,7 @@ export const callLLM = (messages: Message[], options: Record<string, any>, event
 	});
 	(async () => {
 		try {
-			const result = await postLLM(messages, url, api_key, model, options, (data) => {
+			const result = await postLLM(messages, url, api_key, model, options, true, (data) => {
 				if (stopLLM) {
 					if (onCancel) {
 						onCancel("LLM Stopped");
@@ -213,7 +339,7 @@ export const callLLM = (messages: Message[], options: Record<string, any>, event
 				}
 				parser.feed(data);
 				return false;
-			});
+			}, event.id !== undefined ? event.stopToken : undefined);
 			parser.end();
 			if (onDone) {
 				onDone(result);
@@ -227,4 +353,51 @@ export const callLLM = (messages: Message[], options: Record<string, any>, event
 		}
 	})();
 	return { success: true };
+}
+
+export async function callLLM(
+	messages: Message[],
+	options: Record<string, any>,
+	stopToken?: StopToken
+): Promise<{ success: true; response: LLMResponseData } | { success: false; message: string; raw?: string }> {
+	const configRes = getActiveLLMConfig();
+	if (!configRes.success) {
+		Log("Error", `[Agent.Utils] callLLMOnce config error: ${configRes.message}`);
+		return { success: false, message: configRes.message };
+	}
+	const { url, model, api_key } = configRes.config;
+	Log("Info", `[Agent.Utils] callLLMOnce request model=${model} url=${url} messages=${messages.length}`);
+	if (stopToken?.stopped) {
+		const reason = stopToken.reason ?? "request cancelled";
+		Log("Info", `[Agent.Utils] callLLMOnce cancelled before request: ${reason}`);
+		return { success: false, message: reason };
+	}
+	try {
+		const raw = await postLLM(messages, url, api_key, model, options, false, undefined, stopToken);
+		Log("Info", `[Agent.Utils] callLLMOnce raw response length=${raw.length}`);
+		const [response, err] = json.decode(raw);
+		if (err !== undefined || response === undefined || type(response) !== "table") {
+			Log("Error", `[Agent.Utils] callLLMOnce invalid JSON: ${tostring(err)}`);
+			return {
+				success: false,
+				message: `invalid LLM response JSON: ${tostring(err)}`,
+				raw,
+			};
+		}
+		const responseObj = response as LLMResponseData;
+		const choiceCount = responseObj.choices ? responseObj.choices.length : 0;
+		Log("Info", `[Agent.Utils] callLLMOnce decoded response choices=${choiceCount}`);
+		return {
+			success: true,
+			response: responseObj,
+		};
+	} catch (e) {
+		if (stopToken?.stopped) {
+			const reason = stopToken.reason ?? "request cancelled";
+			Log("Info", `[Agent.Utils] callLLMOnce cancelled during request: ${reason}`);
+			return { success: false, message: reason };
+		}
+		Log("Error", `[Agent.Utils] callLLMOnce exception: ${tostring(e)}`);
+		return { success: false, message: tostring(e) };
+	}
 }

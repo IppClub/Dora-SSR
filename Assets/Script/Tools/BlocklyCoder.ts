@@ -3,7 +3,7 @@ import { json, Buffer, Vec2, Node as DNode, Log, DB, Path, Content, Director, em
 import * as ImGui from "ImGui";
 import { InputTextFlag, SetCond, WindowFlag } from "ImGui";
 import { Node, Flow } from 'Agent/flow';
-import { callLLM, Message } from 'Agent/Utils';
+import { callLLMStream, Message } from 'Agent/Utils';
 import * as Config from 'Config';
 
 let zh = false;
@@ -122,7 +122,7 @@ class LLMCode extends Node {
 			let allContent = '';
 			let allReasoning = '';
 			llmWorking = true;
-			const result = callLLM(messages, { temperature: 0 }, {
+			const result = callLLMStream(messages, { temperature: 0 }, {
 				id: undefined,
 				onData: (data) => {
 					const { reasoning_content, content } = data.choices[0].delta;
@@ -174,7 +174,7 @@ const compileTS = (file: string, content: string) => {
 			if (event.type === "Receive") {
 				node.removeFromParent();
 				const [res] = json.decode(event.msg);
-				if (res && res.name == "TranspileTS") {
+				if (res && !Array.isArray(res) && res.name == "TranspileTS") {
 					if (res.success) {
 						resolve({ success: true, result: res.luaCode });
 					} else {
