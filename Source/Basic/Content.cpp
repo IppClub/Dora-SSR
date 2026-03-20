@@ -733,10 +733,8 @@ void Content::searchFilesAsync(String path, std::vector<std::string>&& exts, std
 				if (stoped()) break;
 				if (content.empty()) continue;
 
-				std::string target = content;
 				std::string targetPattern = patternStr;
 				if (!caseSensitive) {
-					for (auto& ch : target) ch = s_cast<char>(std::tolower(s_cast<unsigned char>(ch)));
 					for (auto& ch : targetPattern) ch = s_cast<char>(std::tolower(s_cast<unsigned char>(ch)));
 				}
 
@@ -785,31 +783,51 @@ void Content::searchFilesAsync(String path, std::vector<std::string>&& exts, std
 					});
 				};
 
+				re_t re = nullptr;
 				if (useRegex) {
-					re_t re = re_compile(targetPattern.c_str());
+					re = re_compile(targetPattern.c_str());
 					if (!re) continue;
-					const char* text = target.c_str();
-					size_t basePos = 0;
-					int matchLen = 0;
-					int m = re_matchp(re, text, &matchLen);
-					while (m >= 0) {
-						if (stoped()) break;
-						size_t pos = basePos + s_cast<size_t>(m);
-						size_t len = matchLen > 0 ? s_cast<size_t>(matchLen) : 0;
-						pushResult(pos, len);
-						size_t advance = len > 0 ? len : 1;
-						basePos += s_cast<size_t>(m) + advance;
-						text += m + s_cast<int>(advance);
-						matchLen = 0;
-						m = re_matchp(re, text, &matchLen);
+				}
+
+				for (size_t lineIndex = 0; lineIndex < lineStarts.size(); ++lineIndex) {
+					if (stoped()) break;
+					size_t lineStart = lineStarts[lineIndex];
+					size_t lineEnd = (lineIndex + 1 < lineStarts.size()) ? (lineStarts[lineIndex + 1] - 1) : content.size();
+					if (lineEnd > lineStart && content[lineEnd - 1] == '\r') {
+						lineEnd -= 1;
 					}
-				} else {
-					size_t pos = 0;
-					size_t matchLen = targetPattern.size();
-					while ((pos = target.find(targetPattern, pos)) != std::string::npos) {
-						if (stoped()) break;
-						pushResult(pos, matchLen);
-						pos += matchLen > 0 ? matchLen : 1;
+					if (lineEnd < lineStart) continue;
+
+					std::string lineContent = content.substr(lineStart, lineEnd - lineStart);
+					std::string targetLine = lineContent;
+					if (!caseSensitive) {
+						for (auto& ch : targetLine) ch = s_cast<char>(std::tolower(s_cast<unsigned char>(ch)));
+					}
+
+					if (useRegex) {
+						const char* text = targetLine.c_str();
+						size_t basePos = 0;
+						int matchLen = 0;
+						int m = re_matchp(re, text, &matchLen);
+						while (m >= 0) {
+							if (stoped()) break;
+							size_t pos = lineStart + basePos + s_cast<size_t>(m);
+							size_t len = matchLen > 0 ? s_cast<size_t>(matchLen) : 0;
+							pushResult(pos, len);
+							size_t advance = len > 0 ? len : 1;
+							basePos += s_cast<size_t>(m) + advance;
+							text += m + s_cast<int>(advance);
+							matchLen = 0;
+							m = re_matchp(re, text, &matchLen);
+						}
+					} else {
+						size_t posInLine = 0;
+						size_t matchLen = targetPattern.size();
+						while ((posInLine = targetLine.find(targetPattern, posInLine)) != std::string::npos) {
+							if (stoped()) break;
+							pushResult(lineStart + posInLine, matchLen);
+							posInLine += matchLen > 0 ? matchLen : 1;
+						}
 					}
 				}
 			}

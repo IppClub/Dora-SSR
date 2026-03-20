@@ -28,6 +28,13 @@ export interface StopToken {
 	reason?: string;
 }
 
+function previewText(text: string, maxLen = 200): string {
+	if (!text) return "";
+	const compact = text.replace("\r", "\\r").replace("\n", "\\n");
+	if (compact.length <= maxLen) return compact;
+	return `${compact.slice(0, maxLen)}...`;
+}
+
 const postLLM = (
 	messages: Message[],
 	url: string,
@@ -76,7 +83,11 @@ const postLLM = (
 			emit("LLM_IN", messages.map((m, i) => i.toString() + ": " + m.content).join('\n'));
 			const [jsonStr, err] = json.encode(data);
 			if (jsonStr !== undefined) {
-				const headers = [`Authorization: Bearer ${apiKey}`];
+				const headers = [
+					`Authorization: Bearer ${apiKey}`,
+					"Content-Type: application/json",
+					"Accept: application/json",
+				];
 				requestId = receiver
 					? HttpClient.post(url, headers, jsonStr, LLM_TIMEOUT, (data) => {
 						if (stopToken.stopped) return true;
@@ -246,6 +257,7 @@ export interface LLMResponseData {
 
 interface CallEvent {
 	id: undefined;
+	stopToken?: StopToken;
 	onData: (this: void, data: LLMStreamData) => boolean;
 	onCancel?: (this: void, reason: string) => void;
 	onDone?: (this: void, content: string) => void;
@@ -339,7 +351,7 @@ export const callLLMStream = (messages: Message[], options: Record<string, any>,
 				}
 				parser.feed(data);
 				return false;
-			}, event.id !== undefined ? event.stopToken : undefined);
+			}, "stopToken" in event ? event.stopToken : undefined);
 			parser.end();
 			if (onDone) {
 				onDone(result);
@@ -377,10 +389,11 @@ export async function callLLM(
 		Log("Info", `[Agent.Utils] callLLMOnce raw response length=${raw.length}`);
 		const [response, err] = json.decode(raw);
 		if (err !== undefined || response === undefined || type(response) !== "table") {
-			Log("Error", `[Agent.Utils] callLLMOnce invalid JSON: ${tostring(err)}`);
+			const rawPreview = previewText(raw);
+			Log("Error", `[Agent.Utils] callLLMOnce invalid JSON: ${tostring(err)} raw_preview=${rawPreview}`);
 			return {
 				success: false,
-				message: `invalid LLM response JSON: ${tostring(err)}`,
+				message: `invalid LLM response JSON: ${tostring(err)}; raw=${rawPreview}`,
 				raw,
 			};
 		}

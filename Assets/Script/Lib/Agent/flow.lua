@@ -21,7 +21,8 @@ local __TS__PromiseAll = ____lualib.__TS__PromiseAll -- 1
 local ____exports = {} -- 1
 local ____Dora = require("Dora") -- 1
 local Log = ____Dora.Log -- 1
-local thread = ____Dora.thread -- 1
+local Director = ____Dora.Director -- 1
+local once = ____Dora.once -- 1
 local sleep = ____Dora.sleep -- 1
 local BaseNode = __TS__Class() -- 4
 BaseNode.name = "BaseNode" -- 4
@@ -132,173 +133,158 @@ function Node.prototype.execFallback(self, prepRes, ____error) -- 68
 end -- 68
 function Node.prototype._exec(self, prepRes) -- 71
 	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 71
-		return ____awaiter_resolve( -- 71
-			nil, -- 71
-			__TS__New( -- 72
-				__TS__Promise, -- 72
-				function(____, resolve, reject) -- 72
-					thread(function() -- 73
-						return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 73
-							do -- 73
-								self.currentRetry = 0 -- 74
-								while self.currentRetry < self.maxRetries do -- 74
-									local result -- 75
-									local done = false -- 76
-									local ____try = __TS__AsyncAwaiter(function() -- 76
-										result = __TS__Await(self:exec(prepRes)) -- 78
-										done = true -- 79
-									end) -- 79
-									__TS__Await(____try.catch( -- 77
-										____try, -- 77
-										function(____, e) -- 77
-											if self.currentRetry == self.maxRetries - 1 then -- 77
-												local ____try = __TS__AsyncAwaiter(function() -- 77
-													return ____awaiter_resolve( -- 77
-														nil, -- 77
-														self:execFallback(prepRes, e) -- 83
-													) -- 83
-												end) -- 83
-												__TS__Await(____try.catch( -- 82
-													____try, -- 82
-													function(____, e) -- 82
-														reject(nil, e) -- 85
-													end -- 85
-												)) -- 85
-											end -- 85
-											if self.wait > 0 then -- 85
-												sleep(self.wait) -- 89
-											end -- 89
-										end -- 89
-									)) -- 89
-									if done then -- 89
-										resolve(nil, result) -- 93
-										return ____awaiter_resolve(nil, true) -- 93
-									end -- 93
-									self.currentRetry = self.currentRetry + 1 -- 74
-								end -- 74
-							end -- 74
-						end) -- 74
-					end) -- 73
-				end -- 72
-			) -- 72
-		) -- 72
+		do -- 71
+			self.currentRetry = 0 -- 72
+			while self.currentRetry < self.maxRetries do -- 72
+				local ____try = __TS__AsyncAwaiter(function() -- 72
+					return ____awaiter_resolve( -- 72
+						nil, -- 72
+						__TS__Await(self:exec(prepRes)) -- 74
+					) -- 74
+				end) -- 74
+				__TS__Await(____try.catch( -- 73
+					____try, -- 73
+					function(____, e) -- 73
+						if self.currentRetry == self.maxRetries - 1 then -- 73
+							return ____awaiter_resolve( -- 73
+								nil, -- 73
+								__TS__Await(self:execFallback(prepRes, e)) -- 76
+							) -- 76
+						end -- 76
+						if self.wait > 0 then -- 76
+							__TS__Await(__TS__New( -- 77
+								__TS__Promise, -- 77
+								function(____, resolve) -- 77
+									Director.systemScheduler:schedule(once(function() -- 78
+										sleep(self.wait) -- 79
+										resolve(nil, nil) -- 80
+									end)) -- 78
+								end -- 77
+							)) -- 77
+						end -- 77
+					end -- 77
+				)) -- 77
+				self.currentRetry = self.currentRetry + 1 -- 72
+			end -- 72
+		end -- 72
+		return ____awaiter_resolve(nil, nil) -- 72
 	end) -- 72
 end -- 71
-local BatchNode = __TS__Class() -- 101
-BatchNode.name = "BatchNode" -- 101
-__TS__ClassExtends(BatchNode, Node) -- 101
-function BatchNode.prototype._exec(self, items) -- 102
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 102
-		if not items or not __TS__ArrayIsArray(items) then -- 102
-			return ____awaiter_resolve(nil, {}) -- 102
-		end -- 102
-		local results = {} -- 104
-		for ____, item in ipairs(items) do -- 105
-			results[#results + 1] = __TS__Await(Node.prototype._exec(self, item)) -- 106
-		end -- 106
-		return ____awaiter_resolve(nil, results) -- 106
-	end) -- 106
-end -- 102
-local ParallelBatchNode = __TS__Class() -- 111
-ParallelBatchNode.name = "ParallelBatchNode" -- 111
-__TS__ClassExtends(ParallelBatchNode, Node) -- 111
-function ParallelBatchNode.prototype._exec(self, items) -- 112
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 112
-		if not items or not __TS__ArrayIsArray(items) then -- 112
-			return ____awaiter_resolve(nil, {}) -- 112
-		end -- 112
-		return ____awaiter_resolve( -- 112
-			nil, -- 112
-			__TS__PromiseAll(__TS__ArrayMap( -- 114
-				items, -- 114
-				function(____, item) return Node.prototype._exec(self, item) end -- 114
-			)) -- 114
-		) -- 114
+local BatchNode = __TS__Class() -- 88
+BatchNode.name = "BatchNode" -- 88
+__TS__ClassExtends(BatchNode, Node) -- 88
+function BatchNode.prototype._exec(self, items) -- 89
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 89
+		if not items or not __TS__ArrayIsArray(items) then -- 89
+			return ____awaiter_resolve(nil, {}) -- 89
+		end -- 89
+		local results = {} -- 91
+		for ____, item in ipairs(items) do -- 92
+			results[#results + 1] = __TS__Await(Node.prototype._exec(self, item)) -- 93
+		end -- 93
+		return ____awaiter_resolve(nil, results) -- 93
+	end) -- 93
+end -- 89
+local ParallelBatchNode = __TS__Class() -- 98
+ParallelBatchNode.name = "ParallelBatchNode" -- 98
+__TS__ClassExtends(ParallelBatchNode, Node) -- 98
+function ParallelBatchNode.prototype._exec(self, items) -- 99
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 99
+		if not items or not __TS__ArrayIsArray(items) then -- 99
+			return ____awaiter_resolve(nil, {}) -- 99
+		end -- 99
+		return ____awaiter_resolve( -- 99
+			nil, -- 99
+			__TS__PromiseAll(__TS__ArrayMap( -- 101
+				items, -- 101
+				function(____, item) return Node.prototype._exec(self, item) end -- 101
+			)) -- 101
+		) -- 101
+	end) -- 101
+end -- 99
+local Flow = __TS__Class() -- 104
+Flow.name = "Flow" -- 104
+__TS__ClassExtends(Flow, BaseNode) -- 104
+function Flow.prototype.____constructor(self, start) -- 106
+	BaseNode.prototype.____constructor(self) -- 106
+	self.start = start -- 106
+end -- 106
+function Flow.prototype._orchestrate(self, shared, params) -- 107
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 107
+		local current = self.start:clone() -- 108
+		local p = params or self._params -- 109
+		while current do -- 109
+			current:setParams(p) -- 111
+			local action = __TS__Await(current:_run(shared)) -- 112
+			current = current:getNextNode(action) -- 113
+			current = current and current:clone() -- 114
+		end -- 114
 	end) -- 114
-end -- 112
-local Flow = __TS__Class() -- 117
-Flow.name = "Flow" -- 117
-__TS__ClassExtends(Flow, BaseNode) -- 117
-function Flow.prototype.____constructor(self, start) -- 119
-	BaseNode.prototype.____constructor(self) -- 119
-	self.start = start -- 119
-end -- 119
-function Flow.prototype._orchestrate(self, shared, params) -- 120
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 120
-		local current = self.start:clone() -- 121
-		local p = params or self._params -- 122
-		while current do -- 122
-			current:setParams(p) -- 124
-			local action = __TS__Await(current:_run(shared)) -- 125
-			current = current:getNextNode(action) -- 126
-			current = current and current:clone() -- 127
-		end -- 127
-	end) -- 127
-end -- 120
-function Flow.prototype._run(self, shared) -- 130
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 130
-		local pr = __TS__Await(self:prep(shared)) -- 131
-		__TS__Await(self:_orchestrate(shared)) -- 132
-		return ____awaiter_resolve( -- 132
-			nil, -- 132
-			__TS__Await(self:post(shared, pr, nil)) -- 133
+end -- 107
+function Flow.prototype._run(self, shared) -- 117
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 117
+		local pr = __TS__Await(self:prep(shared)) -- 118
+		__TS__Await(self:_orchestrate(shared)) -- 119
+		return ____awaiter_resolve( -- 119
+			nil, -- 119
+			__TS__Await(self:post(shared, pr, nil)) -- 120
+		) -- 120
+	end) -- 120
+end -- 117
+function Flow.prototype.exec(self, prepRes) -- 122
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 122
+		error( -- 123
+			__TS__New(Error, "Flow can't exec."), -- 123
+			0 -- 123
+		) -- 123
+	end) -- 123
+end -- 122
+local BatchFlow = __TS__Class() -- 126
+BatchFlow.name = "BatchFlow" -- 126
+__TS__ClassExtends(BatchFlow, Flow) -- 126
+function BatchFlow.prototype._run(self, shared) -- 127
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 127
+		local batchParams = __TS__Await(self:prep(shared)) -- 128
+		for ____, bp in ipairs(batchParams) do -- 129
+			local mergedParams = __TS__ObjectAssign({}, self._params, bp) -- 130
+			__TS__Await(self:_orchestrate(shared, mergedParams)) -- 131
+		end -- 131
+		return ____awaiter_resolve( -- 131
+			nil, -- 131
+			__TS__Await(self:post(shared, batchParams, nil)) -- 133
 		) -- 133
 	end) -- 133
-end -- 130
-function Flow.prototype.exec(self, prepRes) -- 135
+end -- 127
+function BatchFlow.prototype.prep(self, shared) -- 135
 	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 135
-		error( -- 136
-			__TS__New(Error, "Flow can't exec."), -- 136
-			0 -- 136
-		) -- 136
+		local empty = {} -- 136
+		return ____awaiter_resolve(nil, empty) -- 136
 	end) -- 136
 end -- 135
-local BatchFlow = __TS__Class() -- 139
-BatchFlow.name = "BatchFlow" -- 139
-__TS__ClassExtends(BatchFlow, Flow) -- 139
-function BatchFlow.prototype._run(self, shared) -- 140
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 140
-		local batchParams = __TS__Await(self:prep(shared)) -- 141
-		for ____, bp in ipairs(batchParams) do -- 142
-			local mergedParams = __TS__ObjectAssign({}, self._params, bp) -- 143
-			__TS__Await(self:_orchestrate(shared, mergedParams)) -- 144
-		end -- 144
-		return ____awaiter_resolve( -- 144
-			nil, -- 144
-			__TS__Await(self:post(shared, batchParams, nil)) -- 146
-		) -- 146
-	end) -- 146
-end -- 140
-function BatchFlow.prototype.prep(self, shared) -- 148
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 148
-		local empty = {} -- 149
-		return ____awaiter_resolve(nil, empty) -- 149
-	end) -- 149
-end -- 148
-local ParallelBatchFlow = __TS__Class() -- 153
-ParallelBatchFlow.name = "ParallelBatchFlow" -- 153
-__TS__ClassExtends(ParallelBatchFlow, BatchFlow) -- 153
-function ParallelBatchFlow.prototype._run(self, shared) -- 154
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 154
-		local batchParams = __TS__Await(self:prep(shared)) -- 155
-		__TS__Await(__TS__PromiseAll(__TS__ArrayMap( -- 156
-			batchParams, -- 156
-			function(____, bp) -- 156
-				local mergedParams = __TS__ObjectAssign({}, self._params, bp) -- 157
-				return self:_orchestrate(shared, mergedParams) -- 158
-			end -- 156
-		))) -- 156
-		return ____awaiter_resolve( -- 156
-			nil, -- 156
-			__TS__Await(self:post(shared, batchParams, nil)) -- 160
-		) -- 160
-	end) -- 160
-end -- 154
-____exports.BaseNode = BaseNode -- 163
-____exports.Node = Node -- 163
-____exports.BatchNode = BatchNode -- 163
-____exports.ParallelBatchNode = ParallelBatchNode -- 163
-____exports.Flow = Flow -- 163
-____exports.BatchFlow = BatchFlow -- 163
-____exports.ParallelBatchFlow = ParallelBatchFlow -- 163
-return ____exports -- 163
+local ParallelBatchFlow = __TS__Class() -- 140
+ParallelBatchFlow.name = "ParallelBatchFlow" -- 140
+__TS__ClassExtends(ParallelBatchFlow, BatchFlow) -- 140
+function ParallelBatchFlow.prototype._run(self, shared) -- 141
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 141
+		local batchParams = __TS__Await(self:prep(shared)) -- 142
+		__TS__Await(__TS__PromiseAll(__TS__ArrayMap( -- 143
+			batchParams, -- 143
+			function(____, bp) -- 143
+				local mergedParams = __TS__ObjectAssign({}, self._params, bp) -- 144
+				return self:_orchestrate(shared, mergedParams) -- 145
+			end -- 143
+		))) -- 143
+		return ____awaiter_resolve( -- 143
+			nil, -- 143
+			__TS__Await(self:post(shared, batchParams, nil)) -- 147
+		) -- 147
+	end) -- 147
+end -- 141
+____exports.BaseNode = BaseNode -- 150
+____exports.Node = Node -- 150
+____exports.BatchNode = BatchNode -- 150
+____exports.ParallelBatchNode = ParallelBatchNode -- 150
+____exports.Flow = Flow -- 150
+____exports.BatchFlow = BatchFlow -- 150
+____exports.ParallelBatchFlow = ParallelBatchFlow -- 150
+return ____exports -- 150

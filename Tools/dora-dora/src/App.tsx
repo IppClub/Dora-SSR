@@ -23,7 +23,6 @@ import DialogTitle from '@mui/material/DialogTitle';
 import { Alert, AlertColor, Button, Collapse, DialogActions, DialogContent, DialogContentText, InputAdornment, TextField, Container, Link, Typography, Checkbox, FormControlLabel, Tooltip, Stack } from '@mui/material';
 import NewFileDialog, { DoraFileType } from './NewFileDialog';
 import logo from './logo.svg';
-import DoraUpload from './Upload';
 import { TransitionGroup } from 'react-transition-group';
 import monaco, { monacoTypescript } from './monacoBase';
 import * as Service from './Service';
@@ -50,6 +49,7 @@ import CodeIcon from '@mui/icons-material/Code';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import LLMConfigDialog from './LLMConfigDialog';
+import ProjectWorkspacePanel from './ProjectWorkspacePanel';
 
 const SpinePlayer = React.lazy(() => import('./SpinePlayer'));
 const Markdown = React.lazy(() => import('./Markdown'));
@@ -96,6 +96,8 @@ const areEditingInfosEqual = (a: Service.EditingInfo | null, b: Service.EditingI
 		if (fileA.yarnTextEditing !== fileB.yarnTextEditing) return false;
 		if (fileA.readOnly !== fileB.readOnly) return false;
 		if (fileA.folder !== fileB.folder) return false;
+		if (fileA.agentSessionId !== fileB.agentSessionId) return false;
+		if (fileA.workspaceView !== fileB.workspaceView) return false;
 
 		if (fileA.position && fileB.position) {
 			if (fileA.position.lineNumber !== fileB.position.lineNumber) return false;
@@ -150,6 +152,8 @@ interface EditingFile {
 	sortIndex?: number;
 	readOnly?: boolean;
 	status: TabStatus;
+	agentSessionId?: number;
+	workspaceView?: "agent" | "upload";
 };
 
 interface Modified {
@@ -352,7 +356,7 @@ export default function PersistentDrawerLeft() {
 	const [waitForSave, setWaitForSave] = useState(false);
 	const [isEditorActioning, setIsEditorActioning] = useState(false);
 
-	const addAlert = (msg: string, type: AlertColor, openLog?: boolean) => {
+	const addAlert = useCallback((msg: string, type: AlertColor, openLog?: boolean) => {
 		const key = msg + Date.now().toString();
 		setAlerts((prevState) => {
 			return [...prevState, {
@@ -367,7 +371,7 @@ export default function PersistentDrawerLeft() {
 				return prevState.filter(a => a.key !== key);
 			});
 		}, 5000);
-	};
+	}, []);
 
 	const [disconnected, setDisconnected] = useState(true);
 
@@ -381,7 +385,7 @@ export default function PersistentDrawerLeft() {
 			addAlert(t("alert.assetLoad"), "error");
 			return null;
 		});
-	}, [t]);
+	}, [addAlert, t]);
 
 	useEffect(() => {
 		if (Info.version === undefined) {
@@ -501,7 +505,7 @@ export default function PersistentDrawerLeft() {
 			return true;
 		}
 		return false;
-	}, [t]);
+	}, [addAlert, t]);
 
 	const onModified = useCallback((editingFile: EditingFile, content: string, lastChange?: monaco.editor.IModelContentChange) => {
 		const editor = editingFile.editor;
@@ -583,6 +587,63 @@ export default function PersistentDrawerLeft() {
 	}, [switchTab, files]);
 
 	const currentFile = tabIndex !== null ? files.at(tabIndex) : undefined;
+	const openAgentSessionTab = useCallback(async (
+		targetPath: string,
+		isDir: boolean,
+		options?: { silentWhenNotFound?: boolean; }
+	) => {
+		const rootRes = await Service.agentProjectRoot({ path: targetPath, isDir });
+		if (!rootRes.success) {
+			addAlert(rootRes.message ?? t("alert.read"), "error");
+			return false;
+		}
+		if (!rootRes.found || !rootRes.projectRoot) {
+			if (!options?.silentWhenNotFound) {
+				addAlert(rootRes.message ?? t("agent.fileNotInProject"), "info");
+			}
+			return false;
+		}
+		const createRes = await Service.agentSessionCreate({
+			projectRoot: rootRes.projectRoot,
+			title: rootRes.title,
+		});
+		if (!createRes.success) {
+			addAlert(createRes.message, "error");
+			return false;
+		}
+		const normalizedTitle = rootRes.title ?? path.basename(rootRes.projectRoot);
+		const tabKey = rootRes.projectRoot;
+		const existingIndex = files.findIndex(file => file.key === tabKey);
+		if (existingIndex >= 0) {
+			const updatedFile: EditingFile = {
+				...files[existingIndex],
+				title: normalizedTitle,
+				folder: true,
+				agentSessionId: createRes.session.id,
+				workspaceView: "agent",
+			};
+			setFiles(prev => prev.map((file, index) => index === existingIndex ? updatedFile : file));
+			switchTab(existingIndex, updatedFile);
+			return true;
+		}
+		const newFile: EditingFile = {
+			key: tabKey,
+			title: normalizedTitle,
+			content: "",
+			contentModified: null,
+			folder: true,
+			status: "normal",
+			onMount: () => {},
+			agentSessionId: createRes.session.id,
+			workspaceView: "agent",
+		};
+		setFiles(prev => {
+			const next = [...prev, newFile];
+			switchTab(next.length - 1, newFile);
+			return next;
+		});
+		return true;
+	}, [addAlert, files, switchTab, t]);
 	useEffect(() => {
 		if (currentFile !== undefined) {
 			const ext = path.extname(currentFile.key).toLowerCase();
@@ -885,7 +946,7 @@ export default function PersistentDrawerLeft() {
 				}
 			}
 		});
-	}, [checkFileReadonly, onEditorDidMount, t]);
+		}, [addAlert, checkFileReadonly, onEditorDidMount, t]);
 
 	const openEditingInfoFiles = useCallback((editingInfo: Service.EditingInfo) => {
 		let targetIndex = editingInfo.index;
@@ -896,6 +957,8 @@ export default function PersistentDrawerLeft() {
 				newFile.mdEditing = file.mdEditing;
 				newFile.yarnTextEditing = file.yarnTextEditing;
 				newFile.readOnly = file.readOnly;
+				newFile.agentSessionId = file.agentSessionId;
+				newFile.workspaceView = file.workspaceView ?? (file.agentSessionId !== undefined ? "agent" : (file.folder ? "upload" : undefined));
 				newFile.sortIndex = i;
 				return newFile;
 			} catch {
@@ -926,7 +989,7 @@ export default function PersistentDrawerLeft() {
 		}).catch(() => {
 			addAlert(t("alert.open"), "error");
 		});
-	}, [openFile, switchTab, t]);
+		}, [addAlert, openFile, switchTab, t]);
 
 	const openFileInTab = useCallback((key: string, title: string, folder: boolean, position?: monaco.IPosition, readOnly? :boolean) => {
 		let index: number | null = null;
@@ -987,10 +1050,19 @@ export default function PersistentDrawerLeft() {
 		}
 		const {key, title, dir} = nodes[0];
 		setSelectedNode(nodes[0]);
-		if (dir || path.extname(title) !== "") {
+		if (dir) {
+			void (async () => {
+				const opened = await openAgentSessionTab(key, true, { silentWhenNotFound: true });
+				if (!opened) {
+					openFileInTab(key, title, true);
+				}
+			})();
+			return;
+		}
+		if (path.extname(title) !== "") {
 			openFileInTab(key, title, dir);
 		}
-	}, [openFileInTab]);
+	}, [openAgentSessionTab, openFileInTab]);
 
 	const onExpand = useCallback((keys: string[]) => {
 		const rootNode = treeData.at(0);
@@ -1022,10 +1094,63 @@ export default function PersistentDrawerLeft() {
 			return;
 		}
 		setExpandedKeys(keys);
-	}, [expandedKeys, loadAssets, switchTab, openEditingInfoFiles, t, treeData]);
+		}, [addAlert, expandedKeys, loadAssets, switchTab, openEditingInfoFiles, t, treeData]);
 
-	const onPlayControlRun = useCallback((mode: "Run" | "Run This", noLog?: boolean, bottomLog?: boolean) => {
+	const onAgentRollbackComplete = useCallback((projectRoot: string) => {
+		void loadAssets();
+		void (async () => {
+			const nextFiles: EditingFile[] = [];
+			let nextTabIndex = tabIndex;
+			for (let i = 0; i < files.length; i++) {
+				const file = files[i];
+				if (file.agentSessionId || file.folder || file.contentModified !== null || !isChildFolder(file.key, projectRoot)) {
+					nextFiles.push(file);
+					continue;
+				}
+				const exists = await Service.exist({ file: file.key });
+				if (!exists.success) {
+					if (tabIndex !== null && i < tabIndex) {
+						nextTabIndex = (nextTabIndex ?? 0) - 1;
+					} else if (tabIndex === i) {
+						nextTabIndex = null;
+					}
+					continue;
+				}
+				const res = await Service.read({ path: file.key });
+				if (res.success && res.content !== undefined) {
+					file.content = res.content;
+					file.contentModified = null;
+					const model = file.editor?.getModel();
+					if (model && model.getValue() !== res.content) {
+						model.setValue(res.content);
+					}
+				}
+				nextFiles.push(file);
+			}
+			setFiles([...nextFiles]);
+			if (nextTabIndex !== null) {
+				if (nextTabIndex >= nextFiles.length) {
+					nextTabIndex = nextFiles.length - 1;
+				}
+				if (nextTabIndex >= 0 && nextFiles[nextTabIndex]) {
+					switchTab(nextTabIndex, nextFiles[nextTabIndex]);
+				} else if (nextFiles.length === 0) {
+					switchTab(null);
+				}
+			} else if (nextFiles.length === 0) {
+				switchTab(null);
+			}
+		})();
+	}, [files, loadAssets, switchTab, tabIndex]);
+
+	const onPlayControlRun = useCallback(async (mode: "Run" | "Run This", noLog?: boolean, bottomLog?: boolean) => {
 		if (isEditorActioning) {
+			return;
+		}
+		const runningSessionRes = await Service.agentRunningTasks();
+		const runningSession = runningSessionRes.success ? (runningSessionRes.sessions[0] ?? null) : null;
+		if (runningSession) {
+			addAlert(t("alert.agentRunning", { title: runningSession.title }), "info");
 			return;
 		}
 		setOpenBottomLog(bottomLog ?? false);
@@ -1107,7 +1232,7 @@ export default function PersistentDrawerLeft() {
 			}
 		}
 		addAlert(t("alert.runFailed", {title}), "info");
-	}, [files, tabIndex, t, selectedNode, isEditorActioning]);
+	}, [addAlert, files, tabIndex, t, selectedNode, isEditorActioning]);
 
 	const saveFileInTab = useCallback((file: EditingFile, preview: boolean) => {
 		return new Promise<EditingFile[]>((resolve, reject) => {
@@ -1332,7 +1457,7 @@ export default function PersistentDrawerLeft() {
 				}
 			}
 		});
-	},[t, onPlayControlRun, checkFileReadonly, files]);
+		},[addAlert, t, onPlayControlRun, checkFileReadonly, files]);
 
 	const saveAllTabs = useCallback(async () => {
 		if (isSaving) {
@@ -1495,7 +1620,7 @@ export default function PersistentDrawerLeft() {
 				});
 			},
 		});
-	}, [files, tabIndex, t, treeData, switchTab]);
+		}, [addAlert, files, tabIndex, t, treeData, switchTab]);
 
 	const onTreeMenuClick = useCallback((event: TreeMenuEvent, data?: TreeDataType)=> {
 		if (isSaving) {
@@ -1527,6 +1652,10 @@ export default function PersistentDrawerLeft() {
 					break;
 				}
 				openFileInTab(key, title, true, undefined, false);
+				break;
+			}
+			case "Dora": {
+				void openAgentSessionTab(data.key, false);
 				break;
 			}
 			case "Download":
@@ -1929,7 +2058,7 @@ export default function PersistentDrawerLeft() {
 				break;
 			}
 		}
-	}, [checkFileReadonly, loadAssets, t, files, deleteFile, treeData, openFileInTab, expandedKeys, onEditorDidMount, switchTab]);
+		}, [addAlert, checkFileReadonly, loadAssets, t, files, deleteFile, treeData, openFileInTab, expandedKeys, onEditorDidMount, switchTab, openAgentSessionTab]);
 
 	const onNewFileClose = (item?: DoraFileType) => {
 		let ext: string | null = null;
@@ -2335,7 +2464,7 @@ export default function PersistentDrawerLeft() {
 				}
 			}
 		});
-	}, [checkFileReadonly, expandedKeys, files, updateDir, loadAssets, t, treeData, switchTab, tabIndex]);
+		}, [addAlert, checkFileReadonly, expandedKeys, files, updateDir, loadAssets, t, treeData, switchTab, tabIndex]);
 
 	const onUploaded = useCallback((dir: string, file: string, open: boolean) => {
 		const key = path.join(dir, file);
@@ -2366,6 +2495,10 @@ export default function PersistentDrawerLeft() {
 			}, 2000);
 		}
 	}, [tabIndex, loadAssets, switchTab, files, openFileInTab]);
+
+	const onWorkspaceViewChange = useCallback((fileKey: string, view: "agent" | "upload") => {
+		setFiles(prev => prev.map(file => file.key === fileKey ? { ...file, workspaceView: view } : file));
+	}, []);
 
 	const checkFile = (file: EditingFile, content: string, model: monaco.editor.ITextModel, lastChange?: monaco.editor.IModelContentChange) => {
 		const ext = path.extname(file.key).toLowerCase();
@@ -2556,7 +2689,7 @@ export default function PersistentDrawerLeft() {
 		}).catch(() => {
 			addAlert(t("alert.stopFailed"), "error");
 		});
-	}, [openLog, t, tabIndex, files]);
+		}, [addAlert, openLog, t, tabIndex, files]);
 
 	const onPlayControlClick = useCallback((mode: PlayControlMode, noLog?: boolean) => {
 		if (mode === "LLM Config") {
@@ -2603,7 +2736,7 @@ export default function PersistentDrawerLeft() {
 				}
 			}
 		});
-	}, [openLog, t, onStopRunning, saveAllTabs, onPlayControlRun, files, tabIndex]);
+		}, [addAlert, openLog, t, onStopRunning, saveAllTabs, onPlayControlRun, files, tabIndex]);
 
 	const saveCurrentTab = useCallback(async () => {
 		if (tabIndex === null) return;
@@ -2806,19 +2939,19 @@ export default function PersistentDrawerLeft() {
 
 	const spineLoadFailed = useCallback((message: string) => {
 		addAlert(message, 'error');
-	}, []);
+		}, [addAlert]);
 
 	saveEditingInfo = () => {
 		const editingInfo: Service.EditingInfo = {
 			index: tabIndex ?? 0,
 			files: files.map(f => {
-				const {key, title, mdEditing, yarnTextEditing, editor, readOnly} = f;
+				const {key, title, mdEditing, yarnTextEditing, editor, readOnly, agentSessionId, workspaceView} = f;
 				let {position} = f;
 				const {folder = false} = f;
 				if (position === undefined && editor !== undefined) {
 					position = editor.getPosition() ?? undefined;
 				}
-				return {key, title, mdEditing, yarnTextEditing, position, readOnly, folder};
+				return {key, title, mdEditing, yarnTextEditing, position, readOnly, folder, agentSessionId, workspaceView};
 			})
 		};
 		if (areEditingInfosEqual(editingInfo, lastEditingInfo)) {
@@ -3226,6 +3359,28 @@ export default function PersistentDrawerLeft() {
 				</Drawer>
 				<>{
 					files.map((file, index) => {
+						if (file.agentSessionId) {
+							return <Main
+								open={drawerOpen}
+								key={file.key}
+								hidden={tabIndex !== index}
+								drawerWidth={drawerWidth}
+							>
+								<DrawerHeader/>
+								<ProjectWorkspacePanel
+									title={file.title}
+									height={editorHeight}
+									uploadPath={file.key}
+									displayPath={`${t("tree.assets")}/${file.title}`}
+									agentSessionId={file.agentSessionId}
+									view={file.workspaceView ?? "agent"}
+									addAlert={addAlert}
+									onRollbackComplete={onAgentRollbackComplete}
+									onUploaded={onUploaded}
+									onViewChange={(view) => onWorkspaceViewChange(file.key, view)}
+								/>
+							</Main>;
+						}
 						const ext = file.folder ? "" : path.extname(file.title);
 						let language: "lua" | "tl" | "yue" | "typescript" | "xml" | "markdown" | "wa" | "yarn" | "ini" | "txt" | null = null;
 						let image = false;
@@ -3395,8 +3550,8 @@ export default function PersistentDrawerLeft() {
 								})() : null
 							}
 							{markdown ?
-								<div style={{display: 'flex', position: 'relative'}}>
-									<MacScrollbar skin='dark' hidden={file.mdEditing} style={{height: editorHeight}}>
+								<div style={{display: 'flex', position: 'relative', width: '100%', minWidth: 0}}>
+									<MacScrollbar skin='dark' hidden={file.mdEditing} style={{height: editorHeight, width: '100%'}}>
 										<Markdown
 											fileKey={file.key}
 											path={Service.addr("/" + path.relative(parentPath, path.dirname(file.key)).replace("\\", "/"))}
@@ -3567,21 +3722,27 @@ export default function PersistentDrawerLeft() {
 									}
 									return editorComponent;
 								} else if (file.folder) {
-									const rootNode = treeData.at(0);
-									if (rootNode === undefined) return null;
-									let target: string;
-									if (isChildFolder(file.key, assetPath)) {
-										target = path.relative(parentPath, file.key);
-										target = path.join(t("tree.builtin"), target);
-									} else {
-										target = path.relative(parentPath, file.key);
-										target = path.join(t("tree.assets"), target);
-									}
 									return (
-										<MacScrollbar key={file.key} skin='dark' style={{height: editorHeight}}>
-											<DrawerHeader/>
-											<DoraUpload onUploaded={onUploaded} title={target + path.sep} path={file.key}/>
-										</MacScrollbar>
+										<ProjectWorkspacePanel
+											title={file.title}
+											height={editorHeight}
+											uploadPath={file.key}
+											displayPath={(() => {
+												let target: string;
+												if (isChildFolder(file.key, assetPath)) {
+													target = path.relative(parentPath, file.key);
+													target = path.join(t("tree.builtin"), target);
+												} else {
+													target = path.relative(parentPath, file.key);
+													target = path.join(t("tree.assets"), target);
+												}
+												return target + path.sep;
+											})()}
+											view={file.workspaceView ?? "upload"}
+											addAlert={addAlert}
+											onUploaded={onUploaded}
+											onViewChange={(view) => onWorkspaceViewChange(file.key, view)}
+										/>
 									);
 								}
 								return null;

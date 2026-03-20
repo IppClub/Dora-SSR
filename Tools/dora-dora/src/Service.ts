@@ -704,6 +704,8 @@ export interface EditingInfo {
 		key: string,
 		title: string,
 		folder: boolean,
+		agentSessionId?: number,
+		workspaceView?: "agent" | "upload",
 		mdEditing?: boolean,
 		yarnTextEditing?: boolean,
 		position?: {
@@ -853,4 +855,175 @@ export type DownloadResponse = {
 };
 export const download = (req: DownloadRequest) => {
 	return post<DownloadResponse>("/download", req);
+};
+
+// agent
+
+export interface AgentProjectRootResponse {
+	success: boolean;
+	found?: boolean;
+	projectRoot?: string;
+	title?: string;
+	message?: string;
+}
+
+export interface AgentSession {
+	id: number;
+	projectRoot: string;
+	title: string;
+	status: "IDLE" | "RUNNING" | "DONE" | "FAILED" | "STOPPED";
+	currentTaskId?: number;
+	currentTaskStatus?: "IDLE" | "RUNNING" | "DONE" | "FAILED" | "STOPPED";
+	createdAt: number;
+	updatedAt: number;
+}
+
+export interface AgentSessionMessage {
+	id: number;
+	sessionId: number;
+	taskId?: number;
+	role: "user" | "assistant";
+	kind: "message" | "summary";
+	content: string;
+	streaming: boolean;
+	createdAt: number;
+	updatedAt: number;
+}
+
+export interface AgentSessionStep {
+	id: number;
+	sessionId: number;
+	taskId: number;
+	step: number;
+	tool: string;
+	status: "PENDING" | "RUNNING" | "DONE";
+	reason: string;
+	params?: Record<string, unknown>;
+	result?: Record<string, unknown>;
+	checkpointId?: number;
+	checkpointSeq?: number;
+	files?: { path: string; op: string }[];
+	createdAt: number;
+	updatedAt: number;
+}
+
+export interface AgentCheckpointItem {
+	id: number;
+	taskId: number;
+	seq: number;
+	status: string;
+	summary: string;
+	toolName: string;
+	createdAt: number;
+}
+
+export interface AgentCheckpointDiffFile {
+	path: string;
+	op: "write" | "create" | "delete";
+	beforeExists: boolean;
+	afterExists: boolean;
+	beforeContent: string;
+	afterContent: string;
+}
+
+export type AgentSessionDetailResponse = {
+	success: true;
+	session: AgentSession;
+	messages: AgentSessionMessage[];
+	steps: AgentSessionStep[];
+} | {
+	success: false;
+	message: string;
+};
+
+export type AgentRunningSessionsResponse = {
+	success: true;
+	sessions: AgentSession[];
+} | {
+	success: false;
+	message: string;
+};
+
+export type AgentTaskStatusResponse = {
+	success: true;
+	session: AgentSession;
+	messages: AgentSessionMessage[];
+	steps: AgentSessionStep[];
+	checkpoints: AgentCheckpointItem[];
+} | {
+	success: false;
+	message: string;
+};
+
+export const agentProjectRoot = (req: { path: string; isDir: boolean; }) => {
+	return post<AgentProjectRootResponse>("/agent/project-root", req);
+};
+
+export const agentSessionCreate = (req: { projectRoot: string; title?: string; }) => {
+	return post<{
+		success: true;
+		session: AgentSession;
+	} | {
+		success: false;
+		message: string;
+	}>("/agent/session/create", req);
+};
+
+export const agentSessionGet = (req: { sessionId: number; }) => {
+	return post<AgentSessionDetailResponse>("/agent/session/get", req);
+};
+
+export const agentSessionSend = (req: { sessionId: number; prompt: string; useChineseResponse?: boolean; }) => {
+	return post<{
+		success: true;
+		sessionId: number;
+		taskId: number;
+	} | {
+		success: false;
+		message: string;
+	}>("/agent/session/send", req);
+};
+
+export const agentTaskStatus = (req: { sessionId: number; }) => {
+	return post<AgentTaskStatusResponse>("/agent/task/status", req);
+};
+
+export const agentRunningTasks = () => {
+	return post<AgentRunningSessionsResponse>("/agent/task/running", {});
+};
+
+export const agentTaskStop = (req: { sessionId: number; }) => {
+	return post<{success: boolean; message?: string;}>("/agent/task/stop", req);
+};
+
+export const agentCheckpointList = (req: { sessionId?: number; taskId?: number; }) => {
+	return post<{
+		success: true;
+		taskId: number;
+		checkpoints: AgentCheckpointItem[];
+	} | {
+		success: false;
+		message: string;
+	}>("/agent/checkpoint/list", req);
+};
+
+export const agentCheckpointDiff = (req: { checkpointId: number; }) => {
+	return post<{
+		success: true;
+		files: AgentCheckpointDiffFile[];
+	} | {
+		success: false;
+		message: string;
+	}>("/agent/checkpoint/diff", req);
+};
+
+export const agentCheckpointRollback = (req: { sessionId: number; targetSeq: number; }) => {
+	return post<{
+		success: true;
+		taskId: number;
+		headSeq: number;
+	} | {
+		success: false;
+		message: string;
+	}>("/agent/checkpoint/rollback", req);
 };

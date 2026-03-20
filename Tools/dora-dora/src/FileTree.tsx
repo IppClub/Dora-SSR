@@ -24,6 +24,7 @@ import {
 	AiOutlineSetting,
 	AiFillFileZip,
 	AiOutlineUpload,
+	AiOutlineComment,
 } from 'react-icons/ai';
 import { RiListIndefinite } from "react-icons/ri";
 import { RxClipboardCopy } from "react-icons/rx";
@@ -155,7 +156,7 @@ const motion = {
 	onLeaveActive: () => ({ height: 0 }),
 };
 
-export type TreeMenuEvent = "New" | "Rename" | "Delete" | "Upload" | "Download" | "Cancel" | "Unzip" | "View Compiled" | "Copy Path" | "Build" | "Obfuscate" | "Declaration";
+export type TreeMenuEvent = "New" | "Rename" | "Delete" | "Upload" | "Download" | "Cancel" | "Unzip" | "View Compiled" | "Copy Path" | "Build" | "Obfuscate" | "Declaration" | "Dora";
 
 export interface FileTreeProps {
 	selectedKeys: string[];
@@ -242,6 +243,14 @@ export default memo(function FileTree(props: FileTreeProps) {
 					},
 				}}
 			>
+				{anchorItem ?
+					<StyledMenuItem onClick={() => handleClose("Dora", anchorItem?.data)}>
+						<ListItemIcon>
+							<AiOutlineComment/>
+						</ListItemIcon>
+						<ListItemText primary="Dora!"/>
+					</StyledMenuItem> : null
+				}
 				{enableNew ?
 					<StyledMenuItem onClick={() => handleClose("New", anchorItem?.data)}>
 						<ListItemIcon>

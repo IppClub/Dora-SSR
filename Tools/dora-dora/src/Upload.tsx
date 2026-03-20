@@ -26,6 +26,7 @@ export interface DoraUploadProp {
 	title: string;
 	path: string;
 	onUploaded: (path: string, file: string, open: boolean) => void;
+	hideTitle?: boolean;
 };
 
 const DoraUploadInner = (prop: DoraUploadProp) => {
@@ -356,9 +357,11 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 
 	return (
 		<Container maxWidth="md">
-			<p className="dora-upload-title" style={{color: Color.TextPrimary}}>
-				{prop.title}
-			</p>
+			{prop.hideTitle ? null : (
+				<p className="dora-upload-title" style={{color: Color.TextPrimary}}>
+					{prop.title}
+				</p>
+			)}
 
 			{/* 本地文件上传区域 */}
 			<Collapse

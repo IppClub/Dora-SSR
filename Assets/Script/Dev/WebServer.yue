@@ -103,6 +103,92 @@ getProjectDirFromFile = (file) ->
 	until false
 	nil
 
+isProjectRootDir = (dir) ->
+	return false unless dir and dir ~= "" and Content\exist(dir) and Content\isdir(dir)
+	for f in *Content\getFiles dir
+		if Path\getName(f)\lower! == "init"
+			return true
+	false
+
+getProjectRootFromPath = (target, isDir = false) ->
+	return nil, "invalid path" unless target and target ~= "" and Content\isAbsolutePath(target)
+	if isDir
+		return target if isProjectRootDir target
+		return nil, "current directory is not a project root"
+	return getProjectDirFromFile target, "current file does not belong to any project"
+
+invalidArguments = success: false, message: "invalid arguments"
+
+HttpServer\post "/agent/project-root", (req): invalidArguments ->
+	switch req when {body: {:path, :isDir}}
+		if projectRoot, err := getProjectRootFromPath path, isDir
+			return success: true, found: true, projectRoot: projectRoot, title: Path\getFilename projectRoot
+		else
+			return success: true, found: false, message: err
+
+AgentTools = require "Agent.Tools"
+WebIDEAgentSession = require "Agent.WebIDEAgentSession"
+
+HttpServer\post "/agent/session/create", (req): invalidArguments ->
+	switch req when {body: {:projectRoot, :title}}
+		return WebIDEAgentSession.createSession projectRoot, title
+
+HttpServer\post "/agent/session/get", (req): invalidArguments ->
+	switch req when {body: {:sessionId}}
+		return WebIDEAgentSession.getSession sessionId
+
+HttpServer\post "/agent/session/send", (req): invalidArguments ->
+	switch req when {body: {:sessionId, :prompt, :useChineseResponse}}
+		return WebIDEAgentSession.sendPrompt sessionId, prompt, useChineseResponse
+
+HttpServer\post "/agent/task/status", (req): invalidArguments ->
+	switch req when {body: {:sessionId}}
+		res = WebIDEAgentSession.getSession sessionId
+		return res unless res.success
+		taskId = res.session.currentTaskId
+		checkpoints = if taskId then AgentTools.listCheckpoints taskId else []
+		return
+			success: true
+			session: res.session
+			messages: res.messages
+			steps: res.steps
+			checkpoints: checkpoints
+
+HttpServer\post "/agent/task/running", -> WebIDEAgentSession.listRunningSessions!
+
+HttpServer\post "/agent/task/stop", (req): invalidArguments ->
+	switch req when {body: {:sessionId}}
+		return WebIDEAgentSession.stopSessionTask sessionId
+
+HttpServer\post "/agent/checkpoint/list", (req): invalidArguments ->
+	switch req when {body: {:taskId = nil, :sessionId}}
+		if not taskId and sessionId
+			taskId = WebIDEAgentSession.getCurrentTaskId sessionId
+		return success: false, message: "task not found" unless taskId
+		return
+			success: true
+			taskId: taskId
+			checkpoints: AgentTools.listCheckpoints taskId
+
+HttpServer\post "/agent/checkpoint/diff", (req): invalidArguments ->
+	switch req when {body: {:checkpointId}}
+		return success: false, message: "invalid checkpointId" unless checkpointId > 0
+		return AgentTools.getCheckpointDiff checkpointId
+
+HttpServer\post "/agent/checkpoint/rollback", (req): invalidArguments ->
+	switch req when {body: {:sessionId, :targetSeq}}
+		return success: false, message: "invalid targetSeq" unless targetSeq >= 0
+		res = WebIDEAgentSession.getSession sessionId
+		return res unless res.success
+		taskId = res.session.currentTaskId
+		return success: false, message: "task not found" unless taskId
+		rollbackRes = AgentTools.rollbackToCheckpoint taskId, res.session.projectRoot, targetSeq
+		return rollbackRes unless rollbackRes.success
+		return
+			success: true
+			taskId: taskId
+			headSeq: rollbackRes.headSeq
+
 getSearchPath = (file): "" ->
 	if dir := getProjectDirFromFile file
 		return Path(dir, "Script", "?.lua") .. ";" .. Path dir, "?.lua"
@@ -861,13 +947,18 @@ compileFileAsync = (inputFile, sourceCodes): nil ->
 	outputFile = Path\replaceExt inputFile, "lua"
 	options: {extension: yueext} = yue
 	resultCodes = nil
+	resultError = nil
 	switch Path\getExt inputFile when yueext
 		isTIC80, tic80APIs = CheckTIC80Code sourceCodes
-		(success) <- yue.compile inputFile, outputFile, searchPath, (codes, _err, globals) ->
-			return unless codes
+		(success) <- yue.compile inputFile, outputFile, searchPath, (codes, err, globals) ->
+			unless codes
+				resultError = err
+				return
 			extraGlobal = if isTIC80 then tic80APIs else nil
-			success = LintYueGlobals codes, globals, true, extraGlobal
-			return unless success
+			success, message = LintYueGlobals codes, globals, true, extraGlobal
+			unless success
+				resultError = message
+				return 
 			if codes == ""
 				resultCodes = ""
 				return nil
@@ -881,7 +972,7 @@ compileFileAsync = (inputFile, sourceCodes): nil ->
 		isTIC80 = CheckTIC80Code sourceCodes
 		if isTIC80
 			sourceCodes = sourceCodes\gsub "^%-%-[ \t]*tic80[ \t]*", "require(\"tic80\")"
-		if codes := teal.toluaAsync sourceCodes, file, searchPath
+		if codes, err := teal.toluaAsync sourceCodes, file, searchPath
 			if isTIC80
 				codes = codes\gsub "^require%(\"tic80\"%)", "-- tic80"
 			resultCodes = codes
@@ -889,15 +980,20 @@ compileFileAsync = (inputFile, sourceCodes): nil ->
 		else
 			Content\remove outputFile
 			resultCodes = false
+			resultError = err
 	when "xml"
-		if codes := xml.tolua sourceCodes
+		if codes, err := xml.tolua sourceCodes
 			resultCodes = "-- [xml]: #{file}\n#{codes}"
 			Content\saveAsync outputFile, resultCodes
 		else
 			Content\remove outputFile
 			resultCodes = false
+			resultError = err
 	wait -> resultCodes ~= nil
-	return resultCodes if resultCodes
+	if resultCodes
+		return resultCodes
+	else
+		return nil, resultError
 
 HttpServer\postSchedule "/write", (req): success: false ->
 	switch req when {body: {:path, :content}}
@@ -1326,6 +1422,62 @@ HttpServer\post "/download", (req): success: false ->
 
 status = {}
 export default status
+
+status.buildAsync = (path) ->
+	if not Content\exist path
+		return success: false, file: path, message: "file not existed"
+	switch Path\getExt path when "tl", "yue", "xml"
+		if '' == Path\getExt Path\getName path
+			if content := Content\loadAsync path
+				if resultCodes, err := compileFileAsync path, content
+					return success: true, file: path
+				else
+					return success: false, file: path, message: err
+	when "lua"
+		if content := Content\loadAsync path
+			if isTIC80 := CheckTIC80Code content
+				content = content\gsub "^%-%-[ \t]*tic80[ \t]*", "require(\"tic80\")"
+			:success, :info = luaCheck path, content
+			if success
+				return success: true, file: path
+			elseif info and #info > 0
+				messages = []
+				for [_type, _file, line, column, message] in *info
+					lineText = ""
+					if line
+						currentLine = 1
+						for text in content\gmatch "([^\r\n]*)\r?\n?"
+							if currentLine == line
+								lineText = text
+								break
+							currentLine += 1
+					messages[] = if line
+						"line #{line}, col #{column}: #{lineText}\nerror: #{message}"
+					else
+						message
+				return success: false, file: path, message: table.concat messages, "\n"
+			else
+				return success: false, file: path, message: "lua check failed"
+	when "yarn"
+		if content := Content\loadAsync path
+			if res, _, err := yarncompile content, true
+				return success: true, file: path
+			else
+				[message, line, column, node] = err
+				lineText = ""
+				if line
+					currentLine = 1
+					for text in content\gmatch "([^\r\n]*)\r?\n?"
+						if currentLine == line
+							lineText = text
+							break
+						currentLine += 1
+				node = if node ~= ""
+					"node: #{node}, "
+				else ""
+				message = "#{node}line #{line}, col #{column}: #{lineText}\nerror: #{message}"
+				return success: false, file: path, :message
+	return success: false, file: path, message: "invalid file to build"
 
 thread ->
 	doraWeb = Path Content.assetPath, "www", "index.html"

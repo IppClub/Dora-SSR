@@ -31,23 +31,96 @@ export interface CodingAgentRunOptions {
 	llmOptions?: Record<string, unknown>;
 	stopToken?: StopToken;
 	memoryContext?: number;
+	sessionId?: number;
+	onEvent?: (event: CodingAgentEvent) => void;
 }
 
 type AgentDecisionMode = "tool_calling" | "yaml";
 
-type AgentToolName =
+export type AgentToolName =
 	| "read_file"
 	| "read_file_range"
 	| "edit_file"
 	| "delete_file"
-	| "search_files"
+	| "grep_files"
 	| "search_dora_api"
-	| "list_files"
-	| "run_ts_build"
+	| "glob_files"
+	| "build"
 	| "finish";
+
+export type CodingAgentEvent =
+	| {
+		type: "task_started";
+		sessionId?: number;
+		taskId: number;
+		prompt: string;
+		workDir: string;
+		maxSteps: number;
+	}
+	| {
+		type: "decision_made";
+		sessionId?: number;
+		taskId: number;
+		step: number;
+		tool: AgentToolName;
+		reason: string;
+		params: Record<string, unknown>;
+	}
+	| {
+		type: "tool_started";
+		sessionId?: number;
+		taskId: number;
+		step: number;
+		tool: AgentToolName;
+	}
+	| {
+		type: "tool_finished";
+		sessionId?: number;
+		taskId: number;
+		step: number;
+		tool: AgentToolName;
+		reason?: string;
+		result: Record<string, unknown>;
+	}
+	| {
+		type: "checkpoint_created";
+		sessionId?: number;
+		taskId: number;
+		step: number;
+		tool: "edit_file" | "delete_file";
+		checkpointId: number;
+		checkpointSeq: number;
+		files: {
+			path: string;
+			op: "write" | "create" | "delete";
+		}[];
+	}
+	| {
+		type: "summary_stream";
+		sessionId?: number;
+		taskId: number;
+		textDelta: string;
+		fullText: string;
+	}
+	| {
+		type: "task_finished";
+		sessionId?: number;
+		taskId?: number;
+		success: boolean;
+		message: string;
+		steps?: number;
+	};
 
 const HISTORY_READ_FILE_MAX_CHARS = 12000;
 const HISTORY_READ_FILE_MAX_LINES = 300;
+const READ_FILE_DEFAULT_LIMIT = 300;
+const HISTORY_SEARCH_FILES_MAX_MATCHES = 20;
+const HISTORY_SEARCH_DORA_API_MAX_MATCHES = 12;
+const HISTORY_LIST_FILES_MAX_ENTRIES = 200;
+const DECISION_HISTORY_MAX_CHARS = 16000;
+const SEARCH_DORA_API_LIMIT_MAX = 20;
+const SEARCH_FILES_LIMIT_DEFAULT = 20;
+const LIST_FILES_MAX_ENTRIES_DEFAULT = 200;
 
 export interface AgentActionRecord {
 	step: number;
@@ -59,6 +132,7 @@ export interface AgentActionRecord {
 }
 
 interface AgentShared {
+	sessionId?: number;
 	taskId: number;
 	maxSteps: number;
 	step: number;
@@ -72,6 +146,7 @@ interface AgentShared {
 	decisionMode: AgentDecisionMode;
 	llmOptions: Record<string, unknown>;
 	llmMaxTry: number;
+	onEvent?: (event: CodingAgentEvent) => void;
 	history: AgentActionRecord[];
 	lastDecision?: {
 		tool: AgentToolName;
@@ -85,10 +160,13 @@ interface AgentShared {
 
 		/** Memory 压缩器实例 */
 		compressor: MemoryCompressor;
-
-		/** 是否在当前任务中已执行过压缩 */
-		hasCompressedThisTask: boolean;
 	};
+}
+
+function emitAgentEvent(shared: AgentShared, event: CodingAgentEvent) {
+	if (shared.onEvent) {
+		shared.onEvent(event);
+	}
 }
 
 function getCancelledReason(shared: AgentShared): string {
@@ -104,15 +182,33 @@ function toJson(value: unknown): string {
 
 function truncateText(text: string, maxLen: number): string {
 	if (text.length <= maxLen) return text;
-	const pos = utf8.offset(text, maxLen);
-	return `${text.slice(0, pos)}...`;
+	const nextPos = utf8.offset(text, maxLen + 1);
+	if (nextPos === undefined) return text;
+	return `${string.sub(text, 1, nextPos - 1)}...`;
+}
+
+function utf8TakeHead(text: string, maxChars: number): string {
+	if (maxChars <= 0 || text === "") return "";
+	const nextPos = utf8.offset(text, maxChars + 1);
+	if (nextPos === undefined) return text;
+	return string.sub(text, 1, nextPos - 1);
+}
+
+function utf8TakeTail(text: string, maxChars: number): string {
+	if (maxChars <= 0 || text === "") return "";
+	const [charLen] = utf8.len(text);
+	if (charLen === false || charLen <= maxChars) return text;
+	const startChar = math.max(1, charLen - maxChars + 1);
+	const startPos = utf8.offset(text, startChar);
+	if (startPos === undefined) return text;
+	return string.sub(text, startPos);
 }
 
 function summarizeUnknown(value: unknown, maxLen = 320): string {
 	if (value === undefined) return "undefined";
 	if (value === null) return "null";
-	if (type(value) === "string") {
-		return truncateText(value as string, maxLen).replace("\n", "\\n");
+	if (typeof value === "string") {
+		return truncateText(value, maxLen).replace("\n", "\\n");
 	}
 	if (type(value) === "number" || type(value) === "boolean") {
 		return tostring(value);
@@ -136,7 +232,7 @@ function limitReadContentForHistory(content: string, tool: "read_file" | "read_f
 		return content;
 	}
 	const limited = limitedByLines.length > HISTORY_READ_FILE_MAX_CHARS
-		? limitedByLines.slice(0, HISTORY_READ_FILE_MAX_CHARS)
+		? utf8TakeHead(limitedByLines, HISTORY_READ_FILE_MAX_CHARS)
 		: limitedByLines;
 	const reasons: string[] = [];
 	if (content.length > HISTORY_READ_FILE_MAX_CHARS) reasons.push(`${content.length} chars`);
@@ -148,8 +244,8 @@ function limitReadContentForHistory(content: string, tool: "read_file" | "read_f
 }
 
 function summarizeEditTextParamForHistory(value: unknown, key: "old_str" | "new_str"): Record<string, unknown> | undefined {
-	if (type(value) !== "string") return undefined;
-	const text = value as string;
+	if (typeof value !== "string") return undefined;
+	const text = value;
 	const lineCount = text === "" ? 0 : text.split("\n").length;
 	return {
 		charCount: text.length,
@@ -171,6 +267,70 @@ function sanitizeReadResultForHistory(tool: AgentToolName, result: Record<string
 	return clone;
 }
 
+function sanitizeSearchMatchesForHistory(
+	items: Record<string, unknown>[],
+	maxItems: number
+): Record<string, unknown>[] {
+	const shown = math.min(items.length, maxItems);
+	const out: Record<string, unknown>[] = [];
+	for (let i = 0; i < shown; i++) {
+		const row = items[i];
+		out.push({
+			file: row.file,
+			line: row.line,
+			content: type(row.content) === "string"
+				? truncateText(row.content as string, 240)
+				: row.content,
+		});
+	}
+	return out;
+}
+
+function sanitizeSearchResultForHistory(
+	tool: AgentToolName,
+	result: Record<string, unknown>
+): Record<string, unknown> {
+	if (result.success !== true || type(result.results) !== "table") return result;
+	if (tool !== "grep_files" && tool !== "search_dora_api") return result;
+	const clone: Record<string, unknown> = {};
+	for (const key in result) {
+		clone[key] = result[key];
+	}
+	const maxItems = tool === "grep_files" ? HISTORY_SEARCH_FILES_MAX_MATCHES : HISTORY_SEARCH_DORA_API_MAX_MATCHES;
+	clone.results = sanitizeSearchMatchesForHistory(
+		result.results as Record<string, unknown>[],
+		maxItems
+	);
+	if (tool === "grep_files" && type(result.groupedResults) === "table") {
+		const grouped = result.groupedResults as Record<string, unknown>[];
+		const shown = math.min(grouped.length, HISTORY_SEARCH_FILES_MAX_MATCHES);
+		const sanitizedGroups: Record<string, unknown>[] = [];
+		for (let i = 0; i < shown; i++) {
+			const row = grouped[i];
+			sanitizedGroups.push({
+				file: row.file,
+				totalMatches: row.totalMatches,
+				matches: type(row.matches) === "table"
+					? sanitizeSearchMatchesForHistory(row.matches as Record<string, unknown>[], 3)
+					: [],
+			});
+		}
+		clone.groupedResults = sanitizedGroups;
+	}
+	return clone;
+}
+
+function sanitizeListFilesResultForHistory(result: Record<string, unknown>): Record<string, unknown> {
+	if (result.success !== true || type(result.files) !== "table") return result;
+	const clone: Record<string, unknown> = {};
+	for (const key in result) {
+		clone[key] = result[key];
+	}
+	const files = result.files as string[];
+	clone.files = files.slice(0, HISTORY_LIST_FILES_MAX_ENTRIES);
+	return clone;
+}
+
 function sanitizeActionParamsForHistory(tool: AgentToolName, params: Record<string, unknown>): Record<string, unknown> {
 	if (tool !== "edit_file") return params;
 	const clone: Record<string, unknown> = {};
@@ -186,15 +346,90 @@ function sanitizeActionParamsForHistory(tool: AgentToolName, params: Record<stri
 	return clone;
 }
 
+function trimPromptContext(text: string, maxChars: number, label: string): string {
+	if (text.length <= maxChars) return text;
+	const keepHead = math.max(0, math.floor(maxChars * 0.35));
+	const keepTail = math.max(0, maxChars - keepHead);
+	const head = keepHead > 0 ? utf8TakeHead(text, keepHead) : "";
+	const tail = keepTail > 0 ? utf8TakeTail(text, keepTail) : "";
+	return `[history summary truncated for ${label}; showing head and tail within ${maxChars} chars]\n${head}\n...\n${tail}`;
+}
+
+function pushLimitedMatches(
+	lines: string[],
+	items: Record<string, unknown>[],
+	maxItems: number,
+	mapper: (item: Record<string, unknown>, index: number) => string
+) {
+	const shown = math.min(items.length, maxItems);
+	for (let j = 0; j < shown; j++) {
+		lines.push(mapper(items[j], j));
+	}
+	if (items.length > shown) {
+		lines.push(`  ... ${items.length - shown} more omitted`);
+	}
+}
+
+function formatHistorySummaryForDecision(history: AgentActionRecord[]): string {
+	return trimPromptContext(formatHistorySummary(history), DECISION_HISTORY_MAX_CHARS, "decision");
+}
+
+function getDecisionSystemPrompt(): string {
+	return "You are a coding assistant that helps modify and navigate code.";
+}
+
+function getDecisionToolDefinitions(): string {
+	return `Available tools:
+1. read_file: Read content from a file with pagination
+1b. read_file_range: Read specific line range from a file
+2. edit_file: Make changes to a file
+3. delete_file: Remove a file
+4. grep_files: Search text patterns inside files
+5. glob_files: Enumerate files under a directory with optional glob filters
+6. search_dora_api: Search Dora SSR game engine API docs
+7. build: Run build/checks for ts/tsx, teal, lua, yue, yarn
+8. finish: End and summarize`;
+}
+
+async function maybeCompressHistory(shared: AgentShared): Promise<void> {
+	const { memory } = shared;
+	const maxRounds = memory.compressor.getMaxCompressionRounds();
+	for (let round = 0; round < maxRounds; round++) {
+		if (!memory.compressor.shouldCompress(
+			shared.userQuery,
+			shared.history,
+			memory.lastConsolidatedIndex,
+			getDecisionSystemPrompt(),
+			getDecisionToolDefinitions(),
+			formatHistorySummary
+		)) {
+			return;
+		}
+		const result = await memory.compressor.compress(
+			shared.history,
+			memory.lastConsolidatedIndex,
+			shared.llmOptions,
+			formatHistorySummary,
+			shared.llmMaxTry,
+			shared.decisionMode
+		);
+		if (!(result && result.success && result.compressedCount > 0)) {
+			return;
+		}
+		memory.lastConsolidatedIndex += result.compressedCount;
+		Log("Info", `[Memory] Compressed ${result.compressedCount} history records (round ${round + 1})`);
+	}
+}
+
 function isKnownToolName(name: string): name is AgentToolName {
 	return name === "read_file"
 		|| name === "read_file_range"
 		|| name === "edit_file"
 		|| name === "delete_file"
-		|| name === "search_files"
+		|| name === "grep_files"
 		|| name === "search_dora_api"
-		|| name === "list_files"
-		|| name === "run_ts_build"
+		|| name === "glob_files"
+		|| name === "build"
 		|| name === "finish";
 }
 
@@ -219,36 +454,102 @@ function formatHistorySummary(history: AgentActionRecord[]): string {
 		if (action.result && type(action.result) === "table") {
 			const result = action.result as Record<string, unknown>;
 			const success = result.success === true;
-			lines.push(`- Result: ${success ? "Success" : "Failed"}`);
-			if (action.tool === "read_file" || action.tool === "read_file_range") {
+			if (action.tool === "build") {
+				if (!success && type(result.message) === "string") {
+					lines.push("- Result: Failed");
+					lines.push(`- Error: ${truncateText(result.message as string, 1200)}`);
+				} else if (type(result.messages) === "table") {
+					const messages = result.messages as Record<string, unknown>[];
+					let successCount = 0;
+					let failedCount = 0;
+					for (let j = 0; j < messages.length; j++) {
+						if (messages[j].success === true) successCount += 1;
+						else failedCount += 1;
+					}
+					lines.push(`- Result: ${failedCount > 0 ? "Completed With Errors" : "Success"}`);
+					lines.push(`- Build summary: ${successCount} succeeded, ${failedCount} failed`);
+					if (messages.length > 0) {
+						lines.push("- Build details:");
+						const shown = math.min(messages.length, 12);
+						for (let j = 0; j < shown; j++) {
+							const item = messages[j];
+							const file = type(item.file) === "string" ? (item.file as string) : "(unknown)";
+							if (item.success === true) {
+								lines.push(`  ${j + 1}. OK ${file}`);
+							} else {
+								const message = type(item.message) === "string"
+									? truncateText(item.message as string, 400)
+									: "build failed";
+								lines.push(`  ${j + 1}. FAIL ${file}: ${message}`);
+							}
+						}
+						if (messages.length > shown) {
+							lines.push(`  ... ${messages.length - shown} more omitted`);
+						}
+					}
+				} else {
+					lines.push(`- Result: ${success ? "Success" : "Failed"}`);
+				}
+			} else if (action.tool === "read_file" || action.tool === "read_file_range") {
+				lines.push(`- Result: ${success ? "Success" : "Failed"}`);
 				if (success && type(result.content) === "string") {
 					lines.push(`- Content: ${limitReadContentForHistory(result.content as string, action.tool)}`);
+					if (result.startLine !== undefined || result.endLine !== undefined || result.totalLines !== undefined) {
+						lines.push(
+							`- Range: ${result.startLine !== undefined ? tostring(result.startLine) : "?"}-${result.endLine !== undefined ? tostring(result.endLine) : "?"} / total ${result.totalLines !== undefined ? tostring(result.totalLines) : "?"}`
+						);
+					}
+				} else if (!success && type(result.message) === "string") {
+					lines.push(`- Error: ${truncateText(result.message as string, 600)}`);
 				}
-			} else if (action.tool === "search_files") {
+			} else if (action.tool === "grep_files") {
+				lines.push(`- Result: ${success ? "Success" : "Failed"}`);
 				if (success && type(result.results) === "table") {
 					const matches = result.results as Record<string, unknown>[];
-					lines.push(`- Matches: ${matches.length}`);
-					for (let j = 0; j < matches.length; j++) {
-						const m = matches[j];
-						const file = type(m.file) === "string" ? (m.file as string) : "";
-						const line = m.line !== undefined ? tostring(m.line) : "";
-						const content = type(m.content) === "string" ? (m.content as string) : summarizeUnknown(m, 240);
-						lines.push(`  ${j + 1}. ${file}${line !== "" ? ":" + line : ""}: ${content}`);
+					const totalMatches = type(result.totalResults) === "number"
+						? (result.totalResults as number)
+						: matches.length;
+					lines.push(`- Matches: ${totalMatches}`);
+					if (type(result.offset) === "number" && type(result.limit) === "number") {
+						lines.push(`- Page: offset=${tostring(result.offset)} limit=${tostring(result.limit)}`);
+					}
+					if (result.hasMore === true && result.nextOffset !== undefined) {
+						lines.push(`- More: continue with offset=${tostring(result.nextOffset)}`);
+					}
+					if (type(result.groupedResults) === "table") {
+						const groups = result.groupedResults as Record<string, unknown>[];
+						lines.push("- Groups:");
+						pushLimitedMatches(lines, groups, HISTORY_SEARCH_FILES_MAX_MATCHES, (g, index) => {
+							const file = type(g.file) === "string" ? (g.file as string) : "";
+							const total = g.totalMatches !== undefined ? tostring(g.totalMatches) : "?";
+							return `  ${index + 1}. ${file}: ${total} matches`;
+						});
+					} else {
+						pushLimitedMatches(lines, matches, HISTORY_SEARCH_FILES_MAX_MATCHES, (m, index) => {
+							const file = type(m.file) === "string" ? (m.file as string) : "";
+							const line = m.line !== undefined ? tostring(m.line) : "";
+							const content = type(m.content) === "string" ? (m.content as string) : summarizeUnknown(m, 240);
+							return `  ${index + 1}. ${file}${line !== "" ? ":" + line : ""}: ${content}`;
+						});
 					}
 				}
 			} else if (action.tool === "search_dora_api") {
+				lines.push(`- Result: ${success ? "Success" : "Failed"}`);
 				if (success && type(result.results) === "table") {
 					const hits = result.results as Record<string, unknown>[];
-					lines.push(`- Matches: ${hits.length}`);
-					for (let j = 0; j < hits.length; j++) {
-						const m = hits[j];
+					const totalHits = type(result.totalResults) === "number"
+						? (result.totalResults as number)
+						: hits.length;
+					lines.push(`- Matches: ${totalHits}`);
+					pushLimitedMatches(lines, hits, HISTORY_SEARCH_DORA_API_MAX_MATCHES, (m, index) => {
 						const file = type(m.file) === "string" ? (m.file as string) : "";
 						const line = m.line !== undefined ? tostring(m.line) : "";
 						const content = type(m.content) === "string" ? (m.content as string) : summarizeUnknown(m, 240);
-						lines.push(`  ${j + 1}. ${file}${line !== "" ? ":" + line : ""}: ${content}`);
-					}
+						return `  ${index + 1}. ${file}${line !== "" ? ":" + line : ""}: ${content}`;
+					});
 				}
 			} else if (action.tool === "edit_file") {
+				lines.push(`- Result: ${success ? "Success" : "Failed"}`);
 				if (success) {
 					if (result.mode !== undefined) {
 						lines.push(`- Mode: ${tostring(result.mode)}`);
@@ -257,19 +558,29 @@ function formatHistorySummary(history: AgentActionRecord[]): string {
 						lines.push(`- Replaced: ${tostring(result.replaced)}`);
 					}
 				}
-			} else if (action.tool === "list_files") {
+			} else if (action.tool === "glob_files") {
+				lines.push(`- Result: ${success ? "Success" : "Failed"}`);
 				if (success && type(result.files) === "table") {
 					const files = result.files as string[];
+					const totalEntries = type(result.totalEntries) === "number"
+						? (result.totalEntries as number)
+						: files.length;
+					lines.push(`- Entries: ${totalEntries}`);
 					lines.push("- Directory structure:");
 					if (files.length > 0) {
-						for (let j = 0; j < files.length; j++) {
+						const shown = math.min(files.length, HISTORY_LIST_FILES_MAX_ENTRIES);
+						for (let j = 0; j < shown; j++) {
 							lines.push(`  ${files[j]}`);
+						}
+						if (files.length > shown) {
+							lines.push(`  ... ${files.length - shown} more omitted`);
 						}
 					} else {
 						lines.push("  (Empty or inaccessible directory)");
 					}
 				}
 			} else {
+				lines.push(`- Result: ${success ? "Success" : "Failed"}`);
 				lines.push(`- Detail: ${truncateText(toJson(result), 4000)}`);
 			}
 		} else if (action.result !== undefined) {
@@ -355,6 +666,7 @@ async function llmStream(shared: AgentShared, messages: Message[]): Promise<LLMR
 		shared.llmOptions,
 		{
 			id: undefined,
+			stopToken: shared.stopToken,
 			onData: (data) => {
 				if (shared.stopToken.stopped) return true;
 				const choice = data.choices && data.choices[0];
@@ -362,6 +674,13 @@ async function llmStream(shared: AgentShared, messages: Message[]): Promise<LLMR
 				if (delta && type(delta.content) === "string") {
 					const content = delta.content as string;
 					text += content;
+					emitAgentEvent(shared, {
+						type: "summary_stream",
+						sessionId: shared.sessionId,
+						taskId: shared.taskId,
+						textDelta: content,
+						fullText: text,
+					});
 					const [res] = json.encode({ name: "LLMStream", content });
 					if (res !== undefined) {
 						emit("AppWS", "Send", res);
@@ -381,7 +700,7 @@ async function llmStream(shared: AgentShared, messages: Message[]): Promise<LLMR
 
 	await new Promise<void>(resolve => {
 		Director.systemScheduler.schedule(once(() => {
-			wait(() => done);
+			wait(() => done || shared.stopToken.stopped);
 			resolve();
 		}));
 	});
@@ -408,6 +727,112 @@ function parseDecisionObject(rawObj: Record<string, unknown>): { success: true; 
 	return { success: true, tool, reason, params };
 }
 
+function getDecisionPath(params: Record<string, unknown>): string {
+	if (type(params.path) === "string") return (params.path as string).trim();
+	if (type(params.target_file) === "string") return (params.target_file as string).trim();
+	return "";
+}
+
+function canRunBuildAgain(history: AgentActionRecord[], params: Record<string, unknown>): boolean {
+	const currentPath = getDecisionPath(params);
+	for (let i = history.length - 1; i >= 0; i--) {
+		const item = history[i];
+		if (item.tool === "edit_file" || item.tool === "delete_file") {
+			return true;
+		}
+		if (item.tool !== "build") continue;
+		const lastPath = getDecisionPath(item.params);
+		if (currentPath === "" || lastPath === "" || currentPath === lastPath) {
+			return false;
+		}
+	}
+	return true;
+}
+
+function validateDecision(
+	tool: AgentToolName,
+	params: Record<string, unknown>,
+	history?: AgentActionRecord[]
+): { success: true } | { success: false; message: string } {
+	if (tool === "finish") return { success: true };
+
+	if (tool === "read_file") {
+		const path = getDecisionPath(params);
+		if (path === "") return { success: false, message: "read_file requires path" };
+		const limit = Number(params.limit ?? READ_FILE_DEFAULT_LIMIT);
+		if (limit <= 0) return { success: false, message: "read_file limit must be > 0" };
+		const offset = Number(params.offset ?? 1);
+		if (offset <= 0) return { success: false, message: "read_file offset must be > 0" };
+		return { success: true };
+	}
+
+	if (tool === "read_file_range") {
+		const path = getDecisionPath(params);
+		if (path === "") return { success: false, message: "read_file_range requires path" };
+		const startLine = Number(params.startLine ?? 0);
+		const endLine = Number(params.endLine ?? 0);
+		if (startLine <= 0 || endLine <= 0) {
+			return { success: false, message: "read_file_range requires positive startLine and endLine" };
+		}
+		if (endLine < startLine) {
+			return { success: false, message: "read_file_range endLine must be >= startLine" };
+		}
+		return { success: true };
+	}
+
+	if (tool === "edit_file") {
+		const path = getDecisionPath(params);
+		if (path === "") return { success: false, message: "edit_file requires path" };
+		const oldStr = type(params.old_str) === "string" ? (params.old_str as string) : "";
+		const newStr = type(params.new_str) === "string" ? (params.new_str as string) : "";
+		if (oldStr === newStr) {
+			return { success: false, message: "edit_file old_str and new_str must be different" };
+		}
+		return { success: true };
+	}
+
+	if (tool === "delete_file") {
+		const targetFile = getDecisionPath(params);
+		if (targetFile === "") return { success: false, message: "delete_file requires target_file" };
+		return { success: true };
+	}
+
+	if (tool === "grep_files") {
+		const pattern = type(params.pattern) === "string" ? (params.pattern as string).trim() : "";
+		if (pattern === "") return { success: false, message: "grep_files requires pattern" };
+		const limit = Number(params.limit ?? SEARCH_FILES_LIMIT_DEFAULT);
+		if (limit <= 0) return { success: false, message: "grep_files limit must be > 0" };
+		const offset = Number(params.offset ?? 0);
+		if (offset < 0) return { success: false, message: "grep_files offset must be >= 0" };
+		return { success: true };
+	}
+
+	if (tool === "search_dora_api") {
+		const pattern = type(params.pattern) === "string" ? (params.pattern as string).trim() : "";
+		if (pattern === "") return { success: false, message: "search_dora_api requires pattern" };
+		const limit = Number(params.limit ?? 8);
+		if (limit <= 0 || limit > SEARCH_DORA_API_LIMIT_MAX) {
+			return { success: false, message: `search_dora_api limit must be between 1 and ${SEARCH_DORA_API_LIMIT_MAX}` };
+		}
+		return { success: true };
+	}
+
+	if (tool === "glob_files") {
+		const maxEntries = Number(params.maxEntries ?? LIST_FILES_MAX_ENTRIES_DEFAULT);
+		if (maxEntries <= 0) return { success: false, message: "glob_files maxEntries must be > 0" };
+		return { success: true };
+	}
+
+	if (tool === "build") {
+		if (history && !canRunBuildAgain(history, params)) {
+			return { success: false, message: "build has already completed; inspect the build result or finish before building again" };
+		}
+		return { success: true };
+	}
+
+	return { success: true };
+}
+
 function buildDecisionToolSchema() {
 	return [{
 		type: "function" as const,
@@ -424,10 +849,10 @@ function buildDecisionToolSchema() {
 							"read_file_range",
 							"edit_file",
 							"delete_file",
-							"search_files",
+							"grep_files",
 							"search_dora_api",
-							"list_files",
-							"run_ts_build",
+							"glob_files",
+							"build",
 							"finish",
 						],
 					},
@@ -452,13 +877,16 @@ function buildDecisionToolSchema() {
 							caseSensitive: { type: "boolean" },
 							includeContent: { type: "boolean" },
 							contentWindow: { type: "number" },
+							offset: { type: "number" },
+							groupByFile: { type: "boolean" },
 							programmingLanguage: {
 								type: "string",
 								enum: ["ts", "tsx", "lua", "yue", "teal"],
 							},
-							topK: { type: "number" },
+							limit: { type: "number" },
 							startLine: { type: "number" },
 							endLine: { type: "number" },
+							maxEntries: { type: "number" },
 						},
 					},
 				},
@@ -480,10 +908,12 @@ Here are the actions you performed:
 ${historyText}
 
 Available tools:
-1. read_file: Read content from a file
-	- Parameters: path (workspace-relative)
+1. read_file: Read content from a file with pagination
+	- Parameters: path (workspace-relative), offset(optional), limit(optional)
+	- Prefer small reads and continue with a new offset (>= 1) when needed.
 1b. read_file_range: Read specific line range from a file
 	- Parameters: path, startLine, endLine
+	- Line starts with 1.
 
 2. edit_file: Make changes to a file
 	- Parameters: path, old_str, new_str
@@ -495,17 +925,32 @@ Available tools:
 3. delete_file: Remove a file
 	- Parameters: target_file
 
-4. search_files: Search patterns in workspace files
-	- Parameters: path, pattern, globs(optional), useRegex(optional), caseSensitive(optional)
+4. grep_files: Search text patterns inside files
+	- Parameters: path, pattern, globs(optional), useRegex(optional), caseSensitive(optional), limit(optional), offset(optional), groupByFile(optional)
+	- \`path\` may point to either a directory or a single file.
+	- This is content search (grep), not filename search.
+	- \`pattern\` matches file contents. \`globs\` only restrict which files are searched.
+	- \`useRegex\` defaults to false. Set \`useRegex=true\` when \`pattern\` is a regular expression such as \`^title:\`.
+	- \`caseSensitive\` defaults to false.
+	- Use \`|\` inside pattern to separate alternative content queries; results are merged by union (OR), not AND.
+	- Search results are intentionally capped. Refine the pattern or read a specific file next.
+	- Use \`offset\` to continue browsing later pages of the same search.
+	- Use \`groupByFile=true\` to rank candidate files before drilling into one file.
 
-5. list_files: List files under a directory
-	- Parameters: path, globs(optional)
+5. glob_files: Enumerate files under a directory
+	- Parameters: path, globs(optional), maxEntries(optional)
+	- Use this to discover files by path, extension, or glob pattern.
+	- Directory listings are intentionally capped. Narrow the path before expanding further.
 
 6. search_dora_api: Search Dora SSR game engine API docs
-	- Parameters: pattern, programmingLanguage(ts/tsx/lua/yue/teal), topK(optional)
+	- Parameters: pattern, programmingLanguage(ts/tsx/lua/yue/teal), limit(optional)
+	- Use \`|\` inside pattern to separate alternative queries; results are merged by union (OR), not AND.
+	- \`useRegex\` defaults to false whenever supported by a search tool.
+	- \`limit\` restricts each individual pattern search and must be <= ${SEARCH_DORA_API_LIMIT_MAX}.
 
-7. run_ts_build: Run TS transpile/build checks
+7. build: Run build/checks for ts/tsx, teal, lua, yue, yarn
 	- Parameters: path(optional)
+	- After one build completes, do not run build again unless files were edited/deleted. Read the result and then finish or take corrective action.
 
 8. finish: End and summarize
 	- Parameters: {}
@@ -514,6 +959,8 @@ Decision rules:
 - Choose exactly one next action.
 - Keep params shallow and valid for the selected tool.
 - Prefer reading/searching before editing when information is missing.
+- After any search tool returns candidate files or docs, use read_file or read_file_range to inspect search result details instead of repeatedly broadening search.
+- Use glob_files to discover candidate files. Use grep_files only when you need to search file contents.
 - Use finish only when no more actions are needed.
 ${getReplyLanguageDirective(shared)}`;
 }
@@ -537,8 +984,6 @@ function replaceAllAndCount(text: string, oldStr: string, newStr: string): { con
 
 class MainDecisionAgent extends Node<AgentShared> {
 	async prep(shared: AgentShared): Promise<{ userQuery: string; history: AgentActionRecord[]; shared: AgentShared }> {
-		const { userQuery, history, memory } = shared;
-
 		if (shared.stopToken.stopped || shared.step >= shared.maxSteps) {
 			return {
 				userQuery: shared.userQuery,
@@ -547,40 +992,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 			};
 		}
 
-		// 检查是否需要压缩
-		if (!memory.hasCompressedThisTask) {
-			const systemPrompt = this.getSystemPrompt();
-			const toolDefs = this.getToolDefinitions();
-
-			if (memory.compressor.shouldCompress(
-				userQuery,
-				history,
-				memory.lastConsolidatedIndex,
-				systemPrompt,
-				toolDefs,
-				formatHistorySummary
-			)) {
-				// 执行压缩
-				const result = await memory.compressor.compress(
-					history,
-					memory.lastConsolidatedIndex,
-					shared.llmOptions,
-					formatHistorySummary,
-					shared.llmMaxTry,
-					shared.decisionMode
-				);
-
-				if (result && result.success) {
-					memory.lastConsolidatedIndex += result.compressedCount;
-					memory.hasCompressedThisTask = true;
-
-					Log(
-						'Info',
-						`[Memory] Compressed ${result.compressedCount} history records`
-					);
-				}
-			}
-		}
+		await maybeCompressHistory(shared);
 
 		return {
 			userQuery: shared.userQuery,
@@ -590,20 +1002,11 @@ class MainDecisionAgent extends Node<AgentShared> {
 	}
 
 	private getSystemPrompt(): string {
-		return "You are a coding assistant that helps modify and navigate code.";
+		return getDecisionSystemPrompt();
 	}
 
 	private getToolDefinitions(): string {
-		return `Available tools:
-1. read_file: Read content from a file
-1b. read_file_range: Read specific line range from a file
-2. edit_file: Make changes to a file
-3. delete_file: Remove a file
-4. search_files: Search patterns in workspace files
-5. list_files: List files under a directory
-6. search_dora_api: Search Dora SSR game engine API docs
-7. run_ts_build: Run TS transpile/build checks
-8. finish: End and summarize`;
+		return getDecisionToolDefinitions();
 	}
 
 	private async callDecisionByToolCalling(
@@ -683,6 +1086,15 @@ class MainDecisionAgent extends Node<AgentShared> {
 				raw: argsText,
 			};
 		}
+		const validation = validateDecision(decision.tool, decision.params, shared.history);
+		if (!validation.success) {
+			Log("Error", `[CodingAgent] invalid next_step tool arguments values: ${validation.message}`);
+			return {
+				success: false,
+				message: validation.message,
+				raw: argsText,
+			};
+		}
 		Log("Info", `[CodingAgent] tool-calling selected tool=${decision.tool} reason_len=${decision.reason.length}`);
 		return decision;
 	}
@@ -701,7 +1113,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 
 		// 只使用未压缩的历史
 		const uncompressedHistory = input.history.slice(memory.lastConsolidatedIndex);
-		const historyText = formatHistorySummary(uncompressedHistory);
+		const historyText = formatHistorySummaryForDecision(uncompressedHistory);
 
 		const prompt = buildDecisionPrompt(input.shared, input.userQuery, historyText, memoryContext);
 
@@ -785,6 +1197,11 @@ If no more actions are needed, use tool: finish.`;
 				lastError = decision.message;
 				continue;
 			}
+			const validation = validateDecision(decision.tool, decision.params, input.history);
+			if (!validation.success) {
+				lastError = validation.message;
+				continue;
+			}
 			return decision;
 		}
 		return { success: false, message: `cannot produce valid decision yaml: ${lastError}; last_output=${truncateText(lastRaw, 400)}` };
@@ -796,6 +1213,15 @@ If no more actions are needed, use tool: finish.`;
 			shared.error = result.message;
 			return "error";
 		}
+		emitAgentEvent(shared, {
+			type: "decision_made",
+			sessionId: shared.sessionId,
+			taskId: shared.taskId,
+			step: shared.step + 1,
+			tool: result.tool,
+			reason: result.reason,
+			params: result.params,
+		});
 		shared.lastDecision = {
 			tool: result.tool,
 			reason: result.reason,
@@ -813,9 +1239,16 @@ If no more actions are needed, use tool: finish.`;
 }
 
 class ReadFileAction extends Node<AgentShared> {
-	async prep(shared: AgentShared): Promise<{ path: string; range?: { startLine: number; endLine: number }; tool: AgentToolName; workDir: string }> {
+	async prep(shared: AgentShared): Promise<{ path: string; range?: { startLine: number; endLine: number }; offset?: number; limit?: number; tool: AgentToolName; workDir: string }> {
 		const last = shared.history[shared.history.length - 1];
 		if (!last) throw new Error("no history");
+		emitAgentEvent(shared, {
+			type: "tool_started",
+			sessionId: shared.sessionId,
+			taskId: shared.taskId,
+			step: shared.step + 1,
+			tool: last.tool,
+		});
 		const path = type(last.params.path) === "string"
 			? (last.params.path as string)
 			: (type(last.params.target_file) === "string" ? (last.params.target_file as string) : "");
@@ -831,14 +1264,25 @@ class ReadFileAction extends Node<AgentShared> {
 				},
 			};
 		}
-		return { path, tool: "read_file", workDir: shared.workingDir };
+		return {
+			path,
+			tool: "read_file",
+			workDir: shared.workingDir,
+			offset: Number(last.params.offset ?? 1),
+			limit: Number(last.params.limit ?? READ_FILE_DEFAULT_LIMIT),
+		};
 	}
 
-	async exec(input: { path: string; range?: { startLine: number; endLine: number }; tool: AgentToolName; workDir: string }): Promise<Record<string, unknown>> {
+	async exec(input: { path: string; range?: { startLine: number; endLine: number }; offset?: number; limit?: number; tool: AgentToolName; workDir: string }): Promise<Record<string, unknown>> {
 		if (input.tool === "read_file_range" && input.range) {
 			return Tools.readFileRange(input.workDir, input.path, input.range.startLine, input.range.endLine) as unknown as Record<string, unknown>;
 		}
-		return Tools.readFile(input.workDir, input.path) as unknown as Record<string, unknown>;
+		return Tools.readFile(
+			input.workDir,
+			input.path,
+			Number(input.offset ?? 1),
+			Number(input.limit ?? READ_FILE_DEFAULT_LIMIT)
+		) as unknown as Record<string, unknown>;
 	}
 
 	async post(shared: AgentShared, _prepRes: unknown, execRes: unknown): Promise<string | undefined> {
@@ -846,7 +1290,16 @@ class ReadFileAction extends Node<AgentShared> {
 		const last = shared.history[shared.history.length - 1];
 		if (last !== undefined) {
 			last.result = sanitizeReadResultForHistory(last.tool, result);
+			emitAgentEvent(shared, {
+				type: "tool_finished",
+				sessionId: shared.sessionId,
+				taskId: shared.taskId,
+				step: shared.step + 1,
+				tool: last.tool,
+				result: last.result,
+			});
 		}
+		await maybeCompressHistory(shared);
 		shared.step += 1;
 		return "main";
 	}
@@ -856,6 +1309,13 @@ class SearchFilesAction extends Node<AgentShared> {
 	async prep(shared: AgentShared): Promise<{ params: Record<string, unknown>; workDir: string }> {
 		const last = shared.history[shared.history.length - 1];
 		if (!last) throw new Error("no history");
+		emitAgentEvent(shared, {
+			type: "tool_started",
+			sessionId: shared.sessionId,
+			taskId: shared.taskId,
+			step: shared.step + 1,
+			tool: last.tool,
+		});
 		return { params: last.params, workDir: shared.workingDir };
 	}
 
@@ -870,13 +1330,28 @@ class SearchFilesAction extends Node<AgentShared> {
 			caseSensitive: params.caseSensitive as boolean | undefined,
 			includeContent: params.includeContent as boolean | undefined,
 			contentWindow: Number(params.contentWindow ?? 120),
+			limit: math.max(1, math.floor(Number(params.limit ?? SEARCH_FILES_LIMIT_DEFAULT))),
+			offset: math.max(0, math.floor(Number(params.offset ?? 0))),
+			groupByFile: params.groupByFile === true,
 		});
 		return result as unknown as Record<string, unknown>;
 	}
 
 	async post(shared: AgentShared, _prepRes: unknown, execRes: unknown): Promise<string | undefined> {
 		const last = shared.history[shared.history.length - 1];
-		if (last !== undefined) last.result = execRes as Record<string, unknown>;
+		if (last !== undefined) {
+			const result = execRes as Record<string, unknown>;
+			last.result = sanitizeSearchResultForHistory(last.tool, result);
+			emitAgentEvent(shared, {
+				type: "tool_finished",
+				sessionId: shared.sessionId,
+				taskId: shared.taskId,
+				step: shared.step + 1,
+				tool: last.tool,
+				result: last.result,
+			});
+		}
+		await maybeCompressHistory(shared);
 		shared.step += 1;
 		return "main";
 	}
@@ -886,6 +1361,13 @@ class SearchDoraAPIAction extends Node<AgentShared> {
 	async prep(shared: AgentShared): Promise<{ params: Record<string, unknown>; useChineseResponse: boolean }> {
 		const last = shared.history[shared.history.length - 1];
 		if (!last) throw new Error("no history");
+		emitAgentEvent(shared, {
+			type: "tool_started",
+			sessionId: shared.sessionId,
+			taskId: shared.taskId,
+			step: shared.step + 1,
+			tool: last.tool,
+		});
 		return { params: last.params, useChineseResponse: shared.useChineseResponse };
 	}
 
@@ -895,7 +1377,7 @@ class SearchDoraAPIAction extends Node<AgentShared> {
 			pattern: (params.pattern as string) ?? "",
 			docLanguage: input.useChineseResponse ? "zh" : "en",
 			programmingLanguage: ((params.programmingLanguage as string) ?? "ts") as Tools.DoraAPIProgrammingLanguage,
-			topK: Number(params.topK ?? 8),
+			limit: math.min(SEARCH_DORA_API_LIMIT_MAX, math.max(1, Number(params.limit ?? 8))),
 			useRegex: params.useRegex as boolean | undefined,
 			caseSensitive: params.caseSensitive as boolean | undefined,
 			includeContent: params.includeContent as boolean | undefined,
@@ -906,7 +1388,19 @@ class SearchDoraAPIAction extends Node<AgentShared> {
 
 	async post(shared: AgentShared, _prepRes: unknown, execRes: unknown): Promise<string | undefined> {
 		const last = shared.history[shared.history.length - 1];
-		if (last !== undefined) last.result = execRes as Record<string, unknown>;
+		if (last !== undefined) {
+			const result = execRes as Record<string, unknown>;
+			last.result = sanitizeSearchResultForHistory(last.tool, result);
+			emitAgentEvent(shared, {
+				type: "tool_finished",
+				sessionId: shared.sessionId,
+				taskId: shared.taskId,
+				step: shared.step + 1,
+				tool: last.tool,
+				result: last.result,
+			});
+		}
+		await maybeCompressHistory(shared);
 		shared.step += 1;
 		return "main";
 	}
@@ -916,6 +1410,13 @@ class ListFilesAction extends Node<AgentShared> {
 	async prep(shared: AgentShared): Promise<{ params: Record<string, unknown>; workDir: string }> {
 		const last = shared.history[shared.history.length - 1];
 		if (!last) throw new Error("no history");
+		emitAgentEvent(shared, {
+			type: "tool_started",
+			sessionId: shared.sessionId,
+			taskId: shared.taskId,
+			step: shared.step + 1,
+			tool: last.tool,
+		});
 		return { params: last.params, workDir: shared.workingDir };
 	}
 
@@ -925,13 +1426,25 @@ class ListFilesAction extends Node<AgentShared> {
 			workDir: input.workDir,
 			path: (params.path as string) ?? "",
 			globs: params.globs as string[] | undefined,
+			maxEntries: math.max(1, math.floor(Number(params.maxEntries ?? LIST_FILES_MAX_ENTRIES_DEFAULT))),
 		});
 		return result as unknown as Record<string, unknown>;
 	}
 
 	async post(shared: AgentShared, _prepRes: unknown, execRes: unknown): Promise<string | undefined> {
 		const last = shared.history[shared.history.length - 1];
-		if (last !== undefined) last.result = execRes as Record<string, unknown>;
+		if (last !== undefined) {
+			last.result = sanitizeListFilesResultForHistory(execRes as Record<string, unknown>);
+			emitAgentEvent(shared, {
+				type: "tool_finished",
+				sessionId: shared.sessionId,
+				taskId: shared.taskId,
+				step: shared.step + 1,
+				tool: last.tool,
+				result: last.result,
+			});
+		}
+		await maybeCompressHistory(shared);
 		shared.step += 1;
 		return "main";
 	}
@@ -941,6 +1454,13 @@ class DeleteFileAction extends Node<AgentShared> {
 	async prep(shared: AgentShared): Promise<{ targetFile: string; taskId: number; workDir: string }> {
 		const last = shared.history[shared.history.length - 1];
 		if (!last) throw new Error("no history");
+		emitAgentEvent(shared, {
+			type: "tool_started",
+			sessionId: shared.sessionId,
+			taskId: shared.taskId,
+			step: shared.step + 1,
+			tool: last.tool,
+		});
 		const targetFile = type(last.params.target_file) === "string"
 			? (last.params.target_file as string)
 			: (type(last.params.path) === "string" ? (last.params.path as string) : "");
@@ -949,30 +1469,75 @@ class DeleteFileAction extends Node<AgentShared> {
 	}
 
 	async exec(input: { targetFile: string; taskId: number; workDir: string }): Promise<Record<string, unknown>> {
-		return Tools.applyFileChanges(input.taskId, input.workDir, [{ path: input.targetFile, op: "delete" }], {
+		const result = Tools.applyFileChanges(input.taskId, input.workDir, [{ path: input.targetFile, op: "delete" }], {
 			summary: `delete_file: ${input.targetFile}`,
 			toolName: "delete_file",
-		}) as unknown as Record<string, unknown>;
+		});
+		if (!result.success) {
+			return result as unknown as Record<string, unknown>;
+		}
+		return {
+			success: true,
+			changed: true,
+			mode: "delete",
+			checkpointId: result.checkpointId,
+			checkpointSeq: result.checkpointSeq,
+			files: [{ path: input.targetFile, op: "delete" as const }],
+		};
 	}
 
 	async post(shared: AgentShared, _prepRes: unknown, execRes: unknown): Promise<string | undefined> {
 		const last = shared.history[shared.history.length - 1];
-		if (last !== undefined) last.result = execRes as Record<string, unknown>;
+		if (last !== undefined) {
+			last.result = execRes as Record<string, unknown>;
+			emitAgentEvent(shared, {
+				type: "tool_finished",
+				sessionId: shared.sessionId,
+				taskId: shared.taskId,
+				step: shared.step + 1,
+				tool: last.tool,
+				result: last.result,
+			});
+			const result = last.result;
+			if (last.tool === "delete_file"
+				&& type(result.checkpointId) === "number"
+				&& type(result.checkpointSeq) === "number"
+				&& type(result.files) === "table") {
+				emitAgentEvent(shared, {
+					type: "checkpoint_created",
+					sessionId: shared.sessionId,
+					taskId: shared.taskId,
+					step: shared.step + 1,
+					tool: "delete_file",
+					checkpointId: result.checkpointId as number,
+					checkpointSeq: result.checkpointSeq as number,
+					files: result.files as { path: string; op: "write" | "create" | "delete"; }[],
+				});
+			}
+		}
+		await maybeCompressHistory(shared);
 		shared.step += 1;
 		return "main";
 	}
 }
 
-class RunTsBuildAction extends Node<AgentShared> {
+class BuildAction extends Node<AgentShared> {
 	async prep(shared: AgentShared): Promise<{ params: Record<string, unknown>; workDir: string }> {
 		const last = shared.history[shared.history.length - 1];
 		if (!last) throw new Error("no history");
+		emitAgentEvent(shared, {
+			type: "tool_started",
+			sessionId: shared.sessionId,
+			taskId: shared.taskId,
+			step: shared.step + 1,
+			tool: last.tool,
+		});
 		return { params: last.params, workDir: shared.workingDir };
 	}
 
 	async exec(input: { params: Record<string, unknown>; workDir: string }): Promise<Record<string, unknown>> {
 		const params = input.params;
-		const result = await Tools.runTsBuild({
+		const result = await Tools.build({
 			workDir: input.workDir,
 			path: (params.path as string) ?? ""
 		});
@@ -981,7 +1546,26 @@ class RunTsBuildAction extends Node<AgentShared> {
 
 	async post(shared: AgentShared, _prepRes: unknown, execRes: unknown): Promise<string | undefined> {
 		const last = shared.history[shared.history.length - 1];
-		if (last !== undefined) last.result = execRes as Record<string, unknown>;
+		if (last !== undefined) {
+			const followupHint = shared.useChineseResponse
+				? "构建已完成，将根据结果做后续处理，不再重复构建。"
+				: "Build completed. Shall handle the result instead of building again.";
+			const {reason} = last;
+			last.reason = last.reason && last.reason !== ""
+				? `${last.reason}\n${followupHint}`
+				: followupHint;
+			last.result = execRes as Record<string, unknown>;
+			emitAgentEvent(shared, {
+				type: "tool_finished",
+				sessionId: shared.sessionId,
+				taskId: shared.taskId,
+				step: shared.step + 1,
+				tool: last.tool,
+				reason,
+				result: last.result,
+			});
+		}
+		await maybeCompressHistory(shared);
 		shared.step += 1;
 		return "main";
 	}
@@ -991,6 +1575,13 @@ class EditFileAction extends Node<AgentShared> {
 	async prep(shared: AgentShared): Promise<{ path: string; oldStr: string; newStr: string; taskId: number; workDir: string }> {
 		const last = shared.history[shared.history.length - 1];
 		if (!last) throw new Error("no history");
+		emitAgentEvent(shared, {
+			type: "tool_started",
+			sessionId: shared.sessionId,
+			taskId: shared.taskId,
+			step: shared.step + 1,
+			tool: last.tool,
+		});
 		const path = type(last.params.path) === "string"
 			? (last.params.path as string)
 			: (type(last.params.target_file) === "string" ? (last.params.target_file as string) : "");
@@ -1002,7 +1593,7 @@ class EditFileAction extends Node<AgentShared> {
 	}
 
 	async exec(input: { path: string; oldStr: string; newStr: string; taskId: number; workDir: string }): Promise<Record<string, unknown>> {
-		const readRes = Tools.readFile(input.workDir, input.path);
+		const readRes = Tools.readFileRaw(input.workDir, input.path);
 		if (!readRes.success) {
 			if (input.oldStr !== "") {
 				return { success: false, message: `read file failed: ${readRes.message}` };
@@ -1021,6 +1612,7 @@ class EditFileAction extends Node<AgentShared> {
 				replaced: 0,
 				checkpointId: createRes.checkpointId,
 				checkpointSeq: createRes.checkpointSeq,
+				files: [{ path: input.path, op: "create" as const }],
 			};
 		}
 		if (input.oldStr === "") {
@@ -1054,6 +1646,7 @@ class EditFileAction extends Node<AgentShared> {
 			replaced: replaceRes.replaced,
 			checkpointId: applyRes.checkpointId,
 			checkpointSeq: applyRes.checkpointSeq,
+			files: [{ path: input.path, op: "write" as const }],
 		};
 	}
 
@@ -1062,7 +1655,32 @@ class EditFileAction extends Node<AgentShared> {
 		if (last !== undefined) {
 			last.params = sanitizeActionParamsForHistory(last.tool, last.params);
 			last.result = execRes as Record<string, unknown>;
+			emitAgentEvent(shared, {
+				type: "tool_finished",
+				sessionId: shared.sessionId,
+				taskId: shared.taskId,
+				step: shared.step + 1,
+				tool: last.tool,
+				result: last.result,
+			});
+			const result = last.result;
+			if ((last.tool === "edit_file" || last.tool === "delete_file")
+				&& type(result.checkpointId) === "number"
+				&& type(result.checkpointSeq) === "number"
+				&& type(result.files) === "table") {
+				emitAgentEvent(shared, {
+					type: "checkpoint_created",
+					sessionId: shared.sessionId,
+					taskId: shared.taskId,
+					step: shared.step + 1,
+					tool: last.tool,
+					checkpointId: result.checkpointId as number,
+					checkpointSeq: result.checkpointSeq as number,
+					files: result.files as { path: string; op: "write" | "create" | "delete"; }[],
+				});
+			}
 		}
+		await maybeCompressHistory(shared);
 		shared.step += 1;
 		return "main";
 	}
@@ -1070,6 +1688,16 @@ class EditFileAction extends Node<AgentShared> {
 
 class FormatResponseNode extends Node<AgentShared> {
 	async prep(shared: AgentShared): Promise<{ history: AgentActionRecord[]; shared: AgentShared }> {
+		const last = shared.history[shared.history.length - 1];
+		if (last && last.tool === "finish") {
+			emitAgentEvent(shared, {
+				type: "tool_started",
+				sessionId: shared.sessionId,
+				taskId: shared.taskId,
+				step: shared.step + 1,
+				tool: last.tool,
+			});
+		}
 		return { history: shared.history, shared };
 	}
 
@@ -1113,6 +1741,19 @@ ${getReplyLanguageDirective(input.shared)}`;
 	}
 
 	async post(shared: AgentShared, _prepRes: unknown, execRes: unknown): Promise<string | undefined> {
+		const last = shared.history[shared.history.length - 1];
+		if (last && last.tool === "finish") {
+			last.result = { success: true, message: execRes as string };
+			emitAgentEvent(shared, {
+				type: "tool_finished",
+				sessionId: shared.sessionId,
+				taskId: shared.taskId,
+				step: shared.step + 1,
+				tool: last.tool,
+				result: last.result,
+			});
+			shared.step += 1;
+		}
 		shared.response = execRes as string;
 		shared.done = true;
 		return undefined;
@@ -1127,17 +1768,17 @@ class CodingAgentFlow extends Flow<AgentShared> {
 		const searchDora = new SearchDoraAPIAction(1, 0);
 		const list = new ListFilesAction(1, 0);
 		const del = new DeleteFileAction(1, 0);
-		const build = new RunTsBuildAction(1, 0);
+		const build = new BuildAction(1, 0);
 		const edit = new EditFileAction(1, 0);
 		const format = new FormatResponseNode(1, 0);
 
 		main.on("read_file", read);
 		main.on("read_file_range", read);
-		main.on("search_files", search);
+		main.on("grep_files", search);
 		main.on("search_dora_api", searchDora);
-		main.on("list_files", list);
+		main.on("glob_files", list);
 		main.on("delete_file", del);
-		main.on("run_ts_build", build);
+		main.on("build", build);
 		main.on("edit_file", edit);
 		main.on("finish", format);
 		main.on("error", format);
@@ -1173,6 +1814,7 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 	});
 
 	const shared: AgentShared = {
+		sessionId: options.sessionId,
 		taskId: taskRes.taskId,
 		maxSteps: math.max(1, math.floor(options.maxSteps ?? 40)),
 		llmMaxTry: math.max(1, math.floor(options.llmMaxTry ?? 3)),
@@ -1188,41 +1830,94 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 			temperature: 0.2,
 			...(options.llmOptions ?? {}),
 		},
+		onEvent: options.onEvent,
 		history: [],
 		// Memory 状态
 		memory: {
 			lastConsolidatedIndex: 0,
 			compressor,
-			hasCompressedThisTask: false,
 		},
 	};
 
 	try {
+		emitAgentEvent(shared, {
+			type: "task_started",
+			sessionId: shared.sessionId,
+			taskId: shared.taskId,
+			prompt: shared.userQuery,
+			workDir: shared.workingDir,
+			maxSteps: shared.maxSteps,
+		});
 		if (shared.stopToken.stopped) {
 			Tools.setTaskStatus(shared.taskId, "STOPPED");
-			return { success: false, taskId: shared.taskId, message: getCancelledReason(shared), steps: shared.step };
+			const result = { success: false as const, taskId: shared.taskId, message: getCancelledReason(shared), steps: shared.step };
+			emitAgentEvent(shared, {
+				type: "task_finished",
+				sessionId: shared.sessionId,
+				taskId: shared.taskId,
+				success: false,
+				message: result.message,
+				steps: result.steps,
+			});
+			return result;
 		}
 		Tools.setTaskStatus(shared.taskId, "RUNNING");
 		const flow = new CodingAgentFlow();
 		await flow.run(shared);
 		if (shared.stopToken.stopped) {
 			Tools.setTaskStatus(shared.taskId, "STOPPED");
-			return { success: false, taskId: shared.taskId, message: getCancelledReason(shared), steps: shared.step };
+			const result = { success: false as const, taskId: shared.taskId, message: getCancelledReason(shared), steps: shared.step };
+			emitAgentEvent(shared, {
+				type: "task_finished",
+				sessionId: shared.sessionId,
+				taskId: shared.taskId,
+				success: false,
+				message: result.message,
+				steps: result.steps,
+			});
+			return result;
 		}
 		if (shared.error) {
 			Tools.setTaskStatus(shared.taskId, "FAILED");
-			return { success: false, taskId: shared.taskId, message: shared.error, steps: shared.step };
+			const result = { success: false as const, taskId: shared.taskId, message: shared.error, steps: shared.step };
+			emitAgentEvent(shared, {
+				type: "task_finished",
+				sessionId: shared.sessionId,
+				taskId: shared.taskId,
+				success: false,
+				message: result.message,
+				steps: result.steps,
+			});
+			return result;
 		}
 		Tools.setTaskStatus(shared.taskId, "DONE");
-		return {
+		const result = {
 			success: true,
 			taskId: shared.taskId,
 			message: shared.response || (shared.useChineseResponse ? "任务完成。" : "Task completed."),
 			steps: shared.step,
 		};
+		emitAgentEvent(shared, {
+			type: "task_finished",
+			sessionId: shared.sessionId,
+			taskId: shared.taskId,
+			success: true,
+			message: result.message,
+			steps: result.steps,
+		});
+		return result;
 	} catch (e) {
 		Tools.setTaskStatus(shared.taskId, "FAILED");
-		return { success: false, taskId: shared.taskId, message: tostring(e), steps: shared.step };
+		const result = { success: false as const, taskId: shared.taskId, message: tostring(e), steps: shared.step };
+		emitAgentEvent(shared, {
+			type: "task_finished",
+			sessionId: shared.sessionId,
+			taskId: shared.taskId,
+			success: false,
+			message: result.message,
+			steps: result.steps,
+		});
+		return result;
 	}
 }
 

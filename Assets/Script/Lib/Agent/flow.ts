@@ -1,4 +1,4 @@
-import { Log, thread, sleep } from 'Dora';
+import { Log, Director, once, sleep } from 'Dora';
 type NonIterableObject = Partial<Record<string, unknown>> & { [Symbol.iterator]?: never };
 type Action = string;
 class BaseNode<S = unknown, P extends NonIterableObject = NonIterableObject> {
@@ -69,33 +69,20 @@ class Node<S = unknown, P extends NonIterableObject = NonIterableObject> extends
 		throw error;
 	}
 	async _exec(prepRes: unknown): Promise<unknown> {
-		return new Promise((resolve, reject) => {
-			thread(async () => {
-				for (this.currentRetry = 0; this.currentRetry < this.maxRetries; this.currentRetry++) {
-					let result: any;
-					let done = false;
-					try {
-						result = await this.exec(prepRes);
-						done = true;
-					} catch (e) {
-						if (this.currentRetry === this.maxRetries - 1) {
-							try {
-								return this.execFallback(prepRes, e as Error);
-							} catch (e) {
-								reject(e);
-							}
-						}
-						if (this.wait > 0) {
-							sleep(this.wait);
-						}
-					}
-					if (done) {
-						resolve(result);
-						return true;
-					}
-				}
-			});
-		});
+		for (this.currentRetry = 0; this.currentRetry < this.maxRetries; this.currentRetry++) {
+			try {
+				return await this.exec(prepRes);
+			} catch (e) {
+				if (this.currentRetry === this.maxRetries - 1) return await this.execFallback(prepRes, e as Error);
+				if (this.wait > 0) await new Promise(resolve => {
+					Director.systemScheduler.schedule(once(() => {
+						sleep(this.wait);
+						resolve(undefined);
+					}));
+				});
+			}
+		}
+		return undefined;
 	}
 }
 class BatchNode<S = unknown, P extends NonIterableObject = NonIterableObject> extends Node<S, P> {

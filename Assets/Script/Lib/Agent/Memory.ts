@@ -5,8 +5,6 @@ import * as yaml from 'yaml';
 
 import type { AgentActionRecord } from 'Agent/CodingAgent';
 
-const AGENT_DIR = Path(Content.appPath, ".agent");
-
 /**
  * Memory 配置
  */
@@ -110,6 +108,23 @@ export class TokenEstimator {
 	}
 }
 
+function utf8TakeHead(text: string, maxChars: number): string {
+	if (maxChars <= 0 || text === "") return "";
+	const nextPos = utf8.offset(text, maxChars + 1);
+	if (nextPos === undefined) return text;
+	return string.sub(text, 1, nextPos - 1);
+}
+
+function utf8TakeTail(text: string, maxChars: number): string {
+	if (maxChars <= 0 || text === "") return "";
+	const [charLen] = utf8.len(text);
+	if (charLen === false || charLen <= maxChars) return text;
+	const startChar = math.max(1, charLen - maxChars + 1);
+	const startPos = utf8.offset(text, startChar);
+	if (startPos === undefined) return text;
+	return string.sub(text, startPos);
+}
+
 /**
  * 双层存储管理器
  *
@@ -122,11 +137,12 @@ export class DualLayerStorage {
 
 	constructor(projectDir: string) {
 		this.projectDir = projectDir;
-		this.memoryPath = Path(this.projectDir, "MEMORY.md");
-		this.historyPath = Path(AGENT_DIR, "HISTORY.md");
-
+		const agentDir = Path(this.projectDir, ".agent");
 		// 确保目录存在
-		this.ensureDir(AGENT_DIR);
+		this.ensureDir(agentDir);
+
+		this.memoryPath = Path(agentDir, "MEMORY.md");
+		this.historyPath = Path(agentDir, "HISTORY.md");
 	}
 
 	private ensureDir(dir: string): void {
@@ -229,7 +245,7 @@ export class MemoryCompressor {
 			compressionThreshold: 0.8,
 			maxCompressionRounds: 3,
 			maxTokensPerCompression: 20000,
-			projectDir: AGENT_DIR,
+			projectDir: config?.projectDir ?? Path(Content.appPath, ".agent"),
 			...config,
 		};
 		this.storage = new DualLayerStorage(this.config.projectDir);
@@ -358,20 +374,45 @@ export class MemoryCompressor {
 		maxLLMTry: number,
 		decisionMode: MemoryCompressionDecisionMode
 	): Promise<CompressionResult> {
+		const boundedHistoryText = this.boundCompressionHistoryText(currentMemory, historyText);
 		if (decisionMode === "yaml") {
 			return this.callLLMForCompressionByYAML(
 				currentMemory,
-				historyText,
+				boundedHistoryText,
 				llmOptions,
 				maxLLMTry
 			);
 		}
 		return this.callLLMForCompressionByToolCalling(
 			currentMemory,
-			historyText,
+			boundedHistoryText,
 			llmOptions,
 			maxLLMTry
 		);
+	}
+
+	private getCompressionHistoryTokenBudget(currentMemory: string): number {
+		const contextWindow = Math.max(4000, this.config.contextWindow);
+		const reservedOutputTokens = Math.max(2048, Math.floor(contextWindow * 0.2));
+		const staticPromptTokens = TokenEstimator.estimate(this.buildCompressionPromptBody("", ""));
+		const memoryTokens = TokenEstimator.estimate(currentMemory);
+		const available = contextWindow - reservedOutputTokens - staticPromptTokens - memoryTokens;
+		return Math.max(1200, Math.floor(available * 0.9));
+	}
+
+	private boundCompressionHistoryText(currentMemory: string, historyText: string): string {
+		const historyTokens = TokenEstimator.estimate(historyText);
+		const tokenBudget = this.getCompressionHistoryTokenBudget(currentMemory);
+		if (historyTokens <= tokenBudget) return historyText;
+		const charsPerToken = historyTokens > 0
+			? historyText.length / historyTokens
+			: 4;
+		const targetChars = Math.max(2000, Math.floor(tokenBudget * charsPerToken));
+		const keepHead = Math.max(0, Math.floor(targetChars * 0.35));
+		const keepTail = Math.max(0, targetChars - keepHead);
+		const head = keepHead > 0 ? utf8TakeHead(historyText, keepHead) : "";
+		const tail = keepTail > 0 ? utf8TakeTail(historyText, keepTail) : "";
+		return `[compression history truncated to fit context window; token_budget=${tokenBudget}, original_tokens=${historyTokens}]\n${head}\n...\n${tail}`;
 	}
 
 	private async callLLMForCompressionByToolCalling(
@@ -720,5 +761,9 @@ Rules:
 	 */
 	getStorage(): DualLayerStorage {
 		return this.storage;
+	}
+
+	getMaxCompressionRounds(): number {
+		return math.max(1, math.floor(this.config.maxCompressionRounds));
 	}
 }

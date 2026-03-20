@@ -43,15 +43,35 @@ export type RollbackResult = {
 	message: string;
 };
 
+export interface CheckpointDiffFile {
+	path: string;
+	op: FileOp;
+	beforeExists: boolean;
+	afterExists: boolean;
+	beforeContent: string;
+	afterContent: string;
+}
+
+export type CheckpointDiffResult = {
+	success: true;
+	files: CheckpointDiffFile[];
+} | {
+	success: false;
+	message: string;
+};
+
 export type ListFilesResult = {
 	success: true;
 	files: string[];
+	totalEntries?: number;
+	truncated?: boolean;
+	maxEntries?: number;
 } | {
 	success: false;
 	message: string;
 };
 
-export type TsBuildMessage = {
+export type BuildMessage = {
 	success: true;
 	file: string;
 } | {
@@ -60,9 +80,9 @@ export type TsBuildMessage = {
 	message: string;
 };
 
-export type TsBuildResult = {
+export type BuildResult = {
 	success: true;
-	messages: TsBuildMessage[];
+	messages: BuildMessage[];
 } | {
 	success: false;
 	message: string;
@@ -80,6 +100,10 @@ export type GetLogsResult = {
 export type ReadFileResult = {
 	success: true;
 	content: string;
+	totalLines?: number;
+	startLine?: number;
+	endLine?: number;
+	truncated?: boolean;
 } | {
 	success: false;
 	message: string;
@@ -88,6 +112,18 @@ export type ReadFileResult = {
 export type SearchFilesToolResult = {
 	success: true;
 	results: SearchFilesResult[];
+	groupedResults?: {
+		file: string;
+		totalMatches: number;
+		matches: SearchFilesResult[];
+	}[];
+	totalResults?: number;
+	truncated?: boolean;
+	limit?: number;
+	offset?: number;
+	nextOffset?: number;
+	hasMore?: boolean;
+	groupByFile?: boolean;
 } | {
 	success: false;
 	message: string;
@@ -108,6 +144,9 @@ export type DoraAPISearchResult = {
 	root: string;
 	exts: string[];
 	results: DoraAPISearchHit[];
+	totalResults?: number;
+	truncated?: boolean;
+	limit?: number;
 } | {
 	success: false;
 	message: string;
@@ -139,6 +178,7 @@ interface CheckpointEntryRow {
 	id: number;
 	ord: number;
 	path: string;
+	op: FileOp;
 	beforeExists: boolean;
 	beforeContent: string;
 	afterExists: boolean;
@@ -156,11 +196,11 @@ const DORA_DOC_EN_DIR = Path(Content.assetPath, "Script", "Lib", "Dora", "en");
 const now = () => os.time();
 
 function toBool(v: unknown): boolean {
-	return v !== 0 && v !== false && v !== null && v !== undefined;
+	return v !== 0 && v !== false && v !== undefined;
 }
 
 function toStr(v: unknown): string {
-	if (v === false || v === null || v === undefined) return "";
+	if (v === false || v === undefined) return "";
 	return tostring(v);
 }
 
@@ -340,6 +380,20 @@ function isDtsFile(path: string): boolean {
 	return Path.getExt(Path.getName(path)) === "d";
 }
 
+type SupportedBuildKind = "ts" | "xml" | "teal" | "lua" | "yue" | "yarn";
+
+function getSupportedBuildKind(path: string): SupportedBuildKind | undefined {
+	switch (Path.getExt(path)) {
+		case "ts": case "tsx": return "ts";
+		case "xml": return "xml";
+		case "tl": return "teal";
+		case "lua": return "lua";
+		case "yue": return "yue";
+		case "yarn": return "yarn";
+		default: return undefined;
+	}
+}
+
 function getTaskHeadSeq(taskId: number): number | undefined {
 	const row = queryOne(`SELECT head_seq FROM ${TABLE_TASK} WHERE id = ?`, [taskId]);
 	if (!row) return undefined;
@@ -367,7 +421,7 @@ function insertCheckpoint(taskId: number, seq: number, summary: string, toolName
 
 function getCheckpointEntries(checkpointId: number, desc = false): CheckpointEntryRow[] {
 	const rows = DB.query(
-		`SELECT id, ord, path, before_exists, before_content, after_exists, after_content
+		`SELECT id, ord, path, op, before_exists, before_content, after_exists, after_content
 		FROM ${TABLE_ENTRY}
 		WHERE checkpoint_id = ?
 		ORDER BY ord ${desc ? "DESC" : "ASC"}`,
@@ -381,10 +435,11 @@ function getCheckpointEntries(checkpointId: number, desc = false): CheckpointEnt
 			id: row[0] as number,
 			ord: row[1] as number,
 			path: toStr(row[2]),
-			beforeExists: toBool(row[3]),
-			beforeContent: toStr(row[4]),
-			afterExists: toBool(row[5]),
-			afterContent: toStr(row[6]),
+			op: toStr(row[3]) as FileOp,
+			beforeExists: toBool(row[4]),
+			beforeContent: toStr(row[5]),
+			afterExists: toBool(row[6]),
+			afterContent: toStr(row[7]),
 		});
 	}
 	return result;
@@ -398,6 +453,48 @@ function rejectDuplicatePaths(changes: FileChange[]): string | undefined {
 		seen.add(key);
 	}
 	return undefined;
+}
+
+function getLinkedDeletePaths(workDir: string, path: string): string[] {
+	const fullPath = resolveWorkspaceFilePath(workDir, path);
+	if (!fullPath || !Content.exist(fullPath) || Content.isdir(fullPath)) return [];
+	const parent = Path.getPath(fullPath);
+	const baseName = Path.getName(fullPath).toLowerCase();
+	const ext = Path.getExt(fullPath);
+	const linked: string[] = [];
+	for (const file of Content.getFiles(parent)) {
+		if (Path.getName(file).toLowerCase() !== baseName) continue;
+		const siblingExt = Path.getExt(file);
+		if (siblingExt === "tl" && ext === "vs") {
+			linked.push(toWorkspaceRelativePath(workDir, Path(parent, file)));
+			continue;
+		}
+		if (siblingExt === "lua" && (ext === "tl" || ext === "yue" || ext === "ts" || ext === "tsx" || ext === "vs" || ext === "bl" || ext === "xml")) {
+			linked.push(toWorkspaceRelativePath(workDir, Path(parent, file)));
+		}
+	}
+	return linked;
+}
+
+function expandLinkedDeleteChanges(workDir: string, changes: FileChange[]): FileChange[] {
+	const expanded: FileChange[] = [];
+	const seen = new Set<string>();
+	for (let i = 0; i < changes.length; i++) {
+		const change = changes[i];
+		if (!seen.has(change.path)) {
+			seen.add(change.path);
+			expanded.push(change);
+		}
+		if (change.op !== "delete") continue;
+		const linkedPaths = getLinkedDeletePaths(workDir, change.path);
+		for (let j = 0; j < linkedPaths.length; j++) {
+			const linkedPath = linkedPaths[j];
+			if (seen.has(linkedPath)) continue;
+			seen.add(linkedPath);
+			expanded.push({ path: linkedPath, op: "delete" });
+		}
+	}
+	return expanded;
 }
 
 function applySingleFile(path: string, exists: boolean, content: string): boolean {
@@ -416,9 +513,19 @@ function encodeJSON(obj: object): string | undefined {
 	return text;
 }
 
-export async function runSingleTsTranspile(file: string, content: string): Promise<TsBuildMessage> {
+async function runSingleNonTsBuild(file: string): Promise<BuildMessage> {
+	return new Promise<BuildMessage>((resolve) => {
+		const {buildAsync} = require("Script.Dev.WebServer");
+		Director.systemScheduler.schedule(once(() => {
+			const result = buildAsync(file);
+			resolve(result);
+		}));
+	})
+}
+
+export async function runSingleTsTranspile(file: string, content: string): Promise<BuildMessage> {
 	let done = false;
-	let result: TsBuildMessage = {
+	let result: BuildMessage = {
 		success: false,
 		file,
 		message: "transpile timeout or Web IDE not connected",
@@ -514,9 +621,9 @@ function readWorkspaceFile(workDir: string, path: string): ReadFileResult {
 	return { success: true, content: Content.load(fullPath) };
 }
 
-export function readFile(workDir: string, path: string): ReadFileResult {
+export function readFileRaw(workDir: string, path: string): ReadFileResult {
 	const result = readWorkspaceFile(workDir, path);
-	if (!result.success && Content.exist(path)) {
+	if (!result.success && Content.exist(path) && !Content.isdir(path)) {
 		return { success: true, content: Content.load(path) };
 	}
 	return result;
@@ -536,7 +643,7 @@ function getEngineLogText(): string | undefined {
 
 export function getLogs(req?: { tailLines?: number; joinText?: boolean }): GetLogsResult {
 	const text = getEngineLogText();
-	if (text === undefined || text === null) {
+	if (text === undefined) {
 		return { success: false, message: "failed to read engine logs" };
 	}
 	const tailLines = math.max(1, math.floor(req?.tailLines ?? 200));
@@ -549,6 +656,7 @@ export function listFiles(req: {
 	workDir: string;
 	path: string;
 	globs?: string[];
+	maxEntries?: number;
 }): ListFilesResult {
 	const root = req.path ?? "";
 	const searchRoot = resolveWorkspaceSearchPath(req.workDir, root);
@@ -560,23 +668,84 @@ export function listFiles(req: {
 		const globs = ensureSafeSearchGlobs(userGlobs);
 		let files = Content.glob(searchRoot, globs, extensionLevels);
 		files = toWorkspaceRelativeFileList(req.workDir, files);
-		return { success: true, files };
+		const totalEntries = files.length;
+		const maxEntries = math.max(1, math.floor(req.maxEntries ?? 200));
+		const truncated = totalEntries > maxEntries;
+		return {
+			success: true,
+			files: truncated ? files.slice(0, maxEntries) : files,
+			totalEntries,
+			truncated,
+			maxEntries,
+		};
 	} catch (e) {
 		return { success: false, message: tostring(e) };
 	}
 }
 
+function formatReadSlice(
+	content: string,
+	startLine: number,
+	limit: number
+): ReadFileResult {
+	const lines = content.split("\n");
+	const totalLines = lines.length;
+	if (totalLines === 0) {
+		return {
+			success: true,
+			content: "",
+			totalLines: 0,
+			startLine: 1,
+			endLine: 0,
+			truncated: false,
+		};
+	}
+	const start = math.max(1, math.floor(startLine));
+	if (start > totalLines) {
+		return { success: false, message: `startLine ${start} exceeds file length ${totalLines}` };
+	}
+	const boundedLimit = math.max(1, math.floor(limit));
+	const end = math.min(totalLines, start + boundedLimit - 1);
+	const numbered: string[] = [];
+	for (let i = start; i <= end; i++) {
+		numbered.push(`${i}| ${lines[i - 1]}`);
+	}
+	let output = numbered.join("\n");
+	const truncated = end < totalLines;
+	output += truncated
+		? `\n\n(Showing lines ${start}-${end} of ${totalLines}. Use offset=${end + 1} to continue.)`
+		: `\n\n(End of file - ${totalLines} lines total)`;
+	return {
+		success: true,
+		content: output,
+		totalLines,
+		startLine: start,
+		endLine: end,
+		truncated,
+	};
+}
+
+export function readFile(
+	workDir: string,
+	path: string,
+	offset?: number,
+	limit?: number
+): ReadFileResult {
+	const fallback = readFileRaw(workDir, path);
+	if (!fallback.success) {
+		return fallback;
+	}
+	const start = math.max(1, math.floor(offset ?? 1));
+	const maxLines = math.max(1, math.floor(limit ?? 300));
+	return formatReadSlice(fallback.content, start, maxLines);
+}
+
 export function readFileRange(workDir: string, path: string, startLine: number, endLine: number): ReadFileResult {
-	const res = readFile(workDir, path);
-	if (!res.success || res.content === undefined) return res;
+	const fallback = readFileRaw(workDir, path);
+	if (!fallback.success || fallback.content === undefined) return fallback;
 	const s = Math.max(1, math.floor(startLine));
 	const e = Math.max(s, math.floor(endLine));
-	const lines = res.content.split("\n");
-	const part: string[] = [];
-	for (let i = s; i <= e && i <= lines.length; i++) {
-		part.push(lines[i - 1]);
-	}
-	return { success: true, content: part.join("\n") };
+	return formatReadSlice(fallback.content, s, e - s + 1);
 }
 
 const codeExtensions = [".lua", ".tl", ".yue", ".ts", ".tsx", ".xml", ".md", ".yarn", ".wa", ".mod"];
@@ -609,9 +778,13 @@ function splitSearchPatterns(pattern: string): string[] {
 	const trimmed = (pattern ?? "").trim();
 	if (trimmed === "") return [];
 	const out: string[] = [];
-	for (const [p0] of string.gmatch(trimmed, "%S+")) {
+	const seen = new Set<string>();
+	for (const [p0] of string.gmatch(trimmed, "([^|]+)")) {
 		const p = tostring(p0).trim();
-		if (p !== "") out.push(p);
+		if (p !== "" && !seen.has(p)) {
+			seen.add(p);
+			out.push(p);
+		}
 	}
 	return out;
 }
@@ -634,18 +807,62 @@ function mergeSearchFileResultsUnique(resultsList: SearchFilesResult[][]): Searc
 	return merged;
 }
 
-function mergeDoraAPISearchHitsUnique(resultsList: DoraAPISearchHit[][], topK: number): DoraAPISearchHit[] {
+function buildGroupedSearchResults(results: SearchFilesResult[]): {
+	file: string;
+	totalMatches: number;
+	matches: SearchFilesResult[];
+}[] {
+	const order: string[] = [];
+	const grouped = new Map<string, {
+		file: string;
+		totalMatches: number;
+		matches: SearchFilesResult[];
+	}>();
+	for (let i = 0; i < results.length; i++) {
+		const row = results[i] as any;
+		const file = type(row) === "table"
+			? tostring(row.file ?? row.path ?? "")
+			: "";
+		const key = file !== "" ? file : `(unknown:${i})`;
+		let bucket = grouped.get(key);
+		if (!bucket) {
+			bucket = { file: file !== "" ? file : "(unknown)", totalMatches: 0, matches: [] };
+			grouped.set(key, bucket);
+			order.push(key);
+		}
+		bucket.totalMatches += 1;
+		bucket.matches.push(results[i]);
+	}
+	const out: {
+		file: string;
+		totalMatches: number;
+		matches: SearchFilesResult[];
+	}[] = [];
+	for (let i = 0; i < order.length; i++) {
+		const bucket = grouped.get(order[i]);
+		if (bucket) out.push(bucket);
+	}
+	return out;
+}
+
+function mergeDoraAPISearchHitsUnique(resultsList: DoraAPISearchHit[][]): DoraAPISearchHit[] {
 	const merged: DoraAPISearchHit[] = [];
 	const seen = new Set<string>();
-	for (let i = 0; i < resultsList.length && merged.length < topK; i++) {
-		const list = resultsList[i];
-		for (let j = 0; j < list.length && merged.length < topK; j++) {
-			const row = list[j];
+	let index = 0;
+	let advanced = true;
+	while (advanced) {
+		advanced = false;
+		for (let i = 0; i < resultsList.length; i++) {
+			const list = resultsList[i];
+			if (index >= list.length) continue;
+			advanced = true;
+			const row = list[index];
 			const key = `${row.file}:${tostring(row.line ?? "")}:${tostring(row.content ?? "")}`;
 			if (seen.has(key)) continue;
 			seen.add(key);
 			merged.push(row);
 		}
+		index += 1;
 	}
 	return merged;
 }
@@ -659,8 +876,16 @@ export async function searchFiles(req: {
 	caseSensitive?: boolean;
 	includeContent?: boolean;
 	contentWindow?: number;
+	limit?: number;
+	offset?: number;
+	groupByFile?: boolean;
 }): Promise<SearchFilesToolResult> {
-	const searchRoot = resolveWorkspaceSearchPath(req.workDir, req.path);
+	const resolvedPath = resolveWorkspaceSearchPath(req.workDir, req.path);
+	if (!resolvedPath) {
+		return { success: false, message: "invalid path or workDir" as string };
+	}
+	const searchIsSingleFile = Content.exist(resolvedPath) && !Content.isdir(resolvedPath);
+	const searchRoot = searchIsSingleFile ? Path.getPath(resolvedPath) : resolvedPath;
 	if (!searchRoot) {
 		return { success: false, message: "invalid path or workDir" as string };
 	}
@@ -674,13 +899,16 @@ export async function searchFiles(req: {
 	return new Promise(resolve => {
 		Director.systemScheduler.schedule(once(() => {
 			try {
+				const searchGlobs = searchIsSingleFile
+					? [Path.getFilename(resolvedPath)]
+					: ensureSafeSearchGlobs(req.globs ?? ["**"]);
 				const allResults: SearchFilesResult[][] = [];
 				for (let i = 0; i < patterns.length; i++) {
 					allResults.push(Content.searchFilesAsync(
 						searchRoot,
 						codeExtensions,
 						extensionLevels,
-						ensureSafeSearchGlobs(req.globs ?? ["**"]),
+						searchGlobs,
 						patterns[i],
 						req.useRegex ?? false,
 						req.caseSensitive ?? false,
@@ -689,7 +917,27 @@ export async function searchFiles(req: {
 					));
 				}
 				const results = mergeSearchFileResultsUnique(allResults);
-				resolve({ success: true, results: toWorkspaceRelativeSearchResults(req.workDir, results) });
+				const totalResults = results.length;
+				const limit = math.max(1, math.floor(req.limit ?? 20));
+				const offset = math.max(0, math.floor(req.offset ?? 0));
+				const paged = offset >= totalResults ? [] : results.slice(offset, offset + limit);
+				const nextOffset = offset + paged.length;
+				const hasMore = nextOffset < totalResults;
+				const truncated = offset > 0 || hasMore;
+				const relativeResults = toWorkspaceRelativeSearchResults(req.workDir, paged);
+				const groupByFile = req.groupByFile === true;
+				resolve({
+					success: true,
+					results: relativeResults,
+					groupedResults: groupByFile ? buildGroupedSearchResults(relativeResults) : undefined,
+					totalResults,
+					truncated,
+					limit,
+					offset,
+					nextOffset,
+					hasMore,
+					groupByFile,
+				});
 			} catch (e) {
 				resolve({ success: false, message: tostring(e) });
 			}
@@ -701,7 +949,7 @@ export async function searchDoraAPI(req: {
 	pattern: string;
 	docLanguage: DoraAPIDocLanguage;
 	programmingLanguage: DoraAPIProgrammingLanguage;
-	topK?: number;
+	limit?: number;
 	useRegex?: boolean;
 	caseSensitive?: boolean;
 	includeContent?: boolean;
@@ -718,7 +966,7 @@ export async function searchDoraAPI(req: {
 	const exts = getDoraDocExtsByCodeLanguage(req.programmingLanguage);
 	const dotExts = exts.map(ext => ext.startsWith(".") ? ext : `.${ext}`);
 	const globs = exts.map(ext => `**/*.${ext}`);
-	const topK = math.max(1, math.floor(req.topK ?? 10));
+	const limit = math.max(1, math.floor(req.limit ?? 10));
 
 	return new Promise(resolve => {
 		Director.systemScheduler.schedule(once(() => {
@@ -750,15 +998,18 @@ export async function searchDoraAPI(req: {
 							content: type(row.content) === "string" ? (row.content as string) : undefined,
 						});
 					}
-					allHits.push(hits);
+					allHits.push(hits.slice(0, limit));
 				}
-				const hits = mergeDoraAPISearchHitsUnique(allHits, topK);
+				const hits = mergeDoraAPISearchHitsUnique(allHits);
 				resolve({
 					success: true,
 					docLanguage: req.docLanguage,
 					root: docRoot,
 					exts,
 					results: hits,
+					totalResults: hits.length,
+					truncated: false,
+					limit,
 				});
 			} catch (e) {
 				resolve({ success: false, message: tostring(e) });
@@ -777,12 +1028,13 @@ export function applyFileChanges(taskId: number, workDir: string, changes: FileC
 	if (!getTaskStatus(taskId)) {
 		return { success: false, message: "task not found" };
 	}
-	const dup = rejectDuplicatePaths(changes);
+	const expandedChanges = expandLinkedDeleteChanges(workDir, changes);
+	const dup = rejectDuplicatePaths(expandedChanges);
 	if (dup) {
 		return { success: false, message: `duplicate path in batch: ${dup}` };
 	}
 
-	for (const change of changes) {
+	for (const change of expandedChanges) {
 		if (!isValidWorkspacePath(change.path)) {
 			return { success: false, message: `invalid path: ${change.path}` };
 		}
@@ -799,8 +1051,8 @@ export function applyFileChanges(taskId: number, workDir: string, changes: FileC
 		return { success: false, message: "failed to create checkpoint" };
 	}
 
-	for (let i = 0; i < changes.length; i++) {
-		const change = changes[i];
+	for (let i = 0; i < expandedChanges.length; i++) {
+		const change = expandedChanges[i];
 		const fullPath = resolveWorkspaceFilePath(workDir, change.path);
 		if (!fullPath) {
 			DB.exec(`UPDATE ${TABLE_CP} SET status = ? WHERE id = ?`, ["FAILED", checkpointId]);
@@ -912,7 +1164,28 @@ export function getCheckpointEntriesForDebug(checkpointId: number) {
 	return getCheckpointEntries(checkpointId, false);
 }
 
-export async function runTsBuild(req: { workDir: string; path: string }): Promise<TsBuildResult> {
+export function getCheckpointDiff(checkpointId: number): CheckpointDiffResult {
+	if (checkpointId <= 0) {
+		return { success: false, message: "invalid checkpointId" };
+	}
+	const entries = getCheckpointEntries(checkpointId, false);
+	if (entries.length === 0) {
+		return { success: false, message: "checkpoint not found or empty" };
+	}
+	return {
+		success: true,
+		files: entries.map(entry => ({
+			path: entry.path,
+			op: entry.op,
+			beforeExists: entry.beforeExists,
+			afterExists: entry.afterExists,
+			beforeContent: entry.beforeContent,
+			afterContent: entry.afterContent,
+		})),
+	};
+}
+
+export async function build(req: { workDir: string; path: string }): Promise<BuildResult> {
 	const targetRel = req.path ?? "";
 	const target = resolveWorkspaceSearchPath(req.workDir, targetRel);
 	if (!target) {
@@ -921,24 +1194,29 @@ export async function runTsBuild(req: { workDir: string; path: string }): Promis
 	if (!Content.exist(target)) {
 		return { success: false, message: "path not existed" };
 	}
-	const messages: TsBuildMessage[] = [];
+	const messages: BuildMessage[] = [];
 	if (!Content.isdir(target)) {
-		if (!isTsLikeFile(target)) {
-			return { success: false, message: "expecting a TypeScript file" };
+		const kind = getSupportedBuildKind(target);
+		if (!kind) {
+			return { success: false, message: "expecting a ts/tsx, tl, lua, yue or yarn file" };
 		}
-		const content = Content.load(target);
-		if (content === undefined || content === null) {
-			return { success: false, message: "failed to read file" };
+		if (kind === "ts") {
+			const content = Content.load(target);
+			if (content === undefined) {
+				return { success: false, message: "failed to read file" };
+			}
+			const updatePayload = encodeJSON({ name: "UpdateTSCode", file: target, content });
+			if (!updatePayload) {
+				return { success: false, message: "failed to encode UpdateTSCode request" };
+			}
+			emit("AppWS", "Send", updatePayload);
+			if (!isDtsFile(target)) {
+				messages.push(await runSingleTsTranspile(target, content));
+			}
+		} else {
+			messages.push(await runSingleNonTsBuild(target));
 		}
-		const updatePayload = encodeJSON({ name: "UpdateTSCode", file: target, content });
-		if (!updatePayload) {
-			return { success: false, message: "failed to encode UpdateTSCode request" };
-		}
-		emit("AppWS", "Send", updatePayload);
-		if (!isDtsFile(target)) {
-			messages.push(await runSingleTsTranspile(target, content));
-		}
-		Log("Info", `[ts_build] file=${target} messages=${messages.length}`);
+		Log("Info", `[build] file=${target} messages=${messages.length}`);
 		return {
 			success: true,
 			messages: messages.map(m => m.success
@@ -946,18 +1224,28 @@ export async function runTsBuild(req: { workDir: string; path: string }): Promis
 				: ({ ...m, file: toWorkspaceRelativePath(req.workDir, m.file) })),
 		};
 	}
+	const listResult = listFiles({
+		workDir: req.workDir,
+		path: target
+	});
 
-	const relFiles = Content.getAllFiles(target);
-	const fileData: Record<string, string> = {};
+	const relFiles = listResult.success ? listResult.files : [];
+	const tsFileData: Record<string, string> = {};
+	const buildQueue: { file: string; kind: SupportedBuildKind }[] = [];
 	for (const rel of relFiles) {
 		const file = Content.isAbsolutePath(rel) ? rel : Path(target, rel);
-		if (!isTsLikeFile(file)) continue;
+		const kind = getSupportedBuildKind(file);
+		if (!kind) continue;
+		buildQueue.push({ file, kind });
+		if (kind !== "ts") {
+			continue;
+		}
 		const content = Content.load(file);
-		if (content === undefined || content === null) {
+		if (content === undefined) {
 			messages.push({ success: false, file, message: "failed to read file" });
 			continue;
 		}
-		fileData[file] = content;
+		tsFileData[file] = content;
 		const updatePayload = encodeJSON({ name: "UpdateTSCode", file, content });
 		if (!updatePayload) {
 			messages.push({ success: false, file, message: "failed to encode UpdateTSCode request" });
@@ -965,11 +1253,19 @@ export async function runTsBuild(req: { workDir: string; path: string }): Promis
 		}
 		emit("AppWS", "Send", updatePayload);
 	}
-	for (const file in fileData) {
-		if (isDtsFile(file)) continue;
-		messages.push(await runSingleTsTranspile(file, fileData[file]));
+	for (let i = 0; i < buildQueue.length; i++) {
+		const { file, kind } = buildQueue[i];
+		if (kind === "ts") {
+			const content = tsFileData[file];
+			if (content === undefined || isDtsFile(file)) {
+				continue;
+			}
+			messages.push(await runSingleTsTranspile(file, content));
+			continue;
+		}
+		messages.push(await runSingleNonTsBuild(file));
 	}
-	Log("Info", `[ts_build] dir=${target} messages=${messages.length}`);
+	Log("Info", `[build] dir=${target} messages=${messages.length}`);
 	return {
 		success: true,
 		messages: messages.map(m => m.success
