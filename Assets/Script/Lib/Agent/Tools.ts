@@ -37,7 +37,7 @@ export type ApplyChangesResult = {
 
 export type RollbackResult = {
 	success: true;
-	headSeq: number;
+	checkpointId: number;
 } | {
 	success: false;
 	message: string;
@@ -511,6 +511,18 @@ function applySingleFile(path: string, exists: boolean, content: string): boolea
 function encodeJSON(obj: object): string | undefined {
 	const [text] = json.encode(obj);
 	return text;
+}
+
+export function sendWebIDEFileUpdate(file: string, exists: boolean, content: string): boolean {
+	if (HttpServer.wsConnectionCount === 0) {
+		return true;
+	}
+	const payload = encodeJSON({ name: "UpdateFile", file, exists, content });
+	if (!payload) {
+		return false;
+	}
+	emit("AppWS", "Send", payload);
+	return true;
 }
 
 async function runSingleNonTsBuild(file: string): Promise<BuildMessage> {
@@ -1094,6 +1106,10 @@ export function applyFileChanges(taskId: number, workDir: string, changes: FileC
 			DB.exec(`UPDATE ${TABLE_CP} SET status = ? WHERE id = ?`, ["FAILED", checkpointId]);
 			return { success: false, message: `failed to apply file change: ${entry.path}` };
 		}
+		if (!sendWebIDEFileUpdate(fullPath, entry.afterExists, entry.afterContent)) {
+			DB.exec(`UPDATE ${TABLE_CP} SET status = ? WHERE id = ?`, ["FAILED", checkpointId]);
+			return { success: false, message: `failed to sync file change: ${entry.path}` };
+		}
 	}
 
 	DB.exec(
@@ -1112,52 +1128,31 @@ export function applyFileChanges(taskId: number, workDir: string, changes: FileC
 	};
 }
 
-export function rollbackToCheckpoint(taskId: number, workDir: string, targetSeq: number): RollbackResult {
+export function rollbackCheckpoint(checkpointId: number, workDir: string): RollbackResult {
 	if (!isValidWorkDir(workDir)) return { success: false, message: "invalid workDir" };
-	const headSeq = getTaskHeadSeq(taskId);
-	if (headSeq === undefined) return { success: false, message: "task not found" };
-	if (targetSeq < 0 || targetSeq > headSeq) {
-		return { success: false, message: "invalid target seq" };
+	if (checkpointId <= 0) return { success: false, message: "invalid checkpointId" };
+	const entries = getCheckpointEntries(checkpointId, true);
+	if (entries.length === 0) {
+		return { success: false, message: "checkpoint not found or empty" };
 	}
-	if (targetSeq === headSeq) {
-		return { success: true, headSeq };
-	}
-
-	const cps = DB.query(
-		`SELECT id, seq FROM ${TABLE_CP}
-		WHERE task_id = ? AND status = ? AND seq > ? AND seq <= ?
-		ORDER BY seq DESC`,
-		[taskId, "APPLIED", targetSeq, headSeq],
-	);
-	if (!cps) return { success: false, message: "failed to query checkpoints" };
-
-	for (let i = 0; i < cps.length; i++) {
-		const cpId = cps[i][0] as number;
-		const cpSeq = cps[i][1] as number;
-		const entries = getCheckpointEntries(cpId, true);
-		for (const entry of entries) {
-			const fullPath = resolveWorkspaceFilePath(workDir, entry.path);
-			if (!fullPath) {
-				return { success: false, message: `invalid path: ${entry.path}` };
-			}
-			const ok = applySingleFile(fullPath, entry.beforeExists, entry.beforeContent);
-			if (!ok) {
-				Log("Error", `Agent rollback failed at checkpoint ${cpSeq}, file ${entry.path}`);
-				Log("Info", `[rollback] failed checkpoint=${cpSeq} file=${entry.path}`);
-				return { success: false, message: `failed to rollback file: ${entry.path}` };
-			}
+	for (const entry of entries) {
+		const fullPath = resolveWorkspaceFilePath(workDir, entry.path);
+		if (!fullPath) {
+			return { success: false, message: `invalid path: ${entry.path}` };
 		}
-		DB.exec(
-			`UPDATE ${TABLE_CP} SET status = ?, reverted_at = ? WHERE id = ?`,
-			["REVERTED", now(), cpId],
-		);
+		const ok = applySingleFile(fullPath, entry.beforeExists, entry.beforeContent);
+		if (!ok) {
+			Log("Error", `Agent rollback failed at checkpoint ${checkpointId}, file ${entry.path}`);
+			Log("Info", `[rollback] failed checkpoint=${checkpointId} file=${entry.path}`);
+			return { success: false, message: `failed to rollback file: ${entry.path}` };
+		}
+		if (!sendWebIDEFileUpdate(fullPath, entry.beforeExists, entry.beforeContent)) {
+			Log("Error", `Agent rollback sync failed at checkpoint ${checkpointId}, file ${entry.path}`);
+			Log("Info", `[rollback] sync_failed checkpoint=${checkpointId} file=${entry.path}`);
+			return { success: false, message: `failed to sync rollback file: ${entry.path}` };
+		}
 	}
-
-	DB.exec(
-		`UPDATE ${TABLE_TASK} SET head_seq = ?, updated_at = ? WHERE id = ?`,
-		[targetSeq, now(), taskId],
-	);
-	return { success: true, headSeq: targetSeq };
+	return { success: true, checkpointId };
 }
 
 export function getCheckpointEntriesForDebug(checkpointId: number) {
@@ -1205,11 +1200,9 @@ export async function build(req: { workDir: string; path: string }): Promise<Bui
 			if (content === undefined) {
 				return { success: false, message: "failed to read file" };
 			}
-			const updatePayload = encodeJSON({ name: "UpdateTSCode", file: target, content });
-			if (!updatePayload) {
-				return { success: false, message: "failed to encode UpdateTSCode request" };
+			if (!sendWebIDEFileUpdate(target, true, content)) {
+				return { success: false, message: "failed to encode UpdateFile request" };
 			}
-			emit("AppWS", "Send", updatePayload);
 			if (!isDtsFile(target)) {
 				messages.push(await runSingleTsTranspile(target, content));
 			}
@@ -1246,12 +1239,10 @@ export async function build(req: { workDir: string; path: string }): Promise<Bui
 			continue;
 		}
 		tsFileData[file] = content;
-		const updatePayload = encodeJSON({ name: "UpdateTSCode", file, content });
-		if (!updatePayload) {
-			messages.push({ success: false, file, message: "failed to encode UpdateTSCode request" });
+		if (!sendWebIDEFileUpdate(file, true, content)) {
+			messages.push({ success: false, file, message: "failed to encode UpdateFile request" });
 			continue;
 		}
-		emit("AppWS", "Send", updatePayload);
 	}
 	for (let i = 0; i < buildQueue.length; i++) {
 		const { file, kind } = buildQueue[i];

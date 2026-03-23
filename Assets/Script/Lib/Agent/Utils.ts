@@ -1,7 +1,7 @@
 // @preview-file off clear
 import { json, HttpClient, DB, emit, Log as DoraLog, Director, once } from 'Dora';
 
-let LOG_LEVEL = 3;
+let LOG_LEVEL = 2;
 export function setLogLevel(level: number) {
 	LOG_LEVEL = level;
 }

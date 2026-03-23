@@ -6,7 +6,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-import React, { ChangeEvent, Suspense, memo, useCallback, useEffect, useState } from 'react';
+import React, { ChangeEvent, Suspense, memo, useCallback, useEffect, useRef, useState } from 'react';
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
 import Toolbar from '@mui/material/Toolbar';
@@ -133,6 +133,87 @@ const isChildFolder = (child: string, parent: string) => {
 		return false;
 	}
 	return true;
+};
+
+const findTreeNode = (node: TreeDataType, key: string): TreeDataType | null => {
+	if (node.key === key) return node;
+	if (node.children !== undefined) {
+		for (let i = 0; i < node.children.length; i++) {
+			const found = findTreeNode(node.children[i], key);
+			if (found !== null) {
+				return found;
+			}
+		}
+	}
+	return null;
+};
+
+const collectTreeKeys = (node: TreeDataType, keys: Set<string>) => {
+	keys.add(node.key);
+	if (node.children !== undefined) {
+		for (let i = 0; i < node.children.length; i++) {
+			collectTreeKeys(node.children[i], keys);
+		}
+	}
+};
+
+const removeTreeNode = (node: TreeDataType, key: string): boolean => {
+	if (node.children === undefined) return false;
+	for (let i = 0; i < node.children.length; i++) {
+		const child = node.children[i];
+		if (child.key === key) {
+			node.children.splice(i, 1);
+			return true;
+		}
+		if (removeTreeNode(child, key)) {
+			return true;
+		}
+	}
+	return false;
+};
+
+const ensureDirNode = (root: TreeDataType, dirPath: string, expanded: string[]): TreeDataType | null => {
+	if (!isChildFolder(dirPath, root.key)) return null;
+	const existing = findTreeNode(root, dirPath);
+	if (existing !== null) return existing;
+	const parentPath = path.dirname(dirPath);
+	if (parentPath === dirPath) return null;
+	const parent = ensureDirNode(root, parentPath, expanded);
+	if (parent === null) return null;
+	const node: TreeDataType = {
+		key: dirPath,
+		title: path.basename(dirPath),
+		dir: true,
+		children: [],
+	};
+	parent.children ??= [];
+	parent.children.push(node);
+	if (!expanded.includes(parent.key)) {
+		expanded.push(parent.key);
+	}
+	return node;
+};
+
+const ensureFileNode = (root: TreeDataType, file: string, expanded: string[]) => {
+	const existing = findTreeNode(root, file);
+	if (existing !== null) {
+		return { node: existing, created: false };
+	}
+	const parent = ensureDirNode(root, path.dirname(file), expanded);
+	if (parent === null) {
+		return { node: null, created: false };
+	}
+	const node: TreeDataType = {
+		key: file,
+		title: path.basename(file),
+		dir: false,
+	};
+	parent.children ??= [];
+	parent.children.push(node);
+	if (!expanded.includes(parent.key)) {
+		expanded.push(parent.key);
+	}
+	return { node, created: true };
 };
 
 interface EditingFile {
@@ -355,6 +436,11 @@ export default function PersistentDrawerLeft() {
 	const [openBottomLog, setOpenBottomLog] = useState(false);
 	const [waitForSave, setWaitForSave] = useState(false);
 	const [isEditorActioning, setIsEditorActioning] = useState(false);
+	const filesRef = useRef(files);
+	const treeDataRef = useRef(treeData);
+	const expandedKeysRef = useRef(expandedKeys);
+	const selectedKeysRef = useRef(selectedKeys);
+	const tabIndexRef = useRef(tabIndex);
 
 	const addAlert = useCallback((msg: string, type: AlertColor, openLog?: boolean) => {
 		const key = msg + Date.now().toString();
@@ -374,6 +460,12 @@ export default function PersistentDrawerLeft() {
 	}, []);
 
 	const [disconnected, setDisconnected] = useState(true);
+
+	filesRef.current = files;
+	treeDataRef.current = treeData;
+	expandedKeysRef.current = expandedKeys;
+	selectedKeysRef.current = selectedKeys;
+	tabIndexRef.current = tabIndex;
 
 	const loadAssets = useCallback(() => {
 		return Service.assets().then((res: TreeDataType) => {
@@ -864,6 +956,10 @@ export default function PersistentDrawerLeft() {
 			revalidateModel(model);
 		}
 	}, [t, checkFileReadonly]);
+	const switchTabRef = useRef(switchTab);
+	const onEditorDidMountRef = useRef(onEditorDidMount);
+	switchTabRef.current = switchTab;
+	onEditorDidMountRef.current = onEditorDidMount;
 
 	const openFile = useCallback((key: string, title: string, folder: boolean) => {
 		return new Promise<EditingFile>((resolve, reject) => {
@@ -1031,6 +1127,95 @@ export default function PersistentDrawerLeft() {
 			}
 		}
 	}, [switchTab, files, openFile]);
+
+	useEffect(() => {
+		const handleUpdateFile = (file: string, exists: boolean, content: string) => {
+			const prevFiles = filesRef.current;
+			const prevTabIndex = tabIndexRef.current;
+			const currentTabKey = prevTabIndex !== null ? prevFiles[prevTabIndex]?.key : undefined;
+			const rootNode = treeDataRef.current.at(0);
+			if (rootNode === undefined) return;
+
+			if (!exists) {
+				const nextTree = [...treeDataRef.current];
+				const nextRoot = nextTree.at(0);
+				if (nextRoot === undefined) return;
+				const removedNode = findTreeNode(nextRoot, file);
+				const removedKeys = new Set<string>();
+				if (removedNode !== null) {
+					collectTreeKeys(removedNode, removedKeys);
+				} else {
+					removedKeys.add(file);
+				}
+				removedKeys.forEach((key) => {
+					const model = monaco.editor.getModel(monaco.Uri.file(key));
+					model?.dispose();
+				});
+				if (nextRoot.key !== file && removedNode !== null) {
+					removeTreeNode(nextRoot, file);
+					treeDataRef.current = nextTree;
+					setTreeData(nextTree);
+				}
+				if (selectedKeysRef.current.some(key => removedKeys.has(key))) {
+					setSelectedKeys([]);
+					setSelectedNode(null);
+				}
+				const nextFiles = prevFiles.filter(f => !removedKeys.has(f.key));
+				if (nextFiles.length !== prevFiles.length) {
+					filesRef.current = nextFiles;
+					setFiles(nextFiles);
+					if (currentTabKey !== undefined) {
+						const nextIndex = nextFiles.findIndex(f => f.key === currentTabKey);
+						if (nextIndex >= 0) {
+							if (nextIndex !== prevTabIndex) {
+								switchTabRef.current(nextIndex, nextFiles[nextIndex]);
+							}
+						} else if (nextFiles.length === 0) {
+							switchTabRef.current(null);
+						} else {
+							const fallbackIndex = Math.min(prevTabIndex ?? 0, nextFiles.length - 1);
+							switchTabRef.current(fallbackIndex, nextFiles[fallbackIndex]);
+						}
+					}
+				}
+				return;
+			}
+
+			const nextExpanded = [...expandedKeysRef.current];
+			const nextTree = [...treeDataRef.current];
+			const nextRoot = nextTree.at(0);
+			if (nextRoot === undefined) return;
+			const { node, created } = ensureFileNode(nextRoot, file, nextExpanded);
+			if (node === null) return;
+			if (created) {
+				treeDataRef.current = nextTree;
+				expandedKeysRef.current = nextExpanded;
+				setTreeData(nextTree);
+				setExpandedKeys(nextExpanded);
+			}
+
+			const existingIndex = prevFiles.findIndex(f => f.key === file);
+			if (existingIndex >= 0) {
+				const nextFiles = prevFiles.map((item, index) => index === existingIndex ? {
+					...item,
+					title: path.basename(file),
+					content,
+					contentModified: null,
+				} : item);
+				filesRef.current = nextFiles;
+				setFiles(nextFiles);
+				return;
+			}
+			if (!created) {
+				return;
+			}
+		};
+
+		Service.addUpdateFileListener(handleUpdateFile);
+		return () => {
+			Service.removeUpdateFileListener(handleUpdateFile);
+		};
+	}, []);
 
 	useEffect(() => {
 		if (jumpToFile !== null) {
@@ -1655,7 +1840,7 @@ export default function PersistentDrawerLeft() {
 				break;
 			}
 			case "Dora": {
-				void openAgentSessionTab(data.key, false);
+				void openAgentSessionTab(data.key, data.dir);
 				break;
 			}
 			case "Download":
@@ -3040,6 +3225,11 @@ export default function PersistentDrawerLeft() {
 		});
 	}, [setJumpToFile, tabIndex, files]);
 
+	const onAgentOpenFile = useCallback((projectRoot: string, filePath: string) => {
+		const targetPath = path.isAbsolute(filePath) ? filePath : path.join(projectRoot, filePath);
+		openFileInTab(targetPath, path.basename(targetPath), false);
+	}, [openFileInTab]);
+
 	return (
 		<Entry>
 			<Dialog
@@ -3378,6 +3568,7 @@ export default function PersistentDrawerLeft() {
 									onRollbackComplete={onAgentRollbackComplete}
 									onUploaded={onUploaded}
 									onViewChange={(view) => onWorkspaceViewChange(file.key, view)}
+									onOpenFile={(filePath) => onAgentOpenFile(file.key, filePath)}
 								/>
 							</Main>;
 						}
@@ -3742,6 +3933,7 @@ export default function PersistentDrawerLeft() {
 											addAlert={addAlert}
 											onUploaded={onUploaded}
 											onViewChange={(view) => onWorkspaceViewChange(file.key, view)}
+											onOpenFile={(filePath) => onAgentOpenFile(file.key, filePath)}
 										/>
 									);
 								}

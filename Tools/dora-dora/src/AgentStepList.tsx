@@ -20,7 +20,8 @@ interface AgentStepListProps {
 	running: boolean;
 	rollingBack: number | null;
 	onToggleDiff: (step: AgentSessionStep) => void;
-	onRollback: (seq: number) => void;
+	onRollback: (step: AgentSessionStep) => void;
+	onOpenFile?: (filePath: string) => void;
 }
 
 type ParamItem = {
@@ -162,6 +163,7 @@ export default function AgentStepList(props: AgentStepListProps) {
 		rollingBack,
 		onToggleDiff,
 		onRollback,
+		onOpenFile,
 	} = props;
 	return (
 		<Stack spacing={2}>
@@ -255,7 +257,36 @@ export default function AgentStepList(props: AgentStepListProps) {
 					{step.checkpointSeq ? (
 						<Box sx={{ mt: 1.25 }}>
 							<Typography variant="caption" sx={{ color: Color.TextSecondary, display: "block", mb: 1 }}>
-								{t("agent.checkpointLabel", { seq: step.checkpointSeq })} {step.files?.map(file => file.path).join(", ")}
+								{t("agent.checkpointLabel", { seq: step.checkpointSeq })}{" "}
+								{step.files?.map((file, index) => (
+									<React.Fragment key={`${file.path}:${index}`}>
+										{index > 0 ? ", " : null}
+										{onOpenFile ? (
+											<Box
+												component="button"
+												type="button"
+												onClick={() => onOpenFile(file.path)}
+												sx={{
+													display: "inline",
+													p: 0,
+													m: 0,
+													border: "none",
+													background: "none",
+													color: Color.TextSecondary,
+													cursor: "pointer",
+													font: "inherit",
+													textDecoration: "underline",
+													textUnderlineOffset: "2px",
+													"&:hover": {
+														color: Color.TextPrimary,
+													},
+												}}
+											>
+												{file.path}
+											</Box>
+										) : file.path}
+									</React.Fragment>
+								))}
 							</Typography>
 							<Stack direction="row" spacing={1} alignItems="center">
 								{canViewDiff ? (
@@ -273,7 +304,7 @@ export default function AgentStepList(props: AgentStepListProps) {
 									size="small"
 									variant="outlined"
 									color="warning"
-									onClick={() => onRollback(step.checkpointSeq!)}
+									onClick={() => onRollback(step)}
 									disabled={running || rollingBack === step.checkpointSeq}
 									sx={stepActionButtonSx}
 								>

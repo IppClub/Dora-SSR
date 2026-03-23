@@ -18,6 +18,13 @@ interface LLMConfigDialogProps {
 
 type Mode = 'create' | 'edit';
 
+type LLMTemplate = {
+	id: string;
+	label: string;
+	url: string;
+	model: string;
+};
+
 const emptyForm = {
 	id: 0,
 	name: '',
@@ -39,6 +46,111 @@ const inputStyle = {
 	},
 };
 
+const BUILTIN_TEMPLATES: LLMTemplate[] = [
+	{
+		id: 'deepseek',
+		label: 'DeepSeek',
+		url: 'https://api.deepseek.com/v1/chat/completions',
+		model: 'deepseek-chat'
+	},
+	{
+		id: 'moonshot',
+		label: 'Moonshot',
+		url: 'https://api.moonshot.cn/v1/chat/completions',
+		model: 'moonshot-v1-auto'
+	},
+	{
+		id: 'qwen',
+		label: 'Qwen',
+		url: 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
+		model: 'qwen-coder-plus'
+	},
+	{
+		id: 'openrouter',
+		label: 'OpenRouter',
+		url: 'https://openrouter.ai/api/v1/chat/completions',
+		model: 'anthropic/claude-sonnet-4.5'
+	},
+	{
+		id: 'openai',
+		label: 'OpenAI',
+		url: 'https://api.openai.com/v1/chat/completions',
+		model: 'gpt-4.1'
+	},
+	{
+		id: 'aihubmix',
+		label: 'AiHubMix',
+		url: 'https://aihubmix.com/v1/chat/completions',
+		model: 'gpt-4.1-mini'
+	},
+	{
+		id: 'siliconflow',
+		label: 'SiliconFlow',
+		url: 'https://api.siliconflow.cn/v1/chat/completions',
+		model: 'deepseek-ai/DeepSeek-V3'
+	},
+	{
+		id: 'volcengine',
+		label: 'VolcEngine',
+		url: 'https://ark.cn-beijing.volces.com/api/v3/chat/completions',
+		model: 'doubao-seed-1-6-thinking-250715'
+	},
+	{
+		id: 'volcengine-coding-plan',
+		label: 'VolcEngine Coding Plan',
+		url: 'https://ark.cn-beijing.volces.com/api/coding/v3/chat/completions',
+		model: 'doubao-seed-1-6-thinking-250715'
+	},
+	{
+		id: 'byteplus',
+		label: 'BytePlus',
+		url: 'https://ark.ap-southeast.bytepluses.com/api/v3/chat/completions',
+		model: 'doubao-seed-1-6-thinking-250715'
+	},
+	{
+		id: 'byteplus-coding-plan',
+		label: 'BytePlus Coding Plan',
+		url: 'https://ark.ap-southeast.bytepluses.com/api/coding/v3/chat/completions',
+		model: 'doubao-seed-1-6-thinking-250715'
+	},
+	{
+		id: 'minimax',
+		label: 'MiniMax',
+		url: 'https://api.minimax.io/v1/chat/completions',
+		model: 'MiniMax-M1'
+	},
+	{
+		id: 'minimax-cn',
+		label: 'MiniMax (CN)',
+		url: 'https://api.minimaxi.com/v1/chat/completions',
+		model: 'MiniMax-M1'
+	},
+	{
+		id: 'zai',
+		label: 'ZAI',
+		url: 'https://open.bigmodel.cn/api/paas/v4/chat/completions',
+		model: 'glm-5'
+	},
+	{
+		id: 'zai-coding-plan',
+		label: 'ZAI Coding Plan',
+		url: 'https://open.bigmodel.cn/api/coding/paas/v4/chat/completions',
+		model: 'glm-5'
+	},
+	{
+		id: 'ollama',
+		label: 'Ollama',
+		url: 'http://localhost:11434/v1/chat/completions',
+		model: 'llama3.2'
+	},
+	{
+		id: 'vllm',
+		label: 'vLLM',
+		url: 'http://localhost:8000/v1/chat/completions',
+		model: 'meta-llama/Llama-3.1-8B-Instruct'
+	},
+];
+
 const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 	const {t} = useTranslation();
 	const [items, setItems] = useState<Service.LLMConfigItem[]>([]);
@@ -51,30 +163,7 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 	const [savingActiveId, setSavingActiveId] = useState<number | null>(null);
 
 	const templates = useMemo(() => [
-		{
-			id: 'deepseek',
-			label: 'DeepSeek',
-			url: 'https://api.deepseek.com/v1/chat/completions',
-			model: 'deepseek-chat'
-		},
-		{
-			id: 'moonshot',
-			label: 'Moonshot',
-			url: 'https://api.moonshot.cn/v1/chat/completions',
-			model: 'moonshot-v1-auto'
-		},
-		{
-			id: 'qwen',
-			label: 'Qwen',
-			url: 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
-			model: 'qwen-coder-plus'
-		},
-		{
-			id: 'openrouter',
-			label: 'OpenRouter',
-			url: 'https://openrouter.ai/api/v1/chat/completions',
-			model: ''
-		},
+		...BUILTIN_TEMPLATES,
 		{
 			id: 'custom',
 			label: t('llm.custom'),

@@ -1,9 +1,12 @@
 // @preview-file off clear
 import { Content, Path, json } from 'Dora';
 import { Message, ToolCallFunction, callLLM } from 'Agent/Utils';
+import { sendWebIDEFileUpdate } from 'Agent/Tools';
 import * as yaml from 'yaml';
 
 import type { AgentActionRecord } from 'Agent/CodingAgent';
+
+export const DEFAULT_AGENT_PROMPT = "You are a coding assistant that helps modify and navigate code.";
 
 /**
  * Memory 配置
@@ -128,27 +131,53 @@ function utf8TakeTail(text: string, maxChars: number): string {
 /**
  * 双层存储管理器
  *
- * 管理 MEMORY.md (长期记忆) 和 HISTORY.md (历史日志)
+ * 管理 AGENT.md、MEMORY.md (长期记忆) 和 HISTORY.md (历史日志)
  */
 export class DualLayerStorage {
 	private projectDir: string;
+	private agentDir: string;
+	private agentPath: string;
 	private memoryPath: string;
 	private historyPath: string;
 
 	constructor(projectDir: string) {
 		this.projectDir = projectDir;
-		const agentDir = Path(this.projectDir, ".agent");
-		// 确保目录存在
-		this.ensureDir(agentDir);
-
-		this.memoryPath = Path(agentDir, "MEMORY.md");
-		this.historyPath = Path(agentDir, "HISTORY.md");
+		this.agentDir = Path(this.projectDir, ".agent");
+		this.agentPath = Path(this.agentDir, "AGENT.md");
+		this.memoryPath = Path(this.agentDir, "MEMORY.md");
+		this.historyPath = Path(this.agentDir, "HISTORY.md");
+		this.ensureAgentFiles();
 	}
 
 	private ensureDir(dir: string): void {
 		if (!Content.exist(dir)) {
 			Content.mkdir(dir);
 		}
+	}
+
+	private ensureFile(path: string, content: string): boolean {
+		if (Content.exist(path)) return false;
+		this.ensureDir(Path.getPath(path));
+		if (!Content.save(path, content)) {
+			return false;
+		}
+		sendWebIDEFileUpdate(path, true, content);
+		return true;
+	}
+
+	private ensureAgentFiles(): void {
+		this.ensureDir(this.agentDir);
+		this.ensureFile(this.agentPath, `${DEFAULT_AGENT_PROMPT}\n`);
+		this.ensureFile(this.memoryPath, "");
+		this.ensureFile(this.historyPath, "");
+	}
+
+	readAgentPrompt(): string {
+		if (!Content.exist(this.agentPath)) {
+			return DEFAULT_AGENT_PROMPT;
+		}
+		const prompt = Content.load(this.agentPath) as string;
+		return prompt.trim() === "" ? DEFAULT_AGENT_PROMPT : prompt;
 	}
 
 	// ===== MEMORY.md 操作 =====

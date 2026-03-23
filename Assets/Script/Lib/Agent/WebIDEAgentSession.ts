@@ -1,5 +1,5 @@
 // @preview-file off clear
-import { Content, DB, Path, json } from 'Dora';
+import { App, Content, DB, Path, json } from 'Dora';
 import { runCodingAgent, CodingAgentEvent, CodingAgentRunResult } from 'Agent/CodingAgent';
 import * as Tools from 'Agent/Tools';
 import type { StopToken } from 'Agent/Utils';
@@ -86,6 +86,11 @@ const activeStopTokens: Record<number, StopToken> = {};
 const activeAssistantMessageIds: Record<number, number> = {};
 
 const now = () => os.time();
+
+function getDefaultUseChineseResponse(): boolean {
+	const [zh] = string.match(App.locale, "^zh");
+	return zh !== undefined;
+}
 
 function toBool(v: unknown): boolean {
 	return v !== 0 && v !== false && v !== null && v !== undefined;
@@ -555,7 +560,7 @@ export function getSession(sessionId: number): AgentSessionDetailResult {
 	};
 }
 
-export function sendPrompt(sessionId: number, prompt: string, useChineseResponse = true): AgentSessionSendResult {
+export function sendPrompt(sessionId: number, prompt: string, useChineseResponse = getDefaultUseChineseResponse()): AgentSessionSendResult {
 	const session = getSessionItem(sessionId);
 	if (!session) {
 		return { success: false, message: "session not found" };

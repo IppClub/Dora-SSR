@@ -114,7 +114,7 @@ getProjectRootFromPath = (target, isDir = false) ->
 	return nil, "invalid path" unless target and target ~= "" and Content\isAbsolutePath(target)
 	if isDir
 		return target if isProjectRootDir target
-		return nil, "current directory is not a project root"
+		return getProjectDirFromFile Path(target, "__dora_project_root_search__.lua"), "current directory does not belong to any project"
 	return getProjectDirFromFile target, "current file does not belong to any project"
 
 invalidArguments = success: false, message: "invalid arguments"
@@ -176,18 +176,15 @@ HttpServer\post "/agent/checkpoint/diff", (req): invalidArguments ->
 		return AgentTools.getCheckpointDiff checkpointId
 
 HttpServer\post "/agent/checkpoint/rollback", (req): invalidArguments ->
-	switch req when {body: {:sessionId, :targetSeq}}
-		return success: false, message: "invalid targetSeq" unless targetSeq >= 0
+	switch req when {body: {:sessionId, :checkpointId}}
+		return success: false, message: "invalid checkpointId" unless checkpointId > 0
 		res = WebIDEAgentSession.getSession sessionId
 		return res unless res.success
-		taskId = res.session.currentTaskId
-		return success: false, message: "task not found" unless taskId
-		rollbackRes = AgentTools.rollbackToCheckpoint taskId, res.session.projectRoot, targetSeq
+		rollbackRes = AgentTools.rollbackCheckpoint checkpointId, res.session.projectRoot
 		return rollbackRes unless rollbackRes.success
 		return
 			success: true
-			taskId: taskId
-			headSeq: rollbackRes.headSeq
+			checkpointId: rollbackRes.checkpointId
 
 getSearchPath = (file): "" ->
 	if dir := getProjectDirFromFile file
@@ -1363,7 +1360,7 @@ HttpServer\postSchedule "/ts/build", (req): success: false ->
 			content = Content\load path
 			unless content
 				return success: false, message: "failed to read file"
-			emit "AppWS", "Send", json.encode name: "UpdateTSCode", file: path, :content
+			emit "AppWS", "Send", json.encode name: "UpdateFile", file: path, exists: true, :content
 			if "d" ~= Path\getExt Path\getName path
 				done = false
 				with Node!
@@ -1391,7 +1388,7 @@ HttpServer\postSchedule "/ts/build", (req): success: false ->
 				file = Path path, f
 				if content := Content\load file
 					fileData[file] = content
-					emit "AppWS", "Send", json.encode name: "UpdateTSCode", :file, :content
+					emit "AppWS", "Send", json.encode name: "UpdateFile", :file, exists: true, :content
 				else
 					messages[] = success: false, :file, message: "failed to read file"
 			for file, content in pairs fileData

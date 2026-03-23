@@ -23,6 +23,7 @@ interface ProjectWorkspacePanelProps {
 	onRollbackComplete?: (projectRoot: string) => void;
 	onUploaded: (path: string, file: string, open: boolean) => void;
 	onViewChange?: (view: WorkspaceView) => void;
+	onOpenFile?: (filePath: string) => void;
 }
 
 export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps) {
@@ -38,6 +39,7 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 		onRollbackComplete,
 		onUploaded,
 		onViewChange,
+		onOpenFile,
 	} = props;
 	const hasAgent = agentSessionId !== undefined;
 	const [internalView, setInternalView] = React.useState<WorkspaceView>(() => {
@@ -139,6 +141,7 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 						showHeader={false}
 						addAlert={addAlert}
 						onRollbackComplete={onRollbackComplete}
+						onOpenFile={onOpenFile}
 					/>
 				) : (
 					<MacScrollbar skin="dark" style={{ width: "100%", height: "100%" }}>

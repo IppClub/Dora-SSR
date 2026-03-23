@@ -14,6 +14,7 @@ import { BsArrowDown } from 'react-icons/bs';
 import AgentMessageList from './AgentMessageList';
 import AgentComposer from './AgentComposer';
 import AgentStepList from './AgentStepList';
+import Info from './Info';
 
 interface AgentPanelProps {
 	sessionId: number;
@@ -23,6 +24,7 @@ interface AgentPanelProps {
 	showHeader?: boolean;
 	addAlert?: (msg: string, type: "success" | "info" | "warning" | "error") => void;
 	onRollbackComplete?: (projectRoot: string) => void;
+	onOpenFile?: (filePath: string) => void;
 }
 
 function normalizeList<T>(value: unknown): T[] {
@@ -38,7 +40,7 @@ function normalizeList<T>(value: unknown): T[] {
 export default function AgentPanel(props: AgentPanelProps) {
 	const HISTORY_VISIBLE_ROUNDS = 10;
 	const { t } = useTranslation();
-	const { sessionId, projectRoot, title, height, showHeader = true, addAlert, onRollbackComplete } = props;
+	const { sessionId, projectRoot, title, height, showHeader = true, addAlert, onRollbackComplete, onOpenFile } = props;
 	const [prompt, setPrompt] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [rollingBack, setRollingBack] = useState<number | null>(null);
@@ -214,7 +216,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 			const res = await Service.agentSessionSend({
 				sessionId,
 				prompt: text,
-				useChineseResponse: true,
+				useChineseResponse: Info.locale.match(/^zh/) !== null,
 			});
 			if (!res.success) {
 				addAlert?.(res.message, "error");
@@ -257,16 +259,21 @@ export default function AgentPanel(props: AgentPanelProps) {
 		}
 	};
 
-	const onRollback = async (seq: number) => {
-		if (rollingBack !== null) return;
+	const onRollback = async (step: Service.AgentSessionStep) => {
+		const seq = step.checkpointSeq;
+		const checkpointId = step.checkpointId;
+		if (!seq || !checkpointId || rollingBack !== null) return;
 		setRollingBack(seq);
 		try {
-			const res = await Service.agentCheckpointRollback({ sessionId, targetSeq: Math.max(0, seq - 1) });
+			const res = await Service.agentCheckpointRollback({
+				sessionId,
+				checkpointId,
+			});
 			if (!res.success) {
 				addAlert?.(res.message, "error");
 				return;
 			}
-			addAlert?.(t("agent.rollbackDone", { seq: seq - 1 }), "success");
+			addAlert?.(t("agent.rollbackDone", { seq: Math.max(0, seq - 1) }), "success");
 			await refresh(true);
 			onRollbackComplete?.(projectRoot);
 		} finally {
@@ -342,6 +349,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 									rollingBack={rollingBack}
 									onToggleDiff={(step) => void onToggleDiff(step)}
 									onRollback={(seq) => void onRollback(seq)}
+									onOpenFile={onOpenFile}
 								/>
 							</Box>
 						) : null}

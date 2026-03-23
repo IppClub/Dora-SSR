@@ -15,12 +15,36 @@ import Info from './Info';
 import * as wa from './languages/wa';
 import * as yarn from './languages/yarn';
 
-Service.addUpdateTSCodeListener((file, code) => {
-	const model = monaco.editor.getModel(monaco.Uri.file(file));
+const getLanguageForFile = (file: string) => {
+	const dotIndex = file.lastIndexOf(".");
+	const ext = dotIndex >= 0 ? file.slice(dotIndex).toLowerCase() : "";
+	switch (ext) {
+		case ".lua": return "lua";
+		case ".tl": return "tl";
+		case ".yue": return "yue";
+		case ".ts":
+		case ".tsx":
+			return "typescript";
+		case ".xml": return "xml";
+		case ".md": return "markdown";
+		case ".wa": return "wa";
+		case ".mod": return "ini";
+		case ".yarn": return "yarn";
+		default: return undefined;
+	}
+};
+
+Service.addUpdateFileListener((file, exists, content) => {
+	const uri = monaco.Uri.file(file);
+	const model = monaco.editor.getModel(uri);
+	if (!exists) {
+		model?.dispose();
+		return;
+	}
 	if (model) {
-		model.setValue(code);
+		model.setValue(content);
 	} else {
-		monaco.editor.createModel(code, "typescript", monaco.Uri.file(file));
+		monaco.editor.createModel(content, getLanguageForFile(file), uri);
 	}
 });
 

@@ -21,7 +21,7 @@ export const getWebSocket = () => webSocket ? webSocket : null;
 type ServiceEvents = {
 	[WsEvent.Log]: [string, string];
 	[WsEvent.Profiler]: [ProfilerInfo];
-	[WsEvent.UpdateTSCode]: [string, string];
+	[WsEvent.UpdateFile]: [string, boolean, string];
 	[WsEvent.Download]: [string, WsDownloadStatus, number];
 	[WsOpenEvent]: [];
 	[WsCloseEvent]: [];
@@ -113,7 +113,7 @@ const enum WsEvent {
 	Log = "Log",
 	Profiler = "Profiler",
 	TranspileTS = "TranspileTS",
-	UpdateTSCode = "UpdateTSCode",
+	UpdateFile = "UpdateFile",
 	Download = "Download",
 }
 
@@ -149,8 +149,12 @@ export const removeProfilerListener = (listener: (info: ProfilerInfo) => void) =
 	eventEmitter.off(WsEvent.Profiler, listener);
 };
 
-export const addUpdateTSCodeListener = (listener: (file: string, code: string) => void) => {
-	eventEmitter.on(WsEvent.UpdateTSCode, listener);
+export const addUpdateFileListener = (listener: (file: string, exists: boolean, content: string) => void) => {
+	eventEmitter.on(WsEvent.UpdateFile, listener);
+};
+
+export const removeUpdateFileListener = (listener: (file: string, exists: boolean, content: string) => void) => {
+	eventEmitter.off(WsEvent.UpdateFile, listener);
 };
 
 type WsDownloadStatus = "downloading" | "completed" | "failed";
@@ -232,8 +236,8 @@ export function openWebSocket() {
 								eventEmitter.emit(result.name, result.info);
 								break;
 							}
-							case WsEvent.UpdateTSCode: {
-								eventEmitter.emit(result.name, result.file, result.content);
+							case WsEvent.UpdateFile: {
+								eventEmitter.emit(result.name, result.file, result.exists !== false, result.content ?? "");
 								break;
 							}
 							case WsEvent.Download: {
@@ -1017,11 +1021,10 @@ export const agentCheckpointDiff = (req: { checkpointId: number; }) => {
 	}>("/agent/checkpoint/diff", req);
 };
 
-export const agentCheckpointRollback = (req: { sessionId: number; targetSeq: number; }) => {
+export const agentCheckpointRollback = (req: { sessionId: number; checkpointId: number; }) => {
 	return post<{
 		success: true;
-		taskId: number;
-		headSeq: number;
+		checkpointId: number;
 	} | {
 		success: false;
 		message: string;

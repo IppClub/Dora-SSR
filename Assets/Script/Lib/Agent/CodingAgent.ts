@@ -4,7 +4,7 @@ import { Flow, Node } from 'Agent/flow';
 import { callLLMStream, callLLM, Message, StopToken, Log } from 'Agent/Utils';
 import * as Tools from 'Agent/Tools';
 import * as yaml from 'yaml';
-import { MemoryCompressor } from 'Agent/Memory';
+import { MemoryCompressor, DEFAULT_AGENT_PROMPT } from 'Agent/Memory';
 
 export type CodingAgentRunResult =
 	| {
@@ -896,8 +896,8 @@ function buildDecisionToolSchema() {
 	}];
 }
 
-function buildDecisionPrompt(shared: AgentShared, userQuery: string, historyText: string, memoryContext: string): string {
-	return `You are a coding assistant that helps modify and navigate code.
+function buildDecisionPrompt(shared: AgentShared, userQuery: string, historyText: string, memoryContext: string, agentPrompt: string): string {
+	return `${agentPrompt || DEFAULT_AGENT_PROMPT}
 Given the request and action history, decide which tool to use next.
 
 ${memoryContext}
@@ -1110,12 +1110,15 @@ class MainDecisionAgent extends Node<AgentShared> {
 		const memoryContext = memory.compressor
 			.getStorage()
 			.getMemoryContext();
+		const agentPrompt = memory.compressor
+			.getStorage()
+			.readAgentPrompt();
 
 		// 只使用未压缩的历史
 		const uncompressedHistory = input.history.slice(memory.lastConsolidatedIndex);
 		const historyText = formatHistorySummaryForDecision(uncompressedHistory);
 
-		const prompt = buildDecisionPrompt(input.shared, input.userQuery, historyText, memoryContext);
+		const prompt = buildDecisionPrompt(input.shared, input.userQuery, historyText, memoryContext, agentPrompt);
 
 		if (shared.decisionMode === "tool_calling") {
 			Log("Info", `[CodingAgent] decision mode=tool_calling step=${shared.step + 1} history=${uncompressedHistory.length}`);
