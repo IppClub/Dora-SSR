@@ -24,7 +24,7 @@ function run(command, args, cwd) {
   const result = spawnSync(command, args, {
     cwd,
     stdio: "inherit",
-    shell: false,
+    shell: true,
   });
   if (result.error) {
     throw result.error;

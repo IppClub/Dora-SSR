@@ -18,7 +18,7 @@ function run(command, args, options = {}) {
   const result = spawnSync(command, args, {
     cwd: doraDoraDir,
     stdio: "inherit",
-    shell: false,
+    shell: true,
     env: options.env || process.env,
   });
   if (result.error) throw result.error;
