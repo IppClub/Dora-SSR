@@ -9,8 +9,57 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */]]
 
 import "lulpeg"
+hasLfs, lfs = pcall require, "lfs"
 
 lulpeg\global _G
+
+copyTree = nil
+if hasLfs
+	ensureDir = (path) ->
+		return if path == "" or path == "."
+		mode = lfs.attributes path, "mode"
+		if mode == "directory"
+			return
+		elseif mode ~= nil
+			error "path \"#{path}\" exists and is not a directory"
+		parent = path\match "^(.*)/[^/]+$"
+		if parent and parent ~= path
+			ensureDir parent
+		assert lfs.mkdir(path), "failed to create directory: #{path}"
+
+	removeTree = (path) ->
+		mode = lfs.attributes path, "mode"
+		return if mode == nil
+		if mode == "directory"
+			for name in lfs.dir path
+				continue if name == "." or name == ".."
+				removeTree "#{path}/#{name}"
+			assert lfs.rmdir(path), "failed to remove directory: #{path}"
+		else
+			assert os.remove(path), "failed to remove file: #{path}"
+
+	copyFile = (src, dst) ->
+		parent = dst\match "^(.*)/[^/]+$"
+		ensureDir parent if parent
+		close inFile = assert io.open src, "rb"
+		close outFile = assert io.open dst, "wb"
+		while true
+			chunk = inFile\read 1024 * 64
+			break unless chunk
+			assert outFile\write chunk
+
+	copyTree = (src, dst) ->
+		assert lfs.attributes(src, "mode") == "directory", "source directory not found: #{src}"
+		removeTree dst
+		ensureDir dst
+		for name in lfs.dir src
+			continue if name == "." or name == ".."
+			srcPath = "#{src}/#{name}"
+			dstPath = "#{dst}/#{name}"
+			if lfs.attributes(srcPath, "mode") == "directory"
+				copyTree srcPath, dstPath
+			else
+				copyFile srcPath, dstPath
 
 nonObjectTypes = {}
 
@@ -1916,3 +1965,8 @@ func #{waNewName}.GetRaw() => i64 {
 		cppBinding = []
 		cppLink = []
 	print "#{clsCount} classes, #{funcCount} functions Done!"
+	if copyTree
+		copyTree "../dora-wa/vendor", "../../Assets/dora-wa/vendor"
+		print "Copied wa vendor bindings to Assets/dora-wa/vendor."
+	else
+		print "Skipped copying wa vendor bindings because LuaFileSystem (lfs) is unavailable."

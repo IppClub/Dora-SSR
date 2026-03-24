@@ -17,7 +17,7 @@ DORA_EXPORT void videonode_pause(int64_t self) {
 DORA_EXPORT void videonode_resume(int64_t self) {
 	r_cast<VideoNode*>(self)->resume();
 }
-DORA_EXPORT int32_t videonode_get_paused(int64_t self) {
+DORA_EXPORT int32_t videonode_is_paused(int64_t self) {
 	return r_cast<VideoNode*>(self)->isPaused() ? 1 : 0;
 }
 DORA_EXPORT int64_t videonode_new(int64_t filename, int32_t looped) {
@@ -29,6 +29,6 @@ static void linkVideoNode(wasm3::module3& mod) {
 	mod.link_optional("*", "videonode_type", videonode_type);
 	mod.link_optional("*", "videonode_pause", videonode_pause);
 	mod.link_optional("*", "videonode_resume", videonode_resume);
-	mod.link_optional("*", "videonode_get_paused", videonode_get_paused);
+	mod.link_optional("*", "videonode_is_paused", videonode_is_paused);
 	mod.link_optional("*", "videonode_new", videonode_new);
 }
