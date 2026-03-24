@@ -974,7 +974,7 @@ Decision rules:
 - Prefer reading/searching before editing when information is missing.
 - After any search tool returns candidate files or docs, use read_file or read_file_range to inspect search result details instead of repeatedly broadening search.
 - Use glob_files to discover candidate files. Use grep_files only when you need to search file contents.
-- Use finish only when no more actions are needed.
+- If the user asked a question, prefer finishing only after you can answer it in the final response.
 ${getReplyLanguageDirective(shared)}`;
 }
 
@@ -1759,6 +1759,7 @@ Generate a concise response that explains:
 IMPORTANT:
 - Focus on outcomes, not tool names.
 - Speak directly to the user.
+- If the user asked a question, include a direct answer to that question in the response.
 ${getReplyLanguageDirective(input.shared)}`;
 		let res: LLMResult | undefined;
 		for (let i = 0; i < input.shared.llmMaxTry; i++) {
