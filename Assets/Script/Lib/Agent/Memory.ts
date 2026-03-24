@@ -1,6 +1,6 @@
 // @preview-file off clear
 import { Content, Path, json } from 'Dora';
-import { Message, ToolCallFunction, callLLM } from 'Agent/Utils';
+import { Message, ToolCallFunction, callLLM, Log } from 'Agent/Utils';
 import type { LLMConfig } from 'Agent/Utils';
 import { sendWebIDEFileUpdate } from 'Agent/Tools';
 import * as yaml from 'yaml';
@@ -8,6 +8,380 @@ import * as yaml from 'yaml';
 import type { AgentActionRecord } from 'Agent/CodingAgent';
 
 export const DEFAULT_AGENT_PROMPT = "You are a coding assistant that helps modify and navigate code.";
+const AGENT_CONFIG_DIR = ".agent";
+const AGENT_PROMPTS_FILE = "AGENT.md";
+
+export interface AgentPromptPack {
+	agentIdentityPrompt: string;
+	decisionIntroPrompt: string;
+	toolDefinitionsShort: string;
+	toolDefinitionsDetailed: string;
+	decisionRulesPrompt: string;
+	replyLanguageDirectiveZh: string;
+	replyLanguageDirectiveEn: string;
+	toolCallingSystemPrompt: string;
+	toolCallingNoPlainTextPrompt: string;
+	toolCallingRetryPrompt: string;
+	yamlDecisionFormatPrompt: string;
+	finalSummaryPrompt: string;
+	memoryCompressionSystemPrompt: string;
+	memoryCompressionBodyPrompt: string;
+	memoryCompressionToolCallingPrompt: string;
+	memoryCompressionYamlPrompt: string;
+	memoryCompressionYamlRetryPrompt: string;
+}
+
+export const DEFAULT_AGENT_PROMPT_PACK: AgentPromptPack = {
+	agentIdentityPrompt: DEFAULT_AGENT_PROMPT,
+	decisionIntroPrompt: "Given the request and action history, decide which tool to use next.",
+	toolDefinitionsShort: `Available tools:
+1. read_file: Read content from a file with pagination
+1b. read_file_range: Read specific line range from a file
+2. edit_file: Make changes to a file
+3. delete_file: Remove a file
+4. grep_files: Search text patterns inside files
+5. glob_files: Enumerate files under a directory with optional glob filters
+6. search_dora_api: Search Dora SSR game engine docs and tutorials
+7. build: Run build/checks for ts/tsx, teal, lua, yue, yarn
+8. finish: End and summarize`,
+	toolDefinitionsDetailed: `Available tools:
+1. read_file: Read content from a file with pagination
+	- Parameters: path (workspace-relative), offset(optional), limit(optional)
+	- Prefer small reads and continue with a new offset (>= 1) when needed.
+1b. read_file_range: Read specific line range from a file
+	- Parameters: path, startLine, endLine
+	- Line starts with 1.
+
+2. edit_file: Make changes to a file
+	- Parameters: path, old_str, new_str
+		- Rules:
+			- old_str and new_str MUST be different
+			- old_str must match existing text exactly when it is non-empty
+			- If file doesn't exist, set old_str to empty string to create it with new_str
+
+3. delete_file: Remove a file
+	- Parameters: target_file
+
+4. grep_files: Search text patterns inside files
+	- Parameters: path, pattern, globs(optional), useRegex(optional), caseSensitive(optional), limit(optional), offset(optional), groupByFile(optional)
+	- \`path\` may point to either a directory or a single file.
+	- This is content search (grep), not filename search.
+	- \`pattern\` matches file contents. \`globs\` only restrict which files are searched.
+	- \`useRegex\` defaults to false. Set \`useRegex=true\` when \`pattern\` is a regular expression such as \`^title:\`.
+	- \`caseSensitive\` defaults to false.
+	- Use \`|\` inside pattern to separate alternative content queries; results are merged by union (OR), not AND.
+	- Search results are intentionally capped. Refine the pattern or read a specific file next.
+	- Use \`offset\` to continue browsing later pages of the same search.
+	- Use \`groupByFile=true\` to rank candidate files before drilling into one file.
+
+5. glob_files: Enumerate files under a directory
+	- Parameters: path, globs(optional), maxEntries(optional)
+	- Use this to discover files by path, extension, or glob pattern.
+	- Directory listings are intentionally capped. Narrow the path before expanding further.
+
+6. search_dora_api: Search Dora SSR game engine docs and tutorials
+	- Parameters: pattern, docSource(api/tutorial, optional), programmingLanguage(ts/tsx/lua/yue/teal/tl/wa), limit(optional)
+	- \`docSource\` defaults to \`api\`. Use \`tutorial\` to search teaching docs.
+	- Use \`|\` inside pattern to separate alternative queries; results are merged by union (OR), not AND.
+	- \`useRegex\` defaults to false whenever supported by a search tool.
+	- \`limit\` restricts each individual pattern search and must be <= {{SEARCH_DORA_API_LIMIT_MAX}}.
+
+7. build: Run build/checks for ts/tsx, teal, lua, yue, yarn
+	- Parameters: path(optional)
+	- After one build completes, do not run build again unless files were edited/deleted. Read the result and then finish or take corrective action.
+
+8. finish: End and summarize
+	- Parameters: {}`,
+	decisionRulesPrompt: `Decision rules:
+- Choose exactly one next action.
+- Keep params shallow and valid for the selected tool.
+- Prefer reading/searching before editing when information is missing.
+- After any search tool returns candidate files or docs, use read_file or read_file_range to inspect search result details instead of repeatedly broadening search.
+- Use glob_files to discover candidate files. Use grep_files only when you need to search file contents.
+- If the user asked a question, prefer finishing only after you can answer it in the final response.`,
+	replyLanguageDirectiveZh: "Use Simplified Chinese for natural-language fields (reason/message/summary).",
+	replyLanguageDirectiveEn: "Use English for natural-language fields (reason/message/summary).",
+	toolCallingSystemPrompt: "You are a coding assistant that must decide the next action by calling the next_step tool exactly once.",
+	toolCallingNoPlainTextPrompt: "Do not answer with plain text.",
+	toolCallingRetryPrompt: "Previous tool call was invalid ({{LAST_ERROR}}). Retry with one valid next_step tool call only.",
+	yamlDecisionFormatPrompt: `Respond with one YAML object:
+\`\`\`yaml
+tool: "edit_file"
+reason: |-
+	A readable multi-line explanation is allowed.
+	Keep indentation consistent.
+params:
+	path: "relative/path.ts"
+	old_str: |-
+		function oldName() {
+			print("old");
+		}
+	new_str: |-
+		function newName() {
+			print("hello");
+		}
+\`\`\`
+Strict YAML formatting rules:
+- Return YAML only, no prose before/after.
+- Use exactly one YAML object with keys: tool, reason, params.
+- Multi-line strings are allowed using block scalars (\`|\`, \`|-\`, \`>\`).
+- If using a block scalar, all content lines must be indented consistently with tabs.`,
+	finalSummaryPrompt: `You are a coding assistant. Summarize what you did for the user.
+
+Here are the actions you performed:
+{{SUMMARY}}
+
+Generate a concise response that explains:
+1. What actions were taken
+2. What was found or modified
+3. Any next steps
+
+IMPORTANT:
+- Focus on outcomes, not tool names.
+- Speak directly to the user.
+- If the user asked a question, include a direct answer to that question in the response.
+{{LANGUAGE_DIRECTIVE}}`,
+	memoryCompressionSystemPrompt: "You are a memory consolidation agent. You MUST call the save_memory tool.",
+	memoryCompressionBodyPrompt: `Process this conversation and consolidate it.
+
+### Current Long-term Memory
+{{CURRENT_MEMORY}}
+
+### Recent Actions to Process
+{{HISTORY_TEXT}}
+
+### Instructions
+
+1. **Analyze the conversation**:
+	- What was the user trying to accomplish?
+	- What tools were used and what were the results?
+	- Were there any problems or solutions?
+	- What decisions were made?
+
+2. **Update the long-term memory**:
+	- Preserve all existing facts
+	- Add new important information (user preferences, project context, decisions)
+	- Remove outdated or redundant information
+	- Keep the memory concise but complete
+
+3. **Create a history entry**:
+	- Summarize key events, decisions, and outcomes
+	- Include details useful for grep search
+	- Format as a single paragraph`,
+	memoryCompressionToolCallingPrompt: `### Output Format
+
+Call the save_memory tool with:
+- history_entry: the summary paragraph without timestamp
+- memory_update: the full updated MEMORY.md content`,
+	memoryCompressionYamlPrompt: `### Output Format
+
+Return exactly one YAML object:
+\`\`\`yaml
+history_entry: "Summary paragraph"
+memory_update: |-
+	Full updated MEMORY.md content
+\`\`\`
+
+Rules:
+- Return YAML only, no prose before or after.
+- Use exactly two keys: history_entry, memory_update.
+- Use a block scalar for memory_update when it spans multiple lines.`,
+	memoryCompressionYamlRetryPrompt: "Previous response was invalid ({{LAST_ERROR}}). Return exactly one valid YAML object only.",
+};
+
+export const PROMPT_PACK_KEYS: (keyof AgentPromptPack)[] = [
+	"agentIdentityPrompt",
+	"decisionIntroPrompt",
+	"toolDefinitionsShort",
+	"toolDefinitionsDetailed",
+	"decisionRulesPrompt",
+	"replyLanguageDirectiveZh",
+	"replyLanguageDirectiveEn",
+	"toolCallingSystemPrompt",
+	"toolCallingNoPlainTextPrompt",
+	"toolCallingRetryPrompt",
+	"yamlDecisionFormatPrompt",
+	"finalSummaryPrompt",
+	"memoryCompressionSystemPrompt",
+	"memoryCompressionBodyPrompt",
+	"memoryCompressionToolCallingPrompt",
+	"memoryCompressionYamlPrompt",
+	"memoryCompressionYamlRetryPrompt",
+];
+
+function replaceTemplateVars(template: string, vars: Record<string, string>): string {
+	let output = template;
+	for (const key in vars) {
+		output = output.split(`{{${key}}}`).join(vars[key] ?? "");
+	}
+	return output;
+}
+
+export function resolveAgentPromptPack(value?: Record<string, unknown> | null): AgentPromptPack {
+	const merged: AgentPromptPack = {
+		...DEFAULT_AGENT_PROMPT_PACK,
+	};
+		if (value && !Array.isArray(value) && type(value) === "table") {
+			for (let i = 0; i < PROMPT_PACK_KEYS.length; i++) {
+				const key = PROMPT_PACK_KEYS[i];
+				if (typeof value[key] === "string") {
+					((merged as unknown) as Record<string, unknown>)[key] = value[key] as string;
+				}
+			}
+		}
+	return merged;
+}
+
+export function renderDefaultAgentPromptPackMarkdown(): string {
+	const pack = DEFAULT_AGENT_PROMPT_PACK;
+	const lines: string[] = [];
+	lines.push(`# Dora Agent Prompt Configuration`);
+	lines.push("");
+	lines.push(`Edit the content under each \`##\` heading. Missing sections fall back to built-in defaults.`);
+	lines.push("");
+	for (let i = 0; i < PROMPT_PACK_KEYS.length; i++) {
+		const key = PROMPT_PACK_KEYS[i];
+		lines.push(`## ${key}`);
+		const text = pack[key] as string;
+		const split = text.split("\n");
+		for (let j = 0; j < split.length; j++) {
+			lines.push(split[j]);
+		}
+		lines.push("");
+	}
+	return lines.join("\n").trim() + "\n";
+}
+
+function getPromptPackConfigPath(projectRoot: string): string {
+	return Path(projectRoot, AGENT_CONFIG_DIR, AGENT_PROMPTS_FILE);
+}
+
+function ensurePromptPackConfig(projectRoot: string): string | undefined {
+	const path = getPromptPackConfigPath(projectRoot);
+	if (Content.exist(path)) return undefined;
+	const dir = Path.getPath(path);
+	if (!Content.exist(dir)) {
+		Content.mkdir(dir);
+	}
+	const content = renderDefaultAgentPromptPackMarkdown();
+	if (!Content.save(path, content)) {
+		return `Failed to create default Agent prompt config at ${path}. Using built-in defaults for this run.`;
+	}
+	sendWebIDEFileUpdate(path, true, content);
+	return undefined;
+}
+
+function parsePromptPackMarkdown(text: string): {
+	value?: Record<string, unknown>;
+	missing: string[];
+	unknown: string[];
+	error?: string;
+} {
+	if (!text || text.trim() === "") {
+		return {
+			value: {},
+			missing: [...PROMPT_PACK_KEYS],
+			unknown: [],
+		};
+	}
+	const normalized = text.replace("\r\n", "\n");
+	const lines = normalized.split("\n");
+	const sections: Record<string, string[]> = {};
+	const unknown: string[] = [];
+	let currentHeading = "";
+	const isKnownPromptPackKey = (name: string): boolean => {
+		for (let i = 0; i < PROMPT_PACK_KEYS.length; i++) {
+			if (PROMPT_PACK_KEYS[i] === name) return true;
+		}
+		return false;
+	};
+	for (let i = 0; i < lines.length; i++) {
+		const line = lines[i];
+		const [matchedHeading] = string.match(line, "^##[ \t]+(.+)$");
+		if (matchedHeading !== undefined) {
+			const heading = tostring(matchedHeading).trim();
+			if (isKnownPromptPackKey(heading)) {
+				currentHeading = heading;
+				if (sections[currentHeading] === undefined) {
+					sections[currentHeading] = [];
+				}
+				continue;
+			}
+			if (currentHeading === "") {
+				unknown.push(heading);
+				continue;
+			}
+		}
+		if (currentHeading !== "") {
+			sections[currentHeading].push(line);
+		}
+	}
+	const value: Record<string, unknown> = {};
+	const missing: string[] = [];
+	for (let i = 0; i < PROMPT_PACK_KEYS.length; i++) {
+		const key = PROMPT_PACK_KEYS[i];
+		const section = sections[key];
+		const body = section !== undefined ? section.join("\n").trim() : "";
+		if (body === "") {
+			missing.push(key);
+			continue;
+		}
+		value[key] = body;
+	}
+	if (Object.keys(sections).length === 0) {
+		return {
+			error: "no ## sections found",
+			unknown,
+			missing,
+		};
+	}
+	return { value, missing, unknown };
+}
+
+export function loadAgentPromptPack(projectRoot: string): { pack: AgentPromptPack; warnings: string[]; path: string } {
+	const path = getPromptPackConfigPath(projectRoot);
+	const warnings: string[] = [];
+	const ensureWarning = ensurePromptPackConfig(projectRoot);
+	if (ensureWarning && ensureWarning !== "") {
+		warnings.push(ensureWarning);
+	}
+	if (!Content.exist(path)) {
+		return {
+			pack: resolveAgentPromptPack(),
+			warnings,
+			path,
+		};
+	}
+	const text = Content.load(path) as string;
+	if (!text || text.trim() === "") {
+		warnings.push(`Agent prompt config at ${path} is empty. Using built-in defaults for this run.`);
+		return {
+			pack: resolveAgentPromptPack(),
+			warnings,
+			path,
+		};
+	}
+	const parsed = parsePromptPackMarkdown(text);
+	if (parsed.error || !parsed.value) {
+		warnings.push(`Agent prompt config at ${path} is invalid (${parsed.error ?? "parse failed"}). Using built-in defaults for this run.`);
+		return {
+			pack: resolveAgentPromptPack(),
+			warnings,
+			path,
+		};
+	}
+	if (parsed.unknown.length > 0) {
+		warnings.push(`Agent prompt config at ${path} contains unrecognized sections: ${parsed.unknown.join(", ")}.`);
+	}
+	if (parsed.missing.length > 0) {
+		warnings.push(`Agent prompt config at ${path} is missing sections: ${parsed.missing.join(", ")}. Built-in defaults were used for those sections.`);
+	}
+	return {
+		pack: resolveAgentPromptPack(parsed.value),
+		warnings,
+		path,
+	};
+}
 
 /**
  * Memory 配置
@@ -27,6 +401,9 @@ export interface MemoryConfig {
 
 	/** 当前运行绑定的 LLM 配置 */
 	llmConfig: LLMConfig;
+
+	/** 当前会话使用的 Prompt 配置 */
+	promptPack?: Partial<AgentPromptPack> | AgentPromptPack;
 }
 
 /**
@@ -132,12 +509,11 @@ function utf8TakeTail(text: string, maxChars: number): string {
 /**
  * 双层存储管理器
  *
- * 管理 AGENT.md、MEMORY.md (长期记忆) 和 HISTORY.md (历史日志)
+ * 管理 MEMORY.md (长期记忆) 和 HISTORY.md (历史日志)
  */
 export class DualLayerStorage {
 	private projectDir: string;
 	private agentDir: string;
-	private agentPath: string;
 	private memoryPath: string;
 	private historyPath: string;
 	private sessionPath: string;
@@ -145,7 +521,6 @@ export class DualLayerStorage {
 	constructor(projectDir: string) {
 		this.projectDir = projectDir;
 		this.agentDir = Path(this.projectDir, ".agent");
-		this.agentPath = Path(this.agentDir, "AGENT.md");
 		this.memoryPath = Path(this.agentDir, "MEMORY.md");
 		this.historyPath = Path(this.agentDir, "HISTORY.md");
 		this.sessionPath = Path(this.agentDir, "SESSION.jsonl");
@@ -170,7 +545,6 @@ export class DualLayerStorage {
 
 	private ensureAgentFiles(): void {
 		this.ensureDir(this.agentDir);
-		this.ensureFile(this.agentPath, `${DEFAULT_AGENT_PROMPT}\n`);
 		this.ensureFile(this.memoryPath, "");
 		this.ensureFile(this.historyPath, "");
 	}
@@ -208,14 +582,6 @@ export class DualLayerStorage {
 		};
 	}
 
-	readAgentPrompt(): string {
-		if (!Content.exist(this.agentPath)) {
-			return DEFAULT_AGENT_PROMPT;
-		}
-		const prompt = Content.load(this.agentPath) as string;
-		return prompt.trim() === "" ? DEFAULT_AGENT_PROMPT : prompt;
-	}
-
 	// ===== MEMORY.md 操作 =====
 
 	/**
@@ -243,7 +609,7 @@ export class DualLayerStorage {
 		const memory = this.readMemory();
 		if (!memory) return "";
 
-		return `## Long-term Memory
+		return `### Long-term Memory
 
 ${memory}`;
 	}
@@ -352,14 +718,31 @@ ${memory}`;
  */
 export class MemoryCompressor {
 	private storage: DualLayerStorage;
-	private config: MemoryConfig;
+	private config: Omit<MemoryConfig, "promptPack"> & { promptPack: AgentPromptPack };
 	private consecutiveFailures: number = 0;
 
 	private static readonly MAX_FAILURES = 3;
 
 	constructor(config: MemoryConfig) {
-		this.config = config;
+		const loadedPromptPack = loadAgentPromptPack(config.projectDir);
+		for (let i = 0; i < loadedPromptPack.warnings.length; i++) {
+			Log("Warn", `[Agent] ${loadedPromptPack.warnings[i]}`);
+		}
+		const overridePack = (config.promptPack && !Array.isArray(config.promptPack) && type(config.promptPack) === "table")
+			? config.promptPack as Record<string, unknown>
+			: undefined;
+		this.config = {
+			...config,
+			promptPack: resolveAgentPromptPack({
+				...(loadedPromptPack.pack as unknown as Record<string, unknown>),
+				...(overridePack ?? {}),
+			}),
+		};
 		this.storage = new DualLayerStorage(this.config.projectDir);
+	}
+
+	getPromptPack(): AgentPromptPack {
+		return this.config.promptPack;
 	}
 
 	/**
@@ -566,7 +949,7 @@ export class MemoryCompressor {
 		const messages: Message[] = [
 			{
 				role: "system",
-				content: "You are a memory consolidation agent. You MUST call the save_memory tool."
+				content: this.config.promptPack.memoryCompressionSystemPrompt,
 			},
 			{
 				role: "user",
@@ -667,7 +1050,9 @@ export class MemoryCompressor {
 
 		for (let i = 0; i < maxLLMTry; i++) {
 			const feedback = i > 0
-				? `\n\nPrevious response was invalid (${lastError}). Return exactly one valid YAML object only.`
+				? `\n\n${replaceTemplateVars(this.config.promptPack.memoryCompressionYamlRetryPrompt, {
+					LAST_ERROR: lastError,
+				})}`
 				: "";
 			const response = await callLLM(
 				[{ role: "user", content: `${prompt}${feedback}` }],
@@ -714,61 +1099,22 @@ export class MemoryCompressor {
 	 * 构建压缩提示
 	 */
 	private buildCompressionPromptBody(currentMemory: string, historyText: string): string {
-		return `Process this conversation and consolidate it.
-
-## Current Long-term Memory
-${currentMemory || "(empty)"}
-
-## Recent Actions to Process
-${historyText}
-
-## Instructions
-
-1. **Analyze the conversation**:
-	- What was the user trying to accomplish?
-	- What tools were used and what were the results?
-	- Were there any problems or solutions?
-	- What decisions were made?
-
-2. **Update the long-term memory**:
-	- Preserve all existing facts
-	- Add new important information (user preferences, project context, decisions)
-	- Remove outdated or redundant information
-	- Keep the memory concise but complete
-
-3. **Create a history entry**:
-	- Summarize key events, decisions, and outcomes
-	- Include details useful for grep search
-	- Format as a single paragraph
-`;
+		return replaceTemplateVars(this.config.promptPack.memoryCompressionBodyPrompt, {
+			CURRENT_MEMORY: currentMemory || "(empty)",
+			HISTORY_TEXT: historyText,
+		});
 	}
 
 	private buildToolCallingCompressionPrompt(currentMemory: string, historyText: string): string {
 		return `${this.buildCompressionPromptBody(currentMemory, historyText)}
 
-## Output Format
-
-Call the save_memory tool with:
-- history_entry: the summary paragraph without timestamp
-- memory_update: the full updated MEMORY.md content`;
+${this.config.promptPack.memoryCompressionToolCallingPrompt}`;
 	}
 
 	private buildYAMLCompressionPrompt(currentMemory: string, historyText: string): string {
 		return `${this.buildCompressionPromptBody(currentMemory, historyText)}
 
-## Output Format
-
-Return exactly one YAML object:
-\`\`\`yaml
-history_entry: "Summary paragraph"
-memory_update: |-
-	Full updated MEMORY.md content
-\`\`\`
-
-Rules:
-- Return YAML only, no prose before or after.
-- Use exactly two keys: history_entry, memory_update.
-- Use a block scalar for memory_update when it spans multiple lines.`;
+${this.config.promptPack.memoryCompressionYamlPrompt}`;
 	}
 
 	private extractYAMLFromText(text: string): string {

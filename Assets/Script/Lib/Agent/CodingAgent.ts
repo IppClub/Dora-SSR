@@ -5,7 +5,8 @@ import { callLLMStream, callLLM, Message, StopToken, Log, getActiveLLMConfig } f
 import type { LLMConfig } from 'Agent/Utils';
 import * as Tools from 'Agent/Tools';
 import * as yaml from 'yaml';
-import { MemoryCompressor, DEFAULT_AGENT_PROMPT } from 'Agent/Memory';
+import { MemoryCompressor, DEFAULT_AGENT_PROMPT_PACK } from 'Agent/Memory';
+import type { AgentPromptPack } from 'Agent/Memory';
 
 export type CodingAgentRunResult =
 	| {
@@ -31,6 +32,7 @@ export interface CodingAgentRunOptions {
 	llmMaxTry?: number;
 	llmOptions?: Record<string, unknown>;
 	llmConfig?: LLMConfig;
+	promptPack?: Partial<AgentPromptPack>;
 	stopToken?: StopToken;
 	sessionId?: number;
 	onEvent?: (event: CodingAgentEvent) => void;
@@ -150,6 +152,7 @@ interface AgentShared {
 	llmConfig: LLMConfig;
 	llmMaxTry: number;
 	onEvent?: (event: CodingAgentEvent) => void;
+	promptPack: AgentPromptPack;
 	history: AgentActionRecord[];
 	lastDecision?: {
 		tool: AgentToolName;
@@ -221,8 +224,16 @@ function summarizeUnknown(value: unknown, maxLen = 320): string {
 
 function getReplyLanguageDirective(shared: AgentShared): string {
 	return shared.useChineseResponse
-		? "Use Simplified Chinese for natural-language fields (reason/message/summary)."
-		: "Use English for natural-language fields (reason/message/summary).";
+		? shared.promptPack.replyLanguageDirectiveZh
+		: shared.promptPack.replyLanguageDirectiveEn;
+}
+
+function replacePromptVars(template: string, vars: Record<string, string>): string {
+	let output = template;
+	for (const key in vars) {
+		output = output.split(`{{${key}}}`).join(vars[key] ?? "");
+	}
+	return output;
 }
 
 function limitReadContentForHistory(content: string, tool: "read_file" | "read_file_range"): string {
@@ -377,21 +388,15 @@ function formatHistorySummaryForDecision(history: AgentActionRecord[]): string {
 	return trimPromptContext(formatHistorySummary(history), DECISION_HISTORY_MAX_CHARS, "decision");
 }
 
-function getDecisionSystemPrompt(): string {
-	return "You are a coding assistant that helps modify and navigate code.";
+function getDecisionSystemPrompt(shared?: AgentShared): string {
+	return shared?.promptPack.agentIdentityPrompt ?? DEFAULT_AGENT_PROMPT_PACK.agentIdentityPrompt;
 }
 
-function getDecisionToolDefinitions(): string {
-	return `Available tools:
-1. read_file: Read content from a file with pagination
-1b. read_file_range: Read specific line range from a file
-2. edit_file: Make changes to a file
-3. delete_file: Remove a file
-4. grep_files: Search text patterns inside files
-5. glob_files: Enumerate files under a directory with optional glob filters
-6. search_dora_api: Search Dora SSR game engine docs and tutorials
-7. build: Run build/checks for ts/tsx, teal, lua, yue, yarn
-8. finish: End and summarize`;
+function getDecisionToolDefinitions(shared?: AgentShared): string {
+	return replacePromptVars(
+		shared?.promptPack.toolDefinitionsShort ?? DEFAULT_AGENT_PROMPT_PACK.toolDefinitionsShort,
+		{ SEARCH_DORA_API_LIMIT_MAX: tostring(SEARCH_DORA_API_LIMIT_MAX) }
+	);
 }
 
 async function maybeCompressHistory(shared: AgentShared): Promise<void> {
@@ -403,8 +408,8 @@ async function maybeCompressHistory(shared: AgentShared): Promise<void> {
 			shared.userQuery,
 			shared.history,
 			memory.lastConsolidatedIndex,
-			getDecisionSystemPrompt(),
-			getDecisionToolDefinitions(),
+			getDecisionSystemPrompt(shared),
+			getDecisionToolDefinitions(shared),
 			formatHistorySummary
 		)) {
 			return;
@@ -908,9 +913,9 @@ function buildDecisionToolSchema() {
 	}];
 }
 
-function buildDecisionPrompt(shared: AgentShared, userQuery: string, historyText: string, memoryContext: string, agentPrompt: string): string {
-	return `${agentPrompt || DEFAULT_AGENT_PROMPT}
-Given the request and action history, decide which tool to use next.
+function buildDecisionPrompt(shared: AgentShared, userQuery: string, historyText: string, memoryContext: string): string {
+	return `${shared.promptPack.agentIdentityPrompt}
+${shared.promptPack.decisionIntroPrompt}
 
 ${memoryContext}
 
@@ -919,62 +924,11 @@ User request: ${userQuery}
 Here are the actions you performed:
 ${historyText}
 
-Available tools:
-1. read_file: Read content from a file with pagination
-	- Parameters: path (workspace-relative), offset(optional), limit(optional)
-	- Prefer small reads and continue with a new offset (>= 1) when needed.
-1b. read_file_range: Read specific line range from a file
-	- Parameters: path, startLine, endLine
-	- Line starts with 1.
+${replacePromptVars(shared.promptPack.toolDefinitionsDetailed, {
+	SEARCH_DORA_API_LIMIT_MAX: tostring(SEARCH_DORA_API_LIMIT_MAX),
+})}
 
-2. edit_file: Make changes to a file
-	- Parameters: path, old_str, new_str
-		- Rules:
-			- old_str and new_str MUST be different
-			- old_str must match existing text exactly when it is non-empty
-			- If file doesn't exist, set old_str to empty string to create it with new_str
-
-3. delete_file: Remove a file
-	- Parameters: target_file
-
-4. grep_files: Search text patterns inside files
-	- Parameters: path, pattern, globs(optional), useRegex(optional), caseSensitive(optional), limit(optional), offset(optional), groupByFile(optional)
-	- \`path\` may point to either a directory or a single file.
-	- This is content search (grep), not filename search.
-	- \`pattern\` matches file contents. \`globs\` only restrict which files are searched.
-	- \`useRegex\` defaults to false. Set \`useRegex=true\` when \`pattern\` is a regular expression such as \`^title:\`.
-	- \`caseSensitive\` defaults to false.
-	- Use \`|\` inside pattern to separate alternative content queries; results are merged by union (OR), not AND.
-	- Search results are intentionally capped. Refine the pattern or read a specific file next.
-	- Use \`offset\` to continue browsing later pages of the same search.
-	- Use \`groupByFile=true\` to rank candidate files before drilling into one file.
-
-5. glob_files: Enumerate files under a directory
-	- Parameters: path, globs(optional), maxEntries(optional)
-	- Use this to discover files by path, extension, or glob pattern.
-	- Directory listings are intentionally capped. Narrow the path before expanding further.
-
-6. search_dora_api: Search Dora SSR game engine docs and tutorials
-	- Parameters: pattern, docSource(api/tutorial, optional), programmingLanguage(ts/tsx/lua/yue/teal/tl/wa), limit(optional)
-	- \`docSource\` defaults to \`api\`. Use \`tutorial\` to search teaching docs.
-	- Use \`|\` inside pattern to separate alternative queries; results are merged by union (OR), not AND.
-	- \`useRegex\` defaults to false whenever supported by a search tool.
-	- \`limit\` restricts each individual pattern search and must be <= ${SEARCH_DORA_API_LIMIT_MAX}.
-
-7. build: Run build/checks for ts/tsx, teal, lua, yue, yarn
-	- Parameters: path(optional)
-	- After one build completes, do not run build again unless files were edited/deleted. Read the result and then finish or take corrective action.
-
-8. finish: End and summarize
-	- Parameters: {}
-
-Decision rules:
-- Choose exactly one next action.
-- Keep params shallow and valid for the selected tool.
-- Prefer reading/searching before editing when information is missing.
-- After any search tool returns candidate files or docs, use read_file or read_file_range to inspect search result details instead of repeatedly broadening search.
-- Use glob_files to discover candidate files. Use grep_files only when you need to search file contents.
-- If the user asked a question, prefer finishing only after you can answer it in the final response.
+${shared.promptPack.decisionRulesPrompt}
 ${getReplyLanguageDirective(shared)}`;
 }
 
@@ -1036,15 +990,15 @@ class MainDecisionAgent extends Node<AgentShared> {
 			{
 				role: "system",
 				content: [
-					"You are a coding assistant that must decide the next action by calling the next_step tool exactly once.",
-					"Do not answer with plain text.",
+					shared.promptPack.toolCallingSystemPrompt,
+					shared.promptPack.toolCallingNoPlainTextPrompt,
 					getReplyLanguageDirective(shared),
 				].join("\n"),
 			},
 			{
 				role: "user",
 				content: lastError
-					? `${prompt}\n\nPrevious tool call was invalid (${lastError}). Retry with one valid next_step tool call only.`
+					? `${prompt}\n\n${replacePromptVars(shared.promptPack.toolCallingRetryPrompt, { LAST_ERROR: lastError })}`
 					: prompt,
 			},
 		];
@@ -1124,15 +1078,12 @@ class MainDecisionAgent extends Node<AgentShared> {
 		const memoryContext = memory.compressor
 			.getStorage()
 			.getMemoryContext();
-		const agentPrompt = memory.compressor
-			.getStorage()
-			.readAgentPrompt();
 
 		// 只使用未压缩的历史
 		const uncompressedHistory = input.history.slice(memory.lastConsolidatedIndex);
 		const historyText = formatHistorySummaryForDecision(uncompressedHistory);
 
-		const prompt = buildDecisionPrompt(input.shared, input.userQuery, historyText, memoryContext, agentPrompt);
+		const prompt = buildDecisionPrompt(input.shared, input.userQuery, historyText, memoryContext);
 
 		if (shared.decisionMode === "tool_calling") {
 			Log("Info", `[CodingAgent] decision mode=tool_calling step=${shared.step + 1} history=${uncompressedHistory.length}`);
@@ -1161,28 +1112,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 
 		const yamlPrompt = `${prompt}
 
-Respond with one YAML object:
-\`\`\`yaml
-'tool: "edit_file"
-reason: |-
-	A readable multi-line explanation is allowed.
-	Keep indentation consistent.
-params:
-	path: "relative/path.ts"
-	old_str: |-
-		function oldName() {
-			print("old");
-		}
-	new_str: |-
-		function newName() {
-			print("hello");
-		}
-\`\`\`
-Strict YAML formatting rules:
-- Return YAML only, no prose before/after.
-- Use exactly one YAML object with keys: tool, reason, params.
-- Multi-line strings are allowed using block scalars (\`|\`, \`|-\`, \`>\`).
-- If using a block scalar, all content lines must be indented consistently with tabs.
+${shared.promptPack.yamlDecisionFormatPrompt}
 - For nested multi-line fields (for example params.new_str), indent the block content deeper than the key line using tabs.
 - Keep params shallow and valid for the selected tool.
 - Use tabs for all indentation, never spaces.
@@ -1746,21 +1676,10 @@ class FormatResponseNode extends Node<AgentShared> {
 			return "No actions were performed.";
 		}
 		const summary = formatHistorySummary(history);
-		const prompt = `You are a coding assistant. Summarize what you did for the user.
-
-Here are the actions you performed:
-${summary}
-
-Generate a concise response that explains:
-1. What actions were taken
-2. What was found or modified
-3. Any next steps
-
-IMPORTANT:
-- Focus on outcomes, not tool names.
-- Speak directly to the user.
-- If the user asked a question, include a direct answer to that question in the response.
-${getReplyLanguageDirective(input.shared)}`;
+		const prompt = replacePromptVars(input.shared.promptPack.finalSummaryPrompt, {
+			SUMMARY: summary,
+			LANGUAGE_DIRECTIVE: getReplyLanguageDirective(input.shared),
+		});
 		let res: LLMResult | undefined;
 		for (let i = 0; i < input.shared.llmMaxTry; i++) {
 			res = await llmStream(input.shared, [{ role: "user", content: prompt }]);
@@ -1850,7 +1769,6 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 	if (!taskRes.success) {
 		return { success: false, message: taskRes.message };
 	}
-
 	// 创建 Memory 压缩器
 	const compressor = new MemoryCompressor({
 		compressionThreshold: 0.8,
@@ -1858,8 +1776,10 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 		maxTokensPerCompression: 20000,
 		projectDir: options.workDir,
 		llmConfig,
+		promptPack: options.promptPack,
 	});
 	const persistedSession = compressor.getStorage().readSessionState();
+	const promptPack = compressor.getPromptPack();
 
 	const shared: AgentShared = {
 		sessionId: options.sessionId,
@@ -1880,6 +1800,7 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 		},
 		llmConfig,
 		onEvent: options.onEvent,
+		promptPack,
 		history: persistedSession.history,
 		// Memory 状态
 		memory: {
