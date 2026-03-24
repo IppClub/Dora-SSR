@@ -1,7 +1,8 @@
 // @preview-file off clear
 import { json, Director, once, Content, wait, emit } from 'Dora';
 import { Flow, Node } from 'Agent/flow';
-import { callLLMStream, callLLM, Message, StopToken, Log } from 'Agent/Utils';
+import { callLLMStream, callLLM, Message, StopToken, Log, getActiveLLMConfig } from 'Agent/Utils';
+import type { LLMConfig } from 'Agent/Utils';
 import * as Tools from 'Agent/Tools';
 import * as yaml from 'yaml';
 import { MemoryCompressor, DEFAULT_AGENT_PROMPT } from 'Agent/Memory';
@@ -29,8 +30,8 @@ export interface CodingAgentRunOptions {
 	decisionMode?: "tool_calling" | "yaml";
 	llmMaxTry?: number;
 	llmOptions?: Record<string, unknown>;
+	llmConfig?: LLMConfig;
 	stopToken?: StopToken;
-	memoryContext?: number;
 	sessionId?: number;
 	onEvent?: (event: CodingAgentEvent) => void;
 }
@@ -121,6 +122,7 @@ const DECISION_HISTORY_MAX_CHARS = 16000;
 const SEARCH_DORA_API_LIMIT_MAX = 20;
 const SEARCH_FILES_LIMIT_DEFAULT = 20;
 const LIST_FILES_MAX_ENTRIES_DEFAULT = 200;
+const SEARCH_PREVIEW_CONTEXT = 80;
 
 export interface AgentActionRecord {
 	step: number;
@@ -145,6 +147,7 @@ interface AgentShared {
 	useChineseResponse: boolean;
 	decisionMode: AgentDecisionMode;
 	llmOptions: Record<string, unknown>;
+	llmConfig: LLMConfig;
 	llmMaxTry: number;
 	onEvent?: (event: CodingAgentEvent) => void;
 	history: AgentActionRecord[];
@@ -386,7 +389,7 @@ function getDecisionToolDefinitions(): string {
 3. delete_file: Remove a file
 4. grep_files: Search text patterns inside files
 5. glob_files: Enumerate files under a directory with optional glob filters
-6. search_dora_api: Search Dora SSR game engine API docs
+6. search_dora_api: Search Dora SSR game engine docs and tutorials
 7. build: Run build/checks for ts/tsx, teal, lua, yue, yarn
 8. finish: End and summarize`;
 }
@@ -394,6 +397,7 @@ function getDecisionToolDefinitions(): string {
 async function maybeCompressHistory(shared: AgentShared): Promise<void> {
 	const { memory } = shared;
 	const maxRounds = memory.compressor.getMaxCompressionRounds();
+	let changed = false;
 	for (let round = 0; round < maxRounds; round++) {
 		if (!memory.compressor.shouldCompress(
 			shared.userQuery,
@@ -414,10 +418,17 @@ async function maybeCompressHistory(shared: AgentShared): Promise<void> {
 			shared.decisionMode
 		);
 		if (!(result && result.success && result.compressedCount > 0)) {
+			if (changed) {
+				persistHistoryState(shared);
+			}
 			return;
 		}
 		memory.lastConsolidatedIndex += result.compressedCount;
+		changed = true;
 		Log("Info", `[Memory] Compressed ${result.compressedCount} history records (round ${round + 1})`);
+	}
+	if (changed) {
+		persistHistoryState(shared);
 	}
 }
 
@@ -593,6 +604,13 @@ function formatHistorySummary(history: AgentActionRecord[]): string {
 	return lines.join("\n");
 }
 
+function persistHistoryState(shared: AgentShared): void {
+	shared.memory.compressor.getStorage().writeSessionState(
+		shared.history,
+		shared.memory.lastConsolidatedIndex
+	);
+}
+
 function extractYAMLFromText(text: string): string {
 	const source = text.trim();
 	const yamlFencePos = source.indexOf("```yaml");
@@ -637,7 +655,7 @@ type LLMResult = {
 };
 
 async function llm(shared: AgentShared, messages: Message[]): Promise<LLMResult> {
-	const res = await callLLM(messages, shared.llmOptions, shared.stopToken);
+	const res = await callLLM(messages, shared.llmOptions, shared.stopToken, shared.llmConfig);
 	if (res.success) {
 		const text = res.response.choices?.[0]?.message?.content;
 		if (text) {
@@ -696,6 +714,7 @@ async function llmStream(shared: AgentShared, messages: Message[]): Promise<LLMR
 				done = true;
 			},
 		},
+		shared.llmConfig,
 	);
 
 	await new Promise<void>(resolve => {
@@ -733,51 +752,41 @@ function getDecisionPath(params: Record<string, unknown>): string {
 	return "";
 }
 
-function canRunBuildAgain(history: AgentActionRecord[], params: Record<string, unknown>): boolean {
-	const currentPath = getDecisionPath(params);
-	for (let i = history.length - 1; i >= 0; i--) {
-		const item = history[i];
-		if (item.tool === "edit_file" || item.tool === "delete_file") {
-			return true;
-		}
-		if (item.tool !== "build") continue;
-		const lastPath = getDecisionPath(item.params);
-		if (currentPath === "" || lastPath === "" || currentPath === lastPath) {
-			return false;
-		}
-	}
-	return true;
+function clampIntegerParam(value: unknown, fallback: number, minValue: number, maxValue?: number): number {
+	let num = Number(value);
+	if (!Number.isFinite(num)) num = fallback;
+	num = math.floor(num);
+	if (num < minValue) num = minValue;
+	if (maxValue !== undefined && num > maxValue) num = maxValue;
+	return num;
 }
 
 function validateDecision(
 	tool: AgentToolName,
 	params: Record<string, unknown>,
 	history?: AgentActionRecord[]
-): { success: true } | { success: false; message: string } {
-	if (tool === "finish") return { success: true };
+): { success: true; params: Record<string, unknown> } | { success: false; message: string } {
+	if (tool === "finish") return { success: true, params };
 
 	if (tool === "read_file") {
 		const path = getDecisionPath(params);
 		if (path === "") return { success: false, message: "read_file requires path" };
-		const limit = Number(params.limit ?? READ_FILE_DEFAULT_LIMIT);
-		if (limit <= 0) return { success: false, message: "read_file limit must be > 0" };
-		const offset = Number(params.offset ?? 1);
-		if (offset <= 0) return { success: false, message: "read_file offset must be > 0" };
-		return { success: true };
+		params.path = path;
+		params.offset = clampIntegerParam(params.offset, 1, 1);
+		params.limit = clampIntegerParam(params.limit, READ_FILE_DEFAULT_LIMIT, 1);
+		return { success: true, params };
 	}
 
 	if (tool === "read_file_range") {
 		const path = getDecisionPath(params);
 		if (path === "") return { success: false, message: "read_file_range requires path" };
-		const startLine = Number(params.startLine ?? 0);
-		const endLine = Number(params.endLine ?? 0);
-		if (startLine <= 0 || endLine <= 0) {
-			return { success: false, message: "read_file_range requires positive startLine and endLine" };
-		}
-		if (endLine < startLine) {
-			return { success: false, message: "read_file_range endLine must be >= startLine" };
-		}
-		return { success: true };
+		const startLine = clampIntegerParam(params.startLine, 1, 1);
+		const endLineRaw = params.endLine ?? startLine;
+		const endLine = clampIntegerParam(endLineRaw, startLine, startLine);
+		params.path = path;
+		params.startLine = startLine;
+		params.endLine = endLine;
+		return { success: true, params };
 	}
 
 	if (tool === "edit_file") {
@@ -788,49 +797,50 @@ function validateDecision(
 		if (oldStr === newStr) {
 			return { success: false, message: "edit_file old_str and new_str must be different" };
 		}
-		return { success: true };
+		params.path = path;
+		params.old_str = oldStr;
+		params.new_str = newStr;
+		return { success: true, params };
 	}
 
 	if (tool === "delete_file") {
 		const targetFile = getDecisionPath(params);
 		if (targetFile === "") return { success: false, message: "delete_file requires target_file" };
-		return { success: true };
+		params.target_file = targetFile;
+		return { success: true, params };
 	}
 
 	if (tool === "grep_files") {
 		const pattern = type(params.pattern) === "string" ? (params.pattern as string).trim() : "";
 		if (pattern === "") return { success: false, message: "grep_files requires pattern" };
-		const limit = Number(params.limit ?? SEARCH_FILES_LIMIT_DEFAULT);
-		if (limit <= 0) return { success: false, message: "grep_files limit must be > 0" };
-		const offset = Number(params.offset ?? 0);
-		if (offset < 0) return { success: false, message: "grep_files offset must be >= 0" };
-		return { success: true };
+		params.pattern = pattern;
+		params.limit = clampIntegerParam(params.limit, SEARCH_FILES_LIMIT_DEFAULT, 1);
+		params.offset = clampIntegerParam(params.offset, 0, 0);
+		return { success: true, params };
 	}
 
 	if (tool === "search_dora_api") {
 		const pattern = type(params.pattern) === "string" ? (params.pattern as string).trim() : "";
 		if (pattern === "") return { success: false, message: "search_dora_api requires pattern" };
-		const limit = Number(params.limit ?? 8);
-		if (limit <= 0 || limit > SEARCH_DORA_API_LIMIT_MAX) {
-			return { success: false, message: `search_dora_api limit must be between 1 and ${SEARCH_DORA_API_LIMIT_MAX}` };
-		}
-		return { success: true };
+		params.pattern = pattern;
+		params.limit = clampIntegerParam(params.limit, 8, 1, SEARCH_DORA_API_LIMIT_MAX);
+		return { success: true, params };
 	}
 
 	if (tool === "glob_files") {
-		const maxEntries = Number(params.maxEntries ?? LIST_FILES_MAX_ENTRIES_DEFAULT);
-		if (maxEntries <= 0) return { success: false, message: "glob_files maxEntries must be > 0" };
-		return { success: true };
+		params.maxEntries = clampIntegerParam(params.maxEntries, LIST_FILES_MAX_ENTRIES_DEFAULT, 1);
+		return { success: true, params };
 	}
 
 	if (tool === "build") {
-		if (history && !canRunBuildAgain(history, params)) {
-			return { success: false, message: "build has already completed; inspect the build result or finish before building again" };
+		const path = getDecisionPath(params);
+		if (path !== "") {
+			params.path = path;
 		}
-		return { success: true };
+		return { success: true, params };
 	}
 
-	return { success: true };
+	return { success: true, params };
 }
 
 function buildDecisionToolSchema() {
@@ -875,13 +885,15 @@ function buildDecisionToolSchema() {
 							},
 							useRegex: { type: "boolean" },
 							caseSensitive: { type: "boolean" },
-							includeContent: { type: "boolean" },
-							contentWindow: { type: "number" },
 							offset: { type: "number" },
 							groupByFile: { type: "boolean" },
+							docSource: {
+								type: "string",
+								enum: ["api", "tutorial"],
+							},
 							programmingLanguage: {
 								type: "string",
-								enum: ["ts", "tsx", "lua", "yue", "teal"],
+								enum: ["ts", "tsx", "lua", "yue", "teal", "tl", "wa"],
 							},
 							limit: { type: "number" },
 							startLine: { type: "number" },
@@ -942,8 +954,9 @@ Available tools:
 	- Use this to discover files by path, extension, or glob pattern.
 	- Directory listings are intentionally capped. Narrow the path before expanding further.
 
-6. search_dora_api: Search Dora SSR game engine API docs
-	- Parameters: pattern, programmingLanguage(ts/tsx/lua/yue/teal), limit(optional)
+6. search_dora_api: Search Dora SSR game engine docs and tutorials
+	- Parameters: pattern, docSource(api/tutorial, optional), programmingLanguage(ts/tsx/lua/yue/teal/tl/wa), limit(optional)
+	- \`docSource\` defaults to \`api\`. Use \`tutorial\` to search teaching docs.
 	- Use \`|\` inside pattern to separate alternative queries; results are merged by union (OR), not AND.
 	- \`useRegex\` defaults to false whenever supported by a search tool.
 	- \`limit\` restricts each individual pattern search and must be <= ${SEARCH_DORA_API_LIMIT_MAX}.
@@ -1039,7 +1052,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 			...shared.llmOptions,
 			tools,
 			tool_choice: { type: "function", function: { name: "next_step" } },
-		}, shared.stopToken);
+		}, shared.stopToken, shared.llmConfig);
 		if (shared.stopToken.stopped) {
 			return { success: false, message: getCancelledReason(shared) };
 		}
@@ -1095,6 +1108,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 				raw: argsText,
 			};
 		}
+		decision.params = validation.params;
 		Log("Info", `[CodingAgent] tool-calling selected tool=${decision.tool} reason_len=${decision.reason.length}`);
 		return decision;
 	}
@@ -1205,6 +1219,7 @@ If no more actions are needed, use tool: finish.`;
 				lastError = validation.message;
 				continue;
 			}
+			decision.params = validation.params;
 			return decision;
 		}
 		return { success: false, message: `cannot produce valid decision yaml: ${lastError}; last_output=${truncateText(lastRaw, 400)}` };
@@ -1231,18 +1246,19 @@ If no more actions are needed, use tool: finish.`;
 			params: result.params,
 		};
 		shared.history.push({
-			step: shared.step + 1,
+			step: shared.history.length + 1,
 			tool: result.tool,
 			reason: result.reason,
 			params: result.params,
 			timestamp: os.date("!%Y-%m-%dT%H:%M:%SZ"),
 		});
+		persistHistoryState(shared);
 		return result.tool;
 	}
 }
 
 class ReadFileAction extends Node<AgentShared> {
-	async prep(shared: AgentShared): Promise<{ path: string; range?: { startLine: number; endLine: number }; offset?: number; limit?: number; tool: AgentToolName; workDir: string }> {
+	async prep(shared: AgentShared): Promise<{ path: string; range?: { startLine: number; endLine: number }; offset?: number; limit?: number; tool: AgentToolName; workDir: string; docLanguage: Tools.DoraAPIDocLanguage }> {
 		const last = shared.history[shared.history.length - 1];
 		if (!last) throw new Error("no history");
 		emitAgentEvent(shared, {
@@ -1261,6 +1277,7 @@ class ReadFileAction extends Node<AgentShared> {
 				path,
 				tool: last.tool,
 				workDir: shared.workingDir,
+				docLanguage: shared.useChineseResponse ? "zh" : "en",
 				range: {
 					startLine: Number(last.params.startLine ?? 1),
 					endLine: Number(last.params.endLine ?? last.params.startLine ?? 1),
@@ -1271,20 +1288,22 @@ class ReadFileAction extends Node<AgentShared> {
 			path,
 			tool: "read_file",
 			workDir: shared.workingDir,
+			docLanguage: shared.useChineseResponse ? "zh" : "en",
 			offset: Number(last.params.offset ?? 1),
 			limit: Number(last.params.limit ?? READ_FILE_DEFAULT_LIMIT),
 		};
 	}
 
-	async exec(input: { path: string; range?: { startLine: number; endLine: number }; offset?: number; limit?: number; tool: AgentToolName; workDir: string }): Promise<Record<string, unknown>> {
+	async exec(input: { path: string; range?: { startLine: number; endLine: number }; offset?: number; limit?: number; tool: AgentToolName; workDir: string; docLanguage: Tools.DoraAPIDocLanguage }): Promise<Record<string, unknown>> {
 		if (input.tool === "read_file_range" && input.range) {
-			return Tools.readFileRange(input.workDir, input.path, input.range.startLine, input.range.endLine) as unknown as Record<string, unknown>;
+			return Tools.readFileRange(input.workDir, input.path, input.range.startLine, input.range.endLine, input.docLanguage) as unknown as Record<string, unknown>;
 		}
 		return Tools.readFile(
 			input.workDir,
 			input.path,
 			Number(input.offset ?? 1),
-			Number(input.limit ?? READ_FILE_DEFAULT_LIMIT)
+			Number(input.limit ?? READ_FILE_DEFAULT_LIMIT),
+			input.docLanguage
 		) as unknown as Record<string, unknown>;
 	}
 
@@ -1303,6 +1322,7 @@ class ReadFileAction extends Node<AgentShared> {
 			});
 		}
 		await maybeCompressHistory(shared);
+		persistHistoryState(shared);
 		shared.step += 1;
 		return "main";
 	}
@@ -1331,8 +1351,8 @@ class SearchFilesAction extends Node<AgentShared> {
 			globs: params.globs as string[] | undefined,
 			useRegex: params.useRegex as boolean | undefined,
 			caseSensitive: params.caseSensitive as boolean | undefined,
-			includeContent: params.includeContent as boolean | undefined,
-			contentWindow: Number(params.contentWindow ?? 120),
+			includeContent: true,
+			contentWindow: SEARCH_PREVIEW_CONTEXT,
 			limit: math.max(1, math.floor(Number(params.limit ?? SEARCH_FILES_LIMIT_DEFAULT))),
 			offset: math.max(0, math.floor(Number(params.offset ?? 0))),
 			groupByFile: params.groupByFile === true,
@@ -1343,6 +1363,12 @@ class SearchFilesAction extends Node<AgentShared> {
 	async post(shared: AgentShared, _prepRes: unknown, execRes: unknown): Promise<string | undefined> {
 		const last = shared.history[shared.history.length - 1];
 		if (last !== undefined) {
+			const followupHint = shared.useChineseResponse
+				? "然后读取搜索结果中相关的文件来了解详情。"
+				: "Then read the relevant files from the search results to inspect the details.";
+			if (!last.reason.includes(followupHint)) {
+				last.reason = `${last.reason} ${followupHint}`.trim();
+			}
 			const result = execRes as Record<string, unknown>;
 			last.result = sanitizeSearchResultForHistory(last.tool, result);
 			emitAgentEvent(shared, {
@@ -1355,6 +1381,7 @@ class SearchFilesAction extends Node<AgentShared> {
 			});
 		}
 		await maybeCompressHistory(shared);
+		persistHistoryState(shared);
 		shared.step += 1;
 		return "main";
 	}
@@ -1378,13 +1405,14 @@ class SearchDoraAPIAction extends Node<AgentShared> {
 		const params = input.params;
 		const result = await Tools.searchDoraAPI({
 			pattern: (params.pattern as string) ?? "",
-			docLanguage: input.useChineseResponse ? "zh" : "en",
+			docSource: ((params.docSource as string) ?? "api") as Tools.DoraAPIDocSource,
+			docLanguage: (input.useChineseResponse ? "zh" : "en") as Tools.DoraAPIDocLanguage,
 			programmingLanguage: ((params.programmingLanguage as string) ?? "ts") as Tools.DoraAPIProgrammingLanguage,
 			limit: math.min(SEARCH_DORA_API_LIMIT_MAX, math.max(1, Number(params.limit ?? 8))),
 			useRegex: params.useRegex as boolean | undefined,
-			caseSensitive: params.caseSensitive as boolean | undefined,
-			includeContent: params.includeContent as boolean | undefined,
-			contentWindow: Number(params.contentWindow ?? 140),
+			caseSensitive: false,
+			includeContent: true,
+			contentWindow: SEARCH_PREVIEW_CONTEXT,
 		});
 		return result as unknown as Record<string, unknown>;
 	}
@@ -1404,6 +1432,7 @@ class SearchDoraAPIAction extends Node<AgentShared> {
 			});
 		}
 		await maybeCompressHistory(shared);
+		persistHistoryState(shared);
 		shared.step += 1;
 		return "main";
 	}
@@ -1448,6 +1477,7 @@ class ListFilesAction extends Node<AgentShared> {
 			});
 		}
 		await maybeCompressHistory(shared);
+		persistHistoryState(shared);
 		shared.step += 1;
 		return "main";
 	}
@@ -1519,6 +1549,7 @@ class DeleteFileAction extends Node<AgentShared> {
 			}
 		}
 		await maybeCompressHistory(shared);
+		persistHistoryState(shared);
 		shared.step += 1;
 		return "main";
 	}
@@ -1569,6 +1600,7 @@ class BuildAction extends Node<AgentShared> {
 			});
 		}
 		await maybeCompressHistory(shared);
+		persistHistoryState(shared);
 		shared.step += 1;
 		return "main";
 	}
@@ -1684,6 +1716,7 @@ class EditFileAction extends Node<AgentShared> {
 			}
 		}
 		await maybeCompressHistory(shared);
+		persistHistoryState(shared);
 		shared.step += 1;
 		return "main";
 	}
@@ -1759,6 +1792,7 @@ ${getReplyLanguageDirective(input.shared)}`;
 		}
 		shared.response = execRes as string;
 		shared.done = true;
+		persistHistoryState(shared);
 		return undefined;
 	}
 }
@@ -1802,6 +1836,13 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 	if (!options.workDir || !Content.isAbsolutePath(options.workDir) || !Content.exist(options.workDir) || !Content.isdir(options.workDir)) {
 		return { success: false, message: "workDir must be an existing absolute directory path" };
 	}
+	const llmConfigRes = options.llmConfig
+		? { success: true as const, config: options.llmConfig }
+		: getActiveLLMConfig();
+	if (!llmConfigRes.success) {
+		return { success: false, message: llmConfigRes.message };
+	}
+	const llmConfig = llmConfigRes.config;
 	const taskRes = options.taskId !== undefined
 		? { success: true as const, taskId: options.taskId }
 		: Tools.createTask(options.prompt);
@@ -1811,10 +1852,13 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 
 	// 创建 Memory 压缩器
 	const compressor = new MemoryCompressor({
-		contextWindow: options.memoryContext ?? 32000,
 		compressionThreshold: 0.8,
+		maxCompressionRounds: 3,
+		maxTokensPerCompression: 20000,
 		projectDir: options.workDir,
+		llmConfig,
 	});
+	const persistedSession = compressor.getStorage().readSessionState();
 
 	const shared: AgentShared = {
 		sessionId: options.sessionId,
@@ -1833,11 +1877,12 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 			temperature: 0.2,
 			...(options.llmOptions ?? {}),
 		},
+		llmConfig,
 		onEvent: options.onEvent,
-		history: [],
+		history: persistedSession.history,
 		// Memory 状态
 		memory: {
-			lastConsolidatedIndex: 0,
+			lastConsolidatedIndex: persistedSession.lastConsolidatedIndex,
 			compressor,
 		},
 	};

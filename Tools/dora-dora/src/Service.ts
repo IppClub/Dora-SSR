@@ -494,6 +494,7 @@ export interface LLMConfigItem {
 	url: string;
 	model: string;
 	key: string;
+	contextWindow: number;
 	active: boolean;
 }
 
@@ -977,7 +978,7 @@ export const agentSessionGet = (req: { sessionId: number; }) => {
 	return post<AgentSessionDetailResponse>("/agent/session/get", req);
 };
 
-export const agentSessionSend = (req: { sessionId: number; prompt: string; useChineseResponse?: boolean; }) => {
+export const agentSessionSend = (req: { sessionId: number; prompt: string }) => {
 	return post<{
 		success: true;
 		sessionId: number;

@@ -560,7 +560,7 @@ export function getSession(sessionId: number): AgentSessionDetailResult {
 	};
 }
 
-export function sendPrompt(sessionId: number, prompt: string, useChineseResponse = getDefaultUseChineseResponse()): AgentSessionSendResult {
+export function sendPrompt(sessionId: number, prompt: string): AgentSessionSendResult {
 	const session = getSessionItem(sessionId);
 	if (!session) {
 		return { success: false, message: "session not found" };
@@ -573,6 +573,7 @@ export function sendPrompt(sessionId: number, prompt: string, useChineseResponse
 		return { success: false, message: taskRes.message };
 	}
 	const taskId = taskRes.taskId;
+	const useChineseResponse = getDefaultUseChineseResponse();
 	const sessionContext = buildSessionPromptContext(sessionId, useChineseResponse);
 	const agentPrompt = sessionContext !== ""
 		? `${sessionContext}\n\n${useChineseResponse ? "当前用户请求：" : "Current user request:"}\n${prompt}`
@@ -620,7 +621,7 @@ export function stopSessionTask(sessionId: number) {
 		return { success: false as const, message: "task is not running" };
 	}
 	stopToken.stopped = true;
-	stopToken.reason = "stopped by user";
+	stopToken.reason = getDefaultUseChineseResponse() ? "用户已中断" : "stopped by user";
 	setSessionState(session.id, "STOPPED", session.currentTaskId, "STOPPED");
 	return { success: true as const };
 }

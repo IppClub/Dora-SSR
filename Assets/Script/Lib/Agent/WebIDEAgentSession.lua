@@ -476,10 +476,7 @@ function ____exports.getSession(sessionId) -- 535
 		) -- 559
 	} -- 559
 end -- 535
-function ____exports.sendPrompt(sessionId, prompt, useChineseResponse) -- 563
-	if useChineseResponse == nil then -- 563
-		useChineseResponse = getDefaultUseChineseResponse() -- 563
-	end -- 563
+function ____exports.sendPrompt(sessionId, prompt) -- 563
 	local session = getSessionItem(sessionId) -- 564
 	if not session then -- 564
 		return {success = false, message = "session not found"} -- 566
@@ -492,88 +489,89 @@ function ____exports.sendPrompt(sessionId, prompt, useChineseResponse) -- 563
 		return {success = false, message = taskRes.message} -- 573
 	end -- 573
 	local taskId = taskRes.taskId -- 575
-	local sessionContext = buildSessionPromptContext(sessionId, useChineseResponse) -- 576
-	local agentPrompt = sessionContext ~= "" and (((sessionContext .. "\n\n") .. (useChineseResponse and "当前用户请求：" or "Current user request:")) .. "\n") .. prompt or prompt -- 577
-	insertMessage( -- 580
-		sessionId, -- 580
-		"user", -- 580
-		"message", -- 580
-		prompt, -- 580
-		taskId, -- 580
-		false -- 580
-	) -- 580
-	local assistantMessageId = insertMessage( -- 581
+	local useChineseResponse = getDefaultUseChineseResponse() -- 576
+	local sessionContext = buildSessionPromptContext(sessionId, useChineseResponse) -- 577
+	local agentPrompt = sessionContext ~= "" and (((sessionContext .. "\n\n") .. (useChineseResponse and "当前用户请求：" or "Current user request:")) .. "\n") .. prompt or prompt -- 578
+	insertMessage( -- 581
 		sessionId, -- 581
-		"assistant", -- 581
-		"summary", -- 581
-		"", -- 581
+		"user", -- 581
+		"message", -- 581
+		prompt, -- 581
 		taskId, -- 581
-		true -- 581
+		false -- 581
 	) -- 581
-	activeAssistantMessageIds[taskId] = assistantMessageId -- 582
-	local stopToken = {stopped = false} -- 583
-	activeStopTokens[taskId] = stopToken -- 584
-	setSessionState(sessionId, "RUNNING", taskId, "RUNNING") -- 585
-	runCodingAgent( -- 586
-		{ -- 586
-			prompt = agentPrompt, -- 587
-			workDir = session.projectRoot, -- 588
-			useChineseResponse = useChineseResponse, -- 589
-			taskId = taskId, -- 590
-			sessionId = sessionId, -- 591
-			stopToken = stopToken, -- 592
-			onEvent = function(____, event) return applyEvent(sessionId, event) end -- 593
-		}, -- 593
-		function(result) -- 594
-			if not result.success then -- 594
-				applyEvent(sessionId, { -- 596
-					type = "task_finished", -- 597
-					sessionId = sessionId, -- 598
-					taskId = result.taskId, -- 599
-					success = false, -- 600
-					message = result.message, -- 601
-					steps = result.steps -- 602
-				}) -- 602
-			end -- 602
-		end -- 594
-	) -- 594
-	return {success = true, sessionId = sessionId, taskId = taskId} -- 606
+	local assistantMessageId = insertMessage( -- 582
+		sessionId, -- 582
+		"assistant", -- 582
+		"summary", -- 582
+		"", -- 582
+		taskId, -- 582
+		true -- 582
+	) -- 582
+	activeAssistantMessageIds[taskId] = assistantMessageId -- 583
+	local stopToken = {stopped = false} -- 584
+	activeStopTokens[taskId] = stopToken -- 585
+	setSessionState(sessionId, "RUNNING", taskId, "RUNNING") -- 586
+	runCodingAgent( -- 587
+		{ -- 587
+			prompt = agentPrompt, -- 588
+			workDir = session.projectRoot, -- 589
+			useChineseResponse = useChineseResponse, -- 590
+			taskId = taskId, -- 591
+			sessionId = sessionId, -- 592
+			stopToken = stopToken, -- 593
+			onEvent = function(____, event) return applyEvent(sessionId, event) end -- 594
+		}, -- 594
+		function(result) -- 595
+			if not result.success then -- 595
+				applyEvent(sessionId, { -- 597
+					type = "task_finished", -- 598
+					sessionId = sessionId, -- 599
+					taskId = result.taskId, -- 600
+					success = false, -- 601
+					message = result.message, -- 602
+					steps = result.steps -- 603
+				}) -- 603
+			end -- 603
+		end -- 595
+	) -- 595
+	return {success = true, sessionId = sessionId, taskId = taskId} -- 607
 end -- 563
-function ____exports.stopSessionTask(sessionId) -- 609
-	local session = getSessionItem(sessionId) -- 610
-	if not session or session.currentTaskId == nil then -- 610
-		return {success = false, message = "session task not found"} -- 612
-	end -- 612
-	local normalizedSession = normalizeSessionRuntimeState(session) -- 614
-	local stopToken = activeStopTokens[session.currentTaskId] -- 615
-	if not stopToken then -- 615
-		if normalizedSession.currentTaskStatus == "STOPPED" then -- 615
-			return {success = true, recovered = true} -- 618
-		end -- 618
-		return {success = false, message = "task is not running"} -- 620
-	end -- 620
-	stopToken.stopped = true -- 622
-	stopToken.reason = "stopped by user" -- 623
-	setSessionState(session.id, "STOPPED", session.currentTaskId, "STOPPED") -- 624
-	return {success = true} -- 625
-end -- 609
-function ____exports.getCurrentTaskId(sessionId) -- 628
-	local ____opt_4 = getSessionItem(sessionId) -- 628
-	return ____opt_4 and ____opt_4.currentTaskId -- 629
-end -- 628
-function ____exports.listRunningSessions() -- 632
-	local rows = queryRows(("SELECT id, project_root, title, status, current_task_id, current_task_status, created_at, updated_at\n\t\tFROM " .. TABLE_SESSION) .. "\n\t\tWHERE current_task_status = ?\n\t\tORDER BY updated_at DESC, id DESC", {"RUNNING"}) or ({}) -- 633
-	local sessions = {} -- 640
-	do -- 640
-		local i = 0 -- 641
-		while i < #rows do -- 641
-			local session = normalizeSessionRuntimeState(rowToSession(rows[i + 1])) -- 642
-			if session.currentTaskStatus == "RUNNING" then -- 642
-				sessions[#sessions + 1] = session -- 644
-			end -- 644
-			i = i + 1 -- 641
-		end -- 641
-	end -- 641
-	return {success = true, sessions = sessions} -- 647
-end -- 632
-return ____exports -- 632
+function ____exports.stopSessionTask(sessionId) -- 610
+	local session = getSessionItem(sessionId) -- 611
+	if not session or session.currentTaskId == nil then -- 611
+		return {success = false, message = "session task not found"} -- 613
+	end -- 613
+	local normalizedSession = normalizeSessionRuntimeState(session) -- 615
+	local stopToken = activeStopTokens[session.currentTaskId] -- 616
+	if not stopToken then -- 616
+		if normalizedSession.currentTaskStatus == "STOPPED" then -- 616
+			return {success = true, recovered = true} -- 619
+		end -- 619
+		return {success = false, message = "task is not running"} -- 621
+	end -- 621
+	stopToken.stopped = true -- 623
+	stopToken.reason = getDefaultUseChineseResponse() and "用户已中断" or "stopped by user" -- 624
+	setSessionState(session.id, "STOPPED", session.currentTaskId, "STOPPED") -- 625
+	return {success = true} -- 626
+end -- 610
+function ____exports.getCurrentTaskId(sessionId) -- 629
+	local ____opt_4 = getSessionItem(sessionId) -- 629
+	return ____opt_4 and ____opt_4.currentTaskId -- 630
+end -- 629
+function ____exports.listRunningSessions() -- 633
+	local rows = queryRows(("SELECT id, project_root, title, status, current_task_id, current_task_status, created_at, updated_at\n\t\tFROM " .. TABLE_SESSION) .. "\n\t\tWHERE current_task_status = ?\n\t\tORDER BY updated_at DESC, id DESC", {"RUNNING"}) or ({}) -- 634
+	local sessions = {} -- 641
+	do -- 641
+		local i = 0 -- 642
+		while i < #rows do -- 642
+			local session = normalizeSessionRuntimeState(rowToSession(rows[i + 1])) -- 643
+			if session.currentTaskStatus == "RUNNING" then -- 643
+				sessions[#sessions + 1] = session -- 645
+			end -- 645
+			i = i + 1 -- 642
+		end -- 642
+	end -- 642
+	return {success = true, sessions = sessions} -- 648
+end -- 633
+return ____exports -- 633

@@ -238,213 +238,242 @@ function ____exports.createSSEJSONParser(opts) -- 133
 	end -- 189
 	return {feed = feed, ["end"] = ____end} -- 204
 end -- 133
-local function getActiveLLMConfig() -- 277
-	local rows = DB:query("select * from LLMConfig", true) -- 278
-	local records = {} -- 279
-	if rows and #rows > 1 then -- 279
-		do -- 279
-			local i = 1 -- 281
-			while i < #rows do -- 281
-				local record = {} -- 282
-				do -- 282
-					local c = 0 -- 283
-					while c < #rows[i + 1] do -- 283
-						record[rows[1][c + 1]] = rows[i + 1][c + 1] -- 284
-						c = c + 1 -- 283
-					end -- 283
-				end -- 283
-				records[#records + 1] = record -- 286
-				i = i + 1 -- 281
-			end -- 281
-		end -- 281
-	end -- 281
-	local config = __TS__ArrayFind( -- 289
-		records, -- 289
-		function(____, r) return r.active ~= 0 end -- 289
-	) -- 289
-	if not config then -- 289
-		return {success = false, message = "no active LLM config"} -- 291
-	end -- 291
-	local url = config.url -- 291
-	local model = config.model -- 291
-	local api_key = config.api_key -- 291
-	if type(url) ~= "string" or type(model) ~= "string" or type(api_key) ~= "string" then -- 291
-		return {success = false, message = "got invalude LLM config"} -- 295
-	end -- 295
-	return {success = true, config = {url = url, model = model, api_key = api_key}} -- 297
-end -- 277
-____exports.callLLMStream = function(messages, options, event) -- 307
-	local callEvent -- 308
-	if event.id ~= nil then -- 308
-		local id = event.id -- 310
-		callEvent = { -- 311
-			id = nil, -- 312
-			onData = function(data) -- 313
-				emit("AppWS", "Send", {name = "LLMContent", id = id, data = data}) -- 314
-				return event.stopToken.stopped -- 315
-			end, -- 313
-			onCancel = function(reason) -- 317
-				emit("AppWS", "Send", {name = "LLMCancel", id = id, reason = reason}) -- 318
-			end, -- 317
-			onDone = function() -- 320
-				emit("AppWS", "Send", {name = "LLMDone", id = id}) -- 321
-			end -- 320
-		} -- 320
-	else -- 320
-		callEvent = event -- 325
-	end -- 325
-	local ____callEvent_4 = callEvent -- 327
-	local onData = ____callEvent_4.onData -- 327
-	local onDone = ____callEvent_4.onDone -- 327
-	local ____callEvent_5 = callEvent -- 328
-	local onCancel = ____callEvent_5.onCancel -- 328
-	local configRes = getActiveLLMConfig() -- 329
-	if not configRes.success then -- 329
-		if onCancel then -- 329
-			onCancel(configRes.message) -- 331
-		end -- 331
-		return {success = false, message = configRes.message} -- 332
-	end -- 332
-	local ____configRes_config_6 = configRes.config -- 334
-	local url = ____configRes_config_6.url -- 334
-	local model = ____configRes_config_6.model -- 334
-	local api_key = ____configRes_config_6.api_key -- 334
-	local stopLLM = false -- 335
-	local parser = ____exports.createSSEJSONParser({onJSON = function(obj) -- 336
-		local result = onData(obj) -- 338
-		if result then -- 338
-			stopLLM = result -- 339
-		end -- 339
-	end}); -- 337
-	(function() -- 342
-		return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 342
-			local ____try = __TS__AsyncAwaiter(function() -- 342
-				local ____array_8 = __TS__SparseArrayNew( -- 342
-					messages, -- 344
-					url, -- 344
-					api_key, -- 344
-					model, -- 344
-					options, -- 344
-					true, -- 344
-					function(data) -- 344
-						if stopLLM then -- 344
-							if onCancel then -- 344
-								onCancel("LLM Stopped") -- 347
-								onCancel = nil -- 348
-							end -- 348
-							return true -- 350
-						end -- 350
-						parser.feed(data) -- 352
-						return false -- 353
-					end -- 344
-				) -- 344
-				local ____temp_7 -- 354
-				if event.stopToken ~= nil then -- 354
-					____temp_7 = event.stopToken -- 354
-				else -- 354
-					____temp_7 = nil -- 354
-				end -- 354
-				__TS__SparseArrayPush(____array_8, ____temp_7) -- 354
-				local result = __TS__Await(postLLM(__TS__SparseArraySpread(____array_8))) -- 344
-				parser["end"]() -- 355
-				if onDone then -- 355
-					onDone(result) -- 357
-				end -- 357
-			end) -- 357
-			__TS__Await(____try.catch( -- 343
-				____try, -- 343
-				function(____, e) -- 343
-					stopLLM = true -- 360
-					if onCancel then -- 360
-						onCancel(tostring(e)) -- 362
-						onCancel = nil -- 363
-					end -- 363
-				end -- 363
-			)) -- 363
-		end) -- 363
-	end)() -- 342
-	return {success = true} -- 367
-end -- 307
-function ____exports.callLLM(messages, options, stopToken) -- 370
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 370
-		local configRes = getActiveLLMConfig() -- 375
-		if not configRes.success then -- 375
-			____exports.Log("Error", "[Agent.Utils] callLLMOnce config error: " .. configRes.message) -- 377
-			return ____awaiter_resolve(nil, {success = false, message = configRes.message}) -- 377
-		end -- 377
-		local ____configRes_config_9 = configRes.config -- 380
-		local url = ____configRes_config_9.url -- 380
-		local model = ____configRes_config_9.model -- 380
-		local api_key = ____configRes_config_9.api_key -- 380
-		____exports.Log( -- 381
-			"Info", -- 381
-			(((("[Agent.Utils] callLLMOnce request model=" .. model) .. " url=") .. url) .. " messages=") .. tostring(#messages) -- 381
-		) -- 381
-		if stopToken and stopToken.stopped then -- 381
-			local reason = stopToken.reason or "request cancelled" -- 383
-			____exports.Log("Info", "[Agent.Utils] callLLMOnce cancelled before request: " .. reason) -- 384
-			return ____awaiter_resolve(nil, {success = false, message = reason}) -- 384
-		end -- 384
-		local ____try = __TS__AsyncAwaiter(function() -- 384
-			local raw = __TS__Await(postLLM( -- 388
-				messages, -- 388
-				url, -- 388
-				api_key, -- 388
-				model, -- 388
-				options, -- 388
-				false, -- 388
-				nil, -- 388
-				stopToken -- 388
-			)) -- 388
-			____exports.Log( -- 389
-				"Info", -- 389
-				"[Agent.Utils] callLLMOnce raw response length=" .. tostring(#raw) -- 389
-			) -- 389
-			local response, err = json.decode(raw) -- 390
-			if err ~= nil or response == nil or type(response) ~= "table" then -- 390
-				local rawPreview = previewText(raw) -- 392
-				____exports.Log( -- 393
-					"Error", -- 393
-					(("[Agent.Utils] callLLMOnce invalid JSON: " .. tostring(err)) .. " raw_preview=") .. rawPreview -- 393
-				) -- 393
-				return ____awaiter_resolve( -- 393
-					nil, -- 393
-					{ -- 394
-						success = false, -- 395
-						message = (("invalid LLM response JSON: " .. tostring(err)) .. "; raw=") .. rawPreview, -- 396
-						raw = raw -- 397
-					} -- 397
-				) -- 397
-			end -- 397
-			local responseObj = response -- 400
-			local choiceCount = responseObj.choices and #responseObj.choices or 0 -- 401
-			____exports.Log( -- 402
-				"Info", -- 402
-				"[Agent.Utils] callLLMOnce decoded response choices=" .. tostring(choiceCount) -- 402
-			) -- 402
-			return ____awaiter_resolve(nil, {success = true, response = responseObj}) -- 402
-		end) -- 402
-		__TS__Await(____try.catch( -- 387
-			____try, -- 387
-			function(____, e) -- 387
-				if stopToken and stopToken.stopped then -- 387
-					local reason = stopToken.reason or "request cancelled" -- 409
-					____exports.Log("Info", "[Agent.Utils] callLLMOnce cancelled during request: " .. reason) -- 410
-					return ____awaiter_resolve(nil, {success = false, message = reason}) -- 410
-				end -- 410
-				____exports.Log( -- 413
-					"Error", -- 413
-					"[Agent.Utils] callLLMOnce exception: " .. tostring(e) -- 413
-				) -- 413
-				return ____awaiter_resolve( -- 413
-					nil, -- 413
-					{ -- 414
-						success = false, -- 414
-						message = tostring(e) -- 414
-					} -- 414
-				) -- 414
-			end -- 414
-		)) -- 414
-	end) -- 414
-end -- 370
-return ____exports -- 370
+local function normalizeContextWindow(value) -- 278
+	if type(value) == "number" then -- 278
+		return math.max( -- 280
+			4000, -- 280
+			math.floor(value) -- 280
+		) -- 280
+	end -- 280
+	return 32000 -- 282
+end -- 278
+function ____exports.getActiveLLMConfig() -- 285
+	local rows = DB:query("select * from LLMConfig", true) -- 286
+	local records = {} -- 287
+	if rows and #rows > 1 then -- 287
+		do -- 287
+			local i = 1 -- 289
+			while i < #rows do -- 289
+				local record = {} -- 290
+				do -- 290
+					local c = 0 -- 291
+					while c < #rows[i + 1] do -- 291
+						record[rows[1][c + 1]] = rows[i + 1][c + 1] -- 292
+						c = c + 1 -- 291
+					end -- 291
+				end -- 291
+				records[#records + 1] = record -- 294
+				i = i + 1 -- 289
+			end -- 289
+		end -- 289
+	end -- 289
+	local config = __TS__ArrayFind( -- 297
+		records, -- 297
+		function(____, r) return r.active ~= 0 end -- 297
+	) -- 297
+	if not config then -- 297
+		return {success = false, message = "no active LLM config"} -- 299
+	end -- 299
+	local url = config.url -- 299
+	local model = config.model -- 299
+	local api_key = config.api_key -- 299
+	if type(url) ~= "string" or type(model) ~= "string" or type(api_key) ~= "string" then -- 299
+		return {success = false, message = "got invalude LLM config"} -- 303
+	end -- 303
+	return { -- 305
+		success = true, -- 306
+		config = { -- 307
+			url = url, -- 308
+			model = model, -- 309
+			apiKey = api_key, -- 310
+			contextWindow = normalizeContextWindow(config.context_window) -- 311
+		} -- 311
+	} -- 311
+end -- 285
+____exports.callLLMStream = function(messages, options, event, llmConfig) -- 316
+	local callEvent -- 322
+	if event.id ~= nil then -- 322
+		local id = event.id -- 324
+		callEvent = { -- 325
+			id = nil, -- 326
+			onData = function(data) -- 327
+				emit("AppWS", "Send", {name = "LLMContent", id = id, data = data}) -- 328
+				return event.stopToken.stopped -- 329
+			end, -- 327
+			onCancel = function(reason) -- 331
+				emit("AppWS", "Send", {name = "LLMCancel", id = id, reason = reason}) -- 332
+			end, -- 331
+			onDone = function() -- 334
+				emit("AppWS", "Send", {name = "LLMDone", id = id}) -- 335
+			end -- 334
+		} -- 334
+	else -- 334
+		callEvent = event -- 339
+	end -- 339
+	local ____callEvent_4 = callEvent -- 341
+	local onData = ____callEvent_4.onData -- 341
+	local onDone = ____callEvent_4.onDone -- 341
+	local ____callEvent_5 = callEvent -- 342
+	local onCancel = ____callEvent_5.onCancel -- 342
+	local config = llmConfig or (function() -- 343
+		local configRes = ____exports.getActiveLLMConfig() -- 344
+		if not configRes.success then -- 344
+			if onCancel then -- 344
+				onCancel(configRes.message) -- 346
+			end -- 346
+			return nil -- 347
+		end -- 347
+		return configRes.config -- 349
+	end)() -- 343
+	if not config then -- 343
+		return {success = false, message = "no active LLM config"} -- 352
+	end -- 352
+	local url = config.url -- 352
+	local model = config.model -- 352
+	local apiKey = config.apiKey -- 352
+	local stopLLM = false -- 355
+	local parser = ____exports.createSSEJSONParser({onJSON = function(obj) -- 356
+		local result = onData(obj) -- 358
+		if result then -- 358
+			stopLLM = result -- 359
+		end -- 359
+	end}); -- 357
+	(function() -- 362
+		return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 362
+			local ____try = __TS__AsyncAwaiter(function() -- 362
+				local ____array_7 = __TS__SparseArrayNew( -- 362
+					messages, -- 364
+					url, -- 364
+					apiKey, -- 364
+					model, -- 364
+					options, -- 364
+					true, -- 364
+					function(data) -- 364
+						if stopLLM then -- 364
+							if onCancel then -- 364
+								onCancel("LLM Stopped") -- 367
+								onCancel = nil -- 368
+							end -- 368
+							return true -- 370
+						end -- 370
+						parser.feed(data) -- 372
+						return false -- 373
+					end -- 364
+				) -- 364
+				local ____temp_6 -- 374
+				if event.stopToken ~= nil then -- 374
+					____temp_6 = event.stopToken -- 374
+				else -- 374
+					____temp_6 = nil -- 374
+				end -- 374
+				__TS__SparseArrayPush(____array_7, ____temp_6) -- 374
+				local result = __TS__Await(postLLM(__TS__SparseArraySpread(____array_7))) -- 364
+				parser["end"]() -- 375
+				if onDone then -- 375
+					onDone(result) -- 377
+				end -- 377
+			end) -- 377
+			__TS__Await(____try.catch( -- 363
+				____try, -- 363
+				function(____, e) -- 363
+					stopLLM = true -- 380
+					if onCancel then -- 380
+						onCancel(tostring(e)) -- 382
+						onCancel = nil -- 383
+					end -- 383
+				end -- 383
+			)) -- 383
+		end) -- 383
+	end)() -- 362
+	return {success = true} -- 387
+end -- 316
+function ____exports.callLLM(messages, options, stopTokenOrConfig, llmConfig) -- 390
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 390
+		local stopToken = stopTokenOrConfig and stopTokenOrConfig.stopped ~= nil and stopTokenOrConfig or nil -- 396
+		local config = stopTokenOrConfig and stopTokenOrConfig.url ~= nil and stopTokenOrConfig or llmConfig -- 397
+		local resolvedConfig = config or (function() -- 400
+			local configRes = ____exports.getActiveLLMConfig() -- 401
+			if not configRes.success then -- 401
+				____exports.Log("Error", "[Agent.Utils] callLLMOnce config error: " .. configRes.message) -- 403
+				return nil -- 404
+			end -- 404
+			return configRes.config -- 406
+		end)() -- 400
+		if not resolvedConfig then -- 400
+			return ____awaiter_resolve(nil, {success = false, message = "no active LLM config"}) -- 400
+		end -- 400
+		local url = resolvedConfig.url -- 400
+		local model = resolvedConfig.model -- 400
+		local apiKey = resolvedConfig.apiKey -- 400
+		____exports.Log( -- 412
+			"Info", -- 412
+			(((("[Agent.Utils] callLLMOnce request model=" .. model) .. " url=") .. url) .. " messages=") .. tostring(#messages) -- 412
+		) -- 412
+		if stopToken and stopToken.stopped then -- 412
+			local reason = stopToken.reason or "request cancelled" -- 414
+			____exports.Log("Info", "[Agent.Utils] callLLMOnce cancelled before request: " .. reason) -- 415
+			return ____awaiter_resolve(nil, {success = false, message = reason}) -- 415
+		end -- 415
+		local ____try = __TS__AsyncAwaiter(function() -- 415
+			local raw = __TS__Await(postLLM( -- 419
+				messages, -- 419
+				url, -- 419
+				apiKey, -- 419
+				model, -- 419
+				options, -- 419
+				false, -- 419
+				nil, -- 419
+				stopToken -- 419
+			)) -- 419
+			____exports.Log( -- 420
+				"Info", -- 420
+				"[Agent.Utils] callLLMOnce raw response length=" .. tostring(#raw) -- 420
+			) -- 420
+			local response, err = json.decode(raw) -- 421
+			if err ~= nil or response == nil or type(response) ~= "table" then -- 421
+				local rawPreview = previewText(raw) -- 423
+				____exports.Log( -- 424
+					"Error", -- 424
+					(("[Agent.Utils] callLLMOnce invalid JSON: " .. tostring(err)) .. " raw_preview=") .. rawPreview -- 424
+				) -- 424
+				return ____awaiter_resolve( -- 424
+					nil, -- 424
+					{ -- 425
+						success = false, -- 426
+						message = (("invalid LLM response JSON: " .. tostring(err)) .. "; raw=") .. rawPreview, -- 427
+						raw = raw -- 428
+					} -- 428
+				) -- 428
+			end -- 428
+			local responseObj = response -- 431
+			local choiceCount = responseObj.choices and #responseObj.choices or 0 -- 432
+			____exports.Log( -- 433
+				"Info", -- 433
+				"[Agent.Utils] callLLMOnce decoded response choices=" .. tostring(choiceCount) -- 433
+			) -- 433
+			return ____awaiter_resolve(nil, {success = true, response = responseObj}) -- 433
+		end) -- 433
+		__TS__Await(____try.catch( -- 418
+			____try, -- 418
+			function(____, e) -- 418
+				if stopToken and stopToken.stopped then -- 418
+					local reason = stopToken.reason or "request cancelled" -- 440
+					____exports.Log("Info", "[Agent.Utils] callLLMOnce cancelled during request: " .. reason) -- 441
+					return ____awaiter_resolve(nil, {success = false, message = reason}) -- 441
+				end -- 441
+				____exports.Log( -- 444
+					"Error", -- 444
+					"[Agent.Utils] callLLMOnce exception: " .. tostring(e) -- 444
+				) -- 444
+				return ____awaiter_resolve( -- 444
+					nil, -- 444
+					{ -- 445
+						success = false, -- 445
+						message = tostring(e) -- 445
+					} -- 445
+				) -- 445
+			end -- 445
+		)) -- 445
+	end) -- 445
+end -- 390
+return ____exports -- 390

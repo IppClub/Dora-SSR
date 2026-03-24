@@ -31,6 +31,7 @@ const emptyForm = {
 	url: '',
 	model: '',
 	key: '',
+	contextWindow: 32000,
 	active: true,
 };
 
@@ -180,6 +181,7 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 			if (res.success) {
 				const normalized = (res.items ?? []).map((item) => ({
 					...item,
+					contextWindow: Number(item.contextWindow) > 0 ? Number(item.contextWindow) : 32000,
 					active: item.active === undefined ? true : Boolean(item.active),
 				}));
 				setItems(normalized);
@@ -204,6 +206,7 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 			model: template.model,
 			key: '',
 			active: true,
+			contextWindow: 32000,
 		});
 	}, [templates]);
 
@@ -253,6 +256,7 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 			url: form.url.trim(),
 			model: form.model.trim(),
 			key: form.key.trim(),
+			contextWindow: Math.max(4000, Math.floor(Number(form.contextWindow) || 32000)),
 			active: form.active,
 		};
 		if (!payload.name || !payload.url || !payload.model || !payload.key) {
@@ -296,6 +300,7 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 	const columns: ColumnsType<Service.LLMConfigItem> = [
 		{title: t('llm.name'), dataIndex: 'name', key: 'name'},
 		{title: t('llm.model'), dataIndex: 'model', key: 'model'},
+		{title: t('llm.contextWindow'), dataIndex: 'contextWindow', key: 'contextWindow', width: 120},
 		{title: t('llm.url'), dataIndex: 'url', key: 'url'},
 		{
 			title: t('llm.actions'),
@@ -445,6 +450,19 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 								size="small"
 								sx={inputStyle}
 							/>
+							<TextField
+								label={t('llm.contextWindow')}
+								value={form.contextWindow}
+								onChange={(event) => setForm({...form, contextWindow: Number(event.target.value) || 32000})}
+								fullWidth
+								autoComplete="off"
+								size="small"
+								type="number"
+								slotProps={{htmlInput: {min: 4000, step: 1000}}}
+								sx={inputStyle}
+							/>
+						</Stack>
+						<Stack direction="row" spacing={2}>
 							<TextField
 								label={t('llm.key')}
 								value={form.key}

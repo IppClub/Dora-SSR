@@ -1,6 +1,7 @@
 // @preview-file off clear
 import { Content, Path, json } from 'Dora';
 import { Message, ToolCallFunction, callLLM } from 'Agent/Utils';
+import type { LLMConfig } from 'Agent/Utils';
 import { sendWebIDEFileUpdate } from 'Agent/Tools';
 import * as yaml from 'yaml';
 
@@ -12,9 +13,6 @@ export const DEFAULT_AGENT_PROMPT = "You are a coding assistant that helps modif
  * Memory 配置
  */
 export interface MemoryConfig {
-	/** 上下文窗口大小 (tokens) */
-	contextWindow: number;
-
 	/** 压缩触发阈值 (0-1) */
 	compressionThreshold: number;
 
@@ -26,6 +24,9 @@ export interface MemoryConfig {
 
 	/** 当前项目完整路径 */
 	projectDir: string;
+
+	/** 当前运行绑定的 LLM 配置 */
+	llmConfig: LLMConfig;
 }
 
 /**
@@ -139,6 +140,7 @@ export class DualLayerStorage {
 	private agentPath: string;
 	private memoryPath: string;
 	private historyPath: string;
+	private sessionPath: string;
 
 	constructor(projectDir: string) {
 		this.projectDir = projectDir;
@@ -146,6 +148,7 @@ export class DualLayerStorage {
 		this.agentPath = Path(this.agentDir, "AGENT.md");
 		this.memoryPath = Path(this.agentDir, "MEMORY.md");
 		this.historyPath = Path(this.agentDir, "HISTORY.md");
+		this.sessionPath = Path(this.agentDir, "SESSION.jsonl");
 		this.ensureAgentFiles();
 	}
 
@@ -170,6 +173,39 @@ export class DualLayerStorage {
 		this.ensureFile(this.agentPath, `${DEFAULT_AGENT_PROMPT}\n`);
 		this.ensureFile(this.memoryPath, "");
 		this.ensureFile(this.historyPath, "");
+	}
+
+	private encodeJsonLine(value: unknown): string | undefined {
+		const [text] = json.encode(value as object);
+		return text;
+	}
+
+	private decodeJsonLine(text: string): unknown {
+		const [value] = json.decode(text);
+		return value;
+	}
+
+	private decodeActionRecord(value: unknown): AgentActionRecord | undefined {
+		if (!value || Array.isArray(value) || type(value) !== "table") return undefined;
+		const row = value as Record<string, unknown>;
+		const tool = typeof row.tool === "string" ? row.tool : "";
+		const reason = typeof row.reason === "string" ? row.reason : "";
+		const timestamp = typeof row.timestamp === "string" ? row.timestamp : "";
+		if (tool === "" || timestamp === "") return undefined;
+		const params = row.params && !Array.isArray(row.params) && type(row.params) === "table"
+			? row.params as Record<string, unknown>
+			: {};
+		const result = row.result && !Array.isArray(row.result) && type(row.result) === "table"
+			? row.result as Record<string, unknown>
+			: undefined;
+		return {
+			step: math.max(1, math.floor(Number(row.step ?? 1))),
+			tool: tool as AgentActionRecord["tool"],
+			reason,
+			params,
+			result,
+			timestamp,
+		};
 	}
 
 	readAgentPrompt(): string {
@@ -237,6 +273,59 @@ ${memory}`;
 		return Content.load(this.historyPath) as string;
 	}
 
+	readSessionState(): { history: AgentActionRecord[]; lastConsolidatedIndex: number } {
+		if (!Content.exist(this.sessionPath)) {
+			return { history: [], lastConsolidatedIndex: 0 };
+		}
+		const text = Content.load(this.sessionPath) as string;
+		if (!text || text.trim() === "") {
+			return { history: [], lastConsolidatedIndex: 0 };
+		}
+		const lines = text.split("\n");
+		const history: AgentActionRecord[] = [];
+		let lastConsolidatedIndex = 0;
+		for (let i = 0; i < lines.length; i++) {
+			const line = lines[i].trim();
+			if (line === "") continue;
+			const data = this.decodeJsonLine(line);
+			if (!data || Array.isArray(data) || type(data) !== "table") continue;
+			const row = data as Record<string, unknown>;
+			if (row._type === "metadata") {
+				lastConsolidatedIndex = math.max(0, math.floor(Number(row.lastConsolidatedIndex ?? 0)));
+				continue;
+			}
+			const record = this.decodeActionRecord(row);
+			if (record) {
+				history.push(record);
+			}
+		}
+		return {
+			history,
+			lastConsolidatedIndex: math.min(lastConsolidatedIndex, history.length),
+		};
+	}
+
+	writeSessionState(history: AgentActionRecord[], lastConsolidatedIndex: number): void {
+		this.ensureDir(Path.getPath(this.sessionPath));
+		const lines: string[] = [];
+		const meta = this.encodeJsonLine({
+			_type: "metadata",
+			lastConsolidatedIndex: math.min(math.max(0, math.floor(lastConsolidatedIndex)), history.length),
+		});
+		if (meta) {
+			lines.push(meta);
+		}
+		for (let i = 0; i < history.length; i++) {
+			const line = this.encodeJsonLine(history[i]);
+			if (line) {
+				lines.push(line);
+			}
+		}
+		const content = lines.join("\n") + "\n";
+		Content.save(this.sessionPath, content);
+		sendWebIDEFileUpdate(this.sessionPath, true, content);
+	}
+
 	/**
 	 * 搜索历史日志 (返回匹配的行)
 	 */
@@ -268,15 +357,8 @@ export class MemoryCompressor {
 
 	private static readonly MAX_FAILURES = 3;
 
-	constructor(config?: Partial<MemoryConfig>) {
-		this.config = {
-			contextWindow: 32000,
-			compressionThreshold: 0.8,
-			maxCompressionRounds: 3,
-			maxTokensPerCompression: 20000,
-			projectDir: config?.projectDir ?? Path(Content.appPath, ".agent"),
-			...config,
-		};
+	constructor(config: MemoryConfig) {
+		this.config = config;
 		this.storage = new DualLayerStorage(this.config.projectDir);
 	}
 
@@ -301,7 +383,7 @@ export class MemoryCompressor {
 			formatFunc
 		);
 
-		const threshold = this.config.contextWindow * this.config.compressionThreshold;
+		const threshold = this.getContextWindow() * this.config.compressionThreshold;
 
 		return tokens > threshold;
 	}
@@ -420,8 +502,12 @@ export class MemoryCompressor {
 		);
 	}
 
+	private getContextWindow(): number {
+		return Math.max(4000, this.config.llmConfig.contextWindow);
+	}
+
 	private getCompressionHistoryTokenBudget(currentMemory: string): number {
-		const contextWindow = Math.max(4000, this.config.contextWindow);
+		const contextWindow = this.getContextWindow();
 		const reservedOutputTokens = Math.max(2048, Math.floor(contextWindow * 0.2));
 		const staticPromptTokens = TokenEstimator.estimate(this.buildCompressionPromptBody("", ""));
 		const memoryTokens = TokenEstimator.estimate(currentMemory);
@@ -498,7 +584,9 @@ export class MemoryCompressor {
 					...llmOptions,
 					tools,
 					tool_choice: { type: "function", function: { name: "save_memory" } },
-				}
+				},
+				undefined,
+				this.config.llmConfig
 			);
 
 			if (!response.success) {
@@ -583,7 +671,9 @@ export class MemoryCompressor {
 				: "";
 			const response = await callLLM(
 				[{ role: "user", content: `${prompt}${feedback}` }],
-				llmOptions
+				llmOptions,
+				undefined,
+				this.config.llmConfig
 			);
 
 			if (!response.success) {

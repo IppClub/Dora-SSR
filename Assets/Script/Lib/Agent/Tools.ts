@@ -130,7 +130,8 @@ export type SearchFilesToolResult = {
 };
 
 export type DoraAPIDocLanguage = "zh" | "en";
-export type DoraAPIProgrammingLanguage = "ts" | "tsx" | "lua" | "yue" | "teal";
+export type DoraAPIDocSource = "api" | "tutorial";
+export type DoraAPIProgrammingLanguage = "ts" | "tsx" | "lua" | "yue" | "teal" | "tl" | "wa";
 
 export interface DoraAPISearchHit {
 	file: string;
@@ -140,7 +141,9 @@ export interface DoraAPISearchHit {
 
 export type DoraAPISearchResult = {
 	success: true;
+	docSource: DoraAPIDocSource;
 	docLanguage: DoraAPIDocLanguage;
+	programmingLanguage: DoraAPIProgrammingLanguage;
 	root: string;
 	exts: string[];
 	results: DoraAPISearchHit[];
@@ -190,8 +193,6 @@ const TABLE_CP = "AgentCheckpoint";
 const TABLE_ENTRY = "AgentCheckpointEntry";
 const ENGINE_LOG_SNAPSHOT_DIR = ".agent";
 const ENGINE_LOG_SNAPSHOT_FILE = "engine_logs_snapshot.txt";
-const DORA_DOC_ZH_DIR = Path(Content.assetPath, "Script", "Lib", "Dora", "zh-Hans");
-const DORA_DOC_EN_DIR = Path(Content.assetPath, "Script", "Lib", "Dora", "en");
 
 const now = () => os.time();
 
@@ -223,15 +224,6 @@ function isValidSearchPath(path: string): boolean {
 	if (!path || path.length === 0) return false;
 	if (path.includes("..")) return false;
 	return true;
-}
-
-function normalizePathSep(path: string): string {
-	return path.split("\\").join("/");
-}
-
-function ensureTrailingSlash(path: string): string {
-	const p = normalizePathSep(path);
-	return p.endsWith("/") ? p : `${p}/`;
 }
 
 function resolveWorkspaceFilePath(workDir: string, path: string): string | undefined {
@@ -280,19 +272,76 @@ function toWorkspaceRelativeSearchResults(workDir: string, results: SearchFilesR
 	return mapped;
 }
 
-function getDoraDocRoot(docLanguage: DoraAPIDocLanguage): string {
-	return docLanguage === "zh" ? DORA_DOC_ZH_DIR : DORA_DOC_EN_DIR;
+function getDoraAPIDocRoot(docLanguage: DoraAPIDocLanguage): string {
+	const zhDir = Path(Content.assetPath, "Script", "Lib", "Dora", "zh-Hans");
+	const enDir = Path(Content.assetPath, "Script", "Lib", "Dora", "en");
+	return docLanguage === "zh" ? zhDir : enDir;
 }
 
-function getDoraDocExtsByCodeLanguage(programmingLanguage: DoraAPIProgrammingLanguage): string[] {
+function getDoraTutorialDocRoot(docLanguage: DoraAPIDocLanguage): string {
+	const zhDir = Path(Content.assetPath, "Doc", "zh-Hans", "Tutorial");
+	const enDir = Path(Content.assetPath, "Doc", "en", "Tutorial");
+	return docLanguage === "zh" ? zhDir : enDir;
+}
+
+function getDoraAPIDocExtsByCodeLanguage(programmingLanguage: DoraAPIProgrammingLanguage): string[] {
 	if (programmingLanguage === "ts" || programmingLanguage === "tsx") {
 		return ["ts"];
 	}
 	return ["tl"];
 }
 
-function toDocRelativePath(docRoot: string, file: string): string {
-	return Path.getRelative(file, docRoot);
+function getTutorialProgrammingLanguageDir(programmingLanguage: DoraAPIProgrammingLanguage): string {
+	switch (programmingLanguage) {
+		case "teal": return "tl";
+		case "tl": return "tl";
+		default: return programmingLanguage;
+	}
+}
+
+function getDoraDocSearchTarget(
+	docSource: DoraAPIDocSource,
+	docLanguage: DoraAPIDocLanguage,
+	programmingLanguage: DoraAPIProgrammingLanguage
+): { root: string; exts: string[]; globs: string[] } {
+	if (docSource === "tutorial") {
+		const tutorialRoot = getDoraTutorialDocRoot(docLanguage);
+		const langDir = getTutorialProgrammingLanguageDir(programmingLanguage);
+		return {
+			root: Path(tutorialRoot, langDir),
+			exts: ["md"],
+			globs: ["**/*.md"],
+		};
+	}
+	const exts = getDoraAPIDocExtsByCodeLanguage(programmingLanguage);
+	return {
+		root: getDoraAPIDocRoot(docLanguage),
+		exts,
+		globs: exts.map(ext => `**/*.${ext}`),
+	};
+}
+
+function getDoraDocResultBaseRoot(docSource: DoraAPIDocSource, docLanguage: DoraAPIDocLanguage): string {
+	if (docSource === "tutorial") {
+		return getDoraTutorialDocRoot(docLanguage);
+	}
+	return getDoraAPIDocRoot(docLanguage);
+}
+
+function toDocRelativePath(baseRoot: string, path: string): string {
+	if (!path || path.length === 0) return path;
+	if (!Content.isAbsolutePath(path)) return path;
+	return Path.getRelative(path, baseRoot);
+}
+
+function resolveAgentTutorialDocFilePath(path: string, docLanguage?: DoraAPIDocLanguage): string | undefined {
+	if (!docLanguage) return undefined;
+	if (!isValidWorkspacePath(path)) return undefined;
+	const candidate = Path(getDoraTutorialDocRoot(docLanguage), path);
+	if (Content.exist(candidate) && !Content.isdir(candidate)) {
+		return candidate;
+	}
+	return undefined;
 }
 
 function ensureDirPath(dir: string): boolean {
@@ -369,11 +418,6 @@ function queryOne(sql: string, args?: (number | string | boolean)[]) {
 		bytes_after INTEGER NOT NULL DEFAULT 0
 	);`);
 	DB.exec(`CREATE INDEX IF NOT EXISTS idx_agent_entry_cp_ord ON ${TABLE_ENTRY}(checkpoint_id, ord);`);
-}
-
-function isTsLikeFile(path: string): boolean {
-	const ext = Path.getExt(path);
-	return ext === "ts" || ext === "tsx";
 }
 
 function isDtsFile(path: string): boolean {
@@ -626,15 +670,21 @@ export function listCheckpoints(taskId: number): CheckpointItem[] {
 	return items;
 }
 
-function readWorkspaceFile(workDir: string, path: string): ReadFileResult {
+function readWorkspaceFile(workDir: string, path: string, docLanguage?: DoraAPIDocLanguage): ReadFileResult {
 	const fullPath = resolveWorkspaceFilePath(workDir, path);
+	if (fullPath && Content.exist(fullPath) && !Content.isdir(fullPath)) {
+		return { success: true, content: Content.load(fullPath) };
+	}
+	const docPath = resolveAgentTutorialDocFilePath(path, docLanguage);
+	if (docPath) {
+		return { success: true, content: Content.load(docPath) };
+	}
 	if (!fullPath) return { success: false, message: "invalid path or workDir" };
-	if (!Content.exist(fullPath) || Content.isdir(fullPath)) return { success: false, message: "file not found" };
-	return { success: true, content: Content.load(fullPath) };
+	return { success: false, message: "file not found" };
 }
 
-export function readFileRaw(workDir: string, path: string): ReadFileResult {
-	const result = readWorkspaceFile(workDir, path);
+export function readFileRaw(workDir: string, path: string, docLanguage?: DoraAPIDocLanguage): ReadFileResult {
+	const result = readWorkspaceFile(workDir, path, docLanguage);
 	if (!result.success && Content.exist(path) && !Content.isdir(path)) {
 		return { success: true, content: Content.load(path) };
 	}
@@ -741,9 +791,10 @@ export function readFile(
 	workDir: string,
 	path: string,
 	offset?: number,
-	limit?: number
+	limit?: number,
+	docLanguage?: DoraAPIDocLanguage
 ): ReadFileResult {
-	const fallback = readFileRaw(workDir, path);
+	const fallback = readFileRaw(workDir, path, docLanguage);
 	if (!fallback.success) {
 		return fallback;
 	}
@@ -752,8 +803,8 @@ export function readFile(
 	return formatReadSlice(fallback.content, start, maxLines);
 }
 
-export function readFileRange(workDir: string, path: string, startLine: number, endLine: number): ReadFileResult {
-	const fallback = readFileRaw(workDir, path);
+export function readFileRange(workDir: string, path: string, startLine: number, endLine: number, docLanguage?: DoraAPIDocLanguage): ReadFileResult {
+	const fallback = readFileRaw(workDir, path, docLanguage);
 	if (!fallback.success || fallback.content === undefined) return fallback;
 	const s = Math.max(1, math.floor(startLine));
 	const e = Math.max(s, math.floor(endLine));
@@ -879,6 +930,35 @@ function mergeDoraAPISearchHitsUnique(resultsList: DoraAPISearchHit[][]): DoraAP
 	return merged;
 }
 
+function getDoraAPIFilePriority(file: string, docSource: DoraAPIDocSource, programmingLanguage: DoraAPIProgrammingLanguage): number {
+	if (docSource !== "api") return 100;
+	if (programmingLanguage !== "tsx") return 100;
+	switch (Path.getFilename(file).toLowerCase()) {
+		case "jsx.d.ts": return 0;
+		case "dorax.d.ts": return 1;
+		case "dora.d.ts": return 2;
+		default: return 100;
+	}
+}
+
+function sortDoraAPISearchHits(
+	hits: DoraAPISearchHit[],
+	docSource: DoraAPIDocSource,
+	programmingLanguage: DoraAPIProgrammingLanguage
+): DoraAPISearchHit[] {
+	const sorted = hits.slice();
+	sorted.sort((a, b) => {
+		const pa = getDoraAPIFilePriority(a.file, docSource, programmingLanguage);
+		const pb = getDoraAPIFilePriority(b.file, docSource, programmingLanguage);
+		if (pa !== pb) return pa - pb;
+		const fa = a.file.toLowerCase();
+		const fb = b.file.toLowerCase();
+		if (fa !== fb) return fa < fb ? -1 : 1;
+		return (a.line ?? 0) - (b.line ?? 0);
+	});
+	return sorted;
+}
+
 export async function searchFiles(req: {
 	workDir: string;
 	path: string;
@@ -961,6 +1041,7 @@ export async function searchDoraAPI(req: {
 	pattern: string;
 	docLanguage: DoraAPIDocLanguage;
 	programmingLanguage: DoraAPIProgrammingLanguage;
+	docSource?: DoraAPIDocSource;
 	limit?: number;
 	useRegex?: boolean;
 	caseSensitive?: boolean;
@@ -971,13 +1052,16 @@ export async function searchDoraAPI(req: {
 	if (pattern === "") return { success: false, message: "empty pattern" };
 	const patterns = splitSearchPatterns(pattern);
 	if (patterns.length === 0) return { success: false, message: "empty pattern" };
-	const docRoot = getDoraDocRoot(req.docLanguage);
+	const docSource = req.docSource ?? "api";
+	const target = getDoraDocSearchTarget(docSource, req.docLanguage, req.programmingLanguage);
+	const docRoot = target.root;
+	const resultBaseRoot = getDoraDocResultBaseRoot(docSource, req.docLanguage);
 	if (!Content.exist(docRoot) || !Content.isdir(docRoot)) {
 		return { success: false, message: `doc root not found: ${docRoot}` };
 	}
-	const exts = getDoraDocExtsByCodeLanguage(req.programmingLanguage);
+	const exts = target.exts;
 	const dotExts = exts.map(ext => ext.startsWith(".") ? ext : `.${ext}`);
-	const globs = exts.map(ext => `**/*.${ext}`);
+	const globs = target.globs;
 	const limit = math.max(1, math.floor(req.limit ?? 10));
 
 	return new Promise(resolve => {
@@ -994,15 +1078,15 @@ export async function searchDoraAPI(req: {
 						req.useRegex ?? false,
 						req.caseSensitive ?? false,
 						req.includeContent ?? true,
-						req.contentWindow ?? 140
+						req.contentWindow ?? 80
 					);
 					const hits: DoraAPISearchHit[] = [];
 					for (let i = 0; i < raw.length; i++) {
 						const row = raw[i] as any;
 						if (type(row) !== "table") continue;
 						const file = type(row.file) === "string"
-							? toDocRelativePath(docRoot, row.file as string)
-							: (type(row.path) === "string" ? toDocRelativePath(docRoot, row.path as string) : "");
+							? toDocRelativePath(resultBaseRoot, row.file as string)
+							: (type(row.path) === "string" ? toDocRelativePath(resultBaseRoot, row.path as string) : "");
 						if (file === "") continue;
 						hits.push({
 							file,
@@ -1010,12 +1094,14 @@ export async function searchDoraAPI(req: {
 							content: type(row.content) === "string" ? (row.content as string) : undefined,
 						});
 					}
-					allHits.push(hits.slice(0, limit));
+					allHits.push(sortDoraAPISearchHits(hits, docSource, req.programmingLanguage).slice(0, limit));
 				}
 				const hits = mergeDoraAPISearchHitsUnique(allHits);
 				resolve({
 					success: true,
+					docSource,
 					docLanguage: req.docLanguage,
+					programmingLanguage: req.programmingLanguage,
 					root: docRoot,
 					exts,
 					results: hits,
@@ -1219,7 +1305,9 @@ export async function build(req: { workDir: string; path: string }): Promise<Bui
 	}
 	const listResult = listFiles({
 		workDir: req.workDir,
-		path: target
+		path: target,
+		globs: codeExtensions.map(e => `**/*${e}`),
+		maxEntries: 10000
 	});
 
 	const relFiles = listResult.success ? listResult.files : [];

@@ -215,8 +215,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 		try {
 			const res = await Service.agentSessionSend({
 				sessionId,
-				prompt: text,
-				useChineseResponse: Info.locale.match(/^zh/) !== null,
+				prompt: text
 			});
 			if (!res.success) {
 				addAlert?.(res.message, "error");

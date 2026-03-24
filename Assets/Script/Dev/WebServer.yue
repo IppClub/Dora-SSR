@@ -138,8 +138,8 @@ HttpServer\post "/agent/session/get", (req): invalidArguments ->
 		return WebIDEAgentSession.getSession sessionId
 
 HttpServer\post "/agent/session/send", (req): invalidArguments ->
-	switch req when {body: {:sessionId, :prompt, :useChineseResponse}}
-		return WebIDEAgentSession.sendPrompt sessionId, prompt, useChineseResponse
+	switch req when {body: {:sessionId, :prompt}}
+		return WebIDEAgentSession.sendPrompt sessionId, prompt
 
 HttpServer\post "/agent/task/status", (req): invalidArguments ->
 	switch req when {body: {:sessionId}}
@@ -727,41 +727,50 @@ ensureLLMConfigTable = ->
 			url TEXT NOT NULL,
 			model TEXT NOT NULL,
 			api_key TEXT NOT NULL,
+			context_window INTEGER NOT NULL DEFAULT 32000,
 			active INTEGER NOT NULL DEFAULT 1,
 			created_at INTEGER,
 			updated_at INTEGER
 		);
 	]]
 
+normalizeContextWindow = (value) ->
+	contextWindow = tonumber value
+	if contextWindow == nil or contextWindow < 4000
+		return 32000
+	return math.max 4000, math.floor contextWindow
+
 HttpServer\post "/llm/list", ->
 	ensureLLMConfigTable!
 	rows = DB\query "
-		select id, name, url, model, api_key, active
+		select id, name, url, model, api_key, context_window, active
 		from LLMConfig
 		order by id asc"
 	items = if rows and #rows > 0
-		for [id, name, url, model, key, active] in *rows
-			:id, :name, :url, :model, :key, active: active ~= 0
+		for [id, name, url, model, key, contextWindow, active] in *rows
+			:id, :name, :url, :model, :key, contextWindow: normalizeContextWindow(contextWindow), active: active ~= 0
 	return success: true, :items
 
 HttpServer\post "/llm/create", (req): success: false, message: "invalid" ->
 	ensureLLMConfigTable!
 	switch req when {body: body}
-		{:name, :url, :model, :key, :active} = body
+		{:name, :url, :model, :key, :active, :contextWindow} = body
 		now = os.time!
 		if name == nil or url == nil or model == nil or key == nil
 			return success: false, message: "invalid"
+		contextWindow = normalizeContextWindow contextWindow
 		active = if active then 1 else 0
 		affected = DB\exec "
 			insert into LLMConfig (
-				name, url, model, api_key, active, created_at, updated_at
+				name, url, model, api_key, context_window, active, created_at, updated_at
 			) values (
-				?, ?, ?, ?, ?, ?, ?
+				?, ?, ?, ?, ?, ?, ?, ?
 			)", [
 			tostring name
 			tostring url
 			tostring model
 			tostring key
+			contextWindow
 			active
 			now
 			now
@@ -771,20 +780,22 @@ HttpServer\post "/llm/create", (req): success: false, message: "invalid" ->
 HttpServer\post "/llm/update", (req): success: false, message: "invalid" ->
 	ensureLLMConfigTable!
 	switch req when {body: body}
-		{:id, :name, :url, :model, :key, :active} = body
+		{:id, :name, :url, :model, :key, :active, :contextWindow} = body
 		now = os.time!
 		id = tonumber id
 		if id == nil
 			return success: false, message: "invalid"
+		contextWindow = normalizeContextWindow contextWindow
 		active = if active then 1 else 0
 		affected = DB\exec "
 			update LLMConfig
-			set name = ?, url = ?, model = ?, api_key = ?, active = ?, updated_at = ?
+			set name = ?, url = ?, model = ?, api_key = ?, context_window = ?, active = ?, updated_at = ?
 			where id = ?", [
 			tostring name
 			tostring url
 			tostring model
 			tostring key
+			contextWindow
 			active
 			now
 			id

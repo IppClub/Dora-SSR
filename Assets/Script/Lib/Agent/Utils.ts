@@ -268,13 +268,21 @@ interface CallStream {
 	stopToken: StopToken;
 }
 
-type LLMConfig = {
+export type LLMConfig = {
 	url: string;
 	model: string;
-	api_key: string;
+	apiKey: string;
+	contextWindow: number;
 };
 
-function getActiveLLMConfig(): { success: true; config: LLMConfig } | { success: false; message: string } {
+function normalizeContextWindow(value: unknown): number {
+	if (type(value) === "number") {
+		return math.max(4000, math.floor(value as number));
+	}
+	return 32000;
+}
+
+export function getActiveLLMConfig(): { success: true; config: LLMConfig } | { success: false; message: string } {
 	const rows = DB.query("select * from LLMConfig", true);
 	const records: Record<string, any>[] = [];
 	if (rows && rows.length > 1) {
@@ -299,12 +307,18 @@ function getActiveLLMConfig(): { success: true; config: LLMConfig } | { success:
 		config: {
 			url,
 			model,
-			api_key,
+			apiKey: api_key,
+			contextWindow: normalizeContextWindow(config["context_window"]),
 		},
 	};
 }
 
-export const callLLMStream = (messages: Message[], options: Record<string, any>, event: CallEvent | CallStream): { success: true } | { success: false, message: string } => {
+export const callLLMStream = (
+	messages: Message[],
+	options: Record<string, any>,
+	event: CallEvent | CallStream,
+	llmConfig?: LLMConfig
+): { success: true } | { success: false, message: string } => {
 	let callEvent: CallEvent;
 	if (event.id !== undefined) {
 		const id = event.id;
@@ -326,12 +340,18 @@ export const callLLMStream = (messages: Message[], options: Record<string, any>,
 	}
 	const { onData, onDone } = callEvent;
 	let { onCancel } = callEvent;
-	const configRes = getActiveLLMConfig();
-	if (!configRes.success) {
-		if (onCancel) onCancel(configRes.message);
-		return { success: false, message: configRes.message };
+	const config = llmConfig ?? (() => {
+		const configRes = getActiveLLMConfig();
+		if (!configRes.success) {
+			if (onCancel) onCancel(configRes.message);
+			return undefined;
+		}
+		return configRes.config;
+	})();
+	if (!config) {
+		return { success: false, message: "no active LLM config" };
 	}
-	const { url, model, api_key } = configRes.config;
+	const { url, model, apiKey } = config;
 	let stopLLM = false;
 	const parser = createSSEJSONParser({
 		onJSON: (obj) => {
@@ -341,7 +361,7 @@ export const callLLMStream = (messages: Message[], options: Record<string, any>,
 	});
 	(async () => {
 		try {
-			const result = await postLLM(messages, url, api_key, model, options, true, (data) => {
+			const result = await postLLM(messages, url, apiKey, model, options, true, (data) => {
 				if (stopLLM) {
 					if (onCancel) {
 						onCancel("LLM Stopped");
@@ -370,14 +390,25 @@ export const callLLMStream = (messages: Message[], options: Record<string, any>,
 export async function callLLM(
 	messages: Message[],
 	options: Record<string, any>,
-	stopToken?: StopToken
+	stopTokenOrConfig?: StopToken | LLMConfig,
+	llmConfig?: LLMConfig
 ): Promise<{ success: true; response: LLMResponseData } | { success: false; message: string; raw?: string }> {
-	const configRes = getActiveLLMConfig();
-	if (!configRes.success) {
-		Log("Error", `[Agent.Utils] callLLMOnce config error: ${configRes.message}`);
-		return { success: false, message: configRes.message };
+	const stopToken = stopTokenOrConfig && "stopped" in stopTokenOrConfig ? stopTokenOrConfig : undefined;
+	const config = stopTokenOrConfig && "url" in stopTokenOrConfig
+		? stopTokenOrConfig
+		: llmConfig;
+	const resolvedConfig = config ?? (() => {
+		const configRes = getActiveLLMConfig();
+		if (!configRes.success) {
+			Log("Error", `[Agent.Utils] callLLMOnce config error: ${configRes.message}`);
+			return undefined;
+		}
+		return configRes.config;
+	})();
+	if (!resolvedConfig) {
+		return { success: false, message: "no active LLM config" };
 	}
-	const { url, model, api_key } = configRes.config;
+	const { url, model, apiKey } = resolvedConfig;
 	Log("Info", `[Agent.Utils] callLLMOnce request model=${model} url=${url} messages=${messages.length}`);
 	if (stopToken?.stopped) {
 		const reason = stopToken.reason ?? "request cancelled";
@@ -385,7 +416,7 @@ export async function callLLM(
 		return { success: false, message: reason };
 	}
 	try {
-		const raw = await postLLM(messages, url, api_key, model, options, false, undefined, stopToken);
+		const raw = await postLLM(messages, url, apiKey, model, options, false, undefined, stopToken);
 		Log("Info", `[Agent.Utils] callLLMOnce raw response length=${raw.length}`);
 		const [response, err] = json.decode(raw);
 		if (err !== undefined || response === undefined || type(response) !== "table") {
