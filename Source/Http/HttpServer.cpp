@@ -509,6 +509,12 @@ const std::string& HttpServer::getAuthToken() const noexcept {
 
 void HttpServer::setAuthRequired(bool var) {
 	_authRequired = var;
+	if (!_authRequired) {
+		_authTokenHasExpiry = false;
+	} else if (!_authToken.empty()) {
+		_authTokenHasExpiry = true;
+		_authTokenExpiry = std::chrono::steady_clock::now() + std::chrono::seconds(AuthTokenTTLSeconds);
+	}
 }
 
 bool HttpServer::isAuthRequired() const noexcept {

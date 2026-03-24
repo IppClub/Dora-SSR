@@ -90,7 +90,7 @@ private:
 	bool _authRequired;
 	bool _authTokenHasExpiry;
 	std::chrono::steady_clock::time_point _authTokenExpiry;
-	static constexpr int AuthTokenTTLSeconds = 1800;
+	static constexpr int AuthTokenTTLSeconds = 12 * 60 * 60;
 	static constexpr int AuthSignatureTTLSeconds = 60;
 	std::unordered_map<std::string, std::chrono::steady_clock::time_point> _authNonces;
 	std::mutex _authNonceMutex;

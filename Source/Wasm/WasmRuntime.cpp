@@ -16,12 +16,55 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Other/xlsxtext.hpp"
 
 #ifndef DORA_NO_WA
-extern "C" {
 #if BX_PLATFORM_WINDOWS
-extern __declspec(dllexport) char* WaBuild(char* input);
-extern __declspec(dllexport) char* WaFormat(char* input);
-extern __declspec(dllexport) void WaFreeCString(char* str);
+using WaBuildFunc = char* (*)(char* input);
+using WaFormatFunc = char* (*)(char* input);
+using WaFreeCStringFunc = void (*)(char* str);
+
+struct WaApi {
+	void* module = nullptr;
+	WaBuildFunc build = nullptr;
+	WaFormatFunc format = nullptr;
+	WaFreeCStringFunc freeCString = nullptr;
+};
+
+static WaApi& SharedWaApi() {
+	static WaApi api;
+	static std::once_flag once;
+	std::call_once(once, []() {
+		api.module = bx::dlopen("wa.dll");
+		if (!api.module) {
+			Issue("wa.dll not found, Wa support disabled");
+			return;
+		}
+		api.build = bx::dlsym<WaBuildFunc>(api.module, "WaBuild");
+		api.format = bx::dlsym<WaFormatFunc>(api.module, "WaFormat");
+		api.freeCString = bx::dlsym<WaFreeCStringFunc>(api.module, "WaFreeCString");
+		if (!api.build || !api.format || !api.freeCString) {
+			Issue("wa.dll missing required exports, Wa support disabled");
+			bx::dlclose(api.module);
+			api = {};
+		}
+	});
+	return api;
+}
+
+static const char* WaBuild(char* input) {
+	auto& waApi = SharedWaApi();
+	return waApi.build ? waApi.build(input) : nullptr;
+}
+static const char* WaFormat(char* input) {
+	auto& waApi = SharedWaApi();
+	return waApi.format ? waApi.format(input) : nullptr;
+}
+static void WaFreeCString(const char* str) {
+	auto& waApi = SharedWaApi();
+	if (waApi.freeCString) {
+		waApi.freeCString(const_cast<char*>(str));
+	}
+}
 #elif BX_PLATFORM_ANDROID
+extern "C" {
 #include <jni.h>
 extern "C" JNIEnv* Android_JNI_GetEnv();
 static JavaVM* g_VM = NULL;
@@ -91,12 +134,14 @@ static const char* WaFormat(char* input) {
 void WaFreeCString(const char* str) {
 	delete[] str;
 }
+}
 #else
+extern "C" {
 extern char* WaBuild(char* input);
 extern char* WaFormat(char* input);
 extern void WaFreeCString(char* str);
-#endif
 }
+#endif
 #endif // DORA_NO_WA
 
 NS_DORA_BEGIN
@@ -2290,8 +2335,10 @@ void WasmRuntime::buildWaAsync(String fullPath, const std::function<void(String)
 	}
 	_thread->run([fullPath = fullPath.toString()]() {
 		auto result = WaBuild(c_cast<char*>(fullPath.c_str()));
-		std::string data(result);
-		WaFreeCString(result);
+		std::string data = result ? std::string(result) : "Wa build not available";
+		if (result) {
+			WaFreeCString(result);
+		}
 		return Values::alloc(std::move(data));
 	},
 		[callback](Own<Values> values) {
@@ -2323,8 +2370,10 @@ void WasmRuntime::formatWaAsync(String fullPath, const std::function<void(String
 	}
 	_thread->run([fullPath = fullPath.toString()]() {
 		auto result = WaFormat(c_cast<char*>(fullPath.c_str()));
-		std::string data(result);
-		WaFreeCString(result);
+		std::string data = result ? std::string(result) : ""s;
+		if (result) {
+			WaFreeCString(result);
+		}
 		return Values::alloc(std::move(data));
 	},
 		[callback](Own<Values> values) {

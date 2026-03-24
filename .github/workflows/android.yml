@@ -38,6 +38,9 @@ jobs:
       - name: Build Android
         if: "!startsWith(github.ref, 'refs/tags/')"
         run: cd Projects/Android/Dora && ./gradlew assembleDebug
+      - name: Generate tutorial docs
+        if: startsWith(github.ref, 'refs/tags/')
+        run: node Docs/scripts/generate-language-docs.js
       - name: Pack Android
         if: startsWith(github.ref, 'refs/tags/')
         run: |

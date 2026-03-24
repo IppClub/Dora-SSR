@@ -36,6 +36,7 @@ using namespace std::string_literals;
 using namespace std::string_view_literals;
 
 #include "bx/bx.h"
+#include "bx/os.h"
 
 #include "bgfx/platform.h"
 

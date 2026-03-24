@@ -24,6 +24,9 @@ jobs:
         run: Tools\build-scripts\build_lib_bgfx_windows.bat
       - name: Windows build
         run: Tools\build-scripts\build_windows.bat
+      - name: Generate tutorial docs
+        if: startsWith(github.ref, 'refs/tags/')
+        run: node Docs/scripts/generate-language-docs.js
       - name: Pack
         if: startsWith(github.ref, 'refs/tags/')
         run: |
