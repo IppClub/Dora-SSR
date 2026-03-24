@@ -75,6 +75,8 @@ i18n
 						buildDone: "Build done {{title}}",
 						noBuild: "Nothing to build {{title}}",
 						noDeclaration: "Failed to get declaration file for {{title}}",
+						updateDora: "Updated dora for {{title}}",
+						failedUpdateDora: "Failed to update dora for {{title}}",
 						waitForJob: "Please wait for current job completed",
 					},
 					auth: {
@@ -214,6 +216,7 @@ i18n
 						build: "Build",
 						obfuscate: "Get Obfuscated",
 						declaration: "Get Declaration",
+						updateDora: "Update dora",
 						llmConfig: "LLM Config",
 					},
 					llm: {
@@ -469,6 +472,8 @@ i18n
 						buildDone: "编译完成 {{title}}",
 						noBuild: "无可编译文件 {{title}}",
 						noDeclaration: "无法提取 {{title}} 的声明文件",
+						updateDora: "已更新 {{title}} 的 dora",
+						failedUpdateDora: "更新 {{title}} 的 dora 失败",
 						waitForJob: "请等待当前任务完成",
 					},
 					auth: {
@@ -608,6 +613,7 @@ i18n
 						build: "编译生成",
 						obfuscate: "下载混淆",
 						declaration: "提取声明",
+						updateDora: "更新 dora",
 						llmConfig: "大模型配置",
 					},
 					llm: {

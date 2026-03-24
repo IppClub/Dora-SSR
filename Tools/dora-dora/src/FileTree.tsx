@@ -156,7 +156,7 @@ const motion = {
 	onLeaveActive: () => ({ height: 0 }),
 };
 
-export type TreeMenuEvent = "New" | "Rename" | "Delete" | "Upload" | "Download" | "Cancel" | "Unzip" | "View Compiled" | "Copy Path" | "Build" | "Obfuscate" | "Declaration" | "Dora";
+export type TreeMenuEvent = "New" | "Rename" | "Delete" | "Upload" | "Download" | "Cancel" | "Unzip" | "View Compiled" | "Copy Path" | "Build" | "Obfuscate" | "Declaration" | "Update Dora" | "Dora";
 
 export interface FileTreeProps {
 	selectedKeys: string[];
@@ -218,6 +218,7 @@ export default memo(function FileTree(props: FileTreeProps) {
 	const enableObfuscate = (isRoot || !isBuiltin) || Info.engineDev;
 	const enableViewCompiled = (!isRoot && !isBuiltin) || Info.engineDev;
 	const enableDeclaration = (!isRoot && !isBuiltin && (ext === ".ts" || ext === ".tsx")) || Info.engineDev;
+	const enableUpdateDora = ext === ".mod" && (((!isRoot && !isBuiltin) || Info.engineDev));
 
 	return (
 		<MacScrollbar
@@ -335,6 +336,14 @@ export default memo(function FileTree(props: FileTreeProps) {
 							<RiListIndefinite/>
 						</ListItemIcon>
 						<ListItemText primary={ t("menu.declaration") }/>
+					</StyledMenuItem> : null
+				}
+				{enableUpdateDora && anchorItem ?
+					<StyledMenuItem onClick={() => handleClose("Update Dora", anchorItem.data)}>
+						<ListItemIcon>
+							<Refresh/>
+						</ListItemIcon>
+						<ListItemText primary={ t("menu.updateDora") }/>
 					</StyledMenuItem> : null
 				}
 				{enableObfuscate && anchorItem && anchorItem.data.dir ?

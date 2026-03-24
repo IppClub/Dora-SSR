@@ -1311,6 +1311,28 @@ getWaProjectDirFromFile = (file) ->
 	until false
 	nil
 
+HttpServer\postSchedule "/wa/update_dora", (req): {success: false, message: "invalid call"} ->
+	switch req when {body: {:path}}
+		if projDir := getWaProjectDirFromFile path
+			sourceDoraPath = Path Content.assetPath, "dora-wa", "vendor", "dora"
+			unless Content\exist sourceDoraPath
+				return success: false, message: "missing dora template"
+			targetVendorPath = Path projDir, "vendor"
+			targetDoraPath = Path targetVendorPath, "dora"
+			unless Content\exist targetVendorPath
+				unless Content\mkdir targetVendorPath
+					return success: false, message: "failed to create vendor folder"
+			elseif not Content\isdir targetVendorPath
+				return success: false, message: "vendor path is not a folder"
+			if Content\exist targetDoraPath
+				unless Content\remove targetDoraPath
+					return success: false, message: "failed to remove old dora"
+			unless Content\copyAsync sourceDoraPath, targetDoraPath
+				return success: false, message: "failed to copy dora"
+			return success: true
+		else
+			return success: false, message: 'Wa file needs a project'
+
 HttpServer\postSchedule "/wa/build", (req) ->
 	switch req when {body: {:path}}
 		if projDir := getWaProjectDirFromFile path

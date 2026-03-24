@@ -2034,6 +2034,41 @@ export default function PersistentDrawerLeft() {
 				});
 				break;
 			}
+			case "Update Dora": {
+				const {key, title} = data;
+				const doraPath = path.join(path.dirname(key), "vendor", "dora");
+				Service.updateDora({path: key}).then((res) => {
+					if (res.success) {
+						const prevFiles = filesRef.current;
+						const prevTabIndex = tabIndexRef.current;
+						const currentTabKey = prevTabIndex !== null ? prevFiles[prevTabIndex]?.key : undefined;
+						const nextFiles = prevFiles.filter(file => !isChildFolder(file.key, doraPath));
+						if (nextFiles.length !== prevFiles.length) {
+							filesRef.current = nextFiles;
+							setFiles(nextFiles);
+							if (currentTabKey !== undefined) {
+								const nextIndex = nextFiles.findIndex(file => file.key === currentTabKey);
+								if (nextIndex >= 0) {
+									if (nextIndex !== prevTabIndex) {
+										switchTabRef.current(nextIndex, nextFiles[nextIndex]);
+									}
+								} else if (nextFiles.length === 0) {
+									switchTabRef.current(null);
+								} else {
+									const fallbackIndex = Math.min(prevTabIndex ?? 0, nextFiles.length - 1);
+									switchTabRef.current(fallbackIndex, nextFiles[fallbackIndex]);
+								}
+							}
+						}
+						addAlert(t("alert.updateDora", {title}), "success");
+					} else {
+						addAlert(res.message, "error", true);
+					}
+				}).catch(() => {
+					addAlert(t("alert.failedUpdateDora", {title}), "error");
+				});
+				break;
+			}
 			case "Build": {
 				const {key} = data;
 				let built = false;

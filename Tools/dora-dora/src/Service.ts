@@ -849,6 +849,21 @@ export const createWa = (req: CreateWaRequest) => {
 	return post<CreateWaResponse>("/wa/create", req);
 };
 
+// updateDora
+
+export interface UpdateDoraRequest {
+	path: string;
+}
+export type UpdateDoraResponse = {
+	success: true;
+} | {
+	success: false;
+	message: string;
+};
+export const updateDora = (req: UpdateDoraRequest) => {
+	return post<UpdateDoraResponse>("/wa/update_dora", req);
+};
+
 // download
 
 export interface DownloadRequest {

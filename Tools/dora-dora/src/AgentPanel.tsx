@@ -14,7 +14,6 @@ import { BsArrowDown } from 'react-icons/bs';
 import AgentMessageList from './AgentMessageList';
 import AgentComposer from './AgentComposer';
 import AgentStepList from './AgentStepList';
-import Info from './Info';
 
 interface AgentPanelProps {
 	sessionId: number;
