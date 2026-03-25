@@ -46,8 +46,8 @@ namespace fs = ghc::filesystem;
 namespace fs = std::filesystem;
 #endif // BX_PLATFORM_LINUX
 
-#include <atomic>
 #include <algorithm>
+#include <atomic>
 #include <chrono>
 #include <condition_variable>
 #include <cstdlib>
@@ -376,7 +376,9 @@ public:
 			}
 			_server.stop();
 			std::unique_lock<std::mutex> lock(_shutdownLock);
-			_waitForShutdown.wait(lock, [this]() { return _stopped; });
+			_waitForShutdown.wait(lock, [this]() {
+				return _stopped;
+			});
 		}
 		LogHandler -= std::make_pair(this, &WebSocketServer::sendLog);
 	}
@@ -916,7 +918,9 @@ bool HttpServer::start(int port) {
 									auto fullPath = newFile.value();
 									SDL_RWops* stream = SDL_RWFromFile(fullPath.c_str(), "wb+");
 									if (stream) {
-										streams.push_back({stream, [](SDL_RWops* io) { SDL_RWclose(io); }});
+										streams.push_back({stream, [](SDL_RWops* io) {
+															   SDL_RWclose(io);
+														   }});
 										accepted = true;
 										acceptedFiles.emplace_back(newFile.value());
 									}
@@ -1110,8 +1114,7 @@ static std::pair<time_t, time_t> to_timeout_parts(float timeout) {
 	const auto micros = std::chrono::duration_cast<std::chrono::microseconds>(duration - seconds);
 	return {
 		s_cast<time_t>(seconds.count()),
-		s_cast<time_t>(micros.count())
-	};
+		s_cast<time_t>(micros.count())};
 }
 
 static void configure_http_client(const std::shared_ptr<httplib::Client>& client, float timeout) {
@@ -1426,7 +1429,9 @@ HttpClient::RequestId HttpClient::downloadAsync(String url, String filePath, flo
 				unregister_http_client_request(request);
 				return nullptr;
 			}
-			auto stream = std::shared_ptr<SDL_RWops>{out, [](SDL_RWops* io) { SDL_RWclose(io); }};
+			auto stream = std::shared_ptr<SDL_RWops>{out, [](SDL_RWops* io) {
+														 SDL_RWclose(io);
+													 }};
 			httplib::Headers headers;
 			prepare_http_request_headers(headers);
 			auto result = client->Get(

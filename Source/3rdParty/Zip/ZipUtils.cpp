@@ -126,38 +126,39 @@ static std::string getSearchName(const std::string& filename) {
 	return cleaned;
 }
 
+static bool isDirectChildPath(const std::string& entry, const std::string& parent) {
+	if (parent.empty()) return !entry.empty();
+	return entry.length() > parent.length()
+		&& entry.compare(0, parent.length(), parent) == 0
+		&& entry[parent.length()] == '/';
+}
+
 std::list<std::string> ZipFile::getDirEntries(const std::string& path, bool isFolder) {
 	if (!_file) return {};
 	std::string searchName = getSearchName(path);
 	std::list<std::string> results;
 	if (isFolder) {
 		for (const auto& folder : _file->folderList) {
-			auto left = Slice(folder.first).left(searchName.length());
-			if (left == searchName) {
+			if (isDirectChildPath(folder.first, searchName)) {
 				size_t searchStart = 0;
 				if (!searchName.empty()) searchStart = searchName.length() + 1;
 				size_t pos = folder.first.find('/', searchStart);
 				if (pos == std::string::npos) {
-					if (searchName.length() < folder.first.length()) {
-						std::string name = folder.second.substr(searchStart);
-						if (name != "." && name != "..") {
-							results.push_back(name);
-						}
+					std::string name = folder.second.substr(searchStart);
+					if (name != "." && name != "..") {
+						results.push_back(name);
 					}
 				}
 			}
 		}
 	} else {
 		for (const auto& file : _file->fileList) {
-			auto left = Slice(file.first).left(searchName.length());
-			if (left == searchName) {
+			if (isDirectChildPath(file.first, searchName)) {
 				size_t searchStart = 0;
 				if (!searchName.empty()) searchStart = searchName.length() + 1;
 				size_t pos = file.first.find('/', searchStart);
 				if (pos == std::string::npos) {
-					if (searchName.length() < file.first.length()) {
-						results.push_back(file.second.name.substr(searchStart));
-					}
+					results.push_back(file.second.name.substr(searchStart));
 				}
 			}
 		}
@@ -170,13 +171,10 @@ std::list<std::string> ZipFile::getAllFiles(const std::string& path) {
 	std::string searchName = getSearchName(path);
 	std::list<std::string> results;
 	for (const auto& file : _file->fileList) {
-		auto left = Slice(file.first).left(searchName.length());
-		if (left == searchName) {
-			if (searchName.length() < file.first.length()) {
-				size_t searchStart = 0;
-				if (!searchName.empty()) searchStart = searchName.length() + 1;
-				results.push_back(file.second.name.substr(searchStart));
-			}
+		if (isDirectChildPath(file.first, searchName)) {
+			size_t searchStart = 0;
+			if (!searchName.empty()) searchStart = searchName.length() + 1;
+			results.push_back(file.second.name.substr(searchStart));
 		}
 	}
 	return results;
