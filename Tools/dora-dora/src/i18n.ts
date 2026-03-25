@@ -182,7 +182,9 @@ i18n
 						blockly: "write game logic by connecting blocks together",
 						wa: "a simple, reliable, statically typed WASM language",
 						tic: "TIC-80 fantasy console game cartridge",
-						project: "create as {{name}} project",
+						project: "Create as Project",
+						projectNamed: "create as {{name}} project",
+						projectType: "Project Type",
 					},
 					editor: {
 						goToDefinition: "Go to Definition",
@@ -579,7 +581,9 @@ i18n
 						blockly: "用积木块来写游戏逻辑",
 						wa: "简单可靠、静态类型的 WASM 编程语言",
 						tic: "TIC-80 幻想游戏机卡带",
-						project: "创建为 {{name}} 项目",
+						project: "创建为项目",
+						projectNamed: "创建为 {{name}} 项目",
+						projectType: "项目类型",
 					},
 					editor: {
 						goToDefinition: "跳转到定义",

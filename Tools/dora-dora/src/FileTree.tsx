@@ -244,14 +244,6 @@ export default memo(function FileTree(props: FileTreeProps) {
 					},
 				}}
 			>
-				{anchorItem ?
-					<StyledMenuItem onClick={() => handleClose("Dora", anchorItem?.data)}>
-						<ListItemIcon>
-							<AiOutlineComment/>
-						</ListItemIcon>
-						<ListItemText primary="Dora!"/>
-					</StyledMenuItem> : null
-				}
 				{enableNew ?
 					<StyledMenuItem onClick={() => handleClose("New", anchorItem?.data)}>
 						<ListItemIcon>
@@ -370,6 +362,14 @@ export default memo(function FileTree(props: FileTreeProps) {
 							<GoFileCode/>
 						</ListItemIcon>
 						<ListItemText primary={ t("menu.viewCompiled", {lang: "Lua"}) }/>
+					</StyledMenuItem> : null
+				}
+				{anchorItem ?
+					<StyledMenuItem onClick={() => handleClose("Dora", anchorItem?.data)}>
+						<ListItemIcon>
+							<AiOutlineComment/>
+						</ListItemIcon>
+						<ListItemText primary="Dora!"/>
 					</StyledMenuItem> : null
 				}
 			</StyledMenu>

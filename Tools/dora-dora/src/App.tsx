@@ -20,7 +20,7 @@ import FileTabBar, { TabMenuEvent, TabStatus } from './FileTabBar';
 import Info from './Info';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
-import { Alert, AlertColor, Button, Collapse, DialogActions, DialogContent, DialogContentText, InputAdornment, TextField, Container, Link, Typography, Checkbox, FormControlLabel, Tooltip, Stack } from '@mui/material';
+import { Alert, AlertColor, Button, Collapse, DialogActions, DialogContent, DialogContentText, InputAdornment, TextField, Container, Link, Typography, Checkbox, FormControlLabel, Tooltip, Stack, MenuItem } from '@mui/material';
 import NewFileDialog, { DoraFileType } from './NewFileDialog';
 import logo from './logo.svg';
 import { TransitionGroup } from 'react-transition-group';
@@ -243,6 +243,78 @@ interface Modified {
 	blocklyCode?: string;
 };
 
+type FolderProjectType = "TypeScript" | "TSX" | "Teal" | "Lua" | "YueScript";
+
+const folderProjectTypes: FolderProjectType[] = ["TypeScript", "TSX", "Teal", "Lua", "YueScript"];
+
+const getFolderProjectExtension = (type: FolderProjectType) => {
+	switch (type) {
+		case "TypeScript": return ".ts";
+		case "TSX": return ".tsx";
+		case "Teal": return ".tl";
+		case "Lua": return ".lua";
+		case "YueScript": return ".yue";
+	}
+};
+
+const getNewFileTemplate = (ext: string) => {
+	let content = "";
+	let position: monaco.IPosition | undefined;
+	switch (ext) {
+		case ".lua":
+			content = "-- @preview-file on clear\n\n";
+			position = {
+				lineNumber: 3,
+				column: 1
+			};
+			break;
+		case ".tl":
+			content = "-- @preview-file on clear\n\n";
+			position = {
+				lineNumber: 3,
+				column: 1
+			};
+			break;
+		case ".yue":
+			content = "-- @preview-file on clear\n_ENV = Dora\nimport global\n\n";
+			position = {
+				lineNumber: 5,
+				column: 1
+			};
+			break;
+		case ".tsx":
+			content = "// @preview-file on clear nolog\nimport { React, toNode, useRef } from 'DoraX';\nimport {} from 'Dora';\n\n";
+			position = {
+				lineNumber: 5,
+				column: 1
+			};
+			break;
+		case ".ts":
+			content = "// @preview-file on clear\nimport {} from 'Dora';\n\n";
+			position = {
+				lineNumber: 4,
+				column: 1
+			};
+			break;
+		case ".xml":
+			content = "<!-- @preview-file on clear nolog -->\n<Dora>\n\t\n</Dora>\n";
+			position = {
+				lineNumber: 3,
+				column: 2
+			};
+			break;
+		case ".bl":
+			content = '{"blocks":{"blocks":[{"type":"comment_block","fields":{"NOTE":"@preview-file on clear"}}]}}';
+			break;
+		case ".yarn":
+			content = `title: Start\ntags:\nposition: 50,50\ncolorID: 0\n---\nHello World!\n===\n`;
+			break;
+		default:
+			break;
+	}
+	return {content, position};
+};
+
 const editorBackground = <div style={{width: '100%', height: '100%', backgroundColor:'#1a1a1a'}}/>;
 
 const Editor = memo((props: {
@@ -410,6 +482,7 @@ export default function PersistentDrawerLeft() {
 			name: string,
 			ext: string,
 			project?: boolean,
+			projectType?: FolderProjectType,
 		} | null>(null);
 
 	const [jumpToFile, setJumpToFile] = useState<{
@@ -2301,7 +2374,8 @@ export default function PersistentDrawerLeft() {
 				title: ext === "" ? "file.newFolder" : "file.new",
 				node: openNewFile !== null ? openNewFile : undefined,
 				name: "",
-				ext
+				ext,
+				projectType: ext === "" ? "TypeScript" : undefined,
 			});
 		}
 		setOpenNewFile(null);
@@ -2420,125 +2494,70 @@ export default function PersistentDrawerLeft() {
 				}
 				const newName = fileInfo.name + ext;
 				const newFile = path.join(dir, newName);
-				let content = "";
-				let position: monaco.IPosition | undefined;
-				switch (ext) {
-					case ".lua":
-						content = "-- @preview-file on clear\n\n";
-						position = {
-							lineNumber: 3,
-							column: 1
-						};
-						break;
-					case ".yue":
-						content = "-- @preview-file on clear\n_ENV = Dora\nimport global\n\n";
-						position = {
-							lineNumber: 5,
-							column: 1
-						};
-						break;
-					case ".tsx":
-						content = "// @preview-file on clear nolog\nimport { React, toNode, useRef } from 'DoraX';\nimport {} from 'Dora';\n\n";
-						position = {
-							lineNumber: 5,
-							column: 1
-						};
-						break;
-					case ".ts":
-						content = "// @preview-file on clear\nimport {} from 'Dora';\n\n";
-						position = {
-							lineNumber: 4,
-							column: 1
-						};
-						break;
-					case ".xml":
-						content = "<!-- @preview-file on clear nolog -->\n<Dora>\n\t\n</Dora>\n";
-						position = {
-							lineNumber: 3,
-							column: 2
-						};
-						break;
-					case ".bl":
-						content = '{"blocks":{"blocks":[{"type":"comment_block","fields":{"NOTE":"@preview-file on clear"}}]}}';
-						break;
-					case ".yarn":
-						content = `title: Start\ntags:\nposition: 50,50\ncolorID: 0\n---\nHello World!\n===\n`;
-						break;
-					default:
-						break;
-				}
 				const folder = fileInfo.title === "file.newFolder";
-				Service.newFile({path: newFile, content, folder}).then((res) => {
+				const {content, position} = getNewFileTemplate(ext);
+				const initExt = folder && fileInfo.project ? getFolderProjectExtension(fileInfo.projectType ?? "TypeScript") : null;
+				const initFile = initExt ? path.join(newFile, `init${initExt}`) : null;
+				const initTemplate = initExt ? getNewFileTemplate(initExt) : null;
+				(async () => {
+					const res = await Service.newFile({path: newFile, content, folder});
 					if (!res.success) {
 						addAlert(t(`alert.new${res.message}`), "error");
 						return;
 					}
-					const rootNode = treeData.at(0);
-					if (rootNode === undefined) return;
-					const newNode: TreeDataType = {
-						key: newFile,
-						title: newName,
-						dir: folder,
-					};
-					const visitData = (node: TreeDataType) => {
-						if (node.key === target.key) return "find";
-						if (node.children) {
-							for (let i = 0; i < node.children.length; i++) {
-								const res = visitData(node.children[i]);
-								if (res === "find") {
-									const child = node.children[i];
-									let parent = child;
-									if (child.dir) {
-										if (child.children === undefined) {
-											child.children = [];
-										}
-										child.children.push(newNode);
-									} else {
-										parent = node;
-										node.children.push(newNode);
-									}
-									if (expandedKeys.find(k => parent.key === k) === undefined) {
-										expandedKeys.push(parent.key);
-										setExpandedKeys([...expandedKeys]);
-									}
-									return "stop";
-								} else if (res === "stop") {
-									return "stop";
-								}
-							}
-						}
-						return "continue";
-					};
-					if (visitData(rootNode) === "find") {
-						if (rootNode.children === undefined) {
-							rootNode.children = [];
-						}
-						rootNode.children.push(newNode);
-						if (expandedKeys.find(k => rootNode.key === k) === undefined) {
-							expandedKeys.push(rootNode.key);
-							setExpandedKeys([...expandedKeys]);
+					if (initFile !== null && initTemplate !== null) {
+						const initRes = await Service.newFile({
+							path: initFile,
+							content: initTemplate.content,
+							folder: false
+						});
+						if (!initRes.success) {
+							addAlert(t(`alert.new${initRes.message}`), "error");
+							return;
 						}
 					}
+					const rootNode = treeData.at(0);
+					if (rootNode === undefined) return;
+					const newExpandedKeys = [...expandedKeys];
+					let selectedNode: TreeDataType | null = null;
+					if (folder) {
+						selectedNode = ensureDirNode(rootNode, newFile, newExpandedKeys);
+						if (initFile !== null) {
+							const result = ensureFileNode(rootNode, initFile, newExpandedKeys);
+							selectedNode = result.node ?? selectedNode;
+						}
+					} else {
+						const result = ensureFileNode(rootNode, newFile, newExpandedKeys);
+						selectedNode = result.node;
+					}
 					setTreeData([rootNode]);
-					setSelectedKeys([newFile]);
-					setSelectedNode(newNode);
+					if (newExpandedKeys.length !== expandedKeys.length) {
+						setExpandedKeys(newExpandedKeys);
+					}
+					const openedFile = initFile ?? newFile;
+					const openedName = path.basename(openedFile);
+					if (selectedNode !== null) {
+						setSelectedKeys([openedFile]);
+						setSelectedNode(selectedNode);
+					}
+					const openedFolder = folder && initFile === null;
 					const newItem: EditingFile = {
-						key: newFile,
-						title: newName,
-						folder,
-						position,
-						content,
+						key: openedFile,
+						title: openedName,
+						folder: openedFolder,
+						position: initTemplate?.position ?? position,
+						content: initTemplate?.content ?? content,
 						contentModified: null,
 						status: "normal",
 						onMount: () => {},
 					};
-					if (ext === ".md") {
+					if (path.extname(openedName) === ".md") {
 						newItem.mdEditing = true;
 					}
 					newItem.onMount = onEditorDidMount(newItem);
 					setFiles([...files, newItem]);
 					switchTab(files.length, newItem);
-				}).then(() => {
+				})().then(() => {
 					if (ext === ".tic") {
 						fetch('/tic80/cart.tic')
 						.then(res => {
@@ -3404,7 +3423,7 @@ export default function PersistentDrawerLeft() {
 						{fileInfo?.ext === ".wa" && fileInfo.title === "file.new" ?
 							<FormControlLabel
 								style={{marginLeft: 5}}
-								label={t("file.project", {name: "Wa"})}
+								label={t("file.projectNamed", {name: "Wa"})}
 								control={
 									<Checkbox
 										checked={fileInfo?.project}
@@ -3416,6 +3435,45 @@ export default function PersistentDrawerLeft() {
 									/>
 								}
 							/> : null
+						}
+						{fileInfo?.title === "file.newFolder" ?
+							<>
+								<FormControlLabel
+									style={{marginLeft: 5}}
+										label={t("file.project")}
+									control={
+										<Checkbox
+											checked={fileInfo?.project}
+											onChange={(event) => {
+												if (fileInfo === null) return;
+												setFileInfo({...fileInfo, project: event.target.checked});
+											}}
+										/>
+									}
+								/>
+								{fileInfo.project ?
+									<TextField
+										select
+										label={t("file.projectType")}
+										value={fileInfo.projectType ?? "TypeScript"}
+										sx={{
+											m: 1,
+											width: '25ch',
+											"& .MuiOutlinedInput-notchedOutline": {
+												borderColor: Color.Secondary,
+											}
+										}}
+										onChange={(event) => {
+											if (fileInfo === null) return;
+											setFileInfo({...fileInfo, projectType: event.target.value as FolderProjectType});
+										}}
+									>
+										{folderProjectTypes.map((projectType) =>
+											<MenuItem key={projectType} value={projectType}>{projectType}</MenuItem>
+										)}
+									</TextField>
+								: null}
+							</> : null
 						}
 					</Box>
 				</DialogContent>
