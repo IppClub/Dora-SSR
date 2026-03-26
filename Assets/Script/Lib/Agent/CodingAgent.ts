@@ -180,6 +180,44 @@ function getCancelledReason(shared: AgentShared): string {
 	return shared.useChineseResponse ? "已取消" : "cancelled";
 }
 
+function getMaxStepsReachedReason(shared: AgentShared): string {
+	return shared.useChineseResponse
+		? `已达到最大执行步数限制（${shared.maxSteps} 步）。`
+		: `Maximum step limit reached (${shared.maxSteps} steps).`;
+}
+
+function getFailureSummaryFallback(shared: AgentShared, error: string): string {
+	return shared.useChineseResponse
+		? `任务因以下问题结束：${error}`
+		: `The task ended due to the following issue: ${error}`;
+}
+
+function areDecisionParamsEqual(a: unknown, b: unknown): boolean {
+	if (a === b) return true;
+	if (a === null || b === null || a === undefined || b === undefined) return a === b;
+	const typeA = type(a);
+	const typeB = type(b);
+	if (typeA !== typeB) return false;
+	if (typeA === "table") {
+		const tableA = a as Record<string, unknown>;
+		const tableB = b as Record<string, unknown>;
+		for (const key in tableA) {
+			if (!areDecisionParamsEqual(tableA[key], tableB[key])) return false;
+		}
+		for (const key in tableB) {
+			if (tableA[key] === undefined) return false;
+		}
+		return true;
+	}
+	return tostring(a) === tostring(b);
+}
+
+function isDuplicateDecision(shared: AgentShared, tool: AgentToolName, params: Record<string, unknown>): boolean {
+	const previous = shared.lastDecision;
+	if (!previous) return false;
+	return previous.tool === tool && areDecisionParamsEqual(previous.params, params);
+}
+
 function toJson(value: unknown): string {
 	const [text, err] = json.encode(value as object);
 	if (text !== undefined) return text;
@@ -415,6 +453,7 @@ async function maybeCompressHistory(shared: AgentShared): Promise<void> {
 			return;
 		}
 		const result = await memory.compressor.compress(
+			shared.userQuery,
 			shared.history,
 			memory.lastConsolidatedIndex,
 			shared.llmOptions,
@@ -509,7 +548,8 @@ function formatHistorySummary(history: AgentActionRecord[]): string {
 			} else if (action.tool === "read_file" || action.tool === "read_file_range") {
 				lines.push(`- Result: ${success ? "Success" : "Failed"}`);
 				if (success && type(result.content) === "string") {
-					lines.push(`- Content: ${limitReadContentForHistory(result.content as string, action.tool)}`);
+					lines.push("- Content:");
+					lines.push(limitReadContentForHistory(result.content as string, action.tool));
 					if (result.startLine !== undefined || result.endLine !== undefined || result.totalLines !== undefined) {
 						lines.push(
 							`- Range: ${result.startLine !== undefined ? tostring(result.startLine) : "?"}-${result.endLine !== undefined ? tostring(result.endLine) : "?"} / total ${result.totalLines !== undefined ? tostring(result.totalLines) : "?"}`
@@ -526,6 +566,7 @@ function formatHistorySummary(history: AgentActionRecord[]): string {
 						? (result.totalResults as number)
 						: matches.length;
 					lines.push(`- Matches: ${totalMatches}`);
+					lines.push("- Next: Immediately read the relevant file from the potentially related results to gather more information.");
 					if (type(result.offset) === "number" && type(result.limit) === "number") {
 						lines.push(`- Page: offset=${tostring(result.offset)} limit=${tostring(result.limit)}`);
 					}
@@ -582,6 +623,7 @@ function formatHistorySummary(history: AgentActionRecord[]): string {
 						? (result.totalEntries as number)
 						: files.length;
 					lines.push(`- Entries: ${totalEntries}`);
+					lines.push("- Next: Immediately read the relevant file snippets from the potentially related results to gather more information.");
 					lines.push("- Directory structure:");
 					if (files.length > 0) {
 						const shown = math.min(files.length, HISTORY_LIST_FILES_MAX_ENTRIES);
@@ -768,8 +810,7 @@ function clampIntegerParam(value: unknown, fallback: number, minValue: number, m
 
 function validateDecision(
 	tool: AgentToolName,
-	params: Record<string, unknown>,
-	history?: AgentActionRecord[]
+	params: Record<string, unknown>
 ): { success: true; params: Record<string, unknown> } | { success: false; message: string } {
 	if (tool === "finish") return { success: true, params };
 
@@ -968,18 +1009,12 @@ class MainDecisionAgent extends Node<AgentShared> {
 		};
 	}
 
-	private getSystemPrompt(): string {
-		return getDecisionSystemPrompt();
-	}
-
-	private getToolDefinitions(): string {
-		return getDecisionToolDefinitions();
-	}
-
 	private async callDecisionByToolCalling(
 		shared: AgentShared,
 		prompt: string,
-		lastError?: string
+		lastError?: string,
+		attempt = 1,
+		lastRaw?: string
 	): Promise<{ success: true; tool: AgentToolName; reason: string; params: Record<string, unknown> } | { success: false; message: string; raw?: string }> {
 		if (shared.stopToken.stopped) {
 			return { success: false, message: getCancelledReason(shared) };
@@ -998,7 +1033,11 @@ class MainDecisionAgent extends Node<AgentShared> {
 			{
 				role: "user",
 				content: lastError
-					? `${prompt}\n\n${replacePromptVars(shared.promptPack.toolCallingRetryPrompt, { LAST_ERROR: lastError })}`
+					? `${prompt}\n\n${replacePromptVars(shared.promptPack.toolCallingRetryPrompt, { LAST_ERROR: lastError })}
+
+Retry attempt: ${attempt}.
+The next reply must differ from the previously rejected output.
+${lastRaw && lastRaw !== "" ? `Last rejected output summary: ${truncateText(lastRaw, 300)}` : ""}`
 					: prompt,
 			},
 		];
@@ -1053,7 +1092,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 				raw: argsText,
 			};
 		}
-		const validation = validateDecision(decision.tool, decision.params, shared.history);
+		const validation = validateDecision(decision.tool, decision.params);
 		if (!validation.success) {
 			Log("Error", `[CodingAgent] invalid next_step tool arguments values: ${validation.message}`);
 			return {
@@ -1071,6 +1110,10 @@ class MainDecisionAgent extends Node<AgentShared> {
 		const shared = input.shared;
 		if (shared.stopToken.stopped) {
 			return { success: false, message: getCancelledReason(shared) };
+		}
+		if (shared.step >= shared.maxSteps) {
+			Log("Warn", `[CodingAgent] maximum step limit reached step=${shared.step} max=${shared.maxSteps}`);
+			return { success: false, message: getMaxStepsReachedReason(shared) };
 		}
 		const { memory } = shared;
 
@@ -1094,12 +1137,20 @@ class MainDecisionAgent extends Node<AgentShared> {
 				const decision = await this.callDecisionByToolCalling(
 					shared,
 					prompt,
-					attempt > 0 ? lastError : undefined
+					attempt > 0 ? lastError : undefined,
+					attempt + 1,
+					lastRaw
 				);
 				if (shared.stopToken.stopped) {
 					return { success: false, message: getCancelledReason(shared) };
 				}
 				if (decision.success) {
+					if (isDuplicateDecision(shared, decision.tool, decision.params)) {
+						lastError = `duplicate decision rejected: ${decision.tool} with identical params as previous step`;
+						lastRaw = truncateText(toJson({ tool: decision.tool, params: decision.params }), 400);
+						Log("Warn", `[CodingAgent] duplicate decision rejected tool=${decision.tool}`);
+						continue;
+					}
 					return decision;
 				}
 				lastError = decision.message;
@@ -1122,7 +1173,7 @@ If no more actions are needed, use tool: finish.`;
 		let lastRaw = "";
 		for (let attempt = 0; attempt < shared.llmMaxTry; attempt++) {
 			const feedback = attempt > 0
-				? `\n\nPrevious response was invalid (${lastError}). Return exactly one valid YAML object only and keep YAML indentation strictly consistent.`
+				? `\n\nPrevious response was invalid (${lastError}). Retry attempt: ${attempt + 1}. Return exactly one valid YAML object only and keep YAML indentation strictly consistent. The next reply must differ from the rejected one.${lastRaw !== "" ? `\nLast rejected output summary: ${truncateText(lastRaw, 300)}` : ""}`
 				: "";
 			const messages: Message[] = [{ role: "user", content: `${yamlPrompt}${feedback}` }];
 			const llmRes = await llm(shared, messages);
@@ -1144,12 +1195,18 @@ If no more actions are needed, use tool: finish.`;
 				lastError = decision.message;
 				continue;
 			}
-			const validation = validateDecision(decision.tool, decision.params, input.history);
+			const validation = validateDecision(decision.tool, decision.params);
 			if (!validation.success) {
 				lastError = validation.message;
 				continue;
 			}
 			decision.params = validation.params;
+			if (isDuplicateDecision(shared, decision.tool, decision.params)) {
+				lastError = `duplicate decision rejected: ${decision.tool} with identical params as previous step`;
+				lastRaw = truncateText(toJson({ tool: decision.tool, params: decision.params }), 400);
+				Log("Warn", `[CodingAgent] duplicate yaml decision rejected tool=${decision.tool}`);
+				continue;
+			}
 			return decision;
 		}
 		return { success: false, message: `cannot produce valid decision yaml: ${lastError}; last_output=${truncateText(lastRaw, 400)}` };
@@ -1671,27 +1728,41 @@ class FormatResponseNode extends Node<AgentShared> {
 		if (input.shared.stopToken.stopped) {
 			return getCancelledReason(input.shared);
 		}
+		const failureNote = input.shared.error && input.shared.error !== ""
+			? (input.shared.useChineseResponse
+				? `\n\n本次任务因以下错误结束，请在总结中明确说明：\n${input.shared.error}`
+				: `\n\nThis task ended with the following error. Make sure the summary states it clearly:\n${input.shared.error}`)
+			: "";
 		const history = input.history;
 		if (history.length === 0) {
+			if (input.shared.error && input.shared.error !== "") {
+				return getFailureSummaryFallback(input.shared, input.shared.error);
+			}
 			return "No actions were performed.";
 		}
 		const summary = formatHistorySummary(history);
 		const prompt = replacePromptVars(input.shared.promptPack.finalSummaryPrompt, {
 			SUMMARY: summary,
 			LANGUAGE_DIRECTIVE: getReplyLanguageDirective(input.shared),
-		});
+		}) + failureNote;
 		let res: LLMResult | undefined;
 		for (let i = 0; i < input.shared.llmMaxTry; i++) {
 			res = await llmStream(input.shared, [{ role: "user", content: prompt }]);
 			if (res.success) break;
 		}
-		if (!res) return input.shared.useChineseResponse
-				? `执行完成，但生成总结失败。`
-				: `Completed, but failed to generate summary.`;
+		if (!res) {
+			return input.shared.error && input.shared.error !== ""
+				? getFailureSummaryFallback(input.shared, input.shared.error)
+				: (input.shared.useChineseResponse
+					? `执行完成，但生成总结失败。`
+					: `Completed, but failed to generate summary.`);
+		}
 		if (!res.success) {
-			return input.shared.useChineseResponse
-				? `执行完成，但生成总结失败：${res.message}`
-				: `Completed, but failed to generate summary: ${res.message}`;
+			return input.shared.error && input.shared.error !== ""
+				? getFailureSummaryFallback(input.shared, input.shared.error)
+				: (input.shared.useChineseResponse
+					? `执行完成，但生成总结失败：${res.message}`
+					: `Completed, but failed to generate summary: ${res.message}`);
 		}
 		return res.text;
 	}
@@ -1849,7 +1920,12 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 		}
 		if (shared.error) {
 			Tools.setTaskStatus(shared.taskId, "FAILED");
-			const result = { success: false as const, taskId: shared.taskId, message: shared.error, steps: shared.step };
+			const result = {
+				success: false as const,
+				taskId: shared.taskId,
+				message: shared.response && shared.response !== "" ? shared.response : shared.error,
+				steps: shared.step,
+			};
 			emitAgentEvent(shared, {
 				type: "task_finished",
 				sessionId: shared.sessionId,

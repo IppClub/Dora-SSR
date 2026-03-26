@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 /**
- * Dora SSR Tutorial Documentation Generator
+ * Dora SSR Documentation Generator
  * 
- * This script extracts tutorial documents and splits them by programming language.
+ * This script extracts tutorial/example documents and splits them by programming language.
  * It generates separate documentation files for each language (Lua, Teal, TypeScript, TSX, YueScript, Wa).
  * 
  * Rules:
@@ -18,6 +18,8 @@
  * Output structure:
  *   Assets/Doc/en/Tutorial/[language]/*.md
  *   Assets/Doc/zh-Hans/Tutorial/[language]/*.md
+ *   Assets/Doc/en/Example/[language]/*.md
+ *   Assets/Doc/zh-Hans/Example/[language]/*.md
  */
 
 const fs = require('fs');
@@ -28,10 +30,21 @@ const CONFIG = {
 	docsRoot: path.join(__dirname, '..'),
 	outputRoot: path.join(__dirname, '..', '..', 'Assets', 'Doc'),
 	
-	// Source directories for different languages
-	sources: {
-		en: 'docs/tutorial',
-		'zh-Hans': 'i18n/zh-Hans/docusaurus-plugin-content-docs/current/tutorial'
+	// Source directories grouped by generated document section
+	sections: {
+		Tutorial: {
+			en: 'docs/tutorial',
+			'zh-Hans': 'i18n/zh-Hans/docusaurus-plugin-content-docs/current/tutorial'
+		},
+		Example: {
+			en: 'docs/example',
+			'zh-Hans': 'i18n/zh-Hans/docusaurus-plugin-content-docs/current/example'
+		}
+	},
+
+	// Restrict generated programming languages for specific sections
+	sectionLanguageAllowlist: {
+		Example: ['tl', 'tsx']
 	},
 	
 	// Supported programming languages and their display names
@@ -47,6 +60,7 @@ const CONFIG = {
 	// Code block language mapping
 	codeBlockLangMap: {
 		'lua': 'lua',
+		'tl': 'tl',
 		'teal': 'tl',
 		'ts': 'ts',
 		'typescript': 'ts',
@@ -732,6 +746,8 @@ function processDocument(filePath, docLanguage, outputDir) {
 	const sections = parseMdxContent(rawContent);
 	
 	const results = [];
+	const sectionName = path.basename(outputDir);
+	const allowedLanguages = CONFIG.sectionLanguageAllowlist[sectionName] || Object.keys(CONFIG.programmingLanguages);
 	
 	// Check if this is a multi-language tutorial (has language-select tabs)
 	const isMultiLanguageTutorial = hasLanguageSelectTabs(rawContent);
@@ -746,7 +762,7 @@ function processDocument(filePath, docLanguage, outputDir) {
 	const pathTargetLanguage = getLanguageTutorialTarget(filePath);
 	
 	// Generate documents for each programming language
-	for (const langKey of Object.keys(CONFIG.programmingLanguages)) {
+	for (const langKey of allowedLanguages) {
 		let shouldGenerate = false;
 		
 		// Priority 1: Path-based classification (for language tutorials)
@@ -839,45 +855,46 @@ function processDirectory(sourceDir, docLanguage, outputBaseDir) {
  */
 function main() {
 	console.log('='.repeat(60));
-	console.log('Dora SSR Tutorial Documentation Generator');
+	console.log('Dora SSR Documentation Generator');
 	console.log('='.repeat(60));
 	console.log('');
 	
 	let totalFiles = 0;
 	
-	// Process each document language
-	for (const [docLang, sourcePath] of Object.entries(CONFIG.sources)) {
-		console.log(`\nProcessing ${docLang} documentation...`);
+	for (const [sectionName, sectionSources] of Object.entries(CONFIG.sections)) {
+		console.log(`\nProcessing ${sectionName} documentation...`);
 		console.log('-'.repeat(40));
 		
-		const sourceDir = path.join(CONFIG.docsRoot, sourcePath);
-		const outputDir = path.join(CONFIG.outputRoot, docLang, 'Tutorial');
-		
-		// Clean output directory before generating
-		if (fs.existsSync(outputDir)) {
-			fs.rmSync(outputDir, { recursive: true });
-		}
-		fs.mkdirSync(outputDir, { recursive: true });
-		
-		// Restore .gitkeep placeholder file
-		fs.writeFileSync(path.join(outputDir, '.gitkeep'), '', 'utf-8');
-		
-		// Process all documents
-		const results = processDirectory(sourceDir, docLang, outputDir);
-		
-		// Count unique files per language
-		const filesByLang = {};
-		results.forEach(r => {
-			if (!filesByLang[r.language]) {
-				filesByLang[r.language] = new Set();
+		// Process each document language
+		for (const [docLang, sourcePath] of Object.entries(sectionSources)) {
+			console.log(`\nProcessing ${docLang} documentation...`);
+			
+			const sourceDir = path.join(CONFIG.docsRoot, sourcePath);
+			const outputDir = path.join(CONFIG.outputRoot, docLang, sectionName);
+			
+			// Clean output directory before generating
+			if (fs.existsSync(outputDir)) {
+				fs.rmSync(outputDir, { recursive: true });
 			}
-			filesByLang[r.language].add(r.path);
-		});
-		
-		console.log(`\nGenerated files for ${docLang}:`);
-		for (const [lang, files] of Object.entries(filesByLang)) {
-			console.log(`  ${CONFIG.programmingLanguages[lang]}: ${files.size} files`);
-			totalFiles += files.size;
+			fs.mkdirSync(outputDir, { recursive: true });
+			
+			// Process all documents
+			const results = processDirectory(sourceDir, docLang, outputDir);
+			
+			// Count unique files per language
+			const filesByLang = {};
+			results.forEach(r => {
+				if (!filesByLang[r.language]) {
+					filesByLang[r.language] = new Set();
+				}
+				filesByLang[r.language].add(r.path);
+			});
+			
+			console.log(`Generated files for ${docLang}:`);
+			for (const [lang, files] of Object.entries(filesByLang)) {
+				console.log(`  ${CONFIG.programmingLanguages[lang]}: ${files.size} files`);
+				totalFiles += files.size;
+			}
 		}
 	}
 	

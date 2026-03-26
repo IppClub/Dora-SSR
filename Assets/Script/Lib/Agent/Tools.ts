@@ -768,15 +768,16 @@ function formatReadSlice(
 	}
 	const boundedLimit = math.max(1, math.floor(limit));
 	const end = math.min(totalLines, start + boundedLimit - 1);
-	const numbered: string[] = [];
+	const slice: string[] = [];
 	for (let i = start; i <= end; i++) {
-		numbered.push(`${i}| ${lines[i - 1]}`);
+		slice.push(lines[i - 1]);
 	}
-	let output = numbered.join("\n");
 	const truncated = end < totalLines;
-	output += truncated
-		? `\n\n(Showing lines ${start}-${end} of ${totalLines}. Use offset=${end + 1} to continue.)`
-		: `\n\n(End of file - ${totalLines} lines total)`;
+	const hint = truncated
+		? `(Showing lines ${start}-${end} of ${totalLines}. Use offset=${end + 1} to continue.)`
+		: `(End of file - ${totalLines} lines total)`;
+	const body = slice.join("\n");
+	const output = body === "" ? hint : `${body}\n\n${hint}`;
 	return {
 		success: true,
 		content: output,

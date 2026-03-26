@@ -916,7 +916,7 @@ export interface AgentSessionStep {
 	taskId: number;
 	step: number;
 	tool: string;
-	status: "PENDING" | "RUNNING" | "DONE";
+	status: "PENDING" | "RUNNING" | "DONE" | "FAILED" | "STOPPED";
 	reason: string;
 	params?: Record<string, unknown>;
 	result?: Record<string, unknown>;

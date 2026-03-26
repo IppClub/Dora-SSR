@@ -775,6 +775,7 @@ export class MemoryCompressor {
 	 * 执行压缩
 	 */
 	async compress(
+		userQuery: string,
 		history: AgentActionRecord[],
 		lastConsolidatedIndex: number,
 		llmOptions: Record<string, unknown>,
@@ -817,14 +818,14 @@ export class MemoryCompressor {
 			}
 
 			// LLM 返回失败
-			return this.handleCompressionFailure(chunk, result.error || "Unknown error", formatFunc);
+			return this.handleCompressionFailure(userQuery, chunk, result.error || "Unknown error");
 
 		} catch (error) {
 			// 异常
 			return this.handleCompressionFailure(
+				userQuery,
 				chunk,
-				error instanceof Error ? error.message : "Unknown error",
-				formatFunc
+				error instanceof Error ? error.message : "Unknown error"
 			);
 		}
 	}
@@ -1180,23 +1181,23 @@ ${this.config.promptPack.memoryCompressionYamlPrompt}`;
 	 * 处理压缩失败
 	 */
 	private handleCompressionFailure(
+		userQuery: string,
 		chunk: AgentActionRecord[],
-		error: string,
-		formatFunc: (h: AgentActionRecord[]) => string
+		error: string
 	): CompressionResult {
 		this.consecutiveFailures++;
 
 		if (this.consecutiveFailures >= MemoryCompressor.MAX_FAILURES) {
 			// 连续失败 3 次，执行原始归档
-			this.rawArchive(chunk, formatFunc);
+			this.rawArchive(userQuery, chunk);
 			this.consecutiveFailures = 0;
 
-			return {
-				success: true,
-				memoryUpdate: this.storage.readMemory(),
-				historyEntry: "[RAW ARCHIVE] See HISTORY.md for details",
-				compressedCount: chunk.length,
-			};
+				return {
+					success: true,
+					memoryUpdate: this.storage.readMemory(),
+					historyEntry: "[RAW ARCHIVE] Detailed history not recorded",
+					compressedCount: chunk.length,
+				};
 		}
 
 		return {
@@ -1211,13 +1212,14 @@ ${this.config.promptPack.memoryCompressionYamlPrompt}`;
 	/**
 	 * 原始归档（降级方案）
 	 */
-	private rawArchive(chunk: AgentActionRecord[], formatFunc: (h: AgentActionRecord[]) => string): void {
+	private rawArchive(userQuery: string, chunk: AgentActionRecord[]): void {
 		const ts = os.date("%Y-%m-%d %H:%M");
-		const text = formatFunc(chunk);
-
+		const prompt = userQuery.trim() !== ""
+			? userQuery.trim().replace("\n", " ")
+			: "(empty prompt)";
+		const compactPrompt = prompt.length > 160 ? `${prompt.slice(0, 160)}...` : prompt;
 		this.storage.appendHistory(
-			`[${ts}] [RAW ARCHIVE] ${chunk.length} actions (compression failed)\n` +
-			`---\n${text}\n---`
+			`[${ts}] [RAW ARCHIVE] prompt="${compactPrompt}" (${chunk.length} actions, compression failed; detailed history not recorded)`
 		);
 	}
 

@@ -88,8 +88,8 @@ Tools/tolua++/**/luac
 Tools/tolua++/**/*.so
 
 # Ignore generated docs in assets
-Assets/Doc/en/Tutorial
-Assets/Doc/zh-Hans/Tutorial
+Assets/Doc/zh-Hans
+Assets/Doc/en
 Docs/design
 
 # xmake build cache

@@ -2,12 +2,13 @@
 import { App, Content, DB, Path, json } from 'Dora';
 import { runCodingAgent, CodingAgentEvent, CodingAgentRunResult } from 'Agent/CodingAgent';
 import * as Tools from 'Agent/Tools';
+import { Log } from 'Agent/Utils';
 import type { StopToken } from 'Agent/Utils';
 
 export type AgentSessionStatus = "IDLE" | "RUNNING" | "DONE" | "FAILED" | "STOPPED";
 export type AgentMessageRole = "user" | "assistant";
 export type AgentMessageKind = "message" | "summary";
-export type AgentStepStatus = "PENDING" | "RUNNING" | "DONE";
+export type AgentStepStatus = "PENDING" | "RUNNING" | "DONE" | "FAILED" | "STOPPED";
 
 export interface AgentSessionItem {
 	id: number;
@@ -79,6 +80,7 @@ export type AgentRunningSessionListResult = {
 const TABLE_SESSION = "AgentSession";
 const TABLE_MESSAGE = "AgentSessionMessage";
 const TABLE_STEP = "AgentSessionStep";
+const TABLE_TASK = "AgentTask";
 const SESSION_CONTEXT_MAX_MESSAGES = 12;
 const SESSION_CONTEXT_MAX_CHARS = 12000;
 
@@ -284,6 +286,21 @@ function setSessionState(sessionId: number, status: AgentSessionStatus, currentT
 	);
 }
 
+function setSessionStateForTaskEvent(sessionId: number, taskId: number | undefined, status: AgentSessionStatus, currentTaskStatus?: AgentSessionStatus) {
+	if (taskId === undefined || taskId <= 0) {
+		setSessionState(sessionId, status, taskId, currentTaskStatus);
+		return;
+	}
+	const row = getSessionRow(sessionId);
+	if (!row) return;
+	const session = rowToSession(row as any[]);
+	if (session.currentTaskId !== taskId) {
+		Log("Info", `[AgentSession] ignore stale task event session=${sessionId} eventTask=${taskId} currentTask=${tostring(session.currentTaskId)}`);
+		return;
+	}
+	setSessionState(sessionId, status, taskId, currentTaskStatus);
+}
+
 function insertMessage(sessionId: number, role: AgentMessageRole, kind: AgentMessageKind, content: string, taskId?: number, streaming = false): number {
 	const t = now();
 	DB.exec(
@@ -402,10 +419,60 @@ function upsertStep(sessionId: number, taskId: number, step: number, tool: strin
 	);
 }
 
+function finalizeTaskSteps(sessionId: number, taskId: number, finalSteps?: number, finalStatus?: AgentStepStatus) {
+	if (taskId <= 0) return;
+	if (finalSteps !== undefined && finalSteps >= 0) {
+		DB.exec(
+			`DELETE FROM ${TABLE_STEP}
+			WHERE session_id = ? AND task_id = ? AND step > ?`,
+			[sessionId, taskId, finalSteps],
+		);
+	}
+	if (!finalStatus) return;
+	if (finalSteps !== undefined && finalSteps >= 0) {
+		DB.exec(
+			`UPDATE ${TABLE_STEP}
+			SET status = ?, updated_at = ?
+			WHERE session_id = ? AND task_id = ? AND step <= ? AND status IN ('PENDING', 'RUNNING')`,
+			[finalStatus, now(), sessionId, taskId, finalSteps],
+		);
+		return;
+	}
+	DB.exec(
+		`UPDATE ${TABLE_STEP}
+		SET status = ?, updated_at = ?
+		WHERE session_id = ? AND task_id = ? AND status IN ('PENDING', 'RUNNING')`,
+		[finalStatus, now(), sessionId, taskId],
+	);
+}
+
+function sanitizeStoredSteps(sessionId: number) {
+	DB.exec(
+		`UPDATE ${TABLE_STEP}
+		SET status = (
+			CASE (
+				SELECT status FROM ${TABLE_TASK}
+				WHERE id = ${TABLE_STEP}.task_id
+			)
+				WHEN 'STOPPED' THEN 'STOPPED'
+				ELSE 'FAILED'
+			END
+		),
+		updated_at = ?
+		WHERE session_id = ?
+			AND status IN ('PENDING', 'RUNNING')
+			AND COALESCE((
+				SELECT status FROM ${TABLE_TASK}
+				WHERE id = ${TABLE_STEP}.task_id
+			), '') <> 'RUNNING'`,
+		[now(), sessionId],
+	);
+}
+
 function applyEvent(sessionId: number, event: CodingAgentEvent) {
 	switch (event.type) {
 		case "task_started":
-			setSessionState(sessionId, "RUNNING", event.taskId, "RUNNING");
+			setSessionStateForTaskEvent(sessionId, event.taskId, "RUNNING", "RUNNING");
 			break;
 		case "decision_made":
 			upsertStep(sessionId, event.taskId, event.step, event.tool, {
@@ -421,7 +488,7 @@ function applyEvent(sessionId: number, event: CodingAgentEvent) {
 			break;
 		case "tool_finished":
 			upsertStep(sessionId, event.taskId, event.step, event.tool, {
-				status: "DONE",
+				status: event.result.success === true ? "DONE" : "FAILED",
 				reason: event.reason,
 				result: event.result,
 			});
@@ -442,11 +509,18 @@ function applyEvent(sessionId: number, event: CodingAgentEvent) {
 			break;
 		}
 		case "task_finished": {
+			const stopped = activeStopTokens[event.taskId ?? -1]?.stopped === true;
 			const finalStatus: AgentSessionStatus = event.success
 				? "DONE"
-				: (activeStopTokens[event.taskId ?? -1]?.stopped ? "STOPPED" : "FAILED");
-			setSessionState(sessionId, finalStatus, event.taskId, finalStatus);
+				: (stopped ? "STOPPED" : "FAILED");
+			setSessionStateForTaskEvent(sessionId, event.taskId, finalStatus, finalStatus);
 			if (event.taskId !== undefined) {
+				finalizeTaskSteps(
+					sessionId,
+					event.taskId,
+					type(event.steps) === "number" ? math.max(0, math.floor(event.steps as number)) : undefined,
+					event.success ? undefined : (stopped ? "STOPPED" : "FAILED"),
+				);
 				const messageId = getAssistantSummaryMessageId(event.taskId, sessionId);
 				const row = queryOne(`SELECT content FROM ${TABLE_MESSAGE} WHERE id = ?`, [messageId]);
 				const content = row ? toStr(row[0]) : "";
@@ -538,6 +612,7 @@ export function getSession(sessionId: number): AgentSessionDetailResult {
 		return { success: false, message: "session not found" };
 	}
 	const normalizedSession = normalizeSessionRuntimeState(session);
+	sanitizeStoredSteps(sessionId);
 	const messages = queryRows(
 		`SELECT id, session_id, task_id, role, kind, content, streaming, created_at, updated_at
 		FROM ${TABLE_MESSAGE}
@@ -549,6 +624,7 @@ export function getSession(sessionId: number): AgentSessionDetailResult {
 		`SELECT id, session_id, task_id, step, tool, status, reason, params_json, result_json, checkpoint_id, checkpoint_seq, files_json, created_at, updated_at
 		FROM ${TABLE_STEP}
 		WHERE session_id = ?
+			AND NOT (status IN ('FAILED', 'STOPPED') AND result_json = '')
 		ORDER BY task_id DESC, step ASC`,
 		[sessionId],
 	) ?? [];

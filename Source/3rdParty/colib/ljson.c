@@ -392,9 +392,9 @@ static inline void parser_process_string(json_parser_t *p) {
 			} else {
 				parser_throw_error(p, "Invalid escape sequence, at: %s[:%lu]", parser_error_content(p), currpos(p));
 			}
-		} else if (ch == '"') { 
+		} else if (ch == '"') {
 			break;
-		} else if ((unsigned char)ch < 0x20) {
+		} else if (ch != '\n' && ch != '\t' && (unsigned char)ch < 0x20) {
 			parser_throw_error(p, "Invalid string, at: %s[:%lu]", parser_error_content(p), currpos(p));
 		} else {
 			savechar(p, ch);
