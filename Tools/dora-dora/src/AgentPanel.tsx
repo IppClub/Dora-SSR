@@ -282,8 +282,8 @@ export default function AgentPanel(props: AgentPanelProps) {
 	return (
 		<Box sx={{ display: "flex", flexDirection: "column", height, position: "relative" }}>
 			{showHeader ? (
-				<Box sx={{ px: 2, py: 1.5, borderBottom: `0.5px solid ${Color.Line}`, backgroundColor: Color.BackgroundDark }}>
-					<Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
+				<Box sx={{ px: 1, py: 1, borderBottom: `0.5px solid ${Color.Line}`, backgroundColor: Color.BackgroundDark }}>
+					<Stack direction="row" spacing={0.75} alignItems="center" justifyContent="space-between">
 						<Box>
 							<Typography variant="subtitle1" sx={{ color: Color.TextPrimary }}>Dora</Typography>
 							<Typography variant="caption" sx={{ color: Color.TextSecondary }}>{title}</Typography>
@@ -295,7 +295,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 							variant="outlined"
 						/>
 					</Stack>
-					<Typography variant="caption" sx={{ color: Color.TextSecondary, mt: 0.5, display: "block" }}>
+					<Typography variant="caption" sx={{ color: Color.TextSecondary, mt: 0.25, display: "block" }}>
 						{projectRoot}
 					</Typography>
 				</Box>

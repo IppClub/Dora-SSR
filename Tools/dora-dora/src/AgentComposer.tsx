@@ -36,7 +36,7 @@ export default function AgentComposer(props: AgentComposerProps) {
 			? previousScrollHeight - (previousScrollTop + scrollContainer.clientHeight) < 24
 			: false;
 		textarea.style.height = "0px";
-		textarea.style.height = `${Math.max(textarea.scrollHeight, 60)}px`;
+		textarea.style.height = `${Math.max(textarea.scrollHeight, 36)}px`;
 		if (scrollContainer != null) {
 			if (wasNearBottom) {
 				scrollContainer.scrollTop = scrollContainer.scrollHeight;
@@ -48,8 +48,8 @@ export default function AgentComposer(props: AgentComposerProps) {
 	}, [prompt]);
 
 	return (
-		<Box sx={{ px: 2.5, pt: 0, pb: 4, backgroundColor: Color.Background, position: "relative", flexShrink: 0 }}>
-			<Box sx={{ border: `0.5px solid ${Color.Line}`, borderRadius: 4, backgroundColor: Color.BackgroundDark, position: "relative", minHeight: 124 }}>
+		<Box sx={{ px: 2, pt: 0, pb: 3, backgroundColor: Color.Background, position: "relative", flexShrink: 0 }}>
+			<Box sx={{ border: `0.5px solid ${Color.Line}`, borderRadius: 4, backgroundColor: Color.BackgroundDark, position: "relative", minHeight: 100 }}>
 				<Box sx={{ position: "absolute", inset: 0 }}>
 					<MacScrollbar ref={scrollRef} skin="dark" style={{ width: "100%", height: "100%" }}>
 						<textarea
@@ -84,7 +84,7 @@ export default function AgentComposer(props: AgentComposerProps) {
 							display: "block",
 							width: "100%",
 							minHeight: "100%",
-							padding: "18px 18px 72px 18px",
+							padding: "18px 18px 58px 18px",
 							border: "none",
 							outline: "none",
 							resize: "none",

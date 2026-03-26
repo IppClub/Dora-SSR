@@ -65,7 +65,7 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 
 	return (
 		<Box sx={{ display: "flex", flexDirection: "column", height }}>
-			<Box sx={{ px: 3, py: 2.5, borderBottom: `0.5px solid ${Color.Line}`, background: `linear-gradient(180deg, ${Color.BackgroundDark} 0%, ${Color.Background} 100%)` }}>
+			<Box sx={{ px: 3, py: 2, borderBottom: `0.5px solid ${Color.Line}`, background: `linear-gradient(180deg, ${Color.BackgroundDark} 0%, ${Color.Background} 100%)` }}>
 				<Stack direction="row" spacing={1.5} alignItems="center" justifyContent="space-between">
 					<Box sx={{ minWidth: 0 }}>
 						<Typography variant="h5" sx={{ color: Color.TextPrimary, fontWeight: 600, letterSpacing: "-0.02em" }}>
@@ -81,7 +81,7 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 								) : null}
 							</Stack>
 						</Typography>
-						<Typography variant="body2" sx={{ color: Color.TextSecondary, display: "block", mt: 1 }}>
+						<Typography variant="body2" sx={{ color: Color.TextSecondary, display: "block", mt: 0.4 }}>
 							{displayPath ?? uploadPath}
 						</Typography>
 					</Box>
