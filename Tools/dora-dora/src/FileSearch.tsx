@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import * as Service from './Service';
 import { Color } from './Theme';
 import Info from './Info';
+import SearchIcon from '@mui/icons-material/Search';
 
 const { path } = Info;
 
@@ -229,7 +230,7 @@ const FileSearchPanel = (props: FileSearchDialogProps) => {
 
 	return (
 		<Stack spacing={1.5} sx={{ height: '100%', minHeight: 0 }}>
-			<Stack direction="row" spacing={1} alignItems="center" sx={{ paddingTop: 2, paddingLeft: 1, paddingRight: 1 }}>
+			<Stack spacing={1} sx={{ paddingTop: 2, paddingLeft: 1, paddingRight: 1 }}>
 				{open ?
 					<TextField
 						autoFocus={open}
@@ -247,6 +248,7 @@ const FileSearchPanel = (props: FileSearchDialogProps) => {
 						sx={{
 							"& .MuiInputBase-root": {
 								backgroundColor: Color.BackgroundDark,
+								paddingRight: "8px",
 							},
 							"& .MuiOutlinedInput-notchedOutline": {
 								borderColor: Color.Line,
@@ -259,65 +261,79 @@ const FileSearchPanel = (props: FileSearchDialogProps) => {
 							input: {
 								endAdornment: (
 									<InputAdornment position="end">
-										<Stack direction="row" spacing={0.5} alignItems="center">
-											<Tooltip title={t("popup.searchFilesInclude")}>
-												<IconButton
-													size="small"
-													onClick={() => setIncludeEnabled(prev => !prev)}
-													disableRipple
-													sx={{
-														width: 28,
-														height: 28,
-														borderRadius: 1,
-														border: `1px solid ${includeEnabled ? Color.Theme + "88" : Color.Line}`,
-														color: includeEnabled ? Color.TextPrimary : Color.TextSecondary,
-														backgroundColor: includeEnabled ? Color.Theme + "11" : "transparent",
-													}}
-												>
-													<Typography variant="caption">in</Typography>
-												</IconButton>
-											</Tooltip>
-											<Tooltip title={t("popup.searchFilesCaseSensitive")}>
-												<IconButton
-													size="small"
-													onClick={() => setCaseSensitive(prev => !prev)}
-													disableRipple
-													sx={{
-														width: 28,
-														height: 28,
-														borderRadius: 1,
-														border: `1px solid ${caseSensitive ? Color.Theme + "88" : Color.Line}`,
-														color: caseSensitive ? Color.TextPrimary : Color.TextSecondary,
-														backgroundColor: caseSensitive ? Color.Theme + "11" : "transparent",
-													}}
-												>
-													<Typography variant="caption">Aa</Typography>
-												</IconButton>
-											</Tooltip>
-											<Tooltip title={t("popup.searchFilesRegex")}>
-												<IconButton
-													size="small"
-													onClick={() => setUseRegex(prev => !prev)}
-													disableRipple
-													sx={{
-														width: 28,
-														height: 28,
-														borderRadius: 1,
-														border: `1px solid ${useRegex ? Color.Theme + "88" : Color.Line}`,
-														color: useRegex ? Color.TextPrimary : Color.TextSecondary,
-														backgroundColor: useRegex ? Color.Theme + "11" : "transparent",
-													}}
-												>
-													<Typography variant="caption">.*</Typography>
-												</IconButton>
-											</Tooltip>
-										</Stack>
+										<Tooltip title={t("popup.searchFiles")}>
+											<IconButton
+												size="small"
+												onClick={runSearch}
+												disableRipple
+												sx={{
+													width: 36,
+													height: 36,
+													color: Color.TextPrimary,
+												}}
+											>
+												<SearchIcon />
+											</IconButton>
+										</Tooltip>
 									</InputAdornment>
 								)
 							}
 						}}
 					/> : null
 				}
+				<Stack direction="row" spacing={0.5} alignItems="center" justifyContent="flex-start">
+					<Tooltip title={t("popup.searchFilesInclude")}>
+						<IconButton
+							size="small"
+							onClick={() => setIncludeEnabled(prev => !prev)}
+							disableRipple
+							sx={{
+								width: 28,
+								height: 28,
+								borderRadius: 1,
+								border: `1px solid ${includeEnabled ? Color.Theme + "88" : Color.Line}`,
+								color: includeEnabled ? Color.TextPrimary : Color.TextSecondary,
+								backgroundColor: includeEnabled ? Color.Theme + "11" : "transparent",
+							}}
+						>
+							<Typography variant="caption">in</Typography>
+						</IconButton>
+					</Tooltip>
+					<Tooltip title={t("popup.searchFilesCaseSensitive")}>
+						<IconButton
+							size="small"
+							onClick={() => setCaseSensitive(prev => !prev)}
+							disableRipple
+							sx={{
+								width: 28,
+								height: 28,
+								borderRadius: 1,
+								border: `1px solid ${caseSensitive ? Color.Theme + "88" : Color.Line}`,
+								color: caseSensitive ? Color.TextPrimary : Color.TextSecondary,
+								backgroundColor: caseSensitive ? Color.Theme + "11" : "transparent",
+							}}
+						>
+							<Typography variant="caption">Aa</Typography>
+						</IconButton>
+					</Tooltip>
+					<Tooltip title={t("popup.searchFilesRegex")}>
+						<IconButton
+							size="small"
+							onClick={() => setUseRegex(prev => !prev)}
+							disableRipple
+							sx={{
+								width: 28,
+								height: 28,
+								borderRadius: 1,
+								border: `1px solid ${useRegex ? Color.Theme + "88" : Color.Line}`,
+								color: useRegex ? Color.TextPrimary : Color.TextSecondary,
+								backgroundColor: useRegex ? Color.Theme + "11" : "transparent",
+							}}
+						>
+							<Typography variant="caption">.*</Typography>
+						</IconButton>
+					</Tooltip>
+				</Stack>
 			</Stack>
 			{includeEnabled ? (
 				<Box sx={{ paddingLeft: 1, paddingRight: 1 }}>
