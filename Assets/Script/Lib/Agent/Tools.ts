@@ -791,24 +791,14 @@ function formatReadSlice(
 export function readFile(
 	workDir: string,
 	path: string,
-	offset?: number,
-	limit?: number,
+	startLine?: number,
+	endLine?: number,
 	docLanguage?: DoraAPIDocLanguage
 ): ReadFileResult {
 	const fallback = readFileRaw(workDir, path, docLanguage);
-	if (!fallback.success) {
-		return fallback;
-	}
-	const start = math.max(1, math.floor(offset ?? 1));
-	const maxLines = math.max(1, math.floor(limit ?? 300));
-	return formatReadSlice(fallback.content, start, maxLines);
-}
-
-export function readFileRange(workDir: string, path: string, startLine: number, endLine: number, docLanguage?: DoraAPIDocLanguage): ReadFileResult {
-	const fallback = readFileRaw(workDir, path, docLanguage);
 	if (!fallback.success || fallback.content === undefined) return fallback;
-	const s = Math.max(1, math.floor(startLine));
-	const e = Math.max(s, math.floor(endLine));
+	const s = Math.max(1, math.floor(startLine ?? 1));
+	const e = Math.max(s, math.floor(endLine ?? 300));
 	return formatReadSlice(fallback.content, s, e - s + 1);
 }
 

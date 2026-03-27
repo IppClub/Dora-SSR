@@ -727,7 +727,7 @@ ensureLLMConfigTable = ->
 			url TEXT NOT NULL,
 			model TEXT NOT NULL,
 			api_key TEXT NOT NULL,
-			context_window INTEGER NOT NULL DEFAULT 32000,
+			context_window INTEGER NOT NULL DEFAULT 64000,
 			active INTEGER NOT NULL DEFAULT 1,
 			created_at INTEGER,
 			updated_at INTEGER
@@ -737,7 +737,7 @@ ensureLLMConfigTable = ->
 normalizeContextWindow = (value) ->
 	contextWindow = tonumber value
 	if contextWindow == nil or contextWindow < 4000
-		return 32000
+		return 64000
 	return math.max 4000, math.floor contextWindow
 
 HttpServer\post "/llm/list", ->

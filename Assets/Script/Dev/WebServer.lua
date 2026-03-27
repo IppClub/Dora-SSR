@@ -1864,7 +1864,7 @@ ensureLLMConfigTable = function() -- 722
 			url TEXT NOT NULL,
 			model TEXT NOT NULL,
 			api_key TEXT NOT NULL,
-			context_window INTEGER NOT NULL DEFAULT 32000,
+			context_window INTEGER NOT NULL DEFAULT 64000,
 			active INTEGER NOT NULL DEFAULT 1,
 			created_at INTEGER,
 			updated_at INTEGER
@@ -1875,7 +1875,7 @@ local normalizeContextWindow -- 737
 normalizeContextWindow = function(value) -- 737
 	local contextWindow = tonumber(value) -- 738
 	if contextWindow == nil or contextWindow < 4000 then -- 739
-		return 32000 -- 740
+		return 64000 -- 740
 	end -- 739
 	return math.max(4000, math.floor(contextWindow)) -- 741
 end -- 737

@@ -918,6 +918,7 @@ export interface AgentSessionStep {
 	tool: string;
 	status: "PENDING" | "RUNNING" | "DONE" | "FAILED" | "STOPPED";
 	reason: string;
+	reasoningContent: string;
 	params?: Record<string, unknown>;
 	result?: Record<string, unknown>;
 	checkpointId?: number;

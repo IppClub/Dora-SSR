@@ -1,26 +1,22 @@
 // @preview-file off clear
 import { Content, Path, json } from 'Dora';
-import { Message, ToolCallFunction, callLLM, Log } from 'Agent/Utils';
+import { Message, ToolCallFunction, callLLM, Log, clipTextToTokenBudget } from 'Agent/Utils';
 import type { LLMConfig } from 'Agent/Utils';
 import { sendWebIDEFileUpdate } from 'Agent/Tools';
 import * as yaml from 'yaml';
 
 import type { AgentActionRecord } from 'Agent/CodingAgent';
 
-export const DEFAULT_AGENT_PROMPT = "You are a coding assistant that helps modify and navigate code.";
 const AGENT_CONFIG_DIR = ".agent";
 const AGENT_PROMPTS_FILE = "AGENT.md";
 
 export interface AgentPromptPack {
 	agentIdentityPrompt: string;
 	decisionIntroPrompt: string;
-	toolDefinitionsShort: string;
 	toolDefinitionsDetailed: string;
 	decisionRulesPrompt: string;
 	replyLanguageDirectiveZh: string;
 	replyLanguageDirectiveEn: string;
-	toolCallingSystemPrompt: string;
-	toolCallingNoPlainTextPrompt: string;
 	toolCallingRetryPrompt: string;
 	yamlDecisionFormatPrompt: string;
 	finalSummaryPrompt: string;
@@ -32,25 +28,24 @@ export interface AgentPromptPack {
 }
 
 export const DEFAULT_AGENT_PROMPT_PACK: AgentPromptPack = {
-	agentIdentityPrompt: DEFAULT_AGENT_PROMPT,
+	agentIdentityPrompt: `### Dora Agent (｡•̀ᴗ-)✧💕
+
+You are a coding assistant that helps modify and navigate code in the Dora SSR game engine project.
+
+### Guidelines
+
+- State intent before tool calls, but NEVER predict or claim results before receiving them.
+- Before modifying a file, read it first. Do not assume files or directories exist.
+- After writing or editing a file, re-read it if accuracy matters.
+- If a tool call fails, analyze the error before retrying with a different approach.
+- Ask for clarification when the request is ambiguous.
+- Prefer reading and searching before editing when information is missing.
+- Focus on outcomes, not tool names. Speak directly to the user.`,
 	decisionIntroPrompt: "Given the request and action history, decide which tool to use next.",
-	toolDefinitionsShort: `Available tools:
-1. read_file: Read content from a file with pagination
-1b. read_file_range: Read specific line range from a file
-2. edit_file: Make changes to a file
-3. delete_file: Remove a file
-4. grep_files: Search text patterns inside files
-5. glob_files: Enumerate files under a directory with optional glob filters
-6. search_dora_api: Search Dora SSR game engine docs and tutorials
-7. build: Run build/checks for ts/tsx, teal, lua, yue, yarn
-8. finish: End and summarize`,
 	toolDefinitionsDetailed: `Available tools:
-1. read_file: Read content from a file with pagination
-	- Parameters: path (workspace-relative), offset(optional), limit(optional)
-	- Prefer small reads and continue with a new offset (>= 1) when needed.
-1b. read_file_range: Read specific line range from a file
-	- Parameters: path, startLine, endLine
-	- Line starts with 1.
+1. read_file: Read a specific line range from a file
+	- Parameters: path, startLine(optional), endLine(optional)
+	- Line starts with 1. startLine defaults to 1 and endLine defaults to 300.
 
 2. edit_file: Make changes to a file
 	- Parameters: path, old_str, new_str
@@ -91,25 +86,25 @@ export const DEFAULT_AGENT_PROMPT_PACK: AgentPromptPack = {
 	- After one build completes, do not run build again unless files were edited/deleted. Read the result and then finish or take corrective action.
 
 8. finish: End and summarize
-	- Parameters: {}`,
+	- Parameters: {}
+
+9. message: Send a short user-facing progress update
+	- Parameters: content
+	- Use this only when you need to say something to the user before continuing with more tool decisions.`,
 	decisionRulesPrompt: `Decision rules:
 - Choose exactly one next action.
 - Keep params shallow and valid for the selected tool.
 - Prefer reading/searching before editing when information is missing.
-- After any search tool returns candidate files or docs, use read_file or read_file_range to inspect search result details instead of repeatedly broadening search.
+- After any search tool returns candidate files or docs, use read_file to inspect relevant line ranges instead of repeatedly broadening search.
 - Use glob_files to discover candidate files. Use grep_files only when you need to search file contents.
 - If the user asked a question, prefer finishing only after you can answer it in the final response.`,
-	replyLanguageDirectiveZh: "Use Simplified Chinese for natural-language fields (reason/message/summary).",
-	replyLanguageDirectiveEn: "Use English for natural-language fields (reason/message/summary).",
-	toolCallingSystemPrompt: "You are a coding assistant that must decide the next action by calling the next_step tool exactly once.",
-	toolCallingNoPlainTextPrompt: "Do not answer with plain text.",
-	toolCallingRetryPrompt: "Previous tool call was invalid ({{LAST_ERROR}}). Retry with one valid next_step tool call only.",
-	yamlDecisionFormatPrompt: `Respond with one YAML object:
+	replyLanguageDirectiveZh: "Use Simplified Chinese for natural-language fields (message/summary).",
+	replyLanguageDirectiveEn: "Use English for natural-language fields (message/summary).",
+	toolCallingRetryPrompt: "Previous response was invalid ({{LAST_ERROR}}). Retry with either one valid tool call.",
+	yamlDecisionFormatPrompt: `Respond with exactly one YAML object. Do not include any prose before or after the YAML.
+
 \`\`\`yaml
 tool: "edit_file"
-reason: |-
-	A readable multi-line explanation is allowed.
-	Keep indentation consistent.
 params:
 	path: "relative/path.ts"
 	old_str: |-
@@ -121,53 +116,70 @@ params:
 			print("hello");
 		}
 \`\`\`
-Strict YAML formatting rules:
-- Return YAML only, no prose before/after.
-- Use exactly one YAML object with keys: tool, reason, params.
-- Multi-line strings are allowed using block scalars (\`|\`, \`|-\`, \`>\`).
-- If using a block scalar, all content lines must be indented consistently with tabs.`,
-	finalSummaryPrompt: `You are a coding assistant. Summarize what you did for the user.
+
+Rules:
+- Use exactly one YAML object with keys: tool, params.
+- Multi-line strings use block scalars (\`|\`, \`|-\`, \`>\`).
+- If using a block scalar, all content lines must be indented consistently with tabs.
+- For nested multi-line fields (e.g. params.new_str), indent the block content deeper than the key line using tabs.
+- Keep params shallow and valid for the selected tool.
+- Use tabs for all indentation, never spaces.
+- If no more actions are needed, use tool: finish.`,
+	finalSummaryPrompt: `You are a coding assistant. Provide a concise summary of what you did.
 
 Here are the actions you performed:
 {{SUMMARY}}
 
-Generate a concise response that explains:
-1. What actions were taken
-2. What was found or modified
-3. Any next steps
+Generate a response that:
+1. Explains what actions were taken and what was found/modified
+2. Speaks directly to the in a natural, friendly manner
+3. If the user asked a question, includes a direct answer
+4. Focuses on outcomes, not technical tool names
 
 IMPORTANT:
-- Focus on outcomes, not tool names.
-- Speak directly to the user.
-- If the user asked a question, include a direct answer to that question in the response.
+- Be concise (1-3 sentences unless more detail is needed)
+- Do not mention internal details like tool names or step numbers
 {{LANGUAGE_DIRECTIVE}}`,
-	memoryCompressionSystemPrompt: "You are a memory consolidation agent. You MUST call the save_memory tool.",
-	memoryCompressionBodyPrompt: `Process this conversation and consolidate it.
+	memoryCompressionSystemPrompt: `You are a memory consolidation agent. You MUST call the save_memory tool.
+Do not output any text besides the tool call.`,
+	memoryCompressionBodyPrompt: `### Current Memory (Long-term)
 
-### Current Long-term Memory
 {{CURRENT_MEMORY}}
 
-### Recent Actions to Process
+---
+
+### Actions to Process
+
 {{HISTORY_TEXT}}
 
-### Instructions
+---
 
-1. **Analyze the conversation**:
-	- What was the user trying to accomplish?
-	- What tools were used and what were the results?
-	- Were there any problems or solutions?
-	- What decisions were made?
+### Task
 
-2. **Update the long-term memory**:
-	- Preserve all existing facts
-	- Add new important information (user preferences, project context, decisions)
-	- Remove outdated or redundant information
-	- Keep the memory concise but complete
+Analyze the actions and update the memory. Follow these guidelines:
 
-3. **Create a history entry**:
-	- Summarize key events, decisions, and outcomes
-	- Include details useful for grep search
-	- Format as a single paragraph`,
+1. Preserve Important Information
+	- User preferences and settings
+	- Key decisions and their rationale
+	- Important technical details
+	- Project-specific context
+
+2. Consolidate Redundant Information
+	- Merge related entries
+	- Remove outdated information
+	- Summarize verbose sections
+
+3. Maintain Structure
+	- Keep the markdown format
+	- Preserve section headers
+	- Use clear, concise language
+
+4. Create History Entry
+	- Create a summary paragraph for HISTORY.md
+	- Include timestamp and key topics
+	- Make it grep-searchable
+
+Call the save_memory tool with your consolidated memory and history entry.`,
 	memoryCompressionToolCallingPrompt: `### Output Format
 
 Call the save_memory tool with:
@@ -189,24 +201,19 @@ Rules:
 	memoryCompressionYamlRetryPrompt: "Previous response was invalid ({{LAST_ERROR}}). Return exactly one valid YAML object only.",
 };
 
-export const PROMPT_PACK_KEYS: (keyof AgentPromptPack)[] = [
+const EXPOSED_PROMPT_PACK_KEYS: (keyof AgentPromptPack)[] = [
 	"agentIdentityPrompt",
 	"decisionIntroPrompt",
-	"toolDefinitionsShort",
-	"toolDefinitionsDetailed",
 	"decisionRulesPrompt",
 	"replyLanguageDirectiveZh",
 	"replyLanguageDirectiveEn",
-	"toolCallingSystemPrompt",
-	"toolCallingNoPlainTextPrompt",
-	"toolCallingRetryPrompt",
-	"yamlDecisionFormatPrompt",
 	"finalSummaryPrompt",
-	"memoryCompressionSystemPrompt",
 	"memoryCompressionBodyPrompt",
-	"memoryCompressionToolCallingPrompt",
-	"memoryCompressionYamlPrompt",
-	"memoryCompressionYamlRetryPrompt",
+];
+
+const OVERRIDABLE_PROMPT_PACK_KEYS: (keyof AgentPromptPack)[] = [
+	...EXPOSED_PROMPT_PACK_KEYS,
+	"toolDefinitionsDetailed",
 ];
 
 function replaceTemplateVars(template: string, vars: Record<string, string>): string {
@@ -222,8 +229,8 @@ export function resolveAgentPromptPack(value?: Record<string, unknown> | null): 
 		...DEFAULT_AGENT_PROMPT_PACK,
 	};
 		if (value && !Array.isArray(value) && type(value) === "table") {
-			for (let i = 0; i < PROMPT_PACK_KEYS.length; i++) {
-				const key = PROMPT_PACK_KEYS[i];
+			for (let i = 0; i < OVERRIDABLE_PROMPT_PACK_KEYS.length; i++) {
+				const key = OVERRIDABLE_PROMPT_PACK_KEYS[i];
 				if (typeof value[key] === "string") {
 					((merged as unknown) as Record<string, unknown>)[key] = value[key] as string;
 				}
@@ -239,8 +246,8 @@ export function renderDefaultAgentPromptPackMarkdown(): string {
 	lines.push("");
 	lines.push(`Edit the content under each \`##\` heading. Missing sections fall back to built-in defaults.`);
 	lines.push("");
-	for (let i = 0; i < PROMPT_PACK_KEYS.length; i++) {
-		const key = PROMPT_PACK_KEYS[i];
+	for (let i = 0; i < EXPOSED_PROMPT_PACK_KEYS.length; i++) {
+		const key = EXPOSED_PROMPT_PACK_KEYS[i];
 		lines.push(`## ${key}`);
 		const text = pack[key] as string;
 		const split = text.split("\n");
@@ -280,7 +287,7 @@ function parsePromptPackMarkdown(text: string): {
 	if (!text || text.trim() === "") {
 		return {
 			value: {},
-			missing: [...PROMPT_PACK_KEYS],
+			missing: [...EXPOSED_PROMPT_PACK_KEYS],
 			unknown: [],
 		};
 	}
@@ -290,8 +297,8 @@ function parsePromptPackMarkdown(text: string): {
 	const unknown: string[] = [];
 	let currentHeading = "";
 	const isKnownPromptPackKey = (name: string): boolean => {
-		for (let i = 0; i < PROMPT_PACK_KEYS.length; i++) {
-			if (PROMPT_PACK_KEYS[i] === name) return true;
+		for (let i = 0; i < EXPOSED_PROMPT_PACK_KEYS.length; i++) {
+			if (EXPOSED_PROMPT_PACK_KEYS[i] === name) return true;
 		}
 		return false;
 	};
@@ -318,8 +325,8 @@ function parsePromptPackMarkdown(text: string): {
 	}
 	const value: Record<string, unknown> = {};
 	const missing: string[] = [];
-	for (let i = 0; i < PROMPT_PACK_KEYS.length; i++) {
-		const key = PROMPT_PACK_KEYS[i];
+	for (let i = 0; i < EXPOSED_PROMPT_PACK_KEYS.length; i++) {
+		const key = EXPOSED_PROMPT_PACK_KEYS[i];
 		const section = sections[key];
 		const body = section !== undefined ? section.join("\n").trim() : "";
 		if (body === "") {
@@ -893,7 +900,7 @@ export class MemoryCompressor {
 	private getCompressionHistoryTokenBudget(currentMemory: string): number {
 		const contextWindow = this.getContextWindow();
 		const reservedOutputTokens = Math.max(2048, Math.floor(contextWindow * 0.2));
-		const staticPromptTokens = TokenEstimator.estimate(this.buildCompressionPromptBody("", ""));
+		const staticPromptTokens = TokenEstimator.estimate(this.buildCompressionPromptBodyRaw("", ""));
 		const memoryTokens = TokenEstimator.estimate(currentMemory);
 		const available = contextWindow - reservedOutputTokens - staticPromptTokens - memoryTokens;
 		return Math.max(1200, Math.floor(available * 0.9));
@@ -912,6 +919,22 @@ export class MemoryCompressor {
 		const head = keepHead > 0 ? utf8TakeHead(historyText, keepHead) : "";
 		const tail = keepTail > 0 ? utf8TakeTail(historyText, keepTail) : "";
 		return `[compression history truncated to fit context window; token_budget=${tokenBudget}, original_tokens=${historyTokens}]\n${head}\n...\n${tail}`;
+	}
+
+	private buildBoundedCompressionSections(currentMemory: string, historyText: string): {
+		currentMemory: string;
+		historyText: string;
+	} {
+		const contextWindow = this.getContextWindow();
+		const reservedOutputTokens = Math.max(2048, math.floor(contextWindow * 0.2));
+		const staticPromptTokens = TokenEstimator.estimate(this.buildCompressionPromptBodyRaw("", ""));
+		const dynamicBudget = math.max(1600, contextWindow - reservedOutputTokens - staticPromptTokens - 256);
+		const boundedMemory = clipTextToTokenBudget(currentMemory || "(empty)", math.max(320, math.floor(dynamicBudget * 0.35)));
+		const boundedHistory = clipTextToTokenBudget(historyText, math.max(800, math.floor(dynamicBudget * 0.65)));
+		return {
+			currentMemory: boundedMemory,
+			historyText: boundedHistory,
+		};
 	}
 
 	private async callLLMForCompressionByToolCalling(
@@ -1099,10 +1122,18 @@ export class MemoryCompressor {
 	/**
 	 * 构建压缩提示
 	 */
-	private buildCompressionPromptBody(currentMemory: string, historyText: string): string {
+	private buildCompressionPromptBodyRaw(currentMemory: string, historyText: string): string {
 		return replaceTemplateVars(this.config.promptPack.memoryCompressionBodyPrompt, {
 			CURRENT_MEMORY: currentMemory || "(empty)",
 			HISTORY_TEXT: historyText,
+		});
+	}
+
+	private buildCompressionPromptBody(currentMemory: string, historyText: string): string {
+		const bounded = this.buildBoundedCompressionSections(currentMemory, historyText);
+		return replaceTemplateVars(this.config.promptPack.memoryCompressionBodyPrompt, {
+			CURRENT_MEMORY: bounded.currentMemory,
+			HISTORY_TEXT: bounded.historyText,
 		});
 	}
 

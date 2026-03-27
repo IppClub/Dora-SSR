@@ -31,7 +31,7 @@ const emptyForm = {
 	url: '',
 	model: '',
 	key: '',
-	contextWindow: 32000,
+	contextWindow: 64000,
 	active: true,
 };
 
@@ -181,7 +181,7 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 			if (res.success) {
 				const normalized = (res.items ?? []).map((item) => ({
 					...item,
-					contextWindow: Number(item.contextWindow) > 0 ? Number(item.contextWindow) : 32000,
+					contextWindow: Number(item.contextWindow) > 0 ? Number(item.contextWindow) : 64000,
 					active: item.active === undefined ? true : Boolean(item.active),
 				}));
 				setItems(normalized);
@@ -206,7 +206,7 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 			model: template.model,
 			key: '',
 			active: true,
-			contextWindow: 32000,
+			contextWindow: 64000,
 		});
 	}, [templates]);
 
@@ -256,7 +256,7 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 			url: form.url.trim(),
 			model: form.model.trim(),
 			key: form.key.trim(),
-			contextWindow: Math.max(4000, Math.floor(Number(form.contextWindow) || 32000)),
+			contextWindow: Math.max(4000, Math.floor(Number(form.contextWindow) || 64000)),
 			active: form.active,
 		};
 		if (!payload.name || !payload.url || !payload.model || !payload.key) {
@@ -453,7 +453,7 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 							<TextField
 								label={t('llm.contextWindow')}
 								value={form.contextWindow}
-								onChange={(event) => setForm({...form, contextWindow: Number(event.target.value) || 32000})}
+								onChange={(event) => setForm({...form, contextWindow: Number(event.target.value) || 64000})}
 								fullWidth
 								autoComplete="off"
 								size="small"

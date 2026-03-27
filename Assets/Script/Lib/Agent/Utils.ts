@@ -1,7 +1,7 @@
 // @preview-file off clear
 import { json, HttpClient, DB, emit, Log as DoraLog, Director, once } from 'Dora';
 
-let LOG_LEVEL = 2;
+let LOG_LEVEL = 3;
 export function setLogLevel(level: number) {
 	LOG_LEVEL = level;
 }
@@ -33,6 +33,167 @@ function previewText(text: string, maxLen = 200): string {
 	const compact = text.replace("\r", "\\r").replace("\n", "\\n");
 	if (compact.length <= maxLen) return compact;
 	return `${compact.slice(0, maxLen)}...`;
+}
+
+function utf8TakeHead(text: string, maxChars: number): string {
+	if (maxChars <= 0 || text === "") return "";
+	const nextPos = utf8.offset(text, maxChars + 1);
+	if (nextPos === undefined) return text;
+	return string.sub(text, 1, nextPos - 1);
+}
+
+function utf8TakeTail(text: string, maxChars: number): string {
+	if (maxChars <= 0 || text === "") return "";
+	const [charLen] = utf8.len(text);
+	if (charLen === false || charLen <= maxChars) return text;
+	const startChar = math.max(1, charLen - maxChars + 1);
+	const startPos = utf8.offset(text, startChar);
+	if (startPos === undefined) return text;
+	return string.sub(text, startPos);
+}
+
+export function estimateTextTokens(text: string): number {
+	if (!text) return 0;
+	const [charLen] = utf8.len(text);
+	if (charLen === false || charLen <= 0) return 0;
+	const otherChars = text.length - charLen;
+	const tokens = Math.ceil(charLen / 1.5 + otherChars / 4);
+	return Math.max(1, tokens);
+}
+
+function estimateMessagesTokens(messages: Message[]): number {
+	let total = 0;
+	for (let i = 0; i < messages.length; i++) {
+		const message = messages[i];
+		total += 8;
+		total += estimateTextTokens(message.role ?? "");
+		total += estimateTextTokens(message.content ?? "");
+	}
+	return total;
+}
+
+function estimateOptionsTokens(options: Record<string, any>): number {
+	const [text] = json.encode(options as object);
+	return text ? estimateTextTokens(text) : 0;
+}
+
+function getReservedOutputTokens(options: Record<string, any>, contextWindow: number): number {
+	const explicitMax = type(options.max_tokens) === "number"
+		? math.floor(options.max_tokens as number)
+		: (type(options.max_completion_tokens) === "number"
+			? math.floor(options.max_completion_tokens as number)
+			: 0);
+	if (explicitMax > 0) return math.max(256, explicitMax);
+	return math.max(1024, math.floor(contextWindow * 0.2));
+}
+
+function getInputTokenBudget(messages: Message[], options: Record<string, any>, config: LLMConfig): number {
+	const contextWindow = math.max(4000, config.contextWindow);
+	const reservedOutputTokens = getReservedOutputTokens(options, contextWindow);
+	const optionTokens = estimateOptionsTokens(options);
+	const structuralOverhead = math.max(256, messages.length * 16);
+	return math.max(512, contextWindow - reservedOutputTokens - optionTokens - structuralOverhead);
+}
+
+export function clipTextToTokenBudget(text: string, budgetTokens: number): string {
+	if (budgetTokens <= 0 || text === "") return "";
+	const estimated = estimateTextTokens(text);
+	if (estimated <= budgetTokens) return text;
+	const charsPerToken = estimated > 0 ? text.length / estimated : 4;
+	const targetChars = math.max(200, math.floor(budgetTokens * charsPerToken));
+	const keepHead = math.max(0, math.floor(targetChars * 0.35));
+	const keepTail = math.max(0, targetChars - keepHead);
+	const head = keepHead > 0 ? utf8TakeHead(text, keepHead) : "";
+	const tail = keepTail > 0 ? utf8TakeTail(text, keepTail) : "";
+	return `${head}\n...\n${tail}`;
+}
+
+export function fitMessagesToContext(messages: Message[], options: Record<string, any>, config: LLMConfig): {
+	messages: Message[];
+	trimmed: boolean;
+	originalTokens: number;
+	fittedTokens: number;
+	budgetTokens: number;
+} {
+	const cloned = messages.map(message => ({ ...message }));
+	const budgetTokens = getInputTokenBudget(cloned, options, config);
+	const originalTokens = estimateMessagesTokens(cloned);
+	if (originalTokens <= budgetTokens) {
+		return {
+			messages: cloned,
+			trimmed: false,
+			originalTokens,
+			fittedTokens: originalTokens,
+			budgetTokens,
+		};
+	}
+
+	const roleOverhead = (message: Message) => estimateTextTokens(message.role ?? "") + 8;
+	let fixedOverhead = 0;
+	const contentIndexes: number[] = [];
+	for (let i = 0; i < cloned.length; i++) {
+		fixedOverhead += roleOverhead(cloned[i]);
+		contentIndexes.push(i);
+	}
+	const contentBudget = math.max(64, budgetTokens - fixedOverhead);
+	if (contentIndexes.length === 1) {
+		const idx = contentIndexes[0];
+		cloned[idx].content = clipTextToTokenBudget(cloned[idx].content ?? "", contentBudget);
+		const fittedTokens = estimateMessagesTokens(cloned);
+		return {
+			messages: cloned,
+			trimmed: true,
+			originalTokens,
+			fittedTokens,
+			budgetTokens,
+		};
+	}
+
+	const nonSystemIndexes: number[] = [];
+	const systemIndexes: number[] = [];
+	for (let i = 0; i < cloned.length; i++) {
+		if (cloned[i].role === "system") systemIndexes.push(i);
+		else nonSystemIndexes.push(i);
+	}
+	const priorityIndexes = [...nonSystemIndexes, ...systemIndexes];
+	let remainingContentBudget = contentBudget;
+	for (let i = priorityIndexes.length - 1; i >= 0; i--) {
+		const idx = priorityIndexes[i];
+		const message = cloned[idx];
+		const minBudget = message.role === "system" ? 96 : 192;
+		const target = math.max(minBudget, math.floor(remainingContentBudget / math.max(1, i + 1)));
+		message.content = clipTextToTokenBudget(message.content ?? "", target);
+		remainingContentBudget -= estimateTextTokens(message.content ?? "");
+		remainingContentBudget = math.max(0, remainingContentBudget);
+	}
+
+	let fittedTokens = estimateMessagesTokens(cloned);
+	if (fittedTokens > budgetTokens) {
+		for (let i = 0; i < priorityIndexes.length && fittedTokens > budgetTokens; i++) {
+			const idx = priorityIndexes[i];
+			const message = cloned[idx];
+			const currentTokens = estimateTextTokens(message.content ?? "");
+			const excess = fittedTokens - budgetTokens;
+			const nextBudget = math.max(message.role === "system" ? 48 : 96, currentTokens - excess - 16);
+			message.content = clipTextToTokenBudget(message.content ?? "", nextBudget);
+			fittedTokens = estimateMessagesTokens(cloned);
+		}
+	}
+	if (fittedTokens > budgetTokens) {
+		for (let i = 0; i < priorityIndexes.length && fittedTokens > budgetTokens; i++) {
+			const idx = priorityIndexes[i];
+			if (cloned[idx].role === "system") continue;
+			cloned[idx].content = clipTextToTokenBudget(cloned[idx].content ?? "", 48);
+			fittedTokens = estimateMessagesTokens(cloned);
+		}
+	}
+	return {
+		messages: cloned,
+		trimmed: true,
+		originalTokens,
+		fittedTokens,
+		budgetTokens,
+	};
 }
 
 const postLLM = (
@@ -253,6 +414,11 @@ export interface LLMResponseData {
 	object?: string;
 	model?: string;
 	choices?: NonStreamChoice[];
+	error?: {
+		message?: string;
+		type?: string;
+		code?: string | number;
+	};
 }
 
 interface CallEvent {
@@ -279,7 +445,7 @@ function normalizeContextWindow(value: unknown): number {
 	if (type(value) === "number") {
 		return math.max(4000, math.floor(value as number));
 	}
-	return 32000;
+	return 64000;
 }
 
 export function getActiveLLMConfig(): { success: true; config: LLMConfig } | { success: false; message: string } {
@@ -352,6 +518,10 @@ export const callLLMStream = (
 		return { success: false, message: "no active LLM config" };
 	}
 	const { url, model, apiKey } = config;
+	const fitted = fitMessagesToContext(messages, options, config);
+	if (fitted.trimmed) {
+		Log("Warn", `[Agent.Utils] callLLMStream trimmed input tokens=${fitted.originalTokens} budget=${fitted.budgetTokens} fitted=${fitted.fittedTokens}`);
+	}
 	let stopLLM = false;
 	const parser = createSSEJSONParser({
 		onJSON: (obj) => {
@@ -361,7 +531,7 @@ export const callLLMStream = (
 	});
 	(async () => {
 		try {
-			const result = await postLLM(messages, url, apiKey, model, options, true, (data) => {
+			const result = await postLLM(fitted.messages, url, apiKey, model, options, true, (data) => {
 				if (stopLLM) {
 					if (onCancel) {
 						onCancel("LLM Stopped");
@@ -409,14 +579,15 @@ export async function callLLM(
 		return { success: false, message: "no active LLM config" };
 	}
 	const { url, model, apiKey } = resolvedConfig;
-	Log("Info", `[Agent.Utils] callLLMOnce request model=${model} url=${url} messages=${messages.length}`);
+	const fitted = fitMessagesToContext(messages, options, resolvedConfig);
+	Log("Info", `[Agent.Utils] callLLMOnce request model=${model} url=${url} messages=${messages.length}${fitted.trimmed ? ` trimmed_tokens=${fitted.originalTokens}->${fitted.fittedTokens}/${fitted.budgetTokens}` : ""}`);
 	if (stopToken?.stopped) {
 		const reason = stopToken.reason ?? "request cancelled";
 		Log("Info", `[Agent.Utils] callLLMOnce cancelled before request: ${reason}`);
 		return { success: false, message: reason };
 	}
 	try {
-		const raw = await postLLM(messages, url, apiKey, model, options, false, undefined, stopToken);
+		const raw = await postLLM(fitted.messages, url, apiKey, model, options, false, undefined, stopToken);
 		Log("Info", `[Agent.Utils] callLLMOnce raw response length=${raw.length}`);
 		const [response, err] = json.decode(raw);
 		if (err !== undefined || response === undefined || type(response) !== "table") {
@@ -431,6 +602,29 @@ export async function callLLM(
 		const responseObj = response as LLMResponseData;
 		const choiceCount = responseObj.choices ? responseObj.choices.length : 0;
 		Log("Info", `[Agent.Utils] callLLMOnce decoded response choices=${choiceCount}`);
+		if (!responseObj.choices || responseObj.choices.length === 0) {
+			const providerError = responseObj.error;
+			const providerMessage = providerError && type(providerError.message) === "string"
+				? providerError.message as string
+				: "";
+			const providerType = providerError && type(providerError.type) === "string"
+				? providerError.type as string
+				: "";
+			const providerCode = providerError && (type(providerError.code) === "string" || type(providerError.code) === "number")
+				? tostring(providerError.code)
+				: "";
+			const details = [providerType, providerCode].filter(part => part !== "").join("/");
+			const rawPreview = previewText(raw, 400);
+			const message = providerMessage !== ""
+				? `LLM returned no choices: ${providerMessage}${details !== "" ? ` (${details})` : ""}`
+				: `LLM returned no choices; raw=${rawPreview}`;
+			Log("Error", `[Agent.Utils] callLLMOnce empty choices raw_preview=${rawPreview}`);
+			return {
+				success: false,
+				message,
+				raw,
+			};
+		}
 		return {
 			success: true,
 			response: responseObj,

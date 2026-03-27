@@ -1,7 +1,7 @@
 // @preview-file off clear
-import { json, Director, once, Content, wait, emit } from 'Dora';
+import { App, Path, json, Director, once, Content, wait, emit } from 'Dora';
 import { Flow, Node } from 'Agent/flow';
-import { callLLMStream, callLLM, Message, StopToken, Log, getActiveLLMConfig } from 'Agent/Utils';
+import { callLLMStream, callLLM, Message, StopToken, Log, getActiveLLMConfig, estimateTextTokens, clipTextToTokenBudget } from 'Agent/Utils';
 import type { LLMConfig } from 'Agent/Utils';
 import * as Tools from 'Agent/Tools';
 import * as yaml from 'yaml';
@@ -42,13 +42,13 @@ type AgentDecisionMode = "tool_calling" | "yaml";
 
 export type AgentToolName =
 	| "read_file"
-	| "read_file_range"
 	| "edit_file"
 	| "delete_file"
 	| "grep_files"
 	| "search_dora_api"
 	| "glob_files"
 	| "build"
+	| "message"
 	| "finish";
 
 export type CodingAgentEvent =
@@ -66,7 +66,8 @@ export type CodingAgentEvent =
 		taskId: number;
 		step: number;
 		tool: AgentToolName;
-		reason: string;
+		reason?: string;
+		reasoningContent?: string;
 		params: Record<string, unknown>;
 	}
 	| {
@@ -130,6 +131,7 @@ export interface AgentActionRecord {
 	step: number;
 	tool: AgentToolName;
 	reason: string;
+	reasoningContent?: string;
 	params: Record<string, unknown>;
 	result?: Record<string, unknown>;
 	timestamp: string;
@@ -154,11 +156,6 @@ interface AgentShared {
 	onEvent?: (event: CodingAgentEvent) => void;
 	promptPack: AgentPromptPack;
 	history: AgentActionRecord[];
-	lastDecision?: {
-		tool: AgentToolName;
-		reason: string;
-		params: Record<string, unknown>;
-	};
 	// Memory 相关字段
 	memory: {
 		/** 上次压缩的历史索引 */
@@ -192,30 +189,142 @@ function getFailureSummaryFallback(shared: AgentShared, error: string): string {
 		: `The task ended due to the following issue: ${error}`;
 }
 
-function areDecisionParamsEqual(a: unknown, b: unknown): boolean {
-	if (a === b) return true;
-	if (a === null || b === null || a === undefined || b === undefined) return a === b;
-	const typeA = type(a);
-	const typeB = type(b);
-	if (typeA !== typeB) return false;
-	if (typeA === "table") {
-		const tableA = a as Record<string, unknown>;
-		const tableB = b as Record<string, unknown>;
-		for (const key in tableA) {
-			if (!areDecisionParamsEqual(tableA[key], tableB[key])) return false;
-		}
-		for (const key in tableB) {
-			if (tableA[key] === undefined) return false;
-		}
-		return true;
-	}
-	return tostring(a) === tostring(b);
+function canWriteStepLLMDebug(shared: AgentShared, stepId = shared.step + 1): boolean {
+	return App.debugging === true
+		&& shared.sessionId !== undefined
+		&& shared.sessionId > 0
+		&& shared.taskId > 0
+		&& stepId > 0;
 }
 
-function isDuplicateDecision(shared: AgentShared, tool: AgentToolName, params: Record<string, unknown>): boolean {
-	const previous = shared.lastDecision;
-	if (!previous) return false;
-	return previous.tool === tool && areDecisionParamsEqual(previous.params, params);
+function ensureDirRecursive(dir: string): boolean {
+	if (!dir) return false;
+	if (Content.exist(dir)) return Content.isdir(dir);
+	const parent = Path.getPath(dir);
+	if (parent && parent !== dir && !Content.exist(parent) && !ensureDirRecursive(parent)) {
+		return false;
+	}
+	return Content.mkdir(dir);
+}
+
+function encodeDebugJSON(value: unknown): string {
+	const [text, err] = json.encode(value as object);
+	return text ?? `{ "error": "json_encode_failed", "message": "${tostring(err)}" }`;
+}
+
+function getStepLLMDebugDir(shared: AgentShared): string {
+	return Path(
+		shared.workingDir,
+		".agent",
+		tostring(shared.sessionId as number),
+		tostring(shared.taskId),
+	);
+}
+
+function getStepLLMDebugPath(shared: AgentShared, stepId: number, seq: number, kind: "in" | "out"): string {
+	return Path(getStepLLMDebugDir(shared), `${tostring(stepId)}_${tostring(seq)}_${kind}.md`);
+}
+
+function getLatestStepLLMDebugSeq(shared: AgentShared, stepId: number): number {
+	if (!canWriteStepLLMDebug(shared, stepId)) return 0;
+	const dir = getStepLLMDebugDir(shared);
+	if (!Content.exist(dir) || !Content.isdir(dir)) return 0;
+	let latest = 0;
+	for (const file of Content.getFiles(dir)) {
+		const name = Path.getFilename(file);
+		const [seqText] = string.match(name, `^${tostring(stepId)}_(%d+)_in%.md$`);
+		if (seqText !== undefined) {
+			latest = math.max(latest, tonumber(seqText) as number);
+			continue;
+		}
+		const [legacyMatch] = string.match(name, `^${tostring(stepId)}_in%.md$`);
+		if (legacyMatch !== undefined) {
+			latest = math.max(latest, 1);
+		}
+	}
+	return latest;
+}
+
+function writeStepLLMDebugFile(path: string, content: string): boolean {
+	if (!Content.save(path, content)) {
+		Log("Warn", `[CodingAgent] failed to save LLM debug file: ${path}`);
+		return false;
+	}
+	return true;
+}
+
+function createStepLLMDebugPair(shared: AgentShared, stepId: number, inContent: string): number {
+	if (!canWriteStepLLMDebug(shared, stepId)) return 0;
+	const dir = getStepLLMDebugDir(shared);
+	if (!ensureDirRecursive(dir)) {
+		Log("Warn", `[CodingAgent] failed to create LLM debug dir: ${dir}`);
+		return 0;
+	}
+	const seq = getLatestStepLLMDebugSeq(shared, stepId) + 1;
+	const inPath = getStepLLMDebugPath(shared, stepId, seq, "in");
+	const outPath = getStepLLMDebugPath(shared, stepId, seq, "out");
+	if (!writeStepLLMDebugFile(inPath, inContent)) {
+		return 0;
+	}
+	writeStepLLMDebugFile(outPath, "");
+	return seq;
+}
+
+function updateLatestStepLLMDebugOutput(shared: AgentShared, stepId: number, content: string): void {
+	if (!canWriteStepLLMDebug(shared, stepId)) return;
+	const dir = getStepLLMDebugDir(shared);
+	if (!ensureDirRecursive(dir)) {
+		Log("Warn", `[CodingAgent] failed to create LLM debug dir: ${dir}`);
+		return;
+	}
+	const latestSeq = getLatestStepLLMDebugSeq(shared, stepId);
+	if (latestSeq <= 0) {
+		const outPath = getStepLLMDebugPath(shared, stepId, 1, "out");
+		writeStepLLMDebugFile(outPath, content);
+		return;
+	}
+	const outPath = getStepLLMDebugPath(shared, stepId, latestSeq, "out");
+	writeStepLLMDebugFile(outPath, content);
+}
+
+function saveStepLLMDebugInput(shared: AgentShared, stepId: number, phase: string, messages: Message[], options: Record<string, unknown>): void {
+	if (!canWriteStepLLMDebug(shared, stepId)) return;
+	const sections: string[] = [
+		"# LLM Input",
+		`session_id: ${tostring(shared.sessionId as number)}`,
+		`task_id: ${tostring(shared.taskId)}`,
+		`step_id: ${tostring(stepId)}`,
+		`phase: ${phase}`,
+		`timestamp: ${os.date("!%Y-%m-%dT%H:%M:%SZ")}`,
+		"## Options",
+		"```json",
+		encodeDebugJSON(options),
+		"```",
+	];
+	for (let i = 0; i < messages.length; i++) {
+		const message = messages[i];
+		sections.push(`## Message ${i + 1}`);
+		sections.push(`role: ${message.role ?? ""}`);
+		sections.push("");
+		sections.push(message.content ?? "");
+	}
+	createStepLLMDebugPair(shared, stepId, sections.join("\n"));
+}
+
+function saveStepLLMDebugOutput(shared: AgentShared, stepId: number, phase: string, text: string, meta?: Record<string, unknown>): void {
+	if (!canWriteStepLLMDebug(shared, stepId)) return;
+	const sections = [
+		"# LLM Output",
+		`session_id: ${tostring(shared.sessionId as number)}`,
+		`task_id: ${tostring(shared.taskId)}`,
+		`step_id: ${tostring(stepId)}`,
+		`phase: ${phase}`,
+		`timestamp: ${os.date("!%Y-%m-%dT%H:%M:%SZ")}`,
+		...(meta ? ["## Meta", "```json", encodeDebugJSON(meta), "```"] : []),
+		"## Content",
+		text,
+	];
+	updateLatestStepLLMDebugOutput(shared, stepId, sections.join("\n"));
 }
 
 function toJson(value: unknown): string {
@@ -274,7 +383,7 @@ function replacePromptVars(template: string, vars: Record<string, string>): stri
 	return output;
 }
 
-function limitReadContentForHistory(content: string, tool: "read_file" | "read_file_range"): string {
+function limitReadContentForHistory(content: string, tool: "read_file"): string {
 	const lines = content.split("\n");
 	const overLineLimit = lines.length > HISTORY_READ_FILE_MAX_LINES;
 	const limitedByLines = overLineLimit
@@ -289,9 +398,7 @@ function limitReadContentForHistory(content: string, tool: "read_file" | "read_f
 	const reasons: string[] = [];
 	if (content.length > HISTORY_READ_FILE_MAX_CHARS) reasons.push(`${content.length} chars`);
 	if (lines.length > HISTORY_READ_FILE_MAX_LINES) reasons.push(`${lines.length} lines`);
-	const hint = tool === "read_file"
-		? "Use read_file_range for the exact section you need."
-		: "Narrow the requested line range.";
+	const hint = "Narrow the requested line range.";
 	return `[${tool} content truncated for history (${reasons.join(", ")}). ${hint}]\n${limited}`;
 }
 
@@ -308,7 +415,7 @@ function summarizeEditTextParamForHistory(value: unknown, key: "old_str" | "new_
 }
 
 function sanitizeReadResultForHistory(tool: AgentToolName, result: Record<string, unknown>): Record<string, unknown> {
-	if ((tool !== "read_file" && tool !== "read_file_range") || result.success !== true || type(result.content) !== "string") {
+	if (tool !== "read_file" || result.success !== true || type(result.content) !== "string") {
 		return result;
 	}
 	const clone: Record<string, unknown> = {};
@@ -432,7 +539,7 @@ function getDecisionSystemPrompt(shared?: AgentShared): string {
 
 function getDecisionToolDefinitions(shared?: AgentShared): string {
 	return replacePromptVars(
-		shared?.promptPack.toolDefinitionsShort ?? DEFAULT_AGENT_PROMPT_PACK.toolDefinitionsShort,
+		shared?.promptPack.toolDefinitionsDetailed ?? DEFAULT_AGENT_PROMPT_PACK.toolDefinitionsDetailed,
 		{ SEARCH_DORA_API_LIMIT_MAX: tostring(SEARCH_DORA_API_LIMIT_MAX) }
 	);
 }
@@ -478,13 +585,13 @@ async function maybeCompressHistory(shared: AgentShared): Promise<void> {
 
 function isKnownToolName(name: string): name is AgentToolName {
 	return name === "read_file"
-		|| name === "read_file_range"
 		|| name === "edit_file"
 		|| name === "delete_file"
 		|| name === "grep_files"
 		|| name === "search_dora_api"
 		|| name === "glob_files"
 		|| name === "build"
+		|| name === "message"
 		|| name === "finish";
 }
 
@@ -499,7 +606,6 @@ function formatHistorySummary(history: AgentActionRecord[]): string {
 		const action = actions[i];
 		lines.push(`Action ${i + 1}:`);
 		lines.push(`- Tool: ${action.tool}`);
-		lines.push(`- Reason: ${action.reason}`);
 		if (action.params && type(action.params) === "table" && next(action.params) !== undefined) {
 			lines.push("- Parameters:");
 			for (const key in action.params) {
@@ -545,7 +651,7 @@ function formatHistorySummary(history: AgentActionRecord[]): string {
 				} else {
 					lines.push(`- Result: ${success ? "Success" : "Failed"}`);
 				}
-			} else if (action.tool === "read_file" || action.tool === "read_file_range") {
+			} else if (action.tool === "read_file") {
 				lines.push(`- Result: ${success ? "Success" : "Failed"}`);
 				if (success && type(result.content) === "string") {
 					lines.push("- Content:");
@@ -637,6 +743,13 @@ function formatHistorySummary(history: AgentActionRecord[]): string {
 						lines.push("  (Empty or inaccessible directory)");
 					}
 				}
+			} else if (action.tool === "message") {
+				lines.push(`- Result: ${success ? "Success" : "Failed"}`);
+				if (success && type(result.message) === "string") {
+					lines.push(`- Message: ${truncateText(result.message as string, 1200)}`);
+				} else if (!success && type(result.message) === "string") {
+					lines.push(`- Error: ${truncateText(result.message as string, 600)}`);
+				}
 			} else {
 				lines.push(`- Result: ${success ? "Success" : "Failed"}`);
 				lines.push(`- Detail: ${truncateText(toJson(result), 4000)}`);
@@ -702,15 +815,20 @@ type LLMResult = {
 };
 
 async function llm(shared: AgentShared, messages: Message[]): Promise<LLMResult> {
+	const stepId = shared.step + 1;
+	saveStepLLMDebugInput(shared, stepId, "decision_yaml", messages, shared.llmOptions);
 	const res = await callLLM(messages, shared.llmOptions, shared.stopToken, shared.llmConfig);
 	if (res.success) {
 		const text = res.response.choices?.[0]?.message?.content;
 		if (text) {
+			saveStepLLMDebugOutput(shared, stepId, "decision_yaml", text, { success: true });
 			return { success: true, text };
 		} else {
+			saveStepLLMDebugOutput(shared, stepId, "decision_yaml", "empty LLM response", { success: false });
 			return { success: false, message: "empty LLM response" };
 		}
 	} else {
+		saveStepLLMDebugOutput(shared, stepId, "decision_yaml", res.raw ?? res.message, { success: false });
 		return { success: false, message: res.message };
 	}
 }
@@ -726,6 +844,8 @@ async function llmStream(shared: AgentShared, messages: Message[]): Promise<LLMR
 	done = false;
 	cancelledReason = undefined;
 	text = "";
+	const stepId = shared.step;
+	saveStepLLMDebugInput(shared, stepId, "final_summary", messages, shared.llmOptions);
 	callLLMStream(
 		messages,
 		shared.llmOptions,
@@ -777,20 +897,57 @@ async function llmStream(shared: AgentShared, messages: Message[]): Promise<LLMR
 	if (!cancelledReason && text === "") {
 		cancelledReason = "empty LLM output";
 	}
+	saveStepLLMDebugOutput(shared, stepId, "final_summary", cancelledReason ? `CANCELLED: ${cancelledReason}\n\n${text}` : text, {
+		stream: true,
+		cancelled: cancelledReason !== undefined,
+	});
 
 	if (cancelledReason) return { success: false, message: cancelledReason, text };
 	return { success: true, text };
 }
 
-function parseDecisionObject(rawObj: Record<string, unknown>): { success: true; tool: AgentToolName; reason: string; params: Record<string, unknown> } | { success: false; message: string } {
+type DecisionSuccess = {
+	success: true;
+	tool: AgentToolName;
+	params: Record<string, unknown>;
+	reason?: string;
+	reasoningContent?: string;
+	directSummary?: string;
+};
+type DecisionResult = DecisionSuccess | DecisionFailure;
+type DecisionFailure = { success: false; message: string; raw?: string };
+
+function parseDecisionObject(rawObj: Record<string, unknown>): DecisionSuccess | DecisionFailure {
 	if (type(rawObj.tool) !== "string") return { success: false, message: "missing tool" };
 	const tool = rawObj.tool as string;
 	if (!isKnownToolName(tool)) {
 		return { success: false, message: `unknown tool: ${tool}` };
 	}
-	const reason = type(rawObj.reason) === "string" ? (rawObj.reason as string) : "";
+	if (tool === "message") {
+		return { success: false, message: "message is not a callable tool" };
+	}
 	const params = type(rawObj.params) === "table" ? (rawObj.params as Record<string, unknown>) : {};
-	return { success: true, tool, reason, params };
+	return { success: true, tool, params };
+}
+
+function parseDecisionToolCall(functionName: string, rawObj: unknown): DecisionSuccess | DecisionFailure {
+	if (!isKnownToolName(functionName)) {
+		return { success: false, message: `unknown tool: ${functionName}` };
+	}
+	if (functionName === "message") {
+		return { success: false, message: "message is not a callable tool" };
+	}
+	if (rawObj === undefined || rawObj === null) {
+		return { success: true, tool: functionName, params: {} };
+	}
+	if (type(rawObj) !== "table") {
+		return { success: false, message: `invalid ${functionName} arguments` };
+	}
+	return {
+		success: true,
+		tool: functionName,
+		params: rawObj as Record<string, unknown>,
+	};
 }
 
 function getDecisionPath(params: Record<string, unknown>): string {
@@ -818,18 +975,9 @@ function validateDecision(
 		const path = getDecisionPath(params);
 		if (path === "") return { success: false, message: "read_file requires path" };
 		params.path = path;
-		params.offset = clampIntegerParam(params.offset, 1, 1);
-		params.limit = clampIntegerParam(params.limit, READ_FILE_DEFAULT_LIMIT, 1);
-		return { success: true, params };
-	}
-
-	if (tool === "read_file_range") {
-		const path = getDecisionPath(params);
-		if (path === "") return { success: false, message: "read_file_range requires path" };
 		const startLine = clampIntegerParam(params.startLine, 1, 1);
-		const endLineRaw = params.endLine ?? startLine;
+		const endLineRaw = params.endLine ?? READ_FILE_DEFAULT_LIMIT;
 		const endLine = clampIntegerParam(endLineRaw, startLine, startLine);
-		params.path = path;
 		params.startLine = startLine;
 		params.endLine = endLine;
 		return { success: true, params };
@@ -889,91 +1037,179 @@ function validateDecision(
 	return { success: true, params };
 }
 
-function buildDecisionToolSchema() {
-	return [{
+function createFunctionToolSchema(
+	name: Exclude<AgentToolName, "message">,
+	description: string,
+	properties: Record<string, unknown>,
+	required: string[] = []
+) {
+	const parameters: Record<string, unknown> = {
+		type: "object",
+		properties,
+	};
+	if (required.length > 0) {
+		parameters.required = required;
+	}
+	return {
 		type: "function" as const,
 		function: {
-			name: "next_step",
-			description: "Choose the next coding action for the agent.",
-			parameters: {
-				type: "object",
-				properties: {
-					tool: {
-						type: "string",
-						enum: [
-							"read_file",
-							"read_file_range",
-							"edit_file",
-							"delete_file",
-							"grep_files",
-							"search_dora_api",
-							"glob_files",
-							"build",
-							"finish",
-						],
-					},
-					reason: {
-						type: "string",
-						description: "Explain why this is the next best action.",
-					},
-					params: {
-						type: "object",
-						description: "Shallow parameter object for the selected tool.",
-						properties: {
-							path: { type: "string" },
-							target_file: { type: "string" },
-							old_str: { type: "string" },
-							new_str: { type: "string" },
-							pattern: { type: "string" },
-							globs: {
-								type: "array",
-								items: { type: "string" },
-							},
-							useRegex: { type: "boolean" },
-							caseSensitive: { type: "boolean" },
-							offset: { type: "number" },
-							groupByFile: { type: "boolean" },
-							docSource: {
-								type: "string",
-								enum: ["api", "tutorial"],
-							},
-							programmingLanguage: {
-								type: "string",
-								enum: ["ts", "tsx", "lua", "yue", "teal", "tl", "wa"],
-							},
-							limit: { type: "number" },
-							startLine: { type: "number" },
-							endLine: { type: "number" },
-							maxEntries: { type: "number" },
-						},
-					},
-				},
-				required: ["tool", "reason", "params"],
-			},
+			name,
+			description,
+			parameters,
 		},
-	}];
+	};
+}
+
+function buildDecisionToolSchema() {
+	return [
+		createFunctionToolSchema(
+			"read_file",
+			"Read a specific line range from a file. Parameters: path, startLine(optional), endLine(optional). Line numbering starts with 1. startLine defaults to 1 and endLine defaults to 300.",
+			{
+				path: { type: "string", description: "Workspace-relative file path to read." },
+				startLine: { type: "number", description: "1-based starting line number. Defaults to 1." },
+				endLine: { type: "number", description: "1-based ending line number. Defaults to 300." },
+			},
+			["path"]
+		),
+		createFunctionToolSchema(
+			"edit_file",
+			"Make changes to a file. Parameters: path, old_str, new_str. old_str and new_str must be different. old_str must match existing text exactly when it is non-empty. If the file does not exist, set old_str to empty string to create it with new_str.",
+			{
+				path: { type: "string", description: "Workspace-relative file path to edit." },
+				old_str: { type: "string", description: "Existing text to replace. Use an empty string only when creating a new file." },
+				new_str: { type: "string", description: "Replacement text or the full new file content when creating." },
+			},
+			["path", "old_str", "new_str"]
+		),
+		createFunctionToolSchema(
+			"delete_file",
+			"Remove a file. Parameters: target_file.",
+			{
+				target_file: { type: "string", description: "Workspace-relative file path to delete." },
+			},
+			["target_file"]
+		),
+		createFunctionToolSchema(
+			"grep_files",
+			"Search text patterns inside files. Parameters: path, pattern, globs(optional), useRegex(optional), caseSensitive(optional), limit(optional), offset(optional), groupByFile(optional). path may point to either a directory or a single file. This is content search, not filename search. globs only restrict which files are searched. Search results are intentionally capped, so refine the pattern or read a specific file next.",
+			{
+				path: { type: "string", description: "Base directory or file path to search within." },
+				pattern: { type: "string", description: "Content pattern to search for. Use | to express OR alternatives." },
+				globs: { type: "array", items: { type: "string" }, description: "Optional file glob filters." },
+				useRegex: { type: "boolean", description: "Set true when pattern is a regular expression." },
+				caseSensitive: { type: "boolean", description: "Set true for case-sensitive matching." },
+				limit: { type: "number", description: "Maximum number of results to return." },
+				offset: { type: "number", description: "Offset for paginating later result pages." },
+				groupByFile: { type: "boolean", description: "Set true to rank candidate files before drilling into one file." },
+			},
+			["pattern"]
+		),
+		createFunctionToolSchema(
+			"glob_files",
+			"Enumerate files under a directory. Parameters: path, globs(optional), maxEntries(optional). Use this to discover files by path, extension, or glob pattern. Directory listings are intentionally capped, so narrow the path before expanding further.",
+			{
+				path: { type: "string", description: "Base directory to enumerate. Defaults to the workspace root when omitted." },
+				globs: { type: "array", items: { type: "string" }, description: "Optional glob filters for returned paths." },
+				maxEntries: { type: "number", description: "Maximum number of entries to return." },
+			}
+		),
+		createFunctionToolSchema(
+			"search_dora_api",
+			`Search Dora SSR game engine docs and tutorials. Parameters: pattern, docSource(api/tutorial, optional), programmingLanguage(ts/tsx/lua/yue/teal/tl/wa), limit(optional). docSource defaults to api. Use | to express OR alternatives. limit must be <= ${SEARCH_DORA_API_LIMIT_MAX}.`,
+			{
+				pattern: { type: "string", description: "Query string to search for. Use | to express OR alternatives." },
+				docSource: { type: "string", enum: ["api", "tutorial"], description: "Search API docs or tutorials." },
+				programmingLanguage: {
+					type: "string",
+					enum: ["ts", "tsx", "lua", "yue", "teal", "tl", "wa"],
+					description: "Preferred language variant to search.",
+				},
+				limit: { type: "number", description: `Maximum number of matches to return, up to ${SEARCH_DORA_API_LIMIT_MAX}.` },
+				useRegex: { type: "boolean", description: "Set true when pattern is a regular expression." },
+			},
+			["pattern"]
+		),
+		createFunctionToolSchema(
+			"build",
+			"Run build/checks for ts/tsx, teal, lua, yue, yarn. Parameters: path(optional). After one build completes, do not run build again unless files were edited or deleted. Read the result and then finish or take corrective action.",
+			{
+				path: { type: "string", description: "Optional workspace-relative file or directory to build." },
+			}
+		),
+		createFunctionToolSchema(
+			"finish",
+			"End the task and let the agent summarize the outcome.",
+			{}
+		),
+	];
 }
 
 function buildDecisionPrompt(shared: AgentShared, userQuery: string, historyText: string, memoryContext: string): string {
-	return `${shared.promptPack.agentIdentityPrompt}
-${shared.promptPack.decisionIntroPrompt}
+	const toolDefinitions = shared.decisionMode === "yaml"
+		? replacePromptVars(shared.promptPack.toolDefinitionsDetailed, {
+			SEARCH_DORA_API_LIMIT_MAX: tostring(SEARCH_DORA_API_LIMIT_MAX),
+		})
+		: "";
+	const memorySection = memoryContext;
+	const toolSection = toolDefinitions !== ""
+		? `### Available Tools
 
-${memoryContext}
+${toolDefinitions}`
+		: "";
+	const staticPrompt = `${shared.promptPack.decisionIntroPrompt}
 
-User request: ${userQuery}
+${memorySection}
 
-Here are the actions you performed:
-${historyText}
+### Current User Request
 
-${replacePromptVars(shared.promptPack.toolDefinitionsDetailed, {
-	SEARCH_DORA_API_LIMIT_MAX: tostring(SEARCH_DORA_API_LIMIT_MAX),
-})}
+### Action History
 
-${shared.promptPack.decisionRulesPrompt}
-${getReplyLanguageDirective(shared)}`;
+${toolSection}
+
+### Decision Rules
+
+${shared.promptPack.decisionRulesPrompt}`;
+	const contextWindow = math.max(4000, shared.llmConfig.contextWindow);
+	const reservedOutputTokens = math.max(1024, math.floor(contextWindow * 0.2));
+	const staticTokens = estimateTextTokens(staticPrompt);
+	const dynamicBudget = math.max(1200, contextWindow - reservedOutputTokens - staticTokens - 256);
+	const boundedUserQuery = clipTextToTokenBudget(userQuery, math.max(400, math.floor(dynamicBudget * 0.4)));
+	const boundedHistory = clipTextToTokenBudget(historyText, math.max(400, math.floor(dynamicBudget * 0.35)));
+	const boundedMemory = clipTextToTokenBudget(memoryContext, math.max(240, math.floor(dynamicBudget * 0.25)));
+	const boundedMemorySection = boundedMemory !== ""
+		? `${boundedMemory}
+`
+		: "";
+	const toolSectionText = toolDefinitions !== ""
+		? `### Available Tools
+
+${toolDefinitions}
+`
+		: "";
+	return `${shared.promptPack.decisionIntroPrompt}
+
+${boundedMemorySection}### Current User Request
+
+${boundedUserQuery}
+
+### Action History
+
+${boundedHistory}
+
+${toolSectionText}### Decision Rules
+
+${shared.promptPack.decisionRulesPrompt}`;
+}
+
+function normalizeLineEndings(text: string): string {
+	return text.split("\r\n").join("\n").split("\r").join("\n");
 }
 
 function replaceAllAndCount(text: string, oldStr: string, newStr: string): { content: string; replaced: number } {
+	text = normalizeLineEndings(text);
+	oldStr = normalizeLineEndings(oldStr);
+	newStr = normalizeLineEndings(newStr);
 	if (oldStr === "") return { content: text, replaced: 0 };
 	let count = 0;
 	let from = 0;
@@ -1015,7 +1251,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 		lastError?: string,
 		attempt = 1,
 		lastRaw?: string
-	): Promise<{ success: true; tool: AgentToolName; reason: string; params: Record<string, unknown> } | { success: false; message: string; raw?: string }> {
+	): Promise<DecisionResult | DecisionFailure> {
 		if (shared.stopToken.stopped) {
 			return { success: false, message: getCancelledReason(shared) };
 		}
@@ -1025,8 +1261,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 			{
 				role: "system",
 				content: [
-					shared.promptPack.toolCallingSystemPrompt,
-					shared.promptPack.toolCallingNoPlainTextPrompt,
+					shared.promptPack.agentIdentityPrompt,
 					getReplyLanguageDirective(shared),
 				].join("\n"),
 			},
@@ -1038,54 +1273,78 @@ class MainDecisionAgent extends Node<AgentShared> {
 Retry attempt: ${attempt}.
 The next reply must differ from the previously rejected output.
 ${lastRaw && lastRaw !== "" ? `Last rejected output summary: ${truncateText(lastRaw, 300)}` : ""}`
-					: prompt,
+				: prompt,
 			},
 		];
-		const res = await callLLM(messages, {
+		const stepId = shared.step + 1;
+		const llmOptions = {
 			...shared.llmOptions,
 			tools,
-			tool_choice: { type: "function", function: { name: "next_step" } },
-		}, shared.stopToken, shared.llmConfig);
+		};
+		saveStepLLMDebugInput(shared, stepId, "decision_tool_calling", messages, llmOptions);
+		const res = await callLLM(messages, llmOptions, shared.stopToken, shared.llmConfig);
 		if (shared.stopToken.stopped) {
 			return { success: false, message: getCancelledReason(shared) };
 		}
 		if (!res.success) {
+			saveStepLLMDebugOutput(shared, stepId, "decision_tool_calling", res.raw ?? res.message, { success: false });
 			Log("Error", `[CodingAgent] tool-calling request failed: ${res.message}`);
 			return { success: false, message: res.message, raw: res.raw };
 		}
+		saveStepLLMDebugOutput(shared, stepId, "decision_tool_calling", encodeDebugJSON(res.response), { success: true });
 		const choice = res.response.choices && res.response.choices[0];
 		const message = choice && choice.message;
 		const toolCalls = message && message.tool_calls;
 		const toolCall = toolCalls && toolCalls[0];
 		const fn = toolCall && toolCall.function;
-		const messageContent = message && type(message.content) === "string" ? (message.content as string) : undefined;
-		Log("Info", `[CodingAgent] tool-calling response finish_reason=${choice && choice.finish_reason ? choice.finish_reason : "unknown"} tool_calls=${toolCalls ? toolCalls.length : 0} content_len=${messageContent ? messageContent.length : 0}`);
-		if (!fn || fn.name !== "next_step") {
-			Log("Error", `[CodingAgent] missing next_step tool call`);
+		const reasoningContent = message && type(message.reasoning_content) === "string"
+			? (message.reasoning_content as string).trim()
+			: undefined;
+		const messageContent = message && type(message.content) === "string"
+			? (message.content as string).trim()
+			: undefined;
+		Log("Info", `[CodingAgent] tool-calling response finish_reason=${choice && choice.finish_reason ? choice.finish_reason : "unknown"} tool_calls=${toolCalls ? toolCalls.length : 0} content_len=${messageContent ? messageContent.length : 0} reasoning_len=${reasoningContent ? reasoningContent.length : 0}`);
+		if (!fn || type(fn.name) !== "string" || fn.name === "") {
+			if (messageContent && messageContent !== "") {
+				Log("Info", `[CodingAgent] tool-calling fallback direct_finish_len=${messageContent.length}`);
+				return {
+					success: true,
+					tool: "finish",
+					params: {},
+					reason: messageContent,
+					reasoningContent,
+					directSummary: messageContent,
+				};
+			}
+			Log("Error", `[CodingAgent] missing tool call and plain-text fallback`);
 			return {
 				success: false,
-				message: "missing next_step tool call",
+				message: "missing tool call",
 				raw: messageContent,
 			};
 		}
+		const functionName = fn.name as string;
 		const argsText = typeof fn.arguments === "string" ? fn.arguments : "";
-		Log("Info", `[CodingAgent] tool-calling function=${fn.name} args_len=${argsText.length}`);
-		if (argsText.trim() === "") {
-			Log("Error", `[CodingAgent] empty next_step tool arguments`);
-			return { success: false, message: "empty next_step tool arguments" };
-		}
-		const [rawObj, err] = json.decode(argsText);
-		if (err !== undefined || rawObj === undefined || type(rawObj) !== "table") {
-			Log("Error", `[CodingAgent] invalid next_step tool arguments JSON: ${tostring(err)}`);
+		Log("Info", `[CodingAgent] tool-calling function=${functionName} args_len=${argsText.length}`);
+		const rawArgs = argsText.trim() === "" ? {} : (() => {
+			const [rawObj, err] = json.decode(argsText);
+			if (err !== undefined || rawObj === undefined) {
+				return { __error: tostring(err) };
+			}
+			return rawObj;
+		})();
+		if (type(rawArgs) === "table" && (rawArgs as Record<string, unknown>).__error !== undefined) {
+			const err = tostring((rawArgs as Record<string, unknown>).__error);
+			Log("Error", `[CodingAgent] invalid ${functionName} arguments JSON: ${err}`);
 			return {
 				success: false,
-				message: `invalid next_step tool arguments: ${tostring(err)}`,
+				message: `invalid ${functionName} arguments: ${err}`,
 				raw: argsText,
 			};
 		}
-		const decision = parseDecisionObject(rawObj as Record<string, unknown>);
+		const decision = parseDecisionToolCall(functionName, rawArgs);
 		if (!decision.success) {
-			Log("Error", `[CodingAgent] invalid next_step tool arguments schema: ${decision.message}`);
+			Log("Error", `[CodingAgent] invalid tool arguments schema: ${decision.message}`);
 			return {
 				success: false,
 				message: decision.message,
@@ -1094,7 +1353,7 @@ ${lastRaw && lastRaw !== "" ? `Last rejected output summary: ${truncateText(last
 		}
 		const validation = validateDecision(decision.tool, decision.params);
 		if (!validation.success) {
-			Log("Error", `[CodingAgent] invalid next_step tool arguments values: ${validation.message}`);
+			Log("Error", `[CodingAgent] invalid ${decision.tool} arguments values: ${validation.message}`);
 			return {
 				success: false,
 				message: validation.message,
@@ -1102,11 +1361,13 @@ ${lastRaw && lastRaw !== "" ? `Last rejected output summary: ${truncateText(last
 			};
 		}
 		decision.params = validation.params;
-		Log("Info", `[CodingAgent] tool-calling selected tool=${decision.tool} reason_len=${decision.reason.length}`);
+		decision.reason = messageContent;
+		decision.reasoningContent = reasoningContent;
+		Log("Info", `[CodingAgent] tool-calling selected tool=${decision.tool}`);
 		return decision;
 	}
 
-	async exec(input: { userQuery: string; history: AgentActionRecord[]; shared: AgentShared }): Promise<{ success: true; tool: AgentToolName; reason: string; params: Record<string, unknown> } | { success: false; message: string }> {
+	async exec(input: { userQuery: string; history: AgentActionRecord[]; shared: AgentShared }): Promise<DecisionResult | DecisionFailure> {
 		const shared = input.shared;
 		if (shared.stopToken.stopped) {
 			return { success: false, message: getCancelledReason(shared) };
@@ -1145,12 +1406,6 @@ ${lastRaw && lastRaw !== "" ? `Last rejected output summary: ${truncateText(last
 					return { success: false, message: getCancelledReason(shared) };
 				}
 				if (decision.success) {
-					if (isDuplicateDecision(shared, decision.tool, decision.params)) {
-						lastError = `duplicate decision rejected: ${decision.tool} with identical params as previous step`;
-						lastRaw = truncateText(toJson({ tool: decision.tool, params: decision.params }), 400);
-						Log("Warn", `[CodingAgent] duplicate decision rejected tool=${decision.tool}`);
-						continue;
-					}
 					return decision;
 				}
 				lastError = decision.message;
@@ -1201,22 +1456,22 @@ If no more actions are needed, use tool: finish.`;
 				continue;
 			}
 			decision.params = validation.params;
-			if (isDuplicateDecision(shared, decision.tool, decision.params)) {
-				lastError = `duplicate decision rejected: ${decision.tool} with identical params as previous step`;
-				lastRaw = truncateText(toJson({ tool: decision.tool, params: decision.params }), 400);
-				Log("Warn", `[CodingAgent] duplicate yaml decision rejected tool=${decision.tool}`);
-				continue;
-			}
 			return decision;
 		}
 		return { success: false, message: `cannot produce valid decision yaml: ${lastError}; last_output=${truncateText(lastRaw, 400)}` };
 	}
 
 	async post(shared: AgentShared, _prepRes: unknown, execRes: unknown): Promise<string | undefined> {
-		const result = execRes as { success: true; tool: AgentToolName; reason: string; params: Record<string, unknown> } | { success: false; message: string };
+		const result = execRes as DecisionResult | { success: false; message: string };
 		if (!result.success) {
 			shared.error = result.message;
 			return "error";
+		}
+		if (result.directSummary && result.directSummary !== "") {
+			shared.response = result.directSummary;
+			shared.done = true;
+			persistHistoryState(shared);
+			return undefined;
 		}
 		emitAgentEvent(shared, {
 			type: "decision_made",
@@ -1225,17 +1480,14 @@ If no more actions are needed, use tool: finish.`;
 			step: shared.step + 1,
 			tool: result.tool,
 			reason: result.reason,
+			reasoningContent: result.reasoningContent,
 			params: result.params,
 		});
-		shared.lastDecision = {
-			tool: result.tool,
-			reason: result.reason,
-			params: result.params,
-		};
 		shared.history.push({
 			step: shared.history.length + 1,
 			tool: result.tool,
-			reason: result.reason,
+			reason: result.reason ?? "",
+			reasoningContent: result.reasoningContent,
 			params: result.params,
 			timestamp: os.date("!%Y-%m-%dT%H:%M:%SZ"),
 		});
@@ -1245,7 +1497,7 @@ If no more actions are needed, use tool: finish.`;
 }
 
 class ReadFileAction extends Node<AgentShared> {
-	async prep(shared: AgentShared): Promise<{ path: string; range?: { startLine: number; endLine: number }; offset?: number; limit?: number; tool: AgentToolName; workDir: string; docLanguage: Tools.DoraAPIDocLanguage }> {
+	async prep(shared: AgentShared): Promise<{ path: string; startLine: number; endLine: number; tool: "read_file"; workDir: string; docLanguage: Tools.DoraAPIDocLanguage }> {
 		const last = shared.history[shared.history.length - 1];
 		if (!last) throw new Error("no history");
 		emitAgentEvent(shared, {
@@ -1259,37 +1511,22 @@ class ReadFileAction extends Node<AgentShared> {
 			? (last.params.path as string)
 			: (type(last.params.target_file) === "string" ? (last.params.target_file as string) : "");
 		if (path.trim() === "") throw new Error("missing path");
-		if (last.tool === "read_file_range") {
-			return {
-				path,
-				tool: last.tool,
-				workDir: shared.workingDir,
-				docLanguage: shared.useChineseResponse ? "zh" : "en",
-				range: {
-					startLine: Number(last.params.startLine ?? 1),
-					endLine: Number(last.params.endLine ?? last.params.startLine ?? 1),
-				},
-			};
-		}
 		return {
 			path,
 			tool: "read_file",
 			workDir: shared.workingDir,
 			docLanguage: shared.useChineseResponse ? "zh" : "en",
-			offset: Number(last.params.offset ?? 1),
-			limit: Number(last.params.limit ?? READ_FILE_DEFAULT_LIMIT),
+			startLine: Number(last.params.startLine ?? 1),
+			endLine: Number(last.params.endLine ?? READ_FILE_DEFAULT_LIMIT),
 		};
 	}
 
-	async exec(input: { path: string; range?: { startLine: number; endLine: number }; offset?: number; limit?: number; tool: AgentToolName; workDir: string; docLanguage: Tools.DoraAPIDocLanguage }): Promise<Record<string, unknown>> {
-		if (input.tool === "read_file_range" && input.range) {
-			return Tools.readFileRange(input.workDir, input.path, input.range.startLine, input.range.endLine, input.docLanguage) as unknown as Record<string, unknown>;
-		}
+	async exec(input: { path: string; startLine: number; endLine: number; tool: "read_file"; workDir: string; docLanguage: Tools.DoraAPIDocLanguage }): Promise<Record<string, unknown>> {
 		return Tools.readFile(
 			input.workDir,
 			input.path,
-			Number(input.offset ?? 1),
-			Number(input.limit ?? READ_FILE_DEFAULT_LIMIT),
+			Number(input.startLine ?? 1),
+			Number(input.endLine ?? READ_FILE_DEFAULT_LIMIT),
 			input.docLanguage
 		) as unknown as Record<string, unknown>;
 	}
@@ -1350,12 +1587,6 @@ class SearchFilesAction extends Node<AgentShared> {
 	async post(shared: AgentShared, _prepRes: unknown, execRes: unknown): Promise<string | undefined> {
 		const last = shared.history[shared.history.length - 1];
 		if (last !== undefined) {
-			const followupHint = shared.useChineseResponse
-				? "然后读取搜索结果中相关的文件来了解详情。"
-				: "Then read the relevant files from the search results to inspect the details.";
-			if (!last.reason.includes(followupHint)) {
-				last.reason = `${last.reason} ${followupHint}`.trim();
-			}
 			const result = execRes as Record<string, unknown>;
 			last.result = sanitizeSearchResultForHistory(last.tool, result);
 			emitAgentEvent(shared, {
@@ -1568,13 +1799,6 @@ class BuildAction extends Node<AgentShared> {
 	async post(shared: AgentShared, _prepRes: unknown, execRes: unknown): Promise<string | undefined> {
 		const last = shared.history[shared.history.length - 1];
 		if (last !== undefined) {
-			const followupHint = shared.useChineseResponse
-				? "构建已完成，将根据结果做后续处理，不再重复构建。"
-				: "Build completed. Shall handle the result instead of building again.";
-			const {reason} = last;
-			last.reason = last.reason && last.reason !== ""
-				? `${last.reason}\n${followupHint}`
-				: followupHint;
 			last.result = execRes as Record<string, unknown>;
 			emitAgentEvent(shared, {
 				type: "tool_finished",
@@ -1582,7 +1806,6 @@ class BuildAction extends Node<AgentShared> {
 				taskId: shared.taskId,
 				step: shared.step + 1,
 				tool: last.tool,
-				reason,
 				result: last.result,
 			});
 		}
@@ -1741,8 +1964,18 @@ class FormatResponseNode extends Node<AgentShared> {
 			return "No actions were performed.";
 		}
 		const summary = formatHistorySummary(history);
+		const staticPrompt = replacePromptVars(input.shared.promptPack.finalSummaryPrompt, {
+			SUMMARY: "",
+			LANGUAGE_DIRECTIVE: getReplyLanguageDirective(input.shared),
+		});
+		const contextWindow = math.max(4000, input.shared.llmConfig.contextWindow);
+		const reservedOutputTokens = math.max(1024, math.floor(contextWindow * 0.2));
+		const staticTokens = estimateTextTokens(staticPrompt);
+		const failureTokens = estimateTextTokens(failureNote);
+		const summaryBudget = math.max(400, contextWindow - reservedOutputTokens - staticTokens - failureTokens - 256);
+		const boundedSummary = clipTextToTokenBudget(summary, summaryBudget);
 		const prompt = replacePromptVars(input.shared.promptPack.finalSummaryPrompt, {
-			SUMMARY: summary,
+			SUMMARY: boundedSummary,
 			LANGUAGE_DIRECTIVE: getReplyLanguageDirective(input.shared),
 		}) + failureNote;
 		let res: LLMResult | undefined;
@@ -1801,7 +2034,6 @@ class CodingAgentFlow extends Flow<AgentShared> {
 		const format = new FormatResponseNode(1, 0);
 
 		main.on("read_file", read);
-		main.on("read_file_range", read);
 		main.on("grep_files", search);
 		main.on("search_dora_api", searchDora);
 		main.on("glob_files", list);
@@ -1866,7 +2098,8 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 		useChineseResponse: options.useChineseResponse === true,
 		decisionMode: options.decisionMode === "yaml" ? "yaml" : "tool_calling",
 		llmOptions: {
-			temperature: 0.2,
+			temperature: 0.1,
+			max_tokens: 8192,
 			...(options.llmOptions ?? {}),
 		},
 		llmConfig,

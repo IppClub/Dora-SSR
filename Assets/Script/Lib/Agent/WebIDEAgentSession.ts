@@ -2,7 +2,8 @@
 import { App, Content, DB, Path, json } from 'Dora';
 import { runCodingAgent, CodingAgentEvent, CodingAgentRunResult } from 'Agent/CodingAgent';
 import * as Tools from 'Agent/Tools';
-import { Log } from 'Agent/Utils';
+import { Log, clipTextToTokenBudget, estimateTextTokens, getActiveLLMConfig } from 'Agent/Utils';
+import type { LLMConfig } from 'Agent/Utils';
 import type { StopToken } from 'Agent/Utils';
 
 export type AgentSessionStatus = "IDLE" | "RUNNING" | "DONE" | "FAILED" | "STOPPED";
@@ -41,6 +42,7 @@ export interface AgentSessionStepItem {
 	tool: string;
 	status: AgentStepStatus;
 	reason: string;
+	reasoningContent: string;
 	params?: Record<string, unknown>;
 	result?: Record<string, unknown>;
 	checkpointId?: number;
@@ -86,7 +88,6 @@ const SESSION_CONTEXT_MAX_CHARS = 12000;
 
 const activeStopTokens: Record<number, StopToken> = {};
 const activeAssistantMessageIds: Record<number, number> = {};
-
 const now = () => os.time();
 
 function getDefaultUseChineseResponse(): boolean {
@@ -188,13 +189,14 @@ function rowToStep(row: any[]): AgentSessionStepItem {
 		tool: toStr(row[4]),
 		status: toStr(row[5]) as AgentStepStatus,
 		reason: toStr(row[6]),
-		params: decodeJsonObject(toStr(row[7])),
-		result: decodeJsonObject(toStr(row[8])),
-		checkpointId: type(row[9]) === "number" && (row[9] as number) > 0 ? row[9] as number : undefined,
-		checkpointSeq: type(row[10]) === "number" && (row[10] as number) > 0 ? row[10] as number : undefined,
-		files: decodeJsonFiles(toStr(row[11])),
-		createdAt: row[12] as number,
-		updatedAt: row[13] as number,
+		reasoningContent: toStr(row[7]),
+		params: decodeJsonObject(toStr(row[8])),
+		result: decodeJsonObject(toStr(row[9])),
+		checkpointId: type(row[10]) === "number" && (row[10] as number) > 0 ? row[10] as number : undefined,
+		checkpointSeq: type(row[11]) === "number" && (row[11] as number) > 0 ? row[11] as number : undefined,
+		files: decodeJsonFiles(toStr(row[12])),
+		createdAt: row[13] as number,
+		updatedAt: row[14] as number,
 	};
 }
 
@@ -236,7 +238,7 @@ function trimSessionContext(text: string, maxChars: number) {
 	return newlinePos >= 0 ? clipped.slice(newlinePos + 1) : clipped;
 }
 
-function buildSessionPromptContext(sessionId: number, useChineseResponse: boolean): string {
+function buildSessionPromptContext(sessionId: number, useChineseResponse: boolean, llmConfig?: LLMConfig): string {
 	const rows = queryRows(
 		`SELECT role, kind, content
 		FROM ${TABLE_MESSAGE}
@@ -268,7 +270,16 @@ function buildSessionPromptContext(sessionId: number, useChineseResponse: boolea
 			: (useChineseResponse ? "助手" : "Assistant");
 		lines.push(`${speaker}: ${message.content}`);
 	}
-	return trimSessionContext(lines.join("\n"), SESSION_CONTEXT_MAX_CHARS);
+	let text = trimSessionContext(lines.join("\n"), SESSION_CONTEXT_MAX_CHARS);
+	if (llmConfig) {
+		const contextBudget = math.max(600, math.min(2400, math.floor(math.max(4000, llmConfig.contextWindow) * 0.15)));
+		const estimated = estimateTextTokens(text);
+		if (estimated > contextBudget) {
+			text = clipTextToTokenBudget(text, contextBudget);
+			Log("Info", `[AgentSession] trimmed session context tokens=${estimated} budget=${contextBudget}`);
+		}
+	}
+	return text;
 }
 
 function setSessionState(sessionId: number, status: AgentSessionStatus, currentTaskId?: number, currentTaskStatus?: AgentSessionStatus) {
@@ -348,6 +359,7 @@ function getAssistantSummaryMessageId(taskId: number, sessionId: number): number
 function upsertStep(sessionId: number, taskId: number, step: number, tool: string, patch: {
 	status?: AgentStepStatus;
 	reason?: string;
+	reasoningContent?: string;
 	params?: Record<string, unknown>;
 	result?: Record<string, unknown>;
 	checkpointId?: number;
@@ -359,6 +371,7 @@ function upsertStep(sessionId: number, taskId: number, step: number, tool: strin
 		[sessionId, taskId, step],
 	);
 	const reason = patch.reason ?? "";
+	const reasoningContent = patch.reasoningContent ?? "";
 	const paramsJson = patch.params ? encodeJson(patch.params) : "";
 	const resultJson = patch.result ? encodeJson(patch.result) : "";
 	const filesJson = patch.files ? encodeJson(patch.files) : "";
@@ -366,8 +379,8 @@ function upsertStep(sessionId: number, taskId: number, step: number, tool: strin
 	if (!row) {
 		const t = now();
 		DB.exec(
-			`INSERT INTO ${TABLE_STEP}(session_id, task_id, step, tool, status, reason, params_json, result_json, checkpoint_id, checkpoint_seq, files_json, created_at, updated_at)
-			VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			`INSERT INTO ${TABLE_STEP}(session_id, task_id, step, tool, status, reason, reasoning_content, params_json, result_json, checkpoint_id, checkpoint_seq, files_json, created_at, updated_at)
+			VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 			[
 				sessionId,
 				taskId,
@@ -375,6 +388,7 @@ function upsertStep(sessionId: number, taskId: number, step: number, tool: strin
 				tool,
 				status,
 				reason,
+				reasoningContent,
 				paramsJson,
 				resultJson,
 				patch.checkpointId ?? 0,
@@ -390,6 +404,7 @@ function upsertStep(sessionId: number, taskId: number, step: number, tool: strin
 		`UPDATE ${TABLE_STEP}
 		SET tool = ?, status = CASE WHEN ? = '' THEN status ELSE ? END,
 			reason = CASE WHEN ? = '' THEN reason ELSE ? END,
+			reasoning_content = CASE WHEN ? = '' THEN reasoning_content ELSE ? END,
 			params_json = CASE WHEN ? = '' THEN params_json ELSE ? END,
 			result_json = CASE WHEN ? = '' THEN result_json ELSE ? END,
 			checkpoint_id = CASE WHEN ? > 0 THEN ? ELSE checkpoint_id END,
@@ -403,6 +418,8 @@ function upsertStep(sessionId: number, taskId: number, step: number, tool: strin
 			status,
 			reason,
 			reason,
+			reasoningContent,
+			reasoningContent,
 			paramsJson,
 			paramsJson,
 			resultJson,
@@ -478,6 +495,7 @@ function applyEvent(sessionId: number, event: CodingAgentEvent) {
 			upsertStep(sessionId, event.taskId, event.step, event.tool, {
 				status: "PENDING",
 				reason: event.reason,
+				reasoningContent: event.reasoningContent,
 				params: event.params,
 			});
 			break;
@@ -566,6 +584,7 @@ function applyEvent(sessionId: number, event: CodingAgentEvent) {
 		tool TEXT NOT NULL DEFAULT '',
 		status TEXT NOT NULL DEFAULT 'PENDING',
 		reason TEXT NOT NULL DEFAULT '',
+		reasoning_content TEXT NOT NULL DEFAULT '',
 		params_json TEXT NOT NULL DEFAULT '',
 		result_json TEXT NOT NULL DEFAULT '',
 		checkpoint_id INTEGER,
@@ -576,6 +595,18 @@ function applyEvent(sessionId: number, event: CodingAgentEvent) {
 	);`);
 	DB.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_agent_session_step_unique ON ${TABLE_STEP}(session_id, task_id, step);`);
 	DB.exec(`CREATE INDEX IF NOT EXISTS idx_agent_session_step_sid_task_step ON ${TABLE_STEP}(session_id, task_id, step);`);
+	const stepColumns = queryRows(`PRAGMA table_info(${TABLE_STEP})`) ?? [];
+	let hasReasoningContent = false;
+	for (let i = 0; i < stepColumns.length; i++) {
+		const row = stepColumns[i] as any[];
+		if (toStr(row[1]) === "reasoning_content") {
+			hasReasoningContent = true;
+			break;
+		}
+	}
+	if (!hasReasoningContent) {
+		DB.exec(`ALTER TABLE ${TABLE_STEP} ADD COLUMN reasoning_content TEXT NOT NULL DEFAULT ''`);
+	}
 }
 
 export function createSession(projectRoot: string, title = "") {
@@ -621,7 +652,7 @@ export function getSession(sessionId: number): AgentSessionDetailResult {
 		[sessionId],
 	) ?? [];
 	const steps = queryRows(
-		`SELECT id, session_id, task_id, step, tool, status, reason, params_json, result_json, checkpoint_id, checkpoint_seq, files_json, created_at, updated_at
+		`SELECT id, session_id, task_id, step, tool, status, reason, reasoning_content, params_json, result_json, checkpoint_id, checkpoint_seq, files_json, created_at, updated_at
 		FROM ${TABLE_STEP}
 		WHERE session_id = ?
 			AND NOT (status IN ('FAILED', 'STOPPED') AND result_json = '')
@@ -650,7 +681,12 @@ export function sendPrompt(sessionId: number, prompt: string): AgentSessionSendR
 	}
 	const taskId = taskRes.taskId;
 	const useChineseResponse = getDefaultUseChineseResponse();
-	const sessionContext = buildSessionPromptContext(sessionId, useChineseResponse);
+	const llmConfigRes = getActiveLLMConfig();
+	const sessionContext = buildSessionPromptContext(
+		sessionId,
+		useChineseResponse,
+		llmConfigRes.success ? llmConfigRes.config : undefined
+	);
 	const agentPrompt = sessionContext !== ""
 		? `${sessionContext}\n\n${useChineseResponse ? "当前用户请求：" : "Current user request:"}\n${prompt}`
 		: prompt;

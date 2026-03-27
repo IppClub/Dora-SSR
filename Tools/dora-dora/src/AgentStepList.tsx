@@ -6,10 +6,13 @@ import Collapse from '@mui/material/Collapse';
 import CircularProgress from '@mui/material/CircularProgress';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { useTranslation } from 'react-i18next';
 import type { AgentCheckpointDiffFile, AgentCheckpointItem, AgentSessionStep } from './Service';
 import { Color } from './Theme';
 import AgentFileDiff from './AgentFileDiff';
+import './github-markdown-dark.css';
 
 interface AgentStepListProps {
 	steps: AgentSessionStep[];
@@ -57,21 +60,10 @@ function summarizeToolParams(step: AgentSessionStep, t: (key: string, options?: 
 	switch (step.tool) {
 		case "read_file": {
 			const path = typeof params.path === "string" ? params.path : "";
-			const offset = typeof params.offset === "number" ? params.offset : undefined;
-			const limit = typeof params.limit === "number" ? params.limit : undefined;
-			push(t("agent.paramLabels.file"), path);
-			if (offset !== undefined && offset > 1) push(t("agent.paramLabels.offset"), String(offset));
-			if (limit !== undefined) push(t("agent.paramLabels.readLines"), String(limit));
-			return items;
-		}
-		case "read_file_range": {
-			const path = typeof params.path === "string" ? params.path : "";
 			const startLine = typeof params.startLine === "number" ? params.startLine : undefined;
 			const endLine = typeof params.endLine === "number" ? params.endLine : undefined;
 			push(t("agent.paramLabels.file"), path);
-			if (startLine !== undefined && endLine !== undefined) {
-				push(t("agent.paramLabels.lines"), `${startLine}-${endLine}`);
-			}
+			push(t("agent.paramLabels.lines"), `${startLine ?? 1}-${endLine ?? 300}`);
 			return items;
 		}
 		case "glob_files": {
@@ -132,6 +124,9 @@ function summarizeToolParams(step: AgentSessionStep, t: (key: string, options?: 
 		case "build": {
 			const path = typeof params.path === "string" ? params.path : "";
 			push(t("agent.paramLabels.buildTarget"), path !== "" ? path : t("agent.workspace"));
+			return items;
+		}
+		case "message": {
 			return items;
 		}
 		default:
@@ -196,9 +191,26 @@ export default function AgentStepList(props: AgentStepListProps) {
 						) : null}
 					</Stack>
 					{step.reason ? (
-						<Typography variant="body1" sx={{ color: Color.TextPrimary, mt: 1, lineHeight: 1.65 }}>
-							{step.reason}
-						</Typography>
+						<Box
+							className="markdown-body"
+							sx={{
+								mt: 1,
+								padding: 0,
+								width: 'auto',
+								minHeight: 0,
+								backgroundColor: "transparent",
+								color: Color.TextPrimary,
+								fontSize: 16,
+								lineHeight: 1.65,
+								'& p': { whiteSpace: 'pre-wrap' },
+								'& > :first-of-type': { marginTop: 0 },
+								'& > :last-child': { marginBottom: 0 },
+							}}
+						>
+							<ReactMarkdown remarkPlugins={[remarkGfm]}>
+								{step.reason}
+							</ReactMarkdown>
+						</Box>
 					) : null}
 					{paramItems.length > 0 ? (
 						<Typography variant="caption" sx={{ color: Color.TextSecondary, display: "block", mt: step.reason ? 0.75 : 1, lineHeight: 1.6 }}>
