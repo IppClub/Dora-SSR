@@ -365,7 +365,6 @@ i18n
 							glob_files: "list files",
 							search_dora_api: "search dora api",
 							build: "build",
-							message: "message",
 							finish: "finish",
 						},
 						paramLabels: {
@@ -380,7 +379,6 @@ i18n
 							limit: "Limit",
 							offset: "Offset",
 							buildTarget: "Build target",
-							message: "Message",
 						},
 						docSources: {
 							api: "API",
@@ -764,7 +762,6 @@ i18n
 							glob_files: "列出文件",
 							search_dora_api: "搜索 Dora 文档",
 							build: "构建",
-							message: "消息",
 							finish: "收工",
 						},
 						paramLabels: {
@@ -779,7 +776,6 @@ i18n
 							limit: "每组前",
 							offset: "偏移",
 							buildTarget: "构建目标",
-							message: "消息",
 						},
 						docSources: {
 							api: "API",

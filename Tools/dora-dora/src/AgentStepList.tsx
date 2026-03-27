@@ -126,9 +126,6 @@ function summarizeToolParams(step: AgentSessionStep, t: (key: string, options?: 
 			push(t("agent.paramLabels.buildTarget"), path !== "" ? path : t("agent.workspace"));
 			return items;
 		}
-		case "message": {
-			return items;
-		}
 		default:
 			return items;
 	}

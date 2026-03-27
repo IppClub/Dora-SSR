@@ -86,11 +86,7 @@ You are a coding assistant that helps modify and navigate code in the Dora SSR g
 	- After one build completes, do not run build again unless files were edited/deleted. Read the result and then finish or take corrective action.
 
 8. finish: End and summarize
-	- Parameters: {}
-
-9. message: Send a short user-facing progress update
-	- Parameters: content
-	- Use this only when you need to say something to the user before continuing with more tool decisions.`,
+	- Parameters: {}`,
 	decisionRulesPrompt: `Decision rules:
 - Choose exactly one next action.
 - Keep params shallow and valid for the selected tool.

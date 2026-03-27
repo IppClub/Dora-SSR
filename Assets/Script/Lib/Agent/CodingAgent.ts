@@ -48,7 +48,6 @@ export type AgentToolName =
 	| "search_dora_api"
 	| "glob_files"
 	| "build"
-	| "message"
 	| "finish";
 
 export type CodingAgentEvent =
@@ -591,7 +590,6 @@ function isKnownToolName(name: string): name is AgentToolName {
 		|| name === "search_dora_api"
 		|| name === "glob_files"
 		|| name === "build"
-		|| name === "message"
 		|| name === "finish";
 }
 
@@ -742,13 +740,6 @@ function formatHistorySummary(history: AgentActionRecord[]): string {
 					} else {
 						lines.push("  (Empty or inaccessible directory)");
 					}
-				}
-			} else if (action.tool === "message") {
-				lines.push(`- Result: ${success ? "Success" : "Failed"}`);
-				if (success && type(result.message) === "string") {
-					lines.push(`- Message: ${truncateText(result.message as string, 1200)}`);
-				} else if (!success && type(result.message) === "string") {
-					lines.push(`- Error: ${truncateText(result.message as string, 600)}`);
 				}
 			} else {
 				lines.push(`- Result: ${success ? "Success" : "Failed"}`);
@@ -923,9 +914,6 @@ function parseDecisionObject(rawObj: Record<string, unknown>): DecisionSuccess |
 	if (!isKnownToolName(tool)) {
 		return { success: false, message: `unknown tool: ${tool}` };
 	}
-	if (tool === "message") {
-		return { success: false, message: "message is not a callable tool" };
-	}
 	const params = type(rawObj.params) === "table" ? (rawObj.params as Record<string, unknown>) : {};
 	return { success: true, tool, params };
 }
@@ -933,9 +921,6 @@ function parseDecisionObject(rawObj: Record<string, unknown>): DecisionSuccess |
 function parseDecisionToolCall(functionName: string, rawObj: unknown): DecisionSuccess | DecisionFailure {
 	if (!isKnownToolName(functionName)) {
 		return { success: false, message: `unknown tool: ${functionName}` };
-	}
-	if (functionName === "message") {
-		return { success: false, message: "message is not a callable tool" };
 	}
 	if (rawObj === undefined || rawObj === null) {
 		return { success: true, tool: functionName, params: {} };
@@ -1038,7 +1023,7 @@ function validateDecision(
 }
 
 function createFunctionToolSchema(
-	name: Exclude<AgentToolName, "message">,
+	name: AgentToolName,
 	description: string,
 	properties: Record<string, unknown>,
 	required: string[] = []
