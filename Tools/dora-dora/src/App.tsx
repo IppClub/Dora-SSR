@@ -1310,10 +1310,12 @@ export default function PersistentDrawerLeft() {
 		setSelectedNode(nodes[0]);
 		if (dir) {
 			void (async () => {
-				const opened = await openAgentSessionTab(key, true, { silentWhenNotFound: true });
-				if (!opened) {
-					openFileInTab(key, title, true);
+				const rootRes = await Service.agentProjectRoot({ path: key, isDir: true });
+				if (rootRes.success && rootRes.found && rootRes.projectRoot === key) {
+					await openAgentSessionTab(key, true, { silentWhenNotFound: true });
+					return;
 				}
+				openFileInTab(key, title, true);
 			})();
 			return;
 		}
@@ -3662,6 +3664,7 @@ export default function PersistentDrawerLeft() {
 									onUploaded={onUploaded}
 									onViewChange={(view) => onWorkspaceViewChange(file.key, view)}
 									onOpenFile={(filePath) => onAgentOpenFile(file.key, filePath)}
+									onOpenLLMConfig={() => setOpenLLMConfig(true)}
 								/>
 							</Main>;
 						}
@@ -4027,6 +4030,7 @@ export default function PersistentDrawerLeft() {
 											onUploaded={onUploaded}
 											onViewChange={(view) => onWorkspaceViewChange(file.key, view)}
 											onOpenFile={(filePath) => onAgentOpenFile(file.key, filePath)}
+											onOpenLLMConfig={() => setOpenLLMConfig(true)}
 										/>
 									);
 								}

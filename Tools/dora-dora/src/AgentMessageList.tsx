@@ -16,7 +16,7 @@ export default function AgentMessageList(props: AgentMessageListProps) {
 	const { messages } = props;
 	return (
 		<Stack spacing={2}>
-			{messages.filter(message => !(message.role === "assistant" && message.kind === "summary" && message.streaming && message.content.trim() === "")).map(message => (
+			{messages.map(message => (
 				<Box key={message.id} sx={{
 					display: "flex",
 					justifyContent: message.role === "user" ? "flex-end" : "flex-start",
@@ -30,7 +30,7 @@ export default function AgentMessageList(props: AgentMessageListProps) {
 						backgroundColor: message.role === "user" ? "rgba(255,255,255,0.06)" : "transparent",
 						boxShadow: message.role === "user" ? "inset 0 1px 0 rgba(255,255,255,0.02)" : "none",
 					}}>
-						{message.role === "assistant" && message.kind === "summary" ? (
+						{message.role === "assistant" ? (
 						<Box
 							className="markdown-body"
 							sx={{
@@ -52,7 +52,7 @@ export default function AgentMessageList(props: AgentMessageListProps) {
 						</Box>
 					) : (
 						<Typography variant="body1" sx={{ color: Color.TextPrimary, whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
-							{message.content || (message.streaming ? "..." : "")}
+							{message.content}
 						</Typography>
 					)}
 					</Box>

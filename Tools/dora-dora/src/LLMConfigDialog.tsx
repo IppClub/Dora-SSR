@@ -1,12 +1,14 @@
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Stack, TextField, Tooltip, Typography } from '@mui/material';
+import { Button, Checkbox as MuiCheckbox, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, FormControlLabel, IconButton, InputAdornment, MenuItem, Stack, TextField, Tooltip, Typography } from '@mui/material';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import * as Service from './Service';
 import { Color } from './Theme';
-import { Checkbox, Table, ConfigProvider, theme } from 'antd';
+import { Checkbox as AntdCheckbox, Table, ConfigProvider, theme } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { MacScrollbar } from 'mac-scrollbar';
 import 'mac-scrollbar/dist/mac-scrollbar.css';
@@ -32,6 +34,7 @@ const emptyForm = {
 	model: '',
 	key: '',
 	contextWindow: 64000,
+	supportsFunctionCalling: true,
 	active: true,
 };
 
@@ -162,6 +165,8 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 	const [form, setForm] = useState<Service.LLMConfigItem>(emptyForm);
 	const [templateId, setTemplateId] = useState('deepseek');
 	const [savingActiveId, setSavingActiveId] = useState<number | null>(null);
+	const [showApiKey, setShowApiKey] = useState(false);
+	const [pendingDelete, setPendingDelete] = useState<Service.LLMConfigItem | null>(null);
 
 	const templates = useMemo(() => [
 		...BUILTIN_TEMPLATES,
@@ -182,6 +187,7 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 				const normalized = (res.items ?? []).map((item) => ({
 					...item,
 					contextWindow: Number(item.contextWindow) > 0 ? Number(item.contextWindow) : 64000,
+					supportsFunctionCalling: item.supportsFunctionCalling === undefined ? true : Boolean(item.supportsFunctionCalling),
 					active: item.active === undefined ? true : Boolean(item.active),
 				}));
 				setItems(normalized);
@@ -205,6 +211,7 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 			url: template.url,
 			model: template.model,
 			key: '',
+			supportsFunctionCalling: true,
 			active: true,
 			contextWindow: 64000,
 		});
@@ -221,6 +228,8 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 			setMode('create');
 			setForm(emptyForm);
 			setFormOpen(false);
+			setShowApiKey(false);
+			setPendingDelete(null);
 		}
 	}, [open, loadItems, applyTemplate]);
 
@@ -228,6 +237,7 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 		setError(null);
 		setMode('create');
 		applyTemplate(templateId);
+		setShowApiKey(false);
 		setFormOpen(true);
 	};
 
@@ -235,13 +245,14 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 		setMode('edit');
 		setForm({
 			...item,
+			supportsFunctionCalling: item.supportsFunctionCalling === undefined ? true : Boolean(item.supportsFunctionCalling),
 			active: item.active === undefined ? true : Boolean(item.active),
 		});
+		setShowApiKey(false);
 		setFormOpen(true);
 	};
 
 	const onDelete = async (id: number) => {
-		if (!window.confirm(t('llm.deleteConfirm'))) return;
 		const res = await Service.deleteLLMConfig(id);
 		if (!res.success) {
 			setError(res.message ?? t('llm.saveFailed'));
@@ -257,6 +268,7 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 			model: form.model.trim(),
 			key: form.key.trim(),
 			contextWindow: Math.max(4000, Math.floor(Number(form.contextWindow) || 64000)),
+			supportsFunctionCalling: form.supportsFunctionCalling !== false,
 			active: form.active,
 		};
 		if (!payload.name || !payload.url || !payload.model || !payload.key) {
@@ -301,6 +313,12 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 		{title: t('llm.name'), dataIndex: 'name', key: 'name'},
 		{title: t('llm.model'), dataIndex: 'model', key: 'model'},
 		{title: t('llm.contextWindow'), dataIndex: 'contextWindow', key: 'contextWindow', width: 120},
+		{
+			title: t('llm.functionCalling'),
+			key: 'supportsFunctionCalling',
+			width: 130,
+			render: (_, record) => record.supportsFunctionCalling ? t('llm.supported') : t('llm.unsupported'),
+		},
 		{title: t('llm.url'), dataIndex: 'url', key: 'url'},
 		{
 			title: t('llm.actions'),
@@ -314,7 +332,7 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 				>
 					<Tooltip title={t('llm.active')}>
 						<span>
-							<Checkbox
+							<AntdCheckbox
 								checked={Boolean(record.active)}
 								disabled={savingActiveId === record.id}
 								onChange={(event) => void onToggleActive(record, event.target.checked)}
@@ -339,7 +357,7 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 					<Tooltip title={t('llm.delete')}>
 						<IconButton
 							size="small"
-							onClick={() => onDelete(record.id)}
+							onClick={() => setPendingDelete(record)}
 							sx={{
 								color: Color.Secondary,
 								"&:hover": {
@@ -401,6 +419,30 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 			<DialogActions>
 				<Button onClick={onClose}>{t('action.close')}</Button>
 			</DialogActions>
+			<Dialog open={pendingDelete !== null} onClose={() => setPendingDelete(null)} fullWidth maxWidth="xs">
+				<DialogTitle>{t('llm.deleteTitle')}</DialogTitle>
+				<DialogContent>
+					<DialogContentText color={Color.TextPrimary}>
+						{t('llm.deleteConfirm', { name: pendingDelete?.name ?? '' })}
+					</DialogContentText>
+				</DialogContent>
+				<DialogActions>
+					<Button onClick={() => setPendingDelete(null)}>{t('action.cancel')}</Button>
+					<Button
+						color="error"
+						variant="contained"
+						onClick={async () => {
+							const target = pendingDelete;
+							setPendingDelete(null);
+							if (target) {
+								await onDelete(target.id);
+							}
+						}}
+					>
+						{t('action.confirm')}
+					</Button>
+				</DialogActions>
+			</Dialog>
 			<Dialog open={formOpen} onClose={() => setFormOpen(false)} fullWidth maxWidth="sm">
 				<DialogTitle>{isEditing ? t('llm.editTitle') : t('llm.createTitle')}</DialogTitle>
 				<DialogContent>
@@ -462,6 +504,15 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 								sx={inputStyle}
 							/>
 						</Stack>
+						<FormControlLabel
+							control={
+								<MuiCheckbox
+									checked={form.supportsFunctionCalling !== false}
+									onChange={(event) => setForm({...form, supportsFunctionCalling: event.target.checked})}
+								/>
+							}
+							label={t('llm.functionCalling')}
+						/>
 						<Stack direction="row" spacing={2}>
 							<TextField
 								label={t('llm.key')}
@@ -470,8 +521,28 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 								fullWidth
 								autoComplete="off"
 								size="small"
-								type="password"
+								type="text"
+								slotProps={{
+									input: {
+										endAdornment: (
+											<InputAdornment position="end">
+												<IconButton
+													edge="end"
+													size="small"
+													onClick={() => setShowApiKey((value) => !value)}
+												>
+													{showApiKey ? <VisibilityOffIcon fontSize="small"/> : <VisibilityIcon fontSize="small"/>}
+												</IconButton>
+											</InputAdornment>
+										),
+									},
+								}}
 								sx={inputStyle}
+								inputProps={{
+									style: showApiKey ? undefined : {
+										WebkitTextSecurity: 'disc',
+									},
+								}}
 							/>
 						</Stack>
 						{error ? <Typography color={Color.Error}>{error}</Typography> : null}

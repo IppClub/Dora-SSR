@@ -720,6 +720,29 @@ HttpServer\post "/info", ->
 		:drawerWidth
 
 ensureLLMConfigTable = ->
+	columns = DB\query "PRAGMA table_info(LLMConfig)"
+	if columns and #columns > 0
+		expected = {
+			id: true
+			name: true
+			url: true
+			model: true
+			api_key: true
+			context_window: true
+			supports_function_calling: true
+			active: true
+			created_at: true
+			updated_at: true
+		}
+		valid = #columns == 10
+		if valid
+			for row in *columns
+				columnName = tostring row[2]
+				if not expected[columnName]
+					valid = false
+					break
+		if not valid
+			DB\exec "DROP TABLE IF EXISTS LLMConfig"
 	DB\exec [[
 		CREATE TABLE IF NOT EXISTS LLMConfig(
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -728,6 +751,7 @@ ensureLLMConfigTable = ->
 			model TEXT NOT NULL,
 			api_key TEXT NOT NULL,
 			context_window INTEGER NOT NULL DEFAULT 64000,
+			supports_function_calling INTEGER NOT NULL DEFAULT 1,
 			active INTEGER NOT NULL DEFAULT 1,
 			created_at INTEGER,
 			updated_at INTEGER
@@ -743,34 +767,36 @@ normalizeContextWindow = (value) ->
 HttpServer\post "/llm/list", ->
 	ensureLLMConfigTable!
 	rows = DB\query "
-		select id, name, url, model, api_key, context_window, active
+		select id, name, url, model, api_key, context_window, supports_function_calling, active
 		from LLMConfig
 		order by id asc"
 	items = if rows and #rows > 0
-		for [id, name, url, model, key, contextWindow, active] in *rows
-			:id, :name, :url, :model, :key, contextWindow: normalizeContextWindow(contextWindow), active: active ~= 0
+		for [id, name, url, model, key, contextWindow, supportsFunctionCalling, active] in *rows
+			:id, :name, :url, :model, :key, contextWindow: normalizeContextWindow(contextWindow), supportsFunctionCalling: supportsFunctionCalling ~= 0, active: active ~= 0
 	return success: true, :items
 
 HttpServer\post "/llm/create", (req): success: false, message: "invalid" ->
 	ensureLLMConfigTable!
 	switch req when {body: body}
-		{:name, :url, :model, :key, :active, :contextWindow} = body
+		{:name, :url, :model, :key, :active, :contextWindow, :supportsFunctionCalling} = body
 		now = os.time!
 		if name == nil or url == nil or model == nil or key == nil
 			return success: false, message: "invalid"
 		contextWindow = normalizeContextWindow contextWindow
+		supportsFunctionCalling = if supportsFunctionCalling == false then 0 else 1
 		active = if active then 1 else 0
 		affected = DB\exec "
 			insert into LLMConfig (
-				name, url, model, api_key, context_window, active, created_at, updated_at
+				name, url, model, api_key, context_window, supports_function_calling, active, created_at, updated_at
 			) values (
-				?, ?, ?, ?, ?, ?, ?, ?
+				?, ?, ?, ?, ?, ?, ?, ?, ?
 			)", [
 			tostring name
 			tostring url
 			tostring model
 			tostring key
 			contextWindow
+			supportsFunctionCalling
 			active
 			now
 			now
@@ -780,22 +806,24 @@ HttpServer\post "/llm/create", (req): success: false, message: "invalid" ->
 HttpServer\post "/llm/update", (req): success: false, message: "invalid" ->
 	ensureLLMConfigTable!
 	switch req when {body: body}
-		{:id, :name, :url, :model, :key, :active, :contextWindow} = body
+		{:id, :name, :url, :model, :key, :active, :contextWindow, :supportsFunctionCalling} = body
 		now = os.time!
 		id = tonumber id
 		if id == nil
 			return success: false, message: "invalid"
 		contextWindow = normalizeContextWindow contextWindow
+		supportsFunctionCalling = if supportsFunctionCalling == false then 0 else 1
 		active = if active then 1 else 0
 		affected = DB\exec "
 			update LLMConfig
-			set name = ?, url = ?, model = ?, api_key = ?, context_window = ?, active = ?, updated_at = ?
+			set name = ?, url = ?, model = ?, api_key = ?, context_window = ?, supports_function_calling = ?, active = ?, updated_at = ?
 			where id = ?", [
 			tostring name
 			tostring url
 			tostring model
 			tostring key
 			contextWindow
+			supportsFunctionCalling
 			active
 			now
 			id

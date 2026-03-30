@@ -106,7 +106,7 @@ export default function AgentComposer(props: AgentComposerProps) {
 							disabled={actionDisabled}
 							sx={{
 								backgroundColor: 'rgba(255, 255, 255, 0.04)',
-								color: running ? Color.Warning : 'rgba(255, 255, 255, 0.55)',
+								color: running ? Color.Theme : 'rgba(255, 255, 255, 0.55)',
 								'&:hover': {
 									backgroundColor: 'rgba(255, 255, 255, 0.08)',
 								},

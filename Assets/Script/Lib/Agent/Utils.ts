@@ -18,9 +18,46 @@ export const Log = (type: "Info" | "Warn" | "Error", msg: string) => {
 	DoraLog(type, msg);
 };
 
+export interface ToolCallFunction {
+	name?: string;
+	arguments?: string;
+}
+
+export interface ToolCall {
+	id?: string;
+	type?: string;
+	function?: ToolCallFunction;
+}
+
 export interface Message {
 	role: string;
-	content: string;
+	content?: string;
+	name?: string;
+	tool_call_id?: string;
+	reasoning_content?: string;
+	tool_calls?: ToolCall[];
+}
+
+const TOOL_CALL_ID_ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz";
+let TOOL_CALL_ID_COUNTER = 0;
+
+function toBase36(value: number): string {
+	if (value <= 0) return "0";
+	let remaining = math.floor(value);
+	let out = "";
+	while (remaining > 0) {
+		const digit = remaining % 36;
+		out = string.sub(TOOL_CALL_ID_ALPHABET, digit + 1, digit + 1) + out;
+		remaining = math.floor(remaining / 36);
+	}
+	return out;
+}
+
+export function createLocalToolCallId(): string {
+	TOOL_CALL_ID_COUNTER += 1;
+	const timePart = toBase36(os.time());
+	const counterPart = toBase36(TOOL_CALL_ID_COUNTER);
+	return `tc${timePart}${counterPart}`;
 }
 
 export interface StopToken {
@@ -68,6 +105,11 @@ function estimateMessagesTokens(messages: Message[]): number {
 		total += 8;
 		total += estimateTextTokens(message.role ?? "");
 		total += estimateTextTokens(message.content ?? "");
+		total += estimateTextTokens(message.name ?? "");
+		total += estimateTextTokens(message.tool_call_id ?? "");
+		total += estimateTextTokens(message.reasoning_content ?? "");
+		const [toolCallsText] = json.encode((message.tool_calls ?? []) as object);
+		total += estimateTextTokens(toolCallsText ?? "");
 	}
 	return total;
 }
@@ -384,17 +426,6 @@ interface Delta {
 	content?: string;
 }
 
-export interface ToolCallFunction {
-	name?: string;
-	arguments?: string;
-}
-
-interface ToolCall {
-	id?: string;
-	type?: string;
-	function?: ToolCallFunction;
-}
-
 interface NonStreamMessage {
 	role?: string;
 	content?: string;
@@ -439,6 +470,7 @@ export type LLMConfig = {
 	model: string;
 	apiKey: string;
 	contextWindow: number;
+	supportsFunctionCalling: boolean;
 };
 
 function normalizeContextWindow(value: unknown): number {
@@ -446,6 +478,10 @@ function normalizeContextWindow(value: unknown): number {
 		return math.max(4000, math.floor(value as number));
 	}
 	return 64000;
+}
+
+function normalizeSupportsFunctionCalling(value: unknown): boolean {
+	return value === undefined || value === null || value !== 0;
 }
 
 export function getActiveLLMConfig(): { success: true; config: LLMConfig } | { success: false; message: string } {
@@ -475,6 +511,7 @@ export function getActiveLLMConfig(): { success: true; config: LLMConfig } | { s
 			model,
 			apiKey: api_key,
 			contextWindow: normalizeContextWindow(config["context_window"]),
+			supportsFunctionCalling: normalizeSupportsFunctionCalling(config["supports_function_calling"]),
 		},
 	};
 }

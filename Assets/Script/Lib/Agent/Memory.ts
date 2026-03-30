@@ -5,21 +5,55 @@ import type { LLMConfig } from 'Agent/Utils';
 import { sendWebIDEFileUpdate } from 'Agent/Tools';
 import * as yaml from 'yaml';
 
-import type { AgentActionRecord } from 'Agent/CodingAgent';
+export interface AgentConversationMessage extends Message {
+	timestamp?: string;
+}
+
+export interface PersistedSessionState {
+	messages: AgentConversationMessage[];
+	lastConsolidatedMessageIndex: number;
+}
 
 const AGENT_CONFIG_DIR = ".agent";
 const AGENT_PROMPTS_FILE = "AGENT.md";
+const YAML_DECISION_SCHEMA_EXAMPLE = `\`\`\`yaml
+tool: "edit_file"
+reason: "Need to update the file content to implement the requested change."
+params:
+  path: "relative/path.ts"
+  old_str: |2-
+    		function oldName() {
+    			print("old");
+    		}
+  new_str: |2-
+    		function newName() {
+    			print("hello");
+    		}
+\`\`\`
+
+\`\`\`yaml
+tool: "read_file"
+reason: "Need to inspect the current implementation before editing."
+params:
+  path: "relative/path.ts"
+  startLine: 1
+  endLine: 200
+\`\`\`
+
+\`\`\`yaml
+tool: "finish"
+params:
+  message: "Final user-facing answer."
+\`\`\``;
 
 export interface AgentPromptPack {
 	agentIdentityPrompt: string;
-	decisionIntroPrompt: string;
 	toolDefinitionsDetailed: string;
-	decisionRulesPrompt: string;
 	replyLanguageDirectiveZh: string;
 	replyLanguageDirectiveEn: string;
 	toolCallingRetryPrompt: string;
 	yamlDecisionFormatPrompt: string;
-	finalSummaryPrompt: string;
+	yamlDecisionRepairPrompt: string;
 	memoryCompressionSystemPrompt: string;
 	memoryCompressionBodyPrompt: string;
 	memoryCompressionToolCallingPrompt: string;
@@ -41,7 +75,6 @@ You are a coding assistant that helps modify and navigate code in the Dora SSR g
 - Ask for clarification when the request is ambiguous.
 - Prefer reading and searching before editing when information is missing.
 - Focus on outcomes, not tool names. Speak directly to the user.`,
-	decisionIntroPrompt: "Given the request and action history, decide which tool to use next.",
 	toolDefinitionsDetailed: `Available tools:
 1. read_file: Read a specific line range from a file
 	- Parameters: path, startLine(optional), endLine(optional)
@@ -81,61 +114,62 @@ You are a coding assistant that helps modify and navigate code in the Dora SSR g
 	- \`useRegex\` defaults to false whenever supported by a search tool.
 	- \`limit\` restricts each individual pattern search and must be <= {{SEARCH_DORA_API_LIMIT_MAX}}.
 
-7. build: Run build/checks for ts/tsx, teal, lua, yue, yarn
+7. build: Do compiling and static checks for ts/tsx, teal, lua, yue, yarn
 	- Parameters: path(optional)
-	- After one build completes, do not run build again unless files were edited/deleted. Read the result and then finish or take corrective action.
+	- \`path\` can be workspace-relative file or directory to build.
+	- Read the result and then decide whether another action is needed.
 
-8. finish: End and summarize
-	- Parameters: {}`,
-	decisionRulesPrompt: `Decision rules:
-- Choose exactly one next action.
-- Keep params shallow and valid for the selected tool.
-- Prefer reading/searching before editing when information is missing.
-- After any search tool returns candidate files or docs, use read_file to inspect relevant line ranges instead of repeatedly broadening search.
-- Use glob_files to discover candidate files. Use grep_files only when you need to search file contents.
-- If the user asked a question, prefer finishing only after you can answer it in the final response.`,
+8. finish: End the task and reply directly to the user
+	- Parameters: message`,
 	replyLanguageDirectiveZh: "Use Simplified Chinese for natural-language fields (message/summary).",
 	replyLanguageDirectiveEn: "Use English for natural-language fields (message/summary).",
 	toolCallingRetryPrompt: "Previous response was invalid ({{LAST_ERROR}}). Retry with either one valid tool call.",
 	yamlDecisionFormatPrompt: `Respond with exactly one YAML object. Do not include any prose before or after the YAML.
 
-\`\`\`yaml
-tool: "edit_file"
-params:
-	path: "relative/path.ts"
-	old_str: |-
-		function oldName() {
-			print("old");
-		}
-	new_str: |-
-		function newName() {
-			print("hello");
-		}
-\`\`\`
+${YAML_DECISION_SCHEMA_EXAMPLE}
 
 Rules:
-- Use exactly one YAML object with keys: tool, params.
+- Return exactly one YAML object.
+- For every tool except finish, use exactly these top-level keys: tool, reason, params.
+- For finish, use exactly these top-level keys: tool, params.
 - Multi-line strings use block scalars (\`|\`, \`|-\`, \`>\`).
-- If using a block scalar, all content lines must be indented consistently with tabs.
-- For nested multi-line fields (e.g. params.new_str), indent the block content deeper than the key line using tabs.
+- Use 2 spaces for YAML structural indentation. Do not use tabs to indent YAML keys.
+- If a multi-line string must preserve leading tabs or other leading whitespace on content lines, prefer a block scalar with an explicit indentation indicator \`|2-\`.
+- For nested multi-line fields (e.g. params.new_str), indent block-scalar content deeper than the key line using spaces for YAML structure.
 - Keep params shallow and valid for the selected tool.
-- Use tabs for all indentation, never spaces.
-- If no more actions are needed, use tool: finish.`,
-	finalSummaryPrompt: `You are a coding assistant. Provide a concise summary of what you did.
+- If no more actions are needed, use tool: finish and put the final user-facing answer in params.message.`,
+	yamlDecisionRepairPrompt: `Convert the tool call result below into exactly one valid YAML object.
 
-Here are the actions you performed:
-{{SUMMARY}}
+YAML schema example:
+${YAML_DECISION_SCHEMA_EXAMPLE}
 
-Generate a response that:
-1. Explains what actions were taken and what was found/modified
-2. Speaks directly to the in a natural, friendly manner
-3. If the user asked a question, includes a direct answer
-4. Focuses on outcomes, not technical tool names
+Rules:
+- Return exactly one YAML object.
+- Return YAML only. No prose before or after.
+- Keep the same tool name, reason, and parameter values as the source whenever possible.
+- For every tool except finish, use top-level keys: tool, reason, params.
+- For finish, use top-level keys: tool, params.
+- Multi-line string params should use block scalars when needed.
+- Use spaces for YAML structural indentation. Do not use tabs to indent YAML keys.
+- If a multi-line string must preserve leading tabs or other leading whitespace on content lines, prefer a block scalar with an explicit indentation indicator such as \`|2-\`.
+- Do not invent extra parameters.
 
-IMPORTANT:
-- Be concise (1-3 sentences unless more detail is needed)
-- Do not mention internal details like tool names or step numbers
-{{LANGUAGE_DIRECTIVE}}`,
+Available tools and params reference:
+
+{{TOOL_DEFINITIONS}}
+
+### Original Raw Output
+\`\`\`
+{{ORIGINAL_RAW}}
+\`\`\`
+
+{{CANDIDATE_SECTION}}### Repair Task
+- The current candidate is invalid because: {{LAST_ERROR}}
+- Repair only the formatting/schema so the result becomes one valid YAML object.
+- Keep the tool name and argument values aligned with the original raw output.
+- Retry attempt: {{ATTEMPT}}.
+- The next reply must differ from the previously rejected candidate.
+- Return YAML only, with no prose before or after.`,
 	memoryCompressionSystemPrompt: `You are a memory consolidation agent. You MUST call the save_memory tool.
 Do not output any text besides the tool call.`,
 	memoryCompressionBodyPrompt: `### Current Memory (Long-term)
@@ -199,11 +233,8 @@ Rules:
 
 const EXPOSED_PROMPT_PACK_KEYS: (keyof AgentPromptPack)[] = [
 	"agentIdentityPrompt",
-	"decisionIntroPrompt",
-	"decisionRulesPrompt",
 	"replyLanguageDirectiveZh",
 	"replyLanguageDirectiveEn",
-	"finalSummaryPrompt",
 	"memoryCompressionBodyPrompt",
 ];
 
@@ -464,28 +495,30 @@ export class TokenEstimator {
 		return Math.max(1, tokens);
 	}
 
-	/**
-	 * 估算历史记录的 token 数量
-	 */
-	static estimateHistory(history: AgentActionRecord[], formatFunc: (h: AgentActionRecord[]) => string): number {
-		if (!history || history.length === 0) return 0;
-		const text = formatFunc(history);
-		return this.estimate(text);
+	static estimateMessages(messages: Message[]): number {
+		if (!messages || messages.length === 0) return 0;
+		let total = 0;
+		for (let i = 0; i < messages.length; i++) {
+			const message = messages[i];
+			total += this.estimate(message.role ?? "");
+			total += this.estimate(message.content ?? "");
+			total += this.estimate(message.name ?? "");
+			total += this.estimate(message.tool_call_id ?? "");
+			total += this.estimate(message.reasoning_content ?? "");
+			const [toolCallsText] = json.encode((message.tool_calls ?? []) as object);
+			total += this.estimate(toolCallsText ?? "");
+			total += 8;
+		}
+		return total;
 	}
 
-	/**
-	 * 估算完整 prompt 的 token 数量
-	 */
-	static estimatePrompt(
-		userQuery: string,
-		history: AgentActionRecord[],
+	static estimatePromptMessages(
+		messages: Message[],
 		systemPrompt: string,
-		toolDefinitions: string,
-		formatFunc: (h: AgentActionRecord[]) => string
+		toolDefinitions: string
 	): number {
 		return (
-			this.estimate(userQuery) +
-			this.estimateHistory(history, formatFunc) +
+			this.estimateMessages(messages) +
 			this.estimate(systemPrompt) +
 			this.estimate(toolDefinitions)
 		);
@@ -562,27 +595,21 @@ export class DualLayerStorage {
 		return value;
 	}
 
-	private decodeActionRecord(value: unknown): AgentActionRecord | undefined {
+	private decodeConversationMessage(value: unknown): AgentConversationMessage | undefined {
 		if (!value || Array.isArray(value) || type(value) !== "table") return undefined;
 		const row = value as Record<string, unknown>;
-		const tool = typeof row.tool === "string" ? row.tool : "";
-		const reason = typeof row.reason === "string" ? row.reason : "";
-		const timestamp = typeof row.timestamp === "string" ? row.timestamp : "";
-		if (tool === "" || timestamp === "") return undefined;
-		const params = row.params && !Array.isArray(row.params) && type(row.params) === "table"
-			? row.params as Record<string, unknown>
-			: {};
-		const result = row.result && !Array.isArray(row.result) && type(row.result) === "table"
-			? row.result as Record<string, unknown>
-			: undefined;
-		return {
-			step: math.max(1, math.floor(Number(row.step ?? 1))),
-			tool: tool as AgentActionRecord["tool"],
-			reason,
-			params,
-			result,
-			timestamp,
-		};
+		const role = typeof row.role === "string" ? row.role : "";
+		if (role === "") return undefined;
+		const message: AgentConversationMessage = { role };
+		if (typeof row.content === "string") message.content = row.content;
+		if (typeof row.name === "string") message.name = row.name;
+		if (typeof row.tool_call_id === "string") message.tool_call_id = row.tool_call_id;
+		if (typeof row.reasoning_content === "string") message.reasoning_content = row.reasoning_content;
+		if (typeof row.timestamp === "string") message.timestamp = row.timestamp;
+		if (type(row.tool_calls) === "table") {
+			message.tool_calls = row.tool_calls as Message["tool_calls"];
+		}
+		return message;
 	}
 
 	// ===== MEMORY.md 操作 =====
@@ -642,17 +669,17 @@ ${memory}`;
 		return Content.load(this.historyPath) as string;
 	}
 
-	readSessionState(): { history: AgentActionRecord[]; lastConsolidatedIndex: number } {
+	readSessionState(): PersistedSessionState {
 		if (!Content.exist(this.sessionPath)) {
-			return { history: [], lastConsolidatedIndex: 0 };
+			return { messages: [], lastConsolidatedMessageIndex: 0 };
 		}
 		const text = Content.load(this.sessionPath) as string;
 		if (!text || text.trim() === "") {
-			return { history: [], lastConsolidatedIndex: 0 };
+			return { messages: [], lastConsolidatedMessageIndex: 0 };
 		}
 		const lines = text.split("\n");
-		const history: AgentActionRecord[] = [];
-		let lastConsolidatedIndex = 0;
+		const messages: AgentConversationMessage[] = [];
+		let lastConsolidatedMessageIndex = 0;
 		for (let i = 0; i < lines.length; i++) {
 			const line = lines[i].trim();
 			if (line === "") continue;
@@ -660,32 +687,38 @@ ${memory}`;
 			if (!data || Array.isArray(data) || type(data) !== "table") continue;
 			const row = data as Record<string, unknown>;
 			if (row._type === "metadata") {
-				lastConsolidatedIndex = math.max(0, math.floor(Number(row.lastConsolidatedIndex ?? 0)));
+				lastConsolidatedMessageIndex = math.max(0, math.floor(Number(row.lastConsolidatedMessageIndex ?? 0)));
 				continue;
 			}
-			const record = this.decodeActionRecord(row);
-			if (record) {
-				history.push(record);
+			const message = this.decodeConversationMessage(row.message ?? row);
+			if (message) {
+				messages.push(message);
 			}
 		}
 		return {
-			history,
-			lastConsolidatedIndex: math.min(lastConsolidatedIndex, history.length),
+			messages,
+			lastConsolidatedMessageIndex: math.min(lastConsolidatedMessageIndex, messages.length),
 		};
 	}
 
-	writeSessionState(history: AgentActionRecord[], lastConsolidatedIndex: number): void {
+	writeSessionState(
+		messages: AgentConversationMessage[] = [],
+		lastConsolidatedMessageIndex = 0
+	): void {
 		this.ensureDir(Path.getPath(this.sessionPath));
 		const lines: string[] = [];
 		const meta = this.encodeJsonLine({
 			_type: "metadata",
-			lastConsolidatedIndex: math.min(math.max(0, math.floor(lastConsolidatedIndex)), history.length),
+			lastConsolidatedMessageIndex: math.min(math.max(0, math.floor(lastConsolidatedMessageIndex)), messages.length),
 		});
 		if (meta) {
 			lines.push(meta);
 		}
-		for (let i = 0; i < history.length; i++) {
-			const line = this.encodeJsonLine(history[i]);
+		for (let i = 0; i < messages.length; i++) {
+			const line = this.encodeJsonLine({
+				_type: "message",
+				message: messages[i],
+			});
 			if (line) {
 				lines.push(line);
 			}
@@ -752,51 +785,48 @@ export class MemoryCompressor {
 	 * 检查是否需要压缩
 	 */
 	shouldCompress(
-		userQuery: string,
-		history: AgentActionRecord[],
-		lastConsolidatedIndex: number,
+		messages: Message[],
+		lastConsolidatedMessageIndex: number,
 		systemPrompt: string,
-		toolDefinitions: string,
-		formatFunc: (h: AgentActionRecord[]) => string
+		toolDefinitions: string
 	): boolean {
-		const uncompressedHistory = history.slice(lastConsolidatedIndex);
-
-		const tokens = TokenEstimator.estimatePrompt(
-			userQuery,
-			uncompressedHistory,
+		const messageTokens = TokenEstimator.estimatePromptMessages(
+			messages.slice(lastConsolidatedMessageIndex),
 			systemPrompt,
-			toolDefinitions,
-			formatFunc
+			toolDefinitions
 		);
 
 		const threshold = this.getContextWindow() * this.config.compressionThreshold;
 
-		return tokens > threshold;
+		return messageTokens > threshold;
 	}
 
 	/**
 	 * 执行压缩
 	 */
 	async compress(
-		userQuery: string,
-		history: AgentActionRecord[],
-		lastConsolidatedIndex: number,
+		messages: AgentConversationMessage[],
+		lastConsolidatedMessageIndex: number,
+		systemPrompt: string,
+		toolDefinitions: string,
 		llmOptions: Record<string, unknown>,
-		formatFunc: (h: AgentActionRecord[]) => string,
 		maxLLMTry?: number,
 		decisionMode: MemoryCompressionDecisionMode = "tool_calling"
 	): Promise<CompressionResult | null> {
-		const toCompress = history.slice(lastConsolidatedIndex);
+		const toCompress = messages.slice(lastConsolidatedMessageIndex);
 		if (toCompress.length === 0) return null;
 
-		// 找到压缩边界
-		const boundary = this.findCompressionBoundary(toCompress, formatFunc);
+		const boundary = this.findCompressionBoundary(
+			toCompress,
+			systemPrompt,
+			toolDefinitions
+		);
 		const chunk = toCompress.slice(0, boundary);
 
 		if (chunk.length === 0) return null;
 
 		const currentMemory = this.storage.readMemory();
-		const historyText = formatFunc(chunk);
+		const historyText = this.formatMessagesForCompression(chunk);
 
 		try {
 			// 调用 LLM 压缩
@@ -821,15 +851,10 @@ export class MemoryCompressor {
 			}
 
 			// LLM 返回失败
-			return this.handleCompressionFailure(userQuery, chunk, result.error || "Unknown error");
+			return this.handleCompressionFailure(chunk, result.error || "Unknown error");
 
 		} catch (error) {
-			// 异常
-			return this.handleCompressionFailure(
-				userQuery,
-				chunk,
-				error instanceof Error ? error.message : "Unknown error"
-			);
+			return this.handleCompressionFailure(chunk, error instanceof Error ? error.message : "Unknown error");
 		}
 	}
 
@@ -839,27 +864,103 @@ export class MemoryCompressor {
 	 * 策略：在用户相关操作处切分，保持对话完整性
 	 */
 	private findCompressionBoundary(
-		history: AgentActionRecord[],
-		formatFunc: (h: AgentActionRecord[]) => string
+		messages: AgentConversationMessage[],
+		systemPrompt: string,
+		toolDefinitions: string
 	): number {
-		const targetTokens = this.config.maxTokensPerCompression;
+		const requiredTokens = this.getRequiredCompressionTokens(messages, systemPrompt, toolDefinitions);
+		const targetTokens = math.min(
+			this.config.maxTokensPerCompression,
+			math.max(1, requiredTokens)
+		);
 		let accumulatedTokens = 0;
+		let lastSafeBoundary = 0;
+		const pendingToolCalls: Record<string, boolean> = {};
+		let pendingToolCallCount = 0;
 
-		for (let i = 0; i < history.length; i++) {
-			const record = history[i];
-			const tokens = TokenEstimator.estimate(
-				formatFunc([record])
-			);
-
+		for (let i = 0; i < messages.length; i++) {
+			const message = messages[i];
+			const tokens = TokenEstimator.estimatePromptMessages([message], "", "");
 			accumulatedTokens += tokens;
 
-			// 超过目标，返回当前位置
-			if (accumulatedTokens > targetTokens) {
-				return Math.max(1, i);
+			if (message.role === "assistant" && message.tool_calls && message.tool_calls.length > 0) {
+				for (let j = 0; j < message.tool_calls.length; j++) {
+					const toolCallEntry: unknown = message.tool_calls[j];
+					const idValue: unknown = (
+						toolCallEntry
+						&& !Array.isArray(toolCallEntry)
+						&& type(toolCallEntry) === "table"
+					)
+						? (toolCallEntry as { id?: unknown }).id
+						: undefined;
+					const id = typeof idValue === "string" ? idValue : "";
+					if (id !== "" && pendingToolCalls[id] !== true) {
+						pendingToolCalls[id] = true;
+						pendingToolCallCount += 1;
+					}
+				}
+			}
+
+			if (message.role === "tool" && message.tool_call_id && pendingToolCalls[message.tool_call_id] === true) {
+				pendingToolCalls[message.tool_call_id] = false;
+				pendingToolCallCount = math.max(0, pendingToolCallCount - 1);
+			}
+
+			const isAtEnd = i >= messages.length - 1;
+			const nextRole = !isAtEnd ? messages[i + 1].role : "";
+			const isUserTurnBoundary = !isAtEnd && nextRole === "user";
+			const isSafeBoundary = pendingToolCallCount === 0 && (isAtEnd || isUserTurnBoundary);
+			if (isSafeBoundary) {
+				lastSafeBoundary = i + 1;
+			}
+
+			if (accumulatedTokens >= targetTokens && isSafeBoundary) {
+				return i + 1;
 			}
 		}
 
-		return history.length;
+		if (lastSafeBoundary > 0) return lastSafeBoundary;
+		return math.min(messages.length, 1);
+	}
+
+	private getRequiredCompressionTokens(
+		messages: AgentConversationMessage[],
+		systemPrompt: string,
+		toolDefinitions: string
+	): number {
+		const currentTokens = TokenEstimator.estimatePromptMessages(
+			messages,
+			systemPrompt,
+			toolDefinitions
+		);
+		const threshold = this.getContextWindow() * this.config.compressionThreshold;
+		const overflow = math.max(0, currentTokens - threshold);
+		if (overflow <= 0) {
+			return math.min(
+				this.config.maxTokensPerCompression,
+				math.max(1, TokenEstimator.estimatePromptMessages(messages.slice(0, 1), "", ""))
+			);
+		}
+		const safetyMargin = math.max(64, math.floor(threshold * 0.01));
+		return math.min(this.config.maxTokensPerCompression, overflow + safetyMargin);
+	}
+
+	private formatMessagesForCompression(messages: AgentConversationMessage[]): string {
+		const lines: string[] = [];
+		for (let i = 0; i < messages.length; i++) {
+			const message = messages[i];
+			lines.push(`Message ${i + 1}: role=${message.role}`);
+			if (message.name && message.name !== "") lines.push(`name=${message.name}`);
+			if (message.tool_call_id && message.tool_call_id !== "") lines.push(`tool_call_id=${message.tool_call_id}`);
+			if (message.reasoning_content && message.reasoning_content !== "") lines.push(`reasoning=${message.reasoning_content}`);
+			if (message.tool_calls && message.tool_calls.length > 0) {
+				const [toolCallsText] = json.encode(message.tool_calls as object);
+				lines.push(`tool_calls=${toolCallsText ?? ""}`);
+			}
+			if (message.content && message.content !== "") lines.push(message.content);
+			if (i < messages.length - 1) lines.push("");
+		}
+		return lines.join("\n");
 	}
 
 	/**
@@ -1208,15 +1309,13 @@ ${this.config.promptPack.memoryCompressionYamlPrompt}`;
 	 * 处理压缩失败
 	 */
 	private handleCompressionFailure(
-		userQuery: string,
-		chunk: AgentActionRecord[],
+		chunk: AgentConversationMessage[],
 		error: string
 	): CompressionResult {
 		this.consecutiveFailures++;
 
 		if (this.consecutiveFailures >= MemoryCompressor.MAX_FAILURES) {
-			// 连续失败 3 次，执行原始归档
-			this.rawArchive(userQuery, chunk);
+			this.rawArchive(chunk);
 			this.consecutiveFailures = 0;
 
 				return {
@@ -1239,14 +1338,21 @@ ${this.config.promptPack.memoryCompressionYamlPrompt}`;
 	/**
 	 * 原始归档（降级方案）
 	 */
-	private rawArchive(userQuery: string, chunk: AgentActionRecord[]): void {
+	private rawArchive(chunk: AgentConversationMessage[]): void {
 		const ts = os.date("%Y-%m-%d %H:%M");
-		const prompt = userQuery.trim() !== ""
-			? userQuery.trim().replace("\n", " ")
+		let firstUserMessage: AgentConversationMessage | undefined;
+		for (let i = 0; i < chunk.length; i++) {
+			if (chunk[i].role === "user") {
+				firstUserMessage = chunk[i];
+				break;
+			}
+		}
+		const prompt = firstUserMessage && firstUserMessage.content && firstUserMessage.content.trim() !== ""
+			? firstUserMessage.content.trim().replace("\n", " ")
 			: "(empty prompt)";
 		const compactPrompt = prompt.length > 160 ? `${prompt.slice(0, 160)}...` : prompt;
 		this.storage.appendHistory(
-			`[${ts}] [RAW ARCHIVE] prompt="${compactPrompt}" (${chunk.length} actions, compression failed; detailed history not recorded)`
+			`[${ts}] [RAW ARCHIVE] prompt="${compactPrompt}" (${chunk.length} messages, compression failed; detailed history not recorded)`
 		);
 	}
 

@@ -495,6 +495,7 @@ export interface LLMConfigItem {
 	model: string;
 	key: string;
 	contextWindow: number;
+	supportsFunctionCalling: boolean;
 	active: boolean;
 }
 
@@ -903,9 +904,7 @@ export interface AgentSessionMessage {
 	sessionId: number;
 	taskId?: number;
 	role: "user" | "assistant";
-	kind: "message" | "summary";
 	content: string;
-	streaming: boolean;
 	createdAt: number;
 	updatedAt: number;
 }

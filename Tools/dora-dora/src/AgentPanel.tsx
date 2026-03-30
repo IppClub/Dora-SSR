@@ -24,6 +24,7 @@ interface AgentPanelProps {
 	addAlert?: (msg: string, type: "success" | "info" | "warning" | "error") => void;
 	onRollbackComplete?: (projectRoot: string) => void;
 	onOpenFile?: (filePath: string) => void;
+	onOpenLLMConfig?: () => void;
 }
 
 function normalizeList<T>(value: unknown): T[] {
@@ -39,7 +40,7 @@ function normalizeList<T>(value: unknown): T[] {
 export default function AgentPanel(props: AgentPanelProps) {
 	const HISTORY_VISIBLE_ROUNDS = 10;
 	const { t } = useTranslation();
-	const { sessionId, projectRoot, title, height, showHeader = true, addAlert, onRollbackComplete, onOpenFile } = props;
+	const { sessionId, projectRoot, title, height, showHeader = true, addAlert, onRollbackComplete, onOpenFile, onOpenLLMConfig } = props;
 	const [prompt, setPrompt] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [rollingBack, setRollingBack] = useState<number | null>(null);
@@ -52,7 +53,22 @@ export default function AgentPanel(props: AgentPanelProps) {
 	const [openedDiffId, setOpenedDiffId] = useState<number | null>(null);
 	const [visibleHistoryRounds, setVisibleHistoryRounds] = useState(HISTORY_VISIBLE_ROUNDS);
 	const [isNearBottom, setIsNearBottom] = useState(true);
+	const [llmConfigMissing, setLLMConfigMissing] = useState(false);
 	const scrollRef = React.useRef<HTMLElement | null>(null);
+
+	const checkLLMConfigReady = React.useCallback(async () => {
+		try {
+			const res = await Service.listLLMConfigs();
+			if (!res.success) {
+				return true;
+			}
+			const hasActiveConfig = (res.items ?? []).some(item => Boolean(item.active));
+			setLLMConfigMissing(!hasActiveConfig);
+			return hasActiveConfig;
+		} catch {
+			return true;
+		}
+	}, []);
 
 	const scrollToBottom = React.useCallback((behavior: ScrollBehavior = "auto") => {
 		window.requestAnimationFrame(() => {
@@ -88,6 +104,10 @@ export default function AgentPanel(props: AgentPanelProps) {
 	useEffect(() => {
 		void refresh(false);
 	}, [refresh]);
+
+	useEffect(() => {
+		void checkLLMConfigReady();
+	}, [checkLLMConfigReady]);
 
 	useEffect(() => {
 		setVisibleHistoryRounds(HISTORY_VISIBLE_ROUNDS);
@@ -200,7 +220,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 	}, [historyGroups, messageGroups.historyMessages, visibleHistoryRounds]);
 
 	const visibleSummaryMessages = useMemo(() => {
-		return messageGroups.currentSummaryMessages.filter(message => !(message.streaming && message.content.trim() === ""));
+		return messageGroups.currentSummaryMessages;
 	}, [messageGroups.currentSummaryMessages]);
 
 	const checkpointMap = useMemo(() => {
@@ -212,14 +232,25 @@ export default function AgentPanel(props: AgentPanelProps) {
 		if (text === "" || loading) return;
 		setLoading(true);
 		try {
+			const llmReady = await checkLLMConfigReady();
+			if (!llmReady) {
+				addAlert?.(t("agent.noLLMConfigAlert"), "error");
+				return;
+			}
 			const res = await Service.agentSessionSend({
 				sessionId,
 				prompt: text
 			});
 			if (!res.success) {
+				if (res.message === "no active LLM config") {
+					setLLMConfigMissing(true);
+					addAlert?.(t("agent.noLLMConfigAlert"), "error");
+					return;
+				}
 				addAlert?.(res.message, "error");
 				return;
 			}
+			setLLMConfigMissing(false);
 			setPrompt("");
 			await refresh(true);
 		} finally {
@@ -303,6 +334,40 @@ export default function AgentPanel(props: AgentPanelProps) {
 			<MacScrollbar ref={scrollRef} skin="dark" style={{ flex: 1, minHeight: 0 }}>
 				<Box sx={{ px: 3, py: 3 }}>
 					<Stack spacing={4}>
+						{llmConfigMissing && session?.currentTaskStatus !== "RUNNING" ? (
+							<Box
+								sx={{
+									border: `1px solid ${Color.Warning}44`,
+									backgroundColor: `${Color.Warning}14`,
+									borderRadius: 2,
+									px: 2,
+									py: 1.5,
+								}}
+							>
+								<Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between">
+									<Box sx={{ minWidth: 0 }}>
+										<Typography variant="subtitle2" sx={{ color: Color.TextPrimary, mb: 0.5 }}>
+											{t("agent.noLLMConfigTitle")}
+										</Typography>
+										<Typography variant="body2" sx={{ color: Color.TextSecondary }}>
+											{t("agent.noLLMConfigDescription")}
+										</Typography>
+									</Box>
+									<Button
+										variant="outlined"
+										size="small"
+										onClick={onOpenLLMConfig}
+										sx={{
+											flexShrink: 0,
+											borderColor: Color.Line,
+											color: Color.TextPrimary,
+										}}
+									>
+										{t("agent.openLLMConfig")}
+									</Button>
+								</Stack>
+							</Box>
+						) : null}
 						{messageGroups.historyMessages.length > 0 ? (
 							<Box>
 								{hiddenHistoryGroupCount > 0 ? (

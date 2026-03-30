@@ -297,12 +297,49 @@ local function parseflowstyle(line, lines)
   return stack[1].v, line
 end
 
+local function parseblockstyleheader(line)
+  local style = ssub(line, 1, 1)
+  if style ~= '|' and style ~= '>' then
+    return nil, nil, nil
+  end
+  local rest = ssub(line, 2)
+  local chomping = ''
+  local explicitindent = nil
+  if rest == '' then
+    return style, explicitindent, chomping
+  end
+  if #rest > 2 then
+    error('invalid blockstyle string:'..line)
+  end
+  for i = 1, #rest do
+    local c = ssub(rest, i, i)
+    if c == '+' or c == '-' then
+      if chomping ~= '' then
+        error('invalid blockstyle string:'..line)
+      end
+      chomping = c
+    else
+      local indentdigit = tonumber(c)
+      if indentdigit == nil or indentdigit < 1 then
+        error('invalid blockstyle string:'..line)
+      end
+      if explicitindent ~= nil then
+        error('invalid blockstyle string:'..line)
+      end
+      explicitindent = indentdigit
+    end
+  end
+  return style, explicitindent, chomping
+end
+
 local function parseblockstylestring(line, lines, indent)
   if #lines == 0 then
     error("failed to find multi-line scalar content")
   end
+  local style, explicitindent, chomping = parseblockstyleheader(line)
   local s = {}
   local firstindent = -1
+  local requiredindent = explicitindent and (indent + explicitindent) or nil
   local endline = -1
   for i = 1, #lines do
     local ln = lines[i]
@@ -313,10 +350,17 @@ local function parseblockstylestring(line, lines, indent)
     if ln == '' then
       tinsert(s, '')
     else
-      if firstindent == -1 then
-        firstindent = idt
-      elseif idt < firstindent then
-        break
+      if requiredindent ~= nil then
+        if idt < requiredindent then
+          break
+        end
+        firstindent = requiredindent
+      else
+        if firstindent == -1 then
+          firstindent = idt
+        elseif idt < firstindent then
+          break
+        end
       end
       tinsert(s, ssub(ln, firstindent + 1))
     end
@@ -326,27 +370,27 @@ local function parseblockstylestring(line, lines, indent)
   local striptrailing = true
   local sep = '\n'
   local newlineatend = true
-  if line == '|' then
+  if style == '|' and chomping == '' then
     striptrailing = true
     sep = '\n'
     newlineatend = true
-  elseif line == '|+' then
+  elseif style == '|' and chomping == '+' then
     striptrailing = false
     sep = '\n'
     newlineatend = true
-  elseif line == '|-' then
+  elseif style == '|' and chomping == '-' then
     striptrailing = true
     sep = '\n'
     newlineatend = false
-  elseif line == '>' then
+  elseif style == '>' and chomping == '' then
     striptrailing = true
     sep = ' '
     newlineatend = true
-  elseif line == '>+' then
+  elseif style == '>' and chomping == '+' then
     striptrailing = false
     sep = ' '
     newlineatend = true
-  elseif line == '>-' then
+  elseif style == '>' and chomping == '-' then
     striptrailing = true
     sep = ' '
     newlineatend = false

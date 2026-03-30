@@ -1,12 +1,12 @@
 // @preview-file off clear
-import { App, Path, json, Director, once, Content, wait, emit } from 'Dora';
+import { App, Path, json, Content } from 'Dora';
 import { Flow, Node } from 'Agent/flow';
-import { callLLMStream, callLLM, Message, StopToken, Log, getActiveLLMConfig, estimateTextTokens, clipTextToTokenBudget } from 'Agent/Utils';
+import { callLLM, Message, StopToken, Log, getActiveLLMConfig, createLocalToolCallId } from 'Agent/Utils';
 import type { LLMConfig } from 'Agent/Utils';
 import * as Tools from 'Agent/Tools';
 import * as yaml from 'yaml';
-import { MemoryCompressor, DEFAULT_AGENT_PROMPT_PACK } from 'Agent/Memory';
-import type { AgentPromptPack } from 'Agent/Memory';
+import { MemoryCompressor } from 'Agent/Memory';
+import type { AgentPromptPack, AgentConversationMessage } from 'Agent/Memory';
 
 export type CodingAgentRunResult =
 	| {
@@ -99,13 +99,6 @@ export type CodingAgentEvent =
 		}[];
 	}
 	| {
-		type: "summary_stream";
-		sessionId?: number;
-		taskId: number;
-		textDelta: string;
-		fullText: string;
-	}
-	| {
 		type: "task_finished";
 		sessionId?: number;
 		taskId?: number;
@@ -120,7 +113,6 @@ const READ_FILE_DEFAULT_LIMIT = 300;
 const HISTORY_SEARCH_FILES_MAX_MATCHES = 20;
 const HISTORY_SEARCH_DORA_API_MAX_MATCHES = 12;
 const HISTORY_LIST_FILES_MAX_ENTRIES = 200;
-const DECISION_HISTORY_MAX_CHARS = 16000;
 const SEARCH_DORA_API_LIMIT_MAX = 20;
 const SEARCH_FILES_LIMIT_DEFAULT = 20;
 const LIST_FILES_MAX_ENTRIES_DEFAULT = 200;
@@ -128,6 +120,7 @@ const SEARCH_PREVIEW_CONTEXT = 80;
 
 export interface AgentActionRecord {
 	step: number;
+	toolCallId: string;
 	tool: AgentToolName;
 	reason: string;
 	reasoningContent?: string;
@@ -155,10 +148,11 @@ interface AgentShared {
 	onEvent?: (event: CodingAgentEvent) => void;
 	promptPack: AgentPromptPack;
 	history: AgentActionRecord[];
+	messages: AgentConversationMessage[];
 	// Memory 相关字段
 	memory: {
-		/** 上次压缩的历史索引 */
-		lastConsolidatedIndex: number;
+		/** 上次压缩的消息索引 */
+		lastConsolidatedMessageIndex: number;
 
 		/** Memory 压缩器实例 */
 		compressor: MemoryCompressor;
@@ -504,43 +498,19 @@ function sanitizeActionParamsForHistory(tool: AgentToolName, params: Record<stri
 	return clone;
 }
 
-function trimPromptContext(text: string, maxChars: number, label: string): string {
-	if (text.length <= maxChars) return text;
-	const keepHead = math.max(0, math.floor(maxChars * 0.35));
-	const keepTail = math.max(0, maxChars - keepHead);
-	const head = keepHead > 0 ? utf8TakeHead(text, keepHead) : "";
-	const tail = keepTail > 0 ? utf8TakeTail(text, keepTail) : "";
-	return `[history summary truncated for ${label}; showing head and tail within ${maxChars} chars]\n${head}\n...\n${tail}`;
-}
-
-function pushLimitedMatches(
-	lines: string[],
-	items: Record<string, unknown>[],
-	maxItems: number,
-	mapper: (item: Record<string, unknown>, index: number) => string
-) {
-	const shown = math.min(items.length, maxItems);
-	for (let j = 0; j < shown; j++) {
-		lines.push(mapper(items[j], j));
-	}
-	if (items.length > shown) {
-		lines.push(`  ... ${items.length - shown} more omitted`);
-	}
-}
-
-function formatHistorySummaryForDecision(history: AgentActionRecord[]): string {
-	return trimPromptContext(formatHistorySummary(history), DECISION_HISTORY_MAX_CHARS, "decision");
-}
-
-function getDecisionSystemPrompt(shared?: AgentShared): string {
-	return shared?.promptPack.agentIdentityPrompt ?? DEFAULT_AGENT_PROMPT_PACK.agentIdentityPrompt;
-}
-
 function getDecisionToolDefinitions(shared?: AgentShared): string {
-	return replacePromptVars(
-		shared?.promptPack.toolDefinitionsDetailed ?? DEFAULT_AGENT_PROMPT_PACK.toolDefinitionsDetailed,
+	const base = replacePromptVars(
+		shared?.promptPack.toolDefinitionsDetailed ?? "",
 		{ SEARCH_DORA_API_LIMIT_MAX: tostring(SEARCH_DORA_API_LIMIT_MAX) }
 	);
+	if (shared?.decisionMode !== "yaml") {
+		return base;
+	}
+	return `${base}
+
+YAML mode object fields:
+- For read_file, edit_file, delete_file, grep_files, search_dora_api, glob_files, and build, include a top-level reason field with a short explanation for choosing that tool.
+- For finish, do not include reason. Use only tool and params.message.`;
 }
 
 async function maybeCompressHistory(shared: AgentShared): Promise<void> {
@@ -548,22 +518,21 @@ async function maybeCompressHistory(shared: AgentShared): Promise<void> {
 	const maxRounds = memory.compressor.getMaxCompressionRounds();
 	let changed = false;
 	for (let round = 0; round < maxRounds; round++) {
+		const systemPrompt = buildAgentSystemPrompt(shared, shared.decisionMode === "yaml");
 		if (!memory.compressor.shouldCompress(
-			shared.userQuery,
-			shared.history,
-			memory.lastConsolidatedIndex,
-			getDecisionSystemPrompt(shared),
-			getDecisionToolDefinitions(shared),
-			formatHistorySummary
+			shared.messages,
+			memory.lastConsolidatedMessageIndex,
+			systemPrompt,
+			""
 		)) {
 			return;
 		}
 		const result = await memory.compressor.compress(
-			shared.userQuery,
-			shared.history,
-			memory.lastConsolidatedIndex,
+			shared.messages,
+			memory.lastConsolidatedMessageIndex,
+			systemPrompt,
+			"",
 			shared.llmOptions,
-			formatHistorySummary,
 			shared.llmMaxTry,
 			shared.decisionMode
 		);
@@ -573,9 +542,9 @@ async function maybeCompressHistory(shared: AgentShared): Promise<void> {
 			}
 			return;
 		}
-		memory.lastConsolidatedIndex += result.compressedCount;
+		memory.lastConsolidatedMessageIndex += result.compressedCount;
 		changed = true;
-		Log("Info", `[Memory] Compressed ${result.compressedCount} history records (round ${round + 1})`);
+		Log("Info", `[Memory] Compressed ${result.compressedCount} messages (round ${round + 1})`);
 	}
 	if (changed) {
 		persistHistoryState(shared);
@@ -593,197 +562,83 @@ function isKnownToolName(name: string): name is AgentToolName {
 		|| name === "finish";
 }
 
-function formatHistorySummary(history: AgentActionRecord[]): string {
-	if (history.length === 0) {
-		return "No previous actions.";
+function getFinishMessage(params: Record<string, unknown>, fallback = ""): string {
+	if (type(params.message) === "string" && (params.message as string).trim() !== "") {
+		return (params.message as string).trim();
 	}
-	const actions = history;
-	const lines: string[] = [];
-	lines.push("");
-	for (let i = 0; i < actions.length; i++) {
-		const action = actions[i];
-		lines.push(`Action ${i + 1}:`);
-		lines.push(`- Tool: ${action.tool}`);
-		if (action.params && type(action.params) === "table" && next(action.params) !== undefined) {
-			lines.push("- Parameters:");
-			for (const key in action.params) {
-				lines.push(`  - ${key}: ${summarizeUnknown(action.params[key], 2000)}`);
-			}
-		}
-		if (action.result && type(action.result) === "table") {
-			const result = action.result as Record<string, unknown>;
-			const success = result.success === true;
-			if (action.tool === "build") {
-				if (!success && type(result.message) === "string") {
-					lines.push("- Result: Failed");
-					lines.push(`- Error: ${truncateText(result.message as string, 1200)}`);
-				} else if (type(result.messages) === "table") {
-					const messages = result.messages as Record<string, unknown>[];
-					let successCount = 0;
-					let failedCount = 0;
-					for (let j = 0; j < messages.length; j++) {
-						if (messages[j].success === true) successCount += 1;
-						else failedCount += 1;
-					}
-					lines.push(`- Result: ${failedCount > 0 ? "Completed With Errors" : "Success"}`);
-					lines.push(`- Build summary: ${successCount} succeeded, ${failedCount} failed`);
-					if (messages.length > 0) {
-						lines.push("- Build details:");
-						const shown = math.min(messages.length, 12);
-						for (let j = 0; j < shown; j++) {
-							const item = messages[j];
-							const file = type(item.file) === "string" ? (item.file as string) : "(unknown)";
-							if (item.success === true) {
-								lines.push(`  ${j + 1}. OK ${file}`);
-							} else {
-								const message = type(item.message) === "string"
-									? truncateText(item.message as string, 400)
-									: "build failed";
-								lines.push(`  ${j + 1}. FAIL ${file}: ${message}`);
-							}
-						}
-						if (messages.length > shown) {
-							lines.push(`  ... ${messages.length - shown} more omitted`);
-						}
-					}
-				} else {
-					lines.push(`- Result: ${success ? "Success" : "Failed"}`);
-				}
-			} else if (action.tool === "read_file") {
-				lines.push(`- Result: ${success ? "Success" : "Failed"}`);
-				if (success && type(result.content) === "string") {
-					lines.push("- Content:");
-					lines.push(limitReadContentForHistory(result.content as string, action.tool));
-					if (result.startLine !== undefined || result.endLine !== undefined || result.totalLines !== undefined) {
-						lines.push(
-							`- Range: ${result.startLine !== undefined ? tostring(result.startLine) : "?"}-${result.endLine !== undefined ? tostring(result.endLine) : "?"} / total ${result.totalLines !== undefined ? tostring(result.totalLines) : "?"}`
-						);
-					}
-				} else if (!success && type(result.message) === "string") {
-					lines.push(`- Error: ${truncateText(result.message as string, 600)}`);
-				}
-			} else if (action.tool === "grep_files") {
-				lines.push(`- Result: ${success ? "Success" : "Failed"}`);
-				if (success && type(result.results) === "table") {
-					const matches = result.results as Record<string, unknown>[];
-					const totalMatches = type(result.totalResults) === "number"
-						? (result.totalResults as number)
-						: matches.length;
-					lines.push(`- Matches: ${totalMatches}`);
-					lines.push("- Next: Immediately read the relevant file from the potentially related results to gather more information.");
-					if (type(result.offset) === "number" && type(result.limit) === "number") {
-						lines.push(`- Page: offset=${tostring(result.offset)} limit=${tostring(result.limit)}`);
-					}
-					if (result.hasMore === true && result.nextOffset !== undefined) {
-						lines.push(`- More: continue with offset=${tostring(result.nextOffset)}`);
-					}
-					if (type(result.groupedResults) === "table") {
-						const groups = result.groupedResults as Record<string, unknown>[];
-						lines.push("- Groups:");
-						pushLimitedMatches(lines, groups, HISTORY_SEARCH_FILES_MAX_MATCHES, (g, index) => {
-							const file = type(g.file) === "string" ? (g.file as string) : "";
-							const total = g.totalMatches !== undefined ? tostring(g.totalMatches) : "?";
-							return `  ${index + 1}. ${file}: ${total} matches`;
-						});
-					} else {
-						pushLimitedMatches(lines, matches, HISTORY_SEARCH_FILES_MAX_MATCHES, (m, index) => {
-							const file = type(m.file) === "string" ? (m.file as string) : "";
-							const line = m.line !== undefined ? tostring(m.line) : "";
-							const content = type(m.content) === "string" ? (m.content as string) : summarizeUnknown(m, 240);
-							return `  ${index + 1}. ${file}${line !== "" ? ":" + line : ""}: ${content}`;
-						});
-					}
-				}
-			} else if (action.tool === "search_dora_api") {
-				lines.push(`- Result: ${success ? "Success" : "Failed"}`);
-				if (success && type(result.results) === "table") {
-					const hits = result.results as Record<string, unknown>[];
-					const totalHits = type(result.totalResults) === "number"
-						? (result.totalResults as number)
-						: hits.length;
-					lines.push(`- Matches: ${totalHits}`);
-					pushLimitedMatches(lines, hits, HISTORY_SEARCH_DORA_API_MAX_MATCHES, (m, index) => {
-						const file = type(m.file) === "string" ? (m.file as string) : "";
-						const line = m.line !== undefined ? tostring(m.line) : "";
-						const content = type(m.content) === "string" ? (m.content as string) : summarizeUnknown(m, 240);
-						return `  ${index + 1}. ${file}${line !== "" ? ":" + line : ""}: ${content}`;
-					});
-				}
-			} else if (action.tool === "edit_file") {
-				lines.push(`- Result: ${success ? "Success" : "Failed"}`);
-				if (success) {
-					if (result.mode !== undefined) {
-						lines.push(`- Mode: ${tostring(result.mode)}`);
-					}
-					if (result.replaced !== undefined) {
-						lines.push(`- Replaced: ${tostring(result.replaced)}`);
-					}
-				}
-			} else if (action.tool === "glob_files") {
-				lines.push(`- Result: ${success ? "Success" : "Failed"}`);
-				if (success && type(result.files) === "table") {
-					const files = result.files as string[];
-					const totalEntries = type(result.totalEntries) === "number"
-						? (result.totalEntries as number)
-						: files.length;
-					lines.push(`- Entries: ${totalEntries}`);
-					lines.push("- Next: Immediately read the relevant file snippets from the potentially related results to gather more information.");
-					lines.push("- Directory structure:");
-					if (files.length > 0) {
-						const shown = math.min(files.length, HISTORY_LIST_FILES_MAX_ENTRIES);
-						for (let j = 0; j < shown; j++) {
-							lines.push(`  ${files[j]}`);
-						}
-						if (files.length > shown) {
-							lines.push(`  ... ${files.length - shown} more omitted`);
-						}
-					} else {
-						lines.push("  (Empty or inaccessible directory)");
-					}
-				}
-			} else {
-				lines.push(`- Result: ${success ? "Success" : "Failed"}`);
-				lines.push(`- Detail: ${truncateText(toJson(result), 4000)}`);
-			}
-		} else if (action.result !== undefined) {
-			lines.push(`- Result: ${summarizeUnknown(action.result, 3000)}`);
-		} else {
-			lines.push("- Result: pending");
-		}
-		if (i < actions.length - 1) lines.push("");
+	if (type(params.response) === "string" && (params.response as string).trim() !== "") {
+		return (params.response as string).trim();
 	}
-	return lines.join("\n");
+	if (type(params.summary) === "string" && (params.summary as string).trim() !== "") {
+		return (params.summary as string).trim();
+	}
+	return fallback.trim();
 }
 
 function persistHistoryState(shared: AgentShared): void {
 	shared.memory.compressor.getStorage().writeSessionState(
-		shared.history,
-		shared.memory.lastConsolidatedIndex
+		shared.messages,
+		shared.memory.lastConsolidatedMessageIndex
 	);
+}
+
+function appendConversationMessage(shared: AgentShared, message: AgentConversationMessage): void {
+	shared.messages.push({
+		...message,
+		timestamp: message.timestamp ?? os.date("!%Y-%m-%dT%H:%M:%SZ"),
+	});
+}
+
+function ensureToolCallId(toolCallId?: string): string {
+	if (toolCallId && toolCallId !== "") return toolCallId;
+	return createLocalToolCallId();
+}
+
+function appendToolResultMessage(shared: AgentShared, action: AgentActionRecord): void {
+	appendConversationMessage(shared, {
+		role: "tool",
+		tool_call_id: action.toolCallId,
+		name: action.tool,
+		content: action.result ? toJson(action.result) : "",
+	});
 }
 
 function extractYAMLFromText(text: string): string {
 	const source = text.trim();
-	const yamlFencePos = source.indexOf("```yaml");
-	if (yamlFencePos >= 0) {
-		const from = yamlFencePos + "```yaml".length;
-		const end = source.indexOf("```", from);
-		if (end > from) return source.slice(from, end).trim();
-	}
-	const ymlFencePos = source.indexOf("```yml");
-	if (ymlFencePos >= 0) {
-		const from = ymlFencePos + "```yml".length;
-		const end = source.indexOf("```", from);
-		if (end > from) return source.slice(from, end).trim();
-	}
-	const fencePos = source.indexOf("```");
-	if (fencePos >= 0) {
+	const extractFencedBlock = (fence: string): string | undefined => {
+		const fencePos = source.indexOf(fence);
+		if (fencePos < 0) return undefined;
 		const firstLineEnd = source.indexOf("\n", fencePos);
-		const end = source.indexOf("```", firstLineEnd >= 0 ? firstLineEnd + 1 : fencePos + 3);
-		if (firstLineEnd >= 0 && end > firstLineEnd) {
-			return source.slice(firstLineEnd + 1, end).trim();
+		if (firstLineEnd < 0) return undefined;
+		let searchPos = firstLineEnd + 1;
+		const closingFencePositions: number[] = [];
+		while (searchPos < source.length) {
+			const lineEnd = source.indexOf("\n", searchPos);
+			const end = lineEnd >= 0 ? lineEnd : source.length;
+			const line = source.slice(searchPos, end).trim();
+			if (line === "```") {
+				closingFencePositions.push(searchPos);
+			}
+			searchPos = end + 1;
 		}
-	}
+		for (let i = closingFencePositions.length - 1; i >= 0; i--) {
+			const candidate = source.slice(firstLineEnd + 1, closingFencePositions[i]).trim();
+			const [obj] = yaml.parse(candidate);
+			if (obj !== undefined && type(obj) === "table") {
+				return candidate;
+			}
+		}
+		if (closingFencePositions.length > 0) {
+			return source.slice(firstLineEnd + 1, closingFencePositions[closingFencePositions.length - 1]).trim();
+		}
+		return undefined;
+	};
+	const yamlBlock = extractFencedBlock("```yaml");
+	if (yamlBlock !== undefined) return yamlBlock;
+	const ymlBlock = extractFencedBlock("```yml");
+	if (ymlBlock !== undefined) return ymlBlock;
+	const genericBlock = extractFencedBlock("```");
+	if (genericBlock !== undefined) return genericBlock;
 	return source;
 }
 
@@ -805,102 +660,34 @@ type LLMResult = {
 	text?: string
 };
 
-async function llm(shared: AgentShared, messages: Message[]): Promise<LLMResult> {
+async function llm(
+	shared: AgentShared,
+	messages: Message[],
+	phase: "decision_yaml" | "decision_yaml_repair" = "decision_yaml"
+): Promise<LLMResult> {
 	const stepId = shared.step + 1;
-	saveStepLLMDebugInput(shared, stepId, "decision_yaml", messages, shared.llmOptions);
+	saveStepLLMDebugInput(shared, stepId, phase, messages, shared.llmOptions);
 	const res = await callLLM(messages, shared.llmOptions, shared.stopToken, shared.llmConfig);
 	if (res.success) {
 		const text = res.response.choices?.[0]?.message?.content;
 		if (text) {
-			saveStepLLMDebugOutput(shared, stepId, "decision_yaml", text, { success: true });
+			saveStepLLMDebugOutput(shared, stepId, phase, text, { success: true });
 			return { success: true, text };
 		} else {
-			saveStepLLMDebugOutput(shared, stepId, "decision_yaml", "empty LLM response", { success: false });
+			saveStepLLMDebugOutput(shared, stepId, phase, "empty LLM response", { success: false });
 			return { success: false, message: "empty LLM response" };
 		}
 	} else {
-		saveStepLLMDebugOutput(shared, stepId, "decision_yaml", res.raw ?? res.message, { success: false });
+		saveStepLLMDebugOutput(shared, stepId, phase, res.raw ?? res.message, { success: false });
 		return { success: false, message: res.message };
 	}
-}
-
-async function llmStream(shared: AgentShared, messages: Message[]): Promise<LLMResult> {
-	let text = "";
-	let cancelledReason: string | undefined;
-	let done = false;
-
-	if (shared.stopToken.stopped) {
-		return { success: false, message: getCancelledReason(shared), text };
-	}
-	done = false;
-	cancelledReason = undefined;
-	text = "";
-	const stepId = shared.step;
-	saveStepLLMDebugInput(shared, stepId, "final_summary", messages, shared.llmOptions);
-	callLLMStream(
-		messages,
-		shared.llmOptions,
-		{
-			id: undefined,
-			stopToken: shared.stopToken,
-			onData: (data) => {
-				if (shared.stopToken.stopped) return true;
-				const choice = data.choices && data.choices[0];
-				const delta = choice && choice.delta;
-				if (delta && type(delta.content) === "string") {
-					const content = delta.content as string;
-					text += content;
-					emitAgentEvent(shared, {
-						type: "summary_stream",
-						sessionId: shared.sessionId,
-						taskId: shared.taskId,
-						textDelta: content,
-						fullText: text,
-					});
-					const [res] = json.encode({ name: "LLMStream", content });
-					if (res !== undefined) {
-						emit("AppWS", "Send", res);
-					}
-				}
-				return false;
-			},
-			onCancel: (reason) => {
-				cancelledReason = reason;
-				done = true;
-			},
-			onDone: () => {
-				done = true;
-			},
-		},
-		shared.llmConfig,
-	);
-
-	await new Promise<void>(resolve => {
-		Director.systemScheduler.schedule(once(() => {
-			wait(() => done || shared.stopToken.stopped);
-			resolve();
-		}));
-	});
-	if (shared.stopToken.stopped) {
-		cancelledReason = getCancelledReason(shared);
-	}
-
-	if (!cancelledReason && text === "") {
-		cancelledReason = "empty LLM output";
-	}
-	saveStepLLMDebugOutput(shared, stepId, "final_summary", cancelledReason ? `CANCELLED: ${cancelledReason}\n\n${text}` : text, {
-		stream: true,
-		cancelled: cancelledReason !== undefined,
-	});
-
-	if (cancelledReason) return { success: false, message: cancelledReason, text };
-	return { success: true, text };
 }
 
 type DecisionSuccess = {
 	success: true;
 	tool: AgentToolName;
 	params: Record<string, unknown>;
+	toolCallId?: string;
 	reason?: string;
 	reasoningContent?: string;
 	directSummary?: string;
@@ -914,8 +701,19 @@ function parseDecisionObject(rawObj: Record<string, unknown>): DecisionSuccess |
 	if (!isKnownToolName(tool)) {
 		return { success: false, message: `unknown tool: ${tool}` };
 	}
+	const reason = type(rawObj.reason) === "string"
+		? (rawObj.reason as string).trim()
+		: undefined;
+	if (tool !== "finish" && (!reason || reason === "")) {
+		return { success: false, message: `${tool} requires top-level reason` };
+	}
 	const params = type(rawObj.params) === "table" ? (rawObj.params as Record<string, unknown>) : {};
-	return { success: true, tool, params };
+	return {
+		success: true,
+		tool,
+		params,
+		reason,
+	};
 }
 
 function parseDecisionToolCall(functionName: string, rawObj: unknown): DecisionSuccess | DecisionFailure {
@@ -954,7 +752,12 @@ function validateDecision(
 	tool: AgentToolName,
 	params: Record<string, unknown>
 ): { success: true; params: Record<string, unknown> } | { success: false; message: string } {
-	if (tool === "finish") return { success: true, params };
+	if (tool === "finish") {
+		const message = getFinishMessage(params);
+		if (message === "") return { success: false, message: "finish requires params.message" };
+		params.message = message;
+		return { success: true, params };
+	}
 
 	if (tool === "read_file") {
 		const path = getDecisionPath(params);
@@ -1117,74 +920,122 @@ function buildDecisionToolSchema() {
 		),
 		createFunctionToolSchema(
 			"build",
-			"Run build/checks for ts/tsx, teal, lua, yue, yarn. Parameters: path(optional). After one build completes, do not run build again unless files were edited or deleted. Read the result and then finish or take corrective action.",
+			"Do compiling and static checks for ts/tsx, teal, lua, yue, yarn. Parameters: path(optional). Read the result and then decide whether another action is needed.",
 			{
 				path: { type: "string", description: "Optional workspace-relative file or directory to build." },
 			}
 		),
-		createFunctionToolSchema(
-			"finish",
-			"End the task and let the agent summarize the outcome.",
-			{}
-		),
 	];
 }
 
-function buildDecisionPrompt(shared: AgentShared, userQuery: string, historyText: string, memoryContext: string): string {
-	const toolDefinitions = shared.decisionMode === "yaml"
-		? replacePromptVars(shared.promptPack.toolDefinitionsDetailed, {
-			SEARCH_DORA_API_LIMIT_MAX: tostring(SEARCH_DORA_API_LIMIT_MAX),
-		})
-		: "";
-	const memorySection = memoryContext;
-	const toolSection = toolDefinitions !== ""
-		? `### Available Tools
+function buildAgentSystemPrompt(shared: AgentShared, includeToolDefinitions = false): string {
+	const sections: string[] = [
+		shared.promptPack.agentIdentityPrompt,
+		getReplyLanguageDirective(shared),
+	];
+	const memoryContext = shared.memory.compressor.getStorage().getMemoryContext();
+	if (memoryContext !== "") {
+		sections.push(memoryContext);
+	}
+	if (includeToolDefinitions) {
+		sections.push("### Available Tools\n\n" + getDecisionToolDefinitions(shared));
+		if (shared.decisionMode === "yaml") {
+			sections.push(buildYamlDecisionInstruction(shared));
+		}
+	}
+	return sections.join("\n\n");
+}
 
-${toolDefinitions}`
-		: "";
-	const staticPrompt = `${shared.promptPack.decisionIntroPrompt}
+function getUnconsolidatedMessages(shared: AgentShared): Message[] {
+	return shared.messages.slice(shared.memory.lastConsolidatedMessageIndex);
+}
 
-${memorySection}
+function buildDecisionMessages(shared: AgentShared, lastError?: string, attempt = 1, lastRaw?: string): Message[] {
+	const messages: Message[] = [
+		{ role: "system", content: buildAgentSystemPrompt(shared, shared.decisionMode === "yaml") },
+		...getUnconsolidatedMessages(shared),
+	];
+	if (lastError && lastError !== "") {
+		const retryHeader = shared.decisionMode === "yaml"
+			? `Previous response was invalid (${lastError}). Return exactly one valid YAML object only.`
+			: replacePromptVars(shared.promptPack.toolCallingRetryPrompt, { LAST_ERROR: lastError });
+		messages.push({
+			role: "user",
+			content: `${retryHeader}
 
-### Current User Request
+Retry attempt: ${attempt}.
+The next reply must differ from the previously rejected output.
+${lastRaw && lastRaw !== "" ? `Last rejected output summary: ${truncateText(lastRaw, 300)}` : ""}`,
+		});
+	}
+	return messages;
+}
 
-### Action History
+function buildYamlDecisionInstruction(shared: AgentShared, feedback?: string): string {
+	return `${shared.promptPack.yamlDecisionFormatPrompt}${feedback ?? ""}`;
+}
 
-${toolSection}
+function buildYamlRepairMessages(
+	shared: AgentShared,
+	originalRaw: string,
+	candidateRaw: string,
+	lastError: string,
+	attempt: number
+): Message[] {
+	const hasCandidate = candidateRaw.trim() !== "";
+	const candidateSection = hasCandidate
+		? `### Current Candidate To Repair
+\`\`\`
+${truncateText(candidateRaw, 4000)}
+\`\`\`
 
-### Decision Rules
-
-${shared.promptPack.decisionRulesPrompt}`;
-	const contextWindow = math.max(4000, shared.llmConfig.contextWindow);
-	const reservedOutputTokens = math.max(1024, math.floor(contextWindow * 0.2));
-	const staticTokens = estimateTextTokens(staticPrompt);
-	const dynamicBudget = math.max(1200, contextWindow - reservedOutputTokens - staticTokens - 256);
-	const boundedUserQuery = clipTextToTokenBudget(userQuery, math.max(400, math.floor(dynamicBudget * 0.4)));
-	const boundedHistory = clipTextToTokenBudget(historyText, math.max(400, math.floor(dynamicBudget * 0.35)));
-	const boundedMemory = clipTextToTokenBudget(memoryContext, math.max(240, math.floor(dynamicBudget * 0.25)));
-	const boundedMemorySection = boundedMemory !== ""
-		? `${boundedMemory}
 `
 		: "";
-	const toolSectionText = toolDefinitions !== ""
-		? `### Available Tools
+	const repairPrompt = replacePromptVars(shared.promptPack.yamlDecisionRepairPrompt, {
+		TOOL_DEFINITIONS: getDecisionToolDefinitions(shared),
+		ORIGINAL_RAW: truncateText(originalRaw, 4000),
+		CANDIDATE_SECTION: candidateSection,
+		LAST_ERROR: lastError,
+		ATTEMPT: tostring(attempt),
+	});
+	return [
+		{
+			role: "system",
+			content: `You repair invalid YAML tool decisions for the Dora coding agent.
 
-${toolDefinitions}
-`
-		: "";
-	return `${shared.promptPack.decisionIntroPrompt}
+Your job is only to convert the provided raw decision output into exactly one valid YAML object with keys: tool, params.
 
-${boundedMemorySection}### Current User Request
+Requirements:
+- Preserve the original tool name and parameter values whenever possible.
+- If the raw output uses another tool-call syntax, convert that tool name and arguments into the YAML schema.
+- Do not make a new decision, do not change the intended action unless the input is structurally impossible to represent.
+- Only repair formatting and schema shape so the output becomes valid YAML.
+- Do not continue the conversation and do not add explanations.
+- Return YAML only.`,
+		},
+		{
+			role: "user",
+			content: repairPrompt,
+		},
+	];
+}
 
-${boundedUserQuery}
-
-### Action History
-
-${boundedHistory}
-
-${toolSectionText}### Decision Rules
-
-${shared.promptPack.decisionRulesPrompt}`;
+function tryParseAndValidateDecision(rawText: string): DecisionSuccess | DecisionFailure {
+	const parsed = parseYAMLObjectFromText(rawText);
+	if (!parsed.success) {
+		return { success: false, message: parsed.message, raw: rawText };
+	}
+	const decision = parseDecisionObject(parsed.obj);
+	if (!decision.success) {
+		return { success: false, message: decision.message, raw: rawText };
+	}
+	const validation = validateDecision(decision.tool, decision.params);
+	if (!validation.success) {
+		return { success: false, message: validation.message, raw: rawText };
+	}
+	decision.params = validation.params;
+	decision.toolCallId = ensureToolCallId(decision.toolCallId);
+	return decision;
 }
 
 function normalizeLineEndings(text: string): string {
@@ -1212,27 +1063,18 @@ function replaceAllAndCount(text: string, oldStr: string, newStr: string): { con
 }
 
 class MainDecisionAgent extends Node<AgentShared> {
-	async prep(shared: AgentShared): Promise<{ userQuery: string; history: AgentActionRecord[]; shared: AgentShared }> {
+	async prep(shared: AgentShared): Promise<{ shared: AgentShared }> {
 		if (shared.stopToken.stopped || shared.step >= shared.maxSteps) {
-			return {
-				userQuery: shared.userQuery,
-				history: shared.history,
-				shared,
-			};
+			return { shared };
 		}
 
 		await maybeCompressHistory(shared);
 
-		return {
-			userQuery: shared.userQuery,
-			history: shared.history,
-			shared,
-		};
+		return { shared };
 	}
 
 	private async callDecisionByToolCalling(
 		shared: AgentShared,
-		prompt: string,
 		lastError?: string,
 		attempt = 1,
 		lastRaw?: string
@@ -1242,25 +1084,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 		}
 		Log("Info", `[CodingAgent] tool-calling decision start step=${shared.step + 1}${lastError ? ` retry_error=${lastError}` : ""}`);
 		const tools = buildDecisionToolSchema();
-		const messages: Message[] = [
-			{
-				role: "system",
-				content: [
-					shared.promptPack.agentIdentityPrompt,
-					getReplyLanguageDirective(shared),
-				].join("\n"),
-			},
-			{
-				role: "user",
-				content: lastError
-					? `${prompt}\n\n${replacePromptVars(shared.promptPack.toolCallingRetryPrompt, { LAST_ERROR: lastError })}
-
-Retry attempt: ${attempt}.
-The next reply must differ from the previously rejected output.
-${lastRaw && lastRaw !== "" ? `Last rejected output summary: ${truncateText(lastRaw, 300)}` : ""}`
-				: prompt,
-			},
-		];
+		const messages = buildDecisionMessages(shared, lastError, attempt, lastRaw);
 		const stepId = shared.step + 1;
 		const llmOptions = {
 			...shared.llmOptions,
@@ -1282,6 +1106,9 @@ ${lastRaw && lastRaw !== "" ? `Last rejected output summary: ${truncateText(last
 		const toolCalls = message && message.tool_calls;
 		const toolCall = toolCalls && toolCalls[0];
 		const fn = toolCall && toolCall.function;
+		const toolCallId = toolCall && type(toolCall.id) === "string"
+			? (toolCall.id as string)
+			: undefined;
 		const reasoningContent = message && type(message.reasoning_content) === "string"
 			? (message.reasoning_content as string).trim()
 			: undefined;
@@ -1346,13 +1173,57 @@ ${lastRaw && lastRaw !== "" ? `Last rejected output summary: ${truncateText(last
 			};
 		}
 		decision.params = validation.params;
+		decision.toolCallId = ensureToolCallId(toolCallId);
 		decision.reason = messageContent;
 		decision.reasoningContent = reasoningContent;
 		Log("Info", `[CodingAgent] tool-calling selected tool=${decision.tool}`);
 		return decision;
 	}
 
-	async exec(input: { userQuery: string; history: AgentActionRecord[]; shared: AgentShared }): Promise<DecisionResult | DecisionFailure> {
+	private async repairDecisionYaml(
+		shared: AgentShared,
+		originalRaw: string,
+		initialError: string
+	): Promise<DecisionResult | DecisionFailure> {
+		Log("Info", `[CodingAgent] yaml repair flow start step=${shared.step + 1} error=${initialError}`);
+		let lastError = initialError;
+		let candidateRaw = "";
+		for (let attempt = 0; attempt < shared.llmMaxTry; attempt++) {
+			Log("Info", `[CodingAgent] yaml repair attempt=${attempt + 1}`);
+			const messages = buildYamlRepairMessages(
+				shared,
+				originalRaw,
+				candidateRaw,
+				lastError,
+				attempt + 1
+			);
+			const llmRes = await llm(shared, messages, "decision_yaml_repair");
+			if (shared.stopToken.stopped) {
+				return { success: false, message: getCancelledReason(shared) };
+			}
+			if (!llmRes.success) {
+				lastError = llmRes.message;
+				Log("Error", `[CodingAgent] yaml repair attempt failed: ${lastError}`);
+				continue;
+			}
+			candidateRaw = llmRes.text;
+			const decision = tryParseAndValidateDecision(candidateRaw);
+			if (decision.success) {
+				Log("Info", `[CodingAgent] yaml repair succeeded tool=${decision.tool}`);
+				return decision;
+			}
+			lastError = decision.message;
+			Log("Error", `[CodingAgent] yaml repair candidate invalid: ${lastError}`);
+		}
+		Log("Error", `[CodingAgent] yaml repair exhausted retries: ${lastError}`);
+		return {
+			success: false,
+			message: `cannot repair invalid decision yaml: ${lastError}`,
+			raw: candidateRaw,
+		};
+	}
+
+	async exec(input: { shared: AgentShared }): Promise<DecisionResult | DecisionFailure> {
 		const shared = input.shared;
 		if (shared.stopToken.stopped) {
 			return { success: false, message: getCancelledReason(shared) };
@@ -1361,28 +1232,15 @@ ${lastRaw && lastRaw !== "" ? `Last rejected output summary: ${truncateText(last
 			Log("Warn", `[CodingAgent] maximum step limit reached step=${shared.step} max=${shared.maxSteps}`);
 			return { success: false, message: getMaxStepsReachedReason(shared) };
 		}
-		const { memory } = shared;
-
-		// 获取长期记忆上下文
-		const memoryContext = memory.compressor
-			.getStorage()
-			.getMemoryContext();
-
-		// 只使用未压缩的历史
-		const uncompressedHistory = input.history.slice(memory.lastConsolidatedIndex);
-		const historyText = formatHistorySummaryForDecision(uncompressedHistory);
-
-		const prompt = buildDecisionPrompt(input.shared, input.userQuery, historyText, memoryContext);
 
 		if (shared.decisionMode === "tool_calling") {
-			Log("Info", `[CodingAgent] decision mode=tool_calling step=${shared.step + 1} history=${uncompressedHistory.length}`);
+			Log("Info", `[CodingAgent] decision mode=tool_calling step=${shared.step + 1} messages=${getUnconsolidatedMessages(shared).length}`);
 			let lastError = "tool calling validation failed";
 			let lastRaw = "";
 			for (let attempt = 0; attempt < shared.llmMaxTry; attempt++) {
 				Log("Info", `[CodingAgent] tool-calling attempt=${attempt + 1}`);
 				const decision = await this.callDecisionByToolCalling(
 					shared,
-					prompt,
 					attempt > 0 ? lastError : undefined,
 					attempt + 1,
 					lastRaw
@@ -1401,47 +1259,33 @@ ${lastRaw && lastRaw !== "" ? `Last rejected output summary: ${truncateText(last
 			return { success: false, message: `cannot produce valid tool call: ${lastError}; last_output=${truncateText(lastRaw, 400)}` };
 		}
 
-		const yamlPrompt = `${prompt}
-
-${shared.promptPack.yamlDecisionFormatPrompt}
-- For nested multi-line fields (for example params.new_str), indent the block content deeper than the key line using tabs.
-- Keep params shallow and valid for the selected tool.
-- Use tabs for all indentation, never spaces.
-If no more actions are needed, use tool: finish.`;
-
 		let lastError = "yaml validation failed";
 		let lastRaw = "";
 		for (let attempt = 0; attempt < shared.llmMaxTry; attempt++) {
-			const feedback = attempt > 0
-				? `\n\nPrevious response was invalid (${lastError}). Retry attempt: ${attempt + 1}. Return exactly one valid YAML object only and keep YAML indentation strictly consistent. The next reply must differ from the rejected one.${lastRaw !== "" ? `\nLast rejected output summary: ${truncateText(lastRaw, 300)}` : ""}`
-				: "";
-			const messages: Message[] = [{ role: "user", content: `${yamlPrompt}${feedback}` }];
-			const llmRes = await llm(shared, messages);
+			const messages: Message[] = buildDecisionMessages(
+				shared,
+				attempt > 0
+					? `Previous request failed before producing repairable output (${lastError}).`
+					: undefined,
+				attempt + 1,
+				lastRaw
+			);
+			const llmRes = await llm(shared, messages, "decision_yaml");
 			if (shared.stopToken.stopped) {
 				return { success: false, message: getCancelledReason(shared) };
 			}
 			if (!llmRes.success) {
 				lastError = llmRes.message;
+				lastRaw = llmRes.text ?? "";
 				continue;
 			}
 			lastRaw = llmRes.text;
-			const parsed = parseYAMLObjectFromText(llmRes.text);
-			if (!parsed.success) {
-				lastError = parsed.message;
-				continue;
+			const decision = tryParseAndValidateDecision(llmRes.text);
+			if (decision.success) {
+				return decision;
 			}
-			const decision = parseDecisionObject(parsed.obj);
-			if (!decision.success) {
-				lastError = decision.message;
-				continue;
-			}
-			const validation = validateDecision(decision.tool, decision.params);
-			if (!validation.success) {
-				lastError = validation.message;
-				continue;
-			}
-			decision.params = validation.params;
-			return decision;
+			lastError = decision.message;
+			return this.repairDecisionYaml(shared, llmRes.text, lastError);
 		}
 		return { success: false, message: `cannot produce valid decision yaml: ${lastError}; last_output=${truncateText(lastRaw, 400)}` };
 	}
@@ -1450,13 +1294,37 @@ If no more actions are needed, use tool: finish.`;
 		const result = execRes as DecisionResult | { success: false; message: string };
 		if (!result.success) {
 			shared.error = result.message;
-			return "error";
+			shared.response = getFailureSummaryFallback(shared, result.message);
+			shared.done = true;
+			appendConversationMessage(shared, {
+				role: "assistant",
+				content: shared.response,
+			});
+			persistHistoryState(shared);
+			return "done";
 		}
 		if (result.directSummary && result.directSummary !== "") {
 			shared.response = result.directSummary;
 			shared.done = true;
+			appendConversationMessage(shared, {
+				role: "assistant",
+				content: result.directSummary,
+				reasoning_content: result.reasoningContent,
+			});
 			persistHistoryState(shared);
-			return undefined;
+			return "done";
+		}
+		if (result.tool === "finish") {
+			const finalMessage = getFinishMessage(result.params, result.reason ?? "");
+			shared.response = finalMessage;
+			shared.done = true;
+			appendConversationMessage(shared, {
+				role: "assistant",
+				content: finalMessage,
+				reasoning_content: result.reasoningContent,
+			});
+			persistHistoryState(shared);
+			return "done";
 		}
 		emitAgentEvent(shared, {
 			type: "decision_made",
@@ -1468,13 +1336,28 @@ If no more actions are needed, use tool: finish.`;
 			reasoningContent: result.reasoningContent,
 			params: result.params,
 		});
+		const toolCallId = ensureToolCallId(result.toolCallId);
 		shared.history.push({
 			step: shared.history.length + 1,
+			toolCallId,
 			tool: result.tool,
 			reason: result.reason ?? "",
 			reasoningContent: result.reasoningContent,
 			params: result.params,
 			timestamp: os.date("!%Y-%m-%dT%H:%M:%SZ"),
+		});
+		appendConversationMessage(shared, {
+			role: "assistant",
+			content: result.reason ?? "",
+			reasoning_content: result.reasoningContent,
+			tool_calls: [{
+				id: toolCallId,
+				type: "function",
+				function: {
+					name: result.tool,
+					arguments: toJson(result.params),
+				},
+			}],
 		});
 		persistHistoryState(shared);
 		return result.tool;
@@ -1521,6 +1404,7 @@ class ReadFileAction extends Node<AgentShared> {
 		const last = shared.history[shared.history.length - 1];
 		if (last !== undefined) {
 			last.result = sanitizeReadResultForHistory(last.tool, result);
+			appendToolResultMessage(shared, last);
 			emitAgentEvent(shared, {
 				type: "tool_finished",
 				sessionId: shared.sessionId,
@@ -1574,6 +1458,7 @@ class SearchFilesAction extends Node<AgentShared> {
 		if (last !== undefined) {
 			const result = execRes as Record<string, unknown>;
 			last.result = sanitizeSearchResultForHistory(last.tool, result);
+			appendToolResultMessage(shared, last);
 			emitAgentEvent(shared, {
 				type: "tool_finished",
 				sessionId: shared.sessionId,
@@ -1625,6 +1510,7 @@ class SearchDoraAPIAction extends Node<AgentShared> {
 		if (last !== undefined) {
 			const result = execRes as Record<string, unknown>;
 			last.result = sanitizeSearchResultForHistory(last.tool, result);
+			appendToolResultMessage(shared, last);
 			emitAgentEvent(shared, {
 				type: "tool_finished",
 				sessionId: shared.sessionId,
@@ -1670,6 +1556,7 @@ class ListFilesAction extends Node<AgentShared> {
 		const last = shared.history[shared.history.length - 1];
 		if (last !== undefined) {
 			last.result = sanitizeListFilesResultForHistory(execRes as Record<string, unknown>);
+			appendToolResultMessage(shared, last);
 			emitAgentEvent(shared, {
 				type: "tool_finished",
 				sessionId: shared.sessionId,
@@ -1726,6 +1613,7 @@ class DeleteFileAction extends Node<AgentShared> {
 		const last = shared.history[shared.history.length - 1];
 		if (last !== undefined) {
 			last.result = execRes as Record<string, unknown>;
+			appendToolResultMessage(shared, last);
 			emitAgentEvent(shared, {
 				type: "tool_finished",
 				sessionId: shared.sessionId,
@@ -1785,6 +1673,7 @@ class BuildAction extends Node<AgentShared> {
 		const last = shared.history[shared.history.length - 1];
 		if (last !== undefined) {
 			last.result = execRes as Record<string, unknown>;
+			appendToolResultMessage(shared, last);
 			emitAgentEvent(shared, {
 				type: "tool_finished",
 				sessionId: shared.sessionId,
@@ -1885,6 +1774,7 @@ class EditFileAction extends Node<AgentShared> {
 		if (last !== undefined) {
 			last.params = sanitizeActionParamsForHistory(last.tool, last.params);
 			last.result = execRes as Record<string, unknown>;
+			appendToolResultMessage(shared, last);
 			emitAgentEvent(shared, {
 				type: "tool_finished",
 				sessionId: shared.sessionId,
@@ -1917,91 +1807,8 @@ class EditFileAction extends Node<AgentShared> {
 	}
 }
 
-class FormatResponseNode extends Node<AgentShared> {
-	async prep(shared: AgentShared): Promise<{ history: AgentActionRecord[]; shared: AgentShared }> {
-		const last = shared.history[shared.history.length - 1];
-		if (last && last.tool === "finish") {
-			emitAgentEvent(shared, {
-				type: "tool_started",
-				sessionId: shared.sessionId,
-				taskId: shared.taskId,
-				step: shared.step + 1,
-				tool: last.tool,
-			});
-		}
-		return { history: shared.history, shared };
-	}
-
-	async exec(input: { history: AgentActionRecord[]; shared: AgentShared }): Promise<string> {
-		if (input.shared.stopToken.stopped) {
-			return getCancelledReason(input.shared);
-		}
-		const failureNote = input.shared.error && input.shared.error !== ""
-			? (input.shared.useChineseResponse
-				? `\n\n本次任务因以下错误结束，请在总结中明确说明：\n${input.shared.error}`
-				: `\n\nThis task ended with the following error. Make sure the summary states it clearly:\n${input.shared.error}`)
-			: "";
-		const history = input.history;
-		if (history.length === 0) {
-			if (input.shared.error && input.shared.error !== "") {
-				return getFailureSummaryFallback(input.shared, input.shared.error);
-			}
-			return "No actions were performed.";
-		}
-		const summary = formatHistorySummary(history);
-		const staticPrompt = replacePromptVars(input.shared.promptPack.finalSummaryPrompt, {
-			SUMMARY: "",
-			LANGUAGE_DIRECTIVE: getReplyLanguageDirective(input.shared),
-		});
-		const contextWindow = math.max(4000, input.shared.llmConfig.contextWindow);
-		const reservedOutputTokens = math.max(1024, math.floor(contextWindow * 0.2));
-		const staticTokens = estimateTextTokens(staticPrompt);
-		const failureTokens = estimateTextTokens(failureNote);
-		const summaryBudget = math.max(400, contextWindow - reservedOutputTokens - staticTokens - failureTokens - 256);
-		const boundedSummary = clipTextToTokenBudget(summary, summaryBudget);
-		const prompt = replacePromptVars(input.shared.promptPack.finalSummaryPrompt, {
-			SUMMARY: boundedSummary,
-			LANGUAGE_DIRECTIVE: getReplyLanguageDirective(input.shared),
-		}) + failureNote;
-		let res: LLMResult | undefined;
-		for (let i = 0; i < input.shared.llmMaxTry; i++) {
-			res = await llmStream(input.shared, [{ role: "user", content: prompt }]);
-			if (res.success) break;
-		}
-		if (!res) {
-			return input.shared.error && input.shared.error !== ""
-				? getFailureSummaryFallback(input.shared, input.shared.error)
-				: (input.shared.useChineseResponse
-					? `执行完成，但生成总结失败。`
-					: `Completed, but failed to generate summary.`);
-		}
-		if (!res.success) {
-			return input.shared.error && input.shared.error !== ""
-				? getFailureSummaryFallback(input.shared, input.shared.error)
-				: (input.shared.useChineseResponse
-					? `执行完成，但生成总结失败：${res.message}`
-					: `Completed, but failed to generate summary: ${res.message}`);
-		}
-		return res.text;
-	}
-
-	async post(shared: AgentShared, _prepRes: unknown, execRes: unknown): Promise<string | undefined> {
-		const last = shared.history[shared.history.length - 1];
-		if (last && last.tool === "finish") {
-			last.result = { success: true, message: execRes as string };
-			emitAgentEvent(shared, {
-				type: "tool_finished",
-				sessionId: shared.sessionId,
-				taskId: shared.taskId,
-				step: shared.step + 1,
-				tool: last.tool,
-				result: last.result,
-			});
-			shared.step += 1;
-		}
-		shared.response = execRes as string;
-		shared.done = true;
-		persistHistoryState(shared);
+class EndNode extends Node<AgentShared> {
+	async post(_shared: AgentShared, _prepRes: unknown, _execRes: unknown): Promise<string | undefined> {
 		return undefined;
 	}
 }
@@ -2016,7 +1823,7 @@ class CodingAgentFlow extends Flow<AgentShared> {
 		const del = new DeleteFileAction(1, 0);
 		const build = new BuildAction(1, 0);
 		const edit = new EditFileAction(1, 0);
-		const format = new FormatResponseNode(1, 0);
+		const done = new EndNode(1, 0);
 
 		main.on("read_file", read);
 		main.on("grep_files", search);
@@ -2025,8 +1832,7 @@ class CodingAgentFlow extends Flow<AgentShared> {
 		main.on("delete_file", del);
 		main.on("build", build);
 		main.on("edit_file", edit);
-		main.on("finish", format);
-		main.on("error", format);
+		main.on("done", done);
 
 		read.on("main", main);
 		search.on("main", main);
@@ -2081,7 +1887,9 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 		userQuery: options.prompt,
 		workingDir: options.workDir,
 		useChineseResponse: options.useChineseResponse === true,
-		decisionMode: options.decisionMode === "yaml" ? "yaml" : "tool_calling",
+		decisionMode: options.decisionMode
+			? options.decisionMode
+			: (llmConfig.supportsFunctionCalling ? "tool_calling" : "yaml"),
 		llmOptions: {
 			temperature: 0.1,
 			max_tokens: 8192,
@@ -2090,13 +1898,19 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 		llmConfig,
 		onEvent: options.onEvent,
 		promptPack,
-		history: persistedSession.history,
+		history: [],
+		messages: persistedSession.messages,
 		// Memory 状态
 		memory: {
-			lastConsolidatedIndex: persistedSession.lastConsolidatedIndex,
+			lastConsolidatedMessageIndex: persistedSession.lastConsolidatedMessageIndex,
 			compressor,
 		},
 	};
+	appendConversationMessage(shared, {
+		role: "user",
+		content: options.prompt,
+	});
+	persistHistoryState(shared);
 
 	try {
 		emitAgentEvent(shared, {

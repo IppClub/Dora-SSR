@@ -131,16 +131,17 @@ function summarizeToolParams(step: AgentSessionStep, t: (key: string, options?: 
 	}
 }
 
-function getBuildErrors(step: AgentSessionStep): { file: string; message: string }[] {
+function getBuildItems(step: AgentSessionStep): { file: string; message: string; success: boolean }[] {
 	const result = step.result;
 	if (!result || typeof result !== "object" || !Array.isArray((result as { messages?: unknown[] }).messages)) {
 		return [];
 	}
 	return ((result as { messages: Array<Record<string, unknown>> }).messages ?? [])
-		.filter(message => message && message.success !== true && typeof message.file === "string" && typeof message.message === "string")
+		.filter(message => message && typeof message.file === "string")
 		.map(message => ({
 			file: message.file as string,
-			message: message.message as string,
+			message: typeof message.message === "string" ? message.message as string : "",
+			success: message.success === true,
 		}));
 }
 
@@ -164,8 +165,8 @@ export default function AgentStepList(props: AgentStepListProps) {
 			{steps.map(step => {
 				const paramItems = summarizeToolParams(step, t);
 				const canViewDiff = step.tool !== "delete_file";
-				const buildErrors = step.tool === "build" ? getBuildErrors(step) : [];
-				const showBuildErrors = buildErrors.length > 0;
+				const buildItems = step.tool === "build" ? getBuildItems(step) : [];
+				const showBuildResults = buildItems.length > 0;
 				const buildErrorsOpened = openedBuildErrors[step.id] === true;
 				return (
 				<Box key={step.id} sx={{
@@ -219,7 +220,7 @@ export default function AgentStepList(props: AgentStepListProps) {
 							))}
 						</Typography>
 					) : null}
-					{showBuildErrors ? (
+					{showBuildResults ? (
 						<Box sx={{ mt: 1.25 }}>
 							<Button
 								size="small"
@@ -237,12 +238,12 @@ export default function AgentStepList(props: AgentStepListProps) {
 								}}
 							>
 								{buildErrorsOpened
-									? t("agent.hideBuildErrors", { count: buildErrors.length })
-									: t("agent.showBuildErrors", { count: buildErrors.length })}
+									? t("agent.hideBuildResults", { count: buildItems.length })
+									: t("agent.showBuildResults", { count: buildItems.length })}
 							</Button>
 							<Collapse in={buildErrorsOpened} timeout="auto" unmountOnExit>
 								<Stack spacing={1} sx={{ mt: 1 }}>
-									{buildErrors.map((item, index) => (
+									{buildItems.map((item, index) => (
 										<Box
 											key={`${item.file}:${index}`}
 											sx={{
@@ -253,12 +254,26 @@ export default function AgentStepList(props: AgentStepListProps) {
 												backgroundColor: "rgba(255,255,255,0.02)",
 											}}
 										>
-											<Typography variant="caption" sx={{ color: Color.TextSecondary, display: "block", mb: 0.5 }}>
-												{item.file}
-											</Typography>
-											<Typography variant="body2" sx={{ color: Color.TextPrimary, whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
-												{item.message}
-											</Typography>
+											<Stack direction="row" spacing={1} alignItems="center" sx={{ mb: item.message !== "" ? 0.5 : 0 }}>
+												<Chip
+													size="small"
+													label={item.success ? t("agent.buildItemStatus.success") : t("agent.buildItemStatus.failed")}
+													variant="outlined"
+													sx={{
+														height: 22,
+														borderColor: item.success ? "rgba(120,200,140,0.35)" : Color.Line,
+														color: item.success ? "rgb(140,220,160)" : Color.TextSecondary,
+													}}
+												/>
+												<Typography variant="caption" sx={{ color: Color.TextSecondary, display: "block" }}>
+													{item.file}
+												</Typography>
+											</Stack>
+											{item.message !== "" ? (
+												<Typography variant="body2" sx={{ color: Color.TextPrimary, whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
+													{item.message}
+												</Typography>
+											) : null}
 										</Box>
 									))}
 								</Stack>

@@ -2,13 +2,11 @@
 import { App, Content, DB, Path, json } from 'Dora';
 import { runCodingAgent, CodingAgentEvent, CodingAgentRunResult } from 'Agent/CodingAgent';
 import * as Tools from 'Agent/Tools';
-import { Log, clipTextToTokenBudget, estimateTextTokens, getActiveLLMConfig } from 'Agent/Utils';
-import type { LLMConfig } from 'Agent/Utils';
+import { Log } from 'Agent/Utils';
 import type { StopToken } from 'Agent/Utils';
 
 export type AgentSessionStatus = "IDLE" | "RUNNING" | "DONE" | "FAILED" | "STOPPED";
 export type AgentMessageRole = "user" | "assistant";
-export type AgentMessageKind = "message" | "summary";
 export type AgentStepStatus = "PENDING" | "RUNNING" | "DONE" | "FAILED" | "STOPPED";
 
 export interface AgentSessionItem {
@@ -27,9 +25,7 @@ export interface AgentSessionMessageItem {
 	sessionId: number;
 	taskId?: number;
 	role: AgentMessageRole;
-	kind: AgentMessageKind;
 	content: string;
-	streaming: boolean;
 	createdAt: number;
 	updatedAt: number;
 }
@@ -83,20 +79,14 @@ const TABLE_SESSION = "AgentSession";
 const TABLE_MESSAGE = "AgentSessionMessage";
 const TABLE_STEP = "AgentSessionStep";
 const TABLE_TASK = "AgentTask";
-const SESSION_CONTEXT_MAX_MESSAGES = 12;
-const SESSION_CONTEXT_MAX_CHARS = 12000;
+const AGENT_SESSION_SCHEMA_VERSION = 1;
 
 const activeStopTokens: Record<number, StopToken> = {};
-const activeAssistantMessageIds: Record<number, number> = {};
 const now = () => os.time();
 
 function getDefaultUseChineseResponse(): boolean {
 	const [zh] = string.match(App.locale, "^zh");
 	return zh !== undefined;
-}
-
-function toBool(v: unknown): boolean {
-	return v !== 0 && v !== false && v !== null && v !== undefined;
 }
 
 function toStr(v: unknown): string {
@@ -172,11 +162,9 @@ function rowToMessage(row: any[]): AgentSessionMessageItem {
 		sessionId: row[1] as number,
 		taskId: type(row[2]) === "number" && (row[2] as number) > 0 ? row[2] as number : undefined,
 		role: toStr(row[3]) as AgentMessageRole,
-		kind: toStr(row[4]) as AgentMessageKind,
-		content: toStr(row[5]),
-		streaming: toBool(row[6]),
-		createdAt: row[7] as number,
-		updatedAt: row[8] as number,
+		content: toStr(row[4]),
+		createdAt: row[5] as number,
+		updatedAt: row[6] as number,
 	};
 }
 
@@ -231,57 +219,6 @@ function normalizeSessionRuntimeState(session: AgentSessionItem): AgentSessionIt
 	};
 }
 
-function trimSessionContext(text: string, maxChars: number) {
-	if (text.length <= maxChars) return text;
-	const clipped = text.slice(text.length - maxChars);
-	const newlinePos = clipped.indexOf("\n");
-	return newlinePos >= 0 ? clipped.slice(newlinePos + 1) : clipped;
-}
-
-function buildSessionPromptContext(sessionId: number, useChineseResponse: boolean, llmConfig?: LLMConfig): string {
-	const rows = queryRows(
-		`SELECT role, kind, content
-		FROM ${TABLE_MESSAGE}
-		WHERE session_id = ? AND content <> ''
-		ORDER BY id DESC
-		LIMIT ?`,
-		[sessionId, SESSION_CONTEXT_MAX_MESSAGES],
-	) ?? [];
-	if (rows.length === 0) return "";
-	const messages = rows
-		.slice()
-		.reverse()
-		.map(row => ({
-			role: toStr((row as any[])[0]) as AgentMessageRole,
-			kind: toStr((row as any[])[1]) as AgentMessageKind,
-			content: toStr((row as any[])[2]).trim(),
-		}))
-		.filter(message => message.content !== "");
-	if (messages.length === 0) return "";
-	const lines: string[] = [];
-	lines.push(useChineseResponse
-		? "以下是同一会话中之前的对话内容，请把它们作为当前请求的上下文参考。若与当前请求冲突，以当前请求为准。"
-		: "Here is the prior conversation from the same session. Use it as context for the current request. If there is any conflict, prefer the current request.");
-	lines.push("");
-	for (let i = 0; i < messages.length; i++) {
-		const message = messages[i];
-		const speaker = message.role === "user"
-			? (useChineseResponse ? "用户" : "User")
-			: (useChineseResponse ? "助手" : "Assistant");
-		lines.push(`${speaker}: ${message.content}`);
-	}
-	let text = trimSessionContext(lines.join("\n"), SESSION_CONTEXT_MAX_CHARS);
-	if (llmConfig) {
-		const contextBudget = math.max(600, math.min(2400, math.floor(math.max(4000, llmConfig.contextWindow) * 0.15)));
-		const estimated = estimateTextTokens(text);
-		if (estimated > contextBudget) {
-			text = clipTextToTokenBudget(text, contextBudget);
-			Log("Info", `[AgentSession] trimmed session context tokens=${estimated} budget=${contextBudget}`);
-		}
-	}
-	return text;
-}
-
 function setSessionState(sessionId: number, status: AgentSessionStatus, currentTaskId?: number, currentTaskStatus?: AgentSessionStatus) {
 	DB.exec(
 		`UPDATE ${TABLE_SESSION}
@@ -312,18 +249,16 @@ function setSessionStateForTaskEvent(sessionId: number, taskId: number | undefin
 	setSessionState(sessionId, status, taskId, currentTaskStatus);
 }
 
-function insertMessage(sessionId: number, role: AgentMessageRole, kind: AgentMessageKind, content: string, taskId?: number, streaming = false): number {
+function insertMessage(sessionId: number, role: AgentMessageRole, content: string, taskId?: number): number {
 	const t = now();
 	DB.exec(
-		`INSERT INTO ${TABLE_MESSAGE}(session_id, task_id, role, kind, content, streaming, created_at, updated_at)
-		VALUES(?, ?, ?, ?, ?, ?, ?, ?)`,
+		`INSERT INTO ${TABLE_MESSAGE}(session_id, task_id, role, content, created_at, updated_at)
+		VALUES(?, ?, ?, ?, ?, ?)`,
 		[
 			sessionId,
 			taskId ?? 0,
 			role,
-			kind,
 			content,
-			streaming ? 1 : 0,
 			t,
 			t,
 		],
@@ -331,29 +266,11 @@ function insertMessage(sessionId: number, role: AgentMessageRole, kind: AgentMes
 	return getLastInsertRowId();
 }
 
-function updateMessage(messageId: number, content: string, streaming: boolean) {
+function updateMessage(messageId: number, content: string) {
 	DB.exec(
-		`UPDATE ${TABLE_MESSAGE} SET content = ?, streaming = ?, updated_at = ? WHERE id = ?`,
-		[content, streaming ? 1 : 0, now(), messageId],
+		`UPDATE ${TABLE_MESSAGE} SET content = ?, updated_at = ? WHERE id = ?`,
+		[content, now(), messageId],
 	);
-}
-
-function getAssistantSummaryMessageId(taskId: number, sessionId: number): number {
-	const cached = activeAssistantMessageIds[taskId];
-	if (cached !== undefined) return cached;
-	const row = queryOne(
-		`SELECT id FROM ${TABLE_MESSAGE}
-		WHERE session_id = ? AND task_id = ? AND role = ? AND kind = ?
-		ORDER BY id DESC LIMIT 1`,
-		[sessionId, taskId, "assistant", "summary"],
-	);
-	if (row && type(row[0]) === "number") {
-		activeAssistantMessageIds[taskId] = row[0] as number;
-		return row[0] as number;
-	}
-	const messageId = insertMessage(sessionId, "assistant", "summary", "", taskId, true);
-	activeAssistantMessageIds[taskId] = messageId;
-	return messageId;
 }
 
 function upsertStep(sessionId: number, taskId: number, step: number, tool: string, patch: {
@@ -518,14 +435,6 @@ function applyEvent(sessionId: number, event: CodingAgentEvent) {
 				files: event.files,
 			});
 			break;
-		case "summary_stream": {
-			const messageId = getAssistantSummaryMessageId(event.taskId, sessionId);
-			const row = queryOne(`SELECT content FROM ${TABLE_MESSAGE} WHERE id = ?`, [messageId]);
-			const oldContent = row ? toStr(row[0]) : "";
-			const nextContent = oldContent + event.textDelta;
-			updateMessage(messageId, nextContent, true);
-			break;
-		}
 		case "task_finished": {
 			const stopped = activeStopTokens[event.taskId ?? -1]?.stopped === true;
 			const finalStatus: AgentSessionStatus = event.success
@@ -539,20 +448,37 @@ function applyEvent(sessionId: number, event: CodingAgentEvent) {
 					type(event.steps) === "number" ? math.max(0, math.floor(event.steps as number)) : undefined,
 					event.success ? undefined : (stopped ? "STOPPED" : "FAILED"),
 				);
-				const messageId = getAssistantSummaryMessageId(event.taskId, sessionId);
-				const row = queryOne(`SELECT content FROM ${TABLE_MESSAGE} WHERE id = ?`, [messageId]);
-				const content = row ? toStr(row[0]) : "";
-				updateMessage(messageId, content !== "" ? content : event.message, false);
+				const summaryRow = queryOne(
+					`SELECT id FROM ${TABLE_MESSAGE}
+					WHERE session_id = ? AND task_id = ? AND role = ?
+					ORDER BY id DESC LIMIT 1`,
+					[sessionId, event.taskId, "assistant"],
+				);
+				if (summaryRow && type(summaryRow[0]) === "number") {
+					updateMessage(summaryRow[0] as number, event.message);
+				} else {
+					insertMessage(sessionId, "assistant", event.message, event.taskId);
+				}
 				activeStopTokens[event.taskId] = undefined as any;
-				activeAssistantMessageIds[event.taskId] = undefined as any;
 			}
 			break;
 		}
 	}
 }
 
-// initialize tables
-{
+function getSchemaVersion(): number {
+	const row = queryOne("PRAGMA user_version");
+	return row && type(row[0]) === "number" ? row[0] as number : 0;
+}
+
+function setSchemaVersion(version: number) {
+	DB.exec(`PRAGMA user_version = ${math.max(0, math.floor(version))}`);
+}
+
+function recreateSchema() {
+	DB.exec(`DROP TABLE IF EXISTS ${TABLE_STEP};`);
+	DB.exec(`DROP TABLE IF EXISTS ${TABLE_MESSAGE};`);
+	DB.exec(`DROP TABLE IF EXISTS ${TABLE_SESSION};`);
 	DB.exec(`CREATE TABLE IF NOT EXISTS ${TABLE_SESSION}(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		project_root TEXT NOT NULL,
@@ -569,9 +495,7 @@ function applyEvent(sessionId: number, event: CodingAgentEvent) {
 		session_id INTEGER NOT NULL,
 		task_id INTEGER,
 		role TEXT NOT NULL,
-		kind TEXT NOT NULL,
 		content TEXT NOT NULL DEFAULT '',
-		streaming INTEGER NOT NULL DEFAULT 0,
 		created_at INTEGER NOT NULL,
 		updated_at INTEGER NOT NULL
 	);`);
@@ -595,17 +519,54 @@ function applyEvent(sessionId: number, event: CodingAgentEvent) {
 	);`);
 	DB.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_agent_session_step_unique ON ${TABLE_STEP}(session_id, task_id, step);`);
 	DB.exec(`CREATE INDEX IF NOT EXISTS idx_agent_session_step_sid_task_step ON ${TABLE_STEP}(session_id, task_id, step);`);
-	const stepColumns = queryRows(`PRAGMA table_info(${TABLE_STEP})`) ?? [];
-	let hasReasoningContent = false;
-	for (let i = 0; i < stepColumns.length; i++) {
-		const row = stepColumns[i] as any[];
-		if (toStr(row[1]) === "reasoning_content") {
-			hasReasoningContent = true;
-			break;
-		}
-	}
-	if (!hasReasoningContent) {
-		DB.exec(`ALTER TABLE ${TABLE_STEP} ADD COLUMN reasoning_content TEXT NOT NULL DEFAULT ''`);
+	setSchemaVersion(AGENT_SESSION_SCHEMA_VERSION);
+}
+
+// initialize tables
+{
+	if (getSchemaVersion() !== AGENT_SESSION_SCHEMA_VERSION) {
+		recreateSchema();
+	} else {
+		DB.exec(`CREATE TABLE IF NOT EXISTS ${TABLE_SESSION}(
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			project_root TEXT NOT NULL,
+			title TEXT NOT NULL DEFAULT '',
+			status TEXT NOT NULL DEFAULT 'IDLE',
+			current_task_id INTEGER,
+			current_task_status TEXT NOT NULL DEFAULT 'IDLE',
+			created_at INTEGER NOT NULL,
+			updated_at INTEGER NOT NULL
+		);`);
+		DB.exec(`CREATE INDEX IF NOT EXISTS idx_agent_session_project_root ON ${TABLE_SESSION}(project_root, updated_at DESC);`);
+		DB.exec(`CREATE TABLE IF NOT EXISTS ${TABLE_MESSAGE}(
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			session_id INTEGER NOT NULL,
+			task_id INTEGER,
+			role TEXT NOT NULL,
+			content TEXT NOT NULL DEFAULT '',
+			created_at INTEGER NOT NULL,
+			updated_at INTEGER NOT NULL
+		);`);
+		DB.exec(`CREATE INDEX IF NOT EXISTS idx_agent_session_message_sid_id ON ${TABLE_MESSAGE}(session_id, id);`);
+		DB.exec(`CREATE TABLE IF NOT EXISTS ${TABLE_STEP}(
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			session_id INTEGER NOT NULL,
+			task_id INTEGER NOT NULL,
+			step INTEGER NOT NULL,
+			tool TEXT NOT NULL DEFAULT '',
+			status TEXT NOT NULL DEFAULT 'PENDING',
+			reason TEXT NOT NULL DEFAULT '',
+			reasoning_content TEXT NOT NULL DEFAULT '',
+			params_json TEXT NOT NULL DEFAULT '',
+			result_json TEXT NOT NULL DEFAULT '',
+			checkpoint_id INTEGER,
+			checkpoint_seq INTEGER,
+			files_json TEXT NOT NULL DEFAULT '',
+			created_at INTEGER NOT NULL,
+			updated_at INTEGER NOT NULL
+		);`);
+		DB.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_agent_session_step_unique ON ${TABLE_STEP}(session_id, task_id, step);`);
+		DB.exec(`CREATE INDEX IF NOT EXISTS idx_agent_session_step_sid_task_step ON ${TABLE_STEP}(session_id, task_id, step);`);
 	}
 }
 
@@ -645,7 +606,7 @@ export function getSession(sessionId: number): AgentSessionDetailResult {
 	const normalizedSession = normalizeSessionRuntimeState(session);
 	sanitizeStoredSteps(sessionId);
 	const messages = queryRows(
-		`SELECT id, session_id, task_id, role, kind, content, streaming, created_at, updated_at
+		`SELECT id, session_id, task_id, role, content, created_at, updated_at
 		FROM ${TABLE_MESSAGE}
 		WHERE session_id = ?
 		ORDER BY id ASC`,
@@ -681,23 +642,12 @@ export function sendPrompt(sessionId: number, prompt: string): AgentSessionSendR
 	}
 	const taskId = taskRes.taskId;
 	const useChineseResponse = getDefaultUseChineseResponse();
-	const llmConfigRes = getActiveLLMConfig();
-	const sessionContext = buildSessionPromptContext(
-		sessionId,
-		useChineseResponse,
-		llmConfigRes.success ? llmConfigRes.config : undefined
-	);
-	const agentPrompt = sessionContext !== ""
-		? `${sessionContext}\n\n${useChineseResponse ? "当前用户请求：" : "Current user request:"}\n${prompt}`
-		: prompt;
-	insertMessage(sessionId, "user", "message", prompt, taskId, false);
-	const assistantMessageId = insertMessage(sessionId, "assistant", "summary", "", taskId, true);
-	activeAssistantMessageIds[taskId] = assistantMessageId;
+	insertMessage(sessionId, "user", prompt, taskId);
 	const stopToken: StopToken = { stopped: false };
 	activeStopTokens[taskId] = stopToken;
 	setSessionState(sessionId, "RUNNING", taskId, "RUNNING");
 	runCodingAgent({
-		prompt: agentPrompt,
+		prompt,
 		workDir: session.projectRoot,
 		useChineseResponse,
 		taskId,
