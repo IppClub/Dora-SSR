@@ -21,16 +21,16 @@ const XML_DECISION_SCHEMA_EXAMPLE = `\`\`\`xml
 	<reason>Need to update the file content to implement the requested change.</reason>
 	<params>
 		<path>relative/path.ts</path>
-		<old_str><![CDATA[
+		<old_str>
 function oldName() {
 	print("old");
 }
-]]></old_str>
-		<new_str><![CDATA[
+		</old_str>
+		<new_str>
 function newName() {
 	print("hello");
 }
-]]></new_str>
+		</new_str>
 	</params>
 </tool_call>
 \`\`\`
@@ -225,9 +225,9 @@ Return exactly one XML block:
 \`\`\`xml
 <memory_update_result>
 	<history_entry>Summary paragraph</history_entry>
-	<memory_update><![CDATA[
+	<memory_update>
 Full updated MEMORY.md content
-]]></memory_update>
+	</memory_update>
 </memory_update_result>
 \`\`\`
 
