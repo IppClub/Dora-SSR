@@ -629,7 +629,7 @@ const LogView = memo((props: LogViewProps) => {
 					}}
 					formatPart={formatPart}
 					rowHeight={22}
-					extraLines={1}
+					extraLines={5}
 					selectableLines
 					enableSearch
 					caseInsensitive

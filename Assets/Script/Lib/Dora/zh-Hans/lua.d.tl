@@ -538,8 +538,8 @@ local record lua
 		-- @param i (integer) [可选] 开始位置。默认为1。
 		-- @param j (integer) [可选] 结束位置。默认为-1。
 		-- @param lax (boolean) [可选] 如果为true，则放宽验证检查。
-		-- @return (integer) UTF-8字符的数量。
-		len: function(s: string, i?: integer, j?: integer, lax?: boolean): integer
+		-- @return (integer|nil, nil|integer) UTF-8字符的数量或nil和无效字符的位置。
+		len: function(s: string, i?: integer, j?: integer, lax?: boolean): integer|nil, nil|integer
 
 		-- 返回指定字符开始编码的字节位置。
 		-- @param s (string) 输入字符串。

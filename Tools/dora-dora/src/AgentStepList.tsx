@@ -168,6 +168,8 @@ export default function AgentStepList(props: AgentStepListProps) {
 				const buildItems = step.tool === "build" ? getBuildItems(step) : [];
 				const showBuildResults = buildItems.length > 0;
 				const buildErrorsOpened = openedBuildErrors[step.id] === true;
+				const hasReasoning = step.reasoningContent.trim() !== "";
+				const primaryContent = step.reason || (hasReasoning ? step.reasoningContent : "");
 				return (
 				<Box key={step.id} sx={{
 					borderLeft: `2px solid ${Color.Line}`,
@@ -188,7 +190,7 @@ export default function AgentStepList(props: AgentStepListProps) {
 							<Chip size="small" label={step.status} variant="outlined" sx={{ borderColor: Color.Line, color: Color.TextSecondary }} />
 						) : null}
 					</Stack>
-					{step.reason ? (
+					{primaryContent !== "" ? (
 						<Box
 							className="markdown-body"
 							sx={{
@@ -206,7 +208,7 @@ export default function AgentStepList(props: AgentStepListProps) {
 							}}
 						>
 							<ReactMarkdown remarkPlugins={[remarkGfm]}>
-								{step.reason}
+								{primaryContent}
 							</ReactMarkdown>
 						</Box>
 					) : null}

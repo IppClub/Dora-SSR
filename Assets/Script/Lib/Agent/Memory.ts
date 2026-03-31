@@ -1,9 +1,8 @@
 // @preview-file off clear
-import { Content, Path, json } from 'Dora';
-import { Message, ToolCallFunction, callLLM, Log, clipTextToTokenBudget } from 'Agent/Utils';
+import { Content, Path } from 'Dora';
+import { Message, ToolCallFunction, callLLM, Log, clipTextToTokenBudget, parseXMLObjectFromText, safeJsonDecode, safeJsonEncode, sanitizeUTF8 } from 'Agent/Utils';
 import type { LLMConfig } from 'Agent/Utils';
 import { sendWebIDEFileUpdate } from 'Agent/Tools';
-import * as yaml from 'yaml';
 
 export interface AgentConversationMessage extends Message {
 	timestamp?: string;
@@ -16,23 +15,23 @@ export interface PersistedSessionState {
 
 const AGENT_CONFIG_DIR = ".agent";
 const AGENT_PROMPTS_FILE = "AGENT.md";
-const YAML_DECISION_SCHEMA_EXAMPLE = `\`\`\`xml
+const XML_DECISION_SCHEMA_EXAMPLE = `\`\`\`xml
 <tool_call>
 	<tool>edit_file</tool>
 	<reason>Need to update the file content to implement the requested change.</reason>
 	<params>
 		<path>relative/path.ts</path>
-		<old_str>
+		<old_str><![CDATA[
 function oldName() {
 	print("old");
 }
-		</old_str>
-		<new_str>
+]]></old_str>
+		<new_str><![CDATA[
 function newName() {
 	print("hello");
 }
-		</new_str>
-  </params>
+]]></new_str>
+	</params>
 </tool_call>
 \`\`\`
 
@@ -63,13 +62,13 @@ export interface AgentPromptPack {
 	replyLanguageDirectiveZh: string;
 	replyLanguageDirectiveEn: string;
 	toolCallingRetryPrompt: string;
-	yamlDecisionFormatPrompt: string;
-	yamlDecisionRepairPrompt: string;
+	xmlDecisionFormatPrompt: string;
+	xmlDecisionRepairPrompt: string;
 	memoryCompressionSystemPrompt: string;
 	memoryCompressionBodyPrompt: string;
 	memoryCompressionToolCallingPrompt: string;
-	memoryCompressionYamlPrompt: string;
-	memoryCompressionYamlRetryPrompt: string;
+	memoryCompressionXmlPrompt: string;
+	memoryCompressionXmlRetryPrompt: string;
 }
 
 export const DEFAULT_AGENT_PROMPT_PACK: AgentPromptPack = {
@@ -135,9 +134,9 @@ You are a coding assistant that helps modify and navigate code in the Dora SSR g
 	replyLanguageDirectiveZh: "Use Simplified Chinese for natural-language fields (message/summary).",
 	replyLanguageDirectiveEn: "Use English for natural-language fields (message/summary).",
 	toolCallingRetryPrompt: "Previous response was invalid ({{LAST_ERROR}}). Retry with either one valid tool call.",
-	yamlDecisionFormatPrompt: `Respond with exactly one XML tool_call block. Do not include any prose before or after the XML.
+xmlDecisionFormatPrompt: `Respond with exactly one XML tool_call block. Do not include any prose before or after the XML.
 
-${YAML_DECISION_SCHEMA_EXAMPLE}
+${XML_DECISION_SCHEMA_EXAMPLE}
 
 Rules:
 - Return exactly one \`<tool_call>...</tool_call>\` block.
@@ -148,10 +147,10 @@ Rules:
 - You do not need to escape normal code snippets, angle brackets, or newlines inside tag contents.
 - Keep params shallow and valid for the selected tool.
 - If no more actions are needed, use tool finish and put the final user-facing answer in \`<params><message>...</message></params>\`.`,
-	yamlDecisionRepairPrompt: `Convert the tool call result below into exactly one valid XML tool_call block.
+	xmlDecisionRepairPrompt: `Convert the tool call result below into exactly one valid XML tool_call block.
 
 XML schema example:
-${YAML_DECISION_SCHEMA_EXAMPLE}
+${XML_DECISION_SCHEMA_EXAMPLE}
 
 Rules:
 - Return exactly one XML \`<tool_call>...</tool_call>\` block.
@@ -185,13 +184,9 @@ Do not output any text besides the tool call.`,
 
 {{CURRENT_MEMORY}}
 
----
-
 ### Actions to Process
 
 {{HISTORY_TEXT}}
-
----
 
 ### Task
 
@@ -224,27 +219,30 @@ Call the save_memory tool with your consolidated memory and history entry.`,
 Call the save_memory tool with:
 - history_entry: the summary paragraph without timestamp
 - memory_update: the full updated MEMORY.md content`,
-	memoryCompressionYamlPrompt: `### Output Format
+	memoryCompressionXmlPrompt: `### Output Format
 
-Return exactly one YAML object:
-\`\`\`yaml
-history_entry: "Summary paragraph"
-memory_update: |-
-	Full updated MEMORY.md content
+Return exactly one XML block:
+\`\`\`xml
+<memory_update_result>
+	<history_entry>Summary paragraph</history_entry>
+	<memory_update><![CDATA[
+Full updated MEMORY.md content
+]]></memory_update>
+</memory_update_result>
 \`\`\`
 
 Rules:
-- Return YAML only, no prose before or after.
-- Use exactly two keys: history_entry, memory_update.
-- Use a block scalar for memory_update when it spans multiple lines.`,
-	memoryCompressionYamlRetryPrompt: "Previous response was invalid ({{LAST_ERROR}}). Return exactly one valid YAML object only.",
+- Return XML only, no prose before or after.
+- Use exactly one root tag: \`<memory_update_result>\`.
+- Use exactly two child tags: \`<history_entry>\` and \`<memory_update>\`.
+- Use CDATA for \`<memory_update>\` when it spans multiple lines or contains markdown/code.`,
+	memoryCompressionXmlRetryPrompt: "Previous response was invalid ({{LAST_ERROR}}). Return exactly one valid XML memory_update_result block only.",
 };
 
 const EXPOSED_PROMPT_PACK_KEYS: (keyof AgentPromptPack)[] = [
 	"agentIdentityPrompt",
 	"replyLanguageDirectiveZh",
 	"replyLanguageDirectiveEn",
-	"memoryCompressionBodyPrompt",
 ];
 
 const OVERRIDABLE_PROMPT_PACK_KEYS: (keyof AgentPromptPack)[] = [
@@ -469,7 +467,7 @@ export interface CompressionResult {
 	error?: string;
 }
 
-export type MemoryCompressionDecisionMode = "tool_calling" | "yaml";
+export type MemoryCompressionDecisionMode = "tool_calling" | "xml";
 
 /**
  * Token 估算器
@@ -514,7 +512,7 @@ export class TokenEstimator {
 			total += this.estimate(message.name ?? "");
 			total += this.estimate(message.tool_call_id ?? "");
 			total += this.estimate(message.reasoning_content ?? "");
-			const [toolCallsText] = json.encode((message.tool_calls ?? []) as object);
+			const [toolCallsText] = safeJsonEncode((message.tool_calls ?? []) as object);
 			total += this.estimate(toolCallsText ?? "");
 			total += 8;
 		}
@@ -544,7 +542,7 @@ function utf8TakeHead(text: string, maxChars: number): string {
 function utf8TakeTail(text: string, maxChars: number): string {
 	if (maxChars <= 0 || text === "") return "";
 	const [charLen] = utf8.len(text);
-	if (charLen === false || charLen <= maxChars) return text;
+	if (charLen === undefined || charLen <= maxChars) return text;
 	const startChar = math.max(1, charLen - maxChars + 1);
 	const startPos = utf8.offset(text, startChar);
 	if (startPos === undefined) return text;
@@ -595,12 +593,12 @@ export class DualLayerStorage {
 	}
 
 	private encodeJsonLine(value: unknown): string | undefined {
-		const [text] = json.encode(value as object);
+		const [text] = safeJsonEncode(value as object);
 		return text;
 	}
 
 	private decodeJsonLine(text: string): unknown {
-		const [value] = json.decode(text);
+		const [value] = safeJsonDecode(text);
 		return value;
 	}
 
@@ -610,11 +608,11 @@ export class DualLayerStorage {
 		const role = typeof row.role === "string" ? row.role : "";
 		if (role === "") return undefined;
 		const message: AgentConversationMessage = { role };
-		if (typeof row.content === "string") message.content = row.content;
-		if (typeof row.name === "string") message.name = row.name;
-		if (typeof row.tool_call_id === "string") message.tool_call_id = row.tool_call_id;
-		if (typeof row.reasoning_content === "string") message.reasoning_content = row.reasoning_content;
-		if (typeof row.timestamp === "string") message.timestamp = row.timestamp;
+		if (typeof row.content === "string") message.content = sanitizeUTF8(row.content);
+		if (typeof row.name === "string") message.name = sanitizeUTF8(row.name);
+		if (typeof row.tool_call_id === "string") message.tool_call_id = sanitizeUTF8(row.tool_call_id);
+		if (typeof row.reasoning_content === "string") message.reasoning_content = sanitizeUTF8(row.reasoning_content);
+		if (typeof row.timestamp === "string") message.timestamp = sanitizeUTF8(row.timestamp);
 		if (type(row.tool_calls) === "table") {
 			message.tool_calls = row.tool_calls as Message["tool_calls"];
 		}
@@ -963,7 +961,7 @@ export class MemoryCompressor {
 			if (message.tool_call_id && message.tool_call_id !== "") lines.push(`tool_call_id=${message.tool_call_id}`);
 			if (message.reasoning_content && message.reasoning_content !== "") lines.push(`reasoning=${message.reasoning_content}`);
 			if (message.tool_calls && message.tool_calls.length > 0) {
-				const [toolCallsText] = json.encode(message.tool_calls as object);
+				const [toolCallsText] = safeJsonEncode(message.tool_calls as object);
 				lines.push(`tool_calls=${toolCallsText ?? ""}`);
 			}
 			if (message.content && message.content !== "") lines.push(message.content);
@@ -983,8 +981,8 @@ export class MemoryCompressor {
 		decisionMode: MemoryCompressionDecisionMode
 	): Promise<CompressionResult> {
 		const boundedHistoryText = this.boundCompressionHistoryText(currentMemory, historyText);
-		if (decisionMode === "yaml") {
-			return this.callLLMForCompressionByYAML(
+		if (decisionMode === "xml") {
+			return this.callLLMForCompressionByXML(
 				currentMemory,
 				boundedHistoryText,
 				llmOptions,
@@ -1143,7 +1141,7 @@ export class MemoryCompressor {
 
 		// 解析 tool arguments JSON
 		try {
-			const [args, err] = json.decode(argsText);
+			const [args, err] = safeJsonDecode(argsText);
 			if (err !== undefined || !args || typeof args !== "object") {
 				return {
 					success: false,
@@ -1169,18 +1167,18 @@ export class MemoryCompressor {
 		}
 	}
 
-	private async callLLMForCompressionByYAML(
+	private async callLLMForCompressionByXML(
 		currentMemory: string,
 		historyText: string,
 		llmOptions: Record<string, unknown>,
 		maxLLMTry: number
 	): Promise<CompressionResult> {
-		const prompt = this.buildYAMLCompressionPrompt(currentMemory, historyText);
-		let lastError = "invalid yaml response";
+		const prompt = this.buildXMLCompressionPrompt(currentMemory, historyText);
+		let lastError = "invalid xml response";
 
 		for (let i = 0; i < maxLLMTry; i++) {
 			const feedback = i > 0
-				? `\n\n${replaceTemplateVars(this.config.promptPack.memoryCompressionYamlRetryPrompt, {
+				? `\n\n${replaceTemplateVars(this.config.promptPack.memoryCompressionXmlRetryPrompt, {
 					LAST_ERROR: lastError,
 				})}`
 				: "";
@@ -1205,15 +1203,15 @@ export class MemoryCompressor {
 			const message = choice && choice.message;
 			const text = message && typeof message.content === "string" ? message.content : "";
 			if (text.trim() === "") {
-				lastError = "empty yaml response";
+				lastError = "empty xml response";
 				continue;
 			}
 
-			const parsed = this.parseCompressionYAMLObject(text, currentMemory);
+			const parsed = this.parseCompressionXMLObject(text, currentMemory);
 			if (parsed.success) {
 				return parsed;
 			}
-			lastError = parsed.error || "invalid yaml response";
+			lastError = parsed.error || "invalid xml response";
 		}
 
 		return {
@@ -1249,43 +1247,25 @@ export class MemoryCompressor {
 ${this.config.promptPack.memoryCompressionToolCallingPrompt}`;
 	}
 
-	private buildYAMLCompressionPrompt(currentMemory: string, historyText: string): string {
+	private buildXMLCompressionPrompt(currentMemory: string, historyText: string): string {
 		return `${this.buildCompressionPromptBody(currentMemory, historyText)}
 
-${this.config.promptPack.memoryCompressionYamlPrompt}`;
+${this.config.promptPack.memoryCompressionXmlPrompt}`;
 	}
 
-	private extractYAMLFromText(text: string): string {
-		const source = text.trim();
-		const yamlFencePos = source.indexOf("```yaml");
-		if (yamlFencePos >= 0) {
-			const from = yamlFencePos + "```yaml".length;
-			const end = source.indexOf("```", from);
-			if (end > from) return source.slice(from, end).trim();
-		}
-		const ymlFencePos = source.indexOf("```yml");
-		if (ymlFencePos >= 0) {
-			const from = ymlFencePos + "```yml".length;
-			const end = source.indexOf("```", from);
-			if (end > from) return source.slice(from, end).trim();
-		}
-		return source;
-	}
-
-	private parseCompressionYAMLObject(text: string, currentMemory: string): CompressionResult {
-		const yamlText = this.extractYAMLFromText(text);
-		const [obj, err] = yaml.parse(yamlText);
-		if (!obj || typeof obj !== "object") {
+	private parseCompressionXMLObject(text: string, currentMemory: string): CompressionResult {
+		const parsed = parseXMLObjectFromText(text, "memory_update_result");
+		if (!parsed.success) {
 			return {
 				success: false,
 				memoryUpdate: currentMemory,
 				historyEntry: "",
 				compressedCount: 0,
-				error: `invalid yaml: ${tostring(err)}`,
+				error: parsed.message,
 			};
 		}
 		return this.buildCompressionResultFromObject(
-			obj as Record<string, unknown>,
+			parsed.obj,
 			currentMemory
 		);
 	}

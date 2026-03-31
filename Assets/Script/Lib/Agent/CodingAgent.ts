@@ -1,7 +1,7 @@
 // @preview-file off clear
-import { App, Path, json, Content } from 'Dora';
+import { App, Path, Content } from 'Dora';
 import { Flow, Node } from 'Agent/flow';
-import { callLLM, Message, StopToken, Log, getActiveLLMConfig, createLocalToolCallId } from 'Agent/Utils';
+import { callLLM, Message, StopToken, Log, getActiveLLMConfig, createLocalToolCallId, parseSimpleXMLChildren, parseXMLObjectFromText, safeJsonDecode, safeJsonEncode, sanitizeUTF8 } from 'Agent/Utils';
 import type { LLMConfig } from 'Agent/Utils';
 import * as Tools from 'Agent/Tools';
 import { MemoryCompressor } from 'Agent/Memory';
@@ -27,7 +27,7 @@ export interface CodingAgentRunOptions {
 	useChineseResponse?: boolean;
 	taskId?: number;
 	maxSteps?: number;
-	decisionMode?: "tool_calling" | "yaml";
+	decisionMode?: "tool_calling" | "xml";
 	llmMaxTry?: number;
 	llmOptions?: Record<string, unknown>;
 	llmConfig?: LLMConfig;
@@ -37,7 +37,7 @@ export interface CodingAgentRunOptions {
 	onEvent?: (event: CodingAgentEvent) => void;
 }
 
-type AgentDecisionMode = "tool_calling" | "yaml";
+type AgentDecisionMode = "tool_calling" | "xml";
 
 export type AgentToolName =
 	| "read_file"
@@ -200,7 +200,7 @@ function ensureDirRecursive(dir: string): boolean {
 }
 
 function encodeDebugJSON(value: unknown): string {
-	const [text, err] = json.encode(value as object);
+	const [text, err] = safeJsonEncode(value as object);
 	return text ?? `{ "error": "json_encode_failed", "message": "${tostring(err)}" }`;
 }
 
@@ -296,9 +296,7 @@ function saveStepLLMDebugInput(shared: AgentShared, stepId: number, phase: strin
 	for (let i = 0; i < messages.length; i++) {
 		const message = messages[i];
 		sections.push(`## Message ${i + 1}`);
-		sections.push(`role: ${message.role ?? ""}`);
-		sections.push("");
-		sections.push(message.content ?? "");
+		sections.push(encodeDebugJSON(message));
 	}
 	createStepLLMDebugPair(shared, stepId, sections.join("\n"));
 }
@@ -320,7 +318,7 @@ function saveStepLLMDebugOutput(shared: AgentShared, stepId: number, phase: stri
 }
 
 function toJson(value: unknown): string {
-	const [text, err] = json.encode(value as object);
+	const [text, err] = safeJsonEncode(value as object);
 	if (text !== undefined) return text;
 	return `{ "error": "json_encode_failed", "message": "${tostring(err)}" }`;
 }
@@ -342,7 +340,7 @@ function utf8TakeHead(text: string, maxChars: number): string {
 function utf8TakeTail(text: string, maxChars: number): string {
 	if (maxChars <= 0 || text === "") return "";
 	const [charLen] = utf8.len(text);
-	if (charLen === false || charLen <= maxChars) return text;
+	if (charLen === undefined || charLen <= maxChars) return text;
 	const startChar = math.max(1, charLen - maxChars + 1);
 	const startPos = utf8.offset(text, startChar);
 	if (startPos === undefined) return text;
@@ -502,7 +500,7 @@ function getDecisionToolDefinitions(shared?: AgentShared): string {
 		shared?.promptPack.toolDefinitionsDetailed ?? "",
 		{ SEARCH_DORA_API_LIMIT_MAX: tostring(SEARCH_DORA_API_LIMIT_MAX) }
 	);
-	if (shared?.decisionMode !== "yaml") {
+	if (shared?.decisionMode !== "xml") {
 		return base;
 	}
 	return `${base}
@@ -519,12 +517,18 @@ async function maybeCompressHistory(shared: AgentShared): Promise<void> {
 	const maxRounds = memory.compressor.getMaxCompressionRounds();
 	let changed = false;
 	for (let round = 0; round < maxRounds; round++) {
-		const systemPrompt = buildAgentSystemPrompt(shared, shared.decisionMode === "yaml");
+		const systemPrompt = buildAgentSystemPrompt(shared, shared.decisionMode === "xml");
+		// In tool_calling mode, tool definitions are passed as the tools API parameter and
+		// consume tokens, but are NOT embedded in the system prompt. Pass them separately
+		// so the token estimator accounts for them correctly.
+		const toolDefinitions = shared.decisionMode === "tool_calling"
+			? getDecisionToolDefinitions(shared)
+			: "";
 		if (!memory.compressor.shouldCompress(
 			shared.messages,
 			memory.lastConsolidatedMessageIndex,
 			systemPrompt,
-			""
+			toolDefinitions
 		)) {
 			return;
 		}
@@ -532,7 +536,7 @@ async function maybeCompressHistory(shared: AgentShared): Promise<void> {
 			shared.messages,
 			memory.lastConsolidatedMessageIndex,
 			systemPrompt,
-			"",
+			toolDefinitions,
 			shared.llmOptions,
 			shared.llmMaxTry,
 			shared.decisionMode
@@ -586,6 +590,10 @@ function persistHistoryState(shared: AgentShared): void {
 function appendConversationMessage(shared: AgentShared, message: AgentConversationMessage): void {
 	shared.messages.push({
 		...message,
+		content: message.content ? sanitizeUTF8(message.content) : message.content,
+		name: message.name ? sanitizeUTF8(message.name) : message.name,
+		tool_call_id: message.tool_call_id ? sanitizeUTF8(message.tool_call_id) : message.tool_call_id,
+		reasoning_content: message.reasoning_content ? sanitizeUTF8(message.reasoning_content) : message.reasoning_content,
 		timestamp: message.timestamp ?? os.date("!%Y-%m-%dT%H:%M:%SZ"),
 	});
 }
@@ -604,189 +612,8 @@ function appendToolResultMessage(shared: AgentShared, action: AgentActionRecord)
 	});
 }
 
-function extractYAMLFromText(text: string): string {
-	const source = text.trim();
-	const extractFencedBlock = (fence: string): string | undefined => {
-		if (!source.startsWith(fence)) return undefined;
-		const fencePos = 0;
-		const firstLineEnd = source.indexOf("\n", fencePos);
-		if (firstLineEnd < 0) return undefined;
-		let searchPos = firstLineEnd + 1;
-		const closingFencePositions: number[] = [];
-		while (searchPos < source.length) {
-			const lineEnd = source.indexOf("\n", searchPos);
-			const end = lineEnd >= 0 ? lineEnd : source.length;
-			const line = source.slice(searchPos, end).trim();
-			if (line === "```") {
-				closingFencePositions.push(searchPos);
-			}
-			searchPos = end + 1;
-		}
-		for (let i = closingFencePositions.length - 1; i >= 0; i--) {
-			const closingFencePos = closingFencePositions[i];
-			const afterFence = source.slice(closingFencePos + 3).trim();
-			if (afterFence !== "") continue;
-			return source.slice(firstLineEnd + 1, closingFencePos).trim();
-		}
-		return undefined;
-	};
-	const xmlBlock = extractFencedBlock("```xml");
-	if (xmlBlock !== undefined) return xmlBlock;
-	const genericBlock = extractFencedBlock("```");
-	if (genericBlock !== undefined) return genericBlock;
-	return source;
-}
-
-function unwrapXMLRawText(text: string): string {
-	const trimmed = text.trim();
-	if (trimmed.startsWith("<![CDATA[") && trimmed.endsWith("]]>")) {
-		return trimmed.slice(9, trimmed.length - 3);
-	}
-	return text;
-}
-
-function isXMLWhitespaceChar(ch: string): boolean {
-	return ch === " " || ch === "\t" || ch === "\n" || ch === "\r";
-}
-
-function findLastLiteral(text: string, needle: string): number {
-	if (needle === "") return text.length;
-	let last = -1;
-	let from = 0;
-	while (from <= text.length - needle.length) {
-		const pos = text.indexOf(needle, from);
-		if (pos < 0) break;
-		last = pos;
-		from = pos + 1;
-	}
-	return last;
-}
-
-function readSimpleXMLTagName(source: string, openStart: number, openEnd: number): { success: true; tagName: string; selfClosing: boolean } | { success: false; message: string } {
-	const rawTag = source.slice(openStart + 1, openEnd).trim();
-	if (rawTag === "") {
-		return { success: false, message: `invalid xml: empty tag at offset ${tostring(openStart)}` };
-	}
-	let selfClosing = false;
-	let tagText = rawTag;
-	if (tagText.endsWith("/")) {
-		selfClosing = true;
-		tagText = tagText.slice(0, tagText.length - 1).trim();
-	}
-	let tagName = "";
-	for (let i = 0; i < tagText.length; i++) {
-		const ch = tagText[i];
-		if (isXMLWhitespaceChar(ch) || ch === "/") break;
-		tagName += ch;
-	}
-	if (tagName === "") {
-		return { success: false, message: `invalid xml: unsupported tag syntax <${rawTag}>` };
-	}
-	return { success: true, tagName, selfClosing };
-}
-
-function findMatchingXMLClose(source: string, tagName: string, contentStart: number): { success: true; closeStart: number } | { success: false; message: string } {
-	const sameOpenPrefix = `<${tagName}`;
-	const sameCloseToken = `</${tagName}>`;
-	let pos = contentStart;
-	let depth = 1;
-	while (pos < source.length) {
-		const lt = source.indexOf("<", pos);
-		if (lt < 0) break;
-		if (source.startsWith("<![CDATA[", lt)) {
-			const cdataEnd = source.indexOf("]]>", lt + 9);
-			if (cdataEnd < 0) {
-				return { success: false, message: "invalid xml: unterminated CDATA" };
-			}
-			pos = cdataEnd + 3;
-			continue;
-		}
-		if (source.startsWith("<!--", lt)) {
-			const commentEnd = source.indexOf("-->", lt + 4);
-			if (commentEnd < 0) {
-				return { success: false, message: "invalid xml: unterminated comment" };
-			}
-			pos = commentEnd + 3;
-			continue;
-		}
-		if (source.startsWith(sameCloseToken, lt)) {
-			depth -= 1;
-			if (depth === 0) {
-				return { success: true, closeStart: lt };
-			}
-			pos = lt + sameCloseToken.length;
-			continue;
-		}
-		if (source.startsWith(sameOpenPrefix, lt)) {
-			const openEnd = source.indexOf(">", lt);
-			if (openEnd < 0) {
-				return { success: false, message: "invalid xml: unterminated opening tag" };
-			}
-			const tagInfo = readSimpleXMLTagName(source, lt, openEnd);
-			if (!tagInfo.success) return tagInfo;
-			if (tagInfo.tagName === tagName && !tagInfo.selfClosing) {
-				depth += 1;
-			}
-			pos = openEnd + 1;
-			continue;
-		}
-		const genericEnd = source.indexOf(">", lt);
-		if (genericEnd < 0) {
-			return { success: false, message: "invalid xml: unterminated nested tag" };
-		}
-		pos = genericEnd + 1;
-	}
-	return { success: false, message: `invalid xml: missing closing tag </${tagName}>` };
-}
-
-function parseSimpleXMLChildren(source: string): { success: true; obj: Record<string, unknown> } | { success: false; message: string } {
-	const result: Record<string, unknown> = {};
-	let pos = 0;
-	while (pos < source.length) {
-		while (pos < source.length && isXMLWhitespaceChar(source[pos])) pos += 1;
-		if (pos >= source.length) break;
-		if (source[pos] !== "<") {
-			return { success: false, message: `invalid xml: expected tag at offset ${tostring(pos)}` };
-		}
-		if (source.startsWith("</", pos)) {
-			return { success: false, message: `invalid xml: unexpected closing tag at offset ${tostring(pos)}` };
-		}
-		const openEnd = source.indexOf(">", pos);
-		if (openEnd < 0) {
-			return { success: false, message: "invalid xml: unterminated opening tag" };
-		}
-		const tagInfo = readSimpleXMLTagName(source, pos, openEnd);
-		if (!tagInfo.success) return tagInfo;
-		if (tagInfo.selfClosing) {
-			result[tagInfo.tagName] = "";
-			pos = openEnd + 1;
-			continue;
-		}
-		const closeRes = findMatchingXMLClose(source, tagInfo.tagName, openEnd + 1);
-		if (!closeRes.success) return closeRes;
-		const closeToken = `</${tagInfo.tagName}>`;
-		result[tagInfo.tagName] = unwrapXMLRawText(source.slice(openEnd + 1, closeRes.closeStart));
-		pos = closeRes.closeStart + closeToken.length;
-	}
-	return { success: true, obj: result };
-}
-
-function parseYAMLObjectFromText(text: string): { success: true; obj: Record<string, unknown> } | { success: false; message: string } {
-	const xmlText = extractYAMLFromText(text);
-	const rootOpen = "<tool_call>";
-	const rootClose = "</tool_call>";
-	const start = xmlText.indexOf(rootOpen);
-	const end = findLastLiteral(xmlText, rootClose);
-	if (start < 0 || end < start) {
-		return { success: false, message: "invalid xml: missing <tool_call> root" };
-	}
-	const afterRoot = xmlText.slice(end + rootClose.length).trim();
-	const beforeRoot = xmlText.slice(0, start).trim();
-	if (beforeRoot !== "" || afterRoot !== "") {
-		return { success: false, message: "invalid xml: root must be the only top-level block" };
-	}
-	const rootContent = xmlText.slice(start + rootOpen.length, end);
-	const children = parseSimpleXMLChildren(rootContent);
+function parseXMLToolCallObjectFromText(text: string): { success: true; obj: Record<string, unknown> } | { success: false; message: string } {
+	const children = parseXMLObjectFromText(text, "tool_call");
 	if (!children.success) return children;
 	const rawObj = children.obj;
 	const paramsText = typeof rawObj.params === "string" ? rawObj.params as string : "";
@@ -818,7 +645,7 @@ type LLMResult = {
 async function llm(
 	shared: AgentShared,
 	messages: Message[],
-	phase: "decision_yaml" | "decision_yaml_repair" = "decision_yaml"
+	phase: "decision_xml" | "decision_xml_repair" = "decision_xml"
 ): Promise<LLMResult> {
 	const stepId = shared.step + 1;
 	saveStepLLMDebugInput(shared, stepId, phase, messages, shared.llmOptions);
@@ -931,9 +758,6 @@ function validateDecision(
 		if (path === "") return { success: false, message: "edit_file requires path" };
 		const oldStr = type(params.old_str) === "string" ? (params.old_str as string) : "";
 		const newStr = type(params.new_str) === "string" ? (params.new_str as string) : "";
-		if (oldStr === newStr) {
-			return { success: false, message: "edit_file old_str and new_str must be different" };
-		}
 		params.path = path;
 		params.old_str = oldStr;
 		params.new_str = newStr;
@@ -1094,8 +918,8 @@ function buildAgentSystemPrompt(shared: AgentShared, includeToolDefinitions = fa
 	}
 	if (includeToolDefinitions) {
 		sections.push("### Available Tools\n\n" + getDecisionToolDefinitions(shared));
-		if (shared.decisionMode === "yaml") {
-			sections.push(buildYamlDecisionInstruction(shared));
+		if (shared.decisionMode === "xml") {
+			sections.push(buildXmlDecisionInstruction(shared));
 		}
 	}
 	return sections.join("\n\n");
@@ -1107,11 +931,11 @@ function getUnconsolidatedMessages(shared: AgentShared): Message[] {
 
 function buildDecisionMessages(shared: AgentShared, lastError?: string, attempt = 1, lastRaw?: string): Message[] {
 	const messages: Message[] = [
-		{ role: "system", content: buildAgentSystemPrompt(shared, shared.decisionMode === "yaml") },
+		{ role: "system", content: buildAgentSystemPrompt(shared, shared.decisionMode === "xml") },
 		...getUnconsolidatedMessages(shared),
 	];
 	if (lastError && lastError !== "") {
-		const retryHeader = shared.decisionMode === "yaml"
+		const retryHeader = shared.decisionMode === "xml"
 			? `Previous response was invalid (${lastError}). Return exactly one valid XML tool_call block only.`
 			: replacePromptVars(shared.promptPack.toolCallingRetryPrompt, { LAST_ERROR: lastError });
 		messages.push({
@@ -1126,11 +950,11 @@ ${lastRaw && lastRaw !== "" ? `Last rejected output summary: ${truncateText(last
 	return messages;
 }
 
-function buildYamlDecisionInstruction(shared: AgentShared, feedback?: string): string {
-	return `${shared.promptPack.yamlDecisionFormatPrompt}${feedback ?? ""}`;
+function buildXmlDecisionInstruction(shared: AgentShared, feedback?: string): string {
+	return `${shared.promptPack.xmlDecisionFormatPrompt}${feedback ?? ""}`;
 }
 
-function buildYamlRepairMessages(
+function buildXmlRepairMessages(
 	shared: AgentShared,
 	originalRaw: string,
 	candidateRaw: string,
@@ -1146,7 +970,7 @@ ${truncateText(candidateRaw, 4000)}
 
 `
 		: "";
-	const repairPrompt = replacePromptVars(shared.promptPack.yamlDecisionRepairPrompt, {
+	const repairPrompt = replacePromptVars(shared.promptPack.xmlDecisionRepairPrompt, {
 		TOOL_DEFINITIONS: getDecisionToolDefinitions(shared),
 		ORIGINAL_RAW: truncateText(originalRaw, 4000),
 		CANDIDATE_SECTION: candidateSection,
@@ -1176,7 +1000,7 @@ Requirements:
 }
 
 function tryParseAndValidateDecision(rawText: string): DecisionSuccess | DecisionFailure {
-	const parsed = parseYAMLObjectFromText(rawText);
+	const parsed = parseXMLToolCallObjectFromText(rawText);
 	if (!parsed.success) {
 		return { success: false, message: parsed.message, raw: rawText };
 	}
@@ -1194,27 +1018,133 @@ function tryParseAndValidateDecision(rawText: string): DecisionSuccess | Decisio
 }
 
 function normalizeLineEndings(text: string): string {
-	return text.split("\r\n").join("\n").split("\r").join("\n");
+	let [res] = string.gsub(text, "\r\n", "\n");
+	[res] = string.gsub(res, "\r", "\n");
+	return res;
 }
 
-function replaceAllAndCount(text: string, oldStr: string, newStr: string): { content: string; replaced: number } {
-	text = normalizeLineEndings(text);
-	oldStr = normalizeLineEndings(oldStr);
-	newStr = normalizeLineEndings(newStr);
-	if (oldStr === "") return { content: text, replaced: 0 };
+function countOccurrences(text: string, searchStr: string): number {
+	if (searchStr === "") return 0;
 	let count = 0;
-	let from = 0;
+	let pos = 0;
 	while (true) {
-		const idx = text.indexOf(oldStr, from);
+		const idx = text.indexOf(searchStr, pos);
 		if (idx < 0) break;
 		count += 1;
-		from = idx + oldStr.length;
+		pos = idx + searchStr.length;
 	}
-	if (count === 0) return { content: text, replaced: 0 };
+	return count;
+}
+
+function replaceFirst(text: string, oldStr: string, newStr: string): string {
+	if (oldStr === "") return text;
+	const idx = text.indexOf(oldStr);
+	if (idx < 0) return text;
+	return text.substring(0, idx) + newStr + text.substring(idx + oldStr.length);
+}
+
+function splitLines(text: string): string[] {
+	return text.split("\n");
+}
+
+function getLeadingWhitespace(text: string): string {
+	let i = 0;
+	while (i < text.length) {
+		const ch = text[i];
+		if (ch !== " " && ch !== "\t") break;
+		i += 1;
+	}
+	return text.substring(0, i);
+}
+
+function getCommonIndentPrefix(lines: string[]): string {
+	let common: string | undefined;
+	for (let i = 0; i < lines.length; i++) {
+		const line = lines[i];
+		if (line.trim() === "") continue;
+		const indent = getLeadingWhitespace(line);
+		if (common === undefined) {
+			common = indent;
+			continue;
+		}
+		let j = 0;
+		const maxLen = math.min(common.length, indent.length);
+		while (j < maxLen && common[j] === indent[j]) {
+			j += 1;
+		}
+		common = common.substring(0, j);
+		if (common === "") break;
+	}
+	return common ?? "";
+}
+
+function removeIndentPrefix(line: string, indent: string): string {
+	if (indent !== "" && line.startsWith(indent)) {
+		return line.substring(indent.length);
+	}
+	const lineIndent = getLeadingWhitespace(line);
+	let j = 0;
+	const maxLen = math.min(lineIndent.length, indent.length);
+	while (j < maxLen && lineIndent[j] === indent[j]) {
+		j += 1;
+	}
+	return line.substring(j);
+}
+
+function dedentLines(lines: string[]): { indent: string; lines: string[] } {
+	const indent = getCommonIndentPrefix(lines);
 	return {
-		content: text.split(oldStr).join(newStr),
-		replaced: count,
+		indent,
+		lines: lines.map(line => removeIndentPrefix(line, indent)),
 	};
+}
+
+function joinLines(lines: string[]): string {
+	return lines.join("\n");
+}
+
+function findIndentTolerantReplacement(
+	content: string,
+	oldStr: string,
+	newStr: string
+): { success: true; content: string } | { success: false; message: string } {
+	const contentLines = splitLines(content);
+	const oldLines = splitLines(oldStr);
+	if (oldLines.length === 0) {
+		return { success: false, message: "old_str not found in file" };
+	}
+	const dedentedOld = dedentLines(oldLines);
+	const dedentedOldText = joinLines(dedentedOld.lines);
+	const dedentedNew = dedentLines(splitLines(newStr));
+	const matches: { start: number; end: number; indent: string }[] = [];
+	for (let start = 0; start <= contentLines.length - oldLines.length; start++) {
+		const candidateLines = contentLines.slice(start, start + oldLines.length);
+		const dedentedCandidate = dedentLines(candidateLines);
+		if (joinLines(dedentedCandidate.lines) === dedentedOldText) {
+			matches.push({
+				start,
+				end: start + oldLines.length,
+				indent: dedentedCandidate.indent,
+			});
+		}
+	}
+	if (matches.length === 0) {
+		return { success: false, message: "old_str not found in file" };
+	}
+	if (matches.length > 1) {
+		return {
+			success: false,
+			message: `old_str appears ${matches.length} times in file after indentation normalization. Please provide more context to uniquely identify the target location.`,
+		};
+	}
+	const match = matches[0];
+	const rebuiltNewLines = dedentedNew.lines.map(line => line === "" ? "" : match.indent + line);
+	const nextLines = [
+		...contentLines.slice(0, match.start),
+		...rebuiltNewLines,
+		...contentLines.slice(match.end),
+	];
+	return { success: true, content: joinLines(nextLines) };
 }
 
 class MainDecisionAgent extends Node<AgentShared> {
@@ -1294,7 +1224,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 		const argsText = typeof fn.arguments === "string" ? fn.arguments : "";
 		Log("Info", `[CodingAgent] tool-calling function=${functionName} args_len=${argsText.length}`);
 		const rawArgs = argsText.trim() === "" ? {} : (() => {
-			const [rawObj, err] = json.decode(argsText);
+			const [rawObj, err] = safeJsonDecode(argsText);
 			if (err !== undefined || rawObj === undefined) {
 				return { __error: tostring(err) };
 			}
@@ -1309,6 +1239,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 				raw: argsText,
 			};
 		}
+		p(rawArgs);
 		const decision = parseDecisionToolCall(functionName, rawArgs);
 		if (!decision.success) {
 			Log("Error", `[CodingAgent] invalid tool arguments schema: ${decision.message}`);
@@ -1335,7 +1266,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 		return decision;
 	}
 
-	private async repairDecisionYaml(
+	private async repairDecisionXml(
 		shared: AgentShared,
 		originalRaw: string,
 		initialError: string
@@ -1345,14 +1276,14 @@ class MainDecisionAgent extends Node<AgentShared> {
 		let candidateRaw = "";
 		for (let attempt = 0; attempt < shared.llmMaxTry; attempt++) {
 			Log("Info", `[CodingAgent] xml repair attempt=${attempt + 1}`);
-			const messages = buildYamlRepairMessages(
+			const messages = buildXmlRepairMessages(
 				shared,
 				originalRaw,
 				candidateRaw,
 				lastError,
 				attempt + 1
 			);
-			const llmRes = await llm(shared, messages, "decision_yaml_repair");
+			const llmRes = await llm(shared, messages, "decision_xml_repair");
 			if (shared.stopToken.stopped) {
 				return { success: false, message: getCancelledReason(shared) };
 			}
@@ -1425,7 +1356,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 				attempt + 1,
 				lastRaw
 			);
-			const llmRes = await llm(shared, messages, "decision_yaml");
+			const llmRes = await llm(shared, messages, "decision_xml");
 			if (shared.stopToken.stopped) {
 				return { success: false, message: getCancelledReason(shared) };
 			}
@@ -1440,7 +1371,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 				return decision;
 			}
 			lastError = decision.message;
-			return this.repairDecisionYaml(shared, llmRes.text, lastError);
+			return this.repairDecisionXml(shared, llmRes.text, lastError);
 		}
 		return { success: false, message: `cannot produce valid decision xml: ${lastError}; last_output=${truncateText(lastRaw, 400)}` };
 	}
@@ -1862,7 +1793,6 @@ class EditFileAction extends Node<AgentShared> {
 		const oldStr = type(last.params.old_str) === "string" ? (last.params.old_str as string) : "";
 		const newStr = type(last.params.new_str) === "string" ? (last.params.new_str as string) : "";
 		if (path.trim() === "") throw new Error("missing path");
-		if (oldStr === newStr) throw new Error("old_str and new_str must be different");
 		return { path, oldStr, newStr, taskId: shared.taskId, workDir: shared.workingDir };
 	}
 
@@ -1883,30 +1813,64 @@ class EditFileAction extends Node<AgentShared> {
 				success: true,
 				changed: true,
 				mode: "create",
-				replaced: 0,
 				checkpointId: createRes.checkpointId,
 				checkpointSeq: createRes.checkpointSeq,
 				files: [{ path: input.path, op: "create" as const }],
 			};
 		}
 		if (input.oldStr === "") {
-			return { success: false, message: "old_str must be non-empty when editing an existing file" };
-		}
-
-		const replaceRes = replaceAllAndCount(readRes.content, input.oldStr, input.newStr);
-		if (replaceRes.replaced === 0) {
-			return { success: false, message: "old_str not found in file" };
-		}
-		if (replaceRes.content === readRes.content) {
+			const overwriteRes = Tools.applyFileChanges(input.taskId, input.workDir, [{ path: input.path, op: "write", content: input.newStr }], {
+				summary: `overwrite file ${input.path} via edit_file`,
+				toolName: "edit_file",
+			});
+			if (!overwriteRes.success) {
+				return { success: false, message: `write file failed: ${overwriteRes.message}` };
+			}
 			return {
 				success: true,
-				changed: false,
-				mode: "no_change",
-				replaced: replaceRes.replaced,
+				changed: true,
+				mode: "overwrite",
+				checkpointId: overwriteRes.checkpointId,
+				checkpointSeq: overwriteRes.checkpointSeq,
+				files: [{ path: input.path, op: "write" as const }],
 			};
 		}
 
-		const applyRes = Tools.applyFileChanges(input.taskId, input.workDir, [{ path: input.path, op: "write", content: replaceRes.content }], {
+		// Normalize line endings for consistent matching
+		const normalizedContent = normalizeLineEndings(readRes.content);
+		const normalizedOldStr = normalizeLineEndings(input.oldStr);
+		const normalizedNewStr = normalizeLineEndings(input.newStr);
+
+		// Check how many times old_str appears
+		const occurrences = countOccurrences(normalizedContent, normalizedOldStr);
+		if (occurrences === 0) {
+			const indentTolerant = findIndentTolerantReplacement(normalizedContent, normalizedOldStr, normalizedNewStr);
+			if (!indentTolerant.success) {
+				return { success: false, message: indentTolerant.message };
+			}
+			const applyRes = Tools.applyFileChanges(input.taskId, input.workDir, [{ path: input.path, op: "write", content: indentTolerant.content }], {
+				summary: `replace text in ${input.path} via edit_file (indent-tolerant)`,
+				toolName: "edit_file",
+			});
+			if (!applyRes.success) {
+				return { success: false, message: `write file failed: ${applyRes.message}` };
+			}
+			return {
+				success: true,
+				changed: true,
+				mode: "replace_indent_tolerant",
+				checkpointId: applyRes.checkpointId,
+				checkpointSeq: applyRes.checkpointSeq,
+				files: [{ path: input.path, op: "write" as const }],
+			};
+		}
+		if (occurrences > 1) {
+			return { success: false, message: `old_str appears ${occurrences} times in file. Please provide more context to uniquely identify the target location.` };
+		}
+
+		// Perform the replacement (we know it appears exactly once)
+		const newContent = replaceFirst(normalizedContent, normalizedOldStr, normalizedNewStr);
+		const applyRes = Tools.applyFileChanges(input.taskId, input.workDir, [{ path: input.path, op: "write", content: newContent }], {
 			summary: `replace text in ${input.path} via edit_file`,
 			toolName: "edit_file",
 		});
@@ -1917,7 +1881,6 @@ class EditFileAction extends Node<AgentShared> {
 			success: true,
 			changed: true,
 			mode: "replace",
-			replaced: replaceRes.replaced,
 			checkpointId: applyRes.checkpointId,
 			checkpointSeq: applyRes.checkpointSeq,
 			files: [{ path: input.path, op: "write" as const }],
@@ -1940,18 +1903,18 @@ class EditFileAction extends Node<AgentShared> {
 			});
 			const result = last.result;
 			if ((last.tool === "edit_file" || last.tool === "delete_file")
-				&& type(result.checkpointId) === "number"
-				&& type(result.checkpointSeq) === "number"
-				&& type(result.files) === "table") {
+				&& typeof result.checkpointId === "number"
+				&& typeof result.checkpointSeq === "number"
+				&& Array.isArray(result.files)) {
 				emitAgentEvent(shared, {
 					type: "checkpoint_created",
 					sessionId: shared.sessionId,
 					taskId: shared.taskId,
 					step: shared.step + 1,
 					tool: last.tool,
-					checkpointId: result.checkpointId as number,
-					checkpointSeq: result.checkpointSeq as number,
-					files: result.files as { path: string; op: "write" | "create" | "delete"; }[],
+					checkpointId: result.checkpointId,
+					checkpointSeq: result.checkpointSeq,
+					files: result.files,
 				});
 			}
 		}
@@ -2044,7 +2007,7 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 		useChineseResponse: options.useChineseResponse === true,
 		decisionMode: options.decisionMode
 			? options.decisionMode
-			: (llmConfig.supportsFunctionCalling ? "tool_calling" : "yaml"),
+			: (llmConfig.supportsFunctionCalling ? "tool_calling" : "xml"),
 		llmOptions: {
 			temperature: 0.1,
 			max_tokens: 8192,

@@ -1,4 +1,5 @@
-import { json, Log } from 'Dora';
+import { Log } from 'Dora';
+import { safeJsonEncode } from 'Agent/Utils';
 
 namespace Gen {
 
@@ -1056,7 +1057,7 @@ namespace Gen {
 			j.x = (i + 1) * 500;
 			return j;
 		}) ?? [];
-		const [res, err] = json.encode({
+		const [res, err] = safeJsonEncode({
 			blocks: {
 				languageVersion: 0,
 				blocks: [root.toJSON(), ...procBlocks],

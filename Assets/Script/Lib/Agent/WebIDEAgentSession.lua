@@ -13,12 +13,14 @@ local App = ____Dora.App -- 2
 local Content = ____Dora.Content -- 2
 local DB = ____Dora.DB -- 2
 local Path = ____Dora.Path -- 2
-local json = ____Dora.json -- 2
 local ____CodingAgent = require("Agent.CodingAgent") -- 3
 local runCodingAgent = ____CodingAgent.runCodingAgent -- 3
 local Tools = require("Agent.Tools") -- 4
 local ____Utils = require("Agent.Utils") -- 5
 local Log = ____Utils.Log -- 5
+local safeJsonDecode = ____Utils.safeJsonDecode -- 5
+local safeJsonEncode = ____Utils.safeJsonEncode -- 5
+local sanitizeUTF8 = ____Utils.sanitizeUTF8 -- 5
 function setSessionState(sessionId, status, currentTaskId, currentTaskStatus) -- 222
 	DB:exec( -- 223
 		("UPDATE " .. TABLE_SESSION) .. "\n\t\tSET status = ?, current_task_id = ?, current_task_status = ?, updated_at = ?\n\t\tWHERE id = ?", -- 223
@@ -49,14 +51,18 @@ local function toStr(v) -- 92
 	return tostring(v) -- 94
 end -- 92
 local function encodeJson(value) -- 97
-	local text = json.encode(value) -- 98
+	local text = safeJsonEncode(value) -- 98
 	return text or "" -- 99
 end -- 97
 local function decodeJsonObject(text) -- 102
 	if not text or text == "" then -- 102
 		return nil -- 103
 	end -- 103
-	local value = json.decode(text) -- 104
+	local value = table.unpack( -- 104
+		safeJsonDecode(text), -- 104
+		1, -- 104
+		1 -- 104
+	) -- 104
 	if value and not __TS__ArrayIsArray(value) and type(value) == "table" then -- 104
 		return value -- 106
 	end -- 106
@@ -66,7 +72,11 @@ local function decodeJsonFiles(text) -- 111
 	if not text or text == "" then -- 111
 		return nil -- 112
 	end -- 112
-	local value = json.decode(text) -- 113
+	local value = table.unpack( -- 113
+		safeJsonDecode(text), -- 113
+		1, -- 113
+		1 -- 113
+	) -- 113
 	if not value or not __TS__ArrayIsArray(value) then -- 113
 		return nil -- 114
 	end -- 114
@@ -80,8 +90,8 @@ local function decodeJsonFiles(text) -- 111
 					goto __continue14 -- 118
 				end -- 118
 				files[#files + 1] = { -- 119
-					path = toStr(item.path), -- 120
-					op = toStr(item.op) -- 121
+					path = sanitizeUTF8(toStr(item.path)), -- 120
+					op = sanitizeUTF8(toStr(item.op)) -- 121
 				} -- 121
 			end -- 121
 			::__continue14:: -- 121

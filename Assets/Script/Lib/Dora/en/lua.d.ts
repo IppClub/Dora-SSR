@@ -2560,10 +2560,10 @@ declare namespace utf8 {
 	 * Returns the number of UTF-8 characters in string s that start between
 	 * positions i and j (both inclusive). The default for i is 1 and for j is -1.
 	 * If lax is true, accepts any byte value as valid continuation bytes.
-	 * If it finds any invalid byte sequence, returns a false value plus the
+	 * If it finds any invalid byte sequence, returns undefined plus the
 	 * position of the first invalid byte.
 	 */
-	function len(s: string, i?: number, j?: number, lax?: boolean): LuaMultiReturn<[number, undefined]> | LuaMultiReturn<[false, number]>;
+	function len(s: string, i?: number, j?: number, lax?: boolean): LuaMultiReturn<[number, undefined]> | LuaMultiReturn<[undefined, number]>;
 
 	/**
 	 * Returns the position (in bytes) where the encoding of the n-th character of

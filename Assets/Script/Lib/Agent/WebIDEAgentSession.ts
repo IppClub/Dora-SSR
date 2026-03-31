@@ -1,8 +1,8 @@
 // @preview-file off clear
-import { App, Content, DB, Path, json } from 'Dora';
+import { App, Content, DB, Path } from 'Dora';
 import { runCodingAgent, CodingAgentEvent, CodingAgentRunResult } from 'Agent/CodingAgent';
 import * as Tools from 'Agent/Tools';
-import { Log } from 'Agent/Utils';
+import { Log, safeJsonDecode, safeJsonEncode, sanitizeUTF8 } from 'Agent/Utils';
 import type { StopToken } from 'Agent/Utils';
 
 export type AgentSessionStatus = "IDLE" | "RUNNING" | "DONE" | "FAILED" | "STOPPED";
@@ -95,13 +95,13 @@ function toStr(v: unknown): string {
 }
 
 function encodeJson(value: unknown): string {
-	const [text] = json.encode(value as object);
+	const [text] = safeJsonEncode(value as object);
 	return text ?? "";
 }
 
 function decodeJsonObject(text: string): Record<string, unknown> | undefined {
 	if (!text || text === "") return undefined;
-	const [value] = json.decode(text);
+	const [value] = safeJsonDecode(text);
 	if (value && !Array.isArray(value) && type(value) === "table") {
 		return value as Record<string, unknown>;
 	}
@@ -110,15 +110,15 @@ function decodeJsonObject(text: string): Record<string, unknown> | undefined {
 
 function decodeJsonFiles(text: string): { path: string; op: string }[] | undefined {
 	if (!text || text === "") return undefined;
-	const [value] = json.decode(text);
+	const [value] = safeJsonDecode(text);
 	if (!value || !Array.isArray(value)) return undefined;
 	const files: { path: string; op: string }[] = [];
 	for (let i = 0; i < value.length; i++) {
 		const item = value[i] as any;
 		if (type(item) !== "table") continue;
 		files.push({
-			path: toStr(item.path),
-			op: toStr(item.op),
+			path: sanitizeUTF8(toStr(item.path)),
+			op: sanitizeUTF8(toStr(item.op)),
 		});
 	}
 	return files;

@@ -1,7 +1,7 @@
 // @preview-file off clear
-import { json, HttpClient, DB, emit, Log as DoraLog, Director, once } from 'Dora';
+import { json, HttpClient, DB, emit, Log as DoraLog, Director, once, App } from 'Dora';
 
-let LOG_LEVEL = 2;
+let LOG_LEVEL = App.debugging ? 3 : 2;
 export function setLogLevel(level: number) {
 	LOG_LEVEL = level;
 }
@@ -38,6 +38,10 @@ export interface Message {
 	tool_calls?: ToolCall[];
 }
 
+export type SimpleXMLParseResult =
+	| { success: true; obj: Record<string, unknown> }
+	| { success: false; message: string };
+
 const TOOL_CALL_ID_ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz";
 let TOOL_CALL_ID_COUNTER = 0;
 
@@ -72,6 +76,58 @@ function previewText(text: string, maxLen = 200): string {
 	return `${compact.slice(0, maxLen)}...`;
 }
 
+export function sanitizeUTF8(text: string): string {
+	if (!text) return "";
+	let remaining = text;
+	let output = "";
+	while (remaining !== "") {
+		const [len, invalidPos] = utf8.len(remaining);
+		if (len !== undefined) {
+			output += remaining;
+			break;
+		}
+		const badPos = type(invalidPos) === "number" ? invalidPos as number : 1;
+		if (badPos > 1) {
+			output += remaining.substring(0, badPos - 1);
+		}
+		remaining = remaining.substring(badPos);
+	}
+	return output;
+}
+
+function sanitizeJSONValue(value: unknown): unknown {
+	if (typeof value === "string") return sanitizeUTF8(value);
+	if (Array.isArray(value)) {
+		return value.map(item => sanitizeJSONValue(item));
+	}
+	if (value && type(value) === "table") {
+		const result: Record<string, unknown> = {};
+		for (const key in value as Record<string, unknown>) {
+			result[key] = sanitizeJSONValue((value as Record<string, unknown>)[key]);
+		}
+		return result;
+	}
+	return value;
+}
+
+export function safeJsonEncode(value: unknown, indent?: boolean, sortKeys?: boolean, escapeSlash?: boolean, maxDepth?: number) {
+	return json.encode(
+		sanitizeJSONValue(value) as object,
+		indent,
+		sortKeys,
+		escapeSlash,
+		maxDepth,
+	);
+}
+
+export function safeJsonDecode(text: string) {
+	const [value, err] = json.decode(sanitizeUTF8(text));
+	if (value === undefined) {
+		return [value, err] as const;
+	}
+	return [sanitizeJSONValue(value), err] as const;
+}
+
 function utf8TakeHead(text: string, maxChars: number): string {
 	if (maxChars <= 0 || text === "") return "";
 	const nextPos = utf8.offset(text, maxChars + 1);
@@ -82,7 +138,7 @@ function utf8TakeHead(text: string, maxChars: number): string {
 function utf8TakeTail(text: string, maxChars: number): string {
 	if (maxChars <= 0 || text === "") return "";
 	const [charLen] = utf8.len(text);
-	if (charLen === false || charLen <= maxChars) return text;
+	if (charLen === undefined || charLen <= maxChars) return text;
 	const startChar = math.max(1, charLen - maxChars + 1);
 	const startPos = utf8.offset(text, startChar);
 	if (startPos === undefined) return text;
@@ -92,7 +148,7 @@ function utf8TakeTail(text: string, maxChars: number): string {
 export function estimateTextTokens(text: string): number {
 	if (!text) return 0;
 	const [charLen] = utf8.len(text);
-	if (charLen === false || charLen <= 0) return 0;
+	if (!charLen || charLen <= 0) return 0;
 	const otherChars = text.length - charLen;
 	const tokens = Math.ceil(charLen / 1.5 + otherChars / 4);
 	return Math.max(1, tokens);
@@ -108,14 +164,14 @@ function estimateMessagesTokens(messages: Message[]): number {
 		total += estimateTextTokens(message.name ?? "");
 		total += estimateTextTokens(message.tool_call_id ?? "");
 		total += estimateTextTokens(message.reasoning_content ?? "");
-		const [toolCallsText] = json.encode((message.tool_calls ?? []) as object);
+		const [toolCallsText] = safeJsonEncode((message.tool_calls ?? []) as object);
 		total += estimateTextTokens(toolCallsText ?? "");
 	}
 	return total;
 }
 
 function estimateOptionsTokens(options: Record<string, any>): number {
-	const [text] = json.encode(options as object);
+	const [text] = safeJsonEncode(options as object);
 	return text ? estimateTextTokens(text) : 0;
 }
 
@@ -148,6 +204,191 @@ export function clipTextToTokenBudget(text: string, budgetTokens: number): strin
 	const head = keepHead > 0 ? utf8TakeHead(text, keepHead) : "";
 	const tail = keepTail > 0 ? utf8TakeTail(text, keepTail) : "";
 	return `${head}\n...\n${tail}`;
+}
+
+function isXMLWhitespaceChar(ch: string): boolean {
+	return ch === " " || ch === "\t" || ch === "\n" || ch === "\r";
+}
+
+function findLineStart(value: string, from: number): number {
+	let i = from;
+	while (i >= 0) {
+		if (value[i] === "\n") return i + 1;
+		i -= 1;
+	}
+	return 0;
+}
+
+function findLastLiteral(text: string, needle: string): number {
+	if (needle === "") return text.length;
+	let last = -1;
+	let from = 0;
+	while (from <= text.length - needle.length) {
+		const pos = text.indexOf(needle, from);
+		if (pos < 0) break;
+		last = pos;
+		from = pos + 1;
+	}
+	return last;
+}
+
+function unwrapXMLRawText(text: string): string {
+	const trimmed = text.trim();
+	if (trimmed.startsWith("<![CDATA[") && trimmed.endsWith("]]>")) {
+		return trimmed.slice(9, trimmed.length - 3);
+	}
+	return text;
+}
+
+function readSimpleXMLTagName(source: string, openStart: number, openEnd: number): { success: true; tagName: string; selfClosing: boolean } | { success: false; message: string } {
+	const rawTag = source.slice(openStart + 1, openEnd).trim();
+	if (rawTag === "") {
+		return { success: false, message: `invalid xml: empty tag at offset ${tostring(openStart)}` };
+	}
+	let selfClosing = false;
+	let tagText = rawTag;
+	if (tagText.endsWith("/")) {
+		selfClosing = true;
+		tagText = tagText.slice(0, tagText.length - 1).trim();
+	}
+	let tagName = "";
+	for (let i = 0; i < tagText.length; i++) {
+		const ch = tagText[i];
+		if (isXMLWhitespaceChar(ch) || ch === "/") break;
+		tagName += ch;
+	}
+	if (tagName === "") {
+		return { success: false, message: `invalid xml: unsupported tag syntax <${rawTag}>` };
+	}
+	return { success: true, tagName, selfClosing };
+}
+
+function findMatchingXMLClose(source: string, tagName: string, contentStart: number): { success: true; closeStart: number } | { success: false; message: string } {
+	const sameOpenPrefix = `<${tagName}`;
+	const sameCloseToken = `</${tagName}>`;
+	let pos = contentStart;
+	let depth = 1;
+	while (pos < source.length) {
+		const lt = source.indexOf("<", pos);
+		if (lt < 0) break;
+		if (source.startsWith("<![CDATA[", lt)) {
+			const cdataEnd = source.indexOf("]]>", lt + 9);
+			if (cdataEnd < 0) return { success: false, message: "invalid xml: unterminated CDATA" };
+			pos = cdataEnd + 3;
+			continue;
+		}
+		if (source.startsWith("<!--", lt)) {
+			const commentEnd = source.indexOf("-->", lt + 4);
+			if (commentEnd < 0) return { success: false, message: "invalid xml: unterminated comment" };
+			pos = commentEnd + 3;
+			continue;
+		}
+		if (source.startsWith(sameCloseToken, lt)) {
+			depth -= 1;
+			if (depth === 0) return { success: true, closeStart: lt };
+			pos = lt + sameCloseToken.length;
+			continue;
+		}
+		if (source.startsWith(sameOpenPrefix, lt)) {
+			const openEnd = source.indexOf(">", lt);
+			if (openEnd < 0) return { success: false, message: "invalid xml: unterminated opening tag" };
+			const tagInfo = readSimpleXMLTagName(source, lt, openEnd);
+			if (!tagInfo.success) return tagInfo;
+			if (tagInfo.tagName === tagName && !tagInfo.selfClosing) {
+				depth += 1;
+			}
+			pos = openEnd + 1;
+			continue;
+		}
+		const genericEnd = source.indexOf(">", lt);
+		if (genericEnd < 0) return { success: false, message: "invalid xml: unterminated nested tag" };
+		pos = genericEnd + 1;
+	}
+	return { success: false, message: `invalid xml: missing closing tag </${tagName}>` };
+}
+
+export function extractXMLFromText(text: string): string {
+	const source = text.trim();
+	const extractFencedBlock = (fence: string): string | undefined => {
+		if (!source.startsWith(fence)) return undefined;
+		const firstLineEnd = source.indexOf("\n", 0);
+		if (firstLineEnd < 0) return undefined;
+		let searchPos = firstLineEnd + 1;
+		const closingFencePositions: number[] = [];
+		while (searchPos < source.length) {
+			const end = source.indexOf("```", searchPos);
+			if (end < 0) break;
+			const lineStart = findLineStart(source, end - 1);
+			const lineEnd = source.indexOf("\n", end);
+			const actualLineEnd = lineEnd >= 0 ? lineEnd : source.length;
+			if (source.slice(lineStart, actualLineEnd).trim() === "```") {
+				closingFencePositions.push(end);
+			}
+			searchPos = end + 1;
+		}
+		for (let i = closingFencePositions.length - 1; i >= 0; i--) {
+			const closingFencePos = closingFencePositions[i];
+			const afterFence = source.slice(closingFencePos + 3).trim();
+			if (afterFence !== "") continue;
+			return source.slice(firstLineEnd + 1, closingFencePos).trim();
+		}
+		return undefined;
+	};
+	const xmlBlock = extractFencedBlock("```xml");
+	if (xmlBlock !== undefined) return xmlBlock;
+	const genericBlock = extractFencedBlock("```");
+	if (genericBlock !== undefined) return genericBlock;
+	return source;
+}
+
+export function parseSimpleXMLChildren(source: string): SimpleXMLParseResult {
+	const result: Record<string, unknown> = {};
+	let pos = 0;
+	while (pos < source.length) {
+		while (pos < source.length && isXMLWhitespaceChar(source[pos])) pos += 1;
+		if (pos >= source.length) break;
+		if (source[pos] !== "<") {
+			return { success: false, message: `invalid xml: expected tag at offset ${tostring(pos)}` };
+		}
+		if (source.startsWith("</", pos)) {
+			return { success: false, message: `invalid xml: unexpected closing tag at offset ${tostring(pos)}` };
+		}
+		const openEnd = source.indexOf(">", pos);
+		if (openEnd < 0) {
+			return { success: false, message: "invalid xml: unterminated opening tag" };
+		}
+		const tagInfo = readSimpleXMLTagName(source, pos, openEnd);
+		if (!tagInfo.success) return tagInfo;
+		if (tagInfo.selfClosing) {
+			result[tagInfo.tagName] = "";
+			pos = openEnd + 1;
+			continue;
+		}
+		const closeRes = findMatchingXMLClose(source, tagInfo.tagName, openEnd + 1);
+		if (!closeRes.success) return closeRes;
+		const closeToken = `</${tagInfo.tagName}>`;
+		result[tagInfo.tagName] = unwrapXMLRawText(source.slice(openEnd + 1, closeRes.closeStart));
+		pos = closeRes.closeStart + closeToken.length;
+	}
+	return { success: true, obj: result };
+}
+
+export function parseXMLObjectFromText(text: string, rootTag: string): SimpleXMLParseResult {
+	const xmlText = extractXMLFromText(text);
+	const rootOpen = `<${rootTag}>`;
+	const rootClose = `</${rootTag}>`;
+	const start = xmlText.indexOf(rootOpen);
+	const end = findLastLiteral(xmlText, rootClose);
+	if (start < 0 || end < start) {
+		return { success: false, message: `invalid xml: missing <${rootTag}> root` };
+	}
+	const beforeRoot = xmlText.slice(0, start).trim();
+	const afterRoot = xmlText.slice(end + rootClose.length).trim();
+	if (beforeRoot !== "" || afterRoot !== "") {
+		return { success: false, message: "invalid xml: root must be the only top-level block" };
+	}
+	const rootContent = xmlText.slice(start + rootOpen.length, end);
+	return parseSimpleXMLChildren(rootContent);
 }
 
 export function fitMessagesToContext(messages: Message[], options: Record<string, any>, config: LLMConfig): {
@@ -284,7 +525,7 @@ const postLLM = (
 		});
 		Director.systemScheduler.schedule(once(() => {
 			emit("LLM_IN", messages.map((m, i) => i.toString() + ": " + m.content).join('\n'));
-			const [jsonStr, err] = json.encode(data);
+			const [jsonStr, err] = safeJsonEncode(data);
 			if (jsonStr !== undefined) {
 				const headers = [
 					`Authorization: Bearer ${apiKey}`,
@@ -352,7 +593,7 @@ export function createSSEJSONParser(opts: {
 			return;
 		}
 
-		const [obj, err] = json.decode(dataPayload);
+		const [obj, err] = safeJsonDecode(dataPayload);
 		if (err === undefined) {
 			opts.onJSON(obj, dataPayload);
 		} else {
@@ -624,9 +865,9 @@ export async function callLLM(
 		return { success: false, message: reason };
 	}
 	try {
-		const raw = await postLLM(fitted.messages, url, apiKey, model, options, false, undefined, stopToken);
+		const raw = sanitizeUTF8(await postLLM(fitted.messages, url, apiKey, model, options, false, undefined, stopToken));
 		Log("Info", `[Agent.Utils] callLLMOnce raw response length=${raw.length}`);
-		const [response, err] = json.decode(raw);
+		const [response, err] = safeJsonDecode(raw);
 		if (err !== undefined || response === undefined || type(response) !== "table") {
 			const rawPreview = previewText(raw);
 			Log("Error", `[Agent.Utils] callLLMOnce invalid JSON: ${tostring(err)} raw_preview=${rawPreview}`);

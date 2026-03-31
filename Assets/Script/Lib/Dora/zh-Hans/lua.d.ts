@@ -2064,9 +2064,9 @@ declare namespace utf8 {
 	/**
 	 * 返回字符串 s 中开始在位置 i 和 j（都包括在内）的 UTF-8 字符的数量。
 	 * 如果 lax 为 true，则把任意字节值视为有效续字节。
-	 * i 的默认值为 1，j 的默认值为 -1。如果找到任何无效的字节序列，返回一个 false 值加上第一个无效字节的位置。
+	 * i 的默认值为 1，j 的默认值为 -1。如果找到任何无效的字节序列，返回一个 undefined 加上第一个无效字节的位置。
 	 */
-	function len(s: string, i?: number, j?: number, lax?: boolean): LuaMultiReturn<[number, undefined]> | LuaMultiReturn<[false, number]>;
+	function len(s: string, i?: number, j?: number, lax?: boolean): LuaMultiReturn<[number, undefined]> | LuaMultiReturn<[undefined, number]>;
 
 	/**
 	 * 返回 s 中第 n 个字符的编码开始的位置（以字节为单位）。

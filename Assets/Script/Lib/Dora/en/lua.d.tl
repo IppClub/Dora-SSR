@@ -538,8 +538,8 @@ local record lua
 		-- @param i (integer) [optional] The start position. Default is 1.
 		-- @param j (integer) [optional] The end position. Default is -1.
 		-- @param lax (boolean) [optional] If true, relaxes validation checks.
-		-- @return (integer) Number of UTF-8 characters.
-		len: function(s: string, i?: integer, j?: integer, lax?: boolean): integer
+		-- @return (integer|nil, nil|integer) Number of UTF-8 characters or nil with invalid character position.
+		len: function(s: string, i?: integer, j?: integer, lax?: boolean): integer|nil, nil|integer
 
 		-- Returns the byte position where the encoding of a specified character starts.
 		-- @param s (string) The input string.

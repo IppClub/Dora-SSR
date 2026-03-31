@@ -1,6 +1,6 @@
 // @preview-file off clear
-import { Content, DB, Path, Director, once, SearchFilesResult, Node, emit, wait, json, App, HttpServer } from 'Dora';
-import { Log } from 'Agent/Utils';
+import { Content, DB, Path, Director, once, SearchFilesResult, Node, emit, wait, App, HttpServer } from 'Dora';
+import { Log, safeJsonDecode, safeJsonEncode } from 'Agent/Utils';
 
 export type AgentTaskStatus = "RUNNING" | "DONE" | "FAILED" | "STOPPED";
 export type CheckpointStatus = "PREPARED" | "APPLIED" | "REVERTED" | "FAILED";
@@ -553,7 +553,7 @@ function applySingleFile(path: string, exists: boolean, content: string): boolea
 }
 
 function encodeJSON(obj: object): string | undefined {
-	const [text] = json.encode(obj);
+	const [text] = safeJsonEncode(obj);
 	return text;
 }
 
@@ -592,17 +592,19 @@ export async function runSingleTsTranspile(file: string, content: string): Promi
 	const listener = Node();
 	listener.gslot("AppWS", (event) => {
 		if (event.type !== "Receive") return;
-		const [res] = json.decode(event.msg);
-		if (!res || Array.isArray(res) || res.name !== "TranspileTS") return;
-		if (res.success) {
+		const [res] = safeJsonDecode(event.msg);
+		if (!res || Array.isArray(res) || type(res) !== "table") return;
+		const payload = res as any;
+		if (payload.name !== "TranspileTS") return;
+		if (payload.success) {
 			const luaFile = Path.replaceExt(file, "lua");
-			if (Content.save(luaFile, tostring(res.luaCode))) {
+			if (Content.save(luaFile, tostring(payload.luaCode))) {
 				result = { success: true, file };
 			} else {
 				result = { success: false, file, message: `failed to save ${luaFile}` };
 			}
 		} else {
-			result = { success: false, file, message: tostring(res.message) };
+			result = { success: false, file, message: tostring(payload.message) };
 		}
 		done = true;
 	});
