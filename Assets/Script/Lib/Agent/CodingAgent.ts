@@ -4,7 +4,6 @@ import { Flow, Node } from 'Agent/flow';
 import { callLLM, Message, StopToken, Log, getActiveLLMConfig, createLocalToolCallId } from 'Agent/Utils';
 import type { LLMConfig } from 'Agent/Utils';
 import * as Tools from 'Agent/Tools';
-import * as yaml from 'yaml';
 import { MemoryCompressor } from 'Agent/Memory';
 import type { AgentPromptPack, AgentConversationMessage } from 'Agent/Memory';
 
@@ -508,9 +507,11 @@ function getDecisionToolDefinitions(shared?: AgentShared): string {
 	}
 	return `${base}
 
-YAML mode object fields:
-- For read_file, edit_file, delete_file, grep_files, search_dora_api, glob_files, and build, include a top-level reason field with a short explanation for choosing that tool.
-- For finish, do not include reason. Use only tool and params.message.`;
+XML mode object fields:
+- Use a single root tag: <tool_call>.
+- For read_file, edit_file, delete_file, grep_files, search_dora_api, glob_files, and build, include <tool>, <reason>, and <params>.
+- For finish, do not include <reason>. Use only <tool> and <params><message>...</message></params>.
+- Inside <params>, use one child tag per parameter and preserve each tag content as raw text.`;
 }
 
 async function maybeCompressHistory(shared: AgentShared): Promise<void> {
@@ -606,8 +607,8 @@ function appendToolResultMessage(shared: AgentShared, action: AgentActionRecord)
 function extractYAMLFromText(text: string): string {
 	const source = text.trim();
 	const extractFencedBlock = (fence: string): string | undefined => {
-		const fencePos = source.indexOf(fence);
-		if (fencePos < 0) return undefined;
+		if (!source.startsWith(fence)) return undefined;
+		const fencePos = 0;
 		const firstLineEnd = source.indexOf("\n", fencePos);
 		if (firstLineEnd < 0) return undefined;
 		let searchPos = firstLineEnd + 1;
@@ -622,33 +623,187 @@ function extractYAMLFromText(text: string): string {
 			searchPos = end + 1;
 		}
 		for (let i = closingFencePositions.length - 1; i >= 0; i--) {
-			const candidate = source.slice(firstLineEnd + 1, closingFencePositions[i]).trim();
-			const [obj] = yaml.parse(candidate);
-			if (obj !== undefined && type(obj) === "table") {
-				return candidate;
-			}
-		}
-		if (closingFencePositions.length > 0) {
-			return source.slice(firstLineEnd + 1, closingFencePositions[closingFencePositions.length - 1]).trim();
+			const closingFencePos = closingFencePositions[i];
+			const afterFence = source.slice(closingFencePos + 3).trim();
+			if (afterFence !== "") continue;
+			return source.slice(firstLineEnd + 1, closingFencePos).trim();
 		}
 		return undefined;
 	};
-	const yamlBlock = extractFencedBlock("```yaml");
-	if (yamlBlock !== undefined) return yamlBlock;
-	const ymlBlock = extractFencedBlock("```yml");
-	if (ymlBlock !== undefined) return ymlBlock;
+	const xmlBlock = extractFencedBlock("```xml");
+	if (xmlBlock !== undefined) return xmlBlock;
 	const genericBlock = extractFencedBlock("```");
 	if (genericBlock !== undefined) return genericBlock;
 	return source;
 }
 
-function parseYAMLObjectFromText(text: string): { success: true; obj: Record<string, unknown> } | { success: false; message: string } {
-	const yamlText = extractYAMLFromText(text);
-	const [obj, err] = yaml.parse(yamlText);
-	if (obj === undefined || type(obj) !== "table") {
-		return { success: false, message: `invalid yaml: ${tostring(err)}` };
+function unwrapXMLRawText(text: string): string {
+	const trimmed = text.trim();
+	if (trimmed.startsWith("<![CDATA[") && trimmed.endsWith("]]>")) {
+		return trimmed.slice(9, trimmed.length - 3);
 	}
-	return { success: true, obj: obj as Record<string, unknown> };
+	return text;
+}
+
+function isXMLWhitespaceChar(ch: string): boolean {
+	return ch === " " || ch === "\t" || ch === "\n" || ch === "\r";
+}
+
+function findLastLiteral(text: string, needle: string): number {
+	if (needle === "") return text.length;
+	let last = -1;
+	let from = 0;
+	while (from <= text.length - needle.length) {
+		const pos = text.indexOf(needle, from);
+		if (pos < 0) break;
+		last = pos;
+		from = pos + 1;
+	}
+	return last;
+}
+
+function readSimpleXMLTagName(source: string, openStart: number, openEnd: number): { success: true; tagName: string; selfClosing: boolean } | { success: false; message: string } {
+	const rawTag = source.slice(openStart + 1, openEnd).trim();
+	if (rawTag === "") {
+		return { success: false, message: `invalid xml: empty tag at offset ${tostring(openStart)}` };
+	}
+	let selfClosing = false;
+	let tagText = rawTag;
+	if (tagText.endsWith("/")) {
+		selfClosing = true;
+		tagText = tagText.slice(0, tagText.length - 1).trim();
+	}
+	let tagName = "";
+	for (let i = 0; i < tagText.length; i++) {
+		const ch = tagText[i];
+		if (isXMLWhitespaceChar(ch) || ch === "/") break;
+		tagName += ch;
+	}
+	if (tagName === "") {
+		return { success: false, message: `invalid xml: unsupported tag syntax <${rawTag}>` };
+	}
+	return { success: true, tagName, selfClosing };
+}
+
+function findMatchingXMLClose(source: string, tagName: string, contentStart: number): { success: true; closeStart: number } | { success: false; message: string } {
+	const sameOpenPrefix = `<${tagName}`;
+	const sameCloseToken = `</${tagName}>`;
+	let pos = contentStart;
+	let depth = 1;
+	while (pos < source.length) {
+		const lt = source.indexOf("<", pos);
+		if (lt < 0) break;
+		if (source.startsWith("<![CDATA[", lt)) {
+			const cdataEnd = source.indexOf("]]>", lt + 9);
+			if (cdataEnd < 0) {
+				return { success: false, message: "invalid xml: unterminated CDATA" };
+			}
+			pos = cdataEnd + 3;
+			continue;
+		}
+		if (source.startsWith("<!--", lt)) {
+			const commentEnd = source.indexOf("-->", lt + 4);
+			if (commentEnd < 0) {
+				return { success: false, message: "invalid xml: unterminated comment" };
+			}
+			pos = commentEnd + 3;
+			continue;
+		}
+		if (source.startsWith(sameCloseToken, lt)) {
+			depth -= 1;
+			if (depth === 0) {
+				return { success: true, closeStart: lt };
+			}
+			pos = lt + sameCloseToken.length;
+			continue;
+		}
+		if (source.startsWith(sameOpenPrefix, lt)) {
+			const openEnd = source.indexOf(">", lt);
+			if (openEnd < 0) {
+				return { success: false, message: "invalid xml: unterminated opening tag" };
+			}
+			const tagInfo = readSimpleXMLTagName(source, lt, openEnd);
+			if (!tagInfo.success) return tagInfo;
+			if (tagInfo.tagName === tagName && !tagInfo.selfClosing) {
+				depth += 1;
+			}
+			pos = openEnd + 1;
+			continue;
+		}
+		const genericEnd = source.indexOf(">", lt);
+		if (genericEnd < 0) {
+			return { success: false, message: "invalid xml: unterminated nested tag" };
+		}
+		pos = genericEnd + 1;
+	}
+	return { success: false, message: `invalid xml: missing closing tag </${tagName}>` };
+}
+
+function parseSimpleXMLChildren(source: string): { success: true; obj: Record<string, unknown> } | { success: false; message: string } {
+	const result: Record<string, unknown> = {};
+	let pos = 0;
+	while (pos < source.length) {
+		while (pos < source.length && isXMLWhitespaceChar(source[pos])) pos += 1;
+		if (pos >= source.length) break;
+		if (source[pos] !== "<") {
+			return { success: false, message: `invalid xml: expected tag at offset ${tostring(pos)}` };
+		}
+		if (source.startsWith("</", pos)) {
+			return { success: false, message: `invalid xml: unexpected closing tag at offset ${tostring(pos)}` };
+		}
+		const openEnd = source.indexOf(">", pos);
+		if (openEnd < 0) {
+			return { success: false, message: "invalid xml: unterminated opening tag" };
+		}
+		const tagInfo = readSimpleXMLTagName(source, pos, openEnd);
+		if (!tagInfo.success) return tagInfo;
+		if (tagInfo.selfClosing) {
+			result[tagInfo.tagName] = "";
+			pos = openEnd + 1;
+			continue;
+		}
+		const closeRes = findMatchingXMLClose(source, tagInfo.tagName, openEnd + 1);
+		if (!closeRes.success) return closeRes;
+		const closeToken = `</${tagInfo.tagName}>`;
+		result[tagInfo.tagName] = unwrapXMLRawText(source.slice(openEnd + 1, closeRes.closeStart));
+		pos = closeRes.closeStart + closeToken.length;
+	}
+	return { success: true, obj: result };
+}
+
+function parseYAMLObjectFromText(text: string): { success: true; obj: Record<string, unknown> } | { success: false; message: string } {
+	const xmlText = extractYAMLFromText(text);
+	const rootOpen = "<tool_call>";
+	const rootClose = "</tool_call>";
+	const start = xmlText.indexOf(rootOpen);
+	const end = findLastLiteral(xmlText, rootClose);
+	if (start < 0 || end < start) {
+		return { success: false, message: "invalid xml: missing <tool_call> root" };
+	}
+	const afterRoot = xmlText.slice(end + rootClose.length).trim();
+	const beforeRoot = xmlText.slice(0, start).trim();
+	if (beforeRoot !== "" || afterRoot !== "") {
+		return { success: false, message: "invalid xml: root must be the only top-level block" };
+	}
+	const rootContent = xmlText.slice(start + rootOpen.length, end);
+	const children = parseSimpleXMLChildren(rootContent);
+	if (!children.success) return children;
+	const rawObj = children.obj;
+	const paramsText = typeof rawObj.params === "string" ? rawObj.params as string : "";
+	const params = paramsText !== ""
+		? parseSimpleXMLChildren(paramsText)
+		: { success: true as const, obj: {} as Record<string, unknown> };
+	if (!params.success) {
+		return { success: false, message: params.message };
+	}
+	return {
+		success: true,
+		obj: {
+			tool: rawObj.tool,
+			reason: rawObj.reason,
+			params: params.obj,
+		},
+	};
 }
 
 type LLMResult = {
@@ -957,7 +1112,7 @@ function buildDecisionMessages(shared: AgentShared, lastError?: string, attempt 
 	];
 	if (lastError && lastError !== "") {
 		const retryHeader = shared.decisionMode === "yaml"
-			? `Previous response was invalid (${lastError}). Return exactly one valid YAML object only.`
+			? `Previous response was invalid (${lastError}). Return exactly one valid XML tool_call block only.`
 			: replacePromptVars(shared.promptPack.toolCallingRetryPrompt, { LAST_ERROR: lastError });
 		messages.push({
 			role: "user",
@@ -1001,17 +1156,17 @@ ${truncateText(candidateRaw, 4000)}
 	return [
 		{
 			role: "system",
-			content: `You repair invalid YAML tool decisions for the Dora coding agent.
+			content: `You repair invalid XML tool decisions for the Dora coding agent.
 
-Your job is only to convert the provided raw decision output into exactly one valid YAML object with keys: tool, params.
+Your job is only to convert the provided raw decision output into exactly one valid XML <tool_call> block.
 
 Requirements:
 - Preserve the original tool name and parameter values whenever possible.
-- If the raw output uses another tool-call syntax, convert that tool name and arguments into the YAML schema.
+- If the raw output uses another tool-call syntax, convert that tool name and arguments into the XML schema.
 - Do not make a new decision, do not change the intended action unless the input is structurally impossible to represent.
-- Only repair formatting and schema shape so the output becomes valid YAML.
+- Only repair formatting and schema shape so the output becomes valid XML.
 - Do not continue the conversation and do not add explanations.
-- Return YAML only.`,
+- Return XML only.`,
 		},
 		{
 			role: "user",
@@ -1185,11 +1340,11 @@ class MainDecisionAgent extends Node<AgentShared> {
 		originalRaw: string,
 		initialError: string
 	): Promise<DecisionResult | DecisionFailure> {
-		Log("Info", `[CodingAgent] yaml repair flow start step=${shared.step + 1} error=${initialError}`);
+		Log("Info", `[CodingAgent] xml repair flow start step=${shared.step + 1} error=${initialError}`);
 		let lastError = initialError;
 		let candidateRaw = "";
 		for (let attempt = 0; attempt < shared.llmMaxTry; attempt++) {
-			Log("Info", `[CodingAgent] yaml repair attempt=${attempt + 1}`);
+			Log("Info", `[CodingAgent] xml repair attempt=${attempt + 1}`);
 			const messages = buildYamlRepairMessages(
 				shared,
 				originalRaw,
@@ -1203,22 +1358,22 @@ class MainDecisionAgent extends Node<AgentShared> {
 			}
 			if (!llmRes.success) {
 				lastError = llmRes.message;
-				Log("Error", `[CodingAgent] yaml repair attempt failed: ${lastError}`);
+				Log("Error", `[CodingAgent] xml repair attempt failed: ${lastError}`);
 				continue;
 			}
 			candidateRaw = llmRes.text;
 			const decision = tryParseAndValidateDecision(candidateRaw);
 			if (decision.success) {
-				Log("Info", `[CodingAgent] yaml repair succeeded tool=${decision.tool}`);
+				Log("Info", `[CodingAgent] xml repair succeeded tool=${decision.tool}`);
 				return decision;
 			}
 			lastError = decision.message;
-			Log("Error", `[CodingAgent] yaml repair candidate invalid: ${lastError}`);
+			Log("Error", `[CodingAgent] xml repair candidate invalid: ${lastError}`);
 		}
-		Log("Error", `[CodingAgent] yaml repair exhausted retries: ${lastError}`);
+		Log("Error", `[CodingAgent] xml repair exhausted retries: ${lastError}`);
 		return {
 			success: false,
-			message: `cannot repair invalid decision yaml: ${lastError}`,
+			message: `cannot repair invalid decision xml: ${lastError}`,
 			raw: candidateRaw,
 		};
 	}
@@ -1259,7 +1414,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 			return { success: false, message: `cannot produce valid tool call: ${lastError}; last_output=${truncateText(lastRaw, 400)}` };
 		}
 
-		let lastError = "yaml validation failed";
+		let lastError = "xml validation failed";
 		let lastRaw = "";
 		for (let attempt = 0; attempt < shared.llmMaxTry; attempt++) {
 			const messages: Message[] = buildDecisionMessages(
@@ -1287,7 +1442,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 			lastError = decision.message;
 			return this.repairDecisionYaml(shared, llmRes.text, lastError);
 		}
-		return { success: false, message: `cannot produce valid decision yaml: ${lastError}; last_output=${truncateText(lastRaw, 400)}` };
+		return { success: false, message: `cannot produce valid decision xml: ${lastError}; last_output=${truncateText(lastRaw, 400)}` };
 	}
 
 	async post(shared: AgentShared, _prepRes: unknown, execRes: unknown): Promise<string | undefined> {

@@ -16,34 +16,45 @@ export interface PersistedSessionState {
 
 const AGENT_CONFIG_DIR = ".agent";
 const AGENT_PROMPTS_FILE = "AGENT.md";
-const YAML_DECISION_SCHEMA_EXAMPLE = `\`\`\`yaml
-tool: "edit_file"
-reason: "Need to update the file content to implement the requested change."
-params:
-  path: "relative/path.ts"
-  old_str: |2-
-    		function oldName() {
-    			print("old");
-    		}
-  new_str: |2-
-    		function newName() {
-    			print("hello");
-    		}
+const YAML_DECISION_SCHEMA_EXAMPLE = `\`\`\`xml
+<tool_call>
+	<tool>edit_file</tool>
+	<reason>Need to update the file content to implement the requested change.</reason>
+	<params>
+		<path>relative/path.ts</path>
+		<old_str>
+function oldName() {
+	print("old");
+}
+		</old_str>
+		<new_str>
+function newName() {
+	print("hello");
+}
+		</new_str>
+  </params>
+</tool_call>
 \`\`\`
 
-\`\`\`yaml
-tool: "read_file"
-reason: "Need to inspect the current implementation before editing."
-params:
-  path: "relative/path.ts"
-  startLine: 1
-  endLine: 200
+\`\`\`xml
+<tool_call>
+	<tool>read_file</tool>
+	<reason>Need to inspect the current implementation before editing.</reason>
+	<params>
+		<path>relative/path.ts</path>
+		<startLine>1</startLine>
+		<endLine>200</endLine>
+	</params>
+</tool_call>
 \`\`\`
 
-\`\`\`yaml
-tool: "finish"
-params:
-  message: "Final user-facing answer."
+\`\`\`xml
+<tool_call>
+	<tool>finish</tool>
+	<params>
+		<message>Final user-facing answer.</message>
+	</params>
+</tool_call>
 \`\`\``;
 
 export interface AgentPromptPack {
@@ -62,7 +73,7 @@ export interface AgentPromptPack {
 }
 
 export const DEFAULT_AGENT_PROMPT_PACK: AgentPromptPack = {
-	agentIdentityPrompt: `### Dora Agent (｡•̀ᴗ-)✧💕
+	agentIdentityPrompt: `### Dora Agent
 
 You are a coding assistant that helps modify and navigate code in the Dora SSR game engine project.
 
@@ -124,34 +135,32 @@ You are a coding assistant that helps modify and navigate code in the Dora SSR g
 	replyLanguageDirectiveZh: "Use Simplified Chinese for natural-language fields (message/summary).",
 	replyLanguageDirectiveEn: "Use English for natural-language fields (message/summary).",
 	toolCallingRetryPrompt: "Previous response was invalid ({{LAST_ERROR}}). Retry with either one valid tool call.",
-	yamlDecisionFormatPrompt: `Respond with exactly one YAML object. Do not include any prose before or after the YAML.
+	yamlDecisionFormatPrompt: `Respond with exactly one XML tool_call block. Do not include any prose before or after the XML.
 
 ${YAML_DECISION_SCHEMA_EXAMPLE}
 
 Rules:
-- Return exactly one YAML object.
-- For every tool except finish, use exactly these top-level keys: tool, reason, params.
-- For finish, use exactly these top-level keys: tool, params.
-- Multi-line strings use block scalars (\`|\`, \`|-\`, \`>\`).
-- Use 2 spaces for YAML structural indentation. Do not use tabs to indent YAML keys.
-- If a multi-line string must preserve leading tabs or other leading whitespace on content lines, prefer a block scalar with an explicit indentation indicator \`|2-\`.
-- For nested multi-line fields (e.g. params.new_str), indent block-scalar content deeper than the key line using spaces for YAML structure.
+- Return exactly one \`<tool_call>...</tool_call>\` block.
+- For every tool except finish, include \`<tool>\`, \`<reason>\`, and \`<params>\`.
+- For finish, include \`<tool>\` and \`<params>\`. Do not include \`<reason>\`.
+- Inside \`<params>\`, use one child tag per parameter, for example \`<path>\`, \`<old_str>\`, \`<new_str>\`.
+- All tag contents are treated as raw text by the parser. Preserve formatting exactly. Do not wrap content in CDATA unless needed explicitly.
+- You do not need to escape normal code snippets, angle brackets, or newlines inside tag contents.
 - Keep params shallow and valid for the selected tool.
-- If no more actions are needed, use tool: finish and put the final user-facing answer in params.message.`,
-	yamlDecisionRepairPrompt: `Convert the tool call result below into exactly one valid YAML object.
+- If no more actions are needed, use tool finish and put the final user-facing answer in \`<params><message>...</message></params>\`.`,
+	yamlDecisionRepairPrompt: `Convert the tool call result below into exactly one valid XML tool_call block.
 
-YAML schema example:
+XML schema example:
 ${YAML_DECISION_SCHEMA_EXAMPLE}
 
 Rules:
-- Return exactly one YAML object.
-- Return YAML only. No prose before or after.
+- Return exactly one XML \`<tool_call>...</tool_call>\` block.
+- Return XML only. No prose before or after.
 - Keep the same tool name, reason, and parameter values as the source whenever possible.
-- For every tool except finish, use top-level keys: tool, reason, params.
-- For finish, use top-level keys: tool, params.
-- Multi-line string params should use block scalars when needed.
-- Use spaces for YAML structural indentation. Do not use tabs to indent YAML keys.
-- If a multi-line string must preserve leading tabs or other leading whitespace on content lines, prefer a block scalar with an explicit indentation indicator such as \`|2-\`.
+- For every tool except finish, include \`<tool>\`, \`<reason>\`, and \`<params>\`.
+- For finish, include \`<tool>\` and \`<params>\` only.
+- Inside \`<params>\`, use one child tag per parameter.
+- All tag contents are treated as raw text by the parser. Preserve formatting exactly. Do not wrap content in CDATA unless needed explicitly.
 - Do not invent extra parameters.
 
 Available tools and params reference:
@@ -165,11 +174,11 @@ Available tools and params reference:
 
 {{CANDIDATE_SECTION}}### Repair Task
 - The current candidate is invalid because: {{LAST_ERROR}}
-- Repair only the formatting/schema so the result becomes one valid YAML object.
+- Repair only the formatting/schema so the result becomes one valid XML tool_call block.
 - Keep the tool name and argument values aligned with the original raw output.
 - Retry attempt: {{ATTEMPT}}.
 - The next reply must differ from the previously rejected candidate.
-- Return YAML only, with no prose before or after.`,
+- Return XML only, with no prose before or after.`,
 	memoryCompressionSystemPrompt: `You are a memory consolidation agent. You MUST call the save_memory tool.
 Do not output any text besides the tool call.`,
 	memoryCompressionBodyPrompt: `### Current Memory (Long-term)

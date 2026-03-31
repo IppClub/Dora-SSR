@@ -24,7 +24,7 @@ local emit = ____Dora.emit -- 2
 local DoraLog = ____Dora.Log -- 2
 local Director = ____Dora.Director -- 2
 local once = ____Dora.once -- 2
-local LOG_LEVEL = 3 -- 4
+local LOG_LEVEL = 2 -- 4
 function ____exports.setLogLevel(level) -- 5
 	LOG_LEVEL = level -- 6
 end -- 5
