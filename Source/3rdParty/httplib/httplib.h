@@ -8,9 +8,15 @@
 #ifndef CPPHTTPLIB_HTTPLIB_H
 #define CPPHTTPLIB_HTTPLIB_H
 
-#define CPPHTTPLIB_VERSION "0.38.0"
-#define CPPHTTPLIB_VERSION_NUM "0x002600"
+#define CPPHTTPLIB_VERSION "0.40.0"
+#define CPPHTTPLIB_VERSION_NUM "0x002800"
 
+#ifdef _WIN32
+#if defined(_WIN32_WINNT) && _WIN32_WINNT < 0x0A00
+#error                                                                         \
+    "cpp-httplib doesn't support Windows 8 or lower. Please use Windows 10 or later."
+#endif
+#endif
 
 /*
  * Configuration
@@ -1265,6 +1271,7 @@ struct Request {
   bool is_multipart_form_data() const;
 
   // private members...
+  bool body_consumed_ = false;
   size_t redirect_count_ = CPPHTTPLIB_REDIRECT_MAX_COUNT;
   size_t content_length_ = 0;
   ContentProvider content_provider_;
@@ -1474,6 +1481,8 @@ using SocketOptions = std::function<void(socket_t sock)>;
 
 void default_socket_options(socket_t sock);
 
+bool set_socket_opt(socket_t sock, int level, int optname, int optval);
+
 const char *status_message(int status);
 
 std::string to_string(Error error);
@@ -1562,6 +1571,13 @@ ssize_t write_headers(Stream &strm, const Headers &headers);
 
 bool set_socket_opt_time(socket_t sock, int level, int optname, time_t sec,
                          time_t usec);
+
+size_t get_multipart_content_length(const UploadFormDataItems &items,
+                                    const std::string &boundary);
+
+ContentProvider
+make_multipart_content_provider(const UploadFormDataItems &items,
+                                const std::string &boundary);
 
 } // namespace detail
 
@@ -4335,10 +4351,6 @@ inline bool set_socket_opt_impl(socket_t sock, int level, int optname,
                     optlen) == 0;
 }
 
-inline bool set_socket_opt(socket_t sock, int level, int optname, int optval) {
-  return set_socket_opt_impl(sock, level, optname, &optval, sizeof(optval));
-}
-
 inline bool set_socket_opt_time(socket_t sock, int level, int optname,
                                 time_t sec, time_t usec) {
 #ifdef _WIN32
@@ -6086,7 +6098,7 @@ socket_t create_socket(const std::string &host, const std::string &ip, int port,
 #ifdef _WIN32
       // Setting SO_REUSEADDR seems not to work well with AF_UNIX on windows, so
       // remove the option.
-      detail::set_socket_opt(sock, SOL_SOCKET, SO_REUSEADDR, 0);
+      set_socket_opt(sock, SOL_SOCKET, SO_REUSEADDR, 0);
 #endif
 
       bool dummy;
@@ -8241,6 +8253,7 @@ make_multipart_content_provider(const UploadFormDataItems &items,
   struct MultipartState {
     std::vector<std::string> owned;
     std::vector<MultipartSegment> segs;
+    std::vector<char> buf = std::vector<char>(CPPHTTPLIB_SEND_BUFSIZ);
   };
   auto state = std::make_shared<MultipartState>();
   state->owned = std::move(owned);
@@ -8249,19 +8262,49 @@ make_multipart_content_provider(const UploadFormDataItems &items,
   state->segs = std::move(segs);
 
   return [state](size_t offset, size_t length, DataSink &sink) -> bool {
+    // Buffer multiple small segments into fewer, larger writes to avoid
+    // excessive TCP packets when there are many form data items (#2410)
+    auto &buf = state->buf;
+    auto buf_size = buf.size();
+    size_t buf_len = 0;
+    size_t remaining = length;
+
+    // Find the first segment containing 'offset'
     size_t pos = 0;
-    for (const auto &seg : state->segs) {
-      // Loop invariant: pos <= offset (proven by advancing pos only when
-      // offset - pos >= seg.size, i.e., the segment doesn't contain offset)
-      if (seg.size > 0 && offset - pos < seg.size) {
-        size_t seg_offset = offset - pos;
-        size_t available = seg.size - seg_offset;
-        size_t to_write = (std::min)(available, length);
-        return sink.write(seg.data + seg_offset, to_write);
-      }
+    size_t seg_idx = 0;
+    for (; seg_idx < state->segs.size(); seg_idx++) {
+      const auto &seg = state->segs[seg_idx];
+      if (seg.size > 0 && offset - pos < seg.size) { break; }
       pos += seg.size;
     }
-    return true; // past end (shouldn't be reached when content_length is exact)
+
+    size_t seg_offset = (seg_idx < state->segs.size()) ? offset - pos : 0;
+
+    for (; seg_idx < state->segs.size() && remaining > 0; seg_idx++) {
+      const auto &seg = state->segs[seg_idx];
+      size_t available = seg.size - seg_offset;
+      size_t to_copy = (std::min)(available, remaining);
+      const char *src = seg.data + seg_offset;
+      seg_offset = 0; // only the first segment has a non-zero offset
+
+      while (to_copy > 0) {
+        size_t space = buf_size - buf_len;
+        size_t chunk = (std::min)(to_copy, space);
+        std::memcpy(buf.data() + buf_len, src, chunk);
+        buf_len += chunk;
+        src += chunk;
+        to_copy -= chunk;
+        remaining -= chunk;
+
+        if (buf_len == buf_size) {
+          if (!sink.write(buf.data(), buf_len)) { return false; }
+          buf_len = 0;
+        }
+      }
+    }
+
+    if (buf_len > 0) { return sink.write(buf.data(), buf_len); }
+    return true;
   };
 }
 
@@ -9132,13 +9175,18 @@ inline bool setup_client_tls_session(const std::string &host, tls::ctx_t &ctx,
  */
 
 inline void default_socket_options(socket_t sock) {
-  detail::set_socket_opt(sock, SOL_SOCKET,
+  set_socket_opt(sock, SOL_SOCKET,
 #ifdef SO_REUSEPORT
-                         SO_REUSEPORT,
+                 SO_REUSEPORT,
 #else
-                         SO_REUSEADDR,
+                 SO_REUSEADDR,
 #endif
-                         1);
+                 1);
+}
+
+inline bool set_socket_opt(socket_t sock, int level, int optname, int optval) {
+  return detail::set_socket_opt_impl(sock, level, optname, &optval,
+                                     sizeof(optval));
 }
 
 inline std::string get_bearer_token_auth(const Request &req) {
@@ -11307,6 +11355,8 @@ inline bool Server::read_content_core(
     return false;
   }
 
+  req.body_consumed_ = true;
+
   if (req.is_multipart_form_data()) {
     if (!multipart_form_data_parser.is_valid()) {
       res.status = StatusCode::BadRequest_400;
@@ -11578,9 +11628,7 @@ inline bool Server::listen_internal() {
       detail::set_socket_opt_time(sock, SOL_SOCKET, SO_SNDTIMEO,
                                   write_timeout_sec_, write_timeout_usec_);
 
-      if (tcp_nodelay_) {
-        detail::set_socket_opt(sock, IPPROTO_TCP, TCP_NODELAY, 1);
-      }
+      if (tcp_nodelay_) { set_socket_opt(sock, IPPROTO_TCP, TCP_NODELAY, 1); }
 
       if (!task_queue->enqueue(
               [this, sock]() { process_and_close_socket(sock); })) {
@@ -11926,8 +11974,19 @@ Server::process_request(Stream &strm, const std::string &remote_addr,
     return write_response(strm, close_connection, req, res);
   }
 
+  // RFC 9112 §6.3: Reject requests with both a non-zero Content-Length and
+  // any Transfer-Encoding to prevent request smuggling. Content-Length: 0 is
+  // tolerated for compatibility with existing clients.
+  if (req.get_header_value_u64("Content-Length") > 0 &&
+      req.has_header("Transfer-Encoding")) {
+    connection_closed = true;
+    res.status = StatusCode::BadRequest_400;
+    return write_response(strm, close_connection, req, res);
+  }
+
   // Check if the request URI doesn't exceed the limit
   if (req.target.size() > CPPHTTPLIB_REQUEST_URI_MAX_LENGTH) {
+    connection_closed = true;
     res.status = StatusCode::UriTooLong_414;
     output_error_log(Error::ExceedUriMaxLength, &req);
     return write_response(strm, close_connection, req, res);
@@ -11956,6 +12015,7 @@ Server::process_request(Stream &strm, const std::string &remote_addr,
   if (req.has_header("Accept")) {
     const auto &accept_header = req.get_header_value("Accept");
     if (!detail::parse_accept_header(accept_header, req.accept_content_types)) {
+      connection_closed = true;
       res.status = StatusCode::BadRequest_400;
       output_error_log(Error::HTTPParsing, &req);
       return write_response(strm, close_connection, req, res);
@@ -11965,6 +12025,7 @@ Server::process_request(Stream &strm, const std::string &remote_addr,
   if (req.has_header("Range")) {
     const auto &range_header_value = req.get_header_value("Range");
     if (!detail::parse_range_header(range_header_value, req.ranges)) {
+      connection_closed = true;
       res.status = StatusCode::RangeNotSatisfiable_416;
       output_error_log(Error::InvalidRangeHeader, &req);
       return write_response(strm, close_connection, req, res);
@@ -12092,6 +12153,7 @@ Server::process_request(Stream &strm, const std::string &remote_addr,
     }
   }
 #endif
+  auto ret = false;
   if (routed) {
     if (res.status == -1) {
       res.status = req.ranges.empty() ? StatusCode::OK_200
@@ -12099,6 +12161,7 @@ Server::process_request(Stream &strm, const std::string &remote_addr,
     }
 
     // Serve file content by using a content provider
+    auto file_open_error = false;
     if (!res.file_content_path_.empty()) {
       const auto &path = res.file_content_path_;
       auto mm = std::make_shared<detail::mmap>(path.c_str());
@@ -12108,37 +12171,53 @@ Server::process_request(Stream &strm, const std::string &remote_addr,
         res.content_provider_ = nullptr;
         res.status = StatusCode::NotFound_404;
         output_error_log(Error::OpenFile, &req);
-        return write_response(strm, close_connection, req, res);
-      }
+        file_open_error = true;
+      } else {
+        auto content_type = res.file_content_content_type_;
+        if (content_type.empty()) {
+          content_type = detail::find_content_type(
+              path, file_extension_and_mimetype_map_, default_file_mimetype_);
+        }
 
-      auto content_type = res.file_content_content_type_;
-      if (content_type.empty()) {
-        content_type = detail::find_content_type(
-            path, file_extension_and_mimetype_map_, default_file_mimetype_);
+        res.set_content_provider(
+            mm->size(), content_type,
+            [mm](size_t offset, size_t length, DataSink &sink) -> bool {
+              sink.write(mm->data() + offset, length);
+              return true;
+            });
       }
-
-      res.set_content_provider(
-          mm->size(), content_type,
-          [mm](size_t offset, size_t length, DataSink &sink) -> bool {
-            sink.write(mm->data() + offset, length);
-            return true;
-          });
     }
 
-    if (detail::range_error(req, res)) {
+    if (file_open_error) {
+      ret = write_response(strm, close_connection, req, res);
+    } else if (detail::range_error(req, res)) {
       res.body.clear();
       res.content_length_ = 0;
       res.content_provider_ = nullptr;
       res.status = StatusCode::RangeNotSatisfiable_416;
-      return write_response(strm, close_connection, req, res);
+      ret = write_response(strm, close_connection, req, res);
+    } else {
+      ret = write_response_with_content(strm, close_connection, req, res);
     }
-
-    return write_response_with_content(strm, close_connection, req, res);
   } else {
     if (res.status == -1) { res.status = StatusCode::NotFound_404; }
-
-    return write_response(strm, close_connection, req, res);
+    ret = write_response(strm, close_connection, req, res);
   }
+
+  // Drain any unconsumed request body to prevent request smuggling on
+  // keep-alive connections.
+  if (!req.body_consumed_ && detail::expect_content(req)) {
+    int drain_status = 200; // required by read_content signature
+    if (!detail::read_content(
+            strm, req, payload_max_length_, drain_status, nullptr,
+            [](const char *, size_t, size_t, size_t) { return true; }, false)) {
+      // Body exceeds payload limit or read error — close the connection
+      // to prevent leftover bytes from being misinterpreted.
+      connection_closed = true;
+    }
+  }
+
+  return ret;
 }
 
 inline bool Server::is_valid() const { return true; }
@@ -13068,18 +13147,11 @@ inline void ClientImpl::setup_redirect_client(ClientType &client) {
   client.set_compress(compress_);
   client.set_decompress(decompress_);
 
-  // Copy authentication settings BEFORE proxy setup
-  if (!basic_auth_username_.empty()) {
-    client.set_basic_auth(basic_auth_username_, basic_auth_password_);
-  }
-  if (!bearer_token_auth_token_.empty()) {
-    client.set_bearer_token_auth(bearer_token_auth_token_);
-  }
-#ifdef CPPHTTPLIB_SSL_ENABLED
-  if (!digest_auth_username_.empty()) {
-    client.set_digest_auth(digest_auth_username_, digest_auth_password_);
-  }
-#endif
+  // NOTE: Authentication credentials (basic auth, bearer token, digest auth)
+  // are intentionally NOT copied to the redirect client. Per RFC 9110 Section
+  // 15.4, credentials must not be forwarded when redirecting to a different
+  // host. This function is only called for cross-host redirects; same-host
+  // redirects are handled directly in ClientImpl::redirect().
 
   // Setup proxy configuration (CRITICAL ORDER - proxy must be set
   // before proxy auth)
