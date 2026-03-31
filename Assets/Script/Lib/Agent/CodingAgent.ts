@@ -7,6 +7,14 @@ import * as Tools from 'Agent/Tools';
 import { MemoryCompressor } from 'Agent/Memory';
 import type { AgentPromptPack, AgentConversationMessage } from 'Agent/Memory';
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === "object";
+}
+
+function isArray(value: unknown): value is any[] {
+	return Array.isArray(value);
+}
+
 export type CodingAgentRunResult =
 	| {
 		success: true;
@@ -162,6 +170,27 @@ function emitAgentEvent(shared: AgentShared, event: CodingAgentEvent) {
 	if (shared.onEvent) {
 		shared.onEvent(event);
 	}
+}
+
+function emitAgentStartEvent(shared: AgentShared, action: AgentActionRecord) {
+	emitAgentEvent(shared, {
+		type: "tool_started",
+		sessionId: shared.sessionId,
+		taskId: shared.taskId,
+		step: shared.step + 1,
+		tool: action.tool,
+	});
+}
+
+function emitAgentFinishEvent(shared: AgentShared, action: AgentActionRecord) {
+	emitAgentEvent(shared, {
+		type: "tool_finished",
+		sessionId: shared.sessionId,
+		taskId: shared.taskId,
+		step: shared.step + 1,
+		tool: action.tool,
+		result: action.result ?? {},
+	});
 }
 
 function getCancelledReason(shared: AgentShared): string {
@@ -337,28 +366,6 @@ function utf8TakeHead(text: string, maxChars: number): string {
 	return string.sub(text, 1, nextPos - 1);
 }
 
-function utf8TakeTail(text: string, maxChars: number): string {
-	if (maxChars <= 0 || text === "") return "";
-	const [charLen] = utf8.len(text);
-	if (charLen === undefined || charLen <= maxChars) return text;
-	const startChar = math.max(1, charLen - maxChars + 1);
-	const startPos = utf8.offset(text, startChar);
-	if (startPos === undefined) return text;
-	return string.sub(text, startPos);
-}
-
-function summarizeUnknown(value: unknown, maxLen = 320): string {
-	if (value === undefined) return "undefined";
-	if (value === null) return "null";
-	if (typeof value === "string") {
-		return truncateText(value, maxLen).replace("\n", "\\n");
-	}
-	if (type(value) === "number" || type(value) === "boolean") {
-		return tostring(value);
-	}
-	return truncateText(toJson(value), maxLen).replace("\n", "\\n");
-}
-
 function getReplyLanguageDirective(shared: AgentShared): string {
 	return shared.useChineseResponse
 		? shared.promptPack.replyLanguageDirectiveZh
@@ -405,14 +412,14 @@ function summarizeEditTextParamForHistory(value: unknown, key: "old_str" | "new_
 }
 
 function sanitizeReadResultForHistory(tool: AgentToolName, result: Record<string, unknown>): Record<string, unknown> {
-	if (tool !== "read_file" || result.success !== true || type(result.content) !== "string") {
+	if (tool !== "read_file" || result.success !== true || typeof result.content !== "string") {
 		return result;
 	}
 	const clone: Record<string, unknown> = {};
 	for (const key in result) {
 		clone[key] = result[key];
 	}
-	clone.content = limitReadContentForHistory(result.content as string, tool);
+	clone.content = limitReadContentForHistory(result.content, tool);
 	return clone;
 }
 
@@ -427,8 +434,8 @@ function sanitizeSearchMatchesForHistory(
 		out.push({
 			file: row.file,
 			line: row.line,
-			content: type(row.content) === "string"
-				? truncateText(row.content as string, 240)
+			content: typeof row.content === "string"
+				? truncateText(row.content, 240)
 				: row.content,
 		});
 	}
@@ -439,7 +446,7 @@ function sanitizeSearchResultForHistory(
 	tool: AgentToolName,
 	result: Record<string, unknown>
 ): Record<string, unknown> {
-	if (result.success !== true || type(result.results) !== "table") return result;
+	if (result.success !== true || !isArray(result.results)) return result;
 	if (tool !== "grep_files" && tool !== "search_dora_api") return result;
 	const clone: Record<string, unknown> = {};
 	for (const key in result) {
@@ -447,11 +454,11 @@ function sanitizeSearchResultForHistory(
 	}
 	const maxItems = tool === "grep_files" ? HISTORY_SEARCH_FILES_MAX_MATCHES : HISTORY_SEARCH_DORA_API_MAX_MATCHES;
 	clone.results = sanitizeSearchMatchesForHistory(
-		result.results as Record<string, unknown>[],
+		result.results,
 		maxItems
 	);
-	if (tool === "grep_files" && type(result.groupedResults) === "table") {
-		const grouped = result.groupedResults as Record<string, unknown>[];
+	if (tool === "grep_files" && isArray(result.groupedResults)) {
+		const grouped = result.groupedResults;
 		const shown = math.min(grouped.length, HISTORY_SEARCH_FILES_MAX_MATCHES);
 		const sanitizedGroups: Record<string, unknown>[] = [];
 		for (let i = 0; i < shown; i++) {
@@ -459,8 +466,8 @@ function sanitizeSearchResultForHistory(
 			sanitizedGroups.push({
 				file: row.file,
 				totalMatches: row.totalMatches,
-				matches: type(row.matches) === "table"
-					? sanitizeSearchMatchesForHistory(row.matches as Record<string, unknown>[], 3)
+				matches: isArray(row.matches)
+					? sanitizeSearchMatchesForHistory(row.matches, 3)
 					: [],
 			});
 		}
@@ -470,13 +477,12 @@ function sanitizeSearchResultForHistory(
 }
 
 function sanitizeListFilesResultForHistory(result: Record<string, unknown>): Record<string, unknown> {
-	if (result.success !== true || type(result.files) !== "table") return result;
+	if (result.success !== true || !isArray(result.files)) return result;
 	const clone: Record<string, unknown> = {};
 	for (const key in result) {
 		clone[key] = result[key];
 	}
-	const files = result.files as string[];
-	clone.files = files.slice(0, HISTORY_LIST_FILES_MAX_ENTRIES);
+	clone.files = result.files.slice(0, HISTORY_LIST_FILES_MAX_ENTRIES);
 	return clone;
 }
 
@@ -568,14 +574,14 @@ function isKnownToolName(name: string): name is AgentToolName {
 }
 
 function getFinishMessage(params: Record<string, unknown>, fallback = ""): string {
-	if (type(params.message) === "string" && (params.message as string).trim() !== "") {
-		return (params.message as string).trim();
+	if (typeof params.message === "string" && params.message.trim() !== "") {
+		return params.message.trim();
 	}
-	if (type(params.response) === "string" && (params.response as string).trim() !== "") {
-		return (params.response as string).trim();
+	if (typeof params.response === "string" && params.response.trim() !== "") {
+		return params.response.trim();
 	}
-	if (type(params.summary) === "string" && (params.summary as string).trim() !== "") {
-		return (params.summary as string).trim();
+	if (typeof params.summary === "string" && params.summary.trim() !== "") {
+		return params.summary.trim();
 	}
 	return fallback.trim();
 }
@@ -678,18 +684,18 @@ type DecisionResult = DecisionSuccess | DecisionFailure;
 type DecisionFailure = { success: false; message: string; raw?: string };
 
 function parseDecisionObject(rawObj: Record<string, unknown>): DecisionSuccess | DecisionFailure {
-	if (type(rawObj.tool) !== "string") return { success: false, message: "missing tool" };
-	const tool = rawObj.tool as string;
+	if (typeof rawObj.tool !== "string") return { success: false, message: "missing tool" };
+	const tool = rawObj.tool;
 	if (!isKnownToolName(tool)) {
 		return { success: false, message: `unknown tool: ${tool}` };
 	}
-	const reason = type(rawObj.reason) === "string"
-		? (rawObj.reason as string).trim()
+	const reason = typeof rawObj.reason === "string"
+		? rawObj.reason.trim()
 		: undefined;
 	if (tool !== "finish" && (!reason || reason === "")) {
 		return { success: false, message: `${tool} requires top-level reason` };
 	}
-	const params = type(rawObj.params) === "table" ? (rawObj.params as Record<string, unknown>) : {};
+	const params = isRecord(rawObj.params) ? rawObj.params : {};
 	return {
 		success: true,
 		tool,
@@ -705,19 +711,19 @@ function parseDecisionToolCall(functionName: string, rawObj: unknown): DecisionS
 	if (rawObj === undefined || rawObj === null) {
 		return { success: true, tool: functionName, params: {} };
 	}
-	if (type(rawObj) !== "table") {
+	if (!isRecord(rawObj)) {
 		return { success: false, message: `invalid ${functionName} arguments` };
 	}
 	return {
 		success: true,
 		tool: functionName,
-		params: rawObj as Record<string, unknown>,
+		params: rawObj,
 	};
 }
 
 function getDecisionPath(params: Record<string, unknown>): string {
-	if (type(params.path) === "string") return (params.path as string).trim();
-	if (type(params.target_file) === "string") return (params.target_file as string).trim();
+	if (typeof params.path === "string") return params.path.trim();
+	if (typeof params.target_file === "string") return params.target_file.trim();
 	return "";
 }
 
@@ -756,8 +762,8 @@ function validateDecision(
 	if (tool === "edit_file") {
 		const path = getDecisionPath(params);
 		if (path === "") return { success: false, message: "edit_file requires path" };
-		const oldStr = type(params.old_str) === "string" ? (params.old_str as string) : "";
-		const newStr = type(params.new_str) === "string" ? (params.new_str as string) : "";
+		const oldStr = typeof params.old_str === "string" ? params.old_str : "";
+		const newStr = typeof params.new_str === "string" ? params.new_str : "";
 		params.path = path;
 		params.old_str = oldStr;
 		params.new_str = newStr;
@@ -772,7 +778,7 @@ function validateDecision(
 	}
 
 	if (tool === "grep_files") {
-		const pattern = type(params.pattern) === "string" ? (params.pattern as string).trim() : "";
+		const pattern = typeof params.pattern === "string" ? params.pattern.trim() : "";
 		if (pattern === "") return { success: false, message: "grep_files requires pattern" };
 		params.pattern = pattern;
 		params.limit = clampIntegerParam(params.limit, SEARCH_FILES_LIMIT_DEFAULT, 1);
@@ -781,7 +787,7 @@ function validateDecision(
 	}
 
 	if (tool === "search_dora_api") {
-		const pattern = type(params.pattern) === "string" ? (params.pattern as string).trim() : "";
+		const pattern = typeof params.pattern === "string" ? params.pattern.trim() : "";
 		if (pattern === "") return { success: false, message: "search_dora_api requires pattern" };
 		params.pattern = pattern;
 		params.limit = clampIntegerParam(params.limit, 8, 1, SEARCH_DORA_API_LIMIT_MAX);
@@ -1191,17 +1197,17 @@ class MainDecisionAgent extends Node<AgentShared> {
 		const toolCalls = message && message.tool_calls;
 		const toolCall = toolCalls && toolCalls[0];
 		const fn = toolCall && toolCall.function;
-		const toolCallId = toolCall && type(toolCall.id) === "string"
-			? (toolCall.id as string)
+		const toolCallId = toolCall && typeof toolCall.id === "string"
+			? toolCall.id
 			: undefined;
-		const reasoningContent = message && type(message.reasoning_content) === "string"
-			? (message.reasoning_content as string).trim()
+		const reasoningContent = message && typeof message.reasoning_content === "string"
+			? message.reasoning_content.trim()
 			: undefined;
-		const messageContent = message && type(message.content) === "string"
-			? (message.content as string).trim()
+		const messageContent = message && typeof message.content === "string"
+			? message.content.trim()
 			: undefined;
 		Log("Info", `[CodingAgent] tool-calling response finish_reason=${choice && choice.finish_reason ? choice.finish_reason : "unknown"} tool_calls=${toolCalls ? toolCalls.length : 0} content_len=${messageContent ? messageContent.length : 0} reasoning_len=${reasoningContent ? reasoningContent.length : 0}`);
-		if (!fn || type(fn.name) !== "string" || fn.name === "") {
+		if (!fn || typeof fn.name !== "string" || fn.name === "") {
 			if (messageContent && messageContent !== "") {
 				Log("Info", `[CodingAgent] tool-calling fallback direct_finish_len=${messageContent.length}`);
 				return {
@@ -1220,7 +1226,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 				raw: messageContent,
 			};
 		}
-		const functionName = fn.name as string;
+		const functionName = fn.name;
 		const argsText = typeof fn.arguments === "string" ? fn.arguments : "";
 		Log("Info", `[CodingAgent] tool-calling function=${functionName} args_len=${argsText.length}`);
 		const rawArgs = argsText.trim() === "" ? {} : (() => {
@@ -1230,8 +1236,8 @@ class MainDecisionAgent extends Node<AgentShared> {
 			}
 			return rawObj;
 		})();
-		if (type(rawArgs) === "table" && (rawArgs as Record<string, unknown>).__error !== undefined) {
-			const err = tostring((rawArgs as Record<string, unknown>).__error);
+		if (isRecord(rawArgs) && rawArgs.__error !== undefined) {
+			const err = tostring(rawArgs.__error);
 			Log("Error", `[CodingAgent] invalid ${functionName} arguments JSON: ${err}`);
 			return {
 				success: false,
@@ -1239,7 +1245,6 @@ class MainDecisionAgent extends Node<AgentShared> {
 				raw: argsText,
 			};
 		}
-		p(rawArgs);
 		const decision = parseDecisionToolCall(functionName, rawArgs);
 		if (!decision.success) {
 			Log("Error", `[CodingAgent] invalid tool arguments schema: ${decision.message}`);
@@ -1454,16 +1459,10 @@ class ReadFileAction extends Node<AgentShared> {
 	async prep(shared: AgentShared): Promise<{ path: string; startLine: number; endLine: number; tool: "read_file"; workDir: string; docLanguage: Tools.DoraAPIDocLanguage }> {
 		const last = shared.history[shared.history.length - 1];
 		if (!last) throw new Error("no history");
-		emitAgentEvent(shared, {
-			type: "tool_started",
-			sessionId: shared.sessionId,
-			taskId: shared.taskId,
-			step: shared.step + 1,
-			tool: last.tool,
-		});
-		const path = type(last.params.path) === "string"
-			? (last.params.path as string)
-			: (type(last.params.target_file) === "string" ? (last.params.target_file as string) : "");
+		emitAgentStartEvent(shared, last);
+		const path = typeof last.params.path === "string"
+			? last.params.path
+			: (typeof last.params.target_file === "string" ? last.params.target_file : "");
 		if (path.trim() === "") throw new Error("missing path");
 		return {
 			path,
@@ -1491,14 +1490,7 @@ class ReadFileAction extends Node<AgentShared> {
 		if (last !== undefined) {
 			last.result = sanitizeReadResultForHistory(last.tool, result);
 			appendToolResultMessage(shared, last);
-			emitAgentEvent(shared, {
-				type: "tool_finished",
-				sessionId: shared.sessionId,
-				taskId: shared.taskId,
-				step: shared.step + 1,
-				tool: last.tool,
-				result: last.result,
-			});
+			emitAgentFinishEvent(shared, last);
 		}
 		await maybeCompressHistory(shared);
 		persistHistoryState(shared);
@@ -1511,13 +1503,7 @@ class SearchFilesAction extends Node<AgentShared> {
 	async prep(shared: AgentShared): Promise<{ params: Record<string, unknown>; workDir: string }> {
 		const last = shared.history[shared.history.length - 1];
 		if (!last) throw new Error("no history");
-		emitAgentEvent(shared, {
-			type: "tool_started",
-			sessionId: shared.sessionId,
-			taskId: shared.taskId,
-			step: shared.step + 1,
-			tool: last.tool,
-		});
+		emitAgentStartEvent(shared, last);
 		return { params: last.params, workDir: shared.workingDir };
 	}
 
@@ -1545,14 +1531,7 @@ class SearchFilesAction extends Node<AgentShared> {
 			const result = execRes as Record<string, unknown>;
 			last.result = sanitizeSearchResultForHistory(last.tool, result);
 			appendToolResultMessage(shared, last);
-			emitAgentEvent(shared, {
-				type: "tool_finished",
-				sessionId: shared.sessionId,
-				taskId: shared.taskId,
-				step: shared.step + 1,
-				tool: last.tool,
-				result: last.result,
-			});
+			emitAgentFinishEvent(shared, last);
 		}
 		await maybeCompressHistory(shared);
 		persistHistoryState(shared);
@@ -1565,13 +1544,7 @@ class SearchDoraAPIAction extends Node<AgentShared> {
 	async prep(shared: AgentShared): Promise<{ params: Record<string, unknown>; useChineseResponse: boolean }> {
 		const last = shared.history[shared.history.length - 1];
 		if (!last) throw new Error("no history");
-		emitAgentEvent(shared, {
-			type: "tool_started",
-			sessionId: shared.sessionId,
-			taskId: shared.taskId,
-			step: shared.step + 1,
-			tool: last.tool,
-		});
+		emitAgentStartEvent(shared, last);
 		return { params: last.params, useChineseResponse: shared.useChineseResponse };
 	}
 
@@ -1597,14 +1570,7 @@ class SearchDoraAPIAction extends Node<AgentShared> {
 			const result = execRes as Record<string, unknown>;
 			last.result = sanitizeSearchResultForHistory(last.tool, result);
 			appendToolResultMessage(shared, last);
-			emitAgentEvent(shared, {
-				type: "tool_finished",
-				sessionId: shared.sessionId,
-				taskId: shared.taskId,
-				step: shared.step + 1,
-				tool: last.tool,
-				result: last.result,
-			});
+			emitAgentFinishEvent(shared, last);
 		}
 		await maybeCompressHistory(shared);
 		persistHistoryState(shared);
@@ -1617,13 +1583,7 @@ class ListFilesAction extends Node<AgentShared> {
 	async prep(shared: AgentShared): Promise<{ params: Record<string, unknown>; workDir: string }> {
 		const last = shared.history[shared.history.length - 1];
 		if (!last) throw new Error("no history");
-		emitAgentEvent(shared, {
-			type: "tool_started",
-			sessionId: shared.sessionId,
-			taskId: shared.taskId,
-			step: shared.step + 1,
-			tool: last.tool,
-		});
+		emitAgentStartEvent(shared, last);
 		return { params: last.params, workDir: shared.workingDir };
 	}
 
@@ -1643,14 +1603,7 @@ class ListFilesAction extends Node<AgentShared> {
 		if (last !== undefined) {
 			last.result = sanitizeListFilesResultForHistory(execRes as Record<string, unknown>);
 			appendToolResultMessage(shared, last);
-			emitAgentEvent(shared, {
-				type: "tool_finished",
-				sessionId: shared.sessionId,
-				taskId: shared.taskId,
-				step: shared.step + 1,
-				tool: last.tool,
-				result: last.result,
-			});
+			emitAgentFinishEvent(shared, last);
 		}
 		await maybeCompressHistory(shared);
 		persistHistoryState(shared);
@@ -1663,16 +1616,10 @@ class DeleteFileAction extends Node<AgentShared> {
 	async prep(shared: AgentShared): Promise<{ targetFile: string; taskId: number; workDir: string }> {
 		const last = shared.history[shared.history.length - 1];
 		if (!last) throw new Error("no history");
-		emitAgentEvent(shared, {
-			type: "tool_started",
-			sessionId: shared.sessionId,
-			taskId: shared.taskId,
-			step: shared.step + 1,
-			tool: last.tool,
-		});
-		const targetFile = type(last.params.target_file) === "string"
-			? (last.params.target_file as string)
-			: (type(last.params.path) === "string" ? (last.params.path as string) : "");
+		emitAgentStartEvent(shared, last);
+		const targetFile = typeof last.params.target_file === "string"
+			? last.params.target_file
+			: (typeof last.params.path === "string" ? last.params.path : "");
 		if (targetFile.trim() === "") throw new Error("missing target_file");
 		return { targetFile, taskId: shared.taskId, workDir: shared.workingDir };
 	}
@@ -1695,33 +1642,26 @@ class DeleteFileAction extends Node<AgentShared> {
 		};
 	}
 
-	async post(shared: AgentShared, _prepRes: unknown, execRes: unknown): Promise<string | undefined> {
+	async post(shared: AgentShared, _prepRes: unknown, execRes: Record<string, unknown>): Promise<string | undefined> {
 		const last = shared.history[shared.history.length - 1];
 		if (last !== undefined) {
-			last.result = execRes as Record<string, unknown>;
+			last.result = execRes;
 			appendToolResultMessage(shared, last);
-			emitAgentEvent(shared, {
-				type: "tool_finished",
-				sessionId: shared.sessionId,
-				taskId: shared.taskId,
-				step: shared.step + 1,
-				tool: last.tool,
-				result: last.result,
-			});
+			emitAgentFinishEvent(shared, last);
 			const result = last.result;
 			if (last.tool === "delete_file"
-				&& type(result.checkpointId) === "number"
-				&& type(result.checkpointSeq) === "number"
-				&& type(result.files) === "table") {
+				&& typeof result.checkpointId === "number"
+				&& typeof result.checkpointSeq === "number"
+				&& isArray(result.files)) {
 				emitAgentEvent(shared, {
 					type: "checkpoint_created",
 					sessionId: shared.sessionId,
 					taskId: shared.taskId,
 					step: shared.step + 1,
 					tool: "delete_file",
-					checkpointId: result.checkpointId as number,
-					checkpointSeq: result.checkpointSeq as number,
-					files: result.files as { path: string; op: "write" | "create" | "delete"; }[],
+					checkpointId: result.checkpointId,
+					checkpointSeq: result.checkpointSeq,
+					files: result.files,
 				});
 			}
 		}
@@ -1736,13 +1676,7 @@ class BuildAction extends Node<AgentShared> {
 	async prep(shared: AgentShared): Promise<{ params: Record<string, unknown>; workDir: string }> {
 		const last = shared.history[shared.history.length - 1];
 		if (!last) throw new Error("no history");
-		emitAgentEvent(shared, {
-			type: "tool_started",
-			sessionId: shared.sessionId,
-			taskId: shared.taskId,
-			step: shared.step + 1,
-			tool: last.tool,
-		});
+		emitAgentStartEvent(shared, last);
 		return { params: last.params, workDir: shared.workingDir };
 	}
 
@@ -1760,14 +1694,7 @@ class BuildAction extends Node<AgentShared> {
 		if (last !== undefined) {
 			last.result = execRes as Record<string, unknown>;
 			appendToolResultMessage(shared, last);
-			emitAgentEvent(shared, {
-				type: "tool_finished",
-				sessionId: shared.sessionId,
-				taskId: shared.taskId,
-				step: shared.step + 1,
-				tool: last.tool,
-				result: last.result,
-			});
+			emitAgentFinishEvent(shared, last);
 		}
 		await maybeCompressHistory(shared);
 		persistHistoryState(shared);
@@ -1780,18 +1707,12 @@ class EditFileAction extends Node<AgentShared> {
 	async prep(shared: AgentShared): Promise<{ path: string; oldStr: string; newStr: string; taskId: number; workDir: string }> {
 		const last = shared.history[shared.history.length - 1];
 		if (!last) throw new Error("no history");
-		emitAgentEvent(shared, {
-			type: "tool_started",
-			sessionId: shared.sessionId,
-			taskId: shared.taskId,
-			step: shared.step + 1,
-			tool: last.tool,
-		});
-		const path = type(last.params.path) === "string"
-			? (last.params.path as string)
-			: (type(last.params.target_file) === "string" ? (last.params.target_file as string) : "");
-		const oldStr = type(last.params.old_str) === "string" ? (last.params.old_str as string) : "";
-		const newStr = type(last.params.new_str) === "string" ? (last.params.new_str as string) : "";
+		emitAgentStartEvent(shared, last);
+		const path = typeof last.params.path === "string"
+			? last.params.path
+			: (typeof last.params.target_file === "string" ? last.params.target_file : "");
+		const oldStr = typeof last.params.old_str === "string" ? last.params.old_str : "";
+		const newStr = typeof last.params.new_str === "string" ? last.params.new_str : "";
 		if (path.trim() === "") throw new Error("missing path");
 		return { path, oldStr, newStr, taskId: shared.taskId, workDir: shared.workingDir };
 	}
@@ -1893,19 +1814,12 @@ class EditFileAction extends Node<AgentShared> {
 			last.params = sanitizeActionParamsForHistory(last.tool, last.params);
 			last.result = execRes as Record<string, unknown>;
 			appendToolResultMessage(shared, last);
-			emitAgentEvent(shared, {
-				type: "tool_finished",
-				sessionId: shared.sessionId,
-				taskId: shared.taskId,
-				step: shared.step + 1,
-				tool: last.tool,
-				result: last.result,
-			});
+			emitAgentFinishEvent(shared, last);
 			const result = last.result;
 			if ((last.tool === "edit_file" || last.tool === "delete_file")
 				&& typeof result.checkpointId === "number"
 				&& typeof result.checkpointSeq === "number"
-				&& Array.isArray(result.files)) {
+				&& isArray(result.files)) {
 				emitAgentEvent(shared, {
 					type: "checkpoint_created",
 					sessionId: shared.sessionId,
@@ -1962,6 +1876,24 @@ class CodingAgentFlow extends Flow<AgentShared> {
 
 		super(main);
 	}
+}
+
+function emitAgentTaskFinishEvent(shared: AgentShared, success: boolean, message: string): CodingAgentRunResult {
+	const result = {
+		success,
+		taskId: shared.taskId,
+		message,
+		steps: shared.step
+	};
+	emitAgentEvent(shared, {
+		type: "task_finished",
+		sessionId: shared.sessionId,
+		taskId: shared.taskId,
+		success: result.success,
+		message: result.message,
+		steps: result.steps,
+	});
+	return result;
 }
 
 async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<CodingAgentRunResult> {
@@ -2041,79 +1973,26 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 		});
 		if (shared.stopToken.stopped) {
 			Tools.setTaskStatus(shared.taskId, "STOPPED");
-			const result = { success: false as const, taskId: shared.taskId, message: getCancelledReason(shared), steps: shared.step };
-			emitAgentEvent(shared, {
-				type: "task_finished",
-				sessionId: shared.sessionId,
-				taskId: shared.taskId,
-				success: false,
-				message: result.message,
-				steps: result.steps,
-			});
-			return result;
+			return emitAgentTaskFinishEvent(shared, false, getCancelledReason(shared));
 		}
 		Tools.setTaskStatus(shared.taskId, "RUNNING");
 		const flow = new CodingAgentFlow();
 		await flow.run(shared);
 		if (shared.stopToken.stopped) {
 			Tools.setTaskStatus(shared.taskId, "STOPPED");
-			const result = { success: false as const, taskId: shared.taskId, message: getCancelledReason(shared), steps: shared.step };
-			emitAgentEvent(shared, {
-				type: "task_finished",
-				sessionId: shared.sessionId,
-				taskId: shared.taskId,
-				success: false,
-				message: result.message,
-				steps: result.steps,
-			});
-			return result;
+			return emitAgentTaskFinishEvent(shared, false, getCancelledReason(shared));
 		}
 		if (shared.error) {
 			Tools.setTaskStatus(shared.taskId, "FAILED");
-			const result = {
-				success: false as const,
-				taskId: shared.taskId,
-				message: shared.response && shared.response !== "" ? shared.response : shared.error,
-				steps: shared.step,
-			};
-			emitAgentEvent(shared, {
-				type: "task_finished",
-				sessionId: shared.sessionId,
-				taskId: shared.taskId,
-				success: false,
-				message: result.message,
-				steps: result.steps,
-			});
-			return result;
+			return emitAgentTaskFinishEvent(shared, false,
+				shared.response && shared.response !== "" ? shared.response : shared.error);
 		}
 		Tools.setTaskStatus(shared.taskId, "DONE");
-		const result = {
-			success: true,
-			taskId: shared.taskId,
-			message: shared.response || (shared.useChineseResponse ? "任务完成。" : "Task completed."),
-			steps: shared.step,
-		};
-		emitAgentEvent(shared, {
-			type: "task_finished",
-			sessionId: shared.sessionId,
-			taskId: shared.taskId,
-			success: true,
-			message: result.message,
-			steps: result.steps,
-		});
-		return result;
+		return emitAgentTaskFinishEvent(shared, true,
+			shared.response || (shared.useChineseResponse ? "任务完成。" : "Task completed."));
 	} catch (e) {
 		Tools.setTaskStatus(shared.taskId, "FAILED");
-		const result = { success: false as const, taskId: shared.taskId, message: tostring(e), steps: shared.step };
-		emitAgentEvent(shared, {
-			type: "task_finished",
-			sessionId: shared.sessionId,
-			taskId: shared.taskId,
-			success: false,
-			message: result.message,
-			steps: result.steps,
-		});
-		return result;
+		return emitAgentTaskFinishEvent(shared, false, tostring(e));
 	}
 }
 

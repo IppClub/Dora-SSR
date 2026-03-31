@@ -1313,7 +1313,7 @@ std::pair<std::string, std::string> LuaEngine::compileTealToLua(String tlCodes, 
 	std::pair<std::string, std::string> res;
 	initTealState(true);
 	thread->runInMainSync([&]() {
-		res = compile_teal(tl, tlCodes, filename, searchPath, true);
+		res = compile_teal(tl, tlCodes, filename, searchPath, false);
 	});
 	return res;
 }

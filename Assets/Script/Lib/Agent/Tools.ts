@@ -252,22 +252,10 @@ function toWorkspaceRelativeFileList(workDir: string, files: string[]): string[]
 function toWorkspaceRelativeSearchResults(workDir: string, results: SearchFilesResult[]): SearchFilesResult[] {
 	const mapped: SearchFilesResult[] = [];
 	for (let i = 0; i < results.length; i++) {
-		const row = results[i] as any;
-		if (type(row) === "table") {
-			const clone: Record<string, unknown> = {};
-			for (const k in row) {
-				clone[k] = row[k];
-			}
-			if (type(clone.file) === "string") {
-				clone.file = toWorkspaceRelativePath(workDir, clone.file as string);
-			}
-			if (type(clone.path) === "string") {
-				clone.path = toWorkspaceRelativePath(workDir, clone.path as string);
-			}
-			mapped.push(clone as unknown as SearchFilesResult);
-		} else {
-			mapped.push(results[i]);
-		}
+		const row = results[i];
+		const clone: SearchFilesResult = { ...row };
+		clone.file = toWorkspaceRelativePath(workDir, clone.file);
+		mapped.push(clone);
 	}
 	return mapped;
 }
@@ -571,7 +559,7 @@ export function sendWebIDEFileUpdate(file: string, exists: boolean, content: str
 
 async function runSingleNonTsBuild(file: string): Promise<BuildMessage> {
 	return new Promise<BuildMessage>((resolve) => {
-		const {buildAsync} = require("Script.Dev.WebServer");
+		const { buildAsync } = require("Script.Dev.WebServer");
 		Director.systemScheduler.schedule(once(() => {
 			const result = buildAsync(file);
 			resolve(result);
@@ -593,7 +581,7 @@ export async function runSingleTsTranspile(file: string, content: string): Promi
 	listener.gslot("AppWS", (event) => {
 		if (event.type !== "Receive") return;
 		const [res] = safeJsonDecode(event.msg);
-		if (!res || Array.isArray(res) || type(res) !== "table") return;
+		if (!res || Array.isArray(res)) return;
 		const payload = res as any;
 		if (payload.name !== "TranspileTS") return;
 		if (payload.success) {
@@ -851,10 +839,8 @@ function mergeSearchFileResultsUnique(resultsList: SearchFilesResult[][]): Searc
 	for (let i = 0; i < resultsList.length; i++) {
 		const list = resultsList[i];
 		for (let j = 0; j < list.length; j++) {
-			const row = list[j] as any;
-			const key = type(row) === "table"
-				? `${tostring(row.file ?? row.path ?? "")}:${tostring(row.pos ?? "")}:${tostring(row.line ?? "")}:${tostring(row.column ?? "")}`
-				: tostring(j);
+			const row = list[j];
+			const key = `${row.file}:${row.pos}:${row.line}:${row.column}`;
 			if (seen.has(key)) continue;
 			seen.add(key);
 			merged.push(list[j]);
@@ -875,10 +861,8 @@ function buildGroupedSearchResults(results: SearchFilesResult[]): {
 		matches: SearchFilesResult[];
 	}>();
 	for (let i = 0; i < results.length; i++) {
-		const row = results[i] as any;
-		const file = type(row) === "table"
-			? tostring(row.file ?? row.path ?? "")
-			: "";
+		const row = results[i]
+		const file = row.file;
 		const key = file !== "" ? file : `(unknown:${i})`;
 		let bucket = grouped.get(key);
 		if (!bucket) {
@@ -1059,7 +1043,7 @@ export async function searchDoraAPI(req: {
 
 	return new Promise(resolve => {
 		Director.systemScheduler.schedule(once(() => {
-				try {
+			try {
 				const allHits: DoraAPISearchHit[][] = [];
 				for (let p = 0; p < patterns.length; p++) {
 					const raw = Content.searchFilesAsync(
@@ -1075,16 +1059,13 @@ export async function searchDoraAPI(req: {
 					);
 					const hits: DoraAPISearchHit[] = [];
 					for (let i = 0; i < raw.length; i++) {
-						const row = raw[i] as any;
-						if (type(row) !== "table") continue;
-						const file = type(row.file) === "string"
-							? toDocRelativePath(resultBaseRoot, row.file as string)
-							: (type(row.path) === "string" ? toDocRelativePath(resultBaseRoot, row.path as string) : "");
+						const row = raw[i];
+						const file = toDocRelativePath(resultBaseRoot, row.file);
 						if (file === "") continue;
 						hits.push({
 							file,
-							line: type(row.line) === "number" ? (row.line as number) : undefined,
-							content: type(row.content) === "string" ? (row.content as string) : undefined,
+							line: typeof row.line === "number" ? row.line : undefined,
+							content: typeof row.content === "string" ? row.content : undefined,
 						});
 					}
 					allHits.push(sortDoraAPISearchHits(hits, docSource, req.programmingLanguage).slice(0, limit));

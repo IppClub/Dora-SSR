@@ -1,8 +1,16 @@
 // @preview-file off clear
 import { Content, Path } from 'Dora';
 import { Message, ToolCallFunction, callLLM, Log, clipTextToTokenBudget, parseXMLObjectFromText, safeJsonDecode, safeJsonEncode, sanitizeUTF8 } from 'Agent/Utils';
-import type { LLMConfig } from 'Agent/Utils';
+import type { LLMConfig, ToolCall } from 'Agent/Utils';
 import { sendWebIDEFileUpdate } from 'Agent/Tools';
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === "object";
+}
+
+function isArray(value: unknown): value is any[] {
+	return Array.isArray(value);
+}
 
 export interface AgentConversationMessage extends Message {
 	timestamp?: string;
@@ -262,11 +270,11 @@ export function resolveAgentPromptPack(value?: Record<string, unknown> | null): 
 	const merged: AgentPromptPack = {
 		...DEFAULT_AGENT_PROMPT_PACK,
 	};
-		if (value && !Array.isArray(value) && type(value) === "table") {
+		if (value && !isArray(value) && isRecord(value)) {
 			for (let i = 0; i < OVERRIDABLE_PROMPT_PACK_KEYS.length; i++) {
 				const key = OVERRIDABLE_PROMPT_PACK_KEYS[i];
 				if (typeof value[key] === "string") {
-					((merged as unknown) as Record<string, unknown>)[key] = value[key] as string;
+					merged[key] = value[key];
 				}
 			}
 		}
@@ -603,8 +611,8 @@ export class DualLayerStorage {
 	}
 
 	private decodeConversationMessage(value: unknown): AgentConversationMessage | undefined {
-		if (!value || Array.isArray(value) || type(value) !== "table") return undefined;
-		const row = value as Record<string, unknown>;
+		if (!value || isArray(value) || !isRecord(value)) return undefined;
+		const row = value;
 		const role = typeof row.role === "string" ? row.role : "";
 		if (role === "") return undefined;
 		const message: AgentConversationMessage = { role };
@@ -613,7 +621,7 @@ export class DualLayerStorage {
 		if (typeof row.tool_call_id === "string") message.tool_call_id = sanitizeUTF8(row.tool_call_id);
 		if (typeof row.reasoning_content === "string") message.reasoning_content = sanitizeUTF8(row.reasoning_content);
 		if (typeof row.timestamp === "string") message.timestamp = sanitizeUTF8(row.timestamp);
-		if (type(row.tool_calls) === "table") {
+		if (isArray(row.tool_calls)) {
 			message.tool_calls = row.tool_calls as Message["tool_calls"];
 		}
 		return message;
@@ -691,8 +699,8 @@ ${memory}`;
 			const line = lines[i].trim();
 			if (line === "") continue;
 			const data = this.decodeJsonLine(line);
-			if (!data || Array.isArray(data) || type(data) !== "table") continue;
-			const row = data as Record<string, unknown>;
+			if (!data || isArray(data) || !isRecord(data)) continue;
+			const row = data;
 			if (row._type === "metadata") {
 				lastConsolidatedMessageIndex = math.max(0, math.floor(Number(row.lastConsolidatedMessageIndex ?? 0)));
 				continue;
@@ -771,8 +779,8 @@ export class MemoryCompressor {
 		for (let i = 0; i < loadedPromptPack.warnings.length; i++) {
 			Log("Warn", `[Agent] ${loadedPromptPack.warnings[i]}`);
 		}
-		const overridePack = (config.promptPack && !Array.isArray(config.promptPack) && type(config.promptPack) === "table")
-			? config.promptPack as Record<string, unknown>
+		const overridePack = (config.promptPack && !isArray(config.promptPack) && isRecord(config.promptPack))
+			? config.promptPack
 			: undefined;
 		this.config = {
 			...config,
@@ -892,23 +900,17 @@ export class MemoryCompressor {
 
 			if (message.role === "assistant" && message.tool_calls && message.tool_calls.length > 0) {
 				for (let j = 0; j < message.tool_calls.length; j++) {
-					const toolCallEntry: unknown = message.tool_calls[j];
-					const idValue: unknown = (
-						toolCallEntry
-						&& !Array.isArray(toolCallEntry)
-						&& type(toolCallEntry) === "table"
-					)
-						? (toolCallEntry as { id?: unknown }).id
-						: undefined;
+					const toolCallEntry: ToolCall = message.tool_calls[j];
+					const idValue = toolCallEntry.id;
 					const id = typeof idValue === "string" ? idValue : "";
-					if (id !== "" && pendingToolCalls[id] !== true) {
+					if (id !== "" && !pendingToolCalls[id]) {
 						pendingToolCalls[id] = true;
 						pendingToolCallCount += 1;
 					}
 				}
 			}
 
-			if (message.role === "tool" && message.tool_call_id && pendingToolCalls[message.tool_call_id] === true) {
+			if (message.role === "tool" && message.tool_call_id && pendingToolCalls[message.tool_call_id]) {
 				pendingToolCalls[message.tool_call_id] = false;
 				pendingToolCallCount = math.max(0, pendingToolCallCount - 1);
 			}

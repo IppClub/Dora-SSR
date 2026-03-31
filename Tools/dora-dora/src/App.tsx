@@ -2150,7 +2150,12 @@ export default function PersistentDrawerLeft() {
 				const buildFile = async (key: string, buildFolder: boolean) => {
 					const preferLog = buildFolder;
 					if (checkFileReadonly(key, false)) return;
-					const title = path.basename(key);
+					let title: string;
+					if (isChildFolder(key, writablePath)) {
+						title = path.relative(writablePath, key);
+					} else {
+						title = path.relative(assetPath, key);
+					}
 					const ext = path.extname(key).toLowerCase();
 					const name = path.basename(key, ext);
 					if (path.extname(name) === ".d") return;

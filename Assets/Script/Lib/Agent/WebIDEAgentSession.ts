@@ -149,7 +149,7 @@ function rowToSession(row: any[]): AgentSessionItem {
 		projectRoot: toStr(row[1]),
 		title: toStr(row[2]),
 		status: toStr(row[3]) as AgentSessionStatus,
-		currentTaskId: type(row[4]) === "number" && (row[4] as number) > 0 ? row[4] as number : undefined,
+		currentTaskId: typeof row[4] === "number" && row[4] > 0 ? row[4] : undefined,
 		currentTaskStatus: toStr(row[5]) as AgentSessionStatus,
 		createdAt: row[6] as number,
 		updatedAt: row[7] as number,
@@ -160,7 +160,7 @@ function rowToMessage(row: any[]): AgentSessionMessageItem {
 	return {
 		id: row[0] as number,
 		sessionId: row[1] as number,
-		taskId: type(row[2]) === "number" && (row[2] as number) > 0 ? row[2] as number : undefined,
+		taskId: typeof row[2] === "number" && row[2] > 0 ? row[2] : undefined,
 		role: toStr(row[3]) as AgentMessageRole,
 		content: toStr(row[4]),
 		createdAt: row[5] as number,
@@ -180,8 +180,8 @@ function rowToStep(row: any[]): AgentSessionStepItem {
 		reasoningContent: toStr(row[7]),
 		params: decodeJsonObject(toStr(row[8])),
 		result: decodeJsonObject(toStr(row[9])),
-		checkpointId: type(row[10]) === "number" && (row[10] as number) > 0 ? row[10] as number : undefined,
-		checkpointSeq: type(row[11]) === "number" && (row[11] as number) > 0 ? row[11] as number : undefined,
+		checkpointId: typeof row[10] === "number" && row[10] > 0 ? row[10] : undefined,
+		checkpointSeq: typeof row[11] === "number" && row[11] > 0 ? row[11] : undefined,
 		files: decodeJsonFiles(toStr(row[12])),
 		createdAt: row[13] as number,
 		updatedAt: row[14] as number,
@@ -445,7 +445,7 @@ function applyEvent(sessionId: number, event: CodingAgentEvent) {
 				finalizeTaskSteps(
 					sessionId,
 					event.taskId,
-					type(event.steps) === "number" ? math.max(0, math.floor(event.steps as number)) : undefined,
+					typeof event.steps === "number" ? math.max(0, math.floor(event.steps)) : undefined,
 					event.success ? undefined : (stopped ? "STOPPED" : "FAILED"),
 				);
 				const summaryRow = queryOne(
@@ -454,8 +454,8 @@ function applyEvent(sessionId: number, event: CodingAgentEvent) {
 					ORDER BY id DESC LIMIT 1`,
 					[sessionId, event.taskId, "assistant"],
 				);
-				if (summaryRow && type(summaryRow[0]) === "number") {
-					updateMessage(summaryRow[0] as number, event.message);
+				if (summaryRow && typeof summaryRow[0] === "number") {
+					updateMessage(summaryRow[0], event.message);
 				} else {
 					insertMessage(sessionId, "assistant", event.message, event.taskId);
 				}
@@ -468,7 +468,7 @@ function applyEvent(sessionId: number, event: CodingAgentEvent) {
 
 function getSchemaVersion(): number {
 	const row = queryOne("PRAGMA user_version");
-	return row && type(row[0]) === "number" ? row[0] as number : 0;
+	return row && typeof row[0] === "number" ? row[0] : 0;
 }
 
 function setSchemaVersion(version: number) {

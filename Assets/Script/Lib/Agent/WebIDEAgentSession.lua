@@ -58,11 +58,7 @@ local function decodeJsonObject(text) -- 102
 	if not text or text == "" then -- 102
 		return nil -- 103
 	end -- 103
-	local value = table.unpack( -- 104
-		safeJsonDecode(text), -- 104
-		1, -- 104
-		1 -- 104
-	) -- 104
+	local value = safeJsonDecode(text) -- 104
 	if value and not __TS__ArrayIsArray(value) and type(value) == "table" then -- 104
 		return value -- 106
 	end -- 106
@@ -72,11 +68,7 @@ local function decodeJsonFiles(text) -- 111
 	if not text or text == "" then -- 111
 		return nil -- 112
 	end -- 112
-	local value = table.unpack( -- 113
-		safeJsonDecode(text), -- 113
-		1, -- 113
-		1 -- 113
-	) -- 113
+	local value = safeJsonDecode(text) -- 113
 	if not value or not __TS__ArrayIsArray(value) then -- 113
 		return nil -- 114
 	end -- 114

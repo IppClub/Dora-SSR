@@ -136,12 +136,9 @@ end -- 113
 function ____exports.safeJsonDecode(text) -- 123
 	local value, err = json.decode(____exports.sanitizeUTF8(text)) -- 124
 	if value == nil then -- 124
-		return {value, err} -- 126
+		return value, err -- 126
 	end -- 126
-	return { -- 128
-		sanitizeJSONValue(value), -- 128
-		err -- 128
-	} -- 128
+	return sanitizeJSONValue(value), err -- 128
 end -- 123
 local function utf8TakeHead(text, maxChars) -- 131
 	if maxChars <= 0 or text == "" then -- 131
@@ -774,11 +771,7 @@ function ____exports.createSSEJSONParser(opts) -- 577
 			end -- 592
 			return -- 593
 		end -- 593
-		local obj, err = table.unpack( -- 596
-			____exports.safeJsonDecode(dataPayload), -- 596
-			1, -- 596
-			2 -- 596
-		) -- 596
+		local obj, err = ____exports.safeJsonDecode(dataPayload) -- 596
 		if err == nil then -- 596
 			opts.onJSON(obj, dataPayload) -- 598
 		else -- 598
@@ -1042,11 +1035,7 @@ function ____exports.callLLM(messages, options, stopTokenOrConfig, llmConfig) --
 				"Info", -- 869
 				"[Agent.Utils] callLLMOnce raw response length=" .. tostring(#raw) -- 869
 			) -- 869
-			local response, err = table.unpack( -- 870
-				____exports.safeJsonDecode(raw), -- 870
-				1, -- 870
-				2 -- 870
-			) -- 870
+			local response, err = ____exports.safeJsonDecode(raw) -- 870
 			if err ~= nil or response == nil or type(response) ~= "table" then -- 870
 				local rawPreview = previewText(raw) -- 872
 				____exports.Log( -- 873

@@ -86,7 +86,7 @@ export function sanitizeUTF8(text: string): string {
 			output += remaining;
 			break;
 		}
-		const badPos = type(invalidPos) === "number" ? invalidPos as number : 1;
+		const badPos = typeof invalidPos === "number" ? invalidPos : 1;
 		if (badPos > 1) {
 			output += remaining.substring(0, badPos - 1);
 		}
@@ -123,9 +123,9 @@ export function safeJsonEncode(value: unknown, indent?: boolean, sortKeys?: bool
 export function safeJsonDecode(text: string) {
 	const [value, err] = json.decode(sanitizeUTF8(text));
 	if (value === undefined) {
-		return [value, err] as const;
+		return $multi(value, err);
 	}
-	return [sanitizeJSONValue(value), err] as const;
+	return $multi(sanitizeJSONValue(value), err);
 }
 
 function utf8TakeHead(text: string, maxChars: number): string {
@@ -176,10 +176,10 @@ function estimateOptionsTokens(options: Record<string, any>): number {
 }
 
 function getReservedOutputTokens(options: Record<string, any>, contextWindow: number): number {
-	const explicitMax = type(options.max_tokens) === "number"
-		? math.floor(options.max_tokens as number)
-		: (type(options.max_completion_tokens) === "number"
-			? math.floor(options.max_completion_tokens as number)
+	const explicitMax = typeof options.max_tokens === "number"
+		? math.floor(options.max_tokens)
+		: (typeof options.max_completion_tokens === "number"
+			? math.floor(options.max_completion_tokens)
 			: 0);
 	if (explicitMax > 0) return math.max(256, explicitMax);
 	return math.max(1024, math.floor(contextWindow * 0.2));
@@ -715,8 +715,8 @@ export type LLMConfig = {
 };
 
 function normalizeContextWindow(value: unknown): number {
-	if (type(value) === "number") {
-		return math.max(4000, math.floor(value as number));
+	if (typeof value === "number") {
+		return math.max(4000, math.floor(value));
 	}
 	return 64000;
 }
@@ -882,13 +882,13 @@ export async function callLLM(
 		Log("Info", `[Agent.Utils] callLLMOnce decoded response choices=${choiceCount}`);
 		if (!responseObj.choices || responseObj.choices.length === 0) {
 			const providerError = responseObj.error;
-			const providerMessage = providerError && type(providerError.message) === "string"
-				? providerError.message as string
+			const providerMessage = providerError && typeof providerError.message === "string"
+				? providerError.message
 				: "";
-			const providerType = providerError && type(providerError.type) === "string"
-				? providerError.type as string
+			const providerType = providerError && typeof providerError.type === "string"
+				? providerError.type
 				: "";
-			const providerCode = providerError && (type(providerError.code) === "string" || type(providerError.code) === "number")
+			const providerCode = providerError && (typeof providerError.code === "string" || typeof providerError.code === "number")
 				? tostring(providerError.code)
 				: "";
 			const details = [providerType, providerCode].filter(part => part !== "").join("/");
