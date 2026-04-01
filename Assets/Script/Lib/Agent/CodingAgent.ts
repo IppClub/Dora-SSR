@@ -6,6 +6,7 @@ import type { LLMConfig } from 'Agent/Utils';
 import * as Tools from 'Agent/Tools';
 import { MemoryCompressor } from 'Agent/Memory';
 import type { AgentPromptPack, AgentConversationMessage } from 'Agent/Memory';
+import { SkillsLoader, createSkillsLoader } from 'Agent/SkillsLoader';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === "object";
@@ -183,6 +184,11 @@ interface AgentShared {
 	memory: {
 		/** Memory 压缩器实例 */
 		compressor: MemoryCompressor;
+	};
+	// Skills 相关字段
+	skills: {
+		/** Skills 加载器实例 */
+		loader: SkillsLoader;
 	};
 }
 
@@ -1184,7 +1190,19 @@ function buildAgentSystemPrompt(shared: AgentShared, includeToolDefinitions = fa
 			sections.push(buildXmlDecisionInstruction(shared));
 		}
 	}
+	// 添加 Skills 部分
+	const skillsSection = buildSkillsSection(shared);
+	if (skillsSection !== "") {
+		sections.push(skillsSection);
+	}
 	return sections.join("\n\n");
+}
+
+function buildSkillsSection(shared: AgentShared): string {
+	if (!shared.skills?.loader) {
+		return "";
+	}
+	return shared.skills.loader.buildSkillsPromptSection();
 }
 
 function sanitizeMessagesForLLMInput(messages: Message[]): Message[] {
@@ -2271,6 +2289,12 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 		// Memory 状态
 		memory: {
 			compressor,
+		},
+		// Skills 系统
+		skills: {
+			loader: createSkillsLoader({
+				projectDir: options.workDir,
+			}),
 		},
 	};
 
