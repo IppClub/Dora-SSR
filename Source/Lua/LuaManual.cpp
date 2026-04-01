@@ -51,6 +51,41 @@ int dora_emit(lua_State* L) {
 	return 0;
 }
 
+/* Application */
+
+int Application_estimateTokens(Application* self, String text, double asciiTokensPerChar, double nonAsciiTokensPerChar) {
+	if (!self) return 0;
+	if (text.empty()) {
+		return 0;
+	}
+	if (asciiTokensPerChar < 0.0) {
+		asciiTokensPerChar = 0.0;
+	}
+	if (nonAsciiTokensPerChar < 0.0) {
+		nonAsciiTokensPerChar = 0.0;
+	}
+	double tokens = 0.0;
+	for (int i = 0; i < text.size();) {
+		uint8_t byte = s_cast<uint8_t>(text[i]);
+		if (byte < 0x80) {
+			tokens += asciiTokensPerChar;
+			i += 1;
+			continue;
+		}
+		tokens += nonAsciiTokensPerChar;
+		if ((byte & 0xE0) == 0xC0) {
+			i += 2;
+		} else if ((byte & 0xF0) == 0xE0) {
+			i += 3;
+		} else if ((byte & 0xF8) == 0xF0) {
+			i += 4;
+		} else {
+			i += 1;
+		}
+	}
+	return std::max(1, s_cast<int>(std::ceil(tokens)));
+}
+
 static std::vector<std::string> getVectorString(lua_State* L, int loc) {
 	int length = s_cast<int>(lua_rawlen(L, loc));
 #ifndef TOLUA_RELEASE

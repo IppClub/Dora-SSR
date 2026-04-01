@@ -704,6 +704,16 @@ interface App {
 	openFileDialog(folderOnly: boolean, callback: (path: string) => void): void;
 
 	/**
+	 * A function that estimates how many LLM tokens a text will roughly consume.
+	 * By default, ASCII characters are counted at roughly 0.4 token each, and non-ASCII characters are counted at 2 tokens each.
+	 * @param text The text to estimate.
+	 * @param asciiTokensPerChar Optional override for ASCII characters. Default is 0.4.
+	 * @param nonAsciiTokensPerChar Optional override for non-ASCII characters. Default is 2.0.
+	 * @returns The estimated token count.
+	 */
+	estimateTokens(text: string, asciiTokensPerChar?: number, nonAsciiTokensPerChar?: number): number;
+
+	/**
 	 * A function that shuts down and exits the game engine.
 	 * When `devMode` is set to true, the `shutdown` function will only emit a "AppEvent" global event with type "Shutdown", instead of shutting down the game engine.
 	 * It is not working and acts as a dummy function for platform Android and iOS to follow the specification of how mobile platform applications should operate.

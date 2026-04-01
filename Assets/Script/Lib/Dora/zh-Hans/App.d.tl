@@ -137,6 +137,14 @@ local record App
 	-- @param callback (function) 当文件对话框关闭时调用的回调函数。回调函数应接受一个字符串参数，该参数为选中的文件或文件夹的路径。如果用户取消对话框，则返回空字符串。
 	openFileDialog: function(self: App, folderOnly: boolean, callback: function(path: string))
 
+	-- 估算一段文本大致会消耗多少 LLM token。
+	-- 默认情况下，ASCII 字符按约 0.4 token/字符估算，非 ASCII 字符按 2 token/字符估算。
+	-- @param text (string) 要估算的文本。
+	-- @param asciiTokensPerChar (number) 可选的 ASCII 字符系数，默认 0.4。
+	-- @param nonAsciiTokensPerChar (number) 可选的非 ASCII 字符系数，默认 2.0。
+	-- @return (integer) 估算得到的 token 数量。
+	estimateTokens: function(self: App, text: string, asciiTokensPerChar?: number --[[0.4]], nonAsciiTokensPerChar?: number --[[2.0]]): integer
+
 	-- 关闭并退出游戏引擎。
 	-- 当 `devMode` 设置为 true 时，该函数只会发出一个 "AppEvent" 全局事件，类型为 "Shutdown"，而不是关闭游戏引擎。
 	-- 该函数在Android和iOS平台不会真正关闭游戏引擎，以遵循移动平台上应用程序规范。

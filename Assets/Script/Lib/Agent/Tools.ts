@@ -144,7 +144,6 @@ export type DoraAPISearchResult = {
 	docSource: DoraAPIDocSource;
 	docLanguage: DoraAPIDocLanguage;
 	programmingLanguage: DoraAPIProgrammingLanguage;
-	root: string;
 	exts: string[];
 	results: DoraAPISearchHit[];
 	totalResults?: number;
@@ -1076,7 +1075,6 @@ export async function searchDoraAPI(req: {
 					docSource,
 					docLanguage: req.docLanguage,
 					programmingLanguage: req.programmingLanguage,
-					root: docRoot,
 					exts,
 					results: hits,
 					totalResults: hits.length,

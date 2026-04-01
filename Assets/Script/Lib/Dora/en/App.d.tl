@@ -135,6 +135,14 @@ local record App
 	-- @param callback (function) The callback function to be called when the file dialog is closed. The callback function should accept a string parameter which is the path of the selected file or folder. Get empty string if the user canceled the dialog.
 	openFileDialog: function(self: App, folderOnly: boolean, callback: function(path: string))
 
+	-- A function that estimates how many LLM tokens a text will roughly consume.
+	-- By default, ASCII characters are counted at roughly 0.4 token each, and non-ASCII characters are counted at 2 tokens each.
+	-- @param text (string) The text to estimate.
+	-- @param asciiTokensPerChar (number) Optional override for ASCII characters. Default is 0.4.
+	-- @param nonAsciiTokensPerChar (number) Optional override for non-ASCII characters. Default is 2.0.
+	-- @return (integer) The estimated token count.
+	estimateTokens: function(self: App, text: string, asciiTokensPerChar?: number --[[0.4]], nonAsciiTokensPerChar?: number --[[2.0]]): integer
+
 	-- A function that shuts down and exits the game engine.
 	-- When `devMode` is set to true, the `shutdown` function will only emit a "AppEvent" global event with type "Shutdown", instead of shutting down the game engine.
 	-- It is not working and acts as a dummy function for platform Android and iOS to follow the specification of how mobile platform applications should operate.

@@ -131,6 +131,7 @@ class Application
 	bool saveLog(String filename);
 	void openFileDialog(bool folderOnly, tolua_function_void callback);
 	void shutdown();
+	tolua_outside int Application_estimateTokens @ estimateTokens(String text, double asciiTokensPerChar = 0.4, double nonAsciiTokensPerChar = 2.0);
 	static tolua_outside Application* Application_shared @ create();
 };
 

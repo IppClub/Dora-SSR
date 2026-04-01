@@ -14,6 +14,7 @@ NS_DORA_BEGIN
 
 /* Application */
 inline Application* Application_shared() { return &SharedApplication; }
+int Application_estimateTokens(Application* self, String text, double asciiTokensPerChar = 0.4, double nonAsciiTokensPerChar = 2.0);
 
 /* Event */
 int dora_emit(lua_State* L);

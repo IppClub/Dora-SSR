@@ -126,6 +126,13 @@ function summarizeToolParams(step: AgentSessionStep, t: (key: string, options?: 
 			push(t("agent.paramLabels.buildTarget"), path !== "" ? path : t("agent.workspace"));
 			return items;
 		}
+		case "compress_memory": {
+			const round = typeof params.round === "number" ? params.round : undefined;
+			const pendingMessages = typeof params.pendingMessages === "number" ? params.pendingMessages : undefined;
+			if (round !== undefined) push(t("agent.paramLabels.round"), String(round));
+			if (pendingMessages !== undefined) push(t("agent.paramLabels.messages"), String(pendingMessages));
+			return items;
+		}
 		default:
 			return items;
 	}
@@ -170,9 +177,13 @@ export default function AgentStepList(props: AgentStepListProps) {
 				const buildErrorsOpened = openedBuildErrors[step.id] === true;
 				const hasReasoning = step.reasoningContent.trim() !== "";
 				const primaryContent = step.reason || (hasReasoning ? step.reasoningContent : "");
+				const historyEntryPreview = step.tool === "compress_memory" && typeof step.result?.historyEntryPreview === "string"
+					? step.result.historyEntryPreview
+					: "";
+				const isCompressionStep = step.tool === "compress_memory";
 				return (
 				<Box key={step.id} sx={{
-					borderLeft: `2px solid ${Color.Line}`,
+					borderLeft: `2px solid ${isCompressionStep ? "rgba(255,196,110,0.32)" : Color.Line}`,
 					pl: 1.5,
 					py: 0.25,
 				}}>
@@ -184,7 +195,10 @@ export default function AgentStepList(props: AgentStepListProps) {
 							size="small"
 							label={t(`agent.toolNames.${step.tool}`, { defaultValue: step.tool })}
 							variant="outlined"
-							sx={{ borderColor: Color.Line, color: Color.TextPrimary }}
+							sx={{
+								borderColor: isCompressionStep ? "rgba(255,196,110,0.32)" : Color.Line,
+								color: isCompressionStep ? "rgb(255,214,153)" : Color.TextPrimary,
+							}}
 						/>
 						{step.status !== "DONE" ? (
 							<Chip size="small" label={step.status} variant="outlined" sx={{ borderColor: Color.Line, color: Color.TextSecondary }} />
@@ -211,6 +225,11 @@ export default function AgentStepList(props: AgentStepListProps) {
 								{primaryContent}
 							</ReactMarkdown>
 						</Box>
+					) : null}
+					{historyEntryPreview !== "" ? (
+						<Typography variant="body2" sx={{ color: Color.TextSecondary, whiteSpace: "pre-wrap", lineHeight: 1.6, mt: 0.75 }}>
+							{historyEntryPreview}
+						</Typography>
 					) : null}
 					{paramItems.length > 0 ? (
 						<Typography variant="caption" sx={{ color: Color.TextSecondary, display: "block", mt: step.reason ? 0.75 : 1, lineHeight: 1.6 }}>

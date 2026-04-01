@@ -708,6 +708,16 @@ interface App {
 	openFileDialog(folderOnly: boolean, callback: (path: string) => void): void;
 
 	/**
+	 * 估算一段文本大致会消耗多少 LLM token。
+	 * 默认情况下，ASCII 字符按约 0.4 token/字符估算，非 ASCII 字符按 2 token/字符估算。
+	 * @param text 要估算的文本。
+	 * @param asciiTokensPerChar 可选的 ASCII 字符系数，默认 0.4。
+	 * @param nonAsciiTokensPerChar 可选的非 ASCII 字符系数，默认 2.0。
+	 * @returns 估算得到的 token 数量。
+	 */
+	estimateTokens(text: string, asciiTokensPerChar?: number, nonAsciiTokensPerChar?: number): number;
+
+	/**
 	 * 关闭并退出游戏引擎。
 	 * 当 `devMode` 设置为 true 时，该函数只会发出一个 "AppEvent" 全局事件，类型为 "Shutdown"，而不是关闭游戏引擎。
 	 * 该函数在Android和iOS平台不会真正关闭游戏引擎，以遵循移动平台上应用程序规范。

@@ -1,5 +1,5 @@
 // @preview-file off clear
-import { Content, Path } from 'Dora';
+import { App, Content, Path } from 'Dora';
 import { Message, ToolCallFunction, callLLM, Log, clipTextToTokenBudget, parseXMLObjectFromText, safeJsonDecode, safeJsonEncode, sanitizeUTF8 } from 'Agent/Utils';
 import type { LLMConfig, ToolCall } from 'Agent/Utils';
 import { sendWebIDEFileUpdate } from 'Agent/Tools';
@@ -18,7 +18,6 @@ export interface AgentConversationMessage extends Message {
 
 export interface PersistedSessionState {
 	messages: AgentConversationMessage[];
-	lastConsolidatedMessageIndex: number;
 }
 
 const AGENT_CONFIG_DIR = ".agent";
@@ -187,14 +186,7 @@ Available tools and params reference:
 - The next reply must differ from the previously rejected candidate.
 - Return XML only, with no prose before or after.`,
 	memoryCompressionSystemPrompt: `You are a memory consolidation agent. You MUST call the save_memory tool.
-Do not output any text besides the tool call.`,
-	memoryCompressionBodyPrompt: `### Current Memory (Long-term)
-
-{{CURRENT_MEMORY}}
-
-### Actions to Process
-
-{{HISTORY_TEXT}}
+Do not output any text besides the tool call.
 
 ### Task
 
@@ -222,6 +214,13 @@ Analyze the actions and update the memory. Follow these guidelines:
 	- Make it grep-searchable
 
 Call the save_memory tool with your consolidated memory and history entry.`,
+	memoryCompressionBodyPrompt: `### Current Memory (Long-term)
+
+{{CURRENT_MEMORY}}
+
+### Actions to Process
+
+{{HISTORY_TEXT}}`,
 	memoryCompressionToolCallingPrompt: `### Output Format
 
 Call the save_memory tool with:
@@ -473,9 +472,23 @@ export interface CompressionResult {
 
 	/** 错误信息 (如果失败) */
 	error?: string;
+
+	/** 需要补回 active context 的最后一条 user 消息 */
+	carryMessage?: AgentConversationMessage;
+}
+
+export interface MemoryCompressionDebugContext {
+	onInput?: (phase: string, messages: Message[], options: Record<string, unknown>) => void;
+	onOutput?: (phase: string, text: string, meta?: Record<string, unknown>) => void;
 }
 
 export type MemoryCompressionDecisionMode = "tool_calling" | "xml";
+export type MemoryCompressionBoundaryMode = "default" | "budget_max";
+type CompressionBoundarySelection = {
+	chunkEnd: number;
+	compressedCount: number;
+	carryMessage?: AgentConversationMessage;
+};
 
 /**
  * Token 估算器
@@ -484,30 +497,12 @@ export type MemoryCompressionDecisionMode = "tool_calling" | "xml";
  * 估算精度足够用于压缩触发判断。
  */
 export class TokenEstimator {
-	// 平均每 4 个字符 ≈ 1 token (适用于英文为主的内容)
-	private static readonly CHARS_PER_TOKEN = 4;
-
-	// 中文字符权重更高
-	private static readonly CHINESE_CHARS_PER_TOKEN = 1.5;
-
 	/**
 	 * 估算文本的 token 数量
 	 */
 	static estimate(text: string): number {
 		if (!text) return 0;
-
-		// 简单统计中文字符
-		const [chineseChars] = utf8.len(text);
-		if (!chineseChars) return 0;
-
-		const otherChars = text.length - chineseChars;
-
-		const tokens = Math.ceil(
-			chineseChars / this.CHINESE_CHARS_PER_TOKEN +
-			otherChars / this.CHARS_PER_TOKEN
-		);
-
-		return Math.max(1, tokens);
+		return App.estimateTokens(text);
 	}
 
 	static estimateMessages(messages: Message[]): number {
@@ -538,6 +533,11 @@ export class TokenEstimator {
 			this.estimate(toolDefinitions)
 		);
 	}
+}
+
+function encodeCompressionDebugJSON(value: unknown): string {
+	const [text, err] = safeJsonEncode(value as object);
+	return text ?? `{ "error": "json_encode_failed", "message": "${tostring(err)}" }`;
 }
 
 function utf8TakeHead(text: string, maxChars: number): string {
@@ -686,49 +686,31 @@ ${memory}`;
 
 	readSessionState(): PersistedSessionState {
 		if (!Content.exist(this.sessionPath)) {
-			return { messages: [], lastConsolidatedMessageIndex: 0 };
+			return { messages: [] };
 		}
 		const text = Content.load(this.sessionPath) as string;
 		if (!text || text.trim() === "") {
-			return { messages: [], lastConsolidatedMessageIndex: 0 };
+			return { messages: [] };
 		}
 		const lines = text.split("\n");
 		const messages: AgentConversationMessage[] = [];
-		let lastConsolidatedMessageIndex = 0;
 		for (let i = 0; i < lines.length; i++) {
 			const line = lines[i].trim();
 			if (line === "") continue;
 			const data = this.decodeJsonLine(line);
 			if (!data || isArray(data) || !isRecord(data)) continue;
 			const row = data;
-			if (row._type === "metadata") {
-				lastConsolidatedMessageIndex = math.max(0, math.floor(Number(row.lastConsolidatedMessageIndex ?? 0)));
-				continue;
-			}
 			const message = this.decodeConversationMessage(row.message ?? row);
 			if (message) {
 				messages.push(message);
 			}
 		}
-		return {
-			messages,
-			lastConsolidatedMessageIndex: math.min(lastConsolidatedMessageIndex, messages.length),
-		};
+		return { messages };
 	}
 
-	writeSessionState(
-		messages: AgentConversationMessage[] = [],
-		lastConsolidatedMessageIndex = 0
-	): void {
+	writeSessionState(messages: AgentConversationMessage[] = []): void {
 		this.ensureDir(Path.getPath(this.sessionPath));
 		const lines: string[] = [];
-		const meta = this.encodeJsonLine({
-			_type: "metadata",
-			lastConsolidatedMessageIndex: math.min(math.max(0, math.floor(lastConsolidatedMessageIndex)), messages.length),
-		});
-		if (meta) {
-			lines.push(meta);
-		}
 		for (let i = 0; i < messages.length; i++) {
 			const line = this.encodeJsonLine({
 				_type: "message",
@@ -801,12 +783,11 @@ export class MemoryCompressor {
 	 */
 	shouldCompress(
 		messages: Message[],
-		lastConsolidatedMessageIndex: number,
 		systemPrompt: string,
 		toolDefinitions: string
 	): boolean {
 		const messageTokens = TokenEstimator.estimatePromptMessages(
-			messages.slice(lastConsolidatedMessageIndex),
+			messages,
 			systemPrompt,
 			toolDefinitions
 		);
@@ -821,26 +802,26 @@ export class MemoryCompressor {
 	 */
 	async compress(
 		messages: AgentConversationMessage[],
-		lastConsolidatedMessageIndex: number,
 		systemPrompt: string,
 		toolDefinitions: string,
 		llmOptions: Record<string, unknown>,
 		maxLLMTry?: number,
-		decisionMode: MemoryCompressionDecisionMode = "tool_calling"
+		decisionMode: MemoryCompressionDecisionMode = "tool_calling",
+		debugContext?: MemoryCompressionDebugContext,
+		boundaryMode: MemoryCompressionBoundaryMode = "default"
 	): Promise<CompressionResult | null> {
-		const toCompress = messages.slice(lastConsolidatedMessageIndex);
+		const toCompress = messages;
 		if (toCompress.length === 0) return null;
+		const currentMemory = this.storage.readMemory();
 
 		const boundary = this.findCompressionBoundary(
 			toCompress,
-			systemPrompt,
-			toolDefinitions
+			currentMemory,
+			boundaryMode
 		);
-		const chunk = toCompress.slice(0, boundary);
+		const chunk = toCompress.slice(0, boundary.chunkEnd);
 
 		if (chunk.length === 0) return null;
-
-		const currentMemory = this.storage.readMemory();
 		const historyText = this.formatMessagesForCompression(chunk);
 
 		try {
@@ -850,7 +831,8 @@ export class MemoryCompressor {
 				historyText,
 				llmOptions,
 				maxLLMTry ?? 3,
-				decisionMode
+				decisionMode,
+				debugContext
 			);
 
 			if (result.success) {
@@ -861,7 +843,8 @@ export class MemoryCompressor {
 
 				return {
 					...result,
-					compressedCount: chunk.length,
+					compressedCount: boundary.compressedCount,
+					carryMessage: boundary.carryMessage,
 				};
 			}
 
@@ -880,22 +863,29 @@ export class MemoryCompressor {
 	 */
 	private findCompressionBoundary(
 		messages: AgentConversationMessage[],
-		systemPrompt: string,
-		toolDefinitions: string
-	): number {
-		const requiredTokens = this.getRequiredCompressionTokens(messages, systemPrompt, toolDefinitions);
-		const targetTokens = math.min(
-			this.config.maxTokensPerCompression,
-			math.max(1, requiredTokens)
-		);
+		currentMemory: string,
+		boundaryMode: MemoryCompressionBoundaryMode
+	): CompressionBoundarySelection {
+		const targetTokens = boundaryMode === "budget_max"
+			? math.min(
+				this.config.maxTokensPerCompression,
+				math.max(1, this.getCompressionHistoryTokenBudget(currentMemory))
+			)
+			: math.min(
+				this.config.maxTokensPerCompression,
+				math.max(1, this.getRequiredCompressionTokens(messages))
+			);
 		let accumulatedTokens = 0;
 		let lastSafeBoundary = 0;
+		let lastSafeBoundaryWithinBudget = 0;
+		let lastClosedBoundary = 0;
+		let lastClosedBoundaryWithinBudget = 0;
 		const pendingToolCalls: Record<string, boolean> = {};
 		let pendingToolCallCount = 0;
 
 		for (let i = 0; i < messages.length; i++) {
 			const message = messages[i];
-			const tokens = TokenEstimator.estimatePromptMessages([message], "", "");
+			const tokens = this.estimateCompressionMessageTokens(message, i);
 			accumulatedTokens += tokens;
 
 			if (message.role === "assistant" && message.tool_calls && message.tool_calls.length > 0) {
@@ -919,35 +909,103 @@ export class MemoryCompressor {
 			const nextRole = !isAtEnd ? messages[i + 1].role : "";
 			const isUserTurnBoundary = !isAtEnd && nextRole === "user";
 			const isSafeBoundary = pendingToolCallCount === 0 && (isAtEnd || isUserTurnBoundary);
+			const isClosedToolBoundary = pendingToolCallCount === 0 && i > 0;
 			if (isSafeBoundary) {
 				lastSafeBoundary = i + 1;
+				if (accumulatedTokens <= targetTokens) {
+					lastSafeBoundaryWithinBudget = i + 1;
+				}
+			}
+			if (isClosedToolBoundary) {
+				lastClosedBoundary = i + 1;
+				if (accumulatedTokens <= targetTokens) {
+					lastClosedBoundaryWithinBudget = i + 1;
+				}
 			}
 
-			if (accumulatedTokens >= targetTokens && isSafeBoundary) {
-				return i + 1;
+			if (accumulatedTokens > targetTokens) {
+				if (lastSafeBoundaryWithinBudget > 0) {
+					return { chunkEnd: lastSafeBoundaryWithinBudget, compressedCount: lastSafeBoundaryWithinBudget };
+				}
+				if (boundaryMode === "budget_max") {
+					if (lastClosedBoundaryWithinBudget > 0) {
+						return this.buildCarryBoundary(messages, lastClosedBoundaryWithinBudget);
+					}
+					if (lastClosedBoundary > 0) {
+						return this.buildCarryBoundary(messages, lastClosedBoundary);
+					}
+				}
+				if (lastSafeBoundary > 0) {
+					return { chunkEnd: lastSafeBoundary, compressedCount: lastSafeBoundary };
+				}
+				if (lastClosedBoundaryWithinBudget > 0) {
+					return this.buildCarryBoundary(messages, lastClosedBoundaryWithinBudget);
+				}
+				if (lastClosedBoundary > 0) {
+					return this.buildCarryBoundary(messages, lastClosedBoundary);
+				}
+				return { chunkEnd: math.min(messages.length, 1), compressedCount: math.min(messages.length, 1) };
 			}
 		}
 
-		if (lastSafeBoundary > 0) return lastSafeBoundary;
-		return math.min(messages.length, 1);
+		if (lastSafeBoundaryWithinBudget > 0) {
+			return { chunkEnd: lastSafeBoundaryWithinBudget, compressedCount: lastSafeBoundaryWithinBudget };
+		}
+		if (lastSafeBoundary > 0) {
+			return { chunkEnd: lastSafeBoundary, compressedCount: lastSafeBoundary };
+		}
+		if (lastClosedBoundaryWithinBudget > 0) {
+			return this.buildCarryBoundary(messages, lastClosedBoundaryWithinBudget);
+		}
+		if (lastClosedBoundary > 0) {
+			return this.buildCarryBoundary(messages, lastClosedBoundary);
+		}
+		const fallback = math.min(messages.length, 1);
+		return { chunkEnd: fallback, compressedCount: fallback };
 	}
 
-	private getRequiredCompressionTokens(
-		messages: AgentConversationMessage[],
-		systemPrompt: string,
-		toolDefinitions: string
-	): number {
-		const currentTokens = TokenEstimator.estimatePromptMessages(
-			messages,
-			systemPrompt,
-			toolDefinitions
-		);
+	private buildCarryBoundary(messages: AgentConversationMessage[], chunkEnd: number): CompressionBoundarySelection {
+		let carryUserIndex = -1;
+		for (let i = 0; i < chunkEnd; i++) {
+			if (messages[i].role === "user") {
+				carryUserIndex = i;
+			}
+		}
+		if (carryUserIndex < 0) {
+			return { chunkEnd, compressedCount: chunkEnd };
+		}
+		return {
+			chunkEnd,
+			compressedCount: chunkEnd,
+			carryMessage: {
+				...messages[carryUserIndex],
+			},
+		};
+	}
+
+	private estimateCompressionMessageTokens(message: AgentConversationMessage, index: number): number {
+		const lines: string[] = [];
+		lines.push(`Message ${index + 1}: role=${message.role}`);
+		if (message.name && message.name !== "") lines.push(`name=${message.name}`);
+		if (message.tool_call_id && message.tool_call_id !== "") lines.push(`tool_call_id=${message.tool_call_id}`);
+		if (message.reasoning_content && message.reasoning_content !== "") lines.push(`reasoning=${message.reasoning_content}`);
+		if (message.tool_calls && message.tool_calls.length > 0) {
+			const [toolCallsText] = safeJsonEncode(message.tool_calls as object);
+			lines.push(`tool_calls=${toolCallsText ?? ""}`);
+		}
+		if (message.content && message.content !== "") lines.push(message.content);
+		const prefix = index > 0 ? "\n\n" : "";
+		return TokenEstimator.estimate(prefix + lines.join("\n"));
+	}
+
+	private getRequiredCompressionTokens(messages: AgentConversationMessage[]): number {
+		const currentTokens = TokenEstimator.estimate(this.formatMessagesForCompression(messages));
 		const threshold = this.getContextWindow() * this.config.compressionThreshold;
 		const overflow = math.max(0, currentTokens - threshold);
 		if (overflow <= 0) {
 			return math.min(
 				this.config.maxTokensPerCompression,
-				math.max(1, TokenEstimator.estimatePromptMessages(messages.slice(0, 1), "", ""))
+				math.max(1, this.estimateCompressionMessageTokens(messages[0], 0))
 			);
 		}
 		const safetyMargin = math.max(64, math.floor(threshold * 0.01));
@@ -980,7 +1038,8 @@ export class MemoryCompressor {
 		historyText: string,
 		llmOptions: Record<string, unknown>,
 		maxLLMTry: number,
-		decisionMode: MemoryCompressionDecisionMode
+		decisionMode: MemoryCompressionDecisionMode,
+		debugContext?: MemoryCompressionDebugContext
 	): Promise<CompressionResult> {
 		const boundedHistoryText = this.boundCompressionHistoryText(currentMemory, historyText);
 		if (decisionMode === "xml") {
@@ -988,14 +1047,16 @@ export class MemoryCompressor {
 				currentMemory,
 				boundedHistoryText,
 				llmOptions,
-				maxLLMTry
+				maxLLMTry,
+				debugContext
 			);
 		}
 		return this.callLLMForCompressionByToolCalling(
 			currentMemory,
 			boundedHistoryText,
 			llmOptions,
-			maxLLMTry
+			maxLLMTry,
+			debugContext
 		);
 	}
 
@@ -1006,7 +1067,7 @@ export class MemoryCompressor {
 	private getCompressionHistoryTokenBudget(currentMemory: string): number {
 		const contextWindow = this.getContextWindow();
 		const reservedOutputTokens = Math.max(2048, Math.floor(contextWindow * 0.2));
-		const staticPromptTokens = TokenEstimator.estimate(this.buildCompressionPromptBodyRaw("", ""));
+		const staticPromptTokens = TokenEstimator.estimate(this.buildCompressionStaticPrompt("tool_calling"));
 		const memoryTokens = TokenEstimator.estimate(currentMemory);
 		const available = contextWindow - reservedOutputTokens - staticPromptTokens - memoryTokens;
 		return Math.max(1200, Math.floor(available * 0.9));
@@ -1033,7 +1094,7 @@ export class MemoryCompressor {
 	} {
 		const contextWindow = this.getContextWindow();
 		const reservedOutputTokens = Math.max(2048, math.floor(contextWindow * 0.2));
-		const staticPromptTokens = TokenEstimator.estimate(this.buildCompressionPromptBodyRaw("", ""));
+		const staticPromptTokens = TokenEstimator.estimate(this.buildCompressionStaticPrompt("tool_calling"));
 		const dynamicBudget = math.max(1600, contextWindow - reservedOutputTokens - staticPromptTokens - 256);
 		const boundedMemory = clipTextToTokenBudget(currentMemory || "(empty)", math.max(320, math.floor(dynamicBudget * 0.35)));
 		const boundedHistory = clipTextToTokenBudget(historyText, math.max(800, math.floor(dynamicBudget * 0.65)));
@@ -1047,9 +1108,10 @@ export class MemoryCompressor {
 		currentMemory: string,
 		historyText: string,
 		llmOptions: Record<string, unknown>,
-		maxLLMTry: number
+		maxLLMTry: number,
+		debugContext?: MemoryCompressionDebugContext
 	): Promise<CompressionResult> {
-		const prompt = this.buildToolCallingCompressionPrompt(currentMemory, historyText);
+		const prompt = this.buildCompressionPromptBody(currentMemory, historyText);
 
 		// 定义 save_memory 工具
 		const tools = [{
@@ -1079,7 +1141,7 @@ export class MemoryCompressor {
 		const messages: Message[] = [
 			{
 				role: "system",
-				content: this.config.promptPack.memoryCompressionSystemPrompt,
+				content: this.buildToolCallingCompressionSystemPrompt(),
 			},
 			{
 				role: "user",
@@ -1090,6 +1152,11 @@ export class MemoryCompressor {
 		let fn: ToolCallFunction | undefined;
 		let argsText = "";
 		for (let i = 0; i < maxLLMTry; i++) {
+			debugContext?.onInput?.("memory_compression_tool_calling", messages, {
+				...llmOptions,
+				tools,
+				tool_choice: { type: "function", function: { name: "save_memory" } },
+			});
 			// 调用 LLM，强制使用 save_memory 工具
 			const response = await callLLM(
 				messages,
@@ -1103,6 +1170,7 @@ export class MemoryCompressor {
 			);
 
 			if (!response.success) {
+				debugContext?.onOutput?.("memory_compression_tool_calling", response.raw ?? response.message, { success: false });
 				return {
 					success: false,
 					memoryUpdate: currentMemory,
@@ -1111,6 +1179,7 @@ export class MemoryCompressor {
 					error: response.message,
 				};
 			}
+			debugContext?.onOutput?.("memory_compression_tool_calling", encodeCompressionDebugJSON(response.response), { success: true });
 
 			const choice = response.response.choices && response.response.choices[0];
 			const message = choice && choice.message;
@@ -1173,9 +1242,10 @@ export class MemoryCompressor {
 		currentMemory: string,
 		historyText: string,
 		llmOptions: Record<string, unknown>,
-		maxLLMTry: number
+		maxLLMTry: number,
+		debugContext?: MemoryCompressionDebugContext
 	): Promise<CompressionResult> {
-		const prompt = this.buildXMLCompressionPrompt(currentMemory, historyText);
+		const prompt = this.buildCompressionPromptBody(currentMemory, historyText);
 		let lastError = "invalid xml response";
 
 		for (let i = 0; i < maxLLMTry; i++) {
@@ -1184,14 +1254,20 @@ export class MemoryCompressor {
 					LAST_ERROR: lastError,
 				})}`
 				: "";
+			const requestMessages: Message[] = [
+				{ role: "system", content: this.buildXMLCompressionSystemPrompt() },
+				{ role: "user", content: `${prompt}${feedback}` },
+			];
+			debugContext?.onInput?.("memory_compression_xml", requestMessages, llmOptions);
 			const response = await callLLM(
-				[{ role: "user", content: `${prompt}${feedback}` }],
+				requestMessages,
 				llmOptions,
 				undefined,
 				this.config.llmConfig
 			);
 
 			if (!response.success) {
+				debugContext?.onOutput?.("memory_compression_xml", response.raw ?? response.message, { success: false });
 				return {
 					success: false,
 					memoryUpdate: currentMemory,
@@ -1204,6 +1280,7 @@ export class MemoryCompressor {
 			const choice = response.response.choices && response.response.choices[0];
 			const message = choice && choice.message;
 			const text = message && typeof message.content === "string" ? message.content : "";
+			debugContext?.onOutput?.("memory_compression_xml", text !== "" ? text : encodeCompressionDebugJSON(response.response), { success: true });
 			if (text.trim() === "") {
 				lastError = "empty xml response";
 				continue;
@@ -1243,14 +1320,25 @@ export class MemoryCompressor {
 		});
 	}
 
-	private buildToolCallingCompressionPrompt(currentMemory: string, historyText: string): string {
-		return `${this.buildCompressionPromptBody(currentMemory, historyText)}
+	private buildCompressionStaticPrompt(mode: MemoryCompressionDecisionMode): string {
+		const formatPrompt = mode === "xml"
+			? this.config.promptPack.memoryCompressionXmlPrompt
+			: this.config.promptPack.memoryCompressionToolCallingPrompt;
+		return `${this.config.promptPack.memoryCompressionSystemPrompt}
+
+${formatPrompt}
+
+${this.buildCompressionPromptBodyRaw("", "")}`;
+	}
+
+	private buildToolCallingCompressionSystemPrompt(): string {
+		return `${this.config.promptPack.memoryCompressionSystemPrompt}
 
 ${this.config.promptPack.memoryCompressionToolCallingPrompt}`;
 	}
 
-	private buildXMLCompressionPrompt(currentMemory: string, historyText: string): string {
-		return `${this.buildCompressionPromptBody(currentMemory, historyText)}
+	private buildXMLCompressionSystemPrompt(): string {
+		return `${this.config.promptPack.memoryCompressionSystemPrompt}
 
 ${this.config.promptPack.memoryCompressionXmlPrompt}`;
 	}

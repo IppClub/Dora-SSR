@@ -45,7 +45,10 @@ export interface CodingAgentRunOptions {
 	onEvent?: (event: CodingAgentEvent) => void;
 }
 
+export const AGENT_USER_PROMPT_MAX_CHARS = 12000;
+
 type AgentDecisionMode = "tool_calling" | "xml";
+type AgentPromptCommand = "compact" | "reset";
 
 export type AgentToolName =
 	| "read_file"
@@ -56,6 +59,8 @@ export type AgentToolName =
 	| "glob_files"
 	| "build"
 	| "finish";
+
+export type AgentStepToolName = AgentToolName | "compress_memory";
 
 export type CodingAgentEvent =
 	| {
@@ -104,6 +109,24 @@ export type CodingAgentEvent =
 			path: string;
 			op: "write" | "create" | "delete";
 		}[];
+	}
+	| {
+		type: "memory_compression_started";
+		sessionId?: number;
+		taskId: number;
+		step: number;
+		tool: "compress_memory";
+		reason?: string;
+		params: Record<string, unknown>;
+	}
+	| {
+		type: "memory_compression_finished";
+		sessionId?: number;
+		taskId: number;
+		step: number;
+		tool: "compress_memory";
+		reason?: string;
+		result: Record<string, unknown>;
 	}
 	| {
 		type: "task_finished";
@@ -158,9 +181,6 @@ interface AgentShared {
 	messages: AgentConversationMessage[];
 	// Memory 相关字段
 	memory: {
-		/** 上次压缩的消息索引 */
-		lastConsolidatedMessageIndex: number;
-
 		/** Memory 压缩器实例 */
 		compressor: MemoryCompressor;
 	};
@@ -168,7 +188,11 @@ interface AgentShared {
 
 function emitAgentEvent(shared: AgentShared, event: CodingAgentEvent) {
 	if (shared.onEvent) {
-		shared.onEvent(event);
+		try {
+			shared.onEvent(event);
+		} catch (error) {
+			Log("Error", `[CodingAgent] onEvent handler failed: ${tostring(error)}`);
+		}
 	}
 }
 
@@ -177,7 +201,7 @@ function emitAgentStartEvent(shared: AgentShared, action: AgentActionRecord) {
 		type: "tool_started",
 		sessionId: shared.sessionId,
 		taskId: shared.taskId,
-		step: shared.step + 1,
+		step: action.step,
 		tool: action.tool,
 	});
 }
@@ -187,10 +211,34 @@ function emitAgentFinishEvent(shared: AgentShared, action: AgentActionRecord) {
 		type: "tool_finished",
 		sessionId: shared.sessionId,
 		taskId: shared.taskId,
-		step: shared.step + 1,
+		step: action.step,
 		tool: action.tool,
 		result: action.result ?? {},
 	});
+}
+
+function getMemoryCompressionStartReason(shared: AgentShared): string {
+	return shared.useChineseResponse
+		? `开始进行上下文记忆压缩。`
+		: `Starting context memory compression.`;
+}
+
+function getMemoryCompressionSuccessReason(shared: AgentShared, compressedCount: number): string {
+	return shared.useChineseResponse
+		? `记忆压缩完成，已整理 ${compressedCount} 条历史消息。`
+		: `Memory compression finished after consolidating ${compressedCount} historical messages.`;
+}
+
+function getMemoryCompressionFailureReason(shared: AgentShared, error: string): string {
+	return shared.useChineseResponse
+		? `记忆压缩失败：${error}`
+		: `Memory compression failed: ${error}`;
+}
+
+function summarizeHistoryEntryPreview(text: string, maxChars = 180): string {
+	const trimmed = text.trim();
+	if (trimmed === "") return "";
+	return truncateText(trimmed, maxChars);
 }
 
 function getCancelledReason(shared: AgentShared): string {
@@ -208,6 +256,21 @@ function getFailureSummaryFallback(shared: AgentShared, error: string): string {
 	return shared.useChineseResponse
 		? `任务因以下问题结束：${error}`
 		: `The task ended due to the following issue: ${error}`;
+}
+
+function getPromptCommand(prompt: string): AgentPromptCommand | undefined {
+	const trimmed = prompt.trim();
+	if (trimmed === "/compact") return "compact";
+	if (trimmed === "/reset") return "reset";
+	return undefined;
+}
+
+export function truncateAgentUserPrompt(prompt: string): string {
+	if (!prompt) return "";
+	if (prompt.length <= AGENT_USER_PROMPT_MAX_CHARS) return prompt;
+	const offset = utf8.offset(prompt, AGENT_USER_PROMPT_MAX_CHARS + 1);
+	if (offset === undefined) return prompt;
+	return string.sub(prompt, 1, offset - 1);
 }
 
 function canWriteStepLLMDebug(shared: AgentShared, stepId = shared.step + 1): boolean {
@@ -532,34 +595,207 @@ async function maybeCompressHistory(shared: AgentShared): Promise<void> {
 			: "";
 		if (!memory.compressor.shouldCompress(
 			shared.messages,
-			memory.lastConsolidatedMessageIndex,
 			systemPrompt,
 			toolDefinitions
 		)) {
-			return;
-		}
-		const result = await memory.compressor.compress(
-			shared.messages,
-			memory.lastConsolidatedMessageIndex,
-			systemPrompt,
-			toolDefinitions,
-			shared.llmOptions,
-			shared.llmMaxTry,
-			shared.decisionMode
-		);
-		if (!(result && result.success && result.compressedCount > 0)) {
 			if (changed) {
 				persistHistoryState(shared);
 			}
 			return;
 		}
-		memory.lastConsolidatedMessageIndex += result.compressedCount;
+		const compressionRound = round + 1;
+		shared.step += 1;
+		const stepId = shared.step;
+		const pendingMessages = shared.messages.length;
+		emitAgentEvent(shared, {
+			type: "memory_compression_started",
+			sessionId: shared.sessionId,
+			taskId: shared.taskId,
+			step: stepId,
+			tool: "compress_memory",
+			reason: getMemoryCompressionStartReason(shared),
+			params: {
+				round: compressionRound,
+				maxRounds,
+				pendingMessages,
+			},
+		});
+		const result = await memory.compressor.compress(
+			shared.messages,
+			systemPrompt,
+			toolDefinitions,
+			shared.llmOptions,
+			shared.llmMaxTry,
+			shared.decisionMode,
+			{
+				onInput: (phase, messages, options) => {
+					saveStepLLMDebugInput(shared, stepId, phase, messages, options);
+				},
+				onOutput: (phase, text, meta) => {
+					saveStepLLMDebugOutput(shared, stepId, phase, text, meta);
+				},
+			}
+		);
+		if (!(result && result.success && result.compressedCount > 0)) {
+			emitAgentEvent(shared, {
+				type: "memory_compression_finished",
+				sessionId: shared.sessionId,
+				taskId: shared.taskId,
+				step: stepId,
+				tool: "compress_memory",
+				reason: getMemoryCompressionFailureReason(
+					shared,
+					result?.error ?? "compression returned no changes"
+				),
+				result: {
+					success: false,
+					round: compressionRound,
+					error: result?.error ?? "compression returned no changes",
+					compressedCount: result?.compressedCount ?? 0,
+				},
+			});
+			if (changed) {
+				persistHistoryState(shared);
+			}
+			return;
+		}
+		emitAgentEvent(shared, {
+			type: "memory_compression_finished",
+			sessionId: shared.sessionId,
+			taskId: shared.taskId,
+			step: stepId,
+			tool: "compress_memory",
+			reason: getMemoryCompressionSuccessReason(shared, result.compressedCount),
+			result: {
+				success: true,
+				round: compressionRound,
+				compressedCount: result.compressedCount,
+				historyEntryPreview: summarizeHistoryEntryPreview(result.historyEntry),
+			},
+		});
+		applyCompressedSessionState(shared, result.compressedCount, result.carryMessage);
 		changed = true;
-		Log("Info", `[Memory] Compressed ${result.compressedCount} messages (round ${round + 1})`);
+		Log("Info", `[Memory] Compressed ${result.compressedCount} messages (round ${compressionRound})`);
 	}
 	if (changed) {
 		persistHistoryState(shared);
 	}
+}
+
+async function compactAllHistory(shared: AgentShared): Promise<CodingAgentRunResult> {
+	const { memory } = shared;
+	let rounds = 0;
+	let totalCompressed = 0;
+	while (shared.messages.length > 0) {
+		if (shared.stopToken.stopped) {
+			Tools.setTaskStatus(shared.taskId, "STOPPED");
+			return emitAgentTaskFinishEvent(shared, false, getCancelledReason(shared));
+		}
+		const systemPrompt = buildAgentSystemPrompt(shared, shared.decisionMode === "xml");
+		const toolDefinitions = shared.decisionMode === "tool_calling"
+			? getDecisionToolDefinitions(shared)
+			: "";
+		rounds += 1;
+		shared.step += 1;
+		const stepId = shared.step;
+		const pendingMessages = shared.messages.length;
+		emitAgentEvent(shared, {
+			type: "memory_compression_started",
+			sessionId: shared.sessionId,
+			taskId: shared.taskId,
+			step: stepId,
+			tool: "compress_memory",
+			reason: getMemoryCompressionStartReason(shared),
+			params: {
+				round: rounds,
+				maxRounds: 0,
+				pendingMessages,
+				fullCompaction: true,
+			},
+		});
+		const result = await memory.compressor.compress(
+			shared.messages,
+			systemPrompt,
+			toolDefinitions,
+			shared.llmOptions,
+			shared.llmMaxTry,
+			shared.decisionMode,
+			{
+				onInput: (phase, messages, options) => {
+					saveStepLLMDebugInput(shared, stepId, phase, messages, options);
+				},
+				onOutput: (phase, text, meta) => {
+					saveStepLLMDebugOutput(shared, stepId, phase, text, meta);
+				},
+			},
+			"budget_max"
+		);
+		if (!(result && result.success && result.compressedCount > 0)) {
+			emitAgentEvent(shared, {
+				type: "memory_compression_finished",
+				sessionId: shared.sessionId,
+				taskId: shared.taskId,
+				step: stepId,
+				tool: "compress_memory",
+				reason: getMemoryCompressionFailureReason(
+					shared,
+					result?.error ?? "compression returned no changes"
+				),
+				result: {
+					success: false,
+					rounds,
+					error: result?.error ?? "compression returned no changes",
+					compressedCount: result?.compressedCount ?? 0,
+					fullCompaction: true,
+				},
+			});
+			Tools.setTaskStatus(shared.taskId, "FAILED");
+			return emitAgentTaskFinishEvent(shared, false,
+				result?.error ?? (shared.useChineseResponse
+					? "记忆压缩未产生可推进的结果。"
+					: "Memory compression produced no progress."));
+		}
+		emitAgentEvent(shared, {
+			type: "memory_compression_finished",
+			sessionId: shared.sessionId,
+			taskId: shared.taskId,
+			step: stepId,
+			tool: "compress_memory",
+			reason: getMemoryCompressionSuccessReason(shared, result.compressedCount),
+			result: {
+				success: true,
+				round: rounds,
+				compressedCount: result.compressedCount,
+				historyEntryPreview: summarizeHistoryEntryPreview(result.historyEntry),
+				fullCompaction: true,
+			},
+		});
+		applyCompressedSessionState(shared, result.compressedCount, result.carryMessage);
+		totalCompressed += result.compressedCount;
+		persistHistoryState(shared);
+		Log("Info", `[Memory] Full compaction compressed ${result.compressedCount} messages (round ${rounds})`);
+	}
+	Tools.setTaskStatus(shared.taskId, "DONE");
+	return emitAgentTaskFinishEvent(
+		shared,
+		true,
+		shared.useChineseResponse
+			? `会话整理完成，共整理 ${totalCompressed} 条消息，耗时 ${rounds} 轮。`
+			: `Session compaction completed. Consolidated ${totalCompressed} messages in ${rounds} rounds.`
+	);
+}
+
+function resetSessionHistory(shared: AgentShared): CodingAgentRunResult {
+	shared.messages = [];
+	persistHistoryState(shared);
+	Tools.setTaskStatus(shared.taskId, "DONE");
+	return emitAgentTaskFinishEvent(
+		shared,
+		true,
+		shared.useChineseResponse
+			? "SESSION.jsonl 已清空。"
+			: "SESSION.jsonl has been cleared."
+	);
 }
 
 function isKnownToolName(name: string): name is AgentToolName {
@@ -587,10 +823,22 @@ function getFinishMessage(params: Record<string, unknown>, fallback = ""): strin
 }
 
 function persistHistoryState(shared: AgentShared): void {
-	shared.memory.compressor.getStorage().writeSessionState(
-		shared.messages,
-		shared.memory.lastConsolidatedMessageIndex
-	);
+	shared.memory.compressor.getStorage().writeSessionState(shared.messages);
+}
+
+function applyCompressedSessionState(
+	shared: AgentShared,
+	compressedCount: number,
+	carryMessage?: AgentConversationMessage
+): void {
+	const remainingMessages = shared.messages.slice(compressedCount);
+	if (carryMessage) {
+		remainingMessages.unshift({
+			...carryMessage,
+			timestamp: carryMessage.timestamp ?? os.date("!%Y-%m-%dT%H:%M:%SZ"),
+		});
+	}
+	shared.messages = remainingMessages;
 }
 
 function appendConversationMessage(shared: AgentShared, message: AgentConversationMessage): void {
@@ -931,8 +1179,67 @@ function buildAgentSystemPrompt(shared: AgentShared, includeToolDefinitions = fa
 	return sections.join("\n\n");
 }
 
+function sanitizeMessagesForLLMInput(messages: Message[]): Message[] {
+	const sanitized: Message[] = [];
+	let droppedAssistantToolCalls = 0;
+	let droppedToolResults = 0;
+	for (let i = 0; i < messages.length; i++) {
+		const message = messages[i];
+		if (message.role === "assistant" && message.tool_calls && message.tool_calls.length > 0) {
+			const requiredIds: string[] = [];
+			for (let j = 0; j < message.tool_calls.length; j++) {
+				const toolCall = message.tool_calls[j];
+				const id = typeof toolCall?.id === "string" ? toolCall.id : "";
+				if (id !== "" && requiredIds.indexOf(id) < 0) {
+					requiredIds.push(id);
+				}
+			}
+			if (requiredIds.length === 0) {
+				sanitized.push(message);
+				continue;
+			}
+			const matchedIds: Record<string, boolean> = {};
+			const matchedTools: Message[] = [];
+			let j = i + 1;
+			while (j < messages.length) {
+				const toolMessage = messages[j];
+				if (toolMessage.role !== "tool") break;
+				const toolCallId = typeof toolMessage.tool_call_id === "string" ? toolMessage.tool_call_id : "";
+				if (toolCallId !== "" && requiredIds.indexOf(toolCallId) >= 0 && matchedIds[toolCallId] !== true) {
+					matchedIds[toolCallId] = true;
+					matchedTools.push(toolMessage);
+				} else {
+					droppedToolResults += 1;
+				}
+				j += 1;
+			}
+			let complete = true;
+			for (let j = 0; j < requiredIds.length; j++) {
+				if (matchedIds[requiredIds[j]] !== true) {
+					complete = false;
+					break;
+				}
+			}
+			if (complete) {
+				sanitized.push(message, ...matchedTools);
+			} else {
+				droppedAssistantToolCalls += 1;
+				droppedToolResults += matchedTools.length;
+			}
+			i = j - 1;
+			continue;
+		}
+		if (message.role === "tool") {
+			droppedToolResults += 1;
+			continue;
+		}
+		sanitized.push(message);
+	}
+	return sanitized;
+}
+
 function getUnconsolidatedMessages(shared: AgentShared): Message[] {
-	return shared.messages.slice(shared.memory.lastConsolidatedMessageIndex);
+	return sanitizeMessagesForLLMInput(shared.messages);
 }
 
 function buildDecisionMessages(shared: AgentShared, lastError?: string, attempt = 1, lastRaw?: string): Message[] {
@@ -1417,19 +1724,21 @@ class MainDecisionAgent extends Node<AgentShared> {
 			persistHistoryState(shared);
 			return "done";
 		}
+		const toolCallId = ensureToolCallId(result.toolCallId);
+		shared.step += 1;
+		const step = shared.step;
 		emitAgentEvent(shared, {
 			type: "decision_made",
 			sessionId: shared.sessionId,
 			taskId: shared.taskId,
-			step: shared.step + 1,
+			step,
 			tool: result.tool,
 			reason: result.reason,
 			reasoningContent: result.reasoningContent,
 			params: result.params,
 		});
-		const toolCallId = ensureToolCallId(result.toolCallId);
 		shared.history.push({
-			step: shared.history.length + 1,
+			step,
 			toolCallId,
 			tool: result.tool,
 			reason: result.reason ?? "",
@@ -1492,9 +1801,9 @@ class ReadFileAction extends Node<AgentShared> {
 			appendToolResultMessage(shared, last);
 			emitAgentFinishEvent(shared, last);
 		}
+		persistHistoryState(shared);
 		await maybeCompressHistory(shared);
 		persistHistoryState(shared);
-		shared.step += 1;
 		return "main";
 	}
 }
@@ -1533,9 +1842,9 @@ class SearchFilesAction extends Node<AgentShared> {
 			appendToolResultMessage(shared, last);
 			emitAgentFinishEvent(shared, last);
 		}
+		persistHistoryState(shared);
 		await maybeCompressHistory(shared);
 		persistHistoryState(shared);
-		shared.step += 1;
 		return "main";
 	}
 }
@@ -1572,9 +1881,9 @@ class SearchDoraAPIAction extends Node<AgentShared> {
 			appendToolResultMessage(shared, last);
 			emitAgentFinishEvent(shared, last);
 		}
+		persistHistoryState(shared);
 		await maybeCompressHistory(shared);
 		persistHistoryState(shared);
-		shared.step += 1;
 		return "main";
 	}
 }
@@ -1605,9 +1914,9 @@ class ListFilesAction extends Node<AgentShared> {
 			appendToolResultMessage(shared, last);
 			emitAgentFinishEvent(shared, last);
 		}
+		persistHistoryState(shared);
 		await maybeCompressHistory(shared);
 		persistHistoryState(shared);
-		shared.step += 1;
 		return "main";
 	}
 }
@@ -1657,7 +1966,7 @@ class DeleteFileAction extends Node<AgentShared> {
 					type: "checkpoint_created",
 					sessionId: shared.sessionId,
 					taskId: shared.taskId,
-					step: shared.step + 1,
+					step: last.step,
 					tool: "delete_file",
 					checkpointId: result.checkpointId,
 					checkpointSeq: result.checkpointSeq,
@@ -1665,9 +1974,9 @@ class DeleteFileAction extends Node<AgentShared> {
 				});
 			}
 		}
+		persistHistoryState(shared);
 		await maybeCompressHistory(shared);
 		persistHistoryState(shared);
-		shared.step += 1;
 		return "main";
 	}
 }
@@ -1696,9 +2005,9 @@ class BuildAction extends Node<AgentShared> {
 			appendToolResultMessage(shared, last);
 			emitAgentFinishEvent(shared, last);
 		}
+		persistHistoryState(shared);
 		await maybeCompressHistory(shared);
 		persistHistoryState(shared);
-		shared.step += 1;
 		return "main";
 	}
 }
@@ -1824,7 +2133,7 @@ class EditFileAction extends Node<AgentShared> {
 					type: "checkpoint_created",
 					sessionId: shared.sessionId,
 					taskId: shared.taskId,
-					step: shared.step + 1,
+					step: last.step,
 					tool: last.tool,
 					checkpointId: result.checkpointId,
 					checkpointSeq: result.checkpointSeq,
@@ -1832,9 +2141,9 @@ class EditFileAction extends Node<AgentShared> {
 				});
 			}
 		}
+		persistHistoryState(shared);
 		await maybeCompressHistory(shared);
 		persistHistoryState(shared);
-		shared.step += 1;
 		return "main";
 	}
 }
@@ -1900,6 +2209,7 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 	if (!options.workDir || !Content.isAbsolutePath(options.workDir) || !Content.exist(options.workDir) || !Content.isdir(options.workDir)) {
 		return { success: false, message: "workDir must be an existing absolute directory path" };
 	}
+	const normalizedPrompt = truncateAgentUserPrompt(options.prompt);
 	const llmConfigRes = options.llmConfig
 		? { success: true as const, config: options.llmConfig }
 		: getActiveLLMConfig();
@@ -1909,7 +2219,7 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 	const llmConfig = llmConfigRes.config;
 	const taskRes = options.taskId !== undefined
 		? { success: true as const, taskId: options.taskId }
-		: Tools.createTask(options.prompt);
+		: Tools.createTask(normalizedPrompt);
 	if (!taskRes.success) {
 		return { success: false, message: taskRes.message };
 	}
@@ -1928,13 +2238,13 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 	const shared: AgentShared = {
 		sessionId: options.sessionId,
 		taskId: taskRes.taskId,
-		maxSteps: math.max(1, math.floor(options.maxSteps ?? 40)),
+		maxSteps: math.max(1, math.floor(options.maxSteps ?? 50)),
 		llmMaxTry: math.max(1, math.floor(options.llmMaxTry ?? 3)),
 		step: 0,
 		done: false,
 		stopToken: options.stopToken ?? { stopped: false },
 		response: "",
-		userQuery: options.prompt,
+		userQuery: normalizedPrompt,
 		workingDir: options.workDir,
 		useChineseResponse: options.useChineseResponse === true,
 		decisionMode: options.decisionMode
@@ -1952,15 +2262,9 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 		messages: persistedSession.messages,
 		// Memory 状态
 		memory: {
-			lastConsolidatedMessageIndex: persistedSession.lastConsolidatedMessageIndex,
 			compressor,
 		},
 	};
-	appendConversationMessage(shared, {
-		role: "user",
-		content: options.prompt,
-	});
-	persistHistoryState(shared);
 
 	try {
 		emitAgentEvent(shared, {
@@ -1976,6 +2280,18 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 			return emitAgentTaskFinishEvent(shared, false, getCancelledReason(shared));
 		}
 		Tools.setTaskStatus(shared.taskId, "RUNNING");
+		const promptCommand = getPromptCommand(shared.userQuery);
+		if (promptCommand === "reset") {
+			return resetSessionHistory(shared);
+		}
+		if (promptCommand === "compact") {
+			return await compactAllHistory(shared);
+		}
+		appendConversationMessage(shared, {
+			role: "user",
+			content: normalizedPrompt,
+		});
+		persistHistoryState(shared);
 		const flow = new CodingAgentFlow();
 		await flow.run(shared);
 		if (shared.stopToken.stopped) {

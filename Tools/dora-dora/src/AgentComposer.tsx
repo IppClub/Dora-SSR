@@ -7,6 +7,8 @@ import { useTranslation } from 'react-i18next';
 import { BsFillSendFill, BsStopFill } from 'react-icons/bs';
 import { Color } from './Theme';
 
+const AGENT_USER_PROMPT_MAX_CHARS = 12000;
+
 interface AgentComposerProps {
 	prompt: string;
 	loading: boolean;
@@ -55,8 +57,9 @@ export default function AgentComposer(props: AgentComposerProps) {
 						<textarea
 							ref={textAreaRef}
 							value={prompt}
+							maxLength={AGENT_USER_PROMPT_MAX_CHARS}
 							disabled={disabledInput}
-							onChange={event => onPromptChange(event.target.value)}
+							onChange={event => onPromptChange(event.target.value.slice(0, AGENT_USER_PROMPT_MAX_CHARS))}
 							onCompositionStart={() => {
 								isComposingRef.current = true;
 							}}

@@ -1,6 +1,6 @@
 // @preview-file off clear
 import { App, Content, DB, Path } from 'Dora';
-import { runCodingAgent, CodingAgentEvent, CodingAgentRunResult } from 'Agent/CodingAgent';
+import { runCodingAgent, CodingAgentEvent, CodingAgentRunResult, truncateAgentUserPrompt } from 'Agent/CodingAgent';
 import * as Tools from 'Agent/Tools';
 import { Log, safeJsonDecode, safeJsonEncode, sanitizeUTF8 } from 'Agent/Utils';
 import type { StopToken } from 'Agent/Utils';
@@ -435,6 +435,20 @@ function applyEvent(sessionId: number, event: CodingAgentEvent) {
 				files: event.files,
 			});
 			break;
+		case "memory_compression_started":
+			upsertStep(sessionId, event.taskId, event.step, event.tool, {
+				status: "RUNNING",
+				reason: event.reason,
+				params: event.params,
+			});
+			break;
+		case "memory_compression_finished":
+			upsertStep(sessionId, event.taskId, event.step, event.tool, {
+				status: event.result.success === true ? "DONE" : "FAILED",
+				reason: event.reason,
+				result: event.result,
+			});
+			break;
 		case "task_finished": {
 			const stopped = activeStopTokens[event.taskId ?? -1]?.stopped === true;
 			const finalStatus: AgentSessionStatus = event.success
@@ -636,18 +650,19 @@ export function sendPrompt(sessionId: number, prompt: string): AgentSessionSendR
 	if ((session.currentTaskStatus === "RUNNING") && session.currentTaskId !== undefined && activeStopTokens[session.currentTaskId]) {
 		return { success: false, message: "session task is still running" };
 	}
-	const taskRes = Tools.createTask(prompt);
+	const normalizedPrompt = truncateAgentUserPrompt(prompt);
+	const taskRes = Tools.createTask(normalizedPrompt);
 	if (!taskRes.success) {
 		return { success: false, message: taskRes.message };
 	}
 	const taskId = taskRes.taskId;
 	const useChineseResponse = getDefaultUseChineseResponse();
-	insertMessage(sessionId, "user", prompt, taskId);
+	insertMessage(sessionId, "user", normalizedPrompt, taskId);
 	const stopToken: StopToken = { stopped: false };
 	activeStopTokens[taskId] = stopToken;
 	setSessionState(sessionId, "RUNNING", taskId, "RUNNING");
 	runCodingAgent({
-		prompt,
+		prompt: normalizedPrompt,
 		workDir: session.projectRoot,
 		useChineseResponse,
 		taskId,

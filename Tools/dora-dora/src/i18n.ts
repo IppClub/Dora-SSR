@@ -372,6 +372,7 @@ i18n
 							grep_files: "search files",
 							glob_files: "list files",
 							search_dora_api: "search dora api",
+							compress_memory: "compress memory",
 							build: "build",
 							finish: "finish",
 						},
@@ -386,6 +387,8 @@ i18n
 							language: "Language",
 							limit: "Limit",
 							offset: "Offset",
+							round: "Round",
+							messages: "Messages",
 							buildTarget: "Build target",
 						},
 						docSources: {
@@ -781,6 +784,7 @@ i18n
 							grep_files: "搜索文件",
 							glob_files: "列出文件",
 							search_dora_api: "搜索 Dora 文档",
+							compress_memory: "记忆压缩",
 							build: "构建",
 							finish: "收工",
 						},
@@ -795,6 +799,8 @@ i18n
 							language: "语言",
 							limit: "每组前",
 							offset: "偏移",
+							round: "轮次",
+							messages: "消息数",
 							buildTarget: "构建目标",
 						},
 						docSources: {
