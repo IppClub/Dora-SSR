@@ -258,6 +258,15 @@ function getFailureSummaryFallback(shared: AgentShared, error: string): string {
 		: `The task ended due to the following issue: ${error}`;
 }
 
+function finalizeAgentFailure(shared: AgentShared, error: string): CodingAgentRunResult {
+	if (shared.stopToken.stopped) {
+		Tools.setTaskStatus(shared.taskId, "STOPPED");
+		return emitAgentTaskFinishEvent(shared, false, getCancelledReason(shared));
+	}
+	Tools.setTaskStatus(shared.taskId, "FAILED");
+	return emitAgentTaskFinishEvent(shared, false, error);
+}
+
 function getPromptCommand(prompt: string): AgentPromptCommand | undefined {
 	const trimmed = prompt.trim();
 	if (trimmed === "/compact") return "compact";
@@ -749,8 +758,7 @@ async function compactAllHistory(shared: AgentShared): Promise<CodingAgentRunRes
 					fullCompaction: true,
 				},
 			});
-			Tools.setTaskStatus(shared.taskId, "FAILED");
-			return emitAgentTaskFinishEvent(shared, false,
+			return finalizeAgentFailure(shared,
 				result?.error ?? (shared.useChineseResponse
 					? "记忆压缩未产生可推进的结果。"
 					: "Memory compression produced no progress."));
@@ -2299,16 +2307,14 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 			return emitAgentTaskFinishEvent(shared, false, getCancelledReason(shared));
 		}
 		if (shared.error) {
-			Tools.setTaskStatus(shared.taskId, "FAILED");
-			return emitAgentTaskFinishEvent(shared, false,
+			return finalizeAgentFailure(shared,
 				shared.response && shared.response !== "" ? shared.response : shared.error);
 		}
 		Tools.setTaskStatus(shared.taskId, "DONE");
 		return emitAgentTaskFinishEvent(shared, true,
 			shared.response || (shared.useChineseResponse ? "任务完成。" : "Task completed."));
 	} catch (e) {
-		Tools.setTaskStatus(shared.taskId, "FAILED");
-		return emitAgentTaskFinishEvent(shared, false, tostring(e));
+		return finalizeAgentFailure(shared, tostring(e));
 	}
 }
 
