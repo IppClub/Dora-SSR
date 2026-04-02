@@ -46,6 +46,23 @@ const stepActionButtonSx = {
 	},
 } as const;
 
+function formatLineLabel(
+	line: number,
+	t: (key: string, options?: Record<string, unknown>) => string
+): string {
+	return line < 0
+		? t("agent.lineFromEnd", { count: Math.abs(line) })
+		: String(line);
+}
+
+function formatLineRange(
+	startLine: number,
+	endLine: number,
+	t: (key: string, options?: Record<string, unknown>) => string
+): string {
+	return `${formatLineLabel(startLine, t)} - ${formatLineLabel(endLine, t)}`;
+}
+
 function summarizeToolParams(step: AgentSessionStep, t: (key: string, options?: Record<string, unknown>) => string): ParamItem[] {
 	const params = step.params ?? {};
 	const items: ParamItem[] = [];
@@ -60,10 +77,12 @@ function summarizeToolParams(step: AgentSessionStep, t: (key: string, options?: 
 	switch (step.tool) {
 		case "read_file": {
 			const path = typeof params.path === "string" ? params.path : "";
-			const startLine = typeof params.startLine === "number" ? params.startLine : undefined;
-			const endLine = typeof params.endLine === "number" ? params.endLine : undefined;
+			const startLine = typeof params.startLine === "number" ? params.startLine : 1;
+			const endLine = typeof params.endLine === "number"
+				? params.endLine
+				: (startLine < 0 ? -1 : 300);
 			push(t("agent.paramLabels.file"), path);
-			push(t("agent.paramLabels.lines"), `${startLine ?? 1}-${endLine ?? 300}`);
+			push(t("agent.paramLabels.lines"), formatLineRange(startLine, endLine, t));
 			return items;
 		}
 		case "glob_files": {

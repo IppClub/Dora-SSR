@@ -95,7 +95,8 @@ You are a coding assistant that helps modify and navigate code in the Dora SSR g
 	toolDefinitionsDetailed: `Available tools:
 1. read_file: Read a specific line range from a file
 	- Parameters: path, startLine(optional), endLine(optional)
-	- Line starts with 1. startLine defaults to 1 and endLine defaults to 300.
+	- Positive line numbers are 1-based. Negative line numbers count from the end, where -1 is the last line. 0 is invalid.
+	- startLine defaults to 1. If endLine is omitted, it defaults to 300 when startLine is positive, or -1 when startLine is negative.
 
 2. edit_file: Make changes to a file
 	- Parameters: path, old_str, new_str

@@ -258,7 +258,7 @@ function insertMessage(sessionId: number, role: AgentMessageRole, content: strin
 			sessionId,
 			taskId ?? 0,
 			role,
-			content,
+			sanitizeUTF8(content),
 			t,
 			t,
 		],
@@ -269,7 +269,7 @@ function insertMessage(sessionId: number, role: AgentMessageRole, content: strin
 function updateMessage(messageId: number, content: string) {
 	DB.exec(
 		`UPDATE ${TABLE_MESSAGE} SET content = ?, updated_at = ? WHERE id = ?`,
-		[content, now(), messageId],
+		[sanitizeUTF8(content), now(), messageId],
 	);
 }
 
@@ -287,11 +287,12 @@ function upsertStep(sessionId: number, taskId: number, step: number, tool: strin
 		`SELECT id FROM ${TABLE_STEP} WHERE session_id = ? AND task_id = ? AND step = ?`,
 		[sessionId, taskId, step],
 	);
-	const reason = patch.reason ?? "";
-	const reasoningContent = patch.reasoningContent ?? "";
+	const reason = sanitizeUTF8(patch.reason ?? "");
+	const reasoningContent = sanitizeUTF8(patch.reasoningContent ?? "");
 	const paramsJson = patch.params ? encodeJson(patch.params) : "";
 	const resultJson = patch.result ? encodeJson(patch.result) : "";
 	const filesJson = patch.files ? encodeJson(patch.files) : "";
+	const statusPatch = patch.status ?? "";
 	const status = patch.status ?? "PENDING";
 	if (!row) {
 		const t = now();
@@ -331,7 +332,7 @@ function upsertStep(sessionId: number, taskId: number, step: number, tool: strin
 		WHERE id = ?`,
 		[
 			tool,
-			patch.status ?? "",
+			statusPatch,
 			status,
 			reason,
 			reason,

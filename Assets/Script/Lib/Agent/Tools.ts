@@ -737,7 +737,7 @@ export function listFiles(req: {
 function formatReadSlice(
 	content: string,
 	startLine: number,
-	limit: number
+	endLine: number
 ): ReadFileResult {
 	const lines = content.split("\n");
 	const totalLines = lines.length;
@@ -751,20 +751,42 @@ function formatReadSlice(
 			truncated: false,
 		};
 	}
-	const start = math.max(1, math.floor(startLine));
+	const rawStart = math.floor(startLine);
+	const rawEnd = math.floor(endLine);
+	if (rawStart === 0) {
+		return { success: false, message: "startLine cannot be 0" };
+	}
+	if (rawEnd === 0) {
+		return { success: false, message: "endLine cannot be 0" };
+	}
+	const start = rawStart > 0
+		? rawStart
+		: math.max(1, totalLines + rawStart + 1);
 	if (start > totalLines) {
 		return { success: false, message: `startLine ${start} exceeds file length ${totalLines}` };
 	}
-	const boundedLimit = math.max(1, math.floor(limit));
-	const end = math.min(totalLines, start + boundedLimit - 1);
+	const end = math.min(
+		totalLines,
+		rawEnd > 0
+			? rawEnd
+			: math.max(1, totalLines + rawEnd + 1)
+	);
+	if (end < start) {
+		return {
+			success: false,
+			message: `resolved endLine ${end} is before startLine ${start}`,
+		};
+	}
 	const slice: string[] = [];
 	for (let i = start; i <= end; i++) {
 		slice.push(lines[i - 1]);
 	}
-	const truncated = end < totalLines;
-	const hint = truncated
-		? `(Showing lines ${start}-${end} of ${totalLines}. Use offset=${end + 1} to continue.)`
-		: `(End of file - ${totalLines} lines total)`;
+	const truncated = start > 1 || end < totalLines;
+	const hint = end < totalLines
+		? `(Showing lines ${start}-${end} of ${totalLines}. Use startLine=${end + 1} to continue.)`
+		: truncated
+			? `(Showing lines ${start}-${end} of ${totalLines}.)`
+			: `(End of file - ${totalLines} lines total)`;
 	const body = slice.join("\n");
 	const output = body === "" ? hint : `${body}\n\n${hint}`;
 	return {
@@ -786,9 +808,13 @@ export function readFile(
 ): ReadFileResult {
 	const fallback = readFileRaw(workDir, path, docLanguage);
 	if (!fallback.success || fallback.content === undefined) return fallback;
-	const s = Math.max(1, math.floor(startLine ?? 1));
-	const e = Math.max(s, math.floor(endLine ?? 300));
-	return formatReadSlice(fallback.content, s, e - s + 1);
+	const resolvedStartLine = startLine ?? 1;
+	const resolvedEndLine = endLine ?? (resolvedStartLine < 0 ? -1 : 300);
+	return formatReadSlice(
+		fallback.content,
+		resolvedStartLine,
+		resolvedEndLine
+	);
 }
 
 const codeExtensions = [".lua", ".tl", ".yue", ".ts", ".tsx", ".xml", ".md", ".yarn", ".wa", ".mod"];

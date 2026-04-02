@@ -998,6 +998,20 @@ function clampIntegerParam(value: unknown, fallback: number, minValue: number, m
 	return num;
 }
 
+function parseReadLineParam(
+	value: unknown,
+	fallback: number,
+	paramName: "startLine" | "endLine"
+): { success: true; value: number } | { success: false; message: string } {
+	let num = Number(value);
+	if (!Number.isFinite(num)) num = fallback;
+	num = math.floor(num);
+	if (num === 0) {
+		return { success: false, message: `${paramName} cannot be 0` };
+	}
+	return { success: true, value: num };
+}
+
 function validateDecision(
 	tool: AgentToolName,
 	params: Record<string, unknown>
@@ -1013,11 +1027,13 @@ function validateDecision(
 		const path = getDecisionPath(params);
 		if (path === "") return { success: false, message: "read_file requires path" };
 		params.path = path;
-		const startLine = clampIntegerParam(params.startLine, 1, 1);
-		const endLineRaw = params.endLine ?? READ_FILE_DEFAULT_LIMIT;
-		const endLine = clampIntegerParam(endLineRaw, startLine, startLine);
-		params.startLine = startLine;
-		params.endLine = endLine;
+		const startLineRes = parseReadLineParam(params.startLine, 1, "startLine");
+		if (!startLineRes.success) return startLineRes;
+		const endLineDefault = startLineRes.value < 0 ? -1 : READ_FILE_DEFAULT_LIMIT;
+		const endLineRes = parseReadLineParam(params.endLine, endLineDefault, "endLine");
+		if (!endLineRes.success) return endLineRes;
+		params.startLine = startLineRes.value;
+		params.endLine = endLineRes.value;
 		return { success: true, params };
 	}
 
@@ -1099,11 +1115,11 @@ function buildDecisionToolSchema() {
 	return [
 		createFunctionToolSchema(
 			"read_file",
-			"Read a specific line range from a file. Parameters: path, startLine(optional), endLine(optional). Line numbering starts with 1. startLine defaults to 1 and endLine defaults to 300.",
+			"Read a specific line range from a file. Positive line numbers are 1-based. Negative line numbers count from the end, where -1 is the last line. startLine defaults to 1. If endLine is omitted, it defaults to 300 when startLine is positive, or -1 when startLine is negative.",
 			{
 				path: { type: "string", description: "Workspace-relative file path to read." },
-				startLine: { type: "number", description: "1-based starting line number. Defaults to 1." },
-				endLine: { type: "number", description: "1-based ending line number. Defaults to 300." },
+				startLine: { type: "number", description: "Starting line number. Positive values are 1-based; negative values count from the end. Defaults to 1. 0 is invalid." },
+				endLine: { type: "number", description: "Ending line number. Positive values are 1-based; negative values count from the end. If omitted, defaults to 300 for positive startLine, or -1 for negative startLine. 0 is invalid." },
 			},
 			["path"]
 		),
