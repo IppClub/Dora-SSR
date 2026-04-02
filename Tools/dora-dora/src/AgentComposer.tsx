@@ -50,8 +50,8 @@ export default function AgentComposer(props: AgentComposerProps) {
 	}, [prompt]);
 
 	return (
-		<Box sx={{ px: 2, pt: 0, pb: 3, backgroundColor: Color.Background, position: "relative", flexShrink: 0 }}>
-			<Box sx={{ border: `0.5px solid ${Color.Line}`, borderRadius: 4, backgroundColor: Color.BackgroundDark, position: "relative", minHeight: 100 }}>
+		<Box sx={{ px: 2, pt: 0, pb: 2, backgroundColor: Color.Background, position: "relative", flexShrink: 0 }}>
+			<Box sx={{ border: `0.5px solid ${Color.Line}`, borderRadius: 4, backgroundColor: Color.BackgroundDark, position: "relative", minHeight: 90 }}>
 				<Box sx={{ position: "absolute", inset: 0 }}>
 					<MacScrollbar ref={scrollRef} skin="dark" style={{ width: "100%", height: "100%" }}>
 						<textarea
@@ -87,7 +87,7 @@ export default function AgentComposer(props: AgentComposerProps) {
 							display: "block",
 							width: "100%",
 							minHeight: "100%",
-							padding: "18px 18px 58px 18px",
+							padding: "12px 16px 48px 16px",
 							border: "none",
 							outline: "none",
 							resize: "none",
@@ -103,7 +103,7 @@ export default function AgentComposer(props: AgentComposerProps) {
 			</Box>
 			{showActionButton ? (
 				<Tooltip title={running ? t("menu.stop") : t("agent.send")}>
-					<span style={{ position: "absolute", left: 20, bottom: 10, zIndex: 1 }}>
+					<span style={{ position: "absolute", left: 16, bottom: 10, zIndex: 1 }}>
 						<IconButton
 							onClick={running ? onStop : onSend}
 							disabled={actionDisabled}
