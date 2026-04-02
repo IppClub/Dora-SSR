@@ -113,6 +113,69 @@ export var ContextMenu = {
             };
 
         });
+
+        // Touch long-press to open context menus
+        let longPressTimer = null;
+        let longPressDuration = 500;
+        let longPressTarget = null;
+        let longPressClientPos = null;
+
+        function getClientPosFromTouch(touch) {
+            let rect = stage.container().getBoundingClientRect();
+            return { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
+        }
+
+        stage.container().addEventListener('touchstart', (e) => {
+            if (e.touches.length !== 1) {
+                clearTimeout(longPressTimer);
+                return;
+            }
+            let touch = e.touches[0];
+            longPressClientPos = { clientX: touch.clientX, clientY: touch.clientY };
+            let pos = getClientPosFromTouch(touch);
+            longPressTarget = stage.getIntersection(pos);
+
+            longPressTimer = setTimeout(() => {
+                if (!longPressTarget || longPressTarget === stage) {
+                    // Long-press on background: open node-creation context menu
+                    let containerRect = stage.getContainer().getBoundingClientRect();
+                    let clientX = longPressClientPos.clientX;
+                    let clientY = longPressClientPos.clientY;
+                    let availY = containerRect.height - (clientY - containerRect.top);
+                    let offY = availY <= 260 ? -260 : 0;
+                    let availX = containerRect.width - (clientX - containerRect.left);
+                    let offX = availX <= 200 ? -200 : 0;
+                    toggleContextMenu([clientX + offX, clientY + offY], true);
+                } else {
+                    // Long-press on node or wire: open delete context menu
+                    let clientX = longPressClientPos.clientX;
+                    let clientY = longPressClientPos.clientY;
+                    let fakeEvt = { target: longPressTarget };
+                    toggleDeleteCtxMenu([clientX - 130, clientY - 35], true);
+                    deleteCtxMenu.onclick = function () {
+                        if (longPressTarget.getParent().name() == 'aProgramNodeGroup') {
+                            deleteProgramNode(fakeEvt, layer, stage);
+                            stage.draw();
+                        } else if (longPressTarget.name() == "isConnection") {
+                            deleteWire(longPressTarget);
+                            stage.draw();
+                        }
+                        toggleDeleteCtxMenu([], false);
+                    };
+                }
+                longPressTimer = null;
+            }, longPressDuration);
+        }, { passive: true });
+
+        stage.container().addEventListener('touchmove', () => {
+            clearTimeout(longPressTimer);
+            longPressTimer = null;
+        }, { passive: true });
+
+        stage.container().addEventListener('touchend', () => {
+            clearTimeout(longPressTimer);
+            longPressTimer = null;
+        }, { passive: true });
         stage.on('click', function (e) {
             toggleContextMenu([e.evt.clientX, e.evt.clientY], false);
             toggleDeleteCtxMenu([], false);
@@ -161,6 +224,15 @@ export var ContextMenu = {
                 }
             }
             e.stopPropagation();
+        });
+
+        // Touch drag-drop support for variables
+        stage.getContainer().addEventListener('touch-variable-drop', (e) => {
+            toggleGetSetCtxMenu([e.detail.clientX, e.detail.clientY], true);
+            draggedVariableInfo = {
+                name: e.detail.variableName,
+                dataType: e.detail.dataType,
+            };
         });
     }
 }

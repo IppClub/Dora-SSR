@@ -1,4 +1,14 @@
 
+// Module-level: blur any focused html input when the canvas is touched outside it.
+const _activeInputBoxes = new Set();
+document.addEventListener('touchstart', (e) => {
+    for (const htmlInput of _activeInputBoxes) {
+        if (e.target !== htmlInput) {
+            htmlInput.blur();
+        }
+    }
+}, { passive: true });
+
 export var InputBox = class{
     constructor(stage, layer, type, grp, position, colorMap, inputPin, iplabel, inputPinsPlaced, defValueContainer, defValueContainerForSave)
     {
@@ -18,7 +28,7 @@ export var InputBox = class{
             height: 12,
             padding: 2,
         });
-        this.inputBox = new Konva.Group();
+        this.inputBox = new Konva.Group({ _isInputBox: true });
         this.inputBox.add(rect);
         this.inputBox.add(text);
         this.inputBox.position(position);
@@ -52,23 +62,34 @@ export var InputBox = class{
         }
         text.text(defaultValue);
         layer.draw();
-        this.inputBox.on("click", () => {
+        const activateInput = () => {
             this.focused = true;
             text.visible(false);
             layer.draw();
             htmlInputBox.value = text.text();
             let stageContainerBorderLeftWidth = parseInt(getComputedStyle(stage.getContainer()).borderLeftWidth);
             let stageContainerBorderTopWidth = parseInt(getComputedStyle(stage.getContainer()).borderTopWidth);
-            htmlInputBox.style.left = stage.getContainer().getBoundingClientRect().x + stageContainerBorderLeftWidth + this.inputBox.getAbsolutePosition().x + "px";
-            htmlInputBox.style.top = stage.getContainer().getBoundingClientRect().y + stageContainerBorderTopWidth + this.inputBox.getAbsolutePosition().y + "px";
+            const absPos = this.inputBox.getAbsolutePosition();
+            htmlInputBox.style.left = stage.getContainer().getBoundingClientRect().x + stageContainerBorderLeftWidth + absPos.x + "px";
+            htmlInputBox.style.top = stage.getContainer().getBoundingClientRect().y + stageContainerBorderTopWidth + absPos.y + "px";
             htmlInputBox.style.transform = `scale(${stage.scaleX()})`;
             htmlInputBox.style.display = "inline-block";
+            // On mobile, the element must be visible and in-viewport before focus() triggers the IME.
+            // Temporarily position it at the bottom of the screen if it would be off-screen.
+            const rect = htmlInputBox.getBoundingClientRect();
+            if (rect.top < 0 || rect.top > window.innerHeight) {
+                htmlInputBox.style.top = (window.innerHeight - 60) + "px";
+            }
+            _activeInputBoxes.add(htmlInputBox);
             htmlInputBox.focus();
-        });
+        };
+        this.inputBox.on("click tap", activateInput);
+
         stage.on("wheel", () => {
             htmlInputBox.blur();
         });
         htmlInputBox.addEventListener("blur", () => {
+            _activeInputBoxes.delete(htmlInputBox);
             text.visible(true);
             layer.draw();
             htmlInputBox.value = '';

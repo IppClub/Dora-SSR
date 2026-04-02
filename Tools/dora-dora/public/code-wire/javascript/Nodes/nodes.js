@@ -341,6 +341,23 @@ export var Nodes = {
 				// rect.shadowOffset({ x: 15, y: 15 });
 				layer.draw();
 			})
+			// On touch: disable drag when the finger lands on an input box
+			// so the tap event can fire and trigger the IME keyboard.
+			this.grp.on('touchstart', (e) => {
+				let node = e.target;
+				let onInputBox = false;
+				while (node && node !== this.grp) {
+					if (node.getAttr('_isInputBox')) {
+						onInputBox = true;
+						break;
+					}
+					node = node.getParent();
+				}
+				this.grp.draggable(!onInputBox);
+			})
+			this.grp.on('touchend', () => {
+				this.grp.draggable(true);
+			})
 			/****/
 
 			Nodes.optimizeDrag(this.grp, stage, layer);

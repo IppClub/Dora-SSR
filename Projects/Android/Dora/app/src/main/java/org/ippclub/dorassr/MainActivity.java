@@ -270,7 +270,7 @@ public class MainActivity extends SDLActivity {
 		sideHandleButton.setAllCaps(false);
 		sideHandleButton.setText("I\nD\nE");
 		sideHandleButton.setTextColor(0xE6FFFFFF);
-		sideHandleButton.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10);
+		sideHandleButton.setTextSize(TypedValue.COMPLEX_UNIT_SP, 8);
 		sideHandleButton.setPadding(dp(1), dp(10), dp(1), dp(10));
 		sideHandleButton.setAlpha(0.24f);
 		sideHandleButton.setGravity(Gravity.CENTER);
@@ -296,7 +296,7 @@ public class MainActivity extends SDLActivity {
 		});
 		RelativeLayout.LayoutParams buttonParams = new RelativeLayout.LayoutParams(
 			dp(20),
-			dp(80));
+			dp(60));
 		buttonParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
 		buttonParams.addRule(RelativeLayout.CENTER_VERTICAL);
 		buttonParams.rightMargin = 0;

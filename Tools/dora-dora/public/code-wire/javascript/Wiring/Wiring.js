@@ -33,36 +33,36 @@ export var Wiring = {
 		let originPreOccupied = null;
 		stage.add(wireLayer);
 		wireLayer.zIndex(0);
+		function startWiring(target, pointerPos) {
+			src = target;
+			currentPinType = target.attrs.pinType;
+			currentPinDataType = target.attrs.pinDataType;
+			dir = (currentPinType == 'exec-out' || currentPinType == 'outp') ? 1 : -1;
+			src.getParent().draggable(false);
+			isWiring = true;
+			let srcLoc = placeLocation(src.getAbsolutePosition(), stage);
+			let destLoc = placeLocation(pointerPos, stage);
+			wireColor = target.attrs.stroke;
+			drawWire = new Konva.Line({
+				strokeWidth: 2,
+				stroke: wireColor,
+				hitStrokeWidth: 0,
+				src: null,
+				dest: null,
+				wireOrigin: src,
+				name: "isConnection",
+				bezier: true,
+			});
+			originPreOccupied = !(src.attrs.fill == '' || src.attrs.fill == 'transparent');
+			src.fire('wiringstart', { type: 'wiringstart', target: src });
+			setWirePoints(destLoc, srcLoc, dir, drawWire);
+			wireLayer.add(drawWire);
+			wireLayer.draw();
+		}
+
 		stage.on('mousedown', (e) => {
 			if (e.target.name() == 'pin' && e.evt.button == 0) {
-				src = e.target;
-				currentPinType = e.target.attrs.pinType;
-				currentPinDataType = e.target.attrs.pinDataType;
-				dir = (currentPinType == 'exec-out' || currentPinType == 'outp') ? 1 : -1;
-				src.getParent().draggable(false);
-				isWiring = true;
-				let srcLoc = placeLocation(src.getAbsolutePosition(), stage);
-				let destLoc = placeLocation(stage.getPointerPosition(), stage);
-				wireColor = e.target.attrs.stroke;
-				drawWire = new Konva.Line({
-					strokeWidth: 2,
-					stroke: wireColor,
-					hitStrokeWidth: 0,
-					src: null,
-					dest: null,
-					wireOrigin: src,
-					name: "isConnection",
-					bezier: true,
-				});
-				originPreOccupied = !(src.attrs.fill == '' || src.attrs.fill == 'transparent');
-				src.fire('wiringstart',
-					{
-						type: 'wiringstart',
-						target: src,
-					});
-				setWirePoints(destLoc, srcLoc, dir, drawWire);
-				wireLayer.add(drawWire);
-				wireLayer.draw();
+				startWiring(e.target, stage.getPointerPosition());
 			}
 		});
 		stage.on('mouseup', (e) => {
@@ -88,7 +88,65 @@ export var Wiring = {
 				setWirePoints(destLoc, srcLoc, dir, drawWire);
 				wireLayer.draw();
 			}
-		})
+		});
+
+		// Touch support for wiring
+		function getClientPosFromTouch(touch) {
+			let rect = stage.container().getBoundingClientRect();
+			return {
+				x: touch.clientX - rect.left,
+				y: touch.clientY - rect.top,
+			};
+		}
+
+		stage.container().addEventListener('touchstart', (e) => {
+			if (e.touches.length !== 1) return;
+			let pos = getClientPosFromTouch(e.touches[0]);
+			let shape = stage.getIntersection(pos);
+			if (shape && shape.name() == 'pin') {
+				e.preventDefault();
+				startWiring(shape, pos);
+			}
+		}, { passive: false });
+
+		stage.container().addEventListener('touchmove', (e) => {
+			if (!isWiring || e.touches.length !== 1) return;
+			e.preventDefault();
+			let pos = getClientPosFromTouch(e.touches[0]);
+			let srcLoc = placeLocation(src.getAbsolutePosition(), stage);
+			let destLoc = placeLocation(pos, stage);
+			setWirePoints(destLoc, srcLoc, dir, drawWire);
+			wireLayer.draw();
+		}, { passive: false });
+
+		stage.container().addEventListener('touchend', (e) => {
+			if (!isWiring) return;
+			let changedTouch = e.changedTouches[0];
+			let pos = getClientPosFromTouch(changedTouch);
+			let shape = stage.getIntersection(pos);
+			if (shape && shape.name() == 'pin' && src != shape &&
+				src.getParent() !== shape.getParent() &&
+				isValidMatch(shape.attrs.pinType, shape.attrs.pinDataType)) {
+				dest = shape;
+				deleteHalfWire(drawWire, originPreOccupied);
+				addConnectionWire(dest, src, stage, dir, wireLayer);
+				src.getParent().draggable(true);
+			} else {
+				deleteHalfWire(drawWire, originPreOccupied);
+				src.getParent().draggable(true);
+			}
+			src = null;
+			originPreOccupied = false;
+			dest = null;
+			isWiring = false;
+			dir = 0;
+			drawWire = null;
+			currentPinType = null;
+			currentPinDataType = null;
+			wireColor = null;
+			wireLayer.draw();
+			layer.draw();
+		});
 
 
 		function handleMouseUp(e, isStageEvent) {

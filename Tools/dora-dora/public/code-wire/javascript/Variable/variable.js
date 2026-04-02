@@ -64,6 +64,56 @@ class VariableList {
             e.dataTransfer.setData("variableName", `${variable.name}`);
             e.dataTransfer.setData("dataType", `${variable.dataType}`);
         });
+
+        // Touch drag support for variable list items
+        let touchDragGhost = null;
+        li.addEventListener('touchstart', (e) => {
+            if (e.touches.length !== 1) return;
+            li.style.boxShadow = `inset 0px 0px 30px ${colorMap[variable.dataType]}`;
+            // Create a visual ghost element
+            touchDragGhost = li.cloneNode(true);
+            touchDragGhost.style.position = 'fixed';
+            touchDragGhost.style.pointerEvents = 'none';
+            touchDragGhost.style.opacity = '0.7';
+            touchDragGhost.style.zIndex = '9999';
+            touchDragGhost.style.width = li.offsetWidth + 'px';
+            touchDragGhost.style.margin = '0';
+            touchDragGhost.style.left = e.touches[0].clientX + 'px';
+            touchDragGhost.style.top = e.touches[0].clientY + 'px';
+            document.body.appendChild(touchDragGhost);
+        }, { passive: true });
+        li.addEventListener('touchmove', (e) => {
+            if (!touchDragGhost || e.touches.length !== 1) return;
+            e.preventDefault();
+            touchDragGhost.style.left = e.touches[0].clientX + 'px';
+            touchDragGhost.style.top = e.touches[0].clientY + 'px';
+        }, { passive: false });
+        li.addEventListener('touchend', (e) => {
+            li.style.boxShadow = `inset 0px 0px 5px ${colorMap[variable.dataType]}`;
+            if (touchDragGhost) {
+                touchDragGhost.remove();
+                touchDragGhost = null;
+            }
+            if (e.changedTouches.length !== 1) return;
+            let touch = e.changedTouches[0];
+            // Find the drop target (canvas container)
+            let container = document.getElementById('container');
+            let rect = container.getBoundingClientRect();
+            if (touch.clientX >= rect.left && touch.clientX <= rect.right &&
+                touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
+                // Dispatch a synthetic drop-like event by firing a custom event
+                let dropEvent = new CustomEvent('touch-variable-drop', {
+                    detail: {
+                        clientX: touch.clientX,
+                        clientY: touch.clientY,
+                        variableName: variable.name,
+                        dataType: variable.dataType,
+                    },
+                    bubbles: true,
+                });
+                container.dispatchEvent(dropEvent);
+            }
+        }, { passive: true });
         return li;
         // return `<li id=${variable.dataType}-${variable.name} class="list-group-item mt-2 ms-5 me-5 p-2 ps-3 rounded" style="font-size:15px; border: ${colorMap[variable.dataType]} 2px solid; color: white; background: transparent;">${variable.name}
         //     </li>`;
