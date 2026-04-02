@@ -38,8 +38,6 @@ Dora SSR is a game engine for rapid development of games on various devices. It 
 |Language Ecosystem|`Lua` / `TypeScript` / `TSX` / `Teal` / `YueScript` / `Wa` / `Rust` / `C#`|
 |Target Platforms|`Android` / `Windows` / `Linux` / `macOS` / `iOS` / [HarmonyOS](https://github.com/IppClub/ohos_dora_ssr)|
 
-<div align='center'><sub>Continuous integration status for multi-platform</sub></div>
-
 <div align='center'>
 
 ![Android](https://github.com/ippclub/Dora-SSR/actions/workflows/android.yml/badge.svg)

@@ -38,13 +38,15 @@
 |语言生态|`Lua` / `TypeScript` / `TSX` / `Teal` / `YueScript` / `Wa` / `Rust` / `C#`|
 |运行平台|`Android` / `Windows` / `Linux` / `macOS` / `iOS` / [鸿蒙](https://github.com/IppClub/ohos_dora_ssr/blob/main/README.zh-CN.md)|
 
-<div align='center'><sub>跨平台持续集成状态</sub></div>
+<div align='center'>
 
 ![Android](https://github.com/ippclub/Dora-SSR/actions/workflows/android.yml/badge.svg)
 ![Linux](https://github.com/ippclub/Dora-SSR/actions/workflows/linux.yml/badge.svg)
 ![Windows](https://github.com/ippclub/Dora-SSR/actions/workflows/windows.yml/badge.svg)
 ![macOS](https://github.com/ippclub/Dora-SSR/actions/workflows/macos.yml/badge.svg)
 ![iOS](https://github.com/ippclub/Dora-SSR/actions/workflows/ios.yml/badge.svg)
+
+</div>
 
 <div align='center'><img src='Docs/static/img/art/casual/3.png' alt='Playground' width='500px'/></div>
 
