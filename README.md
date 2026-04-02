@@ -1,6 +1,18 @@
-<div align="center"><img src='Docs/static/img/site/dora.svg' alt='Dora SSR' width='200px'/></div>
-
 # Dora SSR (多萝珍奇引擎)
+
+<table align="center" width="100%">
+<tr>
+<td width="240" valign="middle" align="center">
+<img src='Docs/static/img/site/dora.svg' alt='Dora SSR' width='220px'/>
+<br/>
+<sub>Web IDE · Coding Agent</sub><br/>
+<sub>Target-device live development</sub>
+</td>
+<td valign="middle" align="center">
+<img src='Docs/static/img/art/derivative/dora-toto.jpg' alt='Dora SSR hero'/>
+</td>
+</tr>
+</table>
 
 #### English | [中文](README.zh-CN.md)
 
@@ -8,63 +20,84 @@
 
 Dora SSR is a game engine for rapid development of games on various devices. It has a built-in easy-to-use Web IDE development tool chain that supports direct game development on mobile phones, open source handhelds and other devices.
 
-<div align='center'><img src='Docs/static/img/article/detail.svg' alt='intro' width='700px'/></div>
-
 <br/>
 
-| Category | Badges |
-| - | - |
-| Provided Game Dev Tools | ![Static Badge](https://img.shields.io/badge/C%2B%2B20-Game_Engine-d5a64c?logo=c%2B%2B)<br>![Static Badge](https://img.shields.io/badge/Rust-Game_Engine-d5a64c?logo=rust)<br>![Static Badge](https://img.shields.io/badge/ReactJS-Web_IDE-00d8ff?logo=react) |
-| Supported Languages | ![Static Badge](https://img.shields.io/badge/Lua-Script-blue?logo=lua)<br>![Static Badge](https://img.shields.io/badge/TypeScript-Script-blue?logo=typescript)<br>![Static Badge](https://img.shields.io/badge/TSX-Script-blue?logo=typescript)<br>![Static Badge](https://img.shields.io/badge/Teal-Script-blue?logo=data:image/svg+xml;charset=utf-8;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImdyYWQiIHgxPSIwJSIgeTE9IjEwMCUiIHgyPSIxMDAlIiB5Mj0iMCUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjMDA4MDgwIiAvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwMGQ0ZDQiIC8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogIDwvZGVmcz4KICA8cGF0aAogICAgZmlsbD0idXJsKCNncmFkKSIKICAgIGQ9IgogICAgICBNIDI1NiwwCiAgICAgIEEgMjU2LDI1NiAwIDEsMSAyNTUuOSwwCiAgICAgIFoKICAgICAgTSAyNTAsMTEwCiAgICAgIGggMTQwCiAgICAgIHYgMTQwCiAgICAgIGggLTE0MAogICAgICBaCiAgICAiCiAgICBmaWxsLXJ1bGU9ImV2ZW5vZGQiCiAgLz4KPC9zdmc+Cg==)<br>![Static Badge](https://img.shields.io/badge/YueScript-Script-blue?logo=data:image/svg+xml;charset=utf-8;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFNWRyAxLjEvL0VOIiAiaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkIj48c3ZnIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIHZpZXdCb3g9IjAgMCAxMjUxIDg5NyIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxuczpzZXJpZj0iaHR0cDovL3d3dy5zZXJpZi5jb20vIiBzdHlsZT0iZmlsbC1ydWxlOmV2ZW5vZGQ7Y2xpcC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlLWxpbmVqb2luOnJvdW5kO3N0cm9rZS1taXRlcmxpbWl0OjI7Ij48cGF0aCBkPSJNODA0LjM3LDYuMjljLTYuOTYsLTAuOTkgLTEzLjkxLC0xLjk5IC0yMC44NywtMi45OGwwLDQ5LjM2Yzc0LjIxLDgwLjE3IDEyMi4yNSwxODUuMTkgMTI5LjIsMzAxLjE0bC00NTcuODQsMGMwLDAgLTQ2LjM4LDIuMzIgLTQ2LjM4LDQwLjc1YzAsMzguNDMgMzYuNzcsNDYuNzEgNDYuMDUsNDYuNzFsMjI5LjkxLDBjMCwwIDI4LjgyLC0xLjY2IDI4LjgyLDIwLjIxYy0wLDIxLjg3IC0yMS4yLDE5Ljg4IC0yOC40OSwxOS44OGwtNDY4Ljc3LDBjMzYuNDUsLTI0Ni4xNSAyMjkuMjYsLTQ0MS4yNyA0NzQuMDgsLTQ4MS4zNmMtMjY0LjA0LDEzLjkxIC00NzcuNzIsMjIwLjMxIC01MDMuMjMsNDgxLjM2bC0xMzYuMTYsMGMtMCwwIC01MC42OSwtNS45NiAtNTAuNjksMzguMWMtMCw0NC4wNiAzOC4xLDQyLjQgNDguNyw0Mi40bDEzNi4xNiwwYzQuOTcsOTMuNzUgMzQuNDUsMTgxLjU1IDgxLjgzLDI1Ni40MmwwLjMzLC0wLjMzYy0yOS4xNSwtNTkuMyAtNDguMDQsLTEyNC41NiAtNTQuOTksLTE5My40N2wyNDkuNDYsMGMxMS45MywwIDQ1LjM5LC0xLjY2IDQ1LjM5LC00MC40MmMtMCwtMzguNzYgLTQxLjA4LC0zOS40MiAtNDEuMDgsLTM5LjQybC0zMzcuMjYsMGMtMCwwIC0yOS40OCwyLjMyIC0yOS40OCwtMjEuMmMtMCwtMjMuNTIgMTkuMjEsLTI0LjUyIDI3LjgzLC0yNC41Mmw2MzEuMSwwYy0wLDAgNDguMzcsNS4zIDQ4LjM3LC0zOS40MmMtMCwtMzkuNzUgLTQyLjQsLTM4LjEgLTU3Ljk4LC0zOC4xbC0yMTUuNjcsMGMtMCwwIC0zMi4xMywxLjMzIC0zMi4xMywtMjIuODZjLTAsLTI0LjE5IDI3LjE3LC0yMi44NiAzMS44LC0yMi44NmwzNzkuOTksMGwtMCw3LjI5Yy0wLDEyNy41NSAtNDkuMzYsMjQzLjgzIC0xMzAuMiwzMzAuNjNjLTcxLjU2LDc3LjE5IC0xNjcuOTYsMTMxLjE5IC0yNzYuNjMsMTQ5LjQxYzIwLjg3LDEyLjkyIDQyLjc0LDI0LjE4IDY1LjYsMzMuNzljNzkuMTgsLTIyLjUzIDE1MS4wNywtNjIuOTQgMjEwLjcsLTExNi42MWM0OC43LC00My43MyA4OS40NSwtOTYuNzQgMTE5LjYsLTE1NS43MWwyMzUuNTUsMGwtMCwtMjIuMmwtMjI0Ljk0LDBjMzAuMTUsLTY2LjkyIDQ3LjA0LC0xNDEuMTMgNDcuMDQsLTIxOS4zMWwtMCwtNy4yOWwyMTguMzIsMGMxNi45LDQ5LjM2IDI2LjE3LDEwMi4wNCAyNi4xNywxNTcuMDNjLTAsOTEuMSAtMjUuMTgsMTc2LjU4IC02OS4yNCwyNDkuNzlsMzcuMSwzMC4xNWM1MC4zNiwtODEuNSA3OS41MSwtMTc3LjI0IDc5LjUxLC0yNzkuOTRjMS4zMywtMjY0LjcgLTE5Mi44MSwtNDg1LjM0IC00NDYuNTgsLTUyNi40MlptLTM4OC42LDU4MC4wOWMtMCwyMS41MyAtMjAuODcsMjIuODYgLTIwLjg3LDIyLjg2bC0xODMuNTMsMGMtMC45OSwtMTQuMjUgLTEuNjYsLTI4LjQ5IC0xLjY2LC00Mi43NGwtMCwtNC42NGwxODcuMTgsMGMzLjMxLDAuMzMgMTguODgsMi45OCAxOC44OCwyNC41MlptNTQ0LjMxLC0yMzIuNTZjLTUuOTYsLTEwNy4zNCAtNDMuNCwtMjA2LjA2IC0xMDMuNjksLTI4Ny4yM2MxNDMuNDUsNDIuNCAyNTkuNzMsMTQ5LjQxIDMxNC43MiwyODcuMjNsLTIxMS4wMywwWiIgc3R5bGU9ImZpbGw6I2I0YWM4ZjtmaWxsLXJ1bGU6bm9uemVybzsiLz48L3N2Zz4=)<br>![Static Badge](https://img.shields.io/badge/Blockly-Visual_Script-blue?logo=data:image/svg+xml;charset=utf-8;base64,PHN2ZyB3aWR0aD0iMTI5IiBoZWlnaHQ9IjE0NCIgdmlld0JveD0iMCAwIDEyOSAxNDQiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPHBhdGggZD0iTTE2IDBINzJWMTQ0SDE2QzcuMTYzNDQgMTQ0IDAgMTM2LjgzNyAwIDEyOFYxNkMwIDcuMTYzNDQgNy4xNjM0NCAwIDE2IDBaIiBmaWxsPSIjNDI4NUY0Ii8+CiAgPHBhdGggZD0iTTcyIDBIMTEzQzEyMi45NDEgMCAxMjkgNy4wNTg4NyAxMjkgMTZWMTI4QzEyOSAxMzYuOTQxIDEyMi45NDEgMTQ0IDExMyAxNDRINzJWMFoiIGZpbGw9IiNDMUM5RDQiLz4KICA8cGF0aCBkPSJNNDUgNDBWMTA0QzQ1IDEwNiA0Ny41IDEwNy4yIDQ5LjUgMTA2TDgyLjUgODZDODQuNSA4NC44IDg0LjUgODEuMiA4Mi41IDgwTDQ5LjUgNjBDNDcuNSA1OC44IDQ1IDYwIDQ1IDYyVjQwWiIgZmlsbD0iI0MxQzlENCIvPgo8L3N2Zz4K)<br>![Static Badge](https://img.shields.io/badge/Wa-WASM-e36f39?logo=data%3Aimage%2Fsvg%2Bxml%3Bcharset%3Dutf-8%3Bbase64%2CPHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiCiAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGNsaXAtcnVsZT0iZXZlbm9kZCIgZD0iTTAgMjBDMCA4Ljk1NDMgOC45NTQzIDAgMjAgMEg4MEM5MS4wNDYgMCAxMDAgOC45NTQzIDEwMCAyMFYyNFY4MFYxMDBIMjAwVjgwVjI0VjIwQzIwMCA4Ljk1NDMgMjA4Ljk1NCAwIDIyMCAwSDI4MEMyOTEuMDQ2IDAgMzAwIDguOTU0MyAzMDAgMjBWNDRWODBWMjgwQzMwMCAyOTEuMDQ2IDI5MS4wNDYgMzAwIDI4MCAzMDBIMjBDOC45NTQzIDMwMCAwIDI5MS4wNDYgMCAyODBWODBWNDRWMjBaIiBmaWxsPSIjMDBCNUFCIi8%2BCiAgPHBhdGggZD0iTTUwIDU1QzUyLjc2MTQgNTUgNTUgNTIuNzYxNCA1NSA1MEM1NSA0Ny4yMzg2IDUyLjc2MTQgNDUgNTAgNDVDNDcuMjM4NiA0NSA0NSA0Ny4yMzg2IDQ1IDUwQzQ1IDUyLjc2MTQgNDcuMjM4NiA1NSA1MCA1NVoiIGZpbGw9IndoaXRlIi8%2BCiAgPHBhdGggZD0iTTI1MCA1NUMyNTIuNzYxIDU1IDI1NSA1Mi43NjE0IDI1NSA1MEMyNTUgNDcuMjM4NiAyNTIuNzYxIDQ1IDI1MCA0NUMyNDcuMjM5IDQ1IDI0NSA0Ny4yMzg2IDI0NSA1MEMyNDUgNTIuNzYxNCAyNDcuMjM5IDU1IDI1MCA1NVoiIGZpbGw9IndoaXRlIi8%2BCiAgPHBhdGggZD0iTTE1MCAxODBMMTg0IDIxNEwyMTggMTgwTTE1MCAxODBMMTE2IDIxNEw4MiAxODAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iOCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8%2BCjwvc3ZnPgo%3D)<br>![Static Badge](https://img.shields.io/badge/Rust-WASM-e36f39?logo=rust)<br>![Static Badge](https://img.shields.io/badge/C%23-Native-2885F1?logo=data:image/svg+xml;charset=utf-8;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4Ij48cGF0aCBmaWxsPSIjOUI0Rjk2IiBkPSJNMTE1LjQgMzAuN0w2Ny4xIDIuOWMtLjgtLjUtMS45LS43LTMuMS0uNy0xLjIgMC0yLjMuMy0zLjEuN2wtNDggMjcuOWMtMS43IDEtMi45IDMuNS0yLjkgNS40djU1LjdjMCAxLjEuMiAyLjQgMSAzLjVsMTA2LjgtNjJjLS42LTEuMi0xLjUtMi4xLTIuNC0yLjd6Ii8+PHBhdGggZmlsbD0iIzY4MjE3QSIgZD0iTTEwLjcgOTUuM2MuNS44IDEuMiAxLjUgMS45IDEuOWw0OC4yIDI3LjljLjguNSAxLjkuNyAzLjEuNyAxLjIgMCAyLjMtLjMgMy4xLS43bDQ4LTI3LjljMS43LTEgMi45LTMuNSAyLjktNS40VjM2LjFjMC0uOS0uMS0xLjktLjYtMi44bC0xMDYuNiA2MnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNODUuMyA3Ni4xQzgxLjEgODMuNSA3My4xIDg4LjUgNjQgODguNWMtMTMuNSAwLTI0LjUtMTEtMjQuNS0yNC41czExLTI0LjUgMjQuNS0yNC41YzkuMSAwIDE3LjEgNSAyMS4zIDEyLjVsMTMtNy41Yy02LjgtMTEuOS0xOS42LTIwLTM0LjMtMjAtMjEuOCAwLTM5LjUgMTcuNy0zOS41IDM5LjVzMTcuNyAzOS41IDM5LjUgMzkuNWMxNC42IDAgMjcuNC04IDM0LjItMTkuOGwtMTIuOS03LjZ6TTk3IDY2LjJsLjktNC4zaC00LjJ2LTQuN2g1LjFMMTAwIDUxaDQuOWwtMS4yIDYuMWgzLjhsMS4yLTYuMWg0LjhsLTEuMiA2LjFoMi40djQuN2gtMy4zbC0uOSA0LjNoNC4ydjQuN2gtNS4xbC0xLjIgNmgtNC45bDEuMi02aC0zLjhsLTEuMiA2aC00LjhsMS4yLTZoLTIuNHYtNC43SDk3em00LjggMGgzLjhsLjktNC4zaC0zLjhsLS45IDQuM3oiLz48L3N2Zz4=) |
-| Supported Platforms | ![Android](https://github.com/ippclub/Dora-SSR/actions/workflows/android.yml/badge.svg)<br>![Linux](https://github.com/ippclub/Dora-SSR/actions/workflows/linux.yml/badge.svg)<br>![Windows](https://github.com/ippclub/Dora-SSR/actions/workflows/windows.yml/badge.svg)<br>![macOS](https://github.com/ippclub/Dora-SSR/actions/workflows/macos.yml/badge.svg)<br>![iOS](https://github.com/ippclub/Dora-SSR/actions/workflows/ios.yml/badge.svg) |
+## Start Here
+
+- [Quick Start](https://dora-ssr.net/docs/tutorial/quick-start)
+- [Feature Examples](https://github.com/IppClub/Dora-Example/tree/master/Example)
+- [Complete Demo Projects](https://github.com/IppClub/Dora-Demo)
+- [Latest Releases](https://github.com/ippclub/Dora-SSR/releases/latest)
+
+## Tech Overview
+
+|Area|Contents|
+|-|-|
+|Development Flow|`Web IDE` + `Coding Agent` + browser-connected live development on the target device|
+|Language Ecosystem|`Lua` / `TypeScript` / `TSX` / `Teal` / `YueScript` / `Wa` / `Rust` / `C#`|
+|Target Platforms|`Android` / `Windows` / `Linux` / `macOS` / `iOS` / [HarmonyOS](https://github.com/IppClub/ohos_dora_ssr)|
+
+<div align='center'><sub>Continuous integration status for Android / Linux / Windows / macOS / iOS</sub></div>
+
+<div align='center'>
+
+![Android](https://github.com/ippclub/Dora-SSR/actions/workflows/android.yml/badge.svg)
+![Linux](https://github.com/ippclub/Dora-SSR/actions/workflows/linux.yml/badge.svg)
+![Windows](https://github.com/ippclub/Dora-SSR/actions/workflows/windows.yml/badge.svg)
+![macOS](https://github.com/ippclub/Dora-SSR/actions/workflows/macos.yml/badge.svg)
+![iOS](https://github.com/ippclub/Dora-SSR/actions/workflows/ios.yml/badge.svg)
+
+</div>
 
 <div align='center'><img src='Docs/static/img/art/casual/3.png' alt='Playground' width='500px'/></div>
 
 ## Key Features
 
-|Feature|Description|
-|-|-|
-|Cross-Platform|Supported native architectures:<br>**Android** (x86_64, armv7, arm64)<br>**Windows** (x86)<br>**Linux** (x86_64, arm64)<br>**iOS** (arm64)<br>**macOS** (x86_64, arm64)<br>[**HarmonyOS**](https://github.com/IppClub/ohos_dora_ssr) (x86_64, arm64)|
-|Node Based|Manages game scenes based on tree node structure.|
-|ECS|Easy-to-use [ECS](https://dora-ssr.net/docs/tutorial/using-ecs) module for efficient game entity management.|
-|Multi-threaded|Asynchronous processing of file read and write, resource loading and other operations.|
-|Lua|Upgraded Lua binding with support for inheriting and extending low-level C++ objects.|
-|YueScript|Supports [YueScript](https://yuescript.org) language, strong expressive and concise Lua dialect.|
-|Teal|Supports for the [Teal](https://github.com/teal-language/tl) language, a statically typed dialect for Lua.|
-|TypeScript|Supports [TypeScript](https://www.typescriptlang.org), a statically typed superset of JavaScript that adds powerful type checking (with [TSTL](https://typescripttolua.github.io)).|
-|TSX|Supports [TSX](https://dora-ssr.net/docs/tutorial/Language%20Tutorial/using-tsx), allows embedding XML/HTML-like text within scripts, used with TypeScript.|
-|Wa|Supports the [Wa](https://wa-lang.org) language, a simple, reliable, and statically typed language running on the built-in WASM runtime with [Wa bindings](https://github.com/IppClub/Dora-SSR/tree/main/Tools/dora-wa).|
-|Rust|Supports the [Rust](https://www.rust-lang.org) language, running on the built-in WASM runtime with [Rust bindings](https://lib.rs/crates/dora-ssr).|
-|C#|Supports game development using the C# language by calling the engine as a dynamic library. Provides [C# bindings](https://github.com/IppClub/Dora-SSR/tree/main/Tools/dora-cs) so you can use C# as your favorite language for game dev.|
-|Blockly|Supports a Scratch-like visual language, ideal for beginners to learn how to code.<br><br><div align='center'><img src='Docs/static/img/showcase/blockly.jpg' alt='Blockly' width='500px'/></div>|
-|2D Animation|2D skeletal animations support with [Spine2D](https://github.com/EsotericSoftware/spine-runtimes), [DragonBones](https://github.com/DragonBones/DragonBonesCPP) and a builtin system.|
-|2D Physics|2D physics engine support with [PlayRho](https://github.com/louis-langholtz/PlayRho).|
-|Web IDE|Built-in out-of-the-box Web IDE, providing file management, code inspection, completion, highlighting and definition jump. <br><br><div align='center'><img src='Docs/static/img/article/dora-on-android.jpg' alt='dora on android' width='500px'/></div>|
-|Database|Supports asynchronous operation of [SQLite](https://www.sqlite.org) for real-time query and managing large game configuration data.|
-|Excel|Supports reading Excel spreadsheet data and synchronizing it to SQLite tables.|
-|CSS Layout|Provides the function of adaptive Flex layout for game scenes through CSS (with [Yoga](https://github.com/facebook/yoga)).|
-|Effect System|Support the functions of [Effekseer](https://github.com/effekseer/Effekseer) game effects system.|
-|Tilemap|Supports the [Tiled Map Editor](http://www.mapeditor.org) TMX map file parsing and rendering.|
-|Yarn Spinner|Supports the [Yarn Spinner](https://www.yarnspinner.dev) language, making it easy to write complex game story systems.|
-|ML|Built-in machine learning algorithm framework for innovative gameplay.|
-|Vector Graphics|Provides vector graphics rendering API, which can directly render SVG format files without CSS (with [NanoVG](https://github.com/memononen/nanovg)).|
-|ImGui|Built-in [ImGui](https://github.com/ocornut/imgui), easy to create debugging tools and UI interface.|
-|Audio|Supports FLAC, OGG, MP3 and WAV multi-format audio playback.|
-|True Type|Supports True Type font rendering and basic typesetting.|
-|2D Platformer|Basic [2D platformer](https://dora-ssr.net/docs/example/Platformer%20Tutorial/start) game functions, including game logic and AI development framework.|
-|L·S·D|Provides open art resources and game IPs that can be used to create your own games - ["Luv Sense Digital"](https://luv-sense-digital.readthedocs.io).<br><br><div align='center'><img src='Docs/static/img/showcase/LSD.jpg' alt='LSD' width='300px'/></div>|
+### Developer Experience
+
+- Web IDE: built-in browser-based workflow with file management, code inspection, completion, highlighting, and jump-to-definition.
+- Coding Agent: built-in cross-platform coding agent assistant for project-scoped analysis, search, editing, fixing, and summarization workflows.
+- Live device workflow: run the engine on the target phone or handheld, then connect to the Web IDE from a browser for live development and debugging.
+
+<div align='center'><img src='Docs/static/img/article/dora-on-android.jpg' alt='dora on android' width='500px'/></div>
+
+### Languages and Extensibility
+
+- Lua: upgraded Lua bindings with support for inheriting and extending low-level C++ objects.
+- TypeScript / TSX: supports typed scripting and declarative scene construction.
+- Teal / YueScript: offers alternative Lua-friendly language styles within the same ecosystem.
+- Wa / Rust: supports engine extension through the built-in WASM runtime.
+- C#: supports native-style development by calling the engine as a dynamic library.
+- Blockly: supports Scratch-like visual scripting, ideal for teaching and onboarding beginners.
+
+<div align='center'><img src='Docs/static/img/showcase/blockly.jpg' alt='Blockly' width='500px'/></div>
+
+### Runtime and Presentation
+
+- Cross-platform runtime: runs natively on `Android`, `Windows`, `Linux`, `iOS`, `macOS`, and `HarmonyOS`.
+- Scene system: manages game objects with a tree-based node model and an easy-to-use [ECS](https://dora-ssr.net/docs/tutorial/using-ecs) module.
+- Async processing: supports asynchronous file IO, asset loading, and related tasks.
+- 2D animation and physics: supports Spine2D, DragonBones, built-in skeletal animation, and [PlayRho](https://github.com/louis-langholtz/PlayRho) 2D physics.
+- Video and audio: supports H.264 playback plus multi-format audio, 3D spatial sound, attenuation, and Doppler effects.
+- Graphics stack: supports Effekseer effects, NanoVG vector graphics, ImGui tooling UI, and TrueType font rendering.
+- Game patterns: includes core logic and AI support for [2D platformer](https://dora-ssr.net/docs/example/Platformer%20Tutorial/start) development.
+
+### Content and Tooling
+
+- Data and configuration: supports asynchronous [SQLite](https://www.sqlite.org) access and Excel-to-database workflows.
+- Scene and narrative tools: supports CSS Flex layout, Tiled TMX maps, and [Yarn Spinner](https://www.yarnspinner.dev) story scripting.
+- Creative extensions: includes a machine learning gameplay framework and open art resources plus the ["Luv Sense Digital"](https://luv-sense-digital.readthedocs.io) IP.
+
+<div align='center'><img src='Docs/static/img/showcase/LSD.jpg' alt='Luv Sense Digital' width='300px'/></div>
 
 <br>
 
-## Usages
+## Start Building
 
-You can refer to the example code [here](https://github.com/IppClub/Dora-Example/tree/master/Example) to learn how to use the various features provided by Dora SSR.
+- Feature examples: use [Dora-Example](https://github.com/IppClub/Dora-Example/tree/master/Example) to learn individual APIs and engine features.
+- Full projects: use [Dora-Demo](https://github.com/IppClub/Dora-Demo) to see how real projects organize assets, scripts, and gameplay logic.
 
-<br>
-
-## Example Projects
-
-You can refer to the [Dora-Demo](https://github.com/IppClub/Dora-Demo) repository for game demos, and learn how to use Dora SSR to develop games.
+### Featured Projects
 
 - [Sample Project - Loli War](https://github.com/IppClub/Dora-Demo/tree/main/Loli%20War)
 
@@ -94,29 +127,29 @@ You can refer to the [Dora-Demo](https://github.com/IppClub/Dora-Demo) repositor
 
 ### Android
 
-- 1\. Download and install the [APK](https://github.com/ippclub/Dora-SSR/releases/latest) package on the running terminal for games.
-- 2\. Run the software, and access the server address displayed by the software through the browser of a PC (tablet or other development device) on the LAN.
-- 3\. Start game development.
+- Get: install the [APK](https://github.com/ippclub/Dora-SSR/releases/latest) on the target device.
+- Run: launch the app and open the displayed address from a browser on a PC, tablet, or another device on the same LAN.
+- Start: enter the Web IDE and begin development.
 
 ### Windows
 
-- 1\. Ensure that you have the X86 Visual C++ Redistributable for Visual Studio 2022 (the MSVC runtime package vc_redist.x86) installed to run the application. You can download it from the [Microsoft website](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170).
-- 2\. Download and decompress the [software](https://github.com/ippclub/Dora-SSR/releases/latest).
-- 3\. Run the software and access the server address displayed by the software through a browser.
-- 4\. Start game development.
+- Dependency: install the X86 Visual C++ Redistributable for Visual Studio 2022 from the [Microsoft website](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170).
+- Get: download and extract the [release](https://github.com/ippclub/Dora-SSR/releases/latest).
+- Run: launch the app and open the displayed address in a browser.
+- Start: enter the Web IDE and begin development.
 
 ### macOS
 
-- 1\. Download and decompress the [software](https://github.com/ippclub/Dora-SSR/releases/latest). Or you can get software using [Homebrew](https://brew.sh) with:
+- Get: download and extract the [release](https://github.com/ippclub/Dora-SSR/releases/latest), or install with [Homebrew](https://brew.sh):
 	```sh
 	brew install --cask ippclub/tap/dora-ssr
 	```
-- 2\. Run the software and access the server address displayed by the software through a browser.
-- 3\. Start game development.
+- Run: launch the app and open the displayed address in a browser.
+- Start: enter the Web IDE and begin development.
 
 ### Linux
 
-- 1\. Installation from PPA.
+- Get: install from the matching package source.
 	- Ubuntu Jammy
 	```sh
 	sudo add-apt-repository ppa:ippclub/dora-ssr
@@ -130,12 +163,28 @@ You can refer to the [Dora-Demo](https://github.com/IppClub/Dora-Demo) repositor
 	sudo apt update
 	sudo apt install dora-ssr
 	```
-- 2\. Run the software and access the server address displayed by the software through a browser.
-- 3\. Start game development.
+- Run: launch the app and open the displayed address in a browser.
+- Start: enter the Web IDE and begin development.
+
+### Linux Package Source
+
+- Ubuntu Jammy:
+	```sh
+	sudo add-apt-repository ppa:ippclub/dora-ssr
+	sudo apt update
+	sudo apt install dora-ssr
+	```
+- Debian Bookworm:
+	```sh
+	sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 9C7705BF
+	sudo add-apt-repository -S "deb https://ppa.launchpadcontent.net/ippclub/dora-ssr/ubuntu jammy main"
+	sudo apt update
+	sudo apt install dora-ssr
+	```
 
 ### Build Game Engine
 
-- For the building instructions of Dora SSR project, see [Official Documents](https://dora-ssr.net/docs/tutorial/dev-configuration) for details.
+- For building Dora SSR from source, see the [official guide](https://dora-ssr.net/docs/tutorial/dev-configuration).
 
 <br>
 

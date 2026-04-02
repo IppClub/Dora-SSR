@@ -21,6 +21,8 @@
 - Supports the [Rust](https://dora-ssr.net/blog/2024/4/15/rusty-game-dev) language, running on the built-in WASM runtime with Rust bindings.
 - 2D [skeletal animation](https://dora-ssr.net/docs/tutorial/Using%20Nodes/using-playable) and [physics engine](https://dora-ssr.net/docs/tutorial/Using%20Nodes/using-physics-1) support.
 - Built-in out-of-the-box Web IDE, providing file management, code inspection, completion, highlighting and definition jump.
+- Built-in cross-platform Coding Agent assistant for project-scoped analysis, search, editing, fixing, and summarization workflows.
+- Supports H.264 / AVC Annex-B `.h264` video playback.
 - Supports asynchronous operation of [SQLite](https://dora-ssr.net/docs/tutorial/Managing%20Game%20Data/using-database) for real-time query and managing large game configuration data.
 - Supports reading [Excel](https://dora-ssr.net/docs/tutorial/Managing%20Game%20Data/using-excel) spreadsheet data and synchronizing it to SQLite tables.
 - Provides the function of adaptive [Flex layout](https://dora-ssr.net/docs/tutorial/adapting-to-screen#32-using-css-flex-layout) for game scenes through CSS.
@@ -30,8 +32,8 @@
 - Built-in [machine learning](https://dora-ssr.net/docs/tutorial/Using%20Machine%20Learning/using-decision-tree) algorithm framework for innovative gameplay.
 - Provides [vector graphics](https://dora-ssr.net/docs/tutorial/Using%20Nodes/using-vg-node) rendering API, which can directly render SVG format files without CSS.
 - Built-in [ImGui](https://dora-ssr.net/docs/tutorial/using-imgui), easy to create debugging tools and UI interface.
-- Supports FLAC, OGG, MP3 and WAV multi-format audio playback.
-- Supports True Type font rendering and basic typesetting.
+- Supports FLAC, OGG, MP3 and WAV multi-format audio playback with 3D spatial sound, attenuation, and Doppler effects.
+- Supports True Type font rendering and basic typesetting with SDF support.
 - Provides open art resources and game IPs that can be used to create your own games - ["Luv Sense Digital"](https://luv-sense-digital.readthedocs.io).
 
 ## Community Participation

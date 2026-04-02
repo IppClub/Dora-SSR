@@ -1,6 +1,19 @@
-<div align="center"><img src='Docs/static/img/site/dora.svg' alt='Dora SSR' width='200px'/></div>
-
 # 多萝珍奇引擎（Dora SSR）
+
+<table align="center" width="100%">
+<tr>
+<td width="240" valign="middle" align="center">
+<img src='Docs/static/img/site/dora.svg' alt='Dora SSR' width='220px'/>
+<br/>
+<sub>Web IDE · Coding Agent</sub><br/>
+<sub>真机开发引擎</sub>
+</td>
+<td valign="middle" align="center">
+<img src='Docs/static/img/art/derivative/dora-toto.jpg' alt='Dora SSR hero' width='900px'/>
+</td>
+</tr>
+</table>
+
 
 #### [English](README.md)  | 中文
 
@@ -8,63 +21,80 @@
 
 &emsp;&emsp;Dora SSR 是一个用于多种设备上快速开发游戏的游戏引擎。它内置易用的 Web IDE 开发工具链，支持在手机、开源掌机等设备上直接进行游戏开发。
 
-<div align='center'><img src='Docs/static/img/article/detail-zh.svg' alt='intro' width='700px'/></div>
-
 <br/>
 
-| 类别 | 徽章 |
-| - | - |
-| 提供游戏开发工具 | ![Static Badge](https://img.shields.io/badge/C%2B%2B20-游戏引擎-d5a64c?logo=c%2B%2B)<br>![Static Badge](https://img.shields.io/badge/Rust-游戏引擎-d5a64c?logo=rust)<br>![Static Badge](https://img.shields.io/badge/ReactJS-网页_IDE-00d8ff?logo=react) |
-| 支持编程语言 | ![Static Badge](https://img.shields.io/badge/Lua-脚本编程-blue?logo=lua)<br>![Static Badge](https://img.shields.io/badge/TypeScript-脚本编程-blue?logo=typescript)<br>![Static Badge](https://img.shields.io/badge/TSX-脚本编程-blue?logo=typescript)<br>![Static Badge](https://img.shields.io/badge/Teal-脚本编程-blue?logo=data:image/svg+xml;charset=utf-8;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImdyYWQiIHgxPSIwJSIgeTE9IjEwMCUiIHgyPSIxMDAlIiB5Mj0iMCUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjMDA4MDgwIiAvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwMGQ0ZDQiIC8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogIDwvZGVmcz4KICA8cGF0aAogICAgZmlsbD0idXJsKCNncmFkKSIKICAgIGQ9IgogICAgICBNIDI1NiwwCiAgICAgIEEgMjU2LDI1NiAwIDEsMSAyNTUuOSwwCiAgICAgIFoKICAgICAgTSAyNTAsMTEwCiAgICAgIGggMTQwCiAgICAgIHYgMTQwCiAgICAgIGggLTE0MAogICAgICBaCiAgICAiCiAgICBmaWxsLXJ1bGU9ImV2ZW5vZGQiCiAgLz4KPC9zdmc+Cg==)<br>![Static Badge](https://img.shields.io/badge/YueScript-脚本编程-blue?logo=data:image/svg+xml;charset=utf-8;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFNWRyAxLjEvL0VOIiAiaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkIj48c3ZnIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIHZpZXdCb3g9IjAgMCAxMjUxIDg5NyIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxuczpzZXJpZj0iaHR0cDovL3d3dy5zZXJpZi5jb20vIiBzdHlsZT0iZmlsbC1ydWxlOmV2ZW5vZGQ7Y2xpcC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlLWxpbmVqb2luOnJvdW5kO3N0cm9rZS1taXRlcmxpbWl0OjI7Ij48cGF0aCBkPSJNODA0LjM3LDYuMjljLTYuOTYsLTAuOTkgLTEzLjkxLC0xLjk5IC0yMC44NywtMi45OGwwLDQ5LjM2Yzc0LjIxLDgwLjE3IDEyMi4yNSwxODUuMTkgMTI5LjIsMzAxLjE0bC00NTcuODQsMGMwLDAgLTQ2LjM4LDIuMzIgLTQ2LjM4LDQwLjc1YzAsMzguNDMgMzYuNzcsNDYuNzEgNDYuMDUsNDYuNzFsMjI5LjkxLDBjMCwwIDI4LjgyLC0xLjY2IDI4LjgyLDIwLjIxYy0wLDIxLjg3IC0yMS4yLDE5Ljg4IC0yOC40OSwxOS44OGwtNDY4Ljc3LDBjMzYuNDUsLTI0Ni4xNSAyMjkuMjYsLTQ0MS4yNyA0NzQuMDgsLTQ4MS4zNmMtMjY0LjA0LDEzLjkxIC00NzcuNzIsMjIwLjMxIC01MDMuMjMsNDgxLjM2bC0xMzYuMTYsMGMtMCwwIC01MC42OSwtNS45NiAtNTAuNjksMzguMWMtMCw0NC4wNiAzOC4xLDQyLjQgNDguNyw0Mi40bDEzNi4xNiwwYzQuOTcsOTMuNzUgMzQuNDUsMTgxLjU1IDgxLjgzLDI1Ni40MmwwLjMzLC0wLjMzYy0yOS4xNSwtNTkuMyAtNDguMDQsLTEyNC41NiAtNTQuOTksLTE5My40N2wyNDkuNDYsMGMxMS45MywwIDQ1LjM5LC0xLjY2IDQ1LjM5LC00MC40MmMtMCwtMzguNzYgLTQxLjA4LC0zOS40MiAtNDEuMDgsLTM5LjQybC0zMzcuMjYsMGMtMCwwIC0yOS40OCwyLjMyIC0yOS40OCwtMjEuMmMtMCwtMjMuNTIgMTkuMjEsLTI0LjUyIDI3LjgzLC0yNC41Mmw2MzEuMSwwYy0wLDAgNDguMzcsNS4zIDQ4LjM3LC0zOS40MmMtMCwtMzkuNzUgLTQyLjQsLTM4LjEgLTU3Ljk4LC0zOC4xbC0yMTUuNjcsMGMtMCwwIC0zMi4xMywxLjMzIC0zMi4xMywtMjIuODZjLTAsLTI0LjE5IDI3LjE3LC0yMi44NiAzMS44LC0yMi44NmwzNzkuOTksMGwtMCw3LjI5Yy0wLDEyNy41NSAtNDkuMzYsMjQzLjgzIC0xMzAuMiwzMzAuNjNjLTcxLjU2LDc3LjE5IC0xNjcuOTYsMTMxLjE5IC0yNzYuNjMsMTQ5LjQxYzIwLjg3LDEyLjkyIDQyLjc0LDI0LjE4IDY1LjYsMzMuNzljNzkuMTgsLTIyLjUzIDE1MS4wNywtNjIuOTQgMjEwLjcsLTExNi42MWM0OC43LC00My43MyA4OS40NSwtOTYuNzQgMTE5LjYsLTE1NS43MWwyMzUuNTUsMGwtMCwtMjIuMmwtMjI0Ljk0LDBjMzAuMTUsLTY2LjkyIDQ3LjA0LC0xNDEuMTMgNDcuMDQsLTIxOS4zMWwtMCwtNy4yOWwyMTguMzIsMGMxNi45LDQ5LjM2IDI2LjE3LDEwMi4wNCAyNi4xNywxNTcuMDNjLTAsOTEuMSAtMjUuMTgsMTc2LjU4IC02OS4yNCwyNDkuNzlsMzcuMSwzMC4xNWM1MC4zNiwtODEuNSA3OS41MSwtMTc3LjI0IDc5LjUxLC0yNzkuOTRjMS4zMywtMjY0LjcgLTE5Mi44MSwtNDg1LjM0IC00NDYuNTgsLTUyNi40MlptLTM4OC42LDU4MC4wOWMtMCwyMS41MyAtMjAuODcsMjIuODYgLTIwLjg3LDIyLjg2bC0xODMuNTMsMGMtMC45OSwtMTQuMjUgLTEuNjYsLTI4LjQ5IC0xLjY2LC00Mi43NGwtMCwtNC42NGwxODcuMTgsMGMzLjMxLDAuMzMgMTguODgsMi45OCAxOC44OCwyNC41MlptNTQ0LjMxLC0yMzIuNTZjLTUuOTYsLTEwNy4zNCAtNDMuNCwtMjA2LjA2IC0xMDMuNjksLTI4Ny4yM2MxNDMuNDUsNDIuNCAyNTkuNzMsMTQ5LjQxIDMxNC43MiwyODcuMjNsLTIxMS4wMywwWiIgc3R5bGU9ImZpbGw6I2I0YWM4ZjtmaWxsLXJ1bGU6bm9uemVybzsiLz48L3N2Zz4=)<br>![Static Badge](https://img.shields.io/badge/Blockly-可视编程-blue?logo=data:image/svg+xml;charset=utf-8;base64,PHN2ZyB3aWR0aD0iMTI5IiBoZWlnaHQ9IjE0NCIgdmlld0JveD0iMCAwIDEyOSAxNDQiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPHBhdGggZD0iTTE2IDBINzJWMTQ0SDE2QzcuMTYzNDQgMTQ0IDAgMTM2LjgzNyAwIDEyOFYxNkMwIDcuMTYzNDQgNy4xNjM0NCAwIDE2IDBaIiBmaWxsPSIjNDI4NUY0Ii8+CiAgPHBhdGggZD0iTTcyIDBIMTEzQzEyMi45NDEgMCAxMjkgNy4wNTg4NyAxMjkgMTZWMTI4QzEyOSAxMzYuOTQxIDEyMi45NDEgMTQ0IDExMyAxNDRINzJWMFoiIGZpbGw9IiNDMUM5RDQiLz4KICA8cGF0aCBkPSJNNDUgNDBWMTA0QzQ1IDEwNiA0Ny41IDEwNy4yIDQ5LjUgMTA2TDgyLjUgODZDODQuNSA4NC44IDg0LjUgODEuMiA4Mi41IDgwTDQ5LjUgNjBDNDcuNSA1OC44IDQ1IDYwIDQ1IDYyVjQwWiIgZmlsbD0iI0MxQzlENCIvPgo8L3N2Zz4K)<br>![Static Badge](https://img.shields.io/badge/Wa-WASM语言-e36f39?logo=data%3Aimage%2Fsvg%2Bxml%3Bcharset%3Dutf-8%3Bbase64%2CPHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiCiAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGNsaXAtcnVsZT0iZXZlbm9kZCIgZD0iTTAgMjBDMCA4Ljk1NDMgOC45NTQzIDAgMjAgMEg4MEM5MS4wNDYgMCAxMDAgOC45NTQzIDEwMCAyMFYyNFY4MFYxMDBIMjAwVjgwVjI0VjIwQzIwMCA4Ljk1NDMgMjA4Ljk1NCAwIDIyMCAwSDI4MEMyOTEuMDQ2IDAgMzAwIDguOTU0MyAzMDAgMjBWNDRWODBWMjgwQzMwMCAyOTEuMDQ2IDI5MS4wNDYgMzAwIDI4MCAzMDBIMjBDOC45NTQzIDMwMCAwIDI5MS4wNDYgMCAyODBWODBWNDRWMjBaIiBmaWxsPSIjMDBCNUFCIi8%2BCiAgPHBhdGggZD0iTTUwIDU1QzUyLjc2MTQgNTUgNTUgNTIuNzYxNCA1NSA1MEM1NSA0Ny4yMzg2IDUyLjc2MTQgNDUgNTAgNDVDNDcuMjM4NiA0NSA0NSA0Ny4yMzg2IDQ1IDUwQzQ1IDUyLjc2MTQgNDcuMjM4NiA1NSA1MCA1NVoiIGZpbGw9IndoaXRlIi8%2BCiAgPHBhdGggZD0iTTI1MCA1NUMyNTIuNzYxIDU1IDI1NSA1Mi43NjE0IDI1NSA1MEMyNTUgNDcuMjM4NiAyNTIuNzYxIDQ1IDI1MCA0NUMyNDcuMjM5IDQ1IDI0NSA0Ny4yMzg2IDI0NSA1MEMyNDUgNTIuNzYxNCAyNDcuMjM5IDU1IDI1MCA1NVoiIGZpbGw9IndoaXRlIi8%2BCiAgPHBhdGggZD0iTTE1MCAxODBMMTg0IDIxNEwyMTggMTgwTTE1MCAxODBMMTE2IDIxNEw4MiAxODAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iOCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8%2BCjwvc3ZnPgo%3D)<br>![Static Badge](https://img.shields.io/badge/Rust-WASM语言-e36f39?logo=rust)<br>![Static Badge](https://img.shields.io/badge/C%23-本地编译-2885F1?logo=data:image/svg+xml;charset=utf-8;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4Ij48cGF0aCBmaWxsPSIjOUI0Rjk2IiBkPSJNMTE1LjQgMzAuN0w2Ny4xIDIuOWMtLjgtLjUtMS45LS43LTMuMS0uNy0xLjIgMC0yLjMuMy0zLjEuN2wtNDggMjcuOWMtMS43IDEtMi45IDMuNS0yLjkgNS40djU1LjdjMCAxLjEuMiAyLjQgMSAzLjVsMTA2LjgtNjJjLS42LTEuMi0xLjUtMi4xLTIuNC0yLjd6Ii8+PHBhdGggZmlsbD0iIzY4MjE3QSIgZD0iTTEwLjcgOTUuM2MuNS44IDEuMiAxLjUgMS45IDEuOWw0OC4yIDI3LjljLjguNSAxLjkuNyAzLjEuNyAxLjIgMCAyLjMtLjMgMy4xLS43bDQ4LTI3LjljMS43LTEgMi45LTMuNSAyLjktNS40VjM2LjFjMC0uOS0uMS0xLjktLjYtMi44bC0xMDYuNiA2MnoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNODUuMyA3Ni4xQzgxLjEgODMuNSA3My4xIDg4LjUgNjQgODguNWMtMTMuNSAwLTI0LjUtMTEtMjQuNS0yNC41czExLTI0LjUgMjQuNS0yNC41YzkuMSAwIDE3LjEgNSAyMS4zIDEyLjVsMTMtNy41Yy02LjgtMTEuOS0xOS42LTIwLTM0LjMtMjAtMjEuOCAwLTM5LjUgMTcuNy0zOS41IDM5LjVzMTcuNyAzOS41IDM5LjUgMzkuNWMxNC42IDAgMjcuNC04IDM0LjItMTkuOGwtMTIuOS03LjZ6TTk3IDY2LjJsLjktNC4zaC00LjJ2LTQuN2g1LjFMMTAwIDUxaDQuOWwtMS4yIDYuMWgzLjhsMS4yLTYuMWg0LjhsLTEuMiA2LjFoMi40djQuN2gtMy4zbC0uOSA0LjNoNC4ydjQuN2gtNS4xbC0xLjIgNmgtNC45bDEuMi02aC0zLjhsLTEuMiA2aC00LjhsMS4yLTZoLTIuNHYtNC43SDk3em00LjggMGgzLjhsLjktNC4zaC0zLjhsLS45IDQuM3oiLz48L3N2Zz4=) |
-| 支持运行平台 | ![Android](https://github.com/ippclub/Dora-SSR/actions/workflows/android.yml/badge.svg)<br>![Linux](https://github.com/ippclub/Dora-SSR/actions/workflows/linux.yml/badge.svg)<br>![Windows](https://github.com/ippclub/Dora-SSR/actions/workflows/windows.yml/badge.svg)<br>![macOS](https://github.com/ippclub/Dora-SSR/actions/workflows/macos.yml/badge.svg)<br>![iOS](https://github.com/ippclub/Dora-SSR/actions/workflows/ios.yml/badge.svg) |
+## 快速入口
+
+- [快速体验](https://dora-ssr.net/zh-Hans/docs/tutorial/quick-start)
+- [功能示例代码](https://github.com/IppClub/Dora-Example/tree/master/Example)
+- [完整项目示例](https://github.com/IppClub/Dora-Demo)
+- [最新发布下载](https://github.com/ippclub/Dora-SSR/releases/latest)
+
+## 技术概览
+
+|方向|内容|
+|-|-|
+|开发方式|`Web IDE` + `Coding Agent` + 在目标设备运行、通过浏览器接入的实时开发流程|
+|语言生态|`Lua` / `TypeScript` / `TSX` / `Teal` / `YueScript` / `Wa` / `Rust` / `C#`|
+|运行平台|`Android` / `Windows` / `Linux` / `macOS` / `iOS` / [鸿蒙](https://github.com/IppClub/ohos_dora_ssr/blob/main/README.zh-CN.md)|
+
+<div align='center'><sub>跨平台持续集成状态</sub></div>
+
+![Android](https://github.com/ippclub/Dora-SSR/actions/workflows/android.yml/badge.svg)
+![Linux](https://github.com/ippclub/Dora-SSR/actions/workflows/linux.yml/badge.svg)
+![Windows](https://github.com/ippclub/Dora-SSR/actions/workflows/windows.yml/badge.svg)
+![macOS](https://github.com/ippclub/Dora-SSR/actions/workflows/macos.yml/badge.svg)
+![iOS](https://github.com/ippclub/Dora-SSR/actions/workflows/ios.yml/badge.svg)
 
 <div align='center'><img src='Docs/static/img/art/casual/3.png' alt='Playground' width='500px'/></div>
 
 ## 主要特点
 
-|功能|描述|
-|-|-|
-|跨平台支持|支持原生运行的系统和架构：<br>**Android** (x86_64, armv7, arm64)<br>**Windows** (x86)<br>**Linux** (x86_64, arm64)<br>**iOS** (arm64)<br>**macOS** (x86_64, arm64)<br>[**鸿蒙**](https://github.com/IppClub/ohos_dora_ssr/blob/main/README.zh-CN.md) (x86_64, arm64)|
-|树形节点|基于树形节点结构管理游戏场景。|
-|ECS|易用的 [ECS](https://dora-ssr.net/zh-Hans/docs/tutorial/using-ecs) 模块，便于游戏实体管理。|
-|异步处理|异步处理的文件读写、资源加载等操作。|
-|Lua|升级的 Lua 绑定，支持继承和扩展底层 C++ 对象。|
-|YueScript|支持 [YueScript](https://yuescript.org) 语言，强表达力且简洁的 Lua 方言。|
-|Teal|支持 [Teal](https://github.com/teal-language/tl) 语言，编译到 Lua 的静态类型语言。|
-|TypeScript|支持 [TypeScript](https://www.typescriptlang.org) 语言，一门静态类型的 JavaScript 语言的超集，添加了强大的类型检查功能。（通过 [TSTL](https://typescripttolua.github.io)）|
-|TSX|支持 [TSX](https://dora-ssr.net/zh-Hans/docs/tutorial/Language%20Tutorial/using-tsx)，允许在脚本中嵌入类似 XML/HTML 的文本，与 TypeScript 一起使用。|
-|Wa|支持 [Wa](https://wa-lang.org) 语言，一门简单可靠、静态类型的语言，运行在内置的 WASM 运行时和 [Wa 绑定](https://github.com/IppClub/Dora-SSR/tree/main/Tools/dora-wa) 上。|
-|Rust|支持 [Rust](https://www.rust-lang.org) 语言，运行在内置的 WASM 运行时和 [Rust 绑定](https://lib.rs/crates/dora-ssr) 上。|
-|C#|支持使用 C# 语言调用动态库形式的引擎做游戏开发，提供 [C# 绑定](https://github.com/IppClub/Dora-SSR/tree/main/Tools/dora-cs) 作为一门可选择的让你喜爱的开发语言使用。|
-|Blockly|支持使用类似 Scratch 的可视化编程语言进行编码，非常适合初学者学习编程。<br><br><div align='center'><img src='Docs/static/img/showcase/blockly-zh.jpg' alt='Blockly' width='500px'/></div>|
-|2D 骨骼动画|支持 2D 骨骼动画，包括：[Spine2D](https://github.com/EsotericSoftware/spine-runtimes)、[DragonBones](https://github.com/DragonBones/DragonBonesCPP) 以及内置系统。|
-|2D 物理引擎|支持 2D 物理引擎，使用 [PlayRho](https://github.com/louis-langholtz/PlayRho)。|
-|Web IDE|内置开箱即用的 Web IDE，提供文件管理，代码检查、补全、高亮和定义跳转。 <br><br><div align='center'><img src='Docs/static/img/article/dora-on-android.jpg' alt='dora on android' width='500px'/></div>|
-|数据库|支持异步操作 [SQLite](https://www.sqlite.org)，进行大量游戏配置数据的实时查询和写入。|
-|Excel|支持 Excel 表格数据读取，支持同步到 SQLite 库表。|
-|CSS 布局|提供游戏场景通过 CSS 进行自适应的 Flex 布局的功能（通过 [Yoga](https://github.com/facebook/yoga)）。|
-|特效系统|支持 [Effekseer](https://effekseer.github.io/en) 特效系统的功能。|
-|瓦片地图|支持 [Tiled Map Editor](http://www.mapeditor.org) 制作的 TMX 地图文件的解析和渲染。|
-|Yarn Spinner|支持 [Yarn Spinner](https://www.yarnspinner.dev) 语言，便于编写复杂的游戏故事系统。|
-|机器学习|内置用于创新游戏玩法的机器学习算法框架。|
-|矢量图形|提供矢量图形渲染 API，可直接渲染无 CSS 的 SVG 格式文件（通过 [NanoVG](https://github.com/memononen/nanovg)）。|
-|ImGui|内置 [ImGui](https://github.com/ocornut/imgui)，便于创建调试工具和 UI 界面。|
-|音频|支持 FLAC、OGG、MP3 和 WAV 多格式音频播放。|
-|True Type|支持 True Type 字体的渲染和基础排版。|
-|2D 平台游戏|支持 [2D 平台游戏](https://dora-ssr.net/zh-Hans/docs/example/Platformer%20Tutorial/start) 的基本功能，包括游戏逻辑和 AI 开发框架。|
-|L·S·D|提供可用于制作自己游戏的开放美术素材和游戏 IP —— [《灵数奇缘》](https://luv-sense-digital.readthedocs.io)。<br><br><div align='center'><img src='Docs/static/img/showcase/LSD.jpg' alt='LSD' width='400px'/></div>|
+### 开发体验
+
+- Web IDE：内置开箱即用的网页开发环境，提供文件管理、代码检查、补全、高亮与定义跳转。
+- Coding Agent：内置跨平台 coding agent 助手，可围绕项目目录执行代码分析、搜索、编辑、修复与总结。
+- 真机实时开发：支持在手机、掌机等目标设备上运行引擎，并通过浏览器接入 Web IDE 进行实时开发与调试。
+
+<div align='center'><img src='Docs/static/img/article/dora-on-android.jpg' alt='dora on android' width='500px'/></div>
+
+### 语言与扩展
+
+- Lua：升级的 Lua 绑定，支持继承和扩展底层 C++ 对象。
+- TypeScript / TSX：支持静态类型脚本开发与声明式场景构建。
+- Teal / YueScript：兼容 Lua 生态的不同风格语言选择。
+- Wa / Rust：支持通过内置 WASM 运行时扩展引擎能力。
+- C#：支持通过动态库方式调用引擎进行原生开发。
+- Blockly：支持类似 Scratch 的可视化编程，适合教学与初学者入门。
+
+<div align='center'><img src='Docs/static/img/showcase/blockly-zh.jpg' alt='Blockly' width='500px'/></div>
+
+### 运行与表现
+
+- 跨平台支持：原生运行于 `Android`、`Windows`、`Linux`、`iOS`、`macOS` 与 `鸿蒙`。
+- 场景系统：基于树形节点结构管理游戏对象，并提供易用的 [ECS](https://dora-ssr.net/zh-Hans/docs/tutorial/using-ecs) 模块。
+- 异步处理：支持文件读写、资源加载等异步任务。
+- 2D 动画与物理：支持 Spine2D、DragonBones、内置骨骼动画与 [PlayRho](https://github.com/louis-langholtz/PlayRho) 2D 物理。
+- 视频与音频：支持 H.264 视频播放，以及多格式音频播放、3D 空间音效、距离衰减与多普勒效果。
+- 图形能力：支持 Effekseer 特效、NanoVG 矢量图形、ImGui 调试界面与 True Type 字体渲染。
+- 游戏类型支持：提供 [2D 平台游戏](https://dora-ssr.net/zh-Hans/docs/example/Platformer%20Tutorial/start) 的基本逻辑与 AI 开发框架。
+
+### 内容与工具链
+
+- 数据与配置：支持异步操作 [SQLite](https://www.sqlite.org) 与 Excel 数据同步。
+- 场景与叙事：支持 CSS Flex 布局、Tiled TMX 地图与 [Yarn Spinner](https://www.yarnspinner.dev) 故事系统。
+- 创作扩展：内置机器学习玩法框架，并提供开放美术素材与游戏 IP —— [《灵数奇缘》](https://luv-sense-digital.readthedocs.io)。
+
+<div align='center'><img src='Docs/static/img/showcase/LSD.jpg' alt='LSD' width='400px'/></div>
 
 <br>
 
-## 功能示例
+## 从这里开始
 
-&emsp;&emsp;可以参考 [这里](https://github.com/IppClub/Dora-Example/tree/master/Example) 的示例代码，了解如何使用 Dora 引擎提供的各项功能。
+- 功能示例：参考 [Dora-Example](https://github.com/IppClub/Dora-Example/tree/master/Example) 了解各项 API 与引擎能力的最小用法。
+- 完整项目：参考 [Dora-Demo](https://github.com/IppClub/Dora-Demo) 了解如何组织资源、脚本与游戏逻辑。
 
-<br>
-
-## 示例项目
-
-&emsp;&emsp;可以参考 [这个仓库](https://github.com/IppClub/Dora-Demo) 提供的游戏演示，了解如何使用 Dora 引擎来开发游戏。
+### 精选示例项目
 
 - [示例项目 - Loli War](https://github.com/IppClub/Dora-Demo/tree/main/Loli%20War)
 
@@ -96,29 +126,29 @@
 
 ### Android
 
-- 1、在游戏的运行终端下载并安装 [APK](https://github.com/ippclub/Dora-SSR/releases/latest) 包。
-- 2、运行软件，通过局域网内的 PC（平板或其他开发设备）的浏览器访问软件显示的服务器地址。
-- 3、开始游戏开发。
+- 获取：在目标设备上下载并安装 [APK](https://github.com/ippclub/Dora-SSR/releases/latest) 包。
+- 运行：启动软件，并通过局域网内 PC、平板或其他开发设备上的浏览器访问软件显示的地址。
+- 开始：进入 Web IDE 开始游戏开发。
 
 ### Windows
 
-- 1、请确保您已安装 Visual Studio 2022 的 X86 Visual C++ 可再发行组件包（包含 MSVC 编译的程序所需运行时的 vc_redist.x86 补丁），以运行此应用程序。您可以从[微软网站](https://learn.microsoft.com/zh-cn/cpp/windows/latest-supported-vc-redist?view=msvc-170)下载。
-- 2、下载并解压[软件](https://github.com/ippclub/Dora-SSR/releases/latest)。
-- 3、运行软件，通过浏览器访问软件显示的服务器地址。
-- 4、开始游戏开发。
+- 依赖：先安装 Visual Studio 2022 的 X86 Visual C++ 可再发行组件包，可从[微软网站](https://learn.microsoft.com/zh-cn/cpp/windows/latest-supported-vc-redist?view=msvc-170)下载。
+- 获取：下载并解压[软件](https://github.com/ippclub/Dora-SSR/releases/latest)。
+- 运行：启动软件，并通过浏览器访问软件显示的地址。
+- 开始：进入 Web IDE 开始游戏开发。
 
 ### macOS
 
-- 1、下载并解压[软件](https://github.com/ippclub/Dora-SSR/releases/latest)。或者也可以通过 [Homebrew](https://brew.sh) 使用下面命令进行软件安装。
+- 获取：下载并解压[软件](https://github.com/ippclub/Dora-SSR/releases/latest)，或通过 [Homebrew](https://brew.sh) 安装：
 	```sh
 	brew install --cask ippclub/tap/dora-ssr
 	```
-- 2、运行软件，通过浏览器访问软件显示的服务器地址。
-- 3、开始游戏开发。
+- 运行：启动软件，并通过浏览器访问软件显示的地址。
+- 开始：进入 Web IDE 开始游戏开发。
 
 ### Linux
 
-- 1、安装软件：
+- 获取：按系统版本安装软件。
 	- Ubuntu Jammy
 	```sh
 	sudo add-apt-repository ppa:ippclub/dora-ssr
@@ -132,12 +162,28 @@
 	sudo apt update
 	sudo apt install dora-ssr
 	```
-- 2、运行软件，通过浏览器访问软件显示的服务器地址。
-- 3、开始游戏开发。
+- 运行：启动软件，并通过浏览器访问软件显示的地址。
+- 开始：进入 Web IDE 开始游戏开发。
+
+### Linux 软件源
+
+- Ubuntu Jammy：
+	```sh
+	sudo add-apt-repository ppa:ippclub/dora-ssr
+	sudo apt update
+	sudo apt install dora-ssr
+	```
+- Debian Bookworm：
+	```sh
+	sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 9C7705BF
+	sudo add-apt-repository -S "deb https://ppa.launchpadcontent.net/ippclub/dora-ssr/ubuntu jammy main"
+	sudo apt update
+	sudo apt install dora-ssr
+	```
 
 ### 编译构建引擎
 
-- 要自行编译构建 Dora SSR 项目，详见[官方文档](https://dora-ssr.net/zh-Hans/docs/tutorial/dev-configuration)。
+- 需要自行编译 Dora SSR 项目时，详见[官方文档](https://dora-ssr.net/zh-Hans/docs/tutorial/dev-configuration)。
 
 <br>
 
