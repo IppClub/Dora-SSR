@@ -1733,6 +1733,11 @@ class MainDecisionAgent extends Node<AgentShared> {
 	async post(shared: AgentShared, _prepRes: unknown, execRes: unknown): Promise<string | undefined> {
 		const result = execRes as DecisionResult | { success: false; message: string };
 		if (!result.success) {
+			if (shared.stopToken.stopped) {
+				shared.error = getCancelledReason(shared);
+				shared.done = true;
+				return "done";
+			}
 			shared.error = result.message;
 			shared.response = getFailureSummaryFallback(shared, result.message);
 			shared.done = true;
