@@ -6,13 +6,14 @@
 <img src='Docs/static/img/site/dora.svg' alt='Dora SSR' width='220px'/>
 <br/>
 <sub>Web IDE · Coding Agent</sub><br/>
-<sub>Target-device live development</sub>
+<sub>Target-device live game engine</sub>
 </td>
 <td valign="middle" align="center">
 <img src='Docs/static/img/art/derivative/dora-toto.jpg' alt='Dora SSR hero'/>
 </td>
 </tr>
 </table>
+
 
 #### English | [中文](README.zh-CN.md)
 
@@ -37,7 +38,7 @@ Dora SSR is a game engine for rapid development of games on various devices. It 
 |Language Ecosystem|`Lua` / `TypeScript` / `TSX` / `Teal` / `YueScript` / `Wa` / `Rust` / `C#`|
 |Target Platforms|`Android` / `Windows` / `Linux` / `macOS` / `iOS` / [HarmonyOS](https://github.com/IppClub/ohos_dora_ssr)|
 
-<div align='center'><sub>Continuous integration status for Android / Linux / Windows / macOS / iOS</sub></div>
+<div align='center'><sub>Continuous integration status for multi-platform</sub></div>
 
 <div align='center'>
 

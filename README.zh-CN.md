@@ -6,7 +6,7 @@
 <img src='Docs/static/img/site/dora.svg' alt='Dora SSR' width='220px'/>
 <br/>
 <sub>Web IDE · Coding Agent</sub><br/>
-<sub>真机开发引擎</sub>
+<sub>真机开发游戏引擎</sub>
 </td>
 <td valign="middle" align="center">
 <img src='Docs/static/img/art/derivative/dora-toto.jpg' alt='Dora SSR hero' width='900px'/>
