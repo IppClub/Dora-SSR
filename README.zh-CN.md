@@ -34,7 +34,7 @@
 
 |方向|内容|
 |-|-|
-|开发方式|`Web IDE` + `Coding Agent` + 在目标设备运行、通过浏览器接入的实时开发流程|
+|开发方式|`Web IDE` + `Coding Agent` + 在目标设备运行引擎、通过浏览器接入的实时游戏开发流程|
 |语言生态|`Lua` / `TypeScript` / `TSX` / `Teal` / `YueScript` / `Wa` / `Rust` / `C#`|
 |运行平台|`Android` / `Windows` / `Linux` / `macOS` / `iOS` / [鸿蒙](https://github.com/IppClub/ohos_dora_ssr/blob/main/README.zh-CN.md)|
 
