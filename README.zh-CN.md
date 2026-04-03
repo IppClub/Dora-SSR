@@ -55,7 +55,7 @@
 ### 开发体验
 
 - Web IDE：内置开箱即用的网页开发环境，提供文件管理、代码检查、补全、高亮与定义跳转。
-- Coding Agent：内置跨平台 coding agent 助手，可围绕项目目录执行代码分析、搜索、编辑、修复与总结。
+- Coding Agent：内置跨平台 [coding agent](Assets/Script/Lib/Agent/CodingAgent.ts) 助手，可围绕项目目录执行代码分析、搜索、编辑、修复与总结。
 - 真机实时开发：支持在手机、掌机等目标设备上运行引擎，并通过浏览器接入 Web IDE 进行实时开发与调试。
 
 <div align='center'><img src='Docs/static/img/article/dora-on-android.jpg' alt='dora on android' width='500px'/></div>
@@ -78,7 +78,7 @@
 - 异步处理：支持文件读写、资源加载等异步任务。
 - 2D 动画与物理：支持 Spine2D、DragonBones、内置骨骼动画与 [PlayRho](https://github.com/louis-langholtz/PlayRho) 2D 物理。
 - 视频与音频：支持 H.264 视频播放，以及多格式音频播放、3D 空间音效、距离衰减与多普勒效果。
-- 图形能力：支持 Effekseer 特效、NanoVG 矢量图形、ImGui 调试界面与 True Type 字体渲染。
+- 图形运行时：支持跨平台图形 shader 运行时编译，以及 Effekseer 特效、NanoVG 矢量图形、ImGui 调试界面与 True Type 字体渲染。
 - 游戏类型支持：提供 [2D 平台游戏](https://dora-ssr.net/zh-Hans/docs/example/Platformer%20Tutorial/start) 的基本逻辑与 AI 开发框架。
 
 ### 内容与工具链

@@ -55,7 +55,7 @@ Dora SSR is a game engine for rapid development of games on various devices. It 
 ### Developer Experience
 
 - Web IDE: built-in browser-based workflow with file management, code inspection, completion, highlighting, and jump-to-definition.
-- Coding Agent: built-in cross-platform coding agent assistant for project-scoped analysis, search, editing, fixing, and summarization workflows.
+- Coding Agent: built-in cross-platform [coding agent](Assets/Script/Lib/Agent/CodingAgent.ts) assistant for project-scoped analysis, search, editing, fixing, and summarization workflows.
 - Live device workflow: run the engine on the target phone or handheld, then connect to the Web IDE from a browser for live development and debugging.
 
 <div align='center'><img src='Docs/static/img/article/dora-on-android.jpg' alt='dora on android' width='500px'/></div>
@@ -78,7 +78,7 @@ Dora SSR is a game engine for rapid development of games on various devices. It 
 - Async processing: supports asynchronous file IO, asset loading, and related tasks.
 - 2D animation and physics: supports Spine2D, DragonBones, built-in skeletal animation, and [PlayRho](https://github.com/louis-langholtz/PlayRho) 2D physics.
 - Video and audio: supports H.264 playback plus multi-format audio, 3D spatial sound, attenuation, and Doppler effects.
-- Graphics stack: supports Effekseer effects, NanoVG vector graphics, ImGui tooling UI, and TrueType font rendering.
+- Graphics runtime: supports cross-platform shader runtime compilation, plus Effekseer effects, NanoVG vector graphics, ImGui tooling UI, and TrueType font rendering.
 - Game patterns: includes core logic and AI support for [2D platformer](https://dora-ssr.net/docs/example/Platformer%20Tutorial/start) development.
 
 ### Content and Tooling

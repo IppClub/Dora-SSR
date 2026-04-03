@@ -32,6 +32,7 @@
 - Built-in [machine learning](https://dora-ssr.net/docs/tutorial/Using%20Machine%20Learning/using-decision-tree) algorithm framework for innovative gameplay.
 - Provides [vector graphics](https://dora-ssr.net/docs/tutorial/Using%20Nodes/using-vg-node) rendering API, which can directly render SVG format files without CSS.
 - Built-in [ImGui](https://dora-ssr.net/docs/tutorial/using-imgui), easy to create debugging tools and UI interface.
+- Supports bgfx-style cross-platform graphics shader runtime compilation.
 - Supports FLAC, OGG, MP3 and WAV multi-format audio playback with 3D spatial sound, attenuation, and Doppler effects.
 - Supports True Type font rendering and basic typesetting with SDF support.
 - Provides open art resources and game IPs that can be used to create your own games - ["Luv Sense Digital"](https://luv-sense-digital.readthedocs.io).
