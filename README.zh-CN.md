@@ -63,7 +63,7 @@
 ### 语言与扩展
 
 - Lua：升级的 Lua 绑定，支持继承和扩展底层 C++ 对象。
-- TypeScript / TSX：支持静态类型脚本开发与声明式场景构建。
+- TypeScript / TSX：通过 [TSTL](https://typescripttolua.github.io) 支持静态类型脚本开发与声明式场景构建。
 - Teal / YueScript：兼容 Lua 生态的不同风格语言选择。
 - Wa / Rust：支持通过内置 WASM 运行时扩展引擎能力。
 - C#：支持通过动态库方式调用引擎进行原生开发。

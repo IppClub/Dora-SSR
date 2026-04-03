@@ -63,7 +63,7 @@ Dora SSR is a game engine for rapid development of games on various devices. It 
 ### Languages and Extensibility
 
 - Lua: upgraded Lua bindings with support for inheriting and extending low-level C++ objects.
-- TypeScript / TSX: supports typed scripting and declarative scene construction.
+- TypeScript / TSX: supports typed scripting and declarative scene construction through [TSTL](https://typescripttolua.github.io).
 - Teal / YueScript: offers alternative Lua-friendly language styles within the same ecosystem.
 - Wa / Rust: supports engine extension through the built-in WASM runtime.
 - C#: supports native-style development by calling the engine as a dynamic library.
