@@ -55,7 +55,7 @@
 ### 开发体验
 
 - Web IDE：内置开箱即用的网页开发环境，提供文件管理、代码检查、补全、高亮与定义跳转。
-- Coding Agent：内置跨平台 [coding agent](Assets/Script/Lib/Agent/CodingAgent.ts) 助手，可围绕项目目录执行代码分析、搜索、编辑、修复与总结。
+- Coding Agent：内置跨平台 [coding agent](Assets/Script/Lib/Agent/CodingAgent.ts) 助手，可围绕项目目录执行代码分析、搜索、编辑、修复与总结。设计参考了 [nanobot](https://github.com/HKUDS/nanobot) 项目。
 - 真机实时开发：支持在手机、掌机等目标设备上运行引擎，并通过浏览器接入 Web IDE 进行实时开发与调试。
 
 <div align='center'><img src='Docs/static/img/article/dora-on-android.jpg' alt='dora on android' width='500px'/></div>

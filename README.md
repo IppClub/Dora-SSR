@@ -55,7 +55,7 @@ Dora SSR is a game engine for rapid development of games on various devices. It 
 ### Developer Experience
 
 - Web IDE: built-in browser-based workflow with file management, code inspection, completion, highlighting, and jump-to-definition.
-- Coding Agent: built-in cross-platform [coding agent](Assets/Script/Lib/Agent/CodingAgent.ts) assistant for project-scoped analysis, search, editing, fixing, and summarization workflows.
+- Coding Agent: built-in cross-platform [coding agent](Assets/Script/Lib/Agent/CodingAgent.ts) assistant for project-scoped analysis, search, editing, fixing, and summarization workflows. Inspired by [nanobot](https://github.com/HKUDS/nanobot).
 - Live device workflow: run the engine on the target phone or handheld, then connect to the Web IDE from a browser for live development and debugging.
 
 <div align='center'><img src='Docs/static/img/article/dora-on-android.jpg' alt='dora on android' width='500px'/></div>
