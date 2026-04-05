@@ -615,7 +615,8 @@ function MemoryCompressor.prototype.findCompressionBoundary(self, messages, curr
 	local lastClosedBoundaryWithinBudget = 0 -- 883
 	local pendingToolCalls = {} -- 884
 	local pendingToolCallCount = 0 -- 885
-	do -- 885
+	local exceededBudget = false -- 886
+	do -- 887
 		local i = 0 -- 887
 		while i < #messages do -- 887
 			local message = messages[i + 1] -- 888
@@ -657,32 +658,13 @@ function MemoryCompressor.prototype.findCompressionBoundary(self, messages, curr
 					lastClosedBoundaryWithinBudget = i + 1 -- 923
 				end -- 923
 			end -- 923
-			if accumulatedTokens > targetTokens then -- 923
-				if lastSafeBoundaryWithinBudget > 0 then -- 923
-					return {chunkEnd = lastSafeBoundaryWithinBudget, compressedCount = lastSafeBoundaryWithinBudget} -- 929
-				end -- 929
-				if boundaryMode == "budget_max" then -- 929
-					if lastClosedBoundaryWithinBudget > 0 then -- 929
-						return self:buildCarryBoundary(messages, lastClosedBoundaryWithinBudget) -- 933
-					end -- 933
-					if lastClosedBoundary > 0 then -- 933
-						return self:buildCarryBoundary(messages, lastClosedBoundary) -- 936
-					end -- 936
-				end -- 936
-				if lastSafeBoundary > 0 then -- 936
-					return {chunkEnd = lastSafeBoundary, compressedCount = lastSafeBoundary} -- 940
-				end -- 940
-				if lastClosedBoundaryWithinBudget > 0 then -- 940
-					return self:buildCarryBoundary(messages, lastClosedBoundaryWithinBudget) -- 943
-				end -- 943
-				if lastClosedBoundary > 0 then -- 943
-					return self:buildCarryBoundary(messages, lastClosedBoundary) -- 946
-				end -- 946
-				return { -- 948
-					chunkEnd = math.min(#messages, 1), -- 948
-					compressedCount = math.min(#messages, 1) -- 948
-				} -- 948
-			end -- 948
+			if accumulatedTokens > targetTokens and not exceededBudget then -- 928
+				exceededBudget = true -- 929
+			end -- 930
+			-- When budget exceeded, continue scanning until we find a usable boundary -- 932
+			if exceededBudget and isSafeBoundary then -- 933
+				return self:buildCarryBoundary(messages, i + 1) -- 934
+			end -- 935
 			i = i + 1 -- 887
 		end -- 887
 	end -- 887

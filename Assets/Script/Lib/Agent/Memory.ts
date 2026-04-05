@@ -883,6 +883,7 @@ export class MemoryCompressor {
 		let lastClosedBoundaryWithinBudget = 0;
 		const pendingToolCalls: Record<string, boolean> = {};
 		let pendingToolCallCount = 0;
+		let exceededBudget = false;
 
 		for (let i = 0; i < messages.length; i++) {
 			const message = messages[i];
@@ -924,28 +925,13 @@ export class MemoryCompressor {
 				}
 			}
 
-			if (accumulatedTokens > targetTokens) {
-				if (lastSafeBoundaryWithinBudget > 0) {
-					return { chunkEnd: lastSafeBoundaryWithinBudget, compressedCount: lastSafeBoundaryWithinBudget };
-				}
-				if (boundaryMode === "budget_max") {
-					if (lastClosedBoundaryWithinBudget > 0) {
-						return this.buildCarryBoundary(messages, lastClosedBoundaryWithinBudget);
-					}
-					if (lastClosedBoundary > 0) {
-						return this.buildCarryBoundary(messages, lastClosedBoundary);
-					}
-				}
-				if (lastSafeBoundary > 0) {
-					return { chunkEnd: lastSafeBoundary, compressedCount: lastSafeBoundary };
-				}
-				if (lastClosedBoundaryWithinBudget > 0) {
-					return this.buildCarryBoundary(messages, lastClosedBoundaryWithinBudget);
-				}
-				if (lastClosedBoundary > 0) {
-					return this.buildCarryBoundary(messages, lastClosedBoundary);
-				}
-				return { chunkEnd: math.min(messages.length, 1), compressedCount: math.min(messages.length, 1) };
+			if (accumulatedTokens > targetTokens && !exceededBudget) {
+				exceededBudget = true;
+			}
+
+			// When budget exceeded, continue scanning until we find a usable boundary
+			if (exceededBudget && isSafeBoundary) {
+				return this.buildCarryBoundary(messages, i + 1);
 			}
 		}
 
