@@ -1335,17 +1335,7 @@ ${truncateText(candidateRaw, 4000)}
 	return [
 		{
 			role: "system",
-			content: `You repair invalid XML tool decisions for the Dora coding agent.
-
-Your job is only to convert the provided raw decision output into exactly one valid XML <tool_call> block.
-
-Requirements:
-- Preserve the original tool name and parameter values whenever possible.
-- If the raw output uses another tool-call syntax, convert that tool name and arguments into the XML schema.
-- Do not make a new decision, do not change the intended action unless the input is structurally impossible to represent.
-- Only repair formatting and schema shape so the output becomes valid XML.
-- Do not continue the conversation and do not add explanations.
-- Return XML only.`,
+			content: shared.promptPack.xmlDecisionSystemRepairPrompt,
 		},
 		{
 			role: "user",

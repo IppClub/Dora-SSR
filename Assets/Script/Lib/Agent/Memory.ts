@@ -71,6 +71,7 @@ export interface AgentPromptPack {
 	toolCallingRetryPrompt: string;
 	xmlDecisionFormatPrompt: string;
 	xmlDecisionRepairPrompt: string;
+	xmlDecisionSystemRepairPrompt: string;
 	memoryCompressionSystemPrompt: string;
 	memoryCompressionBodyPrompt: string;
 	memoryCompressionToolCallingPrompt: string;
@@ -186,6 +187,17 @@ Available tools and params reference:
 - Retry attempt: {{ATTEMPT}}.
 - The next reply must differ from the previously rejected candidate.
 - Return XML only, with no prose before or after.`,
+	xmlDecisionSystemRepairPrompt: `You repair invalid XML tool decisions for the Dora coding agent.
+
+Your job is only to convert the provided raw decision output into exactly one valid XML <tool_call> block.
+
+Requirements:
+- Preserve the original tool name and parameter values whenever possible.
+- If the raw output uses another tool-call syntax, convert that tool name and arguments into the XML schema.
+- Do not make a new decision, do not change the intended action unless the input is structurally impossible to represent.
+- Only repair formatting and schema shape so the output becomes valid XML.
+- Do not continue the conversation and do not add explanations.
+- Return XML only.`,
 	memoryCompressionSystemPrompt: `You are a memory consolidation agent. You MUST call the save_memory tool.
 Do not output any text besides the tool call.
 
@@ -244,7 +256,7 @@ Rules:
 - Use exactly one root tag: \`<memory_update_result>\`.
 - Use exactly two child tags: \`<history_entry>\` and \`<memory_update>\`.
 - Use CDATA for \`<memory_update>\` when it spans multiple lines or contains markdown/code.`,
-	memoryCompressionXmlRetryPrompt: "Previous response was invalid ({{LAST_ERROR}}). Return exactly one valid XML memory_update_result block only.",
+	memoryCompressionXmlRetryPrompt: "Previous response was invalid ({{LAST_ERROR}}). Return exactly one valid XML memory_update_result block only."
 };
 
 const EXPOSED_PROMPT_PACK_KEYS: (keyof AgentPromptPack)[] = [
