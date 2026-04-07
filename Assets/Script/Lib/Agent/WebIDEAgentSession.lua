@@ -1,6 +1,8 @@
 -- [ts]: WebIDEAgentSession.ts
 local ____lualib = require("lualib_bundle") -- 1
 local __TS__ArrayIsArray = ____lualib.__TS__ArrayIsArray -- 1
+local __TS__StringStartsWith = ____lualib.__TS__StringStartsWith -- 1
+local __TS__StringSlice = ____lualib.__TS__StringSlice -- 1
 local __TS__ObjectAssign = ____lualib.__TS__ObjectAssign -- 1
 local __TS__SparseArrayNew = ____lualib.__TS__SparseArrayNew -- 1
 local __TS__SparseArrayPush = ____lualib.__TS__SparseArrayPush -- 1
@@ -22,18 +24,18 @@ local Log = ____Utils.Log -- 5
 local safeJsonDecode = ____Utils.safeJsonDecode -- 5
 local safeJsonEncode = ____Utils.safeJsonEncode -- 5
 local sanitizeUTF8 = ____Utils.sanitizeUTF8 -- 5
-function setSessionState(sessionId, status, currentTaskId, currentTaskStatus) -- 222
-	DB:exec( -- 223
-		("UPDATE " .. TABLE_SESSION) .. "\n\t\tSET status = ?, current_task_id = ?, current_task_status = ?, updated_at = ?\n\t\tWHERE id = ?", -- 223
-		{ -- 227
-			status, -- 228
-			currentTaskId or 0, -- 229
-			currentTaskStatus or status, -- 230
-			now(), -- 231
-			sessionId -- 232
-		} -- 232
-	) -- 232
-end -- 232
+function setSessionState(sessionId, status, currentTaskId, currentTaskStatus) -- 241
+	DB:exec( -- 242
+		("UPDATE " .. TABLE_SESSION) .. "\n\t\tSET status = ?, current_task_id = ?, current_task_status = ?, updated_at = ?\n\t\tWHERE id = ?", -- 242
+		{ -- 246
+			status, -- 247
+			currentTaskId or 0, -- 248
+			currentTaskStatus or status, -- 249
+			now(), -- 250
+			sessionId -- 251
+		} -- 251
+	) -- 251
+end -- 251
 TABLE_SESSION = "AgentSession" -- 78
 local TABLE_MESSAGE = "AgentSessionMessage" -- 79
 local TABLE_STEP = "AgentSessionStep" -- 80
@@ -165,444 +167,499 @@ local function getSessionItem(sessionId) -- 200
 	local row = getSessionRow(sessionId) -- 201
 	return row and rowToSession(row) or nil -- 202
 end -- 200
-local function normalizeSessionRuntimeState(session) -- 205
-	if session.currentTaskId == nil or session.currentTaskStatus ~= "RUNNING" then -- 205
-		return session -- 207
-	end -- 207
-	if activeStopTokens[session.currentTaskId] then -- 207
-		return session -- 210
-	end -- 210
-	Tools.setTaskStatus(session.currentTaskId, "STOPPED") -- 212
-	setSessionState(session.id, "STOPPED", session.currentTaskId, "STOPPED") -- 213
-	return __TS__ObjectAssign( -- 214
-		{}, -- 214
-		session, -- 215
-		{ -- 214
-			status = "STOPPED", -- 216
-			currentTaskStatus = "STOPPED", -- 217
-			updatedAt = now() -- 218
-		} -- 218
-	) -- 218
+local function deleteSessionRecords(sessionId) -- 205
+	DB:exec(("DELETE FROM " .. TABLE_STEP) .. " WHERE session_id = ?", {sessionId}) -- 206
+	DB:exec(("DELETE FROM " .. TABLE_MESSAGE) .. " WHERE session_id = ?", {sessionId}) -- 207
+	DB:exec(("DELETE FROM " .. TABLE_SESSION) .. " WHERE id = ?", {sessionId}) -- 208
 end -- 205
-local function setSessionStateForTaskEvent(sessionId, taskId, status, currentTaskStatus) -- 237
-	if taskId == nil or taskId <= 0 then -- 237
-		setSessionState(sessionId, status, taskId, currentTaskStatus) -- 239
-		return -- 240
-	end -- 240
-	local row = getSessionRow(sessionId) -- 242
-	if not row then -- 242
-		return -- 243
-	end -- 243
-	local session = rowToSession(row) -- 244
-	if session.currentTaskId ~= taskId then -- 244
-		Log( -- 246
-			"Info", -- 246
-			(((("[AgentSession] ignore stale task event session=" .. tostring(sessionId)) .. " eventTask=") .. tostring(taskId)) .. " currentTask=") .. tostring(session.currentTaskId) -- 246
-		) -- 246
-		return -- 247
-	end -- 247
-	setSessionState(sessionId, status, taskId, currentTaskStatus) -- 249
-end -- 237
-local function insertMessage(sessionId, role, content, taskId) -- 252
-	local t = now() -- 253
-	DB:exec( -- 254
-		("INSERT INTO " .. TABLE_MESSAGE) .. "(session_id, task_id, role, content, created_at, updated_at)\n\t\tVALUES(?, ?, ?, ?, ?, ?)", -- 254
-		{ -- 257
-			sessionId, -- 258
-			taskId or 0, -- 259
-			role, -- 260
-			sanitizeUTF8(content), -- 261
-			t, -- 262
-			t -- 263
-		} -- 263
-	) -- 263
-	return getLastInsertRowId() -- 266
-end -- 252
-local function updateMessage(messageId, content) -- 269
-	DB:exec( -- 270
-		("UPDATE " .. TABLE_MESSAGE) .. " SET content = ?, updated_at = ? WHERE id = ?", -- 270
-		{ -- 272
-			sanitizeUTF8(content), -- 272
-			now(), -- 272
-			messageId -- 272
-		} -- 272
-	) -- 272
-end -- 269
-local function upsertStep(sessionId, taskId, step, tool, patch) -- 276
-	local row = queryOne(("SELECT id FROM " .. TABLE_STEP) .. " WHERE session_id = ? AND task_id = ? AND step = ?", {sessionId, taskId, step}) -- 286
-	local reason = sanitizeUTF8(patch.reason or "") -- 290
-	local reasoningContent = sanitizeUTF8(patch.reasoningContent or "") -- 291
-	local paramsJson = patch.params and encodeJson(patch.params) or "" -- 292
-	local resultJson = patch.result and encodeJson(patch.result) or "" -- 293
-	local filesJson = patch.files and encodeJson(patch.files) or "" -- 294
-	local statusPatch = patch.status or "" -- 295
-	local status = patch.status or "PENDING" -- 296
-	if not row then -- 296
-		local t = now() -- 298
-		DB:exec(("INSERT INTO " .. TABLE_STEP) .. "(session_id, task_id, step, tool, status, reason, reasoning_content, params_json, result_json, checkpoint_id, checkpoint_seq, files_json, created_at, updated_at)\n\t\t\tVALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", { -- 299
-			sessionId, -- 303
-			taskId, -- 304
-			step, -- 305
-			tool, -- 306
-			status, -- 307
-			reason, -- 308
-			reasoningContent, -- 309
-			paramsJson, -- 310
-			resultJson, -- 311
-			patch.checkpointId or 0, -- 312
-			patch.checkpointSeq or 0, -- 313
-			filesJson, -- 314
-			t, -- 315
-			t -- 316
-		}) -- 316
-		return -- 319
-	end -- 319
-	DB:exec( -- 321
-		("UPDATE " .. TABLE_STEP) .. "\n\t\tSET tool = ?, status = CASE WHEN ? = '' THEN status ELSE ? END,\n\t\t\treason = CASE WHEN ? = '' THEN reason ELSE ? END,\n\t\t\treasoning_content = CASE WHEN ? = '' THEN reasoning_content ELSE ? END,\n\t\t\tparams_json = CASE WHEN ? = '' THEN params_json ELSE ? END,\n\t\t\tresult_json = CASE WHEN ? = '' THEN result_json ELSE ? END,\n\t\t\tcheckpoint_id = CASE WHEN ? > 0 THEN ? ELSE checkpoint_id END,\n\t\t\tcheckpoint_seq = CASE WHEN ? > 0 THEN ? ELSE checkpoint_seq END,\n\t\t\tfiles_json = CASE WHEN ? = '' THEN files_json ELSE ? END,\n\t\t\tupdated_at = ?\n\t\tWHERE id = ?", -- 321
-		{ -- 333
-			tool, -- 334
-			statusPatch, -- 335
-			status, -- 336
-			reason, -- 337
-			reason, -- 338
-			reasoningContent, -- 339
-			reasoningContent, -- 340
-			paramsJson, -- 341
-			paramsJson, -- 342
-			resultJson, -- 343
-			resultJson, -- 344
-			patch.checkpointId or 0, -- 345
-			patch.checkpointId or 0, -- 346
-			patch.checkpointSeq or 0, -- 347
-			patch.checkpointSeq or 0, -- 348
-			filesJson, -- 349
-			filesJson, -- 350
-			now(), -- 351
-			row[1] -- 352
-		} -- 352
-	) -- 352
-end -- 276
-local function finalizeTaskSteps(sessionId, taskId, finalSteps, finalStatus) -- 357
-	if taskId <= 0 then -- 357
-		return -- 358
-	end -- 358
-	if finalSteps ~= nil and finalSteps >= 0 then -- 358
-		DB:exec(("DELETE FROM " .. TABLE_STEP) .. "\n\t\t\tWHERE session_id = ? AND task_id = ? AND step > ?", {sessionId, taskId, finalSteps}) -- 360
-	end -- 360
-	if not finalStatus then -- 360
-		return -- 366
-	end -- 366
-	if finalSteps ~= nil and finalSteps >= 0 then -- 366
-		DB:exec( -- 368
-			("UPDATE " .. TABLE_STEP) .. "\n\t\t\tSET status = ?, updated_at = ?\n\t\t\tWHERE session_id = ? AND task_id = ? AND step <= ? AND status IN ('PENDING', 'RUNNING')", -- 368
-			{ -- 372
-				finalStatus, -- 372
-				now(), -- 372
-				sessionId, -- 372
-				taskId, -- 372
-				finalSteps -- 372
-			} -- 372
-		) -- 372
-		return -- 374
-	end -- 374
-	DB:exec( -- 376
-		("UPDATE " .. TABLE_STEP) .. "\n\t\tSET status = ?, updated_at = ?\n\t\tWHERE session_id = ? AND task_id = ? AND status IN ('PENDING', 'RUNNING')", -- 376
-		{ -- 380
-			finalStatus, -- 380
-			now(), -- 380
-			sessionId, -- 380
-			taskId -- 380
-		} -- 380
-	) -- 380
-end -- 357
-local function sanitizeStoredSteps(sessionId) -- 384
-	DB:exec( -- 385
-		((((((((("UPDATE " .. TABLE_STEP) .. "\n\t\tSET status = (\n\t\t\tCASE (\n\t\t\t\tSELECT status FROM ") .. TABLE_TASK) .. "\n\t\t\t\tWHERE id = ") .. TABLE_STEP) .. ".task_id\n\t\t\t)\n\t\t\t\tWHEN 'STOPPED' THEN 'STOPPED'\n\t\t\t\tELSE 'FAILED'\n\t\t\tEND\n\t\t),\n\t\tupdated_at = ?\n\t\tWHERE session_id = ?\n\t\t\tAND status IN ('PENDING', 'RUNNING')\n\t\t\tAND COALESCE((\n\t\t\t\tSELECT status FROM ") .. TABLE_TASK) .. "\n\t\t\t\tWHERE id = ") .. TABLE_STEP) .. ".task_id\n\t\t\t), '') <> 'RUNNING'", -- 385
-		{ -- 403
-			now(), -- 403
-			sessionId -- 403
-		} -- 403
-	) -- 403
-end -- 384
-local function applyEvent(sessionId, event) -- 407
-	repeat -- 407
-		local ____switch45 = event.type -- 407
-		local ____cond45 = ____switch45 == "task_started" -- 407
-		if ____cond45 then -- 407
-			setSessionStateForTaskEvent(sessionId, event.taskId, "RUNNING", "RUNNING") -- 410
-			break -- 411
-		end -- 411
-		____cond45 = ____cond45 or ____switch45 == "decision_made" -- 411
-		if ____cond45 then -- 411
-			upsertStep( -- 413
-				sessionId, -- 413
-				event.taskId, -- 413
-				event.step, -- 413
-				event.tool, -- 413
-				{status = "PENDING", reason = event.reason, reasoningContent = event.reasoningContent, params = event.params} -- 413
-			) -- 413
-			break -- 419
-		end -- 419
-		____cond45 = ____cond45 or ____switch45 == "tool_started" -- 419
-		if ____cond45 then -- 419
-			upsertStep( -- 421
-				sessionId, -- 421
-				event.taskId, -- 421
-				event.step, -- 421
-				event.tool, -- 421
-				{status = "RUNNING"} -- 421
-			) -- 421
-			break -- 424
-		end -- 424
-		____cond45 = ____cond45 or ____switch45 == "tool_finished" -- 424
-		if ____cond45 then -- 424
-			upsertStep( -- 426
-				sessionId, -- 426
-				event.taskId, -- 426
-				event.step, -- 426
-				event.tool, -- 426
-				{status = event.result.success == true and "DONE" or "FAILED", reason = event.reason, result = event.result} -- 426
-			) -- 426
-			break -- 431
-		end -- 431
-		____cond45 = ____cond45 or ____switch45 == "checkpoint_created" -- 431
-		if ____cond45 then -- 431
-			upsertStep( -- 433
-				sessionId, -- 433
-				event.taskId, -- 433
-				event.step, -- 433
-				event.tool, -- 433
-				{checkpointId = event.checkpointId, checkpointSeq = event.checkpointSeq, files = event.files} -- 433
-			) -- 433
+local function rebaseProjectRoot(projectRoot, oldRoot, newRoot) -- 211
+	if projectRoot == oldRoot then -- 211
+		return newRoot -- 213
+	end -- 213
+	for ____, separator in ipairs({"/", "\\"}) do -- 215
+		local prefix = oldRoot .. separator -- 216
+		if __TS__StringStartsWith(projectRoot, prefix) then -- 216
+			return newRoot .. __TS__StringSlice(projectRoot, #oldRoot) -- 218
+		end -- 218
+	end -- 218
+	return nil -- 221
+end -- 211
+local function normalizeSessionRuntimeState(session) -- 224
+	if session.currentTaskId == nil or session.currentTaskStatus ~= "RUNNING" then -- 224
+		return session -- 226
+	end -- 226
+	if activeStopTokens[session.currentTaskId] then -- 226
+		return session -- 229
+	end -- 229
+	Tools.setTaskStatus(session.currentTaskId, "STOPPED") -- 231
+	setSessionState(session.id, "STOPPED", session.currentTaskId, "STOPPED") -- 232
+	return __TS__ObjectAssign( -- 233
+		{}, -- 233
+		session, -- 234
+		{ -- 233
+			status = "STOPPED", -- 235
+			currentTaskStatus = "STOPPED", -- 236
+			updatedAt = now() -- 237
+		} -- 237
+	) -- 237
+end -- 224
+local function setSessionStateForTaskEvent(sessionId, taskId, status, currentTaskStatus) -- 256
+	if taskId == nil or taskId <= 0 then -- 256
+		setSessionState(sessionId, status, taskId, currentTaskStatus) -- 258
+		return -- 259
+	end -- 259
+	local row = getSessionRow(sessionId) -- 261
+	if not row then -- 261
+		return -- 262
+	end -- 262
+	local session = rowToSession(row) -- 263
+	if session.currentTaskId ~= taskId then -- 263
+		Log( -- 265
+			"Info", -- 265
+			(((("[AgentSession] ignore stale task event session=" .. tostring(sessionId)) .. " eventTask=") .. tostring(taskId)) .. " currentTask=") .. tostring(session.currentTaskId) -- 265
+		) -- 265
+		return -- 266
+	end -- 266
+	setSessionState(sessionId, status, taskId, currentTaskStatus) -- 268
+end -- 256
+local function insertMessage(sessionId, role, content, taskId) -- 271
+	local t = now() -- 272
+	DB:exec( -- 273
+		("INSERT INTO " .. TABLE_MESSAGE) .. "(session_id, task_id, role, content, created_at, updated_at)\n\t\tVALUES(?, ?, ?, ?, ?, ?)", -- 273
+		{ -- 276
+			sessionId, -- 277
+			taskId or 0, -- 278
+			role, -- 279
+			sanitizeUTF8(content), -- 280
+			t, -- 281
+			t -- 282
+		} -- 282
+	) -- 282
+	return getLastInsertRowId() -- 285
+end -- 271
+local function updateMessage(messageId, content) -- 288
+	DB:exec( -- 289
+		("UPDATE " .. TABLE_MESSAGE) .. " SET content = ?, updated_at = ? WHERE id = ?", -- 289
+		{ -- 291
+			sanitizeUTF8(content), -- 291
+			now(), -- 291
+			messageId -- 291
+		} -- 291
+	) -- 291
+end -- 288
+local function upsertStep(sessionId, taskId, step, tool, patch) -- 295
+	local row = queryOne(("SELECT id FROM " .. TABLE_STEP) .. " WHERE session_id = ? AND task_id = ? AND step = ?", {sessionId, taskId, step}) -- 305
+	local reason = sanitizeUTF8(patch.reason or "") -- 309
+	local reasoningContent = sanitizeUTF8(patch.reasoningContent or "") -- 310
+	local paramsJson = patch.params and encodeJson(patch.params) or "" -- 311
+	local resultJson = patch.result and encodeJson(patch.result) or "" -- 312
+	local filesJson = patch.files and encodeJson(patch.files) or "" -- 313
+	local statusPatch = patch.status or "" -- 314
+	local status = patch.status or "PENDING" -- 315
+	if not row then -- 315
+		local t = now() -- 317
+		DB:exec(("INSERT INTO " .. TABLE_STEP) .. "(session_id, task_id, step, tool, status, reason, reasoning_content, params_json, result_json, checkpoint_id, checkpoint_seq, files_json, created_at, updated_at)\n\t\t\tVALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", { -- 318
+			sessionId, -- 322
+			taskId, -- 323
+			step, -- 324
+			tool, -- 325
+			status, -- 326
+			reason, -- 327
+			reasoningContent, -- 328
+			paramsJson, -- 329
+			resultJson, -- 330
+			patch.checkpointId or 0, -- 331
+			patch.checkpointSeq or 0, -- 332
+			filesJson, -- 333
+			t, -- 334
+			t -- 335
+		}) -- 335
+		return -- 338
+	end -- 338
+	DB:exec( -- 340
+		("UPDATE " .. TABLE_STEP) .. "\n\t\tSET tool = ?, status = CASE WHEN ? = '' THEN status ELSE ? END,\n\t\t\treason = CASE WHEN ? = '' THEN reason ELSE ? END,\n\t\t\treasoning_content = CASE WHEN ? = '' THEN reasoning_content ELSE ? END,\n\t\t\tparams_json = CASE WHEN ? = '' THEN params_json ELSE ? END,\n\t\t\tresult_json = CASE WHEN ? = '' THEN result_json ELSE ? END,\n\t\t\tcheckpoint_id = CASE WHEN ? > 0 THEN ? ELSE checkpoint_id END,\n\t\t\tcheckpoint_seq = CASE WHEN ? > 0 THEN ? ELSE checkpoint_seq END,\n\t\t\tfiles_json = CASE WHEN ? = '' THEN files_json ELSE ? END,\n\t\t\tupdated_at = ?\n\t\tWHERE id = ?", -- 340
+		{ -- 352
+			tool, -- 353
+			statusPatch, -- 354
+			status, -- 355
+			reason, -- 356
+			reason, -- 357
+			reasoningContent, -- 358
+			reasoningContent, -- 359
+			paramsJson, -- 360
+			paramsJson, -- 361
+			resultJson, -- 362
+			resultJson, -- 363
+			patch.checkpointId or 0, -- 364
+			patch.checkpointId or 0, -- 365
+			patch.checkpointSeq or 0, -- 366
+			patch.checkpointSeq or 0, -- 367
+			filesJson, -- 368
+			filesJson, -- 369
+			now(), -- 370
+			row[1] -- 371
+		} -- 371
+	) -- 371
+end -- 295
+local function finalizeTaskSteps(sessionId, taskId, finalSteps, finalStatus) -- 376
+	if taskId <= 0 then -- 376
+		return -- 377
+	end -- 377
+	if finalSteps ~= nil and finalSteps >= 0 then -- 377
+		DB:exec(("DELETE FROM " .. TABLE_STEP) .. "\n\t\t\tWHERE session_id = ? AND task_id = ? AND step > ?", {sessionId, taskId, finalSteps}) -- 379
+	end -- 379
+	if not finalStatus then -- 379
+		return -- 385
+	end -- 385
+	if finalSteps ~= nil and finalSteps >= 0 then -- 385
+		DB:exec( -- 387
+			("UPDATE " .. TABLE_STEP) .. "\n\t\t\tSET status = ?, updated_at = ?\n\t\t\tWHERE session_id = ? AND task_id = ? AND step <= ? AND status IN ('PENDING', 'RUNNING')", -- 387
+			{ -- 391
+				finalStatus, -- 391
+				now(), -- 391
+				sessionId, -- 391
+				taskId, -- 391
+				finalSteps -- 391
+			} -- 391
+		) -- 391
+		return -- 393
+	end -- 393
+	DB:exec( -- 395
+		("UPDATE " .. TABLE_STEP) .. "\n\t\tSET status = ?, updated_at = ?\n\t\tWHERE session_id = ? AND task_id = ? AND status IN ('PENDING', 'RUNNING')", -- 395
+		{ -- 399
+			finalStatus, -- 399
+			now(), -- 399
+			sessionId, -- 399
+			taskId -- 399
+		} -- 399
+	) -- 399
+end -- 376
+local function sanitizeStoredSteps(sessionId) -- 403
+	DB:exec( -- 404
+		((((((((("UPDATE " .. TABLE_STEP) .. "\n\t\tSET status = (\n\t\t\tCASE (\n\t\t\t\tSELECT status FROM ") .. TABLE_TASK) .. "\n\t\t\t\tWHERE id = ") .. TABLE_STEP) .. ".task_id\n\t\t\t)\n\t\t\t\tWHEN 'STOPPED' THEN 'STOPPED'\n\t\t\t\tELSE 'FAILED'\n\t\t\tEND\n\t\t),\n\t\tupdated_at = ?\n\t\tWHERE session_id = ?\n\t\t\tAND status IN ('PENDING', 'RUNNING')\n\t\t\tAND COALESCE((\n\t\t\t\tSELECT status FROM ") .. TABLE_TASK) .. "\n\t\t\t\tWHERE id = ") .. TABLE_STEP) .. ".task_id\n\t\t\t), '') <> 'RUNNING'", -- 404
+		{ -- 422
+			now(), -- 422
+			sessionId -- 422
+		} -- 422
+	) -- 422
+end -- 403
+local function applyEvent(sessionId, event) -- 426
+	repeat -- 426
+		local ____switch51 = event.type -- 426
+		local ____cond51 = ____switch51 == "task_started" -- 426
+		if ____cond51 then -- 426
+			setSessionStateForTaskEvent(sessionId, event.taskId, "RUNNING", "RUNNING") -- 429
+			break -- 430
+		end -- 430
+		____cond51 = ____cond51 or ____switch51 == "decision_made" -- 430
+		if ____cond51 then -- 430
+			upsertStep( -- 432
+				sessionId, -- 432
+				event.taskId, -- 432
+				event.step, -- 432
+				event.tool, -- 432
+				{status = "PENDING", reason = event.reason, reasoningContent = event.reasoningContent, params = event.params} -- 432
+			) -- 432
 			break -- 438
 		end -- 438
-		____cond45 = ____cond45 or ____switch45 == "memory_compression_started" -- 438
-		if ____cond45 then -- 438
+		____cond51 = ____cond51 or ____switch51 == "tool_started" -- 438
+		if ____cond51 then -- 438
 			upsertStep( -- 440
 				sessionId, -- 440
 				event.taskId, -- 440
 				event.step, -- 440
 				event.tool, -- 440
-				{status = "RUNNING", reason = event.reason, params = event.params} -- 440
+				{status = "RUNNING"} -- 440
 			) -- 440
-			break -- 445
-		end -- 445
-		____cond45 = ____cond45 or ____switch45 == "memory_compression_finished" -- 445
-		if ____cond45 then -- 445
-			upsertStep( -- 447
-				sessionId, -- 447
-				event.taskId, -- 447
-				event.step, -- 447
-				event.tool, -- 447
-				{status = event.result.success == true and "DONE" or "FAILED", reason = event.reason, result = event.result} -- 447
-			) -- 447
-			break -- 452
-		end -- 452
-		____cond45 = ____cond45 or ____switch45 == "task_finished" -- 452
-		if ____cond45 then -- 452
-			do -- 452
-				local ____opt_1 = activeStopTokens[event.taskId or -1] -- 452
-				local stopped = (____opt_1 and ____opt_1.stopped) == true -- 454
-				local finalStatus = event.success and "DONE" or (stopped and "STOPPED" or "FAILED") -- 455
-				setSessionStateForTaskEvent(sessionId, event.taskId, finalStatus, finalStatus) -- 458
-				if event.taskId ~= nil then -- 458
-					local ____finalizeTaskSteps_5 = finalizeTaskSteps -- 460
-					local ____array_4 = __TS__SparseArrayNew( -- 460
-						sessionId, -- 461
-						event.taskId, -- 462
-						type(event.steps) == "number" and math.max( -- 463
-							0, -- 463
-							math.floor(event.steps) -- 463
-						) or nil -- 463
-					) -- 463
-					local ____event_success_3 -- 464
-					if event.success then -- 464
-						____event_success_3 = nil -- 464
-					else -- 464
-						____event_success_3 = stopped and "STOPPED" or "FAILED" -- 464
-					end -- 464
-					__TS__SparseArrayPush(____array_4, ____event_success_3) -- 464
-					____finalizeTaskSteps_5(__TS__SparseArraySpread(____array_4)) -- 460
-					local summaryRow = queryOne(("SELECT id FROM " .. TABLE_MESSAGE) .. "\n\t\t\t\t\tWHERE session_id = ? AND task_id = ? AND role = ?\n\t\t\t\t\tORDER BY id DESC LIMIT 1", {sessionId, event.taskId, "assistant"}) -- 466
-					if summaryRow and type(summaryRow[1]) == "number" then -- 466
-						updateMessage(summaryRow[1], event.message) -- 473
-					else -- 473
-						insertMessage(sessionId, "assistant", event.message, event.taskId) -- 475
-					end -- 475
-					activeStopTokens[event.taskId] = nil -- 477
-				end -- 477
-				break -- 479
-			end -- 479
-		end -- 479
-	until true -- 479
-end -- 407
-local function getSchemaVersion() -- 484
-	local row = queryOne("PRAGMA user_version") -- 485
-	return row and type(row[1]) == "number" and row[1] or 0 -- 486
-end -- 484
-local function setSchemaVersion(version) -- 489
-	DB:exec("PRAGMA user_version = " .. tostring(math.max( -- 490
-		0, -- 490
-		math.floor(version) -- 490
-	))) -- 490
-end -- 489
-local function recreateSchema() -- 493
-	DB:exec(("DROP TABLE IF EXISTS " .. TABLE_STEP) .. ";") -- 494
-	DB:exec(("DROP TABLE IF EXISTS " .. TABLE_MESSAGE) .. ";") -- 495
-	DB:exec(("DROP TABLE IF EXISTS " .. TABLE_SESSION) .. ";") -- 496
-	DB:exec(("CREATE TABLE IF NOT EXISTS " .. TABLE_SESSION) .. "(\n\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tproject_root TEXT NOT NULL,\n\t\ttitle TEXT NOT NULL DEFAULT '',\n\t\tstatus TEXT NOT NULL DEFAULT 'IDLE',\n\t\tcurrent_task_id INTEGER,\n\t\tcurrent_task_status TEXT NOT NULL DEFAULT 'IDLE',\n\t\tcreated_at INTEGER NOT NULL,\n\t\tupdated_at INTEGER NOT NULL\n\t);") -- 497
-	DB:exec(("CREATE INDEX IF NOT EXISTS idx_agent_session_project_root ON " .. TABLE_SESSION) .. "(project_root, updated_at DESC);") -- 507
-	DB:exec(("CREATE TABLE IF NOT EXISTS " .. TABLE_MESSAGE) .. "(\n\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tsession_id INTEGER NOT NULL,\n\t\ttask_id INTEGER,\n\t\trole TEXT NOT NULL,\n\t\tcontent TEXT NOT NULL DEFAULT '',\n\t\tcreated_at INTEGER NOT NULL,\n\t\tupdated_at INTEGER NOT NULL\n\t);") -- 508
-	DB:exec(("CREATE INDEX IF NOT EXISTS idx_agent_session_message_sid_id ON " .. TABLE_MESSAGE) .. "(session_id, id);") -- 517
-	DB:exec(("CREATE TABLE IF NOT EXISTS " .. TABLE_STEP) .. "(\n\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tsession_id INTEGER NOT NULL,\n\t\ttask_id INTEGER NOT NULL,\n\t\tstep INTEGER NOT NULL,\n\t\ttool TEXT NOT NULL DEFAULT '',\n\t\tstatus TEXT NOT NULL DEFAULT 'PENDING',\n\t\treason TEXT NOT NULL DEFAULT '',\n\t\treasoning_content TEXT NOT NULL DEFAULT '',\n\t\tparams_json TEXT NOT NULL DEFAULT '',\n\t\tresult_json TEXT NOT NULL DEFAULT '',\n\t\tcheckpoint_id INTEGER,\n\t\tcheckpoint_seq INTEGER,\n\t\tfiles_json TEXT NOT NULL DEFAULT '',\n\t\tcreated_at INTEGER NOT NULL,\n\t\tupdated_at INTEGER NOT NULL\n\t);") -- 518
-	DB:exec(("CREATE UNIQUE INDEX IF NOT EXISTS idx_agent_session_step_unique ON " .. TABLE_STEP) .. "(session_id, task_id, step);") -- 535
-	DB:exec(("CREATE INDEX IF NOT EXISTS idx_agent_session_step_sid_task_step ON " .. TABLE_STEP) .. "(session_id, task_id, step);") -- 536
-	setSchemaVersion(AGENT_SESSION_SCHEMA_VERSION) -- 537
-end -- 493
-do -- 493
-	if getSchemaVersion() ~= AGENT_SESSION_SCHEMA_VERSION then -- 493
-		recreateSchema() -- 543
-	else -- 543
-		DB:exec(("CREATE TABLE IF NOT EXISTS " .. TABLE_SESSION) .. "(\n\t\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\t\tproject_root TEXT NOT NULL,\n\t\t\ttitle TEXT NOT NULL DEFAULT '',\n\t\t\tstatus TEXT NOT NULL DEFAULT 'IDLE',\n\t\t\tcurrent_task_id INTEGER,\n\t\t\tcurrent_task_status TEXT NOT NULL DEFAULT 'IDLE',\n\t\t\tcreated_at INTEGER NOT NULL,\n\t\t\tupdated_at INTEGER NOT NULL\n\t\t);") -- 545
-		DB:exec(("CREATE INDEX IF NOT EXISTS idx_agent_session_project_root ON " .. TABLE_SESSION) .. "(project_root, updated_at DESC);") -- 555
-		DB:exec(("CREATE TABLE IF NOT EXISTS " .. TABLE_MESSAGE) .. "(\n\t\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\t\tsession_id INTEGER NOT NULL,\n\t\t\ttask_id INTEGER,\n\t\t\trole TEXT NOT NULL,\n\t\t\tcontent TEXT NOT NULL DEFAULT '',\n\t\t\tcreated_at INTEGER NOT NULL,\n\t\t\tupdated_at INTEGER NOT NULL\n\t\t);") -- 556
-		DB:exec(("CREATE INDEX IF NOT EXISTS idx_agent_session_message_sid_id ON " .. TABLE_MESSAGE) .. "(session_id, id);") -- 565
-		DB:exec(("CREATE TABLE IF NOT EXISTS " .. TABLE_STEP) .. "(\n\t\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\t\tsession_id INTEGER NOT NULL,\n\t\t\ttask_id INTEGER NOT NULL,\n\t\t\tstep INTEGER NOT NULL,\n\t\t\ttool TEXT NOT NULL DEFAULT '',\n\t\t\tstatus TEXT NOT NULL DEFAULT 'PENDING',\n\t\t\treason TEXT NOT NULL DEFAULT '',\n\t\t\treasoning_content TEXT NOT NULL DEFAULT '',\n\t\t\tparams_json TEXT NOT NULL DEFAULT '',\n\t\t\tresult_json TEXT NOT NULL DEFAULT '',\n\t\t\tcheckpoint_id INTEGER,\n\t\t\tcheckpoint_seq INTEGER,\n\t\t\tfiles_json TEXT NOT NULL DEFAULT '',\n\t\t\tcreated_at INTEGER NOT NULL,\n\t\t\tupdated_at INTEGER NOT NULL\n\t\t);") -- 566
-		DB:exec(("CREATE UNIQUE INDEX IF NOT EXISTS idx_agent_session_step_unique ON " .. TABLE_STEP) .. "(session_id, task_id, step);") -- 583
-		DB:exec(("CREATE INDEX IF NOT EXISTS idx_agent_session_step_sid_task_step ON " .. TABLE_STEP) .. "(session_id, task_id, step);") -- 584
-	end -- 584
-end -- 584
-function ____exports.createSession(projectRoot, title) -- 588
-	if title == nil then -- 588
-		title = "" -- 588
-	end -- 588
-	if not isValidProjectRoot(projectRoot) then -- 588
-		return {success = false, message = "invalid projectRoot"} -- 590
-	end -- 590
-	local row = queryOne(("SELECT id, project_root, title, status, current_task_id, current_task_status, created_at, updated_at\n\t\tFROM " .. TABLE_SESSION) .. "\n\t\tWHERE project_root = ?\n\t\tORDER BY updated_at DESC, id DESC\n\t\tLIMIT 1", {projectRoot}) -- 592
-	if row then -- 592
-		return { -- 601
-			success = true, -- 601
-			session = rowToSession(row) -- 601
-		} -- 601
-	end -- 601
-	local t = now() -- 603
-	DB:exec( -- 604
-		("INSERT INTO " .. TABLE_SESSION) .. "(project_root, title, status, current_task_status, created_at, updated_at)\n\t\tVALUES(?, ?, 'IDLE', 'IDLE', ?, ?)", -- 604
-		{ -- 607
-			projectRoot, -- 607
-			title ~= "" and title or Path:getFilename(projectRoot), -- 607
-			t, -- 607
-			t -- 607
-		} -- 607
-	) -- 607
-	local session = getSessionItem(getLastInsertRowId()) -- 609
-	if not session then -- 609
-		return {success = false, message = "failed to create session"} -- 611
-	end -- 611
-	return {success = true, session = session} -- 613
-end -- 588
-function ____exports.getSession(sessionId) -- 616
-	local session = getSessionItem(sessionId) -- 617
-	if not session then -- 617
-		return {success = false, message = "session not found"} -- 619
-	end -- 619
-	local normalizedSession = normalizeSessionRuntimeState(session) -- 621
-	sanitizeStoredSteps(sessionId) -- 622
-	local messages = queryRows(("SELECT id, session_id, task_id, role, content, created_at, updated_at\n\t\tFROM " .. TABLE_MESSAGE) .. "\n\t\tWHERE session_id = ?\n\t\tORDER BY id ASC", {sessionId}) or ({}) -- 623
-	local steps = queryRows(("SELECT id, session_id, task_id, step, tool, status, reason, reasoning_content, params_json, result_json, checkpoint_id, checkpoint_seq, files_json, created_at, updated_at\n\t\tFROM " .. TABLE_STEP) .. "\n\t\tWHERE session_id = ?\n\t\t\tAND NOT (status IN ('FAILED', 'STOPPED') AND result_json = '')\n\t\tORDER BY task_id DESC, step ASC", {sessionId}) or ({}) -- 630
-	return { -- 638
-		success = true, -- 639
-		session = normalizedSession, -- 640
-		messages = __TS__ArrayMap( -- 641
-			messages, -- 641
-			function(____, row) return rowToMessage(row) end -- 641
-		), -- 641
-		steps = __TS__ArrayMap( -- 642
-			steps, -- 642
-			function(____, row) return rowToStep(row) end -- 642
-		) -- 642
-	} -- 642
-end -- 616
-function ____exports.sendPrompt(sessionId, prompt) -- 646
-	local session = getSessionItem(sessionId) -- 647
-	if not session then -- 647
-		return {success = false, message = "session not found"} -- 649
-	end -- 649
-	if session.currentTaskStatus == "RUNNING" and session.currentTaskId ~= nil and activeStopTokens[session.currentTaskId] then -- 649
-		return {success = false, message = "session task is still running"} -- 652
-	end -- 652
-	local normalizedPrompt = truncateAgentUserPrompt(prompt) -- 654
-	local taskRes = Tools.createTask(normalizedPrompt) -- 655
-	if not taskRes.success then -- 655
-		return {success = false, message = taskRes.message} -- 657
-	end -- 657
-	local taskId = taskRes.taskId -- 659
-	local useChineseResponse = getDefaultUseChineseResponse() -- 660
-	insertMessage(sessionId, "user", normalizedPrompt, taskId) -- 661
-	local stopToken = {stopped = false} -- 662
-	activeStopTokens[taskId] = stopToken -- 663
-	setSessionState(sessionId, "RUNNING", taskId, "RUNNING") -- 664
-	runCodingAgent( -- 665
-		{ -- 665
-			prompt = normalizedPrompt, -- 666
-			workDir = session.projectRoot, -- 667
-			useChineseResponse = useChineseResponse, -- 668
-			taskId = taskId, -- 669
-			sessionId = sessionId, -- 670
-			stopToken = stopToken, -- 671
-			onEvent = function(____, event) return applyEvent(sessionId, event) end -- 672
-		}, -- 672
-		function(result) -- 673
-			if not result.success then -- 673
-				applyEvent(sessionId, { -- 675
-					type = "task_finished", -- 676
-					sessionId = sessionId, -- 677
-					taskId = result.taskId, -- 678
-					success = false, -- 679
-					message = result.message, -- 680
-					steps = result.steps -- 681
-				}) -- 681
-			end -- 681
-		end -- 673
-	) -- 673
-	return {success = true, sessionId = sessionId, taskId = taskId} -- 685
-end -- 646
-function ____exports.stopSessionTask(sessionId) -- 688
-	local session = getSessionItem(sessionId) -- 689
-	if not session or session.currentTaskId == nil then -- 689
-		return {success = false, message = "session task not found"} -- 691
-	end -- 691
-	local normalizedSession = normalizeSessionRuntimeState(session) -- 693
-	local stopToken = activeStopTokens[session.currentTaskId] -- 694
-	if not stopToken then -- 694
-		if normalizedSession.currentTaskStatus == "STOPPED" then -- 694
-			return {success = true, recovered = true} -- 697
-		end -- 697
-		return {success = false, message = "task is not running"} -- 699
-	end -- 699
-	stopToken.stopped = true -- 701
-	stopToken.reason = getDefaultUseChineseResponse() and "用户已中断" or "stopped by user" -- 702
-	setSessionState(session.id, "STOPPED", session.currentTaskId, "STOPPED") -- 703
-	return {success = true} -- 704
-end -- 688
-function ____exports.getCurrentTaskId(sessionId) -- 707
-	local ____opt_6 = getSessionItem(sessionId) -- 707
-	return ____opt_6 and ____opt_6.currentTaskId -- 708
-end -- 707
-function ____exports.listRunningSessions() -- 711
-	local rows = queryRows(("SELECT id, project_root, title, status, current_task_id, current_task_status, created_at, updated_at\n\t\tFROM " .. TABLE_SESSION) .. "\n\t\tWHERE current_task_status = ?\n\t\tORDER BY updated_at DESC, id DESC", {"RUNNING"}) or ({}) -- 712
-	local sessions = {} -- 719
-	do -- 719
-		local i = 0 -- 720
-		while i < #rows do -- 720
-			local session = normalizeSessionRuntimeState(rowToSession(rows[i + 1])) -- 721
-			if session.currentTaskStatus == "RUNNING" then -- 721
-				sessions[#sessions + 1] = session -- 723
-			end -- 723
-			i = i + 1 -- 720
-		end -- 720
-	end -- 720
-	return {success = true, sessions = sessions} -- 726
-end -- 711
-return ____exports -- 711
+			break -- 443
+		end -- 443
+		____cond51 = ____cond51 or ____switch51 == "tool_finished" -- 443
+		if ____cond51 then -- 443
+			upsertStep( -- 445
+				sessionId, -- 445
+				event.taskId, -- 445
+				event.step, -- 445
+				event.tool, -- 445
+				{status = event.result.success == true and "DONE" or "FAILED", reason = event.reason, result = event.result} -- 445
+			) -- 445
+			break -- 450
+		end -- 450
+		____cond51 = ____cond51 or ____switch51 == "checkpoint_created" -- 450
+		if ____cond51 then -- 450
+			upsertStep( -- 452
+				sessionId, -- 452
+				event.taskId, -- 452
+				event.step, -- 452
+				event.tool, -- 452
+				{checkpointId = event.checkpointId, checkpointSeq = event.checkpointSeq, files = event.files} -- 452
+			) -- 452
+			break -- 457
+		end -- 457
+		____cond51 = ____cond51 or ____switch51 == "memory_compression_started" -- 457
+		if ____cond51 then -- 457
+			upsertStep( -- 459
+				sessionId, -- 459
+				event.taskId, -- 459
+				event.step, -- 459
+				event.tool, -- 459
+				{status = "RUNNING", reason = event.reason, params = event.params} -- 459
+			) -- 459
+			break -- 464
+		end -- 464
+		____cond51 = ____cond51 or ____switch51 == "memory_compression_finished" -- 464
+		if ____cond51 then -- 464
+			upsertStep( -- 466
+				sessionId, -- 466
+				event.taskId, -- 466
+				event.step, -- 466
+				event.tool, -- 466
+				{status = event.result.success == true and "DONE" or "FAILED", reason = event.reason, result = event.result} -- 466
+			) -- 466
+			break -- 471
+		end -- 471
+		____cond51 = ____cond51 or ____switch51 == "task_finished" -- 471
+		if ____cond51 then -- 471
+			do -- 471
+				local ____opt_1 = activeStopTokens[event.taskId or -1] -- 471
+				local stopped = (____opt_1 and ____opt_1.stopped) == true -- 473
+				local finalStatus = event.success and "DONE" or (stopped and "STOPPED" or "FAILED") -- 474
+				setSessionStateForTaskEvent(sessionId, event.taskId, finalStatus, finalStatus) -- 477
+				if event.taskId ~= nil then -- 477
+					local ____finalizeTaskSteps_5 = finalizeTaskSteps -- 479
+					local ____array_4 = __TS__SparseArrayNew( -- 479
+						sessionId, -- 480
+						event.taskId, -- 481
+						type(event.steps) == "number" and math.max( -- 482
+							0, -- 482
+							math.floor(event.steps) -- 482
+						) or nil -- 482
+					) -- 482
+					local ____event_success_3 -- 483
+					if event.success then -- 483
+						____event_success_3 = nil -- 483
+					else -- 483
+						____event_success_3 = stopped and "STOPPED" or "FAILED" -- 483
+					end -- 483
+					__TS__SparseArrayPush(____array_4, ____event_success_3) -- 483
+					____finalizeTaskSteps_5(__TS__SparseArraySpread(____array_4)) -- 479
+					local summaryRow = queryOne(("SELECT id FROM " .. TABLE_MESSAGE) .. "\n\t\t\t\t\tWHERE session_id = ? AND task_id = ? AND role = ?\n\t\t\t\t\tORDER BY id DESC LIMIT 1", {sessionId, event.taskId, "assistant"}) -- 485
+					if summaryRow and type(summaryRow[1]) == "number" then -- 485
+						updateMessage(summaryRow[1], event.message) -- 492
+					else -- 492
+						insertMessage(sessionId, "assistant", event.message, event.taskId) -- 494
+					end -- 494
+					activeStopTokens[event.taskId] = nil -- 496
+				end -- 496
+				break -- 498
+			end -- 498
+		end -- 498
+	until true -- 498
+end -- 426
+local function getSchemaVersion() -- 503
+	local row = queryOne("PRAGMA user_version") -- 504
+	return row and type(row[1]) == "number" and row[1] or 0 -- 505
+end -- 503
+local function setSchemaVersion(version) -- 508
+	DB:exec("PRAGMA user_version = " .. tostring(math.max( -- 509
+		0, -- 509
+		math.floor(version) -- 509
+	))) -- 509
+end -- 508
+local function recreateSchema() -- 512
+	DB:exec(("DROP TABLE IF EXISTS " .. TABLE_STEP) .. ";") -- 513
+	DB:exec(("DROP TABLE IF EXISTS " .. TABLE_MESSAGE) .. ";") -- 514
+	DB:exec(("DROP TABLE IF EXISTS " .. TABLE_SESSION) .. ";") -- 515
+	DB:exec(("CREATE TABLE IF NOT EXISTS " .. TABLE_SESSION) .. "(\n\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tproject_root TEXT NOT NULL,\n\t\ttitle TEXT NOT NULL DEFAULT '',\n\t\tstatus TEXT NOT NULL DEFAULT 'IDLE',\n\t\tcurrent_task_id INTEGER,\n\t\tcurrent_task_status TEXT NOT NULL DEFAULT 'IDLE',\n\t\tcreated_at INTEGER NOT NULL,\n\t\tupdated_at INTEGER NOT NULL\n\t);") -- 516
+	DB:exec(("CREATE INDEX IF NOT EXISTS idx_agent_session_project_root ON " .. TABLE_SESSION) .. "(project_root, updated_at DESC);") -- 526
+	DB:exec(("CREATE TABLE IF NOT EXISTS " .. TABLE_MESSAGE) .. "(\n\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tsession_id INTEGER NOT NULL,\n\t\ttask_id INTEGER,\n\t\trole TEXT NOT NULL,\n\t\tcontent TEXT NOT NULL DEFAULT '',\n\t\tcreated_at INTEGER NOT NULL,\n\t\tupdated_at INTEGER NOT NULL\n\t);") -- 527
+	DB:exec(("CREATE INDEX IF NOT EXISTS idx_agent_session_message_sid_id ON " .. TABLE_MESSAGE) .. "(session_id, id);") -- 536
+	DB:exec(("CREATE TABLE IF NOT EXISTS " .. TABLE_STEP) .. "(\n\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tsession_id INTEGER NOT NULL,\n\t\ttask_id INTEGER NOT NULL,\n\t\tstep INTEGER NOT NULL,\n\t\ttool TEXT NOT NULL DEFAULT '',\n\t\tstatus TEXT NOT NULL DEFAULT 'PENDING',\n\t\treason TEXT NOT NULL DEFAULT '',\n\t\treasoning_content TEXT NOT NULL DEFAULT '',\n\t\tparams_json TEXT NOT NULL DEFAULT '',\n\t\tresult_json TEXT NOT NULL DEFAULT '',\n\t\tcheckpoint_id INTEGER,\n\t\tcheckpoint_seq INTEGER,\n\t\tfiles_json TEXT NOT NULL DEFAULT '',\n\t\tcreated_at INTEGER NOT NULL,\n\t\tupdated_at INTEGER NOT NULL\n\t);") -- 537
+	DB:exec(("CREATE UNIQUE INDEX IF NOT EXISTS idx_agent_session_step_unique ON " .. TABLE_STEP) .. "(session_id, task_id, step);") -- 554
+	DB:exec(("CREATE INDEX IF NOT EXISTS idx_agent_session_step_sid_task_step ON " .. TABLE_STEP) .. "(session_id, task_id, step);") -- 555
+	setSchemaVersion(AGENT_SESSION_SCHEMA_VERSION) -- 556
+end -- 512
+do -- 512
+	if getSchemaVersion() ~= AGENT_SESSION_SCHEMA_VERSION then -- 512
+		recreateSchema() -- 562
+	else -- 562
+		DB:exec(("CREATE TABLE IF NOT EXISTS " .. TABLE_SESSION) .. "(\n\t\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\t\tproject_root TEXT NOT NULL,\n\t\t\ttitle TEXT NOT NULL DEFAULT '',\n\t\t\tstatus TEXT NOT NULL DEFAULT 'IDLE',\n\t\t\tcurrent_task_id INTEGER,\n\t\t\tcurrent_task_status TEXT NOT NULL DEFAULT 'IDLE',\n\t\t\tcreated_at INTEGER NOT NULL,\n\t\t\tupdated_at INTEGER NOT NULL\n\t\t);") -- 564
+		DB:exec(("CREATE INDEX IF NOT EXISTS idx_agent_session_project_root ON " .. TABLE_SESSION) .. "(project_root, updated_at DESC);") -- 574
+		DB:exec(("CREATE TABLE IF NOT EXISTS " .. TABLE_MESSAGE) .. "(\n\t\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\t\tsession_id INTEGER NOT NULL,\n\t\t\ttask_id INTEGER,\n\t\t\trole TEXT NOT NULL,\n\t\t\tcontent TEXT NOT NULL DEFAULT '',\n\t\t\tcreated_at INTEGER NOT NULL,\n\t\t\tupdated_at INTEGER NOT NULL\n\t\t);") -- 575
+		DB:exec(("CREATE INDEX IF NOT EXISTS idx_agent_session_message_sid_id ON " .. TABLE_MESSAGE) .. "(session_id, id);") -- 584
+		DB:exec(("CREATE TABLE IF NOT EXISTS " .. TABLE_STEP) .. "(\n\t\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\t\tsession_id INTEGER NOT NULL,\n\t\t\ttask_id INTEGER NOT NULL,\n\t\t\tstep INTEGER NOT NULL,\n\t\t\ttool TEXT NOT NULL DEFAULT '',\n\t\t\tstatus TEXT NOT NULL DEFAULT 'PENDING',\n\t\t\treason TEXT NOT NULL DEFAULT '',\n\t\t\treasoning_content TEXT NOT NULL DEFAULT '',\n\t\t\tparams_json TEXT NOT NULL DEFAULT '',\n\t\t\tresult_json TEXT NOT NULL DEFAULT '',\n\t\t\tcheckpoint_id INTEGER,\n\t\t\tcheckpoint_seq INTEGER,\n\t\t\tfiles_json TEXT NOT NULL DEFAULT '',\n\t\t\tcreated_at INTEGER NOT NULL,\n\t\t\tupdated_at INTEGER NOT NULL\n\t\t);") -- 585
+		DB:exec(("CREATE UNIQUE INDEX IF NOT EXISTS idx_agent_session_step_unique ON " .. TABLE_STEP) .. "(session_id, task_id, step);") -- 602
+		DB:exec(("CREATE INDEX IF NOT EXISTS idx_agent_session_step_sid_task_step ON " .. TABLE_STEP) .. "(session_id, task_id, step);") -- 603
+	end -- 603
+end -- 603
+function ____exports.createSession(projectRoot, title) -- 607
+	if title == nil then -- 607
+		title = "" -- 607
+	end -- 607
+	if not isValidProjectRoot(projectRoot) then -- 607
+		return {success = false, message = "invalid projectRoot"} -- 609
+	end -- 609
+	local row = queryOne(("SELECT id, project_root, title, status, current_task_id, current_task_status, created_at, updated_at\n\t\tFROM " .. TABLE_SESSION) .. "\n\t\tWHERE project_root = ?\n\t\tORDER BY updated_at DESC, id DESC\n\t\tLIMIT 1", {projectRoot}) -- 611
+	if row then -- 611
+		return { -- 620
+			success = true, -- 620
+			session = rowToSession(row) -- 620
+		} -- 620
+	end -- 620
+	local t = now() -- 622
+	DB:exec( -- 623
+		("INSERT INTO " .. TABLE_SESSION) .. "(project_root, title, status, current_task_status, created_at, updated_at)\n\t\tVALUES(?, ?, 'IDLE', 'IDLE', ?, ?)", -- 623
+		{ -- 626
+			projectRoot, -- 626
+			title ~= "" and title or Path:getFilename(projectRoot), -- 626
+			t, -- 626
+			t -- 626
+		} -- 626
+	) -- 626
+	local session = getSessionItem(getLastInsertRowId()) -- 628
+	if not session then -- 628
+		return {success = false, message = "failed to create session"} -- 630
+	end -- 630
+	return {success = true, session = session} -- 632
+end -- 607
+function ____exports.deleteSessionsByProjectRoot(projectRoot) -- 635
+	if not projectRoot or not Content:isAbsolutePath(projectRoot) then -- 635
+		return {success = false, message = "invalid projectRoot"} -- 637
+	end -- 637
+	local rows = queryRows(("SELECT id FROM " .. TABLE_SESSION) .. " WHERE project_root = ?", {projectRoot}) or ({}) -- 639
+	for ____, row in ipairs(rows) do -- 640
+		local sessionId = type(row[1]) == "number" and row[1] or 0 -- 641
+		if sessionId > 0 then -- 641
+			deleteSessionRecords(sessionId) -- 643
+		end -- 643
+	end -- 643
+	return {success = true, deleted = #rows} -- 646
+end -- 635
+function ____exports.renameSessionsByProjectRoot(oldRoot, newRoot) -- 649
+	if not oldRoot or not newRoot or not Content:isAbsolutePath(oldRoot) or not Content:isAbsolutePath(newRoot) then -- 649
+		return {success = false, message = "invalid projectRoot"} -- 651
+	end -- 651
+	local rows = queryRows("SELECT id, project_root FROM " .. TABLE_SESSION) or ({}) -- 653
+	local renamed = 0 -- 654
+	for ____, row in ipairs(rows) do -- 655
+		local sessionId = type(row[1]) == "number" and row[1] or 0 -- 656
+		local projectRoot = toStr(row[2]) -- 657
+		local nextProjectRoot = rebaseProjectRoot(projectRoot, oldRoot, newRoot) -- 658
+		if sessionId > 0 and nextProjectRoot then -- 658
+			DB:exec( -- 660
+				("UPDATE " .. TABLE_SESSION) .. " SET project_root = ?, title = ?, updated_at = ? WHERE id = ?", -- 660
+				{ -- 662
+					nextProjectRoot, -- 662
+					Path:getFilename(nextProjectRoot), -- 662
+					now(), -- 662
+					sessionId -- 662
+				} -- 662
+			) -- 662
+			renamed = renamed + 1 -- 664
+		end -- 664
+	end -- 664
+	return {success = true, renamed = renamed} -- 667
+end -- 649
+function ____exports.getSession(sessionId) -- 670
+	local session = getSessionItem(sessionId) -- 671
+	if not session then -- 671
+		return {success = false, message = "session not found"} -- 673
+	end -- 673
+	local normalizedSession = normalizeSessionRuntimeState(session) -- 675
+	sanitizeStoredSteps(sessionId) -- 676
+	local messages = queryRows(("SELECT id, session_id, task_id, role, content, created_at, updated_at\n\t\tFROM " .. TABLE_MESSAGE) .. "\n\t\tWHERE session_id = ?\n\t\tORDER BY id ASC", {sessionId}) or ({}) -- 677
+	local steps = queryRows(("SELECT id, session_id, task_id, step, tool, status, reason, reasoning_content, params_json, result_json, checkpoint_id, checkpoint_seq, files_json, created_at, updated_at\n\t\tFROM " .. TABLE_STEP) .. "\n\t\tWHERE session_id = ?\n\t\t\tAND NOT (status IN ('FAILED', 'STOPPED') AND result_json = '')\n\t\tORDER BY task_id DESC, step ASC", {sessionId}) or ({}) -- 684
+	return { -- 692
+		success = true, -- 693
+		session = normalizedSession, -- 694
+		messages = __TS__ArrayMap( -- 695
+			messages, -- 695
+			function(____, row) return rowToMessage(row) end -- 695
+		), -- 695
+		steps = __TS__ArrayMap( -- 696
+			steps, -- 696
+			function(____, row) return rowToStep(row) end -- 696
+		) -- 696
+	} -- 696
+end -- 670
+function ____exports.sendPrompt(sessionId, prompt) -- 700
+	local session = getSessionItem(sessionId) -- 701
+	if not session then -- 701
+		return {success = false, message = "session not found"} -- 703
+	end -- 703
+	if session.currentTaskStatus == "RUNNING" and session.currentTaskId ~= nil and activeStopTokens[session.currentTaskId] then -- 703
+		return {success = false, message = "session task is still running"} -- 706
+	end -- 706
+	local normalizedPrompt = truncateAgentUserPrompt(prompt) -- 708
+	local taskRes = Tools.createTask(normalizedPrompt) -- 709
+	if not taskRes.success then -- 709
+		return {success = false, message = taskRes.message} -- 711
+	end -- 711
+	local taskId = taskRes.taskId -- 713
+	local useChineseResponse = getDefaultUseChineseResponse() -- 714
+	insertMessage(sessionId, "user", normalizedPrompt, taskId) -- 715
+	local stopToken = {stopped = false} -- 716
+	activeStopTokens[taskId] = stopToken -- 717
+	setSessionState(sessionId, "RUNNING", taskId, "RUNNING") -- 718
+	runCodingAgent( -- 719
+		{ -- 719
+			prompt = normalizedPrompt, -- 720
+			workDir = session.projectRoot, -- 721
+			useChineseResponse = useChineseResponse, -- 722
+			taskId = taskId, -- 723
+			sessionId = sessionId, -- 724
+			stopToken = stopToken, -- 725
+			onEvent = function(____, event) return applyEvent(sessionId, event) end -- 726
+		}, -- 726
+		function(result) -- 727
+			if not result.success then -- 727
+				applyEvent(sessionId, { -- 729
+					type = "task_finished", -- 730
+					sessionId = sessionId, -- 731
+					taskId = result.taskId, -- 732
+					success = false, -- 733
+					message = result.message, -- 734
+					steps = result.steps -- 735
+				}) -- 735
+			end -- 735
+		end -- 727
+	) -- 727
+	return {success = true, sessionId = sessionId, taskId = taskId} -- 739
+end -- 700
+function ____exports.stopSessionTask(sessionId) -- 742
+	local session = getSessionItem(sessionId) -- 743
+	if not session or session.currentTaskId == nil then -- 743
+		return {success = false, message = "session task not found"} -- 745
+	end -- 745
+	local normalizedSession = normalizeSessionRuntimeState(session) -- 747
+	local stopToken = activeStopTokens[session.currentTaskId] -- 748
+	if not stopToken then -- 748
+		if normalizedSession.currentTaskStatus == "STOPPED" then -- 748
+			return {success = true, recovered = true} -- 751
+		end -- 751
+		return {success = false, message = "task is not running"} -- 753
+	end -- 753
+	stopToken.stopped = true -- 755
+	stopToken.reason = getDefaultUseChineseResponse() and "用户已中断" or "stopped by user" -- 756
+	setSessionState(session.id, "STOPPED", session.currentTaskId, "STOPPED") -- 757
+	return {success = true} -- 758
+end -- 742
+function ____exports.getCurrentTaskId(sessionId) -- 761
+	local ____opt_6 = getSessionItem(sessionId) -- 761
+	return ____opt_6 and ____opt_6.currentTaskId -- 762
+end -- 761
+function ____exports.listRunningSessions() -- 765
+	local rows = queryRows(("SELECT id, project_root, title, status, current_task_id, current_task_status, created_at, updated_at\n\t\tFROM " .. TABLE_SESSION) .. "\n\t\tWHERE current_task_status = ?\n\t\tORDER BY updated_at DESC, id DESC", {"RUNNING"}) or ({}) -- 766
+	local sessions = {} -- 773
+	do -- 773
+		local i = 0 -- 774
+		while i < #rows do -- 774
+			local session = normalizeSessionRuntimeState(rowToSession(rows[i + 1])) -- 775
+			if session.currentTaskStatus == "RUNNING" then -- 775
+				sessions[#sessions + 1] = session -- 777
+			end -- 777
+			i = i + 1 -- 774
+		end -- 774
+	end -- 774
+	return {success = true, sessions = sessions} -- 780
+end -- 765
+return ____exports -- 765

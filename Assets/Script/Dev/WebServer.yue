@@ -868,6 +868,7 @@ HttpServer\post "/new", (req): success: false, message: "Failed" ->
 HttpServer\post "/delete", (req): success: false ->
 	switch req when {body: {:path}}
 		if Content\exist path
+			projectRoot = if Content\isdir(path) and isProjectRootDir(path) then path else nil
 			parent = Path\getPath path
 			files = Content\getFiles parent
 			name = Path\getName(path)\lower!
@@ -879,14 +880,17 @@ HttpServer\post "/delete", (req): success: false ->
 					when "lua" then if ext in ["tl", "yue", "ts", "tsx", "vs", "bl", "xml"]
 						Content\remove Path parent, file
 			if Content\remove path
+				if projectRoot
+					WebIDEAgentSession.deleteSessionsByProjectRoot projectRoot
 				return success: true
 
 HttpServer\post "/rename", (req): success: false ->
 	switch req when {body: {:old, :new}}
 		if Content\exist(old) and not Content\exist new
+			renamedDir = Content\isdir old
 			parent = Path\getPath new
 			files = Content\getFiles parent
-			if Content\isdir old
+			if renamedDir
 				name = Path\getFilename(new)\lower!
 				for file in *files
 					if name == Path\getFilename(file)\lower!
@@ -902,6 +906,8 @@ HttpServer\post "/rename", (req): success: false ->
 							continue
 						return success: false
 			if Content\move old, new
+				if renamedDir
+					WebIDEAgentSession.renameSessionsByProjectRoot old, new
 				newParent = Path\getPath new
 				parent = Path\getPath old
 				files = Content\getFiles parent

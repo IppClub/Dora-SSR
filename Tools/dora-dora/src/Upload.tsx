@@ -133,6 +133,38 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 		multiple: true,
 		showUploadList: false,
 		action: Service.addr(`/upload?path=${prop.path}`),
+		customRequest(options) {
+			let aborted = false;
+			void (async () => {
+				try {
+					const action = typeof options.action === 'string' ? options.action : Service.addr(`/upload?path=${prop.path}`);
+					const formData = new FormData();
+					const file = options.file as RcFile;
+					formData.append(options.filename ?? 'file', file, file.name);
+					options.onProgress?.({ percent: 0 });
+					const res = await fetch(action, {
+						method: 'POST',
+						body: formData,
+					});
+					if (aborted) return;
+					if (!res.ok) {
+						options.onError?.(new Error(`upload failed: ${res.status}`));
+						return;
+					}
+					options.onProgress?.({ percent: 100 });
+					options.onSuccess?.({}, undefined);
+				} catch (error) {
+					if (!aborted) {
+						options.onError?.(error instanceof Error ? error : new Error('upload failed'));
+					}
+				}
+			})();
+			return {
+				abort() {
+					aborted = true;
+				},
+			};
+		},
 		beforeUpload(file: RcFile, fileList: RcFile[]) {
 			if (fileList.length > 501) {
 				notification.error({

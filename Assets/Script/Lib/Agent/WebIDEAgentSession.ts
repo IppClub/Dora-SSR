@@ -202,6 +202,25 @@ function getSessionItem(sessionId: number): AgentSessionItem | undefined {
 	return row ? rowToSession(row as any[]) : undefined;
 }
 
+function deleteSessionRecords(sessionId: number) {
+	DB.exec(`DELETE FROM ${TABLE_STEP} WHERE session_id = ?`, [sessionId]);
+	DB.exec(`DELETE FROM ${TABLE_MESSAGE} WHERE session_id = ?`, [sessionId]);
+	DB.exec(`DELETE FROM ${TABLE_SESSION} WHERE id = ?`, [sessionId]);
+}
+
+function rebaseProjectRoot(projectRoot: string, oldRoot: string, newRoot: string) {
+	if (projectRoot === oldRoot) {
+		return newRoot;
+	}
+	for (const separator of ["/", "\\"]) {
+		const prefix = `${oldRoot}${separator}`;
+		if (projectRoot.startsWith(prefix)) {
+			return `${newRoot}${projectRoot.slice(oldRoot.length)}`;
+		}
+	}
+	return undefined;
+}
+
 function normalizeSessionRuntimeState(session: AgentSessionItem): AgentSessionItem {
 	if (session.currentTaskId === undefined || session.currentTaskStatus !== "RUNNING") {
 		return session;
@@ -611,6 +630,41 @@ export function createSession(projectRoot: string, title = "") {
 		return { success: false as const, message: "failed to create session" };
 	}
 	return { success: true as const, session };
+}
+
+export function deleteSessionsByProjectRoot(projectRoot: string) {
+	if (!projectRoot || !Content.isAbsolutePath(projectRoot)) {
+		return { success: false as const, message: "invalid projectRoot" };
+	}
+	const rows = queryRows(`SELECT id FROM ${TABLE_SESSION} WHERE project_root = ?`, [projectRoot]) ?? [];
+	for (const row of rows) {
+		const sessionId = typeof row[0] === "number" ? row[0] as number : 0;
+		if (sessionId > 0) {
+			deleteSessionRecords(sessionId);
+		}
+	}
+	return { success: true as const, deleted: rows.length };
+}
+
+export function renameSessionsByProjectRoot(oldRoot: string, newRoot: string) {
+	if (!oldRoot || !newRoot || !Content.isAbsolutePath(oldRoot) || !Content.isAbsolutePath(newRoot)) {
+		return { success: false as const, message: "invalid projectRoot" };
+	}
+	const rows = queryRows(`SELECT id, project_root FROM ${TABLE_SESSION}`) ?? [];
+	let renamed = 0;
+	for (const row of rows) {
+		const sessionId = typeof row[0] === "number" ? row[0] as number : 0;
+		const projectRoot = toStr(row[1]);
+		const nextProjectRoot = rebaseProjectRoot(projectRoot, oldRoot, newRoot);
+		if (sessionId > 0 && nextProjectRoot) {
+			DB.exec(
+				`UPDATE ${TABLE_SESSION} SET project_root = ?, title = ?, updated_at = ? WHERE id = ?`,
+				[nextProjectRoot, Path.getFilename(nextProjectRoot), now(), sessionId],
+			);
+			renamed++;
+		}
+	}
+	return { success: true as const, renamed };
 }
 
 export function getSession(sessionId: number): AgentSessionDetailResult {

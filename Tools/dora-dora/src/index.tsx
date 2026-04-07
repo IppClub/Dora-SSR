@@ -182,6 +182,9 @@ const setupAuth = async (): Promise<void> => {
 		if (!url.searchParams || Array.from(url.searchParams).length === 0) {
 			return url.pathname;
 		}
+		const encodeUriCompat = (value: string) => encodeURI(value)
+			.replace(/%5B/g, '[')
+			.replace(/%5D/g, ']');
 		const params = Array.from(url.searchParams.entries());
 		params.sort(([keyA, valueA], [keyB, valueB]) => {
 			const keySort = keyA.localeCompare(keyB);
@@ -189,7 +192,7 @@ const setupAuth = async (): Promise<void> => {
 			return valueA.localeCompare(valueB);
 		});
 		const query = params
-			.map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+			.map(([key, value]) => `${encodeUriCompat(key)}=${encodeUriCompat(value)}`)
 			.join('&');
 		return query ? `${url.pathname}?${query}` : url.pathname;
 	};
@@ -197,6 +200,16 @@ const setupAuth = async (): Promise<void> => {
 	const getBodyBytes = async (request: Request) => {
 		if (request.method === 'GET' || request.method === 'HEAD') {
 			return new Uint8Array();
+		}
+		const contentType = request.headers.get('Content-Type')?.toLowerCase() ?? '';
+		if (contentType.startsWith('multipart/form-data')) {
+			return new Uint8Array();
+		}
+		try {
+			await request.clone().formData();
+			return new Uint8Array();
+		} catch (err) {
+			void err;
 		}
 		try {
 			const buffer = await request.clone().arrayBuffer();
