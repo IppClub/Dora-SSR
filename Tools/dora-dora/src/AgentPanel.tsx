@@ -37,6 +37,17 @@ function normalizeList<T>(value: unknown): T[] {
 	return [];
 }
 
+function upsertById<T extends { id: number }>(items: T[], nextItem: T): T[] {
+	const next = [...items];
+	const index = next.findIndex(item => item.id === nextItem.id);
+	if (index >= 0) {
+		next[index] = nextItem;
+	} else {
+		next.push(nextItem);
+	}
+	return next;
+}
+
 export default function AgentPanel(props: AgentPanelProps) {
 	const HISTORY_VISIBLE_ROUNDS = 10;
 	const { t } = useTranslation();
@@ -106,6 +117,35 @@ export default function AgentPanel(props: AgentPanelProps) {
 	}, [refresh]);
 
 	useEffect(() => {
+		const onPatch = (patch: Service.AgentSessionPatch) => {
+			if (patch.sessionId !== sessionId) return;
+			if (patch.session) {
+				setSession(patch.session);
+			}
+			if (patch.message) {
+				setMessages(prev => upsertById(prev, patch.message!).sort((a, b) => a.id - b.id));
+			}
+			if (patch.step) {
+				setSteps(prev => upsertById(prev, patch.step!).sort((a, b) => {
+					const taskDelta = (b.taskId ?? 0) - (a.taskId ?? 0);
+					if (taskDelta !== 0) return taskDelta;
+					return a.step - b.step;
+				}));
+			}
+			if (patch.removedStepIds && patch.removedStepIds.length > 0) {
+				setSteps(prev => prev.filter(step => !patch.removedStepIds!.includes(step.id)));
+			}
+			if (patch.checkpoints) {
+				setCheckpoints(normalizeList<Service.AgentCheckpointItem>(patch.checkpoints));
+			}
+		};
+		Service.addAgentSessionPatchListener(onPatch);
+		return () => {
+			Service.removeAgentSessionPatchListener(onPatch);
+		};
+	}, [sessionId]);
+
+	useEffect(() => {
 		void checkLLMConfigReady();
 	}, [checkLLMConfigReady]);
 
@@ -117,7 +157,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 		if (session?.currentTaskStatus !== "RUNNING") return;
 		const timer = window.setInterval(() => {
 			void refresh(true);
-		}, 1000);
+		}, 3000);
 		return () => window.clearInterval(timer);
 	}, [refresh, session?.currentTaskStatus]);
 

@@ -10,6 +10,7 @@ let LLM_TIMEOUT = 600;
 export function setLLMTimeout(timeout: number) {
 	LLM_TIMEOUT = timeout;
 }
+const LLM_STREAM_TIMEOUT = 60;
 
 export const Log = (type: "Info" | "Warn" | "Error", msg: string) => {
 	if (LOG_LEVEL < 1) return;
@@ -489,6 +490,7 @@ const postLLM = (
 	receiver?: (this: void, data: string) => boolean,
 	stopToken?: StopToken
 ) => {
+	const requestTimeout = stream ? LLM_STREAM_TIMEOUT : LLM_TIMEOUT;
 	const data: Record<string, any> = {
 		...options,
 		model,
@@ -533,7 +535,7 @@ const postLLM = (
 					"Accept: application/json",
 				];
 				requestId = receiver
-					? HttpClient.post(url, headers, jsonStr, LLM_TIMEOUT, (data) => {
+					? HttpClient.post(url, headers, jsonStr, requestTimeout, (data) => {
 						if (stopToken.stopped) return true;
 						return receiver(data);
 					}, (data) => {
@@ -544,7 +546,7 @@ const postLLM = (
 							finishReject("failed to get http response");
 						}
 					})
-					: HttpClient.post(url, headers, jsonStr, LLM_TIMEOUT, (data) => {
+					: HttpClient.post(url, headers, jsonStr, requestTimeout, (data) => {
 						requestId = 0;
 						if (stopToken.stopped) {
 							finishReject("request cancelled");
@@ -659,12 +661,26 @@ export interface LLMStreamData {
 interface Choice {
 	index: number;
 	delta: Delta;
+	finish_reason?: string;
 }
 
 interface Delta {
-	role: string;
+	role?: string;
 	reasoning_content?: string;
 	content?: string;
+	tool_calls?: StreamDeltaToolCall[];
+}
+
+interface StreamDeltaToolCallFunction {
+	name?: string;
+	arguments?: string;
+}
+
+interface StreamDeltaToolCall {
+	index?: number;
+	id?: string;
+	type?: string;
+	function?: StreamDeltaToolCallFunction;
 }
 
 interface NonStreamMessage {
@@ -693,6 +709,8 @@ export interface LLMResponseData {
 	};
 }
 
+type LLMProviderError = NonNullable<LLMResponseData["error"]>;
+
 interface CallEvent {
 	id: undefined;
 	stopToken?: StopToken;
@@ -704,6 +722,12 @@ interface CallEvent {
 interface CallStream {
 	id: number;
 	stopToken: StopToken;
+}
+
+interface StreamChoiceAccumulator {
+	index: number;
+	message: NonStreamMessage;
+	finish_reason?: string;
 }
 
 export type LLMConfig = {
@@ -833,6 +857,201 @@ export const callLLMStream = (
 		}
 	})();
 	return { success: true };
+}
+
+function mergeStreamToolCall(target: ToolCall, delta: StreamDeltaToolCall) {
+	if (typeof delta.id === "string" && delta.id !== "") {
+		target.id = delta.id;
+	}
+	if (typeof delta.type === "string" && delta.type !== "") {
+		target.type = delta.type;
+	}
+	if (delta.function) {
+		target.function ??= {};
+		if (typeof delta.function.name === "string" && delta.function.name !== "") {
+			target.function.name = (target.function.name ?? "") + delta.function.name;
+		}
+		if (typeof delta.function.arguments === "string" && delta.function.arguments !== "") {
+			target.function.arguments = (target.function.arguments ?? "") + delta.function.arguments;
+		}
+	}
+}
+
+function mergeStreamChoice(acc: StreamChoiceAccumulator, choice: Choice) {
+	const delta = choice.delta ?? {};
+	const message = acc.message;
+	if (typeof delta.role === "string" && delta.role !== "") {
+		message.role = delta.role;
+	}
+	if (typeof delta.content === "string" && delta.content !== "") {
+		message.content = (message.content ?? "") + delta.content;
+	}
+	if (typeof delta.reasoning_content === "string" && delta.reasoning_content !== "") {
+		message.reasoning_content = (message.reasoning_content ?? "") + delta.reasoning_content;
+	}
+	if (delta.tool_calls && delta.tool_calls.length > 0) {
+		message.tool_calls ??= [];
+		for (let i = 0; i < delta.tool_calls.length; i++) {
+			const item: StreamDeltaToolCall = delta.tool_calls[i] as StreamDeltaToolCall;
+			const index = typeof item.index === "number" && item.index >= 0
+				? math.floor(item.index)
+				: i;
+			message.tool_calls[index] ??= {};
+			mergeStreamToolCall(message.tool_calls[index], item);
+		}
+	}
+	if (typeof choice.finish_reason === "string" && choice.finish_reason !== "") {
+		acc.finish_reason = choice.finish_reason;
+	}
+}
+
+function buildStreamResponse(
+	states: Record<number, StreamChoiceAccumulator>,
+	model?: string,
+	id?: string,
+	created?: number,
+	object?: string,
+	providerError?: LLMProviderError
+): LLMResponseData {
+	const indexes = Object.keys(states)
+		.map(key => Number(key))
+		.filter(index => Number.isFinite(index))
+		.sort((a, b) => a - b);
+	return {
+		id,
+		created,
+		object,
+		model,
+		choices: indexes.map(index => {
+			const state = states[index];
+			return {
+				index,
+				message: {
+					role: state.message.role ?? "assistant",
+					content: state.message.content,
+					reasoning_content: state.message.reasoning_content,
+					tool_calls: state.message.tool_calls,
+				},
+				finish_reason: state.finish_reason,
+			};
+		}),
+		error: providerError,
+	};
+}
+
+export async function callLLMStreamAggregated(
+	messages: Message[],
+	options: Record<string, any>,
+	stopTokenOrConfig?: StopToken | LLMConfig,
+	llmConfig?: LLMConfig,
+	onChunk?: (response: LLMResponseData, chunk: LLMStreamData) => void
+): Promise<{ success: true; response: LLMResponseData } | { success: false; message: string; raw?: string }> {
+	const stopToken = stopTokenOrConfig && "stopped" in stopTokenOrConfig ? stopTokenOrConfig : undefined;
+	const config = stopTokenOrConfig && "url" in stopTokenOrConfig
+		? stopTokenOrConfig
+		: llmConfig;
+	const resolvedConfig = config ?? (() => {
+		const configRes = getActiveLLMConfig();
+		if (!configRes.success) {
+			Log("Error", `[Agent.Utils] callLLMStreamAggregated config error: ${configRes.message}`);
+			return undefined;
+		}
+		return configRes.config;
+	})();
+	if (!resolvedConfig) {
+		return { success: false, message: "no active LLM config" };
+	}
+	const { url, model, apiKey } = resolvedConfig;
+	const fitted = fitMessagesToContext(messages, options, resolvedConfig);
+	Log("Info", `[Agent.Utils] callLLMStreamAggregated request model=${model} url=${url} messages=${messages.length}${fitted.trimmed ? ` trimmed_tokens=${fitted.originalTokens}->${fitted.fittedTokens}/${fitted.budgetTokens}` : ""}`);
+	if (stopToken?.stopped) {
+		const reason = stopToken.reason ?? "request cancelled";
+		Log("Info", `[Agent.Utils] callLLMStreamAggregated cancelled before request: ${reason}`);
+		return { success: false, message: reason };
+	}
+	try {
+		const states: Record<number, StreamChoiceAccumulator> = {};
+		let responseId: string | undefined = undefined;
+		let responseCreated: number | undefined = undefined;
+		let responseObject: string | undefined = undefined;
+		let providerError: LLMProviderError | undefined;
+		const parser = createSSEJSONParser({
+			onJSON: (obj, raw) => {
+				if (!obj || type(obj) !== "table") {
+					return;
+				}
+				const chunk = obj as LLMStreamData & LLMResponseData;
+				if (chunk.error) {
+					providerError = chunk.error;
+					Log("Warn", `[Agent.Utils] callLLMStreamAggregated provider error chunk: ${previewText(raw, 300)}`);
+					return;
+				}
+				responseId = typeof chunk.id === "string" ? chunk.id : responseId;
+				responseCreated = typeof chunk.created === "number" ? chunk.created : responseCreated;
+				responseObject = typeof chunk.object === "string" ? chunk.object : responseObject;
+				const choices = Array.isArray(chunk.choices) ? chunk.choices : [];
+				for (let i = 0; i < choices.length; i++) {
+					const choice = choices[i] as Choice;
+					const index = typeof choice.index === "number" ? choice.index : i;
+					states[index] ??= {
+						index,
+						message: { role: "assistant" },
+					};
+					mergeStreamChoice(states[index], choice);
+				}
+				onChunk?.(
+					buildStreamResponse(states, model, responseId, responseCreated, responseObject, providerError),
+					{
+						id: chunk.id ?? "",
+						created: chunk.created ?? 0,
+						object: chunk.object ?? "",
+						model: chunk.model ?? model,
+						choices: choices,
+					}
+				);
+			},
+			onError: (err, context) => {
+				Log("Warn", `[Agent.Utils] callLLMStreamAggregated parse error: ${tostring(err)} raw=${previewText(context?.raw ?? "", 300)}`);
+			},
+		});
+		await postLLM(fitted.messages, url, apiKey, model, options, true, (data) => {
+			if (stopToken?.stopped) return true;
+			parser.feed(data);
+			return false;
+		}, stopToken);
+		parser.end();
+		const response = buildStreamResponse(states, model, responseId, responseCreated, responseObject, providerError);
+		const choiceCount = response.choices ? response.choices.length : 0;
+		Log("Info", `[Agent.Utils] callLLMStreamAggregated decoded response choices=${choiceCount}`);
+		if (!response.choices || response.choices.length === 0) {
+			const providerMessage = providerError?.message ?? "";
+			const providerType = providerError?.type ?? "";
+			const providerCode = providerError && (typeof providerError.code === "string" || typeof providerError.code === "number")
+				? tostring(providerError.code)
+				: "";
+			const details = [providerType, providerCode].filter(part => part !== "").join("/");
+			const message = providerMessage !== ""
+				? `LLM returned no choices: ${providerMessage}${details !== "" ? ` (${details})` : ""}`
+				: "LLM returned no choices";
+			Log("Error", `[Agent.Utils] callLLMStreamAggregated empty choices`);
+			return {
+				success: false,
+				message,
+			};
+		}
+		return {
+			success: true,
+			response,
+		};
+	} catch (e) {
+		if (stopToken?.stopped) {
+			const reason = stopToken.reason ?? "request cancelled";
+			Log("Info", `[Agent.Utils] callLLMStreamAggregated cancelled during request: ${reason}`);
+			return { success: false, message: reason };
+		}
+		Log("Error", `[Agent.Utils] callLLMStreamAggregated exception: ${tostring(e)}`);
+		return { success: false, message: tostring(e) };
+	}
 }
 
 export async function callLLM(

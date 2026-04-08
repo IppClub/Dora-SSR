@@ -698,7 +698,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 .markdown-body tt {
   padding: .2em .4em;
   margin: 0;
-  font-size: 85%;
+  font-size: 1em;
   white-space: break-spaces;
   background-color: rgba(110,118,129,0.4);
   border-radius: 6px;
@@ -714,7 +714,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 .markdown-body samp {
-  font-size: 85%;
+  font-size: 1em;
 }
 
 .markdown-body pre code {
@@ -730,10 +730,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
   border: 0;
 }
 
-.markdown-body .highlight {
-  margin-bottom: 16px;
-}
-
 .markdown-body .highlight pre {
   margin-bottom: 0;
   word-break: normal;
@@ -741,12 +737,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 .markdown-body .highlight pre,
 .markdown-body pre {
-  padding: 16px;
+  padding: 12px;
   overflow: auto;
-  font-size: 85%;
-  line-height: 1.45;
+  font-size: 1em;
+  line-height: inherit;
   background-color: #161b22;
   border-radius: 6px;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .markdown-body pre code,

@@ -27,6 +27,7 @@ type ServiceEvents = {
 	[WsCloseEvent]: [];
 	SearchFilesResult: [SearchFilesResultMessage];
 	SearchFilesDone: [SearchFilesDoneMessage];
+	AgentSessionPatch: [AgentSessionPatch];
 };
 
 const eventEmitter = new TypedEmitter<ServiceEvents>();
@@ -946,6 +947,16 @@ export interface AgentCheckpointDiffFile {
 	afterContent: string;
 }
 
+export interface AgentSessionPatch {
+	name: "AgentSessionPatch";
+	sessionId: number;
+	session?: AgentSession;
+	message?: AgentSessionMessage;
+	step?: AgentSessionStep;
+	checkpoints?: AgentCheckpointItem[];
+	removedStepIds?: number[];
+}
+
 export type AgentSessionDetailResponse = {
 	success: true;
 	session: AgentSession;
@@ -1045,4 +1056,12 @@ export const agentCheckpointRollback = (req: { sessionId: number; checkpointId: 
 		success: false;
 		message: string;
 	}>("/agent/checkpoint/rollback", req);
+};
+
+export const addAgentSessionPatchListener = (listener: (patch: AgentSessionPatch) => void) => {
+	eventEmitter.on("AgentSessionPatch", listener);
+};
+
+export const removeAgentSessionPatchListener = (listener: (patch: AgentSessionPatch) => void) => {
+	eventEmitter.off("AgentSessionPatch", listener);
 };

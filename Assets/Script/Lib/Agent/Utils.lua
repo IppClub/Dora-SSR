@@ -18,7 +18,11 @@ local __TS__New = ____lualib.__TS__New -- 1
 local __TS__ArrayFind = ____lualib.__TS__ArrayFind -- 1
 local __TS__AsyncAwaiter = ____lualib.__TS__AsyncAwaiter -- 1
 local __TS__Await = ____lualib.__TS__Await -- 1
+local __TS__NumberIsFinite = ____lualib.__TS__NumberIsFinite -- 1
+local __TS__Number = ____lualib.__TS__Number -- 1
+local __TS__ObjectKeys = ____lualib.__TS__ObjectKeys -- 1
 local __TS__ArrayFilter = ____lualib.__TS__ArrayFilter -- 1
+local __TS__ArraySort = ____lualib.__TS__ArraySort -- 1
 local ____exports = {} -- 1
 local ____Dora = require("Dora") -- 2
 local json = ____Dora.json -- 2
@@ -37,1066 +41,1308 @@ local LLM_TIMEOUT = 600 -- 9
 function ____exports.setLLMTimeout(timeout) -- 10
 	LLM_TIMEOUT = timeout -- 11
 end -- 10
-____exports.Log = function(____type, msg) -- 14
-	if LOG_LEVEL < 1 then -- 14
-		return -- 15
-	elseif LOG_LEVEL < 2 and (____type == "Info" or ____type == "Warn") then -- 15
+local LLM_STREAM_TIMEOUT = 60 -- 13
+____exports.Log = function(____type, msg) -- 15
+	if LOG_LEVEL < 1 then -- 15
 		return -- 16
-	elseif LOG_LEVEL < 3 and ____type == "Info" then -- 16
+	elseif LOG_LEVEL < 2 and (____type == "Info" or ____type == "Warn") then -- 16
 		return -- 17
-	end -- 17
-	DoraLog(____type, msg) -- 18
-end -- 14
-local TOOL_CALL_ID_ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz" -- 45
-local TOOL_CALL_ID_COUNTER = 0 -- 46
-local function toBase36(value) -- 48
-	if value <= 0 then -- 48
-		return "0" -- 49
-	end -- 49
-	local remaining = math.floor(value) -- 50
-	local out = "" -- 51
-	while remaining > 0 do -- 51
-		local digit = remaining % 36 -- 53
-		out = string.sub(TOOL_CALL_ID_ALPHABET, digit + 1, digit + 1) .. out -- 54
-		remaining = math.floor(remaining / 36) -- 55
-	end -- 55
-	return out -- 57
-end -- 48
-function ____exports.createLocalToolCallId() -- 60
-	TOOL_CALL_ID_COUNTER = TOOL_CALL_ID_COUNTER + 1 -- 61
-	local timePart = toBase36(os.time()) -- 62
-	local counterPart = toBase36(TOOL_CALL_ID_COUNTER) -- 63
-	return ("tc" .. timePart) .. counterPart -- 64
-end -- 60
-local function previewText(text, maxLen) -- 72
-	if maxLen == nil then -- 72
-		maxLen = 200 -- 72
-	end -- 72
-	if not text then -- 72
-		return "" -- 73
+	elseif LOG_LEVEL < 3 and ____type == "Info" then -- 17
+		return -- 18
+	end -- 18
+	DoraLog(____type, msg) -- 19
+end -- 15
+local TOOL_CALL_ID_ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz" -- 46
+local TOOL_CALL_ID_COUNTER = 0 -- 47
+local function toBase36(value) -- 49
+	if value <= 0 then -- 49
+		return "0" -- 50
+	end -- 50
+	local remaining = math.floor(value) -- 51
+	local out = "" -- 52
+	while remaining > 0 do -- 52
+		local digit = remaining % 36 -- 54
+		out = string.sub(TOOL_CALL_ID_ALPHABET, digit + 1, digit + 1) .. out -- 55
+		remaining = math.floor(remaining / 36) -- 56
+	end -- 56
+	return out -- 58
+end -- 49
+function ____exports.createLocalToolCallId() -- 61
+	TOOL_CALL_ID_COUNTER = TOOL_CALL_ID_COUNTER + 1 -- 62
+	local timePart = toBase36(os.time()) -- 63
+	local counterPart = toBase36(TOOL_CALL_ID_COUNTER) -- 64
+	return ("tc" .. timePart) .. counterPart -- 65
+end -- 61
+local function previewText(text, maxLen) -- 73
+	if maxLen == nil then -- 73
+		maxLen = 200 -- 73
 	end -- 73
-	local compact = __TS__StringReplace( -- 74
-		__TS__StringReplace(text, "\r", "\\r"), -- 74
-		"\n", -- 74
-		"\\n" -- 74
-	) -- 74
-	if #compact <= maxLen then -- 74
-		return compact -- 75
-	end -- 75
-	return __TS__StringSlice(compact, 0, maxLen) .. "..." -- 76
-end -- 72
-function ____exports.sanitizeUTF8(text) -- 79
-	if not text then -- 79
-		return "" -- 80
-	end -- 80
-	local remaining = text -- 81
-	local output = "" -- 82
-	while remaining ~= "" do -- 82
-		local len, invalidPos = utf8.len(remaining) -- 84
-		if len ~= nil then -- 84
-			output = output .. remaining -- 86
-			break -- 87
-		end -- 87
-		local badPos = type(invalidPos) == "number" and invalidPos or 1 -- 89
-		if badPos > 1 then -- 89
-			output = output .. __TS__StringSubstring(remaining, 0, badPos - 1) -- 91
-		end -- 91
-		remaining = __TS__StringSubstring(remaining, badPos) -- 93
-	end -- 93
-	return output -- 95
-end -- 79
-local function sanitizeJSONValue(value) -- 98
-	if type(value) == "string" then -- 98
-		return ____exports.sanitizeUTF8(value) -- 99
-	end -- 99
-	if __TS__ArrayIsArray(value) then -- 99
-		return __TS__ArrayMap( -- 101
-			value, -- 101
-			function(____, item) return sanitizeJSONValue(item) end -- 101
-		) -- 101
-	end -- 101
-	if value and type(value) == "table" then -- 101
-		local result = {} -- 104
-		for key in pairs(value) do -- 105
-			result[key] = sanitizeJSONValue(value[key]) -- 106
-		end -- 106
-		return result -- 108
-	end -- 108
-	return value -- 110
-end -- 98
-function ____exports.safeJsonEncode(value, indent, sortKeys, escapeSlash, maxDepth) -- 113
-	return json.encode( -- 114
-		sanitizeJSONValue(value), -- 115
-		indent, -- 116
-		sortKeys, -- 117
-		escapeSlash, -- 118
-		maxDepth -- 119
-	) -- 119
-end -- 113
-function ____exports.safeJsonDecode(text) -- 123
-	local value, err = json.decode(____exports.sanitizeUTF8(text)) -- 124
-	if value == nil then -- 124
-		return value, err -- 126
-	end -- 126
-	return sanitizeJSONValue(value), err -- 128
-end -- 123
-local function utf8TakeHead(text, maxChars) -- 131
-	if maxChars <= 0 or text == "" then -- 131
-		return "" -- 132
-	end -- 132
-	local nextPos = utf8.offset(text, maxChars + 1) -- 133
-	if nextPos == nil then -- 133
-		return text -- 134
-	end -- 134
-	return string.sub(text, 1, nextPos - 1) -- 135
-end -- 131
-local function utf8TakeTail(text, maxChars) -- 138
-	if maxChars <= 0 or text == "" then -- 138
-		return "" -- 139
-	end -- 139
-	local charLen = utf8.len(text) -- 140
-	if charLen == nil or charLen <= maxChars then -- 140
-		return text -- 141
-	end -- 141
-	local startChar = math.max(1, charLen - maxChars + 1) -- 142
-	local startPos = utf8.offset(text, startChar) -- 143
-	if startPos == nil then -- 143
-		return text -- 144
-	end -- 144
-	return string.sub(text, startPos) -- 145
-end -- 138
-function ____exports.estimateTextTokens(text) -- 148
-	if not text then -- 148
-		return 0 -- 149
-	end -- 149
-	local charLen = utf8.len(text) -- 150
-	if not charLen or charLen <= 0 then -- 150
-		return 0 -- 151
-	end -- 151
-	local otherChars = #text - charLen -- 152
-	local tokens = math.ceil(charLen / 1.5 + otherChars / 4) -- 153
-	return math.max(1, tokens) -- 154
-end -- 148
-local function estimateMessagesTokens(messages) -- 157
-	local total = 0 -- 158
-	do -- 158
-		local i = 0 -- 159
-		while i < #messages do -- 159
-			local message = messages[i + 1] -- 160
-			total = total + 8 -- 161
-			total = total + ____exports.estimateTextTokens(message.role or "") -- 162
-			total = total + ____exports.estimateTextTokens(message.content or "") -- 163
-			total = total + ____exports.estimateTextTokens(message.name or "") -- 164
-			total = total + ____exports.estimateTextTokens(message.tool_call_id or "") -- 165
-			total = total + ____exports.estimateTextTokens(message.reasoning_content or "") -- 166
-			local toolCallsText = ____exports.safeJsonEncode(message.tool_calls or ({})) -- 167
-			total = total + ____exports.estimateTextTokens(toolCallsText or "") -- 168
-			i = i + 1 -- 159
-		end -- 159
-	end -- 159
-	return total -- 170
-end -- 157
-local function estimateOptionsTokens(options) -- 173
-	local text = ____exports.safeJsonEncode(options) -- 174
-	return text and ____exports.estimateTextTokens(text) or 0 -- 175
-end -- 173
-local function getReservedOutputTokens(options, contextWindow) -- 178
-	local explicitMax = type(options.max_tokens) == "number" and math.floor(options.max_tokens) or (type(options.max_completion_tokens) == "number" and math.floor(options.max_completion_tokens) or 0) -- 179
-	if explicitMax > 0 then -- 179
-		return math.max(256, explicitMax) -- 184
-	end -- 184
-	return math.max( -- 185
-		1024, -- 185
-		math.floor(contextWindow * 0.2) -- 185
-	) -- 185
-end -- 178
-local function getInputTokenBudget(messages, options, config) -- 188
-	local contextWindow = math.max(4000, config.contextWindow) -- 189
-	local reservedOutputTokens = getReservedOutputTokens(options, contextWindow) -- 190
-	local optionTokens = estimateOptionsTokens(options) -- 191
-	local structuralOverhead = math.max(256, #messages * 16) -- 192
-	return math.max(512, contextWindow - reservedOutputTokens - optionTokens - structuralOverhead) -- 193
-end -- 188
-function ____exports.clipTextToTokenBudget(text, budgetTokens) -- 196
-	if budgetTokens <= 0 or text == "" then -- 196
-		return "" -- 197
-	end -- 197
-	local estimated = ____exports.estimateTextTokens(text) -- 198
-	if estimated <= budgetTokens then -- 198
-		return text -- 199
-	end -- 199
-	local charsPerToken = estimated > 0 and #text / estimated or 4 -- 200
-	local targetChars = math.max( -- 201
-		200, -- 201
-		math.floor(budgetTokens * charsPerToken) -- 201
-	) -- 201
-	local keepHead = math.max( -- 202
-		0, -- 202
-		math.floor(targetChars * 0.35) -- 202
+	if not text then -- 73
+		return "" -- 74
+	end -- 74
+	local compact = __TS__StringReplace( -- 75
+		__TS__StringReplace(text, "\r", "\\r"), -- 75
+		"\n", -- 75
+		"\\n" -- 75
+	) -- 75
+	if #compact <= maxLen then -- 75
+		return compact -- 76
+	end -- 76
+	return __TS__StringSlice(compact, 0, maxLen) .. "..." -- 77
+end -- 73
+function ____exports.sanitizeUTF8(text) -- 80
+	if not text then -- 80
+		return "" -- 81
+	end -- 81
+	local remaining = text -- 82
+	local output = "" -- 83
+	while remaining ~= "" do -- 83
+		local len, invalidPos = utf8.len(remaining) -- 85
+		if len ~= nil then -- 85
+			output = output .. remaining -- 87
+			break -- 88
+		end -- 88
+		local badPos = type(invalidPos) == "number" and invalidPos or 1 -- 90
+		if badPos > 1 then -- 90
+			output = output .. __TS__StringSubstring(remaining, 0, badPos - 1) -- 92
+		end -- 92
+		remaining = __TS__StringSubstring(remaining, badPos) -- 94
+	end -- 94
+	return output -- 96
+end -- 80
+local function sanitizeJSONValue(value) -- 99
+	if type(value) == "string" then -- 99
+		return ____exports.sanitizeUTF8(value) -- 100
+	end -- 100
+	if __TS__ArrayIsArray(value) then -- 100
+		return __TS__ArrayMap( -- 102
+			value, -- 102
+			function(____, item) return sanitizeJSONValue(item) end -- 102
+		) -- 102
+	end -- 102
+	if value and type(value) == "table" then -- 102
+		local result = {} -- 105
+		for key in pairs(value) do -- 106
+			result[key] = sanitizeJSONValue(value[key]) -- 107
+		end -- 107
+		return result -- 109
+	end -- 109
+	return value -- 111
+end -- 99
+function ____exports.safeJsonEncode(value, indent, sortKeys, escapeSlash, maxDepth) -- 114
+	return json.encode( -- 115
+		sanitizeJSONValue(value), -- 116
+		indent, -- 117
+		sortKeys, -- 118
+		escapeSlash, -- 119
+		maxDepth -- 120
+	) -- 120
+end -- 114
+function ____exports.safeJsonDecode(text) -- 124
+	local value, err = json.decode(____exports.sanitizeUTF8(text)) -- 125
+	if value == nil then -- 125
+		return value, err -- 127
+	end -- 127
+	return sanitizeJSONValue(value), err -- 129
+end -- 124
+local function utf8TakeHead(text, maxChars) -- 132
+	if maxChars <= 0 or text == "" then -- 132
+		return "" -- 133
+	end -- 133
+	local nextPos = utf8.offset(text, maxChars + 1) -- 134
+	if nextPos == nil then -- 134
+		return text -- 135
+	end -- 135
+	return string.sub(text, 1, nextPos - 1) -- 136
+end -- 132
+local function utf8TakeTail(text, maxChars) -- 139
+	if maxChars <= 0 or text == "" then -- 139
+		return "" -- 140
+	end -- 140
+	local charLen = utf8.len(text) -- 141
+	if charLen == nil or charLen <= maxChars then -- 141
+		return text -- 142
+	end -- 142
+	local startChar = math.max(1, charLen - maxChars + 1) -- 143
+	local startPos = utf8.offset(text, startChar) -- 144
+	if startPos == nil then -- 144
+		return text -- 145
+	end -- 145
+	return string.sub(text, startPos) -- 146
+end -- 139
+function ____exports.estimateTextTokens(text) -- 149
+	if not text then -- 149
+		return 0 -- 150
+	end -- 150
+	local charLen = utf8.len(text) -- 151
+	if not charLen or charLen <= 0 then -- 151
+		return 0 -- 152
+	end -- 152
+	local otherChars = #text - charLen -- 153
+	local tokens = math.ceil(charLen / 1.5 + otherChars / 4) -- 154
+	return math.max(1, tokens) -- 155
+end -- 149
+local function estimateMessagesTokens(messages) -- 158
+	local total = 0 -- 159
+	do -- 159
+		local i = 0 -- 160
+		while i < #messages do -- 160
+			local message = messages[i + 1] -- 161
+			total = total + 8 -- 162
+			total = total + ____exports.estimateTextTokens(message.role or "") -- 163
+			total = total + ____exports.estimateTextTokens(message.content or "") -- 164
+			total = total + ____exports.estimateTextTokens(message.name or "") -- 165
+			total = total + ____exports.estimateTextTokens(message.tool_call_id or "") -- 166
+			total = total + ____exports.estimateTextTokens(message.reasoning_content or "") -- 167
+			local toolCallsText = ____exports.safeJsonEncode(message.tool_calls or ({})) -- 168
+			total = total + ____exports.estimateTextTokens(toolCallsText or "") -- 169
+			i = i + 1 -- 160
+		end -- 160
+	end -- 160
+	return total -- 171
+end -- 158
+local function estimateOptionsTokens(options) -- 174
+	local text = ____exports.safeJsonEncode(options) -- 175
+	return text and ____exports.estimateTextTokens(text) or 0 -- 176
+end -- 174
+local function getReservedOutputTokens(options, contextWindow) -- 179
+	local explicitMax = type(options.max_tokens) == "number" and math.floor(options.max_tokens) or (type(options.max_completion_tokens) == "number" and math.floor(options.max_completion_tokens) or 0) -- 180
+	if explicitMax > 0 then -- 180
+		return math.max(256, explicitMax) -- 185
+	end -- 185
+	return math.max( -- 186
+		1024, -- 186
+		math.floor(contextWindow * 0.2) -- 186
+	) -- 186
+end -- 179
+local function getInputTokenBudget(messages, options, config) -- 189
+	local contextWindow = math.max(4000, config.contextWindow) -- 190
+	local reservedOutputTokens = getReservedOutputTokens(options, contextWindow) -- 191
+	local optionTokens = estimateOptionsTokens(options) -- 192
+	local structuralOverhead = math.max(256, #messages * 16) -- 193
+	return math.max(512, contextWindow - reservedOutputTokens - optionTokens - structuralOverhead) -- 194
+end -- 189
+function ____exports.clipTextToTokenBudget(text, budgetTokens) -- 197
+	if budgetTokens <= 0 or text == "" then -- 197
+		return "" -- 198
+	end -- 198
+	local estimated = ____exports.estimateTextTokens(text) -- 199
+	if estimated <= budgetTokens then -- 199
+		return text -- 200
+	end -- 200
+	local charsPerToken = estimated > 0 and #text / estimated or 4 -- 201
+	local targetChars = math.max( -- 202
+		200, -- 202
+		math.floor(budgetTokens * charsPerToken) -- 202
 	) -- 202
-	local keepTail = math.max(0, targetChars - keepHead) -- 203
-	local head = keepHead > 0 and utf8TakeHead(text, keepHead) or "" -- 204
-	local tail = keepTail > 0 and utf8TakeTail(text, keepTail) or "" -- 205
-	return (head .. "\n...\n") .. tail -- 206
-end -- 196
-local function isXMLWhitespaceChar(ch) -- 209
-	return ch == " " or ch == "\t" or ch == "\n" or ch == "\r" -- 210
-end -- 209
-local function findLineStart(value, from) -- 213
-	local i = from -- 214
-	while i >= 0 do -- 214
-		if __TS__StringAccess(value, i) == "\n" then -- 214
-			return i + 1 -- 216
-		end -- 216
-		i = i - 1 -- 217
-	end -- 217
-	return 0 -- 219
-end -- 213
-local function findLastLiteral(text, needle) -- 222
-	if needle == "" then -- 222
-		return #text -- 223
-	end -- 223
-	local last = -1 -- 224
-	local from = 0 -- 225
-	while from <= #text - #needle do -- 225
-		local pos = (string.find( -- 227
-			text, -- 227
-			needle, -- 227
-			math.max(from + 1, 1), -- 227
-			true -- 227
-		) or 0) - 1 -- 227
-		if pos < 0 then -- 227
-			break -- 228
-		end -- 228
-		last = pos -- 229
-		from = pos + 1 -- 230
-	end -- 230
-	return last -- 232
-end -- 222
-local function unwrapXMLRawText(text) -- 235
-	local trimmed = __TS__StringTrim(text) -- 236
-	if __TS__StringStartsWith(trimmed, "<![CDATA[") and __TS__StringEndsWith(trimmed, "]]>") then -- 236
-		return __TS__StringSlice(trimmed, 9, #trimmed - 3) -- 238
-	end -- 238
-	return text -- 240
-end -- 235
-local function readSimpleXMLTagName(source, openStart, openEnd) -- 243
-	local rawTag = __TS__StringTrim(__TS__StringSlice(source, openStart + 1, openEnd)) -- 244
-	if rawTag == "" then -- 244
-		return { -- 246
-			success = false, -- 246
-			message = "invalid xml: empty tag at offset " .. tostring(openStart) -- 246
-		} -- 246
-	end -- 246
-	local selfClosing = false -- 248
-	local tagText = rawTag -- 249
-	if __TS__StringEndsWith(tagText, "/") then -- 249
-		selfClosing = true -- 251
-		tagText = __TS__StringTrim(__TS__StringSlice(tagText, 0, #tagText - 1)) -- 252
-	end -- 252
-	local tagName = "" -- 254
-	do -- 254
-		local i = 0 -- 255
-		while i < #tagText do -- 255
-			local ch = __TS__StringAccess(tagText, i) -- 256
-			if isXMLWhitespaceChar(ch) or ch == "/" then -- 256
-				break -- 257
-			end -- 257
-			tagName = tagName .. ch -- 258
-			i = i + 1 -- 255
-		end -- 255
-	end -- 255
-	if tagName == "" then -- 255
-		return {success = false, message = ("invalid xml: unsupported tag syntax <" .. rawTag) .. ">"} -- 261
-	end -- 261
-	return {success = true, tagName = tagName, selfClosing = selfClosing} -- 263
-end -- 243
-local function findMatchingXMLClose(source, tagName, contentStart) -- 266
-	local sameOpenPrefix = "<" .. tagName -- 267
-	local sameCloseToken = ("</" .. tagName) .. ">" -- 268
-	local pos = contentStart -- 269
-	local depth = 1 -- 270
-	while pos < #source do -- 270
-		do -- 270
-			local lt = (string.find( -- 272
-				source, -- 272
-				"<", -- 272
-				math.max(pos + 1, 1), -- 272
-				true -- 272
-			) or 0) - 1 -- 272
-			if lt < 0 then -- 272
-				break -- 273
-			end -- 273
-			if __TS__StringStartsWith(source, "<![CDATA[", lt) then -- 273
-				local cdataEnd = (string.find( -- 275
-					source, -- 275
-					"]]>", -- 275
-					math.max(lt + 9 + 1, 1), -- 275
-					true -- 275
-				) or 0) - 1 -- 275
-				if cdataEnd < 0 then -- 275
-					return {success = false, message = "invalid xml: unterminated CDATA"} -- 276
-				end -- 276
-				pos = cdataEnd + 3 -- 277
-				goto __continue68 -- 278
-			end -- 278
+	local keepHead = math.max( -- 203
+		0, -- 203
+		math.floor(targetChars * 0.35) -- 203
+	) -- 203
+	local keepTail = math.max(0, targetChars - keepHead) -- 204
+	local head = keepHead > 0 and utf8TakeHead(text, keepHead) or "" -- 205
+	local tail = keepTail > 0 and utf8TakeTail(text, keepTail) or "" -- 206
+	return (head .. "\n...\n") .. tail -- 207
+end -- 197
+local function isXMLWhitespaceChar(ch) -- 210
+	return ch == " " or ch == "\t" or ch == "\n" or ch == "\r" -- 211
+end -- 210
+local function findLineStart(value, from) -- 214
+	local i = from -- 215
+	while i >= 0 do -- 215
+		if __TS__StringAccess(value, i) == "\n" then -- 215
+			return i + 1 -- 217
+		end -- 217
+		i = i - 1 -- 218
+	end -- 218
+	return 0 -- 220
+end -- 214
+local function findLastLiteral(text, needle) -- 223
+	if needle == "" then -- 223
+		return #text -- 224
+	end -- 224
+	local last = -1 -- 225
+	local from = 0 -- 226
+	while from <= #text - #needle do -- 226
+		local pos = (string.find( -- 228
+			text, -- 228
+			needle, -- 228
+			math.max(from + 1, 1), -- 228
+			true -- 228
+		) or 0) - 1 -- 228
+		if pos < 0 then -- 228
+			break -- 229
+		end -- 229
+		last = pos -- 230
+		from = pos + 1 -- 231
+	end -- 231
+	return last -- 233
+end -- 223
+local function unwrapXMLRawText(text) -- 236
+	local trimmed = __TS__StringTrim(text) -- 237
+	if __TS__StringStartsWith(trimmed, "<![CDATA[") and __TS__StringEndsWith(trimmed, "]]>") then -- 237
+		return __TS__StringSlice(trimmed, 9, #trimmed - 3) -- 239
+	end -- 239
+	return text -- 241
+end -- 236
+local function readSimpleXMLTagName(source, openStart, openEnd) -- 244
+	local rawTag = __TS__StringTrim(__TS__StringSlice(source, openStart + 1, openEnd)) -- 245
+	if rawTag == "" then -- 245
+		return { -- 247
+			success = false, -- 247
+			message = "invalid xml: empty tag at offset " .. tostring(openStart) -- 247
+		} -- 247
+	end -- 247
+	local selfClosing = false -- 249
+	local tagText = rawTag -- 250
+	if __TS__StringEndsWith(tagText, "/") then -- 250
+		selfClosing = true -- 252
+		tagText = __TS__StringTrim(__TS__StringSlice(tagText, 0, #tagText - 1)) -- 253
+	end -- 253
+	local tagName = "" -- 255
+	do -- 255
+		local i = 0 -- 256
+		while i < #tagText do -- 256
+			local ch = __TS__StringAccess(tagText, i) -- 257
+			if isXMLWhitespaceChar(ch) or ch == "/" then -- 257
+				break -- 258
+			end -- 258
+			tagName = tagName .. ch -- 259
+			i = i + 1 -- 256
+		end -- 256
+	end -- 256
+	if tagName == "" then -- 256
+		return {success = false, message = ("invalid xml: unsupported tag syntax <" .. rawTag) .. ">"} -- 262
+	end -- 262
+	return {success = true, tagName = tagName, selfClosing = selfClosing} -- 264
+end -- 244
+local function findMatchingXMLClose(source, tagName, contentStart) -- 267
+	local sameOpenPrefix = "<" .. tagName -- 268
+	local sameCloseToken = ("</" .. tagName) .. ">" -- 269
+	local pos = contentStart -- 270
+	local depth = 1 -- 271
+	while pos < #source do -- 271
+		do -- 271
+			local lt = (string.find( -- 273
+				source, -- 273
+				"<", -- 273
+				math.max(pos + 1, 1), -- 273
+				true -- 273
+			) or 0) - 1 -- 273
+			if lt < 0 then -- 273
+				break -- 274
+			end -- 274
+			if __TS__StringStartsWith(source, "<![CDATA[", lt) then -- 274
+				local cdataEnd = (string.find( -- 276
+					source, -- 276
+					"]]>", -- 276
+					math.max(lt + 9 + 1, 1), -- 276
+					true -- 276
+				) or 0) - 1 -- 276
+				if cdataEnd < 0 then -- 276
+					return {success = false, message = "invalid xml: unterminated CDATA"} -- 277
+				end -- 277
+				pos = cdataEnd + 3 -- 278
+				goto __continue68 -- 279
+			end -- 279
 			if __TS__StringStartsWith(source, "<!--", lt) then
-				local commentEnd = (string.find( -- 281
-					source, -- 281
+				local commentEnd = (string.find( -- 282
+					source, -- 282
 					"-->",
-					math.max(lt + 4 + 1, 1), -- 281
-					true -- 281
-				) or 0) - 1 -- 281
-				if commentEnd < 0 then -- 281
-					return {success = false, message = "invalid xml: unterminated comment"} -- 282
-				end -- 282
-				pos = commentEnd + 3 -- 283
-				goto __continue68 -- 284
-			end -- 284
-			if __TS__StringStartsWith(source, sameCloseToken, lt) then -- 284
-				depth = depth - 1 -- 287
-				if depth == 0 then -- 287
-					return {success = true, closeStart = lt} -- 288
-				end -- 288
-				pos = lt + #sameCloseToken -- 289
-				goto __continue68 -- 290
-			end -- 290
-			if __TS__StringStartsWith(source, sameOpenPrefix, lt) then -- 290
-				local openEnd = (string.find( -- 293
-					source, -- 293
-					">", -- 293
-					math.max(lt + 1, 1), -- 293
-					true -- 293
-				) or 0) - 1 -- 293
-				if openEnd < 0 then -- 293
-					return {success = false, message = "invalid xml: unterminated opening tag"} -- 294
-				end -- 294
-				local tagInfo = readSimpleXMLTagName(source, lt, openEnd) -- 295
-				if not tagInfo.success then -- 295
-					return tagInfo -- 296
-				end -- 296
-				if tagInfo.tagName == tagName and not tagInfo.selfClosing then -- 296
-					depth = depth + 1 -- 298
-				end -- 298
-				pos = openEnd + 1 -- 300
-				goto __continue68 -- 301
-			end -- 301
-			local genericEnd = (string.find( -- 303
-				source, -- 303
-				">", -- 303
-				math.max(lt + 1, 1), -- 303
-				true -- 303
-			) or 0) - 1 -- 303
-			if genericEnd < 0 then -- 303
-				return {success = false, message = "invalid xml: unterminated nested tag"} -- 304
-			end -- 304
-			pos = genericEnd + 1 -- 305
-		end -- 305
-		::__continue68:: -- 305
-	end -- 305
-	return {success = false, message = ("invalid xml: missing closing tag </" .. tagName) .. ">"} -- 307
-end -- 266
-function ____exports.extractXMLFromText(text) -- 310
-	local source = __TS__StringTrim(text) -- 311
-	local function extractFencedBlock(fence) -- 312
-		if not __TS__StringStartsWith(source, fence) then -- 312
-			return nil -- 313
-		end -- 313
-		local firstLineEnd = (string.find( -- 314
-			source, -- 314
-			"\n", -- 314
-			math.max(1, 1), -- 314
-			true -- 314
-		) or 0) - 1 -- 314
-		if firstLineEnd < 0 then -- 314
-			return nil -- 315
-		end -- 315
-		local searchPos = firstLineEnd + 1 -- 316
-		local closingFencePositions = {} -- 317
-		while searchPos < #source do -- 317
-			local ____end = (string.find( -- 319
-				source, -- 319
-				"```", -- 319
-				math.max(searchPos + 1, 1), -- 319
-				true -- 319
-			) or 0) - 1 -- 319
-			if ____end < 0 then -- 319
-				break -- 320
-			end -- 320
-			local lineStart = findLineStart(source, ____end - 1) -- 321
-			local lineEnd = (string.find( -- 322
-				source, -- 322
-				"\n", -- 322
-				math.max(____end + 1, 1), -- 322
-				true -- 322
-			) or 0) - 1 -- 322
-			local actualLineEnd = lineEnd >= 0 and lineEnd or #source -- 323
-			if __TS__StringTrim(__TS__StringSlice(source, lineStart, actualLineEnd)) == "```" then -- 323
-				closingFencePositions[#closingFencePositions + 1] = ____end -- 325
-			end -- 325
-			searchPos = ____end + 1 -- 327
-		end -- 327
-		do -- 327
-			local i = #closingFencePositions - 1 -- 329
-			while i >= 0 do -- 329
-				do -- 329
-					local closingFencePos = closingFencePositions[i + 1] -- 330
-					local afterFence = __TS__StringTrim(__TS__StringSlice(source, closingFencePos + 3)) -- 331
-					if afterFence ~= "" then -- 331
-						goto __continue89 -- 332
-					end -- 332
-					return __TS__StringTrim(__TS__StringSlice(source, firstLineEnd + 1, closingFencePos)) -- 333
-				end -- 333
-				::__continue89:: -- 333
-				i = i - 1 -- 329
-			end -- 329
-		end -- 329
-		return nil -- 335
-	end -- 312
-	local xmlBlock = extractFencedBlock("```xml") -- 337
-	if xmlBlock ~= nil then -- 337
-		return xmlBlock -- 338
-	end -- 338
-	local genericBlock = extractFencedBlock("```") -- 339
-	if genericBlock ~= nil then -- 339
-		return genericBlock -- 340
-	end -- 340
-	return source -- 341
-end -- 310
-function ____exports.parseSimpleXMLChildren(source) -- 344
-	local result = {} -- 345
-	local pos = 0 -- 346
-	while pos < #source do -- 346
-		do -- 346
-			while pos < #source and isXMLWhitespaceChar(__TS__StringAccess(source, pos)) do -- 346
-				pos = pos + 1 -- 348
-			end -- 348
-			if pos >= #source then -- 348
-				break -- 349
+					math.max(lt + 4 + 1, 1), -- 282
+					true -- 282
+				) or 0) - 1 -- 282
+				if commentEnd < 0 then -- 282
+					return {success = false, message = "invalid xml: unterminated comment"} -- 283
+				end -- 283
+				pos = commentEnd + 3 -- 284
+				goto __continue68 -- 285
+			end -- 285
+			if __TS__StringStartsWith(source, sameCloseToken, lt) then -- 285
+				depth = depth - 1 -- 288
+				if depth == 0 then -- 288
+					return {success = true, closeStart = lt} -- 289
+				end -- 289
+				pos = lt + #sameCloseToken -- 290
+				goto __continue68 -- 291
+			end -- 291
+			if __TS__StringStartsWith(source, sameOpenPrefix, lt) then -- 291
+				local openEnd = (string.find( -- 294
+					source, -- 294
+					">", -- 294
+					math.max(lt + 1, 1), -- 294
+					true -- 294
+				) or 0) - 1 -- 294
+				if openEnd < 0 then -- 294
+					return {success = false, message = "invalid xml: unterminated opening tag"} -- 295
+				end -- 295
+				local tagInfo = readSimpleXMLTagName(source, lt, openEnd) -- 296
+				if not tagInfo.success then -- 296
+					return tagInfo -- 297
+				end -- 297
+				if tagInfo.tagName == tagName and not tagInfo.selfClosing then -- 297
+					depth = depth + 1 -- 299
+				end -- 299
+				pos = openEnd + 1 -- 301
+				goto __continue68 -- 302
+			end -- 302
+			local genericEnd = (string.find( -- 304
+				source, -- 304
+				">", -- 304
+				math.max(lt + 1, 1), -- 304
+				true -- 304
+			) or 0) - 1 -- 304
+			if genericEnd < 0 then -- 304
+				return {success = false, message = "invalid xml: unterminated nested tag"} -- 305
+			end -- 305
+			pos = genericEnd + 1 -- 306
+		end -- 306
+		::__continue68:: -- 306
+	end -- 306
+	return {success = false, message = ("invalid xml: missing closing tag </" .. tagName) .. ">"} -- 308
+end -- 267
+function ____exports.extractXMLFromText(text) -- 311
+	local source = __TS__StringTrim(text) -- 312
+	local function extractFencedBlock(fence) -- 313
+		if not __TS__StringStartsWith(source, fence) then -- 313
+			return nil -- 314
+		end -- 314
+		local firstLineEnd = (string.find( -- 315
+			source, -- 315
+			"\n", -- 315
+			math.max(1, 1), -- 315
+			true -- 315
+		) or 0) - 1 -- 315
+		if firstLineEnd < 0 then -- 315
+			return nil -- 316
+		end -- 316
+		local searchPos = firstLineEnd + 1 -- 317
+		local closingFencePositions = {} -- 318
+		while searchPos < #source do -- 318
+			local ____end = (string.find( -- 320
+				source, -- 320
+				"```", -- 320
+				math.max(searchPos + 1, 1), -- 320
+				true -- 320
+			) or 0) - 1 -- 320
+			if ____end < 0 then -- 320
+				break -- 321
+			end -- 321
+			local lineStart = findLineStart(source, ____end - 1) -- 322
+			local lineEnd = (string.find( -- 323
+				source, -- 323
+				"\n", -- 323
+				math.max(____end + 1, 1), -- 323
+				true -- 323
+			) or 0) - 1 -- 323
+			local actualLineEnd = lineEnd >= 0 and lineEnd or #source -- 324
+			if __TS__StringTrim(__TS__StringSlice(source, lineStart, actualLineEnd)) == "```" then -- 324
+				closingFencePositions[#closingFencePositions + 1] = ____end -- 326
+			end -- 326
+			searchPos = ____end + 1 -- 328
+		end -- 328
+		do -- 328
+			local i = #closingFencePositions - 1 -- 330
+			while i >= 0 do -- 330
+				do -- 330
+					local closingFencePos = closingFencePositions[i + 1] -- 331
+					local afterFence = __TS__StringTrim(__TS__StringSlice(source, closingFencePos + 3)) -- 332
+					if afterFence ~= "" then -- 332
+						goto __continue89 -- 333
+					end -- 333
+					return __TS__StringTrim(__TS__StringSlice(source, firstLineEnd + 1, closingFencePos)) -- 334
+				end -- 334
+				::__continue89:: -- 334
+				i = i - 1 -- 330
+			end -- 330
+		end -- 330
+		return nil -- 336
+	end -- 313
+	local xmlBlock = extractFencedBlock("```xml") -- 338
+	if xmlBlock ~= nil then -- 338
+		return xmlBlock -- 339
+	end -- 339
+	local genericBlock = extractFencedBlock("```") -- 340
+	if genericBlock ~= nil then -- 340
+		return genericBlock -- 341
+	end -- 341
+	return source -- 342
+end -- 311
+function ____exports.parseSimpleXMLChildren(source) -- 345
+	local result = {} -- 346
+	local pos = 0 -- 347
+	while pos < #source do -- 347
+		do -- 347
+			while pos < #source and isXMLWhitespaceChar(__TS__StringAccess(source, pos)) do -- 347
+				pos = pos + 1 -- 349
 			end -- 349
-			if __TS__StringAccess(source, pos) ~= "<" then -- 349
-				return { -- 351
-					success = false, -- 351
-					message = "invalid xml: expected tag at offset " .. tostring(pos) -- 351
-				} -- 351
-			end -- 351
-			if __TS__StringStartsWith(source, "</", pos) then -- 351
-				return { -- 354
-					success = false, -- 354
-					message = "invalid xml: unexpected closing tag at offset " .. tostring(pos) -- 354
-				} -- 354
-			end -- 354
-			local openEnd = (string.find( -- 356
-				source, -- 356
-				">", -- 356
-				math.max(pos + 1, 1), -- 356
-				true -- 356
-			) or 0) - 1 -- 356
-			if openEnd < 0 then -- 356
-				return {success = false, message = "invalid xml: unterminated opening tag"} -- 358
-			end -- 358
-			local tagInfo = readSimpleXMLTagName(source, pos, openEnd) -- 360
-			if not tagInfo.success then -- 360
-				return tagInfo -- 361
-			end -- 361
-			if tagInfo.selfClosing then -- 361
-				result[tagInfo.tagName] = "" -- 363
-				pos = openEnd + 1 -- 364
-				goto __continue94 -- 365
-			end -- 365
-			local closeRes = findMatchingXMLClose(source, tagInfo.tagName, openEnd + 1) -- 367
-			if not closeRes.success then -- 367
-				return closeRes -- 368
-			end -- 368
-			local closeToken = ("</" .. tagInfo.tagName) .. ">" -- 369
-			result[tagInfo.tagName] = unwrapXMLRawText(__TS__StringSlice(source, openEnd + 1, closeRes.closeStart)) -- 370
-			pos = closeRes.closeStart + #closeToken -- 371
-		end -- 371
-		::__continue94:: -- 371
-	end -- 371
-	return {success = true, obj = result} -- 373
-end -- 344
-function ____exports.parseXMLObjectFromText(text, rootTag) -- 376
-	local xmlText = ____exports.extractXMLFromText(text) -- 377
-	local rootOpen = ("<" .. rootTag) .. ">" -- 378
-	local rootClose = ("</" .. rootTag) .. ">" -- 379
-	local start = (string.find(xmlText, rootOpen, nil, true) or 0) - 1 -- 380
-	local ____end = findLastLiteral(xmlText, rootClose) -- 381
-	if start < 0 or ____end < start then -- 381
-		return {success = false, message = ("invalid xml: missing <" .. rootTag) .. "> root"} -- 383
-	end -- 383
-	local beforeRoot = __TS__StringTrim(__TS__StringSlice(xmlText, 0, start)) -- 385
-	local afterRoot = __TS__StringTrim(__TS__StringSlice(xmlText, ____end + #rootClose)) -- 386
-	if beforeRoot ~= "" or afterRoot ~= "" then -- 386
-		return {success = false, message = "invalid xml: root must be the only top-level block"} -- 388
-	end -- 388
-	local rootContent = __TS__StringSlice(xmlText, start + #rootOpen, ____end) -- 390
-	return ____exports.parseSimpleXMLChildren(rootContent) -- 391
-end -- 376
-function ____exports.fitMessagesToContext(messages, options, config) -- 394
-	local cloned = __TS__ArrayMap( -- 401
-		messages, -- 401
-		function(____, message) return __TS__ObjectAssign({}, message) end -- 401
-	) -- 401
-	local budgetTokens = getInputTokenBudget(cloned, options, config) -- 402
-	local originalTokens = estimateMessagesTokens(cloned) -- 403
-	if originalTokens <= budgetTokens then -- 403
-		return { -- 405
-			messages = cloned, -- 406
-			trimmed = false, -- 407
-			originalTokens = originalTokens, -- 408
-			fittedTokens = originalTokens, -- 409
-			budgetTokens = budgetTokens -- 410
-		} -- 410
-	end -- 410
-	local function roleOverhead(message) -- 414
-		return ____exports.estimateTextTokens(message.role or "") + 8 -- 414
-	end -- 414
-	local fixedOverhead = 0 -- 415
-	local contentIndexes = {} -- 416
-	do -- 416
-		local i = 0 -- 417
-		while i < #cloned do -- 417
-			fixedOverhead = fixedOverhead + roleOverhead(cloned[i + 1]) -- 418
-			contentIndexes[#contentIndexes + 1] = i -- 419
-			i = i + 1 -- 417
-		end -- 417
-	end -- 417
-	local contentBudget = math.max(64, budgetTokens - fixedOverhead) -- 421
-	if #contentIndexes == 1 then -- 421
-		local idx = contentIndexes[1] -- 423
-		cloned[idx + 1].content = ____exports.clipTextToTokenBudget(cloned[idx + 1].content or "", contentBudget) -- 424
-		local fittedTokens = estimateMessagesTokens(cloned) -- 425
-		return { -- 426
-			messages = cloned, -- 427
-			trimmed = true, -- 428
-			originalTokens = originalTokens, -- 429
-			fittedTokens = fittedTokens, -- 430
-			budgetTokens = budgetTokens -- 431
-		} -- 431
-	end -- 431
-	local nonSystemIndexes = {} -- 435
-	local systemIndexes = {} -- 436
-	do -- 436
-		local i = 0 -- 437
-		while i < #cloned do -- 437
-			if cloned[i + 1].role == "system" then -- 437
-				systemIndexes[#systemIndexes + 1] = i -- 438
-			else -- 438
-				nonSystemIndexes[#nonSystemIndexes + 1] = i -- 439
-			end -- 439
-			i = i + 1 -- 437
-		end -- 437
-	end -- 437
-	local ____array_0 = __TS__SparseArrayNew(table.unpack(nonSystemIndexes)) -- 437
-	__TS__SparseArrayPush( -- 437
-		____array_0, -- 437
-		table.unpack(systemIndexes) -- 441
-	) -- 441
-	local priorityIndexes = {__TS__SparseArraySpread(____array_0)} -- 441
-	local remainingContentBudget = contentBudget -- 442
-	do -- 442
-		local i = #priorityIndexes - 1 -- 443
-		while i >= 0 do -- 443
-			local idx = priorityIndexes[i + 1] -- 444
-			local message = cloned[idx + 1] -- 445
-			local minBudget = message.role == "system" and 96 or 192 -- 446
-			local target = math.max( -- 447
-				minBudget, -- 447
-				math.floor(remainingContentBudget / math.max(1, i + 1)) -- 447
-			) -- 447
-			message.content = ____exports.clipTextToTokenBudget(message.content or "", target) -- 448
-			remainingContentBudget = remainingContentBudget - ____exports.estimateTextTokens(message.content or "") -- 449
-			remainingContentBudget = math.max(0, remainingContentBudget) -- 450
-			i = i - 1 -- 443
-		end -- 443
-	end -- 443
-	local fittedTokens = estimateMessagesTokens(cloned) -- 453
-	if fittedTokens > budgetTokens then -- 453
-		do -- 453
-			local i = 0 -- 455
-			while i < #priorityIndexes and fittedTokens > budgetTokens do -- 455
-				local idx = priorityIndexes[i + 1] -- 456
-				local message = cloned[idx + 1] -- 457
-				local currentTokens = ____exports.estimateTextTokens(message.content or "") -- 458
-				local excess = fittedTokens - budgetTokens -- 459
-				local nextBudget = math.max(message.role == "system" and 48 or 96, currentTokens - excess - 16) -- 460
-				message.content = ____exports.clipTextToTokenBudget(message.content or "", nextBudget) -- 461
-				fittedTokens = estimateMessagesTokens(cloned) -- 462
-				i = i + 1 -- 455
-			end -- 455
-		end -- 455
-	end -- 455
-	if fittedTokens > budgetTokens then -- 455
-		do -- 455
-			local i = 0 -- 466
-			while i < #priorityIndexes and fittedTokens > budgetTokens do -- 466
-				do -- 466
-					local idx = priorityIndexes[i + 1] -- 467
-					if cloned[idx + 1].role == "system" then -- 467
-						goto __continue124 -- 468
-					end -- 468
-					cloned[idx + 1].content = ____exports.clipTextToTokenBudget(cloned[idx + 1].content or "", 48) -- 469
-					fittedTokens = estimateMessagesTokens(cloned) -- 470
-				end -- 470
-				::__continue124:: -- 470
-				i = i + 1 -- 466
-			end -- 466
-		end -- 466
-	end -- 466
-	return { -- 473
-		messages = cloned, -- 474
-		trimmed = true, -- 475
-		originalTokens = originalTokens, -- 476
-		fittedTokens = fittedTokens, -- 477
-		budgetTokens = budgetTokens -- 478
-	} -- 478
-end -- 394
-local function postLLM(messages, url, apiKey, model, options, stream, receiver, stopToken) -- 482
-	local data = __TS__ObjectAssign({}, options, {model = model, messages = messages, stream = stream}) -- 492
-	if stopToken == nil then -- 492
-		stopToken = {stopped = false} -- 498
-	end -- 498
-	return __TS__New( -- 499
-		__TS__Promise, -- 499
-		function(____, resolve, reject) -- 499
-			local requestId = 0 -- 500
-			local settled = false -- 501
-			local function finishResolve(text) -- 502
-				if settled then -- 502
-					return -- 503
-				end -- 503
-				settled = true -- 504
-				resolve(nil, text) -- 505
-			end -- 502
-			local function finishReject(err) -- 507
-				if settled then -- 507
-					return -- 508
-				end -- 508
-				settled = true -- 509
-				reject(nil, err) -- 510
-			end -- 507
-			Director.systemScheduler:schedule(function() -- 512
-				if not settled then -- 512
-					if stopToken.stopped then -- 512
-						if requestId ~= 0 then -- 512
-							HttpClient:cancel(requestId) -- 516
-							requestId = 0 -- 517
-						end -- 517
-						finishReject("request cancelled") -- 519
-						return true -- 520
-					end -- 520
-					return false -- 522
-				end -- 522
-				return true -- 524
-			end) -- 512
-			Director.systemScheduler:schedule(once(function() -- 526
-				emit( -- 527
-					"LLM_IN", -- 527
-					table.concat( -- 527
-						__TS__ArrayMap( -- 527
-							messages, -- 527
-							function(____, m, i) return (tostring(i) .. ": ") .. tostring(m.content) end -- 527
-						), -- 527
-						"\n" -- 527
-					) -- 527
-				) -- 527
-				local jsonStr, err = ____exports.safeJsonEncode(data) -- 528
-				if jsonStr ~= nil then -- 528
-					local headers = {"Authorization: Bearer " .. apiKey, "Content-Type: application/json", "Accept: application/json"} -- 530
-					requestId = receiver and HttpClient:post( -- 535
-						url, -- 536
-						headers, -- 536
-						jsonStr, -- 536
-						LLM_TIMEOUT, -- 536
-						function(data) -- 536
-							if stopToken.stopped then -- 536
-								return true -- 537
-							end -- 537
-							return receiver(data) -- 538
-						end, -- 536
-						function(data) -- 539
-							requestId = 0 -- 540
-							if data ~= nil then -- 540
-								finishResolve(data) -- 542
-							else -- 542
-								finishReject("failed to get http response") -- 544
-							end -- 544
-						end -- 539
-					) or HttpClient:post( -- 539
-						url, -- 547
-						headers, -- 547
-						jsonStr, -- 547
-						LLM_TIMEOUT, -- 547
-						function(data) -- 547
-							requestId = 0 -- 548
-							if stopToken.stopped then -- 548
-								finishReject("request cancelled") -- 550
-								return -- 551
-							end -- 551
-							if data ~= nil then -- 551
-								finishResolve(data) -- 554
-							else -- 554
-								finishReject("failed to get http response") -- 556
-							end -- 556
-						end -- 547
-					) -- 547
-					if requestId == 0 then -- 547
-						finishReject("failed to schedule http request") -- 560
-					elseif stopToken.stopped then -- 560
-						HttpClient:cancel(requestId) -- 562
-						requestId = 0 -- 563
-						finishReject("request cancelled") -- 564
-					end -- 564
-				else -- 564
-					finishReject(err) -- 567
-				end -- 567
-			end)) -- 526
-		end -- 499
-	) -- 499
-end -- 482
-function ____exports.createSSEJSONParser(opts) -- 577
-	local buffer = "" -- 582
-	local eventDataLines = {} -- 583
-	local function flushEventIfAny() -- 585
-		if #eventDataLines == 0 then -- 585
-			return -- 586
-		end -- 586
-		local dataPayload = table.concat(eventDataLines, "\n") -- 588
-		eventDataLines = {} -- 589
-		if dataPayload == "[DONE]" then -- 589
-			local ____opt_1 = opts.onDone -- 589
-			if ____opt_1 ~= nil then -- 589
-				____opt_1(dataPayload) -- 592
-			end -- 592
-			return -- 593
-		end -- 593
-		local obj, err = ____exports.safeJsonDecode(dataPayload) -- 596
-		if err == nil then -- 596
-			opts.onJSON(obj, dataPayload) -- 598
-		else -- 598
-			local ____opt_3 = opts.onError -- 598
-			if ____opt_3 ~= nil then -- 598
-				____opt_3(err, {raw = dataPayload}) -- 600
-			end -- 600
-		end -- 600
-	end -- 585
-	local function feed(chunk) -- 604
-		buffer = buffer .. chunk -- 605
-		while true do -- 605
-			do -- 605
-				local nl = (string.find(buffer, "\n", nil, true) or 0) - 1 -- 608
-				if nl < 0 then -- 608
-					break -- 609
-				end -- 609
-				local line = __TS__StringSlice(buffer, 0, nl) -- 611
-				buffer = __TS__StringSlice(buffer, nl + 1) -- 612
-				if __TS__StringEndsWith(line, "\r") then -- 612
-					line = string.sub(line, 1, -2) -- 614
-				end -- 614
-				if line == "" then -- 614
-					flushEventIfAny() -- 617
-					goto __continue158 -- 618
-				end -- 618
-				if __TS__StringStartsWith(line, ":") then -- 618
-					goto __continue158 -- 622
-				end -- 622
-				if __TS__StringStartsWith(line, "data:") then -- 622
-					local v = string.sub(line, 6) -- 625
-					if __TS__StringStartsWith(v, " ") then -- 625
-						v = string.sub(v, 2) -- 626
-					end -- 626
-					eventDataLines[#eventDataLines + 1] = v -- 627
-					goto __continue158 -- 628
-				end -- 628
-			end -- 628
-			::__continue158:: -- 628
-		end -- 628
-	end -- 604
-	local function ____end() -- 633
-		if #buffer > 0 then -- 633
-			local line = buffer -- 635
-			buffer = "" -- 636
-			if __TS__StringEndsWith(line, "\r") then -- 636
-				line = string.sub(line, 1, -2) -- 637
-			end -- 637
-			if __TS__StringStartsWith(line, "data:") then -- 637
-				local v = string.sub(line, 6) -- 640
-				if __TS__StringStartsWith(v, " ") then -- 640
-					v = string.sub(v, 2) -- 641
-				end -- 641
-				eventDataLines[#eventDataLines + 1] = v -- 642
-			end -- 642
-		end -- 642
-		flushEventIfAny() -- 645
-	end -- 633
-	return {feed = feed, ["end"] = ____end} -- 648
-end -- 577
-local function normalizeContextWindow(value) -- 717
-	if type(value) == "number" then -- 717
-		return math.max( -- 719
-			4000, -- 719
-			math.floor(value) -- 719
-		) -- 719
-	end -- 719
-	return 64000 -- 721
-end -- 717
-local function normalizeSupportsFunctionCalling(value) -- 724
-	return value == nil or value == nil or value ~= 0 -- 725
-end -- 724
-function ____exports.getActiveLLMConfig() -- 728
-	local rows = DB:query("select * from LLMConfig", true) -- 729
-	local records = {} -- 730
-	if rows and #rows > 1 then -- 730
-		do -- 730
-			local i = 1 -- 732
-			while i < #rows do -- 732
-				local record = {} -- 733
-				do -- 733
-					local c = 0 -- 734
-					while c < #rows[i + 1] do -- 734
-						record[rows[1][c + 1]] = rows[i + 1][c + 1] -- 735
-						c = c + 1 -- 734
-					end -- 734
-				end -- 734
-				records[#records + 1] = record -- 737
-				i = i + 1 -- 732
-			end -- 732
-		end -- 732
-	end -- 732
-	local config = __TS__ArrayFind( -- 740
-		records, -- 740
-		function(____, r) return r.active ~= 0 end -- 740
-	) -- 740
-	if not config then -- 740
-		return {success = false, message = "no active LLM config"} -- 742
-	end -- 742
-	local url = config.url -- 742
-	local model = config.model -- 742
-	local api_key = config.api_key -- 742
-	if type(url) ~= "string" or type(model) ~= "string" or type(api_key) ~= "string" then -- 742
-		return {success = false, message = "got invalude LLM config"} -- 746
-	end -- 746
-	return { -- 748
-		success = true, -- 749
-		config = { -- 750
-			url = url, -- 751
-			model = model, -- 752
-			apiKey = api_key, -- 753
-			contextWindow = normalizeContextWindow(config.context_window), -- 754
-			supportsFunctionCalling = normalizeSupportsFunctionCalling(config.supports_function_calling) -- 755
-		} -- 755
-	} -- 755
-end -- 728
-____exports.callLLMStream = function(messages, options, event, llmConfig) -- 760
-	local callEvent -- 766
-	if event.id ~= nil then -- 766
-		local id = event.id -- 768
-		callEvent = { -- 769
-			id = nil, -- 770
-			onData = function(data) -- 771
-				emit("AppWS", "Send", {name = "LLMContent", id = id, data = data}) -- 772
-				return event.stopToken.stopped -- 773
-			end, -- 771
-			onCancel = function(reason) -- 775
-				emit("AppWS", "Send", {name = "LLMCancel", id = id, reason = reason}) -- 776
-			end, -- 775
-			onDone = function() -- 778
-				emit("AppWS", "Send", {name = "LLMDone", id = id}) -- 779
-			end -- 778
-		} -- 778
-	else -- 778
-		callEvent = event -- 783
-	end -- 783
-	local ____callEvent_5 = callEvent -- 785
-	local onData = ____callEvent_5.onData -- 785
-	local onDone = ____callEvent_5.onDone -- 785
-	local ____callEvent_6 = callEvent -- 786
-	local onCancel = ____callEvent_6.onCancel -- 786
-	local config = llmConfig or (function() -- 787
-		local configRes = ____exports.getActiveLLMConfig() -- 788
-		if not configRes.success then -- 788
-			if onCancel then -- 788
-				onCancel(configRes.message) -- 790
-			end -- 790
-			return nil -- 791
-		end -- 791
-		return configRes.config -- 793
-	end)() -- 787
-	if not config then -- 787
-		return {success = false, message = "no active LLM config"} -- 796
-	end -- 796
-	local url = config.url -- 796
-	local model = config.model -- 796
-	local apiKey = config.apiKey -- 796
-	local fitted = ____exports.fitMessagesToContext(messages, options, config) -- 799
-	if fitted.trimmed then -- 799
-		____exports.Log( -- 801
-			"Warn", -- 801
-			(((("[Agent.Utils] callLLMStream trimmed input tokens=" .. tostring(fitted.originalTokens)) .. " budget=") .. tostring(fitted.budgetTokens)) .. " fitted=") .. tostring(fitted.fittedTokens) -- 801
-		) -- 801
-	end -- 801
-	local stopLLM = false -- 803
-	local parser = ____exports.createSSEJSONParser({onJSON = function(obj) -- 804
-		local result = onData(obj) -- 806
-		if result then -- 806
-			stopLLM = result -- 807
-		end -- 807
-	end}); -- 805
-	(function() -- 810
-		return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 810
-			local ____try = __TS__AsyncAwaiter(function() -- 810
-				local ____array_8 = __TS__SparseArrayNew( -- 810
-					fitted.messages, -- 812
-					url, -- 812
-					apiKey, -- 812
-					model, -- 812
-					options, -- 812
-					true, -- 812
-					function(data) -- 812
-						if stopLLM then -- 812
-							if onCancel then -- 812
-								onCancel("LLM Stopped") -- 815
-								onCancel = nil -- 816
-							end -- 816
-							return true -- 818
-						end -- 818
-						parser.feed(data) -- 820
-						return false -- 821
-					end -- 812
-				) -- 812
-				local ____temp_7 -- 822
-				if event.stopToken ~= nil then -- 822
-					____temp_7 = event.stopToken -- 822
-				else -- 822
-					____temp_7 = nil -- 822
-				end -- 822
-				__TS__SparseArrayPush(____array_8, ____temp_7) -- 822
-				local result = __TS__Await(postLLM(__TS__SparseArraySpread(____array_8))) -- 812
-				parser["end"]() -- 823
-				if onDone then -- 823
-					onDone(result) -- 825
-				end -- 825
-			end) -- 825
-			__TS__Await(____try.catch( -- 811
-				____try, -- 811
-				function(____, e) -- 811
-					stopLLM = true -- 828
-					if onCancel then -- 828
-						onCancel(tostring(e)) -- 830
-						onCancel = nil -- 831
-					end -- 831
-				end -- 831
-			)) -- 831
-		end) -- 831
-	end)() -- 810
-	return {success = true} -- 835
-end -- 760
-function ____exports.callLLM(messages, options, stopTokenOrConfig, llmConfig) -- 838
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 838
-		local stopToken = stopTokenOrConfig and stopTokenOrConfig.stopped ~= nil and stopTokenOrConfig or nil -- 844
-		local config = stopTokenOrConfig and stopTokenOrConfig.url ~= nil and stopTokenOrConfig or llmConfig -- 845
-		local resolvedConfig = config or (function() -- 848
-			local configRes = ____exports.getActiveLLMConfig() -- 849
-			if not configRes.success then -- 849
-				____exports.Log("Error", "[Agent.Utils] callLLMOnce config error: " .. configRes.message) -- 851
-				return nil -- 852
-			end -- 852
-			return configRes.config -- 854
-		end)() -- 848
-		if not resolvedConfig then -- 848
-			return ____awaiter_resolve(nil, {success = false, message = "no active LLM config"}) -- 848
-		end -- 848
-		local url = resolvedConfig.url -- 848
-		local model = resolvedConfig.model -- 848
-		local apiKey = resolvedConfig.apiKey -- 848
-		local fitted = ____exports.fitMessagesToContext(messages, options, resolvedConfig) -- 860
-		____exports.Log( -- 861
-			"Info", -- 861
-			((((("[Agent.Utils] callLLMOnce request model=" .. model) .. " url=") .. url) .. " messages=") .. tostring(#messages)) .. (fitted.trimmed and ((((" trimmed_tokens=" .. tostring(fitted.originalTokens)) .. "->") .. tostring(fitted.fittedTokens)) .. "/") .. tostring(fitted.budgetTokens) or "") -- 861
-		) -- 861
-		if stopToken and stopToken.stopped then -- 861
-			local reason = stopToken.reason or "request cancelled" -- 863
-			____exports.Log("Info", "[Agent.Utils] callLLMOnce cancelled before request: " .. reason) -- 864
-			return ____awaiter_resolve(nil, {success = false, message = reason}) -- 864
-		end -- 864
-		local ____try = __TS__AsyncAwaiter(function() -- 864
-			local raw = ____exports.sanitizeUTF8(__TS__Await(postLLM( -- 868
-				fitted.messages, -- 868
-				url, -- 868
-				apiKey, -- 868
-				model, -- 868
-				options, -- 868
-				false, -- 868
-				nil, -- 868
-				stopToken -- 868
-			))) -- 868
-			____exports.Log( -- 869
-				"Info", -- 869
-				"[Agent.Utils] callLLMOnce raw response length=" .. tostring(#raw) -- 869
-			) -- 869
-			local response, err = ____exports.safeJsonDecode(raw) -- 870
-			if err ~= nil or response == nil or type(response) ~= "table" then -- 870
-				local rawPreview = previewText(raw) -- 872
-				____exports.Log( -- 873
-					"Error", -- 873
-					(("[Agent.Utils] callLLMOnce invalid JSON: " .. tostring(err)) .. " raw_preview=") .. rawPreview -- 873
-				) -- 873
-				return ____awaiter_resolve( -- 873
-					nil, -- 873
-					{ -- 874
-						success = false, -- 875
-						message = (("invalid LLM response JSON: " .. tostring(err)) .. "; raw=") .. rawPreview, -- 876
-						raw = raw -- 877
-					} -- 877
-				) -- 877
-			end -- 877
-			local responseObj = response -- 880
-			local choiceCount = responseObj.choices and #responseObj.choices or 0 -- 881
-			____exports.Log( -- 882
-				"Info", -- 882
-				"[Agent.Utils] callLLMOnce decoded response choices=" .. tostring(choiceCount) -- 882
-			) -- 882
-			if not responseObj.choices or #responseObj.choices == 0 then -- 882
-				local providerError = responseObj.error -- 884
-				local providerMessage = providerError and type(providerError.message) == "string" and providerError.message or "" -- 885
-				local providerType = providerError and type(providerError.type) == "string" and providerError.type or "" -- 888
-				local providerCode = providerError and (type(providerError.code) == "string" or type(providerError.code) == "number") and tostring(providerError.code) or "" -- 891
-				local details = table.concat( -- 894
-					__TS__ArrayFilter( -- 894
-						{providerType, providerCode}, -- 894
-						function(____, part) return part ~= "" end -- 894
-					), -- 894
-					"/" -- 894
-				) -- 894
-				local rawPreview = previewText(raw, 400) -- 895
-				local message = providerMessage ~= "" and ("LLM returned no choices: " .. providerMessage) .. (details ~= "" and (" (" .. details) .. ")" or "") or "LLM returned no choices; raw=" .. rawPreview -- 896
-				____exports.Log("Error", "[Agent.Utils] callLLMOnce empty choices raw_preview=" .. rawPreview) -- 899
-				return ____awaiter_resolve(nil, {success = false, message = message, raw = raw}) -- 899
-			end -- 899
-			return ____awaiter_resolve(nil, {success = true, response = responseObj}) -- 899
-		end) -- 899
-		__TS__Await(____try.catch( -- 867
-			____try, -- 867
-			function(____, e) -- 867
-				if stopToken and stopToken.stopped then -- 867
-					local reason = stopToken.reason or "request cancelled" -- 912
-					____exports.Log("Info", "[Agent.Utils] callLLMOnce cancelled during request: " .. reason) -- 913
-					return ____awaiter_resolve(nil, {success = false, message = reason}) -- 913
-				end -- 913
-				____exports.Log( -- 916
-					"Error", -- 916
-					"[Agent.Utils] callLLMOnce exception: " .. tostring(e) -- 916
-				) -- 916
-				return ____awaiter_resolve( -- 916
-					nil, -- 916
-					{ -- 917
-						success = false, -- 917
-						message = tostring(e) -- 917
-					} -- 917
-				) -- 917
-			end -- 917
-		)) -- 917
-	end) -- 917
-end -- 838
-return ____exports -- 838
+			if pos >= #source then -- 349
+				break -- 350
+			end -- 350
+			if __TS__StringAccess(source, pos) ~= "<" then -- 350
+				return { -- 352
+					success = false, -- 352
+					message = "invalid xml: expected tag at offset " .. tostring(pos) -- 352
+				} -- 352
+			end -- 352
+			if __TS__StringStartsWith(source, "</", pos) then -- 352
+				return { -- 355
+					success = false, -- 355
+					message = "invalid xml: unexpected closing tag at offset " .. tostring(pos) -- 355
+				} -- 355
+			end -- 355
+			local openEnd = (string.find( -- 357
+				source, -- 357
+				">", -- 357
+				math.max(pos + 1, 1), -- 357
+				true -- 357
+			) or 0) - 1 -- 357
+			if openEnd < 0 then -- 357
+				return {success = false, message = "invalid xml: unterminated opening tag"} -- 359
+			end -- 359
+			local tagInfo = readSimpleXMLTagName(source, pos, openEnd) -- 361
+			if not tagInfo.success then -- 361
+				return tagInfo -- 362
+			end -- 362
+			if tagInfo.selfClosing then -- 362
+				result[tagInfo.tagName] = "" -- 364
+				pos = openEnd + 1 -- 365
+				goto __continue94 -- 366
+			end -- 366
+			local closeRes = findMatchingXMLClose(source, tagInfo.tagName, openEnd + 1) -- 368
+			if not closeRes.success then -- 368
+				return closeRes -- 369
+			end -- 369
+			local closeToken = ("</" .. tagInfo.tagName) .. ">" -- 370
+			result[tagInfo.tagName] = unwrapXMLRawText(__TS__StringSlice(source, openEnd + 1, closeRes.closeStart)) -- 371
+			pos = closeRes.closeStart + #closeToken -- 372
+		end -- 372
+		::__continue94:: -- 372
+	end -- 372
+	return {success = true, obj = result} -- 374
+end -- 345
+function ____exports.parseXMLObjectFromText(text, rootTag) -- 377
+	local xmlText = ____exports.extractXMLFromText(text) -- 378
+	local rootOpen = ("<" .. rootTag) .. ">" -- 379
+	local rootClose = ("</" .. rootTag) .. ">" -- 380
+	local start = (string.find(xmlText, rootOpen, nil, true) or 0) - 1 -- 381
+	local ____end = findLastLiteral(xmlText, rootClose) -- 382
+	if start < 0 or ____end < start then -- 382
+		return {success = false, message = ("invalid xml: missing <" .. rootTag) .. "> root"} -- 384
+	end -- 384
+	local beforeRoot = __TS__StringTrim(__TS__StringSlice(xmlText, 0, start)) -- 386
+	local afterRoot = __TS__StringTrim(__TS__StringSlice(xmlText, ____end + #rootClose)) -- 387
+	if beforeRoot ~= "" or afterRoot ~= "" then -- 387
+		return {success = false, message = "invalid xml: root must be the only top-level block"} -- 389
+	end -- 389
+	local rootContent = __TS__StringSlice(xmlText, start + #rootOpen, ____end) -- 391
+	return ____exports.parseSimpleXMLChildren(rootContent) -- 392
+end -- 377
+function ____exports.fitMessagesToContext(messages, options, config) -- 395
+	local cloned = __TS__ArrayMap( -- 402
+		messages, -- 402
+		function(____, message) return __TS__ObjectAssign({}, message) end -- 402
+	) -- 402
+	local budgetTokens = getInputTokenBudget(cloned, options, config) -- 403
+	local originalTokens = estimateMessagesTokens(cloned) -- 404
+	if originalTokens <= budgetTokens then -- 404
+		return { -- 406
+			messages = cloned, -- 407
+			trimmed = false, -- 408
+			originalTokens = originalTokens, -- 409
+			fittedTokens = originalTokens, -- 410
+			budgetTokens = budgetTokens -- 411
+		} -- 411
+	end -- 411
+	local function roleOverhead(message) -- 415
+		return ____exports.estimateTextTokens(message.role or "") + 8 -- 415
+	end -- 415
+	local fixedOverhead = 0 -- 416
+	local contentIndexes = {} -- 417
+	do -- 417
+		local i = 0 -- 418
+		while i < #cloned do -- 418
+			fixedOverhead = fixedOverhead + roleOverhead(cloned[i + 1]) -- 419
+			contentIndexes[#contentIndexes + 1] = i -- 420
+			i = i + 1 -- 418
+		end -- 418
+	end -- 418
+	local contentBudget = math.max(64, budgetTokens - fixedOverhead) -- 422
+	if #contentIndexes == 1 then -- 422
+		local idx = contentIndexes[1] -- 424
+		cloned[idx + 1].content = ____exports.clipTextToTokenBudget(cloned[idx + 1].content or "", contentBudget) -- 425
+		local fittedTokens = estimateMessagesTokens(cloned) -- 426
+		return { -- 427
+			messages = cloned, -- 428
+			trimmed = true, -- 429
+			originalTokens = originalTokens, -- 430
+			fittedTokens = fittedTokens, -- 431
+			budgetTokens = budgetTokens -- 432
+		} -- 432
+	end -- 432
+	local nonSystemIndexes = {} -- 436
+	local systemIndexes = {} -- 437
+	do -- 437
+		local i = 0 -- 438
+		while i < #cloned do -- 438
+			if cloned[i + 1].role == "system" then -- 438
+				systemIndexes[#systemIndexes + 1] = i -- 439
+			else -- 439
+				nonSystemIndexes[#nonSystemIndexes + 1] = i -- 440
+			end -- 440
+			i = i + 1 -- 438
+		end -- 438
+	end -- 438
+	local ____array_0 = __TS__SparseArrayNew(table.unpack(nonSystemIndexes)) -- 438
+	__TS__SparseArrayPush( -- 438
+		____array_0, -- 438
+		table.unpack(systemIndexes) -- 442
+	) -- 442
+	local priorityIndexes = {__TS__SparseArraySpread(____array_0)} -- 442
+	local remainingContentBudget = contentBudget -- 443
+	do -- 443
+		local i = #priorityIndexes - 1 -- 444
+		while i >= 0 do -- 444
+			local idx = priorityIndexes[i + 1] -- 445
+			local message = cloned[idx + 1] -- 446
+			local minBudget = message.role == "system" and 96 or 192 -- 447
+			local target = math.max( -- 448
+				minBudget, -- 448
+				math.floor(remainingContentBudget / math.max(1, i + 1)) -- 448
+			) -- 448
+			message.content = ____exports.clipTextToTokenBudget(message.content or "", target) -- 449
+			remainingContentBudget = remainingContentBudget - ____exports.estimateTextTokens(message.content or "") -- 450
+			remainingContentBudget = math.max(0, remainingContentBudget) -- 451
+			i = i - 1 -- 444
+		end -- 444
+	end -- 444
+	local fittedTokens = estimateMessagesTokens(cloned) -- 454
+	if fittedTokens > budgetTokens then -- 454
+		do -- 454
+			local i = 0 -- 456
+			while i < #priorityIndexes and fittedTokens > budgetTokens do -- 456
+				local idx = priorityIndexes[i + 1] -- 457
+				local message = cloned[idx + 1] -- 458
+				local currentTokens = ____exports.estimateTextTokens(message.content or "") -- 459
+				local excess = fittedTokens - budgetTokens -- 460
+				local nextBudget = math.max(message.role == "system" and 48 or 96, currentTokens - excess - 16) -- 461
+				message.content = ____exports.clipTextToTokenBudget(message.content or "", nextBudget) -- 462
+				fittedTokens = estimateMessagesTokens(cloned) -- 463
+				i = i + 1 -- 456
+			end -- 456
+		end -- 456
+	end -- 456
+	if fittedTokens > budgetTokens then -- 456
+		do -- 456
+			local i = 0 -- 467
+			while i < #priorityIndexes and fittedTokens > budgetTokens do -- 467
+				do -- 467
+					local idx = priorityIndexes[i + 1] -- 468
+					if cloned[idx + 1].role == "system" then -- 468
+						goto __continue124 -- 469
+					end -- 469
+					cloned[idx + 1].content = ____exports.clipTextToTokenBudget(cloned[idx + 1].content or "", 48) -- 470
+					fittedTokens = estimateMessagesTokens(cloned) -- 471
+				end -- 471
+				::__continue124:: -- 471
+				i = i + 1 -- 467
+			end -- 467
+		end -- 467
+	end -- 467
+	return { -- 474
+		messages = cloned, -- 475
+		trimmed = true, -- 476
+		originalTokens = originalTokens, -- 477
+		fittedTokens = fittedTokens, -- 478
+		budgetTokens = budgetTokens -- 479
+	} -- 479
+end -- 395
+local function postLLM(messages, url, apiKey, model, options, stream, receiver, stopToken) -- 483
+	local requestTimeout = stream and LLM_STREAM_TIMEOUT or LLM_TIMEOUT -- 493
+	local data = __TS__ObjectAssign({}, options, {model = model, messages = messages, stream = stream}) -- 494
+	if stopToken == nil then -- 494
+		stopToken = {stopped = false} -- 500
+	end -- 500
+	return __TS__New( -- 501
+		__TS__Promise, -- 501
+		function(____, resolve, reject) -- 501
+			local requestId = 0 -- 502
+			local settled = false -- 503
+			local function finishResolve(text) -- 504
+				if settled then -- 504
+					return -- 505
+				end -- 505
+				settled = true -- 506
+				resolve(nil, text) -- 507
+			end -- 504
+			local function finishReject(err) -- 509
+				if settled then -- 509
+					return -- 510
+				end -- 510
+				settled = true -- 511
+				reject(nil, err) -- 512
+			end -- 509
+			Director.systemScheduler:schedule(function() -- 514
+				if not settled then -- 514
+					if stopToken.stopped then -- 514
+						if requestId ~= 0 then -- 514
+							HttpClient:cancel(requestId) -- 518
+							requestId = 0 -- 519
+						end -- 519
+						finishReject("request cancelled") -- 521
+						return true -- 522
+					end -- 522
+					return false -- 524
+				end -- 524
+				return true -- 526
+			end) -- 514
+			Director.systemScheduler:schedule(once(function() -- 528
+				emit( -- 529
+					"LLM_IN", -- 529
+					table.concat( -- 529
+						__TS__ArrayMap( -- 529
+							messages, -- 529
+							function(____, m, i) return (tostring(i) .. ": ") .. tostring(m.content) end -- 529
+						), -- 529
+						"\n" -- 529
+					) -- 529
+				) -- 529
+				local jsonStr, err = ____exports.safeJsonEncode(data) -- 530
+				if jsonStr ~= nil then -- 530
+					local headers = {"Authorization: Bearer " .. apiKey, "Content-Type: application/json", "Accept: application/json"} -- 532
+					requestId = receiver and HttpClient:post( -- 537
+						url, -- 538
+						headers, -- 538
+						jsonStr, -- 538
+						requestTimeout, -- 538
+						function(data) -- 538
+							if stopToken.stopped then -- 538
+								return true -- 539
+							end -- 539
+							return receiver(data) -- 540
+						end, -- 538
+						function(data) -- 541
+							requestId = 0 -- 542
+							if data ~= nil then -- 542
+								finishResolve(data) -- 544
+							else -- 544
+								finishReject("failed to get http response") -- 546
+							end -- 546
+						end -- 541
+					) or HttpClient:post( -- 541
+						url, -- 549
+						headers, -- 549
+						jsonStr, -- 549
+						requestTimeout, -- 549
+						function(data) -- 549
+							requestId = 0 -- 550
+							if stopToken.stopped then -- 550
+								finishReject("request cancelled") -- 552
+								return -- 553
+							end -- 553
+							if data ~= nil then -- 553
+								finishResolve(data) -- 556
+							else -- 556
+								finishReject("failed to get http response") -- 558
+							end -- 558
+						end -- 549
+					) -- 549
+					if requestId == 0 then -- 549
+						finishReject("failed to schedule http request") -- 562
+					elseif stopToken.stopped then -- 562
+						HttpClient:cancel(requestId) -- 564
+						requestId = 0 -- 565
+						finishReject("request cancelled") -- 566
+					end -- 566
+				else -- 566
+					finishReject(err) -- 569
+				end -- 569
+			end)) -- 528
+		end -- 501
+	) -- 501
+end -- 483
+function ____exports.createSSEJSONParser(opts) -- 579
+	local buffer = "" -- 584
+	local eventDataLines = {} -- 585
+	local function flushEventIfAny() -- 587
+		if #eventDataLines == 0 then -- 587
+			return -- 588
+		end -- 588
+		local dataPayload = table.concat(eventDataLines, "\n") -- 590
+		eventDataLines = {} -- 591
+		if dataPayload == "[DONE]" then -- 591
+			local ____opt_1 = opts.onDone -- 591
+			if ____opt_1 ~= nil then -- 591
+				____opt_1(dataPayload) -- 594
+			end -- 594
+			return -- 595
+		end -- 595
+		local obj, err = ____exports.safeJsonDecode(dataPayload) -- 598
+		if err == nil then -- 598
+			opts.onJSON(obj, dataPayload) -- 600
+		else -- 600
+			local ____opt_3 = opts.onError -- 600
+			if ____opt_3 ~= nil then -- 600
+				____opt_3(err, {raw = dataPayload}) -- 602
+			end -- 602
+		end -- 602
+	end -- 587
+	local function feed(chunk) -- 606
+		buffer = buffer .. chunk -- 607
+		while true do -- 607
+			do -- 607
+				local nl = (string.find(buffer, "\n", nil, true) or 0) - 1 -- 610
+				if nl < 0 then -- 610
+					break -- 611
+				end -- 611
+				local line = __TS__StringSlice(buffer, 0, nl) -- 613
+				buffer = __TS__StringSlice(buffer, nl + 1) -- 614
+				if __TS__StringEndsWith(line, "\r") then -- 614
+					line = string.sub(line, 1, -2) -- 616
+				end -- 616
+				if line == "" then -- 616
+					flushEventIfAny() -- 619
+					goto __continue158 -- 620
+				end -- 620
+				if __TS__StringStartsWith(line, ":") then -- 620
+					goto __continue158 -- 624
+				end -- 624
+				if __TS__StringStartsWith(line, "data:") then -- 624
+					local v = string.sub(line, 6) -- 627
+					if __TS__StringStartsWith(v, " ") then -- 627
+						v = string.sub(v, 2) -- 628
+					end -- 628
+					eventDataLines[#eventDataLines + 1] = v -- 629
+					goto __continue158 -- 630
+				end -- 630
+			end -- 630
+			::__continue158:: -- 630
+		end -- 630
+	end -- 606
+	local function ____end() -- 635
+		if #buffer > 0 then -- 635
+			local line = buffer -- 637
+			buffer = "" -- 638
+			if __TS__StringEndsWith(line, "\r") then -- 638
+				line = string.sub(line, 1, -2) -- 639
+			end -- 639
+			if __TS__StringStartsWith(line, "data:") then -- 639
+				local v = string.sub(line, 6) -- 642
+				if __TS__StringStartsWith(v, " ") then -- 642
+					v = string.sub(v, 2) -- 643
+				end -- 643
+				eventDataLines[#eventDataLines + 1] = v -- 644
+			end -- 644
+		end -- 644
+		flushEventIfAny() -- 647
+	end -- 635
+	return {feed = feed, ["end"] = ____end} -- 650
+end -- 579
+local function normalizeContextWindow(value) -- 741
+	if type(value) == "number" then -- 741
+		return math.max( -- 743
+			4000, -- 743
+			math.floor(value) -- 743
+		) -- 743
+	end -- 743
+	return 64000 -- 745
+end -- 741
+local function normalizeSupportsFunctionCalling(value) -- 748
+	return value == nil or value == nil or value ~= 0 -- 749
+end -- 748
+function ____exports.getActiveLLMConfig() -- 752
+	local rows = DB:query("select * from LLMConfig", true) -- 753
+	local records = {} -- 754
+	if rows and #rows > 1 then -- 754
+		do -- 754
+			local i = 1 -- 756
+			while i < #rows do -- 756
+				local record = {} -- 757
+				do -- 757
+					local c = 0 -- 758
+					while c < #rows[i + 1] do -- 758
+						record[rows[1][c + 1]] = rows[i + 1][c + 1] -- 759
+						c = c + 1 -- 758
+					end -- 758
+				end -- 758
+				records[#records + 1] = record -- 761
+				i = i + 1 -- 756
+			end -- 756
+		end -- 756
+	end -- 756
+	local config = __TS__ArrayFind( -- 764
+		records, -- 764
+		function(____, r) return r.active ~= 0 end -- 764
+	) -- 764
+	if not config then -- 764
+		return {success = false, message = "no active LLM config"} -- 766
+	end -- 766
+	local url = config.url -- 766
+	local model = config.model -- 766
+	local api_key = config.api_key -- 766
+	if type(url) ~= "string" or type(model) ~= "string" or type(api_key) ~= "string" then -- 766
+		return {success = false, message = "got invalude LLM config"} -- 770
+	end -- 770
+	return { -- 772
+		success = true, -- 773
+		config = { -- 774
+			url = url, -- 775
+			model = model, -- 776
+			apiKey = api_key, -- 777
+			contextWindow = normalizeContextWindow(config.context_window), -- 778
+			supportsFunctionCalling = normalizeSupportsFunctionCalling(config.supports_function_calling) -- 779
+		} -- 779
+	} -- 779
+end -- 752
+____exports.callLLMStream = function(messages, options, event, llmConfig) -- 784
+	local callEvent -- 790
+	if event.id ~= nil then -- 790
+		local id = event.id -- 792
+		callEvent = { -- 793
+			id = nil, -- 794
+			onData = function(data) -- 795
+				emit("AppWS", "Send", {name = "LLMContent", id = id, data = data}) -- 796
+				return event.stopToken.stopped -- 797
+			end, -- 795
+			onCancel = function(reason) -- 799
+				emit("AppWS", "Send", {name = "LLMCancel", id = id, reason = reason}) -- 800
+			end, -- 799
+			onDone = function() -- 802
+				emit("AppWS", "Send", {name = "LLMDone", id = id}) -- 803
+			end -- 802
+		} -- 802
+	else -- 802
+		callEvent = event -- 807
+	end -- 807
+	local ____callEvent_5 = callEvent -- 809
+	local onData = ____callEvent_5.onData -- 809
+	local onDone = ____callEvent_5.onDone -- 809
+	local ____callEvent_6 = callEvent -- 810
+	local onCancel = ____callEvent_6.onCancel -- 810
+	local config = llmConfig or (function() -- 811
+		local configRes = ____exports.getActiveLLMConfig() -- 812
+		if not configRes.success then -- 812
+			if onCancel then -- 812
+				onCancel(configRes.message) -- 814
+			end -- 814
+			return nil -- 815
+		end -- 815
+		return configRes.config -- 817
+	end)() -- 811
+	if not config then -- 811
+		return {success = false, message = "no active LLM config"} -- 820
+	end -- 820
+	local url = config.url -- 820
+	local model = config.model -- 820
+	local apiKey = config.apiKey -- 820
+	local fitted = ____exports.fitMessagesToContext(messages, options, config) -- 823
+	if fitted.trimmed then -- 823
+		____exports.Log( -- 825
+			"Warn", -- 825
+			(((("[Agent.Utils] callLLMStream trimmed input tokens=" .. tostring(fitted.originalTokens)) .. " budget=") .. tostring(fitted.budgetTokens)) .. " fitted=") .. tostring(fitted.fittedTokens) -- 825
+		) -- 825
+	end -- 825
+	local stopLLM = false -- 827
+	local parser = ____exports.createSSEJSONParser({onJSON = function(obj) -- 828
+		local result = onData(obj) -- 830
+		if result then -- 830
+			stopLLM = result -- 831
+		end -- 831
+	end}); -- 829
+	(function() -- 834
+		return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 834
+			local ____try = __TS__AsyncAwaiter(function() -- 834
+				local ____array_8 = __TS__SparseArrayNew( -- 834
+					fitted.messages, -- 836
+					url, -- 836
+					apiKey, -- 836
+					model, -- 836
+					options, -- 836
+					true, -- 836
+					function(data) -- 836
+						if stopLLM then -- 836
+							if onCancel then -- 836
+								onCancel("LLM Stopped") -- 839
+								onCancel = nil -- 840
+							end -- 840
+							return true -- 842
+						end -- 842
+						parser.feed(data) -- 844
+						return false -- 845
+					end -- 836
+				) -- 836
+				local ____temp_7 -- 846
+				if event.stopToken ~= nil then -- 846
+					____temp_7 = event.stopToken -- 846
+				else -- 846
+					____temp_7 = nil -- 846
+				end -- 846
+				__TS__SparseArrayPush(____array_8, ____temp_7) -- 846
+				local result = __TS__Await(postLLM(__TS__SparseArraySpread(____array_8))) -- 836
+				parser["end"]() -- 847
+				if onDone then -- 847
+					onDone(result) -- 849
+				end -- 849
+			end) -- 849
+			__TS__Await(____try.catch( -- 835
+				____try, -- 835
+				function(____, e) -- 835
+					stopLLM = true -- 852
+					if onCancel then -- 852
+						onCancel(tostring(e)) -- 854
+						onCancel = nil -- 855
+					end -- 855
+				end -- 855
+			)) -- 855
+		end) -- 855
+	end)() -- 834
+	return {success = true} -- 859
+end -- 784
+local function mergeStreamToolCall(target, delta) -- 862
+	if type(delta.id) == "string" and delta.id ~= "" then -- 862
+		target.id = delta.id -- 864
+	end -- 864
+	if type(delta.type) == "string" and delta.type ~= "" then -- 864
+		target.type = delta.type -- 867
+	end -- 867
+	if delta["function"] then -- 867
+		if target["function"] == nil then -- 867
+			target["function"] = {} -- 870
+		end -- 870
+		if type(delta["function"].name) == "string" and delta["function"].name ~= "" then -- 870
+			target["function"].name = (target["function"].name or "") .. delta["function"].name -- 872
+		end -- 872
+		if type(delta["function"].arguments) == "string" and delta["function"].arguments ~= "" then -- 872
+			target["function"].arguments = (target["function"].arguments or "") .. delta["function"].arguments -- 875
+		end -- 875
+	end -- 875
+end -- 862
+local function mergeStreamChoice(acc, choice) -- 880
+	local delta = choice.delta or ({}) -- 881
+	local message = acc.message -- 882
+	if type(delta.role) == "string" and delta.role ~= "" then -- 882
+		message.role = delta.role -- 884
+	end -- 884
+	if type(delta.content) == "string" and delta.content ~= "" then -- 884
+		message.content = (message.content or "") .. delta.content -- 887
+	end -- 887
+	if type(delta.reasoning_content) == "string" and delta.reasoning_content ~= "" then -- 887
+		message.reasoning_content = (message.reasoning_content or "") .. delta.reasoning_content -- 890
+	end -- 890
+	if delta.tool_calls and #delta.tool_calls > 0 then -- 890
+		if message.tool_calls == nil then -- 890
+			message.tool_calls = {} -- 893
+		end -- 893
+		do -- 893
+			local i = 0 -- 894
+			while i < #delta.tool_calls do -- 894
+				local item = delta.tool_calls[i + 1] -- 895
+				local index = type(item.index) == "number" and item.index >= 0 and math.floor(item.index) or i -- 896
+				local ____message_tool_calls_9, ____temp_10 = message.tool_calls, index + 1 -- 896
+				if ____message_tool_calls_9[____temp_10] == nil then -- 896
+					____message_tool_calls_9[____temp_10] = {} -- 899
+				end -- 899
+				mergeStreamToolCall(message.tool_calls[index + 1], item) -- 900
+				i = i + 1 -- 894
+			end -- 894
+		end -- 894
+	end -- 894
+	if type(choice.finish_reason) == "string" and choice.finish_reason ~= "" then -- 894
+		acc.finish_reason = choice.finish_reason -- 904
+	end -- 904
+end -- 880
+local function buildStreamResponse(states, model, id, created, object, providerError) -- 908
+	local indexes = __TS__ArraySort( -- 916
+		__TS__ArrayFilter( -- 916
+			__TS__ArrayMap( -- 916
+				__TS__ObjectKeys(states), -- 916
+				function(____, key) return __TS__Number(key) end -- 917
+			), -- 917
+			function(____, index) return __TS__NumberIsFinite(index) end -- 918
+		), -- 918
+		function(____, a, b) return a - b end -- 919
+	) -- 919
+	return { -- 920
+		id = id, -- 921
+		created = created, -- 922
+		object = object, -- 923
+		model = model, -- 924
+		choices = __TS__ArrayMap( -- 925
+			indexes, -- 925
+			function(____, index) -- 925
+				local state = states[index] -- 926
+				return {index = index, message = {role = state.message.role or "assistant", content = state.message.content, reasoning_content = state.message.reasoning_content, tool_calls = state.message.tool_calls}, finish_reason = state.finish_reason} -- 927
+			end -- 925
+		), -- 925
+		error = providerError -- 938
+	} -- 938
+end -- 908
+function ____exports.callLLMStreamAggregated(messages, options, stopTokenOrConfig, llmConfig, onChunk) -- 942
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 942
+		local stopToken = stopTokenOrConfig and stopTokenOrConfig.stopped ~= nil and stopTokenOrConfig or nil -- 949
+		local config = stopTokenOrConfig and stopTokenOrConfig.url ~= nil and stopTokenOrConfig or llmConfig -- 950
+		local resolvedConfig = config or (function() -- 953
+			local configRes = ____exports.getActiveLLMConfig() -- 954
+			if not configRes.success then -- 954
+				____exports.Log("Error", "[Agent.Utils] callLLMStreamAggregated config error: " .. configRes.message) -- 956
+				return nil -- 957
+			end -- 957
+			return configRes.config -- 959
+		end)() -- 953
+		if not resolvedConfig then -- 953
+			return ____awaiter_resolve(nil, {success = false, message = "no active LLM config"}) -- 953
+		end -- 953
+		local url = resolvedConfig.url -- 953
+		local model = resolvedConfig.model -- 953
+		local apiKey = resolvedConfig.apiKey -- 953
+		local fitted = ____exports.fitMessagesToContext(messages, options, resolvedConfig) -- 965
+		____exports.Log( -- 966
+			"Info", -- 966
+			((((("[Agent.Utils] callLLMStreamAggregated request model=" .. model) .. " url=") .. url) .. " messages=") .. tostring(#messages)) .. (fitted.trimmed and ((((" trimmed_tokens=" .. tostring(fitted.originalTokens)) .. "->") .. tostring(fitted.fittedTokens)) .. "/") .. tostring(fitted.budgetTokens) or "") -- 966
+		) -- 966
+		if stopToken and stopToken.stopped then -- 966
+			local reason = stopToken.reason or "request cancelled" -- 968
+			____exports.Log("Info", "[Agent.Utils] callLLMStreamAggregated cancelled before request: " .. reason) -- 969
+			return ____awaiter_resolve(nil, {success = false, message = reason}) -- 969
+		end -- 969
+		local ____try = __TS__AsyncAwaiter(function() -- 969
+			local states = {} -- 973
+			local responseId = nil -- 974
+			local responseCreated = nil -- 975
+			local responseObject = nil -- 976
+			local providerError -- 977
+			local parser = ____exports.createSSEJSONParser({ -- 978
+				onJSON = function(obj, raw) -- 979
+					if not obj or type(obj) ~= "table" then -- 979
+						return -- 981
+					end -- 981
+					local chunk = obj -- 983
+					if chunk.error then -- 983
+						providerError = chunk.error -- 985
+						____exports.Log( -- 986
+							"Warn", -- 986
+							"[Agent.Utils] callLLMStreamAggregated provider error chunk: " .. previewText(raw, 300) -- 986
+						) -- 986
+						return -- 987
+					end -- 987
+					responseId = type(chunk.id) == "string" and chunk.id or responseId -- 989
+					responseCreated = type(chunk.created) == "number" and chunk.created or responseCreated -- 990
+					responseObject = type(chunk.object) == "string" and chunk.object or responseObject -- 991
+					local choices = __TS__ArrayIsArray(chunk.choices) and chunk.choices or ({}) -- 992
+					do -- 992
+						local i = 0 -- 993
+						while i < #choices do -- 993
+							local choice = choices[i + 1] -- 994
+							local index = type(choice.index) == "number" and choice.index or i -- 995
+							if states[index] == nil then -- 995
+								states[index] = {index = index, message = {role = "assistant"}} -- 996
+							end -- 996
+							mergeStreamChoice(states[index], choice) -- 1000
+							i = i + 1 -- 993
+						end -- 993
+					end -- 993
+					if onChunk ~= nil then -- 993
+						onChunk( -- 1002
+							buildStreamResponse( -- 1003
+								states, -- 1003
+								model, -- 1003
+								responseId, -- 1003
+								responseCreated, -- 1003
+								responseObject, -- 1003
+								providerError -- 1003
+							), -- 1003
+							{ -- 1004
+								id = chunk.id or "", -- 1005
+								created = chunk.created or 0, -- 1006
+								object = chunk.object or "", -- 1007
+								model = chunk.model or model, -- 1008
+								choices = choices -- 1009
+							} -- 1009
+						) -- 1009
+					end -- 1009
+				end, -- 979
+				onError = function(err, context) -- 1013
+					____exports.Log( -- 1014
+						"Warn", -- 1014
+						(("[Agent.Utils] callLLMStreamAggregated parse error: " .. tostring(err)) .. " raw=") .. previewText(context and context.raw or "", 300) -- 1014
+					) -- 1014
+				end -- 1013
+			}) -- 1013
+			__TS__Await(postLLM( -- 1017
+				fitted.messages, -- 1017
+				url, -- 1017
+				apiKey, -- 1017
+				model, -- 1017
+				options, -- 1017
+				true, -- 1017
+				function(data) -- 1017
+					if stopToken and stopToken.stopped then -- 1017
+						return true -- 1018
+					end -- 1018
+					parser.feed(data) -- 1019
+					return false -- 1020
+				end, -- 1017
+				stopToken -- 1021
+			)) -- 1021
+			parser["end"]() -- 1022
+			local response = buildStreamResponse( -- 1023
+				states, -- 1023
+				model, -- 1023
+				responseId, -- 1023
+				responseCreated, -- 1023
+				responseObject, -- 1023
+				providerError -- 1023
+			) -- 1023
+			local choiceCount = response.choices and #response.choices or 0 -- 1024
+			____exports.Log( -- 1025
+				"Info", -- 1025
+				"[Agent.Utils] callLLMStreamAggregated decoded response choices=" .. tostring(choiceCount) -- 1025
+			) -- 1025
+			if not response.choices or #response.choices == 0 then -- 1025
+				local providerMessage = providerError and providerError.message or "" -- 1027
+				local providerType = providerError and providerError.type or "" -- 1028
+				local providerCode = providerError and (type(providerError.code) == "string" or type(providerError.code) == "number") and tostring(providerError.code) or "" -- 1029
+				local details = table.concat( -- 1032
+					__TS__ArrayFilter( -- 1032
+						{providerType, providerCode}, -- 1032
+						function(____, part) return part ~= "" end -- 1032
+					), -- 1032
+					"/" -- 1032
+				) -- 1032
+				local message = providerMessage ~= "" and ("LLM returned no choices: " .. providerMessage) .. (details ~= "" and (" (" .. details) .. ")" or "") or "LLM returned no choices" -- 1033
+				____exports.Log("Error", "[Agent.Utils] callLLMStreamAggregated empty choices") -- 1036
+				return ____awaiter_resolve(nil, {success = false, message = message}) -- 1036
+			end -- 1036
+			return ____awaiter_resolve(nil, {success = true, response = response}) -- 1036
+		end) -- 1036
+		__TS__Await(____try.catch( -- 972
+			____try, -- 972
+			function(____, e) -- 972
+				if stopToken and stopToken.stopped then -- 972
+					local reason = stopToken.reason or "request cancelled" -- 1048
+					____exports.Log("Info", "[Agent.Utils] callLLMStreamAggregated cancelled during request: " .. reason) -- 1049
+					return ____awaiter_resolve(nil, {success = false, message = reason}) -- 1049
+				end -- 1049
+				____exports.Log( -- 1052
+					"Error", -- 1052
+					"[Agent.Utils] callLLMStreamAggregated exception: " .. tostring(e) -- 1052
+				) -- 1052
+				return ____awaiter_resolve( -- 1052
+					nil, -- 1052
+					{ -- 1053
+						success = false, -- 1053
+						message = tostring(e) -- 1053
+					} -- 1053
+				) -- 1053
+			end -- 1053
+		)) -- 1053
+	end) -- 1053
+end -- 942
+function ____exports.callLLM(messages, options, stopTokenOrConfig, llmConfig) -- 1057
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 1057
+		local stopToken = stopTokenOrConfig and stopTokenOrConfig.stopped ~= nil and stopTokenOrConfig or nil -- 1063
+		local config = stopTokenOrConfig and stopTokenOrConfig.url ~= nil and stopTokenOrConfig or llmConfig -- 1064
+		local resolvedConfig = config or (function() -- 1067
+			local configRes = ____exports.getActiveLLMConfig() -- 1068
+			if not configRes.success then -- 1068
+				____exports.Log("Error", "[Agent.Utils] callLLMOnce config error: " .. configRes.message) -- 1070
+				return nil -- 1071
+			end -- 1071
+			return configRes.config -- 1073
+		end)() -- 1067
+		if not resolvedConfig then -- 1067
+			return ____awaiter_resolve(nil, {success = false, message = "no active LLM config"}) -- 1067
+		end -- 1067
+		local url = resolvedConfig.url -- 1067
+		local model = resolvedConfig.model -- 1067
+		local apiKey = resolvedConfig.apiKey -- 1067
+		local fitted = ____exports.fitMessagesToContext(messages, options, resolvedConfig) -- 1079
+		____exports.Log( -- 1080
+			"Info", -- 1080
+			((((("[Agent.Utils] callLLMOnce request model=" .. model) .. " url=") .. url) .. " messages=") .. tostring(#messages)) .. (fitted.trimmed and ((((" trimmed_tokens=" .. tostring(fitted.originalTokens)) .. "->") .. tostring(fitted.fittedTokens)) .. "/") .. tostring(fitted.budgetTokens) or "") -- 1080
+		) -- 1080
+		if stopToken and stopToken.stopped then -- 1080
+			local reason = stopToken.reason or "request cancelled" -- 1082
+			____exports.Log("Info", "[Agent.Utils] callLLMOnce cancelled before request: " .. reason) -- 1083
+			return ____awaiter_resolve(nil, {success = false, message = reason}) -- 1083
+		end -- 1083
+		local ____try = __TS__AsyncAwaiter(function() -- 1083
+			local raw = ____exports.sanitizeUTF8(__TS__Await(postLLM( -- 1087
+				fitted.messages, -- 1087
+				url, -- 1087
+				apiKey, -- 1087
+				model, -- 1087
+				options, -- 1087
+				false, -- 1087
+				nil, -- 1087
+				stopToken -- 1087
+			))) -- 1087
+			____exports.Log( -- 1088
+				"Info", -- 1088
+				"[Agent.Utils] callLLMOnce raw response length=" .. tostring(#raw) -- 1088
+			) -- 1088
+			local response, err = ____exports.safeJsonDecode(raw) -- 1089
+			if err ~= nil or response == nil or type(response) ~= "table" then -- 1089
+				local rawPreview = previewText(raw) -- 1091
+				____exports.Log( -- 1092
+					"Error", -- 1092
+					(("[Agent.Utils] callLLMOnce invalid JSON: " .. tostring(err)) .. " raw_preview=") .. rawPreview -- 1092
+				) -- 1092
+				return ____awaiter_resolve( -- 1092
+					nil, -- 1092
+					{ -- 1093
+						success = false, -- 1094
+						message = (("invalid LLM response JSON: " .. tostring(err)) .. "; raw=") .. rawPreview, -- 1095
+						raw = raw -- 1096
+					} -- 1096
+				) -- 1096
+			end -- 1096
+			local responseObj = response -- 1099
+			local choiceCount = responseObj.choices and #responseObj.choices or 0 -- 1100
+			____exports.Log( -- 1101
+				"Info", -- 1101
+				"[Agent.Utils] callLLMOnce decoded response choices=" .. tostring(choiceCount) -- 1101
+			) -- 1101
+			if not responseObj.choices or #responseObj.choices == 0 then -- 1101
+				local providerError = responseObj.error -- 1103
+				local providerMessage = providerError and type(providerError.message) == "string" and providerError.message or "" -- 1104
+				local providerType = providerError and type(providerError.type) == "string" and providerError.type or "" -- 1107
+				local providerCode = providerError and (type(providerError.code) == "string" or type(providerError.code) == "number") and tostring(providerError.code) or "" -- 1110
+				local details = table.concat( -- 1113
+					__TS__ArrayFilter( -- 1113
+						{providerType, providerCode}, -- 1113
+						function(____, part) return part ~= "" end -- 1113
+					), -- 1113
+					"/" -- 1113
+				) -- 1113
+				local rawPreview = previewText(raw, 400) -- 1114
+				local message = providerMessage ~= "" and ("LLM returned no choices: " .. providerMessage) .. (details ~= "" and (" (" .. details) .. ")" or "") or "LLM returned no choices; raw=" .. rawPreview -- 1115
+				____exports.Log("Error", "[Agent.Utils] callLLMOnce empty choices raw_preview=" .. rawPreview) -- 1118
+				return ____awaiter_resolve(nil, {success = false, message = message, raw = raw}) -- 1118
+			end -- 1118
+			return ____awaiter_resolve(nil, {success = true, response = responseObj}) -- 1118
+		end) -- 1118
+		__TS__Await(____try.catch( -- 1086
+			____try, -- 1086
+			function(____, e) -- 1086
+				if stopToken and stopToken.stopped then -- 1086
+					local reason = stopToken.reason or "request cancelled" -- 1131
+					____exports.Log("Info", "[Agent.Utils] callLLMOnce cancelled during request: " .. reason) -- 1132
+					return ____awaiter_resolve(nil, {success = false, message = reason}) -- 1132
+				end -- 1132
+				____exports.Log( -- 1135
+					"Error", -- 1135
+					"[Agent.Utils] callLLMOnce exception: " .. tostring(e) -- 1135
+				) -- 1135
+				return ____awaiter_resolve( -- 1135
+					nil, -- 1135
+					{ -- 1136
+						success = false, -- 1136
+						message = tostring(e) -- 1136
+					} -- 1136
+				) -- 1136
+			end -- 1136
+		)) -- 1136
+	end) -- 1136
+end -- 1057
+return ____exports -- 1057

@@ -6,12 +6,11 @@ import Collapse from '@mui/material/Collapse';
 import CircularProgress from '@mui/material/CircularProgress';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import { useTranslation } from 'react-i18next';
 import type { AgentCheckpointDiffFile, AgentCheckpointItem, AgentSessionStep } from './Service';
 import { Color } from './Theme';
 import AgentFileDiff from './AgentFileDiff';
+import Markdown from './Markdown';
 import './github-markdown-dark.css';
 
 interface AgentStepListProps {
@@ -225,7 +224,6 @@ export default function AgentStepList(props: AgentStepListProps) {
 					</Stack>
 					{primaryContent !== "" ? (
 						<Box
-							className="markdown-body"
 							sx={{
 								mt: 1,
 								padding: 0,
@@ -235,14 +233,12 @@ export default function AgentStepList(props: AgentStepListProps) {
 								color: Color.TextPrimary,
 								fontSize: 16,
 								lineHeight: 1.65,
-								'& p': { whiteSpace: 'pre-wrap' },
-								'& > :first-of-type': { marginTop: 0 },
-								'& > :last-child': { marginBottom: 0 },
+								'& .markdown-body p': { whiteSpace: 'pre-wrap' },
+								'& .markdown-body > :first-of-type': { marginTop: 0 },
+								'& .markdown-body > :last-child': { marginBottom: 0 },
 							}}
 						>
-							<ReactMarkdown remarkPlugins={[remarkGfm]}>
-								{primaryContent}
-							</ReactMarkdown>
+							<Markdown content={primaryContent} contentPadding={0} />
 						</Box>
 					) : null}
 					{historyEntryPreview !== "" ? (

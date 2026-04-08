@@ -366,6 +366,7 @@ i18n
 							failed: "Failed",
 						},
 						toolNames: {
+							message: "message",
 							read_file: "read file",
 							edit_file: "edit file",
 							delete_file: "delete file",
@@ -779,6 +780,7 @@ i18n
 							failed: "失败",
 						},
 						toolNames: {
+							message: "消息",
 							read_file: "文件读取",
 							edit_file: "编辑文件",
 							delete_file: "删除文件",

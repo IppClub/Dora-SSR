@@ -2,10 +2,9 @@ import React from 'react';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import type { AgentSessionMessage } from './Service';
 import { Color } from './Theme';
+import Markdown from './Markdown';
 import './github-markdown-dark.css';
 
 interface AgentMessageListProps {
@@ -32,7 +31,6 @@ export default function AgentMessageList(props: AgentMessageListProps) {
 					}}>
 						{message.role === "assistant" ? (
 						<Box
-							className="markdown-body"
 							sx={{
 								p: 0,
 								width: 'auto',
@@ -41,14 +39,12 @@ export default function AgentMessageList(props: AgentMessageListProps) {
 								color: Color.TextPrimary,
 								fontSize: 16,
 								lineHeight: 1.75,
-								'& p': { whiteSpace: 'pre-wrap' },
-								'& > :first-of-type': { marginTop: 0 },
-								'& > :last-child': { marginBottom: 0 },
+								'& .markdown-body p': { whiteSpace: 'pre-wrap' },
+								'& .markdown-body > :first-of-type': { marginTop: 0 },
+								'& .markdown-body > :last-child': { marginBottom: 0 },
 							}}
 						>
-							<ReactMarkdown remarkPlugins={[remarkGfm]}>
-								{message.content}
-							</ReactMarkdown>
+							<Markdown content={message.content} contentPadding={0} />
 						</Box>
 					) : (
 						<Typography variant="body1" sx={{ color: Color.TextPrimary, whiteSpace: "pre-wrap", lineHeight: 1.6 }}>

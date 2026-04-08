@@ -1,5 +1,5 @@
 // @preview-file off clear
-import { App, Content, DB, Path } from 'Dora';
+import { App, Content, DB, Path, HttpServer, emit } from 'Dora';
 import { runCodingAgent, CodingAgentEvent, CodingAgentRunResult, truncateAgentUserPrompt } from 'Agent/CodingAgent';
 import * as Tools from 'Agent/Tools';
 import { Log, safeJsonDecode, safeJsonEncode, sanitizeUTF8 } from 'Agent/Utils';
@@ -188,6 +188,49 @@ function rowToStep(row: any[]): AgentSessionStepItem {
 	};
 }
 
+function getMessageItem(messageId: number): AgentSessionMessageItem | undefined {
+	const row = queryOne(
+		`SELECT id, session_id, task_id, role, content, created_at, updated_at
+		FROM ${TABLE_MESSAGE}
+		WHERE id = ?`,
+		[messageId],
+	);
+	return row ? rowToMessage(row as any[]) : undefined;
+}
+
+function getStepItem(sessionId: number, taskId: number, step: number): AgentSessionStepItem | undefined {
+	const row = queryOne(
+		`SELECT id, session_id, task_id, step, tool, status, reason, reasoning_content, params_json, result_json, checkpoint_id, checkpoint_seq, files_json, created_at, updated_at
+		FROM ${TABLE_STEP}
+		WHERE session_id = ? AND task_id = ? AND step = ?`,
+		[sessionId, taskId, step],
+	);
+	return row ? rowToStep(row as any[]) : undefined;
+}
+
+function deleteMessageSteps(sessionId: number, taskId: number): number[] {
+	const rows = queryRows(
+		`SELECT id FROM ${TABLE_STEP}
+		WHERE session_id = ? AND task_id = ? AND tool = ?`,
+		[sessionId, taskId, "message"],
+	) ?? [];
+	const ids: number[] = [];
+	for (let i = 0; i < rows.length; i++) {
+		const row = rows[i] as any[];
+		if (typeof row[0] === "number") {
+			ids.push(row[0] as number);
+		}
+	}
+	if (ids.length > 0) {
+		DB.exec(
+			`DELETE FROM ${TABLE_STEP}
+			WHERE session_id = ? AND task_id = ? AND tool = ?`,
+			[sessionId, taskId, "message"],
+		);
+	}
+	return ids;
+}
+
 function getSessionRow(sessionId: number) {
 	return queryOne(
 		`SELECT id, project_root, title, status, current_task_id, current_task_status, created_at, updated_at
@@ -290,6 +333,20 @@ function updateMessage(messageId: number, content: string) {
 		`UPDATE ${TABLE_MESSAGE} SET content = ?, updated_at = ? WHERE id = ?`,
 		[sanitizeUTF8(content), now(), messageId],
 	);
+}
+
+function upsertAssistantMessage(sessionId: number, taskId: number, content: string): number {
+	const row = queryOne(
+		`SELECT id FROM ${TABLE_MESSAGE}
+		WHERE session_id = ? AND task_id = ? AND role = ?
+		ORDER BY id DESC LIMIT 1`,
+		[sessionId, taskId, "assistant"],
+	);
+	if (row && typeof row[0] === "number") {
+		updateMessage(row[0], content);
+		return row[0];
+	}
+	return insertMessage(sessionId, "assistant", content, taskId);
 }
 
 function upsertStep(sessionId: number, taskId: number, step: number, tool: string, patch: {
@@ -423,10 +480,26 @@ function sanitizeStoredSteps(sessionId: number) {
 	);
 }
 
+function emitAgentSessionPatch(sessionId: number, patch: Record<string, unknown>) {
+	if (HttpServer.wsConnectionCount === 0) {
+		return;
+	}
+	const [text] = safeJsonEncode({
+		name: "AgentSessionPatch",
+		sessionId,
+		...patch,
+	} as object);
+	if (!text) return;
+	emit("AppWS", "Send", text);
+}
+
 function applyEvent(sessionId: number, event: CodingAgentEvent) {
 	switch (event.type) {
 		case "task_started":
 			setSessionStateForTaskEvent(sessionId, event.taskId, "RUNNING", "RUNNING");
+			emitAgentSessionPatch(sessionId, {
+				session: getSessionItem(sessionId),
+			});
 			break;
 		case "decision_made":
 			upsertStep(sessionId, event.taskId, event.step, event.tool, {
@@ -435,10 +508,16 @@ function applyEvent(sessionId: number, event: CodingAgentEvent) {
 				reasoningContent: event.reasoningContent,
 				params: event.params,
 			});
+			emitAgentSessionPatch(sessionId, {
+				step: getStepItem(sessionId, event.taskId, event.step),
+			});
 			break;
 		case "tool_started":
 			upsertStep(sessionId, event.taskId, event.step, event.tool, {
 				status: "RUNNING",
+			});
+			emitAgentSessionPatch(sessionId, {
+				step: getStepItem(sessionId, event.taskId, event.step),
 			});
 			break;
 		case "tool_finished":
@@ -447,12 +526,19 @@ function applyEvent(sessionId: number, event: CodingAgentEvent) {
 				reason: event.reason,
 				result: event.result,
 			});
+			emitAgentSessionPatch(sessionId, {
+				step: getStepItem(sessionId, event.taskId, event.step),
+			});
 			break;
 		case "checkpoint_created":
 			upsertStep(sessionId, event.taskId, event.step, event.tool, {
 				checkpointId: event.checkpointId,
 				checkpointSeq: event.checkpointSeq,
 				files: event.files,
+			});
+			emitAgentSessionPatch(sessionId, {
+				step: getStepItem(sessionId, event.taskId, event.step),
+				checkpoints: Tools.listCheckpoints(event.taskId),
 			});
 			break;
 		case "memory_compression_started":
@@ -461,6 +547,9 @@ function applyEvent(sessionId: number, event: CodingAgentEvent) {
 				reason: event.reason,
 				params: event.params,
 			});
+			emitAgentSessionPatch(sessionId, {
+				step: getStepItem(sessionId, event.taskId, event.step),
+			});
 			break;
 		case "memory_compression_finished":
 			upsertStep(sessionId, event.taskId, event.step, event.tool, {
@@ -468,7 +557,21 @@ function applyEvent(sessionId: number, event: CodingAgentEvent) {
 				reason: event.reason,
 				result: event.result,
 			});
+			emitAgentSessionPatch(sessionId, {
+				step: getStepItem(sessionId, event.taskId, event.step),
+			});
 			break;
+		case "assistant_message_updated": {
+			upsertStep(sessionId, event.taskId, event.step, "message", {
+				status: "RUNNING",
+				reason: event.content,
+				reasoningContent: event.reasoningContent,
+			});
+			emitAgentSessionPatch(sessionId, {
+				step: getStepItem(sessionId, event.taskId, event.step),
+			});
+			break;
+		}
 		case "task_finished": {
 			const stopped = activeStopTokens[event.taskId ?? -1]?.stopped === true;
 			const finalStatus: AgentSessionStatus = event.success
@@ -476,24 +579,21 @@ function applyEvent(sessionId: number, event: CodingAgentEvent) {
 				: (stopped ? "STOPPED" : "FAILED");
 			setSessionStateForTaskEvent(sessionId, event.taskId, finalStatus, finalStatus);
 			if (event.taskId !== undefined) {
+				const removedStepIds = deleteMessageSteps(sessionId, event.taskId);
 				finalizeTaskSteps(
 					sessionId,
 					event.taskId,
 					typeof event.steps === "number" ? math.max(0, math.floor(event.steps)) : undefined,
 					event.success ? undefined : (stopped ? "STOPPED" : "FAILED"),
 				);
-				const summaryRow = queryOne(
-					`SELECT id FROM ${TABLE_MESSAGE}
-					WHERE session_id = ? AND task_id = ? AND role = ?
-					ORDER BY id DESC LIMIT 1`,
-					[sessionId, event.taskId, "assistant"],
-				);
-				if (summaryRow && typeof summaryRow[0] === "number") {
-					updateMessage(summaryRow[0], event.message);
-				} else {
-					insertMessage(sessionId, "assistant", event.message, event.taskId);
-				}
+				const messageId = upsertAssistantMessage(sessionId, event.taskId, event.message);
 				activeStopTokens[event.taskId] = undefined as any;
+				emitAgentSessionPatch(sessionId, {
+					session: getSessionItem(sessionId),
+					message: getMessageItem(messageId),
+					checkpoints: Tools.listCheckpoints(event.taskId),
+					removedStepIds,
+				});
 			}
 			break;
 		}

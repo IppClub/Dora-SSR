@@ -12,32 +12,54 @@ import "./github-markdown-dark.css";
 
 import {PrismLight as SyntaxHighlighter} from 'react-syntax-highlighter';
 import {vscDarkPlus} from 'react-syntax-highlighter/dist/esm/styles/prism';
+import prismTypescript from 'react-syntax-highlighter/dist/esm/languages/prism/typescript';
+import prismTsx from 'react-syntax-highlighter/dist/esm/languages/prism/tsx';
+import prismJson from 'react-syntax-highlighter/dist/esm/languages/prism/json';
 import prismYuescript from './languages/yuescript-prism';
 import prismTeal from './languages/teal-prism';
 import prismLua from './languages/lua-prism';
 import { memo } from 'react';
 
+SyntaxHighlighter.registerLanguage('typescript', prismTypescript);
+SyntaxHighlighter.registerLanguage('ts', prismTypescript);
+SyntaxHighlighter.registerLanguage('tsx', prismTsx);
+SyntaxHighlighter.registerLanguage('json', prismJson);
 SyntaxHighlighter.registerLanguage('yuescript', prismYuescript);
+SyntaxHighlighter.registerLanguage('yue', prismYuescript);
 SyntaxHighlighter.registerLanguage('lua', prismLua);
+SyntaxHighlighter.registerLanguage('teal', prismTeal);
 SyntaxHighlighter.registerLanguage('tl', prismTeal);
 
-vscDarkPlus["code[class*=\"language-\"]"].fontSize = '16px';
-
 export interface MarkdownProps {
-	fileKey: string;
+	fileKey?: string;
 	content: string;
-	path: string;
-	onClick: (link: string, key: string) => void;
+	path?: string;
+	onClick?: (link: string, key: string) => void;
+	contentPadding?: string | number;
 };
 
 const Markdown = memo((props: MarkdownProps) => {
-	return <div className="markdown-body">
+	const contentPadding = props.contentPadding ?? "32px 36px 40px";
+	return <div
+		className="markdown-body"
+		style={{
+			width: "100%",
+			minWidth: 0,
+			margin: 0,
+			padding: contentPadding,
+			minHeight: 0,
+			backgroundColor: "transparent",
+			fontSize: "inherit",
+			lineHeight: "inherit",
+			color: "inherit",
+		}}
+	>
 		<ReactMarkdown
 			children={props.content}
 			remarkPlugins={[remarkGfm]}
 			components={{
 				img({src, alt, ...iprops}) {
-					const {path} = props;
+					const path = props.path ?? "";
 					const tokens = (alt ?? "").split(':');
 					let width: number | undefined;
 					let height: number | undefined;
@@ -59,7 +81,7 @@ const Markdown = memo((props: MarkdownProps) => {
 					return <a href='#!' onClick={(e)=> {
 						e.preventDefault();
 						if (node?.properties !== undefined && node.properties.href !== undefined && typeof(node.properties.href) === "string") {
-							props.onClick(node.properties.href, props.fileKey);
+							props.onClick?.(node.properties.href, props.fileKey ?? "");
 						}
 					}} {...aprops}/>;
 				},
@@ -70,7 +92,22 @@ const Markdown = memo((props: MarkdownProps) => {
 							children={String(children).replace(/\n$/, '')}
 							style={vscDarkPlus as any}
 							customStyle={{
-								backgroundColor: '#161b22'
+								backgroundColor: '#161b22',
+								margin: 0,
+								padding: 0,
+								width: '100%',
+								minWidth: 0,
+								maxWidth: '100%',
+								boxSizing: 'border-box',
+								fontSize: '1em',
+								lineHeight: 'inherit',
+								overflowX: 'auto',
+							}}
+							codeTagProps={{
+								style: {
+									fontSize: 'inherit',
+									lineHeight: 'inherit',
+								},
 							}}
 							language={match[1]}
 							PreTag="div"
