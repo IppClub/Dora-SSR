@@ -1128,8 +1128,7 @@ static void configure_http_client(const std::shared_ptr<httplib::Client>& client
 	client->set_connection_timeout(timeoutSec, timeoutUsec);
 	client->set_read_timeout(timeoutSec, timeoutUsec);
 	client->set_write_timeout(timeoutSec, timeoutUsec);
-	const auto timeoutMs = s_cast<time_t>(std::max(1.0f, timeout * 1000.0f));
-	client->set_max_timeout(timeout > 0.0f ? timeoutMs : 0);
+	client->set_max_timeout(0);
 }
 
 static void prepare_http_request_headers(httplib::Headers& headers) {

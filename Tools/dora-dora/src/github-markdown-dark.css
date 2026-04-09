@@ -740,7 +740,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
   padding: 12px;
   overflow: auto;
   font-size: 1em;
-  line-height: inherit;
+  line-height: 1.45;
   background-color: #161b22;
   border-radius: 6px;
   max-width: 100%;

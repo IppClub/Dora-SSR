@@ -100,13 +100,13 @@ const Markdown = memo((props: MarkdownProps) => {
 								maxWidth: '100%',
 								boxSizing: 'border-box',
 								fontSize: '1em',
-								lineHeight: 'inherit',
+								lineHeight: '1.45',
 								overflowX: 'auto',
 							}}
 							codeTagProps={{
 								style: {
 									fontSize: 'inherit',
-									lineHeight: 'inherit',
+									lineHeight: '1.45',
 								},
 							}}
 							language={match[1]}

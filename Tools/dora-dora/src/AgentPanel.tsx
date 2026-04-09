@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
@@ -66,6 +66,10 @@ export default function AgentPanel(props: AgentPanelProps) {
 	const [isNearBottom, setIsNearBottom] = useState(true);
 	const [llmConfigMissing, setLLMConfigMissing] = useState(false);
 	const scrollRef = React.useRef<HTMLElement | null>(null);
+	const contentRef = React.useRef<HTMLDivElement | null>(null);
+	const isNearBottomRef = React.useRef(true);
+	const autoScrollTimerRef = React.useRef<number | null>(null);
+	const autoScrollRafRef = React.useRef<number | null>(null);
 
 	const checkLLMConfigReady = React.useCallback(async () => {
 		try {
@@ -82,11 +86,64 @@ export default function AgentPanel(props: AgentPanelProps) {
 	}, []);
 
 	const scrollToBottom = React.useCallback((behavior: ScrollBehavior = "auto") => {
-		window.requestAnimationFrame(() => {
+		const applyScroll = () => {
 			const container = scrollRef.current;
 			if (!container) return;
 			container.scrollTo({ top: container.scrollHeight, behavior });
+		};
+		applyScroll();
+		window.requestAnimationFrame(() => {
+			applyScroll();
+			window.requestAnimationFrame(() => {
+				applyScroll();
+			});
 		});
+	}, []);
+
+	const cancelAutoScroll = React.useCallback(() => {
+		if (autoScrollTimerRef.current !== null) {
+			window.clearTimeout(autoScrollTimerRef.current);
+			autoScrollTimerRef.current = null;
+		}
+		if (autoScrollRafRef.current !== null) {
+			window.cancelAnimationFrame(autoScrollRafRef.current);
+			autoScrollRafRef.current = null;
+		}
+	}, []);
+
+	const scheduleStickyBottomSync = React.useCallback((behavior: ScrollBehavior = "auto") => {
+		if (!isNearBottomRef.current) return;
+		cancelAutoScroll();
+		const start = window.performance.now();
+		const tick = () => {
+			if (!isNearBottomRef.current) {
+				cancelAutoScroll();
+				return;
+			}
+			scrollToBottom(behavior);
+			if (window.performance.now() - start < 400) {
+				autoScrollRafRef.current = window.requestAnimationFrame(tick);
+			} else {
+				autoScrollRafRef.current = null;
+			}
+		};
+		tick();
+		autoScrollTimerRef.current = window.setTimeout(() => {
+			if (isNearBottomRef.current) {
+				scrollToBottom(behavior);
+			}
+			autoScrollTimerRef.current = null;
+		}, 500);
+	}, [cancelAutoScroll, scrollToBottom]);
+
+	const syncBottomState = React.useCallback(() => {
+		const container = scrollRef.current;
+		if (!container) return true;
+		const distanceToBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+		const nextIsNearBottom = distanceToBottom <= 8;
+		isNearBottomRef.current = nextIsNearBottom;
+		setIsNearBottom(nextIsNearBottom);
+		return nextIsNearBottom;
 	}, []);
 
 	const refresh = React.useCallback(async (statusOnly = false) => {
@@ -164,9 +221,14 @@ export default function AgentPanel(props: AgentPanelProps) {
 	const lastMessage = messages[messages.length - 1];
 	const lastStep = steps[steps.length - 1];
 
-	useEffect(() => {
-		scrollToBottom();
+	useLayoutEffect(() => {
+		if (!isNearBottom) return;
+		scheduleStickyBottomSync("auto");
+		return cancelAutoScroll;
 	}, [
+		cancelAutoScroll,
+		isNearBottom,
+		scheduleStickyBottomSync,
 		scrollToBottom,
 		messages.length,
 		lastMessage?.id,
@@ -182,9 +244,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 		const container = scrollRef.current;
 		if (!container) return;
 		const onScroll = () => {
-			const distanceToBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
-			const nextIsNearBottom = distanceToBottom <= 8;
-			setIsNearBottom(nextIsNearBottom);
+			const nextIsNearBottom = syncBottomState();
 			if (nextIsNearBottom && visibleHistoryRounds !== HISTORY_VISIBLE_ROUNDS) {
 				setVisibleHistoryRounds(HISTORY_VISIBLE_ROUNDS);
 			}
@@ -192,7 +252,39 @@ export default function AgentPanel(props: AgentPanelProps) {
 		onScroll();
 		container.addEventListener("scroll", onScroll, { passive: true });
 		return () => container.removeEventListener("scroll", onScroll);
-	}, [visibleHistoryRounds]);
+	}, [syncBottomState, visibleHistoryRounds]);
+
+	useEffect(() => {
+		const content = contentRef.current;
+		if (!content || typeof ResizeObserver === "undefined") return;
+		const observer = new ResizeObserver(() => {
+			if (!isNearBottomRef.current) return;
+			scheduleStickyBottomSync("auto");
+		});
+		observer.observe(content);
+		return () => observer.disconnect();
+	}, [scheduleStickyBottomSync]);
+
+	useEffect(() => {
+		const content = contentRef.current;
+		if (!content || typeof MutationObserver === "undefined") return;
+		const observer = new MutationObserver(() => {
+			if (!isNearBottomRef.current) return;
+			scheduleStickyBottomSync("auto");
+		});
+		observer.observe(content, {
+			childList: true,
+			subtree: true,
+			characterData: true,
+		});
+		return () => observer.disconnect();
+	}, [scheduleStickyBottomSync]);
+
+	useEffect(() => {
+		return () => {
+			cancelAutoScroll();
+		};
+	}, [cancelAutoScroll]);
 
 	const latestSteps = useMemo(() => {
 		const taskId = session?.currentTaskId;
@@ -372,7 +464,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 				</Box>
 			) : null}
 			<MacScrollbar ref={scrollRef} skin="dark" style={{ flex: 1, minHeight: 0 }}>
-				<Box sx={{ px: 3, py: 3 }}>
+				<Box ref={contentRef} sx={{ px: 3, py: 3 }}>
 					<Stack spacing={4}>
 						{llmConfigMissing && session?.currentTaskStatus !== "RUNNING" ? (
 							<Box
