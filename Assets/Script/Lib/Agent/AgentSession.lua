@@ -1,4 +1,4 @@
--- [ts]: WebIDEAgentSession.ts
+-- [ts]: AgentSession.ts
 local ____lualib = require("lualib_bundle") -- 1
 local __TS__ArrayIsArray = ____lualib.__TS__ArrayIsArray -- 1
 local __TS__StringStartsWith = ____lualib.__TS__StringStartsWith -- 1

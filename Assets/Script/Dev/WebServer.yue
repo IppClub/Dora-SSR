@@ -126,24 +126,24 @@ HttpServer\post "/agent/project-root", (req): invalidArguments ->
 		else
 			return success: true, found: false, message: err
 
-AgentTools = require "Agent.Tools"
-WebIDEAgentSession = require "Agent.WebIDEAgentSession"
+import "Agent.Tools" as AgentTools
+import "Agent.AgentSession"
 
 HttpServer\post "/agent/session/create", (req): invalidArguments ->
 	switch req when {body: {:projectRoot, :title}}
-		return WebIDEAgentSession.createSession projectRoot, title
+		return AgentSession.createSession projectRoot, title
 
 HttpServer\post "/agent/session/get", (req): invalidArguments ->
 	switch req when {body: {:sessionId}}
-		return WebIDEAgentSession.getSession sessionId
+		return AgentSession.getSession sessionId
 
 HttpServer\post "/agent/session/send", (req): invalidArguments ->
 	switch req when {body: {:sessionId, :prompt}}
-		return WebIDEAgentSession.sendPrompt sessionId, prompt
+		return AgentSession.sendPrompt sessionId, prompt
 
 HttpServer\post "/agent/task/status", (req): invalidArguments ->
 	switch req when {body: {:sessionId}}
-		res = WebIDEAgentSession.getSession sessionId
+		res = AgentSession.getSession sessionId
 		return res unless res.success
 		taskId = res.session.currentTaskId
 		checkpoints = if taskId then AgentTools.listCheckpoints taskId else []
@@ -154,16 +154,16 @@ HttpServer\post "/agent/task/status", (req): invalidArguments ->
 			steps: res.steps
 			checkpoints: checkpoints
 
-HttpServer\post "/agent/task/running", -> WebIDEAgentSession.listRunningSessions!
+HttpServer\post "/agent/task/running", -> AgentSession.listRunningSessions!
 
 HttpServer\post "/agent/task/stop", (req): invalidArguments ->
 	switch req when {body: {:sessionId}}
-		return WebIDEAgentSession.stopSessionTask sessionId
+		return AgentSession.stopSessionTask sessionId
 
 HttpServer\post "/agent/checkpoint/list", (req): invalidArguments ->
 	switch req when {body: {:taskId = nil, :sessionId}}
 		if not taskId and sessionId
-			taskId = WebIDEAgentSession.getCurrentTaskId sessionId
+			taskId = AgentSession.getCurrentTaskId sessionId
 		return success: false, message: "task not found" unless taskId
 		return
 			success: true
@@ -178,7 +178,7 @@ HttpServer\post "/agent/checkpoint/diff", (req): invalidArguments ->
 HttpServer\post "/agent/checkpoint/rollback", (req): invalidArguments ->
 	switch req when {body: {:sessionId, :checkpointId}}
 		return success: false, message: "invalid checkpointId" unless checkpointId > 0
-		res = WebIDEAgentSession.getSession sessionId
+		res = AgentSession.getSession sessionId
 		return res unless res.success
 		rollbackRes = AgentTools.rollbackCheckpoint checkpointId, res.session.projectRoot
 		return rollbackRes unless rollbackRes.success
@@ -881,7 +881,7 @@ HttpServer\post "/delete", (req): success: false ->
 						Content\remove Path parent, file
 			if Content\remove path
 				if projectRoot
-					WebIDEAgentSession.deleteSessionsByProjectRoot projectRoot
+					AgentSession.deleteSessionsByProjectRoot projectRoot
 				return success: true
 
 HttpServer\post "/rename", (req): success: false ->
@@ -907,7 +907,7 @@ HttpServer\post "/rename", (req): success: false ->
 						return success: false
 			if Content\move old, new
 				if renamedDir
-					WebIDEAgentSession.renameSessionsByProjectRoot old, new
+					AgentSession.renameSessionsByProjectRoot old, new
 				newParent = Path\getPath new
 				parent = Path\getPath old
 				files = Content\getFiles parent

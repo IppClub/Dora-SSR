@@ -318,7 +318,7 @@ HttpServer:post("/agent/project-root", function(req) -- 122
 	return invalidArguments -- 122
 end) -- 122
 local AgentTools = require("Agent.Tools") -- 129
-local WebIDEAgentSession = require("Agent.WebIDEAgentSession") -- 130
+local AgentSession = require("Agent.AgentSession") -- 130
 HttpServer:post("/agent/session/create", function(req) -- 132
 	do -- 133
 		local _type_0 = type(req) -- 133
@@ -341,7 +341,7 @@ HttpServer:post("/agent/session/create", function(req) -- 132
 				end -- 133
 			end -- 133
 			if projectRoot ~= nil and title ~= nil then -- 133
-				return WebIDEAgentSession.createSession(projectRoot, title) -- 134
+				return AgentSession.createSession(projectRoot, title) -- 134
 			end -- 133
 		end -- 133
 	end -- 133
@@ -361,7 +361,7 @@ HttpServer:post("/agent/session/get", function(req) -- 136
 				end -- 137
 			end -- 137
 			if sessionId ~= nil then -- 137
-				return WebIDEAgentSession.getSession(sessionId) -- 138
+				return AgentSession.getSession(sessionId) -- 138
 			end -- 137
 		end -- 137
 	end -- 137
@@ -389,7 +389,7 @@ HttpServer:post("/agent/session/send", function(req) -- 140
 				end -- 141
 			end -- 141
 			if sessionId ~= nil and prompt ~= nil then -- 141
-				return WebIDEAgentSession.sendPrompt(sessionId, prompt) -- 142
+				return AgentSession.sendPrompt(sessionId, prompt) -- 142
 			end -- 141
 		end -- 141
 	end -- 141
@@ -409,7 +409,7 @@ HttpServer:post("/agent/task/status", function(req) -- 144
 				end -- 145
 			end -- 145
 			if sessionId ~= nil then -- 145
-				local res = WebIDEAgentSession.getSession(sessionId) -- 146
+				local res = AgentSession.getSession(sessionId) -- 146
 				if not res.success then -- 147
 					return res -- 147
 				end -- 147
@@ -433,7 +433,7 @@ HttpServer:post("/agent/task/status", function(req) -- 144
 	return invalidArguments -- 144
 end) -- 144
 HttpServer:post("/agent/task/running", function() -- 157
-	return WebIDEAgentSession.listRunningSessions() -- 157
+	return AgentSession.listRunningSessions() -- 157
 end) -- 157
 HttpServer:post("/agent/task/stop", function(req) -- 159
 	do -- 160
@@ -449,7 +449,7 @@ HttpServer:post("/agent/task/stop", function(req) -- 159
 				end -- 160
 			end -- 160
 			if sessionId ~= nil then -- 160
-				return WebIDEAgentSession.stopSessionTask(sessionId) -- 161
+				return AgentSession.stopSessionTask(sessionId) -- 161
 			end -- 160
 		end -- 160
 	end -- 160
@@ -478,7 +478,7 @@ HttpServer:post("/agent/checkpoint/list", function(req) -- 163
 			end -- 164
 			if sessionId ~= nil then -- 164
 				if not taskId and sessionId then -- 165
-					taskId = WebIDEAgentSession.getCurrentTaskId(sessionId) -- 166
+					taskId = AgentSession.getCurrentTaskId(sessionId) -- 166
 				end -- 165
 				if not taskId then -- 167
 					return { -- 167
@@ -550,7 +550,7 @@ HttpServer:post("/agent/checkpoint/rollback", function(req) -- 178
 						message = "invalid checkpointId" -- 180
 					} -- 180
 				end -- 180
-				local res = WebIDEAgentSession.getSession(sessionId) -- 181
+				local res = AgentSession.getSession(sessionId) -- 181
 				if not res.success then -- 182
 					return res -- 182
 				end -- 182
@@ -2201,7 +2201,7 @@ HttpServer:post("/delete", function(req) -- 868
 					end -- 876
 					if Content:remove(path) then -- 882
 						if projectRoot then -- 883
-							WebIDEAgentSession.deleteSessionsByProjectRoot(projectRoot) -- 884
+							AgentSession.deleteSessionsByProjectRoot(projectRoot) -- 884
 						end -- 883
 						return { -- 885
 							success = true -- 885
@@ -2271,7 +2271,7 @@ HttpServer:post("/rename", function(req) -- 887
 					end -- 893
 					if Content:move(old, new) then -- 908
 						if renamedDir then -- 909
-							WebIDEAgentSession.renameSessionsByProjectRoot(old, new) -- 910
+							AgentSession.renameSessionsByProjectRoot(old, new) -- 910
 						end -- 909
 						local newParent = Path:getPath(new) -- 911
 						parent = Path:getPath(old) -- 912

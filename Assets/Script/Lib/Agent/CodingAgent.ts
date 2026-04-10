@@ -1129,7 +1129,7 @@ async function maybeCompressHistory(shared: AgentShared): Promise<void> {
 				success: true,
 				round: compressionRound,
 				compressedCount: result.compressedCount,
-				historyEntryPreview: summarizeHistoryEntryPreview(result.historyEntry),
+				historyEntryPreview: summarizeHistoryEntryPreview(result.summary ?? ""),
 			},
 		});
 		applyCompressedSessionState(shared, result.compressedCount, result.carryMessage);
@@ -1224,7 +1224,7 @@ async function compactAllHistory(shared: AgentShared): Promise<CodingAgentRunRes
 				success: true,
 				round: rounds,
 				compressedCount: result.compressedCount,
-				historyEntryPreview: summarizeHistoryEntryPreview(result.historyEntry),
+				historyEntryPreview: summarizeHistoryEntryPreview(result.summary ?? ""),
 				fullCompaction: true,
 			},
 		});
@@ -2728,9 +2728,8 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 	}
 	// 创建 Memory 压缩器
 	const compressor = new MemoryCompressor({
-		compressionThreshold: 0.8,
+		compressionThreshold: 0.5,
 		maxCompressionRounds: 3,
-		maxTokensPerCompression: 20000,
 		projectDir: options.workDir,
 		llmConfig,
 		promptPack: options.promptPack,
@@ -2742,7 +2741,7 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 		sessionId: options.sessionId,
 		taskId: taskRes.taskId,
 		maxSteps: math.max(1, math.floor(options.maxSteps ?? 50)),
-		llmMaxTry: math.max(1, math.floor(options.llmMaxTry ?? 3)),
+		llmMaxTry: math.max(1, math.floor(options.llmMaxTry ?? 5)),
 		step: 0,
 		done: false,
 		stopToken: options.stopToken ?? { stopped: false },

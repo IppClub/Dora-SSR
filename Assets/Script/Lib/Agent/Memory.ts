@@ -20,8 +20,16 @@ export interface PersistedSessionState {
 	messages: AgentConversationMessage[];
 }
 
+interface HistoryRecord {
+	ts: string;
+	summary?: string;
+	rawArchive?: string;
+}
+
 const AGENT_CONFIG_DIR = ".agent";
 const AGENT_PROMPTS_FILE = "AGENT.md";
+const HISTORY_JSONL_FILE = "HISTORY.jsonl";
+const HISTORY_MAX_RECORDS = 1000;
 const XML_DECISION_SCHEMA_EXAMPLE = `\`\`\`xml
 <tool_call>
 	<tool>edit_file</tool>
@@ -222,8 +230,8 @@ Analyze the actions and update the memory. Follow these guidelines:
 	- Use clear, concise language
 
 4. Create History Entry
-	- Create a summary paragraph for HISTORY.md
-	- Include timestamp and key topics
+	- Create a summary paragraph
+	- Include key topics
 	- Make it grep-searchable
 
 Call the save_memory tool with your consolidated memory and history entry.`,
@@ -454,9 +462,6 @@ export interface MemoryConfig {
 	/** 最大压缩轮数 */
 	maxCompressionRounds: number;
 
-	/** 每次压缩的最大 token 数 */
-	maxTokensPerCompression: number;
-
 	/** 当前项目完整路径 */
 	projectDir: string;
 
@@ -474,8 +479,11 @@ export interface CompressionResult {
 	/** 更新后的 MEMORY.md 内容 */
 	memoryUpdate: string;
 
-	/** 追加到 HISTORY.md 的条目 */
-	historyEntry: string;
+	/** 历史记录时间戳 */
+	ts?: string;
+
+	/** 历史记录摘要 */
+	summary?: string;
 
 	/** 压缩的历史记录数量 */
 	compressedCount: number;
@@ -573,7 +581,7 @@ function utf8TakeTail(text: string, maxChars: number): string {
 /**
  * 双层存储管理器
  *
- * 管理 MEMORY.md (长期记忆) 和 HISTORY.md (历史日志)
+ * 管理 MEMORY.md (长期记忆) 和 HISTORY.jsonl (历史日志)
  */
 export class DualLayerStorage {
 	private projectDir: string;
@@ -586,7 +594,7 @@ export class DualLayerStorage {
 		this.projectDir = projectDir;
 		this.agentDir = Path(this.projectDir, ".agent");
 		this.memoryPath = Path(this.agentDir, "MEMORY.md");
-		this.historyPath = Path(this.agentDir, "HISTORY.md");
+		this.historyPath = Path(this.agentDir, HISTORY_JSONL_FILE);
 		this.sessionPath = Path(this.agentDir, "SESSION.jsonl");
 		this.ensureAgentFiles();
 	}
@@ -640,6 +648,66 @@ export class DualLayerStorage {
 		return message;
 	}
 
+	private decodeHistoryRecord(value: unknown): HistoryRecord | undefined {
+		if (!value || isArray(value) || !isRecord(value)) return undefined;
+		const row = value;
+		const ts = typeof row.ts === "string" && row.ts.trim() !== ""
+			? sanitizeUTF8(row.ts)
+			: "";
+		const summary = typeof row.summary === "string" && row.summary.trim() !== ""
+			? sanitizeUTF8(row.summary)
+			: undefined;
+		const rawArchive = typeof row.rawArchive === "string" && row.rawArchive.trim() !== ""
+			? sanitizeUTF8(row.rawArchive)
+			: undefined;
+		if (ts === "" || (summary === undefined && rawArchive === undefined)) return undefined;
+		const record: HistoryRecord = {
+			ts,
+			summary,
+			rawArchive,
+		};
+		return record;
+	}
+
+	private readHistoryRecords(): HistoryRecord[] {
+		if (!Content.exist(this.historyPath)) {
+			return [];
+		}
+		const text = Content.load(this.historyPath) as string;
+		if (!text || text.trim() === "") {
+			return [];
+		}
+		const lines = text.split("\n");
+		const records: HistoryRecord[] = [];
+		for (let i = 0; i < lines.length; i++) {
+			const line = lines[i].trim();
+			if (line === "") continue;
+			const decoded = this.decodeJsonLine(line);
+			const record = this.decodeHistoryRecord(decoded);
+			if (record) {
+				records.push(record);
+			}
+		}
+		return records;
+	}
+
+	private saveHistoryRecords(records: HistoryRecord[]): void {
+		this.ensureDir(Path.getPath(this.historyPath));
+		const normalized = records.length > HISTORY_MAX_RECORDS
+			? records.slice(records.length - HISTORY_MAX_RECORDS)
+			: records;
+		const lines: string[] = [];
+		for (let i = 0; i < normalized.length; i++) {
+			const line = this.encodeJsonLine(normalized[i]);
+			if (line) {
+				lines.push(line);
+			}
+		}
+		const content = lines.length > 0 ? `${lines.join("\n")}\n` : "";
+		Content.save(this.historyPath, content);
+		sendWebIDEFileUpdate(this.historyPath, true, content);
+	}
+
 	// ===== MEMORY.md 操作 =====
 
 	/**
@@ -672,29 +740,12 @@ export class DualLayerStorage {
 ${memory}`;
 	}
 
-	// ===== HISTORY.md 操作 =====
+	// ===== HISTORY.jsonl 操作 =====
 
-	/**
-	 * 追加历史日志
-	 */
-	appendHistory(entry: string): void {
-		this.ensureDir(Path.getPath(this.historyPath));
-
-		const existing = Content.exist(this.historyPath)
-			? Content.load(this.historyPath) as string
-			: "";
-
-		Content.save(this.historyPath, existing + entry + "\n\n");
-	}
-
-	/**
-	 * 读取完整历史日志
-	 */
-	readHistory(): string {
-		if (!Content.exist(this.historyPath)) {
-			return "";
-		}
-		return Content.load(this.historyPath) as string;
+	appendHistoryRecord(record: HistoryRecord): void {
+		const records = this.readHistoryRecords();
+		records.push(record);
+		this.saveHistoryRecords(records);
 	}
 
 	readSessionState(): PersistedSessionState {
@@ -736,21 +787,6 @@ ${memory}`;
 		const content = lines.join("\n") + "\n";
 		Content.save(this.sessionPath, content);
 		sendWebIDEFileUpdate(this.sessionPath, true, content);
-	}
-
-	/**
-	 * 搜索历史日志 (返回匹配的行)
-	 */
-	searchHistory(keyword: string): string[] {
-		const history = this.readHistory();
-		if (!history) return [];
-
-		const lines = history.split("\n");
-		const lowerKeyword = keyword.toLowerCase();
-
-		return lines.filter(line =>
-			line.toLowerCase().includes(lowerKeyword)
-		);
 	}
 }
 
@@ -851,7 +887,12 @@ export class MemoryCompressor {
 			if (result.success) {
 				// 成功：写入存储
 				this.storage.writeMemory(result.memoryUpdate);
-				this.storage.appendHistory(result.historyEntry);
+				if (result.ts) {
+					this.storage.appendHistoryRecord({
+						ts: result.ts,
+						summary: result.summary,
+					});
+				}
 				this.consecutiveFailures = 0;
 
 				return {
@@ -880,14 +921,8 @@ export class MemoryCompressor {
 		boundaryMode: MemoryCompressionBoundaryMode
 	): CompressionBoundarySelection {
 		const targetTokens = boundaryMode === "budget_max"
-			? math.min(
-				this.config.maxTokensPerCompression,
-				math.max(1, this.getCompressionHistoryTokenBudget(currentMemory))
-			)
-			: math.min(
-				this.config.maxTokensPerCompression,
-				math.max(1, this.getRequiredCompressionTokens(messages))
-			);
+			? math.max(1, this.getCompressionHistoryTokenBudget(currentMemory))
+			: math.max(1, this.getRequiredCompressionTokens(messages));
 		let accumulatedTokens = 0;
 		let lastSafeBoundary = 0;
 		let lastSafeBoundaryWithinBudget = 0;
@@ -1002,13 +1037,10 @@ export class MemoryCompressor {
 		const threshold = this.getContextWindow() * this.config.compressionThreshold;
 		const overflow = math.max(0, currentTokens - threshold);
 		if (overflow <= 0) {
-			return math.min(
-				this.config.maxTokensPerCompression,
-				math.max(1, this.estimateCompressionMessageTokens(messages[0], 0))
-			);
+			return math.max(1, this.estimateCompressionMessageTokens(messages[0], 0));
 		}
 		const safetyMargin = math.max(64, math.floor(threshold * 0.01));
-		return math.min(this.config.maxTokensPerCompression, overflow + safetyMargin);
+		return overflow + safetyMargin;
 	}
 
 	private formatMessagesForCompression(messages: AgentConversationMessage[]): string {
@@ -1173,7 +1205,6 @@ export class MemoryCompressor {
 				return {
 					success: false,
 					memoryUpdate: currentMemory,
-					historyEntry: "",
 					compressedCount: 0,
 					error: response.message,
 				};
@@ -1193,7 +1224,6 @@ export class MemoryCompressor {
 			return {
 				success: false,
 				memoryUpdate: currentMemory,
-				historyEntry: "",
 				compressedCount: 0,
 				error: "missing save_memory tool call",
 			};
@@ -1203,7 +1233,6 @@ export class MemoryCompressor {
 			return {
 				success: false,
 				memoryUpdate: currentMemory,
-				historyEntry: "",
 				compressedCount: 0,
 				error: "empty save_memory tool arguments",
 			};
@@ -1216,7 +1245,6 @@ export class MemoryCompressor {
 				return {
 					success: false,
 					memoryUpdate: currentMemory,
-					historyEntry: "",
 					compressedCount: 0,
 					error: `Failed to parse tool arguments JSON: ${tostring(err)}`,
 				};
@@ -1230,7 +1258,6 @@ export class MemoryCompressor {
 			return {
 				success: false,
 				memoryUpdate: currentMemory,
-				historyEntry: "",
 				compressedCount: 0,
 				error: `Failed to process LLM response: ${error instanceof Error ? error.message : tostring(error)}`,
 			};
@@ -1270,7 +1297,6 @@ export class MemoryCompressor {
 				return {
 					success: false,
 					memoryUpdate: currentMemory,
-					historyEntry: "",
 					compressedCount: 0,
 					error: response.message,
 				};
@@ -1295,7 +1321,6 @@ export class MemoryCompressor {
 		return {
 			success: false,
 			memoryUpdate: currentMemory,
-			historyEntry: "",
 			compressedCount: 0,
 			error: lastError,
 		};
@@ -1348,7 +1373,6 @@ ${this.config.promptPack.memoryCompressionXmlPrompt}`;
 			return {
 				success: false,
 				memoryUpdate: currentMemory,
-				historyEntry: "",
 				compressedCount: 0,
 				error: parsed.message,
 			};
@@ -1369,7 +1393,6 @@ ${this.config.promptPack.memoryCompressionXmlPrompt}`;
 			return {
 				success: false,
 				memoryUpdate: currentMemory,
-				historyEntry: "",
 				compressedCount: 0,
 				error: "missing history_entry or memory_update",
 			};
@@ -1378,7 +1401,8 @@ ${this.config.promptPack.memoryCompressionXmlPrompt}`;
 		return {
 			success: true,
 			memoryUpdate: memoryBody,
-			historyEntry: `[${ts}] ${historyEntry}`,
+			ts,
+			summary: historyEntry,
 			compressedCount: 0,
 		};
 	}
@@ -1393,21 +1417,20 @@ ${this.config.promptPack.memoryCompressionXmlPrompt}`;
 		this.consecutiveFailures++;
 
 		if (this.consecutiveFailures >= MemoryCompressor.MAX_FAILURES) {
-			this.rawArchive(chunk);
+			const archived = this.rawArchive(chunk);
 			this.consecutiveFailures = 0;
 
-				return {
-					success: true,
-					memoryUpdate: this.storage.readMemory(),
-					historyEntry: "[RAW ARCHIVE] Detailed history not recorded",
-					compressedCount: chunk.length,
-				};
+			return {
+				success: true,
+				memoryUpdate: this.storage.readMemory(),
+				ts: archived.ts,
+				compressedCount: chunk.length,
+			};
 		}
 
 		return {
 			success: false,
 			memoryUpdate: this.storage.readMemory(),
-			historyEntry: "",
 			compressedCount: 0,
 			error,
 		};
@@ -1416,22 +1439,14 @@ ${this.config.promptPack.memoryCompressionXmlPrompt}`;
 	/**
 	 * 原始归档（降级方案）
 	 */
-	private rawArchive(chunk: AgentConversationMessage[]): void {
+	private rawArchive(chunk: AgentConversationMessage[]): { ts: string } {
 		const ts = os.date("%Y-%m-%d %H:%M");
-		let firstUserMessage: AgentConversationMessage | undefined;
-		for (let i = 0; i < chunk.length; i++) {
-			if (chunk[i].role === "user") {
-				firstUserMessage = chunk[i];
-				break;
-			}
-		}
-		const prompt = firstUserMessage && firstUserMessage.content && firstUserMessage.content.trim() !== ""
-			? firstUserMessage.content.trim().replace("\n", " ")
-			: "(empty prompt)";
-		const compactPrompt = prompt.length > 160 ? `${prompt.slice(0, 160)}...` : prompt;
-		this.storage.appendHistory(
-			`[${ts}] [RAW ARCHIVE] prompt="${compactPrompt}" (${chunk.length} messages, compression failed; detailed history not recorded)`
-		);
+		const rawArchive = this.formatMessagesForCompression(chunk);
+		this.storage.appendHistoryRecord({
+			ts,
+			rawArchive,
+		});
+		return { ts };
 	}
 
 	/**
