@@ -312,10 +312,21 @@ function getLatestMainSessionByProjectRoot(projectRoot: string): AgentSessionIte
 }
 
 function deleteSessionRecords(sessionId: number) {
+	const session = getSessionItem(sessionId);
+	const children = queryRows(`SELECT id FROM ${TABLE_SESSION} WHERE parent_session_id = ?`, [sessionId]) ?? [];
+	for (let i = 0; i < children.length; i++) {
+		const row = children[i] as any[];
+		if (typeof row[0] === "number" && row[0] > 0) {
+			deleteSessionRecords(row[0] as number);
+		}
+	}
 	DB.exec(`DELETE FROM ${TABLE_SESSION} WHERE parent_session_id = ?`, [sessionId]);
 	DB.exec(`DELETE FROM ${TABLE_STEP} WHERE session_id = ?`, [sessionId]);
 	DB.exec(`DELETE FROM ${TABLE_MESSAGE} WHERE session_id = ?`, [sessionId]);
 	DB.exec(`DELETE FROM ${TABLE_SESSION} WHERE id = ?`, [sessionId]);
+	if (session && session.kind === "sub" && session.memoryScope !== "") {
+		Content.remove(Path(session.projectRoot, ".agent", session.memoryScope));
+	}
 }
 
 function getSessionRootId(session: AgentSessionItem): number {

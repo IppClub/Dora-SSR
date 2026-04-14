@@ -198,719 +198,717 @@ function getLatestMainSessionByProjectRoot(projectRoot) -- 301
 	return row and rowToSession(row) or nil -- 311
 end -- 311
 function deleteSessionRecords(sessionId) -- 314
-	DB:exec(("DELETE FROM " .. TABLE_SESSION) .. " WHERE parent_session_id = ?", {sessionId}) -- 315
-	DB:exec(("DELETE FROM " .. TABLE_STEP) .. " WHERE session_id = ?", {sessionId}) -- 316
-	DB:exec(("DELETE FROM " .. TABLE_MESSAGE) .. " WHERE session_id = ?", {sessionId}) -- 317
-	DB:exec(("DELETE FROM " .. TABLE_SESSION) .. " WHERE id = ?", {sessionId}) -- 318
-end -- 318
-function getSessionRootId(session) -- 321
-	return session.rootSessionId > 0 and session.rootSessionId or session.id -- 322
-end -- 322
-function getRootSessionItem(sessionId) -- 325
-	local session = getSessionItem(sessionId) -- 326
-	if not session then -- 326
-		return nil -- 327
-	end -- 327
-	return getSessionItem(getSessionRootId(session)) or session -- 328
+	local session = getSessionItem(sessionId) -- 315
+	local children = queryRows(("SELECT id FROM " .. TABLE_SESSION) .. " WHERE parent_session_id = ?", {sessionId}) or ({}) -- 316
+	do -- 316
+		local i = 0 -- 317
+		while i < #children do -- 317
+			local row = children[i + 1] -- 318
+			if type(row[1]) == "number" and row[1] > 0 then -- 318
+				deleteSessionRecords(row[1]) -- 320
+			end -- 320
+			i = i + 1 -- 317
+		end -- 317
+	end -- 317
+	DB:exec(("DELETE FROM " .. TABLE_SESSION) .. " WHERE parent_session_id = ?", {sessionId}) -- 323
+	DB:exec(("DELETE FROM " .. TABLE_STEP) .. " WHERE session_id = ?", {sessionId}) -- 324
+	DB:exec(("DELETE FROM " .. TABLE_MESSAGE) .. " WHERE session_id = ?", {sessionId}) -- 325
+	DB:exec(("DELETE FROM " .. TABLE_SESSION) .. " WHERE id = ?", {sessionId}) -- 326
+	if session and session.kind == "sub" and session.memoryScope ~= "" then -- 326
+		Content:remove(Path(session.projectRoot, ".agent", session.memoryScope)) -- 328
+	end -- 328
 end -- 328
-function listRelatedSessions(sessionId) -- 331
-	local root = getRootSessionItem(sessionId) -- 332
-	if not root then -- 332
-		return {} -- 333
-	end -- 333
-	local rows = queryRows(("SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at\n\t\tFROM " .. TABLE_SESSION) .. "\n\t\tWHERE id = ? OR root_session_id = ?\n\t\tORDER BY\n\t\t\tCASE kind WHEN 'main' THEN 0 ELSE 1 END ASC,\n\t\t\tid ASC", {root.id, root.id}) or ({}) -- 334
-	return __TS__ArrayMap( -- 343
-		rows, -- 343
-		function(____, row) return normalizeSessionRuntimeState(rowToSession(row)) end -- 343
-	) -- 343
-end -- 343
-function getPendingMergeCount(projectRoot) -- 346
-	return #__TS__New(MemoryMergeQueue, projectRoot):listJobs() -- 347
-end -- 347
-function listPendingMergeJobs(projectRoot) -- 350
-	return __TS__ArrayMap( -- 351
-		__TS__New(MemoryMergeQueue, projectRoot):listJobs(), -- 351
-		function(____, job) return { -- 351
-			jobId = job.jobId, -- 352
-			sourceAgentId = job.sourceAgentId, -- 353
-			sourceTitle = job.sourceTitle, -- 354
-			createdAt = job.createdAt, -- 355
-			attempts = job.attempts, -- 356
-			lastError = job.lastError -- 357
-		} end -- 357
-	) -- 357
-end -- 357
-function getSessionSpawnInfo(session) -- 361
-	local info = readSpawnInfo(session.projectRoot, session.memoryScope) -- 362
-	if not info then -- 362
-		return nil -- 363
-	end -- 363
-	return { -- 364
-		prompt = type(info.prompt) == "string" and sanitizeUTF8(info.prompt) or "", -- 365
-		goal = type(info.goal) == "string" and sanitizeUTF8(info.goal) or "", -- 366
-		expectedOutput = type(info.expectedOutput) == "string" and sanitizeUTF8(info.expectedOutput) or nil, -- 367
-		filesHint = __TS__ArrayIsArray(info.filesHint) and __TS__ArrayMap( -- 368
-			__TS__ArrayFilter( -- 369
-				info.filesHint, -- 369
-				function(____, item) return type(item) == "string" end -- 369
-			), -- 369
-			function(____, item) return sanitizeUTF8(item) end -- 369
-		) or nil, -- 369
-		createdAt = type(info.createdAt) == "string" and sanitizeUTF8(info.createdAt) or nil -- 371
-	} -- 371
-end -- 371
-function ensureDirRecursive(dir) -- 388
-	if not dir or dir == "" then -- 388
-		return false -- 389
-	end -- 389
-	if Content:exist(dir) then -- 389
-		return Content:isdir(dir) -- 390
-	end -- 390
-	local parent = Path:getPath(dir) -- 391
-	if parent and parent ~= dir and not Content:exist(parent) then -- 391
-		if not ensureDirRecursive(parent) then -- 391
-			return false -- 394
-		end -- 394
-	end -- 394
-	return Content:mkdir(dir) -- 397
-end -- 397
-function writeSpawnInfo(projectRoot, memoryScope, value) -- 400
-	local dir = Path(projectRoot, ".agent", memoryScope) -- 401
-	if not Content:exist(dir) then -- 401
-		ensureDirRecursive(dir) -- 403
-	end -- 403
-	local path = Path(dir, SPAWN_INFO_FILE) -- 405
-	local text = safeJsonEncode(value) -- 406
-	if not text then -- 406
-		return false -- 407
-	end -- 407
-	return Content:save(path, text .. "\n") -- 408
+function getSessionRootId(session) -- 332
+	return session.rootSessionId > 0 and session.rootSessionId or session.id -- 333
+end -- 333
+function getRootSessionItem(sessionId) -- 336
+	local session = getSessionItem(sessionId) -- 337
+	if not session then -- 337
+		return nil -- 338
+	end -- 338
+	return getSessionItem(getSessionRootId(session)) or session -- 339
+end -- 339
+function listRelatedSessions(sessionId) -- 342
+	local root = getRootSessionItem(sessionId) -- 343
+	if not root then -- 343
+		return {} -- 344
+	end -- 344
+	local rows = queryRows(("SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at\n\t\tFROM " .. TABLE_SESSION) .. "\n\t\tWHERE id = ? OR root_session_id = ?\n\t\tORDER BY\n\t\t\tCASE kind WHEN 'main' THEN 0 ELSE 1 END ASC,\n\t\t\tid ASC", {root.id, root.id}) or ({}) -- 345
+	return __TS__ArrayMap( -- 354
+		rows, -- 354
+		function(____, row) return normalizeSessionRuntimeState(rowToSession(row)) end -- 354
+	) -- 354
+end -- 354
+function getPendingMergeCount(projectRoot) -- 357
+	return #__TS__New(MemoryMergeQueue, projectRoot):listJobs() -- 358
+end -- 358
+function listPendingMergeJobs(projectRoot) -- 361
+	return __TS__ArrayMap( -- 362
+		__TS__New(MemoryMergeQueue, projectRoot):listJobs(), -- 362
+		function(____, job) return { -- 362
+			jobId = job.jobId, -- 363
+			sourceAgentId = job.sourceAgentId, -- 364
+			sourceTitle = job.sourceTitle, -- 365
+			createdAt = job.createdAt, -- 366
+			attempts = job.attempts, -- 367
+			lastError = job.lastError -- 368
+		} end -- 368
+	) -- 368
+end -- 368
+function getSessionSpawnInfo(session) -- 372
+	local info = readSpawnInfo(session.projectRoot, session.memoryScope) -- 373
+	if not info then -- 373
+		return nil -- 374
+	end -- 374
+	return { -- 375
+		prompt = type(info.prompt) == "string" and sanitizeUTF8(info.prompt) or "", -- 376
+		goal = type(info.goal) == "string" and sanitizeUTF8(info.goal) or "", -- 377
+		expectedOutput = type(info.expectedOutput) == "string" and sanitizeUTF8(info.expectedOutput) or nil, -- 378
+		filesHint = __TS__ArrayIsArray(info.filesHint) and __TS__ArrayMap( -- 379
+			__TS__ArrayFilter( -- 380
+				info.filesHint, -- 380
+				function(____, item) return type(item) == "string" end -- 380
+			), -- 380
+			function(____, item) return sanitizeUTF8(item) end -- 380
+		) or nil, -- 380
+		createdAt = type(info.createdAt) == "string" and sanitizeUTF8(info.createdAt) or nil -- 382
+	} -- 382
+end -- 382
+function ensureDirRecursive(dir) -- 399
+	if not dir or dir == "" then -- 399
+		return false -- 400
+	end -- 400
+	if Content:exist(dir) then -- 400
+		return Content:isdir(dir) -- 401
+	end -- 401
+	local parent = Path:getPath(dir) -- 402
+	if parent and parent ~= dir and not Content:exist(parent) then -- 402
+		if not ensureDirRecursive(parent) then -- 402
+			return false -- 405
+		end -- 405
+	end -- 405
+	return Content:mkdir(dir) -- 408
 end -- 408
-function readSpawnInfo(projectRoot, memoryScope) -- 411
-	local path = Path(projectRoot, ".agent", memoryScope, SPAWN_INFO_FILE) -- 412
-	if not Content:exist(path) then -- 412
-		return nil -- 413
-	end -- 413
-	local text = Content:load(path) -- 414
-	if not text or __TS__StringTrim(text) == "" then -- 414
-		return nil -- 415
-	end -- 415
-	local value = safeJsonDecode(text) -- 416
-	if value and not __TS__ArrayIsArray(value) and type(value) == "table" then -- 416
-		return value -- 418
+function writeSpawnInfo(projectRoot, memoryScope, value) -- 411
+	local dir = Path(projectRoot, ".agent", memoryScope) -- 412
+	if not Content:exist(dir) then -- 412
+		ensureDirRecursive(dir) -- 414
+	end -- 414
+	local path = Path(dir, SPAWN_INFO_FILE) -- 416
+	local text = safeJsonEncode(value) -- 417
+	if not text then -- 417
+		return false -- 418
 	end -- 418
-	return nil -- 420
-end -- 420
-function writeFinalizeInfo(projectRoot, memoryScope, value) -- 423
-	local dir = Path(projectRoot, ".agent", memoryScope) -- 424
-	if not Content:exist(dir) then -- 424
-		ensureDirRecursive(dir) -- 426
+	return Content:save(path, text .. "\n") -- 419
+end -- 419
+function readSpawnInfo(projectRoot, memoryScope) -- 422
+	local path = Path(projectRoot, ".agent", memoryScope, SPAWN_INFO_FILE) -- 423
+	if not Content:exist(path) then -- 423
+		return nil -- 424
+	end -- 424
+	local text = Content:load(path) -- 425
+	if not text or __TS__StringTrim(text) == "" then -- 425
+		return nil -- 426
 	end -- 426
-	local path = Path(dir, FINALIZE_INFO_FILE) -- 428
-	local text = safeJsonEncode(value) -- 429
-	if not text then -- 429
-		return false -- 430
-	end -- 430
-	return Content:save(path, text .. "\n") -- 431
+	local value = safeJsonDecode(text) -- 427
+	if value and not __TS__ArrayIsArray(value) and type(value) == "table" then -- 427
+		return value -- 429
+	end -- 429
+	return nil -- 431
 end -- 431
-function readFinalizeInfo(projectRoot, memoryScope) -- 434
-	local path = Path(projectRoot, ".agent", memoryScope, FINALIZE_INFO_FILE) -- 435
-	if not Content:exist(path) then -- 435
-		return nil -- 436
-	end -- 436
-	local text = Content:load(path) -- 437
-	if not text or __TS__StringTrim(text) == "" then -- 437
-		return nil -- 438
-	end -- 438
-	local value = safeJsonDecode(text) -- 439
-	if value and not __TS__ArrayIsArray(value) and type(value) == "table" then -- 439
-		local sourceTaskId = tonumber(value.sourceTaskId) -- 441
-		if not (sourceTaskId and sourceTaskId > 0) then -- 441
-			return nil -- 442
-		end -- 442
-		return { -- 443
-			sourceTaskId = sourceTaskId, -- 444
-			message = sanitizeUTF8(toStr(value.message)), -- 445
-			createdAt = type(value.createdAt) == "string" and sanitizeUTF8(value.createdAt) or nil -- 446
-		} -- 446
-	end -- 446
-	return nil -- 451
-end -- 451
-function deleteFinalizeInfo(projectRoot, memoryScope) -- 454
-	local path = Path(projectRoot, ".agent", memoryScope, FINALIZE_INFO_FILE) -- 455
-	if Content:exist(path) then -- 455
-		Content:remove(path) -- 457
+function writeFinalizeInfo(projectRoot, memoryScope, value) -- 434
+	local dir = Path(projectRoot, ".agent", memoryScope) -- 435
+	if not Content:exist(dir) then -- 435
+		ensureDirRecursive(dir) -- 437
+	end -- 437
+	local path = Path(dir, FINALIZE_INFO_FILE) -- 439
+	local text = safeJsonEncode(value) -- 440
+	if not text then -- 440
+		return false -- 441
+	end -- 441
+	return Content:save(path, text .. "\n") -- 442
+end -- 442
+function readFinalizeInfo(projectRoot, memoryScope) -- 445
+	local path = Path(projectRoot, ".agent", memoryScope, FINALIZE_INFO_FILE) -- 446
+	if not Content:exist(path) then -- 446
+		return nil -- 447
+	end -- 447
+	local text = Content:load(path) -- 448
+	if not text or __TS__StringTrim(text) == "" then -- 448
+		return nil -- 449
+	end -- 449
+	local value = safeJsonDecode(text) -- 450
+	if value and not __TS__ArrayIsArray(value) and type(value) == "table" then -- 450
+		local sourceTaskId = tonumber(value.sourceTaskId) -- 452
+		if not (sourceTaskId and sourceTaskId > 0) then -- 452
+			return nil -- 453
+		end -- 453
+		return { -- 454
+			sourceTaskId = sourceTaskId, -- 455
+			message = sanitizeUTF8(toStr(value.message)), -- 456
+			createdAt = type(value.createdAt) == "string" and sanitizeUTF8(value.createdAt) or nil -- 457
+		} -- 457
 	end -- 457
-end -- 457
-function getPendingHandoffDir(projectRoot, memoryScope) -- 461
-	return Path(projectRoot, ".agent", memoryScope, PENDING_HANDOFF_DIR) -- 462
+	return nil -- 462
 end -- 462
-function writePendingHandoff(projectRoot, memoryScope, value) -- 465
-	local dir = getPendingHandoffDir(projectRoot, memoryScope) -- 466
-	if not Content:exist(dir) then -- 466
-		ensureDirRecursive(dir) -- 468
+function deleteFinalizeInfo(projectRoot, memoryScope) -- 465
+	local path = Path(projectRoot, ".agent", memoryScope, FINALIZE_INFO_FILE) -- 466
+	if Content:exist(path) then -- 466
+		Content:remove(path) -- 468
 	end -- 468
-	local path = Path(dir, value.id .. ".json") -- 470
-	local text = safeJsonEncode(value) -- 471
-	if not text then -- 471
-		return false -- 472
-	end -- 472
-	return Content:save(path, text .. "\n") -- 473
+end -- 468
+function getPendingHandoffDir(projectRoot, memoryScope) -- 472
+	return Path(projectRoot, ".agent", memoryScope, PENDING_HANDOFF_DIR) -- 473
 end -- 473
-function listPendingHandoffs(projectRoot, memoryScope) -- 476
+function writePendingHandoff(projectRoot, memoryScope, value) -- 476
 	local dir = getPendingHandoffDir(projectRoot, memoryScope) -- 477
-	if not Content:exist(dir) or not Content:isdir(dir) then -- 477
-		return {} -- 478
-	end -- 478
-	local items = {} -- 479
-	for ____, rawPath in ipairs(Content:getFiles(dir)) do -- 480
-		do -- 480
-			local path = Content:isAbsolutePath(rawPath) and rawPath or Path(dir, rawPath) -- 481
-			if not __TS__StringEndsWith(path, ".json") or not Content:exist(path) then -- 481
-				goto __continue82 -- 482
-			end -- 482
-			local text = Content:load(path) -- 483
-			if not text or __TS__StringTrim(text) == "" then -- 483
-				goto __continue82 -- 484
-			end -- 484
-			local value = safeJsonDecode(text) -- 485
-			if not value or __TS__ArrayIsArray(value) or type(value) ~= "table" then -- 485
-				goto __continue82 -- 486
-			end -- 486
-			local sourceTaskId = tonumber(value.sourceTaskId) -- 487
-			local sourceSessionId = tonumber(value.sourceSessionId) -- 488
-			local id = sanitizeUTF8(toStr(value.id)) -- 489
-			local sourceTitle = sanitizeUTF8(toStr(value.sourceTitle)) -- 490
-			local message = sanitizeUTF8(toStr(value.message)) -- 491
-			local prompt = sanitizeUTF8(toStr(value.prompt)) -- 492
-			local goal = sanitizeUTF8(toStr(value.goal)) -- 493
-			local createdAt = sanitizeUTF8(toStr(value.createdAt)) -- 494
-			if not (sourceTaskId and sourceTaskId > 0) or not (sourceSessionId and sourceSessionId > 0) or id == "" or createdAt == "" then -- 494
-				goto __continue82 -- 496
-			end -- 496
-			items[#items + 1] = { -- 498
-				id = id, -- 499
-				sourceSessionId = sourceSessionId, -- 500
-				sourceTitle = sourceTitle, -- 501
-				sourceTaskId = sourceTaskId, -- 502
-				message = message, -- 503
-				prompt = prompt, -- 504
-				goal = goal, -- 505
-				expectedOutput = sanitizeUTF8(toStr(value.expectedOutput)), -- 506
-				filesHint = __TS__ArrayIsArray(value.filesHint) and __TS__ArrayMap( -- 507
-					__TS__ArrayFilter( -- 508
-						value.filesHint, -- 508
-						function(____, item) return type(item) == "string" end -- 508
-					), -- 508
-					function(____, item) return sanitizeUTF8(item) end -- 508
-				) or ({}), -- 508
-				createdAt = createdAt -- 510
-			} -- 510
-		end -- 510
-		::__continue82:: -- 510
-	end -- 510
-	__TS__ArraySort( -- 513
-		items, -- 513
-		function(____, a, b) return a.id < b.id and -1 or (a.id > b.id and 1 or 0) end -- 513
-	) -- 513
-	return items -- 514
-end -- 514
-function deletePendingHandoff(projectRoot, memoryScope, id) -- 517
-	local path = Path( -- 518
-		getPendingHandoffDir(projectRoot, memoryScope), -- 518
-		id .. ".json" -- 518
-	) -- 518
-	if Content:exist(path) then -- 518
-		Content:remove(path) -- 520
-	end -- 520
-end -- 520
-function normalizePromptText(prompt) -- 524
-	return __TS__StringTrim(truncateAgentUserPrompt(prompt or "")) -- 525
+	if not Content:exist(dir) then -- 477
+		ensureDirRecursive(dir) -- 479
+	end -- 479
+	local path = Path(dir, value.id .. ".json") -- 481
+	local text = safeJsonEncode(value) -- 482
+	if not text then -- 482
+		return false -- 483
+	end -- 483
+	return Content:save(path, text .. "\n") -- 484
+end -- 484
+function listPendingHandoffs(projectRoot, memoryScope) -- 487
+	local dir = getPendingHandoffDir(projectRoot, memoryScope) -- 488
+	if not Content:exist(dir) or not Content:isdir(dir) then -- 488
+		return {} -- 489
+	end -- 489
+	local items = {} -- 490
+	for ____, rawPath in ipairs(Content:getFiles(dir)) do -- 491
+		do -- 491
+			local path = Content:isAbsolutePath(rawPath) and rawPath or Path(dir, rawPath) -- 492
+			if not __TS__StringEndsWith(path, ".json") or not Content:exist(path) then -- 492
+				goto __continue86 -- 493
+			end -- 493
+			local text = Content:load(path) -- 494
+			if not text or __TS__StringTrim(text) == "" then -- 494
+				goto __continue86 -- 495
+			end -- 495
+			local value = safeJsonDecode(text) -- 496
+			if not value or __TS__ArrayIsArray(value) or type(value) ~= "table" then -- 496
+				goto __continue86 -- 497
+			end -- 497
+			local sourceTaskId = tonumber(value.sourceTaskId) -- 498
+			local sourceSessionId = tonumber(value.sourceSessionId) -- 499
+			local id = sanitizeUTF8(toStr(value.id)) -- 500
+			local sourceTitle = sanitizeUTF8(toStr(value.sourceTitle)) -- 501
+			local message = sanitizeUTF8(toStr(value.message)) -- 502
+			local prompt = sanitizeUTF8(toStr(value.prompt)) -- 503
+			local goal = sanitizeUTF8(toStr(value.goal)) -- 504
+			local createdAt = sanitizeUTF8(toStr(value.createdAt)) -- 505
+			if not (sourceTaskId and sourceTaskId > 0) or not (sourceSessionId and sourceSessionId > 0) or id == "" or createdAt == "" then -- 505
+				goto __continue86 -- 507
+			end -- 507
+			items[#items + 1] = { -- 509
+				id = id, -- 510
+				sourceSessionId = sourceSessionId, -- 511
+				sourceTitle = sourceTitle, -- 512
+				sourceTaskId = sourceTaskId, -- 513
+				message = message, -- 514
+				prompt = prompt, -- 515
+				goal = goal, -- 516
+				expectedOutput = sanitizeUTF8(toStr(value.expectedOutput)), -- 517
+				filesHint = __TS__ArrayIsArray(value.filesHint) and __TS__ArrayMap( -- 518
+					__TS__ArrayFilter( -- 519
+						value.filesHint, -- 519
+						function(____, item) return type(item) == "string" end -- 519
+					), -- 519
+					function(____, item) return sanitizeUTF8(item) end -- 519
+				) or ({}), -- 519
+				createdAt = createdAt -- 521
+			} -- 521
+		end -- 521
+		::__continue86:: -- 521
+	end -- 521
+	__TS__ArraySort( -- 524
+		items, -- 524
+		function(____, a, b) return a.id < b.id and -1 or (a.id > b.id and 1 or 0) end -- 524
+	) -- 524
+	return items -- 525
 end -- 525
-function normalizePromptTextSafe(prompt) -- 528
-	if type(prompt) == "string" then -- 528
-		local normalized = normalizePromptText(prompt) -- 530
-		if normalized ~= "" then -- 530
-			return normalized -- 531
-		end -- 531
-		local sanitized = __TS__StringTrim(sanitizeUTF8(prompt)) -- 532
-		if sanitized ~= "" then -- 532
-			return truncateAgentUserPrompt(sanitized) -- 534
-		end -- 534
-		return "" -- 536
-	end -- 536
-	local text = __TS__StringTrim(sanitizeUTF8(toStr(prompt))) -- 538
-	if text == "" then -- 538
-		return "" -- 539
-	end -- 539
-	return truncateAgentUserPrompt(text) -- 540
-end -- 540
-function buildSubAgentPromptFallback(title, expectedOutput, filesHint) -- 543
-	local sections = {} -- 544
-	local normalizedTitle = __TS__StringTrim(sanitizeUTF8(title or "")) -- 545
-	local normalizedExpected = __TS__StringTrim(sanitizeUTF8(expectedOutput or "")) -- 546
-	local normalizedFiles = __TS__ArrayFilter( -- 547
-		__TS__ArrayMap( -- 547
-			__TS__ArrayFilter( -- 547
-				filesHint or ({}), -- 547
-				function(____, item) return type(item) == "string" end -- 548
-			), -- 548
-			function(____, item) return __TS__StringTrim(sanitizeUTF8(item)) end -- 549
-		), -- 549
-		function(____, item) return item ~= "" end -- 550
-	) -- 550
-	if normalizedTitle ~= "" then -- 550
-		sections[#sections + 1] = "Task: " .. normalizedTitle -- 552
-	end -- 552
-	if normalizedExpected ~= "" then -- 552
-		sections[#sections + 1] = "Expected output: " .. normalizedExpected -- 555
-	end -- 555
-	if #normalizedFiles > 0 then -- 555
-		sections[#sections + 1] = "Files hint:\n- " .. table.concat(normalizedFiles, "\n- ") -- 558
-	end -- 558
-	return __TS__StringTrim(table.concat(sections, "\n\n")) -- 560
-end -- 560
-function normalizeSessionRuntimeState(session) -- 563
-	if session.currentTaskId == nil or session.currentTaskStatus ~= "RUNNING" then -- 563
-		return session -- 565
-	end -- 565
-	if activeStopTokens[session.currentTaskId] then -- 565
-		return session -- 568
-	end -- 568
-	Tools.setTaskStatus(session.currentTaskId, "STOPPED") -- 570
-	setSessionState(session.id, "STOPPED", session.currentTaskId, "STOPPED") -- 571
-	return __TS__ObjectAssign( -- 572
-		{}, -- 572
-		session, -- 573
-		{ -- 572
-			status = "STOPPED", -- 574
-			currentTaskStatus = "STOPPED", -- 575
-			updatedAt = now() -- 576
-		} -- 576
-	) -- 576
-end -- 576
-function setSessionState(sessionId, status, currentTaskId, currentTaskStatus) -- 580
-	DB:exec( -- 581
-		("UPDATE " .. TABLE_SESSION) .. "\n\t\tSET status = ?, current_task_id = ?, current_task_status = ?, updated_at = ?\n\t\tWHERE id = ?", -- 581
-		{ -- 585
-			status, -- 586
-			currentTaskId or 0, -- 587
-			currentTaskStatus or status, -- 588
-			now(), -- 589
-			sessionId -- 590
-		} -- 590
-	) -- 590
-end -- 590
-function setSessionStateForTaskEvent(sessionId, taskId, status, currentTaskStatus) -- 595
-	if taskId == nil or taskId <= 0 then -- 595
-		setSessionState(sessionId, status, taskId, currentTaskStatus) -- 597
-		return -- 598
-	end -- 598
-	local row = getSessionRow(sessionId) -- 600
-	if not row then -- 600
-		return -- 601
-	end -- 601
-	local session = rowToSession(row) -- 602
-	if session.currentTaskId ~= taskId then -- 602
-		Log( -- 604
-			"Info", -- 604
-			(((("[AgentSession] ignore stale task event session=" .. tostring(sessionId)) .. " eventTask=") .. tostring(taskId)) .. " currentTask=") .. tostring(session.currentTaskId) -- 604
-		) -- 604
-		return -- 605
-	end -- 605
-	setSessionState(sessionId, status, taskId, currentTaskStatus) -- 607
-end -- 607
-function insertMessage(sessionId, role, content, taskId) -- 610
-	local t = now() -- 611
-	DB:exec( -- 612
-		("INSERT INTO " .. TABLE_MESSAGE) .. "(session_id, task_id, role, content, created_at, updated_at)\n\t\tVALUES(?, ?, ?, ?, ?, ?)", -- 612
-		{ -- 615
-			sessionId, -- 616
-			taskId or 0, -- 617
-			role, -- 618
-			sanitizeUTF8(content), -- 619
-			t, -- 620
-			t -- 621
-		} -- 621
-	) -- 621
-	return getLastInsertRowId() -- 624
-end -- 624
-function updateMessage(messageId, content) -- 627
-	DB:exec( -- 628
-		("UPDATE " .. TABLE_MESSAGE) .. " SET content = ?, updated_at = ? WHERE id = ?", -- 628
-		{ -- 630
+function deletePendingHandoff(projectRoot, memoryScope, id) -- 528
+	local path = Path( -- 529
+		getPendingHandoffDir(projectRoot, memoryScope), -- 529
+		id .. ".json" -- 529
+	) -- 529
+	if Content:exist(path) then -- 529
+		Content:remove(path) -- 531
+	end -- 531
+end -- 531
+function normalizePromptText(prompt) -- 535
+	return __TS__StringTrim(truncateAgentUserPrompt(prompt or "")) -- 536
+end -- 536
+function normalizePromptTextSafe(prompt) -- 539
+	if type(prompt) == "string" then -- 539
+		local normalized = normalizePromptText(prompt) -- 541
+		if normalized ~= "" then -- 541
+			return normalized -- 542
+		end -- 542
+		local sanitized = __TS__StringTrim(sanitizeUTF8(prompt)) -- 543
+		if sanitized ~= "" then -- 543
+			return truncateAgentUserPrompt(sanitized) -- 545
+		end -- 545
+		return "" -- 547
+	end -- 547
+	local text = __TS__StringTrim(sanitizeUTF8(toStr(prompt))) -- 549
+	if text == "" then -- 549
+		return "" -- 550
+	end -- 550
+	return truncateAgentUserPrompt(text) -- 551
+end -- 551
+function buildSubAgentPromptFallback(title, expectedOutput, filesHint) -- 554
+	local sections = {} -- 555
+	local normalizedTitle = __TS__StringTrim(sanitizeUTF8(title or "")) -- 556
+	local normalizedExpected = __TS__StringTrim(sanitizeUTF8(expectedOutput or "")) -- 557
+	local normalizedFiles = __TS__ArrayFilter( -- 558
+		__TS__ArrayMap( -- 558
+			__TS__ArrayFilter( -- 558
+				filesHint or ({}), -- 558
+				function(____, item) return type(item) == "string" end -- 559
+			), -- 559
+			function(____, item) return __TS__StringTrim(sanitizeUTF8(item)) end -- 560
+		), -- 560
+		function(____, item) return item ~= "" end -- 561
+	) -- 561
+	if normalizedTitle ~= "" then -- 561
+		sections[#sections + 1] = "Task: " .. normalizedTitle -- 563
+	end -- 563
+	if normalizedExpected ~= "" then -- 563
+		sections[#sections + 1] = "Expected output: " .. normalizedExpected -- 566
+	end -- 566
+	if #normalizedFiles > 0 then -- 566
+		sections[#sections + 1] = "Files hint:\n- " .. table.concat(normalizedFiles, "\n- ") -- 569
+	end -- 569
+	return __TS__StringTrim(table.concat(sections, "\n\n")) -- 571
+end -- 571
+function normalizeSessionRuntimeState(session) -- 574
+	if session.currentTaskId == nil or session.currentTaskStatus ~= "RUNNING" then -- 574
+		return session -- 576
+	end -- 576
+	if activeStopTokens[session.currentTaskId] then -- 576
+		return session -- 579
+	end -- 579
+	Tools.setTaskStatus(session.currentTaskId, "STOPPED") -- 581
+	setSessionState(session.id, "STOPPED", session.currentTaskId, "STOPPED") -- 582
+	return __TS__ObjectAssign( -- 583
+		{}, -- 583
+		session, -- 584
+		{ -- 583
+			status = "STOPPED", -- 585
+			currentTaskStatus = "STOPPED", -- 586
+			updatedAt = now() -- 587
+		} -- 587
+	) -- 587
+end -- 587
+function setSessionState(sessionId, status, currentTaskId, currentTaskStatus) -- 591
+	DB:exec( -- 592
+		("UPDATE " .. TABLE_SESSION) .. "\n\t\tSET status = ?, current_task_id = ?, current_task_status = ?, updated_at = ?\n\t\tWHERE id = ?", -- 592
+		{ -- 596
+			status, -- 597
+			currentTaskId or 0, -- 598
+			currentTaskStatus or status, -- 599
+			now(), -- 600
+			sessionId -- 601
+		} -- 601
+	) -- 601
+end -- 601
+function setSessionStateForTaskEvent(sessionId, taskId, status, currentTaskStatus) -- 606
+	if taskId == nil or taskId <= 0 then -- 606
+		setSessionState(sessionId, status, taskId, currentTaskStatus) -- 608
+		return -- 609
+	end -- 609
+	local row = getSessionRow(sessionId) -- 611
+	if not row then -- 611
+		return -- 612
+	end -- 612
+	local session = rowToSession(row) -- 613
+	if session.currentTaskId ~= taskId then -- 613
+		Log( -- 615
+			"Info", -- 615
+			(((("[AgentSession] ignore stale task event session=" .. tostring(sessionId)) .. " eventTask=") .. tostring(taskId)) .. " currentTask=") .. tostring(session.currentTaskId) -- 615
+		) -- 615
+		return -- 616
+	end -- 616
+	setSessionState(sessionId, status, taskId, currentTaskStatus) -- 618
+end -- 618
+function insertMessage(sessionId, role, content, taskId) -- 621
+	local t = now() -- 622
+	DB:exec( -- 623
+		("INSERT INTO " .. TABLE_MESSAGE) .. "(session_id, task_id, role, content, created_at, updated_at)\n\t\tVALUES(?, ?, ?, ?, ?, ?)", -- 623
+		{ -- 626
+			sessionId, -- 627
+			taskId or 0, -- 628
+			role, -- 629
 			sanitizeUTF8(content), -- 630
-			now(), -- 630
-			messageId -- 630
-		} -- 630
-	) -- 630
-end -- 630
-function upsertAssistantMessage(sessionId, taskId, content) -- 634
-	local row = queryOne(("SELECT id FROM " .. TABLE_MESSAGE) .. "\n\t\tWHERE session_id = ? AND task_id = ? AND role = ?\n\t\tORDER BY id DESC LIMIT 1", {sessionId, taskId, "assistant"}) -- 635
-	if row and type(row[1]) == "number" then -- 635
-		updateMessage(row[1], content) -- 642
-		return row[1] -- 643
-	end -- 643
-	return insertMessage(sessionId, "assistant", content, taskId) -- 645
-end -- 645
-function upsertStep(sessionId, taskId, step, tool, patch) -- 648
-	local row = queryOne(("SELECT id FROM " .. TABLE_STEP) .. " WHERE session_id = ? AND task_id = ? AND step = ?", {sessionId, taskId, step}) -- 658
-	local reason = sanitizeUTF8(patch.reason or "") -- 662
-	local reasoningContent = sanitizeUTF8(patch.reasoningContent or "") -- 663
-	local paramsJson = patch.params and encodeJson(patch.params) or "" -- 664
-	local resultJson = patch.result and encodeJson(patch.result) or "" -- 665
-	local filesJson = patch.files and encodeJson(patch.files) or "" -- 666
-	local statusPatch = patch.status or "" -- 667
-	local status = patch.status or "PENDING" -- 668
-	if not row then -- 668
-		local t = now() -- 670
-		DB:exec(("INSERT INTO " .. TABLE_STEP) .. "(session_id, task_id, step, tool, status, reason, reasoning_content, params_json, result_json, checkpoint_id, checkpoint_seq, files_json, created_at, updated_at)\n\t\t\tVALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", { -- 671
-			sessionId, -- 675
-			taskId, -- 676
-			step, -- 677
-			tool, -- 678
-			status, -- 679
-			reason, -- 680
-			reasoningContent, -- 681
-			paramsJson, -- 682
-			resultJson, -- 683
-			patch.checkpointId or 0, -- 684
-			patch.checkpointSeq or 0, -- 685
-			filesJson, -- 686
-			t, -- 687
-			t -- 688
-		}) -- 688
-		return -- 691
-	end -- 691
-	DB:exec( -- 693
-		("UPDATE " .. TABLE_STEP) .. "\n\t\tSET tool = ?, status = CASE WHEN ? = '' THEN status ELSE ? END,\n\t\t\treason = CASE WHEN ? = '' THEN reason ELSE ? END,\n\t\t\treasoning_content = CASE WHEN ? = '' THEN reasoning_content ELSE ? END,\n\t\t\tparams_json = CASE WHEN ? = '' THEN params_json ELSE ? END,\n\t\t\tresult_json = CASE WHEN ? = '' THEN result_json ELSE ? END,\n\t\t\tcheckpoint_id = CASE WHEN ? > 0 THEN ? ELSE checkpoint_id END,\n\t\t\tcheckpoint_seq = CASE WHEN ? > 0 THEN ? ELSE checkpoint_seq END,\n\t\t\tfiles_json = CASE WHEN ? = '' THEN files_json ELSE ? END,\n\t\t\tupdated_at = ?\n\t\tWHERE id = ?", -- 693
-		{ -- 705
-			tool, -- 706
-			statusPatch, -- 707
-			status, -- 708
-			reason, -- 709
-			reason, -- 710
-			reasoningContent, -- 711
-			reasoningContent, -- 712
-			paramsJson, -- 713
-			paramsJson, -- 714
-			resultJson, -- 715
-			resultJson, -- 716
-			patch.checkpointId or 0, -- 717
-			patch.checkpointId or 0, -- 718
-			patch.checkpointSeq or 0, -- 719
-			patch.checkpointSeq or 0, -- 720
-			filesJson, -- 721
-			filesJson, -- 722
-			now(), -- 723
-			row[1] -- 724
-		} -- 724
-	) -- 724
-end -- 724
-function getNextStepNumber(sessionId, taskId) -- 729
-	local row = queryOne(("SELECT MAX(step) FROM " .. TABLE_STEP) .. " WHERE session_id = ? AND task_id = ?", {sessionId, taskId}) -- 730
-	local current = row and type(row[1]) == "number" and row[1] or 0 -- 734
-	return math.max(0, current) + 1 -- 735
+			t, -- 631
+			t -- 632
+		} -- 632
+	) -- 632
+	return getLastInsertRowId() -- 635
+end -- 635
+function updateMessage(messageId, content) -- 638
+	DB:exec( -- 639
+		("UPDATE " .. TABLE_MESSAGE) .. " SET content = ?, updated_at = ? WHERE id = ?", -- 639
+		{ -- 641
+			sanitizeUTF8(content), -- 641
+			now(), -- 641
+			messageId -- 641
+		} -- 641
+	) -- 641
+end -- 641
+function upsertAssistantMessage(sessionId, taskId, content) -- 645
+	local row = queryOne(("SELECT id FROM " .. TABLE_MESSAGE) .. "\n\t\tWHERE session_id = ? AND task_id = ? AND role = ?\n\t\tORDER BY id DESC LIMIT 1", {sessionId, taskId, "assistant"}) -- 646
+	if row and type(row[1]) == "number" then -- 646
+		updateMessage(row[1], content) -- 653
+		return row[1] -- 654
+	end -- 654
+	return insertMessage(sessionId, "assistant", content, taskId) -- 656
+end -- 656
+function upsertStep(sessionId, taskId, step, tool, patch) -- 659
+	local row = queryOne(("SELECT id FROM " .. TABLE_STEP) .. " WHERE session_id = ? AND task_id = ? AND step = ?", {sessionId, taskId, step}) -- 669
+	local reason = sanitizeUTF8(patch.reason or "") -- 673
+	local reasoningContent = sanitizeUTF8(patch.reasoningContent or "") -- 674
+	local paramsJson = patch.params and encodeJson(patch.params) or "" -- 675
+	local resultJson = patch.result and encodeJson(patch.result) or "" -- 676
+	local filesJson = patch.files and encodeJson(patch.files) or "" -- 677
+	local statusPatch = patch.status or "" -- 678
+	local status = patch.status or "PENDING" -- 679
+	if not row then -- 679
+		local t = now() -- 681
+		DB:exec(("INSERT INTO " .. TABLE_STEP) .. "(session_id, task_id, step, tool, status, reason, reasoning_content, params_json, result_json, checkpoint_id, checkpoint_seq, files_json, created_at, updated_at)\n\t\t\tVALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", { -- 682
+			sessionId, -- 686
+			taskId, -- 687
+			step, -- 688
+			tool, -- 689
+			status, -- 690
+			reason, -- 691
+			reasoningContent, -- 692
+			paramsJson, -- 693
+			resultJson, -- 694
+			patch.checkpointId or 0, -- 695
+			patch.checkpointSeq or 0, -- 696
+			filesJson, -- 697
+			t, -- 698
+			t -- 699
+		}) -- 699
+		return -- 702
+	end -- 702
+	DB:exec( -- 704
+		("UPDATE " .. TABLE_STEP) .. "\n\t\tSET tool = ?, status = CASE WHEN ? = '' THEN status ELSE ? END,\n\t\t\treason = CASE WHEN ? = '' THEN reason ELSE ? END,\n\t\t\treasoning_content = CASE WHEN ? = '' THEN reasoning_content ELSE ? END,\n\t\t\tparams_json = CASE WHEN ? = '' THEN params_json ELSE ? END,\n\t\t\tresult_json = CASE WHEN ? = '' THEN result_json ELSE ? END,\n\t\t\tcheckpoint_id = CASE WHEN ? > 0 THEN ? ELSE checkpoint_id END,\n\t\t\tcheckpoint_seq = CASE WHEN ? > 0 THEN ? ELSE checkpoint_seq END,\n\t\t\tfiles_json = CASE WHEN ? = '' THEN files_json ELSE ? END,\n\t\t\tupdated_at = ?\n\t\tWHERE id = ?", -- 704
+		{ -- 716
+			tool, -- 717
+			statusPatch, -- 718
+			status, -- 719
+			reason, -- 720
+			reason, -- 721
+			reasoningContent, -- 722
+			reasoningContent, -- 723
+			paramsJson, -- 724
+			paramsJson, -- 725
+			resultJson, -- 726
+			resultJson, -- 727
+			patch.checkpointId or 0, -- 728
+			patch.checkpointId or 0, -- 729
+			patch.checkpointSeq or 0, -- 730
+			patch.checkpointSeq or 0, -- 731
+			filesJson, -- 732
+			filesJson, -- 733
+			now(), -- 734
+			row[1] -- 735
+		} -- 735
+	) -- 735
 end -- 735
-function appendSystemStep(sessionId, taskId, tool, _systemType, reason, result, params, status) -- 738
-	if status == nil then -- 738
-		status = "DONE" -- 746
-	end -- 746
-	local step = getNextStepNumber(sessionId, taskId) -- 748
-	upsertStep( -- 749
-		sessionId, -- 749
-		taskId, -- 749
-		step, -- 749
-		tool, -- 749
-		{status = status, reason = reason, params = params, result = result} -- 749
-	) -- 749
-	return getStepItem(sessionId, taskId, step) -- 755
-end -- 755
-function finalizeTaskSteps(sessionId, taskId, finalSteps, finalStatus) -- 758
-	if taskId <= 0 then -- 758
-		return -- 759
-	end -- 759
-	if finalSteps ~= nil and finalSteps >= 0 then -- 759
-		DB:exec(("DELETE FROM " .. TABLE_STEP) .. "\n\t\t\tWHERE session_id = ? AND task_id = ? AND step > ?", {sessionId, taskId, finalSteps}) -- 761
-	end -- 761
-	if not finalStatus then -- 761
-		return -- 767
-	end -- 767
-	if finalSteps ~= nil and finalSteps >= 0 then -- 767
-		DB:exec( -- 769
-			("UPDATE " .. TABLE_STEP) .. "\n\t\t\tSET status = ?, updated_at = ?\n\t\t\tWHERE session_id = ? AND task_id = ? AND step <= ? AND status IN ('PENDING', 'RUNNING')", -- 769
-			{ -- 773
-				finalStatus, -- 773
-				now(), -- 773
-				sessionId, -- 773
-				taskId, -- 773
-				finalSteps -- 773
-			} -- 773
-		) -- 773
-		return -- 775
-	end -- 775
-	DB:exec( -- 777
-		("UPDATE " .. TABLE_STEP) .. "\n\t\tSET status = ?, updated_at = ?\n\t\tWHERE session_id = ? AND task_id = ? AND status IN ('PENDING', 'RUNNING')", -- 777
-		{ -- 781
-			finalStatus, -- 781
-			now(), -- 781
-			sessionId, -- 781
-			taskId -- 781
-		} -- 781
-	) -- 781
-end -- 781
-function emitAgentSessionPatch(sessionId, patch) -- 808
-	if HttpServer.wsConnectionCount == 0 then -- 808
-		return -- 810
-	end -- 810
-	local text = safeJsonEncode(__TS__ObjectAssign({name = "AgentSessionPatch", sessionId = sessionId}, patch)) -- 812
-	if not text then -- 812
-		return -- 817
-	end -- 817
-	emit("AppWS", "Send", text) -- 818
-end -- 818
-function emitSessionDeletedPatch(sessionId, rootSessionId, projectRoot) -- 833
-	emitAgentSessionPatch( -- 834
-		sessionId, -- 834
-		{ -- 834
-			sessionDeleted = true, -- 835
-			relatedSessions = listRelatedSessions(rootSessionId), -- 836
-			pendingMergeCount = getPendingMergeCount(projectRoot), -- 837
-			pendingMergeJobs = listPendingMergeJobs(projectRoot) -- 838
-		} -- 838
-	) -- 838
-	local rootSession = getSessionItem(rootSessionId) -- 840
-	if rootSession then -- 840
-		emitAgentSessionPatch( -- 842
-			rootSessionId, -- 842
-			{ -- 842
-				session = rootSession, -- 843
-				relatedSessions = listRelatedSessions(rootSessionId), -- 844
-				pendingMergeCount = getPendingMergeCount(projectRoot), -- 845
-				pendingMergeJobs = listPendingMergeJobs(projectRoot) -- 846
-			} -- 846
-		) -- 846
-	end -- 846
-end -- 846
-function flushPendingSubAgentHandoffs(rootSession) -- 851
-	if rootSession.kind ~= "main" then -- 851
-		return -- 852
-	end -- 852
-	if rootSession.currentTaskStatus == "RUNNING" and rootSession.currentTaskId and activeStopTokens[rootSession.currentTaskId] then -- 852
-		return -- 854
-	end -- 854
-	local items = listPendingHandoffs(rootSession.projectRoot, rootSession.memoryScope) -- 856
-	if #items == 0 then -- 856
-		return -- 857
+function getNextStepNumber(sessionId, taskId) -- 740
+	local row = queryOne(("SELECT MAX(step) FROM " .. TABLE_STEP) .. " WHERE session_id = ? AND task_id = ?", {sessionId, taskId}) -- 741
+	local current = row and type(row[1]) == "number" and row[1] or 0 -- 745
+	return math.max(0, current) + 1 -- 746
+end -- 746
+function appendSystemStep(sessionId, taskId, tool, _systemType, reason, result, params, status) -- 749
+	if status == nil then -- 749
+		status = "DONE" -- 757
+	end -- 757
+	local step = getNextStepNumber(sessionId, taskId) -- 759
+	upsertStep( -- 760
+		sessionId, -- 760
+		taskId, -- 760
+		step, -- 760
+		tool, -- 760
+		{status = status, reason = reason, params = params, result = result} -- 760
+	) -- 760
+	return getStepItem(sessionId, taskId, step) -- 766
+end -- 766
+function finalizeTaskSteps(sessionId, taskId, finalSteps, finalStatus) -- 769
+	if taskId <= 0 then -- 769
+		return -- 770
+	end -- 770
+	if finalSteps ~= nil and finalSteps >= 0 then -- 770
+		DB:exec(("DELETE FROM " .. TABLE_STEP) .. "\n\t\t\tWHERE session_id = ? AND task_id = ? AND step > ?", {sessionId, taskId, finalSteps}) -- 772
+	end -- 772
+	if not finalStatus then -- 772
+		return -- 778
+	end -- 778
+	if finalSteps ~= nil and finalSteps >= 0 then -- 778
+		DB:exec( -- 780
+			("UPDATE " .. TABLE_STEP) .. "\n\t\t\tSET status = ?, updated_at = ?\n\t\t\tWHERE session_id = ? AND task_id = ? AND step <= ? AND status IN ('PENDING', 'RUNNING')", -- 780
+			{ -- 784
+				finalStatus, -- 784
+				now(), -- 784
+				sessionId, -- 784
+				taskId, -- 784
+				finalSteps -- 784
+			} -- 784
+		) -- 784
+		return -- 786
+	end -- 786
+	DB:exec( -- 788
+		("UPDATE " .. TABLE_STEP) .. "\n\t\tSET status = ?, updated_at = ?\n\t\tWHERE session_id = ? AND task_id = ? AND status IN ('PENDING', 'RUNNING')", -- 788
+		{ -- 792
+			finalStatus, -- 792
+			now(), -- 792
+			sessionId, -- 792
+			taskId -- 792
+		} -- 792
+	) -- 792
+end -- 792
+function emitAgentSessionPatch(sessionId, patch) -- 819
+	if HttpServer.wsConnectionCount == 0 then -- 819
+		return -- 821
+	end -- 821
+	local text = safeJsonEncode(__TS__ObjectAssign({name = "AgentSessionPatch", sessionId = sessionId}, patch)) -- 823
+	if not text then -- 823
+		return -- 828
+	end -- 828
+	emit("AppWS", "Send", text) -- 829
+end -- 829
+function emitSessionDeletedPatch(sessionId, rootSessionId, projectRoot) -- 844
+	emitAgentSessionPatch( -- 845
+		sessionId, -- 845
+		{ -- 845
+			sessionDeleted = true, -- 846
+			relatedSessions = listRelatedSessions(rootSessionId), -- 847
+			pendingMergeCount = getPendingMergeCount(projectRoot), -- 848
+			pendingMergeJobs = listPendingMergeJobs(projectRoot) -- 849
+		} -- 849
+	) -- 849
+	local rootSession = getSessionItem(rootSessionId) -- 851
+	if rootSession then -- 851
+		emitAgentSessionPatch( -- 853
+			rootSessionId, -- 853
+			{ -- 853
+				session = rootSession, -- 854
+				relatedSessions = listRelatedSessions(rootSessionId), -- 855
+				pendingMergeCount = getPendingMergeCount(projectRoot), -- 856
+				pendingMergeJobs = listPendingMergeJobs(projectRoot) -- 857
+			} -- 857
+		) -- 857
 	end -- 857
-	local taskRes = Tools.createTask(("[sub_agent_handoff] " .. tostring(#items)) .. " item(s)") -- 858
-	if not taskRes.success then -- 858
-		Log( -- 860
-			"Warn", -- 860
-			(("[AgentSession] failed to create sub-agent handoff task for root=" .. tostring(rootSession.id)) .. ": ") .. taskRes.message -- 860
-		) -- 860
-		return -- 861
-	end -- 861
-	local handoffTaskId = taskRes.taskId -- 863
-	Tools.setTaskStatus(handoffTaskId, "DONE") -- 864
-	setSessionState(rootSession.id, "DONE", handoffTaskId, "DONE") -- 865
-	emitAgentSessionPatch( -- 866
-		rootSession.id, -- 866
-		{session = getSessionItem(rootSession.id)} -- 866
-	) -- 866
-	do -- 866
-		local i = 0 -- 869
-		while i < #items do -- 869
-			local item = items[i + 1] -- 870
-			local step = appendSystemStep( -- 871
-				rootSession.id, -- 872
-				handoffTaskId, -- 873
-				"sub_agent_handoff", -- 874
-				"sub_agent_handoff", -- 875
-				item.message, -- 876
-				{sourceSessionId = item.sourceSessionId, sourceTitle = item.sourceTitle, sourceTaskId = item.sourceTaskId}, -- 877
-				{ -- 882
-					sourceSessionId = item.sourceSessionId, -- 883
-					sourceTitle = item.sourceTitle, -- 884
-					prompt = item.prompt, -- 885
-					goal = item.goal ~= "" and item.goal or item.sourceTitle, -- 886
-					expectedOutput = item.expectedOutput or "", -- 887
-					filesHint = item.filesHint or ({}) -- 888
-				}, -- 888
-				"DONE" -- 890
-			) -- 890
-			if step then -- 890
-				emitAgentSessionPatch(rootSession.id, {step = step}) -- 893
-			end -- 893
-			deletePendingHandoff(rootSession.projectRoot, rootSession.memoryScope, item.id) -- 895
-			i = i + 1 -- 869
-		end -- 869
-	end -- 869
-end -- 869
-function applyEvent(sessionId, event) -- 899
-	repeat -- 899
-		local ____switch144 = event.type -- 899
-		local ____cond144 = ____switch144 == "task_started" -- 899
-		if ____cond144 then -- 899
-			setSessionStateForTaskEvent(sessionId, event.taskId, "RUNNING", "RUNNING") -- 902
-			emitAgentSessionPatch( -- 903
-				sessionId, -- 903
-				{session = getSessionItem(sessionId)} -- 903
-			) -- 903
-			break -- 906
-		end -- 906
-		____cond144 = ____cond144 or ____switch144 == "decision_made" -- 906
-		if ____cond144 then -- 906
-			upsertStep( -- 908
-				sessionId, -- 908
-				event.taskId, -- 908
-				event.step, -- 908
-				event.tool, -- 908
-				{status = "PENDING", reason = event.reason, reasoningContent = event.reasoningContent, params = event.params} -- 908
-			) -- 908
+end -- 857
+function flushPendingSubAgentHandoffs(rootSession) -- 862
+	if rootSession.kind ~= "main" then -- 862
+		return -- 863
+	end -- 863
+	if rootSession.currentTaskStatus == "RUNNING" and rootSession.currentTaskId and activeStopTokens[rootSession.currentTaskId] then -- 863
+		return -- 865
+	end -- 865
+	local items = listPendingHandoffs(rootSession.projectRoot, rootSession.memoryScope) -- 867
+	if #items == 0 then -- 867
+		return -- 868
+	end -- 868
+	local taskRes = Tools.createTask(("[sub_agent_handoff] " .. tostring(#items)) .. " item(s)") -- 869
+	if not taskRes.success then -- 869
+		Log( -- 871
+			"Warn", -- 871
+			(("[AgentSession] failed to create sub-agent handoff task for root=" .. tostring(rootSession.id)) .. ": ") .. taskRes.message -- 871
+		) -- 871
+		return -- 872
+	end -- 872
+	local handoffTaskId = taskRes.taskId -- 874
+	Tools.setTaskStatus(handoffTaskId, "DONE") -- 875
+	setSessionState(rootSession.id, "DONE", handoffTaskId, "DONE") -- 876
+	emitAgentSessionPatch( -- 877
+		rootSession.id, -- 877
+		{session = getSessionItem(rootSession.id)} -- 877
+	) -- 877
+	do -- 877
+		local i = 0 -- 880
+		while i < #items do -- 880
+			local item = items[i + 1] -- 881
+			local step = appendSystemStep( -- 882
+				rootSession.id, -- 883
+				handoffTaskId, -- 884
+				"sub_agent_handoff", -- 885
+				"sub_agent_handoff", -- 886
+				item.message, -- 887
+				{sourceSessionId = item.sourceSessionId, sourceTitle = item.sourceTitle, sourceTaskId = item.sourceTaskId}, -- 888
+				{ -- 893
+					sourceSessionId = item.sourceSessionId, -- 894
+					sourceTitle = item.sourceTitle, -- 895
+					prompt = item.prompt, -- 896
+					goal = item.goal ~= "" and item.goal or item.sourceTitle, -- 897
+					expectedOutput = item.expectedOutput or "", -- 898
+					filesHint = item.filesHint or ({}) -- 899
+				}, -- 899
+				"DONE" -- 901
+			) -- 901
+			if step then -- 901
+				emitAgentSessionPatch(rootSession.id, {step = step}) -- 904
+			end -- 904
+			deletePendingHandoff(rootSession.projectRoot, rootSession.memoryScope, item.id) -- 906
+			i = i + 1 -- 880
+		end -- 880
+	end -- 880
+end -- 880
+function applyEvent(sessionId, event) -- 910
+	repeat -- 910
+		local ____switch148 = event.type -- 910
+		local ____cond148 = ____switch148 == "task_started" -- 910
+		if ____cond148 then -- 910
+			setSessionStateForTaskEvent(sessionId, event.taskId, "RUNNING", "RUNNING") -- 913
 			emitAgentSessionPatch( -- 914
 				sessionId, -- 914
-				{step = getStepItem(sessionId, event.taskId, event.step)} -- 914
+				{session = getSessionItem(sessionId)} -- 914
 			) -- 914
 			break -- 917
 		end -- 917
-		____cond144 = ____cond144 or ____switch144 == "tool_started" -- 917
-		if ____cond144 then -- 917
+		____cond148 = ____cond148 or ____switch148 == "decision_made" -- 917
+		if ____cond148 then -- 917
 			upsertStep( -- 919
 				sessionId, -- 919
 				event.taskId, -- 919
 				event.step, -- 919
 				event.tool, -- 919
-				{status = "RUNNING"} -- 919
+				{status = "PENDING", reason = event.reason, reasoningContent = event.reasoningContent, params = event.params} -- 919
 			) -- 919
-			emitAgentSessionPatch( -- 922
-				sessionId, -- 922
-				{step = getStepItem(sessionId, event.taskId, event.step)} -- 922
-			) -- 922
-			break -- 925
-		end -- 925
-		____cond144 = ____cond144 or ____switch144 == "tool_finished" -- 925
-		if ____cond144 then -- 925
-			upsertStep( -- 927
-				sessionId, -- 927
-				event.taskId, -- 927
-				event.step, -- 927
-				event.tool, -- 927
-				{status = event.result.success == true and "DONE" or "FAILED", reason = event.reason, result = event.result} -- 927
-			) -- 927
-			emitAgentSessionPatch( -- 932
-				sessionId, -- 932
-				{step = getStepItem(sessionId, event.taskId, event.step)} -- 932
-			) -- 932
-			break -- 935
-		end -- 935
-		____cond144 = ____cond144 or ____switch144 == "checkpoint_created" -- 935
-		if ____cond144 then -- 935
-			upsertStep( -- 937
-				sessionId, -- 937
-				event.taskId, -- 937
-				event.step, -- 937
-				event.tool, -- 937
-				{checkpointId = event.checkpointId, checkpointSeq = event.checkpointSeq, files = event.files} -- 937
-			) -- 937
-			emitAgentSessionPatch( -- 942
-				sessionId, -- 942
-				{ -- 942
-					step = getStepItem(sessionId, event.taskId, event.step), -- 943
-					checkpoints = Tools.listCheckpoints(event.taskId) -- 944
-				} -- 944
-			) -- 944
+			emitAgentSessionPatch( -- 925
+				sessionId, -- 925
+				{step = getStepItem(sessionId, event.taskId, event.step)} -- 925
+			) -- 925
+			break -- 928
+		end -- 928
+		____cond148 = ____cond148 or ____switch148 == "tool_started" -- 928
+		if ____cond148 then -- 928
+			upsertStep( -- 930
+				sessionId, -- 930
+				event.taskId, -- 930
+				event.step, -- 930
+				event.tool, -- 930
+				{status = "RUNNING"} -- 930
+			) -- 930
+			emitAgentSessionPatch( -- 933
+				sessionId, -- 933
+				{step = getStepItem(sessionId, event.taskId, event.step)} -- 933
+			) -- 933
+			break -- 936
+		end -- 936
+		____cond148 = ____cond148 or ____switch148 == "tool_finished" -- 936
+		if ____cond148 then -- 936
+			upsertStep( -- 938
+				sessionId, -- 938
+				event.taskId, -- 938
+				event.step, -- 938
+				event.tool, -- 938
+				{status = event.result.success == true and "DONE" or "FAILED", reason = event.reason, result = event.result} -- 938
+			) -- 938
+			emitAgentSessionPatch( -- 943
+				sessionId, -- 943
+				{step = getStepItem(sessionId, event.taskId, event.step)} -- 943
+			) -- 943
 			break -- 946
 		end -- 946
-		____cond144 = ____cond144 or ____switch144 == "memory_compression_started" -- 946
-		if ____cond144 then -- 946
+		____cond148 = ____cond148 or ____switch148 == "checkpoint_created" -- 946
+		if ____cond148 then -- 946
 			upsertStep( -- 948
 				sessionId, -- 948
 				event.taskId, -- 948
 				event.step, -- 948
 				event.tool, -- 948
-				{status = "RUNNING", reason = event.reason, params = event.params} -- 948
+				{checkpointId = event.checkpointId, checkpointSeq = event.checkpointSeq, files = event.files} -- 948
 			) -- 948
 			emitAgentSessionPatch( -- 953
 				sessionId, -- 953
-				{step = getStepItem(sessionId, event.taskId, event.step)} -- 953
-			) -- 953
-			break -- 956
-		end -- 956
-		____cond144 = ____cond144 or ____switch144 == "memory_compression_finished" -- 956
-		if ____cond144 then -- 956
-			upsertStep( -- 958
-				sessionId, -- 958
-				event.taskId, -- 958
-				event.step, -- 958
-				event.tool, -- 958
-				{status = event.result.success == true and "DONE" or "FAILED", reason = event.reason, result = event.result} -- 958
-			) -- 958
-			emitAgentSessionPatch( -- 963
-				sessionId, -- 963
-				{step = getStepItem(sessionId, event.taskId, event.step)} -- 963
-			) -- 963
-			break -- 966
-		end -- 966
-		____cond144 = ____cond144 or ____switch144 == "memory_merge_started" -- 966
-		if ____cond144 then -- 966
-			do -- 966
-				upsertStep( -- 968
-					sessionId, -- 968
-					event.taskId, -- 968
-					event.step, -- 968
-					"merge_memory", -- 968
-					{ -- 968
-						status = "RUNNING", -- 969
-						reason = getDefaultUseChineseResponse() and ("正在合并来自 " .. event.sourceTitle) .. " 的记忆。" or ("Pending memory merge from " .. event.sourceTitle) .. ".", -- 970
-						params = {jobId = event.jobId, sourceAgentId = event.sourceAgentId, sourceTitle = event.sourceTitle} -- 973
-					} -- 973
-				) -- 973
-				emitAgentSessionPatch( -- 979
+				{ -- 953
+					step = getStepItem(sessionId, event.taskId, event.step), -- 954
+					checkpoints = Tools.listCheckpoints(event.taskId) -- 955
+				} -- 955
+			) -- 955
+			break -- 957
+		end -- 957
+		____cond148 = ____cond148 or ____switch148 == "memory_compression_started" -- 957
+		if ____cond148 then -- 957
+			upsertStep( -- 959
+				sessionId, -- 959
+				event.taskId, -- 959
+				event.step, -- 959
+				event.tool, -- 959
+				{status = "RUNNING", reason = event.reason, params = event.params} -- 959
+			) -- 959
+			emitAgentSessionPatch( -- 964
+				sessionId, -- 964
+				{step = getStepItem(sessionId, event.taskId, event.step)} -- 964
+			) -- 964
+			break -- 967
+		end -- 967
+		____cond148 = ____cond148 or ____switch148 == "memory_compression_finished" -- 967
+		if ____cond148 then -- 967
+			upsertStep( -- 969
+				sessionId, -- 969
+				event.taskId, -- 969
+				event.step, -- 969
+				event.tool, -- 969
+				{status = event.result.success == true and "DONE" or "FAILED", reason = event.reason, result = event.result} -- 969
+			) -- 969
+			emitAgentSessionPatch( -- 974
+				sessionId, -- 974
+				{step = getStepItem(sessionId, event.taskId, event.step)} -- 974
+			) -- 974
+			break -- 977
+		end -- 977
+		____cond148 = ____cond148 or ____switch148 == "memory_merge_started" -- 977
+		if ____cond148 then -- 977
+			do -- 977
+				upsertStep( -- 979
 					sessionId, -- 979
-					{step = getStepItem(sessionId, event.taskId, event.step)} -- 979
-				) -- 979
-				break -- 982
-			end -- 982
-		end -- 982
-		____cond144 = ____cond144 or ____switch144 == "memory_merge_finished" -- 982
-		if ____cond144 then -- 982
-			do -- 982
-				upsertStep( -- 985
-					sessionId, -- 985
-					event.taskId, -- 985
-					event.step, -- 985
-					"merge_memory", -- 985
-					{ -- 985
-						status = event.success and "DONE" or "FAILED", -- 986
-						reason = sanitizeUTF8(event.message), -- 987
-						params = {jobId = event.jobId, sourceAgentId = event.sourceAgentId, sourceTitle = event.sourceTitle}, -- 988
-						result = { -- 993
-							success = event.success, -- 994
-							attempts = event.attempts, -- 995
-							jobId = event.jobId, -- 996
-							sourceAgentId = event.sourceAgentId, -- 997
-							sourceTitle = event.sourceTitle -- 998
-						} -- 998
-					} -- 998
-				) -- 998
-				emitAgentSessionPatch( -- 1001
-					sessionId, -- 1001
-					{step = getStepItem(sessionId, event.taskId, event.step)} -- 1001
-				) -- 1001
-				break -- 1004
-			end -- 1004
-		end -- 1004
-		____cond144 = ____cond144 or ____switch144 == "assistant_message_updated" -- 1004
-		if ____cond144 then -- 1004
-			do -- 1004
-				upsertStep( -- 1007
-					sessionId, -- 1007
-					event.taskId, -- 1007
-					event.step, -- 1007
-					"message", -- 1007
-					{status = "RUNNING", reason = event.content, reasoningContent = event.reasoningContent} -- 1007
-				) -- 1007
+					event.taskId, -- 979
+					event.step, -- 979
+					"merge_memory", -- 979
+					{ -- 979
+						status = "RUNNING", -- 980
+						reason = getDefaultUseChineseResponse() and ("正在合并来自 " .. event.sourceTitle) .. " 的记忆。" or ("Pending memory merge from " .. event.sourceTitle) .. ".", -- 981
+						params = {jobId = event.jobId, sourceAgentId = event.sourceAgentId, sourceTitle = event.sourceTitle} -- 984
+					} -- 984
+				) -- 984
+				emitAgentSessionPatch( -- 990
+					sessionId, -- 990
+					{step = getStepItem(sessionId, event.taskId, event.step)} -- 990
+				) -- 990
+				break -- 993
+			end -- 993
+		end -- 993
+		____cond148 = ____cond148 or ____switch148 == "memory_merge_finished" -- 993
+		if ____cond148 then -- 993
+			do -- 993
+				upsertStep( -- 996
+					sessionId, -- 996
+					event.taskId, -- 996
+					event.step, -- 996
+					"merge_memory", -- 996
+					{ -- 996
+						status = event.success and "DONE" or "FAILED", -- 997
+						reason = sanitizeUTF8(event.message), -- 998
+						params = {jobId = event.jobId, sourceAgentId = event.sourceAgentId, sourceTitle = event.sourceTitle}, -- 999
+						result = { -- 1004
+							success = event.success, -- 1005
+							attempts = event.attempts, -- 1006
+							jobId = event.jobId, -- 1007
+							sourceAgentId = event.sourceAgentId, -- 1008
+							sourceTitle = event.sourceTitle -- 1009
+						} -- 1009
+					} -- 1009
+				) -- 1009
 				emitAgentSessionPatch( -- 1012
 					sessionId, -- 1012
 					{step = getStepItem(sessionId, event.taskId, event.step)} -- 1012
@@ -918,385 +916,402 @@ function applyEvent(sessionId, event) -- 899
 				break -- 1015
 			end -- 1015
 		end -- 1015
-		____cond144 = ____cond144 or ____switch144 == "task_finished" -- 1015
-		if ____cond144 then -- 1015
+		____cond148 = ____cond148 or ____switch148 == "assistant_message_updated" -- 1015
+		if ____cond148 then -- 1015
 			do -- 1015
-				local ____opt_8 = activeStopTokens[event.taskId or -1] -- 1015
-				local stopped = (____opt_8 and ____opt_8.stopped) == true -- 1018
-				local finalStatus = event.success and "DONE" or (stopped and "STOPPED" or "FAILED") -- 1019
-				setSessionStateForTaskEvent(sessionId, event.taskId, finalStatus, finalStatus) -- 1022
-				if event.taskId ~= nil then -- 1022
-					local removedStepIds = deleteMessageSteps(sessionId, event.taskId) -- 1024
-					local ____finalizeTaskSteps_12 = finalizeTaskSteps -- 1025
-					local ____array_11 = __TS__SparseArrayNew( -- 1025
-						sessionId, -- 1026
-						event.taskId, -- 1027
-						type(event.steps) == "number" and math.max( -- 1028
-							0, -- 1028
-							math.floor(event.steps) -- 1028
-						) or nil -- 1028
-					) -- 1028
-					local ____event_success_10 -- 1029
-					if event.success then -- 1029
-						____event_success_10 = nil -- 1029
-					else -- 1029
-						____event_success_10 = stopped and "STOPPED" or "FAILED" -- 1029
-					end -- 1029
-					__TS__SparseArrayPush(____array_11, ____event_success_10) -- 1029
-					____finalizeTaskSteps_12(__TS__SparseArraySpread(____array_11)) -- 1025
-					local messageId = upsertAssistantMessage(sessionId, event.taskId, event.message) -- 1031
-					activeStopTokens[event.taskId] = nil -- 1032
-					emitAgentSessionPatch( -- 1033
-						sessionId, -- 1033
-						{ -- 1033
-							session = getSessionItem(sessionId), -- 1034
-							message = getMessageItem(messageId), -- 1035
-							checkpoints = Tools.listCheckpoints(event.taskId), -- 1036
-							removedStepIds = removedStepIds -- 1037
-						} -- 1037
-					) -- 1037
-				end -- 1037
-				local session = getSessionItem(sessionId) -- 1040
-				if session and session.kind == "main" then -- 1040
-					flushPendingSubAgentHandoffs(session) -- 1042
-				end -- 1042
-				break -- 1044
-			end -- 1044
-		end -- 1044
-	until true -- 1044
-end -- 1044
-function ____exports.createSession(projectRoot, title) -- 1161
-	if title == nil then -- 1161
-		title = "" -- 1161
-	end -- 1161
-	if not isValidProjectRoot(projectRoot) then -- 1161
-		return {success = false, message = "invalid projectRoot"} -- 1163
-	end -- 1163
-	local row = queryOne(("SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at\n\t\tFROM " .. TABLE_SESSION) .. "\n\t\tWHERE project_root = ? AND kind = 'main'\n\t\tORDER BY updated_at DESC, id DESC\n\t\tLIMIT 1", {projectRoot}) -- 1165
-	if row then -- 1165
-		return { -- 1174
-			success = true, -- 1174
-			session = rowToSession(row) -- 1174
-		} -- 1174
+				upsertStep( -- 1018
+					sessionId, -- 1018
+					event.taskId, -- 1018
+					event.step, -- 1018
+					"message", -- 1018
+					{status = "RUNNING", reason = event.content, reasoningContent = event.reasoningContent} -- 1018
+				) -- 1018
+				emitAgentSessionPatch( -- 1023
+					sessionId, -- 1023
+					{step = getStepItem(sessionId, event.taskId, event.step)} -- 1023
+				) -- 1023
+				break -- 1026
+			end -- 1026
+		end -- 1026
+		____cond148 = ____cond148 or ____switch148 == "task_finished" -- 1026
+		if ____cond148 then -- 1026
+			do -- 1026
+				local ____opt_8 = activeStopTokens[event.taskId or -1] -- 1026
+				local stopped = (____opt_8 and ____opt_8.stopped) == true -- 1029
+				local finalStatus = event.success and "DONE" or (stopped and "STOPPED" or "FAILED") -- 1030
+				setSessionStateForTaskEvent(sessionId, event.taskId, finalStatus, finalStatus) -- 1033
+				if event.taskId ~= nil then -- 1033
+					local removedStepIds = deleteMessageSteps(sessionId, event.taskId) -- 1035
+					local ____finalizeTaskSteps_12 = finalizeTaskSteps -- 1036
+					local ____array_11 = __TS__SparseArrayNew( -- 1036
+						sessionId, -- 1037
+						event.taskId, -- 1038
+						type(event.steps) == "number" and math.max( -- 1039
+							0, -- 1039
+							math.floor(event.steps) -- 1039
+						) or nil -- 1039
+					) -- 1039
+					local ____event_success_10 -- 1040
+					if event.success then -- 1040
+						____event_success_10 = nil -- 1040
+					else -- 1040
+						____event_success_10 = stopped and "STOPPED" or "FAILED" -- 1040
+					end -- 1040
+					__TS__SparseArrayPush(____array_11, ____event_success_10) -- 1040
+					____finalizeTaskSteps_12(__TS__SparseArraySpread(____array_11)) -- 1036
+					local messageId = upsertAssistantMessage(sessionId, event.taskId, event.message) -- 1042
+					activeStopTokens[event.taskId] = nil -- 1043
+					emitAgentSessionPatch( -- 1044
+						sessionId, -- 1044
+						{ -- 1044
+							session = getSessionItem(sessionId), -- 1045
+							message = getMessageItem(messageId), -- 1046
+							checkpoints = Tools.listCheckpoints(event.taskId), -- 1047
+							removedStepIds = removedStepIds -- 1048
+						} -- 1048
+					) -- 1048
+				end -- 1048
+				local session = getSessionItem(sessionId) -- 1051
+				if session and session.kind == "main" then -- 1051
+					flushPendingSubAgentHandoffs(session) -- 1053
+				end -- 1053
+				break -- 1055
+			end -- 1055
+		end -- 1055
+	until true -- 1055
+end -- 1055
+function ____exports.createSession(projectRoot, title) -- 1172
+	if title == nil then -- 1172
+		title = "" -- 1172
+	end -- 1172
+	if not isValidProjectRoot(projectRoot) then -- 1172
+		return {success = false, message = "invalid projectRoot"} -- 1174
 	end -- 1174
-	local t = now() -- 1176
-	DB:exec( -- 1177
-		("INSERT INTO " .. TABLE_SESSION) .. "(project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_status, created_at, updated_at)\n\t\tVALUES(?, ?, 'main', 0, 0, 'main', 'IDLE', 'IDLE', ?, ?)", -- 1177
-		{ -- 1180
-			projectRoot, -- 1180
-			title ~= "" and title or Path:getFilename(projectRoot), -- 1180
-			t, -- 1180
-			t -- 1180
-		} -- 1180
-	) -- 1180
-	local sessionId = getLastInsertRowId() -- 1182
-	DB:exec(("UPDATE " .. TABLE_SESSION) .. " SET root_session_id = ? WHERE id = ?", {sessionId, sessionId}) -- 1183
-	local session = getSessionItem(sessionId) -- 1184
-	if not session then -- 1184
-		return {success = false, message = "failed to create session"} -- 1186
-	end -- 1186
-	return {success = true, session = session} -- 1188
-end -- 1161
-function ____exports.createSubSession(parentSessionId, title) -- 1191
-	if title == nil then -- 1191
-		title = "" -- 1191
-	end -- 1191
-	local parent = getSessionItem(parentSessionId) -- 1192
-	if not parent then -- 1192
-		return {success = false, message = "parent session not found"} -- 1194
-	end -- 1194
-	local rootId = getSessionRootId(parent) -- 1196
-	local t = now() -- 1197
-	DB:exec( -- 1198
-		("INSERT INTO " .. TABLE_SESSION) .. "(project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_status, created_at, updated_at)\n\t\tVALUES(?, ?, 'sub', ?, ?, '', 'IDLE', 'IDLE', ?, ?)", -- 1198
-		{ -- 1201
-			parent.projectRoot, -- 1201
-			title ~= "" and title or "Sub " .. tostring(rootId), -- 1201
-			rootId, -- 1201
-			parent.id, -- 1201
-			t, -- 1201
-			t -- 1201
-		} -- 1201
-	) -- 1201
-	local sessionId = getLastInsertRowId() -- 1203
-	local memoryScope = "subagents/" .. tostring(sessionId) -- 1204
-	DB:exec(("UPDATE " .. TABLE_SESSION) .. " SET memory_scope = ? WHERE id = ?", {memoryScope, sessionId}) -- 1205
-	local session = getSessionItem(sessionId) -- 1206
-	if not session then -- 1206
-		return {success = false, message = "failed to create sub session"} -- 1208
-	end -- 1208
-	local parentStorage = __TS__New(DualLayerStorage, parent.projectRoot, parent.memoryScope) -- 1210
-	local subStorage = __TS__New(DualLayerStorage, parent.projectRoot, memoryScope) -- 1211
-	subStorage:writeMemory(parentStorage:readMemory()) -- 1212
-	return {success = true, session = session} -- 1213
-end -- 1191
-function spawnSubAgentSession(request) -- 1216
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 1216
-		local normalizedTitle = __TS__StringTrim(sanitizeUTF8(request.title or "")) -- 1227
-		local rawPrompt = type(request.prompt) == "string" and request.prompt or toStr(request.prompt) -- 1228
-		local normalizedPrompt = normalizePromptTextSafe(request.prompt) -- 1229
-		if normalizedPrompt == "" then -- 1229
-			normalizedPrompt = buildSubAgentPromptFallback(normalizedTitle, request.expectedOutput, request.filesHint) -- 1231
-		end -- 1231
-		if normalizedPrompt == "" then -- 1231
-			local ____Log_18 = Log -- 1238
-			local ____temp_15 = #normalizedTitle -- 1238
-			local ____temp_16 = #rawPrompt -- 1238
-			local ____temp_17 = #toStr(request.expectedOutput) -- 1238
-			local ____opt_13 = request.filesHint -- 1238
-			____Log_18( -- 1238
-				"Warn", -- 1238
-				(((((("[AgentSession] sub agent prompt empty title_len=" .. tostring(____temp_15)) .. " raw_prompt_len=") .. tostring(____temp_16)) .. " expected_len=") .. tostring(____temp_17)) .. " files_hint_count=") .. tostring(____opt_13 and #____opt_13 or 0) -- 1238
-			) -- 1238
-			return ____awaiter_resolve(nil, {success = false, message = "sub agent prompt is empty"}) -- 1238
-		end -- 1238
-		Log( -- 1241
-			"Info", -- 1241
-			(((("[AgentSession] sub agent prompt prepared title_len=" .. tostring(#normalizedTitle)) .. " raw_prompt_len=") .. tostring(#rawPrompt)) .. " normalized_prompt_len=") .. tostring(#normalizedPrompt) -- 1241
-		) -- 1241
-		local parentSessionId = request.parentSessionId -- 1242
-		if not getSessionItem(parentSessionId) and request.projectRoot and request.projectRoot ~= "" then -- 1242
-			local fallbackParent = getLatestMainSessionByProjectRoot(request.projectRoot) -- 1244
-			if not fallbackParent then -- 1244
-				local createdMain = ____exports.createSession(request.projectRoot) -- 1246
-				if createdMain.success then -- 1246
-					fallbackParent = createdMain.session -- 1248
-				end -- 1248
-			end -- 1248
-			if fallbackParent then -- 1248
-				Log( -- 1252
-					"Warn", -- 1252
-					(((("[AgentSession] spawn fallback parent session requested=" .. tostring(request.parentSessionId)) .. " resolved=") .. tostring(fallbackParent.id)) .. " project=") .. request.projectRoot -- 1252
-				) -- 1252
-				parentSessionId = fallbackParent.id -- 1253
-			end -- 1253
-		end -- 1253
-		local created = ____exports.createSubSession(parentSessionId, request.title) -- 1256
-		if not created.success then -- 1256
-			return ____awaiter_resolve(nil, created) -- 1256
-		end -- 1256
-		writeSpawnInfo( -- 1260
-			created.session.projectRoot, -- 1260
-			created.session.memoryScope, -- 1260
-			{ -- 1260
-				prompt = normalizedPrompt, -- 1261
-				goal = normalizedTitle ~= "" and normalizedTitle or request.title, -- 1262
-				expectedOutput = request.expectedOutput or "", -- 1263
-				filesHint = request.filesHint or ({}), -- 1264
-				createdAt = os.date("!%Y-%m-%dT%H:%M:%SZ") -- 1265
-			} -- 1265
-		) -- 1265
-		local sent = ____exports.sendPrompt(created.session.id, normalizedPrompt, true) -- 1267
-		if not sent.success then -- 1267
-			return ____awaiter_resolve(nil, {success = false, message = sent.message}) -- 1267
+	local row = queryOne(("SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at\n\t\tFROM " .. TABLE_SESSION) .. "\n\t\tWHERE project_root = ? AND kind = 'main'\n\t\tORDER BY updated_at DESC, id DESC\n\t\tLIMIT 1", {projectRoot}) -- 1176
+	if row then -- 1176
+		return { -- 1185
+			success = true, -- 1185
+			session = rowToSession(row) -- 1185
+		} -- 1185
+	end -- 1185
+	local t = now() -- 1187
+	DB:exec( -- 1188
+		("INSERT INTO " .. TABLE_SESSION) .. "(project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_status, created_at, updated_at)\n\t\tVALUES(?, ?, 'main', 0, 0, 'main', 'IDLE', 'IDLE', ?, ?)", -- 1188
+		{ -- 1191
+			projectRoot, -- 1191
+			title ~= "" and title or Path:getFilename(projectRoot), -- 1191
+			t, -- 1191
+			t -- 1191
+		} -- 1191
+	) -- 1191
+	local sessionId = getLastInsertRowId() -- 1193
+	DB:exec(("UPDATE " .. TABLE_SESSION) .. " SET root_session_id = ? WHERE id = ?", {sessionId, sessionId}) -- 1194
+	local session = getSessionItem(sessionId) -- 1195
+	if not session then -- 1195
+		return {success = false, message = "failed to create session"} -- 1197
+	end -- 1197
+	return {success = true, session = session} -- 1199
+end -- 1172
+function ____exports.createSubSession(parentSessionId, title) -- 1202
+	if title == nil then -- 1202
+		title = "" -- 1202
+	end -- 1202
+	local parent = getSessionItem(parentSessionId) -- 1203
+	if not parent then -- 1203
+		return {success = false, message = "parent session not found"} -- 1205
+	end -- 1205
+	local rootId = getSessionRootId(parent) -- 1207
+	local t = now() -- 1208
+	DB:exec( -- 1209
+		("INSERT INTO " .. TABLE_SESSION) .. "(project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_status, created_at, updated_at)\n\t\tVALUES(?, ?, 'sub', ?, ?, '', 'IDLE', 'IDLE', ?, ?)", -- 1209
+		{ -- 1212
+			parent.projectRoot, -- 1212
+			title ~= "" and title or "Sub " .. tostring(rootId), -- 1212
+			rootId, -- 1212
+			parent.id, -- 1212
+			t, -- 1212
+			t -- 1212
+		} -- 1212
+	) -- 1212
+	local sessionId = getLastInsertRowId() -- 1214
+	local memoryScope = "subagents/" .. tostring(sessionId) -- 1215
+	DB:exec(("UPDATE " .. TABLE_SESSION) .. " SET memory_scope = ? WHERE id = ?", {memoryScope, sessionId}) -- 1216
+	local session = getSessionItem(sessionId) -- 1217
+	if not session then -- 1217
+		return {success = false, message = "failed to create sub session"} -- 1219
+	end -- 1219
+	local parentStorage = __TS__New(DualLayerStorage, parent.projectRoot, parent.memoryScope) -- 1221
+	local subStorage = __TS__New(DualLayerStorage, parent.projectRoot, memoryScope) -- 1222
+	subStorage:writeMemory(parentStorage:readMemory()) -- 1223
+	return {success = true, session = session} -- 1224
+end -- 1202
+function spawnSubAgentSession(request) -- 1227
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 1227
+		local normalizedTitle = __TS__StringTrim(sanitizeUTF8(request.title or "")) -- 1238
+		local rawPrompt = type(request.prompt) == "string" and request.prompt or toStr(request.prompt) -- 1239
+		local normalizedPrompt = normalizePromptTextSafe(request.prompt) -- 1240
+		if normalizedPrompt == "" then -- 1240
+			normalizedPrompt = buildSubAgentPromptFallback(normalizedTitle, request.expectedOutput, request.filesHint) -- 1242
+		end -- 1242
+		if normalizedPrompt == "" then -- 1242
+			local ____Log_18 = Log -- 1249
+			local ____temp_15 = #normalizedTitle -- 1249
+			local ____temp_16 = #rawPrompt -- 1249
+			local ____temp_17 = #toStr(request.expectedOutput) -- 1249
+			local ____opt_13 = request.filesHint -- 1249
+			____Log_18( -- 1249
+				"Warn", -- 1249
+				(((((("[AgentSession] sub agent prompt empty title_len=" .. tostring(____temp_15)) .. " raw_prompt_len=") .. tostring(____temp_16)) .. " expected_len=") .. tostring(____temp_17)) .. " files_hint_count=") .. tostring(____opt_13 and #____opt_13 or 0) -- 1249
+			) -- 1249
+			return ____awaiter_resolve(nil, {success = false, message = "sub agent prompt is empty"}) -- 1249
+		end -- 1249
+		Log( -- 1252
+			"Info", -- 1252
+			(((("[AgentSession] sub agent prompt prepared title_len=" .. tostring(#normalizedTitle)) .. " raw_prompt_len=") .. tostring(#rawPrompt)) .. " normalized_prompt_len=") .. tostring(#normalizedPrompt) -- 1252
+		) -- 1252
+		local parentSessionId = request.parentSessionId -- 1253
+		if not getSessionItem(parentSessionId) and request.projectRoot and request.projectRoot ~= "" then -- 1253
+			local fallbackParent = getLatestMainSessionByProjectRoot(request.projectRoot) -- 1255
+			if not fallbackParent then -- 1255
+				local createdMain = ____exports.createSession(request.projectRoot) -- 1257
+				if createdMain.success then -- 1257
+					fallbackParent = createdMain.session -- 1259
+				end -- 1259
+			end -- 1259
+			if fallbackParent then -- 1259
+				Log( -- 1263
+					"Warn", -- 1263
+					(((("[AgentSession] spawn fallback parent session requested=" .. tostring(request.parentSessionId)) .. " resolved=") .. tostring(fallbackParent.id)) .. " project=") .. request.projectRoot -- 1263
+				) -- 1263
+				parentSessionId = fallbackParent.id -- 1264
+			end -- 1264
+		end -- 1264
+		local created = ____exports.createSubSession(parentSessionId, request.title) -- 1267
+		if not created.success then -- 1267
+			return ____awaiter_resolve(nil, created) -- 1267
 		end -- 1267
-		return ____awaiter_resolve(nil, {success = true, sessionId = created.session.id, taskId = sent.taskId, title = created.session.title}) -- 1267
-	end) -- 1267
-end -- 1267
-function buildSubAgentMemoryMergeJob(session) -- 1349
-	if session.kind ~= "sub" then -- 1349
-		return {success = true} -- 1351
-	end -- 1351
-	local rootSession = getRootSessionItem(session.id) -- 1353
-	if not rootSession then -- 1353
-		return {success = false, message = "root session not found"} -- 1355
-	end -- 1355
-	local storage = __TS__New(DualLayerStorage, session.projectRoot, session.memoryScope) -- 1357
-	local finalMemory = storage:readMemory() -- 1358
-	if __TS__StringTrim(finalMemory) == "" then -- 1358
-		return {success = false, message = "sub session memory is empty"} -- 1360
-	end -- 1360
-	local queue = __TS__New(MemoryMergeQueue, session.projectRoot) -- 1362
-	local spawnInfo = readSpawnInfo(session.projectRoot, session.memoryScope) -- 1363
-	local createdAt = os.date("!%Y-%m-%dT%H:%M:%SZ") -- 1364
-	local sanitizedTitle = string.gsub(session.title, "[^%w_-]", "_") -- 1365
-	local cleanedTime1 = string.gsub(createdAt, "[-:]", "") -- 1366
-	local cleanedTime2 = string.gsub(cleanedTime1, "%.%d+Z$", "Z") -- 1367
-	local jobId = (((cleanedTime2 .. "_") .. sanitizeUTF8(sanitizedTitle)) .. "_") .. tostring(session.id) -- 1368
-	local result = queue:writeJob({ -- 1369
-		jobId = jobId, -- 1370
-		rootAgentId = tostring(rootSession.id), -- 1371
-		sourceAgentId = tostring(session.id), -- 1372
-		sourceTitle = session.title, -- 1373
-		createdAt = createdAt, -- 1374
-		spawn = { -- 1375
-			prompt = type(spawnInfo and spawnInfo.prompt) == "string" and spawnInfo.prompt or session.title, -- 1376
-			goal = type(spawnInfo and spawnInfo.goal) == "string" and spawnInfo.goal or session.title, -- 1379
-			expectedOutput = type(spawnInfo and spawnInfo.expectedOutput) == "string" and spawnInfo.expectedOutput or "", -- 1382
-			filesHint = __TS__ArrayIsArray(spawnInfo and spawnInfo.filesHint) and spawnInfo.filesHint or ({}) -- 1385
-		}, -- 1385
-		memory = {finalMemory = finalMemory} -- 1389
-	}) -- 1389
-	if not result.success then -- 1389
-		return result -- 1394
-	end -- 1394
-	return {success = true} -- 1396
-end -- 1396
-function appendSubAgentHandoffStep(session, taskId, message) -- 1399
-	local rootSession = getRootSessionItem(session.id) -- 1400
-	if not rootSession then -- 1400
-		return -- 1401
-	end -- 1401
-	local spawnInfo = getSessionSpawnInfo(session) -- 1402
-	local createdAt = os.date("!%Y-%m-%dT%H:%M:%SZ") -- 1403
-	local cleanedTime1 = string.gsub(createdAt, "[-:]", "") -- 1404
-	local cleanedTime2 = string.gsub(cleanedTime1, "%.%d+Z$", "Z") -- 1405
-	local queueResult = writePendingHandoff( -- 1406
-		rootSession.projectRoot, -- 1406
-		rootSession.memoryScope, -- 1406
-		{ -- 1406
-			id = (((cleanedTime2 .. "_sub_") .. tostring(session.id)) .. "_") .. tostring(taskId), -- 1407
-			sourceSessionId = session.id, -- 1408
-			sourceTitle = session.title, -- 1409
-			sourceTaskId = taskId, -- 1410
-			message = sanitizeUTF8(message), -- 1411
-			prompt = spawnInfo and spawnInfo.prompt or "", -- 1412
-			goal = spawnInfo and spawnInfo.goal or session.title, -- 1413
-			expectedOutput = spawnInfo and spawnInfo.expectedOutput or "", -- 1414
-			filesHint = spawnInfo and spawnInfo.filesHint or ({}), -- 1415
-			createdAt = createdAt -- 1416
-		} -- 1416
-	) -- 1416
-	if not queueResult then -- 1416
-		Log( -- 1419
-			"Warn", -- 1419
-			(("[AgentSession] failed to queue sub-agent handoff root=" .. tostring(rootSession.id)) .. " source=") .. tostring(session.id) -- 1419
-		) -- 1419
-		return -- 1420
-	end -- 1420
-	if not (rootSession.currentTaskStatus == "RUNNING" and rootSession.currentTaskId and activeStopTokens[rootSession.currentTaskId]) then -- 1420
-		flushPendingSubAgentHandoffs(rootSession) -- 1423
-	end -- 1423
-end -- 1423
-function startSubSessionFinalize(session, taskId, message) -- 1427
-	if not writeFinalizeInfo( -- 1427
-		session.projectRoot, -- 1428
-		session.memoryScope, -- 1428
-		{ -- 1428
-			sourceTaskId = taskId, -- 1429
-			message = sanitizeUTF8(message), -- 1430
-			createdAt = os.date("!%Y-%m-%dT%H:%M:%SZ") -- 1431
-		} -- 1431
-	) then -- 1431
-		return {success = false, message = "failed to persist sub session finalize info"} -- 1433
-	end -- 1433
-	local compactPrompt = "/compact" -- 1435
-	local sent = ____exports.sendPrompt(session.id, compactPrompt, true) -- 1436
-	if not sent.success then -- 1436
-		deleteFinalizeInfo(session.projectRoot, session.memoryScope) -- 1438
-		return sent -- 1439
-	end -- 1439
-	return {success = true} -- 1441
-end -- 1441
-function completeSubSessionFinalizeAfterCompact(session) -- 1444
-	local rootSessionId = getSessionRootId(session) -- 1445
-	local projectRoot = session.projectRoot -- 1446
-	local finalizeInfo = readFinalizeInfo(projectRoot, session.memoryScope) -- 1447
-	if not finalizeInfo then -- 1447
-		return {success = false, message = "sub session finalize info not found"} -- 1449
-	end -- 1449
-	appendSubAgentHandoffStep(session, finalizeInfo.sourceTaskId, finalizeInfo.message) -- 1451
-	local mergeResult = buildSubAgentMemoryMergeJob(session) -- 1452
-	if not mergeResult.success then -- 1452
-		Log( -- 1454
-			"Warn", -- 1454
-			(("[AgentSession] sub session merge handoff failed session=" .. tostring(session.id)) .. " error=") .. mergeResult.message -- 1454
-		) -- 1454
-		return mergeResult -- 1455
-	end -- 1455
-	deleteFinalizeInfo(projectRoot, session.memoryScope) -- 1457
-	deleteSessionRecords(session.id) -- 1458
-	emitSessionDeletedPatch(session.id, rootSessionId, projectRoot) -- 1459
-	return {success = true} -- 1460
-end -- 1460
-function ____exports.sendPrompt(sessionId, prompt, allowSubSessionStart) -- 1463
-	if allowSubSessionStart == nil then -- 1463
-		allowSubSessionStart = false -- 1463
-	end -- 1463
-	local session = getSessionItem(sessionId) -- 1464
-	if not session then -- 1464
-		return {success = false, message = "session not found"} -- 1466
+		writeSpawnInfo( -- 1271
+			created.session.projectRoot, -- 1271
+			created.session.memoryScope, -- 1271
+			{ -- 1271
+				prompt = normalizedPrompt, -- 1272
+				goal = normalizedTitle ~= "" and normalizedTitle or request.title, -- 1273
+				expectedOutput = request.expectedOutput or "", -- 1274
+				filesHint = request.filesHint or ({}), -- 1275
+				createdAt = os.date("!%Y-%m-%dT%H:%M:%SZ") -- 1276
+			} -- 1276
+		) -- 1276
+		local sent = ____exports.sendPrompt(created.session.id, normalizedPrompt, true) -- 1278
+		if not sent.success then -- 1278
+			return ____awaiter_resolve(nil, {success = false, message = sent.message}) -- 1278
+		end -- 1278
+		return ____awaiter_resolve(nil, {success = true, sessionId = created.session.id, taskId = sent.taskId, title = created.session.title}) -- 1278
+	end) -- 1278
+end -- 1278
+function buildSubAgentMemoryMergeJob(session) -- 1360
+	if session.kind ~= "sub" then -- 1360
+		return {success = true} -- 1362
+	end -- 1362
+	local rootSession = getRootSessionItem(session.id) -- 1364
+	if not rootSession then -- 1364
+		return {success = false, message = "root session not found"} -- 1366
+	end -- 1366
+	local storage = __TS__New(DualLayerStorage, session.projectRoot, session.memoryScope) -- 1368
+	local finalMemory = storage:readMemory() -- 1369
+	if __TS__StringTrim(finalMemory) == "" then -- 1369
+		return {success = false, message = "sub session memory is empty"} -- 1371
+	end -- 1371
+	local queue = __TS__New(MemoryMergeQueue, session.projectRoot) -- 1373
+	local spawnInfo = readSpawnInfo(session.projectRoot, session.memoryScope) -- 1374
+	local createdAt = os.date("!%Y-%m-%dT%H:%M:%SZ") -- 1375
+	local sanitizedTitle = string.gsub(session.title, "[^%w_-]", "_") -- 1376
+	local cleanedTime1 = string.gsub(createdAt, "[-:]", "") -- 1377
+	local cleanedTime2 = string.gsub(cleanedTime1, "%.%d+Z$", "Z") -- 1378
+	local jobId = (((cleanedTime2 .. "_") .. sanitizeUTF8(sanitizedTitle)) .. "_") .. tostring(session.id) -- 1379
+	local result = queue:writeJob({ -- 1380
+		jobId = jobId, -- 1381
+		rootAgentId = tostring(rootSession.id), -- 1382
+		sourceAgentId = tostring(session.id), -- 1383
+		sourceTitle = session.title, -- 1384
+		createdAt = createdAt, -- 1385
+		spawn = { -- 1386
+			prompt = type(spawnInfo and spawnInfo.prompt) == "string" and spawnInfo.prompt or session.title, -- 1387
+			goal = type(spawnInfo and spawnInfo.goal) == "string" and spawnInfo.goal or session.title, -- 1390
+			expectedOutput = type(spawnInfo and spawnInfo.expectedOutput) == "string" and spawnInfo.expectedOutput or "", -- 1393
+			filesHint = __TS__ArrayIsArray(spawnInfo and spawnInfo.filesHint) and spawnInfo.filesHint or ({}) -- 1396
+		}, -- 1396
+		memory = {finalMemory = finalMemory} -- 1400
+	}) -- 1400
+	if not result.success then -- 1400
+		return result -- 1405
+	end -- 1405
+	return {success = true} -- 1407
+end -- 1407
+function appendSubAgentHandoffStep(session, taskId, message) -- 1410
+	local rootSession = getRootSessionItem(session.id) -- 1411
+	if not rootSession then -- 1411
+		return -- 1412
+	end -- 1412
+	local spawnInfo = getSessionSpawnInfo(session) -- 1413
+	local createdAt = os.date("!%Y-%m-%dT%H:%M:%SZ") -- 1414
+	local cleanedTime1 = string.gsub(createdAt, "[-:]", "") -- 1415
+	local cleanedTime2 = string.gsub(cleanedTime1, "%.%d+Z$", "Z") -- 1416
+	local queueResult = writePendingHandoff( -- 1417
+		rootSession.projectRoot, -- 1417
+		rootSession.memoryScope, -- 1417
+		{ -- 1417
+			id = (((cleanedTime2 .. "_sub_") .. tostring(session.id)) .. "_") .. tostring(taskId), -- 1418
+			sourceSessionId = session.id, -- 1419
+			sourceTitle = session.title, -- 1420
+			sourceTaskId = taskId, -- 1421
+			message = sanitizeUTF8(message), -- 1422
+			prompt = spawnInfo and spawnInfo.prompt or "", -- 1423
+			goal = spawnInfo and spawnInfo.goal or session.title, -- 1424
+			expectedOutput = spawnInfo and spawnInfo.expectedOutput or "", -- 1425
+			filesHint = spawnInfo and spawnInfo.filesHint or ({}), -- 1426
+			createdAt = createdAt -- 1427
+		} -- 1427
+	) -- 1427
+	if not queueResult then -- 1427
+		Log( -- 1430
+			"Warn", -- 1430
+			(("[AgentSession] failed to queue sub-agent handoff root=" .. tostring(rootSession.id)) .. " source=") .. tostring(session.id) -- 1430
+		) -- 1430
+		return -- 1431
+	end -- 1431
+	if not (rootSession.currentTaskStatus == "RUNNING" and rootSession.currentTaskId and activeStopTokens[rootSession.currentTaskId]) then -- 1431
+		flushPendingSubAgentHandoffs(rootSession) -- 1434
+	end -- 1434
+end -- 1434
+function startSubSessionFinalize(session, taskId, message) -- 1438
+	if not writeFinalizeInfo( -- 1438
+		session.projectRoot, -- 1439
+		session.memoryScope, -- 1439
+		{ -- 1439
+			sourceTaskId = taskId, -- 1440
+			message = sanitizeUTF8(message), -- 1441
+			createdAt = os.date("!%Y-%m-%dT%H:%M:%SZ") -- 1442
+		} -- 1442
+	) then -- 1442
+		return {success = false, message = "failed to persist sub session finalize info"} -- 1444
+	end -- 1444
+	local compactPrompt = "/compact" -- 1446
+	local sent = ____exports.sendPrompt(session.id, compactPrompt, true) -- 1447
+	if not sent.success then -- 1447
+		deleteFinalizeInfo(session.projectRoot, session.memoryScope) -- 1449
+		return sent -- 1450
+	end -- 1450
+	return {success = true} -- 1452
+end -- 1452
+function completeSubSessionFinalizeAfterCompact(session) -- 1455
+	local rootSessionId = getSessionRootId(session) -- 1456
+	local projectRoot = session.projectRoot -- 1457
+	local finalizeInfo = readFinalizeInfo(projectRoot, session.memoryScope) -- 1458
+	if not finalizeInfo then -- 1458
+		return {success = false, message = "sub session finalize info not found"} -- 1460
+	end -- 1460
+	appendSubAgentHandoffStep(session, finalizeInfo.sourceTaskId, finalizeInfo.message) -- 1462
+	local mergeResult = buildSubAgentMemoryMergeJob(session) -- 1463
+	if not mergeResult.success then -- 1463
+		Log( -- 1465
+			"Warn", -- 1465
+			(("[AgentSession] sub session merge handoff failed session=" .. tostring(session.id)) .. " error=") .. mergeResult.message -- 1465
+		) -- 1465
+		return mergeResult -- 1466
 	end -- 1466
-	if session.currentTaskStatus == "RUNNING" and session.currentTaskId ~= nil and activeStopTokens[session.currentTaskId] then -- 1466
-		return {success = false, message = "session task is still running"} -- 1469
-	end -- 1469
-	local normalizedPrompt = normalizePromptTextSafe(prompt) -- 1471
-	if normalizedPrompt == "" and session.kind == "sub" then -- 1471
-		local spawnInfo = getSessionSpawnInfo(session) -- 1473
-		if spawnInfo then -- 1473
-			normalizedPrompt = normalizePromptTextSafe(spawnInfo.prompt) -- 1475
-			if normalizedPrompt == "" then -- 1475
-				normalizedPrompt = buildSubAgentPromptFallback(spawnInfo.goal, spawnInfo.expectedOutput, spawnInfo.filesHint) -- 1477
-			end -- 1477
-		end -- 1477
+	deleteFinalizeInfo(projectRoot, session.memoryScope) -- 1468
+	deleteSessionRecords(session.id) -- 1469
+	emitSessionDeletedPatch(session.id, rootSessionId, projectRoot) -- 1470
+	return {success = true} -- 1471
+end -- 1471
+function ____exports.sendPrompt(sessionId, prompt, allowSubSessionStart) -- 1474
+	if allowSubSessionStart == nil then -- 1474
+		allowSubSessionStart = false -- 1474
+	end -- 1474
+	local session = getSessionItem(sessionId) -- 1475
+	if not session then -- 1475
+		return {success = false, message = "session not found"} -- 1477
 	end -- 1477
-	if normalizedPrompt == "" then -- 1477
-		return {success = false, message = "prompt is empty"} -- 1486
-	end -- 1486
-	local taskRes = Tools.createTask(normalizedPrompt) -- 1488
-	if not taskRes.success then -- 1488
-		return {success = false, message = taskRes.message} -- 1490
-	end -- 1490
-	local taskId = taskRes.taskId -- 1492
-	local useChineseResponse = getDefaultUseChineseResponse() -- 1493
-	insertMessage(sessionId, "user", normalizedPrompt, taskId) -- 1494
-	local stopToken = {stopped = false} -- 1495
-	activeStopTokens[taskId] = stopToken -- 1496
-	setSessionState(sessionId, "RUNNING", taskId, "RUNNING") -- 1497
-	runCodingAgent( -- 1498
-		{ -- 1498
-			prompt = normalizedPrompt, -- 1499
-			workDir = session.projectRoot, -- 1500
-			useChineseResponse = useChineseResponse, -- 1501
-			taskId = taskId, -- 1502
-			sessionId = sessionId, -- 1503
-			memoryScope = session.memoryScope, -- 1504
-			role = session.kind, -- 1505
-			spawnSubAgent = session.kind == "main" and spawnSubAgentSession or nil, -- 1506
-			stopToken = stopToken, -- 1509
-			onEvent = function(____, event) return applyEvent(sessionId, event) end -- 1510
-		}, -- 1510
-		function(result) -- 1511
-			return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 1511
-				local nextSession = getSessionItem(sessionId) -- 1512
-				if result.success then -- 1512
-					if nextSession and nextSession.kind == "sub" then -- 1512
-						if __TS__StringTrim(normalizedPrompt) == "/compact" then -- 1512
-							if readFinalizeInfo(nextSession.projectRoot, nextSession.memoryScope) then -- 1512
-								local finalized = completeSubSessionFinalizeAfterCompact(nextSession) -- 1517
-								if not finalized.success then -- 1517
-									Log( -- 1519
-										"Warn", -- 1519
-										(("[AgentSession] sub session compact finalize failed session=" .. tostring(nextSession.id)) .. " error=") .. finalized.message -- 1519
-									) -- 1519
-								end -- 1519
-							end -- 1519
-						else -- 1519
-							local started = startSubSessionFinalize(nextSession, taskId, result.message) -- 1523
-							if not started.success then -- 1523
-								Log( -- 1525
-									"Warn", -- 1525
-									(("[AgentSession] sub session finalize start failed session=" .. tostring(nextSession.id)) .. " error=") .. started.message -- 1525
-								) -- 1525
-							end -- 1525
-						end -- 1525
-					end -- 1525
-				end -- 1525
-				if not result.success then -- 1525
-					applyEvent(sessionId, { -- 1531
-						type = "task_finished", -- 1532
-						sessionId = sessionId, -- 1533
-						taskId = result.taskId, -- 1534
-						success = false, -- 1535
-						message = result.message, -- 1536
-						steps = result.steps -- 1537
-					}) -- 1537
-				end -- 1537
-			end) -- 1537
-		end -- 1511
-	) -- 1511
-	return {success = true, sessionId = sessionId, taskId = taskId} -- 1541
-end -- 1463
+	if session.currentTaskStatus == "RUNNING" and session.currentTaskId ~= nil and activeStopTokens[session.currentTaskId] then -- 1477
+		return {success = false, message = "session task is still running"} -- 1480
+	end -- 1480
+	local normalizedPrompt = normalizePromptTextSafe(prompt) -- 1482
+	if normalizedPrompt == "" and session.kind == "sub" then -- 1482
+		local spawnInfo = getSessionSpawnInfo(session) -- 1484
+		if spawnInfo then -- 1484
+			normalizedPrompt = normalizePromptTextSafe(spawnInfo.prompt) -- 1486
+			if normalizedPrompt == "" then -- 1486
+				normalizedPrompt = buildSubAgentPromptFallback(spawnInfo.goal, spawnInfo.expectedOutput, spawnInfo.filesHint) -- 1488
+			end -- 1488
+		end -- 1488
+	end -- 1488
+	if normalizedPrompt == "" then -- 1488
+		return {success = false, message = "prompt is empty"} -- 1497
+	end -- 1497
+	local taskRes = Tools.createTask(normalizedPrompt) -- 1499
+	if not taskRes.success then -- 1499
+		return {success = false, message = taskRes.message} -- 1501
+	end -- 1501
+	local taskId = taskRes.taskId -- 1503
+	local useChineseResponse = getDefaultUseChineseResponse() -- 1504
+	insertMessage(sessionId, "user", normalizedPrompt, taskId) -- 1505
+	local stopToken = {stopped = false} -- 1506
+	activeStopTokens[taskId] = stopToken -- 1507
+	setSessionState(sessionId, "RUNNING", taskId, "RUNNING") -- 1508
+	runCodingAgent( -- 1509
+		{ -- 1509
+			prompt = normalizedPrompt, -- 1510
+			workDir = session.projectRoot, -- 1511
+			useChineseResponse = useChineseResponse, -- 1512
+			taskId = taskId, -- 1513
+			sessionId = sessionId, -- 1514
+			memoryScope = session.memoryScope, -- 1515
+			role = session.kind, -- 1516
+			spawnSubAgent = session.kind == "main" and spawnSubAgentSession or nil, -- 1517
+			stopToken = stopToken, -- 1520
+			onEvent = function(____, event) return applyEvent(sessionId, event) end -- 1521
+		}, -- 1521
+		function(result) -- 1522
+			return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 1522
+				local nextSession = getSessionItem(sessionId) -- 1523
+				if result.success then -- 1523
+					if nextSession and nextSession.kind == "sub" then -- 1523
+						if __TS__StringTrim(normalizedPrompt) == "/compact" then -- 1523
+							if readFinalizeInfo(nextSession.projectRoot, nextSession.memoryScope) then -- 1523
+								local finalized = completeSubSessionFinalizeAfterCompact(nextSession) -- 1528
+								if not finalized.success then -- 1528
+									Log( -- 1530
+										"Warn", -- 1530
+										(("[AgentSession] sub session compact finalize failed session=" .. tostring(nextSession.id)) .. " error=") .. finalized.message -- 1530
+									) -- 1530
+								end -- 1530
+							end -- 1530
+						else -- 1530
+							local started = startSubSessionFinalize(nextSession, taskId, result.message) -- 1534
+							if not started.success then -- 1534
+								Log( -- 1536
+									"Warn", -- 1536
+									(("[AgentSession] sub session finalize start failed session=" .. tostring(nextSession.id)) .. " error=") .. started.message -- 1536
+								) -- 1536
+							end -- 1536
+						end -- 1536
+					end -- 1536
+				end -- 1536
+				if not result.success then -- 1536
+					applyEvent(sessionId, { -- 1542
+						type = "task_finished", -- 1543
+						sessionId = sessionId, -- 1544
+						taskId = result.taskId, -- 1545
+						success = false, -- 1546
+						message = result.message, -- 1547
+						steps = result.steps -- 1548
+					}) -- 1548
+				end -- 1548
+			end) -- 1548
+		end -- 1522
+	) -- 1522
+	return {success = true, sessionId = sessionId, taskId = taskId} -- 1552
+end -- 1474
 TABLE_SESSION = "AgentSession" -- 105
 TABLE_MESSAGE = "AgentSessionMessage" -- 106
 TABLE_STEP = "AgentSessionStep" -- 107
@@ -1307,197 +1322,197 @@ FINALIZE_INFO_FILE = "FINALIZE.json" -- 111
 PENDING_HANDOFF_DIR = "pending-handoffs" -- 112
 activeStopTokens = {} -- 133
 now = function() return os.time() end -- 134
-local function rebaseProjectRoot(projectRoot, oldRoot, newRoot) -- 375
-	if projectRoot == oldRoot then -- 375
-		return newRoot -- 377
-	end -- 377
-	for ____, separator in ipairs({"/", "\\"}) do -- 379
-		local prefix = oldRoot .. separator -- 380
-		if __TS__StringStartsWith(projectRoot, prefix) then -- 380
-			return newRoot .. __TS__StringSlice(projectRoot, #oldRoot) -- 382
-		end -- 382
-	end -- 382
-	return nil -- 385
-end -- 375
-local function sanitizeStoredSteps(sessionId) -- 785
-	DB:exec( -- 786
-		((((((((("UPDATE " .. TABLE_STEP) .. "\n\t\tSET status = (\n\t\t\tCASE (\n\t\t\t\tSELECT status FROM ") .. TABLE_TASK) .. "\n\t\t\t\tWHERE id = ") .. TABLE_STEP) .. ".task_id\n\t\t\t)\n\t\t\t\tWHEN 'STOPPED' THEN 'STOPPED'\n\t\t\t\tELSE 'FAILED'\n\t\t\tEND\n\t\t),\n\t\tupdated_at = ?\n\t\tWHERE session_id = ?\n\t\t\tAND status IN ('PENDING', 'RUNNING')\n\t\t\tAND COALESCE((\n\t\t\t\tSELECT status FROM ") .. TABLE_TASK) .. "\n\t\t\t\tWHERE id = ") .. TABLE_STEP) .. ".task_id\n\t\t\t), '') <> 'RUNNING'", -- 786
-		{ -- 804
-			now(), -- 804
-			sessionId -- 804
-		} -- 804
-	) -- 804
-end -- 785
-local function emitSessionTreePatch(sessionId) -- 821
-	local session = getSessionItem(sessionId) -- 822
-	if not session then -- 822
-		return -- 823
-	end -- 823
-	local ____emitAgentSessionPatch_7 = emitAgentSessionPatch -- 824
-	local ____session_id_6 = session.id -- 824
-	local ____session_2 = session -- 825
-	local ____listRelatedSessions_result_3 = listRelatedSessions(session.id) -- 826
-	local ____getPendingMergeCount_result_4 = getPendingMergeCount(session.projectRoot) -- 827
-	local ____listPendingMergeJobs_result_5 = listPendingMergeJobs(session.projectRoot) -- 828
-	local ____temp_1 -- 829
-	if session.kind == "sub" then -- 829
-		____temp_1 = getSessionSpawnInfo(session) -- 829
-	else -- 829
-		____temp_1 = nil -- 829
-	end -- 829
-	____emitAgentSessionPatch_7(____session_id_6, { -- 824
-		session = ____session_2, -- 825
-		relatedSessions = ____listRelatedSessions_result_3, -- 826
-		pendingMergeCount = ____getPendingMergeCount_result_4, -- 827
-		pendingMergeJobs = ____listPendingMergeJobs_result_5, -- 828
-		spawnInfo = ____temp_1 -- 829
-	}) -- 829
-end -- 821
-local function getSchemaVersion() -- 1049
-	local row = queryOne("PRAGMA user_version") -- 1050
-	return row and type(row[1]) == "number" and row[1] or 0 -- 1051
-end -- 1049
-local function setSchemaVersion(version) -- 1054
-	DB:exec("PRAGMA user_version = " .. tostring(math.max( -- 1055
-		0, -- 1055
-		math.floor(version) -- 1055
-	))) -- 1055
-end -- 1054
-local function recreateSchema() -- 1058
-	DB:exec(("DROP TABLE IF EXISTS " .. TABLE_STEP) .. ";") -- 1059
-	DB:exec(("DROP TABLE IF EXISTS " .. TABLE_MESSAGE) .. ";") -- 1060
-	DB:exec(("DROP TABLE IF EXISTS " .. TABLE_SESSION) .. ";") -- 1061
-	DB:exec(("CREATE TABLE IF NOT EXISTS " .. TABLE_SESSION) .. "(\n\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tproject_root TEXT NOT NULL,\n\t\ttitle TEXT NOT NULL DEFAULT '',\n\t\tkind TEXT NOT NULL DEFAULT 'main',\n\t\troot_session_id INTEGER NOT NULL DEFAULT 0,\n\t\tparent_session_id INTEGER,\n\t\tmemory_scope TEXT NOT NULL DEFAULT 'main',\n\t\tstatus TEXT NOT NULL DEFAULT 'IDLE',\n\t\tcurrent_task_id INTEGER,\n\t\tcurrent_task_status TEXT NOT NULL DEFAULT 'IDLE',\n\t\tcreated_at INTEGER NOT NULL,\n\t\tupdated_at INTEGER NOT NULL\n\t);") -- 1062
-	DB:exec(("CREATE INDEX IF NOT EXISTS idx_agent_session_project_root ON " .. TABLE_SESSION) .. "(project_root, updated_at DESC);") -- 1076
-	DB:exec(("CREATE TABLE IF NOT EXISTS " .. TABLE_MESSAGE) .. "(\n\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tsession_id INTEGER NOT NULL,\n\t\ttask_id INTEGER,\n\t\trole TEXT NOT NULL,\n\t\tcontent TEXT NOT NULL DEFAULT '',\n\t\tcreated_at INTEGER NOT NULL,\n\t\tupdated_at INTEGER NOT NULL\n\t);") -- 1077
-	DB:exec(("CREATE INDEX IF NOT EXISTS idx_agent_session_message_sid_id ON " .. TABLE_MESSAGE) .. "(session_id, id);") -- 1086
-	DB:exec(("CREATE TABLE IF NOT EXISTS " .. TABLE_STEP) .. "(\n\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tsession_id INTEGER NOT NULL,\n\t\ttask_id INTEGER NOT NULL,\n\t\tstep INTEGER NOT NULL,\n\t\ttool TEXT NOT NULL DEFAULT '',\n\t\tstatus TEXT NOT NULL DEFAULT 'PENDING',\n\t\treason TEXT NOT NULL DEFAULT '',\n\t\treasoning_content TEXT NOT NULL DEFAULT '',\n\t\tparams_json TEXT NOT NULL DEFAULT '',\n\t\tresult_json TEXT NOT NULL DEFAULT '',\n\t\tcheckpoint_id INTEGER,\n\t\tcheckpoint_seq INTEGER,\n\t\tfiles_json TEXT NOT NULL DEFAULT '',\n\t\tcreated_at INTEGER NOT NULL,\n\t\tupdated_at INTEGER NOT NULL\n\t);") -- 1087
-	DB:exec(("CREATE UNIQUE INDEX IF NOT EXISTS idx_agent_session_step_unique ON " .. TABLE_STEP) .. "(session_id, task_id, step);") -- 1104
-	DB:exec(("CREATE INDEX IF NOT EXISTS idx_agent_session_step_sid_task_step ON " .. TABLE_STEP) .. "(session_id, task_id, step);") -- 1105
-	setSchemaVersion(AGENT_SESSION_SCHEMA_VERSION) -- 1106
-end -- 1058
-do -- 1058
-	if getSchemaVersion() ~= AGENT_SESSION_SCHEMA_VERSION then -- 1058
-		recreateSchema() -- 1112
-	else -- 1112
-		DB:exec(("CREATE TABLE IF NOT EXISTS " .. TABLE_SESSION) .. "(\n\t\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\t\tproject_root TEXT NOT NULL,\n\t\t\ttitle TEXT NOT NULL DEFAULT '',\n\t\t\tkind TEXT NOT NULL DEFAULT 'main',\n\t\t\troot_session_id INTEGER NOT NULL DEFAULT 0,\n\t\t\tparent_session_id INTEGER,\n\t\t\tmemory_scope TEXT NOT NULL DEFAULT 'main',\n\t\t\tstatus TEXT NOT NULL DEFAULT 'IDLE',\n\t\t\tcurrent_task_id INTEGER,\n\t\t\tcurrent_task_status TEXT NOT NULL DEFAULT 'IDLE',\n\t\t\tcreated_at INTEGER NOT NULL,\n\t\t\tupdated_at INTEGER NOT NULL\n\t\t);") -- 1114
-		DB:exec(("CREATE INDEX IF NOT EXISTS idx_agent_session_project_root ON " .. TABLE_SESSION) .. "(project_root, updated_at DESC);") -- 1128
-		DB:exec(("CREATE TABLE IF NOT EXISTS " .. TABLE_MESSAGE) .. "(\n\t\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\t\tsession_id INTEGER NOT NULL,\n\t\t\ttask_id INTEGER,\n\t\t\trole TEXT NOT NULL,\n\t\t\tcontent TEXT NOT NULL DEFAULT '',\n\t\t\tcreated_at INTEGER NOT NULL,\n\t\t\tupdated_at INTEGER NOT NULL\n\t\t);") -- 1129
-		DB:exec(("CREATE INDEX IF NOT EXISTS idx_agent_session_message_sid_id ON " .. TABLE_MESSAGE) .. "(session_id, id);") -- 1138
-		DB:exec(("CREATE TABLE IF NOT EXISTS " .. TABLE_STEP) .. "(\n\t\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\t\tsession_id INTEGER NOT NULL,\n\t\t\ttask_id INTEGER NOT NULL,\n\t\t\tstep INTEGER NOT NULL,\n\t\t\ttool TEXT NOT NULL DEFAULT '',\n\t\t\tstatus TEXT NOT NULL DEFAULT 'PENDING',\n\t\t\treason TEXT NOT NULL DEFAULT '',\n\t\t\treasoning_content TEXT NOT NULL DEFAULT '',\n\t\t\tparams_json TEXT NOT NULL DEFAULT '',\n\t\t\tresult_json TEXT NOT NULL DEFAULT '',\n\t\t\tcheckpoint_id INTEGER,\n\t\t\tcheckpoint_seq INTEGER,\n\t\t\tfiles_json TEXT NOT NULL DEFAULT '',\n\t\t\tcreated_at INTEGER NOT NULL,\n\t\t\tupdated_at INTEGER NOT NULL\n\t\t);") -- 1139
-		DB:exec(("CREATE UNIQUE INDEX IF NOT EXISTS idx_agent_session_step_unique ON " .. TABLE_STEP) .. "(session_id, task_id, step);") -- 1156
-		DB:exec(("CREATE INDEX IF NOT EXISTS idx_agent_session_step_sid_task_step ON " .. TABLE_STEP) .. "(session_id, task_id, step);") -- 1157
-	end -- 1157
-end -- 1157
-function ____exports.deleteSessionsByProjectRoot(projectRoot) -- 1279
-	if not projectRoot or not Content:isAbsolutePath(projectRoot) then -- 1279
-		return {success = false, message = "invalid projectRoot"} -- 1281
-	end -- 1281
-	local rows = queryRows(("SELECT id FROM " .. TABLE_SESSION) .. " WHERE project_root = ?", {projectRoot}) or ({}) -- 1283
-	for ____, row in ipairs(rows) do -- 1284
-		local sessionId = type(row[1]) == "number" and row[1] or 0 -- 1285
-		if sessionId > 0 then -- 1285
-			deleteSessionRecords(sessionId) -- 1287
-		end -- 1287
-	end -- 1287
-	return {success = true, deleted = #rows} -- 1290
-end -- 1279
-function ____exports.renameSessionsByProjectRoot(oldRoot, newRoot) -- 1293
-	if not oldRoot or not newRoot or not Content:isAbsolutePath(oldRoot) or not Content:isAbsolutePath(newRoot) then -- 1293
-		return {success = false, message = "invalid projectRoot"} -- 1295
-	end -- 1295
-	local rows = queryRows("SELECT id, project_root FROM " .. TABLE_SESSION) or ({}) -- 1297
-	local renamed = 0 -- 1298
-	for ____, row in ipairs(rows) do -- 1299
-		local sessionId = type(row[1]) == "number" and row[1] or 0 -- 1300
-		local projectRoot = toStr(row[2]) -- 1301
-		local nextProjectRoot = rebaseProjectRoot(projectRoot, oldRoot, newRoot) -- 1302
-		if sessionId > 0 and nextProjectRoot then -- 1302
-			DB:exec( -- 1304
-				("UPDATE " .. TABLE_SESSION) .. " SET project_root = ?, title = ?, updated_at = ? WHERE id = ?", -- 1304
-				{ -- 1306
-					nextProjectRoot, -- 1306
-					Path:getFilename(nextProjectRoot), -- 1306
-					now(), -- 1306
-					sessionId -- 1306
-				} -- 1306
-			) -- 1306
-			renamed = renamed + 1 -- 1308
-		end -- 1308
-	end -- 1308
-	return {success = true, renamed = renamed} -- 1311
-end -- 1293
-function ____exports.getSession(sessionId) -- 1314
-	local session = getSessionItem(sessionId) -- 1315
-	if not session then -- 1315
-		return {success = false, message = "session not found"} -- 1317
-	end -- 1317
-	local normalizedSession = normalizeSessionRuntimeState(session) -- 1319
-	local relatedSessions = listRelatedSessions(sessionId) -- 1320
-	sanitizeStoredSteps(sessionId) -- 1321
-	local messages = queryRows(("SELECT id, session_id, task_id, role, content, created_at, updated_at\n\t\tFROM " .. TABLE_MESSAGE) .. "\n\t\tWHERE session_id = ?\n\t\tORDER BY id ASC", {sessionId}) or ({}) -- 1322
-	local steps = queryRows(("SELECT id, session_id, task_id, step, tool, status, reason, reasoning_content, params_json, result_json, checkpoint_id, checkpoint_seq, files_json, created_at, updated_at\n\t\tFROM " .. TABLE_STEP) .. "\n\t\tWHERE session_id = ?\n\t\t\tAND NOT (status IN ('FAILED', 'STOPPED') AND result_json = '')\n\t\tORDER BY task_id DESC, step ASC", {sessionId}) or ({}) -- 1329
-	local ____relatedSessions_20 = relatedSessions -- 1340
-	local ____getPendingMergeCount_result_21 = getPendingMergeCount(normalizedSession.projectRoot) -- 1341
-	local ____listPendingMergeJobs_result_22 = listPendingMergeJobs(normalizedSession.projectRoot) -- 1342
-	local ____temp_19 -- 1343
-	if normalizedSession.kind == "sub" then -- 1343
-		____temp_19 = getSessionSpawnInfo(normalizedSession) -- 1343
-	else -- 1343
-		____temp_19 = nil -- 1343
-	end -- 1343
-	return { -- 1337
-		success = true, -- 1338
-		session = normalizedSession, -- 1339
-		relatedSessions = ____relatedSessions_20, -- 1340
-		pendingMergeCount = ____getPendingMergeCount_result_21, -- 1341
-		pendingMergeJobs = ____listPendingMergeJobs_result_22, -- 1342
-		spawnInfo = ____temp_19, -- 1343
-		messages = __TS__ArrayMap( -- 1344
-			messages, -- 1344
-			function(____, row) return rowToMessage(row) end -- 1344
-		), -- 1344
-		steps = __TS__ArrayMap( -- 1345
-			steps, -- 1345
-			function(____, row) return rowToStep(row) end -- 1345
-		) -- 1345
-	} -- 1345
-end -- 1314
-function ____exports.stopSessionTask(sessionId) -- 1544
-	local session = getSessionItem(sessionId) -- 1545
-	if not session or session.currentTaskId == nil then -- 1545
-		return {success = false, message = "session task not found"} -- 1547
-	end -- 1547
-	local normalizedSession = normalizeSessionRuntimeState(session) -- 1549
-	local stopToken = activeStopTokens[session.currentTaskId] -- 1550
-	if not stopToken then -- 1550
-		if normalizedSession.currentTaskStatus == "STOPPED" then -- 1550
-			return {success = true, recovered = true} -- 1553
-		end -- 1553
-		return {success = false, message = "task is not running"} -- 1555
-	end -- 1555
-	stopToken.stopped = true -- 1557
-	stopToken.reason = getDefaultUseChineseResponse() and "用户已中断" or "stopped by user" -- 1558
-	setSessionState(session.id, "STOPPED", session.currentTaskId, "STOPPED") -- 1559
-	return {success = true} -- 1560
-end -- 1544
-function ____exports.getCurrentTaskId(sessionId) -- 1563
-	local ____opt_39 = getSessionItem(sessionId) -- 1563
-	return ____opt_39 and ____opt_39.currentTaskId -- 1564
-end -- 1563
-function ____exports.listRunningSessions() -- 1567
-	local rows = queryRows(("SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at\n\t\tFROM " .. TABLE_SESSION) .. "\n\t\tWHERE current_task_status = ?\n\t\tORDER BY updated_at DESC, id DESC", {"RUNNING"}) or ({}) -- 1568
-	local sessions = {} -- 1575
-	do -- 1575
-		local i = 0 -- 1576
-		while i < #rows do -- 1576
-			local session = normalizeSessionRuntimeState(rowToSession(rows[i + 1])) -- 1577
-			if session.currentTaskStatus == "RUNNING" then -- 1577
-				sessions[#sessions + 1] = session -- 1579
-			end -- 1579
-			i = i + 1 -- 1576
-		end -- 1576
-	end -- 1576
-	return {success = true, sessions = sessions} -- 1582
-end -- 1567
-return ____exports -- 1567
+local function rebaseProjectRoot(projectRoot, oldRoot, newRoot) -- 386
+	if projectRoot == oldRoot then -- 386
+		return newRoot -- 388
+	end -- 388
+	for ____, separator in ipairs({"/", "\\"}) do -- 390
+		local prefix = oldRoot .. separator -- 391
+		if __TS__StringStartsWith(projectRoot, prefix) then -- 391
+			return newRoot .. __TS__StringSlice(projectRoot, #oldRoot) -- 393
+		end -- 393
+	end -- 393
+	return nil -- 396
+end -- 386
+local function sanitizeStoredSteps(sessionId) -- 796
+	DB:exec( -- 797
+		((((((((("UPDATE " .. TABLE_STEP) .. "\n\t\tSET status = (\n\t\t\tCASE (\n\t\t\t\tSELECT status FROM ") .. TABLE_TASK) .. "\n\t\t\t\tWHERE id = ") .. TABLE_STEP) .. ".task_id\n\t\t\t)\n\t\t\t\tWHEN 'STOPPED' THEN 'STOPPED'\n\t\t\t\tELSE 'FAILED'\n\t\t\tEND\n\t\t),\n\t\tupdated_at = ?\n\t\tWHERE session_id = ?\n\t\t\tAND status IN ('PENDING', 'RUNNING')\n\t\t\tAND COALESCE((\n\t\t\t\tSELECT status FROM ") .. TABLE_TASK) .. "\n\t\t\t\tWHERE id = ") .. TABLE_STEP) .. ".task_id\n\t\t\t), '') <> 'RUNNING'", -- 797
+		{ -- 815
+			now(), -- 815
+			sessionId -- 815
+		} -- 815
+	) -- 815
+end -- 796
+local function emitSessionTreePatch(sessionId) -- 832
+	local session = getSessionItem(sessionId) -- 833
+	if not session then -- 833
+		return -- 834
+	end -- 834
+	local ____emitAgentSessionPatch_7 = emitAgentSessionPatch -- 835
+	local ____session_id_6 = session.id -- 835
+	local ____session_2 = session -- 836
+	local ____listRelatedSessions_result_3 = listRelatedSessions(session.id) -- 837
+	local ____getPendingMergeCount_result_4 = getPendingMergeCount(session.projectRoot) -- 838
+	local ____listPendingMergeJobs_result_5 = listPendingMergeJobs(session.projectRoot) -- 839
+	local ____temp_1 -- 840
+	if session.kind == "sub" then -- 840
+		____temp_1 = getSessionSpawnInfo(session) -- 840
+	else -- 840
+		____temp_1 = nil -- 840
+	end -- 840
+	____emitAgentSessionPatch_7(____session_id_6, { -- 835
+		session = ____session_2, -- 836
+		relatedSessions = ____listRelatedSessions_result_3, -- 837
+		pendingMergeCount = ____getPendingMergeCount_result_4, -- 838
+		pendingMergeJobs = ____listPendingMergeJobs_result_5, -- 839
+		spawnInfo = ____temp_1 -- 840
+	}) -- 840
+end -- 832
+local function getSchemaVersion() -- 1060
+	local row = queryOne("PRAGMA user_version") -- 1061
+	return row and type(row[1]) == "number" and row[1] or 0 -- 1062
+end -- 1060
+local function setSchemaVersion(version) -- 1065
+	DB:exec("PRAGMA user_version = " .. tostring(math.max( -- 1066
+		0, -- 1066
+		math.floor(version) -- 1066
+	))) -- 1066
+end -- 1065
+local function recreateSchema() -- 1069
+	DB:exec(("DROP TABLE IF EXISTS " .. TABLE_STEP) .. ";") -- 1070
+	DB:exec(("DROP TABLE IF EXISTS " .. TABLE_MESSAGE) .. ";") -- 1071
+	DB:exec(("DROP TABLE IF EXISTS " .. TABLE_SESSION) .. ";") -- 1072
+	DB:exec(("CREATE TABLE IF NOT EXISTS " .. TABLE_SESSION) .. "(\n\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tproject_root TEXT NOT NULL,\n\t\ttitle TEXT NOT NULL DEFAULT '',\n\t\tkind TEXT NOT NULL DEFAULT 'main',\n\t\troot_session_id INTEGER NOT NULL DEFAULT 0,\n\t\tparent_session_id INTEGER,\n\t\tmemory_scope TEXT NOT NULL DEFAULT 'main',\n\t\tstatus TEXT NOT NULL DEFAULT 'IDLE',\n\t\tcurrent_task_id INTEGER,\n\t\tcurrent_task_status TEXT NOT NULL DEFAULT 'IDLE',\n\t\tcreated_at INTEGER NOT NULL,\n\t\tupdated_at INTEGER NOT NULL\n\t);") -- 1073
+	DB:exec(("CREATE INDEX IF NOT EXISTS idx_agent_session_project_root ON " .. TABLE_SESSION) .. "(project_root, updated_at DESC);") -- 1087
+	DB:exec(("CREATE TABLE IF NOT EXISTS " .. TABLE_MESSAGE) .. "(\n\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tsession_id INTEGER NOT NULL,\n\t\ttask_id INTEGER,\n\t\trole TEXT NOT NULL,\n\t\tcontent TEXT NOT NULL DEFAULT '',\n\t\tcreated_at INTEGER NOT NULL,\n\t\tupdated_at INTEGER NOT NULL\n\t);") -- 1088
+	DB:exec(("CREATE INDEX IF NOT EXISTS idx_agent_session_message_sid_id ON " .. TABLE_MESSAGE) .. "(session_id, id);") -- 1097
+	DB:exec(("CREATE TABLE IF NOT EXISTS " .. TABLE_STEP) .. "(\n\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tsession_id INTEGER NOT NULL,\n\t\ttask_id INTEGER NOT NULL,\n\t\tstep INTEGER NOT NULL,\n\t\ttool TEXT NOT NULL DEFAULT '',\n\t\tstatus TEXT NOT NULL DEFAULT 'PENDING',\n\t\treason TEXT NOT NULL DEFAULT '',\n\t\treasoning_content TEXT NOT NULL DEFAULT '',\n\t\tparams_json TEXT NOT NULL DEFAULT '',\n\t\tresult_json TEXT NOT NULL DEFAULT '',\n\t\tcheckpoint_id INTEGER,\n\t\tcheckpoint_seq INTEGER,\n\t\tfiles_json TEXT NOT NULL DEFAULT '',\n\t\tcreated_at INTEGER NOT NULL,\n\t\tupdated_at INTEGER NOT NULL\n\t);") -- 1098
+	DB:exec(("CREATE UNIQUE INDEX IF NOT EXISTS idx_agent_session_step_unique ON " .. TABLE_STEP) .. "(session_id, task_id, step);") -- 1115
+	DB:exec(("CREATE INDEX IF NOT EXISTS idx_agent_session_step_sid_task_step ON " .. TABLE_STEP) .. "(session_id, task_id, step);") -- 1116
+	setSchemaVersion(AGENT_SESSION_SCHEMA_VERSION) -- 1117
+end -- 1069
+do -- 1069
+	if getSchemaVersion() ~= AGENT_SESSION_SCHEMA_VERSION then -- 1069
+		recreateSchema() -- 1123
+	else -- 1123
+		DB:exec(("CREATE TABLE IF NOT EXISTS " .. TABLE_SESSION) .. "(\n\t\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\t\tproject_root TEXT NOT NULL,\n\t\t\ttitle TEXT NOT NULL DEFAULT '',\n\t\t\tkind TEXT NOT NULL DEFAULT 'main',\n\t\t\troot_session_id INTEGER NOT NULL DEFAULT 0,\n\t\t\tparent_session_id INTEGER,\n\t\t\tmemory_scope TEXT NOT NULL DEFAULT 'main',\n\t\t\tstatus TEXT NOT NULL DEFAULT 'IDLE',\n\t\t\tcurrent_task_id INTEGER,\n\t\t\tcurrent_task_status TEXT NOT NULL DEFAULT 'IDLE',\n\t\t\tcreated_at INTEGER NOT NULL,\n\t\t\tupdated_at INTEGER NOT NULL\n\t\t);") -- 1125
+		DB:exec(("CREATE INDEX IF NOT EXISTS idx_agent_session_project_root ON " .. TABLE_SESSION) .. "(project_root, updated_at DESC);") -- 1139
+		DB:exec(("CREATE TABLE IF NOT EXISTS " .. TABLE_MESSAGE) .. "(\n\t\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\t\tsession_id INTEGER NOT NULL,\n\t\t\ttask_id INTEGER,\n\t\t\trole TEXT NOT NULL,\n\t\t\tcontent TEXT NOT NULL DEFAULT '',\n\t\t\tcreated_at INTEGER NOT NULL,\n\t\t\tupdated_at INTEGER NOT NULL\n\t\t);") -- 1140
+		DB:exec(("CREATE INDEX IF NOT EXISTS idx_agent_session_message_sid_id ON " .. TABLE_MESSAGE) .. "(session_id, id);") -- 1149
+		DB:exec(("CREATE TABLE IF NOT EXISTS " .. TABLE_STEP) .. "(\n\t\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\t\tsession_id INTEGER NOT NULL,\n\t\t\ttask_id INTEGER NOT NULL,\n\t\t\tstep INTEGER NOT NULL,\n\t\t\ttool TEXT NOT NULL DEFAULT '',\n\t\t\tstatus TEXT NOT NULL DEFAULT 'PENDING',\n\t\t\treason TEXT NOT NULL DEFAULT '',\n\t\t\treasoning_content TEXT NOT NULL DEFAULT '',\n\t\t\tparams_json TEXT NOT NULL DEFAULT '',\n\t\t\tresult_json TEXT NOT NULL DEFAULT '',\n\t\t\tcheckpoint_id INTEGER,\n\t\t\tcheckpoint_seq INTEGER,\n\t\t\tfiles_json TEXT NOT NULL DEFAULT '',\n\t\t\tcreated_at INTEGER NOT NULL,\n\t\t\tupdated_at INTEGER NOT NULL\n\t\t);") -- 1150
+		DB:exec(("CREATE UNIQUE INDEX IF NOT EXISTS idx_agent_session_step_unique ON " .. TABLE_STEP) .. "(session_id, task_id, step);") -- 1167
+		DB:exec(("CREATE INDEX IF NOT EXISTS idx_agent_session_step_sid_task_step ON " .. TABLE_STEP) .. "(session_id, task_id, step);") -- 1168
+	end -- 1168
+end -- 1168
+function ____exports.deleteSessionsByProjectRoot(projectRoot) -- 1290
+	if not projectRoot or not Content:isAbsolutePath(projectRoot) then -- 1290
+		return {success = false, message = "invalid projectRoot"} -- 1292
+	end -- 1292
+	local rows = queryRows(("SELECT id FROM " .. TABLE_SESSION) .. " WHERE project_root = ?", {projectRoot}) or ({}) -- 1294
+	for ____, row in ipairs(rows) do -- 1295
+		local sessionId = type(row[1]) == "number" and row[1] or 0 -- 1296
+		if sessionId > 0 then -- 1296
+			deleteSessionRecords(sessionId) -- 1298
+		end -- 1298
+	end -- 1298
+	return {success = true, deleted = #rows} -- 1301
+end -- 1290
+function ____exports.renameSessionsByProjectRoot(oldRoot, newRoot) -- 1304
+	if not oldRoot or not newRoot or not Content:isAbsolutePath(oldRoot) or not Content:isAbsolutePath(newRoot) then -- 1304
+		return {success = false, message = "invalid projectRoot"} -- 1306
+	end -- 1306
+	local rows = queryRows("SELECT id, project_root FROM " .. TABLE_SESSION) or ({}) -- 1308
+	local renamed = 0 -- 1309
+	for ____, row in ipairs(rows) do -- 1310
+		local sessionId = type(row[1]) == "number" and row[1] or 0 -- 1311
+		local projectRoot = toStr(row[2]) -- 1312
+		local nextProjectRoot = rebaseProjectRoot(projectRoot, oldRoot, newRoot) -- 1313
+		if sessionId > 0 and nextProjectRoot then -- 1313
+			DB:exec( -- 1315
+				("UPDATE " .. TABLE_SESSION) .. " SET project_root = ?, title = ?, updated_at = ? WHERE id = ?", -- 1315
+				{ -- 1317
+					nextProjectRoot, -- 1317
+					Path:getFilename(nextProjectRoot), -- 1317
+					now(), -- 1317
+					sessionId -- 1317
+				} -- 1317
+			) -- 1317
+			renamed = renamed + 1 -- 1319
+		end -- 1319
+	end -- 1319
+	return {success = true, renamed = renamed} -- 1322
+end -- 1304
+function ____exports.getSession(sessionId) -- 1325
+	local session = getSessionItem(sessionId) -- 1326
+	if not session then -- 1326
+		return {success = false, message = "session not found"} -- 1328
+	end -- 1328
+	local normalizedSession = normalizeSessionRuntimeState(session) -- 1330
+	local relatedSessions = listRelatedSessions(sessionId) -- 1331
+	sanitizeStoredSteps(sessionId) -- 1332
+	local messages = queryRows(("SELECT id, session_id, task_id, role, content, created_at, updated_at\n\t\tFROM " .. TABLE_MESSAGE) .. "\n\t\tWHERE session_id = ?\n\t\tORDER BY id ASC", {sessionId}) or ({}) -- 1333
+	local steps = queryRows(("SELECT id, session_id, task_id, step, tool, status, reason, reasoning_content, params_json, result_json, checkpoint_id, checkpoint_seq, files_json, created_at, updated_at\n\t\tFROM " .. TABLE_STEP) .. "\n\t\tWHERE session_id = ?\n\t\t\tAND NOT (status IN ('FAILED', 'STOPPED') AND result_json = '')\n\t\tORDER BY task_id DESC, step ASC", {sessionId}) or ({}) -- 1340
+	local ____relatedSessions_20 = relatedSessions -- 1351
+	local ____getPendingMergeCount_result_21 = getPendingMergeCount(normalizedSession.projectRoot) -- 1352
+	local ____listPendingMergeJobs_result_22 = listPendingMergeJobs(normalizedSession.projectRoot) -- 1353
+	local ____temp_19 -- 1354
+	if normalizedSession.kind == "sub" then -- 1354
+		____temp_19 = getSessionSpawnInfo(normalizedSession) -- 1354
+	else -- 1354
+		____temp_19 = nil -- 1354
+	end -- 1354
+	return { -- 1348
+		success = true, -- 1349
+		session = normalizedSession, -- 1350
+		relatedSessions = ____relatedSessions_20, -- 1351
+		pendingMergeCount = ____getPendingMergeCount_result_21, -- 1352
+		pendingMergeJobs = ____listPendingMergeJobs_result_22, -- 1353
+		spawnInfo = ____temp_19, -- 1354
+		messages = __TS__ArrayMap( -- 1355
+			messages, -- 1355
+			function(____, row) return rowToMessage(row) end -- 1355
+		), -- 1355
+		steps = __TS__ArrayMap( -- 1356
+			steps, -- 1356
+			function(____, row) return rowToStep(row) end -- 1356
+		) -- 1356
+	} -- 1356
+end -- 1325
+function ____exports.stopSessionTask(sessionId) -- 1555
+	local session = getSessionItem(sessionId) -- 1556
+	if not session or session.currentTaskId == nil then -- 1556
+		return {success = false, message = "session task not found"} -- 1558
+	end -- 1558
+	local normalizedSession = normalizeSessionRuntimeState(session) -- 1560
+	local stopToken = activeStopTokens[session.currentTaskId] -- 1561
+	if not stopToken then -- 1561
+		if normalizedSession.currentTaskStatus == "STOPPED" then -- 1561
+			return {success = true, recovered = true} -- 1564
+		end -- 1564
+		return {success = false, message = "task is not running"} -- 1566
+	end -- 1566
+	stopToken.stopped = true -- 1568
+	stopToken.reason = getDefaultUseChineseResponse() and "用户已中断" or "stopped by user" -- 1569
+	setSessionState(session.id, "STOPPED", session.currentTaskId, "STOPPED") -- 1570
+	return {success = true} -- 1571
+end -- 1555
+function ____exports.getCurrentTaskId(sessionId) -- 1574
+	local ____opt_39 = getSessionItem(sessionId) -- 1574
+	return ____opt_39 and ____opt_39.currentTaskId -- 1575
+end -- 1574
+function ____exports.listRunningSessions() -- 1578
+	local rows = queryRows(("SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at\n\t\tFROM " .. TABLE_SESSION) .. "\n\t\tWHERE current_task_status = ?\n\t\tORDER BY updated_at DESC, id DESC", {"RUNNING"}) or ({}) -- 1579
+	local sessions = {} -- 1586
+	do -- 1586
+		local i = 0 -- 1587
+		while i < #rows do -- 1587
+			local session = normalizeSessionRuntimeState(rowToSession(rows[i + 1])) -- 1588
+			if session.currentTaskStatus == "RUNNING" then -- 1588
+				sessions[#sessions + 1] = session -- 1590
+			end -- 1590
+			i = i + 1 -- 1587
+		end -- 1587
+	end -- 1587
+	return {success = true, sessions = sessions} -- 1593
+end -- 1578
+return ____exports -- 1578
