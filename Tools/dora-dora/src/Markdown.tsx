@@ -19,6 +19,7 @@ import prismYuescript from './languages/yuescript-prism';
 import prismTeal from './languages/teal-prism';
 import prismLua from './languages/lua-prism';
 import { memo } from 'react';
+import Box from '@mui/material/Box';
 
 SyntaxHighlighter.registerLanguage('typescript', prismTypescript);
 SyntaxHighlighter.registerLanguage('ts', prismTypescript);
@@ -44,10 +45,14 @@ const Markdown = memo((props: MarkdownProps) => {
 		className="markdown-body"
 		style={{
 			width: "100%",
+			maxWidth: "100%",
 			minWidth: 0,
 			margin: 0,
 			padding: contentPadding,
 			minHeight: 0,
+			overflowX: "hidden",
+			overflowWrap: "anywhere",
+			wordBreak: "break-word",
 			backgroundColor: "transparent",
 			fontSize: "inherit",
 			lineHeight: "inherit",
@@ -85,6 +90,13 @@ const Markdown = memo((props: MarkdownProps) => {
 						}
 					}} {...aprops}/>;
 				},
+				table({children}) {
+					return (
+						<Box sx={{ width: '100%', maxWidth: '100%', overflowX: 'auto' }}>
+							<table>{children}</table>
+						</Box>
+					);
+				},
 				code({className, children, ...props}) {
 					const match = /language-(\w+)/.exec(className || '');
 					return match ? (
@@ -113,7 +125,15 @@ const Markdown = memo((props: MarkdownProps) => {
 							PreTag="div"
 						/>
 					) : (
-						<code className={className} {...props}>
+						<code
+							className={className}
+							style={{
+								whiteSpace: 'break-spaces',
+								overflowWrap: 'anywhere',
+								wordBreak: 'break-word',
+							}}
+							{...props}
+						>
 							{children}
 						</code>
 					);

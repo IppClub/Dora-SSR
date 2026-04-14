@@ -220,6 +220,7 @@ function isValidWorkDir(workDir: string): boolean {
 
 function isValidSearchPath(path: string): boolean {
 	if (path === "") return true;
+	if (Content.isAbsolutePath(path)) return false;
 	if (!path || path.length === 0) return false;
 	if (path.includes("..")) return false;
 	return true;
@@ -233,9 +234,8 @@ function resolveWorkspaceFilePath(workDir: string, path: string): string | undef
 
 function resolveWorkspaceSearchPath(workDir: string, path: string): string | undefined {
 	if (!isValidWorkDir(workDir)) return undefined;
-	const root = path ?? "";
-	if (!isValidSearchPath(root)) return undefined;
-	return root === "" ? workDir : Path(workDir, root);
+	if (!isValidSearchPath(path)) return undefined;
+	return path === "" ? workDir : Path(workDir, path);
 }
 
 function toWorkspaceRelativePath(workDir: string, path: string): string {

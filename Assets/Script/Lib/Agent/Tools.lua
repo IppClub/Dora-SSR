@@ -102,33 +102,35 @@ local function isValidSearchPath(path) -- 221
 	if path == "" then -- 221
 		return true -- 222
 	end -- 222
-	if not path or #path == 0 then -- 222
+	if Content:isAbsolutePath(path) then -- 222
 		return false -- 223
 	end -- 223
-	if __TS__StringIncludes(path, "..") then -- 223
+	if not path or #path == 0 then -- 223
 		return false -- 224
 	end -- 224
-	return true -- 225
+	if __TS__StringIncludes(path, "..") then -- 224
+		return false -- 225
+	end -- 225
+	return true -- 226
 end -- 221
-local function resolveWorkspaceFilePath(workDir, path) -- 228
-	if not isValidWorkDir(workDir) then -- 228
-		return nil -- 229
-	end -- 229
-	if not isValidWorkspacePath(path) then -- 229
+local function resolveWorkspaceFilePath(workDir, path) -- 229
+	if not isValidWorkDir(workDir) then -- 229
 		return nil -- 230
 	end -- 230
-	return Path(workDir, path) -- 231
-end -- 228
-local function resolveWorkspaceSearchPath(workDir, path) -- 234
-	if not isValidWorkDir(workDir) then -- 234
-		return nil -- 235
-	end -- 235
-	local root = path or "" -- 236
-	if not isValidSearchPath(root) then -- 236
+	if not isValidWorkspacePath(path) then -- 230
+		return nil -- 231
+	end -- 231
+	return Path(workDir, path) -- 232
+end -- 229
+local function resolveWorkspaceSearchPath(workDir, path) -- 235
+	if not isValidWorkDir(workDir) then -- 235
+		return nil -- 236
+	end -- 236
+	if not isValidSearchPath(path) then -- 236
 		return nil -- 237
 	end -- 237
-	return root == "" and workDir or Path(workDir, root) -- 238
-end -- 234
+	return path == "" and workDir or Path(workDir, path) -- 238
+end -- 235
 local function toWorkspaceRelativePath(workDir, path) -- 241
 	if not path or #path == 0 then -- 241
 		return path -- 242
@@ -188,13 +190,13 @@ local function getDoraAPIDocExtsByCodeLanguage(programmingLanguage) -- 274
 end -- 274
 local function getTutorialProgrammingLanguageDir(programmingLanguage) -- 281
 	repeat -- 281
-		local ____switch37 = programmingLanguage -- 281
-		local ____cond37 = ____switch37 == "teal" -- 281
-		if ____cond37 then -- 281
+		local ____switch38 = programmingLanguage -- 281
+		local ____cond38 = ____switch38 == "teal" -- 281
+		if ____cond38 then -- 281
 			return "tl" -- 283
 		end -- 283
-		____cond37 = ____cond37 or ____switch37 == "tl" -- 283
-		if ____cond37 then -- 283
+		____cond38 = ____cond38 or ____switch38 == "tl" -- 283
+		if ____cond38 then -- 283
 			return "tl" -- 284
 		end -- 284
 		do -- 284
@@ -305,29 +307,29 @@ local function isDtsFile(path) -- 410
 end -- 410
 local function getSupportedBuildKind(path) -- 416
 	repeat -- 416
-		local ____switch63 = Path:getExt(path) -- 416
-		local ____cond63 = ____switch63 == "ts" or ____switch63 == "tsx" -- 416
-		if ____cond63 then -- 416
+		local ____switch64 = Path:getExt(path) -- 416
+		local ____cond64 = ____switch64 == "ts" or ____switch64 == "tsx" -- 416
+		if ____cond64 then -- 416
 			return "ts" -- 418
 		end -- 418
-		____cond63 = ____cond63 or ____switch63 == "xml" -- 418
-		if ____cond63 then -- 418
+		____cond64 = ____cond64 or ____switch64 == "xml" -- 418
+		if ____cond64 then -- 418
 			return "xml" -- 419
 		end -- 419
-		____cond63 = ____cond63 or ____switch63 == "tl" -- 419
-		if ____cond63 then -- 419
+		____cond64 = ____cond64 or ____switch64 == "tl" -- 419
+		if ____cond64 then -- 419
 			return "teal" -- 420
 		end -- 420
-		____cond63 = ____cond63 or ____switch63 == "lua" -- 420
-		if ____cond63 then -- 420
+		____cond64 = ____cond64 or ____switch64 == "lua" -- 420
+		if ____cond64 then -- 420
 			return "lua" -- 421
 		end -- 421
-		____cond63 = ____cond63 or ____switch63 == "yue" -- 421
-		if ____cond63 then -- 421
+		____cond64 = ____cond64 or ____switch64 == "yue" -- 421
+		if ____cond64 then -- 421
 			return "yue" -- 422
 		end -- 422
-		____cond63 = ____cond63 or ____switch63 == "yarn" -- 422
-		if ____cond63 then -- 422
+		____cond64 = ____cond64 or ____switch64 == "yarn" -- 422
+		if ____cond64 then -- 422
 			return "yarn" -- 423
 		end -- 423
 		do -- 423
@@ -418,7 +420,7 @@ local function getLinkedDeletePaths(workDir, path) -- 489
 	for ____, file in ipairs(Content:getFiles(parent)) do -- 496
 		do -- 496
 			if string.lower(Path:getName(file)) ~= baseName then -- 496
-				goto __continue80 -- 497
+				goto __continue81 -- 497
 			end -- 497
 			local siblingExt = Path:getExt(file) -- 498
 			if siblingExt == "tl" and ext == "vs" then -- 498
@@ -426,7 +428,7 @@ local function getLinkedDeletePaths(workDir, path) -- 489
 					workDir, -- 500
 					Path(parent, file) -- 500
 				) -- 500
-				goto __continue80 -- 501
+				goto __continue81 -- 501
 			end -- 501
 			if siblingExt == "lua" and (ext == "tl" or ext == "yue" or ext == "ts" or ext == "tsx" or ext == "vs" or ext == "bl" or ext == "xml") then -- 501
 				linked[#linked + 1] = toWorkspaceRelativePath( -- 504
@@ -435,7 +437,7 @@ local function getLinkedDeletePaths(workDir, path) -- 489
 				) -- 504
 			end -- 504
 		end -- 504
-		::__continue80:: -- 504
+		::__continue81:: -- 504
 	end -- 504
 	return linked -- 507
 end -- 489
@@ -452,7 +454,7 @@ local function expandLinkedDeleteChanges(workDir, changes) -- 510
 					expanded[#expanded + 1] = change -- 517
 				end -- 517
 				if change.op ~= "delete" then -- 517
-					goto __continue87 -- 519
+					goto __continue88 -- 519
 				end -- 519
 				local linkedPaths = getLinkedDeletePaths(workDir, change.path) -- 520
 				do -- 520
@@ -461,17 +463,17 @@ local function expandLinkedDeleteChanges(workDir, changes) -- 510
 						do -- 521
 							local linkedPath = linkedPaths[j + 1] -- 522
 							if seen:has(linkedPath) then -- 522
-								goto __continue91 -- 523
+								goto __continue92 -- 523
 							end -- 523
 							seen:add(linkedPath) -- 524
 							expanded[#expanded + 1] = {path = linkedPath, op = "delete"} -- 525
 						end -- 525
-						::__continue91:: -- 525
+						::__continue92:: -- 525
 						j = j + 1 -- 521
 					end -- 521
 				end -- 521
 			end -- 521
-			::__continue87:: -- 521
+			::__continue88:: -- 521
 			i = i + 1 -- 513
 		end -- 513
 	end -- 513
@@ -858,12 +860,12 @@ local function mergeSearchFileResultsUnique(resultsList) -- 861
 						local row = list[j + 1] -- 867
 						local key = (((((row.file .. ":") .. tostring(row.pos)) .. ":") .. tostring(row.line)) .. ":") .. tostring(row.column) -- 868
 						if seen:has(key) then -- 868
-							goto __continue165 -- 869
+							goto __continue166 -- 869
 						end -- 869
 						seen:add(key) -- 870
 						merged[#merged + 1] = list[j + 1] -- 871
 					end -- 871
-					::__continue165:: -- 871
+					::__continue166:: -- 871
 					j = j + 1 -- 866
 				end -- 866
 			end -- 866
@@ -919,18 +921,18 @@ local function mergeDoraAPISearchHitsUnique(resultsList) -- 913
 				do -- 920
 					local list = resultsList[i + 1] -- 921
 					if index >= #list then -- 921
-						goto __continue177 -- 922
+						goto __continue178 -- 922
 					end -- 922
 					advanced = true -- 923
 					local row = list[index + 1] -- 924
 					local key = (((row.file .. ":") .. tostring(row.line or "")) .. ":") .. tostring(row.content or "") -- 925
 					if seen:has(key) then -- 925
-						goto __continue177 -- 926
+						goto __continue178 -- 926
 					end -- 926
 					seen:add(key) -- 927
 					merged[#merged + 1] = row -- 928
 				end -- 928
-				::__continue177:: -- 928
+				::__continue178:: -- 928
 				i = i + 1 -- 920
 			end -- 920
 		end -- 920
@@ -946,17 +948,17 @@ local function getDoraAPIFilePriority(file, docSource, programmingLanguage) -- 9
 		return 100 -- 937
 	end -- 937
 	repeat -- 937
-		local ____switch183 = string.lower(Path:getFilename(file)) -- 937
-		local ____cond183 = ____switch183 == "jsx.d.ts" -- 937
-		if ____cond183 then -- 937
+		local ____switch184 = string.lower(Path:getFilename(file)) -- 937
+		local ____cond184 = ____switch184 == "jsx.d.ts" -- 937
+		if ____cond184 then -- 937
 			return 0 -- 939
 		end -- 939
-		____cond183 = ____cond183 or ____switch183 == "dorax.d.ts" -- 939
-		if ____cond183 then -- 939
+		____cond184 = ____cond184 or ____switch184 == "dorax.d.ts" -- 939
+		if ____cond184 then -- 939
 			return 1 -- 940
 		end -- 940
-		____cond183 = ____cond183 or ____switch183 == "dora.d.ts" -- 940
-		if ____cond183 then -- 940
+		____cond184 = ____cond184 or ____switch184 == "dora.d.ts" -- 940
+		if ____cond184 then -- 940
 			return 2 -- 941
 		end -- 941
 		do -- 941
@@ -1180,7 +1182,7 @@ function ____exports.searchDoraAPI(req) -- 1042
 													local row = raw[i + 1] -- 1087
 													local file = toDocRelativePath(resultBaseRoot, row.file) -- 1088
 													if file == "" then -- 1088
-														goto __continue210 -- 1089
+														goto __continue211 -- 1089
 													end -- 1089
 													hits[#hits + 1] = { -- 1090
 														file = file, -- 1091
@@ -1188,7 +1190,7 @@ function ____exports.searchDoraAPI(req) -- 1042
 														content = type(row.content) == "string" and row.content or nil -- 1093
 													} -- 1093
 												end -- 1093
-												::__continue210:: -- 1093
+												::__continue211:: -- 1093
 												i = i + 1 -- 1086
 											end -- 1086
 										end -- 1086
@@ -1467,24 +1469,24 @@ function ____exports.build(req) -- 1267
 				local file = Content:isAbsolutePath(rel) and rel or Path(target, rel) -- 1315
 				local kind = getSupportedBuildKind(file) -- 1316
 				if not kind then -- 1316
-					goto __continue259 -- 1317
+					goto __continue260 -- 1317
 				end -- 1317
 				buildQueue[#buildQueue + 1] = {file = file, kind = kind} -- 1318
 				if kind ~= "ts" then -- 1318
-					goto __continue259 -- 1320
+					goto __continue260 -- 1320
 				end -- 1320
 				local content = Content:load(file) -- 1322
 				if content == nil then -- 1322
 					messages[#messages + 1] = {success = false, file = file, message = "failed to read file"} -- 1324
-					goto __continue259 -- 1325
+					goto __continue260 -- 1325
 				end -- 1325
 				tsFileData[file] = content -- 1327
 				if not ____exports.sendWebIDEFileUpdate(file, true, content) then -- 1327
 					messages[#messages + 1] = {success = false, file = file, message = "failed to encode UpdateFile request"} -- 1329
-					goto __continue259 -- 1330
+					goto __continue260 -- 1330
 				end -- 1330
 			end -- 1330
-			::__continue259:: -- 1330
+			::__continue260:: -- 1330
 		end -- 1330
 		do -- 1330
 			local i = 0 -- 1333
@@ -1496,14 +1498,14 @@ function ____exports.build(req) -- 1267
 					if kind == "ts" then -- 1334
 						local content = tsFileData[file] -- 1336
 						if content == nil or isDtsFile(file) then -- 1336
-							goto __continue266 -- 1338
+							goto __continue267 -- 1338
 						end -- 1338
 						messages[#messages + 1] = __TS__Await(____exports.runSingleTsTranspile(file, content)) -- 1340
-						goto __continue266 -- 1341
+						goto __continue267 -- 1341
 					end -- 1341
 					messages[#messages + 1] = __TS__Await(runSingleNonTsBuild(file)) -- 1343
 				end -- 1343
-				::__continue266:: -- 1343
+				::__continue267:: -- 1343
 				i = i + 1 -- 1333
 			end -- 1333
 		end -- 1333

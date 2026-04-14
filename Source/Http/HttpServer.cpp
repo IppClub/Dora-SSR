@@ -1124,11 +1124,13 @@ static void configure_http_client(const std::shared_ptr<httplib::Client>& client
 	client->enable_server_certificate_verification(false);
 	client->set_follow_location(true);
 	client->set_keep_alive(false);
+	client->set_connection_timeout(30);
 	auto [timeoutSec, timeoutUsec] = to_timeout_parts(timeout);
-	client->set_connection_timeout(timeoutSec, timeoutUsec);
 	client->set_read_timeout(timeoutSec, timeoutUsec);
 	client->set_write_timeout(timeoutSec, timeoutUsec);
-	client->set_max_timeout(0);
+	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
+		std::chrono::duration<float>(timeout));
+	client->set_max_timeout(duration);
 }
 
 static void prepare_http_request_headers(httplib::Headers& headers) {

@@ -6,11 +6,8 @@ export function setLogLevel(level: number) {
 	LOG_LEVEL = level;
 }
 
-let LLM_TIMEOUT = 600;
-export function setLLMTimeout(timeout: number) {
-	LLM_TIMEOUT = timeout;
-}
-const LLM_STREAM_TIMEOUT = 60;
+const LLM_TIMEOUT = 600;
+const LLM_STREAM_TIMEOUT = 600;
 
 export const Log = (type: "Info" | "Warn" | "Error", msg: string) => {
 	if (LOG_LEVEL < 1) return;
@@ -661,6 +658,7 @@ export interface LLMStreamData {
 interface Choice {
 	index: number;
 	delta: Delta;
+	message?: NonStreamMessage;
 	finish_reason?: string;
 }
 
@@ -879,20 +877,33 @@ function mergeStreamToolCall(target: ToolCall, delta: StreamDeltaToolCall) {
 
 function mergeStreamChoice(acc: StreamChoiceAccumulator, choice: Choice) {
 	const delta = choice.delta ?? {};
+	const fullMessage = choice.message ?? {};
 	const message = acc.message;
-	if (typeof delta.role === "string" && delta.role !== "") {
-		message.role = delta.role;
+	const role = typeof delta.role === "string" && delta.role !== ""
+		? delta.role
+		: (typeof fullMessage.role === "string" ? fullMessage.role : undefined);
+	if (typeof role === "string" && role !== "") {
+		message.role = role;
 	}
-	if (typeof delta.content === "string" && delta.content !== "") {
-		message.content = (message.content ?? "") + delta.content;
+	const content = typeof delta.content === "string" && delta.content !== ""
+		? delta.content
+		: (typeof fullMessage.content === "string" ? fullMessage.content : undefined);
+	if (typeof content === "string" && content !== "") {
+		message.content = (message.content ?? "") + content;
 	}
-	if (typeof delta.reasoning_content === "string" && delta.reasoning_content !== "") {
-		message.reasoning_content = (message.reasoning_content ?? "") + delta.reasoning_content;
+	const reasoningContent = typeof delta.reasoning_content === "string" && delta.reasoning_content !== ""
+		? delta.reasoning_content
+		: (typeof fullMessage.reasoning_content === "string" ? fullMessage.reasoning_content : undefined);
+	if (typeof reasoningContent === "string" && reasoningContent !== "") {
+		message.reasoning_content = (message.reasoning_content ?? "") + reasoningContent;
 	}
-	if (delta.tool_calls && delta.tool_calls.length > 0) {
+	const toolCalls = (delta.tool_calls && delta.tool_calls.length > 0)
+		? delta.tool_calls
+		: (fullMessage.tool_calls ?? []);
+	if (toolCalls && toolCalls.length > 0) {
 		message.tool_calls ??= [];
-		for (let i = 0; i < delta.tool_calls.length; i++) {
-			const item: StreamDeltaToolCall = delta.tool_calls[i] as StreamDeltaToolCall;
+		for (let i = 0; i < toolCalls.length; i++) {
+			const item: StreamDeltaToolCall = toolCalls[i] as StreamDeltaToolCall;
 			const index = typeof item.index === "number" && item.index >= 0
 				? math.floor(item.index)
 				: i;
@@ -1006,7 +1017,7 @@ export async function callLLMStreamAggregated(
 						created: chunk.created ?? 0,
 						object: chunk.object ?? "",
 						model: chunk.model ?? model,
-						choices: choices,
+						choices,
 					}
 				);
 			},

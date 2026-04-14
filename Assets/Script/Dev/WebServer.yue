@@ -133,6 +133,10 @@ HttpServer\post "/agent/session/create", (req): invalidArguments ->
 	switch req when {body: {:projectRoot, :title}}
 		return AgentSession.createSession projectRoot, title
 
+HttpServer\post "/agent/session/create-sub", (req): invalidArguments ->
+	switch req when {body: {:parentSessionId, :title}}
+		return AgentSession.createSubSession parentSessionId, title
+
 HttpServer\post "/agent/session/get", (req): invalidArguments ->
 	switch req when {body: {:sessionId}}
 		return AgentSession.getSession sessionId
@@ -150,6 +154,10 @@ HttpServer\post "/agent/task/status", (req): invalidArguments ->
 		return
 			success: true
 			session: res.session
+			relatedSessions: res.relatedSessions
+			pendingMergeCount: res.pendingMergeCount
+			pendingMergeJobs: res.pendingMergeJobs
+			spawnInfo: res.spawnInfo
 			messages: res.messages
 			steps: res.steps
 			checkpoints: checkpoints

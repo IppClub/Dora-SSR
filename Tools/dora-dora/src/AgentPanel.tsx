@@ -52,10 +52,15 @@ export default function AgentPanel(props: AgentPanelProps) {
 	const HISTORY_VISIBLE_ROUNDS = 10;
 	const { t } = useTranslation();
 	const { sessionId, projectRoot, title, height, showHeader = true, addAlert, onRollbackComplete, onOpenFile, onOpenLLMConfig } = props;
+	const [selectedSessionId, setSelectedSessionId] = useState(sessionId);
 	const [prompt, setPrompt] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [rollingBack, setRollingBack] = useState<number | null>(null);
 	const [session, setSession] = useState<Service.AgentSession | null>(null);
+	const [relatedSessions, setRelatedSessions] = useState<Service.AgentSession[]>([]);
+	const [pendingMergeCount, setPendingMergeCount] = useState(0);
+	const [pendingMergeJobs, setPendingMergeJobs] = useState<Service.AgentPendingMergeJob[]>([]);
+	const [spawnInfo, setSpawnInfo] = useState<Service.AgentSessionSpawnInfo | null>(null);
 	const [messages, setMessages] = useState<Service.AgentSessionMessage[]>([]);
 	const [steps, setSteps] = useState<Service.AgentSessionStep[]>([]);
 	const [checkpoints, setCheckpoints] = useState<Service.AgentCheckpointItem[]>([]);
@@ -70,6 +75,27 @@ export default function AgentPanel(props: AgentPanelProps) {
 	const isNearBottomRef = React.useRef(true);
 	const autoScrollTimerRef = React.useRef<number | null>(null);
 	const autoScrollRafRef = React.useRef<number | null>(null);
+
+	const orderedRelatedSessions = useMemo(() => {
+		return [...relatedSessions].sort((a, b) => {
+			if (a.kind !== b.kind) return a.kind === "main" ? -1 : 1;
+			return a.id - b.id;
+		});
+	}, [relatedSessions]);
+
+	const tabLabelMap = useMemo(() => {
+		const map = new Map<number, string>();
+		let subIndex = 1;
+		for (const item of orderedRelatedSessions) {
+			if (item.kind === "main") {
+				map.set(item.id, "main");
+			} else {
+				map.set(item.id, String(subIndex));
+				subIndex += 1;
+			}
+		}
+		return map;
+	}, [orderedRelatedSessions]);
 
 	const checkLLMConfigReady = React.useCallback(async () => {
 		try {
@@ -146,36 +172,75 @@ export default function AgentPanel(props: AgentPanelProps) {
 		return nextIsNearBottom;
 	}, []);
 
-	const refresh = React.useCallback(async (statusOnly = false) => {
+	const refresh = React.useCallback(async (statusOnly = false, targetSessionId = selectedSessionId) => {
 		if (statusOnly) {
-			const res = await Service.agentTaskStatus({ sessionId });
+			const res = await Service.agentTaskStatus({ sessionId: targetSessionId });
 			if (res.success) {
 				setSession(res.session);
+				setRelatedSessions(normalizeList<Service.AgentSession>(res.relatedSessions));
+				setPendingMergeCount(res.pendingMergeCount ?? 0);
+				setPendingMergeJobs(normalizeList<Service.AgentPendingMergeJob>(res.pendingMergeJobs));
+				setSpawnInfo(res.spawnInfo ?? null);
 				setMessages(normalizeList<Service.AgentSessionMessage>(res.messages));
 				setSteps(normalizeList<Service.AgentSessionStep>(res.steps));
 				setCheckpoints(normalizeList<Service.AgentCheckpointItem>(res.checkpoints));
 				return;
 			}
+			if (res.message === "session not found" && targetSessionId !== sessionId) {
+				setSelectedSessionId(sessionId);
+				void refresh(false, sessionId);
+				return;
+			}
 			addAlert?.(res.message, "error");
 			return;
 		}
-		const res = await Service.agentSessionGet({ sessionId });
+		const res = await Service.agentSessionGet({ sessionId: targetSessionId });
 		if (res.success) {
 			setSession(res.session);
+			setRelatedSessions(normalizeList<Service.AgentSession>(res.relatedSessions));
+			setPendingMergeCount(res.pendingMergeCount);
+			setPendingMergeJobs(normalizeList<Service.AgentPendingMergeJob>(res.pendingMergeJobs));
+			setSpawnInfo(res.spawnInfo ?? null);
 			setMessages(normalizeList<Service.AgentSessionMessage>(res.messages));
 			setSteps(normalizeList<Service.AgentSessionStep>(res.steps));
 			return;
 		}
+		if (res.message === "session not found" && targetSessionId !== sessionId) {
+			setSelectedSessionId(sessionId);
+			void refresh(false, sessionId);
+			return;
+		}
 		addAlert?.(res.message, "error");
-	}, [addAlert, sessionId]);
+	}, [addAlert, selectedSessionId]);
 
 	useEffect(() => {
-		void refresh(false);
-	}, [refresh]);
+		setSelectedSessionId(sessionId);
+	}, [sessionId]);
+
+	useEffect(() => {
+		void refresh(false, selectedSessionId);
+	}, [refresh, selectedSessionId]);
 
 	useEffect(() => {
 		const onPatch = (patch: Service.AgentSessionPatch) => {
-			if (patch.sessionId !== sessionId) return;
+			if (patch.sessionId !== selectedSessionId) return;
+			if (patch.relatedSessions) {
+				setRelatedSessions(normalizeList<Service.AgentSession>(patch.relatedSessions));
+			}
+			if (typeof patch.pendingMergeCount === "number") {
+				setPendingMergeCount(patch.pendingMergeCount);
+			}
+			if (patch.pendingMergeJobs) {
+				setPendingMergeJobs(normalizeList<Service.AgentPendingMergeJob>(patch.pendingMergeJobs));
+			}
+			if ("spawnInfo" in patch) {
+				setSpawnInfo(patch.spawnInfo ?? null);
+			}
+			if (patch.sessionDeleted) {
+				setSelectedSessionId(sessionId);
+				void refresh(false, sessionId);
+				return;
+			}
 			if (patch.session) {
 				setSession(patch.session);
 			}
@@ -200,7 +265,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 		return () => {
 			Service.removeAgentSessionPatchListener(onPatch);
 		};
-	}, [sessionId]);
+	}, [refresh, selectedSessionId, sessionId]);
 
 	useEffect(() => {
 		void checkLLMConfigReady();
@@ -208,15 +273,19 @@ export default function AgentPanel(props: AgentPanelProps) {
 
 	useEffect(() => {
 		setVisibleHistoryRounds(HISTORY_VISIBLE_ROUNDS);
-	}, [sessionId]);
+	}, [selectedSessionId]);
+
+	const hasAnyRunningSession = useMemo(() => {
+		return orderedRelatedSessions.some(item => item.currentTaskStatus === "RUNNING");
+	}, [orderedRelatedSessions]);
 
 	useEffect(() => {
-		if (session?.currentTaskStatus !== "RUNNING") return;
+		if (!hasAnyRunningSession) return;
 		const timer = window.setInterval(() => {
-			void refresh(true);
+			void refresh(true, selectedSessionId);
 		}, 3000);
 		return () => window.clearInterval(timer);
-	}, [refresh, session?.currentTaskStatus]);
+	}, [hasAnyRunningSession, refresh, selectedSessionId]);
 
 	const lastMessage = messages[messages.length - 1];
 	const lastStep = steps[steps.length - 1];
@@ -370,7 +439,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 				return;
 			}
 			const res = await Service.agentSessionSend({
-				sessionId,
+				sessionId: selectedSessionId,
 				prompt: text
 			});
 			if (!res.success) {
@@ -384,19 +453,19 @@ export default function AgentPanel(props: AgentPanelProps) {
 			}
 			setLLMConfigMissing(false);
 			setPrompt("");
-			await refresh(true);
+			await refresh(true, selectedSessionId);
 		} finally {
 			setLoading(false);
 		}
 	};
 
 	const onStop = async () => {
-		const res = await Service.agentTaskStop({ sessionId });
+		const res = await Service.agentTaskStop({ sessionId: selectedSessionId });
 		if (!res.success) {
 			addAlert?.(res.message ?? t("agent.stopFailed"), "error");
 			return;
 		}
-		await refresh(true);
+		await refresh(true, selectedSessionId);
 	};
 
 	const onToggleDiff = async (step: Service.AgentSessionStep) => {
@@ -427,7 +496,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 		setRollingBack(seq);
 		try {
 			const res = await Service.agentCheckpointRollback({
-				sessionId,
+				sessionId: selectedSessionId,
 				checkpointId,
 			});
 			if (!res.success) {
@@ -442,6 +511,39 @@ export default function AgentPanel(props: AgentPanelProps) {
 		}
 	};
 
+	const tabButtons = useMemo(() => {
+		return orderedRelatedSessions.map(item => {
+			const selected = item.id === selectedSessionId;
+			const running = item.currentTaskStatus === "RUNNING";
+			return (
+				<Button
+					key={item.id}
+					size="small"
+					variant="outlined"
+					onClick={() => setSelectedSessionId(item.id)}
+					sx={{
+						minWidth: 38,
+						height: 28,
+						px: 1.1,
+						borderRadius: 999,
+						borderColor: selected ? "rgba(250,192,61,0.45)" : "rgba(255,255,255,0.14)",
+						backgroundColor: selected ? "rgba(250,192,61,0.22)" : "rgba(24,24,24,0.46)",
+						backdropFilter: "blur(10px)",
+						color: selected ? Color.TextPrimary : Color.TextSecondary,
+						boxShadow: selected ? "0 0 0 1px rgba(250,192,61,0.1) inset" : "none",
+						"&:hover": {
+							borderColor: selected ? "rgba(250,192,61,0.58)" : "rgba(255,255,255,0.22)",
+							backgroundColor: selected ? "rgba(250,192,61,0.28)" : "rgba(255,255,255,0.08)",
+						},
+					}}
+				>
+					{tabLabelMap.get(item.id) ?? (item.kind === "main" ? "main" : "sub")}
+					{running ? " *" : ""}
+				</Button>
+			);
+		});
+	}, [orderedRelatedSessions, selectedSessionId, tabLabelMap]);
+
 	return (
 		<Box sx={{ display: "flex", flexDirection: "column", height, position: "relative" }}>
 			{showHeader ? (
@@ -449,7 +551,10 @@ export default function AgentPanel(props: AgentPanelProps) {
 					<Stack direction="row" spacing={0.75} alignItems="center" justifyContent="space-between">
 						<Box>
 							<Typography variant="subtitle1" sx={{ color: Color.TextPrimary }}>Dora</Typography>
-							<Typography variant="caption" sx={{ color: Color.TextSecondary }}>{title}</Typography>
+							<Typography variant="caption" sx={{ color: Color.TextSecondary }}>
+								{session?.title ?? title}
+								{session ? ` · ${tabLabelMap.get(session.id) ?? (session.kind === "main" ? "main" : "sub")}` : ""}
+							</Typography>
 						</Box>
 						<Chip
 							size="small"
@@ -461,6 +566,24 @@ export default function AgentPanel(props: AgentPanelProps) {
 					<Typography variant="caption" sx={{ color: Color.TextSecondary, mt: 0.25, display: "block" }}>
 						{projectRoot}
 					</Typography>
+					<Stack direction="row" spacing={1} sx={{ mt: 1 }} useFlexGap>
+						{session ? (
+							<Chip
+								size="small"
+								label={session.kind === "main" ? "main agent" : "sub agent"}
+								variant="outlined"
+								sx={{ color: Color.TextSecondary, borderColor: Color.Line }}
+							/>
+						) : null}
+						{pendingMergeCount > 0 ? (
+							<Chip
+								size="small"
+								label={`merge ${pendingMergeCount}`}
+								variant="outlined"
+								sx={{ color: Color.TextSecondary, borderColor: Color.Line }}
+							/>
+						) : null}
+					</Stack>
 				</Box>
 			) : null}
 			<MacScrollbar ref={scrollRef} skin="dark" style={{ flex: 1, minHeight: 0 }}>
@@ -498,6 +621,34 @@ export default function AgentPanel(props: AgentPanelProps) {
 										{t("agent.openLLMConfig")}
 									</Button>
 								</Stack>
+							</Box>
+						) : null}
+						{session?.kind === "sub" && spawnInfo ? (
+							<Box
+								sx={{
+									border: `1px solid ${Color.Line}`,
+									backgroundColor: "rgba(255,255,255,0.02)",
+									borderRadius: 2,
+									px: 2,
+									py: 1.5,
+								}}
+							>
+								<Typography variant="overline" sx={{ color: Color.TextSecondary, letterSpacing: "0.08em", display: "block", mb: 1 }}>
+									Delegated Task
+								</Typography>
+								<Typography variant="body2" sx={{ color: Color.TextPrimary, whiteSpace: "pre-wrap", lineHeight: 1.7 }}>
+									{spawnInfo.goal || spawnInfo.prompt}
+								</Typography>
+								{spawnInfo.expectedOutput ? (
+									<Typography variant="body2" sx={{ color: Color.TextSecondary, whiteSpace: "pre-wrap", lineHeight: 1.6, mt: 0.75 }}>
+										Expected: {spawnInfo.expectedOutput}
+									</Typography>
+								) : null}
+								{spawnInfo.filesHint && spawnInfo.filesHint.length > 0 ? (
+									<Typography variant="caption" sx={{ color: Color.TextSecondary, display: "block", mt: 0.75 }}>
+										Files: {spawnInfo.filesHint.join(", ")}
+									</Typography>
+								) : null}
 							</Box>
 						) : null}
 						{messageGroups.historyMessages.length > 0 ? (
@@ -588,6 +739,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 				prompt={prompt}
 				loading={loading}
 				running={session?.currentTaskStatus === "RUNNING"}
+				tabButtons={tabButtons}
 				onPromptChange={setPrompt}
 				onSend={() => void onSend()}
 				onStop={() => void onStop()}

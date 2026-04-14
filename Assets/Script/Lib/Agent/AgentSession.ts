@@ -2,10 +2,12 @@
 import { App, Content, DB, Path, HttpServer, emit } from 'Dora';
 import { runCodingAgent, CodingAgentEvent, CodingAgentRunResult, truncateAgentUserPrompt } from 'Agent/CodingAgent';
 import * as Tools from 'Agent/Tools';
+import { DualLayerStorage, MemoryMergeQueue } from 'Agent/Memory';
 import { Log, safeJsonDecode, safeJsonEncode, sanitizeUTF8 } from 'Agent/Utils';
 import type { StopToken } from 'Agent/Utils';
 
 export type AgentSessionStatus = "IDLE" | "RUNNING" | "DONE" | "FAILED" | "STOPPED";
+export type AgentSessionKind = "main" | "sub";
 export type AgentMessageRole = "user" | "assistant";
 export type AgentStepStatus = "PENDING" | "RUNNING" | "DONE" | "FAILED" | "STOPPED";
 
@@ -13,6 +15,10 @@ export interface AgentSessionItem {
 	id: number;
 	projectRoot: string;
 	title: string;
+	kind: AgentSessionKind;
+	rootSessionId: number;
+	parentSessionId?: number;
+	memoryScope: string;
 	status: AgentSessionStatus;
 	currentTaskId?: number;
 	currentTaskStatus?: AgentSessionStatus;
@@ -48,9 +54,30 @@ export interface AgentSessionStepItem {
 	updatedAt: number;
 }
 
+export interface AgentSessionSpawnInfo {
+	prompt: string;
+	goal: string;
+	expectedOutput?: string;
+	filesHint?: string[];
+	createdAt?: string;
+}
+
+export interface AgentPendingMergeJobItem {
+	jobId: string;
+	sourceAgentId: string;
+	sourceTitle: string;
+	createdAt: string;
+	attempts?: number;
+	lastError?: string;
+}
+
 export type AgentSessionDetailResult = {
 	success: true;
 	session: AgentSessionItem;
+	relatedSessions: AgentSessionItem[];
+	pendingMergeCount: number;
+	pendingMergeJobs: AgentPendingMergeJobItem[];
+	spawnInfo?: AgentSessionSpawnInfo;
 	messages: AgentSessionMessageItem[];
 	steps: AgentSessionStepItem[];
 } | {
@@ -79,7 +106,29 @@ const TABLE_SESSION = "AgentSession";
 const TABLE_MESSAGE = "AgentSessionMessage";
 const TABLE_STEP = "AgentSessionStep";
 const TABLE_TASK = "AgentTask";
-const AGENT_SESSION_SCHEMA_VERSION = 1;
+const AGENT_SESSION_SCHEMA_VERSION = 2;
+const SPAWN_INFO_FILE = "SPAWN.json";
+const FINALIZE_INFO_FILE = "FINALIZE.json";
+const PENDING_HANDOFF_DIR = "pending-handoffs";
+
+interface AgentSessionFinalizeInfo {
+	sourceTaskId: number;
+	message: string;
+	createdAt?: string;
+}
+
+interface PendingSubAgentHandoffItem {
+	id: string;
+	sourceSessionId: number;
+	sourceTitle: string;
+	sourceTaskId: number;
+	message: string;
+	prompt: string;
+	goal: string;
+	expectedOutput?: string;
+	filesHint?: string[];
+	createdAt: string;
+}
 
 const activeStopTokens: Record<number, StopToken> = {};
 const now = () => os.time();
@@ -148,11 +197,15 @@ function rowToSession(row: any[]): AgentSessionItem {
 		id: row[0] as number,
 		projectRoot: toStr(row[1]),
 		title: toStr(row[2]),
-		status: toStr(row[3]) as AgentSessionStatus,
-		currentTaskId: typeof row[4] === "number" && row[4] > 0 ? row[4] : undefined,
-		currentTaskStatus: toStr(row[5]) as AgentSessionStatus,
-		createdAt: row[6] as number,
-		updatedAt: row[7] as number,
+		kind: (toStr(row[3]) === "sub" ? "sub" : "main") as AgentSessionKind,
+		rootSessionId: typeof row[4] === "number" && row[4] > 0 ? row[4] : (row[0] as number),
+		parentSessionId: typeof row[5] === "number" && row[5] > 0 ? row[5] : undefined,
+		memoryScope: toStr(row[6]) !== "" ? toStr(row[6]) : "main",
+		status: toStr(row[7]) as AgentSessionStatus,
+		currentTaskId: typeof row[8] === "number" && row[8] > 0 ? row[8] : undefined,
+		currentTaskStatus: toStr(row[9]) as AgentSessionStatus,
+		createdAt: row[10] as number,
+		updatedAt: row[11] as number,
 	};
 }
 
@@ -233,7 +286,7 @@ function deleteMessageSteps(sessionId: number, taskId: number): number[] {
 
 function getSessionRow(sessionId: number) {
 	return queryOne(
-		`SELECT id, project_root, title, status, current_task_id, current_task_status, created_at, updated_at
+		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at
 		FROM ${TABLE_SESSION}
 		WHERE id = ?`,
 		[sessionId],
@@ -245,10 +298,78 @@ function getSessionItem(sessionId: number): AgentSessionItem | undefined {
 	return row ? rowToSession(row as any[]) : undefined;
 }
 
+function getLatestMainSessionByProjectRoot(projectRoot: string): AgentSessionItem | undefined {
+	if (!isValidProjectRoot(projectRoot)) return undefined;
+	const row = queryOne(
+		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at
+		FROM ${TABLE_SESSION}
+		WHERE project_root = ? AND kind = 'main'
+		ORDER BY updated_at DESC, id DESC
+		LIMIT 1`,
+		[projectRoot],
+	);
+	return row ? rowToSession(row as any[]) : undefined;
+}
+
 function deleteSessionRecords(sessionId: number) {
+	DB.exec(`DELETE FROM ${TABLE_SESSION} WHERE parent_session_id = ?`, [sessionId]);
 	DB.exec(`DELETE FROM ${TABLE_STEP} WHERE session_id = ?`, [sessionId]);
 	DB.exec(`DELETE FROM ${TABLE_MESSAGE} WHERE session_id = ?`, [sessionId]);
 	DB.exec(`DELETE FROM ${TABLE_SESSION} WHERE id = ?`, [sessionId]);
+}
+
+function getSessionRootId(session: AgentSessionItem): number {
+	return session.rootSessionId > 0 ? session.rootSessionId : session.id;
+}
+
+function getRootSessionItem(sessionId: number): AgentSessionItem | undefined {
+	const session = getSessionItem(sessionId);
+	if (!session) return undefined;
+	return getSessionItem(getSessionRootId(session)) ?? session;
+}
+
+function listRelatedSessions(sessionId: number): AgentSessionItem[] {
+	const root = getRootSessionItem(sessionId);
+	if (!root) return [];
+	const rows = queryRows(
+		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at
+		FROM ${TABLE_SESSION}
+		WHERE id = ? OR root_session_id = ?
+		ORDER BY
+			CASE kind WHEN 'main' THEN 0 ELSE 1 END ASC,
+			id ASC`,
+		[root.id, root.id],
+	) ?? [];
+	return rows.map(row => normalizeSessionRuntimeState(rowToSession(row as any[])));
+}
+
+function getPendingMergeCount(projectRoot: string): number {
+	return new MemoryMergeQueue(projectRoot).listJobs().length;
+}
+
+function listPendingMergeJobs(projectRoot: string): AgentPendingMergeJobItem[] {
+	return new MemoryMergeQueue(projectRoot).listJobs().map(job => ({
+		jobId: job.jobId,
+		sourceAgentId: job.sourceAgentId,
+		sourceTitle: job.sourceTitle,
+		createdAt: job.createdAt,
+		attempts: job.attempts,
+		lastError: job.lastError,
+	}));
+}
+
+function getSessionSpawnInfo(session: AgentSessionItem): AgentSessionSpawnInfo | undefined {
+	const info = readSpawnInfo(session.projectRoot, session.memoryScope);
+	if (!info) return undefined;
+	return {
+		prompt: typeof info.prompt === "string" ? sanitizeUTF8(info.prompt) : "",
+		goal: typeof info.goal === "string" ? sanitizeUTF8(info.goal) : "",
+		expectedOutput: typeof info.expectedOutput === "string" ? sanitizeUTF8(info.expectedOutput) : undefined,
+		filesHint: Array.isArray(info.filesHint)
+			? (info.filesHint as unknown[]).filter(item => typeof item === "string").map(item => sanitizeUTF8(item as string))
+			: undefined,
+		createdAt: typeof info.createdAt === "string" ? sanitizeUTF8(info.createdAt) : undefined,
+	};
 }
 
 function rebaseProjectRoot(projectRoot: string, oldRoot: string, newRoot: string) {
@@ -262,6 +383,181 @@ function rebaseProjectRoot(projectRoot: string, oldRoot: string, newRoot: string
 		}
 	}
 	return undefined;
+}
+
+function ensureDirRecursive(dir: string): boolean {
+	if (!dir || dir === "") return false;
+	if (Content.exist(dir)) return Content.isdir(dir);
+	const parent = Path.getPath(dir);
+	if (parent && parent !== dir && !Content.exist(parent)) {
+		if (!ensureDirRecursive(parent)) {
+			return false;
+		}
+	}
+	return Content.mkdir(dir);
+}
+
+function writeSpawnInfo(projectRoot: string, memoryScope: string, value: Record<string, unknown>): boolean {
+	const dir = Path(projectRoot, ".agent", memoryScope);
+	if (!Content.exist(dir)) {
+		ensureDirRecursive(dir);
+	}
+	const path = Path(dir, SPAWN_INFO_FILE);
+	const [text] = safeJsonEncode(value as object);
+	if (!text) return false;
+	return Content.save(path, `${text}\n`);
+}
+
+function readSpawnInfo(projectRoot: string, memoryScope: string): Record<string, unknown> | undefined {
+	const path = Path(projectRoot, ".agent", memoryScope, SPAWN_INFO_FILE);
+	if (!Content.exist(path)) return undefined;
+	const text = Content.load(path) as string;
+	if (!text || text.trim() === "") return undefined;
+	const [value] = safeJsonDecode(text);
+	if (value && !Array.isArray(value) && type(value) === "table") {
+		return value as Record<string, unknown>;
+	}
+	return undefined;
+}
+
+function writeFinalizeInfo(projectRoot: string, memoryScope: string, value: AgentSessionFinalizeInfo): boolean {
+	const dir = Path(projectRoot, ".agent", memoryScope);
+	if (!Content.exist(dir)) {
+		ensureDirRecursive(dir);
+	}
+	const path = Path(dir, FINALIZE_INFO_FILE);
+	const [text] = safeJsonEncode(value as unknown as object);
+	if (!text) return false;
+	return Content.save(path, `${text}\n`);
+}
+
+function readFinalizeInfo(projectRoot: string, memoryScope: string): AgentSessionFinalizeInfo | undefined {
+	const path = Path(projectRoot, ".agent", memoryScope, FINALIZE_INFO_FILE);
+	if (!Content.exist(path)) return undefined;
+	const text = Content.load(path) as string;
+	if (!text || text.trim() === "") return undefined;
+	const [value] = safeJsonDecode(text);
+	if (value && !Array.isArray(value) && type(value) === "table") {
+		const sourceTaskId = tonumber((value as any).sourceTaskId);
+		if (!(sourceTaskId && sourceTaskId > 0)) return undefined;
+		return {
+			sourceTaskId,
+			message: sanitizeUTF8(toStr((value as any).message)),
+			createdAt: typeof (value as any).createdAt === "string"
+				? sanitizeUTF8((value as any).createdAt)
+				: undefined,
+		};
+	}
+	return undefined;
+}
+
+function deleteFinalizeInfo(projectRoot: string, memoryScope: string): void {
+	const path = Path(projectRoot, ".agent", memoryScope, FINALIZE_INFO_FILE);
+	if (Content.exist(path)) {
+		Content.remove(path);
+	}
+}
+
+function getPendingHandoffDir(projectRoot: string, memoryScope: string): string {
+	return Path(projectRoot, ".agent", memoryScope, PENDING_HANDOFF_DIR);
+}
+
+function writePendingHandoff(projectRoot: string, memoryScope: string, value: PendingSubAgentHandoffItem): boolean {
+	const dir = getPendingHandoffDir(projectRoot, memoryScope);
+	if (!Content.exist(dir)) {
+		ensureDirRecursive(dir);
+	}
+	const path = Path(dir, `${value.id}.json`);
+	const [text] = safeJsonEncode(value as unknown as object);
+	if (!text) return false;
+	return Content.save(path, `${text}\n`);
+}
+
+function listPendingHandoffs(projectRoot: string, memoryScope: string): PendingSubAgentHandoffItem[] {
+	const dir = getPendingHandoffDir(projectRoot, memoryScope);
+	if (!Content.exist(dir) || !Content.isdir(dir)) return [];
+	const items: PendingSubAgentHandoffItem[] = [];
+	for (const rawPath of Content.getFiles(dir)) {
+		const path = Content.isAbsolutePath(rawPath) ? rawPath : Path(dir, rawPath);
+		if (!path.endsWith(".json") || !Content.exist(path)) continue;
+		const text = Content.load(path) as string;
+		if (!text || text.trim() === "") continue;
+		const [value] = safeJsonDecode(text);
+		if (!value || Array.isArray(value) || type(value) !== "table") continue;
+		const sourceTaskId = tonumber((value as any).sourceTaskId);
+		const sourceSessionId = tonumber((value as any).sourceSessionId);
+		const id = sanitizeUTF8(toStr((value as any).id));
+		const sourceTitle = sanitizeUTF8(toStr((value as any).sourceTitle));
+		const message = sanitizeUTF8(toStr((value as any).message));
+		const prompt = sanitizeUTF8(toStr((value as any).prompt));
+		const goal = sanitizeUTF8(toStr((value as any).goal));
+		const createdAt = sanitizeUTF8(toStr((value as any).createdAt));
+		if (!(sourceTaskId && sourceTaskId > 0) || !(sourceSessionId && sourceSessionId > 0) || id === "" || createdAt === "") {
+			continue;
+		}
+		items.push({
+			id,
+			sourceSessionId,
+			sourceTitle,
+			sourceTaskId,
+			message,
+			prompt,
+			goal,
+			expectedOutput: sanitizeUTF8(toStr((value as any).expectedOutput)),
+			filesHint: Array.isArray((value as any).filesHint)
+				? ((value as any).filesHint as unknown[]).filter(item => typeof item === "string").map(item => sanitizeUTF8(item as string))
+				: [],
+			createdAt,
+		});
+	}
+	items.sort((a, b) => a.id < b.id ? -1 : (a.id > b.id ? 1 : 0));
+	return items;
+}
+
+function deletePendingHandoff(projectRoot: string, memoryScope: string, id: string): void {
+	const path = Path(getPendingHandoffDir(projectRoot, memoryScope), `${id}.json`);
+	if (Content.exist(path)) {
+		Content.remove(path);
+	}
+}
+
+function normalizePromptText(prompt: string): string {
+	return truncateAgentUserPrompt(prompt ?? "").trim();
+}
+
+function normalizePromptTextSafe(prompt: unknown): string {
+	if (typeof prompt === "string") {
+		const normalized = normalizePromptText(prompt);
+		if (normalized !== "") return normalized;
+		const sanitized = sanitizeUTF8(prompt).trim();
+		if (sanitized !== "") {
+			return truncateAgentUserPrompt(sanitized);
+		}
+		return "";
+	}
+	const text = sanitizeUTF8(toStr(prompt)).trim();
+	if (text === "") return "";
+	return truncateAgentUserPrompt(text);
+}
+
+function buildSubAgentPromptFallback(title: string, expectedOutput?: string, filesHint?: string[]): string {
+	const sections: string[] = [];
+	const normalizedTitle = sanitizeUTF8(title ?? "").trim();
+	const normalizedExpected = sanitizeUTF8(expectedOutput ?? "").trim();
+	const normalizedFiles = (filesHint ?? [])
+		.filter(item => typeof item === "string")
+		.map(item => sanitizeUTF8(item).trim())
+		.filter(item => item !== "");
+	if (normalizedTitle !== "") {
+		sections.push(`Task: ${normalizedTitle}`);
+	}
+	if (normalizedExpected !== "") {
+		sections.push(`Expected output: ${normalizedExpected}`);
+	}
+	if (normalizedFiles.length > 0) {
+		sections.push(`Files hint:\n- ${normalizedFiles.join("\n- ")}`);
+	}
+	return sections.join("\n\n").trim();
 }
 
 function normalizeSessionRuntimeState(session: AgentSessionItem): AgentSessionItem {
@@ -430,6 +726,35 @@ function upsertStep(sessionId: number, taskId: number, step: number, tool: strin
 	);
 }
 
+function getNextStepNumber(sessionId: number, taskId: number): number {
+	const row = queryOne(
+		`SELECT MAX(step) FROM ${TABLE_STEP} WHERE session_id = ? AND task_id = ?`,
+		[sessionId, taskId],
+	);
+	const current = row && typeof row[0] === "number" ? row[0] as number : 0;
+	return math.max(0, current) + 1;
+}
+
+function appendSystemStep(
+	sessionId: number,
+	taskId: number,
+	tool: string,
+	_systemType: string,
+	reason: string,
+	result?: Record<string, unknown>,
+	params?: Record<string, unknown>,
+	status: AgentStepStatus = "DONE",
+): AgentSessionStepItem | undefined {
+	const step = getNextStepNumber(sessionId, taskId);
+	upsertStep(sessionId, taskId, step, tool, {
+		status,
+		reason,
+		params,
+		result,
+	});
+	return getStepItem(sessionId, taskId, step);
+}
+
 function finalizeTaskSteps(sessionId: number, taskId: number, finalSteps?: number, finalStatus?: AgentStepStatus) {
 	if (taskId <= 0) return;
 	if (finalSteps !== undefined && finalSteps >= 0) {
@@ -491,6 +816,84 @@ function emitAgentSessionPatch(sessionId: number, patch: Record<string, unknown>
 	} as object);
 	if (!text) return;
 	emit("AppWS", "Send", text);
+}
+
+function emitSessionTreePatch(sessionId: number) {
+	const session = getSessionItem(sessionId);
+	if (!session) return;
+	emitAgentSessionPatch(session.id, {
+		session,
+		relatedSessions: listRelatedSessions(session.id),
+		pendingMergeCount: getPendingMergeCount(session.projectRoot),
+		pendingMergeJobs: listPendingMergeJobs(session.projectRoot),
+		spawnInfo: session.kind === "sub" ? getSessionSpawnInfo(session) : undefined,
+	});
+}
+
+function emitSessionDeletedPatch(sessionId: number, rootSessionId: number, projectRoot: string) {
+	emitAgentSessionPatch(sessionId, {
+		sessionDeleted: true,
+		relatedSessions: listRelatedSessions(rootSessionId),
+		pendingMergeCount: getPendingMergeCount(projectRoot),
+		pendingMergeJobs: listPendingMergeJobs(projectRoot),
+	});
+	const rootSession = getSessionItem(rootSessionId);
+	if (rootSession) {
+		emitAgentSessionPatch(rootSessionId, {
+			session: rootSession,
+			relatedSessions: listRelatedSessions(rootSessionId),
+			pendingMergeCount: getPendingMergeCount(projectRoot),
+			pendingMergeJobs: listPendingMergeJobs(projectRoot),
+		});
+	}
+}
+
+function flushPendingSubAgentHandoffs(rootSession: AgentSessionItem): void {
+	if (rootSession.kind !== "main") return;
+	if (rootSession.currentTaskStatus === "RUNNING" && rootSession.currentTaskId && activeStopTokens[rootSession.currentTaskId]) {
+		return;
+	}
+	const items = listPendingHandoffs(rootSession.projectRoot, rootSession.memoryScope);
+	if (items.length === 0) return;
+	const taskRes = Tools.createTask(`[sub_agent_handoff] ${tostring(items.length)} item(s)`);
+	if (!taskRes.success) {
+		Log("Warn", `[AgentSession] failed to create sub-agent handoff task for root=${rootSession.id}: ${taskRes.message}`);
+		return;
+	}
+	const handoffTaskId = taskRes.taskId;
+	Tools.setTaskStatus(handoffTaskId, "DONE");
+	setSessionState(rootSession.id, "DONE", handoffTaskId, "DONE");
+	emitAgentSessionPatch(rootSession.id, {
+		session: getSessionItem(rootSession.id),
+	});
+	for (let i = 0; i < items.length; i++) {
+		const item = items[i];
+		const step = appendSystemStep(
+			rootSession.id,
+			handoffTaskId,
+			"sub_agent_handoff",
+			"sub_agent_handoff",
+			item.message,
+			{
+				sourceSessionId: item.sourceSessionId,
+				sourceTitle: item.sourceTitle,
+				sourceTaskId: item.sourceTaskId,
+			},
+			{
+				sourceSessionId: item.sourceSessionId,
+				sourceTitle: item.sourceTitle,
+				prompt: item.prompt,
+				goal: item.goal !== "" ? item.goal : item.sourceTitle,
+				expectedOutput: item.expectedOutput ?? "",
+				filesHint: item.filesHint ?? [],
+			},
+			"DONE",
+		);
+		if (step) {
+			emitAgentSessionPatch(rootSession.id, { step });
+		}
+		deletePendingHandoff(rootSession.projectRoot, rootSession.memoryScope, item.id);
+	}
 }
 
 function applyEvent(sessionId: number, event: CodingAgentEvent) {
@@ -561,6 +964,45 @@ function applyEvent(sessionId: number, event: CodingAgentEvent) {
 				step: getStepItem(sessionId, event.taskId, event.step),
 			});
 			break;
+		case "memory_merge_started": {
+			upsertStep(sessionId, event.taskId, event.step, "merge_memory", {
+				status: "RUNNING",
+				reason: getDefaultUseChineseResponse()
+					? `正在合并来自 ${event.sourceTitle} 的记忆。`
+					: `Pending memory merge from ${event.sourceTitle}.`,
+				params: {
+					jobId: event.jobId,
+					sourceAgentId: event.sourceAgentId,
+					sourceTitle: event.sourceTitle,
+				},
+			});
+			emitAgentSessionPatch(sessionId, {
+				step: getStepItem(sessionId, event.taskId, event.step),
+			});
+			break;
+		}
+		case "memory_merge_finished": {
+			upsertStep(sessionId, event.taskId, event.step, "merge_memory", {
+				status: event.success ? "DONE" : "FAILED",
+				reason: sanitizeUTF8(event.message),
+				params: {
+					jobId: event.jobId,
+					sourceAgentId: event.sourceAgentId,
+					sourceTitle: event.sourceTitle,
+				},
+				result: {
+					success: event.success,
+					attempts: event.attempts,
+					jobId: event.jobId,
+					sourceAgentId: event.sourceAgentId,
+					sourceTitle: event.sourceTitle,
+				},
+			});
+			emitAgentSessionPatch(sessionId, {
+				step: getStepItem(sessionId, event.taskId, event.step),
+			});
+			break;
+		}
 		case "assistant_message_updated": {
 			upsertStep(sessionId, event.taskId, event.step, "message", {
 				status: "RUNNING",
@@ -595,6 +1037,10 @@ function applyEvent(sessionId: number, event: CodingAgentEvent) {
 					removedStepIds,
 				});
 			}
+			const session = getSessionItem(sessionId);
+			if (session && session.kind === "main") {
+				flushPendingSubAgentHandoffs(session);
+			}
 			break;
 		}
 	}
@@ -617,6 +1063,10 @@ function recreateSchema() {
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		project_root TEXT NOT NULL,
 		title TEXT NOT NULL DEFAULT '',
+		kind TEXT NOT NULL DEFAULT 'main',
+		root_session_id INTEGER NOT NULL DEFAULT 0,
+		parent_session_id INTEGER,
+		memory_scope TEXT NOT NULL DEFAULT 'main',
 		status TEXT NOT NULL DEFAULT 'IDLE',
 		current_task_id INTEGER,
 		current_task_status TEXT NOT NULL DEFAULT 'IDLE',
@@ -665,6 +1115,10 @@ function recreateSchema() {
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			project_root TEXT NOT NULL,
 			title TEXT NOT NULL DEFAULT '',
+			kind TEXT NOT NULL DEFAULT 'main',
+			root_session_id INTEGER NOT NULL DEFAULT 0,
+			parent_session_id INTEGER,
+			memory_scope TEXT NOT NULL DEFAULT 'main',
 			status TEXT NOT NULL DEFAULT 'IDLE',
 			current_task_id INTEGER,
 			current_task_status TEXT NOT NULL DEFAULT 'IDLE',
@@ -709,9 +1163,9 @@ export function createSession(projectRoot: string, title = "") {
 		return { success: false as const, message: "invalid projectRoot" };
 	}
 	const row = queryOne(
-		`SELECT id, project_root, title, status, current_task_id, current_task_status, created_at, updated_at
+		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at
 		FROM ${TABLE_SESSION}
-		WHERE project_root = ?
+		WHERE project_root = ? AND kind = 'main'
 		ORDER BY updated_at DESC, id DESC
 		LIMIT 1`,
 		[projectRoot],
@@ -721,15 +1175,105 @@ export function createSession(projectRoot: string, title = "") {
 	}
 	const t = now();
 	DB.exec(
-		`INSERT INTO ${TABLE_SESSION}(project_root, title, status, current_task_status, created_at, updated_at)
-		VALUES(?, ?, 'IDLE', 'IDLE', ?, ?)`,
+		`INSERT INTO ${TABLE_SESSION}(project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_status, created_at, updated_at)
+		VALUES(?, ?, 'main', 0, 0, 'main', 'IDLE', 'IDLE', ?, ?)`,
 		[projectRoot, title !== "" ? title : Path.getFilename(projectRoot), t, t],
 	);
-	const session = getSessionItem(getLastInsertRowId());
+	const sessionId = getLastInsertRowId();
+	DB.exec(`UPDATE ${TABLE_SESSION} SET root_session_id = ? WHERE id = ?`, [sessionId, sessionId]);
+	const session = getSessionItem(sessionId);
 	if (!session) {
 		return { success: false as const, message: "failed to create session" };
 	}
 	return { success: true as const, session };
+}
+
+export function createSubSession(parentSessionId: number, title = "") {
+	const parent = getSessionItem(parentSessionId);
+	if (!parent) {
+		return { success: false as const, message: "parent session not found" };
+	}
+	const rootId = getSessionRootId(parent);
+	const t = now();
+	DB.exec(
+		`INSERT INTO ${TABLE_SESSION}(project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_status, created_at, updated_at)
+		VALUES(?, ?, 'sub', ?, ?, '', 'IDLE', 'IDLE', ?, ?)`,
+		[parent.projectRoot, title !== "" ? title : `Sub ${tostring(rootId)}`, rootId, parent.id, t, t],
+	);
+	const sessionId = getLastInsertRowId();
+	const memoryScope = `subagents/${tostring(sessionId)}`;
+	DB.exec(`UPDATE ${TABLE_SESSION} SET memory_scope = ? WHERE id = ?`, [memoryScope, sessionId]);
+	const session = getSessionItem(sessionId);
+	if (!session) {
+		return { success: false as const, message: "failed to create sub session" };
+	}
+	const parentStorage = new DualLayerStorage(parent.projectRoot, parent.memoryScope);
+	const subStorage = new DualLayerStorage(parent.projectRoot, memoryScope);
+	subStorage.writeMemory(parentStorage.readMemory());
+	return { success: true as const, session };
+}
+
+async function spawnSubAgentSession(request: {
+	parentSessionId: number;
+	projectRoot?: string;
+	title: string;
+	prompt: string;
+	expectedOutput?: string;
+	filesHint?: string[];
+}): Promise<
+	| { success: true; sessionId: number; taskId: number; title: string }
+	| { success: false; message: string }
+> {
+	const normalizedTitle = sanitizeUTF8(request.title ?? "").trim();
+	const rawPrompt = typeof request.prompt === "string" ? request.prompt : toStr(request.prompt);
+	let normalizedPrompt = normalizePromptTextSafe(request.prompt);
+	if (normalizedPrompt === "") {
+		normalizedPrompt = buildSubAgentPromptFallback(
+			normalizedTitle,
+			request.expectedOutput,
+			request.filesHint,
+		);
+	}
+	if (normalizedPrompt === "") {
+		Log("Warn", `[AgentSession] sub agent prompt empty title_len=${normalizedTitle.length} raw_prompt_len=${rawPrompt.length} expected_len=${toStr(request.expectedOutput).length} files_hint_count=${request.filesHint?.length ?? 0}`);
+		return { success: false, message: "sub agent prompt is empty" };
+	}
+	Log("Info", `[AgentSession] sub agent prompt prepared title_len=${normalizedTitle.length} raw_prompt_len=${rawPrompt.length} normalized_prompt_len=${normalizedPrompt.length}`);
+	let parentSessionId = request.parentSessionId;
+	if (!getSessionItem(parentSessionId) && request.projectRoot && request.projectRoot !== "") {
+		let fallbackParent = getLatestMainSessionByProjectRoot(request.projectRoot);
+		if (!fallbackParent) {
+			const createdMain = createSession(request.projectRoot);
+			if (createdMain.success) {
+				fallbackParent = createdMain.session;
+			}
+		}
+		if (fallbackParent) {
+			Log("Warn", `[AgentSession] spawn fallback parent session requested=${tostring(request.parentSessionId)} resolved=${tostring(fallbackParent.id)} project=${request.projectRoot}`);
+			parentSessionId = fallbackParent.id;
+		}
+	}
+	const created = createSubSession(parentSessionId, request.title);
+	if (!created.success) {
+		return created;
+	}
+	writeSpawnInfo(created.session.projectRoot, created.session.memoryScope, {
+		prompt: normalizedPrompt,
+		goal: normalizedTitle !== "" ? normalizedTitle : request.title,
+		expectedOutput: request.expectedOutput ?? "",
+		filesHint: request.filesHint ?? [],
+		createdAt: os.date("!%Y-%m-%dT%H:%M:%SZ"),
+	});
+	const sent = sendPrompt(created.session.id, normalizedPrompt, true);
+	if (!sent.success) {
+		return { success: false, message: sent.message };
+	}
+	return {
+		success: true,
+		sessionId: created.session.id,
+		taskId: sent.taskId,
+		title: created.session.title,
+	};
 }
 
 export function deleteSessionsByProjectRoot(projectRoot: string) {
@@ -773,6 +1317,7 @@ export function getSession(sessionId: number): AgentSessionDetailResult {
 		return { success: false, message: "session not found" };
 	}
 	const normalizedSession = normalizeSessionRuntimeState(session);
+	const relatedSessions = listRelatedSessions(sessionId);
 	sanitizeStoredSteps(sessionId);
 	const messages = queryRows(
 		`SELECT id, session_id, task_id, role, content, created_at, updated_at
@@ -792,12 +1337,130 @@ export function getSession(sessionId: number): AgentSessionDetailResult {
 	return {
 		success: true,
 		session: normalizedSession,
+		relatedSessions,
+		pendingMergeCount: getPendingMergeCount(normalizedSession.projectRoot),
+		pendingMergeJobs: listPendingMergeJobs(normalizedSession.projectRoot),
+		spawnInfo: normalizedSession.kind === "sub" ? getSessionSpawnInfo(normalizedSession) : undefined,
 		messages: messages.map(row => rowToMessage(row as any[])),
 		steps: steps.map(row => rowToStep(row as any[])),
 	};
 }
 
-export function sendPrompt(sessionId: number, prompt: string): AgentSessionSendResult {
+function buildSubAgentMemoryMergeJob(session: AgentSessionItem): { success: true } | { success: false; message: string } {
+	if (session.kind !== "sub") {
+		return { success: true };
+	}
+	const rootSession = getRootSessionItem(session.id);
+	if (!rootSession) {
+		return { success: false, message: "root session not found" };
+	}
+	const storage = new DualLayerStorage(session.projectRoot, session.memoryScope);
+	const finalMemory = storage.readMemory();
+	if (finalMemory.trim() === "") {
+		return { success: false, message: "sub session memory is empty" };
+	}
+	const queue = new MemoryMergeQueue(session.projectRoot);
+	const spawnInfo = readSpawnInfo(session.projectRoot, session.memoryScope);
+	const createdAt = os.date("!%Y-%m-%dT%H:%M:%SZ");
+	const [sanitizedTitle] = string.gsub(session.title, "[^%w_-]", "_");
+	const [cleanedTime1] = string.gsub(createdAt, "[-:]", "");
+	const [cleanedTime2] = string.gsub(cleanedTime1, "%.%d+Z$", "Z");
+	const jobId = `${cleanedTime2}_${sanitizeUTF8(sanitizedTitle)}_${tostring(session.id)}`;
+	const result = queue.writeJob({
+		jobId,
+		rootAgentId: tostring(rootSession.id),
+		sourceAgentId: tostring(session.id),
+		sourceTitle: session.title,
+		createdAt,
+		spawn: {
+			prompt: typeof spawnInfo?.prompt === "string"
+				? spawnInfo.prompt as string
+				: session.title,
+			goal: typeof spawnInfo?.goal === "string"
+				? spawnInfo.goal as string
+				: session.title,
+			expectedOutput: typeof spawnInfo?.expectedOutput === "string"
+				? spawnInfo.expectedOutput as string
+				: "",
+			filesHint: Array.isArray(spawnInfo?.filesHint)
+				? spawnInfo.filesHint as string[]
+				: [],
+		},
+		memory: {
+			finalMemory,
+		},
+	});
+	if (!result.success) {
+		return result;
+	}
+	return { success: true };
+}
+
+function appendSubAgentHandoffStep(session: AgentSessionItem, taskId: number, message: string): void {
+	const rootSession = getRootSessionItem(session.id);
+	if (!rootSession) return;
+	const spawnInfo = getSessionSpawnInfo(session);
+	const createdAt = os.date("!%Y-%m-%dT%H:%M:%SZ");
+	const [cleanedTime1] = string.gsub(createdAt, "[-:]", "");
+	const [cleanedTime2] = string.gsub(cleanedTime1, "%.%d+Z$", "Z");
+	const queueResult = writePendingHandoff(rootSession.projectRoot, rootSession.memoryScope, {
+		id: `${cleanedTime2}_sub_${tostring(session.id)}_${tostring(taskId)}`,
+		sourceSessionId: session.id,
+		sourceTitle: session.title,
+		sourceTaskId: taskId,
+		message: sanitizeUTF8(message),
+		prompt: spawnInfo?.prompt ?? "",
+		goal: spawnInfo?.goal ?? session.title,
+		expectedOutput: spawnInfo?.expectedOutput ?? "",
+		filesHint: spawnInfo?.filesHint ?? [],
+		createdAt,
+	});
+	if (!queueResult) {
+		Log("Warn", `[AgentSession] failed to queue sub-agent handoff root=${rootSession.id} source=${session.id}`);
+		return;
+	}
+	if (!(rootSession.currentTaskStatus === "RUNNING" && rootSession.currentTaskId && activeStopTokens[rootSession.currentTaskId])) {
+		flushPendingSubAgentHandoffs(rootSession);
+	}
+}
+
+function startSubSessionFinalize(session: AgentSessionItem, taskId: number, message: string): { success: true } | { success: false; message: string } {
+	if (!writeFinalizeInfo(session.projectRoot, session.memoryScope, {
+		sourceTaskId: taskId,
+		message: sanitizeUTF8(message),
+		createdAt: os.date("!%Y-%m-%dT%H:%M:%SZ"),
+	})) {
+		return { success: false, message: "failed to persist sub session finalize info" };
+	}
+	const compactPrompt = "/compact";
+	const sent = sendPrompt(session.id, compactPrompt, true);
+	if (!sent.success) {
+		deleteFinalizeInfo(session.projectRoot, session.memoryScope);
+		return sent;
+	}
+	return { success: true };
+}
+
+function completeSubSessionFinalizeAfterCompact(session: AgentSessionItem): { success: true } | { success: false; message: string } {
+	const rootSessionId = getSessionRootId(session);
+	const projectRoot = session.projectRoot;
+	const finalizeInfo = readFinalizeInfo(projectRoot, session.memoryScope);
+	if (!finalizeInfo) {
+		return { success: false, message: "sub session finalize info not found" };
+	}
+	appendSubAgentHandoffStep(session, finalizeInfo.sourceTaskId, finalizeInfo.message);
+	const mergeResult = buildSubAgentMemoryMergeJob(session);
+	if (!mergeResult.success) {
+		Log("Warn", `[AgentSession] sub session merge handoff failed session=${session.id} error=${mergeResult.message}`);
+		return mergeResult;
+	}
+	deleteFinalizeInfo(projectRoot, session.memoryScope);
+	deleteSessionRecords(session.id);
+	emitSessionDeletedPatch(session.id, rootSessionId, projectRoot);
+	return { success: true };
+}
+
+export function sendPrompt(sessionId: number, prompt: string, allowSubSessionStart = false): AgentSessionSendResult {
 	const session = getSessionItem(sessionId);
 	if (!session) {
 		return { success: false, message: "session not found" };
@@ -805,7 +1468,23 @@ export function sendPrompt(sessionId: number, prompt: string): AgentSessionSendR
 	if ((session.currentTaskStatus === "RUNNING") && session.currentTaskId !== undefined && activeStopTokens[session.currentTaskId]) {
 		return { success: false, message: "session task is still running" };
 	}
-	const normalizedPrompt = truncateAgentUserPrompt(prompt);
+	let normalizedPrompt = normalizePromptTextSafe(prompt);
+	if (normalizedPrompt === "" && session.kind === "sub") {
+		const spawnInfo = getSessionSpawnInfo(session);
+		if (spawnInfo) {
+			normalizedPrompt = normalizePromptTextSafe(spawnInfo.prompt);
+			if (normalizedPrompt === "") {
+				normalizedPrompt = buildSubAgentPromptFallback(
+					spawnInfo.goal,
+					spawnInfo.expectedOutput,
+					spawnInfo.filesHint,
+				);
+			}
+		}
+	}
+	if (normalizedPrompt === "") {
+		return { success: false, message: "prompt is empty" };
+	}
 	const taskRes = Tools.createTask(normalizedPrompt);
 	if (!taskRes.success) {
 		return { success: false, message: taskRes.message };
@@ -822,9 +1501,32 @@ export function sendPrompt(sessionId: number, prompt: string): AgentSessionSendR
 		useChineseResponse,
 		taskId,
 		sessionId,
+		memoryScope: session.memoryScope,
+		role: session.kind,
+		spawnSubAgent: session.kind === "main"
+			? spawnSubAgentSession
+			: undefined,
 		stopToken,
 		onEvent: event => applyEvent(sessionId, event),
-	}, (result: CodingAgentRunResult) => {
+	}, async (result: CodingAgentRunResult) => {
+		const nextSession = getSessionItem(sessionId);
+		if (result.success) {
+			if (nextSession && nextSession.kind === "sub") {
+				if (normalizedPrompt.trim() === "/compact") {
+					if (readFinalizeInfo(nextSession.projectRoot, nextSession.memoryScope)) {
+						const finalized = completeSubSessionFinalizeAfterCompact(nextSession);
+						if (!finalized.success) {
+							Log("Warn", `[AgentSession] sub session compact finalize failed session=${nextSession.id} error=${finalized.message}`);
+						}
+					}
+				} else {
+					const started = startSubSessionFinalize(nextSession, taskId, result.message);
+					if (!started.success) {
+						Log("Warn", `[AgentSession] sub session finalize start failed session=${nextSession.id} error=${started.message}`);
+					}
+				}
+			}
+		}
 		if (!result.success) {
 			applyEvent(sessionId, {
 				type: "task_finished",
@@ -864,7 +1566,7 @@ export function getCurrentTaskId(sessionId: number): number | undefined {
 
 export function listRunningSessions(): AgentRunningSessionListResult {
 	const rows = queryRows(
-		`SELECT id, project_root, title, status, current_task_id, current_task_status, created_at, updated_at
+		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at
 		FROM ${TABLE_SESSION}
 		WHERE current_task_status = ?
 		ORDER BY updated_at DESC, id DESC`,

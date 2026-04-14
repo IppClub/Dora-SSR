@@ -1,6 +1,7 @@
 // @preview-file off clear
 import { App, Content, Path } from 'Dora';
 import { Message, ToolCallFunction, callLLM, Log, clipTextToTokenBudget, parseXMLObjectFromText, safeJsonDecode, safeJsonEncode, sanitizeUTF8 } from 'Agent/Utils';
+import { getActiveLLMConfig } from 'Agent/Utils';
 import type { LLMConfig, ToolCall } from 'Agent/Utils';
 import { sendWebIDEFileUpdate } from 'Agent/Tools';
 
@@ -18,6 +19,31 @@ export interface AgentConversationMessage extends Message {
 
 export interface PersistedSessionState {
 	messages: AgentConversationMessage[];
+}
+
+export interface MemoryMergeSpawnInfo {
+	prompt: string;
+	goal: string;
+	expectedOutput?: string;
+	filesHint?: string[];
+}
+
+export interface MemoryMergeJobData {
+	jobId: string;
+	rootAgentId: string;
+	sourceAgentId: string;
+	sourceTitle: string;
+	createdAt: string;
+	spawn: MemoryMergeSpawnInfo;
+	memory: {
+		finalMemory: string;
+	};
+	attempts?: number;
+	lastError?: string;
+}
+
+export interface MemoryMergeJob extends MemoryMergeJobData {
+	path: string;
 }
 
 interface HistoryRecord {
@@ -459,6 +485,9 @@ export interface MemoryConfig {
 	/** 压缩触发阈值 (0-1) */
 	compressionThreshold: number;
 
+	/** 普通压缩目标阈值 (0-1)，触发后压到该比例以下 */
+	compressionTargetThreshold: number;
+
 	/** 最大压缩轮数 */
 	maxCompressionRounds: number;
 
@@ -470,6 +499,9 @@ export interface MemoryConfig {
 
 	/** 当前会话使用的 Prompt 配置 */
 	promptPack?: Partial<AgentPromptPack> | AgentPromptPack;
+
+	/** 当前 memory scope，留空表示 .agent 根目录 */
+	scope?: string;
 }
 
 /**
@@ -578,6 +610,18 @@ function utf8TakeTail(text: string, maxChars: number): string {
 	return string.sub(text, startPos);
 }
 
+function ensureDirRecursive(dir: string): boolean {
+	if (!dir || dir === "") return false;
+	if (Content.exist(dir)) return Content.isdir(dir);
+	const parent = Path.getPath(dir);
+	if (parent && parent !== dir && !Content.exist(parent)) {
+		if (!ensureDirRecursive(parent)) {
+			return false;
+		}
+	}
+	return Content.mkdir(dir);
+}
+
 /**
  * 双层存储管理器
  *
@@ -585,14 +629,18 @@ function utf8TakeTail(text: string, maxChars: number): string {
  */
 export class DualLayerStorage {
 	private projectDir: string;
+	private agentRootDir: string;
 	private agentDir: string;
 	private memoryPath: string;
 	private historyPath: string;
 	private sessionPath: string;
 
-	constructor(projectDir: string) {
+	constructor(projectDir: string, scope = "") {
 		this.projectDir = projectDir;
-		this.agentDir = Path(this.projectDir, ".agent");
+		this.agentRootDir = Path(this.projectDir, ".agent");
+		this.agentDir = scope !== ""
+			? Path(this.agentRootDir, scope)
+			: this.agentRootDir;
 		this.memoryPath = Path(this.agentDir, "MEMORY.md");
 		this.historyPath = Path(this.agentDir, HISTORY_JSONL_FILE);
 		this.sessionPath = Path(this.agentDir, "SESSION.jsonl");
@@ -601,7 +649,7 @@ export class DualLayerStorage {
 
 	private ensureDir(dir: string): void {
 		if (!Content.exist(dir)) {
-			Content.mkdir(dir);
+			ensureDirRecursive(dir);
 		}
 	}
 
@@ -616,6 +664,7 @@ export class DualLayerStorage {
 	}
 
 	private ensureAgentFiles(): void {
+		this.ensureDir(this.agentRootDir);
 		this.ensureDir(this.agentDir);
 		this.ensureFile(this.memoryPath, "");
 		this.ensureFile(this.historyPath, "");
@@ -790,6 +839,166 @@ ${memory}`;
 	}
 }
 
+export class MemoryMergeQueue {
+	private queueDir: string;
+
+	constructor(projectDir: string) {
+		this.queueDir = Path(projectDir, ".agent", "memory-merge-queue");
+		this.ensureQueueDir();
+	}
+
+	private ensureQueueDir(): void {
+		if (!Content.exist(this.queueDir)) {
+			ensureDirRecursive(this.queueDir);
+		}
+	}
+
+	private encodeJson(value: unknown): string | undefined {
+		const [text] = safeJsonEncode(value as object);
+		return text;
+	}
+
+	private decodeJson(text: string): unknown {
+		const [value] = safeJsonDecode(text);
+		return value;
+	}
+
+	private sanitizeJobRecord(value: unknown, path: string): MemoryMergeJob | undefined {
+		if (!value || isArray(value) || !isRecord(value)) return undefined;
+		const row = value;
+		const jobId = typeof row.jobId === "string" ? sanitizeUTF8(row.jobId) : "";
+		const rootAgentId = typeof row.rootAgentId === "string" ? sanitizeUTF8(row.rootAgentId) : "";
+		const sourceAgentId = typeof row.sourceAgentId === "string" ? sanitizeUTF8(row.sourceAgentId) : "";
+		const sourceTitle = typeof row.sourceTitle === "string" ? sanitizeUTF8(row.sourceTitle) : "";
+		const createdAt = typeof row.createdAt === "string" ? sanitizeUTF8(row.createdAt) : "";
+		const spawnValue = row.spawn;
+		const memoryValue = row.memory;
+		if (jobId === "" || rootAgentId === "" || sourceAgentId === "" || sourceTitle === "" || createdAt === "") {
+			return undefined;
+		}
+		if (!spawnValue || isArray(spawnValue) || !isRecord(spawnValue)) return undefined;
+		if (!memoryValue || isArray(memoryValue) || !isRecord(memoryValue)) return undefined;
+		const prompt = typeof spawnValue.prompt === "string" ? sanitizeUTF8(spawnValue.prompt) : "";
+		const goal = typeof spawnValue.goal === "string" ? sanitizeUTF8(spawnValue.goal) : "";
+		const expectedOutput = typeof spawnValue.expectedOutput === "string"
+			? sanitizeUTF8(spawnValue.expectedOutput)
+			: undefined;
+		const filesHint = isArray(spawnValue.filesHint)
+			? spawnValue.filesHint
+				.filter(item => typeof item === "string")
+				.map(item => sanitizeUTF8(item))
+			: undefined;
+		const finalMemory = typeof memoryValue.finalMemory === "string"
+			? sanitizeUTF8(memoryValue.finalMemory)
+			: "";
+		if (prompt === "" || goal === "" || finalMemory.trim() === "") {
+			return undefined;
+		}
+		return {
+			jobId,
+			rootAgentId,
+			sourceAgentId,
+			sourceTitle,
+			createdAt,
+			spawn: {
+				prompt,
+				goal,
+				expectedOutput,
+				filesHint,
+			},
+			memory: {
+				finalMemory,
+			},
+			attempts: typeof row.attempts === "number" ? math.max(0, math.floor(row.attempts)) : undefined,
+			lastError: typeof row.lastError === "string" ? sanitizeUTF8(row.lastError) : undefined,
+			path,
+		};
+	}
+
+	private toPersistedJob(job: MemoryMergeJobData): MemoryMergeJobData {
+		return {
+			jobId: job.jobId,
+			rootAgentId: job.rootAgentId,
+			sourceAgentId: job.sourceAgentId,
+			sourceTitle: job.sourceTitle,
+			createdAt: job.createdAt,
+			spawn: {
+				prompt: job.spawn.prompt,
+				goal: job.spawn.goal,
+				expectedOutput: job.spawn.expectedOutput,
+				filesHint: job.spawn.filesHint,
+			},
+			memory: {
+				finalMemory: job.memory.finalMemory,
+			},
+			attempts: job.attempts,
+			lastError: job.lastError,
+		};
+	}
+
+	listJobs(): MemoryMergeJob[] {
+		this.ensureQueueDir();
+		if (!Content.exist(this.queueDir) || !Content.isdir(this.queueDir)) {
+			return [];
+		}
+		const jobs: MemoryMergeJob[] = [];
+		const files = Content.getFiles(this.queueDir) ?? [];
+		files.sort();
+		for (let i = 0; i < files.length; i++) {
+			const rawPath = files[i];
+			const ext = Path.getExt(rawPath);
+			if (ext !== "json") continue;
+			const path = Path(this.queueDir, rawPath);
+			const text = Content.load(path) as string;
+			if (!text || text.trim() === "") continue;
+			const job = this.sanitizeJobRecord(this.decodeJson(text), path);
+			if (job) {
+				jobs.push(job);
+			} else {
+				Log("Warn", `[MemoryMergeQueue] Ignored invalid job file: ${path}`);
+			}
+		}
+		jobs.sort((a, b) => a.jobId < b.jobId ? -1 : (a.jobId > b.jobId ? 1 : 0));
+		return jobs;
+	}
+
+	readOldestJob(): MemoryMergeJob | undefined {
+		const jobs = this.listJobs();
+		return jobs.length > 0 ? jobs[0] : undefined;
+	}
+
+	writeJob(job: MemoryMergeJobData): { success: true; path: string } | { success: false; message: string } {
+		this.ensureQueueDir();
+		const path = Path(this.queueDir, `${sanitizeUTF8(job.jobId)}.json`);
+		const text = this.encodeJson(this.toPersistedJob(job));
+		if (!text) {
+			return { success: false, message: "failed to encode memory merge job" };
+		}
+		if (!Content.save(path, `${text}\n`)) {
+			return { success: false, message: `failed to save memory merge job: ${path}` };
+		}
+		sendWebIDEFileUpdate(path, true, `${text}\n`);
+		return { success: true, path };
+	}
+
+	updateJobFailure(job: MemoryMergeJob, error: string): boolean {
+		return this.writeJob({
+			...job,
+			attempts: math.max(0, math.floor(job.attempts ?? 0)) + 1,
+			lastError: sanitizeUTF8(error),
+		}).success;
+	}
+
+	deleteJob(path: string): boolean {
+		if (!path || !Content.exist(path)) return true;
+		const ok = Content.remove(path);
+		if (ok) {
+			sendWebIDEFileUpdate(path, false, "");
+		}
+		return ok;
+	}
+}
+
 /**
  * Memory 压缩器
  *
@@ -800,6 +1009,7 @@ ${memory}`;
  */
 export class MemoryCompressor {
 	private storage: DualLayerStorage;
+	private mergeQueue: MemoryMergeQueue;
 	private config: Omit<MemoryConfig, "promptPack"> & { promptPack: AgentPromptPack };
 	private consecutiveFailures: number = 0;
 
@@ -820,7 +1030,13 @@ export class MemoryCompressor {
 				...(overridePack ?? {}),
 			}),
 		};
-		this.storage = new DualLayerStorage(this.config.projectDir);
+		this.config.compressionThreshold = math.min(1, math.max(0.05, this.config.compressionThreshold));
+		this.config.compressionTargetThreshold = math.min(
+			this.config.compressionThreshold,
+			math.max(0.05, this.config.compressionTargetThreshold)
+		);
+		this.storage = new DualLayerStorage(this.config.projectDir, this.config.scope ?? "");
+		this.mergeQueue = new MemoryMergeQueue(this.config.projectDir);
 	}
 
 	getPromptPack(): AgentPromptPack {
@@ -851,13 +1067,13 @@ export class MemoryCompressor {
 	 */
 	async compress(
 		messages: AgentConversationMessage[],
-		systemPrompt: string,
-		toolDefinitions: string,
 		llmOptions: Record<string, unknown>,
 		maxLLMTry?: number,
 		decisionMode: MemoryCompressionDecisionMode = "tool_calling",
 		debugContext?: MemoryCompressionDebugContext,
-		boundaryMode: MemoryCompressionBoundaryMode = "default"
+		boundaryMode: MemoryCompressionBoundaryMode = "default",
+		systemPrompt = "",
+		toolDefinitions = ""
 	): Promise<CompressionResult | null> {
 		const toCompress = messages;
 		if (toCompress.length === 0) return null;
@@ -866,7 +1082,9 @@ export class MemoryCompressor {
 		const boundary = this.findCompressionBoundary(
 			toCompress,
 			currentMemory,
-			boundaryMode
+			boundaryMode,
+			systemPrompt,
+			toolDefinitions
 		);
 		const chunk = toCompress.slice(0, boundary.chunkEnd);
 
@@ -918,11 +1136,13 @@ export class MemoryCompressor {
 	private findCompressionBoundary(
 		messages: AgentConversationMessage[],
 		currentMemory: string,
-		boundaryMode: MemoryCompressionBoundaryMode
+		boundaryMode: MemoryCompressionBoundaryMode,
+		systemPrompt: string,
+		toolDefinitions: string
 	): CompressionBoundarySelection {
 		const targetTokens = boundaryMode === "budget_max"
 			? math.max(1, this.getCompressionHistoryTokenBudget(currentMemory))
-			: math.max(1, this.getRequiredCompressionTokens(messages));
+			: math.max(1, this.getRequiredCompressionTokens(messages, systemPrompt, toolDefinitions));
 		let accumulatedTokens = 0;
 		let lastSafeBoundary = 0;
 		let lastSafeBoundaryWithinBudget = 0;
@@ -1032,9 +1252,17 @@ export class MemoryCompressor {
 		return TokenEstimator.estimate(prefix + lines.join("\n"));
 	}
 
-	private getRequiredCompressionTokens(messages: AgentConversationMessage[]): number {
-		const currentTokens = TokenEstimator.estimate(this.formatMessagesForCompression(messages));
-		const threshold = this.getContextWindow() * this.config.compressionThreshold;
+	private getRequiredCompressionTokens(
+		messages: AgentConversationMessage[],
+		systemPrompt: string,
+		toolDefinitions: string
+	): number {
+		const currentTokens = TokenEstimator.estimatePromptMessages(
+			messages,
+			systemPrompt,
+			toolDefinitions
+		);
+		const threshold = this.getContextWindow() * this.config.compressionTargetThreshold;
 		const overflow = math.max(0, currentTokens - threshold);
 		if (overflow <= 0) {
 			return math.max(1, this.estimateCompressionMessageTokens(messages[0], 0));
@@ -1407,6 +1635,60 @@ ${this.config.promptPack.memoryCompressionXmlPrompt}`;
 		};
 	}
 
+	private formatMemoryMergeJobForCompression(job: MemoryMergeJobData): string {
+		const lines: string[] = [
+			"### Sub-Agent Memory Handoff",
+			`job_id=${job.jobId}`,
+			`root_agent_id=${job.rootAgentId}`,
+			`source_agent_id=${job.sourceAgentId}`,
+			`source_title=${job.sourceTitle}`,
+			`created_at=${job.createdAt}`,
+			"",
+			"### Spawn Task",
+			`prompt=${job.spawn.prompt}`,
+			`goal=${job.spawn.goal}`,
+		];
+		if (job.spawn.expectedOutput && job.spawn.expectedOutput !== "") {
+			lines.push(`expected_output=${job.spawn.expectedOutput}`);
+		}
+		if (job.spawn.filesHint && job.spawn.filesHint.length > 0) {
+			lines.push("files_hint=" + job.spawn.filesHint.join(", "));
+		}
+		lines.push("", "### Final Sub-Agent Memory", job.memory.finalMemory);
+		return lines.join("\n");
+	}
+
+	async mergeSubAgentMemory(
+		job: MemoryMergeJobData,
+		llmOptions: Record<string, unknown>,
+		maxLLMTry = 3,
+		decisionMode: MemoryCompressionDecisionMode = "tool_calling",
+		debugContext?: MemoryCompressionDebugContext
+	): Promise<CompressionResult> {
+		const currentMemory = this.storage.readMemory();
+		const historyText = this.formatMemoryMergeJobForCompression(job);
+		const result = await this.callLLMForCompression(
+			currentMemory,
+			historyText,
+			llmOptions,
+			maxLLMTry,
+			decisionMode,
+			debugContext
+		);
+		if (!result.success) {
+			return result;
+		}
+		this.storage.writeMemory(result.memoryUpdate);
+		if (result.ts) {
+			this.storage.appendHistoryRecord({
+				ts: result.ts,
+				summary: result.summary,
+			});
+		}
+		this.consecutiveFailures = 0;
+		return result;
+	}
+
 	/**
 	 * 处理压缩失败
 	 */
@@ -1456,7 +1738,70 @@ ${this.config.promptPack.memoryCompressionXmlPrompt}`;
 		return this.storage;
 	}
 
+	getMergeQueue(): MemoryMergeQueue {
+		return this.mergeQueue;
+	}
+
 	getMaxCompressionRounds(): number {
 		return math.max(1, math.floor(this.config.maxCompressionRounds));
 	}
+}
+
+export async function compactSessionMemoryScope(options: {
+	projectDir: string;
+	scope?: string;
+	llmConfig?: LLMConfig;
+	llmOptions?: Record<string, unknown>;
+	llmMaxTry?: number;
+	promptPack?: Partial<AgentPromptPack> | AgentPromptPack;
+	decisionMode?: MemoryCompressionDecisionMode;
+}): Promise<{ success: true; remainingMessages: number } | { success: false; message: string }> {
+	const llmConfigRes = options.llmConfig
+		? { success: true as const, config: options.llmConfig }
+		: getActiveLLMConfig();
+	if (!llmConfigRes.success) {
+		return { success: false, message: llmConfigRes.message };
+	}
+	const compressor = new MemoryCompressor({
+		compressionThreshold: 0.8,
+		compressionTargetThreshold: 0.5,
+		maxCompressionRounds: 3,
+		projectDir: options.projectDir,
+		llmConfig: llmConfigRes.config,
+		promptPack: options.promptPack,
+		scope: options.scope,
+	});
+	const storage = compressor.getStorage();
+	let messages = storage.readSessionState().messages;
+	const llmOptions = {
+		temperature: 0.1,
+		max_tokens: 8192,
+		...(options.llmOptions ?? {}),
+	};
+	while (messages.length > 0) {
+		const result = await compressor.compress(
+			messages,
+			llmOptions,
+			math.max(1, math.floor(options.llmMaxTry ?? 5)),
+			options.decisionMode ?? "tool_calling",
+			undefined,
+			"budget_max"
+		);
+		if (!(result && result.success && result.compressedCount > 0)) {
+			return {
+				success: false,
+				message: result?.error ?? "memory compaction produced no progress",
+			};
+		}
+		const remainingMessages = messages.slice(result.compressedCount);
+		if (result.carryMessage) {
+			remainingMessages.unshift({
+				...result.carryMessage,
+				timestamp: result.carryMessage.timestamp ?? os.date("!%Y-%m-%dT%H:%M:%SZ"),
+			});
+		}
+		messages = remainingMessages;
+		storage.writeSessionState(messages);
+	}
+	return { success: true, remainingMessages: messages.length };
 }

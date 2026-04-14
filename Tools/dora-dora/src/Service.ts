@@ -893,6 +893,10 @@ export interface AgentSession {
 	id: number;
 	projectRoot: string;
 	title: string;
+	kind: "main" | "sub";
+	rootSessionId: number;
+	parentSessionId?: number;
+	memoryScope: string;
 	status: "IDLE" | "RUNNING" | "DONE" | "FAILED" | "STOPPED";
 	currentTaskId?: number;
 	currentTaskStatus?: "IDLE" | "RUNNING" | "DONE" | "FAILED" | "STOPPED";
@@ -947,19 +951,45 @@ export interface AgentCheckpointDiffFile {
 	afterContent: string;
 }
 
+export interface AgentSessionSpawnInfo {
+	prompt: string;
+	goal: string;
+	expectedOutput?: string;
+	filesHint?: string[];
+	createdAt?: string;
+}
+
+export interface AgentPendingMergeJob {
+	jobId: string;
+	sourceAgentId: string;
+	sourceTitle: string;
+	createdAt: string;
+	attempts?: number;
+	lastError?: string;
+}
+
 export interface AgentSessionPatch {
 	name: "AgentSessionPatch";
 	sessionId: number;
 	session?: AgentSession;
+	sessionDeleted?: boolean;
 	message?: AgentSessionMessage;
 	step?: AgentSessionStep;
 	checkpoints?: AgentCheckpointItem[];
 	removedStepIds?: number[];
+	relatedSessions?: AgentSession[];
+	pendingMergeCount?: number;
+	pendingMergeJobs?: AgentPendingMergeJob[];
+	spawnInfo?: AgentSessionSpawnInfo;
 }
 
 export type AgentSessionDetailResponse = {
 	success: true;
 	session: AgentSession;
+	relatedSessions: AgentSession[];
+	pendingMergeCount: number;
+	pendingMergeJobs: AgentPendingMergeJob[];
+	spawnInfo?: AgentSessionSpawnInfo;
 	messages: AgentSessionMessage[];
 	steps: AgentSessionStep[];
 } | {
@@ -978,6 +1008,10 @@ export type AgentRunningSessionsResponse = {
 export type AgentTaskStatusResponse = {
 	success: true;
 	session: AgentSession;
+	relatedSessions?: AgentSession[];
+	pendingMergeCount?: number;
+	pendingMergeJobs?: AgentPendingMergeJob[];
+	spawnInfo?: AgentSessionSpawnInfo;
 	messages: AgentSessionMessage[];
 	steps: AgentSessionStep[];
 	checkpoints: AgentCheckpointItem[];
@@ -998,6 +1032,16 @@ export const agentSessionCreate = (req: { projectRoot: string; title?: string; }
 		success: false;
 		message: string;
 	}>("/agent/session/create", req);
+};
+
+export const agentSessionCreateSub = (req: { parentSessionId: number; title?: string; }) => {
+	return post<{
+		success: true;
+		session: AgentSession;
+	} | {
+		success: false;
+		message: string;
+	}>("/agent/session/create-sub", req);
 };
 
 export const agentSessionGet = (req: { sessionId: number; }) => {

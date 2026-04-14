@@ -1,6 +1,7 @@
 import React from 'react';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
+import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import { MacScrollbar } from 'mac-scrollbar';
 import { useTranslation } from 'react-i18next';
@@ -13,6 +14,7 @@ interface AgentComposerProps {
 	prompt: string;
 	loading: boolean;
 	running: boolean;
+	tabButtons?: React.ReactNode;
 	onPromptChange: (value: string) => void;
 	onSend: () => void;
 	onStop: () => void;
@@ -20,7 +22,7 @@ interface AgentComposerProps {
 
 export default function AgentComposer(props: AgentComposerProps) {
 	const { t } = useTranslation();
-	const { prompt, loading, running, onPromptChange, onSend, onStop } = props;
+	const { prompt, loading, running, tabButtons, onPromptChange, onSend, onStop } = props;
 	const disabledInput = loading || running;
 	const actionDisabled = running ? false : loading || prompt.trim() === "";
 	const showActionButton = running || prompt.trim() !== "";
@@ -50,7 +52,26 @@ export default function AgentComposer(props: AgentComposerProps) {
 	}, [prompt]);
 
 	return (
-		<Box sx={{ px: 2, pt: 0, pb: 2, backgroundColor: Color.Background, position: "relative", flexShrink: 0 }}>
+		<Box sx={{ px: 2, pt: 0, pb: 2, backgroundColor: Color.Background, position: "relative", flexShrink: 0, overflow: "visible" }}>
+			{tabButtons ? (
+				<Stack
+					direction="row"
+					spacing={0.75}
+					useFlexGap
+					sx={{
+						position: "absolute",
+						top: -36,
+						right: 24,
+						zIndex: 3,
+						maxWidth: "calc(100% - 32px)",
+						flexWrap: "wrap",
+						justifyContent: "flex-end",
+						pointerEvents: "auto",
+					}}
+				>
+					{tabButtons}
+				</Stack>
+			) : null}
 			<Box sx={{ border: `0.5px solid ${Color.Line}`, borderRadius: 4, backgroundColor: Color.BackgroundDark, position: "relative", minHeight: 90 }}>
 				<Box sx={{ position: "absolute", inset: 0 }}>
 					<MacScrollbar ref={scrollRef} skin="dark" style={{ width: "100%", height: "100%" }}>

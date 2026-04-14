@@ -8,8 +8,8 @@ always: true
 
 ## Structure
 
-- `.agent/MEMORY.md` — Long-term facts (preferences, project context, relationships). Always loaded into your context.
-- `.agent/HISTORY.jsonl` — Append-only event log. NOT loaded into context. Search it with grep_file tool. Each entry contains a timestamp YYYY-MM-DD HH:MM.
+- `.agent/main/MEMORY.md` — Long-term facts (preferences, project context, relationships). Always loaded into your context.
+- `.agent/main/HISTORY.jsonl` — Append-only event log. NOT loaded into context. Search it with grep_file tool. Each entry contains a timestamp YYYY-MM-DD HH:MM.
 
 ## When to Update MEMORY.md
 

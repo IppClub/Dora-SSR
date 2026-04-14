@@ -19,9 +19,12 @@ export default function AgentMessageList(props: AgentMessageListProps) {
 				<Box key={message.id} sx={{
 					display: "flex",
 					justifyContent: message.role === "user" ? "flex-end" : "flex-start",
+					minWidth: 0,
 				}}>
 					<Box sx={{
 						maxWidth: message.role === "user" ? "78%" : "100%",
+						width: message.role === "user" ? "auto" : "100%",
+						minWidth: 0,
 						border: message.role === "user" ? "none" : undefined,
 						borderRadius: message.role === "user" ? 3 : 0,
 						px: message.role === "user" ? 2 : 0,
@@ -33,7 +36,9 @@ export default function AgentMessageList(props: AgentMessageListProps) {
 						<Box
 							sx={{
 								p: 0,
-								width: 'auto',
+								width: '100%',
+								maxWidth: '100%',
+								minWidth: 0,
 								minHeight: 0,
 								backgroundColor: "transparent",
 								color: Color.TextPrimary,

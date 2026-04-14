@@ -198,12 +198,13 @@ export default function AgentStepList(props: AgentStepListProps) {
 				const historyEntryPreview = step.tool === "compress_memory" && typeof step.result?.historyEntryPreview === "string"
 					? step.result.historyEntryPreview
 					: "";
-				const isCompressionStep = step.tool === "compress_memory";
+				const isSystemStep = step.tool === "compress_memory" || step.tool === "merge_memory" || step.tool === "sub_agent_handoff";
 				return (
 				<Box key={step.id} sx={{
-					borderLeft: `2px solid ${isCompressionStep ? "rgba(255,196,110,0.32)" : Color.Line}`,
+					borderLeft: `2px solid ${isSystemStep ? "rgba(255,196,110,0.32)" : Color.Line}`,
 					pl: 1.5,
 					py: 0.25,
+					minWidth: 0,
 				}}>
 					<Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
 						<Typography variant="caption" sx={{ color: Color.TextSecondary }}>
@@ -214,8 +215,8 @@ export default function AgentStepList(props: AgentStepListProps) {
 							label={t(`agent.toolNames.${step.tool}`, { defaultValue: step.tool })}
 							variant="outlined"
 							sx={{
-								borderColor: isCompressionStep ? "rgba(255,196,110,0.32)" : Color.Line,
-								color: isCompressionStep ? "rgb(255,214,153)" : Color.TextPrimary,
+								borderColor: isSystemStep ? "rgba(255,196,110,0.32)" : Color.Line,
+								color: isSystemStep ? "rgb(255,214,153)" : Color.TextPrimary,
 							}}
 						/>
 						{step.status !== "DONE" ? (
@@ -227,7 +228,9 @@ export default function AgentStepList(props: AgentStepListProps) {
 							sx={{
 								mt: 1,
 								padding: 0,
-								width: 'auto',
+								width: '100%',
+								maxWidth: '100%',
+								minWidth: 0,
 								minHeight: 0,
 								backgroundColor: "transparent",
 								color: Color.TextPrimary,

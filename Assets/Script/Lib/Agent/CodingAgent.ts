@@ -468,6 +468,19 @@ export interface CodingAgentRunOptions {
 	promptPack?: Partial<AgentPromptPack>;
 	stopToken?: StopToken;
 	sessionId?: number;
+	memoryScope?: string;
+	role?: "main" | "sub";
+	spawnSubAgent?: (request: {
+		parentSessionId: number;
+		projectRoot?: string;
+		title: string;
+		prompt: string;
+		expectedOutput?: string;
+		filesHint?: string[];
+	}) => Promise<
+		| { success: true; sessionId: number; taskId: number; title: string }
+		| { success: false; message: string }
+	>;
 	onEvent?: (event: CodingAgentEvent) => void;
 }
 
@@ -475,6 +488,7 @@ export const AGENT_USER_PROMPT_MAX_CHARS = 12000;
 
 type AgentDecisionMode = "tool_calling" | "xml";
 type AgentPromptCommand = "compact" | "reset";
+type AgentRole = "main" | "sub";
 
 export type AgentToolName =
 	| "read_file"
@@ -484,6 +498,7 @@ export type AgentToolName =
 	| "search_dora_api"
 	| "glob_files"
 	| "build"
+	| "spawn_sub_agent"
 	| "finish";
 
 export type AgentStepToolName = AgentToolName | "compress_memory";
@@ -555,6 +570,27 @@ export type CodingAgentEvent =
 		result: Record<string, unknown>;
 	}
 	| {
+		type: "memory_merge_started";
+		sessionId?: number;
+		taskId: number;
+		step: number;
+		jobId: string;
+		sourceAgentId: string;
+		sourceTitle: string;
+	}
+	| {
+		type: "memory_merge_finished";
+		sessionId?: number;
+		taskId: number;
+		step: number;
+		jobId: string;
+		sourceAgentId: string;
+		sourceTitle: string;
+		success: boolean;
+		message: string;
+		attempts?: number;
+	}
+	| {
 		type: "assistant_message_updated";
 		sessionId?: number;
 		taskId: number;
@@ -596,6 +632,7 @@ export interface AgentActionRecord {
 interface AgentShared {
 	sessionId?: number;
 	taskId: number;
+	role: AgentRole;
 	maxSteps: number;
 	step: number;
 	done: boolean;
@@ -623,6 +660,7 @@ interface AgentShared {
 		/** Skills 加载器实例 */
 		loader: SkillsLoader;
 	};
+	spawnSubAgent?: CodingAgentRunOptions["spawnSubAgent"];
 }
 
 function emitAgentEvent(shared: AgentShared, event: CodingAgentEvent) {
@@ -1028,16 +1066,33 @@ function getDecisionToolDefinitions(shared?: AgentShared): string {
 		shared?.promptPack.toolDefinitionsDetailed ?? "",
 		{ SEARCH_DORA_API_LIMIT_MAX: tostring(SEARCH_DORA_API_LIMIT_MAX) }
 	);
+	const spawnTool = `
+
+9. spawn_sub_agent: Create and start a sub agent session for implementation work
+	- Parameters: title, prompt, expectedOutput(optional), filesHint(optional)
+	- Use this whenever the task requires direct coding, file editing, file deletion, build verification, documentation writing, or any other concrete execution work by a delegated sub agent.
+	- The spawned sub agent can use read_file, edit_file, delete_file, grep_files, search_dora_api, glob_files, build, and finish.
+	- title should be short and specific.
+	- prompt should be self-contained and actionable, and should clearly describe the concrete work to execute, constraints, desired output, and any relevant files.
+	- filesHint is an optional list of likely files or directories.`;
+	const availability = shared
+		? `\n\nTool availability for this runtime:\n- role: ${shared.role}\n- allowed tools: ${getAllowedToolsForRole(shared.role).join(", ")}`
+		: "";
+	const withRole = `${base}${shared?.role === "main" ? spawnTool : ""}${availability}`;
 	if (shared?.decisionMode !== "xml") {
-		return base;
+		return withRole;
 	}
-	return `${base}
+	return `${withRole}
 
 XML mode object fields:
 - Use a single root tag: <tool_call>.
 - For read_file, edit_file, delete_file, grep_files, search_dora_api, glob_files, and build, include <tool>, <reason>, and <params>.
 - For finish, do not include <reason>. Use only <tool> and <params><message>...</message></params>.
 - Inside <params>, use one child tag per parameter and preserve each tag content as raw text.`;
+}
+
+function isToolAllowedForRole(role: AgentRole, tool: AgentToolName): boolean {
+	return getAllowedToolsForRole(role).indexOf(tool) >= 0;
 }
 
 async function maybeCompressHistory(shared: AgentShared): Promise<void> {
@@ -1081,8 +1136,6 @@ async function maybeCompressHistory(shared: AgentShared): Promise<void> {
 		});
 		const result = await memory.compressor.compress(
 			shared.messages,
-			systemPrompt,
-			toolDefinitions,
 			shared.llmOptions,
 			shared.llmMaxTry,
 			shared.decisionMode,
@@ -1093,7 +1146,10 @@ async function maybeCompressHistory(shared: AgentShared): Promise<void> {
 				onOutput: (phase, text, meta) => {
 					saveStepLLMDebugOutput(shared, stepId, phase, text, meta);
 				},
-			}
+			},
+			"default",
+			systemPrompt,
+			toolDefinitions
 		);
 		if (!(result && result.success && result.compressedCount > 0)) {
 			emitAgentEvent(shared, {
@@ -1150,10 +1206,6 @@ async function compactAllHistory(shared: AgentShared): Promise<CodingAgentRunRes
 			Tools.setTaskStatus(shared.taskId, "STOPPED");
 			return emitAgentTaskFinishEvent(shared, false, getCancelledReason(shared));
 		}
-		const systemPrompt = buildAgentSystemPrompt(shared, shared.decisionMode === "xml");
-		const toolDefinitions = shared.decisionMode === "tool_calling"
-			? getDecisionToolDefinitions(shared)
-			: "";
 		rounds += 1;
 		shared.step += 1;
 		const stepId = shared.step;
@@ -1174,8 +1226,6 @@ async function compactAllHistory(shared: AgentShared): Promise<CodingAgentRunRes
 		});
 		const result = await memory.compressor.compress(
 			shared.messages,
-			systemPrompt,
-			toolDefinitions,
 			shared.llmOptions,
 			shared.llmMaxTry,
 			shared.decisionMode,
@@ -1264,6 +1314,7 @@ function isKnownToolName(name: string): name is AgentToolName {
 		|| name === "search_dora_api"
 		|| name === "glob_files"
 		|| name === "build"
+		|| name === "spawn_sub_agent"
 		|| name === "finish";
 }
 
@@ -1282,6 +1333,85 @@ function getFinishMessage(params: Record<string, unknown>, fallback = ""): strin
 
 function persistHistoryState(shared: AgentShared): void {
 	shared.memory.compressor.getStorage().writeSessionState(shared.messages);
+}
+
+async function maybeProcessPendingMemoryMerge(shared: AgentShared): Promise<void> {
+	if (shared.role !== "main") {
+		return;
+	}
+	const queue = shared.memory.compressor.getMergeQueue();
+	while (true) {
+		const job = queue.readOldestJob();
+		if (!job) {
+			return;
+		}
+		shared.step += 1;
+		const stepId = shared.step;
+		emitAgentEvent(shared, {
+			type: "memory_merge_started",
+			sessionId: shared.sessionId,
+			taskId: shared.taskId,
+			step: stepId,
+			jobId: job.jobId,
+			sourceAgentId: job.sourceAgentId,
+			sourceTitle: job.sourceTitle,
+		});
+		Log("Info", `[CodingAgent] processing memory merge job=${job.jobId} source=${job.sourceAgentId}`);
+		const result = await shared.memory.compressor.mergeSubAgentMemory(
+			job,
+			shared.llmOptions,
+			shared.llmMaxTry,
+			shared.decisionMode,
+			{
+				onInput: (phase, messages, options) => {
+					saveStepLLMDebugInput(shared, stepId, `${phase}_merge`, messages, options);
+				},
+				onOutput: (phase, text, meta) => {
+					saveStepLLMDebugOutput(shared, stepId, `${phase}_merge`, text, meta);
+				},
+			}
+		);
+		if (result.success) {
+			queue.deleteJob(job.path);
+			emitAgentEvent(shared, {
+				type: "memory_merge_finished",
+				sessionId: shared.sessionId,
+				taskId: shared.taskId,
+				step: stepId,
+				jobId: job.jobId,
+				sourceAgentId: job.sourceAgentId,
+				sourceTitle: job.sourceTitle,
+				success: true,
+				message: shared.useChineseResponse
+					? `已合并来自\`${job.sourceTitle}\`的子代理记忆。`
+					: `Merged sub-agent memory from \`${job.sourceTitle}\`.`,
+				attempts: job.attempts,
+			});
+			Log("Info", `[CodingAgent] memory merge job applied=${job.jobId}`);
+			continue;
+		}
+		queue.updateJobFailure(job, result.error ?? "memory merge failed");
+		const nextAttempts = (job.attempts ?? 0) + 1;
+		emitAgentEvent(shared, {
+			type: "memory_merge_finished",
+			sessionId: shared.sessionId,
+			taskId: shared.taskId,
+			step: stepId,
+			jobId: job.jobId,
+			sourceAgentId: job.sourceAgentId,
+			sourceTitle: job.sourceTitle,
+			success: false,
+			message: result.error ?? "memory merge failed",
+			attempts: nextAttempts,
+		});
+		Log("Warn", `[CodingAgent] memory merge job failed=${job.jobId} error=${result.error ?? "unknown"}`);
+		if (nextAttempts >= shared.llmMaxTry) {
+			throw new Error(shared.useChineseResponse
+				? `记忆合并任务多次失败，已中止当前会话。来源：${job.sourceTitle}，错误：${result.error ?? "unknown"}`
+				: `Memory merge job exceeded retry limit and aborted the current session. Source: ${job.sourceTitle}. Error: ${result.error ?? "unknown"}`);
+		}
+		continue;
+	}
 }
 
 function applyCompressedSessionState(
@@ -1529,6 +1659,24 @@ function validateDecision(
 		return { success: true, params };
 	}
 
+	if (tool === "spawn_sub_agent") {
+		const prompt = typeof params.prompt === "string" ? params.prompt.trim() : "";
+		const title = typeof params.title === "string" ? params.title.trim() : "";
+		if (prompt === "") return { success: false, message: "spawn_sub_agent requires prompt" };
+		if (title === "") return { success: false, message: "spawn_sub_agent requires title" };
+		params.prompt = prompt;
+		params.title = title;
+		if (typeof params.expectedOutput === "string") {
+			params.expectedOutput = params.expectedOutput.trim();
+		}
+		if (isArray(params.filesHint)) {
+			params.filesHint = params.filesHint
+				.filter(item => typeof item === "string")
+				.map(item => sanitizeUTF8(item));
+		}
+		return { success: true, params };
+	}
+
 	return { success: true, params };
 }
 
@@ -1555,8 +1703,15 @@ function createFunctionToolSchema(
 	};
 }
 
-function buildDecisionToolSchema() {
-	return [
+function getAllowedToolsForRole(role: AgentRole): AgentToolName[] {
+	return role === "main"
+		? ["read_file", "grep_files", "search_dora_api", "glob_files", "spawn_sub_agent", "finish"]
+		: ["read_file", "edit_file", "delete_file", "grep_files", "search_dora_api", "glob_files", "build", "finish"];
+}
+
+function buildDecisionToolSchema(shared: AgentShared) {
+	const allowed = getAllowedToolsForRole(shared.role);
+	const tools = [
 		createFunctionToolSchema(
 			"read_file",
 			"Read a specific line range from a file. Positive line numbers are 1-based. Negative line numbers count from the end, where -1 is the last line. startLine defaults to 1. If endLine is omitted, it defaults to 300 when startLine is positive, or -1 when startLine is negative.",
@@ -1632,12 +1787,45 @@ function buildDecisionToolSchema() {
 				path: { type: "string", description: "Optional workspace-relative file or directory to build." },
 			}
 		),
+		createFunctionToolSchema(
+			"spawn_sub_agent",
+			"Create and start a sub agent session to execute concrete work. Use this when the task moves from discussion/search into coding, file editing, file deletion, build verification, documentation writing, or other execution-heavy work. The sub agent has the full execution toolset including edit_file, delete_file, and build.",
+			{
+				title: { type: "string", description: "Short tab title for the sub agent." },
+				prompt: { type: "string", description: "Detailed, self-contained task prompt sent to the sub agent. Describe the concrete work to execute, constraints, expected output, and relevant files when known." },
+				expectedOutput: { type: "string", description: "Optional expected result summary." },
+				filesHint: { type: "array", items: { type: "string" }, description: "Optional likely files or directories involved." },
+			},
+			["title", "prompt"]
+		),
 	];
+	return tools.filter(tool => allowed.indexOf(tool.function.name as AgentToolName) >= 0);
 }
 
 function buildAgentSystemPrompt(shared: AgentShared, includeToolDefinitions = false): string {
+	const rolePrompt = shared.role === "main"
+		? `### Agent Role
+
+You are the main agent. Your job is to discuss plans with the user, inspect the codebase using search/discovery tools, and decide when to delegate implementation work by spawning sub agents.
+
+Rules:
+- Do not perform direct code editing, deletion, or build actions yourself.
+- Use spawn_sub_agent when the task requires concrete implementation or verification work.
+- Code changes, file deletion, build/compile verification, and documentation writing should be delegated to a sub agent.
+- Keep sub-agent titles short and specific.
+- The sub-agent prompt should be self-contained and executable, and should explain the exact task, constraints, expected output, and relevant files when known.`
+		: `### Agent Role
+
+You are a sub agent. Your job is to execute concrete implementation, editing, and build work delegated by the main agent.
+
+Rules:
+- Focus on completing the delegated task end-to-end.
+- Use the available implementation tools directly when needed, including edit_file, delete_file, and build.
+- Documentation writing tasks are also part of your execution scope when delegated by the main agent.
+- Summaries should stay concise and execution-oriented.`;
 	const sections: string[] = [
 		shared.promptPack.agentIdentityPrompt,
+		rolePrompt,
 		getReplyLanguageDirective(shared),
 	];
 	const memoryContext = shared.memory.compressor.getStorage().getMemoryContext();
@@ -1728,11 +1916,36 @@ function getUnconsolidatedMessages(shared: AgentShared): Message[] {
 	return sanitizeMessagesForLLMInput(shared.messages);
 }
 
+function getFinalDecisionTurnPrompt(shared: AgentShared): string {
+	return shared.useChineseResponse
+		? "当前已达到最大的处理轮次，请在本次处理中直接进行工作总结，不要再继续规划后续轮次。"
+		: "You have reached the maximum processing round. In this turn, provide a direct work summary instead of planning further rounds.";
+}
+
+function appendPromptToLatestDecisionMessage(messages: Message[], prompt: string): Message[] {
+	if (messages.length === 0 || prompt.trim() === "") return messages;
+	const next = messages.map(message => ({ ...message }));
+	for (let i = next.length - 1; i >= 0; i--) {
+		const message = next[i];
+		if (message.role !== "assistant" && message.role !== "user") continue;
+		const content = typeof message.content === "string" ? message.content.trim() : "";
+		message.content = content !== ""
+			? `${content}\n\n${prompt}`
+			: prompt;
+		return next;
+	}
+	next.push({ role: "user", content: prompt });
+	return next;
+}
+
 function buildDecisionMessages(shared: AgentShared, lastError?: string, attempt = 1, lastRaw?: string): Message[] {
-	const messages: Message[] = [
+	let messages: Message[] = [
 		{ role: "system", content: buildAgentSystemPrompt(shared, shared.decisionMode === "xml") },
 		...getUnconsolidatedMessages(shared),
 	];
+	if (shared.step + 1 >= shared.maxSteps) {
+		messages = appendPromptToLatestDecisionMessage(messages, getFinalDecisionTurnPrompt(shared));
+	}
 	if (lastError && lastError !== "") {
 		const retryHeader = shared.decisionMode === "xml"
 			? `Previous response was invalid (${lastError}). Return exactly one valid XML tool_call block only.`
@@ -1942,6 +2155,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 			return { shared };
 		}
 
+		await maybeProcessPendingMemoryMerge(shared);
 		await maybeCompressHistory(shared);
 
 		return { shared };
@@ -1957,7 +2171,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 			return { success: false, message: getCancelledReason(shared) };
 		}
 		Log("Info", `[CodingAgent] tool-calling decision start step=${shared.step + 1}${lastError ? ` retry_error=${lastError}` : ""}`);
-		const tools = buildDecisionToolSchema();
+		const tools = buildDecisionToolSchema(shared);
 		const messages = buildDecisionMessages(shared, lastError, attempt, lastRaw);
 		const stepId = shared.step + 1;
 		const llmOptions = {
@@ -2065,6 +2279,13 @@ class MainDecisionAgent extends Node<AgentShared> {
 			return {
 				success: false,
 				message: validation.message,
+				raw: argsText,
+			};
+		}
+		if (!isToolAllowedForRole(shared.role, decision.tool)) {
+			return {
+				success: false,
+				message: `${decision.tool} is not allowed for role ${shared.role}`,
 				raw: argsText,
 			};
 		}
@@ -2178,6 +2399,10 @@ class MainDecisionAgent extends Node<AgentShared> {
 			lastRaw = llmRes.text;
 			const decision = tryParseAndValidateDecision(llmRes.text);
 			if (decision.success) {
+				if (!isToolAllowedForRole(shared.role, decision.tool)) {
+					lastError = `${decision.tool} is not allowed for role ${shared.role}`;
+					return this.repairDecisionXml(shared, llmRes.text, lastError);
+				}
 				return decision;
 			}
 			lastError = decision.message;
@@ -2515,6 +2740,82 @@ class BuildAction extends Node<AgentShared> {
 	}
 }
 
+class SpawnSubAgentAction extends Node<AgentShared> {
+	async prep(shared: AgentShared): Promise<{
+		title: string;
+		prompt: string;
+		expectedOutput?: string;
+		filesHint?: string[];
+		sessionId?: number;
+		projectRoot: string;
+		spawnSubAgent?: CodingAgentRunOptions["spawnSubAgent"];
+	}> {
+		const last = shared.history[shared.history.length - 1];
+		if (!last) throw new Error("no history");
+		emitAgentStartEvent(shared, last);
+		const filesHint = isArray(last.params.filesHint)
+			? (last.params.filesHint as unknown[]).filter(item => typeof item === "string") as string[]
+			: undefined;
+		return {
+			title: typeof last.params.title === "string" ? last.params.title : "Sub",
+			prompt: typeof last.params.prompt === "string" ? last.params.prompt : "",
+			expectedOutput: typeof last.params.expectedOutput === "string" ? last.params.expectedOutput : undefined,
+			filesHint,
+			sessionId: shared.sessionId,
+			projectRoot: shared.workingDir,
+			spawnSubAgent: shared.spawnSubAgent,
+		};
+	}
+
+	async exec(input: {
+		title: string;
+		prompt: string;
+		expectedOutput?: string;
+		filesHint?: string[];
+		sessionId?: number;
+		projectRoot: string;
+		spawnSubAgent?: CodingAgentRunOptions["spawnSubAgent"];
+	}): Promise<Record<string, unknown>> {
+		if (!input.spawnSubAgent) {
+			return { success: false, message: "spawn_sub_agent is not available in this runtime" };
+		}
+		if (input.sessionId === undefined || input.sessionId <= 0) {
+			return { success: false, message: "spawn_sub_agent requires a parent session" };
+		}
+		Log("Info", `[CodingAgent] spawn_sub_agent exec title_len=${input.title.length} prompt_len=${input.prompt.length} expected_len=${typeof input.expectedOutput === "string" ? input.expectedOutput.length : 0} files_hint_count=${input.filesHint?.length ?? 0}`);
+		const result = await input.spawnSubAgent({
+			parentSessionId: input.sessionId,
+			projectRoot: input.projectRoot,
+			title: input.title,
+			prompt: input.prompt,
+			expectedOutput: input.expectedOutput,
+			filesHint: input.filesHint,
+		});
+		if (!result.success) {
+			return result as unknown as Record<string, unknown>;
+		}
+		return {
+			success: true,
+			sessionId: result.sessionId,
+			taskId: result.taskId,
+			title: result.title,
+		};
+	}
+
+	async post(shared: AgentShared, _prepRes: unknown, execRes: unknown): Promise<string | undefined> {
+		const last = shared.history[shared.history.length - 1];
+		if (last !== undefined) {
+			last.result = execRes as Record<string, unknown>;
+			appendToolResultMessage(shared, last);
+			emitAgentFinishEvent(shared, last);
+		}
+		persistHistoryState(shared);
+		await maybeCompressHistory(shared);
+		persistHistoryState(shared);
+		return "main";
+	}
+}
+
 class EditFileAction extends Node<AgentShared> {
 	async prep(shared: AgentShared): Promise<{ path: string; oldStr: string; newStr: string; taskId: number; workDir: string }> {
 		const last = shared.history[shared.history.length - 1];
@@ -2658,7 +2959,7 @@ class EndNode extends Node<AgentShared> {
 }
 
 class CodingAgentFlow extends Flow<AgentShared> {
-	constructor() {
+	constructor(role: AgentRole) {
 		const main = new MainDecisionAgent(1, 0);
 		const read = new ReadFileAction(1, 0);
 		const search = new SearchFilesAction(1, 0);
@@ -2666,22 +2967,29 @@ class CodingAgentFlow extends Flow<AgentShared> {
 		const list = new ListFilesAction(1, 0);
 		const del = new DeleteFileAction(1, 0);
 		const build = new BuildAction(1, 0);
+		const spawn = new SpawnSubAgentAction(1, 0);
 		const edit = new EditFileAction(1, 0);
 		const done = new EndNode(1, 0);
 
-		main.on("read_file", read);
 		main.on("grep_files", search);
 		main.on("search_dora_api", searchDora);
 		main.on("glob_files", list);
-		main.on("delete_file", del);
-		main.on("build", build);
-		main.on("edit_file", edit);
+		if (role === "main") {
+			main.on("read_file", read);
+			main.on("spawn_sub_agent", spawn);
+		} else {
+			main.on("read_file", read);
+			main.on("delete_file", del);
+			main.on("build", build);
+			main.on("edit_file", edit);
+		}
 		main.on("done", done);
 
-		read.on("main", main);
 		search.on("main", main);
 		searchDora.on("main", main);
 		list.on("main", main);
+		spawn.on("main", main);
+		read.on("main", main);
 		del.on("main", main);
 		build.on("main", main);
 		edit.on("main", main);
@@ -2728,11 +3036,13 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 	}
 	// 创建 Memory 压缩器
 	const compressor = new MemoryCompressor({
-		compressionThreshold: 0.5,
+		compressionThreshold: 0.8,
+		compressionTargetThreshold: 0.5,
 		maxCompressionRounds: 3,
 		projectDir: options.workDir,
 		llmConfig,
 		promptPack: options.promptPack,
+		scope: options.memoryScope,
 	});
 	const persistedSession = compressor.getStorage().readSessionState();
 	const promptPack = compressor.getPromptPack();
@@ -2740,6 +3050,7 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 	const shared: AgentShared = {
 		sessionId: options.sessionId,
 		taskId: taskRes.taskId,
+		role: options.role ?? "main",
 		maxSteps: math.max(1, math.floor(options.maxSteps ?? 50)),
 		llmMaxTry: math.max(1, math.floor(options.llmMaxTry ?? 5)),
 		step: 0,
@@ -2772,6 +3083,7 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 				projectDir: options.workDir,
 			}),
 		},
+		spawnSubAgent: options.spawnSubAgent,
 	};
 
 	try {
@@ -2800,7 +3112,7 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 			content: normalizedPrompt,
 		});
 		persistHistoryState(shared);
-		const flow = new CodingAgentFlow();
+		const flow = new CodingAgentFlow(shared.role);
 		await flow.run(shared);
 		if (shared.stopToken.stopped) {
 			Tools.setTaskStatus(shared.taskId, "STOPPED");
