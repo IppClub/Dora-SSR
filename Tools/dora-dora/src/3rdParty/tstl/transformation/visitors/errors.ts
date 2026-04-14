@@ -146,6 +146,10 @@ export const transformTryStatement: FunctionVisitor<ts.TryStatement> = (statemen
             returnedIdentifier,
             lua.SyntaxKind.AndOperator
         );
+    } else if (statement.finallyBlock) {
+        // try without catch, but with finally — need to capture error for re-throw
+        const errorIdentifier = lua.createIdentifier("____error");
+        result.push(lua.createVariableDeclarationStatement([tryResultIdentifier, errorIdentifier], tryCall));
     } else {
         // try without return or catch
         result.push(lua.createExpressionStatement(tryCall));
@@ -153,6 +157,23 @@ export const transformTryStatement: FunctionVisitor<ts.TryStatement> = (statemen
 
     if (statement.finallyBlock && statement.finallyBlock.statements.length > 0) {
         result.push(...context.transformStatements(statement.finallyBlock));
+    }
+
+    // Re-throw error if try had no catch but had a finally.
+    // On pcall failure the error is the second return value, which lands in
+    // ____hasReturned (when functionReturned) or ____error (otherwise).
+    if (!statement.catchClause && statement.finallyBlock) {
+        const notTryCondition = lua.createUnaryExpression(
+            lua.cloneIdentifier(tryResultIdentifier),
+            lua.SyntaxKind.NotOperator
+        );
+        const errorIdentifier = tryScope.functionReturned
+            ? lua.cloneIdentifier(returnedIdentifier)
+            : lua.createIdentifier("____error");
+        const rethrow = lua.createExpressionStatement(
+            lua.createCallExpression(lua.createIdentifier("error"), [errorIdentifier, lua.createNumericLiteral(0)])
+        );
+        result.push(lua.createIfStatement(notTryCondition, lua.createBlock([rethrow])));
     }
 
     if (returnCondition && returnedIdentifier) {

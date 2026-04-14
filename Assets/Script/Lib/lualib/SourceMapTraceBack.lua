@@ -29,7 +29,7 @@ local function __TS__SourceMapTraceBack(fileName, sourceMap)
 			end
 			local result = string.gsub(
 				trace,
-				"(%S+)%.lua:(%d+)",
+				"([^%s<]+)%.lua:(%d+)",
 				function(file, line) return replacer(nil, file .. ".lua", file .. ".ts", line) end
 			)
 			local function stringReplacer(____, file, line)
