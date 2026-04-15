@@ -583,6 +583,7 @@ export async function runSingleTsTranspile(file: string, content: string): Promi
 		if (!res || Array.isArray(res)) return;
 		const payload = res as any;
 		if (payload.name !== "TranspileTS") return;
+		if (tostring(payload.file) !== file) return;
 		if (payload.success) {
 			const luaFile = Path.replaceExt(file, "lua");
 			if (Content.save(luaFile, tostring(payload.luaCode))) {
@@ -1303,7 +1304,7 @@ export async function build(req: { workDir: string; path: string }): Promise<Bui
 	}
 	const listResult = listFiles({
 		workDir: req.workDir,
-		path: target,
+		path: targetRel,
 		globs: codeExtensions.map(e => `**/*${e}`),
 		maxEntries: 10000
 	});
@@ -1341,6 +1342,10 @@ export async function build(req: { workDir: string; path: string }): Promise<Bui
 			continue;
 		}
 		messages.push(await runSingleNonTsBuild(file));
+	}
+	if (messages.length === 0) {
+		Log("Info", `[build] dir=${target} messages=0 no buildable code files found`);
+		return { success: false, message: "No code files were found to build." };
 	}
 	Log("Info", `[build] dir=${target} messages=${messages.length}`);
 	return {

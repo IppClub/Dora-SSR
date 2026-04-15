@@ -1441,9 +1441,9 @@ HttpServer\postSchedule "/ts/build", (req): success: false ->
 				with Node!
 					\gslot "AppWS", (event) ->
 						if event.type == "Receive"
-							\removeFromParent!
 							if res := json.decode event.msg
-								if res.name == "TranspileTS"
+								if res.name == "TranspileTS" and res.file == path
+									\removeFromParent!
 									if res.success
 										luaFile = Path\replaceExt path, "lua"
 										Content\save luaFile, res.luaCode
@@ -1472,9 +1472,9 @@ HttpServer\postSchedule "/ts/build", (req): success: false ->
 				with Node!
 					\gslot "AppWS", (event) ->
 						if event.type == "Receive"
-							\removeFromParent!
 							if res := json.decode event.msg
-								if res.name == "TranspileTS"
+								if res.name == "TranspileTS" and res.file == file
+									\removeFromParent!
 									if res.success
 										luaFile = Path\replaceExt file, "lua"
 										Content\save luaFile, res.luaCode

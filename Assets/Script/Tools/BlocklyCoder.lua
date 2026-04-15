@@ -176,10 +176,10 @@ local function compileTS(file, content) -- 165
 				"AppWS", -- 173
 				function(event) -- 173
 					if event.type == "Receive" then -- 173
-						node:removeFromParent() -- 175
-						local res = json.decode(event.msg) -- 176
-						if res and not __TS__ArrayIsArray(res) and res.name == "TranspileTS" then -- 176
-							if res.success then -- 176
+						local res = json.decode(event.msg) -- 175
+						if res and not __TS__ArrayIsArray(res) and res.name == "TranspileTS" and tostring(res.file) == file then -- 175
+							node:removeFromParent() -- 177
+							if res.success then -- 177
 								resolve(nil, {success = true, result = res.luaCode}) -- 179
 							else -- 179
 								resolve(nil, {success = false, result = res.message}) -- 181

@@ -3694,10 +3694,10 @@ HttpServer:postSchedule("/ts/build", function(req) -- 1425
 							local _with_0 = Node() -- 1441
 							_with_0:gslot("AppWS", function(event) -- 1442
 								if event.type == "Receive" then -- 1443
-									_with_0:removeFromParent() -- 1444
-									local res = json.decode(event.msg) -- 1445
-									if res then -- 1445
-										if res.name == "TranspileTS" then -- 1446
+									local res = json.decode(event.msg) -- 1444
+									if res then -- 1444
+										if res.name == "TranspileTS" and res.file == path then -- 1445
+											_with_0:removeFromParent() -- 1446
 											if res.success then -- 1447
 												local luaFile = Path:replaceExt(path, "lua") -- 1448
 												Content:save(luaFile, res.luaCode) -- 1449
@@ -3713,8 +3713,8 @@ HttpServer:postSchedule("/ts/build", function(req) -- 1425
 												} -- 1452
 											end -- 1447
 											done = true -- 1453
-										end -- 1446
-									end -- 1445
+										end -- 1445
+									end -- 1444
 								end -- 1443
 							end) -- 1442
 						end -- 1441
@@ -3768,10 +3768,10 @@ HttpServer:postSchedule("/ts/build", function(req) -- 1425
 							local _with_0 = Node() -- 1472
 							_with_0:gslot("AppWS", function(event) -- 1473
 								if event.type == "Receive" then -- 1474
-									_with_0:removeFromParent() -- 1475
-									local res = json.decode(event.msg) -- 1476
-									if res then -- 1476
-										if res.name == "TranspileTS" then -- 1477
+									local res = json.decode(event.msg) -- 1475
+									if res then -- 1475
+										if res.name == "TranspileTS" and res.file == file then -- 1476
+											_with_0:removeFromParent() -- 1477
 											if res.success then -- 1478
 												local luaFile = Path:replaceExt(file, "lua") -- 1479
 												Content:save(luaFile, res.luaCode) -- 1480
@@ -3787,8 +3787,8 @@ HttpServer:postSchedule("/ts/build", function(req) -- 1425
 												} -- 1483
 											end -- 1478
 											done = true -- 1484
-										end -- 1477
-									end -- 1476
+										end -- 1476
+									end -- 1475
 								end -- 1474
 							end) -- 1473
 						end -- 1472

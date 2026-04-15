@@ -172,9 +172,9 @@ const compileTS = (file: string, content: string) => {
 		const node = DoraNode();
 		node.gslot(GSlot.AppWS, (event) => {
 			if (event.type === "Receive") {
-				node.removeFromParent();
 				const [res] = json.decode(event.msg);
-				if (res && !Array.isArray(res) && res.name == "TranspileTS") {
+				if (res && !Array.isArray(res) && res.name == "TranspileTS" && tostring(res.file) == file) {
+					node.removeFromParent();
 					if (res.success) {
 						resolve({ success: true, result: res.luaCode });
 					} else {

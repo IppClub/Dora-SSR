@@ -110,6 +110,7 @@ const AGENT_SESSION_SCHEMA_VERSION = 2;
 const SPAWN_INFO_FILE = "SPAWN.json";
 const FINALIZE_INFO_FILE = "FINALIZE.json";
 const PENDING_HANDOFF_DIR = "pending-handoffs";
+const MAX_CONCURRENT_SUB_AGENTS = 4;
 
 interface AgentSessionFinalizeInfo {
 	sourceTaskId: number;
@@ -298,6 +299,12 @@ function getSessionItem(sessionId: number): AgentSessionItem | undefined {
 	return row ? rowToSession(row as any[]) : undefined;
 }
 
+function getTaskPrompt(taskId: number): string | undefined {
+	const row = queryOne(`SELECT prompt FROM ${TABLE_TASK} WHERE id = ?`, [taskId]);
+	if (!row || typeof row[0] !== "string") return undefined;
+	return toStr(row[0]);
+}
+
 function getLatestMainSessionByProjectRoot(projectRoot: string): AgentSessionItem | undefined {
 	if (!isValidProjectRoot(projectRoot)) return undefined;
 	const row = queryOne(
@@ -309,6 +316,24 @@ function getLatestMainSessionByProjectRoot(projectRoot: string): AgentSessionIte
 		[projectRoot],
 	);
 	return row ? rowToSession(row as any[]) : undefined;
+}
+
+function countRunningSubSessions(rootSessionId: number): number {
+	const rows = queryRows(
+		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at
+		FROM ${TABLE_SESSION}
+		WHERE root_session_id = ? AND kind = 'sub'
+		ORDER BY id ASC`,
+		[rootSessionId],
+	) ?? [];
+	let count = 0;
+	for (let i = 0; i < rows.length; i++) {
+		const session = normalizeSessionRuntimeState(rowToSession(rows[i] as any[]));
+		if (session.currentTaskStatus === "RUNNING") {
+			count++;
+		}
+	}
+	return count;
 }
 
 function deleteSessionRecords(sessionId: number) {
@@ -866,17 +891,29 @@ function flushPendingSubAgentHandoffs(rootSession: AgentSessionItem): void {
 	}
 	const items = listPendingHandoffs(rootSession.projectRoot, rootSession.memoryScope);
 	if (items.length === 0) return;
-	const taskRes = Tools.createTask(`[sub_agent_handoff] ${tostring(items.length)} item(s)`);
-	if (!taskRes.success) {
-		Log("Warn", `[AgentSession] failed to create sub-agent handoff task for root=${rootSession.id}: ${taskRes.message}`);
-		return;
+	let handoffTaskId = 0;
+	const currentTaskPrompt = rootSession.currentTaskId ? getTaskPrompt(rootSession.currentTaskId) : undefined;
+	if (
+		rootSession.currentTaskId
+		&& rootSession.currentTaskId > 0
+		&& rootSession.currentTaskStatus !== "RUNNING"
+		&& typeof currentTaskPrompt === "string"
+		&& currentTaskPrompt.startsWith("[sub_agent_handoff]")
+	) {
+		handoffTaskId = rootSession.currentTaskId;
+	} else {
+		const taskRes = Tools.createTask(`[sub_agent_handoff] ${tostring(items.length)} item(s)`);
+		if (!taskRes.success) {
+			Log("Warn", `[AgentSession] failed to create sub-agent handoff task for root=${rootSession.id}: ${taskRes.message}`);
+			return;
+		}
+		handoffTaskId = taskRes.taskId;
+		Tools.setTaskStatus(handoffTaskId, "DONE");
+		setSessionState(rootSession.id, "DONE", handoffTaskId, "DONE");
+		emitAgentSessionPatch(rootSession.id, {
+			session: getSessionItem(rootSession.id),
+		});
 	}
-	const handoffTaskId = taskRes.taskId;
-	Tools.setTaskStatus(handoffTaskId, "DONE");
-	setSessionState(rootSession.id, "DONE", handoffTaskId, "DONE");
-	emitAgentSessionPatch(rootSession.id, {
-		session: getSessionItem(rootSession.id),
-	});
 	for (let i = 0; i < items.length; i++) {
 		const item = items[i];
 		const step = appendSystemStep(
@@ -1263,6 +1300,14 @@ async function spawnSubAgentSession(request: {
 			Log("Warn", `[AgentSession] spawn fallback parent session requested=${tostring(request.parentSessionId)} resolved=${tostring(fallbackParent.id)} project=${request.projectRoot}`);
 			parentSessionId = fallbackParent.id;
 		}
+	}
+	const parentSession = getSessionItem(parentSessionId);
+	if (!parentSession) {
+		return { success: false, message: "parent session not found" };
+	}
+	const runningSubSessionCount = countRunningSubSessions(getSessionRootId(parentSession));
+	if (runningSubSessionCount >= MAX_CONCURRENT_SUB_AGENTS) {
+		return { success: false, message: "已达到子代理并发上限，暂无法派出新的代理。" };
 	}
 	const created = createSubSession(parentSessionId, request.title);
 	if (!created.success) {
