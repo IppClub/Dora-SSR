@@ -854,18 +854,6 @@ function emitAgentSessionPatch(sessionId: number, patch: Record<string, unknown>
 	emit("AppWS", "Send", text);
 }
 
-function emitSessionTreePatch(sessionId: number) {
-	const session = getSessionItem(sessionId);
-	if (!session) return;
-	emitAgentSessionPatch(session.id, {
-		session,
-		relatedSessions: listRelatedSessions(session.id),
-		pendingMergeCount: getPendingMergeCount(session.projectRoot),
-		pendingMergeJobs: listPendingMergeJobs(session.projectRoot),
-		spawnInfo: session.kind === "sub" ? getSessionSpawnInfo(session) : undefined,
-	});
-}
-
 function emitSessionDeletedPatch(sessionId: number, rootSessionId: number, projectRoot: string) {
 	emitAgentSessionPatch(sessionId, {
 		sessionDeleted: true,
@@ -1016,8 +1004,8 @@ function applyEvent(sessionId: number, event: CodingAgentEvent) {
 			upsertStep(sessionId, event.taskId, event.step, "merge_memory", {
 				status: "RUNNING",
 				reason: getDefaultUseChineseResponse()
-					? `正在合并来自 ${event.sourceTitle} 的记忆。`
-					: `Pending memory merge from ${event.sourceTitle}.`,
+					? `正在合并来自 \`${event.sourceTitle}\` 的记忆。`
+					: `Pending memory merge from \`${event.sourceTitle}\`.`,
 				params: {
 					jobId: event.jobId,
 					sourceAgentId: event.sourceAgentId,
