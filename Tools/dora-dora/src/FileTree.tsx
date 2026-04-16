@@ -73,7 +73,7 @@ const switcherIcon = (props: TreeNodeProps) => {
 		}
 		if (!data.dir) {
 			return null;
-		} else if (data.children === undefined) {
+		} else if (data.children === undefined || data.children.length == 0) {
 			return null;
 		}
 	}
@@ -87,7 +87,7 @@ const fileIcon = (props: TreeNodeProps) => {
 	if (props.data !== undefined) {
 		const data = props.data as TreeDataType;
 		if (data.dir) {
-			if (props.expanded) {
+			if (props.expanded && data.children !== undefined && data.children.length > 0) {
 				return <AiOutlineFolderOpen/>;
 			} else {
 				return <AiOutlineFolder/>;
@@ -164,7 +164,7 @@ export interface FileTreeProps {
 	treeData: TreeDataType[];
 	onSelect: (selectedNodes: TreeDataType[]) => void;
 	onMenuClick: (event: TreeMenuEvent, data?: TreeDataType) => void;
-	onExpand: (key: string[]) => void;
+	onExpand: (key: string[], info?: { node: TreeDataType; expanded: boolean }) => void;
 	onDrop: (self: TreeDataType, target: TreeDataType) => void;
 };
 
@@ -191,8 +191,11 @@ export default memo(function FileTree(props: FileTreeProps) {
 		props.onSelect(info.selectedNodes);
 	};
 
-	const onExpand = (keys: Key[]) => {
-		props.onExpand(keys.map(k => k.toString()));
+	const onExpand = (keys: Key[], info: { node: EventDataNode<TreeDataType>; expanded: boolean }) => {
+		props.onExpand(
+			keys.map(k => k.toString()),
+			{ node: info.node, expanded: info.expanded }
+		);
 	};
 
 	const onDrop = (info: NodeDragEventParams<TreeDataType> & {

@@ -157,63 +157,178 @@ const collectTreeKeys = (node: TreeDataType, keys: Set<string>) => {
 	}
 };
 
-const removeTreeNode = (node: TreeDataType, key: string): boolean => {
-	if (node.children === undefined) return false;
+const splitRelativePath = (root: string, target: string): string[] | null => {
+	if (!isChildFolder(target, root)) return null;
+	const relativePath = path.relative(root, target);
+	if (relativePath === "") return [];
+	return relativePath.split(/[\\/]+/).filter(Boolean);
+};
+
+const appendExpandedKey = (expanded: string[], key: string): string[] => {
+	if (expanded.includes(key)) return expanded;
+	return [...expanded, key];
+};
+
+const removeExpandedKeys = (expanded: string[], removedKeys: Set<string>): string[] => {
+	return expanded.filter(key => !removedKeys.has(key));
+};
+
+const expandDirPath = (rootKey: string, dirPath: string, expanded: string[]): string[] => {
+	const parts = splitRelativePath(rootKey, dirPath);
+	if (parts === null || parts.length === 0) return expanded;
+	let nextExpanded = expanded;
+	let currentPath = rootKey;
+	for (let i = 0; i < parts.length; i++) {
+		currentPath = path.join(currentPath, parts[i]);
+		nextExpanded = appendExpandedKey(nextExpanded, currentPath);
+	}
+	return nextExpanded;
+};
+
+const removeTreeNode = (node: TreeDataType, key: string): { root: TreeDataType; removedNode: TreeDataType | null } => {
+	if (node.children === undefined) {
+		return { root: node, removedNode: null };
+	}
+	const nextChildren: TreeDataType[] = [];
 	for (let i = 0; i < node.children.length; i++) {
 		const child = node.children[i];
 		if (child.key === key) {
-			node.children.splice(i, 1);
-			return true;
+			for (let j = i + 1; j < node.children.length; j++) {
+				nextChildren.push(node.children[j]);
+			}
+			return {
+				root: { ...node, children: nextChildren },
+				removedNode: child,
+			};
 		}
-		if (removeTreeNode(child, key)) {
-			return true;
+		const result = removeTreeNode(child, key);
+		nextChildren.push(result.root);
+		if (result.removedNode !== null) {
+			for (let j = i + 1; j < node.children.length; j++) {
+				nextChildren.push(node.children[j]);
+			}
+			return {
+				root: { ...node, children: nextChildren },
+				removedNode: result.removedNode,
+			};
 		}
 	}
-	return false;
+	return { root: node, removedNode: null };
 };
 
-const ensureDirNode = (root: TreeDataType, dirPath: string, expanded: string[]): TreeDataType | null => {
-	if (!isChildFolder(dirPath, root.key)) return null;
-	const existing = findTreeNode(root, dirPath);
-	if (existing !== null) return existing;
-	const parentPath = path.dirname(dirPath);
-	if (parentPath === dirPath) return null;
-	const parent = ensureDirNode(root, parentPath, expanded);
-	if (parent === null) return null;
-	const node: TreeDataType = {
-		key: dirPath,
-		title: path.basename(dirPath),
-		dir: true,
-		children: [],
+const updateTreeNode = (
+	node: TreeDataType,
+	key: string,
+	updater: (node: TreeDataType) => TreeDataType
+): { root: TreeDataType; node: TreeDataType | null } => {
+	if (node.key === key) {
+		const nextNode = updater(node);
+		return { root: nextNode, node: nextNode };
+	}
+	if (node.children === undefined) {
+		return { root: node, node: null };
+	}
+	let foundNode: TreeDataType | null = null;
+	const nextChildren = node.children.map((child) => {
+		const result = updateTreeNode(child, key, updater);
+		if (result.node !== null) {
+			foundNode = result.node;
+		}
+		return result.root;
+	});
+	if (foundNode === null) {
+		return { root: node, node: null };
+	}
+	return {
+		root: { ...node, children: nextChildren },
+		node: foundNode,
 	};
-	parent.children ??= [];
-	parent.children.push(node);
-	if (!expanded.includes(parent.key)) {
-		expanded.push(parent.key);
-	}
-	return node;
 };
 
-const ensureFileNode = (root: TreeDataType, file: string, expanded: string[]) => {
+const ensureDirNode = (root: TreeDataType, dirPath: string): { root: TreeDataType; node: TreeDataType | null; created: boolean } => {
+	if (!root.dir) return { root, node: null, created: false };
+	if (root.key === dirPath) {
+		return { root, node: root, created: false };
+	}
+	const parts = splitRelativePath(root.key, dirPath);
+	if (parts === null) {
+		return { root, node: null, created: false };
+	}
+	if (parts.length === 0) {
+		return { root, node: root, created: false };
+	}
+	const [part, ...rest] = parts;
+	const childKey = path.join(root.key, part);
+	const children = root.children ?? [];
+	const childIndex = children.findIndex(child => child.key === childKey);
+	if (childIndex < 0) {
+		const newChild: TreeDataType = {
+			key: childKey,
+			title: path.basename(childKey),
+			dir: true,
+			children: [],
+		};
+		if (rest.length === 0) {
+			return {
+				root: { ...root, children: [...children, newChild] },
+				node: newChild,
+				created: true,
+			};
+		}
+		const nested = ensureDirNode(newChild, dirPath);
+		return {
+			root: { ...root, children: [...children, nested.root] },
+			node: nested.node,
+			created: true,
+		};
+	}
+	const child = children[childIndex];
+	if (!child.dir) {
+		return { root, node: null, created: false };
+	}
+	const result = ensureDirNode(child, dirPath);
+	if (result.node === null) {
+		return { root, node: null, created: false };
+	}
+	if (!result.created && result.root === child) {
+		return { root, node: result.node, created: false };
+	}
+	const nextChildren = [...children];
+	nextChildren[childIndex] = result.root;
+	return {
+		root: { ...root, children: nextChildren },
+		node: result.node,
+		created: result.created,
+	};
+};
+
+const ensureFileNode = (root: TreeDataType, file: string): { root: TreeDataType; node: TreeDataType | null; created: boolean } => {
 	const existing = findTreeNode(root, file);
 	if (existing !== null) {
-		return { node: existing, created: false };
+		return { root, node: existing, created: false };
 	}
-	const parent = ensureDirNode(root, path.dirname(file), expanded);
-	if (parent === null) {
-		return { node: null, created: false };
+	const parentPath = path.dirname(file);
+	const dirResult = ensureDirNode(root, parentPath);
+	if (dirResult.node === null) {
+		return { root, node: null, created: false };
 	}
-	const node: TreeDataType = {
+	const newNode: TreeDataType = {
 		key: file,
 		title: path.basename(file),
 		dir: false,
 	};
-	parent.children ??= [];
-	parent.children.push(node);
-	if (!expanded.includes(parent.key)) {
-		expanded.push(parent.key);
+	const insertResult = updateTreeNode(dirResult.root, parentPath, (node) => ({
+		...node,
+		children: [...(node.children ?? []), newNode],
+	}));
+	if (insertResult.node === null) {
+		return { root, node: null, created: false };
 	}
-	return { node, created: true };
+	return {
+		root: insertResult.root,
+		node: newNode,
+		created: true,
+	};
 };
 
 interface EditingFile {
@@ -388,6 +503,12 @@ interface UseResizeProps {
 	defaultWidth?: number;
 };
 
+interface UpdateFileEvent {
+	file: string;
+	exists: boolean;
+	content: string;
+}
+
 const useResize = ({minWidth, defaultWidth}: UseResizeProps) => {
 	defaultWidth ??= minWidth;
 	const [isResizing, setIsResizing] = useState(false);
@@ -514,6 +635,8 @@ export default function PersistentDrawerLeft() {
 	const expandedKeysRef = useRef(expandedKeys);
 	const selectedKeysRef = useRef(selectedKeys);
 	const tabIndexRef = useRef(tabIndex);
+	const pendingUpdateFilesRef = useRef(new Map<string, UpdateFileEvent>());
+	const updateFileFlushTimerRef = useRef<number | null>(null);
 
 	const addAlert = useCallback((msg: string, type: AlertColor, openLog?: boolean) => {
 		const key = msg + Date.now().toString();
@@ -1202,90 +1325,129 @@ export default function PersistentDrawerLeft() {
 	}, [switchTab, files, openFile]);
 
 	useEffect(() => {
-		const handleUpdateFile = (file: string, exists: boolean, content: string) => {
-			const prevFiles = filesRef.current;
-			const prevTabIndex = tabIndexRef.current;
-			const currentTabKey = prevTabIndex !== null ? prevFiles[prevTabIndex]?.key : undefined;
-			const rootNode = treeDataRef.current.at(0);
-			if (rootNode === undefined) return;
+		const applyUpdateFileBatch = (events: UpdateFileEvent[]) => {
+			if (events.length === 0) return;
+			let nextRoot = treeDataRef.current.at(0);
+			if (nextRoot === undefined) return;
+			let nextExpanded = expandedKeysRef.current;
+			let nextFiles = filesRef.current;
+			let treeChanged = false;
+			let expandedChanged = false;
+			let filesChanged = false;
+			let clearSelection = false;
+			let removedActiveTab = false;
 
-			if (!exists) {
-				const nextTree = [...treeDataRef.current];
-				const nextRoot = nextTree.at(0);
-				if (nextRoot === undefined) return;
-				const removedNode = findTreeNode(nextRoot, file);
-				const removedKeys = new Set<string>();
-				if (removedNode !== null) {
-					collectTreeKeys(removedNode, removedKeys);
-				} else {
-					removedKeys.add(file);
+			for (let i = 0; i < events.length; i++) {
+				const { file, exists, content } = events[i];
+				if (!exists) {
+					const removeResult = removeTreeNode(nextRoot, file);
+					const removedNode = removeResult.removedNode;
+					const removedKeys = new Set<string>();
+					if (removedNode !== null) {
+						collectTreeKeys(removedNode, removedKeys);
+					} else {
+						removedKeys.add(file);
+					}
+					removedKeys.forEach((key) => {
+						const model = monaco.editor.getModel(monaco.Uri.file(key));
+						model?.dispose();
+					});
+					if (nextRoot.key !== file && removedNode !== null) {
+						nextRoot = removeResult.root;
+						treeChanged = true;
+					}
+					const filteredExpanded = removeExpandedKeys(nextExpanded, removedKeys);
+					if (filteredExpanded.length !== nextExpanded.length) {
+						nextExpanded = filteredExpanded;
+						expandedChanged = true;
+					}
+					if (selectedKeysRef.current.some(key => removedKeys.has(key))) {
+						clearSelection = true;
+					}
+					const filteredFiles = nextFiles.filter(f => !removedKeys.has(f.key));
+					if (filteredFiles.length !== nextFiles.length) {
+						const currentTabIndex = tabIndexRef.current;
+						const currentTabKey = currentTabIndex !== null ? nextFiles[currentTabIndex]?.key : undefined;
+						removedActiveTab = removedActiveTab || (currentTabKey !== undefined && removedKeys.has(currentTabKey));
+						nextFiles = filteredFiles;
+						filesChanged = true;
+					}
+					continue;
 				}
-				removedKeys.forEach((key) => {
-					const model = monaco.editor.getModel(monaco.Uri.file(key));
-					model?.dispose();
-				});
-				if (nextRoot.key !== file && removedNode !== null) {
-					removeTreeNode(nextRoot, file);
-					treeDataRef.current = nextTree;
-					setTreeData(nextTree);
+
+				const ensureResult = ensureFileNode(nextRoot, file);
+				if (ensureResult.node === null) {
+					continue;
 				}
-				if (selectedKeysRef.current.some(key => removedKeys.has(key))) {
-					setSelectedKeys([]);
-					setSelectedNode(null);
-				}
-				const nextFiles = prevFiles.filter(f => !removedKeys.has(f.key));
-				if (nextFiles.length !== prevFiles.length) {
-					filesRef.current = nextFiles;
-					setFiles(nextFiles);
-					if (currentTabKey !== undefined) {
-						const nextIndex = nextFiles.findIndex(f => f.key === currentTabKey);
-						if (nextIndex >= 0) {
-							if (nextIndex !== prevTabIndex) {
-								switchTabRef.current(nextIndex, nextFiles[nextIndex]);
-							}
-						} else if (nextFiles.length === 0) {
-							switchTabRef.current(null);
-						} else {
-							const fallbackIndex = Math.min(prevTabIndex ?? 0, nextFiles.length - 1);
-							switchTabRef.current(fallbackIndex, nextFiles[fallbackIndex]);
-						}
+				if (ensureResult.created) {
+					nextRoot = ensureResult.root;
+					treeChanged = true;
+					const expandedDir = expandDirPath(nextRoot.key, path.dirname(file), nextExpanded);
+					if (expandedDir !== nextExpanded) {
+						nextExpanded = expandedDir;
+						expandedChanged = true;
 					}
 				}
-				return;
+
+				const existingIndex = nextFiles.findIndex(f => f.key === file);
+				if (existingIndex >= 0) {
+					nextFiles = nextFiles.map((item, index) => index === existingIndex ? {
+						...item,
+						title: path.basename(file),
+						content,
+						contentModified: null,
+					} : item);
+					filesChanged = true;
+				}
 			}
 
-			const nextExpanded = [...expandedKeysRef.current];
-			const nextTree = [...treeDataRef.current];
-			const nextRoot = nextTree.at(0);
-			if (nextRoot === undefined) return;
-			const { node, created } = ensureFileNode(nextRoot, file, nextExpanded);
-			if (node === null) return;
-			if (created) {
-				treeDataRef.current = nextTree;
+			if (treeChanged) {
+				treeDataRef.current = [nextRoot];
+				setTreeData([nextRoot]);
+			}
+			if (expandedChanged) {
 				expandedKeysRef.current = nextExpanded;
-				setTreeData(nextTree);
 				setExpandedKeys(nextExpanded);
 			}
-
-			const existingIndex = prevFiles.findIndex(f => f.key === file);
-			if (existingIndex >= 0) {
-				const nextFiles = prevFiles.map((item, index) => index === existingIndex ? {
-					...item,
-					title: path.basename(file),
-					content,
-					contentModified: null,
-				} : item);
+			if (clearSelection) {
+				setSelectedKeys([]);
+				setSelectedNode(null);
+			}
+			if (filesChanged) {
 				filesRef.current = nextFiles;
 				setFiles(nextFiles);
-				return;
+				if (removedActiveTab) {
+					if (nextFiles.length === 0) {
+						switchTabRef.current(null);
+					} else {
+						const prevTabIndex = tabIndexRef.current;
+						const fallbackIndex = Math.min(prevTabIndex ?? 0, nextFiles.length - 1);
+						switchTabRef.current(fallbackIndex, nextFiles[fallbackIndex]);
+					}
+				}
 			}
-			if (!created) {
-				return;
-			}
+		};
+
+		const flushUpdateFileQueue = () => {
+			updateFileFlushTimerRef.current = null;
+			const events = [...pendingUpdateFilesRef.current.values()];
+			pendingUpdateFilesRef.current.clear();
+			applyUpdateFileBatch(events);
+		};
+
+		const handleUpdateFile = (file: string, exists: boolean, content: string) => {
+			pendingUpdateFilesRef.current.set(file, { file, exists, content });
+			if (updateFileFlushTimerRef.current !== null) return;
+			updateFileFlushTimerRef.current = window.setTimeout(flushUpdateFileQueue, 32);
 		};
 
 		Service.addUpdateFileListener(handleUpdateFile);
 		return () => {
+			if (updateFileFlushTimerRef.current !== null) {
+				window.clearTimeout(updateFileFlushTimerRef.current);
+				updateFileFlushTimerRef.current = null;
+			}
+			pendingUpdateFilesRef.current.clear();
 			Service.removeUpdateFileListener(handleUpdateFile);
 		};
 	}, []);
@@ -1324,15 +1486,10 @@ export default function PersistentDrawerLeft() {
 		}
 	}, [openAgentSessionTab, openFileInTab]);
 
-	const onExpand = useCallback((keys: string[]) => {
+	const onExpand = useCallback((keys: string[], info?: { node: TreeDataType; expanded: boolean }) => {
 		const rootNode = treeData.at(0);
 		if (rootNode === undefined) return;
-		let changedKey: string | undefined;
-		if (expandedKeys.length > keys.length) {
-			changedKey = expandedKeys.filter(ek => (keys.find(k => k === ek) === undefined)).at(0);
-		} else {
-			changedKey = keys.filter(k => (expandedKeys.find(ek => ek === k) === undefined)).at(0);
-		}
+		const changedKey = info?.node.key;
 		if (changedKey === rootNode.key) {
 			if (contentModified) {
 				addAlert(t("alert.reloading"), "warning");
@@ -1819,7 +1976,7 @@ export default function PersistentDrawerLeft() {
 	};
 
 	const deleteFile = useCallback((data: TreeDataType) => {
-		const rootNode = treeData.at(0);
+		const rootNode = treeDataRef.current.at(0);
 		if (rootNode === undefined) return;
 		if (rootNode.key === data.key) {
 			addAlert(t("alert.deleteRoot"), "info");
@@ -1832,47 +1989,31 @@ export default function PersistentDrawerLeft() {
 			confirmed: () => {
 				Service.deleteFile({path: data.key}).then((res) => {
 					if (!res.success) return;
-					const uri = monaco.Uri.file(data.key);
-					const model = monaco.editor.getModel(uri);
-					if (model !== null) {
-						model.dispose();
+					const currentRoot = treeDataRef.current.at(0);
+					if (currentRoot === undefined) return;
+					const removeResult = removeTreeNode(currentRoot, data.key);
+					const removedKeys = new Set<string>();
+					if (removeResult.removedNode !== null) {
+						collectTreeKeys(removeResult.removedNode, removedKeys);
+					} else {
+						removedKeys.add(data.key);
 					}
-					const filesNotInTabs = new Set<string>();
-					if (data.dir) {
-						const getEveryFileUnder = (node: TreeDataType) => {
-							filesNotInTabs.add(node.key);
-							if (node.children !== undefined) {
-								for (let i = 0; i < node.children.length; i++) {
-									getEveryFileUnder(node.children[i]);
-								}
-							}
-						};
-						getEveryFileUnder(data);
-					}
-					const visitData = (node: TreeDataType) => {
-						if (data.key === node.key) return "find";
-						if (node.children !== undefined) {
-							for (let i = 0; i < node.children.length; i++) {
-								const res = visitData(node.children[i]);
-								if (res === "find") {
-									node.children = node.children.filter(n => n.key !== data.key);
-									return "stop";
-								} else if (res === "stop") {
-									return "stop";
-								}
-							}
-						}
-						return "continue";
-					};
-					visitData(rootNode);
-					const newFiles = files.filter(f => path.relative(f.key, data.key) !== "" && !filesNotInTabs.has(f.key));
+					removedKeys.forEach((key) => {
+						const model = monaco.editor.getModel(monaco.Uri.file(key));
+						model?.dispose();
+					});
+					const newFiles = files.filter(f => !removedKeys.has(f.key));
 					if (newFiles.length !== files.length) {
 						setFiles(newFiles);
 						if (tabIndex !== null && tabIndex >= newFiles.length) {
 							switchTab(newFiles.length - 1, newFiles[newFiles.length - 1]);
 						}
 					}
-					setTreeData([rootNode]);
+					const nextExpanded = removeExpandedKeys(expandedKeysRef.current, removedKeys);
+					treeDataRef.current = [removeResult.root];
+					expandedKeysRef.current = nextExpanded;
+					setExpandedKeys(nextExpanded);
+					setTreeData([removeResult.root]);
 				}).then(() => {
 					addAlert(t("alert.deleted", {title: data.title}), "success");
 				}).catch(() => {
@@ -2033,55 +2174,19 @@ export default function PersistentDrawerLeft() {
 										}
 									});
 									if (!fileExists) {
-										const rootNode = treeData.at(0);
+										const rootNode = treeDataRef.current.at(0);
 										if (rootNode === undefined) return;
-										const newNode: TreeDataType = {
-											key: declaration.fileName,
-											title: path.basename(declaration.fileName),
-											dir: false,
-										};
-										const visitData = (node: TreeDataType) => {
-											if (node.key === key) return "find";
-											if (node.children) {
-												for (let i = 0; i < node.children.length; i++) {
-													const res = visitData(node.children[i]);
-													if (res === "find") {
-														const child = node.children[i];
-														let parent = child;
-														if (child.dir) {
-															if (child.children === undefined) {
-																child.children = [];
-															}
-															child.children.push(newNode);
-														} else {
-															parent = node;
-															node.children.push(newNode);
-														}
-														if (expandedKeys.find(k => parent.key === k) === undefined) {
-															expandedKeys.push(parent.key);
-															setExpandedKeys(expandedKeys);
-														}
-														return "stop";
-													} else if (res === "stop") {
-														return "stop";
-													}
-												}
-											}
-											return "continue";
-										};
-										if (visitData(rootNode) === "find") {
-											if (rootNode.children === undefined) {
-												rootNode.children = [];
-											}
-											rootNode.children.push(newNode);
-											if (expandedKeys.find(k => rootNode.key === k) === undefined) {
-												expandedKeys.push(rootNode.key);
-												setExpandedKeys(expandedKeys);
-											}
+										const ensureResult = ensureFileNode(rootNode, declaration.fileName);
+										if (ensureResult.node === null) return;
+										const nextExpanded = expandDirPath(rootNode.key, path.dirname(declaration.fileName), expandedKeysRef.current);
+										treeDataRef.current = [ensureResult.root];
+										setTreeData([ensureResult.root]);
+										if (nextExpanded !== expandedKeysRef.current) {
+											expandedKeysRef.current = nextExpanded;
+											setExpandedKeys(nextExpanded);
 										}
-										setTreeData([rootNode]);
 										setSelectedKeys([declaration.fileName]);
-										setSelectedNode(newNode);
+										setSelectedNode(ensureResult.node);
 										const index = files.length;
 										const newItem: EditingFile = {
 											key: declaration.fileName,
@@ -2422,29 +2527,17 @@ export default function PersistentDrawerLeft() {
 							file.title = newName;
 							setFiles([...files]);
 						}
-						const rootNode = treeData.at(0);
+						const rootNode = treeDataRef.current.at(0);
 						if (rootNode === undefined) return;
-						let targetNode: TreeDataType | null = null;
-						const visitData = (node: TreeDataType) => {
-							if (node.key === target.key) {
-								node.key = newFile;
-								node.title = newName;
-								targetNode = node;
-								return true;
-							}
-							if (node.children) {
-								for (let i = 0; i < node.children.length; i++) {
-									if (visitData(node.children[i])) {
-										return true;
-									}
-								}
-							}
-							return false;
-						};
-						visitData(rootNode);
-						setTreeData([rootNode]);
-						if (targetNode !== null) {
-							setSelectedNode(targetNode);
+						const renamed = updateTreeNode(rootNode, target.key, (node) => ({
+							...node,
+							key: newFile,
+							title: newName,
+						}));
+						treeDataRef.current = [renamed.root];
+						setTreeData([renamed.root]);
+						if (renamed.node !== null) {
+							setSelectedNode(renamed.node);
 							setSelectedKeys([newFile]);
 						} else {
 							setSelectedNode(null);
@@ -2523,23 +2616,33 @@ export default function PersistentDrawerLeft() {
 							return;
 						}
 					}
-					const rootNode = treeData.at(0);
+					const rootNode = treeDataRef.current.at(0);
 					if (rootNode === undefined) return;
-					const newExpandedKeys = [...expandedKeys];
+					let nextRoot = rootNode;
+					let nextExpandedKeys = expandedKeysRef.current;
 					let selectedNode: TreeDataType | null = null;
 					if (folder) {
-						selectedNode = ensureDirNode(rootNode, newFile, newExpandedKeys);
+						const dirResult = ensureDirNode(nextRoot, newFile);
+						nextRoot = dirResult.root;
+						selectedNode = dirResult.node;
+						nextExpandedKeys = expandDirPath(rootNode.key, path.dirname(newFile), nextExpandedKeys);
 						if (initFile !== null) {
-							const result = ensureFileNode(rootNode, initFile, newExpandedKeys);
-							selectedNode = result.node ?? selectedNode;
+							const fileResult = ensureFileNode(nextRoot, initFile);
+							nextRoot = fileResult.root;
+							selectedNode = fileResult.node ?? selectedNode;
+							nextExpandedKeys = expandDirPath(rootNode.key, path.dirname(initFile), nextExpandedKeys);
 						}
 					} else {
-						const result = ensureFileNode(rootNode, newFile, newExpandedKeys);
-						selectedNode = result.node;
+						const fileResult = ensureFileNode(nextRoot, newFile);
+						nextRoot = fileResult.root;
+						selectedNode = fileResult.node;
+						nextExpandedKeys = expandDirPath(rootNode.key, path.dirname(newFile), nextExpandedKeys);
 					}
-					setTreeData([rootNode]);
-					if (newExpandedKeys.length !== expandedKeys.length) {
-						setExpandedKeys(newExpandedKeys);
+					treeDataRef.current = [nextRoot];
+					setTreeData([nextRoot]);
+					if (nextExpandedKeys !== expandedKeysRef.current) {
+						expandedKeysRef.current = nextExpandedKeys;
+						setExpandedKeys(nextExpandedKeys);
 					}
 					const openedFile = initFile ?? newFile;
 					const openedName = path.basename(openedFile);
