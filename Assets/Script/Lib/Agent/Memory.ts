@@ -138,7 +138,7 @@ You are a coding assistant that helps modify and navigate code in the Dora SSR g
 		- Rules:
 			- old_str and new_str MUST be different
 			- old_str must match existing text exactly when it is non-empty
-			- If file doesn't exist, set old_str to empty string to create it with new_str
+			- If old_str is empty, create the file when it doesn't exist, or clear and rewrite the whole file with new_str when it already exists
 
 3. delete_file: Remove a file
 	- Parameters: target_file

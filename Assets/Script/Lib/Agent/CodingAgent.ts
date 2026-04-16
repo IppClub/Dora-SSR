@@ -318,7 +318,21 @@ class SkillsLoader {
 			result.push(entry.skill);
 		}
 
-		result.sort();
+		result.sort((a, b) => {
+			if (a.name < b.name) {
+				return -1;
+			}
+			if (a.name > b.name) {
+				return 1;
+			}
+			if (a.location < b.location) {
+				return -1;
+			}
+			if (a.location > b.location) {
+				return 1;
+			}
+			return 0;
+		});
 
 		return result;
 	}
@@ -1724,11 +1738,11 @@ function buildDecisionToolSchema(shared: AgentShared) {
 		),
 		createFunctionToolSchema(
 			"edit_file",
-			"Make changes to a file. Parameters: path, old_str, new_str. old_str and new_str must be different. old_str must match existing text exactly when it is non-empty. If the file does not exist, set old_str to empty string to create it with new_str.",
+			"Make changes to a file. Parameters: path, old_str, new_str. old_str and new_str must be different. old_str must match existing text exactly when it is non-empty. If old_str is empty, create the file when it does not exist, or clear and rewrite the whole file with new_str when it already exists.",
 			{
 				path: { type: "string", description: "Workspace-relative file path to edit." },
-				old_str: { type: "string", description: "Existing text to replace. Use an empty string only when creating a new file." },
-				new_str: { type: "string", description: "Replacement text or the full new file content when creating." },
+				old_str: { type: "string", description: "Existing text to replace. If empty, edit_file rewrites the whole file, or creates it when missing." },
+				new_str: { type: "string", description: "Replacement text or the full file content when rewriting or creating." },
 			},
 			["path", "old_str", "new_str"]
 		),
