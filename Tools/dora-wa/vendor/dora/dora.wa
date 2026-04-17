@@ -1559,6 +1559,9 @@ func director_get_wasm_scheduler() => i64
 #wa:import dora director_get_post_wasm_scheduler
 func director_get_post_wasm_scheduler() => i64
 
+#wa:import dora dora_wasm_module_id
+func dora_wasm_module_id() => i32
+
 func _Director.GetScheduler() => Scheduler {
 	return *SchedulerFrom(director_get_wasm_scheduler())
 }
@@ -1656,7 +1659,7 @@ global func_map = make([]func(), 0)
 global func_available = make([]i32, 0)
 
 func PushFunction(f: func()) => i32 {
-	flag: i32 = 0x01000000
+	flag := dora_wasm_module_id() << 24
 	if len(func_map) >= 0xffffff {
 		panic("too many functions!")
 	}

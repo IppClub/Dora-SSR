@@ -565,7 +565,7 @@ namespace Dora
             return buf;
         }
 
-        private const int FUNC_FLAG = 0x02000000;
+        private const int FUNC_FLAG = 0x01000000;
         private const int FUNC_MAX_INDEX = 0xFFFFFF;
 
         private static readonly List<System.Action?> _map = new List<System.Action?>();

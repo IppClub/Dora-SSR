@@ -12,6 +12,7 @@
 
 #include "m3_api_libc.h"
 #include "m3_api_wasi.h"
+#include "m3_env.h"
 #include "wasm3.h"
 
 namespace wasm3 {
@@ -25,6 +26,17 @@ struct first_type {
 };
 
 typedef const void* (*m3_api_raw_fn)(IM3Runtime, uint64_t*, void*);
+typedef void (*runtime_context_hook)(void*);
+
+inline runtime_context_hook& enter_runtime_context_hook() {
+	static runtime_context_hook hook = nullptr;
+	return hook;
+}
+
+inline runtime_context_hook& leave_runtime_context_hook() {
+	static runtime_context_hook hook = nullptr;
+	return hook;
+}
 
 template <typename T>
 void arg_from_stack(T& dest, stack_type& _sp, mem_type mem) {
@@ -91,6 +103,26 @@ template <typename Ret, typename... Args>
 struct wrap_helper<Ret(Args...)> {
 	using Func = Ret(Args...);
 	static const void* wrap_fn(IM3Runtime rt, IM3ImportContext _ctx, stack_type _sp, mem_type mem) {
+		struct runtime_context_scope {
+			explicit runtime_context_scope(IM3Runtime runtime)
+				: runtime(runtime) {
+				if (runtime) {
+					if (auto enter = enter_runtime_context_hook()) {
+						enter(runtime->userdata);
+						active = true;
+					}
+				}
+			}
+			~runtime_context_scope() {
+				if (active) {
+					if (auto leave = leave_runtime_context_hook()) {
+						leave(runtime->userdata);
+					}
+				}
+			}
+			IM3Runtime runtime = nullptr;
+			bool active = false;
+		} runtime_scope(rt);
 		std::tuple<Args...> args;
 		// The order here matters: m3ApiReturnType should go before calling get_args_from_stack,
 		// since both modify `_sp`, and the return value on the stack is reserved before the arguments.
@@ -106,6 +138,26 @@ template <typename... Args>
 struct wrap_helper<void(Args...)> {
 	using Func = void(Args...);
 	static const void* wrap_fn(IM3Runtime rt, IM3ImportContext _ctx, stack_type sp, mem_type mem) {
+		struct runtime_context_scope {
+			explicit runtime_context_scope(IM3Runtime runtime)
+				: runtime(runtime) {
+				if (runtime) {
+					if (auto enter = enter_runtime_context_hook()) {
+						enter(runtime->userdata);
+						active = true;
+					}
+				}
+			}
+			~runtime_context_scope() {
+				if (active) {
+					if (auto leave = leave_runtime_context_hook()) {
+						leave(runtime->userdata);
+					}
+				}
+			}
+			IM3Runtime runtime = nullptr;
+			bool active = false;
+		} runtime_scope(rt);
 		std::tuple<Args...> args;
 		get_args_from_stack(sp, mem, args);
 		Func* function = reinterpret_cast<Func*>(_ctx->userdata);
@@ -224,6 +276,8 @@ public:
 	 * @return function object
 	 */
 	function find_function(const char* name);
+	void set_userdata(void* userdata);
+	void* get_userdata() const;
 
 	std::string get_error_message() const;
 
@@ -423,6 +477,19 @@ inline std::string runtime::get_error_message() const {
 	M3ErrorInfo info;
 	m3_GetErrorInfo(m_runtime.get(), &info);
 	return info.message;
+}
+
+inline void runtime::set_userdata(void* userdata) {
+	m_runtime->userdata = userdata;
+}
+
+inline void* runtime::get_userdata() const {
+	return m_runtime->userdata;
+}
+
+inline void set_runtime_context_hooks(detail::runtime_context_hook enter, detail::runtime_context_hook leave) {
+	detail::enter_runtime_context_hook() = enter;
+	detail::leave_runtime_context_hook() = leave;
 }
 
 inline uint32_t runtime::get_memory_size() const {

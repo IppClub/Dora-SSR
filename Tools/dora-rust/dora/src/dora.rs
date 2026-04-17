@@ -798,7 +798,7 @@ fn new_object(raw: i64) -> Option<Box<dyn IObject>> {
 
 fn push_function(func: Box<dyn FnMut()>) -> i32 {
 	#[cfg(target_arch = "wasm32")]
-	let flag = 0x01000000;
+	let flag = unsafe { dora_wasm_module_id() << 24 };
 	#[cfg(not(target_arch = "wasm32"))]
 	let flag = 0x00000000;
 	let mut ret_func_id = -1;
@@ -3191,6 +3191,7 @@ extern "C" {
 extern "C" {
 	fn director_get_wasm_scheduler() -> i64;
 	fn director_get_post_wasm_scheduler() -> i64;
+	fn dora_wasm_module_id() -> i32;
 }
 
 impl Director {

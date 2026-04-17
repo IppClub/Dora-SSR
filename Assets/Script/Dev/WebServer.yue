@@ -1008,7 +1008,7 @@ compileFileAsync = (inputFile, sourceCodes): nil ->
 			success, message = LintYueGlobals codes, globals, true, extraGlobal
 			unless success
 				resultError = message
-				return 
+				return
 			if codes == ""
 				resultCodes = ""
 				return nil

@@ -148,10 +148,28 @@ NS_DORA_BEGIN
 
 #define DoraVersion(major, minor, patch) ((major) << 16 | (minor) << 8 | (patch))
 
-static const int doraWASMVersion = DoraVersion(0, 5, 7);
+static const int doraWASMVersion = DoraVersion(0, 5, 8);
+static std::vector<WasmInstance*> s_wasmInstanceStack;
 
 static std::string VersionToStr(int version) {
 	return std::to_string((version & 0x00ff0000) >> 16) + '.' + std::to_string((version & 0x0000ff00) >> 8) + '.' + std::to_string(version & 0x000000ff);
+}
+
+static WasmInstance* CurrentWasmInstanceOrAssert() {
+	auto* instance = WasmInstance::current();
+	AssertUnless(instance, "no current wasm runtime in context");
+	return instance;
+}
+
+static void PushWasmRuntimeContext(void* runtime) {
+	if (runtime) {
+		WasmInstance::pushInstance(r_cast<WasmInstance*>(runtime));
+	}
+}
+
+static void PopWasmRuntimeContext(void* runtime) {
+	DORA_UNUSED_PARAM(runtime);
+	WasmInstance::popInstance();
 }
 
 union LightWasmValue {
@@ -1143,7 +1161,7 @@ DORA_EXPORT void str_read(void* dest, int64_t src) {
 	}
 }
 DORA_EXPORT void str_read_ptr(int32_t dest, int64_t src) {
-	auto destPtr = SharedWasmRuntime.getMemoryAddress(dest);
+	auto destPtr = CurrentWasmInstanceOrAssert()->getMemoryAddress(dest);
 	auto str = r_cast<std::string*>(src);
 	if (str->length() > 0) {
 		std::memcpy(destPtr, str->c_str(), str->length());
@@ -1156,7 +1174,7 @@ DORA_EXPORT void str_write(int64_t dest, const void* src) {
 	}
 }
 DORA_EXPORT void str_write_ptr(int64_t dest, int32_t src) {
-	auto srcPtr = SharedWasmRuntime.getMemoryAddress(src);
+	auto srcPtr = CurrentWasmInstanceOrAssert()->getMemoryAddress(src);
 	auto str = r_cast<std::string*>(dest);
 	if (str->length() > 0) {
 		std::memcpy(&str->front(), srcPtr, str->length());
@@ -1203,7 +1221,7 @@ DORA_EXPORT void buf_read(void* dest, int64_t src) {
 		*vec);
 }
 DORA_EXPORT void buf_read_ptr(int32_t dest, int64_t src) {
-	auto destPtr = SharedWasmRuntime.getMemoryAddress(dest);
+	auto destPtr = CurrentWasmInstanceOrAssert()->getMemoryAddress(dest);
 	auto vec = r_cast<dora_vec_t*>(src);
 	std::visit([&](const auto& arg) {
 		if (arg.size() > 0) {
@@ -1222,7 +1240,7 @@ DORA_EXPORT void buf_write(int64_t dest, const void* src) {
 		*vec);
 }
 DORA_EXPORT void buf_write_ptr(int64_t dest, int32_t src) {
-	auto srcPtr = SharedWasmRuntime.getMemoryAddress(src);
+	auto srcPtr = CurrentWasmInstanceOrAssert()->getMemoryAddress(src);
 	auto vec = r_cast<dora_vec_t*>(dest);
 	std::visit([&](auto& arg) {
 		if (arg.size() > 0) {
@@ -1693,6 +1711,10 @@ DORA_EXPORT int64_t director_get_post_wasm_scheduler() {
 	return Object_From(SharedWasmRuntime.getPostScheduler());
 }
 
+DORA_EXPORT int32_t dora_wasm_module_id() {
+	return CurrentWasmInstanceOrAssert()->getModuleId();
+}
+
 // math
 
 DORA_EXPORT double math_abs(double v) { return std::abs(v); }
@@ -2032,6 +2054,7 @@ static void linkDoraModule(wasm3::module3& mod) {
 
 	mod.link_optional("*", "director_get_wasm_scheduler", director_get_wasm_scheduler);
 	mod.link_optional("*", "director_get_post_wasm_scheduler", director_get_post_wasm_scheduler);
+	mod.link_optional("*", "dora_wasm_module_id", dora_wasm_module_id);
 
 	mod.link_optional("*", "math_abs", math_abs);
 	mod.link_optional("*", "math_acos", math_acos);
@@ -2051,15 +2074,47 @@ static void linkDoraModule(wasm3::module3& mod) {
 	mod.link_optional("*", "math_tan", math_tan);
 }
 
-int WasmRuntime::_callFromWasm = 0;
-
 WasmRuntime::WasmRuntime()
-	: _loading(false) {
+{
+	static std::once_flag once;
+	std::call_once(once, []() {
+		wasm3::set_runtime_context_hooks(&PushWasmRuntimeContext, &PopWasmRuntimeContext);
+	});
 }
 
 WasmRuntime::~WasmRuntime() { }
 
-int32_t WasmRuntime::loadFuncs() {
+static int s_callFromWasm = 0;
+
+WasmInstance::WasmInstance() { }
+
+WasmInstance::Scope::Scope(WasmInstance* instance) {
+	if (instance) {
+		WasmInstance::pushInstance(instance);
+		_active = true;
+	}
+}
+
+WasmInstance::Scope::~Scope() {
+	if (_active) {
+		WasmInstance::popInstance();
+	}
+}
+
+void WasmInstance::pushInstance(WasmInstance* instance) {
+	s_wasmInstanceStack.push_back(instance);
+}
+
+void WasmInstance::popInstance() {
+	AssertUnless(!s_wasmInstanceStack.empty(), "wasm runtime context stack underflow");
+	s_wasmInstanceStack.pop_back();
+}
+
+WasmInstance* WasmInstance::current() {
+	return s_wasmInstanceStack.empty() ? nullptr : s_wasmInstanceStack.back();
+}
+
+int32_t WasmInstance::loadFuncs() {
 	auto versionFunc = New<wasm3::function>(_runtime->find_function("dora_wasm_version"));
 	auto version = versionFunc->call<int32_t>();
 	_callFunc = New<wasm3::function>(_runtime->find_function("call_function"));
@@ -2068,15 +2123,34 @@ int32_t WasmRuntime::loadFuncs() {
 }
 
 bool WasmRuntime::executeMainFile(String filename) {
+	if (!_scheduler) {
+		scheduleUpdate();
+	}
+	auto instance = New<WasmInstance>();
+	auto moduleId = allocModuleId(instance.get());
+	if (moduleId == 0) {
+		Error("failed to allocate wasm module id for {}", filename.toString());
+		return false;
+	}
+	instance->setModuleId(moduleId);
+	if (instance->executeMainFile(filename)) {
+		_instances.push_back(std::move(instance));
+		return true;
+	}
+	releaseModuleId(instance->getModuleId());
+	return false;
+}
+
+bool WasmInstance::executeMainFile(String filename) {
 	if (_wasm.first || _loading) {
 		Warn("only one WASM module can be executed");
 		return false;
 	}
 	try {
 		_loading = true;
-		_callFromWasm++;
+		s_callFromWasm++;
 		DEFER({
-			_callFromWasm--;
+			s_callFromWasm--;
 			_loading = false;
 		});
 		PROFILE("Loader"_slice, filename);
@@ -2085,6 +2159,7 @@ bool WasmRuntime::executeMainFile(String filename) {
 			_wasm = SharedContent.load(filename);
 			_env = New<wasm3::environment>();
 			_runtime = New<wasm3::runtime>(_env->new_runtime(DORA_WASM_STACK_SIZE));
+			_runtime->set_userdata(this);
 			auto mod = _env->parse_module(_wasm.first.get(), _wasm.second);
 			_runtime->load(mod);
 			mod.link_default();
@@ -2099,18 +2174,46 @@ bool WasmRuntime::executeMainFile(String filename) {
 			}
 		}
 		wasm3::function mainFn = _runtime->find_function("_start");
-		scheduleUpdate();
+		Scope scope(this);
 		mainFn.call_argv();
 		return true;
 	} catch (std::runtime_error& e) {
 		auto message = _runtime->get_error_message();
 		Error("failed to load wasm module: {}, due to: {}{}", filename.toString(), e.what(), message == Slice::Empty ? ""s : ": "s + message);
-		WasmRuntime::clear();
+		clear();
 		return false;
 	}
 }
 
 void WasmRuntime::executeMainFileAsync(String filename, const std::function<void(bool)>& handler) {
+	if (!_scheduler) {
+		scheduleUpdate();
+	}
+	auto instance = New<WasmInstance>();
+	auto moduleId = allocModuleId(instance.get());
+	if (moduleId == 0) {
+		Error("failed to allocate wasm module id for {}", filename.toString());
+		handler(false);
+		return;
+	}
+	instance->setModuleId(moduleId);
+	auto* instancePtr = instance.get();
+	_instances.push_back(std::move(instance));
+	instancePtr->executeMainFileAsync(filename, [this, instancePtr, handler](bool result) {
+		if (!result) {
+			releaseModuleId(instancePtr->getModuleId());
+			auto it = std::find_if(_instances.begin(), _instances.end(), [instancePtr](const auto& item) {
+				return item.get() == instancePtr;
+			});
+			if (it != _instances.end()) {
+				_instances.erase(it);
+			}
+		}
+		handler(result);
+	});
+}
+
+void WasmInstance::executeMainFileAsync(String filename, const std::function<void(bool)>& handler) {
 	if (_wasm.first || _loading) {
 		Warn("only one wasm module can be executed, clear the current module before executing another");
 		return;
@@ -2130,6 +2233,7 @@ void WasmRuntime::executeMainFileAsync(String filename, const std::function<void
 				try {
 					_env = New<wasm3::environment>();
 					_runtime = New<wasm3::runtime>(_env->new_runtime(DORA_WASM_STACK_SIZE));
+					_runtime->set_userdata(this);
 					auto mod = New<wasm3::module3>(_env->parse_module(_wasm.first.get(), _wasm.second));
 					_runtime->load(*mod);
 					mod->link_default();
@@ -2152,9 +2256,9 @@ void WasmRuntime::executeMainFileAsync(String filename, const std::function<void
 			},
 			[file, handler, this](Own<Values> values) {
 				try {
-					_callFromWasm++;
+					s_callFromWasm++;
 					DEFER({
-						_callFromWasm--;
+						s_callFromWasm--;
 						_loading = false;
 					});
 					PROFILE("Loader"_slice, file);
@@ -2162,7 +2266,7 @@ void WasmRuntime::executeMainFileAsync(String filename, const std::function<void
 					Own<wasm3::function> mainFn;
 					values->get(mod, mainFn);
 					if (mod) {
-						scheduleUpdate();
+						Scope scope(this);
 						mainFn->call_argv();
 						handler(true);
 					} else
@@ -2172,14 +2276,13 @@ void WasmRuntime::executeMainFileAsync(String filename, const std::function<void
 					handler(false);
 				}
 			});
-	});
+		});
 }
 
 enum class FuncType {
 	StaticLinked = 0,
-	WasmProvided = 1,
-	CFuncPointer = 2,
-	Unknown
+	CFuncPointer = 1,
+	WasmProvided = 2,
 };
 
 void WasmRuntime::invoke(int32_t funcId) {
@@ -2189,17 +2292,6 @@ void WasmRuntime::invoke(int32_t funcId) {
 			call_function(funcId);
 			return;
 		}
-		case FuncType::WasmProvided: {
-			AssertUnless(_callFunc, "wasm module is not ready");
-			try {
-				_callFromWasm++;
-				DEFER(_callFromWasm--);
-				_callFunc->call(funcId);
-			} catch (std::runtime_error& e) {
-				Error("failed to execute wasm callback due to: {}{}", e.what(), _runtime->get_error_message() == Slice::Empty ? Slice::Empty : ": "s + _runtime->get_error_message());
-			}
-			return;
-		}
 		case FuncType::CFuncPointer: {
 			if (doraCallFunction) {
 				doraCallFunction(funcId);
@@ -2207,7 +2299,34 @@ void WasmRuntime::invoke(int32_t funcId) {
 			return;
 		}
 		default: {
-			Issue("got unexpected func type {}", s_cast<int>(funcType));
+			if (auto* instance = getInstanceByFuncId(funcId)) {
+				instance->invokeLocal(funcId);
+			} else {
+				Issue("got unexpected wasm module id {}", s_cast<int>(funcType));
+			}
+			return;
+		}
+	}
+}
+
+void WasmInstance::invokeLocal(int32_t funcId) {
+	Scope scope(this);
+	auto funcType = s_cast<FuncType>(funcId >> 24);
+	switch (funcType) {
+		default: {
+			AssertUnless(_callFunc, "wasm module is not ready");
+			try {
+				s_callFromWasm++;
+				DEFER(s_callFromWasm--);
+				_callFunc->call(funcId);
+			} catch (std::runtime_error& e) {
+				Error("failed to execute wasm callback due to: {}{}", e.what(), _runtime->get_error_message() == Slice::Empty ? Slice::Empty : ": "s + _runtime->get_error_message());
+			}
+			return;
+		}
+		case FuncType::StaticLinked:
+		case FuncType::CFuncPointer: {
+			Issue("got unexpected local func type {}", s_cast<int>(funcType));
 			return;
 		}
 	}
@@ -2220,12 +2339,6 @@ void WasmRuntime::deref(int32_t funcId) {
 			deref_function(funcId);
 			return;
 		}
-		case FuncType::WasmProvided: {
-			if (_derefFunc) {
-				_derefFunc->call(funcId);
-			}
-			return;
-		}
 		case FuncType::CFuncPointer: {
 			if (doraDerefFunction) {
 				doraDerefFunction(funcId);
@@ -2233,7 +2346,29 @@ void WasmRuntime::deref(int32_t funcId) {
 			return;
 		}
 		default: {
-			Issue("got unexpected func type {}", s_cast<int>(funcType));
+			if (auto* instance = getInstanceByFuncId(funcId)) {
+				instance->derefLocal(funcId);
+			} else {
+				Issue("got unexpected wasm module id {}", s_cast<int>(funcType));
+			}
+			return;
+		}
+	}
+}
+
+void WasmInstance::derefLocal(int32_t funcId) {
+	Scope scope(this);
+	auto funcType = s_cast<FuncType>(funcId >> 24);
+	switch (funcType) {
+		default: {
+			if (_derefFunc) {
+				_derefFunc->call(funcId);
+			}
+			return;
+		}
+		case FuncType::StaticLinked:
+		case FuncType::CFuncPointer: {
+			Issue("got unexpected local func type {}", s_cast<int>(funcType));
 			return;
 		}
 	}
@@ -2250,6 +2385,14 @@ Scheduler* WasmRuntime::getPostScheduler() {
 }
 
 uint32_t WasmRuntime::getMemorySize() const noexcept {
+	uint32_t totalSize = 0;
+	for (const auto& instance : _instances) {
+		totalSize += instance->getMemorySize();
+	}
+	return totalSize;
+}
+
+uint32_t WasmInstance::getMemorySize() const noexcept {
 	uint32_t totalSize = 0;
 	if (_wasm.first) {
 		totalSize += _wasm.second;
@@ -2298,6 +2441,14 @@ void WasmRuntime::scheduleUpdate() {
 
 void WasmRuntime::clear() {
 	unscheduleUpdate();
+	for (auto& instance : _instances) {
+		releaseModuleId(instance->getModuleId());
+		instance->clear();
+	}
+	_instances.clear();
+}
+
+void WasmInstance::clear() {
 	_callFunc = nullptr;
 	_derefFunc = nullptr;
 	_runtime = nullptr;
@@ -2308,11 +2459,41 @@ void WasmRuntime::clear() {
 }
 
 bool WasmRuntime::isInWasm() {
-	return _callFromWasm > 0;
+	return s_callFromWasm > 0;
 }
 
-uint8_t* WasmRuntime::getMemoryAddress(int32_t wasmAddr) {
+uint8_t* WasmInstance::getMemoryAddress(int32_t wasmAddr) {
 	return _runtime->get_address(wasmAddr);
+}
+
+uint8_t WasmRuntime::allocModuleId(WasmInstance* instance) {
+	for (uint16_t moduleId = s_cast<uint16_t>(FuncType::WasmProvided); moduleId <= 250; moduleId++) {
+		if (!_instanceMap[moduleId]) {
+			_instanceMap[moduleId] = instance;
+			return s_cast<uint8_t>(moduleId);
+		}
+	}
+	Error("too many wasm instances loaded");
+	return 0;
+}
+
+void WasmRuntime::releaseModuleId(uint8_t moduleId) {
+	if (moduleId < _instanceMap.size()) {
+		_instanceMap[moduleId] = nullptr;
+	}
+}
+
+WasmInstance* WasmRuntime::getInstanceByFuncId(int32_t funcId) const {
+	auto moduleId = s_cast<uint8_t>(funcId >> 24);
+	return _instanceMap[moduleId];
+}
+
+uint8_t WasmInstance::getModuleId() const {
+	return _moduleId;
+}
+
+void WasmInstance::setModuleId(uint8_t moduleId) {
+	_moduleId = moduleId;
 }
 
 void WasmRuntime::buildWaAsync(String fullPath, const std::function<void(String)>& callback) {
