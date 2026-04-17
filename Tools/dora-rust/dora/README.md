@@ -1,5 +1,7 @@
 # Dora SSR
 
+English | [简体中文](README.zh-CN.md)
+
 &emsp;&emsp;Dora SSR is a game engine for rapid development of 2D games on various devices. It has a built-in easy-to-use development tool chain that supports direct game development on mobile phones, open source handhelds and other devices.
 
 ## Key Features
@@ -108,19 +110,19 @@
 2. Step 2: Write game code
 
     - Create a new project in command line.
-    
+
       ```sh
       rustup target add wasm32-wasi
       cargo new hello-dora --name init
       cd hello-dora
       cargo add dora_ssr
       ```
-    
+
     - Write code in `src/main.rs`.
-    
+
       ```rust
       use dora_ssr::*;
-      
+
       fn main () {
         let mut sprite = match Sprite::with_file("Image/logo.png") {
           Some(sprite) => sprite,
@@ -140,17 +142,17 @@
         }));
       }
       ```
-      
+
     - Build it into WASM file.
-    
+
       ```sh
       cargo build --release --target wasm32-wasi
       ```
-    
+
     - Upload it to engine to run. From Dora SSR Web IDE, Open the right-click menu of the game resource tree on the created folder `Hello`. Click on the menu item `Upload` and choose the compiled WASM file named `init.wasm` to upload.
-    
-    - Or use a helper script [upload.py](https://github.com/IppClub/Dora-SSR/blob/main/Tools/dora-rust/dora-test/upload.py) with commad `python3 upload.py "192.168.3.1" "Hello"` inside your Rust project folder to upload WASM file. The IP address is the Dora SSR Web IDE address.
-    
+
+    - Or install the unified [dora-cli](https://github.com/IppClub/Dora-SSR/blob/main/Tools/dora-cli) tool with `uv tool install Tools/dora-cli` and run `dora rust run Hello --host 192.168.3.1` inside your Rust project folder. The IP address is the Dora SSR Web IDE address.
+
 3. Step 3: Run the game
 
     Click the `🎮` icon in the lower right corner of the editor, then click the menu item `Run`. Or press the key combination `Ctrl + r`.

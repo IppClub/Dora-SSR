@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dora-cli"
+version = "0.1.0"
+description = "CLI tool for Dora SSR TypeScript, Rust, and Wa projects."
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = ["requests>=2.31.0"]
+
+[project.scripts]
+dora = "dora:main"
+
+[tool.setuptools]
+py-modules = ["dora"]

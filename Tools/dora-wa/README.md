@@ -1,5 +1,7 @@
 # Dora SSR Wa Package
 
+English | [简体中文](README.zh-CN.md)
+
 A language binding project that enables Wa-lang integration with the Dora SSR game engine.
 
 ## About
@@ -25,7 +27,7 @@ This repo provides language bindings and a testing project to demonstrate Wa-lan
 
 - Install Wa-lang compiler
 
-    See [Wa-lang Installation Guide](https://wa-lang.github.io/man/en/1.InstallAndGetStart/1.2.Install.html)
+    See [Wa-lang Installation Guide](https://wa-lang.org/tutorial/)
 
 ## Usage
 
@@ -87,7 +89,7 @@ This repo provides language bindings and a testing project to demonstrate Wa-lan
 
     - Upload it to engine to run. From Dora SSR Web IDE, Open the right-click menu of the game resource tree on the created folder `Hello`. Click on the menu item `Upload` and choose the compiled WASM file named `output/init.wasm` to upload.
 
-    - Or use the helper script [upload.py](upload.py) with commad `python3 upload.py 192.168.3.1 Hello` inside your Wa project folder to upload WASM file. The IP address is the Dora SSR Web IDE address.
+    - Or install the unified [dora-cli](https://github.com/IppClub/Dora-SSR/blob/main/Tools/dora-cli/README.md) tool from Dora SSR repo with `uv tool install Tools/dora-cli` and run `dora wa run Hello --host 192.168.3.1` inside your Wa project folder. The IP address is the Dora SSR Web IDE address.
 
 3. Step 3: Run the game
 
