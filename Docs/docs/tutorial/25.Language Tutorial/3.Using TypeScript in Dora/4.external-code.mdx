@@ -48,7 +48,29 @@ export function bar(): void;
 
 In this way, you can seamlessly call Lua code from TypeScript while keeping the benefits of type checking.
 
-## 2. Importing a Lua Module that Only Exports an Array Object
+## 2. Using dora-cli for External TypeScript Projects
+
+If you are developing a TypeScript project outside Dora SSR's Web IDE, you can use [dora-cli](https://github.com/IppClub/Dora-SSR/tree/main/Tools/dora-cli) to initialize the project, build it, and run it against a running Dora SSR instance.
+
+##### Typical workflow:
+
+```sh
+uv tool install Dora-SSR/Tools/dora-cli
+cd your-ts-project
+dora ts init -l en
+dora ts build
+dora ts run --host 192.168.3.1
+```
+
+If your project is large, you can build and run only the changed entry or target file more quickly:
+
+```sh
+dora ts buildrun -f src/module.ts --host 192.168.3.1
+```
+
+The `--host` parameter should be the address shown by Dora SSR's Web IDE after startup.
+
+## 3. Importing a Lua Module that Only Exports an Array Object
 
 Sometimes, a Lua file might only export an array object without named or default exports. In this case, writing the definition file in TypeScript becomes slightly more complex.
 
@@ -89,7 +111,7 @@ print(things[0].foo); // Outputs "123"
 
 In this case, the `export =` syntax handles Lua files without named exports, allowing TypeScript to correctly perform type checking.
 
-## 3. Watch Out for Lua and TypeScript Syntax Differences
+## 4. Watch Out for Lua and TypeScript Syntax Differences
 
 When converting TypeScript code to Lua, there are a few syntax differences you need to be aware of:
 
@@ -105,13 +127,13 @@ When converting TypeScript code to Lua, there are a few syntax differences you n
 
 	Lua functions can return multiple values, a feature not supported by TypeScript. When calling Lua functions in TypeScript, you may need to wrap the return values appropriately.
 
-## 4. Debugging Lua and TypeScript in Dora SSR
+## 5. Debugging Lua and TypeScript in Dora SSR
 
 Dora SSR’s Web IDE provides features like code inspection, syntax highlighting, and error prompts for TypeScript code. However, when integrating Lua modules, you should pay attention to the following:
 
 - **Type Checking**: Create `.d.ts` declaration files for Lua files to ensure TypeScript performs proper type checking.
 - **Runtime Errors**: Since TypeScript code is compiled into Lua, runtime error messages will initially point to the generated Lua files. Dora SSR maps the error information, such as line numbers, back to the original TypeScript source files, which are displayed in the Web IDE console.
 
-## 5. Conclusion
+## 6. Conclusion
 
 When developing with TypeScript to Lua in Dora SSR, it’s essential to handle the differences between TypeScript and Lua languages flexibly. By creating appropriate declaration files, you can easily integrate Lua code while maintaining type safety in TypeScript. Understanding these differences and making full use of Dora SSR’s development toolchain will make your development process smoother.

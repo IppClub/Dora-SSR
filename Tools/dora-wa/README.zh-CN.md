@@ -85,7 +85,7 @@
 
     - 上传到引擎中运行。在 Dora SSR Web IDE 中，打开游戏资源树中新建目录 `Hello` 的右键菜单，点击 `Upload`，选择编译得到的 `output/init.wasm` 文件。
 
-    - 或者安装统一的 [dora-cli](https://github.com/IppClub/Dora-SSR/blob/main/Tools/dora-cli/README.zh-CN.md) 工具，在 Dora SSR 仓库目录中运行 `uv tool install Tools/dora-cli`，然后执行 `dora wa run Hello --host 192.168.3.1`。这里的 IP 地址是 Dora SSR Web IDE 的地址，`Hello` 是 Dora SSR 资源树中的目标目录名。
+    - 或者安装统一的 [dora-cli](https://github.com/IppClub/Dora-SSR/blob/main/Tools/dora-cli/README.zh-CN.md) 工具，在 Dora SSR 仓库目录中运行 `uv tool install Dora-SSR/Tools/dora-cli`，然后执行 `dora wa run Hello --host 192.168.3.1`。这里的 IP 地址是 Dora SSR Web IDE 的地址，`Hello` 是 Dora SSR 资源树中的目标目录名。
 
 3. 第三步：运行游戏
 

@@ -29,7 +29,7 @@ This tool provides a streamlined workflow for Dora SSR projects. It handles Type
 
 3. **Install the CLI**
    ```bash
-   uv tool install Tools/dora-cli
+   uv tool install Dora-SSR/Tools/dora-cli
    ```
 
    Or run it without installing:

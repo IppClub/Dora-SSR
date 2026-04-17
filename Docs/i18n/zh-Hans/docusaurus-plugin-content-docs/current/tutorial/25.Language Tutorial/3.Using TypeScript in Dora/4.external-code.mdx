@@ -48,7 +48,29 @@ export function bar(): void;
 
 &emsp;&emsp;通过这种方式，你可以在 TypeScript 中无缝调用 Lua 代码，同时保持类型检查的优势。
 
-## 2. 导入一个仅导出数组对象的 Lua 模块
+## 2. 使用 dora-cli 管理外部 TypeScript 项目
+
+&emsp;&emsp;如果你是在 Dora SSR 的 Web IDE 之外开发 TypeScript 项目，也可以使用 [dora-cli](https://github.com/IppClub/Dora-SSR/tree/main/Tools/dora-cli) 来初始化项目、构建代码，并连接到一个正在运行的 Dora SSR 实例执行它。
+
+##### 典型工作流：
+
+```sh
+uv tool install Dora-SSR/Tools/dora-cli
+cd your-ts-project
+dora ts init -l en
+dora ts build
+dora ts run --host 192.168.3.1
+```
+
+&emsp;&emsp;如果项目较大，也可以只构建并运行改动的目标文件，以加快迭代速度：
+
+```sh
+dora ts buildrun -f src/module.ts --host 192.168.3.1
+```
+
+&emsp;&emsp;其中 `--host` 参数应填写 Dora SSR Web IDE 启动后显示的地址。
+
+## 3. 导入一个仅导出数组对象的 Lua 模块
 
 &emsp;&emsp;有时，Lua 文件仅导出一个数组对象，而没有命名导出或进行默认导出。此时，在 TypeScript 中为其编写定义文件会稍微更麻烦一点。
 
@@ -89,7 +111,7 @@ print(things[0].foo); // 输出 "123"
 
 &emsp;&emsp;这种情况下，`export =` 语法用于处理没有命名导出的 Lua 文件，让 TypeScript 能够正确地进行类型检查。
 
-## 3. 注意 Lua 和 TypeScript 语法差异
+## 4. 注意 Lua 和 TypeScript 语法差异
 
 &emsp;&emsp;在将 TypeScript 代码转换为 Lua 时，有一些特定的语法差异需要注意：
 
@@ -105,13 +127,13 @@ print(things[0].foo); // 输出 "123"
 
 	Lua 函数可以返回多个值，而 TypeScript 不支持此特性。因此，在 TypeScript 中调用 Lua 函数时，可能需要对返回值进行适当的封装。
 
-## 4. 在 Dora SSR 中调试 Lua 与 TypeScript
+## 5. 在 Dora SSR 中调试 Lua 与 TypeScript
 
 &emsp;&emsp;Dora SSR 的 Web IDE 提供了 TypeScript 代码的检查. 语法高亮和错误提示功能。然而，当你集成 Lua 模块时，需要注意以下几点：
 
 - **类型检查**：为 Lua 文件编写 `.d.ts` 声明文件，确保 TypeScript 能正确进行类型检查。
 - **运行时错误**：由于 TypeScript 编译后生成的是 Lua 代码，运行时的错误提示会首先指向生成的 Lua 文件，然后 Dora SSR 会把错误信息比如代码行号等映射回 TypeScript 源文件，并在 Web IDE 控制台中输出显示。
 
-## 5. 结论
+## 6. 结论
 
 &emsp;&emsp;在 Dora SSR 中使用 TypeScript To Lua 进行开发时，灵活处理 TypeScript 和 Lua 语言的差异非常重要。通过创建合适的声明文件，你可以轻松地集成 Lua 代码，并在 TypeScript 中保持代码的类型安全。了解这些差异，并善加利用 Dora SSR 提供的开发工具链，可以让你的开发过程更加顺畅。

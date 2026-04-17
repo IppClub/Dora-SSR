@@ -89,7 +89,7 @@ This repo provides language bindings and a testing project to demonstrate Wa-lan
 
     - Upload it to engine to run. From Dora SSR Web IDE, Open the right-click menu of the game resource tree on the created folder `Hello`. Click on the menu item `Upload` and choose the compiled WASM file named `output/init.wasm` to upload.
 
-    - Or install the unified [dora-cli](https://github.com/IppClub/Dora-SSR/blob/main/Tools/dora-cli/README.md) tool from Dora SSR repo with `uv tool install Tools/dora-cli` and run `dora wa run Hello --host 192.168.3.1` inside your Wa project folder. The IP address is the Dora SSR Web IDE address.
+    - Or install the unified [dora-cli](https://github.com/IppClub/Dora-SSR/blob/main/Tools/dora-cli/README.md) tool from Dora SSR repo with `uv tool install Dora-SSR/Tools/dora-cli` and run `dora wa run Hello --host 192.168.3.1` inside your Wa project folder. The IP address is the Dora SSR Web IDE address.
 
 3. Step 3: Run the game
 

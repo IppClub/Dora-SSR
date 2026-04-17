@@ -94,15 +94,16 @@ In the Dora SSR Web IDE, right-click the newly created 'Hello' folder, select 'U
    Uploading files through the Web IDE
 </p>
 
-Alternatively, use a helper script to upload the WASM file within the Rust project folder. Here’s the command, where the IP parameter should be the address shown in Dora SSR’s Web IDE after startup, and the last parameter is the relative path of the directory to upload:
+Alternatively, install the unified Dora CLI and build, upload, and run the WASM file directly within the Rust project folder. The `Hello` parameter is the destination folder name in the Dora SSR resource tree, and the IP parameter should be the address shown in Dora SSR’s Web IDE after startup:
 
 ```shell
-python3 upload.py "192.168.3.1" "Hello"
+uv tool install Dora-SSR/Tools/dora-cli
+dora rust run Hello --host 192.168.3.1
 ```
 
 <p align="center">
-  <img src={require('@site/static/img/article/rusty-3.jpg').default} alt="Using a script for one-click compile, upload, and run"/>
-   Using a script for one-click compile, upload, and run
+  <img src={require('@site/static/img/article/rusty-3.jpg').default} alt="Using dora-cli for one-click compile, upload, and run"/>
+   Using dora-cli for one-click compile, upload, and run
 </p>
 
 #### Step Four: Publish the Game

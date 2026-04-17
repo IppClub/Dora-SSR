@@ -29,7 +29,7 @@
 
 3. **安装 CLI 工具**
    ```bash
-   uv tool install ./Tools/dora-cli
+   uv tool install Dora-SSR/Tools/dora-cli
    ```
 
    或者不安装，直接运行：
