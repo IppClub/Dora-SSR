@@ -125,6 +125,7 @@ add_library(main SHARED
 	src/main/cpp/Basic/Content.cpp
 	src/main/cpp/Basic/Application.cpp
 	src/main/cpp/Effect/Effect.cpp
+	src/main/cpp/Effect/Material.cpp
 	src/main/cpp/Animation/ModelDef.cpp
 	src/main/cpp/Animation/Animation.cpp
 	src/main/cpp/Animation/Action.cpp
@@ -154,7 +155,9 @@ add_library(main SHARED
 	src/main/cpp/GUI/ImGuiDora.cpp
 	src/main/cpp/GUI/ImGuiBinding.cpp
 	src/main/cpp/Render/Camera.cpp
+	src/main/cpp/Render/Camera3D.cpp
 	src/main/cpp/Render/RenderTarget.cpp
+	src/main/cpp/Render/RenderPass3D.cpp
 	src/main/cpp/Render/Renderer.cpp
 	src/main/cpp/Render/VGRender.cpp
 	src/main/cpp/Render/View.cpp
@@ -174,6 +177,7 @@ add_library(main SHARED
 	src/main/cpp/Node/Sprite.cpp
 	src/main/cpp/Node/Grid.cpp
 	src/main/cpp/Node/Node.cpp
+	src/main/cpp/Node/Node3D.cpp
 	src/main/cpp/Node/Label.cpp
 	src/main/cpp/Node/ClipNode.cpp
 	src/main/cpp/Node/Model.cpp
@@ -184,6 +188,8 @@ add_library(main SHARED
 	src/main/cpp/Node/EffekNode.cpp
 	src/main/cpp/Node/TileNode.cpp
 	src/main/cpp/Node/AudioSource.cpp
+	src/main/cpp/Node/Visual3D.cpp
+	src/main/cpp/Node/Scene3DIn2D.cpp
 	src/main/cpp/Node/VideoNode.cpp
 	src/main/cpp/Node/TIC80Node.cpp
 	src/main/cpp/Event/EventType.cpp

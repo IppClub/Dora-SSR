@@ -176,6 +176,7 @@ add_executable(dora-ssr
 	../../Source/Basic/Content.cpp
 	../../Source/Basic/Application.cpp
 	../../Source/Effect/Effect.cpp
+	../../Source/Effect/Material.cpp
 	../../Source/Animation/ModelDef.cpp
 	../../Source/Animation/Animation.cpp
 	../../Source/Animation/Action.cpp
@@ -205,7 +206,9 @@ add_executable(dora-ssr
 	../../Source/GUI/ImGuiDora.cpp
 	../../Source/GUI/ImGuiBinding.cpp
 	../../Source/Render/Camera.cpp
+	../../Source/Render/Camera3D.cpp
 	../../Source/Render/RenderTarget.cpp
+	../../Source/Render/RenderPass3D.cpp
 	../../Source/Render/Renderer.cpp
 	../../Source/Render/VGRender.cpp
 	../../Source/Render/View.cpp
@@ -225,6 +228,7 @@ add_executable(dora-ssr
 	../../Source/Node/Sprite.cpp
 	../../Source/Node/Grid.cpp
 	../../Source/Node/Node.cpp
+	../../Source/Node/Node3D.cpp
 	../../Source/Node/Label.cpp
 	../../Source/Node/ClipNode.cpp
 	../../Source/Node/Model.cpp
@@ -235,6 +239,8 @@ add_executable(dora-ssr
 	../../Source/Node/EffekNode.cpp
 	../../Source/Node/TileNode.cpp
 	../../Source/Node/AudioSource.cpp
+	../../Source/Node/Visual3D.cpp
+	../../Source/Node/Scene3DIn2D.cpp
 	../../Source/Node/VideoNode.cpp
 	../../Source/Node/TIC80Node.cpp
 	../../Source/Event/EventType.cpp
