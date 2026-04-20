@@ -31,6 +31,17 @@ type ParamItem = {
 	value?: string;
 };
 
+type SubAgentListItem = {
+	sessionId?: number;
+	title?: string;
+	status?: string;
+	goal?: string;
+	summary?: string;
+	resultFilePath?: string;
+	artifactDir?: string;
+	finishedAt?: string;
+};
+
 const stepActionButtonSx = {
 	color: Color.TextSecondary,
 	borderColor: Color.Line,
@@ -144,6 +155,17 @@ function summarizeToolParams(step: AgentSessionStep, t: (key: string, options?: 
 			push(t("agent.paramLabels.buildTarget"), path !== "" ? path : t("agent.workspace"));
 			return items;
 		}
+		case "list_sub_agents": {
+			const status = typeof params.status === "string" ? params.status : "";
+			const limit = typeof params.limit === "number" ? params.limit : undefined;
+			const offset = typeof params.offset === "number" ? params.offset : undefined;
+			const query = typeof params.query === "string" ? params.query : "";
+			push(t("agent.paramLabels.status"), status);
+			if (limit !== undefined) push(t("agent.paramLabels.limit"), String(limit));
+			if (offset !== undefined && offset > 0) push(t("agent.paramLabels.offset"), String(offset));
+			push(t("agent.paramLabels.query"), query);
+			return items;
+		}
 		case "compress_memory": {
 			const round = typeof params.round === "number" ? params.round : undefined;
 			const pendingMessages = typeof params.pendingMessages === "number" ? params.pendingMessages : undefined;
@@ -153,6 +175,62 @@ function summarizeToolParams(step: AgentSessionStep, t: (key: string, options?: 
 		}
 		default:
 			return items;
+	}
+}
+
+function getListedSubAgents(step: AgentSessionStep): SubAgentListItem[] {
+	if (step.tool !== "list_sub_agents" || !step.result || typeof step.result !== "object") {
+		return [];
+	}
+	const result = step.result as { sessions?: unknown };
+	if (!Array.isArray(result.sessions)) {
+		return [];
+	}
+	return result.sessions
+		.filter(item => item && typeof item === "object")
+		.map(item => item as Record<string, unknown>)
+		.map(item => ({
+			sessionId: typeof item.sessionId === "number" ? item.sessionId : undefined,
+			title: typeof item.title === "string" ? item.title : "",
+			status: typeof item.status === "string" ? item.status : "",
+			goal: typeof item.goal === "string" ? item.goal : "",
+			summary: typeof item.summary === "string" ? item.summary : "",
+			resultFilePath: typeof item.resultFilePath === "string" ? item.resultFilePath : "",
+			artifactDir: typeof item.artifactDir === "string" ? item.artifactDir : "",
+			finishedAt: typeof item.finishedAt === "string" ? item.finishedAt : "",
+		}));
+}
+
+function getSubAgentHandoffMeta(step: AgentSessionStep): {
+	summary: string;
+	resultFilePath: string;
+	artifactDir: string;
+	finishedAt: string;
+	success?: boolean;
+} | null {
+	if (step.tool !== "sub_agent_handoff" || !step.result || typeof step.result !== "object") {
+		return null;
+	}
+	const result = step.result as Record<string, unknown>;
+	return {
+		summary: typeof result.summary === "string" ? result.summary : step.reason,
+		resultFilePath: typeof result.resultFilePath === "string" ? result.resultFilePath : "",
+		artifactDir: typeof result.artifactDir === "string" ? result.artifactDir : "",
+		finishedAt: typeof result.finishedAt === "string" ? result.finishedAt : "",
+		success: result.success === true ? true : (result.success === false ? false : undefined),
+	};
+}
+
+function getStatusChipColor(status: string) {
+	switch (status) {
+		case "RUNNING":
+			return { borderColor: "rgba(120,170,255,0.35)", color: "rgb(140,188,255)" };
+		case "DONE":
+			return { borderColor: "rgba(120,200,140,0.35)", color: "rgb(140,220,160)" };
+		case "FAILED":
+			return { borderColor: "rgba(255,140,140,0.35)", color: "rgb(255,170,170)" };
+		default:
+			return { borderColor: Color.Line, color: Color.TextSecondary };
 	}
 }
 
@@ -195,6 +273,9 @@ export default function AgentStepList(props: AgentStepListProps) {
 				const buildErrorsOpened = openedBuildErrors[step.id] === true;
 				const hasReasoning = step.reasoningContent.trim() !== "";
 				const primaryContent = step.reason || (hasReasoning ? step.reasoningContent : "");
+				const handoffMeta = getSubAgentHandoffMeta(step);
+				const visiblePrimaryContent = step.tool === "sub_agent_handoff" ? "" : primaryContent;
+				const listedSubAgents = getListedSubAgents(step);
 				const historyEntryPreview = step.tool === "compress_memory" && typeof step.result?.historyEntryPreview === "string"
 					? step.result.historyEntryPreview
 					: "";
@@ -223,7 +304,7 @@ export default function AgentStepList(props: AgentStepListProps) {
 							<Chip size="small" label={step.status} variant="outlined" sx={{ borderColor: Color.Line, color: Color.TextSecondary }} />
 						) : null}
 					</Stack>
-					{primaryContent !== "" ? (
+					{visiblePrimaryContent !== "" ? (
 						<Box
 							sx={{
 								mt: 1,
@@ -241,13 +322,120 @@ export default function AgentStepList(props: AgentStepListProps) {
 								'& .markdown-body > :last-child': { marginBottom: 0 },
 							}}
 						>
-							<Markdown content={primaryContent} contentPadding={0} />
+							<Markdown content={visiblePrimaryContent} contentPadding={0} />
 						</Box>
 					) : null}
 					{historyEntryPreview !== "" ? (
 						<Typography variant="body2" sx={{ color: Color.TextSecondary, whiteSpace: "pre-wrap", lineHeight: 1.6, mt: 0.75 }}>
 							{historyEntryPreview}
 						</Typography>
+					) : null}
+					{handoffMeta ? (
+						<Box sx={{ mt: 1.25 }}>
+							<Stack spacing={1}>
+								{handoffMeta.summary ? (
+									<Box
+										sx={{
+											padding: 0,
+											width: '100%',
+											maxWidth: '100%',
+											minWidth: 0,
+											backgroundColor: "transparent",
+											color: Color.TextPrimary,
+											fontSize: 16,
+											lineHeight: 1.65,
+											'& .markdown-body p': { whiteSpace: 'pre-wrap' },
+											'& .markdown-body > :first-of-type': { marginTop: 0 },
+											'& .markdown-body > :last-child': { marginBottom: 0 },
+										}}
+									>
+										<Markdown content={handoffMeta.summary} contentPadding={0} />
+									</Box>
+								) : null}
+								<Stack direction="row" spacing={1} alignItems="center" useFlexGap flexWrap="wrap">
+									{handoffMeta.success !== undefined ? (
+										<Chip
+											size="small"
+											label={handoffMeta.success ? t("agent.subAgentResult.done") : t("agent.subAgentResult.failed")}
+											variant="outlined"
+											sx={{
+												height: 22,
+												...(handoffMeta.success
+													? { borderColor: "rgba(120,200,140,0.35)", color: "rgb(140,220,160)" }
+													: { borderColor: "rgba(255,140,140,0.35)", color: "rgb(255,170,170)" }),
+											}}
+										/>
+									) : null}
+									{handoffMeta.finishedAt ? (
+										<Typography variant="caption" sx={{ color: Color.TextSecondary }}>
+											{handoffMeta.finishedAt}
+										</Typography>
+									) : null}
+								</Stack>
+								{handoffMeta.artifactDir ? (
+									<Typography variant="body2" sx={{ color: Color.TextSecondary, lineHeight: 1.6 }}>
+										{t("agent.subAgentResult.artifactDir")}: {handoffMeta.artifactDir}
+									</Typography>
+								) : null}
+							</Stack>
+						</Box>
+					) : null}
+					{listedSubAgents.length > 0 ? (
+						<Stack spacing={1} sx={{ mt: 1.25 }}>
+							{listedSubAgents.map((item, index) => {
+								const chipSx = getStatusChipColor(item.status ?? "");
+								return (
+									<Box
+										key={`${item.sessionId ?? 0}:${item.title ?? ""}:${index}`}
+										sx={{
+											border: `0.5px solid ${Color.Line}`,
+											borderRadius: 2,
+											px: 1.25,
+											py: 1,
+											backgroundColor: "rgba(255,255,255,0.02)",
+										}}
+									>
+										<Stack direction="row" spacing={1} alignItems="center" useFlexGap flexWrap="wrap">
+											<Chip
+												size="small"
+												label={item.status ?? "UNKNOWN"}
+												variant="outlined"
+												sx={{ height: 22, ...chipSx }}
+											/>
+											<Typography variant="body2" sx={{ color: Color.TextPrimary }}>
+												{item.title || `sub agent ${item.sessionId ?? "?"}`}
+											</Typography>
+										</Stack>
+										{item.resultFilePath ? (
+											<Typography variant="caption" sx={{ color: Color.TextSecondary, display: "block", mt: 0.75 }}>
+												{t("agent.subAgentResult.resultFile")}:{" "}
+												{onOpenFile ? (
+													<Box
+														component="button"
+														type="button"
+														onClick={() => onOpenFile(item.resultFilePath!)}
+														sx={{
+															display: "inline",
+															p: 0,
+															m: 0,
+															border: "none",
+															background: "none",
+															color: Color.TextPrimary,
+															cursor: "pointer",
+															font: "inherit",
+															textDecoration: "underline",
+															textUnderlineOffset: "2px",
+														}}
+													>
+														{item.resultFilePath}
+													</Box>
+												) : item.resultFilePath}
+											</Typography>
+										) : null}
+									</Box>
+								);
+							})}
+						</Stack>
 					) : null}
 					{paramItems.length > 0 ? (
 						<Typography variant="caption" sx={{ color: Color.TextSecondary, display: "block", mt: step.reason ? 0.75 : 1, lineHeight: 1.6 }}>

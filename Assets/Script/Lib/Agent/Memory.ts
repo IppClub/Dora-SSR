@@ -21,31 +21,6 @@ export interface PersistedSessionState {
 	messages: AgentConversationMessage[];
 }
 
-export interface MemoryMergeSpawnInfo {
-	prompt: string;
-	goal: string;
-	expectedOutput?: string;
-	filesHint?: string[];
-}
-
-export interface MemoryMergeJobData {
-	jobId: string;
-	rootAgentId: string;
-	sourceAgentId: string;
-	sourceTitle: string;
-	createdAt: string;
-	spawn: MemoryMergeSpawnInfo;
-	memory: {
-		finalMemory: string;
-	};
-	attempts?: number;
-	lastError?: string;
-}
-
-export interface MemoryMergeJob extends MemoryMergeJobData {
-	path: string;
-}
-
 interface HistoryRecord {
 	ts: string;
 	summary?: string;
@@ -839,166 +814,6 @@ ${memory}`;
 	}
 }
 
-export class MemoryMergeQueue {
-	private queueDir: string;
-
-	constructor(projectDir: string) {
-		this.queueDir = Path(projectDir, ".agent", "memory-merge-queue");
-		this.ensureQueueDir();
-	}
-
-	private ensureQueueDir(): void {
-		if (!Content.exist(this.queueDir)) {
-			ensureDirRecursive(this.queueDir);
-		}
-	}
-
-	private encodeJson(value: unknown): string | undefined {
-		const [text] = safeJsonEncode(value as object);
-		return text;
-	}
-
-	private decodeJson(text: string): unknown {
-		const [value] = safeJsonDecode(text);
-		return value;
-	}
-
-	private sanitizeJobRecord(value: unknown, path: string): MemoryMergeJob | undefined {
-		if (!value || isArray(value) || !isRecord(value)) return undefined;
-		const row = value;
-		const jobId = typeof row.jobId === "string" ? sanitizeUTF8(row.jobId) : "";
-		const rootAgentId = typeof row.rootAgentId === "string" ? sanitizeUTF8(row.rootAgentId) : "";
-		const sourceAgentId = typeof row.sourceAgentId === "string" ? sanitizeUTF8(row.sourceAgentId) : "";
-		const sourceTitle = typeof row.sourceTitle === "string" ? sanitizeUTF8(row.sourceTitle) : "";
-		const createdAt = typeof row.createdAt === "string" ? sanitizeUTF8(row.createdAt) : "";
-		const spawnValue = row.spawn;
-		const memoryValue = row.memory;
-		if (jobId === "" || rootAgentId === "" || sourceAgentId === "" || sourceTitle === "" || createdAt === "") {
-			return undefined;
-		}
-		if (!spawnValue || isArray(spawnValue) || !isRecord(spawnValue)) return undefined;
-		if (!memoryValue || isArray(memoryValue) || !isRecord(memoryValue)) return undefined;
-		const prompt = typeof spawnValue.prompt === "string" ? sanitizeUTF8(spawnValue.prompt) : "";
-		const goal = typeof spawnValue.goal === "string" ? sanitizeUTF8(spawnValue.goal) : "";
-		const expectedOutput = typeof spawnValue.expectedOutput === "string"
-			? sanitizeUTF8(spawnValue.expectedOutput)
-			: undefined;
-		const filesHint = isArray(spawnValue.filesHint)
-			? spawnValue.filesHint
-				.filter(item => typeof item === "string")
-				.map(item => sanitizeUTF8(item))
-			: undefined;
-		const finalMemory = typeof memoryValue.finalMemory === "string"
-			? sanitizeUTF8(memoryValue.finalMemory)
-			: "";
-		if (prompt === "" || goal === "" || finalMemory.trim() === "") {
-			return undefined;
-		}
-		return {
-			jobId,
-			rootAgentId,
-			sourceAgentId,
-			sourceTitle,
-			createdAt,
-			spawn: {
-				prompt,
-				goal,
-				expectedOutput,
-				filesHint,
-			},
-			memory: {
-				finalMemory,
-			},
-			attempts: typeof row.attempts === "number" ? math.max(0, math.floor(row.attempts)) : undefined,
-			lastError: typeof row.lastError === "string" ? sanitizeUTF8(row.lastError) : undefined,
-			path,
-		};
-	}
-
-	private toPersistedJob(job: MemoryMergeJobData): MemoryMergeJobData {
-		return {
-			jobId: job.jobId,
-			rootAgentId: job.rootAgentId,
-			sourceAgentId: job.sourceAgentId,
-			sourceTitle: job.sourceTitle,
-			createdAt: job.createdAt,
-			spawn: {
-				prompt: job.spawn.prompt,
-				goal: job.spawn.goal,
-				expectedOutput: job.spawn.expectedOutput,
-				filesHint: job.spawn.filesHint,
-			},
-			memory: {
-				finalMemory: job.memory.finalMemory,
-			},
-			attempts: job.attempts,
-			lastError: job.lastError,
-		};
-	}
-
-	listJobs(): MemoryMergeJob[] {
-		this.ensureQueueDir();
-		if (!Content.exist(this.queueDir) || !Content.isdir(this.queueDir)) {
-			return [];
-		}
-		const jobs: MemoryMergeJob[] = [];
-		const files = Content.getFiles(this.queueDir) ?? [];
-		files.sort();
-		for (let i = 0; i < files.length; i++) {
-			const rawPath = files[i];
-			const ext = Path.getExt(rawPath);
-			if (ext !== "json") continue;
-			const path = Path(this.queueDir, rawPath);
-			const text = Content.load(path) as string;
-			if (!text || text.trim() === "") continue;
-			const job = this.sanitizeJobRecord(this.decodeJson(text), path);
-			if (job) {
-				jobs.push(job);
-			} else {
-				Log("Warn", `[MemoryMergeQueue] Ignored invalid job file: ${path}`);
-			}
-		}
-		jobs.sort((a, b) => a.jobId < b.jobId ? -1 : (a.jobId > b.jobId ? 1 : 0));
-		return jobs;
-	}
-
-	readOldestJob(): MemoryMergeJob | undefined {
-		const jobs = this.listJobs();
-		return jobs.length > 0 ? jobs[0] : undefined;
-	}
-
-	writeJob(job: MemoryMergeJobData): { success: true; path: string } | { success: false; message: string } {
-		this.ensureQueueDir();
-		const path = Path(this.queueDir, `${sanitizeUTF8(job.jobId)}.json`);
-		const text = this.encodeJson(this.toPersistedJob(job));
-		if (!text) {
-			return { success: false, message: "failed to encode memory merge job" };
-		}
-		if (!Content.save(path, `${text}\n`)) {
-			return { success: false, message: `failed to save memory merge job: ${path}` };
-		}
-		sendWebIDEFileUpdate(path, true, `${text}\n`);
-		return { success: true, path };
-	}
-
-	updateJobFailure(job: MemoryMergeJob, error: string): boolean {
-		return this.writeJob({
-			...job,
-			attempts: math.max(0, math.floor(job.attempts ?? 0)) + 1,
-			lastError: sanitizeUTF8(error),
-		}).success;
-	}
-
-	deleteJob(path: string): boolean {
-		if (!path || !Content.exist(path)) return true;
-		const ok = Content.remove(path);
-		if (ok) {
-			sendWebIDEFileUpdate(path, false, "");
-		}
-		return ok;
-	}
-}
-
 /**
  * Memory 压缩器
  *
@@ -1009,7 +824,6 @@ export class MemoryMergeQueue {
  */
 export class MemoryCompressor {
 	private storage: DualLayerStorage;
-	private mergeQueue: MemoryMergeQueue;
 	private config: Omit<MemoryConfig, "promptPack"> & { promptPack: AgentPromptPack };
 	private consecutiveFailures: number = 0;
 
@@ -1036,7 +850,6 @@ export class MemoryCompressor {
 			math.max(0.05, this.config.compressionTargetThreshold)
 		);
 		this.storage = new DualLayerStorage(this.config.projectDir, this.config.scope ?? "");
-		this.mergeQueue = new MemoryMergeQueue(this.config.projectDir);
 	}
 
 	getPromptPack(): AgentPromptPack {
@@ -1635,60 +1448,6 @@ ${this.config.promptPack.memoryCompressionXmlPrompt}`;
 		};
 	}
 
-	private formatMemoryMergeJobForCompression(job: MemoryMergeJobData): string {
-		const lines: string[] = [
-			"### Sub-Agent Memory Handoff",
-			`job_id=${job.jobId}`,
-			`root_agent_id=${job.rootAgentId}`,
-			`source_agent_id=${job.sourceAgentId}`,
-			`source_title=${job.sourceTitle}`,
-			`created_at=${job.createdAt}`,
-			"",
-			"### Spawn Task",
-			`prompt=${job.spawn.prompt}`,
-			`goal=${job.spawn.goal}`,
-		];
-		if (job.spawn.expectedOutput && job.spawn.expectedOutput !== "") {
-			lines.push(`expected_output=${job.spawn.expectedOutput}`);
-		}
-		if (job.spawn.filesHint && job.spawn.filesHint.length > 0) {
-			lines.push("files_hint=" + job.spawn.filesHint.join(", "));
-		}
-		lines.push("", "### Final Sub-Agent Memory", job.memory.finalMemory);
-		return lines.join("\n");
-	}
-
-	async mergeSubAgentMemory(
-		job: MemoryMergeJobData,
-		llmOptions: Record<string, unknown>,
-		maxLLMTry = 3,
-		decisionMode: MemoryCompressionDecisionMode = "tool_calling",
-		debugContext?: MemoryCompressionDebugContext
-	): Promise<CompressionResult> {
-		const currentMemory = this.storage.readMemory();
-		const historyText = this.formatMemoryMergeJobForCompression(job);
-		const result = await this.callLLMForCompression(
-			currentMemory,
-			historyText,
-			llmOptions,
-			maxLLMTry,
-			decisionMode,
-			debugContext
-		);
-		if (!result.success) {
-			return result;
-		}
-		this.storage.writeMemory(result.memoryUpdate);
-		if (result.ts) {
-			this.storage.appendHistoryRecord({
-				ts: result.ts,
-				summary: result.summary,
-			});
-		}
-		this.consecutiveFailures = 0;
-		return result;
-	}
-
 	/**
 	 * 处理压缩失败
 	 */
@@ -1736,10 +1495,6 @@ ${this.config.promptPack.memoryCompressionXmlPrompt}`;
 	 */
 	getStorage(): DualLayerStorage {
 		return this.storage;
-	}
-
-	getMergeQueue(): MemoryMergeQueue {
-		return this.mergeQueue;
 	}
 
 	getMaxCompressionRounds(): number {

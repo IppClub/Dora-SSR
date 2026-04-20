@@ -155,8 +155,6 @@ HttpServer\post "/agent/task/status", (req): invalidArguments ->
 			success: true
 			session: res.session
 			relatedSessions: res.relatedSessions
-			pendingMergeCount: res.pendingMergeCount
-			pendingMergeJobs: res.pendingMergeJobs
 			spawnInfo: res.spawnInfo
 			messages: res.messages
 			steps: res.steps

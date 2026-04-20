@@ -2,7 +2,7 @@
 import { App, Content, DB, Path, HttpServer, emit } from 'Dora';
 import { runCodingAgent, CodingAgentEvent, CodingAgentRunResult, truncateAgentUserPrompt } from 'Agent/CodingAgent';
 import * as Tools from 'Agent/Tools';
-import { DualLayerStorage, MemoryMergeQueue } from 'Agent/Memory';
+import { DualLayerStorage } from 'Agent/Memory';
 import { Log, safeJsonDecode, safeJsonEncode, sanitizeUTF8 } from 'Agent/Utils';
 import type { StopToken } from 'Agent/Utils';
 
@@ -55,28 +55,29 @@ export interface AgentSessionStepItem {
 }
 
 export interface AgentSessionSpawnInfo {
+	sessionId?: number;
+	rootSessionId?: number;
+	parentSessionId?: number;
+	title?: string;
 	prompt: string;
 	goal: string;
 	expectedOutput?: string;
 	filesHint?: string[];
+	status?: "RUNNING" | "DONE" | "FAILED";
+	success?: boolean;
+	resultFilePath?: string;
+	artifactDir?: string;
+	sourceTaskId?: number;
 	createdAt?: string;
-}
-
-export interface AgentPendingMergeJobItem {
-	jobId: string;
-	sourceAgentId: string;
-	sourceTitle: string;
-	createdAt: string;
-	attempts?: number;
-	lastError?: string;
+	finishedAt?: string;
+	createdAtTs?: number;
+	finishedAtTs?: number;
 }
 
 export type AgentSessionDetailResult = {
 	success: true;
 	session: AgentSessionItem;
 	relatedSessions: AgentSessionItem[];
-	pendingMergeCount: number;
-	pendingMergeJobs: AgentPendingMergeJobItem[];
 	spawnInfo?: AgentSessionSpawnInfo;
 	messages: AgentSessionMessageItem[];
 	steps: AgentSessionStepItem[];
@@ -102,20 +103,69 @@ export type AgentRunningSessionListResult = {
 	message: string;
 };
 
+export type AgentRunningSubAgentInfo = {
+	sessionId: number;
+	title: string;
+	parentSessionId?: number;
+	rootSessionId: number;
+	status: "RUNNING" | "DONE" | "FAILED";
+	currentTaskId?: number;
+	currentTaskStatus?: AgentSessionStatus;
+	goal?: string;
+	expectedOutput?: string;
+	filesHint?: string[];
+	summary?: string;
+	success?: boolean;
+	resultFilePath?: string;
+	artifactDir?: string;
+	finishedAt?: string;
+	createdAt: number;
+	updatedAt: number;
+};
+
+export type AgentRunningSubAgentListResult = {
+	success: true;
+	rootSessionId: number;
+	maxConcurrent: number;
+	status: string;
+	limit: number;
+	offset: number;
+	hasMore: boolean;
+	sessions: AgentRunningSubAgentInfo[];
+} | {
+	success: false;
+	message: string;
+};
+
 const TABLE_SESSION = "AgentSession";
 const TABLE_MESSAGE = "AgentSessionMessage";
 const TABLE_STEP = "AgentSessionStep";
 const TABLE_TASK = "AgentTask";
 const AGENT_SESSION_SCHEMA_VERSION = 2;
 const SPAWN_INFO_FILE = "SPAWN.json";
-const FINALIZE_INFO_FILE = "FINALIZE.json";
+const RESULT_FILE = "RESULT.md";
 const PENDING_HANDOFF_DIR = "pending-handoffs";
 const MAX_CONCURRENT_SUB_AGENTS = 4;
 
-interface AgentSessionFinalizeInfo {
+interface SubAgentResultRecord {
+	sessionId: number;
+	rootSessionId: number;
+	parentSessionId?: number;
+	title: string;
+	prompt: string;
+	goal: string;
+	expectedOutput?: string;
+	filesHint?: string[];
+	status: "DONE" | "FAILED";
+	success: boolean;
+	summary?: string;
+	resultFilePath: string;
+	artifactDir: string;
 	sourceTaskId: number;
-	message: string;
-	createdAt?: string;
+	createdAt: string;
+	finishedAt: string;
+	createdAtTs: number;
+	finishedAtTs: number;
 }
 
 interface PendingSubAgentHandoffItem {
@@ -128,6 +178,10 @@ interface PendingSubAgentHandoffItem {
 	goal: string;
 	expectedOutput?: string;
 	filesHint?: string[];
+	success?: boolean;
+	resultFilePath?: string;
+	artifactDir?: string;
+	finishedAt?: string;
 	createdAt: string;
 }
 
@@ -336,20 +390,20 @@ function countRunningSubSessions(rootSessionId: number): number {
 	return count;
 }
 
-function deleteSessionRecords(sessionId: number) {
+function deleteSessionRecords(sessionId: number, preserveArtifacts = false) {
 	const session = getSessionItem(sessionId);
 	const children = queryRows(`SELECT id FROM ${TABLE_SESSION} WHERE parent_session_id = ?`, [sessionId]) ?? [];
 	for (let i = 0; i < children.length; i++) {
 		const row = children[i] as any[];
 		if (typeof row[0] === "number" && row[0] > 0) {
-			deleteSessionRecords(row[0] as number);
+			deleteSessionRecords(row[0] as number, preserveArtifacts);
 		}
 	}
 	DB.exec(`DELETE FROM ${TABLE_SESSION} WHERE parent_session_id = ?`, [sessionId]);
 	DB.exec(`DELETE FROM ${TABLE_STEP} WHERE session_id = ?`, [sessionId]);
 	DB.exec(`DELETE FROM ${TABLE_MESSAGE} WHERE session_id = ?`, [sessionId]);
 	DB.exec(`DELETE FROM ${TABLE_SESSION} WHERE id = ?`, [sessionId]);
-	if (session && session.kind === "sub" && session.memoryScope !== "") {
+	if (!preserveArtifacts && session && session.kind === "sub" && session.memoryScope !== "") {
 		Content.remove(Path(session.projectRoot, ".agent", session.memoryScope));
 	}
 }
@@ -379,32 +433,31 @@ function listRelatedSessions(sessionId: number): AgentSessionItem[] {
 	return rows.map(row => normalizeSessionRuntimeState(rowToSession(row as any[])));
 }
 
-function getPendingMergeCount(projectRoot: string): number {
-	return new MemoryMergeQueue(projectRoot).listJobs().length;
-}
-
-function listPendingMergeJobs(projectRoot: string): AgentPendingMergeJobItem[] {
-	return new MemoryMergeQueue(projectRoot).listJobs().map(job => ({
-		jobId: job.jobId,
-		sourceAgentId: job.sourceAgentId,
-		sourceTitle: job.sourceTitle,
-		createdAt: job.createdAt,
-		attempts: job.attempts,
-		lastError: job.lastError,
-	}));
-}
-
 function getSessionSpawnInfo(session: AgentSessionItem): AgentSessionSpawnInfo | undefined {
 	const info = readSpawnInfo(session.projectRoot, session.memoryScope);
 	if (!info) return undefined;
 	return {
+		sessionId: typeof info.sessionId === "number" ? info.sessionId : undefined,
+		rootSessionId: typeof info.rootSessionId === "number" ? info.rootSessionId : undefined,
+		parentSessionId: typeof info.parentSessionId === "number" ? info.parentSessionId : undefined,
+		title: typeof info.title === "string" ? sanitizeUTF8(info.title) : undefined,
 		prompt: typeof info.prompt === "string" ? sanitizeUTF8(info.prompt) : "",
 		goal: typeof info.goal === "string" ? sanitizeUTF8(info.goal) : "",
 		expectedOutput: typeof info.expectedOutput === "string" ? sanitizeUTF8(info.expectedOutput) : undefined,
 		filesHint: Array.isArray(info.filesHint)
 			? (info.filesHint as unknown[]).filter(item => typeof item === "string").map(item => sanitizeUTF8(item as string))
 			: undefined,
+		status: sanitizeUTF8(toStr(info.status)) === "FAILED"
+			? "FAILED"
+			: (sanitizeUTF8(toStr(info.status)) === "DONE" ? "DONE" : (sanitizeUTF8(toStr(info.status)) === "RUNNING" ? "RUNNING" : undefined)),
+		success: info.success === true ? true : (info.success === false ? false : undefined),
+		resultFilePath: typeof info.resultFilePath === "string" ? sanitizeUTF8(info.resultFilePath) : undefined,
+		artifactDir: typeof info.artifactDir === "string" ? sanitizeUTF8(info.artifactDir) : undefined,
+		sourceTaskId: typeof info.sourceTaskId === "number" ? info.sourceTaskId : undefined,
 		createdAt: typeof info.createdAt === "string" ? sanitizeUTF8(info.createdAt) : undefined,
+		finishedAt: typeof info.finishedAt === "string" ? sanitizeUTF8(info.finishedAt) : undefined,
+		createdAtTs: typeof info.createdAtTs === "number" ? info.createdAtTs : undefined,
+		finishedAtTs: typeof info.finishedAtTs === "number" ? info.finishedAtTs : undefined,
 	};
 }
 
@@ -441,7 +494,12 @@ function writeSpawnInfo(projectRoot: string, memoryScope: string, value: Record<
 	const path = Path(dir, SPAWN_INFO_FILE);
 	const [text] = safeJsonEncode(value as object);
 	if (!text) return false;
-	return Content.save(path, `${text}\n`);
+	const content = `${text}\n`;
+	if (!Content.save(path, content)) {
+		return false;
+	}
+	Tools.sendWebIDEFileUpdate(path, true, content);
+	return true;
 }
 
 function readSpawnInfo(projectRoot: string, memoryScope: string): Record<string, unknown> | undefined {
@@ -456,42 +514,110 @@ function readSpawnInfo(projectRoot: string, memoryScope: string): Record<string,
 	return undefined;
 }
 
-function writeFinalizeInfo(projectRoot: string, memoryScope: string, value: AgentSessionFinalizeInfo): boolean {
-	const dir = Path(projectRoot, ".agent", memoryScope);
+function getArtifactRelativeDir(memoryScope: string): string {
+	return Path(".agent", memoryScope);
+}
+
+function getArtifactDir(projectRoot: string, memoryScope: string): string {
+	return Path(projectRoot, getArtifactRelativeDir(memoryScope));
+}
+
+function getResultRelativePath(memoryScope: string): string {
+	return Path(getArtifactRelativeDir(memoryScope), RESULT_FILE);
+}
+
+function getResultPath(projectRoot: string, memoryScope: string): string {
+	return Path(projectRoot, getResultRelativePath(memoryScope));
+}
+
+function readSubAgentResultSummary(projectRoot: string, resultFilePath: string): string {
+	if (!resultFilePath || resultFilePath === "") return "";
+	const path = Path(projectRoot, resultFilePath);
+	if (!Content.exist(path)) return "";
+	const text = sanitizeUTF8(Content.load(path) as string);
+	if (!text || text.trim() === "") return "";
+	const marker = "\n## Summary\n";
+	const [start] = string.find(text, marker, 1, true);
+	if (start !== undefined) {
+		return string.sub(text, start + marker.length).trim();
+	}
+	return text.trim();
+}
+
+function containsNormalizedText(text: string, query: string): boolean {
+	const normalizedText = string.lower(sanitizeUTF8(text ?? ""));
+	const normalizedQuery = string.lower(sanitizeUTF8(query ?? ""));
+	if (normalizedQuery === "") return true;
+	return string.find(normalizedText, normalizedQuery, 1, true) !== undefined;
+}
+
+function writeSubAgentResultFile(session: AgentSessionItem, record: SubAgentResultRecord, resultText: string): boolean {
+	const dir = getArtifactDir(session.projectRoot, session.memoryScope);
 	if (!Content.exist(dir)) {
 		ensureDirRecursive(dir);
 	}
-	const path = Path(dir, FINALIZE_INFO_FILE);
-	const [text] = safeJsonEncode(value as unknown as object);
-	if (!text) return false;
-	return Content.save(path, `${text}\n`);
+	const lines = [
+		`# ${record.title !== "" ? record.title : `Sub Agent ${tostring(record.sessionId)}`}`,
+		`- Status: ${record.status}`,
+		`- Success: ${record.success ? "true" : "false"}`,
+		`- Session ID: ${tostring(record.sessionId)}`,
+		`- Source Task ID: ${tostring(record.sourceTaskId)}`,
+		`- Goal: ${record.goal}`,
+		...(record.expectedOutput && record.expectedOutput !== "" ? [`- Expected Output: ${record.expectedOutput}`] : []),
+		...(record.filesHint && record.filesHint.length > 0 ? [`- Files Hint: ${record.filesHint.join(", ")}`] : []),
+		`- Finished At: ${record.finishedAt}`,
+		"",
+		"## Summary",
+		resultText !== "" ? resultText : "(empty)",
+	];
+	const path = getResultPath(session.projectRoot, session.memoryScope);
+	const content = `${lines.join("\n")}\n`;
+	if (!Content.save(path, content)) {
+		return false;
+	}
+	Tools.sendWebIDEFileUpdate(path, true, content);
+	return true;
 }
 
-function readFinalizeInfo(projectRoot: string, memoryScope: string): AgentSessionFinalizeInfo | undefined {
-	const path = Path(projectRoot, ".agent", memoryScope, FINALIZE_INFO_FILE);
-	if (!Content.exist(path)) return undefined;
-	const text = Content.load(path) as string;
-	if (!text || text.trim() === "") return undefined;
-	const [value] = safeJsonDecode(text);
-	if (value && !Array.isArray(value) && type(value) === "table") {
-		const sourceTaskId = tonumber((value as any).sourceTaskId);
-		if (!(sourceTaskId && sourceTaskId > 0)) return undefined;
-		return {
-			sourceTaskId,
-			message: sanitizeUTF8(toStr((value as any).message)),
-			createdAt: typeof (value as any).createdAt === "string"
-				? sanitizeUTF8((value as any).createdAt)
-				: undefined,
-		};
+function listSubAgentResultRecords(projectRoot: string, rootSessionId: number): SubAgentResultRecord[] {
+	const dir = Path(projectRoot, ".agent", "subagents");
+	if (!Content.exist(dir) || !Content.isdir(dir)) return [];
+	const items: SubAgentResultRecord[] = [];
+	for (const rawPath of Content.getDirs(dir)) {
+		const path = Content.isAbsolutePath(rawPath) ? rawPath : Path(dir, rawPath);
+		if (!Content.exist(path) || !Content.isdir(path)) continue;
+		const info = readSpawnInfo(projectRoot, Path("subagents", Path.getFilename(path)));
+		if (!info) continue;
+		const sessionId = tonumber((info as any).sessionId);
+		const infoRootSessionId = tonumber((info as any).rootSessionId);
+		const sourceTaskId = tonumber((info as any).sourceTaskId);
+		const status = sanitizeUTF8(toStr((info as any).status));
+		if (!(sessionId && sessionId > 0) || !(infoRootSessionId && infoRootSessionId > 0) || infoRootSessionId !== rootSessionId) continue;
+		if (status !== "DONE" && status !== "FAILED") continue;
+		items.push({
+			sessionId,
+			rootSessionId: infoRootSessionId,
+			parentSessionId: tonumber((info as any).parentSessionId) || undefined,
+			title: sanitizeUTF8(toStr((info as any).title)),
+			prompt: sanitizeUTF8(toStr((info as any).prompt)),
+			goal: sanitizeUTF8(toStr((info as any).goal)),
+			expectedOutput: sanitizeUTF8(toStr((info as any).expectedOutput)),
+			filesHint: Array.isArray((info as any).filesHint)
+				? ((info as any).filesHint as unknown[]).filter(item => typeof item === "string").map(item => sanitizeUTF8(item as string))
+				: [],
+			status: status === "FAILED" ? "FAILED" : "DONE",
+			success: (info as any).success === true,
+			resultFilePath: sanitizeUTF8(toStr((info as any).resultFilePath)),
+			artifactDir: sanitizeUTF8(toStr((info as any).artifactDir)) || getArtifactRelativeDir(Path("subagents", Path.getFilename(path))),
+			sourceTaskId: sourceTaskId || 0,
+			createdAt: sanitizeUTF8(toStr((info as any).createdAt)),
+			finishedAt: sanitizeUTF8(toStr((info as any).finishedAt)),
+			createdAtTs: tonumber((info as any).createdAtTs) || 0,
+			finishedAtTs: tonumber((info as any).finishedAtTs) || 0,
+		});
 	}
-	return undefined;
-}
-
-function deleteFinalizeInfo(projectRoot: string, memoryScope: string): void {
-	const path = Path(projectRoot, ".agent", memoryScope, FINALIZE_INFO_FILE);
-	if (Content.exist(path)) {
-		Content.remove(path);
-	}
+	items.sort((a, b) => a.finishedAtTs > b.finishedAtTs ? -1 : (a.finishedAtTs < b.finishedAtTs ? 1 : 0));
+	return items;
 }
 
 function getPendingHandoffDir(projectRoot: string, memoryScope: string): string {
@@ -543,6 +669,10 @@ function listPendingHandoffs(projectRoot: string, memoryScope: string): PendingS
 			filesHint: Array.isArray((value as any).filesHint)
 				? ((value as any).filesHint as unknown[]).filter(item => typeof item === "string").map(item => sanitizeUTF8(item as string))
 				: [],
+			success: (value as any).success === true,
+			resultFilePath: sanitizeUTF8(toStr((value as any).resultFilePath)),
+			artifactDir: sanitizeUTF8(toStr((value as any).artifactDir)),
+			finishedAt: sanitizeUTF8(toStr((value as any).finishedAt)),
 			createdAt,
 		});
 	}
@@ -858,16 +988,12 @@ function emitSessionDeletedPatch(sessionId: number, rootSessionId: number, proje
 	emitAgentSessionPatch(sessionId, {
 		sessionDeleted: true,
 		relatedSessions: listRelatedSessions(rootSessionId),
-		pendingMergeCount: getPendingMergeCount(projectRoot),
-		pendingMergeJobs: listPendingMergeJobs(projectRoot),
 	});
 	const rootSession = getSessionItem(rootSessionId);
 	if (rootSession) {
 		emitAgentSessionPatch(rootSessionId, {
 			session: rootSession,
 			relatedSessions: listRelatedSessions(rootSessionId),
-			pendingMergeCount: getPendingMergeCount(projectRoot),
-			pendingMergeJobs: listPendingMergeJobs(projectRoot),
 		});
 	}
 }
@@ -914,6 +1040,11 @@ function flushPendingSubAgentHandoffs(rootSession: AgentSessionItem): void {
 				sourceSessionId: item.sourceSessionId,
 				sourceTitle: item.sourceTitle,
 				sourceTaskId: item.sourceTaskId,
+				success: item.success === true,
+				summary: item.message,
+				resultFilePath: item.resultFilePath ?? "",
+				artifactDir: item.artifactDir ?? "",
+				finishedAt: item.finishedAt ?? "",
 			},
 			{
 				sourceSessionId: item.sourceSessionId,
@@ -922,6 +1053,8 @@ function flushPendingSubAgentHandoffs(rootSession: AgentSessionItem): void {
 				goal: item.goal !== "" ? item.goal : item.sourceTitle,
 				expectedOutput: item.expectedOutput ?? "",
 				filesHint: item.filesHint ?? [],
+				resultFilePath: item.resultFilePath ?? "",
+				artifactDir: item.artifactDir ?? "",
 			},
 			"DONE",
 		);
@@ -1000,45 +1133,6 @@ function applyEvent(sessionId: number, event: CodingAgentEvent) {
 				step: getStepItem(sessionId, event.taskId, event.step),
 			});
 			break;
-		case "memory_merge_started": {
-			upsertStep(sessionId, event.taskId, event.step, "merge_memory", {
-				status: "RUNNING",
-				reason: getDefaultUseChineseResponse()
-					? `正在合并来自 \`${event.sourceTitle}\` 的记忆。`
-					: `Pending memory merge from \`${event.sourceTitle}\`.`,
-				params: {
-					jobId: event.jobId,
-					sourceAgentId: event.sourceAgentId,
-					sourceTitle: event.sourceTitle,
-				},
-			});
-			emitAgentSessionPatch(sessionId, {
-				step: getStepItem(sessionId, event.taskId, event.step),
-			});
-			break;
-		}
-		case "memory_merge_finished": {
-			upsertStep(sessionId, event.taskId, event.step, "merge_memory", {
-				status: event.success ? "DONE" : "FAILED",
-				reason: sanitizeUTF8(event.message),
-				params: {
-					jobId: event.jobId,
-					sourceAgentId: event.sourceAgentId,
-					sourceTitle: event.sourceTitle,
-				},
-				result: {
-					success: event.success,
-					attempts: event.attempts,
-					jobId: event.jobId,
-					sourceAgentId: event.sourceAgentId,
-					sourceTitle: event.sourceTitle,
-				},
-			});
-			emitAgentSessionPatch(sessionId, {
-				step: getStepItem(sessionId, event.taskId, event.step),
-			});
-			break;
-		}
 		case "assistant_message_updated": {
 			upsertStep(sessionId, event.taskId, event.step, "message", {
 				status: "RUNNING",
@@ -1302,11 +1396,23 @@ async function spawnSubAgentSession(request: {
 		return created;
 	}
 	writeSpawnInfo(created.session.projectRoot, created.session.memoryScope, {
+		sessionId: created.session.id,
+		rootSessionId: created.session.rootSessionId,
+		parentSessionId: created.session.parentSessionId,
+		title: created.session.title,
 		prompt: normalizedPrompt,
 		goal: normalizedTitle !== "" ? normalizedTitle : request.title,
 		expectedOutput: request.expectedOutput ?? "",
 		filesHint: request.filesHint ?? [],
+		status: "RUNNING",
+		success: false,
+		resultFilePath: "",
+		artifactDir: getArtifactRelativeDir(created.session.memoryScope),
+		sourceTaskId: 0,
 		createdAt: os.date("!%Y-%m-%dT%H:%M:%SZ"),
+		createdAtTs: created.session.createdAt,
+		finishedAt: "",
+		finishedAtTs: 0,
 	});
 	const sent = sendPrompt(created.session.id, normalizedPrompt, true);
 	if (!sent.success) {
@@ -1382,68 +1488,15 @@ export function getSession(sessionId: number): AgentSessionDetailResult {
 		success: true,
 		session: normalizedSession,
 		relatedSessions,
-		pendingMergeCount: getPendingMergeCount(normalizedSession.projectRoot),
-		pendingMergeJobs: listPendingMergeJobs(normalizedSession.projectRoot),
 		spawnInfo: normalizedSession.kind === "sub" ? getSessionSpawnInfo(normalizedSession) : undefined,
 		messages: messages.map(row => rowToMessage(row as any[])),
 		steps: steps.map(row => rowToStep(row as any[])),
 	};
 }
 
-function buildSubAgentMemoryMergeJob(session: AgentSessionItem): { success: true } | { success: false; message: string } {
-	if (session.kind !== "sub") {
-		return { success: true };
-	}
-	const rootSession = getRootSessionItem(session.id);
-	if (!rootSession) {
-		return { success: false, message: "root session not found" };
-	}
-	const storage = new DualLayerStorage(session.projectRoot, session.memoryScope);
-	const finalMemory = storage.readMemory();
-	if (finalMemory.trim() === "") {
-		return { success: false, message: "sub session memory is empty" };
-	}
-	const queue = new MemoryMergeQueue(session.projectRoot);
-	const spawnInfo = readSpawnInfo(session.projectRoot, session.memoryScope);
-	const createdAt = os.date("!%Y-%m-%dT%H:%M:%SZ");
-	const [sanitizedTitle] = string.gsub(session.title, "[^%w_-]", "_");
-	const [cleanedTime1] = string.gsub(createdAt, "[-:]", "");
-	const [cleanedTime2] = string.gsub(cleanedTime1, "%.%d+Z$", "Z");
-	const jobId = `${cleanedTime2}_${sanitizeUTF8(sanitizedTitle)}_${tostring(session.id)}`;
-	const result = queue.writeJob({
-		jobId,
-		rootAgentId: tostring(rootSession.id),
-		sourceAgentId: tostring(session.id),
-		sourceTitle: session.title,
-		createdAt,
-		spawn: {
-			prompt: typeof spawnInfo?.prompt === "string"
-				? spawnInfo.prompt as string
-				: session.title,
-			goal: typeof spawnInfo?.goal === "string"
-				? spawnInfo.goal as string
-				: session.title,
-			expectedOutput: typeof spawnInfo?.expectedOutput === "string"
-				? spawnInfo.expectedOutput as string
-				: "",
-			filesHint: Array.isArray(spawnInfo?.filesHint)
-				? spawnInfo.filesHint as string[]
-				: [],
-		},
-		memory: {
-			finalMemory,
-		},
-	});
-	if (!result.success) {
-		return result;
-	}
-	return { success: true };
-}
-
-function appendSubAgentHandoffStep(session: AgentSessionItem, taskId: number, message: string): void {
+function appendSubAgentHandoffStep(session: AgentSessionItem, taskId: number, result: SubAgentResultRecord, summary: string): void {
 	const rootSession = getRootSessionItem(session.id);
 	if (!rootSession) return;
-	const spawnInfo = getSessionSpawnInfo(session);
 	const createdAt = os.date("!%Y-%m-%dT%H:%M:%SZ");
 	const [cleanedTime1] = string.gsub(createdAt, "[-:]", "");
 	const [cleanedTime2] = string.gsub(cleanedTime1, "%.%d+Z$", "Z");
@@ -1452,11 +1505,15 @@ function appendSubAgentHandoffStep(session: AgentSessionItem, taskId: number, me
 		sourceSessionId: session.id,
 		sourceTitle: session.title,
 		sourceTaskId: taskId,
-		message: sanitizeUTF8(message),
-		prompt: spawnInfo?.prompt ?? "",
-		goal: spawnInfo?.goal ?? session.title,
-		expectedOutput: spawnInfo?.expectedOutput ?? "",
-		filesHint: spawnInfo?.filesHint ?? [],
+		message: summary,
+		prompt: result.prompt,
+		goal: result.goal,
+		expectedOutput: result.expectedOutput ?? "",
+		filesHint: result.filesHint ?? [],
+		success: result.success,
+		resultFilePath: result.resultFilePath,
+		artifactDir: result.artifactDir,
+		finishedAt: result.finishedAt,
 		createdAt,
 	});
 	if (!queueResult) {
@@ -1468,39 +1525,64 @@ function appendSubAgentHandoffStep(session: AgentSessionItem, taskId: number, me
 	}
 }
 
-function startSubSessionFinalize(session: AgentSessionItem, taskId: number, message: string): { success: true } | { success: false; message: string } {
-	if (!writeFinalizeInfo(session.projectRoot, session.memoryScope, {
-		sourceTaskId: taskId,
-		message: sanitizeUTF8(message),
-		createdAt: os.date("!%Y-%m-%dT%H:%M:%SZ"),
-	})) {
-		return { success: false, message: "failed to persist sub session finalize info" };
-	}
-	const compactPrompt = "/compact";
-	const sent = sendPrompt(session.id, compactPrompt, true);
-	if (!sent.success) {
-		deleteFinalizeInfo(session.projectRoot, session.memoryScope);
-		return sent;
-	}
-	return { success: true };
-}
-
-function completeSubSessionFinalizeAfterCompact(session: AgentSessionItem): { success: true } | { success: false; message: string } {
+function finalizeSubSession(session: AgentSessionItem, taskId: number, success: boolean, message: string): { success: true } | { success: false; message: string } {
 	const rootSessionId = getSessionRootId(session);
-	const projectRoot = session.projectRoot;
-	const finalizeInfo = readFinalizeInfo(projectRoot, session.memoryScope);
-	if (!finalizeInfo) {
-		return { success: false, message: "sub session finalize info not found" };
+	const rootSession = getRootSessionItem(session.id);
+	if (!rootSession) {
+		return { success: false, message: "root session not found" };
 	}
-	appendSubAgentHandoffStep(session, finalizeInfo.sourceTaskId, finalizeInfo.message);
-	const mergeResult = buildSubAgentMemoryMergeJob(session);
-	if (!mergeResult.success) {
-		Log("Warn", `[AgentSession] sub session merge handoff failed session=${session.id} error=${mergeResult.message}`);
-		return mergeResult;
+	const spawnInfo = getSessionSpawnInfo(session);
+	const finishedAt = os.date("!%Y-%m-%dT%H:%M:%SZ");
+	const finishedAtTs = now();
+	const resultText = sanitizeUTF8(message);
+	const record: SubAgentResultRecord = {
+		sessionId: session.id,
+		rootSessionId,
+		parentSessionId: session.parentSessionId,
+		title: session.title,
+		prompt: spawnInfo?.prompt ?? "",
+		goal: spawnInfo?.goal ?? session.title,
+		expectedOutput: spawnInfo?.expectedOutput ?? "",
+		filesHint: spawnInfo?.filesHint ?? [],
+		status: success ? "DONE" : "FAILED",
+		success,
+		resultFilePath: getResultRelativePath(session.memoryScope),
+		artifactDir: getArtifactRelativeDir(session.memoryScope),
+		sourceTaskId: taskId,
+		createdAt: spawnInfo?.createdAt ?? finishedAt,
+		finishedAt,
+		createdAtTs: session.createdAt,
+		finishedAtTs,
+	};
+	if (!writeSubAgentResultFile(session, record, resultText)) {
+		return { success: false, message: "failed to persist sub session result file" };
 	}
-	deleteFinalizeInfo(projectRoot, session.memoryScope);
-	deleteSessionRecords(session.id);
-	emitSessionDeletedPatch(session.id, rootSessionId, projectRoot);
+	if (!writeSpawnInfo(session.projectRoot, session.memoryScope, {
+		sessionId: record.sessionId,
+		rootSessionId: record.rootSessionId,
+		parentSessionId: record.parentSessionId,
+		title: record.title,
+		prompt: record.prompt,
+		goal: record.goal,
+		expectedOutput: record.expectedOutput ?? "",
+		filesHint: record.filesHint ?? [],
+		status: record.status,
+		success: record.success,
+		resultFilePath: record.resultFilePath,
+		artifactDir: record.artifactDir,
+		sourceTaskId: record.sourceTaskId,
+		createdAt: record.createdAt,
+		finishedAt: record.finishedAt,
+		createdAtTs: record.createdAtTs,
+		finishedAtTs: record.finishedAtTs,
+	})) {
+		return { success: false, message: "failed to persist sub session spawn info" };
+	}
+	if (success) {
+		appendSubAgentHandoffStep(session, taskId, record, resultText);
+	}
+	deleteSessionRecords(session.id, true);
+	emitSessionDeletedPatch(session.id, rootSessionId, rootSession.projectRoot);
 	return { success: true };
 }
 
@@ -1550,28 +1632,20 @@ export function sendPrompt(sessionId: number, prompt: string, allowSubSessionSta
 		spawnSubAgent: session.kind === "main"
 			? spawnSubAgentSession
 			: undefined,
+		listSubAgents: session.kind === "main"
+			? listRunningSubAgents
+			: undefined,
 		stopToken,
 		onEvent: event => applyEvent(sessionId, event),
 	}, async (result: CodingAgentRunResult) => {
 		const nextSession = getSessionItem(sessionId);
-		if (result.success) {
-			if (nextSession && nextSession.kind === "sub") {
-				if (normalizedPrompt.trim() === "/compact") {
-					if (readFinalizeInfo(nextSession.projectRoot, nextSession.memoryScope)) {
-						const finalized = completeSubSessionFinalizeAfterCompact(nextSession);
-						if (!finalized.success) {
-							Log("Warn", `[AgentSession] sub session compact finalize failed session=${nextSession.id} error=${finalized.message}`);
-						}
-					}
-				} else {
-					const started = startSubSessionFinalize(nextSession, taskId, result.message);
-					if (!started.success) {
-						Log("Warn", `[AgentSession] sub session finalize start failed session=${nextSession.id} error=${started.message}`);
-					}
-				}
+		if (nextSession && nextSession.kind === "sub") {
+			const finalized = finalizeSubSession(nextSession, taskId, result.success, result.message);
+			if (!finalized.success) {
+				Log("Warn", `[AgentSession] sub session finalize failed session=${nextSession.id} error=${finalized.message}`);
 			}
 		}
-		if (!result.success) {
+		if (!result.success && (!nextSession || nextSession.kind !== "sub")) {
 			applyEvent(sessionId, {
 				type: "task_finished",
 				sessionId,
@@ -1626,5 +1700,116 @@ export function listRunningSessions(): AgentRunningSessionListResult {
 	return {
 		success: true,
 		sessions,
+	};
+}
+
+export async function listRunningSubAgents(request: {
+	sessionId: number;
+	projectRoot?: string;
+	status?: string;
+	limit?: number;
+	offset?: number;
+	query?: string;
+}): Promise<AgentRunningSubAgentListResult> {
+	let session = getSessionItem(request.sessionId);
+	if (!session && request.projectRoot && request.projectRoot !== "") {
+		session = getLatestMainSessionByProjectRoot(request.projectRoot);
+	}
+	if (!session) {
+		return { success: false, message: "session not found" };
+	}
+	const rootSession = getRootSessionItem(session.id);
+	if (!rootSession) {
+		return { success: false, message: "root session not found" };
+	}
+	const requestedStatus = sanitizeUTF8(toStr(request.status)).trim();
+	const status = requestedStatus !== "" ? requestedStatus : "active_or_recent";
+	const limit = math.max(1, math.floor(tonumber(request.limit as any) || 5));
+	const offset = math.max(0, math.floor(tonumber(request.offset as any) || 0));
+	const query = sanitizeUTF8(toStr(request.query)).trim();
+	const rows = queryRows(
+		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at
+		FROM ${TABLE_SESSION}
+		WHERE root_session_id = ? AND kind = 'sub'
+		ORDER BY id ASC`,
+		[rootSession.id],
+	) ?? [];
+	const runningSessions: AgentRunningSubAgentInfo[] = [];
+	for (let i = 0; i < rows.length; i++) {
+		const current = normalizeSessionRuntimeState(rowToSession(rows[i] as any[]));
+		if (current.currentTaskStatus !== "RUNNING") {
+			continue;
+		}
+		const spawnInfo = getSessionSpawnInfo(current);
+		runningSessions.push({
+			sessionId: current.id,
+			title: current.title,
+			parentSessionId: current.parentSessionId,
+			rootSessionId: current.rootSessionId,
+			status: "RUNNING",
+			currentTaskId: current.currentTaskId,
+			currentTaskStatus: current.currentTaskStatus ?? current.status,
+			goal: spawnInfo?.goal,
+			expectedOutput: spawnInfo?.expectedOutput,
+			filesHint: spawnInfo?.filesHint,
+			createdAt: current.createdAt,
+			updatedAt: current.updatedAt,
+		});
+	}
+	const completedRecords = listSubAgentResultRecords(rootSession.projectRoot, rootSession.id);
+	const completedSessions: AgentRunningSubAgentInfo[] = completedRecords.map(record => ({
+		sessionId: record.sessionId,
+		title: record.title,
+		parentSessionId: record.parentSessionId,
+		rootSessionId: record.rootSessionId,
+		status: record.status,
+		goal: record.goal,
+		expectedOutput: record.expectedOutput,
+		filesHint: record.filesHint,
+		summary: readSubAgentResultSummary(rootSession.projectRoot, record.resultFilePath),
+		success: record.success,
+		resultFilePath: record.resultFilePath,
+		artifactDir: record.artifactDir,
+		finishedAt: record.finishedAt,
+		createdAt: record.createdAtTs,
+		updatedAt: record.finishedAtTs,
+	}));
+	let merged: AgentRunningSubAgentInfo[] = [];
+	if (status === "running") {
+		merged = runningSessions;
+	} else if (status === "done") {
+		merged = completedSessions.filter(item => item.status === "DONE");
+	} else if (status === "failed") {
+		merged = completedSessions.filter(item => item.status === "FAILED");
+	} else if (status === "all") {
+		merged = runningSessions.concat(completedSessions);
+	} else {
+		merged = runningSessions.concat(completedSessions);
+	}
+	if (query !== "") {
+		merged = merged.filter(item =>
+			containsNormalizedText(item.title, query)
+			|| containsNormalizedText(item.goal ?? "", query)
+			|| containsNormalizedText(item.summary ?? "", query)
+		);
+	}
+	merged.sort((a, b) => {
+		if (a.status === "RUNNING" && b.status !== "RUNNING") return -1;
+		if (a.status !== "RUNNING" && b.status === "RUNNING") return 1;
+		if (a.status === "RUNNING" || b.status === "RUNNING") {
+			return a.updatedAt > b.updatedAt ? -1 : (a.updatedAt < b.updatedAt ? 1 : 0);
+		}
+		return a.updatedAt > b.updatedAt ? -1 : (a.updatedAt < b.updatedAt ? 1 : 0);
+	});
+	const paged = merged.slice(offset, offset + limit);
+	return {
+		success: true,
+		rootSessionId: rootSession.id,
+		maxConcurrent: MAX_CONCURRENT_SUB_AGENTS,
+		status,
+		limit,
+		offset,
+		hasMore: offset + limit < merged.length,
+		sessions: paged,
 	};
 }

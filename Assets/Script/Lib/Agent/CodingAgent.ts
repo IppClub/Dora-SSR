@@ -495,6 +495,44 @@ export interface CodingAgentRunOptions {
 		| { success: true; sessionId: number; taskId: number; title: string }
 		| { success: false; message: string }
 	>;
+	listSubAgents?: (request: {
+		sessionId: number;
+		projectRoot?: string;
+		status?: string;
+		limit?: number;
+		offset?: number;
+		query?: string;
+	}) => Promise<
+		| {
+			success: true;
+			rootSessionId: number;
+			maxConcurrent: number;
+			status: string;
+			limit: number;
+			offset: number;
+			hasMore: boolean;
+			sessions: {
+				sessionId: number;
+				title: string;
+				parentSessionId?: number;
+				rootSessionId: number;
+				status: string;
+				currentTaskId?: number;
+				currentTaskStatus?: string;
+				goal?: string;
+				expectedOutput?: string;
+				filesHint?: string[];
+				summary?: string;
+				success?: boolean;
+				resultFilePath?: string;
+				artifactDir?: string;
+				finishedAt?: string;
+				createdAt: number;
+				updatedAt: number;
+			}[];
+		}
+		| { success: false; message: string }
+	>;
 	onEvent?: (event: CodingAgentEvent) => void;
 }
 
@@ -512,6 +550,7 @@ export type AgentToolName =
 	| "search_dora_api"
 	| "glob_files"
 	| "build"
+	| "list_sub_agents"
 	| "spawn_sub_agent"
 	| "finish";
 
@@ -584,27 +623,6 @@ export type CodingAgentEvent =
 		result: Record<string, unknown>;
 	}
 	| {
-		type: "memory_merge_started";
-		sessionId?: number;
-		taskId: number;
-		step: number;
-		jobId: string;
-		sourceAgentId: string;
-		sourceTitle: string;
-	}
-	| {
-		type: "memory_merge_finished";
-		sessionId?: number;
-		taskId: number;
-		step: number;
-		jobId: string;
-		sourceAgentId: string;
-		sourceTitle: string;
-		success: boolean;
-		message: string;
-		attempts?: number;
-	}
-	| {
 		type: "assistant_message_updated";
 		sessionId?: number;
 		taskId: number;
@@ -675,6 +693,7 @@ interface AgentShared {
 		loader: SkillsLoader;
 	};
 	spawnSubAgent?: CodingAgentRunOptions["spawnSubAgent"];
+	listSubAgents?: CodingAgentRunOptions["listSubAgents"];
 }
 
 function emitAgentEvent(shared: AgentShared, event: CodingAgentEvent) {
@@ -750,8 +769,8 @@ function getCancelledReason(shared: AgentShared): string {
 
 function getMaxStepsReachedReason(shared: AgentShared): string {
 	return shared.useChineseResponse
-		? `已达到最大执行步数限制（${shared.maxSteps} 步）。`
-		: `Maximum step limit reached (${shared.maxSteps} steps).`;
+		? `已达到最大执行步数限制（${shared.maxSteps} 步）。如需继续后续处理，请发送“继续”。`
+		: `Maximum step limit reached (${shared.maxSteps} steps). Send "continue" if you want to proceed with the remaining work.`;
 }
 
 function getFailureSummaryFallback(shared: AgentShared, error: string): string {
@@ -1082,12 +1101,23 @@ function getDecisionToolDefinitions(shared?: AgentShared): string {
 	);
 	const spawnTool = `
 
-9. spawn_sub_agent: Create and start a sub agent session for implementation work
+9. list_sub_agents: Query sub-agent state under the current main session
+	- Parameters: status(optional), limit(optional), offset(optional), query(optional)
+	- Use this only when you do not already know the current sub-agent status and need to inspect running delegated work or recent completed results before deciding whether to dispatch more sub agents or read a result file.
+	- status defaults to active_or_recent and may also be running, done, failed, or all.
+	- limit defaults to a small recent window. Use offset to page older items.
+	- query filters by title, goal, or summary text.
+	- Do not use this after a successful spawn_sub_agent in the same turn.
+
+10. spawn_sub_agent: Create and start a sub agent session for implementation work
 	- Parameters: title, prompt, expectedOutput(optional), filesHint(optional)
 	- Use this whenever the task requires direct coding, file editing, file deletion, build verification, documentation writing, or any other concrete execution work by a delegated sub agent.
 	- The spawned sub agent can use read_file, edit_file, delete_file, grep_files, search_dora_api, glob_files, build, and finish.
 	- title should be short and specific.
 	- prompt should be self-contained and actionable, and should clearly describe the concrete work to execute, constraints, desired output, and any relevant files.
+	- If spawn succeeds, immediately finish the current turn and state that the work has been delegated.
+	- Do not call list_sub_agents or any other tool after a successful spawn_sub_agent in the same turn.
+	- Treat the actual implementation result as an asynchronous handoff that will be handled in later conversation turns.
 	- filesHint is an optional list of likely files or directories.`;
 	const availability = shared
 		? `\n\nTool availability for this runtime:\n- role: ${shared.role}\n- allowed tools: ${getAllowedToolsForRole(shared.role).join(", ")}`
@@ -1328,6 +1358,7 @@ function isKnownToolName(name: string): name is AgentToolName {
 		|| name === "search_dora_api"
 		|| name === "glob_files"
 		|| name === "build"
+		|| name === "list_sub_agents"
 		|| name === "spawn_sub_agent"
 		|| name === "finish";
 }
@@ -1347,85 +1378,6 @@ function getFinishMessage(params: Record<string, unknown>, fallback = ""): strin
 
 function persistHistoryState(shared: AgentShared): void {
 	shared.memory.compressor.getStorage().writeSessionState(shared.messages);
-}
-
-async function maybeProcessPendingMemoryMerge(shared: AgentShared): Promise<void> {
-	if (shared.role !== "main") {
-		return;
-	}
-	const queue = shared.memory.compressor.getMergeQueue();
-	while (true) {
-		const job = queue.readOldestJob();
-		if (!job) {
-			return;
-		}
-		shared.step += 1;
-		const stepId = shared.step;
-		emitAgentEvent(shared, {
-			type: "memory_merge_started",
-			sessionId: shared.sessionId,
-			taskId: shared.taskId,
-			step: stepId,
-			jobId: job.jobId,
-			sourceAgentId: job.sourceAgentId,
-			sourceTitle: job.sourceTitle,
-		});
-		Log("Info", `[CodingAgent] processing memory merge job=${job.jobId} source=${job.sourceAgentId}`);
-		const result = await shared.memory.compressor.mergeSubAgentMemory(
-			job,
-			shared.llmOptions,
-			shared.llmMaxTry,
-			shared.decisionMode,
-			{
-				onInput: (phase, messages, options) => {
-					saveStepLLMDebugInput(shared, stepId, `${phase}_merge`, messages, options);
-				},
-				onOutput: (phase, text, meta) => {
-					saveStepLLMDebugOutput(shared, stepId, `${phase}_merge`, text, meta);
-				},
-			}
-		);
-		if (result.success) {
-			queue.deleteJob(job.path);
-			emitAgentEvent(shared, {
-				type: "memory_merge_finished",
-				sessionId: shared.sessionId,
-				taskId: shared.taskId,
-				step: stepId,
-				jobId: job.jobId,
-				sourceAgentId: job.sourceAgentId,
-				sourceTitle: job.sourceTitle,
-				success: true,
-				message: shared.useChineseResponse
-					? `已合并来自\`${job.sourceTitle}\`的子代理记忆。`
-					: `Merged sub-agent memory from \`${job.sourceTitle}\`.`,
-				attempts: job.attempts,
-			});
-			Log("Info", `[CodingAgent] memory merge job applied=${job.jobId}`);
-			continue;
-		}
-		queue.updateJobFailure(job, result.error ?? "memory merge failed");
-		const nextAttempts = (job.attempts ?? 0) + 1;
-		emitAgentEvent(shared, {
-			type: "memory_merge_finished",
-			sessionId: shared.sessionId,
-			taskId: shared.taskId,
-			step: stepId,
-			jobId: job.jobId,
-			sourceAgentId: job.sourceAgentId,
-			sourceTitle: job.sourceTitle,
-			success: false,
-			message: result.error ?? "memory merge failed",
-			attempts: nextAttempts,
-		});
-		Log("Warn", `[CodingAgent] memory merge job failed=${job.jobId} error=${result.error ?? "unknown"}`);
-		if (nextAttempts >= shared.llmMaxTry) {
-			throw new Error(shared.useChineseResponse
-				? `记忆合并任务多次失败，已中止当前会话。来源：${job.sourceTitle}，错误：${result.error ?? "unknown"}`
-				: `Memory merge job exceeded retry limit and aborted the current session. Source: ${job.sourceTitle}. Error: ${result.error ?? "unknown"}`);
-		}
-		continue;
-	}
 }
 
 function applyCompressedSessionState(
@@ -1673,6 +1625,19 @@ function validateDecision(
 		return { success: true, params };
 	}
 
+	if (tool === "list_sub_agents") {
+		const status = typeof params.status === "string" ? params.status.trim() : "";
+		if (status !== "") {
+			params.status = status;
+		}
+		params.limit = clampIntegerParam(params.limit, 5, 1);
+		params.offset = clampIntegerParam(params.offset, 0, 0);
+		if (typeof params.query === "string") {
+			params.query = params.query.trim();
+		}
+		return { success: true, params };
+	}
+
 	if (tool === "spawn_sub_agent") {
 		const prompt = typeof params.prompt === "string" ? params.prompt.trim() : "";
 		const title = typeof params.title === "string" ? params.title.trim() : "";
@@ -1719,7 +1684,7 @@ function createFunctionToolSchema(
 
 function getAllowedToolsForRole(role: AgentRole): AgentToolName[] {
 	return role === "main"
-		? ["read_file", "grep_files", "search_dora_api", "glob_files", "spawn_sub_agent", "finish"]
+		? ["read_file", "grep_files", "search_dora_api", "glob_files", "list_sub_agents", "spawn_sub_agent", "finish"]
 		: ["read_file", "edit_file", "delete_file", "grep_files", "search_dora_api", "glob_files", "build", "finish"];
 }
 
@@ -1802,8 +1767,18 @@ function buildDecisionToolSchema(shared: AgentShared) {
 			}
 		),
 		createFunctionToolSchema(
+			"list_sub_agents",
+			"Query current sub-agent state under the current main session, including running items and a small recent window of completed results. Use this only when you do not already know the current sub-agent state and need to decide whether to dispatch more sub agents or read a result file.",
+			{
+				status: { type: "string", enum: ["active_or_recent", "running", "done", "failed", "all"], description: "Optional status filter. Defaults to active_or_recent." },
+				limit: { type: "number", description: "Maximum number of items to return. Defaults to 5." },
+				offset: { type: "number", description: "Offset for paging older items." },
+				query: { type: "string", description: "Optional text filter matched against title, goal, or summary." },
+			}
+		),
+		createFunctionToolSchema(
 			"spawn_sub_agent",
-			"Create and start a sub agent session to execute concrete work. Use this when the task moves from discussion/search into coding, file editing, file deletion, build verification, documentation writing, or other execution-heavy work. The sub agent has the full execution toolset including edit_file, delete_file, and build.",
+			"Create and start a sub agent session to execute concrete work. Use this when the task moves from discussion/search into coding, file editing, file deletion, build verification, documentation writing, or other execution-heavy work. The sub agent has the full execution toolset including edit_file, delete_file, and build. If dispatch succeeds, you may immediately finish the current turn without waiting for completion; the sub agent result arrives asynchronously and should be handled in a later conversation turn.",
 			{
 				title: { type: "string", description: "Short tab title for the sub agent." },
 				prompt: { type: "string", description: "Detailed, self-contained task prompt sent to the sub agent. Describe the concrete work to execute, constraints, expected output, and relevant files when known." },
@@ -1825,9 +1800,13 @@ You are the main agent. Your job is to discuss plans with the user, inspect the 
 Rules:
 - Do not perform direct code editing, deletion, or build actions yourself.
 - Use spawn_sub_agent when the task requires concrete implementation or verification work.
+- Use list_sub_agents only when you do not already know the current sub-agent status and need to inspect running delegated work or recent completed results before deciding whether another delegation is necessary or whether to read a result file.
 - Code changes, file deletion, build/compile verification, and documentation writing should be delegated to a sub agent.
 - Keep sub-agent titles short and specific.
-- The sub-agent prompt should be self-contained and executable, and should explain the exact task, constraints, expected output, and relevant files when known.`
+- The sub-agent prompt should be self-contained and executable, and should explain the exact task, constraints, expected output, and relevant files when known.
+- After spawn_sub_agent succeeds, immediately finish the current turn and tell the user the work has been delegated.
+- After a successful spawn_sub_agent, do not call list_sub_agents or any other tool in the same turn.
+- Treat the sub-agent completion result as an asynchronous handoff that should be continued in later conversation turns.`
 		: `### Agent Role
 
 You are a sub agent. Your job is to execute concrete implementation, editing, and build work delegated by the main agent.
@@ -2169,7 +2148,6 @@ class MainDecisionAgent extends Node<AgentShared> {
 			return { shared };
 		}
 
-		await maybeProcessPendingMemoryMerge(shared);
 		await maybeCompressHistory(shared);
 
 		return { shared };
@@ -2813,7 +2791,72 @@ class SpawnSubAgentAction extends Node<AgentShared> {
 			sessionId: result.sessionId,
 			taskId: result.taskId,
 			title: result.title,
+			hint: "If the necessary sub-agents have already been dispatched, end this turn directly and do not immediately check their results.",
 		};
+	}
+
+	async post(shared: AgentShared, _prepRes: unknown, execRes: unknown): Promise<string | undefined> {
+		const last = shared.history[shared.history.length - 1];
+		if (last !== undefined) {
+			last.result = execRes as Record<string, unknown>;
+			appendToolResultMessage(shared, last);
+			emitAgentFinishEvent(shared, last);
+		}
+		persistHistoryState(shared);
+		await maybeCompressHistory(shared);
+		persistHistoryState(shared);
+		return "main";
+	}
+}
+
+class ListSubAgentsAction extends Node<AgentShared> {
+	async prep(shared: AgentShared): Promise<{
+		sessionId?: number;
+		projectRoot: string;
+		status?: string;
+		limit?: number;
+		offset?: number;
+		query?: string;
+		listSubAgents?: CodingAgentRunOptions["listSubAgents"];
+	}> {
+		const last = shared.history[shared.history.length - 1];
+		if (!last) throw new Error("no history");
+		emitAgentStartEvent(shared, last);
+		return {
+			sessionId: shared.sessionId,
+			projectRoot: shared.workingDir,
+			status: typeof last.params.status === "string" ? last.params.status : undefined,
+			limit: typeof last.params.limit === "number" ? last.params.limit : undefined,
+			offset: typeof last.params.offset === "number" ? last.params.offset : undefined,
+			query: typeof last.params.query === "string" ? last.params.query : undefined,
+			listSubAgents: shared.listSubAgents,
+		};
+	}
+
+	async exec(input: {
+		sessionId?: number;
+		projectRoot: string;
+		status?: string;
+		limit?: number;
+		offset?: number;
+		query?: string;
+		listSubAgents?: CodingAgentRunOptions["listSubAgents"];
+	}): Promise<Record<string, unknown>> {
+		if (!input.listSubAgents) {
+			return { success: false, message: "list_sub_agents is not available in this runtime" };
+		}
+		if (input.sessionId === undefined || input.sessionId <= 0) {
+			return { success: false, message: "list_sub_agents requires a current session" };
+		}
+		const result = await input.listSubAgents({
+			sessionId: input.sessionId,
+			projectRoot: input.projectRoot,
+			status: input.status,
+			limit: input.limit,
+			offset: input.offset,
+			query: input.query,
+		});
+		return result as unknown as Record<string, unknown>;
 	}
 
 	async post(shared: AgentShared, _prepRes: unknown, execRes: unknown): Promise<string | undefined> {
@@ -2979,6 +3022,7 @@ class CodingAgentFlow extends Flow<AgentShared> {
 		const search = new SearchFilesAction(1, 0);
 		const searchDora = new SearchDoraAPIAction(1, 0);
 		const list = new ListFilesAction(1, 0);
+		const listSub = new ListSubAgentsAction(1, 0);
 		const del = new DeleteFileAction(1, 0);
 		const build = new BuildAction(1, 0);
 		const spawn = new SpawnSubAgentAction(1, 0);
@@ -2990,6 +3034,7 @@ class CodingAgentFlow extends Flow<AgentShared> {
 		main.on("glob_files", list);
 		if (role === "main") {
 			main.on("read_file", read);
+			main.on("list_sub_agents", listSub);
 			main.on("spawn_sub_agent", spawn);
 		} else {
 			main.on("read_file", read);
@@ -3002,6 +3047,7 @@ class CodingAgentFlow extends Flow<AgentShared> {
 		search.on("main", main);
 		searchDora.on("main", main);
 		list.on("main", main);
+		listSub.on("main", main);
 		spawn.on("main", main);
 		read.on("main", main);
 		del.on("main", main);
@@ -3098,6 +3144,7 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 			}),
 		},
 		spawnSubAgent: options.spawnSubAgent,
+		listSubAgents: options.listSubAgents,
 	};
 
 	try {

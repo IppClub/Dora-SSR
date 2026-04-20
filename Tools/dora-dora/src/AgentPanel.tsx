@@ -58,8 +58,6 @@ export default function AgentPanel(props: AgentPanelProps) {
 	const [rollingBack, setRollingBack] = useState<number | null>(null);
 	const [session, setSession] = useState<Service.AgentSession | null>(null);
 	const [relatedSessions, setRelatedSessions] = useState<Service.AgentSession[]>([]);
-	const [pendingMergeCount, setPendingMergeCount] = useState(0);
-	const [pendingMergeJobs, setPendingMergeJobs] = useState<Service.AgentPendingMergeJob[]>([]);
 	const [spawnInfo, setSpawnInfo] = useState<Service.AgentSessionSpawnInfo | null>(null);
 	const [messages, setMessages] = useState<Service.AgentSessionMessage[]>([]);
 	const [steps, setSteps] = useState<Service.AgentSessionStep[]>([]);
@@ -178,8 +176,6 @@ export default function AgentPanel(props: AgentPanelProps) {
 			if (res.success) {
 				setSession(res.session);
 				setRelatedSessions(normalizeList<Service.AgentSession>(res.relatedSessions));
-				setPendingMergeCount(res.pendingMergeCount ?? 0);
-				setPendingMergeJobs(normalizeList<Service.AgentPendingMergeJob>(res.pendingMergeJobs));
 				setSpawnInfo(res.spawnInfo ?? null);
 				setMessages(normalizeList<Service.AgentSessionMessage>(res.messages));
 				setSteps(normalizeList<Service.AgentSessionStep>(res.steps));
@@ -198,8 +194,6 @@ export default function AgentPanel(props: AgentPanelProps) {
 		if (res.success) {
 			setSession(res.session);
 			setRelatedSessions(normalizeList<Service.AgentSession>(res.relatedSessions));
-			setPendingMergeCount(res.pendingMergeCount);
-			setPendingMergeJobs(normalizeList<Service.AgentPendingMergeJob>(res.pendingMergeJobs));
 			setSpawnInfo(res.spawnInfo ?? null);
 			setMessages(normalizeList<Service.AgentSessionMessage>(res.messages));
 			setSteps(normalizeList<Service.AgentSessionStep>(res.steps));
@@ -226,12 +220,6 @@ export default function AgentPanel(props: AgentPanelProps) {
 			if (patch.sessionId !== selectedSessionId) return;
 			if (patch.relatedSessions) {
 				setRelatedSessions(normalizeList<Service.AgentSession>(patch.relatedSessions));
-			}
-			if (typeof patch.pendingMergeCount === "number") {
-				setPendingMergeCount(patch.pendingMergeCount);
-			}
-			if (patch.pendingMergeJobs) {
-				setPendingMergeJobs(normalizeList<Service.AgentPendingMergeJob>(patch.pendingMergeJobs));
 			}
 			if ("spawnInfo" in patch) {
 				setSpawnInfo(patch.spawnInfo ?? null);
@@ -571,14 +559,6 @@ export default function AgentPanel(props: AgentPanelProps) {
 							<Chip
 								size="small"
 								label={session.kind === "main" ? "main agent" : "sub agent"}
-								variant="outlined"
-								sx={{ color: Color.TextSecondary, borderColor: Color.Line }}
-							/>
-						) : null}
-						{pendingMergeCount > 0 ? (
-							<Chip
-								size="small"
-								label={`merge ${pendingMergeCount}`}
 								variant="outlined"
 								sx={{ color: Color.TextSecondary, borderColor: Color.Line }}
 							/>
