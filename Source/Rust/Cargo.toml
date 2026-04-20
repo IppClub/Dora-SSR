@@ -12,6 +12,8 @@ dora-ssr = { path = "../../Tools/dora-rust/dora" }
 bitflags = "1.2"
 cfixed-string = "1.0"
 clap = { version = "4.5.26", features = ["derive"] }
+glam = "0.30"
+gltf = "1.4"
 
 [profile.release]
 debug = false
