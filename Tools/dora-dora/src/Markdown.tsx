@@ -47,6 +47,7 @@ const Markdown = memo((props: MarkdownProps) => {
 			width: "100%",
 			maxWidth: "100%",
 			minWidth: 0,
+			boxSizing: "border-box",
 			margin: 0,
 			padding: contentPadding,
 			minHeight: 0,
@@ -92,7 +93,7 @@ const Markdown = memo((props: MarkdownProps) => {
 				},
 				table({children}) {
 					return (
-						<Box sx={{ width: '100%', maxWidth: '100%', overflowX: 'auto' }}>
+						<Box className="markdown-table-wrapper" sx={{ width: '100%', maxWidth: '100%', overflowX: 'auto' }}>
 							<table>{children}</table>
 						</Box>
 					);

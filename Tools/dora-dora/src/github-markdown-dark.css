@@ -13,6 +13,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
   margin: 0;
   padding: 40px;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow-x: hidden;
   min-height: calc(100vh - 65px);
   color: #c9d1d9;
   background-color: #1f1f1f;
@@ -20,6 +24,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
   font-size: 16px;
   line-height: 1.5;
   word-wrap: break-word;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .markdown-body .octicon {
@@ -209,8 +215,18 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
   border-collapse: collapse;
   display: block;
   width: max-content;
-  max-width: 100%;
+  min-width: 100%;
+  max-width: none;
   overflow: auto;
+}
+
+.markdown-body .markdown-table-wrapper {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .markdown-body td,
@@ -427,6 +443,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 .markdown-body details {
   margin-top: 0;
   margin-bottom: 16px;
+}
+
+.markdown-body p,
+.markdown-body li,
+.markdown-body blockquote,
+.markdown-body td,
+.markdown-body th {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .markdown-body blockquote>:first-child {

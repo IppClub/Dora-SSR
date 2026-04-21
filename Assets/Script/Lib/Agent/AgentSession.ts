@@ -551,6 +551,18 @@ function containsNormalizedText(text: string, query: string): boolean {
 	return string.find(normalizedText, normalizedQuery, 1, true) !== undefined;
 }
 
+function getSubAgentDisplayKey(item: {
+	title?: string;
+	goal?: string;
+	parentSessionId?: number;
+	rootSessionId: number;
+}): string {
+	const goal = string.lower(sanitizeUTF8(item.goal ?? "").trim());
+	const title = string.lower(sanitizeUTF8(item.title ?? "").trim());
+	const label = goal !== "" ? goal : title;
+	return `${tostring(item.rootSessionId)}:${tostring(item.parentSessionId ?? 0)}:${label}`;
+}
+
 function writeSubAgentResultFile(session: AgentSessionItem, record: SubAgentResultRecord, resultText: string): boolean {
 	const dir = getArtifactDir(session.projectRoot, session.memoryScope);
 	if (!Content.exist(dir)) {
@@ -1580,9 +1592,9 @@ function finalizeSubSession(session: AgentSessionItem, taskId: number, success: 
 	}
 	if (success) {
 		appendSubAgentHandoffStep(session, taskId, record, resultText);
+		deleteSessionRecords(session.id, true);
+		emitSessionDeletedPatch(session.id, rootSessionId, rootSession.projectRoot);
 	}
-	deleteSessionRecords(session.id, true);
-	emitSessionDeletedPatch(session.id, rootSessionId, rootSession.projectRoot);
 	return { success: true };
 }
 
@@ -1784,7 +1796,27 @@ export async function listRunningSubAgents(request: {
 	} else if (status === "all") {
 		merged = runningSessions.concat(completedSessions);
 	} else {
-		merged = runningSessions.concat(completedSessions);
+		const runningKeys: Record<string, boolean> = {};
+		for (let i = 0; i < runningSessions.length; i++) {
+			runningKeys[getSubAgentDisplayKey(runningSessions[i])] = true;
+		}
+		const latestCompletedByKey: Record<string, AgentRunningSubAgentInfo> = {};
+		for (let i = 0; i < completedSessions.length; i++) {
+			const item = completedSessions[i];
+			const key = getSubAgentDisplayKey(item);
+			if (runningKeys[key]) {
+				continue;
+			}
+			const current = latestCompletedByKey[key];
+			if (!current || item.updatedAt > current.updatedAt) {
+				latestCompletedByKey[key] = item;
+			}
+		}
+		const latestCompleted: AgentRunningSubAgentInfo[] = [];
+		for (const [, item] of pairs(latestCompletedByKey)) {
+			latestCompleted.push(item);
+		}
+		merged = runningSessions.concat(latestCompleted);
 	}
 	if (query !== "") {
 		merged = merged.filter(item =>

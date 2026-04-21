@@ -32,6 +32,7 @@ export const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open
 	drawerWidth: number;
 }>(({ theme, open, drawerWidth }) => ({
 	flexGrow: 1,
+	minWidth: 0,
 	padding: theme.spacing(0),
 	transition: theme.transitions.create('margin', {
 		easing: theme.transitions.easing.sharp,

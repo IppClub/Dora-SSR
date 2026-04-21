@@ -3945,8 +3945,8 @@ export default function PersistentDrawerLeft() {
 								})() : null
 							}
 							{markdown ?
-								<div style={{display: 'flex', position: 'relative', width: '100%', minWidth: 0}}>
-									<MacScrollbar skin='dark' hidden={file.mdEditing} style={{height: editorHeight, width: '100%'}}>
+								<div style={{display: 'flex', position: 'relative', width: '100%', maxWidth: '100%', minWidth: 0, overflow: 'hidden'}}>
+									<MacScrollbar skin='dark' hidden={file.mdEditing} style={{height: editorHeight, width: '100%', maxWidth: '100%', minWidth: 0}}>
 										<Markdown
 											fileKey={file.key}
 											path={Service.addr("/" + path.relative(parentPath, path.dirname(file.key)).replace("\\", "/"))}

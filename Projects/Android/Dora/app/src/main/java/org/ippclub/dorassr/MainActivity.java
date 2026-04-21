@@ -319,7 +319,7 @@ public class MainActivity extends SDLActivity {
 		settings.setDisplayZoomControls(false);
 		settings.setSupportMultipleWindows(true);
 		ideWebView.addJavascriptInterface(new BlobDownloadBridge(), "DoraBlobDownloader");
-		WebView.setWebContentsDebuggingEnabled(true);
+		WebView.setWebContentsDebuggingEnabled(false);
 		ideWebView.setWebChromeClient(new WebChromeClient() {
 			@Override
 			public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture,
