@@ -9,13 +9,21 @@ set(DORA_BGFX_ROOT ${DORA_SOURCE_ROOT}/3rdParty/bgfx)
 
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|amd64)$")
 	set(DORA_BGFX_ARCH x86_64)
+	set(DORA_WA_ARCH amd64)
+	set(DORA_RUNTIME_ARCH x86_64)
 elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64|arm64)$")
 	set(DORA_BGFX_ARCH aarch64)
+	set(DORA_WA_ARCH aarch64)
+	set(DORA_RUNTIME_ARCH aarch64)
 else()
 	set(DORA_BGFX_ARCH ${CMAKE_SYSTEM_PROCESSOR})
+	set(DORA_WA_ARCH ${CMAKE_SYSTEM_PROCESSOR})
+	set(DORA_RUNTIME_ARCH ${CMAKE_SYSTEM_PROCESSOR})
 endif()
 
 set(DORA_BGFX_BUILD_DIR ${DORA_BGFX_ROOT}/build/linux/${DORA_BGFX_ARCH}/release)
+set(DORA_WA_BUILD_DIR ${DORA_SOURCE_ROOT}/3rdParty/Wa/Lib/Linux/${DORA_WA_ARCH})
+set(DORA_RUNTIME_BUILD_DIR ${DORA_SOURCE_ROOT}/Rust/lib/Linux/${DORA_RUNTIME_ARCH})
 
 find_package(SDL2 REQUIRED)
 find_package(OpenSSL REQUIRED)
@@ -91,13 +99,13 @@ set_target_properties(
 add_library(WA-lib STATIC IMPORTED)
 set_target_properties(
 	WA-lib PROPERTIES IMPORTED_LOCATION
-	${CMAKE_SOURCE_DIR}/3rdParty/libs/libwa.a
+	${DORA_WA_BUILD_DIR}/libwa.a
 )
 
 add_library(DORA-lib STATIC IMPORTED)
 set_target_properties(
 	DORA-lib PROPERTIES IMPORTED_LOCATION
-	${CMAKE_SOURCE_DIR}/3rdParty/libs/libdora_runtime.a
+	${DORA_RUNTIME_BUILD_DIR}/libdora_runtime.a
 )
 
 add_definitions(-DWITH_SDL2 -DBX_CONFIG_DEBUG=0 -Dd_m3HasWASI -DLUA_USE_LINUX -DSPDLOG_FMT_EXTERNAL)
