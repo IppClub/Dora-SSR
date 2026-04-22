@@ -34,14 +34,6 @@ git clone https://gitcode.com/ippclub/Dora-SSR.git
 
 Please select the target platform you want to build for.
 
-:::note Additional notes
-
-- The Web IDE and documentation site now use **pnpm** consistently. If you only have Node.js installed, follow the official pnpm installation guide first: <https://pnpm.io/installation>. In most environments, you can also run `corepack enable` before `pnpm install`.
-- Local Android builds require **JDK 17** in addition to **Android Studio**.
-- Local Linux builds require `pkg-config` and the `dbus-1` development package in addition to the graphics and Lua dependencies listed below. For example, on Ubuntu/Debian you will usually need `pkg-config` and `libdbus-1-dev`.
-
-:::
-
 <Tabs groupId="platform-select">
 <TabItem value="windows" label="Windows">
 
@@ -124,6 +116,10 @@ Please select the target platform you want to build for.
 </TabItem>
 <TabItem value="android" label="Android">
 
+:::tip
+Local Android builds require **JDK 17** in addition to **Android Studio**.
+:::
+
 1. Install **Rust**, **xmake**, and the latest **Android Studio**.
 
 2. Generate Lua bindings first.
@@ -164,6 +160,10 @@ Please select the target platform you want to build for.
 
 </TabItem>
 <TabItem value="linux" label="Linux">
+
+:::tip
+Local Linux builds also use `pkg-config` and the `dbus-1` development package. On typical desktop Linux environments, they are usually already installed, so no extra setup is normally needed.
+:::
 
 1. Install **Rust** and **xmake**.
 
@@ -255,7 +255,7 @@ Please select the target platform you want to build for.
 
 1. Compile and run the Dora SSR engine.
 
-2. Install the latest version of **Node.js**.
+2. Install the latest version of **Node.js** and **pnpm**.
 
 3. Initialize the project and enter the Dora Dora editor development mode.
 
