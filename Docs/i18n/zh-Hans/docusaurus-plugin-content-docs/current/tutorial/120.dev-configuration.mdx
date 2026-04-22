@@ -33,6 +33,14 @@ git clone https://gitcode.com/ippclub/Dora-SSR.git
 
 &emsp;&emsp;请选择你想要构建的目标平台。
 
+:::note 补充说明
+
+- Web IDE 与文档站当前统一使用 **pnpm**。如果本机只有 Node.js，请先按 pnpm 官方安装文档启用包管理器：<https://pnpm.io/zh/installation> 。在大多数环境下，也可以先执行 `corepack enable` 再运行 `pnpm install`。
+- Android 本地构建除了 **Android Studio** 外，还需要 **JDK 17**。
+- Linux 本地构建除了下文列出的图形与 Lua 依赖外，还需要 `pkg-config` 以及 `dbus-1` 的开发包；例如在 Ubuntu/Debian 上通常需要额外安装 `pkg-config` 和 `libdbus-1-dev`。
+
+:::
+
 <Tabs groupId="platform-select">
 <TabItem value="windows" label="Windows">
 

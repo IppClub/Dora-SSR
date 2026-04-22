@@ -49,11 +49,6 @@ end
 local function add_bgfx_renderer_config()
     if is_plat("windows") then
         add_defines("BGFX_CONFIG_RENDERER_DIRECT3D11=1")
-    elseif is_plat("linux") then
-        add_defines(
-            "BGFX_CONFIG_RENDERER_OPENGL_MIN_VERSION=33",
-            "BGFX_CONFIG_RENDERER_OPENGLES_MIN_VERSION=30"
-        )
     elseif is_plat("android") then
         add_defines("BGFX_CONFIG_RENDERER_OPENGLES=30")
     elseif is_plat("macosx", "iphoneos") then
@@ -121,6 +116,34 @@ local function add_android_flags()
     end
 end
 
+local function add_linux_common_flags(opt)
+    opt = opt or {}
+
+    if not is_plat("linux") then
+        return
+    end
+
+    add_cxflags(
+        "-Wall",
+        "-Wextra",
+        "-Wshadow",
+        "-Wunused-value",
+        "-Wundef",
+        "-Wlogical-op",
+        "-fomit-frame-pointer",
+        {force = true}
+    )
+    add_ldflags("-Wl,--gc-sections", "-Wl,--as-needed", {force = true})
+
+    if opt.fast_math then
+        add_cxflags("-ffast-math", {force = true})
+    end
+
+    if is_arch("x86", "i386", "x86_64") then
+        add_cxflags("-mfpmath=sse", "-msse4.2", {force = true})
+    end
+end
+
 local function add_common_target_settings(opt)
     opt = opt or {}
 
@@ -164,6 +187,7 @@ local function add_common_target_settings(opt)
 
     add_apple_flags()
     add_android_flags()
+    add_linux_common_flags(opt)
 end
 
 local bx_src = {
@@ -538,7 +562,7 @@ local shaderc_src = {
 -- 平台相关链接库
 local function add_platform_links()
     if is_plat("linux") then
-        add_syslinks("X11", "GL", "pthread", "dl")
+        add_syslinks("X11", "GL", "pthread", "dl", "rt")
     elseif is_plat("macosx") then
         -- GENie 脚本中的完整框架列表
         add_frameworks("Cocoa", "IOKit", "OpenGL", "QuartzCore")
@@ -557,7 +581,7 @@ end
 -- bx 基础库
 target("bx")
     set_kind("static")
-    add_common_target_settings()
+    add_common_target_settings({fast_math = true})
     
     add_includedirs(path.join(BX_DIR, "include"), {public = true})
     add_includedirs(path.join(BX_DIR, "3rdparty"), {public = true})
@@ -611,7 +635,7 @@ target("bimg")
 target("bimg_decode")
     set_kind("static")
     add_deps("bx")
-    add_common_target_settings()
+    add_common_target_settings({fast_math = true})
     
     add_includedirs(path.join(BIMG_DIR, "include"), {public = true})
     add_includedirs(path.join(BIMG_DIR, "3rdparty"))
@@ -656,7 +680,7 @@ end
 target("bgfx")
     set_kind("static")
     add_deps("bx", "bimg", "bimg_decode")
-    add_common_target_settings()
+    add_common_target_settings({fast_math = true})
 
     add_bgfx_common_settings()
 
@@ -665,7 +689,7 @@ if has_config("with-shared") then
     target("bgfx-shared")
         set_kind("shared")
         add_deps("bx", "bimg", "bimg_decode")
-        add_common_target_settings()
+        add_common_target_settings({fast_math = true})
         
         add_defines("BGFX_SHARED_LIB_BUILD=1", {public = true})
 
