@@ -19,6 +19,8 @@ export interface AgentConversationMessage extends Message {
 
 export interface PersistedSessionState {
 	messages: AgentConversationMessage[];
+	lastConsolidatedIndex: number;
+	carryMessageIndex?: number;
 }
 
 interface HistoryRecord {
@@ -27,10 +29,17 @@ interface HistoryRecord {
 	rawArchive?: string;
 }
 
+function clampSessionIndex(messages: AgentConversationMessage[], index?: number): number {
+	if (typeof index !== "number") return 0;
+	if (index <= 0) return 0;
+	return math.min(messages.length, math.floor(index));
+}
+
 const AGENT_CONFIG_DIR = ".agent";
 const AGENT_PROMPTS_FILE = "AGENT.md";
 const HISTORY_JSONL_FILE = "HISTORY.jsonl";
 const HISTORY_MAX_RECORDS = 1000;
+const SESSION_MAX_RECORDS = 1000;
 const XML_DECISION_SCHEMA_EXAMPLE = `\`\`\`xml
 <tool_call>
 	<tool>edit_file</tool>
@@ -501,8 +510,8 @@ export interface CompressionResult {
 	/** 错误信息 (如果失败) */
 	error?: string;
 
-	/** 需要补回 active context 的最后一条 user 消息 */
-	carryMessage?: AgentConversationMessage;
+	/** 需要补回 active context 的最后一条 user 消息索引（相对当前 active messages） */
+	carryMessageIndex?: number;
 }
 
 export interface MemoryCompressionDebugContext {
@@ -515,7 +524,7 @@ export type MemoryCompressionBoundaryMode = "default" | "budget_max";
 type CompressionBoundarySelection = {
 	chunkEnd: number;
 	compressedCount: number;
-	carryMessage?: AgentConversationMessage;
+	carryMessageIndex?: number;
 };
 
 /**
@@ -774,41 +783,87 @@ ${memory}`;
 
 	readSessionState(): PersistedSessionState {
 		if (!Content.exist(this.sessionPath)) {
-			return { messages: [] };
+			return { messages: [], lastConsolidatedIndex: 0 };
 		}
 		const text = Content.load(this.sessionPath) as string;
 		if (!text || text.trim() === "") {
-			return { messages: [] };
+			return { messages: [], lastConsolidatedIndex: 0 };
 		}
 		const lines = text.split("\n");
 		const messages: AgentConversationMessage[] = [];
+		let lastConsolidatedIndex = 0;
+		let carryMessageIndex: number | undefined = undefined;
 		for (let i = 0; i < lines.length; i++) {
 			const line = lines[i].trim();
 			if (line === "") continue;
 			const data = this.decodeJsonLine(line);
 			if (!data || isArray(data) || !isRecord(data)) continue;
 			const row = data;
+			if (typeof row.lastConsolidatedIndex === "number") {
+				lastConsolidatedIndex = math.floor(row.lastConsolidatedIndex);
+				if (typeof row.carryMessageIndex === "number") {
+					carryMessageIndex = math.floor(row.carryMessageIndex);
+				}
+				continue;
+			}
 			const message = this.decodeConversationMessage(row.message ?? row);
 			if (message) {
 				messages.push(message);
 			}
 		}
-		return { messages };
+		const normalizedLastConsolidatedIndex = clampSessionIndex(messages, lastConsolidatedIndex);
+		const normalizedCarryMessageIndex = typeof carryMessageIndex === "number"
+			&& carryMessageIndex >= 0
+			&& carryMessageIndex < normalizedLastConsolidatedIndex
+			&& carryMessageIndex < messages.length
+			? math.floor(carryMessageIndex)
+			: undefined;
+		return {
+			messages,
+			lastConsolidatedIndex: normalizedLastConsolidatedIndex,
+			carryMessageIndex: normalizedCarryMessageIndex,
+		};
 	}
 
-	writeSessionState(messages: AgentConversationMessage[] = []): void {
+	writeSessionState(
+		messages: AgentConversationMessage[] = [],
+		lastConsolidatedIndex = 0,
+		carryMessageIndex?: number
+	): void {
 		this.ensureDir(Path.getPath(this.sessionPath));
 		const lines: string[] = [];
-		for (let i = 0; i < messages.length; i++) {
+		const dropCount = messages.length > SESSION_MAX_RECORDS
+			? messages.length - SESSION_MAX_RECORDS
+			: 0;
+		const normalizedMessages = dropCount > 0
+			? messages.slice(dropCount)
+			: messages;
+		const normalizedLastConsolidatedIndex = clampSessionIndex(
+			normalizedMessages,
+			lastConsolidatedIndex - dropCount
+		);
+		const normalizedCarryMessageIndex = typeof carryMessageIndex === "number"
+			&& carryMessageIndex - dropCount >= 0
+			&& carryMessageIndex - dropCount < normalizedLastConsolidatedIndex
+			&& carryMessageIndex - dropCount < normalizedMessages.length
+			? math.floor(carryMessageIndex - dropCount)
+			: undefined;
+		const stateLine = this.encodeJsonLine({
+			lastConsolidatedIndex: normalizedLastConsolidatedIndex,
+			carryMessageIndex: normalizedCarryMessageIndex,
+		});
+		if (stateLine) {
+			lines.push(stateLine);
+		}
+		for (let i = 0; i < normalizedMessages.length; i++) {
 			const line = this.encodeJsonLine({
-				_type: "message",
-				message: messages[i],
+				message: normalizedMessages[i],
 			});
 			if (line) {
 				lines.push(line);
 			}
 		}
-		const content = lines.join("\n") + "\n";
+		const content = lines.length > 0 ? `${lines.join("\n")}\n` : "";
 		Content.save(this.sessionPath, content);
 		sendWebIDEFileUpdate(this.sessionPath, true, content);
 	}
@@ -929,7 +984,7 @@ export class MemoryCompressor {
 				return {
 					...result,
 					compressedCount: boundary.compressedCount,
-					carryMessage: boundary.carryMessage,
+					carryMessageIndex: boundary.carryMessageIndex,
 				};
 			}
 
@@ -1044,9 +1099,7 @@ export class MemoryCompressor {
 		return {
 			chunkEnd,
 			compressedCount: chunkEnd,
-			carryMessage: {
-				...messages[carryUserIndex],
-			},
+			carryMessageIndex: carryUserIndex,
 		};
 	}
 
@@ -1527,15 +1580,32 @@ export async function compactSessionMemoryScope(options: {
 		scope: options.scope,
 	});
 	const storage = compressor.getStorage();
-	let messages = storage.readSessionState().messages;
+	const persistedSession = storage.readSessionState();
+	let messages = persistedSession.messages;
+	let lastConsolidatedIndex = persistedSession.lastConsolidatedIndex;
+	let carryMessageIndex = persistedSession.carryMessageIndex;
 	const llmOptions = {
 		temperature: 0.1,
 		max_tokens: 8192,
 		...(options.llmOptions ?? {}),
 	};
-	while (messages.length > 0) {
+	while (lastConsolidatedIndex < messages.length) {
+		const activeMessages: AgentConversationMessage[] = [];
+		if (
+			typeof carryMessageIndex === "number"
+			&& carryMessageIndex >= 0
+			&& carryMessageIndex < lastConsolidatedIndex
+			&& carryMessageIndex < messages.length
+		) {
+			activeMessages.push({
+				...messages[carryMessageIndex],
+			});
+		}
+		for (let i = lastConsolidatedIndex; i < messages.length; i++) {
+			activeMessages.push(messages[i]);
+		}
 		const result = await compressor.compress(
-			messages,
+			activeMessages,
 			llmOptions,
 			math.max(1, math.floor(options.llmMaxTry ?? 5)),
 			options.decisionMode ?? "tool_calling",
@@ -1548,15 +1618,34 @@ export async function compactSessionMemoryScope(options: {
 				message: result?.error ?? "memory compaction produced no progress",
 			};
 		}
-		const remainingMessages = messages.slice(result.compressedCount);
-		if (result.carryMessage) {
-			remainingMessages.unshift({
-				...result.carryMessage,
-				timestamp: result.carryMessage.timestamp ?? os.date("!%Y-%m-%dT%H:%M:%SZ"),
-			});
+		const syntheticPrefixCount = activeMessages.length > 0
+			&& lastConsolidatedIndex < messages.length
+			&& activeMessages[0] !== messages[lastConsolidatedIndex]
+			? 1
+			: 0;
+		const realCompressedCount = math.max(0, result.compressedCount - syntheticPrefixCount);
+		lastConsolidatedIndex = math.min(messages.length, lastConsolidatedIndex + realCompressedCount);
+		if (typeof result.carryMessageIndex === "number") {
+			if (syntheticPrefixCount > 0 && result.carryMessageIndex === 0) {
+				// Reuse the previously carried user message.
+			} else {
+				const carryOffset = syntheticPrefixCount > 0
+					? result.carryMessageIndex - 1
+					: result.carryMessageIndex;
+				carryMessageIndex = carryOffset >= 0
+					? lastConsolidatedIndex - realCompressedCount + carryOffset
+					: undefined;
+			}
+		} else {
+			carryMessageIndex = undefined;
 		}
-		messages = remainingMessages;
-		storage.writeSessionState(messages);
+		if (
+			typeof carryMessageIndex === "number"
+			&& (carryMessageIndex < 0 || carryMessageIndex >= lastConsolidatedIndex || carryMessageIndex >= messages.length)
+		) {
+			carryMessageIndex = undefined;
+		}
+		storage.writeSessionState(messages, lastConsolidatedIndex, carryMessageIndex);
 	}
-	return { success: true, remainingMessages: messages.length };
+	return { success: true, remainingMessages: messages.length - lastConsolidatedIndex };
 }

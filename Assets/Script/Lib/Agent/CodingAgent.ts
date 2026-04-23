@@ -682,6 +682,8 @@ interface AgentShared {
 	promptPack: AgentPromptPack;
 	history: AgentActionRecord[];
 	messages: AgentConversationMessage[];
+	lastConsolidatedIndex: number;
+	carryMessageIndex?: number;
 	// Memory 相关字段
 	memory: {
 		/** Memory 压缩器实例 */
@@ -1145,6 +1147,7 @@ async function maybeCompressHistory(shared: AgentShared): Promise<void> {
 	let changed = false;
 	for (let round = 0; round < maxRounds; round++) {
 		const systemPrompt = buildAgentSystemPrompt(shared, shared.decisionMode === "xml");
+		const activeMessages = getActiveConversationMessages(shared);
 		// In tool_calling mode, tool definitions are passed as the tools API parameter and
 		// consume tokens, but are NOT embedded in the system prompt. Pass them separately
 		// so the token estimator accounts for them correctly.
@@ -1152,7 +1155,7 @@ async function maybeCompressHistory(shared: AgentShared): Promise<void> {
 			? getDecisionToolDefinitions(shared)
 			: "";
 		if (!memory.compressor.shouldCompress(
-			shared.messages,
+			activeMessages,
 			systemPrompt,
 			toolDefinitions
 		)) {
@@ -1164,7 +1167,7 @@ async function maybeCompressHistory(shared: AgentShared): Promise<void> {
 		const compressionRound = round + 1;
 		shared.step += 1;
 		const stepId = shared.step;
-		const pendingMessages = shared.messages.length;
+		const pendingMessages = activeMessages.length;
 		emitAgentEvent(shared, {
 			type: "memory_compression_started",
 			sessionId: shared.sessionId,
@@ -1179,7 +1182,7 @@ async function maybeCompressHistory(shared: AgentShared): Promise<void> {
 			},
 		});
 		const result = await memory.compressor.compress(
-			shared.messages,
+			activeMessages,
 			shared.llmOptions,
 			shared.llmMaxTry,
 			shared.decisionMode,
@@ -1218,6 +1221,16 @@ async function maybeCompressHistory(shared: AgentShared): Promise<void> {
 			}
 			return;
 		}
+		const effectiveCompressedCount = math.max(
+			0,
+			result.compressedCount - (typeof shared.carryMessageIndex === "number" ? 1 : 0)
+		);
+		if (effectiveCompressedCount <= 0) {
+			if (changed) {
+				persistHistoryState(shared);
+			}
+			return;
+		}
 		emitAgentEvent(shared, {
 			type: "memory_compression_finished",
 			sessionId: shared.sessionId,
@@ -1228,13 +1241,13 @@ async function maybeCompressHistory(shared: AgentShared): Promise<void> {
 			result: {
 				success: true,
 				round: compressionRound,
-				compressedCount: result.compressedCount,
+				compressedCount: effectiveCompressedCount,
 				historyEntryPreview: summarizeHistoryEntryPreview(result.summary ?? ""),
 			},
 		});
-		applyCompressedSessionState(shared, result.compressedCount, result.carryMessage);
+		applyCompressedSessionState(shared, result.compressedCount, result.carryMessageIndex);
 		changed = true;
-		Log("Info", `[Memory] Compressed ${result.compressedCount} messages (round ${compressionRound})`);
+		Log("Info", `[Memory] Compressed ${effectiveCompressedCount} messages (round ${compressionRound})`);
 	}
 	if (changed) {
 		persistHistoryState(shared);
@@ -1245,7 +1258,7 @@ async function compactAllHistory(shared: AgentShared): Promise<CodingAgentRunRes
 	const { memory } = shared;
 	let rounds = 0;
 	let totalCompressed = 0;
-	while (shared.messages.length > 0) {
+	while (getActiveRealMessageCount(shared) > 0) {
 		if (shared.stopToken.stopped) {
 			Tools.setTaskStatus(shared.taskId, "STOPPED");
 			return emitAgentTaskFinishEvent(shared, false, getCancelledReason(shared));
@@ -1253,7 +1266,8 @@ async function compactAllHistory(shared: AgentShared): Promise<CodingAgentRunRes
 		rounds += 1;
 		shared.step += 1;
 		const stepId = shared.step;
-		const pendingMessages = shared.messages.length;
+		const activeMessages = getActiveConversationMessages(shared);
+		const pendingMessages = activeMessages.length;
 		emitAgentEvent(shared, {
 			type: "memory_compression_started",
 			sessionId: shared.sessionId,
@@ -1269,7 +1283,7 @@ async function compactAllHistory(shared: AgentShared): Promise<CodingAgentRunRes
 			},
 		});
 		const result = await memory.compressor.compress(
-			shared.messages,
+			activeMessages,
 			shared.llmOptions,
 			shared.llmMaxTry,
 			shared.decisionMode,
@@ -1307,6 +1321,18 @@ async function compactAllHistory(shared: AgentShared): Promise<CodingAgentRunRes
 					? "记忆压缩未产生可推进的结果。"
 					: "Memory compression produced no progress."));
 		}
+		const effectiveCompressedCount = math.max(
+			0,
+			result.compressedCount - (typeof shared.carryMessageIndex === "number" ? 1 : 0)
+		);
+		if (effectiveCompressedCount <= 0) {
+			return finalizeAgentFailure(
+				shared,
+				shared.useChineseResponse
+					? "记忆压缩未产生可推进的结果。"
+					: "Memory compression produced no progress."
+			);
+		}
 		emitAgentEvent(shared, {
 			type: "memory_compression_finished",
 			sessionId: shared.sessionId,
@@ -1317,15 +1343,15 @@ async function compactAllHistory(shared: AgentShared): Promise<CodingAgentRunRes
 			result: {
 				success: true,
 				round: rounds,
-				compressedCount: result.compressedCount,
+				compressedCount: effectiveCompressedCount,
 				historyEntryPreview: summarizeHistoryEntryPreview(result.summary ?? ""),
 				fullCompaction: true,
 			},
 		});
-		applyCompressedSessionState(shared, result.compressedCount, result.carryMessage);
-		totalCompressed += result.compressedCount;
+		applyCompressedSessionState(shared, result.compressedCount, result.carryMessageIndex);
+		totalCompressed += effectiveCompressedCount;
 		persistHistoryState(shared);
-		Log("Info", `[Memory] Full compaction compressed ${result.compressedCount} messages (round ${rounds})`);
+		Log("Info", `[Memory] Full compaction compressed ${effectiveCompressedCount} messages (round ${rounds})`);
 	}
 	Tools.setTaskStatus(shared.taskId, "DONE");
 	return emitAgentTaskFinishEvent(
@@ -1339,6 +1365,8 @@ async function compactAllHistory(shared: AgentShared): Promise<CodingAgentRunRes
 
 function resetSessionHistory(shared: AgentShared): CodingAgentRunResult {
 	shared.messages = [];
+	shared.lastConsolidatedIndex = 0;
+	shared.carryMessageIndex = undefined;
 	persistHistoryState(shared);
 	Tools.setTaskStatus(shared.taskId, "DONE");
 	return emitAgentTaskFinishEvent(
@@ -1377,22 +1405,71 @@ function getFinishMessage(params: Record<string, unknown>, fallback = ""): strin
 }
 
 function persistHistoryState(shared: AgentShared): void {
-	shared.memory.compressor.getStorage().writeSessionState(shared.messages);
+	shared.memory.compressor.getStorage().writeSessionState(
+		shared.messages,
+		shared.lastConsolidatedIndex,
+		shared.carryMessageIndex
+	);
+}
+
+function getActiveConversationMessages(shared: AgentShared): AgentConversationMessage[] {
+	const activeMessages: AgentConversationMessage[] = [];
+	if (
+		typeof shared.carryMessageIndex === "number"
+		&& shared.carryMessageIndex >= 0
+		&& shared.carryMessageIndex < shared.lastConsolidatedIndex
+		&& shared.carryMessageIndex < shared.messages.length
+	) {
+		activeMessages.push({
+			...shared.messages[shared.carryMessageIndex],
+		});
+	}
+	for (let i = shared.lastConsolidatedIndex; i < shared.messages.length; i++) {
+		activeMessages.push(shared.messages[i]);
+	}
+	return activeMessages;
+}
+
+function getActiveRealMessageCount(shared: AgentShared): number {
+	return math.max(0, shared.messages.length - shared.lastConsolidatedIndex);
 }
 
 function applyCompressedSessionState(
 	shared: AgentShared,
 	compressedCount: number,
-	carryMessage?: AgentConversationMessage
+	carryMessageIndex?: number
 ): void {
-	const remainingMessages = shared.messages.slice(compressedCount);
-	if (carryMessage) {
-		remainingMessages.unshift({
-			...carryMessage,
-			timestamp: carryMessage.timestamp ?? os.date("!%Y-%m-%dT%H:%M:%SZ"),
-		});
+	const syntheticPrefixCount = typeof shared.carryMessageIndex === "number" ? 1 : 0;
+	const previousActiveStart = shared.lastConsolidatedIndex;
+	const realCompressedCount = math.max(0, compressedCount - syntheticPrefixCount);
+	shared.lastConsolidatedIndex = math.min(
+		shared.messages.length,
+		previousActiveStart + realCompressedCount
+	);
+	if (typeof carryMessageIndex === "number") {
+		if (syntheticPrefixCount > 0 && carryMessageIndex === 0) {
+			// Keep the previously carried user message.
+		} else {
+			const carryOffset = syntheticPrefixCount > 0
+				? carryMessageIndex - 1
+				: carryMessageIndex;
+			shared.carryMessageIndex = carryOffset >= 0
+				? previousActiveStart + carryOffset
+				: undefined;
+		}
+	} else {
+		shared.carryMessageIndex = undefined;
 	}
-	shared.messages = remainingMessages;
+	if (
+		typeof shared.carryMessageIndex === "number"
+		&& (
+			shared.carryMessageIndex < 0
+			|| shared.carryMessageIndex >= shared.lastConsolidatedIndex
+			|| shared.carryMessageIndex >= shared.messages.length
+		)
+	) {
+		shared.carryMessageIndex = undefined;
+	}
 }
 
 function appendConversationMessage(shared: AgentShared, message: AgentConversationMessage): void {
@@ -1906,7 +1983,7 @@ function sanitizeMessagesForLLMInput(messages: Message[]): Message[] {
 }
 
 function getUnconsolidatedMessages(shared: AgentShared): Message[] {
-	return sanitizeMessagesForLLMInput(shared.messages);
+	return sanitizeMessagesForLLMInput(getActiveConversationMessages(shared));
 }
 
 function getFinalDecisionTurnPrompt(shared: AgentShared): string {
@@ -3133,6 +3210,8 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 		promptPack,
 		history: [],
 		messages: persistedSession.messages,
+		lastConsolidatedIndex: persistedSession.lastConsolidatedIndex,
+		carryMessageIndex: persistedSession.carryMessageIndex,
 		// Memory 状态
 		memory: {
 			compressor,
