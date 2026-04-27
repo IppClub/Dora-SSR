@@ -496,6 +496,9 @@ export interface LLMConfigItem {
 	model: string;
 	key: string;
 	contextWindow: number;
+	temperature: number;
+	maxTokens: number;
+	reasoningEffort?: string;
 	supportsFunctionCalling: boolean;
 	active: boolean;
 }
@@ -932,6 +935,31 @@ export interface AgentSessionStep {
 	updatedAt: number;
 }
 
+export interface AgentChangeSetFileItem {
+	path: string;
+	op: "write" | "create" | "delete";
+	checkpointCount: number;
+	checkpointIds: number[];
+}
+
+export interface AgentChangeSetSummary {
+	success: true;
+	taskId: number;
+	checkpointCount: number;
+	filesChanged: number;
+	files: AgentChangeSetFileItem[];
+	latestCheckpointId?: number;
+	latestCheckpointSeq?: number;
+}
+
+export interface AgentSubAgentMemoryEntry {
+	sourceSessionId: number;
+	sourceTaskId: number;
+	content: string;
+	evidence: string[];
+	createdAt: string;
+}
+
 export interface AgentCheckpointItem {
 	id: number;
 	taskId: number;
@@ -956,6 +984,13 @@ export interface AgentSessionSpawnInfo {
 	goal: string;
 	expectedOutput?: string;
 	filesHint?: string[];
+	status?: "RUNNING" | "DONE" | "FAILED" | "STOPPED";
+	success?: boolean;
+	cleared?: boolean;
+	sourceTaskId?: number;
+	changeSet?: AgentChangeSetSummary;
+	memoryEntry?: AgentSubAgentMemoryEntry;
+	memoryEntryError?: string;
 	createdAt?: string;
 }
 
@@ -992,6 +1027,7 @@ export type AgentSessionDetailResponse = {
 	spawnInfo?: AgentSessionSpawnInfo;
 	messages: AgentSessionMessage[];
 	steps: AgentSessionStep[];
+	checkpoints?: AgentCheckpointItem[];
 } | {
 	success: false;
 	message: string;
@@ -1092,6 +1128,16 @@ export const agentCheckpointDiff = (req: { checkpointId: number; }) => {
 	}>("/agent/checkpoint/diff", req);
 };
 
+export const agentTaskDiff = (req: { taskId: number; }) => {
+	return post<{
+		success: true;
+		files: AgentCheckpointDiffFile[];
+	} | {
+		success: false;
+		message: string;
+	}>("/agent/task/diff", req);
+};
+
 export const agentCheckpointRollback = (req: { sessionId: number; checkpointId: number; }) => {
 	return post<{
 		success: true;
@@ -1100,6 +1146,18 @@ export const agentCheckpointRollback = (req: { sessionId: number; checkpointId: 
 		success: false;
 		message: string;
 	}>("/agent/checkpoint/rollback", req);
+};
+
+export const agentTaskRollback = (req: { sessionId: number; taskId: number; }) => {
+	return post<{
+		success: true;
+		taskId: number;
+		checkpointId: number;
+		checkpointCount?: number;
+	} | {
+		success: false;
+		message: string;
+	}>("/agent/task/rollback", req);
 };
 
 export const addAgentSessionPatchListener = (listener: (patch: AgentSessionPatch) => void) => {

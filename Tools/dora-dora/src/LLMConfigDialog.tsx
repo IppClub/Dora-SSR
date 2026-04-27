@@ -1,5 +1,6 @@
 import { Button, Checkbox as MuiCheckbox, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, FormControlLabel, IconButton, InputAdornment, MenuItem, Stack, TextField, Tooltip, Typography } from '@mui/material';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -27,13 +28,26 @@ type LLMTemplate = {
 	model: string;
 };
 
-const emptyForm = {
+type LLMConfigFormState = Omit<Service.LLMConfigItem, "contextWindow" | "temperature" | "maxTokens"> & {
+	contextWindow: number | string;
+	temperature: number | string;
+	maxTokens: number | string;
+};
+
+const DEFAULT_CONTEXT_WINDOW = 64000;
+const DEFAULT_TEMPERATURE = 0.1;
+const DEFAULT_MAX_TOKENS = 8192;
+
+const emptyForm: LLMConfigFormState = {
 	id: 0,
 	name: '',
 	url: '',
 	model: '',
 	key: '',
-	contextWindow: 64000,
+	contextWindow: DEFAULT_CONTEXT_WINDOW,
+	temperature: DEFAULT_TEMPERATURE,
+	maxTokens: DEFAULT_MAX_TOKENS,
+	reasoningEffort: '',
 	supportsFunctionCalling: true,
 	active: true,
 };
@@ -50,12 +64,18 @@ const inputStyle = {
 	},
 };
 
+const normalizeFormNumber = (value: unknown, fallback: number) => {
+	if (value === null || value === undefined || value === '') return fallback;
+	const numberValue = Number(value);
+	return Number.isFinite(numberValue) ? numberValue : fallback;
+};
+
 const BUILTIN_TEMPLATES: LLMTemplate[] = [
 	{
 		id: 'deepseek',
 		label: 'DeepSeek',
 		url: 'https://api.deepseek.com/v1/chat/completions',
-		model: 'deepseek-chat'
+		model: 'deepseek-v4-flash'
 	},
 	{
 		id: 'moonshot',
@@ -133,13 +153,13 @@ const BUILTIN_TEMPLATES: LLMTemplate[] = [
 		id: 'zai',
 		label: 'ZAI',
 		url: 'https://open.bigmodel.cn/api/paas/v4/chat/completions',
-		model: 'glm-5'
+		model: 'glm-5.1'
 	},
 	{
 		id: 'zai-coding-plan',
 		label: 'ZAI Coding Plan',
 		url: 'https://open.bigmodel.cn/api/coding/paas/v4/chat/completions',
-		model: 'glm-5'
+		model: 'glm-5.1'
 	},
 	{
 		id: 'ollama',
@@ -162,7 +182,7 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 	const [error, setError] = useState<string | null>(null);
 	const [formOpen, setFormOpen] = useState(false);
 	const [mode, setMode] = useState<Mode>('create');
-	const [form, setForm] = useState<Service.LLMConfigItem>(emptyForm);
+	const [form, setForm] = useState<LLMConfigFormState>(emptyForm);
 	const [templateId, setTemplateId] = useState('deepseek');
 	const [savingActiveId, setSavingActiveId] = useState<number | null>(null);
 	const [showApiKey, setShowApiKey] = useState(false);
@@ -186,7 +206,10 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 			if (res.success) {
 				const normalized = (res.items ?? []).map((item) => ({
 					...item,
-					contextWindow: Number(item.contextWindow) > 0 ? Number(item.contextWindow) : 64000,
+					contextWindow: Number(item.contextWindow) > 0 ? Number(item.contextWindow) : DEFAULT_CONTEXT_WINDOW,
+					temperature: normalizeFormNumber(item.temperature, DEFAULT_TEMPERATURE),
+					maxTokens: Number(item.maxTokens) > 0 ? Number(item.maxTokens) : DEFAULT_MAX_TOKENS,
+					reasoningEffort: typeof item.reasoningEffort === 'string' ? item.reasoningEffort : '',
 					supportsFunctionCalling: item.supportsFunctionCalling === undefined ? true : Boolean(item.supportsFunctionCalling),
 					active: item.active === undefined ? true : Boolean(item.active),
 				}));
@@ -213,7 +236,10 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 			key: '',
 			supportsFunctionCalling: true,
 			active: true,
-			contextWindow: 64000,
+			contextWindow: DEFAULT_CONTEXT_WINDOW,
+			temperature: DEFAULT_TEMPERATURE,
+			maxTokens: DEFAULT_MAX_TOKENS,
+			reasoningEffort: '',
 		});
 	}, [templates]);
 
@@ -245,6 +271,10 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 		setMode('edit');
 		setForm({
 			...item,
+			contextWindow: Number(item.contextWindow) > 0 ? Number(item.contextWindow) : DEFAULT_CONTEXT_WINDOW,
+			temperature: normalizeFormNumber(item.temperature, DEFAULT_TEMPERATURE),
+			maxTokens: Number(item.maxTokens) > 0 ? Number(item.maxTokens) : DEFAULT_MAX_TOKENS,
+			reasoningEffort: typeof item.reasoningEffort === 'string' ? item.reasoningEffort : '',
 			supportsFunctionCalling: item.supportsFunctionCalling === undefined ? true : Boolean(item.supportsFunctionCalling),
 			active: item.active === undefined ? true : Boolean(item.active),
 		});
@@ -267,7 +297,10 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 			url: form.url.trim(),
 			model: form.model.trim(),
 			key: form.key.trim(),
-			contextWindow: Math.max(4000, Math.floor(Number(form.contextWindow) || 64000)),
+			contextWindow: Math.floor(normalizeFormNumber(form.contextWindow, DEFAULT_CONTEXT_WINDOW)),
+			temperature: normalizeFormNumber(form.temperature, DEFAULT_TEMPERATURE),
+			maxTokens: Math.floor(normalizeFormNumber(form.maxTokens, DEFAULT_MAX_TOKENS)),
+			reasoningEffort: (form.reasoningEffort ?? '').trim(),
 			supportsFunctionCalling: form.supportsFunctionCalling !== false,
 			active: form.active,
 		};
@@ -495,12 +528,45 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 							<TextField
 								label={t('llm.contextWindow')}
 								value={form.contextWindow}
-								onChange={(event) => setForm({...form, contextWindow: Number(event.target.value) || 64000})}
+								onChange={(event) => setForm({...form, contextWindow: event.target.value})}
 								fullWidth
 								autoComplete="off"
 								size="small"
 								type="number"
-								slotProps={{htmlInput: {min: 4000, step: 1000}}}
+								slotProps={{htmlInput: {min: DEFAULT_CONTEXT_WINDOW, step: 1000}}}
+								sx={inputStyle}
+							/>
+						</Stack>
+						<Stack direction="row" spacing={2}>
+							<TextField
+								label={t('llm.temperature')}
+								value={form.temperature}
+								onChange={(event) => setForm({...form, temperature: event.target.value})}
+								fullWidth
+								autoComplete="off"
+								size="small"
+								type="number"
+								slotProps={{htmlInput: {min: 0, max: 2, step: 0.1}}}
+								sx={inputStyle}
+							/>
+							<TextField
+								label={t('llm.maxTokens')}
+								value={form.maxTokens}
+								onChange={(event) => setForm({...form, maxTokens: event.target.value})}
+								fullWidth
+								autoComplete="off"
+								size="small"
+								type="number"
+								slotProps={{htmlInput: {min: 1, step: 256}}}
+								sx={inputStyle}
+							/>
+							<TextField
+								label={t('llm.reasoningEffort')}
+								value={form.reasoningEffort ?? ''}
+								onChange={(event) => setForm({...form, reasoningEffort: event.target.value})}
+								fullWidth
+								autoComplete="off"
+								size="small"
 								sx={inputStyle}
 							/>
 						</Stack>
@@ -536,13 +602,13 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 											</InputAdornment>
 										),
 									},
-								}}
-								sx={inputStyle}
-								inputProps={{
-									style: showApiKey ? undefined : {
-										WebkitTextSecurity: 'disc',
+									htmlInput: {
+										style: showApiKey ? undefined : {
+											WebkitTextSecurity: 'disc',
+										} as CSSProperties,
 									},
 								}}
+								sx={inputStyle}
 							/>
 						</Stack>
 						{error ? <Typography color={Color.Error}>{error}</Typography> : null}
