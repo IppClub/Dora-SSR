@@ -90,7 +90,7 @@ else
 	config.fpsLimited = App.fpsLimited
 
 if config.targetFPS?
-	App.targetFPS = config.targetFPS
+	App.targetFPS = math.floor config.targetFPS
 else
 	config.targetFPS = App.targetFPS
 
@@ -100,7 +100,7 @@ else
 	config.vsync = View.vsync
 
 if config.fixedFPS?
-	Director.scheduler.fixedFPS = config.fixedFPS
+	Director.scheduler.fixedFPS = math.floor config.fixedFPS
 else
 	config.fixedFPS = Director.scheduler.fixedFPS
 

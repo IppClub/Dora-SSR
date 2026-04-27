@@ -3,8 +3,8 @@ import { App, Content, DB, Path, HttpServer, emit } from 'Dora';
 import { runCodingAgent, CodingAgentEvent, CodingAgentRunResult, truncateAgentUserPrompt } from 'Agent/CodingAgent';
 import * as Tools from 'Agent/Tools';
 import { DualLayerStorage } from 'Agent/Memory';
-import { Log, safeJsonDecode, safeJsonEncode, sanitizeUTF8 } from 'Agent/Utils';
-import type { StopToken } from 'Agent/Utils';
+import { Log, callLLM, clipTextToTokenBudget, estimateTextTokens, getActiveLLMConfig, safeJsonDecode, safeJsonEncode, sanitizeUTF8 } from 'Agent/Utils';
+import type { LLMConfig, Message, StopToken, ToolCallFunction } from 'Agent/Utils';
 
 export type AgentSessionStatus = "IDLE" | "RUNNING" | "DONE" | "FAILED" | "STOPPED";
 export type AgentSessionKind = "main" | "sub";
@@ -54,6 +54,31 @@ export interface AgentSessionStepItem {
 	updatedAt: number;
 }
 
+export interface AgentChangeSetFileItem {
+	path: string;
+	op: Tools.FileOp;
+	checkpointCount: number;
+	checkpointIds: number[];
+}
+
+export interface AgentChangeSetSummaryItem {
+	success: true;
+	taskId: number;
+	checkpointCount: number;
+	filesChanged: number;
+	files: AgentChangeSetFileItem[];
+	latestCheckpointId?: number;
+	latestCheckpointSeq?: number;
+}
+
+export interface AgentSubAgentMemoryEntryItem {
+	sourceSessionId: number;
+	sourceTaskId: number;
+	content: string;
+	evidence: string[];
+	createdAt: string;
+}
+
 export interface AgentSessionSpawnInfo {
 	sessionId?: number;
 	rootSessionId?: number;
@@ -63,11 +88,15 @@ export interface AgentSessionSpawnInfo {
 	goal: string;
 	expectedOutput?: string;
 	filesHint?: string[];
-	status?: "RUNNING" | "DONE" | "FAILED";
+	status?: "RUNNING" | "DONE" | "FAILED" | "STOPPED";
 	success?: boolean;
+	cleared?: boolean;
 	resultFilePath?: string;
 	artifactDir?: string;
 	sourceTaskId?: number;
+	changeSet?: AgentChangeSetSummaryItem;
+	memoryEntry?: AgentSubAgentMemoryEntryItem;
+	memoryEntryError?: string;
 	createdAt?: string;
 	finishedAt?: string;
 	createdAtTs?: number;
@@ -81,6 +110,7 @@ export type AgentSessionDetailResult = {
 	spawnInfo?: AgentSessionSpawnInfo;
 	messages: AgentSessionMessageItem[];
 	steps: AgentSessionStepItem[];
+	checkpoints: Tools.CheckpointItem[];
 } | {
 	success: false;
 	message: string;
@@ -108,7 +138,7 @@ export type AgentRunningSubAgentInfo = {
 	title: string;
 	parentSessionId?: number;
 	rootSessionId: number;
-	status: "RUNNING" | "DONE" | "FAILED";
+	status: "RUNNING" | "DONE" | "FAILED" | "STOPPED";
 	currentTaskId?: number;
 	currentTaskStatus?: AgentSessionStatus;
 	goal?: string;
@@ -116,6 +146,7 @@ export type AgentRunningSubAgentInfo = {
 	filesHint?: string[];
 	summary?: string;
 	success?: boolean;
+	cleared?: boolean;
 	resultFilePath?: string;
 	artifactDir?: string;
 	finishedAt?: string;
@@ -146,6 +177,16 @@ const SPAWN_INFO_FILE = "SPAWN.json";
 const RESULT_FILE = "RESULT.md";
 const PENDING_HANDOFF_DIR = "pending-handoffs";
 const MAX_CONCURRENT_SUB_AGENTS = 4;
+const SUB_AGENT_MEMORY_ENTRY_LLM_TEMPERATURE = 0.1;
+const SUB_AGENT_MEMORY_ENTRY_LLM_MAX_TOKENS = 1024;
+const SUB_AGENT_MEMORY_ENTRY_LLM_MAX_TRY = 3;
+const SUB_AGENT_MEMORY_ENTRY_MAX_CHARS = 1200;
+const SUB_AGENT_MEMORY_EVIDENCE_MAX_ITEMS = 5;
+const SUB_AGENT_MEMORY_CONTEXT_MAX_TOKENS = 3000;
+const SUB_AGENT_MEMORY_RESULT_MAX_TOKENS = 2000;
+const SUB_AGENT_MEMORY_TAIL_MAX_MESSAGES = 20;
+const SUB_AGENT_MEMORY_TAIL_MAX_TOKENS = 4000;
+const SUB_AGENT_MEMORY_TAIL_MESSAGE_MAX_TOKENS = 600;
 
 interface SubAgentResultRecord {
 	sessionId: number;
@@ -156,8 +197,9 @@ interface SubAgentResultRecord {
 	goal: string;
 	expectedOutput?: string;
 	filesHint?: string[];
-	status: "DONE" | "FAILED";
+	status: "DONE" | "FAILED" | "STOPPED";
 	success: boolean;
+	cleared?: boolean;
 	summary?: string;
 	resultFilePath: string;
 	artifactDir: string;
@@ -166,6 +208,9 @@ interface SubAgentResultRecord {
 	finishedAt: string;
 	createdAtTs: number;
 	finishedAtTs: number;
+	changeSet?: AgentChangeSetSummaryItem;
+	memoryEntry?: AgentSubAgentMemoryEntryItem;
+	memoryEntryError?: string;
 }
 
 interface PendingSubAgentHandoffItem {
@@ -182,6 +227,8 @@ interface PendingSubAgentHandoffItem {
 	resultFilePath?: string;
 	artifactDir?: string;
 	finishedAt?: string;
+	changeSet?: AgentChangeSetSummaryItem;
+	memoryEntry?: AgentSubAgentMemoryEntryItem;
 	createdAt: string;
 }
 
@@ -226,6 +273,88 @@ function decodeJsonFiles(text: string): { path: string; op: string }[] | undefin
 		});
 	}
 	return files;
+}
+
+function decodeChangeSetSummary(value: unknown): AgentChangeSetSummaryItem | undefined {
+	if (!value || Array.isArray(value) || type(value) !== "table") return undefined;
+	const row = value as Record<string, unknown>;
+	if (row.success !== true) return undefined;
+	const taskId = typeof row.taskId === "number" ? row.taskId : 0;
+	if (taskId <= 0) return undefined;
+	const files: AgentChangeSetFileItem[] = [];
+	if (Array.isArray(row.files)) {
+		for (let i = 0; i < row.files.length; i++) {
+			const file = row.files[i];
+			if (!file || Array.isArray(file) || type(file) !== "table") continue;
+			const fileRow = file as Record<string, unknown>;
+			const path = sanitizeUTF8(toStr(fileRow.path));
+			if (path === "") continue;
+			const checkpointIds: number[] = [];
+			if (Array.isArray(fileRow.checkpointIds)) {
+				for (let j = 0; j < fileRow.checkpointIds.length; j++) {
+					const checkpointId = typeof fileRow.checkpointIds[j] === "number" ? fileRow.checkpointIds[j] as number : 0;
+					if (checkpointId > 0) checkpointIds.push(checkpointId);
+				}
+			}
+			const op = toStr(fileRow.op);
+			files.push({
+				path,
+				op: op === "create" || op === "delete" || op === "write" ? op : "write",
+				checkpointCount: typeof fileRow.checkpointCount === "number" ? fileRow.checkpointCount : checkpointIds.length,
+				checkpointIds,
+			});
+		}
+	}
+	return {
+		success: true,
+		taskId,
+		checkpointCount: typeof row.checkpointCount === "number" ? row.checkpointCount : 0,
+		filesChanged: typeof row.filesChanged === "number" ? row.filesChanged : files.length,
+		files,
+		latestCheckpointId: typeof row.latestCheckpointId === "number" ? row.latestCheckpointId : undefined,
+		latestCheckpointSeq: typeof row.latestCheckpointSeq === "number" ? row.latestCheckpointSeq : undefined,
+	};
+}
+
+function takeUtf8Head(text: string, maxChars: number): string {
+	if (maxChars <= 0 || text === "") return "";
+	const nextPos = utf8.offset(text, maxChars + 1);
+	if (nextPos === undefined) return text;
+	return string.sub(text, 1, nextPos - 1);
+}
+
+function normalizeMemoryEntryEvidence(value: unknown): string[] {
+	const evidence: string[] = [];
+	if (!Array.isArray(value)) return evidence;
+	for (let i = 0; i < value.length && evidence.length < SUB_AGENT_MEMORY_EVIDENCE_MAX_ITEMS; i++) {
+		const item = sanitizeUTF8(toStr(value[i])).trim();
+		if (item === "") continue;
+		if (evidence.indexOf(item) < 0) {
+			evidence.push(item);
+		}
+	}
+	return evidence;
+}
+
+function decodeSubAgentMemoryEntry(value: unknown): AgentSubAgentMemoryEntryItem | undefined {
+	if (!value || Array.isArray(value) || type(value) !== "table") return undefined;
+	const row = value as Record<string, unknown>;
+	const sourceSessionId = typeof row.sourceSessionId === "number" ? row.sourceSessionId : 0;
+	const sourceTaskId = typeof row.sourceTaskId === "number" ? row.sourceTaskId : 0;
+	const content = takeUtf8Head(sanitizeUTF8(toStr(row.content)).trim(), SUB_AGENT_MEMORY_ENTRY_MAX_CHARS);
+	if (sourceSessionId <= 0 || sourceTaskId <= 0 || content === "") return undefined;
+	return {
+		sourceSessionId,
+		sourceTaskId,
+		content,
+		evidence: normalizeMemoryEntryEvidence(row.evidence),
+		createdAt: sanitizeUTF8(toStr(row.createdAt)).trim(),
+	};
+}
+
+function getTaskChangeSetSummary(taskId: number): AgentChangeSetSummaryItem | undefined {
+	const summary = Tools.summarizeTaskChangeSet(taskId);
+	return summary.success ? summary : undefined;
 }
 
 function queryRows(sql: string, args?: (string | number | boolean)[]) {
@@ -449,11 +578,15 @@ function getSessionSpawnInfo(session: AgentSessionItem): AgentSessionSpawnInfo |
 			: undefined,
 		status: sanitizeUTF8(toStr(info.status)) === "FAILED"
 			? "FAILED"
-			: (sanitizeUTF8(toStr(info.status)) === "DONE" ? "DONE" : (sanitizeUTF8(toStr(info.status)) === "RUNNING" ? "RUNNING" : undefined)),
+			: (sanitizeUTF8(toStr(info.status)) === "STOPPED" ? "STOPPED" : (sanitizeUTF8(toStr(info.status)) === "DONE" ? "DONE" : (sanitizeUTF8(toStr(info.status)) === "RUNNING" ? "RUNNING" : undefined))),
 		success: info.success === true ? true : (info.success === false ? false : undefined),
+		cleared: info.cleared === true ? true : undefined,
 		resultFilePath: typeof info.resultFilePath === "string" ? sanitizeUTF8(info.resultFilePath) : undefined,
 		artifactDir: typeof info.artifactDir === "string" ? sanitizeUTF8(info.artifactDir) : undefined,
 		sourceTaskId: typeof info.sourceTaskId === "number" ? info.sourceTaskId : undefined,
+		changeSet: decodeChangeSetSummary(info.changeSet),
+		memoryEntry: decodeSubAgentMemoryEntry(info.memoryEntry),
+		memoryEntryError: typeof info.memoryEntryError === "string" ? sanitizeUTF8(info.memoryEntryError) : undefined,
 		createdAt: typeof info.createdAt === "string" ? sanitizeUTF8(info.createdAt) : undefined,
 		finishedAt: typeof info.finishedAt === "string" ? sanitizeUTF8(info.finishedAt) : undefined,
 		createdAtTs: typeof info.createdAtTs === "number" ? info.createdAtTs : undefined,
@@ -544,6 +677,271 @@ function readSubAgentResultSummary(projectRoot: string, resultFilePath: string):
 	return text.trim();
 }
 
+function buildSubAgentMemoryEntryLLMOptions(llmConfig: LLMConfig): Record<string, unknown> {
+	const options: Record<string, unknown> = {
+		temperature: llmConfig.temperature ?? SUB_AGENT_MEMORY_ENTRY_LLM_TEMPERATURE,
+		max_tokens: math.min(llmConfig.maxTokens ?? SUB_AGENT_MEMORY_ENTRY_LLM_MAX_TOKENS, SUB_AGENT_MEMORY_ENTRY_LLM_MAX_TOKENS),
+	};
+	if (llmConfig.reasoningEffort) {
+		options.reasoning_effort = llmConfig.reasoningEffort.trim();
+	}
+	if (typeof options.reasoning_effort !== "string" || options.reasoning_effort.trim() === "") {
+		delete options.reasoning_effort;
+	}
+	return options;
+}
+
+function buildSubAgentMemoryEntryToolSchema() {
+	return [{
+		type: "function" as const,
+		function: {
+			name: "save_sub_agent_memory_entry",
+			description: "Save one durable memory paragraph extracted from a completed sub-agent session.",
+			parameters: {
+				type: "object",
+				properties: {
+					content: {
+						type: "string",
+						description: "A concise paragraph of key information worth carrying into future main-agent context. Use an empty string when nothing durable should be saved.",
+					},
+					evidence: {
+						type: "array",
+						items: { type: "string" },
+						description: "Optional short file paths, artifact paths, or concrete anchors that support the memory paragraph.",
+					},
+				},
+				required: ["content"],
+			},
+		},
+	}];
+}
+
+function buildSubAgentMemoryEntrySystemPrompt(): string {
+	return `You generate a durable memory entry for the parent Dora agent.
+Prefer calling save_sub_agent_memory_entry when tool calling is available.
+If you cannot call tools, output exactly one JSON object with this shape: {"content":"...","evidence":["..."]}.
+
+Use the completed sub-agent conversation and final result to decide whether anything should be remembered.
+Return a single compact paragraph in content, similar to a history entry.
+Focus on durable facts: implemented behavior, important design decisions, constraints, discovered project conventions, or follow-up risks.
+Do not include generic progress narration, praise, or temporary execution details.
+If there is no information likely to help future work, set content to an empty string.
+Keep evidence short and concrete, such as touched file paths or result artifact paths.`;
+}
+
+function formatSubAgentMemoryTailMessage(message: Message): string {
+	const lines: string[] = [`role: ${sanitizeUTF8(toStr(message.role))}`];
+	if (typeof message.name === "string" && message.name !== "") {
+		lines.push(`name: ${sanitizeUTF8(message.name)}`);
+	}
+	if (typeof message.tool_call_id === "string" && message.tool_call_id !== "") {
+		lines.push(`tool_call_id: ${sanitizeUTF8(message.tool_call_id)}`);
+	}
+	const content = typeof message.content === "string"
+		? clipTextToTokenBudget(sanitizeUTF8(message.content), SUB_AGENT_MEMORY_TAIL_MESSAGE_MAX_TOKENS)
+		: "";
+	if (content !== "") {
+		lines.push(`content:\n${content}`);
+	}
+	if (Array.isArray(message.tool_calls) && message.tool_calls.length > 0) {
+		const [toolCallsText] = safeJsonEncode(message.tool_calls as object);
+		if (toolCallsText !== undefined && toolCallsText !== "") {
+			lines.push(`tool_calls:\n${clipTextToTokenBudget(toolCallsText, SUB_AGENT_MEMORY_TAIL_MESSAGE_MAX_TOKENS)}`);
+		}
+	}
+	return lines.join("\n");
+}
+
+function buildSubAgentRecentMessageTail(messages: Message[]): string {
+	const parts: string[] = [];
+	let totalTokens = 0;
+	let count = 0;
+	for (let i = messages.length - 1; i >= 0 && count < SUB_AGENT_MEMORY_TAIL_MAX_MESSAGES; i--) {
+		const text = formatSubAgentMemoryTailMessage(messages[i]);
+		if (text === "") continue;
+		const tokens = estimateTextTokens(text);
+		if (parts.length > 0 && totalTokens + tokens > SUB_AGENT_MEMORY_TAIL_MAX_TOKENS) break;
+		if (tokens > SUB_AGENT_MEMORY_TAIL_MAX_TOKENS && parts.length === 0) {
+			parts.unshift(clipTextToTokenBudget(text, SUB_AGENT_MEMORY_TAIL_MAX_TOKENS));
+			break;
+		}
+		parts.unshift(text);
+		totalTokens += tokens;
+		count += 1;
+	}
+	return parts.length > 0 ? parts.join("\n\n---\n\n") : "(empty)";
+}
+
+function buildSubAgentMemoryEntryPrompt(record: SubAgentResultRecord, resultText: string, memoryContext: string, recentMessageTail: string): string {
+	const files = record.changeSet?.files ?? [];
+	const changedFiles = files.map(file => `- ${file.path} (${file.op})`).join("\n");
+	const boundedMemoryContext = clipTextToTokenBudget(memoryContext !== "" ? memoryContext : "(empty)", SUB_AGENT_MEMORY_CONTEXT_MAX_TOKENS);
+	const boundedResultText = clipTextToTokenBudget(resultText !== "" ? resultText : "(empty)", SUB_AGENT_MEMORY_RESULT_MAX_TOKENS);
+	return `Sub-agent memory context:
+${boundedMemoryContext}
+
+Sub-agent task metadata:
+- sessionId: ${tostring(record.sessionId)}
+- taskId: ${tostring(record.sourceTaskId)}
+- title: ${record.title}
+- goal: ${record.goal}
+- prompt: ${record.prompt}
+- expectedOutput: ${record.expectedOutput ?? ""}
+- resultFilePath: ${record.resultFilePath}
+- finishedAt: ${record.finishedAt}
+
+Changed files:
+${changedFiles !== "" ? changedFiles : "- none"}
+
+Final sub-agent result:
+${boundedResultText}
+
+Recent conversation tail:
+${recentMessageTail}
+
+Generate the memory entry now.`;
+}
+
+function buildSubAgentMemoryEntryRetryPrompt(lastError: string): string {
+	return `Previous memory entry response was invalid: ${lastError}
+
+Retry with exactly one JSON object and no Markdown fences, no prose, no tool call.
+Schema:
+{"content":"one concise durable memory paragraph, or empty string if nothing should be saved","evidence":["optional short file path or artifact path"]}
+
+Rules:
+- content must be a string.
+- evidence must be an array of strings.
+- Use {"content":"","evidence":[]} when there is no durable memory to save.`;
+}
+
+function normalizeGeneratedSubAgentMemoryEntry(value: unknown, record: SubAgentResultRecord): AgentSubAgentMemoryEntryItem | undefined {
+	if (!value || Array.isArray(value) || type(value) !== "table") return undefined;
+	const row = value as Record<string, unknown>;
+	const content = takeUtf8Head(sanitizeUTF8(toStr(row.content)).trim(), SUB_AGENT_MEMORY_ENTRY_MAX_CHARS);
+	if (content === "") return undefined;
+	return {
+		sourceSessionId: record.sessionId,
+		sourceTaskId: record.sourceTaskId,
+		content,
+		evidence: normalizeMemoryEntryEvidence(row.evidence),
+		createdAt: record.finishedAt,
+	};
+}
+
+function getMemoryEntryToolFunction(response: unknown): ToolCallFunction | undefined {
+	if (!response || Array.isArray(response) || type(response) !== "table") return undefined;
+	const row = response as Record<string, any>;
+	const choices = row.choices;
+	if (!Array.isArray(choices) || choices.length === 0) return undefined;
+	const message = choices[0]?.message;
+	const toolCalls = message?.tool_calls;
+	if (!Array.isArray(toolCalls)) return undefined;
+	for (let i = 0; i < toolCalls.length; i++) {
+		const fn = toolCalls[i]?.function as ToolCallFunction | undefined;
+		if (fn?.name === "save_sub_agent_memory_entry") return fn;
+	}
+	return undefined;
+}
+
+function getMemoryEntryPlainContent(response: unknown): string {
+	if (!response || Array.isArray(response) || type(response) !== "table") return "";
+	const row = response as Record<string, any>;
+	const choices = row.choices;
+	if (!Array.isArray(choices) || choices.length === 0) return "";
+	const message = choices[0]?.message;
+	return typeof message?.content === "string" ? sanitizeUTF8(message.content).trim() : "";
+}
+
+function decodeMemoryEntryFromPlainContent(content: string): unknown {
+	if (content === "") return undefined;
+	const [direct] = safeJsonDecode(content);
+	if (direct !== undefined) return direct;
+	const [start] = string.find(content, "{", 1, true);
+	if (start === undefined) return undefined;
+	let end = content.length;
+	while (end >= start) {
+		const candidate = string.sub(content, start, end);
+		const [value] = safeJsonDecode(candidate);
+		if (value !== undefined) return value;
+		end -= 1;
+	}
+	return undefined;
+}
+
+function hasEmptyMemoryEntryContent(value: unknown): boolean {
+	if (!value || Array.isArray(value) || type(value) !== "table") return false;
+	const row = value as Record<string, unknown>;
+	return typeof row.content === "string" && sanitizeUTF8(row.content).trim() === "";
+}
+
+async function generateSubAgentMemoryEntry(session: AgentSessionItem, record: SubAgentResultRecord, resultText: string): Promise<{ entry?: AgentSubAgentMemoryEntryItem; error?: string }> {
+	if (!record.success) return {};
+	const configRes = getActiveLLMConfig();
+	if (!configRes.success) {
+		return { error: configRes.message };
+	}
+	const storage = new DualLayerStorage(session.projectRoot, session.memoryScope);
+	const persisted = storage.readSessionState();
+	const memoryContext = storage.readMemory();
+	const recentMessageTail = buildSubAgentRecentMessageTail(persisted.messages);
+	const prompt = buildSubAgentMemoryEntryPrompt(record, resultText, memoryContext, recentMessageTail);
+	const tools = configRes.config.supportsFunctionCalling ? buildSubAgentMemoryEntryToolSchema() : undefined;
+	let lastError = "missing memory entry";
+	for (let attempt = 0; attempt < SUB_AGENT_MEMORY_ENTRY_LLM_MAX_TRY; attempt++) {
+		const useTools = attempt === 0 && tools !== undefined;
+		const messages: Message[] = [
+			{ role: "system", content: buildSubAgentMemoryEntrySystemPrompt() },
+			{
+				role: "user",
+				content: attempt === 0
+					? prompt
+					: `${prompt}\n\n${buildSubAgentMemoryEntryRetryPrompt(lastError)}`,
+			},
+		];
+		const response = await callLLM(
+			messages,
+			{
+				...buildSubAgentMemoryEntryLLMOptions(configRes.config),
+				...(useTools ? { tools } : {}),
+			},
+			configRes.config,
+		);
+		if (!response.success) {
+			lastError = response.message;
+			if (useTools) {
+				Log("Warn", `[AgentSession] sub session memory entry tool request failed, retrying without tools: ${response.message}`);
+			}
+			continue;
+		}
+		const fn = getMemoryEntryToolFunction(response.response);
+		const argsText = fn && typeof fn.arguments === "string" ? fn.arguments : "";
+		if (fn !== undefined && argsText !== "") {
+			const [args, err] = safeJsonDecode(argsText);
+			if (err !== undefined || args === undefined) {
+				lastError = `invalid memory entry tool arguments: ${tostring(err)}`;
+				continue;
+			}
+			if (hasEmptyMemoryEntryContent(args)) return {};
+			const entry = normalizeGeneratedSubAgentMemoryEntry(args, record);
+			if (entry !== undefined) return { entry };
+			lastError = "invalid memory entry tool arguments shape";
+			continue;
+		}
+		const plainContent = getMemoryEntryPlainContent(response.response);
+		const plainArgs = decodeMemoryEntryFromPlainContent(plainContent);
+		if (plainArgs !== undefined) {
+			if (hasEmptyMemoryEntryContent(plainArgs)) return {};
+			const entry = normalizeGeneratedSubAgentMemoryEntry(plainArgs, record);
+			if (entry !== undefined) return { entry };
+			lastError = "invalid memory entry JSON shape";
+			continue;
+		}
+		lastError = "LLM did not return memory entry tool call or JSON content";
+	}
+	return { error: lastError };
+}
+
 function containsNormalizedText(text: string, query: string): boolean {
 	const normalizedText = string.lower(sanitizeUTF8(text ?? ""));
 	const normalizedQuery = string.lower(sanitizeUTF8(query ?? ""));
@@ -605,7 +1003,7 @@ function listSubAgentResultRecords(projectRoot: string, rootSessionId: number): 
 		const sourceTaskId = tonumber((info as any).sourceTaskId);
 		const status = sanitizeUTF8(toStr((info as any).status));
 		if (!(sessionId && sessionId > 0) || !(infoRootSessionId && infoRootSessionId > 0) || infoRootSessionId !== rootSessionId) continue;
-		if (status !== "DONE" && status !== "FAILED") continue;
+		if (status !== "DONE" && status !== "FAILED" && status !== "STOPPED") continue;
 		items.push({
 			sessionId,
 			rootSessionId: infoRootSessionId,
@@ -617,11 +1015,15 @@ function listSubAgentResultRecords(projectRoot: string, rootSessionId: number): 
 			filesHint: Array.isArray((info as any).filesHint)
 				? ((info as any).filesHint as unknown[]).filter(item => typeof item === "string").map(item => sanitizeUTF8(item as string))
 				: [],
-			status: status === "FAILED" ? "FAILED" : "DONE",
+			status: status === "FAILED" ? "FAILED" : (status === "STOPPED" ? "STOPPED" : "DONE"),
 			success: (info as any).success === true,
+			cleared: (info as any).cleared === true,
 			resultFilePath: sanitizeUTF8(toStr((info as any).resultFilePath)),
 			artifactDir: sanitizeUTF8(toStr((info as any).artifactDir)) || getArtifactRelativeDir(Path("subagents", Path.getFilename(path))),
 			sourceTaskId: sourceTaskId || 0,
+			changeSet: decodeChangeSetSummary((info as any).changeSet),
+			memoryEntry: decodeSubAgentMemoryEntry((info as any).memoryEntry),
+			memoryEntryError: sanitizeUTF8(toStr((info as any).memoryEntryError)),
 			createdAt: sanitizeUTF8(toStr((info as any).createdAt)),
 			finishedAt: sanitizeUTF8(toStr((info as any).finishedAt)),
 			createdAtTs: tonumber((info as any).createdAtTs) || 0,
@@ -685,6 +1087,8 @@ function listPendingHandoffs(projectRoot: string, memoryScope: string): PendingS
 			resultFilePath: sanitizeUTF8(toStr((value as any).resultFilePath)),
 			artifactDir: sanitizeUTF8(toStr((value as any).artifactDir)),
 			finishedAt: sanitizeUTF8(toStr((value as any).finishedAt)),
+			changeSet: decodeChangeSetSummary((value as any).changeSet),
+			memoryEntry: decodeSubAgentMemoryEntry((value as any).memoryEntry),
 			createdAt,
 		});
 	}
@@ -1057,16 +1461,21 @@ function flushPendingSubAgentHandoffs(rootSession: AgentSessionItem): void {
 				resultFilePath: item.resultFilePath ?? "",
 				artifactDir: item.artifactDir ?? "",
 				finishedAt: item.finishedAt ?? "",
+				changeSet: item.changeSet,
+				memoryEntry: item.memoryEntry,
 			},
 			{
 				sourceSessionId: item.sourceSessionId,
 				sourceTitle: item.sourceTitle,
+				sourceTaskId: item.sourceTaskId,
 				prompt: item.prompt,
 				goal: item.goal !== "" ? item.goal : item.sourceTitle,
 				expectedOutput: item.expectedOutput ?? "",
 				filesHint: item.filesHint ?? [],
 				resultFilePath: item.resultFilePath ?? "",
 				artifactDir: item.artifactDir ?? "",
+				changeSet: item.changeSet,
+				memoryEntry: item.memoryEntry,
 			},
 			"DONE",
 		);
@@ -1503,12 +1912,14 @@ export function getSession(sessionId: number): AgentSessionDetailResult {
 		spawnInfo: normalizedSession.kind === "sub" ? getSessionSpawnInfo(normalizedSession) : undefined,
 		messages: messages.map(row => rowToMessage(row as any[])),
 		steps: steps.map(row => rowToStep(row as any[])),
+		checkpoints: normalizedSession.currentTaskId ? Tools.listCheckpoints(normalizedSession.currentTaskId) : [],
 	};
 }
 
 function appendSubAgentHandoffStep(session: AgentSessionItem, taskId: number, result: SubAgentResultRecord, summary: string): void {
 	const rootSession = getRootSessionItem(session.id);
 	if (!rootSession) return;
+	const changeSet = result.changeSet ?? getTaskChangeSetSummary(taskId);
 	const createdAt = os.date("!%Y-%m-%dT%H:%M:%SZ");
 	const [cleanedTime1] = string.gsub(createdAt, "[-:]", "");
 	const [cleanedTime2] = string.gsub(cleanedTime1, "%.%d+Z$", "Z");
@@ -1526,6 +1937,8 @@ function appendSubAgentHandoffStep(session: AgentSessionItem, taskId: number, re
 		resultFilePath: result.resultFilePath,
 		artifactDir: result.artifactDir,
 		finishedAt: result.finishedAt,
+		changeSet,
+		memoryEntry: result.memoryEntry,
 		createdAt,
 	});
 	if (!queueResult) {
@@ -1537,7 +1950,7 @@ function appendSubAgentHandoffStep(session: AgentSessionItem, taskId: number, re
 	}
 }
 
-function finalizeSubSession(session: AgentSessionItem, taskId: number, success: boolean, message: string): { success: true } | { success: false; message: string } {
+async function finalizeSubSession(session: AgentSessionItem, taskId: number, success: boolean, message: string): Promise<{ success: true } | { success: false; message: string }> {
 	const rootSessionId = getSessionRootId(session);
 	const rootSession = getRootSessionItem(session.id);
 	if (!rootSession) {
@@ -1547,6 +1960,7 @@ function finalizeSubSession(session: AgentSessionItem, taskId: number, success: 
 	const finishedAt = os.date("!%Y-%m-%dT%H:%M:%SZ");
 	const finishedAtTs = now();
 	const resultText = sanitizeUTF8(message);
+	const changeSet = getTaskChangeSetSummary(taskId);
 	const record: SubAgentResultRecord = {
 		sessionId: session.id,
 		rootSessionId,
@@ -1565,7 +1979,16 @@ function finalizeSubSession(session: AgentSessionItem, taskId: number, success: 
 		finishedAt,
 		createdAtTs: session.createdAt,
 		finishedAtTs,
+		changeSet,
 	};
+	if (record.success) {
+		const memoryEntryResult = await generateSubAgentMemoryEntry(session, record, resultText);
+		record.memoryEntry = memoryEntryResult.entry;
+		if (memoryEntryResult.error && memoryEntryResult.error !== "") {
+			record.memoryEntryError = memoryEntryResult.error;
+			Log("Warn", `[AgentSession] sub session memory entry failed session=${session.id} error=${memoryEntryResult.error}`);
+		}
+	}
 	if (!writeSubAgentResultFile(session, record, resultText)) {
 		return { success: false, message: "failed to persist sub session result file" };
 	}
@@ -1587,6 +2010,9 @@ function finalizeSubSession(session: AgentSessionItem, taskId: number, success: 
 		finishedAt: record.finishedAt,
 		createdAtTs: record.createdAtTs,
 		finishedAtTs: record.finishedAtTs,
+		changeSet: record.changeSet,
+		memoryEntry: record.memoryEntry,
+		memoryEntryError: record.memoryEntryError,
 	})) {
 		return { success: false, message: "failed to persist sub session spawn info" };
 	}
@@ -1595,6 +2021,39 @@ function finalizeSubSession(session: AgentSessionItem, taskId: number, success: 
 		deleteSessionRecords(session.id, true);
 		emitSessionDeletedPatch(session.id, rootSessionId, rootSession.projectRoot);
 	}
+	return { success: true };
+}
+
+function stopClearedSubSession(session: AgentSessionItem, taskId: number): { success: true } | { success: false; message: string } {
+	const spawnInfo = getSessionSpawnInfo(session);
+	const finishedAt = os.date("!%Y-%m-%dT%H:%M:%SZ");
+	const rootSessionId = getSessionRootId(session);
+	Tools.setTaskStatus(taskId, "STOPPED");
+	setSessionState(session.id, "STOPPED", taskId, "STOPPED");
+	if (!writeSpawnInfo(session.projectRoot, session.memoryScope, {
+		sessionId: session.id,
+		rootSessionId,
+		parentSessionId: session.parentSessionId,
+		title: session.title,
+		prompt: spawnInfo?.prompt ?? "",
+		goal: spawnInfo?.goal ?? session.title,
+		expectedOutput: spawnInfo?.expectedOutput ?? "",
+		filesHint: spawnInfo?.filesHint ?? [],
+		status: "STOPPED",
+		success: false,
+		cleared: true,
+		resultFilePath: "",
+		artifactDir: getArtifactRelativeDir(session.memoryScope),
+		sourceTaskId: taskId,
+		createdAt: spawnInfo?.createdAt ?? finishedAt,
+		finishedAt,
+		createdAtTs: session.createdAt,
+		finishedAtTs: now(),
+	})) {
+		return { success: false, message: "failed to persist cleared sub session spawn info" };
+	}
+	deleteSessionRecords(session.id, true);
+	emitSessionDeletedPatch(session.id, rootSessionId, session.projectRoot);
 	return { success: true };
 }
 
@@ -1652,9 +2111,35 @@ export function sendPrompt(sessionId: number, prompt: string, allowSubSessionSta
 	}, async (result: CodingAgentRunResult) => {
 		const nextSession = getSessionItem(sessionId);
 		if (nextSession && nextSession.kind === "sub") {
-			const finalized = finalizeSubSession(nextSession, taskId, result.success, result.message);
+			if (normalizedPrompt.trim() === "/clear") {
+				const stopped = stopClearedSubSession(nextSession, taskId);
+				if (!stopped.success) {
+					Log("Warn", `[AgentSession] sub session clear stop failed session=${nextSession.id} error=${stopped.message}`);
+					emitAgentSessionPatch(sessionId, {
+						session: getSessionItem(sessionId),
+					});
+				}
+				activeStopTokens[taskId] = undefined as any;
+				return;
+			}
+			setSessionState(sessionId, "RUNNING", taskId, "RUNNING");
+			emitAgentSessionPatch(sessionId, {
+				session: getSessionItem(sessionId),
+			});
+			const finalized = await finalizeSubSession(nextSession, taskId, result.success, result.message);
 			if (!finalized.success) {
 				Log("Warn", `[AgentSession] sub session finalize failed session=${nextSession.id} error=${finalized.message}`);
+			}
+			const finalizedSession = getSessionItem(sessionId);
+			if (finalizedSession) {
+				const stopped = stopToken.stopped === true;
+				const finalStatus: AgentSessionStatus = result.success
+					? "DONE"
+					: (stopped ? "STOPPED" : "FAILED");
+				setSessionState(sessionId, finalStatus, taskId, finalStatus);
+				emitAgentSessionPatch(sessionId, {
+					session: getSessionItem(sessionId),
+				});
 			}
 		}
 		if (!result.success && (!nextSession || nextSession.kind !== "sub")) {
@@ -1780,6 +2265,7 @@ export async function listRunningSubAgents(request: {
 		filesHint: record.filesHint,
 		summary: readSubAgentResultSummary(rootSession.projectRoot, record.resultFilePath),
 		success: record.success,
+		cleared: record.cleared,
 		resultFilePath: record.resultFilePath,
 		artifactDir: record.artifactDir,
 		finishedAt: record.finishedAt,
@@ -1793,6 +2279,8 @@ export async function listRunningSubAgents(request: {
 		merged = completedSessions.filter(item => item.status === "DONE");
 	} else if (status === "failed") {
 		merged = completedSessions.filter(item => item.status === "FAILED");
+	} else if (status === "stopped") {
+		merged = completedSessions.filter(item => item.status === "STOPPED");
 	} else if (status === "all") {
 		merged = runningSessions.concat(completedSessions);
 	} else {

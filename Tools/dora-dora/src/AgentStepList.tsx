@@ -7,9 +7,10 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useTranslation } from 'react-i18next';
-import type { AgentCheckpointDiffFile, AgentCheckpointItem, AgentSessionStep } from './Service';
+import type { AgentChangeSetSummary, AgentCheckpointDiffFile, AgentCheckpointItem, AgentSessionStep } from './Service';
 import { Color } from './Theme';
 import AgentFileDiff from './AgentFileDiff';
+import AgentChangeSetSummaryCard from './AgentChangeSetSummary';
 import Markdown from './Markdown';
 import './github-markdown-dark.css';
 
@@ -17,12 +18,17 @@ interface AgentStepListProps {
 	steps: AgentSessionStep[];
 	checkpointMap: Map<number, AgentCheckpointItem>;
 	diffs: Record<number, AgentCheckpointDiffFile[]>;
+	taskDiffs: Record<number, AgentCheckpointDiffFile[]>;
 	diffLoadingId: number | null;
+	taskDiffLoadingId: number | null;
 	openedDiffId: number | null;
+	openedTaskDiffId: number | null;
 	running: boolean;
 	rollingBack: number | null;
 	onToggleDiff: (step: AgentSessionStep) => void;
+	onToggleTaskDiff: (taskId: number) => void;
 	onRollback: (step: AgentSessionStep) => void;
+	onRollbackTaskChangeSet: (taskId: number) => void;
 	onOpenFile?: (filePath: string) => void;
 }
 
@@ -207,6 +213,8 @@ function getSubAgentHandoffMeta(step: AgentSessionStep): {
 	artifactDir: string;
 	finishedAt: string;
 	success?: boolean;
+	sourceTaskId?: number;
+	changeSet?: AgentChangeSetSummary;
 } | null {
 	if (step.tool !== "sub_agent_handoff" || !step.result || typeof step.result !== "object") {
 		return null;
@@ -218,6 +226,10 @@ function getSubAgentHandoffMeta(step: AgentSessionStep): {
 		artifactDir: typeof result.artifactDir === "string" ? result.artifactDir : "",
 		finishedAt: typeof result.finishedAt === "string" ? result.finishedAt : "",
 		success: result.success === true ? true : (result.success === false ? false : undefined),
+		sourceTaskId: typeof result.sourceTaskId === "number" ? result.sourceTaskId : undefined,
+		changeSet: result.changeSet && typeof result.changeSet === "object" && (result.changeSet as Record<string, unknown>).success === true
+			? result.changeSet as AgentChangeSetSummary
+			: undefined,
 	};
 }
 
@@ -255,12 +267,17 @@ export default function AgentStepList(props: AgentStepListProps) {
 		steps,
 		checkpointMap,
 		diffs,
+		taskDiffs,
 		diffLoadingId,
+		taskDiffLoadingId,
 		openedDiffId,
+		openedTaskDiffId,
 		running,
 		rollingBack,
 		onToggleDiff,
+		onToggleTaskDiff,
 		onRollback,
+		onRollbackTaskChangeSet,
 		onOpenFile,
 	} = props;
 	return (
@@ -372,13 +389,27 @@ export default function AgentStepList(props: AgentStepListProps) {
 										</Typography>
 									) : null}
 								</Stack>
-								{handoffMeta.artifactDir ? (
-									<Typography variant="body2" sx={{ color: Color.TextSecondary, lineHeight: 1.6 }}>
-										{t("agent.subAgentResult.artifactDir")}: {handoffMeta.artifactDir}
-									</Typography>
-								) : null}
-							</Stack>
-						</Box>
+									{handoffMeta.artifactDir ? (
+										<Typography variant="body2" sx={{ color: Color.TextSecondary, lineHeight: 1.6 }}>
+											{t("agent.subAgentResult.artifactDir")}: {handoffMeta.artifactDir}
+										</Typography>
+									) : null}
+									{handoffMeta.changeSet && handoffMeta.sourceTaskId ? (
+										<AgentChangeSetSummaryCard
+											changeSet={handoffMeta.changeSet}
+											diffs={taskDiffs[handoffMeta.sourceTaskId] ?? []}
+											diffOpen={openedTaskDiffId === handoffMeta.sourceTaskId}
+											diffLoading={taskDiffLoadingId === handoffMeta.sourceTaskId}
+											rollbackLoading={rollingBack === -handoffMeta.sourceTaskId}
+											running={running}
+											rollbackLabel={t("agent.rollbackSubTaskChanges")}
+											onToggleDiff={() => onToggleTaskDiff(handoffMeta.sourceTaskId!)}
+											onRollback={() => onRollbackTaskChangeSet(handoffMeta.sourceTaskId!)}
+											onOpenFile={onOpenFile}
+										/>
+									) : null}
+								</Stack>
+							</Box>
 					) : null}
 					{listedSubAgents.length > 0 ? (
 						<Stack spacing={1} sx={{ mt: 1.25 }}>

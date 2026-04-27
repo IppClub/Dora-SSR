@@ -43,6 +43,16 @@ export type RollbackResult = {
 	message: string;
 };
 
+export type TaskRollbackResult = {
+	success: true;
+	taskId: number;
+	checkpointId: number;
+	checkpointCount: number;
+} | {
+	success: false;
+	message: string;
+};
+
 export interface CheckpointDiffFile {
 	path: string;
 	op: FileOp;
@@ -175,6 +185,26 @@ export interface CheckpointItem {
 	toolName: string;
 	createdAt: number;
 }
+
+export interface TaskChangeSetFile {
+	path: string;
+	op: FileOp;
+	checkpointCount: number;
+	checkpointIds: number[];
+}
+
+export type TaskChangeSetSummary = {
+	success: true;
+	taskId: number;
+	checkpointCount: number;
+	filesChanged: number;
+	files: TaskChangeSetFile[];
+	latestCheckpointId?: number;
+	latestCheckpointSeq?: number;
+} | {
+	success: false;
+	message: string;
+};
 
 interface CheckpointEntryRow {
 	id: number;
@@ -658,6 +688,136 @@ export function listCheckpoints(taskId: number): CheckpointItem[] {
 		});
 	}
 	return items;
+}
+
+function listCheckpointIdsForTask(taskId: number, desc = false): { id: number; seq: number }[] {
+	const rows = DB.query(
+		`SELECT id, seq
+		FROM ${TABLE_CP}
+		WHERE task_id = ? AND status IN ('APPLIED', 'REVERTED')
+		ORDER BY seq ${desc ? "DESC" : "ASC"}`,
+		[taskId],
+	);
+	if (!rows) return [];
+	const items: { id: number; seq: number }[] = [];
+	for (let i = 0; i < rows.length; i++) {
+		const row = rows[i];
+		items.push({
+			id: row[0] as number,
+			seq: row[1] as number,
+		});
+	}
+	return items;
+}
+
+function deriveFileOp(beforeExists: boolean, afterExists: boolean): FileOp {
+	if (!beforeExists && afterExists) return "create";
+	if (beforeExists && !afterExists) return "delete";
+	return "write";
+}
+
+export function summarizeTaskChangeSet(taskId: number): TaskChangeSetSummary {
+	if (!getTaskStatus(taskId)) {
+		return { success: false, message: "task not found" };
+	}
+	const checkpoints = listCheckpointIdsForTask(taskId, false);
+	const filesByPath: Record<string, {
+		path: string;
+		beforeExists: boolean;
+		afterExists: boolean;
+		checkpointIds: number[];
+	}> = {};
+	let latestCheckpointId: number | undefined = undefined;
+	let latestCheckpointSeq: number | undefined = undefined;
+	for (let i = 0; i < checkpoints.length; i++) {
+		const checkpoint = checkpoints[i];
+		latestCheckpointId = checkpoint.id;
+		latestCheckpointSeq = checkpoint.seq;
+		const entries = getCheckpointEntries(checkpoint.id, false);
+		for (let j = 0; j < entries.length; j++) {
+			const entry = entries[j];
+			let item = filesByPath[entry.path];
+			if (!item) {
+				item = {
+					path: entry.path,
+					beforeExists: entry.beforeExists,
+					afterExists: entry.afterExists,
+					checkpointIds: [],
+				};
+				filesByPath[entry.path] = item;
+			}
+			item.afterExists = entry.afterExists;
+			item.checkpointIds.push(checkpoint.id);
+		}
+	}
+	const files: TaskChangeSetFile[] = [];
+	for (const [, item] of pairs(filesByPath)) {
+		files.push({
+			path: item.path,
+			op: deriveFileOp(item.beforeExists, item.afterExists),
+			checkpointCount: item.checkpointIds.length,
+			checkpointIds: item.checkpointIds,
+		});
+	}
+	files.sort((a, b) => a.path < b.path ? -1 : (a.path > b.path ? 1 : 0));
+	return {
+		success: true,
+		taskId,
+		checkpointCount: checkpoints.length,
+		filesChanged: files.length,
+		files,
+		latestCheckpointId,
+		latestCheckpointSeq,
+	};
+}
+
+export function getTaskChangeSetDiff(taskId: number): CheckpointDiffResult {
+	if (!getTaskStatus(taskId)) {
+		return { success: false, message: "task not found" };
+	}
+	const checkpoints = listCheckpointIdsForTask(taskId, false);
+	if (checkpoints.length === 0) {
+		return { success: false, message: "change set not found or empty" };
+	}
+	const filesByPath: Record<string, {
+		path: string;
+		beforeExists: boolean;
+		beforeContent: string;
+		afterExists: boolean;
+		afterContent: string;
+	}> = {};
+	for (let i = 0; i < checkpoints.length; i++) {
+		const entries = getCheckpointEntries(checkpoints[i].id, false);
+		for (let j = 0; j < entries.length; j++) {
+			const entry = entries[j];
+			let item = filesByPath[entry.path];
+			if (!item) {
+				item = {
+					path: entry.path,
+					beforeExists: entry.beforeExists,
+					beforeContent: entry.beforeContent,
+					afterExists: entry.afterExists,
+					afterContent: entry.afterContent,
+				};
+				filesByPath[entry.path] = item;
+			}
+			item.afterExists = entry.afterExists;
+			item.afterContent = entry.afterContent;
+		}
+	}
+	const files: CheckpointDiffFile[] = [];
+	for (const [, item] of pairs(filesByPath)) {
+		files.push({
+			path: item.path,
+			op: deriveFileOp(item.beforeExists, item.afterExists),
+			beforeExists: item.beforeExists,
+			afterExists: item.afterExists,
+			beforeContent: item.beforeContent,
+			afterContent: item.afterContent,
+		});
+	}
+	files.sort((a, b) => a.path < b.path ? -1 : (a.path > b.path ? 1 : 0));
+	return { success: true, files };
 }
 
 function readWorkspaceFile(workDir: string, path: string, docLanguage?: DoraAPIDocLanguage): ReadFileResult {
@@ -1237,7 +1397,29 @@ export function rollbackCheckpoint(checkpointId: number, workDir: string): Rollb
 			return { success: false, message: `failed to sync rollback file: ${entry.path}` };
 		}
 	}
+	DB.exec(`UPDATE ${TABLE_CP} SET status = ?, reverted_at = ? WHERE id = ?`, ["REVERTED", now(), checkpointId]);
 	return { success: true, checkpointId };
+}
+
+export function rollbackTaskChangeSet(taskId: number, workDir: string): TaskRollbackResult {
+	if (!isValidWorkDir(workDir)) return { success: false, message: "invalid workDir" };
+	if (!getTaskStatus(taskId)) return { success: false, message: "task not found" };
+	const checkpoints = listCheckpointIdsForTask(taskId, true);
+	if (checkpoints.length === 0) {
+		return { success: false, message: "change set not found or empty" };
+	}
+	let lastCheckpointId = 0;
+	for (let i = 0; i < checkpoints.length; i++) {
+		const result = rollbackCheckpoint(checkpoints[i].id, workDir);
+		if (!result.success) return { success: false, message: result.message };
+		lastCheckpointId = checkpoints[i].id;
+	}
+	return {
+		success: true,
+		taskId,
+		checkpointId: lastCheckpointId,
+		checkpointCount: checkpoints.length,
+	};
 }
 
 export function getCheckpointEntriesForDebug(checkpointId: number) {

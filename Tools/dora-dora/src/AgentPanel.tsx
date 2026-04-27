@@ -14,6 +14,7 @@ import { BsArrowDown } from 'react-icons/bs';
 import AgentMessageList from './AgentMessageList';
 import AgentComposer from './AgentComposer';
 import AgentStepList from './AgentStepList';
+import AgentChangeSetSummaryCard from './AgentChangeSetSummary';
 
 interface AgentPanelProps {
 	sessionId: number;
@@ -63,8 +64,11 @@ export default function AgentPanel(props: AgentPanelProps) {
 	const [steps, setSteps] = useState<Service.AgentSessionStep[]>([]);
 	const [checkpoints, setCheckpoints] = useState<Service.AgentCheckpointItem[]>([]);
 	const [diffs, setDiffs] = useState<Record<number, Service.AgentCheckpointDiffFile[]>>({});
+	const [taskDiffs, setTaskDiffs] = useState<Record<number, Service.AgentCheckpointDiffFile[]>>({});
 	const [diffLoadingId, setDiffLoadingId] = useState<number | null>(null);
+	const [taskDiffLoadingId, setTaskDiffLoadingId] = useState<number | null>(null);
 	const [openedDiffId, setOpenedDiffId] = useState<number | null>(null);
+	const [openedTaskDiffId, setOpenedTaskDiffId] = useState<number | null>(null);
 	const [visibleHistoryRounds, setVisibleHistoryRounds] = useState(HISTORY_VISIBLE_ROUNDS);
 	const [isNearBottom, setIsNearBottom] = useState(true);
 	const [llmConfigMissing, setLLMConfigMissing] = useState(false);
@@ -197,6 +201,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 			setSpawnInfo(res.spawnInfo ?? null);
 			setMessages(normalizeList<Service.AgentSessionMessage>(res.messages));
 			setSteps(normalizeList<Service.AgentSessionStep>(res.steps));
+			setCheckpoints(normalizeList<Service.AgentCheckpointItem>(res.checkpoints));
 			return;
 		}
 		if (res.message === "session not found" && targetSessionId !== sessionId) {
@@ -412,6 +417,43 @@ export default function AgentPanel(props: AgentPanelProps) {
 		return messageGroups.currentSummaryMessages;
 	}, [messageGroups.currentSummaryMessages]);
 
+	const currentTaskChangeSet = useMemo<Service.AgentChangeSetSummary | null>(() => {
+		if (!activeTaskId || checkpoints.length === 0) return null;
+		const currentCheckpoints = checkpoints.filter(checkpoint => checkpoint.taskId === activeTaskId);
+		if (currentCheckpoints.length === 0) return null;
+		const filesByPath = new Map<string, Service.AgentChangeSetFileItem>();
+		for (const step of latestSteps) {
+			if (step.taskId !== activeTaskId || !step.checkpointId || !step.files) continue;
+			for (const file of step.files) {
+				const op = file.op === "create" || file.op === "delete" || file.op === "write" ? file.op : "write";
+				const existing = filesByPath.get(file.path);
+				if (existing) {
+					existing.op = op;
+					existing.checkpointCount += 1;
+					existing.checkpointIds.push(step.checkpointId);
+				} else {
+					filesByPath.set(file.path, {
+						path: file.path,
+						op,
+						checkpointCount: 1,
+						checkpointIds: [step.checkpointId],
+					});
+				}
+			}
+		}
+		const files = [...filesByPath.values()].sort((a, b) => a.path.localeCompare(b.path));
+		const sortedCheckpoints = [...currentCheckpoints].sort((a, b) => b.seq - a.seq);
+		return {
+			success: true,
+			taskId: activeTaskId,
+			checkpointCount: currentCheckpoints.length,
+			filesChanged: files.length,
+			files,
+			latestCheckpointId: sortedCheckpoints[0]?.id,
+			latestCheckpointSeq: sortedCheckpoints[0]?.seq,
+		};
+	}, [activeTaskId, checkpoints, latestSteps]);
+
 	const checkpointMap = useMemo(() => {
 		return new Map(checkpoints.map(checkpoint => [checkpoint.seq, checkpoint]));
 	}, [checkpoints]);
@@ -492,6 +534,46 @@ export default function AgentPanel(props: AgentPanelProps) {
 				return;
 			}
 			addAlert?.(t("agent.rollbackDone", { seq: Math.max(0, seq - 1) }), "success");
+			await refresh(true);
+			onRollbackComplete?.(projectRoot);
+		} finally {
+			setRollingBack(null);
+		}
+	};
+
+	const onToggleTaskDiff = async (taskId: number) => {
+		if (openedTaskDiffId === taskId) {
+			setOpenedTaskDiffId(null);
+			return;
+		}
+		setOpenedTaskDiffId(taskId);
+		if (taskDiffs[taskId]) return;
+		setTaskDiffLoadingId(taskId);
+		try {
+			const res = await Service.agentTaskDiff({ taskId });
+			if (!res.success) {
+				addAlert?.(res.message, "error");
+				return;
+			}
+			setTaskDiffs(prev => ({ ...prev, [taskId]: res.files }));
+		} finally {
+			setTaskDiffLoadingId(null);
+		}
+	};
+
+	const onRollbackTaskChangeSet = async (taskId: number) => {
+		if (rollingBack !== null) return;
+		setRollingBack(-taskId);
+		try {
+			const res = await Service.agentTaskRollback({
+				sessionId: selectedSessionId,
+				taskId,
+			});
+			if (!res.success) {
+				addAlert?.(res.message, "error");
+				return;
+			}
+			addAlert?.(t("agent.changeSetRollbackDone"), "success");
 			await refresh(true);
 			onRollbackComplete?.(projectRoot);
 		} finally {
@@ -669,12 +751,17 @@ export default function AgentPanel(props: AgentPanelProps) {
 									steps={latestSteps}
 									checkpointMap={checkpointMap}
 									diffs={diffs}
+									taskDiffs={taskDiffs}
 									diffLoadingId={diffLoadingId}
+									taskDiffLoadingId={taskDiffLoadingId}
 									openedDiffId={openedDiffId}
+									openedTaskDiffId={openedTaskDiffId}
 									running={session?.currentTaskStatus === "RUNNING"}
 									rollingBack={rollingBack}
 									onToggleDiff={(step) => void onToggleDiff(step)}
+									onToggleTaskDiff={(taskId) => void onToggleTaskDiff(taskId)}
 									onRollback={(seq) => void onRollback(seq)}
+									onRollbackTaskChangeSet={(taskId) => void onRollbackTaskChangeSet(taskId)}
 									onOpenFile={onOpenFile}
 								/>
 							</Box>
@@ -686,6 +773,20 @@ export default function AgentPanel(props: AgentPanelProps) {
 								) : null}
 								{visibleSummaryMessages.length > 0 ? (
 									<AgentMessageList messages={visibleSummaryMessages} />
+								) : null}
+								{visibleSummaryMessages.length > 0 && currentTaskChangeSet && currentTaskChangeSet.filesChanged > 0 ? (
+									<AgentChangeSetSummaryCard
+										changeSet={currentTaskChangeSet}
+										diffs={taskDiffs[currentTaskChangeSet.taskId] ?? []}
+										diffOpen={openedTaskDiffId === currentTaskChangeSet.taskId}
+										diffLoading={taskDiffLoadingId === currentTaskChangeSet.taskId}
+										rollbackLoading={rollingBack === -currentTaskChangeSet.taskId}
+										running={session?.currentTaskStatus === "RUNNING"}
+										rollbackLabel={t("agent.rollbackThisRunChanges")}
+										onToggleDiff={() => void onToggleTaskDiff(currentTaskChangeSet.taskId)}
+										onRollback={() => void onRollbackTaskChangeSet(currentTaskChangeSet.taskId)}
+										onOpenFile={onOpenFile}
+									/>
 								) : null}
 								{showSummaryShimmer ? (
 									<Typography

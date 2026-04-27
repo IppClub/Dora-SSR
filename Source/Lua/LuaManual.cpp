@@ -2452,7 +2452,7 @@ static void DB_colToLua(lua_State* L, const DB::Col& c) {
 	if (std::holds_alternative<int64_t>(c)) {
 		lua_pushinteger(L, s_cast<lua_Integer>(std::get<int64_t>(c)));
 	} else if (std::holds_alternative<double>(c)) {
-		lua_pushinteger(L, s_cast<lua_Number>(std::get<double>(c)));
+		lua_pushnumber(L, s_cast<lua_Number>(std::get<double>(c)));
 	} else if (std::holds_alternative<std::string>(c)) {
 		tolua_pushslice(L, std::get<std::string>(c));
 	} else {

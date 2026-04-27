@@ -5,6 +5,29 @@ import { getActiveLLMConfig } from 'Agent/Utils';
 import type { LLMConfig, ToolCall } from 'Agent/Utils';
 import { sendWebIDEFileUpdate } from 'Agent/Tools';
 
+const MEMORY_DEFAULT_LLM_TEMPERATURE = 0.1;
+const MEMORY_DEFAULT_LLM_MAX_TOKENS = 8192;
+
+function buildMemoryLLMOptions(llmConfig: LLMConfig, overrides?: Record<string, unknown>): Record<string, unknown> {
+	const options: Record<string, unknown> = {
+		temperature: llmConfig.temperature ?? MEMORY_DEFAULT_LLM_TEMPERATURE,
+		max_tokens: llmConfig.maxTokens ?? MEMORY_DEFAULT_LLM_MAX_TOKENS,
+	};
+	if (llmConfig.reasoningEffort) {
+		options.reasoning_effort = llmConfig.reasoningEffort;
+	}
+	const merged = {
+		...options,
+		...(overrides ?? {}),
+	};
+	if (typeof merged.reasoning_effort !== "string" || merged.reasoning_effort.trim() === "") {
+		delete merged.reasoning_effort;
+	} else {
+		merged.reasoning_effort = merged.reasoning_effort.trim();
+	}
+	return merged;
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === "object";
 }
@@ -29,6 +52,15 @@ interface HistoryRecord {
 	rawArchive?: string;
 }
 
+interface SubAgentLearningEntry {
+	sourceSessionId: number;
+	sourceTaskId: number;
+	content: string;
+	evidence: string[];
+	createdAt: string;
+	sortTs: number;
+}
+
 function clampSessionIndex(messages: AgentConversationMessage[], index?: number): number {
 	if (typeof index !== "number") return 0;
 	if (index <= 0) return 0;
@@ -40,6 +72,11 @@ const AGENT_PROMPTS_FILE = "AGENT.md";
 const HISTORY_JSONL_FILE = "HISTORY.jsonl";
 const HISTORY_MAX_RECORDS = 1000;
 const SESSION_MAX_RECORDS = 1000;
+const SUB_AGENT_SPAWN_INFO_FILE = "SPAWN.json";
+const SUB_AGENT_LEARNINGS_MAX_ITEMS = 10;
+const SUB_AGENT_LEARNINGS_MAX_CHARS = 5000;
+const SUB_AGENT_MEMORY_ENTRY_MAX_CHARS = 1200;
+const SUB_AGENT_MEMORY_EVIDENCE_MAX_ITEMS = 5;
 const XML_DECISION_SCHEMA_EXAMPLE = `\`\`\`xml
 <tool_call>
 	<tool>edit_file</tool>
@@ -538,12 +575,12 @@ export class TokenEstimator {
 	 * 估算文本的 token 数量
 	 */
 	static estimate(text: string): number {
-		if (!text) return 0;
+		if (text === "") return 0;
 		return App.estimateTokens(text);
 	}
 
 	static estimateMessages(messages: Message[]): number {
-		if (!messages || messages.length === 0) return 0;
+		if (messages === undefined || messages.length === 0) return 0;
 		let total = 0;
 		for (let i = 0; i < messages.length; i++) {
 			const message = messages[i];
@@ -613,6 +650,7 @@ function ensureDirRecursive(dir: string): boolean {
  */
 export class DualLayerStorage {
 	private projectDir: string;
+	private scope: string;
 	private agentRootDir: string;
 	private agentDir: string;
 	private memoryPath: string;
@@ -621,6 +659,7 @@ export class DualLayerStorage {
 
 	constructor(projectDir: string, scope = "") {
 		this.projectDir = projectDir;
+		this.scope = scope;
 		this.agentRootDir = Path(this.projectDir, ".agent");
 		this.agentDir = scope !== ""
 			? Path(this.agentRootDir, scope)
@@ -702,6 +741,88 @@ export class DualLayerStorage {
 		return record;
 	}
 
+	private readSpawnInfo(path: string): Record<string, unknown> | undefined {
+		if (!Content.exist(path)) return undefined;
+		const text = Content.load(path) as string;
+		if (!text || text.trim() === "") return undefined;
+		const [value] = safeJsonDecode(text);
+		if (value && !isArray(value) && isRecord(value)) {
+			return value;
+		}
+		return undefined;
+	}
+
+	private normalizeEvidence(value: unknown): string[] {
+		const evidence: string[] = [];
+		if (!isArray(value)) return evidence;
+		for (let i = 0; i < value.length && evidence.length < SUB_AGENT_MEMORY_EVIDENCE_MAX_ITEMS; i++) {
+			const item = typeof value[i] === "string" ? sanitizeUTF8(value[i]).trim() : "";
+			if (item !== "" && evidence.indexOf(item) < 0) {
+				evidence.push(item);
+			}
+		}
+		return evidence;
+	}
+
+	private decodeSubAgentLearning(value: unknown, fallbackSortTs: number): SubAgentLearningEntry | undefined {
+		if (!value || isArray(value) || !isRecord(value)) return undefined;
+		const sourceSessionId = typeof value.sourceSessionId === "number" ? math.floor(value.sourceSessionId) : 0;
+		const sourceTaskId = typeof value.sourceTaskId === "number" ? math.floor(value.sourceTaskId) : 0;
+		const content = typeof value.content === "string"
+			? utf8TakeHead(sanitizeUTF8(value.content).trim(), SUB_AGENT_MEMORY_ENTRY_MAX_CHARS)
+			: "";
+		if (sourceSessionId <= 0 || sourceTaskId <= 0 || content === "") return undefined;
+		return {
+			sourceSessionId,
+			sourceTaskId,
+			content,
+			evidence: this.normalizeEvidence(value.evidence),
+			createdAt: typeof value.createdAt === "string" ? sanitizeUTF8(value.createdAt).trim() : "",
+			sortTs: fallbackSortTs,
+		};
+	}
+
+	private readSubAgentLearningEntries(): SubAgentLearningEntry[] {
+		if (this.scope !== "" && this.scope !== "main") return [];
+		const subAgentsDir = Path(this.agentRootDir, "subagents");
+		if (!Content.exist(subAgentsDir) || !Content.isdir(subAgentsDir)) return [];
+		const entries: SubAgentLearningEntry[] = [];
+		const seen: Record<string, boolean> = {};
+		for (const rawPath of Content.getDirs(subAgentsDir)) {
+			const dir = Content.isAbsolutePath(rawPath) ? rawPath : Path(subAgentsDir, rawPath);
+			if (!Content.exist(dir) || !Content.isdir(dir)) continue;
+			const info = this.readSpawnInfo(Path(dir, SUB_AGENT_SPAWN_INFO_FILE));
+			if (info === undefined || info.success !== true) continue;
+			const fallbackSortTs = typeof info.finishedAtTs === "number" ? info.finishedAtTs : 0;
+			const entry = this.decodeSubAgentLearning(info.memoryEntry, fallbackSortTs);
+			if (entry === undefined) continue;
+			const key = `${entry.sourceSessionId}:${entry.sourceTaskId}`;
+			if (seen[key]) continue;
+			seen[key] = true;
+			entries.push(entry);
+		}
+		entries.sort((a, b) => b.sortTs - a.sortTs);
+		return entries;
+	}
+
+	private buildSubAgentLearningsContext(): string {
+		const entries = this.readSubAgentLearningEntries();
+		if (entries.length === 0) return "";
+		const lines: string[] = ["## Sub-Agent Learnings", ""];
+		let totalChars = 0;
+		let count = 0;
+		for (let i = 0; i < entries.length && count < SUB_AGENT_LEARNINGS_MAX_ITEMS; i++) {
+			const entry = entries[i];
+			const evidence = entry.evidence.length > 0 ? `\n  Evidence: ${entry.evidence.join(", ")}` : "";
+			const line = `- [sub-agent:${tostring(entry.sourceSessionId)}/task:${tostring(entry.sourceTaskId)}] ${entry.content}${evidence}`;
+			if (totalChars + line.length > SUB_AGENT_LEARNINGS_MAX_CHARS) break;
+			lines.push(line);
+			totalChars += line.length;
+			count += 1;
+		}
+		return count > 0 ? lines.join("\n") : "";
+	}
+
 	private readHistoryRecords(): HistoryRecord[] {
 		if (!Content.exist(this.historyPath)) {
 			return [];
@@ -717,7 +838,7 @@ export class DualLayerStorage {
 			if (line === "") continue;
 			const decoded = this.decodeJsonLine(line);
 			const record = this.decodeHistoryRecord(decoded);
-			if (record) {
+			if (record !== undefined) {
 				records.push(record);
 			}
 		}
@@ -732,7 +853,7 @@ export class DualLayerStorage {
 		const lines: string[] = [];
 		for (let i = 0; i < normalized.length; i++) {
 			const line = this.encodeJsonLine(normalized[i]);
-			if (line) {
+			if (typeof line === "string" && line !== "") {
 				lines.push(line);
 			}
 		}
@@ -766,11 +887,17 @@ export class DualLayerStorage {
 	 */
 	getMemoryContext(): string {
 		const memory = this.readMemory();
-		if (!memory) return "";
+		const subAgentLearnings = this.buildSubAgentLearningsContext();
+		if (memory === "" && subAgentLearnings === "") return "";
+		const sections: string[] = [];
+		if (memory !== "") {
+			sections.push(`### Long-term Memory\n\n${memory}`);
+		}
+		if (subAgentLearnings !== "") {
+			sections.push(subAgentLearnings);
+		}
 
-		return `### Long-term Memory
-
-${memory}`;
+		return sections.join("\n\n");
 	}
 
 	// ===== HISTORY.jsonl 操作 =====
@@ -807,9 +934,9 @@ ${memory}`;
 				continue;
 			}
 			const message = this.decodeConversationMessage(row.message ?? row);
-			if (message) {
-				messages.push(message);
-			}
+				if (message !== undefined) {
+					messages.push(message);
+				}
 		}
 		const normalizedLastConsolidatedIndex = clampSessionIndex(messages, lastConsolidatedIndex);
 		const normalizedCarryMessageIndex = typeof carryMessageIndex === "number"
@@ -852,14 +979,14 @@ ${memory}`;
 			lastConsolidatedIndex: normalizedLastConsolidatedIndex,
 			carryMessageIndex: normalizedCarryMessageIndex,
 		});
-		if (stateLine) {
+		if (typeof stateLine === "string" && stateLine !== "") {
 			lines.push(stateLine);
 		}
 		for (let i = 0; i < normalizedMessages.length; i++) {
 			const line = this.encodeJsonLine({
 				message: normalizedMessages[i],
 			});
-			if (line) {
+			if (typeof line === "string" && line !== "") {
 				lines.push(line);
 			}
 		}
@@ -1186,7 +1313,7 @@ export class MemoryCompressor {
 	}
 
 	private getContextWindow(): number {
-		return Math.max(4000, this.config.llmConfig.contextWindow);
+		return Math.max(64000, this.config.llmConfig.contextWindow);
 	}
 
 	private getCompressionHistoryTokenBudget(currentMemory: string): number {
@@ -1584,11 +1711,7 @@ export async function compactSessionMemoryScope(options: {
 	let messages = persistedSession.messages;
 	let lastConsolidatedIndex = persistedSession.lastConsolidatedIndex;
 	let carryMessageIndex = persistedSession.carryMessageIndex;
-	const llmOptions = {
-		temperature: 0.1,
-		max_tokens: 8192,
-		...(options.llmOptions ?? {}),
-	};
+	const llmOptions = buildMemoryLLMOptions(llmConfigRes.config, options.llmOptions);
 	while (lastConsolidatedIndex < messages.length) {
 		const activeMessages: AgentConversationMessage[] = [];
 		if (

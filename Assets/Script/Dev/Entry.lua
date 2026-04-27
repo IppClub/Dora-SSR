@@ -10,6 +10,7 @@ local Content <const> = Content -- 11
 local Path <const> = Path -- 11
 local DB <const> = DB -- 11
 local type <const> = type -- 11
+local math <const> = math -- 11
 local View <const> = View -- 11
 local Director <const> = Director -- 11
 local HttpServer <const> = HttpServer -- 11
@@ -49,7 +50,6 @@ local Profiler <const> = Profiler -- 11
 local xpcall <const> = xpcall -- 11
 local debug <const> = debug -- 11
 local Log <const> = Log -- 11
-local math <const> = math -- 11
 local AlignNode <const> = AlignNode -- 11
 local Label <const> = Label -- 11
 local Checkbox <const> = Checkbox -- 11
@@ -180,7 +180,7 @@ else -- 90
 	config.fpsLimited = App.fpsLimited -- 90
 end -- 87
 if (config.targetFPS ~= nil) then -- 92
-	App.targetFPS = config.targetFPS -- 93
+	App.targetFPS = math.floor(config.targetFPS) -- 93
 else -- 95
 	config.targetFPS = App.targetFPS -- 95
 end -- 92
@@ -190,7 +190,7 @@ else -- 100
 	config.vsync = View.vsync -- 100
 end -- 97
 if (config.fixedFPS ~= nil) then -- 102
-	Director.scheduler.fixedFPS = config.fixedFPS -- 103
+	Director.scheduler.fixedFPS = math.floor(config.fixedFPS) -- 103
 else -- 105
 	config.fixedFPS = Director.scheduler.fixedFPS -- 105
 end -- 102

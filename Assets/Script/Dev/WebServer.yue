@@ -181,6 +181,11 @@ HttpServer\post "/agent/checkpoint/diff", (req): invalidArguments ->
 		return success: false, message: "invalid checkpointId" unless checkpointId > 0
 		return AgentTools.getCheckpointDiff checkpointId
 
+HttpServer\post "/agent/task/diff", (req): invalidArguments ->
+	switch req when {body: {:taskId}}
+		return success: false, message: "invalid taskId" unless taskId > 0
+		return AgentTools.getTaskChangeSetDiff taskId
+
 HttpServer\post "/agent/checkpoint/rollback", (req): invalidArguments ->
 	switch req when {body: {:sessionId, :checkpointId}}
 		return success: false, message: "invalid checkpointId" unless checkpointId > 0
@@ -191,6 +196,19 @@ HttpServer\post "/agent/checkpoint/rollback", (req): invalidArguments ->
 		return
 			success: true
 			checkpointId: rollbackRes.checkpointId
+
+HttpServer\post "/agent/task/rollback", (req): invalidArguments ->
+	switch req when {body: {:sessionId, :taskId}}
+		return success: false, message: "invalid taskId" unless taskId > 0
+		res = AgentSession.getSession sessionId
+		return res unless res.success
+		rollbackRes = AgentTools.rollbackTaskChangeSet taskId, res.session.projectRoot
+		return rollbackRes unless rollbackRes.success
+		return
+			success: true
+			taskId: rollbackRes.taskId
+			checkpointId: rollbackRes.checkpointId
+			checkpointCount: rollbackRes.checkpointCount
 
 getSearchPath = (file): "" ->
 	if dir := getProjectDirFromFile file
@@ -735,19 +753,34 @@ ensureLLMConfigTable = ->
 			model: true
 			api_key: true
 			context_window: true
+			temperature: true
+			max_tokens: true
+			reasoning_effort: true
 			supports_function_calling: true
 			active: true
 			created_at: true
 			updated_at: true
 		}
-		valid = #columns == 10
+		existing = {}
+		valid = true
+		for row in *columns
+			columnName = tostring row[2]
+			existing[columnName] = true
+			if not expected[columnName]
+				valid = false
+				break
 		if valid
-			for row in *columns
-				columnName = tostring row[2]
-				if not expected[columnName]
-					valid = false
-					break
-		if not valid
+			unless existing.context_window
+				DB\exec "ALTER TABLE LLMConfig ADD COLUMN context_window INTEGER NOT NULL DEFAULT 64000"
+			unless existing.temperature
+				DB\exec "ALTER TABLE LLMConfig ADD COLUMN temperature REAL NOT NULL DEFAULT 0.1"
+			unless existing.max_tokens
+				DB\exec "ALTER TABLE LLMConfig ADD COLUMN max_tokens INTEGER NOT NULL DEFAULT 8192"
+			unless existing.reasoning_effort
+				DB\exec "ALTER TABLE LLMConfig ADD COLUMN reasoning_effort TEXT NOT NULL DEFAULT ''"
+			unless existing.supports_function_calling
+				DB\exec "ALTER TABLE LLMConfig ADD COLUMN supports_function_calling INTEGER NOT NULL DEFAULT 1"
+		else
 			DB\exec "DROP TABLE IF EXISTS LLMConfig"
 	DB\exec [[
 		CREATE TABLE IF NOT EXISTS LLMConfig(
@@ -757,6 +790,9 @@ ensureLLMConfigTable = ->
 			model TEXT NOT NULL,
 			api_key TEXT NOT NULL,
 			context_window INTEGER NOT NULL DEFAULT 64000,
+			temperature REAL NOT NULL DEFAULT 0.1,
+			max_tokens INTEGER NOT NULL DEFAULT 8192,
+			reasoning_effort TEXT NOT NULL DEFAULT '',
 			supports_function_calling INTEGER NOT NULL DEFAULT 1,
 			active INTEGER NOT NULL DEFAULT 1,
 			created_at INTEGER,
@@ -766,42 +802,66 @@ ensureLLMConfigTable = ->
 
 normalizeContextWindow = (value) ->
 	contextWindow = tonumber value
-	if contextWindow == nil or contextWindow < 4000
+	if contextWindow == nil or contextWindow < 64000
 		return 64000
-	return math.max 4000, math.floor contextWindow
+	return math.max 64000, math.floor contextWindow
+
+normalizeTemperature = (value) ->
+	temperature = tonumber value
+	if temperature == nil
+		return 0.1
+	return math.max 0, math.min 2, temperature
+
+normalizeMaxTokens = (value) ->
+	maxTokens = tonumber value
+	if maxTokens == nil or maxTokens < 1
+		return 8192
+	return math.max 1, math.floor maxTokens
+
+normalizeReasoningEffort = (value) ->
+	if value == nil
+		return ""
+	effort = tostring value
+	return effort\match("^%s*(.-)%s*$") or ""
 
 HttpServer\post "/llm/list", ->
 	ensureLLMConfigTable!
 	rows = DB\query "
-		select id, name, url, model, api_key, context_window, supports_function_calling, active
+		select id, name, url, model, api_key, context_window, temperature, max_tokens, reasoning_effort, supports_function_calling, active
 		from LLMConfig
 		order by id asc"
 	items = if rows and #rows > 0
-		for [id, name, url, model, key, contextWindow, supportsFunctionCalling, active] in *rows
-			:id, :name, :url, :model, :key, contextWindow: normalizeContextWindow(contextWindow), supportsFunctionCalling: supportsFunctionCalling ~= 0, active: active ~= 0
+		for [id, name, url, model, key, contextWindow, temperature, maxTokens, reasoningEffort, supportsFunctionCalling, active] in *rows
+			:id, :name, :url, :model, :key, contextWindow: normalizeContextWindow(contextWindow), temperature: normalizeTemperature(temperature), maxTokens: normalizeMaxTokens(maxTokens), reasoningEffort: normalizeReasoningEffort(reasoningEffort), supportsFunctionCalling: supportsFunctionCalling ~= 0, active: active ~= 0
 	return success: true, :items
 
 HttpServer\post "/llm/create", (req): success: false, message: "invalid" ->
 	ensureLLMConfigTable!
 	switch req when {body: body}
-		{:name, :url, :model, :key, :active, :contextWindow, :supportsFunctionCalling} = body
+		{:name, :url, :model, :key, :active, :contextWindow, :temperature, :maxTokens, :reasoningEffort, :supportsFunctionCalling} = body
 		now = os.time!
 		if name == nil or url == nil or model == nil or key == nil
 			return success: false, message: "invalid"
 		contextWindow = normalizeContextWindow contextWindow
+		temperature = normalizeTemperature temperature
+		maxTokens = normalizeMaxTokens maxTokens
+		reasoningEffort = normalizeReasoningEffort reasoningEffort
 		supportsFunctionCalling = if supportsFunctionCalling == false then 0 else 1
 		active = if active then 1 else 0
 		affected = DB\exec "
 			insert into LLMConfig (
-				name, url, model, api_key, context_window, supports_function_calling, active, created_at, updated_at
+				name, url, model, api_key, context_window, temperature, max_tokens, reasoning_effort, supports_function_calling, active, created_at, updated_at
 			) values (
-				?, ?, ?, ?, ?, ?, ?, ?, ?
+				?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 			)", [
 			tostring name
 			tostring url
 			tostring model
 			tostring key
 			contextWindow
+			temperature
+			maxTokens
+			reasoningEffort
 			supportsFunctionCalling
 			active
 			now
@@ -812,23 +872,29 @@ HttpServer\post "/llm/create", (req): success: false, message: "invalid" ->
 HttpServer\post "/llm/update", (req): success: false, message: "invalid" ->
 	ensureLLMConfigTable!
 	switch req when {body: body}
-		{:id, :name, :url, :model, :key, :active, :contextWindow, :supportsFunctionCalling} = body
+		{:id, :name, :url, :model, :key, :active, :contextWindow, :temperature, :maxTokens, :reasoningEffort, :supportsFunctionCalling} = body
 		now = os.time!
 		id = tonumber id
 		if id == nil
 			return success: false, message: "invalid"
 		contextWindow = normalizeContextWindow contextWindow
+		temperature = normalizeTemperature temperature
+		maxTokens = normalizeMaxTokens maxTokens
+		reasoningEffort = normalizeReasoningEffort reasoningEffort
 		supportsFunctionCalling = if supportsFunctionCalling == false then 0 else 1
 		active = if active then 1 else 0
 		affected = DB\exec "
 			update LLMConfig
-			set name = ?, url = ?, model = ?, api_key = ?, context_window = ?, supports_function_calling = ?, active = ?, updated_at = ?
+			set name = ?, url = ?, model = ?, api_key = ?, context_window = ?, temperature = ?, max_tokens = ?, reasoning_effort = ?, supports_function_calling = ?, active = ?, updated_at = ?
 			where id = ?", [
 			tostring name
 			tostring url
 			tostring model
 			tostring key
 			contextWindow
+			temperature
+			maxTokens
+			reasoningEffort
 			supportsFunctionCalling
 			active
 			now

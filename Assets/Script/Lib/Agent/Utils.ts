@@ -8,6 +8,8 @@ export function setLogLevel(level: number) {
 
 const LLM_TIMEOUT = 600;
 const LLM_STREAM_TIMEOUT = 600;
+const LLM_STREAM_RAW_DEBUG_MAX = 12000;
+const LLM_STREAM_CHUNK_DEBUG_LOG_LIMIT = 5;
 
 export const Log = (type: "Info" | "Warn" | "Error", msg: string) => {
 	if (LOG_LEVEL < 1) return;
@@ -126,6 +128,10 @@ export function safeJsonDecode(text: string) {
 	return $multi(sanitizeJSONValue(value), err);
 }
 
+function normalizeLLMJSONResponse(text: string): string {
+	return text.trim();
+}
+
 function utf8TakeHead(text: string, maxChars: number): string {
 	if (maxChars <= 0 || text === "") return "";
 	const nextPos = utf8.offset(text, maxChars + 1);
@@ -184,7 +190,7 @@ function getReservedOutputTokens(options: Record<string, any>, contextWindow: nu
 }
 
 function getInputTokenBudget(messages: Message[], options: Record<string, any>, config: LLMConfig): number {
-	const contextWindow = math.max(4000, config.contextWindow);
+	const contextWindow = math.max(64000, config.contextWindow);
 	const reservedOutputTokens = getReservedOutputTokens(options, contextWindow);
 	const optionTokens = estimateOptionsTokens(options);
 	const structuralOverhead = math.max(256, messages.length * 16);
@@ -396,7 +402,22 @@ export function fitMessagesToContext(messages: Message[], options: Record<string
 	fittedTokens: number;
 	budgetTokens: number;
 } {
-	const cloned = messages.map(message => ({ ...message }));
+	const modelName = config.model.toLowerCase();
+	const shouldEchoReasoningContent = messages.some(message => typeof message.reasoning_content === "string")
+		|| (normalizeReasoningEffort(config.reasoningEffort) ?? "") !== ""
+		|| modelName.includes("reasoner")
+		|| modelName.includes("thinking");
+	const cloned = messages.map(message => {
+		const clonedMessage = { ...message };
+		if (
+			shouldEchoReasoningContent
+			&& clonedMessage.role === "assistant"
+			&& typeof clonedMessage.reasoning_content !== "string"
+		) {
+			clonedMessage.reasoning_content = "";
+		}
+		return clonedMessage;
+	});
 	const budgetTokens = getInputTokenBudget(cloned, options, config);
 	const originalTokens = estimateMessagesTokens(cloned);
 	if (originalTokens <= budgetTokens) {
@@ -733,18 +754,41 @@ export type LLMConfig = {
 	model: string;
 	apiKey: string;
 	contextWindow: number;
+	temperature: number;
+	maxTokens: number;
+	reasoningEffort?: string;
 	supportsFunctionCalling: boolean;
 };
 
 function normalizeContextWindow(value: unknown): number {
 	if (typeof value === "number") {
-		return math.max(4000, math.floor(value));
+		return math.max(64000, math.floor(value));
 	}
 	return 64000;
 }
 
 function normalizeSupportsFunctionCalling(value: unknown): boolean {
 	return value === undefined || value === null || value !== 0;
+}
+
+function normalizeLLMTemperature(value: unknown): number {
+	if (typeof value === "number") {
+		return math.max(0, math.min(2, value));
+	}
+	return 0.1;
+}
+
+function normalizeLLMMaxTokens(value: unknown): number {
+	if (typeof value === "number") {
+		return math.max(1, math.floor(value));
+	}
+	return 8192;
+}
+
+function normalizeReasoningEffort(value: unknown): string | undefined {
+	if (typeof value !== "string") return undefined;
+	const normalized = sanitizeUTF8(value).trim();
+	return normalized !== "" ? normalized : undefined;
 }
 
 export function getActiveLLMConfig(): { success: true; config: LLMConfig } | { success: false; message: string } {
@@ -774,6 +818,9 @@ export function getActiveLLMConfig(): { success: true; config: LLMConfig } | { s
 			model,
 			apiKey: api_key,
 			contextWindow: normalizeContextWindow(config["context_window"]),
+			temperature: normalizeLLMTemperature(config["temperature"]),
+			maxTokens: normalizeLLMMaxTokens(config["max_tokens"]),
+			reasoningEffort: normalizeReasoningEffort(config["reasoning_effort"]),
 			supportsFunctionCalling: normalizeSupportsFunctionCalling(config["supports_function_calling"]),
 		},
 	};
@@ -974,7 +1021,11 @@ export async function callLLMStreamAggregated(
 	}
 	const { url, model, apiKey } = resolvedConfig;
 	const fitted = fitMessagesToContext(messages, options, resolvedConfig);
-	Log("Info", `[Agent.Utils] callLLMStreamAggregated request model=${model} url=${url} messages=${messages.length}${fitted.trimmed ? ` trimmed_tokens=${fitted.originalTokens}->${fitted.fittedTokens}/${fitted.budgetTokens}` : ""}`);
+	const toolCount = Array.isArray(options.tools) ? options.tools.length : 0;
+	const toolChoice = typeof options.tool_choice === "string"
+		? options.tool_choice
+		: (options.tool_choice !== undefined ? "object" : "unset");
+	Log("Info", `[Agent.Utils] callLLMStreamAggregated request model=${model} url=${url} messages=${messages.length} tools=${toolCount} tool_choice=${toolChoice} max_tokens=${tostring(options.max_tokens ?? "unset")} temperature=${tostring(options.temperature ?? "unset")}${fitted.trimmed ? ` trimmed_tokens=${fitted.originalTokens}->${fitted.fittedTokens}/${fitted.budgetTokens}` : ""}`);
 	if (stopToken?.stopped) {
 		const reason = stopToken.reason ?? "request cancelled";
 		Log("Info", `[Agent.Utils] callLLMStreamAggregated cancelled before request: ${reason}`);
@@ -986,8 +1037,20 @@ export async function callLLMStreamAggregated(
 		let responseCreated: number | undefined = undefined;
 		let responseObject: string | undefined = undefined;
 		let providerError: LLMProviderError | undefined;
+		let httpChunkCount = 0;
+		let rawStreamBytes = 0;
+		let rawStreamPreview = "";
+		let sseJSONChunkCount = 0;
+		let choiceJSONChunkCount = 0;
+		let emptyChoicesChunkCount = 0;
+		let missingChoicesChunkCount = 0;
+		let parseErrorCount = 0;
+		let doneChunkSeen = false;
+		let lastJSONPreview = "";
 		const parser = createSSEJSONParser({
 			onJSON: (obj, raw) => {
+				sseJSONChunkCount++;
+				lastJSONPreview = previewText(raw, 500);
 				if (!obj || type(obj) !== "table") {
 					return;
 				}
@@ -1001,6 +1064,19 @@ export async function callLLMStreamAggregated(
 				responseCreated = typeof chunk.created === "number" ? chunk.created : responseCreated;
 				responseObject = typeof chunk.object === "string" ? chunk.object : responseObject;
 				const choices = Array.isArray(chunk.choices) ? chunk.choices : [];
+				if (!Array.isArray(chunk.choices)) {
+					missingChoicesChunkCount++;
+					if (missingChoicesChunkCount <= LLM_STREAM_CHUNK_DEBUG_LOG_LIMIT) {
+						Log("Warn", `[Agent.Utils] callLLMStreamAggregated chunk missing choices raw=${previewText(raw, 300)}`);
+					}
+				} else if (choices.length === 0) {
+					emptyChoicesChunkCount++;
+					if (emptyChoicesChunkCount <= LLM_STREAM_CHUNK_DEBUG_LOG_LIMIT) {
+						Log("Warn", `[Agent.Utils] callLLMStreamAggregated chunk empty choices raw=${previewText(raw, 300)}`);
+					}
+				} else {
+					choiceJSONChunkCount++;
+				}
 				for (let i = 0; i < choices.length; i++) {
 					const choice = choices[i] as Choice;
 					const index = typeof choice.index === "number" ? choice.index : i;
@@ -1021,19 +1097,40 @@ export async function callLLMStreamAggregated(
 					}
 				);
 			},
+			onDone: () => {
+				doneChunkSeen = true;
+			},
 			onError: (err, context) => {
+				parseErrorCount++;
 				Log("Warn", `[Agent.Utils] callLLMStreamAggregated parse error: ${tostring(err)} raw=${previewText(context?.raw ?? "", 300)}`);
 			},
 		});
 		await postLLM(fitted.messages, url, apiKey, model, options, true, (data) => {
 			if (stopToken?.stopped) return true;
+			httpChunkCount++;
+			rawStreamBytes += data.length;
+			if (rawStreamPreview.length < LLM_STREAM_RAW_DEBUG_MAX) {
+				rawStreamPreview += data.slice(0, LLM_STREAM_RAW_DEBUG_MAX - rawStreamPreview.length);
+			}
 			parser.feed(data);
 			return false;
 		}, stopToken);
 		parser.end();
+		if (sseJSONChunkCount === 0 && rawStreamPreview.trim() !== "") {
+			const [rawResponse] = safeJsonDecode(normalizeLLMJSONResponse(rawStreamPreview));
+			if (rawResponse && type(rawResponse) === "table") {
+				const rawResponseObj = rawResponse as LLMResponseData;
+				if (rawResponseObj.error) {
+					providerError = rawResponseObj.error;
+					lastJSONPreview = previewText(normalizeLLMJSONResponse(rawStreamPreview), 500);
+					Log("Warn", `[Agent.Utils] callLLMStreamAggregated non-SSE provider error raw=${previewText(rawStreamPreview, 500)}`);
+				}
+			}
+		}
 		const response = buildStreamResponse(states, model, responseId, responseCreated, responseObject, providerError);
 		const choiceCount = response.choices ? response.choices.length : 0;
-		Log("Info", `[Agent.Utils] callLLMStreamAggregated decoded response choices=${choiceCount}`);
+		const streamStats = `http_chunks=${httpChunkCount} raw_bytes=${rawStreamBytes} sse_json_chunks=${sseJSONChunkCount} choice_chunks=${choiceJSONChunkCount} empty_choice_chunks=${emptyChoicesChunkCount} missing_choice_chunks=${missingChoicesChunkCount} parse_errors=${parseErrorCount} done=${doneChunkSeen ? "true" : "false"}`;
+		Log("Info", `[Agent.Utils] callLLMStreamAggregated decoded response choices=${choiceCount} ${streamStats}`);
 		if (!response.choices || response.choices.length === 0) {
 			const providerMessage = providerError?.message ?? "";
 			const providerType = providerError?.type ?? "";
@@ -1041,13 +1138,16 @@ export async function callLLMStreamAggregated(
 				? tostring(providerError.code)
 				: "";
 			const details = [providerType, providerCode].filter(part => part !== "").join("/");
+			const rawPreview = previewText(sanitizeUTF8(rawStreamPreview), 1200);
+			const lastJSON = lastJSONPreview !== "" ? ` last_json=${lastJSONPreview}` : "";
 			const message = providerMessage !== ""
-				? `LLM returned no choices: ${providerMessage}${details !== "" ? ` (${details})` : ""}`
-				: "LLM returned no choices";
-			Log("Error", `[Agent.Utils] callLLMStreamAggregated empty choices`);
+				? `LLM returned no choices: ${providerMessage}${details !== "" ? ` (${details})` : ""}; ${streamStats}; raw=${rawPreview}${lastJSON}`
+				: `LLM returned no choices; ${streamStats}; raw=${rawPreview}${lastJSON}`;
+			Log("Error", `[Agent.Utils] callLLMStreamAggregated empty choices ${streamStats} raw_preview=${rawPreview}${lastJSON}`);
 			return {
 				success: false,
 				message,
+				raw: rawStreamPreview,
 			};
 		}
 		return {
@@ -1096,8 +1196,9 @@ export async function callLLM(
 	}
 	try {
 		const raw = sanitizeUTF8(await postLLM(fitted.messages, url, apiKey, model, options, false, undefined, stopToken));
-		Log("Info", `[Agent.Utils] callLLMOnce raw response length=${raw.length}`);
-		const [response, err] = safeJsonDecode(raw);
+		const normalizedRaw = normalizeLLMJSONResponse(raw);
+		Log("Info", `[Agent.Utils] callLLMOnce raw response length=${raw.length}${normalizedRaw.length !== raw.length ? ` normalized=${normalizedRaw.length}` : ""}`);
+		const [response, err] = safeJsonDecode(normalizedRaw);
 		if (err !== undefined || response === undefined || type(response) !== "table") {
 			const rawPreview = previewText(raw);
 			Log("Error", `[Agent.Utils] callLLMOnce invalid JSON: ${tostring(err)} raw_preview=${rawPreview}`);

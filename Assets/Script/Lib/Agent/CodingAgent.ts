@@ -539,7 +539,7 @@ export interface CodingAgentRunOptions {
 export const AGENT_USER_PROMPT_MAX_CHARS = 12000;
 
 type AgentDecisionMode = "tool_calling" | "xml";
-type AgentPromptCommand = "compact" | "reset";
+type AgentPromptCommand = "compact" | "clear";
 type AgentRole = "main" | "sub";
 
 export type AgentToolName =
@@ -649,6 +649,30 @@ const SEARCH_DORA_API_LIMIT_MAX = 20;
 const SEARCH_FILES_LIMIT_DEFAULT = 20;
 const LIST_FILES_MAX_ENTRIES_DEFAULT = 200;
 const SEARCH_PREVIEW_CONTEXT = 80;
+const AGENT_DEFAULT_MAX_STEPS = 100;
+const AGENT_DEFAULT_LLM_MAX_TRY = 5;
+const AGENT_DEFAULT_LLM_TEMPERATURE = 0.1;
+const AGENT_DEFAULT_LLM_MAX_TOKENS = 8192;
+
+function buildLLMOptions(llmConfig: LLMConfig, overrides?: Record<string, unknown>): Record<string, unknown> {
+	const options: Record<string, unknown> = {
+		temperature: llmConfig.temperature ?? AGENT_DEFAULT_LLM_TEMPERATURE,
+		max_tokens: llmConfig.maxTokens ?? AGENT_DEFAULT_LLM_MAX_TOKENS,
+	};
+	if (llmConfig.reasoningEffort) {
+		options.reasoning_effort = llmConfig.reasoningEffort;
+	}
+	const merged = {
+		...options,
+		...(overrides ?? {}),
+	};
+	if (typeof merged.reasoning_effort !== "string" || merged.reasoning_effort.trim() === "") {
+		delete merged.reasoning_effort;
+	} else {
+		merged.reasoning_effort = merged.reasoning_effort.trim();
+	}
+	return merged;
+}
 
 export interface AgentActionRecord {
 	step: number;
@@ -793,7 +817,7 @@ function finalizeAgentFailure(shared: AgentShared, error: string): CodingAgentRu
 function getPromptCommand(prompt: string): AgentPromptCommand | undefined {
 	const trimmed = prompt.trim();
 	if (trimmed === "/compact") return "compact";
-	if (trimmed === "/reset") return "reset";
+	if (trimmed === "/clear") return "clear";
 	return undefined;
 }
 
@@ -1111,9 +1135,10 @@ function getDecisionToolDefinitions(shared?: AgentShared): string {
 	- query filters by title, goal, or summary text.
 	- Do not use this after a successful spawn_sub_agent in the same turn.
 
-10. spawn_sub_agent: Create and start a sub agent session for implementation work
+10. spawn_sub_agent: Create and start a sub agent session for delegated implementation work
 	- Parameters: title, prompt, expectedOutput(optional), filesHint(optional)
-	- Use this whenever the task requires direct coding, file editing, file deletion, build verification, documentation writing, or any other concrete execution work by a delegated sub agent.
+	- Use this for large multi-file work, parallel exploration, long-running verification, or isolated execution tasks.
+	- For small focused edits, use edit_file/delete_file/build directly in the current main-agent run.
 	- The spawned sub agent can use read_file, edit_file, delete_file, grep_files, search_dora_api, glob_files, build, and finish.
 	- title should be short and specific.
 	- prompt should be self-contained and actionable, and should clearly describe the concrete work to execute, constraints, desired output, and any relevant files.
@@ -1363,7 +1388,7 @@ async function compactAllHistory(shared: AgentShared): Promise<CodingAgentRunRes
 	);
 }
 
-function resetSessionHistory(shared: AgentShared): CodingAgentRunResult {
+function clearSessionHistory(shared: AgentShared): CodingAgentRunResult {
 	shared.messages = [];
 	shared.lastConsolidatedIndex = 0;
 	shared.carryMessageIndex = undefined;
@@ -1520,7 +1545,8 @@ function parseXMLToolCallObjectFromText(text: string): { success: true; obj: Rec
 
 type LLMResult = {
 	success: true;
-	text: string
+	text: string;
+	reasoningContent?: string
 } | {
 	success: false;
 	message: string;
@@ -1536,10 +1562,14 @@ async function llm(
 	saveStepLLMDebugInput(shared, stepId, phase, messages, shared.llmOptions);
 	const res = await callLLM(messages, shared.llmOptions, shared.stopToken, shared.llmConfig);
 	if (res.success) {
-		const text = res.response.choices?.[0]?.message?.content;
+		const message = res.response.choices?.[0]?.message;
+		const text = message?.content;
+		const reasoningContent = typeof message?.reasoning_content === "string"
+			? sanitizeUTF8(message.reasoning_content)
+			: undefined;
 		if (text) {
 			saveStepLLMDebugOutput(shared, stepId, phase, text, { success: true });
-			return { success: true, text };
+			return { success: true, text, reasoningContent };
 		} else {
 			saveStepLLMDebugOutput(shared, stepId, phase, "empty LLM response", { success: false });
 			return { success: false, message: "empty LLM response" };
@@ -1761,7 +1791,7 @@ function createFunctionToolSchema(
 
 function getAllowedToolsForRole(role: AgentRole): AgentToolName[] {
 	return role === "main"
-		? ["read_file", "grep_files", "search_dora_api", "glob_files", "list_sub_agents", "spawn_sub_agent", "finish"]
+		? ["read_file", "edit_file", "delete_file", "grep_files", "search_dora_api", "glob_files", "build", "list_sub_agents", "spawn_sub_agent", "finish"]
 		: ["read_file", "edit_file", "delete_file", "grep_files", "search_dora_api", "glob_files", "build", "finish"];
 }
 
@@ -1855,7 +1885,7 @@ function buildDecisionToolSchema(shared: AgentShared) {
 		),
 		createFunctionToolSchema(
 			"spawn_sub_agent",
-			"Create and start a sub agent session to execute concrete work. Use this when the task moves from discussion/search into coding, file editing, file deletion, build verification, documentation writing, or other execution-heavy work. The sub agent has the full execution toolset including edit_file, delete_file, and build. If dispatch succeeds, you may immediately finish the current turn without waiting for completion; the sub agent result arrives asynchronously and should be handled in a later conversation turn.",
+			"Create and start a sub agent session to execute delegated work. Use this for large multi-file work, parallel exploration, long-running verification, or isolated execution tasks; for small focused edits, use edit_file/delete_file/build directly. If dispatch succeeds, you may immediately finish the current turn without waiting for completion; the sub agent result arrives asynchronously and should be handled in a later conversation turn.",
 			{
 				title: { type: "string", description: "Short tab title for the sub agent." },
 				prompt: { type: "string", description: "Detailed, self-contained task prompt sent to the sub agent. Describe the concrete work to execute, constraints, expected output, and relevant files when known." },
@@ -1872,13 +1902,13 @@ function buildAgentSystemPrompt(shared: AgentShared, includeToolDefinitions = fa
 	const rolePrompt = shared.role === "main"
 		? `### Agent Role
 
-You are the main agent. Your job is to discuss plans with the user, inspect the codebase using search/discovery tools, and decide when to delegate implementation work by spawning sub agents.
+You are the main agent. Your job is to discuss plans with the user, inspect the codebase, make direct edits when that is the simplest path, and delegate larger or parallelizable implementation work by spawning sub agents.
 
 Rules:
-- Do not perform direct code editing, deletion, or build actions yourself.
-- Use spawn_sub_agent when the task requires concrete implementation or verification work.
+- You may use the full toolset directly, including edit_file, delete_file, and build.
+- Use direct tools for small, focused, or user-interactive changes where staying in the current run gives the clearest result.
+- Use spawn_sub_agent for large multi-file work, parallel exploration, long-running verification, or isolated execution tasks.
 - Use list_sub_agents only when you do not already know the current sub-agent status and need to inspect running delegated work or recent completed results before deciding whether another delegation is necessary or whether to read a result file.
-- Code changes, file deletion, build/compile verification, and documentation writing should be delegated to a sub agent.
 - Keep sub-agent titles short and specific.
 - The sub-agent prompt should be self-contained and executable, and should explain the exact task, constraints, expected output, and relevant files when known.
 - After spawn_sub_agent succeeds, immediately finish the current turn and tell the user the work has been delegated.
@@ -2289,7 +2319,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 			? toolCall.id
 			: undefined;
 		const reasoningContent = message && typeof message.reasoning_content === "string"
-			? message.reasoning_content.trim()
+			? message.reasoning_content
 			: undefined;
 		const messageContent = message && typeof message.content === "string"
 			? message.content.trim()
@@ -2395,6 +2425,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 			candidateRaw = llmRes.text;
 			const decision = tryParseAndValidateDecision(candidateRaw);
 			if (decision.success) {
+				decision.reasoningContent = llmRes.reasoningContent;
 				Log("Info", `[CodingAgent] xml repair succeeded tool=${decision.tool}`);
 				return decision;
 			}
@@ -2468,6 +2499,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 			lastRaw = llmRes.text;
 			const decision = tryParseAndValidateDecision(llmRes.text);
 			if (decision.success) {
+				decision.reasoningContent = llmRes.reasoningContent;
 				if (!isToolAllowedForRole(shared.role, decision.tool)) {
 					lastError = `${decision.tool} is not allowed for role ${shared.role}`;
 					return this.repairDecisionXml(shared, llmRes.text, lastError);
@@ -3111,6 +3143,9 @@ class CodingAgentFlow extends Flow<AgentShared> {
 		main.on("glob_files", list);
 		if (role === "main") {
 			main.on("read_file", read);
+			main.on("delete_file", del);
+			main.on("build", build);
+			main.on("edit_file", edit);
 			main.on("list_sub_agents", listSub);
 			main.on("spawn_sub_agent", spawn);
 		} else {
@@ -3188,8 +3223,8 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 		sessionId: options.sessionId,
 		taskId: taskRes.taskId,
 		role: options.role ?? "main",
-		maxSteps: math.max(1, math.floor(options.maxSteps ?? 50)),
-		llmMaxTry: math.max(1, math.floor(options.llmMaxTry ?? 5)),
+		maxSteps: math.max(1, math.floor(options.maxSteps ?? AGENT_DEFAULT_MAX_STEPS)),
+		llmMaxTry: math.max(1, math.floor(options.llmMaxTry ?? AGENT_DEFAULT_LLM_MAX_TRY)),
 		step: 0,
 		done: false,
 		stopToken: options.stopToken ?? { stopped: false },
@@ -3200,11 +3235,7 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 		decisionMode: options.decisionMode
 			? options.decisionMode
 			: (llmConfig.supportsFunctionCalling ? "tool_calling" : "xml"),
-		llmOptions: {
-			temperature: 0.1,
-			max_tokens: 8192,
-			...(options.llmOptions ?? {}),
-		},
+		llmOptions: buildLLMOptions(llmConfig, options.llmOptions),
 		llmConfig,
 		onEvent: options.onEvent,
 		promptPack,
@@ -3241,10 +3272,20 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 		}
 		Tools.setTaskStatus(shared.taskId, "RUNNING");
 		const promptCommand = getPromptCommand(shared.userQuery);
-		if (promptCommand === "reset") {
-			return resetSessionHistory(shared);
+		if (promptCommand === "clear") {
+			return clearSessionHistory(shared);
 		}
 		if (promptCommand === "compact") {
+			if (shared.role === "sub") {
+				Tools.setTaskStatus(shared.taskId, "FAILED");
+				return emitAgentTaskFinishEvent(
+					shared,
+					false,
+					shared.useChineseResponse
+						? "子代理会话不支持 /compact。"
+						: "Sub-agent sessions do not support /compact."
+				);
+			}
 			return await compactAllHistory(shared);
 		}
 		appendConversationMessage(shared, {
