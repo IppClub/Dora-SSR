@@ -77,6 +77,48 @@ const SUB_AGENT_LEARNINGS_MAX_ITEMS = 10;
 const SUB_AGENT_LEARNINGS_MAX_CHARS = 5000;
 const SUB_AGENT_MEMORY_ENTRY_MAX_CHARS = 1200;
 const SUB_AGENT_MEMORY_EVIDENCE_MAX_ITEMS = 5;
+const DEFAULT_CORE_MEMORY_TEMPLATE = `# Core Memory
+
+## User Preferences
+
+## Stable Facts
+
+## Known Decisions
+
+## Known Issues
+`;
+const DEFAULT_PROJECT_MEMORY_TEMPLATE = `# Project Memory
+
+## Project Facts
+
+## Build And Run
+
+## Files And Architecture
+
+## Decisions
+
+## Known Issues
+`;
+const DEFAULT_SESSION_SUMMARY_TEMPLATE = `# Session Summary
+
+## Current Goal
+
+## Recent Progress
+
+## Open Issues
+`;
+const MEMORY_CONTEXT_DEFAULT_MAX_TOKENS = 4000;
+const MEMORY_CONTEXT_MIN_MAX_TOKENS = 800;
+const MEMORY_LAYER_MIN_TOKENS = 300;
+
+interface MemoryTextSection {
+	title: string;
+	body: string;
+	fullText: string;
+	index: number;
+	score: number;
+}
+
 const XML_DECISION_SCHEMA_EXAMPLE = `\`\`\`xml
 <tool_call>
 	<tool>edit_file</tool>
@@ -275,6 +317,7 @@ Analyze the actions and update the memory. Follow these guidelines:
 	- Keep the markdown format
 	- Preserve section headers
 	- Use clear, concise language
+	- Separate updates into Core Memory, Project Memory, and Session Summary
 
 4. Create History Entry
 	- Create a summary paragraph
@@ -282,9 +325,17 @@ Analyze the actions and update the memory. Follow these guidelines:
 	- Make it grep-searchable
 
 Call the save_memory tool with your consolidated memory and history entry.`,
-	memoryCompressionBodyPrompt: `### Current Memory (Long-term)
+	memoryCompressionBodyPrompt: `### Current Core Memory
 
 {{CURRENT_MEMORY}}
+
+### Current Project Memory
+
+{{CURRENT_PROJECT_MEMORY}}
+
+### Current Session Summary
+
+{{CURRENT_SESSION_SUMMARY}}
 
 ### Actions to Process
 
@@ -293,7 +344,9 @@ Call the save_memory tool with your consolidated memory and history entry.`,
 
 Call the save_memory tool with:
 - history_entry: the summary paragraph without timestamp
-- memory_update: the full updated MEMORY.md content`,
+- memory_update: the full updated MEMORY.md content (Core Memory only)
+- project_memory_update: optional full updated PROJECT_MEMORY.md content; omit or leave empty to keep the current content
+- session_summary_update: optional full updated SESSION_SUMMARY.md content; omit or leave empty to keep the current content`,
 	memoryCompressionXmlPrompt: `### Output Format
 
 Return exactly one XML block:
@@ -301,16 +354,22 @@ Return exactly one XML block:
 <memory_update_result>
 	<history_entry>Summary paragraph</history_entry>
 	<memory_update>
-Full updated MEMORY.md content
+Full updated MEMORY.md content (Core Memory only)
 	</memory_update>
+	<project_memory_update>
+Full updated PROJECT_MEMORY.md content
+	</project_memory_update>
+	<session_summary_update>
+Full updated SESSION_SUMMARY.md content
+	</session_summary_update>
 </memory_update_result>
 \`\`\`
 
 Rules:
 - Return XML only, no prose before or after.
 - Use exactly one root tag: \`<memory_update_result>\`.
-- Use exactly two child tags: \`<history_entry>\` and \`<memory_update>\`.
-- Use CDATA for \`<memory_update>\` when it spans multiple lines or contains markdown/code.`,
+- Include \`<history_entry>\` and \`<memory_update>\`. \`<project_memory_update>\` and \`<session_summary_update>\` are optional; omit them to keep current content.
+- Use CDATA for markdown update fields when they span multiple lines or contain markdown/code.`,
 	memoryCompressionXmlRetryPrompt: "Previous response was invalid ({{LAST_ERROR}}). Return exactly one valid XML memory_update_result block only."
 };
 
@@ -532,6 +591,12 @@ export interface CompressionResult {
 	/** 更新后的 MEMORY.md 内容 */
 	memoryUpdate: string;
 
+	/** 更新后的 PROJECT_MEMORY.md 内容 */
+	projectMemoryUpdate?: string;
+
+	/** 更新后的 SESSION_SUMMARY.md 内容 */
+	sessionSummaryUpdate?: string;
+
 	/** 历史记录时间戳 */
 	ts?: string;
 
@@ -643,6 +708,152 @@ function ensureDirRecursive(dir: string): boolean {
 	return Content.mkdir(dir);
 }
 
+function normalizeMemoryFileContent(content: string | undefined, template: string, importedSectionTitle: string): string {
+	const safeContent = typeof content === "string" ? sanitizeUTF8(content) : "";
+	const trimmed = safeContent.trim();
+	if (trimmed === "") return template;
+	if (trimmed.indexOf("\n## ") >= 0 || trimmed.indexOf("\n# ") >= 0 || trimmed.slice(0, 3) === "## " || trimmed.slice(0, 2) === "# ") {
+		return safeContent;
+	}
+	return `${template.trim()}\n\n## ${importedSectionTitle}\n\n${trimmed}\n`;
+}
+
+function splitMemorySections(text: string): MemoryTextSection[] {
+	const sections: MemoryTextSection[] = [];
+	const lines = sanitizeUTF8(text ?? "").split("\n");
+	let title = "Overview";
+	let bodyLines: string[] = [];
+	let index = 0;
+	function flush(): void {
+		const body = bodyLines.join("\n").trim();
+		if (body !== "") {
+			const fullText = title === "Overview" ? body : `## ${title}\n\n${body}`;
+			sections.push({ title, body, fullText, index, score: 0 });
+			index += 1;
+		}
+	}
+	for (let i = 0; i < lines.length; i++) {
+		const line = lines[i];
+		if (line.slice(0, 3) === "## ") {
+			flush();
+			title = line.slice(3).trim();
+			bodyLines = [];
+		} else if (line.slice(0, 2) === "# ") {
+			continue;
+		} else {
+			bodyLines.push(line);
+		}
+	}
+	flush();
+	return sections;
+}
+
+function collectQueryTerms(query: string): string[] {
+	const terms: string[] = [];
+	const lower = sanitizeUTF8(query ?? "").toLowerCase();
+	let current = "";
+	function pushCurrent(): void {
+		const word = current.trim();
+		if (word.length >= 2 && terms.indexOf(word) < 0) {
+			terms.push(word);
+		}
+		current = "";
+	}
+	for (let i = 0; i < lower.length; i++) {
+		const ch = lower.charAt(i);
+		const code = lower.charCodeAt(i);
+		const isAsciiWord = (code >= 48 && code <= 57) || (code >= 97 && code <= 122) || ch === "_" || ch === "-" || ch === ".";
+		if (isAsciiWord) {
+			current += ch;
+		} else {
+			pushCurrent();
+			if (code > 127 && terms.indexOf(ch) < 0) terms.push(ch);
+		}
+	}
+	pushCurrent();
+	return terms;
+}
+
+function countOccurrences(text: string, term: string): number {
+	if (text === "" || term === "") return 0;
+	let count = 0;
+	let start = 0;
+	while (true) {
+		const pos = text.indexOf(term, start);
+		if (pos < 0) break;
+		count += 1;
+		start = pos + term.length;
+	}
+	return count;
+}
+
+function scoreMemorySection(section: MemoryTextSection, terms: string[]): number {
+	const titleLower = section.title.toLowerCase();
+	const bodyLower = section.body.toLowerCase();
+	let score = 0;
+	for (let i = 0; i < terms.length; i++) {
+		const term = terms[i];
+		score += countOccurrences(titleLower, term) * 6;
+		score += countOccurrences(bodyLower, term);
+	}
+	if (
+		titleLower.indexOf("user preference") >= 0 ||
+		titleLower.indexOf("stable fact") >= 0 ||
+		titleLower.indexOf("known decision") >= 0 ||
+		titleLower.indexOf("known issue") >= 0 ||
+		titleLower.indexOf("current goal") >= 0 ||
+		titleLower.indexOf("recent progress") >= 0 ||
+		titleLower.indexOf("build and run") >= 0
+	) {
+		score += terms.length > 0 ? 1 : 3;
+	}
+	return score;
+}
+
+function selectRelevantMemoryText(text: string, query: string, maxTokens: number): string {
+	const sections = splitMemorySections(text);
+	if (sections.length === 0) return "";
+	const budget = math.max(MEMORY_LAYER_MIN_TOKENS, maxTokens);
+	const terms = collectQueryTerms(query);
+	for (let i = 0; i < sections.length; i++) {
+		sections[i].score = scoreMemorySection(sections[i], terms);
+	}
+	const ranked = sections.slice();
+	ranked.sort((a, b) => {
+		if (a.score !== b.score) return b.score - a.score;
+		return a.index - b.index;
+	});
+	const selected: MemoryTextSection[] = [];
+	let used = 0;
+	for (let i = 0; i < ranked.length; i++) {
+		const section = ranked[i];
+		if (terms.length > 0 && section.score <= 0) continue;
+		const cost = TokenEstimator.estimate(section.fullText) + 12;
+		if (selected.length > 0 && used + cost > budget) continue;
+		selected.push(section);
+		used += cost;
+		if (used >= budget) break;
+	}
+	if (selected.length === 0) {
+		for (let i = 0; i < sections.length; i++) {
+			const section = sections[i];
+			const cost = TokenEstimator.estimate(section.fullText) + 12;
+			if (selected.length > 0 && used + cost > budget) continue;
+			selected.push(section);
+			used += cost;
+			if (used >= budget) break;
+		}
+	}
+	selected.sort((a, b) => a.index - b.index);
+	return selected.map(section => section.fullText).join("\n\n");
+}
+
+function formatMemoryLayer(title: string, content: string): string {
+	const trimmed = sanitizeUTF8(content ?? "").trim();
+	if (trimmed === "") return "";
+	return `#### ${title}\n\n${trimmed}`;
+}
+
 /**
  * 双层存储管理器
  *
@@ -654,6 +865,8 @@ export class DualLayerStorage {
 	private agentRootDir: string;
 	private agentDir: string;
 	private memoryPath: string;
+	private projectMemoryPath: string;
+	private sessionSummaryPath: string;
 	private historyPath: string;
 	private sessionPath: string;
 
@@ -665,6 +878,8 @@ export class DualLayerStorage {
 			? Path(this.agentRootDir, scope)
 			: this.agentRootDir;
 		this.memoryPath = Path(this.agentDir, "MEMORY.md");
+		this.projectMemoryPath = Path(this.agentDir, "PROJECT_MEMORY.md");
+		this.sessionSummaryPath = Path(this.agentDir, "SESSION_SUMMARY.md");
 		this.historyPath = Path(this.agentDir, HISTORY_JSONL_FILE);
 		this.sessionPath = Path(this.agentDir, "SESSION.jsonl");
 		this.ensureAgentFiles();
@@ -686,10 +901,24 @@ export class DualLayerStorage {
 		return true;
 	}
 
+	private ensureStructuredMemoryFile(path: string, template: string): void {
+		if (!Content.exist(path)) {
+			this.ensureFile(path, template);
+			return;
+		}
+		const current = Content.load(path) as string;
+		if (typeof current !== "string" || current.trim() === "") {
+			Content.save(path, template);
+			sendWebIDEFileUpdate(path, true, template);
+		}
+	}
+
 	private ensureAgentFiles(): void {
 		this.ensureDir(this.agentRootDir);
 		this.ensureDir(this.agentDir);
-		this.ensureFile(this.memoryPath, "");
+		this.ensureStructuredMemoryFile(this.memoryPath, DEFAULT_CORE_MEMORY_TEMPLATE);
+		this.ensureStructuredMemoryFile(this.projectMemoryPath, DEFAULT_PROJECT_MEMORY_TEMPLATE);
+		this.ensureStructuredMemoryFile(this.sessionSummaryPath, DEFAULT_SESSION_SUMMARY_TEMPLATE);
 		this.ensureFile(this.historyPath, "");
 	}
 
@@ -862,42 +1091,86 @@ export class DualLayerStorage {
 		sendWebIDEFileUpdate(this.historyPath, true, content);
 	}
 
-	// ===== MEMORY.md 操作 =====
+	// ===== 结构化记忆操作 =====
 
 	/**
-	 * 读取长期记忆
+	 * 读取核心长期记忆（用户偏好、稳定事实、已知决策、已知问题）
 	 */
 	readMemory(): string {
 		if (!Content.exist(this.memoryPath)) {
-			return "";
+			return DEFAULT_CORE_MEMORY_TEMPLATE;
 		}
-		return Content.load(this.memoryPath) as string;
+		return normalizeMemoryFileContent(Content.load(this.memoryPath) as string, DEFAULT_CORE_MEMORY_TEMPLATE, "Imported Notes");
 	}
 
 	/**
-	 * 写入长期记忆
+	 * 写入核心长期记忆
 	 */
 	writeMemory(content: string): void {
+		const normalized = normalizeMemoryFileContent(content, DEFAULT_CORE_MEMORY_TEMPLATE, "Imported Notes");
 		this.ensureDir(Path.getPath(this.memoryPath));
-		Content.save(this.memoryPath, content);
+		Content.save(this.memoryPath, normalized);
+		sendWebIDEFileUpdate(this.memoryPath, true, normalized);
+	}
+
+	readProjectMemory(): string {
+		if (!Content.exist(this.projectMemoryPath)) {
+			return DEFAULT_PROJECT_MEMORY_TEMPLATE;
+		}
+		return normalizeMemoryFileContent(Content.load(this.projectMemoryPath) as string, DEFAULT_PROJECT_MEMORY_TEMPLATE, "Imported Project Notes");
+	}
+
+	writeProjectMemory(content: string): void {
+		const normalized = normalizeMemoryFileContent(content, DEFAULT_PROJECT_MEMORY_TEMPLATE, "Imported Project Notes");
+		this.ensureDir(Path.getPath(this.projectMemoryPath));
+		Content.save(this.projectMemoryPath, normalized);
+		sendWebIDEFileUpdate(this.projectMemoryPath, true, normalized);
+	}
+
+	readSessionSummary(): string {
+		if (!Content.exist(this.sessionSummaryPath)) {
+			return DEFAULT_SESSION_SUMMARY_TEMPLATE;
+		}
+		return normalizeMemoryFileContent(Content.load(this.sessionSummaryPath) as string, DEFAULT_SESSION_SUMMARY_TEMPLATE, "Imported Session Notes");
+	}
+
+	writeSessionSummary(content: string): void {
+		const normalized = normalizeMemoryFileContent(content, DEFAULT_SESSION_SUMMARY_TEMPLATE, "Imported Session Notes");
+		this.ensureDir(Path.getPath(this.sessionSummaryPath));
+		Content.save(this.sessionSummaryPath, normalized);
+		sendWebIDEFileUpdate(this.sessionSummaryPath, true, normalized);
 	}
 
 	/**
-	 * 生成注入到 prompt 的记忆上下文
+	 * 生成注入到 prompt 的相关记忆上下文：只选择和当前用户请求相关的片段，避免整份 MEMORY.md 进上下文。
 	 */
-	getMemoryContext(): string {
-		const memory = this.readMemory();
-		const subAgentLearnings = this.buildSubAgentLearningsContext();
-		if (memory === "" && subAgentLearnings === "") return "";
+	getRelevantMemoryContext(query = "", maxTokens = MEMORY_CONTEXT_DEFAULT_MAX_TOKENS): string {
+		const budget = math.max(MEMORY_CONTEXT_MIN_MAX_TOKENS, math.floor(maxTokens));
+		const coreBudget = math.floor(budget * 0.30);
+		const projectBudget = math.floor(budget * 0.35);
+		const sessionBudget = math.floor(budget * 0.20);
+		const subAgentBudget = math.max(0, budget - coreBudget - projectBudget - sessionBudget - 160);
 		const sections: string[] = [];
-		if (memory !== "") {
-			sections.push(`### Long-term Memory\n\n${memory}`);
-		}
+		const core = formatMemoryLayer("Core Memory", selectRelevantMemoryText(this.readMemory(), query, coreBudget));
+		if (core !== "") sections.push(core);
+		const project = formatMemoryLayer("Project Memory", selectRelevantMemoryText(this.readProjectMemory(), query, projectBudget));
+		if (project !== "") sections.push(project);
+		const session = formatMemoryLayer("Session Summary", selectRelevantMemoryText(this.readSessionSummary(), query, sessionBudget));
+		if (session !== "") sections.push(session);
+		const subAgentLearnings = this.buildSubAgentLearningsContext();
 		if (subAgentLearnings !== "") {
-			sections.push(subAgentLearnings);
+			sections.push(formatMemoryLayer("Sub-Agent Learnings", clipTextToTokenBudget(subAgentLearnings, subAgentBudget > 0 ? subAgentBudget : MEMORY_LAYER_MIN_TOKENS)));
 		}
+		if (sections.length === 0) return "";
+		const output = `### Relevant Memory\n\n${sections.join("\n\n")}`;
+		return TokenEstimator.estimate(output) > budget ? clipTextToTokenBudget(output, budget) : output;
+	}
 
-		return sections.join("\n\n");
+	/**
+	 * 兼容旧调用；默认返回相关记忆而不是整份文件。
+	 */
+	getMemoryContext(query = "", maxTokens = MEMORY_CONTEXT_DEFAULT_MAX_TOKENS): string {
+		return this.getRelevantMemoryContext(query, maxTokens);
 	}
 
 	// ===== HISTORY.jsonl 操作 =====
@@ -1098,8 +1371,14 @@ export class MemoryCompressor {
 			);
 
 			if (result.success) {
-				// 成功：写入存储
+				// 成功：写入三层记忆存储
 				this.storage.writeMemory(result.memoryUpdate);
+				if (typeof result.projectMemoryUpdate === "string") {
+					this.storage.writeProjectMemory(result.projectMemoryUpdate);
+				}
+				if (typeof result.sessionSummaryUpdate === "string") {
+					this.storage.writeSessionSummary(result.sessionSummaryUpdate);
+				}
 				if (result.ts) {
 					this.storage.appendHistoryRecord({
 						ts: result.ts,
@@ -1342,16 +1621,22 @@ export class MemoryCompressor {
 
 	private buildBoundedCompressionSections(currentMemory: string, historyText: string): {
 		currentMemory: string;
+		currentProjectMemory: string;
+		currentSessionSummary: string;
 		historyText: string;
 	} {
 		const contextWindow = this.getContextWindow();
 		const reservedOutputTokens = Math.max(2048, math.floor(contextWindow * 0.2));
 		const staticPromptTokens = TokenEstimator.estimate(this.buildCompressionStaticPrompt("tool_calling"));
 		const dynamicBudget = math.max(1600, contextWindow - reservedOutputTokens - staticPromptTokens - 256);
-		const boundedMemory = clipTextToTokenBudget(currentMemory || "(empty)", math.max(320, math.floor(dynamicBudget * 0.35)));
-		const boundedHistory = clipTextToTokenBudget(historyText, math.max(800, math.floor(dynamicBudget * 0.65)));
+		const boundedMemory = clipTextToTokenBudget(currentMemory || "(empty)", math.max(320, math.floor(dynamicBudget * 0.20)));
+		const boundedProjectMemory = clipTextToTokenBudget(this.storage.readProjectMemory() || "(empty)", math.max(320, math.floor(dynamicBudget * 0.20)));
+		const boundedSessionSummary = clipTextToTokenBudget(this.storage.readSessionSummary() || "(empty)", math.max(240, math.floor(dynamicBudget * 0.15)));
+		const boundedHistory = clipTextToTokenBudget(historyText, math.max(800, math.floor(dynamicBudget * 0.45)));
 		return {
 			currentMemory: boundedMemory,
+			currentProjectMemory: boundedProjectMemory,
+			currentSessionSummary: boundedSessionSummary,
 			historyText: boundedHistory,
 		};
 	}
@@ -1381,8 +1666,15 @@ export class MemoryCompressor {
 						},
 						memory_update: {
 							type: "string",
-							description: "Full updated long-term memory as markdown. " +
-								"Include all existing facts plus new ones."
+							description: "Full updated MEMORY.md as markdown. Core memory only: user preferences, stable facts, decisions, known issues."
+						},
+						project_memory_update: {
+							type: "string",
+							description: "Full updated PROJECT_MEMORY.md as markdown. Project facts, build/run, files/architecture, project decisions and issues."
+						},
+						session_summary_update: {
+							type: "string",
+							description: "Full updated SESSION_SUMMARY.md as markdown. Current goal, recent progress, and open issues for this session."
 						},
 					},
 					required: ["history_entry", "memory_update"],
@@ -1553,6 +1845,8 @@ export class MemoryCompressor {
 	private buildCompressionPromptBodyRaw(currentMemory: string, historyText: string): string {
 		return replaceTemplateVars(this.config.promptPack.memoryCompressionBodyPrompt, {
 			CURRENT_MEMORY: currentMemory || "(empty)",
+			CURRENT_PROJECT_MEMORY: this.storage.readProjectMemory() || "(empty)",
+			CURRENT_SESSION_SUMMARY: this.storage.readSessionSummary() || "(empty)",
 			HISTORY_TEXT: historyText,
 		});
 	}
@@ -1561,6 +1855,8 @@ export class MemoryCompressor {
 		const bounded = this.buildBoundedCompressionSections(currentMemory, historyText);
 		return replaceTemplateVars(this.config.promptPack.memoryCompressionBodyPrompt, {
 			CURRENT_MEMORY: bounded.currentMemory,
+			CURRENT_PROJECT_MEMORY: bounded.currentProjectMemory,
+			CURRENT_SESSION_SUMMARY: bounded.currentSessionSummary,
 			HISTORY_TEXT: bounded.historyText,
 		});
 	}
@@ -1609,7 +1905,15 @@ ${this.config.promptPack.memoryCompressionXmlPrompt}`;
 		currentMemory: string
 	): CompressionResult {
 		const historyEntry = typeof obj.history_entry === "string" ? obj.history_entry : "";
-		const memoryBody = typeof obj.memory_update === "string" ? obj.memory_update : currentMemory;
+		const memoryBody = typeof obj.memory_update === "string" && obj.memory_update.trim() !== ""
+			? obj.memory_update
+			: currentMemory;
+		const projectMemoryBody = typeof obj.project_memory_update === "string" && obj.project_memory_update.trim() !== ""
+			? obj.project_memory_update
+			: this.storage.readProjectMemory();
+		const sessionSummaryBody = typeof obj.session_summary_update === "string" && obj.session_summary_update.trim() !== ""
+			? obj.session_summary_update
+			: this.storage.readSessionSummary();
 		if (historyEntry.trim() === "" || memoryBody.trim() === "") {
 			return {
 				success: false,
@@ -1622,6 +1926,8 @@ ${this.config.promptPack.memoryCompressionXmlPrompt}`;
 		return {
 			success: true,
 			memoryUpdate: memoryBody,
+			projectMemoryUpdate: projectMemoryBody,
+			sessionSummaryUpdate: sessionSummaryBody,
 			ts,
 			summary: historyEntry,
 			compressedCount: 0,

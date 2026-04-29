@@ -22,6 +22,7 @@ local __TS__SparseArraySpread = ____lualib.__TS__SparseArraySpread -- 1
 local __TS__ArrayIndexOf = ____lualib.__TS__ArrayIndexOf -- 1
 local __TS__AsyncAwaiter = ____lualib.__TS__AsyncAwaiter -- 1
 local __TS__Await = ____lualib.__TS__Await -- 1
+local __TS__PromiseAll = ____lualib.__TS__PromiseAll -- 1
 local __TS__Number = ____lualib.__TS__Number -- 1
 local __TS__NumberIsFinite = ____lualib.__TS__NumberIsFinite -- 1
 local __TS__ArrayPush = ____lualib.__TS__ArrayPush -- 1
@@ -444,7 +445,9 @@ function buildAgentSystemPrompt(shared, includeToolDefinitions) -- 1999
 	if shared.decisionMode == "tool_calling" then -- 2027
 		sections[#sections + 1] = "### Function Calling\n\nYou may return multiple tool calls in one response when the calls are independent and all results are useful before the next reasoning step. Do not include finish in a multi-tool response." -- 2030
 	end -- 2030
-	local memoryContext = shared.memory.compressor:getStorage():getMemoryContext() -- 2034
+	local contextWindow = shared.llmConfig.contextWindow or 64000 -- memory layers
+	local memoryBudget = math.max(1200, math.floor(contextWindow * 0.08)) -- memory layers
+	local memoryContext = shared.memory.compressor:getStorage():getRelevantMemoryContext(shared.userQuery, memoryBudget) -- 2034
 	if memoryContext ~= "" then -- 2034
 		sections[#sections + 1] = memoryContext -- 2036
 	end -- 2036
@@ -3410,6 +3413,9 @@ local function sanitizeToolActionResultForHistory(action, result) -- 3423
 	end -- 3431
 	return result -- 3433
 end -- 3423
+local function canRunBatchActionInParallel(action) -- 3435
+	return action.tool == "read_file" or action.tool == "grep_files" or action.tool == "search_dora_api" or action.tool == "glob_files" or action.tool == "list_sub_agents" -- 3435
+end -- 3435
 local BatchToolAction = __TS__Class() -- 3436
 BatchToolAction.name = "BatchToolAction" -- 3436
 __TS__ClassExtends(BatchToolAction, Node) -- 3436
@@ -3421,24 +3427,63 @@ end -- 3437
 function BatchToolAction.prototype.exec(self, input) -- 3441
 	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3441
 		local shared = input.shared -- 3442
+		local allParallelSafe = #input.actions > 1 -- 3442
+		do -- 3442
+			local i = 0 -- 3442
+			while i < #input.actions do -- 3442
+				if not canRunBatchActionInParallel(input.actions[i + 1]) then -- 3442
+					allParallelSafe = false -- 3442
+					break -- 3442
+				end -- 3442
+				i = i + 1 -- 3442
+			end -- 3442
+		end -- 3442
+		if not allParallelSafe then -- 3442
+			do -- 3442
+				local i = 0 -- 3443
+				while i < #input.actions do -- 3443
+					local action = input.actions[i + 1] -- 3444
+					emitAgentStartEvent(shared, action) -- 3445
+					local result = __TS__Await(executeToolAction(shared, action)) -- 3446
+					action.params = sanitizeActionParamsForHistory(action.tool, action.params) -- 3447
+					action.result = sanitizeToolActionResultForHistory(action, result) -- 3448
+					appendToolResultMessage(shared, action) -- 3449
+					emitAgentFinishEvent(shared, action) -- 3450
+					emitCheckpointEventForAction(shared, action) -- 3451
+					persistHistoryState(shared) -- 3452
+					if shared.stopToken.stopped then -- 3452
+						break -- 3454
+					end -- 3454
+					i = i + 1 -- 3443
+				end -- 3443
+			end -- 3443
+			return ____awaiter_resolve(nil, input.actions) -- 3443
+		end -- 3442
+		Log("Info", "[CodingAgent] batch read-only tools executing in parallel count=" .. tostring(#input.actions)) -- 3442
 		do -- 3442
 			local i = 0 -- 3443
 			while i < #input.actions do -- 3443
-				local action = input.actions[i + 1] -- 3444
-				emitAgentStartEvent(shared, action) -- 3445
-				local result = __TS__Await(executeToolAction(shared, action)) -- 3446
-				action.params = sanitizeActionParamsForHistory(action.tool, action.params) -- 3447
-				action.result = sanitizeToolActionResultForHistory(action, result) -- 3448
-				appendToolResultMessage(shared, action) -- 3449
-				emitAgentFinishEvent(shared, action) -- 3450
-				emitCheckpointEventForAction(shared, action) -- 3451
-				persistHistoryState(shared) -- 3452
-				if shared.stopToken.stopped then -- 3452
-					break -- 3454
-				end -- 3454
+				emitAgentStartEvent(shared, input.actions[i + 1]) -- 3445
 				i = i + 1 -- 3443
 			end -- 3443
 		end -- 3443
+		local results = __TS__Await(__TS__PromiseAll(__TS__ArrayMap(input.actions, function(____, action) -- 3446
+			return executeToolAction(shared, action) -- 3446
+		end))) -- 3446
+		do -- 3446
+			local i = 0 -- 3447
+			while i < #input.actions do -- 3447
+				local action = input.actions[i + 1] -- 3448
+				local result = results[i + 1] -- 3449
+				action.params = sanitizeActionParamsForHistory(action.tool, action.params) -- 3450
+				action.result = sanitizeToolActionResultForHistory(action, result) -- 3451
+				appendToolResultMessage(shared, action) -- 3452
+				emitAgentFinishEvent(shared, action) -- 3453
+				emitCheckpointEventForAction(shared, action) -- 3454
+				i = i + 1 -- 3447
+			end -- 3447
+		end -- 3447
+		persistHistoryState(shared) -- 3456
 		return ____awaiter_resolve(nil, input.actions) -- 3443
 	end) -- 3443
 end -- 3441
