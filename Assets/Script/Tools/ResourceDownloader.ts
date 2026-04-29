@@ -287,7 +287,7 @@ class ResourceDownloader {
 			const success = HttpClient.downloadAsync(
 				version.download,
 				targetFile,
-				30,
+				1200,
 				(current, total) => {
 					if (this.cancelDownload) {
 						return true;
