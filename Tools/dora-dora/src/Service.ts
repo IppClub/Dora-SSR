@@ -903,6 +903,7 @@ export interface AgentSession {
 	status: "IDLE" | "RUNNING" | "DONE" | "FAILED" | "STOPPED";
 	currentTaskId?: number;
 	currentTaskStatus?: "IDLE" | "RUNNING" | "DONE" | "FAILED" | "STOPPED";
+	currentTaskFinalizing?: boolean;
 	createdAt: number;
 	updatedAt: number;
 }
