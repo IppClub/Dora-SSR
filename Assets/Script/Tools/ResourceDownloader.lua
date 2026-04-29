@@ -249,7 +249,7 @@ function ResourceDownloader.prototype.downloadPackage(self, pkg) -- 273
 		local success = HttpClient:downloadAsync( -- 287
 			version.download, -- 288
 			targetFile, -- 289
-			30, -- 290
+			1200, -- 290
 			function(current, total) -- 291
 				if self.cancelDownload then -- 291
 					return true -- 293
