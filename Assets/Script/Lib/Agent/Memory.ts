@@ -197,7 +197,7 @@ You are a coding assistant that helps modify and navigate code in the Dora SSR g
 	- Parameters: message`,
 	replyLanguageDirectiveZh: "Use Simplified Chinese for natural-language fields (message/summary).",
 	replyLanguageDirectiveEn: "Use English for natural-language fields (message/summary).",
-	toolCallingRetryPrompt: "Previous response was invalid ({{LAST_ERROR}}). Retry with either one valid tool call.",
+	toolCallingRetryPrompt: "Previous response was invalid ({{LAST_ERROR}}). Retry with one or more valid tool calls.",
 xmlDecisionFormatPrompt: `Respond with exactly one XML tool_call block. Do not include any prose before or after the XML.
 
 ${XML_DECISION_SCHEMA_EXAMPLE}

@@ -484,7 +484,7 @@ export interface CodingAgentRunOptions {
 	sessionId?: number;
 	memoryScope?: string;
 	role?: "main" | "sub";
-	spawnSubAgent?: (request: {
+	spawnSubAgent?: (this: void, request: {
 		parentSessionId: number;
 		projectRoot?: string;
 		title: string;
@@ -495,7 +495,7 @@ export interface CodingAgentRunOptions {
 		| { success: true; sessionId: number; taskId: number; title: string }
 		| { success: false; message: string }
 	>;
-	listSubAgents?: (request: {
+	listSubAgents?: (this: void, request: {
 		sessionId: number;
 		projectRoot?: string;
 		status?: string;
@@ -705,6 +705,7 @@ interface AgentShared {
 	onEvent?: (event: CodingAgentEvent) => void;
 	promptPack: AgentPromptPack;
 	history: AgentActionRecord[];
+	pendingToolActions?: AgentActionRecord[];
 	messages: AgentConversationMessage[];
 	lastConsolidatedIndex: number;
 	carryMessageIndex?: number;
@@ -1522,6 +1523,27 @@ function appendToolResultMessage(shared: AgentShared, action: AgentActionRecord)
 	});
 }
 
+function appendAssistantToolCallsMessage(
+	shared: AgentShared,
+	actions: AgentActionRecord[],
+	content?: string,
+	reasoningContent?: string
+): void {
+	appendConversationMessage(shared, {
+		role: "assistant",
+		content: content ?? "",
+		reasoning_content: reasoningContent,
+		tool_calls: actions.map(action => ({
+			id: action.toolCallId,
+			type: "function",
+			function: {
+				name: action.tool,
+				arguments: toJson(action.params),
+			},
+		})),
+	});
+}
+
 function parseXMLToolCallObjectFromText(text: string): { success: true; obj: Record<string, unknown> } | { success: false; message: string } {
 	const children = parseXMLObjectFromText(text, "tool_call");
 	if (!children.success) return children;
@@ -1589,8 +1611,19 @@ type DecisionSuccess = {
 	reasoningContent?: string;
 	directSummary?: string;
 };
-type DecisionResult = DecisionSuccess | DecisionFailure;
+type DecisionBatchSuccess = {
+	success: true;
+	kind: "batch";
+	decisions: DecisionSuccess[];
+	content?: string;
+	reasoningContent?: string;
+};
+type DecisionResult = DecisionSuccess | DecisionBatchSuccess | DecisionFailure;
 type DecisionFailure = { success: false; message: string; raw?: string };
+
+function isDecisionBatchSuccess(result: DecisionSuccess | DecisionBatchSuccess): result is DecisionBatchSuccess {
+	return (result as DecisionBatchSuccess).kind === "batch";
+}
 
 function parseDecisionObject(rawObj: Record<string, unknown>): DecisionSuccess | DecisionFailure {
 	if (typeof rawObj.tool !== "string") return { success: false, message: "missing tool" };
@@ -1628,6 +1661,71 @@ function parseDecisionToolCall(functionName: string, rawObj: unknown): DecisionS
 		tool: functionName,
 		params: rawObj,
 	};
+}
+
+function parseToolCallArguments(functionName: string, argsText: string): Record<string, unknown> | DecisionFailure {
+	if (argsText.trim() === "") {
+		return {};
+	}
+	const [rawObj, err] = safeJsonDecode(argsText);
+	if (err !== undefined || rawObj === undefined) {
+		return {
+			success: false,
+			message: `invalid ${functionName} arguments: ${tostring(err)}`,
+			raw: argsText,
+		};
+	}
+	const [encodedRaw] = safeJsonEncode(rawObj as object);
+	if (encodedRaw === "null" || !isRecord(rawObj) || isArray(rawObj)) {
+		return {
+			success: false,
+			message: `invalid ${functionName} arguments`,
+			raw: argsText,
+		};
+	}
+	return rawObj;
+}
+
+function parseAndValidateToolCallDecision(
+	shared: AgentShared,
+	functionName: string,
+	argsText: string,
+	toolCallId?: string,
+	reason?: string,
+	reasoningContent?: string
+): DecisionSuccess | DecisionFailure {
+	const rawArgs = parseToolCallArguments(functionName, argsText);
+	if (isRecord(rawArgs) && rawArgs.success === false) {
+		return rawArgs as DecisionFailure;
+	}
+	const decision = parseDecisionToolCall(functionName, rawArgs);
+	if (!decision.success) {
+		return {
+			success: false,
+			message: decision.message,
+			raw: argsText,
+		};
+	}
+	const validation = validateDecision(decision.tool, decision.params);
+	if (!validation.success) {
+		return {
+			success: false,
+			message: validation.message,
+			raw: argsText,
+		};
+	}
+	if (!isToolAllowedForRole(shared.role, decision.tool)) {
+		return {
+			success: false,
+			message: `${decision.tool} is not allowed for role ${shared.role}`,
+			raw: argsText,
+		};
+	}
+	decision.params = validation.params;
+	decision.toolCallId = ensureToolCallId(toolCallId);
+	decision.reason = reason;
+	decision.reasoningContent = reasoningContent;
+	return decision;
 }
 
 function getDecisionPath(params: Record<string, unknown>): string {
@@ -1928,6 +2026,11 @@ Rules:
 		rolePrompt,
 		getReplyLanguageDirective(shared),
 	];
+	if (shared.decisionMode === "tool_calling") {
+		sections.push(`### Function Calling
+
+You may return multiple tool calls in one response when the calls are independent and all results are useful before the next reasoning step. Do not include finish in a multi-tool response.`);
+	}
 	const memoryContext = shared.memory.compressor.getStorage().getMemoryContext();
 	if (memoryContext !== "") {
 		sections.push(memoryContext);
@@ -2313,11 +2416,6 @@ class MainDecisionAgent extends Node<AgentShared> {
 		const choice = res.response.choices && res.response.choices[0];
 		const message = choice && choice.message;
 		const toolCalls = message && message.tool_calls;
-		const toolCall = toolCalls && toolCalls[0];
-		const fn = toolCall && toolCall.function;
-		const toolCallId = toolCall && typeof toolCall.id === "string"
-			? toolCall.id
-			: undefined;
 		const reasoningContent = message && typeof message.reasoning_content === "string"
 			? message.reasoning_content
 			: undefined;
@@ -2325,7 +2423,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 			? message.content.trim()
 			: undefined;
 		Log("Info", `[CodingAgent] tool-calling response finish_reason=${choice && choice.finish_reason ? choice.finish_reason : "unknown"} tool_calls=${toolCalls ? toolCalls.length : 0} content_len=${messageContent ? messageContent.length : 0} reasoning_len=${reasoningContent ? reasoningContent.length : 0}`);
-		if (!fn || typeof fn.name !== "string" || fn.name === "") {
+		if (!toolCalls || toolCalls.length === 0) {
 			if (messageContent && messageContent !== "") {
 				Log("Info", `[CodingAgent] tool-calling fallback direct_finish_len=${messageContent.length}`);
 				return {
@@ -2344,56 +2442,59 @@ class MainDecisionAgent extends Node<AgentShared> {
 				raw: messageContent,
 			};
 		}
-		const functionName = fn.name;
-		const argsText = typeof fn.arguments === "string" ? fn.arguments : "";
-		Log("Info", `[CodingAgent] tool-calling function=${functionName} args_len=${argsText.length}`);
-		const rawArgs = argsText.trim() === "" ? {} : (() => {
-			const [rawObj, err] = safeJsonDecode(argsText);
-			if (err !== undefined || rawObj === undefined) {
-				return { __error: tostring(err) };
+		const decisions: DecisionSuccess[] = [];
+		for (let i = 0; i < toolCalls.length; i++) {
+			const toolCall = toolCalls[i];
+			const fn = toolCall && toolCall.function;
+			if (!fn || typeof fn.name !== "string" || fn.name === "") {
+				Log("Error", `[CodingAgent] missing function name for tool call index=${i + 1}`);
+				return {
+					success: false,
+					message: `missing function name for tool call ${i + 1}`,
+					raw: messageContent,
+				};
 			}
-			return rawObj;
-		})();
-		if (isRecord(rawArgs) && rawArgs.__error !== undefined) {
-			const err = tostring(rawArgs.__error);
-			Log("Error", `[CodingAgent] invalid ${functionName} arguments JSON: ${err}`);
-			return {
-				success: false,
-				message: `invalid ${functionName} arguments: ${err}`,
-				raw: argsText,
-			};
+			const functionName = fn.name;
+			const argsText = typeof fn.arguments === "string" ? fn.arguments : "";
+			const toolCallId = toolCall && typeof toolCall.id === "string"
+				? toolCall.id
+				: undefined;
+			Log("Info", `[CodingAgent] tool-calling function=${functionName} index=${i + 1}/${toolCalls.length} args_len=${argsText.length}`);
+			const decision = parseAndValidateToolCallDecision(
+				shared,
+				functionName,
+				argsText,
+				toolCallId,
+				messageContent,
+				reasoningContent
+			);
+			if (!decision.success) {
+				Log("Error", `[CodingAgent] invalid tool call index=${i + 1}: ${decision.message}`);
+				return decision;
+			}
+			decisions.push(decision);
 		}
-		const decision = parseDecisionToolCall(functionName, rawArgs);
-		if (!decision.success) {
-			Log("Error", `[CodingAgent] invalid tool arguments schema: ${decision.message}`);
-			return {
-				success: false,
-				message: decision.message,
-				raw: argsText,
-			};
+		if (decisions.length === 1) {
+			Log("Info", `[CodingAgent] tool-calling selected tool=${decisions[0].tool}`);
+			return decisions[0];
 		}
-		const validation = validateDecision(decision.tool, decision.params);
-		if (!validation.success) {
-			Log("Error", `[CodingAgent] invalid ${decision.tool} arguments values: ${validation.message}`);
-			return {
-				success: false,
-				message: validation.message,
-				raw: argsText,
-			};
+		for (let i = 0; i < decisions.length; i++) {
+			if (decisions[i].tool === "finish") {
+				return {
+					success: false,
+					message: "finish cannot be mixed with other tool calls",
+					raw: messageContent,
+				};
+			}
 		}
-		if (!isToolAllowedForRole(shared.role, decision.tool)) {
-			return {
-				success: false,
-				message: `${decision.tool} is not allowed for role ${shared.role}`,
-				raw: argsText,
-			};
-		}
-		decision.params = validation.params;
-		decision.toolCallId = ensureToolCallId(toolCallId);
-		decision.reason = messageContent;
-		decision.reasoningContent = reasoningContent;
-		Log("Info", `[CodingAgent] tool-calling selected tool=${decision.tool}`);
-		return decision;
+		Log("Info", `[CodingAgent] tool-calling selected batch tools=${decisions.map(decision => decision.tool).join(",")}`);
+		return {
+			success: true,
+			kind: "batch",
+			decisions,
+			content: messageContent,
+			reasoningContent,
+		};
 	}
 
 	private async repairDecisionXml(
@@ -2530,6 +2631,48 @@ class MainDecisionAgent extends Node<AgentShared> {
 			persistHistoryState(shared);
 			return "done";
 		}
+		if (isDecisionBatchSuccess(result)) {
+			const startStep = shared.step;
+			const actions: AgentActionRecord[] = [];
+			for (let i = 0; i < result.decisions.length; i++) {
+				const decision = result.decisions[i];
+				const toolCallId = ensureToolCallId(decision.toolCallId);
+				const step = startStep + i + 1;
+				const actionReason = i === 0 ? decision.reason : "";
+				const actionReasoningContent = i === 0 ? decision.reasoningContent : undefined;
+				emitAgentEvent(shared, {
+					type: "decision_made",
+					sessionId: shared.sessionId,
+					taskId: shared.taskId,
+					step,
+					tool: decision.tool,
+					reason: actionReason,
+					reasoningContent: actionReasoningContent,
+					params: decision.params,
+				});
+				const action: AgentActionRecord = {
+					step,
+					toolCallId,
+					tool: decision.tool,
+					reason: actionReason ?? "",
+					reasoningContent: actionReasoningContent,
+					params: decision.params,
+					timestamp: os.date("!%Y-%m-%dT%H:%M:%SZ"),
+				};
+				shared.history.push(action);
+				actions.push(action);
+			}
+			shared.step = startStep + actions.length;
+			shared.pendingToolActions = actions;
+			appendAssistantToolCallsMessage(
+				shared,
+				actions,
+				result.content ?? "",
+				result.reasoningContent
+			);
+			persistHistoryState(shared);
+			return "batch_tools";
+		}
 		if (result.directSummary && result.directSummary !== "") {
 			shared.response = result.directSummary;
 			shared.done = true;
@@ -2575,19 +2718,8 @@ class MainDecisionAgent extends Node<AgentShared> {
 			params: result.params,
 			timestamp: os.date("!%Y-%m-%dT%H:%M:%SZ"),
 		});
-		appendConversationMessage(shared, {
-			role: "assistant",
-			content: result.reason ?? "",
-			reasoning_content: result.reasoningContent,
-			tool_calls: [{
-				id: toolCallId,
-				type: "function",
-				function: {
-					name: result.tool,
-					arguments: toJson(result.params),
-				},
-			}],
-		});
+		const action = shared.history[shared.history.length - 1];
+		appendAssistantToolCallsMessage(shared, [action], result.reason ?? "", result.reasoningContent);
 		persistHistoryState(shared);
 		return result.tool;
 	}
@@ -3118,6 +3250,222 @@ class EditFileAction extends Node<AgentShared> {
 	}
 }
 
+function emitCheckpointEventForAction(shared: AgentShared, action: AgentActionRecord): void {
+	const result = action.result;
+	if (!result) return;
+	if ((action.tool === "edit_file" || action.tool === "delete_file")
+		&& typeof result.checkpointId === "number"
+		&& typeof result.checkpointSeq === "number"
+		&& isArray(result.files)) {
+		emitAgentEvent(shared, {
+			type: "checkpoint_created",
+			sessionId: shared.sessionId,
+			taskId: shared.taskId,
+			step: action.step,
+			tool: action.tool,
+			checkpointId: result.checkpointId,
+			checkpointSeq: result.checkpointSeq,
+			files: result.files,
+		});
+	}
+}
+
+async function executeToolAction(shared: AgentShared, action: AgentActionRecord): Promise<Record<string, unknown>> {
+	if (shared.stopToken.stopped) {
+		return { success: false, message: getCancelledReason(shared) };
+	}
+	const params = action.params;
+	if (action.tool === "read_file") {
+		const path = typeof params.path === "string"
+			? params.path
+			: (typeof params.target_file === "string" ? params.target_file : "");
+		if (path.trim() === "") return { success: false, message: "missing path" };
+		return Tools.readFile(
+			shared.workingDir,
+			path,
+			Number(params.startLine ?? 1),
+			Number(params.endLine ?? READ_FILE_DEFAULT_LIMIT),
+			shared.useChineseResponse ? "zh" : "en"
+		) as unknown as Record<string, unknown>;
+	}
+	if (action.tool === "grep_files") {
+		const result = await Tools.searchFiles({
+			workDir: shared.workingDir,
+			path: (params.path as string) ?? "",
+			pattern: (params.pattern as string) ?? "",
+			globs: params.globs as string[] | undefined,
+			useRegex: params.useRegex as boolean | undefined,
+			caseSensitive: params.caseSensitive as boolean | undefined,
+			includeContent: true,
+			contentWindow: SEARCH_PREVIEW_CONTEXT,
+			limit: math.max(1, math.floor(Number(params.limit ?? SEARCH_FILES_LIMIT_DEFAULT))),
+			offset: math.max(0, math.floor(Number(params.offset ?? 0))),
+			groupByFile: params.groupByFile === true,
+		});
+		return result as unknown as Record<string, unknown>;
+	}
+	if (action.tool === "search_dora_api") {
+		const result = await Tools.searchDoraAPI({
+			pattern: (params.pattern as string) ?? "",
+			docSource: ((params.docSource as string) ?? "api") as Tools.DoraAPIDocSource,
+			docLanguage: (shared.useChineseResponse ? "zh" : "en") as Tools.DoraAPIDocLanguage,
+			programmingLanguage: ((params.programmingLanguage as string) ?? "ts") as Tools.DoraAPIProgrammingLanguage,
+			limit: math.min(SEARCH_DORA_API_LIMIT_MAX, math.max(1, Number(params.limit ?? 8))),
+			useRegex: params.useRegex as boolean | undefined,
+			caseSensitive: false,
+			includeContent: true,
+			contentWindow: SEARCH_PREVIEW_CONTEXT,
+		});
+		return result as unknown as Record<string, unknown>;
+	}
+	if (action.tool === "glob_files") {
+		const result = Tools.listFiles({
+			workDir: shared.workingDir,
+			path: (params.path as string) ?? "",
+			globs: params.globs as string[] | undefined,
+			maxEntries: math.max(1, math.floor(Number(params.maxEntries ?? LIST_FILES_MAX_ENTRIES_DEFAULT))),
+		});
+		return result as unknown as Record<string, unknown>;
+	}
+	if (action.tool === "delete_file") {
+		const targetFile = typeof params.target_file === "string"
+			? params.target_file
+			: (typeof params.path === "string" ? params.path : "");
+		if (targetFile.trim() === "") return { success: false, message: "missing target_file" };
+		const result = Tools.applyFileChanges(shared.taskId, shared.workingDir, [{ path: targetFile, op: "delete" }], {
+			summary: `delete_file: ${targetFile}`,
+			toolName: "delete_file",
+		});
+		if (!result.success) {
+			return result as unknown as Record<string, unknown>;
+		}
+		return {
+			success: true,
+			changed: true,
+			mode: "delete",
+			checkpointId: result.checkpointId,
+			checkpointSeq: result.checkpointSeq,
+			files: [{ path: targetFile, op: "delete" as const }],
+		};
+	}
+	if (action.tool === "build") {
+		const result = await Tools.build({
+			workDir: shared.workingDir,
+			path: (params.path as string) ?? ""
+		});
+		return result as unknown as Record<string, unknown>;
+	}
+	if (action.tool === "spawn_sub_agent") {
+		if (!shared.spawnSubAgent) {
+			return { success: false, message: "spawn_sub_agent is not available in this runtime" };
+		}
+		if (shared.sessionId === undefined || shared.sessionId <= 0) {
+			return { success: false, message: "spawn_sub_agent requires a parent session" };
+		}
+		const filesHint = isArray(params.filesHint)
+			? (params.filesHint as unknown[]).filter(item => typeof item === "string") as string[]
+			: undefined;
+		const result = await shared.spawnSubAgent({
+			parentSessionId: shared.sessionId,
+			projectRoot: shared.workingDir,
+			title: typeof params.title === "string" ? params.title : "Sub",
+			prompt: typeof params.prompt === "string" ? params.prompt : "",
+			expectedOutput: typeof params.expectedOutput === "string" ? params.expectedOutput : undefined,
+			filesHint,
+		});
+		if (!result.success) {
+			return result as unknown as Record<string, unknown>;
+		}
+		return {
+			success: true,
+			sessionId: result.sessionId,
+			taskId: result.taskId,
+			title: result.title,
+			hint: "If the necessary sub-agents have already been dispatched, end this turn directly and do not immediately check their results.",
+		};
+	}
+	if (action.tool === "list_sub_agents") {
+		if (!shared.listSubAgents) {
+			return { success: false, message: "list_sub_agents is not available in this runtime" };
+		}
+		if (shared.sessionId === undefined || shared.sessionId <= 0) {
+			return { success: false, message: "list_sub_agents requires a current session" };
+		}
+		const result = await shared.listSubAgents({
+			sessionId: shared.sessionId,
+			projectRoot: shared.workingDir,
+			status: typeof params.status === "string" ? params.status : undefined,
+			limit: typeof params.limit === "number" ? params.limit : undefined,
+			offset: typeof params.offset === "number" ? params.offset : undefined,
+			query: typeof params.query === "string" ? params.query : undefined,
+		});
+		return result as unknown as Record<string, unknown>;
+	}
+	if (action.tool === "edit_file") {
+		const path = typeof params.path === "string"
+			? params.path
+			: (typeof params.target_file === "string" ? params.target_file : "");
+		const oldStr = typeof params.old_str === "string" ? params.old_str : "";
+		const newStr = typeof params.new_str === "string" ? params.new_str : "";
+		if (path.trim() === "") return { success: false, message: "missing path" };
+		const actionNode = new EditFileAction(1, 0);
+		return actionNode.exec({
+			path,
+			oldStr,
+			newStr,
+			taskId: shared.taskId,
+			workDir: shared.workingDir,
+		});
+	}
+	return { success: false, message: `${action.tool} cannot be executed as a batched tool` };
+}
+
+function sanitizeToolActionResultForHistory(action: AgentActionRecord, result: Record<string, unknown>): Record<string, unknown> {
+	if (action.tool === "read_file") {
+		return sanitizeReadResultForHistory(action.tool, result);
+	}
+	if (action.tool === "grep_files" || action.tool === "search_dora_api") {
+		return sanitizeSearchResultForHistory(action.tool, result);
+	}
+	if (action.tool === "glob_files") {
+		return sanitizeListFilesResultForHistory(result);
+	}
+	return result;
+}
+
+class BatchToolAction extends Node<AgentShared> {
+	async prep(shared: AgentShared): Promise<{ shared: AgentShared; actions: AgentActionRecord[] }> {
+		return { shared, actions: shared.pendingToolActions ?? [] };
+	}
+
+	async exec(input: { shared: AgentShared; actions: AgentActionRecord[] }): Promise<AgentActionRecord[]> {
+		const shared = input.shared;
+		for (let i = 0; i < input.actions.length; i++) {
+			const action = input.actions[i];
+			emitAgentStartEvent(shared, action);
+			const result = await executeToolAction(shared, action);
+			action.params = sanitizeActionParamsForHistory(action.tool, action.params);
+			action.result = sanitizeToolActionResultForHistory(action, result);
+			appendToolResultMessage(shared, action);
+			emitAgentFinishEvent(shared, action);
+			emitCheckpointEventForAction(shared, action);
+			persistHistoryState(shared);
+			if (shared.stopToken.stopped) {
+				break;
+			}
+		}
+		return input.actions;
+	}
+
+	async post(shared: AgentShared, _prepRes: unknown, _execRes: unknown): Promise<string | undefined> {
+		shared.pendingToolActions = undefined;
+		persistHistoryState(shared);
+		await maybeCompressHistory(shared);
+		persistHistoryState(shared);
+		return "main";
+	}
+}
+
 class EndNode extends Node<AgentShared> {
 	async post(_shared: AgentShared, _prepRes: unknown, _execRes: unknown): Promise<string | undefined> {
 		return undefined;
@@ -3136,8 +3484,10 @@ class CodingAgentFlow extends Flow<AgentShared> {
 		const build = new BuildAction(1, 0);
 		const spawn = new SpawnSubAgentAction(1, 0);
 		const edit = new EditFileAction(1, 0);
+		const batch = new BatchToolAction(1, 0);
 		const done = new EndNode(1, 0);
 
+		main.on("batch_tools", batch);
 		main.on("grep_files", search);
 		main.on("search_dora_api", searchDora);
 		main.on("glob_files", list);
@@ -3161,6 +3511,7 @@ class CodingAgentFlow extends Flow<AgentShared> {
 		list.on("main", main);
 		listSub.on("main", main);
 		spawn.on("main", main);
+		batch.on("main", main);
 		read.on("main", main);
 		del.on("main", main);
 		build.on("main", main);
