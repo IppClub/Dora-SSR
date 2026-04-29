@@ -22,6 +22,7 @@ export interface AgentSessionItem {
 	status: AgentSessionStatus;
 	currentTaskId?: number;
 	currentTaskStatus?: AgentSessionStatus;
+	currentTaskFinalizing?: boolean;
 	createdAt: number;
 	updatedAt: number;
 }
@@ -233,6 +234,7 @@ interface PendingSubAgentHandoffItem {
 }
 
 const activeStopTokens: Record<number, StopToken> = {};
+const finalizingSubSessionTaskIds: Record<number, boolean> = {};
 const now = () => os.time();
 
 function getDefaultUseChineseResponse(): boolean {
@@ -388,6 +390,7 @@ function rowToSession(row: any[]): AgentSessionItem {
 		status: toStr(row[7]) as AgentSessionStatus,
 		currentTaskId: typeof row[8] === "number" && row[8] > 0 ? row[8] : undefined,
 		currentTaskStatus: toStr(row[9]) as AgentSessionStatus,
+		currentTaskFinalizing: typeof row[8] === "number" && row[8] > 0 && finalizingSubSessionTaskIds[row[8]] === true,
 		createdAt: row[10] as number,
 		updatedAt: row[11] as number,
 	};
@@ -1570,7 +1573,13 @@ function applyEvent(sessionId: number, event: CodingAgentEvent) {
 			const finalStatus: AgentSessionStatus = event.success
 				? "DONE"
 				: (stopped ? "STOPPED" : "FAILED");
-			setSessionStateForTaskEvent(sessionId, event.taskId, finalStatus, finalStatus);
+			const session = getSessionItem(sessionId);
+			const isSubSession = session?.kind === "sub";
+			const sessionStatus: AgentSessionStatus = isSubSession ? "RUNNING" : finalStatus;
+			if (isSubSession && event.taskId !== undefined) {
+				finalizingSubSessionTaskIds[event.taskId] = true;
+			}
+			setSessionStateForTaskEvent(sessionId, event.taskId, sessionStatus, sessionStatus);
 			if (event.taskId !== undefined) {
 				const removedStepIds = deleteMessageSteps(sessionId, event.taskId);
 				finalizeTaskSteps(
@@ -1580,7 +1589,9 @@ function applyEvent(sessionId: number, event: CodingAgentEvent) {
 					event.success ? undefined : (stopped ? "STOPPED" : "FAILED"),
 				);
 				const messageId = upsertAssistantMessage(sessionId, event.taskId, event.message);
-				activeStopTokens[event.taskId] = undefined as any;
+				if (!isSubSession) {
+					activeStopTokens[event.taskId] = undefined as any;
+				}
 				emitAgentSessionPatch(sessionId, {
 					session: getSessionItem(sessionId),
 					message: getMessageItem(messageId),
@@ -1588,7 +1599,6 @@ function applyEvent(sessionId: number, event: CodingAgentEvent) {
 					removedStepIds,
 				});
 			}
-			const session = getSessionItem(sessionId);
 			if (session && session.kind === "main") {
 				flushPendingSubAgentHandoffs(session);
 			}
@@ -2062,6 +2072,9 @@ export function sendPrompt(sessionId: number, prompt: string, allowSubSessionSta
 	if (!session) {
 		return { success: false, message: "session not found" };
 	}
+	if (session.currentTaskFinalizing === true || (session.currentTaskId !== undefined && finalizingSubSessionTaskIds[session.currentTaskId] === true)) {
+		return { success: false, message: "session task is finalizing" };
+	}
 	if ((session.currentTaskStatus === "RUNNING") && session.currentTaskId !== undefined && activeStopTokens[session.currentTaskId]) {
 		return { success: false, message: "session task is still running" };
 	}
@@ -2141,6 +2154,8 @@ export function sendPrompt(sessionId: number, prompt: string, allowSubSessionSta
 					session: getSessionItem(sessionId),
 				});
 			}
+			activeStopTokens[taskId] = undefined as any;
+			finalizingSubSessionTaskIds[taskId] = undefined as any;
 		}
 		if (!result.success && (!nextSession || nextSession.kind !== "sub")) {
 			applyEvent(sessionId, {
@@ -2160,6 +2175,9 @@ export function stopSessionTask(sessionId: number) {
 	const session = getSessionItem(sessionId);
 	if (!session || session.currentTaskId === undefined) {
 		return { success: false as const, message: "session task not found" };
+	}
+	if (session.currentTaskFinalizing === true || finalizingSubSessionTaskIds[session.currentTaskId] === true) {
+		return { success: false as const, message: "session task is finalizing" };
 	}
 	const normalizedSession = normalizeSessionRuntimeState(session);
 	const stopToken = activeStopTokens[session.currentTaskId];

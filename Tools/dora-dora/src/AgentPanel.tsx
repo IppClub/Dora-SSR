@@ -820,6 +820,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 				prompt={prompt}
 				loading={loading}
 				running={session?.currentTaskStatus === "RUNNING"}
+				canStop={session?.currentTaskStatus === "RUNNING" && session?.currentTaskFinalizing !== true}
 				tabButtons={tabButtons}
 				onPromptChange={setPrompt}
 				onSend={() => void onSend()}

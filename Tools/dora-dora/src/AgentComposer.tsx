@@ -14,6 +14,7 @@ interface AgentComposerProps {
 	prompt: string;
 	loading: boolean;
 	running: boolean;
+	canStop?: boolean;
 	tabButtons?: React.ReactNode;
 	onPromptChange: (value: string) => void;
 	onSend: () => void;
@@ -22,9 +23,9 @@ interface AgentComposerProps {
 
 export default function AgentComposer(props: AgentComposerProps) {
 	const { t } = useTranslation();
-	const { prompt, loading, running, tabButtons, onPromptChange, onSend, onStop } = props;
+	const { prompt, loading, running, canStop = true, tabButtons, onPromptChange, onSend, onStop } = props;
 	const disabledInput = loading || running;
-	const actionDisabled = running ? false : loading || prompt.trim() === "";
+	const actionDisabled = running ? !canStop : loading || prompt.trim() === "";
 	const showActionButton = running || prompt.trim() !== "";
 	const textAreaRef = React.useRef<HTMLTextAreaElement | null>(null);
 	const scrollRef = React.useRef<HTMLElement | null>(null);
@@ -94,39 +95,39 @@ export default function AgentComposer(props: AgentComposerProps) {
 								}
 								if (event.key === "Enter" && !event.shiftKey) {
 									event.preventDefault();
-								if (!actionDisabled) {
-									if (running) {
-										onStop();
-									} else {
-										onSend();
+									if (!actionDisabled) {
+										if (running && canStop) {
+											onStop();
+										} else {
+											onSend();
+										}
 									}
 								}
-							}
-						}}
-						placeholder={t("agent.promptPlaceholder")}
-						style={{
-							display: "block",
-							width: "100%",
-							minHeight: "100%",
-							padding: "12px 16px 48px 16px",
-							border: "none",
-							outline: "none",
-							resize: "none",
-							overflow: "hidden",
-							backgroundColor: "transparent",
-							color: Color.TextPrimary,
-							font: "inherit",
-							lineHeight: "1.7",
-							boxSizing: "border-box",
-						}}
-					/>
-				</MacScrollbar>
-			</Box>
+							}}
+							placeholder={t("agent.promptPlaceholder")}
+							style={{
+								display: "block",
+								width: "100%",
+								minHeight: "100%",
+								padding: "12px 16px 48px 16px",
+								border: "none",
+								outline: "none",
+								resize: "none",
+								overflow: "hidden",
+								backgroundColor: "transparent",
+								color: Color.TextPrimary,
+								font: "inherit",
+								lineHeight: "1.7",
+								boxSizing: "border-box",
+							}}
+						/>
+					</MacScrollbar>
+				</Box>
 			{showActionButton ? (
 				<Tooltip title={running ? t("menu.stop") : t("agent.send")}>
 					<span style={{ position: "absolute", left: 16, bottom: 10, zIndex: 1 }}>
 						<IconButton
-							onClick={running ? onStop : onSend}
+							onClick={running ? (canStop ? onStop : undefined) : onSend}
 							disabled={actionDisabled}
 							sx={{
 								backgroundColor: 'rgba(255, 255, 255, 0.04)',
