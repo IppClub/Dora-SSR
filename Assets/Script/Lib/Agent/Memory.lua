@@ -1552,6 +1552,7 @@ function MemoryCompressor.prototype.callLLMForCompressionByToolCalling(self, cur
 			local i = 0 -- 1813
 			while i < maxLLMTry do -- 1813
 				local requestOptions = __TS__ObjectAssign({}, llmOptions, {tools = tools}) -- 1814
+				requestOptions.tool_choice = nil -- 1818
 				local ____opt_3 = debugContext and debugContext.onInput -- 1814
 				if ____opt_3 ~= nil then -- 1814
 					____opt_3(debugContext, "memory_compression_tool_calling", messages, requestOptions) -- 1818
