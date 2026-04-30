@@ -1,12 +1,12 @@
 ---
-name: dora-engine-runtime
-description: Always active Dora SSR runtime coding rules for game/workspace projects; prevents browser DOM/Canvas/Node.js code in Dora engine scripts and forces Dora API lookup before using unfamiliar engine APIs.
+name: dora-engine-coding
+description: Dora SSR coding rules for game/workspace projects; prevents browser DOM/Canvas/Node.js code in Dora engine scripts and forces Dora API lookup before using unfamiliar engine APIs.
 always: true
 ---
 
-# Dora Engine Runtime Coding Rules
+# Dora Engine Coding Rules
 
-These rules apply whenever writing, fixing, or reviewing code for a Dora SSR workspace/game project.
+These rules apply whenever writing, fixing or reviewing code for a Dora SSR workspace/game project.
 
 ## What Runtime This Is
 
@@ -35,7 +35,7 @@ If those APIs already exist in a Dora runtime project, treat them as incompatibl
 
 ## Hard Rule: Do Not Guess Dora APIs
 
-Dora has its own TypeScript definitions under `Script/Lib/Dora/{language}/`. Do not invent names/signatures.
+Dora has its own TypeScript definitions such as `Dora.d.ts`. Do not invent names/signatures.
 
 ### Lookup protocol
 
