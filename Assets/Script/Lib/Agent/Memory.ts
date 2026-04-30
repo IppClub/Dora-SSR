@@ -7,6 +7,23 @@ import { sendWebIDEFileUpdate } from 'Agent/Tools';
 
 const MEMORY_DEFAULT_LLM_TEMPERATURE = 0.1;
 const MEMORY_DEFAULT_LLM_MAX_TOKENS = 8192;
+const MEMORY_DEFAULT_CONTEXT_WINDOW = 64000;
+const AGENT_MEMORY_CONTEXT_MIN_TOKENS = 1200;
+const AGENT_MEMORY_CONTEXT_WINDOW_RATIO = 0.08;
+const COMPRESSION_RESERVED_OUTPUT_MIN_TOKENS = 2048;
+const COMPRESSION_RESERVED_OUTPUT_CONTEXT_RATIO = 0.2;
+const COMPRESSION_HISTORY_MIN_TOKENS = 1200;
+const COMPRESSION_HISTORY_AVAILABLE_RATIO = 0.9;
+const COMPRESSION_HISTORY_TRUNCATED_MIN_CHARS = 2000;
+const COMPRESSION_HISTORY_TRUNCATED_HEAD_RATIO = 0.35;
+const COMPRESSION_DYNAMIC_MIN_TOKENS = 1600;
+const COMPRESSION_DYNAMIC_PROMPT_OVERHEAD_TOKENS = 256;
+const COMPRESSION_SECTION_MEMORY_MIN_TOKENS = 320;
+const COMPRESSION_SECTION_MEMORY_RATIO = 0.2;
+const COMPRESSION_SECTION_SESSION_MIN_TOKENS = 240;
+const COMPRESSION_SECTION_SESSION_RATIO = 0.15;
+const COMPRESSION_SECTION_HISTORY_MIN_TOKENS = 800;
+const COMPRESSION_SECTION_HISTORY_RATIO = 0.45;
 
 function buildMemoryLLMOptions(llmConfig: LLMConfig, overrides?: Record<string, unknown>): Record<string, unknown> {
 	const options: Record<string, unknown> = {
@@ -69,6 +86,7 @@ function clampSessionIndex(messages: AgentConversationMessage[], index?: number)
 
 const AGENT_CONFIG_DIR = ".agent";
 const AGENT_PROMPTS_FILE = "AGENT.md";
+const NO_PROMPT_PACK_SECTIONS_ERROR = "no prompt pack sections found";
 const HISTORY_JSONL_FILE = "HISTORY.jsonl";
 const HISTORY_MAX_RECORDS = 1000;
 const SESSION_MAX_RECORDS = 1000;
@@ -77,35 +95,35 @@ const SUB_AGENT_LEARNINGS_MAX_ITEMS = 10;
 const SUB_AGENT_LEARNINGS_MAX_CHARS = 5000;
 const SUB_AGENT_MEMORY_ENTRY_MAX_CHARS = 1200;
 const SUB_AGENT_MEMORY_EVIDENCE_MAX_ITEMS = 5;
-const DEFAULT_CORE_MEMORY_TEMPLATE = `# Core Memory
+const DEFAULT_CORE_MEMORY_TEMPLATE = `## Core Memory
 
-## User Preferences
+### User Preferences
 
-## Stable Facts
+### Stable Facts
 
-## Known Decisions
+### Known Decisions
 
-## Known Issues
+### Known Issues
 `;
-const DEFAULT_PROJECT_MEMORY_TEMPLATE = `# Project Memory
+const DEFAULT_PROJECT_MEMORY_TEMPLATE = `## Project Memory
 
-## Project Facts
+### Project Facts
 
-## Build And Run
+### Build And Run
 
-## Files And Architecture
+### Files And Architecture
 
-## Decisions
+### Decisions
 
-## Known Issues
+### Known Issues
 `;
-const DEFAULT_SESSION_SUMMARY_TEMPLATE = `# Session Summary
+const DEFAULT_SESSION_SUMMARY_TEMPLATE = `## Session Summary
 
-## Current Goal
+### Current Goal
 
-## Recent Progress
+### Recent Progress
 
-## Open Issues
+### Open Issues
 `;
 const MEMORY_CONTEXT_DEFAULT_MAX_TOKENS = 4000;
 const MEMORY_CONTEXT_MIN_MAX_TOKENS = 800;
@@ -162,6 +180,9 @@ function newName() {
 
 export interface AgentPromptPack {
 	agentIdentityPrompt: string;
+	mainAgentRolePrompt: string;
+	subAgentRolePrompt: string;
+	functionCallingPrompt: string;
 	toolDefinitionsDetailed: string;
 	replyLanguageDirectiveZh: string;
 	replyLanguageDirectiveEn: string;
@@ -177,11 +198,11 @@ export interface AgentPromptPack {
 }
 
 export const DEFAULT_AGENT_PROMPT_PACK: AgentPromptPack = {
-	agentIdentityPrompt: `### Dora Agent
+	agentIdentityPrompt: `# Dora Agent
 
 You are a coding assistant that helps modify and navigate code in the Dora SSR game engine project.
 
-### Guidelines
+# Guidelines
 
 - State intent before tool calls, but NEVER predict or claim results before receiving them.
 - Before modifying a file, read it first. Do not assume files or directories exist.
@@ -190,6 +211,32 @@ You are a coding assistant that helps modify and navigate code in the Dora SSR g
 - Ask for clarification when the request is ambiguous.
 - Prefer reading and searching before editing when information is missing.
 - Focus on outcomes, not tool names. Speak directly to the user.`,
+	mainAgentRolePrompt: `# Agent Role
+
+You are the main agent. Your job is to discuss plans with the user, inspect the codebase, make direct edits when that is the simplest path, and delegate larger or parallelizable implementation work by spawning sub agents.
+
+Rules:
+- You may use the full toolset directly, including edit_file, delete_file, and build.
+- Use direct tools for small, focused, or user-interactive changes where staying in the current run gives the clearest result.
+- Use spawn_sub_agent for large multi-file work, parallel exploration, long-running verification, or isolated execution tasks.
+- Use list_sub_agents only when you do not already know the current sub-agent status and need to inspect running delegated work or recent completed results before deciding whether another delegation is necessary or whether to read a result file.
+- Keep sub-agent titles short and specific.
+- The sub-agent prompt should be self-contained and executable, and should explain the exact task, constraints, expected output, and relevant files when known.
+- After spawn_sub_agent succeeds, immediately finish the current turn and tell the user the work has been delegated.
+- After a successful spawn_sub_agent, do not call list_sub_agents or any other tool in the same turn.
+- Treat the sub-agent completion result as an asynchronous handoff that should be continued in later conversation turns.`,
+	subAgentRolePrompt: `# Agent Role
+
+You are a sub agent. Your job is to execute concrete implementation, editing, and build work delegated by the main agent.
+
+Rules:
+- Focus on completing the delegated task end-to-end.
+- Use the available implementation tools directly when needed, including edit_file, delete_file, and build.
+- Documentation writing tasks are also part of your execution scope when delegated by the main agent.
+- Summaries should stay concise and execution-oriented.`,
+	functionCallingPrompt: `# Function Calling
+
+You may return multiple tool calls in one response when the calls are independent and all results are useful before the next reasoning step.`,
 	toolDefinitionsDetailed: `Available tools:
 1. read_file: Read a specific line range from a file
 	- Parameters: path, startLine(optional), endLine(optional)
@@ -325,19 +372,19 @@ Analyze the actions and update the memory. Follow these guidelines:
 	- Make it grep-searchable
 
 Call the save_memory tool with your consolidated memory and history entry.`,
-	memoryCompressionBodyPrompt: `### Current Core Memory
+	memoryCompressionBodyPrompt: `# Current Core Memory
 
 {{CURRENT_MEMORY}}
 
-### Current Project Memory
+# Current Project Memory
 
 {{CURRENT_PROJECT_MEMORY}}
 
-### Current Session Summary
+# Current Session Summary
 
 {{CURRENT_SESSION_SUMMARY}}
 
-### Actions to Process
+# Actions to Process
 
 {{HISTORY_TEXT}}`,
 	memoryCompressionToolCallingPrompt: `### Output Format
@@ -375,13 +422,21 @@ Rules:
 
 const EXPOSED_PROMPT_PACK_KEYS: (keyof AgentPromptPack)[] = [
 	"agentIdentityPrompt",
+	"mainAgentRolePrompt",
+	"subAgentRolePrompt",
+	"functionCallingPrompt",
+	"toolDefinitionsDetailed",
 	"replyLanguageDirectiveZh",
 	"replyLanguageDirectiveEn",
-];
-
-const OVERRIDABLE_PROMPT_PACK_KEYS: (keyof AgentPromptPack)[] = [
-	...EXPOSED_PROMPT_PACK_KEYS,
-	"toolDefinitionsDetailed",
+	"toolCallingRetryPrompt",
+	"xmlDecisionFormatPrompt",
+	"xmlDecisionRepairPrompt",
+	"xmlDecisionSystemRepairPrompt",
+	"memoryCompressionSystemPrompt",
+	"memoryCompressionBodyPrompt",
+	"memoryCompressionToolCallingPrompt",
+	"memoryCompressionXmlPrompt",
+	"memoryCompressionXmlRetryPrompt"
 ];
 
 function replaceTemplateVars(template: string, vars: Record<string, string>): string {
@@ -397,8 +452,8 @@ export function resolveAgentPromptPack(value?: Record<string, unknown> | null): 
 		...DEFAULT_AGENT_PROMPT_PACK,
 	};
 		if (value && !isArray(value) && isRecord(value)) {
-			for (let i = 0; i < OVERRIDABLE_PROMPT_PACK_KEYS.length; i++) {
-				const key = OVERRIDABLE_PROMPT_PACK_KEYS[i];
+			for (let i = 0; i < EXPOSED_PROMPT_PACK_KEYS.length; i++) {
+				const key = EXPOSED_PROMPT_PACK_KEYS[i];
 				if (typeof value[key] === "string") {
 					merged[key] = value[key];
 				}
@@ -416,7 +471,7 @@ export function renderDefaultAgentPromptPackMarkdown(): string {
 	lines.push("");
 	for (let i = 0; i < EXPOSED_PROMPT_PACK_KEYS.length; i++) {
 		const key = EXPOSED_PROMPT_PACK_KEYS[i];
-		lines.push(`## ${key}`);
+		lines.push(`## \`${key}\``);
 		const text = pack[key] as string;
 		const split = text.split("\n");
 		for (let j = 0; j < split.length; j++) {
@@ -441,6 +496,15 @@ function ensurePromptPackConfig(projectRoot: string): string | undefined {
 	const content = renderDefaultAgentPromptPackMarkdown();
 	if (!Content.save(path, content)) {
 		return `Failed to create default Agent prompt config at ${path}. Using built-in defaults for this run.`;
+	}
+	sendWebIDEFileUpdate(path, true, content);
+	return undefined;
+}
+
+function rewriteDefaultPromptPackConfig(path: string): string | undefined {
+	const content = renderDefaultAgentPromptPackMarkdown();
+	if (!Content.save(path, content)) {
+		return `Failed to recreate default Agent prompt config at ${path}. Using built-in defaults for this run.`;
 	}
 	sendWebIDEFileUpdate(path, true, content);
 	return undefined;
@@ -472,7 +536,7 @@ function parsePromptPackMarkdown(text: string): {
 	};
 	for (let i = 0; i < lines.length; i++) {
 		const line = lines[i];
-		const [matchedHeading] = string.match(line, "^##[ \t]+(.+)$");
+		const [matchedHeading] = string.match(line, "^##[ \t]+`([^`]+)`[ \t]*$");
 		if (matchedHeading !== undefined) {
 			const heading = tostring(matchedHeading).trim();
 			if (isKnownPromptPackKey(heading)) {
@@ -482,10 +546,8 @@ function parsePromptPackMarkdown(text: string): {
 				}
 				continue;
 			}
-			if (currentHeading === "") {
-				unknown.push(heading);
-				continue;
-			}
+			unknown.push(heading);
+			continue;
 		}
 		if (currentHeading !== "") {
 			sections[currentHeading].push(line);
@@ -505,9 +567,9 @@ function parsePromptPackMarkdown(text: string): {
 	}
 	if (Object.keys(sections).length === 0) {
 		return {
-			error: "no ## sections found",
-			unknown,
+			error: NO_PROMPT_PACK_SECTIONS_ERROR,
 			missing,
+			unknown,
 		};
 	}
 	return { value, missing, unknown };
@@ -529,7 +591,12 @@ export function loadAgentPromptPack(projectRoot: string): { pack: AgentPromptPac
 	}
 	const text = Content.load(path) as string;
 	if (!text || text.trim() === "") {
-		warnings.push(`Agent prompt config at ${path} is empty. Using built-in defaults for this run.`);
+		const rewriteWarning = rewriteDefaultPromptPackConfig(path);
+		if (rewriteWarning) {
+			warnings.push(rewriteWarning);
+		} else {
+			warnings.push(`Agent prompt config at ${path} is empty. Recreated default prompt config.`);
+		}
 		return {
 			pack: resolveAgentPromptPack(),
 			warnings,
@@ -537,6 +604,19 @@ export function loadAgentPromptPack(projectRoot: string): { pack: AgentPromptPac
 		};
 	}
 	const parsed = parsePromptPackMarkdown(text);
+	if (parsed.error === NO_PROMPT_PACK_SECTIONS_ERROR) {
+		const rewriteWarning = rewriteDefaultPromptPackConfig(path);
+		if (rewriteWarning) {
+			warnings.push(rewriteWarning);
+		} else {
+			warnings.push(`Agent prompt config at ${path} has no prompt sections. Recreated default prompt config.`);
+		}
+		return {
+			pack: resolveAgentPromptPack(),
+			warnings,
+			path,
+		};
+	}
 	if (parsed.error || !parsed.value) {
 		warnings.push(`Agent prompt config at ${path} is invalid (${parsed.error ?? "parse failed"}). Using built-in defaults for this run.`);
 		return {
@@ -1592,16 +1672,30 @@ export class MemoryCompressor {
 	}
 
 	private getContextWindow(): number {
-		return Math.max(64000, this.config.llmConfig.contextWindow);
+		return Math.max(MEMORY_DEFAULT_CONTEXT_WINDOW, this.config.llmConfig.contextWindow);
+	}
+
+	getMemoryContextBudget(): number {
+		const contextWindow = math.max(MEMORY_DEFAULT_CONTEXT_WINDOW, this.config.llmConfig.contextWindow);
+		return math.max(
+			AGENT_MEMORY_CONTEXT_MIN_TOKENS,
+			math.floor(contextWindow * AGENT_MEMORY_CONTEXT_WINDOW_RATIO)
+		);
 	}
 
 	private getCompressionHistoryTokenBudget(currentMemory: string): number {
 		const contextWindow = this.getContextWindow();
-		const reservedOutputTokens = Math.max(2048, Math.floor(contextWindow * 0.2));
+		const reservedOutputTokens = Math.max(
+			COMPRESSION_RESERVED_OUTPUT_MIN_TOKENS,
+			Math.floor(contextWindow * COMPRESSION_RESERVED_OUTPUT_CONTEXT_RATIO)
+		);
 		const staticPromptTokens = TokenEstimator.estimate(this.buildCompressionStaticPrompt("tool_calling"));
 		const memoryTokens = TokenEstimator.estimate(currentMemory);
 		const available = contextWindow - reservedOutputTokens - staticPromptTokens - memoryTokens;
-		return Math.max(1200, Math.floor(available * 0.9));
+		return Math.max(
+			COMPRESSION_HISTORY_MIN_TOKENS,
+			Math.floor(available * COMPRESSION_HISTORY_AVAILABLE_RATIO)
+		);
 	}
 
 	private boundCompressionHistoryText(currentMemory: string, historyText: string): string {
@@ -1611,8 +1705,11 @@ export class MemoryCompressor {
 		const charsPerToken = historyTokens > 0
 			? historyText.length / historyTokens
 			: 4;
-		const targetChars = Math.max(2000, Math.floor(tokenBudget * charsPerToken));
-		const keepHead = Math.max(0, Math.floor(targetChars * 0.35));
+		const targetChars = Math.max(
+			COMPRESSION_HISTORY_TRUNCATED_MIN_CHARS,
+			Math.floor(tokenBudget * charsPerToken)
+		);
+		const keepHead = Math.max(0, Math.floor(targetChars * COMPRESSION_HISTORY_TRUNCATED_HEAD_RATIO));
 		const keepTail = Math.max(0, targetChars - keepHead);
 		const head = keepHead > 0 ? utf8TakeHead(historyText, keepHead) : "";
 		const tail = keepTail > 0 ? utf8TakeTail(historyText, keepTail) : "";
@@ -1626,13 +1723,31 @@ export class MemoryCompressor {
 		historyText: string;
 	} {
 		const contextWindow = this.getContextWindow();
-		const reservedOutputTokens = Math.max(2048, math.floor(contextWindow * 0.2));
+		const reservedOutputTokens = Math.max(
+			COMPRESSION_RESERVED_OUTPUT_MIN_TOKENS,
+			math.floor(contextWindow * COMPRESSION_RESERVED_OUTPUT_CONTEXT_RATIO)
+		);
 		const staticPromptTokens = TokenEstimator.estimate(this.buildCompressionStaticPrompt("tool_calling"));
-		const dynamicBudget = math.max(1600, contextWindow - reservedOutputTokens - staticPromptTokens - 256);
-		const boundedMemory = clipTextToTokenBudget(currentMemory || "(empty)", math.max(320, math.floor(dynamicBudget * 0.20)));
-		const boundedProjectMemory = clipTextToTokenBudget(this.storage.readProjectMemory() || "(empty)", math.max(320, math.floor(dynamicBudget * 0.20)));
-		const boundedSessionSummary = clipTextToTokenBudget(this.storage.readSessionSummary() || "(empty)", math.max(240, math.floor(dynamicBudget * 0.15)));
-		const boundedHistory = clipTextToTokenBudget(historyText, math.max(800, math.floor(dynamicBudget * 0.45)));
+		const dynamicBudget = math.max(
+			COMPRESSION_DYNAMIC_MIN_TOKENS,
+			contextWindow - reservedOutputTokens - staticPromptTokens - COMPRESSION_DYNAMIC_PROMPT_OVERHEAD_TOKENS
+		);
+		const boundedMemory = clipTextToTokenBudget(currentMemory || "(empty)", math.max(
+			COMPRESSION_SECTION_MEMORY_MIN_TOKENS,
+			math.floor(dynamicBudget * COMPRESSION_SECTION_MEMORY_RATIO)
+		));
+		const boundedProjectMemory = clipTextToTokenBudget(this.storage.readProjectMemory() || "(empty)", math.max(
+			COMPRESSION_SECTION_MEMORY_MIN_TOKENS,
+			math.floor(dynamicBudget * COMPRESSION_SECTION_MEMORY_RATIO)
+		));
+		const boundedSessionSummary = clipTextToTokenBudget(this.storage.readSessionSummary() || "(empty)", math.max(
+			COMPRESSION_SECTION_SESSION_MIN_TOKENS,
+			math.floor(dynamicBudget * COMPRESSION_SECTION_SESSION_RATIO)
+		));
+		const boundedHistory = clipTextToTokenBudget(historyText, math.max(
+			COMPRESSION_SECTION_HISTORY_MIN_TOKENS,
+			math.floor(dynamicBudget * COMPRESSION_SECTION_HISTORY_RATIO)
+		));
 		return {
 			currentMemory: boundedMemory,
 			currentProjectMemory: boundedProjectMemory,
@@ -1696,19 +1811,15 @@ export class MemoryCompressor {
 		let fn: ToolCallFunction | undefined;
 		let argsText = "";
 		for (let i = 0; i < maxLLMTry; i++) {
-			debugContext?.onInput?.("memory_compression_tool_calling", messages, {
+			const requestOptions = {
 				...llmOptions,
 				tools,
-				tool_choice: { type: "function", function: { name: "save_memory" } },
-			});
-			// 调用 LLM，强制使用 save_memory 工具
+			};
+			debugContext?.onInput?.("memory_compression_tool_calling", messages, requestOptions);
+			// 调用 LLM，提示模型使用 save_memory 工具；部分模型不支持强制 tool_choice。
 			const response = await callLLM(
 				messages,
-				{
-					...llmOptions,
-					tools,
-					tool_choice: { type: "function", function: { name: "save_memory" } },
-				},
+				requestOptions,
 				undefined,
 				this.config.llmConfig
 			);

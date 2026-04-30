@@ -323,7 +323,7 @@ inline std::size_t hash(String str) {
 	return hash(str.rawData(), s_cast<int>(str.size()), 0);
 }
 namespace Literals {
-inline std::size_t constexpr operator"" _hash(const char* s, size_t) {
+inline std::size_t constexpr operator""_hash(const char* s, size_t) {
 	return hash(s);
 }
 } // namespace Literals

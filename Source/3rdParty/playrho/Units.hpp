@@ -520,14 +520,14 @@ inline namespace units {
 
 /// @brief SI unit symbol for a gram unit of Mass.
 /// @see https://en.wikipedia.org/wiki/Gram
-constexpr Mass operator"" _g(unsigned long long int v) noexcept
+constexpr Mass operator""_g(unsigned long long int v) noexcept
 {
     return static_cast<Real>(v) * (Kilogram / Kilo);
 }
 
 /// @brief SI unit symbol for a gram unit of Mass.
 /// @see https://en.wikipedia.org/wiki/Gram
-constexpr Mass operator"" _g(long double v) noexcept
+constexpr Mass operator""_g(long double v) noexcept
 {
     return static_cast<Real>(v) * (Kilogram / Kilo);
 }
@@ -535,7 +535,7 @@ constexpr Mass operator"" _g(long double v) noexcept
 /// @brief SI unit symbol for a kilogram unit of Mass.
 /// @see Kilogram
 /// @see https://en.wikipedia.org/wiki/Kilogram
-constexpr Mass operator"" _kg(unsigned long long int v) noexcept
+constexpr Mass operator""_kg(unsigned long long int v) noexcept
 {
     return static_cast<Real>(v) * Kilogram;
 }
@@ -543,35 +543,35 @@ constexpr Mass operator"" _kg(unsigned long long int v) noexcept
 /// @brief SI unit symbol for a kilogram unit of Mass.
 /// @see Kilogram
 /// @see https://en.wikipedia.org/wiki/Kilogram
-constexpr Mass operator"" _kg(long double v) noexcept
+constexpr Mass operator""_kg(long double v) noexcept
 {
     return static_cast<Real>(v) * Kilogram;
 }
 
 /// @brief SI unit symbol for a petagram unit of Mass.
 /// @see https://en.wikipedia.org/wiki/Orders_of_magnitude_(mass)
-constexpr Mass operator"" _Pg(unsigned long long int v) noexcept
+constexpr Mass operator""_Pg(unsigned long long int v) noexcept
 {
     return static_cast<Real>(v) * Peta * (Kilogram / Kilo);
 }
 
 /// @brief SI unit symbol for a petagram unit of Mass.
 /// @see https://en.wikipedia.org/wiki/Orders_of_magnitude_(mass)
-constexpr Mass operator"" _Pg(long double v) noexcept
+constexpr Mass operator""_Pg(long double v) noexcept
 {
     return static_cast<Real>(v) * Peta * (Kilogram / Kilo);
 }
 
 /// @brief SI unit symbol for a yottagram unit of Mass.
 /// @see https://en.wikipedia.org/wiki/Orders_of_magnitude_(mass)
-constexpr Mass operator"" _Yg(unsigned long long int v) noexcept
+constexpr Mass operator""_Yg(unsigned long long int v) noexcept
 {
     return static_cast<Real>(v) * Yotta * (Kilogram / Kilo);
 }
 
 /// @brief SI unit symbol for a yottagram unit of Mass.
 /// @see https://en.wikipedia.org/wiki/Orders_of_magnitude_(mass)
-constexpr Mass operator"" _Yg(long double v) noexcept
+constexpr Mass operator""_Yg(long double v) noexcept
 {
     return static_cast<Real>(v) * Yotta * (Kilogram / Kilo);
 }
@@ -579,7 +579,7 @@ constexpr Mass operator"" _Yg(long double v) noexcept
 /// @brief SI unit symbol for a meter of Length.
 /// @see Meter
 /// @see https://en.wikipedia.org/wiki/Metre
-constexpr Length operator"" _m(unsigned long long int v) noexcept
+constexpr Length operator""_m(unsigned long long int v) noexcept
 {
     return static_cast<Real>(v) * Meter;
 }
@@ -587,77 +587,77 @@ constexpr Length operator"" _m(unsigned long long int v) noexcept
 /// @brief SI unit symbol for a meter of Length.
 /// @see Meter
 /// @see https://en.wikipedia.org/wiki/Metre
-constexpr Length operator"" _m(long double v) noexcept
+constexpr Length operator""_m(long double v) noexcept
 {
     return static_cast<Real>(v) * Meter;
 }
 
 /// @brief SI unit symbol for a decimeter of Length.
 /// @see https://en.wikipedia.org/wiki/Decimetre
-constexpr Length operator"" _dm(unsigned long long int v) noexcept
+constexpr Length operator""_dm(unsigned long long int v) noexcept
 {
     return static_cast<Real>(v) * Deci * Meter;
 }
 
 /// @brief SI unit symbol for a decimeter of Length.
 /// @see https://en.wikipedia.org/wiki/Decimetre
-constexpr Length operator"" _dm(long double v) noexcept
+constexpr Length operator""_dm(long double v) noexcept
 {
     return static_cast<Real>(v) * Deci * Meter;
 }
 
 /// @brief SI unit symbol for a centimeter of Length.
 /// @see https://en.wikipedia.org/wiki/Centimetre
-constexpr Length operator"" _cm(unsigned long long int v) noexcept
+constexpr Length operator""_cm(unsigned long long int v) noexcept
 {
     return static_cast<Real>(v) * Centi * Meter;
 }
 
 /// @brief SI unit symbol for a centimeter of Length.
 /// @see https://en.wikipedia.org/wiki/Centimetre
-constexpr Length operator"" _cm(long double v) noexcept
+constexpr Length operator""_cm(long double v) noexcept
 {
     return static_cast<Real>(v) * Centi * Meter;
 }
 
 /// @brief SI unit symbol for a gigameter unit of Length.
 /// @see https://en.wikipedia.org/wiki/Gigametre
-constexpr Length operator"" _Gm(unsigned long long int v) noexcept
+constexpr Length operator""_Gm(unsigned long long int v) noexcept
 {
     return static_cast<Real>(v) * Giga * Meter;
 }
 
 /// @brief SI unit symbol for a gigameter unit of Length.
 /// @see https://en.wikipedia.org/wiki/Gigametre
-constexpr Length operator"" _Gm(long double v) noexcept
+constexpr Length operator""_Gm(long double v) noexcept
 {
     return static_cast<Real>(v) * Giga * Meter;
 }
 
 /// @brief SI unit symbol for a megameter unit of Length.
 /// @see https://en.wikipedia.org/wiki/Megametre
-constexpr Length operator"" _Mm(unsigned long long int v) noexcept
+constexpr Length operator""_Mm(unsigned long long int v) noexcept
 {
     return static_cast<Real>(v) * Mega * Meter;
 }
 
 /// @brief SI unit symbol for a megameter unit of Length.
 /// @see https://en.wikipedia.org/wiki/Megametre
-constexpr Length operator"" _Mm(long double v) noexcept
+constexpr Length operator""_Mm(long double v) noexcept
 {
     return static_cast<Real>(v) * Mega * Meter;
 }
 
 /// @brief SI symbol for a kilometer unit of Length.
 /// @see https://en.wikipedia.org/wiki/Kilometre
-constexpr Length operator"" _km(unsigned long long int v) noexcept
+constexpr Length operator""_km(unsigned long long int v) noexcept
 {
     return static_cast<Real>(v) * Kilo * Meter;
 }
 
 /// @brief SI symbol for a kilometer unit of Length.
 /// @see https://en.wikipedia.org/wiki/Kilometre
-constexpr Length operator"" _km(long double v) noexcept
+constexpr Length operator""_km(long double v) noexcept
 {
     return static_cast<Real>(v) * Kilo * Meter;
 }
@@ -665,7 +665,7 @@ constexpr Length operator"" _km(long double v) noexcept
 /// @brief SI symbol for a second unit of Time.
 /// @see Second
 /// @see https://en.wikipedia.org/wiki/Second
-constexpr Time operator"" _s(unsigned long long int v) noexcept
+constexpr Time operator""_s(unsigned long long int v) noexcept
 {
     return static_cast<Real>(v) * Second;
 }
@@ -673,49 +673,49 @@ constexpr Time operator"" _s(unsigned long long int v) noexcept
 /// @brief SI symbol for a second unit of Time.
 /// @see Second
 /// @see https://en.wikipedia.org/wiki/Second
-constexpr Time operator"" _s(long double v) noexcept
+constexpr Time operator""_s(long double v) noexcept
 {
     return static_cast<Real>(v) * Second;
 }
 
 /// @brief SI symbol for a minute unit of Time.
 /// @see https://en.wikipedia.org/wiki/Minute
-constexpr Time operator"" _min(unsigned long long int v) noexcept
+constexpr Time operator""_min(unsigned long long int v) noexcept
 {
     return static_cast<Real>(v) * detail::SecondsPerMinute * Second;
 }
 
 /// @brief SI symbol for a minute unit of Time.
 /// @see https://en.wikipedia.org/wiki/Minute
-constexpr Time operator"" _min(long double v) noexcept
+constexpr Time operator""_min(long double v) noexcept
 {
     return static_cast<Real>(v) * detail::SecondsPerMinute * Second;
 }
 
 /// @brief Symbol for an hour unit of Time.
 /// @see https://en.wikipedia.org/wiki/Hour
-constexpr Time operator"" _h(unsigned long long int v) noexcept
+constexpr Time operator""_h(unsigned long long int v) noexcept
 {
     return static_cast<Real>(v) * detail::MinutesPerHour * detail::SecondsPerMinute * Second;
 }
 
 /// @brief Symbol for an hour unit of Time.
 /// @see https://en.wikipedia.org/wiki/Hour
-constexpr Time operator"" _h(long double v) noexcept
+constexpr Time operator""_h(long double v) noexcept
 {
     return static_cast<Real>(v) * detail::MinutesPerHour * detail::SecondsPerMinute * Second;
 }
 
 /// @brief Symbol for a day unit of Time.
 /// @see https://en.wikipedia.org/wiki/Day
-constexpr Time operator"" _d(unsigned long long int v) noexcept
+constexpr Time operator""_d(unsigned long long int v) noexcept
 {
     return static_cast<Real>(v) * detail::HoursPerDay * detail::MinutesPerHour * detail::SecondsPerMinute * Second;
 }
 
 /// @brief Symbol for a day unit of Time.
 /// @see https://en.wikipedia.org/wiki/Day
-constexpr Time operator"" _d(long double v) noexcept
+constexpr Time operator""_d(long double v) noexcept
 {
     return static_cast<Real>(v) * detail::HoursPerDay * detail::MinutesPerHour * detail::SecondsPerMinute * Second;
 }
@@ -723,7 +723,7 @@ constexpr Time operator"" _d(long double v) noexcept
 /// @brief SI symbol for a radian unit of Angle.
 /// @see Radian.
 /// @see https://en.wikipedia.org/wiki/Radian
-constexpr Angle operator"" _rad(unsigned long long int v) noexcept
+constexpr Angle operator""_rad(unsigned long long int v) noexcept
 {
     return static_cast<Real>(v) * Radian;
 }
@@ -731,7 +731,7 @@ constexpr Angle operator"" _rad(unsigned long long int v) noexcept
 /// @brief SI symbol for a radian unit of Angle.
 /// @see Radian.
 /// @see https://en.wikipedia.org/wiki/Radian
-constexpr Angle operator"" _rad(long double v) noexcept
+constexpr Angle operator""_rad(long double v) noexcept
 {
     return static_cast<Real>(v) * Radian;
 }
@@ -739,7 +739,7 @@ constexpr Angle operator"" _rad(long double v) noexcept
 /// @brief Abbreviation for a degree unit of Angle.
 /// @see Degree.
 /// @see https://en.wikipedia.org/wiki/Degree_(angle)
-constexpr Angle operator"" _deg(unsigned long long int v) noexcept
+constexpr Angle operator""_deg(unsigned long long int v) noexcept
 {
     return static_cast<Real>(v) * Degree;
 }
@@ -747,7 +747,7 @@ constexpr Angle operator"" _deg(unsigned long long int v) noexcept
 /// @brief Abbreviation for a degree unit of Angle.
 /// @see Degree.
 /// @see https://en.wikipedia.org/wiki/Degree_(angle)
-constexpr Angle operator"" _deg(long double v) noexcept
+constexpr Angle operator""_deg(long double v) noexcept
 {
     return static_cast<Real>(v) * Degree;
 }
@@ -755,7 +755,7 @@ constexpr Angle operator"" _deg(long double v) noexcept
 /// @brief SI symbol for a newton unit of Force.
 /// @see Newton
 /// @see https://en.wikipedia.org/wiki/Newton_(unit)
-constexpr Force operator"" _N(unsigned long long int v) noexcept
+constexpr Force operator""_N(unsigned long long int v) noexcept
 {
     return static_cast<Real>(v) * Newton;
 }
@@ -763,21 +763,21 @@ constexpr Force operator"" _N(unsigned long long int v) noexcept
 /// @brief SI symbol for a newton unit of Force.
 /// @see Newton
 /// @see https://en.wikipedia.org/wiki/Newton_(unit)
-constexpr Force operator"" _N(long double v) noexcept
+constexpr Force operator""_N(long double v) noexcept
 {
     return static_cast<Real>(v) * Newton;
 }
 
 /// @brief Abbreviation for meter squared unit of Area.
 /// @see SquareMeter
-constexpr Area operator"" _m2(unsigned long long int v) noexcept
+constexpr Area operator""_m2(unsigned long long int v) noexcept
 {
     return static_cast<Real>(v) * SquareMeter;
 }
 
 /// @brief Abbreviation for meter squared unit of Area.
 /// @see SquareMeter
-constexpr Area operator"" _m2(long double v) noexcept
+constexpr Area operator""_m2(long double v) noexcept
 {
     return static_cast<Real>(v) * SquareMeter;
 }
@@ -787,7 +787,7 @@ constexpr Area operator"" _m2(long double v) noexcept
 /// @see Meter
 /// @see Second
 /// @see MeterPerSecond
-constexpr LinearVelocity operator"" _mps(unsigned long long int v) noexcept
+constexpr LinearVelocity operator""_mps(unsigned long long int v) noexcept
 {
     return static_cast<Real>(v) * MeterPerSecond;
 }
@@ -797,7 +797,7 @@ constexpr LinearVelocity operator"" _mps(unsigned long long int v) noexcept
 /// @see Meter
 /// @see Second
 /// @see MeterPerSecond
-constexpr LinearVelocity operator"" _mps(long double v) noexcept
+constexpr LinearVelocity operator""_mps(long double v) noexcept
 {
     return static_cast<Real>(v) * MeterPerSecond;
 }
@@ -805,7 +805,7 @@ constexpr LinearVelocity operator"" _mps(long double v) noexcept
 /// @brief Abbreviation for kilometer per second.
 /// @see https://en.wikipedia.org/wiki/Metre_per_second
 /// @see Second
-constexpr LinearVelocity operator"" _kps(unsigned long long int v) noexcept
+constexpr LinearVelocity operator""_kps(unsigned long long int v) noexcept
 {
     return static_cast<Real>(v) * Kilo * MeterPerSecond;
 }
@@ -813,7 +813,7 @@ constexpr LinearVelocity operator"" _kps(unsigned long long int v) noexcept
 /// @brief Abbreviation for kilometer per second.
 /// @see https://en.wikipedia.org/wiki/Metre_per_second
 /// @see Second
-constexpr LinearVelocity operator"" _kps(long double v) noexcept
+constexpr LinearVelocity operator""_kps(long double v) noexcept
 {
     return static_cast<Real>(v) * Kilo * MeterPerSecond;
 }
@@ -821,7 +821,7 @@ constexpr LinearVelocity operator"" _kps(long double v) noexcept
 /// @brief Abbreviation for meter per second squared.
 /// @see https://en.wikipedia.org/wiki/Metre_per_second_squared
 /// @see MeterPerSquareSecond
-constexpr LinearAcceleration operator"" _mps2(unsigned long long int v) noexcept
+constexpr LinearAcceleration operator""_mps2(unsigned long long int v) noexcept
 {
     return static_cast<Real>(v) * MeterPerSquareSecond;
 }
@@ -829,7 +829,7 @@ constexpr LinearAcceleration operator"" _mps2(unsigned long long int v) noexcept
 /// @brief Abbreviation for meter per second squared.
 /// @see https://en.wikipedia.org/wiki/Metre_per_second_squared
 /// @see MeterPerSquareSecond
-constexpr LinearAcceleration operator"" _mps2(long double v) noexcept
+constexpr LinearAcceleration operator""_mps2(long double v) noexcept
 {
     return static_cast<Real>(v) * MeterPerSquareSecond;
 }
@@ -837,7 +837,7 @@ constexpr LinearAcceleration operator"" _mps2(long double v) noexcept
 /// @brief SI symbol for a hertz unit of Frequency.
 /// @see Hertz
 /// @see https://en.wikipedia.org/wiki/Hertz
-constexpr Frequency operator"" _Hz(unsigned long long int v) noexcept
+constexpr Frequency operator""_Hz(unsigned long long int v) noexcept
 {
     return static_cast<Real>(v) * Hertz;
 }
@@ -845,7 +845,7 @@ constexpr Frequency operator"" _Hz(unsigned long long int v) noexcept
 /// @brief SI symbol for a hertz unit of Frequency.
 /// @see Hertz
 /// @see https://en.wikipedia.org/wiki/Hertz
-constexpr Frequency operator"" _Hz(long double v) noexcept
+constexpr Frequency operator""_Hz(long double v) noexcept
 {
     return static_cast<Real>(v) * Hertz;
 }
@@ -853,7 +853,7 @@ constexpr Frequency operator"" _Hz(long double v) noexcept
 /// @brief Abbreviation for newton-meter unit of torque.
 /// @see NewtonMeter
 /// @see https://en.wikipedia.org/wiki/Newton_metre
-constexpr Torque operator"" _Nm(unsigned long long int v) noexcept
+constexpr Torque operator""_Nm(unsigned long long int v) noexcept
 {
     return static_cast<Real>(v) * NewtonMeter;
 }
@@ -861,7 +861,7 @@ constexpr Torque operator"" _Nm(unsigned long long int v) noexcept
 /// @brief Abbreviation for newton-meter unit of torque.
 /// @see NewtonMeter
 /// @see https://en.wikipedia.org/wiki/Newton_metre
-constexpr Torque operator"" _Nm(long double v) noexcept
+constexpr Torque operator""_Nm(long double v) noexcept
 {
     return static_cast<Real>(v) * NewtonMeter;
 }
@@ -869,7 +869,7 @@ constexpr Torque operator"" _Nm(long double v) noexcept
 /// @brief SI symbol for a newton second of impulse.
 /// @see NewtonSecond
 /// @see https://en.wikipedia.org/wiki/Newton_second
-constexpr Momentum operator"" _Ns(unsigned long long int v) noexcept
+constexpr Momentum operator""_Ns(unsigned long long int v) noexcept
 {
     return static_cast<Real>(v) * NewtonSecond;
 }
@@ -877,33 +877,33 @@ constexpr Momentum operator"" _Ns(unsigned long long int v) noexcept
 /// @brief SI symbol for a newton second of impulse.
 /// @see NewtonSecond
 /// @see https://en.wikipedia.org/wiki/Newton_second
-constexpr Momentum operator"" _Ns(long double v) noexcept
+constexpr Momentum operator""_Ns(long double v) noexcept
 {
     return static_cast<Real>(v) * NewtonSecond;
 }
 
 /// @brief Abbreviation for kilogram per square meter.
-constexpr AreaDensity operator"" _kgpm2(unsigned long long int v) noexcept
+constexpr AreaDensity operator""_kgpm2(unsigned long long int v) noexcept
 {
     return static_cast<Real>(v) * KilogramPerSquareMeter;
 }
 
 /// @brief Abbreviation for kilogram per square meter.
-constexpr AreaDensity operator"" _kgpm2(long double v) noexcept
+constexpr AreaDensity operator""_kgpm2(long double v) noexcept
 {
     return static_cast<Real>(v) * KilogramPerSquareMeter;
 }
 
 /// @brief Abbreviation for revolutions per minute.
 /// @see RevolutionsPerMinute
-constexpr AngularVelocity operator"" _rpm(unsigned long long int v) noexcept
+constexpr AngularVelocity operator""_rpm(unsigned long long int v) noexcept
 {
     return static_cast<Real>(v) * RevolutionsPerMinute;
 }
 
 /// @brief Abbreviation for revolutions per minute.
 /// @see RevolutionsPerMinute
-constexpr AngularVelocity operator"" _rpm(long double v) noexcept
+constexpr AngularVelocity operator""_rpm(long double v) noexcept
 {
     return static_cast<Real>(v) * RevolutionsPerMinute;
 }
