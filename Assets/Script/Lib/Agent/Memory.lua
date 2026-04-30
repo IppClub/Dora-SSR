@@ -84,6 +84,12 @@ local SUB_AGENT_LEARNINGS_MAX_ITEMS = 10 -- 76
 local SUB_AGENT_LEARNINGS_MAX_CHARS = 5000 -- 77
 local SUB_AGENT_MEMORY_ENTRY_MAX_CHARS = 1200 -- 78
 local SUB_AGENT_MEMORY_EVIDENCE_MAX_ITEMS = 5 -- 79
+local DEFAULT_CORE_MEMORY_TEMPLATE = "# Core Memory\n\n## User Preferences\n\n## Stable Facts\n\n## Known Decisions\n\n## Known Issues\n" -- memory layers
+local DEFAULT_PROJECT_MEMORY_TEMPLATE = "# Project Memory\n\n## Project Facts\n\n## Build And Run\n\n## Files And Architecture\n\n## Decisions\n\n## Known Issues\n" -- memory layers
+local DEFAULT_SESSION_SUMMARY_TEMPLATE = "# Session Summary\n\n## Current Goal\n\n## Recent Progress\n\n## Open Issues\n" -- memory layers
+local MEMORY_CONTEXT_DEFAULT_MAX_TOKENS = 4000 -- memory context
+local MEMORY_CONTEXT_MIN_MAX_TOKENS = 800 -- memory context
+local MEMORY_LAYER_MIN_TOKENS = 300 -- memory context
 local XML_DECISION_SCHEMA_EXAMPLE = "```xml\n<tool_call>\n\t<tool>edit_file</tool>\n\t<reason>Need to update the file content to implement the requested change.</reason>\n\t<params>\n\t\t<path>relative/path.ts</path>\n\t\t<old_str>\nfunction oldName() {\n\tprint(\"old\");\n}\n\t\t</old_str>\n\t\t<new_str>\nfunction newName() {\n\tprint(\"hello\");\n}\n\t\t</new_str>\n\t</params>\n</tool_call>\n```\n\n```xml\n<tool_call>\n\t<tool>read_file</tool>\n\t<reason>Need to inspect the current implementation before editing.</reason>\n\t<params>\n\t\t<path>relative/path.ts</path>\n\t\t<startLine>1</startLine>\n\t\t<endLine>200</endLine>\n\t</params>\n</tool_call>\n```\n\n```xml\n<tool_call>\n\t<tool>finish</tool>\n\t<params>\n\t\t<message>Final user-facing answer.</message>\n\t</params>\n</tool_call>\n```" -- 80
 ____exports.DEFAULT_AGENT_PROMPT_PACK = { -- 137
 	agentIdentityPrompt = "### Dora Agent\n\nYou are a coding assistant that helps modify and navigate code in the Dora SSR game engine project.\n\n### Guidelines\n\n- State intent before tool calls, but NEVER predict or claim results before receiving them.\n- Before modifying a file, read it first. Do not assume files or directories exist.\n- After writing or editing a file, re-read it if accuracy matters.\n- If a tool call fails, analyze the error before retrying with a different approach.\n- Ask for clarification when the request is ambiguous.\n- Prefer reading and searching before editing when information is missing.\n- Focus on outcomes, not tool names. Speak directly to the user.", -- 138
@@ -94,10 +100,10 @@ ____exports.DEFAULT_AGENT_PROMPT_PACK = { -- 137
 	xmlDecisionFormatPrompt = ("Respond with exactly one XML tool_call block. Do not include any prose before or after the XML.\n\n" .. XML_DECISION_SCHEMA_EXAMPLE) .. "\n\nRules:\n- Return exactly one `<tool_call>...</tool_call>` block.\n- For every tool except finish, include `<tool>`, `<reason>`, and `<params>`.\n- For finish, include `<tool>` and `<params>`. Do not include `<reason>`.\n- Inside `<params>`, use one child tag per parameter, for example `<path>`, `<old_str>`, `<new_str>`.\n- All tag contents are treated as raw text by the parser. Preserve formatting exactly. Do not wrap content in CDATA unless needed explicitly.\n- You do not need to escape normal code snippets, angle brackets, or newlines inside tag contents.\n- Keep params shallow and valid for the selected tool.\n- If no more actions are needed, use tool finish and put the final user-facing answer in `<params><message>...</message></params>`.", -- 201
 	xmlDecisionRepairPrompt = ("Convert the tool call result below into exactly one valid XML tool_call block.\n\nXML schema example:\n" .. XML_DECISION_SCHEMA_EXAMPLE) .. "\n\nRules:\n- Return exactly one XML `<tool_call>...</tool_call>` block.\n- Return XML only. No prose before or after.\n- Keep the same tool name, reason, and parameter values as the source whenever possible.\n- For every tool except finish, include `<tool>`, `<reason>`, and `<params>`.\n- For finish, include `<tool>` and `<params>` only.\n- Inside `<params>`, use one child tag per parameter.\n- All tag contents are treated as raw text by the parser. Preserve formatting exactly. Do not wrap content in CDATA unless needed explicitly.\n- Do not invent extra parameters.\n\nAvailable tools and params reference:\n\n{{TOOL_DEFINITIONS}}\n\n### Original Raw Output\n```\n{{ORIGINAL_RAW}}\n```\n\n{{CANDIDATE_SECTION}}### Repair Task\n- The current candidate is invalid because: {{LAST_ERROR}}\n- Repair only the formatting/schema so the result becomes one valid XML tool_call block.\n- Keep the tool name and argument values aligned with the original raw output.\n- Retry attempt: {{ATTEMPT}}.\n- The next reply must differ from the previously rejected candidate.\n- Return XML only, with no prose before or after.", -- 214
 	xmlDecisionSystemRepairPrompt = "You repair invalid XML tool decisions for the Dora coding agent.\n\nYour job is only to convert the provided raw decision output into exactly one valid XML <tool_call> block.\n\nRequirements:\n- Preserve the original tool name and parameter values whenever possible.\n- If the raw output uses another tool-call syntax, convert that tool name and arguments into the XML schema.\n- Do not make a new decision, do not change the intended action unless the input is structurally impossible to represent.\n- Only repair formatting and schema shape so the output becomes valid XML.\n- Do not continue the conversation and do not add explanations.\n- Return XML only.", -- 245
-	memoryCompressionSystemPrompt = "You are a memory consolidation agent. You MUST call the save_memory tool.\nDo not output any text besides the tool call.\n\n### Task\n\nAnalyze the actions and update the memory. Follow these guidelines:\n\n1. Preserve Important Information\n\t- User preferences and settings\n\t- Key decisions and their rationale\n\t- Important technical details\n\t- Project-specific context\n\n2. Consolidate Redundant Information\n\t- Merge related entries\n\t- Remove outdated information\n\t- Summarize verbose sections\n\n3. Maintain Structure\n\t- Keep the markdown format\n\t- Preserve section headers\n\t- Use clear, concise language\n\n4. Create History Entry\n\t- Create a summary paragraph\n\t- Include key topics\n\t- Make it grep-searchable\n\nCall the save_memory tool with your consolidated memory and history entry.", -- 256
-	memoryCompressionBodyPrompt = "### Current Memory (Long-term)\n\n{{CURRENT_MEMORY}}\n\n### Actions to Process\n\n{{HISTORY_TEXT}}", -- 285
-	memoryCompressionToolCallingPrompt = "### Output Format\n\nCall the save_memory tool with:\n- history_entry: the summary paragraph without timestamp\n- memory_update: the full updated MEMORY.md content", -- 292
-	memoryCompressionXmlPrompt = "### Output Format\n\nReturn exactly one XML block:\n```xml\n<memory_update_result>\n\t<history_entry>Summary paragraph</history_entry>\n\t<memory_update>\nFull updated MEMORY.md content\n\t</memory_update>\n</memory_update_result>\n```\n\nRules:\n- Return XML only, no prose before or after.\n- Use exactly one root tag: `<memory_update_result>`.\n- Use exactly two child tags: `<history_entry>` and `<memory_update>`.\n- Use CDATA for `<memory_update>` when it spans multiple lines or contains markdown/code.", -- 297
+	memoryCompressionSystemPrompt = "You are a memory consolidation agent. You MUST call the save_memory tool.\nDo not output any text besides the tool call.\n\n### Task\n\nAnalyze the actions and update the memory. Follow these guidelines:\n\n1. Preserve Important Information\n\t- User preferences and settings\n\t- Key decisions and their rationale\n\t- Important technical details\n\t- Project-specific context\n\n2. Consolidate Redundant Information\n\t- Merge related entries\n\t- Remove outdated information\n\t- Summarize verbose sections\n\n3. Maintain Structure\n\t- Keep the markdown format\n\t- Preserve section headers\n\t- Use clear, concise language\n\t- Separate updates into Core Memory, Project Memory, and Session Summary\n\n4. Create History Entry\n\t- Create a summary paragraph\n\t- Include key topics\n\t- Make it grep-searchable\n\nCall the save_memory tool with your consolidated memory and history entry.", -- 256
+	memoryCompressionBodyPrompt = "### Current Core Memory\n\n{{CURRENT_MEMORY}}\n\n### Current Project Memory\n\n{{CURRENT_PROJECT_MEMORY}}\n\n### Current Session Summary\n\n{{CURRENT_SESSION_SUMMARY}}\n\n### Actions to Process\n\n{{HISTORY_TEXT}}", -- 285
+	memoryCompressionToolCallingPrompt = "### Output Format\n\nCall the save_memory tool with:\n- history_entry: the summary paragraph without timestamp\n- memory_update: the full updated MEMORY.md content (Core Memory only)\n- project_memory_update: optional full updated PROJECT_MEMORY.md content; omit or leave empty to keep the current content\n- session_summary_update: optional full updated SESSION_SUMMARY.md content; omit or leave empty to keep the current content", -- 292
+	memoryCompressionXmlPrompt = "### Output Format\n\nReturn exactly one XML block:\n```xml\n<memory_update_result>\n\t<history_entry>Summary paragraph</history_entry>\n\t<memory_update>\nFull updated MEMORY.md content (Core Memory only)\n\t</memory_update>\n\t<project_memory_update>\nFull updated PROJECT_MEMORY.md content\n\t</project_memory_update>\n\t<session_summary_update>\nFull updated SESSION_SUMMARY.md content\n\t</session_summary_update>\n</memory_update_result>\n```\n\nRules:\n- Return XML only, no prose before or after.\n- Use exactly one root tag: `<memory_update_result>`.\n- Include `<history_entry>` and `<memory_update>`. `<project_memory_update>` and `<session_summary_update>` are optional; omit them to keep current content.\n- Use CDATA for markdown update fields when they span multiple lines or contain markdown/code.", -- 297
 	memoryCompressionXmlRetryPrompt = "Previous response was invalid ({{LAST_ERROR}}). Return exactly one valid XML memory_update_result block only." -- 314
 } -- 314
 local EXPOSED_PROMPT_PACK_KEYS = {"agentIdentityPrompt", "replyLanguageDirectiveZh", "replyLanguageDirectiveEn"} -- 317
@@ -382,6 +388,197 @@ local function ensureDirRecursive(dir) -- 634
 	end -- 640
 	return Content:mkdir(dir) -- 643
 end -- 634
+local function normalizeMemoryFileContent(content, template, importedSectionTitle)
+	local safeContent = type(content) == "string" and sanitizeUTF8(content) or ""
+	local trimmed = __TS__StringTrim(safeContent)
+	if trimmed == "" then
+		return template
+	end
+	if string.find(trimmed, "\n## ", 1, true) or string.find(trimmed, "\n# ", 1, true) or string.sub(trimmed, 1, 3) == "## " or string.sub(trimmed, 1, 2) == "# " then
+		return safeContent
+	end
+	return (((__TS__StringTrim(template) .. "\n\n## ") .. importedSectionTitle) .. "\n\n") .. trimmed .. "\n"
+end
+
+local function splitMemorySections(text)
+	local sections = {}
+	local safeText = sanitizeUTF8(type(text) == "string" and text or "")
+	local lines = __TS__StringSplit(safeText, "\n")
+	local title = "Overview"
+	local bodyLines = {}
+	local index = 0
+	local function flush()
+		local body = __TS__StringTrim(table.concat(bodyLines, "\n"))
+		if body ~= "" then
+			local fullText = title == "Overview" and body or ((("## " .. title) .. "\n\n") .. body)
+			sections[#sections + 1] = {title = title, body = body, fullText = fullText, index = index, score = 0}
+			index = index + 1
+		end
+	end
+	do
+		local i = 0
+		while i < #lines do
+			local line = lines[i + 1]
+			if string.sub(line, 1, 3) == "## " then
+				flush()
+				title = __TS__StringTrim(string.sub(line, 4))
+				bodyLines = {}
+			elseif string.sub(line, 1, 2) == "# " then
+				-- skip top-level document title
+			else
+				bodyLines[#bodyLines + 1] = line
+			end
+			i = i + 1
+		end
+	end
+	flush()
+	return sections
+end
+
+local function collectQueryTerms(query)
+	local terms = {}
+	local lower = string.lower(sanitizeUTF8(type(query) == "string" and query or ""))
+	local current = ""
+	local function pushCurrent()
+		local word = __TS__StringTrim(current)
+		if #word >= 2 and __TS__ArrayIndexOf(terms, word) < 0 then
+			terms[#terms + 1] = word
+		end
+		current = ""
+	end
+	do
+		local i = 1
+		while i <= #lower do
+			local ch = string.sub(lower, i, i)
+			local code = string.byte(ch) or 0
+			local isAsciiWord = (code >= 48 and code <= 57) or (code >= 97 and code <= 122) or ch == "_" or ch == "-" or ch == "."
+			if isAsciiWord then
+				current = current .. ch
+			else
+				pushCurrent()
+				if code > 127 and __TS__ArrayIndexOf(terms, ch) < 0 then
+					terms[#terms + 1] = ch
+				end
+			end
+			i = i + 1
+		end
+	end
+	pushCurrent()
+	return terms
+end
+
+local function countOccurrences(text, term)
+	if text == "" or term == "" then
+		return 0
+	end
+	local count = 0
+	local start = 1
+	while true do
+		local pos = string.find(text, term, start, true)
+		if not pos then
+			break
+		end
+		count = count + 1
+		start = pos + #term
+	end
+	return count
+end
+
+local function scoreMemorySection(section, terms)
+	local titleLower = string.lower(section.title or "")
+	local bodyLower = string.lower(section.body or "")
+	local score = 0
+	do
+		local i = 0
+		while i < #terms do
+			local term = terms[i + 1]
+			score = score + countOccurrences(titleLower, term) * 6
+			score = score + countOccurrences(bodyLower, term)
+			i = i + 1
+		end
+	end
+	if string.find(titleLower, "user preference", 1, true) or string.find(titleLower, "stable fact", 1, true) or string.find(titleLower, "known decision", 1, true) or string.find(titleLower, "known issue", 1, true) or string.find(titleLower, "current goal", 1, true) or string.find(titleLower, "recent progress", 1, true) or string.find(titleLower, "build and run", 1, true) then
+		score = score + (#terms > 0 and 1 or 3)
+	end
+	return score
+end
+
+local function selectRelevantMemoryText(text, query, maxTokens)
+	local sections = splitMemorySections(text)
+	if #sections == 0 then
+		return ""
+	end
+	local budget = math.max(MEMORY_LAYER_MIN_TOKENS, maxTokens or 0)
+	local terms = collectQueryTerms(query)
+	do
+		local i = 0
+		while i < #sections do
+			sections[i + 1].score = scoreMemorySection(sections[i + 1], terms)
+			i = i + 1
+		end
+	end
+	local ranked = __TS__ArraySlice(sections, 0)
+	table.sort(ranked, function(a, b)
+		if a.score ~= b.score then
+			return a.score > b.score
+		end
+		return a.index < b.index
+	end)
+	local selected = {}
+	local used = 0
+	do
+		local i = 0
+		while i < #ranked do
+			local section = ranked[i + 1]
+			if not (#terms > 0 and section.score <= 0) then
+				local cost = ____exports.TokenEstimator:estimate(section.fullText) + 12
+				if not (#selected > 0 and used + cost > budget) then
+					selected[#selected + 1] = section
+					used = used + cost
+					if used >= budget then
+						break
+					end
+				end
+			end
+			i = i + 1
+		end
+	end
+	if #selected == 0 then
+		do
+			local i = 0
+			while i < #sections do
+				local section = sections[i + 1]
+				local cost = ____exports.TokenEstimator:estimate(section.fullText) + 12
+				if not (#selected > 0 and used + cost > budget) then
+					selected[#selected + 1] = section
+					used = used + cost
+					if used >= budget then
+						break
+					end
+				end
+				i = i + 1
+			end
+		end
+	end
+	table.sort(selected, function(a, b) return a.index < b.index end)
+	local lines = {}
+	do
+		local i = 0
+		while i < #selected do
+			lines[#lines + 1] = selected[i + 1].fullText
+			i = i + 1
+		end
+	end
+	return table.concat(lines, "\n\n")
+end
+
+local function formatMemoryLayer(title, content)
+	local trimmed = __TS__StringTrim(sanitizeUTF8(type(content) == "string" and content or ""))
+	if trimmed == "" then
+		return ""
+	end
+	return (("#### " .. title) .. "\n\n") .. trimmed
+end
 --- 双层存储管理器
 -- 
 -- 管理 MEMORY.md (长期记忆) 和 HISTORY.jsonl (历史日志)
@@ -397,6 +594,8 @@ function DualLayerStorage.prototype.____constructor(self, projectDir, scope) -- 
 	self.agentRootDir = Path(self.projectDir, ".agent") -- 663
 	self.agentDir = scope ~= "" and Path(self.agentRootDir, scope) or self.agentRootDir -- 664
 	self.memoryPath = Path(self.agentDir, "MEMORY.md") -- 667
+	self.projectMemoryPath = Path(self.agentDir, "PROJECT_MEMORY.md") -- memory layers
+	self.sessionSummaryPath = Path(self.agentDir, "SESSION_SUMMARY.md") -- memory layers
 	self.historyPath = Path(self.agentDir, HISTORY_JSONL_FILE) -- 668
 	self.sessionPath = Path(self.agentDir, "SESSION.jsonl") -- 669
 	self:ensureAgentFiles() -- 670
@@ -417,10 +616,23 @@ function DualLayerStorage.prototype.ensureFile(self, path, content) -- 679
 	sendWebIDEFileUpdate(path, true, content) -- 685
 	return true -- 686
 end -- 679
+function DualLayerStorage.prototype.ensureStructuredMemoryFile(self, path, template) -- memory layers
+	if not Content:exist(path) then
+		self:ensureFile(path, template)
+		return
+	end
+	local current = Content:load(path)
+	if type(current) ~= "string" or __TS__StringTrim(current) == "" then
+		Content:save(path, template)
+		sendWebIDEFileUpdate(path, true, template)
+	end
+end
 function DualLayerStorage.prototype.ensureAgentFiles(self) -- 689
 	self:ensureDir(self.agentRootDir) -- 690
 	self:ensureDir(self.agentDir) -- 691
-	self:ensureFile(self.memoryPath, "") -- 692
+	self:ensureStructuredMemoryFile(self.memoryPath, DEFAULT_CORE_MEMORY_TEMPLATE) -- memory layers
+	self:ensureStructuredMemoryFile(self.projectMemoryPath, DEFAULT_PROJECT_MEMORY_TEMPLATE) -- memory layers
+	self:ensureStructuredMemoryFile(self.sessionSummaryPath, DEFAULT_SESSION_SUMMARY_TEMPLATE) -- memory layers
 	self:ensureFile(self.historyPath, "") -- 693
 end -- 689
 function DualLayerStorage.prototype.encodeJsonLine(self, value) -- 696
@@ -641,31 +853,86 @@ function DualLayerStorage.prototype.saveHistoryRecords(self, records) -- 848
 	Content:save(self.historyPath, content) -- 861
 	sendWebIDEFileUpdate(self.historyPath, true, content) -- 862
 end -- 848
-function DualLayerStorage.prototype.readMemory(self) -- 870
-	if not Content:exist(self.memoryPath) then -- 870
-		return "" -- 872
-	end -- 872
-	return Content:load(self.memoryPath) -- 874
-end -- 870
-function DualLayerStorage.prototype.writeMemory(self, content) -- 880
-	self:ensureDir(Path:getPath(self.memoryPath)) -- 881
-	Content:save(self.memoryPath, content) -- 882
-end -- 880
-function DualLayerStorage.prototype.getMemoryContext(self) -- 888
-	local memory = self:readMemory() -- 889
-	local subAgentLearnings = self:buildSubAgentLearningsContext() -- 890
-	if memory == "" and subAgentLearnings == "" then -- 890
-		return "" -- 891
-	end -- 891
-	local sections = {} -- 892
-	if memory ~= "" then -- 892
-		sections[#sections + 1] = "### Long-term Memory\n\n" .. memory -- 894
-	end -- 894
-	if subAgentLearnings ~= "" then -- 894
-		sections[#sections + 1] = subAgentLearnings -- 897
-	end -- 897
-	return table.concat(sections, "\n\n") -- 900
-end -- 888
+function DualLayerStorage.prototype.readMemory(self) -- structured memory
+	if not Content:exist(self.memoryPath) then
+		return DEFAULT_CORE_MEMORY_TEMPLATE
+	end
+	return normalizeMemoryFileContent(Content:load(self.memoryPath), DEFAULT_CORE_MEMORY_TEMPLATE, "Imported Notes")
+end
+function DualLayerStorage.prototype.writeMemory(self, content) -- structured memory
+	local normalized = normalizeMemoryFileContent(content, DEFAULT_CORE_MEMORY_TEMPLATE, "Imported Notes")
+	self:ensureDir(Path:getPath(self.memoryPath))
+	Content:save(self.memoryPath, normalized)
+	sendWebIDEFileUpdate(self.memoryPath, true, normalized)
+end
+function DualLayerStorage.prototype.readProjectMemory(self) -- structured memory
+	if not Content:exist(self.projectMemoryPath) then
+		return DEFAULT_PROJECT_MEMORY_TEMPLATE
+	end
+	return normalizeMemoryFileContent(Content:load(self.projectMemoryPath), DEFAULT_PROJECT_MEMORY_TEMPLATE, "Imported Project Notes")
+end
+function DualLayerStorage.prototype.writeProjectMemory(self, content) -- structured memory
+	local normalized = normalizeMemoryFileContent(content, DEFAULT_PROJECT_MEMORY_TEMPLATE, "Imported Project Notes")
+	self:ensureDir(Path:getPath(self.projectMemoryPath))
+	Content:save(self.projectMemoryPath, normalized)
+	sendWebIDEFileUpdate(self.projectMemoryPath, true, normalized)
+end
+function DualLayerStorage.prototype.readSessionSummary(self) -- structured memory
+	if not Content:exist(self.sessionSummaryPath) then
+		return DEFAULT_SESSION_SUMMARY_TEMPLATE
+	end
+	return normalizeMemoryFileContent(Content:load(self.sessionSummaryPath), DEFAULT_SESSION_SUMMARY_TEMPLATE, "Imported Session Notes")
+end
+function DualLayerStorage.prototype.writeSessionSummary(self, content) -- structured memory
+	local normalized = normalizeMemoryFileContent(content, DEFAULT_SESSION_SUMMARY_TEMPLATE, "Imported Session Notes")
+	self:ensureDir(Path:getPath(self.sessionSummaryPath))
+	Content:save(self.sessionSummaryPath, normalized)
+	sendWebIDEFileUpdate(self.sessionSummaryPath, true, normalized)
+end
+function DualLayerStorage.prototype.getRelevantMemoryContext(self, query, maxTokens) -- structured memory
+	if query == nil then
+		query = ""
+	end
+	if maxTokens == nil then
+		maxTokens = MEMORY_CONTEXT_DEFAULT_MAX_TOKENS
+	end
+	local budget = math.max(MEMORY_CONTEXT_MIN_MAX_TOKENS, math.floor(maxTokens))
+	local coreBudget = math.floor(budget * 0.3)
+	local projectBudget = math.floor(budget * 0.35)
+	local sessionBudget = math.floor(budget * 0.2)
+	local subAgentBudget = math.max(0, budget - coreBudget - projectBudget - sessionBudget - 160)
+	local sections = {}
+	local core = formatMemoryLayer("Core Memory", selectRelevantMemoryText(self:readMemory(), query, coreBudget))
+	if core ~= "" then
+		sections[#sections + 1] = core
+	end
+	local project = formatMemoryLayer("Project Memory", selectRelevantMemoryText(self:readProjectMemory(), query, projectBudget))
+	if project ~= "" then
+		sections[#sections + 1] = project
+	end
+	local session = formatMemoryLayer("Session Summary", selectRelevantMemoryText(self:readSessionSummary(), query, sessionBudget))
+	if session ~= "" then
+		sections[#sections + 1] = session
+	end
+	local subAgentLearnings = self:buildSubAgentLearningsContext()
+	if subAgentLearnings ~= "" then
+		sections[#sections + 1] = formatMemoryLayer("Sub-Agent Learnings", clipTextToTokenBudget(subAgentLearnings, subAgentBudget > 0 and subAgentBudget or MEMORY_LAYER_MIN_TOKENS))
+	end
+	if #sections == 0 then
+		return ""
+	end
+	local output = "### Relevant Memory\n\n" .. table.concat(sections, "\n\n")
+	return ____exports.TokenEstimator:estimate(output) > budget and clipTextToTokenBudget(output, budget) or output
+end
+function DualLayerStorage.prototype.getMemoryContext(self, query, maxTokens) -- structured memory compatibility
+	if query == nil then
+		query = ""
+	end
+	if maxTokens == nil then
+		maxTokens = MEMORY_CONTEXT_DEFAULT_MAX_TOKENS
+	end
+	return self:getRelevantMemoryContext(query, maxTokens)
+end
 function DualLayerStorage.prototype.appendHistoryRecord(self, record) -- 905
 	local records = self:readHistoryRecords() -- 906
 	records[#records + 1] = record -- 907
@@ -837,6 +1104,12 @@ function MemoryCompressor.prototype.compress(self, messages, llmOptions, maxLLMT
 			)) -- 1097
 			if result.success then -- 1097
 				self.storage:writeMemory(result.memoryUpdate) -- 1102
+				if type(result.projectMemoryUpdate) == "string" then -- memory layers
+					self.storage:writeProjectMemory(result.projectMemoryUpdate) -- memory layers
+				end -- memory layers
+				if type(result.sessionSummaryUpdate) == "string" then -- memory layers
+					self.storage:writeSessionSummary(result.sessionSummaryUpdate) -- memory layers
+				end -- memory layers
 				if result.ts then -- 1102
 					self.storage:appendHistoryRecord({ts = result.ts, summary = result.summary}) -- 1104
 				end -- 1104
@@ -1098,32 +1371,19 @@ function MemoryCompressor.prototype.boundCompressionHistoryText(self, currentMem
 end -- 1328
 function MemoryCompressor.prototype.buildBoundedCompressionSections(self, currentMemory, historyText) -- 1343
 	local contextWindow = self:getContextWindow() -- 1347
-	local reservedOutputTokens = math.max( -- 1348
-		2048, -- 1348
-		math.floor(contextWindow * 0.2) -- 1348
-	) -- 1348
+	local reservedOutputTokens = math.max(2048, math.floor(contextWindow * 0.2)) -- 1348
 	local staticPromptTokens = ____exports.TokenEstimator:estimate(self:buildCompressionStaticPrompt("tool_calling")) -- 1349
 	local dynamicBudget = math.max(1600, contextWindow - reservedOutputTokens - staticPromptTokens - 256) -- 1350
-	local boundedMemory = clipTextToTokenBudget( -- 1351
-		currentMemory or "(empty)", -- 1351
-		math.max( -- 1351
-			320, -- 1351
-			math.floor(dynamicBudget * 0.35) -- 1351
-		) -- 1351
-	) -- 1351
-	local boundedHistory = clipTextToTokenBudget( -- 1352
-		historyText, -- 1352
-		math.max( -- 1352
-			800, -- 1352
-			math.floor(dynamicBudget * 0.65) -- 1352
-		) -- 1352
-	) -- 1352
-	return {currentMemory = boundedMemory, historyText = boundedHistory} -- 1353
+	local boundedMemory = clipTextToTokenBudget(currentMemory or "(empty)", math.max(320, math.floor(dynamicBudget * 0.2))) -- memory layers
+	local boundedProjectMemory = clipTextToTokenBudget(self.storage:readProjectMemory() or "(empty)", math.max(320, math.floor(dynamicBudget * 0.2))) -- memory layers
+	local boundedSessionSummary = clipTextToTokenBudget(self.storage:readSessionSummary() or "(empty)", math.max(240, math.floor(dynamicBudget * 0.15))) -- memory layers
+	local boundedHistory = clipTextToTokenBudget(historyText, math.max(800, math.floor(dynamicBudget * 0.45))) -- memory layers
+	return {currentMemory = boundedMemory, currentProjectMemory = boundedProjectMemory, currentSessionSummary = boundedSessionSummary, historyText = boundedHistory} -- memory layers
 end -- 1343
 function MemoryCompressor.prototype.callLLMForCompressionByToolCalling(self, currentMemory, historyText, llmOptions, maxLLMTry, debugContext) -- 1359
 	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 1359
 		local prompt = self:buildCompressionPromptBody(currentMemory, historyText) -- 1366
-		local tools = {{type = "function", ["function"] = {name = "save_memory", description = "Save the memory consolidation result to persistent storage.", parameters = {type = "object", properties = {history_entry = {type = "string", description = "A paragraph summarizing key events/decisions/topics. " .. "Include detail useful for grep search."}, memory_update = {type = "string", description = "Full updated long-term memory as markdown. " .. "Include all existing facts plus new ones."}}, required = {"history_entry", "memory_update"}}}}} -- 1369
+		local tools = {{type = "function", ["function"] = {name = "save_memory", description = "Save the memory consolidation result to persistent storage.", parameters = {type = "object", properties = {history_entry = {type = "string", description = "A paragraph summarizing key events/decisions/topics. " .. "Include detail useful for grep search."}, memory_update = {type = "string", description = "Full updated MEMORY.md as markdown. Core memory only: user preferences, stable facts, decisions, known issues."}, project_memory_update = {type = "string", description = "Full updated PROJECT_MEMORY.md as markdown. Project facts, build/run, files/architecture, project decisions and issues."}, session_summary_update = {type = "string", description = "Full updated SESSION_SUMMARY.md as markdown. Current goal, recent progress, and open issues for this session."}}, required = {"history_entry", "memory_update"}}}}} -- 1369
 		local messages = { -- 1393
 			{ -- 1394
 				role = "system", -- 1395
@@ -1277,11 +1537,11 @@ function MemoryCompressor.prototype.callLLMForCompressionByXML(self, currentMemo
 	end) -- 1498
 end -- 1488
 function MemoryCompressor.prototype.buildCompressionPromptBodyRaw(self, currentMemory, historyText) -- 1553
-	return replaceTemplateVars(self.config.promptPack.memoryCompressionBodyPrompt, {CURRENT_MEMORY = currentMemory or "(empty)", HISTORY_TEXT = historyText}) -- 1554
+	return replaceTemplateVars(self.config.promptPack.memoryCompressionBodyPrompt, {CURRENT_MEMORY = currentMemory or "(empty)", CURRENT_PROJECT_MEMORY = self.storage:readProjectMemory() or "(empty)", CURRENT_SESSION_SUMMARY = self.storage:readSessionSummary() or "(empty)", HISTORY_TEXT = historyText}) -- 1554
 end -- 1553
 function MemoryCompressor.prototype.buildCompressionPromptBody(self, currentMemory, historyText) -- 1560
 	local bounded = self:buildBoundedCompressionSections(currentMemory, historyText) -- 1561
-	return replaceTemplateVars(self.config.promptPack.memoryCompressionBodyPrompt, {CURRENT_MEMORY = bounded.currentMemory, HISTORY_TEXT = bounded.historyText}) -- 1562
+	return replaceTemplateVars(self.config.promptPack.memoryCompressionBodyPrompt, {CURRENT_MEMORY = bounded.currentMemory, CURRENT_PROJECT_MEMORY = bounded.currentProjectMemory, CURRENT_SESSION_SUMMARY = bounded.currentSessionSummary, HISTORY_TEXT = bounded.historyText}) -- 1562
 end -- 1560
 function MemoryCompressor.prototype.buildCompressionStaticPrompt(self, mode) -- 1568
 	local formatPrompt = mode == "xml" and self.config.promptPack.memoryCompressionXmlPrompt or self.config.promptPack.memoryCompressionToolCallingPrompt -- 1569
@@ -1302,14 +1562,18 @@ function MemoryCompressor.prototype.parseCompressionXMLObject(self, text, curren
 end -- 1591
 function MemoryCompressor.prototype.buildCompressionResultFromObject(self, obj, currentMemory) -- 1607
 	local historyEntry = type(obj.history_entry) == "string" and obj.history_entry or "" -- 1611
-	local memoryBody = type(obj.memory_update) == "string" and obj.memory_update or currentMemory -- 1612
-	if __TS__StringTrim(historyEntry) == "" or __TS__StringTrim(memoryBody) == "" then -- 1612
-		return {success = false, memoryUpdate = currentMemory, compressedCount = 0, error = "missing history_entry or memory_update"} -- 1614
-	end -- 1614
+	local memoryBody = type(obj.memory_update) == "string" and __TS__StringTrim(obj.memory_update) ~= "" and obj.memory_update or currentMemory -- 1612
+	local projectMemoryBody = type(obj.project_memory_update) == "string" and __TS__StringTrim(obj.project_memory_update) ~= "" and obj.project_memory_update or self.storage:readProjectMemory() -- memory layers
+	local sessionSummaryBody = type(obj.session_summary_update) == "string" and __TS__StringTrim(obj.session_summary_update) ~= "" and obj.session_summary_update or self.storage:readSessionSummary() -- memory layers
+	if __TS__StringTrim(historyEntry) == "" or __TS__StringTrim(memoryBody) == "" then -- memory layers
+		return {success = false, memoryUpdate = currentMemory, compressedCount = 0, error = "missing history_entry or memory_update"} -- memory layers
+	end -- memory layers
 	local ts = os.date("%Y-%m-%d %H:%M") -- 1621
 	return { -- 1622
 		success = true, -- 1623
 		memoryUpdate = memoryBody, -- 1624
+		projectMemoryUpdate = projectMemoryBody, -- memory layers
+		sessionSummaryUpdate = sessionSummaryBody, -- memory layers
 		ts = ts, -- 1625
 		summary = historyEntry, -- 1626
 		compressedCount = 0 -- 1627

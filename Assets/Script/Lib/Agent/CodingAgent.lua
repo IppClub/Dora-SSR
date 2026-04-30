@@ -22,6 +22,7 @@ local __TS__SparseArraySpread = ____lualib.__TS__SparseArraySpread -- 1
 local __TS__ArrayIndexOf = ____lualib.__TS__ArrayIndexOf -- 1
 local __TS__AsyncAwaiter = ____lualib.__TS__AsyncAwaiter -- 1
 local __TS__Await = ____lualib.__TS__Await -- 1
+local __TS__PromiseAll = ____lualib.__TS__PromiseAll -- 1
 local __TS__Number = ____lualib.__TS__Number -- 1
 local __TS__NumberIsFinite = ____lualib.__TS__NumberIsFinite -- 1
 local __TS__ArrayPush = ____lualib.__TS__ArrayPush -- 1
@@ -442,9 +443,11 @@ function buildAgentSystemPrompt(shared, includeToolDefinitions) -- 1999
 		getReplyLanguageDirective(shared) -- 2027
 	} -- 2027
 	if shared.decisionMode == "tool_calling" then -- 2027
-		sections[#sections + 1] = "### Function Calling\n\nYou may return multiple tool calls in one response when the calls are independent and all results are useful before the next reasoning step." -- 2030
+		sections[#sections + 1] = "### Function Calling\n\nYou may return multiple tool calls in one response when the calls are independent and all results are useful before the next reasoning step. Do not include finish in a multi-tool response." -- 2030
 	end -- 2030
-	local memoryContext = shared.memory.compressor:getStorage():getMemoryContext() -- 2034
+	local contextWindow = shared.llmConfig.contextWindow or 64000 -- memory layers
+	local memoryBudget = math.max(1200, math.floor(contextWindow * 0.08)) -- memory layers
+	local memoryContext = shared.memory.compressor:getStorage():getRelevantMemoryContext(shared.userQuery, memoryBudget) -- 2034
 	if memoryContext ~= "" then -- 2034
 		sections[#sections + 1] = memoryContext -- 2036
 	end -- 2036
@@ -470,18 +473,18 @@ end -- 2056
 function buildXmlDecisionInstruction(shared, feedback) -- 2168
 	return shared.promptPack.xmlDecisionFormatPrompt .. (feedback or "") -- 2169
 end -- 2169
-function emitAgentTaskFinishEvent(shared, success, message) -- 3515
-	local result = {success = success, taskId = shared.taskId, message = message, steps = shared.step} -- 3516
-	emitAgentEvent(shared, { -- 3522
-		type = "task_finished", -- 3523
-		sessionId = shared.sessionId, -- 3524
-		taskId = shared.taskId, -- 3525
-		success = result.success, -- 3526
-		message = result.message, -- 3527
-		steps = result.steps -- 3528
-	}) -- 3528
-	return result -- 3530
-end -- 3530
+function emitAgentTaskFinishEvent(shared, success, message) -- 3524
+	local result = {success = success, taskId = shared.taskId, message = message, steps = shared.step} -- 3525
+	emitAgentEvent(shared, { -- 3531
+		type = "task_finished", -- 3532
+		sessionId = shared.sessionId, -- 3533
+		taskId = shared.taskId, -- 3534
+		success = result.success, -- 3535
+		message = result.message, -- 3536
+		steps = result.steps -- 3537
+	}) -- 3537
+	return result -- 3539
+end -- 3539
 local function isRecord(value) -- 10
 	return type(value) == "table" -- 11
 end -- 10
@@ -2182,1466 +2185,1517 @@ function MainDecisionAgent.prototype.callDecisionByToolCalling(self, shared, las
 			Log("Info", "[CodingAgent] tool-calling selected tool=" .. decisions[1].tool) -- 2478
 			return ____awaiter_resolve(nil, decisions[1]) -- 2478
 		end -- 2478
-		Log( -- 2481
-			"Info", -- 2481
-			"[CodingAgent] tool-calling selected batch tools=" .. table.concat( -- 2481
-				__TS__ArrayMap( -- 2481
-					decisions, -- 2481
-					function(____, decision) return decision.tool end -- 2481
-				), -- 2481
-				"," -- 2481
-			) -- 2481
-		) -- 2481
-		return ____awaiter_resolve(nil, { -- 2481
-			success = true, -- 2483
-			kind = "batch", -- 2484
-			decisions = decisions, -- 2485
-			content = messageContent, -- 2486
-			reasoningContent = reasoningContent -- 2487
-		}) -- 2487
-	end) -- 2487
+		do -- 2478
+			local i = 0 -- 2481
+			while i < #decisions do -- 2481
+				if decisions[i + 1].tool == "finish" then -- 2481
+					return ____awaiter_resolve(nil, {success = false, message = "finish cannot be mixed with other tool calls", raw = messageContent}) -- 2481
+				end -- 2481
+				i = i + 1 -- 2481
+			end -- 2481
+		end -- 2481
+		Log( -- 2490
+			"Info", -- 2490
+			"[CodingAgent] tool-calling selected batch tools=" .. table.concat( -- 2490
+				__TS__ArrayMap( -- 2490
+					decisions, -- 2490
+					function(____, decision) return decision.tool end -- 2490
+				), -- 2490
+				"," -- 2490
+			) -- 2490
+		) -- 2490
+		return ____awaiter_resolve(nil, { -- 2490
+			success = true, -- 2492
+			kind = "batch", -- 2493
+			decisions = decisions, -- 2494
+			content = messageContent, -- 2495
+			reasoningContent = reasoningContent -- 2496
+		}) -- 2496
+	end) -- 2496
 end -- 2366
-function MainDecisionAgent.prototype.repairDecisionXml(self, shared, originalRaw, initialError) -- 2491
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2491
-		Log( -- 2496
-			"Info", -- 2496
-			(("[CodingAgent] xml repair flow start step=" .. tostring(shared.step + 1)) .. " error=") .. initialError -- 2496
-		) -- 2496
-		local lastError = initialError -- 2497
-		local candidateRaw = "" -- 2498
-		do -- 2498
-			local attempt = 0 -- 2499
-			while attempt < shared.llmMaxTry do -- 2499
-				do -- 2499
-					Log( -- 2500
-						"Info", -- 2500
-						"[CodingAgent] xml repair attempt=" .. tostring(attempt + 1) -- 2500
-					) -- 2500
-					local messages = buildXmlRepairMessages( -- 2501
-						shared, -- 2502
-						originalRaw, -- 2503
-						candidateRaw, -- 2504
-						lastError, -- 2505
-						attempt + 1 -- 2506
-					) -- 2506
-					local llmRes = __TS__Await(llm(shared, messages, "decision_xml_repair")) -- 2508
-					if shared.stopToken.stopped then -- 2508
-						return ____awaiter_resolve( -- 2508
-							nil, -- 2508
-							{ -- 2510
-								success = false, -- 2510
-								message = getCancelledReason(shared) -- 2510
-							} -- 2510
-						) -- 2510
-					end -- 2510
-					if not llmRes.success then -- 2510
-						lastError = llmRes.message -- 2513
-						Log("Error", "[CodingAgent] xml repair attempt failed: " .. lastError) -- 2514
-						goto __continue397 -- 2515
-					end -- 2515
-					candidateRaw = llmRes.text -- 2517
-					local decision = tryParseAndValidateDecision(candidateRaw) -- 2518
-					if decision.success then -- 2518
-						decision.reasoningContent = llmRes.reasoningContent -- 2520
-						Log("Info", "[CodingAgent] xml repair succeeded tool=" .. decision.tool) -- 2521
-						return ____awaiter_resolve(nil, decision) -- 2521
-					end -- 2521
-					lastError = decision.message -- 2524
-					Log("Error", "[CodingAgent] xml repair candidate invalid: " .. lastError) -- 2525
-				end -- 2525
-				::__continue397:: -- 2525
-				attempt = attempt + 1 -- 2499
-			end -- 2499
-		end -- 2499
-		Log("Error", "[CodingAgent] xml repair exhausted retries: " .. lastError) -- 2527
-		return ____awaiter_resolve(nil, {success = false, message = "cannot repair invalid decision xml: " .. lastError, raw = candidateRaw}) -- 2527
-	end) -- 2527
-end -- 2491
-function MainDecisionAgent.prototype.exec(self, input) -- 2535
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2535
-		local shared = input.shared -- 2536
-		if shared.stopToken.stopped then -- 2536
-			return ____awaiter_resolve( -- 2536
-				nil, -- 2536
-				{ -- 2538
-					success = false, -- 2538
-					message = getCancelledReason(shared) -- 2538
-				} -- 2538
-			) -- 2538
-		end -- 2538
-		if shared.step >= shared.maxSteps then -- 2538
-			Log( -- 2541
-				"Warn", -- 2541
-				(("[CodingAgent] maximum step limit reached step=" .. tostring(shared.step)) .. " max=") .. tostring(shared.maxSteps) -- 2541
-			) -- 2541
-			return ____awaiter_resolve( -- 2541
-				nil, -- 2541
-				{ -- 2542
-					success = false, -- 2542
-					message = getMaxStepsReachedReason(shared) -- 2542
-				} -- 2542
-			) -- 2542
-		end -- 2542
-		if shared.decisionMode == "tool_calling" then -- 2542
-			Log( -- 2546
-				"Info", -- 2546
-				(("[CodingAgent] decision mode=tool_calling step=" .. tostring(shared.step + 1)) .. " messages=") .. tostring(#getUnconsolidatedMessages(shared)) -- 2546
-			) -- 2546
-			local lastError = "tool calling validation failed" -- 2547
-			local lastRaw = "" -- 2548
-			do -- 2548
-				local attempt = 0 -- 2549
-				while attempt < shared.llmMaxTry do -- 2549
-					Log( -- 2550
-						"Info", -- 2550
-						"[CodingAgent] tool-calling attempt=" .. tostring(attempt + 1) -- 2550
-					) -- 2550
-					local decision = __TS__Await(self:callDecisionByToolCalling(shared, attempt > 0 and lastError or nil, attempt + 1, lastRaw)) -- 2551
-					if shared.stopToken.stopped then -- 2551
-						return ____awaiter_resolve( -- 2551
-							nil, -- 2551
-							{ -- 2558
-								success = false, -- 2558
-								message = getCancelledReason(shared) -- 2558
-							} -- 2558
-						) -- 2558
-					end -- 2558
-					if decision.success then -- 2558
-						return ____awaiter_resolve(nil, decision) -- 2558
-					end -- 2558
-					lastError = decision.message -- 2563
-					lastRaw = decision.raw or "" -- 2564
-					Log("Error", "[CodingAgent] tool-calling attempt failed: " .. lastError) -- 2565
-					attempt = attempt + 1 -- 2549
-				end -- 2549
-			end -- 2549
-			Log("Error", "[CodingAgent] tool-calling exhausted retries: " .. lastError) -- 2567
-			return ____awaiter_resolve( -- 2567
-				nil, -- 2567
-				{ -- 2568
-					success = false, -- 2568
-					message = (("cannot produce valid tool call: " .. lastError) .. "; last_output=") .. truncateText(lastRaw, 400) -- 2568
-				} -- 2568
-			) -- 2568
-		end -- 2568
-		local lastError = "xml validation failed" -- 2571
-		local lastRaw = "" -- 2572
-		do -- 2572
-			local attempt = 0 -- 2573
-			while attempt < shared.llmMaxTry do -- 2573
-				do -- 2573
-					local messages = buildDecisionMessages(shared, attempt > 0 and ("Previous request failed before producing repairable output (" .. lastError) .. ")." or nil, attempt + 1, lastRaw) -- 2574
-					local llmRes = __TS__Await(llm(shared, messages, "decision_xml")) -- 2582
-					if shared.stopToken.stopped then -- 2582
-						return ____awaiter_resolve( -- 2582
-							nil, -- 2582
-							{ -- 2584
-								success = false, -- 2584
-								message = getCancelledReason(shared) -- 2584
-							} -- 2584
-						) -- 2584
-					end -- 2584
-					if not llmRes.success then -- 2584
-						lastError = llmRes.message -- 2587
-						lastRaw = llmRes.text or "" -- 2588
-						goto __continue410 -- 2589
-					end -- 2589
-					lastRaw = llmRes.text -- 2591
-					local decision = tryParseAndValidateDecision(llmRes.text) -- 2592
-					if decision.success then -- 2592
-						decision.reasoningContent = llmRes.reasoningContent -- 2594
-						if not isToolAllowedForRole(shared.role, decision.tool) then -- 2594
-							lastError = (decision.tool .. " is not allowed for role ") .. shared.role -- 2596
-							return ____awaiter_resolve( -- 2596
-								nil, -- 2596
-								self:repairDecisionXml(shared, llmRes.text, lastError) -- 2597
-							) -- 2597
-						end -- 2597
-						return ____awaiter_resolve(nil, decision) -- 2597
-					end -- 2597
-					lastError = decision.message -- 2601
-					return ____awaiter_resolve( -- 2601
-						nil, -- 2601
-						self:repairDecisionXml(shared, llmRes.text, lastError) -- 2602
-					) -- 2602
-				end -- 2602
-				::__continue410:: -- 2602
-				attempt = attempt + 1 -- 2573
-			end -- 2573
-		end -- 2573
-		return ____awaiter_resolve( -- 2573
-			nil, -- 2573
-			{ -- 2604
-				success = false, -- 2604
-				message = (("cannot produce valid decision xml: " .. lastError) .. "; last_output=") .. truncateText(lastRaw, 400) -- 2604
-			} -- 2604
-		) -- 2604
-	end) -- 2604
-end -- 2535
-function MainDecisionAgent.prototype.post(self, shared, _prepRes, execRes) -- 2607
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2607
-		local result = execRes -- 2608
-		if not result.success then -- 2608
-			if shared.stopToken.stopped then -- 2608
-				shared.error = getCancelledReason(shared) -- 2611
-				shared.done = true -- 2612
-				return ____awaiter_resolve(nil, "done") -- 2612
-			end -- 2612
-			shared.error = result.message -- 2615
-			shared.response = getFailureSummaryFallback(shared, result.message) -- 2616
-			shared.done = true -- 2617
-			appendConversationMessage(shared, {role = "assistant", content = shared.response}) -- 2618
-			persistHistoryState(shared) -- 2622
-			return ____awaiter_resolve(nil, "done") -- 2622
-		end -- 2622
-		if isDecisionBatchSuccess(result) then -- 2622
-			local startStep = shared.step -- 2626
-			local actions = {} -- 2627
-			do -- 2627
-				local i = 0 -- 2628
-				while i < #result.decisions do -- 2628
-					local decision = result.decisions[i + 1] -- 2629
-					local toolCallId = ensureToolCallId(decision.toolCallId) -- 2630
-					local step = startStep + i + 1 -- 2631
-					local ____temp_47 -- 2632
-					if i == 0 then -- 2632
-						____temp_47 = decision.reason -- 2632
-					else -- 2632
-						____temp_47 = "" -- 2632
-					end -- 2632
-					local actionReason = ____temp_47 -- 2632
-					local ____temp_48 -- 2633
-					if i == 0 then -- 2633
-						____temp_48 = decision.reasoningContent -- 2633
-					else -- 2633
-						____temp_48 = nil -- 2633
-					end -- 2633
-					local actionReasoningContent = ____temp_48 -- 2633
-					emitAgentEvent(shared, { -- 2634
-						type = "decision_made", -- 2635
-						sessionId = shared.sessionId, -- 2636
-						taskId = shared.taskId, -- 2637
-						step = step, -- 2638
-						tool = decision.tool, -- 2639
-						reason = actionReason, -- 2640
-						reasoningContent = actionReasoningContent, -- 2641
-						params = decision.params -- 2642
-					}) -- 2642
-					local action = { -- 2644
-						step = step, -- 2645
-						toolCallId = toolCallId, -- 2646
-						tool = decision.tool, -- 2647
-						reason = actionReason or "", -- 2648
-						reasoningContent = actionReasoningContent, -- 2649
-						params = decision.params, -- 2650
-						timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ") -- 2651
-					} -- 2651
-					local ____shared_history_49 = shared.history -- 2651
-					____shared_history_49[#____shared_history_49 + 1] = action -- 2653
-					actions[#actions + 1] = action -- 2654
-					i = i + 1 -- 2628
-				end -- 2628
-			end -- 2628
-			shared.step = startStep + #actions -- 2656
-			shared.pendingToolActions = actions -- 2657
-			appendAssistantToolCallsMessage(shared, actions, result.content or "", result.reasoningContent) -- 2658
-			persistHistoryState(shared) -- 2664
-			return ____awaiter_resolve(nil, "batch_tools") -- 2664
-		end -- 2664
-		if result.directSummary and result.directSummary ~= "" then -- 2664
-			shared.response = result.directSummary -- 2668
-			shared.done = true -- 2669
-			appendConversationMessage(shared, {role = "assistant", content = result.directSummary, reasoning_content = result.reasoningContent}) -- 2670
-			persistHistoryState(shared) -- 2675
-			return ____awaiter_resolve(nil, "done") -- 2675
-		end -- 2675
-		if result.tool == "finish" then -- 2675
-			local finalMessage = getFinishMessage(result.params, result.reason or "") -- 2679
-			shared.response = finalMessage -- 2680
-			shared.done = true -- 2681
-			appendConversationMessage(shared, {role = "assistant", content = finalMessage, reasoning_content = result.reasoningContent}) -- 2682
-			persistHistoryState(shared) -- 2687
-			return ____awaiter_resolve(nil, "done") -- 2687
-		end -- 2687
-		local toolCallId = ensureToolCallId(result.toolCallId) -- 2690
-		shared.step = shared.step + 1 -- 2691
-		local step = shared.step -- 2692
-		emitAgentEvent(shared, { -- 2693
-			type = "decision_made", -- 2694
-			sessionId = shared.sessionId, -- 2695
-			taskId = shared.taskId, -- 2696
-			step = step, -- 2697
-			tool = result.tool, -- 2698
-			reason = result.reason, -- 2699
-			reasoningContent = result.reasoningContent, -- 2700
-			params = result.params -- 2701
-		}) -- 2701
-		local ____shared_history_50 = shared.history -- 2701
-		____shared_history_50[#____shared_history_50 + 1] = { -- 2703
-			step = step, -- 2704
-			toolCallId = toolCallId, -- 2705
-			tool = result.tool, -- 2706
-			reason = result.reason or "", -- 2707
-			reasoningContent = result.reasoningContent, -- 2708
-			params = result.params, -- 2709
-			timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ") -- 2710
-		} -- 2710
-		local action = shared.history[#shared.history] -- 2712
-		appendAssistantToolCallsMessage(shared, {action}, result.reason or "", result.reasoningContent) -- 2713
-		persistHistoryState(shared) -- 2714
-		return ____awaiter_resolve(nil, result.tool) -- 2714
-	end) -- 2714
-end -- 2607
-local ReadFileAction = __TS__Class() -- 2719
-ReadFileAction.name = "ReadFileAction" -- 2719
-__TS__ClassExtends(ReadFileAction, Node) -- 2719
-function ReadFileAction.prototype.prep(self, shared) -- 2720
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2720
-		local last = shared.history[#shared.history] -- 2721
-		if not last then -- 2721
-			error( -- 2722
-				__TS__New(Error, "no history"), -- 2722
-				0 -- 2722
-			) -- 2722
-		end -- 2722
-		emitAgentStartEvent(shared, last) -- 2723
-		local path = type(last.params.path) == "string" and last.params.path or (type(last.params.target_file) == "string" and last.params.target_file or "") -- 2724
-		if __TS__StringTrim(path) == "" then -- 2724
-			error( -- 2727
-				__TS__New(Error, "missing path"), -- 2727
-				0 -- 2727
-			) -- 2727
-		end -- 2727
-		local ____path_53 = path -- 2729
-		local ____shared_workingDir_54 = shared.workingDir -- 2731
-		local ____temp_55 = shared.useChineseResponse and "zh" or "en" -- 2732
-		local ____last_params_startLine_51 = last.params.startLine -- 2733
-		if ____last_params_startLine_51 == nil then -- 2733
-			____last_params_startLine_51 = 1 -- 2733
-		end -- 2733
-		local ____TS__Number_result_56 = __TS__Number(____last_params_startLine_51) -- 2733
-		local ____last_params_endLine_52 = last.params.endLine -- 2734
-		if ____last_params_endLine_52 == nil then -- 2734
-			____last_params_endLine_52 = READ_FILE_DEFAULT_LIMIT -- 2734
-		end -- 2734
-		return ____awaiter_resolve( -- 2734
-			nil, -- 2734
-			{ -- 2728
-				path = ____path_53, -- 2729
-				tool = "read_file", -- 2730
-				workDir = ____shared_workingDir_54, -- 2731
-				docLanguage = ____temp_55, -- 2732
-				startLine = ____TS__Number_result_56, -- 2733
-				endLine = __TS__Number(____last_params_endLine_52) -- 2734
-			} -- 2734
-		) -- 2734
-	end) -- 2734
-end -- 2720
-function ReadFileAction.prototype.exec(self, input) -- 2738
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2738
-		return ____awaiter_resolve( -- 2738
-			nil, -- 2738
-			Tools.readFile( -- 2739
-				input.workDir, -- 2740
-				input.path, -- 2741
-				__TS__Number(input.startLine or 1), -- 2742
-				__TS__Number(input.endLine or READ_FILE_DEFAULT_LIMIT), -- 2743
-				input.docLanguage -- 2744
-			) -- 2744
-		) -- 2744
-	end) -- 2744
-end -- 2738
-function ReadFileAction.prototype.post(self, shared, _prepRes, execRes) -- 2748
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2748
-		local result = execRes -- 2749
-		local last = shared.history[#shared.history] -- 2750
-		if last ~= nil then -- 2750
-			last.result = sanitizeReadResultForHistory(last.tool, result) -- 2752
-			appendToolResultMessage(shared, last) -- 2753
-			emitAgentFinishEvent(shared, last) -- 2754
-		end -- 2754
-		persistHistoryState(shared) -- 2756
-		__TS__Await(maybeCompressHistory(shared)) -- 2757
-		persistHistoryState(shared) -- 2758
-		return ____awaiter_resolve(nil, "main") -- 2758
-	end) -- 2758
-end -- 2748
-local SearchFilesAction = __TS__Class() -- 2763
-SearchFilesAction.name = "SearchFilesAction" -- 2763
-__TS__ClassExtends(SearchFilesAction, Node) -- 2763
-function SearchFilesAction.prototype.prep(self, shared) -- 2764
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2764
-		local last = shared.history[#shared.history] -- 2765
-		if not last then -- 2765
-			error( -- 2766
-				__TS__New(Error, "no history"), -- 2766
-				0 -- 2766
-			) -- 2766
-		end -- 2766
-		emitAgentStartEvent(shared, last) -- 2767
-		return ____awaiter_resolve(nil, {params = last.params, workDir = shared.workingDir}) -- 2767
+function MainDecisionAgent.prototype.repairDecisionXml(self, shared, originalRaw, initialError) -- 2500
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2500
+		Log( -- 2505
+			"Info", -- 2505
+			(("[CodingAgent] xml repair flow start step=" .. tostring(shared.step + 1)) .. " error=") .. initialError -- 2505
+		) -- 2505
+		local lastError = initialError -- 2506
+		local candidateRaw = "" -- 2507
+		do -- 2507
+			local attempt = 0 -- 2508
+			while attempt < shared.llmMaxTry do -- 2508
+				do -- 2508
+					Log( -- 2509
+						"Info", -- 2509
+						"[CodingAgent] xml repair attempt=" .. tostring(attempt + 1) -- 2509
+					) -- 2509
+					local messages = buildXmlRepairMessages( -- 2510
+						shared, -- 2511
+						originalRaw, -- 2512
+						candidateRaw, -- 2513
+						lastError, -- 2514
+						attempt + 1 -- 2515
+					) -- 2515
+					local llmRes = __TS__Await(llm(shared, messages, "decision_xml_repair")) -- 2517
+					if shared.stopToken.stopped then -- 2517
+						return ____awaiter_resolve( -- 2517
+							nil, -- 2517
+							{ -- 2519
+								success = false, -- 2519
+								message = getCancelledReason(shared) -- 2519
+							} -- 2519
+						) -- 2519
+					end -- 2519
+					if not llmRes.success then -- 2519
+						lastError = llmRes.message -- 2522
+						Log("Error", "[CodingAgent] xml repair attempt failed: " .. lastError) -- 2523
+						goto __continue400 -- 2524
+					end -- 2524
+					candidateRaw = llmRes.text -- 2526
+					local decision = tryParseAndValidateDecision(candidateRaw) -- 2527
+					if decision.success then -- 2527
+						decision.reasoningContent = llmRes.reasoningContent -- 2529
+						Log("Info", "[CodingAgent] xml repair succeeded tool=" .. decision.tool) -- 2530
+						return ____awaiter_resolve(nil, decision) -- 2530
+					end -- 2530
+					lastError = decision.message -- 2533
+					Log("Error", "[CodingAgent] xml repair candidate invalid: " .. lastError) -- 2534
+				end -- 2534
+				::__continue400:: -- 2534
+				attempt = attempt + 1 -- 2508
+			end -- 2508
+		end -- 2508
+		Log("Error", "[CodingAgent] xml repair exhausted retries: " .. lastError) -- 2536
+		return ____awaiter_resolve(nil, {success = false, message = "cannot repair invalid decision xml: " .. lastError, raw = candidateRaw}) -- 2536
+	end) -- 2536
+end -- 2500
+function MainDecisionAgent.prototype.exec(self, input) -- 2544
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2544
+		local shared = input.shared -- 2545
+		if shared.stopToken.stopped then -- 2545
+			return ____awaiter_resolve( -- 2545
+				nil, -- 2545
+				{ -- 2547
+					success = false, -- 2547
+					message = getCancelledReason(shared) -- 2547
+				} -- 2547
+			) -- 2547
+		end -- 2547
+		if shared.step >= shared.maxSteps then -- 2547
+			Log( -- 2550
+				"Warn", -- 2550
+				(("[CodingAgent] maximum step limit reached step=" .. tostring(shared.step)) .. " max=") .. tostring(shared.maxSteps) -- 2550
+			) -- 2550
+			return ____awaiter_resolve( -- 2550
+				nil, -- 2550
+				{ -- 2551
+					success = false, -- 2551
+					message = getMaxStepsReachedReason(shared) -- 2551
+				} -- 2551
+			) -- 2551
+		end -- 2551
+		if shared.decisionMode == "tool_calling" then -- 2551
+			Log( -- 2555
+				"Info", -- 2555
+				(("[CodingAgent] decision mode=tool_calling step=" .. tostring(shared.step + 1)) .. " messages=") .. tostring(#getUnconsolidatedMessages(shared)) -- 2555
+			) -- 2555
+			local lastError = "tool calling validation failed" -- 2556
+			local lastRaw = "" -- 2557
+			do -- 2557
+				local attempt = 0 -- 2558
+				while attempt < shared.llmMaxTry do -- 2558
+					Log( -- 2559
+						"Info", -- 2559
+						"[CodingAgent] tool-calling attempt=" .. tostring(attempt + 1) -- 2559
+					) -- 2559
+					local decision = __TS__Await(self:callDecisionByToolCalling(shared, attempt > 0 and lastError or nil, attempt + 1, lastRaw)) -- 2560
+					if shared.stopToken.stopped then -- 2560
+						return ____awaiter_resolve( -- 2560
+							nil, -- 2560
+							{ -- 2567
+								success = false, -- 2567
+								message = getCancelledReason(shared) -- 2567
+							} -- 2567
+						) -- 2567
+					end -- 2567
+					if decision.success then -- 2567
+						return ____awaiter_resolve(nil, decision) -- 2567
+					end -- 2567
+					lastError = decision.message -- 2572
+					lastRaw = decision.raw or "" -- 2573
+					Log("Error", "[CodingAgent] tool-calling attempt failed: " .. lastError) -- 2574
+					attempt = attempt + 1 -- 2558
+				end -- 2558
+			end -- 2558
+			Log("Error", "[CodingAgent] tool-calling exhausted retries: " .. lastError) -- 2576
+			return ____awaiter_resolve( -- 2576
+				nil, -- 2576
+				{ -- 2577
+					success = false, -- 2577
+					message = (("cannot produce valid tool call: " .. lastError) .. "; last_output=") .. truncateText(lastRaw, 400) -- 2577
+				} -- 2577
+			) -- 2577
+		end -- 2577
+		local lastError = "xml validation failed" -- 2580
+		local lastRaw = "" -- 2581
+		do -- 2581
+			local attempt = 0 -- 2582
+			while attempt < shared.llmMaxTry do -- 2582
+				do -- 2582
+					local messages = buildDecisionMessages(shared, attempt > 0 and ("Previous request failed before producing repairable output (" .. lastError) .. ")." or nil, attempt + 1, lastRaw) -- 2583
+					local llmRes = __TS__Await(llm(shared, messages, "decision_xml")) -- 2591
+					if shared.stopToken.stopped then -- 2591
+						return ____awaiter_resolve( -- 2591
+							nil, -- 2591
+							{ -- 2593
+								success = false, -- 2593
+								message = getCancelledReason(shared) -- 2593
+							} -- 2593
+						) -- 2593
+					end -- 2593
+					if not llmRes.success then -- 2593
+						lastError = llmRes.message -- 2596
+						lastRaw = llmRes.text or "" -- 2597
+						goto __continue413 -- 2598
+					end -- 2598
+					lastRaw = llmRes.text -- 2600
+					local decision = tryParseAndValidateDecision(llmRes.text) -- 2601
+					if decision.success then -- 2601
+						decision.reasoningContent = llmRes.reasoningContent -- 2603
+						if not isToolAllowedForRole(shared.role, decision.tool) then -- 2603
+							lastError = (decision.tool .. " is not allowed for role ") .. shared.role -- 2605
+							return ____awaiter_resolve( -- 2605
+								nil, -- 2605
+								self:repairDecisionXml(shared, llmRes.text, lastError) -- 2606
+							) -- 2606
+						end -- 2606
+						return ____awaiter_resolve(nil, decision) -- 2606
+					end -- 2606
+					lastError = decision.message -- 2610
+					return ____awaiter_resolve( -- 2610
+						nil, -- 2610
+						self:repairDecisionXml(shared, llmRes.text, lastError) -- 2611
+					) -- 2611
+				end -- 2611
+				::__continue413:: -- 2611
+				attempt = attempt + 1 -- 2582
+			end -- 2582
+		end -- 2582
+		return ____awaiter_resolve( -- 2582
+			nil, -- 2582
+			{ -- 2613
+				success = false, -- 2613
+				message = (("cannot produce valid decision xml: " .. lastError) .. "; last_output=") .. truncateText(lastRaw, 400) -- 2613
+			} -- 2613
+		) -- 2613
+	end) -- 2613
+end -- 2544
+function MainDecisionAgent.prototype.post(self, shared, _prepRes, execRes) -- 2616
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2616
+		local result = execRes -- 2617
+		if not result.success then -- 2617
+			if shared.stopToken.stopped then -- 2617
+				shared.error = getCancelledReason(shared) -- 2620
+				shared.done = true -- 2621
+				return ____awaiter_resolve(nil, "done") -- 2621
+			end -- 2621
+			shared.error = result.message -- 2624
+			shared.response = getFailureSummaryFallback(shared, result.message) -- 2625
+			shared.done = true -- 2626
+			appendConversationMessage(shared, {role = "assistant", content = shared.response}) -- 2627
+			persistHistoryState(shared) -- 2631
+			return ____awaiter_resolve(nil, "done") -- 2631
+		end -- 2631
+		if isDecisionBatchSuccess(result) then -- 2631
+			local startStep = shared.step -- 2635
+			local actions = {} -- 2636
+			do -- 2636
+				local i = 0 -- 2637
+				while i < #result.decisions do -- 2637
+					local decision = result.decisions[i + 1] -- 2638
+					local toolCallId = ensureToolCallId(decision.toolCallId) -- 2639
+					local step = startStep + i + 1 -- 2640
+					local ____temp_47 -- 2641
+					if i == 0 then -- 2641
+						____temp_47 = decision.reason -- 2641
+					else -- 2641
+						____temp_47 = "" -- 2641
+					end -- 2641
+					local actionReason = ____temp_47 -- 2641
+					local ____temp_48 -- 2642
+					if i == 0 then -- 2642
+						____temp_48 = decision.reasoningContent -- 2642
+					else -- 2642
+						____temp_48 = nil -- 2642
+					end -- 2642
+					local actionReasoningContent = ____temp_48 -- 2642
+					emitAgentEvent(shared, { -- 2643
+						type = "decision_made", -- 2644
+						sessionId = shared.sessionId, -- 2645
+						taskId = shared.taskId, -- 2646
+						step = step, -- 2647
+						tool = decision.tool, -- 2648
+						reason = actionReason, -- 2649
+						reasoningContent = actionReasoningContent, -- 2650
+						params = decision.params -- 2651
+					}) -- 2651
+					local action = { -- 2653
+						step = step, -- 2654
+						toolCallId = toolCallId, -- 2655
+						tool = decision.tool, -- 2656
+						reason = actionReason or "", -- 2657
+						reasoningContent = actionReasoningContent, -- 2658
+						params = decision.params, -- 2659
+						timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ") -- 2660
+					} -- 2660
+					local ____shared_history_49 = shared.history -- 2660
+					____shared_history_49[#____shared_history_49 + 1] = action -- 2662
+					actions[#actions + 1] = action -- 2663
+					i = i + 1 -- 2637
+				end -- 2637
+			end -- 2637
+			shared.step = startStep + #actions -- 2665
+			shared.pendingToolActions = actions -- 2666
+			appendAssistantToolCallsMessage(shared, actions, result.content or "", result.reasoningContent) -- 2667
+			persistHistoryState(shared) -- 2673
+			return ____awaiter_resolve(nil, "batch_tools") -- 2673
+		end -- 2673
+		if result.directSummary and result.directSummary ~= "" then -- 2673
+			shared.response = result.directSummary -- 2677
+			shared.done = true -- 2678
+			appendConversationMessage(shared, {role = "assistant", content = result.directSummary, reasoning_content = result.reasoningContent}) -- 2679
+			persistHistoryState(shared) -- 2684
+			return ____awaiter_resolve(nil, "done") -- 2684
+		end -- 2684
+		if result.tool == "finish" then -- 2684
+			local finalMessage = getFinishMessage(result.params, result.reason or "") -- 2688
+			shared.response = finalMessage -- 2689
+			shared.done = true -- 2690
+			appendConversationMessage(shared, {role = "assistant", content = finalMessage, reasoning_content = result.reasoningContent}) -- 2691
+			persistHistoryState(shared) -- 2696
+			return ____awaiter_resolve(nil, "done") -- 2696
+		end -- 2696
+		local toolCallId = ensureToolCallId(result.toolCallId) -- 2699
+		shared.step = shared.step + 1 -- 2700
+		local step = shared.step -- 2701
+		emitAgentEvent(shared, { -- 2702
+			type = "decision_made", -- 2703
+			sessionId = shared.sessionId, -- 2704
+			taskId = shared.taskId, -- 2705
+			step = step, -- 2706
+			tool = result.tool, -- 2707
+			reason = result.reason, -- 2708
+			reasoningContent = result.reasoningContent, -- 2709
+			params = result.params -- 2710
+		}) -- 2710
+		local ____shared_history_50 = shared.history -- 2710
+		____shared_history_50[#____shared_history_50 + 1] = { -- 2712
+			step = step, -- 2713
+			toolCallId = toolCallId, -- 2714
+			tool = result.tool, -- 2715
+			reason = result.reason or "", -- 2716
+			reasoningContent = result.reasoningContent, -- 2717
+			params = result.params, -- 2718
+			timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ") -- 2719
+		} -- 2719
+		local action = shared.history[#shared.history] -- 2721
+		appendAssistantToolCallsMessage(shared, {action}, result.reason or "", result.reasoningContent) -- 2722
+		persistHistoryState(shared) -- 2723
+		return ____awaiter_resolve(nil, result.tool) -- 2723
+	end) -- 2723
+end -- 2616
+local ReadFileAction = __TS__Class() -- 2728
+ReadFileAction.name = "ReadFileAction" -- 2728
+__TS__ClassExtends(ReadFileAction, Node) -- 2728
+function ReadFileAction.prototype.prep(self, shared) -- 2729
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2729
+		local last = shared.history[#shared.history] -- 2730
+		if not last then -- 2730
+			error( -- 2731
+				__TS__New(Error, "no history"), -- 2731
+				0 -- 2731
+			) -- 2731
+		end -- 2731
+		emitAgentStartEvent(shared, last) -- 2732
+		local path = type(last.params.path) == "string" and last.params.path or (type(last.params.target_file) == "string" and last.params.target_file or "") -- 2733
+		if __TS__StringTrim(path) == "" then -- 2733
+			error( -- 2736
+				__TS__New(Error, "missing path"), -- 2736
+				0 -- 2736
+			) -- 2736
+		end -- 2736
+		local ____path_53 = path -- 2738
+		local ____shared_workingDir_54 = shared.workingDir -- 2740
+		local ____temp_55 = shared.useChineseResponse and "zh" or "en" -- 2741
+		local ____last_params_startLine_51 = last.params.startLine -- 2742
+		if ____last_params_startLine_51 == nil then -- 2742
+			____last_params_startLine_51 = 1 -- 2742
+		end -- 2742
+		local ____TS__Number_result_56 = __TS__Number(____last_params_startLine_51) -- 2742
+		local ____last_params_endLine_52 = last.params.endLine -- 2743
+		if ____last_params_endLine_52 == nil then -- 2743
+			____last_params_endLine_52 = READ_FILE_DEFAULT_LIMIT -- 2743
+		end -- 2743
+		return ____awaiter_resolve( -- 2743
+			nil, -- 2743
+			{ -- 2737
+				path = ____path_53, -- 2738
+				tool = "read_file", -- 2739
+				workDir = ____shared_workingDir_54, -- 2740
+				docLanguage = ____temp_55, -- 2741
+				startLine = ____TS__Number_result_56, -- 2742
+				endLine = __TS__Number(____last_params_endLine_52) -- 2743
+			} -- 2743
+		) -- 2743
+	end) -- 2743
+end -- 2729
+function ReadFileAction.prototype.exec(self, input) -- 2747
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2747
+		return ____awaiter_resolve( -- 2747
+			nil, -- 2747
+			Tools.readFile( -- 2748
+				input.workDir, -- 2749
+				input.path, -- 2750
+				__TS__Number(input.startLine or 1), -- 2751
+				__TS__Number(input.endLine or READ_FILE_DEFAULT_LIMIT), -- 2752
+				input.docLanguage -- 2753
+			) -- 2753
+		) -- 2753
+	end) -- 2753
+end -- 2747
+function ReadFileAction.prototype.post(self, shared, _prepRes, execRes) -- 2757
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2757
+		local result = execRes -- 2758
+		local last = shared.history[#shared.history] -- 2759
+		if last ~= nil then -- 2759
+			last.result = sanitizeReadResultForHistory(last.tool, result) -- 2761
+			appendToolResultMessage(shared, last) -- 2762
+			emitAgentFinishEvent(shared, last) -- 2763
+		end -- 2763
+		persistHistoryState(shared) -- 2765
+		__TS__Await(maybeCompressHistory(shared)) -- 2766
+		persistHistoryState(shared) -- 2767
+		return ____awaiter_resolve(nil, "main") -- 2767
 	end) -- 2767
-end -- 2764
-function SearchFilesAction.prototype.exec(self, input) -- 2771
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2771
-		local params = input.params -- 2772
-		local ____Tools_searchFiles_70 = Tools.searchFiles -- 2773
-		local ____input_workDir_63 = input.workDir -- 2774
-		local ____temp_64 = params.path or "" -- 2775
-		local ____temp_65 = params.pattern or "" -- 2776
-		local ____params_globs_66 = params.globs -- 2777
-		local ____params_useRegex_67 = params.useRegex -- 2778
-		local ____params_caseSensitive_68 = params.caseSensitive -- 2779
-		local ____math_max_59 = math.max -- 2782
-		local ____math_floor_58 = math.floor -- 2782
-		local ____params_limit_57 = params.limit -- 2782
-		if ____params_limit_57 == nil then -- 2782
-			____params_limit_57 = SEARCH_FILES_LIMIT_DEFAULT -- 2782
-		end -- 2782
-		local ____math_max_59_result_69 = ____math_max_59( -- 2782
-			1, -- 2782
-			____math_floor_58(__TS__Number(____params_limit_57)) -- 2782
-		) -- 2782
-		local ____math_max_62 = math.max -- 2783
-		local ____math_floor_61 = math.floor -- 2783
-		local ____params_offset_60 = params.offset -- 2783
-		if ____params_offset_60 == nil then -- 2783
-			____params_offset_60 = 0 -- 2783
-		end -- 2783
-		local result = __TS__Await(____Tools_searchFiles_70({ -- 2773
-			workDir = ____input_workDir_63, -- 2774
-			path = ____temp_64, -- 2775
-			pattern = ____temp_65, -- 2776
-			globs = ____params_globs_66, -- 2777
-			useRegex = ____params_useRegex_67, -- 2778
-			caseSensitive = ____params_caseSensitive_68, -- 2779
-			includeContent = true, -- 2780
-			contentWindow = SEARCH_PREVIEW_CONTEXT, -- 2781
-			limit = ____math_max_59_result_69, -- 2782
-			offset = ____math_max_62( -- 2783
-				0, -- 2783
-				____math_floor_61(__TS__Number(____params_offset_60)) -- 2783
-			), -- 2783
-			groupByFile = params.groupByFile == true -- 2784
-		})) -- 2784
-		return ____awaiter_resolve(nil, result) -- 2784
-	end) -- 2784
-end -- 2771
-function SearchFilesAction.prototype.post(self, shared, _prepRes, execRes) -- 2789
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2789
-		local last = shared.history[#shared.history] -- 2790
-		if last ~= nil then -- 2790
-			local result = execRes -- 2792
-			last.result = sanitizeSearchResultForHistory(last.tool, result) -- 2793
-			appendToolResultMessage(shared, last) -- 2794
-			emitAgentFinishEvent(shared, last) -- 2795
-		end -- 2795
-		persistHistoryState(shared) -- 2797
-		__TS__Await(maybeCompressHistory(shared)) -- 2798
-		persistHistoryState(shared) -- 2799
-		return ____awaiter_resolve(nil, "main") -- 2799
-	end) -- 2799
-end -- 2789
-local SearchDoraAPIAction = __TS__Class() -- 2804
-SearchDoraAPIAction.name = "SearchDoraAPIAction" -- 2804
-__TS__ClassExtends(SearchDoraAPIAction, Node) -- 2804
-function SearchDoraAPIAction.prototype.prep(self, shared) -- 2805
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2805
-		local last = shared.history[#shared.history] -- 2806
-		if not last then -- 2806
-			error( -- 2807
-				__TS__New(Error, "no history"), -- 2807
-				0 -- 2807
-			) -- 2807
-		end -- 2807
-		emitAgentStartEvent(shared, last) -- 2808
-		return ____awaiter_resolve(nil, {params = last.params, useChineseResponse = shared.useChineseResponse}) -- 2808
+end -- 2757
+local SearchFilesAction = __TS__Class() -- 2772
+SearchFilesAction.name = "SearchFilesAction" -- 2772
+__TS__ClassExtends(SearchFilesAction, Node) -- 2772
+function SearchFilesAction.prototype.prep(self, shared) -- 2773
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2773
+		local last = shared.history[#shared.history] -- 2774
+		if not last then -- 2774
+			error( -- 2775
+				__TS__New(Error, "no history"), -- 2775
+				0 -- 2775
+			) -- 2775
+		end -- 2775
+		emitAgentStartEvent(shared, last) -- 2776
+		return ____awaiter_resolve(nil, {params = last.params, workDir = shared.workingDir}) -- 2776
+	end) -- 2776
+end -- 2773
+function SearchFilesAction.prototype.exec(self, input) -- 2780
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2780
+		local params = input.params -- 2781
+		local ____Tools_searchFiles_70 = Tools.searchFiles -- 2782
+		local ____input_workDir_63 = input.workDir -- 2783
+		local ____temp_64 = params.path or "" -- 2784
+		local ____temp_65 = params.pattern or "" -- 2785
+		local ____params_globs_66 = params.globs -- 2786
+		local ____params_useRegex_67 = params.useRegex -- 2787
+		local ____params_caseSensitive_68 = params.caseSensitive -- 2788
+		local ____math_max_59 = math.max -- 2791
+		local ____math_floor_58 = math.floor -- 2791
+		local ____params_limit_57 = params.limit -- 2791
+		if ____params_limit_57 == nil then -- 2791
+			____params_limit_57 = SEARCH_FILES_LIMIT_DEFAULT -- 2791
+		end -- 2791
+		local ____math_max_59_result_69 = ____math_max_59( -- 2791
+			1, -- 2791
+			____math_floor_58(__TS__Number(____params_limit_57)) -- 2791
+		) -- 2791
+		local ____math_max_62 = math.max -- 2792
+		local ____math_floor_61 = math.floor -- 2792
+		local ____params_offset_60 = params.offset -- 2792
+		if ____params_offset_60 == nil then -- 2792
+			____params_offset_60 = 0 -- 2792
+		end -- 2792
+		local result = __TS__Await(____Tools_searchFiles_70({ -- 2782
+			workDir = ____input_workDir_63, -- 2783
+			path = ____temp_64, -- 2784
+			pattern = ____temp_65, -- 2785
+			globs = ____params_globs_66, -- 2786
+			useRegex = ____params_useRegex_67, -- 2787
+			caseSensitive = ____params_caseSensitive_68, -- 2788
+			includeContent = true, -- 2789
+			contentWindow = SEARCH_PREVIEW_CONTEXT, -- 2790
+			limit = ____math_max_59_result_69, -- 2791
+			offset = ____math_max_62( -- 2792
+				0, -- 2792
+				____math_floor_61(__TS__Number(____params_offset_60)) -- 2792
+			), -- 2792
+			groupByFile = params.groupByFile == true -- 2793
+		})) -- 2793
+		return ____awaiter_resolve(nil, result) -- 2793
+	end) -- 2793
+end -- 2780
+function SearchFilesAction.prototype.post(self, shared, _prepRes, execRes) -- 2798
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2798
+		local last = shared.history[#shared.history] -- 2799
+		if last ~= nil then -- 2799
+			local result = execRes -- 2801
+			last.result = sanitizeSearchResultForHistory(last.tool, result) -- 2802
+			appendToolResultMessage(shared, last) -- 2803
+			emitAgentFinishEvent(shared, last) -- 2804
+		end -- 2804
+		persistHistoryState(shared) -- 2806
+		__TS__Await(maybeCompressHistory(shared)) -- 2807
+		persistHistoryState(shared) -- 2808
+		return ____awaiter_resolve(nil, "main") -- 2808
 	end) -- 2808
-end -- 2805
-function SearchDoraAPIAction.prototype.exec(self, input) -- 2812
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2812
-		local params = input.params -- 2813
-		local ____Tools_searchDoraAPI_78 = Tools.searchDoraAPI -- 2814
-		local ____temp_74 = params.pattern or "" -- 2815
-		local ____temp_75 = params.docSource or "api" -- 2816
-		local ____temp_76 = input.useChineseResponse and "zh" or "en" -- 2817
-		local ____temp_77 = params.programmingLanguage or "ts" -- 2818
-		local ____math_min_73 = math.min -- 2819
-		local ____math_max_72 = math.max -- 2819
-		local ____params_limit_71 = params.limit -- 2819
-		if ____params_limit_71 == nil then -- 2819
-			____params_limit_71 = 8 -- 2819
-		end -- 2819
-		local result = __TS__Await(____Tools_searchDoraAPI_78({ -- 2814
-			pattern = ____temp_74, -- 2815
-			docSource = ____temp_75, -- 2816
-			docLanguage = ____temp_76, -- 2817
-			programmingLanguage = ____temp_77, -- 2818
-			limit = ____math_min_73( -- 2819
-				SEARCH_DORA_API_LIMIT_MAX, -- 2819
-				____math_max_72( -- 2819
-					1, -- 2819
-					__TS__Number(____params_limit_71) -- 2819
-				) -- 2819
-			), -- 2819
-			useRegex = params.useRegex, -- 2820
-			caseSensitive = false, -- 2821
-			includeContent = true, -- 2822
-			contentWindow = SEARCH_PREVIEW_CONTEXT -- 2823
-		})) -- 2823
-		return ____awaiter_resolve(nil, result) -- 2823
-	end) -- 2823
-end -- 2812
-function SearchDoraAPIAction.prototype.post(self, shared, _prepRes, execRes) -- 2828
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2828
-		local last = shared.history[#shared.history] -- 2829
-		if last ~= nil then -- 2829
-			local result = execRes -- 2831
-			last.result = sanitizeSearchResultForHistory(last.tool, result) -- 2832
-			appendToolResultMessage(shared, last) -- 2833
-			emitAgentFinishEvent(shared, last) -- 2834
-		end -- 2834
-		persistHistoryState(shared) -- 2836
-		__TS__Await(maybeCompressHistory(shared)) -- 2837
-		persistHistoryState(shared) -- 2838
-		return ____awaiter_resolve(nil, "main") -- 2838
-	end) -- 2838
-end -- 2828
-local ListFilesAction = __TS__Class() -- 2843
-ListFilesAction.name = "ListFilesAction" -- 2843
-__TS__ClassExtends(ListFilesAction, Node) -- 2843
-function ListFilesAction.prototype.prep(self, shared) -- 2844
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2844
-		local last = shared.history[#shared.history] -- 2845
-		if not last then -- 2845
-			error( -- 2846
-				__TS__New(Error, "no history"), -- 2846
-				0 -- 2846
-			) -- 2846
-		end -- 2846
-		emitAgentStartEvent(shared, last) -- 2847
-		return ____awaiter_resolve(nil, {params = last.params, workDir = shared.workingDir}) -- 2847
+end -- 2798
+local SearchDoraAPIAction = __TS__Class() -- 2813
+SearchDoraAPIAction.name = "SearchDoraAPIAction" -- 2813
+__TS__ClassExtends(SearchDoraAPIAction, Node) -- 2813
+function SearchDoraAPIAction.prototype.prep(self, shared) -- 2814
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2814
+		local last = shared.history[#shared.history] -- 2815
+		if not last then -- 2815
+			error( -- 2816
+				__TS__New(Error, "no history"), -- 2816
+				0 -- 2816
+			) -- 2816
+		end -- 2816
+		emitAgentStartEvent(shared, last) -- 2817
+		return ____awaiter_resolve(nil, {params = last.params, useChineseResponse = shared.useChineseResponse}) -- 2817
+	end) -- 2817
+end -- 2814
+function SearchDoraAPIAction.prototype.exec(self, input) -- 2821
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2821
+		local params = input.params -- 2822
+		local ____Tools_searchDoraAPI_78 = Tools.searchDoraAPI -- 2823
+		local ____temp_74 = params.pattern or "" -- 2824
+		local ____temp_75 = params.docSource or "api" -- 2825
+		local ____temp_76 = input.useChineseResponse and "zh" or "en" -- 2826
+		local ____temp_77 = params.programmingLanguage or "ts" -- 2827
+		local ____math_min_73 = math.min -- 2828
+		local ____math_max_72 = math.max -- 2828
+		local ____params_limit_71 = params.limit -- 2828
+		if ____params_limit_71 == nil then -- 2828
+			____params_limit_71 = 8 -- 2828
+		end -- 2828
+		local result = __TS__Await(____Tools_searchDoraAPI_78({ -- 2823
+			pattern = ____temp_74, -- 2824
+			docSource = ____temp_75, -- 2825
+			docLanguage = ____temp_76, -- 2826
+			programmingLanguage = ____temp_77, -- 2827
+			limit = ____math_min_73( -- 2828
+				SEARCH_DORA_API_LIMIT_MAX, -- 2828
+				____math_max_72( -- 2828
+					1, -- 2828
+					__TS__Number(____params_limit_71) -- 2828
+				) -- 2828
+			), -- 2828
+			useRegex = params.useRegex, -- 2829
+			caseSensitive = false, -- 2830
+			includeContent = true, -- 2831
+			contentWindow = SEARCH_PREVIEW_CONTEXT -- 2832
+		})) -- 2832
+		return ____awaiter_resolve(nil, result) -- 2832
+	end) -- 2832
+end -- 2821
+function SearchDoraAPIAction.prototype.post(self, shared, _prepRes, execRes) -- 2837
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2837
+		local last = shared.history[#shared.history] -- 2838
+		if last ~= nil then -- 2838
+			local result = execRes -- 2840
+			last.result = sanitizeSearchResultForHistory(last.tool, result) -- 2841
+			appendToolResultMessage(shared, last) -- 2842
+			emitAgentFinishEvent(shared, last) -- 2843
+		end -- 2843
+		persistHistoryState(shared) -- 2845
+		__TS__Await(maybeCompressHistory(shared)) -- 2846
+		persistHistoryState(shared) -- 2847
+		return ____awaiter_resolve(nil, "main") -- 2847
 	end) -- 2847
-end -- 2844
-function ListFilesAction.prototype.exec(self, input) -- 2851
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2851
-		local params = input.params -- 2852
-		local ____Tools_listFiles_85 = Tools.listFiles -- 2853
-		local ____input_workDir_82 = input.workDir -- 2854
-		local ____temp_83 = params.path or "" -- 2855
-		local ____params_globs_84 = params.globs -- 2856
-		local ____math_max_81 = math.max -- 2857
-		local ____math_floor_80 = math.floor -- 2857
-		local ____params_maxEntries_79 = params.maxEntries -- 2857
-		if ____params_maxEntries_79 == nil then -- 2857
-			____params_maxEntries_79 = LIST_FILES_MAX_ENTRIES_DEFAULT -- 2857
-		end -- 2857
-		local result = ____Tools_listFiles_85({ -- 2853
-			workDir = ____input_workDir_82, -- 2854
-			path = ____temp_83, -- 2855
-			globs = ____params_globs_84, -- 2856
-			maxEntries = ____math_max_81( -- 2857
-				1, -- 2857
-				____math_floor_80(__TS__Number(____params_maxEntries_79)) -- 2857
-			) -- 2857
-		}) -- 2857
-		return ____awaiter_resolve(nil, result) -- 2857
-	end) -- 2857
-end -- 2851
-function ListFilesAction.prototype.post(self, shared, _prepRes, execRes) -- 2862
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2862
-		local last = shared.history[#shared.history] -- 2863
-		if last ~= nil then -- 2863
-			last.result = sanitizeListFilesResultForHistory(execRes) -- 2865
-			appendToolResultMessage(shared, last) -- 2866
-			emitAgentFinishEvent(shared, last) -- 2867
-		end -- 2867
-		persistHistoryState(shared) -- 2869
-		__TS__Await(maybeCompressHistory(shared)) -- 2870
-		persistHistoryState(shared) -- 2871
-		return ____awaiter_resolve(nil, "main") -- 2871
-	end) -- 2871
-end -- 2862
-local DeleteFileAction = __TS__Class() -- 2876
-DeleteFileAction.name = "DeleteFileAction" -- 2876
-__TS__ClassExtends(DeleteFileAction, Node) -- 2876
-function DeleteFileAction.prototype.prep(self, shared) -- 2877
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2877
-		local last = shared.history[#shared.history] -- 2878
-		if not last then -- 2878
-			error( -- 2879
-				__TS__New(Error, "no history"), -- 2879
-				0 -- 2879
-			) -- 2879
-		end -- 2879
-		emitAgentStartEvent(shared, last) -- 2880
-		local targetFile = type(last.params.target_file) == "string" and last.params.target_file or (type(last.params.path) == "string" and last.params.path or "") -- 2881
-		if __TS__StringTrim(targetFile) == "" then -- 2881
-			error( -- 2884
-				__TS__New(Error, "missing target_file"), -- 2884
-				0 -- 2884
-			) -- 2884
-		end -- 2884
-		return ____awaiter_resolve(nil, {targetFile = targetFile, taskId = shared.taskId, workDir = shared.workingDir}) -- 2884
-	end) -- 2884
-end -- 2877
-function DeleteFileAction.prototype.exec(self, input) -- 2888
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2888
-		local result = Tools.applyFileChanges(input.taskId, input.workDir, {{path = input.targetFile, op = "delete"}}, {summary = "delete_file: " .. input.targetFile, toolName = "delete_file"}) -- 2889
-		if not result.success then -- 2889
-			return ____awaiter_resolve(nil, result) -- 2889
-		end -- 2889
-		return ____awaiter_resolve(nil, { -- 2889
-			success = true, -- 2897
-			changed = true, -- 2898
-			mode = "delete", -- 2899
-			checkpointId = result.checkpointId, -- 2900
-			checkpointSeq = result.checkpointSeq, -- 2901
-			files = {{path = input.targetFile, op = "delete"}} -- 2902
-		}) -- 2902
-	end) -- 2902
-end -- 2888
-function DeleteFileAction.prototype.post(self, shared, _prepRes, execRes) -- 2906
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2906
-		local last = shared.history[#shared.history] -- 2907
-		if last ~= nil then -- 2907
-			last.result = execRes -- 2909
-			appendToolResultMessage(shared, last) -- 2910
-			emitAgentFinishEvent(shared, last) -- 2911
-			local result = last.result -- 2912
-			if last.tool == "delete_file" and type(result.checkpointId) == "number" and type(result.checkpointSeq) == "number" and isArray(result.files) then -- 2912
-				emitAgentEvent(shared, { -- 2917
-					type = "checkpoint_created", -- 2918
-					sessionId = shared.sessionId, -- 2919
-					taskId = shared.taskId, -- 2920
-					step = last.step, -- 2921
-					tool = "delete_file", -- 2922
-					checkpointId = result.checkpointId, -- 2923
-					checkpointSeq = result.checkpointSeq, -- 2924
-					files = result.files -- 2925
-				}) -- 2925
-			end -- 2925
-		end -- 2925
-		persistHistoryState(shared) -- 2929
-		__TS__Await(maybeCompressHistory(shared)) -- 2930
-		persistHistoryState(shared) -- 2931
-		return ____awaiter_resolve(nil, "main") -- 2931
-	end) -- 2931
-end -- 2906
-local BuildAction = __TS__Class() -- 2936
-BuildAction.name = "BuildAction" -- 2936
-__TS__ClassExtends(BuildAction, Node) -- 2936
-function BuildAction.prototype.prep(self, shared) -- 2937
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2937
-		local last = shared.history[#shared.history] -- 2938
-		if not last then -- 2938
-			error( -- 2939
-				__TS__New(Error, "no history"), -- 2939
-				0 -- 2939
-			) -- 2939
-		end -- 2939
-		emitAgentStartEvent(shared, last) -- 2940
-		return ____awaiter_resolve(nil, {params = last.params, workDir = shared.workingDir}) -- 2940
+end -- 2837
+local ListFilesAction = __TS__Class() -- 2852
+ListFilesAction.name = "ListFilesAction" -- 2852
+__TS__ClassExtends(ListFilesAction, Node) -- 2852
+function ListFilesAction.prototype.prep(self, shared) -- 2853
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2853
+		local last = shared.history[#shared.history] -- 2854
+		if not last then -- 2854
+			error( -- 2855
+				__TS__New(Error, "no history"), -- 2855
+				0 -- 2855
+			) -- 2855
+		end -- 2855
+		emitAgentStartEvent(shared, last) -- 2856
+		return ____awaiter_resolve(nil, {params = last.params, workDir = shared.workingDir}) -- 2856
+	end) -- 2856
+end -- 2853
+function ListFilesAction.prototype.exec(self, input) -- 2860
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2860
+		local params = input.params -- 2861
+		local ____Tools_listFiles_85 = Tools.listFiles -- 2862
+		local ____input_workDir_82 = input.workDir -- 2863
+		local ____temp_83 = params.path or "" -- 2864
+		local ____params_globs_84 = params.globs -- 2865
+		local ____math_max_81 = math.max -- 2866
+		local ____math_floor_80 = math.floor -- 2866
+		local ____params_maxEntries_79 = params.maxEntries -- 2866
+		if ____params_maxEntries_79 == nil then -- 2866
+			____params_maxEntries_79 = LIST_FILES_MAX_ENTRIES_DEFAULT -- 2866
+		end -- 2866
+		local result = ____Tools_listFiles_85({ -- 2862
+			workDir = ____input_workDir_82, -- 2863
+			path = ____temp_83, -- 2864
+			globs = ____params_globs_84, -- 2865
+			maxEntries = ____math_max_81( -- 2866
+				1, -- 2866
+				____math_floor_80(__TS__Number(____params_maxEntries_79)) -- 2866
+			) -- 2866
+		}) -- 2866
+		return ____awaiter_resolve(nil, result) -- 2866
+	end) -- 2866
+end -- 2860
+function ListFilesAction.prototype.post(self, shared, _prepRes, execRes) -- 2871
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2871
+		local last = shared.history[#shared.history] -- 2872
+		if last ~= nil then -- 2872
+			last.result = sanitizeListFilesResultForHistory(execRes) -- 2874
+			appendToolResultMessage(shared, last) -- 2875
+			emitAgentFinishEvent(shared, last) -- 2876
+		end -- 2876
+		persistHistoryState(shared) -- 2878
+		__TS__Await(maybeCompressHistory(shared)) -- 2879
+		persistHistoryState(shared) -- 2880
+		return ____awaiter_resolve(nil, "main") -- 2880
+	end) -- 2880
+end -- 2871
+local DeleteFileAction = __TS__Class() -- 2885
+DeleteFileAction.name = "DeleteFileAction" -- 2885
+__TS__ClassExtends(DeleteFileAction, Node) -- 2885
+function DeleteFileAction.prototype.prep(self, shared) -- 2886
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2886
+		local last = shared.history[#shared.history] -- 2887
+		if not last then -- 2887
+			error( -- 2888
+				__TS__New(Error, "no history"), -- 2888
+				0 -- 2888
+			) -- 2888
+		end -- 2888
+		emitAgentStartEvent(shared, last) -- 2889
+		local targetFile = type(last.params.target_file) == "string" and last.params.target_file or (type(last.params.path) == "string" and last.params.path or "") -- 2890
+		if __TS__StringTrim(targetFile) == "" then -- 2890
+			error( -- 2893
+				__TS__New(Error, "missing target_file"), -- 2893
+				0 -- 2893
+			) -- 2893
+		end -- 2893
+		return ____awaiter_resolve(nil, {targetFile = targetFile, taskId = shared.taskId, workDir = shared.workingDir}) -- 2893
+	end) -- 2893
+end -- 2886
+function DeleteFileAction.prototype.exec(self, input) -- 2897
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2897
+		local result = Tools.applyFileChanges(input.taskId, input.workDir, {{path = input.targetFile, op = "delete"}}, {summary = "delete_file: " .. input.targetFile, toolName = "delete_file"}) -- 2898
+		if not result.success then -- 2898
+			return ____awaiter_resolve(nil, result) -- 2898
+		end -- 2898
+		return ____awaiter_resolve(nil, { -- 2898
+			success = true, -- 2906
+			changed = true, -- 2907
+			mode = "delete", -- 2908
+			checkpointId = result.checkpointId, -- 2909
+			checkpointSeq = result.checkpointSeq, -- 2910
+			files = {{path = input.targetFile, op = "delete"}} -- 2911
+		}) -- 2911
+	end) -- 2911
+end -- 2897
+function DeleteFileAction.prototype.post(self, shared, _prepRes, execRes) -- 2915
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2915
+		local last = shared.history[#shared.history] -- 2916
+		if last ~= nil then -- 2916
+			last.result = execRes -- 2918
+			appendToolResultMessage(shared, last) -- 2919
+			emitAgentFinishEvent(shared, last) -- 2920
+			local result = last.result -- 2921
+			if last.tool == "delete_file" and type(result.checkpointId) == "number" and type(result.checkpointSeq) == "number" and isArray(result.files) then -- 2921
+				emitAgentEvent(shared, { -- 2926
+					type = "checkpoint_created", -- 2927
+					sessionId = shared.sessionId, -- 2928
+					taskId = shared.taskId, -- 2929
+					step = last.step, -- 2930
+					tool = "delete_file", -- 2931
+					checkpointId = result.checkpointId, -- 2932
+					checkpointSeq = result.checkpointSeq, -- 2933
+					files = result.files -- 2934
+				}) -- 2934
+			end -- 2934
+		end -- 2934
+		persistHistoryState(shared) -- 2938
+		__TS__Await(maybeCompressHistory(shared)) -- 2939
+		persistHistoryState(shared) -- 2940
+		return ____awaiter_resolve(nil, "main") -- 2940
 	end) -- 2940
-end -- 2937
-function BuildAction.prototype.exec(self, input) -- 2944
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2944
-		local params = input.params -- 2945
-		local result = __TS__Await(Tools.build({workDir = input.workDir, path = params.path or ""})) -- 2946
-		return ____awaiter_resolve(nil, result) -- 2946
-	end) -- 2946
-end -- 2944
-function BuildAction.prototype.post(self, shared, _prepRes, execRes) -- 2953
+end -- 2915
+local BuildAction = __TS__Class() -- 2945
+BuildAction.name = "BuildAction" -- 2945
+__TS__ClassExtends(BuildAction, Node) -- 2945
+function BuildAction.prototype.prep(self, shared) -- 2946
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2946
+		local last = shared.history[#shared.history] -- 2947
+		if not last then -- 2947
+			error( -- 2948
+				__TS__New(Error, "no history"), -- 2948
+				0 -- 2948
+			) -- 2948
+		end -- 2948
+		emitAgentStartEvent(shared, last) -- 2949
+		return ____awaiter_resolve(nil, {params = last.params, workDir = shared.workingDir}) -- 2949
+	end) -- 2949
+end -- 2946
+function BuildAction.prototype.exec(self, input) -- 2953
 	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2953
-		local last = shared.history[#shared.history] -- 2954
-		if last ~= nil then -- 2954
-			last.result = execRes -- 2956
-			appendToolResultMessage(shared, last) -- 2957
-			emitAgentFinishEvent(shared, last) -- 2958
-		end -- 2958
-		persistHistoryState(shared) -- 2960
-		__TS__Await(maybeCompressHistory(shared)) -- 2961
-		persistHistoryState(shared) -- 2962
-		return ____awaiter_resolve(nil, "main") -- 2962
-	end) -- 2962
+		local params = input.params -- 2954
+		local result = __TS__Await(Tools.build({workDir = input.workDir, path = params.path or ""})) -- 2955
+		return ____awaiter_resolve(nil, result) -- 2955
+	end) -- 2955
 end -- 2953
-local SpawnSubAgentAction = __TS__Class() -- 2967
-SpawnSubAgentAction.name = "SpawnSubAgentAction" -- 2967
-__TS__ClassExtends(SpawnSubAgentAction, Node) -- 2967
-function SpawnSubAgentAction.prototype.prep(self, shared) -- 2968
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2968
-		local last = shared.history[#shared.history] -- 2977
-		if not last then -- 2977
-			error( -- 2978
-				__TS__New(Error, "no history"), -- 2978
-				0 -- 2978
-			) -- 2978
-		end -- 2978
-		emitAgentStartEvent(shared, last) -- 2979
-		local filesHint = isArray(last.params.filesHint) and __TS__ArrayFilter( -- 2980
-			last.params.filesHint, -- 2981
-			function(____, item) return type(item) == "string" end -- 2981
-		) or nil -- 2981
-		return ____awaiter_resolve( -- 2981
-			nil, -- 2981
-			{ -- 2983
-				title = type(last.params.title) == "string" and last.params.title or "Sub", -- 2984
-				prompt = type(last.params.prompt) == "string" and last.params.prompt or "", -- 2985
-				expectedOutput = type(last.params.expectedOutput) == "string" and last.params.expectedOutput or nil, -- 2986
-				filesHint = filesHint, -- 2987
-				sessionId = shared.sessionId, -- 2988
-				projectRoot = shared.workingDir, -- 2989
-				spawnSubAgent = shared.spawnSubAgent -- 2990
-			} -- 2990
-		) -- 2990
-	end) -- 2990
-end -- 2968
-function SpawnSubAgentAction.prototype.exec(self, input) -- 2994
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2994
-		if not input.spawnSubAgent then -- 2994
-			return ____awaiter_resolve(nil, {success = false, message = "spawn_sub_agent is not available in this runtime"}) -- 2994
-		end -- 2994
-		if input.sessionId == nil or input.sessionId <= 0 then -- 2994
-			return ____awaiter_resolve(nil, {success = false, message = "spawn_sub_agent requires a parent session"}) -- 2994
-		end -- 2994
-		local ____Log_91 = Log -- 3009
-		local ____temp_88 = #input.title -- 3009
-		local ____temp_89 = #input.prompt -- 3009
-		local ____temp_90 = type(input.expectedOutput) == "string" and #input.expectedOutput or 0 -- 3009
-		local ____opt_86 = input.filesHint -- 3009
-		____Log_91( -- 3009
-			"Info", -- 3009
-			(((((("[CodingAgent] spawn_sub_agent exec title_len=" .. tostring(____temp_88)) .. " prompt_len=") .. tostring(____temp_89)) .. " expected_len=") .. tostring(____temp_90)) .. " files_hint_count=") .. tostring(____opt_86 and #____opt_86 or 0) -- 3009
-		) -- 3009
-		local result = __TS__Await(input.spawnSubAgent({ -- 3010
-			parentSessionId = input.sessionId, -- 3011
-			projectRoot = input.projectRoot, -- 3012
-			title = input.title, -- 3013
-			prompt = input.prompt, -- 3014
-			expectedOutput = input.expectedOutput, -- 3015
-			filesHint = input.filesHint -- 3016
-		})) -- 3016
-		if not result.success then -- 3016
-			return ____awaiter_resolve(nil, result) -- 3016
-		end -- 3016
-		return ____awaiter_resolve(nil, { -- 3016
-			success = true, -- 3022
-			sessionId = result.sessionId, -- 3023
-			taskId = result.taskId, -- 3024
-			title = result.title, -- 3025
-			hint = "If the necessary sub-agents have already been dispatched, end this turn directly and do not immediately check their results." -- 3026
-		}) -- 3026
-	end) -- 3026
-end -- 2994
-function SpawnSubAgentAction.prototype.post(self, shared, _prepRes, execRes) -- 3030
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3030
-		local last = shared.history[#shared.history] -- 3031
-		if last ~= nil then -- 3031
-			last.result = execRes -- 3033
-			appendToolResultMessage(shared, last) -- 3034
-			emitAgentFinishEvent(shared, last) -- 3035
-		end -- 3035
-		persistHistoryState(shared) -- 3037
-		__TS__Await(maybeCompressHistory(shared)) -- 3038
-		persistHistoryState(shared) -- 3039
-		return ____awaiter_resolve(nil, "main") -- 3039
-	end) -- 3039
-end -- 3030
-local ListSubAgentsAction = __TS__Class() -- 3044
-ListSubAgentsAction.name = "ListSubAgentsAction" -- 3044
-__TS__ClassExtends(ListSubAgentsAction, Node) -- 3044
-function ListSubAgentsAction.prototype.prep(self, shared) -- 3045
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3045
-		local last = shared.history[#shared.history] -- 3054
-		if not last then -- 3054
-			error( -- 3055
-				__TS__New(Error, "no history"), -- 3055
-				0 -- 3055
-			) -- 3055
-		end -- 3055
-		emitAgentStartEvent(shared, last) -- 3056
-		return ____awaiter_resolve( -- 3056
-			nil, -- 3056
-			{ -- 3057
-				sessionId = shared.sessionId, -- 3058
-				projectRoot = shared.workingDir, -- 3059
-				status = type(last.params.status) == "string" and last.params.status or nil, -- 3060
-				limit = type(last.params.limit) == "number" and last.params.limit or nil, -- 3061
-				offset = type(last.params.offset) == "number" and last.params.offset or nil, -- 3062
-				query = type(last.params.query) == "string" and last.params.query or nil, -- 3063
-				listSubAgents = shared.listSubAgents -- 3064
-			} -- 3064
-		) -- 3064
-	end) -- 3064
-end -- 3045
-function ListSubAgentsAction.prototype.exec(self, input) -- 3068
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3068
-		if not input.listSubAgents then -- 3068
-			return ____awaiter_resolve(nil, {success = false, message = "list_sub_agents is not available in this runtime"}) -- 3068
-		end -- 3068
-		if input.sessionId == nil or input.sessionId <= 0 then -- 3068
-			return ____awaiter_resolve(nil, {success = false, message = "list_sub_agents requires a current session"}) -- 3068
-		end -- 3068
-		local result = __TS__Await(input.listSubAgents({ -- 3083
-			sessionId = input.sessionId, -- 3084
-			projectRoot = input.projectRoot, -- 3085
-			status = input.status, -- 3086
-			limit = input.limit, -- 3087
-			offset = input.offset, -- 3088
-			query = input.query -- 3089
-		})) -- 3089
-		return ____awaiter_resolve(nil, result) -- 3089
-	end) -- 3089
-end -- 3068
-function ListSubAgentsAction.prototype.post(self, shared, _prepRes, execRes) -- 3094
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3094
-		local last = shared.history[#shared.history] -- 3095
-		if last ~= nil then -- 3095
-			last.result = execRes -- 3097
-			appendToolResultMessage(shared, last) -- 3098
-			emitAgentFinishEvent(shared, last) -- 3099
-		end -- 3099
-		persistHistoryState(shared) -- 3101
-		__TS__Await(maybeCompressHistory(shared)) -- 3102
-		persistHistoryState(shared) -- 3103
-		return ____awaiter_resolve(nil, "main") -- 3103
-	end) -- 3103
-end -- 3094
-local EditFileAction = __TS__Class() -- 3108
-EditFileAction.name = "EditFileAction" -- 3108
-__TS__ClassExtends(EditFileAction, Node) -- 3108
-function EditFileAction.prototype.prep(self, shared) -- 3109
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3109
-		local last = shared.history[#shared.history] -- 3110
-		if not last then -- 3110
-			error( -- 3111
-				__TS__New(Error, "no history"), -- 3111
-				0 -- 3111
-			) -- 3111
-		end -- 3111
-		emitAgentStartEvent(shared, last) -- 3112
-		local path = type(last.params.path) == "string" and last.params.path or (type(last.params.target_file) == "string" and last.params.target_file or "") -- 3113
-		local oldStr = type(last.params.old_str) == "string" and last.params.old_str or "" -- 3116
-		local newStr = type(last.params.new_str) == "string" and last.params.new_str or "" -- 3117
-		if __TS__StringTrim(path) == "" then -- 3117
-			error( -- 3118
-				__TS__New(Error, "missing path"), -- 3118
-				0 -- 3118
-			) -- 3118
-		end -- 3118
-		return ____awaiter_resolve(nil, { -- 3118
-			path = path, -- 3119
-			oldStr = oldStr, -- 3119
-			newStr = newStr, -- 3119
-			taskId = shared.taskId, -- 3119
-			workDir = shared.workingDir -- 3119
-		}) -- 3119
-	end) -- 3119
-end -- 3109
-function EditFileAction.prototype.exec(self, input) -- 3122
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3122
-		local readRes = Tools.readFileRaw(input.workDir, input.path) -- 3123
-		if not readRes.success then -- 3123
-			if input.oldStr ~= "" then -- 3123
-				return ____awaiter_resolve(nil, {success = false, message = "read file failed: " .. readRes.message}) -- 3123
-			end -- 3123
-			local createRes = Tools.applyFileChanges(input.taskId, input.workDir, {{path = input.path, op = "create", content = input.newStr}}, {summary = ("create file " .. input.path) .. " via edit_file", toolName = "edit_file"}) -- 3128
-			if not createRes.success then -- 3128
-				return ____awaiter_resolve(nil, {success = false, message = "create file failed: " .. createRes.message}) -- 3128
-			end -- 3128
-			return ____awaiter_resolve(nil, { -- 3128
-				success = true, -- 3136
-				changed = true, -- 3137
-				mode = "create", -- 3138
-				checkpointId = createRes.checkpointId, -- 3139
-				checkpointSeq = createRes.checkpointSeq, -- 3140
-				files = {{path = input.path, op = "create"}} -- 3141
-			}) -- 3141
-		end -- 3141
-		if input.oldStr == "" then -- 3141
-			local overwriteRes = Tools.applyFileChanges(input.taskId, input.workDir, {{path = input.path, op = "write", content = input.newStr}}, {summary = ("overwrite file " .. input.path) .. " via edit_file", toolName = "edit_file"}) -- 3145
-			if not overwriteRes.success then -- 3145
-				return ____awaiter_resolve(nil, {success = false, message = "write file failed: " .. overwriteRes.message}) -- 3145
-			end -- 3145
-			return ____awaiter_resolve(nil, { -- 3145
-				success = true, -- 3153
-				changed = true, -- 3154
-				mode = "overwrite", -- 3155
-				checkpointId = overwriteRes.checkpointId, -- 3156
-				checkpointSeq = overwriteRes.checkpointSeq, -- 3157
-				files = {{path = input.path, op = "write"}} -- 3158
-			}) -- 3158
-		end -- 3158
-		local normalizedContent = normalizeLineEndings(readRes.content) -- 3163
-		local normalizedOldStr = normalizeLineEndings(input.oldStr) -- 3164
-		local normalizedNewStr = normalizeLineEndings(input.newStr) -- 3165
-		local occurrences = countOccurrences(normalizedContent, normalizedOldStr) -- 3168
-		if occurrences == 0 then -- 3168
-			local indentTolerant = findIndentTolerantReplacement(normalizedContent, normalizedOldStr, normalizedNewStr) -- 3170
-			if not indentTolerant.success then -- 3170
-				return ____awaiter_resolve(nil, {success = false, message = indentTolerant.message}) -- 3170
-			end -- 3170
-			local applyRes = Tools.applyFileChanges(input.taskId, input.workDir, {{path = input.path, op = "write", content = indentTolerant.content}}, {summary = ("replace text in " .. input.path) .. " via edit_file (indent-tolerant)", toolName = "edit_file"}) -- 3174
-			if not applyRes.success then -- 3174
-				return ____awaiter_resolve(nil, {success = false, message = "write file failed: " .. applyRes.message}) -- 3174
-			end -- 3174
-			return ____awaiter_resolve(nil, { -- 3174
-				success = true, -- 3182
-				changed = true, -- 3183
-				mode = "replace_indent_tolerant", -- 3184
-				checkpointId = applyRes.checkpointId, -- 3185
-				checkpointSeq = applyRes.checkpointSeq, -- 3186
-				files = {{path = input.path, op = "write"}} -- 3187
-			}) -- 3187
-		end -- 3187
-		if occurrences > 1 then -- 3187
-			return ____awaiter_resolve( -- 3187
-				nil, -- 3187
-				{ -- 3191
-					success = false, -- 3191
-					message = ("old_str appears " .. tostring(occurrences)) .. " times in file. Please provide more context to uniquely identify the target location." -- 3191
-				} -- 3191
-			) -- 3191
-		end -- 3191
-		local newContent = replaceFirst(normalizedContent, normalizedOldStr, normalizedNewStr) -- 3195
-		local applyRes = Tools.applyFileChanges(input.taskId, input.workDir, {{path = input.path, op = "write", content = newContent}}, {summary = ("replace text in " .. input.path) .. " via edit_file", toolName = "edit_file"}) -- 3196
-		if not applyRes.success then -- 3196
-			return ____awaiter_resolve(nil, {success = false, message = "write file failed: " .. applyRes.message}) -- 3196
+function BuildAction.prototype.post(self, shared, _prepRes, execRes) -- 2962
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2962
+		local last = shared.history[#shared.history] -- 2963
+		if last ~= nil then -- 2963
+			last.result = execRes -- 2965
+			appendToolResultMessage(shared, last) -- 2966
+			emitAgentFinishEvent(shared, last) -- 2967
+		end -- 2967
+		persistHistoryState(shared) -- 2969
+		__TS__Await(maybeCompressHistory(shared)) -- 2970
+		persistHistoryState(shared) -- 2971
+		return ____awaiter_resolve(nil, "main") -- 2971
+	end) -- 2971
+end -- 2962
+local SpawnSubAgentAction = __TS__Class() -- 2976
+SpawnSubAgentAction.name = "SpawnSubAgentAction" -- 2976
+__TS__ClassExtends(SpawnSubAgentAction, Node) -- 2976
+function SpawnSubAgentAction.prototype.prep(self, shared) -- 2977
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2977
+		local last = shared.history[#shared.history] -- 2986
+		if not last then -- 2986
+			error( -- 2987
+				__TS__New(Error, "no history"), -- 2987
+				0 -- 2987
+			) -- 2987
+		end -- 2987
+		emitAgentStartEvent(shared, last) -- 2988
+		local filesHint = isArray(last.params.filesHint) and __TS__ArrayFilter( -- 2989
+			last.params.filesHint, -- 2990
+			function(____, item) return type(item) == "string" end -- 2990
+		) or nil -- 2990
+		return ____awaiter_resolve( -- 2990
+			nil, -- 2990
+			{ -- 2992
+				title = type(last.params.title) == "string" and last.params.title or "Sub", -- 2993
+				prompt = type(last.params.prompt) == "string" and last.params.prompt or "", -- 2994
+				expectedOutput = type(last.params.expectedOutput) == "string" and last.params.expectedOutput or nil, -- 2995
+				filesHint = filesHint, -- 2996
+				sessionId = shared.sessionId, -- 2997
+				projectRoot = shared.workingDir, -- 2998
+				spawnSubAgent = shared.spawnSubAgent -- 2999
+			} -- 2999
+		) -- 2999
+	end) -- 2999
+end -- 2977
+function SpawnSubAgentAction.prototype.exec(self, input) -- 3003
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3003
+		if not input.spawnSubAgent then -- 3003
+			return ____awaiter_resolve(nil, {success = false, message = "spawn_sub_agent is not available in this runtime"}) -- 3003
+		end -- 3003
+		if input.sessionId == nil or input.sessionId <= 0 then -- 3003
+			return ____awaiter_resolve(nil, {success = false, message = "spawn_sub_agent requires a parent session"}) -- 3003
+		end -- 3003
+		local ____Log_91 = Log -- 3018
+		local ____temp_88 = #input.title -- 3018
+		local ____temp_89 = #input.prompt -- 3018
+		local ____temp_90 = type(input.expectedOutput) == "string" and #input.expectedOutput or 0 -- 3018
+		local ____opt_86 = input.filesHint -- 3018
+		____Log_91( -- 3018
+			"Info", -- 3018
+			(((((("[CodingAgent] spawn_sub_agent exec title_len=" .. tostring(____temp_88)) .. " prompt_len=") .. tostring(____temp_89)) .. " expected_len=") .. tostring(____temp_90)) .. " files_hint_count=") .. tostring(____opt_86 and #____opt_86 or 0) -- 3018
+		) -- 3018
+		local result = __TS__Await(input.spawnSubAgent({ -- 3019
+			parentSessionId = input.sessionId, -- 3020
+			projectRoot = input.projectRoot, -- 3021
+			title = input.title, -- 3022
+			prompt = input.prompt, -- 3023
+			expectedOutput = input.expectedOutput, -- 3024
+			filesHint = input.filesHint -- 3025
+		})) -- 3025
+		if not result.success then -- 3025
+			return ____awaiter_resolve(nil, result) -- 3025
+		end -- 3025
+		return ____awaiter_resolve(nil, { -- 3025
+			success = true, -- 3031
+			sessionId = result.sessionId, -- 3032
+			taskId = result.taskId, -- 3033
+			title = result.title, -- 3034
+			hint = "If the necessary sub-agents have already been dispatched, end this turn directly and do not immediately check their results." -- 3035
+		}) -- 3035
+	end) -- 3035
+end -- 3003
+function SpawnSubAgentAction.prototype.post(self, shared, _prepRes, execRes) -- 3039
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3039
+		local last = shared.history[#shared.history] -- 3040
+		if last ~= nil then -- 3040
+			last.result = execRes -- 3042
+			appendToolResultMessage(shared, last) -- 3043
+			emitAgentFinishEvent(shared, last) -- 3044
+		end -- 3044
+		persistHistoryState(shared) -- 3046
+		__TS__Await(maybeCompressHistory(shared)) -- 3047
+		persistHistoryState(shared) -- 3048
+		return ____awaiter_resolve(nil, "main") -- 3048
+	end) -- 3048
+end -- 3039
+local ListSubAgentsAction = __TS__Class() -- 3053
+ListSubAgentsAction.name = "ListSubAgentsAction" -- 3053
+__TS__ClassExtends(ListSubAgentsAction, Node) -- 3053
+function ListSubAgentsAction.prototype.prep(self, shared) -- 3054
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3054
+		local last = shared.history[#shared.history] -- 3063
+		if not last then -- 3063
+			error( -- 3064
+				__TS__New(Error, "no history"), -- 3064
+				0 -- 3064
+			) -- 3064
+		end -- 3064
+		emitAgentStartEvent(shared, last) -- 3065
+		return ____awaiter_resolve( -- 3065
+			nil, -- 3065
+			{ -- 3066
+				sessionId = shared.sessionId, -- 3067
+				projectRoot = shared.workingDir, -- 3068
+				status = type(last.params.status) == "string" and last.params.status or nil, -- 3069
+				limit = type(last.params.limit) == "number" and last.params.limit or nil, -- 3070
+				offset = type(last.params.offset) == "number" and last.params.offset or nil, -- 3071
+				query = type(last.params.query) == "string" and last.params.query or nil, -- 3072
+				listSubAgents = shared.listSubAgents -- 3073
+			} -- 3073
+		) -- 3073
+	end) -- 3073
+end -- 3054
+function ListSubAgentsAction.prototype.exec(self, input) -- 3077
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3077
+		if not input.listSubAgents then -- 3077
+			return ____awaiter_resolve(nil, {success = false, message = "list_sub_agents is not available in this runtime"}) -- 3077
+		end -- 3077
+		if input.sessionId == nil or input.sessionId <= 0 then -- 3077
+			return ____awaiter_resolve(nil, {success = false, message = "list_sub_agents requires a current session"}) -- 3077
+		end -- 3077
+		local result = __TS__Await(input.listSubAgents({ -- 3092
+			sessionId = input.sessionId, -- 3093
+			projectRoot = input.projectRoot, -- 3094
+			status = input.status, -- 3095
+			limit = input.limit, -- 3096
+			offset = input.offset, -- 3097
+			query = input.query -- 3098
+		})) -- 3098
+		return ____awaiter_resolve(nil, result) -- 3098
+	end) -- 3098
+end -- 3077
+function ListSubAgentsAction.prototype.post(self, shared, _prepRes, execRes) -- 3103
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3103
+		local last = shared.history[#shared.history] -- 3104
+		if last ~= nil then -- 3104
+			last.result = execRes -- 3106
+			appendToolResultMessage(shared, last) -- 3107
+			emitAgentFinishEvent(shared, last) -- 3108
+		end -- 3108
+		persistHistoryState(shared) -- 3110
+		__TS__Await(maybeCompressHistory(shared)) -- 3111
+		persistHistoryState(shared) -- 3112
+		return ____awaiter_resolve(nil, "main") -- 3112
+	end) -- 3112
+end -- 3103
+local EditFileAction = __TS__Class() -- 3117
+EditFileAction.name = "EditFileAction" -- 3117
+__TS__ClassExtends(EditFileAction, Node) -- 3117
+function EditFileAction.prototype.prep(self, shared) -- 3118
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3118
+		local last = shared.history[#shared.history] -- 3119
+		if not last then -- 3119
+			error( -- 3120
+				__TS__New(Error, "no history"), -- 3120
+				0 -- 3120
+			) -- 3120
+		end -- 3120
+		emitAgentStartEvent(shared, last) -- 3121
+		local path = type(last.params.path) == "string" and last.params.path or (type(last.params.target_file) == "string" and last.params.target_file or "") -- 3122
+		local oldStr = type(last.params.old_str) == "string" and last.params.old_str or "" -- 3125
+		local newStr = type(last.params.new_str) == "string" and last.params.new_str or "" -- 3126
+		if __TS__StringTrim(path) == "" then -- 3126
+			error( -- 3127
+				__TS__New(Error, "missing path"), -- 3127
+				0 -- 3127
+			) -- 3127
+		end -- 3127
+		return ____awaiter_resolve(nil, { -- 3127
+			path = path, -- 3128
+			oldStr = oldStr, -- 3128
+			newStr = newStr, -- 3128
+			taskId = shared.taskId, -- 3128
+			workDir = shared.workingDir -- 3128
+		}) -- 3128
+	end) -- 3128
+end -- 3118
+function EditFileAction.prototype.exec(self, input) -- 3131
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3131
+		local readRes = Tools.readFileRaw(input.workDir, input.path) -- 3132
+		if not readRes.success then -- 3132
+			if input.oldStr ~= "" then -- 3132
+				return ____awaiter_resolve(nil, {success = false, message = "read file failed: " .. readRes.message}) -- 3132
+			end -- 3132
+			local createRes = Tools.applyFileChanges(input.taskId, input.workDir, {{path = input.path, op = "create", content = input.newStr}}, {summary = ("create file " .. input.path) .. " via edit_file", toolName = "edit_file"}) -- 3137
+			if not createRes.success then -- 3137
+				return ____awaiter_resolve(nil, {success = false, message = "create file failed: " .. createRes.message}) -- 3137
+			end -- 3137
+			return ____awaiter_resolve(nil, { -- 3137
+				success = true, -- 3145
+				changed = true, -- 3146
+				mode = "create", -- 3147
+				checkpointId = createRes.checkpointId, -- 3148
+				checkpointSeq = createRes.checkpointSeq, -- 3149
+				files = {{path = input.path, op = "create"}} -- 3150
+			}) -- 3150
+		end -- 3150
+		if input.oldStr == "" then -- 3150
+			local overwriteRes = Tools.applyFileChanges(input.taskId, input.workDir, {{path = input.path, op = "write", content = input.newStr}}, {summary = ("overwrite file " .. input.path) .. " via edit_file", toolName = "edit_file"}) -- 3154
+			if not overwriteRes.success then -- 3154
+				return ____awaiter_resolve(nil, {success = false, message = "write file failed: " .. overwriteRes.message}) -- 3154
+			end -- 3154
+			return ____awaiter_resolve(nil, { -- 3154
+				success = true, -- 3162
+				changed = true, -- 3163
+				mode = "overwrite", -- 3164
+				checkpointId = overwriteRes.checkpointId, -- 3165
+				checkpointSeq = overwriteRes.checkpointSeq, -- 3166
+				files = {{path = input.path, op = "write"}} -- 3167
+			}) -- 3167
+		end -- 3167
+		local normalizedContent = normalizeLineEndings(readRes.content) -- 3172
+		local normalizedOldStr = normalizeLineEndings(input.oldStr) -- 3173
+		local normalizedNewStr = normalizeLineEndings(input.newStr) -- 3174
+		local occurrences = countOccurrences(normalizedContent, normalizedOldStr) -- 3177
+		if occurrences == 0 then -- 3177
+			local indentTolerant = findIndentTolerantReplacement(normalizedContent, normalizedOldStr, normalizedNewStr) -- 3179
+			if not indentTolerant.success then -- 3179
+				return ____awaiter_resolve(nil, {success = false, message = indentTolerant.message}) -- 3179
+			end -- 3179
+			local applyRes = Tools.applyFileChanges(input.taskId, input.workDir, {{path = input.path, op = "write", content = indentTolerant.content}}, {summary = ("replace text in " .. input.path) .. " via edit_file (indent-tolerant)", toolName = "edit_file"}) -- 3183
+			if not applyRes.success then -- 3183
+				return ____awaiter_resolve(nil, {success = false, message = "write file failed: " .. applyRes.message}) -- 3183
+			end -- 3183
+			return ____awaiter_resolve(nil, { -- 3183
+				success = true, -- 3191
+				changed = true, -- 3192
+				mode = "replace_indent_tolerant", -- 3193
+				checkpointId = applyRes.checkpointId, -- 3194
+				checkpointSeq = applyRes.checkpointSeq, -- 3195
+				files = {{path = input.path, op = "write"}} -- 3196
+			}) -- 3196
 		end -- 3196
-		return ____awaiter_resolve(nil, { -- 3196
-			success = true, -- 3204
-			changed = true, -- 3205
-			mode = "replace", -- 3206
-			checkpointId = applyRes.checkpointId, -- 3207
-			checkpointSeq = applyRes.checkpointSeq, -- 3208
-			files = {{path = input.path, op = "write"}} -- 3209
-		}) -- 3209
-	end) -- 3209
-end -- 3122
-function EditFileAction.prototype.post(self, shared, _prepRes, execRes) -- 3213
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3213
-		local last = shared.history[#shared.history] -- 3214
-		if last ~= nil then -- 3214
-			last.params = sanitizeActionParamsForHistory(last.tool, last.params) -- 3216
-			last.result = execRes -- 3217
-			appendToolResultMessage(shared, last) -- 3218
-			emitAgentFinishEvent(shared, last) -- 3219
-			local result = last.result -- 3220
-			if (last.tool == "edit_file" or last.tool == "delete_file") and type(result.checkpointId) == "number" and type(result.checkpointSeq) == "number" and isArray(result.files) then -- 3220
-				emitAgentEvent(shared, { -- 3225
-					type = "checkpoint_created", -- 3226
-					sessionId = shared.sessionId, -- 3227
-					taskId = shared.taskId, -- 3228
-					step = last.step, -- 3229
-					tool = last.tool, -- 3230
-					checkpointId = result.checkpointId, -- 3231
-					checkpointSeq = result.checkpointSeq, -- 3232
-					files = result.files -- 3233
-				}) -- 3233
-			end -- 3233
-		end -- 3233
-		persistHistoryState(shared) -- 3237
-		__TS__Await(maybeCompressHistory(shared)) -- 3238
-		persistHistoryState(shared) -- 3239
-		return ____awaiter_resolve(nil, "main") -- 3239
-	end) -- 3239
-end -- 3213
-local function emitCheckpointEventForAction(shared, action) -- 3244
-	local result = action.result -- 3245
-	if not result then -- 3245
-		return -- 3246
-	end -- 3246
-	if (action.tool == "edit_file" or action.tool == "delete_file") and type(result.checkpointId) == "number" and type(result.checkpointSeq) == "number" and isArray(result.files) then -- 3246
-		emitAgentEvent(shared, { -- 3251
-			type = "checkpoint_created", -- 3252
-			sessionId = shared.sessionId, -- 3253
-			taskId = shared.taskId, -- 3254
-			step = action.step, -- 3255
-			tool = action.tool, -- 3256
-			checkpointId = result.checkpointId, -- 3257
-			checkpointSeq = result.checkpointSeq, -- 3258
-			files = result.files -- 3259
-		}) -- 3259
-	end -- 3259
-end -- 3244
-local function executeToolAction(shared, action) -- 3264
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3264
-		if shared.stopToken.stopped then -- 3264
-			return ____awaiter_resolve( -- 3264
-				nil, -- 3264
-				{ -- 3266
-					success = false, -- 3266
-					message = getCancelledReason(shared) -- 3266
-				} -- 3266
-			) -- 3266
-		end -- 3266
-		local params = action.params -- 3268
-		if action.tool == "read_file" then -- 3268
-			local path = type(params.path) == "string" and params.path or (type(params.target_file) == "string" and params.target_file or "") -- 3270
-			if __TS__StringTrim(path) == "" then -- 3270
-				return ____awaiter_resolve(nil, {success = false, message = "missing path"}) -- 3270
-			end -- 3270
-			local ____Tools_readFile_96 = Tools.readFile -- 3274
-			local ____shared_workingDir_94 = shared.workingDir -- 3275
-			local ____params_startLine_92 = params.startLine -- 3277
-			if ____params_startLine_92 == nil then -- 3277
-				____params_startLine_92 = 1 -- 3277
-			end -- 3277
-			local ____TS__Number_result_95 = __TS__Number(____params_startLine_92) -- 3277
-			local ____params_endLine_93 = params.endLine -- 3278
-			if ____params_endLine_93 == nil then -- 3278
-				____params_endLine_93 = READ_FILE_DEFAULT_LIMIT -- 3278
-			end -- 3278
-			return ____awaiter_resolve( -- 3278
-				nil, -- 3278
-				____Tools_readFile_96( -- 3274
-					____shared_workingDir_94, -- 3275
-					path, -- 3276
-					____TS__Number_result_95, -- 3277
-					__TS__Number(____params_endLine_93), -- 3278
-					shared.useChineseResponse and "zh" or "en" -- 3279
-				) -- 3279
-			) -- 3279
-		end -- 3279
-		if action.tool == "grep_files" then -- 3279
-			local ____Tools_searchFiles_110 = Tools.searchFiles -- 3283
-			local ____shared_workingDir_103 = shared.workingDir -- 3284
-			local ____temp_104 = params.path or "" -- 3285
-			local ____temp_105 = params.pattern or "" -- 3286
-			local ____params_globs_106 = params.globs -- 3287
-			local ____params_useRegex_107 = params.useRegex -- 3288
-			local ____params_caseSensitive_108 = params.caseSensitive -- 3289
-			local ____math_max_99 = math.max -- 3292
-			local ____math_floor_98 = math.floor -- 3292
-			local ____params_limit_97 = params.limit -- 3292
-			if ____params_limit_97 == nil then -- 3292
-				____params_limit_97 = SEARCH_FILES_LIMIT_DEFAULT -- 3292
-			end -- 3292
-			local ____math_max_99_result_109 = ____math_max_99( -- 3292
-				1, -- 3292
-				____math_floor_98(__TS__Number(____params_limit_97)) -- 3292
-			) -- 3292
-			local ____math_max_102 = math.max -- 3293
-			local ____math_floor_101 = math.floor -- 3293
-			local ____params_offset_100 = params.offset -- 3293
-			if ____params_offset_100 == nil then -- 3293
-				____params_offset_100 = 0 -- 3293
-			end -- 3293
-			local result = __TS__Await(____Tools_searchFiles_110({ -- 3283
-				workDir = ____shared_workingDir_103, -- 3284
-				path = ____temp_104, -- 3285
-				pattern = ____temp_105, -- 3286
-				globs = ____params_globs_106, -- 3287
-				useRegex = ____params_useRegex_107, -- 3288
-				caseSensitive = ____params_caseSensitive_108, -- 3289
-				includeContent = true, -- 3290
-				contentWindow = SEARCH_PREVIEW_CONTEXT, -- 3291
-				limit = ____math_max_99_result_109, -- 3292
-				offset = ____math_max_102( -- 3293
-					0, -- 3293
-					____math_floor_101(__TS__Number(____params_offset_100)) -- 3293
-				), -- 3293
-				groupByFile = params.groupByFile == true -- 3294
-			})) -- 3294
-			return ____awaiter_resolve(nil, result) -- 3294
-		end -- 3294
-		if action.tool == "search_dora_api" then -- 3294
-			local ____Tools_searchDoraAPI_118 = Tools.searchDoraAPI -- 3299
-			local ____temp_114 = params.pattern or "" -- 3300
-			local ____temp_115 = params.docSource or "api" -- 3301
-			local ____temp_116 = shared.useChineseResponse and "zh" or "en" -- 3302
-			local ____temp_117 = params.programmingLanguage or "ts" -- 3303
-			local ____math_min_113 = math.min -- 3304
-			local ____math_max_112 = math.max -- 3304
-			local ____params_limit_111 = params.limit -- 3304
-			if ____params_limit_111 == nil then -- 3304
-				____params_limit_111 = 8 -- 3304
-			end -- 3304
-			local result = __TS__Await(____Tools_searchDoraAPI_118({ -- 3299
-				pattern = ____temp_114, -- 3300
-				docSource = ____temp_115, -- 3301
-				docLanguage = ____temp_116, -- 3302
-				programmingLanguage = ____temp_117, -- 3303
-				limit = ____math_min_113( -- 3304
-					SEARCH_DORA_API_LIMIT_MAX, -- 3304
-					____math_max_112( -- 3304
-						1, -- 3304
-						__TS__Number(____params_limit_111) -- 3304
-					) -- 3304
-				), -- 3304
-				useRegex = params.useRegex, -- 3305
-				caseSensitive = false, -- 3306
-				includeContent = true, -- 3307
-				contentWindow = SEARCH_PREVIEW_CONTEXT -- 3308
-			})) -- 3308
-			return ____awaiter_resolve(nil, result) -- 3308
-		end -- 3308
-		if action.tool == "glob_files" then -- 3308
-			local ____Tools_listFiles_125 = Tools.listFiles -- 3313
-			local ____shared_workingDir_122 = shared.workingDir -- 3314
-			local ____temp_123 = params.path or "" -- 3315
-			local ____params_globs_124 = params.globs -- 3316
-			local ____math_max_121 = math.max -- 3317
-			local ____math_floor_120 = math.floor -- 3317
-			local ____params_maxEntries_119 = params.maxEntries -- 3317
-			if ____params_maxEntries_119 == nil then -- 3317
-				____params_maxEntries_119 = LIST_FILES_MAX_ENTRIES_DEFAULT -- 3317
-			end -- 3317
-			local result = ____Tools_listFiles_125({ -- 3313
-				workDir = ____shared_workingDir_122, -- 3314
-				path = ____temp_123, -- 3315
-				globs = ____params_globs_124, -- 3316
-				maxEntries = ____math_max_121( -- 3317
-					1, -- 3317
-					____math_floor_120(__TS__Number(____params_maxEntries_119)) -- 3317
-				) -- 3317
-			}) -- 3317
+		if occurrences > 1 then -- 3196
+			return ____awaiter_resolve( -- 3196
+				nil, -- 3196
+				{ -- 3200
+					success = false, -- 3200
+					message = ("old_str appears " .. tostring(occurrences)) .. " times in file. Please provide more context to uniquely identify the target location." -- 3200
+				} -- 3200
+			) -- 3200
+		end -- 3200
+		local newContent = replaceFirst(normalizedContent, normalizedOldStr, normalizedNewStr) -- 3204
+		local applyRes = Tools.applyFileChanges(input.taskId, input.workDir, {{path = input.path, op = "write", content = newContent}}, {summary = ("replace text in " .. input.path) .. " via edit_file", toolName = "edit_file"}) -- 3205
+		if not applyRes.success then -- 3205
+			return ____awaiter_resolve(nil, {success = false, message = "write file failed: " .. applyRes.message}) -- 3205
+		end -- 3205
+		return ____awaiter_resolve(nil, { -- 3205
+			success = true, -- 3213
+			changed = true, -- 3214
+			mode = "replace", -- 3215
+			checkpointId = applyRes.checkpointId, -- 3216
+			checkpointSeq = applyRes.checkpointSeq, -- 3217
+			files = {{path = input.path, op = "write"}} -- 3218
+		}) -- 3218
+	end) -- 3218
+end -- 3131
+function EditFileAction.prototype.post(self, shared, _prepRes, execRes) -- 3222
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3222
+		local last = shared.history[#shared.history] -- 3223
+		if last ~= nil then -- 3223
+			last.params = sanitizeActionParamsForHistory(last.tool, last.params) -- 3225
+			last.result = execRes -- 3226
+			appendToolResultMessage(shared, last) -- 3227
+			emitAgentFinishEvent(shared, last) -- 3228
+			local result = last.result -- 3229
+			if (last.tool == "edit_file" or last.tool == "delete_file") and type(result.checkpointId) == "number" and type(result.checkpointSeq) == "number" and isArray(result.files) then -- 3229
+				emitAgentEvent(shared, { -- 3234
+					type = "checkpoint_created", -- 3235
+					sessionId = shared.sessionId, -- 3236
+					taskId = shared.taskId, -- 3237
+					step = last.step, -- 3238
+					tool = last.tool, -- 3239
+					checkpointId = result.checkpointId, -- 3240
+					checkpointSeq = result.checkpointSeq, -- 3241
+					files = result.files -- 3242
+				}) -- 3242
+			end -- 3242
+		end -- 3242
+		persistHistoryState(shared) -- 3246
+		__TS__Await(maybeCompressHistory(shared)) -- 3247
+		persistHistoryState(shared) -- 3248
+		return ____awaiter_resolve(nil, "main") -- 3248
+	end) -- 3248
+end -- 3222
+local function emitCheckpointEventForAction(shared, action) -- 3253
+	local result = action.result -- 3254
+	if not result then -- 3254
+		return -- 3255
+	end -- 3255
+	if (action.tool == "edit_file" or action.tool == "delete_file") and type(result.checkpointId) == "number" and type(result.checkpointSeq) == "number" and isArray(result.files) then -- 3255
+		emitAgentEvent(shared, { -- 3260
+			type = "checkpoint_created", -- 3261
+			sessionId = shared.sessionId, -- 3262
+			taskId = shared.taskId, -- 3263
+			step = action.step, -- 3264
+			tool = action.tool, -- 3265
+			checkpointId = result.checkpointId, -- 3266
+			checkpointSeq = result.checkpointSeq, -- 3267
+			files = result.files -- 3268
+		}) -- 3268
+	end -- 3268
+end -- 3253
+local function executeToolAction(shared, action) -- 3273
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3273
+		if shared.stopToken.stopped then -- 3273
+			return ____awaiter_resolve( -- 3273
+				nil, -- 3273
+				{ -- 3275
+					success = false, -- 3275
+					message = getCancelledReason(shared) -- 3275
+				} -- 3275
+			) -- 3275
+		end -- 3275
+		local params = action.params -- 3277
+		if action.tool == "read_file" then -- 3277
+			local path = type(params.path) == "string" and params.path or (type(params.target_file) == "string" and params.target_file or "") -- 3279
+			if __TS__StringTrim(path) == "" then -- 3279
+				return ____awaiter_resolve(nil, {success = false, message = "missing path"}) -- 3279
+			end -- 3279
+			local ____Tools_readFile_96 = Tools.readFile -- 3283
+			local ____shared_workingDir_94 = shared.workingDir -- 3284
+			local ____params_startLine_92 = params.startLine -- 3286
+			if ____params_startLine_92 == nil then -- 3286
+				____params_startLine_92 = 1 -- 3286
+			end -- 3286
+			local ____TS__Number_result_95 = __TS__Number(____params_startLine_92) -- 3286
+			local ____params_endLine_93 = params.endLine -- 3287
+			if ____params_endLine_93 == nil then -- 3287
+				____params_endLine_93 = READ_FILE_DEFAULT_LIMIT -- 3287
+			end -- 3287
+			return ____awaiter_resolve( -- 3287
+				nil, -- 3287
+				____Tools_readFile_96( -- 3283
+					____shared_workingDir_94, -- 3284
+					path, -- 3285
+					____TS__Number_result_95, -- 3286
+					__TS__Number(____params_endLine_93), -- 3287
+					shared.useChineseResponse and "zh" or "en" -- 3288
+				) -- 3288
+			) -- 3288
+		end -- 3288
+		if action.tool == "grep_files" then -- 3288
+			local ____Tools_searchFiles_110 = Tools.searchFiles -- 3292
+			local ____shared_workingDir_103 = shared.workingDir -- 3293
+			local ____temp_104 = params.path or "" -- 3294
+			local ____temp_105 = params.pattern or "" -- 3295
+			local ____params_globs_106 = params.globs -- 3296
+			local ____params_useRegex_107 = params.useRegex -- 3297
+			local ____params_caseSensitive_108 = params.caseSensitive -- 3298
+			local ____math_max_99 = math.max -- 3301
+			local ____math_floor_98 = math.floor -- 3301
+			local ____params_limit_97 = params.limit -- 3301
+			if ____params_limit_97 == nil then -- 3301
+				____params_limit_97 = SEARCH_FILES_LIMIT_DEFAULT -- 3301
+			end -- 3301
+			local ____math_max_99_result_109 = ____math_max_99( -- 3301
+				1, -- 3301
+				____math_floor_98(__TS__Number(____params_limit_97)) -- 3301
+			) -- 3301
+			local ____math_max_102 = math.max -- 3302
+			local ____math_floor_101 = math.floor -- 3302
+			local ____params_offset_100 = params.offset -- 3302
+			if ____params_offset_100 == nil then -- 3302
+				____params_offset_100 = 0 -- 3302
+			end -- 3302
+			local result = __TS__Await(____Tools_searchFiles_110({ -- 3292
+				workDir = ____shared_workingDir_103, -- 3293
+				path = ____temp_104, -- 3294
+				pattern = ____temp_105, -- 3295
+				globs = ____params_globs_106, -- 3296
+				useRegex = ____params_useRegex_107, -- 3297
+				caseSensitive = ____params_caseSensitive_108, -- 3298
+				includeContent = true, -- 3299
+				contentWindow = SEARCH_PREVIEW_CONTEXT, -- 3300
+				limit = ____math_max_99_result_109, -- 3301
+				offset = ____math_max_102( -- 3302
+					0, -- 3302
+					____math_floor_101(__TS__Number(____params_offset_100)) -- 3302
+				), -- 3302
+				groupByFile = params.groupByFile == true -- 3303
+			})) -- 3303
+			return ____awaiter_resolve(nil, result) -- 3303
+		end -- 3303
+		if action.tool == "search_dora_api" then -- 3303
+			local ____Tools_searchDoraAPI_118 = Tools.searchDoraAPI -- 3308
+			local ____temp_114 = params.pattern or "" -- 3309
+			local ____temp_115 = params.docSource or "api" -- 3310
+			local ____temp_116 = shared.useChineseResponse and "zh" or "en" -- 3311
+			local ____temp_117 = params.programmingLanguage or "ts" -- 3312
+			local ____math_min_113 = math.min -- 3313
+			local ____math_max_112 = math.max -- 3313
+			local ____params_limit_111 = params.limit -- 3313
+			if ____params_limit_111 == nil then -- 3313
+				____params_limit_111 = 8 -- 3313
+			end -- 3313
+			local result = __TS__Await(____Tools_searchDoraAPI_118({ -- 3308
+				pattern = ____temp_114, -- 3309
+				docSource = ____temp_115, -- 3310
+				docLanguage = ____temp_116, -- 3311
+				programmingLanguage = ____temp_117, -- 3312
+				limit = ____math_min_113( -- 3313
+					SEARCH_DORA_API_LIMIT_MAX, -- 3313
+					____math_max_112( -- 3313
+						1, -- 3313
+						__TS__Number(____params_limit_111) -- 3313
+					) -- 3313
+				), -- 3313
+				useRegex = params.useRegex, -- 3314
+				caseSensitive = false, -- 3315
+				includeContent = true, -- 3316
+				contentWindow = SEARCH_PREVIEW_CONTEXT -- 3317
+			})) -- 3317
 			return ____awaiter_resolve(nil, result) -- 3317
 		end -- 3317
-		if action.tool == "delete_file" then -- 3317
-			local targetFile = type(params.target_file) == "string" and params.target_file or (type(params.path) == "string" and params.path or "") -- 3322
-			if __TS__StringTrim(targetFile) == "" then -- 3322
-				return ____awaiter_resolve(nil, {success = false, message = "missing target_file"}) -- 3322
-			end -- 3322
-			local result = Tools.applyFileChanges(shared.taskId, shared.workingDir, {{path = targetFile, op = "delete"}}, {summary = "delete_file: " .. targetFile, toolName = "delete_file"}) -- 3326
-			if not result.success then -- 3326
-				return ____awaiter_resolve(nil, result) -- 3326
+		if action.tool == "glob_files" then -- 3317
+			local ____Tools_listFiles_125 = Tools.listFiles -- 3322
+			local ____shared_workingDir_122 = shared.workingDir -- 3323
+			local ____temp_123 = params.path or "" -- 3324
+			local ____params_globs_124 = params.globs -- 3325
+			local ____math_max_121 = math.max -- 3326
+			local ____math_floor_120 = math.floor -- 3326
+			local ____params_maxEntries_119 = params.maxEntries -- 3326
+			if ____params_maxEntries_119 == nil then -- 3326
+				____params_maxEntries_119 = LIST_FILES_MAX_ENTRIES_DEFAULT -- 3326
 			end -- 3326
-			return ____awaiter_resolve(nil, { -- 3326
-				success = true, -- 3334
-				changed = true, -- 3335
-				mode = "delete", -- 3336
-				checkpointId = result.checkpointId, -- 3337
-				checkpointSeq = result.checkpointSeq, -- 3338
-				files = {{path = targetFile, op = "delete"}} -- 3339
-			}) -- 3339
-		end -- 3339
-		if action.tool == "build" then -- 3339
-			local result = __TS__Await(Tools.build({workDir = shared.workingDir, path = params.path or ""})) -- 3343
-			return ____awaiter_resolve(nil, result) -- 3343
-		end -- 3343
-		if action.tool == "spawn_sub_agent" then -- 3343
-			if not shared.spawnSubAgent then -- 3343
-				return ____awaiter_resolve(nil, {success = false, message = "spawn_sub_agent is not available in this runtime"}) -- 3343
-			end -- 3343
-			if shared.sessionId == nil or shared.sessionId <= 0 then -- 3343
-				return ____awaiter_resolve(nil, {success = false, message = "spawn_sub_agent requires a parent session"}) -- 3343
-			end -- 3343
-			local filesHint = isArray(params.filesHint) and __TS__ArrayFilter( -- 3356
-				params.filesHint, -- 3357
-				function(____, item) return type(item) == "string" end -- 3357
-			) or nil -- 3357
-			local result = __TS__Await(shared.spawnSubAgent({ -- 3359
-				parentSessionId = shared.sessionId, -- 3360
-				projectRoot = shared.workingDir, -- 3361
-				title = type(params.title) == "string" and params.title or "Sub", -- 3362
-				prompt = type(params.prompt) == "string" and params.prompt or "", -- 3363
-				expectedOutput = type(params.expectedOutput) == "string" and params.expectedOutput or nil, -- 3364
-				filesHint = filesHint -- 3365
-			})) -- 3365
-			if not result.success then -- 3365
-				return ____awaiter_resolve(nil, result) -- 3365
-			end -- 3365
-			return ____awaiter_resolve(nil, { -- 3365
-				success = true, -- 3371
-				sessionId = result.sessionId, -- 3372
-				taskId = result.taskId, -- 3373
-				title = result.title, -- 3374
-				hint = "If the necessary sub-agents have already been dispatched, end this turn directly and do not immediately check their results." -- 3375
-			}) -- 3375
-		end -- 3375
-		if action.tool == "list_sub_agents" then -- 3375
-			if not shared.listSubAgents then -- 3375
-				return ____awaiter_resolve(nil, {success = false, message = "list_sub_agents is not available in this runtime"}) -- 3375
-			end -- 3375
-			if shared.sessionId == nil or shared.sessionId <= 0 then -- 3375
-				return ____awaiter_resolve(nil, {success = false, message = "list_sub_agents requires a current session"}) -- 3375
-			end -- 3375
-			local result = __TS__Await(shared.listSubAgents({ -- 3385
-				sessionId = shared.sessionId, -- 3386
-				projectRoot = shared.workingDir, -- 3387
-				status = type(params.status) == "string" and params.status or nil, -- 3388
-				limit = type(params.limit) == "number" and params.limit or nil, -- 3389
-				offset = type(params.offset) == "number" and params.offset or nil, -- 3390
-				query = type(params.query) == "string" and params.query or nil -- 3391
-			})) -- 3391
-			return ____awaiter_resolve(nil, result) -- 3391
-		end -- 3391
-		if action.tool == "edit_file" then -- 3391
-			local path = type(params.path) == "string" and params.path or (type(params.target_file) == "string" and params.target_file or "") -- 3396
-			local oldStr = type(params.old_str) == "string" and params.old_str or "" -- 3399
-			local newStr = type(params.new_str) == "string" and params.new_str or "" -- 3400
-			if __TS__StringTrim(path) == "" then -- 3400
-				return ____awaiter_resolve(nil, {success = false, message = "missing path"}) -- 3400
-			end -- 3400
-			local actionNode = __TS__New(EditFileAction, 1, 0) -- 3402
-			return ____awaiter_resolve( -- 3402
-				nil, -- 3402
-				actionNode:exec({ -- 3403
-					path = path, -- 3404
-					oldStr = oldStr, -- 3405
-					newStr = newStr, -- 3406
-					taskId = shared.taskId, -- 3407
-					workDir = shared.workingDir -- 3408
-				}) -- 3408
-			) -- 3408
-		end -- 3408
-		return ____awaiter_resolve(nil, {success = false, message = action.tool .. " cannot be executed as a batched tool"}) -- 3408
-	end) -- 3408
-end -- 3264
-local function sanitizeToolActionResultForHistory(action, result) -- 3414
-	if action.tool == "read_file" then -- 3414
-		return sanitizeReadResultForHistory(action.tool, result) -- 3416
-	end -- 3416
-	if action.tool == "grep_files" or action.tool == "search_dora_api" then -- 3416
-		return sanitizeSearchResultForHistory(action.tool, result) -- 3419
-	end -- 3419
-	if action.tool == "glob_files" then -- 3419
-		return sanitizeListFilesResultForHistory(result) -- 3422
-	end -- 3422
-	return result -- 3424
-end -- 3414
-local BatchToolAction = __TS__Class() -- 3427
-BatchToolAction.name = "BatchToolAction" -- 3427
-__TS__ClassExtends(BatchToolAction, Node) -- 3427
-function BatchToolAction.prototype.prep(self, shared) -- 3428
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3428
-		return ____awaiter_resolve(nil, {shared = shared, actions = shared.pendingToolActions or ({})}) -- 3428
-	end) -- 3428
-end -- 3428
-function BatchToolAction.prototype.exec(self, input) -- 3432
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3432
-		local shared = input.shared -- 3433
-		do -- 3433
-			local i = 0 -- 3434
-			while i < #input.actions do -- 3434
-				local action = input.actions[i + 1] -- 3435
-				emitAgentStartEvent(shared, action) -- 3436
-				local result = __TS__Await(executeToolAction(shared, action)) -- 3437
-				action.params = sanitizeActionParamsForHistory(action.tool, action.params) -- 3438
-				action.result = sanitizeToolActionResultForHistory(action, result) -- 3439
-				appendToolResultMessage(shared, action) -- 3440
-				emitAgentFinishEvent(shared, action) -- 3441
-				emitCheckpointEventForAction(shared, action) -- 3442
-				persistHistoryState(shared) -- 3443
-				if shared.stopToken.stopped then -- 3443
-					break -- 3445
-				end -- 3445
-				i = i + 1 -- 3434
-			end -- 3434
-		end -- 3434
-		return ____awaiter_resolve(nil, input.actions) -- 3434
-	end) -- 3434
-end -- 3432
-function BatchToolAction.prototype.post(self, shared, _prepRes, _execRes) -- 3451
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3451
-		shared.pendingToolActions = nil -- 3452
-		persistHistoryState(shared) -- 3453
-		__TS__Await(maybeCompressHistory(shared)) -- 3454
-		persistHistoryState(shared) -- 3455
-		return ____awaiter_resolve(nil, "main") -- 3455
-	end) -- 3455
-end -- 3451
-local EndNode = __TS__Class() -- 3460
-EndNode.name = "EndNode" -- 3460
-__TS__ClassExtends(EndNode, Node) -- 3460
-function EndNode.prototype.post(self, _shared, _prepRes, _execRes) -- 3461
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3461
-		return ____awaiter_resolve(nil, nil) -- 3461
-	end) -- 3461
-end -- 3461
-local CodingAgentFlow = __TS__Class() -- 3466
-CodingAgentFlow.name = "CodingAgentFlow" -- 3466
-__TS__ClassExtends(CodingAgentFlow, Flow) -- 3466
-function CodingAgentFlow.prototype.____constructor(self, role) -- 3467
-	local main = __TS__New(MainDecisionAgent, 1, 0) -- 3468
-	local read = __TS__New(ReadFileAction, 1, 0) -- 3469
-	local search = __TS__New(SearchFilesAction, 1, 0) -- 3470
-	local searchDora = __TS__New(SearchDoraAPIAction, 1, 0) -- 3471
-	local list = __TS__New(ListFilesAction, 1, 0) -- 3472
-	local listSub = __TS__New(ListSubAgentsAction, 1, 0) -- 3473
-	local del = __TS__New(DeleteFileAction, 1, 0) -- 3474
-	local build = __TS__New(BuildAction, 1, 0) -- 3475
-	local spawn = __TS__New(SpawnSubAgentAction, 1, 0) -- 3476
-	local edit = __TS__New(EditFileAction, 1, 0) -- 3477
-	local batch = __TS__New(BatchToolAction, 1, 0) -- 3478
-	local done = __TS__New(EndNode, 1, 0) -- 3479
-	main:on("batch_tools", batch) -- 3481
-	main:on("grep_files", search) -- 3482
-	main:on("search_dora_api", searchDora) -- 3483
-	main:on("glob_files", list) -- 3484
-	if role == "main" then -- 3484
-		main:on("read_file", read) -- 3486
-		main:on("delete_file", del) -- 3487
-		main:on("build", build) -- 3488
-		main:on("edit_file", edit) -- 3489
-		main:on("list_sub_agents", listSub) -- 3490
-		main:on("spawn_sub_agent", spawn) -- 3491
-	else -- 3491
-		main:on("read_file", read) -- 3493
-		main:on("delete_file", del) -- 3494
-		main:on("build", build) -- 3495
-		main:on("edit_file", edit) -- 3496
-	end -- 3496
-	main:on("done", done) -- 3498
-	search:on("main", main) -- 3500
-	searchDora:on("main", main) -- 3501
-	list:on("main", main) -- 3502
-	listSub:on("main", main) -- 3503
-	spawn:on("main", main) -- 3504
-	batch:on("main", main) -- 3505
-	read:on("main", main) -- 3506
-	del:on("main", main) -- 3507
-	build:on("main", main) -- 3508
-	edit:on("main", main) -- 3509
-	Flow.prototype.____constructor(self, main) -- 3511
-end -- 3467
-local function runCodingAgentAsync(options) -- 3533
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3533
-		if not options.workDir or not Content:isAbsolutePath(options.workDir) or not Content:exist(options.workDir) or not Content:isdir(options.workDir) then -- 3533
-			return ____awaiter_resolve(nil, {success = false, message = "workDir must be an existing absolute directory path"}) -- 3533
-		end -- 3533
-		local normalizedPrompt = ____exports.truncateAgentUserPrompt(options.prompt) -- 3537
-		local llmConfigRes = options.llmConfig and ({success = true, config = options.llmConfig}) or getActiveLLMConfig() -- 3538
-		if not llmConfigRes.success then -- 3538
-			return ____awaiter_resolve(nil, {success = false, message = llmConfigRes.message}) -- 3538
-		end -- 3538
-		local llmConfig = llmConfigRes.config -- 3544
-		local taskRes = options.taskId ~= nil and ({success = true, taskId = options.taskId}) or Tools.createTask(normalizedPrompt) -- 3545
-		if not taskRes.success then -- 3545
-			return ____awaiter_resolve(nil, {success = false, message = taskRes.message}) -- 3545
-		end -- 3545
-		local compressor = __TS__New(MemoryCompressor, { -- 3552
-			compressionThreshold = 0.8, -- 3553
-			compressionTargetThreshold = 0.5, -- 3554
-			maxCompressionRounds = 3, -- 3555
-			projectDir = options.workDir, -- 3556
-			llmConfig = llmConfig, -- 3557
-			promptPack = options.promptPack, -- 3558
-			scope = options.memoryScope -- 3559
-		}) -- 3559
-		local persistedSession = compressor:getStorage():readSessionState() -- 3561
-		local promptPack = compressor:getPromptPack() -- 3562
-		local shared = { -- 3564
-			sessionId = options.sessionId, -- 3565
-			taskId = taskRes.taskId, -- 3566
-			role = options.role or "main", -- 3567
-			maxSteps = math.max( -- 3568
-				1, -- 3568
-				math.floor(options.maxSteps or AGENT_DEFAULT_MAX_STEPS) -- 3568
-			), -- 3568
-			llmMaxTry = math.max( -- 3569
-				1, -- 3569
-				math.floor(options.llmMaxTry or AGENT_DEFAULT_LLM_MAX_TRY) -- 3569
-			), -- 3569
-			step = 0, -- 3570
-			done = false, -- 3571
-			stopToken = options.stopToken or ({stopped = false}), -- 3572
-			response = "", -- 3573
-			userQuery = normalizedPrompt, -- 3574
-			workingDir = options.workDir, -- 3575
-			useChineseResponse = options.useChineseResponse == true, -- 3576
-			decisionMode = options.decisionMode and options.decisionMode or (llmConfig.supportsFunctionCalling and "tool_calling" or "xml"), -- 3577
-			llmOptions = buildLLMOptions(llmConfig, options.llmOptions), -- 3580
-			llmConfig = llmConfig, -- 3581
-			onEvent = options.onEvent, -- 3582
-			promptPack = promptPack, -- 3583
-			history = {}, -- 3584
-			messages = persistedSession.messages, -- 3585
-			lastConsolidatedIndex = persistedSession.lastConsolidatedIndex, -- 3586
-			carryMessageIndex = persistedSession.carryMessageIndex, -- 3587
-			memory = {compressor = compressor}, -- 3589
-			skills = {loader = createSkillsLoader({projectDir = options.workDir})}, -- 3593
-			spawnSubAgent = options.spawnSubAgent, -- 3598
-			listSubAgents = options.listSubAgents -- 3599
-		} -- 3599
-		local ____try = __TS__AsyncAwaiter(function() -- 3599
-			emitAgentEvent(shared, { -- 3603
-				type = "task_started", -- 3604
-				sessionId = shared.sessionId, -- 3605
-				taskId = shared.taskId, -- 3606
-				prompt = shared.userQuery, -- 3607
-				workDir = shared.workingDir, -- 3608
-				maxSteps = shared.maxSteps -- 3609
-			}) -- 3609
-			if shared.stopToken.stopped then -- 3609
-				Tools.setTaskStatus(shared.taskId, "STOPPED") -- 3612
-				return ____awaiter_resolve( -- 3612
-					nil, -- 3612
-					emitAgentTaskFinishEvent( -- 3613
-						shared, -- 3613
-						false, -- 3613
-						getCancelledReason(shared) -- 3613
-					) -- 3613
-				) -- 3613
-			end -- 3613
-			Tools.setTaskStatus(shared.taskId, "RUNNING") -- 3615
-			local promptCommand = getPromptCommand(shared.userQuery) -- 3616
-			if promptCommand == "clear" then -- 3616
-				return ____awaiter_resolve( -- 3616
-					nil, -- 3616
-					clearSessionHistory(shared) -- 3618
-				) -- 3618
-			end -- 3618
-			if promptCommand == "compact" then -- 3618
-				if shared.role == "sub" then -- 3618
-					Tools.setTaskStatus(shared.taskId, "FAILED") -- 3622
-					return ____awaiter_resolve( -- 3622
-						nil, -- 3622
-						emitAgentTaskFinishEvent(shared, false, shared.useChineseResponse and "子代理会话不支持 /compact。" or "Sub-agent sessions do not support /compact.") -- 3623
-					) -- 3623
-				end -- 3623
-				return ____awaiter_resolve( -- 3623
-					nil, -- 3623
-					__TS__Await(compactAllHistory(shared)) -- 3631
-				) -- 3631
-			end -- 3631
-			appendConversationMessage(shared, {role = "user", content = normalizedPrompt}) -- 3633
-			persistHistoryState(shared) -- 3637
-			local flow = __TS__New(CodingAgentFlow, shared.role) -- 3638
-			__TS__Await(flow:run(shared)) -- 3639
-			if shared.stopToken.stopped then -- 3639
-				Tools.setTaskStatus(shared.taskId, "STOPPED") -- 3641
-				return ____awaiter_resolve( -- 3641
-					nil, -- 3641
-					emitAgentTaskFinishEvent( -- 3642
-						shared, -- 3642
-						false, -- 3642
-						getCancelledReason(shared) -- 3642
-					) -- 3642
-				) -- 3642
-			end -- 3642
-			if shared.error then -- 3642
-				return ____awaiter_resolve( -- 3642
-					nil, -- 3642
-					finalizeAgentFailure(shared, shared.response and shared.response ~= "" and shared.response or shared.error) -- 3645
-				) -- 3645
-			end -- 3645
-			Tools.setTaskStatus(shared.taskId, "DONE") -- 3648
-			return ____awaiter_resolve( -- 3648
-				nil, -- 3648
-				emitAgentTaskFinishEvent(shared, true, shared.response or (shared.useChineseResponse and "任务完成。" or "Task completed.")) -- 3649
-			) -- 3649
-		end) -- 3649
-		__TS__Await(____try.catch( -- 3602
-			____try, -- 3602
-			function(____, e) -- 3602
-				return ____awaiter_resolve( -- 3602
-					nil, -- 3602
-					finalizeAgentFailure( -- 3652
-						shared, -- 3652
-						tostring(e) -- 3652
-					) -- 3652
-				) -- 3652
-			end -- 3652
-		)) -- 3652
-	end) -- 3652
-end -- 3533
-function ____exports.runCodingAgent(options, callback) -- 3656
-	local ____self_126 = runCodingAgentAsync(options) -- 3656
-	____self_126["then"]( -- 3656
-		____self_126, -- 3656
-		function(____, result) return callback(result) end -- 3657
-	) -- 3657
-end -- 3656
-return ____exports -- 3656
+			local result = ____Tools_listFiles_125({ -- 3322
+				workDir = ____shared_workingDir_122, -- 3323
+				path = ____temp_123, -- 3324
+				globs = ____params_globs_124, -- 3325
+				maxEntries = ____math_max_121( -- 3326
+					1, -- 3326
+					____math_floor_120(__TS__Number(____params_maxEntries_119)) -- 3326
+				) -- 3326
+			}) -- 3326
+			return ____awaiter_resolve(nil, result) -- 3326
+		end -- 3326
+		if action.tool == "delete_file" then -- 3326
+			local targetFile = type(params.target_file) == "string" and params.target_file or (type(params.path) == "string" and params.path or "") -- 3331
+			if __TS__StringTrim(targetFile) == "" then -- 3331
+				return ____awaiter_resolve(nil, {success = false, message = "missing target_file"}) -- 3331
+			end -- 3331
+			local result = Tools.applyFileChanges(shared.taskId, shared.workingDir, {{path = targetFile, op = "delete"}}, {summary = "delete_file: " .. targetFile, toolName = "delete_file"}) -- 3335
+			if not result.success then -- 3335
+				return ____awaiter_resolve(nil, result) -- 3335
+			end -- 3335
+			return ____awaiter_resolve(nil, { -- 3335
+				success = true, -- 3343
+				changed = true, -- 3344
+				mode = "delete", -- 3345
+				checkpointId = result.checkpointId, -- 3346
+				checkpointSeq = result.checkpointSeq, -- 3347
+				files = {{path = targetFile, op = "delete"}} -- 3348
+			}) -- 3348
+		end -- 3348
+		if action.tool == "build" then -- 3348
+			local result = __TS__Await(Tools.build({workDir = shared.workingDir, path = params.path or ""})) -- 3352
+			return ____awaiter_resolve(nil, result) -- 3352
+		end -- 3352
+		if action.tool == "spawn_sub_agent" then -- 3352
+			if not shared.spawnSubAgent then -- 3352
+				return ____awaiter_resolve(nil, {success = false, message = "spawn_sub_agent is not available in this runtime"}) -- 3352
+			end -- 3352
+			if shared.sessionId == nil or shared.sessionId <= 0 then -- 3352
+				return ____awaiter_resolve(nil, {success = false, message = "spawn_sub_agent requires a parent session"}) -- 3352
+			end -- 3352
+			local filesHint = isArray(params.filesHint) and __TS__ArrayFilter( -- 3365
+				params.filesHint, -- 3366
+				function(____, item) return type(item) == "string" end -- 3366
+			) or nil -- 3366
+			local result = __TS__Await(shared.spawnSubAgent({ -- 3368
+				parentSessionId = shared.sessionId, -- 3369
+				projectRoot = shared.workingDir, -- 3370
+				title = type(params.title) == "string" and params.title or "Sub", -- 3371
+				prompt = type(params.prompt) == "string" and params.prompt or "", -- 3372
+				expectedOutput = type(params.expectedOutput) == "string" and params.expectedOutput or nil, -- 3373
+				filesHint = filesHint -- 3374
+			})) -- 3374
+			if not result.success then -- 3374
+				return ____awaiter_resolve(nil, result) -- 3374
+			end -- 3374
+			return ____awaiter_resolve(nil, { -- 3374
+				success = true, -- 3380
+				sessionId = result.sessionId, -- 3381
+				taskId = result.taskId, -- 3382
+				title = result.title, -- 3383
+				hint = "If the necessary sub-agents have already been dispatched, end this turn directly and do not immediately check their results." -- 3384
+			}) -- 3384
+		end -- 3384
+		if action.tool == "list_sub_agents" then -- 3384
+			if not shared.listSubAgents then -- 3384
+				return ____awaiter_resolve(nil, {success = false, message = "list_sub_agents is not available in this runtime"}) -- 3384
+			end -- 3384
+			if shared.sessionId == nil or shared.sessionId <= 0 then -- 3384
+				return ____awaiter_resolve(nil, {success = false, message = "list_sub_agents requires a current session"}) -- 3384
+			end -- 3384
+			local result = __TS__Await(shared.listSubAgents({ -- 3394
+				sessionId = shared.sessionId, -- 3395
+				projectRoot = shared.workingDir, -- 3396
+				status = type(params.status) == "string" and params.status or nil, -- 3397
+				limit = type(params.limit) == "number" and params.limit or nil, -- 3398
+				offset = type(params.offset) == "number" and params.offset or nil, -- 3399
+				query = type(params.query) == "string" and params.query or nil -- 3400
+			})) -- 3400
+			return ____awaiter_resolve(nil, result) -- 3400
+		end -- 3400
+		if action.tool == "edit_file" then -- 3400
+			local path = type(params.path) == "string" and params.path or (type(params.target_file) == "string" and params.target_file or "") -- 3405
+			local oldStr = type(params.old_str) == "string" and params.old_str or "" -- 3408
+			local newStr = type(params.new_str) == "string" and params.new_str or "" -- 3409
+			if __TS__StringTrim(path) == "" then -- 3409
+				return ____awaiter_resolve(nil, {success = false, message = "missing path"}) -- 3409
+			end -- 3409
+			local actionNode = __TS__New(EditFileAction, 1, 0) -- 3411
+			return ____awaiter_resolve( -- 3411
+				nil, -- 3411
+				actionNode:exec({ -- 3412
+					path = path, -- 3413
+					oldStr = oldStr, -- 3414
+					newStr = newStr, -- 3415
+					taskId = shared.taskId, -- 3416
+					workDir = shared.workingDir -- 3417
+				}) -- 3417
+			) -- 3417
+		end -- 3417
+		return ____awaiter_resolve(nil, {success = false, message = action.tool .. " cannot be executed as a batched tool"}) -- 3417
+	end) -- 3417
+end -- 3273
+local function sanitizeToolActionResultForHistory(action, result) -- 3423
+	if action.tool == "read_file" then -- 3423
+		return sanitizeReadResultForHistory(action.tool, result) -- 3425
+	end -- 3425
+	if action.tool == "grep_files" or action.tool == "search_dora_api" then -- 3425
+		return sanitizeSearchResultForHistory(action.tool, result) -- 3428
+	end -- 3428
+	if action.tool == "glob_files" then -- 3428
+		return sanitizeListFilesResultForHistory(result) -- 3431
+	end -- 3431
+	return result -- 3433
+end -- 3423
+local function canRunBatchActionInParallel(action) -- 3435
+	return action.tool == "read_file" or action.tool == "grep_files" or action.tool == "search_dora_api" or action.tool == "glob_files" or action.tool == "list_sub_agents" -- 3435
+end -- 3435
+local BatchToolAction = __TS__Class() -- 3436
+BatchToolAction.name = "BatchToolAction" -- 3436
+__TS__ClassExtends(BatchToolAction, Node) -- 3436
+function BatchToolAction.prototype.prep(self, shared) -- 3437
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3437
+		return ____awaiter_resolve(nil, {shared = shared, actions = shared.pendingToolActions or ({})}) -- 3437
+	end) -- 3437
+end -- 3437
+function BatchToolAction.prototype.exec(self, input) -- 3441
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3441
+		local shared = input.shared -- 3442
+		local allParallelSafe = #input.actions > 1 -- 3442
+		do -- 3442
+			local i = 0 -- 3442
+			while i < #input.actions do -- 3442
+				if not canRunBatchActionInParallel(input.actions[i + 1]) then -- 3442
+					allParallelSafe = false -- 3442
+					break -- 3442
+				end -- 3442
+				i = i + 1 -- 3442
+			end -- 3442
+		end -- 3442
+		if not allParallelSafe then -- 3442
+			do -- 3442
+				local i = 0 -- 3443
+				while i < #input.actions do -- 3443
+					local action = input.actions[i + 1] -- 3444
+					emitAgentStartEvent(shared, action) -- 3445
+					local result = __TS__Await(executeToolAction(shared, action)) -- 3446
+					action.params = sanitizeActionParamsForHistory(action.tool, action.params) -- 3447
+					action.result = sanitizeToolActionResultForHistory(action, result) -- 3448
+					appendToolResultMessage(shared, action) -- 3449
+					emitAgentFinishEvent(shared, action) -- 3450
+					emitCheckpointEventForAction(shared, action) -- 3451
+					persistHistoryState(shared) -- 3452
+					if shared.stopToken.stopped then -- 3452
+						break -- 3454
+					end -- 3454
+					i = i + 1 -- 3443
+				end -- 3443
+			end -- 3443
+			return ____awaiter_resolve(nil, input.actions) -- 3443
+		end -- 3442
+		Log("Info", "[CodingAgent] batch read-only tools executing in parallel count=" .. tostring(#input.actions)) -- 3442
+		do -- 3442
+			local i = 0 -- 3443
+			while i < #input.actions do -- 3443
+				emitAgentStartEvent(shared, input.actions[i + 1]) -- 3445
+				i = i + 1 -- 3443
+			end -- 3443
+		end -- 3443
+		local results = __TS__Await(__TS__PromiseAll(__TS__ArrayMap(input.actions, function(____, action) -- 3446
+			return executeToolAction(shared, action) -- 3446
+		end))) -- 3446
+		do -- 3446
+			local i = 0 -- 3447
+			while i < #input.actions do -- 3447
+				local action = input.actions[i + 1] -- 3448
+				local result = results[i + 1] -- 3449
+				action.params = sanitizeActionParamsForHistory(action.tool, action.params) -- 3450
+				action.result = sanitizeToolActionResultForHistory(action, result) -- 3451
+				appendToolResultMessage(shared, action) -- 3452
+				emitAgentFinishEvent(shared, action) -- 3453
+				emitCheckpointEventForAction(shared, action) -- 3454
+				i = i + 1 -- 3447
+			end -- 3447
+		end -- 3447
+		persistHistoryState(shared) -- 3456
+		return ____awaiter_resolve(nil, input.actions) -- 3443
+	end) -- 3443
+end -- 3441
+function BatchToolAction.prototype.post(self, shared, _prepRes, _execRes) -- 3460
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3460
+		shared.pendingToolActions = nil -- 3461
+		persistHistoryState(shared) -- 3462
+		__TS__Await(maybeCompressHistory(shared)) -- 3463
+		persistHistoryState(shared) -- 3464
+		return ____awaiter_resolve(nil, "main") -- 3464
+	end) -- 3464
+end -- 3460
+local EndNode = __TS__Class() -- 3469
+EndNode.name = "EndNode" -- 3469
+__TS__ClassExtends(EndNode, Node) -- 3469
+function EndNode.prototype.post(self, _shared, _prepRes, _execRes) -- 3470
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3470
+		return ____awaiter_resolve(nil, nil) -- 3470
+	end) -- 3470
+end -- 3470
+local CodingAgentFlow = __TS__Class() -- 3475
+CodingAgentFlow.name = "CodingAgentFlow" -- 3475
+__TS__ClassExtends(CodingAgentFlow, Flow) -- 3475
+function CodingAgentFlow.prototype.____constructor(self, role) -- 3476
+	local main = __TS__New(MainDecisionAgent, 1, 0) -- 3477
+	local read = __TS__New(ReadFileAction, 1, 0) -- 3478
+	local search = __TS__New(SearchFilesAction, 1, 0) -- 3479
+	local searchDora = __TS__New(SearchDoraAPIAction, 1, 0) -- 3480
+	local list = __TS__New(ListFilesAction, 1, 0) -- 3481
+	local listSub = __TS__New(ListSubAgentsAction, 1, 0) -- 3482
+	local del = __TS__New(DeleteFileAction, 1, 0) -- 3483
+	local build = __TS__New(BuildAction, 1, 0) -- 3484
+	local spawn = __TS__New(SpawnSubAgentAction, 1, 0) -- 3485
+	local edit = __TS__New(EditFileAction, 1, 0) -- 3486
+	local batch = __TS__New(BatchToolAction, 1, 0) -- 3487
+	local done = __TS__New(EndNode, 1, 0) -- 3488
+	main:on("batch_tools", batch) -- 3490
+	main:on("grep_files", search) -- 3491
+	main:on("search_dora_api", searchDora) -- 3492
+	main:on("glob_files", list) -- 3493
+	if role == "main" then -- 3493
+		main:on("read_file", read) -- 3495
+		main:on("delete_file", del) -- 3496
+		main:on("build", build) -- 3497
+		main:on("edit_file", edit) -- 3498
+		main:on("list_sub_agents", listSub) -- 3499
+		main:on("spawn_sub_agent", spawn) -- 3500
+	else -- 3500
+		main:on("read_file", read) -- 3502
+		main:on("delete_file", del) -- 3503
+		main:on("build", build) -- 3504
+		main:on("edit_file", edit) -- 3505
+	end -- 3505
+	main:on("done", done) -- 3507
+	search:on("main", main) -- 3509
+	searchDora:on("main", main) -- 3510
+	list:on("main", main) -- 3511
+	listSub:on("main", main) -- 3512
+	spawn:on("main", main) -- 3513
+	batch:on("main", main) -- 3514
+	read:on("main", main) -- 3515
+	del:on("main", main) -- 3516
+	build:on("main", main) -- 3517
+	edit:on("main", main) -- 3518
+	Flow.prototype.____constructor(self, main) -- 3520
+end -- 3476
+local function runCodingAgentAsync(options) -- 3542
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3542
+		if not options.workDir or not Content:isAbsolutePath(options.workDir) or not Content:exist(options.workDir) or not Content:isdir(options.workDir) then -- 3542
+			return ____awaiter_resolve(nil, {success = false, message = "workDir must be an existing absolute directory path"}) -- 3542
+		end -- 3542
+		local normalizedPrompt = ____exports.truncateAgentUserPrompt(options.prompt) -- 3546
+		local llmConfigRes = options.llmConfig and ({success = true, config = options.llmConfig}) or getActiveLLMConfig() -- 3547
+		if not llmConfigRes.success then -- 3547
+			return ____awaiter_resolve(nil, {success = false, message = llmConfigRes.message}) -- 3547
+		end -- 3547
+		local llmConfig = llmConfigRes.config -- 3553
+		local taskRes = options.taskId ~= nil and ({success = true, taskId = options.taskId}) or Tools.createTask(normalizedPrompt) -- 3554
+		if not taskRes.success then -- 3554
+			return ____awaiter_resolve(nil, {success = false, message = taskRes.message}) -- 3554
+		end -- 3554
+		local compressor = __TS__New(MemoryCompressor, { -- 3561
+			compressionThreshold = 0.8, -- 3562
+			compressionTargetThreshold = 0.5, -- 3563
+			maxCompressionRounds = 3, -- 3564
+			projectDir = options.workDir, -- 3565
+			llmConfig = llmConfig, -- 3566
+			promptPack = options.promptPack, -- 3567
+			scope = options.memoryScope -- 3568
+		}) -- 3568
+		local persistedSession = compressor:getStorage():readSessionState() -- 3570
+		local promptPack = compressor:getPromptPack() -- 3571
+		local shared = { -- 3573
+			sessionId = options.sessionId, -- 3574
+			taskId = taskRes.taskId, -- 3575
+			role = options.role or "main", -- 3576
+			maxSteps = math.max( -- 3577
+				1, -- 3577
+				math.floor(options.maxSteps or AGENT_DEFAULT_MAX_STEPS) -- 3577
+			), -- 3577
+			llmMaxTry = math.max( -- 3578
+				1, -- 3578
+				math.floor(options.llmMaxTry or AGENT_DEFAULT_LLM_MAX_TRY) -- 3578
+			), -- 3578
+			step = 0, -- 3579
+			done = false, -- 3580
+			stopToken = options.stopToken or ({stopped = false}), -- 3581
+			response = "", -- 3582
+			userQuery = normalizedPrompt, -- 3583
+			workingDir = options.workDir, -- 3584
+			useChineseResponse = options.useChineseResponse == true, -- 3585
+			decisionMode = options.decisionMode and options.decisionMode or (llmConfig.supportsFunctionCalling and "tool_calling" or "xml"), -- 3586
+			llmOptions = buildLLMOptions(llmConfig, options.llmOptions), -- 3589
+			llmConfig = llmConfig, -- 3590
+			onEvent = options.onEvent, -- 3591
+			promptPack = promptPack, -- 3592
+			history = {}, -- 3593
+			messages = persistedSession.messages, -- 3594
+			lastConsolidatedIndex = persistedSession.lastConsolidatedIndex, -- 3595
+			carryMessageIndex = persistedSession.carryMessageIndex, -- 3596
+			memory = {compressor = compressor}, -- 3598
+			skills = {loader = createSkillsLoader({projectDir = options.workDir})}, -- 3602
+			spawnSubAgent = options.spawnSubAgent, -- 3607
+			listSubAgents = options.listSubAgents -- 3608
+		} -- 3608
+		local ____try = __TS__AsyncAwaiter(function() -- 3608
+			emitAgentEvent(shared, { -- 3612
+				type = "task_started", -- 3613
+				sessionId = shared.sessionId, -- 3614
+				taskId = shared.taskId, -- 3615
+				prompt = shared.userQuery, -- 3616
+				workDir = shared.workingDir, -- 3617
+				maxSteps = shared.maxSteps -- 3618
+			}) -- 3618
+			if shared.stopToken.stopped then -- 3618
+				Tools.setTaskStatus(shared.taskId, "STOPPED") -- 3621
+				return ____awaiter_resolve( -- 3621
+					nil, -- 3621
+					emitAgentTaskFinishEvent( -- 3622
+						shared, -- 3622
+						false, -- 3622
+						getCancelledReason(shared) -- 3622
+					) -- 3622
+				) -- 3622
+			end -- 3622
+			Tools.setTaskStatus(shared.taskId, "RUNNING") -- 3624
+			local promptCommand = getPromptCommand(shared.userQuery) -- 3625
+			if promptCommand == "clear" then -- 3625
+				return ____awaiter_resolve( -- 3625
+					nil, -- 3625
+					clearSessionHistory(shared) -- 3627
+				) -- 3627
+			end -- 3627
+			if promptCommand == "compact" then -- 3627
+				if shared.role == "sub" then -- 3627
+					Tools.setTaskStatus(shared.taskId, "FAILED") -- 3631
+					return ____awaiter_resolve( -- 3631
+						nil, -- 3631
+						emitAgentTaskFinishEvent(shared, false, shared.useChineseResponse and "子代理会话不支持 /compact。" or "Sub-agent sessions do not support /compact.") -- 3632
+					) -- 3632
+				end -- 3632
+				return ____awaiter_resolve( -- 3632
+					nil, -- 3632
+					__TS__Await(compactAllHistory(shared)) -- 3640
+				) -- 3640
+			end -- 3640
+			appendConversationMessage(shared, {role = "user", content = normalizedPrompt}) -- 3642
+			persistHistoryState(shared) -- 3646
+			local flow = __TS__New(CodingAgentFlow, shared.role) -- 3647
+			__TS__Await(flow:run(shared)) -- 3648
+			if shared.stopToken.stopped then -- 3648
+				Tools.setTaskStatus(shared.taskId, "STOPPED") -- 3650
+				return ____awaiter_resolve( -- 3650
+					nil, -- 3650
+					emitAgentTaskFinishEvent( -- 3651
+						shared, -- 3651
+						false, -- 3651
+						getCancelledReason(shared) -- 3651
+					) -- 3651
+				) -- 3651
+			end -- 3651
+			if shared.error then -- 3651
+				return ____awaiter_resolve( -- 3651
+					nil, -- 3651
+					finalizeAgentFailure(shared, shared.response and shared.response ~= "" and shared.response or shared.error) -- 3654
+				) -- 3654
+			end -- 3654
+			Tools.setTaskStatus(shared.taskId, "DONE") -- 3657
+			return ____awaiter_resolve( -- 3657
+				nil, -- 3657
+				emitAgentTaskFinishEvent(shared, true, shared.response or (shared.useChineseResponse and "任务完成。" or "Task completed.")) -- 3658
+			) -- 3658
+		end) -- 3658
+		__TS__Await(____try.catch( -- 3611
+			____try, -- 3611
+			function(____, e) -- 3611
+				return ____awaiter_resolve( -- 3611
+					nil, -- 3611
+					finalizeAgentFailure( -- 3661
+						shared, -- 3661
+						tostring(e) -- 3661
+					) -- 3661
+				) -- 3661
+			end -- 3661
+		)) -- 3661
+	end) -- 3661
+end -- 3542
+function ____exports.runCodingAgent(options, callback) -- 3665
+	local ____self_126 = runCodingAgentAsync(options) -- 3665
+	____self_126["then"]( -- 3665
+		____self_126, -- 3665
+		function(____, result) return callback(result) end -- 3666
+	) -- 3666
+end -- 3665
+return ____exports -- 3665
