@@ -847,7 +847,7 @@ void ImGuiDora::showStats(bool* pOpen, uint32_t windowFlags, const std::function
 					ImPlotFlags_NoFrame | ImPlotFlags_NoMenus | ImPlotFlags_NoBoxSelect | ImPlotFlags_NoTitle | ImPlotFlags_NoInputs)) {
 				ImPlot::SetupAxis(ImAxis_X1, nullptr, ImPlotAxisFlags_NoTickLabels);
 				ImPlot::SetupLegend(ImPlotLocation_South, ImPlotLegendFlags_Horizontal | ImPlotLegendFlags_Outside);
-				ImPlot::PlotInfLines(useChinese ? r_cast<const char*>(u8"基准") : "Base", &info->targetTime, 1, ImPlotInfLinesFlags_Horizontal);
+				ImPlot::PlotInfLines(useChinese ? r_cast<const char*>(u8"基准") : "Base", &info->targetTime, 1, {ImPlotProp_Flags, ImPlotInfLinesFlags_Horizontal});
 				ImPlot::PlotLine("CPU", info->seconds.data(), info->cpuValues.data(),
 					s_cast<int>(info->cpuValues.size()));
 				ImPlot::PlotLine("GPU", info->seconds.data(), info->gpuValues.data(),
@@ -883,7 +883,7 @@ void ImGuiDora::showStats(bool* pOpen, uint32_t windowFlags, const std::function
 					ImPlot::SetupAxis(ImAxis_X1, nullptr, ImPlotAxisFlags_NoDecorations);
 					ImPlot::SetupAxis(ImAxis_Y1, nullptr, ImPlotAxisFlags_NoDecorations);
 					ImPlot::SetupLegend(ImPlotLocation_SouthEast);
-					ImPlot::PlotPieChart(pieLabels.data(), pieValues.data(), s_cast<int>(pieValues.size()), 50, 50, 49, "%.0f", 90.0, ImPlotPieChartFlags_Normalize);
+					ImPlot::PlotPieChart(pieLabels.data(), pieValues.data(), s_cast<int>(pieValues.size()), 50, 50, 49, "%.0f", 90.0, {ImPlotProp_Flags, ImPlotPieChartFlags_Normalize});
 					ImPlot::EndPlot();
 				}
 				ImPlot::PopStyleColor(3);

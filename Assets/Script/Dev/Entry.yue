@@ -1195,7 +1195,7 @@ entryWindow = threadLoop ->
 	maxColumns = math.max math.floor(width / 200), 1
 	SetNextWindowPos Vec2.zero
 	SetNextWindowBgAlpha 0
-	SetNextWindowSize Vec2 fullWidth, 60
+	SetNextWindowSize Vec2 fullWidth, 51
 	do
 		<- PushStyleVar "WindowPadding", Vec2 10, 0
 		<- Begin "Dora Dev", windowFlags
@@ -1215,7 +1215,6 @@ entryWindow = threadLoop ->
 					entryName: "ResourceDownloader"
 					fileName: Path Content.assetPath, "Script", "Tools", "ResourceDownloader"
 		Separator!
-		Dummy Vec2 fullWidth - 20, 0
 
 	anyEntryMatched = false
 	SetNextWindowPos Vec2 0, 50
