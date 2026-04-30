@@ -242,7 +242,7 @@ struct FONSfont
 	FONSttFontImpl font;
 	char name[64];
 
-	Dora::Ref<Dora::TrueTypeFile> file;
+	Dora::TrueTypeFile* file;
 	float ascender;
 	float descender;
 	float lineh;
@@ -887,7 +887,10 @@ static void fons__freeFont(FONSfont* font)
 {
 	if (font == NULL) return;
 	if (font->glyphs) free(font->glyphs);
-	font->file = nullptr;
+	if (font->file) {
+		font->file->release();
+		font->file = nullptr;
+	}
 	free(font);
 }
 
@@ -946,6 +949,7 @@ int fonsAddFontMem(FONScontext* stash, const char* name, Dora::TrueTypeFile* fil
 
 	// Read in the font data.
 	font->file = file;
+	font->file->retain();
 
 	auto data = file->getBuffer();
 	int dataSize = s_cast<int>(file->getSize());

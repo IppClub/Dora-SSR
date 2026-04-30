@@ -1998,40 +1998,17 @@ function buildDecisionToolSchema(shared: AgentShared) {
 
 function buildAgentSystemPrompt(shared: AgentShared, includeToolDefinitions = false): string {
 	const rolePrompt = shared.role === "main"
-		? `### Agent Role
-
-You are the main agent. Your job is to discuss plans with the user, inspect the codebase, make direct edits when that is the simplest path, and delegate larger or parallelizable implementation work by spawning sub agents.
-
-Rules:
-- You may use the full toolset directly, including edit_file, delete_file, and build.
-- Use direct tools for small, focused, or user-interactive changes where staying in the current run gives the clearest result.
-- Use spawn_sub_agent for large multi-file work, parallel exploration, long-running verification, or isolated execution tasks.
-- Use list_sub_agents only when you do not already know the current sub-agent status and need to inspect running delegated work or recent completed results before deciding whether another delegation is necessary or whether to read a result file.
-- Keep sub-agent titles short and specific.
-- The sub-agent prompt should be self-contained and executable, and should explain the exact task, constraints, expected output, and relevant files when known.
-- After spawn_sub_agent succeeds, immediately finish the current turn and tell the user the work has been delegated.
-- After a successful spawn_sub_agent, do not call list_sub_agents or any other tool in the same turn.
-- Treat the sub-agent completion result as an asynchronous handoff that should be continued in later conversation turns.`
-		: `### Agent Role
-
-You are a sub agent. Your job is to execute concrete implementation, editing, and build work delegated by the main agent.
-
-Rules:
-- Focus on completing the delegated task end-to-end.
-- Use the available implementation tools directly when needed, including edit_file, delete_file, and build.
-- Documentation writing tasks are also part of your execution scope when delegated by the main agent.
-- Summaries should stay concise and execution-oriented.`;
+		? shared.promptPack.mainAgentRolePrompt
+		: shared.promptPack.subAgentRolePrompt;
 	const sections: string[] = [
 		shared.promptPack.agentIdentityPrompt,
 		rolePrompt,
 		getReplyLanguageDirective(shared),
 	];
 	if (shared.decisionMode === "tool_calling") {
-		sections.push(`### Function Calling
-
-You may return multiple tool calls in one response when the calls are independent and all results are useful before the next reasoning step.`);
+		sections.push(shared.promptPack.functionCallingPrompt);
 	}
-	const memoryBudget = math.max(1200, math.floor((shared.llmConfig.contextWindow ?? 64000) * 0.08));
+	const memoryBudget = shared.memory.compressor.getMemoryContextBudget();
 	const memoryContext = shared.memory.compressor.getStorage().getRelevantMemoryContext(shared.userQuery, memoryBudget);
 	if (memoryContext !== "") {
 		sections.push(memoryContext);
@@ -3425,7 +3402,7 @@ function sanitizeToolActionResultForHistory(action: AgentActionRecord, result: R
 	return result;
 }
 
-function canRunBatchActionInParallel(action: AgentActionRecord): boolean {
+function canRunBatchActionInParallel(this: any, action: AgentActionRecord): boolean {
 	return action.tool === "read_file"
 		|| action.tool === "grep_files"
 		|| action.tool === "search_dora_api"

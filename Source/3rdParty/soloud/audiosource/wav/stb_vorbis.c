@@ -1403,7 +1403,9 @@ static int set_file_offset(stb_vorbis *f, unsigned int loc)
    #endif
    f->eof = 0;
    if (USE_MEMORY(f)) {
-      if (f->stream_start + loc >= f->stream_end || f->stream_start + loc < f->stream_start) {
+      size_t offset = (size_t)loc;
+      size_t length = (size_t)(f->stream_end - f->stream_start);
+      if (offset >= length) {
          f->stream = f->stream_end;
          f->eof = 1;
          return 0;
