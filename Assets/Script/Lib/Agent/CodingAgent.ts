@@ -2029,7 +2029,7 @@ Rules:
 	if (shared.decisionMode === "tool_calling") {
 		sections.push(`### Function Calling
 
-You may return multiple tool calls in one response when the calls are independent and all results are useful before the next reasoning step. Do not include finish in a multi-tool response.`);
+You may return multiple tool calls in one response when the calls are independent and all results are useful before the next reasoning step.`);
 	}
 	const memoryContext = shared.memory.compressor.getStorage().getMemoryContext();
 	if (memoryContext !== "") {
@@ -2477,15 +2477,6 @@ class MainDecisionAgent extends Node<AgentShared> {
 		if (decisions.length === 1) {
 			Log("Info", `[CodingAgent] tool-calling selected tool=${decisions[0].tool}`);
 			return decisions[0];
-		}
-		for (let i = 0; i < decisions.length; i++) {
-			if (decisions[i].tool === "finish") {
-				return {
-					success: false,
-					message: "finish cannot be mixed with other tool calls",
-					raw: messageContent,
-				};
-			}
 		}
 		Log("Info", `[CodingAgent] tool-calling selected batch tools=${decisions.map(decision => decision.tool).join(",")}`);
 		return {
