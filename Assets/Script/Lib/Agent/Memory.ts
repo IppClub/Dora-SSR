@@ -1797,24 +1797,27 @@ export class MemoryCompressor {
 			},
 		}];
 
-		const messages: Message[] = [
-			{
-				role: "system",
-				content: this.buildToolCallingCompressionSystemPrompt(),
-			},
-			{
-				role: "user",
-				content: prompt
-			}
-		];
-
-		let fn: ToolCallFunction | undefined;
-		let argsText = "";
+		let lastError = "missing save_memory tool call";
 		for (let i = 0; i < maxLLMTry; i++) {
+			const feedback = i > 0
+				? `\n\nPrevious response was invalid (${lastError}). You must call the save_memory tool. Do not write prose. Required arguments: history_entry and memory_update. Optional arguments: project_memory_update and session_summary_update.`
+				: "";
+			const messages: Message[] = [
+				{
+					role: "system",
+					content: this.buildToolCallingCompressionSystemPrompt(),
+				},
+				{
+					role: "user",
+					content: `${prompt}${feedback}`
+				}
+			];
 			const requestOptions = {
 				...llmOptions,
 				tools,
 			};
+			// Some OpenAI-compatible providers reject forced tool_choice. Keep tools enabled,
+			// but repair invalid non-tool responses and fall back to XML below.
 			delete (requestOptions as Record<string, unknown>).tool_choice;
 			debugContext?.onInput?.("memory_compression_tool_calling", messages, requestOptions);
 			const response = await callLLM(
@@ -1825,70 +1828,62 @@ export class MemoryCompressor {
 			);
 
 			if (!response.success) {
-				debugContext?.onOutput?.("memory_compression_tool_calling", response.raw ?? response.message, { success: false });
-				Log("Warn", `[Memory] compression attempt ${i + 1}/${maxLLMTry} failed: ${response.message}`);
+				lastError = response.message;
+				debugContext?.onOutput?.("memory_compression_tool_calling", response.raw ?? response.message, { success: false, attempt: i + 1, error: lastError });
+				Log("Warn", `[Memory] compression tool-calling attempt ${i + 1}/${maxLLMTry} failed: ${response.message}`);
 				continue;
 			}
-			debugContext?.onOutput?.("memory_compression_tool_calling", encodeCompressionDebugJSON(response.response), { success: true });
+			debugContext?.onOutput?.("memory_compression_tool_calling", encodeCompressionDebugJSON(response.response), { success: true, attempt: i + 1 });
 
 			const choice = response.response.choices && response.response.choices[0];
 			const message = choice && choice.message;
 			const toolCalls = message && message.tool_calls;
 			const toolCall = toolCalls && toolCalls[0];
-			fn = toolCall && toolCall.function;
-			argsText = fn && typeof fn.arguments === "string" ? fn.arguments : "";
-			if (fn !== undefined && argsText.length > 0) break;
-		}
-
-		if (!fn || fn.name !== "save_memory") {
-			return {
-				success: false,
-				memoryUpdate: currentMemory,
-				compressedCount: 0,
-				error: "missing save_memory tool call",
-			};
-		}
-
-		if (argsText.trim() === "") {
-			return {
-				success: false,
-				memoryUpdate: currentMemory,
-				compressedCount: 0,
-				error: "empty save_memory tool arguments",
-			};
-		}
-
-		// 解析 tool arguments JSON
-		try {
-			const [args, err] = safeJsonDecode(argsText);
-			if (err !== undefined || !args || typeof args !== "object") {
-				return {
-					success: false,
-					memoryUpdate: currentMemory,
-					compressedCount: 0,
-					error: `Failed to parse tool arguments JSON: ${tostring(err)}`,
-				};
+			const fn = toolCall && toolCall.function;
+			const argsText = fn && typeof fn.arguments === "string" ? fn.arguments : "";
+			if (!fn || fn.name !== "save_memory") {
+				const contentPreview = message && typeof message.content === "string" && message.content.trim() !== ""
+					? `; content=${utf8TakeHead(message.content.trim(), 240)}`
+					: "";
+				lastError = `missing save_memory tool call${contentPreview}`;
+				Log("Warn", `[Memory] compression tool-calling attempt ${i + 1}/${maxLLMTry} invalid: ${lastError}`);
+				continue;
+			}
+			if (argsText.trim() === "") {
+				lastError = "empty save_memory tool arguments";
+				Log("Warn", `[Memory] compression tool-calling attempt ${i + 1}/${maxLLMTry} invalid: ${lastError}`);
+				continue;
 			}
 
-			return this.buildCompressionResultFromObject(
-				args as Record<string, unknown>,
-				currentMemory
-			);
-		} catch (error) {
-			return {
-				success: false,
-				memoryUpdate: currentMemory,
-				compressedCount: 0,
-				error: `Failed to process LLM response: ${error instanceof Error ? error.message : tostring(error)}`,
-			};
+			const [args, err] = safeJsonDecode(argsText);
+			if (err !== undefined || !args || typeof args !== "object") {
+				lastError = `Failed to parse tool arguments JSON: ${tostring(err)}`;
+				Log("Warn", `[Memory] compression tool-calling attempt ${i + 1}/${maxLLMTry} invalid: ${lastError}`);
+				continue;
+			}
+
+			try {
+				const result = this.buildCompressionResultFromObject(
+					args as Record<string, unknown>,
+					currentMemory
+				);
+				if (result.success) return result;
+				lastError = result.error || "invalid save_memory arguments";
+				Log("Warn", `[Memory] compression tool-calling attempt ${i + 1}/${maxLLMTry} invalid: ${lastError}`);
+			} catch (error) {
+				lastError = `Failed to process LLM response: ${error instanceof Error ? error.message : tostring(error)}`;
+				Log("Warn", `[Memory] compression tool-calling attempt ${i + 1}/${maxLLMTry} invalid: ${lastError}`);
+			}
 		}
-		Log("Error", `[Memory] compression tool-calling exhausted ${maxLLMTry} retries`);
-		return {
-			success: false,
-			memoryUpdate: currentMemory,
-			compressedCount: 0,
-			error: `compression failed after ${maxLLMTry} retries`,
-		};
+
+		Log("Warn", `[Memory] compression tool-calling exhausted ${maxLLMTry} retries, falling back to XML: ${lastError}`);
+		return this.callLLMForCompressionByXML(
+			currentMemory,
+			historyText,
+			llmOptions,
+			maxLLMTry,
+			debugContext
+		);
 	}
 
 	private async callLLMForCompressionByXML(
