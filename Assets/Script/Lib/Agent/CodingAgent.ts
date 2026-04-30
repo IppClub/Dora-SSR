@@ -2031,7 +2031,8 @@ Rules:
 
 You may return multiple tool calls in one response when the calls are independent and all results are useful before the next reasoning step.`);
 	}
-	const memoryContext = shared.memory.compressor.getStorage().getMemoryContext();
+	const memoryBudget = math.max(1200, math.floor((shared.llmConfig.contextWindow ?? 64000) * 0.08));
+	const memoryContext = shared.memory.compressor.getStorage().getRelevantMemoryContext(shared.userQuery, memoryBudget);
 	if (memoryContext !== "") {
 		sections.push(memoryContext);
 	}
@@ -3424,6 +3425,14 @@ function sanitizeToolActionResultForHistory(action: AgentActionRecord, result: R
 	return result;
 }
 
+function canRunBatchActionInParallel(action: AgentActionRecord): boolean {
+	return action.tool === "read_file"
+		|| action.tool === "grep_files"
+		|| action.tool === "search_dora_api"
+		|| action.tool === "glob_files"
+		|| action.tool === "list_sub_agents";
+}
+
 class BatchToolAction extends Node<AgentShared> {
 	async prep(shared: AgentShared): Promise<{ shared: AgentShared; actions: AgentActionRecord[] }> {
 		return { shared, actions: shared.pendingToolActions ?? [] };
@@ -3431,20 +3440,49 @@ class BatchToolAction extends Node<AgentShared> {
 
 	async exec(input: { shared: AgentShared; actions: AgentActionRecord[] }): Promise<AgentActionRecord[]> {
 		const shared = input.shared;
+		const allParallelSafe = input.actions.length > 1 && input.actions.every(canRunBatchActionInParallel);
+		if (!allParallelSafe) {
+			for (let i = 0; i < input.actions.length; i++) {
+				const action = input.actions[i];
+				emitAgentStartEvent(shared, action);
+				const result = await executeToolAction(shared, action);
+				action.params = sanitizeActionParamsForHistory(action.tool, action.params);
+				action.result = sanitizeToolActionResultForHistory(action, result);
+				appendToolResultMessage(shared, action);
+				emitAgentFinishEvent(shared, action);
+				emitCheckpointEventForAction(shared, action);
+				persistHistoryState(shared);
+				if (shared.stopToken.stopped) {
+					break;
+				}
+			}
+			return input.actions;
+		}
+
+		Log("Info", `[CodingAgent] batch read-only tools executing in parallel count=${input.actions.length}`);
 		for (let i = 0; i < input.actions.length; i++) {
-			const action = input.actions[i];
-			emitAgentStartEvent(shared, action);
+			emitAgentStartEvent(shared, input.actions[i]);
+		}
+		await Promise.all(input.actions.map(async action => {
+			if (shared.stopToken.stopped) {
+				action.result = { success: false, message: getCancelledReason(shared) };
+				return action;
+			}
 			const result = await executeToolAction(shared, action);
 			action.params = sanitizeActionParamsForHistory(action.tool, action.params);
 			action.result = sanitizeToolActionResultForHistory(action, result);
+			return action;
+		}));
+		for (let i = 0; i < input.actions.length; i++) {
+			const action = input.actions[i];
+			if (!action.result) {
+				action.result = { success: false, message: "tool did not produce a result" };
+			}
 			appendToolResultMessage(shared, action);
 			emitAgentFinishEvent(shared, action);
 			emitCheckpointEventForAction(shared, action);
-			persistHistoryState(shared);
-			if (shared.stopToken.stopped) {
-				break;
-			}
 		}
+		persistHistoryState(shared);
 		return input.actions;
 	}
 

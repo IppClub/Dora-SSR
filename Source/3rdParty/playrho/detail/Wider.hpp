@@ -109,7 +109,7 @@ struct Wider<std::uint64_t> {
 
 } // namespace playrho::detail
 
-#if defined(PLAYRHO_INT128) && defined(PLAYRHO_UINT128)
+#if defined(PLAYRHO_INT128) && defined(PLAYRHO_UINT128) && !defined(_LIBCPP_VERSION)
 // This might already be defined by the standard library header, but
 // define it here explicitly in case it's not.
 
