@@ -887,7 +887,7 @@ NS_DORA_END
 // Entry functions needed by SDL2
 #if BX_PLATFORM_OSX || BX_PLATFORM_ANDROID || BX_PLATFORM_IOS || BX_PLATFORM_LINUX
 #ifndef DORA_AS_LIB
-extern "C" int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
 	return SharedApplication.run();
 }
 #endif // !DORA_AS_LIB
