@@ -2,7 +2,7 @@
 import { App, Path, Content } from 'Dora';
 import { Flow, Node } from 'Agent/flow';
 import { callLLM, callLLMStreamAggregated, Message, StopToken, Log, getActiveLLMConfig, createLocalToolCallId, parseSimpleXMLChildren, parseXMLObjectFromText, safeJsonDecode, safeJsonEncode, sanitizeUTF8 } from 'Agent/Utils';
-import type { LLMConfig } from 'Agent/Utils';
+import type { LLMConfig, ToolCall } from 'Agent/Utils';
 import * as Tools from 'Agent/Tools';
 import { MemoryCompressor } from 'Agent/Memory';
 import type { AgentPromptPack, AgentConversationMessage } from 'Agent/Memory';
@@ -706,6 +706,7 @@ interface AgentShared {
 	promptPack: AgentPromptPack;
 	history: AgentActionRecord[];
 	pendingToolActions?: AgentActionRecord[];
+	preExecutedResults?: Map<string, Promise<Record<string, unknown>>>;
 	messages: AgentConversationMessage[];
 	lastConsolidatedIndex: number;
 	carryMessageIndex?: number;
@@ -1165,6 +1166,42 @@ XML mode object fields:
 
 function isToolAllowedForRole(role: AgentRole, tool: AgentToolName): boolean {
 	return getAllowedToolsForRole(role).indexOf(tool) >= 0;
+}
+
+const PRE_EXEC_SAFE_TOOLS: AgentToolName[] = [
+	"read_file",
+	"grep_files",
+	"search_dora_api",
+	"glob_files",
+	"list_sub_agents",
+];
+
+function canPreExecuteTool(tool: AgentToolName): boolean {
+	return PRE_EXEC_SAFE_TOOLS.indexOf(tool) >= 0;
+}
+
+function clearPreExecutedResults(shared: AgentShared): void {
+	shared.preExecutedResults = undefined;
+}
+
+async function startPreExecutedToolAction(shared: AgentShared, action: AgentActionRecord): Promise<Record<string, unknown>> {
+	try {
+		return await executeToolAction(shared, action);
+	} catch (err) {
+		const message = tostring(err);
+		Log("Error", `[CodingAgent] streaming pre-exec failed tool=${action.tool} id=${action.toolCallId}: ${message}`);
+		return { success: false, message };
+	}
+}
+
+async function executeToolActionWithPreExecution(shared: AgentShared, action: AgentActionRecord): Promise<Record<string, unknown>> {
+	const preResult = shared.preExecutedResults?.get(action.toolCallId);
+	if (preResult) {
+		Log("Info", `[CodingAgent] using streaming pre-exec result tool=${action.tool} id=${action.toolCallId}`);
+		shared.preExecutedResults?.delete(action.toolCallId);
+		return await preResult;
+	}
+	return executeToolAction(shared, action);
 }
 
 async function maybeCompressHistory(shared: AgentShared): Promise<void> {
@@ -1726,6 +1763,28 @@ function parseAndValidateToolCallDecision(
 	decision.reason = reason;
 	decision.reasoningContent = reasoningContent;
 	return decision;
+}
+
+function createPreExecutableActionFromStream(shared: AgentShared, toolCall: ToolCall): AgentActionRecord | undefined {
+	const functionName = toolCall.function?.name;
+	const argsText = toolCall.function?.arguments ?? "";
+	const toolCallId = typeof toolCall.id === "string" ? toolCall.id : undefined;
+	if (!functionName || !toolCallId) return undefined;
+	const rawArgs = parseToolCallArguments(functionName, argsText);
+	if (isRecord(rawArgs) && rawArgs.success === false) return undefined;
+	const decision = parseDecisionToolCall(functionName, rawArgs);
+	if (!decision.success || !canPreExecuteTool(decision.tool)) return undefined;
+	const validation = validateDecision(decision.tool, decision.params);
+	if (!validation.success) return undefined;
+	if (!isToolAllowedForRole(shared.role, decision.tool)) return undefined;
+	return {
+		step: shared.step + 1,
+		toolCallId,
+		tool: decision.tool,
+		reason: "",
+		params: validation.params,
+		timestamp: os.date("!%Y-%m-%dT%H:%M:%SZ"),
+	};
 }
 
 function getDecisionPath(params: Record<string, unknown>): string {
@@ -2361,6 +2420,8 @@ class MainDecisionAgent extends Node<AgentShared> {
 		saveStepLLMDebugInput(shared, stepId, "decision_tool_calling", messages, llmOptions);
 		let lastStreamContent = "";
 		let lastStreamReasoning = "";
+		const preExecutedResults = new Map<string, Promise<Record<string, unknown>>>();
+		shared.preExecutedResults = preExecutedResults;
 		const res = await callLLMStreamAggregated(
 			messages,
 			llmOptions,
@@ -2380,14 +2441,23 @@ class MainDecisionAgent extends Node<AgentShared> {
 				lastStreamContent = nextContent;
 				lastStreamReasoning = nextReasoning;
 				emitAssistantMessageUpdated(shared, nextContent, nextReasoning !== "" ? nextReasoning : undefined);
+			},
+			(tc) => {
+				if (shared.stopToken.stopped) return;
+				const action = createPreExecutableActionFromStream(shared, tc);
+				if (!action || preExecutedResults.has(action.toolCallId)) return;
+				Log("Info", `[CodingAgent] streaming pre-exec tool=${action.tool} id=${action.toolCallId}`);
+				preExecutedResults.set(action.toolCallId, startPreExecutedToolAction(shared, action));
 			}
 		);
 		if (shared.stopToken.stopped) {
+			clearPreExecutedResults(shared);
 			return { success: false, message: getCancelledReason(shared) };
 		}
 		if (!res.success) {
 			saveStepLLMDebugOutput(shared, stepId, "decision_tool_calling", res.raw ?? res.message, { success: false });
 			Log("Error", `[CodingAgent] tool-calling request failed: ${res.message}`);
+			clearPreExecutedResults(shared);
 			return { success: false, message: res.message, raw: res.raw };
 		}
 		saveStepLLMDebugOutput(shared, stepId, "decision_tool_calling", encodeDebugJSON(res.response), { success: true });
@@ -2404,6 +2474,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 		if (!toolCalls || toolCalls.length === 0) {
 			if (messageContent && messageContent !== "") {
 				Log("Info", `[CodingAgent] tool-calling fallback direct_finish_len=${messageContent.length}`);
+				clearPreExecutedResults(shared);
 				return {
 					success: true,
 					tool: "finish",
@@ -2414,6 +2485,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 				};
 			}
 			Log("Error", `[CodingAgent] missing tool call and plain-text fallback`);
+			clearPreExecutedResults(shared);
 			return {
 				success: false,
 				message: "missing tool call",
@@ -2426,6 +2498,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 			const fn = toolCall && toolCall.function;
 			if (!fn || typeof fn.name !== "string" || fn.name === "") {
 				Log("Error", `[CodingAgent] missing function name for tool call index=${i + 1}`);
+				clearPreExecutedResults(shared);
 				return {
 					success: false,
 					message: `missing function name for tool call ${i + 1}`,
@@ -2448,6 +2521,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 			);
 			if (!decision.success) {
 				Log("Error", `[CodingAgent] invalid tool call index=${i + 1}: ${decision.message}`);
+				clearPreExecutedResults(shared);
 				return decision;
 			}
 			decisions.push(decision);
@@ -2455,6 +2529,16 @@ class MainDecisionAgent extends Node<AgentShared> {
 		if (decisions.length === 1) {
 			Log("Info", `[CodingAgent] tool-calling selected tool=${decisions[0].tool}`);
 			return decisions[0];
+		}
+		for (let i = 0; i < decisions.length; i++) {
+			if (decisions[i].tool === "finish") {
+				clearPreExecutedResults(shared);
+				return {
+					success: false,
+					message: "finish cannot be mixed with other tool calls",
+					raw: messageContent,
+				};
+			}
 		}
 		Log("Info", `[CodingAgent] tool-calling selected batch tools=${decisions.map(decision => decision.tool).join(",")}`);
 		return {
@@ -2689,6 +2773,12 @@ class MainDecisionAgent extends Node<AgentShared> {
 		});
 		const action = shared.history[shared.history.length - 1];
 		appendAssistantToolCallsMessage(shared, [action], result.reason ?? "", result.reasoningContent);
+		if (canPreExecuteTool(action.tool)) {
+			shared.pendingToolActions = [action];
+			persistHistoryState(shared);
+			return "batch_tools";
+		}
+		clearPreExecutedResults(shared);
 		persistHistoryState(shared);
 		return result.tool;
 	}
@@ -3417,12 +3507,13 @@ class BatchToolAction extends Node<AgentShared> {
 
 	async exec(input: { shared: AgentShared; actions: AgentActionRecord[] }): Promise<AgentActionRecord[]> {
 		const shared = input.shared;
+		const preExecuted = shared.preExecutedResults;
 		const allParallelSafe = input.actions.length > 1 && input.actions.every(canRunBatchActionInParallel);
 		if (!allParallelSafe) {
 			for (let i = 0; i < input.actions.length; i++) {
 				const action = input.actions[i];
 				emitAgentStartEvent(shared, action);
-				const result = await executeToolAction(shared, action);
+				const result = await executeToolActionWithPreExecution(shared, action);
 				action.params = sanitizeActionParamsForHistory(action.tool, action.params);
 				action.result = sanitizeToolActionResultForHistory(action, result);
 				appendToolResultMessage(shared, action);
@@ -3436,7 +3527,8 @@ class BatchToolAction extends Node<AgentShared> {
 			return input.actions;
 		}
 
-		Log("Info", `[CodingAgent] batch read-only tools executing in parallel count=${input.actions.length}`);
+		const preExecCount = input.actions.filter(a => preExecuted?.has(a.toolCallId)).length;
+		Log("Info", `[CodingAgent] batch read-only tools executing in parallel count=${input.actions.length} pre_executed=${preExecCount}`);
 		for (let i = 0; i < input.actions.length; i++) {
 			emitAgentStartEvent(shared, input.actions[i]);
 		}
@@ -3445,7 +3537,7 @@ class BatchToolAction extends Node<AgentShared> {
 				action.result = { success: false, message: getCancelledReason(shared) };
 				return action;
 			}
-			const result = await executeToolAction(shared, action);
+			const result = await executeToolActionWithPreExecution(shared, action);
 			action.params = sanitizeActionParamsForHistory(action.tool, action.params);
 			action.result = sanitizeToolActionResultForHistory(action, result);
 			return action;
@@ -3465,6 +3557,7 @@ class BatchToolAction extends Node<AgentShared> {
 
 	async post(shared: AgentShared, _prepRes: unknown, _execRes: unknown): Promise<string | undefined> {
 		shared.pendingToolActions = undefined;
+		shared.preExecutedResults = undefined;
 		persistHistoryState(shared);
 		await maybeCompressHistory(shared);
 		persistHistoryState(shared);

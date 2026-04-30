@@ -922,7 +922,17 @@ function mergeStreamToolCall(target: ToolCall, delta: StreamDeltaToolCall) {
 	}
 }
 
-function mergeStreamChoice(acc: StreamChoiceAccumulator, choice: Choice) {
+function isToolCallComplete(tc: ToolCall): boolean {
+	if (typeof tc.id !== "string" || tc.id === "") return false;
+	if (!tc.function || typeof tc.function.name !== "string" || tc.function.name === "") return false;
+	if (typeof tc.function.arguments !== "string" || tc.function.arguments === "") return false;
+	const args = tc.function.arguments;
+	if (args.charCodeAt(args.length - 1) !== 125) return false; // not '}'
+	const [decoded] = safeJsonDecode(args);
+	return decoded !== undefined;
+}
+
+function mergeStreamChoice(acc: StreamChoiceAccumulator, choice: Choice, onToolCallReady?: (tc: ToolCall) => void, emittedToolCallIds?: Record<string, boolean>) {
 	const delta = choice.delta ?? {};
 	const fullMessage = choice.message ?? {};
 	const message = acc.message;
@@ -956,6 +966,13 @@ function mergeStreamChoice(acc: StreamChoiceAccumulator, choice: Choice) {
 				: i;
 			message.tool_calls[index] ??= {};
 			mergeStreamToolCall(message.tool_calls[index], item);
+			if (onToolCallReady && emittedToolCallIds) {
+				const tc = message.tool_calls[index];
+				if (tc && isToolCallComplete(tc) && !emittedToolCallIds[tc.id!]) {
+					emittedToolCallIds[tc.id!] = true;
+					onToolCallReady(tc);
+				}
+			}
 		}
 	}
 	if (typeof choice.finish_reason === "string" && choice.finish_reason !== "") {
@@ -1002,7 +1019,8 @@ export async function callLLMStreamAggregated(
 	options: Record<string, any>,
 	stopTokenOrConfig?: StopToken | LLMConfig,
 	llmConfig?: LLMConfig,
-	onChunk?: (response: LLMResponseData, chunk: LLMStreamData) => void
+	onChunk?: (response: LLMResponseData, chunk: LLMStreamData) => void,
+	onToolCallReady?: (toolCall: ToolCall) => void
 ): Promise<{ success: true; response: LLMResponseData } | { success: false; message: string; raw?: string }> {
 	const stopToken = stopTokenOrConfig && "stopped" in stopTokenOrConfig ? stopTokenOrConfig : undefined;
 	const config = stopTokenOrConfig && "url" in stopTokenOrConfig
@@ -1033,6 +1051,7 @@ export async function callLLMStreamAggregated(
 	}
 	try {
 		const states: Record<number, StreamChoiceAccumulator> = {};
+		const emittedToolCallIds: Record<string, boolean> = {};
 		let responseId: string | undefined = undefined;
 		let responseCreated: number | undefined = undefined;
 		let responseObject: string | undefined = undefined;
@@ -1084,7 +1103,7 @@ export async function callLLMStreamAggregated(
 						index,
 						message: { role: "assistant" },
 					};
-					mergeStreamChoice(states[index], choice);
+					mergeStreamChoice(states[index], choice, onToolCallReady, emittedToolCallIds);
 				}
 				onChunk?.(
 					buildStreamResponse(states, model, responseId, responseCreated, responseObject, providerError),

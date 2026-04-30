@@ -36,7 +36,7 @@ local URIError = ____lualib.URIError -- 1
 local __TS__ArrayEvery = ____lualib.__TS__ArrayEvery -- 1
 local __TS__PromiseAll = ____lualib.__TS__PromiseAll -- 1
 local ____exports = {} -- 1
-local isArray, stripWrappingQuotes, parseSimpleYAML, emitAgentEvent, truncateText, getReplyLanguageDirective, replacePromptVars, getDecisionToolDefinitions, getFinishMessage, persistHistoryState, getActiveConversationMessages, getActiveRealMessageCount, applyCompressedSessionState, getDecisionPath, clampIntegerParam, parseReadLineParam, validateDecision, getAllowedToolsForRole, buildAgentSystemPrompt, buildSkillsSection, buildXmlDecisionInstruction, emitAgentTaskFinishEvent, READ_FILE_DEFAULT_LIMIT, SEARCH_DORA_API_LIMIT_MAX, SEARCH_FILES_LIMIT_DEFAULT, LIST_FILES_MAX_ENTRIES_DEFAULT -- 1
+local isArray, stripWrappingQuotes, parseSimpleYAML, emitAgentEvent, truncateText, getReplyLanguageDirective, replacePromptVars, getDecisionToolDefinitions, getFinishMessage, persistHistoryState, getActiveConversationMessages, getActiveRealMessageCount, applyCompressedSessionState, getDecisionPath, clampIntegerParam, parseReadLineParam, validateDecision, getAllowedToolsForRole, buildAgentSystemPrompt, buildSkillsSection, buildXmlDecisionInstruction, emitAgentTaskFinishEvent, canPreExecuteTool, clearPreExecutedResults, startPreExecutedToolAction, executeToolActionWithPreExecution, createPreExecutableActionFromStream, executeToolAction, READ_FILE_DEFAULT_LIMIT, SEARCH_DORA_API_LIMIT_MAX, SEARCH_FILES_LIMIT_DEFAULT, LIST_FILES_MAX_ENTRIES_DEFAULT -- 1
 local ____Dora = require("Dora") -- 2
 local App = ____Dora.App -- 2
 local Path = ____Dora.Path -- 2
@@ -1176,6 +1176,56 @@ local function isToolAllowedForRole(role, tool) -- 1166
 		tool -- 1167
 	) >= 0 -- 1167
 end -- 1166
+local PRE_EXEC_SAFE_TOOLS = {
+	"read_file",
+	"grep_files",
+	"search_dora_api",
+	"glob_files",
+	"list_sub_agents"
+}
+function canPreExecuteTool(tool)
+	return __TS__ArrayIndexOf(PRE_EXEC_SAFE_TOOLS, tool) >= 0
+end
+function clearPreExecutedResults(shared)
+	shared.preExecutedResults = nil
+end
+function startPreExecutedToolAction(shared, action)
+	return __TS__AsyncAwaiter(function(____awaiter_resolve)
+		local ____try = __TS__AsyncAwaiter(function()
+			return ____awaiter_resolve(
+				nil,
+				__TS__Await(executeToolAction(shared, action))
+			)
+		end)
+		__TS__Await(____try.catch(
+			____try,
+			function(____, err)
+				local message = tostring(err)
+				Log("Error", ((("[CodingAgent] streaming pre-exec failed tool=" .. action.tool) .. " id=") .. action.toolCallId .. ": ") .. message)
+				return ____awaiter_resolve(nil, {success = false, message = message})
+			end
+		))
+	end)
+end
+function executeToolActionWithPreExecution(shared, action)
+	return __TS__AsyncAwaiter(function(____awaiter_resolve)
+		local preResult = shared.preExecutedResults and shared.preExecutedResults:get(action.toolCallId) or nil
+		if preResult then
+			Log("Info", (("[CodingAgent] using streaming pre-exec result tool=" .. action.tool) .. " id=") .. action.toolCallId)
+			if shared.preExecutedResults then
+				shared.preExecutedResults:delete(action.toolCallId)
+			end
+			return ____awaiter_resolve(
+				nil,
+				__TS__Await(preResult)
+			)
+		end
+		return ____awaiter_resolve(
+			nil,
+			executeToolAction(shared, action)
+		)
+	end)
+end
 local function maybeCompressHistory(shared) -- 1170
 	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 1170
 		local ____shared_9 = shared -- 1171
@@ -1628,6 +1678,38 @@ local function parseAndValidateToolCallDecision(shared, functionName, argsText, 
 	decision.reasoningContent = reasoningContent -- 1727
 	return decision -- 1728
 end -- 1689
+function createPreExecutableActionFromStream(shared, toolCall)
+	local fn = toolCall and toolCall["function"]
+	local functionName = fn and fn.name or nil
+	local argsText = fn and fn.arguments or ""
+	local toolCallId = type(toolCall and toolCall.id) == "string" and toolCall.id or nil
+	if not functionName or not toolCallId then
+		return nil
+	end
+	local rawArgs = parseToolCallArguments(functionName, argsText)
+	if isRecord(rawArgs) and rawArgs.success == false then
+		return nil
+	end
+	local decision = parseDecisionToolCall(functionName, rawArgs)
+	if not decision.success or not canPreExecuteTool(decision.tool) then
+		return nil
+	end
+	local validation = validateDecision(decision.tool, decision.params)
+	if not validation.success then
+		return nil
+	end
+	if not isToolAllowedForRole(shared.role, decision.tool) then
+		return nil
+	end
+	return {
+		step = shared.step + 1,
+		toolCallId = toolCallId,
+		tool = decision.tool,
+		reason = "",
+		params = validation.params,
+		timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
+	}
+end
 local function createFunctionToolSchema(name, description, properties, required) -- 1867
 	if required == nil then -- 1867
 		required = {} -- 1871
@@ -2062,6 +2144,8 @@ function MainDecisionAgent.prototype.callDecisionByToolCalling(self, shared, las
 		) -- 2361
 		local lastStreamContent = "" -- 2362
 		local lastStreamReasoning = "" -- 2363
+		local preExecutedResults = __TS__New(Map)
+		shared.preExecutedResults = preExecutedResults
 		local res = __TS__Await(callLLMStreamAggregated( -- 2364
 			messages, -- 2365
 			llmOptions, -- 2366
@@ -2079,9 +2163,24 @@ function MainDecisionAgent.prototype.callDecisionByToolCalling(self, shared, las
 				lastStreamContent = nextContent -- 2380
 				lastStreamReasoning = nextReasoning -- 2381
 				emitAssistantMessageUpdated(shared, nextContent, nextReasoning ~= "" and nextReasoning or nil) -- 2382
-			end -- 2369
+			end, -- 2369
+			function(tc)
+				if shared.stopToken.stopped then
+					return
+				end
+				local action = createPreExecutableActionFromStream(shared, tc)
+				if not action or preExecutedResults:has(action.toolCallId) then
+					return
+				end
+				Log("Info", (("[CodingAgent] streaming pre-exec tool=" .. action.tool) .. " id=") .. action.toolCallId)
+				preExecutedResults:set(
+					action.toolCallId,
+					startPreExecutedToolAction(shared, action)
+				)
+			end
 		)) -- 2369
 		if shared.stopToken.stopped then -- 2369
+			clearPreExecutedResults(shared)
 			return ____awaiter_resolve( -- 2369
 				nil, -- 2369
 				{ -- 2386
@@ -2099,6 +2198,7 @@ function MainDecisionAgent.prototype.callDecisionByToolCalling(self, shared, las
 				{success = false} -- 2389
 			) -- 2389
 			Log("Error", "[CodingAgent] tool-calling request failed: " .. res.message) -- 2390
+			clearPreExecutedResults(shared)
 			return ____awaiter_resolve(nil, {success = false, message = res.message, raw = res.raw}) -- 2390
 		end -- 2390
 		saveStepLLMDebugOutput( -- 2393
@@ -2123,6 +2223,7 @@ function MainDecisionAgent.prototype.callDecisionByToolCalling(self, shared, las
 					"Info", -- 2406
 					"[CodingAgent] tool-calling fallback direct_finish_len=" .. tostring(#messageContent) -- 2406
 				) -- 2406
+				clearPreExecutedResults(shared)
 				return ____awaiter_resolve(nil, { -- 2406
 					success = true, -- 2408
 					tool = "finish", -- 2409
@@ -2133,6 +2234,7 @@ function MainDecisionAgent.prototype.callDecisionByToolCalling(self, shared, las
 				}) -- 2413
 			end -- 2413
 			Log("Error", "[CodingAgent] missing tool call and plain-text fallback") -- 2416
+			clearPreExecutedResults(shared)
 			return ____awaiter_resolve(nil, {success = false, message = "missing tool call", raw = messageContent}) -- 2416
 		end -- 2416
 		local decisions = {} -- 2423
@@ -2146,6 +2248,7 @@ function MainDecisionAgent.prototype.callDecisionByToolCalling(self, shared, las
 						"Error", -- 2428
 						"[CodingAgent] missing function name for tool call index=" .. tostring(i + 1) -- 2428
 					) -- 2428
+					clearPreExecutedResults(shared)
 					return ____awaiter_resolve( -- 2428
 						nil, -- 2428
 						{ -- 2429
@@ -2175,6 +2278,7 @@ function MainDecisionAgent.prototype.callDecisionByToolCalling(self, shared, las
 						"Error", -- 2450
 						(("[CodingAgent] invalid tool call index=" .. tostring(i + 1)) .. ": ") .. decision.message -- 2450
 					) -- 2450
+					clearPreExecutedResults(shared)
 					return ____awaiter_resolve(nil, decision) -- 2450
 				end -- 2450
 				decisions[#decisions + 1] = decision -- 2453
@@ -2185,6 +2289,16 @@ function MainDecisionAgent.prototype.callDecisionByToolCalling(self, shared, las
 			Log("Info", "[CodingAgent] tool-calling selected tool=" .. decisions[1].tool) -- 2456
 			return ____awaiter_resolve(nil, decisions[1]) -- 2456
 		end -- 2456
+		do
+			local i = 0
+			while i < #decisions do
+				if decisions[i + 1].tool == "finish" then
+					clearPreExecutedResults(shared)
+					return ____awaiter_resolve(nil, {success = false, message = "finish cannot be mixed with other tool calls", raw = messageContent})
+				end
+				i = i + 1
+			end
+		end
 		Log( -- 2459
 			"Info", -- 2459
 			"[CodingAgent] tool-calling selected batch tools=" .. table.concat( -- 2459
@@ -2491,6 +2605,12 @@ function MainDecisionAgent.prototype.post(self, shared, _prepRes, execRes) -- 25
 		} -- 2688
 		local action = shared.history[#shared.history] -- 2690
 		appendAssistantToolCallsMessage(shared, {action}, result.reason or "", result.reasoningContent) -- 2691
+		if canPreExecuteTool(action.tool) then
+			shared.pendingToolActions = {action}
+			persistHistoryState(shared) -- 2692
+			return ____awaiter_resolve(nil, "batch_tools")
+		end
+		clearPreExecutedResults(shared)
 		persistHistoryState(shared) -- 2692
 		return ____awaiter_resolve(nil, result.tool) -- 2692
 	end) -- 2692
@@ -3167,7 +3287,7 @@ local function emitCheckpointEventForAction(shared, action) -- 3222
 		}) -- 3237
 	end -- 3237
 end -- 3222
-local function executeToolAction(shared, action) -- 3242
+function executeToolAction(shared, action) -- 3242
 	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3242
 		if shared.stopToken.stopped then -- 3242
 			return ____awaiter_resolve( -- 3242
@@ -3418,6 +3538,7 @@ end -- 3414
 function BatchToolAction.prototype.exec(self, input) -- 3418
 	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3418
 		local shared = input.shared -- 3419
+		local preExecuted = shared.preExecutedResults
 		local allParallelSafe = #input.actions > 1 and __TS__ArrayEvery(input.actions, canRunBatchActionInParallel) -- 3420
 		if not allParallelSafe then -- 3420
 			do -- 3420
@@ -3425,7 +3546,7 @@ function BatchToolAction.prototype.exec(self, input) -- 3418
 				while i < #input.actions do -- 3422
 					local action = input.actions[i + 1] -- 3423
 					emitAgentStartEvent(shared, action) -- 3424
-					local result = __TS__Await(executeToolAction(shared, action)) -- 3425
+					local result = __TS__Await(executeToolActionWithPreExecution(shared, action)) -- 3425
 					action.params = sanitizeActionParamsForHistory(action.tool, action.params) -- 3426
 					action.result = sanitizeToolActionResultForHistory(action, result) -- 3427
 					appendToolResultMessage(shared, action) -- 3428
@@ -3440,9 +3561,13 @@ function BatchToolAction.prototype.exec(self, input) -- 3418
 			end -- 3422
 			return ____awaiter_resolve(nil, input.actions) -- 3422
 		end -- 3422
+		local preExecCount = #__TS__ArrayFilter(
+			input.actions,
+			function(____, a) return preExecuted and preExecuted:has(a.toolCallId) end
+		)
 		Log( -- 3439
 			"Info", -- 3439
-			"[CodingAgent] batch read-only tools executing in parallel count=" .. tostring(#input.actions) -- 3439
+			(("[CodingAgent] batch read-only tools executing in parallel count=" .. tostring(#input.actions)) .. " pre_executed=") .. tostring(preExecCount) -- 3439
 		) -- 3439
 		do -- 3439
 			local i = 0 -- 3440
@@ -3462,7 +3587,7 @@ function BatchToolAction.prototype.exec(self, input) -- 3418
 						} -- 3445
 						return ____awaiter_resolve(nil, action) -- 3445
 					end -- 3445
-					local result = __TS__Await(executeToolAction(shared, action)) -- 3448
+					local result = __TS__Await(executeToolActionWithPreExecution(shared, action)) -- 3448
 					action.params = sanitizeActionParamsForHistory(action.tool, action.params) -- 3449
 					action.result = sanitizeToolActionResultForHistory(action, result) -- 3450
 					return ____awaiter_resolve(nil, action) -- 3450
@@ -3489,6 +3614,7 @@ end -- 3418
 function BatchToolAction.prototype.post(self, shared, _prepRes, _execRes) -- 3466
 	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3466
 		shared.pendingToolActions = nil -- 3467
+		shared.preExecutedResults = nil
 		persistHistoryState(shared) -- 3468
 		__TS__Await(maybeCompressHistory(shared)) -- 3469
 		persistHistoryState(shared) -- 3470

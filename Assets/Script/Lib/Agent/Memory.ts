@@ -1815,8 +1815,8 @@ export class MemoryCompressor {
 				...llmOptions,
 				tools,
 			};
+			delete (requestOptions as Record<string, unknown>).tool_choice;
 			debugContext?.onInput?.("memory_compression_tool_calling", messages, requestOptions);
-			// 调用 LLM，提示模型使用 save_memory 工具；部分模型不支持强制 tool_choice。
 			const response = await callLLM(
 				messages,
 				requestOptions,
@@ -1826,12 +1826,8 @@ export class MemoryCompressor {
 
 			if (!response.success) {
 				debugContext?.onOutput?.("memory_compression_tool_calling", response.raw ?? response.message, { success: false });
-				return {
-					success: false,
-					memoryUpdate: currentMemory,
-					compressedCount: 0,
-					error: response.message,
-				};
+				Log("Warn", `[Memory] compression attempt ${i + 1}/${maxLLMTry} failed: ${response.message}`);
+				continue;
 			}
 			debugContext?.onOutput?.("memory_compression_tool_calling", encodeCompressionDebugJSON(response.response), { success: true });
 
@@ -1886,6 +1882,13 @@ export class MemoryCompressor {
 				error: `Failed to process LLM response: ${error instanceof Error ? error.message : tostring(error)}`,
 			};
 		}
+		Log("Error", `[Memory] compression tool-calling exhausted ${maxLLMTry} retries`);
+		return {
+			success: false,
+			memoryUpdate: currentMemory,
+			compressedCount: 0,
+			error: `compression failed after ${maxLLMTry} retries`,
+		};
 	}
 
 	private async callLLMForCompressionByXML(
