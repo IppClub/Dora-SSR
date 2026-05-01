@@ -645,6 +645,8 @@ const READ_FILE_DEFAULT_LIMIT = 300;
 const HISTORY_SEARCH_FILES_MAX_MATCHES = 20;
 const HISTORY_SEARCH_DORA_API_MAX_MATCHES = 12;
 const HISTORY_LIST_FILES_MAX_ENTRIES = 200;
+const HISTORY_BUILD_MAX_MESSAGES = 50;
+const HISTORY_BUILD_MESSAGE_MAX_CHARS = 1200;
 const SEARCH_DORA_API_LIMIT_MAX = 20;
 const SEARCH_FILES_LIMIT_DEFAULT = 20;
 const LIST_FILES_MAX_ENTRIES_DEFAULT = 200;
@@ -1104,6 +1106,33 @@ function sanitizeListFilesResultForHistory(result: Record<string, unknown>): Rec
 		clone[key] = result[key];
 	}
 	clone.files = result.files.slice(0, HISTORY_LIST_FILES_MAX_ENTRIES);
+	return clone;
+}
+
+function sanitizeBuildResultForHistory(result: Record<string, unknown>): Record<string, unknown> {
+	if (!isArray(result.messages)) return result;
+	const clone: Record<string, unknown> = {};
+	for (const key in result) {
+		clone[key] = result[key];
+	}
+	const messages = result.messages as Record<string, unknown>[];
+	const shown = math.min(messages.length, HISTORY_BUILD_MAX_MESSAGES);
+	const sanitized: Record<string, unknown>[] = [];
+	for (let i = 0; i < shown; i++) {
+		const item = messages[i];
+		const next: Record<string, unknown> = {};
+		for (const key in item) {
+			const value = item[key];
+			next[key] = key === "message" && typeof value === "string"
+				? truncateText(value, HISTORY_BUILD_MESSAGE_MAX_CHARS)
+				: value;
+		}
+		sanitized.push(next);
+	}
+	clone.messages = sanitized;
+	if (messages.length > shown) {
+		clone.truncatedMessages = messages.length - shown;
+	}
 	return clone;
 }
 
@@ -3021,7 +3050,7 @@ class BuildAction extends Node<AgentShared> {
 	async post(shared: AgentShared, _prepRes: unknown, execRes: unknown): Promise<string | undefined> {
 		const last = shared.history[shared.history.length - 1];
 		if (last !== undefined) {
-			last.result = execRes as Record<string, unknown>;
+			last.result = sanitizeBuildResultForHistory(execRes as Record<string, unknown>);
 			appendToolResultMessage(shared, last);
 			emitAgentFinishEvent(shared, last);
 		}
@@ -3488,6 +3517,9 @@ function sanitizeToolActionResultForHistory(action: AgentActionRecord, result: R
 	}
 	if (action.tool === "glob_files") {
 		return sanitizeListFilesResultForHistory(result);
+	}
+	if (action.tool === "build") {
+		return sanitizeBuildResultForHistory(result);
 	}
 	return result;
 }
