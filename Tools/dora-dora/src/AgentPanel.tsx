@@ -491,7 +491,8 @@ export default function AgentPanel(props: AgentPanelProps) {
 		const totalChars = messages.reduce((sum, message) => sum + (message.content?.length ?? 0), 0)
 			+ latestSteps.reduce((sum, step) => sum + getToolStepText(step).length, 0);
 		const usedTokens = Math.max(0, Math.ceil(totalChars / 4));
-		const maxTokens = 64000;
+		const contextWindow = getFiniteNumber(backendContext?.contextWindow) ?? 64000;
+		const maxTokens = contextWindow;
 		const contextRatio = maxTokens > 0 ? Math.min(1, usedTokens / maxTokens) : 0;
 		return {
 			usedTokens,

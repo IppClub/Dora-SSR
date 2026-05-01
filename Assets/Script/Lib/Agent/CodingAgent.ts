@@ -562,6 +562,7 @@ export interface AgentContextMetric {
 	ratio: number;
 	messagesTokens: number;
 	optionsTokens: number;
+	toolDefinitionsTokens?: number;
 	reservedOutputTokens: number;
 	structuralOverhead: number;
 	contextWindow: number;
@@ -781,7 +782,16 @@ function emitLLMContextMetrics(
 		const [toolCallsText] = safeJsonEncode((message.tool_calls ?? []) as object);
 		messagesTokens += estimateTextTokens(toolCallsText ?? "");
 	}
-	const [optionsText] = safeJsonEncode(options as object);
+	// Calculate tool definitions separately - they are fixed overhead, not conversation usage
+	let toolDefinitionsTokens = 0;
+	if (options.tools && Array.isArray(options.tools)) {
+		const [toolsText] = safeJsonEncode(options.tools as object);
+		toolDefinitionsTokens = toolsText ? estimateTextTokens(toolsText) : 0;
+	}
+	// Exclude tools from optionsTokens since we track them separately
+	const optionsWithoutTools = { ...options };
+	delete optionsWithoutTools.tools;
+	const [optionsText] = safeJsonEncode(optionsWithoutTools as object);
 	const optionsTokens = optionsText ? estimateTextTokens(optionsText) : 0;
 	const contextWindow = math.max(64000, shared.llmConfig.contextWindow);
 	const explicitMax = typeof options.max_tokens === "number"
@@ -793,8 +803,9 @@ function emitLLMContextMetrics(
 		? math.max(256, explicitMax)
 		: math.max(1024, math.floor(contextWindow * 0.2));
 	const structuralOverhead = math.max(256, messages.length * 16);
+	// usedTokens represents actual conversation content, not fixed overhead like tool definitions
 	const usedTokens = messagesTokens + optionsTokens + structuralOverhead;
-	const maxTokens = math.max(512, contextWindow - reservedOutputTokens);
+	const maxTokens = contextWindow;
 	emitAgentEvent(shared, {
 		type: "metrics_updated",
 		sessionId: shared.sessionId,
@@ -807,6 +818,7 @@ function emitLLMContextMetrics(
 				ratio: math.max(0, math.min(1, usedTokens / maxTokens)),
 				messagesTokens,
 				optionsTokens,
+				toolDefinitionsTokens,
 				reservedOutputTokens,
 				structuralOverhead,
 				contextWindow,

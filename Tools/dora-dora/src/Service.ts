@@ -915,6 +915,7 @@ export interface AgentContextMetric {
 	ratio: number;
 	messagesTokens?: number;
 	optionsTokens?: number;
+	toolDefinitionsTokens?: number;
 	reservedOutputTokens?: number;
 	structuralOverhead?: number;
 	contextWindow?: number;

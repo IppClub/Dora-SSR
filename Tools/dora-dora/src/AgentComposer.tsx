@@ -36,7 +36,7 @@ function ContextUsageRing(props: { ratio?: number; usedTokens?: number; maxToken
 	const maxTokens = props.maxTokens ?? 64000;
 	const ratio = Math.max(0, Math.min(1, props.ratio ?? (maxTokens > 0 ? usedTokens / maxTokens : 0)));
 	const percent = Math.round(ratio * 100);
-	const color = ratio >= 0.82 ? Color.Error : ratio >= 0.58 ? Color.Warning : Color.Theme;
+	const color = ratio >= 0.90 ? Color.Error : ratio >= 0.75 ? Color.Warning : Color.Theme;
 	const title = `Context estimate: ${formatCompactNumber(usedTokens)} / ${formatCompactNumber(maxTokens)} tokens (${percent}%)`;
 	return (
 		<Tooltip title={title}>
