@@ -2179,16 +2179,22 @@ function appendPromptToLatestDecisionMessage(messages: Message[], prompt: string
 	return next;
 }
 
-function buildDecisionMessages(shared: AgentShared, lastError?: string, attempt = 1, lastRaw?: string): Message[] {
+function buildDecisionMessages(
+	shared: AgentShared,
+	lastError?: string,
+	attempt = 1,
+	lastRaw?: string,
+	decisionMode: AgentDecisionMode = shared.decisionMode
+): Message[] {
 	let messages: Message[] = [
-		{ role: "system", content: buildAgentSystemPrompt(shared, shared.decisionMode === "xml") },
+		{ role: "system", content: buildAgentSystemPrompt(shared, decisionMode === "xml") },
 		...getUnconsolidatedMessages(shared),
 	];
 	if (shared.step + 1 >= shared.maxSteps) {
 		messages = appendPromptToLatestDecisionMessage(messages, getFinalDecisionTurnPrompt(shared));
 	}
 	if (lastError && lastError !== "") {
-		const retryHeader = shared.decisionMode === "xml"
+		const retryHeader = decisionMode === "xml"
 			? `Previous response was invalid (${lastError}). Return exactly one valid XML tool_call block only.`
 			: replacePromptVars(shared.promptPack.toolCallingRetryPrompt, { LAST_ERROR: lastError });
 		messages.push({
@@ -2490,7 +2496,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 			return {
 				success: false,
 				message: "missing tool call",
-				raw: messageContent,
+				raw: reasoningContent ?? messageContent ?? "",
 			};
 		}
 		const decisions: DecisionSuccess[] = [];
@@ -2595,6 +2601,45 @@ class MainDecisionAgent extends Node<AgentShared> {
 		};
 	}
 
+	private async callDecisionByXml(
+		shared: AgentShared,
+		lastError?: string,
+		attempt = 1,
+		lastRaw?: string
+	): Promise<DecisionResult | DecisionFailure> {
+		const messages: Message[] = buildDecisionMessages(
+			shared,
+			lastError,
+			attempt,
+			lastRaw,
+			"xml"
+		);
+		const llmRes = await llm(shared, messages, "decision_xml");
+		if (shared.stopToken.stopped) {
+			return { success: false, message: getCancelledReason(shared) };
+		}
+		if (!llmRes.success) {
+			return {
+				success: false,
+				message: llmRes.message,
+				raw: llmRes.text ?? "",
+			};
+		}
+		const decision = tryParseAndValidateDecision(llmRes.text);
+		if (decision.success) {
+			decision.reasoningContent = llmRes.reasoningContent;
+			if (!isToolAllowedForRole(shared.role, decision.tool)) {
+				return this.repairDecisionXml(
+					shared,
+					llmRes.text,
+					`${decision.tool} is not allowed for role ${shared.role}`
+				);
+			}
+			return decision;
+		}
+		return this.repairDecisionXml(shared, llmRes.text, decision.message);
+	}
+
 	async exec(input: { shared: AgentShared }): Promise<DecisionResult | DecisionFailure> {
 		const shared = input.shared;
 		if (shared.stopToken.stopped) {
@@ -2609,6 +2654,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 			Log("Info", `[CodingAgent] decision mode=tool_calling step=${shared.step + 1} messages=${getUnconsolidatedMessages(shared).length}`);
 			let lastError = "tool calling validation failed";
 			let lastRaw = "";
+			let shouldFallbackToXml = false;
 			for (let attempt = 0; attempt < shared.llmMaxTry; attempt++) {
 				Log("Info", `[CodingAgent] tool-calling attempt=${attempt + 1}`);
 				const decision = await this.callDecisionByToolCalling(
@@ -2626,6 +2672,34 @@ class MainDecisionAgent extends Node<AgentShared> {
 				lastError = decision.message;
 				lastRaw = decision.raw ?? "";
 				Log("Error", `[CodingAgent] tool-calling attempt failed: ${lastError}`);
+				if (lastError === "missing tool call") {
+					shouldFallbackToXml = true;
+					break;
+				}
+			}
+			if (shouldFallbackToXml) {
+				Log("Warn", `[CodingAgent] tool-calling returned no tool calls; falling back to XML decision format`);
+				lastError = "tool-calling returned no tool calls. Return exactly one valid XML tool_call block.";
+				for (let attempt = 0; attempt < shared.llmMaxTry; attempt++) {
+					Log("Info", `[CodingAgent] xml fallback attempt=${attempt + 1}`);
+					const decision = await this.callDecisionByXml(
+						shared,
+						attempt > 0 ? lastError : "tool-calling returned no tool calls. Use XML decision format instead.",
+						attempt + 1,
+						lastRaw
+					);
+					if (shared.stopToken.stopped) {
+						return { success: false, message: getCancelledReason(shared) };
+					}
+					if (decision.success) {
+						return decision;
+					}
+					lastError = decision.message;
+					lastRaw = decision.raw ?? "";
+					Log("Error", `[CodingAgent] xml fallback attempt failed: ${lastError}`);
+				}
+				Log("Error", `[CodingAgent] xml fallback exhausted retries: ${lastError}`);
+				return { success: false, message: `cannot produce valid XML decision after tool-calling fallback: ${lastError}; last_output=${truncateText(lastRaw, 400)}` };
 			}
 			Log("Error", `[CodingAgent] tool-calling exhausted retries: ${lastError}`);
 			return { success: false, message: `cannot produce valid tool call: ${lastError}; last_output=${truncateText(lastRaw, 400)}` };
@@ -2634,7 +2708,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 		let lastError = "xml validation failed";
 		let lastRaw = "";
 		for (let attempt = 0; attempt < shared.llmMaxTry; attempt++) {
-			const messages: Message[] = buildDecisionMessages(
+			const decision = await this.callDecisionByXml(
 				shared,
 				attempt > 0
 					? `Previous request failed before producing repairable output (${lastError}).`
@@ -2642,27 +2716,14 @@ class MainDecisionAgent extends Node<AgentShared> {
 				attempt + 1,
 				lastRaw
 			);
-			const llmRes = await llm(shared, messages, "decision_xml");
 			if (shared.stopToken.stopped) {
 				return { success: false, message: getCancelledReason(shared) };
 			}
-			if (!llmRes.success) {
-				lastError = llmRes.message;
-				lastRaw = llmRes.text ?? "";
-				continue;
-			}
-			lastRaw = llmRes.text;
-			const decision = tryParseAndValidateDecision(llmRes.text);
 			if (decision.success) {
-				decision.reasoningContent = llmRes.reasoningContent;
-				if (!isToolAllowedForRole(shared.role, decision.tool)) {
-					lastError = `${decision.tool} is not allowed for role ${shared.role}`;
-					return this.repairDecisionXml(shared, llmRes.text, lastError);
-				}
 				return decision;
 			}
 			lastError = decision.message;
-			return this.repairDecisionXml(shared, llmRes.text, lastError);
+			lastRaw = decision.raw ?? "";
 		}
 		return { success: false, message: `cannot produce valid decision xml: ${lastError}; last_output=${truncateText(lastRaw, 400)}` };
 	}
@@ -3501,6 +3562,26 @@ function canRunBatchActionInParallel(this: any, action: AgentActionRecord): bool
 		|| action.tool === "list_sub_agents";
 }
 
+interface ToolBatch {
+	isConcurrencySafe: boolean;
+	actions: AgentActionRecord[];
+}
+
+function partitionToolCalls(actions: AgentActionRecord[]): ToolBatch[] {
+	const batches: ToolBatch[] = [];
+	for (let i = 0; i < actions.length; i++) {
+		const action = actions[i];
+		const isSafe = canRunBatchActionInParallel(action);
+		const lastBatch = batches.length > 0 ? batches[batches.length - 1] : undefined;
+		if (isSafe && lastBatch && lastBatch.isConcurrencySafe) {
+			lastBatch.actions.push(action);
+		} else {
+			batches.push({ isConcurrencySafe: isSafe, actions: [action] });
+		}
+	}
+	return batches;
+}
+
 class BatchToolAction extends Node<AgentShared> {
 	async prep(shared: AgentShared): Promise<{ shared: AgentShared; actions: AgentActionRecord[] }> {
 		return { shared, actions: shared.pendingToolActions ?? [] };
@@ -3509,48 +3590,64 @@ class BatchToolAction extends Node<AgentShared> {
 	async exec(input: { shared: AgentShared; actions: AgentActionRecord[] }): Promise<AgentActionRecord[]> {
 		const shared = input.shared;
 		const preExecuted = shared.preExecutedResults;
-		const allParallelSafe = input.actions.length > 1 && input.actions.every(canRunBatchActionInParallel);
-		if (!allParallelSafe) {
-			for (let i = 0; i < input.actions.length; i++) {
-				const action = input.actions[i];
-				emitAgentStartEvent(shared, action);
-				const result = await executeToolActionWithPreExecution(shared, action);
-				action.params = sanitizeActionParamsForHistory(action.tool, action.params);
-				action.result = sanitizeToolActionResultForHistory(action, result);
-				appendToolResultMessage(shared, action);
-				emitAgentFinishEvent(shared, action);
-				emitCheckpointEventForAction(shared, action);
-				persistHistoryState(shared);
-				if (shared.stopToken.stopped) {
-					break;
+		const batches = partitionToolCalls(input.actions);
+		const parallelBatchCount = batches.filter(b => b.isConcurrencySafe).length;
+		const serialBatchCount = batches.filter(b => !b.isConcurrencySafe).length;
+		Log("Info", `[CodingAgent] smart batch partition total=${input.actions.length} parallel_batches=${parallelBatchCount} serial_batches=${serialBatchCount}`);
+
+		for (let batchIdx = 0; batchIdx < batches.length; batchIdx++) {
+			const batch = batches[batchIdx];
+			if (shared.stopToken.stopped) {
+				for (const action of batch.actions) {
+					if (!action.result) {
+						action.result = { success: false, message: getCancelledReason(shared) };
+					}
+				}
+				continue;
+			}
+
+			if (batch.isConcurrencySafe && batch.actions.length > 1) {
+				const preExecCount = batch.actions.filter(a => preExecuted?.has(a.toolCallId)).length;
+				Log("Info", `[CodingAgent] batch ${batchIdx + 1}/${batches.length} parallel count=${batch.actions.length} pre_executed=${preExecCount}`);
+				for (let i = 0; i < batch.actions.length; i++) {
+					emitAgentStartEvent(shared, batch.actions[i]);
+				}
+				await Promise.all(batch.actions.map(async action => {
+					if (shared.stopToken.stopped) {
+						action.result = { success: false, message: getCancelledReason(shared) };
+						return action;
+					}
+					const result = await executeToolActionWithPreExecution(shared, action);
+					action.params = sanitizeActionParamsForHistory(action.tool, action.params);
+					action.result = sanitizeToolActionResultForHistory(action, result);
+					return action;
+				}));
+				for (let i = 0; i < batch.actions.length; i++) {
+					const action = batch.actions[i];
+					if (!action.result) {
+						action.result = { success: false, message: "tool did not produce a result" };
+					}
+					appendToolResultMessage(shared, action);
+					emitAgentFinishEvent(shared, action);
+					emitCheckpointEventForAction(shared, action);
+				}
+			} else {
+				Log("Info", `[CodingAgent] batch ${batchIdx + 1}/${batches.length} serial count=${batch.actions.length}`);
+				for (let i = 0; i < batch.actions.length; i++) {
+					const action = batch.actions[i];
+					emitAgentStartEvent(shared, action);
+					const result = await executeToolActionWithPreExecution(shared, action);
+					action.params = sanitizeActionParamsForHistory(action.tool, action.params);
+					action.result = sanitizeToolActionResultForHistory(action, result);
+					appendToolResultMessage(shared, action);
+					emitAgentFinishEvent(shared, action);
+					emitCheckpointEventForAction(shared, action);
+					persistHistoryState(shared);
+					if (shared.stopToken.stopped) {
+						break;
+					}
 				}
 			}
-			return input.actions;
-		}
-
-		const preExecCount = input.actions.filter(a => preExecuted?.has(a.toolCallId)).length;
-		Log("Info", `[CodingAgent] batch read-only tools executing in parallel count=${input.actions.length} pre_executed=${preExecCount}`);
-		for (let i = 0; i < input.actions.length; i++) {
-			emitAgentStartEvent(shared, input.actions[i]);
-		}
-		await Promise.all(input.actions.map(async action => {
-			if (shared.stopToken.stopped) {
-				action.result = { success: false, message: getCancelledReason(shared) };
-				return action;
-			}
-			const result = await executeToolActionWithPreExecution(shared, action);
-			action.params = sanitizeActionParamsForHistory(action.tool, action.params);
-			action.result = sanitizeToolActionResultForHistory(action, result);
-			return action;
-		}));
-		for (let i = 0; i < input.actions.length; i++) {
-			const action = input.actions[i];
-			if (!action.result) {
-				action.result = { success: false, message: "tool did not produce a result" };
-			}
-			appendToolResultMessage(shared, action);
-			emitAgentFinishEvent(shared, action);
-			emitCheckpointEventForAction(shared, action);
 		}
 		persistHistoryState(shared);
 		return input.actions;

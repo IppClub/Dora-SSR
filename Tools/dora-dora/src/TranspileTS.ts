@@ -149,6 +149,17 @@ function createCompilerHost(
 	const pathMap = new Map<string, monaco.Uri>();
 	const unexistMap = new Set<string>();
 	const scriptTarget = ts.ScriptTarget.ESNext;
+	const syncModelContent = (uri: monaco.Uri, nextContent: string) => {
+		const model = monaco.editor.getModel(uri);
+		if (model !== null) {
+			if (model.getValue() !== nextContent) {
+				model.setValue(nextContent);
+			}
+		} else {
+			monaco.editor.createModel(nextContent, 'typescript', uri);
+		}
+	};
+	syncModelContent(monaco.Uri.file(rootFileName), content);
 	const compilerHost: CompilerHost = {
 		fileExists: fileName => {
 			if (fileName.search("node_modules") > 0) {
@@ -227,18 +238,20 @@ function createCompilerHost(
 		getDefaultLibFileName: () => "lib.Dora.d.ts",
 		readFile: fileName => {
 			fileName = Info.path.normalize(fileName);
+			if (Info.path.relative(rootFileName, fileName) === "") {
+				return content;
+			}
 			const uri = monaco.Uri.file(fileName);
 			const model = monaco.editor.getModel(uri);
 			if (model !== null) {
 				return model.getValue();
 			}
-			const res = Service.readSync({path: fileName});
+			const res = Service.readSync({path: fileName, projFile: rootFileName});
 			if (res?.success) {
-				if (monaco.editor.getModel(uri) === null) {
-					monaco.editor.createModel(res.content, 'typescript', uri);
-				}
+				syncModelContent(uri, res.content);
+				return res.content;
 			}
-			return content;
+			return undefined;
 		},
 		getNewLine: () => "\n",
 		useCaseSensitiveFileNames: () => true,
@@ -290,6 +303,10 @@ function createCompilerHost(
 					if (model !== null) {
 						return ts.createSourceFile(uri.fsPath, model.getValue(), scriptTarget, false);
 					}
+				}
+				const fileContent = compilerHost.readFile(fileName);
+				if (fileContent !== undefined) {
+					return ts.createSourceFile(fileName, fileContent, scriptTarget, false);
 				}
 				return undefined;
 			}
