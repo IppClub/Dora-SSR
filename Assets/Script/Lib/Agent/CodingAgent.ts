@@ -2056,19 +2056,32 @@ function buildDecisionToolSchema(shared: AgentShared) {
 }
 
 function buildAgentSystemPrompt(shared: AgentShared, includeToolDefinitions = false): string {
+	// Dora's in-app TypeScript service can keep stale cross-module type declarations
+	// while compiling Agent/CodingAgent.ts alone. Use structural access here so the
+	// generated Lua still uses the new prompt/memory fields without being blocked
+	// by an older Agent/Memory declaration cache.
+	const promptPack = shared.promptPack as AgentPromptPack & Record<string, string>;
 	const rolePrompt = shared.role === "main"
-		? shared.promptPack.mainAgentRolePrompt
-		: shared.promptPack.subAgentRolePrompt;
+		? promptPack.mainAgentRolePrompt
+		: promptPack.subAgentRolePrompt;
 	const sections: string[] = [
-		shared.promptPack.agentIdentityPrompt,
+		promptPack.agentIdentityPrompt,
 		rolePrompt,
 		getReplyLanguageDirective(shared),
 	];
 	if (shared.decisionMode === "tool_calling") {
-		sections.push(shared.promptPack.functionCallingPrompt);
+		sections.push(promptPack.functionCallingPrompt);
 	}
-	const memoryBudget = shared.memory.compressor.getMemoryContextBudget();
-	const memoryContext = shared.memory.compressor.getStorage().getRelevantMemoryContext(shared.userQuery, memoryBudget);
+	const compressor = shared.memory.compressor as MemoryCompressor & { getMemoryContextBudget?: () => number };
+	const storage = shared.memory.compressor.getStorage() as ReturnType<MemoryCompressor["getStorage"]> & {
+		getRelevantMemoryContext?: (query?: string, maxTokens?: number) => string;
+	};
+	const memoryBudget = typeof compressor.getMemoryContextBudget === "function"
+		? compressor.getMemoryContextBudget()
+		: 4000;
+	const memoryContext = typeof storage.getRelevantMemoryContext === "function"
+		? storage.getRelevantMemoryContext(shared.userQuery, memoryBudget)
+		: (storage as any).getMemoryContext(shared.userQuery, memoryBudget);
 	if (memoryContext !== "") {
 		sections.push(memoryContext);
 	}
@@ -2422,12 +2435,20 @@ class MainDecisionAgent extends Node<AgentShared> {
 		let lastStreamReasoning = "";
 		const preExecutedResults = new Map<string, Promise<Record<string, unknown>>>();
 		shared.preExecutedResults = preExecutedResults;
-		const res = await callLLMStreamAggregated(
+		const callLLMStreamAggregatedWithToolReady = callLLMStreamAggregated as unknown as (
+			messages: Message[],
+			options: Record<string, any>,
+			stopToken: StopToken,
+			llmConfig: typeof shared.llmConfig,
+			onChunk: (response: any) => void,
+			onToolCallReady: (toolCall: any) => void
+		) => Promise<{ success: true; response: any } | { success: false; message: string; raw?: string }>;
+		const res = await callLLMStreamAggregatedWithToolReady(
 			messages,
 			llmOptions,
 			shared.stopToken,
 			shared.llmConfig,
-			(response) => {
+			(response: any) => {
 				const streamMessage = response.choices?.[0]?.message;
 				const nextContent = typeof streamMessage?.content === "string"
 					? sanitizeUTF8(streamMessage.content)
@@ -2442,7 +2463,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 				lastStreamReasoning = nextReasoning;
 				emitAssistantMessageUpdated(shared, nextContent, nextReasoning !== "" ? nextReasoning : undefined);
 			},
-			(tc) => {
+			(tc: any) => {
 				if (shared.stopToken.stopped) return;
 				const action = createPreExecutableActionFromStream(shared, tc);
 				if (!action || preExecutedResults.has(action.toolCallId)) return;
