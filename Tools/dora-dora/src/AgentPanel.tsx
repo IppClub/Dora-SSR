@@ -49,6 +49,20 @@ function upsertById<T extends { id: number }>(items: T[], nextItem: T): T[] {
 	return next;
 }
 
+function getToolStepText(step: Service.AgentSessionStep): string {
+	const parts = [
+		step.reason,
+		step.reasoningContent,
+		step.params ? JSON.stringify(step.params) : "",
+		step.result ? JSON.stringify(step.result) : "",
+	];
+	return parts.join("\n");
+}
+
+function getFiniteNumber(value: unknown): number | undefined {
+	return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
+
 export default function AgentPanel(props: AgentPanelProps) {
 	const HISTORY_VISIBLE_ROUNDS = 10;
 	const { t } = useTranslation();
@@ -234,12 +248,21 @@ export default function AgentPanel(props: AgentPanelProps) {
 				void refresh(false, sessionId);
 				return;
 			}
-			if (patch.session) {
-				setSession(patch.session);
-			}
-			if (patch.message) {
-				setMessages(prev => upsertById(prev, patch.message!).sort((a, b) => a.id - b.id));
-			}
+				if (patch.session) {
+					setSession(patch.session);
+				}
+				if (patch.metrics) {
+					setSession(prev => prev ? {
+						...prev,
+						metrics: {
+							...(prev.metrics ?? {}),
+							...patch.metrics,
+						},
+					} : prev);
+				}
+				if (patch.message) {
+					setMessages(prev => upsertById(prev, patch.message!).sort((a, b) => a.id - b.id));
+				}
 			if (patch.step) {
 				setSteps(prev => upsertById(prev, patch.step!).sort((a, b) => {
 					const taskDelta = (b.taskId ?? 0) - (a.taskId ?? 0);
@@ -454,6 +477,29 @@ export default function AgentPanel(props: AgentPanelProps) {
 		};
 	}, [activeTaskId, checkpoints, latestSteps]);
 
+	const contextStats = useMemo(() => {
+		const backendContext = session?.metrics?.context;
+		const backendUsedTokens = getFiniteNumber(backendContext?.usedTokens);
+		const backendMaxTokens = getFiniteNumber(backendContext?.maxTokens);
+		if (backendUsedTokens !== undefined && backendMaxTokens !== undefined && backendMaxTokens > 0) {
+			return {
+				usedTokens: backendUsedTokens,
+				maxTokens: backendMaxTokens,
+				contextRatio: Math.max(0, Math.min(1, getFiniteNumber(backendContext?.ratio) ?? (backendUsedTokens / backendMaxTokens))),
+			};
+		}
+		const totalChars = messages.reduce((sum, message) => sum + (message.content?.length ?? 0), 0)
+			+ latestSteps.reduce((sum, step) => sum + getToolStepText(step).length, 0);
+		const usedTokens = Math.max(0, Math.ceil(totalChars / 4));
+		const maxTokens = 64000;
+		const contextRatio = maxTokens > 0 ? Math.min(1, usedTokens / maxTokens) : 0;
+		return {
+			usedTokens,
+			maxTokens,
+			contextRatio,
+		};
+	}, [latestSteps, messages, session?.metrics]);
+
 	const checkpointMap = useMemo(() => {
 		return new Map(checkpoints.map(checkpoint => [checkpoint.seq, checkpoint]));
 	}, [checkpoints]);
@@ -650,8 +696,8 @@ export default function AgentPanel(props: AgentPanelProps) {
 			) : null}
 			<MacScrollbar ref={scrollRef} skin="dark" style={{ flex: 1, minHeight: 0 }}>
 				<Box ref={contentRef} sx={{ px: 3, py: 3 }}>
-					<Stack spacing={4}>
-						{llmConfigMissing && session?.currentTaskStatus !== "RUNNING" ? (
+						<Stack spacing={4}>
+							{llmConfigMissing && session?.currentTaskStatus !== "RUNNING" ? (
 							<Box
 								sx={{
 									border: `1px solid ${Color.Warning}44`,
@@ -822,6 +868,9 @@ export default function AgentPanel(props: AgentPanelProps) {
 				running={session?.currentTaskStatus === "RUNNING"}
 				canStop={session?.currentTaskStatus === "RUNNING" && session?.currentTaskFinalizing !== true}
 				tabButtons={tabButtons}
+				contextRatio={contextStats.contextRatio}
+				usedTokens={contextStats.usedTokens}
+				maxTokens={contextStats.maxTokens}
 				onPromptChange={setPrompt}
 				onSend={() => void onSend()}
 				onStop={() => void onStop()}

@@ -25,6 +25,7 @@ export interface AgentSessionItem {
 	currentTaskFinalizing?: boolean;
 	createdAt: number;
 	updatedAt: number;
+	metrics?: AgentMetricsItem;
 }
 
 export interface AgentSessionMessageItem {
@@ -102,6 +103,25 @@ export interface AgentSessionSpawnInfo {
 	finishedAt?: string;
 	createdAtTs?: number;
 	finishedAtTs?: number;
+}
+
+export interface AgentContextMetricItem {
+	usedTokens?: number;
+	maxTokens?: number;
+	ratio?: number;
+	messagesTokens?: number;
+	optionsTokens?: number;
+	reservedOutputTokens?: number;
+	structuralOverhead?: number;
+	contextWindow?: number;
+	source?: string;
+	phase?: string;
+	step?: number;
+	updatedAt?: number;
+}
+
+export interface AgentMetricsItem {
+	context?: AgentContextMetricItem;
 }
 
 export type AgentSessionDetailResult = {
@@ -393,6 +413,7 @@ function rowToSession(row: any[]): AgentSessionItem {
 		currentTaskFinalizing: typeof row[8] === "number" && row[8] > 0 && finalizingSubSessionTaskIds[row[8]] === true,
 		createdAt: row[10] as number,
 		updatedAt: row[11] as number,
+		metrics: decodeJsonObject(toStr(row[12])) as AgentMetricsItem | undefined,
 	};
 }
 
@@ -473,7 +494,7 @@ function deleteMessageSteps(sessionId: number, taskId: number): number[] {
 
 function getSessionRow(sessionId: number) {
 	return queryOne(
-		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at
+		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at, metrics_json
 		FROM ${TABLE_SESSION}
 		WHERE id = ?`,
 		[sessionId],
@@ -494,7 +515,7 @@ function getTaskPrompt(taskId: number): string | undefined {
 function getLatestMainSessionByProjectRoot(projectRoot: string): AgentSessionItem | undefined {
 	if (!isValidProjectRoot(projectRoot)) return undefined;
 	const row = queryOne(
-		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at
+		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at, metrics_json
 		FROM ${TABLE_SESSION}
 		WHERE project_root = ? AND kind = 'main'
 		ORDER BY updated_at DESC, id DESC
@@ -506,7 +527,7 @@ function getLatestMainSessionByProjectRoot(projectRoot: string): AgentSessionIte
 
 function countRunningSubSessions(rootSessionId: number): number {
 	const rows = queryRows(
-		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at
+		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at, metrics_json
 		FROM ${TABLE_SESSION}
 		WHERE root_session_id = ? AND kind = 'sub'
 		ORDER BY id ASC`,
@@ -554,7 +575,7 @@ function listRelatedSessions(sessionId: number): AgentSessionItem[] {
 	const root = getRootSessionItem(sessionId);
 	if (!root) return [];
 	const rows = queryRows(
-		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at
+		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at, metrics_json
 		FROM ${TABLE_SESSION}
 		WHERE id = ? OR root_session_id = ?
 		ORDER BY
@@ -1174,7 +1195,31 @@ function setSessionState(sessionId: number, status: AgentSessionStatus, currentT
 			now(),
 			sessionId,
 		],
+		);
+}
+
+function mergeAgentMetrics(current: AgentMetricsItem | undefined, next: AgentMetricsItem): AgentMetricsItem {
+	return {
+		...(current ?? {}),
+		...next,
+	};
+}
+
+function updateSessionMetrics(sessionId: number, metrics: AgentMetricsItem): AgentMetricsItem | undefined {
+	const session = getSessionItem(sessionId);
+	if (!session) return undefined;
+	const merged = mergeAgentMetrics(session.metrics, metrics);
+	DB.exec(
+		`UPDATE ${TABLE_SESSION}
+		SET metrics_json = ?, updated_at = ?
+		WHERE id = ?`,
+		[
+			encodeJson(merged),
+			now(),
+			sessionId,
+		],
 	);
+	return merged;
 }
 
 function setSessionStateForTaskEvent(sessionId: number, taskId: number | undefined, status: AgentSessionStatus, currentTaskStatus?: AgentSessionStatus) {
@@ -1489,7 +1534,15 @@ function flushPendingSubAgentHandoffs(rootSession: AgentSessionItem): void {
 	}
 }
 
-function applyEvent(sessionId: number, event: CodingAgentEvent) {
+type AgentRuntimeEvent = CodingAgentEvent | {
+	type: "metrics_updated";
+	sessionId?: number;
+	taskId: number;
+	step?: number;
+	metrics: AgentMetricsItem;
+};
+
+function applyEvent(sessionId: number, event: AgentRuntimeEvent) {
 	switch (event.type) {
 		case "task_started":
 			setSessionStateForTaskEvent(sessionId, event.taskId, "RUNNING", "RUNNING");
@@ -1547,19 +1600,26 @@ function applyEvent(sessionId: number, event: CodingAgentEvent) {
 				step: getStepItem(sessionId, event.taskId, event.step),
 			});
 			break;
-		case "memory_compression_finished":
-			upsertStep(sessionId, event.taskId, event.step, event.tool, {
-				status: event.result.success === true ? "DONE" : "FAILED",
-				reason: event.reason,
-				result: event.result,
-			});
-			emitAgentSessionPatch(sessionId, {
-				step: getStepItem(sessionId, event.taskId, event.step),
-			});
-			break;
-		case "assistant_message_updated": {
-			upsertStep(sessionId, event.taskId, event.step, "message", {
-				status: "RUNNING",
+			case "memory_compression_finished":
+				upsertStep(sessionId, event.taskId, event.step, event.tool, {
+					status: event.result.success === true ? "DONE" : "FAILED",
+					reason: event.reason,
+					result: event.result,
+				});
+				emitAgentSessionPatch(sessionId, {
+					step: getStepItem(sessionId, event.taskId, event.step),
+				});
+				break;
+			case "metrics_updated": {
+				const metrics = updateSessionMetrics(sessionId, event.metrics);
+				emitAgentSessionPatch(sessionId, {
+					metrics,
+				});
+				break;
+			}
+			case "assistant_message_updated": {
+				upsertStep(sessionId, event.taskId, event.step, "message", {
+					status: "RUNNING",
 				reason: event.content,
 				reasoningContent: event.reasoningContent,
 			});
@@ -1616,6 +1676,23 @@ function setSchemaVersion(version: number) {
 	DB.exec(`PRAGMA user_version = ${math.max(0, math.floor(version))}`);
 }
 
+function hasTableColumn(tableName: string, columnName: string): boolean {
+	const rows = queryRows(`PRAGMA table_info(${tableName})`) ?? [];
+	for (let i = 0; i < rows.length; i++) {
+		const row = rows[i] as any[];
+		if (toStr(row[1]) === columnName) {
+			return true;
+		}
+	}
+	return false;
+}
+
+function ensureSessionMetricsColumn() {
+	if (!hasTableColumn(TABLE_SESSION, "metrics_json")) {
+		DB.exec(`ALTER TABLE ${TABLE_SESSION} ADD COLUMN metrics_json TEXT NOT NULL DEFAULT '';`);
+	}
+}
+
 function recreateSchema() {
 	DB.exec(`DROP TABLE IF EXISTS ${TABLE_STEP};`);
 	DB.exec(`DROP TABLE IF EXISTS ${TABLE_MESSAGE};`);
@@ -1629,11 +1706,12 @@ function recreateSchema() {
 		parent_session_id INTEGER,
 		memory_scope TEXT NOT NULL DEFAULT 'main',
 		status TEXT NOT NULL DEFAULT 'IDLE',
-		current_task_id INTEGER,
-		current_task_status TEXT NOT NULL DEFAULT 'IDLE',
-		created_at INTEGER NOT NULL,
-		updated_at INTEGER NOT NULL
-	);`);
+			current_task_id INTEGER,
+			current_task_status TEXT NOT NULL DEFAULT 'IDLE',
+			created_at INTEGER NOT NULL,
+			updated_at INTEGER NOT NULL,
+			metrics_json TEXT NOT NULL DEFAULT ''
+		);`);
 	DB.exec(`CREATE INDEX IF NOT EXISTS idx_agent_session_project_root ON ${TABLE_SESSION}(project_root, updated_at DESC);`);
 	DB.exec(`CREATE TABLE IF NOT EXISTS ${TABLE_MESSAGE}(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -1684,9 +1762,11 @@ function recreateSchema() {
 			current_task_id INTEGER,
 			current_task_status TEXT NOT NULL DEFAULT 'IDLE',
 			created_at INTEGER NOT NULL,
-			updated_at INTEGER NOT NULL
-		);`);
-		DB.exec(`CREATE INDEX IF NOT EXISTS idx_agent_session_project_root ON ${TABLE_SESSION}(project_root, updated_at DESC);`);
+			updated_at INTEGER NOT NULL,
+			metrics_json TEXT NOT NULL DEFAULT ''
+			);`);
+			ensureSessionMetricsColumn();
+			DB.exec(`CREATE INDEX IF NOT EXISTS idx_agent_session_project_root ON ${TABLE_SESSION}(project_root, updated_at DESC);`);
 		DB.exec(`CREATE TABLE IF NOT EXISTS ${TABLE_MESSAGE}(
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			session_id INTEGER NOT NULL,
@@ -1724,7 +1804,7 @@ export function createSession(projectRoot: string, title = "") {
 		return { success: false as const, message: "invalid projectRoot" };
 	}
 	const row = queryOne(
-		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at
+		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at, metrics_json
 		FROM ${TABLE_SESSION}
 		WHERE project_root = ? AND kind = 'main'
 		ORDER BY updated_at DESC, id DESC
@@ -2199,7 +2279,7 @@ export function getCurrentTaskId(sessionId: number): number | undefined {
 
 export function listRunningSessions(): AgentRunningSessionListResult {
 	const rows = queryRows(
-		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at
+		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at, metrics_json
 		FROM ${TABLE_SESSION}
 		WHERE current_task_status = ?
 		ORDER BY updated_at DESC, id DESC`,
@@ -2243,7 +2323,7 @@ export async function listRunningSubAgents(request: {
 	const offset = math.max(0, math.floor(tonumber(request.offset as any) || 0));
 	const query = sanitizeUTF8(toStr(request.query)).trim();
 	const rows = queryRows(
-		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at
+		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at, metrics_json
 		FROM ${TABLE_SESSION}
 		WHERE root_session_id = ? AND kind = 'sub'
 		ORDER BY id ASC`,

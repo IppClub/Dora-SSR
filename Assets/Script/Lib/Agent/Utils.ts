@@ -151,11 +151,7 @@ function utf8TakeTail(text: string, maxChars: number): string {
 
 export function estimateTextTokens(text: string): number {
 	if (!text) return 0;
-	const [charLen] = utf8.len(text);
-	if (!charLen || charLen <= 0) return 0;
-	const otherChars = text.length - charLen;
-	const tokens = Math.ceil(charLen / 1.5 + otherChars / 4);
-	return Math.max(1, tokens);
+	return App.estimateTokens(text);
 }
 
 function estimateMessagesTokens(messages: Message[]): number {
