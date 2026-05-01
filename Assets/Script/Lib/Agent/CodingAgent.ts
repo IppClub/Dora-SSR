@@ -3500,6 +3500,26 @@ function canRunBatchActionInParallel(this: any, action: AgentActionRecord): bool
 		|| action.tool === "list_sub_agents";
 }
 
+interface ToolBatch {
+	isConcurrencySafe: boolean;
+	actions: AgentActionRecord[];
+}
+
+function partitionToolCalls(actions: AgentActionRecord[]): ToolBatch[] {
+	const batches: ToolBatch[] = [];
+	for (let i = 0; i < actions.length; i++) {
+		const action = actions[i];
+		const isSafe = canRunBatchActionInParallel(action);
+		const lastBatch = batches.length > 0 ? batches[batches.length - 1] : undefined;
+		if (isSafe && lastBatch && lastBatch.isConcurrencySafe) {
+			lastBatch.actions.push(action);
+		} else {
+			batches.push({ isConcurrencySafe: isSafe, actions: [action] });
+		}
+	}
+	return batches;
+}
+
 class BatchToolAction extends Node<AgentShared> {
 	async prep(shared: AgentShared): Promise<{ shared: AgentShared; actions: AgentActionRecord[] }> {
 		return { shared, actions: shared.pendingToolActions ?? [] };
@@ -3508,48 +3528,64 @@ class BatchToolAction extends Node<AgentShared> {
 	async exec(input: { shared: AgentShared; actions: AgentActionRecord[] }): Promise<AgentActionRecord[]> {
 		const shared = input.shared;
 		const preExecuted = shared.preExecutedResults;
-		const allParallelSafe = input.actions.length > 1 && input.actions.every(canRunBatchActionInParallel);
-		if (!allParallelSafe) {
-			for (let i = 0; i < input.actions.length; i++) {
-				const action = input.actions[i];
-				emitAgentStartEvent(shared, action);
-				const result = await executeToolActionWithPreExecution(shared, action);
-				action.params = sanitizeActionParamsForHistory(action.tool, action.params);
-				action.result = sanitizeToolActionResultForHistory(action, result);
-				appendToolResultMessage(shared, action);
-				emitAgentFinishEvent(shared, action);
-				emitCheckpointEventForAction(shared, action);
-				persistHistoryState(shared);
-				if (shared.stopToken.stopped) {
-					break;
+		const batches = partitionToolCalls(input.actions);
+		const parallelBatchCount = batches.filter(b => b.isConcurrencySafe).length;
+		const serialBatchCount = batches.filter(b => !b.isConcurrencySafe).length;
+		Log("Info", `[CodingAgent] smart batch partition total=${input.actions.length} parallel_batches=${parallelBatchCount} serial_batches=${serialBatchCount}`);
+
+		for (let batchIdx = 0; batchIdx < batches.length; batchIdx++) {
+			const batch = batches[batchIdx];
+			if (shared.stopToken.stopped) {
+				for (const action of batch.actions) {
+					if (!action.result) {
+						action.result = { success: false, message: getCancelledReason(shared) };
+					}
+				}
+				continue;
+			}
+
+			if (batch.isConcurrencySafe && batch.actions.length > 1) {
+				const preExecCount = batch.actions.filter(a => preExecuted?.has(a.toolCallId)).length;
+				Log("Info", `[CodingAgent] batch ${batchIdx + 1}/${batches.length} parallel count=${batch.actions.length} pre_executed=${preExecCount}`);
+				for (let i = 0; i < batch.actions.length; i++) {
+					emitAgentStartEvent(shared, batch.actions[i]);
+				}
+				await Promise.all(batch.actions.map(async action => {
+					if (shared.stopToken.stopped) {
+						action.result = { success: false, message: getCancelledReason(shared) };
+						return action;
+					}
+					const result = await executeToolActionWithPreExecution(shared, action);
+					action.params = sanitizeActionParamsForHistory(action.tool, action.params);
+					action.result = sanitizeToolActionResultForHistory(action, result);
+					return action;
+				}));
+				for (let i = 0; i < batch.actions.length; i++) {
+					const action = batch.actions[i];
+					if (!action.result) {
+						action.result = { success: false, message: "tool did not produce a result" };
+					}
+					appendToolResultMessage(shared, action);
+					emitAgentFinishEvent(shared, action);
+					emitCheckpointEventForAction(shared, action);
+				}
+			} else {
+				Log("Info", `[CodingAgent] batch ${batchIdx + 1}/${batches.length} serial count=${batch.actions.length}`);
+				for (let i = 0; i < batch.actions.length; i++) {
+					const action = batch.actions[i];
+					emitAgentStartEvent(shared, action);
+					const result = await executeToolActionWithPreExecution(shared, action);
+					action.params = sanitizeActionParamsForHistory(action.tool, action.params);
+					action.result = sanitizeToolActionResultForHistory(action, result);
+					appendToolResultMessage(shared, action);
+					emitAgentFinishEvent(shared, action);
+					emitCheckpointEventForAction(shared, action);
+					persistHistoryState(shared);
+					if (shared.stopToken.stopped) {
+						break;
+					}
 				}
 			}
-			return input.actions;
-		}
-
-		const preExecCount = input.actions.filter(a => preExecuted?.has(a.toolCallId)).length;
-		Log("Info", `[CodingAgent] batch read-only tools executing in parallel count=${input.actions.length} pre_executed=${preExecCount}`);
-		for (let i = 0; i < input.actions.length; i++) {
-			emitAgentStartEvent(shared, input.actions[i]);
-		}
-		await Promise.all(input.actions.map(async action => {
-			if (shared.stopToken.stopped) {
-				action.result = { success: false, message: getCancelledReason(shared) };
-				return action;
-			}
-			const result = await executeToolActionWithPreExecution(shared, action);
-			action.params = sanitizeActionParamsForHistory(action.tool, action.params);
-			action.result = sanitizeToolActionResultForHistory(action, result);
-			return action;
-		}));
-		for (let i = 0; i < input.actions.length; i++) {
-			const action = input.actions[i];
-			if (!action.result) {
-				action.result = { success: false, message: "tool did not produce a result" };
-			}
-			appendToolResultMessage(shared, action);
-			emitAgentFinishEvent(shared, action);
-			emitCheckpointEventForAction(shared, action);
 		}
 		persistHistoryState(shared);
 		return input.actions;
