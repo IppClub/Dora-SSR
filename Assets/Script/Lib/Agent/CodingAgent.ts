@@ -1701,10 +1701,11 @@ function parseDecisionToolCall(functionName: string, rawObj: unknown): DecisionS
 }
 
 function parseToolCallArguments(functionName: string, argsText: string): Record<string, unknown> | DecisionFailure {
-	if (argsText.trim() === "") {
+	const trimmedArgs = argsText.trim();
+	if (trimmedArgs === "") {
 		return {};
 	}
-	const [rawObj, err] = safeJsonDecode(argsText);
+	const [rawObj, err] = safeJsonDecode(trimmedArgs);
 	if (err !== undefined || rawObj === undefined) {
 		return {
 			success: false,
@@ -1713,7 +1714,7 @@ function parseToolCallArguments(functionName: string, argsText: string): Record<
 		};
 	}
 	const [encodedRaw] = safeJsonEncode(rawObj as object);
-	if (encodedRaw === "null" || !isRecord(rawObj) || isArray(rawObj)) {
+	if (encodedRaw === "null" || !isRecord(rawObj) || trimmedArgs[0] === "[") {
 		return {
 			success: false,
 			message: `invalid ${functionName} arguments`,
