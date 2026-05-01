@@ -23,10 +23,10 @@ local __TS__ArrayIndexOf = ____lualib.__TS__ArrayIndexOf -- 1
 local __TS__AsyncAwaiter = ____lualib.__TS__AsyncAwaiter -- 1
 local __TS__Await = ____lualib.__TS__Await -- 1
 local __TS__Promise = ____lualib.__TS__Promise -- 1
+local __TS__StringAccess = ____lualib.__TS__StringAccess -- 1
 local __TS__Number = ____lualib.__TS__Number -- 1
 local __TS__NumberIsFinite = ____lualib.__TS__NumberIsFinite -- 1
 local __TS__ArrayPush = ____lualib.__TS__ArrayPush -- 1
-local __TS__StringAccess = ____lualib.__TS__StringAccess -- 1
 local __TS__ClassExtends = ____lualib.__TS__ClassExtends -- 1
 local Error = ____lualib.Error -- 1
 local RangeError = ____lualib.RangeError -- 1
@@ -265,170 +265,159 @@ function applyCompressedSessionState(shared, compressedCount, carryMessageIndex)
 		shared.carryMessageIndex = nil -- 1534
 	end -- 1534
 end -- 1534
-function getDecisionPath(params) -- 1790
-	if type(params.path) == "string" then -- 1790
-		return __TS__StringTrim(params.path) -- 1791
-	end -- 1791
-	if type(params.target_file) == "string" then -- 1791
-		return __TS__StringTrim(params.target_file) -- 1792
+function getDecisionPath(params) -- 1791
+	if type(params.path) == "string" then -- 1791
+		return __TS__StringTrim(params.path) -- 1792
 	end -- 1792
-	return "" -- 1793
-end -- 1793
-function clampIntegerParam(value, fallback, minValue, maxValue) -- 1796
-	local num = __TS__Number(value) -- 1797
-	if not __TS__NumberIsFinite(num) then -- 1797
-		num = fallback -- 1798
-	end -- 1798
-	num = math.floor(num) -- 1799
-	if num < minValue then -- 1799
-		num = minValue -- 1800
-	end -- 1800
-	if maxValue ~= nil and num > maxValue then -- 1800
-		num = maxValue -- 1801
+	if type(params.target_file) == "string" then -- 1792
+		return __TS__StringTrim(params.target_file) -- 1793
+	end -- 1793
+	return "" -- 1794
+end -- 1794
+function clampIntegerParam(value, fallback, minValue, maxValue) -- 1797
+	local num = __TS__Number(value) -- 1798
+	if not __TS__NumberIsFinite(num) then -- 1798
+		num = fallback -- 1799
+	end -- 1799
+	num = math.floor(num) -- 1800
+	if num < minValue then -- 1800
+		num = minValue -- 1801
 	end -- 1801
-	return num -- 1802
-end -- 1802
-function parseReadLineParam(value, fallback, paramName) -- 1805
-	local num = __TS__Number(value) -- 1810
-	if not __TS__NumberIsFinite(num) then -- 1810
-		num = fallback -- 1811
-	end -- 1811
-	num = math.floor(num) -- 1812
-	if num == 0 then -- 1812
-		return {success = false, message = paramName .. " cannot be 0"} -- 1814
-	end -- 1814
-	return {success = true, value = num} -- 1816
-end -- 1816
-function validateDecision(tool, params) -- 1819
-	if tool == "finish" then -- 1819
-		local message = getFinishMessage(params) -- 1824
-		if message == "" then -- 1824
-			return {success = false, message = "finish requires params.message"} -- 1825
-		end -- 1825
-		params.message = message -- 1826
-		return {success = true, params = params} -- 1827
-	end -- 1827
-	if tool == "read_file" then -- 1827
-		local path = getDecisionPath(params) -- 1831
-		if path == "" then -- 1831
-			return {success = false, message = "read_file requires path"} -- 1832
-		end -- 1832
-		params.path = path -- 1833
-		local startLineRes = parseReadLineParam(params.startLine, 1, "startLine") -- 1834
-		if not startLineRes.success then -- 1834
-			return startLineRes -- 1835
-		end -- 1835
-		local endLineDefault = startLineRes.value < 0 and -1 or READ_FILE_DEFAULT_LIMIT -- 1836
-		local endLineRes = parseReadLineParam(params.endLine, endLineDefault, "endLine") -- 1837
-		if not endLineRes.success then -- 1837
-			return endLineRes -- 1838
-		end -- 1838
-		params.startLine = startLineRes.value -- 1839
-		params.endLine = endLineRes.value -- 1840
-		return {success = true, params = params} -- 1841
-	end -- 1841
-	if tool == "edit_file" then -- 1841
-		local path = getDecisionPath(params) -- 1845
-		if path == "" then -- 1845
-			return {success = false, message = "edit_file requires path"} -- 1846
-		end -- 1846
-		local oldStr = type(params.old_str) == "string" and params.old_str or "" -- 1847
-		local newStr = type(params.new_str) == "string" and params.new_str or "" -- 1848
-		params.path = path -- 1849
-		params.old_str = oldStr -- 1850
-		params.new_str = newStr -- 1851
-		return {success = true, params = params} -- 1852
-	end -- 1852
-	if tool == "delete_file" then -- 1852
-		local targetFile = getDecisionPath(params) -- 1856
-		if targetFile == "" then -- 1856
-			return {success = false, message = "delete_file requires target_file"} -- 1857
-		end -- 1857
-		params.target_file = targetFile -- 1858
-		return {success = true, params = params} -- 1859
-	end -- 1859
-	if tool == "grep_files" then -- 1859
-		local pattern = type(params.pattern) == "string" and __TS__StringTrim(params.pattern) or "" -- 1863
-		if pattern == "" then -- 1863
-			return {success = false, message = "grep_files requires pattern"} -- 1864
-		end -- 1864
-		params.pattern = pattern -- 1865
-		params.limit = clampIntegerParam(params.limit, SEARCH_FILES_LIMIT_DEFAULT, 1) -- 1866
-		params.offset = clampIntegerParam(params.offset, 0, 0) -- 1867
-		return {success = true, params = params} -- 1868
-	end -- 1868
-	if tool == "search_dora_api" then -- 1868
-		local pattern = type(params.pattern) == "string" and __TS__StringTrim(params.pattern) or "" -- 1872
-		if pattern == "" then -- 1872
-			return {success = false, message = "search_dora_api requires pattern"} -- 1873
-		end -- 1873
-		params.pattern = pattern -- 1874
-		params.limit = clampIntegerParam(params.limit, 8, 1, SEARCH_DORA_API_LIMIT_MAX) -- 1875
-		return {success = true, params = params} -- 1876
-	end -- 1876
-	if tool == "glob_files" then -- 1876
-		params.maxEntries = clampIntegerParam(params.maxEntries, LIST_FILES_MAX_ENTRIES_DEFAULT, 1) -- 1880
-		return {success = true, params = params} -- 1881
-	end -- 1881
-	if tool == "build" then -- 1881
-		local path = getDecisionPath(params) -- 1885
-		if path ~= "" then -- 1885
-			params.path = path -- 1887
-		end -- 1887
-		return {success = true, params = params} -- 1889
-	end -- 1889
-	if tool == "list_sub_agents" then -- 1889
-		local status = type(params.status) == "string" and __TS__StringTrim(params.status) or "" -- 1893
-		if status ~= "" then -- 1893
-			params.status = status -- 1895
-		end -- 1895
-		params.limit = clampIntegerParam(params.limit, 5, 1) -- 1897
-		params.offset = clampIntegerParam(params.offset, 0, 0) -- 1898
-		if type(params.query) == "string" then -- 1898
-			params.query = __TS__StringTrim(params.query) -- 1900
-		end -- 1900
-		return {success = true, params = params} -- 1902
-	end -- 1902
-	if tool == "spawn_sub_agent" then -- 1902
-		local prompt = type(params.prompt) == "string" and __TS__StringTrim(params.prompt) or "" -- 1906
-		local title = type(params.title) == "string" and __TS__StringTrim(params.title) or "" -- 1907
-		if prompt == "" then -- 1907
-			return {success = false, message = "spawn_sub_agent requires prompt"} -- 1908
-		end -- 1908
-		if title == "" then -- 1908
-			return {success = false, message = "spawn_sub_agent requires title"} -- 1909
+	if maxValue ~= nil and num > maxValue then -- 1801
+		num = maxValue -- 1802
+	end -- 1802
+	return num -- 1803
+end -- 1803
+function parseReadLineParam(value, fallback, paramName) -- 1806
+	local num = __TS__Number(value) -- 1811
+	if not __TS__NumberIsFinite(num) then -- 1811
+		num = fallback -- 1812
+	end -- 1812
+	num = math.floor(num) -- 1813
+	if num == 0 then -- 1813
+		return {success = false, message = paramName .. " cannot be 0"} -- 1815
+	end -- 1815
+	return {success = true, value = num} -- 1817
+end -- 1817
+function validateDecision(tool, params) -- 1820
+	if tool == "finish" then -- 1820
+		local message = getFinishMessage(params) -- 1825
+		if message == "" then -- 1825
+			return {success = false, message = "finish requires params.message"} -- 1826
+		end -- 1826
+		params.message = message -- 1827
+		return {success = true, params = params} -- 1828
+	end -- 1828
+	if tool == "read_file" then -- 1828
+		local path = getDecisionPath(params) -- 1832
+		if path == "" then -- 1832
+			return {success = false, message = "read_file requires path"} -- 1833
+		end -- 1833
+		params.path = path -- 1834
+		local startLineRes = parseReadLineParam(params.startLine, 1, "startLine") -- 1835
+		if not startLineRes.success then -- 1835
+			return startLineRes -- 1836
+		end -- 1836
+		local endLineDefault = startLineRes.value < 0 and -1 or READ_FILE_DEFAULT_LIMIT -- 1837
+		local endLineRes = parseReadLineParam(params.endLine, endLineDefault, "endLine") -- 1838
+		if not endLineRes.success then -- 1838
+			return endLineRes -- 1839
+		end -- 1839
+		params.startLine = startLineRes.value -- 1840
+		params.endLine = endLineRes.value -- 1841
+		return {success = true, params = params} -- 1842
+	end -- 1842
+	if tool == "edit_file" then -- 1842
+		local path = getDecisionPath(params) -- 1846
+		if path == "" then -- 1846
+			return {success = false, message = "edit_file requires path"} -- 1847
+		end -- 1847
+		local oldStr = type(params.old_str) == "string" and params.old_str or "" -- 1848
+		local newStr = type(params.new_str) == "string" and params.new_str or "" -- 1849
+		params.path = path -- 1850
+		params.old_str = oldStr -- 1851
+		params.new_str = newStr -- 1852
+		return {success = true, params = params} -- 1853
+	end -- 1853
+	if tool == "delete_file" then -- 1853
+		local targetFile = getDecisionPath(params) -- 1857
+		if targetFile == "" then -- 1857
+			return {success = false, message = "delete_file requires target_file"} -- 1858
+		end -- 1858
+		params.target_file = targetFile -- 1859
+		return {success = true, params = params} -- 1860
+	end -- 1860
+	if tool == "grep_files" then -- 1860
+		local pattern = type(params.pattern) == "string" and __TS__StringTrim(params.pattern) or "" -- 1864
+		if pattern == "" then -- 1864
+			return {success = false, message = "grep_files requires pattern"} -- 1865
+		end -- 1865
+		params.pattern = pattern -- 1866
+		params.limit = clampIntegerParam(params.limit, SEARCH_FILES_LIMIT_DEFAULT, 1) -- 1867
+		params.offset = clampIntegerParam(params.offset, 0, 0) -- 1868
+		return {success = true, params = params} -- 1869
+	end -- 1869
+	if tool == "search_dora_api" then -- 1869
+		local pattern = type(params.pattern) == "string" and __TS__StringTrim(params.pattern) or "" -- 1873
+		if pattern == "" then -- 1873
+			return {success = false, message = "search_dora_api requires pattern"} -- 1874
+		end -- 1874
+		params.pattern = pattern -- 1875
+		params.limit = clampIntegerParam(params.limit, 8, 1, SEARCH_DORA_API_LIMIT_MAX) -- 1876
+		return {success = true, params = params} -- 1877
+	end -- 1877
+	if tool == "glob_files" then -- 1877
+		params.maxEntries = clampIntegerParam(params.maxEntries, LIST_FILES_MAX_ENTRIES_DEFAULT, 1) -- 1881
+		return {success = true, params = params} -- 1882
+	end -- 1882
+	if tool == "build" then -- 1882
+		local path = getDecisionPath(params) -- 1886
+		if path ~= "" then -- 1886
+			params.path = path -- 1888
+		end -- 1888
+		return {success = true, params = params} -- 1890
+	end -- 1890
+	if tool == "list_sub_agents" then -- 1890
+		local status = type(params.status) == "string" and __TS__StringTrim(params.status) or "" -- 1894
+		if status ~= "" then -- 1894
+			params.status = status -- 1896
+		end -- 1896
+		params.limit = clampIntegerParam(params.limit, 5, 1) -- 1898
+		params.offset = clampIntegerParam(params.offset, 0, 0) -- 1899
+		if type(params.query) == "string" then -- 1899
+			params.query = __TS__StringTrim(params.query) -- 1901
+		end -- 1901
+		return {success = true, params = params} -- 1903
+	end -- 1903
+	if tool == "spawn_sub_agent" then -- 1903
+		local prompt = type(params.prompt) == "string" and __TS__StringTrim(params.prompt) or "" -- 1907
+		local title = type(params.title) == "string" and __TS__StringTrim(params.title) or "" -- 1908
+		if prompt == "" then -- 1908
+			return {success = false, message = "spawn_sub_agent requires prompt"} -- 1909
 		end -- 1909
-		params.prompt = prompt -- 1910
-		params.title = title -- 1911
-		if type(params.expectedOutput) == "string" then -- 1911
-			params.expectedOutput = __TS__StringTrim(params.expectedOutput) -- 1913
-		end -- 1913
-		if isArray(params.filesHint) then -- 1913
-			params.filesHint = __TS__ArrayMap( -- 1916
-				__TS__ArrayFilter( -- 1916
-					params.filesHint, -- 1916
-					function(____, item) return type(item) == "string" end -- 1917
-				), -- 1917
-				function(____, item) return sanitizeUTF8(item) end -- 1918
-			) -- 1918
-		end -- 1918
-		return {success = true, params = params} -- 1920
-	end -- 1920
-	return {success = true, params = params} -- 1923
-end -- 1923
-function getAllowedToolsForRole(role) -- 1949
-	return role == "main" and ({ -- 1950
-		"read_file", -- 1951
-		"edit_file", -- 1951
-		"delete_file", -- 1951
-		"grep_files", -- 1951
-		"search_dora_api", -- 1951
-		"glob_files", -- 1951
-		"build", -- 1951
-		"list_sub_agents", -- 1951
-		"spawn_sub_agent", -- 1951
-		"finish" -- 1951
-	}) or ({ -- 1951
+		if title == "" then -- 1909
+			return {success = false, message = "spawn_sub_agent requires title"} -- 1910
+		end -- 1910
+		params.prompt = prompt -- 1911
+		params.title = title -- 1912
+		if type(params.expectedOutput) == "string" then -- 1912
+			params.expectedOutput = __TS__StringTrim(params.expectedOutput) -- 1914
+		end -- 1914
+		if isArray(params.filesHint) then -- 1914
+			params.filesHint = __TS__ArrayMap( -- 1917
+				__TS__ArrayFilter( -- 1917
+					params.filesHint, -- 1917
+					function(____, item) return type(item) == "string" end -- 1918
+				), -- 1918
+				function(____, item) return sanitizeUTF8(item) end -- 1919
+			) -- 1919
+		end -- 1919
+		return {success = true, params = params} -- 1921
+	end -- 1921
+	return {success = true, params = params} -- 1924
+end -- 1924
+function getAllowedToolsForRole(role) -- 1950
+	return role == "main" and ({ -- 1951
 		"read_file", -- 1952
 		"edit_file", -- 1952
 		"delete_file", -- 1952
@@ -436,6 +425,8 @@ function getAllowedToolsForRole(role) -- 1949
 		"search_dora_api", -- 1952
 		"glob_files", -- 1952
 		"build", -- 1952
+		"list_sub_agents", -- 1952
+		"spawn_sub_agent", -- 1952
 		"finish" -- 1952
 	}) -- 1952
 end -- 1952
@@ -1781,67 +1772,65 @@ local function parseDecisionToolCall(functionName, rawObj) -- 1686
 	return {success = true, tool = functionName, params = rawObj} -- 1696
 end -- 1686
 local function parseToolCallArguments(functionName, argsText) -- 1703
-	if __TS__StringTrim(argsText) == "" then -- 1703
-		return {} -- 1705
-	end -- 1705
-	local rawObj, err = safeJsonDecode(argsText) -- 1707
-	if err ~= nil or rawObj == nil then -- 1707
-		return { -- 1709
-			success = false, -- 1710
-			message = (("invalid " .. functionName) .. " arguments: ") .. tostring(err), -- 1711
-			raw = argsText -- 1712
-		} -- 1712
-	end -- 1712
-	local encodedRaw = safeJsonEncode(rawObj) -- 1715
-	if encodedRaw == "null" or not isRecord(rawObj) or isArray(rawObj) then -- 1715
-		return {success = false, message = ("invalid " .. functionName) .. " arguments", raw = argsText} -- 1717
-	end -- 1717
-	return rawObj -- 1723
+	local trimmedArgs = __TS__StringTrim(argsText) -- 1704
+	if trimmedArgs == "" then -- 1704
+		return {} -- 1706
+	end -- 1706
+	local rawObj, err = safeJsonDecode(trimmedArgs) -- 1708
+	if err ~= nil or rawObj == nil then -- 1708
+		return { -- 1710
+			success = false, -- 1711
+			message = (("invalid " .. functionName) .. " arguments: ") .. tostring(err), -- 1712
+			raw = argsText -- 1713
+		} -- 1713
+	end -- 1713
+	local encodedRaw = safeJsonEncode(rawObj) -- 1716
+	if encodedRaw == "null" or not isRecord(rawObj) or __TS__StringAccess(trimmedArgs, 0) == "[" then -- 1716
+		return {success = false, message = ("invalid " .. functionName) .. " arguments", raw = argsText} -- 1718
+	end -- 1718
+	return rawObj -- 1724
 end -- 1703
-local function parseAndValidateToolCallDecision(shared, functionName, argsText, toolCallId, reason, reasoningContent) -- 1726
-	local rawArgs = parseToolCallArguments(functionName, argsText) -- 1734
-	if isRecord(rawArgs) and rawArgs.success == false then -- 1734
-		return rawArgs -- 1736
-	end -- 1736
-	local decision = parseDecisionToolCall(functionName, rawArgs) -- 1738
-	if not decision.success then -- 1738
-		return {success = false, message = decision.message, raw = argsText} -- 1740
-	end -- 1740
-	local validation = validateDecision(decision.tool, decision.params) -- 1746
-	if not validation.success then -- 1746
-		return {success = false, message = validation.message, raw = argsText} -- 1748
-	end -- 1748
-	if not isToolAllowedForRole(shared.role, decision.tool) then -- 1748
-		return {success = false, message = (decision.tool .. " is not allowed for role ") .. shared.role, raw = argsText} -- 1755
-	end -- 1755
-	decision.params = validation.params -- 1761
-	decision.toolCallId = ensureToolCallId(toolCallId) -- 1762
-	decision.reason = reason -- 1763
-	decision.reasoningContent = reasoningContent -- 1764
-	return decision -- 1765
-end -- 1726
-local function createPreExecutableActionFromStream(shared, toolCall) -- 1768
-	local ____opt_38 = toolCall["function"] -- 1768
-	local functionName = ____opt_38 and ____opt_38.name -- 1769
-	local ____opt_40 = toolCall["function"] -- 1769
-	local argsText = ____opt_40 and ____opt_40.arguments or "" -- 1770
-	local toolCallId = type(toolCall.id) == "string" and toolCall.id or nil -- 1771
-	if not functionName or not toolCallId then -- 1771
-		return nil -- 1772
-	end -- 1772
-	local rawArgs = parseToolCallArguments(functionName, argsText) -- 1773
-	if isRecord(rawArgs) and rawArgs.success == false then -- 1773
-		return nil -- 1774
-	end -- 1774
-	local decision = parseDecisionToolCall(functionName, rawArgs) -- 1775
-	if not decision.success or not canPreExecuteTool(decision.tool) then -- 1775
-		return nil -- 1776
-	end -- 1776
-	local validation = validateDecision(decision.tool, decision.params) -- 1777
-	if not validation.success then -- 1777
-		return nil -- 1778
-	end -- 1778
-	if not isToolAllowedForRole(shared.role, decision.tool) then -- 1778
+local function parseAndValidateToolCallDecision(shared, functionName, argsText, toolCallId, reason, reasoningContent) -- 1727
+	local rawArgs = parseToolCallArguments(functionName, argsText) -- 1735
+	if isRecord(rawArgs) and rawArgs.success == false then -- 1735
+		return rawArgs -- 1737
+	end -- 1737
+	local decision = parseDecisionToolCall(functionName, rawArgs) -- 1739
+	if not decision.success then -- 1739
+		return {success = false, message = decision.message, raw = argsText} -- 1741
+	end -- 1741
+	local validation = validateDecision(decision.tool, decision.params) -- 1747
+	if not validation.success then -- 1747
+		return {success = false, message = validation.message, raw = argsText} -- 1749
+	end -- 1749
+	if not isToolAllowedForRole(shared.role, decision.tool) then -- 1749
+		return {success = false, message = (decision.tool .. " is not allowed for role ") .. shared.role, raw = argsText} -- 1756
+	end -- 1756
+	decision.params = validation.params -- 1762
+	decision.toolCallId = ensureToolCallId(toolCallId) -- 1763
+	decision.reason = reason -- 1764
+	decision.reasoningContent = reasoningContent -- 1765
+	return decision -- 1766
+end -- 1727
+local function createPreExecutableActionFromStream(shared, toolCall) -- 1769
+	local ____opt_38 = toolCall["function"] -- 1769
+	local functionName = ____opt_38 and ____opt_38.name -- 1770
+	local ____opt_40 = toolCall["function"] -- 1770
+	local argsText = ____opt_40 and ____opt_40.arguments or "" -- 1771
+	local toolCallId = type(toolCall.id) == "string" and toolCall.id or nil -- 1772
+	if not functionName or not toolCallId then -- 1772
+		return nil -- 1773
+	end -- 1773
+	local rawArgs = parseToolCallArguments(functionName, argsText) -- 1774
+	if isRecord(rawArgs) and rawArgs.success == false then -- 1774
+		return nil -- 1775
+	end -- 1775
+	local decision = parseDecisionToolCall(functionName, rawArgs) -- 1776
+	if not decision.success or not canPreExecuteTool(decision.tool) then -- 1776
+		return nil -- 1777
+	end -- 1777
+	local validation = validateDecision(decision.tool, decision.params) -- 1778
+	if not validation.success then -- 1778
 		return nil -- 1779
 	end -- 1779
 	return { -- 1780
