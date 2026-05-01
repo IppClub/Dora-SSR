@@ -2178,16 +2178,22 @@ function appendPromptToLatestDecisionMessage(messages: Message[], prompt: string
 	return next;
 }
 
-function buildDecisionMessages(shared: AgentShared, lastError?: string, attempt = 1, lastRaw?: string): Message[] {
+function buildDecisionMessages(
+	shared: AgentShared,
+	lastError?: string,
+	attempt = 1,
+	lastRaw?: string,
+	decisionMode: AgentDecisionMode = shared.decisionMode
+): Message[] {
 	let messages: Message[] = [
-		{ role: "system", content: buildAgentSystemPrompt(shared, shared.decisionMode === "xml") },
+		{ role: "system", content: buildAgentSystemPrompt(shared, decisionMode === "xml") },
 		...getUnconsolidatedMessages(shared),
 	];
 	if (shared.step + 1 >= shared.maxSteps) {
 		messages = appendPromptToLatestDecisionMessage(messages, getFinalDecisionTurnPrompt(shared));
 	}
 	if (lastError && lastError !== "") {
-		const retryHeader = shared.decisionMode === "xml"
+		const retryHeader = decisionMode === "xml"
 			? `Previous response was invalid (${lastError}). Return exactly one valid XML tool_call block only.`
 			: replacePromptVars(shared.promptPack.toolCallingRetryPrompt, { LAST_ERROR: lastError });
 		messages.push({
@@ -2489,7 +2495,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 			return {
 				success: false,
 				message: "missing tool call",
-				raw: messageContent,
+				raw: reasoningContent ?? messageContent ?? "",
 			};
 		}
 		const decisions: DecisionSuccess[] = [];
@@ -2594,6 +2600,45 @@ class MainDecisionAgent extends Node<AgentShared> {
 		};
 	}
 
+	private async callDecisionByXml(
+		shared: AgentShared,
+		lastError?: string,
+		attempt = 1,
+		lastRaw?: string
+	): Promise<DecisionResult | DecisionFailure> {
+		const messages: Message[] = buildDecisionMessages(
+			shared,
+			lastError,
+			attempt,
+			lastRaw,
+			"xml"
+		);
+		const llmRes = await llm(shared, messages, "decision_xml");
+		if (shared.stopToken.stopped) {
+			return { success: false, message: getCancelledReason(shared) };
+		}
+		if (!llmRes.success) {
+			return {
+				success: false,
+				message: llmRes.message,
+				raw: llmRes.text ?? "",
+			};
+		}
+		const decision = tryParseAndValidateDecision(llmRes.text);
+		if (decision.success) {
+			decision.reasoningContent = llmRes.reasoningContent;
+			if (!isToolAllowedForRole(shared.role, decision.tool)) {
+				return this.repairDecisionXml(
+					shared,
+					llmRes.text,
+					`${decision.tool} is not allowed for role ${shared.role}`
+				);
+			}
+			return decision;
+		}
+		return this.repairDecisionXml(shared, llmRes.text, decision.message);
+	}
+
 	async exec(input: { shared: AgentShared }): Promise<DecisionResult | DecisionFailure> {
 		const shared = input.shared;
 		if (shared.stopToken.stopped) {
@@ -2608,6 +2653,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 			Log("Info", `[CodingAgent] decision mode=tool_calling step=${shared.step + 1} messages=${getUnconsolidatedMessages(shared).length}`);
 			let lastError = "tool calling validation failed";
 			let lastRaw = "";
+			let shouldFallbackToXml = false;
 			for (let attempt = 0; attempt < shared.llmMaxTry; attempt++) {
 				Log("Info", `[CodingAgent] tool-calling attempt=${attempt + 1}`);
 				const decision = await this.callDecisionByToolCalling(
@@ -2625,6 +2671,34 @@ class MainDecisionAgent extends Node<AgentShared> {
 				lastError = decision.message;
 				lastRaw = decision.raw ?? "";
 				Log("Error", `[CodingAgent] tool-calling attempt failed: ${lastError}`);
+				if (lastError === "missing tool call") {
+					shouldFallbackToXml = true;
+					break;
+				}
+			}
+			if (shouldFallbackToXml) {
+				Log("Warn", `[CodingAgent] tool-calling returned no tool calls; falling back to XML decision format`);
+				lastError = "tool-calling returned no tool calls. Return exactly one valid XML tool_call block.";
+				for (let attempt = 0; attempt < shared.llmMaxTry; attempt++) {
+					Log("Info", `[CodingAgent] xml fallback attempt=${attempt + 1}`);
+					const decision = await this.callDecisionByXml(
+						shared,
+						attempt > 0 ? lastError : "tool-calling returned no tool calls. Use XML decision format instead.",
+						attempt + 1,
+						lastRaw
+					);
+					if (shared.stopToken.stopped) {
+						return { success: false, message: getCancelledReason(shared) };
+					}
+					if (decision.success) {
+						return decision;
+					}
+					lastError = decision.message;
+					lastRaw = decision.raw ?? "";
+					Log("Error", `[CodingAgent] xml fallback attempt failed: ${lastError}`);
+				}
+				Log("Error", `[CodingAgent] xml fallback exhausted retries: ${lastError}`);
+				return { success: false, message: `cannot produce valid XML decision after tool-calling fallback: ${lastError}; last_output=${truncateText(lastRaw, 400)}` };
 			}
 			Log("Error", `[CodingAgent] tool-calling exhausted retries: ${lastError}`);
 			return { success: false, message: `cannot produce valid tool call: ${lastError}; last_output=${truncateText(lastRaw, 400)}` };
@@ -2633,7 +2707,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 		let lastError = "xml validation failed";
 		let lastRaw = "";
 		for (let attempt = 0; attempt < shared.llmMaxTry; attempt++) {
-			const messages: Message[] = buildDecisionMessages(
+			const decision = await this.callDecisionByXml(
 				shared,
 				attempt > 0
 					? `Previous request failed before producing repairable output (${lastError}).`
@@ -2641,27 +2715,14 @@ class MainDecisionAgent extends Node<AgentShared> {
 				attempt + 1,
 				lastRaw
 			);
-			const llmRes = await llm(shared, messages, "decision_xml");
 			if (shared.stopToken.stopped) {
 				return { success: false, message: getCancelledReason(shared) };
 			}
-			if (!llmRes.success) {
-				lastError = llmRes.message;
-				lastRaw = llmRes.text ?? "";
-				continue;
-			}
-			lastRaw = llmRes.text;
-			const decision = tryParseAndValidateDecision(llmRes.text);
 			if (decision.success) {
-				decision.reasoningContent = llmRes.reasoningContent;
-				if (!isToolAllowedForRole(shared.role, decision.tool)) {
-					lastError = `${decision.tool} is not allowed for role ${shared.role}`;
-					return this.repairDecisionXml(shared, llmRes.text, lastError);
-				}
 				return decision;
 			}
 			lastError = decision.message;
-			return this.repairDecisionXml(shared, llmRes.text, lastError);
+			lastRaw = decision.raw ?? "";
 		}
 		return { success: false, message: `cannot produce valid decision xml: ${lastError}; last_output=${truncateText(lastRaw, 400)}` };
 	}
