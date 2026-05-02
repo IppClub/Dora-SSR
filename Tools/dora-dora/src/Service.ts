@@ -906,6 +906,27 @@ export interface AgentSession {
 	currentTaskFinalizing?: boolean;
 	createdAt: number;
 	updatedAt: number;
+	metrics?: AgentMetrics;
+}
+
+export interface AgentContextMetric {
+	usedTokens: number;
+	maxTokens: number;
+	ratio: number;
+	messagesTokens?: number;
+	optionsTokens?: number;
+	toolDefinitionsTokens?: number;
+	reservedOutputTokens?: number;
+	structuralOverhead?: number;
+	contextWindow?: number;
+	source?: string;
+	phase?: string;
+	step?: number;
+	updatedAt?: number;
+}
+
+export interface AgentMetrics {
+	context?: AgentContextMetric;
 }
 
 export interface AgentSessionMessage {
@@ -1008,6 +1029,7 @@ export interface AgentSessionPatch {
 	name: "AgentSessionPatch";
 	sessionId: number;
 	session?: AgentSession;
+	metrics?: AgentMetrics;
 	sessionDeleted?: boolean;
 	message?: AgentSessionMessage;
 	step?: AgentSessionStep;
