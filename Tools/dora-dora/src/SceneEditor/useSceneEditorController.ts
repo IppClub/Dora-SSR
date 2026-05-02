@@ -58,6 +58,10 @@ const isDescendantNode = (nodes: DoraSceneNode[], nodeId: string, possibleDescen
 	return false;
 };
 
+const minZoom = 0.25;
+const maxZoom = 4;
+const clampZoom = (value: number) => Math.max(minZoom, Math.min(maxZoom, value));
+
 export interface UseSceneEditorControllerOptions {
 	content: string;
 	title: string;
@@ -74,12 +78,14 @@ export const useSceneEditorController = (options: UseSceneEditorControllerOption
 	const [viewportNodes, setViewportNodes] = useState<DoraSceneNode[]>(() => scene.nodes);
 	const [selectedNodeId, setSelectedNodeId] = useState(scene.rootId);
 	const [pan, setPanState] = useState<DragPosition>({x: 0, y: 0});
+	const [zoom, setZoomState] = useState(1);
 	const viewportRef = useRef<HTMLDivElement | null>(null);
 	const sceneRef = useRef(scene);
 	const viewportNodesRef = useRef(viewportNodes);
 	const worldPositionsRef = useRef(computeWorldPositions(viewportNodes));
 	const selectedNodeIdRef = useRef(selectedNodeId);
 	const panRef = useRef(pan);
+	const zoomRef = useRef(zoom);
 	const dragStateRef = useRef<DragState | null>(null);
 	const panDragStateRef = useRef<PanDragState | null>(null);
 	const pendingDragPositionRef = useRef<DragPosition | null>(null);
@@ -95,6 +101,12 @@ export const useSceneEditorController = (options: UseSceneEditorControllerOption
 	const setPan = useCallback((nextPan: DragPosition) => {
 		panRef.current = nextPan;
 		setPanState(nextPan);
+	}, []);
+
+	const setZoom = useCallback((nextZoom: number) => {
+		const clampedZoom = clampZoom(nextZoom);
+		zoomRef.current = clampedZoom;
+		setZoomState(clampedZoom);
 	}, []);
 
 	const worldPositions = useMemo(() => computeWorldPositions(viewportNodes), [viewportNodes]);
@@ -114,6 +126,10 @@ export const useSceneEditorController = (options: UseSceneEditorControllerOption
 	useEffect(() => {
 		panRef.current = pan;
 	}, [pan]);
+
+	useEffect(() => {
+		zoomRef.current = zoom;
+	}, [zoom]);
 
 	useEffect(() => {
 		if (content === lastCommittedContent.current) return;
@@ -241,9 +257,10 @@ export const useSceneEditorController = (options: UseSceneEditorControllerOption
 	const moveDrag = useCallback((event: React.PointerEvent) => {
 		const dragState = dragStateRef.current;
 		if (dragState === null || readOnly) return;
+		const currentZoom = zoomRef.current;
 		pendingDragPositionRef.current = {
-			x: Math.round(dragState.worldX + event.clientX - dragState.startX),
-			y: Math.round(dragState.worldY - (event.clientY - dragState.startY)),
+			x: Math.round(dragState.worldX + (event.clientX - dragState.startX) / currentZoom),
+			y: Math.round(dragState.worldY - (event.clientY - dragState.startY) / currentZoom),
 		};
 		if (dragFrameRef.current === null) {
 			dragFrameRef.current = requestAnimationFrame(flushDragFrame);
@@ -292,15 +309,37 @@ export const useSceneEditorController = (options: UseSceneEditorControllerOption
 	const screenToWorld = useCallback((event: React.DragEvent | React.PointerEvent): DragPosition => {
 		const rect = viewportRef.current?.getBoundingClientRect();
 		if (rect === undefined) return {x: 0, y: 0};
+		const currentZoom = zoomRef.current;
 		return {
-			x: Math.round(event.clientX - rect.left - rect.width / 2 - panRef.current.x),
-			y: Math.round(rect.height / 2 + panRef.current.y - (event.clientY - rect.top)),
+			x: Math.round((event.clientX - rect.left - rect.width / 2 - panRef.current.x) / currentZoom),
+			y: Math.round((rect.height / 2 + panRef.current.y - (event.clientY - rect.top)) / currentZoom),
 		};
 	}, []);
 
+	const handleViewportWheel = useCallback((event: React.WheelEvent) => {
+		if (!event.ctrlKey) return;
+		event.preventDefault();
+		event.stopPropagation();
+		const rect = viewportRef.current?.getBoundingClientRect();
+		if (rect === undefined) return;
+		const oldZoom = zoomRef.current;
+		const nextZoom = clampZoom(oldZoom * Math.exp(-event.deltaY * 0.0015));
+		if (Math.abs(nextZoom - oldZoom) < 0.001) return;
+		const screenX = event.clientX - rect.left - rect.width / 2;
+		const screenY = event.clientY - rect.top - rect.height / 2;
+		const worldX = (screenX - panRef.current.x) / oldZoom;
+		const worldY = (panRef.current.y - screenY) / oldZoom;
+		setPan({
+			x: Math.round(screenX - worldX * nextZoom),
+			y: Math.round(screenY + worldY * nextZoom),
+		});
+		setZoom(nextZoom);
+	}, [setPan, setZoom]);
+
 	const resetView = useCallback(() => {
 		setPan({x: 0, y: 0});
-	}, [setPan]);
+		setZoom(1);
+	}, [setPan, setZoom]);
 
 	const resetScene = useCallback(() => {
 		if (readOnly) return;
@@ -366,6 +405,7 @@ export const useSceneEditorController = (options: UseSceneEditorControllerOption
 		selectedNode,
 		selectedNodeId,
 		pan,
+		zoom,
 		viewportRef,
 		setSelectedNodeId,
 		updateSelectedNode,
@@ -379,6 +419,7 @@ export const useSceneEditorController = (options: UseSceneEditorControllerOption
 		beginPan,
 		movePan,
 		endPan,
+		handleViewportWheel,
 		resetView,
 		resetScene,
 		generateCode,

@@ -171,13 +171,13 @@ export const SceneHierarchyPanel = memo((props: {
 });
 SceneHierarchyPanel.displayName = 'SceneHierarchyPanel';
 
-const RelationshipLine = memo((props: {from: {x: number; y: number}; to: {x: number; y: number}; pan: {x: number; y: number}}) => {
-	const {from, to, pan} = props;
-	const dx = to.x - from.x;
-	const dy = -(to.y - from.y);
+const RelationshipLine = memo((props: {from: {x: number; y: number}; to: {x: number; y: number}; pan: {x: number; y: number}; zoom: number}) => {
+	const {from, to, pan, zoom} = props;
+	const dx = (to.x - from.x) * zoom;
+	const dy = -(to.y - from.y) * zoom;
 	const length = Math.sqrt(dx * dx + dy * dy);
 	const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-	return <Box sx={{position: 'absolute', left: `calc(50% + ${pan.x + from.x}px)`, top: `calc(50% + ${pan.y - from.y}px)`, width: length, height: '1px', background: 'linear-gradient(90deg, rgba(255,255,255,0.08), rgba(255,255,255,0.30), rgba(255,255,255,0.08))', transform: `rotate(${angle}deg)`, transformOrigin: '0 50%', pointerEvents: 'none'}}/>;
+	return <Box sx={{position: 'absolute', left: `calc(50% + ${pan.x + from.x * zoom}px)`, top: `calc(50% + ${pan.y - from.y * zoom}px)`, width: length, height: '1px', background: 'linear-gradient(90deg, rgba(255,255,255,0.08), rgba(255,255,255,0.30), rgba(255,255,255,0.08))', transform: `rotate(${angle}deg)`, transformOrigin: '0 50%', pointerEvents: 'none'}}/>;
 });
 RelationshipLine.displayName = 'RelationshipLine';
 
@@ -200,19 +200,20 @@ export const SceneViewportPanel = memo((props: {controller: SceneEditorControlle
 				onPointerMove={(event) => {controller.moveDrag(event); controller.movePan(event);}}
 				onPointerUp={() => {controller.endDrag(); controller.endPan();}}
 				onPointerCancel={() => {controller.endDrag(); controller.endPan();}}
+				onWheel={controller.handleViewportWheel}
 				onDragOver={controller.handleTextureDragOver}
 				onDrop={(event) => controller.handleTextureDrop(event)}
 				sx={{
 					position: 'absolute', inset: 0, overflow: 'hidden', backgroundColor: '#050607',
 					backgroundImage: `radial-gradient(circle at 50% 50%, rgba(255,255,255,0.055), transparent 58%), linear-gradient(${sceneEditorColors.grid} 1px, transparent 1px), linear-gradient(90deg, ${sceneEditorColors.grid} 1px, transparent 1px)`,
-					backgroundSize: '100% 100%, 32px 32px, 32px 32px',
+					backgroundSize: `100% 100%, ${Math.max(8, 32 * controller.zoom)}px ${Math.max(8, 32 * controller.zoom)}px, ${Math.max(8, 32 * controller.zoom)}px ${Math.max(8, 32 * controller.zoom)}px`,
 					backgroundPosition: `center center, ${controller.pan.x}px ${controller.pan.y}px, ${controller.pan.x}px ${controller.pan.y}px`,
 				}}
 			>
 				<Box sx={{position: 'absolute', left: `calc(50% + ${controller.pan.x}px)`, top: 0, bottom: 0, width: '1px', backgroundColor: sceneEditorColors.yAxis}}/>
 				<Box sx={{position: 'absolute', left: 0, right: 0, top: `calc(50% + ${controller.pan.y}px)`, height: '1px', backgroundColor: sceneEditorColors.xAxis}}/>
-				{relationshipLines.map(line => <RelationshipLine key={line.id} from={line.from} to={line.to} pan={controller.pan}/>)}
-				<Box sx={{position: 'absolute', left: 16, top: 14, px: 1, py: 0.4, borderRadius: 1, backgroundColor: 'rgba(0,0,0,0.28)', color: sceneEditorColors.muted}}><Typography variant="caption">Drop png/jpg here. Drag nodes to move.</Typography></Box>
+				{relationshipLines.map(line => <RelationshipLine key={line.id} from={line.from} to={line.to} pan={controller.pan} zoom={controller.zoom}/>)}
+				<Box sx={{position: 'absolute', left: 16, top: 14, px: 1, py: 0.4, borderRadius: 1, backgroundColor: 'rgba(0,0,0,0.28)', color: sceneEditorColors.muted}}><Typography variant="caption">Drop png/jpg here. Drag blank area to pan. Ctrl/Pinch to zoom.</Typography></Box>
 				{visibleNodes.map(node => {
 					const worldPosition = controller.worldPositions.get(node.id) ?? {x: node.x, y: node.y};
 					return <Box
@@ -221,8 +222,8 @@ export const SceneViewportPanel = memo((props: {controller: SceneEditorControlle
 						onDragOver={node.type === 'Sprite' ? controller.handleTextureDragOver : undefined}
 						onDrop={node.type === 'Sprite' ? (event) => controller.handleTextureDrop(event, node) : undefined}
 						sx={{
-							position: 'absolute', left: `calc(50% + ${controller.pan.x + worldPosition.x}px)`, top: `calc(50% + ${controller.pan.y - worldPosition.y}px)`,
-							transform: `translate(-50%, -50%) rotate(${node.rotation}deg) scale(${node.scaleX}, ${node.scaleY})`, transformOrigin: 'center',
+							position: 'absolute', left: `calc(50% + ${controller.pan.x + worldPosition.x * controller.zoom}px)`, top: `calc(50% + ${controller.pan.y - worldPosition.y * controller.zoom}px)`,
+							transform: `translate(-50%, -50%) rotate(${node.rotation}deg) scale(${node.scaleX * controller.zoom}, ${node.scaleY * controller.zoom})`, transformOrigin: 'center',
 							minWidth: node.type === 'Label' ? 72 : 78, minHeight: node.type === 'Label' ? 32 : 78, px: node.type === 'Label' ? 1 : 0,
 							display: 'flex', alignItems: 'center', justifyContent: 'center', userSelect: 'none', cursor: 'grab',
 							border: node.id === controller.selectedNodeId ? `2px solid ${sceneEditorColors.selectedBorder}` : `1px solid ${sceneEditorColors.lineStrong}`,
