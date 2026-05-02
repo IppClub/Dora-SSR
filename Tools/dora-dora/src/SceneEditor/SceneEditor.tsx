@@ -47,8 +47,8 @@ const SceneEditor = (props: SceneEditorProps) => {
 			if (resizing === null) return;
 			const delta = event.clientX - resizing.startX;
 			setPanelWidths({
-				left: resizing.side === 'left' ? clamp(resizing.left + delta, 220, 520) : resizing.left,
-				right: resizing.side === 'right' ? clamp(resizing.right - delta, 260, 620) : resizing.right,
+				left: resizing.side === 'left' ? clamp(resizing.left + delta, 140, 620) : resizing.left,
+				right: resizing.side === 'right' ? clamp(resizing.right - delta, 220, 680) : resizing.right,
 			});
 		};
 		const up = () => {
@@ -65,7 +65,7 @@ const SceneEditor = (props: SceneEditorProps) => {
 			document.body.style.userSelect = '';
 		};
 	}, []);
-	const divider = (side: ResizeSide) => <Box onPointerDown={(event) => beginResize(side, event)} sx={{cursor: 'col-resize', borderRadius: 1, background: 'linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015))', border: `1px solid ${sceneEditorColors.line}`, '&:hover': {background: 'rgba(255,210,26,0.16)', borderColor: 'rgba(255,210,26,0.42)'}}}/>;
+	const divider = (side: ResizeSide) => <Box title="Drag to resize panels" onPointerDown={(event) => beginResize(side, event)} sx={{cursor: 'col-resize', borderRadius: 1, background: 'linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015))', border: `1px solid ${sceneEditorColors.line}`, '&:hover': {background: 'rgba(255,210,26,0.16)', borderColor: 'rgba(255,210,26,0.42)'}}}/>;
 	return (
 		<Box
 			onKeyDown={onKeydown}
@@ -85,7 +85,7 @@ const SceneEditor = (props: SceneEditorProps) => {
 			}}
 		>
 			<SceneTopBar title={title} readOnly={readOnly} onRun={() => void controller.generateCode('lua', true)} onGenerateTS={() => void controller.generateCode('typescript')} onGenerateLua={() => void controller.generateCode('lua')} onResetView={controller.resetView} onReset={controller.resetScene}/>
-			<Box sx={{display: 'grid', gridTemplateColumns: `${panelWidths.left}px 6px minmax(260px, 1fr) 6px ${panelWidths.right}px`, gap: 0.75, p: 1, minHeight: 0}}>
+			<Box sx={{display: 'grid', gridTemplateColumns: `${panelWidths.left}px 8px minmax(160px, 1fr) 8px ${panelWidths.right}px`, gap: 0.75, p: 1, minHeight: 0}}>
 				<SceneHierarchyPanel nodes={controller.scene.nodes} selectedNodeId={controller.selectedNodeId} readOnly={readOnly} onSelectNode={controller.setSelectedNodeId} onAddNode={controller.addNode} onDeleteNode={controller.deleteNode} onReparentNode={controller.reparentNode}/>
 				{divider('left')}
 				<SceneViewportPanel controller={controller} getResourceUrl={getResourceUrl}/>
