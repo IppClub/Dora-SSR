@@ -1,0 +1,46 @@
+{
+	"version": 1,
+	"name": "MainScene",
+	"rootId": "root",
+	"nodes": [
+		{
+			"id": "root",
+			"parentId": null,
+			"type": "Node",
+			"name": "MainScene",
+			"x": 0,
+			"y": 0,
+			"scaleX": 1,
+			"scaleY": 1,
+			"rotation": 0,
+			"visible": true
+		},
+		{
+			"id": "sprite-hero",
+			"parentId": "root",
+			"type": "Sprite",
+			"name": "HeroSprite",
+			"x": -120,
+			"y": 40,
+			"scaleX": 1,
+			"scaleY": 1,
+			"rotation": 0,
+			"visible": true,
+			"texture": ""
+		},
+		{
+			"id": "label-title",
+			"parentId": "root",
+			"type": "Label",
+			"name": "TitleLabel",
+			"x": 0,
+			"y": 130,
+			"scaleX": 1,
+			"scaleY": 1,
+			"rotation": 0,
+			"visible": true,
+			"text": "Dora Scene",
+			"fontSize": 36
+		}
+	]
+}

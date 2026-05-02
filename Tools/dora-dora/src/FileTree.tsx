@@ -45,7 +45,7 @@ import spineLogo from './spine.png';
 import waLogo from './wa.svg';
 import tic80Logo from './tic80.png';
 import { DiCode } from 'react-icons/di';
-import { TbMoodConfuzed, TbSql } from 'react-icons/tb';
+import { TbAtom, TbMoodConfuzed, TbSql } from 'react-icons/tb';
 import { SiNodered } from 'react-icons/si';
 import { VscMarkdown } from 'react-icons/vsc';
 import { MacScrollbar } from 'mac-scrollbar';
@@ -93,6 +93,9 @@ const fileIcon = (props: TreeNodeProps) => {
 				return <AiOutlineFolder/>;
 			}
 		} else {
+			if (data.key.toLowerCase().endsWith(".scene.json")) {
+				return <TbAtom size={14}/>;
+			}
 			switch (Info.path.extname(data.key).toLowerCase()) {
 				case ".lua":
 					return <img src={luaLogo} alt="lua" width="14px" height="14px"/>;
