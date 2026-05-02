@@ -16,14 +16,69 @@ interface AgentComposerProps {
 	running: boolean;
 	canStop?: boolean;
 	tabButtons?: React.ReactNode;
+	contextRatio?: number;
+	usedTokens?: number;
+	maxTokens?: number;
 	onPromptChange: (value: string) => void;
 	onSend: () => void;
 	onStop: () => void;
 }
 
+function formatCompactNumber(value: number): string {
+	if (!Number.isFinite(value)) return "0";
+	if (value >= 1000000) return `${(value / 1000000).toFixed(1)}m`;
+	if (value >= 1000) return `${(value / 1000).toFixed(1)}k`;
+	return String(Math.max(0, Math.round(value)));
+}
+
+function ContextUsageRing(props: { ratio?: number; usedTokens?: number; maxTokens?: number }) {
+	const usedTokens = props.usedTokens ?? 0;
+	const maxTokens = props.maxTokens ?? 64000;
+	const ratio = Math.max(0, Math.min(1, props.ratio ?? (maxTokens > 0 ? usedTokens / maxTokens : 0)));
+	const percent = Math.round(ratio * 100);
+	const color = ratio >= 0.90 ? Color.Error : ratio >= 0.75 ? Color.Warning : Color.Theme;
+	const title = `Context estimate: ${formatCompactNumber(usedTokens)} / ${formatCompactNumber(maxTokens)} tokens (${percent}%)`;
+	return (
+		<Tooltip title={title}>
+			<Box
+				aria-label={title}
+				sx={{
+					width: 30,
+					height: 30,
+					borderRadius: "50%",
+					background: `conic-gradient(${color} ${percent * 3.6}deg, rgba(255,255,255,0.12) 0deg)`,
+					display: "grid",
+					placeItems: "center",
+					boxShadow: `0 0 14px ${color}22`,
+					cursor: "default",
+				}}
+			>
+				<Box
+					sx={{
+						width: 22,
+						height: 22,
+						borderRadius: "50%",
+						backgroundColor: Color.BackgroundDark,
+						display: "grid",
+						placeItems: "center",
+						border: "1px solid rgba(255,255,255,0.08)",
+						color,
+						fontSize: 9,
+						fontWeight: 800,
+						lineHeight: 1,
+						userSelect: "none",
+					}}
+				>
+					{percent}
+				</Box>
+			</Box>
+		</Tooltip>
+	);
+}
+
 export default function AgentComposer(props: AgentComposerProps) {
 	const { t } = useTranslation();
-	const { prompt, loading, running, canStop = true, tabButtons, onPromptChange, onSend, onStop } = props;
+	const { prompt, loading, running, canStop = true, tabButtons, contextRatio, usedTokens, maxTokens, onPromptChange, onSend, onStop } = props;
 	const disabledInput = loading || running;
 	const actionDisabled = running ? !canStop : loading || prompt.trim() === "";
 	const showActionButton = running || prompt.trim() !== "";
@@ -144,9 +199,12 @@ export default function AgentComposer(props: AgentComposerProps) {
 							{running ? <BsStopFill size={20} /> : <BsFillSendFill size={18} />}
 						</IconButton>
 					</span>
-				</Tooltip>
-			) : null}
+					</Tooltip>
+				) : null}
+				<span style={{ position: "absolute", right: 16, bottom: 14, zIndex: 1 }}>
+					<ContextUsageRing ratio={contextRatio} usedTokens={usedTokens} maxTokens={maxTokens} />
+				</span>
+				</Box>
 			</Box>
-		</Box>
-	);
+		);
 }

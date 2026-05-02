@@ -1,7 +1,7 @@
 // @preview-file off clear
 import { App, Path, Content } from 'Dora';
 import { Flow, Node } from 'Agent/flow';
-import { callLLM, callLLMStreamAggregated, Message, StopToken, Log, getActiveLLMConfig, createLocalToolCallId, parseSimpleXMLChildren, parseXMLObjectFromText, safeJsonDecode, safeJsonEncode, sanitizeUTF8 } from 'Agent/Utils';
+import { callLLM, callLLMStreamAggregated, Message, StopToken, Log, getActiveLLMConfig, createLocalToolCallId, parseSimpleXMLChildren, parseXMLObjectFromText, safeJsonDecode, safeJsonEncode, sanitizeUTF8, estimateTextTokens } from 'Agent/Utils';
 import type { LLMConfig, ToolCall } from 'Agent/Utils';
 import * as Tools from 'Agent/Tools';
 import { MemoryCompressor } from 'Agent/Memory';
@@ -556,6 +556,26 @@ export type AgentToolName =
 
 export type AgentStepToolName = AgentToolName | "compress_memory";
 
+export interface AgentContextMetric {
+	usedTokens: number;
+	maxTokens: number;
+	ratio: number;
+	messagesTokens: number;
+	optionsTokens: number;
+	toolDefinitionsTokens?: number;
+	reservedOutputTokens: number;
+	structuralOverhead: number;
+	contextWindow: number;
+	source: string;
+	updatedAt: number;
+	phase?: string;
+	step?: number;
+}
+
+export interface AgentMetrics {
+	context?: AgentContextMetric;
+}
+
 export type CodingAgentEvent =
 	| {
 		type: "task_started";
@@ -622,10 +642,17 @@ export type CodingAgentEvent =
 		reason?: string;
 		result: Record<string, unknown>;
 	}
-	| {
-		type: "assistant_message_updated";
-		sessionId?: number;
-		taskId: number;
+		| {
+			type: "metrics_updated";
+			sessionId?: number;
+			taskId: number;
+			step?: number;
+			metrics: AgentMetrics;
+		}
+		| {
+			type: "assistant_message_updated";
+			sessionId?: number;
+			taskId: number;
 		step: number;
 		content: string;
 		reasoningContent?: string;
@@ -645,6 +672,8 @@ const READ_FILE_DEFAULT_LIMIT = 300;
 const HISTORY_SEARCH_FILES_MAX_MATCHES = 20;
 const HISTORY_SEARCH_DORA_API_MAX_MATCHES = 12;
 const HISTORY_LIST_FILES_MAX_ENTRIES = 200;
+const HISTORY_BUILD_MAX_MESSAGES = 50;
+const HISTORY_BUILD_MESSAGE_MAX_CHARS = 1200;
 const SEARCH_DORA_API_LIMIT_MAX = 20;
 const SEARCH_FILES_LIMIT_DEFAULT = 20;
 const LIST_FILES_MAX_ENTRIES_DEFAULT = 200;
@@ -732,6 +761,74 @@ function emitAgentEvent(shared: AgentShared, event: CodingAgentEvent) {
 			Log("Error", `[CodingAgent] onEvent handler failed: ${tostring(error)}`);
 		}
 	}
+}
+
+function emitLLMContextMetrics(
+	shared: AgentShared,
+	step: number,
+	phase: string,
+	messages: Message[],
+	options: Record<string, unknown>
+) {
+	let messagesTokens = 0;
+	for (let i = 0; i < messages.length; i++) {
+		const message = messages[i];
+		messagesTokens += 8;
+		messagesTokens += estimateTextTokens(message.role ?? "");
+		messagesTokens += estimateTextTokens(message.content ?? "");
+		messagesTokens += estimateTextTokens(message.name ?? "");
+		messagesTokens += estimateTextTokens(message.tool_call_id ?? "");
+		messagesTokens += estimateTextTokens(message.reasoning_content ?? "");
+		const [toolCallsText] = safeJsonEncode((message.tool_calls ?? []) as object);
+		messagesTokens += estimateTextTokens(toolCallsText ?? "");
+	}
+	// Calculate tool definitions separately - they are fixed overhead, not conversation usage
+	let toolDefinitionsTokens = 0;
+	if (options.tools && Array.isArray(options.tools)) {
+		const [toolsText] = safeJsonEncode(options.tools as object);
+		toolDefinitionsTokens = toolsText ? estimateTextTokens(toolsText) : 0;
+	}
+	// Exclude tools from optionsTokens since we track them separately
+	const optionsWithoutTools = { ...options };
+	delete optionsWithoutTools.tools;
+	const [optionsText] = safeJsonEncode(optionsWithoutTools as object);
+	const optionsTokens = optionsText ? estimateTextTokens(optionsText) : 0;
+	const contextWindow = math.max(64000, shared.llmConfig.contextWindow);
+	const explicitMax = typeof options.max_tokens === "number"
+		? math.floor(options.max_tokens)
+		: (typeof options.max_completion_tokens === "number"
+			? math.floor(options.max_completion_tokens)
+			: 0);
+	const reservedOutputTokens = explicitMax > 0
+		? math.max(256, explicitMax)
+		: math.max(1024, math.floor(contextWindow * 0.2));
+	const structuralOverhead = math.max(256, messages.length * 16);
+	// usedTokens represents actual conversation content, not fixed overhead like tool definitions
+	const usedTokens = messagesTokens + optionsTokens + structuralOverhead;
+	const maxTokens = contextWindow;
+	emitAgentEvent(shared, {
+		type: "metrics_updated",
+		sessionId: shared.sessionId,
+		taskId: shared.taskId,
+		step,
+		metrics: {
+			context: {
+				usedTokens,
+				maxTokens,
+				ratio: math.max(0, math.min(1, usedTokens / maxTokens)),
+				messagesTokens,
+				optionsTokens,
+				toolDefinitionsTokens,
+				reservedOutputTokens,
+				structuralOverhead,
+				contextWindow,
+				source: "llm_input_estimate",
+				updatedAt: os.time(),
+				phase,
+				step,
+			},
+		},
+	});
 }
 
 function emitAgentStartEvent(shared: AgentShared, action: AgentActionRecord) {
@@ -1104,6 +1201,33 @@ function sanitizeListFilesResultForHistory(result: Record<string, unknown>): Rec
 		clone[key] = result[key];
 	}
 	clone.files = result.files.slice(0, HISTORY_LIST_FILES_MAX_ENTRIES);
+	return clone;
+}
+
+function sanitizeBuildResultForHistory(result: Record<string, unknown>): Record<string, unknown> {
+	if (!isArray(result.messages)) return result;
+	const clone: Record<string, unknown> = {};
+	for (const key in result) {
+		clone[key] = result[key];
+	}
+	const messages = result.messages as Record<string, unknown>[];
+	const shown = math.min(messages.length, HISTORY_BUILD_MAX_MESSAGES);
+	const sanitized: Record<string, unknown>[] = [];
+	for (let i = 0; i < shown; i++) {
+		const item = messages[i];
+		const next: Record<string, unknown> = {};
+		for (const key in item) {
+			const value = item[key];
+			next[key] = key === "message" && typeof value === "string"
+				? truncateText(value, HISTORY_BUILD_MESSAGE_MAX_CHARS)
+				: value;
+		}
+		sanitized.push(next);
+	}
+	clone.messages = sanitized;
+	if (messages.length > shown) {
+		clone.truncatedMessages = messages.length - shown;
+	}
 	return clone;
 }
 
@@ -1618,6 +1742,7 @@ async function llm(
 	phase: "decision_xml" | "decision_xml_repair" = "decision_xml"
 ): Promise<LLMResult> {
 	const stepId = shared.step + 1;
+	emitLLMContextMetrics(shared, stepId, phase, messages, shared.llmOptions);
 	saveStepLLMDebugInput(shared, stepId, phase, messages, shared.llmOptions);
 	const res = await callLLM(messages, shared.llmOptions, shared.stopToken, shared.llmConfig);
 	if (res.success) {
@@ -2420,11 +2545,12 @@ class MainDecisionAgent extends Node<AgentShared> {
 		const tools = buildDecisionToolSchema(shared);
 		const messages = buildDecisionMessages(shared, lastError, attempt, lastRaw);
 		const stepId = shared.step + 1;
-		const llmOptions = {
-			...shared.llmOptions,
-			tools,
-		};
-		saveStepLLMDebugInput(shared, stepId, "decision_tool_calling", messages, llmOptions);
+			const llmOptions = {
+				...shared.llmOptions,
+				tools,
+			};
+			emitLLMContextMetrics(shared, stepId, "decision_tool_calling", messages, llmOptions);
+			saveStepLLMDebugInput(shared, stepId, "decision_tool_calling", messages, llmOptions);
 		let lastStreamContent = "";
 		let lastStreamReasoning = "";
 		const preExecutedResults = new Map<string, Promise<Record<string, unknown>>>();
@@ -3083,7 +3209,7 @@ class BuildAction extends Node<AgentShared> {
 	async post(shared: AgentShared, _prepRes: unknown, execRes: unknown): Promise<string | undefined> {
 		const last = shared.history[shared.history.length - 1];
 		if (last !== undefined) {
-			last.result = execRes as Record<string, unknown>;
+			last.result = sanitizeBuildResultForHistory(execRes as Record<string, unknown>);
 			appendToolResultMessage(shared, last);
 			emitAgentFinishEvent(shared, last);
 		}
@@ -3550,6 +3676,9 @@ function sanitizeToolActionResultForHistory(action: AgentActionRecord, result: R
 	}
 	if (action.tool === "glob_files") {
 		return sanitizeListFilesResultForHistory(result);
+	}
+	if (action.tool === "build") {
+		return sanitizeBuildResultForHistory(result);
 	}
 	return result;
 }

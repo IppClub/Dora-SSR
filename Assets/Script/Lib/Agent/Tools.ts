@@ -92,10 +92,18 @@ export type BuildMessage = {
 
 export type BuildResult = {
 	success: true;
+	message: string;
+	total: number;
+	passed: number;
+	failed: 0;
 	messages: BuildMessage[];
 } | {
 	success: false;
 	message: string;
+	total?: number;
+	passed?: number;
+	failed?: number;
+	messages?: BuildMessage[];
 };
 
 export type GetLogsResult = {
@@ -1447,6 +1455,36 @@ export function getCheckpointDiff(checkpointId: number): CheckpointDiffResult {
 	};
 }
 
+function finalizeBuildResult(workDir: string, messages: BuildMessage[]): BuildResult {
+	const normalized = messages.map(m => m.success
+		? ({ ...m, file: toWorkspaceRelativePath(workDir, m.file) })
+		: ({ ...m, file: toWorkspaceRelativePath(workDir, m.file) }));
+	const total = normalized.length;
+	let failed = 0;
+	for (let i = 0; i < normalized.length; i++) {
+		if (!normalized[i].success) failed += 1;
+	}
+	const passed = total - failed;
+	if (failed > 0) {
+		return {
+			success: false,
+			message: `Build failed: ${failed}/${total} file(s) failed.`,
+			total,
+			passed,
+			failed,
+			messages: normalized,
+		};
+	}
+	return {
+		success: true,
+		message: `Build passed: ${passed}/${total} file(s).`,
+		total,
+		passed,
+		failed: 0,
+		messages: normalized,
+	};
+}
+
 export async function build(req: { workDir: string; path: string }): Promise<BuildResult> {
 	const targetRel = req.path ?? "";
 	const target = resolveWorkspaceSearchPath(req.workDir, targetRel);
@@ -1477,12 +1515,7 @@ export async function build(req: { workDir: string; path: string }): Promise<Bui
 			messages.push(await runSingleNonTsBuild(target));
 		}
 		Log("Info", `[build] file=${target} messages=${messages.length}`);
-		return {
-			success: true,
-			messages: messages.map(m => m.success
-				? ({ ...m, file: toWorkspaceRelativePath(req.workDir, m.file) })
-				: ({ ...m, file: toWorkspaceRelativePath(req.workDir, m.file) })),
-		};
+		return finalizeBuildResult(req.workDir, messages);
 	}
 	const listResult = listFiles({
 		workDir: req.workDir,
@@ -1530,10 +1563,5 @@ export async function build(req: { workDir: string; path: string }): Promise<Bui
 		return { success: false, message: "No code files were found to build." };
 	}
 	Log("Info", `[build] dir=${target} messages=${messages.length}`);
-	return {
-		success: true,
-		messages: messages.map(m => m.success
-			? ({ ...m, file: toWorkspaceRelativePath(req.workDir, m.file) })
-			: ({ ...m, file: toWorkspaceRelativePath(req.workDir, m.file) })),
-	};
+	return finalizeBuildResult(req.workDir, messages);
 }
