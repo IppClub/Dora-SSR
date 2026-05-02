@@ -9,6 +9,9 @@ import { BsFillSendFill, BsStopFill } from 'react-icons/bs';
 import { Color } from './Theme';
 
 const AGENT_USER_PROMPT_MAX_CHARS = 12000;
+const CONTEXT_USAGE_OK_COLOR = "#7bd88f";
+const CONTEXT_USAGE_LOW_COLOR = "rgba(255,255,255,0.42)";
+
 
 interface AgentComposerProps {
 	prompt: string;
@@ -36,7 +39,15 @@ function ContextUsageRing(props: { ratio?: number; usedTokens?: number; maxToken
 	const maxTokens = props.maxTokens ?? 64000;
 	const ratio = Math.max(0, Math.min(1, props.ratio ?? (maxTokens > 0 ? usedTokens / maxTokens : 0)));
 	const percent = Math.round(ratio * 100);
-	const color = ratio >= 0.90 ? Color.Error : ratio >= 0.75 ? Color.Warning : Color.Theme;
+	const hasUsage = usedTokens > 0 || props.ratio !== undefined;
+	const color = ratio >= 0.90
+		? Color.Error
+		: ratio >= 0.70
+			? Color.Warning
+			: hasUsage
+				? CONTEXT_USAGE_OK_COLOR
+				: CONTEXT_USAGE_LOW_COLOR;
+	const trackColor = hasUsage ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.08)";
 	const title = `Context estimate: ${formatCompactNumber(usedTokens)} / ${formatCompactNumber(maxTokens)} tokens (${percent}%)`;
 	return (
 		<Tooltip title={title}>
@@ -46,7 +57,7 @@ function ContextUsageRing(props: { ratio?: number; usedTokens?: number; maxToken
 					width: 30,
 					height: 30,
 					borderRadius: "50%",
-					background: `conic-gradient(${color} ${percent * 3.6}deg, rgba(255,255,255,0.12) 0deg)`,
+					background: `conic-gradient(${color} ${percent * 3.6}deg, ${trackColor} 0deg)`,
 					display: "grid",
 					placeItems: "center",
 					boxShadow: `0 0 14px ${color}22`,
