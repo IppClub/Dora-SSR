@@ -20,8 +20,8 @@ jobs:
           xmake-version: latest
       - name: Generate Lua bindings
         run: |
-          sudo apt-get install lua5.1
-          sudo apt-get install -y luarocks
+          sudo apt-get update
+          sudo apt-get install -y lua5.1 luarocks
           sudo luarocks install luafilesystem
           cd Tools/tolua++
           lua tolua++.lua
