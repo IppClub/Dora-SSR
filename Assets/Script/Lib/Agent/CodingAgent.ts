@@ -714,6 +714,24 @@ export interface AgentActionRecord {
 	timestamp: string;
 }
 
+interface AgentFileContextItem {
+	path: string;
+	op: Tools.FileOp;
+	checkpointId: number;
+	checkpointSeq: number;
+	beforeExists: boolean;
+	afterExists: boolean;
+	beforeBytes: number;
+	afterBytes: number;
+	diffPreview: string;
+	beforeContentPreview?: string;
+	afterContent?: string;
+	afterContentPreview?: string;
+	lineCount?: number;
+	contentTruncated: boolean;
+	fileListTruncated: boolean;
+}
+
 interface AgentShared {
 	sessionId?: number;
 	taskId: number;
@@ -3162,7 +3180,8 @@ class DeleteFileAction extends Node<AgentShared> {
 	async post(shared: AgentShared, _prepRes: unknown, execRes: Record<string, unknown>): Promise<string | undefined> {
 		const last = shared.history[shared.history.length - 1];
 		if (last !== undefined) {
-			last.result = execRes;
+			last.params = sanitizeActionParamsForHistory(last.tool, last.params);
+			last.result = sanitizeToolActionResultForHistory(last, execRes);
 			appendToolResultMessage(shared, last);
 			emitAgentFinishEvent(shared, last);
 			const result = last.result;
@@ -3470,7 +3489,7 @@ class EditFileAction extends Node<AgentShared> {
 		const last = shared.history[shared.history.length - 1];
 		if (last !== undefined) {
 			last.params = sanitizeActionParamsForHistory(last.tool, last.params);
-			last.result = execRes as Record<string, unknown>;
+			last.result = sanitizeToolActionResultForHistory(last, execRes as Record<string, unknown>);
 			appendToolResultMessage(shared, last);
 			emitAgentFinishEvent(shared, last);
 			const result = last.result;
@@ -3680,6 +3699,140 @@ function sanitizeToolActionResultForHistory(action: AgentActionRecord, result: R
 	if (action.tool === "build") {
 		return sanitizeBuildResultForHistory(result);
 	}
+	if (action.tool === "edit_file" || action.tool === "delete_file") {
+		if (result.success !== true) return result;
+		if (typeof result.checkpointId !== "number" || typeof result.checkpointSeq !== "number") return result;
+		if (isArray(result.fileContext)) return result;
+
+		const contextLimits = {
+			fullContentChars: 12000,
+			previewChars: 4000,
+			diffChars: 8000,
+			totalChars: 24000,
+			maxFiles: 8,
+		};
+		function truncateContextSnippet(sourceText: string, maxChars: number, label: string): string {
+			if (maxChars <= 0) return `...${label} omitted (${sourceText.length} chars total)...`;
+			if (sourceText.length <= maxChars) return sourceText;
+			const nextUtf8Offset = utf8.offset(sourceText, maxChars + 1);
+			const visiblePrefix = nextUtf8Offset === undefined ? sourceText : string.sub(sourceText, 1, nextUtf8Offset - 1);
+			return `${visiblePrefix}\n...${label} truncated (${sourceText.length} chars total)...`;
+		}
+		function countLines(sourceText: string): number {
+			if (sourceText === "") return 0;
+			return sourceText.split("\n").length;
+		}
+		function buildUnifiedDiffPreview(filePath: string, beforeContent: string, afterContent: string, maxChars: number): string {
+			if (beforeContent === afterContent) return "";
+			const beforeLines = beforeContent.split("\n");
+			const afterLines = afterContent.split("\n");
+			const unifiedDiffLines: string[] = [`--- ${filePath}`, `+++ ${filePath}`];
+			let firstChangedLine = 0;
+			while (
+				firstChangedLine < beforeLines.length
+				&& firstChangedLine < afterLines.length
+				&& beforeLines[firstChangedLine] === afterLines[firstChangedLine]
+			) {
+				firstChangedLine += 1;
+			}
+			let lastChangedBeforeLine = beforeLines.length - 1;
+			let lastChangedAfterLine = afterLines.length - 1;
+			while (
+				lastChangedBeforeLine >= firstChangedLine
+				&& lastChangedAfterLine >= firstChangedLine
+				&& beforeLines[lastChangedBeforeLine] === afterLines[lastChangedAfterLine]
+			) {
+				lastChangedBeforeLine -= 1;
+				lastChangedAfterLine -= 1;
+			}
+			const previewStartLine = math.max(0, firstChangedLine - 3);
+			const previewEndLine = math.max(
+				math.min(beforeLines.length - 1, lastChangedBeforeLine + 3),
+				math.min(afterLines.length - 1, lastChangedAfterLine + 3)
+			);
+			unifiedDiffLines.push(`@@ ${previewStartLine + 1} @@`);
+			for (let lineIndex = previewStartLine; lineIndex <= previewEndLine; lineIndex++) {
+				const beforeLine = lineIndex < beforeLines.length ? beforeLines[lineIndex] : undefined;
+				const afterLine = lineIndex < afterLines.length ? afterLines[lineIndex] : undefined;
+				const beforeChanged = lineIndex >= firstChangedLine && lineIndex <= lastChangedBeforeLine;
+				const afterChanged = lineIndex >= firstChangedLine && lineIndex <= lastChangedAfterLine;
+				if (!beforeChanged && !afterChanged) {
+					const contextLine = afterLine !== undefined ? afterLine : beforeLine;
+					if (contextLine !== undefined) unifiedDiffLines.push(` ${contextLine}`);
+					continue;
+				}
+				if (beforeChanged && beforeLine !== undefined) unifiedDiffLines.push(`-${beforeLine}`);
+				if (afterChanged && afterLine !== undefined) unifiedDiffLines.push(`+${afterLine}`);
+			}
+			return truncateContextSnippet(unifiedDiffLines.join("\n"), maxChars, "diff");
+		}
+
+		const checkpointDiff = Tools.getCheckpointDiff(result.checkpointId);
+		if (!checkpointDiff.success) return result;
+		let remainingContextBudget = contextLimits.totalChars;
+		const fileContextItems: AgentFileContextItem[] = [];
+		const changedFiles = checkpointDiff.files;
+		const maxContextFiles = math.min(changedFiles.length, contextLimits.maxFiles);
+		for (let fileIndex = 0; fileIndex < maxContextFiles; fileIndex++) {
+			if (remainingContextBudget <= 0) break;
+			const changedFile = changedFiles[fileIndex];
+			const beforeContent = changedFile.beforeExists ? changedFile.beforeContent : "";
+			const afterContent = changedFile.afterExists ? changedFile.afterContent : "";
+			const contextItem: AgentFileContextItem = {
+				path: changedFile.path,
+				op: changedFile.op,
+				checkpointId: result.checkpointId,
+				checkpointSeq: result.checkpointSeq,
+				beforeExists: changedFile.beforeExists,
+				afterExists: changedFile.afterExists,
+				beforeBytes: beforeContent.length,
+				afterBytes: afterContent.length,
+				diffPreview: "",
+				lineCount: changedFile.afterExists ? countLines(afterContent) : 0,
+				contentTruncated: false,
+				fileListTruncated: changedFiles.length > contextLimits.maxFiles,
+			};
+			if (changedFile.afterExists) {
+				if (afterContent.length <= contextLimits.fullContentChars && afterContent.length <= remainingContextBudget) {
+					contextItem.afterContent = afterContent;
+					remainingContextBudget -= afterContent.length;
+				} else {
+					contextItem.afterContentPreview = truncateContextSnippet(
+						afterContent,
+						math.min(contextLimits.previewChars, math.max(400, remainingContextBudget)),
+						"afterContent"
+					);
+					remainingContextBudget -= contextItem.afterContentPreview.length;
+					contextItem.contentTruncated = true;
+				}
+			}
+			const diffPreview = buildUnifiedDiffPreview(
+				changedFile.path,
+				beforeContent,
+				afterContent,
+				math.min(contextLimits.diffChars, math.max(400, remainingContextBudget))
+			);
+			contextItem.diffPreview = diffPreview;
+			remainingContextBudget -= diffPreview.length;
+			if (!changedFile.afterExists && beforeContent !== "") {
+				contextItem.beforeContentPreview = truncateContextSnippet(
+					beforeContent,
+					math.min(contextLimits.previewChars, math.max(400, remainingContextBudget)),
+					"beforeContent"
+				);
+				remainingContextBudget -= contextItem.beforeContentPreview.length;
+				if (beforeContent.length > contextLimits.previewChars) contextItem.contentTruncated = true;
+			}
+			fileContextItems.push(contextItem);
+		}
+		if (fileContextItems.length === 0) return result;
+		return {
+			...result,
+			fileContext: fileContextItems,
+			...(changedFiles.length > maxContextFiles ? { truncatedFileContextItems: changedFiles.length - maxContextFiles } : {}),
+		};
+	}
+
 	return result;
 }
 
