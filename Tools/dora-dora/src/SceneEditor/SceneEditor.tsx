@@ -30,6 +30,13 @@ const clamp = (value: number, min: number, max: number) => Math.max(min, Math.mi
 
 type ResizeSide = 'left' | 'right';
 
+const isTextEditingTarget = (target: EventTarget | null) => {
+	if (!(target instanceof HTMLElement)) return false;
+	if (target.isContentEditable) return true;
+	const tagName = target.tagName.toLowerCase();
+	return tagName === 'input' || tagName === 'textarea' || tagName === 'select';
+};
+
 const SceneEditor = (props: SceneEditorProps) => {
 	const {content, title, height, readOnly = false, resolveResourcePath, getResourceUrl, onChange, onGenerateCode, onCreateScript, onKeydown} = props;
 	const controller = useSceneEditorController({content, title, readOnly, resolveResourcePath, onChange, onGenerateCode});
@@ -65,6 +72,47 @@ const SceneEditor = (props: SceneEditorProps) => {
 			document.body.style.userSelect = '';
 		};
 	}, []);
+	useEffect(() => {
+		const handleSceneShortcut = (event: KeyboardEvent) => {
+			if (isTextEditingTarget(event.target)) return;
+			const usesCommandKey = event.metaKey || event.ctrlKey;
+			const key = event.key.toLowerCase();
+			if (usesCommandKey && !event.altKey) {
+				switch (key) {
+					case 'z':
+						event.preventDefault();
+						if (event.shiftKey) controller.redoSceneChange();
+						else controller.undoSceneChange();
+						break;
+					case 'y':
+						event.preventDefault();
+						controller.redoSceneChange();
+						break;
+					case '=':
+					case '+':
+						event.preventDefault();
+						controller.zoomIn();
+						break;
+					case '-':
+					case '_':
+						event.preventDefault();
+						controller.zoomOut();
+						break;
+					case '0':
+						event.preventDefault();
+						controller.resetView();
+						break;
+				}
+				return;
+			}
+			if (!event.altKey && !event.shiftKey && (event.key === 'Delete' || event.key === 'Backspace')) {
+				event.preventDefault();
+				controller.deleteSelectedNode();
+			}
+		};
+		window.addEventListener('keydown', handleSceneShortcut);
+		return () => window.removeEventListener('keydown', handleSceneShortcut);
+	}, [controller]);
 	const divider = (side: ResizeSide) => <Box title="Drag to resize panels" onPointerDown={(event) => beginResize(side, event)} sx={{cursor: 'col-resize', borderRadius: 1, background: 'linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015))', border: `1px solid ${sceneEditorColors.line}`, '&:hover': {background: 'rgba(255,210,26,0.16)', borderColor: 'rgba(255,210,26,0.42)'}}}/>;
 	return (
 		<Box
