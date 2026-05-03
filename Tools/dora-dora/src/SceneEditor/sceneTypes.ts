@@ -29,5 +29,9 @@ export interface DoraScene {
 	version: 1;
 	name: string;
 	rootId: string;
+	viewport: {
+		width: number;
+		height: number;
+	};
 	nodes: DoraSceneNode[];
 }

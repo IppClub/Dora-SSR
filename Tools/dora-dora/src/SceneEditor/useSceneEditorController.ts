@@ -257,6 +257,14 @@ export const useSceneEditorController = (options: UseSceneEditorControllerOption
 		commitScene({...currentScene, nodes: nextNodes});
 	}, [commitScene, readOnly]);
 
+	const updateViewportSize = useCallback((width: number, height: number) => {
+		if (readOnly) return;
+		const currentScene = sceneRef.current;
+		const nextWidth = Math.max(64, Math.round(width));
+		const nextHeight = Math.max(64, Math.round(height));
+		commitScene({...currentScene, viewport: {width: nextWidth, height: nextHeight}});
+	}, [commitScene, readOnly]);
+
 	const addNode = useCallback((type: DoraSceneNodeType) => {
 		if (readOnly) return;
 		const currentScene = sceneRef.current;
@@ -518,6 +526,7 @@ export const useSceneEditorController = (options: UseSceneEditorControllerOption
 		viewportRef,
 		setSelectedNodeId,
 		updateSelectedNode,
+		updateViewportSize,
 		addNode,
 		deleteNode,
 		deleteSelectedNode,

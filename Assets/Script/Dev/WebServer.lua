@@ -353,9 +353,10 @@ HttpServer:postSchedule("/scene/render", function(req) -- 168
 			message = "invalid arguments" -- 171
 		} -- 171
 	end -- 170
-	local width = clampNumber(body.width, 960, 64, 2048) -- 172
-	local height = clampNumber(body.height, 540, 64, 2048) -- 173
-	local background = tonumber(body.background) or 0 -- 174
+	local viewport = type(body.scene.viewport) == "table" and body.scene.viewport or { } -- 172
+	local width = clampNumber(body.width or viewport.width, 960, 64, 2048) -- 173
+	local height = clampNumber(body.height or viewport.height, 540, 64, 2048) -- 174
+	local background = tonumber(body.background) or 0 -- 175
 	local root = buildPreviewSceneTree(body.scene) -- 175
 	local target = RenderTarget(width, height) -- 176
 	if not target then -- 177

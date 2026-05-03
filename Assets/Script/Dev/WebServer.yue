@@ -167,8 +167,9 @@ buildPreviewSceneTree = (scene) ->
 
 HttpServer\postSchedule "/scene/render", (req): success: false, message: "invalid arguments" ->
 	switch req when {body: {:scene}}
-		width = clampNumber req.body.width, 960, 64, 2048
-		height = clampNumber req.body.height, 540, 64, 2048
+		viewport = if type(scene.viewport) == "table" then scene.viewport else {}
+		width = clampNumber req.body.width or viewport.width, 960, 64, 2048
+		height = clampNumber req.body.height or viewport.height, 540, 64, 2048
 		background = tonumber(req.body.background) or 0x00000000
 		root = buildPreviewSceneTree scene
 		target = RenderTarget width, height
