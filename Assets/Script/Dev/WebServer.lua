@@ -365,7 +365,7 @@ HttpServer:postSchedule("/scene/render", function(req) -- 168
 		} -- 178
 	end -- 177
 	target:renderWithClear(root, Color(background), 1, 0) -- 179
-	local previewDir = Path(HttpServer.wwwPath, ".scene-preview") -- 180
+	local previewDir = Path(HttpServer.wwwPath, "scene-preview") -- 180
 	Content:mkdir(previewDir) -- 181
 	local fileName = "preview-" .. tostring(os.time()) .. "-" .. tostring(math.random(100000, 999999)) .. ".png" -- 182
 	local filePath = Path(previewDir, fileName) -- 183
@@ -382,7 +382,7 @@ HttpServer:postSchedule("/scene/render", function(req) -- 168
 	end -- 189
 	return { -- 192
 		success = true, -- 192
-		url = "/.scene-preview/" .. tostring(fileName), -- 193
+		url = "/scene-preview/" .. tostring(fileName), -- 193
 		width = width, -- 194
 		height = height -- 195
 	} -- 192
