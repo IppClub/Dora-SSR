@@ -238,6 +238,11 @@ export const SceneViewportPanel = memo((props: {controller: SceneEditorControlle
 			>
 				<Box sx={{position: 'absolute', left: `calc(50% + ${controller.pan.x}px)`, top: 0, bottom: 0, width: '1px', backgroundColor: sceneEditorColors.yAxis}}/>
 				<Box sx={{position: 'absolute', left: 0, right: 0, top: `calc(50% + ${controller.pan.y}px)`, height: '1px', backgroundColor: sceneEditorColors.xAxis}}/>
+				<Box sx={{position: 'absolute', left: `calc(50% + ${controller.pan.x}px)`, top: `calc(50% + ${controller.pan.y}px)`, width: `${controller.scene.viewport.width * controller.zoom}px`, height: `${controller.scene.viewport.height * controller.zoom}px`, transform: 'translate(-50%, -50%)', pointerEvents: 'none', border: `1px solid ${sceneEditorColors.primary}`, boxShadow: '0 0 0 1px rgba(0,0,0,0.55), inset 0 0 0 1px rgba(0,0,0,0.35)', opacity: 0.72}}>
+					<Typography variant="caption" sx={{position: 'absolute', left: 8, top: 6, px: 0.7, py: 0.15, borderRadius: 0.7, backgroundColor: 'rgba(0,0,0,0.55)', color: sceneEditorColors.primary, fontWeight: 800}}>
+						Runtime {controller.scene.viewport.width}×{controller.scene.viewport.height}
+					</Typography>
+				</Box>
 				{enginePreview !== undefined ? <Box component="img" src={enginePreview.url} alt="Dora engine preview" draggable={false} sx={{position: 'absolute', left: `calc(50% + ${controller.pan.x}px)`, top: `calc(50% + ${controller.pan.y}px)`, width: `${enginePreview.width * controller.zoom}px`, height: `${enginePreview.height * controller.zoom}px`, transform: 'translate(-50%, -50%)', objectFit: 'contain', pointerEvents: 'none', boxShadow: '0 18px 60px rgba(0,0,0,0.45)', border: `1px solid ${sceneEditorColors.lineStrong}`}}/> : null}
 				{relationshipLines.map(line => <Box key={line.id} sx={{opacity: hasEnginePreview ? 0.28 : 1}}><RelationshipLine from={line.from} to={line.to} pan={controller.pan} zoom={controller.zoom}/></Box>)}
 				<Box sx={{position: 'absolute', left: 16, top: 14, px: 1, py: 0.4, borderRadius: 1, backgroundColor: 'rgba(0,0,0,0.28)', color: enginePreviewError ? '#ff8f8f' : sceneEditorColors.muted}}><Typography variant="caption">{enginePreviewLoading ? 'Rendering with Dora engine…' : enginePreviewError ? `Engine Preview failed: ${enginePreviewError}` : hasEnginePreview ? 'Engine Preview active. CSS nodes are dimmed.' : 'Drop png/jpg here. Drag blank area to pan. Ctrl/Pinch to zoom.'}</Typography></Box>
@@ -289,6 +294,14 @@ export const SceneInspectorPanel = memo((props: {controller: SceneEditorControll
 			<PanelHeader title="Inspector" action={<Tooltip title="Delete selected node"><span><IconButton size="small" disabled={readOnly || selectedNode === undefined || selectedNode.id === controller.scene.rootId} onClick={controller.deleteSelectedNode}><DeleteIcon fontSize="small"/></IconButton></span></Tooltip>}/>
 			{selectedNode === undefined ? <Typography sx={{p: 2, color: sceneEditorColors.muted}}>No node selected.</Typography> : <Box sx={{p: 1.5, overflow: 'auto'}}>
 				<Stack spacing={1.5}>
+					<Box sx={{p: 1.25, borderRadius: 1, backgroundColor: sceneEditorColors.card, border: `1px solid ${sceneEditorColors.line}`}}>
+						<Typography sx={{mb: 1, fontWeight: 800, color: sceneEditorColors.mutedStrong}}>Runtime Viewport</Typography>
+						<Stack direction="row" spacing={1}>
+							<TextField size="small" label="Width" value={controller.scene.viewport.width} disabled={readOnly} type="number" onChange={(event) => controller.updateViewportSize(toNumber(event.target.value, controller.scene.viewport.width), controller.scene.viewport.height)}/>
+							<TextField size="small" label="Height" value={controller.scene.viewport.height} disabled={readOnly} type="number" onChange={(event) => controller.updateViewportSize(controller.scene.viewport.width, toNumber(event.target.value, controller.scene.viewport.height))}/>
+						</Stack>
+						<Typography variant="caption" sx={{display: 'block', mt: 0.75, color: sceneEditorColors.muted}}>Engine Preview and generated app use this size.</Typography>
+					</Box>
 					<Box sx={{p: 1.25, borderRadius: 1, backgroundColor: sceneEditorColors.card, border: `1px solid ${sceneEditorColors.line}`}}><Stack direction="row" spacing={1} alignItems="center"><Box sx={{width: 36, height: 36, borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.04)'}}>{nodeIcon(selectedNode.type)}</Box><Box><Typography sx={{fontWeight: 800}}>{selectedNode.name}</Typography><Typography variant="caption" sx={{color: sceneEditorColors.muted}}>{selectedNode.type}</Typography></Box></Stack></Box>
 					<TextField size="small" label="Name" value={draft.name} disabled={readOnly} fullWidth onBlur={flush} onChange={(event) => updateDraft('name', event.target.value, {name: event.target.value})}/>
 					<Stack direction="row" spacing={1}><TextField size="small" label="X" value={draft.x} disabled={readOnly} type="number" onBlur={flush} onChange={(event) => updateDraft('x', event.target.value, {x: toNumber(event.target.value, selectedNode.x)})}/><TextField size="small" label="Y" value={draft.y} disabled={readOnly} type="number" onBlur={flush} onChange={(event) => updateDraft('y', event.target.value, {y: toNumber(event.target.value, selectedNode.y)})}/></Stack>

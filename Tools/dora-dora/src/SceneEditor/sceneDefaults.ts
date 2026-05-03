@@ -8,6 +8,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 import { DoraScene, DoraSceneNode, DoraSceneNodeType } from './sceneTypes';
 
+const defaultViewport = {width: 960, height: 540};
+
+const parseViewportSize = (value: unknown, fallback: number) => (
+	typeof value === "number" && Number.isFinite(value) && value >= 64 ? Math.round(value) : fallback
+);
+
 export const createSceneNode = (type: DoraSceneNodeType, index: number, parentId = "root"): DoraSceneNode => {
 	const id = `${type.toLowerCase()}-${Date.now().toString(36)}-${index}`;
 	const baseNode: DoraSceneNode = {
@@ -36,6 +42,7 @@ export const createDefaultScene = (name = "MainScene"): DoraScene => ({
 	version: 1,
 	name,
 	rootId: "root",
+	viewport: {...defaultViewport},
 	nodes: [
 		{
 			id: "root",
@@ -86,10 +93,15 @@ export const parseSceneContent = (content: string, fallbackName: string): DoraSc
 	try {
 		const parsed = JSON.parse(content) as Partial<DoraScene>;
 		if (parsed.version === 1 && typeof parsed.rootId === "string" && Array.isArray(parsed.nodes)) {
+			const parsedViewport = typeof parsed.viewport === "object" && parsed.viewport !== null ? parsed.viewport as Partial<DoraScene["viewport"]> : {};
 			return {
 				version: 1,
 				name: typeof parsed.name === "string" && parsed.name.length > 0 ? parsed.name : fallbackName,
 				rootId: parsed.rootId,
+				viewport: {
+					width: parseViewportSize(parsedViewport.width, defaultViewport.width),
+					height: parseViewportSize(parsedViewport.height, defaultViewport.height),
+				},
 				nodes: parsed.nodes.map((node, index) => ({
 					id: typeof node.id === "string" ? node.id : `node-${index}`,
 					parentId: typeof node.parentId === "string" ? node.parentId : null,

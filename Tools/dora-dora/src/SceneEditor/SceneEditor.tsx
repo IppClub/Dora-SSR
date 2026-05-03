@@ -119,9 +119,8 @@ const SceneEditor = (props: SceneEditorProps) => {
 		return () => window.removeEventListener('keydown', handleSceneShortcut);
 	}, [controller]);
 	const renderEnginePreview = useCallback(() => {
-		const viewport = controller.viewportRef.current;
-		const width = clamp(Math.round(viewport?.clientWidth ?? 960), 64, 2048);
-		const height = clamp(Math.round(viewport?.clientHeight ?? 540), 64, 2048);
+		const width = clamp(Math.round(controller.scene.viewport.width), 64, 2048);
+		const height = clamp(Math.round(controller.scene.viewport.height), 64, 2048);
 		setEnginePreviewLoading(true);
 		setEnginePreviewError(undefined);
 		void Service.renderScene({
@@ -144,7 +143,7 @@ const SceneEditor = (props: SceneEditorProps) => {
 		}).finally(() => {
 			setEnginePreviewLoading(false);
 		});
-	}, [controller.scene, controller.viewportRef]);
+	}, [controller.scene]);
 	const clearEnginePreview = useCallback(() => {
 		setEnginePreview(undefined);
 		setEnginePreviewError(undefined);
