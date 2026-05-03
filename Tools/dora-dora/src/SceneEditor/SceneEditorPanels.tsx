@@ -84,9 +84,20 @@ export const SceneTopBar = memo((props: {
 			<HeaderButton icon={<CodeIcon/>} onClick={onGenerateTS}>Generate TS</HeaderButton>
 			<HeaderButton icon={<CodeIcon/>} onClick={onGenerateLua}>Generate Lua</HeaderButton>
 			<HeaderButton icon={<RestartAltIcon/>} onClick={onResetView}>Reset View</HeaderButton>
-			<HeaderButton icon={<RestartAltIcon/>} disabled={readOnly} onClick={onReset}>Reset Scene</HeaderButton>
 			<Box sx={{flex: 1}}/>
 			<Typography variant="caption" sx={{color: sceneEditorColors.muted}}>{readOnly ? 'Read only' : 'Saved with normal IDE save'}</Typography>
+			<Tooltip title="Create a fresh scene. Confirmation required.">
+				<span>
+					<Button
+						size="small"
+						disabled={readOnly}
+						onClick={onReset}
+						sx={{textTransform: 'none', minWidth: 0, color: sceneEditorColors.muted, opacity: 0.72, '&:hover': {opacity: 1, color: sceneEditorColors.text, backgroundColor: 'rgba(255,255,255,0.055)'}}}
+					>
+						New Scene…
+					</Button>
+				</span>
+			</Tooltip>
 		</Box>
 	);
 });
@@ -215,23 +226,24 @@ export const SceneViewportPanel = memo((props: {controller: SceneEditorControlle
 				{relationshipLines.map(line => <RelationshipLine key={line.id} from={line.from} to={line.to} pan={controller.pan} zoom={controller.zoom}/>)}
 				<Box sx={{position: 'absolute', left: 16, top: 14, px: 1, py: 0.4, borderRadius: 1, backgroundColor: 'rgba(0,0,0,0.28)', color: sceneEditorColors.muted}}><Typography variant="caption">Drop png/jpg here. Drag blank area to pan. Ctrl/Pinch to zoom.</Typography></Box>
 				{visibleNodes.map(node => {
-					const worldPosition = controller.worldPositions.get(node.id) ?? {x: node.x, y: node.y};
+					const worldTransform = controller.worldTransforms.get(node.id) ?? {x: node.x, y: node.y, scaleX: node.scaleX, scaleY: node.scaleY, rotation: node.rotation};
+					const hasSpriteTexture = node.type === 'Sprite' && node.texture !== undefined && isImageResource(node.texture);
 					return <Box
 						key={node.id}
 						onPointerDown={(event) => controller.beginDrag(event, node)}
 						onDragOver={node.type === 'Sprite' ? controller.handleTextureDragOver : undefined}
 						onDrop={node.type === 'Sprite' ? (event) => controller.handleTextureDrop(event, node) : undefined}
 						sx={{
-							position: 'absolute', left: `calc(50% + ${controller.pan.x + worldPosition.x * controller.zoom}px)`, top: `calc(50% + ${controller.pan.y - worldPosition.y * controller.zoom}px)`,
-							transform: `translate(-50%, -50%) rotate(${node.rotation}deg) scale(${node.scaleX * controller.zoom}, ${node.scaleY * controller.zoom})`, transformOrigin: 'center',
-							minWidth: node.type === 'Label' ? 72 : 78, minHeight: node.type === 'Label' ? 32 : 78, px: node.type === 'Label' ? 1 : 0,
+							position: 'absolute', left: `calc(50% + ${controller.pan.x + worldTransform.x * controller.zoom}px)`, top: `calc(50% + ${controller.pan.y - worldTransform.y * controller.zoom}px)`,
+							transform: `translate(-50%, -50%) rotate(${worldTransform.rotation}deg) scale(${worldTransform.scaleX * controller.zoom}, ${worldTransform.scaleY * controller.zoom})`, transformOrigin: 'center',
+							minWidth: hasSpriteTexture ? 0 : (node.type === 'Label' ? 72 : 78), minHeight: hasSpriteTexture ? 0 : (node.type === 'Label' ? 32 : 78), px: node.type === 'Label' ? 1 : 0,
 							display: 'flex', alignItems: 'center', justifyContent: 'center', userSelect: 'none', cursor: 'grab',
 							border: node.id === controller.selectedNodeId ? `2px solid ${sceneEditorColors.selectedBorder}` : `1px solid ${sceneEditorColors.lineStrong}`,
 							boxShadow: node.id === controller.selectedNodeId ? '0 0 0 4px rgba(255,255,255,0.10), 0 16px 38px rgba(0,0,0,0.45)' : '0 10px 28px rgba(0,0,0,0.30)',
-							background: node.type === 'Sprite' ? 'linear-gradient(180deg, rgba(255,255,255,0.085), rgba(255,255,255,0.035))' : 'linear-gradient(180deg, rgba(28,30,33,0.86), rgba(10,11,12,0.86))', backdropFilter: 'blur(10px)', borderRadius: 1,
+							background: hasSpriteTexture ? 'transparent' : (node.type === 'Sprite' ? 'linear-gradient(180deg, rgba(255,255,255,0.085), rgba(255,255,255,0.035))' : 'linear-gradient(180deg, rgba(28,30,33,0.86), rgba(10,11,12,0.86))'), backdropFilter: hasSpriteTexture ? 'none' : 'blur(10px)', borderRadius: 1,
 						}}
 					>
-						{node.type === 'Sprite' && node.texture && isImageResource(node.texture) ? <Box component="img" src={getResourceUrl(node.texture)} alt={node.name} draggable={false} sx={{maxWidth: 170, maxHeight: 130, width: 'auto', height: 'auto', objectFit: 'contain', pointerEvents: 'none'}}/> : <Typography sx={{pointerEvents: 'none', color: sceneEditorColors.text, fontSize: node.type === 'Label' ? 24 : 13, textShadow: '0 2px 4px #000'}}>{node.type === 'Label' ? (node.text ?? node.name) : node.name}</Typography>}
+						{hasSpriteTexture ? <Box component="img" src={getResourceUrl(node.texture ?? '')} alt={node.name} draggable={false} sx={{display: 'block', width: 'auto', height: 'auto', maxWidth: 'none', maxHeight: 'none', objectFit: 'contain', imageRendering: 'auto', pointerEvents: 'none'}}/> : <Typography sx={{pointerEvents: 'none', color: sceneEditorColors.text, fontSize: node.type === 'Label' ? (node.fontSize ?? 32) : 13, lineHeight: 1, textShadow: '0 2px 4px #000'}}>{node.type === 'Label' ? (node.text ?? node.name) : node.name}</Typography>}
 						{node.id === controller.selectedNodeId ? <Typography sx={{position: 'absolute', left: '50%', top: '100%', mt: 0.7, transform: 'translateX(-50%)', px: 0.8, py: 0.15, borderRadius: 0.7, backgroundColor: 'rgba(20,22,24,0.78)', backdropFilter: 'blur(10px)', border: `1px solid ${sceneEditorColors.lineStrong}`, color: sceneEditorColors.text, fontSize: 12}}>{node.name}</Typography> : null}
 					</Box>;
 				})}

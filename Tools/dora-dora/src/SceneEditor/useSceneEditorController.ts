@@ -33,20 +33,69 @@ interface DragPosition {
 	y: number;
 }
 
-const computeWorldPositions = (nodes: DoraSceneNode[]) => {
+interface WorldTransform {
+	x: number;
+	y: number;
+	scaleX: number;
+	scaleY: number;
+	rotation: number;
+}
+
+const identityWorldTransform: WorldTransform = {x: 0, y: 0, scaleX: 1, scaleY: 1, rotation: 0};
+
+const computeWorldTransforms = (nodes: DoraSceneNode[]) => {
 	const byId = new Map(nodes.map(node => [node.id, node]));
-	const positions = new Map<string, DragPosition>();
-	const visit = (node: DoraSceneNode): DragPosition => {
-		const cached = positions.get(node.id);
+	const transforms = new Map<string, WorldTransform>();
+	const visiting = new Set<string>();
+	const visit = (node: DoraSceneNode): WorldTransform => {
+		const cached = transforms.get(node.id);
 		if (cached !== undefined) return cached;
+		if (visiting.has(node.id)) return identityWorldTransform;
+		visiting.add(node.id);
 		const parent = node.parentId !== null ? byId.get(node.parentId) : undefined;
-		const parentPosition = parent !== undefined && parent.id !== node.id ? visit(parent) : {x: 0, y: 0};
-		const position = {x: parentPosition.x + node.x, y: parentPosition.y + node.y};
-		positions.set(node.id, position);
-		return position;
+		const parentTransform = parent !== undefined && parent.id !== node.id ? visit(parent) : identityWorldTransform;
+		const radians = parentTransform.rotation * Math.PI / 180;
+		const cos = Math.cos(radians);
+		const sin = Math.sin(radians);
+		const scaledLocalX = node.x * parentTransform.scaleX;
+		const scaledLocalY = node.y * parentTransform.scaleY;
+		const transform = {
+			x: parentTransform.x + scaledLocalX * cos - scaledLocalY * sin,
+			y: parentTransform.y + scaledLocalX * sin + scaledLocalY * cos,
+			scaleX: parentTransform.scaleX * node.scaleX,
+			scaleY: parentTransform.scaleY * node.scaleY,
+			rotation: parentTransform.rotation + node.rotation,
+		};
+		visiting.delete(node.id);
+		transforms.set(node.id, transform);
+		return transform;
 	};
 	for (const node of nodes) visit(node);
+	return transforms;
+};
+
+const computeWorldPositions = (nodes: DoraSceneNode[]) => {
+	const transforms = computeWorldTransforms(nodes);
+	const positions = new Map<string, DragPosition>();
+	for (const [id, transform] of transforms) {
+		positions.set(id, {x: transform.x, y: transform.y});
+	}
 	return positions;
+};
+
+const toLocalPosition = (worldPosition: DragPosition, parentTransform?: WorldTransform) => {
+	if (parentTransform === undefined) return worldPosition;
+	const radians = parentTransform.rotation * Math.PI / 180;
+	const cos = Math.cos(radians);
+	const sin = Math.sin(radians);
+	const dx = worldPosition.x - parentTransform.x;
+	const dy = worldPosition.y - parentTransform.y;
+	const scaledLocalX = dx * cos + dy * sin;
+	const scaledLocalY = -dx * sin + dy * cos;
+	return {
+		x: Math.round(scaledLocalX / (Math.abs(parentTransform.scaleX) < 0.0001 ? 1 : parentTransform.scaleX)),
+		y: Math.round(scaledLocalY / (Math.abs(parentTransform.scaleY) < 0.0001 ? 1 : parentTransform.scaleY)),
+	};
 };
 
 const isDescendantNode = (nodes: DoraSceneNode[], nodeId: string, possibleDescendantId: string) => {
@@ -61,6 +110,10 @@ const isDescendantNode = (nodes: DoraSceneNode[], nodeId: string, possibleDescen
 const minZoom = 0.25;
 const maxZoom = 4;
 const clampZoom = (value: number) => Math.max(minZoom, Math.min(maxZoom, value));
+const maxHistorySteps = 80;
+
+const scenesEqual = (left: DoraScene, right: DoraScene) =>
+	stringifySceneContent(left) === stringifySceneContent(right);
 
 export interface UseSceneEditorControllerOptions {
 	content: string;
@@ -83,6 +136,7 @@ export const useSceneEditorController = (options: UseSceneEditorControllerOption
 	const sceneRef = useRef(scene);
 	const viewportNodesRef = useRef(viewportNodes);
 	const worldPositionsRef = useRef(computeWorldPositions(viewportNodes));
+	const worldTransformsRef = useRef(computeWorldTransforms(viewportNodes));
 	const selectedNodeIdRef = useRef(selectedNodeId);
 	const panRef = useRef(pan);
 	const zoomRef = useRef(zoom);
@@ -91,10 +145,13 @@ export const useSceneEditorController = (options: UseSceneEditorControllerOption
 	const pendingDragPositionRef = useRef<DragPosition | null>(null);
 	const dragFrameRef = useRef<number | null>(null);
 	const lastCommittedContent = useRef(content);
+	const undoStackRef = useRef<DoraScene[]>([]);
+	const redoStackRef = useRef<DoraScene[]>([]);
 
 	const setViewportNodesAndRef = useCallback((nodes: DoraSceneNode[]) => {
 		viewportNodesRef.current = nodes;
 		worldPositionsRef.current = computeWorldPositions(nodes);
+		worldTransformsRef.current = computeWorldTransforms(nodes);
 		setViewportNodes(nodes);
 	}, []);
 
@@ -110,6 +167,7 @@ export const useSceneEditorController = (options: UseSceneEditorControllerOption
 	}, []);
 
 	const worldPositions = useMemo(() => computeWorldPositions(viewportNodes), [viewportNodes]);
+	const worldTransforms = useMemo(() => computeWorldTransforms(viewportNodes), [viewportNodes]);
 
 	useEffect(() => {
 		sceneRef.current = scene;
@@ -122,6 +180,10 @@ export const useSceneEditorController = (options: UseSceneEditorControllerOption
 	useEffect(() => {
 		worldPositionsRef.current = worldPositions;
 	}, [worldPositions]);
+
+	useEffect(() => {
+		worldTransformsRef.current = worldTransforms;
+	}, [worldTransforms]);
 
 	useEffect(() => {
 		panRef.current = pan;
@@ -139,6 +201,8 @@ export const useSceneEditorController = (options: UseSceneEditorControllerOption
 		setViewportNodesAndRef(nextScene.nodes);
 		setSelectedNodeId(nextScene.nodes.some(node => node.id === selectedNodeIdRef.current) ? selectedNodeIdRef.current : nextScene.rootId);
 		lastCommittedContent.current = content;
+		undoStackRef.current = [];
+		redoStackRef.current = [];
 	}, [content, fallbackName, setViewportNodesAndRef]);
 
 	useEffect(() => () => {
@@ -148,7 +212,13 @@ export const useSceneEditorController = (options: UseSceneEditorControllerOption
 		}
 	}, []);
 
-	const commitScene = useCallback((nextScene: DoraScene) => {
+	const commitScene = useCallback((nextScene: DoraScene, options?: {recordHistory?: boolean}) => {
+		const currentScene = sceneRef.current;
+		if (scenesEqual(currentScene, nextScene)) return;
+		if (options?.recordHistory !== false) {
+			undoStackRef.current = [...undoStackRef.current.slice(-(maxHistorySteps - 1)), currentScene];
+			redoStackRef.current = [];
+		}
 		sceneRef.current = nextScene;
 		setScene(nextScene);
 		setViewportNodesAndRef(nextScene.nodes);
@@ -163,8 +233,8 @@ export const useSceneEditorController = (options: UseSceneEditorControllerOption
 		const nodes = viewportNodesRef.current;
 		const movingNode = nodes.find(node => node.id === dragState.id);
 		if (movingNode === undefined) return;
-		const parentPosition = movingNode.parentId !== null ? worldPositionsRef.current.get(movingNode.parentId) ?? {x: 0, y: 0} : {x: 0, y: 0};
-		const nextNodes = nodes.map(node => node.id === dragState.id ? {...node, x: Math.round(position.x - parentPosition.x), y: Math.round(position.y - parentPosition.y)} : node);
+		const localPosition = toLocalPosition(position, movingNode.parentId !== null ? worldTransformsRef.current.get(movingNode.parentId) : undefined);
+		const nextNodes = nodes.map(node => node.id === dragState.id ? {...node, x: localPosition.x, y: localPosition.y} : node);
 		setViewportNodesAndRef(nextNodes);
 	}, [setViewportNodesAndRef]);
 
@@ -231,8 +301,8 @@ export const useSceneEditorController = (options: UseSceneEditorControllerOption
 		const parent = currentScene.nodes.find(item => item.id === parentId);
 		if (node === undefined || parent === undefined || isDescendantNode(currentScene.nodes, nodeId, parentId)) return false;
 		const nodeWorld = worldPositionsRef.current.get(nodeId) ?? {x: node.x, y: node.y};
-		const parentWorld = worldPositionsRef.current.get(parentId) ?? {x: 0, y: 0};
-		const nextNodes = currentScene.nodes.map(item => item.id === nodeId ? {...item, parentId, x: Math.round(nodeWorld.x - parentWorld.x), y: Math.round(nodeWorld.y - parentWorld.y)} : item);
+		const localPosition = toLocalPosition(nodeWorld, worldTransformsRef.current.get(parentId));
+		const nextNodes = currentScene.nodes.map(item => item.id === nodeId ? {...item, parentId, x: localPosition.x, y: localPosition.y} : item);
 		commitScene({...currentScene, nodes: nextNodes});
 		setSelectedNodeId(nodeId);
 		return true;
@@ -341,12 +411,48 @@ export const useSceneEditorController = (options: UseSceneEditorControllerOption
 		setZoom(1);
 	}, [setPan, setZoom]);
 
+	const zoomIn = useCallback(() => {
+		setZoom(zoomRef.current * 1.15);
+	}, [setZoom]);
+
+	const zoomOut = useCallback(() => {
+		setZoom(zoomRef.current / 1.15);
+	}, [setZoom]);
+
 	const resetScene = useCallback(() => {
 		if (readOnly) return;
+		if (!window.confirm("Reset the whole scene? This will remove the current nodes.")) return;
 		const nextScene = createDefaultScene(fallbackName);
 		commitScene(nextScene);
 		setSelectedNodeId(nextScene.rootId);
 	}, [commitScene, fallbackName, readOnly]);
+
+	const restoreScene = useCallback((nextScene: DoraScene) => {
+		sceneRef.current = nextScene;
+		setScene(nextScene);
+		setViewportNodesAndRef(nextScene.nodes);
+		const nextContent = stringifySceneContent(nextScene);
+		lastCommittedContent.current = nextContent;
+		onChange(nextContent);
+		const selectedId = selectedNodeIdRef.current;
+		setSelectedNodeId(nextScene.nodes.some(node => node.id === selectedId) ? selectedId : nextScene.rootId);
+	}, [onChange, setViewportNodesAndRef]);
+
+	const undoSceneChange = useCallback(() => {
+		if (readOnly) return;
+		const previousScene = undoStackRef.current.pop();
+		if (previousScene === undefined) return;
+		redoStackRef.current = [...redoStackRef.current.slice(-(maxHistorySteps - 1)), sceneRef.current];
+		restoreScene(previousScene);
+	}, [readOnly, restoreScene]);
+
+	const redoSceneChange = useCallback(() => {
+		if (readOnly) return;
+		const nextScene = redoStackRef.current.pop();
+		if (nextScene === undefined) return;
+		undoStackRef.current = [...undoStackRef.current.slice(-(maxHistorySteps - 1)), sceneRef.current];
+		restoreScene(nextScene);
+	}, [readOnly, restoreScene]);
 
 	const generateCode = useCallback(async (language: SceneCodeLanguage, run?: boolean) => {
 		const { generateSceneLua, generateSceneTypeScript } = await import('./sceneCodegen');
@@ -355,11 +461,13 @@ export const useSceneEditorController = (options: UseSceneEditorControllerOption
 	}, [onGenerateCode]);
 
 	const bindTextureToNode = useCallback((targetNode: DoraSceneNode, resourcePath: string) => {
-		if (readOnly || targetNode.type !== 'Sprite' || !isImageResource(resourcePath)) return false;
+		if (readOnly || !isImageResource(resourcePath)) return false;
 		const currentScene = sceneRef.current;
-		const nextNodes = currentScene.nodes.map(node => node.id === targetNode.id ? {...node, texture: resourcePath} : node);
+		const currentTarget = currentScene.nodes.find(node => node.id === targetNode.id);
+		if (currentTarget === undefined || currentTarget.type !== 'Sprite') return false;
+		const nextNodes = currentScene.nodes.map(node => node.id === currentTarget.id ? {...node, texture: resourcePath} : node);
 		commitScene({...currentScene, nodes: nextNodes});
-		setSelectedNodeId(targetNode.id);
+		setSelectedNodeId(currentTarget.id);
 		return true;
 	}, [commitScene, readOnly]);
 
@@ -402,6 +510,7 @@ export const useSceneEditorController = (options: UseSceneEditorControllerOption
 		scene,
 		viewportNodes,
 		worldPositions,
+		worldTransforms,
 		selectedNode,
 		selectedNodeId,
 		pan,
@@ -421,7 +530,11 @@ export const useSceneEditorController = (options: UseSceneEditorControllerOption
 		endPan,
 		handleViewportWheel,
 		resetView,
+		zoomIn,
+		zoomOut,
 		resetScene,
+		undoSceneChange,
+		redoSceneChange,
 		generateCode,
 		handleTextureDrop,
 		handleTextureDragOver,

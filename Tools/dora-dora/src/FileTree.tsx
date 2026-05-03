@@ -52,6 +52,7 @@ import { MacScrollbar } from 'mac-scrollbar';
 import { useTranslation } from 'react-i18next';
 import Info from './Info';
 import { Color } from './Theme';
+import { doraFileDragMime } from './SceneEditor/sceneEditorUtils';
 
 export interface TreeDataType extends DataNode {
 	key: string;
@@ -388,6 +389,12 @@ export default memo(function FileTree(props: FileTreeProps) {
 				switcherIcon={switcherIcon}
 				motion={motion}
 				draggable
+				onDragStart={(info) => {
+					const filePath = info.node.key;
+					info.event.dataTransfer.setData(doraFileDragMime, filePath);
+					info.event.dataTransfer.setData('text/plain', filePath);
+					info.event.dataTransfer.effectAllowed = info.node.dir ? 'move' : 'copyMove';
+				}}
 				onDrop={onDrop}
 				expandedKeys={expandedKeys}
 				treeData={treeData}
