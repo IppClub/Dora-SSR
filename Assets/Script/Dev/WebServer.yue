@@ -174,7 +174,7 @@ HttpServer\postSchedule "/scene/render", (req): success: false, message: "invali
 		target = RenderTarget width, height
 		return success: false, message: "failed to create render target" unless target
 		target\renderWithClear root, Color(background), 1, 0
-		previewDir = Path HttpServer.wwwPath, ".scene-preview"
+		previewDir = Path HttpServer.wwwPath, "scene-preview"
 		Content\mkdir previewDir
 		fileName = "preview-#{os.time!}-#{math.random 100000, 999999}.png"
 		filePath = Path previewDir, fileName
@@ -189,7 +189,7 @@ HttpServer\postSchedule "/scene/render", (req): success: false, message: "invali
 				message: "failed to save preview"
 		return
 			success: true
-			url: "/.scene-preview/#{fileName}"
+			url: "/scene-preview/#{fileName}"
 			width: width
 			height: height
 
