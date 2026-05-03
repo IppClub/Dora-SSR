@@ -16,6 +16,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import ImageIcon from '@mui/icons-material/Image';
 import TextFieldsIcon from '@mui/icons-material/TextFields';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import type { SceneCodeLanguage } from './sceneCodegen';
@@ -69,10 +70,14 @@ export const SceneTopBar = memo((props: {
 	onRun: () => void;
 	onGenerateTS: () => void;
 	onGenerateLua: () => void;
+	onEnginePreview: () => void;
+	onClearEnginePreview: () => void;
 	onResetView: () => void;
 	onReset: () => void;
+	enginePreviewActive: boolean;
+	enginePreviewLoading: boolean;
 }) => {
-	const {title, readOnly, onRun, onGenerateTS, onGenerateLua, onResetView, onReset} = props;
+	const {title, readOnly, onRun, onGenerateTS, onGenerateLua, onEnginePreview, onClearEnginePreview, onResetView, onReset, enginePreviewActive, enginePreviewLoading} = props;
 	return (
 		<Box sx={{height: 54, px: 1.5, display: 'flex', alignItems: 'center', gap: 1, borderBottom: `1px solid ${sceneEditorColors.line}`, background: 'linear-gradient(180deg, rgba(16,18,20,0.88) 0%, rgba(5,6,7,0.92) 100%)', backdropFilter: 'blur(18px) saturate(130%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)'}}>
 			<Stack direction="row" spacing={1} alignItems="center" sx={{mr: 1.5, minWidth: 0}}>
@@ -83,6 +88,8 @@ export const SceneTopBar = memo((props: {
 			<HeaderButton primary icon={<PlayArrowIcon/>} onClick={onRun}>Run Scene</HeaderButton>
 			<HeaderButton icon={<CodeIcon/>} onClick={onGenerateTS}>Generate TS</HeaderButton>
 			<HeaderButton icon={<CodeIcon/>} onClick={onGenerateLua}>Generate Lua</HeaderButton>
+			<HeaderButton icon={<PhotoCameraIcon/>} disabled={enginePreviewLoading} onClick={onEnginePreview}>{enginePreviewLoading ? 'Rendering…' : 'Engine Preview'}</HeaderButton>
+			{enginePreviewActive ? <HeaderButton onClick={onClearEnginePreview}>CSS Preview</HeaderButton> : null}
 			<HeaderButton icon={<RestartAltIcon/>} onClick={onResetView}>Reset View</HeaderButton>
 			<Box sx={{flex: 1}}/>
 			<Typography variant="caption" sx={{color: sceneEditorColors.muted}}>{readOnly ? 'Read only' : 'Saved with normal IDE save'}</Typography>
@@ -192,8 +199,16 @@ const RelationshipLine = memo((props: {from: {x: number; y: number}; to: {x: num
 });
 RelationshipLine.displayName = 'RelationshipLine';
 
-export const SceneViewportPanel = memo((props: {controller: SceneEditorController; getResourceUrl: (resourcePath: string) => string}) => {
-	const {controller, getResourceUrl} = props;
+export interface EnginePreviewState {
+	url: string;
+	width: number;
+	height: number;
+	message?: string;
+}
+
+export const SceneViewportPanel = memo((props: {controller: SceneEditorController; getResourceUrl: (resourcePath: string) => string; enginePreview?: EnginePreviewState; enginePreviewLoading?: boolean; enginePreviewError?: string}) => {
+	const {controller, getResourceUrl, enginePreview, enginePreviewLoading, enginePreviewError} = props;
+	const hasEnginePreview = enginePreview !== undefined;
 	const visibleNodes = useMemo(() => controller.viewportNodes.filter(node => node.id !== controller.scene.rootId && node.visible), [controller.viewportNodes, controller.scene.rootId]);
 	const relationshipLines = useMemo(() => visibleNodes.flatMap(node => {
 		if (node.parentId === null) return [];
@@ -223,8 +238,9 @@ export const SceneViewportPanel = memo((props: {controller: SceneEditorControlle
 			>
 				<Box sx={{position: 'absolute', left: `calc(50% + ${controller.pan.x}px)`, top: 0, bottom: 0, width: '1px', backgroundColor: sceneEditorColors.yAxis}}/>
 				<Box sx={{position: 'absolute', left: 0, right: 0, top: `calc(50% + ${controller.pan.y}px)`, height: '1px', backgroundColor: sceneEditorColors.xAxis}}/>
-				{relationshipLines.map(line => <RelationshipLine key={line.id} from={line.from} to={line.to} pan={controller.pan} zoom={controller.zoom}/>)}
-				<Box sx={{position: 'absolute', left: 16, top: 14, px: 1, py: 0.4, borderRadius: 1, backgroundColor: 'rgba(0,0,0,0.28)', color: sceneEditorColors.muted}}><Typography variant="caption">Drop png/jpg here. Drag blank area to pan. Ctrl/Pinch to zoom.</Typography></Box>
+				{enginePreview !== undefined ? <Box component="img" src={enginePreview.url} alt="Dora engine preview" draggable={false} sx={{position: 'absolute', left: `calc(50% + ${controller.pan.x}px)`, top: `calc(50% + ${controller.pan.y}px)`, width: `${enginePreview.width * controller.zoom}px`, height: `${enginePreview.height * controller.zoom}px`, transform: 'translate(-50%, -50%)', objectFit: 'contain', pointerEvents: 'none', boxShadow: '0 18px 60px rgba(0,0,0,0.45)', border: `1px solid ${sceneEditorColors.lineStrong}`}}/> : null}
+				{relationshipLines.map(line => <Box key={line.id} sx={{opacity: hasEnginePreview ? 0.28 : 1}}><RelationshipLine from={line.from} to={line.to} pan={controller.pan} zoom={controller.zoom}/></Box>)}
+				<Box sx={{position: 'absolute', left: 16, top: 14, px: 1, py: 0.4, borderRadius: 1, backgroundColor: 'rgba(0,0,0,0.28)', color: enginePreviewError ? '#ff8f8f' : sceneEditorColors.muted}}><Typography variant="caption">{enginePreviewLoading ? 'Rendering with Dora engine…' : enginePreviewError ? `Engine Preview failed: ${enginePreviewError}` : hasEnginePreview ? 'Engine Preview active. CSS nodes are dimmed.' : 'Drop png/jpg here. Drag blank area to pan. Ctrl/Pinch to zoom.'}</Typography></Box>
 				{visibleNodes.map(node => {
 					const worldTransform = controller.worldTransforms.get(node.id) ?? {x: node.x, y: node.y, scaleX: node.scaleX, scaleY: node.scaleY, rotation: node.rotation};
 					const hasSpriteTexture = node.type === 'Sprite' && node.texture !== undefined && isImageResource(node.texture);
@@ -238,6 +254,7 @@ export const SceneViewportPanel = memo((props: {controller: SceneEditorControlle
 							transform: `translate(-50%, -50%) rotate(${worldTransform.rotation}deg) scale(${worldTransform.scaleX * controller.zoom}, ${worldTransform.scaleY * controller.zoom})`, transformOrigin: 'center',
 							minWidth: hasSpriteTexture ? 0 : (node.type === 'Label' ? 72 : 78), minHeight: hasSpriteTexture ? 0 : (node.type === 'Label' ? 32 : 78), px: node.type === 'Label' ? 1 : 0,
 							display: 'flex', alignItems: 'center', justifyContent: 'center', userSelect: 'none', cursor: 'grab',
+							opacity: hasEnginePreview ? 0.22 : 1,
 							border: node.id === controller.selectedNodeId ? `2px solid ${sceneEditorColors.selectedBorder}` : `1px solid ${sceneEditorColors.lineStrong}`,
 							boxShadow: node.id === controller.selectedNodeId ? '0 0 0 4px rgba(255,255,255,0.10), 0 16px 38px rgba(0,0,0,0.45)' : '0 10px 28px rgba(0,0,0,0.30)',
 							background: hasSpriteTexture ? 'transparent' : (node.type === 'Sprite' ? 'linear-gradient(180deg, rgba(255,255,255,0.085), rgba(255,255,255,0.035))' : 'linear-gradient(180deg, rgba(28,30,33,0.86), rgba(10,11,12,0.86))'), backdropFilter: hasSpriteTexture ? 'none' : 'blur(10px)', borderRadius: 1,

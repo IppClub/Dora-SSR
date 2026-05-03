@@ -8,8 +8,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Box } from '@mui/material';
+import * as Service from '../Service';
 import type { SceneCodeLanguage } from './sceneCodegen';
 import { SceneHierarchyPanel, SceneInspectorPanel, SceneTopBar, SceneViewportPanel } from './SceneEditorPanels';
+import type { EnginePreviewState } from './SceneEditorPanels';
 import { sceneEditorColors, sceneEditorLayout } from './sceneEditorStyles';
 import { useSceneEditorController } from './useSceneEditorController';
 
@@ -41,6 +43,9 @@ const SceneEditor = (props: SceneEditorProps) => {
 	const {content, title, height, readOnly = false, resolveResourcePath, getResourceUrl, onChange, onGenerateCode, onCreateScript, onKeydown} = props;
 	const controller = useSceneEditorController({content, title, readOnly, resolveResourcePath, onChange, onGenerateCode});
 	const [panelWidths, setPanelWidths] = useState({left: sceneEditorLayout.leftWidth, right: sceneEditorLayout.rightWidth});
+	const [enginePreview, setEnginePreview] = useState<EnginePreviewState | undefined>(undefined);
+	const [enginePreviewLoading, setEnginePreviewLoading] = useState(false);
+	const [enginePreviewError, setEnginePreviewError] = useState<string | undefined>(undefined);
 	const resizeRef = useRef<null | {side: ResizeSide; startX: number; left: number; right: number}>(null);
 	const beginResize = useCallback((side: ResizeSide, event: React.PointerEvent) => {
 		event.preventDefault();
@@ -113,6 +118,37 @@ const SceneEditor = (props: SceneEditorProps) => {
 		window.addEventListener('keydown', handleSceneShortcut);
 		return () => window.removeEventListener('keydown', handleSceneShortcut);
 	}, [controller]);
+	const renderEnginePreview = useCallback(() => {
+		const viewport = controller.viewportRef.current;
+		const width = clamp(Math.round(viewport?.clientWidth ?? 960), 64, 2048);
+		const height = clamp(Math.round(viewport?.clientHeight ?? 540), 64, 2048);
+		setEnginePreviewLoading(true);
+		setEnginePreviewError(undefined);
+		void Service.renderScene({
+			scene: controller.scene,
+			width,
+			height,
+			background: 0,
+		}).then((result) => {
+			if (result.success) {
+				setEnginePreview({
+					url: `${Service.addr(result.url)}?v=${Date.now()}`,
+					width: result.width,
+					height: result.height,
+				});
+			} else {
+				setEnginePreviewError(result.message ?? 'failed to render scene');
+			}
+		}).catch((error: unknown) => {
+			setEnginePreviewError(error instanceof Error ? error.message : String(error));
+		}).finally(() => {
+			setEnginePreviewLoading(false);
+		});
+	}, [controller.scene, controller.viewportRef]);
+	const clearEnginePreview = useCallback(() => {
+		setEnginePreview(undefined);
+		setEnginePreviewError(undefined);
+	}, []);
 	const divider = (side: ResizeSide) => <Box title="Drag to resize panels" onPointerDown={(event) => beginResize(side, event)} sx={{cursor: 'col-resize', borderRadius: 1, background: 'linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015))', border: `1px solid ${sceneEditorColors.line}`, '&:hover': {background: 'rgba(255,210,26,0.16)', borderColor: 'rgba(255,210,26,0.42)'}}}/>;
 	return (
 		<Box
@@ -132,11 +168,11 @@ const SceneEditor = (props: SceneEditorProps) => {
 				'& .MuiButton-outlined': {borderColor: sceneEditorColors.lineStrong, color: sceneEditorColors.text},
 			}}
 		>
-			<SceneTopBar title={title} readOnly={readOnly} onRun={() => void controller.generateCode('lua', true)} onGenerateTS={() => void controller.generateCode('typescript')} onGenerateLua={() => void controller.generateCode('lua')} onResetView={controller.resetView} onReset={controller.resetScene}/>
+			<SceneTopBar title={title} readOnly={readOnly} onRun={() => void controller.generateCode('lua', true)} onGenerateTS={() => void controller.generateCode('typescript')} onGenerateLua={() => void controller.generateCode('lua')} onEnginePreview={renderEnginePreview} onClearEnginePreview={clearEnginePreview} enginePreviewActive={enginePreview !== undefined} enginePreviewLoading={enginePreviewLoading} onResetView={controller.resetView} onReset={controller.resetScene}/>
 			<Box sx={{display: 'grid', gridTemplateColumns: `${panelWidths.left}px 8px minmax(160px, 1fr) 8px ${panelWidths.right}px`, gap: 0.75, p: 1, minHeight: 0}}>
 				<SceneHierarchyPanel nodes={controller.scene.nodes} selectedNodeId={controller.selectedNodeId} readOnly={readOnly} onSelectNode={controller.setSelectedNodeId} onAddNode={controller.addNode} onDeleteNode={controller.deleteNode} onReparentNode={controller.reparentNode}/>
 				{divider('left')}
-				<SceneViewportPanel controller={controller} getResourceUrl={getResourceUrl}/>
+				<SceneViewportPanel controller={controller} getResourceUrl={getResourceUrl} enginePreview={enginePreview} enginePreviewLoading={enginePreviewLoading} enginePreviewError={enginePreviewError}/>
 				{divider('right')}
 				<SceneInspectorPanel controller={controller} readOnly={readOnly} getResourceUrl={getResourceUrl} onCreateScript={onCreateScript}/>
 			</Box>
