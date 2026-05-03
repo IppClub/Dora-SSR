@@ -163,8 +163,19 @@ bool Content::copy(String src, String dst) {
 bool Content::move(String src, String dst) {
 	std::error_code err;
 	fs::rename(src.toString(), dst.toString(), err);
-	WarnIf(err, "failed to move file from \"{}\" to \"{}\" due to \"{}\".", src.toString(), dst.toString(), err.message());
-	return !err;
+	if (!err) {
+		return true;
+	}
+	Warn("failed to move file from \"{}\" to \"{}\" due to \"{}\", trying copy and remove fallback.", src.toString(), dst.toString(), err.message());
+	if (!Content::copyUnsafe(src, dst)) {
+		Warn("failed to copy file from \"{}\" to \"{}\" during move fallback.", src.toString(), dst.toString());
+		return false;
+	}
+	if (!Content::remove(src)) {
+		Warn("failed to remove file from \"{}\" after move fallback copy.", src.toString());
+		return false;
+	}
+	return true;
 }
 
 bool Content::save(String filename, String content) {
