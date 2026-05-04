@@ -45,14 +45,13 @@ import spineLogo from './spine.png';
 import waLogo from './wa.svg';
 import tic80Logo from './tic80.png';
 import { DiCode } from 'react-icons/di';
-import { TbAtom, TbMoodConfuzed, TbSql } from 'react-icons/tb';
+import { TbMoodConfuzed, TbSql } from 'react-icons/tb';
 import { SiNodered } from 'react-icons/si';
 import { VscMarkdown } from 'react-icons/vsc';
 import { MacScrollbar } from 'mac-scrollbar';
 import { useTranslation } from 'react-i18next';
 import Info from './Info';
 import { Color } from './Theme';
-import { doraFileDragMime } from './SceneEditor/sceneEditorUtils';
 
 export interface TreeDataType extends DataNode {
 	key: string;
@@ -94,9 +93,6 @@ const fileIcon = (props: TreeNodeProps) => {
 				return <AiOutlineFolder/>;
 			}
 		} else {
-			if (data.key.toLowerCase().endsWith(".scene.json")) {
-				return <TbAtom size={14}/>;
-			}
 			switch (Info.path.extname(data.key).toLowerCase()) {
 				case ".lua":
 					return <img src={luaLogo} alt="lua" width="14px" height="14px"/>;
@@ -389,12 +385,6 @@ export default memo(function FileTree(props: FileTreeProps) {
 				switcherIcon={switcherIcon}
 				motion={motion}
 				draggable
-				onDragStart={(info) => {
-					const filePath = info.node.key;
-					info.event.dataTransfer.setData(doraFileDragMime, filePath);
-					info.event.dataTransfer.setData('text/plain', filePath);
-					info.event.dataTransfer.effectAllowed = info.node.dir ? 'move' : 'copyMove';
-				}}
 				onDrop={onDrop}
 				expandedKeys={expandedKeys}
 				treeData={treeData}

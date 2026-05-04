@@ -23,13 +23,12 @@ import vscLogo from './vsc.png';
 import tic80Logo from './tic80.png';
 import { AiFillFolderAdd } from 'react-icons/ai';
 import { DiCode } from 'react-icons/di';
-import { TbAtom } from 'react-icons/tb';
 import { VscMarkdown } from 'react-icons/vsc';
 import { useTranslation } from 'react-i18next';
 import { DialogActions } from '@mui/material';
 import Grid from '@mui/material/Grid';
 
-export type DoraFileType = "Lua" | "YueScript" | "Teal" | "TypeScript" | "Dora XML" | "Markdown" | "Yarn" | "Visual Script" | "Blockly" | "Folder" | "Wa" | "TIC80" | "Scene"
+export type DoraFileType = "Lua" | "YueScript" | "Teal" | "TypeScript" | "Dora XML" | "Markdown" | "Yarn" | "Visual Script" | "Blockly" | "Folder" | "Wa" | "TIC80"
 
 interface FileType {
 	icon: React.ReactNode;
@@ -104,12 +103,6 @@ const fileTypes: FileType[] = [
 		name: "TIC80",
 		desc: "file.tic",
 		padding: '20px'
-	},
-	{
-		icon: <TbAtom size={56} style={{marginLeft: '1px'}}/>,
-		name: "Scene",
-		desc: "file.scene",
-		padding: '15px'
 	},
 	{
 		icon: <AiFillFolderAdd size={50} style={{marginLeft: '0px'}}/>,

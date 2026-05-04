@@ -7,7 +7,6 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 import type { TreeDataType } from "./FileTree";
-import type { DoraScene } from "./SceneEditor/sceneTypes";
 import { ProfilerInfo } from "./ProfilerInfo";
 import { TypedEmitter } from "./utils/typedEmitter";
 
@@ -368,35 +367,6 @@ async function post<T>(url: string, data: any = {}) {
 	});
 	const json: T = await response.json();
 	return json;
-};
-
-export interface SceneRenderRequest {
-	scene: DoraScene;
-	width: number;
-	height: number;
-	background?: number;
-}
-
-export type SceneRenderResponse =
-	| {success: true; url: string; width: number; height: number}
-	| {success: false; message?: string};
-
-export async function renderScene(req: SceneRenderRequest): Promise<SceneRenderResponse> {
-	try {
-		const response = await fetch(addr("/scene/render"), {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify(req),
-		});
-		if (!response.ok) {
-			return {success: false, message: `scene render failed: ${response.status}`};
-		}
-		return await response.json() as SceneRenderResponse;
-	} catch (error) {
-		return {success: false, message: error instanceof Error ? error.message : String(error)};
-	}
 };
 
 function getSync<T>(url: string, params: URLSearchParams): T | null {
