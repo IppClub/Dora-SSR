@@ -107,6 +107,8 @@ local function addNode(kind, name, parentId)
 	return node
 end
 
+addNode("Root", "MainScene")
+
 local function removeFromOrder(id)
 	for i = #editor.order, 1, -1 do
 		if editor.order[i] == id then
