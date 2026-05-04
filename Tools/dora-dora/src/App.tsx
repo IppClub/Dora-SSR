@@ -50,6 +50,7 @@ import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import LLMConfigDialog from './LLMConfigDialog';
 import ProjectWorkspacePanel from './ProjectWorkspacePanel';
+import type { SceneCodeLanguage } from './SceneEditor/sceneCodegen';
 
 const SpinePlayer = React.lazy(() => import('./SpinePlayer'));
 const Markdown = React.lazy(() => import('./Markdown'));
@@ -58,6 +59,7 @@ const Blockly = React.lazy(() => import('./Blockly'));
 const YarnEditor = React.lazy(() => import('./YarnEditor'));
 const CodeWire = React.lazy(() => import('./CodeWire'));
 const TIC80Editor = React.lazy(() => import('./TIC80Editor'));
+const SceneEditor = React.lazy(() => import('./SceneEditor/SceneEditor'));
 
 const { path } = Info;
 
@@ -1204,6 +1206,7 @@ export default function PersistentDrawerLeft() {
 				case ".md":
 				case ".yarn":
 				case ".vs":
+				case ".json":
 				case ".ts":
 				case ".tsx":
 				case ".wa":
@@ -2478,6 +2481,7 @@ export default function PersistentDrawerLeft() {
 			case "Blockly": ext = ".bl"; break;
 			case "Wa": ext = ".wa"; break;
 			case "TIC80": ext = ".tic"; break;
+			case "Scene": ext = ".scene.json"; break;
 			case "Folder": ext = ""; break;
 			case "TypeScript": ext = ".tsx"; break;
 		}
@@ -3803,6 +3807,8 @@ export default function PersistentDrawerLeft() {
 							case "": language = null; break;
 							default: language = "txt"; break
 						}
+						const scene = file.title.toLowerCase().endsWith(".scene.json");
+						if (scene) language = null;
 						const markdown = language === "markdown";
 						const hidden = (markdown && !file.mdEditing) || (yarn && !file.yarnTextEditing);
 						const readOnly = file.readOnly || checkFileReadonly(file.key, false);
@@ -4009,6 +4015,50 @@ export default function PersistentDrawerLeft() {
 								}
 								return null;
 							})()}
+							{scene ?
+								<Suspense fallback={<div/>}>
+									<SceneEditor
+										title={file.title}
+										height={editorHeight}
+										content={file.contentModified ?? file.content}
+										readOnly={readOnly}
+										resolveResourcePath={(filePath) => {
+											if (!path.isAbsolute(filePath)) return filePath.replace(/\\/g, "/").replace(/^\/+/, "");
+											const root = isChildFolder(filePath, parentPath) ? parentPath : writablePath;
+											return path.relative(root, filePath).replace(/\\/g, "/");
+										}}
+										getResourceUrl={(resourcePath) => Service.addr("/" + resourcePath.replace(/^\/+/, ""))}
+										onChange={(content) => setModified({key: file.key, content})}
+										onGenerateCode={(language: SceneCodeLanguage, code, options) => {
+											const sceneSuffix = ".scene.json";
+											const sceneFileKey = file.key.toLowerCase().endsWith(sceneSuffix) ? file.key.substring(0, file.key.length - sceneSuffix.length) : path.join(path.dirname(file.key), path.basename(file.key, path.extname(file.key)));
+											const targetFile = `${sceneFileKey}.${language === "lua" ? "lua" : "ts"}`;
+											Service.write({path: targetFile, content: code}).then((res) => {
+												if (!res.success) { addAlert(t("alert.saveCurrent"), "error"); return; }
+												const targetModel = monaco.editor.getModel(monaco.Uri.file(targetFile));
+												if (targetModel !== null && targetModel.getValue() !== code) targetModel.setValue(code);
+												loadAssets();
+												openFileInTab(targetFile, path.basename(targetFile), false, undefined, false);
+												if (options?.run) Service.run({file: targetFile, asProj: false});
+											});
+										}}
+										onCreateScript={(scriptPath, language) => {
+											const scriptExt = language === "lua" ? ".lua" : ".ts";
+											const normalizedScriptPath = scriptPath.trim().replace(/\\/g, "/").replace(/^\/+/, "");
+											const relativeScriptPath = path.extname(normalizedScriptPath).length > 0 ? normalizedScriptPath : normalizedScriptPath + scriptExt;
+											const scriptFile = path.isAbsolute(relativeScriptPath) ? relativeScriptPath : path.join(path.dirname(file.key), relativeScriptPath);
+											Service.newFile({path: path.dirname(scriptFile), content: "", folder: true}).finally(() => {
+												Service.exist({file: scriptFile}).then((existRes) => {
+													if (existRes.success) { openFileInTab(scriptFile, path.basename(scriptFile), false, undefined, false); return; }
+													const content = language === "lua" ? "local function attach(node, sceneNodes)\n\tnode:schedule(function(deltaTime)\n\t\treturn false\n\tend)\nend\n\nreturn { attach = attach }\n" : "import { Node } from \"Dora\";\n\nexport function attach(node: Node.Type, sceneNodes: Record<string, Node.Type>) {\n\tnode.schedule((deltaTime) => {\n\t\treturn false;\n\t});\n}\n";
+													Service.newFile({path: scriptFile, content, folder: false}).then(() => { loadAssets(); openFileInTab(scriptFile, path.basename(scriptFile), false, undefined, false); });
+												});
+											});
+										}}
+										onKeydown={(event) => setKeyEvent(event.nativeEvent)}
+									/>
+								</Suspense> : null
+							}
 							{(() => {
 								if (language) {
 									const editorComponent = <Editor
