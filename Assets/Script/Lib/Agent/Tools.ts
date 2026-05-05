@@ -1381,7 +1381,7 @@ export function applyFileChanges(taskId: number, workDir: string, changes: FileC
 	};
 }
 
-export function rollbackCheckpoint(checkpointId: number, workDir: string): RollbackResult {
+export async function rollbackCheckpoint(checkpointId: number, workDir: string): Promise<RollbackResult> {
 	if (!isValidWorkDir(workDir)) return { success: false, message: "invalid workDir" };
 	if (checkpointId <= 0) return { success: false, message: "invalid checkpointId" };
 	const entries = getCheckpointEntries(checkpointId, true);
@@ -1405,11 +1405,17 @@ export function rollbackCheckpoint(checkpointId: number, workDir: string): Rollb
 			return { success: false, message: `failed to sync rollback file: ${entry.path}` };
 		}
 	}
+	const buildResult = await build({ workDir, path: "" });
+	if (!buildResult.success) {
+		Log("Error", `Agent rollback build failed at checkpoint ${checkpointId}: ${buildResult.message}`);
+		Log("Info", `[rollback] build_failed checkpoint=${checkpointId}`);
+		return { success: false, message: `rollback build failed: ${buildResult.message}` };
+	}
 	DB.exec(`UPDATE ${TABLE_CP} SET status = ?, reverted_at = ? WHERE id = ?`, ["REVERTED", now(), checkpointId]);
 	return { success: true, checkpointId };
 }
 
-export function rollbackTaskChangeSet(taskId: number, workDir: string): TaskRollbackResult {
+export async function rollbackTaskChangeSet(taskId: number, workDir: string): Promise<TaskRollbackResult> {
 	if (!isValidWorkDir(workDir)) return { success: false, message: "invalid workDir" };
 	if (!getTaskStatus(taskId)) return { success: false, message: "task not found" };
 	const checkpoints = listCheckpointIdsForTask(taskId, true);
@@ -1418,7 +1424,7 @@ export function rollbackTaskChangeSet(taskId: number, workDir: string): TaskRoll
 	}
 	let lastCheckpointId = 0;
 	for (let i = 0; i < checkpoints.length; i++) {
-		const result = rollbackCheckpoint(checkpoints[i].id, workDir);
+		const result = await rollbackCheckpoint(checkpoints[i].id, workDir);
 		if (!result.success) return { success: false, message: result.message };
 		lastCheckpointId = checkpoints[i].id;
 	}
