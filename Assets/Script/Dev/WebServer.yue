@@ -186,7 +186,7 @@ HttpServer\post "/agent/task/diff", (req): invalidArguments ->
 		return success: false, message: "invalid taskId" unless taskId > 0
 		return AgentTools.getTaskChangeSetDiff taskId
 
-HttpServer\post "/agent/checkpoint/rollback", (req): invalidArguments ->
+HttpServer\postSchedule "/agent/checkpoint/rollback", (req): invalidArguments ->
 	switch req when {body: {:sessionId, :checkpointId}}
 		return success: false, message: "invalid checkpointId" unless checkpointId > 0
 		res = AgentSession.getSession sessionId
@@ -197,7 +197,7 @@ HttpServer\post "/agent/checkpoint/rollback", (req): invalidArguments ->
 			success: true
 			checkpointId: rollbackRes.checkpointId
 
-HttpServer\post "/agent/task/rollback", (req): invalidArguments ->
+HttpServer\postSchedule "/agent/task/rollback", (req): invalidArguments ->
 	switch req when {body: {:sessionId, :taskId}}
 		return success: false, message: "invalid taskId" unless taskId > 0
 		res = AgentSession.getSession sessionId
