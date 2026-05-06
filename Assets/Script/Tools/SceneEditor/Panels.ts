@@ -1,9 +1,9 @@
-import { App, Color, Content, Path, Vec2, json } from 'Dora';
+import { App, Color, Content, Keyboard, KeyName, Path, Vec2, json } from 'Dora';
 import * as ImGui from 'ImGui';
 import { SetCond, StyleColor } from 'ImGui';
-import { EditorState, SceneNodeData } from 'Script/Tools/SceneEditor/Types';
-import { inputTextFlags, mainWindowFlags, noScrollFlags, okColor, themeColor, transparent, warnColor } from 'Script/Tools/SceneEditor/Theme';
-import { addChildNode, deleteNode, iconFor, importFileDialog, importFolderDialog, isScriptAsset, isTextureAsset, lowerExt, pushConsole, zh } from 'Script/Tools/SceneEditor/Model';
+import { EditorState, SceneNodeData, ViewportTool } from 'Script/Tools/SceneEditor/Types';
+import { inputTextFlags, mainWindowFlags, noScrollFlags, okColor, panelBg, scriptPanelBg, themeColor, transparent, warnColor } from 'Script/Tools/SceneEditor/Theme';
+import { addAssetPath, addChildNode, deleteNode, iconFor, importFileDialog, importFolderDialog, isFolderAsset, isScriptAsset, isTextureAsset, lowerExt, pushConsole, zh } from 'Script/Tools/SceneEditor/Model';
 import { updatePreviewRuntime } from 'Script/Tools/SceneEditor/Runtime';
 
 declare function pcall(fn: () => void): LuaMultiReturn<[boolean, unknown]>;
@@ -17,6 +17,7 @@ function drawNodeRow(state: EditorState, id: string, depth: number) {
 	const label = indent + iconFor(node.kind) + '  ' + node.name + '##tree_' + id;
 	if (ImGui.Selectable(label, state.selectedId === id)) {
 		state.selectedId = id;
+		state.previewDirty = true;
 	}
 	for (const childId of node.children) {
 		drawNodeRow(state, childId, depth + 1);
@@ -107,21 +108,62 @@ function drawScenePanel(state: EditorState) {
 	ImGui.TextDisabled(zh ? '＋ 添加到当前选中节点下' : '+ adds under selected node');
 }
 
+function bindTextureToSprite(state: EditorState, node: SceneNodeData, texture: string) {
+	node.texture = texture;
+	node.textureBuffer.text = texture;
+	state.selectedAsset = texture;
+	state.previewDirty = true;
+	state.status = (zh ? '已绑定贴图：' : 'Texture assigned: ') + texture;
+	pushConsole(state, state.status);
+}
+
+function createSpriteFromTexture(state: EditorState, texture: string) {
+	addChildNode(state, 'Sprite');
+	const node = state.nodes[state.selectedId];
+	if (node !== undefined && node.kind === 'Sprite') {
+		bindTextureToSprite(state, node, texture);
+	}
+}
+
+function assetIcon(asset: string) {
+	if (isFolderAsset(asset)) return '📁';
+	if (isTextureAsset(asset)) return '🖼';
+	if (isScriptAsset(asset)) return '◇';
+	const ext = lowerExt(asset);
+	if (ext === 'wav' || ext === 'mp3' || ext === 'ogg' || ext === 'flac') return '♪';
+	if (ext === 'ttf' || ext === 'otf' || ext === 'fnt') return 'F';
+	if (ext === 'json' || ext === 'xml' || ext === 'yaml' || ext === 'yml') return '{}';
+	if (ext === 'atlas' || ext === 'model' || ext === 'skel' || ext === 'anim') return '◆';
+	return '·';
+}
+
+function startsWith(text: string, prefix: string) {
+	return string.sub(text, 1, string.len(prefix)) === prefix;
+}
+
 function drawAssetRow(state: EditorState, asset: string) {
-	if (ImGui.Selectable('  ' + asset, state.selectedAsset === asset)) {
+	if (isFolderAsset(asset)) {
+		ImGui.TreeNode(assetIcon(asset) + '  ' + asset, () => {
+			for (const child of state.assets) {
+				if (child !== asset && !isFolderAsset(child) && startsWith(child, asset)) {
+					drawAssetRow(state, child);
+				}
+			}
+		});
+		return;
+	}
+	if (ImGui.Selectable(assetIcon(asset) + '  ' + asset, state.selectedAsset === asset)) {
 		state.selectedAsset = asset;
 		const node = state.nodes[state.selectedId];
 		if (node !== undefined && node.kind === 'Sprite' && isTextureAsset(asset)) {
-			node.texture = asset;
-			node.textureBuffer.text = asset;
-			state.previewDirty = true;
-			state.status = (zh ? '已绑定贴图：' : 'Texture assigned: ') + asset;
+			bindTextureToSprite(state, node, asset);
+			return;
 		} else if (node !== undefined && isScriptAsset(asset)) {
 			node.script = asset;
 			node.scriptBuffer.text = asset;
 			state.status = (zh ? '已绑定脚本：' : 'Script assigned: ') + asset;
 		} else {
-			state.status = zh ? '选择 Sprite 可绑定图片，选择节点可绑定 Lua 脚本' : 'Select a Sprite for images, or a node for Lua scripts';
+			state.status = zh ? '已选择资源；选中 Sprite 可绑定图片，选中节点可绑定脚本' : 'Asset selected; select a Sprite for images, or a node for scripts';
 		}
 		pushConsole(state, state.status);
 	}
@@ -134,83 +176,277 @@ function drawAssetsPanel(state: EditorState) {
 	ImGui.SameLine();
 	if (ImGui.SmallButton('＋ Folder')) importFolderDialog(state);
 	ImGui.Separator();
-	ImGui.TextDisabled(zh ? '拖拽导入需要原生 FileDrop 绑定；当前先用系统文件选择器。' : 'OS drag-drop needs a native FileDrop binding; use the file picker for now.');
+	ImGui.TextDisabled(zh ? '支持 png/jpg/webp/lua/ts/json/音频/字体/模型等；文件夹会递归导入。' : 'Supports images, scripts, json, audio, fonts, models; folders import recursively.');
 	ImGui.Separator();
-	const groups = [
-		{ title: 'Textures', filter: isTextureAsset },
-		{ title: 'Scripts', filter: isScriptAsset },
-		{ title: 'Audio', filter: (path: string) => { const ext = lowerExt(path); return ext === 'wav' || ext === 'mp3' || ext === 'ogg'; } },
-		{ title: 'Animations', filter: (path: string) => { const ext = lowerExt(path); return ext === 'anim' || ext === 'model' || ext === 'skel'; } },
-	];
-	for (const group of groups) {
-		ImGui.TreeNode(group.title, () => {
-			for (const asset of state.assets) {
-				if (group.filter(asset)) drawAssetRow(state, asset);
-			}
-		});
+	if (state.assets.length === 0) {
+		ImGui.TextDisabled(zh ? '点击 + File 或 + Folder 导入资源。' : 'Click + File or + Folder to import assets.');
+		return;
+	}
+	for (const asset of state.assets) {
+		if (isFolderAsset(asset)) {
+			drawAssetRow(state, asset);
+		}
+	}
+	for (const asset of state.assets) {
+		let insideFolder = false;
+		for (const folder of state.assets) {
+			if (isFolderAsset(folder) && startsWith(asset, folder)) insideFolder = true;
+		}
+		if (!insideFolder && !isFolderAsset(asset)) drawAssetRow(state, asset);
 	}
 	if (state.selectedAsset !== '' && isTextureAsset(state.selectedAsset)) {
 		ImGui.Separator();
 		ImGui.TextColored(themeColor, 'Texture Preview');
 		const [ok] = pcall(() => ImGui.Image(state.selectedAsset, Vec2(160, 120)));
-		if (!ok) ImGui.TextDisabled(zh ? '无法预览该贴图' : 'Unable to preview this texture');
+		if (!ok) ImGui.TextDisabled(zh ? '无法预览该贴图；但仍可尝试绑定到 Sprite。' : 'Unable to preview; still can bind to Sprite.');
+		const selectedNode = state.nodes[state.selectedId];
+		if (selectedNode !== undefined && selectedNode.kind === 'Sprite') {
+			if (ImGui.Button(zh ? '绑定到当前 Sprite' : 'Bind To Sprite')) bindTextureToSprite(state, selectedNode, state.selectedAsset);
+			ImGui.SameLine();
+		}
+		if (ImGui.Button(zh ? '用此贴图创建 Sprite' : 'Create Sprite')) createSpriteFromTexture(state, state.selectedAsset);
 	}
 }
 
-function openScriptForNode(state: EditorState, node: SceneNodeData) {
-	if (node.script === '') {
-		node.script = 'Script/' + node.name + '.lua';
-		node.scriptBuffer.text = node.script;
+function scriptTemplate(node?: SceneNodeData) {
+	const name = node !== undefined ? node.name : 'Script';
+	return '-- ' + name + ' behavior\nreturn function(node, scene)\n\t-- write behavior here\nend\n';
+}
+
+function loadScriptIntoEditor(state: EditorState, node: SceneNodeData | undefined, scriptPath: string) {
+	if (node !== undefined) {
+		node.script = scriptPath;
+		node.scriptBuffer.text = scriptPath;
+		state.activeScriptNodeId = node.id;
+	} else {
+		state.activeScriptNodeId = undefined;
 	}
-	state.activeScriptNodeId = node.id;
-	state.scriptPathBuffer.text = node.script;
-	const scriptFile = Path(Content.writablePath, node.script);
+	state.scriptPathBuffer.text = scriptPath;
+	const scriptFile = Path(Content.writablePath, scriptPath);
 	if (Content.exist(scriptFile)) {
 		state.scriptContentBuffer.text = Content.load(scriptFile) || '';
+	} else if (Content.exist(scriptPath)) {
+		state.scriptContentBuffer.text = Content.load(scriptPath) || '';
 	} else {
-		state.scriptContentBuffer.text = '-- ' + node.name + ' behavior\nreturn function(node, scene)\n\t-- write behavior here\nend\n';
+		state.scriptContentBuffer.text = scriptTemplate(node);
 	}
 	state.mode = 'Script';
+}
+
+function openScriptForNode(state: EditorState, node: SceneNodeData) {
+	const path = node.script !== '' ? node.script : 'Script/' + node.name + '.lua';
+	loadScriptIntoEditor(state, node, path);
+}
+
+function saveScriptFile(state: EditorState, node?: SceneNodeData) {
+	const path = state.scriptPathBuffer.text !== '' ? state.scriptPathBuffer.text : 'Script/NewScript.lua';
+	state.scriptPathBuffer.text = path;
+	if (node !== undefined) {
+		node.script = path;
+		node.scriptBuffer.text = path;
+	}
+	const scriptFile = Path(Content.writablePath, path);
+	Content.mkdir(Path.getPath(scriptFile));
+	if (Content.save(scriptFile, state.scriptContentBuffer.text)) {
+		state.status = (zh ? '脚本已保存：' : 'Script saved: ') + path;
+		if (state.selectedAsset !== path) state.selectedAsset = path;
+		let exists = false;
+		for (const asset of state.assets) if (asset === path) exists = true;
+		if (!exists) state.assets.push(path);
+	} else {
+		state.status = zh ? '脚本保存失败' : 'Failed to save script';
+	}
+	pushConsole(state, state.status);
+}
+
+function drawScriptAssetList(state: EditorState, node?: SceneNodeData) {
+	ImGui.TextColored(themeColor, zh ? '脚本资源' : 'Script Assets');
+	for (const asset of state.assets) {
+		if (isScriptAsset(asset) && !isFolderAsset(asset)) {
+			if (ImGui.Selectable('◇  ' + asset, state.selectedAsset === asset)) {
+				state.selectedAsset = asset;
+				loadScriptIntoEditor(state, node, asset);
+			}
+		}
+	}
 }
 
 function drawScriptPanel(state: EditorState) {
 	const activeId = state.activeScriptNodeId || state.selectedId;
 	const node = state.nodes[activeId];
-	ImGui.TextColored(themeColor, 'Script');
+	ImGui.TextColored(themeColor, 'Script Workspace');
 	ImGui.SameLine();
-	ImGui.TextDisabled(node !== undefined ? node.name : 'No Node');
+	ImGui.TextDisabled(node !== undefined ? node.name : (zh ? '独立文件模式' : 'File mode'));
 	ImGui.Separator();
-	if (node === undefined) {
-		ImGui.TextDisabled(zh ? '先选择一个节点' : 'Select a node first');
-		return;
-	}
-	ImGui.InputText('Path', state.scriptPathBuffer, inputTextFlags);
-	ImGui.SameLine();
-	if (ImGui.Button(zh ? '保存脚本' : 'Save Script')) {
-		node.script = state.scriptPathBuffer.text;
-		node.scriptBuffer.text = node.script;
-		const scriptFile = Path(Content.writablePath, node.script);
-		Content.mkdir(Path.getPath(scriptFile));
-		if (Content.save(scriptFile, state.scriptContentBuffer.text)) {
-			state.status = (zh ? '脚本已保存：' : 'Script saved: ') + node.script;
-		} else {
-			state.status = zh ? '脚本保存失败' : 'Failed to save script';
+	ImGui.BeginChild('ScriptSidebar', Vec2(220, 0), [], noScrollFlags, () => {
+		drawScriptAssetList(state, node);
+		ImGui.Separator();
+		if (ImGui.Button(zh ? '新建脚本' : 'New Script')) {
+			const scriptName = node !== undefined ? node.name : 'NewScript';
+			const path = 'Script/' + scriptName + '.lua';
+			state.scriptPathBuffer.text = path;
+			state.scriptContentBuffer.text = scriptTemplate(node);
+			if (node !== undefined) {
+				node.script = path;
+				node.scriptBuffer.text = path;
+				state.activeScriptNodeId = node.id;
+			}
 		}
-		pushConsole(state, state.status);
+		if (ImGui.Button(zh ? '导入脚本文件' : 'Import Script')) importFileDialog(state);
+		if (node !== undefined && ImGui.Button(zh ? '绑定选中资源' : 'Attach Selected')) {
+			if (state.selectedAsset !== '' && isScriptAsset(state.selectedAsset)) {
+				loadScriptIntoEditor(state, node, state.selectedAsset);
+			}
+		}
+		if (ImGui.Button(zh ? '重新加载' : 'Reload')) {
+			loadScriptIntoEditor(state, node, state.scriptPathBuffer.text);
+		}
+	});
+	ImGui.SameLine();
+	ImGui.PushStyleColor(StyleColor.ChildBg, scriptPanelBg, () => {
+		ImGui.BeginChild('ScriptEditorPane', Vec2(0, 0), [], noScrollFlags, () => {
+			ImGui.TextDisabled(zh ? '脚本路径' : 'Script Path');
+			ImGui.InputText('##ScriptPath', state.scriptPathBuffer, inputTextFlags);
+			ImGui.SameLine();
+			if (ImGui.Button(zh ? '保存' : 'Save')) saveScriptFile(state, node);
+			if (node !== undefined) {
+				ImGui.SameLine();
+				if (ImGui.Button(zh ? '绑定到节点' : 'Attach Node')) {
+					node.script = state.scriptPathBuffer.text;
+					node.scriptBuffer.text = node.script;
+					state.status = (zh ? '脚本已绑定到节点：' : 'Script attached to node: ') + node.name;
+					pushConsole(state, state.status);
+				}
+			}
+			ImGui.Separator();
+			ImGui.InputTextMultiline('##ScriptEditor', state.scriptContentBuffer, Vec2(0, -4), []);
+		});
+	});
+}
+
+function viewportScale(state: EditorState) {
+	return math.max(0.25, state.zoom / 100);
+}
+
+function screenToScene(state: EditorState, screenX: number, screenY: number): [number, number] {
+	const p = state.preview;
+	const scale = viewportScale(state);
+	const localX = screenX - (p.x + p.width / 2) - state.viewportPanX;
+	const localY = (p.y + p.height / 2) - screenY - state.viewportPanY;
+	return [localX / scale, localY / scale];
+}
+
+function pickNodeAt(state: EditorState, screenX: number, screenY: number) {
+	const [sceneX, sceneY] = screenToScene(state, screenX, screenY);
+	for (let i = state.order.length; i >= 1; i--) {
+		const id = state.order[i - 1];
+		const node = state.nodes[id];
+		if (node !== undefined && id !== 'root' && node.visible) {
+			const dx = sceneX - node.x;
+			const dy = sceneY - node.y;
+			const radius = node.kind === 'Camera' ? 185 : (node.kind === 'Sprite' ? 82 : 54);
+			if ((dx * dx + dy * dy) <= radius * radius) return id;
+		}
 	}
-	ImGui.InputTextMultiline('##ScriptEditor', state.scriptContentBuffer, Vec2(0, -4), []);
+	return undefined;
+}
+
+function handleViewportMouse(state: EditorState, hovered: boolean) {
+	if (!hovered) return;
+	const spacePressed = Keyboard.isKeyPressed(KeyName.Space);
+	if (ImGui.IsMouseClicked(2)) {
+		state.draggingNodeId = undefined;
+		state.draggingViewport = true;
+		ImGui.ResetMouseDragDelta(2);
+	}
+	if (ImGui.IsMouseClicked(0)) {
+		if (spacePressed) {
+			state.draggingNodeId = undefined;
+			state.draggingViewport = true;
+		} else {
+			const mouse = ImGui.GetMousePos();
+			const picked = pickNodeAt(state, mouse.x, mouse.y);
+			if (picked !== undefined) {
+				state.selectedId = picked;
+				state.previewDirty = true;
+				state.draggingNodeId = picked;
+				state.draggingViewport = false;
+			} else {
+				state.draggingNodeId = undefined;
+				state.draggingViewport = true;
+			}
+		}
+		ImGui.ResetMouseDragDelta(0);
+	}
+	if (ImGui.IsMouseReleased(0) || ImGui.IsMouseReleased(2)) {
+		state.draggingNodeId = undefined;
+		state.draggingViewport = false;
+	}
+	if (ImGui.IsMouseDragging(0) || ImGui.IsMouseDragging(2)) {
+		const panButton = ImGui.IsMouseDragging(2) ? 2 : 0;
+		const delta = ImGui.GetMouseDragDelta(panButton);
+		if (delta.x !== 0 || delta.y !== 0) {
+			if (state.draggingNodeId !== undefined && panButton === 0) {
+				const node = state.nodes[state.draggingNodeId];
+				if (node !== undefined) {
+					const scale = viewportScale(state);
+					node.x += delta.x / scale;
+					node.y -= delta.y / scale;
+					if (state.snapEnabled) {
+						const step = 16;
+						node.x = math.floor(node.x / step + 0.5) * step;
+						node.y = math.floor(node.y / step + 0.5) * step;
+					}
+				}
+			} else if (state.draggingViewport) {
+				state.viewportPanX += delta.x;
+				state.viewportPanY -= delta.y;
+			}
+			ImGui.ResetMouseDragDelta(panButton);
+		}
+	}
+}
+
+function drawViewportToolButton(state: EditorState, tool: ViewportTool, label: string) {
+	const active = state.viewportTool === tool;
+	if (active) {
+		ImGui.PushStyleColor(StyleColor.Button, Color(0xff303642), () => {
+			ImGui.PushStyleColor(StyleColor.Text, themeColor, () => {
+				if (ImGui.Button(label)) state.viewportTool = tool;
+			});
+		});
+	} else if (ImGui.Button(label)) {
+		state.viewportTool = tool;
+	}
 }
 
 function drawViewport(state: EditorState) {
-	ImGui.TextColored(themeColor, 'Viewport');
+	ImGui.TextColored(themeColor, '2D');
 	ImGui.SameLine();
-	ImGui.TextDisabled('Main.scene');
+	drawViewportToolButton(state, 'Select', 'Select');
+	ImGui.SameLine();
+	drawViewportToolButton(state, 'Move', 'Move');
+	ImGui.SameLine();
+	drawViewportToolButton(state, 'Rotate', 'Rotate');
+	ImGui.SameLine();
+	drawViewportToolButton(state, 'Scale', 'Scale');
+	ImGui.SameLine();
+	ImGui.TextDisabled('|');
+	ImGui.SameLine();
+	const [snapChanged, snap] = ImGui.Checkbox('Snap', state.snapEnabled);
+	if (snapChanged) state.snapEnabled = snap;
 	ImGui.SameLine();
 	const [gridChanged, grid] = ImGui.Checkbox('Grid', state.showGrid);
 	if (gridChanged) { state.showGrid = grid; state.previewDirty = true; }
 	ImGui.SameLine();
-	const [zoomChanged, zoom] = ImGui.DragFloat('Zoom', state.zoom, 1, 25, 400, '%.0f%%');
-	if (zoomChanged) state.zoom = zoom;
+	if (ImGui.Button('Center')) {
+		state.viewportPanX = 0;
+		state.viewportPanY = 0;
+		state.zoom = 100;
+		state.previewDirty = true;
+	}
+	ImGui.SameLine();
+	ImGui.TextDisabled('Main.scene');
 	ImGui.Separator();
 	const cursor = ImGui.GetCursorScreenPos();
 	const avail = ImGui.GetContentRegionAvail();
@@ -225,10 +461,17 @@ function drawViewport(state: EditorState) {
 	state.preview.height = viewportHeight;
 	updatePreviewRuntime(state);
 	ImGui.Dummy(Vec2(viewportWidth, viewportHeight));
+	const hovered = ImGui.IsItemHovered();
+	handleViewportMouse(state, hovered);
+	ImGui.SetCursorScreenPos(Vec2(cursor.x + viewportWidth - 92, cursor.y + 8));
+	ImGui.PushStyleColor(StyleColor.Text, themeColor, () => {
+		ImGui.Text(tostring(math.floor(state.zoom)) + '%');
+	});
+	ImGui.SetCursorScreenPos(Vec2(cursor.x, cursor.y + viewportHeight + 4));
 	ImGui.Separator();
-	ImGui.TextColored(okColor, zh ? '真实 Dora Viewport' : 'Real Dora Viewport');
+	ImGui.TextColored(okColor, 'Dora 2D Viewport');
 	ImGui.SameLine();
-	ImGui.TextDisabled(zh ? '红=X 绿=Y，拖动左右分割条可放大' : 'Red=X Green=Y, drag splitters to resize');
+	ImGui.TextDisabled(zh ? '滚轮缩放；中键/Space+拖动平移；触控板双指滚动等价滚轮。' : 'Wheel zoom; MMB or Space+drag pans; trackpad two-finger scroll is wheel.');
 }
 
 function drawInspector(state: EditorState) {
@@ -257,6 +500,16 @@ function drawInspector(state: EditorState) {
 		if (ImGui.InputText('Texture', node.textureBuffer, inputTextFlags)) {
 			node.texture = node.textureBuffer.text;
 			state.previewDirty = true;
+		}
+		if (ImGui.Button(zh ? '导入并绑定贴图' : 'Import Texture')) {
+			App.openFileDialog(false, (path) => {
+				const asset = addAssetPath(state, path);
+				if (asset !== undefined && isTextureAsset(asset)) bindTextureToSprite(state, node, asset);
+			});
+		}
+		ImGui.SameLine();
+		if (ImGui.Button(zh ? '绑定选中贴图' : 'Use Selected')) {
+			if (state.selectedAsset !== '' && isTextureAsset(state.selectedAsset)) bindTextureToSprite(state, node, state.selectedAsset);
 		}
 	} else if (node.kind === 'Label') {
 		ImGui.Separator();
@@ -302,10 +555,19 @@ export function drawEditor(state: EditorState) {
 	const windowHeight = math.max(620, size.height - margin * 2);
 	ImGui.SetNextWindowPos(Vec2(margin, margin), SetCond.Always);
 	ImGui.SetNextWindowSize(Vec2(windowWidth, windowHeight), SetCond.Always);
+	ImGui.SetNextWindowBgAlpha(state.mode === 'Script' ? 0.96 : 0.10);
 	ImGui.Begin('Dora Visual Editor', mainWindowFlags, () => {
 		drawHeader(state);
 		const avail = ImGui.GetContentRegionAvail();
 		const bottomHeight = state.bottomHeight;
+		if (state.mode === 'Script') {
+			const scriptHeight = math.max(360, avail.y - bottomHeight - 8);
+			ImGui.PushStyleColor(StyleColor.ChildBg, panelBg, () => {
+				ImGui.BeginChild('ScriptWorkspaceRoot', Vec2(0, scriptHeight), [], noScrollFlags, () => drawScriptPanel(state));
+			});
+			ImGui.BeginChild('ScriptConsoleDock', Vec2(0, bottomHeight), [], noScrollFlags, () => drawConsole(state));
+			return;
+		}
 		const mainHeight = math.max(320, avail.y - bottomHeight - 10);
 		const availableWidth = math.max(720, avail.x - 4);
 		state.leftWidth = math.max(190, math.min(state.leftWidth, availableWidth - state.rightWidth - 420));
