@@ -437,6 +437,7 @@ i18n
 						stopFailed: "failed to stop task",
 						fileNotInProject: "Current file does not belong to a project",
 						promptPlaceholder: "Describe what you want Dora to do in the current project",
+						contextEstimateTitle: "Context estimate: {{used}} / {{max}} tokens ({{percent}}%)",
 						taskStatus: {
 							idle: "IDLE",
 							running: "RUNNING",
@@ -874,6 +875,7 @@ i18n
 						stopFailed: "停止任务失败",
 						fileNotInProject: "当前文件未归属到一个项目中",
 						promptPlaceholder: "输入你想让 Dora 在当前项目里做什么",
+						contextEstimateTitle: "上下文估算：{{used}} / {{max}} tokens（{{percent}}%）",
 						taskStatus: {
 							idle: "空闲",
 							running: "运行中",
