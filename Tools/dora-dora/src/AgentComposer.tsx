@@ -9,7 +9,6 @@ import { BsFillSendFill, BsStopFill } from 'react-icons/bs';
 import { Color } from './Theme';
 
 const AGENT_USER_PROMPT_MAX_CHARS = 12000;
-const CONTEXT_USAGE_OK_COLOR = "#7bd88f";
 const CONTEXT_USAGE_LOW_COLOR = "rgba(255,255,255,0.42)";
 
 
@@ -35,27 +34,26 @@ function formatCompactNumber(value: number): string {
 }
 
 function ContextUsageRing(props: { ratio?: number; usedTokens?: number; maxTokens?: number }) {
+	const { t } = useTranslation();
 	const usedTokens = props.usedTokens ?? 0;
 	const maxTokens = props.maxTokens ?? 64000;
 	const ratio = Math.max(0, Math.min(1, props.ratio ?? (maxTokens > 0 ? usedTokens / maxTokens : 0)));
 	const percent = Math.round(ratio * 100);
 	const hasUsage = usedTokens > 0 || props.ratio !== undefined;
-	const color = ratio >= 0.90
-		? Color.Error
-		: ratio >= 0.70
-			? Color.Warning
-			: hasUsage
-				? CONTEXT_USAGE_OK_COLOR
-				: CONTEXT_USAGE_LOW_COLOR;
+	const color = hasUsage ? Color.Theme + "cc" : CONTEXT_USAGE_LOW_COLOR;
 	const trackColor = hasUsage ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.08)";
-	const title = `Context estimate: ${formatCompactNumber(usedTokens)} / ${formatCompactNumber(maxTokens)} tokens (${percent}%)`;
+	const title = t("agent.contextEstimateTitle", {
+		used: formatCompactNumber(usedTokens),
+		max: formatCompactNumber(maxTokens),
+		percent,
+	});
 	return (
 		<Tooltip title={title}>
 			<Box
 				aria-label={title}
 				sx={{
-					width: 30,
-					height: 30,
+					width: 26,
+					height: 26,
 					borderRadius: "50%",
 					background: `conic-gradient(${color} ${percent * 3.6}deg, ${trackColor} 0deg)`,
 					display: "grid",
@@ -66,10 +64,12 @@ function ContextUsageRing(props: { ratio?: number; usedTokens?: number; maxToken
 			>
 				<Box
 					sx={{
-						width: 22,
-						height: 22,
+						width: 20,
+						height: 20,
 						borderRadius: "50%",
-						backgroundColor: Color.BackgroundDark,
+						backgroundColor: "rgba(24,24,24,0.62)",
+						backdropFilter: "blur(8px)",
+						WebkitBackdropFilter: "blur(8px)",
 						display: "grid",
 						placeItems: "center",
 						border: "1px solid rgba(255,255,255,0.08)",
@@ -123,20 +123,34 @@ export default function AgentComposer(props: AgentComposerProps) {
 			{tabButtons ? (
 				<Stack
 					direction="row"
-					spacing={0.75}
-					useFlexGap
+					spacing={1}
+					alignItems="center"
 					sx={{
 						position: "absolute",
 						top: -36,
+						left: 16,
 						right: 24,
 						zIndex: 3,
-						maxWidth: "calc(100% - 32px)",
-						flexWrap: "wrap",
-						justifyContent: "flex-end",
-						pointerEvents: "auto",
+						pointerEvents: "none",
 					}}
 				>
-					{tabButtons}
+					<Stack
+						direction="row"
+						spacing={0.75}
+						useFlexGap
+						sx={{
+							flex: "1 1 auto",
+							minWidth: 0,
+							flexWrap: "wrap",
+							justifyContent: "flex-end",
+							pointerEvents: "auto",
+						}}
+					>
+						{tabButtons}
+					</Stack>
+					<Box sx={{ flex: "0 0 auto", pointerEvents: "auto" }}>
+						<ContextUsageRing ratio={contextRatio} usedTokens={usedTokens} maxTokens={maxTokens} />
+					</Box>
 				</Stack>
 			) : null}
 			<Box sx={{ border: `0.5px solid ${Color.Line}`, borderRadius: 4, backgroundColor: Color.BackgroundDark, position: "relative", minHeight: 90 }}>
@@ -212,9 +226,6 @@ export default function AgentComposer(props: AgentComposerProps) {
 					</span>
 					</Tooltip>
 				) : null}
-				<span style={{ position: "absolute", right: 16, bottom: 14, zIndex: 1 }}>
-					<ContextUsageRing ratio={contextRatio} usedTokens={usedTokens} maxTokens={maxTokens} />
-				</span>
 				</Box>
 			</Box>
 		);
