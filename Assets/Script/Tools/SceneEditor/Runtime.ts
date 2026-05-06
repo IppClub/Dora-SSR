@@ -1,6 +1,6 @@
-import { App, Color, Director, DrawNode, Label, Line, Node, Sprite, Vec2 } from 'Dora';
+import { App, ClipNode, Color, Director, DrawNode, Label, Line, Mouse, Node, Sprite, Vec2 } from 'Dora';
 import { EditorState, SceneNodeData } from 'Script/Tools/SceneEditor/Types';
-import { greenAxisColor, gridMajorColor, gridMinorColor, redAxisColor } from 'Script/Tools/SceneEditor/Theme';
+import { greenAxisColor, gridMajorColor, gridMinorColor, helperColor, redAxisColor, selectionColor, viewportBgColor, viewportFrameColor, viewportGameFrameColor } from 'Script/Tools/SceneEditor/Theme';
 
 function worldPointFromScreen(screenX: number, screenY: number): [number, number] {
 	const size = App.visualSize;
@@ -13,7 +13,7 @@ function makeLine(points: Vec2.Type[], color: Color.Type) {
 
 function makeThickLine(a: Vec2.Type, b: Vec2.Type, color: Color.Type, horizontal: boolean) {
 	const node = Node();
-	for (let offset = -2; offset <= 2; offset++) {
+	for (let offset = -1; offset <= 1; offset++) {
 		if (horizontal) {
 			node.addChild(makeLine([Vec2(a.x, a.y + offset), Vec2(b.x, b.y + offset)], color));
 		} else {
@@ -23,16 +23,65 @@ function makeThickLine(a: Vec2.Type, b: Vec2.Type, color: Color.Type, horizontal
 	return node;
 }
 
-function makeRectLine(width: number, height: number, color: Color.Type) {
+function makeSegmentRect(width: number, height: number, color: Color.Type, thickness: number) {
 	const hw = width / 2;
 	const hh = height / 2;
-	return makeLine([
+	const rect = DrawNode();
+	rect.drawSegment(Vec2(-hw, -hh), Vec2(hw, -hh), thickness, color);
+	rect.drawSegment(Vec2(hw, -hh), Vec2(hw, hh), thickness, color);
+	rect.drawSegment(Vec2(hw, hh), Vec2(-hw, hh), thickness, color);
+	rect.drawSegment(Vec2(-hw, hh), Vec2(-hw, -hh), thickness, color);
+	return rect;
+}
+
+function addCornerHandles(node: Node.Type, width: number, height: number, color: Color.Type) {
+	const hw = width / 2;
+	const hh = height / 2;
+	const size = 8;
+	const points = [
 		Vec2(-hw, -hh),
 		Vec2(hw, -hh),
 		Vec2(hw, hh),
 		Vec2(-hw, hh),
+	];
+	for (const point of points) {
+		const handle = DrawNode();
+		handle.drawPolygon([
+			Vec2(point.x - size / 2, point.y - size / 2),
+			Vec2(point.x + size / 2, point.y - size / 2),
+			Vec2(point.x + size / 2, point.y + size / 2),
+			Vec2(point.x - size / 2, point.y + size / 2),
+		], color, 0, Color());
+		node.addChild(handle);
+	}
+}
+
+function selectionSize(item: SceneNodeData): [number, number] {
+	if (item.kind === 'Camera') return [320, 180];
+	if (item.kind === 'Sprite') return [128, 96];
+	if (item.kind === 'Label') return [180, 56];
+	return [72, 72];
+}
+
+function addSelectionOverlay(state: EditorState, item: SceneNodeData, node: Node.Type) {
+	const [width, height] = selectionSize(item);
+	const color = item.id === state.selectedId ? selectionColor : helperColor;
+	node.addChild(makeSegmentRect(width, height, color, item.id === state.selectedId ? 1.6 : 0.8));
+	if (item.id === state.selectedId) addCornerHandles(node, width, height, color);
+}
+
+
+function makeClipStencil(width: number, height: number) {
+	const hw = width / 2;
+	const hh = height / 2;
+	const stencil = DrawNode();
+	stencil.drawPolygon([
 		Vec2(-hw, -hh),
-	], color);
+		Vec2(hw, -hh),
+		Vec2(hw, hh),
+		Vec2(-hw, hh),
+	], Color(0xffffffff), 0, Color());
+	return stencil;
 }
 
 function makeCanvasBackground(width: number, height: number) {
@@ -44,7 +93,7 @@ function makeCanvasBackground(width: number, height: number) {
 		Vec2(hw, -hh),
 		Vec2(hw, hh),
 		Vec2(-hw, hh),
-	], Color(0xff0b1118), 6, Color(0xffffcc33));
+	], viewportBgColor, 1.0, viewportFrameColor);
 	return bg;
 }
 
@@ -59,9 +108,9 @@ function makeGridLine(width: number, height: number) {
 	let x = -math.floor(hw / step) * step;
 	while (x <= hw) {
 		if (i % 5 === 0) {
-			major.drawSegment(Vec2(x, -hh), Vec2(x, hh), 1.2, gridMajorColor);
+			major.drawSegment(Vec2(x, -hh), Vec2(x, hh), 0.55, gridMajorColor);
 		} else {
-			minor.drawSegment(Vec2(x, -hh), Vec2(x, hh), 0.55, gridMinorColor);
+			minor.drawSegment(Vec2(x, -hh), Vec2(x, hh), 0.25, gridMinorColor);
 		}
 		x += step;
 		i += 1;
@@ -70,9 +119,9 @@ function makeGridLine(width: number, height: number) {
 	let y = -math.floor(hh / step) * step;
 	while (y <= hh) {
 		if (i % 5 === 0) {
-			major.drawSegment(Vec2(-hw, y), Vec2(hw, y), 1.2, gridMajorColor);
+			major.drawSegment(Vec2(-hw, y), Vec2(hw, y), 0.55, gridMajorColor);
 		} else {
-			minor.drawSegment(Vec2(-hw, y), Vec2(hw, y), 0.55, gridMinorColor);
+			minor.drawSegment(Vec2(-hw, y), Vec2(hw, y), 0.25, gridMinorColor);
 		}
 		y += step;
 		i += 1;
@@ -87,9 +136,9 @@ function makeAxisLine(width: number, height: number) {
 	const hh = height / 2;
 	const axis = Node();
 	const xAxis = DrawNode();
-	xAxis.drawSegment(Vec2(-hw, 0), Vec2(hw, 0), 3.5, redAxisColor);
+	xAxis.drawSegment(Vec2(-hw, 0), Vec2(hw, 0), 1.2, redAxisColor);
 	const yAxis = DrawNode();
-	yAxis.drawSegment(Vec2(0, -hh), Vec2(0, hh), 3.5, greenAxisColor);
+	yAxis.drawSegment(Vec2(0, -hh), Vec2(0, hh), 1.2, greenAxisColor);
 	axis.addChild(xAxis);
 	axis.addChild(yAxis);
 	return axis;
@@ -97,16 +146,17 @@ function makeAxisLine(width: number, height: number) {
 
 function makeSpritePlaceholder() {
 	const node = Node();
-	const frame = makeRectLine(96, 64, Color(0xff4fa3ff));
-	frame.addChild(makeLine([Vec2(-48, -32), Vec2(48, 32), Vec2(-48, 32), Vec2(48, -32)], Color(0xff4fa3ff)));
-	node.addChild(frame);
+	node.addChild(makeSegmentRect(128, 96, helperColor, 1.1));
+	const cross = DrawNode();
+	cross.drawSegment(Vec2(-64, -48), Vec2(64, 48), 0.6, helperColor);
+	cross.drawSegment(Vec2(-64, 48), Vec2(64, -48), 0.6, helperColor);
+	node.addChild(cross);
 	return node;
 }
 
 function makeCameraShape() {
 	const node = Node();
-	node.addChild(makeRectLine(180, 100, Color(0xffffcc33)));
-	node.addChild(makeLine([Vec2(-90, 0), Vec2(90, 0), Vec2(0, -50), Vec2(0, 50)], Color(0xffffcc33)));
+	node.addChild(makeSegmentRect(320, 180, viewportGameFrameColor, 1.1));
 	return node;
 }
 
@@ -118,6 +168,7 @@ function createRuntimeVisual(state: EditorState, item: SceneNodeData) {
 			visual = Sprite(item.texture);
 		}
 		wrapper.addChild(visual !== undefined ? visual : makeSpritePlaceholder());
+		addSelectionOverlay(state, item, wrapper);
 	} else if (item.kind === 'Label') {
 		const label = Label('sarasa-mono-sc-regular', 32);
 		if (label !== undefined) {
@@ -125,15 +176,52 @@ function createRuntimeVisual(state: EditorState, item: SceneNodeData) {
 			state.runtimeLabels[item.id] = label;
 			wrapper.addChild(label);
 		} else {
-			wrapper.addChild(makeRectLine(120, 38, Color(0xffdcdcdc)));
+			wrapper.addChild(makeSegmentRect(180, 56, Color(0xffffffff), 3));
 		}
+		addSelectionOverlay(state, item, wrapper);
 	} else if (item.kind === 'Camera') {
 		wrapper.addChild(makeCameraShape());
+		addSelectionOverlay(state, item, wrapper);
 	} else {
-		wrapper.addChild(makeThickLine(Vec2(-14, 0), Vec2(14, 0), Color(0xffffffff), true));
-		wrapper.addChild(makeThickLine(Vec2(0, -14), Vec2(0, 14), Color(0xffffffff), false));
+		wrapper.addChild(makeThickLine(Vec2(-20, 0), Vec2(20, 0), helperColor, true));
+		wrapper.addChild(makeThickLine(Vec2(0, -20), Vec2(0, 20), helperColor, false));
+		addSelectionOverlay(state, item, wrapper);
 	}
 	return wrapper;
+}
+
+function clampZoom(value: number) {
+	return math.max(25, math.min(400, value));
+}
+
+function zoomViewportAt(state: EditorState, delta: number, screenX: number, screenY: number) {
+	if (delta === 0) return;
+	const before = state.zoom;
+	const beforeScale = math.max(0.25, before / 100);
+	const centerX = state.preview.x + state.preview.width / 2;
+	const centerY = state.preview.y + state.preview.height / 2;
+	const sceneX = (screenX - centerX - state.viewportPanX) / beforeScale;
+	const sceneY = (centerY - screenY - state.viewportPanY) / beforeScale;
+	state.zoom = clampZoom(state.zoom + delta);
+	if (state.zoom !== before) {
+		const afterScale = math.max(0.25, state.zoom / 100);
+		state.viewportPanX = screenX - centerX - sceneX * afterScale;
+		state.viewportPanY = centerY - screenY - sceneY * afterScale;
+		state.previewDirty = true;
+	}
+}
+
+function attachViewportInput(state: EditorState, clip: ClipNode.Type) {
+	clip.touchEnabled = true;
+	clip.swallowMouseWheel = true;
+	clip.onMouseWheel((delta) => {
+		const wheel = math.abs(delta.y) >= math.abs(delta.x) ? delta.y : delta.x;
+		zoomViewportAt(state, wheel > 0 ? 6 : -6, Mouse.position.x, Mouse.position.y);
+	});
+	clip.onGesture((center, numFingers, deltaDist) => {
+		if (numFingers < 2) return;
+		zoomViewportAt(state, deltaDist > 0 ? 10 : -10, center.x, center.y);
+	});
 }
 
 export function rebuildPreviewRuntime(state: EditorState) {
@@ -149,21 +237,31 @@ export function rebuildPreviewRuntime(state: EditorState) {
 	const renderScale = App.devicePixelRatio || 1;
 	const width = math.max(160, state.preview.width * renderScale);
 	const height = math.max(120, state.preview.height * renderScale);
-	state.previewRoot.addChild(makeCanvasBackground(width, height));
+	const scale = math.max(0.25, state.zoom / 100);
+	const worldWidth = math.max(8192, width / scale * 6);
+	const worldHeight = math.max(8192, height / scale * 6);
+	const clip = ClipNode(makeClipStencil(width, height));
+	clip.alphaThreshold = 0.01;
+	attachViewportInput(state, clip);
+	state.previewRoot.addChild(clip);
+	clip.addChild(makeCanvasBackground(width, height));
+
+	const world = Node();
+	world.x = state.viewportPanX;
+	world.y = state.viewportPanY;
+	world.scaleX = scale;
+	world.scaleY = scale;
+	state.previewWorld = world;
+	clip.addChild(world);
 	if (state.showGrid) {
-		state.previewRoot.addChild(makeGridLine(width, height));
+		world.addChild(makeGridLine(worldWidth, worldHeight));
 	}
-	state.previewRoot.addChild(makeAxisLine(width, height));
-	for (let offset = 0; offset <= 8; offset += 2) {
-		state.previewRoot.addChild(makeRectLine(width + offset, height + offset, Color(0xffffcc33)));
-	}
+	world.addChild(makeAxisLine(worldWidth, worldHeight));
+	clip.addChild(makeSegmentRect(width, height, viewportGameFrameColor, 0.9));
 
 	const content = Node();
-	const scale = math.max(0.25, state.zoom / 100);
-	content.scaleX = scale;
-	content.scaleY = scale;
 	state.previewContent = content;
-	state.previewRoot.addChild(content);
+	world.addChild(content);
 	state.runtimeNodes.root = content;
 
 	for (const id of state.order) {
@@ -188,10 +286,12 @@ export function updatePreviewRuntime(state: EditorState) {
 	if (previewRoot === undefined) return;
 	previewRoot.x = cx;
 	previewRoot.y = cy;
-	if (state.previewContent !== undefined) {
+	if (state.previewWorld !== undefined) {
 		const scale = math.max(0.25, state.zoom / 100);
-		state.previewContent.scaleX = scale;
-		state.previewContent.scaleY = scale;
+		state.previewWorld.x = state.viewportPanX;
+		state.previewWorld.y = state.viewportPanY;
+		state.previewWorld.scaleX = scale;
+		state.previewWorld.scaleY = scale;
 	}
 	for (const id of state.order) {
 		const item = state.nodes[id];

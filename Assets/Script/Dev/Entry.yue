@@ -736,6 +736,14 @@ export enterEntryAsync = (entry) ->
 
 enterDemoEntry = (entry) -> thread -> enterEntryAsync entry
 
+visualEditorEntry = ->
+	entryName: useChinese and "可视化编辑器" or "Visual Editor"
+	fileName: Path Content.assetPath, "Script", "Tools", "SceneImGuiEditor"
+
+openVisualEditor = ->
+	allClear!
+	enterDemoEntry visualEditorEntry!
+
 reloadCurrentEntry = ->
 	if currentEntry
 		allClear!
@@ -1201,13 +1209,20 @@ entryWindow = threadLoop ->
 		<- Begin "Dora Dev", windowFlags
 		Dummy Vec2 fullWidth - 20, 0
 		TextColored themeColor, "Dora SSR #{zh and '开发' or 'Dev'}"
-		if fullWidth >= 400
+		if fullWidth >= 560
 			SameLine!
-			Dummy Vec2 fullWidth - 400, 0
+			Dummy Vec2 fullWidth - 540, 0
 			SameLine!
-			SetNextItemWidth zh and -95 or -140
+			SetNextItemWidth zh and -230 or -260
 			if InputText zh and '筛选' or 'Filter', filterBuf, ["AutoSelectAll",]
 				config.filter = filterBuf.text
+			SameLine!
+			PushStyleColor "Text", Color 0xffffcc33, ->
+				PushStyleColor "Button", Color 0xff242830, ->
+					PushStyleColor "ButtonHovered", Color 0xff303642, ->
+						PushStyleColor "ButtonActive", Color 0xff3a4250, ->
+							if Button zh and '可视化编辑器' or 'Visual Editor', Vec2(zh and 120 or 125, 30)
+								openVisualEditor!
 			SameLine!
 			if Button zh and '下载' or 'Download'
 				allClear!
@@ -1227,6 +1242,20 @@ entryWindow = threadLoop ->
 		const DemoViewWidth = 220
 		filterText = filterBuf.text\match "[^%%%.%[]+"
 		filterText = filterText\lower! if filterText
+		showVisualEditorEntry = match zh and "可视化编辑器 场景编辑器 visual editor scene editor" or "visual editor scene editor dora"
+		if showVisualEditorEntry
+			Columns 1, false
+			TextColored themeColor, zh and "重点入口：" or "Main Entry:"
+			SameLine!
+			Text zh and "Dora 原生可视化编辑器" or "Dora Native Visual Editor"
+			TextColored descColor, zh and "所见即所得场景编辑、真实 Dora Viewport、资源导入、节点拖动和脚本管理都会集中在这里。" or "WYSIWYG scene editing, real Dora viewport, asset import, node dragging, and script management live here."
+			PushStyleColor "Text", Color 0xffffcc33, ->
+				PushStyleColor "Button", Color 0xff242830, ->
+					PushStyleColor "ButtonHovered", Color 0xff303642, ->
+						PushStyleColor "ButtonActive", Color 0xff3a4250, ->
+							if Button zh and "▶ 打开可视化编辑器" or "▶ Open Visual Editor", Vec2 -1, 64
+								openVisualEditor!
+			thinSep!
 		if #gamesInDev > 0
 			columns = math.max math.floor(width / DemoViewWidth), 1
 			Columns columns, false
