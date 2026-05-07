@@ -54,6 +54,15 @@ export interface EditorState {
 	previewContent?: Node.Type;
 	runtimeNodes: Record<string, Node.Type>;
 	runtimeLabels: Record<string, unknown>;
+	isPlaying: boolean;
+	gameWindowOpen: boolean;
+	playViewport: ViewportState;
+	playDirty: boolean;
+	playRoot?: Node.Type;
+	playWorld?: Node.Type;
+	playContent?: Node.Type;
+	playRuntimeNodes: Record<string, Node.Type>;
+	playRuntimeLabels: Record<string, unknown>;
 	assetImportBuffer: Buffer.Type;
 	scriptPathBuffer: Buffer.Type;
 	scriptContentBuffer: Buffer.Type;

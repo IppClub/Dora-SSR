@@ -1,10 +1,11 @@
-import { App, Color, Content, Keyboard, KeyName, Path, Vec2, json } from 'Dora';
+import { App, Color, Content, Keyboard, KeyName, Mouse, Path, Vec2, json } from 'Dora';
 import * as ImGui from 'ImGui';
 import { SetCond, StyleColor } from 'ImGui';
 import { EditorState, SceneNodeData, ViewportTool } from 'Script/Tools/SceneEditor/Types';
 import { inputTextFlags, mainWindowFlags, noScrollFlags, okColor, panelBg, scriptPanelBg, themeColor, transparent, warnColor } from 'Script/Tools/SceneEditor/Theme';
 import { addAssetPath, addChildNode, deleteNode, iconFor, importFileDialog, importFolderDialog, isFolderAsset, isScriptAsset, isTextureAsset, lowerExt, pushConsole, zh } from 'Script/Tools/SceneEditor/Model';
 import { updatePreviewRuntime } from 'Script/Tools/SceneEditor/Runtime';
+import { drawGamePreviewWindow, startPlay, stopPlay } from 'Script/Tools/SceneEditor/Player';
 
 declare function pcall(fn: () => void): LuaMultiReturn<[boolean, unknown]>;
 
@@ -76,9 +77,10 @@ function drawHeader(state: EditorState) {
 	ImGui.SameLine();
 	ImGui.TextDisabled(zh ? 'Native ImGui / Godot-like' : 'Native ImGui / Godot-like');
 	ImGui.Separator();
-	if (ImGui.Button('▶ Run')) {
-		state.status = zh ? 'Run 会在下一步接入场景运行' : 'Run will be wired in the next step';
-		pushConsole(state, state.status);
+	if (state.isPlaying) {
+		if (ImGui.Button('■ Stop')) stopPlay(state);
+	} else if (ImGui.Button('▶ Run')) {
+		startPlay(state);
 	}
 	ImGui.SameLine();
 	if (ImGui.Button('▣ Save')) saveScene(state);
@@ -259,6 +261,40 @@ function saveScriptFile(state: EditorState, node?: SceneNodeData) {
 	pushConsole(state, state.status);
 }
 
+function currentScriptPath(state: EditorState, node?: SceneNodeData) {
+	if (state.scriptPathBuffer.text !== '') return state.scriptPathBuffer.text;
+	if (node !== undefined && node.script !== '') return node.script;
+	if (node !== undefined) return 'Script/' + node.name + '.lua';
+	return 'Script/NewScript.lua';
+}
+
+function openScriptInWebIDE(state: EditorState, node?: SceneNodeData) {
+	const scriptPath = currentScriptPath(state, node);
+	state.scriptPathBuffer.text = scriptPath;
+	if (state.scriptContentBuffer.text === '') {
+		state.scriptContentBuffer.text = scriptTemplate(node);
+	}
+	saveScriptFile(state, node);
+	const title = Path.getName(scriptPath) || scriptPath;
+	const editingInfo = {
+		index: 0,
+		files: [{
+			key: scriptPath,
+			title,
+			folder: false,
+			position: { lineNumber: 1, column: 1 },
+		}],
+	};
+	const [editingText] = json.encode(editingInfo);
+	if (editingText !== undefined) {
+		Content.mkdir(Path(Content.writablePath, '.dora'));
+		Content.save(Path(Content.writablePath, '.dora', 'open-script.editing.json'), editingText);
+	}
+	App.openURL('http://127.0.0.1:8866/?file=' + scriptPath);
+	state.status = (zh ? '已打开 Web IDE：' : 'Opened Web IDE: ') + scriptPath;
+	pushConsole(state, state.status);
+}
+
 function drawScriptAssetList(state: EditorState, node?: SceneNodeData) {
 	ImGui.TextColored(themeColor, zh ? '脚本资源' : 'Script Assets');
 	for (const asset of state.assets) {
@@ -309,6 +345,8 @@ function drawScriptPanel(state: EditorState) {
 			ImGui.InputText('##ScriptPath', state.scriptPathBuffer, inputTextFlags);
 			ImGui.SameLine();
 			if (ImGui.Button(zh ? '保存' : 'Save')) saveScriptFile(state, node);
+			ImGui.SameLine();
+			if (ImGui.Button(zh ? 'Web IDE 打开' : 'Open in Web IDE')) openScriptInWebIDE(state, node);
 			if (node !== undefined) {
 				ImGui.SameLine();
 				if (ImGui.Button(zh ? '绑定到节点' : 'Attach Node')) {
@@ -326,6 +364,33 @@ function drawScriptPanel(state: EditorState) {
 
 function viewportScale(state: EditorState) {
 	return math.max(0.25, state.zoom / 100);
+}
+
+function clampZoom(value: number) {
+	return math.max(25, math.min(400, value));
+}
+
+function zoomViewportAt(state: EditorState, delta: number, screenX: number, screenY: number) {
+	if (delta === 0) return;
+	const before = state.zoom;
+	const beforeScale = viewportScale(state);
+	const p = state.preview;
+	const centerX = p.x + p.width / 2;
+	const centerY = p.y + p.height / 2;
+	const sceneX = (screenX - centerX - state.viewportPanX) / beforeScale;
+	const sceneY = (centerY - screenY - state.viewportPanY) / beforeScale;
+	state.zoom = clampZoom(state.zoom + delta);
+	if (state.zoom !== before) {
+		const afterScale = viewportScale(state);
+		state.viewportPanX = screenX - centerX - sceneX * afterScale;
+		state.viewportPanY = centerY - screenY - sceneY * afterScale;
+		state.previewDirty = true;
+	}
+}
+
+function zoomViewportFromCenter(state: EditorState, delta: number) {
+	const p = state.preview;
+	zoomViewportAt(state, delta, p.x + p.width / 2, p.y + p.height / 2);
 }
 
 function screenToScene(state: EditorState, screenX: number, screenY: number): [number, number] {
@@ -354,6 +419,12 @@ function pickNodeAt(state: EditorState, screenX: number, screenY: number) {
 function handleViewportMouse(state: EditorState, hovered: boolean) {
 	if (!hovered) return;
 	const spacePressed = Keyboard.isKeyPressed(KeyName.Space);
+	const wheel = Mouse.wheel;
+	const wheelDelta = math.abs(wheel.y) >= math.abs(wheel.x) ? wheel.y : wheel.x;
+	if (wheelDelta !== 0) {
+		const mouse = ImGui.GetMousePos();
+		zoomViewportAt(state, wheelDelta > 0 ? 6 : -6, mouse.x, mouse.y);
+	}
 	if (ImGui.IsMouseClicked(2)) {
 		state.draggingNodeId = undefined;
 		state.draggingViewport = true;
@@ -463,10 +534,19 @@ function drawViewport(state: EditorState) {
 	ImGui.Dummy(Vec2(viewportWidth, viewportHeight));
 	const hovered = ImGui.IsItemHovered();
 	handleViewportMouse(state, hovered);
-	ImGui.SetCursorScreenPos(Vec2(cursor.x + viewportWidth - 92, cursor.y + 8));
+	ImGui.SetCursorScreenPos(Vec2(cursor.x + viewportWidth - 142, cursor.y + 8));
+	if (ImGui.SmallButton('-##viewport_zoom_out')) zoomViewportFromCenter(state, -10);
+	ImGui.SameLine();
 	ImGui.PushStyleColor(StyleColor.Text, themeColor, () => {
-		ImGui.Text(tostring(math.floor(state.zoom)) + '%');
+		if (ImGui.SmallButton(tostring(math.floor(state.zoom)) + '%')) {
+			state.zoom = 100;
+			state.viewportPanX = 0;
+			state.viewportPanY = 0;
+			state.previewDirty = true;
+		}
 	});
+	ImGui.SameLine();
+	if (ImGui.SmallButton('+##viewport_zoom_in')) zoomViewportFromCenter(state, 10);
 	ImGui.SetCursorScreenPos(Vec2(cursor.x, cursor.y + viewportHeight + 4));
 	ImGui.Separator();
 	ImGui.TextColored(okColor, 'Dora 2D Viewport');
@@ -598,6 +678,7 @@ export function drawEditor(state: EditorState) {
 		ImGui.BeginChild('RightDock', Vec2(state.rightWidth, mainHeight), [], noScrollFlags, () => drawInspector(state));
 		ImGui.BeginChild('BottomConsoleDock', Vec2(0, bottomHeight), [], noScrollFlags, () => drawConsole(state));
 	});
+	drawGamePreviewWindow(state);
 }
 
 export function drawRuntimeError(message: string) {

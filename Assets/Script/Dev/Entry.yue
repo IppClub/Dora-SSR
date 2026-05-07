@@ -1182,20 +1182,9 @@ entryWindow = threadLoop ->
 	return unless isInEntry
 	zh = useChinese
 	:themeColor = App
-	if HttpServer.wsConnectionCount > 0
-		:width, :height = App.visualSize
-		SetNextWindowBgAlpha 0.5
-		SetNextWindowPos Vec2(width / 2, height / 2), $SetCond(Always), Vec2 0.5, 0.5
-		Begin "Web IDE Connected", displayWindowFlags, ->
-			Separator!
-			TextColored themeColor, "#{zh and 'Web IDE 已连接 ……' or 'Web IDE connected ...'}"
-			if iconTex
-				Image icon, Vec2 24, 24
-				SameLine!
-			slogon = zh and 'Dora 启动！' or 'Dora Start!'
-			TextColored descColor, slogon
-			Separator!
-		return
+		-- Keep the native editor visible while Web IDE is connected.
+		-- The old centered "Web IDE Connected" splash returned early here and
+		-- covered the Visual Editor / Game Preview workflow.
 
 	width: fullWidth, :height = App.visualSize
 	width = math.min MaxWidth, fullWidth
