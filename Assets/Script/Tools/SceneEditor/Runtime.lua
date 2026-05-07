@@ -8,7 +8,6 @@ local Director = ____Dora.Director -- 1
 local DrawNode = ____Dora.DrawNode -- 1
 local Label = ____Dora.Label -- 1
 local Line = ____Dora.Line -- 1
-local Mouse = ____Dora.Mouse -- 1
 local Node = ____Dora.Node -- 1
 local Sprite = ____Dora.Sprite -- 1
 local Vec2 = ____Dora.Vec2 -- 1
@@ -313,129 +312,90 @@ local function createRuntimeVisual(state, item) -- 163
 	end -- 188
 	return wrapper -- 190
 end -- 163
-local function clampZoom(value) -- 193
-	return math.max( -- 194
-		25, -- 194
-		math.min(400, value) -- 194
-	) -- 194
+function ____exports.rebuildPreviewRuntime(state) -- 193
+	if state.previewRoot == nil then -- 193
+		state.previewRoot = Node() -- 195
+		state.previewRoot.tag = "__DoraImGuiEditorViewport__" -- 196
+		Director.entry:addChild(state.previewRoot) -- 197
+	end -- 197
+	state.previewRoot:removeAllChildren(true) -- 199
+	state.runtimeNodes = {} -- 200
+	state.runtimeLabels = {} -- 201
+	local renderScale = App.devicePixelRatio or 1 -- 203
+	local width = math.max(160, state.preview.width * renderScale) -- 204
+	local height = math.max(120, state.preview.height * renderScale) -- 205
+	local scale = math.max(0.25, state.zoom / 100) -- 206
+	local worldWidth = math.max(8192, width / scale * 6) -- 207
+	local worldHeight = math.max(8192, height / scale * 6) -- 208
+	local clip = ClipNode(makeClipStencil(width, height)) -- 209
+	clip.alphaThreshold = 0.01 -- 210
+	state.previewRoot:addChild(clip) -- 211
+	clip:addChild(makeCanvasBackground(width, height)) -- 212
+	local world = Node() -- 214
+	world.x = state.viewportPanX -- 215
+	world.y = state.viewportPanY -- 216
+	world.scaleX = scale -- 217
+	world.scaleY = scale -- 218
+	state.previewWorld = world -- 219
+	clip:addChild(world) -- 220
+	if state.showGrid then -- 220
+		world:addChild(makeGridLine(worldWidth, worldHeight)) -- 222
+	end -- 222
+	world:addChild(makeAxisLine(worldWidth, worldHeight)) -- 224
+	clip:addChild(makeSegmentRect(width, height, viewportGameFrameColor, 0.9)) -- 225
+	local content = Node() -- 227
+	state.previewContent = content -- 228
+	world:addChild(content) -- 229
+	state.runtimeNodes.root = content -- 230
+	for ____, id in ipairs(state.order) do -- 232
+		local item = state.nodes[id] -- 233
+		if item ~= nil and id ~= "root" then -- 233
+			local runtime = createRuntimeVisual(state, item) -- 235
+			state.runtimeNodes[id] = runtime -- 236
+			local parent = state.runtimeNodes[item.parentId or "root"] or content -- 237
+			parent:addChild(runtime) -- 238
+		end -- 238
+	end -- 238
+	state.previewDirty = false -- 241
 end -- 193
-local function zoomViewportAt(state, delta, screenX, screenY) -- 197
-	if delta == 0 then -- 197
-		return -- 198
-	end -- 198
-	local before = state.zoom -- 199
-	local beforeScale = math.max(0.25, before / 100) -- 200
-	local centerX = state.preview.x + state.preview.width / 2 -- 201
-	local centerY = state.preview.y + state.preview.height / 2 -- 202
-	local sceneX = (screenX - centerX - state.viewportPanX) / beforeScale -- 203
-	local sceneY = (centerY - screenY - state.viewportPanY) / beforeScale -- 204
-	state.zoom = clampZoom(state.zoom + delta) -- 205
-	if state.zoom ~= before then -- 205
-		local afterScale = math.max(0.25, state.zoom / 100) -- 207
-		state.viewportPanX = screenX - centerX - sceneX * afterScale -- 208
-		state.viewportPanY = centerY - screenY - sceneY * afterScale -- 209
-		state.previewDirty = true -- 210
-	end -- 210
-end -- 197
-local function attachViewportInput(state, clip) -- 214
-	clip.touchEnabled = true -- 215
-	clip.swallowMouseWheel = true -- 216
-	clip:onMouseWheel(function(delta) -- 217
-		local wheel = math.abs(delta.y) >= math.abs(delta.x) and delta.y or delta.x -- 218
-		zoomViewportAt(state, wheel > 0 and 6 or -6, Mouse.position.x, Mouse.position.y) -- 219
-	end) -- 217
-	clip:onGesture(function(center, numFingers, deltaDist) -- 221
-		if numFingers < 2 then -- 221
-			return -- 222
-		end -- 222
-		zoomViewportAt(state, deltaDist > 0 and 10 or -10, center.x, center.y) -- 223
-	end) -- 221
-end -- 214
-function ____exports.rebuildPreviewRuntime(state) -- 227
-	if state.previewRoot == nil then -- 227
-		state.previewRoot = Node() -- 229
-		state.previewRoot.tag = "__DoraImGuiEditorViewport__" -- 230
-		Director.entry:addChild(state.previewRoot) -- 231
-	end -- 231
-	state.previewRoot:removeAllChildren(true) -- 233
-	state.runtimeNodes = {} -- 234
-	state.runtimeLabels = {} -- 235
-	local renderScale = App.devicePixelRatio or 1 -- 237
-	local width = math.max(160, state.preview.width * renderScale) -- 238
-	local height = math.max(120, state.preview.height * renderScale) -- 239
-	local scale = math.max(0.25, state.zoom / 100) -- 240
-	local worldWidth = math.max(8192, width / scale * 6) -- 241
-	local worldHeight = math.max(8192, height / scale * 6) -- 242
-	local clip = ClipNode(makeClipStencil(width, height)) -- 243
-	clip.alphaThreshold = 0.01 -- 244
-	attachViewportInput(state, clip) -- 245
-	state.previewRoot:addChild(clip) -- 246
-	clip:addChild(makeCanvasBackground(width, height)) -- 247
-	local world = Node() -- 249
-	world.x = state.viewportPanX -- 250
-	world.y = state.viewportPanY -- 251
-	world.scaleX = scale -- 252
-	world.scaleY = scale -- 253
-	state.previewWorld = world -- 254
-	clip:addChild(world) -- 255
-	if state.showGrid then -- 255
-		world:addChild(makeGridLine(worldWidth, worldHeight)) -- 257
-	end -- 257
-	world:addChild(makeAxisLine(worldWidth, worldHeight)) -- 259
-	clip:addChild(makeSegmentRect(width, height, viewportGameFrameColor, 0.9)) -- 260
-	local content = Node() -- 262
-	state.previewContent = content -- 263
-	world:addChild(content) -- 264
-	state.runtimeNodes.root = content -- 265
-	for ____, id in ipairs(state.order) do -- 267
-		local item = state.nodes[id] -- 268
-		if item ~= nil and id ~= "root" then -- 268
-			local runtime = createRuntimeVisual(state, item) -- 270
-			state.runtimeNodes[id] = runtime -- 271
-			local parent = state.runtimeNodes[item.parentId or "root"] or content -- 272
-			parent:addChild(runtime) -- 273
-		end -- 273
-	end -- 273
-	state.previewDirty = false -- 276
-end -- 227
-function ____exports.updatePreviewRuntime(state) -- 279
-	if state.previewDirty or state.previewRoot == nil then -- 279
-		____exports.rebuildPreviewRuntime(state) -- 281
-	end -- 281
-	local p = state.preview -- 283
-	local cx, cy = table.unpack( -- 284
-		worldPointFromScreen(p.x + p.width / 2, p.y + p.height / 2), -- 284
-		1, -- 284
-		2 -- 284
-	) -- 284
-	local previewRoot = state.previewRoot -- 285
-	if previewRoot == nil then -- 285
-		return -- 286
-	end -- 286
-	previewRoot.x = cx -- 287
-	previewRoot.y = cy -- 288
-	if state.previewWorld ~= nil then -- 288
-		local scale = math.max(0.25, state.zoom / 100) -- 290
-		state.previewWorld.x = state.viewportPanX -- 291
-		state.previewWorld.y = state.viewportPanY -- 292
-		state.previewWorld.scaleX = scale -- 293
-		state.previewWorld.scaleY = scale -- 294
-	end -- 294
-	for ____, id in ipairs(state.order) do -- 296
-		local item = state.nodes[id] -- 297
-		local runtime = state.runtimeNodes[id] -- 298
-		if item ~= nil and runtime ~= nil then -- 298
-			runtime.x = item.x -- 300
-			runtime.y = item.y -- 301
-			runtime.scaleX = item.scaleX -- 302
-			runtime.scaleY = item.scaleY -- 303
-			runtime.angle = item.rotation -- 304
-			runtime.visible = item.visible -- 305
-			local label = state.runtimeLabels[id] -- 306
-			if label ~= nil then -- 306
-				label.text = item.text or "Label" -- 307
-			end -- 307
-		end -- 307
-	end -- 307
-end -- 279
-return ____exports -- 279
+function ____exports.updatePreviewRuntime(state) -- 244
+	if state.previewDirty or state.previewRoot == nil then -- 244
+		____exports.rebuildPreviewRuntime(state) -- 246
+	end -- 246
+	local p = state.preview -- 248
+	local cx, cy = table.unpack( -- 249
+		worldPointFromScreen(p.x + p.width / 2, p.y + p.height / 2), -- 249
+		1, -- 249
+		2 -- 249
+	) -- 249
+	local previewRoot = state.previewRoot -- 250
+	if previewRoot == nil then -- 250
+		return -- 251
+	end -- 251
+	previewRoot.x = cx -- 252
+	previewRoot.y = cy -- 253
+	if state.previewWorld ~= nil then -- 253
+		local scale = math.max(0.25, state.zoom / 100) -- 255
+		state.previewWorld.x = state.viewportPanX -- 256
+		state.previewWorld.y = state.viewportPanY -- 257
+		state.previewWorld.scaleX = scale -- 258
+		state.previewWorld.scaleY = scale -- 259
+	end -- 259
+	for ____, id in ipairs(state.order) do -- 261
+		local item = state.nodes[id] -- 262
+		local runtime = state.runtimeNodes[id] -- 263
+		if item ~= nil and runtime ~= nil then -- 263
+			runtime.x = item.x -- 265
+			runtime.y = item.y -- 266
+			runtime.scaleX = item.scaleX -- 267
+			runtime.scaleY = item.scaleY -- 268
+			runtime.angle = item.rotation -- 269
+			runtime.visible = item.visible -- 270
+			local label = state.runtimeLabels[id] -- 271
+			if label ~= nil then -- 271
+				label.text = item.text or "Label" -- 272
+			end -- 272
+		end -- 272
+	end -- 272
+end -- 244
+return ____exports -- 244
