@@ -1,4 +1,4 @@
-import { App, ClipNode, Color, Director, DrawNode, Label, Line, Mouse, Node, Sprite, Vec2 } from 'Dora';
+import { App, ClipNode, Color, Director, DrawNode, Label, Line, Node, Sprite, Vec2 } from 'Dora';
 import { EditorState, SceneNodeData } from 'Script/Tools/SceneEditor/Types';
 import { greenAxisColor, gridMajorColor, gridMinorColor, helperColor, redAxisColor, selectionColor, viewportBgColor, viewportFrameColor, viewportGameFrameColor } from 'Script/Tools/SceneEditor/Theme';
 
@@ -190,40 +190,6 @@ function createRuntimeVisual(state: EditorState, item: SceneNodeData) {
 	return wrapper;
 }
 
-function clampZoom(value: number) {
-	return math.max(25, math.min(400, value));
-}
-
-function zoomViewportAt(state: EditorState, delta: number, screenX: number, screenY: number) {
-	if (delta === 0) return;
-	const before = state.zoom;
-	const beforeScale = math.max(0.25, before / 100);
-	const centerX = state.preview.x + state.preview.width / 2;
-	const centerY = state.preview.y + state.preview.height / 2;
-	const sceneX = (screenX - centerX - state.viewportPanX) / beforeScale;
-	const sceneY = (centerY - screenY - state.viewportPanY) / beforeScale;
-	state.zoom = clampZoom(state.zoom + delta);
-	if (state.zoom !== before) {
-		const afterScale = math.max(0.25, state.zoom / 100);
-		state.viewportPanX = screenX - centerX - sceneX * afterScale;
-		state.viewportPanY = centerY - screenY - sceneY * afterScale;
-		state.previewDirty = true;
-	}
-}
-
-function attachViewportInput(state: EditorState, clip: ClipNode.Type) {
-	clip.touchEnabled = true;
-	clip.swallowMouseWheel = true;
-	clip.onMouseWheel((delta) => {
-		const wheel = math.abs(delta.y) >= math.abs(delta.x) ? delta.y : delta.x;
-		zoomViewportAt(state, wheel > 0 ? 6 : -6, Mouse.position.x, Mouse.position.y);
-	});
-	clip.onGesture((center, numFingers, deltaDist) => {
-		if (numFingers < 2) return;
-		zoomViewportAt(state, deltaDist > 0 ? 10 : -10, center.x, center.y);
-	});
-}
-
 export function rebuildPreviewRuntime(state: EditorState) {
 	if (state.previewRoot === undefined) {
 		state.previewRoot = Node();
@@ -242,7 +208,6 @@ export function rebuildPreviewRuntime(state: EditorState) {
 	const worldHeight = math.max(8192, height / scale * 6);
 	const clip = ClipNode(makeClipStencil(width, height));
 	clip.alphaThreshold = 0.01;
-	attachViewportInput(state, clip);
 	state.previewRoot.addChild(clip);
 	clip.addChild(makeCanvasBackground(width, height));
 
