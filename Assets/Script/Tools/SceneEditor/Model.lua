@@ -2,7 +2,7 @@
 local ____lualib = require("lualib_bundle") -- 1
 local __TS__Delete = ____lualib.__TS__Delete -- 1
 local ____exports = {} -- 1
-local workspaceRoot, workspacePath, hasAsset, rememberAsset, sortAssets, normalizeSlash, stripFolderPrefix, refreshAssetSearchPath, notifyWebIDEFileAdded, copyFileToImported, importedAssetRoot, importedAssetRootEntry -- 1
+local workspaceRoot, workspacePath, hasAsset, rememberAsset, sortAssets, normalizeSlash, stripFolderPrefix, refreshAssetSearchPath, notifyWebIDEFileAdded, copyFileToImported, sceneNodeKind, stringValue, numberValue, booleanValue, updateNextIdFromNodeId, importedAssetRoot, importedAssetRootEntry -- 1
 local ____Dora = require("Dora") -- 1
 local App = ____Dora.App -- 1
 local Buffer = ____Dora.Buffer -- 1
@@ -89,7 +89,7 @@ function stripFolderPrefix(folder, path) -- 129
 		end -- 134
 		return rest -- 135
 	end -- 135
-	return Path:getName(path) -- 137
+	return Path:getFilename(path) -- 137
 end -- 137
 function refreshAssetSearchPath(importedPath) -- 140
 	Content:addSearchPath(workspaceRoot()) -- 141
@@ -240,7 +240,7 @@ function ____exports.addAssetPath(state, path, importedPath) -- 187
 		path, -- 192
 		importedPath or Path( -- 192
 			importedAssetRoot, -- 192
-			Path:getName(path) -- 192
+			Path:getFilename(path) -- 192
 		) -- 192
 	) -- 192
 	if asset == nil then -- 192
@@ -306,6 +306,103 @@ function ____exports.addNode(state, kind, name, parentId) -- 244
 	end -- 272
 	return node -- 274
 end -- 244
+function sceneNodeKind(value)
+	if value == "Root" or value == "Node" or value == "Sprite" or value == "Label" or value == "Camera" then
+		return value
+	end
+	return "Node"
+end
+function stringValue(value, fallback)
+	return type(value) == "string" and value or fallback
+end
+function numberValue(value, fallback)
+	local parsed = tonumber(value)
+	return parsed ~= nil and parsed or fallback
+end
+function booleanValue(value, fallback)
+	return type(value) == "boolean" and value or fallback
+end
+function updateNextIdFromNodeId(state, id)
+	local digits = string.match(id, "%-(%d+)$")
+	if digits ~= nil then
+		local value = tonumber(digits)
+		if value ~= nil and value > state.nextId then
+			state.nextId = value
+		end
+	end
+end
+function ____exports.loadSceneFromFile(state, file)
+	if not Content:exist(file) then
+		return false
+	end
+	local data = json.decode(Content:load(file))
+	if data == nil then
+		return false
+	end
+	local rawNodes = data.nodes
+	if rawNodes == nil then
+		return false
+	end
+	state.nodes = {}
+	state.order = {}
+	state.runtimeNodes = {}
+	state.runtimeLabels = {}
+	state.playRuntimeNodes = {}
+	state.playRuntimeLabels = {}
+	state.nextId = 0
+	for ____, raw in ipairs(rawNodes) do
+		local kind = sceneNodeKind(raw.kind)
+		local id = stringValue(raw.id, kind == "Root" and "root" or (string.lower(kind) .. "-") .. tostring(state.nextId + 1))
+		local name = stringValue(raw.name, kind == "Root" and "MainScene" or kind)
+		local texture = stringValue(raw.texture, "")
+		local text = stringValue(raw.text, kind == "Label" and "Label" or "")
+		local script = stringValue(raw.script, "")
+		local parentId = id == "root" and nil or stringValue(raw.parentId, "root")
+		local node = {
+			id = id,
+			kind = kind,
+			name = name,
+			parentId = parentId,
+			children = {},
+			x = numberValue(raw.x, 0),
+			y = numberValue(raw.y, 0),
+			scaleX = numberValue(raw.scaleX, 1),
+			scaleY = numberValue(raw.scaleY, 1),
+			rotation = numberValue(raw.rotation, 0),
+			visible = booleanValue(raw.visible, true),
+			texture = texture,
+			text = text,
+			script = script,
+			nameBuffer = ____exports.makeBuffer(name, 128),
+			textureBuffer = ____exports.makeBuffer(texture, 256),
+			textBuffer = ____exports.makeBuffer(text, 256),
+			scriptBuffer = ____exports.makeBuffer(script, 256)
+		}
+		state.nodes[id] = node
+		state.order[#state.order + 1] = id
+		updateNextIdFromNodeId(state, id)
+	end
+	if state.nodes.root == nil then
+		____exports.addNode(state, "Root", "MainScene")
+	end
+	for ____, id in ipairs(state.order) do
+		if id ~= "root" then
+			local node = state.nodes[id]
+			if node ~= nil then
+				if node.parentId == nil or state.nodes[node.parentId] == nil then
+					node.parentId = "root"
+				end
+				state.nodes[node.parentId].children[#state.nodes[node.parentId].children + 1] = id
+			end
+		end
+	end
+	state.selectedId = state.nodes.root ~= nil and "root" or (state.order[1] or "root")
+	state.previewDirty = true
+	state.playDirty = true
+	state.status = ____exports.zh and "已加载场景" or "Scene loaded"
+	____exports.pushConsole(state, state.status)
+	return true
+end
 local function removeFromOrder(state, id) -- 277
 	do -- 277
 		local i = #state.order -- 278

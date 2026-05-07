@@ -134,7 +134,7 @@ function stripFolderPrefix(folder: string, path: string) {
 		if (string.sub(rest, 1, 1) === '/') rest = string.sub(rest, 2);
 		return rest;
 	}
-	return Path.getName(path);
+	return Path.getFilename(path);
 }
 
 function refreshAssetSearchPath(importedPath?: string) {
@@ -189,7 +189,7 @@ export function addAssetPath(state: EditorState, path?: string, importedPath?: s
 	if (Content.isdir(path)) {
 		return addAssetFolder(state, path);
 	}
-	const asset = copyFileToImported(path, importedPath || Path(importedAssetRoot, Path.getName(path)));
+	const asset = copyFileToImported(path, importedPath || Path(importedAssetRoot, Path.getFilename(path)));
 	if (asset === undefined) {
 		state.status = (zh ? '导入失败：' : 'Import failed: ') + path;
 		pushConsole(state, state.status);
@@ -276,6 +276,102 @@ export function addNode(state: EditorState, kind: SceneNodeKind, name: string, p
 		parent.children.push(id);
 	}
 	return node;
+}
+
+function sceneNodeKind(value: unknown): SceneNodeKind {
+	if (value === 'Root' || value === 'Node' || value === 'Sprite' || value === 'Label' || value === 'Camera') {
+		return value;
+	}
+	return 'Node';
+}
+
+function stringValue(value: unknown, fallback: string) {
+	return type(value) === 'string' ? value as string : fallback;
+}
+
+function numberValue(value: unknown, fallback: number) {
+	const parsed = tonumber(value as any);
+	return parsed !== undefined ? parsed : fallback;
+}
+
+function booleanValue(value: unknown, fallback: boolean) {
+	return type(value) === 'boolean' ? value as boolean : fallback;
+}
+
+function updateNextIdFromNodeId(state: EditorState, id: string) {
+	const [digits] = string.match(id, '%-(%d+)$');
+	if (digits !== undefined) {
+		const value = tonumber(digits);
+		if (value !== undefined && value > state.nextId) state.nextId = value;
+	}
+}
+
+export function loadSceneFromFile(state: EditorState, file: string) {
+	if (!Content.exist(file)) return false;
+	const [data] = json.decode(Content.load(file));
+	if (data === undefined) return false;
+	const rawNodes = (data as any).nodes as any[] | undefined;
+	if (rawNodes === undefined) return false;
+
+	state.nodes = {};
+	state.order = [];
+	state.runtimeNodes = {};
+	state.runtimeLabels = {};
+	state.playRuntimeNodes = {};
+	state.playRuntimeLabels = {};
+	state.nextId = 0;
+
+	for (const raw of rawNodes) {
+		const kind = sceneNodeKind((raw as any).kind);
+		const id = stringValue((raw as any).id, kind === 'Root' ? 'root' : string.lower(kind) + '-' + tostring(state.nextId + 1));
+		const name = stringValue((raw as any).name, kind === 'Root' ? 'MainScene' : kind);
+		const texture = stringValue((raw as any).texture, '');
+		const text = stringValue((raw as any).text, kind === 'Label' ? 'Label' : '');
+		const script = stringValue((raw as any).script, '');
+		const parentId = id === 'root' ? undefined : stringValue((raw as any).parentId, 'root');
+		const node: SceneNodeData = {
+			id,
+			kind,
+			name,
+			parentId,
+			children: [],
+			x: numberValue((raw as any).x, 0),
+			y: numberValue((raw as any).y, 0),
+			scaleX: numberValue((raw as any).scaleX, 1),
+			scaleY: numberValue((raw as any).scaleY, 1),
+			rotation: numberValue((raw as any).rotation, 0),
+			visible: booleanValue((raw as any).visible, true),
+			texture,
+			text,
+			script,
+			nameBuffer: makeBuffer(name, 128),
+			textureBuffer: makeBuffer(texture, 256),
+			textBuffer: makeBuffer(text, 256),
+			scriptBuffer: makeBuffer(script, 256),
+		};
+		state.nodes[id] = node;
+		state.order.push(id);
+		updateNextIdFromNodeId(state, id);
+	}
+
+	if (state.nodes.root === undefined) {
+		addNode(state, 'Root', 'MainScene');
+	}
+	for (const id of state.order) {
+		if (id === 'root') continue;
+		const node = state.nodes[id];
+		if (node === undefined) continue;
+		if (node.parentId === undefined || state.nodes[node.parentId] === undefined) {
+			node.parentId = 'root';
+		}
+		state.nodes[node.parentId].children.push(id);
+	}
+	state.selectedId = state.nodes.root !== undefined ? 'root' : (state.order[0] || 'root');
+	state.previewDirty = true;
+	state.playDirty = true;
+	state.status = zh ? '已加载场景' : 'Scene loaded';
+	pushConsole(state, state.status);
+	return true;
 }
 
 function removeFromOrder(state: EditorState, id: string) {
