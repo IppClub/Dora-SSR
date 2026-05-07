@@ -5,19 +5,26 @@ local Color = ____Dora.Color -- 1
 ____exports.themeColor = Color(4294954035) -- 4
 ____exports.okColor = Color(4284928378) -- 5
 ____exports.warnColor = Color(4294954035) -- 6
-____exports.redAxisColor = Color(4294909727) -- 7
-____exports.greenAxisColor = Color(4280483652) -- 8
-____exports.gridMinorColor = Color(3716650672) -- 9
-____exports.gridMajorColor = Color(4294967295) -- 10
-____exports.transparent = Color(0) -- 11
-____exports.mainWindowFlags = { -- 13
-	"NoDecoration", -- 14
-	"NoSavedSettings", -- 15
-	"NoMove", -- 16
-	"NoCollapse", -- 17
-	"NoNav", -- 18
-	"NoScrollbar" -- 19
-} -- 19
-____exports.noScrollFlags = {"NoScrollbar", "NoScrollWithMouse"} -- 22
-____exports.inputTextFlags = {"AutoSelectAll"} -- 27
-return ____exports -- 27
+____exports.redAxisColor = Color(3436467027) -- 7
+____exports.greenAxisColor = Color(3429087338) -- 8
+____exports.gridMinorColor = Color(1062756977) -- 9
+____exports.gridMajorColor = Color(1870366615) -- 10
+____exports.viewportBgColor = Color(4280296491) -- 11
+____exports.viewportFrameColor = Color(2858380672) -- 12
+____exports.viewportGameFrameColor = Color(3436358202) -- 13
+____exports.selectionColor = Color(4007047487) -- 14
+____exports.helperColor = Color(2859640520) -- 15
+____exports.panelBg = Color(3994360095) -- 16
+____exports.scriptPanelBg = Color(4028112164) -- 17
+____exports.transparent = Color(0) -- 18
+____exports.mainWindowFlags = { -- 20
+	"NoDecoration", -- 21
+	"NoSavedSettings", -- 22
+	"NoMove", -- 23
+	"NoCollapse", -- 24
+	"NoNav", -- 25
+	"NoScrollbar" -- 26
+} -- 26
+____exports.noScrollFlags = {"NoScrollbar", "NoScrollWithMouse"} -- 29
+____exports.inputTextFlags = {"AutoSelectAll"} -- 34
+return ____exports -- 34
