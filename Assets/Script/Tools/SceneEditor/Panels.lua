@@ -774,7 +774,7 @@ local function drawInspector(state) -- 557
 		if ImGui.Button(zh and "导入并绑定贴图" or "Import Texture") then -- 582
 			App:openFileDialog( -- 585
 				false, -- 585
-				function(____, path) -- 585
+				function(path) -- 585
 					local asset = addAssetPath(state, path) -- 586
 					if asset ~= nil and isTextureAsset(asset) then -- 586
 						bindTextureToSprite(state, node, asset) -- 587

@@ -582,7 +582,7 @@ function drawInspector(state: EditorState) {
 			state.previewDirty = true;
 		}
 		if (ImGui.Button(zh ? '导入并绑定贴图' : 'Import Texture')) {
-			App.openFileDialog(false, (path) => {
+			App.openFileDialog(false, function(this: void, path: string) {
 				const asset = addAssetPath(state, path);
 				if (asset !== undefined && isTextureAsset(asset)) bindTextureToSprite(state, node, asset);
 			});

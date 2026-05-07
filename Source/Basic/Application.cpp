@@ -861,17 +861,28 @@ bool Application::saveLog(String filename) {
 
 void Application::openFileDialog(bool folderOnly, const std::function<void(std::string)>& callback) {
 #if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_LINUX
-	invokeInRender([this, callback]() {
+	invokeInRender([this, folderOnly, callback]() {
 		std::string path;
 		NFD::Guard nfdGuard;
 		NFD::UniquePath outPath;
 		nfdwindowhandle_t parentWindow{};
 		NFD_GetNativeWindowFromSDLWindow(_sdlWindow, &parentWindow);
-		nfdresult_t result = NFD::PickFolder(outPath, nullptr, parentWindow);
+		nfdresult_t result;
+		if (folderOnly) {
+			result = NFD::PickFolder(outPath, nullptr, parentWindow);
+		} else {
+			const nfdfilteritem_t filters[] = {
+				{"Images", "png,jpg,jpeg,bmp,gif,webp,ktx,pvr,dds,clip"},
+				{"Scripts", "lua,ts,tsx,yue,tl,js,json,xml,md,yarn,wa"},
+				{"Audio", "wav,mp3,ogg,flac"},
+				{"All Files", "*"},
+			};
+			result = NFD::OpenDialog(outPath, filters, s_cast<nfdfiltersize_t>(sizeof(filters) / sizeof(filters[0])), nullptr, parentWindow);
+		}
 		if (result == NFD_OKAY) {
 			path = outPath.get();
 		} else if (result == NFD_ERROR) {
-			Error("failed to pick a folder due to: {}", NFD::GetError());
+			Error("failed to pick a file or folder due to: {}", NFD::GetError());
 		}
 		invokeInLogic([callback, path]() {
 			callback(std::move(path));
