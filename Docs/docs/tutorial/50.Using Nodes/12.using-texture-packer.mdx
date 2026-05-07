@@ -1,0 +1,177 @@
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Packing Sprite Images with TexturePacker
+
+TexturePacker is a built-in Dora SSR tool for turning many small image files into one texture atlas. The tool follows the same rule shown in its in-app tooltip: put image files in a folder whose name ends with `.clips`, reload the TexturePacker tool so it can find that folder, and generate a packed `.png` image plus a matching `.clip` description file.
+
+For example, a folder named `items.clips` is packed into `items.png` and `items.clip`. The `.png` stores the combined atlas image, and the `.clip` stores the names and rectangles of the original images so `Sprite` can load them later.
+
+## 1. Prepare a `.clips` Folder
+
+Create a folder in your project resources with a `.clips` suffix. TexturePacker scans folders under the writable project path and lists folders whose extension is `clips`.
+
+```text
+Image/
+└── items.clips/
+    ├── coin.png
+    ├── key.png
+    └── potion.png
+```
+
+Supported input image formats are:
+
+- `png`
+- `jpg`
+- `dds`
+- `pvr`
+- `ktx`
+
+The image name without the extension becomes the clip name. In the example above, the generated atlas will contain clips named `coin`, `key`, and `potion`.
+
+## 2. Generate `.png` and `.clip`
+
+Open the TexturePacker tool from Dora SSR's development tools. If your `.clips` folder was created after the tool opened, reload TexturePacker so the folder list is scanned again.
+
+Then select the folder and click `Generate Clip`.
+
+```text
+Image/
+├── items.clips/
+│   ├── coin.png
+│   ├── key.png
+│   └── potion.png
+├── items.png
+└── items.clip
+```
+
+TexturePacker adds padding around each image, packs the images into a render target, saves the atlas as `items.png`, and writes the clip metadata as `items.clip`.
+
+## 3. Use the Atlas with `Sprite`
+
+You can load the generated `.clip` file with `Sprite`. Loading the `.clip` file itself displays the whole atlas. Appending `|clipName` loads one named image from the atlas.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local Sprite <const> = require("Sprite")
+local Vec2 <const> = require("Vec2")
+local Director <const> = require("Director")
+
+-- Display the whole generated atlas.
+local atlas = Sprite("Image/items.clip")
+if atlas then
+	atlas.position = Vec2(-160, 0)
+	Director.entry:addChild(atlas)
+end
+
+-- Display one image packed inside the atlas.
+local coin = Sprite("Image/items.clip|coin")
+if coin then
+	coin.position = Vec2(80, 40)
+	Director.entry:addChild(coin)
+end
+
+local key = Sprite("Image/items.clip|key")
+if key then
+	key.position = Vec2(160, 40)
+	Director.entry:addChild(key)
+end
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Sprite <const> = require("Sprite")
+local Vec2 <const> = require("Vec2")
+local Director <const> = require("Director")
+
+-- Display the whole generated atlas.
+local atlas = Sprite("Image/items.clip")
+if not atlas is nil then
+	atlas.position = Vec2(-160, 0)
+	Director.entry:addChild(atlas)
+end
+
+-- Display one image packed inside the atlas.
+local coin = Sprite("Image/items.clip|coin")
+if not coin is nil then
+	coin.position = Vec2(80, 40)
+	Director.entry:addChild(coin)
+end
+
+local key = Sprite("Image/items.clip|key")
+if not key is nil then
+	key.position = Vec2(160, 40)
+	Director.entry:addChild(key)
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Director, Sprite, Vec2 } from "Dora";
+
+// Display the whole generated atlas.
+const atlas = Sprite("Image/items.clip");
+if (atlas !== undefined) {
+	atlas.position = Vec2(-160, 0);
+	Director.entry.addChild(atlas);
+}
+
+// Display one image packed inside the atlas.
+const coin = Sprite("Image/items.clip|coin");
+if (coin !== undefined) {
+	coin.position = Vec2(80, 40);
+	Director.entry.addChild(coin);
+}
+
+const key = Sprite("Image/items.clip|key");
+if (key !== undefined) {
+	key.position = Vec2(160, 40);
+	Director.entry.addChild(key);
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+-- Display the whole generated atlas.
+atlas = Sprite "Image/items.clip"
+if atlas
+	atlas.position = Vec2 -160, 0
+	Director.entry\addChild atlas
+
+-- Display one image packed inside the atlas.
+coin = Sprite "Image/items.clip|coin"
+if coin
+	coin.position = Vec2 80, 40
+	Director.entry\addChild coin
+
+key = Sprite "Image/items.clip|key"
+if key
+	key.position = Vec2 160, 40
+	Director.entry\addChild key
+```
+
+</TabItem>
+</Tabs>
+
+Use the same path style as other project resources. If `items.clip` is under the `Image` folder, the path is `Image/items.clip`; if it is in another resource folder, adjust the path accordingly.
+
+## 4. Common Cases
+
+- **The `.clips` folder does not appear**: TexturePacker scans folders when the tool starts. Reload the tool after creating or renaming a `.clips` folder.
+- **The folder is empty**: Clicking `Generate Clip` shows `No content.` because no supported image file was found.
+- **Files are ignored**: Only `png`, `jpg`, `dds`, `pvr`, and `ktx` files are packed. Other files in the folder are skipped.
+- **The preview says `Needs generating.`**: The selected `.clips` folder exists, but the matching `.png` and `.clip` files do not both exist yet. Click `Generate Clip`.
+- **The preview says `Failed to load .clip file.`**: The `.clip` file exists but could not be loaded as a Sprite atlas. Regenerate the atlas and make sure the matching `.png` file is still next to it.
+- **Generation does not show a preview**: Generation needs at least one supported image that can be loaded as a `Sprite`. Check image formats, file paths, and whether the source images can be opened by Dora SSR.
+
+TexturePacker only prepares atlas resources. It does not change your game code or the Sprite API, and this workflow does not require modifying the packing algorithm.
