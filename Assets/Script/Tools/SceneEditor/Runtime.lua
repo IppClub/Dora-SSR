@@ -2,11 +2,13 @@
 local ____exports = {} -- 1
 local ____Dora = require("Dora") -- 1
 local App = ____Dora.App -- 1
+local ClipNode = ____Dora.ClipNode -- 1
 local Color = ____Dora.Color -- 1
 local Director = ____Dora.Director -- 1
 local DrawNode = ____Dora.DrawNode -- 1
 local Label = ____Dora.Label -- 1
 local Line = ____Dora.Line -- 1
+local Mouse = ____Dora.Mouse -- 1
 local Node = ____Dora.Node -- 1
 local Sprite = ____Dora.Sprite -- 1
 local Vec2 = ____Dora.Vec2 -- 1
@@ -14,7 +16,12 @@ local ____Theme = require("Script.Tools.SceneEditor.Theme") -- 3
 local greenAxisColor = ____Theme.greenAxisColor -- 3
 local gridMajorColor = ____Theme.gridMajorColor -- 3
 local gridMinorColor = ____Theme.gridMinorColor -- 3
+local helperColor = ____Theme.helperColor -- 3
 local redAxisColor = ____Theme.redAxisColor -- 3
+local selectionColor = ____Theme.selectionColor -- 3
+local viewportBgColor = ____Theme.viewportBgColor -- 3
+local viewportFrameColor = ____Theme.viewportFrameColor -- 3
+local viewportGameFrameColor = ____Theme.viewportGameFrameColor -- 3
 local function worldPointFromScreen(screenX, screenY) -- 5
 	local size = App.visualSize -- 6
 	return {screenX - size.width / 2, size.height / 2 - screenY} -- 7
@@ -25,8 +32,8 @@ end -- 10
 local function makeThickLine(a, b, color, horizontal) -- 14
 	local node = Node() -- 15
 	do -- 15
-		local offset = -2 -- 16
-		while offset <= 2 do -- 16
+		local offset = -1 -- 16
+		while offset <= 1 do -- 16
 			if horizontal then -- 16
 				node:addChild(makeLine( -- 18
 					{ -- 18
@@ -49,270 +56,386 @@ local function makeThickLine(a, b, color, horizontal) -- 14
 	end -- 16
 	return node -- 23
 end -- 14
-local function makeRectLine(width, height, color) -- 26
+local function makeSegmentRect(width, height, color, thickness) -- 26
 	local hw = width / 2 -- 27
 	local hh = height / 2 -- 28
-	return makeLine( -- 29
-		{ -- 29
-			Vec2(-hw, -hh), -- 30
-			Vec2(hw, -hh), -- 31
-			Vec2(hw, hh), -- 32
-			Vec2(-hw, hh), -- 33
-			Vec2(-hw, -hh) -- 34
-		}, -- 34
-		color -- 35
-	) -- 35
+	local rect = DrawNode() -- 29
+	rect:drawSegment( -- 30
+		Vec2(-hw, -hh), -- 30
+		Vec2(hw, -hh), -- 30
+		thickness, -- 30
+		color -- 30
+	) -- 30
+	rect:drawSegment( -- 31
+		Vec2(hw, -hh), -- 31
+		Vec2(hw, hh), -- 31
+		thickness, -- 31
+		color -- 31
+	) -- 31
+	rect:drawSegment( -- 32
+		Vec2(hw, hh), -- 32
+		Vec2(-hw, hh), -- 32
+		thickness, -- 32
+		color -- 32
+	) -- 32
+	rect:drawSegment( -- 33
+		Vec2(-hw, hh), -- 33
+		Vec2(-hw, -hh), -- 33
+		thickness, -- 33
+		color -- 33
+	) -- 33
+	return rect -- 34
 end -- 26
-local function makeCanvasBackground(width, height) -- 38
-	local hw = width / 2 -- 39
-	local hh = height / 2 -- 40
-	local bg = DrawNode() -- 41
-	bg:drawPolygon( -- 42
-		{ -- 42
-			Vec2(-hw, -hh), -- 43
-			Vec2(hw, -hh), -- 44
-			Vec2(hw, hh), -- 45
-			Vec2(-hw, hh) -- 46
-		}, -- 46
-		Color(4278915352), -- 47
-		6, -- 47
-		Color(4294954035) -- 47
-	) -- 47
-	return bg -- 48
-end -- 38
-local function makeGridLine(width, height) -- 51
-	local grid = Node() -- 52
-	local hw = width / 2 -- 53
-	local hh = height / 2 -- 54
-	local step = 32 -- 55
-	local minor = DrawNode() -- 56
-	local major = DrawNode() -- 57
-	local i = 0 -- 58
-	local x = -math.floor(hw / step) * step -- 59
-	while x <= hw do -- 59
-		if i % 5 == 0 then -- 59
-			major:drawSegment( -- 62
-				Vec2(x, -hh), -- 62
-				Vec2(x, hh), -- 62
-				1.2, -- 62
-				gridMajorColor -- 62
-			) -- 62
-		else -- 62
-			minor:drawSegment( -- 64
-				Vec2(x, -hh), -- 64
-				Vec2(x, hh), -- 64
-				0.55, -- 64
-				gridMinorColor -- 64
-			) -- 64
-		end -- 64
-		x = x + step -- 66
-		i = i + 1 -- 67
-	end -- 67
-	i = 0 -- 69
-	local y = -math.floor(hh / step) * step -- 70
-	while y <= hh do -- 70
-		if i % 5 == 0 then -- 70
-			major:drawSegment( -- 73
-				Vec2(-hw, y), -- 73
-				Vec2(hw, y), -- 73
-				1.2, -- 73
-				gridMajorColor -- 73
-			) -- 73
-		else -- 73
-			minor:drawSegment( -- 75
-				Vec2(-hw, y), -- 75
-				Vec2(hw, y), -- 75
-				0.55, -- 75
-				gridMinorColor -- 75
-			) -- 75
-		end -- 75
-		y = y + step -- 77
-		i = i + 1 -- 78
-	end -- 78
-	grid:addChild(minor) -- 80
-	grid:addChild(major) -- 81
-	return grid -- 82
-end -- 51
-local function makeAxisLine(width, height) -- 85
-	local hw = width / 2 -- 86
-	local hh = height / 2 -- 87
-	local axis = Node() -- 88
-	local xAxis = DrawNode() -- 89
-	xAxis:drawSegment( -- 90
-		Vec2(-hw, 0), -- 90
-		Vec2(hw, 0), -- 90
-		3.5, -- 90
-		redAxisColor -- 90
-	) -- 90
-	local yAxis = DrawNode() -- 91
-	yAxis:drawSegment( -- 92
-		Vec2(0, -hh), -- 92
-		Vec2(0, hh), -- 92
-		3.5, -- 92
-		greenAxisColor -- 92
-	) -- 92
-	axis:addChild(xAxis) -- 93
-	axis:addChild(yAxis) -- 94
-	return axis -- 95
-end -- 85
-local function makeSpritePlaceholder() -- 98
-	local node = Node() -- 99
-	local frame = makeRectLine( -- 100
-		96, -- 100
-		64, -- 100
-		Color(4283409407) -- 100
-	) -- 100
-	frame:addChild(makeLine( -- 101
-		{ -- 101
-			Vec2(-48, -32), -- 101
-			Vec2(48, 32), -- 101
-			Vec2(-48, 32), -- 101
-			Vec2(48, -32) -- 101
-		}, -- 101
-		Color(4283409407) -- 101
-	)) -- 101
-	node:addChild(frame) -- 102
-	return node -- 103
-end -- 98
-local function makeCameraShape() -- 106
-	local node = Node() -- 107
-	node:addChild(makeRectLine( -- 108
-		180, -- 108
-		100, -- 108
-		Color(4294954035) -- 108
-	)) -- 108
-	node:addChild(makeLine( -- 109
-		{ -- 109
-			Vec2(-90, 0), -- 109
-			Vec2(90, 0), -- 109
-			Vec2(0, -50), -- 109
-			Vec2(0, 50) -- 109
-		}, -- 109
-		Color(4294954035) -- 109
-	)) -- 109
-	return node -- 110
-end -- 106
-local function createRuntimeVisual(state, item) -- 113
-	local wrapper = Node() -- 114
-	if item.kind == "Sprite" then -- 114
-		local visual = nil -- 116
-		if item.texture ~= "" then -- 116
-			visual = Sprite(item.texture) -- 118
-		end -- 118
-		wrapper:addChild(visual ~= nil and visual or makeSpritePlaceholder()) -- 120
-	elseif item.kind == "Label" then -- 120
-		local label = Label("sarasa-mono-sc-regular", 32) -- 122
-		if label ~= nil then -- 122
-			label.text = item.text or "Label" -- 124
-			state.runtimeLabels[item.id] = label -- 125
-			wrapper:addChild(label) -- 126
-		else -- 126
-			wrapper:addChild(makeRectLine( -- 128
-				120, -- 128
-				38, -- 128
-				Color(4292664540) -- 128
-			)) -- 128
-		end -- 128
-	elseif item.kind == "Camera" then -- 128
-		wrapper:addChild(makeCameraShape()) -- 131
-	else -- 131
-		wrapper:addChild(makeThickLine( -- 133
-			Vec2(-14, 0), -- 133
-			Vec2(14, 0), -- 133
-			Color(4294967295), -- 133
-			true -- 133
-		)) -- 133
-		wrapper:addChild(makeThickLine( -- 134
-			Vec2(0, -14), -- 134
-			Vec2(0, 14), -- 134
-			Color(4294967295), -- 134
-			false -- 134
-		)) -- 134
-	end -- 134
-	return wrapper -- 136
-end -- 113
-function ____exports.rebuildPreviewRuntime(state) -- 139
-	if state.previewRoot == nil then -- 139
-		state.previewRoot = Node() -- 141
-		state.previewRoot.tag = "__DoraImGuiEditorViewport__" -- 142
-		Director.entry:addChild(state.previewRoot) -- 143
-	end -- 143
-	state.previewRoot:removeAllChildren(true) -- 145
-	state.runtimeNodes = {} -- 146
-	state.runtimeLabels = {} -- 147
-	local renderScale = App.devicePixelRatio or 1 -- 149
-	local width = math.max(160, state.preview.width * renderScale) -- 150
-	local height = math.max(120, state.preview.height * renderScale) -- 151
-	state.previewRoot:addChild(makeCanvasBackground(width, height)) -- 152
-	if state.showGrid then -- 152
-		state.previewRoot:addChild(makeGridLine(width, height)) -- 154
-	end -- 154
-	state.previewRoot:addChild(makeAxisLine(width, height)) -- 156
-	do -- 156
-		local offset = 0 -- 157
-		while offset <= 8 do -- 157
-			state.previewRoot:addChild(makeRectLine( -- 158
-				width + offset, -- 158
-				height + offset, -- 158
-				Color(4294954035) -- 158
-			)) -- 158
-			offset = offset + 2 -- 157
-		end -- 157
-	end -- 157
-	local content = Node() -- 161
-	local scale = math.max(0.25, state.zoom / 100) -- 162
-	content.scaleX = scale -- 163
-	content.scaleY = scale -- 164
-	state.previewContent = content -- 165
-	state.previewRoot:addChild(content) -- 166
-	state.runtimeNodes.root = content -- 167
-	for ____, id in ipairs(state.order) do -- 169
-		local item = state.nodes[id] -- 170
-		if item ~= nil and id ~= "root" then -- 170
-			local runtime = createRuntimeVisual(state, item) -- 172
-			state.runtimeNodes[id] = runtime -- 173
-			local parent = state.runtimeNodes[item.parentId or "root"] or content -- 174
-			parent:addChild(runtime) -- 175
-		end -- 175
-	end -- 175
-	state.previewDirty = false -- 178
-end -- 139
-function ____exports.updatePreviewRuntime(state) -- 181
-	if state.previewDirty or state.previewRoot == nil then -- 181
-		____exports.rebuildPreviewRuntime(state) -- 183
-	end -- 183
-	local p = state.preview -- 185
-	local cx, cy = table.unpack( -- 186
-		worldPointFromScreen(p.x + p.width / 2, p.y + p.height / 2), -- 186
-		1, -- 186
-		2 -- 186
-	) -- 186
-	local previewRoot = state.previewRoot -- 187
-	if previewRoot == nil then -- 187
-		return -- 188
+local function addCornerHandles(node, width, height, color) -- 37
+	local hw = width / 2 -- 38
+	local hh = height / 2 -- 39
+	local size = 8 -- 40
+	local points = { -- 41
+		Vec2(-hw, -hh), -- 42
+		Vec2(hw, -hh), -- 43
+		Vec2(hw, hh), -- 44
+		Vec2(-hw, hh) -- 45
+	} -- 45
+	for ____, point in ipairs(points) do -- 47
+		local handle = DrawNode() -- 48
+		handle:drawPolygon( -- 49
+			{ -- 49
+				Vec2(point.x - size / 2, point.y - size / 2), -- 50
+				Vec2(point.x + size / 2, point.y - size / 2), -- 51
+				Vec2(point.x + size / 2, point.y + size / 2), -- 52
+				Vec2(point.x - size / 2, point.y + size / 2) -- 53
+			}, -- 53
+			color, -- 54
+			0, -- 54
+			Color() -- 54
+		) -- 54
+		node:addChild(handle) -- 55
+	end -- 55
+end -- 37
+local function selectionSize(item) -- 59
+	if item.kind == "Camera" then -- 59
+		return {320, 180} -- 60
+	end -- 60
+	if item.kind == "Sprite" then -- 60
+		return {128, 96} -- 61
+	end -- 61
+	if item.kind == "Label" then -- 61
+		return {180, 56} -- 62
+	end -- 62
+	return {72, 72} -- 63
+end -- 59
+local function addSelectionOverlay(state, item, node) -- 66
+	local width, height = table.unpack( -- 67
+		selectionSize(item), -- 67
+		1, -- 67
+		2 -- 67
+	) -- 67
+	local color = item.id == state.selectedId and selectionColor or helperColor -- 68
+	node:addChild(makeSegmentRect(width, height, color, item.id == state.selectedId and 1.6 or 0.8)) -- 69
+	if item.id == state.selectedId then -- 69
+		addCornerHandles(node, width, height, color) -- 70
+	end -- 70
+end -- 66
+local function makeClipStencil(width, height) -- 74
+	local hw = width / 2 -- 75
+	local hh = height / 2 -- 76
+	local stencil = DrawNode() -- 77
+	stencil:drawPolygon( -- 78
+		{ -- 78
+			Vec2(-hw, -hh), -- 79
+			Vec2(hw, -hh), -- 80
+			Vec2(hw, hh), -- 81
+			Vec2(-hw, hh) -- 82
+		}, -- 82
+		Color(4294967295), -- 83
+		0, -- 83
+		Color() -- 83
+	) -- 83
+	return stencil -- 84
+end -- 74
+local function makeCanvasBackground(width, height) -- 87
+	local hw = width / 2 -- 88
+	local hh = height / 2 -- 89
+	local bg = DrawNode() -- 90
+	bg:drawPolygon( -- 91
+		{ -- 91
+			Vec2(-hw, -hh), -- 92
+			Vec2(hw, -hh), -- 93
+			Vec2(hw, hh), -- 94
+			Vec2(-hw, hh) -- 95
+		}, -- 95
+		viewportBgColor, -- 96
+		1, -- 96
+		viewportFrameColor -- 96
+	) -- 96
+	return bg -- 97
+end -- 87
+local function makeGridLine(width, height) -- 100
+	local grid = Node() -- 101
+	local hw = width / 2 -- 102
+	local hh = height / 2 -- 103
+	local step = 32 -- 104
+	local minor = DrawNode() -- 105
+	local major = DrawNode() -- 106
+	local i = 0 -- 107
+	local x = -math.floor(hw / step) * step -- 108
+	while x <= hw do -- 108
+		if i % 5 == 0 then -- 108
+			major:drawSegment( -- 111
+				Vec2(x, -hh), -- 111
+				Vec2(x, hh), -- 111
+				0.55, -- 111
+				gridMajorColor -- 111
+			) -- 111
+		else -- 111
+			minor:drawSegment( -- 113
+				Vec2(x, -hh), -- 113
+				Vec2(x, hh), -- 113
+				0.25, -- 113
+				gridMinorColor -- 113
+			) -- 113
+		end -- 113
+		x = x + step -- 115
+		i = i + 1 -- 116
+	end -- 116
+	i = 0 -- 118
+	local y = -math.floor(hh / step) * step -- 119
+	while y <= hh do -- 119
+		if i % 5 == 0 then -- 119
+			major:drawSegment( -- 122
+				Vec2(-hw, y), -- 122
+				Vec2(hw, y), -- 122
+				0.55, -- 122
+				gridMajorColor -- 122
+			) -- 122
+		else -- 122
+			minor:drawSegment( -- 124
+				Vec2(-hw, y), -- 124
+				Vec2(hw, y), -- 124
+				0.25, -- 124
+				gridMinorColor -- 124
+			) -- 124
+		end -- 124
+		y = y + step -- 126
+		i = i + 1 -- 127
+	end -- 127
+	grid:addChild(minor) -- 129
+	grid:addChild(major) -- 130
+	return grid -- 131
+end -- 100
+local function makeAxisLine(width, height) -- 134
+	local hw = width / 2 -- 135
+	local hh = height / 2 -- 136
+	local axis = Node() -- 137
+	local xAxis = DrawNode() -- 138
+	xAxis:drawSegment( -- 139
+		Vec2(-hw, 0), -- 139
+		Vec2(hw, 0), -- 139
+		1.2, -- 139
+		redAxisColor -- 139
+	) -- 139
+	local yAxis = DrawNode() -- 140
+	yAxis:drawSegment( -- 141
+		Vec2(0, -hh), -- 141
+		Vec2(0, hh), -- 141
+		1.2, -- 141
+		greenAxisColor -- 141
+	) -- 141
+	axis:addChild(xAxis) -- 142
+	axis:addChild(yAxis) -- 143
+	return axis -- 144
+end -- 134
+local function makeSpritePlaceholder() -- 147
+	local node = Node() -- 148
+	node:addChild(makeSegmentRect(128, 96, helperColor, 1.1)) -- 149
+	local cross = DrawNode() -- 150
+	cross:drawSegment( -- 151
+		Vec2(-64, -48), -- 151
+		Vec2(64, 48), -- 151
+		0.6, -- 151
+		helperColor -- 151
+	) -- 151
+	cross:drawSegment( -- 152
+		Vec2(-64, 48), -- 152
+		Vec2(64, -48), -- 152
+		0.6, -- 152
+		helperColor -- 152
+	) -- 152
+	node:addChild(cross) -- 153
+	return node -- 154
+end -- 147
+local function makeCameraShape() -- 157
+	local node = Node() -- 158
+	node:addChild(makeSegmentRect(320, 180, viewportGameFrameColor, 1.1)) -- 159
+	return node -- 160
+end -- 157
+local function createRuntimeVisual(state, item) -- 163
+	local wrapper = Node() -- 164
+	if item.kind == "Sprite" then -- 164
+		local visual = nil -- 166
+		if item.texture ~= "" then -- 166
+			visual = Sprite(item.texture) -- 168
+		end -- 168
+		wrapper:addChild(visual ~= nil and visual or makeSpritePlaceholder()) -- 170
+		addSelectionOverlay(state, item, wrapper) -- 171
+	elseif item.kind == "Label" then -- 171
+		local label = Label("sarasa-mono-sc-regular", 32) -- 173
+		if label ~= nil then -- 173
+			label.text = item.text or "Label" -- 175
+			state.runtimeLabels[item.id] = label -- 176
+			wrapper:addChild(label) -- 177
+		else -- 177
+			wrapper:addChild(makeSegmentRect( -- 179
+				180, -- 179
+				56, -- 179
+				Color(4294967295), -- 179
+				3 -- 179
+			)) -- 179
+		end -- 179
+		addSelectionOverlay(state, item, wrapper) -- 181
+	elseif item.kind == "Camera" then -- 181
+		wrapper:addChild(makeCameraShape()) -- 183
+		addSelectionOverlay(state, item, wrapper) -- 184
+	else -- 184
+		wrapper:addChild(makeThickLine( -- 186
+			Vec2(-20, 0), -- 186
+			Vec2(20, 0), -- 186
+			helperColor, -- 186
+			true -- 186
+		)) -- 186
+		wrapper:addChild(makeThickLine( -- 187
+			Vec2(0, -20), -- 187
+			Vec2(0, 20), -- 187
+			helperColor, -- 187
+			false -- 187
+		)) -- 187
+		addSelectionOverlay(state, item, wrapper) -- 188
 	end -- 188
-	previewRoot.x = cx -- 189
-	previewRoot.y = cy -- 190
-	if state.previewContent ~= nil then -- 190
-		local scale = math.max(0.25, state.zoom / 100) -- 192
-		state.previewContent.scaleX = scale -- 193
-		state.previewContent.scaleY = scale -- 194
-	end -- 194
-	for ____, id in ipairs(state.order) do -- 196
-		local item = state.nodes[id] -- 197
-		local runtime = state.runtimeNodes[id] -- 198
-		if item ~= nil and runtime ~= nil then -- 198
-			runtime.x = item.x -- 200
-			runtime.y = item.y -- 201
-			runtime.scaleX = item.scaleX -- 202
-			runtime.scaleY = item.scaleY -- 203
-			runtime.angle = item.rotation -- 204
-			runtime.visible = item.visible -- 205
-			local label = state.runtimeLabels[id] -- 206
-			if label ~= nil then -- 206
-				label.text = item.text or "Label" -- 207
-			end -- 207
-		end -- 207
-	end -- 207
-end -- 181
-return ____exports -- 181
+	return wrapper -- 190
+end -- 163
+local function clampZoom(value) -- 193
+	return math.max( -- 194
+		25, -- 194
+		math.min(400, value) -- 194
+	) -- 194
+end -- 193
+local function zoomViewportAt(state, delta, screenX, screenY) -- 197
+	if delta == 0 then -- 197
+		return -- 198
+	end -- 198
+	local before = state.zoom -- 199
+	local beforeScale = math.max(0.25, before / 100) -- 200
+	local centerX = state.preview.x + state.preview.width / 2 -- 201
+	local centerY = state.preview.y + state.preview.height / 2 -- 202
+	local sceneX = (screenX - centerX - state.viewportPanX) / beforeScale -- 203
+	local sceneY = (centerY - screenY - state.viewportPanY) / beforeScale -- 204
+	state.zoom = clampZoom(state.zoom + delta) -- 205
+	if state.zoom ~= before then -- 205
+		local afterScale = math.max(0.25, state.zoom / 100) -- 207
+		state.viewportPanX = screenX - centerX - sceneX * afterScale -- 208
+		state.viewportPanY = centerY - screenY - sceneY * afterScale -- 209
+		state.previewDirty = true -- 210
+	end -- 210
+end -- 197
+local function attachViewportInput(state, clip) -- 214
+	clip.touchEnabled = true -- 215
+	clip.swallowMouseWheel = true -- 216
+	clip:onMouseWheel(function(delta) -- 217
+		local wheel = math.abs(delta.y) >= math.abs(delta.x) and delta.y or delta.x -- 218
+		zoomViewportAt(state, wheel > 0 and 6 or -6, Mouse.position.x, Mouse.position.y) -- 219
+	end) -- 217
+	clip:onGesture(function(center, numFingers, deltaDist) -- 221
+		if numFingers < 2 then -- 221
+			return -- 222
+		end -- 222
+		zoomViewportAt(state, deltaDist > 0 and 10 or -10, center.x, center.y) -- 223
+	end) -- 221
+end -- 214
+function ____exports.rebuildPreviewRuntime(state) -- 227
+	if state.previewRoot == nil then -- 227
+		state.previewRoot = Node() -- 229
+		state.previewRoot.tag = "__DoraImGuiEditorViewport__" -- 230
+		Director.entry:addChild(state.previewRoot) -- 231
+	end -- 231
+	state.previewRoot:removeAllChildren(true) -- 233
+	state.runtimeNodes = {} -- 234
+	state.runtimeLabels = {} -- 235
+	local renderScale = App.devicePixelRatio or 1 -- 237
+	local width = math.max(160, state.preview.width * renderScale) -- 238
+	local height = math.max(120, state.preview.height * renderScale) -- 239
+	local scale = math.max(0.25, state.zoom / 100) -- 240
+	local worldWidth = math.max(8192, width / scale * 6) -- 241
+	local worldHeight = math.max(8192, height / scale * 6) -- 242
+	local clip = ClipNode(makeClipStencil(width, height)) -- 243
+	clip.alphaThreshold = 0.01 -- 244
+	attachViewportInput(state, clip) -- 245
+	state.previewRoot:addChild(clip) -- 246
+	clip:addChild(makeCanvasBackground(width, height)) -- 247
+	local world = Node() -- 249
+	world.x = state.viewportPanX -- 250
+	world.y = state.viewportPanY -- 251
+	world.scaleX = scale -- 252
+	world.scaleY = scale -- 253
+	state.previewWorld = world -- 254
+	clip:addChild(world) -- 255
+	if state.showGrid then -- 255
+		world:addChild(makeGridLine(worldWidth, worldHeight)) -- 257
+	end -- 257
+	world:addChild(makeAxisLine(worldWidth, worldHeight)) -- 259
+	clip:addChild(makeSegmentRect(width, height, viewportGameFrameColor, 0.9)) -- 260
+	local content = Node() -- 262
+	state.previewContent = content -- 263
+	world:addChild(content) -- 264
+	state.runtimeNodes.root = content -- 265
+	for ____, id in ipairs(state.order) do -- 267
+		local item = state.nodes[id] -- 268
+		if item ~= nil and id ~= "root" then -- 268
+			local runtime = createRuntimeVisual(state, item) -- 270
+			state.runtimeNodes[id] = runtime -- 271
+			local parent = state.runtimeNodes[item.parentId or "root"] or content -- 272
+			parent:addChild(runtime) -- 273
+		end -- 273
+	end -- 273
+	state.previewDirty = false -- 276
+end -- 227
+function ____exports.updatePreviewRuntime(state) -- 279
+	if state.previewDirty or state.previewRoot == nil then -- 279
+		____exports.rebuildPreviewRuntime(state) -- 281
+	end -- 281
+	local p = state.preview -- 283
+	local cx, cy = table.unpack( -- 284
+		worldPointFromScreen(p.x + p.width / 2, p.y + p.height / 2), -- 284
+		1, -- 284
+		2 -- 284
+	) -- 284
+	local previewRoot = state.previewRoot -- 285
+	if previewRoot == nil then -- 285
+		return -- 286
+	end -- 286
+	previewRoot.x = cx -- 287
+	previewRoot.y = cy -- 288
+	if state.previewWorld ~= nil then -- 288
+		local scale = math.max(0.25, state.zoom / 100) -- 290
+		state.previewWorld.x = state.viewportPanX -- 291
+		state.previewWorld.y = state.viewportPanY -- 292
+		state.previewWorld.scaleX = scale -- 293
+		state.previewWorld.scaleY = scale -- 294
+	end -- 294
+	for ____, id in ipairs(state.order) do -- 296
+		local item = state.nodes[id] -- 297
+		local runtime = state.runtimeNodes[id] -- 298
+		if item ~= nil and runtime ~= nil then -- 298
+			runtime.x = item.x -- 300
+			runtime.y = item.y -- 301
+			runtime.scaleX = item.scaleX -- 302
+			runtime.scaleY = item.scaleY -- 303
+			runtime.angle = item.rotation -- 304
+			runtime.visible = item.visible -- 305
+			local label = state.runtimeLabels[id] -- 306
+			if label ~= nil then -- 306
+				label.text = item.text or "Label" -- 307
+			end -- 307
+		end -- 307
+	end -- 307
+end -- 279
+return ____exports -- 279

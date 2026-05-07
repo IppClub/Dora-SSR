@@ -4,6 +4,8 @@ import { EditorState, SceneNodeData, SceneNodeKind } from 'Script/Tools/SceneEdi
 const [localeMatch] = string.match(App.locale, '^zh');
 export const zh = localeMatch !== undefined;
 
+const importedAssetRoot = 'Imported';
+
 export function makeBuffer(text: string, size: number) {
 	const buffer = Buffer(size);
 	buffer.text = text;
@@ -11,12 +13,15 @@ export function makeBuffer(text: string, size: number) {
 }
 
 export function createEditorState(): EditorState {
+	Content.addSearchPath(Content.writablePath);
 	return {
 		nextId: 0,
 		selectedId: 'root',
 		mode: '2D',
 		zoom: 100,
 		showGrid: true,
+		snapEnabled: false,
+		viewportTool: 'Select',
 		leftWidth: 280,
 		rightWidth: 340,
 		bottomHeight: 132,
@@ -28,11 +33,14 @@ export function createEditorState(): EditorState {
 		previewDirty: true,
 		runtimeNodes: {},
 		runtimeLabels: {},
-		assetImportBuffer: makeBuffer('Image/new.png', 256),
+		assetImportBuffer: makeBuffer(importedAssetRoot + '/new.png', 256),
 		scriptPathBuffer: makeBuffer('', 256),
 		scriptContentBuffer: makeBuffer('', 8192),
 		selectedAsset: '',
-		assets: ['Image/player.png', 'Image/enemy.png', 'Audio/bgm.ogg', 'Script/player.lua'],
+		assets: ['Imported/dora_sample_sprite.png'],
+		viewportPanX: 0,
+		viewportPanY: 0,
+		draggingViewport: false,
 	};
 }
 
@@ -55,22 +63,18 @@ export function lowerExt(path: string) {
 	return string.lower(ext);
 }
 
-export function assetFolderForExt(ext: string) {
-	if (ext === 'png' || ext === 'jpg' || ext === 'jpeg' || ext === 'ktx' || ext === 'pvr' || ext === 'clip') return 'Image';
-	if (ext === 'lua' || ext === 'ts' || ext === 'tsx' || ext === 'yue') return 'Script';
-	if (ext === 'wav' || ext === 'mp3' || ext === 'ogg') return 'Audio';
-	if (ext === 'anim' || ext === 'model' || ext === 'skel') return 'Animation';
-	return 'Resource';
-}
-
 export function isTextureAsset(path: string) {
 	const ext = lowerExt(path);
-	return ext === 'png' || ext === 'jpg' || ext === 'jpeg' || ext === 'ktx' || ext === 'pvr' || ext === 'clip';
+	return ext === 'png' || ext === 'jpg' || ext === 'jpeg' || ext === 'bmp' || ext === 'gif' || ext === 'webp' || ext === 'ktx' || ext === 'pvr' || ext === 'clip';
 }
 
 export function isScriptAsset(path: string) {
 	const ext = lowerExt(path);
-	return ext === 'lua' || ext === 'ts' || ext === 'tsx' || ext === 'yue';
+	return ext === 'lua' || ext === 'ts' || ext === 'tsx' || ext === 'yue' || ext === 'js' || ext === 'json';
+}
+
+export function isFolderAsset(path: string) {
+	return path !== '' && string.sub(path, string.len(path), string.len(path)) === '/';
 }
 
 function hasAsset(state: EditorState, asset: string) {
@@ -80,25 +84,89 @@ function hasAsset(state: EditorState, asset: string) {
 	return false;
 }
 
-export function addAssetPath(state: EditorState, path: string) {
-	if (path === '') return;
-	const ext = lowerExt(path);
-	const folder = assetFolderForExt(ext);
-	const name = Path.getName(path);
-	let asset = Path(folder, name);
-	const target = Path(Content.writablePath, asset);
-	Content.mkdir(Path(Content.writablePath, folder));
-	if (Content.exist(path) && path !== target) {
-		if (!Content.copy(path, target)) {
-			asset = path;
+function rememberAsset(state: EditorState, asset: string) {
+	if (asset === '') return;
+	if (!hasAsset(state, asset)) state.assets.push(asset);
+}
+
+function normalizeSlash(path: string) {
+	let [result] = string.gsub(path, '\\', '/');
+	let [found] = string.find(result, '//');
+	while (found !== undefined) {
+		[result] = string.gsub(result, '//', '/');
+		[found] = string.find(result, '//');
+	}
+	return result;
+}
+
+function stripFolderPrefix(folder: string, path: string) {
+	const cleanFolder = normalizeSlash(folder);
+	const cleanPath = normalizeSlash(path);
+	if (string.sub(cleanPath, 1, string.len(cleanFolder)) === cleanFolder) {
+		let rest = string.sub(cleanPath, string.len(cleanFolder) + 1);
+		if (string.sub(rest, 1, 1) === '/') rest = string.sub(rest, 2);
+		return rest;
+	}
+	return Path.getName(path);
+}
+
+function refreshAssetSearchPath(importedPath?: string) {
+	Content.addSearchPath(Content.writablePath);
+	if (importedPath !== undefined && importedPath !== '') {
+		const importedFolder = Path.getPath(importedPath);
+		if (importedFolder !== '') Content.addSearchPath(Path(Content.writablePath, importedFolder));
+	}
+	Content.clearPathCache();
+}
+
+function copyFileToImported(srcPath: string, importedPath: string) {
+	const target = Path(Content.writablePath, importedPath);
+	Content.mkdir(Path.getPath(target));
+	if (Content.exist(srcPath) && srcPath !== target) {
+		if (Content.copy(srcPath, target)) {
+			refreshAssetSearchPath(importedPath);
+			return importedPath;
 		}
+		const parentPath = Path.getPath(srcPath);
+		if (parentPath !== '') Content.addSearchPath(parentPath);
+		Content.clearPathCache();
+		return srcPath;
 	}
-	if (!hasAsset(state, asset)) {
-		state.assets.push(asset);
+	refreshAssetSearchPath(importedPath);
+	return importedPath;
+}
+
+export function addAssetPath(state: EditorState, path: string, importedPath?: string) {
+	if (path === '') return undefined;
+	if (Content.isdir(path)) {
+		return addAssetFolder(state, path);
 	}
+	const asset = copyFileToImported(path, importedPath || Path(importedAssetRoot, Path.getName(path)));
+	rememberAsset(state, asset);
 	state.selectedAsset = asset;
 	state.status = (zh ? '已加入资源：' : 'Asset added: ') + asset;
 	pushConsole(state, state.status);
+	return asset;
+}
+
+export function addAssetFolder(state: EditorState, folderPath: string) {
+	if (folderPath === '') return undefined;
+	const folderName = Path.getName(folderPath) || 'Folder';
+	const rootAsset = Path(importedAssetRoot, folderName) + '/';
+	rememberAsset(state, rootAsset);
+	let added = 0;
+	for (const file of Content.getAllFiles(folderPath)) {
+		const absoluteFile = Content.exist(file) ? file : Path(folderPath, file);
+		const relativeFile = stripFolderPrefix(folderPath, absoluteFile);
+		const importedFile = Path(importedAssetRoot, folderName, relativeFile);
+		const asset = copyFileToImported(absoluteFile, importedFile);
+		rememberAsset(state, asset);
+		added += 1;
+	}
+	state.selectedAsset = rootAsset;
+	state.status = (zh ? '已加入文件夹：' : 'Folder imported: ') + folderName + ' (' + tostring(added) + ')';
+	pushConsole(state, state.status);
+	return rootAsset;
 }
 
 export function importFileDialog(state: EditorState) {
@@ -106,12 +174,7 @@ export function importFileDialog(state: EditorState) {
 }
 
 export function importFolderDialog(state: EditorState) {
-	App.openFileDialog(true, (path) => {
-		if (path === '') return;
-		for (const file of Content.getFiles(path)) {
-			addAssetPath(state, Path(path, file));
-		}
-	});
+	App.openFileDialog(true, (path) => addAssetFolder(state, path));
 }
 
 function newNodeId(state: EditorState, kind: SceneNodeKind) {
@@ -179,6 +242,7 @@ export function deleteNode(state: EditorState, id: string) {
 	delete state.nodes[id];
 	removeFromOrder(state, id);
 	state.selectedId = 'root';
+	state.draggingNodeId = undefined;
 	state.previewDirty = true;
 	state.status = zh ? '已删除节点' : 'Node deleted';
 	pushConsole(state, state.status);
