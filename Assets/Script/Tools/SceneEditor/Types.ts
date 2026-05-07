@@ -1,6 +1,7 @@
 import { Buffer, Node } from 'Dora';
 
 export type EditorMode = '2D' | 'Script';
+export type ViewportTool = 'Select' | 'Move' | 'Rotate' | 'Scale';
 export type SceneNodeKind = 'Root' | 'Node' | 'Sprite' | 'Label' | 'Camera';
 
 export interface SceneNodeData {
@@ -37,6 +38,8 @@ export interface EditorState {
 	mode: EditorMode;
 	zoom: number;
 	showGrid: boolean;
+	snapEnabled: boolean;
+	viewportTool: ViewportTool;
 	leftWidth: number;
 	rightWidth: number;
 	bottomHeight: number;
@@ -47,6 +50,7 @@ export interface EditorState {
 	preview: ViewportState;
 	previewDirty: boolean;
 	previewRoot?: Node.Type;
+	previewWorld?: Node.Type;
 	previewContent?: Node.Type;
 	runtimeNodes: Record<string, Node.Type>;
 	runtimeLabels: Record<string, unknown>;
@@ -56,4 +60,8 @@ export interface EditorState {
 	activeScriptNodeId?: string;
 	selectedAsset: string;
 	assets: string[];
+	viewportPanX: number;
+	viewportPanY: number;
+	draggingNodeId?: string;
+	draggingViewport: boolean;
 }

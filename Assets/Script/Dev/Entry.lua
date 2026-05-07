@@ -1246,6 +1246,18 @@ enterDemoEntry = function(entry) -- 737
 		return enterEntryAsync(entry) -- 737
 	end) -- 737
 end -- 737
+local visualEditorEntry -- visual editor entry
+visualEditorEntry = function()
+	return {
+		entryName = useChinese and "可视化编辑器" or "Visual Editor",
+		fileName = Path(Content.assetPath, "Script", "Tools", "SceneImGuiEditor")
+	}
+end
+local openVisualEditor -- open visual editor
+openVisualEditor = function()
+	allClear()
+	return enterDemoEntry(visualEditorEntry())
+end
 local reloadCurrentEntry -- 739
 reloadCurrentEntry = function() -- 739
 	if currentEntry then -- 740
@@ -1971,17 +1983,29 @@ entryWindow = threadLoop(function() -- 1157
 			return Begin("Dora Dev", windowFlags, function() -- 1201
 				Dummy(Vec2(fullWidth - 20, 0)) -- 1202
 				TextColored(themeColor, "Dora SSR " .. tostring(zh and '开发' or 'Dev')) -- 1203
-				if fullWidth >= 400 then -- 1204
+				if fullWidth >= 560 then -- visual editor entry
 					SameLine() -- 1205
-					Dummy(Vec2(fullWidth - 400, 0)) -- 1206
+					Dummy(Vec2(fullWidth - 540, 0)) -- 1206
 					SameLine() -- 1207
-					SetNextItemWidth(zh and -95 or -140) -- 1208
+					SetNextItemWidth(zh and -230 or -260) -- visual editor entry
 					if InputText(zh and '筛选' or 'Filter', filterBuf, { -- 1209
 						"AutoSelectAll" -- 1209
 					}) then -- 1209
 						config.filter = filterBuf.text -- 1210
 					end -- 1209
-					SameLine() -- 1211
+					SameLine() -- visual editor button
+					PushStyleColor("Text", Color(0xffffcc33), function()
+						return PushStyleColor("Button", Color(0xff242830), function()
+							return PushStyleColor("ButtonHovered", Color(0xff303642), function()
+							return PushStyleColor("ButtonActive", Color(0xff3a4250), function()
+								if Button(zh and '可视化编辑器' or 'Visual Editor', Vec2(zh and 120 or 125, 30)) then
+									return openVisualEditor()
+								end
+							end)
+							end)
+						end)
+					end)
+					SameLine()
 					if Button(zh and '下载' or 'Download') then -- 1212
 						allClear() -- 1213
 						enterDemoEntry({ -- 1215
@@ -2007,6 +2031,26 @@ entryWindow = threadLoop(function() -- 1157
 						if filterText then -- 1229
 							filterText = filterText:lower() -- 1229
 						end -- 1229
+						local showVisualEditorEntry = match(zh and "可视化编辑器 场景编辑器 visual editor scene editor" or "visual editor scene editor dora")
+						if showVisualEditorEntry then
+							Columns(1, false)
+							TextColored(themeColor, zh and "重点入口：" or "Main Entry:")
+							SameLine()
+							Text(zh and "Dora 原生可视化编辑器" or "Dora Native Visual Editor")
+							TextColored(descColor, zh and "所见即所得场景编辑、真实 Dora Viewport、资源导入、节点拖动和脚本管理都会集中在这里。" or "WYSIWYG scene editing, real Dora viewport, asset import, node dragging, and script management live here.")
+							PushStyleColor("Text", Color(0xffffcc33), function()
+								return PushStyleColor("Button", Color(0xff242830), function()
+									return PushStyleColor("ButtonHovered", Color(0xff303642), function()
+									return PushStyleColor("ButtonActive", Color(0xff3a4250), function()
+										if Button(zh and "▶ 打开可视化编辑器" or "▶ Open Visual Editor", Vec2(-1, 64)) then
+											return openVisualEditor()
+										end
+									end)
+									end)
+								end)
+							end)
+							thinSep()
+						end
 						if #gamesInDev > 0 then -- 1230
 							local columns = math.max(math.floor(width / DemoViewWidth), 1) -- 1231
 							Columns(columns, false) -- 1232
