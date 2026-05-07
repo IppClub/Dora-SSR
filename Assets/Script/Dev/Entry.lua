@@ -1946,7 +1946,7 @@ entryWindow = threadLoop(function() -- 1157
 	end -- 1174
 	local zh = useChinese -- 1175
 	local themeColor = App.themeColor -- 1176
-	if HttpServer.wsConnectionCount > 0 then -- 1177
+		if false and HttpServer.wsConnectionCount > 0 then -- 1177
 		local width, height -- 1178
 		do -- 1178
 			local _obj_0 = App.visualSize -- 1178

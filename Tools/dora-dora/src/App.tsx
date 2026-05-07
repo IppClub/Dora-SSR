@@ -745,7 +745,20 @@ export default function PersistentDrawerLeft() {
 				setExpandedKeys([res.key]);
 			}
 			Service.editingInfo().then(res => {
-				if (res.success && res.editingInfo) {
+				const fileParam = new URLSearchParams(window.location.search).get("file");
+				if (fileParam !== null && fileParam !== "") {
+					const normalizedFile = decodeURIComponent(fileParam);
+					const editingInfo: Service.EditingInfo = {
+						index: 0,
+						files: [{
+							key: normalizedFile,
+							title: path.basename(normalizedFile),
+							folder: false,
+							position: {lineNumber: 1, column: 1},
+						}],
+					};
+					openEditingInfoFiles(editingInfo);
+				} else if (res.success && res.editingInfo) {
 					const editingInfo: Service.EditingInfo = JSON.parse(res.editingInfo);
 					openEditingInfoFiles(editingInfo);
 				}
