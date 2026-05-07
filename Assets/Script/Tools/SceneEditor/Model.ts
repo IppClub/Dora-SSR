@@ -1,10 +1,19 @@
-import { App, Buffer, Content, Path } from 'Dora';
+import { App, Buffer, Content, Path, emit, json } from 'Dora';
 import { EditorState, SceneNodeData, SceneNodeKind } from 'Script/Tools/SceneEditor/Types';
 
 const [localeMatch] = string.match(App.locale, '^zh');
 export const zh = localeMatch !== undefined;
 
 const importedAssetRoot = 'Imported';
+const importedAssetRootEntry = importedAssetRoot + '/';
+
+function workspaceRoot() {
+	return Content.writablePath;
+}
+
+function workspacePath(path: string) {
+	return Path(workspaceRoot(), path);
+}
 
 export function makeBuffer(text: string, size: number) {
 	const buffer = Buffer(size);
@@ -13,8 +22,9 @@ export function makeBuffer(text: string, size: number) {
 }
 
 export function createEditorState(): EditorState {
-	Content.addSearchPath(Content.writablePath);
-	return {
+	Content.addSearchPath(workspaceRoot());
+	Content.mkdir(workspacePath(importedAssetRoot));
+	const state: EditorState = {
 		nextId: 0,
 		selectedId: 'root',
 		mode: '2D',
@@ -43,11 +53,13 @@ export function createEditorState(): EditorState {
 		scriptPathBuffer: makeBuffer('', 256),
 		scriptContentBuffer: makeBuffer('', 8192),
 		selectedAsset: '',
-		assets: ['Imported/dora_sample_sprite.png'],
+		assets: [],
 		viewportPanX: 0,
 		viewportPanY: 0,
 		draggingViewport: false,
 	};
+	refreshImportedAssets(state);
+	return state;
 }
 
 export function pushConsole(state: EditorState, message: string) {
@@ -95,6 +107,15 @@ function rememberAsset(state: EditorState, asset: string) {
 	if (!hasAsset(state, asset)) state.assets.push(asset);
 }
 
+function sortAssets(state: EditorState) {
+	table.sort(state.assets, (a, b) => {
+		const aFolder = isFolderAsset(a);
+		const bFolder = isFolderAsset(b);
+		if (aFolder === bFolder) return a < b;
+		return aFolder;
+	});
+}
+
 function normalizeSlash(path: string) {
 	let [result] = string.gsub(path, '\\', '/');
 	let [found] = string.find(result, '//');
@@ -117,38 +138,66 @@ function stripFolderPrefix(folder: string, path: string) {
 }
 
 function refreshAssetSearchPath(importedPath?: string) {
-	Content.addSearchPath(Content.writablePath);
+	Content.addSearchPath(workspaceRoot());
+	Content.addSearchPath(workspacePath(importedAssetRoot));
 	if (importedPath !== undefined && importedPath !== '') {
 		const importedFolder = Path.getPath(importedPath);
-		if (importedFolder !== '') Content.addSearchPath(Path(Content.writablePath, importedFolder));
+		if (importedFolder !== '') Content.addSearchPath(workspacePath(importedFolder));
 	}
 	Content.clearPathCache();
 }
 
-function copyFileToImported(srcPath: string, importedPath: string) {
-	const target = Path(Content.writablePath, importedPath);
-	Content.mkdir(Path.getPath(target));
-	if (Content.exist(srcPath) && srcPath !== target) {
-		if (Content.copy(srcPath, target)) {
-			refreshAssetSearchPath(importedPath);
-			return importedPath;
-		}
-		const parentPath = Path.getPath(srcPath);
-		if (parentPath !== '') Content.addSearchPath(parentPath);
-		Content.clearPathCache();
-		return srcPath;
+export function refreshImportedAssets(state: EditorState) {
+	const importedAbsolutePath = workspacePath(importedAssetRoot);
+	Content.mkdir(importedAbsolutePath);
+	refreshAssetSearchPath(importedAssetRoot);
+	rememberAsset(state, importedAssetRootEntry);
+	for (const file of Content.getAllFiles(importedAbsolutePath)) {
+		const asset = normalizeSlash(Path(importedAssetRoot, file));
+		rememberAsset(state, asset);
 	}
-	refreshAssetSearchPath(importedPath);
-	return importedPath;
+	sortAssets(state);
 }
 
-export function addAssetPath(state: EditorState, path: string, importedPath?: string) {
-	if (path === '') return undefined;
+function notifyWebIDEFileAdded(workspaceRelativePath: string) {
+	const fullPath = workspacePath(workspaceRelativePath);
+	const [payload] = json.encode({
+		name: 'UpdateFile',
+		file: fullPath,
+		exists: true,
+		content: '',
+	});
+	if (payload !== undefined) {
+		emit('AppWS', 'Send', payload);
+	}
+}
+
+function copyFileToImported(srcPath: string, importedPath: string) {
+	const target = workspacePath(importedPath);
+	Content.mkdir(Path.getPath(target));
+	if (srcPath === target || Content.copy(srcPath, target)) {
+		refreshAssetSearchPath(importedPath);
+		notifyWebIDEFileAdded(importedPath);
+		return importedPath;
+	}
+	Content.clearPathCache();
+	return undefined;
+}
+
+export function addAssetPath(state: EditorState, path?: string, importedPath?: string) {
+	if (path === undefined || path === '') return undefined;
 	if (Content.isdir(path)) {
 		return addAssetFolder(state, path);
 	}
 	const asset = copyFileToImported(path, importedPath || Path(importedAssetRoot, Path.getName(path)));
+	if (asset === undefined) {
+		state.status = (zh ? '导入失败：' : 'Import failed: ') + path;
+		pushConsole(state, state.status);
+		return undefined;
+	}
 	rememberAsset(state, asset);
+	rememberAsset(state, importedAssetRootEntry);
+	refreshImportedAssets(state);
 	state.selectedAsset = asset;
 	state.status = (zh ? '已加入资源：' : 'Asset added: ') + asset;
 	pushConsole(state, state.status);
@@ -159,6 +208,7 @@ export function addAssetFolder(state: EditorState, folderPath: string) {
 	if (folderPath === '') return undefined;
 	const folderName = Path.getName(folderPath) || 'Folder';
 	const rootAsset = Path(importedAssetRoot, folderName) + '/';
+	rememberAsset(state, importedAssetRootEntry);
 	rememberAsset(state, rootAsset);
 	let added = 0;
 	for (const file of Content.getAllFiles(folderPath)) {
@@ -166,9 +216,12 @@ export function addAssetFolder(state: EditorState, folderPath: string) {
 		const relativeFile = stripFolderPrefix(folderPath, absoluteFile);
 		const importedFile = Path(importedAssetRoot, folderName, relativeFile);
 		const asset = copyFileToImported(absoluteFile, importedFile);
-		rememberAsset(state, asset);
-		added += 1;
+		if (asset !== undefined) {
+			rememberAsset(state, asset);
+			added += 1;
+		}
 	}
+	refreshImportedAssets(state);
 	state.selectedAsset = rootAsset;
 	state.status = (zh ? '已加入文件夹：' : 'Folder imported: ') + folderName + ' (' + tostring(added) + ')';
 	pushConsole(state, state.status);
@@ -176,11 +229,15 @@ export function addAssetFolder(state: EditorState, folderPath: string) {
 }
 
 export function importFileDialog(state: EditorState) {
-	App.openFileDialog(false, (path) => addAssetPath(state, path));
+	App.openFileDialog(false, function(this: void, path: string) {
+		addAssetPath(state, path);
+	});
 }
 
 export function importFolderDialog(state: EditorState) {
-	App.openFileDialog(true, (path) => addAssetFolder(state, path));
+	App.openFileDialog(true, function(this: void, path: string) {
+		addAssetFolder(state, path);
+	});
 }
 
 function newNodeId(state: EditorState, kind: SceneNodeKind) {
