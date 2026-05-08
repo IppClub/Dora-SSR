@@ -8,6 +8,7 @@ local Keyboard = ____Dora.Keyboard -- 1
 local Mouse = ____Dora.Mouse -- 1
 local Path = ____Dora.Path -- 1
 local Vec2 = ____Dora.Vec2 -- 1
+local emit = ____Dora.emit -- 1
 local json = ____Dora.json -- 1
 local ImGui = require("ImGui") -- 2
 local ____Theme = require("Script.Tools.SceneEditor.Theme") -- 5
@@ -303,7 +304,7 @@ local function drawAssetsPanel(state) -- 174
 end -- 174
 local function scriptTemplate(node) -- 213
 	local name = node ~= nil and node.name or "Script" -- 214
-	return ("-- " .. name) .. " behavior\nreturn function(node, scene)\n\t-- write behavior here\nend\n"
+	return (((((("-- " .. name) .. " behavior\n") .. "return function(node, scene, nodes)\n") .. "\tif node == nil then\n") .. "\t\tprint(\"[SceneScript] " .. name .. ": node is nil; run the scene/game preview instead of this behavior script directly.\")\n") .. "\t\treturn\n\tend\n") .. "\t-- write behavior here\nend\n"
 end -- 213
 local function loadScriptIntoEditor(state, node, scriptPath) -- 218
 	if node ~= nil then -- 218
@@ -369,6 +370,12 @@ local function currentScriptPath(state, node) -- 264
 	end -- 267
 	return "Script/NewScript.lua" -- 268
 end -- 264
+local function sendWebIDEMessage(payload) -- 271
+	local text = json.encode(payload) -- 272
+	if text ~= nil then -- 272
+		emit("AppWS", "Send", text) -- 273
+	end -- 273
+end -- 271
 local function openScriptInWebIDE(state, node) -- 271
 	local scriptPath = currentScriptPath(state, node) -- 272
 	state.scriptPathBuffer.text = scriptPath -- 273
@@ -376,9 +383,23 @@ local function openScriptInWebIDE(state, node) -- 271
 		state.scriptContentBuffer.text = scriptTemplate(node) -- 275
 	end -- 275
 	saveScriptFile(state, node) -- 277
-	local title = Path:getName(scriptPath) or scriptPath -- 278
-	local editingInfo = {index = 0, files = {{key = scriptPath, title = title, folder = false, position = {lineNumber = 1, column = 1}}}} -- 279
-	local editingText = json.encode(editingInfo) -- 288
+	local title = Path:getFilename(scriptPath) or scriptPath -- 278
+	local fullScriptPath = Path(Content.writablePath, scriptPath) -- 279
+	sendWebIDEMessage({ -- 280
+		name = "UpdateFile", -- 281
+		file = fullScriptPath, -- 282
+		exists = true, -- 283
+		content = state.scriptContentBuffer.text -- 284
+	}) -- 284
+	sendWebIDEMessage({ -- 286
+		name = "OpenFile", -- 287
+		file = fullScriptPath, -- 288
+		title = title, -- 289
+		folder = false, -- 290
+		position = {lineNumber = 1, column = 1} -- 291
+	}) -- 291
+	local editingInfo = {index = 0, files = {{key = scriptPath, title = title, folder = false, position = {lineNumber = 1, column = 1}}}} -- 293
+	local editingText = json.encode(editingInfo) -- 302
 	if editingText ~= nil then -- 288
 		Content:mkdir(Path(Content.writablePath, ".dora")) -- 290
 		Content:save( -- 291

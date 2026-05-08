@@ -1338,6 +1338,23 @@ export default function PersistentDrawerLeft() {
 	}, [switchTab, files, openFile]);
 
 	useEffect(() => {
+		const handleOpenFile = (message: Service.OpenFileMessage) => {
+			if (message.file === "") return;
+			openFileInTab(
+				message.file,
+				message.title ?? path.basename(message.file),
+				message.folder === true,
+				message.position ?? {lineNumber: 1, column: 1},
+				message.readOnly === true,
+			);
+		};
+		Service.addOpenFileListener(handleOpenFile);
+		return () => {
+			Service.removeOpenFileListener(handleOpenFile);
+		};
+	}, [openFileInTab]);
+
+	useEffect(() => {
 		const applyUpdateFileBatch = (events: UpdateFileEvent[]) => {
 			if (events.length === 0) return;
 			let nextRoot = treeDataRef.current.at(0);
