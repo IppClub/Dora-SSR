@@ -146,6 +146,10 @@ const loadDoraFont = async () => {
 export class ActionImGuiRuntime {
 	private static moduleReady: Promise<void> | null = null;
 	private static activeRuntime: ActionImGuiRuntime | null = null;
+	private static backendOwner: ActionImGuiRuntime | null = null;
+	private static sharedContext: any = null;
+	private static sharedDiagnostics: string[] = [];
+	private static initQueue: Promise<void> = Promise.resolve();
 	private context: any = null;
 	private canvas: HTMLCanvasElement | null = null;
 	private initialized = false;
@@ -161,7 +165,73 @@ export class ActionImGuiRuntime {
 		return ActionImGuiRuntime.moduleReady;
 	}
 
+	private static async ensureSharedContext(): Promise<string[]> {
+		await ActionImGuiRuntime.loadModule();
+		if (ActionImGuiRuntime.sharedContext) {
+			ImGui.SetCurrentContext(ActionImGuiRuntime.sharedContext);
+			return ActionImGuiRuntime.sharedDiagnostics;
+		}
+		ImGui.CHECKVERSION();
+		ActionImGuiRuntime.sharedContext = ImGui.CreateContext();
+		ImGui.SetCurrentContext(ActionImGuiRuntime.sharedContext);
+		setDoraStyle();
+		try {
+			await loadDoraFont();
+		} catch (error) {
+			const message = error instanceof Error ? error.message : "sarasa-mono-sc-regular load failed";
+			ActionImGuiRuntime.sharedDiagnostics.push(message);
+			ImGui.GetIO().Fonts.AddFontDefault(null);
+		}
+		return ActionImGuiRuntime.sharedDiagnostics;
+	}
+
+	private static shutdownBackend() {
+		const owner = ActionImGuiRuntime.backendOwner;
+		if (!owner) return;
+		if (ActionImGuiRuntime.sharedContext) {
+			ImGui.SetCurrentContext(ActionImGuiRuntime.sharedContext);
+		}
+		try {
+			ImGui_Impl.Shutdown();
+		} catch {
+			// imgui-ts backend shutdown is best-effort when switching canvases.
+		}
+		owner.backendInitialized = false;
+		if (ActionImGuiRuntime.activeRuntime === owner) {
+			ActionImGuiRuntime.activeRuntime = null;
+		}
+		ActionImGuiRuntime.backendOwner = null;
+	}
+
+	private static activateBackend(runtime: ActionImGuiRuntime) {
+		if (!runtime.canvas || runtime.disposed) return false;
+		if (!ActionImGuiRuntime.sharedContext) return false;
+		if (ActionImGuiRuntime.backendOwner === runtime) {
+			ActionImGuiRuntime.activeRuntime = runtime;
+			runtime.backendInitialized = true;
+			ImGui.SetCurrentContext(ActionImGuiRuntime.sharedContext);
+			return true;
+		}
+		ActionImGuiRuntime.shutdownBackend();
+		ImGui.SetCurrentContext(ActionImGuiRuntime.sharedContext);
+		ImGui_Impl.Init(runtime.canvas);
+		ActionImGuiRuntime.backendOwner = runtime;
+		ActionImGuiRuntime.activeRuntime = runtime;
+		runtime.backendInitialized = true;
+		return true;
+	}
+
 	async init(canvas: HTMLCanvasElement): Promise<ActionImGuiRuntimeStatus> {
+		let result: ActionImGuiRuntimeStatus = {ready: false, diagnostics: this.diagnostics};
+		const run = ActionImGuiRuntime.initQueue.then(async () => {
+			result = await this.initNow(canvas);
+		});
+		ActionImGuiRuntime.initQueue = run.catch(() => undefined);
+		await run;
+		return result;
+	}
+
+	private async initNow(canvas: HTMLCanvasElement): Promise<ActionImGuiRuntimeStatus> {
 		if (this.initialized) {
 			return {ready: true, diagnostics: this.diagnostics};
 		}
@@ -169,36 +239,15 @@ export class ActionImGuiRuntime {
 			return {ready: false, diagnostics: this.diagnostics};
 		}
 		this.canvas = canvas;
-		await ActionImGuiRuntime.loadModule();
+		const sharedDiagnostics = await ActionImGuiRuntime.ensureSharedContext();
+		this.diagnostics = sharedDiagnostics;
 		if (this.disposed) {
-			return {ready: false, diagnostics: this.diagnostics};
-		}
-		ImGui.CHECKVERSION();
-		this.context = ImGui.CreateContext();
-		ImGui.SetCurrentContext(this.context);
-		setDoraStyle();
-		try {
-			await loadDoraFont();
-		} catch (error) {
-			const message = error instanceof Error ? error.message : "sarasa-mono-sc-regular load failed";
-			this.diagnostics.push(message);
-			ImGui.GetIO().Fonts.AddFontDefault(null);
-		}
-		if (this.disposed) {
-			if (this.context) {
-				ImGui.SetCurrentContext(this.context);
-				ImGui.DestroyContext(this.context);
-				this.context = null;
-			}
 			this.canvas = null;
 			return {ready: false, diagnostics: this.diagnostics};
 		}
-		if (ActionImGuiRuntime.activeRuntime && ActionImGuiRuntime.activeRuntime !== this) {
-			ActionImGuiRuntime.activeRuntime.dispose();
-		}
-		ActionImGuiRuntime.activeRuntime = this;
-		ImGui_Impl.Init(canvas);
-		this.backendInitialized = true;
+		this.context = ActionImGuiRuntime.sharedContext;
+		ImGui.SetCurrentContext(this.context);
+		ActionImGuiRuntime.activateBackend(this);
 		this.initialized = true;
 		return {ready: true, diagnostics: this.diagnostics};
 	}
@@ -215,10 +264,11 @@ export class ActionImGuiRuntime {
 	}
 
 	render(time: number, draw: (imgui: ActionImGuiFrame) => void) {
-		if (!this.initialized || this.rendering || this.disposed || ActionImGuiRuntime.activeRuntime !== this) return;
+		if (!this.initialized || this.rendering || this.disposed) return;
 		this.rendering = true;
 		let frameStarted = false;
 		try {
+			ActionImGuiRuntime.activateBackend(this);
 			if (this.context) ImGui.SetCurrentContext(this.context);
 			this.syncCanvasFramebuffer();
 			ImGui_Impl.NewFrame(time);
@@ -246,15 +296,11 @@ export class ActionImGuiRuntime {
 	dispose() {
 		this.disposed = true;
 		if (!this.initialized && !this.context && !this.backendInitialized) return;
-		if (this.backendInitialized && ActionImGuiRuntime.activeRuntime === this) {
-			ImGui_Impl.Shutdown();
+		if (ActionImGuiRuntime.backendOwner === this) {
+			ActionImGuiRuntime.shutdownBackend();
 		}
 		this.backendInitialized = false;
-		if (this.context) {
-			ImGui.SetCurrentContext(this.context);
-			ImGui.DestroyContext(this.context);
-			this.context = null;
-		}
+		this.context = null;
 		this.canvas = null;
 		this.initialized = false;
 		this.rendering = false;

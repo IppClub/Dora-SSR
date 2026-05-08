@@ -12,8 +12,8 @@ import {
 } from "./index";
 import * as Service from "../Service";
 import ActionEditorCanvas from "./ActionEditorCanvas";
-import type {ActionEditorMode} from "./ActionEditorCanvas";
-import {chooseActionClipsDirectory, getActionAtlasPaths, getActionClipsDirectories} from "./ActionPaths";
+import type {ActionDocumentChangeOptions, ActionEditorMode} from "./ActionEditorCanvas";
+import {chooseActionClipsDirectory, getActionAtlasPaths, getActionClipFiles, getActionClipsDirectories} from "./ActionPaths";
 import {packActionClipsDirectory} from "./ActionAtlasPacker";
 
 export type ActionEditorProps = {
@@ -72,6 +72,7 @@ export default memo(function ActionEditor(props: ActionEditorProps) {
 	const onLoadFailedRef = useRef(onLoadFailed);
 	const [loadState, setLoadState] = useState(() => loadActionDocumentFromModelContent(sourceContent, filePath));
 	const [clipsDirs, setClipsDirs] = useState<string[]>([]);
+	const [clipFiles, setClipFiles] = useState<string[]>([]);
 	const [selectedClipsDir, setSelectedClipsDir] = useState<string | undefined>(undefined);
 	const [runtimeDiagnostics, setRuntimeDiagnostics] = useState<string[]>([]);
 	const [clipDocument, setClipDocument] = useState<ActionClipDocument | null>(null);
@@ -206,15 +207,18 @@ export default memo(function ActionEditor(props: ActionEditorProps) {
 			if (cancelled) return;
 			if (!res.success) {
 				setClipsDirs([]);
+				setClipFiles([]);
 				setSelectedClipsDir(undefined);
 				return;
 			}
 			const dirs = getActionClipsDirectories(res.files);
 			setClipsDirs(dirs);
+			setClipFiles(getActionClipFiles(res.files));
 			setSelectedClipsDir(chooseActionClipsDirectory(filePath, dirs));
 		}).catch(() => {
 			if (!cancelled) {
 				setClipsDirs([]);
+				setClipFiles([]);
 				setSelectedClipsDir(undefined);
 			}
 		});
@@ -223,8 +227,10 @@ export default memo(function ActionEditor(props: ActionEditorProps) {
 		};
 	}, [filePath]);
 
-	const emitDocument = useCallback((document: ActionDocument) => {
-		setUndoStack((items) => [...items, loadState.document]);
+	const emitDocument = useCallback((document: ActionDocument, options?: ActionDocumentChangeOptions) => {
+		if (options?.history !== "replace") {
+			setUndoStack((items) => [...items, loadState.document]);
+		}
 		setRedoStack([]);
 		setLoadState({document, diagnostics: [], dirty: true});
 		if (document.looks.indexOf(selectedLook ?? "") < 0) {
@@ -276,6 +282,14 @@ export default memo(function ActionEditor(props: ActionEditorProps) {
 		};
 		emitDocument(next);
 	}, [emitDocument, filePath, loadState.document]);
+
+	const handleClipFileSelect = useCallback((clipFile: string) => {
+		if (clipFile === loadState.document.clipFile) return;
+		emitDocument({
+			...loadState.document,
+			clipFile,
+		});
+	}, [emitDocument, loadState.document]);
 
 	const packSelectedClipsDir = useCallback(() => {
 		if (!selectedClipsDir || packing) return;
@@ -345,6 +359,7 @@ export default memo(function ActionEditor(props: ActionEditorProps) {
 			active={active}
 			readOnly={readOnly}
 			clipsDirs={clipsDirs}
+			clipFiles={clipFiles}
 			selectedClipsDir={selectedClipsDir}
 			selectedNodeId={selectedNodeId}
 			editMode={editMode}
@@ -355,6 +370,7 @@ export default memo(function ActionEditor(props: ActionEditorProps) {
 			playbackLoop={playbackLoop}
 			viewport={viewport}
 			onDocumentChange={emitDocument}
+			onClipFileSelect={handleClipFileSelect}
 			onClipsDirSelect={handleClipsDirSelect}
 			onPackClipsDir={packSelectedClipsDir}
 			onSelectionChange={setSelectedNodeId}

@@ -22,6 +22,7 @@ export type ActionRenderRect = {
 		{x: number; y: number},
 	];
 	visible: boolean;
+	opacity: number;
 	missingClip: boolean;
 };
 
@@ -33,8 +34,8 @@ export type ActionViewportRect = {
 };
 
 const fallbackRect = (node: ActionNode, document: ActionDocument): ActionClipRect => {
-	const width = node.id === document.root.id && document.size.width > 0 ? document.size.width : 80;
-	const height = node.id === document.root.id && document.size.height > 0 ? document.size.height : 80;
+	const width = node.id === document.root.id && document.size.width > 0 ? document.size.width : (node.clip === "" ? 0 : 80);
+	const height = node.id === document.root.id && document.size.height > 0 ? document.size.height : (node.clip === "" ? 0 : 80);
 	return {name: node.clip, x: 0, y: 0, width, height};
 };
 
@@ -66,20 +67,75 @@ const transformPoint = (matrix: ActionRenderMatrix, point: {x: number; y: number
 const transformMatrix = (transform: {
 	position: {x: number; y: number};
 	scale: {x: number; y: number};
+	skew?: {x: number; y: number};
 	rotation: number;
+	anchor?: {x: number; y: number};
+	size?: {width: number; height: number};
 }): ActionRenderMatrix => {
 	const scaleX = transform.scale.x === 0 ? 1 : transform.scale.x;
 	const scaleY = transform.scale.y === 0 ? 1 : transform.scale.y;
 	const radians = -transform.rotation * Math.PI / 180;
+	const skewX = (transform.skew?.x ?? 0) * Math.PI / 180;
+	const skewY = (transform.skew?.y ?? 0) * Math.PI / 180;
+	const tanX = Math.tan(skewX);
+	const tanY = Math.tan(skewY);
 	const cos = Math.cos(radians);
 	const sin = Math.sin(radians);
+	const a = (cos + tanX * sin) * scaleX;
+	const b = (tanY * cos + sin) * scaleX;
+	const c = (cos * tanX - sin) * scaleY;
+	const d = (cos - tanY * sin) * scaleY;
+	const anchorPoint = {
+		x: (transform.anchor?.x ?? 0) * (transform.size?.width ?? 0),
+		y: (transform.anchor?.y ?? 0) * (transform.size?.height ?? 0),
+	};
 	return {
-		a: cos * scaleX,
-		b: sin * scaleX,
-		c: -sin * scaleY,
-		d: cos * scaleY,
-		tx: transform.position.x,
-		ty: transform.position.y,
+		a,
+		b,
+		c,
+		d,
+		tx: transform.position.x - a * anchorPoint.x - c * anchorPoint.y,
+		ty: transform.position.y - b * anchorPoint.x - d * anchorPoint.y,
+	};
+};
+
+const clampOpacity = (opacity: number) => Math.max(0, Math.min(1, opacity));
+
+const findParentMatrix = (
+	document: ActionDocument,
+	clip: ActionClipDocument | null,
+	node: ActionNode,
+	targetNodeId: string,
+	parentMatrix: ActionRenderMatrix,
+): ActionRenderMatrix | null => {
+	if (node.id === targetNodeId) return parentMatrix;
+	const rect = node.clip ? clip?.rects[node.clip] : undefined;
+	const base = rect ?? fallbackRect(node, document);
+	const nodeMatrix = multiplyMatrix(parentMatrix, transformMatrix({...node.transform, size: base}));
+	for (const child of node.children) {
+		const result = findParentMatrix(document, clip, child, targetNodeId, nodeMatrix);
+		if (result) return result;
+	}
+	return null;
+};
+
+export const screenDeltaToNodeLocalDelta = (
+	document: ActionDocument,
+	clip: ActionClipDocument | null,
+	nodeId: string,
+	delta: {x: number; y: number},
+	viewport: ActionViewport,
+) => {
+	const worldDelta = {
+		x: delta.x / viewport.zoom,
+		y: -delta.y / viewport.zoom,
+	};
+	const parentMatrix = findParentMatrix(document, clip, document.root, nodeId, identityMatrix()) ?? identityMatrix();
+	const det = parentMatrix.a * parentMatrix.d - parentMatrix.b * parentMatrix.c;
+	if (Math.abs(det) < 0.000001) return worldDelta;
+	return {
+		x: (parentMatrix.d * worldDelta.x - parentMatrix.c * worldDelta.y) / det,
+		y: (-parentMatrix.b * worldDelta.x + parentMatrix.a * worldDelta.y) / det,
 	};
 };
 
@@ -91,47 +147,58 @@ const collectRenderRects = (
 	look: string | null,
 	animation: string | null,
 	time: number,
+	parentOpacity: number,
 	out: ActionRenderRect[],
 ) => {
+	if (node.id === document.root.id) {
+		for (const child of node.children) {
+			collectRenderRects(document, clip, child, parentMatrix, look, animation, time, parentOpacity, out);
+		}
+		return;
+	}
 	const rect = node.clip ? clip?.rects[node.clip] : undefined;
 	const base = rect ?? fallbackRect(node, document);
 	const track = animation ? node.tracks[animation] : undefined;
 	const sampled = track?.type === "key" ? sampleActionKeyTrack(track, time) : null;
 	const transform = sampled ?? node.transform;
-	const nodeMatrix = multiplyMatrix(parentMatrix, transformMatrix(transform));
-	const left = -base.width * node.transform.anchor.x;
-	const right = left + base.width;
-	const bottom = -base.height * node.transform.anchor.y;
-	const top = bottom + base.height;
-	const corners: ActionRenderRect["corners"] = [
-		transformPoint(nodeMatrix, {x: left, y: top}),
-		transformPoint(nodeMatrix, {x: right, y: top}),
-		transformPoint(nodeMatrix, {x: right, y: bottom}),
-		transformPoint(nodeMatrix, {x: left, y: bottom}),
-	];
-	const minX = Math.min(corners[0].x, corners[1].x, corners[2].x, corners[3].x);
-	const maxX = Math.max(corners[0].x, corners[1].x, corners[2].x, corners[3].x);
-	const minY = Math.min(corners[0].y, corners[1].y, corners[2].y, corners[3].y);
-	const maxY = Math.max(corners[0].y, corners[1].y, corners[2].y, corners[3].y);
+	const nodeMatrix = multiplyMatrix(parentMatrix, transformMatrix({...transform, anchor: node.transform.anchor, size: base}));
+	const opacity = parentOpacity * clampOpacity(transform.opacity ?? node.transform.opacity);
 	const visible = (look === null || node.hiddenInLooks.indexOf(look) < 0) && (sampled?.visible ?? true);
-	out.push({
-		nodeId: node.id,
-		name: node.name,
-		clip: node.clip,
-		sourceX: base.x,
-		sourceY: base.y,
-		sourceWidth: base.width,
-		sourceHeight: base.height,
-		x: minX,
-		y: minY,
-		width: Math.max(1, maxX - minX),
-		height: Math.max(1, maxY - minY),
-		corners,
-		visible,
-		missingClip: node.clip !== "" && rect === undefined,
-	});
+	if (node.clip !== "") {
+		const left = 0;
+		const right = base.width;
+		const bottom = 0;
+		const top = base.height;
+		const corners: ActionRenderRect["corners"] = [
+			transformPoint(nodeMatrix, {x: left, y: top}),
+			transformPoint(nodeMatrix, {x: right, y: top}),
+			transformPoint(nodeMatrix, {x: right, y: bottom}),
+			transformPoint(nodeMatrix, {x: left, y: bottom}),
+		];
+		const minX = Math.min(corners[0].x, corners[1].x, corners[2].x, corners[3].x);
+		const maxX = Math.max(corners[0].x, corners[1].x, corners[2].x, corners[3].x);
+		const minY = Math.min(corners[0].y, corners[1].y, corners[2].y, corners[3].y);
+		const maxY = Math.max(corners[0].y, corners[1].y, corners[2].y, corners[3].y);
+		out.push({
+			nodeId: node.id,
+			name: node.name,
+			clip: node.clip,
+			sourceX: base.x,
+			sourceY: base.y,
+			sourceWidth: base.width,
+			sourceHeight: base.height,
+			x: minX,
+			y: minY,
+			width: Math.max(1, maxX - minX),
+			height: Math.max(1, maxY - minY),
+			corners,
+			visible,
+			opacity,
+			missingClip: rect === undefined,
+		});
+	}
 	for (const child of node.children) {
-		collectRenderRects(document, clip, child, nodeMatrix, look, animation, time, out);
+		collectRenderRects(document, clip, child, nodeMatrix, look, animation, time, opacity, out);
 	}
 };
 
@@ -143,7 +210,7 @@ export const buildActionRenderRects = (
 	time = 0,
 ) => {
 	const rects: ActionRenderRect[] = [];
-	collectRenderRects(document, clip, document.root, identityMatrix(), look, animation, time, rects);
+	collectRenderRects(document, clip, document.root, identityMatrix(), look, animation, time, 1, rects);
 	return rects;
 };
 
@@ -202,10 +269,12 @@ const pointInQuad = (point: {x: number; y: number}, corners: ActionRenderRect["c
 export const hitTestActionRenderRects = (
 	rects: ActionRenderRect[],
 	point: {x: number; y: number},
+	accept?: (rect: ActionRenderRect) => boolean,
 ) => {
 	for (let index = rects.length - 1; index >= 0; index -= 1) {
 		const rect = rects[index];
 		if (!rect.visible) continue;
+		if (accept !== undefined && !accept(rect)) continue;
 		if (pointInQuad(point, rect.corners)) {
 			return rect.nodeId;
 		}

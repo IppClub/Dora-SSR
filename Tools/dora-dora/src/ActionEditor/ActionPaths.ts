@@ -25,6 +25,10 @@ export const getActionClipsDirectories = (entries: string[]) => entries
 	.filter((entry) => entry.endsWith(".clips"))
 	.sort((a, b) => a.localeCompare(b));
 
+export const getActionClipFiles = (entries: string[]) => entries
+	.filter((entry) => entry.toLowerCase().endsWith(".clip"))
+	.sort((a, b) => a.localeCompare(b));
+
 export const chooseActionClipsDirectory = (modelPath: string, entries: string[]) => {
 	const {file} = splitPath(modelPath);
 	const modelBaseName = stripExt(file, ".model");
