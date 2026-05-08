@@ -190,61 +190,172 @@ function createRuntimeVisual(state: EditorState, item: SceneNodeData) {
 	return wrapper;
 }
 
-export function rebuildPreviewRuntime(state: EditorState) {
+const runtimeVisualKeys: Record<string, string> = {};
+const runtimeParentKeys: Record<string, string> = {};
+let previewLayoutKey = '';
+
+function clearRecord<T>(record: Record<string, T>) {
+	for (const key in record) {
+		delete record[key];
+	}
+}
+
+function resetPreviewCaches(state: EditorState) {
+	previewLayoutKey = '';
+	clearRecord(runtimeVisualKeys);
+	clearRecord(runtimeParentKeys);
+	state.runtimeNodes = {};
+	state.runtimeLabels = {};
+}
+
+function runtimeVisualKey(state: EditorState, item: SceneNodeData) {
+	return [
+		item.kind,
+		item.texture || '',
+		item.text || '',
+		item.name || '',
+		item.id === state.selectedId ? 'selected' : 'normal',
+	].join('|');
+}
+
+function ensurePreviewRuntime(state: EditorState) {
 	if (state.previewRoot === undefined) {
 		state.previewRoot = Node();
 		state.previewRoot.tag = '__DoraImGuiEditorViewport__';
 		Director.entry.addChild(state.previewRoot);
 	}
-	state.previewRoot.removeAllChildren(true);
-	state.runtimeNodes = {};
-	state.runtimeLabels = {};
+	if (state.previewWorld === undefined) {
+		state.previewWorld = Node();
+	}
+	if (state.previewContent === undefined) {
+		state.previewContent = Node();
+	}
+	state.runtimeNodes.root = state.previewContent;
+}
 
+function updatePreviewLayout(state: EditorState) {
 	const renderScale = App.devicePixelRatio || 1;
 	const width = math.max(160, state.preview.width * renderScale);
 	const height = math.max(120, state.preview.height * renderScale);
-	const scale = math.max(0.25, state.zoom / 100);
-	const worldWidth = math.max(8192, width / scale * 6);
-	const worldHeight = math.max(8192, height / scale * 6);
+	const layoutKey = [
+		math.floor(width),
+		math.floor(height),
+		renderScale,
+		state.showGrid ? 'grid' : 'no-grid',
+	].join('|');
+	if (layoutKey === previewLayoutKey) return;
+	previewLayoutKey = layoutKey;
+
+	const root = state.previewRoot;
+	const world = state.previewWorld;
+	const content = state.previewContent;
+	if (root === undefined || world === undefined || content === undefined) return;
+
+	world.removeFromParent(false);
+	content.removeFromParent(false);
+	root.removeAllChildren(true);
+	world.removeAllChildren(true);
+
 	const clip = ClipNode(makeClipStencil(width, height));
 	clip.alphaThreshold = 0.01;
-	state.previewRoot.addChild(clip);
+	root.addChild(clip);
 	clip.addChild(makeCanvasBackground(width, height));
 
-	const world = Node();
-	world.x = state.viewportPanX;
-	world.y = state.viewportPanY;
-	world.scaleX = scale;
-	world.scaleY = scale;
-	state.previewWorld = world;
 	clip.addChild(world);
+	const worldWidth = 20000;
+	const worldHeight = 20000;
 	if (state.showGrid) {
 		world.addChild(makeGridLine(worldWidth, worldHeight));
 	}
 	world.addChild(makeAxisLine(worldWidth, worldHeight));
-	clip.addChild(makeSegmentRect(width, height, viewportGameFrameColor, 0.9));
-
-	const content = Node();
-	state.previewContent = content;
 	world.addChild(content);
-	state.runtimeNodes.root = content;
+	clip.addChild(makeSegmentRect(width, height, viewportGameFrameColor, 0.9));
+}
+
+function applyRuntimeTransform(state: EditorState, item: SceneNodeData, runtime: Node.Type) {
+	runtime.x = item.x;
+	runtime.y = item.y;
+	runtime.scaleX = item.scaleX;
+	runtime.scaleY = item.scaleY;
+	runtime.angle = item.rotation;
+	runtime.visible = item.visible;
+	runtime.tag = item.name;
+	const label = state.runtimeLabels[item.id] as Label.Type | undefined;
+	if (label !== undefined) label.text = item.text || 'Label';
+}
+
+function ensureRuntimeVisual(state: EditorState, item: SceneNodeData) {
+	const key = runtimeVisualKey(state, item);
+	let runtime = state.runtimeNodes[item.id];
+	if (runtime === undefined || runtimeVisualKeys[item.id] !== key) {
+		if (runtime !== undefined) {
+			// Do not cleanup here: this wrapper may currently own child scene nodes.
+			// They are re-parented in syncPreviewNodes after the new wrapper is created.
+			runtime.removeFromParent(false);
+		}
+		delete state.runtimeLabels[item.id];
+		runtime = createRuntimeVisual(state, item);
+		state.runtimeNodes[item.id] = runtime;
+		runtimeVisualKeys[item.id] = key;
+		clearRecord(runtimeParentKeys);
+	}
+	return runtime;
+}
+
+function syncPreviewNodes(state: EditorState) {
+	const content = state.previewContent;
+	if (content === undefined) return;
+	const alive: Record<string, boolean> = {};
 
 	for (const id of state.order) {
+		if (id === 'root') continue;
 		const item = state.nodes[id];
-		if (item !== undefined && id !== 'root') {
-			const runtime = createRuntimeVisual(state, item);
-			state.runtimeNodes[id] = runtime;
-			const parent = state.runtimeNodes[item.parentId || 'root'] || content;
+		if (item === undefined) continue;
+		alive[id] = true;
+		const runtime = ensureRuntimeVisual(state, item);
+		applyRuntimeTransform(state, item, runtime);
+	}
+
+	for (const id of state.order) {
+		if (id === 'root') continue;
+		const item = state.nodes[id];
+		const runtime = state.runtimeNodes[id];
+		if (item === undefined || runtime === undefined) continue;
+		const parentId = item.parentId || 'root';
+		const parent = state.runtimeNodes[parentId] || content;
+		if (runtimeParentKeys[id] !== parentId) {
+			runtime.removeFromParent(false);
 			parent.addChild(runtime);
+			runtimeParentKeys[id] = parentId;
 		}
 	}
-	state.previewDirty = false;
+
+	for (const id in state.runtimeNodes) {
+		if (id === 'root') continue;
+		if (alive[id]) continue;
+		const runtime = state.runtimeNodes[id];
+		if (runtime !== undefined) runtime.removeFromParent(true);
+		delete state.runtimeNodes[id];
+		delete state.runtimeLabels[id];
+		delete runtimeVisualKeys[id];
+		delete runtimeParentKeys[id];
+	}
+}
+
+export function rebuildPreviewRuntime(state: EditorState) {
+	if (state.previewRoot !== undefined) {
+		state.previewRoot.removeAllChildren(true);
+	}
+	state.previewWorld = undefined;
+	state.previewContent = undefined;
+	resetPreviewCaches(state);
+	state.previewDirty = true;
+	updatePreviewRuntime(state);
 }
 
 export function updatePreviewRuntime(state: EditorState) {
-	if (state.previewDirty || state.previewRoot === undefined) {
-		rebuildPreviewRuntime(state);
-	}
+	ensurePreviewRuntime(state);
+	updatePreviewLayout(state);
 	const p = state.preview;
 	const [cx, cy] = worldPointFromScreen(p.x + p.width / 2, p.y + p.height / 2);
 	const previewRoot = state.previewRoot;
@@ -258,18 +369,6 @@ export function updatePreviewRuntime(state: EditorState) {
 		state.previewWorld.scaleX = scale;
 		state.previewWorld.scaleY = scale;
 	}
-	for (const id of state.order) {
-		const item = state.nodes[id];
-		const runtime = state.runtimeNodes[id];
-		if (item !== undefined && runtime !== undefined) {
-			runtime.x = item.x;
-			runtime.y = item.y;
-			runtime.scaleX = item.scaleX;
-			runtime.scaleY = item.scaleY;
-			runtime.angle = item.rotation;
-			runtime.visible = item.visible;
-			const label = state.runtimeLabels[id] as Label.Type | undefined;
-			if (label !== undefined) label.text = item.text || 'Label';
-		}
-	}
+	syncPreviewNodes(state);
+	state.previewDirty = false;
 }
