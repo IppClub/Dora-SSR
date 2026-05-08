@@ -19,6 +19,12 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@zhobo63/imgui-ts": [
+        "src/ActionEditor/imgui-ts.d.ts"
+      ]
+    },
     "types": [
       "node",
       "react-transition-group"

@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 patchedDependencies:
+  '@zhobo63/imgui-ts@0.1.53':
+    hash: d64f87be6eb3f45d2f296a0e0d1f1282fb912e9cc342d4f627e1d2bfdc4f915e
+    path: patches/@zhobo63__imgui-ts@0.1.53.patch
   vite-plugin-monaco-editor@1.1.0:
     hash: 78bcfd876ec9dcb4b3100060e043c7d9f9f3242b269a1a0fd8f283bf74f97dc6
     path: patches/vite-plugin-monaco-editor@1.1.0.patch
@@ -43,6 +46,9 @@ importers:
       '@mui/system':
         specifier: ^7.3.8
         version: 7.3.8(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react@19.2.4)
+      '@zhobo63/imgui-ts':
+        specifier: ^0.1.53
+        version: 0.1.53(patch_hash=d64f87be6eb3f45d2f296a0e0d1f1282fb912e9cc342d4f627e1d2bfdc4f915e)
       antd:
         specifier: ^6.3.1
         version: 6.3.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -1668,6 +1674,9 @@ packages:
   '@types/debug@4.1.12':
     resolution: {integrity: sha512-vIChWdVG3LG1SMxEvI/AK+FWJthlrqlTu7fbrlywTkkaONwk/UAGaULXRlf8vkzFBLVm0zkMdCquhL5aOjhXPQ==}
 
+  '@types/emscripten@1.41.5':
+    resolution: {integrity: sha512-cMQm7pxu6BxtHyqJ7mQZ2kXWV5SLmugybFdHCBbJ5eHzOo6VhBckEgAT3//rP5FwPHNPeEiq4SmQ5ucBwsOo4Q==}
+
   '@types/estree-jsx@1.0.5':
     resolution: {integrity: sha512-52CcUVNFyfb1A2ALocQw/Dd1BQFNmSdkuC3BkZ6iqhdMfQz7JWOFRuJFloOzjk+6WijU56m9oKXFAXc7o3Towg==}
 
@@ -1808,6 +1817,9 @@ packages:
 
   '@vue/shared@3.5.29':
     resolution: {integrity: sha512-w7SR0A5zyRByL9XUkCfdLs7t9XOHUyJ67qPGQjOou3p6GvBeBW+AVjUUmlxtZ4PIYaRvE+1LmK44O4uajlZwcg==}
+
+  '@zhobo63/imgui-ts@0.1.53':
+    resolution: {integrity: sha512-2qk7Bk+uDSVbkyfZAwuseMCKF1bv1PZC2logWrEhfPZxH9XDeeCdEtASGYS12YJlbjQpuPXgpYseHzt++wJNBw==}
 
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
@@ -5119,6 +5131,8 @@ snapshots:
     dependencies:
       '@types/ms': 2.1.0
 
+  '@types/emscripten@1.41.5': {}
+
   '@types/estree-jsx@1.0.5':
     dependencies:
       '@types/estree': 1.0.8
@@ -5298,6 +5312,10 @@ snapshots:
       '@vue/shared': 3.5.29
 
   '@vue/shared@3.5.29': {}
+
+  '@zhobo63/imgui-ts@0.1.53(patch_hash=d64f87be6eb3f45d2f296a0e0d1f1282fb912e9cc342d4f627e1d2bfdc4f915e)':
+    dependencies:
+      '@types/emscripten': 1.41.5
 
   acorn-jsx@5.3.2(acorn@8.16.0):
     dependencies:

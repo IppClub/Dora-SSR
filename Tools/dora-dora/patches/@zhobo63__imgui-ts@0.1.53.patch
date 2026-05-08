@@ -1,0 +1,21 @@
+diff --git a/src/imgui_impl.ts b/src/imgui_impl.ts
+index 4fd90c79c7c47a6447550b96161629b7c0d079a8..155cd3131cc935ade79929b9c3696097122c7f69 100644
+--- a/src/imgui_impl.ts
++++ b/src/imgui_impl.ts
+@@ -764,7 +764,15 @@ function input_text_update(io:ImGui.IO):void {
+         dom_input=inp;
+     }
+     let framebb=inpState.FrameBB;
+-    inp.setRect(framebb.Min.x, framebb.Min.y, framebb.Max.x-framebb.Min.x, framebb.Max.y-framebb.Min.y);
++    const rect=canvas?.getBoundingClientRect();
++    const offsetX=rect?.left ?? 0;
++    const offsetY=rect?.top ?? 0;
++    inp.setRect(
++        offsetX+framebb.Min.x,
++        offsetY+framebb.Min.y,
++        framebb.Max.x-framebb.Min.x,
++        framebb.Max.y-framebb.Min.y
++    );
+     if(current_input_text!==inp.Text) {
+         current_input_text=inp.Text;
+         if(inp.Text)
