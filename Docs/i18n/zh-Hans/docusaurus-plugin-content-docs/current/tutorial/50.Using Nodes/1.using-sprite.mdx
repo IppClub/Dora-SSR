@@ -192,6 +192,8 @@ thread ->
 </TabItem>
 </Tabs>
 
+&emsp;&emsp;如果游戏中有很多小图，可以先把它们打包成 `.clip` 图集，再通过 `Sprite` 加载。完整流程请参考 [使用 TexturePacker 打包 Sprite 图片](./12.using-texture-packer.mdx)，其中包含从 `.clips` 目录到生成 `.png` 和 `.clip` 文件的步骤。
+
 ## 4. 设置 Sprite 的纹理矩形区域
 
 &emsp;&emsp;有时我们只想渲染纹理的一部分。这时可以通过设置 `textureRect` 来指定纹理的渲染区域。例如，如果我们想只渲染图片的左上角区域，可以这样做：
