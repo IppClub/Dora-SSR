@@ -192,6 +192,8 @@ thread ->
 </TabItem>
 </Tabs>
 
+If your game uses many small images, you can pack them into a `.clip` atlas first and then load the atlas with `Sprite`. See [Packing Sprite Images with TexturePacker](./12.using-texture-packer.mdx) for the full workflow from a `.clips` folder to generated `.png` and `.clip` files.
+
 ## 4. Setting the Texture Rect of a Sprite
 
 Sometimes we only want to render part of a texture. In such cases, we can use the `textureRect` property to specify the rendering area of the texture. For example, if we want to render only the top-left corner of the image, we can do it like this:

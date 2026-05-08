@@ -455,6 +455,91 @@ runner = YarnRunner "tutorial.yarn", "Start", {
 <<print $playerScore>>
 ```
 
-## 6. 结论
+## 6. 调试和错误排查
+
+Yarn 脚本通常会在剧情仍然变化时反复修改。Dora SSR 提供了两条快速反馈路径：在 Web IDE 中编辑时进行语法检查，以及使用 Yarn Tester 运行保存后的 `.yarn` 文件。
+
+### 6.1 在 Web IDE 中检查 Yarn 文件
+
+以文本方式编辑 `.yarn` 文件时，Web IDE 会使用 Yarn 编译器检查文件，并在编辑器中标记语法错误。错误结果包含消息、行号、列号和节点名，因此标记可以回到源文本中的对应位置。
+
+使用可视化 Yarn 编辑器时，编辑器会按节点分别检查每个 node body。如果某个节点包含无效的 Yarn 语法，检查结果会在编译器错误前带上节点标题，方便定位是哪一个节点出错。
+
+### 6.2 使用 Yarn Tester 运行文件
+
+保存 `.yarn` 文件后，可以从 Dora SSR 的开发工具中打开 **Yarn Tester**。测试器会扫描可写项目路径下所有以 `.yarn` 结尾的文件。如果测试器已经打开后才新增 Yarn 文件，请重新加载测试器，让文件列表重新扫描。
+
+在 Yarn Tester 中：
+
+- 使用 **Filter** 缩小文件列表。
+- 使用 **File** 选择要运行的 `.yarn` 文件。
+- 修改并保存文件后，点击 **Reload** 重新创建 runner。
+- 测试器会从 `Start` 节点开始运行。
+- 文本会显示在滚动区域中，选项会显示为编号选择，命令会显示为 `[command]: commandName args`。
+- **Variables** 区域会显示 runner 的状态。测试模式下，初始变量可以从 Yarn 文件开头的 `// variables:` 注释中读取。
+
+### 6.3 常见错误现象
+
+**缺少节点**：如果脚本跳转到不存在的节点，`YarnRunner` 会返回类似 `node "MissingNode" is not exist` 的错误。检查 `<<jump ...>>` 的目标，并确认文件里存在同名的 `title:` 节点。节点标题按名称匹配，拼写需要一致。
+
+**选项越界**：如果当前只有两个选项，但代码调用了 `runner:advance(3)`，runner 会返回 `choice 3 is out of range`。显示 `"Option"` 动作返回的选项列表，只把用户实际看到的编号传回 runner。
+
+**没有选项却传入选择**：如果剧情正在显示普通文本，但代码传入了选择编号，runner 会返回 `there is no option to choose`。普通文本继续时调用不带参数的 `advance()`；只有在 runner 返回 `"Option"` 后才传入数字。
+
+**需要选择却直接继续**：如果剧情正在等待玩家选择，但代码调用了不带参数的 `advance()`，runner 会返回 `required a choice to continue`。此时应保持选项 UI，直到玩家选择一个可用分支。
+
+**脚本语法错误**：无效 Yarn 语法会被编辑器检查发现，或在 Yarn Tester 重新加载文件时出现。在 Yarn Tester 中，加载失败会显示 `failed to load file ...`，后面跟着编译器错误。优先修复报错节点和报错行，保存文件后再点击 **Reload**。
+
+### 6.4 运行时错误行号如何映射回 Yarn 文本
+
+有些错误会在节点已经编译完成、剧情运行过程中才发生。`YarnRunner` 内部会把每个 Yarn 节点正文编译为 Lua。生成的 Lua 代码会保留记录原始 Yarn 行号的注释。发生 Lua 运行时错误时，`YarnRunner` 会把 Lua 错误行号改写回 Yarn 节点中的行号，并返回如下形式的错误：
+
+```text
+NodeTitle:line: message
+```
+
+例如，`Start:5: attempt to call a nil value` 表示 `Start` 节点正文中的第 5 行，不一定是整个 `.yarn` 文件的第 5 行。定位时先找到 `title: Start`，再从该节点的 `---` 分隔线之后开始数行。Web IDE 对完整 `.yarn` 文件做检查时，也可能直接提供源文件行号、列号和节点名。
+
+### 6.5 最小错误样例
+
+下面的文件有两个问题：它跳转到了一个不存在的节点，并且只有两个选项。如果游戏代码之后尝试选择选项 `3`，就会发生选项越界。
+
+```html title="broken.yarn"
+title: Start
+---
+你看到一扇锁住的门。
+-> 打开它
+	<<jump OpenDoor>>
+-> 离开
+	你退后了一步。
+===
+```
+
+你可能会看到：
+
+- 选择选项 `1` 后：`node "OpenDoor" is not exist`。
+- 如果代码对这个选项列表调用 `advance(3)`：`choice 3 is out of range`。
+
+下面是修复后的版本：
+
+```html title="fixed.yarn"
+title: Start
+---
+你看到一扇锁住的门。
+-> 打开它
+	<<jump OpenDoor>>
+-> 离开
+	你退后了一步。
+===
+
+title: OpenDoor
+---
+门发出轻响，慢慢打开了。
+===
+```
+
+保存修复后的文件，在 Yarn Tester 中重新加载，再次选择选项 `1`。此时剧情应该会继续进入 `OpenDoor` 节点。
+
+## 7. 结论
 
 &emsp;&emsp;现在，您已经设置好了所有必要的代码来加载和运行 Yarn 叙事脚本。您可以运行上述脚本来开始您的互动叙事，玩家可以通过选择选项来与叙事互动。祝您创作愉快！
