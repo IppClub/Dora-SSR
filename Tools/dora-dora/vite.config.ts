@@ -255,6 +255,12 @@ export default defineConfig(({ mode }) => {
     server: {
       host: true,
       port: Number(env.PORT) || 3000,
+      fs: {
+        allow: [
+          rootDir,
+          path.resolve(rootDir, '../..'),
+        ],
+      },
     },
   };
 });

@@ -52,6 +52,7 @@ import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
 import LLMConfigDialog from './LLMConfigDialog';
 import ProjectWorkspacePanel from './ProjectWorkspacePanel';
+import { createEmptyActionDocument, writeLegacyModel } from './ActionEditor';
 
 const SpinePlayer = React.lazy(() => import('./SpinePlayer'));
 const Markdown = React.lazy(() => import('./Markdown'));
@@ -60,6 +61,7 @@ const Blockly = React.lazy(() => import('./Blockly'));
 const YarnEditor = React.lazy(() => import('./YarnEditor'));
 const CodeWire = React.lazy(() => import('./CodeWire'));
 const TIC80Editor = React.lazy(() => import('./TIC80Editor'));
+const ActionEditor = React.lazy(() => import('./ActionEditor/ActionEditor'));
 
 const { path } = Info;
 
@@ -425,6 +427,9 @@ const getNewFileTemplate = (ext: string) => {
 			break;
 		case ".yarn":
 			content = `title: Start\ntags:\nposition: 50,50\ncolorID: 0\n---\nHello World!\n===\n`;
+			break;
+		case ".model":
+			content = writeLegacyModel(createEmptyActionDocument());
 			break;
 		default:
 			break;
@@ -1235,6 +1240,7 @@ export default function PersistentDrawerLeft() {
 				case ".md":
 				case ".yarn":
 				case ".vs":
+				case ".model":
 				case ".ts":
 				case ".tsx":
 				case ".wa":
@@ -1439,11 +1445,15 @@ export default function PersistentDrawerLeft() {
 
 				const existingIndex = nextFiles.findIndex(f => f.key === file);
 				if (existingIndex >= 0) {
+					if (path.extname(file).toLowerCase() === ".model") {
+						continue;
+					}
 					nextFiles = nextFiles.map((item, index) => index === existingIndex ? {
 						...item,
 						title: path.basename(file),
 						content,
 						contentModified: null,
+						status: "normal" as TabStatus,
 					} : item);
 					filesChanged = true;
 				}
@@ -1651,6 +1661,10 @@ export default function PersistentDrawerLeft() {
 			asProj = true;
 		}
 		const ext = path.extname(key).toLowerCase();
+		if (ext === ".model" && !asProj) {
+			addAlert(t("alert.modelRunCurrentUnsupported", {title}), "info");
+			return;
+		}
 		switch (ext) {
 			case ".lua":
 			case ".yue":
@@ -1664,6 +1678,7 @@ export default function PersistentDrawerLeft() {
 			case ".bl":
 			case ".wa":
 			case ".mod":
+			case ".model":
 			case "": {
 				if (ext === ".yarn" && !asProj) {
 					break;
@@ -2548,6 +2563,7 @@ export default function PersistentDrawerLeft() {
 			case "Teal": ext = ".tl"; break;
 			case "YueScript": ext = ".yue"; break;
 			case "Dora XML": ext = ".xml"; break;
+			case "Dora Animation": ext = ".model"; break;
 			case "Markdown": ext = ".md"; break;
 			case "Yarn": ext = ".yarn"; break;
 			case "Visual Script": ext = ".vs"; break;
@@ -2671,7 +2687,10 @@ export default function PersistentDrawerLeft() {
 				const newName = fileInfo.name + ext;
 				const newFile = path.join(dir, newName);
 				const folder = fileInfo.title === "file.newFolder";
-				const {content, position} = getNewFileTemplate(ext);
+				let {content, position} = getNewFileTemplate(ext);
+				if (ext === ".model") {
+					content = writeLegacyModel(createEmptyActionDocument(newFile, `${fileInfo.name}.clip`));
+				}
 				const initExt = folder && fileInfo.project ? getFolderProjectExtension(fileInfo.projectType ?? "TypeScript") : null;
 				const initFile = initExt ? path.join(newFile, `init${initExt}`) : null;
 				const initTemplate = initExt ? getNewFileTemplate(initExt) : null;
@@ -3984,6 +4003,7 @@ export default function PersistentDrawerLeft() {
 						let visualScript = false;
 						let blockly = false;
 						let tic80 = false;
+						let actionModel = false;
 						switch (ext.toLowerCase()) {
 							case ".lua": language = "lua"; break;
 							case ".tl": language = "tl"; break;
@@ -4000,6 +4020,7 @@ export default function PersistentDrawerLeft() {
 							case ".bl": blockly = true; break;
 							case ".vs": visualScript = true; break;
 							case ".tic": tic80 = true; break;
+							case ".model": actionModel = true; break;
 							case "": language = null; break;
 							default: language = "txt"; break
 						}
@@ -4019,6 +4040,24 @@ export default function PersistentDrawerLeft() {
 							drawerWidth={drawerWidth}
 						>
 							<DrawerHeader/>
+							{actionModel ?
+								<Suspense fallback={<div/>}>
+									<ActionEditor
+										filePath={file.key}
+										sourceContent={file.content}
+										width={editorWidth}
+										height={editorHeight}
+										active={tabIndex === index}
+										readOnly={readOnly}
+										onChange={(content) => {
+											setModified({key: file.key, content});
+										}}
+										onLoadFailed={(message) => {
+											addAlert(message, "error", true);
+										}}
+									/>
+								</Suspense> : null
+							}
 							{yarn && !file.yarnTextEditing ?
 								<div style={{display: 'flex', position: 'relative'}}>
 									<Suspense fallback={<div/>}>
