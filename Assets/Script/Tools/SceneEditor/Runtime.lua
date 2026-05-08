@@ -312,90 +312,192 @@ local function createRuntimeVisual(state, item) -- 163
 	end -- 188
 	return wrapper -- 190
 end -- 163
-function ____exports.rebuildPreviewRuntime(state) -- 193
-	if state.previewRoot == nil then -- 193
-		state.previewRoot = Node() -- 195
-		state.previewRoot.tag = "__DoraImGuiEditorViewport__" -- 196
-		Director.entry:addChild(state.previewRoot) -- 197
-	end -- 197
-	state.previewRoot:removeAllChildren(true) -- 199
-	state.runtimeNodes = {} -- 200
-	state.runtimeLabels = {} -- 201
-	local renderScale = App.devicePixelRatio or 1 -- 203
-	local width = math.max(160, state.preview.width * renderScale) -- 204
-	local height = math.max(120, state.preview.height * renderScale) -- 205
-	local scale = math.max(0.25, state.zoom / 100) -- 206
-	local worldWidth = math.max(8192, width / scale * 6) -- 207
-	local worldHeight = math.max(8192, height / scale * 6) -- 208
-	local clip = ClipNode(makeClipStencil(width, height)) -- 209
-	clip.alphaThreshold = 0.01 -- 210
-	state.previewRoot:addChild(clip) -- 211
-	clip:addChild(makeCanvasBackground(width, height)) -- 212
-	local world = Node() -- 214
-	world.x = state.viewportPanX -- 215
-	world.y = state.viewportPanY -- 216
-	world.scaleX = scale -- 217
-	world.scaleY = scale -- 218
-	state.previewWorld = world -- 219
-	clip:addChild(world) -- 220
-	if state.showGrid then -- 220
-		world:addChild(makeGridLine(worldWidth, worldHeight)) -- 222
-	end -- 222
-	world:addChild(makeAxisLine(worldWidth, worldHeight)) -- 224
-	clip:addChild(makeSegmentRect(width, height, viewportGameFrameColor, 0.9)) -- 225
-	local content = Node() -- 227
-	state.previewContent = content -- 228
-	world:addChild(content) -- 229
-	state.runtimeNodes.root = content -- 230
-	for ____, id in ipairs(state.order) do -- 232
-		local item = state.nodes[id] -- 233
-		if item ~= nil and id ~= "root" then -- 233
-			local runtime = createRuntimeVisual(state, item) -- 235
-			state.runtimeNodes[id] = runtime -- 236
-			local parent = state.runtimeNodes[item.parentId or "root"] or content -- 237
-			parent:addChild(runtime) -- 238
-		end -- 238
-	end -- 238
-	state.previewDirty = false -- 241
-end -- 193
-function ____exports.updatePreviewRuntime(state) -- 244
-	if state.previewDirty or state.previewRoot == nil then -- 244
-		____exports.rebuildPreviewRuntime(state) -- 246
-	end -- 246
-	local p = state.preview -- 248
-	local cx, cy = table.unpack( -- 249
-		worldPointFromScreen(p.x + p.width / 2, p.y + p.height / 2), -- 249
-		1, -- 249
-		2 -- 249
-	) -- 249
-	local previewRoot = state.previewRoot -- 250
-	if previewRoot == nil then -- 250
-		return -- 251
-	end -- 251
-	previewRoot.x = cx -- 252
-	previewRoot.y = cy -- 253
-	if state.previewWorld ~= nil then -- 253
-		local scale = math.max(0.25, state.zoom / 100) -- 255
-		state.previewWorld.x = state.viewportPanX -- 256
-		state.previewWorld.y = state.viewportPanY -- 257
-		state.previewWorld.scaleX = scale -- 258
-		state.previewWorld.scaleY = scale -- 259
-	end -- 259
-	for ____, id in ipairs(state.order) do -- 261
-		local item = state.nodes[id] -- 262
-		local runtime = state.runtimeNodes[id] -- 263
-		if item ~= nil and runtime ~= nil then -- 263
-			runtime.x = item.x -- 265
-			runtime.y = item.y -- 266
-			runtime.scaleX = item.scaleX -- 267
-			runtime.scaleY = item.scaleY -- 268
-			runtime.angle = item.rotation -- 269
-			runtime.visible = item.visible -- 270
-			local label = state.runtimeLabels[id] -- 271
-			if label ~= nil then -- 271
-				label.text = item.text or "Label" -- 272
-			end -- 272
-		end -- 272
-	end -- 272
-end -- 244
-return ____exports -- 244
+local runtimeVisualKeys = {} -- 193
+local runtimeParentKeys = {} -- 194
+local previewLayoutKey = "" -- 195
+local function clearRecord(record) -- 197
+	for key in pairs(record) do -- 198
+		record[key] = nil -- 199
+	end -- 199
+end -- 197
+local function resetPreviewCaches(state) -- 203
+	previewLayoutKey = "" -- 204
+	clearRecord(runtimeVisualKeys) -- 205
+	clearRecord(runtimeParentKeys) -- 206
+	state.runtimeNodes = {} -- 207
+	state.runtimeLabels = {} -- 208
+end -- 203
+local function runtimeVisualKey(state, item) -- 211
+	return table.concat( -- 212
+		{ -- 212
+			item.kind, -- 213
+			item.texture or "", -- 214
+			item.text or "", -- 215
+			item.name or "", -- 216
+			item.id == state.selectedId and "selected" or "normal" -- 217
+		}, -- 217
+		"|" -- 218
+	) -- 218
+end -- 211
+local function ensurePreviewRuntime(state) -- 221
+	if state.previewRoot == nil then -- 221
+		state.previewRoot = Node() -- 223
+		state.previewRoot.tag = "__DoraImGuiEditorViewport__" -- 224
+		Director.entry:addChild(state.previewRoot) -- 225
+	end -- 225
+	if state.previewWorld == nil then -- 225
+		state.previewWorld = Node() -- 228
+	end -- 228
+	if state.previewContent == nil then -- 228
+		state.previewContent = Node() -- 231
+	end -- 231
+	state.runtimeNodes.root = state.previewContent -- 233
+end -- 221
+local function updatePreviewLayout(state) -- 236
+	local renderScale = App.devicePixelRatio or 1 -- 237
+	local width = math.max(160, state.preview.width * renderScale) -- 238
+	local height = math.max(120, state.preview.height * renderScale) -- 239
+	local layoutKey = table.concat( -- 240
+		{ -- 240
+			math.floor(width), -- 241
+			math.floor(height), -- 242
+			renderScale, -- 243
+			state.showGrid and "grid" or "no-grid" -- 244
+		}, -- 244
+		"|" -- 245
+	) -- 245
+	if layoutKey == previewLayoutKey then -- 245
+		return -- 247
+	end -- 247
+	previewLayoutKey = layoutKey -- 249
+	local root = state.previewRoot -- 250
+	local world = state.previewWorld -- 251
+	local content = state.previewContent -- 252
+	if root == nil or world == nil or content == nil then -- 252
+		return -- 254
+	end -- 254
+	world:removeFromParent(false) -- 256
+	content:removeFromParent(false) -- 257
+	root:removeAllChildren(true) -- 258
+	world:removeAllChildren(true) -- 259
+	local clip = ClipNode(makeClipStencil(width, height)) -- 261
+	clip.alphaThreshold = 0.01 -- 262
+	root:addChild(clip) -- 263
+	clip:addChild(makeCanvasBackground(width, height)) -- 264
+	clip:addChild(world) -- 266
+	local worldWidth = 20000 -- 267
+	local worldHeight = 20000 -- 268
+	if state.showGrid then -- 268
+		world:addChild(makeGridLine(worldWidth, worldHeight)) -- 270
+	end -- 270
+	world:addChild(makeAxisLine(worldWidth, worldHeight)) -- 272
+	world:addChild(content) -- 273
+	clip:addChild(makeSegmentRect(width, height, viewportGameFrameColor, 0.9)) -- 274
+end -- 236
+local function applyRuntimeTransform(state, item, runtime) -- 277
+	runtime.x = item.x -- 278
+	runtime.y = item.y -- 279
+	runtime.scaleX = item.scaleX -- 280
+	runtime.scaleY = item.scaleY -- 281
+	runtime.angle = item.rotation -- 282
+	runtime.visible = item.visible -- 283
+	runtime.tag = item.name -- 284
+	local label = state.runtimeLabels[item.id] -- 285
+	if label ~= nil then -- 285
+		label.text = item.text or "Label" -- 286
+	end -- 286
+end -- 277
+local function ensureRuntimeVisual(state, item) -- 290
+	local key = runtimeVisualKey(state, item) -- 291
+	local runtime = state.runtimeNodes[item.id] -- 292
+	if runtime == nil or runtimeVisualKeys[item.id] ~= key then -- 292
+		if runtime ~= nil then -- 292
+			runtime:removeFromParent(false) -- 295
+		end -- 295
+		state.runtimeLabels[item.id] = nil -- 297
+		runtime = createRuntimeVisual(state, item) -- 298
+		state.runtimeNodes[item.id] = runtime -- 299
+		runtimeVisualKeys[item.id] = key -- 300
+		clearRecord(runtimeParentKeys) -- 301
+	end -- 301
+	return runtime -- 303
+end -- 290
+local function syncPreviewNodes(state) -- 306
+	local content = state.previewContent -- 307
+	if content == nil then -- 307
+		return -- 308
+	end -- 308
+	local alive = {} -- 310
+	for ____, id in ipairs(state.order) do -- 312
+		if id ~= "root" then -- 312
+			local item = state.nodes[id] -- 314
+			if item ~= nil then -- 314
+				alive[id] = true -- 316
+				local runtime = ensureRuntimeVisual(state, item) -- 317
+				applyRuntimeTransform(state, item, runtime) -- 318
+			end -- 318
+		end -- 318
+	end -- 318
+	for ____, id in ipairs(state.order) do -- 322
+		if id ~= "root" then -- 322
+			local item = state.nodes[id] -- 324
+			local runtime = state.runtimeNodes[id] -- 325
+			if item ~= nil and runtime ~= nil then -- 325
+				local parentId = item.parentId or "root" -- 327
+				local parent = state.runtimeNodes[parentId] or content -- 328
+				if runtimeParentKeys[id] ~= parentId then -- 328
+					runtime:removeFromParent(false) -- 330
+					parent:addChild(runtime) -- 331
+					runtimeParentKeys[id] = parentId -- 332
+				end -- 332
+			end -- 332
+		end -- 332
+	end -- 332
+	for id, runtime in pairs(state.runtimeNodes) do -- 337
+		if id ~= "root" and not alive[id] then -- 337
+			if runtime ~= nil then -- 337
+				runtime:removeFromParent(true) -- 339
+			end -- 339
+			state.runtimeNodes[id] = nil -- 341
+			state.runtimeLabels[id] = nil -- 342
+			runtimeVisualKeys[id] = nil -- 343
+			runtimeParentKeys[id] = nil -- 344
+		end -- 344
+	end -- 344
+end -- 306
+function ____exports.rebuildPreviewRuntime(state) -- 348
+	if state.previewRoot ~= nil then -- 348
+		state.previewRoot:removeAllChildren(true) -- 350
+	end -- 350
+	state.previewWorld = nil -- 352
+	state.previewContent = nil -- 353
+	resetPreviewCaches(state) -- 354
+	state.previewDirty = true -- 355
+	____exports.updatePreviewRuntime(state) -- 356
+end -- 348
+function ____exports.updatePreviewRuntime(state) -- 359
+	ensurePreviewRuntime(state) -- 360
+	updatePreviewLayout(state) -- 361
+	local p = state.preview -- 362
+	local cx, cy = table.unpack( -- 363
+		worldPointFromScreen(p.x + p.width / 2, p.y + p.height / 2), -- 363
+		1, -- 363
+		2 -- 363
+	) -- 363
+	local previewRoot = state.previewRoot -- 364
+	if previewRoot == nil then -- 364
+		return -- 365
+	end -- 365
+	previewRoot.x = cx -- 367
+	previewRoot.y = cy -- 368
+	if state.previewWorld ~= nil then -- 368
+		local scale = math.max(0.25, state.zoom / 100) -- 370
+		state.previewWorld.x = state.viewportPanX -- 371
+		state.previewWorld.y = state.viewportPanY -- 372
+		state.previewWorld.scaleX = scale -- 373
+		state.previewWorld.scaleY = scale -- 374
+	end -- 374
+	syncPreviewNodes(state) -- 376
+	state.previewDirty = false -- 377
+end -- 359
+return ____exports -- 359
