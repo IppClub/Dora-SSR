@@ -18,10 +18,22 @@ export const setAuthRequired = (required: boolean) => {
 let webSocket: WebSocket;
 export const getWebSocket = () => webSocket ? webSocket : null;
 
+export interface OpenFileMessage {
+	file: string;
+	title?: string;
+	folder?: boolean;
+	position?: {
+		lineNumber: number;
+		column: number;
+	};
+	readOnly?: boolean;
+}
+
 type ServiceEvents = {
 	[WsEvent.Log]: [string, string];
 	[WsEvent.Profiler]: [ProfilerInfo];
 	[WsEvent.UpdateFile]: [string, boolean, string];
+	[WsEvent.OpenFile]: [OpenFileMessage];
 	[WsEvent.Download]: [string, WsDownloadStatus, number];
 	[WsOpenEvent]: [];
 	[WsCloseEvent]: [];
@@ -115,6 +127,7 @@ const enum WsEvent {
 	Profiler = "Profiler",
 	TranspileTS = "TranspileTS",
 	UpdateFile = "UpdateFile",
+	OpenFile = "OpenFile",
 	Download = "Download",
 }
 
@@ -156,6 +169,14 @@ export const addUpdateFileListener = (listener: (file: string, exists: boolean, 
 
 export const removeUpdateFileListener = (listener: (file: string, exists: boolean, content: string) => void) => {
 	eventEmitter.off(WsEvent.UpdateFile, listener);
+};
+
+export const addOpenFileListener = (listener: (message: OpenFileMessage) => void) => {
+	eventEmitter.on(WsEvent.OpenFile, listener);
+};
+
+export const removeOpenFileListener = (listener: (message: OpenFileMessage) => void) => {
+	eventEmitter.off(WsEvent.OpenFile, listener);
 };
 
 type WsDownloadStatus = "downloading" | "completed" | "failed";
@@ -239,6 +260,18 @@ export function openWebSocket() {
 							}
 							case WsEvent.UpdateFile: {
 								eventEmitter.emit(result.name, result.file, result.exists !== false, result.content ?? "");
+								break;
+							}
+							case WsEvent.OpenFile: {
+								if (typeof result.file === "string") {
+									eventEmitter.emit(result.name, {
+										file: result.file,
+										title: typeof result.title === "string" ? result.title : undefined,
+										folder: result.folder === true,
+										position: result.position,
+										readOnly: result.readOnly === true,
+									});
+								}
 								break;
 							}
 							case WsEvent.Download: {

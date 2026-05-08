@@ -153,7 +153,7 @@ local function runNodeScript(state, item, runtimeNode) -- 99
 	if scriptText == "" then -- 100
 		return -- 101
 	end -- 101
-	local chunk, loadError = loadstring(scriptText, item.script) -- 102
+	local chunk, loadError = load(scriptText, item.script) -- 102
 	if chunk == nil then -- 102
 		pushConsole( -- 104
 			state, -- 104
