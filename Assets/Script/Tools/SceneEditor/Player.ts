@@ -5,7 +5,7 @@ import { EditorState, SceneNodeData } from 'Script/Tools/SceneEditor/Types';
 import { okColor, themeColor, viewportBgColor, viewportFrameColor, warnColor } from 'Script/Tools/SceneEditor/Theme';
 import { pushConsole, zh } from 'Script/Tools/SceneEditor/Model';
 
-declare function loadstring(code: string, chunkname?: string): LuaMultiReturn<[(() => unknown) | undefined, string | undefined]>;
+declare function load(code: string, chunkname?: string): LuaMultiReturn<[(() => unknown) | undefined, string | undefined]>;
 declare function pcall(fn: () => unknown): LuaMultiReturn<[boolean, unknown]>;
 declare function type(value: unknown): string;
 
@@ -99,7 +99,7 @@ function loadNodeScript(item: SceneNodeData) {
 function runNodeScript(state: EditorState, item: SceneNodeData, runtimeNode: Node.Type) {
 	const scriptText = loadNodeScript(item);
 	if (scriptText === '') return;
-	const [chunk, loadError] = loadstring(scriptText, item.script);
+	const [chunk, loadError] = load(scriptText, item.script);
 	if (chunk === undefined) {
 		pushConsole(state, (zh ? '脚本加载失败：' : 'Script load failed: ') + item.script + ' ' + tostring(loadError || ''));
 		return;

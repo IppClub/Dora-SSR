@@ -1,4 +1,4 @@
-import { App, Color, Content, Keyboard, KeyName, Mouse, Path, Vec2, json } from 'Dora';
+import { App, Color, Content, Keyboard, KeyName, Mouse, Path, Vec2, emit, json } from 'Dora';
 import * as ImGui from 'ImGui';
 import { SetCond, StyleColor } from 'ImGui';
 import { EditorState, SceneNodeData, ViewportTool } from 'Script/Tools/SceneEditor/Types';
@@ -212,7 +212,14 @@ function drawAssetsPanel(state: EditorState) {
 
 function scriptTemplate(node?: SceneNodeData) {
 	const name = node !== undefined ? node.name : 'Script';
-	return '-- ' + name + ' behavior\nreturn function(node, scene)\n\t-- write behavior here\nend\n';
+	return '-- ' + name + ' behavior\n'
+		+ 'return function(node, scene, nodes)\n'
+		+ '\tif node == nil then\n'
+		+ '\t\tprint("[SceneScript] ' + name + ': node is nil; run the scene/game preview instead of this behavior script directly.")\n'
+		+ '\t\treturn\n'
+		+ '\tend\n'
+		+ '\t-- write behavior here\n'
+		+ 'end\n';
 }
 
 function loadScriptIntoEditor(state: EditorState, node: SceneNodeData | undefined, scriptPath: string) {
@@ -268,6 +275,11 @@ function currentScriptPath(state: EditorState, node?: SceneNodeData) {
 	return 'Script/NewScript.lua';
 }
 
+function sendWebIDEMessage(payload: object) {
+	const [text] = json.encode(payload);
+	if (text !== undefined) emit('AppWS', 'Send', text);
+}
+
 function openScriptInWebIDE(state: EditorState, node?: SceneNodeData) {
 	const scriptPath = currentScriptPath(state, node);
 	state.scriptPathBuffer.text = scriptPath;
@@ -275,7 +287,21 @@ function openScriptInWebIDE(state: EditorState, node?: SceneNodeData) {
 		state.scriptContentBuffer.text = scriptTemplate(node);
 	}
 	saveScriptFile(state, node);
-	const title = Path.getName(scriptPath) || scriptPath;
+	const title = Path.getFilename(scriptPath) || scriptPath;
+	const fullScriptPath = Path(Content.writablePath, scriptPath);
+	sendWebIDEMessage({
+		name: 'UpdateFile',
+		file: fullScriptPath,
+		exists: true,
+		content: state.scriptContentBuffer.text,
+	});
+	sendWebIDEMessage({
+		name: 'OpenFile',
+		file: fullScriptPath,
+		title,
+		folder: false,
+		position: { lineNumber: 1, column: 1 },
+	});
 	const editingInfo = {
 		index: 0,
 		files: [{
