@@ -146,6 +146,7 @@ if not config.locale?
 	config.locale = App.locale
 
 showStats = false
+showStatsFocusPending = false
 if config.showStats?
 	showStats = config.showStats
 else
@@ -741,6 +742,8 @@ visualEditorEntry = ->
 	fileName: Path Content.assetPath, "Script", "Tools", "SceneImGuiEditor"
 
 openVisualEditor = ->
+	showFooter = true
+	config.showFooter = showFooter
 	allClear!
 	enterDemoEntry visualEditorEntry!
 
@@ -957,7 +960,9 @@ footerWindow = threadLoop ->
 	if authCodeTTL <= 0
 		authCodeTTL = $MaxAuthCodeTTL
 		authCode = string.format "%06d", math.random 0, 999999
-	if HttpServer.wsConnectionCount > 0
+	-- Keep the native footer/settings usable for native entries such as the Visual Editor.
+	-- Web IDE connections should not bury the external Dora controls when showFooter is enabled.
+	if HttpServer.wsConnectionCount > 0 and not showFooter
 		return
 	if Keyboard\isKeyDown "Escape"
 		allClear!
@@ -971,6 +976,7 @@ footerWindow = threadLoop ->
 			reloadCurrentEntry!
 		if ctrl and Keyboard\isKeyDown ","
 			showStats = if showFooter then not showStats else true
+			showStatsFocusPending = true if showStats
 			showFooter = true
 			config.showFooter = showFooter
 			config.showStats = showStats
@@ -1023,6 +1029,7 @@ footerWindow = threadLoop ->
 		if iconTex
 			if ImageButton "sideBtn", icon, Vec2 20, 20
 				showStats = not showStats
+				showStatsFocusPending = true if showStats
 				config.showStats = showStats
 			SameLine!
 			if Button ">_", Vec2 30, 30
@@ -1142,6 +1149,9 @@ footerWindow = threadLoop ->
 			<- PushStyleVar "WindowRounding", 0
 			SetNextWindowPos Vec2(0, 0), $SetCond Always
 			SetNextWindowSize Vec2 0, height - 50
+			if showStatsFocusPending
+				SetNextWindowFocus!
+				showStatsFocusPending = false
 			showStats = ShowStats showStats, statusFlags, extraOperations
 			config.showStats = showStats
 		if showConsole

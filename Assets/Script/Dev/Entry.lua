@@ -248,6 +248,7 @@ if not (config.locale ~= nil) then -- 145
 	config.locale = App.locale -- 146
 end -- 145
 local showStats = false -- 148
+local showStatsFocusPending = false -- layer: focus native settings above entry/editor once when opened
 if (config.showStats ~= nil) then -- 149
 	showStats = config.showStats -- 150
 else -- 152
@@ -1255,6 +1256,8 @@ visualEditorEntry = function()
 end
 local openVisualEditor -- open visual editor
 openVisualEditor = function()
+	showFooter = true
+	config.showFooter = showFooter
 	allClear()
 	return enterDemoEntry(visualEditorEntry())
 end
@@ -1587,7 +1590,9 @@ footerWindow = threadLoop(function() -- 946
 		authCodeTTL = 30.0 -- 950
 		authCode = string.format("%06d", math.random(0, 999999)) -- 951
 	end -- 949
-	if HttpServer.wsConnectionCount > 0 then -- 952
+	-- Keep the native footer/settings usable for native entries such as the Visual Editor.
+	-- Web IDE connections should not bury the external Dora controls when showFooter is enabled.
+	if HttpServer.wsConnectionCount > 0 and not showFooter then -- 952
 		return -- 953
 	end -- 952
 	if Keyboard:isKeyDown("Escape") then -- 954
@@ -1609,6 +1614,9 @@ footerWindow = threadLoop(function() -- 946
 			else -- 965
 				showStats = true -- 965
 			end -- 965
+			if showStats then -- layer: native settings should open above current entry/editor
+				showStatsFocusPending = true
+			end
 			showFooter = true -- 966
 			config.showFooter = showFooter -- 967
 			config.showStats = showStats -- 968
@@ -1674,6 +1682,9 @@ footerWindow = threadLoop(function() -- 946
 					if iconTex then -- 1015
 						if ImageButton("sideBtn", icon, Vec2(20, 20)) then -- 1016
 							showStats = not showStats -- 1017
+							if showStats then -- layer: native settings should open above current entry/editor
+								showStatsFocusPending = true
+							end
 							config.showStats = showStats -- 1018
 						end -- 1016
 						SameLine() -- 1019
@@ -1883,6 +1894,10 @@ footerWindow = threadLoop(function() -- 946
 			PushStyleVar("WindowRounding", 0, function() -- 1134
 				SetNextWindowPos(Vec2(0, 0), "Always") -- 1135
 				SetNextWindowSize(Vec2(0, height - 50)) -- 1136
+				if showStatsFocusPending then -- layer: focus native settings above entry/editor once
+					SetNextWindowFocus()
+					showStatsFocusPending = false
+				end
 				showStats = ShowStats(showStats, statusFlags, extraOperations) -- 1137
 				config.showStats = showStats -- 1138
 			end) -- 1134
