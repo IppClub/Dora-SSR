@@ -59,6 +59,9 @@ export type ActionNode = {
 	hiddenInLooks: string[];
 	tracks: Record<string, ActionTrack>;
 	children: ActionNode[];
+	legacy?: {
+		hiddenLookIndices?: number[];
+	};
 };
 
 export type ActionDocument = {
@@ -72,7 +75,10 @@ export type ActionDocument = {
 	looks: string[];
 	keyPoints: ActionKeyPoint[];
 	legacy: {
-		useBatch?: boolean;
+		animationIndexes?: Record<string, number>;
+		lookIndexes?: Record<string, number>;
+		animationOrder?: string[];
+		lookOrder?: string[];
 	};
 };
 

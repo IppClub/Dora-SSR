@@ -22,7 +22,7 @@
     "baseUrl": ".",
     "paths": {
       "@zhobo63/imgui-ts": [
-        "src/ActionEditor/imgui-ts.d.ts"
+        "src/ActionEditor/imgui-ts-types/index.d.ts"
       ]
     },
     "types": [

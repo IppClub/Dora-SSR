@@ -32,7 +32,7 @@
 | AE-00 | 方案 | 设计文档确认 | done | - | `Docs/action-editor-web-ide-rebuild.md` 反映当前 `.model` 直读直存方案 | 人工审阅当前文档 | `Docs/action-editor-web-ide-rebuild.md` | 已按当前实现同步为 `.model` 直读直存、canvas + WebGL + imgui-ts 方案 |
 | AE-01 | 数据模型 | 定义内部 `ActionDocument` 类型 | done | AE-00 | 类型覆盖 model、node、look、animation、key frame、viewport 无关数据 | `cd Tools/dora-dora && pnpm exec tsc --noEmit -p tsconfig.json` 通过 | `Tools/dora-dora/src/ActionEditor/ActionDocument.ts` | 内部编辑态类型；不持久化 `.action.json` |
 | AE-02 | `.model` 解析 | 实现 `.model` XML parser | done | AE-01 | 能解析历史 `role.model`、`flandre.model` 为内部对象模型 | `cd Tools/dora-dora && pnpm exec node scripts/verify-action-editor-data.mjs` 通过 | `Tools/dora-dora/src/ActionEditor/ActionLegacyModel.ts` | 已按引擎 parser 语义展开缺失 key frame 属性和 duration |
-| AE-03 | `.model` 序列化 | 实现内部对象模型 -> `.model` writer | done | AE-02 | 保存后的 `.model` 能被 Dora `Model()` 加载 | `cd Tools/dora-dora && pnpm exec node scripts/verify-action-editor-data.mjs` 覆盖 fixture parse -> write -> parse；引擎运行验证未做 | `Tools/dora-dora/src/ActionEditor/ActionLegacyModel.ts` | 不输出 `useBatch` 可编辑字段；旧 root `B` 仅兼容读入到 `legacy.useBatch` |
+| AE-03 | `.model` 序列化 | 实现内部对象模型 -> `.model` writer | done | AE-02 | 保存后的 `.model` 能被 Dora `Model()` 加载 | `cd Tools/dora-dora && pnpm exec node scripts/verify-action-editor-data.mjs` 覆盖 fixture parse -> write -> parse；引擎运行验证未做 | `Tools/dora-dora/src/ActionEditor/ActionLegacyModel.ts` | 不输出历史 root `B` / useBatch 字段 |
 | AE-04 | 解析失败策略 | 加载失败后创建空对象并标记待保存 | done | AE-01 | 解析失败时提示错误，tab dirty，保存会写空 `.model` | `cd Tools/dora-dora && pnpm exec node scripts/verify-action-editor-data.mjs` 覆盖坏 `.model`；`pnpm exec tsc --noEmit -p tsconfig.json` 通过 Web IDE 接入类型检查 | `Tools/dora-dora/src/ActionEditor/ActionLegacyModel.ts` / `ActionEditor.tsx` / `App.tsx` | 坏 `.model` 在 canvas ActionEditor 中提示错误，并通过 `contentModified` 进入现有保存流程 |
 | AE-05 | 图集路径 | 实现同目录 `.clips` 输入和 `.clip`/`.png` 输出规则 | done | AE-02 | `Hero.model` 默认使用 `Hero.clips/`；多个 `.clips` 目录时可选择；输出所选 basename 的 `.clip` 和 `.png` | `cd Tools/dora-dora && pnpm exec node scripts/verify-action-editor-data.mjs` 通过 | `Tools/dora-dora/src/ActionEditor/ActionPaths.ts` | 已实现路径选择和输出命名；选择 UI 随 AE-09A/后续 ImGui 接入 |
 | AE-06 | `.clip` 解析 | 解析 `.clip` 并验证 clip 名称 | done | AE-05 | 节点引用不存在的 clip 时显示诊断 | `cd Tools/dora-dora && pnpm exec node scripts/verify-action-editor-data.mjs` 通过，覆盖 texture 同目录解析、正常引用和缺失 clip 负例 | `Tools/dora-dora/src/ActionEditor/ActionClip.ts` | 已读取 texture 文件路径并验证 fixture 节点 clip 引用 |
@@ -78,7 +78,7 @@
 | 解析失败 | 提示加载失败，创建空对象，当前 tab 进入待保存状态 |
 | 图集输入 | `.model` 同目录下 `.clips` 目录 |
 | 图集输出 | `.model` 同目录下 `.clip` 和 `.png` |
-| Batch Used | 不再作为可编辑属性；旧字段只兼容读取 |
+| Batch Used | 不再作为可编辑属性；保存时移除旧 root `B` 字段 |
 | 时间轴内部模型 | 内部用绝对时间，保存 `.model` 时转换为 duration |
 | 多个 `.clips` 目录 UI | 开发选择 UI，默认选中同 basename 目录 |
 | 源码文本切换 | 不开发 |

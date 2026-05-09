@@ -52,6 +52,7 @@
     "start": "vite",
     "build-yarn-editor": "node scripts/sync-yarn-editor.js",
     "build": "node scripts/build-project.js",
+    "generate-imgui-types": "node scripts/generate-imgui-types.mjs",
     "preview": "vite preview",
     "lint": "eslint src",
     "postinstall": "node scripts/copy-typescript.js"

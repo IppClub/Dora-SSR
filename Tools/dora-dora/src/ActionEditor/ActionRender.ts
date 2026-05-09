@@ -21,6 +21,7 @@ export type ActionRenderRect = {
 		{x: number; y: number},
 		{x: number; y: number},
 	];
+	anchor: {x: number; y: number};
 	visible: boolean;
 	opacity: number;
 	missingClip: boolean;
@@ -148,11 +149,14 @@ const collectRenderRects = (
 	animation: string | null,
 	time: number,
 	parentOpacity: number,
+	parentHiddenByLook: boolean,
+	parentHiddenByAnimation: boolean,
 	out: ActionRenderRect[],
 ) => {
+	const hiddenByLook = parentHiddenByLook || (look !== null && node.hiddenInLooks.indexOf(look) >= 0);
 	if (node.id === document.root.id) {
 		for (const child of node.children) {
-			collectRenderRects(document, clip, child, parentMatrix, look, animation, time, parentOpacity, out);
+			collectRenderRects(document, clip, child, parentMatrix, look, animation, time, parentOpacity, hiddenByLook, parentHiddenByAnimation, out);
 		}
 		return;
 	}
@@ -163,7 +167,8 @@ const collectRenderRects = (
 	const transform = sampled ?? node.transform;
 	const nodeMatrix = multiplyMatrix(parentMatrix, transformMatrix({...transform, anchor: node.transform.anchor, size: base}));
 	const opacity = parentOpacity * clampOpacity(transform.opacity ?? node.transform.opacity);
-	const visible = (look === null || node.hiddenInLooks.indexOf(look) < 0) && (sampled?.visible ?? true);
+	const hiddenByAnimation = parentHiddenByAnimation || sampled?.visible === false;
+	const visible = !hiddenByLook && !hiddenByAnimation;
 	if (node.clip !== "") {
 		const left = 0;
 		const right = base.width;
@@ -175,6 +180,10 @@ const collectRenderRects = (
 			transformPoint(nodeMatrix, {x: right, y: bottom}),
 			transformPoint(nodeMatrix, {x: left, y: bottom}),
 		];
+		const anchor = transformPoint(nodeMatrix, {
+			x: node.transform.anchor.x * base.width,
+			y: node.transform.anchor.y * base.height,
+		});
 		const minX = Math.min(corners[0].x, corners[1].x, corners[2].x, corners[3].x);
 		const maxX = Math.max(corners[0].x, corners[1].x, corners[2].x, corners[3].x);
 		const minY = Math.min(corners[0].y, corners[1].y, corners[2].y, corners[3].y);
@@ -192,13 +201,14 @@ const collectRenderRects = (
 			width: Math.max(1, maxX - minX),
 			height: Math.max(1, maxY - minY),
 			corners,
+			anchor,
 			visible,
 			opacity,
 			missingClip: rect === undefined,
 		});
 	}
 	for (const child of node.children) {
-		collectRenderRects(document, clip, child, nodeMatrix, look, animation, time, opacity, out);
+		collectRenderRects(document, clip, child, nodeMatrix, look, animation, time, opacity, hiddenByLook, hiddenByAnimation, out);
 	}
 };
 
@@ -210,7 +220,7 @@ export const buildActionRenderRects = (
 	time = 0,
 ) => {
 	const rects: ActionRenderRect[] = [];
-	collectRenderRects(document, clip, document.root, identityMatrix(), look, animation, time, 1, rects);
+	collectRenderRects(document, clip, document.root, identityMatrix(), look, animation, time, 1, false, false, rects);
 	return rects;
 };
 
@@ -253,6 +263,11 @@ export const renderRectCornersToViewport = (
 ) => rect.corners.map((corner) => modelToScreen(corner, viewport, area)) as ActionRenderRect["corners"];
 
 const pointInQuad = (point: {x: number; y: number}, corners: ActionRenderRect["corners"]) => {
+	const area = Math.abs(corners.reduce((sum, current, index) => {
+		const next = corners[(index + 1) % corners.length];
+		return sum + current.x * next.y - next.x * current.y;
+	}, 0)) * 0.5;
+	if (area < 0.0001) return false;
 	let sign = 0;
 	for (let index = 0; index < corners.length; index += 1) {
 		const current = corners[index];

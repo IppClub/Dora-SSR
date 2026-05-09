@@ -19,19 +19,15 @@ export type ActionPackResult = {
 
 const padding = 2;
 
-const nextPowerOfTwo = (value: number) => {
-	let result = 1;
-	while (result < value) result *= 2;
-	return result;
-};
-
 export const packActionImages = (inputs: ActionPackInput[]): ActionPackResult => {
 	const sorted = [...inputs].sort((a, b) => Math.max(b.width, b.height) - Math.max(a.width, a.height));
 	let x = padding;
 	let y = padding;
 	let rowHeight = 0;
 	const area = sorted.reduce((sum, item) => sum + item.width * item.height, 0);
-	const maxWidth = nextPowerOfTwo(Math.max(64, Math.ceil(Math.sqrt(area))));
+	const widest = sorted.reduce((width, item) => Math.max(width, Math.ceil(item.width)), 0);
+	const maxWidth = Math.max(widest + padding * 2, Math.ceil(Math.sqrt(area)));
+	let usedWidth = padding;
 	const rects: ActionPackedRect[] = [];
 	for (const item of sorted) {
 		const width = Math.ceil(item.width);
@@ -50,10 +46,11 @@ export const packActionImages = (inputs: ActionPackInput[]): ActionPackResult =>
 			height,
 		});
 		x += width + padding;
+		usedWidth = Math.max(usedWidth, x);
 		rowHeight = Math.max(rowHeight, height);
 	}
-	const height = nextPowerOfTwo(Math.max(64, y + rowHeight + padding));
-	return {width: maxWidth, height, rects};
+	const height = Math.max(1, y + rowHeight + padding);
+	return {width: Math.max(1, usedWidth), height, rects};
 };
 
 export const writePackedActionClip = (textureFile: string, result: ActionPackResult): ActionClipDocument => ({
