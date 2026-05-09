@@ -306,9 +306,9 @@
 
 ### `.model`
 
-`.model` 是字母压缩的 XML 风格格式。旧 C++ `toXml()` 显示主要含义：
+`.model` 是字母压缩的 XML 风格格式。当前 C++ `toXml()` / `ModelCache` 显示主要含义：
 
-- 根 `A`：model，属性 `A` 是 clip file，`B` 是 faceRight，`C` 是历史 useBatch 标记，`D` 是 root size。
+- 根 `A`：model，属性 `A` 是 clip file，`D` 是 root size。历史文件里的 root `B` / useBatch 标记当前引擎不读取。
 - 节点 `B`：sprite/node。
 - 节点 `C`：key animation。
 - 节点 `D`：key frame。
@@ -327,7 +327,7 @@ type LegacySpriteDef = [
 ];
 ```
 
-新版内部对象模型应使用语义字段，不延续数字索引表。数字索引表只存在于 `.model` 解析/序列化边界。`isBatchUsed` 只作为旧格式兼容字段读取；新的 Dora 引擎已经自动做 sprite 渲染 batch，编辑器 UI 不再暴露 Batch Used，也不让用户维护这个开关。
+新版内部对象模型应使用语义字段，不延续数字索引表。数字索引表只存在于 `.model` 解析/序列化边界。历史 `isBatchUsed` / root `B` 字段在当前 Dora 引擎中已无作用，编辑器 UI 不再暴露 Batch Used，保存时也不再写出这个旧字段。
 
 ## 内部对象模型
 
@@ -598,7 +598,7 @@ ActionEditor 必须直接支持打开 `.model`：
 
 解析策略：
 
-- 根 `A` 的 clipFile、faceRight、size 转到 `model`；历史 useBatch 标记仅在解析层保留兼容，不进入可编辑属性。
+- 根 `A` 的 clipFile、size 转到 `model`；历史 useBatch/root `B` 标记不进入可编辑属性，保存时移除。
 - 递归 `B` 节点生成 `ActionNode`。
 - `I` look name 映射转 `looks`。
 - `J` animation name 映射转 `animations`。

@@ -25,6 +25,10 @@ export const cloneActionNode = (node: ActionNode): ActionNode => ({
 	hiddenInLooks: [...node.hiddenInLooks],
 	tracks: {...node.tracks},
 	children: node.children.map(cloneActionNode),
+	legacy: node.legacy ? {
+		...node.legacy,
+		hiddenLookIndices: node.legacy.hiddenLookIndices ? [...node.legacy.hiddenLookIndices] : undefined,
+	} : undefined,
 });
 
 export const cloneActionDocument = (document: ActionDocument): ActionDocument => ({
@@ -34,7 +38,13 @@ export const cloneActionDocument = (document: ActionDocument): ActionDocument =>
 	animations: [...document.animations],
 	looks: [...document.looks],
 	keyPoints: document.keyPoints.map((point) => ({...point})),
-	legacy: {...document.legacy},
+	legacy: {
+		...document.legacy,
+		animationIndexes: document.legacy.animationIndexes ? {...document.legacy.animationIndexes} : undefined,
+		lookIndexes: document.legacy.lookIndexes ? {...document.legacy.lookIndexes} : undefined,
+		animationOrder: document.legacy.animationOrder ? [...document.legacy.animationOrder] : undefined,
+		lookOrder: document.legacy.lookOrder ? [...document.legacy.lookOrder] : undefined,
+	},
 });
 
 export const countActionNodes = (node: ActionNode): number => {

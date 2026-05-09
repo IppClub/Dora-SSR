@@ -91,38 +91,37 @@ const applyDoraThemeColors = () => {
 const setDoraStyle = () => {
 	ImGui.StyleColorsDark();
 	const style = ImGui.GetStyle();
-	const anyStyle = style as any;
 	const rounding = 6;
-	anyStyle.Alpha = 0.9;
-	setVec2(anyStyle.WindowPadding, 10, 10);
-	setVec2(anyStyle.WindowMinSize, 100, 32);
-	anyStyle.WindowRounding = rounding;
-	anyStyle.WindowBorderSize = 0;
-	setVec2(anyStyle.WindowTitleAlign, 0.5, 0.5);
-	anyStyle.ChildRounding = rounding;
-	anyStyle.ChildBorderSize = 0;
-	setVec2(anyStyle.FramePadding, 5, 5);
-	anyStyle.FrameRounding = rounding;
-	anyStyle.FrameBorderSize = 0;
-	setVec2(anyStyle.ItemSpacing, 10, 10);
-	setVec2(anyStyle.ItemInnerSpacing, 5, 5);
-	setVec2(anyStyle.TouchExtraPadding, 5, 5);
-	anyStyle.IndentSpacing = 10;
-	anyStyle.ColumnsMinSpacing = 5;
-	anyStyle.ScrollbarSize = 25;
-	anyStyle.ScrollbarRounding = rounding;
-	anyStyle.GrabMinSize = 20;
-	anyStyle.GrabRounding = rounding;
-	anyStyle.TabRounding = rounding;
-	anyStyle.TabBorderSize = 0;
-	anyStyle.PopupRounding = rounding;
-	anyStyle.PopupBorderSize = 0;
-	setVec2(anyStyle.ButtonTextAlign, 0.5, 0.5);
-	setVec2(anyStyle.DisplayWindowPadding, 50, 50);
-	setVec2(anyStyle.DisplaySafeAreaPadding, 5, 5);
-	anyStyle.AntiAliasedLines = true;
-	anyStyle.AntiAliasedFill = true;
-	anyStyle.CurveTessellationTol = 1;
+	style.Alpha = 0.9;
+	setVec2(style.WindowPadding, 5, 5);
+	setVec2(style.WindowMinSize, 100, 32);
+	style.WindowRounding = rounding;
+	style.WindowBorderSize = 0;
+	setVec2(style.WindowTitleAlign, 0.5, 0.5);
+	style.ChildRounding = rounding;
+	style.ChildBorderSize = 0;
+	setVec2(style.FramePadding, 5, 5);
+	style.FrameRounding = rounding;
+	style.FrameBorderSize = 0;
+	setVec2(style.ItemSpacing, 10, 10);
+	setVec2(style.ItemInnerSpacing, 5, 5);
+	setVec2(style.TouchExtraPadding, 5, 5);
+	style.IndentSpacing = 10;
+	style.ColumnsMinSpacing = 5;
+	style.ScrollbarSize = 25;
+	style.ScrollbarRounding = rounding;
+	style.GrabMinSize = 20;
+	style.GrabRounding = rounding;
+	style.TabRounding = rounding;
+	style.TabBorderSize = 0;
+	style.PopupRounding = rounding;
+	style.PopupBorderSize = 0;
+	setVec2(style.ButtonTextAlign, 0.5, 0.5);
+	setVec2(style.DisplayWindowPadding, 50, 50);
+	setVec2(style.DisplaySafeAreaPadding, 5, 5);
+	style.AntiAliasedLines = true;
+	style.AntiAliasedFill = true;
+	style.CurveTessellationTol = 1;
 	applyDoraThemeColors();
 };
 
@@ -146,12 +145,11 @@ const loadDoraFont = async () => {
 export class ActionImGuiRuntime {
 	private static moduleReady: Promise<void> | null = null;
 	private static activeRuntime: ActionImGuiRuntime | null = null;
-	private static backendOwner: ActionImGuiRuntime | null = null;
-	private static sharedContext: any = null;
-	private static sharedDiagnostics: string[] = [];
+	private static backendRuntime: ActionImGuiRuntime | null = null;
 	private static initQueue: Promise<void> = Promise.resolve();
 	private context: any = null;
 	private canvas: HTMLCanvasElement | null = null;
+	private renderingContext: WebGL2RenderingContext | WebGLRenderingContext | null = null;
 	private initialized = false;
 	private backendInitialized = false;
 	private rendering = false;
@@ -163,62 +161,6 @@ export class ActionImGuiRuntime {
 			ActionImGuiRuntime.moduleReady = ImGui.default().then(() => undefined);
 		}
 		return ActionImGuiRuntime.moduleReady;
-	}
-
-	private static async ensureSharedContext(): Promise<string[]> {
-		await ActionImGuiRuntime.loadModule();
-		if (ActionImGuiRuntime.sharedContext) {
-			ImGui.SetCurrentContext(ActionImGuiRuntime.sharedContext);
-			return ActionImGuiRuntime.sharedDiagnostics;
-		}
-		ImGui.CHECKVERSION();
-		ActionImGuiRuntime.sharedContext = ImGui.CreateContext();
-		ImGui.SetCurrentContext(ActionImGuiRuntime.sharedContext);
-		setDoraStyle();
-		try {
-			await loadDoraFont();
-		} catch (error) {
-			const message = error instanceof Error ? error.message : "sarasa-mono-sc-regular load failed";
-			ActionImGuiRuntime.sharedDiagnostics.push(message);
-			ImGui.GetIO().Fonts.AddFontDefault(null);
-		}
-		return ActionImGuiRuntime.sharedDiagnostics;
-	}
-
-	private static shutdownBackend() {
-		const owner = ActionImGuiRuntime.backendOwner;
-		if (!owner) return;
-		if (ActionImGuiRuntime.sharedContext) {
-			ImGui.SetCurrentContext(ActionImGuiRuntime.sharedContext);
-		}
-		try {
-			ImGui_Impl.Shutdown();
-		} catch {
-			// imgui-ts backend shutdown is best-effort when switching canvases.
-		}
-		owner.backendInitialized = false;
-		if (ActionImGuiRuntime.activeRuntime === owner) {
-			ActionImGuiRuntime.activeRuntime = null;
-		}
-		ActionImGuiRuntime.backendOwner = null;
-	}
-
-	private static activateBackend(runtime: ActionImGuiRuntime) {
-		if (!runtime.canvas || runtime.disposed) return false;
-		if (!ActionImGuiRuntime.sharedContext) return false;
-		if (ActionImGuiRuntime.backendOwner === runtime) {
-			ActionImGuiRuntime.activeRuntime = runtime;
-			runtime.backendInitialized = true;
-			ImGui.SetCurrentContext(ActionImGuiRuntime.sharedContext);
-			return true;
-		}
-		ActionImGuiRuntime.shutdownBackend();
-		ImGui.SetCurrentContext(ActionImGuiRuntime.sharedContext);
-		ImGui_Impl.Init(runtime.canvas);
-		ActionImGuiRuntime.backendOwner = runtime;
-		ActionImGuiRuntime.activeRuntime = runtime;
-		runtime.backendInitialized = true;
-		return true;
 	}
 
 	async init(canvas: HTMLCanvasElement): Promise<ActionImGuiRuntimeStatus> {
@@ -239,15 +181,52 @@ export class ActionImGuiRuntime {
 			return {ready: false, diagnostics: this.diagnostics};
 		}
 		this.canvas = canvas;
-		const sharedDiagnostics = await ActionImGuiRuntime.ensureSharedContext();
-		this.diagnostics = sharedDiagnostics;
+		await ActionImGuiRuntime.loadModule();
 		if (this.disposed) {
 			this.canvas = null;
 			return {ready: false, diagnostics: this.diagnostics};
 		}
-		this.context = ActionImGuiRuntime.sharedContext;
+		ImGui.CHECKVERSION();
+		this.context = ImGui.CreateContext();
 		ImGui.SetCurrentContext(this.context);
-		ActionImGuiRuntime.activateBackend(this);
+		setDoraStyle();
+		try {
+			await loadDoraFont();
+		} catch (error) {
+			const message = error instanceof Error ? error.message : "sarasa-mono-sc-regular load failed";
+			this.diagnostics.push(message);
+			ImGui.GetIO().Fonts.AddFontDefault(null);
+		}
+		if (this.disposed) {
+			if (this.context) {
+				ImGui.SetCurrentContext(this.context);
+				ImGui.DestroyContext(this.context);
+				this.context = null;
+			}
+			this.canvas = null;
+			return {ready: false, diagnostics: this.diagnostics};
+		}
+		ImGui.SetCurrentContext(this.context);
+		if (ActionImGuiRuntime.activeRuntime && ActionImGuiRuntime.activeRuntime !== this) {
+			ActionImGuiRuntime.activeRuntime.dispose();
+			ImGui.SetCurrentContext(this.context);
+		}
+		const renderingContext = canvas.getContext("webgl2") || canvas.getContext("webgl");
+		if (!renderingContext) {
+			this.diagnostics.push("ActionEditor requires WebGL, but the browser did not provide a WebGL context.");
+			if (this.context) {
+				ImGui.SetCurrentContext(this.context);
+				ImGui.DestroyContext(this.context);
+				this.context = null;
+			}
+			this.canvas = null;
+			return {ready: false, diagnostics: this.diagnostics};
+		}
+		this.renderingContext = renderingContext;
+		ActionImGuiRuntime.activeRuntime = this;
+		ImGui_Impl.Init(renderingContext);
+		ActionImGuiRuntime.backendRuntime = this;
+		this.backendInitialized = true;
 		this.initialized = true;
 		return {ready: true, diagnostics: this.diagnostics};
 	}
@@ -264,11 +243,10 @@ export class ActionImGuiRuntime {
 	}
 
 	render(time: number, draw: (imgui: ActionImGuiFrame) => void) {
-		if (!this.initialized || this.rendering || this.disposed) return;
+		if (!this.initialized || this.rendering || this.disposed || ActionImGuiRuntime.activeRuntime !== this) return;
 		this.rendering = true;
 		let frameStarted = false;
 		try {
-			ActionImGuiRuntime.activateBackend(this);
 			if (this.context) ImGui.SetCurrentContext(this.context);
 			this.syncCanvasFramebuffer();
 			ImGui_Impl.NewFrame(time);
@@ -296,11 +274,18 @@ export class ActionImGuiRuntime {
 	dispose() {
 		this.disposed = true;
 		if (!this.initialized && !this.context && !this.backendInitialized) return;
-		if (ActionImGuiRuntime.backendOwner === this) {
-			ActionImGuiRuntime.shutdownBackend();
+		if (this.backendInitialized && ActionImGuiRuntime.backendRuntime === this) {
+			ImGui.SetCurrentContext(this.context);
+			ImGui_Impl.Shutdown();
+			ActionImGuiRuntime.backendRuntime = null;
 		}
 		this.backendInitialized = false;
-		this.context = null;
+		if (this.context) {
+			ImGui.SetCurrentContext(this.context);
+			ImGui.DestroyContext(this.context);
+			this.context = null;
+		}
+		this.renderingContext = null;
 		this.canvas = null;
 		this.initialized = false;
 		this.rendering = false;

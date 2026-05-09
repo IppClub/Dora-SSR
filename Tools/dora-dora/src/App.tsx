@@ -1501,6 +1501,7 @@ export default function PersistentDrawerLeft() {
 		};
 
 		Service.addUpdateFileListener(handleUpdateFile);
+		const pendingUpdateFiles = pendingUpdateFilesRef.current;
 		return () => {
 			if (updateFileFlushTimerRef.current !== null) {
 				window.clearTimeout(updateFileFlushTimerRef.current);
@@ -2687,7 +2688,9 @@ export default function PersistentDrawerLeft() {
 				const newName = fileInfo.name + ext;
 				const newFile = path.join(dir, newName);
 				const folder = fileInfo.title === "file.newFolder";
-				let {content, position} = getNewFileTemplate(ext);
+				const template = getNewFileTemplate(ext);
+				let {content} = template;
+				const {position} = template;
 				if (ext === ".model") {
 					content = writeLegacyModel(createEmptyActionDocument(newFile, `${fileInfo.name}.clip`));
 				}

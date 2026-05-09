@@ -19,3 +19,24 @@ index 4fd90c79c7c47a6447550b96161629b7c0d079a8..155cd3131cc935ade79929b9c3696097
      if(current_input_text!==inp.Text) {
          current_input_text=inp.Text;
          if(inp.Text)
+@@ -1005,8 +1013,11 @@ export function RenderDrawData(draw_data: ImGui.DrawData | null = ImGui.GetDrawD
+ 
+                     // gl.ONE
+                     // Bind texture, Draw
+                     gl && gl.activeTexture(gl.TEXTURE0);
+-                    gl && gl.bindTexture(gl.TEXTURE_2D, draw_cmd.TextureId);
++                    if (gl) {
++                        const texture = draw_cmd.TextureId as WebGLTexture | null;
++                        gl.bindTexture(gl.TEXTURE_2D, texture && gl.isTexture(texture) ? texture : null);
++                    }
+                     gl && gl.drawElements(gl.TRIANGLES, draw_cmd.ElemCount, idx_buffer_type, idx_buffer_offset);
+                     //ctx && console.log(draw_list, draw_cmd.TextureId);
+                     if(ctx) {
+@@ -1250,6 +1258,7 @@ export function DestroyDeviceObjects(): void {
+     const gl2: WebGL2RenderingContext | null = typeof WebGL2RenderingContext !== "undefined" && gl instanceof WebGL2RenderingContext && gl || null;
+     if(g_vao) {
+         gl2 && gl2.deleteVertexArray(g_vao);
++        g_vao = null;
+     }
+     gl && gl.deleteBuffer(g_VboHandle); g_VboHandle = null;
+     gl && gl.deleteBuffer(g_ElementsHandle); g_ElementsHandle = null;

@@ -1,0 +1,35 @@
+import * as ImGui from "./imgui";
+import { ImVec4 } from "./imgui";
+import * as ImGui_Impl from "./imgui_impl";
+export { ImGui, ImGui_Impl, ImVec4 };
+export declare const version = "0.1.53";
+export declare const ImGuiTableFlagsDefault: number;
+export declare const ImColor_White: ImVec4;
+export declare const ImColor_Silver: ImVec4;
+export declare const ImColor_Gray: ImVec4;
+export declare const ImColor_Black: ImVec4;
+export declare const ImColor_Red: ImVec4;
+export declare const ImColor_Maroon: ImVec4;
+export declare const ImColor_Yellow: ImVec4;
+export declare const ImColor_Olive: ImVec4;
+export declare const ImColor_Lime: ImVec4;
+export declare const ImColor_Green: ImVec4;
+export declare const ImColor_Aqua: ImVec4;
+export declare const ImColor_Teal: ImVec4;
+export declare const ImColor_Blue: ImVec4;
+export declare const ImColor_Navy: ImVec4;
+export declare const ImColor_Fuchsia: ImVec4;
+export declare const ImColor_Purple: ImVec4;
+export declare const ImColor_DarkGray: ImVec4;
+export declare const ImColor_DarkGreen: ImVec4;
+export declare const ImColor_DarkTeal: ImVec4;
+export declare const ImColor_DarkOlive: ImVec4;
+export declare const ImColor_DarkPurple: ImVec4;
+export declare const ImColor_LightRed: ImVec4;
+export declare function ImGuiObject(obj: any, id?: number): number;
+export interface OnLoadable {
+    onload: any;
+    onerror: any;
+}
+export declare function LoadImage<T extends OnLoadable>(src: T): Promise<T>;
+export declare function FetchImage(url: string, onload: (buf: ArrayBuffer) => any): Promise<void>;

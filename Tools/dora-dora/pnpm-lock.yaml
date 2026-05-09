@@ -6,7 +6,7 @@ settings:
 
 patchedDependencies:
   '@zhobo63/imgui-ts@0.1.53':
-    hash: d64f87be6eb3f45d2f296a0e0d1f1282fb912e9cc342d4f627e1d2bfdc4f915e
+    hash: 2acdb30e6bbf96fa5edbf71ffa9026d1a57df9ed3c76f3375d143e2f0810c754
     path: patches/@zhobo63__imgui-ts@0.1.53.patch
   vite-plugin-monaco-editor@1.1.0:
     hash: 78bcfd876ec9dcb4b3100060e043c7d9f9f3242b269a1a0fd8f283bf74f97dc6
@@ -48,7 +48,7 @@ importers:
         version: 7.3.8(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react@19.2.4)
       '@zhobo63/imgui-ts':
         specifier: ^0.1.53
-        version: 0.1.53(patch_hash=d64f87be6eb3f45d2f296a0e0d1f1282fb912e9cc342d4f627e1d2bfdc4f915e)
+        version: 0.1.53(patch_hash=2acdb30e6bbf96fa5edbf71ffa9026d1a57df9ed3c76f3375d143e2f0810c754)
       antd:
         specifier: ^6.3.1
         version: 6.3.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -5313,7 +5313,7 @@ snapshots:
 
   '@vue/shared@3.5.29': {}
 
-  '@zhobo63/imgui-ts@0.1.53(patch_hash=d64f87be6eb3f45d2f296a0e0d1f1282fb912e9cc342d4f627e1d2bfdc4f915e)':
+  '@zhobo63/imgui-ts@0.1.53(patch_hash=2acdb30e6bbf96fa5edbf71ffa9026d1a57df9ed3c76f3375d143e2f0810c754)':
     dependencies:
       '@types/emscripten': 1.41.5
 

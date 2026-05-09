@@ -13,7 +13,7 @@ import {
 import * as Service from "../Service";
 import ActionEditorCanvas from "./ActionEditorCanvas";
 import type {ActionDocumentChangeOptions, ActionEditorMode} from "./ActionEditorCanvas";
-import {chooseActionClipsDirectory, getActionAtlasPaths, getActionClipFiles, getActionClipsDirectories} from "./ActionPaths";
+import {getActionAtlasPaths, getActionClipFiles, getActionClipsDirectories} from "./ActionPaths";
 import {packActionClipsDirectory} from "./ActionAtlasPacker";
 
 export type ActionEditorProps = {
@@ -73,11 +73,11 @@ export default memo(function ActionEditor(props: ActionEditorProps) {
 	const [loadState, setLoadState] = useState(() => loadActionDocumentFromModelContent(sourceContent, filePath));
 	const [clipsDirs, setClipsDirs] = useState<string[]>([]);
 	const [clipFiles, setClipFiles] = useState<string[]>([]);
-	const [selectedClipsDir, setSelectedClipsDir] = useState<string | undefined>(undefined);
 	const [runtimeDiagnostics, setRuntimeDiagnostics] = useState<string[]>([]);
 	const [clipDocument, setClipDocument] = useState<ActionClipDocument | null>(null);
 	const [atlasImage, setAtlasImage] = useState<ActionAtlasImage | null>(null);
 	const [clipDiagnostics, setClipDiagnostics] = useState<string[]>([]);
+	const [clipsPackErrors, setClipsPackErrors] = useState<Record<string, string>>({});
 	const [packing, setPacking] = useState(false);
 	const [selectedNodeId, setSelectedNodeId] = useState("root");
 	const [editMode, setEditMode] = useState<ActionEditorMode>("pose");
@@ -200,32 +200,36 @@ export default memo(function ActionEditor(props: ActionEditorProps) {
 		};
 	}, [atlasImage]);
 
-	useEffect(() => {
+	const refreshClipsDirs = useCallback(async () => {
 		const dir = filePath.includes("/") ? filePath.slice(0, filePath.lastIndexOf("/")) : "";
+		const res = await Service.list({path: dir});
+		if (!res.success) {
+			setClipsDirs([]);
+			setClipFiles([]);
+			setClipsPackErrors({});
+			return;
+		}
+		const dirs = getActionClipsDirectories(res.files);
+		setClipsDirs(dirs);
+		setClipFiles(getActionClipFiles(res.files));
+		setClipsPackErrors((items) => Object.fromEntries(Object.entries(items).filter(([clipsDir]) => dirs.includes(clipsDir))));
+	}, [filePath]);
+
+	useEffect(() => {
 		let cancelled = false;
-		Service.list({path: dir}).then((res) => {
+		refreshClipsDirs().then(() => {
 			if (cancelled) return;
-			if (!res.success) {
-				setClipsDirs([]);
-				setClipFiles([]);
-				setSelectedClipsDir(undefined);
-				return;
-			}
-			const dirs = getActionClipsDirectories(res.files);
-			setClipsDirs(dirs);
-			setClipFiles(getActionClipFiles(res.files));
-			setSelectedClipsDir(chooseActionClipsDirectory(filePath, dirs));
 		}).catch(() => {
 			if (!cancelled) {
 				setClipsDirs([]);
 				setClipFiles([]);
-				setSelectedClipsDir(undefined);
+				setClipsPackErrors({});
 			}
 		});
 		return () => {
 			cancelled = true;
 		};
-	}, [filePath]);
+	}, [refreshClipsDirs]);
 
 	const emitDocument = useCallback((document: ActionDocument, options?: ActionDocumentChangeOptions) => {
 		if (options?.history !== "replace") {
@@ -273,14 +277,13 @@ export default memo(function ActionEditor(props: ActionEditorProps) {
 		});
 	}, [emitHistoryDocument, loadState.document]);
 
-	const handleClipsDirSelect = useCallback((clipsDir: string) => {
-		setSelectedClipsDir(clipsDir);
+	const handleClipsDirClipBind = useCallback((clipsDir: string) => {
 		const paths = getActionAtlasPaths(filePath, clipsDir);
-		const next: ActionDocument = {
+		if (paths.modelClipReference === loadState.document.clipFile) return;
+		emitDocument({
 			...loadState.document,
 			clipFile: paths.modelClipReference,
-		};
-		emitDocument(next);
+		});
 	}, [emitDocument, filePath, loadState.document]);
 
 	const handleClipFileSelect = useCallback((clipFile: string) => {
@@ -291,18 +294,54 @@ export default memo(function ActionEditor(props: ActionEditorProps) {
 		});
 	}, [emitDocument, loadState.document]);
 
-	const packSelectedClipsDir = useCallback(() => {
-		if (!selectedClipsDir || packing) return;
-		setPacking(true);
-		packActionClipsDirectory(filePath, selectedClipsDir).then(({clip}) => {
+	const packClipsDir = useCallback(async (clipsDir: string) => {
+		const paths = getActionAtlasPaths(filePath, clipsDir);
+		setClipsPackErrors((items) => {
+			const next = {...items};
+			delete next[clipsDir];
+			return next;
+		});
+		const {clip} = await packActionClipsDirectory(filePath, clipsDir);
+		if (loadState.document.clipFile === paths.modelClipReference) {
 			setClipDocument(clip);
 			setClipDiagnostics([]);
-		}).catch((error) => {
-			setClipDiagnostics([error instanceof Error ? error.message : "Failed to pack clips directory"]);
+		}
+	}, [filePath, loadState.document.clipFile]);
+
+	const packSingleClipsDir = useCallback((clipsDir: string) => {
+		if (packing) return;
+		setPacking(true);
+		packClipsDir(clipsDir).catch((error) => {
+			setClipsPackErrors((items) => ({
+				...items,
+				[clipsDir]: error instanceof Error ? error.message : "Failed to pack clips directory",
+			}));
 		}).finally(() => {
 			setPacking(false);
 		});
-	}, [filePath, packing, selectedClipsDir]);
+	}, [packClipsDir, packing]);
+
+	const packAllClipsDirs = useCallback(() => {
+		if (packing || clipsDirs.length === 0) return;
+		setPacking(true);
+		(async () => {
+			for (const clipsDir of clipsDirs) {
+				try {
+					await packClipsDir(clipsDir);
+				} catch (error) {
+					setClipsPackErrors((items) => ({
+						...items,
+						[clipsDir]: error instanceof Error ? error.message : "Failed to pack clips directory",
+					}));
+				}
+			}
+		})().finally(() => {
+			setPacking(false);
+		}).catch((error) => {
+			setPacking(false);
+			setClipDiagnostics([error instanceof Error ? error.message : "Failed to pack clips directories"]);
+		});
+	}, [clipsDirs, packClipsDir, packing]);
 
 	const handleEditModeChange = useCallback((mode: ActionEditorMode) => {
 		setEditMode(mode);
@@ -360,7 +399,7 @@ export default memo(function ActionEditor(props: ActionEditorProps) {
 			readOnly={readOnly}
 			clipsDirs={clipsDirs}
 			clipFiles={clipFiles}
-			selectedClipsDir={selectedClipsDir}
+			clipsPackErrors={clipsPackErrors}
 			selectedNodeId={selectedNodeId}
 			editMode={editMode}
 			selectedLook={selectedLook}
@@ -371,8 +410,10 @@ export default memo(function ActionEditor(props: ActionEditorProps) {
 			viewport={viewport}
 			onDocumentChange={emitDocument}
 			onClipFileSelect={handleClipFileSelect}
-			onClipsDirSelect={handleClipsDirSelect}
-			onPackClipsDir={packSelectedClipsDir}
+			onClipsDirClipBind={handleClipsDirClipBind}
+			onPackClipsDir={packSingleClipsDir}
+			onPackAllClipsDirs={packAllClipsDirs}
+			onRefreshClipsDirs={refreshClipsDirs}
 			onSelectionChange={setSelectedNodeId}
 			onEditModeChange={handleEditModeChange}
 			onLookSelect={setSelectedLook}

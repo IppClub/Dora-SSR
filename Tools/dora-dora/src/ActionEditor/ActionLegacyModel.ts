@@ -14,6 +14,11 @@ type TempTrack = {
 	track: Omit<ActionKeyTrack, "animation"> | Omit<ActionFrameTrack, "animation">;
 };
 
+type IndexedName = {
+	index: number;
+	name: string;
+};
+
 type TempNode = Omit<ActionNode, "hiddenInLooks" | "tracks" | "children"> & {
 	hiddenLookIndices: number[];
 	tracksByIndex: TempTrack[];
@@ -42,8 +47,8 @@ const splitIndices = (value: string | undefined) => {
 	return value.split(",").map((item) => Number(item)).filter((item) => Number.isFinite(item));
 };
 
-const attrIndexMapToNames = (items: ActionXmlElement[], tag: "I" | "J") => {
-	const mapped: Array<{index: number; name: string}> = [];
+const attrIndexMapToEntries = (items: ActionXmlElement[], tag: "I" | "J") => {
+	const mapped: IndexedName[] = [];
 	for (const item of items) {
 		if (item.name !== tag) continue;
 		const index = num(item.attrs.C, 0);
@@ -51,8 +56,31 @@ const attrIndexMapToNames = (items: ActionXmlElement[], tag: "I" | "J") => {
 		mapped.push({index, name});
 	}
 	mapped.sort((a, b) => a.index - b.index);
-	return mapped.map((item) => item.name);
+	return mapped;
 };
+
+const attrIndexMapToSourceOrder = (items: ActionXmlElement[], tag: "I" | "J") => {
+	const ordered: string[] = [];
+	for (const item of items) {
+		if (item.name !== tag) continue;
+		ordered.push(item.attrs.H ?? "");
+	}
+	return ordered;
+};
+
+const indexedNamesToList = (entries: IndexedName[]) => entries.map((item) => item.name);
+
+const indexedNamesToRecord = (entries: IndexedName[]) => {
+	const record: Record<string, number> = {};
+	for (const item of entries) {
+		record[item.name] = item.index;
+	}
+	return record;
+};
+
+const firstNameForIndex = (entries: IndexedName[], index: number) => entries.find((item) => item.index === index)?.name;
+
+const namesForIndex = (entries: IndexedName[], index: number) => entries.filter((item) => item.index === index).map((item) => item.name);
 
 const defaultFrame = (): ActionKeyFrame => ({
 	time: 0,
@@ -95,6 +123,8 @@ const parseKeyAnimation = (element: ActionXmlElement): Omit<ActionKeyTrack, "ani
 	for (const child of element.children) {
 		if (child.name !== "D") continue;
 		const frame = cloneFrame(lastFrame);
+		frame.ease = {position: 0, scale: 0, skew: 0, rotation: 0, opacity: 0};
+		frame.event = undefined;
 		const duration = child.attrs.A === undefined ? lastDuration : num(child.attrs.A, 0) / 60;
 		time = keyframes.length === 0 ? 0 : time + duration;
 		lastDuration = duration;
@@ -160,21 +190,25 @@ const parseNode = (element: ActionXmlElement, id: string): TempNode => {
 	return node;
 };
 
-const resolveNode = (node: TempNode, animations: string[], looks: string[]): ActionNode => {
+const resolveNode = (node: TempNode, animations: IndexedName[], looks: IndexedName[]): ActionNode => {
 	const tracks: Record<string, ActionTrack> = {};
 	for (const item of node.tracksByIndex) {
-		const animation = animations[item.index] ?? `animation${item.index}`;
+		const animation = firstNameForIndex(animations, item.index) ?? `animation${item.index}`;
 		tracks[animation] = {...item.track, animation} as ActionTrack;
 	}
+	const hiddenInLooks = [...new Set(node.hiddenLookIndices.flatMap((index) => namesForIndex(looks, index)))];
 	return {
 		id: node.id,
 		name: node.name,
 		clip: node.clip,
 		front: node.front,
 		transform: node.transform,
-		hiddenInLooks: node.hiddenLookIndices.map((index) => looks[index]).filter((name) => name !== undefined),
+		hiddenInLooks,
 		tracks,
 		children: node.children.map((child) => resolveNode(child, animations, looks)),
+		legacy: {
+			hiddenLookIndices: [...node.hiddenLookIndices],
+		},
 	};
 };
 
@@ -183,8 +217,10 @@ export const parseLegacyModel = (xml: string, modelPath?: string): ActionDocumen
 	if (root.name !== "A") throw new Error("Expected .model root <A>");
 	const rootNodeElement = root.children.find((child) => child.name === "B");
 	if (!rootNodeElement) throw new Error("Expected .model sprite root <B>");
-	const animations = attrIndexMapToNames(root.children, "J");
-	const looks = attrIndexMapToNames(root.children, "I");
+	const animationEntries = attrIndexMapToEntries(root.children, "J");
+	const lookEntries = attrIndexMapToEntries(root.children, "I");
+	const animationOrder = attrIndexMapToSourceOrder(root.children, "J");
+	const lookOrder = attrIndexMapToSourceOrder(root.children, "I");
 	const tempRoot = parseNode(rootNodeElement, "root");
 	const document: ActionDocument = {
 		version: 1,
@@ -192,14 +228,17 @@ export const parseLegacyModel = (xml: string, modelPath?: string): ActionDocumen
 		modelPath,
 		clipFile: root.attrs.A ?? "",
 		size: size(root.attrs.D),
-		root: resolveNode(tempRoot, animations, looks),
-		animations,
-		looks,
+		root: resolveNode(tempRoot, animationEntries, lookEntries),
+		animations: indexedNamesToList(animationEntries),
+		looks: indexedNamesToList(lookEntries),
 		keyPoints: root.children
 			.filter((child) => child.name === "K")
 			.map((child) => ({name: child.attrs.A ?? "", ...vec2(child.attrs.B)})),
 		legacy: {
-			useBatch: root.attrs.B === undefined ? undefined : num(root.attrs.B, 0) !== 0,
+			animationIndexes: indexedNamesToRecord(animationEntries),
+			lookIndexes: indexedNamesToRecord(lookEntries),
+			animationOrder,
+			lookOrder,
 		},
 	};
 	return document;
@@ -214,7 +253,50 @@ const pair = (x: number, y: number, precision = 2) => `${trimNumber(x, precision
 
 const attr = (name: string, value: string | number | undefined) => value === undefined || value === "" ? "" : ` ${name}="${escapeXml(String(value))}"`;
 
-const nodeToXml = (node: ActionNode, animations: string[], looks: string[]) => {
+const indexForName = (indexes: Record<string, number> | undefined, name: string, fallback: number) => {
+	const indexed = indexes?.[name];
+	return indexed !== undefined && Number.isFinite(indexed) ? indexed : fallback;
+};
+
+const indexedEntriesForNames = (names: string[], indexes: Record<string, number> | undefined) => {
+	return names.map((name, fallback) => ({
+		name,
+		index: indexForName(indexes, name, fallback),
+	}));
+};
+
+const orderIndexedEntries = (entries: IndexedName[], order: string[] | undefined) => {
+	if (!order || order.length === 0) return entries;
+	const byName = new Map(entries.map((item) => [item.name, item]));
+	const emitted = new Set<string>();
+	const ordered: IndexedName[] = [];
+	for (const name of order) {
+		const item = byName.get(name);
+		if (!item) continue;
+		ordered.push(item);
+		emitted.add(name);
+	}
+	for (const item of entries) {
+		if (!emitted.has(item.name)) ordered.push(item);
+	}
+	return ordered;
+};
+
+const animationSlotsForNames = (names: string[], indexes: Record<string, number> | undefined) => {
+	const entries = indexedEntriesForNames(names, indexes);
+	const maxIndex = entries.reduce((max, item) => Math.max(max, item.index), -1);
+	const slots = new Array<string | undefined>(Math.max(0, maxIndex + 1)).fill(undefined);
+	for (const item of entries) {
+		if (slots[item.index] === undefined) slots[item.index] = item.name;
+	}
+	return slots;
+};
+
+const nodeToXml = (
+	node: ActionNode,
+	animationSlots: Array<string | undefined>,
+	lookEntries: IndexedName[],
+) => {
 	const t = node.transform;
 	let out = `<B`;
 	if (t.position.x !== 0 || t.position.y !== 0) out += attr("D", pair(t.position.x, t.position.y));
@@ -227,8 +309,14 @@ const nodeToXml = (node: ActionNode, animations: string[], looks: string[]) => {
 	out += attr("I", node.clip);
 	if (!node.front) out += attr("J", 0);
 	out += ">";
-	for (const animation of animations) {
-		const track = node.tracks[animation];
+	let lastTrackSlot = -1;
+	for (let index = 0; index < animationSlots.length; index += 1) {
+		const animation = animationSlots[index];
+		if (animation !== undefined && node.tracks[animation]) lastTrackSlot = index;
+	}
+	for (let index = 0; index <= lastTrackSlot; index += 1) {
+		const animation = animationSlots[index];
+		const track = animation === undefined ? undefined : node.tracks[animation];
 		if (!track) {
 			out += "<C/>";
 		} else if (track.type === "frame") {
@@ -237,14 +325,21 @@ const nodeToXml = (node: ActionNode, animations: string[], looks: string[]) => {
 			out += keyTrackToXml(track);
 		}
 	}
-	const hiddenLookIndices = node.hiddenInLooks
-		.map((name) => looks.indexOf(name))
-		.filter((index) => index >= 0);
-	if (hiddenLookIndices.length > 0) {
-		out += `<F H="${hiddenLookIndices.join(",")}"/>`;
+	const knownLookIndices = new Set(lookEntries.map((item) => item.index));
+	const hiddenLookIndices = new Set<number>();
+	for (const name of node.hiddenInLooks) {
+		for (const item of lookEntries) {
+			if (item.name === name) hiddenLookIndices.add(item.index);
+		}
+	}
+	for (const index of node.legacy?.hiddenLookIndices ?? []) {
+		if (!knownLookIndices.has(index)) hiddenLookIndices.add(index);
+	}
+	if (hiddenLookIndices.size > 0) {
+		out += `<F H="${[...hiddenLookIndices].sort((a, b) => a - b).join(",")}"/>`;
 	}
 	for (const child of node.children) {
-		out += nodeToXml(child, animations, looks);
+		out += nodeToXml(child, animationSlots, lookEntries);
 	}
 	out += "</B>";
 	return out;
@@ -255,17 +350,28 @@ const keyTrackToXml = (track: ActionKeyTrack) => {
 	const sorted = [...track.keyframes].sort((a, b) => a.time - b.time);
 	let out = "<C>";
 	let previousTime = 0;
+	let previousDuration = 0;
+	let previousFrame: ActionKeyFrame | null = null;
 	for (const frame of sorted) {
 		const f = frame.transform;
 		const duration = Math.max(0, Math.round((frame.time - previousTime) * 60));
 		out += `<D`;
-		if (duration !== 0) out += attr("A", duration);
-		if (!frame.visible) out += attr("B", 0);
-		if (f.opacity !== 1) out += attr("C", trimNumber(f.opacity, 2));
-		if (f.position.x !== 0 || f.position.y !== 0) out += attr("D", pair(f.position.x, f.position.y));
-		if (f.scale.x !== 1 || f.scale.y !== 1) out += attr("E", pair(f.scale.x, f.scale.y));
-		if (f.rotation !== 0) out += attr("F", trimNumber(f.rotation, 2));
-		if (f.skew.x !== 0 || f.skew.y !== 0) out += attr("G", pair(f.skew.x, f.skew.y));
+		if ((previousFrame && duration !== previousDuration) || (!previousFrame && duration !== 0)) out += attr("A", duration);
+		if ((previousFrame && previousFrame.visible !== frame.visible) || (!previousFrame && !frame.visible)) out += attr("B", frame.visible ? 1 : 0);
+		if (
+			(previousFrame && (previousFrame.transform.position.x !== f.position.x || previousFrame.transform.position.y !== f.position.y))
+			|| (!previousFrame && (f.position.x !== 0 || f.position.y !== 0))
+		) out += attr("D", pair(f.position.x, f.position.y));
+		if ((previousFrame && previousFrame.transform.rotation !== f.rotation) || (!previousFrame && f.rotation !== 0)) out += attr("F", trimNumber(f.rotation, 2));
+		if (
+			(previousFrame && (previousFrame.transform.scale.x !== f.scale.x || previousFrame.transform.scale.y !== f.scale.y))
+			|| (!previousFrame && (f.scale.x !== 1 || f.scale.y !== 1))
+		) out += attr("E", pair(f.scale.x, f.scale.y));
+		if ((previousFrame && previousFrame.transform.opacity !== f.opacity) || (!previousFrame && f.opacity !== 1)) out += attr("C", trimNumber(f.opacity, 2));
+		if (
+			(previousFrame && (previousFrame.transform.skew.x !== f.skew.x || previousFrame.transform.skew.y !== f.skew.y))
+			|| (!previousFrame && (f.skew.x !== 0 || f.skew.y !== 0))
+		) out += attr("G", pair(f.skew.x, f.skew.y));
 		if (frame.ease.opacity !== 0) out += attr("H", frame.ease.opacity);
 		if (frame.ease.position !== 0) out += attr("I", frame.ease.position);
 		if (frame.ease.scale !== 0) out += attr("J", frame.ease.scale);
@@ -274,6 +380,8 @@ const keyTrackToXml = (track: ActionKeyTrack) => {
 		if (frame.event) out += attr("M", frame.event);
 		out += "/>";
 		previousTime = frame.time;
+		previousDuration = duration;
+		previousFrame = frame;
 	}
 	out += "</C>";
 	return out;
@@ -285,13 +393,15 @@ export const writeLegacyModel = (document: ActionDocument) => {
 		out += attr("D", `${Math.round(document.size.width)},${Math.round(document.size.height)}`);
 	}
 	out += ">";
-	out += nodeToXml(document.root, document.animations, document.looks);
-	document.animations.forEach((name, index) => {
-		out += `<J C="${index}" H="${escapeXml(name)}"/>`;
-	});
-	document.looks.forEach((name, index) => {
-		out += `<I C="${index}" H="${escapeXml(name)}"/>`;
-	});
+	const animationEntries = indexedEntriesForNames(document.animations, document.legacy.animationIndexes);
+	const lookEntries = indexedEntriesForNames(document.looks, document.legacy.lookIndexes);
+	out += nodeToXml(document.root, animationSlotsForNames(document.animations, document.legacy.animationIndexes), lookEntries);
+	for (const item of orderIndexedEntries(animationEntries, document.legacy.animationOrder)) {
+		out += `<J C="${item.index}" H="${escapeXml(item.name)}"/>`;
+	}
+	for (const item of orderIndexedEntries(lookEntries, document.legacy.lookOrder)) {
+		out += `<I C="${item.index}" H="${escapeXml(item.name)}"/>`;
+	}
 	for (const point of document.keyPoints) {
 		out += `<K A="${escapeXml(point.name)}" B="${pair(point.x, point.y)}"/>`;
 	}
