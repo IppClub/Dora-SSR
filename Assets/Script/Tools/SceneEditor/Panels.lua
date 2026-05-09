@@ -865,8 +865,9 @@ end -- 611
 function ____exports.drawEditor(state) -- 631
 	local size = App.visualSize -- 632
 	local margin = 10 -- 633
-	local windowWidth = math.max(900, size.width - margin * 2) -- 634
-	local windowHeight = math.max(620, size.height - margin * 2) -- 635
+	local nativeFooterSafeArea = 60 -- keep Dora native footer/settings layer outside the editor window
+	local windowWidth = math.max(360, size.width - margin * 2) -- 634
+	local windowHeight = math.max(260, size.height - margin * 2 - nativeFooterSafeArea) -- 635
 	ImGui.SetNextWindowPos( -- 636
 		Vec2(margin, margin), -- 636
 		"Always" -- 636
@@ -882,9 +883,9 @@ function ____exports.drawEditor(state) -- 631
 		function() -- 639
 			drawHeader(state) -- 640
 			local avail = ImGui.GetContentRegionAvail() -- 641
-			local bottomHeight = state.bottomHeight -- 642
+			local bottomHeight = math.max(72, math.min(state.bottomHeight, math.floor(avail.y * 0.28))) -- 642
 			if state.mode == "Script" then -- 642
-				local scriptHeight = math.max(360, avail.y - bottomHeight - 8) -- 644
+				local scriptHeight = math.max(180, avail.y - bottomHeight - 8) -- 644
 				ImGui.PushStyleColor( -- 645
 					"ChildBg", -- 645
 					panelBg, -- 645
@@ -907,17 +908,17 @@ function ____exports.drawEditor(state) -- 631
 				) -- 648
 				return -- 649
 			end -- 649
-			local mainHeight = math.max(320, avail.y - bottomHeight - 10) -- 651
-			local availableWidth = math.max(720, avail.x - 4) -- 652
+			local mainHeight = math.max(160, avail.y - bottomHeight - 10) -- 651
+			local availableWidth = math.max(520, avail.x - 4) -- 652
 			state.leftWidth = math.max( -- 653
 				190, -- 653
-				math.min(state.leftWidth, availableWidth - state.rightWidth - 420) -- 653
+				math.min(state.leftWidth, availableWidth - state.rightWidth - 320) -- 653
 			) -- 653
 			state.rightWidth = math.max( -- 654
 				250, -- 654
-				math.min(state.rightWidth, availableWidth - state.leftWidth - 420) -- 654
+				math.min(state.rightWidth, availableWidth - state.leftWidth - 320) -- 654
 			) -- 654
-			local centerWidth = math.max(360, availableWidth - state.leftWidth - state.rightWidth - 24) -- 655
+			local centerWidth = math.max(220, availableWidth - state.leftWidth - state.rightWidth - 24) -- 655
 			local leftTopHeight = math.floor(mainHeight * 0.58) -- 656
 			local leftBottomHeight = mainHeight - leftTopHeight - 8 -- 657
 			ImGui.BeginChild( -- 659
@@ -949,7 +950,7 @@ function ____exports.drawEditor(state) -- 631
 				function(deltaX) -- 664
 					state.leftWidth = math.max( -- 665
 						190, -- 665
-						math.min(state.leftWidth + deltaX, availableWidth - state.rightWidth - 420) -- 665
+						math.min(state.leftWidth + deltaX, availableWidth - state.rightWidth - 320) -- 665
 					) -- 665
 				end -- 664
 			) -- 664
@@ -980,7 +981,7 @@ function ____exports.drawEditor(state) -- 631
 				function(deltaX) -- 674
 					state.rightWidth = math.max( -- 675
 						250, -- 675
-						math.min(state.rightWidth - deltaX, availableWidth - state.leftWidth - 420) -- 675
+						math.min(state.rightWidth - deltaX, availableWidth - state.leftWidth - 320) -- 675
 					) -- 675
 				end -- 674
 			) -- 674

@@ -23,6 +23,8 @@ export const mainWindowFlags = [
 	WindowFlag.NoMove,
 	WindowFlag.NoCollapse,
 	WindowFlag.NoNav,
+	WindowFlag.NoFocusOnAppearing,
+	WindowFlag.NoBringToFrontOnFocus,
 	WindowFlag.NoScrollbar,
 ];
 

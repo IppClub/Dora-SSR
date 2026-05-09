@@ -657,28 +657,29 @@ function drawVerticalSplitter(id: string, height: number, onDrag: (deltaX: numbe
 export function drawEditor(state: EditorState) {
 	const size = App.visualSize;
 	const margin = 10;
-	const windowWidth = math.max(900, size.width - margin * 2);
-	const windowHeight = math.max(620, size.height - margin * 2);
+	const nativeFooterSafeArea = 60;
+	const windowWidth = math.max(360, size.width - margin * 2);
+	const windowHeight = math.max(260, size.height - margin * 2 - nativeFooterSafeArea);
 	ImGui.SetNextWindowPos(Vec2(margin, margin), SetCond.Always);
 	ImGui.SetNextWindowSize(Vec2(windowWidth, windowHeight), SetCond.Always);
 	ImGui.SetNextWindowBgAlpha(state.mode === 'Script' ? 0.96 : 0.10);
 	ImGui.Begin('Dora Visual Editor', mainWindowFlags, () => {
 		drawHeader(state);
 		const avail = ImGui.GetContentRegionAvail();
-		const bottomHeight = state.bottomHeight;
+		const bottomHeight = math.max(72, math.min(state.bottomHeight, math.floor(avail.y * 0.28)));
 		if (state.mode === 'Script') {
-			const scriptHeight = math.max(360, avail.y - bottomHeight - 8);
+			const scriptHeight = math.max(180, avail.y - bottomHeight - 8);
 			ImGui.PushStyleColor(StyleColor.ChildBg, panelBg, () => {
 				ImGui.BeginChild('ScriptWorkspaceRoot', Vec2(0, scriptHeight), [], noScrollFlags, () => drawScriptPanel(state));
 			});
 			ImGui.BeginChild('ScriptConsoleDock', Vec2(0, bottomHeight), [], noScrollFlags, () => drawConsole(state));
 			return;
 		}
-		const mainHeight = math.max(320, avail.y - bottomHeight - 10);
-		const availableWidth = math.max(720, avail.x - 4);
-		state.leftWidth = math.max(190, math.min(state.leftWidth, availableWidth - state.rightWidth - 420));
-		state.rightWidth = math.max(250, math.min(state.rightWidth, availableWidth - state.leftWidth - 420));
-		const centerWidth = math.max(360, availableWidth - state.leftWidth - state.rightWidth - 24);
+		const mainHeight = math.max(160, avail.y - bottomHeight - 10);
+		const availableWidth = math.max(520, avail.x - 4);
+		state.leftWidth = math.max(190, math.min(state.leftWidth, availableWidth - state.rightWidth - 320));
+		state.rightWidth = math.max(250, math.min(state.rightWidth, availableWidth - state.leftWidth - 320));
+		const centerWidth = math.max(220, availableWidth - state.leftWidth - state.rightWidth - 24);
 		const leftTopHeight = math.floor(mainHeight * 0.58);
 		const leftBottomHeight = mainHeight - leftTopHeight - 8;
 
@@ -688,7 +689,7 @@ export function drawEditor(state: EditorState) {
 		});
 		ImGui.SameLine();
 		drawVerticalSplitter('LeftSplitter', mainHeight, (deltaX) => {
-			state.leftWidth = math.max(190, math.min(state.leftWidth + deltaX, availableWidth - state.rightWidth - 420));
+			state.leftWidth = math.max(190, math.min(state.leftWidth + deltaX, availableWidth - state.rightWidth - 320));
 		});
 		ImGui.SameLine();
 		ImGui.PushStyleColor(StyleColor.ChildBg, transparent, () => {
@@ -698,7 +699,7 @@ export function drawEditor(state: EditorState) {
 		});
 		ImGui.SameLine();
 		drawVerticalSplitter('RightSplitter', mainHeight, (deltaX) => {
-			state.rightWidth = math.max(250, math.min(state.rightWidth - deltaX, availableWidth - state.leftWidth - 420));
+			state.rightWidth = math.max(250, math.min(state.rightWidth - deltaX, availableWidth - state.leftWidth - 320));
 		});
 		ImGui.SameLine();
 		ImGui.BeginChild('RightDock', Vec2(state.rightWidth, mainHeight), [], noScrollFlags, () => drawInspector(state));
