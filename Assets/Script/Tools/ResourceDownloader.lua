@@ -25,6 +25,7 @@ local Director = ____Dora.Director -- 2
 local ImGui = require("ImGui") -- 4
 local Config = require("Config") -- 5
 local DefaultURL = "http://39.155.148.157:8866" -- 7
+local VisualEditorPluginURL = "https://raw.githubusercontent.com/dsadsasdaddas/dora-visual-editor-plugin/main" -- built-in 2D editor feed
 local url = Buffer(1024) -- 13
 local config = Config(".ResConf", "url") -- 14
 config:load() -- 15
@@ -159,6 +160,7 @@ function ResourceDownloader.prototype.loadData(self) -- 146
 			end -- 191
 		end -- 191
 		for ____, pkg in ipairs(self.packages) do -- 194
+			pkg.sourceURL = config.url -- built-in source for preview assets
 			pkg.currentVersion = 1 -- 195
 			pkg.versionNames = __TS__ArrayMap( -- 196
 				pkg.versions, -- 196
@@ -190,6 +192,35 @@ function ResourceDownloader.prototype.loadData(self) -- 146
 				Content:save(reposFile, reposResponse) -- 222
 			end -- 222
 		end -- 222
+		-- Built-in plugin feed: keep the official community source, but always add our 2D editor as its own category.
+		local pluginPackagesResponse = HttpClient:getAsync(VisualEditorPluginURL .. "/api/v1/packages")
+		if pluginPackagesResponse then
+			local pluginPackages = json.decode(pluginPackagesResponse)
+			for ____, pkg in ipairs(pluginPackages) do
+				pkg.sourceURL = VisualEditorPluginURL
+				pkg.currentVersion = 1
+				pkg.versionNames = __TS__ArrayMap(
+					pkg.versions,
+					function(____, v)
+						return v.tag == "" and "No Tag" or v.tag
+					end
+				)
+				if __TS__ArrayFind(
+					self.packages,
+					function(____, item)
+						return item.name == pkg.name
+					end
+				) == nil then
+					local ____self_packages_1 = self.packages
+					____self_packages_1[#____self_packages_1 + 1] = pkg
+				end
+			end
+		end
+		local pluginReposResponse = HttpClient:getAsync(VisualEditorPluginURL .. "/assets/repos.json")
+		if pluginReposResponse then
+			local pluginRepos = json.decode(pluginReposResponse)
+			loadRepos(pluginRepos)
+		end
 		for ____, cat in __TS__Iterator(catSet) do -- 225
 			local ____self_categories_0 = self.categories -- 225
 			____self_categories_0[#____self_categories_0 + 1] = cat -- 226
@@ -201,12 +232,12 @@ function ResourceDownloader.prototype.loadData(self) -- 146
 			end -- 233
 		end -- 233
 		for ____, pkg in ipairs(self.packages) do -- 236
-			self:loadPreviewImage(pkg.name) -- 237
+			self:loadPreviewImage(pkg.name, pkg.sourceURL or config.url) -- 237
 		end -- 237
 		self.isLoading = false -- 239
 	end) -- 149
 end -- 146
-function ResourceDownloader.prototype.loadPreviewImage(self, name) -- 243
+function ResourceDownloader.prototype.loadPreviewImage(self, name, sourceURL) -- 243
 	local cachePath = Path(Content.appPath, ".cache", "preview") -- 244
 	local cacheFile = Path(cachePath, name .. ".jpg") -- 245
 	if Content:exist(cacheFile) then -- 245
@@ -218,7 +249,7 @@ function ResourceDownloader.prototype.loadPreviewImage(self, name) -- 243
 		end -- 251
 		return -- 253
 	end -- 253
-	local imageUrl = ((config.url .. "/assets/") .. name) .. "/banner.jpg" -- 255
+	local imageUrl = ((sourceURL .. "/assets/") .. name) .. "/banner.jpg" -- 255
 	local response = HttpClient:downloadAsync(imageUrl, cacheFile, 10) -- 256
 	if response then -- 256
 		Cache:loadAsync(cacheFile) -- 258

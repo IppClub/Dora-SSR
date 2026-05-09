@@ -5,6 +5,7 @@ import * as ImGui from 'ImGui';
 import * as Config from 'Config';
 
 const DefaultURL = "http://39.155.148.157:8866";
+const VisualEditorPluginURL = "https://raw.githubusercontent.com/dsadsasdaddas/dora-visual-editor-plugin/main";
 
 interface ResConfig {
 	url: string;
@@ -46,6 +47,7 @@ interface PackageInfo {
 	versions: PackageVersion[];
 	currentVersion?: number;
 	versionNames?: string[];
+	sourceURL?: string;
 }
 
 interface RepoInfo {
@@ -192,6 +194,7 @@ class ResourceDownloader {
 				}
 			}
 			for (const pkg of this.packages) {
+				pkg.sourceURL = config.url;
 				pkg.currentVersion = 1;
 				pkg.versionNames = pkg.versions.map(v => {
 					return v.tag === "" ? "No Tag" : v.tag;
@@ -222,6 +225,26 @@ class ResourceDownloader {
 					Content.save(reposFile, reposResponse);
 				}
 			}
+
+			// Built-in plugin feed: keep the official community source, but always add our 2D editor as its own category.
+			const pluginPackagesResponse = HttpClient.getAsync(`${VisualEditorPluginURL}/api/v1/packages`);
+			if (pluginPackagesResponse) {
+				const [pluginPackages] = json.decode(pluginPackagesResponse);
+				for (const pkg of pluginPackages as PackageInfo[]) {
+					pkg.sourceURL = VisualEditorPluginURL;
+					pkg.currentVersion = 1;
+					pkg.versionNames = pkg.versions.map(v => v.tag === "" ? "No Tag" : v.tag);
+					if (this.packages.find((item) => item.name === pkg.name) === undefined) {
+						this.packages.push(pkg);
+					}
+				}
+			}
+			const pluginReposResponse = HttpClient.getAsync(`${VisualEditorPluginURL}/assets/repos.json`);
+			if (pluginReposResponse) {
+				const [pluginRepos] = json.decode(pluginReposResponse);
+				loadRepos(pluginRepos as RepoInfo[]);
+			}
+
 			for (let cat of catSet) {
 				this.categories.push(cat);
 			}
@@ -234,13 +257,13 @@ class ResourceDownloader {
 				}
 			}
 			for (const pkg of this.packages) {
-				this.loadPreviewImage(pkg.name);
+				this.loadPreviewImage(pkg.name, pkg.sourceURL ?? config.url);
 			}
 			this.isLoading = false;
 		});
 	}
 
-	private loadPreviewImage(name: string) {
+	private loadPreviewImage(name: string, sourceURL: string) {
 		const cachePath = Path(Content.appPath, ".cache", "preview");
 		const cacheFile = Path(cachePath, name + ".jpg");
 		if (Content.exist(cacheFile)) {
@@ -252,7 +275,7 @@ class ResourceDownloader {
 			}
 			return;
 		}
-		const imageUrl = `${config.url}/assets/${name}/banner.jpg`;
+		const imageUrl = `${sourceURL}/assets/${name}/banner.jpg`;
 		const response = HttpClient.downloadAsync(imageUrl, cacheFile, 10);
 		if (response) {
 			Cache.loadAsync(cacheFile);
