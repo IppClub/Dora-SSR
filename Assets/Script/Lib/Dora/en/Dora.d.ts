@@ -701,7 +701,7 @@ interface App {
 	 * @param folderOnly Whether the file dialog is only for selecting folders.
 	 * @param callback The callback function to be called when the file dialog is closed. The callback function should accept a string parameter which is the path of the selected file or folder. Get empty string if the user canceled the dialog.
 	 */
-	openFileDialog(folderOnly: boolean, callback: (path: string) => void): void;
+	openFileDialog(folderOnly: boolean, callback: (this: void, path: string) => void): void;
 
 	/**
 	 * A function that estimates how many LLM tokens a text will roughly consume.

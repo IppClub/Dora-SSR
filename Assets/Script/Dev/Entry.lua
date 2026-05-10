@@ -248,6 +248,7 @@ if not (config.locale ~= nil) then -- 145
 	config.locale = App.locale -- 146
 end -- 145
 local showStats = false -- 148
+local showStatsFocusPending = false -- layer: focus native settings above entry/editor once when opened
 if (config.showStats ~= nil) then -- 149
 	showStats = config.showStats -- 150
 else -- 152
@@ -265,6 +266,13 @@ if (config.showFooter ~= nil) then -- 161
 else -- 164
 	config.showFooter = showFooter -- 164
 end -- 161
+_module_0.setFooterVisible = function(visible)
+	if visible == nil then
+		visible = true
+	end
+	showFooter = visible
+	config.showFooter = showFooter
+end
 local filterBuf = Buffer(20) -- 166
 if (config.filter ~= nil) then -- 167
 	filterBuf.text = config.filter -- 168
@@ -584,10 +592,75 @@ _module_0["getProjectEntries"] = getProjectEntries -- 262
 local gamesInDev -- 324
 local doraTools -- 325
 local allEntries -- 326
+local repoHasToolCategory
+repoHasToolCategory = function(repo)
+	if not (repo and repo.categories) then
+		return false
+	end
+	for _index_0 = 1, #repo.categories do
+		local category = repo.categories[_index_0]
+		if type(category) == "string" then
+			local lower = category:lower()
+			if lower == "tool" or lower:find("tool", 1, true) or lower:find("editor", 1, true) then
+				return true
+			end
+		end
+	end
+	return false
+end
+local isToolEntry
+isToolEntry = function(entry)
+	local repo = entry.repo
+	if repo and repo.kind == "tool" then
+		return true
+	end
+	if repoHasToolCategory(repo) then
+		return true
+	end
+	return false
+end
+local getEntryTitle
+getEntryTitle = function(entry)
+	local repo = entry.repo
+	if repo and repo.title then
+		if type(repo.title) == "table" then
+			return (useChinese and repo.title.zh or repo.title.en) or repo.title.en or repo.title.zh or entry.entryName
+		end
+		return repo.title
+	end
+	return entry.entryName
+end
+local getEntryOpenLog
+getEntryOpenLog = function(entry, defaultOpenLog)
+	local repo = entry.repo
+	if repo and repo.openLog ~= nil then
+		return repo.openLog == true
+	end
+	return defaultOpenLog
+end
 local updateEntries -- 328
 updateEntries = function() -- 328
-	gamesInDev = getProjectEntries(Content.writablePath) -- 329
+	local projectEntries = getProjectEntries(Content.writablePath)
+	gamesInDev = { }
 	doraTools = getFileEntries(Path(Content.assetPath, "Script", "Tools"), false) -- 330
+	for _index_0 = 1, #doraTools do
+		local tool = doraTools[_index_0]
+		tool.kind = "tool"
+		tool.builtin = true
+		tool.openLog = false
+	end
+	for _index_0 = 1, #projectEntries do
+		local entry = projectEntries[_index_0]
+		if isToolEntry(entry) then
+			entry.kind = "tool"
+			entry.openLog = getEntryOpenLog(entry, false)
+			doraTools[#doraTools + 1] = entry
+		else
+			entry.kind = "game"
+			entry.openLog = getEntryOpenLog(entry, true)
+			gamesInDev[#gamesInDev + 1] = entry
+		end
+	end
 	allEntries = { } -- 332
 	for _index_0 = 1, #gamesInDev do -- 333
 		local game = gamesInDev[_index_0] -- 333
@@ -604,6 +677,42 @@ updateEntries = function() -- 328
 	end -- 333
 end -- 328
 updateEntries() -- 341
+local getLaunchEntries
+getLaunchEntries = function()
+	updateEntries()
+	local toInfo
+	toInfo = function(entry, kind)
+		local file = entry.fileName
+		local asProj = not entry.builtin
+		if entry.repo and entry.repo.entry and entry.repo.entry ~= "" then
+			file = Path(Path:getPath(entry.fileName), entry.repo.entry)
+			asProj = false
+		end
+		return {
+			name = getEntryTitle(entry),
+			file = file,
+			kind = kind,
+			asProj = asProj,
+			openLog = getEntryOpenLog(entry, kind ~= "tool"),
+			builtin = entry.builtin == true
+		}
+	end
+	local games = { }
+	for _index_0 = 1, #gamesInDev do
+		local game = gamesInDev[_index_0]
+		games[#games + 1] = toInfo(game, "game")
+	end
+	local tools = { }
+	for _index_0 = 1, #doraTools do
+		local tool = doraTools[_index_0]
+		tools[#tools + 1] = toInfo(tool, "tool")
+	end
+	return {
+		games = games,
+		tools = tools
+	}
+end
+_module_0["getLaunchEntries"] = getLaunchEntries
 local doCompile -- 343
 doCompile = function(minify) -- 343
 	if building then -- 344
@@ -1575,7 +1684,9 @@ footerWindow = threadLoop(function() -- 946
 		authCodeTTL = 30.0 -- 950
 		authCode = string.format("%06d", math.random(0, 999999)) -- 951
 	end -- 949
-	if HttpServer.wsConnectionCount > 0 then -- 952
+	-- Keep the native footer/settings usable for native entries such as the Visual Editor.
+	-- Web IDE connections should not bury the external Dora controls when showFooter is enabled.
+	if HttpServer.wsConnectionCount > 0 and not showFooter then -- 952
 		return -- 953
 	end -- 952
 	if Keyboard:isKeyDown("Escape") then -- 954
@@ -1597,6 +1708,9 @@ footerWindow = threadLoop(function() -- 946
 			else -- 965
 				showStats = true -- 965
 			end -- 965
+			if showStats then -- layer: native settings should open above current entry/editor
+				showStatsFocusPending = true
+			end
 			showFooter = true -- 966
 			config.showFooter = showFooter -- 967
 			config.showStats = showStats -- 968
@@ -1662,6 +1776,9 @@ footerWindow = threadLoop(function() -- 946
 					if iconTex then -- 1015
 						if ImageButton("sideBtn", icon, Vec2(20, 20)) then -- 1016
 							showStats = not showStats -- 1017
+							if showStats then -- layer: native settings should open above current entry/editor
+								showStatsFocusPending = true
+							end
 							config.showStats = showStats -- 1018
 						end -- 1016
 						SameLine() -- 1019
@@ -1871,6 +1988,10 @@ footerWindow = threadLoop(function() -- 946
 			PushStyleVar("WindowRounding", 0, function() -- 1134
 				SetNextWindowPos(Vec2(0, 0), "Always") -- 1135
 				SetNextWindowSize(Vec2(0, height - 50)) -- 1136
+				if showStatsFocusPending then -- layer: focus native settings above entry/editor once
+					SetNextWindowFocus()
+					showStatsFocusPending = false
+				end
 				showStats = ShowStats(showStats, statusFlags, extraOperations) -- 1137
 				config.showStats = showStats -- 1138
 			end) -- 1134
@@ -1934,7 +2055,7 @@ entryWindow = threadLoop(function() -- 1157
 	end -- 1174
 	local zh = useChinese -- 1175
 	local themeColor = App.themeColor -- 1176
-	if HttpServer.wsConnectionCount > 0 then -- 1177
+		if false and HttpServer.wsConnectionCount > 0 then -- 1177
 		local width, height -- 1178
 		do -- 1178
 			local _obj_0 = App.visualSize -- 1178
