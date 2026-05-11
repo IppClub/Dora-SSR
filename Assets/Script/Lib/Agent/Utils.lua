@@ -139,12 +139,24 @@ local function sanitizeJSONValue(value) -- 98
 	end -- 108
 	return value -- 110
 end -- 98
-function ____exports.safeJsonEncode(value, indent, sortKeys, escapeSlash, maxDepth) -- 113
+function ____exports.safeJsonEncode(value, format, emptyAsArray, numAsStr, maxDepth) -- 113
+	if format == nil then -- 113
+		format = false -- 113
+	end -- 113
+	if emptyAsArray == nil then -- 113
+		emptyAsArray = true -- 113
+	end -- 113
+	if numAsStr == nil then -- 113
+		numAsStr = false -- 113
+	end -- 113
+	if maxDepth == nil then -- 113
+		maxDepth = 128 -- 113
+	end -- 113
 	return json.encode( -- 114
 		sanitizeJSONValue(value), -- 115
-		indent, -- 116
-		sortKeys, -- 117
-		escapeSlash, -- 118
+		format, -- 116
+		emptyAsArray, -- 117
+		numAsStr, -- 118
 		maxDepth -- 119
 	) -- 119
 end -- 113
