@@ -146,7 +146,6 @@ if not config.locale?
 	config.locale = App.locale
 
 showStats = false
-showStatsFocusPending = false
 if config.showStats?
 	showStats = config.showStats
 else
@@ -330,52 +329,32 @@ local gamesInDev
 local doraTools
 local allEntries
 
-repoHasToolCategory = (repo) ->
-	return false unless repo and repo.categories
-	for category in *repo.categories
-		if "string" == type category
-			lower = category\lower!
-			return true if lower == "tool" or lower\find("tool", 1, true) or lower\find("editor", 1, true)
-	false
-
-isToolEntry = (entry) ->
-	repo = entry.repo
-	return true if repo and repo.kind == "tool"
-	return true if repoHasToolCategory repo
-	false
+isToolEntry = (entry): false ->
+	switch entry when repo: :categories
+		for category in *categories
+			if "string" == type category and category\lower! == "tool"
+				return true
 
 getEntryTitle = (entry) ->
-	repo = entry.repo
-	if repo and repo.title
-		if "table" == type repo.title
-			return (useChinese and repo.title.zh or repo.title.en) or repo.title.en or repo.title.zh or entry.entryName
-		return repo.title
-	entry.entryName
-
-getEntryOpenLog = (entry, defaultOpenLog) ->
-	repo = entry.repo
-	if repo and nil ~= repo.openLog
-		return repo.openLog == true
-	defaultOpenLog
+	title = if repo := entry.repo
+		if repo.title and "table" == type repo.title
+			if useChinese then repo.title.zh else repo.title.en
+	title ?? entry.entryName
 
 updateEntries = ->
 	projectEntries = getProjectEntries Content.writablePath
-	gamesInDev = {}
+	gamesInDev = []
 	doraTools = getFileEntries Path(Content.assetPath, "Script", "Tools"), false
 	for tool in *doraTools
 		tool.kind = "tool"
 		tool.builtin = true
-		tool.openLog = false
 	for entry in *projectEntries
 		if isToolEntry entry
 			entry.kind = "tool"
-			entry.openLog = getEntryOpenLog entry, false
 			doraTools[] = entry
 		else
 			entry.kind = "game"
-			entry.openLog = getEntryOpenLog entry, true
 			gamesInDev[] = entry
-
 	allEntries = []
 	for game in *gamesInDev
 		allEntries[] = game
@@ -392,16 +371,11 @@ export getLaunchEntries = ->
 	toInfo = (entry, kind) ->
 		file = entry.fileName
 		asProj = not entry.builtin
-		if entry.repo and entry.repo.entry and entry.repo.entry ~= ""
-			file = Path Path\getPath(entry.fileName), entry.repo.entry
-			asProj = false
 		{
 			name: getEntryTitle entry
 			:file
 			:kind
 			:asProj
-			openLog: getEntryOpenLog entry, kind ~= "tool"
-			builtin: entry.builtin == true
 		}
 	games = [toInfo game, "game" for game in *gamesInDev]
 	tools = [toInfo tool, "tool" for tool in *doraTools]
@@ -1016,9 +990,7 @@ footerWindow = threadLoop ->
 	if authCodeTTL <= 0
 		authCodeTTL = $MaxAuthCodeTTL
 		authCode = string.format "%06d", math.random 0, 999999
-	-- Keep the native footer/settings usable for native entries such as the Visual Editor.
-	-- Web IDE connections should not bury the external Dora controls when showFooter is enabled.
-	if HttpServer.wsConnectionCount > 0 and not showFooter
+	if HttpServer.wsConnectionCount > 0
 		return
 	if Keyboard\isKeyDown "Escape"
 		allClear!
@@ -1032,7 +1004,6 @@ footerWindow = threadLoop ->
 			reloadCurrentEntry!
 		if ctrl and Keyboard\isKeyDown ","
 			showStats = if showFooter then not showStats else true
-			showStatsFocusPending = true if showStats
 			showFooter = true
 			config.showFooter = showFooter
 			config.showStats = showStats
@@ -1085,7 +1056,6 @@ footerWindow = threadLoop ->
 		if iconTex
 			if ImageButton "sideBtn", icon, Vec2 20, 20
 				showStats = not showStats
-				showStatsFocusPending = true if showStats
 				config.showStats = showStats
 			SameLine!
 			if Button ">_", Vec2 30, 30
@@ -1205,9 +1175,6 @@ footerWindow = threadLoop ->
 			<- PushStyleVar "WindowRounding", 0
 			SetNextWindowPos Vec2(0, 0), $SetCond Always
 			SetNextWindowSize Vec2 0, height - 50
-			if showStatsFocusPending
-				SetNextWindowFocus!
-				showStatsFocusPending = false
 			showStats = ShowStats showStats, statusFlags, extraOperations
 			config.showStats = showStats
 		if showConsole
@@ -1248,9 +1215,20 @@ entryWindow = threadLoop ->
 	return unless isInEntry
 	zh = useChinese
 	:themeColor = App
-		-- Keep the native editor visible while Web IDE is connected.
-		-- The old centered "Web IDE Connected" splash returned early here and
-		-- covered the Visual Editor / Game Preview workflow.
+	if HttpServer.wsConnectionCount > 0
+		:width, :height = App.visualSize
+		SetNextWindowBgAlpha 0.5
+		SetNextWindowPos Vec2(width / 2, height / 2), $SetCond(Always), Vec2 0.5, 0.5
+		Begin "Web IDE Connected", displayWindowFlags, ->
+			Separator!
+			TextColored themeColor, "#{zh and 'Web IDE 已连接 ……' or 'Web IDE connected ...'}"
+			if iconTex
+				Image icon, Vec2 24, 24
+				SameLine!
+			slogon = zh and 'Dora 启动！' or 'Dora Start!'
+			TextColored descColor, slogon
+			Separator!
+		return
 
 	width: fullWidth, :height = App.visualSize
 	width = math.min MaxWidth, fullWidth

@@ -48,6 +48,8 @@ import { EditorTheme } from './Editor';
 import CodeIcon from '@mui/icons-material/Code';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import FolderOpenIcon from '@mui/icons-material/FolderOpen';
+import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
 import LLMConfigDialog from './LLMConfigDialog';
 import ProjectWorkspacePanel from './ProjectWorkspacePanel';
 
@@ -618,14 +620,16 @@ export default function PersistentDrawerLeft() {
 	const [filterOptions, setFilterOptions] = useState<FilterOption[] | null>(null);
 	const [openLLMConfig, setOpenLLMConfig] = useState(false);
 	const [toolEntries, setToolEntries] = useState<Service.EntryLaunchInfo[]>([]);
-	const {width: drawerWidth, enableResize, isResizing} = useResize({minWidth: 150, defaultWidth: Info.drawerWidth});
+	const [gameEntries, setGameEntries] = useState<Service.EntryLaunchInfo[]>([]);
+	const [entryView, setEntryView] = useState<"tool" | "game">("tool");
+	const {width: drawerWidth, enableResize, isResizing} = useResize({minWidth: 165, defaultWidth: Info.drawerWidth});
 	const [winSize, setWinSize] = useState({
 		width: window.innerWidth,
 		height: window.innerHeight
 	});
 	const editorWidth = winSize.width - (drawerOpen ? drawerWidth : 0);
 	const editorHeight = winSize.height - 48;
-	const showFullLogo = drawerWidth > 200;
+	const showFullLogo = drawerWidth > 235;
 
 	const [openLog, setOpenLog] = useState<{title: string, stopOnClose: boolean} | null>(null);
 	const [openBottomLog, setOpenBottomLog] = useState(false);
@@ -680,6 +684,7 @@ export default function PersistentDrawerLeft() {
 		return Service.entryList().then((res) => {
 			if (res.success) {
 				setToolEntries(res.tools ?? []);
+				setGameEntries(res.games ?? []);
 			}
 			return res;
 		}).catch(() => {
@@ -1471,15 +1476,16 @@ export default function PersistentDrawerLeft() {
 			}
 		};
 
+		const pendingUpdateFiles = pendingUpdateFilesRef.current;
 		const flushUpdateFileQueue = () => {
 			updateFileFlushTimerRef.current = null;
-			const events = [...pendingUpdateFilesRef.current.values()];
-			pendingUpdateFilesRef.current.clear();
+			const events = [...pendingUpdateFiles.values()];
+			pendingUpdateFiles.clear();
 			applyUpdateFileBatch(events);
 		};
 
 		const handleUpdateFile = (file: string, exists: boolean, content: string) => {
-			pendingUpdateFilesRef.current.set(file, { file, exists, content });
+			pendingUpdateFiles.set(file, { file, exists, content });
 			if (updateFileFlushTimerRef.current !== null) return;
 			updateFileFlushTimerRef.current = window.setTimeout(flushUpdateFileQueue, 32);
 		};
@@ -1490,7 +1496,7 @@ export default function PersistentDrawerLeft() {
 				window.clearTimeout(updateFileFlushTimerRef.current);
 				updateFileFlushTimerRef.current = null;
 			}
-			pendingUpdateFilesRef.current.clear();
+			pendingUpdateFiles.clear();
 			Service.removeUpdateFileListener(handleUpdateFile);
 		};
 	}, []);
@@ -1554,7 +1560,7 @@ export default function PersistentDrawerLeft() {
 			return;
 		}
 		setExpandedKeys(keys);
-		}, [addAlert, expandedKeys, loadAssets, switchTab, openEditingInfoFiles, t, treeData]);
+		}, [addAlert, loadAssets, switchTab, openEditingInfoFiles, t, treeData]);
 
 	const onAgentRollbackComplete = useCallback((projectRoot: string) => {
 		void loadAssets();
@@ -1694,20 +1700,14 @@ export default function PersistentDrawerLeft() {
 	addAlert(t("alert.runFailed", {title}), "info");
 	}, [addAlert, files, tabIndex, t, selectedNode, isEditorActioning]);
 
-	const onLaunchEntry = useCallback((entry: Service.EntryLaunchInfo) => {
+	const onLaunchToolEntry = useCallback((entry: Service.EntryLaunchInfo) => {
 		Service.run({file: entry.file, asProj: entry.asProj}).then((res) => {
 			if (res.success) {
 				addAlert(t("alert.run", {title: res.target ?? entry.name}), "success");
-				if (entry.openLog) {
-					setOpenLog({
-						title: res.target ?? entry.name,
-						stopOnClose: true
-					});
-				}
 			} else {
 				addAlert(t("alert.runFailed", {title: res.target ?? entry.name}), "error");
 			}
-			if (entry.openLog && res.err !== undefined) {
+			if (res.err !== undefined) {
 				setPopupInfo({
 					title: res.target ?? entry.name,
 					msg: res.err,
@@ -1718,6 +1718,14 @@ export default function PersistentDrawerLeft() {
 			addAlert(t("alert.runFailed", {title: entry.name}), "error");
 		});
 	}, [addAlert, t]);
+
+	const onOpenEntryWorkDir = useCallback(async (entry: Service.EntryLaunchInfo) => {
+		const workDir = path.dirname(entry.file);
+		if (await openAgentSessionTab(workDir, true, { silentWhenNotFound: true })) {
+			return;
+		}
+		openFileInTab(workDir, path.basename(workDir), true);
+	}, [openAgentSessionTab, openFileInTab]);
 
 	const saveFileInTab = useCallback((file: EditingFile, preview: boolean) => {
 		return new Promise<EditingFile[]>((resolve, reject) => {
@@ -2089,7 +2097,7 @@ export default function PersistentDrawerLeft() {
 				});
 			},
 		});
-		}, [addAlert, files, tabIndex, t, treeData, switchTab]);
+		}, [addAlert, files, tabIndex, t, switchTab]);
 
 	const onTreeMenuClick = useCallback((event: TreeMenuEvent, data?: TreeDataType)=> {
 		if (isSaving) {
@@ -2531,7 +2539,7 @@ export default function PersistentDrawerLeft() {
 				break;
 			}
 		}
-		}, [addAlert, checkFileReadonly, loadAssets, t, files, deleteFile, treeData, openFileInTab, expandedKeys, onEditorDidMount, switchTab, openAgentSessionTab]);
+		}, [addAlert, checkFileReadonly, loadAssets, t, files, deleteFile, treeData, openFileInTab, onEditorDidMount, switchTab, openAgentSessionTab]);
 
 	const onNewFileClose = (item?: DoraFileType) => {
 		let ext: string | null = null;
@@ -3766,23 +3774,7 @@ export default function PersistentDrawerLeft() {
 										<AccountTreeIcon fontSize="small"/>
 									</IconButton>
 								</Tooltip>
-								<Tooltip title={t("menu.searchFiles")}>
-									<IconButton
-										size="small"
-										color="inherit"
-										disableRipple
-										aria-pressed={leftDockTab === "search"}
-										onClick={() => setLeftDockTab("search")}
-										sx={{
-											backgroundColor: leftDockTab === "search" ? Color.Theme + "11" : "transparent",
-											border: `1px solid ${leftDockTab === "search" ? Color.Theme + "55" : Color.Line}`,
-											borderRadius: 1.5,
-										}}
-									>
-										<BsSearch />
-									</IconButton>
-								</Tooltip>
-								<Tooltip title={t("menu.tools")}>
+								<Tooltip title={t("menu.entries")}>
 									<IconButton
 										size="small"
 										color="inherit"
@@ -3798,7 +3790,23 @@ export default function PersistentDrawerLeft() {
 											borderRadius: 1.5,
 										}}
 									>
-										<CodeIcon fontSize="small"/>
+										<FormatListBulletedIcon fontSize="small"/>
+									</IconButton>
+								</Tooltip>
+								<Tooltip title={t("menu.searchFiles")}>
+									<IconButton
+										size="small"
+										color="inherit"
+										disableRipple
+										aria-pressed={leftDockTab === "search"}
+										onClick={() => setLeftDockTab("search")}
+										sx={{
+											backgroundColor: leftDockTab === "search" ? Color.Theme + "11" : "transparent",
+											border: `1px solid ${leftDockTab === "search" ? Color.Theme + "55" : Color.Line}`,
+											borderRadius: 1.5,
+										}}
+									>
+										<BsSearch />
 									</IconButton>
 								</Tooltip>
 							</Stack>
@@ -3821,38 +3829,110 @@ export default function PersistentDrawerLeft() {
 								onOpenFile={onSearchOpenFile}
 							/>
 						</div>
-						<div style={{flex: 1, minHeight: 0, padding: 12, overflow: 'auto'}} hidden={leftDockTab !== "tools"}>
-							<Stack direction="row" alignItems="center" justifyContent="space-between" sx={{mb: 1}}>
-								<Typography variant="subtitle2" sx={{color: Color.Primary}}>
-									{t("menu.tools")}
-								</Typography>
+						<div style={{
+							flex: 1,
+							minHeight: 0,
+							padding: 0,
+							display: leftDockTab === "tools" ? 'flex' : 'none',
+							flexDirection: 'column',
+							overflow: 'hidden'
+						}}>
+							<Stack direction="row" alignItems="center" justifyContent="space-between" sx={{m: 1.5, mb: 1, flexShrink: 0}}>
+								<Stack direction="row" spacing={0.5}>
+									<Button
+										size="small"
+										variant="outlined"
+										onClick={() => setEntryView("tool")}
+										disableRipple
+										sx={{
+											textTransform: "none",
+											minWidth: 0,
+											color: Color.Primary,
+											backgroundColor: entryView === "tool" ? Color.Theme + "11" : "transparent",
+											borderColor: entryView === "tool" ? Color.Theme + "55" : Color.Line,
+											borderRadius: 1.5,
+											"&:hover": {
+												backgroundColor: entryView === "tool" ? Color.Theme + "11" : "transparent",
+												borderColor: entryView === "tool" ? Color.Theme + "55" : Color.Line,
+											},
+										}}
+									>
+										{t("menu.tools")}
+									</Button>
+									<Button
+										size="small"
+										variant="outlined"
+										onClick={() => setEntryView("game")}
+										disableRipple
+										sx={{
+											textTransform: "none",
+											minWidth: 0,
+											color: Color.Primary,
+											backgroundColor: entryView === "game" ? Color.Theme + "11" : "transparent",
+											borderColor: entryView === "game" ? Color.Theme + "55" : Color.Line,
+											borderRadius: 1.5,
+											"&:hover": {
+												backgroundColor: entryView === "game" ? Color.Theme + "11" : "transparent",
+												borderColor: entryView === "game" ? Color.Theme + "55" : Color.Line,
+											},
+										}}
+									>
+										{t("menu.projects")}
+									</Button>
+								</Stack>
 								<Button size="small" onClick={() => loadEntries()}>
 									{t("menu.reload")}
 								</Button>
 							</Stack>
-							<Stack spacing={1}>
-								{toolEntries.length === 0 ? (
-									<Typography variant="body2" sx={{opacity: 0.7}}>
-										{t("menu.noTools")}
-									</Typography>
-								) : toolEntries.map((entry) => (
-									<Button
-										key={`${entry.file}-${entry.name}`}
-										variant="outlined"
-										size="small"
-										fullWidth
-										onClick={() => onLaunchEntry(entry)}
-										sx={{
-											justifyContent: "flex-start",
-											textTransform: "none",
-											borderColor: Color.Line,
-											color: Color.Primary,
-										}}
-									>
-										{entry.name}
-									</Button>
-								))}
-							</Stack>
+							<MacScrollbar skin='dark' style={{flex: 1, minHeight: 0, marginRight: resizeHandleWidth}}>
+								<Stack spacing={1} sx={{pl: 1.5, pr: 2, pb: 1.5}}>
+									{(entryView === "tool" ? toolEntries : gameEntries).length === 0 ? (
+										<Typography variant="body2" sx={{opacity: 0.7}}>
+											{t(entryView === "tool" ? "menu.noTools" : "menu.noProjects")}
+										</Typography>
+									) : (entryView === "tool" ? toolEntries : gameEntries).map((entry) => (
+										<Stack key={`${entry.file}-${entry.name}`} direction="row" spacing={0.75} alignItems="stretch">
+											<Button
+												variant="outlined"
+												size="small"
+												fullWidth
+												onClick={() => onLaunchToolEntry(entry)}
+												sx={{
+													justifyContent: "flex-start",
+													textTransform: "none",
+													borderColor: Color.Line,
+													color: Color.Primary,
+													minWidth: 0,
+													overflow: "hidden",
+												}}
+											>
+												<Typography variant="body2" noWrap sx={{minWidth: 0}}>
+													{entry.name}
+												</Typography>
+											</Button>
+											{entryView === "game" ? (
+												<Tooltip title={t("menu.openProjectFolder")}>
+													<span>
+														<IconButton
+															size="small"
+															onClick={() => onOpenEntryWorkDir(entry)}
+															sx={{
+																width: 34,
+																height: 34,
+																border: `1px solid ${Color.Line}`,
+																borderRadius: 1,
+																color: Color.TextSecondary
+															}}
+														>
+															<FolderOpenIcon fontSize="small"/>
+														</IconButton>
+													</span>
+												</Tooltip>
+											) : null}
+										</Stack>
+									))}
+								</Stack>
+							</MacScrollbar>
 						</div>
 					</div>
 					<div

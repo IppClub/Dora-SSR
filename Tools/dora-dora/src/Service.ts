@@ -27,7 +27,7 @@ export interface OpenFileMessage {
 		column: number;
 	};
 	readOnly?: boolean;
-}
+};
 
 type ServiceEvents = {
 	[WsEvent.Log]: [string, string];
@@ -129,7 +129,7 @@ const enum WsEvent {
 	UpdateFile = "UpdateFile",
 	OpenFile = "OpenFile",
 	Download = "Download",
-}
+};
 
 let logText = "";
 
@@ -337,7 +337,7 @@ export interface SearchFilesRequest {
 	caseSensitive: boolean;
 	includeContent: boolean;
 	contentWindow: number;
-}
+};
 
 export interface SearchFilesResult {
 	file: string;
@@ -345,19 +345,19 @@ export interface SearchFilesResult {
 	line: number;
 	column: number;
 	content: string;
-}
+};
 
 export interface SearchFilesResultMessage {
 	name: "SearchFilesResult";
 	id: number;
 	result: SearchFilesResult;
-}
+};
 
 export interface SearchFilesDoneMessage {
 	name: "SearchFilesDone";
 	id: number;
 	stopped?: boolean;
-}
+};
 
 export const searchFiles = (req: SearchFilesRequest) => {
 	return sendWebSocketMessage({name: "SearchFiles", ...req});
@@ -427,7 +427,7 @@ export interface InferRequest {
 	line: string;
 	row: number;
 	content: string;
-}
+};
 export interface InferResponse {
 	success: boolean;
 	infered?: {
@@ -438,7 +438,7 @@ export interface InferResponse {
 		col: number,
 		key?: string,
 	};
-}
+};
 export const infer = (req: InferRequest) => {
 	return post<InferResponse>("/infer", req);
 };
@@ -451,7 +451,7 @@ export interface SignatureRequest {
 	line: string;
 	row: number;
 	content: string;
-}
+};
 export interface SignatureResponse {
 	success: boolean;
 	signatures?: [{
@@ -462,7 +462,7 @@ export interface SignatureResponse {
 		}]
 		doc: string,
 	}];
-}
+};
 export const signature = (req: SignatureRequest) => {
 	return post<SignatureResponse>("/signature", req);
 };
@@ -475,12 +475,12 @@ export interface CompleteRequest {
 	line: string;
 	row: number;
 	content: string;
-}
+};
 type CompleteItemType = "function" | "variable" | "field" | "method" | "keyword";
 export interface CompleteResponse {
 	success: boolean;
 	suggestions?: [string, string, CompleteItemType][];
-}
+};
 export const complete = (req: CompleteRequest) => {
 	return post<CompleteResponse>("/complete", req);
 };
@@ -513,14 +513,12 @@ export interface EntryLaunchInfo {
 	file: string;
 	kind: "game" | "tool";
 	asProj: boolean;
-	openLog: boolean;
-	builtin?: boolean;
-}
+};
 export interface EntryListResponse {
 	success: boolean;
 	games: EntryLaunchInfo[];
 	tools: EntryLaunchInfo[];
-}
+};
 export const entryList = () => {
 	return post<EntryListResponse>("/entry/list");
 };
@@ -553,18 +551,18 @@ export interface LLMConfigItem {
 	reasoningEffort?: string;
 	supportsFunctionCalling: boolean;
 	active: boolean;
-}
+};
 
 export interface LLMConfigListResponse {
 	success: boolean;
 	items?: LLMConfigItem[];
 	message?: string;
-}
+};
 
 export interface LLMConfigWriteResponse {
 	success: boolean;
 	message?: string;
-}
+};
 
 export const listLLMConfigs = () => {
 	return post<LLMConfigListResponse>("/llm/list");
@@ -669,10 +667,10 @@ export const rename = (req: RenameRequest) => {
 
 export interface DeleteRequest {
 	path: string;
-}
+};
 export interface DeleteResponse {
 	success: boolean;
-}
+};
 export const deleteFile = (req: DeleteRequest) => {
 	return post<DeleteResponse>("/delete", req);
 };
@@ -683,11 +681,11 @@ export interface NewRequest {
 	path: string;
 	content: string;
 	folder: boolean;
-}
+};
 export interface NewResponse {
 	success: boolean;
 	message: 'Failed' | 'TargetExisted' | 'SourceExisted';
-}
+};
 export const newFile = (req: NewRequest) => {
 	return post<NewResponse>("/new", req);
 };
@@ -696,7 +694,7 @@ export const newFile = (req: NewRequest) => {
 
 export interface ListRequest {
 	path: string;
-}
+};
 export type ListResponse = {
 	success: true;
 	files: string[];
@@ -712,12 +710,12 @@ export const list = (req: ListRequest) => {
 export interface RunRequest {
 	file: string;
 	asProj: boolean;
-}
+};
 export interface RunResponse {
 	success: boolean;
 	target?: string;
 	err?: string;
-}
+};
 export const run = (req: RunRequest) => {
 	return post<RunResponse>("/run", req);
 };
@@ -726,7 +724,7 @@ export const run = (req: RunRequest) => {
 
 export interface StopResponse {
 	success: boolean;
-}
+};
 export const stop = () => {
 	return post<StopResponse>("/stop");
 };
@@ -737,10 +735,10 @@ export interface ZipRequest {
 	path: string;
 	zipFile: string;
 	obfuscated: boolean;
-}
+};
 export interface ZipResponse {
 	success: boolean;
-}
+};
 export const zip = (req: ZipRequest) => {
 	return post<ZipResponse>("/zip", req);
 };
@@ -750,10 +748,10 @@ export const zip = (req: ZipRequest) => {
 export interface UnzipRequest {
 	zipFile: string;
 	path: string;
-}
+};
 export interface UnzipResponse {
 	success: boolean;
-}
+};
 export const unzip = (req: UnzipRequest) => {
 	return post<UnzipResponse>("/unzip", req);
 };
@@ -830,7 +828,7 @@ export const saveLog = () => {
 
 export interface CheckYarnRequest {
 	code: string;
-}
+};
 export type CheckYarnResponse = {
 	success: true;
 	syntaxError: string;
@@ -846,7 +844,7 @@ export const checkYarn = (req: CheckYarnRequest) => {
 
 export interface CheckYarnFileRequest {
 	code: string;
-}
+};
 export type CheckYarnFileResponse = {
 	success: false;
 	message: string;
@@ -864,7 +862,7 @@ export const checkYarnFile = (req: CheckYarnFileRequest) => {
 
 export interface BuildWaRequest {
 	path: string;
-}
+};
 export type BuildWaResponse = {
 	success: true;
 } | {
@@ -879,7 +877,7 @@ export const buildWa = (req: BuildWaRequest) => {
 
 export interface FormatWaRequest {
 	file: string;
-}
+};
 export type FormatWaResponse = {
 	success: true;
 	code: string;
@@ -895,7 +893,7 @@ export const formatWa = (req: FormatWaRequest) => {
 
 export interface CreateWaRequest {
 	path: string;
-}
+};
 export type CreateWaResponse = {
 	success: true;
 } | {
@@ -910,7 +908,7 @@ export const createWa = (req: CreateWaRequest) => {
 
 export interface UpdateDoraRequest {
 	path: string;
-}
+};
 export type UpdateDoraResponse = {
 	success: true;
 } | {
@@ -926,7 +924,7 @@ export const updateDora = (req: UpdateDoraRequest) => {
 export interface DownloadRequest {
 	url: string;
 	target: string;
-}
+};
 export type DownloadResponse = {
 	success: boolean;
 };
@@ -942,7 +940,7 @@ export interface AgentProjectRootResponse {
 	projectRoot?: string;
 	title?: string;
 	message?: string;
-}
+};
 
 export interface AgentSession {
 	id: number;
@@ -959,7 +957,7 @@ export interface AgentSession {
 	createdAt: number;
 	updatedAt: number;
 	metrics?: AgentMetrics;
-}
+};
 
 export interface AgentContextMetric {
 	usedTokens: number;
@@ -975,11 +973,11 @@ export interface AgentContextMetric {
 	phase?: string;
 	step?: number;
 	updatedAt?: number;
-}
+};
 
 export interface AgentMetrics {
 	context?: AgentContextMetric;
-}
+};
 
 export interface AgentSessionMessage {
 	id: number;
@@ -989,7 +987,7 @@ export interface AgentSessionMessage {
 	content: string;
 	createdAt: number;
 	updatedAt: number;
-}
+};
 
 export interface AgentSessionStep {
 	id: number;
@@ -1007,14 +1005,14 @@ export interface AgentSessionStep {
 	files?: { path: string; op: string }[];
 	createdAt: number;
 	updatedAt: number;
-}
+};
 
 export interface AgentChangeSetFileItem {
 	path: string;
 	op: "write" | "create" | "delete";
 	checkpointCount: number;
 	checkpointIds: number[];
-}
+};
 
 export interface AgentChangeSetSummary {
 	success: true;
@@ -1024,7 +1022,7 @@ export interface AgentChangeSetSummary {
 	files: AgentChangeSetFileItem[];
 	latestCheckpointId?: number;
 	latestCheckpointSeq?: number;
-}
+};
 
 export interface AgentSubAgentMemoryEntry {
 	sourceSessionId: number;
@@ -1032,7 +1030,7 @@ export interface AgentSubAgentMemoryEntry {
 	content: string;
 	evidence: string[];
 	createdAt: string;
-}
+};
 
 export interface AgentCheckpointItem {
 	id: number;
@@ -1042,7 +1040,7 @@ export interface AgentCheckpointItem {
 	summary: string;
 	toolName: string;
 	createdAt: number;
-}
+};
 
 export interface AgentCheckpointDiffFile {
 	path: string;
@@ -1051,7 +1049,7 @@ export interface AgentCheckpointDiffFile {
 	afterExists: boolean;
 	beforeContent: string;
 	afterContent: string;
-}
+};
 
 export interface AgentSessionSpawnInfo {
 	prompt: string;
@@ -1066,7 +1064,7 @@ export interface AgentSessionSpawnInfo {
 	memoryEntry?: AgentSubAgentMemoryEntry;
 	memoryEntryError?: string;
 	createdAt?: string;
-}
+};
 
 export interface AgentPendingMergeJob {
 	jobId: string;
@@ -1075,7 +1073,7 @@ export interface AgentPendingMergeJob {
 	createdAt: string;
 	attempts?: number;
 	lastError?: string;
-}
+};
 
 export interface AgentSessionPatch {
 	name: "AgentSessionPatch";
@@ -1091,7 +1089,7 @@ export interface AgentSessionPatch {
 	pendingMergeCount?: number;
 	pendingMergeJobs?: AgentPendingMergeJob[];
 	spawnInfo?: AgentSessionSpawnInfo;
-}
+};
 
 export type AgentSessionDetailResponse = {
 	success: true;
