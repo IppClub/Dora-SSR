@@ -759,6 +759,7 @@ interface AgentShared {
 	history: AgentActionRecord[];
 	pendingToolActions?: AgentActionRecord[];
 	preExecutedResults?: Map<string, PreExecutedToolResult>;
+	toolResultCache?: Map<string, Record<string, unknown>>;
 	messages: AgentConversationMessage[];
 	lastConsolidatedIndex: number;
 	carryMessageIndex?: number;
@@ -1323,8 +1324,20 @@ const PRE_EXEC_SAFE_TOOLS: AgentToolName[] = [
 	"list_sub_agents",
 ];
 
+const CACHEABLE_TOOL_RESULTS: AgentToolName[] = [
+	"read_file",
+	"grep_files",
+	"search_dora_api",
+	"glob_files",
+	"list_sub_agents",
+];
+
 function canPreExecuteTool(tool: AgentToolName): boolean {
 	return PRE_EXEC_SAFE_TOOLS.indexOf(tool) >= 0;
+}
+
+function canCacheToolResult(tool: AgentToolName): boolean {
+	return CACHEABLE_TOOL_RESULTS.indexOf(tool) >= 0;
 }
 
 function clearPreExecutedResults(shared: AgentShared): void {
@@ -1357,6 +1370,31 @@ async function executeToolActionWithPreExecution(shared: AgentShared, action: Ag
 		Log("Warn", `[CodingAgent] discard stale streaming pre-exec result tool=${action.tool} id=${action.toolCallId}`);
 	}
 	return executeToolAction(shared, action);
+}
+
+function shouldClearToolResultCache(action: AgentActionRecord): boolean {
+	return action.tool === "edit_file"
+		|| action.tool === "delete_file"
+		|| action.tool === "spawn_sub_agent";
+}
+
+async function executeToolActionWithCache(shared: AgentShared, action: AgentActionRecord): Promise<Record<string, unknown>> {
+	if (canCacheToolResult(action.tool)) {
+		const cacheKey = getToolActionSignature(action);
+		const cached = shared.toolResultCache?.get(cacheKey);
+		if (cached) {
+			Log("Info", `[CodingAgent] using cached tool result tool=${action.tool}`);
+			return cached;
+		}
+		const result = await executeToolActionWithPreExecution(shared, action);
+		shared.toolResultCache?.set(cacheKey, result);
+		return result;
+	}
+	const result = await executeToolActionWithPreExecution(shared, action);
+	if (shouldClearToolResultCache(action) && result.success === true) {
+		shared.toolResultCache?.clear();
+	}
+	return result;
 }
 
 async function maybeCompressHistory(shared: AgentShared): Promise<void> {
@@ -2610,6 +2648,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 				if (shared.stopToken.stopped) return;
 				const action = createPreExecutableActionFromStream(shared, tc);
 				if (!action || preExecutedResults.has(action.toolCallId)) return;
+				if (canCacheToolResult(action.tool) && shared.toolResultCache?.has(getToolActionSignature(action))) return;
 				Log("Info", `[CodingAgent] streaming pre-exec tool=${action.tool} id=${action.toolCallId}`);
 				preExecutedResults.set(action.toolCallId, {
 					signature: getToolActionSignature(action),
@@ -3915,9 +3954,15 @@ class BatchToolAction extends Node<AgentShared> {
 						action.result = { success: false, message: getCancelledReason(shared) };
 						return action;
 					}
-					const result = await executeToolActionWithPreExecution(shared, action);
 					action.params = sanitizeActionParamsForHistory(action.tool, action.params);
-					action.result = sanitizeToolActionResultForHistory(action, result);
+					try {
+						const result = await executeToolActionWithCache(shared, action);
+						action.result = sanitizeToolActionResultForHistory(action, result);
+					} catch (err) {
+						const message = tostring(err);
+						Log("Error", `[CodingAgent] batch tool failed tool=${action.tool} id=${action.toolCallId}: ${message}`);
+						action.result = { success: false, message };
+					}
 					return action;
 				}));
 				for (let i = 0; i < batch.actions.length; i++) {
@@ -3934,7 +3979,7 @@ class BatchToolAction extends Node<AgentShared> {
 				for (let i = 0; i < batch.actions.length; i++) {
 					const action = batch.actions[i];
 					emitAgentStartEvent(shared, action);
-					const result = await executeToolActionWithPreExecution(shared, action);
+					const result = await executeToolActionWithCache(shared, action);
 					action.params = sanitizeActionParamsForHistory(action.tool, action.params);
 					action.result = sanitizeToolActionResultForHistory(action, result);
 					appendToolResultMessage(shared, action);
@@ -4086,6 +4131,7 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 		onEvent: options.onEvent,
 		promptPack,
 		history: [],
+		toolResultCache: new Map<string, Record<string, unknown>>(),
 		messages: persistedSession.messages,
 		lastConsolidatedIndex: persistedSession.lastConsolidatedIndex,
 		carryMessageIndex: persistedSession.carryMessageIndex,
