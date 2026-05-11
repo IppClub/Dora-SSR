@@ -714,6 +714,11 @@ export interface AgentActionRecord {
 	timestamp: string;
 }
 
+interface PreExecutedToolResult {
+	signature: string;
+	promise: Promise<Record<string, unknown>>;
+}
+
 interface AgentFileContextItem {
 	path: string;
 	op: Tools.FileOp;
@@ -753,7 +758,7 @@ interface AgentShared {
 	promptPack: AgentPromptPack;
 	history: AgentActionRecord[];
 	pendingToolActions?: AgentActionRecord[];
-	preExecutedResults?: Map<string, Promise<Record<string, unknown>>>;
+	preExecutedResults?: Map<string, PreExecutedToolResult>;
 	messages: AgentConversationMessage[];
 	lastConsolidatedIndex: number;
 	carryMessageIndex?: number;
@@ -1326,6 +1331,10 @@ function clearPreExecutedResults(shared: AgentShared): void {
 	shared.preExecutedResults = undefined;
 }
 
+function getToolActionSignature(action: AgentActionRecord): string {
+	return `${action.tool}:${toJson(action.params)}`;
+}
+
 async function startPreExecutedToolAction(shared: AgentShared, action: AgentActionRecord): Promise<Record<string, unknown>> {
 	try {
 		return await executeToolAction(shared, action);
@@ -1339,9 +1348,13 @@ async function startPreExecutedToolAction(shared: AgentShared, action: AgentActi
 async function executeToolActionWithPreExecution(shared: AgentShared, action: AgentActionRecord): Promise<Record<string, unknown>> {
 	const preResult = shared.preExecutedResults?.get(action.toolCallId);
 	if (preResult) {
-		Log("Info", `[CodingAgent] using streaming pre-exec result tool=${action.tool} id=${action.toolCallId}`);
 		shared.preExecutedResults?.delete(action.toolCallId);
-		return await preResult;
+		const signature = getToolActionSignature(action);
+		if (preResult.signature === signature) {
+			Log("Info", `[CodingAgent] using streaming pre-exec result tool=${action.tool} id=${action.toolCallId}`);
+			return await preResult.promise;
+		}
+		Log("Warn", `[CodingAgent] discard stale streaming pre-exec result tool=${action.tool} id=${action.toolCallId}`);
 	}
 	return executeToolAction(shared, action);
 }
@@ -2563,15 +2576,15 @@ class MainDecisionAgent extends Node<AgentShared> {
 		const tools = buildDecisionToolSchema(shared);
 		const messages = buildDecisionMessages(shared, lastError, attempt, lastRaw);
 		const stepId = shared.step + 1;
-			const llmOptions = {
-				...shared.llmOptions,
-				tools,
-			};
-			emitLLMContextMetrics(shared, stepId, "decision_tool_calling", messages, llmOptions);
-			saveStepLLMDebugInput(shared, stepId, "decision_tool_calling", messages, llmOptions);
+		const llmOptions = {
+			...shared.llmOptions,
+			tools,
+		};
+		emitLLMContextMetrics(shared, stepId, "decision_tool_calling", messages, llmOptions);
+		saveStepLLMDebugInput(shared, stepId, "decision_tool_calling", messages, llmOptions);
 		let lastStreamContent = "";
 		let lastStreamReasoning = "";
-		const preExecutedResults = new Map<string, Promise<Record<string, unknown>>>();
+		const preExecutedResults = new Map<string, PreExecutedToolResult>();
 		shared.preExecutedResults = preExecutedResults;
 		const res = await callLLMStreamAggregated(
 			messages,
@@ -2598,7 +2611,10 @@ class MainDecisionAgent extends Node<AgentShared> {
 				const action = createPreExecutableActionFromStream(shared, tc);
 				if (!action || preExecutedResults.has(action.toolCallId)) return;
 				Log("Info", `[CodingAgent] streaming pre-exec tool=${action.tool} id=${action.toolCallId}`);
-				preExecutedResults.set(action.toolCallId, startPreExecutedToolAction(shared, action));
+				preExecutedResults.set(action.toolCallId, {
+					signature: getToolActionSignature(action),
+					promise: startPreExecutedToolAction(shared, action),
+				});
 			}
 		);
 		if (shared.stopToken.stopped) {
