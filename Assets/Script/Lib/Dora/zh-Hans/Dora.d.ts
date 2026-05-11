@@ -705,7 +705,7 @@ interface App {
 	 * @param folderOnly 是否仅允许选择文件夹。
 	 * @param callback 当文件对话框关闭时调用的回调函数。回调函数应接受一个字符串参数，该参数为选中的文件或文件夹的路径。如果用户取消对话框，则返回空字符串。
 	 */
-	openFileDialog(folderOnly: boolean, callback: (path: string) => void): void;
+	openFileDialog(folderOnly: boolean, callback: (this: void, path: string) => void): void;
 
 	/**
 	 * 估算一段文本大致会消耗多少 LLM token。
