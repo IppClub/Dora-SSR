@@ -610,7 +610,7 @@ isToolEntry = function(entry) -- 332
 			if categories ~= nil then -- 333
 				for _index_0 = 1, #categories do -- 334
 					local category = categories[_index_0] -- 334
-					if "string" == type(category and category:lower() == "tool") then -- 335
+					if "string" == type(category) and category:lower() == "tool" then -- 335
 						return true -- 336
 					end -- 335
 				end -- 334
@@ -2290,69 +2290,91 @@ entryWindow = threadLoop(function() -- 1198
 							local showTool = false -- 1377
 							for _index_0 = 1, #doraTools do -- 1378
 								local _des_0 = doraTools[_index_0] -- 1378
-								local entryName = _des_0.entryName -- 1378
-								if match(entryName) then -- 1379
-									showTool = true -- 1379
-									break -- 1379
+								local entryName, repo = _des_0.entryName, _des_0.repo -- 1378
+								local displayName -- 1379
+								if repo then -- 1379
+									if zh then -- 1380
+										displayName = repo.title.zh -- 1380
+									else -- 1380
+										displayName = repo.title.en -- 1380
+									end -- 1380
 								end -- 1379
+								if displayName == nil then -- 1381
+									displayName = entryName -- 1381
+								end -- 1381
+								if match(displayName) then -- 1382
+									showTool = true -- 1382
+									break -- 1382
+								end -- 1382
 							end -- 1378
-							if not showTool then -- 1380
-								goto endEntry -- 1380
-							end -- 1380
-							Columns(1, false) -- 1381
-							TextColored(themeColor, "Dora SSR:") -- 1382
-							SameLine() -- 1383
-							Text(zh and "开发支持" or "Development Support") -- 1384
-							Separator() -- 1385
-							if #doraTools > 0 then -- 1386
-								local opened -- 1387
-								if (filterText ~= nil) then -- 1387
-									opened = showTool -- 1387
-								else -- 1387
-									opened = false -- 1387
-								end -- 1387
-								SetNextItemOpen(toolOpen) -- 1388
-								TreeNode(zh and "引擎工具" or "Engine Tools", function() -- 1389
-									return PushStyleVar("ItemSpacing", Vec2(20, 10), function() -- 1390
-										Columns(maxColumns, false) -- 1391
-										for _index_0 = 1, #doraTools do -- 1392
-											local example = doraTools[_index_0] -- 1392
-											local entryName = example.entryName -- 1393
-											if not match(entryName) then -- 1394
-												goto _continue_0 -- 1394
-											end -- 1394
-											if Button(entryName, Vec2(-1, 40)) then -- 1395
-												enterDemoEntry(example) -- 1396
-											end -- 1395
-											NextColumn() -- 1397
-											::_continue_0:: -- 1393
-										end -- 1392
-										Columns(1, false) -- 1398
-										opened = true -- 1399
-									end) -- 1390
-								end) -- 1389
-								toolOpen = opened -- 1400
-							end -- 1386
+							if not showTool then -- 1383
+								goto endEntry -- 1383
+							end -- 1383
+							Columns(1, false) -- 1384
+							TextColored(themeColor, "Dora SSR:") -- 1385
+							SameLine() -- 1386
+							Text(zh and "开发支持" or "Development Support") -- 1387
+							Separator() -- 1388
+							if #doraTools > 0 then -- 1389
+								local opened -- 1390
+								if (filterText ~= nil) then -- 1390
+									opened = showTool -- 1390
+								else -- 1390
+									opened = false -- 1390
+								end -- 1390
+								SetNextItemOpen(toolOpen) -- 1391
+								TreeNode(zh and "引擎工具" or "Engine Tools", function() -- 1392
+									return PushStyleVar("ItemSpacing", Vec2(20, 10), function() -- 1393
+										Columns(maxColumns, false) -- 1394
+										for _index_0 = 1, #doraTools do -- 1395
+											local tool = doraTools[_index_0] -- 1395
+											local entryName, repo = tool.entryName, tool.repo -- 1396
+											local displayName -- 1397
+											if repo then -- 1397
+												if zh then -- 1398
+													displayName = repo.title.zh -- 1398
+												else -- 1398
+													displayName = repo.title.en -- 1398
+												end -- 1398
+											end -- 1397
+											if displayName == nil then -- 1399
+												displayName = entryName -- 1399
+											end -- 1399
+											if not match(displayName) then -- 1400
+												goto _continue_0 -- 1400
+											end -- 1400
+											if Button(displayName, Vec2(-1, 40)) then -- 1401
+												enterDemoEntry(tool) -- 1402
+											end -- 1401
+											NextColumn() -- 1403
+											::_continue_0:: -- 1396
+										end -- 1395
+										Columns(1, false) -- 1404
+										opened = true -- 1405
+									end) -- 1393
+								end) -- 1392
+								toolOpen = opened -- 1406
+							end -- 1389
 						end -- 1376
-						::endEntry:: -- 1401
-						if not anyEntryMatched then -- 1402
-							SetNextWindowBgAlpha(0) -- 1403
-							SetNextWindowPos(Vec2(fullWidth / 2, height / 2), "Always", Vec2(0.5, 0.5)) -- 1404
-							Begin("Entries Not Found", displayWindowFlags, function() -- 1405
-								Separator() -- 1406
-								TextColored(themeColor, zh and "多萝：" or "Dora:") -- 1407
-								TextColored(descColor, zh and '别担心，改变一些咒语，我们会找到新的冒险～' or 'Don\'t worry, more magic words and we\'ll find a new adventure!') -- 1408
-								return Separator() -- 1409
-							end) -- 1405
-						end -- 1402
-						Columns(1, false) -- 1410
-						Dummy(Vec2(100, 80)) -- 1411
-						return ScrollWhenDraggingOnVoid() -- 1412
+						::endEntry:: -- 1407
+						if not anyEntryMatched then -- 1408
+							SetNextWindowBgAlpha(0) -- 1409
+							SetNextWindowPos(Vec2(fullWidth / 2, height / 2), "Always", Vec2(0.5, 0.5)) -- 1410
+							Begin("Entries Not Found", displayWindowFlags, function() -- 1411
+								Separator() -- 1412
+								TextColored(themeColor, zh and "多萝：" or "Dora:") -- 1413
+								TextColored(descColor, zh and '别担心，改变一些咒语，我们会找到新的冒险～' or 'Don\'t worry, more magic words and we\'ll find a new adventure!') -- 1414
+								return Separator() -- 1415
+							end) -- 1411
+						end -- 1408
+						Columns(1, false) -- 1416
+						Dummy(Vec2(100, 80)) -- 1417
+						return ScrollWhenDraggingOnVoid() -- 1418
 					end) -- 1267
 				end) -- 1266
 			end) -- 1265
 		end) -- 1264
 	end -- 1263
 end) -- 1198
-webStatus = require("Script.Dev.WebServer") -- 1414
+webStatus = require("Script.Dev.WebServer") -- 1420
 return _module_0 -- 1

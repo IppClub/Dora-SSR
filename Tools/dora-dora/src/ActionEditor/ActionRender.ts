@@ -1,7 +1,7 @@
 import type {ActionClipDocument, ActionClipRect} from "./ActionClip";
 import type {ActionDocument, ActionNode} from "./ActionDocument";
 import type {ActionViewport} from "./ActionEditorState";
-import {sampleActionKeyTrack} from "./ActionPlayback";
+import {parseActionFrameSpec, sampleActionKeyTrack} from "./ActionPlayback";
 
 export type ActionRenderRect = {
 	nodeId: string;
@@ -102,6 +102,35 @@ const transformMatrix = (transform: {
 
 const clampOpacity = (opacity: number) => Math.max(0, Math.min(1, opacity));
 
+const sampleActionFrameRect = (
+	track: {file: string; delay: number},
+	clip: ActionClipDocument | null,
+	time: number,
+): ActionClipRect | null => {
+	const spec = parseActionFrameSpec(track.file);
+	if (!spec || !clip) return null;
+	const base = clip.rects[spec.clipName];
+	if (!base) return null;
+	const frameCount = Math.max(1, Math.round(spec.frameCount));
+	const localTime = Math.max(0, time - Math.max(0, track.delay));
+	const rawFrame = spec.duration <= 0 ? 0 : Math.floor((localTime / spec.duration) * frameCount);
+	const frameIndex = Math.max(0, Math.min(frameCount - 1, rawFrame));
+	const columns = Math.max(1, Math.floor(base.width / spec.frameWidth));
+	const column = frameIndex % columns;
+	const row = Math.floor(frameIndex / columns);
+	const sourceX = base.x + column * spec.frameWidth;
+	const sourceY = base.y + row * spec.frameHeight;
+	const maxWidth = Math.max(0, base.x + base.width - sourceX);
+	const maxHeight = Math.max(0, base.y + base.height - sourceY);
+	return {
+		name: spec.clipName,
+		x: sourceX,
+		y: sourceY,
+		width: Math.min(spec.frameWidth, maxWidth),
+		height: Math.min(spec.frameHeight, maxHeight),
+	};
+};
+
 const findParentMatrix = (
 	document: ActionDocument,
 	clip: ActionClipDocument | null,
@@ -160,16 +189,17 @@ const collectRenderRects = (
 		}
 		return;
 	}
-	const rect = node.clip ? clip?.rects[node.clip] : undefined;
-	const base = rect ?? fallbackRect(node, document);
 	const track = animation ? node.tracks[animation] : undefined;
 	const sampled = track?.type === "key" ? sampleActionKeyTrack(track, time) : null;
+	const frameRect = track?.type === "frame" ? sampleActionFrameRect(track, clip, time) : null;
+	const rect = frameRect ?? (node.clip ? clip?.rects[node.clip] : undefined);
+	const base = rect ?? fallbackRect(node, document);
 	const transform = sampled ?? node.transform;
 	const nodeMatrix = multiplyMatrix(parentMatrix, transformMatrix({...transform, anchor: node.transform.anchor, size: base}));
 	const opacity = parentOpacity * clampOpacity(transform.opacity ?? node.transform.opacity);
 	const hiddenByAnimation = parentHiddenByAnimation || sampled?.visible === false;
 	const visible = !hiddenByLook && !hiddenByAnimation;
-	if (node.clip !== "") {
+	if (node.clip !== "" || frameRect !== null) {
 		const left = 0;
 		const right = base.width;
 		const bottom = 0;
@@ -191,7 +221,7 @@ const collectRenderRects = (
 		out.push({
 			nodeId: node.id,
 			name: node.name,
-			clip: node.clip,
+			clip: frameRect?.name ?? node.clip,
 			sourceX: base.x,
 			sourceY: base.y,
 			sourceWidth: base.width,
@@ -204,7 +234,7 @@ const collectRenderRects = (
 			anchor,
 			visible,
 			opacity,
-			missingClip: rect === undefined,
+			missingClip: rect === undefined || base.width <= 0 || base.height <= 0,
 		});
 	}
 	for (const child of node.children) {

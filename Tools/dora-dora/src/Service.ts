@@ -171,6 +171,10 @@ export const removeUpdateFileListener = (listener: (file: string, exists: boolea
 	eventEmitter.off(WsEvent.UpdateFile, listener);
 };
 
+export const emitUpdateFile = (file: string, exists: boolean, content = "") => {
+	eventEmitter.emit(WsEvent.UpdateFile, file, exists, content);
+};
+
 export const addOpenFileListener = (listener: (message: OpenFileMessage) => void) => {
 	eventEmitter.on(WsEvent.OpenFile, listener);
 };

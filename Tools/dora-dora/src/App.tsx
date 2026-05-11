@@ -1497,11 +1497,10 @@ export default function PersistentDrawerLeft() {
 		const handleUpdateFile = (file: string, exists: boolean, content: string) => {
 			pendingUpdateFiles.set(file, { file, exists, content });
 			if (updateFileFlushTimerRef.current !== null) return;
-			updateFileFlushTimerRef.current = window.setTimeout(flushUpdateFileQueue, 32);
+			updateFileFlushTimerRef.current = window.setTimeout(flushUpdateFileQueue, 500);
 		};
 
 		Service.addUpdateFileListener(handleUpdateFile);
-		const pendingUpdateFiles = pendingUpdateFilesRef.current;
 		return () => {
 			if (updateFileFlushTimerRef.current !== null) {
 				window.clearTimeout(updateFileFlushTimerRef.current);

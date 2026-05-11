@@ -21,9 +21,9 @@ import yarnLogo from './yarn.png';
 import waLogo from './wa.svg';
 import vscLogo from './vsc.png';
 import tic80Logo from './tic80.png';
+import doraAnimationLogo from './dora-animation.png';
 import { AiFillFolderAdd } from 'react-icons/ai';
 import { DiCode } from 'react-icons/di';
-import { MdAnimation } from 'react-icons/md';
 import { VscMarkdown } from 'react-icons/vsc';
 import { useTranslation } from 'react-i18next';
 import { DialogActions } from '@mui/material';
@@ -70,10 +70,10 @@ const fileTypes: FileType[] = [
 		padding: '13px'
 	},
 	{
-		icon: <MdAnimation size={58} style={{marginLeft: '0px'}}/>,
+		icon: <img src={doraAnimationLogo} alt="Dora Animation" width="50px" height="50px" style={{marginLeft: '0px', objectFit: 'contain'}}/>,
 		name: "Dora Animation",
 		desc: "file.model",
-		padding: '15px'
+		padding: '18px'
 	},
 	{
 		icon: <img src={yarnLogo} alt="Yarn" width="55px" height="55px" style={{marginLeft: '0px'}}/>,

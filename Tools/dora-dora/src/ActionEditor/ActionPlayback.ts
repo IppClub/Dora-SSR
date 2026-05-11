@@ -1,5 +1,44 @@
-import type {ActionDocument, ActionKeyFrame, ActionKeyTrack, ActionNode, ActionTrack, ActionTransform} from "./ActionDocument";
+import type {ActionDocument, ActionFrameTrack, ActionKeyFrame, ActionKeyTrack, ActionNode, ActionTrack, ActionTransform} from "./ActionDocument";
 import {cloneActionDocument, setActionNode} from "./ActionEditorState";
+
+export type ActionFrameSpec = {
+	clipFile: string;
+	clipName: string;
+	frameWidth: number;
+	frameHeight: number;
+	frameCount: number;
+	duration: number;
+};
+
+export const parseActionFrameSpec = (value: string): ActionFrameSpec | null => {
+	const [clipRef, frameRef] = value.split("::");
+	if (!clipRef || !frameRef) return null;
+	const separator = clipRef.indexOf("|");
+	const clipFile = separator >= 0 ? clipRef.slice(0, separator) : "";
+	const clipName = separator >= 0 ? clipRef.slice(separator + 1) : clipRef;
+	const parts = frameRef.split(",").map((item) => Number(item.trim()));
+	if (clipName === "" || parts.length < 4 || parts.some((item) => !Number.isFinite(item))) return null;
+	const [frameWidth, frameHeight, frameCount, duration] = parts;
+	if (frameWidth <= 0 || frameHeight <= 0 || frameCount <= 0 || duration <= 0) return null;
+	return {
+		clipFile,
+		clipName,
+		frameWidth,
+		frameHeight,
+		frameCount: Math.max(1, Math.round(frameCount)),
+		duration,
+	};
+};
+
+const trimSpecNumber = (value: number, precision: number) => {
+	const fixed = value.toFixed(precision);
+	return fixed.replace(/\.?0+$/, "");
+};
+
+export const formatActionFrameSpec = (spec: ActionFrameSpec) => {
+	const clipRef = spec.clipFile ? `${spec.clipFile}|${spec.clipName}` : spec.clipName;
+	return `${clipRef}::${trimSpecNumber(spec.frameWidth, 3)},${trimSpecNumber(spec.frameHeight, 3)},${Math.max(1, Math.round(spec.frameCount))},${trimSpecNumber(spec.duration, 3)}`;
+};
 
 export const createActionKeyFrameFromNode = (node: ActionNode, time: number): ActionKeyFrame => ({
 	time: Math.max(0, time),
@@ -246,6 +285,19 @@ export const normalizeActionKeyTrackFirstEase = (
 	});
 };
 
+export const setActionFrameTrack = (
+	document: ActionDocument,
+	nodeId: string,
+	animation: string,
+	track: Omit<ActionFrameTrack, "animation">,
+): ActionDocument => setActionNode(document, nodeId, (node) => ({
+	...node,
+	tracks: {
+		...node.tracks,
+		[animation]: {...track, animation},
+	},
+}));
+
 export const setActionKeyFrameEvent = (
 	document: ActionDocument,
 	nodeId: string,
@@ -407,6 +459,11 @@ export const getActionAnimationDuration = (document: ActionDocument, animation: 
 		if (track?.type === "key") {
 			for (const frame of track.keyframes) {
 				duration = Math.max(duration, frame.time);
+			}
+		} else if (track?.type === "frame") {
+			const spec = parseActionFrameSpec(track.file);
+			if (spec) {
+				duration = Math.max(duration, Math.max(0, track.delay) + spec.duration);
 			}
 		}
 		node.children.forEach(walk);
