@@ -70,6 +70,8 @@ export default memo(function ActionEditor(props: ActionEditorProps) {
 	const processedSourceKeyRef = useRef(`${filePath}\n${sourceContent}`);
 	const onChangeRef = useRef(onChange);
 	const onLoadFailedRef = useRef(onLoadFailed);
+	const lastSelectedLookRef = useRef<string | null>(null);
+	const lastSelectedAnimationRef = useRef<string | null>(null);
 	const [loadState, setLoadState] = useState(() => loadActionDocumentFromModelContent(sourceContent, filePath));
 	const [clipsDirs, setClipsDirs] = useState<string[]>([]);
 	const [clipFiles, setClipFiles] = useState<string[]>([]);
@@ -114,6 +116,8 @@ export default memo(function ActionEditor(props: ActionEditorProps) {
 		setEditMode("pose");
 		setSelectedLook(null);
 		setSelectedAnimation(null);
+		lastSelectedLookRef.current = null;
+		lastSelectedAnimationRef.current = null;
 		setPlaybackTime(0);
 		setPlaybackPlaying(false);
 		if (result.dirty) {
@@ -239,9 +243,11 @@ export default memo(function ActionEditor(props: ActionEditorProps) {
 		setLoadState({document, diagnostics: [], dirty: true});
 		if (document.looks.indexOf(selectedLook ?? "") < 0) {
 			setSelectedLook(null);
+			lastSelectedLookRef.current = null;
 		}
 		if (document.animations.indexOf(selectedAnimation ?? "") < 0) {
 			setSelectedAnimation(null);
+			lastSelectedAnimationRef.current = null;
 			setPlaybackTime(0);
 			setPlaybackPlaying(false);
 		}
@@ -343,6 +349,16 @@ export default memo(function ActionEditor(props: ActionEditorProps) {
 		});
 	}, [clipsDirs, packClipsDir, packing]);
 
+	const handleLookSelect = useCallback((look: string | null) => {
+		lastSelectedLookRef.current = look;
+		setSelectedLook(look);
+	}, []);
+
+	const handleAnimationSelect = useCallback((animation: string | null) => {
+		lastSelectedAnimationRef.current = animation;
+		setSelectedAnimation(animation);
+	}, []);
+
 	const handleEditModeChange = useCallback((mode: ActionEditorMode) => {
 		setEditMode(mode);
 		if (mode === "pose") {
@@ -352,10 +368,17 @@ export default memo(function ActionEditor(props: ActionEditorProps) {
 			setPlaybackPlaying(false);
 		} else if (mode === "look") {
 			setSelectedAnimation(null);
+			const look = lastSelectedLookRef.current;
+			setSelectedLook(look !== null && loadState.document.looks.includes(look) ? look : null);
 			setPlaybackTime(0);
 			setPlaybackPlaying(false);
+		} else if (mode === "animation") {
+			const look = lastSelectedLookRef.current;
+			const animation = lastSelectedAnimationRef.current;
+			setSelectedLook(look !== null && loadState.document.looks.includes(look) ? look : null);
+			setSelectedAnimation(animation !== null && loadState.document.animations.includes(animation) ? animation : null);
 		}
-	}, []);
+	}, [loadState.document.animations, loadState.document.looks]);
 
 	useEffect(() => {
 		if (!playbackPlaying || selectedAnimation === null) return;
@@ -416,8 +439,8 @@ export default memo(function ActionEditor(props: ActionEditorProps) {
 			onRefreshClipsDirs={refreshClipsDirs}
 			onSelectionChange={setSelectedNodeId}
 			onEditModeChange={handleEditModeChange}
-			onLookSelect={setSelectedLook}
-			onAnimationSelect={setSelectedAnimation}
+			onLookSelect={handleLookSelect}
+			onAnimationSelect={handleAnimationSelect}
 			onPlaybackTimeChange={setPlaybackTime}
 			onPlaybackPlayingChange={setPlaybackPlaying}
 			onPlaybackLoopChange={setPlaybackLoop}

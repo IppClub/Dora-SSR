@@ -169,7 +169,10 @@ export const packActionClipsDirectory = async (
 	};
 	const png = await canvasToBlob(canvas);
 	await uploadFile(Info.path.dirname(paths.pngPath), Info.path.basename(paths.pngPath), png);
-	const written = await Service.write({path: paths.clipPath, content: writeLegacyClip(clip)});
+	const clipContent = writeLegacyClip(clip);
+	const written = await Service.write({path: paths.clipPath, content: clipContent});
 	if (!written.success) throw new Error(`Failed to write ${paths.clipPath}`);
+	Service.emitUpdateFile(paths.pngPath, true);
+	Service.emitUpdateFile(paths.clipPath, true, clipContent);
 	return {clip, result};
 };

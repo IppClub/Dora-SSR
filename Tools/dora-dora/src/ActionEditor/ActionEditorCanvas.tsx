@@ -1,7 +1,7 @@
 import React, {memo, useCallback, useEffect, useMemo, useRef} from "react";
 import {ImGui, ImGui_Impl} from "@zhobo63/imgui-ts";
 import type {ActionClipDocument} from "./ActionClip";
-import type {ActionDocument, ActionDiagnostic, ActionKeyFrame, ActionNode} from "./ActionDocument";
+import type {ActionDocument, ActionDiagnostic, ActionFrameTrack, ActionKeyFrame, ActionNode} from "./ActionDocument";
 import type {ActionViewport} from "./ActionEditorState";
 import {
 	addActionLook,
@@ -24,12 +24,15 @@ import {
 	addActionAnimation,
 	copyActionKeyFrame,
 	deleteActionKeyFrame,
+	formatActionFrameSpec,
 	getActionAnimationDuration,
 	isFirstActionKeyFrame,
 	moveActionKeyFrame,
 	pasteActionKeyFrame,
+	parseActionFrameSpec,
 	removeActionAnimation,
 	renameActionAnimation,
+	setActionFrameTrack,
 	updateActionKeyFrame,
 	upsertActionKeyFrame,
 } from "./ActionPlayback";
@@ -104,6 +107,7 @@ type PanelState = {
 	movingKeyTime: number | null;
 	gizmoMode: "select" | "move" | "scale" | "rotate";
 	fixedSnap: boolean;
+	anisotropicFiltering: boolean;
 	lastDragDelta: {x: number; y: number};
 	viewportDragButton: 0 | 1 | null;
 	viewportDragAction: "pan" | "edit" | null;
@@ -122,6 +126,7 @@ type PanelState = {
 	timelineDragStartOffsetFrame: number;
 	timelineOffsetFrame: number;
 	timelineFollowCursor: boolean;
+	modeTabsNeedSync: boolean;
 	dragHistoryStarted: boolean;
 	inputHistoryStarted: Record<string, boolean>;
 	previewHiddenNodeIds: Set<string>;
@@ -132,6 +137,7 @@ type ActionAtlasTexture = {
 	path: string;
 	width: number;
 	height: number;
+	anisotropicFiltering: boolean;
 	texture: WebGLTexture;
 	native: any;
 };
@@ -332,6 +338,29 @@ const emitKeyFrameChange = (
 ) => {
 	if (props.selectedAnimation === null) return;
 	props.onDocumentChange(updateActionKeyFrame(props.document, nodeId, props.selectedAnimation, props.playbackTime, updater), options);
+};
+
+const createDefaultFrameTrack = (
+	props: ActionEditorCanvasProps,
+	selected: ActionNode,
+): Omit<ActionFrameTrack, "animation"> => {
+	const clipName = selected.clip || (Object.keys(props.clipDocument?.rects ?? {})[0] ?? "");
+	const rect = clipName ? props.clipDocument?.rects[clipName] : undefined;
+	const frameWidth = Math.max(1, rect?.height ?? rect?.width ?? 30);
+	const frameHeight = Math.max(1, rect?.height ?? 30);
+	const frameCount = Math.max(1, rect ? Math.floor(rect.width / frameWidth) : 1);
+	return {
+		type: "frame",
+		file: formatActionFrameSpec({
+			clipFile: props.document.clipFile,
+			clipName,
+			frameWidth,
+			frameHeight,
+			frameCount,
+			duration: Math.max(1 / 60, frameCount / 10),
+		}),
+		delay: 0,
+	};
 };
 
 const renderTreeNode = (
@@ -758,6 +787,101 @@ const renderAnimationKeyFrameProperties = (
 	}
 };
 
+const renderAnimationFrameTrackProperties = (
+	imgui: ActionImGuiFrame,
+	props: ActionEditorCanvasProps,
+	panelState: PanelState,
+	selected: ActionNode,
+	track: ActionFrameTrack,
+) => {
+	if (props.selectedAnimation === null) return;
+	const parsed = parseActionFrameSpec(track.file);
+	const fallbackClipName = selected.clip || (Object.keys(props.clipDocument?.rects ?? {})[0] ?? "");
+	const rect = parsed?.clipName ? props.clipDocument?.rects[parsed.clipName] : undefined;
+	const spec = parsed ?? {
+		clipFile: props.document.clipFile,
+		clipName: fallbackClipName,
+		frameWidth: Math.max(1, rect?.height ?? 30),
+		frameHeight: Math.max(1, rect?.height ?? 30),
+		frameCount: 1,
+		duration: 0.1,
+	};
+	const updateTrack = (
+		updater: (item: typeof spec, delay: number) => {spec: typeof spec; delay: number},
+		options?: ActionDocumentChangeOptions,
+	) => {
+		const next = updater(spec, track.delay);
+		props.onDocumentChange(setActionFrameTrack(props.document, selected.id, props.selectedAnimation!, {
+			type: "frame",
+			file: formatActionFrameSpec(next.spec),
+			delay: Math.max(0, next.delay),
+		}), options);
+	};
+	if (!parsed) {
+		imgui.PushTextWrapPos(250);
+		imgui.TextDisabled("Invalid frame track. Editing will rewrite it with the fields below.");
+		imgui.PopTextWrapPos();
+	}
+	imgui.Text("Clip:");
+	imgui.SameLine();
+	const clipNames = Object.keys(props.clipDocument?.rects ?? {}).sort((a, b) => a.localeCompare(b));
+	const selectedIndex = Math.max(0, clipNames.indexOf(spec.clipName));
+	const clipIndex = [selectedIndex];
+	imgui.PushItemWidth(150);
+	const changedClip = clipNames.length > 0
+		? imgui.Combo("##frame-track-clip", clipIndex, clipNames, clipNames.length, 10)
+		: false;
+	imgui.PopItemWidth();
+	if (changedClip && !props.readOnly) {
+		const clipName = clipNames[clipIndex[0]] ?? spec.clipName;
+		updateTrack((item, delay) => ({spec: {...item, clipFile: props.document.clipFile, clipName}, delay}));
+	}
+	imgui.SameLine();
+	if (!props.readOnly && imgui.Button("Fit", {x: 54, y: 0})) {
+		const base = props.clipDocument?.rects[spec.clipName];
+		if (base) {
+			const frameHeight = Math.max(1, spec.frameHeight);
+			const frameWidth = Math.max(1, Math.min(base.width, spec.frameWidth || frameHeight));
+			const columns = Math.max(1, Math.floor(base.width / frameWidth));
+			const rows = Math.max(1, Math.floor(base.height / frameHeight));
+			updateTrack((item, delay) => ({
+				spec: {
+					...item,
+					frameWidth,
+					frameHeight,
+					frameCount: Math.max(1, columns * rows),
+				},
+				delay,
+			}));
+		}
+	}
+	const frameWidth = inputNumber(imgui, "Frame W", spec.frameWidth, props.readOnly, 1, panelState);
+	if (frameWidth !== null) {
+		updateTrack((item, delay) => ({spec: {...item, frameWidth: Math.max(1, frameWidth.value)}, delay}), frameWidth.options);
+	}
+	const frameHeight = inputNumber(imgui, "Frame H", spec.frameHeight, props.readOnly, 1, panelState);
+	if (frameHeight !== null) {
+		updateTrack((item, delay) => ({spec: {...item, frameHeight: Math.max(1, frameHeight.value)}, delay}), frameHeight.options);
+	}
+	const frameCount = inputNumber(imgui, "Count", spec.frameCount, props.readOnly, 1, panelState);
+	if (frameCount !== null) {
+		updateTrack((item, delay) => ({spec: {...item, frameCount: Math.max(1, Math.round(frameCount.value))}, delay}), frameCount.options);
+	}
+	const duration = inputNumber(imgui, "Duration", spec.duration, props.readOnly, 1 / 60, panelState);
+	if (duration !== null) {
+		updateTrack((item, delay) => ({spec: {...item, duration: Math.max(1 / 60, duration.value)}, delay}), duration.options);
+	}
+	const delay = inputNumber(imgui, "Delay", track.delay, props.readOnly, 1 / 60, panelState);
+	if (delay !== null) {
+		updateTrack((item) => ({spec: item, delay: delay.value}), delay.options);
+	}
+	if (rect) {
+		const columns = Math.max(1, Math.floor(rect.width / Math.max(1, spec.frameWidth)));
+		const rows = Math.max(1, Math.floor(rect.height / Math.max(1, spec.frameHeight)));
+		imgui.TextDisabled(`Atlas: ${Math.round(rect.width)}x${Math.round(rect.height)} ${columns}x${rows}`);
+	}
+};
+
 const renderKeyPoints = (
 	imgui: ActionImGuiFrame,
 	props: ActionEditorCanvasProps,
@@ -954,6 +1078,23 @@ const renderAnimations = (
 			return;
 		}
 		const track = selected.tracks[props.selectedAnimation];
+		imgui.Separator();
+		imgui.Text("Track");
+		imgui.SameLine();
+		const isFrameTrack = track?.type === "frame";
+		if (imgui.RadioButton("Key", !isFrameTrack) && isFrameTrack && !props.readOnly) {
+			props.onDocumentChange(upsertActionKeyFrame(props.document, selected.id, props.selectedAnimation, props.playbackTime));
+			return;
+		}
+		imgui.SameLine();
+		if (imgui.RadioButton("Sequence", isFrameTrack) && !isFrameTrack && !props.readOnly) {
+			props.onDocumentChange(setActionFrameTrack(props.document, selected.id, props.selectedAnimation, createDefaultFrameTrack(props, selected)));
+			return;
+		}
+		if (track?.type === "frame") {
+			renderAnimationFrameTrackProperties(imgui, props, panelState, selected, track);
+			return;
+		}
 		const currentFrame = track?.type === "key"
 			? track.keyframes.find((frame) => Math.abs(frame.time - props.playbackTime) < 1 / 120)
 			: undefined;
@@ -1010,11 +1151,16 @@ const renderModeTabs = (
 	atlasTexture: ActionAtlasTexture | null,
 ) => {
 	const drawTab = (label: string, mode: ActionEditorMode, renderContent: () => void) => {
-		if (imgui.BeginTabItem(label)) {
-			if (props.editMode !== mode) {
+		const flags = panelState.modeTabsNeedSync && props.editMode === mode
+			? imgui.TabItemFlags.SetSelected
+			: imgui.TabItemFlags.None;
+		if (imgui.BeginTabItem(label, null, flags)) {
+			const restoringModeTab = panelState.modeTabsNeedSync && props.editMode !== mode;
+			if (props.editMode !== mode && !panelState.modeTabsNeedSync) {
 				props.onEditModeChange(mode);
 			}
 			try {
+				if (restoringModeTab) return;
 				const contentFlags = mode === "animation"
 					? imgui.WindowFlags.AlwaysUseWindowPadding | imgui.WindowFlags.NoScrollbar | imgui.WindowFlags.NoScrollWithMouse
 					: imgui.WindowFlags.AlwaysUseWindowPadding;
@@ -1040,6 +1186,7 @@ const renderModeTabs = (
 			drawTab("Animation", "animation", () => renderAnimations(imgui, props, panelState));
 		} finally {
 			imgui.EndTabBar();
+			panelState.modeTabsNeedSync = false;
 		}
 	}
 };
@@ -1161,6 +1308,28 @@ const collectAnimationFrames = (
 	}
 };
 
+const collectAnimationFrameRanges = (
+	node: ActionNode,
+	animation: string,
+	selectedNodeId: string,
+	result: {selected: Array<{start: number; end: number}>; other: Array<{start: number; end: number}>},
+) => {
+	const track = node.tracks[animation];
+	if (track?.type === "frame") {
+		const spec = parseActionFrameSpec(track.file);
+		if (spec) {
+			const target = node.id === selectedNodeId ? result.selected : result.other;
+			target.push({
+				start: secondsToFrame(track.delay),
+				end: secondsToFrame(track.delay + spec.duration),
+			});
+		}
+	}
+	for (const child of node.children) {
+		collectAnimationFrameRanges(child, animation, selectedNodeId, result);
+	}
+};
+
 const uniqueSortedFrames = (frames: number[]) => [...new Set(frames)].sort((a, b) => a - b);
 
 const renderAnimationTimeline = (
@@ -1175,9 +1344,12 @@ const renderAnimationTimeline = (
 	const currentFrame = secondsToFrame(props.playbackTime);
 	const frameSets = {selected: [] as number[], other: [] as number[]};
 	collectAnimationFrames(props.document.root, props.selectedAnimation, props.selectedNodeId, frameSets);
+	const frameRanges = {selected: [] as Array<{start: number; end: number}>, other: [] as Array<{start: number; end: number}>};
+	collectAnimationFrameRanges(props.document.root, props.selectedAnimation, props.selectedNodeId, frameRanges);
 	const keyFrames = uniqueSortedFrames(frameSets.selected);
+	const rangeFrames = [...frameRanges.selected, ...frameRanges.other].flatMap((range) => [range.start, range.end]);
 	const visibleFrames = 60;
-	const contentMaxFrame = Math.max(0, durationFrame, currentFrame, ...keyFrames);
+	const contentMaxFrame = Math.max(0, durationFrame, currentFrame, ...keyFrames, ...rangeFrames);
 	if (panelState.timelineFollowCursor && currentFrame < panelState.timelineOffsetFrame) {
 		panelState.timelineOffsetFrame = Math.max(0, currentFrame);
 	} else if (panelState.timelineFollowCursor && currentFrame > panelState.timelineOffsetFrame + visibleFrames) {
@@ -1258,6 +1430,26 @@ const renderAnimationTimeline = (
 		if (major) {
 			drawList.AddText({x: x - 4, y: area.y + 6}, timelineTickColor, `${frame}`);
 		}
+	}
+	for (const range of frameRanges.other) {
+		if (range.end < windowStart || range.start > windowEnd) continue;
+		drawList.AddRectFilled(
+			{x: frameToX(Math.max(windowStart, range.start)), y: rulerY + 21},
+			{x: frameToX(Math.min(windowEnd, range.end)), y: rulerY + 25},
+			withAlpha(timelineKeyColor, 0.35),
+			0,
+			0,
+		);
+	}
+	for (const range of frameRanges.selected) {
+		if (range.end < windowStart || range.start > windowEnd) continue;
+		drawList.AddRectFilled(
+			{x: frameToX(Math.max(windowStart, range.start)), y: rulerY + 20},
+			{x: frameToX(Math.min(windowEnd, range.end)), y: rulerY + 27},
+			timelineKeyColor,
+			0,
+			0,
+		);
 	}
 	for (const frame of keyFrames) {
 		if (frame < windowStart || frame > windowEnd) continue;
@@ -1864,6 +2056,11 @@ const drawEditor = (
 			if (imgui.Button("+", {x: 28, y: 0})) {
 				props.onViewportChange({...props.viewport, zoom: Math.min(8, props.viewport.zoom + 0.1)});
 			}
+			imgui.SameLine();
+			const anisotropicFiltering = [panelState.anisotropicFiltering];
+			if (imgui.Checkbox("Anisotropic", anisotropicFiltering)) {
+				panelState.anisotropicFiltering = anisotropicFiltering[0];
+			}
 			const timelineHeight = props.editMode === "animation" && props.selectedAnimation !== null ? 72 : 0;
 			const pos = imgui.GetCursorScreenPos();
 			const area = {
@@ -1909,6 +2106,7 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 		movingKeyTime: null,
 		gizmoMode: "select",
 		fixedSnap: false,
+		anisotropicFiltering: true,
 		lastDragDelta: {x: 0, y: 0},
 		viewportDragButton: null,
 		viewportDragAction: null,
@@ -1927,6 +2125,7 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 		timelineDragStartOffsetFrame: 0,
 		timelineOffsetFrame: 0,
 		timelineFollowCursor: true,
+		modeTabsNeedSync: true,
 		dragHistoryStarted: false,
 		inputHistoryStarted: {},
 		previewHiddenNodeIds: new Set<string>(),
@@ -1950,28 +2149,60 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 		}
 	}, []);
 
+	const applyAtlasTextureFilter = useCallback((native: any, anisotropicFiltering: boolean) => {
+		const gl = ImGui_Impl.gl;
+		const texture = native._texture as WebGLTexture | undefined;
+		if (!gl || !texture) return;
+		const minFilter = anisotropicFiltering ? gl.LINEAR : gl.NEAREST;
+		const magFilter = anisotropicFiltering ? gl.LINEAR : gl.NEAREST;
+		native._minFilter = minFilter;
+		native._magFilter = magFilter;
+		gl.bindTexture(gl.TEXTURE_2D, texture);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minFilter);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magFilter);
+		const ext = gl.getExtension("EXT_texture_filter_anisotropic")
+			|| gl.getExtension("MOZ_EXT_texture_filter_anisotropic")
+			|| gl.getExtension("WEBKIT_EXT_texture_filter_anisotropic");
+		if (ext) {
+			const max = anisotropicFiltering ? gl.getParameter(ext.MAX_TEXTURE_MAX_ANISOTROPY_EXT) : 1;
+			gl.texParameterf(gl.TEXTURE_2D, ext.TEXTURE_MAX_ANISOTROPY_EXT, Math.max(1, max));
+		}
+	}, []);
+
 	const getAtlasTexture = useCallback(() => {
 		const atlasImage = propsRef.current.atlasImage;
+		const anisotropicFiltering = panelStateRef.current.anisotropicFiltering;
 		if (!atlasImage) {
 			disposeAtlasTexture();
 			return null;
 		}
 		if (atlasTextureRef.current?.path === atlasImage.path) {
+			if (atlasTextureRef.current.anisotropicFiltering !== anisotropicFiltering) {
+				applyAtlasTextureFilter(atlasTextureRef.current.native, anisotropicFiltering);
+				atlasTextureRef.current.anisotropicFiltering = anisotropicFiltering;
+			}
 			return atlasTextureRef.current;
 		}
 		disposeAtlasTexture();
 		const native = new ImGui_Impl.Texture();
+		const gl = ImGui_Impl.gl;
+		if (gl) {
+			native._minFilter = anisotropicFiltering ? gl.LINEAR : gl.NEAREST;
+			native._magFilter = anisotropicFiltering ? gl.LINEAR : gl.NEAREST;
+		}
 		native.Update(atlasImage.image);
 		if (!native._texture) return null;
+		applyAtlasTextureFilter(native, anisotropicFiltering);
 		atlasTextureRef.current = {
 			path: atlasImage.path,
 			width: atlasImage.width,
 			height: atlasImage.height,
+			anisotropicFiltering,
 			texture: native._texture,
 			native,
 		};
 		return atlasTextureRef.current;
-	}, [disposeAtlasTexture]);
+	}, [applyAtlasTextureFilter, disposeAtlasTexture]);
 
 	const eventPoint = useCallback((event: {clientX: number; clientY: number}) => {
 		const canvas = canvasRef.current;
@@ -2015,6 +2246,7 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 			if (!status.ready) {
 				return;
 			}
+			panelStateRef.current.modeTabsNeedSync = true;
 			propsRef.current.onRuntimeDiagnostics(status.diagnostics);
 			const loop = (time: number) => {
 				if (disposed) return;

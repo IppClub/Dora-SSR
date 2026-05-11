@@ -44,6 +44,7 @@ import blocklyLogo from './blockly.png';
 import spineLogo from './spine.png';
 import waLogo from './wa.svg';
 import tic80Logo from './tic80.png';
+import doraAnimationLogo from './dora-animation.png';
 import { DiCode } from 'react-icons/di';
 import { TbMoodConfuzed, TbSql } from 'react-icons/tb';
 import { SiNodered } from 'react-icons/si';
@@ -105,6 +106,8 @@ const fileIcon = (props: TreeNodeProps) => {
 					return <img src={typescriptLogo} alt="typescript" width="12px" height="12px"/>;
 				case ".xml":
 					return <DiCode size={14}/>;
+				case ".model":
+					return <img src={doraAnimationLogo} alt="model" width="14px" height="14px" style={{objectFit: 'contain'}}/>;
 				case ".db":
 					return <TbSql size={14}/>;
 				case ".md":
