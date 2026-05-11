@@ -110,12 +110,12 @@ function sanitizeJSONValue(value: unknown): unknown {
 	return value;
 }
 
-export function safeJsonEncode(value: unknown, indent?: boolean, sortKeys?: boolean, escapeSlash?: boolean, maxDepth?: number) {
+export function safeJsonEncode(value: unknown, format: boolean = false, emptyAsArray = true, numAsStr: boolean = false, maxDepth: number = 128) {
 	return json.encode(
 		sanitizeJSONValue(value) as object,
-		indent,
-		sortKeys,
-		escapeSlash,
+		format,
+		emptyAsArray,
+		numAsStr,
 		maxDepth,
 	);
 }

@@ -715,7 +715,7 @@ export interface AgentActionRecord {
 }
 
 interface PreExecutedToolResult {
-	signature: string;
+	matches(action: AgentActionRecord): boolean;
 	promise: Promise<Record<string, unknown>>;
 }
 
@@ -1331,10 +1331,6 @@ function clearPreExecutedResults(shared: AgentShared): void {
 	shared.preExecutedResults = undefined;
 }
 
-function getToolActionSignature(action: AgentActionRecord): string {
-	return `${action.tool}:${toJson(action.params)}`;
-}
-
 async function startPreExecutedToolAction(shared: AgentShared, action: AgentActionRecord): Promise<Record<string, unknown>> {
 	try {
 		return await executeToolAction(shared, action);
@@ -1345,12 +1341,64 @@ async function startPreExecutedToolAction(shared: AgentShared, action: AgentActi
 	}
 }
 
+function createPreExecutedToolResult(shared: AgentShared, action: AgentActionRecord): PreExecutedToolResult {
+	const cloneParamValue = (value: unknown): unknown => {
+		if (value === undefined || value === null) return value;
+		if (isArray(value)) {
+			return value.map(item => cloneParamValue(item));
+		}
+		if (typeof value === "object") {
+			const clone: Record<string, unknown> = {};
+			for (const key in value as Record<string, unknown>) {
+				clone[key] = cloneParamValue((value as Record<string, unknown>)[key]);
+			}
+			return clone;
+		}
+		return value;
+	};
+	const params = cloneParamValue(action.params) as Record<string, unknown>;
+	const areParamValuesEqual = (left: unknown, right: unknown): boolean => {
+		if (left === right) return true;
+		if (left === undefined || left === null || right === undefined || right === null) return false;
+		if (isArray(left) || isArray(right)) {
+			if (!isArray(left) || !isArray(right) || left.length !== right.length) return false;
+			for (let i = 0; i < left.length; i++) {
+				if (!areParamValuesEqual(left[i], right[i])) return false;
+			}
+			return true;
+		}
+		if (typeof left === "object" && typeof right === "object") {
+			let leftCount = 0;
+			for (const key in left as Record<string, unknown>) {
+				leftCount++;
+				if (!areParamValuesEqual(
+					(left as Record<string, unknown>)[key],
+					(right as Record<string, unknown>)[key]
+				)) {
+					return false;
+				}
+			}
+			let rightCount = 0;
+			for (const key in right as Record<string, unknown>) {
+				rightCount++;
+			}
+			return leftCount === rightCount;
+		}
+		return false;
+	};
+	return {
+		matches(nextAction: AgentActionRecord): boolean {
+			return action.tool === nextAction.tool && areParamValuesEqual(params, nextAction.params);
+		},
+		promise: startPreExecutedToolAction(shared, action),
+	};
+}
+
 async function executeToolActionWithPreExecution(shared: AgentShared, action: AgentActionRecord): Promise<Record<string, unknown>> {
 	const preResult = shared.preExecutedResults?.get(action.toolCallId);
 	if (preResult) {
 		shared.preExecutedResults?.delete(action.toolCallId);
-		const signature = getToolActionSignature(action);
-		if (preResult.signature === signature) {
+		if (preResult.matches(action)) {
 			Log("Info", `[CodingAgent] using streaming pre-exec result tool=${action.tool} id=${action.toolCallId}`);
 			return await preResult.promise;
 		}
@@ -2611,10 +2659,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 				const action = createPreExecutableActionFromStream(shared, tc);
 				if (!action || preExecutedResults.has(action.toolCallId)) return;
 				Log("Info", `[CodingAgent] streaming pre-exec tool=${action.tool} id=${action.toolCallId}`);
-				preExecutedResults.set(action.toolCallId, {
-					signature: getToolActionSignature(action),
-					promise: startPreExecutedToolAction(shared, action),
-				});
+				preExecutedResults.set(action.toolCallId, createPreExecutedToolResult(shared, action));
 			}
 		);
 		if (shared.stopToken.stopped) {
