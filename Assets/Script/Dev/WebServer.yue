@@ -1243,6 +1243,12 @@ HttpServer\post "/assets", ->
 		]
 	}
 
+HttpServer\post "/entry/list", ->
+	import "Script.Dev.Entry"
+	res = Entry.getLaunchEntries!
+	res.success = true
+	res
+
 HttpServer\postSchedule "/run", (req): success: false ->
 	switch req when {body: {:file, :asProj}}
 		if not Content\isAbsolutePath file
@@ -1619,8 +1625,9 @@ thread ->
 	doraWeb = Path Content.assetPath, "www", "index.html"
 	doraReady = Path Content.appPath, ".www", "dora-ready"
 	if Content\exist doraWeb
+		readyContent = App.version .. "\n" .. Content\load doraWeb
 		needReload = if Content\exist doraReady
-			App.version ~= Content\load doraReady
+			readyContent ~= Content\load doraReady
 		else true
 		if needReload
 			Content\remove Path Content.appPath, ".www"
@@ -1628,7 +1635,7 @@ thread ->
 				Path Content.assetPath, "www"
 				Path Content.appPath, ".www"
 			)
-			Content\save doraReady, App.version
+			Content\save doraReady, readyContent
 			print "Dora Dora is ready!"
 	if HttpServer\start 8866
 		:localIP = HttpServer

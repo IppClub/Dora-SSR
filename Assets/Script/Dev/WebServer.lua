@@ -3063,6 +3063,12 @@ HttpServer:post("/assets", function() -- 1139
 		end)() -- 1207
 	} -- 1202
 end) -- 1139
+HttpServer:post("/entry/list", function()
+	local Entry = require("Script.Dev.Entry")
+	local res = Entry.getLaunchEntries()
+	res.success = true
+	return res
+end)
 HttpServer:postSchedule("/run", function(req) -- 1246
 	do -- 1247
 		local _type_0 = type(req) -- 1247
@@ -4112,18 +4118,19 @@ thread(function() -- 1618
 	local doraWeb = Path(Content.assetPath, "www", "index.html") -- 1619
 	local doraReady = Path(Content.appPath, ".www", "dora-ready") -- 1620
 	if Content:exist(doraWeb) then -- 1621
-		local needReload -- 1622
-		if Content:exist(doraReady) then -- 1622
-			needReload = App.version ~= Content:load(doraReady) -- 1623
-		else -- 1624
-			needReload = true -- 1624
-		end -- 1622
-		if needReload then -- 1625
-			Content:remove(Path(Content.appPath, ".www")) -- 1626
-			Content:copyAsync(Path(Content.assetPath, "www"), Path(Content.appPath, ".www")) -- 1627
-			Content:save(doraReady, App.version) -- 1631
-			print("Dora Dora is ready!") -- 1632
-		end -- 1625
+		local readyContent = (App.version .. "\n") .. Content:load(doraWeb) -- 1622
+		local needReload -- 1623
+		if Content:exist(doraReady) then -- 1623
+			needReload = readyContent ~= Content:load(doraReady) -- 1624
+		else -- 1625
+			needReload = true -- 1625
+		end -- 1623
+		if needReload then -- 1626
+			Content:remove(Path(Content.appPath, ".www")) -- 1627
+			Content:copyAsync(Path(Content.assetPath, "www"), Path(Content.appPath, ".www")) -- 1628
+			Content:save(doraReady, readyContent) -- 1632
+			print("Dora Dora is ready!") -- 1633
+		end -- 1626
 	end -- 1621
 	if HttpServer:start(8866) then -- 1633
 		local localIP = HttpServer.localIP -- 1634
