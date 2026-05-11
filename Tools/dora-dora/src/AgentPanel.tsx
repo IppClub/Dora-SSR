@@ -224,7 +224,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 			return;
 		}
 		addAlert?.(res.message, "error");
-	}, [addAlert, selectedSessionId]);
+	}, [addAlert, selectedSessionId, sessionId]);
 
 	useEffect(() => {
 		setSelectedSessionId(sessionId);
