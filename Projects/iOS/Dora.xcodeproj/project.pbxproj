@@ -724,7 +724,6 @@
 		3C5931612CA4F67300CAF224 /* TealCompiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930292CA4F67300CAF224 /* TealCompiler.cpp */; };
 		3C5931622CA4F67300CAF224 /* SkeletonCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FC92CA4F67300CAF224 /* SkeletonCache.cpp */; };
 		3C5931632CA4F67300CAF224 /* HelloWorldCpp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930E92CA4F67300CAF224 /* HelloWorldCpp.cpp */; };
-		0A806C404BD48954033379B1 /* ApplicationTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 399D426E20F280065EAC77EA /* ApplicationTest.cpp */; };
 		3C5931642CA4F67300CAF224 /* DragonBone.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930332CA4F67300CAF224 /* DragonBone.cpp */; };
 		3C5931652CA4F67300CAF224 /* WasmRuntime.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5931472CA4F67300CAF224 /* WasmRuntime.cpp */; };
 		3C5931662CA4F67300CAF224 /* TileNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C59304B2CA4F67300CAF224 /* TileNode.cpp */; };
@@ -833,7 +832,6 @@
 		3C59323E2CA4F67300CAF224 /* TealCompiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930292CA4F67300CAF224 /* TealCompiler.cpp */; };
 		3C59323F2CA4F67300CAF224 /* SkeletonCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FC92CA4F67300CAF224 /* SkeletonCache.cpp */; };
 		3C5932402CA4F67300CAF224 /* HelloWorldCpp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930E92CA4F67300CAF224 /* HelloWorldCpp.cpp */; };
-		FA836F78A63C680218FEFFF8 /* ApplicationTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 399D426E20F280065EAC77EA /* ApplicationTest.cpp */; };
 		3C5932412CA4F67300CAF224 /* DragonBone.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930332CA4F67300CAF224 /* DragonBone.cpp */; };
 		3C5932422CA4F67300CAF224 /* WasmRuntime.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5931472CA4F67300CAF224 /* WasmRuntime.cpp */; };
 		3C5932432CA4F67300CAF224 /* TileNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C59304B2CA4F67300CAF224 /* TileNode.cpp */; };
@@ -2292,7 +2290,6 @@
 		3C5930E62CA4F67300CAF224 /* Value.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Value.h; sourceTree = "<group>"; };
 		3C5930E72CA4F67300CAF224 /* Value.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Value.cpp; sourceTree = "<group>"; };
 		3C5930E92CA4F67300CAF224 /* HelloWorldCpp.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = HelloWorldCpp.cpp; sourceTree = "<group>"; };
-		399D426E20F280065EAC77EA /* ApplicationTest.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ApplicationTest.cpp; sourceTree = "<group>"; };
 		3C5930EA2CA4F67300CAF224 /* Test.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Test.h; sourceTree = "<group>"; };
 		3C5930EB2CA4F67300CAF224 /* Test.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Test.cpp; sourceTree = "<group>"; };
 		3C5931462CA4F67300CAF224 /* WasmRuntime.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WasmRuntime.h; sourceTree = "<group>"; };
@@ -4445,7 +4442,6 @@
 		3C5930EC2CA4F67300CAF224 /* Test */ = {
 			isa = PBXGroup;
 			children = (
-				399D426E20F280065EAC77EA /* ApplicationTest.cpp */,
 				3C5930E92CA4F67300CAF224 /* HelloWorldCpp.cpp */,
 				3C5930EA2CA4F67300CAF224 /* Test.h */,
 				3C5930EB2CA4F67300CAF224 /* Test.cpp */,
@@ -5592,7 +5588,6 @@
 				3C59323E2CA4F67300CAF224 /* TealCompiler.cpp in Sources */,
 				3C59323F2CA4F67300CAF224 /* SkeletonCache.cpp in Sources */,
 				3C5932402CA4F67300CAF224 /* HelloWorldCpp.cpp in Sources */,
-				FA836F78A63C680218FEFFF8 /* ApplicationTest.cpp in Sources */,
 				3C5932412CA4F67300CAF224 /* DragonBone.cpp in Sources */,
 				3C5932422CA4F67300CAF224 /* WasmRuntime.cpp in Sources */,
 				3C5932432CA4F67300CAF224 /* TileNode.cpp in Sources */,
@@ -6168,7 +6163,6 @@
 				3C5931612CA4F67300CAF224 /* TealCompiler.cpp in Sources */,
 				3C5931622CA4F67300CAF224 /* SkeletonCache.cpp in Sources */,
 				3C5931632CA4F67300CAF224 /* HelloWorldCpp.cpp in Sources */,
-				0A806C404BD48954033379B1 /* ApplicationTest.cpp in Sources */,
 				3C5931642CA4F67300CAF224 /* DragonBone.cpp in Sources */,
 				3C5931652CA4F67300CAF224 /* WasmRuntime.cpp in Sources */,
 				3C5931662CA4F67300CAF224 /* TileNode.cpp in Sources */,
