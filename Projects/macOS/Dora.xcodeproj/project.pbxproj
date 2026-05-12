@@ -179,7 +179,6 @@
 		3C592B022CA4F01200CAF224 /* Builtin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592B012CA4F01200CAF224 /* Builtin.cpp */; };
 		3C592B062CA4F02000CAF224 /* Test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592B052CA4F02000CAF224 /* Test.cpp */; };
 		3C592B072CA4F02000CAF224 /* HelloWorldCpp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592B032CA4F02000CAF224 /* HelloWorldCpp.cpp */; };
-		5C7C56C445BF4145C8552628 /* ApplicationTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 597FAAC66C82F8919DACFA7F /* ApplicationTest.cpp */; };
 		3C5933A12CA4F8C700CAF224 /* Rotation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5932F32CA4F8C700CAF224 /* Rotation.cpp */; };
 		3C5933A22CA4F8C700CAF224 /* Effekseer.EffectNodeTrack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5933472CA4F8C700CAF224 /* Effekseer.EffectNodeTrack.cpp */; };
 		3C5933A32CA4F8C700CAF224 /* EffekseerRenderer.RenderStateBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5933892CA4F8C700CAF224 /* EffekseerRenderer.RenderStateBase.cpp */; };
@@ -987,7 +986,6 @@
 		3C592B002CA4F01200CAF224 /* Builtin.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Builtin.h; sourceTree = "<group>"; };
 		3C592B012CA4F01200CAF224 /* Builtin.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Builtin.cpp; sourceTree = "<group>"; };
 		3C592B032CA4F02000CAF224 /* HelloWorldCpp.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = HelloWorldCpp.cpp; sourceTree = "<group>"; };
-		597FAAC66C82F8919DACFA7F /* ApplicationTest.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ApplicationTest.cpp; sourceTree = "<group>"; };
 		3C592B042CA4F02000CAF224 /* Test.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Test.h; sourceTree = "<group>"; };
 		3C592B052CA4F02000CAF224 /* Test.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Test.cpp; sourceTree = "<group>"; };
 		3C5932AC2CA4F8C700CAF224 /* stb_image_effekseer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stb_image_effekseer.h; sourceTree = "<group>"; };
@@ -3600,7 +3598,6 @@
 		3C853F7E28E2DBFC0012C0D0 /* Test */ = {
 			isa = PBXGroup;
 			children = (
-				597FAAC66C82F8919DACFA7F /* ApplicationTest.cpp */,
 				3C592B032CA4F02000CAF224 /* HelloWorldCpp.cpp */,
 				3C592B042CA4F02000CAF224 /* Test.h */,
 				3C592B052CA4F02000CAF224 /* Test.cpp */,
@@ -5105,7 +5102,6 @@
 				3C53E9372BE8CF1100039640 /* AbsoluteLayout.cpp in Sources */,
 				3C592B062CA4F02000CAF224 /* Test.cpp in Sources */,
 				3C592B072CA4F02000CAF224 /* HelloWorldCpp.cpp in Sources */,
-				5C7C56C445BF4145C8552628 /* ApplicationTest.cpp in Sources */,
 				3CA77F072AE665C100B7BADA /* Distance.cpp in Sources */,
 				3C5936F02CA4FA5B00CAF224 /* atlas.cpp in Sources */,
 				3C59371C2CA4FA8B00CAF224 /* os.cpp in Sources */,
