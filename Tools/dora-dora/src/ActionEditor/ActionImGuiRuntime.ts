@@ -1,6 +1,22 @@
 import { ImGui, ImGui_Impl, ImVec4 } from "@zhobo63/imgui-ts";
 
-const sarasaMonoScRegularUrl = `${import.meta.env.BASE_URL}Font/sarasa-mono-sc-regular.ttf`;
+const doraFontLocalSources = [
+	"local(\"Sarasa Mono SC\")",
+	"local(\"Sarasa Mono SC Regular\")",
+	"local(\"Sarasa Mono SC CL\")",
+	"local(\"Sarasa Mono SC CL Regular\")",
+	"local(\"Noto Sans Mono CJK SC\")",
+	"local(\"Noto Sans Mono CJK SC Regular\")",
+	"local(\"Source Han Mono SC\")",
+	"local(\"Source Han Mono SC Regular\")",
+	"local(\"Microsoft YaHei Mono\")",
+	"local(\"NSimSun\")",
+	"local(\"Droid Sans Mono\")",
+	"local(\"Droid Sans Fallback\")",
+	"local(\"WenQuanYi Micro Hei Mono\")",
+	"local(\"WenQuanYi Zen Hei Mono\")",
+];
+const doraFontSize = 16;
 
 export type ActionImGuiFrame = typeof ImGui;
 
@@ -128,7 +144,7 @@ const setDoraStyle = () => {
 const loadDoraFont = async () => {
 	const io = ImGui.GetIO();
 
-	const fontSource = `local("sarasa-mono-sc-regular"), local("Sarasa Mono SC"), url(${sarasaMonoScRegularUrl}) format("truetype")`;
+	const fontSource = doraFontLocalSources.join(", ");
 	const fontFace = new FontFace("sarasa-mono-sc-regular", fontSource);
 	await fontFace.load();
 	document.fonts.add(fontFace);
@@ -136,7 +152,18 @@ const loadDoraFont = async () => {
 	const font = io.Fonts.AddFontDefault(null);
 	font.setFont({
 		name: "sarasa-mono-sc-regular",
-		fontsize: 16,
+		fontsize: doraFontSize,
+	});
+	font.FontStyle = "normal";
+	io.FontDefault = font;
+};
+
+const loadBrowserDefaultFont = () => {
+	const io = ImGui.GetIO();
+	const font = io.Fonts.AddFontDefault(null);
+	font.setFont({
+		name: "monospace",
+		fontsize: doraFontSize,
 	});
 	font.FontStyle = "normal";
 	io.FontDefault = font;
@@ -195,7 +222,7 @@ export class ActionImGuiRuntime {
 		} catch (error) {
 			const message = error instanceof Error ? error.message : "sarasa-mono-sc-regular load failed";
 			this.diagnostics.push(message);
-			ImGui.GetIO().Fonts.AddFontDefault(null);
+			loadBrowserDefaultFont();
 		}
 		if (this.disposed) {
 			if (this.context) {
