@@ -208,6 +208,7 @@ add_library(main SHARED
 	src/main/cpp/Lua/Xml/XmlResolver.cpp
 	src/main/cpp/Test/Test.cpp
 	src/main/cpp/Test/HelloWorldCpp.cpp
+	src/main/cpp/Test/ApplicationTest.cpp
 	src/main/cpp/3rdParty/yuescript/yue_compiler.cpp
 	src/main/cpp/3rdParty/yuescript/ast.cpp
 	src/main/cpp/3rdParty/yuescript/yue_ast.cpp
