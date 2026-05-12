@@ -17,7 +17,7 @@ const miscCategory = {
 	kind: 'category',
 	name: zh ? '杂项' : 'Misc',
 	categorystyle: 'colour_category',
-	contents: [] as {kind: string, type: string, inputs?: any}[],
+	contents: [] as { kind: string, type: string, inputs?: any }[],
 };
 export default miscCategory;
 
@@ -35,8 +35,8 @@ const printBlock = {
 	nextStatement: null,
 	style: 'logic_blocks',
 };
-Blockly.Blocks['print_block'] = { init: function() { this.jsonInit(printBlock); } };
-luaGenerator.forBlock['print_block'] = function(block: Blockly.Block) {
+Blockly.Blocks['print_block'] = { init: function () { this.jsonInit(printBlock); } };
+luaGenerator.forBlock['print_block'] = function (block: Blockly.Block) {
 	const item = luaGenerator.valueToCode(block, 'ITEM', Order.NONE);
 	return `p(${item === '' ? '""' : item})\n`;
 };
@@ -70,8 +70,8 @@ const commentBlock = {
 	nextStatement: null,
 	style: 'text_blocks',
 };
-Blockly.Blocks['comment_block'] = { init: function() { this.jsonInit(commentBlock); } };
-luaGenerator.forBlock['comment_block'] = function(block: Blockly.Block) {
+Blockly.Blocks['comment_block'] = { init: function () { this.jsonInit(commentBlock); } };
+luaGenerator.forBlock['comment_block'] = function (block: Blockly.Block) {
 	const note = block.getFieldValue('NOTE');
 	return `-- ${note}\n`;
 };
@@ -94,8 +94,8 @@ const colourHsvSlidersBlock = {
 	output: 'Color3',
 	style: 'colour_blocks',
 };
-Blockly.Blocks['colour_hsv_sliders'] = { init: function() { this.jsonInit(colourHsvSlidersBlock); } };
-luaGenerator.forBlock['colour_hsv_sliders'] = function(block: Blockly.Block) {
+Blockly.Blocks['colour_hsv_sliders'] = { init: function () { this.jsonInit(colourHsvSlidersBlock); } };
+luaGenerator.forBlock['colour_hsv_sliders'] = function (block: Blockly.Block) {
 	const colour = block.getFieldValue('COLOUR');
 	return [`0x${colour.substring(1)}`, Order.ATOMIC];
 };
@@ -120,8 +120,8 @@ const requireBlock = {
 	nextStatement: null,
 	style: 'logic_blocks',
 };
-Blockly.Blocks['require_block'] = { init: function() { this.jsonInit(requireBlock); } };
-luaGenerator.forBlock['require_block'] = function(block: Blockly.Block) {
+Blockly.Blocks['require_block'] = { init: function () { this.jsonInit(requireBlock); } };
+luaGenerator.forBlock['require_block'] = function (block: Blockly.Block) {
 	const module = luaGenerator.valueToCode(block, 'MODULE', Order.NONE);
 	if (block.outputConnection?.targetConnection) {
 		return [`require(${module})`, Order.ATOMIC];
@@ -176,7 +176,7 @@ const PROCEDURES_EXPORT = {
 	onchange: function (this: ExportBlock, e: Blockly.Events.Abstract) {
 		if (
 			((this.workspace as Blockly.WorkspaceSvg).isDragging &&
-			(this.workspace as Blockly.WorkspaceSvg).isDragging()) ||
+				(this.workspace as Blockly.WorkspaceSvg).isDragging()) ||
 			(e.type !== Blockly.Events.BLOCK_MOVE && e.type !== Blockly.Events.BLOCK_CREATE)
 		) {
 			return;
@@ -208,7 +208,7 @@ const PROCEDURES_EXPORT = {
 	},
 };
 Blockly.Blocks['export_block'] = PROCEDURES_EXPORT;
-luaGenerator.forBlock['export_block'] = function(block: Blockly.Block) {
+luaGenerator.forBlock['export_block'] = function (block: Blockly.Block) {
 	const value = luaGenerator.valueToCode(block, 'VALUE', Order.NONE);
 	return `return ${value === '' ? 'nil' : value}\n`;
 };
@@ -241,7 +241,7 @@ const RETURN = {
 	onchange: function (this: ReturnBlock, e: Blockly.Events.Abstract) {
 		if (
 			((this.workspace as Blockly.WorkspaceSvg).isDragging &&
-			(this.workspace as Blockly.WorkspaceSvg).isDragging()) ||
+				(this.workspace as Blockly.WorkspaceSvg).isDragging()) ||
 			(e.type !== Blockly.Events.BLOCK_MOVE && e.type !== Blockly.Events.BLOCK_CREATE)
 		) {
 			return;
@@ -273,7 +273,7 @@ const RETURN = {
 	},
 };
 Blockly.Blocks['return_block'] = RETURN;
-luaGenerator.forBlock['return_block'] = function(block: Blockly.Block) {
+luaGenerator.forBlock['return_block'] = function (block: Blockly.Block) {
 	const value = luaGenerator.valueToCode(block, 'VALUE', Order.NONE);
 	if (value === '') {
 		return `return\n`;
@@ -322,7 +322,7 @@ const INVOKE = {
 		this.argCount_ = parseInt(args, 10);
 		this.updateShape_();
 	},
-	saveExtraState: function (this: InvokeBlock): {argCount: number} {
+	saveExtraState: function (this: InvokeBlock): { argCount: number } {
 		return {
 			'argCount': this.argCount_,
 		};
@@ -390,7 +390,7 @@ const INVOKE = {
 			}
 			const input = this.getInput('ADD' + i);
 			argBlock.valueConnection_ = input?.connection!
-			.targetConnection as Blockly.Connection;
+				.targetConnection as Blockly.Connection;
 			argBlock = argBlock.getNextBlock() as ArgBlock | null;
 			i++;
 		}
@@ -427,7 +427,7 @@ const INVOKE = {
 	},
 };
 Blockly.Blocks['invoke'] = INVOKE;
-luaGenerator.forBlock['invoke'] = function(block: Blockly.Block) {
+luaGenerator.forBlock['invoke'] = function (block: Blockly.Block) {
 	const functionName = luaGenerator.getVariableName(block.getFieldValue('FUNCTION'));
 	const args = [];
 	for (let i = 0; i < (block as InvokeBlock).argCount_; i++) {

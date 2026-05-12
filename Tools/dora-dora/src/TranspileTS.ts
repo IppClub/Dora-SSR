@@ -206,7 +206,7 @@ function createCompilerHost(
 					if (unexistMap.has(path)) {
 						return false;
 					}
-					const res = Service.readSync({path, exts: [".d.ts", ".ts", ".tsx"], projFile: rootFileName});
+					const res = Service.readSync({ path, exts: [".d.ts", ".ts", ".tsx"], projFile: rootFileName });
 					if (res?.success) {
 						const uri = monaco.Uri.file(res.fullPath);
 						if (monaco.editor.getModel(uri) === null) {
@@ -246,7 +246,7 @@ function createCompilerHost(
 			if (model !== null) {
 				return model.getValue();
 			}
-			const res = Service.readSync({path: fileName, projFile: rootFileName});
+			const res = Service.readSync({ path: fileName, projFile: rootFileName });
 			if (res?.success) {
 				syncModelContent(uri, res.content);
 				return res.content;
@@ -270,7 +270,7 @@ function createCompilerHost(
 				if (model !== null) {
 					return ts.createSourceFile(baseName, model.getValue(), scriptTarget, false);
 				} else {
-					const res = Service.readSync({path: baseName, projFile: rootFileName});
+					const res = Service.readSync({ path: baseName, projFile: rootFileName });
 					if (res?.success) {
 						monaco.editor.createModel(res.content, 'typescript', uri);
 						return ts.createSourceFile(baseName, res.content, scriptTarget, false);
@@ -283,7 +283,7 @@ function createCompilerHost(
 				if (model !== null) {
 					return ts.createSourceFile("Dora.d.ts", model.getValue(), scriptTarget, false);
 				} else {
-					const res = Service.readSync({path: "Dora.d.ts"});
+					const res = Service.readSync({ path: "Dora.d.ts" });
 					if (res?.success) {
 						monaco.editor.createModel(res.content, 'typescript', uri);
 						return ts.createSourceFile("Dora.d.ts", res.content, scriptTarget, false);
@@ -347,14 +347,14 @@ export async function transpileTypescript(
 			fileExists: () => true,
 			getCurrentDirectory: () => Info.path.dirname(fileName),
 			readFile: (filename) => {
-					if (tstlOptions.luaLibImport !== tstl.LuaLibImportKind.Inline) return "";
-					const res = Service.readSync({path: filename});
-					if (res?.success) {
-						return res.content;
+				if (tstlOptions.luaLibImport !== tstl.LuaLibImportKind.Inline) return "";
+				const res = Service.readSync({ path: filename });
+				if (res?.success) {
+					return res.content;
 				}
 				return "";
 			},
-			writeFile: () => {}
+			writeFile: () => { }
 		}
 	}).emit({
 		program,
@@ -398,10 +398,10 @@ export async function transpileTypescript(
 					return line + ` -- ${lineToUse}`;
 				}).filter(l => l !== "").join('\n');
 			});
-			return {success, luaCode: modifiedLuaCode, diagnostics, extraError: otherFileDiagnostics.length > 0};
+			return { success, luaCode: modifiedLuaCode, diagnostics, extraError: otherFileDiagnostics.length > 0 };
 		}
 	}
-	return {success, luaCode: undefined as string | undefined, diagnostics, extraError: otherFileDiagnostics.length > 0};
+	return { success, luaCode: undefined as string | undefined, diagnostics, extraError: otherFileDiagnostics.length > 0 };
 }
 
 export async function revalidateModel(model: monaco.editor.ITextModel) {
@@ -416,7 +416,7 @@ export async function revalidateModel(model: monaco.editor.ITextModel) {
 		.reduce((a: Diagnostic[], it) => a.concat(it), [])
 		.filter((d: Diagnostic) => d.code !== 2497 && d.code !== 2666);
 	const markers = diagnostics.map(d => {
-		const {start = 0, length = 0} = d;
+		const { start = 0, length = 0 } = d;
 		const startPos = model.getPositionAt(start);
 		const endPos = model.getPositionAt(start + length);
 		return {
@@ -447,7 +447,7 @@ export async function setModelMarkers(model: monaco.editor.ITextModel, diagnosti
 			return false;
 		}
 	}).map(d => {
-		const {start = 0, length = 0} = d;
+		const { start = 0, length = 0 } = d;
 		const startPos = model.getPositionAt(start);
 		const endPos = model.getPositionAt(start + length);
 		return {
@@ -477,7 +477,7 @@ export async function addDiagnosticToLog(fileName: string, diagnostics: readonly
 	if (diagnostics.length === 0) return;
 	let message = await getDiagnosticMessage(fileName, diagnostics);
 	message = message.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\r?\n/g, "\\n");
-	Service.command({code: `Log "Error", "${message}"`, log: false});
+	Service.command({ code: `Log "Error", "${message}"`, log: false });
 }
 
 export async function getDeclarationFile(fileName: string, content: string) {

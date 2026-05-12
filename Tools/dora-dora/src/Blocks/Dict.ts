@@ -16,7 +16,7 @@ const dictCategory = {
 	kind: 'category',
 	name: zh ? '字典' : 'Dictionary',
 	categorystyle: 'colour_category',
-	contents: [] as {kind: string, type: string, inputs?: any}[],
+	contents: [] as { kind: string, type: string, inputs?: any }[],
 };
 export default dictCategory;
 
@@ -27,8 +27,8 @@ const dictCreateBlock = {
 	output: 'Dict',
 	style: 'colour_blocks',
 };
-Blockly.Blocks['dict_create'] = { init: function() { this.jsonInit(dictCreateBlock); } };
-luaGenerator.forBlock['dict_create'] = function(_block: Blockly.Block) {
+Blockly.Blocks['dict_create'] = { init: function () { this.jsonInit(dictCreateBlock); } };
+luaGenerator.forBlock['dict_create'] = function (_block: Blockly.Block) {
 	return ['{}', Order.ATOMIC];
 };
 dictCategory.contents.push({
@@ -56,8 +56,8 @@ const dictGetBlock = {
 	style: 'colour_blocks',
 	tooltip: zh ? '获取字典中指定键的值' : 'Get the value for the specified key from the dictionary',
 };
-Blockly.Blocks['dict_get'] = { init: function() { this.jsonInit(dictGetBlock); } };
-luaGenerator.forBlock['dict_get'] = function(block: Blockly.Block) {
+Blockly.Blocks['dict_get'] = { init: function () { this.jsonInit(dictGetBlock); } };
+luaGenerator.forBlock['dict_get'] = function (block: Blockly.Block) {
 	const dict = luaGenerator.valueToCode(block, 'DICT', Order.ATOMIC);
 	const key = luaGenerator.valueToCode(block, 'KEY', Order.NONE);
 	return [`${dict}[${key}]`, Order.HIGH];
@@ -107,8 +107,8 @@ const dictSetBlock = {
 	style: 'colour_blocks',
 	tooltip: zh ? '在字典中设置指定键的值' : 'Set the value for the specified key in the dictionary',
 };
-Blockly.Blocks['dict_set'] = { init: function() { this.jsonInit(dictSetBlock); } };
-luaGenerator.forBlock['dict_set'] = function(block: Blockly.Block) {
+Blockly.Blocks['dict_set'] = { init: function () { this.jsonInit(dictSetBlock); } };
+luaGenerator.forBlock['dict_set'] = function (block: Blockly.Block) {
 	const dict = luaGenerator.valueToCode(block, 'DICT', Order.ATOMIC);
 	const key = luaGenerator.valueToCode(block, 'KEY', Order.NONE);
 	const value = luaGenerator.valueToCode(block, 'VALUE', Order.NONE);
@@ -162,8 +162,8 @@ const dictHasKeyBlock = {
 	style: 'colour_blocks',
 	tooltip: zh ? '检查字典是否包含指定的键' : 'Check if the dictionary contains the specified key',
 };
-Blockly.Blocks['dict_has_key'] = { init: function() { this.jsonInit(dictHasKeyBlock); } };
-luaGenerator.forBlock['dict_has_key'] = function(block: Blockly.Block) {
+Blockly.Blocks['dict_has_key'] = { init: function () { this.jsonInit(dictHasKeyBlock); } };
+luaGenerator.forBlock['dict_has_key'] = function (block: Blockly.Block) {
 	const dict = luaGenerator.valueToCode(block, 'DICT', Order.ATOMIC);
 	const key = luaGenerator.valueToCode(block, 'KEY', Order.NONE);
 	return [`${dict}[${key}] ~= nil`, Order.RELATIONAL];
@@ -209,8 +209,8 @@ const dictRemoveKeyBlock = {
 	style: 'colour_blocks',
 	tooltip: zh ? '从字典中删除指定的键及其值' : 'Remove the specified key and its value from the dictionary',
 };
-Blockly.Blocks['dict_remove_key'] = { init: function() { this.jsonInit(dictRemoveKeyBlock); } };
-luaGenerator.forBlock['dict_remove_key'] = function(block: Blockly.Block) {
+Blockly.Blocks['dict_remove_key'] = { init: function () { this.jsonInit(dictRemoveKeyBlock); } };
+luaGenerator.forBlock['dict_remove_key'] = function (block: Blockly.Block) {
 	const dict = luaGenerator.valueToCode(block, 'DICT', Order.ATOMIC);
 	const key = luaGenerator.valueToCode(block, 'KEY', Order.NONE);
 	return `${dict}[${key}] = nil\n`;

@@ -84,12 +84,12 @@ const TIC80Editor = memo((props: TIC80EditorProps) => {
 									const basename = Info.path.basename(props.filePath);
 									if (res.ok) {
 										if (basename !== filename) {
-											props.addAlert(t("tic.overridden", {oldFilename: basename, newFilename: filename}), "success");
+											props.addAlert(t("tic.overridden", { oldFilename: basename, newFilename: filename }), "success");
 										} else {
-											props.addAlert(t("tic.updated", {filename}), "success");
+											props.addAlert(t("tic.updated", { filename }), "success");
 										}
 									} else {
-										props.addAlert(t("tic.updateFailed", {basename}), "error");
+										props.addAlert(t("tic.updateFailed", { basename }), "error");
 									}
 								} catch (error) {
 									console.error("Error writing file:", error);
@@ -128,7 +128,7 @@ const TIC80Editor = memo((props: TIC80EditorProps) => {
 		style={{
 			border: 'none',
 			overflowY: 'hidden',
-		}}/>;
+		}} />;
 }, (prevProps, nextProps) => {
 	return prevProps.width === nextProps.width &&
 		prevProps.height === nextProps.height &&

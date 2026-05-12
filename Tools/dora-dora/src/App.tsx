@@ -78,7 +78,7 @@ document.addEventListener("contextmenu", (event) => {
 let contentModified = false;
 let waitingForDownload = false;
 
-let saveEditingInfo: () => void = () => {};
+let saveEditingInfo: () => void = () => { };
 let lastSaveEditingInfoTime = Date.now();
 const saveEditingInfoInterval = 10000;
 let lastEditingInfo: Service.EditingInfo | null = null;
@@ -434,10 +434,10 @@ const getNewFileTemplate = (ext: string) => {
 		default:
 			break;
 	}
-	return {content, position};
+	return { content, position };
 };
 
-const editorBackground = <div style={{width: '100%', height: '100%', backgroundColor:'#1a1a1a'}}/>;
+const editorBackground = <div style={{ width: '100%', height: '100%', backgroundColor: '#1a1a1a' }} />;
 
 const Editor = memo((props: {
 	hidden?: boolean,
@@ -484,7 +484,7 @@ const Editor = memo((props: {
 				path={monaco.Uri.file(editingFile.key).toString()}
 				options={{
 					readOnly,
-					padding: {top: 20},
+					padding: { top: 20 },
 					wordWrap: 'on',
 					wordBreak: 'keepAll',
 					selectOnLineNumbers: true,
@@ -516,7 +516,7 @@ interface UpdateFileEvent {
 	content: string;
 }
 
-const useResize = ({minWidth, defaultWidth}: UseResizeProps) => {
+const useResize = ({ minWidth, defaultWidth }: UseResizeProps) => {
 	defaultWidth ??= minWidth;
 	const [isResizing, setIsResizing] = useState(false);
 	const [width, setWidth] = useState(defaultWidth);
@@ -536,7 +536,7 @@ const useResize = ({minWidth, defaultWidth}: UseResizeProps) => {
 			setIsResizing(false);
 			target?.releasePointerCapture(e.pointerId);
 			setTarget(null);
-			Service.command({code: `require('Script.Dev.Entry').getConfig().drawerWidth = ${width}`, log: false});
+			Service.command({ code: `require('Script.Dev.Entry').getConfig().drawerWidth = ${width}`, log: false });
 		}
 	}, [isResizing, target, width]);
 
@@ -573,7 +573,7 @@ let writablePath = "";
 let assetPath = "";
 
 export default function PersistentDrawerLeft() {
-	const {t} = useTranslation();
+	const { t } = useTranslation();
 	const [alerts, setAlerts] = useState<{
 		msg: string,
 		key: string,
@@ -618,7 +618,7 @@ export default function PersistentDrawerLeft() {
 		title: string;
 		row: number;
 		col: number;
-	}| null>(null);
+	} | null>(null);
 
 	const [openFilter, setOpenFilter] = useState(false);
 	const [leftDockTab, setLeftDockTab] = useState<"explorer" | "search" | "tools">("explorer");
@@ -627,7 +627,7 @@ export default function PersistentDrawerLeft() {
 	const [toolEntries, setToolEntries] = useState<Service.EntryLaunchInfo[]>([]);
 	const [gameEntries, setGameEntries] = useState<Service.EntryLaunchInfo[]>([]);
 	const [entryView, setEntryView] = useState<"tool" | "game">("tool");
-	const {width: drawerWidth, enableResize, isResizing} = useResize({minWidth: 165, defaultWidth: Info.drawerWidth});
+	const { width: drawerWidth, enableResize, isResizing } = useResize({ minWidth: 165, defaultWidth: Info.drawerWidth });
 	const [winSize, setWinSize] = useState({
 		width: window.innerWidth,
 		height: window.innerHeight
@@ -636,7 +636,7 @@ export default function PersistentDrawerLeft() {
 	const editorHeight = winSize.height - 48;
 	const showFullLogo = drawerWidth > 235;
 
-	const [openLog, setOpenLog] = useState<{title: string, stopOnClose: boolean} | null>(null);
+	const [openLog, setOpenLog] = useState<{ title: string, stopOnClose: boolean } | null>(null);
 	const [openBottomLog, setOpenBottomLog] = useState(false);
 	const [waitForSave, setWaitForSave] = useState(false);
 	const [isEditorActioning, setIsEditorActioning] = useState(false);
@@ -702,7 +702,7 @@ export default function PersistentDrawerLeft() {
 			addAlert(t("alert.getInfo"), "error");
 			return;
 		}
-		addAlert(t("alert.platform", {platform: Info.platform}), "success");
+		addAlert(t("alert.platform", { platform: Info.platform }), "success");
 		document.addEventListener("keydown", (event: KeyboardEvent) => {
 			if (event.ctrlKey || event.altKey || event.metaKey) {
 				switch (event.key) {
@@ -749,9 +749,9 @@ export default function PersistentDrawerLeft() {
 		Service.openWebSocket();
 		monacoTypescript.typescriptDefaults.setExtraLibs([]);
 		Promise.all([
-			Service.read({path: "es6-subset.d.ts"}),
-			Service.read({path: "lua.d.ts"}),
-			Service.read({path: "Dora.d.ts"}),
+			Service.read({ path: "es6-subset.d.ts" }),
+			Service.read({ path: "lua.d.ts" }),
+			Service.read({ path: "Dora.d.ts" }),
 			loadAssets(),
 			loadEntries(),
 		]).then(([es6, lua, dora, res]) => {
@@ -777,7 +777,7 @@ export default function PersistentDrawerLeft() {
 							key: normalizedFile,
 							title: path.basename(normalizedFile),
 							folder: false,
-							position: {lineNumber: 1, column: 1},
+							position: { lineNumber: 1, column: 1 },
 						}],
 					};
 					openEditingInfoFiles(editingInfo);
@@ -843,7 +843,7 @@ export default function PersistentDrawerLeft() {
 				setTimeout(resolve, 500);
 			}).then(() => {
 				if (Date.now() - lastEditorActionTime >= 500) {
-					setModified({key: editingFile.key, content});
+					setModified({ key: editingFile.key, content });
 					checkFile(editingFile, content, model, lastChange);
 					setIsEditorActioning(false);
 				}
@@ -957,7 +957,7 @@ export default function PersistentDrawerLeft() {
 			contentModified: null,
 			folder: true,
 			status: "normal",
-			onMount: () => {},
+			onMount: () => { },
 			agentSessionId: createRes.session.id,
 			workspaceView: "agent",
 		};
@@ -975,7 +975,7 @@ export default function PersistentDrawerLeft() {
 				currentFile.yarnData?.warpToFocusedNode();
 				return;
 			}
-			const {editor} = currentFile;
+			const { editor } = currentFile;
 			if (editor === undefined) return;
 			editor.focus();
 			editor.updateOptions({
@@ -984,7 +984,7 @@ export default function PersistentDrawerLeft() {
 				},
 			});
 			if (currentFile.position) {
-				const {position} = currentFile;
+				const { position } = currentFile;
 				currentFile.position = undefined;
 				setFiles(prev => [...prev]);
 				setTimeout(() => {
@@ -998,7 +998,7 @@ export default function PersistentDrawerLeft() {
 				checkFile(currentFile, currentFile.contentModified ?? currentFile.content, model);
 			}
 			if (ext === ".ts" || ext === ".tsx") {
-				import('./TranspileTS').then(({revalidateModel}) => {
+				import('./TranspileTS').then(({ revalidateModel }) => {
 					revalidateModel(model);
 				});
 			}
@@ -1016,7 +1016,7 @@ export default function PersistentDrawerLeft() {
 				break;
 		}
 		if (ext === "wa") {
-			const {key} = file;
+			const { key } = file;
 			editor.addAction({
 				id: "dora-action-format",
 				label: t("editor.format"),
@@ -1026,18 +1026,18 @@ export default function PersistentDrawerLeft() {
 				],
 				contextMenuGroupId: "navigation",
 				contextMenuOrder: 2,
-				run: async function() {
+				run: async function () {
 					const model = editor.getModel();
 					if (model === null) return;
-					const wres = await Service.write({path: key, content: model.getValue()});
+					const wres = await Service.write({ path: key, content: model.getValue() });
 					if (!wres.success) return;
-					const res = await Service.formatWa({file: key});
+					const res = await Service.formatWa({ file: key });
 					if (res.success) {
 						model.pushStackElement();
 						model.pushEditOperations(null, [{
 							text: res.code,
 							range: model.getFullModelRange()
-						}], () => {return null});
+						}], () => { return null });
 					}
 				}
 			});
@@ -1053,7 +1053,7 @@ export default function PersistentDrawerLeft() {
 				],
 				contextMenuGroupId: "navigation",
 				contextMenuOrder: 1,
-				run: function(ed) {
+				run: function (ed) {
 					const position = ed.getPosition();
 					if (position === null) return;
 					const model = ed.getModel();
@@ -1071,7 +1071,7 @@ export default function PersistentDrawerLeft() {
 						file: file.key,
 						row: position.lineNumber,
 						content: model.getValue()
-					}).then(function(res) {
+					}).then(function (res) {
 						if (!res.success) return;
 						if (!res.infered) return;
 						if (res.infered.key !== undefined) {
@@ -1103,7 +1103,7 @@ export default function PersistentDrawerLeft() {
 					],
 					contextMenuGroupId: "navigation",
 					contextMenuOrder: 2,
-					run: function(ed) {
+					run: function (ed) {
 						const position = ed.getPosition();
 						if (position === null) return;
 						const model = ed.getModel();
@@ -1118,7 +1118,7 @@ export default function PersistentDrawerLeft() {
 								endLineNumber: 1,
 								endColumn: 0
 							}
-						}], () => {return null});
+						}], () => { return null });
 					},
 				});
 			}
@@ -1129,7 +1129,7 @@ export default function PersistentDrawerLeft() {
 		}
 		if (ext === "tsx" || ext === "ts") {
 			if (ext === "tsx") {
-				import('./languages/jsx-monaco').then(({jsxSyntaxHighlight}) => {
+				import('./languages/jsx-monaco').then(({ jsxSyntaxHighlight }) => {
 					const { highlighter, dispose } = jsxSyntaxHighlight.highlighterBuilder({
 						editor,
 					});
@@ -1166,7 +1166,7 @@ export default function PersistentDrawerLeft() {
 						if (lib !== undefined) return true;
 						const model = monaco.editor.getModel(monaco.Uri.file(file));
 						if (model !== null) return true;
-						const res = await Service.exist({file, projFile});
+						const res = await Service.exist({ file, projFile });
 						return res.success;
 					},
 					getFile: async (uri: string) => {
@@ -1175,7 +1175,7 @@ export default function PersistentDrawerLeft() {
 						if (lib !== undefined) return lib.content;
 						const model = monaco.editor.getModel(monaco.Uri.file(file));
 						if (model !== null) return model.getValue();
-						const res = await Service.read({path: file, projFile});
+						const res = await Service.read({ path: file, projFile });
 						if (res.success) {
 							return res.content;
 						}
@@ -1184,7 +1184,7 @@ export default function PersistentDrawerLeft() {
 				}
 			});
 			await autoTyping.resolveContents();
-			const {revalidateModel} = await import('./TranspileTS');
+			const { revalidateModel } = await import('./TranspileTS');
 			revalidateModel(model);
 		}
 	}, [t, checkFileReadonly]);
@@ -1207,7 +1207,7 @@ export default function PersistentDrawerLeft() {
 					content: "",
 					contentModified: null,
 					status: "normal",
-					onMount: () => {}
+					onMount: () => { }
 				};
 				newFile.onMount = onEditorDidMount(newFile);
 				resolve(newFile);
@@ -1226,7 +1226,7 @@ export default function PersistentDrawerLeft() {
 						contentModified: null,
 						folder: false,
 						status: "normal",
-						onMount: () => {},
+						onMount: () => { },
 					};
 					newFile.onMount = onEditorDidMount(newFile);
 					resolve(newFile);
@@ -1245,9 +1245,9 @@ export default function PersistentDrawerLeft() {
 				case ".tsx":
 				case ".wa":
 				case ".mod": {
-					Service.read({path: key}).then((res) => {
+					Service.read({ path: key }).then((res) => {
 						if (res.success && res.content !== undefined) {
-							const {content} = res;
+							const { content } = res;
 							const newFile: EditingFile = {
 								key,
 								title,
@@ -1255,7 +1255,7 @@ export default function PersistentDrawerLeft() {
 								contentModified: null,
 								folder: false,
 								status: "normal",
-								onMount: () => {},
+								onMount: () => { },
 							};
 							newFile.onMount = onEditorDidMount(newFile);
 							resolve(newFile);
@@ -1263,19 +1263,19 @@ export default function PersistentDrawerLeft() {
 							reject("file read error");
 						}
 					}).catch(() => {
-						addAlert(t("alert.read", {title}), "error");
+						addAlert(t("alert.read", { title }), "error");
 						reject("file read error");
 					});
 					break;
 				}
 				default: {
-					addAlert(t("alert.unsuppored", {title}), "warning");
+					addAlert(t("alert.unsuppored", { title }), "warning");
 					reject("unknown file type");
 					break;
 				}
 			}
 		});
-		}, [addAlert, checkFileReadonly, onEditorDidMount, t]);
+	}, [addAlert, checkFileReadonly, onEditorDidMount, t]);
 
 	const openEditingInfoFiles = useCallback((editingInfo: Service.EditingInfo) => {
 		let targetIndex = editingInfo.index;
@@ -1291,7 +1291,7 @@ export default function PersistentDrawerLeft() {
 				newFile.sortIndex = i;
 				return newFile;
 			} catch {
-				addAlert(t("alert.read", {title: file.title}), "error");
+				addAlert(t("alert.read", { title: file.title }), "error");
 				return null;
 			}
 		})).then((files) => {
@@ -1318,9 +1318,9 @@ export default function PersistentDrawerLeft() {
 		}).catch(() => {
 			addAlert(t("alert.open"), "error");
 		});
-		}, [addAlert, openFile, switchTab, t]);
+	}, [addAlert, openFile, switchTab, t]);
 
-	const openFileInTab = useCallback((key: string, title: string, folder: boolean, position?: monaco.IPosition, readOnly? :boolean) => {
+	const openFileInTab = useCallback((key: string, title: string, folder: boolean, position?: monaco.IPosition, readOnly?: boolean) => {
 		let index: number | null = null;
 		const file = files.find((file, i) => {
 			if (path.relative(file.key, key) === "") {
@@ -1346,7 +1346,7 @@ export default function PersistentDrawerLeft() {
 					switchTab(lastIndex, newFiles[lastIndex]);
 					return newFiles;
 				});
-			}).catch(() => {});
+			}).catch(() => { });
 		} else {
 			switchTab(index, file);
 			if (file && position) {
@@ -1368,7 +1368,7 @@ export default function PersistentDrawerLeft() {
 				message.file,
 				message.title ?? path.basename(message.file),
 				message.folder === true,
-				message.position ?? {lineNumber: 1, column: 1},
+				message.position ?? { lineNumber: 1, column: 1 },
 				message.readOnly === true,
 			);
 		};
@@ -1527,7 +1527,7 @@ export default function PersistentDrawerLeft() {
 			setSelectedNode(null);
 			return;
 		}
-		const {key, title, dir} = nodes[0];
+		const { key, title, dir } = nodes[0];
 		setSelectedNode(nodes[0]);
 		if (dir) {
 			void (async () => {
@@ -1570,7 +1570,7 @@ export default function PersistentDrawerLeft() {
 			return;
 		}
 		setExpandedKeys(keys);
-		}, [addAlert, loadAssets, switchTab, openEditingInfoFiles, t, treeData]);
+	}, [addAlert, loadAssets, switchTab, openEditingInfoFiles, t, treeData]);
 
 	const onAgentRollbackComplete = useCallback((projectRoot: string) => {
 		void loadAssets();
@@ -1662,7 +1662,7 @@ export default function PersistentDrawerLeft() {
 		}
 		const ext = path.extname(key).toLowerCase();
 		if (ext === ".model" && !asProj) {
-			addAlert(t("alert.modelRunCurrentUnsupported", {title}), "info");
+			addAlert(t("alert.modelRunCurrentUnsupported", { title }), "info");
 			return;
 		}
 		switch (ext) {
@@ -1689,15 +1689,15 @@ export default function PersistentDrawerLeft() {
 				if (ext === ".mod" && !asProj) {
 					asProj = true;
 				}
-				Service.run({file: key, asProj}).then((res) => {
+				Service.run({ file: key, asProj }).then((res) => {
 					if (res.success) {
-						addAlert(t("alert.run", {title: res.target ?? title}), "success");
+						addAlert(t("alert.run", { title: res.target ?? title }), "success");
 						if (!noLog) setOpenLog({
 							title: res.target ?? title ?? "Running",
 							stopOnClose: true
 						});
 					} else {
-						addAlert(t("alert.runFailed", {title: res.target ?? title}), "error");
+						addAlert(t("alert.runFailed", { title: res.target ?? title }), "error");
 					}
 					if (!noLog && res.err !== undefined) {
 						setPopupInfo({
@@ -1707,20 +1707,20 @@ export default function PersistentDrawerLeft() {
 						});
 					}
 				}).catch(() => {
-					addAlert(t("alert.runFailed", {title}), "error");
+					addAlert(t("alert.runFailed", { title }), "error");
 				})
 				return;
 			}
-	}
-	addAlert(t("alert.runFailed", {title}), "info");
+		}
+		addAlert(t("alert.runFailed", { title }), "info");
 	}, [addAlert, files, tabIndex, t, selectedNode, isEditorActioning]);
 
 	const onLaunchToolEntry = useCallback((entry: Service.EntryLaunchInfo) => {
-		Service.run({file: entry.file, asProj: entry.asProj}).then((res) => {
+		Service.run({ file: entry.file, asProj: entry.asProj }).then((res) => {
 			if (res.success) {
-				addAlert(t("alert.run", {title: res.target ?? entry.name}), "success");
+				addAlert(t("alert.run", { title: res.target ?? entry.name }), "success");
 			} else {
-				addAlert(t("alert.runFailed", {title: res.target ?? entry.name}), "error");
+				addAlert(t("alert.runFailed", { title: res.target ?? entry.name }), "error");
 			}
 			if (res.err !== undefined) {
 				setPopupInfo({
@@ -1730,7 +1730,7 @@ export default function PersistentDrawerLeft() {
 				});
 			}
 		}).catch(() => {
-			addAlert(t("alert.runFailed", {title: entry.name}), "error");
+			addAlert(t("alert.runFailed", { title: entry.name }), "error");
 		});
 	}, [addAlert, t]);
 
@@ -1753,14 +1753,14 @@ export default function PersistentDrawerLeft() {
 						resolve(filesToSave);
 						return;
 					}
-					const {contentModified} = file;
-					Service.write({path: file.key, content: contentModified}).then((res) => {
+					const { contentModified } = file;
+					Service.write({ path: file.key, content: contentModified }).then((res) => {
 						if (res.success) {
 							file.content = contentModified;
 							file.contentModified = null;
 							const ext = path.extname(file.key).toLowerCase();
 							if (ext === '.yue' || ext === '.tl' || ext === '.xml') {
-								const {key} = file;
+								const { key } = file;
 								const extname = path.extname(key);
 								const name = path.basename(key, extname);
 								const dir = path.dirname(key);
@@ -1781,10 +1781,10 @@ export default function PersistentDrawerLeft() {
 								}
 							} else if (ext === '.wa') {
 								setIsWaSaving(true);
-								Service.buildWa({path: file.key}).then((res) => {
+								Service.buildWa({ path: file.key }).then((res) => {
 									if (!res.success) {
 										addAlert(res.message, "error", true);
-										Service.command({code: `Log "Error", "${res.message.replace(/[\\"]/g, "\\$&")}"`, log: false});
+										Service.command({ code: `Log "Error", "${res.message.replace(/[\\"]/g, "\\$&")}"`, log: false });
 									}
 								}).finally(() => {
 									setIsWaSaving(false);
@@ -1847,7 +1847,7 @@ export default function PersistentDrawerLeft() {
 					reject("failed to save file");
 				})
 			} else if (file.codeWireData !== undefined) {
-				const {codeWireData} = file;
+				const { codeWireData } = file;
 				const vscript = codeWireData.getVisualScript();
 				if (file.contentModified !== null || file.content !== vscript) {
 					file.contentModified = vscript;
@@ -1863,14 +1863,14 @@ export default function PersistentDrawerLeft() {
 							model.setValue(tealCode);
 						}
 					}
-					Service.write({path: tlFile, content: tealCode}).then((res) => {
+					Service.write({ path: tlFile, content: tealCode }).then((res) => {
 						if (!res.success) {
 							addAlert(t("alert.saveCurrent"), "error");
 							reject("failed to save file");
 						}
 					}).then(() => {
 						saveFile(fileInTab);
-						Service.check({file: tlFile, content: tealCode}).then((res) => {
+						Service.check({ file: tlFile, content: tealCode }).then((res) => {
 							if (res.success && tealCode !== "") {
 								codeWireData.reportVisualScriptError("");
 							} else if (res.info !== undefined) {
@@ -1896,7 +1896,7 @@ export default function PersistentDrawerLeft() {
 					});
 				}
 			} else if (file.blocklyData !== undefined) {
-				const {key, blocklyData} = file;
+				const { key, blocklyData } = file;
 				const extname = path.extname(key);
 				const name = path.basename(key, extname);
 				const luaFile = path.join(path.dirname(key), name + ".lua");
@@ -1908,7 +1908,7 @@ export default function PersistentDrawerLeft() {
 						model.setValue(blocklyData);
 					}
 				}
-				Service.write({path: luaFile, content: blocklyData}).then((res) => {
+				Service.write({ path: luaFile, content: blocklyData }).then((res) => {
 					if (res.success) {
 						saveFile();
 					}
@@ -1916,12 +1916,12 @@ export default function PersistentDrawerLeft() {
 			} else {
 				const ext = path.extname(file.key).toLowerCase();
 				if (file.contentModified !== null && (ext === '.ts' || ext === '.tsx') && !file.key.toLocaleLowerCase().endsWith(".d.ts")) {
-					const {key, contentModified, editor} = file;
+					const { key, contentModified, editor } = file;
 					const model = editor?.getModel();
-					import('./TranspileTS').then(async ({transpileTypescript, setModelMarkers}) => {
+					import('./TranspileTS').then(async ({ transpileTypescript, setModelMarkers }) => {
 						try {
 							const res = await transpileTypescript(key, contentModified);
-							const {luaCode, success, diagnostics, extraError} = res;
+							const { luaCode, success, diagnostics, extraError } = res;
 							if (!success) {
 								if (extraError) {
 									addAlert(t("alert.failedTS"), "error", true);
@@ -1943,7 +1943,7 @@ export default function PersistentDrawerLeft() {
 										model.setValue(luaCode);
 									}
 								}
-								Service.write({path: luaFile, content: luaCode}).then((res) => {
+								Service.write({ path: luaFile, content: luaCode }).then((res) => {
 									if (res.success) {
 										saveFile(fileInTab);
 									} else {
@@ -1965,7 +1965,7 @@ export default function PersistentDrawerLeft() {
 				}
 			}
 		});
-		},[addAlert, t, onPlayControlRun, checkFileReadonly, files]);
+	}, [addAlert, t, onPlayControlRun, checkFileReadonly, files]);
 
 	const saveAllTabs = useCallback(async () => {
 		if (isSaving) {
@@ -2075,10 +2075,10 @@ export default function PersistentDrawerLeft() {
 		}
 		setPopupInfo({
 			title: t("menu.delete"),
-			msg: t(data.dir ? 'file.deleteFolder' : 'file.deleteFile', {name: data.title}),
+			msg: t(data.dir ? 'file.deleteFolder' : 'file.deleteFile', { name: data.title }),
 			cancelable: true,
 			confirmed: () => {
-				Service.deleteFile({path: data.key}).then((res) => {
+				Service.deleteFile({ path: data.key }).then((res) => {
 					if (!res.success) return;
 					const currentRoot = treeDataRef.current.at(0);
 					if (currentRoot === undefined) return;
@@ -2106,15 +2106,15 @@ export default function PersistentDrawerLeft() {
 					setExpandedKeys(nextExpanded);
 					setTreeData([removeResult.root]);
 				}).then(() => {
-					addAlert(t("alert.deleted", {title: data.title}), "success");
+					addAlert(t("alert.deleted", { title: data.title }), "success");
 				}).catch(() => {
 					addAlert(t("alert.delete"), "error");
 				});
 			},
 		});
-		}, [addAlert, files, tabIndex, t, switchTab]);
+	}, [addAlert, files, tabIndex, t, switchTab]);
 
-	const onTreeMenuClick = useCallback((event: TreeMenuEvent, data?: TreeDataType)=> {
+	const onTreeMenuClick = useCallback((event: TreeMenuEvent, data?: TreeDataType) => {
 		if (isSaving) {
 			addAlert(t("alert.waitForJob"), "info");
 			return;
@@ -2129,7 +2129,7 @@ export default function PersistentDrawerLeft() {
 			case "Upload": {
 				const rootNode = treeData.at(0);
 				if (rootNode === undefined) break;
-				let {key, title} = data;
+				let { key, title } = data;
 				if (!data.dir) {
 					key = path.dirname(key);
 					title = path.basename(key);
@@ -2154,7 +2154,7 @@ export default function PersistentDrawerLeft() {
 			case "Obfuscate": {
 				const rootNode = treeData.at(0);
 				if (rootNode === undefined) break;
-				const {key, title} = data;
+				const { key, title } = data;
 				if (!isChildFolder(key, rootNode.key)) {
 					addAlert(t("alert.downloadFailed"), "error");
 					break;
@@ -2164,7 +2164,7 @@ export default function PersistentDrawerLeft() {
 					const x = new XMLHttpRequest();
 					x.open("GET", Service.addr("/" + downloadPath), true);
 					x.responseType = 'blob';
-					x.onload = function() {
+					x.onload = function () {
 						const url = window.URL.createObjectURL(x.response);
 						const a = document.createElement('a');
 						a.href = url;
@@ -2183,7 +2183,7 @@ export default function PersistentDrawerLeft() {
 					waitingForDownload = true;
 					addAlert(t("alert.downloadStart"), "info");
 					const zipFile = path.join(writablePath, ".download", title + ".zip");
-					Service.zip({zipFile, path: key, obfuscated: event === "Obfuscate"}).then(res => {
+					Service.zip({ zipFile, path: key, obfuscated: event === "Obfuscate" }).then(res => {
 						waitingForDownload = false;
 						if (res.success) {
 							downloadFile(zipFile);
@@ -2228,26 +2228,26 @@ export default function PersistentDrawerLeft() {
 			case "Unzip": {
 				const rootNode = treeData.at(0);
 				if (rootNode === undefined) break;
-				const {key, title} = data;
+				const { key, title } = data;
 				const extname = path.extname(key);
 				const name = path.basename(key, extname);
 				const dir = path.dirname(key);
-				addAlert(t("alert.startUnzip", {title}), "info");
-				Service.unzip({zipFile: key, path: path.join(dir, name)}).then((res)=> {
+				addAlert(t("alert.startUnzip", { title }), "info");
+				Service.unzip({ zipFile: key, path: path.join(dir, name) }).then((res) => {
 					if (res.success) {
-						addAlert(t("alert.doneUnzip", {title}), "success");
+						addAlert(t("alert.doneUnzip", { title }), "success");
 					} else {
-						addAlert(t("alert.failedUnzip", {title}), "error");
+						addAlert(t("alert.failedUnzip", { title }), "error");
 					}
 					loadAssets();
 				})
 				break;
 			}
 			case "Declaration": {
-				const {key} = data;
-				Service.read({path: key}).then((res) => {
+				const { key } = data;
+				Service.read({ path: key }).then((res) => {
 					if (res.success && res.content !== undefined) {
-						import('./TranspileTS').then(async ({getDeclarationFile}) => {
+						import('./TranspileTS').then(async ({ getDeclarationFile }) => {
 							const declaration = await getDeclarationFile(key, res.content);
 							if (declaration !== null) {
 								const uri = monaco.Uri.file(declaration.fileName);
@@ -2255,13 +2255,13 @@ export default function PersistentDrawerLeft() {
 								if (model !== null) {
 									model.setValue(declaration.content);
 								}
-								Service.exist({file: declaration.fileName}).then((res) => {
+								Service.exist({ file: declaration.fileName }).then((res) => {
 									const fileExists = res.success;
-									Service.write({path: declaration.fileName, content: declaration.content}).then((res) => {
+									Service.write({ path: declaration.fileName, content: declaration.content }).then((res) => {
 										if (res.success) {
 											// do nothing
 										} else {
-											addAlert(t("alert.noDeclaration", {title: path.basename(key)}), "error");
+											addAlert(t("alert.noDeclaration", { title: path.basename(key) }), "error");
 										}
 									});
 									if (!fileExists) {
@@ -2286,7 +2286,7 @@ export default function PersistentDrawerLeft() {
 											content: declaration.content,
 											contentModified: null,
 											status: "normal",
-											onMount: () => {},
+											onMount: () => { },
 										};
 										newItem.onMount = onEditorDidMount(newItem);
 										setFiles([...files, newItem]);
@@ -2295,10 +2295,10 @@ export default function PersistentDrawerLeft() {
 										openFileInTab(declaration.fileName, path.basename(declaration.fileName), false, undefined, false);
 									}
 								}).catch(() => {
-									addAlert(t("alert.noDeclaration", {title: path.basename(key)}), "error");
+									addAlert(t("alert.noDeclaration", { title: path.basename(key) }), "error");
 								});
 							} else {
-								addAlert(t("alert.noDeclaration", {title: path.basename(key)}), "error");
+								addAlert(t("alert.noDeclaration", { title: path.basename(key) }), "error");
 							}
 						});
 					}
@@ -2306,9 +2306,9 @@ export default function PersistentDrawerLeft() {
 				break;
 			}
 			case "Update Dora": {
-				const {key, title} = data;
+				const { key, title } = data;
 				const doraPath = path.join(path.dirname(key), "vendor", "dora");
-				Service.updateDora({path: key}).then((res) => {
+				Service.updateDora({ path: key }).then((res) => {
 					if (res.success) {
 						const prevFiles = filesRef.current;
 						const prevTabIndex = tabIndexRef.current;
@@ -2331,17 +2331,17 @@ export default function PersistentDrawerLeft() {
 								}
 							}
 						}
-						addAlert(t("alert.updateDora", {title}), "success");
+						addAlert(t("alert.updateDora", { title }), "success");
 					} else {
 						addAlert(res.message, "error", true);
 					}
 				}).catch(() => {
-					addAlert(t("alert.failedUpdateDora", {title}), "error");
+					addAlert(t("alert.failedUpdateDora", { title }), "error");
 				});
 				break;
 			}
 			case "Build": {
-				const {key} = data;
+				const { key } = data;
 				let built = false;
 				const buildFile = async (key: string, buildFolder: boolean) => {
 					const preferLog = buildFolder;
@@ -2363,12 +2363,12 @@ export default function PersistentDrawerLeft() {
 							built = true;
 							setIsWaSaving(true);
 							try {
-								const res = await Service.buildWa({path: key});
+								const res = await Service.buildWa({ path: key });
 								if (res.success) {
-									addAlert(t("alert.build", {title}), "success");
+									addAlert(t("alert.build", { title }), "success");
 								} else {
 									addAlert(res.message, "error", true);
-									await Service.command({code: `Log "Error", "${res.message.replace(/[\\"]/g, "\\$&")}"`, log: false});
+									await Service.command({ code: `Log "Error", "${res.message.replace(/[\\"]/g, "\\$&")}"`, log: false });
 								}
 							} finally {
 								setIsWaSaving(false);
@@ -2377,11 +2377,11 @@ export default function PersistentDrawerLeft() {
 							built = true;
 							setIsWaSaving(true);
 							try {
-								const res = await Service.buildWa({path: key});
+								const res = await Service.buildWa({ path: key });
 								if (res.success) {
-									Service.command({code: `Log "Info", "Built ${title.replace(/[\\"]/g, "\\$&")}"`, log: false});
+									Service.command({ code: `Log "Info", "Built ${title.replace(/[\\"]/g, "\\$&")}"`, log: false });
 								} else {
-									await Service.command({code: `Log "Error", "${res.message.replace(/[\\"]/g, "\\$&")}"`, log: false});
+									await Service.command({ code: `Log "Error", "${res.message.replace(/[\\"]/g, "\\$&")}"`, log: false });
 								}
 							} finally {
 								setIsWaSaving(false);
@@ -2390,30 +2390,30 @@ export default function PersistentDrawerLeft() {
 							built = true;
 							setIsWaSaving(true);
 							try {
-								const res = await Service.buildWa({path: key});
+								const res = await Service.buildWa({ path: key });
 								if (res.success) {
-									addAlert(t("alert.build", {title}), "success");
+									addAlert(t("alert.build", { title }), "success");
 								} else {
 									addAlert(res.message, "error", true);
-									await Service.command({code: `Log "Error", "${res.message.replace(/[\\"]/g, "\\$&")}"`, log: false});
+									await Service.command({ code: `Log "Error", "${res.message.replace(/[\\"]/g, "\\$&")}"`, log: false });
 								}
 							} finally {
 								setIsWaSaving(false);
 							}
 						} else if ((ext === '.ts' || ext === '.tsx') && !key.toLocaleLowerCase().endsWith(".d.ts")) {
 							built = true;
-							const res = await Service.read({path: key});
+							const res = await Service.read({ path: key });
 							if (res.success && res.content !== undefined) {
 								if (/^[\s\n\r]*<\?xml/.test(res.content)) {
 									// TiledMapEditor file format, skip transpiling
 									return;
 								}
-								const {transpileTypescript, addDiagnosticToLog} = await import('./TranspileTS');
-								const {luaCode, diagnostics} = await transpileTypescript(key, res.content);
+								const { transpileTypescript, addDiagnosticToLog } = await import('./TranspileTS');
+								const { luaCode, diagnostics } = await transpileTypescript(key, res.content);
 								if (diagnostics.length > 0) {
 									await addDiagnosticToLog(key, diagnostics);
 									if (!preferLog) {
-										addAlert(t("alert.failedCompile", {title}), "warning");
+										addAlert(t("alert.failedCompile", { title }), "warning");
 									}
 									return;
 								}
@@ -2425,16 +2425,16 @@ export default function PersistentDrawerLeft() {
 											model.setValue(luaCode);
 										}
 									}
-									const res = await Service.write({path: luaFile, content: luaCode});
+									const res = await Service.write({ path: luaFile, content: luaCode });
 									if (res.success) {
 										if (preferLog) {
-											Service.command({code: `Log "Info", "Built ${title.replace(/[\\"]/g, "\\$&")}"`, log: false});
+											Service.command({ code: `Log "Info", "Built ${title.replace(/[\\"]/g, "\\$&")}"`, log: false });
 										} else {
-											addAlert(t("alert.build", {title}), "success");
+											addAlert(t("alert.build", { title }), "success");
 										}
 									} else {
 										if (preferLog) {
-											Service.command({code: `Log "Error", "Failed to save ${title.replace(/[\\"]/g, "\\$&")}"`, log: false});
+											Service.command({ code: `Log "Error", "Failed to save ${title.replace(/[\\"]/g, "\\$&")}"`, log: false });
 										} else {
 											addAlert(t("alert.saveCurrent"), "error");
 										}
@@ -2442,13 +2442,13 @@ export default function PersistentDrawerLeft() {
 								}
 							}
 						} else if (ext === '.yue' || ext === '.tl' || ext === '.xml') {
-							const res = await Service.build({path: key});
+							const res = await Service.build({ path: key });
 							built = true;
 							if (res.success) {
 								if (preferLog) {
-									Service.command({code: `Log "Info", "Built ${title.replace(/[\\"]/g, "\\$&")}"`, log: false});
+									Service.command({ code: `Log "Info", "Built ${title.replace(/[\\"]/g, "\\$&")}"`, log: false });
 								} else {
-									addAlert(t("alert.build", {title}), "success");
+									addAlert(t("alert.build", { title }), "success");
 								}
 								if (fileInTab !== undefined) {
 									const resultCodes = res.resultCodes === undefined ? "" : res.resultCodes;
@@ -2462,9 +2462,9 @@ export default function PersistentDrawerLeft() {
 								}
 							} else {
 								if (preferLog) {
-									Service.command({code: `Log "Error", "Failed to build ${title.replace(/[\\"]/g, "\\$&")}"`, log: false});
+									Service.command({ code: `Log "Error", "Failed to build ${title.replace(/[\\"]/g, "\\$&")}"`, log: false });
 								} else {
-									addAlert(t("alert.failedCompile", {title}), "warning");
+									addAlert(t("alert.failedCompile", { title }), "warning");
 								}
 							}
 						}
@@ -2472,14 +2472,14 @@ export default function PersistentDrawerLeft() {
 						built = true;
 						console.error(e);
 						if (preferLog) {
-							Service.command({code: `Log "Error", "Failed to build ${title.replace(/[\\"]/g, "\\$&")}"`, log: false});
+							Service.command({ code: `Log "Error", "Failed to build ${title.replace(/[\\"]/g, "\\$&")}"`, log: false });
 						} else {
-							addAlert(t("alert.failedCompile", {title}), "warning");
+							addAlert(t("alert.failedCompile", { title }), "warning");
 						}
 					}
 				};
 				if (data.dir) {
-					const {title} = data;
+					const { title } = data;
 					setOpenLog({
 						title: t("menu.build") + " " + title,
 						stopOnClose: false
@@ -2502,7 +2502,7 @@ export default function PersistentDrawerLeft() {
 						try {
 							await visitData(data);
 							await new Promise(resolve => setTimeout(resolve, 100));
-							Service.command({code: `Log "Info", "${t(built ? "alert.buildDone" : "alert.noBuild", {title}).replace(/[\\"]/g, "\\$&")}"`, log: false});
+							Service.command({ code: `Log "Info", "${t(built ? "alert.buildDone" : "alert.noBuild", { title }).replace(/[\\"]/g, "\\$&")}"`, log: false });
 						} finally {
 							isSaving = false;
 						}
@@ -2514,19 +2514,19 @@ export default function PersistentDrawerLeft() {
 				break;
 			}
 			case "View Compiled": {
-				const {key, title} = data;
+				const { key, title } = data;
 				const extname = path.extname(key);
 				const name = path.basename(key, extname);
 				const dir = path.dirname(key);
 				const luaFile = path.join(dir, name + ".lua");
-				Service.read({path: luaFile}).then((res) => {
+				Service.read({ path: luaFile }).then((res) => {
 					if (res.success && res.content !== undefined) {
 						openFileInTab(luaFile, name + ".lua", false, undefined, true);
 					} else {
-						addAlert(t("alert.notGenerated", {title}), "warning");
+						addAlert(t("alert.notGenerated", { title }), "warning");
 					}
 				}).catch(() => {
-					addAlert(t("alert.read", {title: name + ".lua"}), "error");
+					addAlert(t("alert.read", { title: name + ".lua" }), "error");
 				});
 				break;
 			}
@@ -2539,13 +2539,13 @@ export default function PersistentDrawerLeft() {
 				}
 				if (navigator.clipboard && navigator.clipboard.writeText) {
 					navigator.clipboard.writeText(relativePath).then(() => {
-						addAlert(t("alert.copied", {title: data.title}), "success");
+						addAlert(t("alert.copied", { title: data.title }), "success");
 					}).catch(() => {
 						addAlert(t("alert.copy"), "error");
 					});
 				} else {
 					setPopupInfo({
-						title: t("alert.tocopy", {title: data.title}),
+						title: t("alert.tocopy", { title: data.title }),
 						msg: relativePath,
 						selectable: true,
 						raw: true
@@ -2554,7 +2554,7 @@ export default function PersistentDrawerLeft() {
 				break;
 			}
 		}
-		}, [addAlert, checkFileReadonly, loadAssets, t, files, deleteFile, treeData, openFileInTab, onEditorDidMount, switchTab, openAgentSessionTab]);
+	}, [addAlert, checkFileReadonly, loadAssets, t, files, deleteFile, treeData, openFileInTab, onEditorDidMount, switchTab, openAgentSessionTab]);
 
 	const onNewFileClose = (item?: DoraFileType) => {
 		let ext: string | null = null;
@@ -2597,7 +2597,7 @@ export default function PersistentDrawerLeft() {
 				const oldFile = target.key;
 				const newFile = path.join(path.dirname(target.key), newName);
 				const doRename = () => {
-					return Service.rename({old: oldFile, new: newFile}).then((res) => {
+					return Service.rename({ old: oldFile, new: newFile }).then((res) => {
 						if (!res.success) {
 							addAlert(t("alert.renameFailed"), "error");
 							return;
@@ -2609,7 +2609,7 @@ export default function PersistentDrawerLeft() {
 						}
 						if (target.dir) {
 							loadAssets().then(() => {
-								addAlert(t("alert.renamed", {oldFile: path.basename(oldFile), newFile: path.basename(newFile)}), "success");
+								addAlert(t("alert.renamed", { oldFile: path.basename(oldFile), newFile: path.basename(newFile) }), "success");
 							});
 							return;
 						}
@@ -2635,7 +2635,7 @@ export default function PersistentDrawerLeft() {
 							setSelectedNode(null);
 							setSelectedKeys([]);
 						}
-						addAlert(t("alert.renamed", {oldFile: path.basename(oldFile), newFile: path.basename(newFile)}), "success");
+						addAlert(t("alert.renamed", { oldFile: path.basename(oldFile), newFile: path.basename(newFile) }), "success");
 					}).catch(() => {
 						addAlert(t("alert.renameFailed"), "error");
 					});
@@ -2658,22 +2658,22 @@ export default function PersistentDrawerLeft() {
 			} else {
 				const dir = target.dir ?
 					target.key : path.dirname(target.key);
-				const {ext} = fileInfo;
+				const { ext } = fileInfo;
 				const projectPath = path.join(dir, fileInfo.name);
 				if (ext === ".wa" && fileInfo.project) {
-					Service.createWa({path: projectPath}).then((res) => {
+					Service.createWa({ path: projectPath }).then((res) => {
 						if (!res.success) {
 							addAlert(t("alert.newFailed"), "error");
-							Service.command({code: `Log "Error", "Failed to create Wa project, due to ${res.message}"`, log: false});
+							Service.command({ code: `Log "Error", "Failed to create Wa project, due to ${res.message}"`, log: false });
 						} else {
 							loadAssets().then(() => {
 								const target = path.join(projectPath, "src", "main.wa");
 								openFileInTab(target, "main.wa", false, undefined, false);
 								setIsWaSaving(true);
-								Service.buildWa({path: target}).then((res) => {
+								Service.buildWa({ path: target }).then((res) => {
 									if (!res.success) {
 										addAlert(res.message, "error", true);
-										Service.command({code: `Log "Error", "${res.message.replace(/[\\"]/g, "\\$&")}"`, log: false});
+										Service.command({ code: `Log "Error", "${res.message.replace(/[\\"]/g, "\\$&")}"`, log: false });
 									}
 								}).finally(() => {
 									setIsWaSaving(false);
@@ -2688,8 +2688,8 @@ export default function PersistentDrawerLeft() {
 				const newFile = path.join(dir, newName);
 				const folder = fileInfo.title === "file.newFolder";
 				const template = getNewFileTemplate(ext);
-				let {content} = template;
-				const {position} = template;
+				let { content } = template;
+				const { position } = template;
 				if (ext === ".model") {
 					content = writeLegacyModel(createEmptyActionDocument(newFile, `${fileInfo.name}.clip`));
 				}
@@ -2697,7 +2697,7 @@ export default function PersistentDrawerLeft() {
 				const initFile = initExt ? path.join(newFile, `init${initExt}`) : null;
 				const initTemplate = initExt ? getNewFileTemplate(initExt) : null;
 				(async () => {
-					const res = await Service.newFile({path: newFile, content, folder});
+					const res = await Service.newFile({ path: newFile, content, folder });
 					if (!res.success) {
 						addAlert(t(`alert.new${res.message}`), "error");
 						return;
@@ -2756,7 +2756,7 @@ export default function PersistentDrawerLeft() {
 						content: initTemplate?.content ?? content,
 						contentModified: null,
 						status: "normal",
-						onMount: () => {},
+						onMount: () => { },
 					};
 					if (path.extname(openedName) === ".md") {
 						newItem.mdEditing = true;
@@ -2767,27 +2767,27 @@ export default function PersistentDrawerLeft() {
 				})().then(() => {
 					if (ext === ".tic") {
 						fetch('/tic80/cart.tic')
-						.then(res => {
-							if (!res.ok) throw new Error('Failed to download cart.tic');
-							return res.blob();
-						})
-						.then(blob => {
-							const formData = new FormData();
-							formData.append('file', blob, newFile);
-							const uploadPath = Service.addr(`/upload?path=${encodeURIComponent(newFile)}`);
-							return fetch(uploadPath, {
-								method: 'POST',
-								body: formData
-							});
-						})
-						.then(res => {
-							if (!res.ok) {
+							.then(res => {
+								if (!res.ok) throw new Error('Failed to download cart.tic');
+								return res.blob();
+							})
+							.then(blob => {
+								const formData = new FormData();
+								formData.append('file', blob, newFile);
+								const uploadPath = Service.addr(`/upload?path=${encodeURIComponent(newFile)}`);
+								return fetch(uploadPath, {
+									method: 'POST',
+									body: formData
+								});
+							})
+							.then(res => {
+								if (!res.ok) {
+									addAlert(t("alert.newFailed"), "error");
+								}
+							})
+							.catch(() => {
 								addAlert(t("alert.newFailed"), "error");
-							}
-						})
-						.catch(() => {
-							addAlert(t("alert.newFailed"), "error");
-						});
+							});
 					}
 				}).catch(() => {
 					addAlert(t("alert.newFailed"), "error");
@@ -2809,7 +2809,7 @@ export default function PersistentDrawerLeft() {
 	};
 
 	const updateDir = useCallback((oldDir: string, newDir: string) => {
-		return Service.list({path: oldDir}).then((res) => {
+		return Service.list({ path: oldDir }).then((res) => {
 			if (res.success) {
 				const affected = res.files.map(f => [path.join(oldDir, f), path.join(newDir, f)]);
 				affected.push([oldDir, newDir]);
@@ -2841,7 +2841,7 @@ export default function PersistentDrawerLeft() {
 					}
 					return k;
 				});
-				return {newFiles, newExpanded};
+				return { newFiles, newExpanded };
 			}
 		});
 	}, [expandedKeys, files]);
@@ -2870,18 +2870,18 @@ export default function PersistentDrawerLeft() {
 		}
 		setPopupInfo({
 			title: t("popup.moving"),
-			msg: t("popup.movingInfo", {from: self.title, to: targetName}),
+			msg: t("popup.movingInfo", { from: self.title, to: targetName }),
 			cancelable: true,
 			confirmed: () => {
 				const newFile = path.join(targetParent, path.basename(self.key));
 				const doRename = () => {
-					return Service.rename({old: self.key, new: newFile}).then((res) => {
+					return Service.rename({ old: self.key, new: newFile }).then((res) => {
 						if (res.success) {
 							return loadAssets().then(() => {
-								addAlert(t("alert.moved", {from: self.title, to: targetName}), "success");
+								addAlert(t("alert.moved", { from: self.title, to: targetName }), "success");
 							});
 						}
-						addAlert(t("alert.movingFailed", {from: self.title, to: targetName}), "error");
+						addAlert(t("alert.movingFailed", { from: self.title, to: targetName }), "error");
 					});
 				};
 				if (self.dir) {
@@ -2910,7 +2910,7 @@ export default function PersistentDrawerLeft() {
 				}
 			}
 		});
-		}, [addAlert, checkFileReadonly, expandedKeys, files, updateDir, loadAssets, t, treeData, switchTab, tabIndex]);
+	}, [addAlert, checkFileReadonly, expandedKeys, files, updateDir, loadAssets, t, treeData, switchTab, tabIndex]);
 
 	const onUploaded = useCallback((dir: string, file: string, open: boolean) => {
 		const key = path.join(dir, file);
@@ -2950,7 +2950,7 @@ export default function PersistentDrawerLeft() {
 		const ext = path.extname(file.key).toLowerCase();
 		if (ext === ".yarn") {
 			// Yarn file validation
-			Service.checkYarnFile({code: content}).then((res) => {
+			Service.checkYarnFile({ code: content }).then((res) => {
 				let status: TabStatus = "normal";
 				const markers: monaco.editor.IMarkerData[] = [];
 				if (!res.success) {
@@ -2991,7 +2991,7 @@ export default function PersistentDrawerLeft() {
 			case ".lua": case ".tl": case ".yue": case ".xml": break;
 			default: return;
 		}
-		Service.check({file: file.key, content}).then((res) => {
+		Service.check({ file: file.key, content }).then((res) => {
 			let status: TabStatus = "normal";
 			const markers: monaco.editor.IMarkerData[] = [];
 			if (!res.success && res.info !== undefined) {
@@ -3020,7 +3020,7 @@ export default function PersistentDrawerLeft() {
 						}
 						markers.push({
 							severity,
-							message: filename + ': '+ msg,
+							message: filename + ': ' + msg,
 							startLineNumber: 1,
 							startColumn: 1,
 							endLineNumber: 1,
@@ -3135,7 +3135,7 @@ export default function PersistentDrawerLeft() {
 		}).catch(() => {
 			addAlert(t("alert.stopFailed"), "error");
 		});
-		}, [addAlert, openLog, t, tabIndex, files]);
+	}, [addAlert, openLog, t, tabIndex, files]);
 
 	const onPlayControlClick = useCallback((mode: PlayControlMode, noLog?: boolean) => {
 		if (mode === "LLM Config") {
@@ -3182,7 +3182,7 @@ export default function PersistentDrawerLeft() {
 				}
 			}
 		});
-		}, [addAlert, openLog, t, onStopRunning, saveAllTabs, onPlayControlRun, files, tabIndex]);
+	}, [addAlert, openLog, t, onStopRunning, saveAllTabs, onPlayControlRun, files, tabIndex]);
 
 	const saveCurrentTab = useCallback(async () => {
 		if (tabIndex === null) return;
@@ -3352,7 +3352,7 @@ export default function PersistentDrawerLeft() {
 		const rootNode = treeData.at(0);
 		if (rootNode !== undefined) {
 			const filterOptions: FilterOption[] = [];
-			const {engineDev} = Info;
+			const { engineDev } = Info;
 			const toolPath = path.join(assetPath, "Script", "Tools");
 			const visitNode = (node: TreeDataType) => {
 				if (!node.dir) {
@@ -3371,7 +3371,7 @@ export default function PersistentDrawerLeft() {
 						});
 					}
 				}
-				const {children} = node;
+				const { children } = node;
 				if (children !== undefined) {
 					for (let i = 0; i < children.length; i++) {
 						visitNode(children[i]);
@@ -3385,19 +3385,19 @@ export default function PersistentDrawerLeft() {
 
 	const spineLoadFailed = useCallback((message: string) => {
 		addAlert(message, 'error');
-		}, [addAlert]);
+	}, [addAlert]);
 
 	saveEditingInfo = () => {
 		const editingInfo: Service.EditingInfo = {
 			index: tabIndex ?? 0,
 			files: files.map(f => {
-				const {key, title, mdEditing, yarnTextEditing, editor, readOnly, agentSessionId, workspaceView} = f;
-				let {position} = f;
-				const {folder = false} = f;
+				const { key, title, mdEditing, yarnTextEditing, editor, readOnly, agentSessionId, workspaceView } = f;
+				let { position } = f;
+				const { folder = false } = f;
 				if (position === undefined && editor !== undefined) {
 					position = editor.getPosition() ?? undefined;
 				}
-				return {key, title, mdEditing, yarnTextEditing, position, readOnly, folder, agentSessionId, workspaceView};
+				return { key, title, mdEditing, yarnTextEditing, position, readOnly, folder, agentSessionId, workspaceView };
 			})
 		};
 		if (areEditingInfosEqual(editingInfo, lastEditingInfo)) {
@@ -3497,22 +3497,22 @@ export default function PersistentDrawerLeft() {
 				maxWidth="lg"
 				open={filterOptions !== null}
 				transitionDuration={0}
-				slotProps={{transition: transitionProps}}
+				slotProps={{ transition: transitionProps }}
 			>
 				<DialogContent>
 					{filterOptions !== null ?
-						<FileFilter options={filterOptions} onClose={onFileFilterClose}/> : null
+						<FileFilter options={filterOptions} onClose={onFileFilterClose} /> : null
 					}
 				</DialogContent>
 			</Dialog>
-			<LogView openName={openLog === null ? null : openLog.title} height={editorHeight * 0.9} onClose={onCloseLog}/>
+			<LogView openName={openLog === null ? null : openLog.title} height={editorHeight * 0.9} onClose={onCloseLog} />
 			<Dialog
 				maxWidth="lg"
 				open={popupInfo !== null}
 				aria-labelledby="alert-dialog-title"
 				aria-describedby="alert-dialog-description"
 				transitionDuration={0}
-				slotProps={{transition: transitionProps}}
+				slotProps={{ transition: transitionProps }}
 			>
 				<DialogTitle id="alert-dialog-title">
 					{popupInfo?.title}
@@ -3546,7 +3546,7 @@ export default function PersistentDrawerLeft() {
 								/>
 								: popupInfo?.raw ?
 									<pre>{popupInfo?.msg}</pre>
-								: popupInfo?.msg
+									: popupInfo?.msg
 							}
 						</DialogContentText>
 					</DialogContent>
@@ -3572,7 +3572,7 @@ export default function PersistentDrawerLeft() {
 				aria-labelledby="filename-dialog-title"
 				aria-describedby="filename-dialog-description"
 				transitionDuration={0}
-				slotProps={{transition: transitionProps}}
+				slotProps={{ transition: transitionProps }}
 			>
 				<DialogTitle id="filename-dialog-title">
 					{t(fileInfo?.title ?? "")}
@@ -3585,9 +3585,9 @@ export default function PersistentDrawerLeft() {
 							label={(
 								fileInfo?.title === "file.new" ?
 									t("file.enterFile") : undefined
-								) ?? (
-								fileInfo?.title === "file.newFolder" ?
-									t("file.enterFolder") : undefined
+							) ?? (
+									fileInfo?.title === "file.newFolder" ?
+										t("file.enterFolder") : undefined
 								)
 							}
 							defaultValue={fileInfo?.name ?? ""}
@@ -3603,40 +3603,40 @@ export default function PersistentDrawerLeft() {
 								input: {
 									endAdornment:
 										<InputAdornment position="end">
-										{fileInfo?.ext === undefined
-										? undefined
-										: (fileInfo.ext !== ".ts" && fileInfo.ext !== ".tsx")
-										? (fileInfo.ext === ".wa" && fileInfo.project ? undefined : fileInfo.ext)
-										: <div style={{color: Color.Secondary}}>
-												{fileInfo.ext}
-												<IconButton
-													size='small'
-													aria-label="toggle tsx"
-													edge="end"
-													color='primary'
-													onClick={() => {
-														setFileInfo({...fileInfo, ext: fileInfo.ext === '.ts' ? '.tsx' : '.ts'});
-													}}
-												>
-													<TbSwitchVertical/>
-												</IconButton>
-											</div>
-										}
-									</InputAdornment>,
+											{fileInfo?.ext === undefined
+												? undefined
+												: (fileInfo.ext !== ".ts" && fileInfo.ext !== ".tsx")
+													? (fileInfo.ext === ".wa" && fileInfo.project ? undefined : fileInfo.ext)
+													: <div style={{ color: Color.Secondary }}>
+														{fileInfo.ext}
+														<IconButton
+															size='small'
+															aria-label="toggle tsx"
+															edge="end"
+															color='primary'
+															onClick={() => {
+																setFileInfo({ ...fileInfo, ext: fileInfo.ext === '.ts' ? '.tsx' : '.ts' });
+															}}
+														>
+															<TbSwitchVertical />
+														</IconButton>
+													</div>
+											}
+										</InputAdornment>,
 								}
 							}}
 							onChange={onFilenameChange}
 						/>
 						{fileInfo?.ext === ".wa" && fileInfo.title === "file.new" ?
 							<FormControlLabel
-								style={{marginLeft: 5}}
-								label={t("file.projectNamed", {name: "Wa"})}
+								style={{ marginLeft: 5 }}
+								label={t("file.projectNamed", { name: "Wa" })}
 								control={
 									<Checkbox
 										checked={fileInfo?.project}
 										onChange={(event) => {
 											if (fileInfo === null) return;
-											const newFileInfo = {...fileInfo, project: event.target.checked};
+											const newFileInfo = { ...fileInfo, project: event.target.checked };
 											setFileInfo(newFileInfo);
 										}}
 									/>
@@ -3646,14 +3646,14 @@ export default function PersistentDrawerLeft() {
 						{fileInfo?.title === "file.newFolder" ?
 							<>
 								<FormControlLabel
-									style={{marginLeft: 5}}
-										label={t("file.project")}
+									style={{ marginLeft: 5 }}
+									label={t("file.project")}
 									control={
 										<Checkbox
 											checked={fileInfo?.project}
 											onChange={(event) => {
 												if (fileInfo === null) return;
-												setFileInfo({...fileInfo, project: event.target.checked});
+												setFileInfo({ ...fileInfo, project: event.target.checked });
 											}}
 										/>
 									}
@@ -3672,14 +3672,14 @@ export default function PersistentDrawerLeft() {
 										}}
 										onChange={(event) => {
 											if (fileInfo === null) return;
-											setFileInfo({...fileInfo, projectType: event.target.value as FolderProjectType});
+											setFileInfo({ ...fileInfo, projectType: event.target.value as FolderProjectType });
 										}}
 									>
 										{folderProjectTypes.map((projectType) =>
 											<MenuItem key={projectType} value={projectType}>{projectType}</MenuItem>
 										)}
 									</TextField>
-								: null}
+									: null}
 							</> : null
 						}
 					</Box>
@@ -3693,10 +3693,10 @@ export default function PersistentDrawerLeft() {
 					</Button>
 				</DialogActions>
 			</Dialog>
-			<NewFileDialog open={openNewFile !== null} onClose={onNewFileClose}/>
-			<LLMConfigDialog open={openLLMConfig} onClose={() => setOpenLLMConfig(false)}/>
-			<Box sx={{display: "flex", width: '100%', height: '100%'}}>
-				<CssBaseline/>
+			<NewFileDialog open={openNewFile !== null} onClose={onNewFileClose} />
+			<LLMConfigDialog open={openLLMConfig} onClose={() => setOpenLLMConfig(false)} />
+			<Box sx={{ display: "flex", width: '100%', height: '100%' }}>
+				<CssBaseline />
 				<AppBar
 					position="fixed"
 					open={drawerOpen}
@@ -3715,7 +3715,7 @@ export default function PersistentDrawerLeft() {
 							onClick={handleDrawerOpen}
 							edge="start"
 						>
-							{ drawerOpen ? <Fullscreen/> : <FullscreenExit/> }
+							{drawerOpen ? <Fullscreen /> : <FullscreenExit />}
 						</IconButton>
 						<FileTabBar
 							index={tabIndex}
@@ -3741,7 +3741,7 @@ export default function PersistentDrawerLeft() {
 					anchor="left"
 					open={drawerOpen}
 				>
-					<div style={{display: 'flex', flexDirection: 'column', height: '100%'}}>
+					<div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
 						<div style={{
 							display: 'flex',
 							alignItems: 'center',
@@ -3769,7 +3769,7 @@ export default function PersistentDrawerLeft() {
 										height={32}
 									/>
 								) : (
-									<div style={{width: 32, height: 32, overflow: 'hidden'}}>
+									<div style={{ width: 32, height: 32, overflow: 'hidden' }}>
 										<img
 											src={logo}
 											alt="logo"
@@ -3792,7 +3792,7 @@ export default function PersistentDrawerLeft() {
 											borderRadius: 1.5,
 										}}
 									>
-										<AccountTreeIcon fontSize="small"/>
+										<AccountTreeIcon fontSize="small" />
 									</IconButton>
 								</Tooltip>
 								<Tooltip title={t("menu.entries")}>
@@ -3811,7 +3811,7 @@ export default function PersistentDrawerLeft() {
 											borderRadius: 1.5,
 										}}
 									>
-										<FormatListBulletedIcon fontSize="small"/>
+										<FormatListBulletedIcon fontSize="small" />
 									</IconButton>
 								</Tooltip>
 								<Tooltip title={t("menu.searchFiles")}>
@@ -3832,7 +3832,7 @@ export default function PersistentDrawerLeft() {
 								</Tooltip>
 							</Stack>
 						</div>
-						<div style={{flex: 1, minHeight: 0, padding: 0}} hidden={leftDockTab !== "explorer"}>
+						<div style={{ flex: 1, minHeight: 0, padding: 0 }} hidden={leftDockTab !== "explorer"}>
 							<FileTree
 								selectedKeys={selectedKeys}
 								expandedKeys={expandedKeys}
@@ -3843,7 +3843,7 @@ export default function PersistentDrawerLeft() {
 								onDrop={onDrop}
 							/>
 						</div>
-						<div style={{flex: 1, minHeight: 0, padding: 0}} hidden={leftDockTab !== "search"}>
+						<div style={{ flex: 1, minHeight: 0, padding: 0 }} hidden={leftDockTab !== "search"}>
 							<FileSearchPanel
 								open={leftDockTab === "search"}
 								searchPath={writablePath}
@@ -3858,7 +3858,7 @@ export default function PersistentDrawerLeft() {
 							flexDirection: 'column',
 							overflow: 'hidden'
 						}}>
-							<Stack direction="row" alignItems="center" justifyContent="space-between" sx={{m: 1.5, mb: 1, flexShrink: 0}}>
+							<Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ m: 1.5, mb: 1, flexShrink: 0 }}>
 								<Stack direction="row" spacing={0.5}>
 									<Button
 										size="small"
@@ -3905,10 +3905,10 @@ export default function PersistentDrawerLeft() {
 									{t("menu.reload")}
 								</Button>
 							</Stack>
-							<MacScrollbar skin='dark' style={{flex: 1, minHeight: 0, marginRight: resizeHandleWidth}}>
-								<Stack spacing={1} sx={{pl: 1.5, pr: 2, pb: 1.5}}>
+							<MacScrollbar skin='dark' style={{ flex: 1, minHeight: 0, marginRight: resizeHandleWidth }}>
+								<Stack spacing={1} sx={{ pl: 1.5, pr: 2, pb: 1.5 }}>
 									{(entryView === "tool" ? toolEntries : gameEntries).length === 0 ? (
-										<Typography variant="body2" sx={{opacity: 0.7}}>
+										<Typography variant="body2" sx={{ opacity: 0.7 }}>
 											{t(entryView === "tool" ? "menu.noTools" : "menu.noProjects")}
 										</Typography>
 									) : (entryView === "tool" ? toolEntries : gameEntries).map((entry) => (
@@ -3927,7 +3927,7 @@ export default function PersistentDrawerLeft() {
 													overflow: "hidden",
 												}}
 											>
-												<Typography variant="body2" noWrap sx={{minWidth: 0}}>
+												<Typography variant="body2" noWrap sx={{ minWidth: 0 }}>
 													{entry.name}
 												</Typography>
 											</Button>
@@ -3945,7 +3945,7 @@ export default function PersistentDrawerLeft() {
 																color: Color.TextSecondary
 															}}
 														>
-															<FolderOpenIcon fontSize="small"/>
+															<FolderOpenIcon fontSize="small" />
 														</IconButton>
 													</span>
 												</Tooltip>
@@ -3980,7 +3980,7 @@ export default function PersistentDrawerLeft() {
 								hidden={tabIndex !== index}
 								drawerWidth={drawerWidth}
 							>
-								<DrawerHeader/>
+								<DrawerHeader />
 								<ProjectWorkspacePanel
 									title={file.title}
 									height={editorHeight}
@@ -4041,18 +4041,19 @@ export default function PersistentDrawerLeft() {
 							hidden={tabIndex !== index}
 							drawerWidth={drawerWidth}
 						>
-							<DrawerHeader/>
+							<DrawerHeader />
 							{actionModel ?
-								<Suspense fallback={<div/>}>
+								<Suspense fallback={<div />}>
 									<ActionEditor
 										filePath={file.key}
+										resourceBasePath={parentPath}
 										sourceContent={file.content}
 										width={editorWidth}
 										height={editorHeight}
 										active={tabIndex === index}
 										readOnly={readOnly}
 										onChange={(content) => {
-											setModified({key: file.key, content});
+											setModified({ key: file.key, content });
 										}}
 										onLoadFailed={(message) => {
 											addAlert(message, "error", true);
@@ -4061,8 +4062,8 @@ export default function PersistentDrawerLeft() {
 								</Suspense> : null
 							}
 							{yarn && !file.yarnTextEditing ?
-								<div style={{display: 'flex', position: 'relative'}}>
-									<Suspense fallback={<div/>}>
+								<div style={{ display: 'flex', position: 'relative' }}>
+									<Suspense fallback={<div />}>
 										<YarnEditor
 											title={file.key}
 											defaultValue={file.content}
@@ -4072,7 +4073,7 @@ export default function PersistentDrawerLeft() {
 												file.yarnData = data;
 											}}
 											onChange={() => {
-												setModified({key: file.key, content: ""});
+												setModified({ key: file.key, content: "" });
 											}}
 											onKeydown={(e) => {
 												setKeyEvent(e);
@@ -4099,7 +4100,7 @@ export default function PersistentDrawerLeft() {
 																		model.pushEditOperations(null, [{
 																			text,
 																			range: model.getFullModelRange()
-																		}], () => {return null});
+																		}], () => { return null });
 																	}, 500);
 																});
 															}
@@ -4124,7 +4125,7 @@ export default function PersistentDrawerLeft() {
 								</div> : null
 							}
 							{visualScript ?
-								<Suspense fallback={<div/>}>
+								<Suspense fallback={<div />}>
 									<CodeWire
 										key={file.key}
 										title={file.key}
@@ -4135,7 +4136,7 @@ export default function PersistentDrawerLeft() {
 											file.codeWireData = data;
 										}}
 										onChange={() => {
-											setModified({key: file.key, content: ""});
+											setModified({ key: file.key, content: "" });
 										}}
 										onKeydown={(e) => {
 											setKeyEvent(e);
@@ -4152,7 +4153,7 @@ export default function PersistentDrawerLeft() {
 									initialJson={file.content}
 									onSave={saveCurrentTab}
 									onChange={(json, blocklyCode) => {
-										setModified({key: file.key, content: json, blocklyCode});
+										setModified({ key: file.key, content: json, blocklyCode });
 										const extname = path.extname(file.key);
 										const name = path.basename(file.key, extname);
 										const luaFile = path.join(path.dirname(file.key), name + ".lua");
@@ -4168,7 +4169,7 @@ export default function PersistentDrawerLeft() {
 							{tic80 ?
 								(() => {
 									return (
-										<Suspense fallback={<div/>}>
+										<Suspense fallback={<div />}>
 											<TIC80Editor
 												title={file.key}
 												filePath={file.key}
@@ -4186,15 +4187,15 @@ export default function PersistentDrawerLeft() {
 								})() : null
 							}
 							{markdown ?
-								<div style={{display: 'flex', position: 'relative', width: '100%', maxWidth: '100%', minWidth: 0, overflow: 'hidden'}}>
-									<MacScrollbar skin='dark' hidden={file.mdEditing} style={{height: editorHeight, width: '100%', maxWidth: '100%', minWidth: 0}}>
+								<div style={{ display: 'flex', position: 'relative', width: '100%', maxWidth: '100%', minWidth: 0, overflow: 'hidden' }}>
+									<MacScrollbar skin='dark' hidden={file.mdEditing} style={{ height: editorHeight, width: '100%', maxWidth: '100%', minWidth: 0 }}>
 										<Markdown
 											fileKey={file.key}
 											path={Service.addr("/" + path.relative(parentPath, path.dirname(file.key)).replace("\\", "/"))}
 											content={file.contentModified ?? file.content}
 											onClick={onJumpLink}
 										/>
-										{readOnly ? null : <Stack direction="row" spacing={1} style={{position: 'absolute', left: '20px', bottom: '20px', zIndex: 100}}>
+										{readOnly ? null : <Stack direction="row" spacing={1} style={{ position: 'absolute', left: '20px', bottom: '20px', zIndex: 100 }}>
 											<Tooltip title={t('markdown.editText')}>
 												<IconButton
 													onClick={() => {
@@ -4217,14 +4218,14 @@ export default function PersistentDrawerLeft() {
 								</div> : null
 							}
 							{image ?
-								<MacScrollbar skin='dark' style={{height: editorHeight}}>
+								<MacScrollbar skin='dark' style={{ height: editorHeight }}>
 									<Container maxWidth="lg">
-										<DrawerHeader/>
+										<DrawerHeader />
 										<Image src={
 											Service.addr("/" + path
 												.relative(parentPath, file.key)
 												.replace("\\", "/"))
-											} preview={false}/>
+										} preview={false} />
 									</Container>
 								</MacScrollbar> : null
 							}
@@ -4234,10 +4235,10 @@ export default function PersistentDrawerLeft() {
 									const coms = path.parse(skelFile);
 									const atlasFile = path.join(coms.dir, coms.name + ".atlas");
 									return (
-										<MacScrollbar skin='dark' style={{height: editorHeight}}>
+										<MacScrollbar skin='dark' style={{ height: editorHeight }}>
 											<Container maxWidth="lg">
-												<DrawerHeader/>
-												<Suspense fallback={<div/>}>
+												<DrawerHeader />
+												<Suspense fallback={<div />}>
 													<SpinePlayer
 														skelFile={skelFile}
 														atlasFile={atlasFile}
@@ -4268,13 +4269,13 @@ export default function PersistentDrawerLeft() {
 									if (yarn) {
 										if (!file.yarnTextEditing) {
 											return (
-												<div style={{display: 'flex', position: 'relative'}}>
+												<div style={{ display: 'flex', position: 'relative' }}>
 													{editorComponent}
 												</div>
 											);
 										}
 										return (
-											<div style={{display: 'flex', position: 'relative'}}>
+											<div style={{ display: 'flex', position: 'relative' }}>
 												{editorComponent}
 												<div hidden={readOnly} style={{
 													position: 'absolute',
@@ -4283,32 +4284,32 @@ export default function PersistentDrawerLeft() {
 													zIndex: 100
 												}}>
 													<Stack direction="row" spacing={1}>
-													<Tooltip title={t('yarn.editVisual')}>
-														<IconButton
-															onClick={() => {
-																if (file.editor) {
-																	const model = file.editor.getModel();
-																	if (model) {
-																		const text = model.getValue();
-																		setTimeout(() => {
-																			file.content = text;
-																			file.yarnTextEditing = false;
-																			setFiles([...files]);
-																		}, 200);
+														<Tooltip title={t('yarn.editVisual')}>
+															<IconButton
+																onClick={() => {
+																	if (file.editor) {
+																		const model = file.editor.getModel();
+																		if (model) {
+																			const text = model.getValue();
+																			setTimeout(() => {
+																				file.content = text;
+																				file.yarnTextEditing = false;
+																				setFiles([...files]);
+																			}, 200);
+																		}
 																	}
-																}
-															}}
-															sx={{
-																backgroundColor: 'rgba(50, 50, 50, 0.7)',
-																color: 'rgba(255, 255, 255, 0.4)',
-																'&:hover': {
-																	backgroundColor: 'rgba(70, 70, 70, 0.9)',
-																}
-															}}
-														>
-															<AccountTreeIcon />
-														</IconButton>
-													</Tooltip>
+																}}
+																sx={{
+																	backgroundColor: 'rgba(50, 50, 50, 0.7)',
+																	color: 'rgba(255, 255, 255, 0.4)',
+																	'&:hover': {
+																		backgroundColor: 'rgba(70, 70, 70, 0.9)',
+																	}
+																}}
+															>
+																<AccountTreeIcon />
+															</IconButton>
+														</Tooltip>
 													</Stack>
 												</div>
 											</div>
@@ -4317,13 +4318,13 @@ export default function PersistentDrawerLeft() {
 									if (markdown) {
 										if (!file.mdEditing) {
 											return (
-												<div style={{display: 'flex', position: 'relative'}}>
+												<div style={{ display: 'flex', position: 'relative' }}>
 													{editorComponent}
 												</div>
 											);
 										}
 										return (
-											<div style={{display: 'flex', position: 'relative'}}>
+											<div style={{ display: 'flex', position: 'relative' }}>
 												{editorComponent}
 												<div hidden={readOnly} style={{
 													position: 'absolute',
@@ -4332,25 +4333,25 @@ export default function PersistentDrawerLeft() {
 													zIndex: 100
 												}}>
 													<Stack direction="row" spacing={1}>
-													<Tooltip title={t('markdown.view')}>
-														<IconButton
-															onClick={() => {
-																setTimeout(() => {
-																	file.mdEditing = false;
-																	setFiles([...files]);
-																}, 200);
-															}}
-															sx={{
-																backgroundColor: 'rgba(50, 50, 50, 0.7)',
-																color: 'rgba(255, 255, 255, 0.4)',
-																'&:hover': {
-																	backgroundColor: 'rgba(70, 70, 70, 0.9)',
-																}
-															}}
-														>
-															<VisibilityIcon />
-														</IconButton>
-													</Tooltip>
+														<Tooltip title={t('markdown.view')}>
+															<IconButton
+																onClick={() => {
+																	setTimeout(() => {
+																		file.mdEditing = false;
+																		setFiles([...files]);
+																	}, 200);
+																}}
+																sx={{
+																	backgroundColor: 'rgba(50, 50, 50, 0.7)',
+																	color: 'rgba(255, 255, 255, 0.4)',
+																	'&:hover': {
+																		backgroundColor: 'rgba(70, 70, 70, 0.9)',
+																	}
+																}}
+															>
+																<VisibilityIcon />
+															</IconButton>
+														</Tooltip>
 													</Stack>
 												</div>
 											</div>
@@ -4390,13 +4391,13 @@ export default function PersistentDrawerLeft() {
 				}
 				</>
 				{files.length > 0 ? null :
-					<KeyboardShortcuts/>
+					<KeyboardShortcuts />
 				}
-				<div style={{position: 'fixed', left: winSize.width - editorWidth, bottom: 0, width: editorWidth, zIndex: 998, transition: 'all 0.2s'}} hidden={!openBottomLog}>
-					<BottomLog height={editorHeight * 0.3}/>
+				<div style={{ position: 'fixed', left: winSize.width - editorWidth, bottom: 0, width: editorWidth, zIndex: 998, transition: 'all 0.2s' }} hidden={!openBottomLog}>
+					<BottomLog height={editorHeight * 0.3} />
 				</div>
-				<div style={{zIndex: 1200}}>
-					<PlayControl width={editorWidth} onClick={onPlayControlClick}/>
+				<div style={{ zIndex: 1200 }}>
+					<PlayControl width={editorWidth} onClick={onPlayControlClick} />
 					<StyledStack>
 						<TransitionGroup>
 							{alerts.map((item) => (
@@ -4404,7 +4405,7 @@ export default function PersistentDrawerLeft() {
 									<Alert variant='filled' onClose={() => {
 										const newAlerts = alerts.filter(a => a.key !== item.key);
 										setAlerts(newAlerts);
-									}} severity={item.type} color={item.type} style={{margin: 5}}>
+									}} severity={item.type} color={item.type} style={{ margin: 5 }}>
 										{item.msg}
 										{item.openLog ? <>&emsp;[<Link color="inherit" onClick={() => onPlayControlClick("View Log")}>{t("menu.viewLog")}</Link>]</> : null}
 									</Alert>

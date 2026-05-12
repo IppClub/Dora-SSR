@@ -18,7 +18,7 @@ export namespace Color {
 	export const Error = '#f44336';
 	export const Warning = '#ff9800';
 	export const Info = '#abb85d';
-};
+}; // namespace Color
 
 export const theme = createTheme({
 	palette: {

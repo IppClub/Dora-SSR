@@ -18,13 +18,13 @@ import { useTranslation } from 'react-i18next';
 import Info from './Info';
 import { theme, Color } from './Theme';
 
-export const Separator = () => <Divider style={{backgroundColor: Color.Line}}/>;
+export const Separator = () => <Divider style={{ backgroundColor: Color.Line }} />;
 
 interface EntryProp {
 	children?: React.ReactNode;
 }
 export const Entry = (prop: EntryProp) => {
-	return <ThemeProvider theme={theme} children={prop.children}/>
+	return <ThemeProvider theme={theme} children={prop.children} />
 };
 
 export const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' && prop !== 'drawerWidth' })<{
@@ -105,7 +105,7 @@ export const PlayControl = memo((prop: PlayControlProp) => {
 	const [open, setOpen] = useState(false);
 	const [anchorEl, setAnchorEl] = useState<Element | null>(null);
 	const [playButtonDisabled, setPlayButtonDisabled] = useState(false);
-	const {t} = useTranslation();
+	const { t } = useTranslation();
 
 	const onClose = (mode?: PlayControlMode) => () => {
 		setOpen(false);
@@ -145,48 +145,48 @@ export const PlayControl = memo((prop: PlayControlProp) => {
 			onClose={onClose()}
 		>
 			{Info.version ?
-				<p style={{textAlign: "center", opacity: 0.6, fontSize: "12px", margin: '5px'}}>{t("menu.version", {version: Info.version})}</p> : null
+				<p style={{ textAlign: "center", opacity: 0.6, fontSize: "12px", margin: '5px' }}>{t("menu.version", { version: Info.version })}</p> : null
 			}
 			<StyledMenuItem onClick={onClose("LLM Config")}>
 				<ListItemIcon>
-					<BsGear/>
+					<BsGear />
 				</ListItemIcon>
-				<ListItemText primary={ t("menu.llmConfig") }/>
+				<ListItemText primary={t("menu.llmConfig")} />
 			</StyledMenuItem>
 			<StyledMenuItem onClick={onClose("Go to File")}>
 				<ListItemIcon>
-					<BsSearch/>
+					<BsSearch />
 				</ListItemIcon>
-				<ListItemText primary={ t("menu.goToFile") }/>
-				<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+P</div>
+				<ListItemText primary={t("menu.goToFile")} />
+				<div style={{ fontSize: 10, color: Color.TextSecondary }}>Mod+P</div>
 			</StyledMenuItem>
 			<StyledMenuItem onClick={onClose("View Log")}>
 				<ListItemIcon>
-					<BsTerminal/>
+					<BsTerminal />
 				</ListItemIcon>
-				<ListItemText primary={ t("menu.viewLog") }/>
-				<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+.</div>
+				<ListItemText primary={t("menu.viewLog")} />
+				<div style={{ fontSize: 10, color: Color.TextSecondary }}>Mod+.</div>
 			</StyledMenuItem>
 			<StyledMenuItem onClick={onClose("Stop")}>
 				<ListItemIcon>
-					<BsStopCircle/>
+					<BsStopCircle />
 				</ListItemIcon>
-				<ListItemText primary={ t("menu.stop") }/>
-				<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+Q</div>
+				<ListItemText primary={t("menu.stop")} />
+				<div style={{ fontSize: 10, color: Color.TextSecondary }}>Mod+Q</div>
 			</StyledMenuItem>
 			<StyledMenuItem onClick={onClose("Run This")}>
 				<ListItemIcon>
-					<BsFillFileEarmarkPlayFill/>
+					<BsFillFileEarmarkPlayFill />
 				</ListItemIcon>
-				<ListItemText primary={ t("menu.runThis") }/>
-				<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+Shift+R</div>
+				<ListItemText primary={t("menu.runThis")} />
+				<div style={{ fontSize: 10, color: Color.TextSecondary }}>Mod+Shift+R</div>
 			</StyledMenuItem>
 			<StyledMenuItem onClick={onClose("Run")}>
 				<ListItemIcon>
-					<BsPlayCircle/>
+					<BsPlayCircle />
 				</ListItemIcon>
-				<ListItemText primary={ t("menu.run") }/>
-				<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+R</div>
+				<ListItemText primary={t("menu.run")} />
+				<div style={{ fontSize: 10, color: Color.TextSecondary }}>Mod+R</div>
 			</StyledMenuItem>
 		</StyledMenu>
 		<IconButton
@@ -196,7 +196,7 @@ export const PlayControl = memo((prop: PlayControlProp) => {
 			onMouseEnter={onClick}
 			edge="start"
 		>
-			<SportsEsports fontSize='medium'/>
+			<SportsEsports fontSize='medium' />
 		</IconButton>
 	</Toolbar>;
 });

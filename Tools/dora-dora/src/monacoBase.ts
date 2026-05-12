@@ -13,16 +13,16 @@ const languages = monaco.languages as any;
 const tsAny = tsContribution as any;
 
 if (!languages.typescript) {
-  languages.typescript = {
-    typescriptDefaults: tsAny.typescriptDefaults,
-    javascriptDefaults: tsAny.javascriptDefaults,
-    getTypeScriptWorker: tsAny.getTypeScriptWorker,
-    getJavaScriptWorker: tsAny.getJavaScriptWorker,
-    JsxEmit: tsAny.JsxEmit,
-    ModuleKind: tsAny.ModuleKind,
-    ModuleResolutionKind: tsAny.ModuleResolutionKind,
-    ScriptTarget: tsAny.ScriptTarget,
-  };
+	languages.typescript = {
+		typescriptDefaults: tsAny.typescriptDefaults,
+		javascriptDefaults: tsAny.javascriptDefaults,
+		getTypeScriptWorker: tsAny.getTypeScriptWorker,
+		getJavaScriptWorker: tsAny.getJavaScriptWorker,
+		JsxEmit: tsAny.JsxEmit,
+		ModuleKind: tsAny.ModuleKind,
+		ModuleResolutionKind: tsAny.ModuleResolutionKind,
+		ScriptTarget: tsAny.ScriptTarget,
+	};
 }
 
 export default monaco;

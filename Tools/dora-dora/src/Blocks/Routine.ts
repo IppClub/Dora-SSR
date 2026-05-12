@@ -17,7 +17,7 @@ const routineCategory = {
 	kind: 'category',
 	name: zh ? '协程' : 'Routine',
 	categorystyle: 'dora_category',
-	contents: [] as {kind: string, type: string, inputs?: any}[],
+	contents: [] as { kind: string, type: string, inputs?: any }[],
 };
 export default routineCategory;
 
@@ -64,9 +64,9 @@ const nodeThreadBlock = {
 	style: 'dora_blocks',
 };
 Blockly.Blocks['nodeThread'] = {
-	init: function() { this.jsonInit(nodeThreadBlock); },
+	init: function () { this.jsonInit(nodeThreadBlock); },
 };
-luaGenerator.forBlock['nodeThread'] = function(block: Blockly.Block) {
+luaGenerator.forBlock['nodeThread'] = function (block: Blockly.Block) {
 	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
 	const mode = block.getFieldValue('MODE');
 	const type = block.getFieldValue('TYPE');
@@ -123,9 +123,9 @@ const threadBlock = {
 	style: 'dora_blocks',
 };
 Blockly.Blocks['thread'] = {
-	init: function() { this.jsonInit(threadBlock); },
+	init: function () { this.jsonInit(threadBlock); },
 };
-luaGenerator.forBlock['thread'] = function(block: Blockly.Block) {
+luaGenerator.forBlock['thread'] = function (block: Blockly.Block) {
 	const type = block.getFieldValue('TYPE');
 	const action = luaGenerator.statementToCode(block, 'ACTION');
 	Require.add(type);
@@ -169,9 +169,9 @@ const sleepBlock = {
 	style: 'dora_blocks',
 };
 Blockly.Blocks['sleep'] = {
-	init: function() { this.jsonInit(sleepBlock); },
+	init: function () { this.jsonInit(sleepBlock); },
 };
-luaGenerator.forBlock['sleep'] = function(block: Blockly.Block) {
+luaGenerator.forBlock['sleep'] = function (block: Blockly.Block) {
 	const time = luaGenerator.valueToCode(block, 'TIME', Order.NONE);
 	Require.add('sleep');
 	return `sleep(${time === '' ? '0' : time})\n`;
@@ -207,9 +207,9 @@ const waitBlock = {
 	style: 'dora_blocks',
 };
 Blockly.Blocks['wait'] = {
-	init: function() { this.jsonInit(waitBlock); },
+	init: function () { this.jsonInit(waitBlock); },
 };
-luaGenerator.forBlock['wait'] = function(block: Blockly.Block) {
+luaGenerator.forBlock['wait'] = function (block: Blockly.Block) {
 	const condition = luaGenerator.valueToCode(block, 'CONDITION', Order.NONE);
 	Require.add('wait');
 	return `wait(function() return ${condition === '' ? 'true' : condition} end)\n`;

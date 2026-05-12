@@ -16,7 +16,7 @@ const declareCategory = {
 	kind: 'category',
 	name: zh ? '声明' : 'Declare',
 	categorystyle: 'variable_category',
-	contents: [] as {kind: string, type: string, inputs?: any}[],
+	contents: [] as { kind: string, type: string, inputs?: any }[],
 };
 export default declareCategory;
 
@@ -39,8 +39,8 @@ const declareVariableBlock = {
 	nextStatement: null,
 	style: 'variable_blocks',
 };
-Blockly.Blocks['declare_variable'] = { init: function() { this.jsonInit(declareVariableBlock); } };
-luaGenerator.forBlock['declare_variable'] = function(block: Blockly.Block) {
+Blockly.Blocks['declare_variable'] = { init: function () { this.jsonInit(declareVariableBlock); } };
+luaGenerator.forBlock['declare_variable'] = function (block: Blockly.Block) {
 	const variable = luaGenerator.getVariableName(block.getFieldValue('VAR'));
 	const value = luaGenerator.valueToCode(block, 'VALUE', Order.NONE);
 	if (value === '') {

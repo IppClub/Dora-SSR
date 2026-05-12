@@ -1,4 +1,4 @@
-import type {ActionClipDocument, ActionClipRect} from "./ActionClip";
+import type { ActionClipDocument, ActionClipRect } from "./ActionClip";
 
 export type ActionPackInput = {
 	name: string;
@@ -50,7 +50,7 @@ export const packActionImages = (inputs: ActionPackInput[]): ActionPackResult =>
 		rowHeight = Math.max(rowHeight, height);
 	}
 	const height = Math.max(1, y + rowHeight + padding);
-	return {width: Math.max(1, usedWidth), height, rects};
+	return { width: Math.max(1, usedWidth), height, rects };
 };
 
 export const writePackedActionClip = (textureFile: string, result: ActionPackResult): ActionClipDocument => ({

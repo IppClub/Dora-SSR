@@ -1,5 +1,5 @@
-import type {ActionDocument, ActionFrameTrack, ActionKeyFrame, ActionKeyTrack, ActionNode, ActionTrack, ActionTransform} from "./ActionDocument";
-import {cloneActionDocument, setActionNode} from "./ActionEditorState";
+import type { ActionDocument, ActionFrameTrack, ActionKeyFrame, ActionKeyTrack, ActionNode, ActionTrack, ActionTransform } from "./ActionDocument";
+import { cloneActionDocument, setActionNode } from "./ActionEditorState";
 
 export type ActionFrameSpec = {
 	clipFile: string;
@@ -43,9 +43,9 @@ export const formatActionFrameSpec = (spec: ActionFrameSpec) => {
 export const createActionKeyFrameFromNode = (node: ActionNode, time: number): ActionKeyFrame => ({
 	time: Math.max(0, time),
 	transform: {
-		position: {...node.transform.position},
-		scale: {...node.transform.scale},
-		skew: {...node.transform.skew},
+		position: { ...node.transform.position },
+		scale: { ...node.transform.scale },
+		skew: { ...node.transform.skew },
 		rotation: node.transform.rotation,
 		opacity: node.transform.opacity,
 	},
@@ -62,14 +62,14 @@ export const createActionKeyFrameFromNode = (node: ActionNode, time: number): Ac
 const cloneKeyFrame = (frame: ActionKeyFrame): ActionKeyFrame => ({
 	time: frame.time,
 	transform: {
-		position: {...frame.transform.position},
-		scale: {...frame.transform.scale},
-		skew: {...frame.transform.skew},
+		position: { ...frame.transform.position },
+		scale: { ...frame.transform.scale },
+		skew: { ...frame.transform.skew },
 		rotation: frame.transform.rotation,
 		opacity: frame.transform.opacity,
 	},
 	visible: frame.visible,
-	ease: {...frame.ease},
+	ease: { ...frame.ease },
 	event: frame.event,
 });
 
@@ -100,7 +100,7 @@ const keyTrackForNode = (node: ActionNode, animation: string): ActionKeyTrack =>
 			keyframes: normalizeFirstKeyFrameEase(existing.keyframes),
 		};
 	}
-	return {type: "key", animation, keyframes: []};
+	return { type: "key", animation, keyframes: [] };
 };
 
 export const addActionAnimation = (document: ActionDocument) => {
@@ -112,14 +112,14 @@ export const addActionAnimation = (document: ActionDocument) => {
 		name = `Animation${index}`;
 	}
 	next.animations.push(name);
-	return {document: next, animation: name};
+	return { document: next, animation: name };
 };
 
 export const removeActionAnimation = (document: ActionDocument, animation: string): ActionDocument => {
 	const next = cloneActionDocument(document);
 	next.animations = next.animations.filter((item) => item !== animation);
 	const walk = (node: ActionNode) => {
-		const tracks = {...node.tracks};
+		const tracks = { ...node.tracks };
 		delete tracks[animation];
 		node.tracks = tracks;
 		node.children.forEach(walk);
@@ -136,9 +136,9 @@ export const renameActionAnimation = (document: ActionDocument, from: string, to
 	const walk = (node: ActionNode) => {
 		const existing = node.tracks[from];
 		if (existing) {
-			const tracks = {...node.tracks};
+			const tracks = { ...node.tracks };
 			delete tracks[from];
-			tracks[name] = {...existing, animation: name};
+			tracks[name] = { ...existing, animation: name };
 			node.tracks = tracks;
 		}
 		node.children.forEach(walk);
@@ -159,12 +159,12 @@ export const upsertActionKeyFrame = (
 		const index = track.keyframes.findIndex((frame) => Math.abs(frame.time - frameTime) < 1 / 120);
 		const frame = createActionKeyFrameFromNode(node, frameTime);
 		if (index >= 0) {
-			track.keyframes[index] = {...frame, event: track.keyframes[index].event};
+			track.keyframes[index] = { ...frame, event: track.keyframes[index].event };
 		} else {
 			track.keyframes.push(frame);
 		}
 		track.keyframes = normalizeFirstKeyFrameEase(track.keyframes);
-		return {...node, tracks: {...node.tracks, [animation]: track}};
+		return { ...node, tracks: { ...node.tracks, [animation]: track } };
 	});
 };
 
@@ -180,9 +180,9 @@ export const deleteActionKeyFrame = (
 		const keyframes = normalizeFirstKeyFrameEase(existing.keyframes.filter((frame) => Math.abs(frame.time - time) >= 1 / 120));
 		const tracks: Record<string, ActionTrack> = {
 			...node.tracks,
-			[animation]: {...existing, keyframes},
+			[animation]: { ...existing, keyframes },
 		};
-		return {...node, tracks};
+		return { ...node, tracks };
 	});
 };
 
@@ -227,7 +227,7 @@ export const pasteActionKeyFrame = (
 			track.keyframes.push(pasted);
 		}
 		track.keyframes = normalizeFirstKeyFrameEase(track.keyframes);
-		return {...node, tracks: {...node.tracks, [animation]: track}};
+		return { ...node, tracks: { ...node.tracks, [animation]: track } };
 	});
 };
 
@@ -244,9 +244,9 @@ export const moveActionKeyFrame = (
 		if (existing?.type !== "key") return node;
 		const keyframes = existing.keyframes.map((frame) => {
 			if (Math.abs(frame.time - fromTime) >= 1 / 120) return frame;
-			return {...frame, time: targetTime};
+			return { ...frame, time: targetTime };
 		});
-		return {...node, tracks: {...node.tracks, [animation]: {...existing, keyframes: normalizeFirstKeyFrameEase(keyframes)}}};
+		return { ...node, tracks: { ...node.tracks, [animation]: { ...existing, keyframes: normalizeFirstKeyFrameEase(keyframes) } } };
 	});
 };
 
@@ -281,7 +281,7 @@ export const normalizeActionKeyTrackFirstEase = (
 		const existing = node.tracks[animation];
 		if (existing?.type !== "key") return node;
 		const keyframes = normalizeFirstKeyFrameEase(existing.keyframes);
-		return {...node, tracks: {...node.tracks, [animation]: {...existing, keyframes}}};
+		return { ...node, tracks: { ...node.tracks, [animation]: { ...existing, keyframes } } };
 	});
 };
 
@@ -294,7 +294,7 @@ export const setActionFrameTrack = (
 	...node,
 	tracks: {
 		...node.tracks,
-		[animation]: {...track, animation},
+		[animation]: { ...track, animation },
 	},
 }));
 
@@ -310,9 +310,9 @@ export const setActionKeyFrameEvent = (
 		if (existing?.type !== "key") return node;
 		const keyframes = normalizeFirstKeyFrameEase(existing.keyframes.map((frame) => {
 			if (Math.abs(frame.time - time) >= 1 / 120) return frame;
-			return {...frame, event: event === "" ? undefined : event};
+			return { ...frame, event: event === "" ? undefined : event };
 		}));
-		return {...node, tracks: {...node.tracks, [animation]: {...existing, keyframes}}};
+		return { ...node, tracks: { ...node.tracks, [animation]: { ...existing, keyframes } } };
 	});
 };
 
@@ -330,7 +330,7 @@ export const updateActionKeyFrame = (
 			if (Math.abs(frame.time - time) >= 1 / 120) return frame;
 			return updater(cloneKeyFrame(frame));
 		}));
-		return {...node, tracks: {...node.tracks, [animation]: {...existing, keyframes}}};
+		return { ...node, tracks: { ...node.tracks, [animation]: { ...existing, keyframes } } };
 	});
 };
 
@@ -411,12 +411,12 @@ const easeFuncs: Array<(t: number) => number> = [
 
 const ease = (type: number, t: number) => (easeFuncs[Math.max(0, Math.min(easeFuncs.length - 1, Math.round(type)))] ?? easeFuncs[0])(t);
 
-export const sampleActionKeyTrack = (track: ActionKeyTrack, time: number): Omit<ActionTransform, "anchor"> & {visible: boolean} | null => {
+export const sampleActionKeyTrack = (track: ActionKeyTrack, time: number): Omit<ActionTransform, "anchor"> & { visible: boolean } | null => {
 	if (track.keyframes.length === 0) return null;
 	const frames = [...track.keyframes].sort((a, b) => a.time - b.time);
 	if (time <= frames[0].time) {
 		const frame = frames[0];
-		return {...frame.transform, visible: frame.visible};
+		return { ...frame.transform, visible: frame.visible };
 	}
 	for (let index = 1; index < frames.length; index += 1) {
 		const previous = frames[index - 1];
@@ -449,7 +449,7 @@ export const sampleActionKeyTrack = (track: ActionKeyTrack, time: number): Omit<
 		}
 	}
 	const frame = frames[frames.length - 1];
-	return {...frame.transform, visible: frame.visible};
+	return { ...frame.transform, visible: frame.visible };
 };
 
 export const getActionAnimationDuration = (document: ActionDocument, animation: string): number => {

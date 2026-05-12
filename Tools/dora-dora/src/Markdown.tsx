@@ -10,8 +10,8 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import "./github-markdown-dark.css";
 
-import {PrismLight as SyntaxHighlighter} from 'react-syntax-highlighter';
-import {vscDarkPlus} from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { PrismLight as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import prismTypescript from 'react-syntax-highlighter/dist/esm/languages/prism/typescript';
 import prismTsx from 'react-syntax-highlighter/dist/esm/languages/prism/tsx';
 import prismJson from 'react-syntax-highlighter/dist/esm/languages/prism/json';
@@ -64,7 +64,7 @@ const Markdown = memo((props: MarkdownProps) => {
 			children={props.content}
 			remarkPlugins={[remarkGfm]}
 			components={{
-				img({src, alt, ...iprops}) {
+				img({ src, alt, ...iprops }) {
 					const path = props.path ?? "";
 					const tokens = (alt ?? "").split(':');
 					let width: number | undefined;
@@ -78,27 +78,27 @@ const Markdown = memo((props: MarkdownProps) => {
 							height = Number.parseFloat(size[1]);
 						}
 					}
-					return <img src={path === "" ? src : path + "/" + src} alt={alt} width={width} height={height} {...iprops}/>;
+					return <img src={path === "" ? src : path + "/" + src} alt={alt} width={width} height={height} {...iprops} />;
 				},
-				a({node, href, ...aprops}) {
+				a({ node, href, ...aprops }) {
 					if (href?.match("^http")) {
-						return <a href={href} target="_blank" rel="noreferrer" {...aprops}/>;
+						return <a href={href} target="_blank" rel="noreferrer" {...aprops} />;
 					}
-					return <a href='#!' onClick={(e)=> {
+					return <a href='#!' onClick={(e) => {
 						e.preventDefault();
-						if (node?.properties !== undefined && node.properties.href !== undefined && typeof(node.properties.href) === "string") {
+						if (node?.properties !== undefined && node.properties.href !== undefined && typeof (node.properties.href) === "string") {
 							props.onClick?.(node.properties.href, props.fileKey ?? "");
 						}
-					}} {...aprops}/>;
+					}} {...aprops} />;
 				},
-				table({children}) {
+				table({ children }) {
 					return (
 						<Box className="markdown-table-wrapper" sx={{ width: '100%', maxWidth: '100%', overflowX: 'auto' }}>
 							<table>{children}</table>
 						</Box>
 					);
 				},
-				code({className, children, ...props}) {
+				code({ className, children, ...props }) {
 					const match = /language-(\w+)/.exec(className || '');
 					return match ? (
 						<SyntaxHighlighter

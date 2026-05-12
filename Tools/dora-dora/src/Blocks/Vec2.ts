@@ -17,7 +17,7 @@ const vec2Category = {
 	kind: 'category',
 	name: zh ? '向量' : 'Vec2',
 	categorystyle: 'math_category',
-	contents: [] as {kind: string, type: string, inputs?: any}[],
+	contents: [] as { kind: string, type: string, inputs?: any }[],
 };
 export default vec2Category;
 
@@ -52,8 +52,8 @@ const vec2ZeroBlock = {
 	output: 'Vec2',
 	style: 'math_blocks',
 };
-Blockly.Blocks['vec2_zero'] = { init: function() { this.jsonInit(vec2ZeroBlock); } };
-luaGenerator.forBlock['vec2_zero'] = function(_block: Blockly.Block) {
+Blockly.Blocks['vec2_zero'] = { init: function () { this.jsonInit(vec2ZeroBlock); } };
+luaGenerator.forBlock['vec2_zero'] = function (_block: Blockly.Block) {
 	Require.add('Vec2');
 	return [`Vec2.zero`, Order.ATOMIC];
 };
@@ -82,8 +82,8 @@ const vec2CreateBlock = {
 	output: 'Vec2',
 	style: 'math_blocks',
 };
-Blockly.Blocks['vec2_create'] = { init: function() { this.jsonInit(vec2CreateBlock); } };
-luaGenerator.forBlock['vec2_create'] = function(block: Blockly.Block) {
+Blockly.Blocks['vec2_create'] = { init: function () { this.jsonInit(vec2CreateBlock); } };
+luaGenerator.forBlock['vec2_create'] = function (block: Blockly.Block) {
 	const x = luaGenerator.valueToCode(block, 'X', Order.NONE);
 	const y = luaGenerator.valueToCode(block, 'Y', Order.NONE);
 	Require.add('Vec2');
@@ -141,8 +141,8 @@ const vec2GetPropertyBlock = {
 	output: 'Number',
 	style: 'math_blocks',
 };
-Blockly.Blocks['vec2_get_property'] = { init: function() { this.jsonInit(vec2GetPropertyBlock); } };
-luaGenerator.forBlock['vec2_get_property'] = function(block: Blockly.Block) {
+Blockly.Blocks['vec2_get_property'] = { init: function () { this.jsonInit(vec2GetPropertyBlock); } };
+luaGenerator.forBlock['vec2_get_property'] = function (block: Blockly.Block) {
 	const vec2 = luaGenerator.getVariableName(block.getFieldValue('VEC2'));
 	const property = block.getFieldValue('PROPERTY');
 	return [`${vec2}.${property}`, Order.ATOMIC];
@@ -166,8 +166,8 @@ const vec2GetNormalizedBlock = {
 	output: 'Vec2',
 	style: 'math_blocks',
 };
-Blockly.Blocks['vec2_get_normalized'] = { init: function() { this.jsonInit(vec2GetNormalizedBlock); } };
-luaGenerator.forBlock['vec2_get_normalized'] = function(block: Blockly.Block) {
+Blockly.Blocks['vec2_get_normalized'] = { init: function () { this.jsonInit(vec2GetNormalizedBlock); } };
+luaGenerator.forBlock['vec2_get_normalized'] = function (block: Blockly.Block) {
 	const vec2 = luaGenerator.valueToCode(block, 'VEC2', Order.HIGH);
 	return [`${vec2}:normalize()`, Order.ATOMIC];
 };
@@ -212,8 +212,8 @@ const vec2BinaryOperationBlock = {
 	output: 'Vec2',
 	style: 'math_blocks',
 };
-Blockly.Blocks['vec2_binary_operation'] = { init: function() { this.jsonInit(vec2BinaryOperationBlock); } };
-luaGenerator.forBlock['vec2_binary_operation'] = function(block: Blockly.Block) {
+Blockly.Blocks['vec2_binary_operation'] = { init: function () { this.jsonInit(vec2BinaryOperationBlock); } };
+luaGenerator.forBlock['vec2_binary_operation'] = function (block: Blockly.Block) {
 	const vec2_1 = luaGenerator.valueToCode(block, 'VEC2_1', Order.HIGH);
 	const operation = block.getFieldValue('OPERATION');
 	const vec2_2 = luaGenerator.valueToCode(block, 'VEC2_2', Order.HIGH);
@@ -264,8 +264,8 @@ const vec2BinaryOpNumberBlock = {
 	output: 'Vec2',
 	style: 'math_blocks',
 };
-Blockly.Blocks['vec2_binary_op_number'] = { init: function() { this.jsonInit(vec2BinaryOpNumberBlock); } };
-luaGenerator.forBlock['vec2_binary_op_number'] = function(block: Blockly.Block) {
+Blockly.Blocks['vec2_binary_op_number'] = { init: function () { this.jsonInit(vec2BinaryOpNumberBlock); } };
+luaGenerator.forBlock['vec2_binary_op_number'] = function (block: Blockly.Block) {
 	const vec2 = luaGenerator.valueToCode(block, 'VEC2', Order.HIGH);
 	const operation = block.getFieldValue('OPERATION');
 	const number = luaGenerator.valueToCode(block, 'NUMBER', Order.HIGH);
@@ -311,8 +311,8 @@ const vec2ClampBlock = {
 	output: 'Vec2',
 	style: 'math_blocks',
 };
-Blockly.Blocks['vec2_clamp'] = { init: function() { this.jsonInit(vec2ClampBlock); } };
-luaGenerator.forBlock['vec2_clamp'] = function(block: Blockly.Block) {
+Blockly.Blocks['vec2_clamp'] = { init: function () { this.jsonInit(vec2ClampBlock); } };
+luaGenerator.forBlock['vec2_clamp'] = function (block: Blockly.Block) {
 	const vec2 = luaGenerator.valueToCode(block, 'VEC2', Order.HIGH);
 	const min = luaGenerator.valueToCode(block, 'MIN', Order.HIGH);
 	const max = luaGenerator.valueToCode(block, 'MAX', Order.HIGH);
@@ -358,8 +358,8 @@ const vec2CalculateBlock = {
 	output: 'Number',
 	style: 'math_blocks',
 };
-Blockly.Blocks['vec2_calculate'] = { init: function() { this.jsonInit(vec2CalculateBlock); } };
-luaGenerator.forBlock['vec2_calculate'] = function(block: Blockly.Block) {
+Blockly.Blocks['vec2_calculate'] = { init: function () { this.jsonInit(vec2CalculateBlock); } };
+luaGenerator.forBlock['vec2_calculate'] = function (block: Blockly.Block) {
 	const vec2_1 = luaGenerator.valueToCode(block, 'VEC2_1', Order.HIGH);
 	const vec2_2 = luaGenerator.valueToCode(block, 'VEC2_2', Order.HIGH);
 	const calculate = block.getFieldValue('CALCULATE');

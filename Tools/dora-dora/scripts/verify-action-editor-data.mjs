@@ -2,7 +2,7 @@ import esbuild from "esbuild";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import {pathToFileURL} from "node:url";
+import { pathToFileURL } from "node:url";
 
 const repoRoot = path.resolve(import.meta.dirname, "../../..");
 const entry = path.join(repoRoot, "Tools/dora-dora/src/ActionEditor/index.ts");
@@ -117,7 +117,7 @@ const hiddenDoc = setActionNodeLookHidden(withLook, withLook.root.children[0].id
 assert(hiddenDoc.root.children[0].hiddenInLooks.includes(newLook), "look edit should store hidden node");
 let keyPointDoc = addActionKeyPoint(roleDoc);
 assert(keyPointDoc.keyPoints.length === roleDoc.keyPoints.length + 1, "add key point should append point");
-keyPointDoc = updateActionKeyPoint(keyPointDoc, keyPointDoc.keyPoints.length - 1, (point) => ({...point, name: "Weapon", x: 12, y: 34}));
+keyPointDoc = updateActionKeyPoint(keyPointDoc, keyPointDoc.keyPoints.length - 1, (point) => ({ ...point, name: "Weapon", x: 12, y: 34 }));
 assert(keyPointDoc.keyPoints[keyPointDoc.keyPoints.length - 1].name === "Weapon", "update key point should edit point fields");
 keyPointDoc = removeActionKeyPoint(keyPointDoc, keyPointDoc.keyPoints.length - 1);
 assert(keyPointDoc.keyPoints.length === roleDoc.keyPoints.length, "remove key point should delete selected point");
@@ -135,7 +135,7 @@ const hiddenRects = buildActionRenderRects(hiddenDoc, roleClip, newLook);
 const hiddenRect = hiddenRects.find((rect) => rect.nodeId === hiddenDoc.root.children[0].id);
 assert(hiddenRect && hiddenRect.visible === false, "look render should hide nodes listed in hiddenInLooks");
 const viewport = defaultActionViewport();
-const modelPoint = screenToModel({x: 320, y: 240}, viewport, {x: 0, y: 0, width: 640, height: 480});
+const modelPoint = screenToModel({ x: 320, y: 240 }, viewport, { x: 0, y: 0, width: 640, height: 480 });
 assert(modelPoint.x === 0 && modelPoint.y === 0, "viewport origin should map screen center to model origin");
 
 const animationResult = addActionAnimation(roleDoc);
@@ -150,7 +150,7 @@ keyedDoc = {
 			...child,
 			transform: {
 				...child.transform,
-				position: {x: child.transform.position.x + 60, y: child.transform.position.y + 30},
+				position: { x: child.transform.position.x + 60, y: child.transform.position.y + 30 },
 			},
 		} : child),
 	},
@@ -178,8 +178,8 @@ const removedAnimation = removeActionAnimation(keyedDoc, animationResult.animati
 assert(!removedAnimation.animations.includes(animationResult.animation), "remove animation should delete animation name");
 assert(removedAnimation.root.children[0].tracks[animationResult.animation] === undefined, "remove animation should delete node tracks");
 const packed = packActionImages([
-	{name: "a", path: "a.png", width: 32, height: 16},
-	{name: "b", path: "b.png", width: 16, height: 32},
+	{ name: "a", path: "a.png", width: 32, height: 16 },
+	{ name: "b", path: "b.png", width: 16, height: 32 },
 ]);
 assert(packed.width >= 64 && packed.height >= 64, "atlas packer should create a minimum atlas");
 assert(packed.rects.length === 2, "atlas packer should include all images");

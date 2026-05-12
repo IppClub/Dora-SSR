@@ -1,5 +1,5 @@
-import type {ActionDiagnostic, ActionDocument, ActionNode} from "./ActionDocument";
-import {escapeXml, parseActionXml} from "./ActionXml";
+import type { ActionDiagnostic, ActionDocument, ActionNode } from "./ActionDocument";
+import { escapeXml, parseActionXml } from "./ActionXml";
 
 export type ActionClipRect = {
 	name: string;
@@ -47,7 +47,7 @@ export const parseLegacyClip = (xml: string, clipPath?: string): ActionClipDocum
 	for (const child of root.children) {
 		if (child.name !== "B") continue;
 		const name = child.attrs.A ?? "";
-		rects[name] = {name, ...parseRect(child.attrs.B)};
+		rects[name] = { name, ...parseRect(child.attrs.B) };
 	}
 	const textureFile = root.attrs.A ?? "";
 	return {

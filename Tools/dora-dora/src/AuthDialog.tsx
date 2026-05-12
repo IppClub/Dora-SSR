@@ -10,9 +10,9 @@ import {
 	Typography,
 	CircularProgress,
 } from '@mui/material';
-import {ThemeProvider} from '@mui/material/styles';
-import {theme as authTheme, Color} from './Theme';
-import {useTranslation} from 'react-i18next';
+import { ThemeProvider } from '@mui/material/styles';
+import { theme as authTheme, Color } from './Theme';
+import { useTranslation } from 'react-i18next';
 import * as Service from './Service';
 
 export type AuthSession = {
@@ -49,7 +49,7 @@ const PinInput = ({
 	const inputsRef = React.useRef<Array<HTMLInputElement | null>>([]);
 	const values = React.useMemo(() => {
 		const trimmed = (value || '').replace(/\D/g, '').slice(0, length);
-		return Array.from({length}, (_, index) => trimmed[index] || '');
+		return Array.from({ length }, (_, index) => trimmed[index] || '');
 	}, [value, length]);
 
 	React.useEffect(() => {
@@ -129,8 +129,8 @@ const PinInput = ({
 
 	return (
 		<Box>
-			<Box sx={{display: 'flex', gap: 1, justifyContent: 'space-between'}}>
-				{Array.from({length}, (_, index) => (
+			<Box sx={{ display: 'flex', gap: 1, justifyContent: 'space-between' }}>
+				{Array.from({ length }, (_, index) => (
 					<TextField
 						key={index}
 						inputRef={(node) => {
@@ -148,7 +148,7 @@ const PinInput = ({
 						slotProps={{
 							htmlInput: {
 								inputMode: 'numeric',
-								style: {textAlign: 'center', fontSize: 18, fontWeight: 600},
+								style: { textAlign: 'center', fontSize: 18, fontWeight: 600 },
 							},
 						}}
 						sx={{
@@ -184,8 +184,8 @@ const PinInput = ({
 	);
 };
 
-const AuthDialog = ({origFetch, onToken}: AuthDialogProps) => {
-	const {t} = useTranslation();
+const AuthDialog = ({ origFetch, onToken }: AuthDialogProps) => {
+	const { t } = useTranslation();
 	const [code, setCode] = React.useState('');
 	const [error, setError] = React.useState('');
 	const [busy, setBusy] = React.useState(false);
@@ -244,8 +244,8 @@ const AuthDialog = ({origFetch, onToken}: AuthDialogProps) => {
 			try {
 				const res = await origFetch(Service.addr('/auth/confirm'), {
 					method: 'POST',
-					headers: {'Content-Type': 'application/json'},
-					body: JSON.stringify({sessionId: pendingSessionId}),
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ sessionId: pendingSessionId }),
 				});
 				if (!res.ok) {
 					setError(t('auth.error.authFailed'));
@@ -290,8 +290,8 @@ const AuthDialog = ({origFetch, onToken}: AuthDialogProps) => {
 		try {
 			const res = await origFetch(Service.addr('/auth'), {
 				method: 'POST',
-				headers: {'Content-Type': 'application/json'},
-				body: JSON.stringify({code: nextCode}),
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ code: nextCode }),
 			});
 			if (!res.ok) {
 				setError(t('auth.error.authFailed'));
@@ -318,7 +318,7 @@ const AuthDialog = ({origFetch, onToken}: AuthDialogProps) => {
 			if (data && data.message === 'locked' && data.retryAfter) {
 				const retryAfter = Number(data.retryAfter) || 30;
 				setLockedUntil(Date.now() + retryAfter * 1000);
-				setError(t('auth.error.tooManyAttempts', {seconds: retryAfter}));
+				setError(t('auth.error.tooManyAttempts', { seconds: retryAfter }));
 				setCode('');
 				return;
 			}
@@ -346,28 +346,28 @@ const AuthDialog = ({origFetch, onToken}: AuthDialogProps) => {
 					},
 				}}
 			>
-				<DialogTitle variant='h6' sx={{pb: 0.5, fontWeight: 700}}>
+				<DialogTitle variant='h6' sx={{ pb: 0.5, fontWeight: 700 }}>
 					{t('auth.title')}
 				</DialogTitle>
-				<DialogContent sx={{pt: 1.5}}>
-					<Typography variant="body2" sx={{color: 'text.secondary', mb: 2}}>
+				<DialogContent sx={{ pt: 1.5 }}>
+					<Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
 						{pendingSessionId ? t('auth.confirmDescription') : t('auth.description')}
 					</Typography>
 					{pendingSessionId ? (
-						<Box sx={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5}}>
-							<Typography variant="overline" sx={{color: 'text.secondary'}}>
+						<Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5 }}>
+							<Typography variant="overline" sx={{ color: 'text.secondary' }}>
 								{t('auth.confirmCodeLabel')}
 							</Typography>
-							<Typography variant="h4" sx={{fontWeight: 700, letterSpacing: 3}}>
+							<Typography variant="h4" sx={{ fontWeight: 700, letterSpacing: 3 }}>
 								{confirmCode || '----'}
 							</Typography>
-							<Typography variant="caption" sx={{color: 'text.secondary'}}>
+							<Typography variant="caption" sx={{ color: 'text.secondary' }}>
 								{confirmSecondsLeft > 0
-									? t('auth.waitConfirm', {seconds: confirmSecondsLeft})
+									? t('auth.waitConfirm', { seconds: confirmSecondsLeft })
 									: t('auth.waitingApproval')}
 							</Typography>
 							{error ? (
-								<Typography variant="caption" sx={{color: 'error.main'}}>
+								<Typography variant="caption" sx={{ color: 'error.main' }}>
 									{error}
 								</Typography>
 							) : null}
@@ -384,19 +384,19 @@ const AuthDialog = ({origFetch, onToken}: AuthDialogProps) => {
 								helperText={error || ' '}
 							/>
 							{secondsLeft > 0 ? (
-								<Typography variant="caption" sx={{color: 'text.secondary'}}>
-									{t('auth.waitRetry', {seconds: secondsLeft})}
+								<Typography variant="caption" sx={{ color: 'text.secondary' }}>
+									{t('auth.waitRetry', { seconds: secondsLeft })}
 								</Typography>
 							) : null}
 						</>
 					)}
 				</DialogContent>
 				{busy || confirming ? (
-					<DialogActions sx={{px: 3, pb: 2}}>
-						<Box sx={{flex: 1}} />
-						<Box sx={{display: 'flex', alignItems: 'center', gap: 1}}>
+					<DialogActions sx={{ px: 3, pb: 2 }}>
+						<Box sx={{ flex: 1 }} />
+						<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
 							<CircularProgress size={16} />
-							<Typography variant="body2" sx={{color: 'text.secondary'}}>
+							<Typography variant="body2" sx={{ color: 'text.secondary' }}>
 								{pendingSessionId ? t('auth.awaitingApproval') : t('auth.verifying')}
 							</Typography>
 						</Box>

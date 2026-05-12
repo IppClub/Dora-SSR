@@ -23,7 +23,7 @@ export interface FileFilterProps {
 }
 
 const FileFilter = (props: FileFilterProps) => {
-	const {t} = useTranslation();
+	const { t } = useTranslation();
 	const filterOptions = (options: FilterOption[], state: { inputValue: string }) => {
 		return matchSorter(
 			options,
@@ -49,13 +49,13 @@ const FileFilter = (props: FileFilterProps) => {
 				"& .MuiOutlinedInput-notchedOutline": {
 					borderColor: Color.Secondary
 				}
-			}} {...params} label={t("popup.goToFile")}/>}
+			}} {...params} label={t("popup.goToFile")} />}
 		renderOption={(props, option) => {
 			const { key, ...liProps } = props;
 			return (
 				<li key={option.fileKey} {...liProps}>
 					{option.title}&emsp;&emsp;
-					<p style={{textAlign: 'right', color: Color.TextSecondary, fontSize: '12px'}}>{option.path}</p>
+					<p style={{ textAlign: 'right', color: Color.TextSecondary, fontSize: '12px' }}>{option.path}</p>
 				</li>
 			);
 		}}

@@ -66,7 +66,7 @@ const CodeWire = memo((props: CodeWireProps) => {
 		style={{
 			border: 'none',
 			overflowY: 'hidden',
-		}}/>;
+		}} />;
 }, (prevProps, nextProps) => {
 	return prevProps.width === nextProps.width &&
 		prevProps.height === nextProps.height &&

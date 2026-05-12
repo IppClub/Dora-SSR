@@ -23,7 +23,7 @@ const checkAuthRequired = async () => {
 	try {
 		const probe = await origFetch(Service.addr('/info'), {
 			method: 'POST',
-			headers: {'Content-Type': 'application/json'},
+			headers: { 'Content-Type': 'application/json' },
 			body: '{}',
 		});
 		authRequired = probe.status === 401;
@@ -34,7 +34,7 @@ const checkAuthRequired = async () => {
 	return authRequired;
 };
 
-const showAuthDialog = ({origFetch, onToken}: AuthDialogProps) => {
+const showAuthDialog = ({ origFetch, onToken }: AuthDialogProps) => {
 	const container = document.createElement('div');
 	document.body.appendChild(container);
 	const modalRoot = ReactDOM.createRoot(container);
@@ -162,7 +162,7 @@ const setupAuth = async (): Promise<void> => {
 			signingKeyPromise = crypto.subtle.importKey(
 				'raw',
 				encoder.encode(session.sessionSecret),
-				{name: 'HMAC', hash: 'SHA-256'},
+				{ name: 'HMAC', hash: 'SHA-256' },
 				false,
 				['sign'],
 			);
@@ -248,7 +248,7 @@ const setupAuth = async (): Promise<void> => {
 					Object.entries(authHeaders).forEach(([key, value]) => headers.set(key, value));
 				}
 			}
-			const next = new Request(request, {headers});
+			const next = new Request(request, { headers });
 			return origFetch(next);
 		};
 
@@ -296,7 +296,7 @@ const setupAuth = async (): Promise<void> => {
 };
 
 const App = React.lazy(() => Service.info().then((res) => {
-	const {locale} = res;
+	const { locale } = res;
 	Info.locale = locale;
 	Info.platform = res.platform;
 	Info.path = res.platform === "Windows" ? Path.win32 : Path.posix;
@@ -322,7 +322,7 @@ const root = ReactDOM.createRoot(
 );
 const bootstrap = async () => {
 	await setupAuth();
-	root.render(<App/>);
+	root.render(<App />);
 
 	// If you want to start measuring performance in your app, pass a function
 	// to log results (for example: reportWebVitals(console.log))

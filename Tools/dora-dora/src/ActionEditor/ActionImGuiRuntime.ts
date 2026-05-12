@@ -1,6 +1,6 @@
-import {ImGui, ImGui_Impl, ImVec4} from "@zhobo63/imgui-ts";
+import { ImGui, ImGui_Impl, ImVec4 } from "@zhobo63/imgui-ts";
 
-const sarasaMonoScRegularUrl = new URL("../../../../Assets/Font/sarasa-mono-sc-regular.ttf", import.meta.url).href;
+const sarasaMonoScRegularUrl = `${import.meta.env.BASE_URL}Font/sarasa-mono-sc-regular.ttf`;
 
 export type ActionImGuiFrame = typeof ImGui;
 
@@ -9,12 +9,12 @@ export type ActionImGuiRuntimeStatus = {
 	diagnostics: string[];
 };
 
-const setVec2 = (target: {x: number; y: number}, x: number, y: number) => {
+const setVec2 = (target: { x: number; y: number }, x: number, y: number) => {
 	target.x = x;
 	target.y = y;
 };
 
-const vec4 = (x: number, y: number, z: number, w: number) => ({x, y, z, w});
+const vec4 = (x: number, y: number, z: number, w: number) => ({ x, y, z, w });
 
 const applyDoraThemeColors = () => {
 	const themeColor = vec4(0xfa / 0xff, 0xc0 / 0xff, 0x3d / 0xff, 1);
@@ -27,7 +27,7 @@ const applyDoraThemeColors = () => {
 	const transparent = vec4(0, 0, 0, 0);
 	const colors = ImGui.GetStyle().Colors;
 	const col = ImGui.Col as any;
-	const set = (name: string, color: {x: number; y: number; z: number; w: number}) => {
+	const set = (name: string, color: { x: number; y: number; z: number; w: number }) => {
 		if (col[name] !== undefined) {
 			colors[col[name]] = color;
 		}
@@ -164,7 +164,7 @@ export class ActionImGuiRuntime {
 	}
 
 	async init(canvas: HTMLCanvasElement): Promise<ActionImGuiRuntimeStatus> {
-		let result: ActionImGuiRuntimeStatus = {ready: false, diagnostics: this.diagnostics};
+		let result: ActionImGuiRuntimeStatus = { ready: false, diagnostics: this.diagnostics };
 		const run = ActionImGuiRuntime.initQueue.then(async () => {
 			result = await this.initNow(canvas);
 		});
@@ -175,16 +175,16 @@ export class ActionImGuiRuntime {
 
 	private async initNow(canvas: HTMLCanvasElement): Promise<ActionImGuiRuntimeStatus> {
 		if (this.initialized) {
-			return {ready: true, diagnostics: this.diagnostics};
+			return { ready: true, diagnostics: this.diagnostics };
 		}
 		if (this.disposed) {
-			return {ready: false, diagnostics: this.diagnostics};
+			return { ready: false, diagnostics: this.diagnostics };
 		}
 		this.canvas = canvas;
 		await ActionImGuiRuntime.loadModule();
 		if (this.disposed) {
 			this.canvas = null;
-			return {ready: false, diagnostics: this.diagnostics};
+			return { ready: false, diagnostics: this.diagnostics };
 		}
 		ImGui.CHECKVERSION();
 		this.context = ImGui.CreateContext();
@@ -204,7 +204,7 @@ export class ActionImGuiRuntime {
 				this.context = null;
 			}
 			this.canvas = null;
-			return {ready: false, diagnostics: this.diagnostics};
+			return { ready: false, diagnostics: this.diagnostics };
 		}
 		ImGui.SetCurrentContext(this.context);
 		if (ActionImGuiRuntime.activeRuntime && ActionImGuiRuntime.activeRuntime !== this) {
@@ -220,7 +220,7 @@ export class ActionImGuiRuntime {
 				this.context = null;
 			}
 			this.canvas = null;
-			return {ready: false, diagnostics: this.diagnostics};
+			return { ready: false, diagnostics: this.diagnostics };
 		}
 		this.renderingContext = renderingContext;
 		ActionImGuiRuntime.activeRuntime = this;
@@ -228,7 +228,7 @@ export class ActionImGuiRuntime {
 		ActionImGuiRuntime.backendRuntime = this;
 		this.backendInitialized = true;
 		this.initialized = true;
-		return {ready: true, diagnostics: this.diagnostics};
+		return { ready: true, diagnostics: this.diagnostics };
 	}
 
 	private syncCanvasFramebuffer() {

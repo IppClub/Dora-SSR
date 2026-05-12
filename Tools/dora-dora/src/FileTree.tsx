@@ -70,7 +70,7 @@ const switcherIcon = (props: TreeNodeProps) => {
 			return <Refresh sx={{
 				width: 14,
 				height: 14,
-			}}/>;
+			}} />;
 		}
 		if (!data.dir) {
 			return null;
@@ -79,9 +79,9 @@ const switcherIcon = (props: TreeNodeProps) => {
 		}
 	}
 	if (props.expanded) {
-		return <AiFillCaretDown/>;
+		return <AiFillCaretDown />;
 	}
-	return <AiFillCaretRight/>;
+	return <AiFillCaretRight />;
 };
 
 const fileIcon = (props: TreeNodeProps) => {
@@ -89,54 +89,54 @@ const fileIcon = (props: TreeNodeProps) => {
 		const data = props.data as TreeDataType;
 		if (data.dir) {
 			if (props.expanded && data.children !== undefined && data.children.length > 0) {
-				return <AiOutlineFolderOpen/>;
+				return <AiOutlineFolderOpen />;
 			} else {
-				return <AiOutlineFolder/>;
+				return <AiOutlineFolder />;
 			}
 		} else {
 			switch (Info.path.extname(data.key).toLowerCase()) {
 				case ".lua":
-					return <img src={luaLogo} alt="lua" width="14px" height="14px"/>;
+					return <img src={luaLogo} alt="lua" width="14px" height="14px" />;
 				case ".tl":
-					return <img src={tealLogo} alt="teal" width="12px" height="12px"/>;
+					return <img src={tealLogo} alt="teal" width="12px" height="12px" />;
 				case ".yue":
-					return <img src={yueLogo} alt="yue" width="14px" height="14px"/>;
+					return <img src={yueLogo} alt="yue" width="14px" height="14px" />;
 				case ".tsx":
 				case ".ts":
-					return <img src={typescriptLogo} alt="typescript" width="12px" height="12px"/>;
+					return <img src={typescriptLogo} alt="typescript" width="12px" height="12px" />;
 				case ".xml":
-					return <DiCode size={14}/>;
+					return <DiCode size={14} />;
 				case ".model":
-					return <img src={doraAnimationLogo} alt="model" width="14px" height="14px" style={{objectFit: 'contain'}}/>;
+					return <img src={doraAnimationLogo} alt="model" width="14px" height="14px" style={{ objectFit: 'contain' }} />;
 				case ".db":
-					return <TbSql size={14}/>;
+					return <TbSql size={14} />;
 				case ".md":
-					return <VscMarkdown size={14}/>;
+					return <VscMarkdown size={14} />;
 				case ".png":
 				case ".jpg":
-					return <FcImageFile size={14}/>;
+					return <FcImageFile size={14} />;
 				case ".wasm":
-					return <SiWebassembly size={12}/>;
+					return <SiWebassembly size={12} />;
 				case ".skel":
-					return <img src={spineLogo} alt="spine" width="14px" height="14px"/>;
+					return <img src={spineLogo} alt="spine" width="14px" height="14px" />;
 				case ".yarn":
-					return <img src="yarn-editor/icon_96x96.png" alt="yarn" width="14px" height="14px"/>;
+					return <img src="yarn-editor/icon_96x96.png" alt="yarn" width="14px" height="14px" />;
 				case ".bl":
-					return <img src={blocklyLogo} alt="blockly" width="12px" height="12px"/>;
+					return <img src={blocklyLogo} alt="blockly" width="12px" height="12px" />;
 				case ".vs":
-					return <SiNodered size={12}/>;
+					return <SiNodered size={12} />;
 				case ".zip":
-					return <AiFillFileZip color='fac03d'/>;
+					return <AiFillFileZip color='fac03d' />;
 				case ".wa":
-					return <img src={waLogo} alt="wa" width="12px" height="12px"/>;
+					return <img src={waLogo} alt="wa" width="12px" height="12px" />;
 				case ".tic":
-					return <img src={tic80Logo} alt="tic80" width="14px" height="14px"/>;
+					return <img src={tic80Logo} alt="tic80" width="14px" height="14px" />;
 				case ".mod":
-					return <AiOutlineSetting size={14}/>;
+					return <AiOutlineSetting size={14} />;
 			}
 		}
 	}
-	return <AiOutlineFile/>;
+	return <AiOutlineFile />;
 };
 
 const treeStyle = `
@@ -172,16 +172,16 @@ export interface FileTreeProps {
 };
 
 export default memo(function FileTree(props: FileTreeProps) {
-	const {treeData, expandedKeys, selectedKeys} = props;
-	const [anchorItem, setAnchorItem] = useState<null | {target: Element, data: TreeDataType}>(null);
+	const { treeData, expandedKeys, selectedKeys } = props;
+	const [anchorItem, setAnchorItem] = useState<null | { target: Element, data: TreeDataType }>(null);
 	const [menuOpen, setMenuOpen] = useState(false);
-	const {t} = useTranslation();
+	const { t } = useTranslation();
 
 	function onRightClick(info: {
 		event: React.MouseEvent;
 		node: EventDataNode<TreeDataType>;
 	}) {
-		setAnchorItem({target: info.event.currentTarget, data: info.node});
+		setAnchorItem({ target: info.event.currentTarget, data: info.node });
 		setMenuOpen(true);
 	}
 
@@ -190,7 +190,7 @@ export default memo(function FileTree(props: FileTreeProps) {
 		setMenuOpen(false);
 	};
 
-	const onSelect = (_keys: Key[], info: {selectedNodes: TreeDataType[]}) => {
+	const onSelect = (_keys: Key[], info: { selectedNodes: TreeDataType[] }) => {
 		props.onSelect(info.selectedNodes);
 	};
 
@@ -236,7 +236,7 @@ export default memo(function FileTree(props: FileTreeProps) {
 				height: '100%',
 			}}
 		>
-			<style dangerouslySetInnerHTML={{ __html: treeStyle }}/>
+			<style dangerouslySetInnerHTML={{ __html: treeStyle }} />
 			<StyledMenu
 				id="dora-menu"
 				anchorEl={anchorItem?.target}
@@ -253,103 +253,103 @@ export default memo(function FileTree(props: FileTreeProps) {
 				{enableNew ?
 					<StyledMenuItem onClick={() => handleClose("New", anchorItem?.data)}>
 						<ListItemIcon>
-							<AiOutlineFileAdd/>
+							<AiOutlineFileAdd />
 						</ListItemIcon>
-						<ListItemText primary={ t("menu.new") }/>
-						<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+Shift+N</div>
+						<ListItemText primary={t("menu.new")} />
+						<div style={{ fontSize: 10, color: Color.TextSecondary }}>Mod+Shift+N</div>
 					</StyledMenuItem> : null
 				}
 				{enableDelete ?
 					<StyledMenuItem onClick={() => handleClose("Delete", anchorItem?.data)}>
 						<ListItemIcon>
-							<AiOutlineDelete/>
+							<AiOutlineDelete />
 						</ListItemIcon>
-						<ListItemText primary={ t("menu.delete") }/>
-						<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+Shift+D</div>
+						<ListItemText primary={t("menu.delete")} />
+						<div style={{ fontSize: 10, color: Color.TextSecondary }}>Mod+Shift+D</div>
 					</StyledMenuItem> : null
 				}
 				{enableRename ?
 					<StyledMenuItem onClick={() => handleClose("Rename", anchorItem?.data)}>
 						<ListItemIcon>
-							<AiOutlineEdit/>
+							<AiOutlineEdit />
 						</ListItemIcon>
-						<ListItemText primary={ t("menu.rename") }/>
+						<ListItemText primary={t("menu.rename")} />
 					</StyledMenuItem> : null
 				}
 				{enableUpload ?
 					<StyledMenuItem onClick={() => handleClose("Upload", anchorItem?.data)}>
 						<ListItemIcon>
-							<AiOutlineUpload/>
+							<AiOutlineUpload />
 						</ListItemIcon>
-						<ListItemText primary={ t("menu.upload") }/>
+						<ListItemText primary={t("menu.upload")} />
 					</StyledMenuItem> : null
 				}
 				{enableDownload ?
 					<StyledMenuItem onClick={() => handleClose("Download", anchorItem?.data)}>
 						<ListItemIcon>
-							<AiOutlineDownload/>
+							<AiOutlineDownload />
 						</ListItemIcon>
-						<ListItemText primary={ t("menu.download") }/>
+						<ListItemText primary={t("menu.download")} />
 					</StyledMenuItem> : null
 				}
 				{enableCopyPath ?
 					<StyledMenuItem onClick={() => handleClose("Copy Path", anchorItem?.data)}>
 						<ListItemIcon>
-							<RxClipboardCopy/>
+							<RxClipboardCopy />
 						</ListItemIcon>
-						<ListItemText primary={ t("menu.copyPath") }/>
+						<ListItemText primary={t("menu.copyPath")} />
 					</StyledMenuItem> : null
 				}
 				{enableUnzip && anchorItem && ext === ".zip" ?
 					<StyledMenuItem onClick={() => handleClose("Unzip", anchorItem?.data)}>
 						<ListItemIcon>
-							<AiOutlineFolderOpen/>
+							<AiOutlineFolderOpen />
 						</ListItemIcon>
-						<ListItemText primary={ t("menu.extract") }/>
+						<ListItemText primary={t("menu.extract")} />
 					</StyledMenuItem> : null
 				}
 				{enableBuild && anchorItem &&
 					((Info.path.extname(
 						Info.path.basename(anchorItem.data.key, ext)
 					) === "" &&
-					(
-						ext === ".yue" ||
-						ext === ".tl" ||
-						ext === ".ts" ||
-						ext === ".tsx" ||
-						ext === ".xml" ||
-						ext === ".wa" ||
-						ext === ".mod"
-					)) || anchorItem.data.dir) ?
+						(
+							ext === ".yue" ||
+							ext === ".tl" ||
+							ext === ".ts" ||
+							ext === ".tsx" ||
+							ext === ".xml" ||
+							ext === ".wa" ||
+							ext === ".mod"
+						)) || anchorItem.data.dir) ?
 					<StyledMenuItem onClick={() => handleClose("Build", anchorItem?.data)}>
 						<ListItemIcon>
-							<GoChecklist/>
+							<GoChecklist />
 						</ListItemIcon>
-						<ListItemText primary={ t("menu.build") }/>
+						<ListItemText primary={t("menu.build")} />
 					</StyledMenuItem> : null
 				}
 				{enableDeclaration && anchorItem ?
 					<StyledMenuItem onClick={() => handleClose("Declaration", anchorItem.data)}>
 						<ListItemIcon>
-							<RiListIndefinite/>
+							<RiListIndefinite />
 						</ListItemIcon>
-						<ListItemText primary={ t("menu.declaration") }/>
+						<ListItemText primary={t("menu.declaration")} />
 					</StyledMenuItem> : null
 				}
 				{enableUpdateDora && anchorItem ?
 					<StyledMenuItem onClick={() => handleClose("Update Dora", anchorItem.data)}>
 						<ListItemIcon>
-							<Refresh/>
+							<Refresh />
 						</ListItemIcon>
-						<ListItemText primary={ t("menu.updateDora") }/>
+						<ListItemText primary={t("menu.updateDora")} />
 					</StyledMenuItem> : null
 				}
 				{enableObfuscate && anchorItem && anchorItem.data.dir ?
 					<StyledMenuItem onClick={() => handleClose("Obfuscate", anchorItem?.data)}>
 						<ListItemIcon>
-							<TbMoodConfuzed/>
+							<TbMoodConfuzed />
 						</ListItemIcon>
-						<ListItemText primary={ t("menu.obfuscate") }/>
+						<ListItemText primary={t("menu.obfuscate")} />
 					</StyledMenuItem> : null
 				}
 				{enableViewCompiled && anchorItem &&
@@ -365,17 +365,17 @@ export default memo(function FileTree(props: FileTreeProps) {
 					) ?
 					<StyledMenuItem onClick={() => handleClose("View Compiled", anchorItem?.data)}>
 						<ListItemIcon>
-							<GoFileCode/>
+							<GoFileCode />
 						</ListItemIcon>
-						<ListItemText primary={ t("menu.viewCompiled", {lang: "Lua"}) }/>
+						<ListItemText primary={t("menu.viewCompiled", { lang: "Lua" })} />
 					</StyledMenuItem> : null
 				}
 				{anchorItem ?
 					<StyledMenuItem onClick={() => handleClose("Dora", anchorItem?.data)}>
 						<ListItemIcon>
-							<AiOutlineComment/>
+							<AiOutlineComment />
 						</ListItemIcon>
-						<ListItemText primary="Dora!"/>
+						<ListItemText primary="Dora!" />
 					</StyledMenuItem> : null
 				}
 			</StyledMenu>
@@ -394,7 +394,7 @@ export default memo(function FileTree(props: FileTreeProps) {
 				onSelect={onSelect}
 				onExpand={onExpand}
 				selectedKeys={selectedKeys}
-				dropIndicatorRender={() => <div/>}
+				dropIndicatorRender={() => <div />}
 			/>
 		</MacScrollbar>
 	);

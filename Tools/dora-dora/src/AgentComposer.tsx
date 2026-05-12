@@ -203,30 +203,30 @@ export default function AgentComposer(props: AgentComposerProps) {
 						/>
 					</MacScrollbar>
 				</Box>
-			{showActionButton ? (
-				<Tooltip title={running ? t("menu.stop") : t("agent.send")}>
-					<span style={{ position: "absolute", left: 16, bottom: 10, zIndex: 1 }}>
-						<IconButton
-							onClick={running ? (canStop ? onStop : undefined) : onSend}
-							disabled={actionDisabled}
-							sx={{
-								backgroundColor: 'rgba(255, 255, 255, 0.04)',
-								color: running ? Color.Theme : 'rgba(255, 255, 255, 0.55)',
-								'&:hover': {
-									backgroundColor: 'rgba(255, 255, 255, 0.08)',
-								},
-								"&.Mui-disabled": {
-									backgroundColor: "transparent",
-									color: Color.TextSecondary,
-								},
-							}}
-						>
-							{running ? <BsStopFill size={20} /> : <BsFillSendFill size={18} />}
-						</IconButton>
-					</span>
+				{showActionButton ? (
+					<Tooltip title={running ? t("menu.stop") : t("agent.send")}>
+						<span style={{ position: "absolute", left: 16, bottom: 10, zIndex: 1 }}>
+							<IconButton
+								onClick={running ? (canStop ? onStop : undefined) : onSend}
+								disabled={actionDisabled}
+								sx={{
+									backgroundColor: 'rgba(255, 255, 255, 0.04)',
+									color: running ? Color.Theme : 'rgba(255, 255, 255, 0.55)',
+									'&:hover': {
+										backgroundColor: 'rgba(255, 255, 255, 0.08)',
+									},
+									"&.Mui-disabled": {
+										backgroundColor: "transparent",
+										color: Color.TextSecondary,
+									},
+								}}
+							>
+								{running ? <BsStopFill size={20} /> : <BsFillSendFill size={18} />}
+							</IconButton>
+						</span>
 					</Tooltip>
 				) : null}
-				</Box>
 			</Box>
-		);
+		</Box>
+	);
 }

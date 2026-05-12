@@ -93,7 +93,7 @@ const hmacHex = async (secret: string, payload: string) => {
 	const key = await crypto.subtle.importKey(
 		'raw',
 		encoder.encode(secret),
-		{name: 'HMAC', hash: 'SHA-256'},
+		{ name: 'HMAC', hash: 'SHA-256' },
 		false,
 		['sign'],
 	);
@@ -232,7 +232,7 @@ export function openWebSocket() {
 				} else {
 					webSocket = new WebSocket(wsUrl());
 				}
-				webSocket.onmessage = async function(evt: MessageEvent) {
+				webSocket.onmessage = async function (evt: MessageEvent) {
 					let dataStr: string;
 					if (evt.data instanceof ArrayBuffer) {
 						const decoder = new TextDecoder("utf-8");
@@ -283,16 +283,16 @@ export function openWebSocket() {
 								break;
 							}
 							case WsEvent.TranspileTS: {
-								const {transpileTypescript, getDiagnosticMessage} = await import('./TranspileTS');
-								const {file, content} = result;
+								const { transpileTypescript, getDiagnosticMessage } = await import('./TranspileTS');
+								const { file, content } = result;
 								if (typeof file === 'string' && typeof content === 'string') {
-									const {success, luaCode, diagnostics} = await transpileTypescript(file, content);
+									const { success, luaCode, diagnostics } = await transpileTypescript(file, content);
 									let data = "";
 									if (success) {
-										data = JSON.stringify({name: WsEvent.TranspileTS, success, file, luaCode, message: ""});
+										data = JSON.stringify({ name: WsEvent.TranspileTS, success, file, luaCode, message: "" });
 									} else {
 										const message = await getDiagnosticMessage(file, diagnostics);
-										data = JSON.stringify({name: WsEvent.TranspileTS, success, file, luaCode: "", message});
+										data = JSON.stringify({ name: WsEvent.TranspileTS, success, file, luaCode: "", message });
 									}
 									webSocket.send(new Blob([data]));
 								}
@@ -364,11 +364,11 @@ export interface SearchFilesDoneMessage {
 };
 
 export const searchFiles = (req: SearchFilesRequest) => {
-	return sendWebSocketMessage({name: "SearchFiles", ...req});
+	return sendWebSocketMessage({ name: "SearchFiles", ...req });
 };
 
 export const stopSearchFiles = (id: number) => {
-	return sendWebSocketMessage({name: "SearchFilesStop", id});
+	return sendWebSocketMessage({ name: "SearchFilesStop", id });
 };
 
 export const addSearchFilesResultListener = (listener: (message: SearchFilesResultMessage) => void) => {
@@ -581,7 +581,7 @@ export const updateLLMConfig = (item: LLMConfigItem) => {
 };
 
 export const deleteLLMConfig = (id: number) => {
-	return post<LLMConfigWriteResponse>("/llm/delete", {id});
+	return post<LLMConfigWriteResponse>("/llm/delete", { id });
 };
 
 // Read
@@ -590,7 +590,7 @@ export interface ReadRequest {
 	path: string;
 	projFile?: string;
 };
-export type ReadResponse  = {
+export type ReadResponse = {
 	success: true;
 	content: string;
 } | {
@@ -607,7 +607,7 @@ export interface ReadSyncRequest {
 	exts?: string[];
 	projFile?: string;
 };
-export type ReadSyncResponse =  {
+export type ReadSyncResponse = {
 	success: false;
 } | {
 	success: true;
@@ -615,7 +615,7 @@ export type ReadSyncResponse =  {
 	fullPath: string;
 };
 export const readSync = (req: ReadSyncRequest) => {
-	const {path} = req;
+	const { path } = req;
 	const exts = req.exts ? req.exts.join("|") : "";
 	const projFile = req.projFile ? req.projFile : "";
 	const params = new URLSearchParams();
@@ -1181,7 +1181,7 @@ export const agentRunningTasks = () => {
 };
 
 export const agentTaskStop = (req: { sessionId: number; }) => {
-	return post<{success: boolean; message?: string;}>("/agent/task/stop", req);
+	return post<{ success: boolean; message?: string; }>("/agent/task/stop", req);
 };
 
 export const agentCheckpointList = (req: { sessionId?: number; taskId?: number; }) => {

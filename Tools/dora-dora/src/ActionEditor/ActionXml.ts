@@ -34,7 +34,7 @@ const parseTag = (rawTag: string) => {
 	while ((match = attrPattern.exec(attrText)) !== null) {
 		attrs[match[1]] = decodeXml(match[2]);
 	}
-	return {name, attrs, closing, selfClosing};
+	return { name, attrs, closing, selfClosing };
 };
 
 export const parseActionXml = (xml: string): ActionXmlElement => {
@@ -52,7 +52,7 @@ export const parseActionXml = (xml: string): ActionXmlElement => {
 			}
 			continue;
 		}
-		const element: ActionXmlElement = {name: tag.name, attrs: tag.attrs, children: []};
+		const element: ActionXmlElement = { name: tag.name, attrs: tag.attrs, children: [] };
 		const parent = stack[stack.length - 1];
 		if (parent) {
 			parent.children.push(element);

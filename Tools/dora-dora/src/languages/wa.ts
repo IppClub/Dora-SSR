@@ -28,23 +28,23 @@ export const language: Monaco.languages.IMonarchLanguage = {
 	ignoreCase: false,
 
 	keywords: [
-		'break','defer','import','struct','case','else','interface','switch',
-		'const','for','map','type','continue','func','range','default',
-		'global','if','return','make','true','false'
+		'break', 'defer', 'import', 'struct', 'case', 'else', 'interface', 'switch',
+		'const', 'for', 'map', 'type', 'continue', 'func', 'range', 'default',
+		'global', 'if', 'return', 'make', 'true', 'false'
 	],
 
 	typeKeywords: [
-		'bool','string','error','map',
-		'int','int8','int16','int32','int64','i8','i16','i32','i64','rune',
-		'uint','uint8','uint16','uint32','uint64','u8','u16','u32','u64','uintptr','byte',
-		'float32','float64','f32','f64',
-		'complex64','complex128','c64','c128'
+		'bool', 'string', 'error', 'map',
+		'int', 'int8', 'int16', 'int32', 'int64', 'i8', 'i16', 'i32', 'i64', 'rune',
+		'uint', 'uint8', 'uint16', 'uint32', 'uint64', 'u8', 'u16', 'u32', 'u64', 'uintptr', 'byte',
+		'float32', 'float64', 'f32', 'f64',
+		'complex64', 'complex128', 'c64', 'c128'
 	],
 
 	operators: [
-		'==','!=','<=','>=','<','>','+','-','*','/','%','++','--',
-		'!','&&','||',':=','=>','=',
-		'<<','>>','&','^','|'
+		'==', '!=', '<=', '>=', '<', '>', '+', '-', '*', '/', '%', '++', '--',
+		'!', '&&', '||', ':=', '=>', '=',
+		'<<', '>>', '&', '^', '|'
 	],
 
 	symbols: /==|!=|<=|>=|<|>|\+\+|--|:=|=>|&&|\|\||<<|>>|[+\-*/%&^|=!]/,

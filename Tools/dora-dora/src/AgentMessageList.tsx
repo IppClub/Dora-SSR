@@ -33,29 +33,29 @@ export default function AgentMessageList(props: AgentMessageListProps) {
 						boxShadow: message.role === "user" ? "inset 0 1px 0 rgba(255,255,255,0.02)" : "none",
 					}}>
 						{message.role === "assistant" ? (
-						<Box
-							sx={{
-								p: 0,
-								width: '100%',
-								maxWidth: '100%',
-								minWidth: 0,
-								minHeight: 0,
-								backgroundColor: "transparent",
-								color: Color.TextPrimary,
-								fontSize: 16,
-								lineHeight: 1.75,
-								'& .markdown-body p': { whiteSpace: 'pre-wrap' },
-								'& .markdown-body > :first-of-type': { marginTop: 0 },
-								'& .markdown-body > :last-child': { marginBottom: 0 },
-							}}
-						>
-							<Markdown content={message.content} contentPadding={0} />
-						</Box>
-					) : (
-						<Typography variant="body1" sx={{ color: Color.TextPrimary, whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
-							{message.content}
-						</Typography>
-					)}
+							<Box
+								sx={{
+									p: 0,
+									width: '100%',
+									maxWidth: '100%',
+									minWidth: 0,
+									minHeight: 0,
+									backgroundColor: "transparent",
+									color: Color.TextPrimary,
+									fontSize: 16,
+									lineHeight: 1.75,
+									'& .markdown-body p': { whiteSpace: 'pre-wrap' },
+									'& .markdown-body > :first-of-type': { marginTop: 0 },
+									'& .markdown-body > :last-child': { marginBottom: 0 },
+								}}
+							>
+								<Markdown content={message.content} contentPadding={0} />
+							</Box>
+						) : (
+							<Typography variant="body1" sx={{ color: Color.TextPrimary, whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
+								{message.content}
+							</Typography>
+						)}
 					</Box>
 				</Box>
 			))}

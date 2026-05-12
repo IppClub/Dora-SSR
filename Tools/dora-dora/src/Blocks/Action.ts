@@ -16,7 +16,7 @@ const actionCategory = {
 	kind: 'category',
 	name: zh ? '动作' : 'Action',
 	categorystyle: 'logic_category',
-	contents: [] as {kind: string, type: string, inputs?: any}[],
+	contents: [] as { kind: string, type: string, inputs?: any }[],
 };
 export default actionCategory;
 
@@ -54,8 +54,8 @@ const performActionBlock = {
 	nextStatement: null,
 	style: 'logic_blocks',
 };
-Blockly.Blocks['perform_action'] = { init: function() { this.jsonInit(performActionBlock); } };
-luaGenerator.forBlock['perform_action'] = function(block: Blockly.Block) {
+Blockly.Blocks['perform_action'] = { init: function () { this.jsonInit(performActionBlock); } };
+luaGenerator.forBlock['perform_action'] = function (block: Blockly.Block) {
 	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
 	const mode = block.getFieldValue('MODE') === 'REPEATED' ? 'true' : 'false';
 	const action = luaGenerator.valueToCode(block, 'ACTION', Order.NONE);
@@ -74,7 +74,7 @@ type AnyDuringMigration = any;
 // sequence_create_with
 export type SequenceCreateWithBlock = Blockly.Block & SequenceCreateWithMixin;
 interface SequenceCreateWithMixin extends SequenceCreateWithMixinType {
-  itemCount_: number;
+	itemCount_: number;
 }
 type SequenceCreateWithMixinType = typeof SEQUENCE_CREATE_WITH;
 
@@ -99,7 +99,7 @@ const SEQUENCE_CREATE_WITH = {
 		this.itemCount_ = parseInt(items, 10);
 		this.updateShape_();
 	},
-	saveExtraState: function (this: SequenceCreateWithBlock): {itemCount: number} {
+	saveExtraState: function (this: SequenceCreateWithBlock): { itemCount: number } {
 		return {
 			'itemCount': this.itemCount_,
 		};
@@ -167,7 +167,7 @@ const SEQUENCE_CREATE_WITH = {
 			}
 			const input = this.getInput('ADD' + i);
 			itemBlock.valueConnection_ = input?.connection!
-			.targetConnection as Blockly.Connection;
+				.targetConnection as Blockly.Connection;
 			itemBlock = itemBlock.getNextBlock() as ItemBlock | null;
 			i++;
 		}
@@ -195,7 +195,7 @@ const SEQUENCE_CREATE_WITH = {
 	},
 };
 Blockly.Blocks['sequence_create_with'] = SEQUENCE_CREATE_WITH;
-luaGenerator.forBlock['sequence_create_with'] = function(block: Blockly.Block) {
+luaGenerator.forBlock['sequence_create_with'] = function (block: Blockly.Block) {
 	const items = [];
 	for (let i = 0; i < (block as SequenceCreateWithBlock).itemCount_; i++) {
 		const item = luaGenerator.valueToCode(block, 'ADD' + i, Order.NONE);
@@ -239,7 +239,7 @@ const SPAWN_CREATE_WITH = {
 		this.itemCount_ = parseInt(items, 10);
 		this.updateShape_();
 	},
-	saveExtraState: function (this: SpawnCreateWithBlock): {itemCount: number} {
+	saveExtraState: function (this: SpawnCreateWithBlock): { itemCount: number } {
 		return {
 			'itemCount': this.itemCount_,
 		};
@@ -307,7 +307,7 @@ const SPAWN_CREATE_WITH = {
 			}
 			const input = this.getInput('ADD' + i);
 			itemBlock.valueConnection_ = input?.connection!
-			.targetConnection as Blockly.Connection;
+				.targetConnection as Blockly.Connection;
 			itemBlock = itemBlock.getNextBlock() as ItemBlock | null;
 			i++;
 		}
@@ -335,7 +335,7 @@ const SPAWN_CREATE_WITH = {
 	},
 };
 Blockly.Blocks['spawn_create_with'] = SPAWN_CREATE_WITH;
-luaGenerator.forBlock['spawn_create_with'] = function(block: Blockly.Block) {
+luaGenerator.forBlock['spawn_create_with'] = function (block: Blockly.Block) {
 	const items = [];
 	for (let i = 0; i < (block as SpawnCreateWithBlock).itemCount_; i++) {
 		const item = luaGenerator.valueToCode(block, 'ADD' + i, Order.NONE);
@@ -455,9 +455,9 @@ const propertyActionBlock = {
 	style: 'logic_blocks',
 };
 Blockly.Blocks['property_action'] = {
-	init: function() { this.jsonInit(propertyActionBlock); },
+	init: function () { this.jsonInit(propertyActionBlock); },
 };
-luaGenerator.forBlock['property_action'] = function(block: Blockly.Block) {
+luaGenerator.forBlock['property_action'] = function (block: Blockly.Block) {
 	const time = luaGenerator.valueToCode(block, 'TIME', Order.NONE);
 	const property = block.getFieldValue('PROPERTY');
 	const start = luaGenerator.valueToCode(block, 'START', Order.NONE);
@@ -528,9 +528,9 @@ const moveActionBlock = {
 	style: 'logic_blocks',
 };
 Blockly.Blocks['move_action'] = {
-	init: function() { this.jsonInit(moveActionBlock); },
+	init: function () { this.jsonInit(moveActionBlock); },
 };
-luaGenerator.forBlock['move_action'] = function(block: Blockly.Block) {
+luaGenerator.forBlock['move_action'] = function (block: Blockly.Block) {
 	const time = luaGenerator.valueToCode(block, 'TIME', Order.NONE);
 	const start = luaGenerator.valueToCode(block, 'START', Order.NONE);
 	const stop = luaGenerator.valueToCode(block, 'STOP', Order.NONE);
@@ -618,9 +618,9 @@ const delayActionBlock = {
 	style: 'logic_blocks',
 };
 Blockly.Blocks['delay_action'] = {
-	init: function() { this.jsonInit(delayActionBlock); },
+	init: function () { this.jsonInit(delayActionBlock); },
 };
-luaGenerator.forBlock['delay_action'] = function(block: Blockly.Block) {
+luaGenerator.forBlock['delay_action'] = function (block: Blockly.Block) {
 	const time = luaGenerator.valueToCode(block, 'TIME', Order.NONE);
 	Require.add('Delay');
 	return [`Delay(${time === '' ? '0' : time})`, Order.ATOMIC];
@@ -661,9 +661,9 @@ const visibleActionBlock = {
 	style: 'logic_blocks',
 };
 Blockly.Blocks['visible_action'] = {
-	init: function() { this.jsonInit(visibleActionBlock); },
+	init: function () { this.jsonInit(visibleActionBlock); },
 };
-luaGenerator.forBlock['visible_action'] = function(block: Blockly.Block) {
+luaGenerator.forBlock['visible_action'] = function (block: Blockly.Block) {
 	const visible = block.getFieldValue('VISIBLE');
 	Require.add(visible);
 	return [`${visible}()`, Order.ATOMIC];
@@ -674,7 +674,7 @@ actionCategory.contents.push({
 });
 
 type ContainerBlock = Blockly.Block & ContainerMutator;
-interface ContainerMutator extends ContainerMutatorType {}
+interface ContainerMutator extends ContainerMutatorType { }
 type ContainerMutatorType = typeof ACTION_CREATE_WITH_CONTAINER;
 
 const ACTION_CREATE_WITH_CONTAINER = {
@@ -691,7 +691,7 @@ Blockly.Blocks['action_create_with_container'] = ACTION_CREATE_WITH_CONTAINER;
 
 type ItemBlock = Blockly.Block & ItemMutator;
 interface ItemMutator extends ItemMutatorType {
-  valueConnection_?: Blockly.Connection;
+	valueConnection_?: Blockly.Connection;
 }
 type ItemMutatorType = typeof ACTION_CREATE_WITH_ITEM;
 
