@@ -17,21 +17,21 @@
     "update-version": "node scripts/update-version.js"
   },
   "dependencies": {
-    "@docusaurus/core": "^3.10.0",
-    "@docusaurus/preset-classic": "^3.10.0",
-    "@docusaurus/theme-mermaid": "^3.10.0",
+    "@docusaurus/core": "3.10.1",
+    "@docusaurus/preset-classic": "3.10.1",
+    "@docusaurus/theme-mermaid": "3.10.1",
     "@easyops-cn/docusaurus-search-local": "^0.55.1",
     "@mdx-js/react": "^3.1.1",
     "clsx": "^2.1.1",
     "prism-react-renderer": "^2.4.1",
     "prismjs": "^1.30.0",
-    "react": "^19.2.5",
-    "react-dom": "^19.2.5"
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6"
   },
   "devDependencies": {
-    "@docusaurus/module-type-aliases": "^3.10.0",
+    "@docusaurus/module-type-aliases": "3.10.1",
     "@tsconfig/docusaurus": "^2.0.9",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.3"
   },
   "browserslist": {
     "production": [
@@ -47,16 +47,5 @@
   },
   "engines": {
     "node": ">=16.14"
-  },
-  "pnpm": {
-    "overrides": {
-      "@docusaurus/plugin-content-docs": "3.10.0",
-      "@docusaurus/theme-common": "3.10.0",
-      "@docusaurus/theme-translations": "3.10.0",
-      "@docusaurus/utils": "3.10.0",
-      "@docusaurus/utils-common": "3.10.0",
-      "@docusaurus/utils-validation": "3.10.0",
-      "webpack": "5.105.4"
-    }
   }
 }
