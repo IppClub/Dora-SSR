@@ -12,24 +12,24 @@ import { useTranslation } from 'react-i18next';
 const apple = navigator.platform.indexOf("Mac") === 0 || navigator.platform === "iPhone" || navigator.platform === "iPad";
 
 const KeyboardShortcuts = () => {
-	const {t} = useTranslation();
+	const { t } = useTranslation();
 	const aShortcuts = [
 		{ description: t("menu.modKey"), keys: apple ? ['⌃', '⌥', '⌘'] : ['Ctrl', 'Alt', 'Win'] },
 		{ description: t("menu.goToFile"), keys: ['Mod', 'P'] },
 		{ description: t("menu.switchTab"), keys: ['Mod', 'Number'] },
 		{ description: t("menu.new"), keys: ['Mod', (apple ? '⇧' : 'Shift'), 'N'] },
 		{ description: t("menu.delete"), keys: ['Mod', (apple ? '⇧' : 'Shift'), 'D'] },
-		{ description: t("menu.save"), keys: ['Mod', 'S']},
+		{ description: t("menu.save"), keys: ['Mod', 'S'] },
 	];
 	const bShortcuts = [
-		{ description: t("menu.saveAll"), keys: ['Mod', (apple ? '⇧' : 'Shift'), 'S']},
+		{ description: t("menu.saveAll"), keys: ['Mod', (apple ? '⇧' : 'Shift'), 'S'] },
 		{ description: t("menu.viewLog"), keys: ['Mod', '.'] },
 		{ description: t("menu.stop"), keys: ['Mod', 'Q'] },
 		{ description: t("menu.runThis"), keys: ['Mod', (apple ? '⇧' : 'Shift'), 'R'] },
 		{ description: t("menu.run"), keys: ['Mod', 'R'] },
 	];
 	return (
-		<div style={{width: '100vw', height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+		<div style={{ width: '100vw', height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
 			<div className="container">
 				<ul className="list">
 					{aShortcuts.map((shortcut, index) => (

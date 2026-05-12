@@ -13,8 +13,8 @@ export type ActionAtlasPaths = {
 const splitPath = (path: string) => {
 	const normalized = path.replace(/\\/g, "/");
 	const index = normalized.lastIndexOf("/");
-	if (index < 0) return {dir: "", file: normalized};
-	return {dir: normalized.slice(0, index), file: normalized.slice(index + 1)};
+	if (index < 0) return { dir: "", file: normalized };
+	return { dir: normalized.slice(0, index), file: normalized.slice(index + 1) };
 };
 
 const joinPath = (dir: string, file: string) => dir ? `${dir}/${file}` : file;
@@ -30,7 +30,7 @@ export const getActionClipFiles = (entries: string[]) => entries
 	.sort((a, b) => a.localeCompare(b));
 
 export const chooseActionClipsDirectory = (modelPath: string, entries: string[]) => {
-	const {file} = splitPath(modelPath);
+	const { file } = splitPath(modelPath);
 	const modelBaseName = stripExt(file, ".model");
 	const candidates = getActionClipsDirectories(entries);
 	const preferred = `${modelBaseName}.clips`;
@@ -38,7 +38,7 @@ export const chooseActionClipsDirectory = (modelPath: string, entries: string[])
 };
 
 export const getActionAtlasPaths = (modelPath: string, clipsDirName?: string): ActionAtlasPaths => {
-	const {dir, file} = splitPath(modelPath);
+	const { dir, file } = splitPath(modelPath);
 	const modelBaseName = stripExt(file, ".model");
 	const selectedClipsDir = clipsDirName ?? `${modelBaseName}.clips`;
 	const outputBaseName = stripExt(selectedClipsDir, ".clips");

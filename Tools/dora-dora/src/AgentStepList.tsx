@@ -298,97 +298,97 @@ export default function AgentStepList(props: AgentStepListProps) {
 					: "";
 				const isSystemStep = step.tool === "compress_memory" || step.tool === "merge_memory" || step.tool === "sub_agent_handoff";
 				return (
-				<Box key={step.id} sx={{
-					borderLeft: `2px solid ${isSystemStep ? "rgba(255,196,110,0.32)" : Color.Line}`,
-					pl: 1.5,
-					py: 0.25,
-					minWidth: 0,
-				}}>
-					<Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
-						<Typography variant="caption" sx={{ color: Color.TextSecondary }}>
-							{step.step}
-						</Typography>
-						<Chip
-							size="small"
-							label={t(`agent.toolNames.${step.tool}`, { defaultValue: step.tool })}
-							variant="outlined"
-							sx={{
-								borderColor: isSystemStep ? "rgba(255,196,110,0.32)" : Color.Line,
-								color: isSystemStep ? "rgb(255,214,153)" : Color.TextPrimary,
-							}}
-						/>
-						{step.status !== "DONE" ? (
-							<Chip size="small" label={step.status} variant="outlined" sx={{ borderColor: Color.Line, color: Color.TextSecondary }} />
+					<Box key={step.id} sx={{
+						borderLeft: `2px solid ${isSystemStep ? "rgba(255,196,110,0.32)" : Color.Line}`,
+						pl: 1.5,
+						py: 0.25,
+						minWidth: 0,
+					}}>
+						<Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+							<Typography variant="caption" sx={{ color: Color.TextSecondary }}>
+								{step.step}
+							</Typography>
+							<Chip
+								size="small"
+								label={t(`agent.toolNames.${step.tool}`, { defaultValue: step.tool })}
+								variant="outlined"
+								sx={{
+									borderColor: isSystemStep ? "rgba(255,196,110,0.32)" : Color.Line,
+									color: isSystemStep ? "rgb(255,214,153)" : Color.TextPrimary,
+								}}
+							/>
+							{step.status !== "DONE" ? (
+								<Chip size="small" label={step.status} variant="outlined" sx={{ borderColor: Color.Line, color: Color.TextSecondary }} />
+							) : null}
+						</Stack>
+						{visiblePrimaryContent !== "" ? (
+							<Box
+								sx={{
+									mt: 1,
+									padding: 0,
+									width: '100%',
+									maxWidth: '100%',
+									minWidth: 0,
+									minHeight: 0,
+									backgroundColor: "transparent",
+									color: Color.TextPrimary,
+									fontSize: 16,
+									lineHeight: 1.65,
+									'& .markdown-body p': { whiteSpace: 'pre-wrap' },
+									'& .markdown-body > :first-of-type': { marginTop: 0 },
+									'& .markdown-body > :last-child': { marginBottom: 0 },
+								}}
+							>
+								<Markdown content={visiblePrimaryContent} contentPadding={0} />
+							</Box>
 						) : null}
-					</Stack>
-					{visiblePrimaryContent !== "" ? (
-						<Box
-							sx={{
-								mt: 1,
-								padding: 0,
-								width: '100%',
-								maxWidth: '100%',
-								minWidth: 0,
-								minHeight: 0,
-								backgroundColor: "transparent",
-								color: Color.TextPrimary,
-								fontSize: 16,
-								lineHeight: 1.65,
-								'& .markdown-body p': { whiteSpace: 'pre-wrap' },
-								'& .markdown-body > :first-of-type': { marginTop: 0 },
-								'& .markdown-body > :last-child': { marginBottom: 0 },
-							}}
-						>
-							<Markdown content={visiblePrimaryContent} contentPadding={0} />
-						</Box>
-					) : null}
-					{historyEntryPreview !== "" ? (
-						<Typography variant="body2" sx={{ color: Color.TextSecondary, whiteSpace: "pre-wrap", lineHeight: 1.6, mt: 0.75 }}>
-							{historyEntryPreview}
-						</Typography>
-					) : null}
-					{handoffMeta ? (
-						<Box sx={{ mt: 1.25 }}>
-							<Stack spacing={1}>
-								{handoffMeta.summary ? (
-									<Box
-										sx={{
-											padding: 0,
-											width: '100%',
-											maxWidth: '100%',
-											minWidth: 0,
-											backgroundColor: "transparent",
-											color: Color.TextPrimary,
-											fontSize: 16,
-											lineHeight: 1.65,
-											'& .markdown-body p': { whiteSpace: 'pre-wrap' },
-											'& .markdown-body > :first-of-type': { marginTop: 0 },
-											'& .markdown-body > :last-child': { marginBottom: 0 },
-										}}
-									>
-										<Markdown content={handoffMeta.summary} contentPadding={0} />
-									</Box>
-								) : null}
-								<Stack direction="row" spacing={1} alignItems="center" useFlexGap flexWrap="wrap">
-									{handoffMeta.success !== undefined ? (
-										<Chip
-											size="small"
-											label={handoffMeta.success ? t("agent.subAgentResult.done") : t("agent.subAgentResult.failed")}
-											variant="outlined"
+						{historyEntryPreview !== "" ? (
+							<Typography variant="body2" sx={{ color: Color.TextSecondary, whiteSpace: "pre-wrap", lineHeight: 1.6, mt: 0.75 }}>
+								{historyEntryPreview}
+							</Typography>
+						) : null}
+						{handoffMeta ? (
+							<Box sx={{ mt: 1.25 }}>
+								<Stack spacing={1}>
+									{handoffMeta.summary ? (
+										<Box
 											sx={{
-												height: 22,
-												...(handoffMeta.success
-													? { borderColor: "rgba(120,200,140,0.35)", color: "rgb(140,220,160)" }
-													: { borderColor: "rgba(255,140,140,0.35)", color: "rgb(255,170,170)" }),
+												padding: 0,
+												width: '100%',
+												maxWidth: '100%',
+												minWidth: 0,
+												backgroundColor: "transparent",
+												color: Color.TextPrimary,
+												fontSize: 16,
+												lineHeight: 1.65,
+												'& .markdown-body p': { whiteSpace: 'pre-wrap' },
+												'& .markdown-body > :first-of-type': { marginTop: 0 },
+												'& .markdown-body > :last-child': { marginBottom: 0 },
 											}}
-										/>
+										>
+											<Markdown content={handoffMeta.summary} contentPadding={0} />
+										</Box>
 									) : null}
-									{handoffMeta.finishedAt ? (
-										<Typography variant="caption" sx={{ color: Color.TextSecondary }}>
-											{handoffMeta.finishedAt}
-										</Typography>
-									) : null}
-								</Stack>
+									<Stack direction="row" spacing={1} alignItems="center" useFlexGap flexWrap="wrap">
+										{handoffMeta.success !== undefined ? (
+											<Chip
+												size="small"
+												label={handoffMeta.success ? t("agent.subAgentResult.done") : t("agent.subAgentResult.failed")}
+												variant="outlined"
+												sx={{
+													height: 22,
+													...(handoffMeta.success
+														? { borderColor: "rgba(120,200,140,0.35)", color: "rgb(140,220,160)" }
+														: { borderColor: "rgba(255,140,140,0.35)", color: "rgb(255,170,170)" }),
+												}}
+											/>
+										) : null}
+										{handoffMeta.finishedAt ? (
+											<Typography variant="caption" sx={{ color: Color.TextSecondary }}>
+												{handoffMeta.finishedAt}
+											</Typography>
+										) : null}
+									</Stack>
 									{handoffMeta.artifactDir ? (
 										<Typography variant="body2" sx={{ color: Color.TextSecondary, lineHeight: 1.6 }}>
 											{t("agent.subAgentResult.artifactDir")}: {handoffMeta.artifactDir}
@@ -410,100 +410,14 @@ export default function AgentStepList(props: AgentStepListProps) {
 									) : null}
 								</Stack>
 							</Box>
-					) : null}
-					{listedSubAgents.length > 0 ? (
-						<Stack spacing={1} sx={{ mt: 1.25 }}>
-							{listedSubAgents.map((item, index) => {
-								const chipSx = getStatusChipColor(item.status ?? "");
-								return (
-									<Box
-										key={`${item.sessionId ?? 0}:${item.title ?? ""}:${index}`}
-										sx={{
-											border: `0.5px solid ${Color.Line}`,
-											borderRadius: 2,
-											px: 1.25,
-											py: 1,
-											backgroundColor: "rgba(255,255,255,0.02)",
-										}}
-									>
-										<Stack direction="row" spacing={1} alignItems="center" useFlexGap flexWrap="wrap">
-											<Chip
-												size="small"
-												label={item.status ?? "UNKNOWN"}
-												variant="outlined"
-												sx={{ height: 22, ...chipSx }}
-											/>
-											<Typography variant="body2" sx={{ color: Color.TextPrimary }}>
-												{item.title || `sub agent ${item.sessionId ?? "?"}`}
-											</Typography>
-										</Stack>
-										{item.resultFilePath ? (
-											<Typography variant="caption" sx={{ color: Color.TextSecondary, display: "block", mt: 0.75 }}>
-												{t("agent.subAgentResult.resultFile")}:{" "}
-												{onOpenFile ? (
-													<Box
-														component="button"
-														type="button"
-														onClick={() => onOpenFile(item.resultFilePath!)}
-														sx={{
-															display: "inline",
-															p: 0,
-															m: 0,
-															border: "none",
-															background: "none",
-															color: Color.TextPrimary,
-															cursor: "pointer",
-															font: "inherit",
-															textDecoration: "underline",
-															textUnderlineOffset: "2px",
-														}}
-													>
-														{item.resultFilePath}
-													</Box>
-												) : item.resultFilePath}
-											</Typography>
-										) : null}
-									</Box>
-								);
-							})}
-						</Stack>
-					) : null}
-					{paramItems.length > 0 ? (
-						<Typography variant="caption" sx={{ color: Color.TextSecondary, display: "block", mt: step.reason ? 0.75 : 1, lineHeight: 1.6 }}>
-							{paramItems.map((item, index) => (
-								<React.Fragment key={`${item.label}:${item.value ?? ""}:${index}`}>
-									{index > 0 ? " · " : null}
-									{item.value !== undefined ? `${item.label}: ${item.value}` : item.label}
-								</React.Fragment>
-							))}
-						</Typography>
-					) : null}
-					{showBuildResults ? (
-						<Box sx={{ mt: 1.25 }}>
-							<Button
-								size="small"
-								variant="text"
-								onClick={() => setOpenedBuildErrors(prev => ({ ...prev, [step.id]: !buildErrorsOpened }))}
-								sx={{
-									px: 0,
-									minWidth: 0,
-									color: Color.TextSecondary,
-									textTransform: "none",
-									"&:hover": {
-										backgroundColor: "transparent",
-										color: Color.TextPrimary,
-									},
-								}}
-							>
-								{buildErrorsOpened
-									? t("agent.hideBuildResults", { count: buildItems.length })
-									: t("agent.showBuildResults", { count: buildItems.length })}
-							</Button>
-							<Collapse in={buildErrorsOpened} timeout="auto" unmountOnExit>
-								<Stack spacing={1} sx={{ mt: 1 }}>
-									{buildItems.map((item, index) => (
+						) : null}
+						{listedSubAgents.length > 0 ? (
+							<Stack spacing={1} sx={{ mt: 1.25 }}>
+								{listedSubAgents.map((item, index) => {
+									const chipSx = getStatusChipColor(item.status ?? "");
+									return (
 										<Box
-											key={`${item.file}:${index}`}
+											key={`${item.sessionId ?? 0}:${item.title ?? ""}:${index}`}
 											sx={{
 												border: `0.5px solid ${Color.Line}`,
 												borderRadius: 2,
@@ -512,110 +426,197 @@ export default function AgentStepList(props: AgentStepListProps) {
 												backgroundColor: "rgba(255,255,255,0.02)",
 											}}
 										>
-											<Stack direction="row" spacing={1} alignItems="center" sx={{ mb: item.message !== "" ? 0.5 : 0 }}>
+											<Stack direction="row" spacing={1} alignItems="center" useFlexGap flexWrap="wrap">
 												<Chip
 													size="small"
-													label={item.success ? t("agent.buildItemStatus.success") : t("agent.buildItemStatus.failed")}
+													label={item.status ?? "UNKNOWN"}
 													variant="outlined"
-													sx={{
-														height: 22,
-														borderColor: item.success ? "rgba(120,200,140,0.35)" : Color.Line,
-														color: item.success ? "rgb(140,220,160)" : Color.TextSecondary,
-													}}
+													sx={{ height: 22, ...chipSx }}
 												/>
-												<Typography variant="caption" sx={{ color: Color.TextSecondary, display: "block" }}>
-													{item.file}
+												<Typography variant="body2" sx={{ color: Color.TextPrimary }}>
+													{item.title || `sub agent ${item.sessionId ?? "?"}`}
 												</Typography>
 											</Stack>
-											{item.message !== "" ? (
-												<Typography variant="body2" sx={{ color: Color.TextPrimary, whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
-													{item.message}
+											{item.resultFilePath ? (
+												<Typography variant="caption" sx={{ color: Color.TextSecondary, display: "block", mt: 0.75 }}>
+													{t("agent.subAgentResult.resultFile")}:{" "}
+													{onOpenFile ? (
+														<Box
+															component="button"
+															type="button"
+															onClick={() => onOpenFile(item.resultFilePath!)}
+															sx={{
+																display: "inline",
+																p: 0,
+																m: 0,
+																border: "none",
+																background: "none",
+																color: Color.TextPrimary,
+																cursor: "pointer",
+																font: "inherit",
+																textDecoration: "underline",
+																textUnderlineOffset: "2px",
+															}}
+														>
+															{item.resultFilePath}
+														</Box>
+													) : item.resultFilePath}
 												</Typography>
 											) : null}
 										</Box>
-									))}
-								</Stack>
-							</Collapse>
-						</Box>
-					) : null}
-					{step.checkpointSeq ? (
-						<Box sx={{ mt: 1.25 }}>
-							<Typography variant="caption" sx={{ color: Color.TextSecondary, display: "block", mb: 1 }}>
-								{t("agent.checkpointLabel", { seq: step.checkpointSeq })}{" "}
-								{step.files?.map((file, index) => (
-									<React.Fragment key={`${file.path}:${index}`}>
-										{index > 0 ? ", " : null}
-										{onOpenFile ? (
-											<Box
-												component="button"
-												type="button"
-												onClick={() => onOpenFile(file.path)}
-												sx={{
-													display: "inline",
-													p: 0,
-													m: 0,
-													border: "none",
-													background: "none",
-													color: Color.TextSecondary,
-													cursor: "pointer",
-													font: "inherit",
-													textDecoration: "underline",
-													textUnderlineOffset: "2px",
-													"&:hover": {
-														color: Color.TextPrimary,
-													},
-												}}
-											>
-												{file.path}
-											</Box>
-										) : file.path}
+									);
+								})}
+							</Stack>
+						) : null}
+						{paramItems.length > 0 ? (
+							<Typography variant="caption" sx={{ color: Color.TextSecondary, display: "block", mt: step.reason ? 0.75 : 1, lineHeight: 1.6 }}>
+								{paramItems.map((item, index) => (
+									<React.Fragment key={`${item.label}:${item.value ?? ""}:${index}`}>
+										{index > 0 ? " · " : null}
+										{item.value !== undefined ? `${item.label}: ${item.value}` : item.label}
 									</React.Fragment>
 								))}
 							</Typography>
-							<Stack direction="row" spacing={1} alignItems="center">
-								{canViewDiff ? (
+						) : null}
+						{showBuildResults ? (
+							<Box sx={{ mt: 1.25 }}>
+								<Button
+									size="small"
+									variant="text"
+									onClick={() => setOpenedBuildErrors(prev => ({ ...prev, [step.id]: !buildErrorsOpened }))}
+									sx={{
+										px: 0,
+										minWidth: 0,
+										color: Color.TextSecondary,
+										textTransform: "none",
+										"&:hover": {
+											backgroundColor: "transparent",
+											color: Color.TextPrimary,
+										},
+									}}
+								>
+									{buildErrorsOpened
+										? t("agent.hideBuildResults", { count: buildItems.length })
+										: t("agent.showBuildResults", { count: buildItems.length })}
+								</Button>
+								<Collapse in={buildErrorsOpened} timeout="auto" unmountOnExit>
+									<Stack spacing={1} sx={{ mt: 1 }}>
+										{buildItems.map((item, index) => (
+											<Box
+												key={`${item.file}:${index}`}
+												sx={{
+													border: `0.5px solid ${Color.Line}`,
+													borderRadius: 2,
+													px: 1.25,
+													py: 1,
+													backgroundColor: "rgba(255,255,255,0.02)",
+												}}
+											>
+												<Stack direction="row" spacing={1} alignItems="center" sx={{ mb: item.message !== "" ? 0.5 : 0 }}>
+													<Chip
+														size="small"
+														label={item.success ? t("agent.buildItemStatus.success") : t("agent.buildItemStatus.failed")}
+														variant="outlined"
+														sx={{
+															height: 22,
+															borderColor: item.success ? "rgba(120,200,140,0.35)" : Color.Line,
+															color: item.success ? "rgb(140,220,160)" : Color.TextSecondary,
+														}}
+													/>
+													<Typography variant="caption" sx={{ color: Color.TextSecondary, display: "block" }}>
+														{item.file}
+													</Typography>
+												</Stack>
+												{item.message !== "" ? (
+													<Typography variant="body2" sx={{ color: Color.TextPrimary, whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
+														{item.message}
+													</Typography>
+												) : null}
+											</Box>
+										))}
+									</Stack>
+								</Collapse>
+							</Box>
+						) : null}
+						{step.checkpointSeq ? (
+							<Box sx={{ mt: 1.25 }}>
+								<Typography variant="caption" sx={{ color: Color.TextSecondary, display: "block", mb: 1 }}>
+									{t("agent.checkpointLabel", { seq: step.checkpointSeq })}{" "}
+									{step.files?.map((file, index) => (
+										<React.Fragment key={`${file.path}:${index}`}>
+											{index > 0 ? ", " : null}
+											{onOpenFile ? (
+												<Box
+													component="button"
+													type="button"
+													onClick={() => onOpenFile(file.path)}
+													sx={{
+														display: "inline",
+														p: 0,
+														m: 0,
+														border: "none",
+														background: "none",
+														color: Color.TextSecondary,
+														cursor: "pointer",
+														font: "inherit",
+														textDecoration: "underline",
+														textUnderlineOffset: "2px",
+														"&:hover": {
+															color: Color.TextPrimary,
+														},
+													}}
+												>
+													{file.path}
+												</Box>
+											) : file.path}
+										</React.Fragment>
+									))}
+								</Typography>
+								<Stack direction="row" spacing={1} alignItems="center">
+									{canViewDiff ? (
+										<Button
+											size="small"
+											variant="outlined"
+											onClick={() => onToggleDiff(step)}
+											disabled={diffLoadingId === step.checkpointId}
+											sx={stepActionButtonSx}
+										>
+											{openedDiffId === step.checkpointId ? t("agent.hideDiff") : t("agent.viewDiff")}
+										</Button>
+									) : null}
 									<Button
 										size="small"
 										variant="outlined"
-										onClick={() => onToggleDiff(step)}
-										disabled={diffLoadingId === step.checkpointId}
+										color="warning"
+										onClick={() => onRollback(step)}
+										disabled={running || rollingBack === step.checkpointSeq}
 										sx={stepActionButtonSx}
 									>
-										{openedDiffId === step.checkpointId ? t("agent.hideDiff") : t("agent.viewDiff")}
+										{t("agent.rollback")}
 									</Button>
+									{checkpointMap.get(step.checkpointSeq)?.status ? (
+										<Chip
+											size="small"
+											label={t(`agent.checkpointStatus.${checkpointMap.get(step.checkpointSeq)?.status?.toLowerCase()}`)}
+											variant="outlined"
+										/>
+									) : null}
+									{canViewDiff && diffLoadingId === step.checkpointId ? <CircularProgress size={16} /> : null}
+								</Stack>
+								{canViewDiff && openedDiffId === step.checkpointId ? (
+									<Box sx={{ mt: 1.25 }}>
+										<Stack spacing={1}>
+											{(diffs[step.checkpointId!] ?? []).map(file => (
+												<AgentFileDiff key={`${file.path}:${file.op}`} file={file} />
+											))}
+										</Stack>
+									</Box>
 								) : null}
-								<Button
-									size="small"
-									variant="outlined"
-									color="warning"
-									onClick={() => onRollback(step)}
-									disabled={running || rollingBack === step.checkpointSeq}
-									sx={stepActionButtonSx}
-								>
-									{t("agent.rollback")}
-								</Button>
-								{checkpointMap.get(step.checkpointSeq)?.status ? (
-									<Chip
-										size="small"
-										label={t(`agent.checkpointStatus.${checkpointMap.get(step.checkpointSeq)?.status?.toLowerCase()}`)}
-										variant="outlined"
-									/>
-								) : null}
-								{canViewDiff && diffLoadingId === step.checkpointId ? <CircularProgress size={16} /> : null}
-							</Stack>
-							{canViewDiff && openedDiffId === step.checkpointId ? (
-								<Box sx={{ mt: 1.25 }}>
-									<Stack spacing={1}>
-										{(diffs[step.checkpointId!] ?? []).map(file => (
-											<AgentFileDiff key={`${file.path}:${file.op}`} file={file} />
-										))}
-									</Stack>
-								</Box>
-							) : null}
-						</Box>
-					) : null}
-				</Box>
-			)})}
+							</Box>
+						) : null}
+					</Box>
+				)
+			})}
 		</Stack>
 	);
 }

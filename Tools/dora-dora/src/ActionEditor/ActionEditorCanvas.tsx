@@ -1,8 +1,8 @@
-import React, {memo, useCallback, useEffect, useMemo, useRef} from "react";
-import {ImGui, ImGui_Impl} from "@zhobo63/imgui-ts";
-import type {ActionClipDocument} from "./ActionClip";
-import type {ActionDocument, ActionDiagnostic, ActionFrameTrack, ActionKeyFrame, ActionNode} from "./ActionDocument";
-import type {ActionViewport} from "./ActionEditorState";
+import React, { memo, useCallback, useEffect, useMemo, useRef } from "react";
+import { ImGui, ImGui_Impl } from "@zhobo63/imgui-ts";
+import type { ActionClipDocument } from "./ActionClip";
+import type { ActionDocument, ActionDiagnostic, ActionFrameTrack, ActionKeyFrame, ActionNode } from "./ActionDocument";
+import type { ActionViewport } from "./ActionEditorState";
 import {
 	addActionLook,
 	addChildActionNode,
@@ -45,7 +45,7 @@ import {
 	screenToModel,
 	screenDeltaToNodeLocalDelta,
 } from "./ActionRender";
-import {ActionImGuiRuntime, ActionImGuiFrame} from "./ActionImGuiRuntime";
+import { ActionImGuiRuntime, ActionImGuiFrame } from "./ActionImGuiRuntime";
 
 export type ActionEditorMode = "pose" | "look" | "animation";
 export type ActionDocumentChangeOptions = {
@@ -108,19 +108,19 @@ type PanelState = {
 	gizmoMode: "select" | "move" | "scale" | "rotate";
 	fixedSnap: boolean;
 	anisotropicFiltering: boolean;
-	lastDragDelta: {x: number; y: number};
+	lastDragDelta: { x: number; y: number };
 	viewportDragButton: 0 | 1 | null;
 	viewportDragAction: "pan" | "edit" | null;
-	viewportArea: {x: number; y: number; width: number; height: number};
+	viewportArea: { x: number; y: number; width: number; height: number };
 	imguiCapturesPointer: boolean;
 	dragNodeId: string | null;
-	dragStartPosition: {x: number; y: number} | null;
+	dragStartPosition: { x: number; y: number } | null;
 	dragStartRotation: number | null;
-	dragStartPointer: {x: number; y: number} | null;
+	dragStartPointer: { x: number; y: number } | null;
 	dragStartPointerAngle: number | null;
 	dragLastPointerAngle: number | null;
 	dragAccumulatedRotationDelta: number;
-	dragAnchorScreen: {x: number; y: number} | null;
+	dragAnchorScreen: { x: number; y: number } | null;
 	timelineDragMode: "scrub" | "scroll" | null;
 	timelineDragStartMouseX: number;
 	timelineDragStartOffsetFrame: number;
@@ -209,7 +209,7 @@ const easeNames = [
 	"OutInBounce",
 ];
 
-const vec4 = (x: number, y: number, z: number, w: number) => ({x, y, z, w});
+const vec4 = (x: number, y: number, z: number, w: number) => ({ x, y, z, w });
 const themeColor = vec4(0xfa / 0xff, 0xc0 / 0xff, 0x3d / 0xff, 1);
 
 const snapValue = (value: number, fixed: boolean, step: number) => fixed ? Math.round(value / step) * step : value;
@@ -221,7 +221,7 @@ const pointerAngleStepDelta = (degrees: number) => {
 	return result;
 };
 
-const pointerAngleDegrees = (center: {x: number; y: number}, point: {x: number; y: number}) => {
+const pointerAngleDegrees = (center: { x: number; y: number }, point: { x: number; y: number }) => {
 	return Math.atan2(point.y - center.y, point.x - center.x) * 180 / Math.PI;
 };
 
@@ -384,7 +384,7 @@ const renderTreeNode = (
 	}
 	const rowStart = imgui.GetCursorScreenPos();
 	imgui.PushID(`tree-eye.${node.id}`);
-	if (imgui.InvisibleButton("preview-visibility", {x: eyeSize, y: previewSize}, 0)) {
+	if (imgui.InvisibleButton("preview-visibility", { x: eyeSize, y: previewSize }, 0)) {
 		if (directlyHidden) {
 			panelState.previewHiddenNodeIds.delete(node.id);
 		} else {
@@ -394,40 +394,40 @@ const renderTreeNode = (
 	imgui.PopID();
 	imgui.PushID(`tree-preview.${node.id}`);
 	imgui.SameLine();
-	imgui.SetCursorScreenPos({x: rowStart.x + eyeSize + 2, y: rowStart.y});
-	if (imgui.InvisibleButton("preview", {x: previewSize, y: previewSize}, 0)) {
+	imgui.SetCursorScreenPos({ x: rowStart.x + eyeSize + 2, y: rowStart.y });
+	if (imgui.InvisibleButton("preview", { x: previewSize, y: previewSize }, 0)) {
 		props.onSelectionChange(node.id);
 	}
 	imgui.PopID();
 	const drawList = imgui.GetWindowDrawList();
-	const eyeCenter = {x: rowStart.x + eyeSize * 0.5, y: rowStart.y + previewSize * 0.5};
+	const eyeCenter = { x: rowStart.x + eyeSize * 0.5, y: rowStart.y + previewSize * 0.5 };
 	const eyeColor = previewVisible ? 0xffd6d6d6 : 0xff686868;
-	drawList.AddLine({x: eyeCenter.x - 8, y: eyeCenter.y}, {x: eyeCenter.x, y: eyeCenter.y - 5}, eyeColor, 1.2);
-	drawList.AddLine({x: eyeCenter.x, y: eyeCenter.y - 5}, {x: eyeCenter.x + 8, y: eyeCenter.y}, eyeColor, 1.2);
-	drawList.AddLine({x: eyeCenter.x + 8, y: eyeCenter.y}, {x: eyeCenter.x, y: eyeCenter.y + 5}, eyeColor, 1.2);
-	drawList.AddLine({x: eyeCenter.x, y: eyeCenter.y + 5}, {x: eyeCenter.x - 8, y: eyeCenter.y}, eyeColor, 1.2);
+	drawList.AddLine({ x: eyeCenter.x - 8, y: eyeCenter.y }, { x: eyeCenter.x, y: eyeCenter.y - 5 }, eyeColor, 1.2);
+	drawList.AddLine({ x: eyeCenter.x, y: eyeCenter.y - 5 }, { x: eyeCenter.x + 8, y: eyeCenter.y }, eyeColor, 1.2);
+	drawList.AddLine({ x: eyeCenter.x + 8, y: eyeCenter.y }, { x: eyeCenter.x, y: eyeCenter.y + 5 }, eyeColor, 1.2);
+	drawList.AddLine({ x: eyeCenter.x, y: eyeCenter.y + 5 }, { x: eyeCenter.x - 8, y: eyeCenter.y }, eyeColor, 1.2);
 	if (previewVisible) {
 		drawList.AddCircleFilled(eyeCenter, 2.3, eyeColor, 12);
 	} else {
 		drawList.AddLine(
-			{x: eyeCenter.x - 8, y: eyeCenter.y + 6},
-			{x: eyeCenter.x + 8, y: eyeCenter.y - 6},
+			{ x: eyeCenter.x - 8, y: eyeCenter.y + 6 },
+			{ x: eyeCenter.x + 8, y: eyeCenter.y - 6 },
 			eyeColor,
 			1.5,
 		);
 	}
-	const previewStart = {x: rowStart.x + eyeSize + 2, y: rowStart.y};
+	const previewStart = { x: rowStart.x + eyeSize + 2, y: rowStart.y };
 	drawList.AddRectFilled(
 		previewStart,
-		{x: previewStart.x + previewSize, y: previewStart.y + previewSize},
+		{ x: previewStart.x + previewSize, y: previewStart.y + previewSize },
 		node.clip === "" ? 0xff252525 : 0xff303030,
 		0,
 		0,
 	);
 	if (node.clip === "") {
 		drawList.AddRect(
-			{x: previewStart.x + 6, y: previewStart.y + 6},
-			{x: previewStart.x + previewSize - 6, y: previewStart.y + previewSize - 6},
+			{ x: previewStart.x + 6, y: previewStart.y + 6 },
+			{ x: previewStart.x + previewSize - 6, y: previewStart.y + previewSize - 6 },
 			0xff686868,
 			3,
 			0,
@@ -445,18 +445,18 @@ const renderTreeNode = (
 		drawList.AddImage(
 			atlasTexture.texture,
 			imagePos,
-			{x: imagePos.x + imageWidth, y: imagePos.y + imageHeight},
-			{x: clipRect.x / atlasTexture.width, y: clipRect.y / atlasTexture.height},
-			{x: (clipRect.x + clipRect.width) / atlasTexture.width, y: (clipRect.y + clipRect.height) / atlasTexture.height},
+			{ x: imagePos.x + imageWidth, y: imagePos.y + imageHeight },
+			{ x: clipRect.x / atlasTexture.width, y: clipRect.y / atlasTexture.height },
+			{ x: (clipRect.x + clipRect.width) / atlasTexture.width, y: (clipRect.y + clipRect.height) / atlasTexture.height },
 			0xffffffff,
 		);
 	}
 	imgui.SameLine();
-	imgui.SetCursorScreenPos({x: rowStart.x + eyeSize + previewSize + treeLabelGap, y: rowStart.y + 4});
-	if (imgui.Selectable(label, selected, 0, {x: 0, y: 22})) {
+	imgui.SetCursorScreenPos({ x: rowStart.x + eyeSize + previewSize + treeLabelGap, y: rowStart.y + 4 });
+	if (imgui.Selectable(label, selected, 0, { x: 0, y: 22 })) {
 		props.onSelectionChange(node.id);
 	}
-	imgui.SetCursorScreenPos({x: rowStart.x, y: rowStart.y + rowHeight});
+	imgui.SetCursorScreenPos({ x: rowStart.x, y: rowStart.y + rowHeight });
 	if (depth > 0) {
 		imgui.Unindent(depth * treeIndentWidth);
 	}
@@ -471,35 +471,35 @@ const renderNodeCommands = (
 	panelState: PanelState,
 ) => {
 	const selected = findActionNode(props.document.root, props.selectedNodeId) ?? props.document.root;
-	if (!props.readOnly && imgui.Button("Add Child", {x: 86, y: 0})) {
+	if (!props.readOnly && imgui.Button("Add Child", { x: 86, y: 0 })) {
 		const next = addChildActionNode(props.document, selected.id);
 		props.onDocumentChange(next);
 	}
 	if (panelState.previewHiddenNodeIds.size > 0) {
 		imgui.SameLine();
-		if (imgui.Button("Show All", {x: 78, y: 0})) {
+		if (imgui.Button("Show All", { x: 78, y: 0 })) {
 			panelState.previewHiddenNodeIds.clear();
 		}
 	}
 	if (selected.id !== props.document.root.id) {
 		imgui.SameLine();
-		if (!props.readOnly && imgui.Button("Delete", {x: 72, y: 0})) {
+		if (!props.readOnly && imgui.Button("Delete", { x: 72, y: 0 })) {
 			props.onDocumentChange(removeActionNode(props.document, selected.id));
 			props.onSelectionChange(props.document.root.id);
 		}
-		if (!props.readOnly && imgui.Button("Up", {x: 50, y: 0})) {
+		if (!props.readOnly && imgui.Button("Up", { x: 50, y: 0 })) {
 			props.onDocumentChange(reorderActionNode(props.document, selected.id, -1));
 		}
 		imgui.SameLine();
-		if (!props.readOnly && imgui.Button("Down", {x: 62, y: 0})) {
+		if (!props.readOnly && imgui.Button("Down", { x: 62, y: 0 })) {
 			props.onDocumentChange(reorderActionNode(props.document, selected.id, 1));
 		}
 		imgui.SameLine();
-		if (!props.readOnly && imgui.Button(panelState.moveSourceId === selected.id ? "Cancel Move" : "Move", {x: 96, y: 0})) {
+		if (!props.readOnly && imgui.Button(panelState.moveSourceId === selected.id ? "Cancel Move" : "Move", { x: 96, y: 0 })) {
 			panelState.moveSourceId = panelState.moveSourceId === selected.id ? null : selected.id;
 		}
 		if (panelState.moveSourceId && panelState.moveSourceId !== selected.id) {
-			if (imgui.Button("Move Here", {x: 96, y: 0})) {
+			if (imgui.Button("Move Here", { x: 96, y: 0 })) {
 				props.onDocumentChange(moveActionNodeToParent(props.document, panelState.moveSourceId, selected.id));
 				panelState.moveSourceId = null;
 			}
@@ -528,10 +528,10 @@ const getInputHistoryOptions = (
 		delete panelState.inputHistoryStarted[id];
 	}
 	if (!changed) return undefined;
-	if (!imgui.IsItemActive()) return {history: "push"};
+	if (!imgui.IsItemActive()) return { history: "push" };
 	const history: ActionDocumentChangeOptions["history"] = panelState.inputHistoryStarted[id] ? "replace" : "push";
 	panelState.inputHistoryStarted[id] = true;
-	return {history};
+	return { history };
 };
 
 const inputNumber = (
@@ -571,7 +571,7 @@ const renderNodeClipSelector = (
 ) => {
 	imgui.Text("Clip:");
 	imgui.SameLine();
-	if (imgui.Button(`${selected.clip || "None"}##node-clip`, {x: 160, y: 0}) && !props.readOnly) {
+	if (imgui.Button(`${selected.clip || "None"}##node-clip`, { x: 160, y: 0 }) && !props.readOnly) {
 		imgui.OpenPopup("Select Node Clip", 0);
 	}
 	const modalFlags = imgui.WindowFlags.NoResize | imgui.WindowFlags.AlwaysAutoResize | imgui.WindowFlags.NoSavedSettings;
@@ -589,9 +589,9 @@ const renderNodeClipSelector = (
 			const cellHeight = 92;
 			const columns = 4;
 			const listHeight = Math.min(390, Math.max(cellHeight, Math.ceil(items.length / columns) * cellHeight));
-			imgui.BeginChild("node-clip-list", {x: columns * cellWidth + 18, y: listHeight}, true, 0);
+			imgui.BeginChild("node-clip-list", { x: columns * cellWidth + 18, y: listHeight }, true, 0);
 			try {
-				if (imgui.BeginTable("node-clip-grid", columns, 0, {x: columns * cellWidth, y: 0}, 0)) {
+				if (imgui.BeginTable("node-clip-grid", columns, 0, { x: columns * cellWidth, y: 0 }, 0)) {
 					try {
 						for (let row = 0; row < Math.ceil(items.length / columns); row += 1) {
 							imgui.TableNextRow(0, cellHeight);
@@ -605,15 +605,15 @@ const renderNodeClipSelector = (
 								imgui.PushID(`node-clip.${isEmpty ? "empty" : name}`);
 								try {
 									const cellStart = imgui.GetCursorScreenPos();
-									if (imgui.Button("##clip-cell", {x: previewSize, y: previewSize}) && !props.readOnly) {
-										emitNodeChange(props, selected.id, (node) => ({...node, clip: name}));
+									if (imgui.Button("##clip-cell", { x: previewSize, y: previewSize }) && !props.readOnly) {
+										emitNodeChange(props, selected.id, (node) => ({ ...node, clip: name }));
 										imgui.CloseCurrentPopup();
 									}
 									const drawList = imgui.GetWindowDrawList();
 									const frameColor = selectedItem ? selectedNode : 0xff686868;
 									drawList.AddRect(
 										cellStart,
-										{x: cellStart.x + previewSize, y: cellStart.y + previewSize},
+										{ x: cellStart.x + previewSize, y: cellStart.y + previewSize },
 										frameColor,
 										4,
 										0,
@@ -621,8 +621,8 @@ const renderNodeClipSelector = (
 									);
 									if (isEmpty) {
 										drawList.AddRect(
-											{x: cellStart.x + 18, y: cellStart.y + 18},
-											{x: cellStart.x + previewSize - 18, y: cellStart.y + previewSize - 18},
+											{ x: cellStart.x + 18, y: cellStart.y + 18 },
+											{ x: cellStart.x + previewSize - 18, y: cellStart.y + previewSize - 18 },
 											0xff8a8a8a,
 											3,
 											0,
@@ -640,9 +640,9 @@ const renderNodeClipSelector = (
 										drawList.AddImage(
 											atlasTexture.texture,
 											imagePos,
-											{x: imagePos.x + imageWidth, y: imagePos.y + imageHeight},
-											{x: rect.x / atlasTexture.width, y: rect.y / atlasTexture.height},
-											{x: (rect.x + rect.width) / atlasTexture.width, y: (rect.y + rect.height) / atlasTexture.height},
+											{ x: imagePos.x + imageWidth, y: imagePos.y + imageHeight },
+											{ x: rect.x / atlasTexture.width, y: rect.y / atlasTexture.height },
+											{ x: (rect.x + rect.width) / atlasTexture.width, y: (rect.y + rect.height) / atlasTexture.height },
 											0xffffffff,
 										);
 									}
@@ -661,7 +661,7 @@ const renderNodeClipSelector = (
 				imgui.EndChild();
 			}
 			imgui.Separator();
-			if (imgui.Button("Cancel", {x: 86, y: 0})) {
+			if (imgui.Button("Cancel", { x: 86, y: 0 })) {
 				imgui.CloseCurrentPopup();
 			}
 		} finally {
@@ -681,13 +681,13 @@ const renderProperties = (
 	if (!isRoot) {
 		const nextName = inputText(imgui, "Name", selected.name, props.readOnly);
 		if (nextName !== null) {
-			emitNodeChange(props, selected.id, (node) => ({...node, name: nextName}));
+			emitNodeChange(props, selected.id, (node) => ({ ...node, name: nextName }));
 		}
 		renderNodeClipSelector(imgui, props, selected, atlasTexture);
 	}
 	const front = [selected.front];
 	if (imgui.Checkbox("Face Right", front) && !props.readOnly) {
-		emitNodeChange(props, selected.id, (node) => ({...node, front: front[0]}));
+		emitNodeChange(props, selected.id, (node) => ({ ...node, front: front[0] }));
 	}
 	if (isRoot) {
 		const width = inputNumber(imgui, "Width", props.document.size.width, props.readOnly, 1, panelState);
@@ -706,25 +706,25 @@ const renderProperties = (
 	}
 	const updateTransform = (updater: (node: ActionNode) => ActionNode, options?: ActionDocumentChangeOptions) => emitNodeChange(props, selected.id, updater, options);
 	const x = inputNumber(imgui, "X", selected.transform.position.x, props.readOnly, 1, panelState);
-	if (x !== null) updateTransform((node) => ({...node, transform: {...node.transform, position: {...node.transform.position, x: x.value}}}), x.options);
+	if (x !== null) updateTransform((node) => ({ ...node, transform: { ...node.transform, position: { ...node.transform.position, x: x.value } } }), x.options);
 	const y = inputNumber(imgui, "Y", selected.transform.position.y, props.readOnly, 1, panelState);
-	if (y !== null) updateTransform((node) => ({...node, transform: {...node.transform, position: {...node.transform.position, y: y.value}}}), y.options);
+	if (y !== null) updateTransform((node) => ({ ...node, transform: { ...node.transform, position: { ...node.transform.position, y: y.value } } }), y.options);
 	const scaleX = inputNumber(imgui, "Scale X", selected.transform.scale.x, props.readOnly, 0.1, panelState);
-	if (scaleX !== null) updateTransform((node) => ({...node, transform: {...node.transform, scale: {...node.transform.scale, x: scaleX.value}}}), scaleX.options);
+	if (scaleX !== null) updateTransform((node) => ({ ...node, transform: { ...node.transform, scale: { ...node.transform.scale, x: scaleX.value } } }), scaleX.options);
 	const scaleY = inputNumber(imgui, "Scale Y", selected.transform.scale.y, props.readOnly, 0.1, panelState);
-	if (scaleY !== null) updateTransform((node) => ({...node, transform: {...node.transform, scale: {...node.transform.scale, y: scaleY.value}}}), scaleY.options);
+	if (scaleY !== null) updateTransform((node) => ({ ...node, transform: { ...node.transform, scale: { ...node.transform.scale, y: scaleY.value } } }), scaleY.options);
 	const rotation = inputNumber(imgui, "Angle", selected.transform.rotation, props.readOnly, 1, panelState);
-	if (rotation !== null) updateTransform((node) => ({...node, transform: {...node.transform, rotation: rotation.value}}), rotation.options);
+	if (rotation !== null) updateTransform((node) => ({ ...node, transform: { ...node.transform, rotation: rotation.value } }), rotation.options);
 	const skewX = inputNumber(imgui, "Skew X", selected.transform.skew.x, props.readOnly, 0.1, panelState);
-	if (skewX !== null) updateTransform((node) => ({...node, transform: {...node.transform, skew: {...node.transform.skew, x: skewX.value}}}), skewX.options);
+	if (skewX !== null) updateTransform((node) => ({ ...node, transform: { ...node.transform, skew: { ...node.transform.skew, x: skewX.value } } }), skewX.options);
 	const skewY = inputNumber(imgui, "Skew Y", selected.transform.skew.y, props.readOnly, 0.1, panelState);
-	if (skewY !== null) updateTransform((node) => ({...node, transform: {...node.transform, skew: {...node.transform.skew, y: skewY.value}}}), skewY.options);
+	if (skewY !== null) updateTransform((node) => ({ ...node, transform: { ...node.transform, skew: { ...node.transform.skew, y: skewY.value } } }), skewY.options);
 	const opacity = inputNumber(imgui, "Opacity", selected.transform.opacity, props.readOnly, 0.05, panelState);
-	if (opacity !== null) updateTransform((node) => ({...node, transform: {...node.transform, opacity: Math.max(0, Math.min(1, opacity.value))}}), opacity.options);
+	if (opacity !== null) updateTransform((node) => ({ ...node, transform: { ...node.transform, opacity: Math.max(0, Math.min(1, opacity.value)) } }), opacity.options);
 	const anchorX = inputNumber(imgui, "Anchor X", selected.transform.anchor.x, props.readOnly, 0.05, panelState);
-	if (anchorX !== null) updateTransform((node) => ({...node, transform: {...node.transform, anchor: {...node.transform.anchor, x: anchorX.value}}}), anchorX.options);
+	if (anchorX !== null) updateTransform((node) => ({ ...node, transform: { ...node.transform, anchor: { ...node.transform.anchor, x: anchorX.value } } }), anchorX.options);
 	const anchorY = inputNumber(imgui, "Anchor Y", selected.transform.anchor.y, props.readOnly, 0.05, panelState);
-	if (anchorY !== null) updateTransform((node) => ({...node, transform: {...node.transform, anchor: {...node.transform.anchor, y: anchorY.value}}}), anchorY.options);
+	if (anchorY !== null) updateTransform((node) => ({ ...node, transform: { ...node.transform, anchor: { ...node.transform.anchor, y: anchorY.value } } }), anchorY.options);
 };
 
 const renderAnimationKeyFrameProperties = (
@@ -747,43 +747,43 @@ const renderAnimationKeyFrameProperties = (
 	imgui.Text(`Key Frame ${secondsToFrame(frame.time)}f`);
 	const visible = [frame.visible];
 	if (imgui.Checkbox("Visible", visible) && !props.readOnly) {
-		emitKeyFrameChange(props, selected.id, (item) => ({...item, visible: visible[0]}));
+		emitKeyFrameChange(props, selected.id, (item) => ({ ...item, visible: visible[0] }));
 	}
 	const update = (updater: (frame: ActionKeyFrame) => ActionKeyFrame, options?: ActionDocumentChangeOptions) => {
 		emitKeyFrameChange(props, selected.id, updater, options);
 	};
 	const x = inputNumber(imgui, "X", frame.transform.position.x, props.readOnly, 1, panelState);
-	if (x !== null) update((item) => ({...item, transform: {...item.transform, position: {...item.transform.position, x: x.value}}}), x.options);
+	if (x !== null) update((item) => ({ ...item, transform: { ...item.transform, position: { ...item.transform.position, x: x.value } } }), x.options);
 	const y = inputNumber(imgui, "Y", frame.transform.position.y, props.readOnly, 1, panelState);
-	if (y !== null) update((item) => ({...item, transform: {...item.transform, position: {...item.transform.position, y: y.value}}}), y.options);
+	if (y !== null) update((item) => ({ ...item, transform: { ...item.transform, position: { ...item.transform.position, y: y.value } } }), y.options);
 	const scaleX = inputNumber(imgui, "Scale X", frame.transform.scale.x, props.readOnly, 0.1, panelState);
-	if (scaleX !== null) update((item) => ({...item, transform: {...item.transform, scale: {...item.transform.scale, x: scaleX.value}}}), scaleX.options);
+	if (scaleX !== null) update((item) => ({ ...item, transform: { ...item.transform, scale: { ...item.transform.scale, x: scaleX.value } } }), scaleX.options);
 	const scaleY = inputNumber(imgui, "Scale Y", frame.transform.scale.y, props.readOnly, 0.1, panelState);
-	if (scaleY !== null) update((item) => ({...item, transform: {...item.transform, scale: {...item.transform.scale, y: scaleY.value}}}), scaleY.options);
+	if (scaleY !== null) update((item) => ({ ...item, transform: { ...item.transform, scale: { ...item.transform.scale, y: scaleY.value } } }), scaleY.options);
 	const rotation = inputNumber(imgui, "Angle", frame.transform.rotation, props.readOnly, 1, panelState);
-	if (rotation !== null) update((item) => ({...item, transform: {...item.transform, rotation: rotation.value}}), rotation.options);
+	if (rotation !== null) update((item) => ({ ...item, transform: { ...item.transform, rotation: rotation.value } }), rotation.options);
 	const skewX = inputNumber(imgui, "Skew X", frame.transform.skew.x, props.readOnly, 0.1, panelState);
-	if (skewX !== null) update((item) => ({...item, transform: {...item.transform, skew: {...item.transform.skew, x: skewX.value}}}), skewX.options);
+	if (skewX !== null) update((item) => ({ ...item, transform: { ...item.transform, skew: { ...item.transform.skew, x: skewX.value } } }), skewX.options);
 	const skewY = inputNumber(imgui, "Skew Y", frame.transform.skew.y, props.readOnly, 0.1, panelState);
-	if (skewY !== null) update((item) => ({...item, transform: {...item.transform, skew: {...item.transform.skew, y: skewY.value}}}), skewY.options);
+	if (skewY !== null) update((item) => ({ ...item, transform: { ...item.transform, skew: { ...item.transform.skew, y: skewY.value } } }), skewY.options);
 	const opacity = inputNumber(imgui, "Opacity", frame.transform.opacity, props.readOnly, 0.05, panelState);
-	if (opacity !== null) update((item) => ({...item, transform: {...item.transform, opacity: Math.max(0, Math.min(1, opacity.value))}}), opacity.options);
+	if (opacity !== null) update((item) => ({ ...item, transform: { ...item.transform, opacity: Math.max(0, Math.min(1, opacity.value)) } }), opacity.options);
 	const firstKeyFrame = props.selectedAnimation !== null && isFirstActionKeyFrame(props.document, selected.id, props.selectedAnimation, frame.time);
 	if (!firstKeyFrame) {
 		const easePosition = inputEase(imgui, "Move", frame.ease.position, props.readOnly);
-		if (easePosition !== null) update((item) => ({...item, ease: {...item.ease, position: easePosition}}));
+		if (easePosition !== null) update((item) => ({ ...item, ease: { ...item.ease, position: easePosition } }));
 		const easeScale = inputEase(imgui, "Scale", frame.ease.scale, props.readOnly);
-		if (easeScale !== null) update((item) => ({...item, ease: {...item.ease, scale: easeScale}}));
+		if (easeScale !== null) update((item) => ({ ...item, ease: { ...item.ease, scale: easeScale } }));
 		const easeSkew = inputEase(imgui, "Skew", frame.ease.skew, props.readOnly);
-		if (easeSkew !== null) update((item) => ({...item, ease: {...item.ease, skew: easeSkew}}));
+		if (easeSkew !== null) update((item) => ({ ...item, ease: { ...item.ease, skew: easeSkew } }));
 		const easeRotation = inputEase(imgui, "Angle", frame.ease.rotation, props.readOnly);
-		if (easeRotation !== null) update((item) => ({...item, ease: {...item.ease, rotation: easeRotation}}));
+		if (easeRotation !== null) update((item) => ({ ...item, ease: { ...item.ease, rotation: easeRotation } }));
 		const easeOpacity = inputEase(imgui, "Opacity", frame.ease.opacity, props.readOnly);
-		if (easeOpacity !== null) update((item) => ({...item, ease: {...item.ease, opacity: easeOpacity}}));
+		if (easeOpacity !== null) update((item) => ({ ...item, ease: { ...item.ease, opacity: easeOpacity } }));
 	}
 	const event = inputText(imgui, "Event", frame.event ?? "", props.readOnly);
 	if (event !== null) {
-		update((item) => ({...item, event: event === "" ? undefined : event}));
+		update((item) => ({ ...item, event: event === "" ? undefined : event }));
 	}
 };
 
@@ -807,7 +807,7 @@ const renderAnimationFrameTrackProperties = (
 		duration: 0.1,
 	};
 	const updateTrack = (
-		updater: (item: typeof spec, delay: number) => {spec: typeof spec; delay: number},
+		updater: (item: typeof spec, delay: number) => { spec: typeof spec; delay: number },
 		options?: ActionDocumentChangeOptions,
 	) => {
 		const next = updater(spec, track.delay);
@@ -834,10 +834,10 @@ const renderAnimationFrameTrackProperties = (
 	imgui.PopItemWidth();
 	if (changedClip && !props.readOnly) {
 		const clipName = clipNames[clipIndex[0]] ?? spec.clipName;
-		updateTrack((item, delay) => ({spec: {...item, clipFile: props.document.clipFile, clipName}, delay}));
+		updateTrack((item, delay) => ({ spec: { ...item, clipFile: props.document.clipFile, clipName }, delay }));
 	}
 	imgui.SameLine();
-	if (!props.readOnly && imgui.Button("Fit", {x: 54, y: 0})) {
+	if (!props.readOnly && imgui.Button("Fit", { x: 54, y: 0 })) {
 		const base = props.clipDocument?.rects[spec.clipName];
 		if (base) {
 			const frameHeight = Math.max(1, spec.frameHeight);
@@ -857,23 +857,23 @@ const renderAnimationFrameTrackProperties = (
 	}
 	const frameWidth = inputNumber(imgui, "Frame W", spec.frameWidth, props.readOnly, 1, panelState);
 	if (frameWidth !== null) {
-		updateTrack((item, delay) => ({spec: {...item, frameWidth: Math.max(1, frameWidth.value)}, delay}), frameWidth.options);
+		updateTrack((item, delay) => ({ spec: { ...item, frameWidth: Math.max(1, frameWidth.value) }, delay }), frameWidth.options);
 	}
 	const frameHeight = inputNumber(imgui, "Frame H", spec.frameHeight, props.readOnly, 1, panelState);
 	if (frameHeight !== null) {
-		updateTrack((item, delay) => ({spec: {...item, frameHeight: Math.max(1, frameHeight.value)}, delay}), frameHeight.options);
+		updateTrack((item, delay) => ({ spec: { ...item, frameHeight: Math.max(1, frameHeight.value) }, delay }), frameHeight.options);
 	}
 	const frameCount = inputNumber(imgui, "Count", spec.frameCount, props.readOnly, 1, panelState);
 	if (frameCount !== null) {
-		updateTrack((item, delay) => ({spec: {...item, frameCount: Math.max(1, Math.round(frameCount.value))}, delay}), frameCount.options);
+		updateTrack((item, delay) => ({ spec: { ...item, frameCount: Math.max(1, Math.round(frameCount.value)) }, delay }), frameCount.options);
 	}
 	const duration = inputNumber(imgui, "Duration", spec.duration, props.readOnly, 1 / 60, panelState);
 	if (duration !== null) {
-		updateTrack((item, delay) => ({spec: {...item, duration: Math.max(1 / 60, duration.value)}, delay}), duration.options);
+		updateTrack((item, delay) => ({ spec: { ...item, duration: Math.max(1 / 60, duration.value) }, delay }), duration.options);
 	}
 	const delay = inputNumber(imgui, "Delay", track.delay, props.readOnly, 1 / 60, panelState);
 	if (delay !== null) {
-		updateTrack((item) => ({spec: item, delay: delay.value}), delay.options);
+		updateTrack((item) => ({ spec: item, delay: delay.value }), delay.options);
 	}
 	if (rect) {
 		const columns = Math.max(1, Math.floor(rect.width / Math.max(1, spec.frameWidth)));
@@ -887,7 +887,7 @@ const renderKeyPoints = (
 	props: ActionEditorCanvasProps,
 	panelState: PanelState,
 ) => {
-	if (!props.readOnly && imgui.Button("Add Point", {x: 92, y: 0})) {
+	if (!props.readOnly && imgui.Button("Add Point", { x: 92, y: 0 })) {
 		props.onDocumentChange(addActionKeyPoint(props.document));
 	}
 	for (let index = 0; index < props.document.keyPoints.length; index += 1) {
@@ -904,17 +904,17 @@ const renderKeyPoints = (
 		}
 		const name = inputText(imgui, `Name##kp-name-${index}`, point.name, props.readOnly);
 		if (name !== null) {
-			props.onDocumentChange(updateActionKeyPoint(props.document, index, (item) => ({...item, name})));
+			props.onDocumentChange(updateActionKeyPoint(props.document, index, (item) => ({ ...item, name })));
 		}
 		const x = inputNumber(imgui, `X##kp-x-${index}`, point.x, props.readOnly, 1, panelState);
 		if (x !== null) {
-			props.onDocumentChange(updateActionKeyPoint(props.document, index, (item) => ({...item, x: x.value})), x.options);
+			props.onDocumentChange(updateActionKeyPoint(props.document, index, (item) => ({ ...item, x: x.value })), x.options);
 		}
 		const y = inputNumber(imgui, `Y##kp-y-${index}`, point.y, props.readOnly, 1, panelState);
 		if (y !== null) {
-			props.onDocumentChange(updateActionKeyPoint(props.document, index, (item) => ({...item, y: y.value})), y.options);
+			props.onDocumentChange(updateActionKeyPoint(props.document, index, (item) => ({ ...item, y: y.value })), y.options);
 		}
-		if (!props.readOnly && imgui.Button(`Delete Point##kp-del-${index}`, {x: 116, y: 0})) {
+		if (!props.readOnly && imgui.Button(`Delete Point##kp-del-${index}`, { x: 116, y: 0 })) {
 			props.onDocumentChange(removeActionKeyPoint(props.document, index));
 			const nextVisible = new Set<number>();
 			for (const visibleIndex of panelState.visibleKeyPointIndexes) {
@@ -930,7 +930,7 @@ const renderLooks = (
 	imgui: ActionImGuiFrame,
 	props: ActionEditorCanvasProps,
 ) => {
-	if (!props.readOnly && imgui.Button("Add Look", {x: 90, y: 0})) {
+	if (!props.readOnly && imgui.Button("Add Look", { x: 90, y: 0 })) {
 		const next = addActionLook(props.document);
 		const added = next.looks.find((look) => props.document.looks.indexOf(look) < 0) ?? next.looks[next.looks.length - 1] ?? null;
 		props.onDocumentChange(next);
@@ -941,15 +941,15 @@ const renderLooks = (
 	}
 	if (props.selectedLook !== null) {
 		imgui.SameLine();
-		if (!props.readOnly && imgui.Button("Delete Look", {x: 106, y: 0})) {
+		if (!props.readOnly && imgui.Button("Delete Look", { x: 106, y: 0 })) {
 			props.onDocumentChange(removeActionLook(props.document, props.selectedLook));
 			props.onLookSelect(null);
 		}
 	}
-	imgui.BeginChild("look-list", {x: 0, y: boundedChildHeight(imgui, lookListHeight, 150)}, true, 0);
+	imgui.BeginChild("look-list", { x: 0, y: boundedChildHeight(imgui, lookListHeight, 150) }, true, 0);
 	try {
 		for (const look of props.document.looks) {
-			if (imgui.Selectable(`${look}##look.${look}`, props.selectedLook === look, 0, {x: 0, y: 22})) {
+			if (imgui.Selectable(`${look}##look.${look}`, props.selectedLook === look, 0, { x: 0, y: 22 })) {
 				props.onLookSelect(look);
 				props.onAnimationSelect(null);
 				props.onPlaybackPlayingChange(false);
@@ -979,7 +979,7 @@ const renderAnimations = (
 	props: ActionEditorCanvasProps,
 	panelState: PanelState,
 ) => {
-	if (!props.readOnly && imgui.Button("Add Animation", {x: 124, y: 0})) {
+	if (!props.readOnly && imgui.Button("Add Animation", { x: 124, y: 0 })) {
 		const result = addActionAnimation(props.document);
 		props.onDocumentChange(result.document);
 		props.onAnimationSelect(result.animation);
@@ -998,10 +998,10 @@ const renderAnimations = (
 	imgui.Columns(2, "animation-look-columns", false);
 	try {
 		imgui.TextColored(themeColor, "Animation");
-		imgui.BeginChild("animation-list", {x: 0, y: listHeight}, true, 0);
+		imgui.BeginChild("animation-list", { x: 0, y: listHeight }, true, 0);
 		try {
 			for (const animation of props.document.animations) {
-				if (imgui.Selectable(`${animation}##anim.${animation}`, props.selectedAnimation === animation, 0, {x: 0, y: 22})) {
+				if (imgui.Selectable(`${animation}##anim.${animation}`, props.selectedAnimation === animation, 0, { x: 0, y: 22 })) {
 					props.onAnimationSelect(animation);
 					props.onPlaybackTimeChange(0);
 				}
@@ -1011,13 +1011,13 @@ const renderAnimations = (
 		}
 		imgui.NextColumn();
 		imgui.TextColored(themeColor, "Look");
-		imgui.BeginChild("animation-look-list", {x: 0, y: listHeight}, true, 0);
+		imgui.BeginChild("animation-look-list", { x: 0, y: listHeight }, true, 0);
 		try {
-			if (imgui.Selectable("Default##anim-look.default", props.selectedLook === null, 0, {x: 0, y: 22})) {
+			if (imgui.Selectable("Default##anim-look.default", props.selectedLook === null, 0, { x: 0, y: 22 })) {
 				props.onLookSelect(null);
 			}
 			for (const look of props.document.looks) {
-				if (imgui.Selectable(`${look}##anim-look.${look}`, props.selectedLook === look, 0, {x: 0, y: 22})) {
+				if (imgui.Selectable(`${look}##anim-look.${look}`, props.selectedLook === look, 0, { x: 0, y: 22 })) {
 					props.onLookSelect(look);
 				}
 			}
@@ -1031,7 +1031,7 @@ const renderAnimations = (
 	imgui.Separator();
 	imgui.BeginChild(
 		"animation-detail-scroll",
-		{x: 0, y: Math.max(1, imgui.GetContentRegionAvail().y)},
+		{ x: 0, y: Math.max(1, imgui.GetContentRegionAvail().y) },
 		false,
 		imgui.WindowFlags.AlwaysUseWindowPadding,
 	);
@@ -1059,7 +1059,7 @@ const renderAnimations = (
 			}
 		}
 		const duration = getActionAnimationDuration(props.document, props.selectedAnimation);
-		if (imgui.Button(props.playbackPlaying ? "Pause" : "Play", {x: 64, y: 0})) {
+		if (imgui.Button(props.playbackPlaying ? "Pause" : "Play", { x: 64, y: 0 })) {
 			props.onPlaybackPlayingChange(!props.playbackPlaying);
 		}
 		imgui.SameLine();
@@ -1098,30 +1098,30 @@ const renderAnimations = (
 		const currentFrame = track?.type === "key"
 			? track.keyframes.find((frame) => Math.abs(frame.time - props.playbackTime) < 1 / 120)
 			: undefined;
-		if (!currentFrame && !props.readOnly && imgui.Button("Add Key", {x: 96, y: 0})) {
+		if (!currentFrame && !props.readOnly && imgui.Button("Add Key", { x: 96, y: 0 })) {
 			props.onDocumentChange(upsertActionKeyFrame(props.document, selected.id, props.selectedAnimation, props.playbackTime));
 		}
 		if (!currentFrame) imgui.SameLine();
-		if (!props.readOnly && imgui.Button("Delete Key", {x: 96, y: 0})) {
+		if (!props.readOnly && imgui.Button("Delete Key", { x: 96, y: 0 })) {
 			props.onDocumentChange(deleteActionKeyFrame(props.document, selected.id, props.selectedAnimation, props.playbackTime));
 		}
 		if (panelState.copiedKeyFrame !== null) {
-			if (!props.readOnly && imgui.Button("Cancel Copy", {x: 96, y: 0})) {
+			if (!props.readOnly && imgui.Button("Cancel Copy", { x: 96, y: 0 })) {
 				panelState.copiedKeyFrame = null;
 			}
 		} else if (panelState.movingKeyTime !== null) {
 			const text = `Moving key: ${secondsToFrame(panelState.movingKeyTime)}f`;
-			if (!props.readOnly && imgui.Button("Cancel Move", {x: 96, y: 0})) {
+			if (!props.readOnly && imgui.Button("Cancel Move", { x: 96, y: 0 })) {
 				panelState.movingKeyTime = null;
 			}
 			imgui.Text(text);
 		} else if (currentFrame) {
-			if (!props.readOnly && imgui.Button("Copy Key", {x: 96, y: 0})) {
+			if (!props.readOnly && imgui.Button("Copy Key", { x: 96, y: 0 })) {
 				panelState.copiedKeyFrame = copyActionKeyFrame(props.document, selected.id, props.selectedAnimation, props.playbackTime);
 				panelState.movingKeyTime = null;
 			}
 			imgui.SameLine();
-			if (!props.readOnly && imgui.Button("Move Key", {x: 96, y: 0})) {
+			if (!props.readOnly && imgui.Button("Move Key", { x: 96, y: 0 })) {
 				panelState.movingKeyTime = props.playbackTime;
 				panelState.copiedKeyFrame = null;
 			}
@@ -1129,7 +1129,7 @@ const renderAnimations = (
 		if (panelState.copiedKeyFrame !== null) {
 			const text = `Copying key: ${secondsToFrame(panelState.copiedKeyFrame.time)}f`;
 			imgui.SameLine();
-			if (!props.readOnly && imgui.Button("Paste Key", {x: 96, y: 0})) {
+			if (!props.readOnly && imgui.Button("Paste Key", { x: 96, y: 0 })) {
 				props.onDocumentChange(pasteActionKeyFrame(props.document, selected.id, props.selectedAnimation, props.playbackTime, panelState.copiedKeyFrame));
 				panelState.copiedKeyFrame = null;
 			}
@@ -1164,7 +1164,7 @@ const renderModeTabs = (
 				const contentFlags = mode === "animation"
 					? imgui.WindowFlags.AlwaysUseWindowPadding | imgui.WindowFlags.NoScrollbar | imgui.WindowFlags.NoScrollWithMouse
 					: imgui.WindowFlags.AlwaysUseWindowPadding;
-				imgui.BeginChild(`right-tab-content.${mode}`, {x: 0, y: Math.max(1, imgui.GetContentRegionAvail().y)}, false, contentFlags);
+				imgui.BeginChild(`right-tab-content.${mode}`, { x: 0, y: Math.max(1, imgui.GetContentRegionAvail().y) }, false, contentFlags);
 				try {
 					renderContent();
 					if (mode !== "animation" && !props.playbackPlaying) {
@@ -1238,7 +1238,7 @@ const renderClipFileSelector = (
 ) => {
 	imgui.Text("Clip:");
 	imgui.SameLine();
-	if (imgui.Button(`${props.document.clipFile || "(none)"}##model-clip`, {x: 160, y: 0}) && !props.readOnly) {
+	if (imgui.Button(`${props.document.clipFile || "(none)"}##model-clip`, { x: 160, y: 0 }) && !props.readOnly) {
 		imgui.OpenPopup("Select Model Clip", 0);
 	}
 	const modalFlags = imgui.WindowFlags.NoResize | imgui.WindowFlags.AlwaysAutoResize | imgui.WindowFlags.NoSavedSettings;
@@ -1250,10 +1250,10 @@ const renderClipFileSelector = (
 				imgui.TextDisabled("No .clip file found beside the .model file.");
 			} else {
 				const listHeight = Math.min(320, Math.max(40, props.clipFiles.length * 26));
-				imgui.BeginChild("model-clip-list", {x: 280, y: listHeight}, true, 0);
+				imgui.BeginChild("model-clip-list", { x: 280, y: listHeight }, true, 0);
 				try {
 					for (const clipFile of props.clipFiles) {
-						if (imgui.Selectable(`${clipFile}##model-clip.${clipFile}`, props.document.clipFile === clipFile, 0, {x: 0, y: 24})) {
+						if (imgui.Selectable(`${clipFile}##model-clip.${clipFile}`, props.document.clipFile === clipFile, 0, { x: 0, y: 24 })) {
 							props.onClipFileSelect(clipFile);
 							imgui.CloseCurrentPopup();
 						}
@@ -1263,7 +1263,7 @@ const renderClipFileSelector = (
 				}
 			}
 			imgui.Separator();
-			if (imgui.Button("Cancel", {x: 86, y: 0})) {
+			if (imgui.Button("Cancel", { x: 86, y: 0 })) {
 				imgui.CloseCurrentPopup();
 			}
 		} finally {
@@ -1274,27 +1274,27 @@ const renderClipFileSelector = (
 
 const drawGrid = (
 	drawList: any,
-	area: {x: number; y: number; width: number; height: number},
+	area: { x: number; y: number; width: number; height: number },
 	viewport: ActionViewport,
 ) => {
-	drawList.AddRectFilled({x: area.x, y: area.y}, {x: area.x + area.width, y: area.y + area.height}, gray, 0, 0);
+	drawList.AddRectFilled({ x: area.x, y: area.y }, { x: area.x + area.width, y: area.y + area.height }, gray, 0, 0);
 	const step = Math.max(16, 64 * viewport.zoom);
-	const center = modelToScreen({x: 0, y: 0}, viewport, area);
+	const center = modelToScreen({ x: 0, y: 0 }, viewport, area);
 	for (let x = center.x % step; x < area.x + area.width; x += step) {
-		if (x >= area.x) drawList.AddLine({x, y: area.y}, {x, y: area.y + area.height}, grid, 1);
+		if (x >= area.x) drawList.AddLine({ x, y: area.y }, { x, y: area.y + area.height }, grid, 1);
 	}
 	for (let y = center.y % step; y < area.y + area.height; y += step) {
-		if (y >= area.y) drawList.AddLine({x: area.x, y}, {x: area.x + area.width, y}, grid, 1);
+		if (y >= area.y) drawList.AddLine({ x: area.x, y }, { x: area.x + area.width, y }, grid, 1);
 	}
-	drawList.AddLine({x: area.x, y: center.y}, {x: area.x + area.width, y: center.y}, originColor, 1);
-	drawList.AddLine({x: center.x, y: area.y}, {x: center.x, y: area.y + area.height}, originColor, 1);
+	drawList.AddLine({ x: area.x, y: center.y }, { x: area.x + area.width, y: center.y }, originColor, 1);
+	drawList.AddLine({ x: center.x, y: area.y }, { x: center.x, y: area.y + area.height }, originColor, 1);
 };
 
 const collectAnimationFrames = (
 	node: ActionNode,
 	animation: string,
 	selectedNodeId: string,
-	result: {selected: number[]; other: number[]},
+	result: { selected: number[]; other: number[] },
 ) => {
 	const track = node.tracks[animation];
 	if (track?.type === "key") {
@@ -1312,7 +1312,7 @@ const collectAnimationFrameRanges = (
 	node: ActionNode,
 	animation: string,
 	selectedNodeId: string,
-	result: {selected: Array<{start: number; end: number}>; other: Array<{start: number; end: number}>},
+	result: { selected: Array<{ start: number; end: number }>; other: Array<{ start: number; end: number }> },
 ) => {
 	const track = node.tracks[animation];
 	if (track?.type === "frame") {
@@ -1336,15 +1336,15 @@ const renderAnimationTimeline = (
 	imgui: ActionImGuiFrame,
 	props: ActionEditorCanvasProps,
 	panelState: PanelState,
-	area: {x: number; y: number; width: number; height: number},
+	area: { x: number; y: number; width: number; height: number },
 ) => {
 	if (props.editMode !== "animation" || props.selectedAnimation === null) return;
 	const drawList = imgui.GetWindowDrawList();
 	const durationFrame = secondsToFrame(getActionAnimationDuration(props.document, props.selectedAnimation));
 	const currentFrame = secondsToFrame(props.playbackTime);
-	const frameSets = {selected: [] as number[], other: [] as number[]};
+	const frameSets = { selected: [] as number[], other: [] as number[] };
 	collectAnimationFrames(props.document.root, props.selectedAnimation, props.selectedNodeId, frameSets);
-	const frameRanges = {selected: [] as Array<{start: number; end: number}>, other: [] as Array<{start: number; end: number}>};
+	const frameRanges = { selected: [] as Array<{ start: number; end: number }>, other: [] as Array<{ start: number; end: number }> };
 	collectAnimationFrameRanges(props.document.root, props.selectedAnimation, props.selectedNodeId, frameRanges);
 	const keyFrames = uniqueSortedFrames(frameSets.selected);
 	const rangeFrames = [...frameRanges.selected, ...frameRanges.other].flatMap((range) => [range.start, range.end]);
@@ -1365,10 +1365,10 @@ const renderAnimationTimeline = (
 	const width = Math.max(1, right - left);
 	const frameToX = (frame: number) => left + ((frame - windowStart) / visibleFrames) * width;
 	const xToFrame = (x: number) => Math.max(0, windowStart + Math.round(((x - left) / width) * visibleFrames));
-	imgui.SetCursorScreenPos({x: area.x, y: area.y});
-	imgui.InvisibleButton("animation-timeline", {x: area.width, y: area.height}, 0);
+	imgui.SetCursorScreenPos({ x: area.x, y: area.y });
+	imgui.InvisibleButton("animation-timeline", { x: area.width, y: area.height }, 0);
 	const io = imgui.GetIO();
-	const mouse = {x: io.MousePos.x, y: io.MousePos.y};
+	const mouse = { x: io.MousePos.x, y: io.MousePos.y };
 	if (imgui.IsItemActivated()) {
 		const cursorX = frameToX(currentFrame);
 		const doubleClicked = imgui.IsMouseDoubleClicked(0);
@@ -1412,12 +1412,12 @@ const renderAnimationTimeline = (
 		panelState.timelineDragMode = null;
 	}
 
-	drawList.AddRectFilled({x: area.x, y: area.y}, {x: area.x + area.width, y: area.y + area.height}, timelineBgColor, 0, 0);
-	drawList.AddRect({x: area.x, y: area.y}, {x: area.x + area.width, y: area.y + area.height}, withAlpha(timelineBorderColor, 0.85), 0, 0, 1);
-	drawList.AddRectFilled({x: left, y: rulerY + 12}, {x: right, y: rulerY + 18}, withAlpha(timelineProgressColor, 0.22), 0, 0);
+	drawList.AddRectFilled({ x: area.x, y: area.y }, { x: area.x + area.width, y: area.y + area.height }, timelineBgColor, 0, 0);
+	drawList.AddRect({ x: area.x, y: area.y }, { x: area.x + area.width, y: area.y + area.height }, withAlpha(timelineBorderColor, 0.85), 0, 0, 1);
+	drawList.AddRectFilled({ x: left, y: rulerY + 12 }, { x: right, y: rulerY + 18 }, withAlpha(timelineProgressColor, 0.22), 0, 0);
 	drawList.AddRectFilled(
-		{x: left, y: rulerY + 12},
-		{x: frameToX(Math.max(windowStart, Math.min(currentFrame, windowEnd))), y: rulerY + 18},
+		{ x: left, y: rulerY + 12 },
+		{ x: frameToX(Math.max(windowStart, Math.min(currentFrame, windowEnd))), y: rulerY + 18 },
 		timelineProgressColor,
 		0,
 		0,
@@ -1426,16 +1426,16 @@ const renderAnimationTimeline = (
 		const x = frameToX(frame);
 		const major = frame % 10 === 0;
 		const height = major ? 12 : 6;
-		drawList.AddLine({x, y: rulerY}, {x, y: rulerY + height}, timelineTickColor, major ? 1.4 : 1);
+		drawList.AddLine({ x, y: rulerY }, { x, y: rulerY + height }, timelineTickColor, major ? 1.4 : 1);
 		if (major) {
-			drawList.AddText({x: x - 4, y: area.y + 6}, timelineTickColor, `${frame}`);
+			drawList.AddText({ x: x - 4, y: area.y + 6 }, timelineTickColor, `${frame}`);
 		}
 	}
 	for (const range of frameRanges.other) {
 		if (range.end < windowStart || range.start > windowEnd) continue;
 		drawList.AddRectFilled(
-			{x: frameToX(Math.max(windowStart, range.start)), y: rulerY + 21},
-			{x: frameToX(Math.min(windowEnd, range.end)), y: rulerY + 25},
+			{ x: frameToX(Math.max(windowStart, range.start)), y: rulerY + 21 },
+			{ x: frameToX(Math.min(windowEnd, range.end)), y: rulerY + 25 },
 			withAlpha(timelineKeyColor, 0.35),
 			0,
 			0,
@@ -1444,8 +1444,8 @@ const renderAnimationTimeline = (
 	for (const range of frameRanges.selected) {
 		if (range.end < windowStart || range.start > windowEnd) continue;
 		drawList.AddRectFilled(
-			{x: frameToX(Math.max(windowStart, range.start)), y: rulerY + 20},
-			{x: frameToX(Math.min(windowEnd, range.end)), y: rulerY + 27},
+			{ x: frameToX(Math.max(windowStart, range.start)), y: rulerY + 20 },
+			{ x: frameToX(Math.min(windowEnd, range.end)), y: rulerY + 27 },
 			timelineKeyColor,
 			0,
 			0,
@@ -1457,8 +1457,8 @@ const renderAnimationTimeline = (
 		const isSelectedFrame = frame === currentFrame;
 		const halfWidth = isSelectedFrame ? 3 : 1;
 		drawList.AddRectFilled(
-			{x: x - halfWidth, y: isSelectedFrame ? rulerY - 12 : rulerY - 10},
-			{x: x + halfWidth, y: rulerY + 18},
+			{ x: x - halfWidth, y: isSelectedFrame ? rulerY - 12 : rulerY - 10 },
+			{ x: x + halfWidth, y: rulerY + 18 },
 			timelineKeyColor,
 			0,
 			0,
@@ -1467,9 +1467,9 @@ const renderAnimationTimeline = (
 	if (currentFrame >= windowStart && currentFrame <= windowEnd) {
 		const cursorX = frameToX(currentFrame);
 		drawList.AddTriangleFilled(
-			{x: cursorX, y: rulerY + 23},
-			{x: cursorX - 6, y: rulerY + 31},
-			{x: cursorX + 6, y: rulerY + 31},
+			{ x: cursorX, y: rulerY + 23 },
+			{ x: cursorX - 6, y: rulerY + 31 },
+			{ x: cursorX + 6, y: rulerY + 31 },
 			timelineCursorColor,
 		);
 	}
@@ -1477,7 +1477,7 @@ const renderAnimationTimeline = (
 
 const drawModelBounds = (
 	drawList: any,
-	area: {x: number; y: number; width: number; height: number},
+	area: { x: number; y: number; width: number; height: number },
 	props: ActionEditorCanvasProps,
 ) => {
 	const size = props.document.size;
@@ -1486,8 +1486,8 @@ const drawModelBounds = (
 	const right = size.width * 0.5;
 	const bottom = -size.height * 0.5;
 	const top = size.height * 0.5;
-	const min = modelToScreen({x: left, y: top}, props.viewport, area);
-	const max = modelToScreen({x: right, y: bottom}, props.viewport, area);
+	const min = modelToScreen({ x: left, y: top }, props.viewport, area);
+	const max = modelToScreen({ x: right, y: bottom }, props.viewport, area);
 	drawList.AddRectFilled(min, max, withAlpha(modelBoundsColor, 0.08), 0, 0);
 	drawList.AddRect(min, max, withAlpha(modelBoundsColor, 0.55), 0, 0, 1.5);
 };
@@ -1495,7 +1495,7 @@ const drawModelBounds = (
 const drawKeyPointMarkers = (
 	imgui: ActionImGuiFrame,
 	drawList: any,
-	area: {x: number; y: number; width: number; height: number},
+	area: { x: number; y: number; width: number; height: number },
 	props: ActionEditorCanvasProps,
 	panelState: PanelState,
 ) => {
@@ -1505,11 +1505,11 @@ const drawKeyPointMarkers = (
 		const pos = modelToScreen(point, props.viewport, area);
 		drawList.AddCircleFilled(pos, 4.5, keyPointColor, 16);
 		drawList.AddCircle(pos, 8, withAlpha(keyPointColor, 0.85), 18, 1.5);
-		drawList.AddLine({x: pos.x - 12, y: pos.y}, {x: pos.x + 12, y: pos.y}, keyPointColor, 1.5);
-		drawList.AddLine({x: pos.x, y: pos.y - 12}, {x: pos.x, y: pos.y + 12}, keyPointColor, 1.5);
+		drawList.AddLine({ x: pos.x - 12, y: pos.y }, { x: pos.x + 12, y: pos.y }, keyPointColor, 1.5);
+		drawList.AddLine({ x: pos.x, y: pos.y - 12 }, { x: pos.x, y: pos.y + 12 }, keyPointColor, 1.5);
 		if (point.name) {
 			drawList.AddText(
-				{x: pos.x + 10, y: pos.y - imgui.GetTextLineHeight() * 0.5},
+				{ x: pos.x + 10, y: pos.y - imgui.GetTextLineHeight() * 0.5 },
 				withAlpha(0xffffffff, 0.92),
 				point.name,
 			);
@@ -1517,12 +1517,12 @@ const drawKeyPointMarkers = (
 	}
 };
 
-const averagePoints = (points: Array<{x: number; y: number}>) => ({
+const averagePoints = (points: Array<{ x: number; y: number }>) => ({
 	x: points.reduce((sum, point) => sum + point.x, 0) / points.length,
 	y: points.reduce((sum, point) => sum + point.y, 0) / points.length,
 });
 
-const pointDistance = (a: {x: number; y: number}, b: {x: number; y: number}) => {
+const pointDistance = (a: { x: number; y: number }, b: { x: number; y: number }) => {
 	const dx = a.x - b.x;
 	const dy = a.y - b.y;
 	return Math.sqrt(dx * dx + dy * dy);
@@ -1530,8 +1530,8 @@ const pointDistance = (a: {x: number; y: number}, b: {x: number; y: number}) => 
 
 const drawArrow = (
 	drawList: any,
-	from: {x: number; y: number},
-	to: {x: number; y: number},
+	from: { x: number; y: number },
+	to: { x: number; y: number },
 	color: number,
 ) => {
 	const dx = to.x - from.x;
@@ -1546,24 +1546,24 @@ const drawArrow = (
 	drawList.AddLine(from, to, color, 2);
 	drawList.AddTriangleFilled(
 		to,
-		{x: to.x - ux * head + px * width, y: to.y - uy * head + py * width},
-		{x: to.x - ux * head - px * width, y: to.y - uy * head - py * width},
+		{ x: to.x - ux * head + px * width, y: to.y - uy * head + py * width },
+		{ x: to.x - ux * head - px * width, y: to.y - uy * head - py * width },
 		color,
 	);
 };
 
-const drawScaleHandle = (drawList: any, point: {x: number; y: number}) => {
+const drawScaleHandle = (drawList: any, point: { x: number; y: number }) => {
 	const size = 5;
 	drawList.AddRectFilled(
-		{x: point.x - size, y: point.y - size},
-		{x: point.x + size, y: point.y + size},
+		{ x: point.x - size, y: point.y - size },
+		{ x: point.x + size, y: point.y + size },
 		gizmoAccentColor,
 		1,
 		0,
 	);
 	drawList.AddRect(
-		{x: point.x - size, y: point.y - size},
-		{x: point.x + size, y: point.y + size},
+		{ x: point.x - size, y: point.y - size },
+		{ x: point.x + size, y: point.y + size },
 		gizmoColor,
 		1,
 		0,
@@ -1576,7 +1576,7 @@ const drawToolGizmo = (
 	props: ActionEditorCanvasProps,
 	panelState: PanelState,
 	rects: ActionRenderRect[],
-	area: {x: number; y: number; width: number; height: number},
+	area: { x: number; y: number; width: number; height: number },
 ) => {
 	if (props.editMode === "look" || panelState.gizmoMode === "select" || props.selectedNodeId === props.document.root.id) return;
 	const rect = rects.find((item) => item.nodeId === props.selectedNodeId);
@@ -1588,16 +1588,16 @@ const drawToolGizmo = (
 	if (panelState.gizmoMode === "move") {
 		const radius = Math.max(28, Math.min(72, Math.max(rect.width, rect.height) * props.viewport.zoom * 0.35));
 		drawList.AddCircleFilled(center, 4, gizmoColor, 16);
-		drawArrow(drawList, center, {x: center.x + radius, y: center.y}, gizmoAccentColor);
-		drawArrow(drawList, center, {x: center.x, y: center.y - radius}, gizmoAccentColor);
-		drawList.AddLine({x: center.x - radius * 0.55, y: center.y}, {x: center.x, y: center.y}, withAlpha(gizmoColor, 0.7), 1.5);
-		drawList.AddLine({x: center.x, y: center.y}, {x: center.x, y: center.y + radius * 0.55}, withAlpha(gizmoColor, 0.7), 1.5);
+		drawArrow(drawList, center, { x: center.x + radius, y: center.y }, gizmoAccentColor);
+		drawArrow(drawList, center, { x: center.x, y: center.y - radius }, gizmoAccentColor);
+		drawList.AddLine({ x: center.x - radius * 0.55, y: center.y }, { x: center.x, y: center.y }, withAlpha(gizmoColor, 0.7), 1.5);
+		drawList.AddLine({ x: center.x, y: center.y }, { x: center.x, y: center.y + radius * 0.55 }, withAlpha(gizmoColor, 0.7), 1.5);
 	} else if (panelState.gizmoMode === "scale") {
 		const mids = [
-			{x: (corners[0].x + corners[1].x) * 0.5, y: (corners[0].y + corners[1].y) * 0.5},
-			{x: (corners[1].x + corners[2].x) * 0.5, y: (corners[1].y + corners[2].y) * 0.5},
-			{x: (corners[2].x + corners[3].x) * 0.5, y: (corners[2].y + corners[3].y) * 0.5},
-			{x: (corners[3].x + corners[0].x) * 0.5, y: (corners[3].y + corners[0].y) * 0.5},
+			{ x: (corners[0].x + corners[1].x) * 0.5, y: (corners[0].y + corners[1].y) * 0.5 },
+			{ x: (corners[1].x + corners[2].x) * 0.5, y: (corners[1].y + corners[2].y) * 0.5 },
+			{ x: (corners[2].x + corners[3].x) * 0.5, y: (corners[2].y + corners[3].y) * 0.5 },
+			{ x: (corners[3].x + corners[0].x) * 0.5, y: (corners[3].y + corners[0].y) * 0.5 },
 		];
 		drawList.AddQuad(corners[0], corners[1], corners[2], corners[3], gizmoColor, 2);
 		for (const point of [...corners, ...mids]) {
@@ -1607,7 +1607,7 @@ const drawToolGizmo = (
 		const radius = Math.max(32, Math.max(...corners.map((point) => pointDistance(point, anchor))) + 22);
 		drawList.AddCircle(center, radius, gizmoColor, 72, 1.5);
 		const angle = -Math.PI * 0.18;
-		const end = {x: center.x + Math.cos(angle) * radius, y: center.y + Math.sin(angle) * radius};
+		const end = { x: center.x + Math.cos(angle) * radius, y: center.y + Math.sin(angle) * radius };
 		drawList.AddLine(center, end, gizmoColor, 1.5);
 		drawArrow(drawList, end, {
 			x: end.x + Math.cos(angle + Math.PI * 0.35) * 18,
@@ -1619,7 +1619,7 @@ const drawToolGizmo = (
 
 const drawRenderRects = (
 	imgui: ActionImGuiFrame,
-	area: {x: number; y: number; width: number; height: number},
+	area: { x: number; y: number; width: number; height: number },
 	props: ActionEditorCanvasProps,
 	panelState: PanelState,
 	rects: ActionRenderRect[],
@@ -1627,8 +1627,8 @@ const drawRenderRects = (
 ) => {
 	const drawList = imgui.GetWindowDrawList();
 	drawList.PushClipRect(
-		{x: area.x, y: area.y},
-		{x: area.x + area.width, y: area.y + area.height},
+		{ x: area.x, y: area.y },
+		{ x: area.x + area.width, y: area.y + area.height },
 		true,
 	);
 	try {
@@ -1646,10 +1646,10 @@ const drawRenderRects = (
 					corners[1],
 					corners[2],
 					corners[3],
-					{x: rect.sourceX / atlasTexture.width, y: rect.sourceY / atlasTexture.height},
-					{x: (rect.sourceX + rect.sourceWidth) / atlasTexture.width, y: rect.sourceY / atlasTexture.height},
-					{x: (rect.sourceX + rect.sourceWidth) / atlasTexture.width, y: (rect.sourceY + rect.sourceHeight) / atlasTexture.height},
-					{x: rect.sourceX / atlasTexture.width, y: (rect.sourceY + rect.sourceHeight) / atlasTexture.height},
+					{ x: rect.sourceX / atlasTexture.width, y: rect.sourceY / atlasTexture.height },
+					{ x: (rect.sourceX + rect.sourceWidth) / atlasTexture.width, y: rect.sourceY / atlasTexture.height },
+					{ x: (rect.sourceX + rect.sourceWidth) / atlasTexture.width, y: (rect.sourceY + rect.sourceHeight) / atlasTexture.height },
+					{ x: rect.sourceX / atlasTexture.width, y: (rect.sourceY + rect.sourceHeight) / atlasTexture.height },
 					withAlpha(0xffffffff, rect.opacity),
 				);
 			} else {
@@ -1689,7 +1689,7 @@ const handleViewportInput = (
 	props: ActionEditorCanvasProps,
 	panelState: PanelState,
 	rects: ActionRenderRect[],
-	pointer: {x: number; y: number},
+	pointer: { x: number; y: number },
 ) => {
 	const point = screenToModel(pointer, props.viewport, panelState.viewportArea);
 	const nodeId = hitTestActionRenderRects(
@@ -1698,7 +1698,7 @@ const handleViewportInput = (
 		(rect) => canSelectRenderRect(props, rect) && isNodePreviewVisible(props, panelState, rect.nodeId),
 	);
 	if (nodeId) props.onSelectionChange(nodeId);
-	panelState.lastDragDelta = {x: 0, y: 0};
+	panelState.lastDragDelta = { x: 0, y: 0 };
 	panelState.viewportDragButton = 0;
 	const selectedVisible = isNodePreviewVisible(props, panelState, props.selectedNodeId);
 	const requestedDragNodeId = panelState.gizmoMode === "select" ? null : (nodeId ?? (selectedVisible ? props.selectedNodeId : null));
@@ -1713,9 +1713,9 @@ const handleViewportInput = (
 	const dragRect = dragNodeId ? rects.find((rect) => rect.nodeId === dragNodeId) ?? null : null;
 	const dragAnchorScreen = dragRect ? modelToScreen(dragRect.anchor, props.viewport, panelState.viewportArea) : null;
 	panelState.dragNodeId = dragNodeId;
-	panelState.dragStartPosition = dragFrame ? {...dragFrame.transform.position} : (dragNode ? {...dragNode.transform.position} : null);
+	panelState.dragStartPosition = dragFrame ? { ...dragFrame.transform.position } : (dragNode ? { ...dragNode.transform.position } : null);
 	panelState.dragStartRotation = dragFrame ? dragFrame.transform.rotation : (dragNode ? dragNode.transform.rotation : null);
-	panelState.dragStartPointer = {...pointer};
+	panelState.dragStartPointer = { ...pointer };
 	panelState.dragAnchorScreen = dragAnchorScreen;
 	panelState.dragStartPointerAngle = dragAnchorScreen ? pointerAngleDegrees(dragAnchorScreen, pointer) : null;
 	panelState.dragLastPointerAngle = panelState.dragStartPointerAngle;
@@ -1725,7 +1725,7 @@ const handleViewportInput = (
 const dragViewportInput = (
 	props: ActionEditorCanvasProps,
 	panelState: PanelState,
-	delta: {x: number; y: number},
+	delta: { x: number; y: number },
 ) => {
 	if (panelState.viewportDragAction === "pan" && panelState.viewportDragButton !== null) {
 		const diff = {
@@ -1735,9 +1735,9 @@ const dragViewportInput = (
 		if (diff.x !== 0 || diff.y !== 0) {
 			props.onViewportChange({
 				...props.viewport,
-				pan: {x: props.viewport.pan.x + diff.x, y: props.viewport.pan.y + diff.y},
+				pan: { x: props.viewport.pan.x + diff.x, y: props.viewport.pan.y + diff.y },
 			});
-			panelState.lastDragDelta = {x: delta.x, y: delta.y};
+			panelState.lastDragDelta = { x: delta.x, y: delta.y };
 		}
 	}
 	if (!props.readOnly && props.editMode !== "look" && panelState.viewportDragAction === "edit" && panelState.viewportDragButton === 0) {
@@ -1754,64 +1754,64 @@ const dragViewportInput = (
 						...frame,
 						transform: updater(frame.transform),
 					}), historyOptions);
-					} else {
-						emitNodeChange(props, targetNodeId, (node) => ({
-							...node,
-							transform: {...node.transform, ...updater(node.transform)},
-						}), historyOptions);
-					}
-				};
+				} else {
+					emitNodeChange(props, targetNodeId, (node) => ({
+						...node,
+						transform: { ...node.transform, ...updater(node.transform) },
+					}), historyOptions);
+				}
+			};
 			updateTransform((transform) => {
-					if (panelState.gizmoMode === "scale") {
-						return {
-							...transform,
-							scale: {
-								x: Math.max(0.01, snapValue(transform.scale.x + diff.x / 100, panelState.fixedSnap, 0.1)),
-								y: Math.max(0.01, snapValue(transform.scale.y + diff.y / 100, panelState.fixedSnap, 0.1)),
-							},
-						};
+				if (panelState.gizmoMode === "scale") {
+					return {
+						...transform,
+						scale: {
+							x: Math.max(0.01, snapValue(transform.scale.x + diff.x / 100, panelState.fixedSnap, 0.1)),
+							y: Math.max(0.01, snapValue(transform.scale.y + diff.y / 100, panelState.fixedSnap, 0.1)),
+						},
+					};
+				}
+				if (panelState.gizmoMode === "rotate") {
+					if (
+						panelState.dragStartRotation === null
+						|| panelState.dragStartPointer === null
+						|| panelState.dragStartPointerAngle === null
+						|| panelState.dragLastPointerAngle === null
+						|| panelState.dragAnchorScreen === null
+					) {
+						return transform;
 					}
-					if (panelState.gizmoMode === "rotate") {
-						if (
-							panelState.dragStartRotation === null
-							|| panelState.dragStartPointer === null
-								|| panelState.dragStartPointerAngle === null
-								|| panelState.dragLastPointerAngle === null
-								|| panelState.dragAnchorScreen === null
-							) {
-								return transform;
-							}
-						const pointer = {
-							x: panelState.dragStartPointer.x + delta.x,
-							y: panelState.dragStartPointer.y + delta.y,
-						};
-						const angle = pointerAngleDegrees(panelState.dragAnchorScreen, pointer);
-						panelState.dragAccumulatedRotationDelta += pointerAngleStepDelta(angle - panelState.dragLastPointerAngle);
-						panelState.dragLastPointerAngle = angle;
-						return {
-							...transform,
-							rotation: snapValue(panelState.dragStartRotation + panelState.dragAccumulatedRotationDelta, panelState.fixedSnap, 5),
-						};
-					}
-					if (panelState.gizmoMode === "move" && panelState.dragStartPosition) {
-						const positionDelta = screenDeltaToNodeLocalDelta(props.document, props.clipDocument, targetNodeId, delta, props.viewport);
-						return {
-							...transform,
-							position: {
-								x: snapValue(panelState.dragStartPosition.x + positionDelta.x, panelState.fixedSnap, 1),
-								y: snapValue(panelState.dragStartPosition.y + positionDelta.y, panelState.fixedSnap, 1),
-							},
-						};
-					}
+					const pointer = {
+						x: panelState.dragStartPointer.x + delta.x,
+						y: panelState.dragStartPointer.y + delta.y,
+					};
+					const angle = pointerAngleDegrees(panelState.dragAnchorScreen, pointer);
+					panelState.dragAccumulatedRotationDelta += pointerAngleStepDelta(angle - panelState.dragLastPointerAngle);
+					panelState.dragLastPointerAngle = angle;
+					return {
+						...transform,
+						rotation: snapValue(panelState.dragStartRotation + panelState.dragAccumulatedRotationDelta, panelState.fixedSnap, 5),
+					};
+				}
+				if (panelState.gizmoMode === "move" && panelState.dragStartPosition) {
+					const positionDelta = screenDeltaToNodeLocalDelta(props.document, props.clipDocument, targetNodeId, delta, props.viewport);
 					return {
 						...transform,
 						position: {
-							x: snapValue(transform.position.x + diff.x, panelState.fixedSnap, 1),
-							y: snapValue(transform.position.y + diff.y, panelState.fixedSnap, 1),
+							x: snapValue(panelState.dragStartPosition.x + positionDelta.x, panelState.fixedSnap, 1),
+							y: snapValue(panelState.dragStartPosition.y + positionDelta.y, panelState.fixedSnap, 1),
 						},
 					};
+				}
+				return {
+					...transform,
+					position: {
+						x: snapValue(transform.position.x + diff.x, panelState.fixedSnap, 1),
+						y: snapValue(transform.position.y + diff.y, panelState.fixedSnap, 1),
+					},
+				};
 			});
-			panelState.lastDragDelta = {x: delta.x, y: delta.y};
+			panelState.lastDragDelta = { x: delta.x, y: delta.y };
 		}
 	}
 };
@@ -1819,11 +1819,11 @@ const dragViewportInput = (
 const getDragHistoryOptions = (panelState: PanelState): ActionDocumentChangeOptions => {
 	const history: ActionDocumentChangeOptions["history"] = panelState.dragHistoryStarted ? "replace" : "push";
 	panelState.dragHistoryStarted = true;
-	return {history};
+	return { history };
 };
 
 const endViewportInput = (panelState: PanelState) => {
-	panelState.lastDragDelta = {x: 0, y: 0};
+	panelState.lastDragDelta = { x: 0, y: 0 };
 	panelState.viewportDragButton = null;
 	panelState.viewportDragAction = null;
 	panelState.dragNodeId = null;
@@ -1848,7 +1848,7 @@ const isImGuiPointerCaptured = (imgui: ActionImGuiFrame) => {
 	}
 };
 
-const pointInArea = (point: {x: number; y: number}, area: {x: number; y: number; width: number; height: number}) => point.x >= area.x
+const pointInArea = (point: { x: number; y: number }, area: { x: number; y: number; width: number; height: number }) => point.x >= area.x
 	&& point.x <= area.x + area.width
 	&& point.y >= area.y
 	&& point.y <= area.y + area.height;
@@ -1860,12 +1860,12 @@ const handleViewportFrameInput = (
 	rects: ActionRenderRect[],
 ) => {
 	const io = imgui.GetIO();
-	const mousePos = {x: io.MousePos.x, y: io.MousePos.y};
+	const mousePos = { x: io.MousePos.x, y: io.MousePos.y };
 	const inViewport = pointInArea(mousePos, panelState.viewportArea);
 	const uiCaptured = isImGuiPointerCaptured(imgui);
 	if (inViewport && !uiCaptured && io.MouseWheel !== 0) {
 		const nextZoom = Math.max(0.1, Math.min(8, props.viewport.zoom + io.MouseWheel * 0.1));
-		props.onViewportChange({...props.viewport, zoom: nextZoom});
+		props.onViewportChange({ ...props.viewport, zoom: nextZoom });
 	}
 	if (inViewport && !uiCaptured && imgui.IsMouseClicked(0)) {
 		handleViewportInput(props, panelState, rects, mousePos);
@@ -1901,8 +1901,8 @@ const drawEditor = (
 		onClipsDirClipBind,
 	} = props;
 	const rects = buildActionRenderRects(document, props.clipDocument, props.selectedLook, props.selectedAnimation, props.playbackTime);
-	imgui.SetNextWindowPos({x: 0, y: 0}, imgui.Cond.Always, {x: 0, y: 0});
-	imgui.SetNextWindowSize({x: width, y: height}, imgui.Cond.Always);
+	imgui.SetNextWindowPos({ x: 0, y: 0 }, imgui.Cond.Always, { x: 0, y: 0 });
+	imgui.SetNextWindowSize({ x: width, y: height }, imgui.Cond.Always);
 	const rootWindowFlags = imgui.WindowFlags.NoTitleBar
 		| imgui.WindowFlags.NoCollapse
 		| imgui.WindowFlags.NoResize
@@ -1912,14 +1912,14 @@ const drawEditor = (
 	imgui.Begin("ActionEditor", null, rootWindowFlags);
 	try {
 		if (diagnostics.length > 0) {
-			imgui.TextColored({x: 0.9, y: 0.52, z: 0.45, w: 1}, "加载失败，已创建空对象，保存将写入新的 .model。");
+			imgui.TextColored({ x: 0.9, y: 0.52, z: 0.45, w: 1 }, "加载失败，已创建空对象，保存将写入新的 .model。");
 			imgui.TextWrapped(diagnostics[0].message);
 		}
 		for (const message of runtimeDiagnostics) {
-			imgui.TextColored({x: 0.9, y: 0.52, z: 0.45, w: 1}, message);
+			imgui.TextColored({ x: 0.9, y: 0.52, z: 0.45, w: 1 }, message);
 		}
 		for (const message of clipDiagnostics) {
-			imgui.TextColored({x: 0.9, y: 0.72, z: 0.32, w: 1}, message);
+			imgui.TextColored({ x: 0.9, y: 0.72, z: 0.32, w: 1 }, message);
 		}
 		const windowPos = imgui.GetWindowPos();
 		const contentPos = imgui.GetCursorScreenPos();
@@ -1933,49 +1933,49 @@ const drawEditor = (
 		const sidePanelFlags = panelState.viewportDragAction !== null
 			? (fixedPanelFlags | imgui.WindowFlags.NoInputs)
 			: fixedPanelFlags;
-		imgui.SetCursorScreenPos({x: windowPos.x, y: panelTop});
-		imgui.BeginChild("left-panel", {x: leftPanelWidth, y: panelHeight}, false, sidePanelFlags);
+		imgui.SetCursorScreenPos({ x: windowPos.x, y: panelTop });
+		imgui.BeginChild("left-panel", { x: leftPanelWidth, y: panelHeight }, false, sidePanelFlags);
 		try {
 			renderClipFileSelector(imgui, props);
 			imgui.Separator();
 			if (imgui.BeginTabBar("action-editor-left-tabs", imgui.TabBarFlags.FittingPolicyResizeDown)) {
 				try {
-						if (imgui.BeginTabItem("Tree")) {
+					if (imgui.BeginTabItem("Tree")) {
+						try {
+							imgui.BeginChild(
+								"left-tab-content.tree",
+								{ x: 0, y: Math.max(1, imgui.GetContentRegionAvail().y) },
+								false,
+								imgui.WindowFlags.NoScrollbar | imgui.WindowFlags.NoScrollWithMouse,
+							);
 							try {
+								renderNodeCommands(imgui, props, panelState);
+								imgui.Separator();
+								imgui.SetNextWindowContentSize({
+									x: Math.max(imgui.GetContentRegionAvail().x, measureTreeContentWidth(imgui, props, document.root)),
+									y: 0,
+								});
 								imgui.BeginChild(
-									"left-tab-content.tree",
-									{x: 0, y: Math.max(1, imgui.GetContentRegionAvail().y)},
+									"node-tree",
+									{ x: 0, y: Math.max(1, imgui.GetContentRegionAvail().y) },
 									false,
-									imgui.WindowFlags.NoScrollbar | imgui.WindowFlags.NoScrollWithMouse,
+									imgui.WindowFlags.HorizontalScrollbar,
 								);
 								try {
-									renderNodeCommands(imgui, props, panelState);
-									imgui.Separator();
-									imgui.SetNextWindowContentSize({
-										x: Math.max(imgui.GetContentRegionAvail().x, measureTreeContentWidth(imgui, props, document.root)),
-										y: 0,
-									});
-									imgui.BeginChild(
-										"node-tree",
-										{x: 0, y: Math.max(1, imgui.GetContentRegionAvail().y)},
-										false,
-										imgui.WindowFlags.HorizontalScrollbar,
-									);
-									try {
-										renderTreeNode(imgui, props, panelState, document.root, 0, atlasTexture);
-									} finally {
-										imgui.EndChild();
-									}
+									renderTreeNode(imgui, props, panelState, document.root, 0, atlasTexture);
 								} finally {
 									imgui.EndChild();
 								}
+							} finally {
+								imgui.EndChild();
+							}
 						} finally {
 							imgui.EndTabItem();
 						}
 					}
 					if (imgui.BeginTabItem("Key Points")) {
 						try {
-							imgui.BeginChild("left-tab-content.key-points", {x: 0, y: Math.max(1, imgui.GetContentRegionAvail().y)}, false, 0);
+							imgui.BeginChild("left-tab-content.key-points", { x: 0, y: Math.max(1, imgui.GetContentRegionAvail().y) }, false, 0);
 							try {
 								renderKeyPoints(imgui, props, panelState);
 							} finally {
@@ -1987,13 +1987,13 @@ const drawEditor = (
 					}
 					if (imgui.BeginTabItem("Clips")) {
 						try {
-							imgui.BeginChild("left-tab-content.clips", {x: 0, y: Math.max(1, imgui.GetContentRegionAvail().y)}, false, 0);
+							imgui.BeginChild("left-tab-content.clips", { x: 0, y: Math.max(1, imgui.GetContentRegionAvail().y) }, false, 0);
 							try {
-								if (!props.readOnly && imgui.Button(props.packing ? "Packing..." : "Pack All", {x: 120, y: 0}) && !props.packing) {
+								if (!props.readOnly && imgui.Button(props.packing ? "Packing..." : "Pack All", { x: 120, y: 0 }) && !props.packing) {
 									props.onPackAllClipsDirs();
 								}
 								if (!props.readOnly) imgui.SameLine();
-								if (!props.readOnly && imgui.Button("Refresh", {x: 92, y: 0})) {
+								if (!props.readOnly && imgui.Button("Refresh", { x: 92, y: 0 })) {
 									props.onRefreshClipsDirs();
 								}
 								imgui.Separator();
@@ -2003,17 +2003,17 @@ const drawEditor = (
 									for (const dir of clipsDirs) {
 										imgui.Text(dir);
 										imgui.SameLine();
-										if (imgui.Button(`Set##clips-dir-set.${dir}`, {x: 48, y: 0}) && !props.readOnly) {
+										if (imgui.Button(`Set##clips-dir-set.${dir}`, { x: 48, y: 0 }) && !props.readOnly) {
 											onClipsDirClipBind(dir);
 										}
 										imgui.SameLine();
-										if (imgui.Button(`Pack##clips-dir-pack.${dir}`, {x: 58, y: 0}) && !props.readOnly && !props.packing) {
+										if (imgui.Button(`Pack##clips-dir-pack.${dir}`, { x: 58, y: 0 }) && !props.readOnly && !props.packing) {
 											props.onPackClipsDir(dir);
 										}
 										const error = clipsPackErrors[dir];
 										if (error) {
 											imgui.PushTextWrapPos(Math.max(120, imgui.GetContentRegionAvail().x));
-											imgui.TextColored({x: 0.9, y: 0.35, z: 0.25, w: 1}, error);
+											imgui.TextColored({ x: 0.9, y: 0.35, z: 0.25, w: 1 }, error);
 											imgui.PopTextWrapPos();
 										}
 									}
@@ -2032,29 +2032,29 @@ const drawEditor = (
 		} finally {
 			imgui.EndChild();
 		}
-		imgui.SetCursorScreenPos({x: windowPos.x + leftPanelWidth, y: panelTop});
-		imgui.BeginChild("viewport-panel", {x: viewportWidth, y: panelHeight}, false, panelFlags);
+		imgui.SetCursorScreenPos({ x: windowPos.x + leftPanelWidth, y: panelTop });
+		imgui.BeginChild("viewport-panel", { x: viewportWidth, y: panelHeight }, false, panelFlags);
 		try {
-			if (imgui.Button("Undo", {x: 58, y: 0}) && props.canUndo) {
+			if (imgui.Button("Undo", { x: 58, y: 0 }) && props.canUndo) {
 				props.onUndo();
 			}
 			imgui.SameLine();
-			if (imgui.Button("Redo", {x: 58, y: 0}) && props.canRedo) {
+			if (imgui.Button("Redo", { x: 58, y: 0 }) && props.canRedo) {
 				props.onRedo();
 			}
 			imgui.SameLine();
-			if (imgui.Button("Origin", {x: 72, y: 0})) {
+			if (imgui.Button("Origin", { x: 72, y: 0 })) {
 				props.onViewportChange(defaultActionViewport());
 			}
 			imgui.SameLine();
-			if (imgui.Button("-", {x: 28, y: 0})) {
-				props.onViewportChange({...props.viewport, zoom: Math.max(0.1, props.viewport.zoom - 0.1)});
+			if (imgui.Button("-", { x: 28, y: 0 })) {
+				props.onViewportChange({ ...props.viewport, zoom: Math.max(0.1, props.viewport.zoom - 0.1) });
 			}
 			imgui.SameLine();
 			imgui.Text(`Zoom ${(props.viewport.zoom * 100).toFixed(0)}%`);
 			imgui.SameLine();
-			if (imgui.Button("+", {x: 28, y: 0})) {
-				props.onViewportChange({...props.viewport, zoom: Math.min(8, props.viewport.zoom + 0.1)});
+			if (imgui.Button("+", { x: 28, y: 0 })) {
+				props.onViewportChange({ ...props.viewport, zoom: Math.min(8, props.viewport.zoom + 0.1) });
 			}
 			imgui.SameLine();
 			const anisotropicFiltering = [panelState.anisotropicFiltering];
@@ -2083,8 +2083,8 @@ const drawEditor = (
 		} finally {
 			imgui.EndChild();
 		}
-		imgui.SetCursorScreenPos({x: windowPos.x + leftPanelWidth + viewportWidth, y: panelTop});
-		imgui.BeginChild("right-panel", {x: rightPanelWidth, y: panelHeight}, false, sidePanelFlags);
+		imgui.SetCursorScreenPos({ x: windowPos.x + leftPanelWidth + viewportWidth, y: panelTop });
+		imgui.BeginChild("right-panel", { x: rightPanelWidth, y: panelHeight }, false, sidePanelFlags);
 		try {
 			renderModeTabs(imgui, props, panelState, atlasTexture);
 		} finally {
@@ -2107,10 +2107,10 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 		gizmoMode: "select",
 		fixedSnap: false,
 		anisotropicFiltering: true,
-		lastDragDelta: {x: 0, y: 0},
+		lastDragDelta: { x: 0, y: 0 },
 		viewportDragButton: null,
 		viewportDragAction: null,
-		viewportArea: {x: 0, y: 0, width: 1, height: 1},
+		viewportArea: { x: 0, y: 0, width: 1, height: 1 },
 		imguiCapturesPointer: false,
 		dragNodeId: null,
 		dragStartPosition: null,
@@ -2204,9 +2204,9 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 		return atlasTextureRef.current;
 	}, [applyAtlasTextureFilter, disposeAtlasTexture]);
 
-	const eventPoint = useCallback((event: {clientX: number; clientY: number}) => {
+	const eventPoint = useCallback((event: { clientX: number; clientY: number }) => {
 		const canvas = canvasRef.current;
-		if (!canvas) return {x: event.clientX, y: event.clientY};
+		if (!canvas) return { x: event.clientX, y: event.clientY };
 		const rect = canvas.getBoundingClientRect();
 		return {
 			x: event.clientX - rect.left,
@@ -2214,7 +2214,7 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 		};
 	}, []);
 
-	const pointInViewport = useCallback((point: {x: number; y: number}) => {
+	const pointInViewport = useCallback((point: { x: number; y: number }) => {
 		const area = panelStateRef.current.viewportArea;
 		return point.x >= area.x
 			&& point.x <= area.x + area.width

@@ -17,7 +17,7 @@ const nodeCategory = {
 	kind: 'category',
 	name: zh ? '节点' : 'Node',
 	categorystyle: 'logic_category',
-	contents: [] as {kind: string, type: string, inputs?: any}[],
+	contents: [] as { kind: string, type: string, inputs?: any }[],
 };
 export default nodeCategory;
 
@@ -28,8 +28,8 @@ const nodeCreateBlock = {
 	output: 'Node',
 	style: 'logic_blocks',
 };
-Blockly.Blocks['node_create'] = { init: function() { this.jsonInit(nodeCreateBlock); } };
-luaGenerator.forBlock['node_create'] = function(_block: Blockly.Block) {
+Blockly.Blocks['node_create'] = { init: function () { this.jsonInit(nodeCreateBlock); } };
+luaGenerator.forBlock['node_create'] = function (_block: Blockly.Block) {
 	Require.add('Node');
 	return [`Node()`, Order.ATOMIC];
 };
@@ -53,8 +53,8 @@ const nodeRemoveBlock = {
 	nextStatement: null,
 	style: 'logic_blocks',
 };
-Blockly.Blocks['node_remove'] = { init: function() { this.jsonInit(nodeRemoveBlock); } };
-luaGenerator.forBlock['node_remove'] = function(block: Blockly.Block) {
+Blockly.Blocks['node_remove'] = { init: function () { this.jsonInit(nodeRemoveBlock); } };
+luaGenerator.forBlock['node_remove'] = function (block: Blockly.Block) {
 	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
 	return `${node}:removeFromParent()\n`;
 };
@@ -88,8 +88,8 @@ const nodeAddChildBlock = {
 	nextStatement: null,
 	style: 'logic_blocks',
 };
-Blockly.Blocks['node_add_child'] = { init: function() { this.jsonInit(nodeAddChildBlock); } };
-luaGenerator.forBlock['node_add_child'] = function(block: Blockly.Block) {
+Blockly.Blocks['node_add_child'] = { init: function () { this.jsonInit(nodeAddChildBlock); } };
+luaGenerator.forBlock['node_add_child'] = function (block: Blockly.Block) {
 	const child = luaGenerator.getVariableName(block.getFieldValue('CHILD'));
 	const parent = luaGenerator.getVariableName(block.getFieldValue('PARENT'));
 	const order = luaGenerator.valueToCode(block, 'ORDER', Order.NONE);
@@ -173,8 +173,8 @@ const nodeSetNumberAttributeBlock = {
 	nextStatement: null,
 	style: 'logic_blocks',
 };
-Blockly.Blocks['node_set_number_attribute'] = { init: function() { this.jsonInit(nodeSetNumberAttributeBlock); } };
-luaGenerator.forBlock['node_set_number_attribute'] = function(block: Blockly.Block) {
+Blockly.Blocks['node_set_number_attribute'] = { init: function () { this.jsonInit(nodeSetNumberAttributeBlock); } };
+luaGenerator.forBlock['node_set_number_attribute'] = function (block: Blockly.Block) {
 	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
 	const attribute = block.getFieldValue('ATTRIBUTE');
 	const value = luaGenerator.valueToCode(block, 'VALUE', Order.NONE);
@@ -231,8 +231,8 @@ const nodeSetBooleanAttributeBlock = {
 	nextStatement: null,
 	style: 'logic_blocks',
 };
-Blockly.Blocks['node_set_boolean_attribute'] = { init: function() { this.jsonInit(nodeSetBooleanAttributeBlock); } };
-luaGenerator.forBlock['node_set_boolean_attribute'] = function(block: Blockly.Block) {
+Blockly.Blocks['node_set_boolean_attribute'] = { init: function () { this.jsonInit(nodeSetBooleanAttributeBlock); } };
+luaGenerator.forBlock['node_set_boolean_attribute'] = function (block: Blockly.Block) {
 	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
 	const attribute = block.getFieldValue('ATTRIBUTE');
 	const value = luaGenerator.valueToCode(block, 'VALUE', Order.NONE);
@@ -291,8 +291,8 @@ const nodeSetVec2AttributeBlock = {
 	nextStatement: null,
 	style: 'logic_blocks',
 };
-Blockly.Blocks['node_set_vec2_attribute'] = { init: function() { this.jsonInit(nodeSetVec2AttributeBlock); } };
-luaGenerator.forBlock['node_set_vec2_attribute'] = function(block: Blockly.Block) {
+Blockly.Blocks['node_set_vec2_attribute'] = { init: function () { this.jsonInit(nodeSetVec2AttributeBlock); } };
+luaGenerator.forBlock['node_set_vec2_attribute'] = function (block: Blockly.Block) {
 	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
 	const attribute = block.getFieldValue('ATTRIBUTE');
 	let vec2 = luaGenerator.valueToCode(block, 'VEC2', Order.NONE);
@@ -359,8 +359,8 @@ const nodeSetColorBlock = {
 	nextStatement: null,
 	style: 'logic_blocks',
 };
-Blockly.Blocks['node_set_color'] = { init: function() { this.jsonInit(nodeSetColorBlock); } };
-luaGenerator.forBlock['node_set_color'] = function(block: Blockly.Block) {
+Blockly.Blocks['node_set_color'] = { init: function () { this.jsonInit(nodeSetColorBlock); } };
+luaGenerator.forBlock['node_set_color'] = function (block: Blockly.Block) {
 	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
 	const color = luaGenerator.valueToCode(block, 'COLOR', Order.NONE);
 	Require.add('Color3');
@@ -439,8 +439,8 @@ const nodeGetNumberAttributeBlock = {
 	output: 'Number',
 	style: 'math_blocks',
 };
-Blockly.Blocks['node_get_number_attribute'] = { init: function() { this.jsonInit(nodeGetNumberAttributeBlock); } };
-luaGenerator.forBlock['node_get_number_attribute'] = function(block: Blockly.Block) {
+Blockly.Blocks['node_get_number_attribute'] = { init: function () { this.jsonInit(nodeGetNumberAttributeBlock); } };
+luaGenerator.forBlock['node_get_number_attribute'] = function (block: Blockly.Block) {
 	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
 	const attribute = block.getFieldValue('ATTRIBUTE');
 	if (attribute === 'anchorX') {
@@ -480,8 +480,8 @@ const nodeGetBooleanAttributeBlock = {
 	output: 'Boolean',
 	style: 'math_blocks',
 };
-Blockly.Blocks['node_get_boolean_attribute'] = { init: function() { this.jsonInit(nodeGetBooleanAttributeBlock); } };
-luaGenerator.forBlock['node_get_boolean_attribute'] = function(block: Blockly.Block) {
+Blockly.Blocks['node_get_boolean_attribute'] = { init: function () { this.jsonInit(nodeGetBooleanAttributeBlock); } };
+luaGenerator.forBlock['node_get_boolean_attribute'] = function (block: Blockly.Block) {
 	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
 	const attribute = block.getFieldValue('ATTRIBUTE');
 	return [`${node}.${attribute}`, Order.ATOMIC];
@@ -522,8 +522,8 @@ const nodeGetVec2AttributeBlock = {
 	output: 'Vec2',
 	style: 'math_blocks',
 };
-Blockly.Blocks['node_get_vec2_attribute'] = { init: function() { this.jsonInit(nodeGetVec2AttributeBlock); } };
-luaGenerator.forBlock['node_get_vec2_attribute'] = function(block: Blockly.Block) {
+Blockly.Blocks['node_get_vec2_attribute'] = { init: function () { this.jsonInit(nodeGetVec2AttributeBlock); } };
+luaGenerator.forBlock['node_get_vec2_attribute'] = function (block: Blockly.Block) {
 	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
 	const attribute = block.getFieldValue('ATTRIBUTE');
 	if (attribute === 'size') {
@@ -554,8 +554,8 @@ const nodeGetColorBlock = {
 	output: 'Color3',
 	style: 'math_blocks',
 };
-Blockly.Blocks['node_get_color'] = { init: function() { this.jsonInit(nodeGetColorBlock); } };
-luaGenerator.forBlock['node_get_color'] = function(block: Blockly.Block) {
+Blockly.Blocks['node_get_color'] = { init: function () { this.jsonInit(nodeGetColorBlock); } };
+luaGenerator.forBlock['node_get_color'] = function (block: Blockly.Block) {
 	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
 	return [`${node}.color3:toRGB()`, Order.ATOMIC];
 };

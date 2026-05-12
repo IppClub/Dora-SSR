@@ -17,7 +17,7 @@ const graphicCategory = {
 	kind: 'category',
 	name: zh ? '图形' : 'Graphic',
 	categorystyle: 'logic_category',
-	contents: [] as {kind: string, type: string, inputs?: any}[],
+	contents: [] as { kind: string, type: string, inputs?: any }[],
 };
 export default graphicCategory;
 
@@ -35,8 +35,8 @@ const spriteCreateBlock = {
 	output: 'Sprite',
 	style: 'logic_blocks',
 };
-Blockly.Blocks['sprite_create'] = { init: function() { this.jsonInit(spriteCreateBlock); } };
-luaGenerator.forBlock['sprite_create'] = function(block: Blockly.Block) {
+Blockly.Blocks['sprite_create'] = { init: function () { this.jsonInit(spriteCreateBlock); } };
+luaGenerator.forBlock['sprite_create'] = function (block: Blockly.Block) {
 	const file = luaGenerator.valueToCode(block, 'FILE', Order.NONE);
 	Require.add('Sprite');
 	return [`Sprite(${file})`, Order.ATOMIC];
@@ -75,8 +75,8 @@ const labelCreateBlock = {
 	output: 'Label',
 	style: 'logic_blocks',
 };
-Blockly.Blocks['label_create'] = { init: function() { this.jsonInit(labelCreateBlock); } };
-luaGenerator.forBlock['label_create'] = function(block: Blockly.Block) {
+Blockly.Blocks['label_create'] = { init: function () { this.jsonInit(labelCreateBlock); } };
+luaGenerator.forBlock['label_create'] = function (block: Blockly.Block) {
 	const font = luaGenerator.valueToCode(block, 'FONT', Order.NONE);
 	const size = luaGenerator.valueToCode(block, 'SIZE', Order.NONE);
 	Require.add('Label');
@@ -125,8 +125,8 @@ const labelSetTextBlock = {
 	nextStatement: null,
 	style: 'logic_blocks',
 };
-Blockly.Blocks['label_set_text'] = { init: function() { this.jsonInit(labelSetTextBlock); } };
-luaGenerator.forBlock['label_set_text'] = function(block: Blockly.Block) {
+Blockly.Blocks['label_set_text'] = { init: function () { this.jsonInit(labelSetTextBlock); } };
+luaGenerator.forBlock['label_set_text'] = function (block: Blockly.Block) {
 	const label = luaGenerator.getVariableName(block.getFieldValue('LABEL'));
 	const text = luaGenerator.valueToCode(block, 'TEXT', Order.NONE);
 	return `${label}.text = ${text === '' ? '""' : text}\n`;

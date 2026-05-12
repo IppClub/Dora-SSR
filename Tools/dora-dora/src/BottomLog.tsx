@@ -20,7 +20,7 @@ const formatPart = (text: string) => {
 	return <span>{
 		text.split(/\[(error|warning|info)\]/).map((part, index) => {
 			if (index % 2 === 1) {
-				return <span key={index}>[<span style={{color: part === 'error' ? Color.Error : part === 'warning' ? Color.Warning : Color.Info}}>{part}</span>]</span>;
+				return <span key={index}>[<span style={{ color: part === 'error' ? Color.Error : part === 'warning' ? Color.Warning : Color.Info }}>{part}</span>]</span>;
 			}
 			return <span key={index}>{part}</span>;
 		})
@@ -28,7 +28,7 @@ const formatPart = (text: string) => {
 };
 
 const BottomLog = memo((props: BottomLogProps) => {
-	const {t} = useTranslation();
+	const { t } = useTranslation();
 	const [text, setText] = useState(t("log.wait"));
 
 

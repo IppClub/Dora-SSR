@@ -21,12 +21,12 @@ export interface SpinePlayerProps {
 };
 
 const SpinePlayer = memo((props: SpinePlayerProps) => {
-	const {skelFile, atlasFile} = props;
+	const { skelFile, atlasFile } = props;
 	const skelUrl = Service.addr("/" + skelFile.replace(/\\/g, "/"));
 	const atlasUrl = Service.addr("/" + atlasFile.replace(/\\/g, "/"));
 	const playerRef = useRef<HTMLDivElement>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
-	const {t} = useTranslation();
+	const { t } = useTranslation();
 
 	useLayoutEffect(() => {
 		let player: Spine | null = null;
@@ -65,18 +65,18 @@ const SpinePlayer = memo((props: SpinePlayerProps) => {
 							});
 						} catch (error) {
 							console.error(error);
-							props.onLoadFailed(t("spine.load", {file: Info.path.basename(skelFile)}));
+							props.onLoadFailed(t("spine.load", { file: Info.path.basename(skelFile) }));
 						} finally {
 							assetManager.dispose();
 						}
 					}, (_path, message) => {
 						console.error(message);
-						props.onLoadFailed(t("spine.load", {file: Info.path.basename(skelFile)}));
+						props.onLoadFailed(t("spine.load", { file: Info.path.basename(skelFile) }));
 					});
 				});
 			}).catch((message) => {
 				console.error(message);
-				props.onLoadFailed(t("spine.load", {file: Info.path.basename(atlasFile)}));
+				props.onLoadFailed(t("spine.load", { file: Info.path.basename(atlasFile) }));
 			})
 		}
 		return () => {
@@ -87,8 +87,8 @@ const SpinePlayer = memo((props: SpinePlayerProps) => {
 		// eslint-disable-next-line
 	}, []);
 
-	return <div ref={playerRef} style={{height: '80vh'}}>
-		<canvas ref={canvasRef} hidden/>
+	return <div ref={playerRef} style={{ height: '80vh' }}>
+		<canvas ref={canvasRef} hidden />
 	</div>;
 });
 

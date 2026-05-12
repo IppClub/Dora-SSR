@@ -1,7 +1,7 @@
-import type {ActionClipDocument, ActionClipRect} from "./ActionClip";
-import type {ActionDocument, ActionNode} from "./ActionDocument";
-import type {ActionViewport} from "./ActionEditorState";
-import {parseActionFrameSpec, sampleActionKeyTrack} from "./ActionPlayback";
+import type { ActionClipDocument, ActionClipRect } from "./ActionClip";
+import type { ActionDocument, ActionNode } from "./ActionDocument";
+import type { ActionViewport } from "./ActionEditorState";
+import { parseActionFrameSpec, sampleActionKeyTrack } from "./ActionPlayback";
 
 export type ActionRenderRect = {
 	nodeId: string;
@@ -16,12 +16,12 @@ export type ActionRenderRect = {
 	width: number;
 	height: number;
 	corners: [
-		{x: number; y: number},
-		{x: number; y: number},
-		{x: number; y: number},
-		{x: number; y: number},
+		{ x: number; y: number },
+		{ x: number; y: number },
+		{ x: number; y: number },
+		{ x: number; y: number },
 	];
-	anchor: {x: number; y: number};
+	anchor: { x: number; y: number };
 	visible: boolean;
 	opacity: number;
 	missingClip: boolean;
@@ -37,7 +37,7 @@ export type ActionViewportRect = {
 const fallbackRect = (node: ActionNode, document: ActionDocument): ActionClipRect => {
 	const width = node.id === document.root.id && document.size.width > 0 ? document.size.width : (node.clip === "" ? 0 : 80);
 	const height = node.id === document.root.id && document.size.height > 0 ? document.size.height : (node.clip === "" ? 0 : 80);
-	return {name: node.clip, x: 0, y: 0, width, height};
+	return { name: node.clip, x: 0, y: 0, width, height };
 };
 
 type ActionRenderMatrix = {
@@ -49,7 +49,7 @@ type ActionRenderMatrix = {
 	ty: number;
 };
 
-const identityMatrix = (): ActionRenderMatrix => ({a: 1, b: 0, c: 0, d: 1, tx: 0, ty: 0});
+const identityMatrix = (): ActionRenderMatrix => ({ a: 1, b: 0, c: 0, d: 1, tx: 0, ty: 0 });
 
 const multiplyMatrix = (left: ActionRenderMatrix, right: ActionRenderMatrix): ActionRenderMatrix => ({
 	a: left.a * right.a + left.c * right.b,
@@ -60,18 +60,18 @@ const multiplyMatrix = (left: ActionRenderMatrix, right: ActionRenderMatrix): Ac
 	ty: left.b * right.tx + left.d * right.ty + left.ty,
 });
 
-const transformPoint = (matrix: ActionRenderMatrix, point: {x: number; y: number}) => ({
+const transformPoint = (matrix: ActionRenderMatrix, point: { x: number; y: number }) => ({
 	x: matrix.a * point.x + matrix.c * point.y + matrix.tx,
 	y: matrix.b * point.x + matrix.d * point.y + matrix.ty,
 });
 
 const transformMatrix = (transform: {
-	position: {x: number; y: number};
-	scale: {x: number; y: number};
-	skew?: {x: number; y: number};
+	position: { x: number; y: number };
+	scale: { x: number; y: number };
+	skew?: { x: number; y: number };
 	rotation: number;
-	anchor?: {x: number; y: number};
-	size?: {width: number; height: number};
+	anchor?: { x: number; y: number };
+	size?: { width: number; height: number };
 }): ActionRenderMatrix => {
 	const scaleX = transform.scale.x === 0 ? 1 : transform.scale.x;
 	const scaleY = transform.scale.y === 0 ? 1 : transform.scale.y;
@@ -103,7 +103,7 @@ const transformMatrix = (transform: {
 const clampOpacity = (opacity: number) => Math.max(0, Math.min(1, opacity));
 
 const sampleActionFrameRect = (
-	track: {file: string; delay: number},
+	track: { file: string; delay: number },
 	clip: ActionClipDocument | null,
 	time: number,
 ): ActionClipRect | null => {
@@ -141,7 +141,7 @@ const findParentMatrix = (
 	if (node.id === targetNodeId) return parentMatrix;
 	const rect = node.clip ? clip?.rects[node.clip] : undefined;
 	const base = rect ?? fallbackRect(node, document);
-	const nodeMatrix = multiplyMatrix(parentMatrix, transformMatrix({...node.transform, size: base}));
+	const nodeMatrix = multiplyMatrix(parentMatrix, transformMatrix({ ...node.transform, size: base }));
 	for (const child of node.children) {
 		const result = findParentMatrix(document, clip, child, targetNodeId, nodeMatrix);
 		if (result) return result;
@@ -153,7 +153,7 @@ export const screenDeltaToNodeLocalDelta = (
 	document: ActionDocument,
 	clip: ActionClipDocument | null,
 	nodeId: string,
-	delta: {x: number; y: number},
+	delta: { x: number; y: number },
 	viewport: ActionViewport,
 ) => {
 	const worldDelta = {
@@ -195,7 +195,7 @@ const collectRenderRects = (
 	const rect = frameRect ?? (node.clip ? clip?.rects[node.clip] : undefined);
 	const base = rect ?? fallbackRect(node, document);
 	const transform = sampled ?? node.transform;
-	const nodeMatrix = multiplyMatrix(parentMatrix, transformMatrix({...transform, anchor: node.transform.anchor, size: base}));
+	const nodeMatrix = multiplyMatrix(parentMatrix, transformMatrix({ ...transform, anchor: node.transform.anchor, size: base }));
 	const opacity = parentOpacity * clampOpacity(transform.opacity ?? node.transform.opacity);
 	const hiddenByAnimation = parentHiddenByAnimation || sampled?.visible === false;
 	const visible = !hiddenByLook && !hiddenByAnimation;
@@ -205,10 +205,10 @@ const collectRenderRects = (
 		const bottom = 0;
 		const top = base.height;
 		const corners: ActionRenderRect["corners"] = [
-			transformPoint(nodeMatrix, {x: left, y: top}),
-			transformPoint(nodeMatrix, {x: right, y: top}),
-			transformPoint(nodeMatrix, {x: right, y: bottom}),
-			transformPoint(nodeMatrix, {x: left, y: bottom}),
+			transformPoint(nodeMatrix, { x: left, y: top }),
+			transformPoint(nodeMatrix, { x: right, y: top }),
+			transformPoint(nodeMatrix, { x: right, y: bottom }),
+			transformPoint(nodeMatrix, { x: left, y: bottom }),
 		];
 		const anchor = transformPoint(nodeMatrix, {
 			x: node.transform.anchor.x * base.width,
@@ -255,18 +255,18 @@ export const buildActionRenderRects = (
 };
 
 export const modelToScreen = (
-	model: {x: number; y: number},
+	model: { x: number; y: number },
 	viewport: ActionViewport,
-	area: {x: number; y: number; width: number; height: number},
+	area: { x: number; y: number; width: number; height: number },
 ) => ({
 	x: area.x + area.width / 2 + viewport.pan.x + model.x * viewport.zoom,
 	y: area.y + area.height / 2 + viewport.pan.y - model.y * viewport.zoom,
 });
 
 export const screenToModel = (
-	screen: {x: number; y: number},
+	screen: { x: number; y: number },
 	viewport: ActionViewport,
-	area: {x: number; y: number; width: number; height: number},
+	area: { x: number; y: number; width: number; height: number },
 ) => ({
 	x: (screen.x - area.x - area.width / 2 - viewport.pan.x) / viewport.zoom,
 	y: -(screen.y - area.y - area.height / 2 - viewport.pan.y) / viewport.zoom,
@@ -275,9 +275,9 @@ export const screenToModel = (
 export const renderRectToViewport = (
 	rect: ActionRenderRect,
 	viewport: ActionViewport,
-	area: {x: number; y: number; width: number; height: number},
+	area: { x: number; y: number; width: number; height: number },
 ): ActionViewportRect => {
-	const topLeft = modelToScreen({x: rect.x, y: rect.y + rect.height}, viewport, area);
+	const topLeft = modelToScreen({ x: rect.x, y: rect.y + rect.height }, viewport, area);
 	return {
 		x: topLeft.x,
 		y: topLeft.y,
@@ -289,10 +289,10 @@ export const renderRectToViewport = (
 export const renderRectCornersToViewport = (
 	rect: ActionRenderRect,
 	viewport: ActionViewport,
-	area: {x: number; y: number; width: number; height: number},
+	area: { x: number; y: number; width: number; height: number },
 ) => rect.corners.map((corner) => modelToScreen(corner, viewport, area)) as ActionRenderRect["corners"];
 
-const pointInQuad = (point: {x: number; y: number}, corners: ActionRenderRect["corners"]) => {
+const pointInQuad = (point: { x: number; y: number }, corners: ActionRenderRect["corners"]) => {
 	const area = Math.abs(corners.reduce((sum, current, index) => {
 		const next = corners[(index + 1) % corners.length];
 		return sum + current.x * next.y - next.x * current.y;
@@ -313,7 +313,7 @@ const pointInQuad = (point: {x: number; y: number}, corners: ActionRenderRect["c
 
 export const hitTestActionRenderRects = (
 	rects: ActionRenderRect[],
-	point: {x: number; y: number},
+	point: { x: number; y: number },
 	accept?: (rect: ActionRenderRect) => boolean,
 ) => {
 	for (let index = rects.length - 1; index >= 0; index -= 1) {

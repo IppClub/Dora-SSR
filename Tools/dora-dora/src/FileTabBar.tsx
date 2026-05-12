@@ -56,7 +56,7 @@ export const StyledTabs = styled((props: StyledTabsProps) => (
 		selectionFollowsFocus
 		{...props}
 		TabIndicatorProps={{
-			children: <span className="MuiTabs-indicatorSpan"/>
+			children: <span className="MuiTabs-indicatorSpan" />
 		}}
 	/>
 ))({
@@ -82,21 +82,21 @@ interface StyledTabProps {
 }
 
 export const StyledTab = styled((props: StyledTabProps) => {
-	const {tooltip, onTabClose} = props;
-	const newProps = {...props};
+	const { tooltip, onTabClose } = props;
+	const newProps = { ...props };
 	delete newProps.onTabClose;
 	return (
 		<div>
 			<Tooltip arrow title={props.tooltip}>
-				<Tab disableRipple style={{textWrap: 'nowrap'}} {...newProps}/>
+				<Tab disableRipple style={{ textWrap: 'nowrap' }} {...newProps} />
 			</Tooltip>
-			<IconButton size='small' color="secondary" sx={{marginLeft: -3, opacity: 0.6}}
+			<IconButton size='small' color="secondary" sx={{ marginLeft: -3, opacity: 0.6 }}
 				onPointerDown={() => {
 					if (onTabClose) {
 						onTabClose(tooltip);
 					}
 				}}>
-				<IoIosClose/>
+				<IoIosClose />
 			</IconButton>
 		</div>
 	);
@@ -136,10 +136,10 @@ export type TabMenuEvent =
 	"CloseAll";
 
 export default memo(function FileTabBar(props: FileTabBarProps) {
-	const {index, items = [], onChange, onMenuClick, onTabClose} = props;
+	const { index, items = [], onChange, onMenuClick, onTabClose } = props;
 	const [anchorEl, setAnchorEl] = useState<Element | null>(null);
 	const [value, setValue] = useState<number | false>(false);
-	const {t} = useTranslation();
+	const { t } = useTranslation();
 
 	if (index !== null && index !== value) {
 		setValue(index);
@@ -192,37 +192,37 @@ export default memo(function FileTabBar(props: FileTabBarProps) {
 			>
 				<StyledMenuItem onClick={() => handleClose('Save')}>
 					<ListItemIcon>
-						<AiOutlineSave/>
+						<AiOutlineSave />
 					</ListItemIcon>
-					<ListItemText primary={ t("menu.save") }/>
-					<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+S</div>
+					<ListItemText primary={t("menu.save")} />
+					<div style={{ fontSize: 10, color: Color.TextSecondary }}>Mod+S</div>
 				</StyledMenuItem>
 				<StyledMenuItem onClick={() => handleClose('SaveAll')}>
 					<ListItemIcon>
-						<AiFillSave/>
+						<AiFillSave />
 					</ListItemIcon>
-					<ListItemText primary={ t("menu.saveAll") }/>
-					<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+Shift+S</div>
+					<ListItemText primary={t("menu.saveAll")} />
+					<div style={{ fontSize: 10, color: Color.TextSecondary }}>Mod+Shift+S</div>
 				</StyledMenuItem>
 				<StyledMenuItem onClick={() => handleClose('Close')}>
 					<ListItemIcon>
-						<AiOutlineClose/>
+						<AiOutlineClose />
 					</ListItemIcon>
-					<ListItemText primary={ t("menu.close") }/>
-					<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+W</div>
+					<ListItemText primary={t("menu.close")} />
+					<div style={{ fontSize: 10, color: Color.TextSecondary }}>Mod+W</div>
 				</StyledMenuItem>
 				<StyledMenuItem onClick={() => handleClose('CloseAll')}>
 					<ListItemIcon>
-						<AiFillCloseCircle/>
+						<AiFillCloseCircle />
 					</ListItemIcon>
-					<ListItemText primary={ t("menu.closeAll") }/>
-					<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+Shift+W</div>
+					<ListItemText primary={t("menu.closeAll")} />
+					<div style={{ fontSize: 10, color: Color.TextSecondary }}>Mod+Shift+W</div>
 				</StyledMenuItem>
 				<StyledMenuItem onClick={() => handleClose('CloseOthers')}>
 					<ListItemIcon>
-						<AiOutlineCloseCircle/>
+						<AiOutlineCloseCircle />
 					</ListItemIcon>
-					<ListItemText primary={ t("menu.closeOthers") }/>
+					<ListItemText primary={t("menu.closeOthers")} />
 				</StyledMenuItem>
 			</StyledMenu>
 		</Box>

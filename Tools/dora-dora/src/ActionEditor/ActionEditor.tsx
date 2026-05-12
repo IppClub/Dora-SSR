@@ -1,4 +1,4 @@
-import React, {memo, useCallback, useEffect, useRef, useState} from "react";
+import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import {
 	ActionClipDocument,
 	ActionDocument,
@@ -12,12 +12,14 @@ import {
 } from "./index";
 import * as Service from "../Service";
 import ActionEditorCanvas from "./ActionEditorCanvas";
-import type {ActionDocumentChangeOptions, ActionEditorMode} from "./ActionEditorCanvas";
-import {getActionAtlasPaths, getActionClipFiles, getActionClipsDirectories} from "./ActionPaths";
-import {packActionClipsDirectory} from "./ActionAtlasPacker";
+import type { ActionDocumentChangeOptions, ActionEditorMode } from "./ActionEditorCanvas";
+import { getActionAtlasPaths, getActionClipFiles, getActionClipsDirectories } from "./ActionPaths";
+import { packActionClipsDirectory } from "./ActionAtlasPacker";
+import { toServedResourceUrl } from "./ActionResource";
 
 export type ActionEditorProps = {
 	filePath: string;
+	resourceBasePath: string;
 	sourceContent: string;
 	width: number;
 	height: number;
@@ -44,8 +46,8 @@ const loadImageElement = (filePath: string, objectUrl: string): Promise<HTMLImag
 	});
 };
 
-const loadAtlasImage = async (filePath: string): Promise<ActionAtlasImage> => {
-	const response = await fetch(Service.addr(`/${filePath.replace(/\\/g, "/")}`));
+const loadAtlasImage = async (filePath: string, resourceBasePath: string): Promise<ActionAtlasImage> => {
+	const response = await fetch(Service.addr(toServedResourceUrl(filePath, resourceBasePath)));
 	if (!response.ok) throw new Error(`Failed to load atlas image: ${filePath}`);
 	const objectUrl = URL.createObjectURL(await response.blob());
 	try {
@@ -64,7 +66,7 @@ const loadAtlasImage = async (filePath: string): Promise<ActionAtlasImage> => {
 };
 
 export default memo(function ActionEditor(props: ActionEditorProps) {
-	const {filePath, sourceContent, width, height, active, readOnly, onChange, onLoadFailed} = props;
+	const { filePath, resourceBasePath, sourceContent, width, height, active, readOnly, onChange, onLoadFailed } = props;
 	const fallbackKeyRef = useRef<string | null>(null);
 	const selfEmittedKeyRef = useRef<string | null>(null);
 	const processedSourceKeyRef = useRef(`${filePath}\n${sourceContent}`);
@@ -143,7 +145,7 @@ export default memo(function ActionEditor(props: ActionEditorProps) {
 		const dir = filePath.includes("/") ? filePath.slice(0, filePath.lastIndexOf("/")) : "";
 		const clipPath = clipFile.includes("/") ? clipFile : `${dir}/${clipFile}`;
 		let cancelled = false;
-		Service.read({path: clipPath}).then((res) => {
+		Service.read({ path: clipPath }).then((res) => {
 			if (cancelled) return;
 			if (!res.success) {
 				setClipDocument(null);
@@ -177,7 +179,7 @@ export default memo(function ActionEditor(props: ActionEditorProps) {
 		}
 		let cancelled = false;
 		let loadedUrl: string | null = null;
-		loadAtlasImage(clipDocument.texturePath).then((loaded) => {
+		loadAtlasImage(clipDocument.texturePath, resourceBasePath).then((loaded) => {
 			loadedUrl = loaded.objectUrl;
 			if (!cancelled) {
 				setAtlasImage(loaded);
@@ -196,7 +198,7 @@ export default memo(function ActionEditor(props: ActionEditorProps) {
 			cancelled = true;
 			if (loadedUrl) URL.revokeObjectURL(loadedUrl);
 		};
-	}, [clipDocument]);
+	}, [clipDocument, resourceBasePath]);
 
 	useEffect(() => {
 		return () => {
@@ -206,7 +208,7 @@ export default memo(function ActionEditor(props: ActionEditorProps) {
 
 	const refreshClipsDirs = useCallback(async () => {
 		const dir = filePath.includes("/") ? filePath.slice(0, filePath.lastIndexOf("/")) : "";
-		const res = await Service.list({path: dir});
+		const res = await Service.list({ path: dir });
 		if (!res.success) {
 			setClipsDirs([]);
 			setClipFiles([]);
@@ -240,7 +242,7 @@ export default memo(function ActionEditor(props: ActionEditorProps) {
 			setUndoStack((items) => [...items, loadState.document]);
 		}
 		setRedoStack([]);
-		setLoadState({document, diagnostics: [], dirty: true});
+		setLoadState({ document, diagnostics: [], dirty: true });
 		if (document.looks.indexOf(selectedLook ?? "") < 0) {
 			setSelectedLook(null);
 			lastSelectedLookRef.current = null;
@@ -257,7 +259,7 @@ export default memo(function ActionEditor(props: ActionEditorProps) {
 	}, [filePath, loadState.document, selectedAnimation, selectedLook]);
 
 	const emitHistoryDocument = useCallback((document: ActionDocument) => {
-		setLoadState({document, diagnostics: [], dirty: true});
+		setLoadState({ document, diagnostics: [], dirty: true });
 		const emittedContent = writeLegacyModel(document);
 		selfEmittedKeyRef.current = `${filePath}\n${emittedContent}`;
 		onChangeRef.current(emittedContent);
@@ -303,16 +305,16 @@ export default memo(function ActionEditor(props: ActionEditorProps) {
 	const packClipsDir = useCallback(async (clipsDir: string) => {
 		const paths = getActionAtlasPaths(filePath, clipsDir);
 		setClipsPackErrors((items) => {
-			const next = {...items};
+			const next = { ...items };
 			delete next[clipsDir];
 			return next;
 		});
-		const {clip} = await packActionClipsDirectory(filePath, clipsDir);
+		const { clip } = await packActionClipsDirectory(filePath, clipsDir, resourceBasePath);
 		if (loadState.document.clipFile === paths.modelClipReference) {
 			setClipDocument(clip);
 			setClipDiagnostics([]);
 		}
-	}, [filePath, loadState.document.clipFile]);
+	}, [filePath, loadState.document.clipFile, resourceBasePath]);
 
 	const packSingleClipsDir = useCallback((clipsDir: string) => {
 		if (packing) return;

@@ -7,7 +7,7 @@ import {
 	ActionTrack,
 	createEmptyActionDocument,
 } from "./ActionDocument";
-import {ActionXmlElement, escapeXml, parseActionXml} from "./ActionXml";
+import { ActionXmlElement, escapeXml, parseActionXml } from "./ActionXml";
 
 type TempTrack = {
 	index: number;
@@ -31,15 +31,15 @@ const num = (value: string | undefined, fallback: number) => {
 	return Number.isFinite(parsed) ? parsed : fallback;
 };
 
-const vec2 = (value: string | undefined, fallback = {x: 0, y: 0}) => {
-	if (!value) return {...fallback};
+const vec2 = (value: string | undefined, fallback = { x: 0, y: 0 }) => {
+	if (!value) return { ...fallback };
 	const [xRaw, yRaw] = value.split(",");
-	return {x: num(xRaw, fallback.x), y: num(yRaw, fallback.y)};
+	return { x: num(xRaw, fallback.x), y: num(yRaw, fallback.y) };
 };
 
 const size = (value: string | undefined) => {
 	const parsed = vec2(value);
-	return {width: parsed.x, height: parsed.y};
+	return { width: parsed.x, height: parsed.y };
 };
 
 const splitIndices = (value: string | undefined) => {
@@ -53,7 +53,7 @@ const attrIndexMapToEntries = (items: ActionXmlElement[], tag: "I" | "J") => {
 		if (item.name !== tag) continue;
 		const index = num(item.attrs.C, 0);
 		const name = item.attrs.H ?? "";
-		mapped.push({index, name});
+		mapped.push({ index, name });
 	}
 	mapped.sort((a, b) => a.index - b.index);
 	return mapped;
@@ -85,9 +85,9 @@ const namesForIndex = (entries: IndexedName[], index: number) => entries.filter(
 const defaultFrame = (): ActionKeyFrame => ({
 	time: 0,
 	transform: {
-		position: {x: 0, y: 0},
-		scale: {x: 1, y: 1},
-		skew: {x: 0, y: 0},
+		position: { x: 0, y: 0 },
+		scale: { x: 1, y: 1 },
+		skew: { x: 0, y: 0 },
 		rotation: 0,
 		opacity: 1,
 	},
@@ -104,14 +104,14 @@ const defaultFrame = (): ActionKeyFrame => ({
 const cloneFrame = (frame: ActionKeyFrame): ActionKeyFrame => ({
 	time: frame.time,
 	transform: {
-		position: {...frame.transform.position},
-		scale: {...frame.transform.scale},
-		skew: {...frame.transform.skew},
+		position: { ...frame.transform.position },
+		scale: { ...frame.transform.scale },
+		skew: { ...frame.transform.skew },
 		rotation: frame.transform.rotation,
 		opacity: frame.transform.opacity,
 	},
 	visible: frame.visible,
-	ease: {...frame.ease},
+	ease: { ...frame.ease },
 	event: frame.event,
 });
 
@@ -123,7 +123,7 @@ const parseKeyAnimation = (element: ActionXmlElement): Omit<ActionKeyTrack, "ani
 	for (const child of element.children) {
 		if (child.name !== "D") continue;
 		const frame = cloneFrame(lastFrame);
-		frame.ease = {position: 0, scale: 0, skew: 0, rotation: 0, opacity: 0};
+		frame.ease = { position: 0, scale: 0, skew: 0, rotation: 0, opacity: 0 };
 		frame.event = undefined;
 		const duration = child.attrs.A === undefined ? lastDuration : num(child.attrs.A, 0) / 60;
 		time = keyframes.length === 0 ? 0 : time + duration;
@@ -132,7 +132,7 @@ const parseKeyAnimation = (element: ActionXmlElement): Omit<ActionKeyTrack, "ani
 		if (child.attrs.B !== undefined) frame.visible = num(child.attrs.B, 1) !== 0;
 		if (child.attrs.C !== undefined) frame.transform.opacity = Math.max(0, Math.min(1, num(child.attrs.C, 1)));
 		if (child.attrs.D !== undefined) frame.transform.position = vec2(child.attrs.D);
-		if (child.attrs.E !== undefined) frame.transform.scale = vec2(child.attrs.E, {x: 1, y: 1});
+		if (child.attrs.E !== undefined) frame.transform.scale = vec2(child.attrs.E, { x: 1, y: 1 });
 		if (child.attrs.F !== undefined) frame.transform.rotation = num(child.attrs.F, 0);
 		if (child.attrs.G !== undefined) frame.transform.skew = vec2(child.attrs.G);
 		if (child.attrs.H !== undefined) frame.ease.opacity = num(child.attrs.H, 0);
@@ -144,7 +144,7 @@ const parseKeyAnimation = (element: ActionXmlElement): Omit<ActionKeyTrack, "ani
 		keyframes.push(frame);
 		lastFrame = frame;
 	}
-	return {type: "key", keyframes};
+	return { type: "key", keyframes };
 };
 
 const parseFrameAnimation = (element: ActionXmlElement): Omit<ActionFrameTrack, "animation"> => ({
@@ -161,11 +161,11 @@ const parseNode = (element: ActionXmlElement, id: string): TempNode => {
 		front: element.attrs.J === undefined ? true : num(element.attrs.J, 1) !== 0,
 		transform: {
 			position: vec2(element.attrs.D),
-			scale: vec2(element.attrs.E, {x: 1, y: 1}),
+			scale: vec2(element.attrs.E, { x: 1, y: 1 }),
 			skew: vec2(element.attrs.G),
 			rotation: num(element.attrs.F, 0),
 			opacity: num(element.attrs.C, 1),
-			anchor: vec2(element.attrs.A, {x: 0.5, y: 0.5}),
+			anchor: vec2(element.attrs.A, { x: 0.5, y: 0.5 }),
 		},
 		hiddenLookIndices: [],
 		tracksByIndex: [],
@@ -175,10 +175,10 @@ const parseNode = (element: ActionXmlElement, id: string): TempNode => {
 	let childIndex = 0;
 	for (const child of element.children) {
 		if (child.name === "C") {
-			node.tracksByIndex.push({index: trackIndex, track: parseKeyAnimation(child)});
+			node.tracksByIndex.push({ index: trackIndex, track: parseKeyAnimation(child) });
 			trackIndex += 1;
 		} else if (child.name === "E") {
-			node.tracksByIndex.push({index: trackIndex, track: parseFrameAnimation(child)});
+			node.tracksByIndex.push({ index: trackIndex, track: parseFrameAnimation(child) });
 			trackIndex += 1;
 		} else if (child.name === "F") {
 			node.hiddenLookIndices.push(...splitIndices(child.attrs.H));
@@ -194,7 +194,7 @@ const resolveNode = (node: TempNode, animations: IndexedName[], looks: IndexedNa
 	const tracks: Record<string, ActionTrack> = {};
 	for (const item of node.tracksByIndex) {
 		const animation = firstNameForIndex(animations, item.index) ?? `animation${item.index}`;
-		tracks[animation] = {...item.track, animation} as ActionTrack;
+		tracks[animation] = { ...item.track, animation } as ActionTrack;
 	}
 	const hiddenInLooks = [...new Set(node.hiddenLookIndices.flatMap((index) => namesForIndex(looks, index)))];
 	return {
@@ -233,7 +233,7 @@ export const parseLegacyModel = (xml: string, modelPath?: string): ActionDocumen
 		looks: indexedNamesToList(lookEntries),
 		keyPoints: root.children
 			.filter((child) => child.name === "K")
-			.map((child) => ({name: child.attrs.A ?? "", ...vec2(child.attrs.B)})),
+			.map((child) => ({ name: child.attrs.A ?? "", ...vec2(child.attrs.B) })),
 		legacy: {
 			animationIndexes: indexedNamesToRecord(animationEntries),
 			lookIndexes: indexedNamesToRecord(lookEntries),

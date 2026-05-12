@@ -17,7 +17,7 @@ const physicsCategory = {
 	kind: 'category',
 	name: zh ? '物理' : 'Physics',
 	categorystyle: 'colour_category',
-	contents: [] as {kind: string, type: string, inputs?: any}[],
+	contents: [] as { kind: string, type: string, inputs?: any }[],
 };
 export default physicsCategory;
 
@@ -57,11 +57,11 @@ const physicsWorldCreateBlock = {
 	style: 'colour_blocks',
 };
 Blockly.Blocks['physics_world_create'] = {
-	init: function() {
+	init: function () {
 		this.jsonInit(physicsWorldCreateBlock);
 	},
 };
-luaGenerator.forBlock['physics_world_create'] = function(_block: Blockly.Block) {
+luaGenerator.forBlock['physics_world_create'] = function (_block: Blockly.Block) {
 	Require.add('PhysicsWorld');
 	return [`PhysicsWorld()`, Order.ATOMIC];
 };
@@ -107,11 +107,11 @@ const setGroupCollisionEnabledBlock = {
 	style: 'colour_blocks',
 };
 Blockly.Blocks['set_group_collision_enabled'] = {
-	init: function() {
+	init: function () {
 		this.jsonInit(setGroupCollisionEnabledBlock);
 	},
 };
-luaGenerator.forBlock['set_group_collision_enabled'] = function(block: Blockly.Block) {
+luaGenerator.forBlock['set_group_collision_enabled'] = function (block: Blockly.Block) {
 	const world = luaGenerator.getVariableName(block.getFieldValue('WORLD'));
 	const group1 = luaGenerator.valueToCode(block, 'GROUP1', Order.NONE);
 	const group2 = luaGenerator.valueToCode(block, 'GROUP2', Order.NONE);
@@ -204,13 +204,13 @@ const bodyCreateBlock = {
 	style: 'colour_blocks',
 };
 Blockly.Blocks['body_create'] = {
-	init: function() {
+	init: function () {
 		this.jsonInit(bodyCreateBlock);
 	},
-	onchange: function (this: Blockly.Block & {ALLOWED_FIXTURES: string[]}, e: Blockly.Events.Abstract) {
+	onchange: function (this: Blockly.Block & { ALLOWED_FIXTURES: string[] }, e: Blockly.Events.Abstract) {
 		if (
 			((this.workspace as Blockly.WorkspaceSvg).isDragging &&
-			(this.workspace as Blockly.WorkspaceSvg).isDragging()) ||
+				(this.workspace as Blockly.WorkspaceSvg).isDragging()) ||
 			(e.type !== Blockly.Events.BLOCK_MOVE && e.type !== Blockly.Events.BLOCK_CREATE)
 		) {
 			return;
@@ -255,7 +255,7 @@ Blockly.Blocks['body_create'] = {
 	]
 };
 const bodyDefStack: string[] = [];
-luaGenerator.forBlock['body_create'] = function(block: Blockly.Block) {
+luaGenerator.forBlock['body_create'] = function (block: Blockly.Block) {
 	const bodyDefVar = luaGenerator.nameDB_?.getDistinctName('bodyDef', Blockly.Names.NameType.VARIABLE) ?? 'bodyDef';
 	bodyDefStack.push(bodyDefVar);
 	const world = luaGenerator.getVariableName(block.getFieldValue('WORLD'));
@@ -376,13 +376,13 @@ const rectangleFixtureBlock = {
 	style: 'math_blocks',
 };
 Blockly.Blocks['rectangle_fixture'] = {
-	init: function() {
+	init: function () {
 		this.jsonInit(rectangleFixtureBlock);
 	},
-	onchange: function (this: Blockly.Block & {ALLOWED_FIXTURES: string[]}, e: Blockly.Events.Abstract) {
+	onchange: function (this: Blockly.Block & { ALLOWED_FIXTURES: string[] }, e: Blockly.Events.Abstract) {
 		if (
 			((this.workspace as Blockly.WorkspaceSvg).isDragging &&
-			(this.workspace as Blockly.WorkspaceSvg).isDragging()) ||
+				(this.workspace as Blockly.WorkspaceSvg).isDragging()) ||
 			(e.type !== Blockly.Events.BLOCK_MOVE && e.type !== Blockly.Events.BLOCK_CREATE)
 		) {
 			return;
@@ -412,7 +412,7 @@ Blockly.Blocks['rectangle_fixture'] = {
 		}
 	}
 };
-luaGenerator.forBlock['rectangle_fixture'] = function(block: Blockly.Block) {
+luaGenerator.forBlock['rectangle_fixture'] = function (block: Blockly.Block) {
 	const center = luaGenerator.valueToCode(block, 'CENTER', Order.NONE);
 	const width = luaGenerator.valueToCode(block, 'WIDTH', Order.NONE);
 	const height = luaGenerator.valueToCode(block, 'HEIGHT', Order.NONE);
@@ -530,13 +530,13 @@ const diskFixtureBlock = {
 	style: 'math_blocks',
 };
 Blockly.Blocks['disk_fixture'] = {
-	init: function() {
+	init: function () {
 		this.jsonInit(diskFixtureBlock);
 	},
-	onchange: function (this: Blockly.Block & {ALLOWED_FIXTURES: string[]}, e: Blockly.Events.Abstract) {
+	onchange: function (this: Blockly.Block & { ALLOWED_FIXTURES: string[] }, e: Blockly.Events.Abstract) {
 		if (
 			((this.workspace as Blockly.WorkspaceSvg).isDragging &&
-			(this.workspace as Blockly.WorkspaceSvg).isDragging()) ||
+				(this.workspace as Blockly.WorkspaceSvg).isDragging()) ||
 			(e.type !== Blockly.Events.BLOCK_MOVE && e.type !== Blockly.Events.BLOCK_CREATE)
 		) {
 			return;
@@ -566,7 +566,7 @@ Blockly.Blocks['disk_fixture'] = {
 		}
 	}
 };
-luaGenerator.forBlock['disk_fixture'] = function(block: Blockly.Block) {
+luaGenerator.forBlock['disk_fixture'] = function (block: Blockly.Block) {
 	const center = luaGenerator.valueToCode(block, 'CENTER', Order.NONE);
 	const radius = luaGenerator.valueToCode(block, 'RADIUS', Order.NONE);
 	const density = luaGenerator.valueToCode(block, 'DENSITY', Order.NONE);
@@ -661,13 +661,13 @@ const polygonFixtureBlock = {
 	style: 'math_blocks',
 };
 Blockly.Blocks['polygon_fixture'] = {
-	init: function() {
+	init: function () {
 		this.jsonInit(polygonFixtureBlock);
 	},
-	onchange: function (this: Blockly.Block & {ALLOWED_FIXTURES: string[]}, e: Blockly.Events.Abstract) {
+	onchange: function (this: Blockly.Block & { ALLOWED_FIXTURES: string[] }, e: Blockly.Events.Abstract) {
 		if (
 			((this.workspace as Blockly.WorkspaceSvg).isDragging &&
-			(this.workspace as Blockly.WorkspaceSvg).isDragging()) ||
+				(this.workspace as Blockly.WorkspaceSvg).isDragging()) ||
 			(e.type !== Blockly.Events.BLOCK_MOVE && e.type !== Blockly.Events.BLOCK_CREATE)
 		) {
 			return;
@@ -697,7 +697,7 @@ Blockly.Blocks['polygon_fixture'] = {
 		}
 	}
 };
-luaGenerator.forBlock['polygon_fixture'] = function(block: Blockly.Block) {
+luaGenerator.forBlock['polygon_fixture'] = function (block: Blockly.Block) {
 	const vertices = luaGenerator.valueToCode(block, 'VERTICES', Order.NONE);
 	const density = luaGenerator.valueToCode(block, 'DENSITY', Order.NONE);
 	const friction = luaGenerator.valueToCode(block, 'FRICTION', Order.NONE);
@@ -792,13 +792,13 @@ const chainFixtureBlock = {
 	style: 'math_blocks',
 };
 Blockly.Blocks['chain_fixture'] = {
-	init: function() {
+	init: function () {
 		this.jsonInit(chainFixtureBlock);
 	},
-	onchange: function (this: Blockly.Block & {ALLOWED_FIXTURES: string[]}, e: Blockly.Events.Abstract) {
+	onchange: function (this: Blockly.Block & { ALLOWED_FIXTURES: string[] }, e: Blockly.Events.Abstract) {
 		if (
 			((this.workspace as Blockly.WorkspaceSvg).isDragging &&
-			(this.workspace as Blockly.WorkspaceSvg).isDragging()) ||
+				(this.workspace as Blockly.WorkspaceSvg).isDragging()) ||
 			(e.type !== Blockly.Events.BLOCK_MOVE && e.type !== Blockly.Events.BLOCK_CREATE)
 		) {
 			return;
@@ -828,7 +828,7 @@ Blockly.Blocks['chain_fixture'] = {
 		}
 	}
 };
-luaGenerator.forBlock['chain_fixture'] = function(block: Blockly.Block) {
+luaGenerator.forBlock['chain_fixture'] = function (block: Blockly.Block) {
 	const vertices = luaGenerator.valueToCode(block, 'VERTICES', Order.NONE);
 	const friction = luaGenerator.valueToCode(block, 'FRICTION', Order.NONE);
 	const restitution = luaGenerator.valueToCode(block, 'RESTITUTION', Order.NONE);

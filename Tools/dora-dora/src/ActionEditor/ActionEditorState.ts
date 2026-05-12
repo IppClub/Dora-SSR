@@ -1,29 +1,29 @@
-import type {ActionDocument, ActionNode, ActionTransform} from "./ActionDocument";
+import type { ActionDocument, ActionNode, ActionTransform } from "./ActionDocument";
 
 export type ActionViewport = {
-	pan: {x: number; y: number};
+	pan: { x: number; y: number };
 	zoom: number;
 };
 
 export const defaultActionViewport = (): ActionViewport => ({
-	pan: {x: 0, y: 0},
+	pan: { x: 0, y: 0 },
 	zoom: 1,
 });
 
 const cloneTransform = (transform: ActionTransform): ActionTransform => ({
-	position: {...transform.position},
-	scale: {...transform.scale},
-	skew: {...transform.skew},
+	position: { ...transform.position },
+	scale: { ...transform.scale },
+	skew: { ...transform.skew },
 	rotation: transform.rotation,
 	opacity: transform.opacity,
-	anchor: {...transform.anchor},
+	anchor: { ...transform.anchor },
 });
 
 export const cloneActionNode = (node: ActionNode): ActionNode => ({
 	...node,
 	transform: cloneTransform(node.transform),
 	hiddenInLooks: [...node.hiddenInLooks],
-	tracks: {...node.tracks},
+	tracks: { ...node.tracks },
 	children: node.children.map(cloneActionNode),
 	legacy: node.legacy ? {
 		...node.legacy,
@@ -33,15 +33,15 @@ export const cloneActionNode = (node: ActionNode): ActionNode => ({
 
 export const cloneActionDocument = (document: ActionDocument): ActionDocument => ({
 	...document,
-	size: {...document.size},
+	size: { ...document.size },
 	root: cloneActionNode(document.root),
 	animations: [...document.animations],
 	looks: [...document.looks],
-	keyPoints: document.keyPoints.map((point) => ({...point})),
+	keyPoints: document.keyPoints.map((point) => ({ ...point })),
 	legacy: {
 		...document.legacy,
-		animationIndexes: document.legacy.animationIndexes ? {...document.legacy.animationIndexes} : undefined,
-		lookIndexes: document.legacy.lookIndexes ? {...document.legacy.lookIndexes} : undefined,
+		animationIndexes: document.legacy.animationIndexes ? { ...document.legacy.animationIndexes } : undefined,
+		lookIndexes: document.legacy.lookIndexes ? { ...document.legacy.lookIndexes } : undefined,
 		animationOrder: document.legacy.animationOrder ? [...document.legacy.animationOrder] : undefined,
 		lookOrder: document.legacy.lookOrder ? [...document.legacy.lookOrder] : undefined,
 	},
@@ -83,12 +83,12 @@ export const createActionNode = (id: string, name: string): ActionNode => ({
 	clip: "",
 	front: true,
 	transform: {
-		position: {x: 0, y: 0},
-		scale: {x: 1, y: 1},
-		skew: {x: 0, y: 0},
+		position: { x: 0, y: 0 },
+		scale: { x: 1, y: 1 },
+		skew: { x: 0, y: 0 },
 		rotation: 0,
 		opacity: 1,
-		anchor: {x: 0.5, y: 0.5},
+		anchor: { x: 0.5, y: 0.5 },
 	},
 	hiddenInLooks: [],
 	tracks: {},
@@ -173,7 +173,7 @@ export const setActionNodeLookHidden = (document: ActionDocument, nodeId: string
 		const hiddenInLooks = hidden
 			? [...new Set([...node.hiddenInLooks, look])]
 			: node.hiddenInLooks.filter((item) => item !== look);
-		return {...node, hiddenInLooks};
+		return { ...node, hiddenInLooks };
 	});
 };
 
@@ -185,7 +185,7 @@ export const addActionKeyPoint = (document: ActionDocument): ActionDocument => {
 		index += 1;
 		name = `Point${index}`;
 	}
-	next.keyPoints.push({name, x: 0, y: 0});
+	next.keyPoints.push({ name, x: 0, y: 0 });
 	return next;
 };
 

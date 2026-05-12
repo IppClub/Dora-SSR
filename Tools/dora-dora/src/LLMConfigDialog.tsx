@@ -175,8 +175,8 @@ const BUILTIN_TEMPLATES: LLMTemplate[] = [
 	},
 ];
 
-const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
-	const {t} = useTranslation();
+const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
+	const { t } = useTranslation();
 	const [items, setItems] = useState<Service.LLMConfigItem[]>([]);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -310,7 +310,7 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 		}
 		const res = mode === 'create'
 			? await Service.createLLMConfig(payload)
-			: await Service.updateLLMConfig({...payload, id: form.id});
+			: await Service.updateLLMConfig({ ...payload, id: form.id });
 		if (!res.success) {
 			setError(res.message ?? t('llm.saveFailed'));
 			return;
@@ -333,7 +333,7 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 			if (!res.success) {
 				setError(res.message ?? t('llm.saveFailed'));
 			} else {
-				setItems((prev) => prev.map((item) => (item.id === record.id ? {...item, active: nextActive} : item)));
+				setItems((prev) => prev.map((item) => (item.id === record.id ? { ...item, active: nextActive } : item)));
 			}
 		} catch {
 			setError(t('llm.saveFailed'));
@@ -343,16 +343,16 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 	};
 
 	const columns: ColumnsType<Service.LLMConfigItem> = [
-		{title: t('llm.name'), dataIndex: 'name', key: 'name'},
-		{title: t('llm.model'), dataIndex: 'model', key: 'model'},
-		{title: t('llm.contextWindow'), dataIndex: 'contextWindow', key: 'contextWindow', width: 120},
+		{ title: t('llm.name'), dataIndex: 'name', key: 'name' },
+		{ title: t('llm.model'), dataIndex: 'model', key: 'model' },
+		{ title: t('llm.contextWindow'), dataIndex: 'contextWindow', key: 'contextWindow', width: 120 },
 		{
 			title: t('llm.functionCalling'),
 			key: 'supportsFunctionCalling',
 			width: 130,
 			render: (_, record) => record.supportsFunctionCalling ? t('llm.supported') : t('llm.unsupported'),
 		},
-		{title: t('llm.url'), dataIndex: 'url', key: 'url'},
+		{ title: t('llm.url'), dataIndex: 'url', key: 'url' },
 		{
 			title: t('llm.actions'),
 			key: 'actions',
@@ -369,7 +369,7 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 								checked={Boolean(record.active)}
 								disabled={savingActiveId === record.id}
 								onChange={(event) => void onToggleActive(record, event.target.checked)}
-								style={{paddingRight: 10}}
+								style={{ paddingRight: 10 }}
 							/>
 						</span>
 					</Tooltip>
@@ -384,7 +384,7 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 								},
 							}}
 						>
-							<EditIcon fontSize="small"/>
+							<EditIcon fontSize="small" />
 						</IconButton>
 					</Tooltip>
 					<Tooltip title={t('llm.delete')}>
@@ -398,7 +398,7 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 								},
 							}}
 						>
-							<DeleteIcon fontSize="small"/>
+							<DeleteIcon fontSize="small" />
 						</IconButton>
 					</Tooltip>
 				</Stack>
@@ -415,7 +415,7 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 				<Stack spacing={2}>
 					<Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
 						<Typography color={Color.TextSecondary}>{t('llm.list')}</Typography>
-						<Button size="small" startIcon={<AddIcon/>} onClick={openCreateForm}>
+						<Button size="small" startIcon={<AddIcon />} onClick={openCreateForm}>
 							{t('llm.add')}
 						</Button>
 					</Stack>
@@ -433,8 +433,8 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 							}
 						}}
 					>
-						<MacScrollbar skin="dark" style={{maxHeight: 360}}>
-							<div style={{minWidth: 720}}>
+						<MacScrollbar skin="dark" style={{ maxHeight: 360 }}>
+							<div style={{ minWidth: 720 }}>
 								<Table
 									rowKey="id"
 									columns={columns}
@@ -442,7 +442,7 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 									loading={loading}
 									pagination={false}
 									size="small"
-									locale={{emptyText: t('llm.empty')}}
+									locale={{ emptyText: t('llm.empty') }}
 								/>
 							</div>
 						</MacScrollbar>
@@ -479,7 +479,7 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 			<Dialog open={formOpen} onClose={() => setFormOpen(false)} fullWidth maxWidth="sm">
 				<DialogTitle>{isEditing ? t('llm.editTitle') : t('llm.createTitle')}</DialogTitle>
 				<DialogContent>
-					<Stack spacing={2} sx={{marginTop: 1}}>
+					<Stack spacing={2} sx={{ marginTop: 1 }}>
 						{isEditing ? null : (
 							<TextField
 								select
@@ -499,7 +499,7 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 							<TextField
 								label={t('llm.name')}
 								value={form.name}
-								onChange={(event) => setForm({...form, name: event.target.value})}
+								onChange={(event) => setForm({ ...form, name: event.target.value })}
 								fullWidth
 								autoComplete="off"
 								size="small"
@@ -509,7 +509,7 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 						<TextField
 							label={t('llm.url')}
 							value={form.url}
-							onChange={(event) => setForm({...form, url: event.target.value})}
+							onChange={(event) => setForm({ ...form, url: event.target.value })}
 							fullWidth
 							autoComplete="off"
 							size="small"
@@ -519,7 +519,7 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 							<TextField
 								label={t('llm.model')}
 								value={form.model}
-								onChange={(event) => setForm({...form, model: event.target.value})}
+								onChange={(event) => setForm({ ...form, model: event.target.value })}
 								fullWidth
 								autoComplete="off"
 								size="small"
@@ -528,12 +528,12 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 							<TextField
 								label={t('llm.contextWindow')}
 								value={form.contextWindow}
-								onChange={(event) => setForm({...form, contextWindow: event.target.value})}
+								onChange={(event) => setForm({ ...form, contextWindow: event.target.value })}
 								fullWidth
 								autoComplete="off"
 								size="small"
 								type="number"
-								slotProps={{htmlInput: {min: DEFAULT_CONTEXT_WINDOW, step: 1000}}}
+								slotProps={{ htmlInput: { min: DEFAULT_CONTEXT_WINDOW, step: 1000 } }}
 								sx={inputStyle}
 							/>
 						</Stack>
@@ -541,29 +541,29 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 							<TextField
 								label={t('llm.temperature')}
 								value={form.temperature}
-								onChange={(event) => setForm({...form, temperature: event.target.value})}
+								onChange={(event) => setForm({ ...form, temperature: event.target.value })}
 								fullWidth
 								autoComplete="off"
 								size="small"
 								type="number"
-								slotProps={{htmlInput: {min: 0, max: 2, step: 0.1}}}
+								slotProps={{ htmlInput: { min: 0, max: 2, step: 0.1 } }}
 								sx={inputStyle}
 							/>
 							<TextField
 								label={t('llm.maxTokens')}
 								value={form.maxTokens}
-								onChange={(event) => setForm({...form, maxTokens: event.target.value})}
+								onChange={(event) => setForm({ ...form, maxTokens: event.target.value })}
 								fullWidth
 								autoComplete="off"
 								size="small"
 								type="number"
-								slotProps={{htmlInput: {min: 1, step: 256}}}
+								slotProps={{ htmlInput: { min: 1, step: 256 } }}
 								sx={inputStyle}
 							/>
 							<TextField
 								label={t('llm.reasoningEffort')}
 								value={form.reasoningEffort ?? ''}
-								onChange={(event) => setForm({...form, reasoningEffort: event.target.value})}
+								onChange={(event) => setForm({ ...form, reasoningEffort: event.target.value })}
 								fullWidth
 								autoComplete="off"
 								size="small"
@@ -574,7 +574,7 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 							control={
 								<MuiCheckbox
 									checked={form.supportsFunctionCalling !== false}
-									onChange={(event) => setForm({...form, supportsFunctionCalling: event.target.checked})}
+									onChange={(event) => setForm({ ...form, supportsFunctionCalling: event.target.checked })}
 								/>
 							}
 							label={t('llm.functionCalling')}
@@ -583,7 +583,7 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 							<TextField
 								label={t('llm.key')}
 								value={form.key}
-								onChange={(event) => setForm({...form, key: event.target.value})}
+								onChange={(event) => setForm({ ...form, key: event.target.value })}
 								fullWidth
 								autoComplete="off"
 								size="small"
@@ -597,7 +597,7 @@ const LLMConfigDialog = ({open, onClose}: LLMConfigDialogProps) => {
 													size="small"
 													onClick={() => setShowApiKey((value) => !value)}
 												>
-													{showApiKey ? <VisibilityOffIcon fontSize="small"/> : <VisibilityIcon fontSize="small"/>}
+													{showApiKey ? <VisibilityOffIcon fontSize="small" /> : <VisibilityIcon fontSize="small" />}
 												</IconButton>
 											</InputAdornment>
 										),

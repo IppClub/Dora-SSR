@@ -63,7 +63,7 @@ const getTableColumns = (t: (key: string) => string): TableColumnsType<LoaderDat
 			dataIndex: 'depth',
 			sorter: (a, b) => a.depth - b.depth,
 			sortDirections: ['ascend', 'descend'],
-			render: (_, { depth }) => <>{Array.from({length: depth}, (_, index) => <p style={{display: 'inline-block', padding: 0, margin: 0}} key={index}>&emsp;</p>)}{depth + 1}</>,
+			render: (_, { depth }) => <>{Array.from({ length: depth }, (_, index) => <p style={{ display: 'inline-block', padding: 0, margin: 0 }} key={index}>&emsp;</p>)}{depth + 1}</>,
 		},
 		{
 			title: t('pro.module'),
@@ -76,7 +76,7 @@ const formatPart = (text: string) => {
 	return <span>{
 		text.split(/\[(error|warning|info)\]/).map((part, index) => {
 			if (index % 2 === 1) {
-				return <span key={index}>[<span style={{color: part === 'error' ? Color.Error : part === 'warning' ? Color.Warning : Color.Info}}>{part}</span>]</span>;
+				return <span key={index}>[<span style={{ color: part === 'error' ? Color.Error : part === 'warning' ? Color.Warning : Color.Info }}>{part}</span>]</span>;
 			}
 			return <span key={index}>{part}</span>;
 		})
@@ -90,7 +90,7 @@ const transitionProps = {
 };
 
 const LogView = memo((props: LogViewProps) => {
-	const {t} = useTranslation();
+	const { t } = useTranslation();
 	const [text, setText] = useState(t("log.wait"));
 	const [command, setCommand] = useState("");
 	const [history, setHistory] = useState<string[]>([]);
@@ -114,7 +114,7 @@ const LogView = memo((props: LogViewProps) => {
 			}
 			if (info.loaderCosts === undefined) {
 				info.loaderCosts = profilerInfo?.loaderCosts ?? [];
-				baseLine = info.plotCount > 0 ? Array.from({length: info.plotCount + 1}, (_, index) => index) : [];
+				baseLine = info.plotCount > 0 ? Array.from({ length: info.plotCount + 1 }, (_, index) => index) : [];
 			}
 			setProfilerInfo(info);
 		};
@@ -137,7 +137,7 @@ const LogView = memo((props: LogViewProps) => {
 				const x = new XMLHttpRequest();
 				x.open("GET", Service.addr("/" + assetPath), true);
 				x.responseType = 'text';
-				x.onload = function() {
+				x.onload = function () {
 					Service.clearLog();
 					Service.addLog(x.response);
 				};
@@ -162,7 +162,7 @@ const LogView = memo((props: LogViewProps) => {
 			});
 			setHistoryIndex(history.length >= maxHistoryLength ? maxHistoryLength : history.length + 1);
 			setCommand("");
-			Service.command({code: command, log: true}).then().catch((err) => {
+			Service.command({ code: command, log: true }).then().catch((err) => {
 				console.error(err);
 			});
 		}
@@ -188,7 +188,7 @@ const LogView = memo((props: LogViewProps) => {
 	};
 
 	const onToggleProfiler = () => {
-		Service.command({code: `Director.profilerSending = ${toggleProfiler ? 'false' : 'true'}`, log: false}).then(() => {
+		Service.command({ code: `Director.profilerSending = ${toggleProfiler ? 'false' : 'true'}`, log: false }).then(() => {
 			setToggleProfiler(!toggleProfiler);
 		}).catch((err) => {
 			console.error(err);
@@ -198,8 +198,8 @@ const LogView = memo((props: LogViewProps) => {
 	const onTargetFPSChange = (e: RadioChangeEvent) => {
 		if (profilerInfo !== null) {
 			profilerInfo.targetFPS = e.target.value;
-			Service.command({code: `App.targetFPS = ${profilerInfo.targetFPS}`, log: false}).then(() => {
-				setProfilerInfo({...profilerInfo});
+			Service.command({ code: `App.targetFPS = ${profilerInfo.targetFPS}`, log: false }).then(() => {
+				setProfilerInfo({ ...profilerInfo });
 			}).catch((err) => {
 				console.error(err);
 			});
@@ -209,8 +209,8 @@ const LogView = memo((props: LogViewProps) => {
 	const onFixedFPSChange = (e: RadioChangeEvent) => {
 		if (profilerInfo !== null) {
 			profilerInfo.fixedFPS = e.target.value;
-			Service.command({code: `Director.scheduler.fixedFPS = ${profilerInfo.fixedFPS}`, log: false}).then(() => {
-				setProfilerInfo({...profilerInfo});
+			Service.command({ code: `Director.scheduler.fixedFPS = ${profilerInfo.fixedFPS}`, log: false }).then(() => {
+				setProfilerInfo({ ...profilerInfo });
 			}).catch((err) => {
 				console.error(err);
 			});
@@ -220,8 +220,8 @@ const LogView = memo((props: LogViewProps) => {
 	const onVSyncChange = (e: CheckboxChangeEvent) => {
 		if (profilerInfo !== null) {
 			profilerInfo.vSync = e.target.checked;
-			Service.command({code: `View.vsync = ${profilerInfo.vSync ? 'true' : 'false'}`, log: false}).then(() => {
-				setProfilerInfo({...profilerInfo});
+			Service.command({ code: `View.vsync = ${profilerInfo.vSync ? 'true' : 'false'}`, log: false }).then(() => {
+				setProfilerInfo({ ...profilerInfo });
 			}).catch((err) => {
 				console.error(err);
 			});
@@ -231,8 +231,8 @@ const LogView = memo((props: LogViewProps) => {
 	const onFPSLimitedChange = (e: CheckboxChangeEvent) => {
 		if (profilerInfo !== null) {
 			profilerInfo.fpsLimited = e.target.checked;
-			Service.command({code: `App.fpsLimited = ${profilerInfo.fpsLimited ? 'true' : 'false'}`, log: false}).then(() => {
-				setProfilerInfo({...profilerInfo});
+			Service.command({ code: `App.fpsLimited = ${profilerInfo.fpsLimited ? 'true' : 'false'}`, log: false }).then(() => {
+				setProfilerInfo({ ...profilerInfo });
 			}).catch((err) => {
 				console.error(err);
 			});
@@ -302,14 +302,14 @@ const LogView = memo((props: LogViewProps) => {
 				label: <Tooltip title={t('pro.vSyncTip')}>
 					<div>{t("pro.vSync")}</div>
 				</Tooltip>,
-				children: <Checkbox checked={profilerInfo?.vSync} onChange={onVSyncChange}/>,
+				children: <Checkbox checked={profilerInfo?.vSync} onChange={onVSyncChange} />,
 			},
 			{
 				key: '9',
 				label: <Tooltip title={t('pro.fpsLimitedTip')}>
 					<div>{t("pro.fpsLimited")}</div>
 				</Tooltip>,
-				children: <Checkbox checked={profilerInfo?.fpsLimited} onChange={onFPSLimitedChange}/>,
+				children: <Checkbox checked={profilerInfo?.fpsLimited} onChange={onFPSLimitedChange} />,
 			},
 			{
 				key: '10',
@@ -319,12 +319,12 @@ const LogView = memo((props: LogViewProps) => {
 				children: (
 					<Radio.Group onChange={onTargetFPSChange} value={profilerInfo.targetFPS}>
 						<Radio value={30}>30</Radio>
-						<br/>
+						<br />
 						<Radio value={45}>45</Radio>
-						<br/>
+						<br />
 						<Radio value={60}>60</Radio>
 						{profilerInfo.maxTargetFPS > 60 &&
-							<><br/><Radio value={profilerInfo.maxTargetFPS}>{profilerInfo.maxTargetFPS}</Radio></>
+							<><br /><Radio value={profilerInfo.maxTargetFPS}>{profilerInfo.maxTargetFPS}</Radio></>
 						}
 					</Radio.Group>
 				),
@@ -344,12 +344,12 @@ const LogView = memo((props: LogViewProps) => {
 				children: (
 					<Radio.Group onChange={onFixedFPSChange} value={profilerInfo.fixedFPS}>
 						<Radio value={30}>30</Radio>
-						<br/>
+						<br />
 						<Radio value={45}>45</Radio>
-						<br/>
+						<br />
 						<Radio value={60}>60</Radio>
 						{profilerInfo.maxTargetFPS > 60 &&
-							<><br/><Radio value={profilerInfo.maxTargetFPS}>{profilerInfo.maxTargetFPS}</Radio></>
+							<><br /><Radio value={profilerInfo.maxTargetFPS}>{profilerInfo.maxTargetFPS}</Radio></>
 						}
 					</Radio.Group>
 				),
@@ -468,13 +468,13 @@ const LogView = memo((props: LogViewProps) => {
 		];
 		lineConfig = {
 			data: baseLine.map((_, index) => {
-				return {time: baseLine.length - index, value: 1000 / profilerInfo.targetFPS, category: 'Base'};
+				return { time: baseLine.length - index, value: 1000 / profilerInfo.targetFPS, category: 'Base' };
 			}).concat(profilerInfo.cpuTimePeeks.map((value, index) => {
-				return {time: profilerInfo.cpuTimePeeks.length - index, value: value, category: 'CPU'};
+				return { time: profilerInfo.cpuTimePeeks.length - index, value: value, category: 'CPU' };
 			})).concat(profilerInfo.gpuTimePeeks.map((value, index) => {
-				return {time: profilerInfo.gpuTimePeeks.length - index, value: value, category: 'GPU'};
+				return { time: profilerInfo.gpuTimePeeks.length - index, value: value, category: 'GPU' };
 			})).concat(profilerInfo.deltaTimePeeks.map((value, index) => {
-				return {time: profilerInfo.deltaTimePeeks.length - index, value: value, category: 'Delta'};
+				return { time: profilerInfo.deltaTimePeeks.length - index, value: value, category: 'Delta' };
 			})),
 			xField: 'time',
 			yField: 'value',
@@ -500,7 +500,7 @@ const LogView = memo((props: LogViewProps) => {
 		}
 		pieConfig = {
 			data: profilerInfo.updateCosts.filter(cost => cost.value > 0).map((cost) => {
-				return {type: cost.name, value: Math.round(cost.value * 100 / totalCost)};
+				return { type: cost.name, value: Math.round(cost.value * 100 / totalCost) };
 			}),
 			angleField: 'value',
 			colorField: 'type',
@@ -551,9 +551,9 @@ const LogView = memo((props: LogViewProps) => {
 			aria-labelledby="logview-dialog-title"
 			aria-describedby="logview-dialog-description"
 			transitionDuration={0}
-			slotProps={{transition: transitionProps}}
+			slotProps={{ transition: transitionProps }}
 		>
-			<DialogContent style={{overflow: "hidden", margin: 0, padding: 0}}>
+			<DialogContent style={{ overflow: "hidden", margin: 0, padding: 0 }}>
 				<div hidden={!toggleProfiler}>
 					<Box sx={{
 						width: "100%",
@@ -574,7 +574,7 @@ const LogView = memo((props: LogViewProps) => {
 								}
 							}}
 						>
-							<MacScrollbar skin='dark' style={{width: '100%', height: '100%'}}>
+							<MacScrollbar skin='dark' style={{ width: '100%', height: '100%' }}>
 								<div style={{
 									display: 'flex',
 									flexDirection: 'row',
@@ -583,21 +583,21 @@ const LogView = memo((props: LogViewProps) => {
 									height: '100%',
 									padding: 10,
 								}}>
-									<div style={{padding: 5, width: '25%', minHeight: 400}}>
-										<Descriptions title={t('pro.basic')} layout='vertical' bordered items={basicItems} size='small'/>
+									<div style={{ padding: 5, width: '25%', minHeight: 400 }}>
+										<Descriptions title={t('pro.basic')} layout='vertical' bordered items={basicItems} size='small' />
 									</div>
-									<div style={{padding: 5, width: '25%', height: 290}}>
-										<Descriptions title={t('pro.time')} layout='vertical' bordered items={timeItems} size='small'/>
-										{lineConfig ? <Line {...lineConfig}/> : null}
+									<div style={{ padding: 5, width: '25%', height: 290 }}>
+										<Descriptions title={t('pro.time')} layout='vertical' bordered items={timeItems} size='small' />
+										{lineConfig ? <Line {...lineConfig} /> : null}
 									</div>
-									<div style={{padding: 5, width: '25%', height: 290}}>
-										<Descriptions title={t('pro.object')} layout='vertical' bordered items={objectItems} size='small'/>
-										{pieConfig ? <Pie {...pieConfig}/> : null}
+									<div style={{ padding: 5, width: '25%', height: 290 }}>
+										<Descriptions title={t('pro.object')} layout='vertical' bordered items={objectItems} size='small' />
+										{pieConfig ? <Pie {...pieConfig} /> : null}
 									</div>
-									<div style={{padding: 5, width: '25%', minHeight: 290}}>
-										<Descriptions title={t('pro.memory')} layout='vertical' bordered items={memoryItems} size='small'/>
+									<div style={{ padding: 5, width: '25%', minHeight: 290 }}>
+										<Descriptions title={t('pro.memory')} layout='vertical' bordered items={memoryItems} size='small' />
 									</div>
-									<div style={{padding: 5, width: '50%', minHeight: 290}}>
+									<div style={{ padding: 5, width: '50%', minHeight: 290 }}>
 										<Divider>{t('pro.loaderTimeCosts')} ({totalLoaderCost.toFixed(4)} s)</Divider>
 										<Table bordered dataSource={profilerInfo?.loaderCosts?.map((item) => {
 											return {
@@ -607,13 +607,13 @@ const LogView = memo((props: LogViewProps) => {
 												depth: item.depth,
 												moduleName: item.moduleName,
 											};
-										})} columns={tableColumns}/>
+										})} columns={tableColumns} />
 									</div>
 								</div>
 							</MacScrollbar>
 						</ConfigProvider>
 					</Box>
-					<Separator/>
+					<Separator />
 				</div>
 				<LazyLog
 					height={toggleProfiler ? consoleMinHeight : props.height}
@@ -636,29 +636,29 @@ const LogView = memo((props: LogViewProps) => {
 					stream
 					follow
 				/>
-				<div style={{position: 'absolute', bottom: 10, right: 10, opacity: 0.5, display: 'flex', alignItems: 'center'}}>
-					<p style={{fontSize: 14, marginRight: 10, color: Color.Secondary}}>{props.openName}</p>
+				<div style={{ position: 'absolute', bottom: 10, right: 10, opacity: 0.5, display: 'flex', alignItems: 'center' }}>
+					<p style={{ fontSize: 14, marginRight: 10, color: Color.Secondary }}>{props.openName}</p>
 					<IconButton
 						color="secondary"
 						aria-label="toggle-profiler"
 						onClick={onToggleProfiler}
-						sx={{width: 40, height: 40}}
+						sx={{ width: 40, height: 40 }}
 					>
 						{toggleProfiler ?
-							<BsTerminal/> :
-							<InsertChartIcon/>
+							<BsTerminal /> :
+							<InsertChartIcon />
 						}
 					</IconButton>
 				</div>
 			</DialogContent>
 			<DialogActions>
-				<form noValidate autoComplete="off" style={{width: "100%"}} onSubmit={onSubmit}>
+				<form noValidate autoComplete="off" style={{ width: "100%" }} onSubmit={onSubmit}>
 					<FormControl fullWidth sx={{
-							paddingRight: 3,
-							"& .MuiOutlinedInput-notchedOutline": {
-								borderColor: Color.Secondary,
-							}
-						}}
+						paddingRight: 3,
+						"& .MuiOutlinedInput-notchedOutline": {
+							borderColor: Color.Secondary,
+						}
+					}}
 					>
 						<TextField
 							label={t("log.command")}
@@ -675,7 +675,7 @@ const LogView = memo((props: LogViewProps) => {
 				<Button onClick={onClear}>
 					{t("action.clear")}
 				</Button>
-				<Button onClick={props.onClose} style={{marginRight: 20}}>
+				<Button onClick={props.onClose} style={{ marginRight: 20 }}>
 					{t("action.close")}
 				</Button>
 			</DialogActions>

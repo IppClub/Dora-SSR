@@ -1,10 +1,11 @@
 import Info from "../Info";
 import * as Service from "../Service";
-import type {ActionClipDocument} from "./ActionClip";
-import {writeLegacyClip} from "./ActionClip";
-import {packActionImages, writePackedActionClip} from "./ActionAtlasCore";
-import type {ActionPackResult} from "./ActionAtlasCore";
-import {getActionAtlasPaths} from "./ActionPaths";
+import type { ActionClipDocument } from "./ActionClip";
+import { writeLegacyClip } from "./ActionClip";
+import { packActionImages, writePackedActionClip } from "./ActionAtlasCore";
+import type { ActionPackResult } from "./ActionAtlasCore";
+import { getActionAtlasPaths } from "./ActionPaths";
+import { toServedResourceUrl } from "./ActionResource";
 
 type LoadedActionPackInput = {
 	name: string;
@@ -42,11 +43,11 @@ const loadImageElement = (filePath: string, objectUrl: string): Promise<HTMLImag
 	});
 };
 
-const loadImageFromBlob = async (filePath: string, blob: Blob): Promise<{image: CanvasImageSource; width: number; height: number; objectUrl?: string}> => {
+const loadImageFromBlob = async (filePath: string, blob: Blob): Promise<{ image: CanvasImageSource; width: number; height: number; objectUrl?: string }> => {
 	if (typeof createImageBitmap === "function") {
 		try {
 			const image = await createImageBitmap(blob);
-			return {image, width: image.width, height: image.height};
+			return { image, width: image.width, height: image.height };
 		} catch {
 			// Fall through to the HTMLImageElement path for browsers or image encodings
 			// where createImageBitmap is unavailable or stricter than <img> decoding.
@@ -67,19 +68,19 @@ const loadImageFromBlob = async (filePath: string, blob: Blob): Promise<{image: 
 	}
 };
 
-const releaseDecodedImage = (decoded: {image: CanvasImageSource; objectUrl?: string}) => {
+const releaseDecodedImage = (decoded: { image: CanvasImageSource; objectUrl?: string }) => {
 	if (decoded.objectUrl) URL.revokeObjectURL(decoded.objectUrl);
 	if (decoded.image instanceof ImageBitmap) decoded.image.close();
 };
 
-const loadImageBlob = async (filePath: string) => {
-	const response = await fetch(Service.addr(`/${filePath.replace(/\\/g, "/")}`));
+const loadImageBlob = async (filePath: string, resourceBasePath?: string) => {
+	const response = await fetch(Service.addr(toServedResourceUrl(filePath, resourceBasePath)));
 	if (!response.ok) throw new Error(`Failed to load image: ${filePath}`);
 	return response.blob();
 };
 
-const loadImageInfo = async (filePath: string): Promise<LoadedActionPackInput> => {
-	const blob = await loadImageBlob(filePath);
+const loadImageInfo = async (filePath: string, resourceBasePath?: string): Promise<LoadedActionPackInput> => {
+	const blob = await loadImageBlob(filePath, resourceBasePath);
 	const decoded = await loadImageFromBlob(filePath, blob);
 	try {
 		validateInputImageSize(filePath, decoded.width, decoded.height);
@@ -131,9 +132,10 @@ const clipsEntryPath = (clipsDirPath: string, file: string) => {
 export const packActionClipsDirectory = async (
 	modelPath: string,
 	clipsDir: string,
-): Promise<{clip: ActionClipDocument; result: ActionPackResult}> => {
+	resourceBasePath?: string,
+): Promise<{ clip: ActionClipDocument; result: ActionPackResult }> => {
 	const paths = getActionAtlasPaths(modelPath, clipsDir);
-	const listed = await Service.list({path: paths.clipsDirPath});
+	const listed = await Service.list({ path: paths.clipsDirPath });
 	if (!listed.success) throw new Error(`Failed to list ${paths.clipsDirPath}`);
 	const imageFiles = listed.files
 		.filter((file) => imageExts.has(Info.path.extname(file).toLowerCase()))
@@ -141,7 +143,7 @@ export const packActionClipsDirectory = async (
 	if (imageFiles.length === 0) throw new Error(`No images found in ${paths.clipsDirPath}`);
 	const inputs: LoadedActionPackInput[] = [];
 	for (const file of imageFiles) {
-		inputs.push(await loadImageInfo(file));
+		inputs.push(await loadImageInfo(file, resourceBasePath));
 	}
 	const result = packActionImages(inputs);
 	validateAtlasSize(result.width, result.height);
@@ -170,9 +172,9 @@ export const packActionClipsDirectory = async (
 	const png = await canvasToBlob(canvas);
 	await uploadFile(Info.path.dirname(paths.pngPath), Info.path.basename(paths.pngPath), png);
 	const clipContent = writeLegacyClip(clip);
-	const written = await Service.write({path: paths.clipPath, content: clipContent});
+	const written = await Service.write({ path: paths.clipPath, content: clipContent });
 	if (!written.success) throw new Error(`Failed to write ${paths.clipPath}`);
 	Service.emitUpdateFile(paths.pngPath, true);
 	Service.emitUpdateFile(paths.clipPath, true, clipContent);
-	return {clip, result};
+	return { clip, result };
 };

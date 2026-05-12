@@ -322,20 +322,20 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 			method: 'POST',
 			body: formData,
 		})
-		.then(() => {
-			fileList.forEach(file => {
-				const f = file as RcFile;
-				prop.onUploaded(prop.path, f.name, false);
+			.then(() => {
+				fileList.forEach(file => {
+					const f = file as RcFile;
+					prop.onUploaded(prop.path, f.name, false);
+				});
+				setFileList([]);
+				message.success(t('upload.success'));
+			})
+			.catch(() => {
+				message.error(t('upload.failed'));
+			})
+			.finally(() => {
+				setUploading(false);
 			});
-			setFileList([]);
-			message.success(t('upload.success'));
-		})
-		.catch(() => {
-			message.error(t('upload.failed'));
-		})
-		.finally(() => {
-			setUploading(false);
-		});
 	};
 
 	const uprops: UploadProps = {
@@ -390,7 +390,7 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 	return (
 		<Container maxWidth="md">
 			{prop.hideTitle ? null : (
-				<p className="dora-upload-title" style={{color: Color.TextPrimary}}>
+				<p className="dora-upload-title" style={{ color: Color.TextPrimary }}>
 					{prop.title}
 				</p>
 			)}
@@ -412,8 +412,8 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 						),
 						children: (
 							<Space orientation="vertical" style={{ width: '100%' }}>
-								<Upload {...uprops} style={{marginBottom: 10}}>
-									<Button icon={<UploadOutlined/>}>{t("upload.selectFile")}</Button>
+								<Upload {...uprops} style={{ marginBottom: 10 }}>
+									<Button icon={<UploadOutlined />}>{t("upload.selectFile")}</Button>
 								</Upload>
 								<Button
 									onClick={handleUpload}
@@ -422,15 +422,15 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 								>
 									{uploading ? t('upload.uploading') : t('upload.startUpload')}
 								</Button>
-								<div style={{padding: 10}}/>
+								<div style={{ padding: 10 }} />
 								<Dragger {...props}>
-									<p className="dora-upload-drag-icon" style={{color: Color.Primary}}>
-										<AiOutlineUpload style={{fontSize: '40px'}}/>
+									<p className="dora-upload-drag-icon" style={{ color: Color.Primary }}>
+										<AiOutlineUpload style={{ fontSize: '40px' }} />
 									</p>
-									<p className="dora-upload-text" style={{color: Color.TextPrimary}}>
+									<p className="dora-upload-text" style={{ color: Color.TextPrimary }}>
 										{t("upload.text")}
 									</p>
-									<p className="dora-upload-hint" style={{color: Color.TextSecondary}}>
+									<p className="dora-upload-hint" style={{ color: Color.TextSecondary }}>
 										{t("upload.hint")}
 									</p>
 								</Dragger>
@@ -673,7 +673,7 @@ const DoraUpload = memo((prop: DoraUploadProp) => {
 			}}
 		>
 			<App>
-				<DoraUploadInner {...prop}/>
+				<DoraUploadInner {...prop} />
 			</App>
 		</ConfigProvider>
 	);

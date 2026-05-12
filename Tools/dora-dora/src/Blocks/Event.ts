@@ -17,7 +17,7 @@ const eventCategory = {
 	kind: 'category',
 	name: zh ? '事件' : 'Event',
 	categorystyle: 'procedure_category',
-	contents: [] as {kind: string, type: string, inputs?: any}[],
+	contents: [] as { kind: string, type: string, inputs?: any }[],
 };
 export default eventCategory;
 
@@ -46,8 +46,8 @@ const onUpdateBlock = {
 	nextStatement: null,
 	style: 'procedure_blocks',
 };
-Blockly.Blocks['on_update'] = { init: function() { this.jsonInit(onUpdateBlock); } };
-luaGenerator.forBlock['on_update'] = function(block: Blockly.Block) {
+Blockly.Blocks['on_update'] = { init: function () { this.jsonInit(onUpdateBlock); } };
+luaGenerator.forBlock['on_update'] = function (block: Blockly.Block) {
 	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
 	const deltaTime = luaGenerator.getVariableName(block.getFieldValue('DELTA_TIME'));
 	const action = luaGenerator.statementToCode(block, 'ACTION');
@@ -99,8 +99,8 @@ const onTapEventBlock = {
 	nextStatement: null,
 	style: 'procedure_blocks',
 };
-Blockly.Blocks['on_tap_event'] = { init: function() { this.jsonInit(onTapEventBlock); } };
-luaGenerator.forBlock['on_tap_event'] = function(block: Blockly.Block) {
+Blockly.Blocks['on_tap_event'] = { init: function () { this.jsonInit(onTapEventBlock); } };
+luaGenerator.forBlock['on_tap_event'] = function (block: Blockly.Block) {
 	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
 	const event = block.getFieldValue('EVENT');
 	const touch = luaGenerator.getVariableName(block.getFieldValue('TOUCH'));
@@ -139,8 +139,8 @@ const getTouchVec2AttributeBlock = {
 	output: 'Vec2',
 	style: 'math_blocks',
 };
-Blockly.Blocks['get_touch_vec2_attribute'] = { init: function() { this.jsonInit(getTouchVec2AttributeBlock); } };
-luaGenerator.forBlock['get_touch_vec2_attribute'] = function(block: Blockly.Block) {
+Blockly.Blocks['get_touch_vec2_attribute'] = { init: function () { this.jsonInit(getTouchVec2AttributeBlock); } };
+luaGenerator.forBlock['get_touch_vec2_attribute'] = function (block: Blockly.Block) {
 	const touch = luaGenerator.getVariableName(block.getFieldValue('TOUCH'));
 	const attribute = block.getFieldValue('ATTRIBUTE');
 	return [`${touch}.${attribute}`, Order.ATOMIC];
@@ -181,8 +181,8 @@ const getTouchNumberAttributeBlock = {
 	output: 'Number',
 	style: 'math_blocks',
 };
-Blockly.Blocks['get_touch_number_attribute'] = { init: function() { this.jsonInit(getTouchNumberAttributeBlock); } };
-luaGenerator.forBlock['get_touch_number_attribute'] = function(block: Blockly.Block) {
+Blockly.Blocks['get_touch_number_attribute'] = { init: function () { this.jsonInit(getTouchNumberAttributeBlock); } };
+luaGenerator.forBlock['get_touch_number_attribute'] = function (block: Blockly.Block) {
 	const touch = luaGenerator.getVariableName(block.getFieldValue('TOUCH'));
 	const attribute = block.getFieldValue('ATTRIBUTE');
 	if (attribute === 'x') {
@@ -218,8 +218,8 @@ const disableTouchBlock = {
 	nextStatement: null,
 	style: 'procedure_blocks',
 };
-Blockly.Blocks['disable_touch'] = { init: function() { this.jsonInit(disableTouchBlock); } };
-luaGenerator.forBlock['disable_touch'] = function(block: Blockly.Block) {
+Blockly.Blocks['disable_touch'] = { init: function () { this.jsonInit(disableTouchBlock); } };
+luaGenerator.forBlock['disable_touch'] = function (block: Blockly.Block) {
 	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
 	return `${node}.enabled = false\n`;
 };
@@ -478,8 +478,8 @@ const onKeyboardEventBlock = {
 	nextStatement: null,
 	style: 'procedure_blocks',
 };
-Blockly.Blocks['on_keyboard_event'] = { init: function() { this.jsonInit(onKeyboardEventBlock); } };
-luaGenerator.forBlock['on_keyboard_event'] = function(block: Blockly.Block) {
+Blockly.Blocks['on_keyboard_event'] = { init: function () { this.jsonInit(onKeyboardEventBlock); } };
+luaGenerator.forBlock['on_keyboard_event'] = function (block: Blockly.Block) {
 	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
 	const event = block.getFieldValue('EVENT');
 	const key = luaGenerator.quote_(block.getFieldValue('KEY'));
@@ -519,8 +519,8 @@ const checkKeyBlock = {
 	output: 'Boolean',
 	style: 'math_blocks',
 };
-Blockly.Blocks['check_key'] = { init: function() { this.jsonInit(checkKeyBlock); } };
-luaGenerator.forBlock['check_key'] = function(block: Blockly.Block) {
+Blockly.Blocks['check_key'] = { init: function () { this.jsonInit(checkKeyBlock); } };
+luaGenerator.forBlock['check_key'] = function (block: Blockly.Block) {
 	const key = luaGenerator.quote_(block.getFieldValue('KEY'));
 	const keyState = block.getFieldValue('KEY_STATE');
 	Require.add('Keyboard');
@@ -601,8 +601,8 @@ const onButtonEventBlock = {
 	nextStatement: null,
 	style: 'procedure_blocks',
 };
-Blockly.Blocks['on_button_event'] = { init: function() { this.jsonInit(onButtonEventBlock); } };
-luaGenerator.forBlock['on_button_event'] = function(block: Blockly.Block) {
+Blockly.Blocks['on_button_event'] = { init: function () { this.jsonInit(onButtonEventBlock); } };
+luaGenerator.forBlock['on_button_event'] = function (block: Blockly.Block) {
 	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
 	const event = block.getFieldValue('EVENT');
 	const id = luaGenerator.valueToCode(block, 'CONTROLLER_ID', Order.NONE);
@@ -659,8 +659,8 @@ const checkControllerButtonBlock = {
 	output: 'Boolean',
 	style: 'math_blocks',
 };
-Blockly.Blocks['check_controller_button'] = { init: function() { this.jsonInit(checkControllerButtonBlock); } };
-luaGenerator.forBlock['check_controller_button'] = function(block: Blockly.Block) {
+Blockly.Blocks['check_controller_button'] = { init: function () { this.jsonInit(checkControllerButtonBlock); } };
+luaGenerator.forBlock['check_controller_button'] = function (block: Blockly.Block) {
 	const id = luaGenerator.valueToCode(block, 'CONTROLLER_ID', Order.NONE);
 	const button = luaGenerator.quote_(block.getFieldValue('BUTTON'));
 	const state = block.getFieldValue('STATE');
@@ -722,8 +722,8 @@ const onSensorEnterBlock = {
 	nextStatement: null,
 	style: 'procedure_blocks',
 };
-Blockly.Blocks['on_sensor_enter'] = { init: function() { this.jsonInit(onSensorEnterBlock); } };
-luaGenerator.forBlock['on_sensor_enter'] = function(block: Blockly.Block) {
+Blockly.Blocks['on_sensor_enter'] = { init: function () { this.jsonInit(onSensorEnterBlock); } };
+luaGenerator.forBlock['on_sensor_enter'] = function (block: Blockly.Block) {
 	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
 	const event = block.getFieldValue('EVENT');
 	const body = luaGenerator.getVariableName(block.getFieldValue('BODY'));
@@ -760,8 +760,8 @@ const onContactFilterBlock = {
 	nextStatement: null,
 	style: 'procedure_blocks',
 };
-Blockly.Blocks['on_contact_filter'] = { init: function() { this.jsonInit(onContactFilterBlock); } };
-luaGenerator.forBlock['on_contact_filter'] = function(block: Blockly.Block) {
+Blockly.Blocks['on_contact_filter'] = { init: function () { this.jsonInit(onContactFilterBlock); } };
+luaGenerator.forBlock['on_contact_filter'] = function (block: Blockly.Block) {
 	const body = luaGenerator.getVariableName(block.getFieldValue('BODY'));
 	const other = luaGenerator.getVariableName(block.getFieldValue('OTHER'));
 	const action = luaGenerator.statementToCode(block, 'ACTION');
@@ -836,8 +836,8 @@ const onContactEventBlock = {
 	nextStatement: null,
 	style: 'procedure_blocks',
 };
-Blockly.Blocks['on_contact_event'] = { init: function() { this.jsonInit(onContactEventBlock); } };
-luaGenerator.forBlock['on_contact_event'] = function(block: Blockly.Block) {
+Blockly.Blocks['on_contact_event'] = { init: function () { this.jsonInit(onContactEventBlock); } };
+luaGenerator.forBlock['on_contact_event'] = function (block: Blockly.Block) {
 	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
 	const event = block.getFieldValue('EVENT');
 	const other = luaGenerator.getVariableName(block.getFieldValue('OTHER'));
@@ -883,7 +883,7 @@ const NODE_REGISTER_GLOBAL_EVENT = {
 		this.argCount_ = parseInt(args, 10);
 		this.updateShape_();
 	},
-	saveExtraState: function (this: NodeRegisterGlobalEventWithBlock): {argCount: number} {
+	saveExtraState: function (this: NodeRegisterGlobalEventWithBlock): { argCount: number } {
 		return {
 			'argCount': this.argCount_,
 		};
@@ -951,7 +951,7 @@ const NODE_REGISTER_GLOBAL_EVENT = {
 			}
 			const input = this.getInput('ADD_SHADOW' + i);
 			argBlock.valueConnection_ = input?.connection!
-			.targetConnection as Blockly.Connection;
+				.targetConnection as Blockly.Connection;
 			argBlock = argBlock.getNextBlock() as ArgBlock | null;
 			i++;
 		}
@@ -1008,7 +1008,7 @@ const NODE_REGISTER_GLOBAL_EVENT = {
 	},
 };
 Blockly.Blocks['node_register_global_event'] = NODE_REGISTER_GLOBAL_EVENT;
-luaGenerator.forBlock['node_register_global_event'] = function(block: Blockly.Block) {
+luaGenerator.forBlock['node_register_global_event'] = function (block: Blockly.Block) {
 	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
 	const event = luaGenerator.valueToCode(block, 'EVENT', Order.NONE);
 	const eventType = block.getFieldValue('EVENT_TYPE');
@@ -1067,7 +1067,7 @@ const EMIT_GLOBAL_EVENT = {
 		this.argCount_ = parseInt(args, 10);
 		this.updateShape_();
 	},
-	saveExtraState: function (this: EmitGlobalEventWithBlock): {argCount: number} {
+	saveExtraState: function (this: EmitGlobalEventWithBlock): { argCount: number } {
 		return {
 			'argCount': this.argCount_,
 		};
@@ -1135,7 +1135,7 @@ const EMIT_GLOBAL_EVENT = {
 			}
 			const input = this.getInput('ADD' + i);
 			argBlock.valueConnection_ = input?.connection!
-			.targetConnection as Blockly.Connection;
+				.targetConnection as Blockly.Connection;
 			argBlock = argBlock.getNextBlock() as ArgBlock | null;
 			i++;
 		}
@@ -1165,7 +1165,7 @@ const EMIT_GLOBAL_EVENT = {
 	},
 };
 Blockly.Blocks['emit_global_event'] = EMIT_GLOBAL_EVENT;
-luaGenerator.forBlock['emit_global_event'] = function(block: Blockly.Block) {
+luaGenerator.forBlock['emit_global_event'] = function (block: Blockly.Block) {
 	const event = luaGenerator.valueToCode(block, 'EVENT', Order.NONE);
 	const args = [event];
 	for (let i = 0; i < (block as EmitGlobalEventWithBlock).argCount_; i++) {
@@ -1191,7 +1191,7 @@ eventCategory.contents.push({
 });
 
 export type ArgContainerBlock = Blockly.Block & ArgContainerMutator;
-interface ArgContainerMutator extends ArgContainerMutatorType {}
+interface ArgContainerMutator extends ArgContainerMutatorType { }
 type ArgContainerMutatorType = typeof ARG_CREATE_WITH_CONTAINER;
 
 const ARG_CREATE_WITH_CONTAINER = {
@@ -1208,7 +1208,7 @@ Blockly.Blocks['arg_create_with_container'] = ARG_CREATE_WITH_CONTAINER;
 
 export type ArgBlock = Blockly.Block & ArgMutator;
 interface ArgMutator extends ArgMutatorType {
-  valueConnection_?: Blockly.Connection;
+	valueConnection_?: Blockly.Connection;
 }
 type ArgMutatorType = typeof ARG_CREATE_WITH_ITEM;
 

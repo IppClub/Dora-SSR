@@ -248,21 +248,21 @@ export default function AgentPanel(props: AgentPanelProps) {
 				void refresh(false, sessionId);
 				return;
 			}
-				if (patch.session) {
-					setSession(patch.session);
-				}
-				if (patch.metrics) {
-					setSession(prev => prev ? {
-						...prev,
-						metrics: {
-							...(prev.metrics ?? {}),
-							...patch.metrics,
-						},
-					} : prev);
-				}
-				if (patch.message) {
-					setMessages(prev => upsertById(prev, patch.message!).sort((a, b) => a.id - b.id));
-				}
+			if (patch.session) {
+				setSession(patch.session);
+			}
+			if (patch.metrics) {
+				setSession(prev => prev ? {
+					...prev,
+					metrics: {
+						...(prev.metrics ?? {}),
+						...patch.metrics,
+					},
+				} : prev);
+			}
+			if (patch.message) {
+				setMessages(prev => upsertById(prev, patch.message!).sort((a, b) => a.id - b.id));
+			}
 			if (patch.step) {
 				setSteps(prev => upsertById(prev, patch.step!).sort((a, b) => {
 					const taskDelta = (b.taskId ?? 0) - (a.taskId ?? 0);
@@ -697,8 +697,8 @@ export default function AgentPanel(props: AgentPanelProps) {
 			) : null}
 			<MacScrollbar ref={scrollRef} skin="dark" style={{ flex: 1, minHeight: 0 }}>
 				<Box ref={contentRef} sx={{ px: 3, py: 3 }}>
-						<Stack spacing={4}>
-							{llmConfigMissing && session?.currentTaskStatus !== "RUNNING" ? (
+					<Stack spacing={4}>
+						{llmConfigMissing && session?.currentTaskStatus !== "RUNNING" ? (
 							<Box
 								sx={{
 									border: `1px solid ${Color.Warning}44`,

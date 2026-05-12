@@ -40,79 +40,79 @@ interface FileType {
 
 const fileTypes: FileType[] = [
 	{
-		icon: <img src={luaLogo} alt="Lua" width="55px" height="55px" style={{marginLeft: '-2.5px'}}/>,
+		icon: <img src={luaLogo} alt="Lua" width="55px" height="55px" style={{ marginLeft: '-2.5px' }} />,
 		name: "Lua",
 		desc: "file.lua",
 		padding: '20px'
 	},
 	{
-		icon: <img src={yueLogo} alt="YueScript" width="60px" height="60px" style={{marginLeft: '-5px'}}/>,
+		icon: <img src={yueLogo} alt="YueScript" width="60px" height="60px" style={{ marginLeft: '-5px' }} />,
 		name: "YueScript",
 		desc: "file.yuescript",
 		padding: '10px'
 	},
 	{
-		icon: <img src={tealLogo} alt="Teal" width="42px" height="42px" style={{marginLeft: '5px'}}/>,
+		icon: <img src={tealLogo} alt="Teal" width="42px" height="42px" style={{ marginLeft: '5px' }} />,
 		name: "Teal",
 		desc: "file.teal",
 		padding: '20px'
 	},
 	{
-		icon: <img src={typescriptLogo} alt="TypeScript" width="55px" height="55px" style={{marginLeft: '-2.5px'}}/>,
+		icon: <img src={typescriptLogo} alt="TypeScript" width="55px" height="55px" style={{ marginLeft: '-2.5px' }} />,
 		name: "TypeScript",
 		desc: "file.typescript",
 		padding: '20px'
 	},
 	{
-		icon: <DiCode size={65} style={{marginLeft: '-3px'}}/>,
+		icon: <DiCode size={65} style={{ marginLeft: '-3px' }} />,
 		name: "Dora XML",
 		desc: "file.xml",
 		padding: '13px'
 	},
 	{
-		icon: <img src={doraAnimationLogo} alt="Dora Animation" width="50px" height="50px" style={{marginLeft: '0px', objectFit: 'contain'}}/>,
+		icon: <img src={doraAnimationLogo} alt="Dora Animation" width="50px" height="50px" style={{ marginLeft: '0px', objectFit: 'contain' }} />,
 		name: "Dora Animation",
 		desc: "file.model",
 		padding: '18px'
 	},
 	{
-		icon: <img src={yarnLogo} alt="Yarn" width="55px" height="55px" style={{marginLeft: '0px'}}/>,
+		icon: <img src={yarnLogo} alt="Yarn" width="55px" height="55px" style={{ marginLeft: '0px' }} />,
 		name: "Yarn",
 		desc: "file.yarn",
 		padding: '15px'
 	},
 	{
-		icon: <VscMarkdown size={50} style={{marginLeft: '5px'}}/>,
+		icon: <VscMarkdown size={50} style={{ marginLeft: '5px' }} />,
 		name: "Markdown",
 		desc: "file.markdown",
 		padding: '15px'
 	},
 	{
-		icon: <img src={vscLogo} alt="Visual Script" width="40px" height="40px" style={{marginLeft: '8px'}}/>,
+		icon: <img src={vscLogo} alt="Visual Script" width="40px" height="40px" style={{ marginLeft: '8px' }} />,
 		name: "Visual Script",
 		desc: "file.visualScript",
 		padding: '22px'
 	},
 	{
-		icon: <img src={blocklyLogo} alt="Blockly" width="40px" height="40px" style={{marginLeft: '8px'}}/>,
+		icon: <img src={blocklyLogo} alt="Blockly" width="40px" height="40px" style={{ marginLeft: '8px' }} />,
 		name: "Blockly",
 		desc: "file.blockly",
 		padding: '22px'
 	},
 	{
-		icon: <img src={waLogo} alt="Wa" width="40px" height="40px" style={{marginLeft: '4px'}}/>,
+		icon: <img src={waLogo} alt="Wa" width="40px" height="40px" style={{ marginLeft: '4px' }} />,
 		name: "Wa",
 		desc: "file.wa",
 		padding: '22px'
 	},
 	{
-		icon: <img src={tic80Logo} alt="TIC80" width="45px" height="45px" style={{marginLeft: '5px'}}/>,
+		icon: <img src={tic80Logo} alt="TIC80" width="45px" height="45px" style={{ marginLeft: '5px' }} />,
 		name: "TIC80",
 		desc: "file.tic",
 		padding: '20px'
 	},
 	{
-		icon: <AiFillFolderAdd size={50} style={{marginLeft: '0px'}}/>,
+		icon: <AiFillFolderAdd size={50} style={{ marginLeft: '0px' }} />,
 		name: "Folder",
 		desc: "file.folder",
 		padding: '20px'
@@ -148,26 +148,26 @@ function NewFileDialog(props: NewFileDialogProps) {
 			onClose={handleClose}
 			open={open}
 			transitionDuration={0}
-			slotProps={{transition: transitionProps}}>
+			slotProps={{ transition: transitionProps }}>
 			<DialogTitle>{t("file.new")}</DialogTitle>
 			<Grid container columns={{ sm: 2, md: 3 }}>
-			{
-				fileTypes.map((fileType) => (
-					<Grid key={fileType.name} size={1}>
-						<ListItem>
-							<ListItemButton sx={{height:"90px"}}
-								onClick={() => handleListItemClick(fileType.name)}
-								key={fileType.name}
-							>
-								{ fileType.icon }
-								<ListItemText primary={fileType.name} secondary={t(fileType.desc)} sx={{paddingLeft: fileType.padding}}/>
-							</ListItemButton>
-						</ListItem>
-					</Grid>
-				))
-			}
+				{
+					fileTypes.map((fileType) => (
+						<Grid key={fileType.name} size={1}>
+							<ListItem>
+								<ListItemButton sx={{ height: "90px" }}
+									onClick={() => handleListItemClick(fileType.name)}
+									key={fileType.name}
+								>
+									{fileType.icon}
+									<ListItemText primary={fileType.name} secondary={t(fileType.desc)} sx={{ paddingLeft: fileType.padding }} />
+								</ListItemButton>
+							</ListItem>
+						</Grid>
+					))
+				}
 			</Grid>
-			<DialogActions/>
+			<DialogActions />
 		</Dialog>
 	);
 }

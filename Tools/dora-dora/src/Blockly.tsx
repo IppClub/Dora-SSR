@@ -36,7 +36,7 @@ import PhysicsCategory from './Blocks/Physics';
 import MiscCategory from './Blocks/Misc';
 import { EditorTheme } from './Editor';
 
-const editorBackground = <div style={{width: '100%', height: '100%', backgroundColor:'#1a1a1a'}}/>;
+const editorBackground = <div style={{ width: '100%', height: '100%', backgroundColor: '#1a1a1a' }} />;
 
 interface BlocklyProps {
 	width: number;
@@ -83,7 +83,7 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 	const blocklyDiv = useRef<HTMLDivElement>(null);
 	const workspaceRef = useRef<Blockly.WorkspaceSvg | null>(null);
 	const [firstView, setFirstView] = useState(true);
-	const {t} = useTranslation();
+	const { t } = useTranslation();
 	const [showEditor, setShowEditor] = useState(false);
 
 	// Initialize Blockly workspace
@@ -974,7 +974,7 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 	// Handle window resize
 	useEffect(() => {
 		if (blocklyDiv.current && workspaceRef.current && typeof height === 'number' && height > 0) {
-			const {scrollX, scrollY} = workspaceRef.current;
+			const { scrollX, scrollY } = workspaceRef.current;
 			Blockly.svgResize(workspaceRef.current);
 			workspaceRef.current.scroll(scrollX, scrollY);
 		}
@@ -988,11 +988,11 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 	}, [firstView, height, workspaceRef]);
 
 	return (
-		<div style={{display: 'flex', position: 'relative'}}>
+		<div style={{ display: 'flex', position: 'relative' }}>
 			<div
 				ref={blocklyDiv}
 				className={`blockly-component`}
-				style={{width: showEditor ? width * 0.6 : width, height}}
+				style={{ width: showEditor ? width * 0.6 : width, height }}
 			/>
 			{showEditor && (
 				<MonacoEditor
@@ -1005,7 +1005,7 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 					path={monaco.Uri.file(path.join(path.dirname(file), path.basename(file, path.extname(file)) + '.lua')).toString()}
 					options={{
 						readOnly: true,
-						padding: {top: 16},
+						padding: { top: 16 },
 						wordWrap: 'on',
 						wordBreak: 'keepAll',
 						selectOnLineNumbers: true,

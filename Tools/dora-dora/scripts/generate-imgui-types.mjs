@@ -1,9 +1,9 @@
-import {execFileSync} from "node:child_process";
-import {createRequire} from "node:module";
+import { execFileSync } from "node:child_process";
+import { createRequire } from "node:module";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import {fileURLToPath} from "node:url";
+import { fileURLToPath } from "node:url";
 
 const require = createRequire(import.meta.url);
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -18,8 +18,8 @@ const writeJson = (filename, value) => {
 };
 
 const copyDirectory = (source, target) => {
-	fs.mkdirSync(target, {recursive: true});
-	for (const entry of fs.readdirSync(source, {withFileTypes: true})) {
+	fs.mkdirSync(target, { recursive: true });
+	for (const entry of fs.readdirSync(source, { withFileTypes: true })) {
 		const sourcePath = path.join(source, entry.name);
 		const targetPath = path.join(target, entry.name);
 		if (entry.isDirectory()) {
@@ -44,7 +44,7 @@ const patchDeclarationFile = (filename) => {
 };
 
 const patchDeclarations = (dir) => {
-	for (const entry of fs.readdirSync(dir, {withFileTypes: true})) {
+	for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
 		const filename = path.join(dir, entry.name);
 		if (entry.isDirectory()) {
 			patchDeclarations(filename);
@@ -75,12 +75,12 @@ try {
 		cwd: rootDir,
 		stdio: "inherit",
 	});
-	fs.rmSync(outputDir, {recursive: true, force: true});
+	fs.rmSync(outputDir, { recursive: true, force: true });
 	copyDirectory(tempOutDir, outputDir);
 	fs.copyFileSync(path.join(packageRoot, "src", "bind-imgui.d.ts"), path.join(outputDir, "bind-imgui.d.ts"));
 	fs.copyFileSync(path.join(packageRoot, "src", "emscripten.d.ts"), path.join(outputDir, "emscripten.d.ts"));
 	patchDeclarations(outputDir);
 	console.log(`Generated imgui-ts declarations at ${path.relative(rootDir, outputDir)}`);
 } finally {
-	fs.rmSync(tempDir, {recursive: true, force: true});
+	fs.rmSync(tempDir, { recursive: true, force: true });
 }

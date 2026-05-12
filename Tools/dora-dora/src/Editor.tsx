@@ -225,7 +225,7 @@ type CompleteLang = "tl" | "lua" | "yue" | "xml";
 const completionItemProvider = (triggerCharacters: string[], lang: CompleteLang) => {
 	return {
 		triggerCharacters,
-		provideCompletionItems: function(model, position, context) {
+		provideCompletionItems: function (model, position, context) {
 			const line: string = model.getValueInRange({
 				startLineNumber: position.lineNumber,
 				startColumn: 1,
@@ -241,7 +241,7 @@ const completionItemProvider = (triggerCharacters: string[], lang: CompleteLang)
 					available = available || line.match(/\bSprite\b/) !== null;
 					available = available || line.match(/\bLabel\b/) !== null;
 					if (!available) {
-						return {suggestions:[]};
+						return { suggestions: [] };
 					}
 					break;
 				}
@@ -302,8 +302,8 @@ const completionItemProvider = (triggerCharacters: string[], lang: CompleteLang)
 				row: position.lineNumber,
 				content
 			}).then((res) => {
-				if (!res.success) return {suggestions:[]};
-				if (res.suggestions === undefined) return {suggestions:[]};
+				if (!res.success) return { suggestions: [] };
+				if (res.suggestions === undefined) return { suggestions: [] };
 				return {
 					suggestions: res.suggestions.map((item) => {
 						const [label, desc, itemType] = item;
@@ -321,7 +321,7 @@ const completionItemProvider = (triggerCharacters: string[], lang: CompleteLang)
 								kind,
 								insertText: desc,
 								insertTextRules:
-								monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+									monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
 								range: range,
 							};
 						}
@@ -345,9 +345,9 @@ const completionItemProvider = (triggerCharacters: string[], lang: CompleteLang)
 type InferLang = "tl" | "lua" | "yue";
 const hoverProvider = (lang: InferLang) => {
 	return {
-		provideHover: function(model, position) {
+		provideHover: function (model, position) {
 			const word = model.getWordAtPosition(position);
-			if (word === null) return {contents:[]};
+			if (word === null) return { contents: [] };
 			const line: string = model.getValueInRange({
 				startLineNumber: position.lineNumber,
 				startColumn: 1,
@@ -360,11 +360,11 @@ const hoverProvider = (lang: InferLang) => {
 				row: position.lineNumber,
 				content: model.getValue()
 			}).then(function (res) {
-				if (!res.success) return {contents:[]};
-				if (res.infered === undefined) return {contents:[]};
+				if (!res.success) return { contents: [] };
+				if (res.infered === undefined) return { contents: [] };
 				const polyText = "polymorphic function (with types ";
 				let desc = res.infered.desc;
-				if (desc === "<invalid type>" || desc === "<unknown type>") return {contents:[]};
+				if (desc === "<invalid type>" || desc === "<unknown type>") return { contents: [] };
 				if (desc.startsWith(polyText)) {
 					desc = desc.substring(polyText.length);
 					desc = desc.substring(0, desc.length - 1);
@@ -425,7 +425,7 @@ const signatureHelpProvider = (signatureHelpTriggerCharacters: string[], lang: S
 			});
 			let newLine = currentLine;
 			while (true) {
-				const tmp = newLine.replace(/\([^()]*\)/g,"");
+				const tmp = newLine.replace(/\([^()]*\)/g, "");
 				if (tmp === newLine) {
 					break;
 				} else {
@@ -499,7 +499,7 @@ const signatureHelpProvider = (signatureHelpTriggerCharacters: string[], lang: S
 				file: model.uri.path,
 				row: position.lineNumber,
 				content
-			}).then((res)=> {
+			}).then((res) => {
 				if (!res.success) return null;
 				if (res.signatures === undefined) return null;
 				const signatures = res.signatures.map(s => {
@@ -530,7 +530,7 @@ const signatureHelpProvider = (signatureHelpTriggerCharacters: string[], lang: S
 					}
 				}
 				return {
-					dispose: () => {},
+					dispose: () => { },
 					value: {
 						signatures,
 						activeSignature,
@@ -584,7 +584,7 @@ const codeActionProvider = {
 	},
 } as monaco.languages.CodeActionProvider;
 
-monaco.languages.register({id: 'tl'});
+monaco.languages.register({ id: 'tl' });
 monaco.languages.setLanguageConfiguration("tl", teal.config);
 monaco.languages.setMonarchTokensProvider("tl", teal.language);
 const tlComplete = completionItemProvider([".", ":", "\"", "'", "/"], "tl");
@@ -601,7 +601,7 @@ monaco.languages.registerCompletionItemProvider("lua", luaComplete);
 monaco.languages.registerHoverProvider("lua", hoverProvider("lua"));
 monaco.languages.registerSignatureHelpProvider("lua", signatureHelpProvider(["(", ","], "lua"));
 
-monaco.languages.register({id: 'yue'});
+monaco.languages.register({ id: 'yue' });
 monaco.languages.setLanguageConfiguration("yue", yuescript.config);
 monaco.languages.setMonarchTokensProvider("yue", yuescript.language);
 const yueComplete = completionItemProvider([".", "\\", "/", "\"", "'"], "yue");
