@@ -1044,6 +1044,9 @@
     <ClCompile Include="..\..\..\Source\Test\Test.cpp">
       <Filter>Test</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\Test\ApplicationTest.cpp">
+      <Filter>Test</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\soloud\backend\sdl2_static\soloud_sdl2_static.cpp">
       <Filter>3rdParty\soloud\backend\sdl2_static</Filter>
     </ClCompile>
