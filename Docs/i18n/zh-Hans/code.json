@@ -445,6 +445,14 @@
     "message": "Dora SSR 支持 Rust 作为脚本开发语言，运行在内置的 WASM 绑定和 VM 上，提供高性能和安全性的编程体验，适用于对性能要求高的游戏开发场景。",
     "description": "The engine feature description Rust Scripting Support in front page"
   },
+  "engine_feature_csharp_scripting_support": {
+    "message": "C# 脚本支持",
+    "description": "The engine feature title C# Scripting Support in front page"
+  },
+  "engine_feature_description_csharp_scripting_support": {
+    "message": "Dora SSR 支持通过动态库方式调用引擎进行 C# 开发，结合 C# 绑定使用接近原生的开发流程。",
+    "description": "The engine feature description C# Scripting Support in front page"
+  },
   "promotion_section_title": {
     "message": "为啥要玩 Dora",
     "description": "The promotion section title in front page"
@@ -524,6 +532,22 @@
   "engine_feature_description_blockly": {
     "message": "积木脚本系统通过可视化、拼图式的代码块，让用户可以轻松创建复杂的游戏行为，无需通过文本输入编写代码。",
     "description": "The engine feature description Blockly Scripting for Beginners in front page"
+  },
+  "engine_feature_title_dora_animation_editor": {
+    "message": "动画编辑器",
+    "description": "The engine feature title Animation Editor in front page"
+  },
+  "engine_feature_description_dora_animation_editor": {
+    "message": "Web IDE 内置动画编辑器，可用于创建和编辑 2D 模型动画资源，并在同一工作流中完成树形结构、关键帧、动画片段、播放预览和变换工具操作。",
+    "description": "The engine feature description Animation Editor in front page"
+  },
+  "engine_feature_title_dora_agent": {
+    "message": "编码智能体",
+    "description": "The engine feature title Coding Agent in front page"
+  },
+  "engine_feature_description_dora_agent": {
+    "message": "编码智能体把基于 LLM 的 AI 辅助编码智能体直接集成进游戏引擎，结合项目技能、持久记忆、文件搜索、Dora API 查询、安全文件编辑、构建检查和子智能体派发，完成多步骤开发任务。",
+    "description": "The engine feature description Coding Agent in front page"
   },
   "theme.colorToggle.ariaLabel.mode.system": {
     "message": "系统模式",

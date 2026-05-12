@@ -10,6 +10,7 @@ const feature_img_one = require('@site/static/img/art/casual/1.png');
 const feature_img_two = require('@site/static/img/art/casual/2.png');
 const feature_img_three = require('@site/static/img/art/casual/3.png');
 import WaImg from '@site/static/img/lang/wa.svg';
+import CSharpImg from '@site/static/img/lang/csharp.svg';
 
 type FeatureItem = {
 	title: JSX.Element;
@@ -64,6 +65,29 @@ function LazyImage({ src, alt, className, style = {} }) {
 				>
 					<span>Loading...</span>
 				</div>
+			)}
+		</div>
+	);
+}
+
+function LanguageLogo({
+	src,
+	alt,
+	Svg,
+	wide = false,
+}: {
+	src?: string;
+	alt: string;
+	Svg?: React.ComponentType<React.ComponentProps<'svg'>>;
+	wide?: boolean;
+}) {
+	const className = clsx(styles.languageLogo, wide && styles.languageLogoWide);
+	return (
+		<div className={styles.languageLogoFrame}>
+			{Svg ? (
+				<Svg className={className} role="img" aria-label={alt}/>
+			) : (
+				<img src={src} alt={alt} className={className}/>
 			)}
 		</div>
 	);
@@ -152,6 +176,40 @@ const EngineFeatureList: FeatureItem[] = [
 				id='engine_feature_description_code_editor'
 				description='The engine feature description Powerful Code Editor in front page'>
 				The Web IDE of Dora SSR supports multiple programming languages and file types, featuring syntax highlighting, auto-completion, and document navigation.
+			</Translate>
+		),
+	},
+	{
+		title: (
+			<Translate
+				id='engine_feature_title_dora_agent'
+				description='The engine feature title Coding Agent in front page'>
+				Coding Agent
+			</Translate>
+		),
+		image: <LazyImage src={require('@site/static/img/showcase/dora-agent.jpg').default} alt='Coding Agent' className={styles.featureImgFixed}/>,
+		description: (
+			<Translate
+				id='engine_feature_description_dora_agent'
+				description='The engine feature description Coding Agent in front page'>
+				Coding Agent brings LLM AI assisted coding agent right into the game engine, using project skills, persistent memory, file search, Dora API lookup, safe file edits, build checks, and sub-agent delegation to complete multi-step development tasks.
+			</Translate>
+		),
+	},
+	{
+		title: (
+			<Translate
+				id='engine_feature_title_dora_animation_editor'
+				description='The engine feature title Animation Editor in front page'>
+				Animation Editor
+			</Translate>
+		),
+		image: <LazyImage src={require('@site/static/img/showcase/dora-animation-editor.jpg').default} alt='Animation Editor' className={styles.featureImgFixed}/>,
+		description: (
+			<Translate
+				id='engine_feature_description_dora_animation_editor'
+				description='The engine feature description Animation Editor in front page'>
+				The Web IDE includes an Animation Editor for creating and editing 2D model animation resources, with visual tree editing, key frames, clips, playback, and transform tools in one workflow.
 			</Translate>
 		),
 	},
@@ -333,7 +391,7 @@ const EngineFeatureList: FeatureItem[] = [
 				Lua Scripting Support
 			</Translate>
 		),
-		image: <LazyImage src={require('@site/static/img/lang/lua.png').default} alt='Lua Scripting Support' className={styles.featureImgFixed} style={{padding: 20}}/>,
+		image: <LanguageLogo src={require('@site/static/img/lang/lua.png').default} alt='Lua Scripting Support'/>,
 		description: (
 			<Translate
 				id='engine_feature_description_lua_scripting_support'
@@ -350,7 +408,7 @@ const EngineFeatureList: FeatureItem[] = [
 				YueScript Scripting Support
 			</Translate>
 		),
-		image: <LazyImage src={require('@site/static/img/lang/yuescript.png').default} alt='YueScript Scripting Support' className={styles.featureImgFixed} style={{padding: 40}}/>,
+		image: <LanguageLogo src={require('@site/static/img/lang/yuescript.png').default} alt='YueScript Scripting Support'/>,
 		description: (
 			<Translate
 				id='engine_feature_description_yuescript_scripting_support'
@@ -367,7 +425,7 @@ const EngineFeatureList: FeatureItem[] = [
 				Teal Scripting Support
 			</Translate>
 		),
-		image: <LazyImage src={require('@site/static/img/lang/teal.png').default} alt='Teal Scripting Support' className={styles.featureImgFixed} style={{padding: 40}}/>,
+		image: <LanguageLogo src={require('@site/static/img/lang/teal.png').default} alt='Teal Scripting Support'/>,
 		description: (
 			<Translate
 				id='engine_feature_description_teal_scripting_support'
@@ -384,7 +442,7 @@ const EngineFeatureList: FeatureItem[] = [
 				TypeScript Scripting Support
 			</Translate>
 		),
-		image: <LazyImage src={require('@site/static/img/lang/typescript.png').default} alt='TypeScript Scripting Support' className={styles.featureImgFixed} style={{padding: 40}}/>,
+		image: <LanguageLogo src={require('@site/static/img/lang/typescript.png').default} alt='TypeScript Scripting Support'/>,
 		description: (
 			<Translate
 				id='engine_feature_description_typescript_scripting_support'
@@ -401,7 +459,7 @@ const EngineFeatureList: FeatureItem[] = [
 				Wa Scripting Support
 			</Translate>
 		),
-		image: <div className={styles.featureImgFixed} style={{padding: 40}}><WaImg style={{width: '100%', height: '100%'}} /></div>,
+		image: <LanguageLogo Svg={WaImg} alt='Wa Scripting Support'/>,
 		description: (
 			<Translate
 				id='engine_feature_description_wa_scripting_support'
@@ -418,12 +476,29 @@ const EngineFeatureList: FeatureItem[] = [
 				Rust Scripting Support
 			</Translate>
 		),
-		image: <LazyImage src={require('@site/static/img/lang/rust.png').default} alt='Rust Scripting Support' className={styles.featureImgFixed} style={{padding: 40}}/>,
+		image: <LanguageLogo src={require('@site/static/img/lang/rust.png').default} alt='Rust Scripting Support' wide/>,
 		description: (
 			<Translate
 				id='engine_feature_description_rust_scripting_support'
 				description='The engine feature description Rust Scripting Support in front page'>
 				Dora SSR supports the Rust language, running on the built-in WASM runtime with Rust bindings. Provides a high-performance and secure programming experience.
+			</Translate>
+		),
+	},
+	{
+		title: (
+			<Translate
+				id='engine_feature_csharp_scripting_support'
+				description='The engine feature title C# Scripting Support in front page'>
+				C# Scripting Support
+			</Translate>
+		),
+		image: <LanguageLogo Svg={CSharpImg} alt='C# Scripting Support'/>,
+		description: (
+			<Translate
+				id='engine_feature_description_csharp_scripting_support'
+				description='The engine feature description C# Scripting Support in front page'>
+				Dora SSR supports C# development by calling the engine as a dynamic library, enabling native-style workflows with C# bindings.
 			</Translate>
 		),
 	},
