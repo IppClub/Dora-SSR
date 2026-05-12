@@ -236,7 +236,7 @@ end)() then -- 117
 	if (config.alwaysOnTop ~= nil) then -- 135
 		App.alwaysOnTop = config.alwaysOnTop -- 136
 	else -- 138
-		config.alwaysOnTop = true -- 138
+		config.alwaysOnTop = false -- 138
 	end -- 135
 end -- 117
 if (config.themeColor ~= nil) then -- 140

@@ -90,7 +90,7 @@ Application::Application()
 	, _renderRunning(true)
 	, _logicRunning(true)
 	, _fullScreen(false)
-	, _alwaysOnTop(true)
+	, _alwaysOnTop(false)
 	, _devMode(false)
 	, _frame(0)
 	, _visualWidth(1280)
@@ -323,7 +323,10 @@ int Application::run(MainFunc mainFunc) {
 
 	uint32_t windowFlags = SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_RESIZABLE;
 #if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_LINUX
-	windowFlags |= SDL_WINDOW_HIDDEN | SDL_WINDOW_ALWAYS_ON_TOP;
+	windowFlags |= SDL_WINDOW_HIDDEN;
+	if (_alwaysOnTop) {
+		windowFlags |= SDL_WINDOW_ALWAYS_ON_TOP;
+	}
 #elif BX_PLATFORM_IOS || BX_PLATFORM_ANDROID
 	windowFlags |= SDL_WINDOW_FULLSCREEN | SDL_WINDOW_BORDERLESS;
 	_fullScreen = true;

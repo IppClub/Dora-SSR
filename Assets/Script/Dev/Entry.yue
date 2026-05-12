@@ -135,7 +135,7 @@ if App.platform in ["Linux", "Windows", "macOS"]
 	if config.alwaysOnTop?
 		App.alwaysOnTop = config.alwaysOnTop
 	else
-		config.alwaysOnTop = true
+		config.alwaysOnTop = false
 
 if config.themeColor?
 	App.themeColor = Color config.themeColor
