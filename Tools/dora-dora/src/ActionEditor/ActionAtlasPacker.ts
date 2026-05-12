@@ -1,10 +1,11 @@
 import Info from "../Info";
+import i18n from "../i18n";
 import * as Service from "../Service";
 import type { ActionClipDocument } from "./ActionClip";
 import { writeLegacyClip } from "./ActionClip";
 import { packActionImages, writePackedActionClip } from "./ActionAtlasCore";
 import type { ActionPackResult } from "./ActionAtlasCore";
-import { getActionAtlasPaths } from "./ActionPaths";
+import { getActionAtlasPaths, joinActionPath, splitActionPath } from "./ActionPaths";
 import { toServedResourceUrl } from "./ActionResource";
 
 type LoadedActionPackInput = {
@@ -21,16 +22,24 @@ const maxAtlasSize = 4096;
 const maxAtlasPixels = maxAtlasSize * maxAtlasSize;
 
 const formatPixels = (width: number, height: number) => `${Math.ceil(width)}x${Math.ceil(height)}`;
+const t = (key: string, options?: Record<string, unknown>) => i18n.t(`actionEditor.${key}`, options);
 
 const validateInputImageSize = (filePath: string, width: number, height: number) => {
 	if (width > maxInputImageSize || height > maxInputImageSize) {
-		throw new Error(`Image is too large: ${Info.path.basename(filePath)} (${formatPixels(width, height)}), max ${maxInputImageSize}x${maxInputImageSize}`);
+		throw new Error(t("imageTooLarge", {
+			file: Info.path.basename(filePath),
+			size: formatPixels(width, height),
+			max: `${maxInputImageSize}x${maxInputImageSize}`,
+		}));
 	}
 };
 
 const validateAtlasSize = (width: number, height: number) => {
 	if (width > maxAtlasSize || height > maxAtlasSize || width * height > maxAtlasPixels) {
-		throw new Error(`Packed atlas is too large: ${formatPixels(width, height)}, max ${maxAtlasSize}x${maxAtlasSize}. Use smaller images or split them into multiple .clips directories.`);
+		throw new Error(t("atlasTooLarge", {
+			size: formatPixels(width, height),
+			max: `${maxAtlasSize}x${maxAtlasSize}`,
+		}));
 	}
 };
 
@@ -38,7 +47,7 @@ const loadImageElement = (filePath: string, objectUrl: string): Promise<HTMLImag
 	return new Promise((resolve, reject) => {
 		const image = new Image();
 		image.onload = () => resolve(image);
-		image.onerror = () => reject(new Error(`Failed to load image: ${filePath}`));
+		image.onerror = () => reject(new Error(t("failedLoadImage", { path: filePath })));
 		image.src = objectUrl;
 	});
 };
@@ -75,7 +84,7 @@ const releaseDecodedImage = (decoded: { image: CanvasImageSource; objectUrl?: st
 
 const loadImageBlob = async (filePath: string, resourceBasePath?: string) => {
 	const response = await fetch(Service.addr(toServedResourceUrl(filePath, resourceBasePath)));
-	if (!response.ok) throw new Error(`Failed to load image: ${filePath}`);
+	if (!response.ok) throw new Error(t("failedLoadImage", { path: filePath }));
 	return response.blob();
 };
 
@@ -100,7 +109,7 @@ const canvasToBlob = (canvas: HTMLCanvasElement) => {
 	return new Promise<Blob>((resolve, reject) => {
 		canvas.toBlob((blob) => {
 			if (blob) resolve(blob);
-			else reject(new Error("Failed to encode atlas png"));
+			else reject(new Error(t("failedEncodeAtlasPng")));
 		}, "image/png");
 	});
 };
@@ -113,7 +122,7 @@ const uploadFile = async (directory: string, fileName: string, blob: Blob) => {
 		body: formData,
 	});
 	if (!response.ok) {
-		throw new Error(`Failed to upload ${fileName}: ${response.status}`);
+		throw new Error(t("failedUpload", { file: fileName, status: response.status }));
 	}
 };
 
@@ -124,9 +133,9 @@ const baseName = (file: string) => {
 };
 
 const clipsEntryPath = (clipsDirPath: string, file: string) => {
-	const normalized = file.replace(/\\/g, "/");
-	if (normalized.startsWith("/") || normalized.indexOf("/") >= 0) return normalized;
-	return Info.path.join(clipsDirPath, normalized).replace(/\\/g, "/");
+	const normalized = Info.path.normalize(file);
+	if (Info.path.isAbsolute(normalized) || splitActionPath(normalized).dir !== "") return normalized;
+	return joinActionPath(clipsDirPath, normalized);
 };
 
 export const packActionClipsDirectory = async (
@@ -136,11 +145,11 @@ export const packActionClipsDirectory = async (
 ): Promise<{ clip: ActionClipDocument; result: ActionPackResult }> => {
 	const paths = getActionAtlasPaths(modelPath, clipsDir);
 	const listed = await Service.list({ path: paths.clipsDirPath });
-	if (!listed.success) throw new Error(`Failed to list ${paths.clipsDirPath}`);
+	if (!listed.success) throw new Error(t("failedList", { path: paths.clipsDirPath }));
 	const imageFiles = listed.files
 		.filter((file) => imageExts.has(Info.path.extname(file).toLowerCase()))
 		.map((file) => clipsEntryPath(paths.clipsDirPath, file));
-	if (imageFiles.length === 0) throw new Error(`No images found in ${paths.clipsDirPath}`);
+	if (imageFiles.length === 0) throw new Error(t("noImagesFound", { path: paths.clipsDirPath }));
 	const inputs: LoadedActionPackInput[] = [];
 	for (const file of imageFiles) {
 		inputs.push(await loadImageInfo(file, resourceBasePath));
@@ -151,7 +160,7 @@ export const packActionClipsDirectory = async (
 	canvas.width = result.width;
 	canvas.height = result.height;
 	const ctx = canvas.getContext("2d");
-	if (!ctx) throw new Error("Failed to create atlas canvas");
+	if (!ctx) throw new Error(t("failedCreateAtlasCanvas"));
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	for (const rect of result.rects) {
 		const input = inputs.find((item) => item.path === rect.sourcePath);
@@ -173,7 +182,7 @@ export const packActionClipsDirectory = async (
 	await uploadFile(Info.path.dirname(paths.pngPath), Info.path.basename(paths.pngPath), png);
 	const clipContent = writeLegacyClip(clip);
 	const written = await Service.write({ path: paths.clipPath, content: clipContent });
-	if (!written.success) throw new Error(`Failed to write ${paths.clipPath}`);
+	if (!written.success) throw new Error(t("failedWrite", { path: paths.clipPath }));
 	Service.emitUpdateFile(paths.pngPath, true);
 	Service.emitUpdateFile(paths.clipPath, true, clipContent);
 	return { clip, result };

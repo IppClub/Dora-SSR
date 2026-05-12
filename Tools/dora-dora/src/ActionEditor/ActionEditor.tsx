@@ -1,4 +1,5 @@
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
 	ActionClipDocument,
 	ActionDocument,
@@ -13,7 +14,7 @@ import {
 import * as Service from "../Service";
 import ActionEditorCanvas from "./ActionEditorCanvas";
 import type { ActionDocumentChangeOptions, ActionEditorMode } from "./ActionEditorCanvas";
-import { getActionAtlasPaths, getActionClipFiles, getActionClipsDirectories } from "./ActionPaths";
+import { getActionAtlasPaths, getActionClipFiles, getActionClipsDirectories, joinActionPath, splitActionPath } from "./ActionPaths";
 import { packActionClipsDirectory } from "./ActionAtlasPacker";
 import { toServedResourceUrl } from "./ActionResource";
 
@@ -66,6 +67,7 @@ const loadAtlasImage = async (filePath: string, resourceBasePath: string): Promi
 };
 
 export default memo(function ActionEditor(props: ActionEditorProps) {
+	const { t } = useTranslation();
 	const { filePath, resourceBasePath, sourceContent, width, height, active, readOnly, onChange, onLoadFailed } = props;
 	const fallbackKeyRef = useRef<string | null>(null);
 	const selfEmittedKeyRef = useRef<string | null>(null);
@@ -126,13 +128,13 @@ export default memo(function ActionEditor(props: ActionEditorProps) {
 			const fallbackKey = `${filePath}\n${sourceContent}`;
 			if (fallbackKeyRef.current !== fallbackKey) {
 				fallbackKeyRef.current = fallbackKey;
-				onLoadFailedRef.current(result.diagnostics[0]?.message ?? "Failed to load .model");
+				onLoadFailedRef.current(result.diagnostics[0]?.message ?? t("actionEditor.failedLoadModel"));
 				const emittedContent = writeLegacyModel(result.document);
 				selfEmittedKeyRef.current = `${filePath}\n${emittedContent}`;
 				onChangeRef.current(emittedContent);
 			}
 		}
-	}, [filePath, sourceContent]);
+	}, [filePath, sourceContent, t]);
 
 	useEffect(() => {
 		const clipFile = loadState.document.clipFile;
@@ -142,14 +144,15 @@ export default memo(function ActionEditor(props: ActionEditorProps) {
 			setClipDiagnostics([]);
 			return;
 		}
-		const dir = filePath.includes("/") ? filePath.slice(0, filePath.lastIndexOf("/")) : "";
-		const clipPath = clipFile.includes("/") ? clipFile : `${dir}/${clipFile}`;
+		const { dir } = splitActionPath(filePath);
+		const clipInfo = splitActionPath(clipFile);
+		const clipPath = clipInfo.dir !== "" ? joinActionPath(clipInfo.dir, clipInfo.file) : joinActionPath(dir, clipFile);
 		let cancelled = false;
 		Service.read({ path: clipPath }).then((res) => {
 			if (cancelled) return;
 			if (!res.success) {
 				setClipDocument(null);
-				setClipDiagnostics([`Failed to read clip file: ${clipPath}`]);
+				setClipDiagnostics([t("actionEditor.failedReadClipFile", { path: clipPath })]);
 				return;
 			}
 			try {
@@ -159,18 +162,18 @@ export default memo(function ActionEditor(props: ActionEditorProps) {
 			} catch (error) {
 				setClipDocument(null);
 				setAtlasImage(null);
-				setClipDiagnostics([error instanceof Error ? error.message : `Failed to parse clip file: ${clipPath}`]);
+				setClipDiagnostics([error instanceof Error ? error.message : t("actionEditor.failedParseClipFile", { path: clipPath })]);
 			}
 		}).catch(() => {
 			if (!cancelled) {
 				setClipDocument(null);
-				setClipDiagnostics([`Failed to read clip file: ${clipPath}`]);
+				setClipDiagnostics([t("actionEditor.failedReadClipFile", { path: clipPath })]);
 			}
 		});
 		return () => {
 			cancelled = true;
 		};
-	}, [filePath, loadState.document]);
+	}, [filePath, loadState.document, t]);
 
 	useEffect(() => {
 		if (!clipDocument?.texturePath) {
@@ -183,14 +186,14 @@ export default memo(function ActionEditor(props: ActionEditorProps) {
 			loadedUrl = loaded.objectUrl;
 			if (!cancelled) {
 				setAtlasImage(loaded);
-				setClipDiagnostics((items) => items.filter((item) => !item.startsWith("Failed to load atlas image:")));
+				setClipDiagnostics((items) => items.filter((item) => !item.startsWith(t("actionEditor.failedLoadAtlasImagePrefix"))));
 			}
 		}).catch((error) => {
 			if (!cancelled) {
 				setAtlasImage(null);
 				setClipDiagnostics((items) => [
-					...items.filter((item) => !item.startsWith("Failed to load atlas image:")),
-					error instanceof Error ? error.message : `Failed to load atlas image: ${clipDocument.texturePath}`,
+					...items.filter((item) => !item.startsWith(t("actionEditor.failedLoadAtlasImagePrefix"))),
+					error instanceof Error ? error.message : t("actionEditor.failedLoadAtlasImage", { path: clipDocument.texturePath }),
 				]);
 			}
 		});
@@ -198,7 +201,7 @@ export default memo(function ActionEditor(props: ActionEditorProps) {
 			cancelled = true;
 			if (loadedUrl) URL.revokeObjectURL(loadedUrl);
 		};
-	}, [clipDocument, resourceBasePath]);
+	}, [clipDocument, resourceBasePath, t]);
 
 	useEffect(() => {
 		return () => {
@@ -207,7 +210,7 @@ export default memo(function ActionEditor(props: ActionEditorProps) {
 	}, [atlasImage]);
 
 	const refreshClipsDirs = useCallback(async () => {
-		const dir = filePath.includes("/") ? filePath.slice(0, filePath.lastIndexOf("/")) : "";
+		const { dir } = splitActionPath(filePath);
 		const res = await Service.list({ path: dir });
 		if (!res.success) {
 			setClipsDirs([]);
@@ -322,12 +325,12 @@ export default memo(function ActionEditor(props: ActionEditorProps) {
 		packClipsDir(clipsDir).catch((error) => {
 			setClipsPackErrors((items) => ({
 				...items,
-				[clipsDir]: error instanceof Error ? error.message : "Failed to pack clips directory",
+				[clipsDir]: error instanceof Error ? error.message : t("actionEditor.failedPackClipsDirectory"),
 			}));
 		}).finally(() => {
 			setPacking(false);
 		});
-	}, [packClipsDir, packing]);
+	}, [packClipsDir, packing, t]);
 
 	const packAllClipsDirs = useCallback(() => {
 		if (packing || clipsDirs.length === 0) return;
@@ -339,7 +342,7 @@ export default memo(function ActionEditor(props: ActionEditorProps) {
 				} catch (error) {
 					setClipsPackErrors((items) => ({
 						...items,
-						[clipsDir]: error instanceof Error ? error.message : "Failed to pack clips directory",
+						[clipsDir]: error instanceof Error ? error.message : t("actionEditor.failedPackClipsDirectory"),
 					}));
 				}
 			}
@@ -347,9 +350,9 @@ export default memo(function ActionEditor(props: ActionEditorProps) {
 			setPacking(false);
 		}).catch((error) => {
 			setPacking(false);
-			setClipDiagnostics([error instanceof Error ? error.message : "Failed to pack clips directories"]);
+			setClipDiagnostics([error instanceof Error ? error.message : t("actionEditor.failedPackClipsDirectories")]);
 		});
-	}, [clipsDirs, packClipsDir, packing]);
+	}, [clipsDirs, packClipsDir, packing, t]);
 
 	const handleLookSelect = useCallback((look: string | null) => {
 		lastSelectedLookRef.current = look;
@@ -411,6 +414,7 @@ export default memo(function ActionEditor(props: ActionEditorProps) {
 
 	return (
 		<ActionEditorCanvas
+			t={t}
 			document={loadState.document}
 			diagnostics={loadState.diagnostics}
 			runtimeDiagnostics={runtimeDiagnostics}
