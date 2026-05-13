@@ -119,6 +119,12 @@ local record App
 	-- @return (boolean) 测试是否成功运行。
 	runTest: function(self: App, name: string): boolean
 
+	-- 启动一个外部应用程序实例。当前仅支持 macOS。
+	-- @param appPath (string) 要启动的应用程序包路径，例如 /Applications/Dora.app。
+	-- @param launchArgs (string) 传给应用程序的命令行参数字符串。
+	-- @return (boolean) 是否成功提交启动命令。
+	launch: function(self: App, appPath: string, launchArgs: string): boolean
+
 	-- 在系统默认的浏览器中打开指定的URL地址。
 	-- @param url (string) 要打开的URL地址。
 	openURL: function(self: App, url: string)

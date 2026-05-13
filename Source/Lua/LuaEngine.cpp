@@ -11,6 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Lua/LuaEngine.h"
 
 #include "Common/Async.h"
+#include "Basic/Application.h"
 #include "Lua/LuaBinding.h"
 #include "Lua/LuaFromXml.h"
 #include "Lua/LuaHandler.h"
@@ -61,6 +62,49 @@ static void pushOptions(lua_State* L, int lineOffset) {
 	lua_pushliteral(L, "line_offset");
 	lua_pushinteger(L, lineOffset);
 	lua_rawset(L, -3);
+}
+
+static std::string shellQuote(String value) {
+	std::string input = value.toString();
+	std::string output = "'";
+	for (char c : input) {
+		if (c == '\'') {
+			output += "'\\''";
+		} else {
+			output += c;
+		}
+	}
+	output += "'";
+	return output;
+}
+
+static int Application_launch(lua_State* tolua_S) {
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (
+		!tolua_isusertype(tolua_S, 1, "Application"_slice, 0, &tolua_err) ||
+		!tolua_isslice(tolua_S, 2, 0, &tolua_err) ||
+		!tolua_isslice(tolua_S, 3, 0, &tolua_err) ||
+		!tolua_isnoobj(tolua_S, 4, &tolua_err)) {
+		tolua_error(tolua_S, "#ferror in function 'Application.launch'.", &tolua_err);
+		return 0;
+	}
+#endif
+	Application* self = s_cast<Application*>(tolua_tousertype(tolua_S, 1, 0));
+	Slice appPath = tolua_toslice(tolua_S, 2, 0);
+	Slice arguments = tolua_toslice(tolua_S, 3, 0);
+#ifndef TOLUA_RELEASE
+	if (!self) tolua_error(tolua_S, "invalid 'self' in function 'Application.launch'", nullptr);
+#endif
+	bool success = false;
+#if BX_PLATFORM_OSX
+	std::string command = "open -n " + shellQuote(appPath) + " --args " + arguments.toString();
+	success = std::system(command.c_str()) == 0;
+#else
+	Issue("Application.launch() is only implemented for macOS now.");
+#endif
+	tolua_pushboolean(tolua_S, success);
+	return 1;
 }
 
 static int dora_print(lua_State* L) {
@@ -928,6 +972,7 @@ LuaEngine::LuaEngine()
 		{
 			tolua_variable(L, "testNames", Test_getNames, nullptr);
 			tolua_function(L, "runTest", Test_run);
+			tolua_function(L, "launch", Application_launch);
 		}
 		tolua_endmodule(L);
 

@@ -117,6 +117,12 @@ local record App
 	-- @return (boolean) Whether the test ran successfully.
 	runTest: function(self: App, name: string): boolean
 
+	-- Launches an external application instance. Currently implemented for macOS only.
+	-- @param appPath (string) Application bundle path, for example /Applications/Dora.app.
+	-- @param launchArgs (string) Command-line arguments passed to the application.
+	-- @return (boolean) Whether the launch command was submitted successfully.
+	launch: function(self: App, appPath: string, launchArgs: string): boolean
+
 	-- A function that opens a URL in the system default browser.
 	-- @param url (string) The URL to open.
 	openURL: function(self: App, url: string)

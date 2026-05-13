@@ -682,6 +682,14 @@ interface App {
 	runTest(name: string): boolean;
 
 	/**
+	 * 启动一个外部应用程序实例。当前仅支持 macOS。
+	 * @param appPath 要启动的应用程序包路径，例如 /Applications/Dora.app。
+	 * @param launchArgs 传给应用程序的命令行参数字符串。
+	 * @returns 是否成功提交启动命令。
+	 */
+	launch(appPath: string, launchArgs: string): boolean;
+
+	/**
 	 * 在系统默认的浏览器中打开指定的URL地址。
 	 * @param url 要打开的URL地址。
 	 */

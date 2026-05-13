@@ -678,6 +678,14 @@ interface App {
 	runTest(name: string): boolean;
 
 	/**
+	 * Launches an external application instance. Currently implemented for macOS only.
+	 * @param appPath Application bundle path, for example /Applications/Dora.app.
+	 * @param launchArgs Command-line arguments passed to the application.
+	 * @returns Whether the launch command was submitted successfully.
+	 */
+	launch(appPath: string, launchArgs: string): boolean;
+
+	/**
 	 * A function that opens a URL in the system default browser.
 	 * @param url The URL to open.
 	 */
