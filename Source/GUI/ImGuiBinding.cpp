@@ -851,6 +851,11 @@ void Image(String clipStr, const Vec2& size, Color bg_col, Color tint_col) {
 	ImGui::ImageWithBg(r_cast<ImTextureID>(tex), size, uv0, uv1, bg_col.toVec4(), tint_col.toVec4());
 }
 
+void ImageTexture(Texture2D* texture, const Vec2& size, Color bg_col, Color tint_col) {
+	if (!texture) return;
+	ImGui::ImageWithBg(r_cast<ImTextureID>(texture), size, ImVec2(0, 0), ImVec2(1, 1), bg_col.toVec4(), tint_col.toVec4());
+}
+
 bool ImageButton(const char* str_id, String clipStr, const Vec2& size, Color bg_col, Color tint_col) {
 	Texture2D* tex = nullptr;
 	Rect rect;

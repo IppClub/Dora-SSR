@@ -2,6 +2,7 @@ local Vec2 = require("Vec2").Type
 local Buffer = require("Buffer").Type
 local Color = require("Color").Type
 local Color3 = require("Color3").Type
+local Texture2D = require("Texture2D").Type
 local record ImGui
 	enum StyleColor
 		"Text"
@@ -538,6 +539,12 @@ local record ImGui
 
 	Image: function(
 		clipStr: string,
+		size: Vec2,
+		bg_col?: Color,
+		tint_col?: Color
+	)
+	ImageTexture: function(
+		texture: Texture2D,
 		size: Vec2,
 		bg_col?: Color,
 		tint_col?: Color
