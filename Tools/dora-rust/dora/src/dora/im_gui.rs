@@ -47,6 +47,7 @@ extern "C" {
 	fn imgui_set_tooltip(text: i64);
 	fn imgui_image(clip_str: i64, size: i64);
 	fn imgui_image_with_bg(clip_str: i64, size: i64, bg_col: i32, tint_col: i32);
+	fn imgui_image_with_texture(texture: i64, size: i64, bg_col: i32, tint_col: i32);
 	fn imgui_image_button_opts(str_id: i64, clip_str: i64, size: i64, bg_col: i32, tint_col: i32) -> i32;
 	fn imgui__color_button_opts(desc_id: i64, col: i32, color_edit_flags: i32, size: i64) -> i32;
 	fn imgui_columns(count: i32);
@@ -345,6 +346,9 @@ impl ImGui {
 	}
 	pub fn image_with_bg(clip_str: &str, size: &crate::dora::Vec2, bg_col: &crate::dora::Color, tint_col: &crate::dora::Color) {
 		unsafe { imgui_image_with_bg(crate::dora::from_string(clip_str), size.into_i64(), bg_col.to_argb() as i32, tint_col.to_argb() as i32); }
+	}
+	pub fn image_with_texture(texture: &crate::dora::Texture2D, size: &crate::dora::Vec2, bg_col: &crate::dora::Color, tint_col: &crate::dora::Color) {
+		unsafe { imgui_image_with_texture(texture.raw(), size.into_i64(), bg_col.to_argb() as i32, tint_col.to_argb() as i32); }
 	}
 	pub fn image_button_opts(str_id: &str, clip_str: &str, size: &crate::dora::Vec2, bg_col: &crate::dora::Color, tint_col: &crate::dora::Color) -> bool {
 		unsafe { return imgui_image_button_opts(crate::dora::from_string(str_id), crate::dora::from_string(clip_str), size.into_i64(), bg_col.to_argb() as i32, tint_col.to_argb() as i32) != 0; }

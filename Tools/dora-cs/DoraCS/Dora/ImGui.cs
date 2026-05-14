@@ -96,6 +96,8 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void imgui_image_with_bg(int64_t clipStr, int64_t size, int32_t bg_col, int32_t tint_col);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void imgui_image_with_texture(int64_t texture, int64_t size, int32_t bg_col, int32_t tint_col);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int32_t imgui_image_button_opts(int64_t str_id, int64_t clipStr, int64_t size, int32_t bg_col, int32_t tint_col);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int32_t imgui__color_button_opts(int64_t desc_id, int32_t col, int32_t colorEditFlags, int64_t size);
@@ -611,6 +613,10 @@ namespace Dora
 		public static void ImageWithBg(string clipStr, Vec2 size, Color bg_col, Color tint_col)
 		{
 			Native.imgui_image_with_bg(Bridge.FromString(clipStr), size.Raw, (int)bg_col.ToARGB(), (int)tint_col.ToARGB());
+		}
+		public static void Image(Texture2D texture, Vec2 size, Color bg_col, Color tint_col)
+		{
+			Native.imgui_image_with_texture(texture.Raw, size.Raw, (int)bg_col.ToARGB(), (int)tint_col.ToARGB());
 		}
 		public static bool ImageButtonOpts(string str_id, string clipStr, Vec2 size, Color bg_col, Color tint_col)
 		{
