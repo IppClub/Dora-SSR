@@ -73,8 +73,8 @@ const transformMatrix = (transform: {
 	anchor?: { x: number; y: number };
 	size?: { width: number; height: number };
 }): ActionRenderMatrix => {
-	const scaleX = transform.scale.x === 0 ? 1 : transform.scale.x;
-	const scaleY = transform.scale.y === 0 ? 1 : transform.scale.y;
+	const scaleX = transform.scale.x;
+	const scaleY = transform.scale.y;
 	const radians = -transform.rotation * Math.PI / 180;
 	const skewX = (transform.skew?.x ?? 0) * Math.PI / 180;
 	const skewY = (transform.skew?.y ?? 0) * Math.PI / 180;
@@ -184,7 +184,9 @@ const collectRenderRects = (
 ) => {
 	const hiddenByLook = parentHiddenByLook || (look !== null && node.hiddenInLooks.indexOf(look) >= 0);
 	if (node.id === document.root.id) {
-		for (const child of node.children) {
+		const backChildren = node.children.filter((child) => !child.front);
+		const frontChildren = node.children.filter((child) => child.front);
+		for (const child of [...backChildren, ...frontChildren]) {
 			collectRenderRects(document, clip, child, parentMatrix, look, animation, time, parentOpacity, hiddenByLook, parentHiddenByAnimation, out);
 		}
 		return;
@@ -199,6 +201,12 @@ const collectRenderRects = (
 	const opacity = parentOpacity * clampOpacity(transform.opacity ?? node.transform.opacity);
 	const hiddenByAnimation = parentHiddenByAnimation || sampled?.visible === false;
 	const visible = !hiddenByLook && !hiddenByAnimation;
+	const collectChild = (child: ActionNode) => {
+		collectRenderRects(document, clip, child, nodeMatrix, look, animation, time, opacity, hiddenByLook, hiddenByAnimation, out);
+	};
+	for (const child of node.children) {
+		if (!child.front) collectChild(child);
+	}
 	if (node.clip !== "" || frameRect !== null) {
 		const left = 0;
 		const right = base.width;
@@ -238,7 +246,7 @@ const collectRenderRects = (
 		});
 	}
 	for (const child of node.children) {
-		collectRenderRects(document, clip, child, nodeMatrix, look, animation, time, opacity, hiddenByLook, hiddenByAnimation, out);
+		if (child.front) collectChild(child);
 	}
 };
 

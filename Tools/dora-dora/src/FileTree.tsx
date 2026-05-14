@@ -31,6 +31,7 @@ import { RxClipboardCopy } from "react-icons/rx";
 import { GoFileCode, GoChecklist } from "react-icons/go";
 import { FcImageFile } from 'react-icons/fc';
 import { SiWebassembly } from 'react-icons/si';
+import { BsGrid3X3Gap } from 'react-icons/bs';
 import Tree from 'rc-tree';
 import "./rctree.css";
 import { TreeNodeProps } from "rc-tree/lib/TreeNode";
@@ -108,6 +109,8 @@ const fileIcon = (props: TreeNodeProps) => {
 					return <DiCode size={14} />;
 				case ".model":
 					return <img src={doraAnimationLogo} alt="model" width="14px" height="14px" style={{ objectFit: 'contain' }} />;
+				case ".clip":
+					return <BsGrid3X3Gap size={13} color="#5cc8ff" />;
 				case ".db":
 					return <TbSql size={14} />;
 				case ".md":
@@ -159,7 +162,7 @@ const motion = {
 	onLeaveActive: () => ({ height: 0 }),
 };
 
-export type TreeMenuEvent = "New" | "Rename" | "Delete" | "Upload" | "Download" | "Cancel" | "Unzip" | "View Compiled" | "Copy Path" | "Build" | "Obfuscate" | "Declaration" | "Update Dora" | "Dora";
+export type TreeMenuEvent = "New" | "Rename" | "Delete" | "Upload" | "Download" | "Cancel" | "Unzip" | "Pack Atlas" | "View Compiled" | "Copy Path" | "Build" | "Obfuscate" | "Declaration" | "Update Dora" | "Dora";
 
 export interface FileTreeProps {
 	selectedKeys: string[];
@@ -220,6 +223,7 @@ export default memo(function FileTree(props: FileTreeProps) {
 	const enableDownload = isRoot || !isBuiltin;
 	const enableCopyPath = (!isRoot || isBuiltin) || Info.engineDev;
 	const enableUnzip = !isRoot && !isBuiltin;
+	const enablePackAtlas = anchorItem?.data.dir === true && ext === ".clips" && (((!isRoot && !isBuiltin) || Info.engineDev));
 	const enableBuild = (isRoot || !isBuiltin) || Info.engineDev;
 	const enableObfuscate = (isRoot || !isBuiltin) || Info.engineDev;
 	const enableViewCompiled = (!isRoot && !isBuiltin) || Info.engineDev;
@@ -306,6 +310,14 @@ export default memo(function FileTree(props: FileTreeProps) {
 							<AiOutlineFolderOpen />
 						</ListItemIcon>
 						<ListItemText primary={t("menu.extract")} />
+					</StyledMenuItem> : null
+				}
+				{enablePackAtlas && anchorItem ?
+					<StyledMenuItem onClick={() => handleClose("Pack Atlas", anchorItem.data)}>
+						<ListItemIcon>
+							<BsGrid3X3Gap />
+						</ListItemIcon>
+						<ListItemText primary={t("menu.packAtlas")} />
 					</StyledMenuItem> : null
 				}
 				{enableBuild && anchorItem &&

@@ -69,9 +69,10 @@ export const writeLegacyClip = (clip: ActionClipDocument) => {
 
 const collectMissingClips = (node: ActionNode, clip: ActionClipDocument, diagnostics: ActionDiagnostic[]) => {
 	if (node.clip && !clip.rects[node.clip]) {
+		const nodeName = node.name || node.id;
 		diagnostics.push({
 			severity: "warning",
-			message: `Clip "${node.clip}" is not defined in ${clip.clipPath ?? "clip document"}`,
+			message: `Clip "${node.clip}" on node "${nodeName}" is not defined`,
 			path: clip.clipPath,
 			nodeId: node.id,
 		});

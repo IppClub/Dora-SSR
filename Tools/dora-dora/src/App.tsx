@@ -62,6 +62,7 @@ const YarnEditor = React.lazy(() => import('./YarnEditor'));
 const CodeWire = React.lazy(() => import('./CodeWire'));
 const TIC80Editor = React.lazy(() => import('./TIC80Editor'));
 const ActionEditor = React.lazy(() => import('./ActionEditor/ActionEditor'));
+const ActionClipPreview = React.lazy(() => import('./ActionEditor/ActionClipPreview'));
 
 const { path } = Info;
 
@@ -349,6 +350,7 @@ interface EditingFile {
 	yarnData?: YarnEditorData;
 	codeWireData?: CodeWireData;
 	blocklyData?: string;
+	previewVersion?: number;
 	sortIndex?: number;
 	readOnly?: boolean;
 	status: TabStatus;
@@ -515,6 +517,13 @@ interface UpdateFileEvent {
 	exists: boolean;
 	content: string;
 }
+
+const previewFileExts = new Set([".png", ".jpg", ".jpeg", ".clip"]);
+
+const appendCacheKey = (url: string, key?: number) => {
+	if (key === undefined) return url;
+	return `${url}${url.includes("?") ? "&" : "?"}v=${key}`;
+};
 
 const useResize = ({ minWidth, defaultWidth }: UseResizeProps) => {
 	defaultWidth ??= minWidth;
@@ -1237,6 +1246,7 @@ export default function PersistentDrawerLeft() {
 				case ".tl":
 				case ".yue":
 				case ".xml":
+				case ".clip":
 				case ".md":
 				case ".yarn":
 				case ".vs":
@@ -1448,13 +1458,19 @@ export default function PersistentDrawerLeft() {
 					if (path.extname(file).toLowerCase() === ".model") {
 						continue;
 					}
-					nextFiles = nextFiles.map((item, index) => index === existingIndex ? {
-						...item,
-						title: path.basename(file),
-						content,
-						contentModified: null,
-						status: "normal" as TabStatus,
-					} : item);
+					const ext = path.extname(file).toLowerCase();
+					const refreshPreview = previewFileExts.has(ext);
+					nextFiles = nextFiles.map((item, index) => {
+						if (index !== existingIndex) return item;
+						return {
+							...item,
+							title: path.basename(file),
+							content,
+							contentModified: null,
+							status: "normal" as TabStatus,
+							previewVersion: refreshPreview ? (item.previewVersion ?? 0) + 1 : item.previewVersion,
+						};
+					});
 					filesChanged = true;
 				}
 			}
@@ -2241,6 +2257,27 @@ export default function PersistentDrawerLeft() {
 					}
 					loadAssets();
 				})
+				break;
+			}
+			case "Pack Atlas": {
+				if (!data.dir) break;
+				const title = data.title;
+				const resourceBasePath = isChildFolder(data.key, assetPath) ? assetPath : writablePath;
+				isSaving = true;
+				import('./ActionEditor/ActionAtlasPacker').then(({ packActionClipsDirectoryPath }) => {
+					return packActionClipsDirectoryPath(data.key, resourceBasePath);
+				}).then(({ clip, result }) => {
+					addAlert(t("alert.packedAtlas", {
+						title,
+						texture: path.basename(clip.texturePath ?? ""),
+						clip: path.basename(clip.clipPath ?? ""),
+						count: result.rects.length,
+					}), "success");
+				}).catch((error) => {
+					addAlert(error instanceof Error ? error.message : t("alert.failedPackAtlas", { title }), "error", true);
+				}).finally(() => {
+					isSaving = false;
+				});
 				break;
 			}
 			case "Declaration": {
@@ -4006,12 +4043,14 @@ export default function PersistentDrawerLeft() {
 						let blockly = false;
 						let tic80 = false;
 						let actionModel = false;
+						let actionClip = false;
 						switch (ext.toLowerCase()) {
 							case ".lua": language = "lua"; break;
 							case ".tl": language = "tl"; break;
 							case ".yue": language = "yue"; break;
 							case ".ts": case ".tsx": language = "typescript"; break;
 							case ".xml": language = "xml"; break;
+							case ".clip": actionClip = true; break;
 							case ".md": language = "markdown"; break;
 							case ".wa": language = "wa"; break;
 							case ".mod": language = "ini"; break;
@@ -4060,6 +4099,24 @@ export default function PersistentDrawerLeft() {
 										}}
 									/>
 								</Suspense> : null
+							}
+							{actionClip ?
+								<div style={{ display: 'flex', position: 'relative', width: '100%', maxWidth: '100%', minWidth: 0, overflow: 'hidden' }}>
+									<MacScrollbar skin='dark' style={{ height: editorHeight, width: '100%', maxWidth: '100%', minWidth: 0 }}>
+										<Suspense fallback={<div />}>
+											<ActionClipPreview
+												key={`${file.key}:${file.previewVersion ?? 0}`}
+												filePath={file.key}
+												resourceBasePath={parentPath}
+												sourceContent={file.contentModified ?? file.content}
+												refreshKey={file.previewVersion ?? 0}
+												width={editorWidth}
+												height={editorHeight}
+												addAlert={addAlert}
+											/>
+										</Suspense>
+									</MacScrollbar>
+								</div> : null
 							}
 							{yarn && !file.yarnTextEditing ?
 								<div style={{ display: 'flex', position: 'relative' }}>
@@ -4222,9 +4279,9 @@ export default function PersistentDrawerLeft() {
 									<Container maxWidth="lg">
 										<DrawerHeader />
 										<Image src={
-											Service.addr("/" + path
+											appendCacheKey(Service.addr("/" + path
 												.relative(parentPath, file.key)
-												.replace("\\", "/"))
+												.replace("\\", "/")), file.previewVersion)
 										} preview={false} />
 									</Container>
 								</MacScrollbar> : null

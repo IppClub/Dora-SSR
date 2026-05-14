@@ -26,6 +26,7 @@ const getLanguageForFile = (file: string) => {
 		case ".tsx":
 			return "typescript";
 		case ".xml": return "xml";
+		case ".clip": return "xml";
 		case ".md": return "markdown";
 		case ".wa": return "wa";
 		case ".mod": return "ini";
