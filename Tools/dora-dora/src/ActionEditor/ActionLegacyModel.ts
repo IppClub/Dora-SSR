@@ -222,6 +222,7 @@ export const parseLegacyModel = (xml: string, modelPath?: string): ActionDocumen
 	const animationOrder = attrIndexMapToSourceOrder(root.children, "J");
 	const lookOrder = attrIndexMapToSourceOrder(root.children, "I");
 	const tempRoot = parseNode(rootNodeElement, "root");
+	tempRoot.front = true;
 	const document: ActionDocument = {
 		version: 1,
 		source: "model",
@@ -296,6 +297,7 @@ const nodeToXml = (
 	node: ActionNode,
 	animationSlots: Array<string | undefined>,
 	lookEntries: IndexedName[],
+	isRoot = false,
 ) => {
 	const t = node.transform;
 	let out = `<B`;
@@ -307,7 +309,7 @@ const nodeToXml = (
 	if (t.opacity !== 1) out += attr("C", trimNumber(t.opacity, 2));
 	out += attr("H", node.name);
 	out += attr("I", node.clip);
-	if (!node.front) out += attr("J", 0);
+	if (!isRoot && !node.front) out += attr("J", 0);
 	out += ">";
 	let lastTrackSlot = -1;
 	for (let index = 0; index < animationSlots.length; index += 1) {
@@ -395,7 +397,7 @@ export const writeLegacyModel = (document: ActionDocument) => {
 	out += ">";
 	const animationEntries = indexedEntriesForNames(document.animations, document.legacy.animationIndexes);
 	const lookEntries = indexedEntriesForNames(document.looks, document.legacy.lookIndexes);
-	out += nodeToXml(document.root, animationSlotsForNames(document.animations, document.legacy.animationIndexes), lookEntries);
+	out += nodeToXml(document.root, animationSlotsForNames(document.animations, document.legacy.animationIndexes), lookEntries, true);
 	for (const item of orderIndexedEntries(animationEntries, document.legacy.animationOrder)) {
 		out += `<J C="${item.index}" H="${escapeXml(item.name)}"/>`;
 	}

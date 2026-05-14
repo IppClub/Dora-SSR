@@ -5,7 +5,8 @@ import type { ActionClipDocument } from "./ActionClip";
 import { writeLegacyClip } from "./ActionClip";
 import { packActionImages, writePackedActionClip } from "./ActionAtlasCore";
 import type { ActionPackResult } from "./ActionAtlasCore";
-import { getActionAtlasPaths, joinActionPath, splitActionPath } from "./ActionPaths";
+import { getActionAtlasPaths, getActionAtlasPathsFromClipsDir, joinActionPath, splitActionPath } from "./ActionPaths";
+import type { ActionAtlasPaths } from "./ActionPaths";
 import { toServedResourceUrl } from "./ActionResource";
 
 type LoadedActionPackInput = {
@@ -138,12 +139,10 @@ const clipsEntryPath = (clipsDirPath: string, file: string) => {
 	return joinActionPath(clipsDirPath, normalized);
 };
 
-export const packActionClipsDirectory = async (
-	modelPath: string,
-	clipsDir: string,
+const packActionAtlasPaths = async (
+	paths: ActionAtlasPaths,
 	resourceBasePath?: string,
 ): Promise<{ clip: ActionClipDocument; result: ActionPackResult }> => {
-	const paths = getActionAtlasPaths(modelPath, clipsDir);
 	const listed = await Service.list({ path: paths.clipsDirPath });
 	if (!listed.success) throw new Error(t("failedList", { path: paths.clipsDirPath }));
 	const imageFiles = listed.files
@@ -186,4 +185,19 @@ export const packActionClipsDirectory = async (
 	Service.emitUpdateFile(paths.pngPath, true);
 	Service.emitUpdateFile(paths.clipPath, true, clipContent);
 	return { clip, result };
+};
+
+export const packActionClipsDirectory = async (
+	modelPath: string,
+	clipsDir: string,
+	resourceBasePath?: string,
+): Promise<{ clip: ActionClipDocument; result: ActionPackResult }> => {
+	return packActionAtlasPaths(getActionAtlasPaths(modelPath, clipsDir), resourceBasePath);
+};
+
+export const packActionClipsDirectoryPath = async (
+	clipsDirPath: string,
+	resourceBasePath?: string,
+): Promise<{ clip: ActionClipDocument; result: ActionPackResult }> => {
+	return packActionAtlasPaths(getActionAtlasPathsFromClipsDir(clipsDirPath), resourceBasePath);
 };

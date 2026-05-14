@@ -302,6 +302,53 @@ const fitTextWidth = (imgui: ActionImGuiFrame, text: string, maxWidth: number) =
 	return `${chars.slice(0, low).join("")}${ellipsis}`;
 };
 
+const diagnosticsPanelMaxHeight = 120;
+
+const estimateWrappedTextHeight = (imgui: ActionImGuiFrame, text: string, wrapWidth: number) => {
+	const lineHeight = imgui.GetTextLineHeightWithSpacing();
+	return text.split("\n").reduce((height, line) => {
+		const lineWidth = imgui.CalcTextSize(line || " ").x;
+		return height + Math.max(1, Math.ceil(lineWidth / Math.max(1, wrapWidth))) * lineHeight;
+	}, 0);
+};
+
+const renderDiagnosticsPanel = (
+	imgui: ActionImGuiFrame,
+	props: ActionEditorCanvasProps,
+) => {
+	const entries: Array<{ message: string; color: { x: number; y: number; z: number; w: number } }> = [];
+	if (props.diagnostics.length > 0) {
+		entries.push(
+			{ message: tr(props, "loadFailedNewModel"), color: { x: 0.9, y: 0.52, z: 0.45, w: 1 } },
+			{ message: props.diagnostics[0].message, color: { x: 0.9, y: 0.52, z: 0.45, w: 1 } },
+		);
+	}
+	for (const message of props.runtimeDiagnostics) {
+		entries.push({ message, color: { x: 0.9, y: 0.52, z: 0.45, w: 1 } });
+	}
+	for (const message of props.clipDiagnostics) {
+		entries.push({ message, color: { x: 0.9, y: 0.72, z: 0.32, w: 1 } });
+	}
+	if (entries.length === 0) return;
+
+	const style = imgui.GetStyle();
+	const wrapWidth = Math.max(80, imgui.GetContentRegionAvail().x - style.WindowPadding.x * 2 - 8);
+	const contentHeight = entries.reduce((height, entry) => height + estimateWrappedTextHeight(imgui, entry.message, wrapWidth), 0);
+	const panelHeight = Math.min(diagnosticsPanelMaxHeight, Math.max(imgui.GetTextLineHeightWithSpacing(), contentHeight + style.WindowPadding.y * 2));
+	imgui.BeginChild("diagnostics-panel", { x: 0, y: panelHeight }, false, imgui.WindowFlags.AlwaysUseWindowPadding);
+	try {
+		for (const entry of entries) {
+			imgui.PushStyleColor(imgui.Col.Text, entry.color);
+			imgui.PushTextWrapPos(wrapWidth);
+			imgui.TextWrapped(entry.message);
+			imgui.PopTextWrapPos();
+			imgui.PopStyleColor();
+		}
+	} finally {
+		imgui.EndChild();
+	}
+};
+
 const renderFallback = (
 	canvas: HTMLCanvasElement,
 	t: ActionEditorTranslate,
@@ -729,10 +776,10 @@ const renderProperties = (
 			emitNodeChange(props, selected.id, (node) => ({ ...node, name: nextName }));
 		}
 		renderNodeClipSelector(imgui, props, selected, atlasTexture);
-	}
-	const front = [selected.front];
-	if (imgui.Checkbox(tr(props, "faceRight"), front) && !props.readOnly) {
-		emitNodeChange(props, selected.id, (node) => ({ ...node, front: front[0] }));
+		const front = [selected.front];
+		if (imgui.Checkbox(tr(props, "front"), front) && !props.readOnly) {
+			emitNodeChange(props, selected.id, (node) => ({ ...node, front: front[0] }));
+		}
 	}
 	if (isRoot) {
 		const width = inputNumber(imgui, tr(props, "width"), props.document.size.width, props.readOnly, 1, panelState);
@@ -781,6 +828,10 @@ const renderAnimationKeyFrameProperties = (
 	if (props.selectedAnimation === null || selected.id === props.document.root.id) {
 		imgui.TextDisabled(tr(props, "selectNodeKeyframe"));
 		return;
+	}
+	const front = [selected.front];
+	if (imgui.Checkbox(tr(props, "front"), front) && !props.readOnly) {
+		emitNodeChange(props, selected.id, (node) => ({ ...node, front: front[0] }));
 	}
 	const frame = getSelectedAnimationKeyFrame(props, selected.id);
 	if (!frame) {
@@ -1935,9 +1986,6 @@ const drawEditor = (
 ) => {
 	const {
 		document,
-		diagnostics,
-		runtimeDiagnostics,
-		clipDiagnostics,
 		width,
 		height,
 		clipsDirs,
@@ -1955,16 +2003,7 @@ const drawEditor = (
 		| imgui.WindowFlags.NoScrollWithMouse;
 	imgui.Begin("ActionEditor", null, rootWindowFlags);
 	try {
-		if (diagnostics.length > 0) {
-			imgui.TextColored({ x: 0.9, y: 0.52, z: 0.45, w: 1 }, tr(props, "loadFailedNewModel"));
-			imgui.TextWrapped(diagnostics[0].message);
-		}
-		for (const message of runtimeDiagnostics) {
-			imgui.TextColored({ x: 0.9, y: 0.52, z: 0.45, w: 1 }, message);
-		}
-		for (const message of clipDiagnostics) {
-			imgui.TextColored({ x: 0.9, y: 0.72, z: 0.32, w: 1 }, message);
-		}
+		renderDiagnosticsPanel(imgui, props);
 		const windowPos = imgui.GetWindowPos();
 		const contentPos = imgui.GetCursorScreenPos();
 		const panelTop = contentPos.y;

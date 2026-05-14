@@ -62,3 +62,19 @@ export const getActionAtlasPaths = (modelPath: string, clipsDirName?: string): A
 		modelClipReference: `${outputBaseName}.clip`,
 	};
 };
+
+export const getActionAtlasPathsFromClipsDir = (clipsDirPath: string): ActionAtlasPaths => {
+	const { dir, file } = splitActionPath(clipsDirPath);
+	const outputBaseName = stripActionExt(file, ".clips");
+	return {
+		modelPath: joinActionPath(dir, `${outputBaseName}.model`),
+		modelDir: dir,
+		modelBaseName: outputBaseName,
+		clipsDirName: file,
+		clipsDirPath: joinActionPath(dir, file),
+		outputBaseName,
+		clipPath: joinActionPath(dir, `${outputBaseName}.clip`),
+		pngPath: joinActionPath(dir, `${outputBaseName}.png`),
+		modelClipReference: `${outputBaseName}.clip`,
+	};
+};
