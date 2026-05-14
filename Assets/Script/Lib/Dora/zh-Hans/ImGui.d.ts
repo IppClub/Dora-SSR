@@ -5,13 +5,15 @@ import {
 	Vec2,
 	Buffer,
 	Color,
-	Color3
+	Color3,
+	Texture2D
 } from "Dora";
 
 type Vec2 = Vec2.Type;
 type Buffer = Buffer.Type;
 type Color = Color.Type;
 type Color3 = Color3.Type;
+type Texture2D = Texture2D.Type;
 
 export const enum StyleColor {
 	Text = "Text",
@@ -421,6 +423,7 @@ export function ColorEdit3(this: void, label: string, color3: Color3, flags?: Co
 export function ColorEdit4(this: void, label: string, color: Color, flags?: ColorEditFlag[]): boolean;
 
 export function Image(this: void, clipStr: string, size: Vec2, bg_col?: Color, tint_col?: Color): void;
+export function ImageTexture(this: void, texture: Texture2D, size: Vec2, bg_col?: Color, tint_col?: Color): void;
 export function ImageButton(this: void, str_id: string, clipStr: string, size: Vec2, frame_padding?: number, bg_col?: Color, tint_col?: Color): boolean;
 
 export function ColorButton(this: void, desc_id: string, col: Color, flags?: ColorEditFlag[], size?: Vec2): boolean;

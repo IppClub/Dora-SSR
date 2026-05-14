@@ -15,6 +15,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DORA_BEGIN
 
 class CallStack;
+class Texture2D;
 
 /* Buffer */
 class Buffer : public Object {
@@ -639,6 +640,12 @@ bool ColorEdit4(
 
 void Image(
 	String clipStr,
+	const Vec2& size,
+	Color bg_col = Color(0x0),
+	Color tint_col = Color(0xffffffff));
+
+void ImageTexture(
+	Texture2D* texture,
 	const Vec2& size,
 	Color bg_col = Color(0x0),
 	Color tint_col = Color(0xffffffff));
