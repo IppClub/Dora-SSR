@@ -128,6 +128,9 @@ DORA_EXPORT void imgui_image(int64_t clip_str, int64_t size) {
 DORA_EXPORT void imgui_image_with_bg(int64_t clip_str, int64_t size, int32_t bg_col, int32_t tint_col) {
 	ImGui::Binding::Image(*Str_From(clip_str), Vec2_From(size), Color(s_cast<uint32_t>(bg_col)), Color(s_cast<uint32_t>(tint_col)));
 }
+DORA_EXPORT void imgui_image_with_texture(int64_t texture, int64_t size, int32_t bg_col, int32_t tint_col) {
+	ImGui::Binding::ImageTexture(r_cast<Texture2D*>(texture), Vec2_From(size), Color(s_cast<uint32_t>(bg_col)), Color(s_cast<uint32_t>(tint_col)));
+}
 DORA_EXPORT int32_t imgui_image_button_opts(int64_t str_id, int64_t clip_str, int64_t size, int32_t bg_col, int32_t tint_col) {
 	return ImGui::Binding::ImageButton(*Str_From(str_id), *Str_From(clip_str), Vec2_From(size), Color(s_cast<uint32_t>(bg_col)), Color(s_cast<uint32_t>(tint_col))) ? 1 : 0;
 }
@@ -696,6 +699,7 @@ static void linkImGui(wasm3::module3& mod) {
 	mod.link_optional("*", "imgui_set_tooltip", imgui_set_tooltip);
 	mod.link_optional("*", "imgui_image", imgui_image);
 	mod.link_optional("*", "imgui_image_with_bg", imgui_image_with_bg);
+	mod.link_optional("*", "imgui_image_with_texture", imgui_image_with_texture);
 	mod.link_optional("*", "imgui_image_button_opts", imgui_image_button_opts);
 	mod.link_optional("*", "imgui__color_button_opts", imgui__color_button_opts);
 	mod.link_optional("*", "imgui_columns", imgui_columns);

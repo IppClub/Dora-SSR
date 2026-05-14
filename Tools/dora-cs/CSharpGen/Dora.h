@@ -5226,6 +5226,12 @@ static void Binding::Image @ imageWithBg(
 	Color bg_col,
 	Color tint_col);
 
+static void Binding::ImageTexture @ ImageWithTexture(
+	Texture2D* texture,
+	Vec2 size,
+	Color bg_col,
+	Color tint_col);
+
 static bool Binding::ImageButton @ imageButtonOpts(
 	string str_id,
 	string clipStr,
