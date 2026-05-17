@@ -394,6 +394,11 @@ fn main () {
 
 &emsp;&emsp;欢迎参与 Dora SSR 的开发和维护。请查看[贡献指南](CONTRIBUTING.zh-CN.md)了解如何提交 Issue 和 Pull Request。
 
+### 贡献者
+
+- [Li Jin](https://github.com/pigpigyyy) - 创始人与主要开发者
+- [dsadsasdaddas](https://github.com/dsadsasdaddas) - 贡献者
+
 <br>
 
 ## Dora SSR 项目现已加入开放原子开源基金会
