@@ -226,115 +226,175 @@ Struct.Phyx.Wheel(
 )
 
 loadFuncs = nil
+fieldDefs =
+	"Array": {}
+	"Phyx.Rect": {"name", "type", "position", "angle", "center", "size", "density", "friction", "restitution", "linearDamping", "angularDamping", "fixedRotation", "linearAcceleration", "bullet", "sensor", "sensorTag", "subShapes", "face", "facePos"}
+	"Phyx.Disk": {"name", "type", "position", "angle", "center", "radius", "density", "friction", "restitution", "linearDamping", "angularDamping", "fixedRotation", "linearAcceleration", "bullet", "sensor", "sensorTag", "subShapes", "face", "facePos"}
+	"Phyx.Poly": {"name", "type", "position", "angle", "vertices", "density", "friction", "restitution", "linearDamping", "angularDamping", "fixedRotation", "linearAcceleration", "bullet", "sensor", "sensorTag", "subShapes", "face", "facePos"}
+	"Phyx.Chain": {"name", "type", "position", "angle", "vertices", "friction", "restitution", "linearDamping", "angularDamping", "fixedRotation", "linearAcceleration", "bullet", "subShapes", "face", "facePos"}
+	"Phyx.SubRect": {"center", "angle", "size", "density", "friction", "restitution", "sensor", "sensorTag"}
+	"Phyx.SubDisk": {"center", "radius", "density", "friction", "restitution", "sensor", "sensorTag"}
+	"Phyx.SubPoly": {"vertices", "density", "friction", "restitution", "sensor", "sensorTag"}
+	"Phyx.SubChain": {"vertices", "friction", "restitution"}
+	"Phyx.Distance": {"name", "collision", "bodyA", "bodyB", "anchorA", "anchorB", "frequency", "damping"}
+	"Phyx.Friction": {"name", "collision", "bodyA", "bodyB", "worldPos", "maxForce", "maxTorque"}
+	"Phyx.Gear": {"name", "collision", "jointA", "jointB", "ratio"}
+	"Phyx.Spring": {"name", "collision", "bodyA", "bodyB", "linearOffset", "angularOffset", "maxForce", "maxTorque", "correctionFactor"}
+	"Phyx.Prismatic": {"name", "collision", "bodyA", "bodyB", "worldPos", "axis", "lowerTranslation", "upperTranslation", "maxMotorForce", "motorSpeed"}
+	"Phyx.Pulley": {"name", "collision", "bodyA", "bodyB", "anchorA", "anchorB", "groundAnchorA", "groundAnchorB", "ratio"}
+	"Phyx.Revolute": {"name", "collision", "bodyA", "bodyB", "worldPos", "lowerAngle", "upperAngle", "maxMotorTorque", "motorSpeed"}
+	"Phyx.Rope": {"name", "collision", "bodyA", "bodyB", "anchorA", "anchorB", "maxLength"}
+	"Phyx.Weld": {"name", "collision", "bodyA", "bodyB", "worldPos", "frequency", "damping"}
+	"Phyx.Wheel": {"name", "collision", "bodyA", "bodyB", "worldPos", "axis", "maxMotorTorque", "motorSpeed", "frequency", "damping"}
+
+normalizeData = (data) ->
+	if "table" == type data
+		if fields := fieldDefs[data[1]]
+			for i, key in ipairs fields
+				data[key] = normalizeData data[i + 1]
+	data
+
+loadBodyData = (bodyData) ->
+	data = switch type bodyData
+		when "string"
+			code = if bodyData\sub(1, 6) == "return" then bodyData else "return " .. bodyData
+			(load code)!
+		when "table"
+			bodyData
+	normalizeData data
+
+toVec = (value) ->
+	return value unless "table" == type value
+	return value if value.x ~= nil and value.y ~= nil
+	Vec2 value[1] or 0, value[2] or 0
+
+toVecArray = (values) ->
+	return values\toArray! if values.toArray
+	start = if values[1] == "Array" then 2 else 1
+	[toVec values[i] for i = start, #values]
+
+sizeDims = (size) ->
+	return size.width, size.height if size.width ~= nil and size.height ~= nil
+	size[1] or 0, size[2] or 0
+
+arrayCount = (values) ->
+	return values\count! if values.count
+	if values[1] == "Array" then #values - 1 else #values
+
+arrayGet = (values, index) ->
+	return values\get index if values.get
+	if values[1] == "Array" then values[index + 1] else values[index]
+
 loadData = (data, item) ->
+	data = normalizeData data
 	loadFuncs[data[1]] data, item
 
 toDef = (data) -> with BodyDef!
 	.type = data.type
 	.bullet = data.bullet
-	.linearAcceleration = data.linearAcceleration
+	.linearAcceleration = toVec data.linearAcceleration
 	.fixedRotation = data.fixedRotation
 	.linearDamping = data.linearDamping
 	.angularDamping = data.angularDamping
-	.position = data.position
+	.position = toVec data.position
 	.angle = data.angle
 	.face = data.face
-	.facePos = data.facePos
+	.facePos = toVec data.facePos
 
 loadFuncs =
 	"Array": (data, itemDict) ->
-		for i = 1, data\count!
-			loadData data\get(i), itemDict
+		for i = 1, arrayCount data
+			loadData arrayGet(data, i), itemDict
 
 	"Phyx.Rect": (data, itemDict) ->
 		bodyDef = toDef data
-		:width, :height = data.size
+		width, height = sizeDims data.size
 		if data.sensor
-			bodyDef\attachPolygonSensor data.sensorTag, data.center, width, height
+			bodyDef\attachPolygonSensor data.sensorTag, toVec(data.center), width, height
 		else
 			bodyDef\attachPolygon(
-				data.center, width, height, 0,
+				toVec(data.center), width, height, 0,
 				data.density, data.friction, data.restitution
 			)
 		if subShapes := data.subShapes
-			for i = 1, subShapes\count!
-				loadData subShapes\get(i), bodyDef
+			for i = 1, arrayCount subShapes
+				loadData arrayGet(subShapes, i), bodyDef
 		itemDict[data.name] = bodyDef
 
 	"Phyx.Disk": (data, itemDict) ->
 		bodyDef = toDef data
 		if data.sensor
-			bodyDef\attachDiskSensor data.sensorTag, data.center, data.radius
+			bodyDef\attachDiskSensor data.sensorTag, toVec(data.center), data.radius
 		else
 			bodyDef\attachDisk(
-				data.center, data.radius,
+				toVec(data.center), data.radius,
 				data.density, data.friction, data.restitution
 			)
 		if subShapes := data.subShapes
-			for i = 1, subShapes\count!
-				loadData subShapes\get(i), bodyDef
+			for i = 1, arrayCount subShapes
+				loadData arrayGet(subShapes, i), bodyDef
 		itemDict[data.name] = bodyDef
 
 	"Phyx.Poly": (data, itemDict) ->
 		bodyDef = toDef data
 		if data.sensor
-			bodyDef\attachPolygonSensor data.sensorTag, data.vertices\toArray!
+			bodyDef\attachPolygonSensor data.sensorTag, toVecArray(data.vertices)
 		else
 			bodyDef\attachPolygon(
-				data.vertices\toArray!
+				toVecArray data.vertices
 				data.density, data.friction, data.restitution
 			)
 		if subShapes := data.subShapes
-			for i = 1, subShapes\count!
-				loadData subShapes\get(i), bodyDef
+			for i = 1, arrayCount subShapes
+				loadData arrayGet(subShapes, i), bodyDef
 		itemDict[data.name] = bodyDef
 
 	"Phyx.Chain": (data, itemDict) ->
 		bodyDef = toDef data
-		bodyDef\attachChain data.vertices\toArray!, data.friction, data.restitution
+		bodyDef\attachChain toVecArray(data.vertices), data.friction, data.restitution
 		if subShapes := data.subShapes
-			for i = 1, subShapes\count!
-				loadData subShapes\get(i), bodyDef
+			for i = 1, arrayCount subShapes
+				loadData arrayGet(subShapes, i), bodyDef
 		itemDict[data.name] = bodyDef
 
 	"Phyx.SubRect": (data, bodyDef) ->
-		:width, :height = data.size
+		width, height = sizeDims data.size
 		if data.sensor
-			bodyDef\attachPolygonSensor data.sensorTag, data.center, width, height
+			bodyDef\attachPolygonSensor data.sensorTag, toVec(data.center), width, height
 		else
 			bodyDef\attachPolygon(
-				data.center, width, height,
+				toVec(data.center), width, height,
 				data.angle, data.density, data.friction, data.restitution
 			)
 
 	"Phyx.SubDisk": (data, bodyDef) ->
 		if data.sensor
-			bodyDef\attachDiskSensor data.sensorTag, data.center, data.radius
+			bodyDef\attachDiskSensor data.sensorTag, toVec(data.center), data.radius
 		else
 			bodyDef\attachDisk(
-				data.center, data.radius,
+				toVec(data.center), data.radius,
 				data.density, data.friction, data.restitution
 			)
 
 	"Phyx.SubPoly": (data, bodyDef) ->
 		if data.sensor
-			bodyDef\attachPolygonSensor data.sensorTag, data.vertices\toArray!
+			bodyDef\attachPolygonSensor data.sensorTag, toVecArray(data.vertices)
 		else
 			bodyDef\attachPolygon(
-				data.vertices\toArray!,
+				toVecArray(data.vertices),
 				data.density, data.friction, data.restitution
 			)
 
 	"Phyx.SubChain": (data, bodyDef) ->
-		bodyDef\attachChain data.vertices\toArray!, data.friction, data.restitution
+		bodyDef\attachChain toVecArray(data.vertices), data.friction, data.restitution
 
 	"Phyx.Distance": (data, itemDict) ->
 		itemDict[data.name] = JointDef\distance(
 			data.collision
 			data.bodyA
 			data.bodyB
-			data.anchorA
-			data.anchorB
+			toVec data.anchorA
+			toVec data.anchorB
 			data.frequency
 			data.damping
 		)
@@ -343,7 +403,7 @@ loadFuncs =
 			data.collision
 			data.bodyA
 			data.bodyB
-			data.worldPos
+			toVec data.worldPos
 			data.maxForce
 			data.maxTorque
 		)
@@ -361,7 +421,7 @@ loadFuncs =
 			data.collision
 			data.bodyA
 			data.bodyB
-			data.linearOffset
+			toVec data.linearOffset
 			data.angularOffset
 			data.maxForce
 			data.maxTorque
@@ -373,8 +433,8 @@ loadFuncs =
 			data.collision
 			data.bodyA
 			data.bodyB
-			data.worldPos
-			data.axis
+			toVec data.worldPos
+			toVec data.axis
 			data.lowerTranslation
 			data.upperTranslation
 			data.maxMotorForce
@@ -386,10 +446,10 @@ loadFuncs =
 			data.collision
 			data.bodyA
 			data.bodyB
-			data.anchorA
-			data.anchorB
-			data.groundAnchorA
-			data.groundAnchorB
+			toVec data.anchorA
+			toVec data.anchorB
+			toVec data.groundAnchorA
+			toVec data.groundAnchorB
 			data.ratio
 		)
 
@@ -398,7 +458,7 @@ loadFuncs =
 			data.collision
 			data.bodyA
 			data.bodyB
-			data.worldPos
+			toVec data.worldPos
 			data.lowerAngle
 			data.upperAngle
 			data.maxMotorTorque
@@ -410,8 +470,8 @@ loadFuncs =
 			data.collision
 			data.bodyA
 			data.bodyB
-			data.anchorA
-			data.anchorB
+			toVec data.anchorA
+			toVec data.anchorB
 			data.maxLength
 		)
 
@@ -420,7 +480,7 @@ loadFuncs =
 			data.collision
 			data.bodyA
 			data.bodyB
-			data.worldPos
+			toVec data.worldPos
 			data.frequency
 			data.damping
 		)
@@ -430,8 +490,8 @@ loadFuncs =
 			data.collision
 			data.bodyA
 			data.bodyB
-			data.worldPos
-			data.axis
+			toVec data.worldPos
+			toVec data.axis
 			data.maxMotorTorque
 			data.motorSpeed
 			data.frequency
@@ -440,7 +500,7 @@ loadFuncs =
 
 export default (bodyData, world, pos, angle) ->
 	itemDict = Dictionary!
-	loadData Struct\load(bodyData), itemDict
+	loadData loadBodyData(bodyData), itemDict
 	root = Node!
 	items = root.data
 	center = Vec2.zero

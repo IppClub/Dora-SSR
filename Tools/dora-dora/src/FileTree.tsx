@@ -46,6 +46,7 @@ import spineLogo from './spine.png';
 import waLogo from './wa.svg';
 import tic80Logo from './tic80.png';
 import doraAnimationLogo from './dora-animation.png';
+import doraBodyLogo from './dora-body.png';
 import { DiCode } from 'react-icons/di';
 import { TbMoodConfuzed, TbSql } from 'react-icons/tb';
 import { SiNodered } from 'react-icons/si';
@@ -95,6 +96,9 @@ const fileIcon = (props: TreeNodeProps) => {
 				return <AiOutlineFolder />;
 			}
 		} else {
+			if (data.key.toLowerCase().endsWith(".body.lua")) {
+				return <img src={doraBodyLogo} alt="body" width="14px" height="14px" style={{ objectFit: 'contain' }} />;
+			}
 			switch (Info.path.extname(data.key).toLowerCase()) {
 				case ".lua":
 					return <img src={luaLogo} alt="lua" width="14px" height="14px" />;

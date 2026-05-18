@@ -147,12 +147,13 @@ type ActionAtlasTexture = {
 	native: any;
 };
 
-const gray = 0xff3a3a3a;
-const grid = 0xff343434;
+const gray = 0xff1f1f1f;
+const grid = 0xff303030;
 const normalNode = 0xff8f6c3d;
 const missingNode = 0xff4060bf;
 const selectedNode = 0xff4cc6ff;
-const originColor = 0xff5f5f5f;
+const nodeBorder = 0xff0b0b0b;
+const originColor = 0xff585858;
 const modelBoundsColor = 0xff3d6c8f;
 const keyPointColor = 0xff42d6ff;
 const gizmoColor = 0xffffffff;
@@ -1373,7 +1374,7 @@ const drawGrid = (
 	viewport: ActionViewport,
 ) => {
 	drawList.AddRectFilled({ x: area.x, y: area.y }, { x: area.x + area.width, y: area.y + area.height }, gray, 0, 0);
-	const step = Math.max(16, 64 * viewport.zoom);
+	const step = Math.max(16, 100 * viewport.zoom);
 	const center = modelToScreen({ x: 0, y: 0 }, viewport, area);
 	for (let x = center.x % step; x < area.x + area.width; x += step) {
 		if (x >= area.x) drawList.AddLine({ x, y: area.y }, { x, y: area.y + area.height }, grid, 1);
@@ -1761,7 +1762,7 @@ const drawRenderRects = (
 				corners[1],
 				corners[2],
 				corners[3],
-				rect.nodeId === props.selectedNodeId ? selectedNode : withAlpha(0xff202020, Math.max(0.25, rect.opacity)),
+				rect.nodeId === props.selectedNodeId ? selectedNode : withAlpha(nodeBorder, Math.max(0.45, rect.opacity)),
 				rect.nodeId === props.selectedNodeId ? 3 : 1,
 			);
 		}

@@ -313,6 +313,7 @@ i18n
 						typescript: "a strongly typed language with better coding experience",
 						xml: "write game node trees in XML format",
 						model: "create a Dora 2D animation model",
+						body: "create a Dora physics body resource",
 						markdown: "do some documentation",
 						folder: "create a file folder or project",
 						yarn: "a language for game dialogue",
@@ -472,6 +473,12 @@ i18n
 						textureMemoryTip: "the memory footprint used by created or loaded textures",
 						fontMemoryTip: "the memory footprint used by loaded font files",
 						audioMemoryTip: "the memory footprint used by loaded audio files",
+					},
+					bodyEditor: {
+						openAsText: "Open as Text",
+						loading: "Loading BodyEditor...",
+						undo: "Undo",
+						redo: "Redo",
 					},
 					blockly: {
 						logic: "Logic",
@@ -899,6 +906,7 @@ i18n
 						typescript: "提供更好编码体验的强类型编程语言",
 						xml: "用标记语言来编写游戏节点树",
 						model: "创建 Dora 2D 动画模型",
+						body: "创建 Dora 物理体资源",
 						markdown: "来写一些文档吧",
 						folder: "创建文件夹或项目目录",
 						yarn: "用于编写游戏对话的语言",
@@ -1058,6 +1066,12 @@ i18n
 						textureMemoryTip: "引擎已创建或加载的纹理占用的内存大小",
 						fontMemoryTip: "引擎已加载的字体文件占用的内存大小",
 						audioMemoryTip: "引擎已加载的音频文件占用的内存大小",
+					},
+					bodyEditor: {
+						openAsText: "作为文本打开",
+						loading: "正在加载 BodyEditor...",
+						undo: "撤销",
+						redo: "重做",
 					},
 					blockly: {
 						logic: "逻辑",

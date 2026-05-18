@@ -504,6 +504,24 @@ export const check = (req: CheckRequest) => {
 	return post<CheckResponse>("/check", req);
 };
 
+// Body Lua
+
+export interface BodyLuaToJsonRequest {
+	file: string;
+	content: string;
+};
+export type BodyLuaToJsonResponse = {
+	success: true;
+	json: string;
+} | {
+	success: false;
+	phase?: "request" | "parse" | "execute" | "validate" | "encode";
+	message?: string;
+};
+export const bodyLuaToJson = (req: BodyLuaToJsonRequest) => {
+	return post<BodyLuaToJsonResponse>("/body-lua-to-json", req);
+};
+
 // Assets
 
 export const assets = () => {
@@ -772,6 +790,7 @@ export interface EditingInfo {
 		workspaceView?: "agent" | "upload",
 		mdEditing?: boolean,
 		yarnTextEditing?: boolean,
+		bodyTextEditing?: boolean,
 		position?: {
 			lineNumber: number,
 			column: number
