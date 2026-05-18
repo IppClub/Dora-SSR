@@ -22,6 +22,7 @@ import waLogo from './wa.svg';
 import vscLogo from './vsc.png';
 import tic80Logo from './tic80.png';
 import doraAnimationLogo from './dora-animation.png';
+import doraBodyLogo from './dora-body.png';
 import { AiFillFolderAdd } from 'react-icons/ai';
 import { DiCode } from 'react-icons/di';
 import { VscMarkdown } from 'react-icons/vsc';
@@ -29,7 +30,7 @@ import { useTranslation } from 'react-i18next';
 import { DialogActions } from '@mui/material';
 import Grid from '@mui/material/Grid';
 
-export type DoraFileType = "Lua" | "YueScript" | "Teal" | "TypeScript" | "Dora XML" | "Dora Animation" | "Markdown" | "Yarn" | "Visual Script" | "Blockly" | "Folder" | "Wa" | "TIC80"
+export type DoraFileType = "Lua" | "YueScript" | "Teal" | "TypeScript" | "Dora XML" | "Dora Animation" | "Dora Body" | "Markdown" | "Yarn" | "Visual Script" | "Blockly" | "Folder" | "Wa" | "TIC80"
 
 interface FileType {
 	icon: React.ReactNode;
@@ -74,6 +75,12 @@ const fileTypes: FileType[] = [
 		name: "Dora Animation",
 		desc: "file.model",
 		padding: '18px'
+	},
+	{
+		icon: <img src={doraBodyLogo} alt="Dora Body" width="52px" height="52px" style={{ marginLeft: '-1px', objectFit: 'contain' }} />,
+		name: "Dora Body",
+		desc: "file.body",
+		padding: '17px'
 	},
 	{
 		icon: <img src={yarnLogo} alt="Yarn" width="55px" height="55px" style={{ marginLeft: '0px' }} />,

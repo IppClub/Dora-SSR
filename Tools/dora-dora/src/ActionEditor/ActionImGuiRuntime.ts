@@ -34,8 +34,8 @@ const vec4 = (x: number, y: number, z: number, w: number) => ({ x, y, z, w });
 
 const applyDoraThemeColors = () => {
 	const themeColor = vec4(0xfa / 0xff, 0xc0 / 0xff, 0x3d / 0xff, 1);
-	const hi = (v: number) => vec4(themeColor.x * 0.9, themeColor.y * 0.9, themeColor.z * 0.9, themeColor.w * v);
-	const med = (v: number) => vec4(themeColor.x * 0.6, themeColor.y * 0.6, themeColor.z * 0.6, themeColor.w * v);
+	const hi = (v: number) => vec4(themeColor.x * 0.7, themeColor.y * 0.7, themeColor.z * 0.7, themeColor.w * v);
+	const med = (v: number) => vec4(themeColor.x * 0.5, themeColor.y * 0.5, themeColor.z * 0.5, themeColor.w * v);
 	const low = (v: number) => vec4(0.204, 0.204, 0.204, v);
 	const bg = (v: number) => vec4(0.102, 0.102, 0.102, v);
 	const text = (v: number) => vec4(0.860, 0.860, 0.860, v);
@@ -108,7 +108,7 @@ const setDoraStyle = () => {
 	ImGui.StyleColorsDark();
 	const style = ImGui.GetStyle();
 	const rounding = 6;
-	style.Alpha = 0.9;
+	style.Alpha = 1;
 	setVec2(style.WindowPadding, 5, 5);
 	setVec2(style.WindowMinSize, 100, 32);
 	style.WindowRounding = rounding;

@@ -371,6 +371,23 @@ HttpServer\postSchedule "/check", (req): success: true ->
 					["syntax", file, row, 0, err]
 				return success: false, :info
 
+HttpServer\post "/body-lua-to-json", (req): success: false, phase: "request", message: "invalid request" ->
+	switch req when {body: {:file, :content}}
+		unless file\sub(-9) == ".body.lua"
+			return success: false, phase: "request", message: "only .body.lua files can be converted"
+		loader, err = load "_ENV = {}\n" .. content
+		unless loader
+			return success: false, phase: "parse", message: tostring err
+		ok, data = pcall loader
+		unless ok
+			return success: false, phase: "execute", message: tostring data
+		unless "table" == type(data) and data[1] == "Array"
+			return success: false, phase: "validate", message: "body lua root must be {\"Array\", ...}"
+		text, jsonErr = json.encode data, false, true
+		unless text
+			return success: false, phase: "encode", message: tostring jsonErr
+		return success: true, json: text
+
 updateInferedDesc = (infered) ->
 	return if not infered.key or infered.key == "" or infered.desc\match "^polymorphic function %(with types "
 	:key, :row = infered
