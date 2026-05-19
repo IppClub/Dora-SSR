@@ -72,7 +72,7 @@ local record JointDefClass
 	-- @param bodyA (Body) 连接到关节的第一个物理体的名称。
 	-- @param bodyB (Body) 连接到关节的第二个物理体的名称。
 	-- @param linearOffset (Vec2) 以 body-A 为框架，表示 body-B 位置减去 body-A 位置的偏移量。
-	-- @param angularOffset (number) body-B 的角度减去 body-A 的角度。
+	-- @param angularOffset (number) body-B 的角度减去 body-A 的角度，单位为度。
 	-- @param maxForce (number) 关节可以施加的最大力量。
 	-- @param maxTorque (number) 关节可以施加的最大扭矩。
 	-- @param correctionFactor (number) 可选的校正因子，默认值为 1.0。
@@ -92,7 +92,7 @@ local record JointDefClass
 	-- @param bodyA (Body) 连接到关节的第一个物理体的名称。
 	-- @param bodyB (Body) 连接到关节的第二个物理体的名称。
 	-- @param worldPos (Vec2) 关节的世界位置。
-	-- @param axisAngle (number) 关节的轴角度。
+	-- @param axisAngle (number) 关节的轴角度，单位为度。
 	-- @param lowerTranslation (number) 可选的下限移动限制，默认值为 0.0。
 	-- @param upperTranslation (number) 可选的上限移动限制，默认值为 0.0。
 	-- @param maxMotorForce (number) 可选的最大电机力量，默认值为 0.0。
@@ -134,10 +134,10 @@ local record JointDefClass
 	-- @param bodyA (Body) 要连接的第一个物理体的名称。
 	-- @param bodyB (Body) 要连接的第二个物理体的名称。
 	-- @param worldPos (Vec2) 在世界坐标系中创建关节的位置。
-	-- @param lowerAngle (number) [可选] 下限角度限制（弧度）（默认为0.0）。
-	-- @param upperAngle (number) [可选] 上限角度限制（弧度）（默认为0.0）。
+	-- @param lowerAngle (number) [可选] 下限角度限制，单位为度（默认为0.0）。
+	-- @param upperAngle (number) [可选] 上限角度限制，单位为度（默认为0.0）。
 	-- @param maxMotorTorque (number) [可选] 可施加到关节上以达到目标速度的最大扭矩（默认为0.0）。
-	-- @param motorSpeed (number) [可选] 关节的期望速度（默认为0.0）。
+	-- @param motorSpeed (number) [可选] 关节电机的目标速度，单位为度/秒（默认为0.0）。
 	-- @return (MotorJoint) 旋转关节定义。
 	revolute: function(self: JointDefClass,
 		canCollide: boolean,
@@ -186,9 +186,9 @@ local record JointDefClass
 	-- @param bodyA (Body) 第一个要连接到关节的物理体的名称。
 	-- @param bodyB (Body) 第二个要连接到关节的物理体的名称。
 	-- @param worldPos (Vec2) 在世界中连接物理体的位置。
-	-- @param axisAngle (number) 关节轴的角度（弧度）。
+	-- @param axisAngle (number) 关节轴的角度，单位为度。
 	-- @param maxMotorTorque (number) [可选] 关节电动机可以施加的最大扭矩，默认为 0.0。
-	-- @param motorSpeed (number) [可选] 关节电动机的目标速度，默认为 0.0。
+	-- @param motorSpeed (number) [可选] 关节电动机的目标速度，单位为度/秒，默认为 0.0。
 	-- @param frequency (number) [可选] 关节应该坚硬的频率，默认为 2.0。
 	-- @param damping (number) [可选] 关节的阻尼率，默认为 0.7。
 	-- @return (MotorJoint) 新创建的轮子关节定义。

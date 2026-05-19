@@ -1,16 +1,25 @@
 import RedoIcon from "@mui/icons-material/Redo";
 import UndoIcon from "@mui/icons-material/Undo";
-import { IconButton, Stack, Tooltip } from "@mui/material";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, TextField, Tooltip } from "@mui/material";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Info from "../Info";
+import * as Service from "../Service";
+import { parseLegacyClip, type ActionClipRect } from "../ActionEditor/ActionClip";
 import { BODY_STRUCTS_BY_TYPE, BodyDocument, BodyLuaValue, BodyStructDocument, BodyStructField, BodyVector } from "./BodyDocument";
-import { BodyCreateJointType, BodyCreateShapeType, BodyCreateSubShapeType } from "./BodyEditorState";
+import { BodyCreateJointRefs, BodyCreateJointType, BodyCreateShapeType, BodyCreateSubShapeType } from "./BodyEditorState";
+import { BodyNumberConstraint, applyBodyNumberConstraint, getBodyNumberConstraint } from "./BodyFieldConstraints";
 import { BodyIconName, drawBodyIcon } from "./BodyIcons";
 import { BODY_PHYSICS_TIME_STEP, BodyPhysicsRuntime, type BodyPhysicsSnapshot } from "./BodyPhysicsRuntime";
-import { parseBodyFace } from "./BodyResource";
+import { BodyFacePreviewAsset, bodyResourceToServedUrl, isBodyFaceImageSource, parseBodyFace } from "./BodyResource";
 import { BodyViewport, asArray, asNumber, asString, asVector, getItemName, getJointAnchorWorldPosition, getSubShapeItem, getSubShapeSelectionId, hitTestBodyDocument, isBodyItem, isJointItem, parseSubShapeSelectionId, renderBodyDocument } from "./BodyRender";
+
+type BodyEditorAlertType = "success" | "info" | "warning" | "error";
 
 export type BodyEditorCanvasProps = {
 	document: BodyDocument;
+	faceAssets?: ReadonlyMap<string, BodyFacePreviewAsset>;
+	resourceBasePath: string;
+	servedResourceBasePath: string;
 	width: number;
 	height: number;
 	active: boolean;
@@ -21,7 +30,7 @@ export type BodyEditorCanvasProps = {
 	onRedo?: () => void;
 	onCreateShape?: (shapeType: BodyCreateShapeType, position: [number, number]) => void;
 	onCreateSubShape?: (subShapeType: BodyCreateSubShapeType, selectedId: string | null, position: [number, number]) => void;
-	onCreateJoint?: (jointType: BodyCreateJointType, position: [number, number]) => void;
+	onCreateJoint?: (jointType: BodyCreateJointType, position: [number, number], refs?: BodyCreateJointRefs) => void;
 	onDeleteSelected?: (selectedId: string | null) => void;
 	onDuplicateSelected?: (selectedId: string | null) => void;
 	onUpdateField?: (selectedId: string, fieldName: string, value: BodyLuaValue, recordUndo?: boolean) => void;
@@ -30,6 +39,7 @@ export type BodyEditorCanvasProps = {
 	onBeginTranslateSelection?: () => void;
 	onTranslateSelection?: (selectedId: string | null, delta: [number, number]) => void;
 	onEndTranslateSelection?: (changed: boolean) => void;
+	addAlert?: (msg: string, type: BodyEditorAlertType, openLog?: boolean) => void;
 };
 
 const defaultViewport = (): BodyViewport => ({
@@ -51,6 +61,52 @@ const iconLabels: Record<BodyIconName, string> = {
 	zoom: "Zoom",
 	fixX: "Fix X",
 	fixY: "Fix Y",
+};
+
+type FaceResourceEntry = {
+	kind: "image" | "clip";
+	path: string;
+	relative: string;
+};
+
+type LoadedFaceImage = {
+	image: HTMLImageElement;
+	objectUrl: string;
+};
+
+const normalizeFacePath = (path: string) => path.replace(/\\/g, "/");
+
+const toFaceRelativePath = (path: string, root: string) => normalizeFacePath(Info.path.relative(root, path));
+
+const loadFaceImageElement = async (filePath: string, servedResourceBasePath: string): Promise<LoadedFaceImage> => {
+	const response = await fetch(Service.addr(bodyResourceToServedUrl(filePath, servedResourceBasePath)));
+	if (!response.ok) throw new Error(`Failed to load image: ${filePath}`);
+	const objectUrl = URL.createObjectURL(await response.blob());
+	try {
+		const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+			const element = new Image();
+			element.onload = () => resolve(element);
+			element.onerror = () => reject(new Error(`Failed to decode image: ${filePath}`));
+			element.src = objectUrl;
+		});
+		return { image, objectUrl };
+	} catch (error) {
+		URL.revokeObjectURL(objectUrl);
+		throw error;
+	}
+};
+
+const findFaceResourceFiles = async (root: string) => {
+	const listed = await Service.list({ path: root });
+	if (!listed.success) return [];
+	const entries = listed.files.flatMap((file): FaceResourceEntry[] => {
+		const fullPath = Info.path.isAbsolute(file) ? Info.path.normalize(file) : Info.path.normalize(Info.path.join(root, file));
+		const relative = toFaceRelativePath(fullPath, root);
+		if (isBodyFaceImageSource(file)) return [{ kind: "image", path: fullPath, relative }];
+		if (Info.path.extname(file).toLowerCase() === ".clip") return [{ kind: "clip", path: fullPath, relative }];
+		return [];
+	});
+	return entries.sort((a, b) => a.relative.localeCompare(b.relative));
 };
 
 const BodyIconGlyph = memo(function BodyIconGlyph(props: { name: BodyIconName; active?: boolean }) {
@@ -328,6 +384,94 @@ const rotateVertices = (vertices: BodyLuaValue[], center: BodyVector, degrees: n
 	vertices.map((point) => rotateLocalPoint(asVector(point), center, degrees))
 );
 
+type PrismaticMoveHandle = "worldPos" | "lower" | "upper";
+type PulleyMoveHandle = "anchorA" | "anchorB" | "groundAnchorA" | "groundAnchorB";
+type WorldPosMoveHandle = "worldPos";
+
+const normalizeVector = (value: BodyVector, fallback: BodyVector = [1, 0]): BodyVector => {
+	const length = Math.hypot(value[0], value[1]);
+	if (length <= 0.000001) return fallback;
+	return [value[0] / length, value[1] / length];
+};
+
+const getPrismaticGuidePoints = (item: BodyStructDocument) => {
+	const worldPos = asVector(item.fields.worldPos);
+	const axis = normalizeVector(asVector(item.fields.axis, [1, 0]));
+	const lower = asNumber(item.fields.lowerTranslation);
+	const upper = asNumber(item.fields.upperTranslation);
+	return {
+		worldPos,
+		axis,
+		lowerPoint: [worldPos[0] + axis[0] * lower, worldPos[1] + axis[1] * lower] as BodyVector,
+		upperPoint: [worldPos[0] + axis[0] * upper, worldPos[1] + axis[1] * upper] as BodyVector,
+	};
+};
+
+const getPrismaticMoveHandle = (
+	item: BodyStructDocument,
+	point: BodyVector,
+	tolerance: number,
+): PrismaticMoveHandle | null => {
+	if (item.structType !== "Phyx.Prismatic") return null;
+	const guide = getPrismaticGuidePoints(item);
+	const candidates: Array<[PrismaticMoveHandle, BodyVector]> = [
+		["worldPos", guide.worldPos],
+		["lower", guide.lowerPoint],
+		["upper", guide.upperPoint],
+	];
+	const distances = candidates.map(([handle, handlePoint]) => {
+		const dx = handlePoint[0] - point[0];
+		const dy = handlePoint[1] - point[1];
+		return [handle, Math.hypot(dx, dy)] as const;
+	});
+	distances.sort((a, b) => a[1] - b[1]);
+	return distances[0] && distances[0][1] <= tolerance ? distances[0][0] : null;
+};
+
+const getPulleyHandleWorldPosition = (
+	document: BodyDocument,
+	item: BodyStructDocument,
+	handle: PulleyMoveHandle,
+	physicsBodies?: BodyPhysicsSnapshot["bodies"],
+): BodyVector | null => {
+	if (handle === "anchorA" || handle === "anchorB") {
+		return getJointAnchorWorldPosition(document, item, handle, physicsBodies);
+	}
+	return Array.isArray(item.fields[handle]) ? asVector(item.fields[handle]) : null;
+};
+
+const getPulleyMoveHandle = (
+	document: BodyDocument,
+	item: BodyStructDocument,
+	point: BodyVector,
+	tolerance: number,
+	physicsBodies?: BodyPhysicsSnapshot["bodies"],
+): PulleyMoveHandle | null => {
+	if (item.structType !== "Phyx.Pulley") return null;
+	const candidates: Array<[PulleyMoveHandle, number]> = [];
+	for (const handle of ["anchorA", "anchorB", "groundAnchorA", "groundAnchorB"] as const) {
+		const handlePoint = getPulleyHandleWorldPosition(document, item, handle, physicsBodies);
+		if (!handlePoint) continue;
+		const dx = handlePoint[0] - point[0];
+		const dy = handlePoint[1] - point[1];
+		candidates.push([handle, Math.hypot(dx, dy)]);
+	}
+	candidates.sort((a, b) => a[1] - b[1]);
+	return candidates[0] && candidates[0][1] <= tolerance ? candidates[0][0] : null;
+};
+
+const getWorldPosMoveHandle = (
+	item: BodyStructDocument,
+	point: BodyVector,
+	tolerance: number,
+): WorldPosMoveHandle | null => {
+	if ((item.structType !== "Phyx.Weld" && item.structType !== "Phyx.Friction") || !Array.isArray(item.fields.worldPos)) return null;
+	const worldPos = asVector(item.fields.worldPos);
+	const dx = worldPos[0] - point[0];
+	const dy = worldPos[1] - point[1];
+	return Math.hypot(dx, dy) <= tolerance ? "worldPos" : null;
+};
+
 const getJointAnchorHitField = (
 	document: BodyDocument,
 	item: BodyStructDocument,
@@ -477,9 +621,39 @@ const jointCreateOptions: readonly (readonly [BodyCreateJointType, string])[] = 
 	["wheel", "Wheel"],
 ];
 
+type PendingJointSelection = {
+	bodyA?: string;
+	bodyB?: string;
+	jointA?: string;
+	jointB?: string;
+};
+
+const getJointCandidateName = (item: BodyStructDocument | null) => (
+	item ? asString(item.fields.name, getItemName(item)) : ""
+);
+
+const isGearJointCandidate = (item: BodyStructDocument | null) => (
+	item?.structType === "Phyx.Revolute" || item?.structType === "Phyx.Prismatic"
+);
+
+const createsJointAfterBodyPick = (type: BodyCreateJointType | null) => (
+	type === "distance" || type === "pulley" || type === "rope" || type === "spring"
+);
+
+const getBodyPickCreateJointLabel = (type: BodyCreateJointType) => {
+	switch (type) {
+		case "distance": return "Distance";
+		case "pulley": return "Pulley";
+		case "rope": return "Rope";
+		case "spring": return "Spring";
+		default: return "joint";
+	}
+};
+
 export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
-	const { document, width, height, active } = props;
+	const { document, faceAssets, resourceBasePath, servedResourceBasePath, width, height, active } = props;
 	const { onCreateShape, onCreateSubShape, onCreateJoint, onDeleteSelected, onDuplicateSelected, onUpdateField, onBeginValueEdit, onEndValueEdit } = props;
+	const { addAlert } = props;
 	const { readOnly, canUndo, canRedo, onUndo, onRedo } = props;
 	const canvasRef = useRef<HTMLCanvasElement | null>(null);
 	const dragRef = useRef<{
@@ -497,6 +671,9 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 			lastPointerAngle: number | null;
 			accumulatedRotation: number;
 			jointAnchorField: "anchorA" | "anchorB" | null;
+			prismaticHandle: PrismaticMoveHandle | null;
+			pulleyHandle: PulleyMoveHandle | null;
+			worldPosHandle: WorldPosMoveHandle | null;
 			vertexIndex: number | null;
 		} | null>(null);
 	const [viewport, setViewport] = useState(defaultViewport);
@@ -507,11 +684,13 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 	const [fixedStep, setFixedStep] = useState(10);
 	const [jointPanelOpen, setJointPanelOpen] = useState(false);
 	const [pendingJointType, setPendingJointType] = useState<BodyCreateJointType | null>(null);
+	const [pendingJointSelection, setPendingJointSelection] = useState<PendingJointSelection>({});
 	const [pendingSubShape, setPendingSubShape] = useState<{ type: BodyCreateSubShapeType; bodyId: string } | null>(null);
 	const [isPlaying, setIsPlaying] = useState(false);
 	const [isPointerDragging, setIsPointerDragging] = useState(false);
 	const [physicsSnapshot, setPhysicsSnapshot] = useState<BodyPhysicsSnapshot | null>(null);
-	const [runtimeDiagnostics, setRuntimeDiagnostics] = useState<string[]>([]);
+	const [, setRuntimeDiagnostics] = useState<string[]>([]);
+	const [faceChooserOpen, setFaceChooserOpen] = useState(false);
 	const [copiedId, setCopiedId] = useState<string | null>(null);
 	const [selectedVertexIndex, setSelectedVertexIndex] = useState<number | null>(null);
 	const runtimeRef = useRef<BodyPhysicsRuntime | null>(null);
@@ -534,6 +713,21 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 		}
 		return document.items.find((item) => item.id === selectedId) ?? null;
 	}, [document.items, selectedId]);
+
+	const jointCreateHint = useMemo(() => {
+		if (!pendingJointType) return "Select a joint type.";
+		if (pendingJointType === "gear") {
+			if (!pendingJointSelection.jointA) return "Click a Revolute or Prismatic joint for JointA.";
+			return `JointA: ${pendingJointSelection.jointA}. Click another Revolute or Prismatic joint for JointB.`;
+		}
+		if (!pendingJointSelection.bodyA) return "Click a body for BodyA.";
+		if (!pendingJointSelection.bodyB) {
+			return createsJointAfterBodyPick(pendingJointType)
+				? `BodyA: ${pendingJointSelection.bodyA}. Click another body to create the ${getBodyPickCreateJointLabel(pendingJointType)} joint.`
+				: `BodyA: ${pendingJointSelection.bodyA}. Click another body for BodyB.`;
+		}
+		return `BodyA: ${pendingJointSelection.bodyA}, BodyB: ${pendingJointSelection.bodyB}. Click the preview to place the joint.`;
+	}, [pendingJointSelection.bodyA, pendingJointSelection.bodyB, pendingJointSelection.jointA, pendingJointType]);
 
 	useEffect(() => {
 		const vertexContext = getVertexEditContext(document, selectedId);
@@ -571,7 +765,11 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 		const runtime = new BodyPhysicsRuntime(document);
 		runtimeRef.current = runtime;
 		setPhysicsSnapshot(runtime.snapshot());
-		setRuntimeDiagnostics(runtime.getDiagnostics().map((item) => `${item.id}: ${item.message}`));
+		const diagnostics = runtime.getDiagnostics().map((item) => `${item.id}: ${item.message}`);
+		setRuntimeDiagnostics(diagnostics);
+		for (const message of diagnostics) {
+			addAlert?.(message, "warning");
+		}
 		let frame = 0;
 		let lastTime = performance.now();
 		let accumulator = 0;
@@ -592,7 +790,7 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 			cancelAnimationFrame(frame);
 			runtimeRef.current = null;
 		};
-	}, [active, document, isPlaying]);
+	}, [active, addAlert, document, isPlaying]);
 
 	useEffect(() => {
 		const canvas = canvasRef.current;
@@ -606,6 +804,7 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 		context.setTransform(ratio, 0, 0, ratio, 0, 0);
 			renderBodyDocument(context, {
 				document,
+				faceAssets,
 				viewport,
 				selectedId,
 				width: canvasWidth,
@@ -615,7 +814,7 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 			});
 			if (!isPlaying) drawVertexOverlay(context, document, selectedId, selectedVertexIndex, viewport, canvasWidth, mainHeight);
 			if (!isPlaying) drawGizmoOverlay(context, document, selectedId, gizmoMode, activeTool, viewport, canvasWidth, mainHeight);
-		}, [activeTool, canvasWidth, document, gizmoMode, isPlaying, mainHeight, physicsSnapshot, selectedId, selectedVertexIndex, viewport]);
+		}, [activeTool, canvasWidth, document, faceAssets, gizmoMode, isPlaying, mainHeight, physicsSnapshot, selectedId, selectedVertexIndex, viewport]);
 
 	const selectItem = useCallback((id: string) => {
 		setSelectedId(id);
@@ -648,6 +847,12 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 		onUpdateField?.(selectedId, "vertices", nextVertices, true);
 	}, [document, editDisabled, onUpdateField, selectedId, selectedVertexIndex]);
 
+	const chooseFaceResource = useCallback((face: string) => {
+		if (!selectedId) return;
+		onUpdateField?.(selectedId, "face", face, true);
+		setFaceChooserOpen(false);
+	}, [onUpdateField, selectedId]);
+
 	const removeSelectedVertex = useCallback(() => {
 		if (editDisabled || !selectedId) return;
 		const context = getVertexEditContext(document, selectedId);
@@ -662,18 +867,34 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 		onUpdateField?.(selectedId, "vertices", nextVertices, true);
 	}, [document, editDisabled, onUpdateField, selectedId, selectedVertexIndex]);
 
+	const getBodyItemFromHitId = useCallback((hitId: string | null) => {
+		if (!hitId) return null;
+		const subSelection = parseSubShapeSelectionId(hitId);
+		const bodyId = subSelection?.bodyId ?? hitId;
+		const item = document.items.find((entry) => entry.id === bodyId) ?? null;
+		return item && isBodyItem(item) ? item : null;
+	}, [document.items]);
+
+	const getGearJointItemFromHitId = useCallback((hitId: string | null) => {
+		if (!hitId) return null;
+		const item = document.items.find((entry) => entry.id === hitId) ?? null;
+		return isGearJointCandidate(item) ? item : null;
+	}, [document.items]);
+
 	const runTool = useCallback((name: BodyIconName) => {
 			if (name === "origin") {
 				setViewport((current) => ({ ...current, center: [0, 0] }));
 				setActiveTool("menu");
 				setJointPanelOpen(false);
 				setPendingJointType(null);
+				setPendingJointSelection({});
 				setPendingSubShape(null);
 			} else if (name === "zoom") {
 				setViewport((current) => ({ ...current, scale: current.scale >= 2 ? 0.5 : current.scale >= 1 ? 2 : 1 }));
 				setActiveTool("menu");
 				setJointPanelOpen(false);
 				setPendingJointType(null);
+				setPendingJointSelection({});
 				setPendingSubShape(null);
 			} else if (name === "delete") {
 				if (editDisabled) return;
@@ -681,10 +902,12 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 				setActiveTool("menu");
 				setJointPanelOpen(false);
 				setPendingJointType(null);
+				setPendingJointSelection({});
 				setPendingSubShape(null);
 				} else if (isShapeTool(name)) {
 					setJointPanelOpen(false);
 					setPendingJointType(null);
+				setPendingJointSelection({});
 					setPendingSubShape(null);
 					setActiveTool((current) => current === name ? "menu" : name);
 					return;
@@ -693,10 +916,12 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 					if (activeTool === "joint") {
 						setJointPanelOpen(false);
 						setPendingJointType(null);
+				setPendingJointSelection({});
 						setActiveTool("menu");
 					} else {
 						setJointPanelOpen(true);
 						setPendingJointType(null);
+				setPendingJointSelection({});
 						setActiveTool("joint");
 					}
 			} else if (name === "play") {
@@ -704,11 +929,13 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 				setActiveTool("menu");
 				setJointPanelOpen(false);
 				setPendingJointType(null);
+				setPendingJointSelection({});
 				setPendingSubShape(null);
 			} else if (name === "fixX" || name === "fixY") {
 				setActiveTool((current) => current === name ? "menu" : name);
 				setJointPanelOpen(false);
 				setPendingJointType(null);
+				setPendingJointSelection({});
 				setPendingSubShape(null);
 			} else {
 				setActiveTool(name);
@@ -739,6 +966,7 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 			if (editDisabled) return;
 				setJointPanelOpen(false);
 				setPendingJointType(null);
+				setPendingJointSelection({});
 				setPendingSubShape(null);
 				setActiveTool("rect");
 			} else if (key === "2") {
@@ -746,6 +974,7 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 				if (editDisabled) return;
 				setJointPanelOpen(false);
 				setPendingJointType(null);
+				setPendingJointSelection({});
 				setPendingSubShape(null);
 				setActiveTool("disk");
 			} else if (key === "3") {
@@ -753,6 +982,7 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 				if (editDisabled) return;
 				setJointPanelOpen(false);
 				setPendingJointType(null);
+				setPendingJointSelection({});
 				setPendingSubShape(null);
 				setActiveTool("poly");
 			} else if (key === "4") {
@@ -760,14 +990,23 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 				if (editDisabled) return;
 				setJointPanelOpen(false);
 				setPendingJointType(null);
+				setPendingJointSelection({});
 				setPendingSubShape(null);
 				setActiveTool("chain");
 			} else if (key === "j") {
 				event.preventDefault();
 				if (editDisabled) return;
 				setPendingSubShape(null);
-				setJointPanelOpen((value) => !value);
-				setActiveTool("joint");
+				setJointPanelOpen((value) => {
+					if (value) {
+						setPendingJointType(null);
+						setPendingJointSelection({});
+						setActiveTool("menu");
+						return false;
+					}
+					setActiveTool("joint");
+					return true;
+				});
 			}
 	}, [copiedId, editDisabled, onDeleteSelected, onDuplicateSelected, selectedId]);
 
@@ -827,6 +1066,71 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 						return;
 					}
 					if (isJointItem(item)) {
+						if (item.structType === "Phyx.Prismatic" && drag.prismaticHandle) {
+							if (!Array.isArray(start.worldPos)) return;
+							const worldPos = asVector(start.worldPos);
+							if (drag.prismaticHandle === "worldPos") {
+								onUpdateField?.(targetId, "worldPos", [
+									snapValue(worldPos[0] + constrainedWorldDelta[0], fixedSnap, fixedStep),
+									snapValue(worldPos[1] + constrainedWorldDelta[1], fixedSnap, fixedStep),
+								], false);
+								return;
+							}
+							const axis = normalizeVector(asVector(start.axis, [1, 0]));
+							const fieldName = drag.prismaticHandle === "lower" ? "lowerTranslation" : "upperTranslation";
+							const startBound = asNumber(start[fieldName], drag.prismaticHandle === "lower" ? -50 : 50);
+							const sign = startBound < 0 || (startBound === 0 && drag.prismaticHandle === "lower") ? -1 : 1;
+							const startPoint: BodyVector = [
+								worldPos[0] + axis[0] * startBound,
+								worldPos[1] + axis[1] * startBound,
+							];
+							const nextPoint: BodyVector = [
+								startPoint[0] + constrainedWorldDelta[0],
+								startPoint[1] + constrainedWorldDelta[1],
+							];
+							const dx = nextPoint[0] - worldPos[0];
+							const dy = nextPoint[1] - worldPos[1];
+							const length = Math.hypot(dx, dy);
+							if (length <= 0.000001) return;
+							const nextAxis: BodyVector = [dx / length * sign, dy / length * sign];
+							onUpdateField?.(targetId, "axis", [
+								snapValue(nextAxis[0], fixedSnap, Math.max(0.0001, fixedStep / 100)),
+								snapValue(nextAxis[1], fixedSnap, Math.max(0.0001, fixedStep / 100)),
+							], false);
+							onUpdateField?.(targetId, fieldName, snapValue(length * sign, fixedSnap, fixedStep), false);
+							return;
+						}
+						if (item.structType === "Phyx.Pulley" && drag.pulleyHandle) {
+							const fieldName = drag.pulleyHandle;
+							const value = start[fieldName];
+							if (!Array.isArray(value)) return;
+							const vector = asVector(value);
+							if (fieldName === "groundAnchorA" || fieldName === "groundAnchorB") {
+								onUpdateField?.(targetId, fieldName, [
+									snapValue(vector[0] + constrainedWorldDelta[0], fixedSnap, fixedStep),
+									snapValue(vector[1] + constrainedWorldDelta[1], fixedSnap, fixedStep),
+								], false);
+								return;
+							}
+							const anchorBody = getJointAnchorBody(document, item, fieldName);
+							if (!anchorBody) return;
+							const localDelta = worldDeltaToBodyLocalDelta(anchorBody, constrainedWorldDelta);
+							onUpdateField?.(targetId, fieldName, [
+								snapValue(vector[0] + localDelta[0], fixedSnap, fixedStep),
+								snapValue(vector[1] + localDelta[1], fixedSnap, fixedStep),
+							], false);
+							return;
+						}
+						if (drag.worldPosHandle) {
+							const value = start[drag.worldPosHandle];
+							if (!Array.isArray(value)) return;
+							const worldPos = asVector(value);
+							onUpdateField?.(targetId, drag.worldPosHandle, [
+								snapValue(worldPos[0] + constrainedWorldDelta[0], fixedSnap, fixedStep),
+								snapValue(worldPos[1] + constrainedWorldDelta[1], fixedSnap, fixedStep),
+							], false);
+							return;
+						}
 						const fieldName = drag.jointAnchorField;
 						const value = fieldName ? start[fieldName] : null;
 						if (!fieldName || !Array.isArray(value)) return;
@@ -930,14 +1234,66 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 					return;
 				}
 				if (activeTool === "joint" && pendingJointType && !isPlaying) {
-					onCreateJoint?.(pendingJointType, world);
-					setActiveTool("menu");
-				setJointPanelOpen(false);
-				setPendingJointType(null);
-				dragRef.current = null;
-				setIsPointerDragging(false);
-				event.currentTarget.releasePointerCapture(event.pointerId);
-				return;
+					const hitId = hitTestBodyDocument({
+						document,
+						viewport,
+						selectedId,
+						width: canvasWidth,
+						height: mainHeight,
+						physicsBodies: physicsSnapshot?.bodies,
+						physicsJoints: physicsSnapshot?.joints,
+					}, world);
+					if (pendingJointType === "gear") {
+						const candidate = getGearJointItemFromHitId(hitId);
+						if (candidate) {
+							const name = getJointCandidateName(candidate);
+							setSelectedId(candidate.id);
+							if (!pendingJointSelection.jointA) {
+								setPendingJointSelection({ jointA: name });
+							} else if (pendingJointSelection.jointA !== name) {
+								onCreateJoint?.(pendingJointType, world, { jointA: pendingJointSelection.jointA, jointB: name });
+								setActiveTool("menu");
+								setJointPanelOpen(false);
+								setPendingJointType(null);
+								setPendingJointSelection({});
+							}
+						}
+					} else if (!pendingJointSelection.bodyA || !pendingJointSelection.bodyB) {
+						const candidate = getBodyItemFromHitId(hitId);
+						if (candidate) {
+							const name = getJointCandidateName(candidate);
+							setSelectedId(candidate.id);
+							if (!pendingJointSelection.bodyA) {
+								setPendingJointSelection({ bodyA: name });
+							} else if (pendingJointSelection.bodyA !== name) {
+								if (createsJointAfterBodyPick(pendingJointType)) {
+									onCreateJoint?.(pendingJointType, world, {
+										bodyA: pendingJointSelection.bodyA,
+										bodyB: name,
+									});
+									setActiveTool("menu");
+									setJointPanelOpen(false);
+									setPendingJointType(null);
+									setPendingJointSelection({});
+								} else {
+									setPendingJointSelection({ bodyA: pendingJointSelection.bodyA, bodyB: name });
+								}
+							}
+						}
+					} else {
+						onCreateJoint?.(pendingJointType, world, {
+							bodyA: pendingJointSelection.bodyA,
+							bodyB: pendingJointSelection.bodyB,
+						});
+						setActiveTool("menu");
+						setJointPanelOpen(false);
+						setPendingJointType(null);
+						setPendingJointSelection({});
+					}
+					dragRef.current = null;
+					setIsPointerDragging(false);
+					event.currentTarget.releasePointerCapture(event.pointerId);
+					return;
 			}
 				const vertexIndex = !isPlaying && !readOnly ? hitTestVertex(document, selectedId, world, viewport) : null;
 				if (vertexIndex !== null) {
@@ -962,6 +1318,9 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 							lastPointerAngle: null,
 							accumulatedRotation: 0,
 							jointAnchorField: null,
+							prismaticHandle: null,
+							pulleyHandle: null,
+							worldPosHandle: null,
 							vertexIndex,
 						};
 						return;
@@ -979,10 +1338,19 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 					if (hitId) setSelectedId(hitId);
 					const editId = hitId ?? selectedId;
 					const editContext = gizmoMode !== "select" && !event.shiftKey && !isPlaying ? getSelectedBodyContext(document, editId) : null;
-					const jointAnchorField = editContext && isJointItem(editContext.item) && gizmoMode === "move"
+					const prismaticHandle = editContext && editContext.item.structType === "Phyx.Prismatic" && gizmoMode === "move"
+						? getPrismaticMoveHandle(editContext.item, world, Math.max(8, 12 / viewport.scale))
+						: null;
+					const pulleyHandle = editContext && editContext.item.structType === "Phyx.Pulley" && gizmoMode === "move"
+						? getPulleyMoveHandle(document, editContext.item, world, Math.max(8, 12 / viewport.scale), physicsSnapshot?.bodies)
+						: null;
+					const worldPosHandle = editContext && isJointItem(editContext.item) && gizmoMode === "move" && prismaticHandle === null && pulleyHandle === null
+						? getWorldPosMoveHandle(editContext.item, world, Math.max(8, 12 / viewport.scale))
+						: null;
+					const jointAnchorField = editContext && isJointItem(editContext.item) && gizmoMode === "move" && prismaticHandle === null && pulleyHandle === null && worldPosHandle === null
 						? getJointAnchorHitField(document, editContext.item, world, Math.max(8, 12 / viewport.scale), physicsSnapshot?.bodies)
 						: null;
-					const shouldEdit = editContext !== null && (!isJointItem(editContext.item) || jointAnchorField !== null);
+					const shouldEdit = editContext !== null && (!isJointItem(editContext.item) || jointAnchorField !== null || prismaticHandle !== null || pulleyHandle !== null || worldPosHandle !== null);
 					if (shouldEdit) onBeginValueEdit?.();
 					const startGizmoCenter = shouldEdit ? getGizmoWorldCenter(document, editId) : null;
 					const startGizmoScreen = startGizmoCenter ? worldToScreenPoint(startGizmoCenter, viewport, canvasWidth, mainHeight) : null;
@@ -1003,9 +1371,12 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 						lastPointerAngle: startGizmoScreen ? pointerAngleDegrees(startGizmoScreen, startCanvasPointer) : null,
 						accumulatedRotation: 0,
 						jointAnchorField,
+						prismaticHandle,
+						pulleyHandle,
+						worldPosHandle,
 						vertexIndex: null,
 					};
-				}, [activeTool, canvasWidth, document, gizmoMode, isPlaying, mainHeight, onBeginValueEdit, onCreateJoint, onCreateShape, onCreateSubShape, pendingJointType, pendingSubShape, physicsSnapshot, readOnly, selectedId, viewport]);
+				}, [activeTool, canvasWidth, document, getBodyItemFromHitId, getGearJointItemFromHitId, gizmoMode, isPlaying, mainHeight, onBeginValueEdit, onCreateJoint, onCreateShape, onCreateSubShape, pendingJointSelection, pendingJointType, pendingSubShape, physicsSnapshot, readOnly, selectedId, viewport]);
 
 	const onPointerMove = useCallback((event: React.PointerEvent<HTMLCanvasElement>) => {
 			const drag = dragRef.current;
@@ -1308,24 +1679,6 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 						Play {physicsSnapshot ? physicsSnapshot.time.toFixed(2) + "s" : ""}
 					</div>
 				) : null}
-				{runtimeDiagnostics.length > 0 ? (
-					<div style={{
-						position: "absolute",
-						left: toolbarWidth + 10,
-						right: actualListWidth + 10,
-						bottom: 10,
-						maxHeight: 72,
-						overflow: "auto",
-						background: "rgba(42, 31, 31, 0.92)",
-						border: "1px solid #6b3a3a",
-						color: "#f0b7b7",
-						fontSize: 12,
-						padding: 6,
-						pointerEvents: "none",
-					}}>
-						{runtimeDiagnostics.map((message, index) => <div key={`${message}:${index}`}>{message}</div>)}
-					</div>
-				) : null}
 				{isPlaying && physicsSnapshot && physicsSnapshot.motorControls.length > 0 ? (
 					<div style={{
 						position: "absolute",
@@ -1390,8 +1743,15 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 										key={type}
 										type="button"
 										onClick={() => {
-											setPendingJointType(type);
-											setActiveTool("joint");
+											if (pendingJointType === type) {
+												setPendingJointType(null);
+												setPendingJointSelection({});
+												setActiveTool("joint");
+											} else {
+												setPendingJointType(type);
+												setPendingJointSelection({});
+												setActiveTool("joint");
+											}
 										}}
 										style={{
 											height: 28,
@@ -1406,7 +1766,7 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 								);
 							})}
 							<div style={{ gridColumn: "1 / -1", color: "#8f9aa6", fontSize: 11, lineHeight: "15px", paddingTop: 2 }}>
-								Select a joint type, then click the preview.
+								{jointCreateHint}
 							</div>
 						</div>
 					) : null}
@@ -1492,6 +1852,7 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 							<div style={{ flex: "1 1 58%", minHeight: 0, overflow: "auto", paddingBottom: 96, boxSizing: "border-box" }}>
 								{selectedItem ? (
 									<PropertyPanel
+											document={document}
 											item={selectedItem}
 											readOnly={editDisabled}
 											canAddSubShape={!parseSubShapeSelectionId(selectedId) && isBodyItem(selectedItem)}
@@ -1502,6 +1863,7 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 										onCreateSubShape={(type) => {
 											setJointPanelOpen(false);
 											setPendingJointType(null);
+				setPendingJointSelection({});
 											setPendingSubShape((current) => (
 												current?.bodyId === selectedItem.id && current.type === type
 													? null
@@ -1510,6 +1872,7 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 											setActiveTool("menu");
 										}}
 										onUpdateField={(fieldName, value, recordUndo) => onUpdateField?.(selectedItem.id, fieldName, value, recordUndo)}
+										onChooseFace={() => setFaceChooserOpen(true)}
 									onBeginValueEdit={onBeginValueEdit}
 										onEndValueEdit={onEndValueEdit}
 									/>
@@ -1517,6 +1880,14 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 							</div>
 					</div>
 			</div>
+			<FaceResourceDialog
+				open={faceChooserOpen}
+				resourceBasePath={resourceBasePath}
+				servedResourceBasePath={servedResourceBasePath}
+				onClose={() => setFaceChooserOpen(false)}
+				onSelect={chooseFaceResource}
+				addAlert={addAlert}
+			/>
 		</div>
 	);
 });
@@ -1550,9 +1921,9 @@ const parseValue = (field: BodyStructField, text: string, checked: boolean): Bod
 	}
 };
 
-const parseNumberInput = (text: string, fallback: number) => {
+const parseNumberInput = (text: string, fallback: number, constraint?: BodyNumberConstraint) => {
 	const value = Number(text);
-	return Number.isFinite(value) ? value : fallback;
+	return applyBodyNumberConstraint(Number.isFinite(value) ? value : fallback, constraint);
 };
 
 const formatFieldPrefix = (name: string) => {
@@ -1563,11 +1934,12 @@ const NumericField = memo(function NumericField(props: {
 	label: string;
 	value: number;
 	readOnly: boolean;
+	constraint?: BodyNumberConstraint;
 	onCommit: (value: number, recordUndo?: boolean) => void;
 	onBeginStep?: () => void;
 	onEndStep?: (changed: boolean) => void;
 }) {
-	const { label, value, readOnly, onCommit, onBeginStep, onEndStep } = props;
+	const { label, value, readOnly, constraint, onCommit, onBeginStep, onEndStep } = props;
 	const stepRef = useRef<{ value: number; changed: boolean } | null>(null);
 	const endStep = useCallback(() => {
 		const step = stepRef.current;
@@ -1594,16 +1966,19 @@ const NumericField = memo(function NumericField(props: {
 				<input
 					type="number"
 					value={String(value)}
+					min={constraint?.min}
+					max={constraint?.max}
+					step={constraint?.step}
 					readOnly={readOnly}
 					onPointerDown={readOnly ? undefined : beginStep}
 					onPointerUp={endStep}
 					onPointerCancel={endStep}
 					onChange={(event) => {
-						if (!readOnly) commitNumber(parseNumberInput(event.currentTarget.value, value), false);
+						if (!readOnly) commitNumber(parseNumberInput(event.currentTarget.value, value, constraint), false);
 					}}
 					onBlur={(event) => {
 						if (readOnly) return;
-						commitNumber(parseNumberInput(event.currentTarget.value, value), true);
+						commitNumber(parseNumberInput(event.currentTarget.value, value, constraint), true);
 						endStep();
 					}}
 					style={{
@@ -1621,7 +1996,251 @@ const NumericField = memo(function NumericField(props: {
 	);
 });
 
+const ClipSliceThumbnail = memo(function ClipSliceThumbnail(props: {
+	image: HTMLImageElement | null;
+	rect: ActionClipRect;
+}) {
+	const { image, rect } = props;
+	const ref = useRef<HTMLCanvasElement | null>(null);
+	useEffect(() => {
+		const canvas = ref.current;
+		const context = canvas?.getContext("2d");
+		if (!canvas || !context) return;
+		const ratio = window.devicePixelRatio || 1;
+		const size = 54;
+		canvas.width = size * ratio;
+		canvas.height = size * ratio;
+		canvas.style.width = `${size}px`;
+		canvas.style.height = `${size}px`;
+		context.setTransform(ratio, 0, 0, ratio, 0, 0);
+		context.clearRect(0, 0, size, size);
+		context.fillStyle = "#181818";
+		context.fillRect(0, 0, size, size);
+		if (!image || rect.width <= 0 || rect.height <= 0) return;
+		const scale = Math.min((size - 8) / rect.width, (size - 8) / rect.height);
+		const width = rect.width * scale;
+		const height = rect.height * scale;
+		context.drawImage(image, rect.x, rect.y, rect.width, rect.height, (size - width) / 2, (size - height) / 2, width, height);
+	}, [image, rect]);
+	return <canvas ref={ref} aria-hidden="true" style={{ border: "1px solid #3a3a3a", background: "#181818" }} />;
+});
+
+const ClipSliceDialog = memo(function ClipSliceDialog(props: {
+	entry: FaceResourceEntry | null;
+	resourceBasePath: string;
+	servedResourceBasePath: string;
+	onClose: () => void;
+	onSelect: (face: string) => void;
+	addAlert?: (msg: string, type: BodyEditorAlertType, openLog?: boolean) => void;
+}) {
+	const { entry, resourceBasePath, servedResourceBasePath, onClose, onSelect, addAlert } = props;
+	const [rects, setRects] = useState<ActionClipRect[]>([]);
+	const [atlasImage, setAtlasImage] = useState<HTMLImageElement | null>(null);
+	const [loading, setLoading] = useState(false);
+	const [filter, setFilter] = useState("");
+	useEffect(() => {
+		if (!entry) {
+			setRects([]);
+			setAtlasImage(null);
+			return;
+		}
+		let cancelled = false;
+		let objectUrl: string | null = null;
+		setLoading(true);
+		setFilter("");
+		Service.read({ path: entry.path }).then(async (res) => {
+			if (cancelled) return;
+			if (!res.success) throw new Error(`Failed to read clip: ${entry.relative}`);
+			const clip = parseLegacyClip(res.content, entry.path);
+			const loaded = await loadFaceImageElement(clip.texturePath, servedResourceBasePath);
+			objectUrl = loaded.objectUrl;
+			if (cancelled) {
+				URL.revokeObjectURL(loaded.objectUrl);
+				return;
+			}
+			setRects(Object.values(clip.rects).sort((a, b) => a.name.localeCompare(b.name)));
+			setAtlasImage(loaded.image);
+		}).catch((error) => {
+			if (!cancelled) {
+				setRects([]);
+				setAtlasImage(null);
+				addAlert?.(error instanceof Error ? error.message : `Failed to load clip: ${entry.relative}`, "warning");
+			}
+		}).finally(() => {
+			if (!cancelled) setLoading(false);
+		});
+		return () => {
+			cancelled = true;
+			if (objectUrl) URL.revokeObjectURL(objectUrl);
+		};
+	}, [addAlert, entry, resourceBasePath, servedResourceBasePath]);
+	const visibleRects = useMemo(() => {
+		const query = filter.trim().toLowerCase();
+		return query === "" ? rects : rects.filter((rect) => rect.name.toLowerCase().includes(query));
+	}, [filter, rects]);
+	return (
+		<Dialog open={entry !== null} onClose={onClose} fullWidth maxWidth="md">
+			<DialogTitle>Choose Clip Slice</DialogTitle>
+			<DialogContent sx={{ display: "flex", flexDirection: "column", gap: 1.25, background: "#181818" }}>
+				<div style={{ color: "#8f9aa6", fontSize: 12 }}>{entry?.relative ?? ""}</div>
+				<TextField
+					size="small"
+					value={filter}
+					onChange={(event) => setFilter(event.currentTarget.value)}
+					placeholder="Filter slices"
+				/>
+				<div style={{ minHeight: 260, maxHeight: 420, overflow: "auto" }}>
+					{loading ? (
+						<div style={{ color: "#8f9aa6", padding: 12 }}>Loading...</div>
+					) : visibleRects.length === 0 ? (
+						<div style={{ color: "#8f9aa6", padding: 12 }}>No slices</div>
+					) : (
+						<div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 8 }}>
+							{visibleRects.map((rect) => (
+								<button
+									key={rect.name}
+									type="button"
+									onClick={() => {
+										if (entry) onSelect(`${entry.relative}|${rect.name}`);
+									}}
+									style={{
+										display: "flex",
+										alignItems: "center",
+										gap: 8,
+										padding: 8,
+										minHeight: 72,
+										border: "1px solid #3a3a3a",
+										background: "#252525",
+										color: "#d7d7d7",
+										cursor: "pointer",
+										textAlign: "left",
+									}}
+								>
+									<ClipSliceThumbnail image={atlasImage} rect={rect} />
+									<div style={{ minWidth: 0 }}>
+										<div style={{ fontSize: 12, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{rect.name}</div>
+										<div style={{ fontSize: 10, color: "#8f9aa6" }}>{rect.width} x {rect.height}</div>
+									</div>
+								</button>
+							))}
+						</div>
+					)}
+				</div>
+			</DialogContent>
+			<DialogActions>
+				<Button onClick={onClose}>Cancel</Button>
+			</DialogActions>
+		</Dialog>
+	);
+});
+
+const FaceResourceDialog = memo(function FaceResourceDialog(props: {
+	open: boolean;
+	resourceBasePath: string;
+	servedResourceBasePath: string;
+	onClose: () => void;
+	onSelect: (face: string) => void;
+	addAlert?: (msg: string, type: BodyEditorAlertType, openLog?: boolean) => void;
+}) {
+	const { open, resourceBasePath, servedResourceBasePath, onClose, onSelect, addAlert } = props;
+	const [resources, setResources] = useState<FaceResourceEntry[]>([]);
+	const [selectedClip, setSelectedClip] = useState<FaceResourceEntry | null>(null);
+	const [loading, setLoading] = useState(false);
+	const [filter, setFilter] = useState("");
+	useEffect(() => {
+		if (!open) return;
+		let cancelled = false;
+		setLoading(true);
+		setFilter("");
+		findFaceResourceFiles(resourceBasePath).then((items) => {
+			if (!cancelled) setResources(items);
+		}).catch((error) => {
+			if (!cancelled) {
+				setResources([]);
+				addAlert?.(error instanceof Error ? error.message : "Failed to search face resources.", "warning");
+			}
+		}).finally(() => {
+			if (!cancelled) setLoading(false);
+		});
+		return () => {
+			cancelled = true;
+		};
+	}, [addAlert, open, resourceBasePath]);
+	const visibleResources = useMemo(() => {
+		const query = filter.trim().toLowerCase();
+		return query === "" ? resources : resources.filter((entry) => entry.relative.toLowerCase().includes(query));
+	}, [filter, resources]);
+	const selectFace = useCallback((face: string) => {
+		onSelect(face);
+		setSelectedClip(null);
+	}, [onSelect]);
+	return (
+		<>
+			<Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+				<DialogTitle>Choose Face Resource</DialogTitle>
+				<DialogContent sx={{ display: "flex", flexDirection: "column", gap: 1.25, background: "#181818" }}>
+					<div style={{ color: "#8f9aa6", fontSize: 12 }}>{resourceBasePath}</div>
+					<TextField
+						size="small"
+						value={filter}
+						onChange={(event) => setFilter(event.currentTarget.value)}
+						placeholder="Filter resources"
+					/>
+					<div style={{ minHeight: 280, maxHeight: 460, overflow: "auto", border: "1px solid #2b2b2b" }}>
+						{loading ? (
+							<div style={{ color: "#8f9aa6", padding: 12 }}>Searching...</div>
+						) : visibleResources.length === 0 ? (
+							<div style={{ color: "#8f9aa6", padding: 12 }}>No image or clip resources</div>
+						) : visibleResources.map((entry) => (
+							<button
+								key={`${entry.kind}:${entry.relative}`}
+								type="button"
+								onClick={() => {
+									if (entry.kind === "clip") {
+										setSelectedClip(entry);
+									} else {
+										selectFace(entry.relative);
+									}
+								}}
+								style={{
+									width: "100%",
+									display: "flex",
+									alignItems: "center",
+									justifyContent: "space-between",
+									gap: 8,
+									padding: "8px 10px",
+									border: "none",
+									borderBottom: "1px solid #2b2b2b",
+									background: "#1f1f1f",
+									color: "#d7d7d7",
+									cursor: "pointer",
+									textAlign: "left",
+								}}
+							>
+								<span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{entry.relative}</span>
+								<span style={{ flex: "0 0 auto", color: entry.kind === "clip" ? "#fac03d" : "#8f9aa6", fontSize: 11 }}>{entry.kind}</span>
+							</button>
+						))}
+					</div>
+				</DialogContent>
+				<DialogActions>
+					<Button onClick={onClose}>Cancel</Button>
+				</DialogActions>
+			</Dialog>
+			<ClipSliceDialog
+				entry={selectedClip}
+				resourceBasePath={resourceBasePath}
+				servedResourceBasePath={servedResourceBasePath}
+				onClose={() => setSelectedClip(null)}
+				onSelect={selectFace}
+				addAlert={addAlert}
+			/>
+		</>
+	);
+});
+
 const PropertyPanel = memo(function PropertyPanel(props: {
+	document: BodyDocument;
 	item: BodyStructDocument;
 	readOnly: boolean;
 	canAddSubShape: boolean;
@@ -1631,11 +2250,14 @@ const PropertyPanel = memo(function PropertyPanel(props: {
 	onRemoveVertex: () => void;
 	onCreateSubShape: (type: BodyCreateSubShapeType) => void;
 	onUpdateField: (fieldName: string, value: BodyLuaValue, recordUndo?: boolean) => void;
+	onChooseFace: () => void;
 	onBeginValueEdit?: () => void;
 	onEndValueEdit?: (changed: boolean) => void;
 }) {
-	const { item, readOnly, canAddSubShape, pendingSubShapeType, selectedVertexIndex, onAddVertex, onRemoveVertex, onCreateSubShape, onUpdateField, onBeginValueEdit, onEndValueEdit } = props;
+	const { document, item, readOnly, canAddSubShape, pendingSubShapeType, selectedVertexIndex, onAddVertex, onRemoveVertex, onCreateSubShape, onUpdateField, onChooseFace, onBeginValueEdit, onEndValueEdit } = props;
 	const definition = BODY_STRUCTS_BY_TYPE[item.structType];
+	const bodyOptions = useMemo(() => document.items.filter(isBodyItem).map((entry) => getJointCandidateName(entry)), [document.items]);
+	const jointOptions = useMemo(() => document.items.filter((entry) => isGearJointCandidate(entry)).map((entry) => getJointCandidateName(entry)), [document.items]);
 	return (
 		<div style={{ borderTop: "1px solid #3a3a3a", padding: 10 }}>
 			<div style={{ color: "#d7d7d7", fontSize: 13, marginBottom: 8 }}>Properties</div>
@@ -1699,6 +2321,7 @@ const PropertyPanel = memo(function PropertyPanel(props: {
 								label={field.name}
 								value={numberValue}
 								readOnly={readOnly}
+								constraint={getBodyNumberConstraint(item, field.name)}
 								onCommit={(next, recordUndo) => onUpdateField(field.name, next, recordUndo)}
 								onBeginStep={onBeginValueEdit}
 								onEndStep={onEndValueEdit}
@@ -1722,6 +2345,25 @@ const PropertyPanel = memo(function PropertyPanel(props: {
 						</label>
 					);
 					}
+					if (field.kind === "bodyRef" || field.kind === "jointRef") {
+						const options = field.kind === "bodyRef" ? bodyOptions : jointOptions;
+						return (
+							<label key={field.name} style={labelStyle}>
+								{field.name}
+								<select
+									value={valueToText(value)}
+									disabled={readOnly}
+									onChange={(event) => onUpdateField(field.name, event.currentTarget.value)}
+									style={{ width: "100%", marginTop: 3, background: "#181818", color: "#d7d7d7", border: "1px solid #3a3a3a", height: 26 }}
+								>
+									<option value="">None</option>
+									{options.map((name) => (
+										<option key={name} value={name}>{name}</option>
+									))}
+								</select>
+							</label>
+						);
+					}
 					if (field.kind === "vector" || field.kind === "size") {
 						const vector = asArray(value);
 						const x = typeof vector[0] === "number" ? vector[0] : 0;
@@ -1738,6 +2380,7 @@ const PropertyPanel = memo(function PropertyPanel(props: {
 											label={`${prefix}${axis}`}
 											value={axisValue}
 											readOnly={readOnly}
+											constraint={getBodyNumberConstraint(item, field.name, axis)}
 											onCommit={(next, recordUndo) => onUpdateField(field.name, axis === "X" ? [next, otherValue] : [otherValue, next], recordUndo)}
 											onBeginStep={onBeginValueEdit}
 											onEndStep={onEndValueEdit}
@@ -1746,22 +2389,41 @@ const PropertyPanel = memo(function PropertyPanel(props: {
 								</div>
 						);
 					}
-					if (field.name === "face" && typeof value === "string" && value !== "") {
-					const face = parseBodyFace(value);
+					if (field.name === "face") {
+					const face = parseBodyFace(valueText);
 					return (
 						<label key={inputKey} style={labelStyle}>
 							{field.name}
-							<input
-								defaultValue={valueText}
-								readOnly={readOnly}
-								onBlur={(event) => {
-									if (!readOnly) onUpdateField(field.name, parseValue(field, event.currentTarget.value, false));
-								}}
-								style={{ width: "100%", boxSizing: "border-box", marginTop: 3, background: "#181818", color: "#d7d7d7", border: "1px solid #3a3a3a", minHeight: 26, opacity: readOnly ? 0.72 : 1 }}
-							/>
-							<div style={{ color: "#8f9aa6", fontSize: 11, marginTop: 3 }}>
-								{face.kind === "clip" ? `${face.source} | ${face.clipName}` : face.kind}
+							<div style={{ display: "flex", gap: 4, marginTop: 3 }}>
+								<input
+									defaultValue={valueText}
+									readOnly={readOnly}
+									onBlur={(event) => {
+										if (!readOnly) onUpdateField(field.name, parseValue(field, event.currentTarget.value, false));
+									}}
+									style={{ minWidth: 0, flex: 1, boxSizing: "border-box", background: "#181818", color: "#d7d7d7", border: "1px solid #3a3a3a", minHeight: 26, opacity: readOnly ? 0.72 : 1 }}
+								/>
+								<button
+									type="button"
+									disabled={readOnly}
+									onClick={onChooseFace}
+									style={{
+										width: 34,
+										border: "1px solid #3a3a3a",
+										background: "#252525",
+										color: "#d7d7d7",
+										cursor: readOnly ? "default" : "pointer",
+										opacity: readOnly ? 0.55 : 1,
+									}}
+								>
+									...
+								</button>
 							</div>
+							{valueText !== "" ? (
+								<div style={{ color: "#8f9aa6", fontSize: 11, marginTop: 3 }}>
+									{face.kind === "clip" ? `${face.source} | ${face.clipName}` : face.kind}
+								</div>
+							) : null}
 						</label>
 					);
 				}

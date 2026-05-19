@@ -5970,7 +5970,7 @@ interface JointDefClass {
 	 * @param bodyA The name of the first body connected to the joint.
 	 * @param bodyB The name of the second body connected to the joint.
 	 * @param linearOffset Position of body-B minus the position of body-A, in body-A's frame.
-	 * @param angularOffset Angle of body-B minus angle of body-A.
+	 * @param angularOffset Angle of body-B minus angle of body-A in degrees.
 	 * @param maxForce The maximum force the joint can exert.
 	 * @param maxTorque The maximum torque the joint can exert.
 	 * @param correctionFactor Optional correction factor, defaults to 1.0.
@@ -5993,7 +5993,7 @@ interface JointDefClass {
 	 * @param bodyA The name of the first body connected to the joint.
 	 * @param bodyB The name of the second body connected to the joint.
 	 * @param worldPos The world position of the joint.
-	 * @param axisAngle The axis angle of the joint.
+	 * @param axisAngle The axis angle of the joint in degrees.
 	 * @param lowerTranslation Optional lower translation limit, defaults to 0.0.
 	 * @param upperTranslation Optional upper translation limit, defaults to 0.0.
 	 * @param maxMotorForce Optional maximum motor force, defaults to 0.0.
@@ -6041,10 +6041,10 @@ interface JointDefClass {
 	 * @param bodyA The name of the first physics body to connect.
 	 * @param bodyB The name of the second physics body to connect.
 	 * @param worldPos The position in world coordinates where the joint will be created.
-	 * @param lowerAngle Optional The lower angle limit (radians) (default 0.0).
-	 * @param upperAngle Optional The upper angle limit (radians) (default 0.0).
+	 * @param lowerAngle Optional The lower angle limit in degrees (default 0.0).
+	 * @param upperAngle Optional The upper angle limit in degrees (default 0.0).
 	 * @param maxMotorTorque Optional The maximum torque that can be applied to the joint to achieve the target speed (default 0.0).
-	 * @param motorSpeed Optional The desired speed of the joint (default 0.0).
+	 * @param motorSpeed Optional The target speed of the joint motor in degrees per second (default 0.0).
 	 * @returns The revolute joint definition.
 	 */
 	revolute(
@@ -6102,9 +6102,9 @@ interface JointDefClass {
 	 * @param bodyA The name of the first body to be connected by the joint.
 	 * @param bodyB The name of the second body to be connected by the joint.
 	 * @param worldPos The position in the world to connect the bodies together.
-	 * @param axisAngle The angle of the joint axis in radians.
+	 * @param axisAngle The angle of the joint axis in degrees.
 	 * @param maxMotorTorque Optional The maximum torque the joint motor can exert, defaults to 0.0.
-	 * @param motorSpeed Optional The target speed of the joint motor, defaults to 0.0.
+	 * @param motorSpeed Optional The target speed of the joint motor in degrees per second, defaults to 0.0.
 	 * @param frequency Optional The frequency at which the joint should be stiff, defaults to 2.0.
 	 * @param damping Optional The damping rate of the joint, defaults to 0.7.
 	 * @returns The newly created wheel joint definition.
@@ -6190,7 +6190,7 @@ interface JointClass {
 	 * @param bodyA The first body connected to the joint.
 	 * @param bodyB The second body connected to the joint.
 	 * @param linearOffset Position of body-B minus the position of body-A, in body-A's frame.
-	 * @param angularOffset Angle of body-B minus angle of body-A.
+	 * @param angularOffset Angle of body-B minus angle of body-A in degrees.
 	 * @param maxForce The maximum force the joint can exert.
 	 * @param maxTorque The maximum torque the joint can exert.
 	 * @param correctionFactor Optional correction factor, defaults to 1.0.
@@ -6232,7 +6232,7 @@ interface JointClass {
 	 * @param bodyA The first body connected to the joint.
 	 * @param bodyB The second body connected to the joint.
 	 * @param worldPos The world position of the joint.
-	 * @param axisAngle The axis angle of the joint.
+	 * @param axisAngle The axis angle of the joint in degrees.
 	 * @param lowerTranslation Optional lower translation limit, defaults to 0.0.
 	 * @param upperTranslation Optional upper translation limit, defaults to 0.0.
 	 * @param maxMotorForce Optional maximum motor force, defaults to 0.0.
@@ -6280,10 +6280,10 @@ interface JointClass {
 	 * @param bodyA The first physics body to connect.
 	 * @param bodyB The second physics body to connect.
 	 * @param worldPos The position in world coordinates where the joint will be created.
-	 * @param lowerAngle Optional The lower angle limit (radians), defaults to 0.0.
-	 * @param upperAngle Optional The upper angle limit (radians), defaults to 0.0.
+	 * @param lowerAngle Optional The lower angle limit in degrees, defaults to 0.0.
+	 * @param upperAngle Optional The upper angle limit in degrees, defaults to 0.0.
 	 * @param maxMotorTorque Optional The maximum torque that can be applied to the joint to achieve the target speed, defaults to 0.0.
-	 * @param motorSpeed Optional The desired speed of the joint, defaults to 0.0.
+	 * @param motorSpeed Optional The target speed of the joint motor in degrees per second, defaults to 0.0.
 	 * @returns The created revolute joint.
 	 */
 	revolute(
@@ -6341,9 +6341,9 @@ interface JointClass {
 	 * @param bodyA The first body to be connected by the joint.
 	 * @param bodyB The second body to be connected by the joint.
 	 * @param worldPos The position in the world to connect the bodies together.
-	 * @param axisAngle The angle of the joint axis in radians.
+	 * @param axisAngle The angle of the joint axis in degrees.
 	 * @param maxMotorTorque [optional] The maximum torque the joint motor can exert, defaults to 0.0.
-	 * @param motorSpeed [optional] The target speed of the joint motor, defaults to 0.0.
+	 * @param motorSpeed [optional] The target speed of the joint motor in degrees per second, defaults to 0.0.
 	 * @param frequency [optional] The frequency at which the joint should be stiff, defaults to 2.0.
 	 * @param damping [optional] The damping rate of the joint, defaults to 0.7.
 	 * @returns The newly created wheel joint.

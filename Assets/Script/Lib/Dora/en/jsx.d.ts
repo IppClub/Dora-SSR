@@ -1716,9 +1716,9 @@ class RevoluteJoint {
 	bodyB: Ref<Dora.Body.Type>;
 	/** The world coordinate position where the joint will be created. */
 	worldPos: Dora.Vec2.Type;
-	/** [Optional] Lower angle limit (in radians) (default is 0.0). */
+	/** [Optional] Lower angle limit in degrees (default is 0.0). */
 	lowerAngle?: number;
-	/** [Optional] Upper angle limit (in radians) (default is 0.0). */
+	/** [Optional] Upper angle limit in degrees (default is 0.0). */
 	upperAngle?: number;
 	/** [Optional] The maximum torque the joint can exert to achieve the target speed (default is 0.0). */
 	maxMotorTorque?: number;
@@ -1768,11 +1768,11 @@ class WheelJoint {
 	bodyB: Ref<Dora.Body.Type>;
 	/** The world position where the bodies are connected. */
 	worldPos: Dora.Vec2.Type;
-	/** The angle of the joint axis, in radians. */
+	/** The angle of the joint axis in degrees. */
 	axisAngle: number;
 	/** [Optional] The maximum torque the joint motor can apply, default is 0.0. */
 	maxMotorTorque?: number;
-	/** [Optional] The target speed of the joint motor, default is 0.0. */
+	/** [Optional] The target speed of the joint motor in degrees per second, default is 0.0. */
 	motorSpeed?: number;
 	/** [Optional] The stiffness frequency of the joint, default is 2.0. */
 	frequency?: number;

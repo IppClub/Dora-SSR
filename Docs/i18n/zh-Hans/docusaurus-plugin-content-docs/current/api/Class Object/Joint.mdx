@@ -139,7 +139,7 @@ spring: function(self: JointClass,
 | bodyA | Body | 连接到关节的第一个物理体。 |
 | bodyB | Body | 连接到关节的第二个物理体。 |
 | linearOffset | Vec2 | 在物理体A坐标系下，物理体B的位置减去物理体A的位置。 |
-| angularOffset | number | 物理体B的角度减去物理体A的角度。 |
+| angularOffset | number | 物理体B的角度减去物理体A的角度，单位为度。 |
 | maxForce | number | 关节能够施加的最大力。 |
 | maxTorque | number | 关节能够施加的最大扭矩。 |
 | correctionFactor | number | 可选的纠正系数，默认为1.0。 |
@@ -216,7 +216,7 @@ prismatic: function(self: JointClass,
 | bodyA | Body | 连接到关节的第一个刚体。 |
 | bodyB | Body | 连接到关节的第二个刚体。 |
 | worldPos | Vec2 | 关节的世界坐标。 |
-| axisAngle | number | 关节的轴角度。 |
+| axisAngle | number | 关节的轴角度，单位为度。 |
 | lowerTranslation | number | 可选的下限平移量，默认为0.0。 |
 | upperTranslation | number | 可选的上限平移量，默认为0.0。 |
 | maxMotorForce | number | 可选的最大电机力，默认为0.0。 |
@@ -297,10 +297,10 @@ revolute: function(self: JointClass,
 | bodyA | Body | 要连接的第一个物理体。 |
 | bodyB | Body | 要连接的第二个物理体。 |
 | worldPos | Vec2 | 关节将被创建的世界坐标位置。 |
-| lowerAngle | number | [可选] 下限角度限制（弧度）（默认为0.0）。 |
-| upperAngle | number | [可选] 上限角度限制（弧度）（默认为0.0）。 |
+| lowerAngle | number | [可选] 下限角度限制，单位为度（默认为0.0）。 |
+| upperAngle | number | [可选] 上限角度限制，单位为度（默认为0.0）。 |
 | maxMotorTorque | number | [可选] 关节施加的最大扭矩以达到目标速度（默认为0.0）。 |
-| motorSpeed | number | [可选] 关节的期望速度（默认为0.0）。 |
+| motorSpeed | number | [可选] 关节电机的目标速度，单位为度/秒（默认为0.0）。 |
 
 **返回值：**
 
@@ -410,9 +410,9 @@ wheel: function(self: JointClass,
 | bodyA | Body | 第一个将被连接的物体。 |
 | bodyB | Body | 第二个将被连接的物体。 |
 | worldPos | Vec2 | 连接物体的世界位置。 |
-| axisAngle | number | 关节轴的角度，以弧度为单位。 |
+| axisAngle | number | 关节轴的角度，单位为度。 |
 | maxMotorTorque | number | [可选] 关节电机可以施加的最大力矩，默认为 0.0。 |
-| motorSpeed | number | [可选] 关节电机的目标速度，默认为 0.0。 |
+| motorSpeed | number | [可选] 关节电机的目标速度，单位为度/秒，默认为 0.0。 |
 | frequency | number | [可选] 关节的刚度频率，默认为 2.0。 |
 | damping | number | [可选] 关节的阻尼比率，默认为 0.7。 |
 

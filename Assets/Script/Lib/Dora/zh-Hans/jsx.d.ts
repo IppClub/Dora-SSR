@@ -1637,7 +1637,7 @@ class SpringJoint {
 	bodyB: Ref<Dora.Body.Type>;
 	/** 在物理体A坐标系下，物理体B的位置减去物理体A的位置。 */
 	linearOffset: Dora.Vec2.Type;
-	/** 物理体B的角度减去物理体A的角度。 */
+	/** 物理体B的角度减去物理体A的角度，单位为度。 */
 	angularOffset: number;
 	/** 关节能够施加的最大力。 */
 	maxForce: number;
@@ -1673,7 +1673,7 @@ class PrismaticJoint {
 	bodyB: Ref<Dora.Body.Type>;
 	/** 关节的世界坐标。 */
 	worldPos: Dora.Vec2.Type;
-	/** 关节的轴角度。 */
+	/** 关节的轴角度，单位为度。 */
 	axisAngle: number;
 	/** 可选的下限平移量，默认为0.0。 */
 	lowerTranslation?: number;
@@ -1715,13 +1715,13 @@ class RevoluteJoint {
 	bodyB: Ref<Dora.Body.Type>;
 	/** 关节将被创建的世界坐标位置。 */
 	worldPos: Dora.Vec2.Type;
-	/** [可选] 下限角度限制（弧度）（默认为0.0）。 */
+	/** [可选] 下限角度限制，单位为度（默认为0.0）。 */
 	lowerAngle?: number;
-	/** [可选] 上限角度限制（弧度）（默认为0.0）。 */
+	/** [可选] 上限角度限制，单位为度（默认为0.0）。 */
 	upperAngle?: number;
 	/** [可选] 关节施加的最大扭矩以达到目标速度（默认为0.0）。 */
 	maxMotorTorque?: number;
-	/** [可选] 关节的期望速度（默认为0.0）。 */
+	/** [可选] 关节电机的目标速度，单位为度/秒（默认为0.0）。 */
 	motorSpeed?: number;
 }
 
@@ -1767,11 +1767,11 @@ class WheelJoint {
 	bodyB: Ref<Dora.Body.Type>;
 	/** 连接物体的世界位置。 */
 	worldPos: Dora.Vec2.Type;
-	/** 关节轴的角度，以弧度为单位。 */
+	/** 关节轴的角度，单位为度。 */
 	axisAngle: number;
 	/** [可选] 关节电机可以施加的最大力矩，默认为 0.0。 */
 	maxMotorTorque?: number;
-	/** [可选] 关节电机的目标速度，默认为 0.0。 */
+	/** [可选] 关节电机的目标速度，单位为度/秒，默认为 0.0。 */
 	motorSpeed?: number;
 	/** [可选] 关节的刚度频率，默认为 2.0。 */
 	frequency?: number;

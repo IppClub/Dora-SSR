@@ -1,5 +1,5 @@
 import { BodyDocument, BodyLuaValue, BodyStructDocument, BodyVector } from "./BodyDocument";
-import { getBodyFaceLabel } from "./BodyResource";
+import { BodyFacePreviewAsset, getBodyFaceLabel } from "./BodyResource";
 
 export type BodyViewport = {
 	center: BodyVector;
@@ -12,6 +12,7 @@ export type BodyRenderOptions = {
 	selectedId?: string | null;
 	width: number;
 	height: number;
+	faceAssets?: ReadonlyMap<string, BodyFacePreviewAsset>;
 	physicsBodies?: readonly BodyRenderPhysicsBody[];
 	physicsJoints?: readonly BodyRenderPhysicsJoint[];
 };
@@ -66,6 +67,7 @@ const debugFillColor = (color: DebugDrawColor) => `rgba(${colorChannel(color[0] 
 
 const selectionBoundsColor = "rgba(170, 176, 184, 0.95)";
 const selectionMarkerColor = "#65d6ff";
+const prismaticGuideColor = "#65d6ff";
 
 const polygonSignedArea = (vertices: BodyVector[]) => {
 	let area = 0;
@@ -167,6 +169,28 @@ const rotateAround = (point: BodyVector, center: BodyVector, angleDegrees: numbe
 	];
 };
 
+const normalizeVector = (value: BodyVector, fallback: BodyVector = [1, 0]): BodyVector => {
+	const length = Math.hypot(value[0], value[1]);
+	if (length <= 0.000001) return fallback;
+	return [value[0] / length, value[1] / length];
+};
+
+const addVector = (a: BodyVector, b: BodyVector): BodyVector => [a[0] + b[0], a[1] + b[1]];
+const scaleVector = (value: BodyVector, scale: number): BodyVector => [value[0] * scale, value[1] * scale];
+
+const getPrismaticGuidePoints = (item: BodyStructDocument) => {
+	const worldPos = asVector(item.fields.worldPos);
+	const axis = normalizeVector(asVector(item.fields.axis, [1, 0]));
+	const lower = asNumber(item.fields.lowerTranslation);
+	const upper = asNumber(item.fields.upperTranslation);
+	return {
+		worldPos,
+		axis,
+		lowerPoint: addVector(worldPos, scaleVector(axis, lower)),
+		upperPoint: addVector(worldPos, scaleVector(axis, upper)),
+	};
+};
+
 const drawPath = (
 	ctx: CanvasRenderingContext2D,
 	points: BodyVector[],
@@ -210,6 +234,43 @@ const drawCircle = (
 	ctx.arc(screen.x, screen.y, Math.max(1, radius * viewport.scale), 0, Math.PI * 2);
 };
 
+const drawFacePlaceholder = (ctx: CanvasRenderingContext2D, label: string, center: ScreenPoint) => {
+	ctx.fillStyle = "rgba(70, 70, 70, 0.75)";
+	ctx.fillRect(center.x - 28, center.y - 12, 56, 20);
+	ctx.strokeStyle = "#8f9aa6";
+	ctx.strokeRect(center.x - 28, center.y - 12, 56, 20);
+	ctx.fillStyle = "#d7d7d7";
+	ctx.fillText(label, center.x - 24, center.y + 3);
+};
+
+const drawFaceAsset = (
+	ctx: CanvasRenderingContext2D,
+	asset: BodyFacePreviewAsset,
+	center: ScreenPoint,
+	scale: number,
+	faceScale: number,
+	angle: number,
+) => {
+	if (asset.kind === "placeholder") {
+		drawFacePlaceholder(ctx, asset.label, center);
+		return;
+	}
+	const scaleSign = faceScale < 0 ? -1 : 1;
+	const width = asset.width * scale * Math.abs(faceScale);
+	const height = asset.height * scale * Math.abs(faceScale);
+	if (width <= 0 || height <= 0) return;
+	ctx.save();
+	ctx.translate(center.x, center.y);
+	ctx.rotate(angle * Math.PI / 180);
+	ctx.scale(scaleSign, scaleSign);
+	if (asset.kind === "image") {
+		ctx.drawImage(asset.image, -width / 2, -height / 2, width, height);
+	} else {
+		ctx.drawImage(asset.image, asset.x, asset.y, asset.width, asset.height, -width / 2, -height / 2, width, height);
+	}
+	ctx.restore();
+};
+
 const drawShape = (
 	ctx: CanvasRenderingContext2D,
 	body: BodyStructDocument,
@@ -242,9 +303,18 @@ const drawShape = (
 		return;
 	}
 	if (shape.structType === "Phyx.Disk" || shape.structType === "Phyx.SubDisk") {
-		const center = localToWorld(body, asVector(shape.fields.center), pose);
-		drawCircle(ctx, center, asNumber(shape.fields.radius, 20), viewport, width, height);
+		const localCenter = asVector(shape.fields.center);
+		const radius = asNumber(shape.fields.radius, 20);
+		const center = localToWorld(body, localCenter, pose);
+		const radiusEnd = localToWorld(body, [localCenter[0] + radius, localCenter[1]], pose);
+		drawCircle(ctx, center, radius, viewport, width, height);
 		ctx.fill();
+		ctx.stroke();
+		const centerScreen = worldToScreen(center, viewport, width, height);
+		const radiusEndScreen = worldToScreen(radiusEnd, viewport, width, height);
+		ctx.beginPath();
+		ctx.moveTo(centerScreen.x, centerScreen.y);
+		ctx.lineTo(radiusEndScreen.x, radiusEndScreen.y);
 		ctx.stroke();
 		return;
 	}
@@ -437,6 +507,30 @@ export const hitTestBodyDocument = (options: BodyRenderOptions, point: BodyVecto
 			?? getJointAnchorWorldPosition(document, item, "anchorB", options.physicsBodies)
 			?? physicsByName.get(getItemName(bodyB))?.position
 			?? asVector(bodyB.fields.position);
+		if (item.structType === "Phyx.Pulley") {
+			const groundA = Array.isArray(item.fields.groundAnchorA) ? asVector(item.fields.groundAnchorA) : null;
+			const groundB = Array.isArray(item.fields.groundAnchorB) ? asVector(item.fields.groundAnchorB) : null;
+			if (groundA && groundB && (
+				distanceSq(point, a) <= jointTolerance * jointTolerance ||
+				distanceSq(point, b) <= jointTolerance * jointTolerance ||
+				distanceSq(point, groundA) <= jointTolerance * jointTolerance ||
+				distanceSq(point, groundB) <= jointTolerance * jointTolerance ||
+				distanceToSegment(point, groundA, a) <= jointTolerance ||
+				distanceToSegment(point, groundA, groundB) <= jointTolerance ||
+				distanceToSegment(point, groundB, b) <= jointTolerance
+			)) return item.id;
+		}
+		if ((item.structType === "Phyx.Weld" || item.structType === "Phyx.Friction") && Array.isArray(item.fields.worldPos)) {
+			const worldPos = asVector(item.fields.worldPos);
+			if (distanceSq(point, worldPos) <= jointTolerance * jointTolerance) return item.id;
+		}
+		if (item.structType === "Phyx.Prismatic") {
+			const guide = getPrismaticGuidePoints(item);
+			if (
+				distanceSq(point, guide.worldPos) <= jointTolerance * jointTolerance ||
+				distanceToSegment(point, guide.lowerPoint, guide.upperPoint) <= jointTolerance
+			) return item.id;
+		}
 		if (
 			distanceSq(point, a) <= jointTolerance * jointTolerance ||
 			distanceSq(point, b) <= jointTolerance * jointTolerance ||
@@ -526,6 +620,86 @@ const drawJointAnchorPlaceholder = (
 	ctx.restore();
 };
 
+const drawPulleyHandle = (
+	ctx: CanvasRenderingContext2D,
+	point: BodyVector,
+	label: string,
+	viewport: BodyViewport,
+	width: number,
+	height: number,
+	ground: boolean,
+) => {
+	const screen = worldToScreen(point, viewport, width, height);
+	ctx.save();
+	ctx.strokeStyle = selectionMarkerColor;
+	ctx.fillStyle = ground ? "rgba(250, 192, 61, 0.22)" : "rgba(101, 214, 255, 0.22)";
+	ctx.lineWidth = 1.5;
+	ctx.beginPath();
+	if (ground) {
+		ctx.moveTo(screen.x, screen.y - 7);
+		ctx.lineTo(screen.x + 7, screen.y);
+		ctx.lineTo(screen.x, screen.y + 7);
+		ctx.lineTo(screen.x - 7, screen.y);
+		ctx.closePath();
+	} else {
+		ctx.arc(screen.x, screen.y, 6, 0, Math.PI * 2);
+	}
+	ctx.fill();
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.moveTo(screen.x - 10, screen.y);
+	ctx.lineTo(screen.x + 10, screen.y);
+	ctx.moveTo(screen.x, screen.y - 10);
+	ctx.lineTo(screen.x, screen.y + 10);
+	ctx.stroke();
+	ctx.fillStyle = ground ? "#fac03d" : selectionMarkerColor;
+	ctx.font = "11px sans-serif";
+	ctx.fillText(label, screen.x + 8, screen.y - 8);
+	ctx.restore();
+};
+
+const drawPulleyGuide = (
+	ctx: CanvasRenderingContext2D,
+	document: BodyDocument,
+	item: BodyStructDocument,
+	physicsJoint: BodyRenderPhysicsJoint | undefined,
+	physicsBodies: readonly BodyRenderPhysicsBody[] | undefined,
+	viewport: BodyViewport,
+	width: number,
+	height: number,
+	selected: boolean,
+) => {
+	const anchorA = physicsJoint?.anchorA ?? getJointAnchorWorldPosition(document, item, "anchorA", physicsBodies);
+	const anchorB = physicsJoint?.anchorB ?? getJointAnchorWorldPosition(document, item, "anchorB", physicsBodies);
+	const groundA = Array.isArray(item.fields.groundAnchorA) ? asVector(item.fields.groundAnchorA) : null;
+	const groundB = Array.isArray(item.fields.groundAnchorB) ? asVector(item.fields.groundAnchorB) : null;
+	if (!anchorA || !anchorB || !groundA || !groundB) return;
+	const a = worldToScreen(anchorA, viewport, width, height);
+	const b = worldToScreen(anchorB, viewport, width, height);
+	const ga = worldToScreen(groundA, viewport, width, height);
+	const gb = worldToScreen(groundB, viewport, width, height);
+	ctx.save();
+	ctx.strokeStyle = rgbColor(debugDrawColors.joint);
+	ctx.lineWidth = selected ? 1.7 : 1.25;
+	ctx.beginPath();
+	ctx.moveTo(ga.x, ga.y);
+	ctx.lineTo(a.x, a.y);
+	ctx.moveTo(ga.x, ga.y);
+	ctx.lineTo(gb.x, gb.y);
+	ctx.moveTo(gb.x, gb.y);
+	ctx.lineTo(b.x, b.y);
+	ctx.stroke();
+	ctx.fillStyle = rgbColor(debugDrawColors.joint);
+	ctx.fillRect((ga.x + gb.x) / 2 - 3, (ga.y + gb.y) / 2 - 3, 6, 6);
+	ctx.restore();
+	if (selected) {
+		drawPulleyHandle(ctx, anchorA, "A", viewport, width, height, false);
+		drawPulleyHandle(ctx, anchorB, "B", viewport, width, height, false);
+		drawPulleyHandle(ctx, groundA, "GA", viewport, width, height, true);
+		drawPulleyHandle(ctx, groundB, "GB", viewport, width, height, true);
+	}
+};
+
 const drawSelectedJointAnchors = (
 	ctx: CanvasRenderingContext2D,
 	document: BodyDocument,
@@ -536,6 +710,13 @@ const drawSelectedJointAnchors = (
 	width: number,
 	height: number,
 ) => {
+	if (item.structType === "Phyx.Pulley") {
+		drawPulleyGuide(ctx, document, item, physicsJoint, physicsBodies, viewport, width, height, true);
+		return;
+	}
+	if ((item.structType === "Phyx.Weld" || item.structType === "Phyx.Friction") && Array.isArray(item.fields.worldPos)) {
+		drawJointAnchorPlaceholder(ctx, asVector(item.fields.worldPos), item.structType === "Phyx.Weld" ? "W" : "F", viewport, width, height);
+	}
 	const anchorA = physicsJoint?.anchorA ?? getJointAnchorWorldPosition(document, item, "anchorA", physicsBodies);
 	const anchorB = physicsJoint?.anchorB ?? getJointAnchorWorldPosition(document, item, "anchorB", physicsBodies);
 	if (anchorA) {
@@ -544,6 +725,64 @@ const drawSelectedJointAnchors = (
 	if (anchorB) {
 		drawJointAnchorPlaceholder(ctx, anchorB, "B", viewport, width, height);
 	}
+};
+
+const drawPrismaticGuide = (
+	ctx: CanvasRenderingContext2D,
+	item: BodyStructDocument,
+	viewport: BodyViewport,
+	width: number,
+	height: number,
+	selected: boolean,
+) => {
+	const guide = getPrismaticGuidePoints(item);
+	const center = worldToScreen(guide.worldPos, viewport, width, height);
+	const lower = worldToScreen(guide.lowerPoint, viewport, width, height);
+	const upper = worldToScreen(guide.upperPoint, viewport, width, height);
+	const axisScreen = { x: guide.axis[0], y: -guide.axis[1] };
+	const perpendicular = { x: -axisScreen.y, y: axisScreen.x };
+	const tickLength = selected ? 16 : 12;
+	const arrowLength = selected ? 12 : 9;
+	const arrowWidth = selected ? 6 : 5;
+
+	ctx.save();
+	ctx.strokeStyle = prismaticGuideColor;
+	ctx.fillStyle = prismaticGuideColor;
+	ctx.globalAlpha = selected ? 0.95 : 0.65;
+	ctx.lineWidth = selected ? 2 : 1.5;
+	ctx.beginPath();
+	ctx.moveTo(lower.x, lower.y);
+	ctx.lineTo(upper.x, upper.y);
+	ctx.stroke();
+
+	for (const point of [lower, upper]) {
+		ctx.beginPath();
+		ctx.moveTo(point.x - perpendicular.x * tickLength / 2, point.y - perpendicular.y * tickLength / 2);
+		ctx.lineTo(point.x + perpendicular.x * tickLength / 2, point.y + perpendicular.y * tickLength / 2);
+		ctx.stroke();
+	}
+
+	ctx.beginPath();
+	ctx.moveTo(upper.x, upper.y);
+	ctx.lineTo(upper.x - axisScreen.x * arrowLength + perpendicular.x * arrowWidth, upper.y - axisScreen.y * arrowLength + perpendicular.y * arrowWidth);
+	ctx.lineTo(upper.x - axisScreen.x * arrowLength - perpendicular.x * arrowWidth, upper.y - axisScreen.y * arrowLength - perpendicular.y * arrowWidth);
+	ctx.closePath();
+	ctx.fill();
+
+	ctx.globalAlpha = selected ? 1 : 0.75;
+	ctx.beginPath();
+	ctx.arc(center.x, center.y, selected ? 5 : 4, 0, Math.PI * 2);
+	ctx.fill();
+	ctx.strokeStyle = "#1f1f1f";
+	ctx.lineWidth = 1;
+	ctx.beginPath();
+	ctx.moveTo(center.x - 8, center.y);
+	ctx.lineTo(center.x + 8, center.y);
+	ctx.moveTo(center.x, center.y - 8);
+	ctx.lineTo(center.x, center.y + 8);
+	ctx.stroke();
+
+	ctx.restore();
 };
 
 export const renderBodyDocument = (ctx: CanvasRenderingContext2D, options: BodyRenderOptions) => {
@@ -560,6 +799,17 @@ export const renderBodyDocument = (ctx: CanvasRenderingContext2D, options: BodyR
 		if (!isBodyItem(item)) continue;
 		const selected = selectedId === item.id;
 		const pose = physicsById.get(item.id);
+		const face = asString(item.fields.face);
+		const faceLabel = getBodyFaceLabel(face);
+		if (faceLabel) {
+			const facePos = worldToScreen(localToWorld(item, asVector(item.fields.facePos), pose), viewport, width, height);
+			const faceAsset = options.faceAssets?.get(face);
+			if (faceAsset) {
+				drawFaceAsset(ctx, faceAsset, facePos, viewport.scale, asNumber(item.fields.faceScale, 1), pose?.angle ?? asNumber(item.fields.angle));
+			} else {
+				drawFacePlaceholder(ctx, faceLabel, facePos);
+			}
+		}
 		drawShape(ctx, item, item, viewport, width, height, pose);
 		const selectionBoundsPoints: BodyVector[] = selected ? getShapeWorldBoundsPoints(item, item, pose) : [];
 		for (const [index, subShape] of asArray(item.fields.subShapes).entries()) {
@@ -578,35 +828,29 @@ export const renderBodyDocument = (ctx: CanvasRenderingContext2D, options: BodyR
 		ctx.fillStyle = "#d7d7d7";
 		ctx.font = "12px sans-serif";
 		ctx.fillText(getItemName(item), label.x + 6, label.y - 6);
-		const face = asString(item.fields.face);
-		const faceLabel = getBodyFaceLabel(face);
-		if (faceLabel) {
-			const facePos = worldToScreen(localToWorld(item, asVector(item.fields.facePos), pose), viewport, width, height);
-			ctx.fillStyle = "rgba(70, 70, 70, 0.75)";
-			ctx.fillRect(facePos.x - 28, facePos.y - 12, 56, 20);
-			ctx.strokeStyle = "#8f9aa6";
-			ctx.strokeRect(facePos.x - 28, facePos.y - 12, 56, 20);
-			ctx.fillStyle = "#d7d7d7";
-			ctx.fillText(faceLabel, facePos.x - 24, facePos.y + 3);
-		}
 	}
 	for (const item of document.items) {
 		if (!isJointItem(item)) continue;
 		const physicsJoint = physicsJointsById.get(item.id);
-		if (selectedId === item.id) drawSelectedJointAnchors(ctx, document, item, physicsJoint, options.physicsBodies, viewport, width, height);
-				const bodyA = bodies.get(asString(item.fields.bodyA));
-				const bodyB = bodies.get(asString(item.fields.bodyB));
-				if (!bodyA || !bodyB) continue;
-				const pointA = physicsJoint?.anchorA
-					?? getJointAnchorWorldPosition(document, item, "anchorA", options.physicsBodies)
-					?? physicsByName.get(getItemName(bodyA))?.position
-					?? asVector(bodyA.fields.position);
-				const pointB = physicsJoint?.anchorB
-					?? getJointAnchorWorldPosition(document, item, "anchorB", options.physicsBodies)
-					?? physicsByName.get(getItemName(bodyB))?.position
-					?? asVector(bodyB.fields.position);
-			const a = worldToScreen(pointA, viewport, width, height);
-			const b = worldToScreen(pointB, viewport, width, height);
+		const selected = selectedId === item.id;
+		const bodyA = bodies.get(asString(item.fields.bodyA));
+		const bodyB = bodies.get(asString(item.fields.bodyB));
+		if (!bodyA || !bodyB) continue;
+		if (item.structType === "Phyx.Pulley") {
+			drawPulleyGuide(ctx, document, item, physicsJoint, options.physicsBodies, viewport, width, height, selected);
+			continue;
+		}
+		if (selected) drawSelectedJointAnchors(ctx, document, item, physicsJoint, options.physicsBodies, viewport, width, height);
+		const pointA = physicsJoint?.anchorA
+			?? getJointAnchorWorldPosition(document, item, "anchorA", options.physicsBodies)
+			?? physicsByName.get(getItemName(bodyA))?.position
+			?? asVector(bodyA.fields.position);
+		const pointB = physicsJoint?.anchorB
+			?? getJointAnchorWorldPosition(document, item, "anchorB", options.physicsBodies)
+			?? physicsByName.get(getItemName(bodyB))?.position
+			?? asVector(bodyB.fields.position);
+		const a = worldToScreen(pointA, viewport, width, height);
+		const b = worldToScreen(pointB, viewport, width, height);
 		ctx.strokeStyle = rgbColor(debugDrawColors.joint);
 		ctx.lineWidth = 1.25;
 		ctx.beginPath();
@@ -617,5 +861,8 @@ export const renderBodyDocument = (ctx: CanvasRenderingContext2D, options: BodyR
 		const midY = (a.y + b.y) / 2;
 		ctx.fillStyle = rgbColor(debugDrawColors.joint);
 		ctx.fillRect(midX - 3, midY - 3, 6, 6);
+		if (item.structType === "Phyx.Prismatic") {
+			drawPrismaticGuide(ctx, item, viewport, width, height, selected);
+		}
 	}
 };

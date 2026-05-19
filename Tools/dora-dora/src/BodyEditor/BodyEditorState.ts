@@ -22,6 +22,13 @@ export type BodyStateResult = {
 	diagnostics: BodyDiagnostic[];
 };
 
+export type BodyCreateJointRefs = {
+	bodyA?: string;
+	bodyB?: string;
+	jointA?: string;
+	jointB?: string;
+};
+
 let nextId = 1;
 
 const markDirty = (document: BodyDocument): BodyDocument => ({
@@ -90,6 +97,7 @@ const createShapeFields = (type: BodyShapeType, name: string, position: [number,
 		subShapes: [],
 		face: "",
 		facePos: [0, 0],
+		faceScale: 1,
 	};
 	switch (type) {
 		case "Phyx.Rect":
@@ -329,6 +337,8 @@ const bodyLocalFromWorld = (body: BodyStructDocument | undefined, world: BodyVec
 	];
 };
 
+const addVector = (a: BodyVector, b: BodyVector): BodyVector => [a[0] + b[0], a[1] + b[1]];
+
 const pickJointBodies = (bodies: BodyStructDocument[], position: BodyVector) => {
 	const ranked = [...bodies].sort((a, b) => {
 		const pa = asVector(a.fields.position);
@@ -356,7 +366,7 @@ const createJointFields = (structType: BodyJointType, name: string, bodyA: strin
 	}
 };
 
-export const createBodyJoint = (document: BodyDocument, jointType: BodyCreateJointType, position: [number, number] = [0, 0]): BodyStateResult => {
+export const createBodyJoint = (document: BodyDocument, jointType: BodyCreateJointType, position: [number, number] = [0, 0], refs: BodyCreateJointRefs = {}): BodyStateResult => {
 	const bodies = document.items.filter(isBodyItem);
 	if (jointType !== "gear" && bodies.length < 2) {
 		return { document, diagnostics: [error("Create at least two bodies before adding a joint.")] };
@@ -368,21 +378,32 @@ export const createBodyJoint = (document: BodyDocument, jointType: BodyCreateJoi
 		return { document, diagnostics: [error("Gear requires two Revolute or Prismatic joints.")] };
 	}
 	const [bodyA, bodyB] = pickJointBodies(bodies, position);
+	const bodyAName = refs.bodyA ?? asString(bodyA?.fields.name);
+	const bodyBName = refs.bodyB ?? asString(bodyB?.fields.name);
+	const jointAName = refs.jointA ?? asString(gearCandidates[0]?.fields.name);
+	const jointBName = refs.jointB ?? asString(gearCandidates[1]?.fields.name);
+	const selectedBodyA = bodies.find((item) => asString(item.fields.name) === bodyAName) ?? bodyA;
+	const selectedBodyB = bodies.find((item) => asString(item.fields.name) === bodyBName) ?? bodyB;
 	const item: BodyStructDocument = {
 		id: `${structType}:${name}:${nextId++}`,
 		structType,
 		fields: createJointFields(
 			structType,
 			name,
-			asString(bodyA?.fields.name),
-			asString(bodyB?.fields.name),
-			asString(gearCandidates[0]?.fields.name),
-			asString(gearCandidates[1]?.fields.name),
+			bodyAName,
+			bodyBName,
+			jointAName,
+			jointBName,
 		),
 	};
 	if (item.fields.worldPos) item.fields.worldPos = position;
-	if (item.fields.anchorA) item.fields.anchorA = bodyLocalFromWorld(bodyA, position);
-	if (item.fields.anchorB) item.fields.anchorB = bodyLocalFromWorld(bodyB, position);
+	if (structType === "Phyx.Pulley") {
+		item.fields.groundAnchorA = addVector(asVector(selectedBodyA?.fields.position), [0, 160]);
+		item.fields.groundAnchorB = addVector(asVector(selectedBodyB?.fields.position), [0, 160]);
+	} else if (structType !== "Phyx.Distance" && structType !== "Phyx.Rope") {
+		if (item.fields.anchorA) item.fields.anchorA = bodyLocalFromWorld(selectedBodyA, position);
+		if (item.fields.anchorB) item.fields.anchorB = bodyLocalFromWorld(selectedBodyB, position);
+	}
 	const nextDocument = markDirty(cloneDocument(document));
 	nextDocument.items = sortBodyDocumentItems([...nextDocument.items, item]);
 	return {

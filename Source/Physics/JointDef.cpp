@@ -267,7 +267,7 @@ Joint* PrismaticDef::toJoint(Dictionary* itemDict) {
 	Value* targetA = itemDict->get(bodyA).get();
 	Value* targetB = itemDict->get(bodyB).get();
 	AssertUnless(targetA && targetB, "failed to get bodies for joint creation");
-	return Joint::prismatic(collision, targetA->to<Body>(), targetB->to<Body>(), t(worldPos), axisAngle, lowerTranslation, upperTranslation, maxMotorForce, motorSpeed);
+	return Joint::prismatic(collision, targetA->to<Body>(), targetB->to<Body>(), t(worldPos), axisAngle + angle, lowerTranslation, upperTranslation, maxMotorForce, motorSpeed);
 }
 
 Joint* PulleyDef::toJoint(Dictionary* itemDict) {
@@ -302,7 +302,7 @@ Joint* WheelDef::toJoint(Dictionary* itemDict) {
 	Value* targetA = itemDict->get(bodyA).get();
 	Value* targetB = itemDict->get(bodyB).get();
 	AssertUnless(targetA && targetB, "failed to get bodies for joint creation");
-	return Joint::wheel(collision, targetA->to<Body>(), targetB->to<Body>(), t(worldPos), axisAngle, maxMotorTorque, motorSpeed, frequency, damping);
+	return Joint::wheel(collision, targetA->to<Body>(), targetB->to<Body>(), t(worldPos), axisAngle + angle, maxMotorTorque, motorSpeed, frequency, damping);
 }
 
 NS_DORA_END
