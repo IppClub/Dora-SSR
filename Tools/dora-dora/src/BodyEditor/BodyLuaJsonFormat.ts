@@ -7,6 +7,7 @@ import {
 	BodyStructDocument,
 	BodyStructType,
 } from "./BodyDocument";
+import { getBodyNumberConstraint, validateBodyNumberValue } from "./BodyFieldConstraints";
 
 export type BodyDiagnosticSeverity = "error" | "warning" | "info";
 
@@ -49,6 +50,7 @@ const isEmptyObject = (value: unknown) => (
 );
 
 const normalizeFieldValue = (field: BodyStructField, value: unknown): BodyLuaValue | undefined => {
+	if (value === undefined && field.name === "faceScale") return 1;
 	if (field.kind === "subShapes") {
 		if (value === undefined || value === null || isEmptyObject(value)) return [];
 		if (Array.isArray(value) && value[0] === "Array") {
@@ -64,6 +66,29 @@ const makeDiagnostic = (path: string, message: string): BodyDiagnostic => ({
 	path,
 	message,
 });
+
+const validateNumberFieldValue = (
+	item: BodyStructDocument,
+	field: BodyStructField,
+	value: BodyLuaValue,
+	path: string,
+	diagnostics: BodyDiagnostic[],
+) => {
+	if (field.kind === "number") {
+		if (typeof value !== "number") return;
+		const message = validateBodyNumberValue(value, getBodyNumberConstraint(item, field.name));
+		if (message) diagnostics.push(makeDiagnostic(path, `${item.structType}.${field.name} ${message}`));
+		return;
+	}
+	if (field.kind !== "size") return;
+	if (!Array.isArray(value)) return;
+	for (let index = 0; index < 2; index++) {
+		const axisValue = value[index];
+		if (typeof axisValue !== "number") continue;
+		const message = validateBodyNumberValue(axisValue, getBodyNumberConstraint(item, field.name, index === 0 ? "X" : "Y"));
+		if (message) diagnostics.push(makeDiagnostic(`${path}[${index}]`, `${item.structType}.${field.name}${index === 0 ? "X" : "Y"} ${message}`));
+	}
+};
 
 const makeEmptyDocument = (): BodyDocument => ({
 	version: 1,
@@ -95,15 +120,23 @@ const parseStruct = (
 		}
 		fields[field.name] = fieldValue;
 	}
-	if (value.length !== definition.fields.length + 1) {
+	if (value.length > definition.fields.length + 1) {
 		diagnostics.push(makeDiagnostic(path, `${typeName} expects ${definition.fields.length} fields, got ${value.length - 1}`));
 	}
 	const name = typeof fields.name === "string" && fields.name.length > 0 ? fields.name : `${typeName}:${index}`;
-	return {
+	const item = {
 		id: `${typeName}:${name}:${index}`,
 		structType: typeName,
 		fields,
 	};
+	for (let i = 0; i < definition.fields.length; i++) {
+		const field = definition.fields[i];
+		const fieldValue = fields[field.name];
+		if (fieldValue !== undefined) {
+			validateNumberFieldValue(item, field, fieldValue, `${path}[${i + 1}]`, diagnostics);
+		}
+	}
+	return item;
 };
 
 export const loadBodyDocumentFromJsonArray = (root: unknown): BodyLoadResult => {
@@ -146,6 +179,28 @@ export const loadBodyDocumentFromJson = (jsonText: string): BodyLoadResult => {
 			canSave: false,
 		};
 	}
+};
+
+export const validateBodyDocument = (document: BodyDocument): BodyDiagnostic[] => {
+	const diagnostics: BodyDiagnostic[] = [];
+	for (let itemIndex = 0; itemIndex < document.items.length; itemIndex++) {
+		const item = document.items[itemIndex];
+		const definition = BODY_STRUCTS_BY_TYPE[item.structType];
+		if (!definition) {
+			diagnostics.push(makeDiagnostic(`$[${itemIndex + 1}][0]`, `Unknown BodyEx struct: ${item.structType}`));
+			continue;
+		}
+		for (let fieldIndex = 0; fieldIndex < definition.fields.length; fieldIndex++) {
+			const field = definition.fields[fieldIndex];
+			const value = item.fields[field.name];
+			if (normalizeFieldValue(field, value) === undefined) {
+				diagnostics.push(makeDiagnostic(`$[${itemIndex + 1}][${fieldIndex + 1}]`, `Unsupported value for ${item.structType}.${field.name}`));
+				continue;
+			}
+			validateNumberFieldValue(item, field, value, `$[${itemIndex + 1}][${fieldIndex + 1}]`, diagnostics);
+		}
+	}
+	return diagnostics;
 };
 
 const luaEscapeString = (value: string) => {

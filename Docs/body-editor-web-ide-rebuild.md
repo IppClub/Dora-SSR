@@ -377,7 +377,7 @@ Web IDE 预览不使用 Box2D/Planck 的全局重力表达新版 body 数据：
 - `Revolute` -> revolute joint，world position、angle limits、motor torque/speed。
 - `Rope` -> rope joint 或 fallback debug constraint，取决于所选 Box2D 绑定是否支持 rope joint。
 - `Weld` -> weld joint，world position、frequency/damping。
-- `Wheel` -> wheel joint，world position、axis、motor、spring frequency/damping。
+- `Wheel` -> wheel joint，world position、axis、motor、spring frequency/damping；`motorSpeed` 按引擎规则使用度/秒，预览时转换为底层角速度。
 - `Gear` -> gear joint，依赖两个已创建 joint。
 - `Spring` -> 接受近似预览，可用 Planck 的 `MotorJoint` 或 spring-like 约束模拟，界面标记“预览近似”，保存数据仍保持 `BodyEx` 原字段。
 

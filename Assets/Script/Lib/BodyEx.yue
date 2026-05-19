@@ -32,6 +32,7 @@ Struct.Phyx.Rect(
 	"subShapes"
 	"face"
 	"facePos"
+	"faceScale"
 )
 Struct.Phyx.Disk(
 	"name"
@@ -53,6 +54,7 @@ Struct.Phyx.Disk(
 	"subShapes"
 	"face"
 	"facePos"
+	"faceScale"
 )
 Struct.Phyx.Poly(
 	"name"
@@ -73,6 +75,7 @@ Struct.Phyx.Poly(
 	"subShapes"
 	"face"
 	"facePos"
+	"faceScale"
 )
 Struct.Phyx.Chain(
 	"name"
@@ -90,6 +93,7 @@ Struct.Phyx.Chain(
 	"subShapes"
 	"face"
 	"facePos"
+	"faceScale"
 )
 Struct.Phyx.SubRect(
 	"center"
@@ -228,10 +232,10 @@ Struct.Phyx.Wheel(
 loadFuncs = nil
 fieldDefs =
 	"Array": {}
-	"Phyx.Rect": {"name", "type", "position", "angle", "center", "size", "density", "friction", "restitution", "linearDamping", "angularDamping", "fixedRotation", "linearAcceleration", "bullet", "sensor", "sensorTag", "subShapes", "face", "facePos"}
-	"Phyx.Disk": {"name", "type", "position", "angle", "center", "radius", "density", "friction", "restitution", "linearDamping", "angularDamping", "fixedRotation", "linearAcceleration", "bullet", "sensor", "sensorTag", "subShapes", "face", "facePos"}
-	"Phyx.Poly": {"name", "type", "position", "angle", "vertices", "density", "friction", "restitution", "linearDamping", "angularDamping", "fixedRotation", "linearAcceleration", "bullet", "sensor", "sensorTag", "subShapes", "face", "facePos"}
-	"Phyx.Chain": {"name", "type", "position", "angle", "vertices", "friction", "restitution", "linearDamping", "angularDamping", "fixedRotation", "linearAcceleration", "bullet", "subShapes", "face", "facePos"}
+	"Phyx.Rect": {"name", "type", "position", "angle", "center", "size", "density", "friction", "restitution", "linearDamping", "angularDamping", "fixedRotation", "linearAcceleration", "bullet", "sensor", "sensorTag", "subShapes", "face", "facePos", "faceScale"}
+	"Phyx.Disk": {"name", "type", "position", "angle", "center", "radius", "density", "friction", "restitution", "linearDamping", "angularDamping", "fixedRotation", "linearAcceleration", "bullet", "sensor", "sensorTag", "subShapes", "face", "facePos", "faceScale"}
+	"Phyx.Poly": {"name", "type", "position", "angle", "vertices", "density", "friction", "restitution", "linearDamping", "angularDamping", "fixedRotation", "linearAcceleration", "bullet", "sensor", "sensorTag", "subShapes", "face", "facePos", "faceScale"}
+	"Phyx.Chain": {"name", "type", "position", "angle", "vertices", "friction", "restitution", "linearDamping", "angularDamping", "fixedRotation", "linearAcceleration", "bullet", "subShapes", "face", "facePos", "faceScale"}
 	"Phyx.SubRect": {"center", "angle", "size", "density", "friction", "restitution", "sensor", "sensorTag"}
 	"Phyx.SubDisk": {"center", "radius", "density", "friction", "restitution", "sensor", "sensorTag"}
 	"Phyx.SubPoly": {"vertices", "density", "friction", "restitution", "sensor", "sensorTag"}
@@ -255,12 +259,20 @@ normalizeData = (data) ->
 	data
 
 loadBodyData = (bodyData) ->
-	data = switch type bodyData
-		when "string"
-			code = if bodyData\sub(1, 6) == "return" then bodyData else "return " .. bodyData
-			(load code)!
-		when "table"
-			bodyData
+	data = switch type bodyData when "string"
+		file = repeat
+			break bodyData if Content\exist bodyData
+			file = bodyData .. ".body.lua"
+			break file if Content\exist file
+		until true
+		if file
+			fullPath = Content\getFullPath file
+			require fullPath
+		else
+			error "failed to locate body data file: \"#{bodyData}\""
+			nil
+	when "table"
+		bodyData
 	normalizeData data
 
 toVec = (value) ->
@@ -272,6 +284,11 @@ toVecArray = (values) ->
 	return values\toArray! if values.toArray
 	start = if values[1] == "Array" then 2 else 1
 	[toVec values[i] for i = start, #values]
+
+axisToAngle = (value) ->
+	axis = toVec value
+	return 0 unless axis and axis.x ~= nil and axis.y ~= nil
+	-math.deg math.atan axis.y, axis.x
 
 sizeDims = (size) ->
 	return size.width, size.height if size.width ~= nil and size.height ~= nil
@@ -286,8 +303,8 @@ arrayGet = (values, index) ->
 	if values[1] == "Array" then values[index + 1] else values[index]
 
 loadData = (data, item) ->
-	data = normalizeData data
-	loadFuncs[data[1]] data, item
+	if data := normalizeData data
+		loadFuncs[data[1]] data, item
 
 toDef = (data) -> with BodyDef!
 	.type = data.type
@@ -300,6 +317,7 @@ toDef = (data) -> with BodyDef!
 	.angle = data.angle
 	.face = data.face
 	.facePos = toVec data.facePos
+	.faceScale = data.faceScale or 1
 
 loadFuncs =
 	"Array": (data, itemDict) ->
@@ -398,6 +416,7 @@ loadFuncs =
 			data.frequency
 			data.damping
 		)
+
 	"Phyx.Friction": (data, itemDict) ->
 		itemDict[data.name] = JointDef\friction(
 			data.collision
@@ -434,7 +453,7 @@ loadFuncs =
 			data.bodyA
 			data.bodyB
 			toVec data.worldPos
-			toVec data.axis
+			axisToAngle data.axis
 			data.lowerTranslation
 			data.upperTranslation
 			data.maxMotorForce
@@ -491,39 +510,50 @@ loadFuncs =
 			data.bodyA
 			data.bodyB
 			toVec data.worldPos
-			toVec data.axis
+			axisToAngle data.axis
 			data.maxMotorTorque
 			data.motorSpeed
 			data.frequency
 			data.damping
 		)
 
-export default (bodyData, world, pos, angle) ->
-	itemDict = Dictionary!
-	loadData loadBodyData(bodyData), itemDict
+export default (bodyData, world, pos = Vec2.zero, angle = 0) ->
 	root = Node!
-	items = root.data
-	center = Vec2.zero
-	itemDict\each (itemDef, key) ->
-		if "BodyDef" == tolua.type itemDef
-			body = Body itemDef, world, pos, angle
-			body.owner = root
-			root\addChild body
-			faceStr = itemDef.face
-			if faceStr ~= ""
-				face = if faceStr\match ":"
-					Playable faceStr
-				else
-					Sprite faceStr
-				if face
-					face.position = itemDef.facePos
-					body\addChild face
-			items[key] = body
-		else
+	itemDict = Dictionary!
+	try
+		loadData loadBodyData(bodyData), itemDict
+		items = root.data
+		center = Vec2.zero
+		jointDefs = []
+		itemDict\each (itemDef, key) ->
+			if "BodyDef" == tolua.type itemDef
+				body = Body itemDef, world, pos, angle
+				body.owner = root
+				root\addChild body
+				faceStr = itemDef.face
+				if faceStr ~= ""
+					face = if faceStr\match ":"
+						Playable faceStr
+					else
+						Sprite faceStr
+					if face
+						face.position = itemDef.facePos
+						face.scaleX = itemDef.faceScale
+						face.scaleY = itemDef.faceScale
+						body\addChild face
+				items[key] = body
+			else
+				jointDefs[] = [key, itemDef]
+		for [key, itemDef] in *jointDefs
 			if center
 				itemDef.center = center
 				itemDef.position = pos
 				itemDef.angle = angle
 			if joint := Joint itemDef, items
 				items[key] = joint
+	catch err
+		Log "Error", "failed to load body data due to: \"#{err}\""
+		root\cleanup!
+		itemDict\clear!
+		root = nil
 	root

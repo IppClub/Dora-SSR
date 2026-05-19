@@ -4116,12 +4116,14 @@ export default function PersistentDrawerLeft() {
 								<Suspense fallback={<div />}>
 									<BodyEditor
 										filePath={file.key}
+										resourceBasePath={parentPath}
 										sourceContent={file.contentModified ?? file.content}
 										width={editorWidth}
 										height={editorHeight}
 										active={tabIndex === index}
 										readOnly={readOnly}
 										refreshKey={file.previewVersion ?? 0}
+										addAlert={addAlert}
 										onOpenAsText={() => {
 											file.bodyTextEditing = true;
 											setFiles([...files]);

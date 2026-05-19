@@ -61,7 +61,7 @@ local record JointClass
 	-- @param bodyA (Body) The first body connected to the joint.
 	-- @param bodyB (Body) The second body connected to the joint.
 	-- @param linearOffset (Vec2) Position of body-B minus the position of body-A, in body-A's frame.
-	-- @param angularOffset (number) Angle of body-B minus angle of body-A.
+	-- @param angularOffset (number) Angle of body-B minus angle of body-A in degrees.
 	-- @param maxForce (number) The maximum force the joint can exert.
 	-- @param maxTorque (number) The maximum torque the joint can exert.
 	-- @param correctionFactor (number) Optional correction factor, defaults to 1.0.
@@ -97,7 +97,7 @@ local record JointClass
 	-- @param bodyA (Body) The first body connected to the joint.
 	-- @param bodyB (Body) The second body connected to the joint.
 	-- @param worldPos (Vec2) The world position of the joint.
-	-- @param axisAngle (number) The axis angle of the joint.
+	-- @param axisAngle (number) The axis angle of the joint in degrees.
 	-- @param lowerTranslation (number) Optional lower translation limit, defaults to 0.0.
 	-- @param upperTranslation (number) Optional upper translation limit, defaults to 0.0.
 	-- @param maxMotorForce (number) Optional maximum motor force, defaults to 0.0.
@@ -139,10 +139,10 @@ local record JointClass
 	-- @param bodyA (Body) The first physics body to connect.
 	-- @param bodyB (Body) The second physics body to connect.
 	-- @param worldPos (Vec2) The position in world coordinates where the joint will be created.
-	-- @param lowerAngle (number) [optinal] The lower angle limit (radians) (default 0.0).
-	-- @param upperAngle (number) [optinal] The upper angle limit (radians) (default 0.0).
+	-- @param lowerAngle (number) [optinal] The lower angle limit in degrees (default 0.0).
+	-- @param upperAngle (number) [optinal] The upper angle limit in degrees (default 0.0).
 	-- @param maxMotorTorque (number) [optinal] The maximum torque that can be applied to the joint to achieve the target speed (default 0.0).
-	-- @param motorSpeed (number) [optinal] The desired speed of the joint (default 0.0).
+	-- @param motorSpeed (number) [optinal] The target speed of the joint motor in degrees per second (default 0.0).
 	-- @return (MotorJoint) The revolute joint.
 	revolute: function(self: JointClass,
 		canCollide: boolean,
@@ -192,9 +192,9 @@ local record JointClass
 	-- @param bodyA (Body) The first body to be connected by the joint.
 	-- @param bodyB (Body) The second body to be connected by the joint.
 	-- @param worldPos (Vec2) The position in the world to connect the bodies together.
-	-- @param axisAngle (number) The angle of the joint axis in radians.
+	-- @param axisAngle (number) The angle of the joint axis in degrees.
 	-- @param maxMotorTorque (number) [optional] The maximum torque the joint motor can exert, defaults to 0.0.
-	-- @param motorSpeed (number) [optional] The target speed of the joint motor, defaults to 0.0.
+	-- @param motorSpeed (number) [optional] The target speed of the joint motor in degrees per second, defaults to 0.0.
 	-- @param frequency (number) [optional] The frequency at which the joint should be stiff, defaults to 2.0.
 	-- @param damping (number) [optional] The damping rate of the joint, defaults to 0.7.
 	-- @return (MotorJoint) The newly created wheel joint.

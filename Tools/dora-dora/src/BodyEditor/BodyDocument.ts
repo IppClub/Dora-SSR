@@ -63,6 +63,7 @@ export type BodyShapeDocument = {
 	subShapes: BodySubShapeDocument[];
 	face: string;
 	facePos: BodyVector;
+	faceScale: number;
 };
 
 export type BodySubShapeDocument = {
@@ -109,6 +110,7 @@ export const BODY_SHAPE_STRUCTS = [
 			field("subShapes", "subShapes"),
 			field("face", "string"),
 			field("facePos", "vector"),
+			field("faceScale", "number"),
 		],
 	},
 	{
@@ -133,6 +135,7 @@ export const BODY_SHAPE_STRUCTS = [
 			field("subShapes", "subShapes"),
 			field("face", "string"),
 			field("facePos", "vector"),
+			field("faceScale", "number"),
 		],
 	},
 	{
@@ -156,6 +159,7 @@ export const BODY_SHAPE_STRUCTS = [
 			field("subShapes", "subShapes"),
 			field("face", "string"),
 			field("facePos", "vector"),
+			field("faceScale", "number"),
 		],
 	},
 	{
@@ -176,6 +180,7 @@ export const BODY_SHAPE_STRUCTS = [
 			field("subShapes", "subShapes"),
 			field("face", "string"),
 			field("facePos", "vector"),
+			field("faceScale", "number"),
 		],
 	},
 ] as const satisfies readonly BodyStructDefinition[];

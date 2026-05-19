@@ -1152,9 +1152,11 @@ export type AgentTaskStatusResponse = {
 	message: string;
 };
 
-export const agentProjectRoot = (req: { path: string; isDir: boolean; }) => {
+export const projectRoot = (req: { path: string; isDir: boolean; }) => {
 	return post<AgentProjectRootResponse>("/agent/project-root", req);
 };
+
+export const agentProjectRoot = projectRoot;
 
 export const agentSessionCreate = (req: { projectRoot: string; title?: string; }) => {
 	return post<{

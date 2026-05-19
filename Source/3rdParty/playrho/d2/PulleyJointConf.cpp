@@ -90,7 +90,7 @@ PulleyJointConf GetPulleyJointConf(const World& world, BodyID bA, BodyID bB, // 
 }
 
 void InitVelocity(PulleyJointConf& object, const Span<BodyConstraint>& bodies,
-                  const StepConf& step, const ConstraintSolverConf&)
+                  const StepConf& step, const ConstraintSolverConf& conf)
 {
     if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {
         return;
@@ -117,10 +117,15 @@ void InitVelocity(PulleyJointConf& object, const Span<BodyConstraint>& bodies,
 
     // Get the pulley axes.
     const auto pulleyAxisA = Length2{posA.linear + object.rA - object.groundAnchorA};
-    const auto pulleyAxisB = Length2{posB.linear + object.rB - object.groundAnchorB};
+    const auto uvresultA = UnitVec::Get(pulleyAxisA[0], pulleyAxisA[1]);
+    const auto lengthA = std::get<Length>(uvresultA);
+    const auto minPulleyLength = conf.linearSlop * Real{10};
+    object.uA = (lengthA > minPulleyLength) ? std::get<UnitVec>(uvresultA) : UnitVec::GetZero();
 
-    object.uA = GetUnitVector(pulleyAxisA, UnitVec::GetZero());
-    object.uB = GetUnitVector(pulleyAxisB, UnitVec::GetZero());
+    const auto pulleyAxisB = Length2{posB.linear + object.rB - object.groundAnchorB};
+    const auto uvresultB = UnitVec::Get(pulleyAxisB[0], pulleyAxisB[1]);
+    const auto lengthB = std::get<Length>(uvresultB);
+    object.uB = (lengthB > minPulleyLength) ? std::get<UnitVec>(uvresultB) : UnitVec::GetZero();
 
     // Compute effective mass.
     const auto ruA = Cross(object.rA, object.uA);
@@ -215,12 +220,15 @@ bool SolvePosition(const PulleyJointConf& object, const Span<BodyConstraint>& bo
     // Get the pulley axes.
     const auto pA = Length2{posA.linear + rA - object.groundAnchorA};
     const auto uvresultA = UnitVec::Get(pA[0], pA[1]);
-    const auto uA = std::get<UnitVec>(uvresultA);
+    const auto minPulleyLength = conf.linearSlop * Real{10};
+    const auto uA =
+        (std::get<Length>(uvresultA) > minPulleyLength) ? std::get<UnitVec>(uvresultA) : UnitVec::GetZero();
     const auto lengthA = std::get<Length>(uvresultA);
 
     const auto pB = Length2{posB.linear + rB - object.groundAnchorB};
     const auto uvresultB = UnitVec::Get(pB[0], pB[1]);
-    const auto uB = std::get<UnitVec>(uvresultB);
+    const auto uB =
+        (std::get<Length>(uvresultB) > minPulleyLength) ? std::get<UnitVec>(uvresultB) : UnitVec::GetZero();
     const auto lengthB = std::get<Length>(uvresultB);
 
     // Compute effective mass.

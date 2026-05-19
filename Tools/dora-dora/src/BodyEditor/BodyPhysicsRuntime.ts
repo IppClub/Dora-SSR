@@ -429,7 +429,6 @@ export class BodyPhysicsRuntime {
 			}, bodyA, bodyB, vectorToMeters(asVector(item.fields.worldPos)));
 		}
 		if (item.structType === "Phyx.Spring") {
-			this.diagnostics.push({ id: item.id, message: "Phyx.Spring preview uses Planck MotorJoint approximation" });
 			return MotorJoint({
 				...opt,
 				linearOffset: vectorToMeters(asVector(item.fields.linearOffset)),
@@ -473,7 +472,7 @@ export class BodyPhysicsRuntime {
 		}
 			if (item.structType === "Phyx.Revolute") {
 				const [lowerAngle, upperAngle] = editorAngleRangeToPlanckRadians(asNumber(item.fields.lowerAngle), asNumber(item.fields.upperAngle));
-				const baseSpeed = -asNumber(item.fields.motorSpeed);
+				const baseSpeed = editorDegreesToPlanckRadians(asNumber(item.fields.motorSpeed));
 				const joint = RevoluteJoint({
 					...opt,
 					enableLimit: true,
@@ -504,7 +503,7 @@ export class BodyPhysicsRuntime {
 			}, bodyA, bodyB, vectorToMeters(asVector(item.fields.worldPos)));
 		}
 			if (item.structType === "Phyx.Wheel") {
-				const baseSpeed = -asNumber(item.fields.motorSpeed);
+				const baseSpeed = editorDegreesToPlanckRadians(asNumber(item.fields.motorSpeed));
 			const joint = WheelJoint({
 				...opt,
 				enableMotor: Math.max(0, asNumber(item.fields.maxMotorTorque)) > 0,

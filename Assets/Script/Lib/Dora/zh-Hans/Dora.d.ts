@@ -5970,7 +5970,7 @@ interface JointDefClass {
 	 * @param bodyA 连接到关节的第一个物体的名称。
 	 * @param bodyB 连接到关节的第二个物体的名称。
 	 * @param linearOffset 在物理体A的坐标系中，物理体B减去物理体A的位置。
-	 * @param angularOffset 物理体B的角度减去物理体A的角度。
+	 * @param angularOffset 物理体B的角度减去物理体A的角度，单位为度。
 	 * @param maxForce 关节可以施加的最大力。
 	 * @param maxTorque 关节可以施加的最大扭矩。
 	 * @param correctionFactor 可选的校正因子，默认为1.0。
@@ -5993,7 +5993,7 @@ interface JointDefClass {
 	 * @param bodyA 连接到关节的第一个物体的名称。
 	 * @param bodyB 连接到关节的第二个物体的名称。
 	 * @param worldPos 关节的世界位置。
-	 * @param axisAngle 关节的轴角度。
+	 * @param axisAngle 关节的轴角度，单位为度。
 	 * @param lowerTranslation 可选的较小平移限制，默认为0.0。
 	 * @param upperTranslation 可选的较大平移限制，默认为0.0。
 	 * @param maxMotorForce 可选的最大电机力，默认为0.0。
@@ -6041,10 +6041,10 @@ interface JointDefClass {
 	 * @param bodyA 第一个要连接的物体的名称。
 	 * @param bodyB 第二个要连接的物体的名称。
 	 * @param worldPos 关节将被创建的世界坐标位置。
-	 * @param lowerAngle 可选，较小的角度限制（弧度）（默认为0.0）。
-	 * @param upperAngle 可选，较大的角度限制（弧度）（默认为0.0）。
+	 * @param lowerAngle 可选，较小的角度限制，单位为度（默认为0.0）。
+	 * @param upperAngle 可选，较大的角度限制，单位为度（默认为0.0）。
 	 * @param maxMotorTorque 可选，可以施加到关节上以达到目标速度的最大扭矩（默认为0.0）。
-	 * @param motorSpeed 可选，关节的期望速度（默认为0.0）。
+	 * @param motorSpeed 可选，关节电机的目标速度，单位为度/秒（默认为0.0）。
 	 * @returns 旋转关节定义。
 	 */
 	revolute(
@@ -6102,9 +6102,9 @@ interface JointDefClass {
 	 * @param bodyA 第一个要连接的物体的名称。
 	 * @param bodyB 第二个要连接的物体的名称。
 	 * @param worldPos 连接物体的世界坐标位置。
-	 * @param axisAngle 关节轴的角度（弧度）。
+	 * @param axisAngle 关节轴的角度，单位为度。
 	 * @param maxMotorTorque 可选，关节马达可以施加的最大扭矩，默认为0.0。
-	 * @param motorSpeed 可选，关节马达的目标速度，默认为0.0。
+	 * @param motorSpeed 可选，关节马达的目标速度，单位为度/秒，默认为0.0。
 	 * @param frequency 可选，关节的频率，默认为2.0。
 	 * @param damping 可选，关节的阻尼率，默认为0.7。
 	 * @returns 新创建的轮子关节定义。
@@ -6190,7 +6190,7 @@ interface JointClass {
 	 * @param bodyA 连接到关节的第一个物理体。
 	 * @param bodyB 连接到关节的第二个物理体。
 	 * @param linearOffset 在物理体A坐标系下，物理体B的位置减去物理体A的位置。
-	 * @param angularOffset 物理体B的角度减去物理体A的角度。
+	 * @param angularOffset 物理体B的角度减去物理体A的角度，单位为度。
 	 * @param maxForce 关节能够施加的最大力。
 	 * @param maxTorque 关节能够施加的最大扭矩。
 	 * @param correctionFactor 可选的纠正系数，默认为1.0。
@@ -6232,7 +6232,7 @@ interface JointClass {
 	 * @param bodyA 连接到关节的第一个刚体。
 	 * @param bodyB 连接到关节的第二个刚体。
 	 * @param worldPos 关节的世界坐标。
-	 * @param axisAngle 关节的轴角度。
+	 * @param axisAngle 关节的轴角度，单位为度。
 	 * @param lowerTranslation 可选的下限平移量，默认为0.0。
 	 * @param upperTranslation 可选的上限平移量，默认为0.0。
 	 * @param maxMotorForce 可选的最大电机力，默认为0.0。
@@ -6280,10 +6280,10 @@ interface JointClass {
 	 * @param bodyA 要连接的第一个物理体。
 	 * @param bodyB 要连接的第二个物理体。
 	 * @param worldPos 关节将被创建的世界坐标位置。
-	 * @param lowerAngle [可选] 下限角度限制（弧度）（默认为0.0）。
-	 * @param upperAngle [可选] 上限角度限制（弧度）（默认为0.0）。
+	 * @param lowerAngle [可选] 下限角度限制，单位为度（默认为0.0）。
+	 * @param upperAngle [可选] 上限角度限制，单位为度（默认为0.0）。
 	 * @param maxMotorTorque [可选] 关节施加的最大扭矩以达到目标速度（默认为0.0）。
-	 * @param motorSpeed [可选] 关节的期望速度（默认为0.0）。
+	 * @param motorSpeed [可选] 关节电机的目标速度，单位为度/秒（默认为0.0）。
 	 * @return 旋转关节。
 	 */
 	revolute(
@@ -6341,9 +6341,9 @@ interface JointClass {
 	 * @param bodyA 第一个将被连接的物体。
 	 * @param bodyB 第二个将被连接的物体。
 	 * @param worldPos 连接物体的世界位置。
-	 * @param axisAngle 关节轴的角度，以弧度为单位。
+	 * @param axisAngle 关节轴的角度，单位为度。
 	 * @param maxMotorTorque [可选] 关节电机可以施加的最大力矩，默认为 0.0。
-	 * @param motorSpeed [可选] 关节电机的目标速度，默认为 0.0。
+	 * @param motorSpeed [可选] 关节电机的目标速度，单位为度/秒，默认为 0.0。
 	 * @param frequency [可选] 关节的刚度频率，默认为 2.0。
 	 * @param damping [可选] 关节的阻尼比率，默认为 0.7。
 	 * @return 新创建的轮子关节。

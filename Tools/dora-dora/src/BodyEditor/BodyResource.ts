@@ -1,3 +1,5 @@
+import Info from "../Info";
+
 export type BodyFaceKind = "empty" | "sprite" | "clip" | "playable";
 
 export type BodyFaceReference = {
@@ -7,6 +9,30 @@ export type BodyFaceReference = {
 };
 
 const imageExts = [".png", ".jpg", ".jpeg", ".webp"];
+
+export type BodyFacePreviewAsset = {
+	kind: "image";
+	image: HTMLImageElement;
+	width: number;
+	height: number;
+	objectUrl: string;
+} | {
+	kind: "clip";
+	image: HTMLImageElement;
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+	objectUrl: string;
+} | {
+	kind: "placeholder";
+	label: string;
+};
+
+export const isBodyFaceImageSource = (source: string) => {
+	const lower = source.toLowerCase();
+	return imageExts.some((ext) => lower.endsWith(ext));
+};
 
 export const parseBodyFace = (face: string): BodyFaceReference => {
 	if (face === "") return { kind: "empty", source: "" };
@@ -19,8 +45,7 @@ export const parseBodyFace = (face: string): BodyFaceReference => {
 			clipName: face.slice(clipIndex + 6),
 		};
 	}
-	const lower = face.toLowerCase();
-	if (imageExts.some((ext) => lower.endsWith(ext))) {
+	if (isBodyFaceImageSource(face)) {
 		return { kind: "sprite", source: face };
 	}
 	return { kind: "sprite", source: face };
@@ -45,3 +70,9 @@ export const bodyResourceToServedUrl = (resourcePath: string, resourceBasePath: 
 	return "/" + normalized.replace(/^\/+/, "");
 };
 
+export const resolveBodyFaceResourcePath = (resourcePath: string, resourceBasePath: string) => {
+	if (resourcePath === "") return "";
+	const normalized = resourcePath.replace(/\\/g, "/");
+	if (normalized.startsWith("/") || /^[A-Za-z]:[\\/]/.test(resourcePath)) return resourcePath;
+	return Info.path.normalize(Info.path.join(resourceBasePath, resourcePath));
+};
