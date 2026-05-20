@@ -2322,7 +2322,7 @@ const PropertyPanel = memo(function PropertyPanel(props: {
 					</div>
 				) : null}
 				{definition.fields.map((field) => {
-					if (field.name === "subShapes") return null;
+					if (field.name === "subShapes" || field.kind === "hidden") return null;
 					const value = item.fields[field.name];
 				const valueText = valueToText(value);
 				const inputKey = `${item.id}:${field.name}:${valueText}`;

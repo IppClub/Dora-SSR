@@ -5391,7 +5391,7 @@ class BodyDef extends Object {
 
 	/**
 	 * Attaches a concave shape definition made of multiple convex shapes to the body.
-	 * @param vertices A table containing the vertices of each convex shape that makes up the concave shape.
+	 * @param vertices A table containing the vertices of each convex shape that makes up the concave shape. Consecutive duplicate vertices split the table into separate convex shapes.
 	 * @param density The density of the concave shape (default is 0.0) (optional).
 	 * @param friction The friction of the concave shape (default is 0.4, should be 0 to 1.0) (optional).
 	 * @param restitution The restitution of the concave shape (default is 0.0, should be 0 to 1.0) (optional).
@@ -5511,7 +5511,7 @@ interface BodyDefClass {
 
 	/**
      * Create a concave shape definition made of multiple convex shapes.
-     * @param vertices Array of Vec2 representing vertices of each convex shape that makes up the concave shape. Each convex shape in the vertices array should end with a Vec2(0.0, 0.0) as a separator.
+     * @param vertices Array of Vec2 representing vertices of each convex shape that makes up the concave shape. Consecutive duplicate vertices split the array into separate convex shapes.
      * @param density The density of the shape (optional, default 0.0).
      * @param friction The friction coefficient of the shape (optional, default 0.4, should be 0.0 to 1.0).
      * @param restitution The restitution (elasticity) of the shape (optional, default 0.0, should be 0.0 to 1.0).

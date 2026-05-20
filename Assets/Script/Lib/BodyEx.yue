@@ -76,6 +76,7 @@ Struct.Phyx.Poly(
 	"face"
 	"facePos"
 	"faceScale"
+	"convexes"
 )
 Struct.Phyx.Chain(
 	"name"
@@ -121,6 +122,7 @@ Struct.Phyx.SubPoly(
 	"restitution"
 	"sensor"
 	"sensorTag"
+	"convexes"
 )
 Struct.Phyx.SubChain(
 	"vertices"
@@ -249,14 +251,47 @@ loadBodyData = (bodyData) ->
 	Struct\load data
 
 toVec = (value) ->
-	switch value when [x, y] then Vec2 x, y
-	else value
+	return value unless "table" == type value
+	Vec2 value.x or value[1] or 0, value.y or value[2] or 0
 
 toVecArray = (values) ->
 	if values.toArray
 		values = values\toArray!
 	start = if values[1] == "Array" then 2 else 1
 	[toVec values[i] for i = start, #values]
+
+copyVec = (value) -> Vec2 value.x, value.y
+
+toVecParts = (values, vertices) ->
+	return {toVecArray vertices} unless values
+	values = values\toArray! if values.toArray
+	return {toVecArray vertices} if #values == 0
+	start = if values[1] == "Array" then 2 else 1
+	return {toVecArray vertices} if start > #values
+	parts = {}
+	for i = start, #values
+		table.insert parts, toVecArray values[i]
+	error "polygon convex data must contain at least one convex part" if #parts == 0
+	parts
+
+encodeMultiParts = (parts) ->
+	result = {}
+	for i, part in ipairs parts
+		for point in *part
+			table.insert result, copyVec point
+		if i < #parts and #part > 0
+			table.insert result, copyVec part[#part]
+	result
+
+attachPolygonParts = (bodyDef, data) ->
+	parts = toVecParts data.convexes, data.vertices
+	if data.sensor
+		for part in *parts
+			bodyDef\attachPolygonSensor data.sensorTag, part
+	else if #parts == 1
+		bodyDef\attachPolygon parts[1], data.density, data.friction, data.restitution
+	else
+		bodyDef\attachMulti encodeMultiParts(parts), data.density, data.friction, data.restitution
 
 axisToAngle = (value) ->
 	axis = toVec value
@@ -327,13 +362,7 @@ loadFuncs =
 
 	"Phyx.Poly": (data, itemDict) ->
 		bodyDef = toDef data
-		if data.sensor
-			bodyDef\attachPolygonSensor data.sensorTag, toVecArray(data.vertices)
-		else
-			bodyDef\attachPolygon(
-				toVecArray data.vertices
-				data.density, data.friction, data.restitution
-			)
+		attachPolygonParts bodyDef, data
 		if subShapes := data.subShapes
 			for i = 1, arrayCount subShapes
 				loadData arrayGet(subShapes, i), bodyDef
@@ -367,13 +396,7 @@ loadFuncs =
 			)
 
 	"Phyx.SubPoly": (data, bodyDef) ->
-		if data.sensor
-			bodyDef\attachPolygonSensor data.sensorTag, toVecArray(data.vertices)
-		else
-			bodyDef\attachPolygon(
-				toVecArray(data.vertices),
-				data.density, data.friction, data.restitution
-			)
+		attachPolygonParts bodyDef, data
 
 	"Phyx.SubChain": (data, bodyDef) ->
 		bodyDef\attachChain toVecArray(data.vertices), data.friction, data.restitution

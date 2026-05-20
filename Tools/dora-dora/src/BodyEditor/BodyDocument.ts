@@ -11,6 +11,7 @@ export type BodyFieldKind =
 	| "size"
 	| "vertices"
 	| "subShapes"
+	| "hidden"
 	| "bodyRef"
 	| "jointRef";
 
@@ -113,9 +114,9 @@ export const BODY_SHAPE_STRUCTS = [
 			field("faceScale", "number"),
 		],
 	},
-	{
-		type: "Phyx.Disk",
-		fields: [
+		{
+			type: "Phyx.Disk",
+			fields: [
 			field("name", "string"),
 			field("type", "bodyType"),
 			field("position", "vector"),
@@ -132,12 +133,12 @@ export const BODY_SHAPE_STRUCTS = [
 			field("bullet", "boolean"),
 			field("sensor", "boolean"),
 			field("sensorTag", "number"),
-			field("subShapes", "subShapes"),
-			field("face", "string"),
-			field("facePos", "vector"),
-			field("faceScale", "number"),
-		],
-	},
+				field("subShapes", "subShapes"),
+				field("face", "string"),
+				field("facePos", "vector"),
+				field("faceScale", "number"),
+			],
+		},
 	{
 		type: "Phyx.Poly",
 		fields: [
@@ -156,12 +157,13 @@ export const BODY_SHAPE_STRUCTS = [
 			field("bullet", "boolean"),
 			field("sensor", "boolean"),
 			field("sensorTag", "number"),
-			field("subShapes", "subShapes"),
-			field("face", "string"),
-			field("facePos", "vector"),
-			field("faceScale", "number"),
-		],
-	},
+				field("subShapes", "subShapes"),
+				field("face", "string"),
+				field("facePos", "vector"),
+				field("faceScale", "number"),
+				field("convexes", "hidden"),
+			],
+		},
 	{
 		type: "Phyx.Chain",
 		fields: [
@@ -199,29 +201,30 @@ export const BODY_SUB_SHAPE_STRUCTS = [
 			field("sensorTag", "number"),
 		],
 	},
-	{
-		type: "Phyx.SubDisk",
-		fields: [
+		{
+			type: "Phyx.SubDisk",
+			fields: [
 			field("center", "vector"),
 			field("radius", "number"),
 			field("density", "number"),
 			field("friction", "number"),
-			field("restitution", "number"),
-			field("sensor", "boolean"),
-			field("sensorTag", "number"),
-		],
-	},
+				field("restitution", "number"),
+				field("sensor", "boolean"),
+				field("sensorTag", "number"),
+			],
+		},
 	{
 		type: "Phyx.SubPoly",
 		fields: [
 			field("vertices", "vertices"),
 			field("density", "number"),
 			field("friction", "number"),
-			field("restitution", "number"),
-			field("sensor", "boolean"),
-			field("sensorTag", "number"),
-		],
-	},
+				field("restitution", "number"),
+				field("sensor", "boolean"),
+				field("sensorTag", "number"),
+				field("convexes", "hidden"),
+			],
+		},
 	{
 		type: "Phyx.SubChain",
 		fields: [

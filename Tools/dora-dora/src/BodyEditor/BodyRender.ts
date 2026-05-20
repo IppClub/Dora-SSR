@@ -69,39 +69,6 @@ const selectionBoundsColor = "rgba(170, 176, 184, 0.95)";
 const selectionMarkerColor = "#65d6ff";
 const prismaticGuideColor = "#65d6ff";
 
-const polygonSignedArea = (vertices: BodyVector[]) => {
-	let area = 0;
-	for (let i = 0; i < vertices.length; i++) {
-		const a = vertices[i];
-		const b = vertices[(i + 1) % vertices.length];
-		area += a[0] * b[1] - b[0] * a[1];
-	}
-	return area * 0.5;
-};
-
-const filterConcavePolygonVertices = (vertices: BodyVector[]) => {
-	if (vertices.length <= 3) return vertices;
-	const result = vertices.map((point) => [...point] as BodyVector);
-	const winding = polygonSignedArea(result) >= 0 ? 1 : -1;
-	const epsilon = 0.000001;
-	let changed = true;
-	while (changed && result.length >= 3) {
-		changed = false;
-		for (let i = 0; i < result.length; i++) {
-			const previous = result[(i + result.length - 1) % result.length];
-			const current = result[i];
-			const next = result[(i + 1) % result.length];
-			const cross = (current[0] - previous[0]) * (next[1] - current[1]) - (current[1] - previous[1]) * (next[0] - current[0]);
-			if (cross * winding <= epsilon) {
-				result.splice(i, 1);
-				changed = true;
-				break;
-			}
-		}
-	}
-	return result;
-};
-
 export const isBodyItem = (item: BodyStructDocument) => bodyTypes.has(item.structType);
 export const isJointItem = (item: BodyStructDocument) => jointTypes.has(item.structType);
 
@@ -319,8 +286,7 @@ const drawShape = (
 		return;
 	}
 	if (shape.structType === "Phyx.Poly" || shape.structType === "Phyx.SubPoly") {
-		const points = filterConcavePolygonVertices(asArray(shape.fields.vertices).map((point) => asVector(point)))
-			.map((point) => localToWorld(body, point, pose));
+		const points = asArray(shape.fields.vertices).map((point) => localToWorld(body, asVector(point), pose));
 		if (points.length < 3) return;
 		drawPath(ctx, points, viewport, width, height, true);
 		ctx.fill();
@@ -468,8 +434,7 @@ const hitTestShape = (point: BodyVector, body: BodyStructDocument, shape: BodySt
 		return distanceSq(point, center) <= (radius + tolerance) * (radius + tolerance);
 	}
 	if (shape.structType === "Phyx.Poly" || shape.structType === "Phyx.SubPoly") {
-		const points = filterConcavePolygonVertices(asArray(shape.fields.vertices).map((vertex) => asVector(vertex)))
-			.map((vertex) => localToWorld(body, vertex, pose));
+		const points = asArray(shape.fields.vertices).map((vertex) => localToWorld(body, asVector(vertex), pose));
 		return points.length >= 3 && pointInPolygon(point, points);
 	}
 	if (shape.structType === "Phyx.Chain" || shape.structType === "Phyx.SubChain") {
