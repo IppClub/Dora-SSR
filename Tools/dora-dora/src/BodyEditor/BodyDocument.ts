@@ -80,7 +80,7 @@ export type BodyJointDocument = {
 
 export type BodyDocument = {
 	version: 1;
-	source: "body.lua";
+	source: "b.lua";
 	items: BodyStructDocument[];
 	dirty: boolean;
 };

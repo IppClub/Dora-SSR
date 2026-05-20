@@ -96,7 +96,7 @@ const fileIcon = (props: TreeNodeProps) => {
 				return <AiOutlineFolder />;
 			}
 		} else {
-			if (data.key.toLowerCase().endsWith(".body.lua")) {
+			if (data.key.toLowerCase().endsWith(".b.lua")) {
 				return <img src={doraBodyLogo} alt="body" width="14px" height="14px" style={{ objectFit: 'contain' }} />;
 			}
 			switch (Info.path.extname(data.key).toLowerCase()) {

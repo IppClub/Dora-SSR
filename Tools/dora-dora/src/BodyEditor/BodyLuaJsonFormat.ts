@@ -92,7 +92,7 @@ const validateNumberFieldValue = (
 
 const makeEmptyDocument = (): BodyDocument => ({
 	version: 1,
-	source: "body.lua",
+	source: "b.lua",
 	items: [],
 	dirty: false,
 });

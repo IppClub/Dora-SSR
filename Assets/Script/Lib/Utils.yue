@@ -228,9 +228,10 @@ setmetatable StructHelper, StructHelper
 local Struct
 StructLoad = (data) ->
 	if "table" == type data
-		mt = StructDefs[data[1]]
-		assert mt, "Struct started with \"#{data[1]}\" is not defined."
-		setmetatable data, mt
+		if "string" == type data[1]
+			mt = StructDefs[data[1]]
+			assert mt, "Struct started with \"#{data[1]}\" is not defined."
+			setmetatable data, mt
 		for item in *data
 			StructLoad item
 export Struct = setmetatable {

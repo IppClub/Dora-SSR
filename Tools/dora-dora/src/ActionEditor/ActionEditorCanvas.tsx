@@ -2389,10 +2389,30 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 		};
 	}, [handleContextMenu, props.active]);
 
+	const handleKeyDown = useCallback((event: React.KeyboardEvent<HTMLCanvasElement>) => {
+		const key = event.key.toLowerCase();
+		const command = event.metaKey || event.ctrlKey;
+		if (!command) return;
+		if (key === "z") {
+			event.preventDefault();
+			if (props.readOnly) return;
+			if (event.shiftKey) {
+				if (props.canRedo) props.onRedo();
+			} else if (props.canUndo) {
+				props.onUndo();
+			}
+		} else if (key === "y") {
+			event.preventDefault();
+			if (props.readOnly) return;
+			if (props.canRedo) props.onRedo();
+		}
+	}, [props]);
+
 	return (
 		<canvas
 			ref={canvasRef}
 			tabIndex={0}
+			onKeyDown={handleKeyDown}
 			width={props.width}
 			height={props.height}
 			style={{

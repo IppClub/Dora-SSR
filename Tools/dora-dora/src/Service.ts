@@ -504,13 +504,13 @@ export const check = (req: CheckRequest) => {
 	return post<CheckResponse>("/check", req);
 };
 
-// Body Lua
+// Body
 
-export interface BodyLuaToJsonRequest {
+export interface ParseBodyFileRequest {
 	file: string;
 	content: string;
 };
-export type BodyLuaToJsonResponse = {
+export type ParseBodyFileResponse = {
 	success: true;
 	json: string;
 } | {
@@ -518,8 +518,8 @@ export type BodyLuaToJsonResponse = {
 	phase?: "request" | "parse" | "execute" | "validate" | "encode";
 	message?: string;
 };
-export const bodyLuaToJson = (req: BodyLuaToJsonRequest) => {
-	return post<BodyLuaToJsonResponse>("/body-lua-to-json", req);
+export const parseBodyFile = (req: ParseBodyFileRequest) => {
+	return post<ParseBodyFileResponse>("/body/parse", req);
 };
 
 // Assets

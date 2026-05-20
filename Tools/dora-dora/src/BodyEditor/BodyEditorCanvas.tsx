@@ -2,6 +2,7 @@ import RedoIcon from "@mui/icons-material/Redo";
 import UndoIcon from "@mui/icons-material/Undo";
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, TextField, Tooltip } from "@mui/material";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import Info from "../Info";
 import * as Service from "../Service";
 import { parseLegacyClip, type ActionClipRect } from "../ActionEditor/ActionClip";
@@ -10,7 +11,7 @@ import { BodyCreateJointRefs, BodyCreateJointType, BodyCreateShapeType, BodyCrea
 import { BodyNumberConstraint, applyBodyNumberConstraint, getBodyNumberConstraint } from "./BodyFieldConstraints";
 import { BodyIconName, drawBodyIcon } from "./BodyIcons";
 import { BODY_PHYSICS_TIME_STEP, BodyPhysicsRuntime, type BodyPhysicsSnapshot } from "./BodyPhysicsRuntime";
-import { BodyFacePreviewAsset, bodyResourceToServedUrl, isBodyFaceImageSource, parseBodyFace } from "./BodyResource";
+import { BodyFacePreviewAsset, bodyResourceToServedUrl, isBodyFaceImageSource } from "./BodyResource";
 import { BodyViewport, asArray, asNumber, asString, asVector, getItemName, getJointAnchorWorldPosition, getSubShapeItem, getSubShapeSelectionId, hitTestBodyDocument, isBodyItem, isJointItem, parseSubShapeSelectionId, renderBodyDocument } from "./BodyRender";
 
 type BodyEditorAlertType = "success" | "info" | "warning" | "error";
@@ -61,6 +62,19 @@ const iconLabels: Record<BodyIconName, string> = {
 	zoom: "Zoom",
 	fixX: "Fix X",
 	fixY: "Fix Y",
+};
+
+const jointCreateLabels: Record<BodyCreateJointType, string> = {
+	distance: "Distance",
+	friction: "Friction",
+	gear: "Gear",
+	spring: "Spring",
+	prismatic: "Prismatic",
+	pulley: "Pulley",
+	revolute: "Revolute",
+	rope: "Rope",
+	weld: "Weld",
+	wheel: "Wheel",
 };
 
 type FaceResourceEntry = {
@@ -598,28 +612,16 @@ const drawGizmoOverlay = (
 	ctx.restore();
 };
 
-	const toolbarGroups: readonly (readonly BodyIconName[])[] = [
+const toolbarGroups: readonly (readonly BodyIconName[])[] = [
 		["rect", "disk", "poly", "chain", "joint"],
 		["delete"],
 		["play"],
 ];
 
-const toolbarGroupLabels = ["New", "Edit", "Test"];
 const viewToolNames: readonly BodyIconName[] = ["origin", "zoom", "fixX", "fixY"];
 const gizmoModes = ["select", "move", "scale", "rotate"] as const;
 type BodyGizmoMode = typeof gizmoModes[number];
-const jointCreateOptions: readonly (readonly [BodyCreateJointType, string])[] = [
-	["distance", "Distance"],
-	["friction", "Friction"],
-	["gear", "Gear"],
-	["spring", "Spring"],
-	["prismatic", "Prismatic"],
-	["pulley", "Pulley"],
-	["revolute", "Revolute"],
-	["rope", "Rope"],
-	["weld", "Weld"],
-	["wheel", "Wheel"],
-];
+const jointCreateOptions: readonly BodyCreateJointType[] = ["distance", "friction", "gear", "spring", "prismatic", "pulley", "revolute", "rope", "weld", "wheel"];
 
 type PendingJointSelection = {
 	bodyA?: string;
@@ -640,17 +642,8 @@ const createsJointAfterBodyPick = (type: BodyCreateJointType | null) => (
 	type === "distance" || type === "pulley" || type === "rope" || type === "spring"
 );
 
-const getBodyPickCreateJointLabel = (type: BodyCreateJointType) => {
-	switch (type) {
-		case "distance": return "Distance";
-		case "pulley": return "Pulley";
-		case "rope": return "Rope";
-		case "spring": return "Spring";
-		default: return "joint";
-	}
-};
-
 export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
+	const { t } = useTranslation();
 	const { document, faceAssets, resourceBasePath, servedResourceBasePath, width, height, active } = props;
 	const { onCreateShape, onCreateSubShape, onCreateJoint, onDeleteSelected, onDuplicateSelected, onUpdateField, onBeginValueEdit, onEndValueEdit } = props;
 	const { addAlert } = props;
@@ -703,6 +696,20 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 	const showSidePanel = width >= 620;
 	const actualListWidth = showSidePanel ? listWidth : 0;
 	const canvasWidth = Math.max(1, width - actualListWidth - toolbarWidth);
+	const toolbarGroupLabels = useMemo(() => [
+		t("bodyEditor.toolbar.new", "New"),
+		t("bodyEditor.toolbar.edit", "Edit"),
+		t("bodyEditor.toolbar.test", "Test"),
+	], [t]);
+	const getIconLabel = useCallback((name: BodyIconName) => (
+		t(`bodyEditor.icons.${name}`, iconLabels[name])
+	), [t]);
+	const getJointLabel = useCallback((type: BodyCreateJointType) => (
+		t(`bodyEditor.joints.${type}`, jointCreateLabels[type])
+	), [t]);
+	const getGizmoModeLabel = useCallback((mode: BodyGizmoMode) => (
+		t(`bodyEditor.gizmo.${mode}`, mode[0].toUpperCase() + mode.slice(1))
+	), [t]);
 
 	const selectedItem = useMemo(() => {
 		const subSelection = parseSubShapeSelectionId(selectedId);
@@ -715,19 +722,19 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 	}, [document.items, selectedId]);
 
 	const jointCreateHint = useMemo(() => {
-		if (!pendingJointType) return "Select a joint type.";
+		if (!pendingJointType) return t("bodyEditor.jointHint.selectType", "Select a joint type.");
 		if (pendingJointType === "gear") {
-			if (!pendingJointSelection.jointA) return "Click a Revolute or Prismatic joint for JointA.";
-			return `JointA: ${pendingJointSelection.jointA}. Click another Revolute or Prismatic joint for JointB.`;
+			if (!pendingJointSelection.jointA) return t("bodyEditor.jointHint.selectJointA", "Click a Revolute or Prismatic joint for JointA.");
+			return t("bodyEditor.jointHint.selectJointB", "JointA: {{jointA}}. Click another Revolute or Prismatic joint for JointB.", { jointA: pendingJointSelection.jointA });
 		}
-		if (!pendingJointSelection.bodyA) return "Click a body for BodyA.";
+		if (!pendingJointSelection.bodyA) return t("bodyEditor.jointHint.selectBodyA", "Click a body for BodyA.");
 		if (!pendingJointSelection.bodyB) {
 			return createsJointAfterBodyPick(pendingJointType)
-				? `BodyA: ${pendingJointSelection.bodyA}. Click another body to create the ${getBodyPickCreateJointLabel(pendingJointType)} joint.`
-				: `BodyA: ${pendingJointSelection.bodyA}. Click another body for BodyB.`;
+				? t("bodyEditor.jointHint.selectBodyBToCreate", "BodyA: {{bodyA}}. Click another body to create the {{joint}} joint.", { bodyA: pendingJointSelection.bodyA, joint: getJointLabel(pendingJointType) })
+				: t("bodyEditor.jointHint.selectBodyB", "BodyA: {{bodyA}}. Click another body for BodyB.", { bodyA: pendingJointSelection.bodyA });
 		}
-		return `BodyA: ${pendingJointSelection.bodyA}, BodyB: ${pendingJointSelection.bodyB}. Click the preview to place the joint.`;
-	}, [pendingJointSelection.bodyA, pendingJointSelection.bodyB, pendingJointSelection.jointA, pendingJointType]);
+		return t("bodyEditor.jointHint.placeJoint", "BodyA: {{bodyA}}, BodyB: {{bodyB}}. Click the preview to place the joint.", { bodyA: pendingJointSelection.bodyA, bodyB: pendingJointSelection.bodyB });
+	}, [getJointLabel, pendingJointSelection.bodyA, pendingJointSelection.bodyB, pendingJointSelection.jointA, pendingJointType, t]);
 
 	useEffect(() => {
 		const vertexContext = getVertexEditContext(document, selectedId);
@@ -947,7 +954,19 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 		if (target && ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName)) return;
 		const key = event.key.toLowerCase();
 		const command = event.metaKey || event.ctrlKey;
-		if (key === " " || key === "spacebar") {
+		if (command && key === "z") {
+			event.preventDefault();
+			if (editDisabled) return;
+			if (event.shiftKey) {
+				if (canRedo) onRedo?.();
+			} else if (canUndo) {
+				onUndo?.();
+			}
+		} else if (command && key === "y") {
+			event.preventDefault();
+			if (editDisabled) return;
+			if (canRedo) onRedo?.();
+		} else if (key === " " || key === "spacebar") {
 			event.preventDefault();
 			setIsPlaying((value) => !value);
 		} else if (event.key === "Delete" || event.key === "Backspace") {
@@ -1008,7 +1027,7 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 					return true;
 				});
 			}
-	}, [copiedId, editDisabled, onDeleteSelected, onDuplicateSelected, selectedId]);
+	}, [canRedo, canUndo, copiedId, editDisabled, onDeleteSelected, onDuplicateSelected, onRedo, onUndo, selectedId]);
 
 		const onWheel = useCallback((event: React.WheelEvent<HTMLCanvasElement>) => {
 			event.preventDefault();
@@ -1447,15 +1466,15 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 				}}
 			>
 					<div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-						<span style={{ color: "#9aa4af", fontSize: 12, marginRight: 2 }}>View</span>
+						<span style={{ color: "#9aa4af", fontSize: 12, marginRight: 2 }}>{t("bodyEditor.toolbar.view", "View")}</span>
 					{viewToolNames.map((name) => {
 						const selected = activeTool === name;
 						return (
 							<button
 								key={name}
 								type="button"
-								title={iconLabels[name]}
-								aria-label={iconLabels[name]}
+								title={getIconLabel(name)}
+								aria-label={getIconLabel(name)}
 								onClick={() => runTool(name)}
 								style={{
 									width: 30,
@@ -1472,7 +1491,7 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 						})}
 					</div>
 					<div style={{ display: "flex", alignItems: "center", gap: 4, paddingLeft: 4 }}>
-						<span style={{ color: "#9aa4af", fontSize: 12, marginRight: 2 }}>Tool</span>
+						<span style={{ color: "#9aa4af", fontSize: 12, marginRight: 2 }}>{t("bodyEditor.toolbar.tool", "Tool")}</span>
 						{gizmoModes.map((mode) => {
 							const selected = gizmoMode === mode;
 							return (
@@ -1491,7 +1510,7 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 										opacity: editDisabled ? 0.55 : 1,
 									}}
 								>
-									{mode[0].toUpperCase() + mode.slice(1)}
+									{getGizmoModeLabel(mode)}
 								</button>
 							);
 						})}
@@ -1502,14 +1521,14 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 								disabled={editDisabled}
 								onChange={(event) => setFixedSnap(event.currentTarget.checked)}
 							/>
-							Fixed
+							{t("bodyEditor.fixed", "Fixed")}
 						</label>
 						<input
 							type="number"
 							value={fixedStep}
 							min={0.1}
 							step={1}
-							title="Fixed edit step"
+							title={t("bodyEditor.fixedEditStep", "Fixed edit step")}
 							disabled={editDisabled}
 							onChange={(event) => {
 								const next = Number(event.currentTarget.value);
@@ -1527,7 +1546,7 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 						/>
 					</div>
 						<Stack direction="row" spacing={1}>
-						<Tooltip title="Undo">
+						<Tooltip title={t("bodyEditor.undo", "Undo")}>
 							<span>
 								<IconButton
 									size="small"
@@ -1552,7 +1571,7 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 								</IconButton>
 							</span>
 						</Tooltip>
-						<Tooltip title="Redo">
+						<Tooltip title={t("bodyEditor.redo", "Redo")}>
 							<span>
 								<IconButton
 									size="small"
@@ -1626,8 +1645,8 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 										<button
 											key={name}
 											type="button"
-											title={iconLabels[iconName]}
-											aria-label={iconLabels[iconName]}
+											title={getIconLabel(iconName)}
+											aria-label={getIconLabel(iconName)}
 											disabled={disabled}
 											onClick={() => runTool(name)}
 										style={{
@@ -1676,7 +1695,7 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 						padding: "4px 8px",
 						pointerEvents: "none",
 					}}>
-						Play {physicsSnapshot ? physicsSnapshot.time.toFixed(2) + "s" : ""}
+						{t("bodyEditor.playing", "Play")} {physicsSnapshot ? physicsSnapshot.time.toFixed(2) + "s" : ""}
 					</div>
 				) : null}
 				{isPlaying && physicsSnapshot && physicsSnapshot.motorControls.length > 0 ? (
@@ -1736,8 +1755,9 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 							boxShadow: "0 8px 20px rgba(0,0,0,0.35)",
 							zIndex: 2,
 						}}>
-							{jointCreateOptions.map(([type, label]) => {
+							{jointCreateOptions.map((type) => {
 								const selected = pendingJointType === type;
+								const label = getJointLabel(type);
 								return (
 									<button
 										key={type}
@@ -1836,7 +1856,7 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 														>
 															<BodyIconGlyph name={getStructIconName(subItem)} active={subSelected} />
 															<div style={{ minWidth: 0, flex: 1 }}>
-																<div style={{ fontSize: 12, color: subSelected ? "#fac03d" : "#c8c8c8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textAlign: "right" }}>SubShape {subIndex + 1}</div>
+																<div style={{ fontSize: 12, color: subSelected ? "#fac03d" : "#c8c8c8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textAlign: "right" }}>{t("bodyEditor.subShapeIndex", "SubShape {{index}}", { index: subIndex + 1 })}</div>
 																<div style={{ fontSize: 10, color: subSelected ? "#ffd777" : "#8f9aa6", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textAlign: "right" }}>{subItem.structType.replace("Phyx.", "")}</div>
 															</div>
 														</button>
@@ -1846,7 +1866,7 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 									);
 								})}
 								{selectedItem ? null : (
-									<div style={{ padding: 12, color: "#8f9aa6", fontSize: 13 }}>No BodyEx items</div>
+									<div style={{ padding: 12, color: "#8f9aa6", fontSize: 13 }}>{t("bodyEditor.noItems", "No BodyEx items")}</div>
 								)}
 							</div>
 							<div style={{ flex: "1 1 58%", minHeight: 0, overflow: "auto", paddingBottom: 96, boxSizing: "border-box" }}>
@@ -1929,6 +1949,10 @@ const parseNumberInput = (text: string, fallback: number, constraint?: BodyNumbe
 const formatFieldPrefix = (name: string) => {
 	return name.length > 0 ? name[0].toUpperCase() + name.slice(1) : name;
 };
+
+const getBodyFieldLabel = (translate: (key: string, fallback: string) => string, name: string) => (
+	translate(`bodyEditor.fields.${name}`, formatFieldPrefix(name))
+);
 
 const NumericField = memo(function NumericField(props: {
 	label: string;
@@ -2033,6 +2057,7 @@ const ClipSliceDialog = memo(function ClipSliceDialog(props: {
 	onSelect: (face: string) => void;
 	addAlert?: (msg: string, type: BodyEditorAlertType, openLog?: boolean) => void;
 }) {
+	const { t } = useTranslation();
 	const { entry, resourceBasePath, servedResourceBasePath, onClose, onSelect, addAlert } = props;
 	const [rects, setRects] = useState<ActionClipRect[]>([]);
 	const [atlasImage, setAtlasImage] = useState<HTMLImageElement | null>(null);
@@ -2050,7 +2075,7 @@ const ClipSliceDialog = memo(function ClipSliceDialog(props: {
 		setFilter("");
 		Service.read({ path: entry.path }).then(async (res) => {
 			if (cancelled) return;
-			if (!res.success) throw new Error(`Failed to read clip: ${entry.relative}`);
+			if (!res.success) throw new Error(t("bodyEditor.failedReadClip", "Failed to read clip: {{file}}", { file: entry.relative }));
 			const clip = parseLegacyClip(res.content, entry.path);
 			const loaded = await loadFaceImageElement(clip.texturePath, servedResourceBasePath);
 			objectUrl = loaded.objectUrl;
@@ -2064,7 +2089,7 @@ const ClipSliceDialog = memo(function ClipSliceDialog(props: {
 			if (!cancelled) {
 				setRects([]);
 				setAtlasImage(null);
-				addAlert?.(error instanceof Error ? error.message : `Failed to load clip: ${entry.relative}`, "warning");
+				addAlert?.(error instanceof Error ? error.message : t("bodyEditor.failedLoadClip", "Failed to load clip: {{file}}", { file: entry.relative }), "warning");
 			}
 		}).finally(() => {
 			if (!cancelled) setLoading(false);
@@ -2073,27 +2098,27 @@ const ClipSliceDialog = memo(function ClipSliceDialog(props: {
 			cancelled = true;
 			if (objectUrl) URL.revokeObjectURL(objectUrl);
 		};
-	}, [addAlert, entry, resourceBasePath, servedResourceBasePath]);
+	}, [addAlert, entry, resourceBasePath, servedResourceBasePath, t]);
 	const visibleRects = useMemo(() => {
 		const query = filter.trim().toLowerCase();
 		return query === "" ? rects : rects.filter((rect) => rect.name.toLowerCase().includes(query));
 	}, [filter, rects]);
 	return (
 		<Dialog open={entry !== null} onClose={onClose} fullWidth maxWidth="md">
-			<DialogTitle>Choose Clip Slice</DialogTitle>
+			<DialogTitle>{t("bodyEditor.chooseClipSlice", "Choose Clip Slice")}</DialogTitle>
 			<DialogContent sx={{ display: "flex", flexDirection: "column", gap: 1.25, background: "#181818" }}>
 				<div style={{ color: "#8f9aa6", fontSize: 12 }}>{entry?.relative ?? ""}</div>
 				<TextField
 					size="small"
 					value={filter}
 					onChange={(event) => setFilter(event.currentTarget.value)}
-					placeholder="Filter slices"
+					placeholder={t("bodyEditor.filterSlices", "Filter slices")}
 				/>
 				<div style={{ minHeight: 260, maxHeight: 420, overflow: "auto" }}>
 					{loading ? (
-						<div style={{ color: "#8f9aa6", padding: 12 }}>Loading...</div>
+						<div style={{ color: "#8f9aa6", padding: 12 }}>{t("bodyEditor.loadingShort", "Loading...")}</div>
 					) : visibleRects.length === 0 ? (
-						<div style={{ color: "#8f9aa6", padding: 12 }}>No slices</div>
+						<div style={{ color: "#8f9aa6", padding: 12 }}>{t("bodyEditor.noSlices", "No slices")}</div>
 					) : (
 						<div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 8 }}>
 							{visibleRects.map((rect) => (
@@ -2128,7 +2153,7 @@ const ClipSliceDialog = memo(function ClipSliceDialog(props: {
 				</div>
 			</DialogContent>
 			<DialogActions>
-				<Button onClick={onClose}>Cancel</Button>
+				<Button onClick={onClose}>{t("action.cancel", "Cancel")}</Button>
 			</DialogActions>
 		</Dialog>
 	);
@@ -2142,6 +2167,7 @@ const FaceResourceDialog = memo(function FaceResourceDialog(props: {
 	onSelect: (face: string) => void;
 	addAlert?: (msg: string, type: BodyEditorAlertType, openLog?: boolean) => void;
 }) {
+	const { t } = useTranslation();
 	const { open, resourceBasePath, servedResourceBasePath, onClose, onSelect, addAlert } = props;
 	const [resources, setResources] = useState<FaceResourceEntry[]>([]);
 	const [selectedClip, setSelectedClip] = useState<FaceResourceEntry | null>(null);
@@ -2157,7 +2183,7 @@ const FaceResourceDialog = memo(function FaceResourceDialog(props: {
 		}).catch((error) => {
 			if (!cancelled) {
 				setResources([]);
-				addAlert?.(error instanceof Error ? error.message : "Failed to search face resources.", "warning");
+				addAlert?.(error instanceof Error ? error.message : t("bodyEditor.failedSearchFaceResources", "Failed to search face resources."), "warning");
 			}
 		}).finally(() => {
 			if (!cancelled) setLoading(false);
@@ -2165,7 +2191,7 @@ const FaceResourceDialog = memo(function FaceResourceDialog(props: {
 		return () => {
 			cancelled = true;
 		};
-	}, [addAlert, open, resourceBasePath]);
+	}, [addAlert, open, resourceBasePath, t]);
 	const visibleResources = useMemo(() => {
 		const query = filter.trim().toLowerCase();
 		return query === "" ? resources : resources.filter((entry) => entry.relative.toLowerCase().includes(query));
@@ -2177,20 +2203,20 @@ const FaceResourceDialog = memo(function FaceResourceDialog(props: {
 	return (
 		<>
 			<Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-				<DialogTitle>Choose Face Resource</DialogTitle>
+				<DialogTitle>{t("bodyEditor.chooseFaceResource", "Choose Face Resource")}</DialogTitle>
 				<DialogContent sx={{ display: "flex", flexDirection: "column", gap: 1.25, background: "#181818" }}>
 					<div style={{ color: "#8f9aa6", fontSize: 12 }}>{resourceBasePath}</div>
 					<TextField
 						size="small"
 						value={filter}
 						onChange={(event) => setFilter(event.currentTarget.value)}
-						placeholder="Filter resources"
+						placeholder={t("bodyEditor.filterResources", "Filter resources")}
 					/>
 					<div style={{ minHeight: 280, maxHeight: 460, overflow: "auto", border: "1px solid #2b2b2b" }}>
 						{loading ? (
-							<div style={{ color: "#8f9aa6", padding: 12 }}>Searching...</div>
+							<div style={{ color: "#8f9aa6", padding: 12 }}>{t("bodyEditor.searching", "Searching...")}</div>
 						) : visibleResources.length === 0 ? (
-							<div style={{ color: "#8f9aa6", padding: 12 }}>No image or clip resources</div>
+							<div style={{ color: "#8f9aa6", padding: 12 }}>{t("bodyEditor.noFaceResources", "No image or clip resources")}</div>
 						) : visibleResources.map((entry) => (
 							<button
 								key={`${entry.kind}:${entry.relative}`}
@@ -2224,7 +2250,7 @@ const FaceResourceDialog = memo(function FaceResourceDialog(props: {
 					</div>
 				</DialogContent>
 				<DialogActions>
-					<Button onClick={onClose}>Cancel</Button>
+					<Button onClick={onClose}>{t("action.cancel", "Cancel")}</Button>
 				</DialogActions>
 			</Dialog>
 			<ClipSliceDialog
@@ -2254,20 +2280,21 @@ const PropertyPanel = memo(function PropertyPanel(props: {
 	onBeginValueEdit?: () => void;
 	onEndValueEdit?: (changed: boolean) => void;
 }) {
+	const { t } = useTranslation();
 	const { document, item, readOnly, canAddSubShape, pendingSubShapeType, selectedVertexIndex, onAddVertex, onRemoveVertex, onCreateSubShape, onUpdateField, onChooseFace, onBeginValueEdit, onEndValueEdit } = props;
 	const definition = BODY_STRUCTS_BY_TYPE[item.structType];
 	const bodyOptions = useMemo(() => document.items.filter(isBodyItem).map((entry) => getJointCandidateName(entry)), [document.items]);
 	const jointOptions = useMemo(() => document.items.filter((entry) => isGearJointCandidate(entry)).map((entry) => getJointCandidateName(entry)), [document.items]);
 	return (
 		<div style={{ borderTop: "1px solid #3a3a3a", padding: 10 }}>
-			<div style={{ color: "#d7d7d7", fontSize: 13, marginBottom: 8 }}>Properties</div>
+			<div style={{ color: "#d7d7d7", fontSize: 13, marginBottom: 8 }}>{t("bodyEditor.properties", "Properties")}</div>
 			{canAddSubShape ? (
 				<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4, marginBottom: 8 }}>
 					{([
-						["subRect", "SubRect"],
-						["subDisk", "SubDisk"],
-						["subPoly", "SubPoly"],
-						["subChain", "SubChain"],
+						["subRect", t("bodyEditor.subShapes.subRect", "SubRect")],
+						["subDisk", t("bodyEditor.subShapes.subDisk", "SubDisk")],
+						["subPoly", t("bodyEditor.subShapes.subPoly", "SubPoly")],
+						["subChain", t("bodyEditor.subShapes.subChain", "SubChain")],
 						] as const).map(([type, label]) => {
 							const selected = pendingSubShapeType === type;
 							return (
@@ -2290,7 +2317,7 @@ const PropertyPanel = memo(function PropertyPanel(props: {
 							);
 						})}
 						<div style={{ gridColumn: "1 / -1", color: "#8f9aa6", fontSize: 11, lineHeight: "15px", paddingTop: 2 }}>
-							Select a sub shape type, then click the preview.
+							{t("bodyEditor.subShapeHint", "Select a sub shape type, then click the preview.")}
 						</div>
 					</div>
 				) : null}
@@ -2300,6 +2327,7 @@ const PropertyPanel = memo(function PropertyPanel(props: {
 				const valueText = valueToText(value);
 				const inputKey = `${item.id}:${field.name}:${valueText}`;
 				const labelStyle = { display: "block", color: "#8f9aa6", fontSize: 11, margin: "8px 0 3px" };
+				const fieldLabel = getBodyFieldLabel(t, field.name);
 					if (field.kind === "boolean") {
 					return (
 						<label key={field.name} style={{ display: "flex", alignItems: "center", gap: 6, color: "#d7d7d7", fontSize: 12, marginTop: 8 }}>
@@ -2309,7 +2337,7 @@ const PropertyPanel = memo(function PropertyPanel(props: {
 								disabled={readOnly}
 								onChange={(event) => onUpdateField(field.name, parseValue(field, "", event.currentTarget.checked))}
 							/>
-							{field.name}
+							{fieldLabel}
 						</label>
 						);
 					}
@@ -2318,7 +2346,7 @@ const PropertyPanel = memo(function PropertyPanel(props: {
 						return (
 							<NumericField
 								key={field.name}
-								label={field.name}
+								label={fieldLabel}
 								value={numberValue}
 								readOnly={readOnly}
 								constraint={getBodyNumberConstraint(item, field.name)}
@@ -2331,16 +2359,16 @@ const PropertyPanel = memo(function PropertyPanel(props: {
 					if (field.kind === "bodyType") {
 					return (
 						<label key={field.name} style={labelStyle}>
-							{field.name}
+							{fieldLabel}
 							<select
 								value={valueToText(value)}
 								disabled={readOnly}
 								onChange={(event) => onUpdateField(field.name, event.currentTarget.value)}
 								style={{ width: "100%", marginTop: 3, background: "#181818", color: "#d7d7d7", border: "1px solid #3a3a3a", height: 26 }}
 							>
-								<option value="Static">Static</option>
-								<option value="Dynamic">Dynamic</option>
-								<option value="Kinematic">Kinematic</option>
+								<option value="Static">{t("bodyEditor.bodyTypes.static", "Static")}</option>
+								<option value="Dynamic">{t("bodyEditor.bodyTypes.dynamic", "Dynamic")}</option>
+								<option value="Kinematic">{t("bodyEditor.bodyTypes.kinematic", "Kinematic")}</option>
 							</select>
 						</label>
 					);
@@ -2349,14 +2377,14 @@ const PropertyPanel = memo(function PropertyPanel(props: {
 						const options = field.kind === "bodyRef" ? bodyOptions : jointOptions;
 						return (
 							<label key={field.name} style={labelStyle}>
-								{field.name}
+								{fieldLabel}
 								<select
 									value={valueToText(value)}
 									disabled={readOnly}
 									onChange={(event) => onUpdateField(field.name, event.currentTarget.value)}
 									style={{ width: "100%", marginTop: 3, background: "#181818", color: "#d7d7d7", border: "1px solid #3a3a3a", height: 26 }}
 								>
-									<option value="">None</option>
+									<option value="">{t("bodyEditor.none", "None")}</option>
 									{options.map((name) => (
 										<option key={name} value={name}>{name}</option>
 									))}
@@ -2368,7 +2396,7 @@ const PropertyPanel = memo(function PropertyPanel(props: {
 						const vector = asArray(value);
 						const x = typeof vector[0] === "number" ? vector[0] : 0;
 						const y = typeof vector[1] === "number" ? vector[1] : 0;
-						const prefix = formatFieldPrefix(field.name);
+						const prefix = fieldLabel;
 						return (
 							<div key={field.name} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
 									{([
@@ -2388,12 +2416,11 @@ const PropertyPanel = memo(function PropertyPanel(props: {
 									))}
 								</div>
 						);
-					}
+				}
 					if (field.name === "face") {
-					const face = parseBodyFace(valueText);
 					return (
 						<label key={inputKey} style={labelStyle}>
-							{field.name}
+							{fieldLabel}
 							<div style={{ display: "flex", gap: 4, marginTop: 3 }}>
 								<input
 									defaultValue={valueText}
@@ -2419,11 +2446,6 @@ const PropertyPanel = memo(function PropertyPanel(props: {
 									...
 								</button>
 							</div>
-							{valueText !== "" ? (
-								<div style={{ color: "#8f9aa6", fontSize: 11, marginTop: 3 }}>
-									{face.kind === "clip" ? `${face.source} | ${face.clipName}` : face.kind}
-								</div>
-							) : null}
 						</label>
 					);
 				}
@@ -2435,7 +2457,7 @@ const PropertyPanel = memo(function PropertyPanel(props: {
 					return (
 						<div key={field.name} style={labelStyle}>
 							<div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
-								<span>{field.name}</span>
+								<span>{fieldLabel}</span>
 								<span style={{ display: "flex", alignItems: "center", gap: 4 }}>
 									<span style={{ color: "#8f9aa6", fontSize: 10 }}>
 										{selectedVertexIndex !== null ? `#${selectedVertexIndex + 1}` : `${vertexCount}`}
@@ -2480,7 +2502,7 @@ const PropertyPanel = memo(function PropertyPanel(props: {
 				return (
 					<label key={field.name} style={labelStyle}>
 						<div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
-							<span>{field.name}</span>
+							<span>{fieldLabel}</span>
 						</div>
 						<InputTag
 							key={inputKey}
