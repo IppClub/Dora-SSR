@@ -1016,7 +1016,7 @@ HttpServer:postSchedule("/check", function(req) -- 337
 		success = true -- 337
 	} -- 337
 end) -- 337
-HttpServer:post("/body-lua-to-json", function(req) -- 374
+HttpServer:post("/body/parse", function(req) -- 374
 	do -- 375
 		local _type_0 = type(req) -- 375
 		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 375
@@ -1038,11 +1038,11 @@ HttpServer:post("/body-lua-to-json", function(req) -- 374
 				end -- 375
 			end -- 375
 			if file ~= nil and content ~= nil then -- 375
-				if not (file:sub(-9) == ".body.lua") then -- 376
+				if not (file:sub(-6) == ".b.lua") then -- 376
 					return { -- 377
 						success = false, -- 377
 						phase = "request", -- 377
-						message = "only .body.lua files can be converted" -- 377
+						message = "only .b.lua files can be converted" -- 377
 					} -- 377
 				end -- 376
 				local loader, err = load("_ENV = {}\n" .. content) -- 378

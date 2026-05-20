@@ -230,39 +230,12 @@ Struct.Phyx.Wheel(
 )
 
 loadFuncs = nil
-fieldDefs =
-	"Array": {}
-	"Phyx.Rect": {"name", "type", "position", "angle", "center", "size", "density", "friction", "restitution", "linearDamping", "angularDamping", "fixedRotation", "linearAcceleration", "bullet", "sensor", "sensorTag", "subShapes", "face", "facePos", "faceScale"}
-	"Phyx.Disk": {"name", "type", "position", "angle", "center", "radius", "density", "friction", "restitution", "linearDamping", "angularDamping", "fixedRotation", "linearAcceleration", "bullet", "sensor", "sensorTag", "subShapes", "face", "facePos", "faceScale"}
-	"Phyx.Poly": {"name", "type", "position", "angle", "vertices", "density", "friction", "restitution", "linearDamping", "angularDamping", "fixedRotation", "linearAcceleration", "bullet", "sensor", "sensorTag", "subShapes", "face", "facePos", "faceScale"}
-	"Phyx.Chain": {"name", "type", "position", "angle", "vertices", "friction", "restitution", "linearDamping", "angularDamping", "fixedRotation", "linearAcceleration", "bullet", "subShapes", "face", "facePos", "faceScale"}
-	"Phyx.SubRect": {"center", "angle", "size", "density", "friction", "restitution", "sensor", "sensorTag"}
-	"Phyx.SubDisk": {"center", "radius", "density", "friction", "restitution", "sensor", "sensorTag"}
-	"Phyx.SubPoly": {"vertices", "density", "friction", "restitution", "sensor", "sensorTag"}
-	"Phyx.SubChain": {"vertices", "friction", "restitution"}
-	"Phyx.Distance": {"name", "collision", "bodyA", "bodyB", "anchorA", "anchorB", "frequency", "damping"}
-	"Phyx.Friction": {"name", "collision", "bodyA", "bodyB", "worldPos", "maxForce", "maxTorque"}
-	"Phyx.Gear": {"name", "collision", "jointA", "jointB", "ratio"}
-	"Phyx.Spring": {"name", "collision", "bodyA", "bodyB", "linearOffset", "angularOffset", "maxForce", "maxTorque", "correctionFactor"}
-	"Phyx.Prismatic": {"name", "collision", "bodyA", "bodyB", "worldPos", "axis", "lowerTranslation", "upperTranslation", "maxMotorForce", "motorSpeed"}
-	"Phyx.Pulley": {"name", "collision", "bodyA", "bodyB", "anchorA", "anchorB", "groundAnchorA", "groundAnchorB", "ratio"}
-	"Phyx.Revolute": {"name", "collision", "bodyA", "bodyB", "worldPos", "lowerAngle", "upperAngle", "maxMotorTorque", "motorSpeed"}
-	"Phyx.Rope": {"name", "collision", "bodyA", "bodyB", "anchorA", "anchorB", "maxLength"}
-	"Phyx.Weld": {"name", "collision", "bodyA", "bodyB", "worldPos", "frequency", "damping"}
-	"Phyx.Wheel": {"name", "collision", "bodyA", "bodyB", "worldPos", "axis", "maxMotorTorque", "motorSpeed", "frequency", "damping"}
-
-normalizeData = (data) ->
-	if "table" == type data
-		if fields := fieldDefs[data[1]]
-			for i, key in ipairs fields
-				data[key] = normalizeData data[i + 1]
-	data
 
 loadBodyData = (bodyData) ->
 	data = switch type bodyData when "string"
 		file = repeat
 			break bodyData if Content\exist bodyData
-			file = bodyData .. ".body.lua"
+			file = bodyData .. ".b.lua"
 			break file if Content\exist file
 		until true
 		if file
@@ -273,15 +246,15 @@ loadBodyData = (bodyData) ->
 			nil
 	when "table"
 		bodyData
-	normalizeData data
+	Struct\load data
 
 toVec = (value) ->
-	return value unless "table" == type value
-	return value if value.x ~= nil and value.y ~= nil
-	Vec2 value[1] or 0, value[2] or 0
+	switch value when [x, y] then Vec2 x, y
+	else value
 
 toVecArray = (values) ->
-	return values\toArray! if values.toArray
+	if values.toArray
+		values = values\toArray!
 	start = if values[1] == "Array" then 2 else 1
 	[toVec values[i] for i = start, #values]
 
@@ -303,8 +276,7 @@ arrayGet = (values, index) ->
 	if values[1] == "Array" then values[index + 1] else values[index]
 
 loadData = (data, item) ->
-	if data := normalizeData data
-		loadFuncs[data[1]] data, item
+	loadFuncs[data[1]] data, item
 
 toDef = (data) -> with BodyDef!
 	.type = data.type

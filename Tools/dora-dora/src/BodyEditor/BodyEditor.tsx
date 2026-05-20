@@ -157,7 +157,7 @@ export default memo(function BodyEditor(props: BodyEditorProps) {
 	}, [faceResourceBasePath, faceValues, refreshKey, resourceBasePath]);
 
 	const alertDiagnostics = useCallback((diagnostics: BodyDiagnostic[]) => {
-		const currentDocument = loadStateRef.current?.document ?? { version: 1, source: "body.lua", items: [], dirty: false };
+		const currentDocument = loadStateRef.current?.document ?? { version: 1, source: "b.lua", items: [], dirty: false };
 		for (const item of diagnostics) {
 			addAlert?.(formatDiagnosticMessage(currentDocument, item), item.severity === "error" ? "error" : "warning");
 		}
@@ -165,7 +165,7 @@ export default memo(function BodyEditor(props: BodyEditorProps) {
 
 	useEffect(() => {
 		let cancelled = false;
-		Service.bodyLuaToJson({ file: filePath, content: sourceContentRef.current }).then((response) => {
+		Service.parseBodyFile({ file: filePath, content: sourceContentRef.current }).then((response) => {
 			if (cancelled) return;
 			if (response.success) {
 				const result = loadBodyDocumentFromJson(response.json);
@@ -179,12 +179,12 @@ export default memo(function BodyEditor(props: BodyEditorProps) {
 				const diagnostics: BodyDiagnostic[] = [{
 					severity: "error",
 					path: response.phase ?? "request",
-					message: response.message ?? "Failed to load body lua.",
+					message: response.message ?? t("bodyEditor.failedLoadBody", "Failed to load body file."),
 				}];
 					alertDiagnostics(diagnostics);
 					loadCanSaveRef.current = false;
 						const nextLoadState: BodyLoadResult = {
-							document: { version: 1, source: "body.lua", items: [], dirty: false },
+							document: { version: 1, source: "b.lua", items: [], dirty: false },
 							diagnostics,
 							canSave: false,
 					};
@@ -196,12 +196,12 @@ export default memo(function BodyEditor(props: BodyEditorProps) {
 			const diagnostics: BodyDiagnostic[] = [{
 				severity: "error",
 				path: "network",
-				message: error instanceof Error ? error.message : "Failed to load body lua.",
+				message: error instanceof Error ? error.message : t("bodyEditor.failedLoadBody", "Failed to load body file."),
 			}];
 				alertDiagnostics(diagnostics);
 				loadCanSaveRef.current = false;
 					const nextLoadState: BodyLoadResult = {
-						document: { version: 1, source: "body.lua", items: [], dirty: false },
+						document: { version: 1, source: "b.lua", items: [], dirty: false },
 						diagnostics,
 						canSave: false,
 				};
@@ -211,7 +211,7 @@ export default memo(function BodyEditor(props: BodyEditorProps) {
 		return () => {
 			cancelled = true;
 		};
-	}, [alertDiagnostics, filePath, refreshKey]);
+	}, [alertDiagnostics, filePath, refreshKey, t]);
 
 	const applyStateResult = (result: BodyStateResult, previous?: BodyDocument) => {
 		alertDiagnostics(result.diagnostics);

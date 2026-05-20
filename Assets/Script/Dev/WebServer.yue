@@ -371,10 +371,10 @@ HttpServer\postSchedule "/check", (req): success: true ->
 					["syntax", file, row, 0, err]
 				return success: false, :info
 
-HttpServer\post "/body-lua-to-json", (req): success: false, phase: "request", message: "invalid request" ->
+HttpServer\post "/body/parse", (req): success: false, phase: "request", message: "invalid request" ->
 	switch req when {body: {:file, :content}}
-		unless file\sub(-9) == ".body.lua"
-			return success: false, phase: "request", message: "only .body.lua files can be converted"
+		unless file\sub(-6) == ".b.lua"
+			return success: false, phase: "request", message: "only .b.lua files can be converted"
 		loader, err = load "_ENV = {}\n" .. content
 		unless loader
 			return success: false, phase: "parse", message: tostring err

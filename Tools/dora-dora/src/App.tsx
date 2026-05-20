@@ -436,7 +436,7 @@ const getNewFileTemplate = (ext: string) => {
 		case ".model":
 			content = writeLegacyModel(createEmptyActionDocument());
 			break;
-		case ".body.lua":
+		case ".b.lua":
 			content = `return {"Array"}`;
 			break;
 		default:
@@ -445,7 +445,7 @@ const getNewFileTemplate = (ext: string) => {
 	return { content, position };
 };
 
-const isBodyLuaFile = (filePath: string) => filePath.toLowerCase().endsWith(".body.lua");
+const isBodyLuaFile = (filePath: string) => filePath.toLowerCase().endsWith(".b.lua");
 
 const editorBackground = <div style={{ width: '100%', height: '100%', backgroundColor: '#1a1a1a' }} />;
 
@@ -2624,7 +2624,7 @@ export default function PersistentDrawerLeft() {
 			case "YueScript": ext = ".yue"; break;
 			case "Dora XML": ext = ".xml"; break;
 			case "Dora Animation": ext = ".model"; break;
-			case "Dora Body": ext = ".body.lua"; break;
+			case "Dora Body": ext = ".b.lua"; break;
 			case "Markdown": ext = ".md"; break;
 			case "Yarn": ext = ".yarn"; break;
 			case "Visual Script": ext = ".vs"; break;

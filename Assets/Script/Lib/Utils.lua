@@ -356,255 +356,257 @@ local Struct -- 228
 local StructLoad -- 229
 StructLoad = function(data) -- 229
 	if "table" == type(data) then -- 230
-		local mt = StructDefs[data[1]] -- 231
-		assert(mt, "Struct started with \"" .. tostring(data[1]) .. "\" is not defined.") -- 232
-		setmetatable(data, mt) -- 233
-		for _index_0 = 1, #data do -- 234
-			local item = data[_index_0] -- 234
-			StructLoad(item) -- 235
-		end -- 234
+		if "string" == type(data[1]) then -- 231
+			local mt = StructDefs[data[1]] -- 232
+			assert(mt, "Struct started with \"" .. tostring(data[1]) .. "\" is not defined.") -- 233
+			setmetatable(data, mt) -- 234
+		end -- 231
+		for _index_0 = 1, #data do -- 235
+			local item = data[_index_0] -- 235
+			StructLoad(item) -- 236
+		end -- 235
 	end -- 230
 end -- 229
-local _anon_func_0 = function(StructDefs) -- 268
-	local _accum_0 = { } -- 268
-	local _len_0 = 1 -- 268
-	for _, v in pairs(StructDefs) do -- 268
-		_accum_0[_len_0] = tostring(v) -- 268
-		_len_0 = _len_0 + 1 -- 268
+local _anon_func_0 = function(StructDefs) -- 269
+	local _accum_0 = { } -- 269
+	local _len_0 = 1 -- 269
+	for _, v in pairs(StructDefs) do -- 269
+		_accum_0[_len_0] = tostring(v) -- 269
+		_len_0 = _len_0 + 1 -- 269
+	end -- 269
+	return _accum_0 -- 269
+end -- 269
+Struct = setmetatable({ -- 238
+	load = function(_self, ...) -- 238
+		local count = select("#", ...) -- 239
+		if count > 1 then -- 240
+			local name = select(1, ...) -- 241
+			local data = select(2, ...) -- 242
+			insert(data, 1, name) -- 243
+			StructLoad(data) -- 244
+			return data -- 245
+		else -- 247
+			local arg = select(1, ...) -- 247
+			local data -- 248
+			do -- 248
+				local _exp_0 = type(arg) -- 248
+				if "string" == _exp_0 then -- 249
+					if arg:sub(1, 6) ~= "return" then -- 250
+						arg = "return " .. arg -- 251
+					end -- 250
+					data = (load(arg))() -- 252
+				elseif "table" == _exp_0 then -- 253
+					data = arg -- 254
+				end -- 248
+			end -- 248
+			StructLoad(data) -- 255
+			return data -- 256
+		end -- 240
+	end, -- 238
+	clear = function(_self) -- 257
+		StructDefs = { } -- 258
+	end, -- 257
+	has = function(_self, name) -- 259
+		return (StructDefs[name] ~= nil) -- 259
+	end -- 259
+}, { -- 261
+	__index = function(_self, name) -- 261
+		local def = StructDefs[name] -- 262
+		if not def then -- 263
+			StructHelper.name = name -- 264
+			StructHelper.path = "" -- 265
+			def = StructHelper -- 266
+		end -- 263
+		return def -- 267
+	end, -- 261
+	__tostring = function(_self) -- 268
+		return concat(_anon_func_0(StructDefs), "\n") -- 269
 	end -- 268
-	return _accum_0 -- 268
-end -- 268
-Struct = setmetatable({ -- 237
-	load = function(_self, ...) -- 237
-		local count = select("#", ...) -- 238
-		if count > 1 then -- 239
-			local name = select(1, ...) -- 240
-			local data = select(2, ...) -- 241
-			insert(data, 1, name) -- 242
-			StructLoad(data) -- 243
-			return data -- 244
-		else -- 246
-			local arg = select(1, ...) -- 246
-			local data -- 247
-			do -- 247
-				local _exp_0 = type(arg) -- 247
-				if "string" == _exp_0 then -- 248
-					if arg:sub(1, 6) ~= "return" then -- 249
-						arg = "return " .. arg -- 250
-					end -- 249
-					data = (load(arg))() -- 251
-				elseif "table" == _exp_0 then -- 252
-					data = arg -- 253
-				end -- 247
-			end -- 247
-			StructLoad(data) -- 254
-			return data -- 255
-		end -- 239
-	end, -- 237
-	clear = function(_self) -- 256
-		StructDefs = { } -- 257
-	end, -- 256
-	has = function(_self, name) -- 258
-		return (StructDefs[name] ~= nil) -- 258
-	end -- 258
-}, { -- 260
-	__index = function(_self, name) -- 260
-		local def = StructDefs[name] -- 261
-		if not def then -- 262
-			StructHelper.name = name -- 263
-			StructHelper.path = "" -- 264
-			def = StructHelper -- 265
-		end -- 262
-		return def -- 266
-	end, -- 260
-	__tostring = function(_self) -- 267
-		return concat(_anon_func_0(StructDefs), "\n") -- 268
-	end -- 267
-}) -- 236
-_module_0["Struct"] = Struct -- 236
-local Set -- 271
-Set = function(list) -- 271
-	local _tbl_0 = { } -- 271
-	for _index_0 = 1, #list do -- 271
-		local item = list[_index_0] -- 271
-		_tbl_0[item] = true -- 271
-	end -- 271
-	return _tbl_0 -- 271
-end -- 271
-_module_0["Set"] = Set -- 271
-local CompareTable -- 273
-CompareTable = function(olds, news) -- 273
-	local itemsToDel = { } -- 274
-	local itemSet = Set(news) -- 275
-	for _index_0 = 1, #olds do -- 276
-		local item = olds[_index_0] -- 276
-		if not itemSet[item] then -- 277
-			itemsToDel[#itemsToDel + 1] = item -- 278
-		end -- 277
-	end -- 276
-	local itemsToAdd = { } -- 279
-	itemSet = Set(olds) -- 280
-	for _index_0 = 1, #news do -- 281
-		local item = news[_index_0] -- 281
-		if not itemSet[item] then -- 282
-			itemsToAdd[#itemsToAdd + 1] = item -- 283
-		end -- 282
-	end -- 281
-	return itemsToAdd, itemsToDel -- 284
-end -- 273
-_module_0["CompareTable"] = CompareTable -- 273
-local Round -- 286
-Round = function(val) -- 286
-	if type(val) == "number" then -- 287
-		return val > 0 and floor(val + 0.5) or ceil(val - 0.5) -- 288
-	else -- 290
-		return Vec2(val.x > 0 and floor(val.x + 0.5) or ceil(val.x - 0.5), val.y > 0 and floor(val.y + 0.5) or ceil(val.y - 0.5)) -- 290
-	end -- 287
-end -- 286
-_module_0["Round"] = Round -- 286
-local IsValidPath -- 295
-IsValidPath = function(filename) -- 295
-	return not filename:match("[\\/|:*?<>\"]") -- 295
-end -- 295
-_module_0["IsValidPath"] = IsValidPath -- 295
-local tic80APIs -- 297
-local CheckTIC80Code -- 298
-CheckTIC80Code = function(codes) -- 298
-	local isTIC80 = codes:match("^%-%-[ \t]*tic80[ \t]*[$\r\n]") -- 299
-	if isTIC80 then -- 300
-		if not tic80APIs then -- 301
-			local _tbl_0 = { } -- 302
-			for api in ("btn,btnp,key,keyp,mouse,clip,cls,circ,circb,elli,ellib,line,pix,rect,rectb,spr,tri,trib,ttri,font,map,mget,mset,fget,fset,sfx,music,peek,peek1,peek2,peek4,poke,poke1,poke2,poke4,pmem,memcpy,memset,exit,reset,sync,time,tstamp,trace,vbank"):gmatch("[^,]+") do -- 302
-				_tbl_0[api] = true -- 302
-			end -- 302
-			tic80APIs = _tbl_0 -- 302
-		end -- 301
-	end -- 300
-	return isTIC80, tic80APIs -- 303
-end -- 298
-_module_0["CheckTIC80Code"] = CheckTIC80Code -- 298
-local allowedUseOfGlobals = Set({ -- 306
-	"Dora", -- 306
-	"require", -- 307
-	"_G" -- 308
-}) -- 305
-local LintYueGlobals -- 310
-LintYueGlobals = function(luaCodes, globals, globalInLocal, extraGlobals) -- 310
-	if globalInLocal == nil then -- 310
-		globalInLocal = true -- 310
-	end -- 310
-	if extraGlobals == nil then -- 310
-		extraGlobals = nil -- 310
-	end -- 310
-	local errors = { } -- 311
-	local requireModules = { } -- 312
-	luaCodes = luaCodes:gsub("^local _module_[^\r\n]*[^\r\n]+", "") -- 313
-	local importCodes = luaCodes:match("^%s*local%s*_ENV%s*=%s*Dora%(([^%)]-)%)") -- 314
-	local importItems -- 315
-	if importCodes then -- 315
-		local _accum_0 = { } -- 316
-		local _len_0 = 1 -- 316
-		for item in importCodes:gmatch("%s*([^,\n\r]+)%s*") do -- 316
-			local getImport = load("return " .. tostring(item)) -- 317
-			local importItem -- 318
-			do -- 318
-				local success, result = pcall(getImport) -- 318
-				if success then -- 318
-					importItem = result -- 318
-				end -- 318
-			end -- 318
-			if not importItem or "table" ~= type(importItem) then -- 319
-				goto _continue_0 -- 319
+}) -- 237
+_module_0["Struct"] = Struct -- 237
+local Set -- 272
+Set = function(list) -- 272
+	local _tbl_0 = { } -- 272
+	for _index_0 = 1, #list do -- 272
+		local item = list[_index_0] -- 272
+		_tbl_0[item] = true -- 272
+	end -- 272
+	return _tbl_0 -- 272
+end -- 272
+_module_0["Set"] = Set -- 272
+local CompareTable -- 274
+CompareTable = function(olds, news) -- 274
+	local itemsToDel = { } -- 275
+	local itemSet = Set(news) -- 276
+	for _index_0 = 1, #olds do -- 277
+		local item = olds[_index_0] -- 277
+		if not itemSet[item] then -- 278
+			itemsToDel[#itemsToDel + 1] = item -- 279
+		end -- 278
+	end -- 277
+	local itemsToAdd = { } -- 280
+	itemSet = Set(olds) -- 281
+	for _index_0 = 1, #news do -- 282
+		local item = news[_index_0] -- 282
+		if not itemSet[item] then -- 283
+			itemsToAdd[#itemsToAdd + 1] = item -- 284
+		end -- 283
+	end -- 282
+	return itemsToAdd, itemsToDel -- 285
+end -- 274
+_module_0["CompareTable"] = CompareTable -- 274
+local Round -- 287
+Round = function(val) -- 287
+	if type(val) == "number" then -- 288
+		return val > 0 and floor(val + 0.5) or ceil(val - 0.5) -- 289
+	else -- 291
+		return Vec2(val.x > 0 and floor(val.x + 0.5) or ceil(val.x - 0.5), val.y > 0 and floor(val.y + 0.5) or ceil(val.y - 0.5)) -- 291
+	end -- 288
+end -- 287
+_module_0["Round"] = Round -- 287
+local IsValidPath -- 296
+IsValidPath = function(filename) -- 296
+	return not filename:match("[\\/|:*?<>\"]") -- 296
+end -- 296
+_module_0["IsValidPath"] = IsValidPath -- 296
+local tic80APIs -- 298
+local CheckTIC80Code -- 299
+CheckTIC80Code = function(codes) -- 299
+	local isTIC80 = codes:match("^%-%-[ \t]*tic80[ \t]*[$\r\n]") -- 300
+	if isTIC80 then -- 301
+		if not tic80APIs then -- 302
+			local _tbl_0 = { } -- 303
+			for api in ("btn,btnp,key,keyp,mouse,clip,cls,circ,circb,elli,ellib,line,pix,rect,rectb,spr,tri,trib,ttri,font,map,mget,mset,fget,fset,sfx,music,peek,peek1,peek2,peek4,poke,poke1,poke2,poke4,pmem,memcpy,memset,exit,reset,sync,time,tstamp,trace,vbank"):gmatch("[^,]+") do -- 303
+				_tbl_0[api] = true -- 303
+			end -- 303
+			tic80APIs = _tbl_0 -- 303
+		end -- 302
+	end -- 301
+	return isTIC80, tic80APIs -- 304
+end -- 299
+_module_0["CheckTIC80Code"] = CheckTIC80Code -- 299
+local allowedUseOfGlobals = Set({ -- 307
+	"Dora", -- 307
+	"require", -- 308
+	"_G" -- 309
+}) -- 306
+local LintYueGlobals -- 311
+LintYueGlobals = function(luaCodes, globals, globalInLocal, extraGlobals) -- 311
+	if globalInLocal == nil then -- 311
+		globalInLocal = true -- 311
+	end -- 311
+	if extraGlobals == nil then -- 311
+		extraGlobals = nil -- 311
+	end -- 311
+	local errors = { } -- 312
+	local requireModules = { } -- 313
+	luaCodes = luaCodes:gsub("^local _module_[^\r\n]*[^\r\n]+", "") -- 314
+	local importCodes = luaCodes:match("^%s*local%s*_ENV%s*=%s*Dora%(([^%)]-)%)") -- 315
+	local importItems -- 316
+	if importCodes then -- 316
+		local _accum_0 = { } -- 317
+		local _len_0 = 1 -- 317
+		for item in importCodes:gmatch("%s*([^,\n\r]+)%s*") do -- 317
+			local getImport = load("return " .. tostring(item)) -- 318
+			local importItem -- 319
+			do -- 319
+				local success, result = pcall(getImport) -- 319
+				if success then -- 319
+					importItem = result -- 319
+				end -- 319
 			end -- 319
-			_accum_0[_len_0] = { -- 320
-				importItem, -- 320
-				item -- 320
-			} -- 320
-			_len_0 = _len_0 + 1 -- 317
-			::_continue_0:: -- 317
-		end -- 316
-		importItems = _accum_0 -- 315
-	else -- 321
-		importItems = { } -- 321
-	end -- 315
-	if importCodes == nil then -- 322
-		importCodes = luaCodes:match("^%s*local%s*_ENV%s*=%s*Dora[^%w_$]") -- 322
-	end -- 322
-	local importSet = { } -- 323
-	local globalSet = { } -- 324
-	for _index_0 = 1, #globals do -- 325
-		local globalVar = globals[_index_0] -- 325
-		local name = globalVar[1] -- 326
-		if globalSet[name] then -- 327
-			goto _continue_1 -- 327
-		end -- 327
-		globalSet[name] = true -- 328
-		if allowedUseOfGlobals[name] then -- 329
-			goto _continue_1 -- 329
-		end -- 329
-		if _G[name] or (extraGlobals and extraGlobals[name]) then -- 330
-			if globalInLocal then -- 331
-				requireModules[#requireModules + 1] = "local " .. tostring(name) .. " = _G." .. tostring(name) .. " -- 1" -- 332
-			end -- 331
-			goto _continue_1 -- 333
+			if not importItem or "table" ~= type(importItem) then -- 320
+				goto _continue_0 -- 320
+			end -- 320
+			_accum_0[_len_0] = { -- 321
+				importItem, -- 321
+				item -- 321
+			} -- 321
+			_len_0 = _len_0 + 1 -- 318
+			::_continue_0:: -- 318
+		end -- 317
+		importItems = _accum_0 -- 316
+	else -- 322
+		importItems = { } -- 322
+	end -- 316
+	if importCodes == nil then -- 323
+		importCodes = luaCodes:match("^%s*local%s*_ENV%s*=%s*Dora[^%w_$]") -- 323
+	end -- 323
+	local importSet = { } -- 324
+	local globalSet = { } -- 325
+	for _index_0 = 1, #globals do -- 326
+		local globalVar = globals[_index_0] -- 326
+		local name = globalVar[1] -- 327
+		if globalSet[name] then -- 328
+			goto _continue_1 -- 328
+		end -- 328
+		globalSet[name] = true -- 329
+		if allowedUseOfGlobals[name] then -- 330
+			goto _continue_1 -- 330
 		end -- 330
-		local findModule = false -- 334
-		if importCodes then -- 335
-			if Dora[name] then -- 336
-				requireModules[#requireModules + 1] = "local " .. tostring(name) .. " = Dora." .. tostring(name) .. " -- 1" -- 337
-				findModule = true -- 338
-			else -- 340
-				for i, _des_0 in ipairs(importItems) do -- 340
-					local mod, modName = _des_0[1], _des_0[2] -- 340
-					if (mod[name] ~= nil) then -- 341
-						local moduleName = "_module_" .. tostring(i - 1) -- 342
-						if not importSet[mod] then -- 343
-							importSet[mod] = true -- 344
-							requireModules[#requireModules + 1] = "local " .. tostring(moduleName) .. " = " .. tostring(modName) .. " -- 1" -- 345
-						end -- 343
-						requireModules[#requireModules + 1] = "local " .. tostring(name) .. " = " .. tostring(moduleName) .. "." .. tostring(name) .. " -- 1" -- 346
-						findModule = true -- 347
-						break -- 348
-					end -- 341
-				end -- 340
-			end -- 336
-		end -- 335
-		if not findModule then -- 349
-			errors[#errors + 1] = globalVar -- 350
-		end -- 349
-		::_continue_1:: -- 326
-	end -- 325
-	if #errors > 0 then -- 351
-		return false, errors -- 352
-	else -- 354
-		return true, table.concat(requireModules, "\n") -- 354
-	end -- 351
-end -- 310
-_module_0["LintYueGlobals"] = LintYueGlobals -- 310
-local GSplit -- 356
-GSplit = function(text, pattern, plain) -- 356
-	local splitStart, length = 1, #text -- 357
-	return function() -- 358
-		if splitStart then -- 359
-			local sepStart, sepEnd = string.find(text, pattern, splitStart, plain) -- 360
-			local ret -- 361
-			if not sepStart then -- 362
-				ret = string.sub(text, splitStart) -- 363
-				splitStart = nil -- 364
-			elseif sepEnd < sepStart then -- 365
-				ret = string.sub(text, splitStart, sepStart) -- 366
-				if sepStart < length then -- 367
-					splitStart = sepStart + 1 -- 368
-				else -- 370
-					splitStart = nil -- 370
-				end -- 367
-			else -- 372
-				ret = sepStart > splitStart and string.sub(text, splitStart, sepStart - 1) or '' -- 372
-				splitStart = sepEnd + 1 -- 373
-			end -- 362
-			return ret -- 374
-		end -- 359
-	end -- 358
-end -- 356
-_module_0["GSplit"] = GSplit -- 356
+		if _G[name] or (extraGlobals and extraGlobals[name]) then -- 331
+			if globalInLocal then -- 332
+				requireModules[#requireModules + 1] = "local " .. tostring(name) .. " = _G." .. tostring(name) .. " -- 1" -- 333
+			end -- 332
+			goto _continue_1 -- 334
+		end -- 331
+		local findModule = false -- 335
+		if importCodes then -- 336
+			if Dora[name] then -- 337
+				requireModules[#requireModules + 1] = "local " .. tostring(name) .. " = Dora." .. tostring(name) .. " -- 1" -- 338
+				findModule = true -- 339
+			else -- 341
+				for i, _des_0 in ipairs(importItems) do -- 341
+					local mod, modName = _des_0[1], _des_0[2] -- 341
+					if (mod[name] ~= nil) then -- 342
+						local moduleName = "_module_" .. tostring(i - 1) -- 343
+						if not importSet[mod] then -- 344
+							importSet[mod] = true -- 345
+							requireModules[#requireModules + 1] = "local " .. tostring(moduleName) .. " = " .. tostring(modName) .. " -- 1" -- 346
+						end -- 344
+						requireModules[#requireModules + 1] = "local " .. tostring(name) .. " = " .. tostring(moduleName) .. "." .. tostring(name) .. " -- 1" -- 347
+						findModule = true -- 348
+						break -- 349
+					end -- 342
+				end -- 341
+			end -- 337
+		end -- 336
+		if not findModule then -- 350
+			errors[#errors + 1] = globalVar -- 351
+		end -- 350
+		::_continue_1:: -- 327
+	end -- 326
+	if #errors > 0 then -- 352
+		return false, errors -- 353
+	else -- 355
+		return true, table.concat(requireModules, "\n") -- 355
+	end -- 352
+end -- 311
+_module_0["LintYueGlobals"] = LintYueGlobals -- 311
+local GSplit -- 357
+GSplit = function(text, pattern, plain) -- 357
+	local splitStart, length = 1, #text -- 358
+	return function() -- 359
+		if splitStart then -- 360
+			local sepStart, sepEnd = string.find(text, pattern, splitStart, plain) -- 361
+			local ret -- 362
+			if not sepStart then -- 363
+				ret = string.sub(text, splitStart) -- 364
+				splitStart = nil -- 365
+			elseif sepEnd < sepStart then -- 366
+				ret = string.sub(text, splitStart, sepStart) -- 367
+				if sepStart < length then -- 368
+					splitStart = sepStart + 1 -- 369
+				else -- 371
+					splitStart = nil -- 371
+				end -- 368
+			else -- 373
+				ret = sepStart > splitStart and string.sub(text, splitStart, sepStart - 1) or '' -- 373
+				splitStart = sepEnd + 1 -- 374
+			end -- 363
+			return ret -- 375
+		end -- 360
+	end -- 359
+end -- 357
+_module_0["GSplit"] = GSplit -- 357
 return _module_0 -- 1
