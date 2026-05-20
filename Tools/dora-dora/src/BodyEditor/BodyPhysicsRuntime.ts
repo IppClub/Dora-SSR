@@ -22,6 +22,7 @@ import {
 	type Shape,
 } from "planck";
 import { BodyDocument, BodyLuaValue, BodyStructDocument, BodyVector } from "./BodyDocument";
+import { decomposeBodyPolygon } from "./BodyPolygon";
 import { asArray, asNumber, asString, asVector, getItemName, isBodyItem } from "./BodyRender";
 
 export const BODY_PIXELS_PER_METER = 100;
@@ -115,40 +116,7 @@ const validVertices = (value: BodyLuaValue | undefined): BodyVector[] => {
 	return vertices.filter((point) => Number.isFinite(point[0]) && Number.isFinite(point[1]));
 };
 
-const polygonSignedArea = (vertices: BodyVector[]) => {
-	let area = 0;
-	for (let i = 0; i < vertices.length; i++) {
-		const a = vertices[i];
-		const b = vertices[(i + 1) % vertices.length];
-		area += a[0] * b[1] - b[0] * a[1];
-	}
-	return area * 0.5;
-};
-
-const filterConcavePolygonVertices = (vertices: BodyVector[]) => {
-	if (vertices.length <= 3) return vertices;
-	const result = vertices.map((point) => [...point] as BodyVector);
-	const winding = polygonSignedArea(result) >= 0 ? 1 : -1;
-	const epsilon = 0.000001;
-	let changed = true;
-	while (changed && result.length >= 3) {
-		changed = false;
-		for (let i = 0; i < result.length; i++) {
-			const previous = result[(i + result.length - 1) % result.length];
-			const current = result[i];
-			const next = result[(i + 1) % result.length];
-			const cross = (current[0] - previous[0]) * (next[1] - current[1]) - (current[1] - previous[1]) * (next[0] - current[0]);
-			if (cross * winding <= epsilon) {
-				result.splice(i, 1);
-				changed = true;
-				break;
-			}
-		}
-	}
-	return result;
-};
-
-const makeShape = (shape: BodyStructDocument, diagnostics: BodyPhysicsDiagnostic[]): Shape | null => {
+const makeShapes = (shape: BodyStructDocument, diagnostics: BodyPhysicsDiagnostic[]): Shape[] => {
 	if (shape.structType === "Phyx.Rect" || shape.structType === "Phyx.SubRect") {
 		const center = asVector(shape.fields.center);
 		const size = asVector(shape.fields.size, [40, 40]);
@@ -156,44 +124,41 @@ const makeShape = (shape: BodyStructDocument, diagnostics: BodyPhysicsDiagnostic
 		const halfHeight = Math.abs(toMeters(size[1])) / 2;
 		if (halfWidth <= 0 || halfHeight <= 0) {
 			diagnostics.push({ id: shape.id, message: `${shape.structType} requires positive size` });
-			return null;
+			return [];
 		}
 			const angle = shape.structType === "Phyx.SubRect" ? asNumber(shape.fields.angle) : 0;
-			return Box(halfWidth, halfHeight, vectorToMeters(center), editorDegreesToPlanckRadians(angle));
+			return [Box(halfWidth, halfHeight, vectorToMeters(center), editorDegreesToPlanckRadians(angle))];
 	}
 	if (shape.structType === "Phyx.Disk" || shape.structType === "Phyx.SubDisk") {
 		const radius = Math.abs(toMeters(asNumber(shape.fields.radius, 20)));
 		if (radius <= 0) {
 			diagnostics.push({ id: shape.id, message: `${shape.structType} requires positive radius` });
-			return null;
+			return [];
 		}
-		return Circle(vectorToMeters(asVector(shape.fields.center)), radius);
+		return [Circle(vectorToMeters(asVector(shape.fields.center)), radius)];
 	}
 	if (shape.structType === "Phyx.Poly" || shape.structType === "Phyx.SubPoly") {
-		const vertices = filterConcavePolygonVertices(validVertices(shape.fields.vertices));
-		if (vertices.length < 3) {
-			diagnostics.push({ id: shape.id, message: `${shape.structType} requires at least 3 vertices` });
-			return null;
-		}
-		return Polygon(vertices.map(vectorToMeters));
+		const result = decomposeBodyPolygon(validVertices(shape.fields.vertices));
+		for (const message of result.diagnostics) diagnostics.push({ id: shape.id, message: `${shape.structType} ${message}` });
+		return result.parts.map((part) => Polygon(part.map(vectorToMeters)));
 	}
 	if (shape.structType === "Phyx.Chain" || shape.structType === "Phyx.SubChain") {
 		const vertices = validVertices(shape.fields.vertices);
 		if (vertices.length < 2) {
 			diagnostics.push({ id: shape.id, message: `${shape.structType} requires at least 2 vertices` });
-			return null;
+			return [];
 		}
-		return Chain(vertices.map(vectorToMeters), false);
+		return [Chain(vertices.map(vectorToMeters), false)];
 	}
 	diagnostics.push({ id: shape.id, message: `Unsupported fixture shape ${shape.structType}` });
-	return null;
+	return [];
 };
 
 const createFixture = (body: Body, shape: BodyStructDocument, diagnostics: BodyPhysicsDiagnostic[]) => {
-	const planckShape = makeShape(shape, diagnostics);
-	if (!planckShape) return 0;
-	body.createFixture(planckShape, fixtureOptions(shape));
-	return 1;
+	const shapes = makeShapes(shape, diagnostics);
+	const options = fixtureOptions(shape);
+	for (const planckShape of shapes) body.createFixture(planckShape, options);
+	return shapes.length;
 };
 
 const getSubShapeItem = (value: BodyLuaValue, index: number, parentId: string): BodyStructDocument | null => {

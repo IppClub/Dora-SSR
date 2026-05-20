@@ -15,6 +15,65 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DORA_BEGIN
 
+static void AddConvexHull(pd::MultiShapeConf& conf, pd::VertexSet& vertices) {
+	if (vertices.size() > 0) {
+		conf.AddConvexHull(vertices);
+		vertices.clear();
+	}
+}
+
+static void AddMultiVertex(pd::VertexSet& vertices, const Vec2& vertex) {
+	vertices.add(pr::Length2{
+		PhysicsWorld::prVal(vertex.x),
+		PhysicsWorld::prVal(vertex.y)});
+}
+
+static pd::MultiShapeConf CreateMultiShapeConf(const std::vector<Vec2>& vertices, float density, float friction, float restitution) {
+	pd::MultiShapeConf conf = pd::MultiShapeConf{};
+	pd::VertexSet vs;
+	bool hasPrevious = false;
+	Vec2 previous = Vec2::zero;
+	for (const auto& vertex : vertices) {
+		if (hasPrevious && vertex == previous) {
+			AddConvexHull(conf, vs);
+			hasPrevious = false;
+		} else {
+			AddMultiVertex(vs, vertex);
+			previous = vertex;
+			hasPrevious = true;
+		}
+	}
+	AddConvexHull(conf, vs);
+	conf
+		.UseDensity(density)
+		.UseFriction(friction)
+		.UseRestitution(restitution);
+	return conf;
+}
+
+static pd::MultiShapeConf CreateMultiShapeConf(const Vec2 vertices[], int count, float density, float friction, float restitution) {
+	pd::MultiShapeConf conf = pd::MultiShapeConf{};
+	pd::VertexSet vs;
+	bool hasPrevious = false;
+	Vec2 previous = Vec2::zero;
+	for (int i = 0; i < count; i++) {
+		if (hasPrevious && vertices[i] == previous) {
+			AddConvexHull(conf, vs);
+			hasPrevious = false;
+		} else {
+			AddMultiVertex(vs, vertices[i]);
+			previous = vertices[i];
+			hasPrevious = true;
+		}
+	}
+	AddConvexHull(conf, vs);
+	conf
+		.UseDensity(density)
+		.UseFriction(friction)
+		.UseRestitution(restitution);
+	return conf;
+}
+
 BodyDef::BodyDef()
 	: angleOffset(0)
 	, offset(Vec2::zero)
@@ -81,51 +140,11 @@ void BodyDef::attachPolygon(const Vec2 vertices[], int count, float density, flo
 }
 
 void BodyDef::attachMulti(const std::vector<Vec2>& vertices, float density, float friction, float restitution) {
-	pd::MultiShapeConf conf = pd::MultiShapeConf{};
-	pd::VertexSet vs;
-	for (size_t i = 0; i < vertices.size(); i++) {
-		if (vertices[i] == Vec2::zero) {
-			if (vs.size() > 0) {
-				conf.AddConvexHull(vs);
-				vs.clear();
-			}
-		} else
-			vs.add(pr::Length2{
-				PhysicsWorld::prVal(vertices[i].x),
-				PhysicsWorld::prVal(vertices[i].y)});
-	}
-	if (vs.size() > 0) {
-		conf.AddConvexHull(vs);
-	}
-	conf
-		.UseDensity(density)
-		.UseFriction(friction)
-		.UseRestitution(restitution);
-	_fixtureConfs.emplace_back(0, pd::Shape{conf});
+	_fixtureConfs.emplace_back(0, pd::Shape{CreateMultiShapeConf(vertices, density, friction, restitution)});
 }
 
 void BodyDef::attachMulti(const Vec2 vertices[], int count, float density, float friction, float restitution) {
-	pd::MultiShapeConf conf = pd::MultiShapeConf{};
-	pd::VertexSet vs;
-	for (int i = 0; i < count; i++) {
-		if (vertices[i] == Vec2::zero) {
-			if (vs.size() > 0) {
-				conf.AddConvexHull(vs);
-				vs.clear();
-			}
-		} else
-			vs.add(pr::Length2{
-				PhysicsWorld::prVal(vertices[i].x),
-				PhysicsWorld::prVal(vertices[i].y)});
-	}
-	if (vs.size() > 0) {
-		conf.AddConvexHull(vs);
-	}
-	conf
-		.UseDensity(density)
-		.UseFriction(friction)
-		.UseRestitution(restitution);
-	_fixtureConfs.emplace_back(0, pd::Shape{conf});
+	_fixtureConfs.emplace_back(0, pd::Shape{CreateMultiShapeConf(vertices, count, density, friction, restitution)});
 }
 
 void BodyDef::attachDisk(const Vec2& center, float radius, float density, float friction, float restitution) {
@@ -290,51 +309,11 @@ FixtureDef* BodyDef::polygon(const Vec2 vertices[], int count, float density, fl
 }
 
 FixtureDef* BodyDef::multi(const std::vector<Vec2>& vertices, float density, float friction, float restitution) {
-	pd::MultiShapeConf conf = pd::MultiShapeConf{};
-	pd::VertexSet vs;
-	for (size_t i = 0; i < vertices.size(); i++) {
-		if (vertices[i] == Vec2::zero) {
-			if (vs.size() > 0) {
-				conf.AddConvexHull(vs);
-				vs.clear();
-			}
-		} else
-			vs.add(pr::Length2{
-				PhysicsWorld::prVal(vertices[i].x),
-				PhysicsWorld::prVal(vertices[i].y)});
-	}
-	if (vs.size() > 0) {
-		conf.AddConvexHull(vs);
-	}
-	conf
-		.UseDensity(density)
-		.UseFriction(friction)
-		.UseRestitution(restitution);
-	return FixtureDef::create(pd::Shape{conf});
+	return FixtureDef::create(pd::Shape{CreateMultiShapeConf(vertices, density, friction, restitution)});
 }
 
 FixtureDef* BodyDef::multi(const Vec2 vertices[], int count, float density, float friction, float restitution) {
-	pd::MultiShapeConf conf = pd::MultiShapeConf{};
-	pd::VertexSet vs;
-	for (int i = 0; i < count; i++) {
-		if (vertices[i] == Vec2::zero) {
-			if (vs.size() > 0) {
-				conf.AddConvexHull(vs);
-				vs.clear();
-			}
-		} else
-			vs.add(pr::Length2{
-				PhysicsWorld::prVal(vertices[i].x),
-				PhysicsWorld::prVal(vertices[i].y)});
-	}
-	if (vs.size() > 0) {
-		conf.AddConvexHull(vs);
-	}
-	conf
-		.UseDensity(density)
-		.UseFriction(friction)
-		.UseRestitution(restitution);
-	return FixtureDef::create(pd::Shape{conf});
+	return FixtureDef::create(pd::Shape{CreateMultiShapeConf(vertices, count, density, friction, restitution)});
 }
 
 FixtureDef* BodyDef::disk(const Vec2& center, float radius, float density, float friction, float restitution) {

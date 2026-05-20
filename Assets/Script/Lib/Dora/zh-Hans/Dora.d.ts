@@ -5391,7 +5391,7 @@ class BodyDef extends Object {
 
 	/**
 	 * 将由多个凸形状组成的凹形状定义附加到物理体上。
-	 * @param vertices 表示组成凹形状的每个凸形状的顶点的Vec2数组。
+	 * @param vertices 表示组成凹形状的每个凸形状的Vec2数组。连续重复的顶点会把数组分割为多个凸形状。
 	 * @param density 形状的密度（默认为0.0）（可选）。
 	 * @param friction 形状的摩擦系数（默认为0.4，应为0.0到1.0）（可选）。
 	 * @param restitution 形状的弹性系数（默认为0.0，应为0.0到1.0）（可选）。
@@ -5511,7 +5511,7 @@ interface BodyDefClass {
 
 	/**
 	 * 创建由多个凸形状组成的凹形状定义。
-	 * @param vertices 表示组成凹形状的每个凸形状的顶点的Vec2数组。顶点数组中的每个凸形状应以Vec2(0.0, 0.0)作为分隔符结束。
+	 * @param vertices 表示组成凹形状的每个凸形状的Vec2数组。连续重复的顶点会把数组分割为多个凸形状。
 	 * @param density 形状的密度（可选，默认0.0）。
 	 * @param friction 形状的摩擦系数（可选，默认0.4，应为0.0到1.0）。
 	 * @param restitution 形状的弹性系数（可选，默认0.0，应为0.0到1.0）。

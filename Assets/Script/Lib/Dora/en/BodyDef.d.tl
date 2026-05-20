@@ -95,7 +95,7 @@ local record BodyDef
 
 	-- Attaches a concave shape definition made of multiple convex shapes to the body.
 	-- @param vertices ({Vec2}) A table containing the vertices of each convex shape that makes up the concave shape.
-	-- Each convex shape in the vertices table should ends with a Vec2(0.0, 0.0) as seperator.
+	-- Consecutive duplicate vertices split the table into separate convex shapes.
 	-- @param density (number) [optional] The density of the concave shape (default is 0.0).
 	-- @param friction (number) [optional] The friction of the concave shape (default is 0.4, should be 0 to 1.0).
 	-- @param restitution (number) [optional] The restitution of the concave shape (default is 0.0, should be 0 to 1.0).
@@ -234,7 +234,7 @@ local record BodyDefClass
 
 	-- Create a concave shape definition made of multiple convex shapes.
 	-- @param vertices ({Vec2}) A table containing the vertices of each convex shape that makes up the concave shape.
-	-- Each convex shape in the vertices table should ends with a Vec2(0.0, 0.0) as seperator.
+	-- Consecutive duplicate vertices split the table into separate convex shapes.
 	-- @param density (number) The density of the shape (optional, default 0.0).
 	-- @param friction (number) The friction coefficient of the shape (optional, default 0.4, should be 0.0 to 1.0).
 	-- @param restitution (number) The restitution (elasticity) of the shape (optional, default 0.0, should be 0.0 to 1.0).

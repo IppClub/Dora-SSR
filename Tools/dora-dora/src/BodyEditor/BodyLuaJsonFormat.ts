@@ -6,8 +6,11 @@ import {
 	BodyStructDefinition,
 	BodyStructDocument,
 	BodyStructType,
+	BodyVector,
 } from "./BodyDocument";
 import { getBodyNumberConstraint, validateBodyNumberValue } from "./BodyFieldConstraints";
+import { decomposeBodyPolygon, normalizeBodyPolygon } from "./BodyPolygon";
+import { asArray, asVector } from "./BodyRender";
 
 export type BodyDiagnosticSeverity = "error" | "warning" | "info";
 
@@ -51,6 +54,7 @@ const isEmptyObject = (value: unknown) => (
 
 const normalizeFieldValue = (field: BodyStructField, value: unknown): BodyLuaValue | undefined => {
 	if (value === undefined && field.name === "faceScale") return 1;
+	if (field.kind === "hidden" && value === undefined) return [];
 	if (field.kind === "subShapes") {
 		if (value === undefined || value === null || isEmptyObject(value)) return [];
 		if (Array.isArray(value) && value[0] === "Array") {
@@ -232,12 +236,74 @@ const writeLuaFieldValue = (field: BodyStructField, value: BodyLuaValue | undefi
 	return writeLuaValue(value ?? null);
 };
 
+const validVertices = (value: BodyLuaValue | undefined): BodyVector[] => (
+	asArray(value)
+		.map((point) => asVector(point))
+		.filter((point) => Number.isFinite(point[0]) && Number.isFinite(point[1]))
+);
+
+const getConvexes = (item: BodyStructDocument) => {
+	const result = decomposeBodyPolygon(validVertices(item.fields.vertices), 254);
+	return result.parts.map((part) => part.map((point) => [point[0], point[1]]));
+};
+
+const sameVertex = (a: BodyVector, b: BodyVector) => (
+	Math.abs(a[0] - b[0]) <= 0.000001 && Math.abs(a[1] - b[1]) <= 0.000001
+);
+
+const isUnchangedSingleConvex = (item: BodyStructDocument, parts: number[][][]) => {
+	if (parts.length !== 1) return false;
+	const vertices = normalizeBodyPolygon(validVertices(item.fields.vertices));
+	const part = parts[0];
+	if (part.length !== vertices.length) return false;
+	return part.every((point, index) => sameVertex([point[0], point[1]], vertices[index]));
+};
+
+const writeConvexes = (item: BodyStructDocument) => {
+	const parts = getConvexes(item);
+	if (isUnchangedSingleConvex(item, parts)) return "nil";
+	return writeLuaValue(parts);
+};
+
+const writeSubShape = (value: BodyLuaValue) => {
+	if (!Array.isArray(value) || typeof value[0] !== "string") return writeLuaValue(value);
+	if (value[0] !== "Phyx.SubPoly") return writeLuaValue(value);
+	const fields: Record<string, BodyLuaValue> = {};
+	const definition = BODY_STRUCTS_BY_TYPE[value[0]];
+	for (let i = 0; i < definition.fields.length; i++) {
+		const field = definition.fields[i];
+		fields[field.name] = value[i + 1] ?? [];
+	}
+	const item: BodyStructDocument = {
+		id: "export:subPoly",
+		structType: value[0],
+		fields,
+	};
+	const values = definition.fields.map((field, index) => (
+		field.name === "convexes" ? writeConvexes(item) : writeLuaFieldValue(field, value[index + 1] ?? null)
+	));
+	while (values.length > 0 && values[values.length - 1] === "nil") values.pop();
+	return `{${[luaEscapeString(value[0]), ...values].join(",")}}`;
+};
+
+const writeSubShapes = (value: BodyLuaValue | undefined) => {
+	if (!Array.isArray(value) || value.length === 0) return "false";
+	return `{${value.map(writeSubShape).join(",")}}`;
+};
+
 const writeStruct = (item: BodyStructDocument) => {
 	const definition = BODY_STRUCTS_BY_TYPE[item.structType];
 	const values = definition.fields.map((field) => {
+		if (field.name === "convexes" && (item.structType === "Phyx.Poly" || item.structType === "Phyx.SubPoly")) {
+			return writeConvexes(item);
+		}
+		if (field.kind === "subShapes") {
+			return writeSubShapes(item.fields[field.name]);
+		}
 		const value = item.fields[field.name];
 		return writeLuaFieldValue(field, value);
 	});
+	while (values.length > 0 && values[values.length - 1] === "nil") values.pop();
 	return `\t{${[luaEscapeString(item.structType), ...values].join(",")}}`;
 };
 
