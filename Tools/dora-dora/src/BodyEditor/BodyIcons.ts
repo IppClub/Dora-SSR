@@ -103,18 +103,18 @@ export const drawBodyIcon = (
 			ctx.lineTo(x + 7 * unit, y + 17 * unit);
 			ctx.stroke();
 			break;
-			case "play":
-				ctx.moveTo(x + 8 * unit, y + 5 * unit);
-				ctx.lineTo(x + 19 * unit, cy);
-				ctx.lineTo(x + 8 * unit, y + 19 * unit);
-				ctx.closePath();
-				ctx.fill();
-				break;
-			case "stop":
-				ctx.rect(x + 7 * unit, y + 7 * unit, 10 * unit, 10 * unit);
-				ctx.fill();
-				break;
-			case "origin":
+		case "play":
+			ctx.moveTo(x + 8 * unit, y + 5 * unit);
+			ctx.lineTo(x + 19 * unit, cy);
+			ctx.lineTo(x + 8 * unit, y + 19 * unit);
+			ctx.closePath();
+			ctx.fill();
+			break;
+		case "stop":
+			ctx.rect(x + 7 * unit, y + 7 * unit, 10 * unit, 10 * unit);
+			ctx.fill();
+			break;
+		case "origin":
 			ctx.arc(cx, cy, 7 * unit, 0, Math.PI * 2);
 			ctx.moveTo(cx - 10 * unit, cy);
 			ctx.lineTo(cx + 10 * unit, cy);

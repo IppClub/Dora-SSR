@@ -169,10 +169,10 @@ export default memo(function BodyEditor(props: BodyEditorProps) {
 			if (cancelled) return;
 			if (response.success) {
 				const result = loadBodyDocumentFromJson(response.json);
-					loadStateRef.current = result;
-					alertDiagnostics(result.diagnostics);
-					loadCanSaveRef.current = true;
-					setLoadState(result);
+				loadStateRef.current = result;
+				alertDiagnostics(result.diagnostics);
+				loadCanSaveRef.current = true;
+				setLoadState(result);
 				setUndoStack([]);
 				setRedoStack([]);
 			} else {
@@ -181,15 +181,15 @@ export default memo(function BodyEditor(props: BodyEditorProps) {
 					path: response.phase ?? "request",
 					message: response.message ?? t("bodyEditor.failedLoadBody", "Failed to load body file."),
 				}];
-					alertDiagnostics(diagnostics);
-					loadCanSaveRef.current = false;
-						const nextLoadState: BodyLoadResult = {
-							document: { version: 1, source: "b.lua", items: [], dirty: false },
-							diagnostics,
-							canSave: false,
-					};
-					loadStateRef.current = nextLoadState;
-					setLoadState(nextLoadState);
+				alertDiagnostics(diagnostics);
+				loadCanSaveRef.current = false;
+				const nextLoadState: BodyLoadResult = {
+					document: { version: 1, source: "b.lua", items: [], dirty: false },
+					diagnostics,
+					canSave: false,
+				};
+				loadStateRef.current = nextLoadState;
+				setLoadState(nextLoadState);
 			}
 		}).catch((error) => {
 			if (cancelled) return;
@@ -198,15 +198,15 @@ export default memo(function BodyEditor(props: BodyEditorProps) {
 				path: "network",
 				message: error instanceof Error ? error.message : t("bodyEditor.failedLoadBody", "Failed to load body file."),
 			}];
-				alertDiagnostics(diagnostics);
-				loadCanSaveRef.current = false;
-					const nextLoadState: BodyLoadResult = {
-						document: { version: 1, source: "b.lua", items: [], dirty: false },
-						diagnostics,
-						canSave: false,
-				};
-				loadStateRef.current = nextLoadState;
-				setLoadState(nextLoadState);
+			alertDiagnostics(diagnostics);
+			loadCanSaveRef.current = false;
+			const nextLoadState: BodyLoadResult = {
+				document: { version: 1, source: "b.lua", items: [], dirty: false },
+				diagnostics,
+				canSave: false,
+			};
+			loadStateRef.current = nextLoadState;
+			setLoadState(nextLoadState);
 		});
 		return () => {
 			cancelled = true;
@@ -220,16 +220,16 @@ export default memo(function BodyEditor(props: BodyEditorProps) {
 			setUndoStack((items) => [...items, previous]);
 			setRedoStack([]);
 		}
-			const current = loadStateRef.current;
-			if (!current) return;
-			const nextLoadState = {
-				...current,
-				document: result.document,
-				diagnostics: structureDiagnostics,
-				canSave: loadCanSaveRef.current && result.diagnostics.length === 0 && structureDiagnostics.every((item) => item.severity !== "error"),
-			};
-			loadStateRef.current = nextLoadState;
-			setLoadState(nextLoadState);
+		const current = loadStateRef.current;
+		if (!current) return;
+		const nextLoadState = {
+			...current,
+			document: result.document,
+			diagnostics: structureDiagnostics,
+			canSave: loadCanSaveRef.current && result.diagnostics.length === 0 && structureDiagnostics.every((item) => item.severity !== "error"),
+		};
+		loadStateRef.current = nextLoadState;
+		setLoadState(nextLoadState);
 	};
 
 	const writeResultIfClean = (result: BodyStateResult) => {
@@ -322,23 +322,23 @@ export default memo(function BodyEditor(props: BodyEditorProps) {
 	const undo = () => {
 		if (!loadState || undoStack.length === 0) return;
 		const previous = undoStack[undoStack.length - 1];
-			setUndoStack((items) => items.slice(0, -1));
-			setRedoStack((items) => [...items, loadState.document]);
-			const nextLoadState = { ...loadState, document: previous };
-			loadStateRef.current = nextLoadState;
-			setLoadState(nextLoadState);
-			if (loadCanSaveRef.current) onChange?.(writeBodyDocumentToLua(previous));
+		setUndoStack((items) => items.slice(0, -1));
+		setRedoStack((items) => [...items, loadState.document]);
+		const nextLoadState = { ...loadState, document: previous };
+		loadStateRef.current = nextLoadState;
+		setLoadState(nextLoadState);
+		if (loadCanSaveRef.current) onChange?.(writeBodyDocumentToLua(previous));
 	};
 
 	const redo = () => {
 		if (!loadState || redoStack.length === 0) return;
 		const next = redoStack[redoStack.length - 1];
-			setRedoStack((items) => items.slice(0, -1));
-			setUndoStack((items) => [...items, loadState.document]);
-			const nextLoadState = { ...loadState, document: next };
-			loadStateRef.current = nextLoadState;
-			setLoadState(nextLoadState);
-			if (loadCanSaveRef.current) onChange?.(writeBodyDocumentToLua(next));
+		setRedoStack((items) => items.slice(0, -1));
+		setUndoStack((items) => [...items, loadState.document]);
+		const nextLoadState = { ...loadState, document: next };
+		loadStateRef.current = nextLoadState;
+		setLoadState(nextLoadState);
+		if (loadCanSaveRef.current) onChange?.(writeBodyDocumentToLua(next));
 	};
 
 	return (
@@ -353,7 +353,7 @@ export default memo(function BodyEditor(props: BodyEditorProps) {
 				overflow: "hidden",
 			}}
 		>
-				<div style={{ flex: 1, minHeight: 0, background: "#1f1f1f" }}>
+			<div style={{ flex: 1, minHeight: 0, background: "#1f1f1f" }}>
 				{loadState && loadState.diagnostics.length > 0 ? (
 					<div style={{
 						maxHeight: 92,
@@ -370,32 +370,32 @@ export default memo(function BodyEditor(props: BodyEditorProps) {
 					</div>
 				) : null}
 				{loadState ? (
-						<BodyEditorCanvas
-							document={loadState.document}
-							faceAssets={faceAssets}
-							resourceBasePath={faceResourceBasePath}
-							servedResourceBasePath={resourceBasePath}
-							width={width}
-							height={height - (loadState.diagnostics.length > 0 ? 92 : 0)}
-							active={active}
-							readOnly={readOnly}
-							canUndo={undoStack.length > 0}
-							canRedo={redoStack.length > 0}
-							addAlert={addAlert}
-								onUndo={undo}
-								onRedo={redo}
-								onCreateShape={onCreateShape}
+					<BodyEditorCanvas
+						document={loadState.document}
+						faceAssets={faceAssets}
+						resourceBasePath={faceResourceBasePath}
+						servedResourceBasePath={resourceBasePath}
+						width={width}
+						height={height - (loadState.diagnostics.length > 0 ? 92 : 0)}
+						active={active}
+						readOnly={readOnly}
+						canUndo={undoStack.length > 0}
+						canRedo={redoStack.length > 0}
+						addAlert={addAlert}
+						onUndo={undo}
+						onRedo={redo}
+						onCreateShape={onCreateShape}
 						onCreateSubShape={onCreateSubShape}
 						onCreateJoint={onCreateJoint}
-							onDeleteSelected={onDeleteSelected}
-							onDuplicateSelected={onDuplicateSelected}
-							onUpdateField={onUpdateField}
-							onBeginValueEdit={onBeginValueEdit}
-							onEndValueEdit={onEndValueEdit}
-							onBeginTranslateSelection={onBeginTranslateSelection}
-							onTranslateSelection={onTranslateSelection}
-							onEndTranslateSelection={onEndTranslateSelection}
-						/>
+						onDeleteSelected={onDeleteSelected}
+						onDuplicateSelected={onDuplicateSelected}
+						onUpdateField={onUpdateField}
+						onBeginValueEdit={onBeginValueEdit}
+						onEndValueEdit={onEndValueEdit}
+						onBeginTranslateSelection={onBeginTranslateSelection}
+						onTranslateSelection={onTranslateSelection}
+						onEndTranslateSelection={onEndTranslateSelection}
+					/>
 				) : (
 					<div style={{ padding: 16, color: "#8f9aa6" }}>{t("bodyEditor.loading", "Loading BodyEditor...")}</div>
 				)}
