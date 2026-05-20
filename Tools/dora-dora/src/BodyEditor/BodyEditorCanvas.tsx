@@ -613,9 +613,9 @@ const drawGizmoOverlay = (
 };
 
 const toolbarGroups: readonly (readonly BodyIconName[])[] = [
-		["rect", "disk", "poly", "chain", "joint"],
-		["delete"],
-		["play"],
+	["rect", "disk", "poly", "chain", "joint"],
+	["delete"],
+	["play"],
 ];
 
 const viewToolNames: readonly BodyIconName[] = ["origin", "zoom", "fixX", "fixY"];
@@ -660,15 +660,15 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 		startCanvasPointer: { x: number; y: number };
 		startFields: Record<string, BodyLuaValue>;
 		startGizmoCenter: BodyVector | null;
-			startPointerAngle: number | null;
-			lastPointerAngle: number | null;
-			accumulatedRotation: number;
-			jointAnchorField: "anchorA" | "anchorB" | null;
-			prismaticHandle: PrismaticMoveHandle | null;
-			pulleyHandle: PulleyMoveHandle | null;
-			worldPosHandle: WorldPosMoveHandle | null;
-			vertexIndex: number | null;
-		} | null>(null);
+		startPointerAngle: number | null;
+		lastPointerAngle: number | null;
+		accumulatedRotation: number;
+		jointAnchorField: "anchorA" | "anchorB" | null;
+		prismaticHandle: PrismaticMoveHandle | null;
+		pulleyHandle: PulleyMoveHandle | null;
+		worldPosHandle: WorldPosMoveHandle | null;
+		vertexIndex: number | null;
+	} | null>(null);
 	const [viewport, setViewport] = useState(defaultViewport);
 	const [selectedId, setSelectedId] = useState<string | null>(() => document.items[0]?.id ?? null);
 	const [activeTool, setActiveTool] = useState<BodyIconName>("menu");
@@ -809,19 +809,19 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 		canvas.style.width = `${canvasWidth}px`;
 		canvas.style.height = `${mainHeight}px`;
 		context.setTransform(ratio, 0, 0, ratio, 0, 0);
-			renderBodyDocument(context, {
-				document,
-				faceAssets,
-				viewport,
-				selectedId,
-				width: canvasWidth,
-				height: mainHeight,
-				physicsBodies: physicsSnapshot?.bodies,
-				physicsJoints: physicsSnapshot?.joints,
-			});
-			if (!isPlaying) drawVertexOverlay(context, document, selectedId, selectedVertexIndex, viewport, canvasWidth, mainHeight);
-			if (!isPlaying) drawGizmoOverlay(context, document, selectedId, gizmoMode, activeTool, viewport, canvasWidth, mainHeight);
-		}, [activeTool, canvasWidth, document, faceAssets, gizmoMode, isPlaying, mainHeight, physicsSnapshot, selectedId, selectedVertexIndex, viewport]);
+		renderBodyDocument(context, {
+			document,
+			faceAssets,
+			viewport,
+			selectedId,
+			width: canvasWidth,
+			height: mainHeight,
+			physicsBodies: physicsSnapshot?.bodies,
+			physicsJoints: physicsSnapshot?.joints,
+		});
+		if (!isPlaying) drawVertexOverlay(context, document, selectedId, selectedVertexIndex, viewport, canvasWidth, mainHeight);
+		if (!isPlaying) drawGizmoOverlay(context, document, selectedId, gizmoMode, activeTool, viewport, canvasWidth, mainHeight);
+	}, [activeTool, canvasWidth, document, faceAssets, gizmoMode, isPlaying, mainHeight, physicsSnapshot, selectedId, selectedVertexIndex, viewport]);
 
 	const selectItem = useCallback((id: string) => {
 		setSelectedId(id);
@@ -889,65 +889,65 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 	}, [document.items]);
 
 	const runTool = useCallback((name: BodyIconName) => {
-			if (name === "origin") {
-				setViewport((current) => ({ ...current, center: [0, 0] }));
+		if (name === "origin") {
+			setViewport((current) => ({ ...current, center: [0, 0] }));
+			setActiveTool("menu");
+			setJointPanelOpen(false);
+			setPendingJointType(null);
+			setPendingJointSelection({});
+			setPendingSubShape(null);
+		} else if (name === "zoom") {
+			setViewport((current) => ({ ...current, scale: current.scale >= 2 ? 0.5 : current.scale >= 1 ? 2 : 1 }));
+			setActiveTool("menu");
+			setJointPanelOpen(false);
+			setPendingJointType(null);
+			setPendingJointSelection({});
+			setPendingSubShape(null);
+		} else if (name === "delete") {
+			if (editDisabled) return;
+			onDeleteSelected?.(selectedId);
+			setActiveTool("menu");
+			setJointPanelOpen(false);
+			setPendingJointType(null);
+			setPendingJointSelection({});
+			setPendingSubShape(null);
+		} else if (isShapeTool(name)) {
+			setJointPanelOpen(false);
+			setPendingJointType(null);
+			setPendingJointSelection({});
+			setPendingSubShape(null);
+			setActiveTool((current) => current === name ? "menu" : name);
+			return;
+		} else if (name === "joint") {
+			setPendingSubShape(null);
+			if (activeTool === "joint") {
+				setJointPanelOpen(false);
+				setPendingJointType(null);
+				setPendingJointSelection({});
 				setActiveTool("menu");
-				setJointPanelOpen(false);
-				setPendingJointType(null);
-				setPendingJointSelection({});
-				setPendingSubShape(null);
-			} else if (name === "zoom") {
-				setViewport((current) => ({ ...current, scale: current.scale >= 2 ? 0.5 : current.scale >= 1 ? 2 : 1 }));
-				setActiveTool("menu");
-				setJointPanelOpen(false);
-				setPendingJointType(null);
-				setPendingJointSelection({});
-				setPendingSubShape(null);
-			} else if (name === "delete") {
-				if (editDisabled) return;
-				onDeleteSelected?.(selectedId);
-				setActiveTool("menu");
-				setJointPanelOpen(false);
-				setPendingJointType(null);
-				setPendingJointSelection({});
-				setPendingSubShape(null);
-				} else if (isShapeTool(name)) {
-					setJointPanelOpen(false);
-					setPendingJointType(null);
-				setPendingJointSelection({});
-					setPendingSubShape(null);
-					setActiveTool((current) => current === name ? "menu" : name);
-					return;
-				} else if (name === "joint") {
-					setPendingSubShape(null);
-					if (activeTool === "joint") {
-						setJointPanelOpen(false);
-						setPendingJointType(null);
-				setPendingJointSelection({});
-						setActiveTool("menu");
-					} else {
-						setJointPanelOpen(true);
-						setPendingJointType(null);
-				setPendingJointSelection({});
-						setActiveTool("joint");
-					}
-			} else if (name === "play") {
-				setIsPlaying((value) => !value);
-				setActiveTool("menu");
-				setJointPanelOpen(false);
-				setPendingJointType(null);
-				setPendingJointSelection({});
-				setPendingSubShape(null);
-			} else if (name === "fixX" || name === "fixY") {
-				setActiveTool((current) => current === name ? "menu" : name);
-				setJointPanelOpen(false);
-				setPendingJointType(null);
-				setPendingJointSelection({});
-				setPendingSubShape(null);
 			} else {
-				setActiveTool(name);
+				setJointPanelOpen(true);
+				setPendingJointType(null);
+				setPendingJointSelection({});
+				setActiveTool("joint");
 			}
-			}, [activeTool, editDisabled, onDeleteSelected, selectedId]);
+		} else if (name === "play") {
+			setIsPlaying((value) => !value);
+			setActiveTool("menu");
+			setJointPanelOpen(false);
+			setPendingJointType(null);
+			setPendingJointSelection({});
+			setPendingSubShape(null);
+		} else if (name === "fixX" || name === "fixY") {
+			setActiveTool((current) => current === name ? "menu" : name);
+			setJointPanelOpen(false);
+			setPendingJointType(null);
+			setPendingJointSelection({});
+			setPendingSubShape(null);
+		} else {
+			setActiveTool(name);
+		}
+	}, [activeTool, editDisabled, onDeleteSelected, selectedId]);
 
 	const onKeyDown = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
 		const target = event.target as HTMLElement | null;
@@ -983,461 +983,461 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 		} else if (key === "1") {
 			event.preventDefault();
 			if (editDisabled) return;
-				setJointPanelOpen(false);
-				setPendingJointType(null);
-				setPendingJointSelection({});
-				setPendingSubShape(null);
-				setActiveTool("rect");
-			} else if (key === "2") {
-				event.preventDefault();
-				if (editDisabled) return;
-				setJointPanelOpen(false);
-				setPendingJointType(null);
-				setPendingJointSelection({});
-				setPendingSubShape(null);
-				setActiveTool("disk");
-			} else if (key === "3") {
-				event.preventDefault();
-				if (editDisabled) return;
-				setJointPanelOpen(false);
-				setPendingJointType(null);
-				setPendingJointSelection({});
-				setPendingSubShape(null);
-				setActiveTool("poly");
-			} else if (key === "4") {
-				event.preventDefault();
-				if (editDisabled) return;
-				setJointPanelOpen(false);
-				setPendingJointType(null);
-				setPendingJointSelection({});
-				setPendingSubShape(null);
-				setActiveTool("chain");
-			} else if (key === "j") {
-				event.preventDefault();
-				if (editDisabled) return;
-				setPendingSubShape(null);
-				setJointPanelOpen((value) => {
-					if (value) {
-						setPendingJointType(null);
-						setPendingJointSelection({});
-						setActiveTool("menu");
-						return false;
-					}
-					setActiveTool("joint");
-					return true;
-				});
-			}
+			setJointPanelOpen(false);
+			setPendingJointType(null);
+			setPendingJointSelection({});
+			setPendingSubShape(null);
+			setActiveTool("rect");
+		} else if (key === "2") {
+			event.preventDefault();
+			if (editDisabled) return;
+			setJointPanelOpen(false);
+			setPendingJointType(null);
+			setPendingJointSelection({});
+			setPendingSubShape(null);
+			setActiveTool("disk");
+		} else if (key === "3") {
+			event.preventDefault();
+			if (editDisabled) return;
+			setJointPanelOpen(false);
+			setPendingJointType(null);
+			setPendingJointSelection({});
+			setPendingSubShape(null);
+			setActiveTool("poly");
+		} else if (key === "4") {
+			event.preventDefault();
+			if (editDisabled) return;
+			setJointPanelOpen(false);
+			setPendingJointType(null);
+			setPendingJointSelection({});
+			setPendingSubShape(null);
+			setActiveTool("chain");
+		} else if (key === "j") {
+			event.preventDefault();
+			if (editDisabled) return;
+			setPendingSubShape(null);
+			setJointPanelOpen((value) => {
+				if (value) {
+					setPendingJointType(null);
+					setPendingJointSelection({});
+					setActiveTool("menu");
+					return false;
+				}
+				setActiveTool("joint");
+				return true;
+			});
+		}
 	}, [canRedo, canUndo, copiedId, editDisabled, onDeleteSelected, onDuplicateSelected, onRedo, onUndo, selectedId]);
 
-		const onWheel = useCallback((event: React.WheelEvent<HTMLCanvasElement>) => {
-			event.preventDefault();
-			setViewport((current) => {
-				const wheel = Math.max(-1, Math.min(1, -event.deltaY / 100));
-				const nextScale = Math.max(0.1, Math.min(8, current.scale + wheel * 0.1));
-				return { ...current, scale: nextScale };
-			});
-		}, []);
+	const onWheel = useCallback((event: React.WheelEvent<HTMLCanvasElement>) => {
+		event.preventDefault();
+		setViewport((current) => {
+			const wheel = Math.max(-1, Math.min(1, -event.deltaY / 100));
+			const nextScale = Math.max(0.1, Math.min(8, current.scale + wheel * 0.1));
+			return { ...current, scale: nextScale };
+		});
+	}, []);
 
-		const updateGizmoEdit = useCallback((
-			drag: NonNullable<typeof dragRef.current>,
-			pointer: { x: number; y: number },
-			canvasPointer: { x: number; y: number },
-			worldDelta: BodyVector,
-		) => {
-			const targetId = drag.selectedId;
-			if (!targetId) return;
-			const context = getSelectedBodyContext(document, targetId);
-			if (!context) return;
-				const { item, body, isSubShape } = context;
-				const start = drag.startFields;
-				if (gizmoMode === "move") {
-					const constrainedWorldDelta: BodyVector = activeTool === "fixX"
-						? [worldDelta[0], 0]
-						: activeTool === "fixY"
-							? [0, worldDelta[1]]
-							: worldDelta;
-					if (isSubShape && body) {
-						const localDelta = worldDeltaToBodyLocalDelta(body, constrainedWorldDelta);
-						if (Array.isArray(start.center)) {
-							const center = asVector(start.center);
-							onUpdateField?.(targetId, "center", [
-							snapValue(center[0] + localDelta[0], fixedSnap, fixedStep),
-							snapValue(center[1] + localDelta[1], fixedSnap, fixedStep),
-						], false);
-					} else if (Array.isArray(start.vertices)) {
-						const vertices = asArray(start.vertices).map((point) => {
-							const vertex = asVector(point);
-							return [
-								snapValue(vertex[0] + localDelta[0], fixedSnap, fixedStep),
-								snapValue(vertex[1] + localDelta[1], fixedSnap, fixedStep),
-							];
-						});
-						onUpdateField?.(targetId, "vertices", vertices, false);
-					}
-					return;
+	const updateGizmoEdit = useCallback((
+		drag: NonNullable<typeof dragRef.current>,
+		pointer: { x: number; y: number },
+		canvasPointer: { x: number; y: number },
+		worldDelta: BodyVector,
+	) => {
+		const targetId = drag.selectedId;
+		if (!targetId) return;
+		const context = getSelectedBodyContext(document, targetId);
+		if (!context) return;
+		const { item, body, isSubShape } = context;
+		const start = drag.startFields;
+		if (gizmoMode === "move") {
+			const constrainedWorldDelta: BodyVector = activeTool === "fixX"
+				? [worldDelta[0], 0]
+				: activeTool === "fixY"
+					? [0, worldDelta[1]]
+					: worldDelta;
+			if (isSubShape && body) {
+				const localDelta = worldDeltaToBodyLocalDelta(body, constrainedWorldDelta);
+				if (Array.isArray(start.center)) {
+					const center = asVector(start.center);
+					onUpdateField?.(targetId, "center", [
+						snapValue(center[0] + localDelta[0], fixedSnap, fixedStep),
+						snapValue(center[1] + localDelta[1], fixedSnap, fixedStep),
+					], false);
+				} else if (Array.isArray(start.vertices)) {
+					const vertices = asArray(start.vertices).map((point) => {
+						const vertex = asVector(point);
+						return [
+							snapValue(vertex[0] + localDelta[0], fixedSnap, fixedStep),
+							snapValue(vertex[1] + localDelta[1], fixedSnap, fixedStep),
+						];
+					});
+					onUpdateField?.(targetId, "vertices", vertices, false);
 				}
-					if (isBodyItem(item) && Array.isArray(start.position)) {
-						const position = asVector(start.position);
-						onUpdateField?.(targetId, "position", [
-							snapValue(position[0] + constrainedWorldDelta[0], fixedSnap, fixedStep),
-							snapValue(position[1] + constrainedWorldDelta[1], fixedSnap, fixedStep),
+				return;
+			}
+			if (isBodyItem(item) && Array.isArray(start.position)) {
+				const position = asVector(start.position);
+				onUpdateField?.(targetId, "position", [
+					snapValue(position[0] + constrainedWorldDelta[0], fixedSnap, fixedStep),
+					snapValue(position[1] + constrainedWorldDelta[1], fixedSnap, fixedStep),
+				], false);
+				return;
+			}
+			if (isJointItem(item)) {
+				if (item.structType === "Phyx.Prismatic" && drag.prismaticHandle) {
+					if (!Array.isArray(start.worldPos)) return;
+					const worldPos = asVector(start.worldPos);
+					if (drag.prismaticHandle === "worldPos") {
+						onUpdateField?.(targetId, "worldPos", [
+							snapValue(worldPos[0] + constrainedWorldDelta[0], fixedSnap, fixedStep),
+							snapValue(worldPos[1] + constrainedWorldDelta[1], fixedSnap, fixedStep),
 						], false);
 						return;
 					}
-					if (isJointItem(item)) {
-						if (item.structType === "Phyx.Prismatic" && drag.prismaticHandle) {
-							if (!Array.isArray(start.worldPos)) return;
-							const worldPos = asVector(start.worldPos);
-							if (drag.prismaticHandle === "worldPos") {
-								onUpdateField?.(targetId, "worldPos", [
-									snapValue(worldPos[0] + constrainedWorldDelta[0], fixedSnap, fixedStep),
-									snapValue(worldPos[1] + constrainedWorldDelta[1], fixedSnap, fixedStep),
-								], false);
-								return;
-							}
-							const axis = normalizeVector(asVector(start.axis, [1, 0]));
-							const fieldName = drag.prismaticHandle === "lower" ? "lowerTranslation" : "upperTranslation";
-							const startBound = asNumber(start[fieldName], drag.prismaticHandle === "lower" ? -50 : 50);
-							const sign = startBound < 0 || (startBound === 0 && drag.prismaticHandle === "lower") ? -1 : 1;
-							const startPoint: BodyVector = [
-								worldPos[0] + axis[0] * startBound,
-								worldPos[1] + axis[1] * startBound,
-							];
-							const nextPoint: BodyVector = [
-								startPoint[0] + constrainedWorldDelta[0],
-								startPoint[1] + constrainedWorldDelta[1],
-							];
-							const dx = nextPoint[0] - worldPos[0];
-							const dy = nextPoint[1] - worldPos[1];
-							const length = Math.hypot(dx, dy);
-							if (length <= 0.000001) return;
-							const nextAxis: BodyVector = [dx / length * sign, dy / length * sign];
-							onUpdateField?.(targetId, "axis", [
-								snapValue(nextAxis[0], fixedSnap, Math.max(0.0001, fixedStep / 100)),
-								snapValue(nextAxis[1], fixedSnap, Math.max(0.0001, fixedStep / 100)),
-							], false);
-							onUpdateField?.(targetId, fieldName, snapValue(length * sign, fixedSnap, fixedStep), false);
-							return;
-						}
-						if (item.structType === "Phyx.Pulley" && drag.pulleyHandle) {
-							const fieldName = drag.pulleyHandle;
-							const value = start[fieldName];
-							if (!Array.isArray(value)) return;
-							const vector = asVector(value);
-							if (fieldName === "groundAnchorA" || fieldName === "groundAnchorB") {
-								onUpdateField?.(targetId, fieldName, [
-									snapValue(vector[0] + constrainedWorldDelta[0], fixedSnap, fixedStep),
-									snapValue(vector[1] + constrainedWorldDelta[1], fixedSnap, fixedStep),
-								], false);
-								return;
-							}
-							const anchorBody = getJointAnchorBody(document, item, fieldName);
-							if (!anchorBody) return;
-							const localDelta = worldDeltaToBodyLocalDelta(anchorBody, constrainedWorldDelta);
-							onUpdateField?.(targetId, fieldName, [
-								snapValue(vector[0] + localDelta[0], fixedSnap, fixedStep),
-								snapValue(vector[1] + localDelta[1], fixedSnap, fixedStep),
-							], false);
-							return;
-						}
-						if (drag.worldPosHandle) {
-							const value = start[drag.worldPosHandle];
-							if (!Array.isArray(value)) return;
-							const worldPos = asVector(value);
-							onUpdateField?.(targetId, drag.worldPosHandle, [
-								snapValue(worldPos[0] + constrainedWorldDelta[0], fixedSnap, fixedStep),
-								snapValue(worldPos[1] + constrainedWorldDelta[1], fixedSnap, fixedStep),
-							], false);
-							return;
-						}
-						const fieldName = drag.jointAnchorField;
-						const value = fieldName ? start[fieldName] : null;
-						if (!fieldName || !Array.isArray(value)) return;
-						const anchorBody = getJointAnchorBody(document, item, fieldName);
-						if (!anchorBody) return;
-						const localDelta = worldDeltaToBodyLocalDelta(anchorBody, constrainedWorldDelta);
-						const vector = asVector(value);
+					const axis = normalizeVector(asVector(start.axis, [1, 0]));
+					const fieldName = drag.prismaticHandle === "lower" ? "lowerTranslation" : "upperTranslation";
+					const startBound = asNumber(start[fieldName], drag.prismaticHandle === "lower" ? -50 : 50);
+					const sign = startBound < 0 || (startBound === 0 && drag.prismaticHandle === "lower") ? -1 : 1;
+					const startPoint: BodyVector = [
+						worldPos[0] + axis[0] * startBound,
+						worldPos[1] + axis[1] * startBound,
+					];
+					const nextPoint: BodyVector = [
+						startPoint[0] + constrainedWorldDelta[0],
+						startPoint[1] + constrainedWorldDelta[1],
+					];
+					const dx = nextPoint[0] - worldPos[0];
+					const dy = nextPoint[1] - worldPos[1];
+					const length = Math.hypot(dx, dy);
+					if (length <= 0.000001) return;
+					const nextAxis: BodyVector = [dx / length * sign, dy / length * sign];
+					onUpdateField?.(targetId, "axis", [
+						snapValue(nextAxis[0], fixedSnap, Math.max(0.0001, fixedStep / 100)),
+						snapValue(nextAxis[1], fixedSnap, Math.max(0.0001, fixedStep / 100)),
+					], false);
+					onUpdateField?.(targetId, fieldName, snapValue(length * sign, fixedSnap, fixedStep), false);
+					return;
+				}
+				if (item.structType === "Phyx.Pulley" && drag.pulleyHandle) {
+					const fieldName = drag.pulleyHandle;
+					const value = start[fieldName];
+					if (!Array.isArray(value)) return;
+					const vector = asVector(value);
+					if (fieldName === "groundAnchorA" || fieldName === "groundAnchorB") {
 						onUpdateField?.(targetId, fieldName, [
-							snapValue(vector[0] + localDelta[0], fixedSnap, fixedStep),
-							snapValue(vector[1] + localDelta[1], fixedSnap, fixedStep),
+							snapValue(vector[0] + constrainedWorldDelta[0], fixedSnap, fixedStep),
+							snapValue(vector[1] + constrainedWorldDelta[1], fixedSnap, fixedStep),
 						], false);
+						return;
 					}
-					return;
-					}
-				if (gizmoMode === "scale") {
-					const dx = pointer.x - drag.startPointer.x;
-					const dy = pointer.y - drag.startPointer.y;
-					const rawFactor = Math.max(0.05, 1 + (dx - dy) / 180);
-					const rawFactorX = Math.max(0.05, 1 + dx / 140);
-					const rawFactorY = Math.max(0.05, 1 - dy / 140);
-					const scaleStep = Math.max(0.01, fixedStep / 100);
-					const factor = snapValue(rawFactor, fixedSnap, scaleStep);
-					const factorX = activeTool === "fixY" ? 1 : snapValue(activeTool === "fixX" ? rawFactorX : rawFactor, fixedSnap, scaleStep);
-					const factorY = activeTool === "fixX" ? 1 : snapValue(activeTool === "fixY" ? rawFactorY : rawFactor, fixedSnap, scaleStep);
-					if (Array.isArray(start.size)) {
-						const size = asVector(start.size, [1, 1]);
-						onUpdateField?.(targetId, "size", [Math.max(1, size[0] * factorX), Math.max(1, size[1] * factorY)], false);
-					} else if (typeof start.radius === "number") {
-						onUpdateField?.(targetId, "radius", Math.max(1, start.radius * factor), false);
-					} else if (Array.isArray(start.vertices)) {
-						const vertices = asArray(start.vertices);
-						const center = averageVertices(vertices);
-						onUpdateField?.(targetId, "vertices", scaleVertices(vertices, center, factorX, factorY), false);
-					}
+					const anchorBody = getJointAnchorBody(document, item, fieldName);
+					if (!anchorBody) return;
+					const localDelta = worldDeltaToBodyLocalDelta(anchorBody, constrainedWorldDelta);
+					onUpdateField?.(targetId, fieldName, [
+						snapValue(vector[0] + localDelta[0], fixedSnap, fixedStep),
+						snapValue(vector[1] + localDelta[1], fixedSnap, fixedStep),
+					], false);
 					return;
 				}
-				if (gizmoMode === "rotate") {
-					if (!drag.startGizmoCenter || drag.startPointerAngle === null || drag.lastPointerAngle === null) return;
-					const center = worldToScreenPoint(drag.startGizmoCenter, viewport, canvasWidth, mainHeight);
-					const angle = pointerAngleDegrees(center, canvasPointer);
-					drag.accumulatedRotation += pointerAngleStepDelta(angle - drag.lastPointerAngle);
-					drag.lastPointerAngle = angle;
-				if (typeof start.angle === "number") {
-					onUpdateField?.(targetId, "angle", snapValue(start.angle + drag.accumulatedRotation, fixedSnap, 5), false);
-				} else if (Array.isArray(start.vertices)) {
-					const vertices = asArray(start.vertices);
-					const centerLocal = averageVertices(vertices);
-					const rotation = snapValue(drag.accumulatedRotation, fixedSnap, 5);
-					onUpdateField?.(targetId, "vertices", rotateVertices(vertices, centerLocal, rotation), false);
+				if (drag.worldPosHandle) {
+					const value = start[drag.worldPosHandle];
+					if (!Array.isArray(value)) return;
+					const worldPos = asVector(value);
+					onUpdateField?.(targetId, drag.worldPosHandle, [
+						snapValue(worldPos[0] + constrainedWorldDelta[0], fixedSnap, fixedStep),
+						snapValue(worldPos[1] + constrainedWorldDelta[1], fixedSnap, fixedStep),
+					], false);
+					return;
 				}
+				const fieldName = drag.jointAnchorField;
+				const value = fieldName ? start[fieldName] : null;
+				if (!fieldName || !Array.isArray(value)) return;
+				const anchorBody = getJointAnchorBody(document, item, fieldName);
+				if (!anchorBody) return;
+				const localDelta = worldDeltaToBodyLocalDelta(anchorBody, constrainedWorldDelta);
+				const vector = asVector(value);
+				onUpdateField?.(targetId, fieldName, [
+					snapValue(vector[0] + localDelta[0], fixedSnap, fixedStep),
+					snapValue(vector[1] + localDelta[1], fixedSnap, fixedStep),
+				], false);
 			}
-			}, [activeTool, canvasWidth, document, fixedSnap, fixedStep, gizmoMode, mainHeight, onUpdateField, viewport]);
+			return;
+		}
+		if (gizmoMode === "scale") {
+			const dx = pointer.x - drag.startPointer.x;
+			const dy = pointer.y - drag.startPointer.y;
+			const rawFactor = Math.max(0.05, 1 + (dx - dy) / 180);
+			const rawFactorX = Math.max(0.05, 1 + dx / 140);
+			const rawFactorY = Math.max(0.05, 1 - dy / 140);
+			const scaleStep = Math.max(0.01, fixedStep / 100);
+			const factor = snapValue(rawFactor, fixedSnap, scaleStep);
+			const factorX = activeTool === "fixY" ? 1 : snapValue(activeTool === "fixX" ? rawFactorX : rawFactor, fixedSnap, scaleStep);
+			const factorY = activeTool === "fixX" ? 1 : snapValue(activeTool === "fixY" ? rawFactorY : rawFactor, fixedSnap, scaleStep);
+			if (Array.isArray(start.size)) {
+				const size = asVector(start.size, [1, 1]);
+				onUpdateField?.(targetId, "size", [Math.max(1, size[0] * factorX), Math.max(1, size[1] * factorY)], false);
+			} else if (typeof start.radius === "number") {
+				onUpdateField?.(targetId, "radius", Math.max(1, start.radius * factor), false);
+			} else if (Array.isArray(start.vertices)) {
+				const vertices = asArray(start.vertices);
+				const center = averageVertices(vertices);
+				onUpdateField?.(targetId, "vertices", scaleVertices(vertices, center, factorX, factorY), false);
+			}
+			return;
+		}
+		if (gizmoMode === "rotate") {
+			if (!drag.startGizmoCenter || drag.startPointerAngle === null || drag.lastPointerAngle === null) return;
+			const center = worldToScreenPoint(drag.startGizmoCenter, viewport, canvasWidth, mainHeight);
+			const angle = pointerAngleDegrees(center, canvasPointer);
+			drag.accumulatedRotation += pointerAngleStepDelta(angle - drag.lastPointerAngle);
+			drag.lastPointerAngle = angle;
+			if (typeof start.angle === "number") {
+				onUpdateField?.(targetId, "angle", snapValue(start.angle + drag.accumulatedRotation, fixedSnap, 5), false);
+			} else if (Array.isArray(start.vertices)) {
+				const vertices = asArray(start.vertices);
+				const centerLocal = averageVertices(vertices);
+				const rotation = snapValue(drag.accumulatedRotation, fixedSnap, 5);
+				onUpdateField?.(targetId, "vertices", rotateVertices(vertices, centerLocal, rotation), false);
+			}
+		}
+	}, [activeTool, canvasWidth, document, fixedSnap, fixedStep, gizmoMode, mainHeight, onUpdateField, viewport]);
 
-		const updateVertexEdit = useCallback((
-			drag: NonNullable<typeof dragRef.current>,
-			worldDelta: BodyVector,
-		) => {
-			const targetId = drag.selectedId;
-			const vertexIndex = drag.vertexIndex;
-			if (!targetId || vertexIndex === null || !Array.isArray(drag.startFields.vertices)) return false;
-			const context = getVertexEditContext(document, targetId);
-			if (!context) return false;
-			const localDelta = worldDeltaToBodyLocalDelta(context.body, worldDelta);
-			const vertices = asArray(drag.startFields.vertices).map((point, index) => {
-				const vertex = asVector(point);
-				if (index !== vertexIndex) return vertex;
-				return [
-					snapValue(vertex[0] + localDelta[0], fixedSnap, fixedStep),
-					snapValue(vertex[1] + localDelta[1], fixedSnap, fixedStep),
-				];
-			});
-			onUpdateField?.(targetId, "vertices", vertices, false);
-			return true;
-		}, [document, fixedSnap, fixedStep, onUpdateField]);
+	const updateVertexEdit = useCallback((
+		drag: NonNullable<typeof dragRef.current>,
+		worldDelta: BodyVector,
+	) => {
+		const targetId = drag.selectedId;
+		const vertexIndex = drag.vertexIndex;
+		if (!targetId || vertexIndex === null || !Array.isArray(drag.startFields.vertices)) return false;
+		const context = getVertexEditContext(document, targetId);
+		if (!context) return false;
+		const localDelta = worldDeltaToBodyLocalDelta(context.body, worldDelta);
+		const vertices = asArray(drag.startFields.vertices).map((point, index) => {
+			const vertex = asVector(point);
+			if (index !== vertexIndex) return vertex;
+			return [
+				snapValue(vertex[0] + localDelta[0], fixedSnap, fixedStep),
+				snapValue(vertex[1] + localDelta[1], fixedSnap, fixedStep),
+			];
+		});
+		onUpdateField?.(targetId, "vertices", vertices, false);
+		return true;
+	}, [document, fixedSnap, fixedStep, onUpdateField]);
 
 	const onPointerDown = useCallback((event: React.PointerEvent<HTMLCanvasElement>) => {
 		event.currentTarget.setPointerCapture(event.pointerId);
 		setIsPointerDragging(true);
-			const world: [number, number] = [
-				viewport.center[0] + (event.nativeEvent.offsetX - canvasWidth / 2) / viewport.scale,
-				viewport.center[1] - (event.nativeEvent.offsetY - mainHeight / 2) / viewport.scale,
-			];
-				if (isShapeTool(activeTool) && !isPlaying) {
-					onCreateShape?.(activeTool, world);
-					setActiveTool("menu");
-					dragRef.current = null;
-					setIsPointerDragging(false);
-					event.currentTarget.releasePointerCapture(event.pointerId);
-					return;
-				}
-				if (pendingSubShape && !isPlaying) {
-					const parent = document.items.find((item) => item.id === pendingSubShape.bodyId);
-					const nextSubShapeIndex = parent && isBodyItem(parent) ? asArray(parent.fields.subShapes).length : -1;
-					onCreateSubShape?.(pendingSubShape.type, pendingSubShape.bodyId, world);
-					if (nextSubShapeIndex >= 0) setSelectedId(getSubShapeSelectionId(pendingSubShape.bodyId, nextSubShapeIndex));
-					setPendingSubShape(null);
-					setActiveTool("menu");
-					dragRef.current = null;
-					setIsPointerDragging(false);
-					event.currentTarget.releasePointerCapture(event.pointerId);
-					return;
-				}
-				if (activeTool === "joint" && pendingJointType && !isPlaying) {
-					const hitId = hitTestBodyDocument({
-						document,
-						viewport,
-						selectedId,
-						width: canvasWidth,
-						height: mainHeight,
-						physicsBodies: physicsSnapshot?.bodies,
-						physicsJoints: physicsSnapshot?.joints,
-					}, world);
-					if (pendingJointType === "gear") {
-						const candidate = getGearJointItemFromHitId(hitId);
-						if (candidate) {
-							const name = getJointCandidateName(candidate);
-							setSelectedId(candidate.id);
-							if (!pendingJointSelection.jointA) {
-								setPendingJointSelection({ jointA: name });
-							} else if (pendingJointSelection.jointA !== name) {
-								onCreateJoint?.(pendingJointType, world, { jointA: pendingJointSelection.jointA, jointB: name });
-								setActiveTool("menu");
-								setJointPanelOpen(false);
-								setPendingJointType(null);
-								setPendingJointSelection({});
-							}
-						}
-					} else if (!pendingJointSelection.bodyA || !pendingJointSelection.bodyB) {
-						const candidate = getBodyItemFromHitId(hitId);
-						if (candidate) {
-							const name = getJointCandidateName(candidate);
-							setSelectedId(candidate.id);
-							if (!pendingJointSelection.bodyA) {
-								setPendingJointSelection({ bodyA: name });
-							} else if (pendingJointSelection.bodyA !== name) {
-								if (createsJointAfterBodyPick(pendingJointType)) {
-									onCreateJoint?.(pendingJointType, world, {
-										bodyA: pendingJointSelection.bodyA,
-										bodyB: name,
-									});
-									setActiveTool("menu");
-									setJointPanelOpen(false);
-									setPendingJointType(null);
-									setPendingJointSelection({});
-								} else {
-									setPendingJointSelection({ bodyA: pendingJointSelection.bodyA, bodyB: name });
-								}
-							}
-						}
-					} else {
-						onCreateJoint?.(pendingJointType, world, {
-							bodyA: pendingJointSelection.bodyA,
-							bodyB: pendingJointSelection.bodyB,
-						});
+		const world: [number, number] = [
+			viewport.center[0] + (event.nativeEvent.offsetX - canvasWidth / 2) / viewport.scale,
+			viewport.center[1] - (event.nativeEvent.offsetY - mainHeight / 2) / viewport.scale,
+		];
+		if (isShapeTool(activeTool) && !isPlaying) {
+			onCreateShape?.(activeTool, world);
+			setActiveTool("menu");
+			dragRef.current = null;
+			setIsPointerDragging(false);
+			event.currentTarget.releasePointerCapture(event.pointerId);
+			return;
+		}
+		if (pendingSubShape && !isPlaying) {
+			const parent = document.items.find((item) => item.id === pendingSubShape.bodyId);
+			const nextSubShapeIndex = parent && isBodyItem(parent) ? asArray(parent.fields.subShapes).length : -1;
+			onCreateSubShape?.(pendingSubShape.type, pendingSubShape.bodyId, world);
+			if (nextSubShapeIndex >= 0) setSelectedId(getSubShapeSelectionId(pendingSubShape.bodyId, nextSubShapeIndex));
+			setPendingSubShape(null);
+			setActiveTool("menu");
+			dragRef.current = null;
+			setIsPointerDragging(false);
+			event.currentTarget.releasePointerCapture(event.pointerId);
+			return;
+		}
+		if (activeTool === "joint" && pendingJointType && !isPlaying) {
+			const hitId = hitTestBodyDocument({
+				document,
+				viewport,
+				selectedId,
+				width: canvasWidth,
+				height: mainHeight,
+				physicsBodies: physicsSnapshot?.bodies,
+				physicsJoints: physicsSnapshot?.joints,
+			}, world);
+			if (pendingJointType === "gear") {
+				const candidate = getGearJointItemFromHitId(hitId);
+				if (candidate) {
+					const name = getJointCandidateName(candidate);
+					setSelectedId(candidate.id);
+					if (!pendingJointSelection.jointA) {
+						setPendingJointSelection({ jointA: name });
+					} else if (pendingJointSelection.jointA !== name) {
+						onCreateJoint?.(pendingJointType, world, { jointA: pendingJointSelection.jointA, jointB: name });
 						setActiveTool("menu");
 						setJointPanelOpen(false);
 						setPendingJointType(null);
 						setPendingJointSelection({});
 					}
-					dragRef.current = null;
-					setIsPointerDragging(false);
-					event.currentTarget.releasePointerCapture(event.pointerId);
-					return;
-			}
-				const vertexIndex = !isPlaying && !readOnly ? hitTestVertex(document, selectedId, world, viewport) : null;
-				if (vertexIndex !== null) {
-					const editContext = getVertexEditContext(document, selectedId);
-					if (editContext) {
-						setSelectedVertexIndex(vertexIndex);
-						onBeginValueEdit?.();
-						dragRef.current = {
-							x: event.clientX,
-							y: event.clientY,
-							center: [...viewport.center],
-								mode: "vertex",
-								selectedId,
-								changed: false,
-								startPointer: { x: event.clientX, y: event.clientY },
-								startCanvasPointer: { x: event.nativeEvent.offsetX, y: event.nativeEvent.offsetY },
-								startFields: {
-								vertices: editContext.vertices.map((point) => [...point]),
-							},
-							startGizmoCenter: null,
-							startPointerAngle: null,
-							lastPointerAngle: null,
-							accumulatedRotation: 0,
-							jointAnchorField: null,
-							prismaticHandle: null,
-							pulleyHandle: null,
-							worldPosHandle: null,
-							vertexIndex,
-						};
-						return;
+				}
+			} else if (!pendingJointSelection.bodyA || !pendingJointSelection.bodyB) {
+				const candidate = getBodyItemFromHitId(hitId);
+				if (candidate) {
+					const name = getJointCandidateName(candidate);
+					setSelectedId(candidate.id);
+					if (!pendingJointSelection.bodyA) {
+						setPendingJointSelection({ bodyA: name });
+					} else if (pendingJointSelection.bodyA !== name) {
+						if (createsJointAfterBodyPick(pendingJointType)) {
+							onCreateJoint?.(pendingJointType, world, {
+								bodyA: pendingJointSelection.bodyA,
+								bodyB: name,
+							});
+							setActiveTool("menu");
+							setJointPanelOpen(false);
+							setPendingJointType(null);
+							setPendingJointSelection({});
+						} else {
+							setPendingJointSelection({ bodyA: pendingJointSelection.bodyA, bodyB: name });
+						}
 					}
 				}
-				const hitId = isPlaying ? null : hitTestBodyDocument({
-					document,
-					viewport,
-					selectedId,
-						width: canvasWidth,
-						height: mainHeight,
-						physicsBodies: physicsSnapshot?.bodies,
-						physicsJoints: physicsSnapshot?.joints,
-					}, world);
-					if (hitId) setSelectedId(hitId);
-					const editId = hitId ?? selectedId;
-					const editContext = gizmoMode !== "select" && !event.shiftKey && !isPlaying ? getSelectedBodyContext(document, editId) : null;
-					const prismaticHandle = editContext && editContext.item.structType === "Phyx.Prismatic" && gizmoMode === "move"
-						? getPrismaticMoveHandle(editContext.item, world, Math.max(8, 12 / viewport.scale))
-						: null;
-					const pulleyHandle = editContext && editContext.item.structType === "Phyx.Pulley" && gizmoMode === "move"
-						? getPulleyMoveHandle(document, editContext.item, world, Math.max(8, 12 / viewport.scale), physicsSnapshot?.bodies)
-						: null;
-					const worldPosHandle = editContext && isJointItem(editContext.item) && gizmoMode === "move" && prismaticHandle === null && pulleyHandle === null
-						? getWorldPosMoveHandle(editContext.item, world, Math.max(8, 12 / viewport.scale))
-						: null;
-					const jointAnchorField = editContext && isJointItem(editContext.item) && gizmoMode === "move" && prismaticHandle === null && pulleyHandle === null && worldPosHandle === null
-						? getJointAnchorHitField(document, editContext.item, world, Math.max(8, 12 / viewport.scale), physicsSnapshot?.bodies)
-						: null;
-					const shouldEdit = editContext !== null && (!isJointItem(editContext.item) || jointAnchorField !== null || prismaticHandle !== null || pulleyHandle !== null || worldPosHandle !== null);
-					if (shouldEdit) onBeginValueEdit?.();
-					const startGizmoCenter = shouldEdit ? getGizmoWorldCenter(document, editId) : null;
-					const startGizmoScreen = startGizmoCenter ? worldToScreenPoint(startGizmoCenter, viewport, canvasWidth, mainHeight) : null;
-					const startPointer = { x: event.clientX, y: event.clientY };
-					const startCanvasPointer = { x: event.nativeEvent.offsetX, y: event.nativeEvent.offsetY };
-					dragRef.current = {
+			} else {
+				onCreateJoint?.(pendingJointType, world, {
+					bodyA: pendingJointSelection.bodyA,
+					bodyB: pendingJointSelection.bodyB,
+				});
+				setActiveTool("menu");
+				setJointPanelOpen(false);
+				setPendingJointType(null);
+				setPendingJointSelection({});
+			}
+			dragRef.current = null;
+			setIsPointerDragging(false);
+			event.currentTarget.releasePointerCapture(event.pointerId);
+			return;
+		}
+		const vertexIndex = !isPlaying && !readOnly ? hitTestVertex(document, selectedId, world, viewport) : null;
+		if (vertexIndex !== null) {
+			const editContext = getVertexEditContext(document, selectedId);
+			if (editContext) {
+				setSelectedVertexIndex(vertexIndex);
+				onBeginValueEdit?.();
+				dragRef.current = {
 					x: event.clientX,
 					y: event.clientY,
 					center: [...viewport.center],
-					mode: shouldEdit ? "edit" : "pan",
-					selectedId: shouldEdit ? editId : hitId,
+					mode: "vertex",
+					selectedId,
 					changed: false,
-					startPointer,
-					startCanvasPointer,
-					startFields: Object.fromEntries(Object.entries(editContext?.item.fields ?? {}).map(([key, value]) => [key, Array.isArray(value) ? JSON.parse(JSON.stringify(value)) as BodyLuaValue : value])),
-					startGizmoCenter,
-						startPointerAngle: startGizmoScreen ? pointerAngleDegrees(startGizmoScreen, startCanvasPointer) : null,
-						lastPointerAngle: startGizmoScreen ? pointerAngleDegrees(startGizmoScreen, startCanvasPointer) : null,
-						accumulatedRotation: 0,
-						jointAnchorField,
-						prismaticHandle,
-						pulleyHandle,
-						worldPosHandle,
-						vertexIndex: null,
-					};
-				}, [activeTool, canvasWidth, document, getBodyItemFromHitId, getGearJointItemFromHitId, gizmoMode, isPlaying, mainHeight, onBeginValueEdit, onCreateJoint, onCreateShape, onCreateSubShape, pendingJointSelection, pendingJointType, pendingSubShape, physicsSnapshot, readOnly, selectedId, viewport]);
+					startPointer: { x: event.clientX, y: event.clientY },
+					startCanvasPointer: { x: event.nativeEvent.offsetX, y: event.nativeEvent.offsetY },
+					startFields: {
+						vertices: editContext.vertices.map((point) => [...point]),
+					},
+					startGizmoCenter: null,
+					startPointerAngle: null,
+					lastPointerAngle: null,
+					accumulatedRotation: 0,
+					jointAnchorField: null,
+					prismaticHandle: null,
+					pulleyHandle: null,
+					worldPosHandle: null,
+					vertexIndex,
+				};
+				return;
+			}
+		}
+		const hitId = isPlaying ? null : hitTestBodyDocument({
+			document,
+			viewport,
+			selectedId,
+			width: canvasWidth,
+			height: mainHeight,
+			physicsBodies: physicsSnapshot?.bodies,
+			physicsJoints: physicsSnapshot?.joints,
+		}, world);
+		if (hitId) setSelectedId(hitId);
+		const editId = hitId ?? selectedId;
+		const editContext = gizmoMode !== "select" && !event.shiftKey && !isPlaying ? getSelectedBodyContext(document, editId) : null;
+		const prismaticHandle = editContext && editContext.item.structType === "Phyx.Prismatic" && gizmoMode === "move"
+			? getPrismaticMoveHandle(editContext.item, world, Math.max(8, 12 / viewport.scale))
+			: null;
+		const pulleyHandle = editContext && editContext.item.structType === "Phyx.Pulley" && gizmoMode === "move"
+			? getPulleyMoveHandle(document, editContext.item, world, Math.max(8, 12 / viewport.scale), physicsSnapshot?.bodies)
+			: null;
+		const worldPosHandle = editContext && isJointItem(editContext.item) && gizmoMode === "move" && prismaticHandle === null && pulleyHandle === null
+			? getWorldPosMoveHandle(editContext.item, world, Math.max(8, 12 / viewport.scale))
+			: null;
+		const jointAnchorField = editContext && isJointItem(editContext.item) && gizmoMode === "move" && prismaticHandle === null && pulleyHandle === null && worldPosHandle === null
+			? getJointAnchorHitField(document, editContext.item, world, Math.max(8, 12 / viewport.scale), physicsSnapshot?.bodies)
+			: null;
+		const shouldEdit = editContext !== null && (!isJointItem(editContext.item) || jointAnchorField !== null || prismaticHandle !== null || pulleyHandle !== null || worldPosHandle !== null);
+		if (shouldEdit) onBeginValueEdit?.();
+		const startGizmoCenter = shouldEdit ? getGizmoWorldCenter(document, editId) : null;
+		const startGizmoScreen = startGizmoCenter ? worldToScreenPoint(startGizmoCenter, viewport, canvasWidth, mainHeight) : null;
+		const startPointer = { x: event.clientX, y: event.clientY };
+		const startCanvasPointer = { x: event.nativeEvent.offsetX, y: event.nativeEvent.offsetY };
+		dragRef.current = {
+			x: event.clientX,
+			y: event.clientY,
+			center: [...viewport.center],
+			mode: shouldEdit ? "edit" : "pan",
+			selectedId: shouldEdit ? editId : hitId,
+			changed: false,
+			startPointer,
+			startCanvasPointer,
+			startFields: Object.fromEntries(Object.entries(editContext?.item.fields ?? {}).map(([key, value]) => [key, Array.isArray(value) ? JSON.parse(JSON.stringify(value)) as BodyLuaValue : value])),
+			startGizmoCenter,
+			startPointerAngle: startGizmoScreen ? pointerAngleDegrees(startGizmoScreen, startCanvasPointer) : null,
+			lastPointerAngle: startGizmoScreen ? pointerAngleDegrees(startGizmoScreen, startCanvasPointer) : null,
+			accumulatedRotation: 0,
+			jointAnchorField,
+			prismaticHandle,
+			pulleyHandle,
+			worldPosHandle,
+			vertexIndex: null,
+		};
+	}, [activeTool, canvasWidth, document, getBodyItemFromHitId, getGearJointItemFromHitId, gizmoMode, isPlaying, mainHeight, onBeginValueEdit, onCreateJoint, onCreateShape, onCreateSubShape, pendingJointSelection, pendingJointType, pendingSubShape, physicsSnapshot, readOnly, selectedId, viewport]);
 
 	const onPointerMove = useCallback((event: React.PointerEvent<HTMLCanvasElement>) => {
-			const drag = dragRef.current;
-			if (!drag) return;
-				if (drag.mode === "edit") {
-					const worldDelta: BodyVector = [
-						(event.clientX - drag.startPointer.x) / viewport.scale,
-						-(event.clientY - drag.startPointer.y) / viewport.scale,
-						];
-					if (worldDelta[0] !== 0 || worldDelta[1] !== 0) {
-						drag.changed = true;
-						updateGizmoEdit(drag, { x: event.clientX, y: event.clientY }, { x: event.nativeEvent.offsetX, y: event.nativeEvent.offsetY }, worldDelta);
-					}
-					return;
-				}
-				if (drag.mode === "vertex") {
-					const worldDelta: BodyVector = [
-						(event.clientX - drag.startPointer.x) / viewport.scale,
-						-(event.clientY - drag.startPointer.y) / viewport.scale,
-					];
-					if (worldDelta[0] !== 0 || worldDelta[1] !== 0) {
-						drag.changed = updateVertexEdit(drag, worldDelta) || drag.changed;
-					}
-					return;
-				}
+		const drag = dragRef.current;
+		if (!drag) return;
+		if (drag.mode === "edit") {
+			const worldDelta: BodyVector = [
+				(event.clientX - drag.startPointer.x) / viewport.scale,
+				-(event.clientY - drag.startPointer.y) / viewport.scale,
+			];
+			if (worldDelta[0] !== 0 || worldDelta[1] !== 0) {
+				drag.changed = true;
+				updateGizmoEdit(drag, { x: event.clientX, y: event.clientY }, { x: event.nativeEvent.offsetX, y: event.nativeEvent.offsetY }, worldDelta);
+			}
+			return;
+		}
+		if (drag.mode === "vertex") {
+			const worldDelta: BodyVector = [
+				(event.clientX - drag.startPointer.x) / viewport.scale,
+				-(event.clientY - drag.startPointer.y) / viewport.scale,
+			];
+			if (worldDelta[0] !== 0 || worldDelta[1] !== 0) {
+				drag.changed = updateVertexEdit(drag, worldDelta) || drag.changed;
+			}
+			return;
+		}
 		const dx = (event.clientX - drag.x) / viewport.scale;
 		const dy = (event.clientY - drag.y) / viewport.scale;
 		setViewport((current) => ({
 			...current,
 			center: [drag.center[0] - dx, drag.center[1] + dy],
 		}));
-			}, [updateGizmoEdit, updateVertexEdit, viewport.scale]);
+	}, [updateGizmoEdit, updateVertexEdit, viewport.scale]);
 
-			const onPointerUp = useCallback((event: React.PointerEvent<HTMLCanvasElement>) => {
-				const drag = dragRef.current;
-				event.currentTarget.releasePointerCapture(event.pointerId);
-				if (drag?.mode === "edit" || drag?.mode === "vertex") {
-					onEndValueEdit?.(drag.changed);
-				}
-				dragRef.current = null;
-				setIsPointerDragging(false);
-			}, [onEndValueEdit]);
+	const onPointerUp = useCallback((event: React.PointerEvent<HTMLCanvasElement>) => {
+		const drag = dragRef.current;
+		event.currentTarget.releasePointerCapture(event.pointerId);
+		if (drag?.mode === "edit" || drag?.mode === "vertex") {
+			onEndValueEdit?.(drag.changed);
+		}
+		dragRef.current = null;
+		setIsPointerDragging(false);
+	}, [onEndValueEdit]);
 
 	const setMotorDirection = useCallback((id: string, direction: -1 | 0 | 1) => {
 		if (runtimeRef.current?.setMotorDirection(id, direction)) {
@@ -1465,8 +1465,8 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 					borderBottom: "1px solid #2b2b2b",
 				}}
 			>
-					<div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-						<span style={{ color: "#9aa4af", fontSize: 12, marginRight: 2 }}>{t("bodyEditor.toolbar.view", "View")}</span>
+				<div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+					<span style={{ color: "#9aa4af", fontSize: 12, marginRight: 2 }}>{t("bodyEditor.toolbar.view", "View")}</span>
 					{viewToolNames.map((name) => {
 						const selected = activeTool === name;
 						return (
@@ -1487,116 +1487,116 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 							>
 								<BodyIconGlyph name={name} active={selected} />
 							</button>
-							);
-						})}
-					</div>
-					<div style={{ display: "flex", alignItems: "center", gap: 4, paddingLeft: 4 }}>
-						<span style={{ color: "#9aa4af", fontSize: 12, marginRight: 2 }}>{t("bodyEditor.toolbar.tool", "Tool")}</span>
-						{gizmoModes.map((mode) => {
-							const selected = gizmoMode === mode;
-							return (
-								<button
-									key={mode}
-									type="button"
-									disabled={editDisabled}
-									onClick={() => setGizmoMode(mode)}
-									style={{
-										height: 30,
-										minWidth: 52,
-										border: "1px solid " + (selected ? "#fac03d" : "#343434"),
-										background: selected ? "#5f4917" : "#303030",
-										color: selected ? "#ffe7ad" : "#d7d7d7",
-										cursor: editDisabled ? "default" : "pointer",
-										opacity: editDisabled ? 0.55 : 1,
-									}}
-								>
-									{getGizmoModeLabel(mode)}
-								</button>
-							);
-						})}
-						<label style={{ display: "flex", alignItems: "center", gap: 4, color: "#d7d7d7", fontSize: 12, marginLeft: 4 }}>
-							<input
-								type="checkbox"
-								checked={fixedSnap}
+						);
+					})}
+				</div>
+				<div style={{ display: "flex", alignItems: "center", gap: 4, paddingLeft: 4 }}>
+					<span style={{ color: "#9aa4af", fontSize: 12, marginRight: 2 }}>{t("bodyEditor.toolbar.tool", "Tool")}</span>
+					{gizmoModes.map((mode) => {
+						const selected = gizmoMode === mode;
+						return (
+							<button
+								key={mode}
+								type="button"
 								disabled={editDisabled}
-								onChange={(event) => setFixedSnap(event.currentTarget.checked)}
-							/>
-							{t("bodyEditor.fixed", "Fixed")}
-						</label>
+								onClick={() => setGizmoMode(mode)}
+								style={{
+									height: 30,
+									minWidth: 52,
+									border: "1px solid " + (selected ? "#fac03d" : "#343434"),
+									background: selected ? "#5f4917" : "#303030",
+									color: selected ? "#ffe7ad" : "#d7d7d7",
+									cursor: editDisabled ? "default" : "pointer",
+									opacity: editDisabled ? 0.55 : 1,
+								}}
+							>
+								{getGizmoModeLabel(mode)}
+							</button>
+						);
+					})}
+					<label style={{ display: "flex", alignItems: "center", gap: 4, color: "#d7d7d7", fontSize: 12, marginLeft: 4 }}>
 						<input
-							type="number"
-							value={fixedStep}
-							min={0.1}
-							step={1}
-							title={t("bodyEditor.fixedEditStep", "Fixed edit step")}
+							type="checkbox"
+							checked={fixedSnap}
 							disabled={editDisabled}
-							onChange={(event) => {
-								const next = Number(event.currentTarget.value);
-								if (Number.isFinite(next) && next > 0) setFixedStep(next);
-							}}
-							style={{
-								width: 54,
-								height: 28,
-								boxSizing: "border-box",
-								background: "#181818",
-								color: "#d7d7d7",
-								border: "1px solid #343434",
-								opacity: editDisabled ? 0.55 : 1,
-							}}
+							onChange={(event) => setFixedSnap(event.currentTarget.checked)}
 						/>
-					</div>
-						<Stack direction="row" spacing={1}>
-						<Tooltip title={t("bodyEditor.undo", "Undo")}>
-							<span>
-								<IconButton
-									size="small"
-									disabled={editDisabled || !canUndo}
-									onClick={onUndo}
-									sx={{
-										width: 30,
-										height: 30,
-										border: "1px solid #343434",
-										borderRadius: 0,
-										background: "#303030",
-										color: "#d7d7d7",
-										"&:hover": { background: "#383838" },
-										"&.Mui-disabled": {
-											color: "rgba(215, 215, 215, 0.32)",
-											borderColor: "#2b2b2b",
-											background: "#252525",
-										},
-									}}
-								>
-									<UndoIcon fontSize="small" />
-								</IconButton>
-							</span>
-						</Tooltip>
-						<Tooltip title={t("bodyEditor.redo", "Redo")}>
-							<span>
-								<IconButton
-									size="small"
-									disabled={editDisabled || !canRedo}
-									onClick={onRedo}
-									sx={{
-										width: 30,
-										height: 30,
-										border: "1px solid #343434",
-										borderRadius: 0,
-										background: "#303030",
-										color: "#d7d7d7",
-										"&:hover": { background: "#383838" },
-										"&.Mui-disabled": {
-											color: "rgba(215, 215, 215, 0.32)",
-											borderColor: "#2b2b2b",
-											background: "#252525",
-										},
-									}}
-								>
-									<RedoIcon fontSize="small" />
-								</IconButton>
-							</span>
-						</Tooltip>
-					</Stack>
+						{t("bodyEditor.fixed", "Fixed")}
+					</label>
+					<input
+						type="number"
+						value={fixedStep}
+						min={0.1}
+						step={1}
+						title={t("bodyEditor.fixedEditStep", "Fixed edit step")}
+						disabled={editDisabled}
+						onChange={(event) => {
+							const next = Number(event.currentTarget.value);
+							if (Number.isFinite(next) && next > 0) setFixedStep(next);
+						}}
+						style={{
+							width: 54,
+							height: 28,
+							boxSizing: "border-box",
+							background: "#181818",
+							color: "#d7d7d7",
+							border: "1px solid #343434",
+							opacity: editDisabled ? 0.55 : 1,
+						}}
+					/>
+				</div>
+				<Stack direction="row" spacing={1}>
+					<Tooltip title={t("bodyEditor.undo", "Undo")}>
+						<span>
+							<IconButton
+								size="small"
+								disabled={editDisabled || !canUndo}
+								onClick={onUndo}
+								sx={{
+									width: 30,
+									height: 30,
+									border: "1px solid #343434",
+									borderRadius: 0,
+									background: "#303030",
+									color: "#d7d7d7",
+									"&:hover": { background: "#383838" },
+									"&.Mui-disabled": {
+										color: "rgba(215, 215, 215, 0.32)",
+										borderColor: "#2b2b2b",
+										background: "#252525",
+									},
+								}}
+							>
+								<UndoIcon fontSize="small" />
+							</IconButton>
+						</span>
+					</Tooltip>
+					<Tooltip title={t("bodyEditor.redo", "Redo")}>
+						<span>
+							<IconButton
+								size="small"
+								disabled={editDisabled || !canRedo}
+								onClick={onRedo}
+								sx={{
+									width: 30,
+									height: 30,
+									border: "1px solid #343434",
+									borderRadius: 0,
+									background: "#303030",
+									color: "#d7d7d7",
+									"&:hover": { background: "#383838" },
+									"&.Mui-disabled": {
+										color: "rgba(215, 215, 215, 0.32)",
+										borderColor: "#2b2b2b",
+										background: "#252525",
+									},
+								}}
+							>
+								<RedoIcon fontSize="small" />
+							</IconButton>
+						</span>
+					</Tooltip>
+				</Stack>
 			</div>
 			<div style={{ display: "flex", flex: 1, minHeight: 0, position: "relative" }}>
 				<div style={{
@@ -1637,18 +1637,18 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 							>
 								{toolbarGroupLabels[groupIndex]}
 							</div>
-								{group.map((name) => {
-									const selected = name === "play" ? isPlaying : activeTool === name;
-									const iconName = name === "play" && isPlaying ? "stop" : name;
-									const disabled = editDisabled && name !== "play";
-									return (
-										<button
-											key={name}
-											type="button"
-											title={getIconLabel(iconName)}
-											aria-label={getIconLabel(iconName)}
-											disabled={disabled}
-											onClick={() => runTool(name)}
+							{group.map((name) => {
+								const selected = name === "play" ? isPlaying : activeTool === name;
+								const iconName = name === "play" && isPlaying ? "stop" : name;
+								const disabled = editDisabled && name !== "play";
+								return (
+									<button
+										key={name}
+										type="button"
+										title={getIconLabel(iconName)}
+										aria-label={getIconLabel(iconName)}
+										disabled={disabled}
+										onClick={() => runTool(name)}
 										style={{
 											width: 34,
 											height: 34,
@@ -1657,12 +1657,12 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 											padding: 4,
 											cursor: disabled ? "default" : "pointer",
 											opacity: disabled ? 0.55 : 1,
-											}}
-										>
-											<BodyIconGlyph name={iconName} active={selected} />
-										</button>
-									);
-								})}
+										}}
+									>
+										<BodyIconGlyph name={iconName} active={selected} />
+									</button>
+								);
+							})}
 						</div>
 					))}
 				</div>
@@ -1678,7 +1678,7 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 					style={{
 						width: canvasWidth,
 						height: mainHeight,
-							cursor: isShapeTool(activeTool) || pendingSubShape || (activeTool === "joint" && pendingJointType) ? "crosshair" : gizmoMode !== "select" ? "crosshair" : isPointerDragging ? "grabbing" : "grab",
+						cursor: isShapeTool(activeTool) || pendingSubShape || (activeTool === "joint" && pendingJointType) ? "crosshair" : gizmoMode !== "select" ? "crosshair" : isPointerDragging ? "grabbing" : "grab",
 						touchAction: "none",
 						background: "#1f1f1f",
 					}}
@@ -1740,165 +1740,165 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 						))}
 					</div>
 				) : null}
-					{jointPanelOpen ? (
-						<div style={{
-							position: "absolute",
-							left: toolbarWidth + 8,
-							top: 8,
-							width: 220,
-							display: "grid",
-							gridTemplateColumns: "1fr 1fr",
-							gap: 4,
-							background: "rgba(25, 25, 25, 0.96)",
-							border: "1px solid #3a3a3a",
-							padding: 8,
-							boxShadow: "0 8px 20px rgba(0,0,0,0.35)",
-							zIndex: 2,
-						}}>
-							{jointCreateOptions.map((type) => {
-								const selected = pendingJointType === type;
-								const label = getJointLabel(type);
-								return (
+				{jointPanelOpen ? (
+					<div style={{
+						position: "absolute",
+						left: toolbarWidth + 8,
+						top: 8,
+						width: 220,
+						display: "grid",
+						gridTemplateColumns: "1fr 1fr",
+						gap: 4,
+						background: "rgba(25, 25, 25, 0.96)",
+						border: "1px solid #3a3a3a",
+						padding: 8,
+						boxShadow: "0 8px 20px rgba(0,0,0,0.35)",
+						zIndex: 2,
+					}}>
+						{jointCreateOptions.map((type) => {
+							const selected = pendingJointType === type;
+							const label = getJointLabel(type);
+							return (
+								<button
+									key={type}
+									type="button"
+									onClick={() => {
+										if (pendingJointType === type) {
+											setPendingJointType(null);
+											setPendingJointSelection({});
+											setActiveTool("joint");
+										} else {
+											setPendingJointType(type);
+											setPendingJointSelection({});
+											setActiveTool("joint");
+										}
+									}}
+									style={{
+										height: 28,
+										background: selected ? "#5f4917" : "#252525",
+										color: selected ? "#ffe7ad" : "#d7d7d7",
+										border: "1px solid " + (selected ? "#fac03d" : "#3a3a3a"),
+										cursor: "pointer",
+									}}
+								>
+									{label}
+								</button>
+							);
+						})}
+						<div style={{ gridColumn: "1 / -1", color: "#8f9aa6", fontSize: 11, lineHeight: "15px", paddingTop: 2 }}>
+							{jointCreateHint}
+						</div>
+					</div>
+				) : null}
+				<div style={{
+					display: showSidePanel ? "flex" : "none",
+					flexDirection: "column",
+					width: actualListWidth,
+					height: mainHeight,
+					overflow: "hidden",
+					borderLeft: "1px solid #2b2b2b",
+					background: "#1a1a1a",
+					boxSizing: "border-box",
+				}}>
+					<div style={{ flex: "0 0 42%", minHeight: 120, overflow: "auto", borderBottom: "1px solid #2b2b2b" }}>
+						{document.items.map((item) => {
+							const selected = item.id === selectedId;
+							return (
+								<div key={item.id} style={{ padding: "4px 8px 0" }}>
 									<button
-										key={type}
 										type="button"
-										onClick={() => {
-											if (pendingJointType === type) {
-												setPendingJointType(null);
-												setPendingJointSelection({});
-												setActiveTool("joint");
-											} else {
-												setPendingJointType(type);
-												setPendingJointSelection({});
-												setActiveTool("joint");
-											}
-										}}
+										onClick={() => selectItem(item.id)}
 										style={{
-											height: 28,
-											background: selected ? "#5f4917" : "#252525",
+											width: "100%",
+											minHeight: 44,
+											display: "flex",
+											alignItems: "center",
+											gap: 10,
+											textAlign: "left",
+											padding: "7px 10px",
+											border: "1px solid " + (selected ? "#fac03d" : "#3f3f3f"),
+											background: selected ? "rgba(250, 192, 61, 0.16)" : "rgba(24, 24, 24, 0.7)",
 											color: selected ? "#ffe7ad" : "#d7d7d7",
-											border: "1px solid " + (selected ? "#fac03d" : "#3a3a3a"),
 											cursor: "pointer",
+											boxSizing: "border-box",
 										}}
 									>
-										{label}
-									</button>
-								);
-							})}
-							<div style={{ gridColumn: "1 / -1", color: "#8f9aa6", fontSize: 11, lineHeight: "15px", paddingTop: 2 }}>
-								{jointCreateHint}
-							</div>
-						</div>
-					) : null}
-						<div style={{
-							display: showSidePanel ? "flex" : "none",
-							flexDirection: "column",
-							width: actualListWidth,
-							height: mainHeight,
-							overflow: "hidden",
-							borderLeft: "1px solid #2b2b2b",
-							background: "#1a1a1a",
-							boxSizing: "border-box",
-						}}>
-							<div style={{ flex: "0 0 42%", minHeight: 120, overflow: "auto", borderBottom: "1px solid #2b2b2b" }}>
-									{document.items.map((item) => {
-										const selected = item.id === selectedId;
-										return (
-											<div key={item.id} style={{ padding: "4px 8px 0" }}>
-												<button
-													type="button"
-													onClick={() => selectItem(item.id)}
-													style={{
-														width: "100%",
-														minHeight: 44,
-														display: "flex",
-														alignItems: "center",
-														gap: 10,
-														textAlign: "left",
-														padding: "7px 10px",
-														border: "1px solid " + (selected ? "#fac03d" : "#3f3f3f"),
-														background: selected ? "rgba(250, 192, 61, 0.16)" : "rgba(24, 24, 24, 0.7)",
-														color: selected ? "#ffe7ad" : "#d7d7d7",
-														cursor: "pointer",
-														boxSizing: "border-box",
-													}}
-												>
-													<BodyIconGlyph name={getStructIconName(item)} active={selected} />
-													<div style={{ minWidth: 0, flex: 1 }}>
-														<div style={{ fontSize: 13, color: selected ? "#fac03d" : "#d7d7d7", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textAlign: "right" }}>{getItemName(item)}</div>
-														<div style={{ fontSize: 10, color: selected ? "#ffd777" : "#8f9aa6", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textAlign: "right" }}>{item.structType.replace("Phyx.", "")}</div>
-													</div>
-												</button>
-												{isBodyItem(item) ? asArray(item.fields.subShapes).map((subShape, subIndex) => {
-													const subItem = getSubShapeItem(subShape, subIndex, item.id);
-													if (!subItem) return null;
-													const subSelected = subItem.id === selectedId;
-													return (
-														<button
-															key={subItem.id}
-															type="button"
-															onClick={() => selectItem(subItem.id)}
-															style={{
-																width: "calc(100% - 18px)",
-																minHeight: 34,
-																margin: "4px 0 0 18px",
-																display: "flex",
-																alignItems: "center",
-																gap: 8,
-																textAlign: "left",
-																padding: "5px 8px",
-																border: "1px solid " + (subSelected ? "#fac03d" : "#333"),
-																background: subSelected ? "rgba(250, 192, 61, 0.14)" : "#1b1b1b",
-																color: subSelected ? "#ffe7ad" : "#c8c8c8",
-																cursor: "pointer",
-																boxSizing: "border-box",
-															}}
-														>
-															<BodyIconGlyph name={getStructIconName(subItem)} active={subSelected} />
-															<div style={{ minWidth: 0, flex: 1 }}>
-																<div style={{ fontSize: 12, color: subSelected ? "#fac03d" : "#c8c8c8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textAlign: "right" }}>{t("bodyEditor.subShapeIndex", "SubShape {{index}}", { index: subIndex + 1 })}</div>
-																<div style={{ fontSize: 10, color: subSelected ? "#ffd777" : "#8f9aa6", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textAlign: "right" }}>{subItem.structType.replace("Phyx.", "")}</div>
-															</div>
-														</button>
-													);
-												}) : null}
+										<BodyIconGlyph name={getStructIconName(item)} active={selected} />
+										<div style={{ minWidth: 0, flex: 1 }}>
+											<div style={{ fontSize: 13, color: selected ? "#fac03d" : "#d7d7d7", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textAlign: "right" }}>{getItemName(item)}</div>
+											<div style={{ fontSize: 10, color: selected ? "#ffd777" : "#8f9aa6", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textAlign: "right" }}>{item.structType.replace("Phyx.", "")}</div>
 										</div>
-									);
-								})}
-								{selectedItem ? null : (
-									<div style={{ padding: 12, color: "#8f9aa6", fontSize: 13 }}>{t("bodyEditor.noItems", "No BodyEx items")}</div>
-								)}
-							</div>
-							<div style={{ flex: "1 1 58%", minHeight: 0, overflow: "auto", paddingBottom: 96, boxSizing: "border-box" }}>
-								{selectedItem ? (
-									<PropertyPanel
-											document={document}
-											item={selectedItem}
-											readOnly={editDisabled}
-											canAddSubShape={!parseSubShapeSelectionId(selectedId) && isBodyItem(selectedItem)}
-											pendingSubShapeType={pendingSubShape?.bodyId === selectedItem.id ? pendingSubShape.type : null}
-											selectedVertexIndex={selectedVertexIndex}
-											onAddVertex={addSelectedVertex}
-											onRemoveVertex={removeSelectedVertex}
-										onCreateSubShape={(type) => {
-											setJointPanelOpen(false);
-											setPendingJointType(null);
-				setPendingJointSelection({});
-											setPendingSubShape((current) => (
-												current?.bodyId === selectedItem.id && current.type === type
-													? null
-													: { type, bodyId: selectedItem.id }
-											));
-											setActiveTool("menu");
-										}}
-										onUpdateField={(fieldName, value, recordUndo) => onUpdateField?.(selectedItem.id, fieldName, value, recordUndo)}
-										onChooseFace={() => setFaceChooserOpen(true)}
-									onBeginValueEdit={onBeginValueEdit}
-										onEndValueEdit={onEndValueEdit}
-									/>
-								) : null}
-							</div>
+									</button>
+									{isBodyItem(item) ? asArray(item.fields.subShapes).map((subShape, subIndex) => {
+										const subItem = getSubShapeItem(subShape, subIndex, item.id);
+										if (!subItem) return null;
+										const subSelected = subItem.id === selectedId;
+										return (
+											<button
+												key={subItem.id}
+												type="button"
+												onClick={() => selectItem(subItem.id)}
+												style={{
+													width: "calc(100% - 18px)",
+													minHeight: 34,
+													margin: "4px 0 0 18px",
+													display: "flex",
+													alignItems: "center",
+													gap: 8,
+													textAlign: "left",
+													padding: "5px 8px",
+													border: "1px solid " + (subSelected ? "#fac03d" : "#333"),
+													background: subSelected ? "rgba(250, 192, 61, 0.14)" : "#1b1b1b",
+													color: subSelected ? "#ffe7ad" : "#c8c8c8",
+													cursor: "pointer",
+													boxSizing: "border-box",
+												}}
+											>
+												<BodyIconGlyph name={getStructIconName(subItem)} active={subSelected} />
+												<div style={{ minWidth: 0, flex: 1 }}>
+													<div style={{ fontSize: 12, color: subSelected ? "#fac03d" : "#c8c8c8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textAlign: "right" }}>{t("bodyEditor.subShapeIndex", "SubShape {{index}}", { index: subIndex + 1 })}</div>
+													<div style={{ fontSize: 10, color: subSelected ? "#ffd777" : "#8f9aa6", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textAlign: "right" }}>{subItem.structType.replace("Phyx.", "")}</div>
+												</div>
+											</button>
+										);
+									}) : null}
+								</div>
+							);
+						})}
+						{selectedItem ? null : (
+							<div style={{ padding: 12, color: "#8f9aa6", fontSize: 13 }}>{t("bodyEditor.noItems", "No BodyEx items")}</div>
+						)}
 					</div>
+					<div style={{ flex: "1 1 58%", minHeight: 0, overflow: "auto", paddingBottom: 96, boxSizing: "border-box" }}>
+						{selectedItem ? (
+							<PropertyPanel
+								document={document}
+								item={selectedItem}
+								readOnly={editDisabled}
+								canAddSubShape={!parseSubShapeSelectionId(selectedId) && isBodyItem(selectedItem)}
+								pendingSubShapeType={pendingSubShape?.bodyId === selectedItem.id ? pendingSubShape.type : null}
+								selectedVertexIndex={selectedVertexIndex}
+								onAddVertex={addSelectedVertex}
+								onRemoveVertex={removeSelectedVertex}
+								onCreateSubShape={(type) => {
+									setJointPanelOpen(false);
+									setPendingJointType(null);
+									setPendingJointSelection({});
+									setPendingSubShape((current) => (
+										current?.bodyId === selectedItem.id && current.type === type
+											? null
+											: { type, bodyId: selectedItem.id }
+									));
+									setActiveTool("menu");
+								}}
+								onUpdateField={(fieldName, value, recordUndo) => onUpdateField?.(selectedItem.id, fieldName, value, recordUndo)}
+								onChooseFace={() => setFaceChooserOpen(true)}
+								onBeginValueEdit={onBeginValueEdit}
+								onEndValueEdit={onEndValueEdit}
+							/>
+						) : null}
+					</div>
+				</div>
 			</div>
 			<FaceResourceDialog
 				open={faceChooserOpen}
@@ -2295,40 +2295,40 @@ const PropertyPanel = memo(function PropertyPanel(props: {
 						["subDisk", t("bodyEditor.subShapes.subDisk", "SubDisk")],
 						["subPoly", t("bodyEditor.subShapes.subPoly", "SubPoly")],
 						["subChain", t("bodyEditor.subShapes.subChain", "SubChain")],
-						] as const).map(([type, label]) => {
-							const selected = pendingSubShapeType === type;
-							return (
-								<button
-									key={type}
-									type="button"
-									disabled={readOnly}
-									onClick={() => onCreateSubShape(type)}
-									style={{
-										background: selected ? "#5f4917" : "#252525",
-										color: selected ? "#ffe7ad" : "#d7d7d7",
-										border: "1px solid " + (selected ? "#fac03d" : "#3a3a3a"),
-										height: 26,
-										cursor: readOnly ? "default" : "pointer",
-										opacity: readOnly ? 0.55 : 1,
-									}}
-								>
-									{label}
-								</button>
-							);
-						})}
-						<div style={{ gridColumn: "1 / -1", color: "#8f9aa6", fontSize: 11, lineHeight: "15px", paddingTop: 2 }}>
-							{t("bodyEditor.subShapeHint", "Select a sub shape type, then click the preview.")}
-						</div>
+					] as const).map(([type, label]) => {
+						const selected = pendingSubShapeType === type;
+						return (
+							<button
+								key={type}
+								type="button"
+								disabled={readOnly}
+								onClick={() => onCreateSubShape(type)}
+								style={{
+									background: selected ? "#5f4917" : "#252525",
+									color: selected ? "#ffe7ad" : "#d7d7d7",
+									border: "1px solid " + (selected ? "#fac03d" : "#3a3a3a"),
+									height: 26,
+									cursor: readOnly ? "default" : "pointer",
+									opacity: readOnly ? 0.55 : 1,
+								}}
+							>
+								{label}
+							</button>
+						);
+					})}
+					<div style={{ gridColumn: "1 / -1", color: "#8f9aa6", fontSize: 11, lineHeight: "15px", paddingTop: 2 }}>
+						{t("bodyEditor.subShapeHint", "Select a sub shape type, then click the preview.")}
 					</div>
-				) : null}
-				{definition.fields.map((field) => {
-					if (field.name === "subShapes" || field.kind === "hidden") return null;
-					const value = item.fields[field.name];
+				</div>
+			) : null}
+			{definition.fields.map((field) => {
+				if (field.name === "subShapes" || field.kind === "hidden") return null;
+				const value = item.fields[field.name];
 				const valueText = valueToText(value);
 				const inputKey = `${item.id}:${field.name}:${valueText}`;
 				const labelStyle = { display: "block", color: "#8f9aa6", fontSize: 11, margin: "8px 0 3px" };
 				const fieldLabel = getBodyFieldLabel(t, field.name);
-					if (field.kind === "boolean") {
+				if (field.kind === "boolean") {
 					return (
 						<label key={field.name} style={{ display: "flex", alignItems: "center", gap: 6, color: "#d7d7d7", fontSize: 12, marginTop: 8 }}>
 							<input
@@ -2339,24 +2339,24 @@ const PropertyPanel = memo(function PropertyPanel(props: {
 							/>
 							{fieldLabel}
 						</label>
-						);
-					}
-					if (field.kind === "number") {
-						const numberValue = typeof value === "number" ? value : 0;
-						return (
-							<NumericField
-								key={field.name}
-								label={fieldLabel}
-								value={numberValue}
-								readOnly={readOnly}
-								constraint={getBodyNumberConstraint(item, field.name)}
-								onCommit={(next, recordUndo) => onUpdateField(field.name, next, recordUndo)}
-								onBeginStep={onBeginValueEdit}
-								onEndStep={onEndValueEdit}
-							/>
-						);
-					}
-					if (field.kind === "bodyType") {
+					);
+				}
+				if (field.kind === "number") {
+					const numberValue = typeof value === "number" ? value : 0;
+					return (
+						<NumericField
+							key={field.name}
+							label={fieldLabel}
+							value={numberValue}
+							readOnly={readOnly}
+							constraint={getBodyNumberConstraint(item, field.name)}
+							onCommit={(next, recordUndo) => onUpdateField(field.name, next, recordUndo)}
+							onBeginStep={onBeginValueEdit}
+							onEndStep={onEndValueEdit}
+						/>
+					);
+				}
+				if (field.kind === "bodyType") {
 					return (
 						<label key={field.name} style={labelStyle}>
 							{fieldLabel}
@@ -2372,52 +2372,52 @@ const PropertyPanel = memo(function PropertyPanel(props: {
 							</select>
 						</label>
 					);
-					}
-					if (field.kind === "bodyRef" || field.kind === "jointRef") {
-						const options = field.kind === "bodyRef" ? bodyOptions : jointOptions;
-						return (
-							<label key={field.name} style={labelStyle}>
-								{fieldLabel}
-								<select
-									value={valueToText(value)}
-									disabled={readOnly}
-									onChange={(event) => onUpdateField(field.name, event.currentTarget.value)}
-									style={{ width: "100%", marginTop: 3, background: "#181818", color: "#d7d7d7", border: "1px solid #3a3a3a", height: 26 }}
-								>
-									<option value="">{t("bodyEditor.none", "None")}</option>
-									{options.map((name) => (
-										<option key={name} value={name}>{name}</option>
-									))}
-								</select>
-							</label>
-						);
-					}
-					if (field.kind === "vector" || field.kind === "size") {
-						const vector = asArray(value);
-						const x = typeof vector[0] === "number" ? vector[0] : 0;
-						const y = typeof vector[1] === "number" ? vector[1] : 0;
-						const prefix = fieldLabel;
-						return (
-							<div key={field.name} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
-									{([
-										["X", x, y],
-										["Y", y, x],
-									] as const).map(([axis, axisValue, otherValue]) => (
-										<NumericField
-											key={`${field.name}${axis}`}
-											label={`${prefix}${axis}`}
-											value={axisValue}
-											readOnly={readOnly}
-											constraint={getBodyNumberConstraint(item, field.name, axis)}
-											onCommit={(next, recordUndo) => onUpdateField(field.name, axis === "X" ? [next, otherValue] : [otherValue, next], recordUndo)}
-											onBeginStep={onBeginValueEdit}
-											onEndStep={onEndValueEdit}
-										/>
-									))}
-								</div>
-						);
 				}
-					if (field.name === "face") {
+				if (field.kind === "bodyRef" || field.kind === "jointRef") {
+					const options = field.kind === "bodyRef" ? bodyOptions : jointOptions;
+					return (
+						<label key={field.name} style={labelStyle}>
+							{fieldLabel}
+							<select
+								value={valueToText(value)}
+								disabled={readOnly}
+								onChange={(event) => onUpdateField(field.name, event.currentTarget.value)}
+								style={{ width: "100%", marginTop: 3, background: "#181818", color: "#d7d7d7", border: "1px solid #3a3a3a", height: 26 }}
+							>
+								<option value="">{t("bodyEditor.none", "None")}</option>
+								{options.map((name) => (
+									<option key={name} value={name}>{name}</option>
+								))}
+							</select>
+						</label>
+					);
+				}
+				if (field.kind === "vector" || field.kind === "size") {
+					const vector = asArray(value);
+					const x = typeof vector[0] === "number" ? vector[0] : 0;
+					const y = typeof vector[1] === "number" ? vector[1] : 0;
+					const prefix = fieldLabel;
+					return (
+						<div key={field.name} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+							{([
+								["X", x, y],
+								["Y", y, x],
+							] as const).map(([axis, axisValue, otherValue]) => (
+								<NumericField
+									key={`${field.name}${axis}`}
+									label={`${prefix}${axis}`}
+									value={axisValue}
+									readOnly={readOnly}
+									constraint={getBodyNumberConstraint(item, field.name, axis)}
+									onCommit={(next, recordUndo) => onUpdateField(field.name, axis === "X" ? [next, otherValue] : [otherValue, next], recordUndo)}
+									onBeginStep={onBeginValueEdit}
+									onEndStep={onEndValueEdit}
+								/>
+							))}
+						</div>
+					);
+				}
+				if (field.name === "face") {
 					return (
 						<label key={inputKey} style={labelStyle}>
 							{fieldLabel}

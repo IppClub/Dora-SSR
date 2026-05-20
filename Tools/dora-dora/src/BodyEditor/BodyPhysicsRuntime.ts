@@ -126,8 +126,8 @@ const makeShapes = (shape: BodyStructDocument, diagnostics: BodyPhysicsDiagnosti
 			diagnostics.push({ id: shape.id, message: `${shape.structType} requires positive size` });
 			return [];
 		}
-			const angle = shape.structType === "Phyx.SubRect" ? asNumber(shape.fields.angle) : 0;
-			return [Box(halfWidth, halfHeight, vectorToMeters(center), editorDegreesToPlanckRadians(angle))];
+		const angle = shape.structType === "Phyx.SubRect" ? asNumber(shape.fields.angle) : 0;
+		return [Box(halfWidth, halfHeight, vectorToMeters(center), editorDegreesToPlanckRadians(angle))];
 	}
 	if (shape.structType === "Phyx.Disk" || shape.structType === "Phyx.SubDisk") {
 		const radius = Math.abs(toMeters(asNumber(shape.fields.radius, 20)));
@@ -224,11 +224,11 @@ export class BodyPhysicsRuntime {
 	}
 
 	reset(document: BodyDocument) {
-			this.world = new World({ gravity: Vec2(0, 0) });
-			this.bodies.clear();
-			this.joints.clear();
-			this.jointItems.clear();
-			this.motors.clear();
+		this.world = new World({ gravity: Vec2(0, 0) });
+		this.bodies.clear();
+		this.joints.clear();
+		this.jointItems.clear();
+		this.motors.clear();
 		this.diagnostics = [];
 		this.time = 0;
 		for (const item of document.items) {
@@ -274,10 +274,10 @@ export class BodyPhysicsRuntime {
 		return this.snapshot();
 	}
 
-		snapshot(): BodyPhysicsSnapshot {
-			const bodies: BodyPhysicsBodySnapshot[] = [];
-			const joints: BodyPhysicsJointSnapshot[] = [];
-			let fixtureCount = 0;
+	snapshot(): BodyPhysicsSnapshot {
+		const bodies: BodyPhysicsBodySnapshot[] = [];
+		const joints: BodyPhysicsJointSnapshot[] = [];
+		let fixtureCount = 0;
 		for (const entry of this.bodies.values()) {
 			fixtureCount += entry.fixtureCount;
 			const position = entry.body.getPosition();
@@ -287,24 +287,24 @@ export class BodyPhysicsRuntime {
 				structType: entry.item.structType,
 				type: entry.body.getType(),
 				position: vectorToPixels(position),
-					angle: planckRadiansToEditorDegrees(entry.body.getAngle()),
-				});
-			}
-			for (const [name, joint] of this.joints.entries()) {
-				const item = this.jointItems.get(name);
-				if (!item) continue;
-				joints.push({
-					id: item.id,
-					name,
-					structType: item.structType,
-					anchorA: vectorToPixels(joint.getAnchorA()),
-					anchorB: vectorToPixels(joint.getAnchorB()),
-				});
-			}
-			return {
-				bodies,
-				joints,
-				motorControls: [...this.motors.values()].map((entry) => entry.control),
+				angle: planckRadiansToEditorDegrees(entry.body.getAngle()),
+			});
+		}
+		for (const [name, joint] of this.joints.entries()) {
+			const item = this.jointItems.get(name);
+			if (!item) continue;
+			joints.push({
+				id: item.id,
+				name,
+				structType: item.structType,
+				anchorA: vectorToPixels(joint.getAnchorA()),
+				anchorB: vectorToPixels(joint.getAnchorB()),
+			});
+		}
+		return {
+			bodies,
+			joints,
+			motorControls: [...this.motors.values()].map((entry) => entry.control),
 			bodyCount: this.world.getBodyCount(),
 			fixtureCount,
 			jointCount: this.world.getJointCount(),
@@ -314,14 +314,14 @@ export class BodyPhysicsRuntime {
 
 	private createJoint(item: BodyStructDocument) {
 		try {
-				const joint = this.makeJoint(item);
-				if (!joint) return;
-				const created = this.world.createJoint(joint);
-				if (created) {
-					const name = getItemName(item);
-					this.joints.set(name, created);
-					this.jointItems.set(name, item);
-				}
+			const joint = this.makeJoint(item);
+			if (!joint) return;
+			const created = this.world.createJoint(joint);
+			if (created) {
+				const name = getItemName(item);
+				this.joints.set(name, created);
+				this.jointItems.set(name, item);
+			}
 		} catch (error) {
 			this.diagnostics.push({
 				id: item.id,
@@ -397,7 +397,7 @@ export class BodyPhysicsRuntime {
 			return MotorJoint({
 				...opt,
 				linearOffset: vectorToMeters(asVector(item.fields.linearOffset)),
-					angularOffset: editorDegreesToPlanckRadians(asNumber(item.fields.angularOffset)),
+				angularOffset: editorDegreesToPlanckRadians(asNumber(item.fields.angularOffset)),
 				maxForce: Math.max(0, asNumber(item.fields.maxForce)),
 				maxTorque: Math.max(0, asNumber(item.fields.maxTorque)),
 				correctionFactor: Math.max(0, Math.min(1, asNumber(item.fields.correctionFactor, 0.3))),
@@ -405,7 +405,7 @@ export class BodyPhysicsRuntime {
 		}
 		if (item.structType === "Phyx.Prismatic") {
 			const baseSpeed = toMeters(asNumber(item.fields.motorSpeed));
-				const joint = PrismaticJoint({
+			const joint = PrismaticJoint({
 				...opt,
 				enableLimit: true,
 				lowerTranslation: toMeters(asNumber(item.fields.lowerTranslation)),
@@ -435,17 +435,17 @@ export class BodyPhysicsRuntime {
 				ratio: Math.max(0.01, asNumber(item.fields.ratio, 1)),
 			});
 		}
-			if (item.structType === "Phyx.Revolute") {
-				const [lowerAngle, upperAngle] = editorAngleRangeToPlanckRadians(asNumber(item.fields.lowerAngle), asNumber(item.fields.upperAngle));
-				const baseSpeed = editorDegreesToPlanckRadians(asNumber(item.fields.motorSpeed));
-				const joint = RevoluteJoint({
-					...opt,
-					enableLimit: true,
-					lowerAngle,
-					upperAngle,
-					enableMotor: Math.max(0, asNumber(item.fields.maxMotorTorque)) > 0,
-					maxMotorTorque: Math.max(0, asNumber(item.fields.maxMotorTorque)),
-					motorSpeed: baseSpeed,
+		if (item.structType === "Phyx.Revolute") {
+			const [lowerAngle, upperAngle] = editorAngleRangeToPlanckRadians(asNumber(item.fields.lowerAngle), asNumber(item.fields.upperAngle));
+			const baseSpeed = editorDegreesToPlanckRadians(asNumber(item.fields.motorSpeed));
+			const joint = RevoluteJoint({
+				...opt,
+				enableLimit: true,
+				lowerAngle,
+				upperAngle,
+				enableMotor: Math.max(0, asNumber(item.fields.maxMotorTorque)) > 0,
+				maxMotorTorque: Math.max(0, asNumber(item.fields.maxMotorTorque)),
+				motorSpeed: baseSpeed,
 			}, bodyA, bodyB, vectorToMeters(asVector(item.fields.worldPos)));
 			this.addMotorControl(item, baseSpeed, (speed) => joint.setMotorSpeed(speed));
 			return joint;
@@ -467,8 +467,8 @@ export class BodyPhysicsRuntime {
 				dampingRatio: Math.max(0, asNumber(item.fields.damping)),
 			}, bodyA, bodyB, vectorToMeters(asVector(item.fields.worldPos)));
 		}
-			if (item.structType === "Phyx.Wheel") {
-				const baseSpeed = editorDegreesToPlanckRadians(asNumber(item.fields.motorSpeed));
+		if (item.structType === "Phyx.Wheel") {
+			const baseSpeed = editorDegreesToPlanckRadians(asNumber(item.fields.motorSpeed));
 			const joint = WheelJoint({
 				...opt,
 				enableMotor: Math.max(0, asNumber(item.fields.maxMotorTorque)) > 0,
