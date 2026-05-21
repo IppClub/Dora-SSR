@@ -8,8 +8,8 @@
 #ifndef CPPHTTPLIB_HTTPLIB_H
 #define CPPHTTPLIB_HTTPLIB_H
 
-#define CPPHTTPLIB_VERSION "0.40.0"
-#define CPPHTTPLIB_VERSION_NUM "0x002800"
+#define CPPHTTPLIB_VERSION "0.45.0"
+#define CPPHTTPLIB_VERSION_NUM "0x002d00"
 
 #ifdef _WIN32
 #if defined(_WIN32_WINNT) && _WIN32_WINNT < 0x0A00
@@ -205,6 +205,10 @@
 #define CPPHTTPLIB_WEBSOCKET_PING_INTERVAL_SECOND 30
 #endif
 
+#ifndef CPPHTTPLIB_WEBSOCKET_MAX_MISSED_PONGS
+#define CPPHTTPLIB_WEBSOCKET_MAX_MISSED_PONGS 0
+#endif
+
 /*
  * Headers
  */
@@ -334,13 +338,10 @@ using socket_t = int;
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
-#if __cplusplus >= 201703L
-#include <any>
-#endif
 
 // On macOS with a TLS backend, enable Keychain root certificates by default
 // unless the user explicitly opts out.
-#if defined(__APPLE__) &&                                                      \
+#if defined(__APPLE__) && defined(__clang__) &&                                \
     !defined(CPPHTTPLIB_DISABLE_MACOSX_AUTOMATIC_ROOT_CERTIFICATES) &&         \
     (defined(CPPHTTPLIB_OPENSSL_SUPPORT) ||                                    \
      defined(CPPHTTPLIB_MBEDTLS_SUPPORT) ||                                    \
@@ -359,7 +360,7 @@ using socket_t = int;
 
 #if defined(CPPHTTPLIB_USE_NON_BLOCKING_GETADDRINFO) ||                        \
     defined(CPPHTTPLIB_USE_CERTS_FROM_MACOSX_KEYCHAIN)
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && defined(__clang__)
 #include <CFNetwork/CFHost.h>
 #include <CoreFoundation/CoreFoundation.h>
 #endif
@@ -702,9 +703,96 @@ inline bool parse_port(const std::string &s, int &port) {
   return parse_port(s.data(), s.size(), port);
 }
 
+struct UrlComponents {
+  std::string scheme;
+  std::string host;
+  std::string port;
+  std::string path;
+  std::string query;
+};
+
+inline bool parse_url(const std::string &url, UrlComponents &uc) {
+  uc = {};
+  size_t pos = 0;
+
+  auto sep = url.find("://");
+  if (sep != std::string::npos) {
+    uc.scheme = url.substr(0, sep);
+
+    // Scheme must be [a-z]+ only
+    if (uc.scheme.empty()) { return false; }
+    for (auto c : uc.scheme) {
+      if (c < 'a' || c > 'z') { return false; }
+    }
+
+    pos = sep + 3;
+  } else if (url.compare(0, 2, "//") == 0) {
+    pos = 2;
+  }
+
+  auto has_authority_prefix = pos > 0;
+  auto has_authority = has_authority_prefix || (!url.empty() && url[0] != '/' &&
+                                                url[0] != '?' && url[0] != '#');
+  if (has_authority) {
+    if (pos < url.size() && url[pos] == '[') {
+      auto close = url.find(']', pos);
+      if (close == std::string::npos) { return false; }
+      uc.host = url.substr(pos + 1, close - pos - 1);
+
+      // IPv6 host must be [a-fA-F0-9:]+ only
+      if (uc.host.empty()) { return false; }
+      for (auto c : uc.host) {
+        if (!((c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F') ||
+              (c >= '0' && c <= '9') || c == ':')) {
+          return false;
+        }
+      }
+
+      pos = close + 1;
+    } else {
+      auto end = url.find_first_of(":/?#", pos);
+      if (end == std::string::npos) { end = url.size(); }
+      uc.host = url.substr(pos, end - pos);
+      pos = end;
+    }
+
+    if (pos < url.size() && url[pos] == ':') {
+      ++pos;
+      auto end = url.find_first_of("/?#", pos);
+      if (end == std::string::npos) { end = url.size(); }
+      uc.port = url.substr(pos, end - pos);
+      pos = end;
+    }
+
+    // Without :// or //, the entire input must be consumed as host[:port].
+    // If there is leftover (path, query, etc.), this is not a valid
+    // host[:port] string — clear and reparse as a plain path.
+    if (!has_authority_prefix && pos < url.size()) {
+      uc.host.clear();
+      uc.port.clear();
+      pos = 0;
+    }
+  }
+
+  if (pos < url.size() && url[pos] != '?' && url[pos] != '#') {
+    auto end = url.find_first_of("?#", pos);
+    if (end == std::string::npos) { end = url.size(); }
+    uc.path = url.substr(pos, end - pos);
+    pos = end;
+  }
+
+  if (pos < url.size() && url[pos] == '?') {
+    auto end = url.find('#', pos);
+    if (end == std::string::npos) { end = url.size(); }
+    uc.query = url.substr(pos, end - pos);
+  }
+
+  return true;
+}
+
 } // namespace detail
 
-enum SSLVerifierResponse {
+enum class SSLVerifierResponse {
   // no decision has been made, use the built-in certificate verifier
   NoDecisionMade,
   // connection certificate is verified and accepted
@@ -798,42 +886,15 @@ using Match = std::smatch;
 using DownloadProgress = std::function<bool(size_t current, size_t total)>;
 using UploadProgress = std::function<bool(size_t current, size_t total)>;
 
-// ----------------------------------------------------------------------------
-// httplib::any — type-erased value container (C++11 compatible)
-// On C++17+ builds, thin wrappers around std::any are provided.
-// ----------------------------------------------------------------------------
-
-#if __cplusplus >= 201703L
-
-using any = std::any;
-using bad_any_cast = std::bad_any_cast;
-
-template <typename T> T any_cast(const any &a) { return std::any_cast<T>(a); }
-template <typename T> T any_cast(any &a) { return std::any_cast<T>(a); }
-template <typename T> T any_cast(any &&a) {
-  return std::any_cast<T>(std::move(a));
-}
-template <typename T> const T *any_cast(const any *a) noexcept {
-  return std::any_cast<T>(a);
-}
-template <typename T> T *any_cast(any *a) noexcept {
-  return std::any_cast<T>(a);
-}
-
-#else // C++11/14 implementation
-
-class bad_any_cast : public std::bad_cast {
-public:
-  const char *what() const noexcept override { return "bad any_cast"; }
-};
-
+/*
+ * detail: type-erased storage used by UserData.
+ * ABI-stable regardless of C++ standard — always uses this custom
+ * implementation instead of std::any.
+ */
 namespace detail {
 
 using any_type_id = const void *;
 
-// Returns a unique per-type ID without RTTI.
-// The static address is stable across TUs because function templates are
-// implicitly inline and the ODR merges their statics into one.
 template <typename T> any_type_id any_typeid() noexcept {
   static const char id = 0;
   return &id;
@@ -856,88 +917,59 @@ template <typename T> struct any_value final : any_storage {
 
 } // namespace detail
 
-class any {
-  std::unique_ptr<detail::any_storage> storage_;
-
+class UserData {
 public:
-  any() noexcept = default;
-  any(const any &o) : storage_(o.storage_ ? o.storage_->clone() : nullptr) {}
-  any(any &&) noexcept = default;
-  any &operator=(const any &o) {
-    storage_ = o.storage_ ? o.storage_->clone() : nullptr;
-    return *this;
-  }
-  any &operator=(any &&) noexcept = default;
+  UserData() = default;
+  UserData(UserData &&) noexcept = default;
+  UserData &operator=(UserData &&) noexcept = default;
 
-  template <
-      typename T, typename D = typename std::decay<T>::type,
-      typename std::enable_if<!std::is_same<D, any>::value, int>::type = 0>
-  any(T &&v) : storage_(new detail::any_value<D>(std::forward<T>(v))) {}
-
-  template <
-      typename T, typename D = typename std::decay<T>::type,
-      typename std::enable_if<!std::is_same<D, any>::value, int>::type = 0>
-  any &operator=(T &&v) {
-    storage_.reset(new detail::any_value<D>(std::forward<T>(v)));
-    return *this;
+  UserData(const UserData &o) {
+    for (const auto &e : o.entries_) {
+      if (e.second) { entries_[e.first] = e.second->clone(); }
+    }
   }
 
-  bool has_value() const noexcept { return storage_ != nullptr; }
-  void reset() noexcept { storage_.reset(); }
+  UserData &operator=(const UserData &o) {
+    if (this != &o) {
+      entries_.clear();
+      for (const auto &e : o.entries_) {
+        if (e.second) { entries_[e.first] = e.second->clone(); }
+      }
+    }
+    return *this;
+  }
 
-  template <typename T> friend T *any_cast(any *a) noexcept;
-  template <typename T> friend const T *any_cast(const any *a) noexcept;
+  template <typename T> void set(const std::string &key, T &&value) {
+    using D = typename std::decay<T>::type;
+    entries_[key].reset(new detail::any_value<D>(std::forward<T>(value)));
+  }
+
+  template <typename T> T *get(const std::string &key) noexcept {
+    auto it = entries_.find(key);
+    if (it == entries_.end() || !it->second) { return nullptr; }
+    if (it->second->type_id() != detail::any_typeid<T>()) { return nullptr; }
+    return &static_cast<detail::any_value<T> *>(it->second.get())->value;
+  }
+
+  template <typename T> const T *get(const std::string &key) const noexcept {
+    auto it = entries_.find(key);
+    if (it == entries_.end() || !it->second) { return nullptr; }
+    if (it->second->type_id() != detail::any_typeid<T>()) { return nullptr; }
+    return &static_cast<const detail::any_value<T> *>(it->second.get())->value;
+  }
+
+  bool has(const std::string &key) const noexcept {
+    return entries_.find(key) != entries_.end();
+  }
+
+  void erase(const std::string &key) { entries_.erase(key); }
+
+  void clear() noexcept { entries_.clear(); }
+
+private:
+  std::unordered_map<std::string, std::unique_ptr<detail::any_storage>>
+      entries_;
 };
-
-template <typename T> T *any_cast(any *a) noexcept {
-  if (!a || !a->storage_) { return nullptr; }
-  if (a->storage_->type_id() != detail::any_typeid<T>()) { return nullptr; }
-  return &static_cast<detail::any_value<T> *>(a->storage_.get())->value;
-}
-
-template <typename T> const T *any_cast(const any *a) noexcept {
-  if (!a || !a->storage_) { return nullptr; }
-  if (a->storage_->type_id() != detail::any_typeid<T>()) { return nullptr; }
-  return &static_cast<const detail::any_value<T> *>(a->storage_.get())->value;
-}
-
-template <typename T> T any_cast(const any &a) {
-  using U =
-      typename std::remove_cv<typename std::remove_reference<T>::type>::type;
-  const U *p = any_cast<U>(&a);
-#ifndef CPPHTTPLIB_NO_EXCEPTIONS
-  if (!p) { throw bad_any_cast{}; }
-#else
-  if (!p) { std::abort(); }
-#endif
-  return static_cast<T>(*p);
-}
-
-template <typename T> T any_cast(any &a) {
-  using U =
-      typename std::remove_cv<typename std::remove_reference<T>::type>::type;
-  U *p = any_cast<U>(&a);
-#ifndef CPPHTTPLIB_NO_EXCEPTIONS
-  if (!p) { throw bad_any_cast{}; }
-#else
-  if (!p) { std::abort(); }
-#endif
-  return static_cast<T>(*p);
-}
-
-template <typename T> T any_cast(any &&a) {
-  using U =
-      typename std::remove_cv<typename std::remove_reference<T>::type>::type;
-  U *p = any_cast<U>(&a);
-#ifndef CPPHTTPLIB_NO_EXCEPTIONS
-  if (!p) { throw bad_any_cast{}; }
-#else
-  if (!p) { std::abort(); }
-#endif
-  return static_cast<T>(std::move(*p));
-}
-
-#endif // __cplusplus >= 201703L
 
 struct Response;
 using ResponseHandler = std::function<bool(const Response &response)>;
@@ -1266,6 +1298,7 @@ struct Request {
 
   bool has_param(const std::string &key) const;
   std::string get_param_value(const std::string &key, size_t id = 0) const;
+  std::vector<std::string> get_param_values(const std::string &key) const;
   size_t get_param_value_count(const std::string &key) const;
 
   bool is_multipart_form_data() const;
@@ -1298,7 +1331,7 @@ struct Response {
 
   // User-defined context — set by pre-routing/pre-request handlers and read
   // by route handlers to pass arbitrary data (e.g. decoded auth tokens).
-  std::map<std::string, any> user_data;
+  UserData user_data;
 
   bool has_header(const std::string &key) const;
   std::string get_header_value(const std::string &key, const char *def = "",
@@ -1565,7 +1598,7 @@ private:
   std::regex regex_;
 };
 
-int close_socket(socket_t sock);
+int close_socket(socket_t sock) noexcept;
 
 ssize_t write_headers(Stream &strm, const Headers &headers);
 
@@ -1671,6 +1704,9 @@ public:
 
   Server &set_keep_alive_max_count(size_t count);
   Server &set_keep_alive_timeout(time_t sec);
+  template <class Rep, class Period>
+  Server &
+  set_keep_alive_timeout(const std::chrono::duration<Rep, Period> &duration);
 
   Server &set_read_timeout(time_t sec, time_t usec = 0);
   template <class Rep, class Period>
@@ -1691,6 +1727,8 @@ public:
   Server &set_websocket_ping_interval(
       const std::chrono::duration<Rep, Period> &duration);
 
+  Server &set_websocket_max_missed_pongs(int count);
+
   bool bind_to_port(const std::string &host, int port, int socket_flags = 0);
   int bind_to_any_port(const std::string &host, int socket_flags = 0);
   bool listen_after_bind();
@@ -1699,8 +1737,8 @@ public:
 
   bool is_running() const;
   void wait_until_ready() const;
-  void stop();
   void clear_posts();
+  void stop() noexcept;
   void decommission();
 
   std::function<TaskQueue *(void)> new_task_queue;
@@ -1728,6 +1766,7 @@ protected:
   size_t payload_max_length_ = CPPHTTPLIB_PAYLOAD_MAX_LENGTH;
   time_t websocket_ping_interval_sec_ =
       CPPHTTPLIB_WEBSOCKET_PING_INTERVAL_SECOND;
+  int websocket_max_missed_pongs_ = CPPHTTPLIB_WEBSOCKET_MAX_MISSED_PONGS;
 
 private:
   using Handlers =
@@ -1738,6 +1777,14 @@ private:
 
   static std::unique_ptr<detail::MatcherBase>
   make_matcher(const std::string &pattern);
+
+  template <typename H>
+  Server &add_handler(
+      std::vector<std::pair<std::unique_ptr<detail::MatcherBase>, H>> &handlers,
+      const std::string &pattern, H handler) {
+    handlers.emplace_back(make_matcher(pattern), std::move(handler));
+    return *this;
+  }
 
   Server &set_error_handler_core(HandlerWithResponse handler, std::true_type);
   Server &set_error_handler_core(Handler handler, std::false_type);
@@ -1899,15 +1946,6 @@ public:
 private:
   int ssl_error_ = 0;
   uint64_t ssl_backend_error_ = 0;
-#endif
-
-#ifdef CPPHTTPLIB_OPENSSL_SUPPORT
-public:
-  [[deprecated("Use ssl_backend_error() instead. "
-               "This function will be removed by v1.0.0.")]]
-  uint64_t ssl_openssl_error() const {
-    return ssl_backend_error_;
-  }
 #endif
 };
 
@@ -2381,22 +2419,6 @@ protected:
   int last_ssl_error_ = 0;
   uint64_t last_backend_error_ = 0;
 #endif
-
-#ifdef CPPHTTPLIB_OPENSSL_SUPPORT
-public:
-  [[deprecated("Use load_ca_cert_store() instead. "
-               "This function will be removed by v1.0.0.")]]
-  void set_ca_cert_store(X509_STORE *ca_cert_store);
-
-  [[deprecated("Use tls::create_ca_store() instead. "
-               "This function will be removed by v1.0.0.")]]
-  X509_STORE *create_ca_cert_store(const char *ca_cert, std::size_t size) const;
-
-  [[deprecated("Use set_server_certificate_verifier(VerifyCallback) instead. "
-               "This function will be removed by v1.0.0.")]]
-  virtual void set_server_certificate_verifier(
-      std::function<SSLVerifierResponse(SSL *ssl)> verifier);
-#endif
 };
 
 class Client {
@@ -2571,7 +2593,6 @@ public:
   void set_follow_location(bool on);
 
   void set_path_encode(bool on);
-  void set_url_encode(bool on);
 
   void set_compress(bool on);
 
@@ -2619,22 +2640,6 @@ public:
 private:
   bool is_ssl_ = false;
 #endif
-
-#ifdef CPPHTTPLIB_OPENSSL_SUPPORT
-public:
-  [[deprecated("Use tls_context() instead. "
-               "This function will be removed by v1.0.0.")]]
-  SSL_CTX *ssl_context() const;
-
-  [[deprecated("Use set_session_verifier(session_t) instead. "
-               "This function will be removed by v1.0.0.")]]
-  void set_server_certificate_verifier(
-      std::function<SSLVerifierResponse(SSL *ssl)> verifier);
-
-  [[deprecated("Use Result::ssl_backend_error() instead. "
-               "This function will be removed by v1.0.0.")]]
-  long get_verify_result() const;
-#endif
 };
 
 #ifdef CPPHTTPLIB_SSL_ENABLED
@@ -2680,29 +2685,6 @@ private:
   std::mutex ctx_mutex_;
 
   int last_ssl_error_ = 0;
-
-#ifdef CPPHTTPLIB_OPENSSL_SUPPORT
-public:
-  [[deprecated("Use SSLServer(PemMemory) or "
-               "SSLServer(ContextSetupCallback) instead. "
-               "This constructor will be removed by v1.0.0.")]]
-  SSLServer(X509 *cert, EVP_PKEY *private_key,
-            X509_STORE *client_ca_cert_store = nullptr);
-
-  [[deprecated("Use SSLServer(ContextSetupCallback) instead. "
-               "This constructor will be removed by v1.0.0.")]]
-  SSLServer(
-      const std::function<bool(SSL_CTX &ssl_ctx)> &setup_ssl_ctx_callback);
-
-  [[deprecated("Use tls_context() instead. "
-               "This function will be removed by v1.0.0.")]]
-  SSL_CTX *ssl_context() const;
-
-  [[deprecated("Use update_certs_pem() instead. "
-               "This function will be removed by v1.0.0.")]]
-  void update_certs(X509 *cert, EVP_PKEY *private_key,
-                    X509_STORE *client_ca_cert_store = nullptr);
-#endif
 };
 
 class SSLClient final : public ClientImpl {
@@ -2766,6 +2748,9 @@ private:
       Response &res, bool &success, Error &error);
   bool initialize_ssl(Socket &socket, Error &error);
 
+  void init_ctx();
+  void reset_ctx_on_error();
+
   bool load_certs();
 
   tls::ctx_t ctx_ = nullptr;
@@ -2783,26 +2768,6 @@ private:
   friend class ClientImpl;
 
 #ifdef CPPHTTPLIB_OPENSSL_SUPPORT
-public:
-  [[deprecated("Use SSLClient(host, port, PemMemory) instead. "
-               "This constructor will be removed by v1.0.0.")]]
-  explicit SSLClient(const std::string &host, int port, X509 *client_cert,
-                     EVP_PKEY *client_key,
-                     const std::string &private_key_password = std::string());
-
-  [[deprecated("Use Result::ssl_backend_error() instead. "
-               "This function will be removed by v1.0.0.")]]
-  long get_verify_result() const;
-
-  [[deprecated("Use tls_context() instead. "
-               "This function will be removed by v1.0.0.")]]
-  SSL_CTX *ssl_context() const;
-
-  [[deprecated("Use set_session_verifier(session_t) instead. "
-               "This function will be removed by v1.0.0.")]]
-  void set_server_certificate_verifier(
-      std::function<SSLVerifierResponse(SSL *ssl)> verifier) override;
-
 private:
   bool verify_host(X509 *server_cert) const;
   bool verify_host_with_subject_alt_name(X509 *server_cert) const;
@@ -3066,8 +3031,6 @@ bool parse_range_header(const std::string &s, Ranges &ranges);
 
 bool parse_accept_header(const std::string &s,
                          std::vector<std::string> &content_types);
-
-int close_socket(socket_t sock);
 
 ssize_t send_socket(socket_t sock, const void *ptr, size_t size, int flags);
 
@@ -3774,17 +3737,21 @@ private:
 
   WebSocket(
       Stream &strm, const Request &req, bool is_server,
-      time_t ping_interval_sec = CPPHTTPLIB_WEBSOCKET_PING_INTERVAL_SECOND)
+      time_t ping_interval_sec = CPPHTTPLIB_WEBSOCKET_PING_INTERVAL_SECOND,
+      int max_missed_pongs = CPPHTTPLIB_WEBSOCKET_MAX_MISSED_PONGS)
       : strm_(strm), req_(req), is_server_(is_server),
-        ping_interval_sec_(ping_interval_sec) {
+        ping_interval_sec_(ping_interval_sec),
+        max_missed_pongs_(max_missed_pongs) {
     start_heartbeat();
   }
 
   WebSocket(
       std::unique_ptr<Stream> &&owned_strm, const Request &req, bool is_server,
-      time_t ping_interval_sec = CPPHTTPLIB_WEBSOCKET_PING_INTERVAL_SECOND)
+      time_t ping_interval_sec = CPPHTTPLIB_WEBSOCKET_PING_INTERVAL_SECOND,
+      int max_missed_pongs = CPPHTTPLIB_WEBSOCKET_MAX_MISSED_PONGS)
       : strm_(*owned_strm), owned_strm_(std::move(owned_strm)), req_(req),
-        is_server_(is_server), ping_interval_sec_(ping_interval_sec) {
+        is_server_(is_server), ping_interval_sec_(ping_interval_sec),
+        max_missed_pongs_(max_missed_pongs) {
     start_heartbeat();
   }
 
@@ -3796,6 +3763,8 @@ private:
   Request req_;
   bool is_server_;
   time_t ping_interval_sec_;
+  int max_missed_pongs_;
+  int unacked_pings_ = 0;
   std::atomic<bool> closed_{false};
   std::mutex write_mutex_;
   std::thread ping_thread_;
@@ -3825,6 +3794,7 @@ public:
   void set_read_timeout(time_t sec, time_t usec = 0);
   void set_write_timeout(time_t sec, time_t usec = 0);
   void set_websocket_ping_interval(time_t sec);
+  void set_websocket_max_missed_pongs(int count);
   void set_tcp_nodelay(bool on);
   void set_address_family(int family);
   void set_ipv6_v6only(bool on);
@@ -3856,6 +3826,7 @@ private:
   time_t write_timeout_usec_ = CPPHTTPLIB_CLIENT_WRITE_TIMEOUT_USECOND;
   time_t websocket_ping_interval_sec_ =
       CPPHTTPLIB_WEBSOCKET_PING_INTERVAL_SECOND;
+  int websocket_max_missed_pongs_ = CPPHTTPLIB_WEBSOCKET_MAX_MISSED_PONGS;
   int address_family_ = AF_UNSPEC;
   bool tcp_nodelay_ = CPPHTTPLIB_TCP_NODELAY;
   bool ipv6_v6only_ = CPPHTTPLIB_IPV6_V6ONLY;
@@ -4758,7 +4729,8 @@ inline bool write_websocket_frame(Stream &strm, ws::Opcode opcode,
     if (strm.write(reinterpret_cast<char *>(header), 2) < 0) { return false; }
     uint8_t ext[8];
     for (int i = 7; i >= 0; i--) {
-      ext[7 - i] = static_cast<uint8_t>((len >> (i * 8)) & 0xFF);
+      ext[7 - i] =
+          static_cast<uint8_t>((static_cast<uint64_t>(len) >> (i * 8)) & 0xFF);
     }
     if (strm.write(reinterpret_cast<char *>(ext), 8) < 0) { return false; }
   }
@@ -4920,9 +4892,14 @@ inline bool canonicalize_path(const char *path, std::string &resolved) {
   char buf[_MAX_PATH];
   if (_fullpath(buf, path, _MAX_PATH) == nullptr) { return false; }
   resolved = buf;
-#else
+#elif defined(PATH_MAX)
   char buf[PATH_MAX];
   if (realpath(path, buf) == nullptr) { return false; }
+  resolved = buf;
+#else
+  auto buf = realpath(path, nullptr);
+  auto guard = scope_exit([&]() { std::free(buf); });
+  if (buf == nullptr) { return false; }
   resolved = buf;
 #endif
   return true;
@@ -5041,12 +5018,11 @@ inline bool parse_header(const char *beg, const char *end, T fn) {
 
     if (!detail::fields::is_field_value(val)) { return false; }
 
-    if (case_ignore::equal(key, "Location") ||
-        case_ignore::equal(key, "Referer")) {
-      fn(key, val);
-    } else {
-      fn(key, decode_path_component(val));
-    }
+    // RFC 9110 §5.5: header field values are opaque octets and MUST NOT be
+    // percent-decoded by the recipient. Applications that need to interpret a
+    // value as a URI component should call httplib::decode_uri_component()
+    // (or decode_path_component()) explicitly.
+    fn(key, val);
 
     return true;
   }
@@ -5344,8 +5320,9 @@ inline bool mmap::open(const char *path) {
   auto wpath = u8string_to_wstring(path);
   if (wpath.empty()) { return false; }
 
-  hFile_ = ::CreateFile2(wpath.c_str(), GENERIC_READ, FILE_SHARE_READ,
-                         OPEN_EXISTING, NULL);
+  hFile_ =
+      ::CreateFile2(wpath.c_str(), GENERIC_READ,
+                    FILE_SHARE_READ | FILE_SHARE_WRITE, OPEN_EXISTING, NULL);
 
   if (hFile_ == INVALID_HANDLE_VALUE) { return false; }
 
@@ -5447,7 +5424,7 @@ inline void mmap::close() {
 #endif
   size_ = 0;
 }
-inline int close_socket(socket_t sock) {
+inline int close_socket(socket_t sock) noexcept {
 #ifdef _WIN32
   return closesocket(sock);
 #else
@@ -5674,7 +5651,7 @@ inline bool process_client_socket(
   return callback(strm);
 }
 
-inline int shutdown_socket(socket_t sock) {
+inline int shutdown_socket(socket_t sock) noexcept {
 #ifdef _WIN32
   return shutdown(sock, SD_BOTH);
 #else
@@ -5761,7 +5738,7 @@ inline int getaddrinfo_with_timeout(const char *node, const char *service,
   }
 
   return ret;
-#elif TARGET_OS_MAC
+#elif TARGET_OS_MAC && defined(__clang__)
   if (!node) { return EAI_NONAME; }
   // macOS implementation using CFHost API for asynchronous DNS resolution
   CFStringRef hostname_ref = CFStringCreateWithCString(
@@ -5932,56 +5909,50 @@ inline int getaddrinfo_with_timeout(const char *node, const char *service,
   return 0;
 #elif defined(_GNU_SOURCE) && defined(__GLIBC__) &&                            \
     (__GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 2))
-  // Linux implementation using getaddrinfo_a for asynchronous DNS resolution
-  struct gaicb request;
+  // #2431: gai_cancel() is non-blocking and may return EAI_NOTCANCELED while
+  // the resolver worker still references the stack-local gaicb. The cancel
+  // path therefore waits (gai_suspend with no timeout) for the worker to
+  // actually finish before letting the stack frame go. The trade-off is that
+  // a wedged DNS server can hold this thread for the system resolver timeout
+  // (~30s by default) past the caller's connection timeout.
+  struct gaicb request {};
   struct gaicb *requests[1] = {&request};
-  struct sigevent sevp;
-  struct timespec timeout;
+  struct sigevent sevp {};
+  struct timespec timeout {
+    timeout_sec, 0
+  };
 
-  // Initialize the request structure
-  memset(&request, 0, sizeof(request));
   request.ar_name = node;
   request.ar_service = service;
   request.ar_request = hints;
-
-  // Set up timeout
-  timeout.tv_sec = timeout_sec;
-  timeout.tv_nsec = 0;
-
-  // Initialize sigevent structure (not used, but required)
-  memset(&sevp, 0, sizeof(sevp));
   sevp.sigev_notify = SIGEV_NONE;
 
-  // Start asynchronous resolution
-  int start_result = getaddrinfo_a(GAI_NOWAIT, requests, 1, &sevp);
-  if (start_result != 0) { return start_result; }
+  int rc = getaddrinfo_a(GAI_NOWAIT, requests, 1, &sevp);
+  if (rc != 0) { return rc; }
 
-  // Wait for completion with timeout
-  int wait_result =
-      gai_suspend((const struct gaicb *const *)requests, 1, &timeout);
+  auto cleanup = scope_exit([&] {
+    if (request.ar_result) { freeaddrinfo(request.ar_result); }
+  });
+
+  int wait_result = gai_suspend(requests, 1, &timeout);
 
   if (wait_result == 0 || wait_result == EAI_ALLDONE) {
-    // Completed successfully, get the result
     int gai_result = gai_error(&request);
     if (gai_result == 0) {
       *res = request.ar_result;
+      request.ar_result = nullptr;
       return 0;
-    } else {
-      // Clean up on error
-      if (request.ar_result) { freeaddrinfo(request.ar_result); }
-      return gai_result;
     }
-  } else if (wait_result == EAI_AGAIN) {
-    // Timeout occurred, cancel the request
-    gai_cancel(&request);
-    return EAI_AGAIN;
-  } else {
-    // Other error occurred
-    gai_cancel(&request);
-    return wait_result;
+    return gai_result;
   }
+
+  gai_cancel(&request);
+  while (gai_error(&request) == EAI_INPROGRESS) {
+    gai_suspend(requests, 1, nullptr);
+  }
+  return wait_result;
 #else
-  // Fallback implementation using thread-based timeout for other Unix systems
+  // Fallback implementation using thread-based timeout for other Unix systems.
 
   struct GetAddrInfoState {
     ~GetAddrInfoState() {
@@ -6391,6 +6362,10 @@ inline void get_remote_ip_and_port(socket_t sock, std::string &ip, int &port) {
   }
 }
 
+// Recursive form retained so operator""_t below can compute hashes for
+// switch-case labels at compile time (C++11 constexpr forbids loops). Do not
+// call from runtime paths with arbitrary-length inputs — use str2tag()
+// instead, which is iterative and stack-safe.
 inline constexpr unsigned int str2tag_core(const char *s, size_t l,
                                            unsigned int h) {
   return (l == 0)
@@ -6404,7 +6379,16 @@ inline constexpr unsigned int str2tag_core(const char *s, size_t l,
 }
 
 inline unsigned int str2tag(const std::string &s) {
-  return str2tag_core(s.data(), s.size(), 0);
+  // Iterative form of str2tag_core: the recursive constexpr version is kept
+  // for compile-time UDL evaluation of short string literals, but at runtime
+  // we may receive arbitrarily long inputs (e.g. fuzzed Content-Type) that
+  // would blow the stack with one frame per character.
+  unsigned int h = 0;
+  for (auto c : s) {
+    h = (((std::numeric_limits<unsigned int>::max)() >> 6) & h * 33) ^
+        static_cast<unsigned char>(c);
+  }
+  return h;
 }
 
 namespace udl {
@@ -6649,6 +6633,35 @@ inline EncodingType encoding_type(const Request &req, const Response &res) {
   });
 
   return best;
+}
+
+inline std::unique_ptr<compressor> make_compressor(EncodingType type) {
+#ifdef CPPHTTPLIB_ZLIB_SUPPORT
+  if (type == EncodingType::Gzip) {
+    return detail::make_unique<gzip_compressor>();
+  }
+#endif
+#ifdef CPPHTTPLIB_BROTLI_SUPPORT
+  if (type == EncodingType::Brotli) {
+    return detail::make_unique<brotli_compressor>();
+  }
+#endif
+#ifdef CPPHTTPLIB_ZSTD_SUPPORT
+  if (type == EncodingType::Zstd) {
+    return detail::make_unique<zstd_compressor>();
+  }
+#endif
+  (void)type;
+  return nullptr;
+}
+
+inline const char *encoding_name(EncodingType type) {
+  switch (type) {
+  case EncodingType::Gzip: return "gzip";
+  case EncodingType::Brotli: return "br";
+  case EncodingType::Zstd: return "zstd";
+  default: return "";
+  }
 }
 
 inline bool nocompressor::compress(const char *data, size_t data_length,
@@ -6981,6 +6994,29 @@ inline const char *get_header_value(const Headers &headers,
   std::advance(it, static_cast<ssize_t>(id));
   if (it != rng.second) { return it->second.c_str(); }
   return def;
+}
+
+inline size_t get_header_value_count(const Headers &headers,
+                                     const std::string &key) {
+  auto r = headers.equal_range(key);
+  return static_cast<size_t>(std::distance(r.first, r.second));
+}
+
+template <typename Map>
+inline typename Map::mapped_type
+get_multimap_value(const Map &m, const std::string &key, size_t id) {
+  auto rng = m.equal_range(key);
+  auto it = rng.first;
+  std::advance(it, static_cast<ssize_t>(id));
+  if (it != rng.second) { return it->second; }
+  return typename Map::mapped_type();
+}
+
+inline void set_header(Headers &headers, const std::string &key,
+                       const std::string &val) {
+  if (fields::is_field_name(key) && fields::is_field_value(val)) {
+    headers.emplace(key, val);
+  }
 }
 
 inline bool read_headers(Stream &strm, Headers &headers) {
@@ -8544,17 +8580,24 @@ write_multipart_ranges_data(Stream &strm, const Request &req, Response &res,
       });
 }
 
+inline bool has_framed_body(const Request &req) {
+  return is_chunked_transfer_encoding(req.headers) ||
+         req.get_header_value_u64("Content-Length") > 0;
+}
+
+inline bool is_connection_persistent(const Request &req) {
+  auto conn = req.get_header_value("Connection");
+  if (conn == "close") { return false; }
+  if (req.version == "HTTP/1.0" && conn != "Keep-Alive") { return false; }
+  return true;
+}
+
 inline bool expect_content(const Request &req) {
   if (req.method == "POST" || req.method == "PUT" || req.method == "PATCH" ||
       req.method == "DELETE") {
     return true;
   }
-  if (req.has_header("Content-Length") &&
-      req.get_header_value_u64("Content-Length") > 0) {
-    return true;
-  }
-  if (is_chunked_transfer_encoding(req.headers)) { return true; }
-  return false;
+  return has_framed_body(req);
 }
 
 #ifdef _WIN32
@@ -9677,16 +9720,12 @@ inline std::string Request::get_header_value(const std::string &key,
 }
 
 inline size_t Request::get_header_value_count(const std::string &key) const {
-  auto r = headers.equal_range(key);
-  return static_cast<size_t>(std::distance(r.first, r.second));
+  return detail::get_header_value_count(headers, key);
 }
 
 inline void Request::set_header(const std::string &key,
                                 const std::string &val) {
-  if (detail::fields::is_field_name(key) &&
-      detail::fields::is_field_value(val)) {
-    headers.emplace(key, val);
-  }
+  detail::set_header(headers, key, val);
 }
 
 inline bool Request::has_trailer(const std::string &key) const {
@@ -9695,11 +9734,7 @@ inline bool Request::has_trailer(const std::string &key) const {
 
 inline std::string Request::get_trailer_value(const std::string &key,
                                               size_t id) const {
-  auto rng = trailers.equal_range(key);
-  auto it = rng.first;
-  std::advance(it, static_cast<ssize_t>(id));
-  if (it != rng.second) { return it->second; }
-  return std::string();
+  return detail::get_multimap_value(trailers, key, id);
 }
 
 inline size_t Request::get_trailer_value_count(const std::string &key) const {
@@ -9713,11 +9748,18 @@ inline bool Request::has_param(const std::string &key) const {
 
 inline std::string Request::get_param_value(const std::string &key,
                                             size_t id) const {
+  return detail::get_multimap_value(params, key, id);
+}
+
+inline std::vector<std::string>
+Request::get_param_values(const std::string &key) const {
   auto rng = params.equal_range(key);
-  auto it = rng.first;
-  std::advance(it, static_cast<ssize_t>(id));
-  if (it != rng.second) { return it->second; }
-  return std::string();
+  std::vector<std::string> values;
+  values.reserve(static_cast<size_t>(std::distance(rng.first, rng.second)));
+  for (auto it = rng.first; it != rng.second; ++it) {
+    values.push_back(it->second);
+  }
+  return values;
 }
 
 inline size_t Request::get_param_value_count(const std::string &key) const {
@@ -9761,11 +9803,7 @@ inline size_t MultipartFormData::get_field_count(const std::string &key) const {
 
 inline FormData MultipartFormData::get_file(const std::string &key,
                                             size_t id) const {
-  auto rng = files.equal_range(key);
-  auto it = rng.first;
-  std::advance(it, static_cast<ssize_t>(id));
-  if (it != rng.second) { return it->second; }
-  return FormData();
+  return detail::get_multimap_value(files, key, id);
 }
 
 inline std::vector<FormData>
@@ -9804,16 +9842,12 @@ inline std::string Response::get_header_value(const std::string &key,
 }
 
 inline size_t Response::get_header_value_count(const std::string &key) const {
-  auto r = headers.equal_range(key);
-  return static_cast<size_t>(std::distance(r.first, r.second));
+  return detail::get_header_value_count(headers, key);
 }
 
 inline void Response::set_header(const std::string &key,
                                  const std::string &val) {
-  if (detail::fields::is_field_name(key) &&
-      detail::fields::is_field_value(val)) {
-    headers.emplace(key, val);
-  }
+  detail::set_header(headers, key, val);
 }
 inline bool Response::has_trailer(const std::string &key) const {
   return trailers.find(key) != trailers.end();
@@ -9821,11 +9855,7 @@ inline bool Response::has_trailer(const std::string &key) const {
 
 inline std::string Response::get_trailer_value(const std::string &key,
                                                size_t id) const {
-  auto rng = trailers.equal_range(key);
-  auto it = rng.first;
-  std::advance(it, static_cast<ssize_t>(id));
-  if (it != rng.second) { return it->second; }
-  return std::string();
+  return detail::get_multimap_value(trailers, key, id);
 }
 
 inline size_t Response::get_trailer_value_count(const std::string &key) const {
@@ -10025,9 +10055,29 @@ inline ThreadPool::ThreadPool(size_t n, size_t max_n, size_t mqr)
 #endif
   max_thread_count_ = max_n == 0 ? n : max_n;
   threads_.reserve(base_thread_count_);
-  for (size_t i = 0; i < base_thread_count_; i++) {
-    threads_.emplace_back(std::thread([this]() { worker(false); }));
+#ifndef CPPHTTPLIB_NO_EXCEPTIONS
+  try {
+#endif
+    for (size_t i = 0; i < base_thread_count_; i++) {
+      threads_.emplace_back(std::thread([this]() { worker(false); }));
+    }
+#ifndef CPPHTTPLIB_NO_EXCEPTIONS
+  } catch (...) {
+    // If thread creation fails partway (e.g., pthread_create returns EAGAIN),
+    // signal the workers we already spawned to exit and join them so the
+    // vector destructor does not see joinable threads (which would call
+    // std::terminate). Then rethrow so the caller learns of the failure.
+    {
+      std::unique_lock<std::mutex> lock(mutex_);
+      shutdown_ = true;
+    }
+    cond_.notify_all();
+    for (auto &t : threads_) {
+      if (t.joinable()) { t.join(); }
+    }
+    throw;
   }
+#endif
 }
 
 inline bool ThreadPool::enqueue(std::function<void()> fn) {
@@ -10128,15 +10178,6 @@ inline void ThreadPool::worker(bool is_dynamic) {
 
     assert(true == static_cast<bool>(fn));
     fn();
-
-    // Dynamic thread: exit if queue is empty after task completion
-    if (is_dynamic) {
-      std::unique_lock<std::mutex> lock(mutex_);
-      if (jobs_.empty()) {
-        move_to_finished(std::this_thread::get_id());
-        break;
-      }
-    }
   }
 
 #if defined(CPPHTTPLIB_OPENSSL_SUPPORT) && !defined(OPENSSL_IS_BORINGSSL) &&   \
@@ -10666,61 +10707,51 @@ Server::make_matcher(const std::string &pattern) {
 }
 
 inline Server &Server::Get(const std::string &pattern, Handler handler) {
-  get_handlers_.emplace_back(make_matcher(pattern), std::move(handler));
-  return *this;
+  return add_handler(get_handlers_, pattern, std::move(handler));
 }
 
 inline Server &Server::Post(const std::string &pattern, Handler handler) {
-  post_handlers_.emplace_back(make_matcher(pattern), std::move(handler));
-  return *this;
+  return add_handler(post_handlers_, pattern, std::move(handler));
 }
 
 inline Server &Server::Post(const std::string &pattern,
                             HandlerWithContentReader handler) {
-  post_handlers_for_content_reader_.emplace_back(make_matcher(pattern),
-                                                 std::move(handler));
-  return *this;
+  return add_handler(post_handlers_for_content_reader_, pattern,
+                     std::move(handler));
 }
 
 inline Server &Server::Put(const std::string &pattern, Handler handler) {
-  put_handlers_.emplace_back(make_matcher(pattern), std::move(handler));
-  return *this;
+  return add_handler(put_handlers_, pattern, std::move(handler));
 }
 
 inline Server &Server::Put(const std::string &pattern,
                            HandlerWithContentReader handler) {
-  put_handlers_for_content_reader_.emplace_back(make_matcher(pattern),
-                                                std::move(handler));
-  return *this;
+  return add_handler(put_handlers_for_content_reader_, pattern,
+                     std::move(handler));
 }
 
 inline Server &Server::Patch(const std::string &pattern, Handler handler) {
-  patch_handlers_.emplace_back(make_matcher(pattern), std::move(handler));
-  return *this;
+  return add_handler(patch_handlers_, pattern, std::move(handler));
 }
 
 inline Server &Server::Patch(const std::string &pattern,
                              HandlerWithContentReader handler) {
-  patch_handlers_for_content_reader_.emplace_back(make_matcher(pattern),
-                                                  std::move(handler));
-  return *this;
+  return add_handler(patch_handlers_for_content_reader_, pattern,
+                     std::move(handler));
 }
 
 inline Server &Server::Delete(const std::string &pattern, Handler handler) {
-  delete_handlers_.emplace_back(make_matcher(pattern), std::move(handler));
-  return *this;
+  return add_handler(delete_handlers_, pattern, std::move(handler));
 }
 
 inline Server &Server::Delete(const std::string &pattern,
                               HandlerWithContentReader handler) {
-  delete_handlers_for_content_reader_.emplace_back(make_matcher(pattern),
-                                                   std::move(handler));
-  return *this;
+  return add_handler(delete_handlers_for_content_reader_, pattern,
+                     std::move(handler));
 }
 
 inline Server &Server::Options(const std::string &pattern, Handler handler) {
-  options_handlers_.emplace_back(make_matcher(pattern), std::move(handler));
-  return *this;
+  return add_handler(options_handlers_, pattern, std::move(handler));
 }
 
 inline Server &Server::WebSocket(const std::string &pattern,
@@ -10897,6 +10928,15 @@ inline Server &Server::set_keep_alive_timeout(time_t sec) {
   return *this;
 }
 
+template <class Rep, class Period>
+inline Server &Server::set_keep_alive_timeout(
+    const std::chrono::duration<Rep, Period> &duration) {
+  detail::duration_to_sec_and_usec(duration, [&](time_t sec, time_t /*usec*/) {
+    set_keep_alive_timeout(sec);
+  });
+  return *this;
+}
+
 inline Server &Server::set_read_timeout(time_t sec, time_t usec) {
   read_timeout_sec_ = sec;
   read_timeout_usec_ = usec;
@@ -10917,6 +10957,11 @@ inline Server &Server::set_idle_interval(time_t sec, time_t usec) {
 
 inline Server &Server::set_payload_max_length(size_t length) {
   payload_max_length_ = length;
+  return *this;
+}
+
+inline Server &Server::set_websocket_max_missed_pongs(int count) {
+  websocket_max_missed_pongs_ = count;
   return *this;
 }
 
@@ -10961,7 +11006,7 @@ inline void Server::wait_until_ready() const {
   }
 }
 
-inline void Server::stop() {
+inline void Server::stop() noexcept {
   if (is_running_) {
     assert(svr_sock_ != INVALID_SOCKET);
     std::atomic<socket_t> sock(svr_sock_.exchange(INVALID_SOCKET));
@@ -11166,23 +11211,10 @@ Server::write_content_with_provider(Stream &strm, const Request &req,
     if (res.is_chunked_content_provider_) {
       auto type = detail::encoding_type(req, res);
 
-      std::unique_ptr<detail::compressor> compressor;
-      if (type == detail::EncodingType::Gzip) {
-#ifdef CPPHTTPLIB_ZLIB_SUPPORT
-        compressor = detail::make_unique<detail::gzip_compressor>();
-#endif
-      } else if (type == detail::EncodingType::Brotli) {
-#ifdef CPPHTTPLIB_BROTLI_SUPPORT
-        compressor = detail::make_unique<detail::brotli_compressor>();
-#endif
-      } else if (type == detail::EncodingType::Zstd) {
-#ifdef CPPHTTPLIB_ZSTD_SUPPORT
-        compressor = detail::make_unique<detail::zstd_compressor>();
-#endif
-      } else {
+      auto compressor = detail::make_compressor(type);
+      if (!compressor) {
         compressor = detail::make_unique<detail::nocompressor>();
       }
-      assert(compressor != nullptr);
 
       return detail::write_content_chunked(strm, res.content_provider_,
                                            is_shutting_down, *compressor);
@@ -11302,29 +11334,18 @@ inline bool Server::read_content_core(
                      size_t /*len*/) { return receiver(buf, n); };
   }
 
-  // RFC 7230 Section 3.3.3: If this is a request message and none of the above
-  // are true (no Transfer-Encoding and no Content-Length), then the message
-  // body length is zero (no message body is present).
-  //
-  // For non-SSL builds, detect clients that send a body without a
-  // Content-Length header (raw HTTP over TCP). Check both the stream's
-  // internal read buffer (data already read from the socket during header
-  // parsing) and the socket itself for pending data. If data is found and
-  // exceeds the configured payload limit, reject with 413.
-  // For SSL builds we cannot reliably peek the decrypted application bytes,
-  // so keep the original behaviour.
+  // RFC 9112 §6: no Transfer-Encoding and no Content-Length means no body.
+  // For non-SSL builds we still scan non-persistent connections for stray
+  // body bytes so the payload limit is enforced (413). On keep-alive,
+  // pending bytes may be the next request (issue #2450), so skip.
 #if !defined(CPPHTTPLIB_SSL_ENABLED)
   if (!req.has_header("Content-Length") &&
       !detail::is_chunked_transfer_encoding(req.headers)) {
-    // Only check if payload_max_length is set to a finite value
-    if (payload_max_length_ > 0 &&
+    if (!detail::is_connection_persistent(req) && payload_max_length_ > 0 &&
         payload_max_length_ < (std::numeric_limits<size_t>::max)()) {
-      // Check if there is data already buffered in the stream (read during
-      // header parsing) or pending on the socket. Use a non-blocking socket
-      // check to avoid deadlock when the client sends no body.
-      bool has_data = strm.is_readable();
+      auto has_data = strm.is_readable();
       if (!has_data) {
-        socket_t s = strm.socket();
+        auto s = strm.socket();
         if (s != INVALID_SOCKET) {
           has_data = detail::select_read(s, 0, 0) > 0;
         }
@@ -11805,14 +11826,8 @@ inline void Server::apply_ranges(const Request &req, Response &res,
       if (res.content_provider_) {
         if (res.is_chunked_content_provider_) {
           res.set_header("Transfer-Encoding", "chunked");
-          if (type == detail::EncodingType::Gzip) {
-            res.set_header("Content-Encoding", "gzip");
-            res.set_header("Vary", "Accept-Encoding");
-          } else if (type == detail::EncodingType::Brotli) {
-            res.set_header("Content-Encoding", "br");
-            res.set_header("Vary", "Accept-Encoding");
-          } else if (type == detail::EncodingType::Zstd) {
-            res.set_header("Content-Encoding", "zstd");
+          if (type != detail::EncodingType::None) {
+            res.set_header("Content-Encoding", detail::encoding_name(type));
             res.set_header("Vary", "Accept-Encoding");
           }
         }
@@ -11843,27 +11858,7 @@ inline void Server::apply_ranges(const Request &req, Response &res,
     if (type != detail::EncodingType::None) {
       output_pre_compression_log(req, res);
 
-      std::unique_ptr<detail::compressor> compressor;
-      std::string content_encoding;
-
-      if (type == detail::EncodingType::Gzip) {
-#ifdef CPPHTTPLIB_ZLIB_SUPPORT
-        compressor = detail::make_unique<detail::gzip_compressor>();
-        content_encoding = "gzip";
-#endif
-      } else if (type == detail::EncodingType::Brotli) {
-#ifdef CPPHTTPLIB_BROTLI_SUPPORT
-        compressor = detail::make_unique<detail::brotli_compressor>();
-        content_encoding = "br";
-#endif
-      } else if (type == detail::EncodingType::Zstd) {
-#ifdef CPPHTTPLIB_ZSTD_SUPPORT
-        compressor = detail::make_unique<detail::zstd_compressor>();
-        content_encoding = "zstd";
-#endif
-      }
-
-      if (compressor) {
+      if (auto compressor = detail::make_compressor(type)) {
         std::string compressed;
         if (compressor->compress(res.body.data(), res.body.size(), true,
                                  [&](const char *data, size_t data_len) {
@@ -11871,7 +11866,7 @@ inline void Server::apply_ranges(const Request &req, Response &res,
                                    return true;
                                  })) {
           res.body.swap(compressed);
-          res.set_header("Content-Encoding", content_encoding);
+          res.set_header("Content-Encoding", detail::encoding_name(type));
           res.set_header("Vary", "Accept-Encoding");
         }
       }
@@ -11912,6 +11907,11 @@ get_client_ip(const std::string &x_forwarded_for,
                   auto r = detail::trim(b, e, 0, static_cast<size_t>(e - b));
                   ip_list.emplace_back(std::string(b + r.first, b + r.second));
                 });
+
+  // A malformed X-Forwarded-For (empty, comma-only, whitespace-only) yields
+  // no segments. Signal "no client IP derived" with an empty string so the
+  // caller can fall back to the connection-level remote address.
+  if (ip_list.empty()) { return std::string(); }
 
   for (size_t i = 0; i < ip_list.size(); ++i) {
     auto ip = ip_list[i];
@@ -12003,7 +12003,8 @@ Server::process_request(Stream &strm, const std::string &remote_addr,
 
   if (!trusted_proxies_.empty() && req.has_header("X-Forwarded-For")) {
     auto x_forwarded_for = req.get_header_value("X-Forwarded-For");
-    req.remote_addr = get_client_ip(x_forwarded_for, trusted_proxies_);
+    auto derived = get_client_ip(x_forwarded_for, trusted_proxies_);
+    req.remote_addr = derived.empty() ? remote_addr : derived;
   } else {
     req.remote_addr = remote_addr;
   }
@@ -12119,7 +12120,8 @@ Server::process_request(Stream &strm, const std::string &remote_addr,
         {
           // Use WebSocket-specific read timeout instead of HTTP timeout
           strm.set_read_timeout(CPPHTTPLIB_WEBSOCKET_READ_TIMEOUT_SECOND, 0);
-          ws::WebSocket ws(strm, req, true, websocket_ping_interval_sec_);
+          ws::WebSocket ws(strm, req, true, websocket_ping_interval_sec_,
+                           websocket_max_missed_pongs_);
           entry.handler(req, ws);
         }
         return true;
@@ -12204,15 +12206,14 @@ Server::process_request(Stream &strm, const std::string &remote_addr,
     ret = write_response(strm, close_connection, req, res);
   }
 
-  // Drain any unconsumed request body to prevent request smuggling on
-  // keep-alive connections.
-  if (!req.body_consumed_ && detail::expect_content(req)) {
-    int drain_status = 200; // required by read_content signature
+  // Drain any unconsumed framed body to prevent request smuggling on
+  // keep-alive. Without framing there is no body to drain — reading would
+  // consume the next request (issue #2450).
+  if (!req.body_consumed_ && detail::has_framed_body(req)) {
+    int dummy_status;
     if (!detail::read_content(
-            strm, req, payload_max_length_, drain_status, nullptr,
+            strm, req, payload_max_length_, dummy_status, nullptr,
             [](const char *, size_t, size_t, size_t) { return true; }, false)) {
-      // Body exceeds payload limit or read error — close the connection
-      // to prevent leftover bytes from being misinterpreted.
       connection_closed = true;
     }
   }
@@ -12878,10 +12879,22 @@ inline ssize_t ChunkedDecoder::read_payload(char *buf, size_t len,
     stream_line_reader lr(strm, line_buf, sizeof(line_buf));
     if (!lr.getline()) { return -1; }
 
-    char *endptr = nullptr;
-    unsigned long chunk_len = std::strtoul(lr.ptr(), &endptr, 16);
-    if (endptr == lr.ptr()) { return -1; }
-    if (chunk_len == ULONG_MAX) { return -1; }
+    // RFC 9112 §7.1: chunk-size = 1*HEXDIG
+    const char *p = lr.ptr();
+    int v = 0;
+    if (!is_hex(*p, v)) { return -1; }
+
+    size_t chunk_len = 0;
+    constexpr size_t chunk_len_max = (std::numeric_limits<size_t>::max)();
+    for (; is_hex(*p, v); ++p) {
+      if (chunk_len > (chunk_len_max >> 4)) { return -1; }
+      chunk_len = (chunk_len << 4) | static_cast<size_t>(v);
+    }
+
+    while (is_space_or_tab(*p)) {
+      ++p;
+    }
+    if (*p != '\0' && *p != ';' && *p != '\r' && *p != '\n') { return -1; }
 
     if (chunk_len == 0) {
       chunk_remaining = 0;
@@ -12891,7 +12904,7 @@ inline ssize_t ChunkedDecoder::read_payload(char *buf, size_t len,
       return 0;
     }
 
-    chunk_remaining = static_cast<size_t>(chunk_len);
+    chunk_remaining = chunk_len;
     last_chunk_total = chunk_remaining;
     last_chunk_offset = 0;
   }
@@ -13025,20 +13038,21 @@ inline bool ClientImpl::redirect(Request &req, Response &res, Error &error) {
   auto location = res.get_header_value("location");
   if (location.empty()) { return false; }
 
-  thread_local const std::regex re(
-      R"((?:(https?):)?(?://(?:\[([a-fA-F\d:]+)\]|([^:/?#]+))(?::(\d+))?)?([^?#]*)(\?[^#]*)?(?:#.*)?)");
+  detail::UrlComponents uc;
+  if (!detail::parse_url(location, uc)) { return false; }
 
-  std::smatch m;
-  if (!std::regex_match(location, m, re)) { return false; }
+  // Only follow http/https redirects
+  if (!uc.scheme.empty() && uc.scheme != "http" && uc.scheme != "https") {
+    return false;
+  }
 
   auto scheme = is_ssl() ? "https" : "http";
 
-  auto next_scheme = m[1].str();
-  auto next_host = m[2].str();
-  if (next_host.empty()) { next_host = m[3].str(); }
-  auto port_str = m[4].str();
-  auto next_path = m[5].str();
-  auto next_query = m[6].str();
+  auto next_scheme = std::move(uc.scheme);
+  auto next_host = std::move(uc.host);
+  auto port_str = std::move(uc.port);
+  auto next_path = std::move(uc.path);
+  auto next_query = std::move(uc.query);
 
   auto next_port = port_;
   if (!port_str.empty()) {
@@ -13051,7 +13065,7 @@ inline bool ClientImpl::redirect(Request &req, Response &res, Error &error) {
   if (next_host.empty()) { next_host = host_; }
   if (next_path.empty()) { next_path = "/"; }
 
-  auto path = decode_query_component(next_path, true) + next_query;
+  auto path = decode_path_component(next_path) + next_query;
 
   // Same host redirect - use current client
   if (next_scheme == scheme && next_host == host_ && next_port == port_) {
@@ -13687,7 +13701,15 @@ inline bool ClientImpl::process_request(Stream &strm, Request &req,
           output_error_log(error, &req);
           return false;
         }
-        res.body.reserve(static_cast<size_t>(len));
+        // Cap the reservation by payload_max_length_ to avoid OOM when a
+        // hostile or malformed server sends an enormous Content-Length.
+        // The actual body read below is bounded by payload_max_length_,
+        // so reserving more than that is never useful.
+        auto reserve_len = static_cast<size_t>(len);
+        if (payload_max_length_ > 0 && reserve_len > payload_max_length_) {
+          reserve_len = payload_max_length_;
+        }
+        res.body.reserve(reserve_len);
       }
     }
 
@@ -14709,38 +14731,6 @@ inline void ClientImpl::enable_server_hostname_verification(bool enabled) {
 }
 #endif
 
-// ClientImpl::set_ca_cert_store is defined after TLS namespace (uses helpers)
-#ifdef CPPHTTPLIB_OPENSSL_SUPPORT
-inline X509_STORE *ClientImpl::create_ca_cert_store(const char *ca_cert,
-                                                    std::size_t size) const {
-  auto mem = BIO_new_mem_buf(ca_cert, static_cast<int>(size));
-  auto se = detail::scope_exit([&] { BIO_free_all(mem); });
-  if (!mem) { return nullptr; }
-
-  auto inf = PEM_X509_INFO_read_bio(mem, nullptr, nullptr, nullptr);
-  if (!inf) { return nullptr; }
-
-  auto cts = X509_STORE_new();
-  if (cts) {
-    for (auto i = 0; i < static_cast<int>(sk_X509_INFO_num(inf)); i++) {
-      auto itmp = sk_X509_INFO_value(inf, i);
-      if (!itmp) { continue; }
-
-      if (itmp->x509) { X509_STORE_add_cert(cts, itmp->x509); }
-      if (itmp->crl) { X509_STORE_add_crl(cts, itmp->crl); }
-    }
-  }
-
-  sk_X509_INFO_pop_free(inf, X509_INFO_free);
-  return cts;
-}
-
-inline void ClientImpl::set_server_certificate_verifier(
-    std::function<SSLVerifierResponse(SSL *ssl)> /*verifier*/) {
-  // Base implementation does nothing - SSLClient overrides this
-}
-#endif
-
 inline void ClientImpl::set_logger(Logger logger) {
   logger_ = std::move(logger);
 }
@@ -14775,12 +14765,9 @@ inline Client::Client(const std::string &scheme_host_port)
 inline Client::Client(const std::string &scheme_host_port,
                       const std::string &client_cert_path,
                       const std::string &client_key_path) {
-  const static std::regex re(
-      R"((?:([a-z]+):\/\/)?(?:\[([a-fA-F\d:]+)\]|([^:/?#]+))(?::(\d+))?)");
-
-  std::smatch m;
-  if (std::regex_match(scheme_host_port, m, re)) {
-    auto scheme = m[1].str();
+  detail::UrlComponents uc;
+  if (detail::parse_url(scheme_host_port, uc) && !uc.host.empty()) {
+    auto &scheme = uc.scheme;
 
 #ifdef CPPHTTPLIB_SSL_ENABLED
     if (!scheme.empty() && (scheme != "http" && scheme != "https")) {
@@ -14796,12 +14783,10 @@ inline Client::Client(const std::string &scheme_host_port,
 
     auto is_ssl = scheme == "https";
 
-    auto host = m[2].str();
-    if (host.empty()) { host = m[3].str(); }
+    auto host = std::move(uc.host);
 
-    auto port_str = m[4].str();
     auto port = is_ssl ? 443 : 80;
-    if (!port_str.empty() && !detail::parse_port(port_str, port)) { return; }
+    if (!uc.port.empty() && !detail::parse_port(uc.port, port)) { return; }
 
     if (is_ssl) {
 #ifdef CPPHTTPLIB_SSL_ENABLED
@@ -14819,10 +14804,10 @@ inline Client::Client(const std::string &scheme_host_port,
     cli_ = detail::make_unique<ClientImpl>(scheme_host_port, 80,
                                            client_cert_path, client_key_path);
   }
-} // namespace detail
+}
 
 inline Client::Client(const std::string &host, int port)
-    : cli_(detail::make_unique<ClientImpl>(host, port)) {}
+    : Client(host, port, std::string(), std::string()) {}
 
 inline Client::Client(const std::string &host, int port,
                       const std::string &client_cert_path,
@@ -15397,12 +15382,6 @@ inline void Client::set_follow_location(bool on) {
 
 inline void Client::set_path_encode(bool on) { cli_->set_path_encode(on); }
 
-[[deprecated("Use set_path_encode() instead. "
-             "This function will be removed by v1.0.0.")]]
-inline void Client::set_url_encode(bool on) {
-  cli_->set_path_encode(on);
-}
-
 inline void Client::set_compress(bool on) { cli_->set_compress(on); }
 
 inline void Client::set_decompress(bool on) { cli_->set_decompress(on); }
@@ -15785,24 +15764,31 @@ inline SSLClient::SSLClient(const std::string &host)
 inline SSLClient::SSLClient(const std::string &host, int port)
     : SSLClient(host, port, std::string(), std::string()) {}
 
+inline void SSLClient::init_ctx() {
+  ctx_ = tls::create_client_context();
+  if (ctx_) { tls::set_min_version(ctx_, tls::Version::TLS1_2); }
+}
+
+inline void SSLClient::reset_ctx_on_error() {
+  last_backend_error_ = tls::get_error();
+  tls::free_context(ctx_);
+  ctx_ = nullptr;
+}
+
 inline SSLClient::SSLClient(const std::string &host, int port,
                             const std::string &client_cert_path,
                             const std::string &client_key_path,
                             const std::string &private_key_password)
     : ClientImpl(host, port, client_cert_path, client_key_path) {
-  ctx_ = tls::create_client_context();
+  init_ctx();
   if (!ctx_) { return; }
-
-  tls::set_min_version(ctx_, tls::Version::TLS1_2);
 
   if (!client_cert_path.empty() && !client_key_path.empty()) {
     const char *password =
         private_key_password.empty() ? nullptr : private_key_password.c_str();
     if (!tls::set_client_cert_file(ctx_, client_cert_path.c_str(),
                                    client_key_path.c_str(), password)) {
-      last_backend_error_ = tls::get_error();
-      tls::free_context(ctx_);
-      ctx_ = nullptr;
+      reset_ctx_on_error();
     }
   }
 }
@@ -15810,17 +15796,13 @@ inline SSLClient::SSLClient(const std::string &host, int port,
 inline SSLClient::SSLClient(const std::string &host, int port,
                             const PemMemory &pem)
     : ClientImpl(host, port) {
-  ctx_ = tls::create_client_context();
+  init_ctx();
   if (!ctx_) { return; }
-
-  tls::set_min_version(ctx_, tls::Version::TLS1_2);
 
   if (pem.cert_pem && pem.key_pem) {
     if (!tls::set_client_cert_pem(ctx_, pem.cert_pem, pem.key_pem,
                                   pem.private_key_password)) {
-      last_backend_error_ = tls::get_error();
-      tls::free_context(ctx_);
-      ctx_ = nullptr;
+      reset_ctx_on_error();
     }
   }
 }
@@ -16371,23 +16353,6 @@ inline std::string Request::sni() const {
  * Group 8: TLS abstraction layer - OpenSSL backend
  */
 
-#ifdef CPPHTTPLIB_OPENSSL_SUPPORT
-inline SSL_CTX *Client::ssl_context() const {
-  if (is_ssl_) { return static_cast<SSLClient &>(*cli_).ssl_context(); }
-  return nullptr;
-}
-
-inline void Client::set_server_certificate_verifier(
-    std::function<SSLVerifierResponse(SSL *ssl)> verifier) {
-  cli_->set_server_certificate_verifier(verifier);
-}
-
-inline long Client::get_verify_result() const {
-  if (is_ssl_) { return static_cast<SSLClient &>(*cli_).get_verify_result(); }
-  return -1; // NOTE: -1 doesn't match any of X509_V_ERR_???
-}
-#endif // CPPHTTPLIB_OPENSSL_SUPPORT
-
 /*
  * OpenSSL Backend Implementation
  */
@@ -16396,54 +16361,6 @@ inline long Client::get_verify_result() const {
 namespace tls {
 
 namespace impl {
-
-// OpenSSL-specific helpers for converting native types to PEM
-inline std::string x509_to_pem(X509 *cert) {
-  if (!cert) return {};
-  BIO *bio = BIO_new(BIO_s_mem());
-  if (!bio) return {};
-  if (PEM_write_bio_X509(bio, cert) != 1) {
-    BIO_free(bio);
-    return {};
-  }
-  char *data = nullptr;
-  long len = BIO_get_mem_data(bio, &data);
-  std::string pem(data, static_cast<size_t>(len));
-  BIO_free(bio);
-  return pem;
-}
-
-inline std::string evp_pkey_to_pem(EVP_PKEY *key) {
-  if (!key) return {};
-  BIO *bio = BIO_new(BIO_s_mem());
-  if (!bio) return {};
-  if (PEM_write_bio_PrivateKey(bio, key, nullptr, nullptr, 0, nullptr,
-                               nullptr) != 1) {
-    BIO_free(bio);
-    return {};
-  }
-  char *data = nullptr;
-  long len = BIO_get_mem_data(bio, &data);
-  std::string pem(data, static_cast<size_t>(len));
-  BIO_free(bio);
-  return pem;
-}
-
-inline std::string x509_store_to_pem(X509_STORE *store) {
-  if (!store) return {};
-  std::string pem;
-  auto objs = X509_STORE_get0_objects(store);
-  if (!objs) return {};
-  auto count = sk_X509_OBJECT_num(objs);
-  for (decltype(count) i = 0; i < count; i++) {
-    auto obj = sk_X509_OBJECT_value(objs, i);
-    if (X509_OBJECT_get_type(obj) == X509_LU_X509) {
-      auto cert = X509_OBJECT_get0_X509(obj);
-      if (cert) { pem += x509_to_pem(cert); }
-    }
-  }
-  return pem;
-}
 
 // Helper to map OpenSSL SSL_get_error to ErrorCode
 inline ErrorCode map_ssl_error(int ssl_error, int &out_errno) {
@@ -16477,50 +16394,13 @@ inline STACK_OF(X509_NAME) *
   X509 *cert = nullptr;
   while ((cert = PEM_read_bio_X509(bio, nullptr, nullptr, nullptr)) !=
          nullptr) {
-    X509_NAME *name = X509_get_subject_name(cert);
-    if (name) { sk_X509_NAME_push(ca_list, X509_NAME_dup(name)); }
+    const X509_NAME *name = X509_get_subject_name(cert);
+    if (name) {
+      sk_X509_NAME_push(ca_list, X509_NAME_dup(const_cast<X509_NAME *>(name)));
+    }
     X509_free(cert);
   }
   BIO_free(bio);
-
-  return ca_list;
-}
-
-// Helper: Extract CA names from X509_STORE
-// Returns a new STACK_OF(X509_NAME)* or nullptr on failure
-// Caller takes ownership of returned list
-inline STACK_OF(X509_NAME) *
-    extract_client_ca_list_from_store(X509_STORE *store) {
-  if (!store) { return nullptr; }
-
-  auto ca_list = sk_X509_NAME_new_null();
-  if (!ca_list) { return nullptr; }
-
-  auto objs = X509_STORE_get0_objects(store);
-  if (!objs) {
-    sk_X509_NAME_free(ca_list);
-    return nullptr;
-  }
-
-  auto count = sk_X509_OBJECT_num(objs);
-  for (decltype(count) i = 0; i < count; i++) {
-    auto obj = sk_X509_OBJECT_value(objs, i);
-    if (X509_OBJECT_get_type(obj) == X509_LU_X509) {
-      auto cert = X509_OBJECT_get0_X509(obj);
-      if (cert) {
-        auto subject = X509_get_subject_name(cert);
-        if (subject) {
-          auto name_dup = X509_NAME_dup(subject);
-          if (name_dup) { sk_X509_NAME_push(ca_list, name_dup); }
-        }
-      }
-    }
-  }
-
-  if (sk_X509_NAME_num(ca_list) == 0) {
-    sk_X509_NAME_free(ca_list);
-    return nullptr;
-  }
 
   return ca_list;
 }
@@ -16960,6 +16840,9 @@ inline ssize_t read(session_t session, void *buf, size_t len, TlsError &err) {
 
   auto ssl_err = SSL_get_error(ssl, ret);
   err.code = impl::map_ssl_error(ssl_err, err.sys_errno);
+  if (err.code == ErrorCode::PeerClosed) {
+    return 0;
+  } // Gracefully handle the peer closed state.
   if (err.code == ErrorCode::Fatal) { err.backend_code = ERR_get_error(); }
   return -1;
 }
@@ -17397,163 +17280,7 @@ inline std::string verify_error_string(long error_code) {
   return str ? str : "unknown error";
 }
 
-namespace impl {
-
-// OpenSSL-specific helpers for public API wrappers
-inline ctx_t create_server_context_from_x509(X509 *cert, EVP_PKEY *key,
-                                             X509_STORE *client_ca_store,
-                                             int &out_error) {
-  out_error = 0;
-  auto cert_pem = x509_to_pem(cert);
-  auto key_pem = evp_pkey_to_pem(key);
-  if (cert_pem.empty() || key_pem.empty()) {
-    out_error = static_cast<int>(ERR_get_error());
-    return nullptr;
-  }
-
-  auto ctx = create_server_context();
-  if (!ctx) {
-    out_error = static_cast<int>(get_error());
-    return nullptr;
-  }
-
-  if (!set_server_cert_pem(ctx, cert_pem.c_str(), key_pem.c_str(), nullptr)) {
-    out_error = static_cast<int>(get_error());
-    free_context(ctx);
-    return nullptr;
-  }
-
-  if (client_ca_store) {
-    // Set cert store for verification (SSL_CTX_set_cert_store takes ownership)
-    SSL_CTX_set_cert_store(static_cast<SSL_CTX *>(ctx), client_ca_store);
-
-    // Extract and set client CA list directly from store (more efficient than
-    // PEM conversion)
-    auto ca_list = extract_client_ca_list_from_store(client_ca_store);
-    if (ca_list) {
-      SSL_CTX_set_client_CA_list(static_cast<SSL_CTX *>(ctx), ca_list);
-    }
-
-    set_verify_client(ctx, true);
-  }
-
-  return ctx;
-}
-
-inline void update_server_certs_from_x509(ctx_t ctx, X509 *cert, EVP_PKEY *key,
-                                          X509_STORE *client_ca_store) {
-  auto cert_pem = x509_to_pem(cert);
-  auto key_pem = evp_pkey_to_pem(key);
-
-  if (!cert_pem.empty() && !key_pem.empty()) {
-    update_server_cert(ctx, cert_pem.c_str(), key_pem.c_str(), nullptr);
-  }
-
-  if (client_ca_store) {
-    auto ca_pem = x509_store_to_pem(client_ca_store);
-    if (!ca_pem.empty()) { update_server_client_ca(ctx, ca_pem.c_str()); }
-    X509_STORE_free(client_ca_store);
-  }
-}
-
-inline ctx_t create_client_context_from_x509(X509 *cert, EVP_PKEY *key,
-                                             const char *password,
-                                             uint64_t &out_error) {
-  out_error = 0;
-  auto ctx = create_client_context();
-  if (!ctx) {
-    out_error = get_error();
-    return nullptr;
-  }
-
-  if (cert && key) {
-    auto cert_pem = x509_to_pem(cert);
-    auto key_pem = evp_pkey_to_pem(key);
-    if (cert_pem.empty() || key_pem.empty()) {
-      out_error = ERR_get_error();
-      free_context(ctx);
-      return nullptr;
-    }
-    if (!set_client_cert_pem(ctx, cert_pem.c_str(), key_pem.c_str(),
-                             password)) {
-      out_error = get_error();
-      free_context(ctx);
-      return nullptr;
-    }
-  }
-
-  return ctx;
-}
-
-} // namespace impl
-
 } // namespace tls
-
-// ClientImpl::set_ca_cert_store - defined here to use
-// tls::impl::x509_store_to_pem Deprecated: converts X509_STORE to PEM and
-// stores for redirect transfer
-inline void ClientImpl::set_ca_cert_store(X509_STORE *ca_cert_store) {
-  if (ca_cert_store) {
-    ca_cert_pem_ = tls::impl::x509_store_to_pem(ca_cert_store);
-  }
-}
-
-inline SSLServer::SSLServer(X509 *cert, EVP_PKEY *private_key,
-                            X509_STORE *client_ca_cert_store) {
-  ctx_ = tls::impl::create_server_context_from_x509(
-      cert, private_key, client_ca_cert_store, last_ssl_error_);
-}
-
-inline SSLServer::SSLServer(
-    const std::function<bool(SSL_CTX &ssl_ctx)> &setup_ssl_ctx_callback) {
-  // Use abstract API to create context
-  ctx_ = tls::create_server_context();
-  if (ctx_) {
-    // Pass to OpenSSL-specific callback (ctx_ is SSL_CTX* internally)
-    auto ssl_ctx = static_cast<SSL_CTX *>(ctx_);
-    if (!setup_ssl_ctx_callback(*ssl_ctx)) {
-      tls::free_context(ctx_);
-      ctx_ = nullptr;
-    }
-  }
-}
-
-inline SSL_CTX *SSLServer::ssl_context() const {
-  return static_cast<SSL_CTX *>(ctx_);
-}
-
-inline void SSLServer::update_certs(X509 *cert, EVP_PKEY *private_key,
-                                    X509_STORE *client_ca_cert_store) {
-  std::lock_guard<std::mutex> guard(ctx_mutex_);
-  tls::impl::update_server_certs_from_x509(ctx_, cert, private_key,
-                                           client_ca_cert_store);
-}
-
-inline SSLClient::SSLClient(const std::string &host, int port,
-                            X509 *client_cert, EVP_PKEY *client_key,
-                            const std::string &private_key_password)
-    : ClientImpl(host, port) {
-  const char *password =
-      private_key_password.empty() ? nullptr : private_key_password.c_str();
-  ctx_ = tls::impl::create_client_context_from_x509(
-      client_cert, client_key, password, last_backend_error_);
-}
-
-inline long SSLClient::get_verify_result() const { return verify_result_; }
-
-inline void SSLClient::set_server_certificate_verifier(
-    std::function<SSLVerifierResponse(SSL *ssl)> verifier) {
-  // Wrap SSL* callback into backend-independent session_verifier_
-  auto v = std::make_shared<std::function<SSLVerifierResponse(SSL *)>>(
-      std::move(verifier));
-  session_verifier_ = [v](tls::session_t session) {
-    return (*v)(static_cast<SSL *>(session));
-  };
-}
-
-inline SSL_CTX *SSLClient::ssl_context() const {
-  return static_cast<SSL_CTX *>(ctx_);
-}
 
 inline bool SSLClient::verify_host(X509 *server_cert) const {
   /* Quote from RFC2818 section 3.1 "Server Identity"
@@ -18352,6 +18079,9 @@ inline ssize_t read(session_t session, void *buf, size_t len, TlsError &err) {
   err.code = impl::map_mbedtls_error(ret, err.sys_errno);
   err.backend_code = static_cast<uint64_t>(-ret);
   impl::mbedtls_last_error() = ret;
+  // mbedTLS signals a clean close_notify via a negative error code rather
+  // than 0; surface it as a clean EOF the way OpenSSL/wolfSSL do.
+  if (err.code == ErrorCode::PeerClosed) { return 0; }
   return -1;
 }
 
@@ -20078,7 +19808,11 @@ inline ReadResult WebSocket::read(std::string &msg) {
                                     payload.size(), true, !is_server_);
       continue;
     }
-    case Opcode::Pong: continue;
+    case Opcode::Pong: {
+      std::lock_guard<std::mutex> lock(ping_mutex_);
+      unacked_pings_ = 0;
+      continue;
+    }
     case Opcode::Close: {
       if (!closed_.exchange(true)) {
         // Echo close frame back
@@ -20112,7 +19846,11 @@ inline ReadResult WebSocket::read(std::string &msg) {
                 true, !is_server_);
             continue;
           }
-          if (cont_opcode == Opcode::Pong) { continue; }
+          if (cont_opcode == Opcode::Pong) {
+            std::lock_guard<std::mutex> lock(ping_mutex_);
+            unacked_pings_ = 0;
+            continue;
+          }
           if (cont_opcode == Opcode::Close) {
             if (!closed_.exchange(true)) {
               std::lock_guard<std::mutex> lock(write_mutex_);
@@ -20200,12 +19938,22 @@ inline void WebSocket::start_heartbeat() {
     while (!closed_) {
       ping_cv_.wait_for(lock, std::chrono::seconds(ping_interval_sec_));
       if (closed_) { break; }
+      // If the peer has failed to respond to the previous pings, give up.
+      // RFC 6455 does not define a pong-timeout mechanism; this is an
+      // opt-in liveness check controlled by max_missed_pongs_.
+      if (max_missed_pongs_ > 0 && unacked_pings_ >= max_missed_pongs_) {
+        lock.unlock();
+        close(CloseStatus::GoingAway, "pong timeout");
+        return;
+      }
       lock.unlock();
       if (!send_frame(Opcode::Ping, nullptr, 0)) {
+        lock.lock();
         closed_ = true;
         break;
       }
       lock.lock();
+      unacked_pings_++;
     }
   });
 }
@@ -20218,12 +19966,10 @@ inline bool WebSocket::is_open() const { return !closed_; }
 inline WebSocketClient::WebSocketClient(
     const std::string &scheme_host_port_path, const Headers &headers)
     : headers_(headers) {
-  const static std::regex re(
-      R"(([a-z]+):\/\/(?:\[([a-fA-F\d:]+)\]|([^:/?#]+))(?::(\d+))?(\/.*))");
-
-  std::smatch m;
-  if (std::regex_match(scheme_host_port_path, m, re)) {
-    auto scheme = m[1].str();
+  detail::UrlComponents uc;
+  if (detail::parse_url(scheme_host_port_path, uc) && !uc.scheme.empty() &&
+      !uc.host.empty() && !uc.path.empty()) {
+    auto &scheme = uc.scheme;
 
 #ifdef CPPHTTPLIB_SSL_ENABLED
     if (scheme != "ws" && scheme != "wss") {
@@ -20239,14 +19985,12 @@ inline WebSocketClient::WebSocketClient(
 
     auto is_ssl = scheme == "wss";
 
-    host_ = m[2].str();
-    if (host_.empty()) { host_ = m[3].str(); }
+    host_ = std::move(uc.host);
 
-    auto port_str = m[4].str();
     port_ = is_ssl ? 443 : 80;
-    if (!port_str.empty() && !detail::parse_port(port_str, port_)) { return; }
+    if (!uc.port.empty() && !detail::parse_port(uc.port, port_)) { return; }
 
-    path_ = m[5].str();
+    path_ = std::move(uc.path);
 
 #ifdef CPPHTTPLIB_SSL_ENABLED
     is_ssl_ = is_ssl;
@@ -20337,8 +20081,9 @@ inline bool WebSocketClient::connect() {
   Request req;
   req.method = "GET";
   req.path = path_;
-  ws_ = std::unique_ptr<WebSocket>(
-      new WebSocket(std::move(strm), req, false, websocket_ping_interval_sec_));
+  ws_ = std::unique_ptr<WebSocket>(new WebSocket(std::move(strm), req, false,
+                                                 websocket_ping_interval_sec_,
+                                                 websocket_max_missed_pongs_));
   return true;
 }
 
@@ -20380,6 +20125,10 @@ inline void WebSocketClient::set_write_timeout(time_t sec, time_t usec) {
 
 inline void WebSocketClient::set_websocket_ping_interval(time_t sec) {
   websocket_ping_interval_sec_ = sec;
+}
+
+inline void WebSocketClient::set_websocket_max_missed_pongs(int count) {
+  websocket_max_missed_pongs_ = count;
 }
 
 inline void WebSocketClient::set_tcp_nodelay(bool on) { tcp_nodelay_ = on; }
