@@ -802,6 +802,8 @@
 		3C5931B12CA4F67300CAF224 /* Header.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FE42CA4F67300CAF224 /* Header.cpp */; };
 		3C5931B22CA4F67300CAF224 /* Keyboard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930012CA4F67300CAF224 /* Keyboard.cpp */; };
 		3C5931B32CA4F67300CAF224 /* HttpServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FFC2CA4F67300CAF224 /* HttpServer.cpp */; };
+		3C9F00012F3A000000000002 /* XrtHttpClient.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C9F00032F3A000000000002 /* XrtHttpClient.c */; };
+		3C9F00022F3A000000000002 /* XrtHttpClient.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C9F00032F3A000000000002 /* XrtHttpClient.c */; };
 		3C5931B42CA4F67300CAF224 /* Spine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930472CA4F67300CAF224 /* Spine.cpp */; };
 		3C5931B52CA4F67300CAF224 /* AlignNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C59302F2CA4F67300CAF224 /* AlignNode.cpp */; };
 		3C5931B62CA4F67300CAF224 /* RenderTarget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C59307C2CA4F67300CAF224 /* RenderTarget.cpp */; };
@@ -934,10 +936,6 @@
 		3C59DA802703037C0096813A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3C1D41002703019800202534 /* Assets.xcassets */; };
 		3C60DE152A2069FE007D7865 /* Doc in Resources */ = {isa = PBXBuildFile; fileRef = 3C60DE142A2069FE007D7865 /* Doc */; };
 		3C60DE162A2069FE007D7865 /* Doc in Resources */ = {isa = PBXBuildFile; fileRef = 3C60DE142A2069FE007D7865 /* Doc */; };
-		3C7FA3732B68A1DE005A8441 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C7FA3712B68A1DD005A8441 /* libcrypto.a */; };
-		3C7FA3742B68A1DE005A8441 /* libssl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C7FA3722B68A1DD005A8441 /* libssl.a */; };
-		3C7FA3772B68A1F0005A8441 /* libssl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C7FA3752B68A1F0005A8441 /* libssl.a */; };
-		3C7FA3782B68A1F0005A8441 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C7FA3762B68A1F0005A8441 /* libcrypto.a */; };
 		3C948C462E1690DA00E6B280 /* AudioSource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C948C452E1690DA00E6B280 /* AudioSource.cpp */; };
 		3C948C472E1690DA00E6B280 /* AudioSource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C948C452E1690DA00E6B280 /* AudioSource.cpp */; };
 		3C948C4A2E1690F800E6B280 /* Audio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C948C492E1690F800E6B280 /* Audio.cpp */; };
@@ -2159,6 +2157,8 @@
 		3C592FF92CA4F67300CAF224 /* ImGuiDora.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ImGuiDora.cpp; sourceTree = "<group>"; };
 		3C592FFB2CA4F67300CAF224 /* HttpServer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HttpServer.h; sourceTree = "<group>"; };
 		3C592FFC2CA4F67300CAF224 /* HttpServer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = HttpServer.cpp; sourceTree = "<group>"; };
+		3C9F00032F3A000000000002 /* XrtHttpClient.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = XrtHttpClient.c; sourceTree = "<group>"; };
+		3C9F00042F3A000000000002 /* XrtHttpClient.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = XrtHttpClient.h; sourceTree = "<group>"; };
 		3C592FFE2CA4F67300CAF224 /* Controller.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Controller.h; sourceTree = "<group>"; };
 		3C592FFF2CA4F67300CAF224 /* Controller.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Controller.cpp; sourceTree = "<group>"; };
 		3C5930002CA4F67300CAF224 /* Keyboard.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Keyboard.h; sourceTree = "<group>"; };
@@ -2309,10 +2309,6 @@
 		3C59DA7A270303590096813A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Dora/Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		3C59DA82270305A10096813A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Dora/Info.plist; sourceTree = "<group>"; };
 		3C60DE142A2069FE007D7865 /* Doc */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Doc; sourceTree = "<group>"; };
-		3C7FA3712B68A1DD005A8441 /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = ../../Source/3rdParty/OpenSSL/Lib/iOS/libcrypto.a; sourceTree = "<group>"; };
-		3C7FA3722B68A1DD005A8441 /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = ../../Source/3rdParty/OpenSSL/Lib/iOS/libssl.a; sourceTree = "<group>"; };
-		3C7FA3752B68A1F0005A8441 /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = "../../Source/3rdParty/OpenSSL/Lib/iOS-Simulator/libssl.a"; sourceTree = "<group>"; };
-		3C7FA3762B68A1F0005A8441 /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = "../../Source/3rdParty/OpenSSL/Lib/iOS-Simulator/libcrypto.a"; sourceTree = "<group>"; };
 		3C8708662B5E1852002E9658 /* ContactImpulsesFunction.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ContactImpulsesFunction.hpp; sourceTree = "<group>"; };
 		3C8708672B5E1852002E9658 /* ContactManifoldFunction.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ContactManifoldFunction.hpp; sourceTree = "<group>"; };
 		3C8708682B5E1880002E9658 /* JointFunction.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = JointFunction.hpp; sourceTree = "<group>"; };
@@ -2686,8 +2682,6 @@
 				3C1030712F5F243F0029F68F /* libbx.a in Frameworks */,
 				3CE471C72DD2EF8A0036716C /* libwa.a in Frameworks */,
 				3CBE70012CFA185400A1C497 /* libdora_runtime.a in Frameworks */,
-				3C7FA3772B68A1F0005A8441 /* libssl.a in Frameworks */,
-				3C7FA3782B68A1F0005A8441 /* libcrypto.a in Frameworks */,
 				3CBE0F4D26088937003F4F45 /* libSDL2.a in Frameworks */,
 				3CBE0EF726087F7B003F4F45 /* Metal.framework in Frameworks */,
 				3CBE0F5126088B89003F4F45 /* CoreHaptics.framework in Frameworks */,
@@ -2719,8 +2713,6 @@
 				3C10307F2F5F24580029F68F /* libbx.a in Frameworks */,
 				3CE471CA2DD2EFDE0036716C /* libwa.a in Frameworks */,
 				3CBE6FFF2CFA183F00A1C497 /* libdora_runtime.a in Frameworks */,
-				3C7FA3732B68A1DE005A8441 /* libcrypto.a in Frameworks */,
-				3C7FA3742B68A1DE005A8441 /* libssl.a in Frameworks */,
 				3CA7809F2AE770EE00B7BADA /* libSDL2.a in Frameworks */,
 				3CD210611E663F8B004676F1 /* Metal.framework in Frameworks */,
 				3CBE0F762608983E003F4F45 /* CoreHaptics.framework in Frameworks */,
@@ -4210,6 +4202,8 @@
 			children = (
 				3C592FFB2CA4F67300CAF224 /* HttpServer.h */,
 				3C592FFC2CA4F67300CAF224 /* HttpServer.cpp */,
+				3C9F00042F3A000000000002 /* XrtHttpClient.h */,
+				3C9F00032F3A000000000002 /* XrtHttpClient.c */,
 			);
 			path = Http;
 			sourceTree = "<group>";
@@ -4618,10 +4612,6 @@
 				3CE471C82DD2EF9B0036716C /* libwa.a */,
 				3CBE6FFE2CFA183F00A1C497 /* libdora_runtime.a */,
 				3CBE70002CFA185300A1C497 /* libdora_runtime.a */,
-				3C7FA3712B68A1DD005A8441 /* libcrypto.a */,
-				3C7FA3762B68A1F0005A8441 /* libcrypto.a */,
-				3C7FA3722B68A1DD005A8441 /* libssl.a */,
-				3C7FA3752B68A1F0005A8441 /* libssl.a */,
 				3CA7809E2AE770EE00B7BADA /* libSDL2.a */,
 				3CA780962AE770DC00B7BADA /* libbgfx.a */,
 				3CA780982AE770DC00B7BADA /* libbimg_decode.a */,
@@ -5684,6 +5674,7 @@
 				3C984C942F03B5DB00DC8437 /* VideoNode.cpp in Sources */,
 				3C59328F2CA4F67300CAF224 /* Keyboard.cpp in Sources */,
 				3C5932902CA4F67300CAF224 /* HttpServer.cpp in Sources */,
+				3C9F00022F3A000000000002 /* XrtHttpClient.c in Sources */,
 				3C5932912CA4F67300CAF224 /* Spine.cpp in Sources */,
 				3C5932922CA4F67300CAF224 /* AlignNode.cpp in Sources */,
 				3C5932932CA4F67300CAF224 /* RenderTarget.cpp in Sources */,
@@ -6259,6 +6250,7 @@
 				3C984C952F03B5DB00DC8437 /* VideoNode.cpp in Sources */,
 				3C5931B22CA4F67300CAF224 /* Keyboard.cpp in Sources */,
 				3C5931B32CA4F67300CAF224 /* HttpServer.cpp in Sources */,
+				3C9F00012F3A000000000002 /* XrtHttpClient.c in Sources */,
 				3C5931B42CA4F67300CAF224 /* Spine.cpp in Sources */,
 				3C5931B52CA4F67300CAF224 /* AlignNode.cpp in Sources */,
 				3C5931B62CA4F67300CAF224 /* RenderTarget.cpp in Sources */,
@@ -6470,7 +6462,6 @@
 				LIBRARY_SEARCH_PATHS = (
 					"../../Source/3rdParty/SDL2/Lib/iOS-Simulator",
 					../../Source/3rdParty/bgfx/build/ios/simulator,
-					"../../Source/3rdParty/OpenSSL/Lib/iOS-Simulator",
 					"../../Source/3rdParty/Wa/Lib/iOS-Simulator",
 					"../../Source/Rust/lib/iOS-Simulator",
 				);
@@ -6498,7 +6489,6 @@
 					../../Source/3rdParty/dragonBones,
 					../../Source/3rdParty/wasm3,
 					../../Source/3rdParty/Zip/zlib,
-					../../Source/3rdParty/OpenSSL/Header,
 					../../Source/3rdParty/Effekseer,
 					../../Source/3rdParty/h264bsd,
 				);
@@ -6547,7 +6537,6 @@
 				LIBRARY_SEARCH_PATHS = (
 					"../../Source/3rdParty/SDL2/Lib/iOS-Simulator",
 					../../Source/3rdParty/bgfx/build/ios/simulator,
-					"../../Source/3rdParty/OpenSSL/Lib/iOS-Simulator",
 					"../../Source/3rdParty/Wa/Lib/iOS-Simulator",
 					"../../Source/Rust/lib/iOS-Simulator",
 				);
@@ -6575,7 +6564,6 @@
 					../../Source/3rdParty/dragonBones,
 					../../Source/3rdParty/wasm3,
 					../../Source/3rdParty/Zip/zlib,
-					../../Source/3rdParty/OpenSSL/Header,
 					../../Source/3rdParty/Effekseer,
 					../../Source/3rdParty/h264bsd,
 				);
@@ -6778,7 +6766,6 @@
 				LIBRARY_SEARCH_PATHS = (
 					../../Source/3rdParty/SDL2/Lib/iOS,
 					../../Source/3rdParty/bgfx/build/ios/device,
-					../../Source/3rdParty/OpenSSL/Lib/iOS,
 					../../Source/3rdParty/Wa/Lib/iOS,
 					../../Source/Rust/lib/iOS,
 				);
@@ -6806,7 +6793,6 @@
 					../../Source/3rdParty/dragonBones,
 					../../Source/3rdParty/wasm3,
 					../../Source/3rdParty/Zip/zlib,
-					../../Source/3rdParty/OpenSSL/Header,
 					../../Source/3rdParty/Effekseer,
 					../../Source/3rdParty/h264bsd,
 				);
@@ -6854,7 +6840,6 @@
 				LIBRARY_SEARCH_PATHS = (
 					../../Source/3rdParty/SDL2/Lib/iOS,
 					../../Source/3rdParty/bgfx/build/ios/device,
-					../../Source/3rdParty/OpenSSL/Lib/iOS,
 					../../Source/3rdParty/Wa/Lib/iOS,
 					../../Source/Rust/lib/iOS,
 				);
@@ -6882,7 +6867,6 @@
 					../../Source/3rdParty/dragonBones,
 					../../Source/3rdParty/wasm3,
 					../../Source/3rdParty/Zip/zlib,
-					../../Source/3rdParty/OpenSSL/Header,
 					../../Source/3rdParty/Effekseer,
 					../../Source/3rdParty/h264bsd,
 				);

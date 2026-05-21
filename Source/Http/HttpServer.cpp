@@ -10,6 +10,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Http/HttpServer.h"
 
+#include "Http/XrtHttpClient.h"
+
 #include "Basic/Application.h"
 #include "Basic/Content.h"
 #include "Basic/Director.h"
@@ -20,7 +22,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Support/Dictionary.h"
 #include "Support/Value.h"
 
-#define CPPHTTPLIB_OPENSSL_SUPPORT
 #define CPPHTTPLIB_ZLIB_SUPPORT
 #include "httplib/httplib.h"
 
@@ -28,9 +29,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "rapidjson/writer.h"
 
 #include "yuescript/parser.hpp"
-
-#include "openssl/evp.h"
-#include "openssl/hmac.h"
 
 #if BX_PLATFORM_LINUX
 #include <limits.h>
@@ -144,43 +142,17 @@ static std::string get_query_param(const std::string& resource, const std::strin
 	return std::string{};
 }
 
-static std::string to_hex(const unsigned char* data, size_t len) {
-	static constexpr char hex[] = "0123456789abcdef";
-	std::string out;
-	out.reserve(len * 2);
-	for (size_t i = 0; i < len; ++i) {
-		unsigned char byte = data[i];
-		out.push_back(hex[byte >> 4]);
-		out.push_back(hex[byte & 0x0F]);
-	}
-	return out;
-}
-
 static std::string sha256_hex(std::string_view data) {
 	if (data.empty()) {
 		return {};
 	}
-	unsigned char hash[EVP_MAX_MD_SIZE];
-	unsigned int hash_len = 0;
-	EVP_MD_CTX* ctx = EVP_MD_CTX_new();
-	if (!ctx) return {};
-	if (EVP_DigestInit_ex(ctx, EVP_sha256(), nullptr) != 1) {
-		EVP_MD_CTX_free(ctx);
-		return {};
-	}
-	if (!data.empty()) {
-		EVP_DigestUpdate(ctx, data.data(), data.size());
-	}
-	EVP_DigestFinal_ex(ctx, hash, &hash_len);
-	EVP_MD_CTX_free(ctx);
-	return to_hex(hash, hash_len);
+	char hash[65];
+	return DoraXrtSha256Hex(data.data(), data.size(), hash) ? std::string(hash) : std::string{};
 }
 
 static std::string hmac_sha256_hex(std::string_view key, std::string_view data) {
-	unsigned char hash[EVP_MAX_MD_SIZE];
-	unsigned int hash_len = 0;
-	HMAC(EVP_sha256(), key.data(), s_cast<int>(key.size()), r_cast<const unsigned char*>(data.data()), data.size(), hash, &hash_len);
-	return to_hex(hash, hash_len);
+	char hash[65];
+	return DoraXrtHmacSha256Hex(key.data(), key.size(), data.data(), data.size(), hash) ? std::string(hash) : std::string{};
 }
 
 static std::string canonicalize_query(std::vector<std::pair<std::string, std::string>> params) {
@@ -455,9 +427,9 @@ static void set_unauthorized(httplib::Response& res) {
 }
 
 HttpServer::HttpServer()
-	: _thread(SharedAsyncThread.newThread())
-	, _authRequired(false)
-	, _authTokenHasExpiry(false) { }
+	: _authRequired(false)
+	, _authTokenHasExpiry(false)
+	, _thread(SharedAsyncThread.newThread()) { }
 
 HttpServer::~HttpServer() {
 	stop();
@@ -780,7 +752,7 @@ bool HttpServer::start(int port) {
 	bool success = server.bind_to_port("0.0.0.0", port);
 	if (success) {
 		for (const auto& get : _gets) {
-			server.Get(get.pattern, [this, &get](const httplib::Request& req, httplib::Response& res) {
+			server.Get(get.pattern, [&get](const httplib::Request& req, httplib::Response& res) {
 				HttpServer::Request request;
 				request.headers.reserve(req.headers.size() * 2);
 				for (const auto& header : req.headers) {
@@ -1032,8 +1004,6 @@ struct HttpRequestState {
 	uint64_t id = 0;
 	std::atomic_bool cancelling = false;
 	std::atomic_bool finished = false;
-	std::mutex clientMutex;
-	std::shared_ptr<httplib::Client> client;
 };
 std::unordered_map<uint64_t, std::shared_ptr<HttpRequestState>> s_httpClientRequests;
 std::atomic_uint64_t s_httpClientRequestId{0};
@@ -1075,22 +1045,6 @@ static std::shared_ptr<HttpRequestState> get_http_client_request(uint64_t id) {
 	return nullptr;
 }
 
-static void set_http_client_request_client(const std::shared_ptr<HttpRequestState>& request, const std::shared_ptr<httplib::Client>& client) {
-	if (!request) {
-		return;
-	}
-	std::lock_guard<std::mutex> lock(request->clientMutex);
-	request->client = client;
-}
-
-static std::shared_ptr<httplib::Client> get_http_client_request_client(const std::shared_ptr<HttpRequestState>& request) {
-	if (!request) {
-		return nullptr;
-	}
-	std::lock_guard<std::mutex> lock(request->clientMutex);
-	return request->client;
-}
-
 static std::vector<std::shared_ptr<HttpRequestState>> snapshot_http_client_requests() {
 	std::vector<std::shared_ptr<HttpRequestState>> requests;
 	std::lock_guard<std::mutex> lock(s_httpClientRequestMutex);
@@ -1101,40 +1055,107 @@ static std::vector<std::shared_ptr<HttpRequestState>> snapshot_http_client_reque
 	return requests;
 }
 
-static std::pair<time_t, time_t> to_timeout_parts(float timeout) {
+static unsigned int to_timeout_ms(float timeout) {
 	if (!(timeout > 0.0f)) {
-		return {0, 0};
+		return 0u;
 	}
-	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
+	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
 		std::chrono::duration<float>(timeout));
 	if (duration.count() <= 0) {
-		duration = std::chrono::microseconds(1);
+		return 1u;
 	}
-	const auto seconds = std::chrono::duration_cast<std::chrono::seconds>(duration);
-	const auto micros = std::chrono::duration_cast<std::chrono::microseconds>(duration - seconds);
-	return {
-		s_cast<time_t>(seconds.count()),
-		s_cast<time_t>(micros.count())};
+	return s_cast<unsigned int>(duration.count());
 }
 
-static void configure_http_client(const std::shared_ptr<httplib::Client>& client, float timeout) {
-	if (!client) {
-		return;
-	}
-	client->enable_server_certificate_verification(false);
-	client->set_follow_location(true);
-	client->set_keep_alive(false);
-	client->set_connection_timeout(30);
-	auto [timeoutSec, timeoutUsec] = to_timeout_parts(timeout);
-	client->set_read_timeout(timeoutSec, timeoutUsec);
-	client->set_write_timeout(timeoutSec, timeoutUsec);
-	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
-		std::chrono::duration<float>(timeout));
-	client->set_max_timeout(duration);
+static int should_cancel_xrt_http(void* userData) {
+	auto request = r_cast<HttpRequestState*>(userData);
+	return request && request->cancelling.load(std::memory_order_relaxed);
 }
 
-static void prepare_http_request_headers(httplib::Headers& headers) {
-	headers.emplace("Connection"s, "close"s);
+static void prepare_xrt_http_headers(
+	std::vector<std::string>& headerNames,
+	std::vector<std::string>& headerValues,
+	std::vector<const char*>& headerNamePtrs,
+	std::vector<const char*>& headerValuePtrs,
+	const std::vector<std::pair<std::string, std::string>>& headers) {
+	headerNames.clear();
+	headerValues.clear();
+	headerNamePtrs.clear();
+	headerValuePtrs.clear();
+	headerNames.reserve(headers.size() + 1);
+	headerValues.reserve(headers.size() + 1);
+	for (const auto& header : headers) {
+		headerNames.push_back(header.first);
+		headerValues.push_back(header.second);
+	}
+	headerNames.push_back("Connection"s);
+	headerValues.push_back("close"s);
+	headerNamePtrs.reserve(headerNames.size());
+	headerValuePtrs.reserve(headerValues.size());
+	for (size_t i = 0; i < headerNames.size(); ++i) {
+		headerNamePtrs.push_back(headerNames[i].c_str());
+		headerValuePtrs.push_back(headerValues[i].c_str());
+	}
+}
+
+struct XrtPostStreamContext {
+	std::shared_ptr<HttpRequestState> request;
+	std::shared_ptr<HttpClient::ContentPartHandler> partCallback;
+	std::shared_ptr<std::atomic<bool>> stopped;
+};
+
+static int on_xrt_post_stream_chunk(const char* data, size_t dataLen, size_t, size_t, void* userData) {
+	auto context = r_cast<XrtPostStreamContext*>(userData);
+	if (!context || !data || dataLen == 0 || !context->partCallback || !*context->partCallback) {
+		return context && context->request && context->request->cancelling.load(std::memory_order_relaxed);
+	}
+	std::string body(data, dataLen);
+	SharedApplication.invokeInLogic([request = context->request, partCallback = context->partCallback, stopped = context->stopped, body = std::move(body)]() {
+		if (*stopped) {
+			return;
+		}
+		if ((*partCallback)(body)) {
+			*stopped = true;
+			request->cancelling.store(true, std::memory_order_relaxed);
+		}
+	});
+	return context->stopped->load(std::memory_order_relaxed) ||
+		(context->request && context->request->cancelling.load(std::memory_order_relaxed));
+}
+
+struct XrtDownloadStreamContext {
+	std::shared_ptr<HttpRequestState> request;
+	std::shared_ptr<std::function<bool(bool interrupted, uint64_t current, uint64_t total)>> progress;
+	std::shared_ptr<std::atomic<bool>> stopped;
+	SDL_RWops* output = nullptr;
+	std::string url;
+	size_t written = 0;
+	bool writeFailed = false;
+};
+
+static int on_xrt_download_stream_chunk(const char* data, size_t dataLen, size_t current, size_t total, void* userData) {
+	auto context = r_cast<XrtDownloadStreamContext*>(userData);
+	if (!context || !data || dataLen == 0) {
+		return context && context->request && context->request->cancelling.load(std::memory_order_relaxed);
+	}
+	auto written = SDL_RWwrite(context->output, data, 1, dataLen);
+	if (written != dataLen) {
+		context->writeFailed = true;
+		context->request->cancelling.store(true, std::memory_order_relaxed);
+		return 1;
+	}
+	context->written += written;
+	SharedApplication.invokeInLogic([request = context->request, progress = context->progress, stopped = context->stopped, current = s_cast<uint64_t>(current), total = s_cast<uint64_t>(total)]() {
+		if (*stopped) {
+			return;
+		}
+		*stopped = (*progress)(false, current, total);
+		if (*stopped) {
+			request->cancelling.store(true, std::memory_order_relaxed);
+		}
+	});
+	return context->stopped->load(std::memory_order_relaxed) ||
+		context->request->cancelling.load(std::memory_order_relaxed);
 }
 } // namespace
 
@@ -1157,15 +1178,6 @@ bool HttpClient::cancel(RequestId requestId) {
 		return false;
 	}
 	request->cancelling.store(true, std::memory_order_relaxed);
-	auto client = get_http_client_request_client(request);
-	if (!client) {
-		return true;
-	}
-	SharedAsyncThread.run([request, client]() {
-		if (!request->finished.load(std::memory_order_relaxed)) {
-			client->stop();
-		}
-	});
 	return true;
 }
 
@@ -1174,53 +1186,8 @@ bool HttpClient::isRequestActive(RequestId requestId) const {
 	return request && !request->finished.load(std::memory_order_relaxed);
 }
 
-static std::optional<std::pair<std::string, std::string>> getURLParts(String url) {
-	static std::regex urlRegex(
-		R"(^(([^:\/?#]+):)?(//([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?)",
-		std::regex::extended);
-	std::smatch matchResult;
-	auto urlStr = url.toString();
-	std::string schemeHostPort, pathToGet;
-	if (std::regex_match(urlStr, matchResult, urlRegex)) {
-		std::string scheme = matchResult[2];
-		std::string authority = matchResult[4];
-		std::string path = matchResult[5];
-		std::string query = matchResult[7];
-		std::string fragment = matchResult[9];
-		if (scheme.empty()) {
-			Error("url scheme is missing for \"{}\"", urlStr);
-			return std::nullopt;
-		}
-		if (authority.empty()) {
-			Error("url authority is missing for \"{}\"", urlStr);
-			return std::nullopt;
-		}
-		schemeHostPort = scheme + "://"s + authority;
-		pathToGet = path;
-		if (!query.empty()) {
-			pathToGet += '?' + query;
-		}
-		if (!fragment.empty()) {
-			pathToGet += '#' + fragment;
-		}
-		return std::make_pair(schemeHostPort, pathToGet);
-	} else {
-		Error("got malformed url \"{}\"", urlStr);
-		return std::nullopt;
-	}
-}
-
 HttpClient::RequestId HttpClient::postAsync(String url, std::span<Slice> headers, String json, float timeout, const ContentPartHandler& partCallback, const ContentHandler& callback) {
 	if (_stopped.load(std::memory_order_relaxed)) {
-		callback(std::nullopt);
-		return 0;
-	}
-	auto parts = getURLParts(url);
-	std::string schemeHostPort, pathToGet;
-	if (parts) {
-		schemeHostPort = parts->first;
-		pathToGet = parts->second;
-	} else {
 		callback(std::nullopt);
 		return 0;
 	}
@@ -1229,75 +1196,78 @@ HttpClient::RequestId HttpClient::postAsync(String url, std::span<Slice> headers
 		callback(std::nullopt);
 		return 0;
 	}
-	httplib::Headers postHeaders;
+	std::vector<std::pair<std::string, std::string>> postHeaders;
 	for (const auto& header : headers) {
 		auto parts = header.split(":"sv);
 		if (parts.size() == 2) {
-			postHeaders.emplace(parts.front(), parts.back());
+			postHeaders.emplace_back(parts.front().toString(), parts.back().toString());
 		}
 	}
+	postHeaders.emplace_back("Content-Type"s, "application/json"s);
 	auto callbackFunc = std::make_shared<ContentHandler>(callback);
 	auto partCallbackFunc = std::make_shared<ContentPartHandler>(partCallback);
-	SharedAsyncThread.run([request, schemeHostPort, json = json.toString(), timeout, urlStr = url.toString(), partCallbackFunc, callbackFunc, pathToGet, headers = std::move(postHeaders)]() {
-		try {
-			auto client = std::make_shared<httplib::Client>(schemeHostPort);
-			set_http_client_request_client(request, client);
-			if (request->cancelling.load(std::memory_order_relaxed)) {
-				client->stop();
-				SharedApplication.invokeInLogic([callbackFunc]() {
-					(*callbackFunc)(std::nullopt);
-				});
-				unregister_http_client_request(request);
-				return nullptr;
-			}
-			configure_http_client(client, timeout);
-			httplib::Request req;
-			req.method = "POST";
-			req.headers = headers;
-			prepare_http_request_headers(req.headers);
-			req.path = pathToGet;
-			req.set_header("Content-Type"s, "application/json"s);
-			if (timeout > 0) {
-				req.start_time_ = std::chrono::steady_clock::now();
-			}
-			if (*partCallbackFunc) {
-				req.content_receiver = [request, partCallbackFunc, stopped = std::make_shared<std::atomic<bool>>(false)](const char* data, size_t data_length, uint64_t offset, uint64_t total_length) -> bool {
-					DORA_UNUSED_PARAM(offset);
-					DORA_UNUSED_PARAM(total_length);
-					if (request->cancelling.load(std::memory_order_relaxed)) {
-						return false;
-					}
-					SharedApplication.invokeInLogic([request, partCallbackFunc, part = std::string(data, data_length), stopped]() {
-						if (!*stopped) {
-							*stopped = (*partCallbackFunc)(part);
-						}
-						if (*stopped) {
-							request->cancelling.store(true, std::memory_order_relaxed);
-							if (auto activeClient = get_http_client_request_client(request)) {
-								activeClient->stop();
-							}
-						}
-					});
-					return true;
-				};
-			}
-			req.body = std::move(json);
-			auto result = client->send(req);
-			if (!result || result.error() != httplib::Error::Success) {
-				Info("failed to do HTTP POST \"{}\" due to {}", urlStr, httplib::to_string(result.error()));
+	SharedAsyncThread.run([request, json = json.toString(), timeout, urlStr = url.toString(), partCallbackFunc, callbackFunc, headers = std::move(postHeaders)]() {
+		std::vector<std::string> headerNames;
+		std::vector<std::string> headerValues;
+		std::vector<const char*> headerNamePtrs;
+		std::vector<const char*> headerValuePtrs;
+		DoraXrtHttpResponse response;
+		prepare_xrt_http_headers(headerNames, headerValues, headerNamePtrs, headerValuePtrs, headers);
+		if (*partCallbackFunc) {
+			auto stopped = std::make_shared<std::atomic<bool>>(false);
+			XrtPostStreamContext streamContext{request, partCallbackFunc, stopped};
+			int statusCode = 0;
+			auto status = DoraXrtHttpExecuteStream(
+				"POST",
+				urlStr.c_str(),
+				headerNamePtrs.data(),
+				headerValuePtrs.data(),
+				headerNamePtrs.size(),
+				json.data(),
+				json.size(),
+				to_timeout_ms(timeout),
+				0,
+				should_cancel_xrt_http,
+				request.get(),
+				on_xrt_post_stream_chunk,
+				&streamContext,
+				&statusCode);
+			if (status != 0 || statusCode < 200 || statusCode >= 400 || stopped->load(std::memory_order_relaxed)) {
+				Info("failed to do streaming HTTP POST \"{}\" due to xrt status {}, http status {}", urlStr, status, statusCode);
 				SharedApplication.invokeInLogic([callbackFunc]() {
 					(*callbackFunc)(std::nullopt);
 				});
 			} else {
-				SharedApplication.invokeInLogic([callbackFunc, body = std::move(result.value().body)]() {
+				SharedApplication.invokeInLogic([callbackFunc]() {
+					(*callbackFunc)(""_slice);
+				});
+			}
+		} else {
+			auto status = DoraXrtHttpExecute(
+				"POST",
+				urlStr.c_str(),
+				headerNamePtrs.data(),
+				headerValuePtrs.data(),
+				headerNamePtrs.size(),
+				json.data(),
+				json.size(),
+				to_timeout_ms(timeout),
+				0,
+				should_cancel_xrt_http,
+				request.get(),
+				&response);
+			if (status != 0 || response.statusCode < 200 || response.statusCode >= 400) {
+				Info("failed to do HTTP POST \"{}\" due to xrt status {}, http status {}", urlStr, status, response.statusCode);
+				SharedApplication.invokeInLogic([callbackFunc]() {
+					(*callbackFunc)(std::nullopt);
+				});
+			} else {
+				std::string body(response.body ? response.body : "", response.bodyLen);
+				SharedApplication.invokeInLogic([callbackFunc, body = std::move(body)]() {
 					(*callbackFunc)(body);
 				});
 			}
-		} catch (const std::invalid_argument& ex) {
-			Error("invalid url \"{}\" to do HTTP POST due to: {}", urlStr, ex.what());
-			SharedApplication.invokeInLogic([callbackFunc]() {
-				(*callbackFunc)(Slice::Empty);
-			});
+			DoraXrtHttpResponseFree(&response);
 		}
 		unregister_http_client_request(request);
 		return nullptr;
@@ -1336,52 +1306,43 @@ HttpClient::RequestId HttpClient::getAsync(String url, float timeout, const Cont
 		callback(std::nullopt);
 		return 0;
 	}
-	auto parts = getURLParts(url);
-	std::string schemeHostPort, pathToGet;
-	if (parts) {
-		schemeHostPort = parts->first;
-		pathToGet = parts->second;
-	} else {
-		callback(std::nullopt);
-		return 0;
-	}
 	auto request = register_http_client_request();
 	if (!request) {
 		callback(std::nullopt);
 		return 0;
 	}
-	SharedAsyncThread.run([request, schemeHostPort, timeout, urlStr = url.toString(), callback, pathToGet]() {
-		try {
-			auto client = std::make_shared<httplib::Client>(schemeHostPort);
-			set_http_client_request_client(request, client);
-			if (request->cancelling.load(std::memory_order_relaxed)) {
-				client->stop();
-				SharedApplication.invokeInLogic([callback]() {
-					callback(std::nullopt);
-				});
-				unregister_http_client_request(request);
-				return;
-			}
-			configure_http_client(client, timeout);
-			httplib::Headers headers;
-			prepare_http_request_headers(headers);
-			auto result = client->Get(pathToGet, headers);
-			if (!result || result.error() != httplib::Error::Success) {
-				Info("failed to do HTTP GET \"{}\" due to {}", urlStr, httplib::to_string(result.error()));
-				SharedApplication.invokeInLogic([callback]() {
-					callback(std::nullopt);
-				});
-			} else {
-				SharedApplication.invokeInLogic([callback, body = std::move(result.value().body)]() {
-					callback(body);
-				});
-			}
-		} catch (const std::invalid_argument& ex) {
-			Error("invalid url \"{}\" to do HTTP GET due to: {}", urlStr, ex.what());
+	SharedAsyncThread.run([request, timeout, urlStr = url.toString(), callback]() {
+		std::vector<std::string> headerNames;
+		std::vector<std::string> headerValues;
+		std::vector<const char*> headerNamePtrs;
+		std::vector<const char*> headerValuePtrs;
+		DoraXrtHttpResponse response;
+		prepare_xrt_http_headers(headerNames, headerValues, headerNamePtrs, headerValuePtrs, {});
+		auto status = DoraXrtHttpExecute(
+			"GET",
+			urlStr.c_str(),
+			headerNamePtrs.data(),
+			headerValuePtrs.data(),
+			headerNamePtrs.size(),
+			nullptr,
+			0,
+			to_timeout_ms(timeout),
+			0,
+			should_cancel_xrt_http,
+			request.get(),
+			&response);
+		if (status != 0 || response.statusCode < 200 || response.statusCode >= 400) {
+			Info("failed to do HTTP GET \"{}\" due to xrt status {}, http status {}", urlStr, status, response.statusCode);
 			SharedApplication.invokeInLogic([callback]() {
 				callback(std::nullopt);
 			});
+		} else {
+			std::string body(response.body ? response.body : "", response.bodyLen);
+			SharedApplication.invokeInLogic([callback, body = std::move(body)]() {
+				callback(body);
+			});
 		}
+		DoraXrtHttpResponseFree(&response);
 		unregister_http_client_request(request);
 	});
 	return request->id;
@@ -1395,34 +1356,26 @@ HttpClient::RequestId HttpClient::downloadAsync(String url, String filePath, flo
 	if (!_downloadThread) {
 		_downloadThread = SharedAsyncThread.newThread();
 	}
-	auto parts = getURLParts(url);
-	std::string schemeHostPort, pathToGet;
-	if (parts) {
-		schemeHostPort = parts->first;
-		pathToGet = parts->second;
-	} else {
-		progress(true, 0, 0);
-		return 0;
-	}
 	auto request = register_http_client_request();
 	if (!request) {
 		progress(true, 0, 0);
 		return 0;
 	}
 	auto progressFunc = std::make_shared<std::function<bool(bool interrupted, uint64_t current, uint64_t total)>>(progress);
-	_downloadThread->run([request, schemeHostPort, fileStr = filePath.toString(), urlStr = url.toString(), timeout, progressFunc, pathToGet]() -> Own<Values> {
+	_downloadThread->run([request, fileStr = filePath.toString(), urlStr = url.toString(), timeout, progressFunc]() -> Own<Values> {
 		try {
-			auto client = std::make_shared<httplib::Client>(schemeHostPort);
-			set_http_client_request_client(request, client);
 			if (request->cancelling.load(std::memory_order_relaxed)) {
-				client->stop();
 				SharedApplication.invokeInLogic([progressFunc]() {
 					(*progressFunc)(true, 0, 0);
 				});
 				unregister_http_client_request(request);
 				return nullptr;
 			}
-			configure_http_client(client, timeout);
+			std::vector<std::string> headerNames;
+			std::vector<std::string> headerValues;
+			std::vector<const char*> headerNamePtrs;
+			std::vector<const char*> headerValuePtrs;
+			prepare_xrt_http_headers(headerNames, headerValues, headerNamePtrs, headerValuePtrs, {});
 			auto fullname = fileStr;
 			SDL_RWops* out = SDL_RWFromFile(fullname.c_str(), "wb+");
 			if (!out) {
@@ -1433,54 +1386,43 @@ HttpClient::RequestId HttpClient::downloadAsync(String url, String filePath, flo
 			auto stream = std::shared_ptr<SDL_RWops>{out, [](SDL_RWops* io) {
 														 SDL_RWclose(io);
 													 }};
-			httplib::Headers headers;
-			prepare_http_request_headers(headers);
-			auto result = client->Get(
-				pathToGet, headers, [request, &out, progressFunc, fileStr, urlStr](const char* data, size_t data_length) -> bool {
-					if (SharedHttpClient.isStopped() || request->cancelling.load(std::memory_order_relaxed)) {
-						return false;
-					}
-					size_t written = SDL_RWwrite(out, data, 1, data_length);
-					if (written != data_length) {
-						Error("failed to write downloaded file for \"{}\"", urlStr);
-						SharedApplication.invokeInLogic([progressFunc]() {
-							(*progressFunc)(true, 0, 0);
-						});
-						std::error_code err;
-						fs::remove_all(fileStr, err);
-						WarnIf(err, "failed to remove download file \"{}\" due to \"{}\".", fileStr, err.message());
-						return false;
-					}
-					return true;
-				},
-				[request, progressFunc, stream, stopped = std::make_shared<std::atomic<bool>>(false)](uint64_t current, uint64_t total) -> bool {
-					if (request->cancelling.load(std::memory_order_relaxed)) {
-						return false;
-					}
-					SharedApplication.invokeInLogic([request, progressFunc, current, total, stopped]() {
-						if (!*stopped) {
-							*stopped = (*progressFunc)(false, current, total);
-						}
-						if (*stopped) {
-							request->cancelling.store(true, std::memory_order_relaxed);
-							if (auto activeClient = get_http_client_request_client(request)) {
-								activeClient->stop();
-							}
-						}
-					});
-					return true;
-				});
-			if (!result || result.error() != httplib::Error::Success) {
-				Info("failed to download \"{}\" due to {}", urlStr, httplib::to_string(result.error()));
+			auto stopped = std::make_shared<std::atomic<bool>>(false);
+			XrtDownloadStreamContext streamContext{request, progressFunc, stopped, out, urlStr};
+			int statusCode = 0;
+			auto status = DoraXrtHttpExecuteStream(
+				"GET",
+				urlStr.c_str(),
+				headerNamePtrs.data(),
+				headerValuePtrs.data(),
+				headerNamePtrs.size(),
+				nullptr,
+				0,
+				to_timeout_ms(timeout),
+				0,
+				should_cancel_xrt_http,
+				request.get(),
+				on_xrt_download_stream_chunk,
+				&streamContext,
+				&statusCode);
+			if (status != 0 || statusCode < 200 || statusCode >= 400 || streamContext.writeFailed || stopped->load(std::memory_order_relaxed)) {
+				Info("failed to download \"{}\" due to xrt status {}, http status {}", urlStr, status, statusCode);
 				SharedApplication.invokeInLogic([progressFunc]() {
 					(*progressFunc)(true, 0, 0);
 				});
 				std::error_code err;
-				if (fs::exists(fileStr, err)) {
-					fs::remove_all(fileStr, err);
-					WarnIf(err, "failed to remove download file \"{}\" due to \"{}\".", fileStr, err.message());
-				}
+				fs::remove_all(fileStr, err);
+				WarnIf(err, "failed to remove download file \"{}\" due to \"{}\".", fileStr, err.message());
+				unregister_http_client_request(request);
+				return nullptr;
 			}
+			SharedApplication.invokeInLogic([request, progressFunc, total = s_cast<uint64_t>(streamContext.written), stream, stopped]() {
+				if (!*stopped) {
+					*stopped = (*progressFunc)(false, total, total);
+				}
+				if (*stopped) {
+					request->cancelling.store(true, std::memory_order_relaxed);
+				}
+			});
 		} catch (const std::invalid_argument& ex) {
 			Error("invalid url \"{}\" to download due to: {}", urlStr, ex.what());
 			SharedApplication.invokeInLogic([progressFunc]() {
@@ -1506,9 +1448,6 @@ void HttpClient::stop() {
 	for (const auto& request : requests) {
 		if (request) {
 			request->cancelling.store(true, std::memory_order_relaxed);
-			if (auto client = get_http_client_request_client(request)) {
-				client->stop();
-			}
 		}
 	}
 }

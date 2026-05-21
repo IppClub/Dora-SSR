@@ -19,7 +19,6 @@ include_directories(
 	src/main/cpp/3rdParty/dragonBones
 	src/main/cpp/3rdParty/wasm3
 	src/main/cpp/3rdParty/Zip/zlib
-	src/main/cpp/3rdParty/OpenSSL/Header
 	src/main/cpp/3rdParty/Effekseer
 	src/main/cpp/3rdParty/h264bsd
 )
@@ -72,18 +71,6 @@ add_library(SHADERC-lib STATIC IMPORTED)
 set_target_properties(
 	SHADERC-lib PROPERTIES IMPORTED_LOCATION
 	${DORA_BGFX_ROOT}/build/android/${ANDROID_ABI}/libshaderc-lib.a
-)
-
-add_library(SSL-lib STATIC IMPORTED)
-set_target_properties(
-	SSL-lib PROPERTIES IMPORTED_LOCATION
-	${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/3rdParty/OpenSSL/Lib/Android/${ANDROID_ABI}/libssl.a
-)
-
-add_library(CRYPTO-lib STATIC IMPORTED)
-set_target_properties(
-	CRYPTO-lib PROPERTIES IMPORTED_LOCATION
-	${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/3rdParty/OpenSSL/Lib/Android/${ANDROID_ABI}/libcrypto.a
 )
 
 add_library(DORA-lib STATIC IMPORTED)
@@ -145,6 +132,7 @@ add_library(main SHARED
 	src/main/cpp/Lua/TealCompiler.cpp
 	src/main/cpp/Lua/LuaEngine.cpp
 	src/main/cpp/Http/HttpServer.cpp
+	src/main/cpp/Http/XrtHttpClient.c
 	src/main/cpp/Wasm/WasmRuntime.cpp
 	src/main/cpp/Const/Header.cpp
 	src/main/cpp/Common/Utils.cpp
@@ -662,4 +650,4 @@ add_library(main SHARED
 	src/main/cpp/3rdParty/tic80/vendor/blip-buf/blip_wasm_host.cpp
 )
 
-target_link_libraries(main android log EGL z GLESv1_CM GLESv2 SDL2-lib BGFX-lib BIMGDE-lib BIMG-lib SHADERC-lib GLSLO-lib FCPP-lib BX-lib CRYPTO-lib SSL-lib DORA-lib)
+target_link_libraries(main android log EGL z GLESv1_CM GLESv2 SDL2-lib BGFX-lib BIMGDE-lib BIMG-lib SHADERC-lib GLSLO-lib FCPP-lib BX-lib DORA-lib)

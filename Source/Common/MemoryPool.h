@@ -40,8 +40,8 @@ private:
 	};
 	struct Chunk {
 		Chunk(int capacity, Chunk* next = nullptr)
-			: buffer(new char[capacity])
-			, size(0)
+			: size(0)
+			, buffer(new char[capacity])
 			, next(next) { }
 		~Chunk() { delete[] buffer; }
 		int size;

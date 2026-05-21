@@ -16,6 +16,9 @@
     <Filter Include="3rdParty">
       <UniqueIdentifier>{164271c1-5a03-4f56-ab29-4b899af981af}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rdParty\xrt">
+      <UniqueIdentifier>{f29670c6-5f9f-4c01-8d63-d3558d6ba8cc}</UniqueIdentifier>
+    </Filter>
     <Filter Include="3rdParty\silly">
       <UniqueIdentifier>{d3d5ca95-9734-4684-8f81-8cd17fbdb6dd}</UniqueIdentifier>
     </Filter>
@@ -1054,6 +1057,9 @@
       <Filter>3rdParty\colib</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Http\HttpServer.cpp">
+      <Filter>Http</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Http\XrtHttpClient.c">
       <Filter>Http</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Lua\Xml\XmlResolver.cpp">
@@ -2827,6 +2833,12 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Http\HttpServer.h">
       <Filter>Http</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Http\XrtHttpClient.h">
+      <Filter>Http</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\xrt\xrt.h">
+      <Filter>3rdParty\xrt</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Lua\Xml\XmlResolver.h">
       <Filter>Lua\Xml</Filter>

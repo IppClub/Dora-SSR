@@ -64,6 +64,7 @@ THE OPEN SOURCE SOFTWARE IN THIS PRODUCT IS DISTRIBUTED IN THE HOPE THAT IT WILL
 - [konva](https://github.com/konvajs/konva): [MIT License](Tools/dora-dora/public/code-wire/javascript/Dependencies/Konva/LICENSE)
 - [spdlog](https://github.com/gabime/spdlog): [MIT License](Source/3rdParty/spdlog/LICENSE)
 - [tiny-regex-c](https://github.com/kokke/tiny-regex-c): [Public Domain](Source/3rdParty/tiny-regex-c/LICENSE)
+- [xrt](https://github.com/xywhsoft/xrt): [MIT License](Source/3rdParty/xrt/LICENSE)
 
 
 
