@@ -1294,11 +1294,10 @@ void ImGuiDora::handleEvent(const SDL_Event& event) {
 		}
 		case SDL_MOUSEBUTTONUP: {
 			addImGuiMousePosEvent(s_cast<float>(event.button.x), s_cast<float>(event.button.y));
-			switch (event.button.button) {
-				case SDL_BUTTON_LEFT: _mousePressed[0] = false; break;
-				case SDL_BUTTON_RIGHT: _mousePressed[1] = false; break;
-				case SDL_BUTTON_MIDDLE: _mousePressed[2] = false; break;
-			}
+			// Delay clearing _mousePressed to next frame via _inputs queue.
+			// This ensures ImGui sees at least one frame with pressed=true,
+			// so fast clicks (down+up in same frame) are not lost.
+			_inputs.push_back(event);
 			break;
 		}
 		case SDL_MOUSEMOTION: {
