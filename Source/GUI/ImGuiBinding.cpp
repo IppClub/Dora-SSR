@@ -1447,14 +1447,14 @@ void ScrollWhenDraggingOnVoid() {
 	ImGuiContext& g = *ImGui::GetCurrentContext();
 	ImGuiWindow* window = g.CurrentWindow;
 	bool hovered = false;
-	static bool held = false;
+	bool held = false;
 	ImGuiID id = window->GetID("##scrolldraggingoverlay");
 	ImGui::KeepAliveID(id);
-	bool lastHeld = held;
-	if (g.HoveredId == 0) {
+	bool wasActive = g.ActiveId == id;
+	if (g.HoveredId == 0 || wasActive) {
 		ImGui::ButtonBehavior(window->Rect(), id, &hovered, &held, button_flags);
 	}
-	if (lastHeld != held) {
+	if (!wasActive && held) {
 		return;
 	}
 	if (held) {
