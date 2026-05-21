@@ -26,7 +26,6 @@ set(DORA_WA_BUILD_DIR ${DORA_SOURCE_ROOT}/3rdParty/Wa/Lib/Linux/${DORA_WA_ARCH})
 set(DORA_RUNTIME_BUILD_DIR ${DORA_SOURCE_ROOT}/Rust/lib/Linux/${DORA_RUNTIME_ARCH})
 
 find_package(SDL2 REQUIRED)
-find_package(OpenSSL REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(DBUS REQUIRED dbus-1)
 
@@ -165,6 +164,7 @@ add_executable(dora-ssr
 	../../Source/Lua/TealCompiler.cpp
 	../../Source/Lua/LuaEngine.cpp
 	../../Source/Http/HttpServer.cpp
+	../../Source/Http/XrtHttpClient.c
 	../../Source/Wasm/WasmRuntime.cpp
 	../../Source/Const/Header.cpp
 	../../Source/Common/Utils.cpp
@@ -683,4 +683,4 @@ add_executable(dora-ssr
 	../../Source/3rdParty/tic80/vendor/blip-buf/blip_wasm_host.cpp
 )
 
-target_link_libraries(dora-ssr z dl pthread rt ${SDL2_LIBRARIES} BGFX-lib BIMGDE-lib BIMG-lib SHADERC-lib GLSLO-lib FCPP-lib BX-lib GL X11 OpenSSL::SSL OpenSSL::Crypto ${DBUS_LINK_LIBRARIES} DORA-lib WA-lib)
+target_link_libraries(dora-ssr z dl pthread rt ${SDL2_LIBRARIES} BGFX-lib BIMGDE-lib BIMG-lib SHADERC-lib GLSLO-lib FCPP-lib BX-lib GL X11 ${DBUS_LINK_LIBRARIES} DORA-lib WA-lib)
