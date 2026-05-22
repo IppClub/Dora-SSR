@@ -23,6 +23,10 @@
 
 #include "nanovg.h"
 
+#include "Const/Header.h"
+#include "Cache/TextureCache.h"
+#include "Other/atlas.h"
+
 #include "bx/bx.h"
 
 BX_PRAGMA_DIAGNOSTIC_IGNORED_MSVC(4701) // error C4701: potentially uninitialized local variable 'cint' used
@@ -58,6 +62,10 @@ BX_PRAGMA_DIAGNOSTIC_POP();
 #define NVG_INIT_POINTS_SIZE 128
 #define NVG_INIT_PATHS_SIZE 16
 #define NVG_INIT_VERTS_SIZE 256
+
+#define NVG_DORA_SDF_TEXT_IMAGE_FLAG (1 << 17)
+#define NVG_DORA_SDF_TEXT_EDGE 0.69f
+#define NVG_DORA_SDF_BASE_SOFTNESS 0.012f
 
 #ifndef NVG_MAX_STATES
 #define NVG_MAX_STATES 32
@@ -128,6 +136,18 @@ struct NVGpathCache {
 };
 typedef struct NVGpathCache NVGpathCache;
 
+struct NVGDoraFont {
+	std::string name;
+	std::string fontName;
+	Dora::Ref<Dora::Font> font;
+	std::vector<int> fallbacks;
+};
+
+struct NVGDoraText {
+	std::vector<NVGDoraFont> fonts;
+	std::unordered_map<std::string, int> fontIds;
+};
+
 struct NVGcontext {
 	NVGparams params;
 	float* commands;
@@ -142,6 +162,7 @@ struct NVGcontext {
 	float fringeWidth;
 	float devicePxRatio;
 	struct FONScontext* fs;
+	NVGDoraText* doraText;
 	int fontImages[NVG_MAX_FONTIMAGES];
 	int fontImageIdx;
 	int drawCallCount;
@@ -341,6 +362,7 @@ NVGcontext* nvgCreateInternal(NVGparams* params)
 	fontParams.userPtr = NULL;
 	ctx->fs = fonsCreateInternal(&fontParams);
 	if (ctx->fs == NULL) goto error;
+	ctx->doraText = new NVGDoraText();
 
 	// Create font texture
 	ctx->fontImages[0] = ctx->params.renderCreateTexture(ctx->params.userPtr, NVG_TEXTURE_ALPHA, fontParams.width, fontParams.height, 0, NULL);
@@ -368,6 +390,10 @@ void nvgDeleteInternal(NVGcontext* ctx)
 
 	if (ctx->fs)
 		fonsDeleteInternal(ctx->fs);
+	if (ctx->doraText) {
+		delete ctx->doraText;
+		ctx->doraText = NULL;
+	}
 
 	for (i = 0; i < NVG_MAX_FONTIMAGES; i++) {
 		if (ctx->fontImages[i] != 0) {
@@ -2312,28 +2338,181 @@ void nvgStroke(NVGcontext* ctx)
 	}
 }
 
+static unsigned int nvg__decutf8(unsigned int* state, unsigned int* codep, unsigned int byte)
+{
+	return fons__decutf8(state, codep, byte);
+}
+
+static NVGDoraFont* nvg__getDoraFont(NVGcontext* ctx, int fontId)
+{
+	if (ctx->doraText == NULL || fontId < 0 || fontId >= (int)ctx->doraText->fonts.size())
+		return NULL;
+	NVGDoraFont& font = ctx->doraText->fonts[fontId];
+	return font.font ? &font : NULL;
+}
+
+static NVGDoraFont* nvg__resolveDoraFont(NVGcontext* ctx, NVGDoraFont* baseFont, bgfx::CodePoint codepoint)
+{
+	if (baseFont == NULL) return NULL;
+	switch (codepoint) {
+		case 9:
+		case 10:
+		case 11:
+		case 12:
+		case 13:
+		case 32:
+		case 0x00a0:
+		case 0x0085:
+			return baseFont;
+		default:
+			break;
+	}
+	if (SharedFontManager.hasGlyph(baseFont->font->getHandle(), codepoint))
+		return baseFont;
+	for (int fallbackFontId : baseFont->fallbacks) {
+		NVGDoraFont* fallbackFont = nvg__getDoraFont(ctx, fallbackFontId);
+		if (fallbackFont != NULL && SharedFontManager.hasGlyph(fallbackFont->font->getHandle(), codepoint))
+			return fallbackFont;
+	}
+	return baseFont;
+}
+
+static float nvg__doraFontScale(NVGstate* state, NVGcontext* ctx)
+{
+	NVG_NOTUSED(ctx);
+	return state->fontSize / (float)DORA_SDF_FONT_BASE_SIZE;
+}
+
+static float nvg__doraSdfPadding(NVGstate* state, NVGcontext* ctx)
+{
+	NVG_NOTUSED(ctx);
+	return state->fontSize * SDF_FONT_BUFFER_PADDING_RATIO;
+}
+
+static void nvg__doraVertMetrics(NVGcontext* ctx, NVGstate* state, float* ascender, float* descender, float* lineh)
+{
+	NVGDoraFont* doraFont = nvg__getDoraFont(ctx, state->fontId);
+	if (doraFont == NULL) return;
+	const bgfx::FontInfo& info = doraFont->font->getInfo();
+	float fontScale = nvg__doraFontScale(state, ctx);
+	if (ascender != NULL) *ascender = info.ascender * fontScale;
+	if (descender != NULL) *descender = info.descender * fontScale;
+	if (lineh != NULL) *lineh = (info.ascender - info.descender + info.lineGap) * fontScale;
+}
+
+static float nvg__doraTextAdvance(NVGcontext* ctx, NVGstate* state, const char* string, const char* end, float* minx, float* maxx)
+{
+	NVGDoraFont* doraFont = nvg__getDoraFont(ctx, state->fontId);
+	if (doraFont == NULL) return 0.0f;
+	if (end == NULL) end = string + strlen(string);
+	float fontScale = nvg__doraFontScale(state, ctx);
+	float sdfPadding = nvg__doraSdfPadding(state, ctx);
+	float x = 0.0f;
+	float boundsMin = 0.0f;
+	float boundsMax = 0.0f;
+	bool hasBounds = false;
+	unsigned int utf8state = 0;
+	unsigned int codepoint = 0;
+	unsigned int prevCodepoint = 0;
+	for (const char* str = string; str != end; ++str) {
+		if (nvg__decutf8(&utf8state, &codepoint, *(const unsigned char*)str))
+			continue;
+		NVGDoraFont* glyphFont = nvg__resolveDoraFont(ctx, doraFont, (bgfx::CodePoint)codepoint);
+		const bgfx::GlyphInfo* glyph = SharedFontManager.getGlyphInfo(glyphFont->font->getHandle(), (bgfx::CodePoint)codepoint);
+		if (prevCodepoint != 0)
+			x += SharedFontManager.getKerning(glyphFont->font->getHandle(), (bgfx::CodePoint)prevCodepoint, (bgfx::CodePoint)codepoint) * fontScale;
+		float gx0 = x + glyph->offset_x * fontScale - sdfPadding;
+		float gx1 = gx0 + glyph->width * fontScale;
+		if (!hasBounds) {
+			boundsMin = gx0;
+			boundsMax = gx1;
+			hasBounds = true;
+		} else {
+			boundsMin = nvg__minf(boundsMin, gx0);
+			boundsMax = nvg__maxf(boundsMax, gx1);
+		}
+		x += glyph->advance_x * fontScale + state->letterSpacing;
+		prevCodepoint = codepoint;
+	}
+	if (minx != NULL) *minx = hasBounds ? boundsMin : 0.0f;
+	if (maxx != NULL) *maxx = hasBounds ? boundsMax : 0.0f;
+	return x;
+}
+
+static float nvg__doraTextStartX(NVGcontext* ctx, NVGstate* state, float x, const char* string, const char* end)
+{
+	if (state->textAlign & NVG_ALIGN_RIGHT)
+		return x - nvg__doraTextAdvance(ctx, state, string, end, NULL, NULL);
+	if (state->textAlign & NVG_ALIGN_CENTER)
+		return x - nvg__doraTextAdvance(ctx, state, string, end, NULL, NULL) * 0.5f;
+	return x;
+}
+
+static float nvg__doraTextBaselineY(NVGcontext* ctx, NVGstate* state, float y)
+{
+	float ascender = 0.0f;
+	float descender = 0.0f;
+	float lineh = 0.0f;
+	nvg__doraVertMetrics(ctx, state, &ascender, &descender, &lineh);
+	if (state->textAlign & NVG_ALIGN_TOP)
+		return y + ascender;
+	if (state->textAlign & NVG_ALIGN_MIDDLE)
+		return y + (ascender + descender) * 0.5f;
+	if (state->textAlign & NVG_ALIGN_BOTTOM)
+		return y + descender;
+	return y;
+}
+
+static int nvg__doraFontImage(NVGcontext* ctx, Dora::Texture2D* texture)
+{
+	return nvglCreateImageFromHandle(ctx, texture->getHandle(), texture->getWidth(), texture->getHeight(), NVG_TEXTURE_ALPHA, NVG_DORA_SDF_TEXT_IMAGE_FLAG);
+}
+
 // Add fonts
 int nvgCreateFont(NVGcontext* ctx, const char* name, const char* filename)
 {
-	return fonsAddFont(ctx->fs, name, filename, 0);
+	if (ctx->doraText == NULL || name == NULL || filename == NULL) return FONS_INVALID;
+	Dora::Font* font = SharedFontCache.load(filename, DORA_SDF_FONT_BASE_SIZE, true);
+	if (font == NULL) return FONS_INVALID;
+	auto fontIt = ctx->doraText->fontIds.find(name);
+	if (fontIt != ctx->doraText->fontIds.end()) {
+		NVGDoraFont& doraFont = ctx->doraText->fonts[fontIt->second];
+		doraFont.fontName = filename;
+		doraFont.font = font;
+		return fontIt->second;
+	}
+	NVGDoraFont doraFont;
+	doraFont.name = name;
+	doraFont.fontName = filename;
+	doraFont.font = font;
+	int fontId = (int)ctx->doraText->fonts.size();
+	ctx->doraText->fonts.push_back(std::move(doraFont));
+	ctx->doraText->fontIds[name] = fontId;
+	return fontId;
 }
 
 int nvgCreateFontAtIndex(NVGcontext* ctx, const char* name, const char* filename, const int fontIndex)
 {
-	return fonsAddFont(ctx->fs, name, filename, fontIndex);
+	NVG_NOTUSED(fontIndex);
+	return nvgCreateFont(ctx, name, filename);
 }
 
 int nvgFindFont(NVGcontext* ctx, const char* name)
 {
 	if (name == NULL) return -1;
-	return fonsGetFontByName(ctx->fs, name);
+	if (ctx->doraText == NULL) return -1;
+	auto fontIt = ctx->doraText->fontIds.find(name);
+	return fontIt != ctx->doraText->fontIds.end() ? fontIt->second : -1;
 }
 
 
 int nvgAddFallbackFontId(NVGcontext* ctx, int baseFont, int fallbackFont)
 {
 	if(baseFont == -1 || fallbackFont == -1) return 0;
-	return fonsAddFallbackFont(ctx->fs, baseFont, fallbackFont);
+	NVGDoraFont* doraFont = nvg__getDoraFont(ctx, baseFont);
+	if (doraFont == NULL || nvg__getDoraFont(ctx, fallbackFont) == NULL) return 0;
+	doraFont->fallbacks.push_back(fallbackFont);
+	return 1;
 }
 
 int nvgAddFallbackFont(NVGcontext* ctx, const char* baseFont, const char* fallbackFont)
@@ -2343,7 +2522,8 @@ int nvgAddFallbackFont(NVGcontext* ctx, const char* baseFont, const char* fallba
 
 void nvgResetFallbackFontsId(NVGcontext* ctx, int baseFont)
 {
-	fonsResetFallbackFont(ctx->fs, baseFont);
+	NVGDoraFont* doraFont = nvg__getDoraFont(ctx, baseFont);
+	if (doraFont != NULL) doraFont->fallbacks.clear();
 }
 
 void nvgResetFallbackFonts(NVGcontext* ctx, const char* baseFont)
@@ -2391,7 +2571,7 @@ void nvgFontFaceId(NVGcontext* ctx, int font)
 void nvgFontFace(NVGcontext* ctx, const char* font)
 {
 	NVGstate* state = nvg__getState(ctx);
-	state->fontId = fonsGetFontByName(ctx->fs, font);
+	state->fontId = nvgFindFont(ctx, font);
 }
 
 static float nvg__quantize(float a, float d)
@@ -2447,13 +2627,18 @@ static int nvg__allocTextAtlas(NVGcontext* ctx)
 	return 1;
 }
 
-static void nvg__renderText(NVGcontext* ctx, NVGvertex* verts, int nverts)
+static void nvg__renderTextImage(NVGcontext* ctx, NVGvertex* verts, int nverts, int image)
 {
 	NVGstate* state = nvg__getState(ctx);
 	NVGpaint paint = state->fill;
 
 	// Render triangles.
-	paint.image = ctx->fontImages[ctx->fontImageIdx];
+	paint.image = image;
+	float fontScale = nvg__maxf(state->fontSize / (float)DORA_SDF_FONT_BASE_SIZE, 0.01f);
+	float baseSoftness = nvg__clampf(NVG_DORA_SDF_BASE_SOFTNESS / fontScale, 0.006f, 0.08f);
+	float blurSoftness = nvg__clampf(state->fontBlur / nvg__maxf(state->fontSize, 1.0f), 0.0f, 0.25f);
+	paint.feather = baseSoftness + blurSoftness;
+	paint.radius = NVG_DORA_SDF_TEXT_EDGE;
 
 	// Apply global alpha
 	paint.innerColor.a *= state->alpha;
@@ -2465,6 +2650,11 @@ static void nvg__renderText(NVGcontext* ctx, NVGvertex* verts, int nverts)
 	ctx->textTriCount += nverts/3;
 }
 
+static void nvg__renderText(NVGcontext* ctx, NVGvertex* verts, int nverts)
+{
+	nvg__renderTextImage(ctx, verts, nverts, ctx->fontImages[ctx->fontImageIdx]);
+}
+
 static int nvg__isTransformFlipped(const float *xform)
 {
 	float det = xform[0] * xform[3] - xform[2] * xform[1];
@@ -2474,11 +2664,16 @@ static int nvg__isTransformFlipped(const float *xform)
 float nvgText(NVGcontext* ctx, float x, float y, const char* string, const char* end)
 {
 	NVGstate* state = nvg__getState(ctx);
-	FONStextIter iter, prevIter;
-	FONSquad q;
 	NVGvertex* verts;
-	float scale = nvg__getFontScale(state) * ctx->devicePxRatio;
-	float invscale = 1.0f / scale;
+	NVGDoraFont* doraFont = nvg__getDoraFont(ctx, state->fontId);
+	float fontScale = nvg__doraFontScale(state, ctx);
+	float penX = 0.0f;
+	float penY = 0.0f;
+	float nextX = 0.0f;
+	unsigned int utf8state = 0;
+	unsigned int codepoint = 0;
+	unsigned int prevCodepoint = 0;
+	int currentImage = 0;
 	int cverts = 0;
 	int nverts = 0;
 	int isFlipped = nvg__isTransformFlipped(state->xform);
@@ -2486,63 +2681,75 @@ float nvgText(NVGcontext* ctx, float x, float y, const char* string, const char*
 	if (end == NULL)
 		end = string + strlen(string);
 
-	if (state->fontId == FONS_INVALID) return x;
-
-	fonsSetSize(ctx->fs, state->fontSize*scale);
-	fonsSetSpacing(ctx->fs, state->letterSpacing*scale);
-	fonsSetBlur(ctx->fs, state->fontBlur*scale);
-	fonsSetAlign(ctx->fs, state->textAlign);
-	fonsSetFont(ctx->fs, state->fontId);
+	if (doraFont == NULL) return x;
 
 	cverts = nvg__maxi(2, (int)(end - string)) * 6; // conservative estimate.
 	verts = nvg__allocTempVerts(ctx, cverts);
 	if (verts == NULL) return x;
 
-	fonsTextIterInit(ctx->fs, &iter, x*scale, y*scale, string, end, FONS_GLYPH_BITMAP_REQUIRED);
-	prevIter = iter;
-	while (fonsTextIterNext(ctx->fs, &iter, &q)) {
+	penX = nvg__doraTextStartX(ctx, state, x, string, end);
+	penY = nvg__doraTextBaselineY(ctx, state, y);
+	nextX = penX;
+	float sdfPadding = nvg__doraSdfPadding(state, ctx);
+
+	for (const char* str = string; str != end; ++str) {
 		float c[4*2];
-		if (iter.prevGlyphIndex == -1) { // can not retrieve glyph?
+		float x0, y0, x1, y1, s0, t0, s1, t1;
+		if (nvg__decutf8(&utf8state, &codepoint, *(const unsigned char*)str))
+			continue;
+		NVGDoraFont* glyphFont = nvg__resolveDoraFont(ctx, doraFont, (bgfx::CodePoint)codepoint);
+		const bgfx::GlyphInfo* glyph = SharedFontManager.getGlyphInfo(glyphFont->font->getHandle(), (bgfx::CodePoint)codepoint);
+		if (prevCodepoint != 0)
+			nextX += SharedFontManager.getKerning(glyphFont->font->getHandle(), (bgfx::CodePoint)prevCodepoint, (bgfx::CodePoint)codepoint) * fontScale;
+		bgfx::Atlas* atlas = glyph->atlas;
+		const bgfx::AtlasRegion& region = atlas->getRegion(glyph->regionIndex);
+		Dora::Texture2D* texture = atlas->getTexture();
+		int image = nvg__doraFontImage(ctx, texture);
+		if (currentImage != 0 && currentImage != image && nverts != 0) {
+			nvg__renderTextImage(ctx, verts, nverts, currentImage);
+			nverts = 0;
+		}
+		currentImage = image;
+		x0 = nextX + glyph->offset_x * fontScale - sdfPadding;
+		y0 = penY + glyph->offset_y * fontScale - sdfPadding;
+		x1 = x0 + glyph->width * fontScale;
+		y1 = y0 + glyph->height * fontScale;
+		s0 = (float)region.x / (float)texture->getWidth();
+		t0 = (float)region.y / (float)texture->getHeight();
+		s1 = (float)(region.x + region.width) / (float)texture->getWidth();
+		t1 = (float)(region.y + region.height) / (float)texture->getHeight();
+		nextX += glyph->advance_x * fontScale + state->letterSpacing;
+		prevCodepoint = codepoint;
+
+		if (isFlipped) {
+			float tmp;
+			tmp = y0; y0 = y1; y1 = tmp;
+			tmp = t0; t0 = t1; t1 = tmp;
+		}
+		nvgTransformPoint(&c[0],&c[1], state->xform, x0, y0);
+		nvgTransformPoint(&c[2],&c[3], state->xform, x1, y0);
+		nvgTransformPoint(&c[4],&c[5], state->xform, x1, y1);
+		nvgTransformPoint(&c[6],&c[7], state->xform, x0, y1);
+		if (nverts+6 > cverts) {
 			if (nverts != 0) {
-				nvg__renderText(ctx, verts, nverts);
+				nvg__renderTextImage(ctx, verts, nverts, currentImage);
 				nverts = 0;
 			}
-			if (!nvg__allocTextAtlas(ctx))
-				break; // no memory :(
-			iter = prevIter;
-			fonsTextIterNext(ctx->fs, &iter, &q); // try again
-			if (iter.prevGlyphIndex == -1) // still can not find glyph?
-				break;
 		}
-		prevIter = iter;
-		if(isFlipped) {
-			float tmp;
-
-			tmp = q.y0; q.y0 = q.y1; q.y1 = tmp;
-			tmp = q.t0; q.t0 = q.t1; q.t1 = tmp;
-		}
-		// Transform corners.
-		nvgTransformPoint(&c[0],&c[1], state->xform, q.x0*invscale, q.y0*invscale);
-		nvgTransformPoint(&c[2],&c[3], state->xform, q.x1*invscale, q.y0*invscale);
-		nvgTransformPoint(&c[4],&c[5], state->xform, q.x1*invscale, q.y1*invscale);
-		nvgTransformPoint(&c[6],&c[7], state->xform, q.x0*invscale, q.y1*invscale);
-		// Create triangles
 		if (nverts+6 <= cverts) {
-			nvg__vset(&verts[nverts], c[0], c[1], q.s0, q.t0); nverts++;
-			nvg__vset(&verts[nverts], c[4], c[5], q.s1, q.t1); nverts++;
-			nvg__vset(&verts[nverts], c[2], c[3], q.s1, q.t0); nverts++;
-			nvg__vset(&verts[nverts], c[0], c[1], q.s0, q.t0); nverts++;
-			nvg__vset(&verts[nverts], c[6], c[7], q.s0, q.t1); nverts++;
-			nvg__vset(&verts[nverts], c[4], c[5], q.s1, q.t1); nverts++;
+			nvg__vset(&verts[nverts], c[0], c[1], s0, t0); nverts++;
+			nvg__vset(&verts[nverts], c[4], c[5], s1, t1); nverts++;
+			nvg__vset(&verts[nverts], c[2], c[3], s1, t0); nverts++;
+			nvg__vset(&verts[nverts], c[0], c[1], s0, t0); nverts++;
+			nvg__vset(&verts[nverts], c[6], c[7], s0, t1); nverts++;
+			nvg__vset(&verts[nverts], c[4], c[5], s1, t1); nverts++;
 		}
 	}
 
-	// TODO: add back-end bit to do this just once per frame.
-	nvg__flushTextTexture(ctx);
+	if (nverts != 0 && currentImage != 0)
+		nvg__renderTextImage(ctx, verts, nverts, currentImage);
 
-	nvg__renderText(ctx, verts, nverts);
-
-	return iter.nextx / scale;
+	return nextX;
 }
 
 void nvgTextBox(NVGcontext* ctx, float x, float y, float breakRowWidth, const char* string, const char* end)
@@ -2581,13 +2788,17 @@ void nvgTextBox(NVGcontext* ctx, float x, float y, float breakRowWidth, const ch
 int nvgTextGlyphPositions(NVGcontext* ctx, float x, float y, const char* string, const char* end, NVGglyphPosition* positions, int maxPositions)
 {
 	NVGstate* state = nvg__getState(ctx);
-	float scale = nvg__getFontScale(state) * ctx->devicePxRatio;
-	float invscale = 1.0f / scale;
-	FONStextIter iter, prevIter;
-	FONSquad q;
+	NVGDoraFont* doraFont = nvg__getDoraFont(ctx, state->fontId);
+	float fontScale = nvg__doraFontScale(state, ctx);
+	float penX;
+	unsigned int utf8state = 0;
+	unsigned int codepoint = 0;
+	unsigned int prevCodepoint = 0;
+	const char* glyphStart = string;
 	int npos = 0;
 
-	if (state->fontId == FONS_INVALID) return 0;
+	NVG_NOTUSED(y);
+	if (doraFont == NULL) return 0;
 
 	if (end == NULL)
 		end = string + strlen(string);
@@ -2595,27 +2806,29 @@ int nvgTextGlyphPositions(NVGcontext* ctx, float x, float y, const char* string,
 	if (string == end)
 		return 0;
 
-	fonsSetSize(ctx->fs, state->fontSize*scale);
-	fonsSetSpacing(ctx->fs, state->letterSpacing*scale);
-	fonsSetBlur(ctx->fs, state->fontBlur*scale);
-	fonsSetAlign(ctx->fs, state->textAlign);
-	fonsSetFont(ctx->fs, state->fontId);
-
-	fonsTextIterInit(ctx->fs, &iter, x*scale, y*scale, string, end, FONS_GLYPH_BITMAP_OPTIONAL);
-	prevIter = iter;
-	while (fonsTextIterNext(ctx->fs, &iter, &q)) {
-		if (iter.prevGlyphIndex < 0 && nvg__allocTextAtlas(ctx)) { // can not retrieve glyph?
-			iter = prevIter;
-			fonsTextIterNext(ctx->fs, &iter, &q); // try again
-		}
-		prevIter = iter;
-		positions[npos].str = iter.str;
-		positions[npos].x = iter.x * invscale;
-		positions[npos].minx = nvg__minf(iter.x, q.x0) * invscale;
-		positions[npos].maxx = nvg__maxf(iter.nextx, q.x1) * invscale;
+	penX = nvg__doraTextStartX(ctx, state, x, string, end);
+	float sdfPadding = nvg__doraSdfPadding(state, ctx);
+	for (const char* str = string; str != end; ++str) {
+		if (utf8state == 0)
+			glyphStart = str;
+		if (nvg__decutf8(&utf8state, &codepoint, *(const unsigned char*)str))
+			continue;
+		NVGDoraFont* glyphFont = nvg__resolveDoraFont(ctx, doraFont, (bgfx::CodePoint)codepoint);
+		const bgfx::GlyphInfo* glyph = SharedFontManager.getGlyphInfo(glyphFont->font->getHandle(), (bgfx::CodePoint)codepoint);
+		if (prevCodepoint != 0)
+			penX += SharedFontManager.getKerning(glyphFont->font->getHandle(), (bgfx::CodePoint)prevCodepoint, (bgfx::CodePoint)codepoint) * fontScale;
+		float nextX = penX + glyph->advance_x * fontScale + state->letterSpacing;
+		float minx = penX + glyph->offset_x * fontScale - sdfPadding;
+		float maxx = minx + glyph->width * fontScale;
+		positions[npos].str = glyphStart;
+		positions[npos].x = penX;
+		positions[npos].minx = nvg__minf(penX, minx);
+		positions[npos].maxx = nvg__maxf(nextX, maxx);
 		npos++;
 		if (npos >= maxPositions)
 			break;
+		penX = nextX;
+		prevCodepoint = codepoint;
 	}
 
 	return npos;
@@ -2658,6 +2871,94 @@ int nvgTextBreakLines(NVGcontext* ctx, const char* string, const char* end, floa
 		end = string + strlen(string);
 
 	if (string == end) return 0;
+
+	if (NVGDoraFont* doraFont = nvg__getDoraFont(ctx, state->fontId)) {
+		float fontScale = nvg__doraFontScale(state, ctx);
+		float penX = 0.0f;
+		const char* rowStart = NULL;
+		const char* rowEnd = NULL;
+		const char* rowNext = NULL;
+		float rowMinX = 0.0f;
+		float rowMaxX = 0.0f;
+		float rowWidth = 0.0f;
+		float sdfPadding = nvg__doraSdfPadding(state, ctx);
+		unsigned int utf8state = 0;
+		unsigned int codepoint = 0;
+		unsigned int prevCodepoint = 0;
+		const char* glyphStart = string;
+		for (const char* str = string; str != end; ++str) {
+			if (utf8state == 0)
+				glyphStart = str;
+			if (nvg__decutf8(&utf8state, &codepoint, *(const unsigned char*)str))
+				continue;
+			const char* glyphEnd = str + 1;
+			bool newline = codepoint == 10 || codepoint == 13 || codepoint == 0x0085;
+			bool space = codepoint == 9 || codepoint == 11 || codepoint == 12 || codepoint == 32 || codepoint == 0x00a0;
+			if (newline) {
+				rows[nrows].start = rowStart != NULL ? rowStart : glyphStart;
+				rows[nrows].end = rowEnd != NULL ? rowEnd : glyphStart;
+				rows[nrows].width = rowWidth;
+				rows[nrows].minx = rowMinX;
+				rows[nrows].maxx = rowMaxX;
+				rows[nrows].next = glyphEnd;
+				nrows++;
+				if (nrows >= maxRows) return nrows;
+				rowStart = NULL;
+				rowEnd = NULL;
+				rowNext = NULL;
+				rowMinX = rowMaxX = rowWidth = penX = 0.0f;
+				prevCodepoint = 0;
+				continue;
+			}
+			NVGDoraFont* glyphFont = nvg__resolveDoraFont(ctx, doraFont, (bgfx::CodePoint)codepoint);
+			const bgfx::GlyphInfo* glyph = SharedFontManager.getGlyphInfo(glyphFont->font->getHandle(), (bgfx::CodePoint)codepoint);
+			if (prevCodepoint != 0)
+				penX += SharedFontManager.getKerning(glyphFont->font->getHandle(), (bgfx::CodePoint)prevCodepoint, (bgfx::CodePoint)codepoint) * fontScale;
+			float glyphMinX = penX + glyph->offset_x * fontScale - sdfPadding;
+			float glyphMaxX = glyphMinX + glyph->width * fontScale;
+			float nextX = penX + glyph->advance_x * fontScale + state->letterSpacing;
+			if (rowStart == NULL) {
+				if (space) {
+					penX = nextX;
+					prevCodepoint = codepoint;
+					continue;
+				}
+				rowStart = glyphStart;
+				rowMinX = glyphMinX - penX;
+			}
+			if (breakRowWidth > 0.0f && nextX > breakRowWidth && rowStart != glyphStart) {
+				rows[nrows].start = rowStart;
+				rows[nrows].end = rowEnd != NULL ? rowEnd : glyphStart;
+				rows[nrows].width = rowWidth;
+				rows[nrows].minx = rowMinX;
+				rows[nrows].maxx = rowMaxX;
+				rows[nrows].next = rowNext != NULL ? rowNext : glyphStart;
+				nrows++;
+				if (nrows >= maxRows) return nrows;
+				rowStart = glyphStart;
+				rowMinX = glyph->offset_x * fontScale - sdfPadding;
+				penX = 0.0f;
+				nextX = glyph->advance_x * fontScale + state->letterSpacing;
+				glyphMaxX = rowMinX + glyph->width * fontScale;
+			}
+			rowEnd = glyphEnd;
+			rowNext = glyphEnd;
+			rowWidth = nextX;
+			rowMaxX = glyphMaxX;
+			penX = nextX;
+			prevCodepoint = codepoint;
+		}
+		if (rowStart != NULL && nrows < maxRows) {
+			rows[nrows].start = rowStart;
+			rows[nrows].end = rowEnd;
+			rows[nrows].width = rowWidth;
+			rows[nrows].minx = rowMinX;
+			rows[nrows].maxx = rowMaxX;
+			rows[nrows].next = rowNext != NULL ? rowNext : end;
+			nrows++;
+		}
+		return nrows;
+	}
 
 	fonsSetSize(ctx->fs, state->fontSize*scale);
 	fonsSetSpacing(ctx->fs, state->letterSpacing*scale);
@@ -2837,64 +3138,58 @@ int nvgTextBreakLines(NVGcontext* ctx, const char* string, const char* end, floa
 float nvgTextBounds(NVGcontext* ctx, float x, float y, const char* string, const char* end, float* bounds)
 {
 	NVGstate* state = nvg__getState(ctx);
-	float scale = nvg__getFontScale(state) * ctx->devicePxRatio;
-	float invscale = 1.0f / scale;
+	float minx = 0.0f;
+	float maxx = 0.0f;
+	float ascender = 0.0f;
+	float descender = 0.0f;
 	float width;
+	float startX;
+	float baselineY;
+	float sdfPadding;
 
-	if (state->fontId == FONS_INVALID) return 0;
+	if (nvg__getDoraFont(ctx, state->fontId) == NULL) return 0;
 
-	fonsSetSize(ctx->fs, state->fontSize*scale);
-	fonsSetSpacing(ctx->fs, state->letterSpacing*scale);
-	fonsSetBlur(ctx->fs, state->fontBlur*scale);
-	fonsSetAlign(ctx->fs, state->textAlign);
-	fonsSetFont(ctx->fs, state->fontId);
-
-	width = fonsTextBounds(ctx->fs, x*scale, y*scale, string, end, bounds);
+	width = nvg__doraTextAdvance(ctx, state, string, end, &minx, &maxx);
 	if (bounds != NULL) {
-		// Use line bounds for height.
-		fonsLineBounds(ctx->fs, y*scale, &bounds[1], &bounds[3]);
-		bounds[0] *= invscale;
-		bounds[1] *= invscale;
-		bounds[2] *= invscale;
-		bounds[3] *= invscale;
+		startX = nvg__doraTextStartX(ctx, state, x, string, end);
+		baselineY = nvg__doraTextBaselineY(ctx, state, y);
+		sdfPadding = nvg__doraSdfPadding(state, ctx);
+		nvg__doraVertMetrics(ctx, state, &ascender, &descender, NULL);
+		bounds[0] = startX + minx;
+		bounds[1] = baselineY - ascender - sdfPadding;
+		bounds[2] = startX + maxx;
+		bounds[3] = baselineY - descender + sdfPadding;
 	}
-	return width * invscale;
+	return width;
 }
 
 void nvgTextBoxBounds(NVGcontext* ctx, float x, float y, float breakRowWidth, const char* string, const char* end, float* bounds)
 {
 	NVGstate* state = nvg__getState(ctx);
 	NVGtextRow rows[2];
-	float scale = nvg__getFontScale(state) * ctx->devicePxRatio;
-	float invscale = 1.0f / scale;
 	int nrows = 0, i;
 	int oldAlign = state->textAlign;
 	int halign = state->textAlign & (NVG_ALIGN_LEFT | NVG_ALIGN_CENTER | NVG_ALIGN_RIGHT);
 	int valign = state->textAlign & (NVG_ALIGN_TOP | NVG_ALIGN_MIDDLE | NVG_ALIGN_BOTTOM | NVG_ALIGN_BASELINE);
-	float lineh = 0, rminy = 0, rmaxy = 0;
+	float lineh = 0, ascender = 0, descender = 0, rminy = 0, rmaxy = 0;
+	float sdfPadding = nvg__doraSdfPadding(state, ctx);
 	float minx, miny, maxx, maxy;
 
-	if (state->fontId == FONS_INVALID) {
+	if (nvg__getDoraFont(ctx, state->fontId) == NULL) {
 		if (bounds != NULL)
 			bounds[0] = bounds[1] = bounds[2] = bounds[3] = 0.0f;
 		return;
 	}
 
-	nvgTextMetrics(ctx, NULL, NULL, &lineh);
+	nvgTextMetrics(ctx, &ascender, &descender, &lineh);
 
 	state->textAlign = NVG_ALIGN_LEFT | valign;
 
 	minx = maxx = x;
 	miny = maxy = y;
 
-	fonsSetSize(ctx->fs, state->fontSize*scale);
-	fonsSetSpacing(ctx->fs, state->letterSpacing*scale);
-	fonsSetBlur(ctx->fs, state->fontBlur*scale);
-	fonsSetAlign(ctx->fs, state->textAlign);
-	fonsSetFont(ctx->fs, state->fontId);
-	fonsLineBounds(ctx->fs, 0, &rminy, &rmaxy);
-	rminy *= invscale;
-	rmaxy *= invscale;
+	rminy = -ascender - sdfPadding;
+	rmaxy = -descender + sdfPadding;
 
 	while ((nrows = nvgTextBreakLines(ctx, string, end, breakRowWidth, rows, 2))) {
 		for (i = 0; i < nrows; i++) {
@@ -2933,23 +3228,8 @@ void nvgTextBoxBounds(NVGcontext* ctx, float x, float y, float breakRowWidth, co
 void nvgTextMetrics(NVGcontext* ctx, float* ascender, float* descender, float* lineh)
 {
 	NVGstate* state = nvg__getState(ctx);
-	float scale = nvg__getFontScale(state) * ctx->devicePxRatio;
-	float invscale = 1.0f / scale;
 
-	if (state->fontId == FONS_INVALID) return;
-
-	fonsSetSize(ctx->fs, state->fontSize*scale);
-	fonsSetSpacing(ctx->fs, state->letterSpacing*scale);
-	fonsSetBlur(ctx->fs, state->fontBlur*scale);
-	fonsSetAlign(ctx->fs, state->textAlign);
-	fonsSetFont(ctx->fs, state->fontId);
-
-	fonsVertMetrics(ctx->fs, ascender, descender, lineh);
-	if (ascender != NULL)
-		*ascender *= invscale;
-	if (descender != NULL)
-		*descender *= invscale;
-	if (lineh != NULL)
-		*lineh *= invscale;
+	if (nvg__getDoraFont(ctx, state->fontId) == NULL) return;
+	nvg__doraVertMetrics(ctx, state, ascender, descender, lineh);
 }
 // vim: ft=c nu noet ts=4

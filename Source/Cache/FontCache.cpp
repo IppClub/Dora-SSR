@@ -132,7 +132,9 @@ bool FontCache::unload(String fontStr) {
 	int fontSize = 0;
 	bool sdf = false;
 	std::tie(fontName, fontSize, sdf) = getArgsFromStr(fontStr);
-	auto fontIt = _fonts.find(fontStr);
+	uint32_t bakedFontSize = sdf ? DORA_SDF_FONT_BASE_SIZE : s_cast<uint32_t>(fontSize);
+	std::string fontFaceName = fmt::format("{};{};{}", Path::getName(fontName), bakedFontSize, sdf);
+	auto fontIt = _fonts.find(fontFaceName);
 	if (fontIt != _fonts.end()) {
 		TrueTypeFile* fontFile = fontIt->second->getFile();
 		_fonts.erase(fontIt);
@@ -193,12 +195,13 @@ Font* FontCache::load(String fontStr) {
 
 Font* FontCache::load(String fontName, uint32_t fontSize, bool sdf) {
 	auto name = Path::getName(fontName);
-	std::string fontFaceName = fmt::format("{};{};{}", name, fontSize, sdf);
+	uint32_t bakedFontSize = sdf ? DORA_SDF_FONT_BASE_SIZE : fontSize;
+	std::string fontFaceName = fmt::format("{};{};{}", name, bakedFontSize, sdf);
 	auto fontIt = _fonts.find(fontFaceName);
 	if (fontIt != _fonts.end()) {
 		return fontIt->second;
 	} else if (auto file = loadFontFile(fontName)) {
-		bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(file->getHandle(), fontSize, sdf);
+		bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(file->getHandle(), bakedFontSize, sdf);
 		Font* font = Font::create(file, fontHandle);
 		_fonts[fontFaceName] = font;
 		return font;
@@ -250,7 +253,8 @@ void FontCache::loadAync(String fontStr, const std::function<void(Font* fontHand
 
 void FontCache::loadAync(String fontName, uint32_t fontSize, bool sdf, const std::function<void(Font* fontHandle)>& callback) {
 	auto name = Path::getName(fontName);
-	std::string fontFaceName = fmt::format("{};{};{}", name, fontSize, sdf);
+	uint32_t bakedFontSize = sdf ? DORA_SDF_FONT_BASE_SIZE : fontSize;
+	std::string fontFaceName = fmt::format("{};{};{}", name, bakedFontSize, sdf);
 	auto fontIt = _fonts.find(fontFaceName);
 	if (fontIt != _fonts.end()) {
 		callback(fontIt->second);
@@ -269,16 +273,16 @@ void FontCache::loadAync(String fontName, uint32_t fontSize, bool sdf, const std
 		BLOCK_END
 		auto fileIt = _fontFiles.find(fontFile);
 		if (fileIt != _fontFiles.end()) {
-			bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(fileIt->second->getHandle(), fontSize, sdf);
+			bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(fileIt->second->getHandle(), bakedFontSize, sdf);
 			Font* font = Font::create(fileIt->second.get(), fontHandle);
 			_fonts[fontFaceName] = font;
 			callback(font);
 		} else {
-			SharedContent.loadAsyncUnsafe(fontFile, [this, fontFaceName, fontFile, fontSize, sdf, callback](uint8_t* data, int64_t size) {
+			SharedContent.loadAsyncUnsafe(fontFile, [this, fontFaceName, fontFile, bakedFontSize, sdf, callback](uint8_t* data, int64_t size) {
 				bgfx::TrueTypeHandle trueTypeHandle = SharedFontManager.createTtf(MakeOwnArray(data), s_cast<uint32_t>(size));
 				TrueTypeFile* file = TrueTypeFile::create(trueTypeHandle);
 				_fontFiles[fontFile] = file;
-				bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(trueTypeHandle, fontSize, sdf);
+				bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(trueTypeHandle, bakedFontSize, sdf);
 				Font* font = Font::create(file, fontHandle);
 				_fonts[fontFaceName] = font;
 				callback(font);

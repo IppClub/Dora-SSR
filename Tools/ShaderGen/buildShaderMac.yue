@@ -97,8 +97,9 @@ for modeltype, shaders in pairs efkbgfx do for shadertype, shader in pairs shade
 
 for stage in *{"v", "f"}
 	pathStr = io.popen("fselect dir,name from #{path} where name like '#{stage}s_%.sc'")\read "a"
-	for dir, file in pathStr\gmatch "([^\t]+)\t([^\n]+)\n?"
+	for baseDir, file in pathStr\gmatch "([^\t]+)\t([^\n]+)\n?"
 		sname = file\match "[^%.]+"
+		dir = "#{path}/#{baseDir}"
 		target = "#{dir}/#{sname}.bin.h"
 		with io.popen ": > #{dir}/#{sname}.bin.h" --"printf \"extern const uint8_t* #{sname}_pssl;\\nextern const uint32_t #{sname}_pssl_size;\\n\" > #{dir}/#{sname}.bin.h"
 			result = \read "a"

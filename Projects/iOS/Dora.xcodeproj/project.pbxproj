@@ -1974,12 +1974,10 @@
 		3C592EC62CA4F5E700CAF224 /* yuescript.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = yuescript.h; sourceTree = "<group>"; };
 		3C592EC72CA4F5E700CAF224 /* yuescript.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = yuescript.cpp; sourceTree = "<group>"; };
 		3C592ED42CA4F5F200CAF224 /* fontstash.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = fontstash.h; sourceTree = "<group>"; };
-		3C592ED52CA4F5F200CAF224 /* fs_nanovg_fill.bin.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = fs_nanovg_fill.bin.h; sourceTree = "<group>"; };
 		3C592ED62CA4F5F200CAF224 /* nanovg.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = nanovg.h; sourceTree = "<group>"; };
 		3C592ED72CA4F5F200CAF224 /* nanovg.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = nanovg.cpp; sourceTree = "<group>"; };
 		3C592ED82CA4F5F200CAF224 /* nanovg_bgfx.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = nanovg_bgfx.h; sourceTree = "<group>"; };
 		3C592ED92CA4F5F200CAF224 /* nanovg_bgfx.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = nanovg_bgfx.cpp; sourceTree = "<group>"; };
-		3C592EDA2CA4F5F200CAF224 /* vs_nanovg_fill.bin.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vs_nanovg_fill.bin.h; sourceTree = "<group>"; };
 		3C592EDF2CA4F60000CAF224 /* wasi_core.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = wasi_core.h; sourceTree = "<group>"; };
 		3C592EE12CA4F60000CAF224 /* m3_api_libc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = m3_api_libc.h; sourceTree = "<group>"; };
 		3C592EE22CA4F60000CAF224 /* m3_api_libc.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = m3_api_libc.c; sourceTree = "<group>"; };
@@ -3625,12 +3623,10 @@
 			isa = PBXGroup;
 			children = (
 				3C592ED42CA4F5F200CAF224 /* fontstash.h */,
-				3C592ED52CA4F5F200CAF224 /* fs_nanovg_fill.bin.h */,
 				3C592ED62CA4F5F200CAF224 /* nanovg.h */,
 				3C592ED72CA4F5F200CAF224 /* nanovg.cpp */,
 				3C592ED82CA4F5F200CAF224 /* nanovg_bgfx.h */,
 				3C592ED92CA4F5F200CAF224 /* nanovg_bgfx.cpp */,
-				3C592EDA2CA4F5F200CAF224 /* vs_nanovg_fill.bin.h */,
 			);
 			path = nanovg;
 			sourceTree = "<group>";

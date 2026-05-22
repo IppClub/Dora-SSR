@@ -2200,10 +2200,8 @@
     <ClInclude Include="..\..\..\Source\3rdParty\Lua\lzio.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\ml\DecisionTree.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\nanovg\fontstash.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\nanovg\fs_nanovg_fill.bin.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\nanovg\nanovg.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\nanovg\nanovg_bgfx.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\nanovg\vs_nanovg_fill.bin.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\nfd\nfd.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\nfd\nfd.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\Other\AcfDelegate.h" />

@@ -31,7 +31,7 @@ export default Class ScrollArea,
 			:viewWidth = width
 			:viewHeight = height
 			:scrollBar = true
-			:scrollBarColor3 = App.themeColor\toARGB!
+			:scrollBarColor3 = App.themeColor\toColor3!\toRGB!
 			:clipping = true
 		} = args
 		@x = selfX
@@ -41,13 +41,13 @@ export default Class ScrollArea,
 		screenSize = (Vec2 View.size).length
 		moveY = viewHeight - height
 		moveX = viewWidth - width
-		deltaX, deltaY = 0, 0
+		deltaX, deltaY = 0.0, 0.0
 		{:paddingX = 200, :paddingY = 200} = args
-		posX, posY = 0, 0
-		timePassed = 0
+		posX, posY = 0.0, 0.0
+		timePassed = 0.0
 		S = Vec2.zero
 		V = Vec2.zero
-		deltaMoveLength = 0
+		deltaMoveLength = 0.0
 		@contentSize = Size width, height
 		@setupMenuScroll @view
 
@@ -173,7 +173,7 @@ export default Class ScrollArea,
 				touch.enabled = false
 
 		@slot "TapBegan", (_touch) ->
-			deltaMoveLength = 0
+			deltaMoveLength = 0.0
 			S = Vec2.zero
 			V = Vec2.zero
 			@schedule updateSpeed

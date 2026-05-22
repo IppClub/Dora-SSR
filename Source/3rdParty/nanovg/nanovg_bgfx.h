@@ -35,6 +35,12 @@ void nvgSetViewId(NVGcontext* _ctx, bgfx::ViewId _viewId);
 ///
 uint16_t nvgGetViewId(struct NVGcontext* _ctx);
 
+///
+bgfx::TextureHandle nvglImageHandle(NVGcontext* _ctx, int32_t _image);
+
+///
+int nvglCreateImageFromHandle(NVGcontext* _ctx, bgfx::TextureHandle _handle, int32_t _width, int32_t _height, int32_t _type, int32_t _imageFlags);
+
 // Helper functions to create bgfx framebuffer to render to.
 // Example:
 //		float scale = 2;

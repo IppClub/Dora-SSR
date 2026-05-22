@@ -82,6 +82,7 @@ private:
 	float _spacing;
 	float _textWidth;
 	float _lineGap;
+	float _fontScale;
 	Color _outlineColor;
 	float _outlineWidth;
 	Vec2 _smooth;

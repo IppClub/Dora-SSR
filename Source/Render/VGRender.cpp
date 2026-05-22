@@ -24,6 +24,19 @@ NS_DORA_BEGIN
 
 NVGcontext* nvg::_currentContext = nullptr;
 
+namespace {
+std::unordered_set<std::string> s_registeredFonts;
+
+int EnsureRegisteredFont(NVGcontext* context, String name) {
+	std::string fontName = name.toString();
+	int fontId = nvgFindFont(context, fontName.c_str());
+	if (fontId < 0 && s_registeredFonts.find(fontName) != s_registeredFonts.end()) {
+		fontId = nvgCreateFont(context, fontName.c_str(), fontName.c_str());
+	}
+	return fontId;
+}
+}
+
 void nvg::Save() {
 	nvgSave(Context());
 }
@@ -69,7 +82,11 @@ int nvg::CreateImage(int w, int h, String filename, int imageFlags) {
 }
 
 int nvg::CreateFont(String name) {
-	return nvgCreateFont(Context(), name.c_str(), name.c_str());
+	int fontId = nvgCreateFont(Context(), name.c_str(), name.c_str());
+	if (fontId >= 0) {
+		s_registeredFonts.insert(name.toString());
+	}
+	return fontId;
 }
 
 float nvg::TextBounds(float x, float y, String text, Dora::Rect& bounds) {
@@ -347,7 +364,7 @@ void nvg::Stroke() {
 }
 
 int nvg::FindFont(String name) {
-	return nvgFindFont(Context(), name.c_str());
+	return EnsureRegisteredFont(Context(), name);
 }
 
 int nvg::AddFallbackFontId(int baseFont, int fallbackFont) {
@@ -405,7 +422,9 @@ void nvg::FontFaceId(int font) {
 }
 
 void nvg::FontFace(String font) {
-	nvgFontFace(Context(), font.c_str());
+	NVGcontext* context = Context();
+	EnsureRegisteredFont(context, font);
+	nvgFontFace(context, font.c_str());
 }
 
 void nvg::BindContext(NVGcontext* context) {

@@ -110,7 +110,6 @@
 		3C592A372CA4EE3600CAF224 /* ImGuiBinding.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592A342CA4EE3600CAF224 /* ImGuiBinding.cpp */; };
 		3C592A382CA4EE3600CAF224 /* ImGuiDora.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592A362CA4EE3600CAF224 /* ImGuiDora.cpp */; };
 		3C592A3B2CA4EE4500CAF224 /* HttpServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592A3A2CA4EE4500CAF224 /* HttpServer.cpp */; };
-		3C9F00012F3A000000000001 /* XrtHttpClient.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C9F00022F3A000000000001 /* XrtHttpClient.c */; };
 		3C592A442CA4EE5D00CAF224 /* Keyboard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592A3F2CA4EE5D00CAF224 /* Keyboard.cpp */; };
 		3C592A452CA4EE5D00CAF224 /* TouchDispather.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592A432CA4EE5D00CAF224 /* TouchDispather.cpp */; };
 		3C592A462CA4EE5D00CAF224 /* Mouse.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592A412CA4EE5D00CAF224 /* Mouse.cpp */; };
@@ -500,6 +499,7 @@
 		3C5937622CA4FAEF00CAF224 /* compress.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C5937392CA4FAEF00CAF224 /* compress.c */; };
 		3C60DE132A2069CE007D7865 /* Doc in Resources */ = {isa = PBXBuildFile; fileRef = 3C60DE122A2069CE007D7865 /* Doc */; };
 		3C76449F2CFD93D100DEDC0B /* libdora_runtime.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C76449E2CFD93D100DEDC0B /* libdora_runtime.a */; };
+		3C9F00012F3A000000000001 /* XrtHttpClient.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C9F00022F3A000000000001 /* XrtHttpClient.c */; };
 		3CA32CE926FEE8440046C13D /* GameController.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CA32CE826FEE8440046C13D /* GameController.framework */; };
 		3CA32CEB26FEE89E0046C13D /* CoreHaptics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CA32CEA26FEE89E0046C13D /* CoreHaptics.framework */; };
 		3CA718A71FCCF11000B6AC80 /* lodepng.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA718A61FCCF11000B6AC80 /* lodepng.cpp */; };
@@ -855,8 +855,6 @@
 		3C592A362CA4EE3600CAF224 /* ImGuiDora.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ImGuiDora.cpp; sourceTree = "<group>"; };
 		3C592A392CA4EE4500CAF224 /* HttpServer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HttpServer.h; sourceTree = "<group>"; };
 		3C592A3A2CA4EE4500CAF224 /* HttpServer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = HttpServer.cpp; sourceTree = "<group>"; };
-		3C9F00022F3A000000000001 /* XrtHttpClient.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = XrtHttpClient.c; sourceTree = "<group>"; };
-		3C9F00032F3A000000000001 /* XrtHttpClient.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = XrtHttpClient.h; sourceTree = "<group>"; };
 		3C592A3C2CA4EE5D00CAF224 /* Controller.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Controller.h; sourceTree = "<group>"; };
 		3C592A3D2CA4EE5D00CAF224 /* Controller.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Controller.cpp; sourceTree = "<group>"; };
 		3C592A3E2CA4EE5D00CAF224 /* Keyboard.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Keyboard.h; sourceTree = "<group>"; };
@@ -1495,12 +1493,10 @@
 		3C59357D2CA4F98C00CAF224 /* Utils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Utils.h; sourceTree = "<group>"; };
 		3C59357E2CA4F98C00CAF224 /* VariadicBind.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VariadicBind.h; sourceTree = "<group>"; };
 		3C5935892CA4F9A500CAF224 /* fontstash.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = fontstash.h; sourceTree = "<group>"; };
-		3C59358A2CA4F9A500CAF224 /* fs_nanovg_fill.bin.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = fs_nanovg_fill.bin.h; sourceTree = "<group>"; };
 		3C59358B2CA4F9A500CAF224 /* nanovg.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = nanovg.h; sourceTree = "<group>"; };
 		3C59358C2CA4F9A500CAF224 /* nanovg.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = nanovg.cpp; sourceTree = "<group>"; };
 		3C59358D2CA4F9A500CAF224 /* nanovg_bgfx.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = nanovg_bgfx.h; sourceTree = "<group>"; };
 		3C59358E2CA4F9A500CAF224 /* nanovg_bgfx.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = nanovg_bgfx.cpp; sourceTree = "<group>"; };
-		3C59358F2CA4F9A500CAF224 /* vs_nanovg_fill.bin.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vs_nanovg_fill.bin.h; sourceTree = "<group>"; };
 		3C5935922CA4F9C400CAF224 /* lapi.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lapi.h; sourceTree = "<group>"; };
 		3C5935932CA4F9C400CAF224 /* lapi.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lapi.c; sourceTree = "<group>"; };
 		3C5935942CA4F9C400CAF224 /* lauxlib.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lauxlib.h; sourceTree = "<group>"; };
@@ -1764,6 +1760,8 @@
 		3C8708642B5E0FAC002E9658 /* OutOfRange.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = OutOfRange.hpp; sourceTree = "<group>"; };
 		3C8708652B5E0FAC002E9658 /* BodyShapeFunction.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = BodyShapeFunction.hpp; sourceTree = "<group>"; };
 		3C8934B320F3094A00124463 /* Dora.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Dora.h; sourceTree = "<group>"; };
+		3C9F00022F3A000000000001 /* XrtHttpClient.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = XrtHttpClient.c; sourceTree = "<group>"; };
+		3C9F00032F3A000000000001 /* XrtHttpClient.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = XrtHttpClient.h; sourceTree = "<group>"; };
 		3CA32CE826FEE8440046C13D /* GameController.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameController.framework; path = System/Library/Frameworks/GameController.framework; sourceTree = SDKROOT; };
 		3CA32CEA26FEE89E0046C13D /* CoreHaptics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreHaptics.framework; path = System/Library/Frameworks/CoreHaptics.framework; sourceTree = SDKROOT; };
 		3CA718A51FCCF11000B6AC80 /* lodepng.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lodepng.h; sourceTree = "<group>"; };
@@ -2652,12 +2650,10 @@
 			isa = PBXGroup;
 			children = (
 				3C5935892CA4F9A500CAF224 /* fontstash.h */,
-				3C59358A2CA4F9A500CAF224 /* fs_nanovg_fill.bin.h */,
 				3C59358B2CA4F9A500CAF224 /* nanovg.h */,
 				3C59358C2CA4F9A500CAF224 /* nanovg.cpp */,
 				3C59358D2CA4F9A500CAF224 /* nanovg_bgfx.h */,
 				3C59358E2CA4F9A500CAF224 /* nanovg_bgfx.cpp */,
-				3C59358F2CA4F9A500CAF224 /* vs_nanovg_fill.bin.h */,
 			);
 			path = nanovg;
 			sourceTree = "<group>";
