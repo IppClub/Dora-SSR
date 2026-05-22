@@ -279,6 +279,16 @@ const GlyphInfo* FontManager::getGlyphInfo(FontHandle _handle, CodePoint _codePo
 	return &it->second;
 }
 
+bool FontManager::hasGlyph(FontHandle _handle, CodePoint _codePoint) const {
+	AssertUnless(bgfx::isValid(_handle), "Invalid handle used");
+	const CachedFont& font = m_cachedFonts.get()[_handle.idx];
+	TrueTypeFont* trueTypeFont = font.trueTypeFont.get();
+	if (trueTypeFont == nullptr) {
+		return false;
+	}
+	return stbtt_FindGlyphIndex(&trueTypeFont->getSTBInfo(), _codePoint) != 0;
+}
+
 bool FontManager::addBitmap(GlyphInfo& _glyphInfo, const uint8_t* _data) {
 	uint16_t regionIndex = m_currentAtlas->addRegion((uint16_t)ceil(_glyphInfo.width), (uint16_t)ceil(_glyphInfo.height), _data);
 	if (regionIndex == UINT16_MAX) {

@@ -35,8 +35,8 @@
 
 BX_PRAGMA_DIAGNOSTIC_IGNORED_MSVC(4244); // warning C4244: '=' : conversion from '' to '', possible loss of data
 
-#include "vs_nanovg_fill.bin.h"
-#include "fs_nanovg_fill.bin.h"
+#include "Shader/nanovg/vs_nanovg_fill.bin.h"
+#include "Shader/nanovg/fs_nanovg_fill.bin.h"
 
 static const bgfx::EmbeddedShader s_embeddedShaders[] =
 {
@@ -54,12 +54,14 @@ namespace
 		NSVG_SHADER_FILLGRAD,
 		NSVG_SHADER_FILLIMG,
 		NSVG_SHADER_SIMPLE,
-		NSVG_SHADER_IMG
+		NSVG_SHADER_IMG,
+		NSVG_SHADER_TEXTSDF
 	};
 
 	// These are additional flags on top of NVGimageFlags.
 	enum NVGimageFlagsGL {
 		NVG_IMAGE_NODELETE = 1<<16, // Do not delete GL texture handle.
+		GLNVG_IMAGE_SDF_TEXT = 1<<17,
 	};
 
 	struct GLNVGtexture
@@ -1026,6 +1028,17 @@ namespace
 		frag = nvg__fragUniformPtr(gl, call->uniformOffset);
 		glnvg__convertPaint(gl, frag, paint, scissor, 1.0f, fringe);
 		frag->type = NSVG_SHADER_IMG;
+		if (paint->image != 0)
+		{
+			struct GLNVGtexture* tex = glnvg__findTexture(gl, paint->image);
+			if (tex != NULL && (tex->flags & GLNVG_IMAGE_SDF_TEXT) != 0)
+			{
+				frag->feather = paint->feather;
+				frag->strokeMult = paint->radius;
+				frag->texType = 0.0f;
+				frag->type = NSVG_SHADER_TEXTSDF;
+			}
+		}
 	}
 
 	static void nvgRenderDelete(void* _userPtr)
@@ -1149,6 +1162,27 @@ bgfx::TextureHandle nvglImageHandle(NVGcontext* _ctx, int32_t _image)
 	GLNVGcontext* gl = (GLNVGcontext*)nvgInternalParams(_ctx)->userPtr;
 	GLNVGtexture* tex = glnvg__findTexture(gl, _image);
 	return tex->id;
+}
+
+int nvglCreateImageFromHandle(NVGcontext* _ctx, bgfx::TextureHandle _handle, int32_t _width, int32_t _height, int32_t _type, int32_t _imageFlags)
+{
+	GLNVGcontext* gl = (GLNVGcontext*)nvgInternalParams(_ctx)->userPtr;
+	GLNVGtexture* tex = glnvg__findTexture(gl, _handle.idx);
+	if (tex != NULL)
+	{
+		return tex->id.idx;
+	}
+	tex = glnvg__allocTexture(gl);
+	if (tex == NULL)
+	{
+		return 0;
+	}
+	tex->id = _handle;
+	tex->width = _width;
+	tex->height = _height;
+	tex->type = _type;
+	tex->flags = _imageFlags | NVG_IMAGE_NODELETE;
+	return tex->id.idx;
 }
 
 NVGLUframebuffer* nvgluCreateFramebuffer(NVGcontext* ctx, int32_t width, int32_t height, int32_t imageFlags, bgfx::ViewId viewId)

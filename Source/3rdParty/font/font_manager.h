@@ -148,6 +148,8 @@ public:
 	///
 	const GlyphInfo* getGlyphInfo(FontHandle _handle, CodePoint _codePoint);
 
+	bool hasGlyph(FontHandle _handle, CodePoint _codePoint) const;
+
 	float getKerning(FontHandle _handle, CodePoint _codeLeft, CodePoint _codeRight);
 
 protected:

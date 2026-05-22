@@ -46,7 +46,7 @@ _module_0 = Class(ScrollArea, { -- 25
 			scrollBar = true -- 33
 		end -- 33
 		if scrollBarColor3 == nil then -- 34
-			scrollBarColor3 = App.themeColor:toARGB() -- 34
+			scrollBarColor3 = App.themeColor:toColor3():toRGB() -- 34
 		end -- 34
 		if clipping == nil then -- 35
 			clipping = true -- 35
@@ -58,7 +58,7 @@ _module_0 = Class(ScrollArea, { -- 25
 		local screenSize = (Vec2(View.size)).length -- 41
 		local moveY = viewHeight - height -- 42
 		local moveX = viewWidth - width -- 43
-		local deltaX, deltaY = 0, 0 -- 44
+		local deltaX, deltaY = 0.0, 0.0 -- 44
 		local paddingX, paddingY = args.paddingX, args.paddingY -- 45
 		if paddingX == nil then -- 45
 			paddingX = 200 -- 45
@@ -66,11 +66,11 @@ _module_0 = Class(ScrollArea, { -- 25
 		if paddingY == nil then -- 45
 			paddingY = 200 -- 45
 		end -- 45
-		local posX, posY = 0, 0 -- 46
-		local timePassed = 0 -- 47
+		local posX, posY = 0.0, 0.0 -- 46
+		local timePassed = 0.0 -- 47
 		local S = Vec2.zero -- 48
 		local V = Vec2.zero -- 49
-		local deltaMoveLength = 0 -- 50
+		local deltaMoveLength = 0.0 -- 50
 		self.contentSize = Size(width, height) -- 51
 		self:setupMenuScroll(self.view) -- 52
 		self.view:slot("Tapped", function() -- 54
@@ -209,7 +209,7 @@ _module_0 = Class(ScrollArea, { -- 25
 			end -- 172
 		end) -- 171
 		self:slot("TapBegan", function(_touch) -- 175
-			deltaMoveLength = 0 -- 176
+			deltaMoveLength = 0.0 -- 176
 			S = Vec2.zero -- 177
 			V = Vec2.zero -- 178
 			self:schedule(updateSpeed) -- 179

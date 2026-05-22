@@ -72,6 +72,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #define DORA_FONT_TEXTURE_SIZE 2048
 #endif
 
+/** @brief The fixed pixel size used to bake SDF font glyphs.
+ */
+#ifndef DORA_SDF_FONT_BASE_SIZE
+#define DORA_SDF_FONT_BASE_SIZE 64
+#endif
+
 #ifndef DORA_DISABLE_PROFILER
 #define DORA_DISABLE_PROFILER 0
 #endif

@@ -24,10 +24,26 @@ NS_DORA_BEGIN
 
 const float Label::AutomaticWidth = -1.0f;
 
+static float GetFontScale(uint32_t fontSize, bool sdf) {
+	return sdf ? s_cast<float>(fontSize) / s_cast<float>(DORA_SDF_FONT_BASE_SIZE) : 1.0f;
+}
+
+static float GetFontScale(String fontStr) {
+	auto tokens = fontStr.split(";"_slice);
+	if (tokens.size() == 3 && tokens.back() == "true"_slice) {
+		auto it = tokens.begin();
+		uint32_t fontSize = s_cast<uint32_t>((++it)->toInt());
+		return GetFontScale(fontSize, true);
+	}
+	return 1.0f;
+}
+
 Label::Label(String fontName, uint32_t fontSize, bool sdf)
 	: _alphaRef(0)
 	, _spacing(0)
 	, _textWidth(Label::AutomaticWidth)
+	, _lineGap(0.0f)
+	, _fontScale(GetFontScale(fontSize, sdf))
 	, _alignment(TextAlign::Center)
 	, _outlineColor(0x0)
 	, _outlineWidth(0.0f)
@@ -36,7 +52,7 @@ Label::Label(String fontName, uint32_t fontSize, bool sdf)
 	, _blendFunc(BlendFunc::Default)
 	, _effect(sdf ? SharedFontCache.getSDFEffect() : SharedFontCache.getDefaultEffect()) {
 	if (_font) {
-		_lineGap = _font->getInfo().lineGap;
+		_lineGap = _font->getInfo().lineGap * _fontScale;
 		_flags.setOff(Node::TraverseEnabled);
 		_flags.setOn(Label::TextBatched);
 	}
@@ -46,12 +62,14 @@ Label::Label(String fontStr)
 	: _alphaRef(0)
 	, _spacing(0)
 	, _textWidth(Label::AutomaticWidth)
+	, _lineGap(0.0f)
+	, _fontScale(GetFontScale(fontStr))
 	, _alignment(TextAlign::Center)
 	, _font(SharedFontCache.load(fontStr))
 	, _blendFunc(BlendFunc::Default) {
 	if (_font) {
 		_effect = _font->getInfo().sdf ? SharedFontCache.getSDFEffect() : SharedFontCache.getDefaultEffect();
-		_lineGap = _font->getInfo().lineGap;
+		_lineGap = _font->getInfo().lineGap * _fontScale;
 		_flags.setOff(Node::TraverseEnabled);
 		_flags.setOn(Label::TextBatched);
 	}
@@ -237,7 +255,7 @@ float Label::getLetterPosXLeft(CharItem* item) {
 }
 
 float Label::getLetterPosXRight(CharItem* item) {
-	return item->pos.x + item->rect.getWidth() * 0.5f;
+	return item->pos.x + item->rect.getWidth() * _fontScale * 0.5f;
 }
 
 void Label::updateCharacters(const std::vector<uint32_t>& chars) {
@@ -268,11 +286,11 @@ void Label::updateCharacters(const std::vector<uint32_t>& chars) {
 	}
 
 	const bgfx::FontInfo& fontInfo = _font->getInfo();
-	float lineHeight = fontInfo.ascender - fontInfo.descender + _lineGap;
+	float lineHeight = (fontInfo.ascender - fontInfo.descender) * _fontScale + _lineGap;
 	totalHeight = lineHeight * quantityOfLines - (quantityOfLines > 0 ? _lineGap : 0);
 	nextFontPositionY = lineHeight * quantityOfLines - lineHeight;
 
-	float padding = fontInfo.sdf ? fontInfo.pixelSize * SDF_FONT_BUFFER_PADDING_RATIO : 0;
+	float padding = fontInfo.sdf ? fontInfo.pixelSize * SDF_FONT_BUFFER_PADDING_RATIO * _fontScale : 0;
 
 	const bgfx::GlyphInfo* fontDef = nullptr;
 	for (size_t i = 0; i < chars.size(); i++) {
@@ -296,7 +314,7 @@ void Label::updateCharacters(const std::vector<uint32_t>& chars) {
 			continue;
 		}
 
-		kerningAmount = s_cast<float>(SharedFontManager.getKerning(_font->getHandle(), prev, ch)) + _spacing;
+		kerningAmount = s_cast<float>(SharedFontManager.getKerning(_font->getHandle(), prev, ch)) * _fontScale + _spacing;
 
 		fontDef = SharedFontCache.getGlyphInfo(_font, ch);
 		if (!fontDef) {
@@ -312,6 +330,8 @@ void Label::updateCharacters(const std::vector<uint32_t>& chars) {
 		if (fontChar) {
 			if (fontChar->sprite) {
 				SharedFontCache.updateCharacter(fontChar->sprite, _font, ch);
+				fontChar->sprite->setScaleX(_fontScale);
+				fontChar->sprite->setScaleY(_fontScale);
 				fontChar->sprite->setVisible(ch != '\0');
 			} else if (_flags.isOff(Label::TextBatched)) {
 				createSprite = true;
@@ -326,6 +346,8 @@ void Label::updateCharacters(const std::vector<uint32_t>& chars) {
 		fontChar->code = ch;
 		if (createSprite) {
 			Sprite* sprite = SharedFontCache.createCharacter(_font, ch);
+			sprite->setScaleX(_fontScale);
+			sprite->setScaleY(_fontScale);
 			sprite->setBlendFunc(_blendFunc);
 			sprite->setRenderOrder(getRenderOrder());
 			sprite->setDepthWrite(isDepthWrite());
@@ -338,8 +360,8 @@ void Label::updateCharacters(const std::vector<uint32_t>& chars) {
 
 		float yOffset = -fontDef->offset_y;
 		Vec2 fontPos = Vec2{
-			nextFontPositionX + fontDef->offset_x + fontDef->width * 0.5f + kerningAmount - padding,
-			nextFontPositionY + yOffset - fontDef->height * 0.5f - fontInfo.descender + padding};
+			nextFontPositionX + fontDef->offset_x * _fontScale + fontDef->width * _fontScale * 0.5f + kerningAmount - padding,
+			nextFontPositionY + yOffset * _fontScale - fontDef->height * _fontScale * 0.5f - fontInfo.descender * _fontScale + padding};
 		fontChar->pos = fontPos;
 		fontChar->startX = nextFontPositionX;
 		if (fontChar->sprite) {
@@ -347,7 +369,7 @@ void Label::updateCharacters(const std::vector<uint32_t>& chars) {
 		}
 
 		// update kerning
-		nextFontPositionX += fontDef->advance_x * (isTab ? 2 : 1) + kerningAmount;
+		nextFontPositionX += fontDef->advance_x * _fontScale * (isTab ? 2 : 1) + kerningAmount;
 		prev = ch;
 		if (longestLine < nextFontPositionX) {
 			longestLine = nextFontPositionX;
@@ -361,7 +383,7 @@ void Label::updateCharacters(const std::vector<uint32_t>& chars) {
 		// to adjust the width of the string to take this into account, or the character will overlap the end of the bounding
 		// box
 		if (fontDef->advance_x < fontDef->width) {
-			finalSize.width = longestLine + fontDef->width - fontDef->advance_x;
+			finalSize.width = longestLine + (fontDef->width - fontDef->advance_x) * _fontScale;
 		} else {
 			finalSize.width = longestLine;
 		}
@@ -654,8 +676,8 @@ void Label::updateVertPosition() {
 		if (item && _text[i] != '\n' && _text[i] != '\0') {
 			const Vec2& pos = item->pos;
 			const Rect& rect = item->rect;
-			float halfW = rect.getWidth() * 0.5f;
-			float halfH = rect.getHeight() * 0.5f;
+			float halfW = rect.getWidth() * _fontScale * 0.5f;
+			float halfH = rect.getHeight() * _fontScale * 0.5f;
 			float left = pos.x - halfW, right = pos.x + halfW, top = pos.y + halfH, bottom = pos.y - halfH;
 			SpriteQuad::Position quadPos{{0, 0, 0, 1}, {0, 0, 0, 1}, {0, 0, 0, 1}, {0, 0, 0, 1}};
 			quadPos.lt.x = left;
