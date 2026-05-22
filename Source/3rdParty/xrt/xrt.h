@@ -78336,7 +78336,7 @@ typedef struct {
 #define FAST_DIV10000(n)    ((uint32_t)(((uint64_t)(n) * 109951163) >> 40)) /* 0 <= n < 100000000 */
 static inline int32_t u64_pz_get(uint64_t n)
 {
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (defined(_M_X64) || defined(_M_ARM64))
     unsigned long index;
     _BitScanReverse64(&index, n);
     return 63 - index;
@@ -78356,7 +78356,7 @@ static inline int32_t u64_pz_get(uint64_t n)
 static inline u64x2_t u128_mul(uint64_t x, uint64_t y)
 {
     u64x2_t ret;
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (defined(_M_X64) || defined(_M_ARM64))
     ret.lo = _umul128(x, y, &ret.hi);
 #elif USING_U128_CALC
     const u128 p = (u128)x * (u128)y;
