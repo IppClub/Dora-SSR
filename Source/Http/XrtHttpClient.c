@@ -41,6 +41,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 #define XRT_NO_XSON
 #define XRT_NO_TEMPLATE
 #define XRT_NO_REGEX
+#if defined(__ANDROID__)
+#define XNET_FORCE_EPOLL
+#endif
 #define XRT_IMPLEMENTATION
 #if defined(__clang__)
 #pragma clang diagnostic push
@@ -60,6 +63,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 #endif
 
 #include <ctype.h>
+#if !defined(_WIN32) && !defined(_WIN64)
+#include <signal.h>
+#endif
 #include <stdlib.h>
 #include <string.h>
 
@@ -69,6 +75,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 static int DoraXrtHttpAttachRuntimeThread(void) {
 	static volatile long initialized = 0;
 	if (__xnetAtomicCompareExchange32(&initialized, 1, 0) == 0) {
+#if !defined(_WIN32) && !defined(_WIN64)
+		(void)signal(SIGPIPE, SIG_IGN);
+#endif
 		xrtInit();
 		xrtThreadDetachCurrent();
 	}
