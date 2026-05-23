@@ -37,14 +37,6 @@ NS_DORA_BEGIN
 
 static_assert(sizeof(ImTextureID) >= sizeof(Texture2D*), "ImTextureID size should be greater equal to size of Texture2D*");
 
-static void addImGuiMousePosEvent(float x, float y) {
-	Size visualSize = SharedApplication.getVisualSize();
-	Size winSize = SharedApplication.getWinSize();
-	ImGui::GetIO().AddMousePosEvent(
-		x * visualSize.width / winSize.width,
-		y * visualSize.height / winSize.height);
-}
-
 class ConsolePanel {
 public:
 	ConsolePanel()
@@ -1284,7 +1276,6 @@ void ImGuiDora::handleEvent(const SDL_Event& event) {
 			break;
 		}
 		case SDL_MOUSEBUTTONDOWN: {
-			addImGuiMousePosEvent(s_cast<float>(event.button.x), s_cast<float>(event.button.y));
 			switch (event.button.button) {
 				case SDL_BUTTON_LEFT: _mousePressed[0] = true; break;
 				case SDL_BUTTON_RIGHT: _mousePressed[1] = true; break;
@@ -1293,15 +1284,22 @@ void ImGuiDora::handleEvent(const SDL_Event& event) {
 			break;
 		}
 		case SDL_MOUSEBUTTONUP: {
-			addImGuiMousePosEvent(s_cast<float>(event.button.x), s_cast<float>(event.button.y));
-			// Delay clearing _mousePressed to next frame via _inputs queue.
-			// This ensures ImGui sees at least one frame with pressed=true,
-			// so fast clicks (down+up in same frame) are not lost.
-			_inputs.push_back(event);
+			SharedDirector.getSystemScheduler()->schedule([this, event](double deltaTime) {
+				DORA_UNUSED_PARAM(deltaTime);
+				_inputs.push_back(event);
+				return true;
+			});
 			break;
 		}
 		case SDL_MOUSEMOTION: {
-			addImGuiMousePosEvent(s_cast<float>(event.motion.x), s_cast<float>(event.motion.y));
+			if (event.motion.state == 0 && _mousePressed[0]) {
+				break;
+			}
+			Size visualSize = SharedApplication.getVisualSize();
+			Size winSize = SharedApplication.getWinSize();
+			ImGui::GetIO().AddMousePosEvent(
+				s_cast<float>(event.motion.x) * visualSize.width / winSize.width,
+				s_cast<float>(event.motion.y) * visualSize.height / winSize.height);
 			break;
 		}
 		case SDL_KEYDOWN:
@@ -1441,13 +1439,6 @@ bool ImGuiDora::ImGuiTouchHandler::handle(const SDL_Event& event) {
 		case SDL_MOUSEWHEEL:
 			return ImGui::IsAnyItemHovered()
 				|| ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow)
-				|| ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId | ImGuiPopupFlags_AnyPopupLevel);
-		case SDL_MOUSEMOTION:
-		case SDL_MOUSEBUTTONUP:
-		case SDL_FINGERMOTION:
-		case SDL_FINGERUP:
-			return ImGui::GetIO().WantCaptureMouse
-				|| ImGui::IsAnyItemActive()
 				|| ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId | ImGuiPopupFlags_AnyPopupLevel);
 	}
 	return false;
