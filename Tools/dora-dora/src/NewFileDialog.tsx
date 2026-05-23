@@ -27,11 +27,12 @@ import doraBodyLogo from './dora-body.png';
 import { AiFillFolderAdd } from 'react-icons/ai';
 import { DiCode } from 'react-icons/di';
 import { VscMarkdown } from 'react-icons/vsc';
+import { MdGridOn } from 'react-icons/md';
 import { useTranslation } from 'react-i18next';
 import { DialogActions } from '@mui/material';
 import Grid from '@mui/material/Grid';
 
-export type DoraFileType = "Lua" | "YueScript" | "Teal" | "TypeScript" | "Dora XML" | "Dora Animation" | "Dora Body" | "Dora Particle" | "Markdown" | "Yarn" | "Visual Script" | "Blockly" | "Folder" | "Wa" | "TIC80"
+export type DoraFileType = "Lua" | "YueScript" | "Teal" | "TypeScript" | "Dora XML" | "Dora Animation" | "Dora Body" | "Dora Particle" | "Markdown" | "Yarn" | "Visual Script" | "Blockly" | "Folder" | "Wa" | "TIC80" | "Pixel Sprite"
 
 interface FileType {
 	icon: React.ReactNode;
@@ -128,6 +129,12 @@ const fileTypes: FileType[] = [
 		name: "TIC80",
 		desc: "file.tic",
 		padding: '20px'
+	},
+	{
+		icon: <MdGridOn size={48} style={{ marginLeft: '2px', color: '#ffd54a' }} />,
+		name: "Pixel Sprite",
+		desc: "file.pixelSprite",
+		padding: '18px'
 	},
 	{
 		icon: <AiFillFolderAdd size={50} style={{ marginLeft: '0px' }} />,
