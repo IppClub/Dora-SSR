@@ -11,6 +11,7 @@ import { StyledMenu, StyledMenuItem } from './Menu';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import Refresh from '@mui/icons-material/Refresh';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import {
 	AiFillCaretRight,
 	AiFillCaretDown,
@@ -113,6 +114,8 @@ const fileIcon = (props: TreeNodeProps) => {
 					return <DiCode size={14} />;
 				case ".model":
 					return <img src={doraAnimationLogo} alt="model" width="14px" height="14px" style={{ objectFit: 'contain' }} />;
+				case ".par":
+					return <AutoAwesomeIcon sx={{ fontSize: 14, color: "#fac03d" }} />;
 				case ".clip":
 					return <BsGrid3X3Gap size={13} color="#5cc8ff" />;
 				case ".db":
