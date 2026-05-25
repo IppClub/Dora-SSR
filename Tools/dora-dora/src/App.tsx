@@ -53,6 +53,7 @@ import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
 import LLMConfigDialog from './LLMConfigDialog';
 import ProjectWorkspacePanel from './ProjectWorkspacePanel';
 import { createEmptyActionDocument, writeLegacyModel } from './ActionEditor';
+import { createParticleDocument, writeParticleDocumentToXml } from './ParticleEditor';
 
 const SpinePlayer = React.lazy(() => import('./SpinePlayer'));
 const Markdown = React.lazy(() => import('./Markdown'));
@@ -64,6 +65,7 @@ const TIC80Editor = React.lazy(() => import('./TIC80Editor'));
 const ActionEditor = React.lazy(() => import('./ActionEditor/ActionEditor'));
 const ActionClipPreview = React.lazy(() => import('./ActionEditor/ActionClipPreview'));
 const BodyEditor = React.lazy(() => import('./BodyEditor/BodyEditor'));
+const ParticleEditor = React.lazy(() => import('./ParticleEditor/ParticleEditor'));
 
 const { path } = Info;
 
@@ -101,6 +103,7 @@ const areEditingInfosEqual = (a: Service.EditingInfo | null, b: Service.EditingI
 		if (fileA.mdEditing !== fileB.mdEditing) return false;
 		if (fileA.yarnTextEditing !== fileB.yarnTextEditing) return false;
 		if (fileA.bodyTextEditing !== fileB.bodyTextEditing) return false;
+		if (fileA.particleTextEditing !== fileB.particleTextEditing) return false;
 		if (fileA.readOnly !== fileB.readOnly) return false;
 		if (fileA.folder !== fileB.folder) return false;
 		if (fileA.agentSessionId !== fileB.agentSessionId) return false;
@@ -350,6 +353,7 @@ interface EditingFile {
 	mdEditing?: boolean;
 	yarnTextEditing?: boolean;
 	bodyTextEditing?: boolean;
+	particleTextEditing?: boolean;
 	yarnData?: YarnEditorData;
 	codeWireData?: CodeWireData;
 	blocklyData?: string;
@@ -439,6 +443,9 @@ const getNewFileTemplate = (ext: string) => {
 		case ".b.lua":
 			content = `return {"Array"}`;
 			break;
+		case ".par":
+			content = writeParticleDocumentToXml(createParticleDocument("fire"));
+			break;
 		default:
 			break;
 	}
@@ -526,7 +533,7 @@ interface UpdateFileEvent {
 	content: string;
 }
 
-const previewFileExts = new Set([".png", ".jpg", ".jpeg", ".clip"]);
+const previewFileExts = new Set([".png", ".jpg", ".jpeg", ".clip", ".par"]);
 
 const appendCacheKey = (url: string, key?: number) => {
 	if (key === undefined) return url;
@@ -1259,6 +1266,7 @@ export default function PersistentDrawerLeft() {
 				case ".yarn":
 				case ".vs":
 				case ".model":
+				case ".par":
 				case ".ts":
 				case ".tsx":
 				case ".wa":
@@ -1304,6 +1312,7 @@ export default function PersistentDrawerLeft() {
 				newFile.mdEditing = file.mdEditing;
 				newFile.yarnTextEditing = file.yarnTextEditing;
 				newFile.bodyTextEditing = file.bodyTextEditing;
+				newFile.particleTextEditing = file.particleTextEditing;
 				newFile.readOnly = file.readOnly;
 				newFile.agentSessionId = file.agentSessionId;
 				newFile.workspaceView = file.workspaceView ?? (file.agentSessionId !== undefined ? "agent" : (file.folder ? "upload" : undefined));
@@ -1358,6 +1367,7 @@ export default function PersistentDrawerLeft() {
 						case ".yarn": newFile.yarnTextEditing = true; break;
 						case ".md": newFile.mdEditing = true; break;
 						case ".lua": newFile.bodyTextEditing = isBodyLuaFile(title); break;
+						case ".par": newFile.particleTextEditing = false; break;
 					}
 				}
 				setFiles(files => {
@@ -1376,6 +1386,7 @@ export default function PersistentDrawerLeft() {
 					case ".yarn": file.yarnTextEditing = true; break;
 					case ".md": file.mdEditing = true; break;
 					case ".lua": file.bodyTextEditing = isBodyLuaFile(title); break;
+					case ".par": file.particleTextEditing = false; break;
 				}
 				setFiles([...files]);
 			}
@@ -1487,7 +1498,7 @@ export default function PersistentDrawerLeft() {
 					const ext = path.extname(file).toLowerCase();
 					if (previewFileExts.has(ext)) {
 						nextFiles = nextFiles.map((item) => {
-							if (!isBodyLuaFile(item.key)) return item;
+							if (!isBodyLuaFile(item.key) && path.extname(item.key).toLowerCase() !== ".par") return item;
 							return {
 								...item,
 								previewVersion: (item.previewVersion ?? 0) + 1,
@@ -1700,7 +1711,7 @@ export default function PersistentDrawerLeft() {
 			asProj = true;
 		}
 		const ext = path.extname(key).toLowerCase();
-		if (ext === ".model" && !asProj) {
+		if ((ext === ".model" || ext === ".par") && !asProj) {
 			addAlert(t("alert.modelRunCurrentUnsupported", { title }), "info");
 			return;
 		}
@@ -1718,6 +1729,7 @@ export default function PersistentDrawerLeft() {
 			case ".wa":
 			case ".mod":
 			case ".model":
+			case ".par":
 			case "": {
 				if (ext === ".yarn" && !asProj) {
 					break;
@@ -2625,6 +2637,7 @@ export default function PersistentDrawerLeft() {
 			case "Dora XML": ext = ".xml"; break;
 			case "Dora Animation": ext = ".model"; break;
 			case "Dora Body": ext = ".b.lua"; break;
+			case "Dora Particle": ext = ".par"; break;
 			case "Markdown": ext = ".md"; break;
 			case "Yarn": ext = ".yarn"; break;
 			case "Visual Script": ext = ".vs"; break;
@@ -3452,13 +3465,13 @@ export default function PersistentDrawerLeft() {
 		const editingInfo: Service.EditingInfo = {
 			index: tabIndex ?? 0,
 			files: files.map(f => {
-				const { key, title, mdEditing, yarnTextEditing, bodyTextEditing, editor, readOnly, agentSessionId, workspaceView } = f;
+				const { key, title, mdEditing, yarnTextEditing, bodyTextEditing, particleTextEditing, editor, readOnly, agentSessionId, workspaceView } = f;
 				let { position } = f;
 				const { folder = false } = f;
 				if (position === undefined && editor !== undefined) {
 					position = editor.getPosition() ?? undefined;
 				}
-				return { key, title, mdEditing, yarnTextEditing, bodyTextEditing, position, readOnly, folder, agentSessionId, workspaceView };
+				return { key, title, mdEditing, yarnTextEditing, bodyTextEditing, particleTextEditing, position, readOnly, folder, agentSessionId, workspaceView };
 			})
 		};
 		if (areEditingInfosEqual(editingInfo, lastEditingInfo)) {
@@ -4069,6 +4082,7 @@ export default function PersistentDrawerLeft() {
 						let actionModel = false;
 						let actionClip = false;
 						let bodyLua = false;
+						let particle = false;
 						switch (ext.toLowerCase()) {
 							case ".lua":
 								if (isBodyLuaFile(file.title) && !file.bodyTextEditing) {
@@ -4082,6 +4096,13 @@ export default function PersistentDrawerLeft() {
 							case ".ts": case ".tsx": language = "typescript"; break;
 							case ".xml": language = "xml"; break;
 							case ".clip": actionClip = true; break;
+							case ".par":
+								if (!file.particleTextEditing) {
+									particle = true;
+								} else {
+									language = "xml";
+								}
+								break;
 							case ".md": language = "markdown"; break;
 							case ".wa": language = "wa"; break;
 							case ".mod": language = "ini"; break;
@@ -4126,6 +4147,28 @@ export default function PersistentDrawerLeft() {
 										addAlert={addAlert}
 										onOpenAsText={() => {
 											file.bodyTextEditing = true;
+											setFiles([...files]);
+										}}
+										onChange={(content) => {
+											setModified({ key: file.key, content });
+										}}
+									/>
+								</Suspense> : null
+							}
+							{particle ?
+								<Suspense fallback={<div />}>
+									<ParticleEditor
+										filePath={file.key}
+										resourceBasePath={parentPath}
+										sourceContent={file.contentModified ?? file.content}
+										width={editorWidth}
+										height={editorHeight}
+										active={tabIndex === index}
+										readOnly={readOnly}
+										refreshKey={file.previewVersion ?? 0}
+										addAlert={addAlert}
+										onOpenAsText={() => {
+											file.particleTextEditing = true;
 											setFiles([...files]);
 										}}
 										onChange={(content) => {

@@ -1,6 +1,7 @@
 import RedoIcon from "@mui/icons-material/Redo";
 import UndoIcon from "@mui/icons-material/Undo";
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, TextField, Tooltip } from "@mui/material";
+import { MacScrollbar } from "mac-scrollbar";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Info from "../Info";
@@ -1800,103 +1801,109 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 					background: "#1a1a1a",
 					boxSizing: "border-box",
 				}}>
-					<div style={{ flex: "0 0 42%", minHeight: 120, overflow: "auto", borderBottom: "1px solid #2b2b2b" }}>
-						{document.items.map((item) => {
-							const selected = item.id === selectedId;
-							return (
-								<div key={item.id} style={{ padding: "4px 8px 0" }}>
-									<button
-										type="button"
-										onClick={() => selectItem(item.id)}
-										style={{
-											width: "100%",
-											minHeight: 44,
-											display: "flex",
-											alignItems: "center",
-											gap: 10,
-											textAlign: "left",
-											padding: "7px 10px",
-											border: "1px solid " + (selected ? "#fac03d" : "#3f3f3f"),
-											background: selected ? "rgba(250, 192, 61, 0.16)" : "rgba(24, 24, 24, 0.7)",
-											color: selected ? "#ffe7ad" : "#d7d7d7",
-											cursor: "pointer",
-											boxSizing: "border-box",
-										}}
-									>
-										<BodyIconGlyph name={getStructIconName(item)} active={selected} />
-										<div style={{ minWidth: 0, flex: 1 }}>
-											<div style={{ fontSize: 13, color: selected ? "#fac03d" : "#d7d7d7", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textAlign: "right" }}>{getItemName(item)}</div>
-											<div style={{ fontSize: 10, color: selected ? "#ffd777" : "#8f9aa6", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textAlign: "right" }}>{item.structType.replace("Phyx.", "")}</div>
-										</div>
-									</button>
-									{isBodyItem(item) ? asArray(item.fields.subShapes).map((subShape, subIndex) => {
-										const subItem = getSubShapeItem(subShape, subIndex, item.id);
-										if (!subItem) return null;
-										const subSelected = subItem.id === selectedId;
-										return (
-											<button
-												key={subItem.id}
-												type="button"
-												onClick={() => selectItem(subItem.id)}
-												style={{
-													width: "calc(100% - 18px)",
-													minHeight: 34,
-													margin: "4px 0 0 18px",
-													display: "flex",
-													alignItems: "center",
-													gap: 8,
-													textAlign: "left",
-													padding: "5px 8px",
-													border: "1px solid " + (subSelected ? "#fac03d" : "#333"),
-													background: subSelected ? "rgba(250, 192, 61, 0.14)" : "#1b1b1b",
-													color: subSelected ? "#ffe7ad" : "#c8c8c8",
-													cursor: "pointer",
-													boxSizing: "border-box",
-												}}
-											>
-												<BodyIconGlyph name={getStructIconName(subItem)} active={subSelected} />
-												<div style={{ minWidth: 0, flex: 1 }}>
-													<div style={{ fontSize: 12, color: subSelected ? "#fac03d" : "#c8c8c8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textAlign: "right" }}>{t("bodyEditor.subShapeIndex", "SubShape {{index}}", { index: subIndex + 1 })}</div>
-													<div style={{ fontSize: 10, color: subSelected ? "#ffd777" : "#8f9aa6", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textAlign: "right" }}>{subItem.structType.replace("Phyx.", "")}</div>
-												</div>
-											</button>
-										);
-									}) : null}
-								</div>
-							);
-						})}
-						{selectedItem ? null : (
-							<div style={{ padding: 12, color: "#8f9aa6", fontSize: 13 }}>{t("bodyEditor.noItems", "No BodyEx items")}</div>
-						)}
+					<div style={{ flex: "0 0 42%", minHeight: 120, overflow: "hidden", borderBottom: "1px solid #2b2b2b" }}>
+						<MacScrollbar skin="dark" style={{ width: "100%", height: "100%" }}>
+							{document.items.map((item) => {
+								const selected = item.id === selectedId;
+								return (
+									<div key={item.id} style={{ padding: "4px 8px 0" }}>
+										<button
+											type="button"
+											onClick={() => selectItem(item.id)}
+											style={{
+												width: "100%",
+												minHeight: 44,
+												display: "flex",
+												alignItems: "center",
+												gap: 10,
+												textAlign: "left",
+												padding: "7px 10px",
+												border: "1px solid " + (selected ? "#fac03d" : "#3f3f3f"),
+												background: selected ? "rgba(250, 192, 61, 0.16)" : "rgba(24, 24, 24, 0.7)",
+												color: selected ? "#ffe7ad" : "#d7d7d7",
+												cursor: "pointer",
+												boxSizing: "border-box",
+											}}
+										>
+											<BodyIconGlyph name={getStructIconName(item)} active={selected} />
+											<div style={{ minWidth: 0, flex: 1 }}>
+												<div style={{ fontSize: 13, color: selected ? "#fac03d" : "#d7d7d7", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textAlign: "right" }}>{getItemName(item)}</div>
+												<div style={{ fontSize: 10, color: selected ? "#ffd777" : "#8f9aa6", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textAlign: "right" }}>{item.structType.replace("Phyx.", "")}</div>
+											</div>
+										</button>
+										{isBodyItem(item) ? asArray(item.fields.subShapes).map((subShape, subIndex) => {
+											const subItem = getSubShapeItem(subShape, subIndex, item.id);
+											if (!subItem) return null;
+											const subSelected = subItem.id === selectedId;
+											return (
+												<button
+													key={subItem.id}
+													type="button"
+													onClick={() => selectItem(subItem.id)}
+													style={{
+														width: "calc(100% - 18px)",
+														minHeight: 34,
+														margin: "4px 0 0 18px",
+														display: "flex",
+														alignItems: "center",
+														gap: 8,
+														textAlign: "left",
+														padding: "5px 8px",
+														border: "1px solid " + (subSelected ? "#fac03d" : "#333"),
+														background: subSelected ? "rgba(250, 192, 61, 0.14)" : "#1b1b1b",
+														color: subSelected ? "#ffe7ad" : "#c8c8c8",
+														cursor: "pointer",
+														boxSizing: "border-box",
+													}}
+												>
+													<BodyIconGlyph name={getStructIconName(subItem)} active={subSelected} />
+													<div style={{ minWidth: 0, flex: 1 }}>
+														<div style={{ fontSize: 12, color: subSelected ? "#fac03d" : "#c8c8c8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textAlign: "right" }}>{t("bodyEditor.subShapeIndex", "SubShape {{index}}", { index: subIndex + 1 })}</div>
+														<div style={{ fontSize: 10, color: subSelected ? "#ffd777" : "#8f9aa6", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textAlign: "right" }}>{subItem.structType.replace("Phyx.", "")}</div>
+													</div>
+												</button>
+											);
+										}) : null}
+									</div>
+								);
+							})}
+							{selectedItem ? null : (
+								<div style={{ padding: 12, color: "#8f9aa6", fontSize: 13 }}>{t("bodyEditor.noItems", "No BodyEx items")}</div>
+							)}
+						</MacScrollbar>
 					</div>
-					<div style={{ flex: "1 1 58%", minHeight: 0, overflow: "auto", paddingBottom: 96, boxSizing: "border-box" }}>
-						{selectedItem ? (
-							<PropertyPanel
-								document={document}
-								item={selectedItem}
-								readOnly={editDisabled}
-								canAddSubShape={!parseSubShapeSelectionId(selectedId) && isBodyItem(selectedItem)}
-								pendingSubShapeType={pendingSubShape?.bodyId === selectedItem.id ? pendingSubShape.type : null}
-								selectedVertexIndex={selectedVertexIndex}
-								onAddVertex={addSelectedVertex}
-								onRemoveVertex={removeSelectedVertex}
-								onCreateSubShape={(type) => {
-									setJointPanelOpen(false);
-									setPendingJointType(null);
-									setPendingJointSelection({});
-									setPendingSubShape((current) => (
-										current?.bodyId === selectedItem.id && current.type === type
-											? null
-											: { type, bodyId: selectedItem.id }
-									));
-									setActiveTool("menu");
-								}}
-								onUpdateField={(fieldName, value, recordUndo) => onUpdateField?.(selectedItem.id, fieldName, value, recordUndo)}
-								onChooseFace={() => setFaceChooserOpen(true)}
-								onBeginValueEdit={onBeginValueEdit}
-								onEndValueEdit={onEndValueEdit}
-							/>
-						) : null}
+					<div style={{ flex: "1 1 58%", minHeight: 0, overflow: "hidden", boxSizing: "border-box" }}>
+						<MacScrollbar skin="dark" style={{ width: "100%", height: "100%" }}>
+							<div style={{ paddingBottom: 96 }}>
+								{selectedItem ? (
+									<PropertyPanel
+										document={document}
+										item={selectedItem}
+										readOnly={editDisabled}
+										canAddSubShape={!parseSubShapeSelectionId(selectedId) && isBodyItem(selectedItem)}
+										pendingSubShapeType={pendingSubShape?.bodyId === selectedItem.id ? pendingSubShape.type : null}
+										selectedVertexIndex={selectedVertexIndex}
+										onAddVertex={addSelectedVertex}
+										onRemoveVertex={removeSelectedVertex}
+										onCreateSubShape={(type) => {
+											setJointPanelOpen(false);
+											setPendingJointType(null);
+											setPendingJointSelection({});
+											setPendingSubShape((current) => (
+												current?.bodyId === selectedItem.id && current.type === type
+													? null
+													: { type, bodyId: selectedItem.id }
+											));
+											setActiveTool("menu");
+										}}
+										onUpdateField={(fieldName, value, recordUndo) => onUpdateField?.(selectedItem.id, fieldName, value, recordUndo)}
+										onChooseFace={() => setFaceChooserOpen(true)}
+										onBeginValueEdit={onBeginValueEdit}
+										onEndValueEdit={onEndValueEdit}
+									/>
+								) : null}
+							</div>
+						</MacScrollbar>
 					</div>
 				</div>
 			</div>
@@ -2049,65 +2056,34 @@ const ClipSliceThumbnail = memo(function ClipSliceThumbnail(props: {
 	return <canvas ref={ref} aria-hidden="true" style={{ border: "1px solid #3a3a3a", background: "#181818" }} />;
 });
 
+type LoadedClipSlices = {
+	entry: FaceResourceEntry;
+	rects: ActionClipRect[];
+	atlasImage: HTMLImageElement;
+	objectUrl: string;
+};
+
 const ClipSliceDialog = memo(function ClipSliceDialog(props: {
-	entry: FaceResourceEntry | null;
-	resourceBasePath: string;
-	servedResourceBasePath: string;
+	clip: LoadedClipSlices | null;
 	onClose: () => void;
 	onSelect: (face: string) => void;
-	addAlert?: (msg: string, type: BodyEditorAlertType, openLog?: boolean) => void;
 }) {
 	const { t } = useTranslation();
-	const { entry, resourceBasePath, servedResourceBasePath, onClose, onSelect, addAlert } = props;
-	const [rects, setRects] = useState<ActionClipRect[]>([]);
-	const [atlasImage, setAtlasImage] = useState<HTMLImageElement | null>(null);
-	const [loading, setLoading] = useState(false);
+	const { clip, onClose, onSelect } = props;
 	const [filter, setFilter] = useState("");
 	useEffect(() => {
-		if (!entry) {
-			setRects([]);
-			setAtlasImage(null);
-			return;
-		}
-		let cancelled = false;
-		let objectUrl: string | null = null;
-		setLoading(true);
 		setFilter("");
-		Service.read({ path: entry.path }).then(async (res) => {
-			if (cancelled) return;
-			if (!res.success) throw new Error(t("bodyEditor.failedReadClip", "Failed to read clip: {{file}}", { file: entry.relative }));
-			const clip = parseLegacyClip(res.content, entry.path);
-			const loaded = await loadFaceImageElement(clip.texturePath, servedResourceBasePath);
-			objectUrl = loaded.objectUrl;
-			if (cancelled) {
-				URL.revokeObjectURL(loaded.objectUrl);
-				return;
-			}
-			setRects(Object.values(clip.rects).sort((a, b) => a.name.localeCompare(b.name)));
-			setAtlasImage(loaded.image);
-		}).catch((error) => {
-			if (!cancelled) {
-				setRects([]);
-				setAtlasImage(null);
-				addAlert?.(error instanceof Error ? error.message : t("bodyEditor.failedLoadClip", "Failed to load clip: {{file}}", { file: entry.relative }), "warning");
-			}
-		}).finally(() => {
-			if (!cancelled) setLoading(false);
-		});
-		return () => {
-			cancelled = true;
-			if (objectUrl) URL.revokeObjectURL(objectUrl);
-		};
-	}, [addAlert, entry, resourceBasePath, servedResourceBasePath, t]);
+	}, [clip]);
 	const visibleRects = useMemo(() => {
 		const query = filter.trim().toLowerCase();
+		const rects = clip?.rects ?? [];
 		return query === "" ? rects : rects.filter((rect) => rect.name.toLowerCase().includes(query));
-	}, [filter, rects]);
+	}, [clip?.rects, filter]);
 	return (
-		<Dialog open={entry !== null} onClose={onClose} fullWidth maxWidth="md">
+		<Dialog open={clip !== null} onClose={onClose} fullWidth maxWidth="md">
 			<DialogTitle>{t("bodyEditor.chooseClipSlice", "Choose Clip Slice")}</DialogTitle>
 			<DialogContent sx={{ display: "flex", flexDirection: "column", gap: 1.25, background: "#181818" }}>
-				<div style={{ color: "#8f9aa6", fontSize: 12 }}>{entry?.relative ?? ""}</div>
+				<div style={{ color: "#8f9aa6", fontSize: 12 }}>{clip?.entry.relative ?? ""}</div>
 				<TextField
 					size="small"
 					value={filter}
@@ -2115,9 +2091,7 @@ const ClipSliceDialog = memo(function ClipSliceDialog(props: {
 					placeholder={t("bodyEditor.filterSlices", "Filter slices")}
 				/>
 				<div style={{ minHeight: 260, maxHeight: 420, overflow: "auto" }}>
-					{loading ? (
-						<div style={{ color: "#8f9aa6", padding: 12 }}>{t("bodyEditor.loadingShort", "Loading...")}</div>
-					) : visibleRects.length === 0 ? (
+					{visibleRects.length === 0 ? (
 						<div style={{ color: "#8f9aa6", padding: 12 }}>{t("bodyEditor.noSlices", "No slices")}</div>
 					) : (
 						<div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 8 }}>
@@ -2126,7 +2100,7 @@ const ClipSliceDialog = memo(function ClipSliceDialog(props: {
 									key={rect.name}
 									type="button"
 									onClick={() => {
-										if (entry) onSelect(`${entry.relative}|${rect.name}`);
+										if (clip) onSelect(`${clip.entry.relative}|${rect.name}`);
 									}}
 									style={{
 										display: "flex",
@@ -2141,7 +2115,7 @@ const ClipSliceDialog = memo(function ClipSliceDialog(props: {
 										textAlign: "left",
 									}}
 								>
-									<ClipSliceThumbnail image={atlasImage} rect={rect} />
+									<ClipSliceThumbnail image={clip?.atlasImage ?? null} rect={rect} />
 									<div style={{ minWidth: 0 }}>
 										<div style={{ fontSize: 12, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{rect.name}</div>
 										<div style={{ fontSize: 10, color: "#8f9aa6" }}>{rect.width} x {rect.height}</div>
@@ -2170,7 +2144,8 @@ const FaceResourceDialog = memo(function FaceResourceDialog(props: {
 	const { t } = useTranslation();
 	const { open, resourceBasePath, servedResourceBasePath, onClose, onSelect, addAlert } = props;
 	const [resources, setResources] = useState<FaceResourceEntry[]>([]);
-	const [selectedClip, setSelectedClip] = useState<FaceResourceEntry | null>(null);
+	const [selectedClip, setSelectedClip] = useState<LoadedClipSlices | null>(null);
+	const [loadingClipPath, setLoadingClipPath] = useState<string | null>(null);
 	const [loading, setLoading] = useState(false);
 	const [filter, setFilter] = useState("");
 	useEffect(() => {
@@ -2200,6 +2175,28 @@ const FaceResourceDialog = memo(function FaceResourceDialog(props: {
 		onSelect(face);
 		setSelectedClip(null);
 	}, [onSelect]);
+	const openClipSlices = useCallback(async (entry: FaceResourceEntry) => {
+		setLoadingClipPath(entry.path);
+		try {
+			const res = await Service.read({ path: entry.path });
+			if (!res.success) throw new Error(t("bodyEditor.failedReadClip", "Failed to read clip: {{file}}", { file: entry.relative }));
+			const clip = parseLegacyClip(res.content, entry.path);
+			const loaded = await loadFaceImageElement(clip.texturePath, servedResourceBasePath);
+			setSelectedClip({
+				entry,
+				rects: Object.values(clip.rects).sort((a, b) => a.name.localeCompare(b.name)),
+				atlasImage: loaded.image,
+				objectUrl: loaded.objectUrl,
+			});
+		} catch (error) {
+			addAlert?.(error instanceof Error ? error.message : t("bodyEditor.failedLoadClip", "Failed to load clip: {{file}}", { file: entry.relative }), "warning");
+		} finally {
+			setLoadingClipPath(null);
+		}
+	}, [addAlert, servedResourceBasePath, t]);
+	useEffect(() => () => {
+		if (selectedClip?.objectUrl) URL.revokeObjectURL(selectedClip.objectUrl);
+	}, [selectedClip]);
 	return (
 		<>
 			<Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
@@ -2223,11 +2220,12 @@ const FaceResourceDialog = memo(function FaceResourceDialog(props: {
 								type="button"
 								onClick={() => {
 									if (entry.kind === "clip") {
-										setSelectedClip(entry);
+										openClipSlices(entry);
 									} else {
 										selectFace(entry.relative);
 									}
 								}}
+								disabled={loadingClipPath !== null}
 								style={{
 									width: "100%",
 									display: "flex",
@@ -2239,12 +2237,15 @@ const FaceResourceDialog = memo(function FaceResourceDialog(props: {
 									borderBottom: "1px solid #2b2b2b",
 									background: "#1f1f1f",
 									color: "#d7d7d7",
-									cursor: "pointer",
+									cursor: loadingClipPath === null ? "pointer" : "default",
+									opacity: loadingClipPath !== null && loadingClipPath !== entry.path ? 0.55 : 1,
 									textAlign: "left",
 								}}
 							>
 								<span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{entry.relative}</span>
-								<span style={{ flex: "0 0 auto", color: entry.kind === "clip" ? "#fac03d" : "#8f9aa6", fontSize: 11 }}>{entry.kind}</span>
+								<span style={{ flex: "0 0 auto", color: entry.kind === "clip" ? "#fac03d" : "#8f9aa6", fontSize: 11 }}>
+									{loadingClipPath === entry.path ? t("bodyEditor.loadingShort", "Loading...") : entry.kind}
+								</span>
 							</button>
 						))}
 					</div>
@@ -2254,12 +2255,9 @@ const FaceResourceDialog = memo(function FaceResourceDialog(props: {
 				</DialogActions>
 			</Dialog>
 			<ClipSliceDialog
-				entry={selectedClip}
-				resourceBasePath={resourceBasePath}
-				servedResourceBasePath={servedResourceBasePath}
+				clip={selectedClip}
 				onClose={() => setSelectedClip(null)}
 				onSelect={selectFace}
-				addAlert={addAlert}
 			/>
 		</>
 	);

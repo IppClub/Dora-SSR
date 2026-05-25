@@ -11,6 +11,7 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import DialogTitle from '@mui/material/DialogTitle';
 import Dialog from '@mui/material/Dialog';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 
 import luaLogo from './lua.png';
 import yueLogo from './yuescript.png';
@@ -30,11 +31,12 @@ import { useTranslation } from 'react-i18next';
 import { DialogActions } from '@mui/material';
 import Grid from '@mui/material/Grid';
 
-export type DoraFileType = "Lua" | "YueScript" | "Teal" | "TypeScript" | "Dora XML" | "Dora Animation" | "Dora Body" | "Markdown" | "Yarn" | "Visual Script" | "Blockly" | "Folder" | "Wa" | "TIC80"
+export type DoraFileType = "Lua" | "YueScript" | "Teal" | "TypeScript" | "Dora XML" | "Dora Animation" | "Dora Body" | "Dora Particle" | "Markdown" | "Yarn" | "Visual Script" | "Blockly" | "Folder" | "Wa" | "TIC80"
 
 interface FileType {
 	icon: React.ReactNode;
 	name: DoraFileType;
+	label?: string;
 	desc: string;
 	padding: string;
 }
@@ -73,13 +75,22 @@ const fileTypes: FileType[] = [
 	{
 		icon: <img src={doraAnimationLogo} alt="Dora Animation" width="50px" height="50px" style={{ marginLeft: '0px', objectFit: 'contain' }} />,
 		name: "Dora Animation",
+		label: "file.typeAnimation",
 		desc: "file.model",
 		padding: '18px'
 	},
 	{
 		icon: <img src={doraBodyLogo} alt="Dora Body" width="52px" height="52px" style={{ marginLeft: '-1px', objectFit: 'contain' }} />,
 		name: "Dora Body",
+		label: "file.typeBody",
 		desc: "file.body",
+		padding: '17px'
+	},
+	{
+		icon: <AutoAwesomeIcon sx={{ fontSize: 52, color: "#fac03d", marginLeft: "-1px" }} />,
+		name: "Dora Particle",
+		label: "file.typeParticle",
+		desc: "file.particle",
 		padding: '17px'
 	},
 	{
@@ -167,7 +178,7 @@ function NewFileDialog(props: NewFileDialogProps) {
 									key={fileType.name}
 								>
 									{fileType.icon}
-									<ListItemText primary={fileType.name} secondary={t(fileType.desc)} sx={{ paddingLeft: fileType.padding }} />
+									<ListItemText primary={fileType.label ? t(fileType.label) : fileType.name} secondary={t(fileType.desc)} sx={{ paddingLeft: fileType.padding }} />
 								</ListItemButton>
 							</ListItem>
 						</Grid>

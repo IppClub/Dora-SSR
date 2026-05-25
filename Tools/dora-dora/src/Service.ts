@@ -791,6 +791,7 @@ export interface EditingInfo {
 		mdEditing?: boolean,
 		yarnTextEditing?: boolean,
 		bodyTextEditing?: boolean,
+		particleTextEditing?: boolean,
 		position?: {
 			lineNumber: number,
 			column: number
