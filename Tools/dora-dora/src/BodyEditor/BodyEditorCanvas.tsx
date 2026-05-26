@@ -1489,7 +1489,7 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 								>
 									<BodyIconGlyph name={name} active={selected} />
 								</button>
-								{name === "zoom" ? <span style={{ color: "#d7d7d7", fontSize: 12, minWidth: 54, textAlign: "center" }}>{t("bodyEditor.zoomValue", { zoom: (viewport.scale * 100).toFixed(0) })}</span> : null}
+								{name === "zoom" ? <span style={{ color: "#d7d7d7", fontSize: 12, width: 58, flexShrink: 0, textAlign: "center" }}>{t("bodyEditor.zoomValue", { zoom: (viewport.scale * 100).toFixed(0) })}</span> : null}
 							</Fragment>
 						);
 					})}
