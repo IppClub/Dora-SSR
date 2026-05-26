@@ -934,3 +934,22 @@ int DoraXrtHmacSha256Hex(const void* key, size_t keyLen, const void* data, size_
 	DoraXrtToHex(digest, sizeof(digest), outHex);
 	return 1;
 }
+
+const char* DoraXrtHttpStatusName(int status) {
+	switch (status) {
+		case XRT_NET_OK:
+			return "ok";
+		case XRT_NET_ERROR:
+			return "network error";
+		case XRT_NET_AGAIN:
+			return "operation still pending";
+		case XRT_NET_TIMEOUT:
+			return "request timed out";
+		case XRT_NET_CLOSED:
+			return "connection closed";
+		case XRT_NET_CANCELLED:
+			return "request cancelled";
+		default:
+			return "unknown network status";
+	}
+}
