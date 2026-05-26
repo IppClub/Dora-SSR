@@ -57,6 +57,10 @@ options.target = monacoTypescript.ScriptTarget.ESNext;
 options.module = monacoTypescript.ModuleKind.ESNext;
 options.moduleResolution = monacoTypescript.ModuleResolutionKind.Classic;
 monacoTypescript.typescriptDefaults.setCompilerOptions(options);
+monacoTypescript.typescriptDefaults.setModeConfiguration({
+	...monacoTypescript.typescriptDefaults.modeConfiguration,
+	hovers: false,
+});
 
 monaco.editor.defineTheme("dora-dark", {
 	base: "vs-dark",
@@ -344,6 +348,22 @@ const completionItemProvider = (triggerCharacters: string[], lang: CompleteLang)
 };
 
 type InferLang = "tl" | "lua" | "yue";
+type InferDefinitionTarget = {
+	file: string;
+	title?: string;
+	lineNumber: number;
+	column: number;
+};
+const inferDefinitionCommands = new Map<string, string>();
+
+export const setInferDefinitionCommand = (modelUri: string, command: string | null) => {
+	if (command === null) {
+		inferDefinitionCommands.delete(modelUri);
+		return;
+	}
+	inferDefinitionCommands.set(modelUri, command);
+};
+
 const hoverProvider = (lang: InferLang) => {
 	return {
 		provideHover: function (model, position) {
@@ -373,7 +393,7 @@ const hoverProvider = (lang: InferLang) => {
 					desc = tag + ":\n" + desc.split(" and ").join("\n")
 					res.infered.desc = desc;
 				}
-				const contents = [
+				const contents: monaco.IMarkdownString[] = [
 					{
 						value: "```tl\n" + res.infered.desc + "\n```",
 					},
@@ -387,9 +407,25 @@ const hoverProvider = (lang: InferLang) => {
 					if (res.infered.file === "") {
 						res.infered.file = "current file";
 					}
-					contents.push({
-						value: `${res.infered.file}:${res.infered.row}:${res.infered.col}`
-					});
+					const label = `${res.infered.file}:${res.infered.row}:${res.infered.col}`;
+					const command = inferDefinitionCommands.get(model.uri.toString());
+					if (command !== undefined) {
+						const target: InferDefinitionTarget = {
+							file: res.infered.key ?? model.uri.fsPath,
+							title: res.infered.file === "current file" ? undefined : res.infered.file,
+							lineNumber: res.infered.row,
+							column: res.infered.col,
+						};
+						const commandUri = `command:${command}?${encodeURIComponent(JSON.stringify([target]))}`;
+						contents.push({
+							value: `[${label}](${commandUri})`,
+							isTrusted: true,
+						});
+					} else {
+						contents.push({
+							value: label,
+						});
+					}
 				} else {
 					contents.push({
 						value: "Lua built-in",

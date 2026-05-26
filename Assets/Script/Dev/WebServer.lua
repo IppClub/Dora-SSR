@@ -2614,7 +2614,8 @@ HttpServer:postSchedule("/read", function(req) -- 1027
 						if content then -- 1031
 							return { -- 1032
 								content = content, -- 1032
-								success = true -- 1032
+								success = true, -- 1032
+								fullPath = Content:getFullPath(path) -- 1032
 							} -- 1032
 						end -- 1031
 					end -- 1030

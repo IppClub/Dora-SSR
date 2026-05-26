@@ -1,6 +1,6 @@
 // @preview-file off clear
 import { App, Content, Path } from 'Dora';
-import { Message, ToolCallFunction, callLLM, Log, clipTextToTokenBudget, parseXMLObjectFromText, safeJsonDecode, safeJsonEncode, sanitizeUTF8 } from 'Agent/Utils';
+import { Message, callLLM, Log, clipTextToTokenBudget, parseXMLObjectFromText, safeJsonDecode, safeJsonEncode, sanitizeUTF8 } from 'Agent/Utils';
 import { getActiveLLMConfig } from 'Agent/Utils';
 import type { LLMConfig, ToolCall } from 'Agent/Utils';
 import { sendWebIDEFileUpdate } from 'Agent/Tools';

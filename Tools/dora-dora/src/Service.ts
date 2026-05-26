@@ -611,6 +611,7 @@ export interface ReadRequest {
 export type ReadResponse = {
 	success: true;
 	content: string;
+	fullPath: string;
 } | {
 	success: false;
 };

@@ -1517,12 +1517,12 @@ interface Iterator<T, TReturn = any, TNext = undefined> {
 	throw?(e?: any): IteratorResult<T, TReturn>;
 }
 
-interface Iterable<T> {
-	[Symbol.iterator](): Iterator<T>;
+interface Iterable<T, TReturn = any, TNext = any> {
+	[Symbol.iterator](): Iterator<T, TReturn, TNext>;
 }
 
-interface IterableIterator<T> extends Iterator<T> {
-	[Symbol.iterator](): IterableIterator<T>;
+interface IterableIterator<T, TReturn = any, TNext = any> extends Iterator<T, TReturn, TNext> {
+	[Symbol.iterator](): IterableIterator<T, TReturn, TNext>;
 }
 
 interface Array<T> {

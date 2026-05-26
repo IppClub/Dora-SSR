@@ -144,29 +144,32 @@ export class ImportResolver {
     let appends = ['.d.ts', '/index.d.ts', '.ts', '.tsx', '/index.ts', '/index.tsx'];
 
     if (appends.map(append => importResource.importPath.endsWith(append)).reduce((a, b) => a || b, false)) {
-      const source = await this.resolveSourceFile(
+      const resolved = await this.resolveSourceFile(
         pkgName,
         version,
         path.join(importResource.sourcePath, importResource.importPath)
       );
-      if (source) {
-        return { source, at: path.join(importResource.sourcePath, importResource.importPath) };
+      if (resolved) {
+        return {
+          source: resolved.content,
+          at: resolved.fullPath ?? path.join(importResource.sourcePath, importResource.importPath),
+        };
       }
     } else {
       for (const append of appends) {
         const resourcePath = path.join(importResource.sourcePath, importResource.importPath);
         const fullPath =
           (append === '.d.ts' && resourcePath.endsWith('.js') ? resourcePath.slice(0, -3) : resourcePath) + append;
-        const source = await this.resolveSourceFile(pkgName, version, fullPath);
+        const resolved = await this.resolveSourceFile(pkgName, version, fullPath);
         invokeUpdate(
           {
             type: 'AttemptedLookUpFile',
             path: path.join(pkgName, fullPath),
-            success: !!source,
+            success: !!resolved,
           },
           this.options
         );
-        if (source) {
+        if (resolved) {
           invokeUpdate(
             {
               type: 'LookedUpTypeFile',
@@ -175,7 +178,7 @@ export class ImportResolver {
             },
             this.options
           );
-          return { source, at: fullPath };
+          return { source: resolved.content, at: resolved.fullPath ?? fullPath };
         }
       }
     }
@@ -190,8 +193,8 @@ export class ImportResolver {
       const { types } = JSON.parse(pkgJson);
       if (types) {
         const fullPath = path.join(importResource.sourcePath, importResource.importPath, types);
-        const source = await this.resolveSourceFile(pkgName, version, fullPath);
-        if (source) {
+        const resolved = await this.resolveSourceFile(pkgName, version, fullPath);
+        if (resolved) {
           invokeUpdate(
             {
               type: 'LookedUpTypeFile',
@@ -200,7 +203,7 @@ export class ImportResolver {
             },
             this.options
           );
-          return { source, at: fullPath };
+          return { source: resolved.content, at: resolved.fullPath ?? fullPath };
         }
       }
     }
@@ -264,14 +267,24 @@ export class ImportResolver {
     packageName: string,
     version: string | undefined,
     filePath: string
-  ): Promise<string | undefined> {
+  ): Promise<{ content: string; fullPath?: string } | undefined> {
     const uri = path.join(packageName + (version ? `@${version}` : ''), filePath);
     let isAvailable = false;
     let content: string | undefined;
+    let fullPath: string | undefined;
 
-    if (this.cache.isFileAvailable) {
+    if (this.cache.resolveFile) {
+      const resolved = await this.cache.resolveFile(uri);
+      if (resolved !== undefined) {
+        content = resolved.content;
+        fullPath = resolved.fullPath;
+        isAvailable = true;
+      }
+    }
+
+    if (!isAvailable && this.cache.isFileAvailable) {
       isAvailable = await this.cache.isFileAvailable(uri);
-    } else {
+    } else if (!isAvailable) {
       content = await this.cache.getFile(uri);
       isAvailable = content !== undefined;
     }
@@ -284,7 +297,8 @@ export class ImportResolver {
         },
         this.options
       );
-      return content ?? (await this.cache.getFile(uri));
+      content = content ?? (await this.cache.getFile(uri));
+      return content === undefined ? undefined : { content, fullPath };
     } else {
       return undefined;
     }
