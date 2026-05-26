@@ -3840,7 +3840,7 @@
 		uint32 iMaxPayloadBytes;
 	} xcodeclengthcodec;
 	#define XCODEC_HTTP1_MAX_HEADERS 32u
-	#define XCODEC_HTTP1_TOKEN_CAP   32u
+	#define XCODEC_HTTP1_TOKEN_CAP   64u
 	#define XCODEC_HTTP1_TARGET_CAP  256u
 	#define XCODEC_HTTP1_VALUE_CAP   256u
 	#define XCODEC_HTTP1_REASON_CAP  128u
@@ -34971,7 +34971,7 @@ XXAPI const xcodecparserops* xrtCodecLengthOps(void)
 /* ============================== HTTP/1 public model ============================== */
 #if !defined(XRT_BUILD_CORE)
 #define XCODEC_HTTP1_MAX_HEADERS 32u
-#define XCODEC_HTTP1_TOKEN_CAP   32u
+#define XCODEC_HTTP1_TOKEN_CAP   64u
 #define XCODEC_HTTP1_TARGET_CAP  256u
 #define XCODEC_HTTP1_VALUE_CAP   256u
 #define XCODEC_HTTP1_REASON_CAP  128u

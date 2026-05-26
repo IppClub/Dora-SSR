@@ -68,6 +68,7 @@ int DoraXrtHttpExecuteStream(
 int DoraXrtSha256Hex(const void* data, size_t dataLen, char outHex[65]);
 int DoraXrtHmacSha256Hex(const void* key, size_t keyLen, const void* data, size_t dataLen, char outHex[65]);
 
+const char* DoraXrtHttpStatusName(int status);
 void DoraXrtHttpResponseFree(DoraXrtHttpResponse* response);
 
 #ifdef __cplusplus
