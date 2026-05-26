@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, KeyboardEvent, PointerEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { Box, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControlLabel, IconButton, Stack, TextField, Tooltip, Typography } from "@mui/material";
@@ -8,6 +8,7 @@ import ReplayIcon from "@mui/icons-material/Replay";
 import UndoIcon from "@mui/icons-material/Undo";
 import RedoIcon from "@mui/icons-material/Redo";
 import { BodyIconName, drawBodyIcon } from "../BodyEditor/BodyIcons";
+import ClipSliceDialog from "../ClipSliceDialog";
 import * as Service from "../Service";
 import { parseLegacyClip, type ActionClipRect } from "../ActionEditor/ActionClip";
 import { ParticleDocument, ParticleFields, validateParticleDocument } from "./ParticleDocument";
@@ -110,6 +111,8 @@ const blendOptions = [
 ];
 
 const viewToolNames: readonly BodyIconName[] = ["origin", "zoom"];
+const editorAssistColor = "#65d6ff";
+const editorAssistSecondaryColor = "rgba(101, 214, 255, 0.65)";
 
 const viewToolLabels: Record<BodyIconName, string> = {
 	menu: "Menu",
@@ -339,111 +342,12 @@ const loadParticleImageElement = async (filePath: string, servedResourceBasePath
 	}
 };
 
-const ClipSliceThumbnail = memo(function ClipSliceThumbnail(props: {
-	image: HTMLImageElement | null;
-	rect: ActionClipRect;
-}) {
-	const { image, rect } = props;
-	const ref = useRef<HTMLCanvasElement | null>(null);
-	useEffect(() => {
-		const canvas = ref.current;
-		const context = canvas?.getContext("2d");
-		if (!canvas || !context) return;
-		const ratio = window.devicePixelRatio || 1;
-		const size = 54;
-		canvas.width = size * ratio;
-		canvas.height = size * ratio;
-		canvas.style.width = `${size}px`;
-		canvas.style.height = `${size}px`;
-		context.setTransform(ratio, 0, 0, ratio, 0, 0);
-		context.clearRect(0, 0, size, size);
-		context.fillStyle = "#181818";
-		context.fillRect(0, 0, size, size);
-		if (!image || rect.width <= 0 || rect.height <= 0) return;
-		const scale = Math.min((size - 8) / rect.width, (size - 8) / rect.height);
-		const width = rect.width * scale;
-		const height = rect.height * scale;
-		context.drawImage(image, rect.x, rect.y, rect.width, rect.height, (size - width) / 2, (size - height) / 2, width, height);
-	}, [image, rect]);
-	return <canvas ref={ref} aria-hidden="true" style={{ border: "1px solid #3a3a3a", background: "#181818" }} />;
-});
-
 type LoadedClipSlices = {
 	entry: ParticleTextureResourceEntry;
 	rects: ActionClipRect[];
 	atlasImage: HTMLImageElement;
 	objectUrl: string;
 };
-
-const ClipSliceDialog = memo(function ClipSliceDialog(props: {
-	clip: LoadedClipSlices | null;
-	onClose: () => void;
-	onSelect: (texture: string) => void;
-}) {
-	const { clip, onClose, onSelect } = props;
-	const { t } = useTranslation();
-	const [filter, setFilter] = useState("");
-	useEffect(() => {
-		setFilter("");
-	}, [clip]);
-	const visibleRects = useMemo(() => {
-		const query = filter.trim().toLowerCase();
-		return query === "" ? clip?.rects ?? [] : (clip?.rects ?? []).filter((rect) => rect.name.toLowerCase().includes(query));
-	}, [clip?.rects, filter]);
-	return (
-		<Dialog
-			open={clip !== null}
-			onClose={onClose}
-			fullWidth
-			maxWidth="md"
-			PaperProps={{ sx: { width: 900, maxWidth: "calc(100% - 64px)" } }}
-		>
-			<DialogTitle>{t("particleEditor.dialogs.chooseClipSlice", "Choose Clip Slice")}</DialogTitle>
-			<DialogContent sx={{ display: "flex", flexDirection: "column", gap: 1.25, background: "#181818" }}>
-				<div style={{ color: "#8f9aa6", fontSize: 12, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{clip?.entry.relative ?? ""}</div>
-				<TextField size="small" value={filter} onChange={(event) => setFilter(event.currentTarget.value)} placeholder={t("particleEditor.dialogs.filterSlices", "Filter slices")} />
-				<div style={{ height: 420, overflow: "auto" }}>
-					{visibleRects.length === 0 ? (
-						<div style={{ color: "#8f9aa6", padding: 12 }}>{t("particleEditor.dialogs.noSlices", "No slices")}</div>
-					) : (
-						<div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 8 }}>
-							{visibleRects.map((rect) => (
-								<button
-									key={rect.name}
-									type="button"
-									onClick={() => {
-										if (clip) onSelect(`${clip.entry.relative}|${rect.name}`);
-									}}
-									style={{
-										display: "flex",
-										alignItems: "center",
-										gap: 8,
-										padding: 8,
-										minHeight: 72,
-										border: "1px solid #3a3a3a",
-										background: "#252525",
-										color: "#d7d7d7",
-										cursor: "pointer",
-										textAlign: "left",
-									}}
-								>
-									<ClipSliceThumbnail image={clip?.atlasImage ?? null} rect={rect} />
-									<div style={{ minWidth: 0 }}>
-										<div style={{ fontSize: 12, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{rect.name}</div>
-										<div style={{ fontSize: 10, color: "#8f9aa6" }}>{rect.width} x {rect.height}</div>
-									</div>
-								</button>
-							))}
-						</div>
-					)}
-				</div>
-			</DialogContent>
-			<DialogActions>
-				<Button onClick={onClose}>{t("particleEditor.cancel", "Cancel")}</Button>
-			</DialogActions>
-		</Dialog>
-	);
-});
 
 const TextureResourceDialog = memo(function TextureResourceDialog(props: {
 	open: boolean;
@@ -560,9 +464,20 @@ const TextureResourceDialog = memo(function TextureResourceDialog(props: {
 				</DialogActions>
 			</Dialog>
 			<ClipSliceDialog
-				clip={selectedClip}
+				open={selectedClip !== null}
+				title={t("particleEditor.dialogs.chooseClipSlice", "Choose Clip Slice")}
+				clipLabel={selectedClip?.entry.relative ?? ""}
+				rects={selectedClip?.rects ?? []}
+				atlasImage={selectedClip?.atlasImage ?? null}
+				filterPlaceholder={t("particleEditor.dialogs.filterSlices", "Filter slices")}
+				noSlicesText={t("particleEditor.dialogs.noSlices", "No slices")}
+				cancelText={t("particleEditor.cancel", "Cancel")}
+				contentHeight={420}
+				paperSx={{ width: 900, maxWidth: "calc(100% - 64px)" }}
 				onClose={() => setSelectedClip(null)}
-				onSelect={selectTexture}
+				onSelect={(rect) => {
+					if (selectedClip) selectTexture(`${selectedClip.entry.relative}|${rect.name}`);
+				}}
 			/>
 		</>
 	);
@@ -1020,6 +935,7 @@ export default memo(function ParticleEditorCanvas(props: ParticleEditorCanvasPro
 			setPreviewEmitter(nextEmitter);
 			runtimeRef.current?.setPreviewEmitterPosition(nextEmitter);
 			setOffset({ x: 0, y: 0 });
+			setZoom(1);
 		} else if (name === "zoom") {
 			setZoom((current) => current >= 2 ? 0.5 : current >= 1 ? 2 : 1);
 		}
@@ -1115,19 +1031,19 @@ export default memo(function ParticleEditorCanvas(props: ParticleEditorCanvasPro
 		if (variance.x > 0 || variance.y > 0) {
 			const topLeft = worldToScreen(spawnCenter.x - variance.x, spawnCenter.y + variance.y);
 			const bottomRight = worldToScreen(spawnCenter.x + variance.x, spawnCenter.y - variance.y);
-			ctx.strokeStyle = "#fac03d";
+			ctx.strokeStyle = editorAssistColor;
 			ctx.setLineDash([5, 4]);
 			ctx.strokeRect(topLeft.x, topLeft.y, bottomRight.x - topLeft.x, bottomRight.y - topLeft.y);
 			ctx.setLineDash([]);
 		}
 		if (fields.emitterMode === "radius") {
 			const center = worldToScreen(0, 0);
-			ctx.strokeStyle = "#fac03d";
+			ctx.strokeStyle = editorAssistColor;
 			ctx.beginPath();
 			ctx.arc(center.x, center.y, Math.abs(fields.radius.startRadius) * zoom, 0, Math.PI * 2);
 			ctx.stroke();
 			if (fields.radius.finishRadius >= 0) {
-				ctx.strokeStyle = "#ffd777";
+				ctx.strokeStyle = editorAssistSecondaryColor;
 				ctx.beginPath();
 				ctx.arc(center.x, center.y, Math.abs(fields.radius.finishRadius) * zoom, 0, Math.PI * 2);
 				ctx.stroke();
@@ -1154,23 +1070,25 @@ export default memo(function ParticleEditorCanvas(props: ParticleEditorCanvasPro
 					<Box sx={{ display: "flex", alignItems: "center", gap: "6px", paddingLeft: "4px" }}>
 						<Typography sx={{ color: "#9aa4af", fontSize: 12, marginRight: "2px" }}>{t("particleEditor.toolbar.view", "View")}</Typography>
 						{viewToolNames.map((name) => (
-							<button
-								key={name}
-								type="button"
-								title={t(`bodyEditor.icons.${name}`, viewToolLabels[name])}
-								aria-label={t(`bodyEditor.icons.${name}`, viewToolLabels[name])}
-								onClick={() => runViewTool(name)}
-								style={{
-									width: 30,
-									height: 30,
-									border: "1px solid #343434",
-									background: "#303030",
-									padding: 3,
-									cursor: "pointer",
-								}}
-							>
-								<BodyIconGlyph name={name} />
-							</button>
+							<Fragment key={name}>
+								<button
+									type="button"
+									title={t(`bodyEditor.icons.${name}`, viewToolLabels[name])}
+									aria-label={t(`bodyEditor.icons.${name}`, viewToolLabels[name])}
+									onClick={() => runViewTool(name)}
+									style={{
+										width: 30,
+										height: 30,
+										border: "1px solid #343434",
+										background: "#303030",
+										padding: 3,
+										cursor: "pointer",
+									}}
+								>
+									<BodyIconGlyph name={name} />
+								</button>
+								{name === "zoom" ? <Typography sx={{ color: "#d7d7d7", fontSize: 12, minWidth: 54, textAlign: "center" }}>{t("particleEditor.zoomValue", { zoom: (zoom * 100).toFixed(0) })}</Typography> : null}
+							</Fragment>
 						))}
 					</Box>
 					<Box sx={{ flex: 1 }} />

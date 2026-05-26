@@ -488,6 +488,7 @@ i18n
 						failedSearchFaceResources: "Failed to search face resources.",
 						undo: "Undo",
 						redo: "Redo",
+						zoomValue: "Zoom {{zoom}}%",
 						fixed: "Fixed",
 						fixedEditStep: "Fixed edit step",
 						playing: "Play",
@@ -628,6 +629,7 @@ i18n
 							redo: "Redo",
 							view: "View",
 						},
+						zoomValue: "Zoom {{zoom}}%",
 						status: {
 							particles: "particles",
 						},
@@ -1351,6 +1353,7 @@ i18n
 						failedSearchFaceResources: "搜索 Face 资源失败。",
 						undo: "撤销",
 						redo: "重做",
+						zoomValue: "缩放 {{zoom}}%",
 						fixed: "固定步长",
 						fixedEditStep: "固定编辑步长",
 						playing: "播放",
@@ -1491,6 +1494,7 @@ i18n
 							redo: "重做",
 							view: "视图",
 						},
+						zoomValue: "缩放 {{zoom}}%",
 						status: {
 							particles: "粒子",
 						},

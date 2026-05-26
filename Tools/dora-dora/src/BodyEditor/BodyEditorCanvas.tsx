@@ -2,8 +2,9 @@ import RedoIcon from "@mui/icons-material/Redo";
 import UndoIcon from "@mui/icons-material/Undo";
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, TextField, Tooltip } from "@mui/material";
 import { MacScrollbar } from "mac-scrollbar";
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import ClipSliceDialog from "../ClipSliceDialog";
 import Info from "../Info";
 import * as Service from "../Service";
 import { parseLegacyClip, type ActionClipRect } from "../ActionEditor/ActionClip";
@@ -891,7 +892,7 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 
 	const runTool = useCallback((name: BodyIconName) => {
 		if (name === "origin") {
-			setViewport((current) => ({ ...current, center: [0, 0] }));
+			setViewport((current) => ({ ...current, center: [0, 0], scale: 1 }));
 			setActiveTool("menu");
 			setJointPanelOpen(false);
 			setPendingJointType(null);
@@ -1471,23 +1472,25 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 					{viewToolNames.map((name) => {
 						const selected = activeTool === name;
 						return (
-							<button
-								key={name}
-								type="button"
-								title={getIconLabel(name)}
-								aria-label={getIconLabel(name)}
-								onClick={() => runTool(name)}
-								style={{
-									width: 30,
-									height: 30,
-									border: "1px solid " + (selected ? "#fac03d" : "#343434"),
-									background: selected ? "#5f4917" : "#303030",
-									padding: 3,
-									cursor: "pointer",
-								}}
-							>
-								<BodyIconGlyph name={name} active={selected} />
-							</button>
+							<Fragment key={name}>
+								<button
+									type="button"
+									title={getIconLabel(name)}
+									aria-label={getIconLabel(name)}
+									onClick={() => runTool(name)}
+									style={{
+										width: 30,
+										height: 30,
+										border: "1px solid " + (selected ? "#fac03d" : "#343434"),
+										background: selected ? "#5f4917" : "#303030",
+										padding: 3,
+										cursor: "pointer",
+									}}
+								>
+									<BodyIconGlyph name={name} active={selected} />
+								</button>
+								{name === "zoom" ? <span style={{ color: "#d7d7d7", fontSize: 12, minWidth: 54, textAlign: "center" }}>{t("bodyEditor.zoomValue", { zoom: (viewport.scale * 100).toFixed(0) })}</span> : null}
+							</Fragment>
 						);
 					})}
 				</div>
@@ -1526,7 +1529,7 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 					</label>
 					<input
 						type="number"
-						value={fixedStep}
+						value={formatNumberInput(fixedStep)}
 						min={0.1}
 						step={1}
 						title={t("bodyEditor.fixedEditStep", "Fixed edit step")}
@@ -1953,6 +1956,10 @@ const parseNumberInput = (text: string, fallback: number, constraint?: BodyNumbe
 	return applyBodyNumberConstraint(Number.isFinite(value) ? value : fallback, constraint);
 };
 
+const formatNumberInput = (value: number) => (
+	Number.isInteger(value) ? String(value) : value.toFixed(4).replace(/\.?0+$/, "")
+);
+
 const formatFieldPrefix = (name: string) => {
 	return name.length > 0 ? name[0].toUpperCase() + name.slice(1) : name;
 };
@@ -1994,9 +2001,9 @@ const NumericField = memo(function NumericField(props: {
 		<label style={{ display: "block", color: "#8f9aa6", fontSize: 11, margin: "8px 0 3px" }}>
 			{label}
 			<div style={{ position: "relative", marginTop: 3 }}>
-				<input
-					type="number"
-					value={String(value)}
+					<input
+						type="number"
+						value={formatNumberInput(value)}
 					min={constraint?.min}
 					max={constraint?.max}
 					step={constraint?.step}
@@ -2027,111 +2034,12 @@ const NumericField = memo(function NumericField(props: {
 	);
 });
 
-const ClipSliceThumbnail = memo(function ClipSliceThumbnail(props: {
-	image: HTMLImageElement | null;
-	rect: ActionClipRect;
-}) {
-	const { image, rect } = props;
-	const ref = useRef<HTMLCanvasElement | null>(null);
-	useEffect(() => {
-		const canvas = ref.current;
-		const context = canvas?.getContext("2d");
-		if (!canvas || !context) return;
-		const ratio = window.devicePixelRatio || 1;
-		const size = 54;
-		canvas.width = size * ratio;
-		canvas.height = size * ratio;
-		canvas.style.width = `${size}px`;
-		canvas.style.height = `${size}px`;
-		context.setTransform(ratio, 0, 0, ratio, 0, 0);
-		context.clearRect(0, 0, size, size);
-		context.fillStyle = "#181818";
-		context.fillRect(0, 0, size, size);
-		if (!image || rect.width <= 0 || rect.height <= 0) return;
-		const scale = Math.min((size - 8) / rect.width, (size - 8) / rect.height);
-		const width = rect.width * scale;
-		const height = rect.height * scale;
-		context.drawImage(image, rect.x, rect.y, rect.width, rect.height, (size - width) / 2, (size - height) / 2, width, height);
-	}, [image, rect]);
-	return <canvas ref={ref} aria-hidden="true" style={{ border: "1px solid #3a3a3a", background: "#181818" }} />;
-});
-
 type LoadedClipSlices = {
 	entry: FaceResourceEntry;
 	rects: ActionClipRect[];
 	atlasImage: HTMLImageElement;
 	objectUrl: string;
 };
-
-const ClipSliceDialog = memo(function ClipSliceDialog(props: {
-	clip: LoadedClipSlices | null;
-	onClose: () => void;
-	onSelect: (face: string) => void;
-}) {
-	const { t } = useTranslation();
-	const { clip, onClose, onSelect } = props;
-	const [filter, setFilter] = useState("");
-	useEffect(() => {
-		setFilter("");
-	}, [clip]);
-	const visibleRects = useMemo(() => {
-		const query = filter.trim().toLowerCase();
-		const rects = clip?.rects ?? [];
-		return query === "" ? rects : rects.filter((rect) => rect.name.toLowerCase().includes(query));
-	}, [clip?.rects, filter]);
-	return (
-		<Dialog open={clip !== null} onClose={onClose} fullWidth maxWidth="md">
-			<DialogTitle>{t("bodyEditor.chooseClipSlice", "Choose Clip Slice")}</DialogTitle>
-			<DialogContent sx={{ display: "flex", flexDirection: "column", gap: 1.25, background: "#181818" }}>
-				<div style={{ color: "#8f9aa6", fontSize: 12 }}>{clip?.entry.relative ?? ""}</div>
-				<TextField
-					size="small"
-					value={filter}
-					onChange={(event) => setFilter(event.currentTarget.value)}
-					placeholder={t("bodyEditor.filterSlices", "Filter slices")}
-				/>
-				<div style={{ minHeight: 260, maxHeight: 420, overflow: "auto" }}>
-					{visibleRects.length === 0 ? (
-						<div style={{ color: "#8f9aa6", padding: 12 }}>{t("bodyEditor.noSlices", "No slices")}</div>
-					) : (
-						<div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 8 }}>
-							{visibleRects.map((rect) => (
-								<button
-									key={rect.name}
-									type="button"
-									onClick={() => {
-										if (clip) onSelect(`${clip.entry.relative}|${rect.name}`);
-									}}
-									style={{
-										display: "flex",
-										alignItems: "center",
-										gap: 8,
-										padding: 8,
-										minHeight: 72,
-										border: "1px solid #3a3a3a",
-										background: "#252525",
-										color: "#d7d7d7",
-										cursor: "pointer",
-										textAlign: "left",
-									}}
-								>
-									<ClipSliceThumbnail image={clip?.atlasImage ?? null} rect={rect} />
-									<div style={{ minWidth: 0 }}>
-										<div style={{ fontSize: 12, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{rect.name}</div>
-										<div style={{ fontSize: 10, color: "#8f9aa6" }}>{rect.width} x {rect.height}</div>
-									</div>
-								</button>
-							))}
-						</div>
-					)}
-				</div>
-			</DialogContent>
-			<DialogActions>
-				<Button onClick={onClose}>{t("action.cancel", "Cancel")}</Button>
-			</DialogActions>
-		</Dialog>
-	);
-});
 
 const FaceResourceDialog = memo(function FaceResourceDialog(props: {
 	open: boolean;
@@ -2255,9 +2163,18 @@ const FaceResourceDialog = memo(function FaceResourceDialog(props: {
 				</DialogActions>
 			</Dialog>
 			<ClipSliceDialog
-				clip={selectedClip}
+				open={selectedClip !== null}
+				title={t("bodyEditor.chooseClipSlice", "Choose Clip Slice")}
+				clipLabel={selectedClip?.entry.relative ?? ""}
+				rects={selectedClip?.rects ?? []}
+				atlasImage={selectedClip?.atlasImage ?? null}
+				filterPlaceholder={t("bodyEditor.filterSlices", "Filter slices")}
+				noSlicesText={t("bodyEditor.noSlices", "No slices")}
+				cancelText={t("action.cancel", "Cancel")}
 				onClose={() => setSelectedClip(null)}
-				onSelect={selectFace}
+				onSelect={(rect) => {
+					if (selectedClip) selectFace(`${selectedClip.entry.relative}|${rect.name}`);
+				}}
 			/>
 		</>
 	);

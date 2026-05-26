@@ -56,12 +56,6 @@ const inputStyle = {
 	"& .MuiInputBase-root": {
 		backgroundColor: Color.BackgroundDark,
 	},
-	"& .MuiOutlinedInput-notchedOutline": {
-		borderColor: Color.Line,
-	},
-	"&:hover .MuiOutlinedInput-notchedOutline": {
-		borderColor: Color.TextSecondary,
-	},
 };
 
 const normalizeFormNumber = (value: unknown, fallback: number) => {

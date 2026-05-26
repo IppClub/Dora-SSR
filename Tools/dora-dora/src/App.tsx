@@ -3611,11 +3611,6 @@ export default function PersistentDrawerLeft() {
 											readOnly: true,
 										}
 									}}
-									sx={{
-										"& .MuiOutlinedInput-notchedOutline": {
-											borderColor: Color.Secondary,
-										}
-									}}
 									onFocus={(event) => event.target.setSelectionRange(0, event.target.value.length)}
 								/>
 								: popupInfo?.raw ?
@@ -3669,9 +3664,6 @@ export default function PersistentDrawerLeft() {
 							sx={{
 								m: 1,
 								width: '25ch',
-								"& .MuiOutlinedInput-notchedOutline": {
-									borderColor: Color.Secondary,
-								}
 							}}
 							slotProps={{
 								input: {
@@ -3740,9 +3732,6 @@ export default function PersistentDrawerLeft() {
 										sx={{
 											m: 1,
 											width: '25ch',
-											"& .MuiOutlinedInput-notchedOutline": {
-												borderColor: Color.Secondary,
-											}
 										}}
 										onChange={(event) => {
 											if (fileInfo === null) return;
