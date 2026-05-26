@@ -46,9 +46,6 @@ const FileFilter = (props: FileFilterProps) => {
 			sx={{
 				m: 1,
 				width: '50ch',
-				"& .MuiOutlinedInput-notchedOutline": {
-					borderColor: Color.Secondary
-				}
 			}} {...params} label={t("popup.goToFile")} />}
 		renderOption={(props, option) => {
 			const { key, ...liProps } = props;

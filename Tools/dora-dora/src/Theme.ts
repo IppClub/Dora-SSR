@@ -41,5 +41,22 @@ export const theme = createTheme({
 			focus: Color.Theme + '44',
 			active: Color.Theme + '22',
 		}
+	},
+	components: {
+		MuiOutlinedInput: {
+			styleOverrides: {
+				root: {
+					'& .MuiOutlinedInput-notchedOutline': {
+						borderColor: Color.Line,
+					},
+					'&:hover .MuiOutlinedInput-notchedOutline': {
+						borderColor: Color.TextSecondary,
+					},
+					'&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+						borderColor: Color.TextPrimary,
+					},
+				},
+			},
+		},
 	}
 });

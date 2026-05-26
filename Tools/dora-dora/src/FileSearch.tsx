@@ -250,12 +250,6 @@ const FileSearchPanel = (props: FileSearchDialogProps) => {
 								backgroundColor: Color.BackgroundDark,
 								paddingRight: "8px",
 							},
-							"& .MuiOutlinedInput-notchedOutline": {
-								borderColor: Color.Line,
-							},
-							"&:hover .MuiOutlinedInput-notchedOutline": {
-								borderColor: Color.TextSecondary,
-							},
 						}}
 						slotProps={{
 							input: {
@@ -348,12 +342,6 @@ const FileSearchPanel = (props: FileSearchDialogProps) => {
 						sx={{
 							"& .MuiInputBase-root": {
 								backgroundColor: Color.BackgroundDark,
-							},
-							"& .MuiOutlinedInput-notchedOutline": {
-								borderColor: Color.Line,
-							},
-							"&:hover .MuiOutlinedInput-notchedOutline": {
-								borderColor: Color.TextSecondary,
 							},
 						}}
 					/>

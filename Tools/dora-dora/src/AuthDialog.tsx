@@ -159,12 +159,6 @@ const PinInput = ({
 							"& .MuiInputBase-root": {
 								backgroundColor: Color.BackgroundDark,
 							},
-							"& .MuiOutlinedInput-notchedOutline": {
-								borderColor: Color.Line,
-							},
-							"&:hover .MuiOutlinedInput-notchedOutline": {
-								borderColor: Color.TextSecondary,
-							},
 						}}
 					/>
 				))}

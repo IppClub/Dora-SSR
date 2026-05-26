@@ -655,9 +655,6 @@ const LogView = memo((props: LogViewProps) => {
 				<form noValidate autoComplete="off" style={{ width: "100%" }} onSubmit={onSubmit}>
 					<FormControl fullWidth sx={{
 						paddingRight: 3,
-						"& .MuiOutlinedInput-notchedOutline": {
-							borderColor: Color.Secondary,
-						}
 					}}
 					>
 						<TextField

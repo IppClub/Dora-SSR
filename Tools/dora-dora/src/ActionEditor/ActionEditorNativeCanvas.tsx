@@ -1,5 +1,10 @@
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import RedoIcon from "@mui/icons-material/Redo";
+import UndoIcon from "@mui/icons-material/Undo";
+import { IconButton, Stack, Tooltip } from "@mui/material";
 import { MacScrollbar } from "mac-scrollbar";
+import { BodyIconName, drawBodyIcon } from "../BodyEditor/BodyIcons";
+import ClipSliceDialog from "../ClipSliceDialog";
 import type { ActionClipDocument } from "./ActionClip";
 import type { ActionDocument, ActionDiagnostic, ActionFrameTrack, ActionKeyFrame, ActionNode } from "./ActionDocument";
 import type { ActionViewport } from "./ActionEditorState";
@@ -38,6 +43,7 @@ import {
 import {
 	ActionRenderRect,
 	buildActionRenderRects,
+	getActionNodeAnchor,
 	hitTestActionRenderRects,
 	modelToScreen,
 	renderRectCornersToViewport,
@@ -104,6 +110,7 @@ export type ActionEditorCanvasProps = {
 
 type GizmoMode = "select" | "move" | "scale" | "rotate";
 type LeftTab = "tree" | "keyPoints" | "clips";
+type ActionViewToolName = Extract<BodyIconName, "origin" | "zoom">;
 
 type DragState = {
 	mode: "pan" | "edit";
@@ -111,6 +118,7 @@ type DragState = {
 	startPan: { x: number; y: number };
 	nodeId: string | null;
 	startPosition: { x: number; y: number } | null;
+	startScale: { x: number; y: number } | null;
 	startRotation: number | null;
 	anchorScreen: { x: number; y: number } | null;
 	lastPointerAngle: number | null;
@@ -121,6 +129,26 @@ type DragState = {
 const tr = (props: ActionEditorCanvasProps, key: string, options?: Record<string, unknown>) => props.t(`actionEditor.${key}`, options);
 const secondsToFrame = (time: number) => Math.max(0, Math.round(time * 60));
 const frameToSeconds = (frame: number) => Math.max(0, frame) / 60;
+const actionViewToolNames: readonly ActionViewToolName[] = ["origin", "zoom"];
+
+const BodyIconGlyph = memo(function BodyIconGlyph(props: { name: BodyIconName; active?: boolean }) {
+	const { name, active } = props;
+	const ref = useRef<HTMLCanvasElement | null>(null);
+	useEffect(() => {
+		const canvas = ref.current;
+		const context = canvas?.getContext("2d");
+		if (!canvas || !context) return;
+		const ratio = window.devicePixelRatio || 1;
+		canvas.width = 24 * ratio;
+		canvas.height = 24 * ratio;
+		canvas.style.width = "24px";
+		canvas.style.height = "24px";
+		context.setTransform(ratio, 0, 0, ratio, 0, 0);
+		context.clearRect(0, 0, 24, 24);
+		drawBodyIcon(context, name, 0, 0, 24, active ? "#fac03d" : "#d7d7d7");
+	}, [active, name]);
+	return <canvas ref={ref} aria-hidden="true" />;
+});
 const snapValue = (value: number, fixed: boolean, step: number) => fixed ? Math.round(value / step) * step : value;
 const pointerAngleDegrees = (center: { x: number; y: number }, point: { x: number; y: number }) => Math.atan2(point.y - center.y, point.x - center.x) * 180 / Math.PI;
 const pointerAngleStepDelta = (degrees: number) => {
@@ -138,6 +166,11 @@ const easeNames = [
 	"OutInCirc", "OutInElastic", "OutInBack", "OutInBounce",
 ];
 
+const themeColor = "#fac03d";
+const themeTextColor = "#ffe7ad";
+const themePanelBg = "#5f4917";
+const themeRangeBg = "rgba(250, 192, 61, 0.35)";
+
 const styles = {
 	panel: {
 		background: "#1a1a1a",
@@ -153,9 +186,9 @@ const styles = {
 		boxSizing: "border-box" as const,
 	},
 	buttonActive: {
-		border: "1px solid #fac03d",
-		background: "#5f4917",
-		color: "#ffe7ad",
+		border: `1px solid ${themeColor}`,
+		background: themePanelBg,
+		color: themeTextColor,
 	},
 	input: {
 		width: "100%",
@@ -327,27 +360,31 @@ const drawImageQuad = (ctx: CanvasRenderingContext2D, image: HTMLImageElement, r
 	ctx.restore();
 };
 
-const drawArrow = (ctx: CanvasRenderingContext2D, from: { x: number; y: number }, to: { x: number; y: number }, color: string) => {
-	const dx = to.x - from.x;
-	const dy = to.y - from.y;
-	const length = Math.max(0.0001, Math.hypot(dx, dy));
-	const ux = dx / length;
-	const uy = dy / length;
-	const px = -uy;
-	const py = ux;
+const drawAnchorCross = (ctx: CanvasRenderingContext2D, center: { x: number; y: number }, color: string) => {
 	ctx.strokeStyle = color;
-	ctx.fillStyle = color;
 	ctx.lineWidth = 2;
 	ctx.beginPath();
-	ctx.moveTo(from.x, from.y);
-	ctx.lineTo(to.x, to.y);
+	ctx.moveTo(center.x - 7, center.y);
+	ctx.lineTo(center.x + 7, center.y);
+	ctx.moveTo(center.x, center.y - 7);
+	ctx.lineTo(center.x, center.y + 7);
 	ctx.stroke();
-	ctx.beginPath();
-	ctx.moveTo(to.x, to.y);
-	ctx.lineTo(to.x - ux * 8 + px * 5, to.y - uy * 8 + py * 5);
-	ctx.lineTo(to.x - ux * 8 - px * 5, to.y - uy * 8 - py * 5);
-	ctx.closePath();
-	ctx.fill();
+};
+
+const getScreenBounds = (points: Array<{ x: number; y: number }>) => {
+	const minX = Math.min(...points.map((point) => point.x));
+	const maxX = Math.max(...points.map((point) => point.x));
+	const minY = Math.min(...points.map((point) => point.y));
+	const maxY = Math.max(...points.map((point) => point.y));
+	return {
+		minX,
+		maxX,
+		minY,
+		maxY,
+		width: maxX - minX,
+		height: maxY - minY,
+		center: { x: (minX + maxX) * 0.5, y: (minY + maxY) * 0.5 },
+	};
 };
 
 const drawToolGizmo = (
@@ -358,37 +395,89 @@ const drawToolGizmo = (
 	rects: ActionRenderRect[],
 	area: { x: number; y: number; width: number; height: number },
 ) => {
-	if (props.editMode === "look" || gizmoMode === "select" || props.selectedNodeId === props.document.root.id) return;
+	if (props.editMode === "look" || props.selectedNodeId === props.document.root.id) return;
 	const rect = rects.find((item) => item.nodeId === props.selectedNodeId);
-	if (!rect || !rect.visible || !isNodePreviewVisible(props, hiddenIds, rect.nodeId)) return;
-	const corners = renderRectCornersToViewport(rect, props.viewport, area);
-	const anchor = modelToScreen(rect.anchor, props.viewport, area);
+	if (rect && (!rect.visible || !isNodePreviewVisible(props, hiddenIds, rect.nodeId))) return;
+	if (!rect && !isNodePreviewVisible(props, hiddenIds, props.selectedNodeId)) return;
+	const fallbackAnchor = rect ? null : getActionNodeAnchor(props.document, props.clipDocument, props.selectedLook, props.selectedNodeId, props.selectedAnimation, props.playbackTime);
+	if (!rect && (!fallbackAnchor || !fallbackAnchor.visible)) return;
+	const corners = rect ? renderRectCornersToViewport(rect, props.viewport, area) : null;
+	const anchor = rect ? modelToScreen(rect.anchor, props.viewport, area) : modelToScreen(fallbackAnchor!.anchor, props.viewport, area);
 	ctx.save();
 	ctx.strokeStyle = "#ffffff";
 	ctx.fillStyle = "#ffffff";
 	ctx.lineWidth = 1.5;
-	if (gizmoMode === "move") {
-		const radius = Math.max(28, Math.min(72, Math.max(rect.width, rect.height) * props.viewport.zoom * 0.35));
+	const selectedPreviewColor = "#65d6ff";
+	if (gizmoMode === "select") {
+		drawAnchorCross(ctx, anchor, selectedPreviewColor);
+	} else if (gizmoMode === "move") {
+		const radius = 34;
 		ctx.beginPath();
-		ctx.arc(anchor.x, anchor.y, 4, 0, Math.PI * 2);
+		ctx.arc(anchor.x, anchor.y, 3, 0, Math.PI * 2);
 		ctx.fill();
-		drawArrow(ctx, anchor, { x: anchor.x + radius, y: anchor.y }, "#00c8ff");
-		drawArrow(ctx, anchor, { x: anchor.x, y: anchor.y - radius }, "#00c8ff");
-	} else if (gizmoMode === "scale") {
-		drawPath(ctx, corners);
+		ctx.strokeStyle = selectedPreviewColor;
+		ctx.beginPath();
+		ctx.moveTo(anchor.x, anchor.y);
+		ctx.lineTo(anchor.x + radius, anchor.y);
+		ctx.lineTo(anchor.x + radius - 8, anchor.y - 5);
+		ctx.moveTo(anchor.x + radius, anchor.y);
+		ctx.lineTo(anchor.x + radius - 8, anchor.y + 5);
+		ctx.moveTo(anchor.x - radius * 0.55, anchor.y);
+		ctx.lineTo(anchor.x, anchor.y);
+		ctx.moveTo(anchor.x, anchor.y);
+		ctx.lineTo(anchor.x, anchor.y - radius);
+		ctx.lineTo(anchor.x - 5, anchor.y - radius + 8);
+		ctx.moveTo(anchor.x, anchor.y - radius);
+		ctx.lineTo(anchor.x + 5, anchor.y - radius + 8);
+		ctx.moveTo(anchor.x, anchor.y + radius * 0.55);
+		ctx.lineTo(anchor.x, anchor.y);
 		ctx.stroke();
-		for (const point of corners) {
-			ctx.fillStyle = "#00c8ff";
-			ctx.fillRect(point.x - 5, point.y - 5, 10, 10);
-			ctx.strokeRect(point.x - 5, point.y - 5, 10, 10);
+	} else if (gizmoMode === "scale") {
+		if (rect) {
+			const box = getScreenBounds(corners!);
+			const padding = Math.max(6, Math.min(18, Math.max(box.width, box.height) * 0.12));
+			const left = box.minX - padding;
+			const right = box.maxX + padding;
+			const top = box.minY - padding;
+			const bottom = box.maxY + padding;
+			ctx.strokeStyle = selectedPreviewColor;
+			ctx.strokeRect(left, top, right - left, bottom - top);
+			ctx.fillStyle = "#ffffff";
+			for (const point of [
+				[left, top],
+				[(left + right) / 2, top],
+				[right, top],
+				[right, (top + bottom) / 2],
+				[right, bottom],
+				[(left + right) / 2, bottom],
+				[left, bottom],
+				[left, (top + bottom) / 2],
+			]) {
+				ctx.fillRect(point[0] - 3, point[1] - 3, 6, 6);
+			}
+		} else {
+			drawAnchorCross(ctx, anchor, selectedPreviewColor);
 		}
 	} else if (gizmoMode === "rotate") {
-		const radius = Math.max(32, Math.max(...corners.map((point) => Math.hypot(point.x - anchor.x, point.y - anchor.y))) + 22);
+		const box = rect ? getScreenBounds(corners!) : null;
+		const radius = box ? Math.max(28, Math.sqrt(box.width * box.width + box.height * box.height) * 0.5 + 18) : 34;
+		ctx.strokeStyle = selectedPreviewColor;
 		ctx.beginPath();
 		ctx.arc(anchor.x, anchor.y, radius, 0, Math.PI * 2);
 		ctx.stroke();
-		const end = { x: anchor.x + Math.cos(-Math.PI * 0.18) * radius, y: anchor.y + Math.sin(-Math.PI * 0.18) * radius };
-		drawArrow(ctx, anchor, end, "#00c8ff");
+		const angle = -Math.PI * 0.2;
+		const end = { x: anchor.x + Math.cos(angle) * radius, y: anchor.y + Math.sin(angle) * radius };
+		ctx.beginPath();
+		ctx.moveTo(anchor.x, anchor.y);
+		ctx.lineTo(end.x, end.y);
+		ctx.lineTo(end.x - 9, end.y - 2);
+		ctx.moveTo(end.x, end.y);
+		ctx.lineTo(end.x - 4, end.y + 8);
+		ctx.stroke();
+		ctx.fillStyle = "#ffffff";
+		ctx.beginPath();
+		ctx.arc(anchor.x, anchor.y, 3, 0, Math.PI * 2);
+		ctx.fill();
 	}
 	ctx.restore();
 };
@@ -405,8 +494,8 @@ const drawKeyPointMarkers = (
 		const point = props.document.keyPoints[index];
 		if (!point) continue;
 		const pos = modelToScreen(point, props.viewport, area);
-		ctx.fillStyle = "#42d6ff";
-		ctx.strokeStyle = "rgba(66, 214, 255, 0.85)";
+		ctx.fillStyle = themeColor;
+		ctx.strokeStyle = "rgba(250, 192, 61, 0.85)";
 		ctx.beginPath();
 		ctx.arc(pos.x, pos.y, 4.5, 0, Math.PI * 2);
 		ctx.fill();
@@ -454,10 +543,21 @@ const drawActionCanvas = (
 			ctx.fill();
 		}
 		ctx.restore();
-		ctx.strokeStyle = rect.nodeId === props.selectedNodeId ? "#4cc6ff" : withAlpha("#0b0b0b", Math.max(0.45, rect.opacity));
-		ctx.lineWidth = rect.nodeId === props.selectedNodeId ? 3 : 1;
-		drawPath(ctx, corners);
-		ctx.stroke();
+		if (rect.nodeId === props.selectedNodeId) {
+			const bounds = getScreenBounds(corners);
+			const padding = 6;
+			ctx.save();
+			ctx.strokeStyle = "rgba(170, 176, 184, 0.95)";
+			ctx.lineWidth = 1.5;
+			ctx.setLineDash([5, 3]);
+			ctx.strokeRect(bounds.minX - padding, bounds.minY - padding, bounds.width + padding * 2, bounds.height + padding * 2);
+			ctx.restore();
+		} else {
+			ctx.strokeStyle = withAlpha("#0b0b0b", Math.max(0.45, rect.opacity));
+			ctx.lineWidth = 1;
+			drawPath(ctx, corners);
+			ctx.stroke();
+		}
 	}
 	drawToolGizmo(ctx, props, hiddenIds, gizmoMode, rects, area);
 	drawKeyPointMarkers(ctx, props, visibleKeyPointIndexes, area);
@@ -496,13 +596,16 @@ const NumberField = memo(function NumberField(props: {
 	label: string;
 	value: number;
 	step?: number;
+	format?: (value: number) => string;
 	readOnly?: boolean;
 	onChange: (value: number, options?: ActionDocumentChangeOptions) => void;
 }) {
-	const { label, value, step = 1, readOnly, onChange } = props;
-	const [text, setText] = useState(String(value));
+	const { label, value, step = 1, format, readOnly, onChange } = props;
+	const formatDefault = (item: number) => Number.isInteger(item) ? String(item) : item.toFixed(4).replace(/\.?0+$/, "");
+	const displayValue = format ? format(value) : formatDefault(value);
+	const [text, setText] = useState(displayValue);
 	const startedRef = useRef(false);
-	useEffect(() => setText(String(value)), [value]);
+	useEffect(() => setText(format ? format(value) : formatDefault(value)), [format, value]);
 	const commit = (raw: string, replace: boolean) => {
 		const next = Number(raw);
 		if (!Number.isFinite(next) || next === value || readOnly) return;
@@ -595,6 +698,94 @@ const TabButton = (props: { active: boolean; onClick: () => void; children: Reac
 	</button>
 );
 
+const TreeEyeIcon = memo(function TreeEyeIcon(props: { visible: boolean }) {
+	const { visible } = props;
+	return (
+		<svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true" style={{ display: "block" }}>
+			<path
+				d="M2.5 11C4.8 7.8 7.6 6.2 11 6.2S17.2 7.8 19.5 11C17.2 14.2 14.4 15.8 11 15.8S4.8 14.2 2.5 11Z"
+				fill="none"
+				stroke={visible ? "#d6d6d6" : "#686868"}
+				strokeWidth="1.7"
+				strokeLinejoin="round"
+			/>
+			{visible ? (
+				<circle cx="11" cy="11" r="2.4" fill="#d6d6d6" />
+			) : (
+				<line x1="4.2" y1="17" x2="17.8" y2="5" stroke="#686868" strokeWidth="1.8" />
+			)}
+		</svg>
+	);
+});
+
+const TreeClipPreview = memo(function TreeClipPreview(props: {
+	editor: ActionEditorCanvasProps;
+	node: ActionNode;
+	onSelect: () => void;
+}) {
+	const { editor, node, onSelect } = props;
+	const canvasRef = useRef<HTMLCanvasElement | null>(null);
+	const previewSize = 30;
+	const clipRect = node.clip ? editor.clipDocument?.rects[node.clip] : undefined;
+
+	useEffect(() => {
+		const canvas = canvasRef.current;
+		const context = canvas?.getContext("2d");
+		if (!canvas || !context) return;
+		const ratio = window.devicePixelRatio || 1;
+		canvas.width = previewSize * ratio;
+		canvas.height = previewSize * ratio;
+		canvas.style.width = `${previewSize}px`;
+		canvas.style.height = `${previewSize}px`;
+		context.setTransform(ratio, 0, 0, ratio, 0, 0);
+		context.clearRect(0, 0, previewSize, previewSize);
+		context.fillStyle = node.clip === "" ? "#252525" : "#303030";
+		context.fillRect(0, 0, previewSize, previewSize);
+		if (node.clip === "") {
+			context.strokeStyle = "#686868";
+			context.lineWidth = 1;
+			context.strokeRect(6.5, 6.5, previewSize - 13, previewSize - 13);
+			return;
+		}
+		if (!editor.atlasImage || !clipRect || clipRect.width <= 0 || clipRect.height <= 0) return;
+		const scale = Math.min(previewSize / clipRect.width, previewSize / clipRect.height);
+		const imageWidth = Math.max(1, clipRect.width * scale);
+		const imageHeight = Math.max(1, clipRect.height * scale);
+		const x = (previewSize - imageWidth) / 2;
+		const y = (previewSize - imageHeight) / 2;
+		context.imageSmoothingEnabled = false;
+		context.drawImage(
+			editor.atlasImage.image,
+			clipRect.x,
+			clipRect.y,
+			clipRect.width,
+			clipRect.height,
+			x,
+			y,
+			imageWidth,
+			imageHeight,
+		);
+	}, [clipRect, editor.atlasImage, node.clip]);
+
+	return (
+		<button
+			type="button"
+			onClick={onSelect}
+			style={{
+				width: previewSize,
+				height: previewSize,
+				padding: 0,
+				border: 0,
+				background: "transparent",
+				cursor: "pointer",
+				flexShrink: 0,
+			}}
+		>
+			<canvas ref={canvasRef} aria-hidden="true" style={{ display: "block" }} />
+		</button>
+	);
+});
+
 const NodeTree = memo(function NodeTree(props: {
 	editor: ActionEditorCanvasProps;
 	node: ActionNode;
@@ -609,8 +800,8 @@ const NodeTree = memo(function NodeTree(props: {
 	const directHidden = hiddenIds.has(node.id);
 	const previewVisible = isNodePreviewVisible(editor, hiddenIds, node.id);
 	return (
-		<div>
-			<div style={{ display: "flex", alignItems: "center", gap: 4, paddingLeft: depth * 14, minHeight: 30 }}>
+		<div style={{ minWidth: "max-content" }}>
+			<div style={{ display: "flex", alignItems: "center", gap: 2, paddingLeft: depth * 14, minHeight: 34, width: "max-content", minWidth: "100%" }}>
 				<button
 					type="button"
 					title={previewVisible ? tr(editor, "hide") : tr(editor, "showAll")}
@@ -620,23 +811,40 @@ const NodeTree = memo(function NodeTree(props: {
 						else next.add(node.id);
 						onHiddenChange(next);
 					}}
-					style={{ ...styles.button, width: 24, height: 24, padding: 0 }}
+					style={{
+						width: 22,
+						height: 30,
+						padding: 0,
+						border: 0,
+						background: "transparent",
+						cursor: "pointer",
+						flexShrink: 0,
+					}}
 				>
-					{previewVisible ? "o" : "/"}
+					<TreeEyeIcon visible={previewVisible} />
 				</button>
+				<TreeClipPreview
+					editor={editor}
+					node={node}
+					onSelect={() => editor.onSelectionChange(node.id)}
+				/>
 				<button
 					type="button"
 					onClick={() => editor.onSelectionChange(node.id)}
 					style={{
-						...styles.button,
-						...(selected ? styles.buttonActive : null),
 						flex: 1,
-						minWidth: 0,
+						height: 30,
+						minWidth: "max-content",
 						textAlign: "left",
-						padding: "0 8px",
-						overflow: "hidden",
-						textOverflow: "ellipsis",
+						padding: "0 10px",
+						overflow: "visible",
 						whiteSpace: "nowrap",
+						border: "1px solid transparent",
+						background: selected ? "#3a3a3a" : "transparent",
+						color: "#d7d7d7",
+						cursor: "pointer",
+						fontSize: 16,
+						boxSizing: "border-box",
 					}}
 				>
 					{getTreeNodeLabel(editor, node)}
@@ -661,20 +869,42 @@ const NodeTree = memo(function NodeTree(props: {
 const ClipChooser = memo(function ClipChooser(props: {
 	editor: ActionEditorCanvasProps;
 	selectedClip: string;
+	allowNone?: boolean;
 	onSelect: (clip: string) => void;
 }) {
-	const { editor, selectedClip, onSelect } = props;
-	const names = useMemo(() => Object.keys(editor.clipDocument?.rects ?? {}).sort((a, b) => a.localeCompare(b)), [editor.clipDocument]);
+	const { editor, selectedClip, allowNone = true, onSelect } = props;
+	const [open, setOpen] = useState(false);
+	const selectedRect = selectedClip ? editor.clipDocument?.rects[selectedClip] : undefined;
+	const rects = useMemo(() => Object.values(editor.clipDocument?.rects ?? {}).sort((a, b) => a.name.localeCompare(b.name)), [editor.clipDocument]);
+	const disabled = editor.readOnly || !editor.clipDocument || Object.keys(editor.clipDocument.rects).length === 0;
 	return (
-		<select
-			value={selectedClip}
-			disabled={editor.readOnly}
-			onChange={(event) => onSelect(event.currentTarget.value)}
-			style={styles.input}
-		>
-			<option value="">{tr(editor, "none")}</option>
-			{names.map((name) => <option key={name} value={name}>{name}</option>)}
-		</select>
+		<div style={{ display: "grid", gridTemplateColumns: allowNone ? "minmax(0, 1fr) auto auto" : "minmax(0, 1fr) auto", gap: 4 }}>
+			<input
+				type="text"
+				value={selectedClip || tr(editor, "none")}
+				disabled
+				style={styles.input}
+			/>
+			<button type="button" disabled={disabled} onClick={() => setOpen(true)} style={styles.button}>{editor.t("bodyEditor.chooseClipSlice")}</button>
+			{allowNone ? <button type="button" disabled={editor.readOnly || selectedClip === ""} onClick={() => onSelect("")} style={styles.button}>{tr(editor, "none")}</button> : null}
+			{selectedRect ? <div style={{ gridColumn: "1 / -1", color: "#8f9aa6", fontSize: 11 }}>{selectedRect.width} x {selectedRect.height}</div> : null}
+			<ClipSliceDialog
+				open={open}
+				title={editor.t("bodyEditor.chooseClipSlice")}
+				clipLabel={editor.document.clipFile}
+				rects={rects}
+				atlasImage={editor.atlasImage?.image ?? null}
+				filterPlaceholder={editor.t("bodyEditor.filterSlices")}
+				noSlicesText={editor.t("bodyEditor.noSlices")}
+				cancelText={editor.t("action.cancel")}
+				selectedRectName={selectedClip}
+				onClose={() => setOpen(false)}
+				onSelect={(rect) => {
+					onSelect(rect.name);
+					setOpen(false);
+				}}
+			/>
+		</div>
 	);
 });
 
@@ -730,17 +960,27 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 	const showSidePanels = props.width >= 760;
 	const leftPanelWidth = showSidePanels ? 250 : 0;
 	const rightPanelWidth = showSidePanels ? 290 : 0;
-	const topToolbarHeight = 42;
+	const topToolbarHeight = 44;
 	const timelineHeight = props.editMode === "animation" && props.selectedAnimation !== null ? 72 : 0;
 	const centerWidth = Math.max(1, props.width - leftPanelWidth - rightPanelWidth);
 	const canvasHeight = Math.max(1, props.height - topToolbarHeight - timelineHeight);
 
 	const selected = findActionNode(props.document.root, props.selectedNodeId) ?? props.document.root;
 	const selectedFrame = getSelectedAnimationKeyFrame(props);
+	const selectedTrack = props.selectedAnimation && selected.id !== props.document.root.id ? selected.tracks[props.selectedAnimation] : undefined;
+	const toolSelectOnly = props.editMode === "look"
+		|| selected.id === props.document.root.id
+		|| props.playbackPlaying
+		|| (props.editMode === "animation" && selectedTrack?.type === "frame")
+		|| (props.editMode === "animation" && selectedFrame === null);
 	const rects = useMemo(
 		() => buildActionRenderRects(props.document, props.clipDocument, props.selectedLook, props.selectedAnimation, props.playbackTime),
 		[props.clipDocument, props.document, props.playbackTime, props.selectedAnimation, props.selectedLook],
 	);
+
+	useEffect(() => {
+		if (toolSelectOnly && gizmoMode !== "select") setGizmoMode("select");
+	}, [gizmoMode, toolSelectOnly]);
 
 	useEffect(() => {
 		const canvas = canvasRef.current;
@@ -795,15 +1035,22 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 		const dragNodeId = props.editMode === "animation" && requestedDragNodeId !== null && dragFrame === null ? null : requestedDragNodeId;
 		const dragNode = dragNodeId ? findActionNode(props.document.root, dragNodeId) : null;
 		const dragRect = dragNodeId ? rects.find((rect) => rect.nodeId === dragNodeId) ?? null : null;
+		const dragAnchor = dragRect
+			? dragRect.anchor
+			: dragNodeId
+				? getActionNodeAnchor(props.document, props.clipDocument, props.selectedLook, dragNodeId, props.selectedAnimation, props.playbackTime)?.anchor ?? null
+				: null;
+		const dragAnchorScreen = dragAnchor ? modelToScreen(dragAnchor, props.viewport, area) : null;
 		dragRef.current = {
 			mode: !props.readOnly && props.editMode !== "look" && gizmoMode !== "select" && dragNodeId !== null ? "edit" : "pan",
 			startPointer: { x: event.clientX, y: event.clientY },
 			startPan: { ...props.viewport.pan },
 			nodeId: dragNodeId,
 			startPosition: dragFrame ? { ...dragFrame.transform.position } : (dragNode ? { ...dragNode.transform.position } : null),
+			startScale: dragFrame ? { ...dragFrame.transform.scale } : (dragNode ? { ...dragNode.transform.scale } : null),
 			startRotation: dragFrame ? dragFrame.transform.rotation : (dragNode ? dragNode.transform.rotation : null),
-			anchorScreen: dragRect ? modelToScreen(dragRect.anchor, props.viewport, area) : null,
-			lastPointerAngle: dragRect ? pointerAngleDegrees(modelToScreen(dragRect.anchor, props.viewport, area), point) : null,
+			anchorScreen: dragAnchorScreen,
+			lastPointerAngle: dragAnchorScreen ? pointerAngleDegrees(dragAnchorScreen, point) : null,
 			accumulatedRotation: 0,
 			historyStarted: false,
 		};
@@ -834,11 +1081,12 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 		};
 		updateTransform((transform) => {
 			if (gizmoMode === "scale") {
+				if (!drag.startScale) return transform;
 				return {
 					...transform,
 					scale: {
-						x: Math.max(0.01, snapValue(transform.scale.x + delta.x / props.viewport.zoom / 100, fixedSnap, 0.1)),
-						y: Math.max(0.01, snapValue(transform.scale.y - delta.y / props.viewport.zoom / 100, fixedSnap, 0.1)),
+						x: Math.max(0.01, snapValue(drag.startScale.x + delta.x / props.viewport.zoom / 100, fixedSnap, 0.1)),
+						y: Math.max(0.01, snapValue(drag.startScale.y - delta.y / props.viewport.zoom / 100, fixedSnap, 0.1)),
 					},
 				};
 			}
@@ -870,7 +1118,13 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 		setIsPointerDragging(false);
 	}, []);
 
-	const selectedClipNames = useMemo(() => Object.keys(props.clipDocument?.rects ?? {}).sort((a, b) => a.localeCompare(b)), [props.clipDocument]);
+	const runViewTool = useCallback((name: ActionViewToolName) => {
+		if (name === "origin") {
+			props.onViewportChange(defaultActionViewport());
+		} else if (name === "zoom") {
+			props.onViewportChange({ ...props.viewport, zoom: props.viewport.zoom >= 2 ? 0.5 : props.viewport.zoom >= 1 ? 2 : 1 });
+		}
+	}, [props]);
 
 	const renderNodeCommands = () => {
 		const rootSelected = selected.id === props.document.root.id;
@@ -914,14 +1168,21 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 				<TabButton active={leftTab === "keyPoints"} onClick={() => setLeftTab("keyPoints")}>{tr(props, "keyPoints")}</TabButton>
 				<TabButton active={leftTab === "clips"} onClick={() => setLeftTab("clips")}>{tr(props, "clips")}</TabButton>
 			</div>
-			<div style={{ flex: 1, minHeight: 0 }}>
-				<MacScrollbar skin="dark" style={{ width: "100%", height: "100%" }}>
-					{leftTab === "tree" ? (
-						<>
-							{renderNodeCommands()}
-							<NodeTree editor={props} node={props.document.root} depth={0} hiddenIds={previewHiddenNodeIds} moveSourceId={moveSourceId} onHiddenChange={setPreviewHiddenNodeIds} onMoveSourceChange={setMoveSourceId} />
-						</>
-					) : null}
+			<div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+				{leftTab === "tree" ? (
+					<>
+						{renderNodeCommands()}
+						<div style={{ flex: 1, minHeight: 0 }}>
+							<MacScrollbar skin="dark" style={{ width: "100%", height: "100%" }}>
+								<div style={{ minWidth: "max-content", paddingBottom: 8 }}>
+									<NodeTree editor={props} node={props.document.root} depth={0} hiddenIds={previewHiddenNodeIds} moveSourceId={moveSourceId} onHiddenChange={setPreviewHiddenNodeIds} onMoveSourceChange={setMoveSourceId} />
+								</div>
+							</MacScrollbar>
+						</div>
+					</>
+				) : null}
+				{leftTab !== "tree" ? (
+					<MacScrollbar skin="dark" style={{ width: "100%", height: "100%" }}>
 					{leftTab === "keyPoints" ? (
 						<div style={{ padding: 8 }}>
 							<button type="button" disabled={props.readOnly} onClick={() => props.onDocumentChange(addActionKeyPoint(props.document))} style={styles.button}>{tr(props, "addPoint")}</button>
@@ -964,7 +1225,8 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 							))}
 						</div>
 					) : null}
-				</MacScrollbar>
+					</MacScrollbar>
+				) : null}
 			</div>
 		</div>
 	);
@@ -1010,7 +1272,6 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 						<NumberField label={tr(props, "anchorY")} value={selected.transform.anchor.y} step={0.05} readOnly={props.readOnly} onChange={(y, options) => emitNodeChange(props, selected.id, (node) => ({ ...node, transform: { ...node.transform, anchor: { ...node.transform.anchor, y } } }), options)} />
 					</>
 				)}
-				{renderViewportTools()}
 			</div>
 		);
 	};
@@ -1029,20 +1290,20 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 				}} style={styles.button}>{tr(props, "addLook")}</button>
 				{props.selectedLook !== null ? <button type="button" disabled={props.readOnly} onClick={() => { props.onDocumentChange(removeActionLook(props.document, props.selectedLook!)); props.onLookSelect(null); }} style={styles.button}>{tr(props, "deleteLook")}</button> : null}
 			</div>
-			<div style={{ border: "1px solid #2b2b2b", maxHeight: 180, overflow: "auto", marginBottom: 8 }}>
-				{props.document.looks.map((look) => (
-					<button key={look} type="button" onClick={() => { props.onLookSelect(look); props.onAnimationSelect(null); props.onPlaybackPlayingChange(false); }} style={{ ...styles.button, ...(props.selectedLook === look ? styles.buttonActive : null), width: "100%", textAlign: "left", borderWidth: 0, borderBottom: "1px solid #2b2b2b" }}>{look}</button>
-				))}
+			<div style={{ border: "1px solid #2b2b2b", height: 180, marginBottom: 8 }}>
+				<MacScrollbar skin="dark" style={{ width: "100%", height: "100%" }}>
+					{props.document.looks.map((look) => (
+						<button key={look} type="button" onClick={() => { props.onLookSelect(look); props.onAnimationSelect(null); props.onPlaybackPlayingChange(false); }} style={{ ...styles.button, ...(props.selectedLook === look ? styles.buttonActive : null), width: "100%", textAlign: "left", borderWidth: 0, borderBottom: "1px solid #2b2b2b" }}>{look}</button>
+					))}
+				</MacScrollbar>
 			</div>
 			{props.selectedLook !== null ? (
 				<>
-					<div style={{ color: "#fac03d", fontSize: 12, marginBottom: 6 }}>{tr(props, "lookValue", { look: props.selectedLook })}</div>
 					{selected.id !== props.document.root.id ? (
 						<CheckField label={tr(props, "hide")} checked={selected.hiddenInLooks.indexOf(props.selectedLook) >= 0} readOnly={props.readOnly} onChange={(hidden) => props.onDocumentChange(setActionNodeLookHidden(props.document, selected.id, props.selectedLook!, hidden))} />
 					) : null}
 				</>
 			) : <div style={{ color: "#8f9aa6", fontSize: 12 }}>{tr(props, "selectLookHint")}</div>}
-			{renderViewportTools()}
 		</div>
 	);
 
@@ -1072,9 +1333,7 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 				{!parsed ? <div style={{ color: "#8f9aa6", fontSize: 12, marginBottom: 6 }}>{tr(props, "invalidFrameTrack")}</div> : null}
 				<label style={{ display: "grid", gridTemplateColumns: "88px minmax(0, 1fr)", alignItems: "center", gap: 6, marginBottom: 6 }}>
 					<span style={styles.label}>{tr(props, "clip")}</span>
-					<select value={spec.clipName} disabled={props.readOnly} onChange={(event) => updateTrack((item, delay) => ({ spec: { ...item, clipFile: props.document.clipFile, clipName: event.currentTarget.value }, delay }))} style={styles.input}>
-						{selectedClipNames.map((name) => <option key={name} value={name}>{name}</option>)}
-					</select>
+					<ClipChooser editor={props} selectedClip={spec.clipName} allowNone={false} onSelect={(clipName) => updateTrack((item, delay) => ({ spec: { ...item, clipFile: props.document.clipFile, clipName }, delay }))} />
 				</label>
 				<button type="button" disabled={props.readOnly} onClick={() => {
 					const base = props.clipDocument?.rects[spec.clipName];
@@ -1098,11 +1357,9 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 	const renderAnimationKeyFrameProperties = () => {
 		if (props.selectedAnimation === null || selected.id === props.document.root.id) return <div style={{ color: "#8f9aa6", fontSize: 12 }}>{tr(props, "selectNodeKeyframe")}</div>;
 		const frame = selectedFrame;
-		const frontField = <CheckField label={tr(props, "front")} checked={selected.front} readOnly={props.readOnly} onChange={(front) => emitNodeChange(props, selected.id, (node) => ({ ...node, front }))} />;
 		if (!frame) {
 			return (
 				<div>
-					{frontField}
 					<div style={{ color: "#8f9aa6", fontSize: 12 }}>{tr(props, "moveTimeHeadToKeyframe")}</div>
 				</div>
 			);
@@ -1110,7 +1367,6 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 		const firstKeyFrame = isFirstActionKeyFrame(props.document, selected.id, props.selectedAnimation, frame.time);
 		return (
 			<div>
-				{frontField}
 				<div style={{ color: "#fac03d", fontSize: 12, marginBottom: 6 }}>{tr(props, "keyFrameAt", { frame: secondsToFrame(frame.time) })}</div>
 				<CheckField label={tr(props, "visible")} checked={frame.visible} readOnly={props.readOnly} onChange={(visible) => emitKeyFrameChange(props, selected.id, (item) => ({ ...item, visible }))} />
 				<NumberField label={tr(props, "x")} value={frame.transform.position.x} readOnly={props.readOnly} onChange={(x, options) => emitKeyFrameChange(props, selected.id, (item) => ({ ...item, transform: { ...item.transform, position: { ...item.transform.position, x } } }), options)} />
@@ -1135,31 +1391,41 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 		);
 	};
 
-	const renderViewportTools = () => {
-		const rootSelected = props.selectedNodeId === props.document.root.id;
-		const selectOnly = props.editMode === "look" || rootSelected;
-		const visibleModes: GizmoMode[] = selectOnly ? ["select"] : ["select", "move", "scale", "rotate"];
-		return (
-			<div style={{ borderTop: "1px solid #2b2b2b", marginTop: 8, paddingTop: 8 }}>
-				<div style={{ ...styles.label, marginBottom: 6 }}>{tr(props, "tool")}</div>
-				<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginBottom: 6 }}>
-					{visibleModes.map((mode) => (
-						<button key={mode} type="button" onClick={() => setGizmoMode(mode)} style={{ ...styles.button, ...(gizmoMode === mode ? styles.buttonActive : null) }}>{tr(props, `toolMode.${mode}`)}</button>
-					))}
-				</div>
-				{!selectOnly ? <CheckField label={tr(props, "fixed")} checked={fixedSnap} onChange={setFixedSnap} /> : null}
-				{props.editMode === "animation" ? renderAnimationKeyFrameProperties() : null}
-			</div>
-		);
-	};
+	const visibleGizmoModes: GizmoMode[] = toolSelectOnly ? ["select"] : ["select", "move", "scale", "rotate"];
 
 	const renderAnimationsPanel = () => {
 		const duration = props.selectedAnimation ? getActionAnimationDuration(props.document, props.selectedAnimation) : 0;
 		const track = props.selectedAnimation && selected.id !== props.document.root.id ? selected.tracks[props.selectedAnimation] : undefined;
 		const currentFrame = track?.type === "key" ? track.keyframes.find((frame) => Math.abs(frame.time - props.playbackTime) < 1 / 120) : undefined;
+		const editableTrackContent = props.selectedAnimation !== null && !props.playbackPlaying && selected.id !== props.document.root.id ? (
+			<>
+				<div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 8 }}>
+					<span style={styles.label}>{tr(props, "track")}</span>
+					<label style={{ color: "#d7d7d7", fontSize: 12 }}><input type="radio" checked={track?.type !== "frame"} disabled={props.readOnly} onChange={() => props.selectedAnimation && props.onDocumentChange(upsertActionKeyFrame(props.document, selected.id, props.selectedAnimation, props.playbackTime))} /> {tr(props, "key")}</label>
+					<label style={{ color: "#d7d7d7", fontSize: 12 }}><input type="radio" checked={track?.type === "frame"} disabled={props.readOnly} onChange={() => props.selectedAnimation && props.onDocumentChange(setActionFrameTrack(props.document, selected.id, props.selectedAnimation, createDefaultFrameTrack(props, selected)))} /> {tr(props, "sequence")}</label>
+				</div>
+				{track?.type === "frame" ? renderAnimationFrameTrack(track) : (
+					<>
+						<div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 8 }}>
+							{!currentFrame ? <button type="button" disabled={props.readOnly} onClick={() => props.onDocumentChange(upsertActionKeyFrame(props.document, selected.id, props.selectedAnimation!, props.playbackTime))} style={styles.button}>{tr(props, "addKey")}</button> : null}
+							<button type="button" disabled={props.readOnly} onClick={() => props.onDocumentChange(deleteActionKeyFrame(props.document, selected.id, props.selectedAnimation!, props.playbackTime))} style={styles.button}>{tr(props, "deleteKey")}</button>
+							{currentFrame ? <button type="button" disabled={props.readOnly} onClick={() => { setCopiedKeyFrame(copyActionKeyFrame(props.document, selected.id, props.selectedAnimation!, props.playbackTime)); setMovingKeyTime(null); }} style={styles.button}>{tr(props, "copyKey")}</button> : null}
+							{currentFrame ? <button type="button" disabled={props.readOnly} onClick={() => { setMovingKeyTime(props.playbackTime); setCopiedKeyFrame(null); }} style={styles.button}>{tr(props, "moveKey")}</button> : null}
+							{copiedKeyFrame ? <button type="button" disabled={props.readOnly} onClick={() => setCopiedKeyFrame(null)} style={styles.button}>{tr(props, "cancelCopy")}</button> : null}
+							{copiedKeyFrame ? <button type="button" disabled={props.readOnly} onClick={() => { props.onDocumentChange(pasteActionKeyFrame(props.document, selected.id, props.selectedAnimation!, props.playbackTime, copiedKeyFrame)); setCopiedKeyFrame(null); }} style={{ ...styles.button, ...styles.buttonActive }}>{tr(props, "pasteKey")}</button> : null}
+							{movingKeyTime !== null ? <button type="button" disabled={props.readOnly} onClick={() => setMovingKeyTime(null)} style={{ ...styles.button, ...styles.buttonActive }}>{tr(props, "cancelMove")}</button> : null}
+						</div>
+						{copiedKeyFrame ? <div style={{ color: "#8f9aa6", fontSize: 12 }}>{tr(props, "copyingKey", { frame: secondsToFrame(copiedKeyFrame.time) })}</div> : null}
+						{movingKeyTime !== null ? <div style={{ color: "#8f9aa6", fontSize: 12 }}>{tr(props, "movingKey", { frame: secondsToFrame(movingKeyTime) })}</div> : null}
+					</>
+				)}
+				{renderAnimationKeyFrameProperties()}
+			</>
+		) : null;
 		return (
-			<div style={{ padding: 8 }}>
-				<div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
+			<div style={{ height: "100%", minHeight: 0, display: "flex", flexDirection: "column" }}>
+				<div style={{ padding: 8, flexShrink: 0 }}>
+					<div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
 					<button type="button" disabled={props.readOnly} onClick={() => {
 						const result = addActionAnimation(props.document);
 						props.onDocumentChange(result.document);
@@ -1171,19 +1437,23 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 				<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 }}>
 					<div>
 						<div style={styles.label}>{tr(props, "animation")}</div>
-						<div style={{ border: "1px solid #2b2b2b", maxHeight: 120, overflow: "auto" }}>
-							{props.document.animations.map((animation) => <button key={animation} type="button" onClick={() => { props.onAnimationSelect(animation); props.onPlaybackTimeChange(0); }} style={{ ...styles.button, ...(props.selectedAnimation === animation ? styles.buttonActive : null), width: "100%", textAlign: "left", borderWidth: 0, borderBottom: "1px solid #2b2b2b" }}>{animation}</button>)}
+						<div style={{ border: "1px solid #2b2b2b", height: 120 }}>
+							<MacScrollbar skin="dark" style={{ width: "100%", height: "100%" }}>
+								{props.document.animations.map((animation) => <button key={animation} type="button" onClick={() => { props.onAnimationSelect(animation); props.onPlaybackTimeChange(0); }} style={{ ...styles.button, ...(props.selectedAnimation === animation ? styles.buttonActive : null), width: "100%", textAlign: "left", borderWidth: 0, borderBottom: "1px solid #2b2b2b" }}>{animation}</button>)}
+							</MacScrollbar>
 						</div>
 					</div>
 					<div>
 						<div style={styles.label}>{tr(props, "look")}</div>
-						<div style={{ border: "1px solid #2b2b2b", maxHeight: 120, overflow: "auto" }}>
-							<button type="button" onClick={() => props.onLookSelect(null)} style={{ ...styles.button, ...(props.selectedLook === null ? styles.buttonActive : null), width: "100%", textAlign: "left", borderWidth: 0, borderBottom: "1px solid #2b2b2b" }}>{tr(props, "defaultLook")}</button>
-							{props.document.looks.map((look) => <button key={look} type="button" onClick={() => props.onLookSelect(look)} style={{ ...styles.button, ...(props.selectedLook === look ? styles.buttonActive : null), width: "100%", textAlign: "left", borderWidth: 0, borderBottom: "1px solid #2b2b2b" }}>{look}</button>)}
+						<div style={{ border: "1px solid #2b2b2b", height: 120 }}>
+							<MacScrollbar skin="dark" style={{ width: "100%", height: "100%" }}>
+								<button type="button" onClick={() => props.onLookSelect(null)} style={{ ...styles.button, ...(props.selectedLook === null ? styles.buttonActive : null), width: "100%", textAlign: "left", borderWidth: 0, borderBottom: "1px solid #2b2b2b" }}>{tr(props, "defaultLook")}</button>
+								{props.document.looks.map((look) => <button key={look} type="button" onClick={() => props.onLookSelect(look)} style={{ ...styles.button, ...(props.selectedLook === look ? styles.buttonActive : null), width: "100%", textAlign: "left", borderWidth: 0, borderBottom: "1px solid #2b2b2b" }}>{look}</button>)}
+							</MacScrollbar>
 						</div>
 					</div>
-				</div>
-				{props.selectedAnimation === null ? null : (
+					</div>
+					{props.selectedAnimation === null ? null : (
 					<>
 						<TextField label={tr(props, "animation")} value={props.selectedAnimation} readOnly={props.readOnly} onChange={(nextName) => {
 							const trimmed = nextName.trim();
@@ -1198,35 +1468,18 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 							<button type="button" onClick={() => props.onPlaybackPlayingChange(!props.playbackPlaying)} style={styles.button}>{props.playbackPlaying ? tr(props, "pause") : tr(props, "play")}</button>
 							<CheckField label={tr(props, "loop")} checked={props.playbackLoop} onChange={props.onPlaybackLoopChange} />
 						</div>
-						<NumberField label={tr(props, "time")} value={props.playbackTime} step={1 / 60} readOnly={props.readOnly} onChange={(time) => props.onPlaybackTimeChange(Math.max(0, time))} />
+						<NumberField label={tr(props, "time")} value={props.playbackTime} step={1 / 60} format={(value) => value.toFixed(2)} readOnly={props.readOnly} onChange={(time) => props.onPlaybackTimeChange(Math.max(0, time))} />
 						<div style={{ color: "#8f9aa6", fontSize: 12, marginBottom: 8 }}>{tr(props, "frameCounter", { current: Math.round(props.playbackTime * 60), total: Math.round(duration * 60) })}</div>
-						{!props.playbackPlaying && selected.id !== props.document.root.id ? (
-							<>
-								<div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 8 }}>
-									<span style={styles.label}>{tr(props, "track")}</span>
-									<label style={{ color: "#d7d7d7", fontSize: 12 }}><input type="radio" checked={track?.type !== "frame"} disabled={props.readOnly} onChange={() => props.selectedAnimation && props.onDocumentChange(upsertActionKeyFrame(props.document, selected.id, props.selectedAnimation, props.playbackTime))} /> {tr(props, "key")}</label>
-									<label style={{ color: "#d7d7d7", fontSize: 12 }}><input type="radio" checked={track?.type === "frame"} disabled={props.readOnly} onChange={() => props.selectedAnimation && props.onDocumentChange(setActionFrameTrack(props.document, selected.id, props.selectedAnimation, createDefaultFrameTrack(props, selected)))} /> {tr(props, "sequence")}</label>
-								</div>
-								{track?.type === "frame" ? renderAnimationFrameTrack(track) : (
-									<>
-										<div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 8 }}>
-											{!currentFrame ? <button type="button" disabled={props.readOnly} onClick={() => props.onDocumentChange(upsertActionKeyFrame(props.document, selected.id, props.selectedAnimation!, props.playbackTime))} style={styles.button}>{tr(props, "addKey")}</button> : null}
-											<button type="button" disabled={props.readOnly} onClick={() => props.onDocumentChange(deleteActionKeyFrame(props.document, selected.id, props.selectedAnimation!, props.playbackTime))} style={styles.button}>{tr(props, "deleteKey")}</button>
-											{currentFrame ? <button type="button" disabled={props.readOnly} onClick={() => { setCopiedKeyFrame(copyActionKeyFrame(props.document, selected.id, props.selectedAnimation!, props.playbackTime)); setMovingKeyTime(null); }} style={styles.button}>{tr(props, "copyKey")}</button> : null}
-											{currentFrame ? <button type="button" disabled={props.readOnly} onClick={() => { setMovingKeyTime(props.playbackTime); setCopiedKeyFrame(null); }} style={styles.button}>{tr(props, "moveKey")}</button> : null}
-											{copiedKeyFrame ? <button type="button" disabled={props.readOnly} onClick={() => setCopiedKeyFrame(null)} style={styles.button}>{tr(props, "cancelCopy")}</button> : null}
-											{copiedKeyFrame ? <button type="button" disabled={props.readOnly} onClick={() => { props.onDocumentChange(pasteActionKeyFrame(props.document, selected.id, props.selectedAnimation!, props.playbackTime, copiedKeyFrame)); setCopiedKeyFrame(null); }} style={{ ...styles.button, ...styles.buttonActive }}>{tr(props, "pasteKey")}</button> : null}
-											{movingKeyTime !== null ? <button type="button" disabled={props.readOnly} onClick={() => setMovingKeyTime(null)} style={{ ...styles.button, ...styles.buttonActive }}>{tr(props, "cancelMove")}</button> : null}
-										</div>
-										{copiedKeyFrame ? <div style={{ color: "#8f9aa6", fontSize: 12 }}>{tr(props, "copyingKey", { frame: secondsToFrame(copiedKeyFrame.time) })}</div> : null}
-										{movingKeyTime !== null ? <div style={{ color: "#8f9aa6", fontSize: 12 }}>{tr(props, "movingKey", { frame: secondsToFrame(movingKeyTime) })}</div> : null}
-									</>
-								)}
-								{renderViewportTools()}
-							</>
-						) : null}
 					</>
-				)}
+					)}
+				</div>
+					{editableTrackContent ? (
+						<div style={{ flex: 1, minHeight: 0 }}>
+							<MacScrollbar skin="dark" style={{ width: "100%", height: "100%" }}>
+								<div style={{ padding: "0 8px 80px" }}>{editableTrackContent}</div>
+							</MacScrollbar>
+						</div>
+					) : null}
 			</div>
 		);
 	};
@@ -1239,11 +1492,12 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 				<TabButton active={props.editMode === "animation"} onClick={() => props.onEditModeChange("animation")}>{tr(props, "animation")}</TabButton>
 			</div>
 			<div style={{ flex: 1, minHeight: 0 }}>
-				<MacScrollbar skin="dark" style={{ width: "100%", height: "100%" }}>
-					{props.editMode === "pose" ? renderPosePanel() : null}
-					{props.editMode === "look" ? renderLooksPanel() : null}
-					{props.editMode === "animation" ? renderAnimationsPanel() : null}
-				</MacScrollbar>
+				{props.editMode === "animation" ? renderAnimationsPanel() : (
+					<MacScrollbar skin="dark" style={{ width: "100%", height: "100%" }}>
+						{props.editMode === "pose" ? renderPosePanel() : null}
+						{props.editMode === "look" ? renderLooksPanel() : null}
+					</MacScrollbar>
+				)}
 			</div>
 		</div>
 	);
@@ -1297,10 +1551,19 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 			if (frame % 5 !== 0 && frame !== timelineInfo.currentFrame) continue;
 			const x = timelineFrameToX(frame);
 			ticks.push(<div key={frame} style={{ position: "absolute", left: x, top: rulerY, width: 1, height: frame % 10 === 0 ? 12 : 6, background: "#d6d6d6" }} />);
-			if (frame % 10 === 0) ticks.push(<div key={`label-${frame}`} style={{ position: "absolute", left: x - 5, top: 6, color: "#d6d6d6", fontSize: 10 }}>{frame}</div>);
+			if (frame % 10 === 0) ticks.push(<div key={`label-${frame}`} style={{ position: "absolute", left: x - 5, top: 6, color: "#d6d6d6", fontSize: 10, userSelect: "none", pointerEvents: "none" }}>{frame}</div>);
 		}
 		return (
 			<div
+				onDoubleClick={(event) => {
+					const rect = event.currentTarget.getBoundingClientRect();
+					const x = event.clientX - rect.left;
+					props.onPlaybackPlayingChange(false);
+					setTimelineFollowCursor(true);
+					props.onPlaybackTimeChange(frameToSeconds(timelineXToFrame(x)));
+					event.preventDefault();
+					event.stopPropagation();
+				}}
 				onPointerDown={(event) => {
 					const rect = event.currentTarget.getBoundingClientRect();
 					const x = event.clientX - rect.left;
@@ -1340,7 +1603,7 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 					timelineDragRef.current = null;
 					event.currentTarget.releasePointerCapture(event.pointerId);
 				}}
-				style={{ height: timelineHeight, position: "relative", background: "#101010", borderTop: "1px solid #555", touchAction: "none" }}
+				style={{ height: timelineHeight, position: "relative", background: "#101010", borderTop: "1px solid #555", touchAction: "none", userSelect: "none" }}
 			>
 				<div style={{ position: "absolute", left: 28, right: 28, top: rulerY + 12, height: 6, background: "rgba(255,255,255,0.22)" }} />
 				<div style={{ position: "absolute", left: 28, top: rulerY + 12, width: Math.max(0, timelineFrameToX(Math.min(timelineInfo.currentFrame, timelineInfo.windowEnd)) - 28), height: 6, background: "#fff" }} />
@@ -1348,16 +1611,16 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 				{[...timelineInfo.frameRanges.other, ...timelineInfo.frameRanges.selected].map((range, index) => {
 					if (range.end < timelineInfo.windowStart || range.start > timelineInfo.windowEnd) return null;
 					const selectedRange = timelineInfo.frameRanges.selected.indexOf(range) >= 0;
-					return <div key={`range-${index}`} style={{ position: "absolute", left: timelineFrameToX(Math.max(timelineInfo.windowStart, range.start)), top: selectedRange ? rulerY + 20 : rulerY + 21, width: Math.max(1, timelineFrameToX(Math.min(timelineInfo.windowEnd, range.end)) - timelineFrameToX(Math.max(timelineInfo.windowStart, range.start))), height: selectedRange ? 7 : 4, background: selectedRange ? "#3dc0fa" : "rgba(61, 192, 250, 0.35)" }} />;
+					return <div key={`range-${index}`} style={{ position: "absolute", left: timelineFrameToX(Math.max(timelineInfo.windowStart, range.start)), top: selectedRange ? rulerY + 20 : rulerY + 21, width: Math.max(1, timelineFrameToX(Math.min(timelineInfo.windowEnd, range.end)) - timelineFrameToX(Math.max(timelineInfo.windowStart, range.start))), height: selectedRange ? 7 : 4, background: selectedRange ? themeColor : themeRangeBg }} />;
 				})}
 				{timelineInfo.keyFrames.map((frame) => {
 					if (frame < timelineInfo.windowStart || frame > timelineInfo.windowEnd) return null;
 					const x = timelineFrameToX(frame);
 					const current = frame === timelineInfo.currentFrame;
-					return <div key={`key-${frame}`} style={{ position: "absolute", left: x - (current ? 3 : 1), top: current ? rulerY - 12 : rulerY - 10, width: current ? 6 : 2, height: current ? 30 : 28, background: "#3dc0fa" }} />;
+					return <div key={`key-${frame}`} style={{ position: "absolute", left: x - (current ? 3 : 1), top: current ? rulerY - 12 : rulerY - 10, width: current ? 6 : 2, height: current ? 30 : 28, background: themeColor }} />;
 				})}
 				{timelineInfo.currentFrame >= timelineInfo.windowStart && timelineInfo.currentFrame <= timelineInfo.windowEnd ? (
-					<div style={{ position: "absolute", left: timelineFrameToX(timelineInfo.currentFrame) - 6, top: rulerY + 23, width: 0, height: 0, borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderTop: "8px solid #fff" }} />
+					<div style={{ position: "absolute", left: timelineFrameToX(timelineInfo.currentFrame) - 6, top: rulerY + 23, width: 0, height: 0, borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderBottom: "8px solid #fff" }} />
 				) : null}
 			</div>
 		);
@@ -1379,17 +1642,117 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 						{props.runtimeDiagnostics.map((item, index) => <div key={`runtime-${index}`}>{item}</div>)}
 					</div>
 				) : null}
-				<div style={{ height: topToolbarHeight, display: "flex", alignItems: "center", gap: 6, padding: "0 8px", borderBottom: "1px solid #2b2b2b", background: "#1a1a1a", boxSizing: "border-box" }}>
-					<button type="button" disabled={props.readOnly || !props.canUndo} onClick={props.onUndo} style={styles.button}>{tr(props, "undo")}</button>
-					<button type="button" disabled={props.readOnly || !props.canRedo} onClick={props.onRedo} style={styles.button}>{tr(props, "redo")}</button>
-					<button type="button" onClick={() => props.onViewportChange(defaultActionViewport())} style={styles.button}>{tr(props, "origin")}</button>
-					<button type="button" onClick={() => props.onViewportChange({ ...props.viewport, zoom: Math.max(0.1, props.viewport.zoom - 0.1) })} style={{ ...styles.button, width: 28 }}>-</button>
-					<span style={{ color: "#d7d7d7", fontSize: 12, minWidth: 54, textAlign: "center" }}>{tr(props, "zoomValue", { zoom: (props.viewport.zoom * 100).toFixed(0) })}</span>
-					<button type="button" onClick={() => props.onViewportChange({ ...props.viewport, zoom: Math.min(8, props.viewport.zoom + 0.1) })} style={{ ...styles.button, width: 28 }}>+</button>
+				<div style={{ height: topToolbarHeight, flexShrink: 0, display: "flex", alignItems: "center", gap: 8, paddingTop: 2, paddingLeft: 10, paddingRight: 10, borderBottom: "1px solid #2b2b2b", background: "#1a1a1a", boxSizing: "border-box" }}>
+					<div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+						<span style={{ color: "#9aa4af", fontSize: 12, marginRight: 2 }}>{props.t("bodyEditor.toolbar.view")}</span>
+						{actionViewToolNames.map((name) => (
+							<button
+								key={name}
+								type="button"
+								title={tr(props, name)}
+								aria-label={tr(props, name)}
+								onClick={() => runViewTool(name)}
+								style={{
+									width: 30,
+									height: 30,
+									border: "1px solid #343434",
+									background: "#303030",
+									padding: 3,
+									cursor: "pointer",
+								}}
+							>
+								<BodyIconGlyph name={name} />
+							</button>
+						))}
+						<span style={{ color: "#d7d7d7", fontSize: 12, minWidth: 54, textAlign: "center" }}>{tr(props, "zoomValue", { zoom: (props.viewport.zoom * 100).toFixed(0) })}</span>
+					</div>
+					<div style={{ display: "flex", alignItems: "center", gap: 4, paddingLeft: 4 }}>
+						<span style={{ color: "#9aa4af", fontSize: 12, marginRight: 2 }}>{tr(props, "tool")}</span>
+						{visibleGizmoModes.map((mode) => {
+							const selectedMode = gizmoMode === mode;
+							return (
+								<button
+									key={mode}
+									type="button"
+									disabled={props.readOnly}
+									onClick={() => setGizmoMode(mode)}
+									style={{
+										height: 30,
+										minWidth: 52,
+										border: "1px solid " + (selectedMode ? themeColor : "#343434"),
+										background: selectedMode ? themePanelBg : "#303030",
+										color: selectedMode ? themeTextColor : "#d7d7d7",
+										cursor: props.readOnly ? "default" : "pointer",
+										opacity: props.readOnly ? 0.55 : 1,
+									}}
+								>
+									{tr(props, `toolMode.${mode}`)}
+								</button>
+							);
+						})}
+						{!toolSelectOnly ? (
+							<label style={{ display: "flex", alignItems: "center", gap: 4, color: "#d7d7d7", fontSize: 12, marginLeft: 4 }}>
+								<input type="checkbox" checked={fixedSnap} disabled={props.readOnly} onChange={(event) => setFixedSnap(event.currentTarget.checked)} />
+								{tr(props, "fixed")}
+							</label>
+						) : null}
+					</div>
 					<label style={{ color: "#d7d7d7", fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}>
 						<input type="checkbox" checked={anisotropicFiltering} onChange={(event) => setAnisotropicFiltering(event.currentTarget.checked)} />
 						{tr(props, "anisotropic")}
 					</label>
+					<Stack direction="row" spacing={1}>
+						<Tooltip title={tr(props, "undo")}>
+							<span>
+								<IconButton
+									size="small"
+									disabled={props.readOnly || !props.canUndo}
+									onClick={props.onUndo}
+									sx={{
+										width: 30,
+										height: 30,
+										border: "1px solid #343434",
+										borderRadius: 0,
+										background: "#303030",
+										color: "#d7d7d7",
+										"&:hover": { background: "#383838" },
+										"&.Mui-disabled": {
+											color: "rgba(215, 215, 215, 0.32)",
+											borderColor: "#2b2b2b",
+											background: "#252525",
+										},
+									}}
+								>
+									<UndoIcon fontSize="small" />
+								</IconButton>
+							</span>
+						</Tooltip>
+						<Tooltip title={tr(props, "redo")}>
+							<span>
+								<IconButton
+									size="small"
+									disabled={props.readOnly || !props.canRedo}
+									onClick={props.onRedo}
+									sx={{
+										width: 30,
+										height: 30,
+										border: "1px solid #343434",
+										borderRadius: 0,
+										background: "#303030",
+										color: "#d7d7d7",
+										"&:hover": { background: "#383838" },
+										"&.Mui-disabled": {
+											color: "rgba(215, 215, 215, 0.32)",
+											borderColor: "#2b2b2b",
+											background: "#252525",
+										},
+									}}
+								>
+									<RedoIcon fontSize="small" />
+								</IconButton>
+							</span>
+						</Tooltip>
+					</Stack>
 				</div>
 				<canvas
 					ref={canvasRef}

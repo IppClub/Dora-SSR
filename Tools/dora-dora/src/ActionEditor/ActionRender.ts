@@ -22,6 +22,7 @@ export type ActionRenderRect = {
 		{ x: number; y: number },
 	];
 	anchor: { x: number; y: number };
+	rotation: number;
 	visible: boolean;
 	opacity: number;
 	missingClip: boolean;
@@ -240,6 +241,7 @@ const collectRenderRects = (
 			height: Math.max(1, maxY - minY),
 			corners,
 			anchor,
+			rotation: transform.rotation,
 			visible,
 			opacity,
 			missingClip: rect === undefined || base.width <= 0 || base.height <= 0,
@@ -249,6 +251,61 @@ const collectRenderRects = (
 		if (child.front) collectChild(child);
 	}
 };
+
+const findActionNodeAnchor = (
+	document: ActionDocument,
+	clip: ActionClipDocument | null,
+	node: ActionNode,
+	targetNodeId: string,
+	parentMatrix: ActionRenderMatrix,
+	look: string | null,
+	animation: string | null,
+	time: number,
+	parentHiddenByLook: boolean,
+	parentHiddenByAnimation: boolean,
+): { anchor: { x: number; y: number }; rotation: number; visible: boolean } | null => {
+	if (node.id === document.root.id) {
+		for (const child of node.children) {
+			const result = findActionNodeAnchor(document, clip, child, targetNodeId, parentMatrix, look, animation, time, parentHiddenByLook, parentHiddenByAnimation);
+			if (result) return result;
+		}
+		return null;
+	}
+	const track = animation ? node.tracks[animation] : undefined;
+	const sampled = track?.type === "key" ? sampleActionKeyTrack(track, time) : null;
+	const frameRect = track?.type === "frame" ? sampleActionFrameRect(track, clip, time) : null;
+	const rect = frameRect ?? (node.clip ? clip?.rects[node.clip] : undefined);
+	const base = rect ?? fallbackRect(node, document);
+	const transform = sampled ?? node.transform;
+	const nodeMatrix = multiplyMatrix(parentMatrix, transformMatrix({ ...transform, anchor: node.transform.anchor, size: base }));
+	const hiddenByLook = parentHiddenByLook || (look !== null && node.hiddenInLooks.indexOf(look) >= 0);
+	const hiddenByAnimation = parentHiddenByAnimation || sampled?.visible === false;
+	const visible = !hiddenByLook && !hiddenByAnimation;
+	if (node.id === targetNodeId) {
+		return {
+			anchor: transformPoint(nodeMatrix, {
+				x: node.transform.anchor.x * base.width,
+				y: node.transform.anchor.y * base.height,
+			}),
+			rotation: transform.rotation,
+			visible,
+		};
+	}
+	for (const child of node.children) {
+		const result = findActionNodeAnchor(document, clip, child, targetNodeId, nodeMatrix, look, animation, time, hiddenByLook, hiddenByAnimation);
+		if (result) return result;
+	}
+	return null;
+};
+
+export const getActionNodeAnchor = (
+	document: ActionDocument,
+	clip: ActionClipDocument | null,
+	look: string | null,
+	nodeId: string,
+	animation: string | null = null,
+	time = 0,
+) => findActionNodeAnchor(document, clip, document.root, nodeId, identityMatrix(), look, animation, time, false, false);
 
 export const buildActionRenderRects = (
 	document: ActionDocument,
