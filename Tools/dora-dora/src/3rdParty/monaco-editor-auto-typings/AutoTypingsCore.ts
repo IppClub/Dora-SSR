@@ -102,11 +102,12 @@ export class AutoTypingsCore implements monaco.IDisposable {
     }
 
     const content = model.getLinesContent();
+    const sourcePath = model.uri.scheme === 'file' ? model.uri.fsPath : model.uri.toString();
 
     try {
       await this.importResolver.resolveImportsInFile(
         content.join('\n'),
-        path.dirname(model.uri.toString()),
+        path.dirname(sourcePath),
         new RecursionDepth(this.options)
       );
     } catch (e) {

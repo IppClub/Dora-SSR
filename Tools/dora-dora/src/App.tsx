@@ -40,11 +40,10 @@ import type { CodeWireData } from './CodeWire';
 import { AutoTypings } from './3rdParty/monaco-editor-auto-typings';
 import { TbSwitchVertical } from "react-icons/tb";
 import { BsSearch } from 'react-icons/bs';
-import './Editor';
 import KeyboardShortcuts from './KeyboardShortcuts';
 import BottomLog from './BottomLog';
 import Modal from '@mui/material/Modal';
-import { EditorTheme } from './Editor';
+import { EditorTheme, setInferDefinitionCommand } from './Editor';
 import CodeIcon from '@mui/icons-material/Code';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -671,6 +670,7 @@ export default function PersistentDrawerLeft() {
 	const tabIndexRef = useRef(tabIndex);
 	const pendingUpdateFilesRef = useRef(new Map<string, UpdateFileEvent>());
 	const updateFileFlushTimerRef = useRef<number | null>(null);
+	const openFileInTabRef = useRef<(key: string, title: string, folder: boolean, position?: monaco.IPosition, readOnly?: boolean) => void>(() => { });
 
 	const addAlert = useCallback((msg: string, type: AlertColor, openLog?: boolean) => {
 		const key = msg + Date.now().toString();
@@ -780,13 +780,13 @@ export default function PersistentDrawerLeft() {
 			loadEntries(),
 		]).then(([es6, lua, dora, res]) => {
 			if (es6.success) {
-				monacoTypescript.typescriptDefaults.addExtraLib(es6.content, "es6-subset.d.ts");
+				monacoTypescript.typescriptDefaults.addExtraLib(es6.content, es6.fullPath);
 			}
 			if (lua.success) {
-				monacoTypescript.typescriptDefaults.addExtraLib(lua.content, "lua.d.ts");
+				monacoTypescript.typescriptDefaults.addExtraLib(lua.content, lua.fullPath);
 			}
 			if (dora.success) {
-				monacoTypescript.typescriptDefaults.addExtraLib(dora.content, "Dora.d.ts");
+				monacoTypescript.typescriptDefaults.addExtraLib(dora.content, dora.fullPath);
 			}
 			if (res !== null) {
 				setExpandedKeys([res.key]);
@@ -1068,6 +1068,46 @@ export default function PersistentDrawerLeft() {
 		}
 		if (inferLang !== null) {
 			const lang = inferLang;
+			type InferDefinitionTarget = {
+				file: string;
+				title?: string;
+				lineNumber: number;
+				column: number;
+			};
+			const openInferDefinition = (
+				target: InferDefinitionTarget | null | undefined,
+				ed: monaco.editor.ICodeEditor = editor,
+			) => {
+				if (target === null || target === undefined) return;
+				const currentModel = ed.getModel();
+				if (currentModel !== null && path.relative(currentModel.uri.fsPath, target.file) === "") {
+					const pos = {
+						lineNumber: target.lineNumber,
+						column: target.column,
+					};
+					ed.setPosition(pos);
+					ed.revealPositionInCenterIfOutsideViewport(pos);
+					ed.focus();
+					return;
+				}
+				openFileInTabRef.current(
+					target.file,
+					target.title ?? path.basename(target.file),
+					false,
+					{ lineNumber: target.lineNumber, column: target.column },
+				);
+			};
+			const inferDefinitionCommand = editor.addCommand(0, (_accessor, target?: InferDefinitionTarget) => {
+				openInferDefinition(target);
+			});
+			const inferModel = editor.getModel();
+			if (inferDefinitionCommand !== null && inferModel !== null) {
+				const modelUri = inferModel.uri.toString();
+				setInferDefinitionCommand(modelUri, inferDefinitionCommand);
+				editor.onDidDispose(() => {
+					setInferDefinitionCommand(modelUri, null);
+				});
+			}
 			editor.addAction({
 				id: "dora-action-definition",
 				label: t("editor.goToDefinition"),
@@ -1099,19 +1139,18 @@ export default function PersistentDrawerLeft() {
 						if (!res.success) return;
 						if (!res.infered) return;
 						if (res.infered.key !== undefined) {
-							setJumpToFile({
-								key: res.infered.key,
+							openInferDefinition({
+								file: res.infered.key,
 								title: path.basename(res.infered.file),
-								row: res.infered.row,
-								col: res.infered.col,
-							});
-						} else if (res.infered.row > 0 && res.infered.col > 0) {
-							const pos = {
 								lineNumber: res.infered.row,
 								column: res.infered.col,
-							};
-							editor.setPosition(pos);
-							editor.revealPositionInCenterIfOutsideViewport(pos);
+							}, ed);
+						} else if (res.infered.row > 0 && res.infered.col > 0) {
+							openInferDefinition({
+								file: model.uri.fsPath,
+								lineNumber: res.infered.row,
+								column: res.infered.col,
+							}, ed);
 						}
 					});
 				},
@@ -1171,10 +1210,193 @@ export default function PersistentDrawerLeft() {
 				return;
 			}
 			const projFile = model.uri.fsPath;
+			type TypeScriptDefinitionTarget = {
+				file: string;
+				lineNumber: number;
+				column: number;
+			};
+			type TypeScriptDisplayPart = {
+				text: string;
+			};
+			type TypeScriptQuickInfo = {
+				displayParts?: TypeScriptDisplayPart[];
+				documentation?: TypeScriptDisplayPart[];
+				textSpan?: {
+					start: number;
+					length: number;
+				};
+			};
+			const displayPartsToString = (parts: TypeScriptDisplayPart[] | undefined) => {
+				return parts?.map((part) => part.text).join("").trim() ?? "";
+			};
+			const getPositionAtOffset = (content: string, offset: number): monaco.IPosition => {
+				const clampedOffset = Math.max(0, Math.min(offset, content.length));
+				const prefix = content.slice(0, clampedOffset);
+				const lines = prefix.split(/\r\n|\r|\n/);
+				return {
+					lineNumber: lines.length,
+					column: lines[lines.length - 1].length + 1,
+				};
+			};
+			const normalizeDefinitionFile = async (fileName: string) => {
+				const targetFile = fileName.startsWith("file:") ? monaco.Uri.parse(fileName).fsPath : fileName;
+				if (path.isAbsolute(targetFile)) return targetFile;
+				const res = await Service.read({ path: targetFile, projFile });
+				if (res.success) return res.fullPath;
+				return path.join(path.dirname(projFile), targetFile);
+			};
+			const resolveTypeScriptDefinitionTarget = async (
+				sourceModel: monaco.editor.ITextModel,
+				position: monaco.IPosition,
+			): Promise<TypeScriptDefinitionTarget | null> => {
+				const getWorker = await monacoTypescript.getTypeScriptWorker();
+				const worker = await getWorker(sourceModel.uri);
+				const definitions = await worker.getDefinitionAtPosition(
+					sourceModel.uri.toString(),
+					sourceModel.getOffsetAt(position),
+				) as { fileName: string; textSpan: { start: number; length: number } }[] | undefined;
+				const definition = definitions?.find((item) => item.fileName !== undefined && item.textSpan !== undefined);
+				if (definition === undefined) return null;
+				const targetFile = await normalizeDefinitionFile(definition.fileName);
+				if (targetFile === "") return null;
+				const targetUri = monaco.Uri.file(targetFile);
+				const targetModel = monaco.editor.getModel(targetUri);
+				if (targetModel !== null) {
+					return {
+						file: targetFile,
+						...targetModel.getPositionAt(definition.textSpan.start),
+					};
+				}
+				const res = await Service.read({ path: targetFile, projFile });
+				if (!res.success) return null;
+				return {
+					file: targetFile,
+					...getPositionAtOffset(res.content, definition.textSpan.start),
+				};
+			};
+			const openTypeScriptDefinition = (
+				target: TypeScriptDefinitionTarget | null | undefined,
+				ed: monaco.editor.ICodeEditor = editor,
+			) => {
+				if (target === null || target === undefined) return;
+				const currentModel = ed.getModel();
+				if (currentModel !== null && path.relative(currentModel.uri.fsPath, target.file) === "") {
+					const pos = {
+						lineNumber: target.lineNumber,
+						column: target.column,
+					};
+					ed.setPosition(pos);
+					ed.revealPositionInCenterIfOutsideViewport(pos);
+					return;
+				}
+				openFileInTabRef.current(
+					target.file,
+					path.basename(target.file),
+					false,
+					{ lineNumber: target.lineNumber, column: target.column },
+				);
+			};
+			const openTypeScriptDefinitionCommand = editor.addCommand(0, (_accessor, target?: TypeScriptDefinitionTarget) => {
+				openTypeScriptDefinition(target);
+			});
+			let definitionHoverProvider: monaco.IDisposable | null = null;
+			if (openTypeScriptDefinitionCommand !== null) {
+				const sourceUri = model.uri.toString();
+				definitionHoverProvider = monaco.languages.registerHoverProvider("typescript", {
+					provideHover: async (hoverModel, position) => {
+						if (hoverModel.uri.toString() !== sourceUri) return undefined;
+						const getWorker = await monacoTypescript.getTypeScriptWorker();
+						const worker = await getWorker(hoverModel.uri);
+						const quickInfo = await worker.getQuickInfoAtPosition(
+							hoverModel.uri.toString(),
+							hoverModel.getOffsetAt(position),
+						) as TypeScriptQuickInfo | undefined;
+						const target = await resolveTypeScriptDefinitionTarget(hoverModel, position);
+						if (quickInfo === undefined && target === null) return undefined;
+						const contents: monaco.IMarkdownString[] = [];
+						const display = displayPartsToString(quickInfo?.displayParts);
+						if (display !== "") {
+							contents.push({
+								value: "```typescript\n" + display + "\n```",
+							});
+						}
+						const documentation = displayPartsToString(quickInfo?.documentation);
+						if (documentation !== "") {
+							contents.push({
+								value: documentation,
+							});
+						}
+						if (target === null) {
+							return {
+								contents,
+							};
+						}
+						const label = `${path.basename(target.file)}:${target.lineNumber}:${target.column}`;
+						const commandUri = `command:${openTypeScriptDefinitionCommand}?${encodeURIComponent(JSON.stringify([target]))}`;
+						contents.push({
+							value: `[${label}](${commandUri})`,
+							isTrusted: true,
+						});
+						const hoverRangeStart = quickInfo?.textSpan !== undefined ? hoverModel.getPositionAt(quickInfo.textSpan.start) : undefined;
+						const hoverRangeEnd = quickInfo?.textSpan !== undefined ? hoverModel.getPositionAt(quickInfo.textSpan.start + quickInfo.textSpan.length) : undefined;
+						return {
+							range: hoverRangeStart !== undefined && hoverRangeEnd !== undefined
+								? new monaco.Range(
+									hoverRangeStart.lineNumber,
+									hoverRangeStart.column,
+									hoverRangeEnd.lineNumber,
+									hoverRangeEnd.column,
+								)
+								: undefined,
+							contents,
+						};
+					},
+				});
+				editor.onDidDispose(() => {
+					definitionHoverProvider?.dispose();
+				});
+			}
+			editor.addAction({
+				id: "dora-action-typescript-definition",
+				label: t("editor.goToDefinition"),
+				keybindings: [
+					monaco.KeyCode.F12 | monaco.KeyMod.CtrlCmd,
+					monaco.KeyCode.F12 | monaco.KeyMod.WinCtrl,
+				],
+				contextMenuGroupId: "navigation",
+				contextMenuOrder: 1,
+				run: async function (ed) {
+					const position = ed.getPosition();
+					const currentModel = ed.getModel();
+					if (position === null || currentModel === null) return;
+					openTypeScriptDefinition(await resolveTypeScriptDefinitionTarget(currentModel, position), ed);
+				},
+			});
 			const autoTyping = await AutoTypings.create(editor, {
 				monaco: monaco as any,
 				debounceDuration: 2000,
 				sourceCache: {
+					resolveFile: async (uri: string) => {
+						const file = uri.startsWith("file:") ? monaco.Uri.parse(uri).fsPath : uri;
+						const baseName = path.basename(file);
+						const baseNameLower = baseName.toLowerCase();
+						if (baseNameLower.startsWith('dora.') && baseName !== 'Dora.d.ts') {
+							return undefined;
+						} else if (baseNameLower.startsWith('es6-subset.')) {
+							return undefined;
+						} else if (baseNameLower.startsWith('lua.')) {
+							return undefined;
+						}
+						const lib = monacoTypescript.typescriptDefaults.getExtraLibs()[file];
+						if (lib !== undefined) return { content: lib.content, fullPath: file };
+						const model = monaco.editor.getModel(monaco.Uri.file(file));
+						if (model !== null) return { content: model.getValue(), fullPath: model.uri.fsPath };
+						const res = await Service.read({ path: file, projFile });
+						if (res.success) {
+							return { content: res.content, fullPath: res.fullPath };
+						}
+						return undefined;
+					},
 					isFileAvailable: async (uri: string) => {
 						const file = uri.startsWith("file:") ? monaco.Uri.parse(uri).fsPath : uri;
 						const baseName = path.basename(file);
@@ -1392,6 +1614,7 @@ export default function PersistentDrawerLeft() {
 			}
 		}
 	}, [switchTab, files, openFile]);
+	openFileInTabRef.current = openFileInTab;
 
 	useEffect(() => {
 		const handleOpenFile = (message: Service.OpenFileMessage) => {

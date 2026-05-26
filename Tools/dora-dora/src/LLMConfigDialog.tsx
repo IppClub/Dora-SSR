@@ -34,7 +34,7 @@ type LLMConfigFormState = Omit<Service.LLMConfigItem, "contextWindow" | "tempera
 	maxTokens: number | string;
 };
 
-const DEFAULT_CONTEXT_WINDOW = 64000;
+const DEFAULT_CONTEXT_WINDOW = 128000;
 const DEFAULT_TEMPERATURE = 0.1;
 const DEFAULT_MAX_TOKENS = 8192;
 

@@ -149,6 +149,18 @@ function createCompilerHost(
 	const pathMap = new Map<string, monaco.Uri>();
 	const unexistMap = new Set<string>();
 	const scriptTarget = ts.ScriptTarget.ESNext;
+	type SourceFileData = {
+		fileName: string;
+		content: string;
+	};
+	const sourceCache = new Map<string, SourceFileData | null>();
+	const isSamePath = (a: string, b: string) => {
+		try {
+			return Info.path.relative(a, b) === "";
+		} catch {
+			return false;
+		}
+	};
 	const syncModelContent = (uri: monaco.Uri, nextContent: string) => {
 		const model = monaco.editor.getModel(uri);
 		if (model !== null) {
@@ -160,6 +172,95 @@ function createCompilerHost(
 		}
 	};
 	syncModelContent(monaco.Uri.file(rootFileName), content);
+	const getCachedBuiltinLib = (fileName: string): SourceFileData | undefined => {
+		const extraLibs = monacoTypescript.typescriptDefaults.getExtraLibs();
+		const directLib = extraLibs[fileName];
+		if (directLib !== undefined) {
+			return { fileName, content: directLib.content };
+		}
+		const baseName = Info.path.basename(fileName);
+		if (baseName !== "Dora.d.ts" && baseName !== "es6-subset.d.ts" && baseName !== "lua.d.ts") {
+			return undefined;
+		}
+		for (const [libFileName, lib] of Object.entries(extraLibs) as [string, { content: string }][]) {
+			if (Info.path.basename(libFileName) === baseName) {
+				return { fileName: libFileName, content: lib.content };
+			}
+		}
+		return undefined;
+	};
+	const readSourceFile = (fileName: string, options?: { exts?: string[], fallbackToBaseName?: boolean }) => {
+		fileName = Info.path.normalize(fileName);
+		const fallbackToBaseName = options?.fallbackToBaseName !== false;
+		const cacheKey = `${fileName}\n${options?.exts?.join("|") ?? ""}\n${fallbackToBaseName ? "base" : ""}`;
+		if (sourceCache.has(cacheKey)) {
+			return sourceCache.get(cacheKey) ?? undefined;
+		}
+		const cacheSource = (source: SourceFileData | undefined) => {
+			sourceCache.set(cacheKey, source ?? null);
+			return source;
+		};
+		if (isSamePath(rootFileName, fileName)) {
+			return cacheSource({ fileName: rootFileName, content });
+		}
+		const readResolvedFile = (targetPath: string, exts?: string[], fallbackToBaseName = false) => {
+			const resolvedCacheKey = `${Info.path.normalize(targetPath)}\n${exts?.join("|") ?? ""}\n${fallbackToBaseName ? "base" : ""}`;
+			if (sourceCache.has(resolvedCacheKey)) {
+				return sourceCache.get(resolvedCacheKey) ?? undefined;
+			}
+			const cacheResolvedSource = (source: SourceFileData | undefined) => {
+				sourceCache.set(resolvedCacheKey, source ?? null);
+				return source;
+			};
+			const readSync = (path: string) => Service.readSync({ path, exts, projFile: rootFileName });
+			let res = readSync(targetPath);
+			if (!res?.success && fallbackToBaseName && Info.path.isAbsolute(targetPath)) {
+				const ext = Info.path.extname(targetPath);
+				let baseName = Info.path.basename(targetPath, ext);
+				baseName = Info.path.extname(baseName) === ".d" ? Info.path.basename(baseName, ".d") : baseName;
+				res = readSync(baseName);
+			}
+			if (res?.success) {
+				const fullUri = monaco.Uri.file(res.fullPath);
+				syncModelContent(fullUri, res.content);
+				const requestedUri = monaco.Uri.file(fileName);
+				const requestedModel = monaco.editor.getModel(requestedUri);
+				if (requestedModel !== null && !isSamePath(requestedUri.fsPath, fullUri.fsPath)) {
+					requestedModel.dispose();
+				}
+				pathMap.set(fileName, fullUri);
+				return cacheResolvedSource({ fileName: res.fullPath, content: res.content });
+			}
+			return cacheResolvedSource(undefined);
+		};
+		const mappedUri = pathMap.get(fileName);
+		if (mappedUri !== undefined) {
+			const mappedModel = monaco.editor.getModel(mappedUri);
+			if (mappedModel !== null) {
+				return cacheSource({ fileName: mappedUri.fsPath, content: mappedModel.getValue() });
+			}
+		}
+		const builtinLib = getCachedBuiltinLib(fileName);
+		if (builtinLib !== undefined) {
+			return cacheSource(builtinLib);
+		}
+		const currentExt = Info.path.extname(fileName);
+		if (options?.exts !== undefined) {
+			const source = readResolvedFile(fileName, options.exts, fallbackToBaseName);
+			if (source !== undefined) return cacheSource(source);
+		} else if (currentExt === ".ts" || currentExt === ".tsx" || currentExt === ".d.ts") {
+			const baseName = Info.path.basename(fileName, currentExt);
+			const lookupBaseName = Info.path.extname(baseName) === ".d" ? Info.path.basename(baseName, ".d") : baseName;
+			const source = readResolvedFile(Info.path.join(Info.path.dirname(fileName), lookupBaseName), [".d.ts", ".ts", ".tsx"], fallbackToBaseName);
+			if (source !== undefined) return cacheSource(source);
+		}
+		const uri = monaco.Uri.file(fileName);
+		const model = monaco.editor.getModel(uri);
+		if (model !== null) {
+			return cacheSource({ fileName: uri.fsPath, content: model.getValue() });
+		}
+		return cacheSource(readResolvedFile(fileName, options?.exts, fallbackToBaseName));
+	};
 	const compilerHost: CompilerHost = {
 		fileExists: fileName => {
 			if (fileName.search("node_modules") > 0) {
@@ -174,10 +275,10 @@ function createCompilerHost(
 				}
 			}
 			const baseName = Info.path.basename(fileName);
-			if (baseName.startsWith('Dora.d.')) {
+			if (baseName.startsWith('Dora.d.') && baseName !== 'Dora.d.ts') {
 				return false;
 			}
-			if (baseName.startsWith('Dora.')) {
+			if (baseName.startsWith('Dora.') && baseName !== 'Dora.d.ts') {
 				return true;
 			}
 			if (baseName.toLowerCase().startsWith('dora.')) {
@@ -206,13 +307,9 @@ function createCompilerHost(
 					if (unexistMap.has(path)) {
 						return false;
 					}
-					const res = Service.readSync({ path, exts: [".d.ts", ".ts", ".tsx"], projFile: rootFileName });
-					if (res?.success) {
-						const uri = monaco.Uri.file(res.fullPath);
-						if (monaco.editor.getModel(uri) === null) {
-							monaco.editor.createModel(res.content, 'typescript', uri);
-						}
-						pathMap.set(fileName, uri);
+					const source = readSourceFile(path, { exts: [".d.ts", ".ts", ".tsx"] });
+					if (source !== undefined) {
+						pathMap.set(fileName, monaco.Uri.file(source.fileName));
 						return true;
 					} else {
 						pathMap.delete(fileName);
@@ -231,6 +328,12 @@ function createCompilerHost(
 					return true;
 				}
 			}
+			if (readSourceFile(fileName) !== undefined) {
+				return true;
+			}
+			if (currentExt === "" && readSourceFile(fileName, { exts: [".d.ts", ".ts", ".tsx"] }) !== undefined) {
+				return true;
+			}
 			return false;
 		},
 		getCanonicalFileName: fileName => Info.path.normalize(fileName),
@@ -238,20 +341,7 @@ function createCompilerHost(
 		getDefaultLibFileName: () => "lib.Dora.d.ts",
 		readFile: fileName => {
 			fileName = Info.path.normalize(fileName);
-			if (Info.path.relative(rootFileName, fileName) === "") {
-				return content;
-			}
-			const uri = monaco.Uri.file(fileName);
-			const model = monaco.editor.getModel(uri);
-			if (model !== null) {
-				return model.getValue();
-			}
-			const res = Service.readSync({ path: fileName, projFile: rootFileName });
-			if (res?.success) {
-				syncModelContent(uri, res.content);
-				return res.content;
-			}
-			return undefined;
+			return readSourceFile(fileName)?.content;
 		},
 		getNewLine: () => "\n",
 		useCaseSensitiveFileNames: () => true,
@@ -261,41 +351,27 @@ function createCompilerHost(
 		getSourceFile(fileName) {
 			fileName = Info.path.normalize(fileName);
 			const baseName = Info.path.basename(fileName);
-			if (baseName.startsWith('Dora.')) {
+			if (baseName.startsWith('Dora.') && baseName !== 'Dora.d.ts') {
 				return ts.createSourceFile("dummy.d.ts", "", scriptTarget, false);
 			}
 			if (baseName === 'jsx.d.ts') {
-				const uri = monaco.Uri.file(baseName);
-				const model = monaco.editor.getModel(uri);
-				if (model !== null) {
-					return ts.createSourceFile(baseName, model.getValue(), scriptTarget, false);
-				} else {
-					const res = Service.readSync({ path: baseName, projFile: rootFileName });
-					if (res?.success) {
-						monaco.editor.createModel(res.content, 'typescript', uri);
-						return ts.createSourceFile(baseName, res.content, scriptTarget, false);
-					}
+				const source = readSourceFile(baseName);
+				if (source !== undefined) {
+					return ts.createSourceFile(source.fileName, source.content, scriptTarget, false);
 				}
 			}
 			if (baseName === 'lib.Dora.d.ts') {
-				const uri = monaco.Uri.file("Dora.d.ts");
-				const model = monaco.editor.getModel(uri);
-				if (model !== null) {
-					return ts.createSourceFile("Dora.d.ts", model.getValue(), scriptTarget, false);
-				} else {
-					const res = Service.readSync({ path: "Dora.d.ts" });
-					if (res?.success) {
-						monaco.editor.createModel(res.content, 'typescript', uri);
-						return ts.createSourceFile("Dora.d.ts", res.content, scriptTarget, false);
-					}
+				const source = readSourceFile("Dora.d.ts");
+				if (source !== undefined) {
+					return ts.createSourceFile(source.fileName, source.content, scriptTarget, false);
 				}
 			}
-			const lib = monacoTypescript.typescriptDefaults.getExtraLibs()[fileName];
-			if (lib) {
-				return ts.createSourceFile(fileName, lib.content, scriptTarget, false);
+			const source = readSourceFile(fileName);
+			if (source !== undefined) {
+				return ts.createSourceFile(source.fileName, source.content, scriptTarget, false);
 			}
-			if (!Info.path.isAbsolute(fileName) || Info.path.relative(rootFileName, fileName) === "") {
-				return ts.createSourceFile(fileName, content, scriptTarget, false);
+			if (!Info.path.isAbsolute(fileName)) {
+				return undefined;
 			} else {
 				const uri = pathMap.get(fileName);
 				if (uri !== undefined) {

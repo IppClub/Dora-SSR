@@ -1029,7 +1029,7 @@ HttpServer\postSchedule "/read", (req): success: false ->
 		readFile = (): nil ->
 			if Content\exist path
 				if content := Content\loadAsync path
-					return :content, success: true
+					return :content, success: true, fullPath: Content\getFullPath path
 		if projFile := req.body.projFile
 			if projDir := getProjectDirFromFile projFile
 				scriptDir = Path projDir, "Script"
