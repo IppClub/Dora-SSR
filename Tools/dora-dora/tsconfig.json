@@ -21,11 +21,6 @@
 		"noEmit": true,
 		"jsx": "react-jsx",
 		"baseUrl": ".",
-		"paths": {
-			"@zhobo63/imgui-ts": [
-				"src/ActionEditor/imgui-ts-types/index.d.ts"
-			]
-		},
 		"types": [
 			"node",
 			"react-transition-group"

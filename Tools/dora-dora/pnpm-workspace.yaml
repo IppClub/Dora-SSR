@@ -2,5 +2,4 @@ onlyBuiltDependencies:
   - esbuild
 
 patchedDependencies:
-  '@zhobo63/imgui-ts@0.1.53': patches/@zhobo63__imgui-ts@0.1.53.patch
   vite-plugin-monaco-editor@1.1.0: patches/vite-plugin-monaco-editor@1.1.0.patch

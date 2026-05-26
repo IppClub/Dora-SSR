@@ -110,7 +110,8 @@ export type ActionEditorCanvasProps = {
 
 type GizmoMode = "select" | "move" | "scale" | "rotate";
 type LeftTab = "tree" | "keyPoints" | "clips";
-type ActionViewToolName = Extract<BodyIconName, "origin" | "zoom">;
+type ActionViewToolName = Extract<BodyIconName, "origin" | "zoom" | "fixX" | "fixY">;
+type ActionAxisToolName = Extract<ActionViewToolName, "fixX" | "fixY">;
 
 type DragState = {
 	mode: "pan" | "edit";
@@ -129,7 +130,7 @@ type DragState = {
 const tr = (props: ActionEditorCanvasProps, key: string, options?: Record<string, unknown>) => props.t(`actionEditor.${key}`, options);
 const secondsToFrame = (time: number) => Math.max(0, Math.round(time * 60));
 const frameToSeconds = (frame: number) => Math.max(0, frame) / 60;
-const actionViewToolNames: readonly ActionViewToolName[] = ["origin", "zoom"];
+const actionViewToolNames: readonly ActionViewToolName[] = ["origin", "zoom", "fixX", "fixY"];
 
 const BodyIconGlyph = memo(function BodyIconGlyph(props: { name: BodyIconName; active?: boolean }) {
 	const { name, active } = props;
@@ -392,6 +393,7 @@ const drawToolGizmo = (
 	props: ActionEditorCanvasProps,
 	hiddenIds: Set<string>,
 	gizmoMode: GizmoMode,
+	axisTool: ActionAxisToolName | null,
 	rects: ActionRenderRect[],
 	area: { x: number; y: number; width: number; height: number },
 ) => {
@@ -412,25 +414,31 @@ const drawToolGizmo = (
 		drawAnchorCross(ctx, anchor, selectedPreviewColor);
 	} else if (gizmoMode === "move") {
 		const radius = 34;
+		const showX = axisTool !== "fixY";
+		const showY = axisTool !== "fixX";
 		ctx.beginPath();
 		ctx.arc(anchor.x, anchor.y, 3, 0, Math.PI * 2);
 		ctx.fill();
 		ctx.strokeStyle = selectedPreviewColor;
 		ctx.beginPath();
-		ctx.moveTo(anchor.x, anchor.y);
-		ctx.lineTo(anchor.x + radius, anchor.y);
-		ctx.lineTo(anchor.x + radius - 8, anchor.y - 5);
-		ctx.moveTo(anchor.x + radius, anchor.y);
-		ctx.lineTo(anchor.x + radius - 8, anchor.y + 5);
-		ctx.moveTo(anchor.x - radius * 0.55, anchor.y);
-		ctx.lineTo(anchor.x, anchor.y);
-		ctx.moveTo(anchor.x, anchor.y);
-		ctx.lineTo(anchor.x, anchor.y - radius);
-		ctx.lineTo(anchor.x - 5, anchor.y - radius + 8);
-		ctx.moveTo(anchor.x, anchor.y - radius);
-		ctx.lineTo(anchor.x + 5, anchor.y - radius + 8);
-		ctx.moveTo(anchor.x, anchor.y + radius * 0.55);
-		ctx.lineTo(anchor.x, anchor.y);
+		if (showX) {
+			ctx.moveTo(anchor.x, anchor.y);
+			ctx.lineTo(anchor.x + radius, anchor.y);
+			ctx.lineTo(anchor.x + radius - 8, anchor.y - 5);
+			ctx.moveTo(anchor.x + radius, anchor.y);
+			ctx.lineTo(anchor.x + radius - 8, anchor.y + 5);
+			ctx.moveTo(anchor.x - radius * 0.55, anchor.y);
+			ctx.lineTo(anchor.x, anchor.y);
+		}
+		if (showY) {
+			ctx.moveTo(anchor.x, anchor.y);
+			ctx.lineTo(anchor.x, anchor.y - radius);
+			ctx.lineTo(anchor.x - 5, anchor.y - radius + 8);
+			ctx.moveTo(anchor.x, anchor.y - radius);
+			ctx.lineTo(anchor.x + 5, anchor.y - radius + 8);
+			ctx.moveTo(anchor.x, anchor.y + radius * 0.55);
+			ctx.lineTo(anchor.x, anchor.y);
+		}
 		ctx.stroke();
 	} else if (gizmoMode === "scale") {
 		if (rect) {
@@ -522,6 +530,7 @@ const drawActionCanvas = (
 	hiddenIds: Set<string>,
 	visibleKeyPointIndexes: Set<number>,
 	gizmoMode: GizmoMode,
+	axisTool: ActionAxisToolName | null,
 	width: number,
 	height: number,
 ) => {
@@ -559,7 +568,7 @@ const drawActionCanvas = (
 			ctx.stroke();
 		}
 	}
-	drawToolGizmo(ctx, props, hiddenIds, gizmoMode, rects, area);
+	drawToolGizmo(ctx, props, hiddenIds, gizmoMode, axisTool, rects, area);
 	drawKeyPointMarkers(ctx, props, visibleKeyPointIndexes, area);
 };
 
@@ -935,6 +944,7 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 	const timelineDragRef = useRef<{ mode: "scrub" | "scroll"; startX: number; startOffset: number } | null>(null);
 	const [leftTab, setLeftTab] = useState<LeftTab>("tree");
 	const [gizmoMode, setGizmoMode] = useState<GizmoMode>("select");
+	const [axisTool, setAxisTool] = useState<ActionAxisToolName | null>(null);
 	const [fixedSnap, setFixedSnap] = useState(false);
 	const [anisotropicFiltering, setAnisotropicFiltering] = useState(true);
 	const [previewHiddenNodeIds, setPreviewHiddenNodeIds] = useState<Set<string>>(() => new Set());
@@ -993,8 +1003,8 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 		canvas.style.height = `${canvasHeight}px`;
 		context.setTransform(ratio, 0, 0, ratio, 0, 0);
 		context.imageSmoothingEnabled = anisotropicFiltering;
-		drawActionCanvas(context, props, previewHiddenNodeIds, visibleKeyPointIndexes, gizmoMode, centerWidth, canvasHeight);
-	}, [anisotropicFiltering, canvasHeight, centerWidth, gizmoMode, previewHiddenNodeIds, props, visibleKeyPointIndexes]);
+		drawActionCanvas(context, props, previewHiddenNodeIds, visibleKeyPointIndexes, gizmoMode, axisTool, centerWidth, canvasHeight);
+	}, [anisotropicFiltering, axisTool, canvasHeight, centerWidth, gizmoMode, previewHiddenNodeIds, props, visibleKeyPointIndexes]);
 
 	const onKeyDown = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
 		const target = event.target as HTMLElement | null;
@@ -1082,11 +1092,17 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 		updateTransform((transform) => {
 			if (gizmoMode === "scale") {
 				if (!drag.startScale) return transform;
+				const nextScaleX = axisTool === "fixY"
+					? drag.startScale.x
+					: Math.max(0.01, snapValue(drag.startScale.x + delta.x / props.viewport.zoom / 100, fixedSnap, 0.1));
+				const nextScaleY = axisTool === "fixX"
+					? drag.startScale.y
+					: Math.max(0.01, snapValue(drag.startScale.y - delta.y / props.viewport.zoom / 100, fixedSnap, 0.1));
 				return {
 					...transform,
 					scale: {
-						x: Math.max(0.01, snapValue(drag.startScale.x + delta.x / props.viewport.zoom / 100, fixedSnap, 0.1)),
-						y: Math.max(0.01, snapValue(drag.startScale.y - delta.y / props.viewport.zoom / 100, fixedSnap, 0.1)),
+						x: nextScaleX,
+						y: nextScaleY,
 					},
 				};
 			}
@@ -1103,14 +1119,14 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 				return {
 					...transform,
 					position: {
-						x: snapValue(drag.startPosition.x + local.x, fixedSnap, 1),
-						y: snapValue(drag.startPosition.y + local.y, fixedSnap, 1),
+						x: axisTool === "fixY" ? drag.startPosition.x : snapValue(drag.startPosition.x + local.x, fixedSnap, 1),
+						y: axisTool === "fixX" ? drag.startPosition.y : snapValue(drag.startPosition.y + local.y, fixedSnap, 1),
 					},
 				};
 			}
 			return transform;
 		});
-	}, [fixedSnap, gizmoMode, props]);
+	}, [axisTool, fixedSnap, gizmoMode, props]);
 
 	const onPointerUp = useCallback((event: React.PointerEvent<HTMLCanvasElement>) => {
 		event.currentTarget.releasePointerCapture(event.pointerId);
@@ -1121,8 +1137,12 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 	const runViewTool = useCallback((name: ActionViewToolName) => {
 		if (name === "origin") {
 			props.onViewportChange(defaultActionViewport());
+			setAxisTool(null);
 		} else if (name === "zoom") {
 			props.onViewportChange({ ...props.viewport, zoom: props.viewport.zoom >= 2 ? 0.5 : props.viewport.zoom >= 1 ? 2 : 1 });
+			setAxisTool(null);
+		} else if (name === "fixX" || name === "fixY") {
+			setAxisTool((current) => current === name ? null : name);
 		}
 	}, [props]);
 
@@ -1543,6 +1563,121 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 		return Math.max(0, timelineInfo.windowStart + Math.round(((x - left) / Math.max(1, right - left)) * timelineInfo.visibleFrames));
 	};
 
+	const renderTopToolbar = () => (
+		<div style={{ height: topToolbarHeight, flexShrink: 0, display: "flex", alignItems: "center", gap: 8, paddingTop: 2, paddingLeft: 10, paddingRight: 10, borderBottom: "1px solid #2b2b2b", background: "#1a1a1a", boxSizing: "border-box" }}>
+			<div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+				<span style={{ color: "#9aa4af", fontSize: 12, marginRight: 2 }}>{props.t("bodyEditor.toolbar.view")}</span>
+				{actionViewToolNames.map((name) => (
+					<button
+						key={name}
+						type="button"
+						title={tr(props, name)}
+						aria-label={tr(props, name)}
+						onClick={() => runViewTool(name)}
+						style={{
+							width: 30,
+							height: 30,
+							border: "1px solid " + (axisTool === name ? themeColor : "#343434"),
+							background: axisTool === name ? themePanelBg : "#303030",
+							padding: 3,
+							cursor: "pointer",
+						}}
+					>
+						<BodyIconGlyph name={name} active={axisTool === name} />
+					</button>
+				))}
+				<span style={{ color: "#d7d7d7", fontSize: 12, width: 58, flexShrink: 0, textAlign: "center" }}>{tr(props, "zoomValue", { zoom: (props.viewport.zoom * 100).toFixed(0) })}</span>
+			</div>
+			<div style={{ display: "flex", alignItems: "center", gap: 4, paddingLeft: 4 }}>
+				<span style={{ color: "#9aa4af", fontSize: 12, marginRight: 2 }}>{tr(props, "tool")}</span>
+				{visibleGizmoModes.map((mode) => {
+					const selectedMode = gizmoMode === mode;
+					return (
+						<button
+							key={mode}
+							type="button"
+							disabled={props.readOnly}
+							onClick={() => setGizmoMode(mode)}
+							style={{
+								height: 30,
+								minWidth: 52,
+								border: "1px solid " + (selectedMode ? themeColor : "#343434"),
+								background: selectedMode ? themePanelBg : "#303030",
+								color: selectedMode ? themeTextColor : "#d7d7d7",
+								cursor: props.readOnly ? "default" : "pointer",
+								opacity: props.readOnly ? 0.55 : 1,
+							}}
+						>
+							{tr(props, `toolMode.${mode}`)}
+						</button>
+					);
+				})}
+				{!toolSelectOnly ? (
+					<label style={{ display: "flex", alignItems: "center", gap: 4, color: "#d7d7d7", fontSize: 12, marginLeft: 4 }}>
+						<input type="checkbox" checked={fixedSnap} disabled={props.readOnly} onChange={(event) => setFixedSnap(event.currentTarget.checked)} />
+						{tr(props, "fixed")}
+					</label>
+				) : null}
+			</div>
+			<label style={{ color: "#d7d7d7", fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}>
+				<input type="checkbox" checked={anisotropicFiltering} onChange={(event) => setAnisotropicFiltering(event.currentTarget.checked)} />
+				{tr(props, "anisotropic")}
+			</label>
+			<Stack direction="row" spacing={1}>
+				<Tooltip title={tr(props, "undo")}>
+					<span>
+						<IconButton
+							size="small"
+							disabled={props.readOnly || !props.canUndo}
+							onClick={props.onUndo}
+							sx={{
+								width: 30,
+								height: 30,
+								border: "1px solid #343434",
+								borderRadius: 0,
+								background: "#303030",
+								color: "#d7d7d7",
+								"&:hover": { background: "#383838" },
+								"&.Mui-disabled": {
+									color: "rgba(215, 215, 215, 0.32)",
+									borderColor: "#2b2b2b",
+									background: "#252525",
+								},
+							}}
+						>
+							<UndoIcon fontSize="small" />
+						</IconButton>
+					</span>
+				</Tooltip>
+				<Tooltip title={tr(props, "redo")}>
+					<span>
+						<IconButton
+							size="small"
+							disabled={props.readOnly || !props.canRedo}
+							onClick={props.onRedo}
+							sx={{
+								width: 30,
+								height: 30,
+								border: "1px solid #343434",
+								borderRadius: 0,
+								background: "#303030",
+								color: "#d7d7d7",
+								"&:hover": { background: "#383838" },
+								"&.Mui-disabled": {
+									color: "rgba(215, 215, 215, 0.32)",
+									borderColor: "#2b2b2b",
+									background: "#252525",
+								},
+							}}
+						>
+							<RedoIcon fontSize="small" />
+						</IconButton>
+					</span>
+				</Tooltip>
+			</Stack>
+		</div>
+	);
+
 	const renderTimeline = () => {
 		if (!timelineInfo || props.selectedAnimation === null) return null;
 		const rulerY = 34;
@@ -1630,149 +1765,40 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 		<div
 			tabIndex={0}
 			onKeyDown={onKeyDown}
-			style={{ display: props.active ? "flex" : "none", width: props.width, height: props.height, minWidth: 0, minHeight: 0, background: "#1f1f1f", color: "#d7d7d7", outline: "none", overflow: "hidden" }}
+			style={{ display: props.active ? "flex" : "none", width: props.width, height: props.height, minWidth: 0, minHeight: 0, flexDirection: "column", background: "#1f1f1f", color: "#d7d7d7", outline: "none", overflow: "hidden" }}
 		>
-			{renderLeftPanel()}
-			<div style={{ width: centerWidth, display: "flex", flexDirection: "column", minWidth: 0, minHeight: 0 }}>
-				{props.diagnostics.length > 0 || props.clipDiagnostics.length > 0 || props.runtimeDiagnostics.length > 0 ? (
-					<div style={{ maxHeight: 92, overflow: "auto", borderBottom: "1px solid #4a2b2b", background: "#2a1f1f", color: "#f0b7b7", fontSize: 12, padding: "8px 12px", boxSizing: "border-box" }}>
-						{props.diagnostics.length > 0 ? <div>{tr(props, "loadFailedNewModel")}</div> : null}
-						{props.diagnostics.map((item, index) => <div key={`diagnostic-${index}`}>{item.message}</div>)}
-						{props.clipDiagnostics.map((item, index) => <div key={`clip-${index}`}>{item}</div>)}
-						{props.runtimeDiagnostics.map((item, index) => <div key={`runtime-${index}`}>{item}</div>)}
-					</div>
-				) : null}
-				<div style={{ height: topToolbarHeight, flexShrink: 0, display: "flex", alignItems: "center", gap: 8, paddingTop: 2, paddingLeft: 10, paddingRight: 10, borderBottom: "1px solid #2b2b2b", background: "#1a1a1a", boxSizing: "border-box" }}>
-					<div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-						<span style={{ color: "#9aa4af", fontSize: 12, marginRight: 2 }}>{props.t("bodyEditor.toolbar.view")}</span>
-						{actionViewToolNames.map((name) => (
-							<button
-								key={name}
-								type="button"
-								title={tr(props, name)}
-								aria-label={tr(props, name)}
-								onClick={() => runViewTool(name)}
-								style={{
-									width: 30,
-									height: 30,
-									border: "1px solid #343434",
-									background: "#303030",
-									padding: 3,
-									cursor: "pointer",
-								}}
-							>
-								<BodyIconGlyph name={name} />
-							</button>
-						))}
-						<span style={{ color: "#d7d7d7", fontSize: 12, minWidth: 54, textAlign: "center" }}>{tr(props, "zoomValue", { zoom: (props.viewport.zoom * 100).toFixed(0) })}</span>
-					</div>
-					<div style={{ display: "flex", alignItems: "center", gap: 4, paddingLeft: 4 }}>
-						<span style={{ color: "#9aa4af", fontSize: 12, marginRight: 2 }}>{tr(props, "tool")}</span>
-						{visibleGizmoModes.map((mode) => {
-							const selectedMode = gizmoMode === mode;
-							return (
-								<button
-									key={mode}
-									type="button"
-									disabled={props.readOnly}
-									onClick={() => setGizmoMode(mode)}
-									style={{
-										height: 30,
-										minWidth: 52,
-										border: "1px solid " + (selectedMode ? themeColor : "#343434"),
-										background: selectedMode ? themePanelBg : "#303030",
-										color: selectedMode ? themeTextColor : "#d7d7d7",
-										cursor: props.readOnly ? "default" : "pointer",
-										opacity: props.readOnly ? 0.55 : 1,
-									}}
-								>
-									{tr(props, `toolMode.${mode}`)}
-								</button>
-							);
-						})}
-						{!toolSelectOnly ? (
-							<label style={{ display: "flex", alignItems: "center", gap: 4, color: "#d7d7d7", fontSize: 12, marginLeft: 4 }}>
-								<input type="checkbox" checked={fixedSnap} disabled={props.readOnly} onChange={(event) => setFixedSnap(event.currentTarget.checked)} />
-								{tr(props, "fixed")}
-							</label>
-						) : null}
-					</div>
-					<label style={{ color: "#d7d7d7", fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}>
-						<input type="checkbox" checked={anisotropicFiltering} onChange={(event) => setAnisotropicFiltering(event.currentTarget.checked)} />
-						{tr(props, "anisotropic")}
-					</label>
-					<Stack direction="row" spacing={1}>
-						<Tooltip title={tr(props, "undo")}>
-							<span>
-								<IconButton
-									size="small"
-									disabled={props.readOnly || !props.canUndo}
-									onClick={props.onUndo}
-									sx={{
-										width: 30,
-										height: 30,
-										border: "1px solid #343434",
-										borderRadius: 0,
-										background: "#303030",
-										color: "#d7d7d7",
-										"&:hover": { background: "#383838" },
-										"&.Mui-disabled": {
-											color: "rgba(215, 215, 215, 0.32)",
-											borderColor: "#2b2b2b",
-											background: "#252525",
-										},
-									}}
-								>
-									<UndoIcon fontSize="small" />
-								</IconButton>
-							</span>
-						</Tooltip>
-						<Tooltip title={tr(props, "redo")}>
-							<span>
-								<IconButton
-									size="small"
-									disabled={props.readOnly || !props.canRedo}
-									onClick={props.onRedo}
-									sx={{
-										width: 30,
-										height: 30,
-										border: "1px solid #343434",
-										borderRadius: 0,
-										background: "#303030",
-										color: "#d7d7d7",
-										"&:hover": { background: "#383838" },
-										"&.Mui-disabled": {
-											color: "rgba(215, 215, 215, 0.32)",
-											borderColor: "#2b2b2b",
-											background: "#252525",
-										},
-									}}
-								>
-									<RedoIcon fontSize="small" />
-								</IconButton>
-							</span>
-						</Tooltip>
-					</Stack>
+			{renderTopToolbar()}
+			<div style={{ display: "flex", flex: 1, minWidth: 0, minHeight: 0 }}>
+				{renderLeftPanel()}
+				<div style={{ width: centerWidth, display: "flex", flexDirection: "column", minWidth: 0, minHeight: 0 }}>
+					{props.diagnostics.length > 0 || props.clipDiagnostics.length > 0 || props.runtimeDiagnostics.length > 0 ? (
+						<div style={{ maxHeight: 92, overflow: "auto", borderBottom: "1px solid #4a2b2b", background: "#2a1f1f", color: "#f0b7b7", fontSize: 12, padding: "8px 12px", boxSizing: "border-box" }}>
+							{props.diagnostics.length > 0 ? <div>{tr(props, "loadFailedNewModel")}</div> : null}
+							{props.diagnostics.map((item, index) => <div key={`diagnostic-${index}`}>{item.message}</div>)}
+							{props.clipDiagnostics.map((item, index) => <div key={`clip-${index}`}>{item}</div>)}
+							{props.runtimeDiagnostics.map((item, index) => <div key={`runtime-${index}`}>{item}</div>)}
+						</div>
+					) : null}
+					<canvas
+						ref={canvasRef}
+						width={centerWidth}
+						height={canvasHeight}
+						onWheel={(event) => {
+							event.preventDefault();
+							const wheel = Math.max(-1, Math.min(1, -event.deltaY / 100));
+							props.onViewportChange({ ...props.viewport, zoom: Math.max(0.1, Math.min(8, props.viewport.zoom + wheel * 0.1)) });
+						}}
+						onPointerDown={onPointerDown}
+						onPointerMove={onPointerMove}
+						onPointerUp={onPointerUp}
+						onPointerCancel={onPointerUp}
+						onContextMenu={(event) => event.preventDefault()}
+						style={{ width: centerWidth, height: canvasHeight, background: "#1f1f1f", cursor: gizmoMode !== "select" ? "crosshair" : isPointerDragging ? "grabbing" : "grab", touchAction: "none" }}
+					/>
+					{renderTimeline()}
 				</div>
-				<canvas
-					ref={canvasRef}
-					width={centerWidth}
-					height={canvasHeight}
-					onWheel={(event) => {
-						event.preventDefault();
-						const wheel = Math.max(-1, Math.min(1, -event.deltaY / 100));
-						props.onViewportChange({ ...props.viewport, zoom: Math.max(0.1, Math.min(8, props.viewport.zoom + wheel * 0.1)) });
-					}}
-					onPointerDown={onPointerDown}
-					onPointerMove={onPointerMove}
-					onPointerUp={onPointerUp}
-					onPointerCancel={onPointerUp}
-					onContextMenu={(event) => event.preventDefault()}
-					style={{ width: centerWidth, height: canvasHeight, background: "#1f1f1f", cursor: gizmoMode !== "select" ? "crosshair" : isPointerDragging ? "grabbing" : "grab", touchAction: "none" }}
-				/>
-				{renderTimeline()}
+				{renderRightPanel()}
 			</div>
-			{renderRightPanel()}
 		</div>
 	);
 });

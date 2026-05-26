@@ -1055,19 +1055,7 @@ export default memo(function ParticleEditorCanvas(props: ParticleEditorCanvasPro
 		<>
 			<Box tabIndex={0} onKeyDown={onKeyDown} sx={{ width, height, display: "flex", flexDirection: "column", background: "#1f1f1f", overflow: "hidden", outline: "none" }}>
 				<Stack direction="row" alignItems="center" spacing={1} sx={{ height: 44, borderBottom: "1px solid #2b2b2b", padding: "2px 10px 0", flexShrink: 0, background: "#1a1a1a", boxSizing: "border-box" }}>
-					<Tooltip title={playing ? t("particleEditor.toolbar.pause", "Pause") : t("particleEditor.toolbar.play", "Play")}>
-						<IconButton size="small" onClick={() => setPlaying(!playing)} sx={toolButtonSx}>{playing ? <PauseIcon fontSize="small" /> : <PlayArrowIcon fontSize="small" />}</IconButton>
-					</Tooltip>
-					<Tooltip title={t("particleEditor.toolbar.restart", "Restart")}>
-						<IconButton size="small" onClick={restart} sx={toolButtonSx}><ReplayIcon fontSize="small" /></IconButton>
-					</Tooltip>
-					<Tooltip title={t("particleEditor.toolbar.undo", "Undo")}>
-						<span><IconButton size="small" disabled={!canUndo || readOnly} onClick={onUndo} sx={toolButtonSx}><UndoIcon fontSize="small" /></IconButton></span>
-					</Tooltip>
-					<Tooltip title={t("particleEditor.toolbar.redo", "Redo")}>
-						<span><IconButton size="small" disabled={!canRedo || readOnly} onClick={onRedo} sx={toolButtonSx}><RedoIcon fontSize="small" /></IconButton></span>
-					</Tooltip>
-					<Box sx={{ display: "flex", alignItems: "center", gap: "6px", paddingLeft: "4px" }}>
+					<Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}>
 						<Typography sx={{ color: "#9aa4af", fontSize: 12, marginRight: "2px" }}>{t("particleEditor.toolbar.view", "View")}</Typography>
 						{viewToolNames.map((name) => (
 							<Fragment key={name}>
@@ -1087,10 +1075,22 @@ export default memo(function ParticleEditorCanvas(props: ParticleEditorCanvasPro
 								>
 									<BodyIconGlyph name={name} />
 								</button>
-								{name === "zoom" ? <Typography sx={{ color: "#d7d7d7", fontSize: 12, minWidth: 54, textAlign: "center" }}>{t("particleEditor.zoomValue", { zoom: (zoom * 100).toFixed(0) })}</Typography> : null}
+								{name === "zoom" ? <Typography sx={{ color: "#d7d7d7", fontSize: 12, width: 58, flexShrink: 0, textAlign: "center" }}>{t("particleEditor.zoomValue", { zoom: (zoom * 100).toFixed(0) })}</Typography> : null}
 							</Fragment>
 						))}
 					</Box>
+					<Tooltip title={playing ? t("particleEditor.toolbar.pause", "Pause") : t("particleEditor.toolbar.play", "Play")}>
+						<IconButton size="small" onClick={() => setPlaying(!playing)} sx={toolButtonSx}>{playing ? <PauseIcon fontSize="small" /> : <PlayArrowIcon fontSize="small" />}</IconButton>
+					</Tooltip>
+					<Tooltip title={t("particleEditor.toolbar.restart", "Restart")}>
+						<IconButton size="small" onClick={restart} sx={toolButtonSx}><ReplayIcon fontSize="small" /></IconButton>
+					</Tooltip>
+					<Tooltip title={t("particleEditor.toolbar.undo", "Undo")}>
+						<span><IconButton size="small" disabled={!canUndo || readOnly} onClick={onUndo} sx={toolButtonSx}><UndoIcon fontSize="small" /></IconButton></span>
+					</Tooltip>
+					<Tooltip title={t("particleEditor.toolbar.redo", "Redo")}>
+						<span><IconButton size="small" disabled={!canRedo || readOnly} onClick={onRedo} sx={toolButtonSx}><RedoIcon fontSize="small" /></IconButton></span>
+					</Tooltip>
 					<Box sx={{ flex: 1 }} />
 					<Typography sx={{ color: "#8f9aa6", fontSize: 12 }}>{t("particleEditor.status.particles", "particles")} {snapshot.particleCount} · t {snapshot.elapsed.toFixed(2)} · {textureLabel}</Typography>
 				</Stack>
