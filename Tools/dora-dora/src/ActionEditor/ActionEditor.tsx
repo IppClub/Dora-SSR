@@ -12,8 +12,8 @@ import {
 	writeLegacyModel,
 } from "./index";
 import * as Service from "../Service";
-import ActionEditorCanvas from "./ActionEditorCanvas";
-import type { ActionDocumentChangeOptions, ActionEditorMode } from "./ActionEditorCanvas";
+import ActionEditorCanvas from "./ActionEditorNativeCanvas";
+import type { ActionDocumentChangeOptions, ActionEditorMode } from "./ActionEditorNativeCanvas";
 import { getActionAtlasPaths, getActionClipFiles, getActionClipsDirectories, joinActionPath, splitActionPath } from "./ActionPaths";
 import { packActionClipsDirectory } from "./ActionAtlasPacker";
 import { toServedResourceUrl } from "./ActionResource";
