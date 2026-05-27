@@ -547,6 +547,12 @@ singleton class Content
 	/// <returns>The full path of the file.</returns>
 	string getFullPath(string filename);
 	/// <summary>
+	/// Gets file attributes including byte size and whether the file is likely binary.
+	/// </summary>
+	/// <param name="filename">The name of the file to inspect.</param>
+	/// <returns>An array containing the file size and binary flag, or `null` when the file is not found.</returns>
+	outside optional Array* Content_GetAttr @ getAttr(string filename);
+	/// <summary>
 	/// Adds a new search path to the end of the list.
 	/// </summary>
 	/// <param name="path">The search path to add.</param>
@@ -591,7 +597,7 @@ singleton class Content
 	/// <param name="globs">The glob pattern array used to filter matching filenames or relative paths.</param>
 	/// <param name="extensionLevels">A map from extension to priority level for picking the preferred file when the same basename appears with different extensions.</param>
 	/// <returns>An array of the names of all files in the specified directory and its subdirectories.</returns>
-	outside VecStr Content_glob @ glob(string path, VecStr globs, Dictionary* extensionLevels);
+	outside VecStr Content_Glob @ glob(string path, VecStr globs, Dictionary* extensionLevels);
 	/// <summary>
 	/// Asynchronously searches files and returns the match results. Should be run in a thread.
 	/// </summary>

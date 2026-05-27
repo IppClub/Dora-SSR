@@ -561,7 +561,16 @@ static WorkBook Content_WasmLoadExcel(String filename) {
 	return book;
 }
 
-static std::list<std::string> Content_glob(String path, std::vector<std::string>&& globs, Dictionary* extensionLevels) {
+static Array* Content_GetAttr(String filename) {
+	auto attr = SharedContent.getAttr(filename);
+	if (!attr) return nullptr;
+	auto result = Array::create();
+	result->add(Value::alloc(attr->size));
+	result->add(Value::alloc(attr->isBinary));
+	return result;
+}
+
+static std::list<std::string> Content_Glob(String path, std::vector<std::string>&& globs, Dictionary* extensionLevels) {
 	std::unordered_map<std::string, int> extLevels;
 	if (extensionLevels) {
 		auto keys = extensionLevels->getKeys();

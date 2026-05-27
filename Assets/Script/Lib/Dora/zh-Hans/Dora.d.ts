@@ -3691,6 +3691,13 @@ class Content {
 	getFullPath(filename: string): string;
 
 	/**
+	 * 获取文件属性，包括字节长度以及文件是否可能是二进制文件。
+	 * @param filename 要检查的文件名。
+	 * @returns 文件字节长度和二进制标记；找不到文件时返回 `undefined`。
+	 */
+	getAttr(filename: string): LuaMultiReturn<[number, boolean]> | undefined;
+
+	/**
 	 * 在指定索引处插入搜索路径。
 	 * @param index 要插入搜索路径的索引。
 	 * @param path 要插入的搜索路径。

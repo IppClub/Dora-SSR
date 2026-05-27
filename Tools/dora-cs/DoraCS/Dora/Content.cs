@@ -48,6 +48,8 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t content_get_full_path(int64_t filename);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t content_get_attr(int64_t filename);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void content_add_search_path(int64_t path);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void content_insert_search_path(int32_t index, int64_t path);
@@ -204,6 +206,15 @@ namespace Dora
 		public static string GetFullPath(string filename)
 		{
 			return Bridge.ToString(Native.content_get_full_path(Bridge.FromString(filename)));
+		}
+		/// <summary>
+		/// Gets file attributes including byte size and whether the file is likely binary.
+		/// </summary>
+		/// <param name="filename">The name of the file to inspect.</param>
+		/// <returns>An array containing the file size and binary flag, or `null` when the file is not found.</returns>
+		public static Array? GetAttr(string filename)
+		{
+			return Array.FromOpt(Native.content_get_attr(Bridge.FromString(filename)));
 		}
 		/// <summary>
 		/// Adds a new search path to the end of the list.

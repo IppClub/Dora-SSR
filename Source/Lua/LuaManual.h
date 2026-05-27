@@ -53,6 +53,11 @@ void __Content_glob(lua_State* L, Content* self, String path, Slice globs[], int
 		__Content_glob(tolua_S, self, path, globs, len, extensionLevels); \
 		return 1; \
 	}
+int __Content_getAttr(lua_State* L, Content* self, String filename);
+#define Content_getAttr(self, filename) \
+	{ \
+		return __Content_getAttr(tolua_S, self, filename); \
+	}
 int Content_GetSearchPaths(lua_State* L);
 int Content_SetSearchPaths(lua_State* L);
 void Content_insertSearchPath(Content* self, int index, String path);
