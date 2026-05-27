@@ -233,6 +233,7 @@ class Content
 	tolua_outside void Content_getFiles @ getFiles(String path);
 	tolua_outside void Content_getAllFiles @ getAllFiles(String path);
 	tolua_outside void Content_glob @ glob(String path, Slice globs[tolua_len], Dictionary* extensionLevels = nullptr);
+	tolua_outside void Content_getAttr @ getAttr(String filename);
 	tolua_outside void Content_loadFile @ load(String filename);
 	static tolua_outside Content* Content_shared @ create();
 };

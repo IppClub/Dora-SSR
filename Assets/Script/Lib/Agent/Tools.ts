@@ -122,9 +122,12 @@ export type ReadFileResult = {
 	startLine?: number;
 	endLine?: number;
 	truncated?: boolean;
+	size?: number;
 } | {
 	success: false;
 	message: string;
+	size?: number;
+	isBinary?: boolean;
 };
 
 export type SearchFilesToolResult = {
@@ -399,6 +402,33 @@ function getFileState(path: string) {
 		content,
 		bytes: content.length,
 	};
+}
+
+function inspectReadableFile(path: string): { success: true; size?: number } | { success: false; message: string; size?: number; isBinary?: boolean } {
+	try {
+		const [size, isBinary] = Content.getAttr(path);
+		if (size === undefined) {
+			return {
+				success: false,
+				message: "failed to read file"
+			};
+		}
+		if (isBinary) {
+			return {
+				success: false,
+				message: `file is binary and cannot be previewed by read_file${typeof size === "number" ? ` (${size} bytes)` : ""}`,
+				size: typeof size === "number" ? size : undefined,
+				isBinary: true,
+			};
+		}
+		return {
+			success: true,
+			size: typeof size === "number" ? size : undefined,
+		};
+	} catch (e) {
+		Log("Warn", `[Agent.Tools] Content.getAttr failed for ${path}: ${tostring(e)}`);
+		return { success: true };
+	}
 }
 
 function queryOne(sql: string, args?: (number | string | boolean)[]) {
@@ -831,11 +861,15 @@ export function getTaskChangeSetDiff(taskId: number): CheckpointDiffResult {
 function readWorkspaceFile(workDir: string, path: string, docLanguage?: DoraAPIDocLanguage): ReadFileResult {
 	const fullPath = resolveWorkspaceFilePath(workDir, path);
 	if (fullPath && Content.exist(fullPath) && !Content.isdir(fullPath)) {
-		return { success: true, content: Content.load(fullPath) };
+		const attr = inspectReadableFile(fullPath);
+		if (!attr.success) return attr;
+		return { success: true, content: Content.load(fullPath), size: attr.size };
 	}
 	const docPath = resolveAgentTutorialDocFilePath(path, docLanguage);
 	if (docPath) {
-		return { success: true, content: Content.load(docPath) };
+		const attr = inspectReadableFile(docPath);
+		if (!attr.success) return attr;
+		return { success: true, content: Content.load(docPath), size: attr.size };
 	}
 	if (!fullPath) return { success: false, message: "invalid path or workDir" };
 	return { success: false, message: "file not found" };
@@ -844,7 +878,9 @@ function readWorkspaceFile(workDir: string, path: string, docLanguage?: DoraAPID
 export function readFileRaw(workDir: string, path: string, docLanguage?: DoraAPIDocLanguage): ReadFileResult {
 	const result = readWorkspaceFile(workDir, path, docLanguage);
 	if (!result.success && Content.exist(path) && !Content.isdir(path)) {
-		return { success: true, content: Content.load(path) };
+		const attr = inspectReadableFile(path);
+		if (!attr.success) return attr;
+		return { success: true, content: Content.load(path), size: attr.size };
 	}
 	return result;
 }

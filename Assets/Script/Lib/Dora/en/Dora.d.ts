@@ -3697,7 +3697,7 @@ class Content {
 	 * @param filename The name of the file to inspect.
 	 * @returns The file size and binary flag, or `undefined` when the file is not found.
 	 */
-	getAttr(filename: string): LuaMultiReturn<[number, boolean]> | undefined;
+	getAttr(filename: string): LuaMultiReturn<[number, boolean]> | LuaMultiReturn<[undefined, undefined]>;
 
 	/**
 	 * Inserts a search path at the specified index.

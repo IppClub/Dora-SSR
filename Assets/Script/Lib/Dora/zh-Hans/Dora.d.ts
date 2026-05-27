@@ -3695,7 +3695,7 @@ class Content {
 	 * @param filename 要检查的文件名。
 	 * @returns 文件字节长度和二进制标记；找不到文件时返回 `undefined`。
 	 */
-	getAttr(filename: string): LuaMultiReturn<[number, boolean]> | undefined;
+	getAttr(filename: string): LuaMultiReturn<[number, boolean]> | LuaMultiReturn<[undefined, undefined]>;
 
 	/**
 	 * 在指定索引处插入搜索路径。
