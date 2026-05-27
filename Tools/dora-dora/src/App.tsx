@@ -6,7 +6,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-import React, { ChangeEvent, Suspense, memo, useCallback, useEffect, useRef, useState } from 'react';
+import React, { ChangeEvent, Suspense, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
 import Toolbar from '@mui/material/Toolbar';
@@ -650,6 +650,7 @@ export default function PersistentDrawerLeft() {
 	const [toolEntries, setToolEntries] = useState<Service.EntryLaunchInfo[]>([]);
 	const [gameEntries, setGameEntries] = useState<Service.EntryLaunchInfo[]>([]);
 	const [entryView, setEntryView] = useState<"tool" | "game">("tool");
+	const [entryFilter, setEntryFilter] = useState("");
 	const { width: drawerWidth, enableResize, isResizing } = useResize({ minWidth: 165, defaultWidth: Info.drawerWidth });
 	const [winSize, setWinSize] = useState({
 		width: window.innerWidth,
@@ -720,6 +721,12 @@ export default function PersistentDrawerLeft() {
 			return null;
 		});
 	}, []);
+	const visibleEntries = useMemo(() => {
+		const entries = entryView === "tool" ? toolEntries : gameEntries;
+		const filter = entryFilter.trim().toLowerCase();
+		if (filter.length === 0) return entries;
+		return entries.filter((entry) => entry.name.toLowerCase().includes(filter));
+	}, [entryFilter, entryView, gameEntries, toolEntries]);
 
 	useEffect(() => {
 		if (Info.version === undefined) {
@@ -3994,22 +4001,37 @@ export default function PersistentDrawerLeft() {
 						width: "100%",
 						color: Color.Primary,
 						minHeight: 48,
+						pr: 1,
 					}}>
 						<IconButton
 							color="inherit"
 							aria-label="open drawer"
 							onClick={handleDrawerOpen}
 							edge="start"
+							disableRipple
+							sx={{
+								width: 36,
+								height: 36,
+								borderRadius: 1.5,
+								color: Color.Secondary,
+								backgroundColor: 'transparent',
+								'&:hover': {
+									backgroundColor: Color.Line,
+								},
+							}}
 						>
 							{drawerOpen ? <Fullscreen /> : <FullscreenExit />}
 						</IconButton>
-						<FileTabBar
-							index={tabIndex}
-							items={files}
-							onChange={tabBarOnChange}
-							onMenuClick={onTabMenuClick}
-							onTabClose={onTabClose}
-						/>
+						<PlayControl onClick={onPlayControlClick} />
+						<Box sx={{ flex: 1, minWidth: 0 }}>
+							<FileTabBar
+								index={tabIndex}
+								items={files}
+								onChange={tabBarOnChange}
+								onMenuClick={onTabMenuClick}
+								onTabClose={onTabClose}
+							/>
+						</Box>
 					</Toolbar>
 				</AppBar>
 				<Drawer
@@ -4191,13 +4213,20 @@ export default function PersistentDrawerLeft() {
 									{t("menu.reload")}
 								</Button>
 							</Stack>
+							<TextField
+								size="small"
+								value={entryFilter}
+								placeholder={t("menu.filterEntries")}
+								onChange={(event) => setEntryFilter(event.target.value)}
+								sx={{ mx: 1.5, mb: 1, flexShrink: 0 }}
+							/>
 							<MacScrollbar skin='dark' style={{ flex: 1, minHeight: 0, marginRight: resizeHandleWidth }}>
 								<Stack spacing={1} sx={{ pl: 1.5, pr: 2, pb: 1.5 }}>
-									{(entryView === "tool" ? toolEntries : gameEntries).length === 0 ? (
+									{visibleEntries.length === 0 ? (
 										<Typography variant="body2" sx={{ opacity: 0.7 }}>
 											{t(entryView === "tool" ? "menu.noTools" : "menu.noProjects")}
 										</Typography>
-									) : (entryView === "tool" ? toolEntries : gameEntries).map((entry) => (
+									) : visibleEntries.map((entry) => (
 										<Stack key={`${entry.file}-${entry.name}`} direction="row" spacing={0.75} alignItems="stretch">
 											<Button
 												variant="outlined"
@@ -4762,7 +4791,6 @@ export default function PersistentDrawerLeft() {
 					<BottomLog height={editorHeight * 0.3} />
 				</div>
 				<div style={{ zIndex: 1200 }}>
-					<PlayControl width={editorWidth} onClick={onPlayControlClick} />
 					<StyledStack>
 						<TransitionGroup>
 							{alerts.map((item) => (

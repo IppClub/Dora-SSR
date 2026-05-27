@@ -6,7 +6,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import MonacoEditor from "@monaco-editor/react";
 import monaco from './monacoBase';
 import * as Blockly from 'blockly';
@@ -85,6 +85,14 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 	const [firstView, setFirstView] = useState(true);
 	const { t } = useTranslation();
 	const [showEditor, setShowEditor] = useState(false);
+	const resizeWorkspace = useCallback(() => {
+		const workspace = workspaceRef.current;
+		const container = blocklyDiv.current;
+		if (!workspace || !container || container.clientWidth <= 0 || container.clientHeight <= 0) return;
+		const { scrollX, scrollY } = workspace;
+		Blockly.svgResize(workspace);
+		workspace.scroll(scrollX, scrollY);
+	}, []);
 
 	// Initialize Blockly workspace
 	useEffect(() => {
@@ -973,12 +981,30 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 
 	// Handle window resize
 	useEffect(() => {
-		if (blocklyDiv.current && workspaceRef.current && typeof height === 'number' && height > 0) {
-			const { scrollX, scrollY } = workspaceRef.current;
-			Blockly.svgResize(workspaceRef.current);
-			workspaceRef.current.scroll(scrollX, scrollY);
-		}
-	}, [showEditor, height, width]);
+		resizeWorkspace();
+	}, [resizeWorkspace, showEditor, height, width]);
+
+	useEffect(() => {
+		const container = blocklyDiv.current;
+		if (!container || typeof ResizeObserver === "undefined") return;
+		let resizeFrame = 0;
+		const observer = new ResizeObserver(() => {
+			if (resizeFrame !== 0) {
+				cancelAnimationFrame(resizeFrame);
+			}
+			resizeFrame = requestAnimationFrame(() => {
+				resizeFrame = 0;
+				resizeWorkspace();
+			});
+		});
+		observer.observe(container);
+		return () => {
+			if (resizeFrame !== 0) {
+				cancelAnimationFrame(resizeFrame);
+			}
+			observer.disconnect();
+		};
+	}, [resizeWorkspace]);
 
 	useEffect(() => {
 		if (firstView && workspaceRef.current && height > 0) {

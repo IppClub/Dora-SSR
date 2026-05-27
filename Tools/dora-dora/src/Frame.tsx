@@ -9,14 +9,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 import { styled, ThemeProvider } from '@mui/material/styles';
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
 import Stack from '@mui/system/Stack';
-import { Divider, IconButton, ListItemIcon, ListItemText, Toolbar } from '@mui/material';
-import SportsEsports from '@mui/icons-material/SportsEsports';
-import { BsFillFileEarmarkPlayFill, BsPlayCircle, BsStopCircle, BsSearch, BsTerminal, BsGear } from 'react-icons/bs';
-import { StyledMenu, StyledMenuItem } from './Menu';
+import { Box, Divider, IconButton, ListItemIcon, ListItemText } from '@mui/material';
+import ArrowDropDown from '@mui/icons-material/ArrowDropDown';
+import { BsFillFileEarmarkPlayFill, BsFillPlayFill, BsFillStopFill, BsSearch, BsTerminal, BsGear } from 'react-icons/bs';
 import { memo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import Info from './Info';
 import { theme, Color } from './Theme';
+import { StyledMenu, StyledMenuItem } from './Menu';
 
 export const Separator = () => <Divider style={{ backgroundColor: Color.Line }} />;
 
@@ -97,106 +96,119 @@ export const DrawerHeader = styled('div')(({ theme }) => ({
 export type PlayControlMode = "Run" | "Run This" | "Stop" | "Go to File" | "View Log" | "LLM Config";
 
 export interface PlayControlProp {
-	width: number;
 	onClick: (mode: PlayControlMode, noLog?: boolean) => void;
 }
 
 export const PlayControl = memo((prop: PlayControlProp) => {
-	const [open, setOpen] = useState(false);
 	const [anchorEl, setAnchorEl] = useState<Element | null>(null);
-	const [playButtonDisabled, setPlayButtonDisabled] = useState(false);
 	const { t } = useTranslation();
+	const open = Boolean(anchorEl);
 
-	const onClose = (mode?: PlayControlMode) => () => {
-		setOpen(false);
-		if (mode !== undefined) {
-			prop.onClick(mode);
-		}
-		setTimeout(() => {
-			setPlayButtonDisabled(false);
-		}, 500);
+	const close = () => {
+		setAnchorEl(null);
 	};
-	const onClick = (e: React.MouseEvent) => {
-		if (!playButtonDisabled) {
-			setOpen(true);
-			setAnchorEl(e.currentTarget);
-			setPlayButtonDisabled(true);
-		}
+	const runMode = (mode: PlayControlMode) => () => {
+		close();
+		prop.onClick(mode);
 	};
-	return <Toolbar style={{
+	const actions: { mode: PlayControlMode; icon: React.ReactNode; name: string; shortcut?: string }[] = [
+		{ mode: "Run This", icon: <BsFillFileEarmarkPlayFill />, name: t("menu.runThis"), shortcut: "Mod+Shift+R" },
+		{ mode: "View Log", icon: <BsTerminal />, name: t("menu.viewLog"), shortcut: "Mod+." },
+		{ mode: "Go to File", icon: <BsSearch />, name: t("menu.goToFile"), shortcut: "Mod+P" },
+		{ mode: "LLM Config", icon: <BsGear />, name: t("menu.llmConfig") },
+	];
+	return <Box style={{
 		backgroundColor: "#0000",
-		width: "65px",
-		height: "65px",
+		width: "116px",
+		height: "48px",
 		color: Color.Primary,
-		bottom: 0,
-		right: prop.width * 0.1,
-		flexGrow: 1,
-		position: 'fixed',
+		flexShrink: 0,
+		display: "flex",
+		alignItems: "center",
+		justifyContent: "center",
 	}}>
-		<StyledMenu
-			keepMounted
-			anchorOrigin={{
-				vertical: 'bottom',
-				horizontal: 'right',
-			}}
-			anchorEl={anchorEl}
-			autoFocus={false}
-			open={open}
-			onClose={onClose()}
-		>
-			{Info.version ?
-				<p style={{ textAlign: "center", opacity: 0.6, fontSize: "12px", margin: '5px' }}>{t("menu.version", { version: Info.version })}</p> : null
-			}
-			<StyledMenuItem onClick={onClose("LLM Config")}>
-				<ListItemIcon>
-					<BsGear />
-				</ListItemIcon>
-				<ListItemText primary={t("menu.llmConfig")} />
-			</StyledMenuItem>
-			<StyledMenuItem onClick={onClose("Go to File")}>
-				<ListItemIcon>
-					<BsSearch />
-				</ListItemIcon>
-				<ListItemText primary={t("menu.goToFile")} />
-				<div style={{ fontSize: 10, color: Color.TextSecondary }}>Mod+P</div>
-			</StyledMenuItem>
-			<StyledMenuItem onClick={onClose("View Log")}>
-				<ListItemIcon>
-					<BsTerminal />
-				</ListItemIcon>
-				<ListItemText primary={t("menu.viewLog")} />
-				<div style={{ fontSize: 10, color: Color.TextSecondary }}>Mod+.</div>
-			</StyledMenuItem>
-			<StyledMenuItem onClick={onClose("Stop")}>
-				<ListItemIcon>
-					<BsStopCircle />
-				</ListItemIcon>
-				<ListItemText primary={t("menu.stop")} />
-				<div style={{ fontSize: 10, color: Color.TextSecondary }}>Mod+Q</div>
-			</StyledMenuItem>
-			<StyledMenuItem onClick={onClose("Run This")}>
-				<ListItemIcon>
-					<BsFillFileEarmarkPlayFill />
-				</ListItemIcon>
-				<ListItemText primary={t("menu.runThis")} />
-				<div style={{ fontSize: 10, color: Color.TextSecondary }}>Mod+Shift+R</div>
-			</StyledMenuItem>
-			<StyledMenuItem onClick={onClose("Run")}>
-				<ListItemIcon>
-					<BsPlayCircle />
-				</ListItemIcon>
-				<ListItemText primary={t("menu.run")} />
-				<div style={{ fontSize: 10, color: Color.TextSecondary }}>Mod+R</div>
-			</StyledMenuItem>
-		</StyledMenu>
 		<IconButton
 			color="secondary"
-			aria-label="execute"
-			onClick={onClick}
-			onMouseEnter={onClick}
-			edge="start"
+			aria-label="run"
+			disableRipple
+			onClick={runMode("Run")}
+			sx={{
+				width: 36,
+				height: 36,
+				borderRadius: 1.5,
+				color: Color.Secondary,
+				backgroundColor: 'transparent',
+				'&:hover': {
+					backgroundColor: Color.Line,
+				},
+			}}
 		>
-			<SportsEsports fontSize='medium' />
+			<BsFillPlayFill />
 		</IconButton>
-	</Toolbar>;
+		<IconButton
+			color="secondary"
+			aria-label="stop"
+			disableRipple
+			onClick={runMode("Stop")}
+			sx={{
+				width: 36,
+				height: 36,
+				borderRadius: 1.5,
+				color: Color.Secondary,
+				backgroundColor: 'transparent',
+				'&:hover': {
+					backgroundColor: Color.Line,
+				},
+			}}
+		>
+			<BsFillStopFill />
+		</IconButton>
+		<IconButton
+			color="secondary"
+			aria-label="more run actions"
+			aria-expanded={open}
+			disableRipple
+			onClick={(event) => setAnchorEl(event.currentTarget)}
+			sx={{
+				width: 36,
+				height: 36,
+				borderRadius: 1.5,
+				color: Color.Secondary,
+				backgroundColor: 'transparent',
+				'&:hover': {
+					backgroundColor: Color.Line,
+				},
+			}}
+		>
+			<ArrowDropDown fontSize="small" />
+		</IconButton>
+		<StyledMenu
+			anchorEl={anchorEl}
+			autoFocus={false}
+			keepMounted
+			open={open}
+			onClose={close}
+			anchorOrigin={{
+				vertical: 'bottom',
+				horizontal: 'left',
+			}}
+			transformOrigin={{
+				vertical: 'top',
+				horizontal: 'left',
+			}}
+			sx={{
+				'& .MuiPaper-root': {
+					marginTop: 0.5,
+				},
+			}}
+		>
+			{actions.map((action) => (
+				<StyledMenuItem key={action.mode} onClick={runMode(action.mode)}>
+					<ListItemIcon>{action.icon}</ListItemIcon>
+					<ListItemText primary={action.name} />
+					{action.shortcut ? <div style={{ fontSize: 10, color: Color.TextSecondary }}>{action.shortcut}</div> : null}
+				</StyledMenuItem>
+			))}
+		</StyledMenu>
+	</Box>;
 });
