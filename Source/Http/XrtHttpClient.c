@@ -71,6 +71,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #define DORA_XRT_HTTP_MAX_REDIRECTS 5
 #define DORA_XRT_HTTP_POLL_MS 50u
+#define DORA_XRT_HTTP_USER_AGENT "Dora-SSR"
+#define DORA_XRT_HTTP_MAX_HEADER_BYTES ((XCODEC_HTTP1_MAX_HEADERS + 1u) * XCODEC_HTTP1_HEADER_MAX_LENGTH + 4u)
 
 static int DoraXrtHttpAttachRuntimeThread(void) {
 	static volatile long initialized = 0;
@@ -241,29 +243,113 @@ static int DoraXrtHttpStartsNoCase(const char* text, const char* prefix) {
 	return 1;
 }
 
+static int DoraXrtHttpHasHeader(const char* const* headerNames, size_t headerCount, const char* name) {
+	if (!headerNames || !name) {
+		return 0;
+	}
+	for (size_t i = 0; i < headerCount; ++i) {
+		if (headerNames[i] && __xhttpStrEqNoCase(headerNames[i], name)) {
+			return 1;
+		}
+	}
+	return 0;
+}
+
 static char* DoraXrtHttpTrim(char* text) {
 	char* end;
-	while (*text && isspace((unsigned char)*text)) {
+	while (*text == ' ' || *text == '\t') {
 		++text;
 	}
 	end = text + strlen(text);
-	while (end > text && isspace((unsigned char)end[-1])) {
+	while (end > text && (end[-1] == ' ' || end[-1] == '\t')) {
 		*--end = '\0';
 	}
 	return text;
 }
 
+static int DoraXrtHttpIsTokenChar(unsigned char ch) {
+	return (isalnum(ch) ||
+		ch == '!' || ch == '#' || ch == '$' || ch == '%' || ch == '&' ||
+		ch == '\'' || ch == '*' || ch == '+' || ch == '-' || ch == '.' ||
+		ch == '^' || ch == '_' || ch == '`' || ch == '|' || ch == '~');
+}
+
+static int DoraXrtHttpValidHeaderName(const char* text) {
+	if (!text || !text[0]) {
+		return 0;
+	}
+	for (const unsigned char* p = (const unsigned char*)text; *p; ++p) {
+		if (!DoraXrtHttpIsTokenChar(*p)) {
+			return 0;
+		}
+	}
+	return 1;
+}
+
+static int DoraXrtHttpValidHeaderValue(const char* text) {
+	size_t len;
+	if (!text) {
+		return 0;
+	}
+	len = strlen(text);
+	if (len == 0u) {
+		return 1;
+	}
+	if (!(((unsigned char)text[0] >= 33u && (unsigned char)text[0] <= 126u) || (unsigned char)text[0] >= 128u)) {
+		return 0;
+	}
+	if (!(((unsigned char)text[len - 1u] >= 33u && (unsigned char)text[len - 1u] <= 126u) || (unsigned char)text[len - 1u] >= 128u)) {
+		return 0;
+	}
+	for (size_t i = 1u; i + 1u < len; ++i) {
+		unsigned char ch = (unsigned char)text[i];
+		if (ch == ' ' || ch == '\t' || (ch >= 33u && ch <= 126u) || ch >= 128u) {
+			continue;
+		}
+		return 0;
+	}
+	return 1;
+}
+
+static int DoraXrtHttpParseSize(const char* text, size_t* outValue) {
+	size_t value = 0u;
+	if (!text || !text[0] || !outValue) {
+		return 0;
+	}
+	for (const unsigned char* p = (const unsigned char*)text; *p; ++p) {
+		size_t digit;
+		if (*p < '0' || *p > '9') {
+			return 0;
+		}
+		digit = (size_t)(*p - '0');
+		if (value > (SIZE_MAX - digit) / 10u) {
+			return 0;
+		}
+		value = value * 10u + digit;
+	}
+	*outValue = value;
+	return 1;
+}
+
 static int DoraXrtHttpParseHeaders(DoraXrtHttpStreamContext* ctx) {
 	size_t headerEnd;
+	size_t headerCount = 0u;
 	char* headerBlock;
 	char* line;
 	char* next;
+	char* contentLengthValue = NULL;
 	if (!ctx || ctx->headerParsed) {
 		return 1;
 	}
 	headerEnd = DoraXrtHttpFindBytes(ctx->pending, ctx->pendingLen, "\r\n\r\n", 4u);
 	if (headerEnd == (size_t)-1) {
+		if (ctx->pendingLen > DORA_XRT_HTTP_MAX_HEADER_BYTES) {
+			return 0;
+		}
 		return 1;
+	}
+	if (headerEnd + 4u > DORA_XRT_HTTP_MAX_HEADER_BYTES) {
+		return 0;
 	}
 	headerBlock = (char*)malloc(headerEnd + 1u);
 	if (!headerBlock) {
@@ -292,32 +378,70 @@ static int DoraXrtHttpParseHeaders(DoraXrtHttpStreamContext* ctx) {
 	line = next;
 	while (line && *line) {
 		char* value;
+		size_t lineLen;
 		next = strstr(line, "\r\n");
 		if (next) {
+			lineLen = (size_t)(next - line) + 2u;
 			*next = '\0';
 			next += 2;
+		} else {
+			lineLen = strlen(line);
+		}
+		if (lineLen > XCODEC_HTTP1_HEADER_MAX_LENGTH || headerCount >= XCODEC_HTTP1_MAX_HEADERS) {
+			free(contentLengthValue);
+			free(headerBlock);
+			return 0;
 		}
 		value = strchr(line, ':');
-		if (value) {
-			*value++ = '\0';
-			line = DoraXrtHttpTrim(line);
-			value = DoraXrtHttpTrim(value);
-			if (__xhttpStrEqNoCase(line, "Content-Length")) {
-				ctx->hasContentLength = 1;
-				ctx->contentLength = (size_t)strtoull(value, NULL, 10);
-			} else if (__xhttpStrEqNoCase(line, "Transfer-Encoding")) {
-				ctx->chunked = xrtHttpHeaderContainsToken(value, "chunked") ? 1 : 0;
-			} else if (__xhttpStrEqNoCase(line, "Location")) {
-				size_t len = strlen(value);
-				if (len >= sizeof(ctx->redirectLocation)) {
-					len = sizeof(ctx->redirectLocation) - 1u;
-				}
-				memcpy(ctx->redirectLocation, value, len);
-				ctx->redirectLocation[len] = '\0';
+		if (!value) {
+			free(contentLengthValue);
+			free(headerBlock);
+			return 0;
+		}
+		*value++ = '\0';
+		line = DoraXrtHttpTrim(line);
+		value = DoraXrtHttpTrim(value);
+		if (!DoraXrtHttpValidHeaderName(line) || !DoraXrtHttpValidHeaderValue(value)) {
+			free(contentLengthValue);
+			free(headerBlock);
+			return 0;
+		}
+		++headerCount;
+		if (__xhttpStrEqNoCase(line, "Content-Length")) {
+			size_t parsedLength;
+			if (!DoraXrtHttpParseSize(value, &parsedLength)) {
+				free(contentLengthValue);
+				free(headerBlock);
+				return 0;
 			}
+			if (contentLengthValue && strcmp(contentLengthValue, value) != 0) {
+				free(contentLengthValue);
+				free(headerBlock);
+				return 0;
+			}
+			if (!contentLengthValue) {
+				contentLengthValue = (char*)malloc(strlen(value) + 1u);
+				if (!contentLengthValue) {
+					free(headerBlock);
+					return 0;
+				}
+				strcpy(contentLengthValue, value);
+				ctx->hasContentLength = 1;
+				ctx->contentLength = parsedLength;
+			}
+		} else if (__xhttpStrEqNoCase(line, "Transfer-Encoding")) {
+			ctx->chunked = xrtHttpHeaderContainsToken(value, "chunked") ? 1 : 0;
+		} else if (__xhttpStrEqNoCase(line, "Location")) {
+			size_t len = strlen(value);
+			if (len >= sizeof(ctx->redirectLocation)) {
+				len = sizeof(ctx->redirectLocation) - 1u;
+			}
+			memcpy(ctx->redirectLocation, value, len);
+			ctx->redirectLocation[len] = '\0';
 		}
 		line = next;
 	}
+	free(contentLengthValue);
 	free(headerBlock);
 	DoraXrtHttpStreamConsume(ctx, headerEnd + 4u);
 	ctx->headerParsed = 1;
@@ -579,6 +703,9 @@ static xnet_result DoraXrtHttpExecuteStreamOnce(
 			(void)xrtHttpRequestSetHeader(&request, headerNames[i], headerValues[i]);
 		}
 	}
+	if (!DoraXrtHttpHasHeader(headerNames, headerCount, "User-Agent")) {
+		(void)xrtHttpRequestSetHeader(&request, "User-Agent", DORA_XRT_HTTP_USER_AGENT);
+	}
 	if (!__xhttpRequestHasHeader(&request, "Connection")) {
 		(void)xrtHttpRequestSetHeader(&request, "Connection", "close");
 	}
@@ -691,6 +818,9 @@ static xhttpresponse* DoraXrtHttpExecuteOnce(
 		if (headerNames && headerValues && headerNames[i] && headerValues[i]) {
 			(void)xrtHttpRequestSetHeader(&request, headerNames[i], headerValues[i]);
 		}
+	}
+	if (!DoraXrtHttpHasHeader(headerNames, headerCount, "User-Agent")) {
+		(void)xrtHttpRequestSetHeader(&request, "User-Agent", DORA_XRT_HTTP_USER_AGENT);
 	}
 	if (body && bodyLen > 0u && !xrtHttpRequestSetBodyCopy(&request, body, bodyLen, NULL)) {
 		xrtHttpRequestUnit(&request);

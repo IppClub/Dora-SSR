@@ -1233,7 +1233,7 @@ HttpClient::RequestId HttpClient::postAsync(String url, std::span<Slice> headers
 				&streamContext,
 				&statusCode);
 			if (status != 0 || statusCode < 200 || statusCode >= 400 || stopped->load(std::memory_order_relaxed)) {
-				Info("failed to do streaming HTTP POST \"{}\" due to xrt status {}, http status {}", urlStr, DoraXrtHttpStatusName(status), statusCode);
+				Info("failed to do streaming HTTP POST \"{}\"; network status: {}, HTTP status: {}", urlStr, DoraXrtHttpStatusName(status), statusCode);
 				SharedApplication.invokeInLogic([callbackFunc]() {
 					(*callbackFunc)(std::nullopt);
 				});
@@ -1257,7 +1257,7 @@ HttpClient::RequestId HttpClient::postAsync(String url, std::span<Slice> headers
 				request.get(),
 				&response);
 			if (status != 0 || response.statusCode < 200 || response.statusCode >= 400) {
-				Info("failed to do HTTP POST \"{}\" due to xrt status {}, http status {}", urlStr, DoraXrtHttpStatusName(status), response.statusCode);
+				Info("failed to do HTTP POST \"{}\"; network status: {}, HTTP status: {}", urlStr, DoraXrtHttpStatusName(status), response.statusCode);
 				SharedApplication.invokeInLogic([callbackFunc]() {
 					(*callbackFunc)(std::nullopt);
 				});
@@ -1332,7 +1332,7 @@ HttpClient::RequestId HttpClient::getAsync(String url, float timeout, const Cont
 			request.get(),
 			&response);
 		if (status != 0 || response.statusCode < 200 || response.statusCode >= 400) {
-			Info("failed to do HTTP GET \"{}\" due to xrt status {}, http status {}", urlStr, DoraXrtHttpStatusName(status), response.statusCode);
+			Info("failed to do HTTP GET \"{}\"; network status: {}, HTTP status: {}", urlStr, DoraXrtHttpStatusName(status), response.statusCode);
 			SharedApplication.invokeInLogic([callback]() {
 				callback(std::nullopt);
 			});
@@ -1405,7 +1405,7 @@ HttpClient::RequestId HttpClient::downloadAsync(String url, String filePath, flo
 				&streamContext,
 				&statusCode);
 			if (status != 0 || statusCode < 200 || statusCode >= 400 || streamContext.writeFailed || stopped->load(std::memory_order_relaxed)) {
-				Info("failed to download \"{}\" due to xrt status {}, http status {}", urlStr, DoraXrtHttpStatusName(status), statusCode);
+				Info("failed to download \"{}\"; network status: {}, HTTP status: {}", urlStr, DoraXrtHttpStatusName(status), statusCode);
 				SharedApplication.invokeInLogic([progressFunc]() {
 					(*progressFunc)(true, 0, 0);
 				});
