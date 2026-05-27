@@ -20,7 +20,7 @@ local __TS__SparseArrayNew = ____lualib.__TS__SparseArrayNew -- 1
 local __TS__SparseArrayPush = ____lualib.__TS__SparseArrayPush -- 1
 local __TS__SparseArraySpread = ____lualib.__TS__SparseArraySpread -- 1
 local ____exports = {} -- 1
-local ensureSafeSearchGlobs, extensionLevels -- 1
+local getEngineLogText, ensureSafeSearchGlobs, ENGINE_LOG_DOWNLOAD_DIR, ENGINE_LOG_FILE, extensionLevels -- 1
 local ____Dora = require("Dora") -- 2
 local Content = ____Dora.Content -- 2
 local DB = ____Dora.DB -- 2
@@ -36,32 +36,43 @@ local ____Utils = require("Agent.Utils") -- 3
 local Log = ____Utils.Log -- 3
 local safeJsonDecode = ____Utils.safeJsonDecode -- 3
 local safeJsonEncode = ____Utils.safeJsonEncode -- 3
-function ensureSafeSearchGlobs(globs) -- 1037
-	local result = {} -- 1038
-	do -- 1038
-		local i = 0 -- 1039
-		while i < #globs do -- 1039
-			result[#result + 1] = globs[i + 1] -- 1040
-			i = i + 1 -- 1039
-		end -- 1039
-	end -- 1039
-	local requiredExcludes = {"!**/.*/**", "!**/node_modules/**"} -- 1042
-	do -- 1042
-		local i = 0 -- 1043
-		while i < #requiredExcludes do -- 1043
-			if __TS__ArrayIndexOf(result, requiredExcludes[i + 1]) == -1 then -- 1043
-				result[#result + 1] = requiredExcludes[i + 1] -- 1045
-			end -- 1045
-			i = i + 1 -- 1043
-		end -- 1043
-	end -- 1043
-	return result -- 1048
-end -- 1048
+function getEngineLogText() -- 903
+	local folder = Path(Content.writablePath, ENGINE_LOG_DOWNLOAD_DIR) -- 904
+	if not Content:exist(folder) then -- 904
+		Content:mkdir(folder) -- 906
+	end -- 906
+	local logPath = Path(folder, ENGINE_LOG_FILE) -- 908
+	if not App:saveLog(logPath) then -- 908
+		return nil -- 910
+	end -- 910
+	return Content:load(logPath) -- 912
+end -- 912
+function ensureSafeSearchGlobs(globs) -- 1052
+	local result = {} -- 1053
+	do -- 1053
+		local i = 0 -- 1054
+		while i < #globs do -- 1054
+			result[#result + 1] = globs[i + 1] -- 1055
+			i = i + 1 -- 1054
+		end -- 1054
+	end -- 1054
+	local requiredExcludes = {"!**/.*/**", "!**/node_modules/**"} -- 1057
+	do -- 1057
+		local i = 0 -- 1058
+		while i < #requiredExcludes do -- 1058
+			if __TS__ArrayIndexOf(result, requiredExcludes[i + 1]) == -1 then -- 1058
+				result[#result + 1] = requiredExcludes[i + 1] -- 1060
+			end -- 1060
+			i = i + 1 -- 1058
+		end -- 1058
+	end -- 1058
+	return result -- 1063
+end -- 1063
 local TABLE_TASK = "AgentTask" -- 231
 local TABLE_CP = "AgentCheckpoint" -- 232
 local TABLE_ENTRY = "AgentCheckpointEntry" -- 233
-local ENGINE_LOG_SNAPSHOT_DIR = ".agent" -- 234
-local ENGINE_LOG_SNAPSHOT_FILE = "engine_logs_snapshot.txt" -- 235
+ENGINE_LOG_DOWNLOAD_DIR = ".download" -- 234
+ENGINE_LOG_FILE = "dora_full_logs.txt" -- 235
 local function now() -- 237
 	return os.time() -- 237
 end -- 237
@@ -317,1463 +328,1469 @@ local function inspectReadableFile(path) -- 407
 		end -- 408
 	end -- 408
 end -- 407
-local function queryOne(sql, args) -- 434
-	local ____args_0 -- 435
-	if args then -- 435
-		____args_0 = DB:query(sql, args) -- 435
-	else -- 435
-		____args_0 = DB:query(sql) -- 435
-	end -- 435
-	local rows = ____args_0 -- 435
-	if not rows or #rows == 0 then -- 435
-		return nil -- 436
-	end -- 436
-	return rows[1] -- 437
+local function isEngineLogFilePath(path) -- 434
+	return path == ENGINE_LOG_FILE -- 435
 end -- 434
-do -- 434
-	DB:exec(("CREATE TABLE IF NOT EXISTS " .. TABLE_TASK) .. "(\n\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tstatus TEXT NOT NULL,\n\t\tprompt TEXT NOT NULL DEFAULT '',\n\t\thead_seq INTEGER NOT NULL DEFAULT 0,\n\t\tcreated_at INTEGER NOT NULL,\n\t\tupdated_at INTEGER NOT NULL\n\t);") -- 442
-	DB:exec(("CREATE TABLE IF NOT EXISTS " .. TABLE_CP) .. "(\n\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\ttask_id INTEGER NOT NULL,\n\t\tseq INTEGER NOT NULL,\n\t\tstatus TEXT NOT NULL,\n\t\tsummary TEXT NOT NULL DEFAULT '',\n\t\ttool_name TEXT NOT NULL DEFAULT '',\n\t\tcreated_at INTEGER NOT NULL,\n\t\tapplied_at INTEGER,\n\t\treverted_at INTEGER\n\t);") -- 450
-	DB:exec(("CREATE INDEX IF NOT EXISTS idx_agent_cp_task_seq ON " .. TABLE_CP) .. "(task_id, seq);") -- 461
-	DB:exec(("CREATE TABLE IF NOT EXISTS " .. TABLE_ENTRY) .. "(\n\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tcheckpoint_id INTEGER NOT NULL,\n\t\tord INTEGER NOT NULL,\n\t\tpath TEXT NOT NULL,\n\t\top TEXT NOT NULL,\n\t\tbefore_exists INTEGER NOT NULL,\n\t\tbefore_content TEXT,\n\t\tafter_exists INTEGER NOT NULL,\n\t\tafter_content TEXT,\n\t\tbytes_before INTEGER NOT NULL DEFAULT 0,\n\t\tbytes_after INTEGER NOT NULL DEFAULT 0\n\t);") -- 462
-	DB:exec(("CREATE INDEX IF NOT EXISTS idx_agent_entry_cp_ord ON " .. TABLE_ENTRY) .. "(checkpoint_id, ord);") -- 475
-end -- 475
-local function isDtsFile(path) -- 478
-	return Path:getExt(Path:getName(path)) == "d" -- 479
-end -- 478
-local function getSupportedBuildKind(path) -- 484
-	repeat -- 484
-		local ____switch69 = Path:getExt(path) -- 484
-		local ____cond69 = ____switch69 == "ts" or ____switch69 == "tsx" -- 484
-		if ____cond69 then -- 484
-			return "ts" -- 486
-		end -- 486
-		____cond69 = ____cond69 or ____switch69 == "xml" -- 486
-		if ____cond69 then -- 486
-			return "xml" -- 487
-		end -- 487
-		____cond69 = ____cond69 or ____switch69 == "tl" -- 487
-		if ____cond69 then -- 487
-			return "teal" -- 488
-		end -- 488
-		____cond69 = ____cond69 or ____switch69 == "lua" -- 488
-		if ____cond69 then -- 488
-			return "lua" -- 489
-		end -- 489
-		____cond69 = ____cond69 or ____switch69 == "yue" -- 489
-		if ____cond69 then -- 489
-			return "yue" -- 490
-		end -- 490
-		____cond69 = ____cond69 or ____switch69 == "yarn" -- 490
-		if ____cond69 then -- 490
-			return "yarn" -- 491
-		end -- 491
-		do -- 491
-			return nil -- 492
-		end -- 492
-	until true -- 492
-end -- 484
-local function getTaskHeadSeq(taskId) -- 496
-	local row = queryOne(("SELECT head_seq FROM " .. TABLE_TASK) .. " WHERE id = ?", {taskId}) -- 497
-	if not row then -- 497
-		return nil -- 498
-	end -- 498
-	return row[1] or 0 -- 499
-end -- 496
-local function getTaskStatus(taskId) -- 502
-	local row = queryOne(("SELECT status FROM " .. TABLE_TASK) .. " WHERE id = ?", {taskId}) -- 503
-	if not row then -- 503
-		return nil -- 504
-	end -- 504
-	return toStr(row[1]) -- 505
-end -- 502
-local function getLastInsertRowId() -- 508
-	local row = queryOne("SELECT last_insert_rowid()") -- 509
-	return row and (row[1] or 0) or 0 -- 510
-end -- 508
-local function insertCheckpoint(taskId, seq, summary, toolName, status) -- 513
-	DB:exec( -- 514
-		("INSERT INTO " .. TABLE_CP) .. "(task_id, seq, status, summary, tool_name, created_at) VALUES(?, ?, ?, ?, ?, ?)", -- 514
-		{ -- 516
-			taskId, -- 516
-			seq, -- 516
-			status, -- 516
-			summary, -- 516
-			toolName, -- 516
-			now() -- 516
-		} -- 516
-	) -- 516
-	return getLastInsertRowId() -- 518
-end -- 513
-local function getCheckpointEntries(checkpointId, desc) -- 521
-	if desc == nil then -- 521
-		desc = false -- 521
-	end -- 521
-	local rows = DB:query((("SELECT id, ord, path, op, before_exists, before_content, after_exists, after_content\n\t\tFROM " .. TABLE_ENTRY) .. "\n\t\tWHERE checkpoint_id = ?\n\t\tORDER BY ord ") .. (desc and "DESC" or "ASC"), {checkpointId}) -- 522
-	if not rows then -- 522
-		return {} -- 529
-	end -- 529
-	local result = {} -- 530
-	do -- 530
-		local i = 0 -- 531
-		while i < #rows do -- 531
-			local row = rows[i + 1] -- 532
-			result[#result + 1] = { -- 533
-				id = row[1], -- 534
-				ord = row[2], -- 535
-				path = toStr(row[3]), -- 536
-				op = toStr(row[4]), -- 537
-				beforeExists = toBool(row[5]), -- 538
-				beforeContent = toStr(row[6]), -- 539
-				afterExists = toBool(row[7]), -- 540
-				afterContent = toStr(row[8]) -- 541
-			} -- 541
-			i = i + 1 -- 531
-		end -- 531
-	end -- 531
-	return result -- 544
+local function readEngineLogFile(path) -- 438
+	if not isEngineLogFilePath(path) then -- 438
+		return nil -- 439
+	end -- 439
+	local content = getEngineLogText() -- 440
+	if content == nil then -- 440
+		return {success = false, message = "failed to read engine logs"} -- 442
+	end -- 442
+	return {success = true, content = content, size = #content} -- 444
+end -- 438
+local function queryOne(sql, args) -- 447
+	local ____args_0 -- 448
+	if args then -- 448
+		____args_0 = DB:query(sql, args) -- 448
+	else -- 448
+		____args_0 = DB:query(sql) -- 448
+	end -- 448
+	local rows = ____args_0 -- 448
+	if not rows or #rows == 0 then -- 448
+		return nil -- 449
+	end -- 449
+	return rows[1] -- 450
+end -- 447
+do -- 447
+	DB:exec(("CREATE TABLE IF NOT EXISTS " .. TABLE_TASK) .. "(\n\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tstatus TEXT NOT NULL,\n\t\tprompt TEXT NOT NULL DEFAULT '',\n\t\thead_seq INTEGER NOT NULL DEFAULT 0,\n\t\tcreated_at INTEGER NOT NULL,\n\t\tupdated_at INTEGER NOT NULL\n\t);") -- 455
+	DB:exec(("CREATE TABLE IF NOT EXISTS " .. TABLE_CP) .. "(\n\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\ttask_id INTEGER NOT NULL,\n\t\tseq INTEGER NOT NULL,\n\t\tstatus TEXT NOT NULL,\n\t\tsummary TEXT NOT NULL DEFAULT '',\n\t\ttool_name TEXT NOT NULL DEFAULT '',\n\t\tcreated_at INTEGER NOT NULL,\n\t\tapplied_at INTEGER,\n\t\treverted_at INTEGER\n\t);") -- 463
+	DB:exec(("CREATE INDEX IF NOT EXISTS idx_agent_cp_task_seq ON " .. TABLE_CP) .. "(task_id, seq);") -- 474
+	DB:exec(("CREATE TABLE IF NOT EXISTS " .. TABLE_ENTRY) .. "(\n\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tcheckpoint_id INTEGER NOT NULL,\n\t\tord INTEGER NOT NULL,\n\t\tpath TEXT NOT NULL,\n\t\top TEXT NOT NULL,\n\t\tbefore_exists INTEGER NOT NULL,\n\t\tbefore_content TEXT,\n\t\tafter_exists INTEGER NOT NULL,\n\t\tafter_content TEXT,\n\t\tbytes_before INTEGER NOT NULL DEFAULT 0,\n\t\tbytes_after INTEGER NOT NULL DEFAULT 0\n\t);") -- 475
+	DB:exec(("CREATE INDEX IF NOT EXISTS idx_agent_entry_cp_ord ON " .. TABLE_ENTRY) .. "(checkpoint_id, ord);") -- 488
+end -- 488
+local function isDtsFile(path) -- 491
+	return Path:getExt(Path:getName(path)) == "d" -- 492
+end -- 491
+local function getSupportedBuildKind(path) -- 497
+	repeat -- 497
+		local ____switch73 = Path:getExt(path) -- 497
+		local ____cond73 = ____switch73 == "ts" or ____switch73 == "tsx" -- 497
+		if ____cond73 then -- 497
+			return "ts" -- 499
+		end -- 499
+		____cond73 = ____cond73 or ____switch73 == "xml" -- 499
+		if ____cond73 then -- 499
+			return "xml" -- 500
+		end -- 500
+		____cond73 = ____cond73 or ____switch73 == "tl" -- 500
+		if ____cond73 then -- 500
+			return "teal" -- 501
+		end -- 501
+		____cond73 = ____cond73 or ____switch73 == "lua" -- 501
+		if ____cond73 then -- 501
+			return "lua" -- 502
+		end -- 502
+		____cond73 = ____cond73 or ____switch73 == "yue" -- 502
+		if ____cond73 then -- 502
+			return "yue" -- 503
+		end -- 503
+		____cond73 = ____cond73 or ____switch73 == "yarn" -- 503
+		if ____cond73 then -- 503
+			return "yarn" -- 504
+		end -- 504
+		do -- 504
+			return nil -- 505
+		end -- 505
+	until true -- 505
+end -- 497
+local function getTaskHeadSeq(taskId) -- 509
+	local row = queryOne(("SELECT head_seq FROM " .. TABLE_TASK) .. " WHERE id = ?", {taskId}) -- 510
+	if not row then -- 510
+		return nil -- 511
+	end -- 511
+	return row[1] or 0 -- 512
+end -- 509
+local function getTaskStatus(taskId) -- 515
+	local row = queryOne(("SELECT status FROM " .. TABLE_TASK) .. " WHERE id = ?", {taskId}) -- 516
+	if not row then -- 516
+		return nil -- 517
+	end -- 517
+	return toStr(row[1]) -- 518
+end -- 515
+local function getLastInsertRowId() -- 521
+	local row = queryOne("SELECT last_insert_rowid()") -- 522
+	return row and (row[1] or 0) or 0 -- 523
 end -- 521
-local function rejectDuplicatePaths(changes) -- 547
-	local seen = __TS__New(Set) -- 548
-	for ____, change in ipairs(changes) do -- 549
-		local key = change.path -- 550
-		if seen:has(key) then -- 550
-			return key -- 551
-		end -- 551
-		seen:add(key) -- 552
-	end -- 552
-	return nil -- 554
-end -- 547
-local function getLinkedDeletePaths(workDir, path) -- 557
-	local fullPath = resolveWorkspaceFilePath(workDir, path) -- 558
-	if not fullPath or not Content:exist(fullPath) or Content:isdir(fullPath) then -- 558
-		return {} -- 559
-	end -- 559
-	local parent = Path:getPath(fullPath) -- 560
-	local baseName = string.lower(Path:getName(fullPath)) -- 561
-	local ext = Path:getExt(fullPath) -- 562
-	local linked = {} -- 563
-	for ____, file in ipairs(Content:getFiles(parent)) do -- 564
-		do -- 564
-			if string.lower(Path:getName(file)) ~= baseName then -- 564
-				goto __continue86 -- 565
-			end -- 565
-			local siblingExt = Path:getExt(file) -- 566
-			if siblingExt == "tl" and ext == "vs" then -- 566
-				linked[#linked + 1] = toWorkspaceRelativePath( -- 568
-					workDir, -- 568
-					Path(parent, file) -- 568
-				) -- 568
-				goto __continue86 -- 569
-			end -- 569
-			if siblingExt == "lua" and (ext == "tl" or ext == "yue" or ext == "ts" or ext == "tsx" or ext == "vs" or ext == "bl" or ext == "xml") then -- 569
-				linked[#linked + 1] = toWorkspaceRelativePath( -- 572
-					workDir, -- 572
-					Path(parent, file) -- 572
-				) -- 572
-			end -- 572
-		end -- 572
-		::__continue86:: -- 572
+local function insertCheckpoint(taskId, seq, summary, toolName, status) -- 526
+	DB:exec( -- 527
+		("INSERT INTO " .. TABLE_CP) .. "(task_id, seq, status, summary, tool_name, created_at) VALUES(?, ?, ?, ?, ?, ?)", -- 527
+		{ -- 529
+			taskId, -- 529
+			seq, -- 529
+			status, -- 529
+			summary, -- 529
+			toolName, -- 529
+			now() -- 529
+		} -- 529
+	) -- 529
+	return getLastInsertRowId() -- 531
+end -- 526
+local function getCheckpointEntries(checkpointId, desc) -- 534
+	if desc == nil then -- 534
+		desc = false -- 534
+	end -- 534
+	local rows = DB:query((("SELECT id, ord, path, op, before_exists, before_content, after_exists, after_content\n\t\tFROM " .. TABLE_ENTRY) .. "\n\t\tWHERE checkpoint_id = ?\n\t\tORDER BY ord ") .. (desc and "DESC" or "ASC"), {checkpointId}) -- 535
+	if not rows then -- 535
+		return {} -- 542
+	end -- 542
+	local result = {} -- 543
+	do -- 543
+		local i = 0 -- 544
+		while i < #rows do -- 544
+			local row = rows[i + 1] -- 545
+			result[#result + 1] = { -- 546
+				id = row[1], -- 547
+				ord = row[2], -- 548
+				path = toStr(row[3]), -- 549
+				op = toStr(row[4]), -- 550
+				beforeExists = toBool(row[5]), -- 551
+				beforeContent = toStr(row[6]), -- 552
+				afterExists = toBool(row[7]), -- 553
+				afterContent = toStr(row[8]) -- 554
+			} -- 554
+			i = i + 1 -- 544
+		end -- 544
+	end -- 544
+	return result -- 557
+end -- 534
+local function rejectDuplicatePaths(changes) -- 560
+	local seen = __TS__New(Set) -- 561
+	for ____, change in ipairs(changes) do -- 562
+		local key = change.path -- 563
+		if seen:has(key) then -- 563
+			return key -- 564
+		end -- 564
+		seen:add(key) -- 565
+	end -- 565
+	return nil -- 567
+end -- 560
+local function getLinkedDeletePaths(workDir, path) -- 570
+	local fullPath = resolveWorkspaceFilePath(workDir, path) -- 571
+	if not fullPath or not Content:exist(fullPath) or Content:isdir(fullPath) then -- 571
+		return {} -- 572
 	end -- 572
-	return linked -- 575
-end -- 557
-local function expandLinkedDeleteChanges(workDir, changes) -- 578
-	local expanded = {} -- 579
-	local seen = __TS__New(Set) -- 580
-	do -- 580
-		local i = 0 -- 581
-		while i < #changes do -- 581
-			do -- 581
-				local change = changes[i + 1] -- 582
-				if not seen:has(change.path) then -- 582
-					seen:add(change.path) -- 584
-					expanded[#expanded + 1] = change -- 585
-				end -- 585
-				if change.op ~= "delete" then -- 585
-					goto __continue93 -- 587
-				end -- 587
-				local linkedPaths = getLinkedDeletePaths(workDir, change.path) -- 588
-				do -- 588
-					local j = 0 -- 589
-					while j < #linkedPaths do -- 589
-						do -- 589
-							local linkedPath = linkedPaths[j + 1] -- 590
-							if seen:has(linkedPath) then -- 590
-								goto __continue97 -- 591
-							end -- 591
-							seen:add(linkedPath) -- 592
-							expanded[#expanded + 1] = {path = linkedPath, op = "delete"} -- 593
-						end -- 593
-						::__continue97:: -- 593
-						j = j + 1 -- 589
-					end -- 589
-				end -- 589
-			end -- 589
-			::__continue93:: -- 589
-			i = i + 1 -- 581
-		end -- 581
-	end -- 581
-	return expanded -- 596
-end -- 578
-local function applySingleFile(path, exists, content) -- 599
-	if exists then -- 599
-		if not ensureDirForFile(path) then -- 599
-			return false -- 601
-		end -- 601
-		return Content:save(path, content) -- 602
-	end -- 602
-	if Content:exist(path) then -- 602
-		return Content:remove(path) -- 605
-	end -- 605
-	return true -- 607
-end -- 599
-local function encodeJSON(obj) -- 610
-	local text = safeJsonEncode(obj) -- 611
-	return text -- 612
-end -- 610
-function ____exports.sendWebIDEFileUpdate(file, exists, content) -- 615
-	if HttpServer.wsConnectionCount == 0 then -- 615
-		return true -- 617
-	end -- 617
-	local payload = encodeJSON({name = "UpdateFile", file = file, exists = exists, content = content}) -- 619
-	if not payload then -- 619
-		return false -- 621
-	end -- 621
-	emit("AppWS", "Send", payload) -- 623
-	return true -- 624
-end -- 615
-local function runSingleNonTsBuild(file) -- 627
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 627
-		return ____awaiter_resolve( -- 627
-			nil, -- 627
-			__TS__New( -- 628
-				__TS__Promise, -- 628
-				function(____, resolve) -- 628
-					local ____require_result_1 = require("Script.Dev.WebServer") -- 629
-					local buildAsync = ____require_result_1.buildAsync -- 629
-					Director.systemScheduler:schedule(once(function() -- 630
-						local result = buildAsync(file) -- 631
-						resolve(nil, result) -- 632
-					end)) -- 630
-				end -- 628
-			) -- 628
-		) -- 628
-	end) -- 628
-end -- 627
-function ____exports.runSingleTsTranspile(file, content) -- 637
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 637
-		local done = false -- 638
-		local result = {success = false, file = file, message = "transpile timeout or Web IDE not connected"} -- 639
-		if HttpServer.wsConnectionCount == 0 then -- 639
-			return ____awaiter_resolve(nil, result) -- 639
-		end -- 639
-		local listener = Node() -- 647
-		listener:gslot( -- 648
-			"AppWS", -- 648
-			function(event) -- 648
-				if event.type ~= "Receive" then -- 648
-					return -- 649
-				end -- 649
-				local res = safeJsonDecode(event.msg) -- 650
-				if not res or __TS__ArrayIsArray(res) then -- 650
-					return -- 651
-				end -- 651
-				local payload = res -- 652
-				if payload.name ~= "TranspileTS" then -- 652
-					return -- 653
-				end -- 653
-				if tostring(payload.file) ~= file then -- 653
-					return -- 654
-				end -- 654
-				if payload.success then -- 654
-					local luaFile = Path:replaceExt(file, "lua") -- 656
-					if Content:save( -- 656
-						luaFile, -- 657
-						tostring(payload.luaCode) -- 657
-					) then -- 657
-						result = {success = true, file = file} -- 658
-					else -- 658
-						result = {success = false, file = file, message = "failed to save " .. luaFile} -- 660
-					end -- 660
-				else -- 660
-					result = { -- 663
-						success = false, -- 663
-						file = file, -- 663
-						message = tostring(payload.message) -- 663
-					} -- 663
-				end -- 663
-				done = true -- 665
-			end -- 648
-		) -- 648
-		local payload = encodeJSON({name = "TranspileTS", file = file, content = content}) -- 667
-		if not payload then -- 667
-			listener:removeFromParent() -- 673
-			return ____awaiter_resolve(nil, {success = false, file = file, message = "failed to encode transpile request"}) -- 673
-		end -- 673
-		__TS__Await(__TS__New( -- 676
-			__TS__Promise, -- 676
-			function(____, resolve) -- 676
-				Director.systemScheduler:schedule(once(function() -- 677
-					emit("AppWS", "Send", payload) -- 678
-					wait(function() return done end) -- 679
-					if not done then -- 679
-						listener:removeFromParent() -- 681
-					end -- 681
-					resolve(nil) -- 683
-				end)) -- 677
-			end -- 676
-		)) -- 676
-		return ____awaiter_resolve(nil, result) -- 676
-	end) -- 676
-end -- 637
-function ____exports.createTask(prompt) -- 689
-	if prompt == nil then -- 689
-		prompt = "" -- 689
-	end -- 689
-	local t = now() -- 690
-	local affected = DB:exec(("INSERT INTO " .. TABLE_TASK) .. "(status, prompt, head_seq, created_at, updated_at) VALUES(?, ?, 0, ?, ?)", {"RUNNING", prompt, t, t}) -- 691
-	if affected <= 0 then -- 691
-		return {success = false, message = "failed to create task"} -- 696
-	end -- 696
-	return { -- 698
-		success = true, -- 698
-		taskId = getLastInsertRowId() -- 698
-	} -- 698
-end -- 689
-function ____exports.setTaskStatus(taskId, status) -- 701
-	DB:exec( -- 702
-		("UPDATE " .. TABLE_TASK) .. " SET status = ?, updated_at = ? WHERE id = ?", -- 702
-		{ -- 702
-			status, -- 702
-			now(), -- 702
-			taskId -- 702
-		} -- 702
-	) -- 702
-	Log( -- 703
-		"Info", -- 703
-		(("[task:" .. tostring(taskId)) .. "] status=") .. status -- 703
-	) -- 703
-end -- 701
-function ____exports.listCheckpoints(taskId) -- 706
-	local rows = DB:query(("SELECT id, task_id, seq, status, summary, tool_name, created_at\n\t\tFROM " .. TABLE_CP) .. "\n\t\tWHERE task_id = ?\n\t\tORDER BY seq DESC", {taskId}) -- 707
-	if not rows then -- 707
-		return {} -- 714
-	end -- 714
-	local items = {} -- 715
-	do -- 715
-		local i = 0 -- 716
-		while i < #rows do -- 716
-			local row = rows[i + 1] -- 717
-			items[#items + 1] = { -- 718
-				id = row[1], -- 719
-				taskId = row[2], -- 720
-				seq = row[3], -- 721
-				status = toStr(row[4]), -- 722
-				summary = toStr(row[5]), -- 723
-				toolName = toStr(row[6]), -- 724
-				createdAt = row[7] -- 725
-			} -- 725
-			i = i + 1 -- 716
-		end -- 716
-	end -- 716
-	return items -- 728
-end -- 706
-local function listCheckpointIdsForTask(taskId, desc) -- 731
-	if desc == nil then -- 731
-		desc = false -- 731
-	end -- 731
-	local rows = DB:query((("SELECT id, seq\n\t\tFROM " .. TABLE_CP) .. "\n\t\tWHERE task_id = ? AND status IN ('APPLIED', 'REVERTED')\n\t\tORDER BY seq ") .. (desc and "DESC" or "ASC"), {taskId}) -- 732
-	if not rows then -- 732
-		return {} -- 739
-	end -- 739
-	local items = {} -- 740
-	do -- 740
-		local i = 0 -- 741
-		while i < #rows do -- 741
-			local row = rows[i + 1] -- 742
-			items[#items + 1] = {id = row[1], seq = row[2]} -- 743
-			i = i + 1 -- 741
-		end -- 741
-	end -- 741
-	return items -- 748
-end -- 731
-local function deriveFileOp(beforeExists, afterExists) -- 751
-	if not beforeExists and afterExists then -- 751
-		return "create" -- 752
+	local parent = Path:getPath(fullPath) -- 573
+	local baseName = string.lower(Path:getName(fullPath)) -- 574
+	local ext = Path:getExt(fullPath) -- 575
+	local linked = {} -- 576
+	for ____, file in ipairs(Content:getFiles(parent)) do -- 577
+		do -- 577
+			if string.lower(Path:getName(file)) ~= baseName then -- 577
+				goto __continue90 -- 578
+			end -- 578
+			local siblingExt = Path:getExt(file) -- 579
+			if siblingExt == "tl" and ext == "vs" then -- 579
+				linked[#linked + 1] = toWorkspaceRelativePath( -- 581
+					workDir, -- 581
+					Path(parent, file) -- 581
+				) -- 581
+				goto __continue90 -- 582
+			end -- 582
+			if siblingExt == "lua" and (ext == "tl" or ext == "yue" or ext == "ts" or ext == "tsx" or ext == "vs" or ext == "bl" or ext == "xml") then -- 582
+				linked[#linked + 1] = toWorkspaceRelativePath( -- 585
+					workDir, -- 585
+					Path(parent, file) -- 585
+				) -- 585
+			end -- 585
+		end -- 585
+		::__continue90:: -- 585
+	end -- 585
+	return linked -- 588
+end -- 570
+local function expandLinkedDeleteChanges(workDir, changes) -- 591
+	local expanded = {} -- 592
+	local seen = __TS__New(Set) -- 593
+	do -- 593
+		local i = 0 -- 594
+		while i < #changes do -- 594
+			do -- 594
+				local change = changes[i + 1] -- 595
+				if not seen:has(change.path) then -- 595
+					seen:add(change.path) -- 597
+					expanded[#expanded + 1] = change -- 598
+				end -- 598
+				if change.op ~= "delete" then -- 598
+					goto __continue97 -- 600
+				end -- 600
+				local linkedPaths = getLinkedDeletePaths(workDir, change.path) -- 601
+				do -- 601
+					local j = 0 -- 602
+					while j < #linkedPaths do -- 602
+						do -- 602
+							local linkedPath = linkedPaths[j + 1] -- 603
+							if seen:has(linkedPath) then -- 603
+								goto __continue101 -- 604
+							end -- 604
+							seen:add(linkedPath) -- 605
+							expanded[#expanded + 1] = {path = linkedPath, op = "delete"} -- 606
+						end -- 606
+						::__continue101:: -- 606
+						j = j + 1 -- 602
+					end -- 602
+				end -- 602
+			end -- 602
+			::__continue97:: -- 602
+			i = i + 1 -- 594
+		end -- 594
+	end -- 594
+	return expanded -- 609
+end -- 591
+local function applySingleFile(path, exists, content) -- 612
+	if exists then -- 612
+		if not ensureDirForFile(path) then -- 612
+			return false -- 614
+		end -- 614
+		return Content:save(path, content) -- 615
+	end -- 615
+	if Content:exist(path) then -- 615
+		return Content:remove(path) -- 618
+	end -- 618
+	return true -- 620
+end -- 612
+local function encodeJSON(obj) -- 623
+	local text = safeJsonEncode(obj) -- 624
+	return text -- 625
+end -- 623
+function ____exports.sendWebIDEFileUpdate(file, exists, content) -- 628
+	if HttpServer.wsConnectionCount == 0 then -- 628
+		return true -- 630
+	end -- 630
+	local payload = encodeJSON({name = "UpdateFile", file = file, exists = exists, content = content}) -- 632
+	if not payload then -- 632
+		return false -- 634
+	end -- 634
+	emit("AppWS", "Send", payload) -- 636
+	return true -- 637
+end -- 628
+local function runSingleNonTsBuild(file) -- 640
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 640
+		return ____awaiter_resolve( -- 640
+			nil, -- 640
+			__TS__New( -- 641
+				__TS__Promise, -- 641
+				function(____, resolve) -- 641
+					local ____require_result_1 = require("Script.Dev.WebServer") -- 642
+					local buildAsync = ____require_result_1.buildAsync -- 642
+					Director.systemScheduler:schedule(once(function() -- 643
+						local result = buildAsync(file) -- 644
+						resolve(nil, result) -- 645
+					end)) -- 643
+				end -- 641
+			) -- 641
+		) -- 641
+	end) -- 641
+end -- 640
+function ____exports.runSingleTsTranspile(file, content) -- 650
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 650
+		local done = false -- 651
+		local result = {success = false, file = file, message = "transpile timeout or Web IDE not connected"} -- 652
+		if HttpServer.wsConnectionCount == 0 then -- 652
+			return ____awaiter_resolve(nil, result) -- 652
+		end -- 652
+		local listener = Node() -- 660
+		listener:gslot( -- 661
+			"AppWS", -- 661
+			function(event) -- 661
+				if event.type ~= "Receive" then -- 661
+					return -- 662
+				end -- 662
+				local res = safeJsonDecode(event.msg) -- 663
+				if not res or __TS__ArrayIsArray(res) then -- 663
+					return -- 664
+				end -- 664
+				local payload = res -- 665
+				if payload.name ~= "TranspileTS" then -- 665
+					return -- 666
+				end -- 666
+				if tostring(payload.file) ~= file then -- 666
+					return -- 667
+				end -- 667
+				if payload.success then -- 667
+					local luaFile = Path:replaceExt(file, "lua") -- 669
+					if Content:save( -- 669
+						luaFile, -- 670
+						tostring(payload.luaCode) -- 670
+					) then -- 670
+						result = {success = true, file = file} -- 671
+					else -- 671
+						result = {success = false, file = file, message = "failed to save " .. luaFile} -- 673
+					end -- 673
+				else -- 673
+					result = { -- 676
+						success = false, -- 676
+						file = file, -- 676
+						message = tostring(payload.message) -- 676
+					} -- 676
+				end -- 676
+				done = true -- 678
+			end -- 661
+		) -- 661
+		local payload = encodeJSON({name = "TranspileTS", file = file, content = content}) -- 680
+		if not payload then -- 680
+			listener:removeFromParent() -- 686
+			return ____awaiter_resolve(nil, {success = false, file = file, message = "failed to encode transpile request"}) -- 686
+		end -- 686
+		__TS__Await(__TS__New( -- 689
+			__TS__Promise, -- 689
+			function(____, resolve) -- 689
+				Director.systemScheduler:schedule(once(function() -- 690
+					emit("AppWS", "Send", payload) -- 691
+					wait(function() return done end) -- 692
+					if not done then -- 692
+						listener:removeFromParent() -- 694
+					end -- 694
+					resolve(nil) -- 696
+				end)) -- 690
+			end -- 689
+		)) -- 689
+		return ____awaiter_resolve(nil, result) -- 689
+	end) -- 689
+end -- 650
+function ____exports.createTask(prompt) -- 702
+	if prompt == nil then -- 702
+		prompt = "" -- 702
+	end -- 702
+	local t = now() -- 703
+	local affected = DB:exec(("INSERT INTO " .. TABLE_TASK) .. "(status, prompt, head_seq, created_at, updated_at) VALUES(?, ?, 0, ?, ?)", {"RUNNING", prompt, t, t}) -- 704
+	if affected <= 0 then -- 704
+		return {success = false, message = "failed to create task"} -- 709
+	end -- 709
+	return { -- 711
+		success = true, -- 711
+		taskId = getLastInsertRowId() -- 711
+	} -- 711
+end -- 702
+function ____exports.setTaskStatus(taskId, status) -- 714
+	DB:exec( -- 715
+		("UPDATE " .. TABLE_TASK) .. " SET status = ?, updated_at = ? WHERE id = ?", -- 715
+		{ -- 715
+			status, -- 715
+			now(), -- 715
+			taskId -- 715
+		} -- 715
+	) -- 715
+	Log( -- 716
+		"Info", -- 716
+		(("[task:" .. tostring(taskId)) .. "] status=") .. status -- 716
+	) -- 716
+end -- 714
+function ____exports.listCheckpoints(taskId) -- 719
+	local rows = DB:query(("SELECT id, task_id, seq, status, summary, tool_name, created_at\n\t\tFROM " .. TABLE_CP) .. "\n\t\tWHERE task_id = ?\n\t\tORDER BY seq DESC", {taskId}) -- 720
+	if not rows then -- 720
+		return {} -- 727
+	end -- 727
+	local items = {} -- 728
+	do -- 728
+		local i = 0 -- 729
+		while i < #rows do -- 729
+			local row = rows[i + 1] -- 730
+			items[#items + 1] = { -- 731
+				id = row[1], -- 732
+				taskId = row[2], -- 733
+				seq = row[3], -- 734
+				status = toStr(row[4]), -- 735
+				summary = toStr(row[5]), -- 736
+				toolName = toStr(row[6]), -- 737
+				createdAt = row[7] -- 738
+			} -- 738
+			i = i + 1 -- 729
+		end -- 729
+	end -- 729
+	return items -- 741
+end -- 719
+local function listCheckpointIdsForTask(taskId, desc) -- 744
+	if desc == nil then -- 744
+		desc = false -- 744
+	end -- 744
+	local rows = DB:query((("SELECT id, seq\n\t\tFROM " .. TABLE_CP) .. "\n\t\tWHERE task_id = ? AND status IN ('APPLIED', 'REVERTED')\n\t\tORDER BY seq ") .. (desc and "DESC" or "ASC"), {taskId}) -- 745
+	if not rows then -- 745
+		return {} -- 752
 	end -- 752
-	if beforeExists and not afterExists then -- 752
-		return "delete" -- 753
-	end -- 753
-	return "write" -- 754
-end -- 751
-function ____exports.summarizeTaskChangeSet(taskId) -- 757
-	if not getTaskStatus(taskId) then -- 757
-		return {success = false, message = "task not found"} -- 759
-	end -- 759
-	local checkpoints = listCheckpointIdsForTask(taskId, false) -- 761
-	local filesByPath = {} -- 762
-	local latestCheckpointId = nil -- 768
-	local latestCheckpointSeq = nil -- 769
-	do -- 769
-		local i = 0 -- 770
-		while i < #checkpoints do -- 770
-			local checkpoint = checkpoints[i + 1] -- 771
-			latestCheckpointId = checkpoint.id -- 772
-			latestCheckpointSeq = checkpoint.seq -- 773
-			local entries = getCheckpointEntries(checkpoint.id, false) -- 774
-			do -- 774
-				local j = 0 -- 775
-				while j < #entries do -- 775
-					local entry = entries[j + 1] -- 776
-					local item = filesByPath[entry.path] -- 777
-					if not item then -- 777
-						item = {path = entry.path, beforeExists = entry.beforeExists, afterExists = entry.afterExists, checkpointIds = {}} -- 779
-						filesByPath[entry.path] = item -- 785
-					end -- 785
-					item.afterExists = entry.afterExists -- 787
-					local ____item_checkpointIds_2 = item.checkpointIds -- 787
-					____item_checkpointIds_2[#____item_checkpointIds_2 + 1] = checkpoint.id -- 788
-					j = j + 1 -- 775
-				end -- 775
-			end -- 775
-			i = i + 1 -- 770
-		end -- 770
-	end -- 770
-	local files = {} -- 791
-	for ____, item in pairs(filesByPath) do -- 792
-		files[#files + 1] = { -- 793
-			path = item.path, -- 794
-			op = deriveFileOp(item.beforeExists, item.afterExists), -- 795
-			checkpointCount = #item.checkpointIds, -- 796
-			checkpointIds = item.checkpointIds -- 797
-		} -- 797
-	end -- 797
-	__TS__ArraySort( -- 800
-		files, -- 800
-		function(____, a, b) return a.path < b.path and -1 or (a.path > b.path and 1 or 0) end -- 800
-	) -- 800
-	return { -- 801
-		success = true, -- 802
-		taskId = taskId, -- 803
-		checkpointCount = #checkpoints, -- 804
-		filesChanged = #files, -- 805
-		files = files, -- 806
-		latestCheckpointId = latestCheckpointId, -- 807
-		latestCheckpointSeq = latestCheckpointSeq -- 808
-	} -- 808
-end -- 757
-function ____exports.getTaskChangeSetDiff(taskId) -- 812
-	if not getTaskStatus(taskId) then -- 812
-		return {success = false, message = "task not found"} -- 814
-	end -- 814
-	local checkpoints = listCheckpointIdsForTask(taskId, false) -- 816
-	if #checkpoints == 0 then -- 816
-		return {success = false, message = "change set not found or empty"} -- 818
-	end -- 818
-	local filesByPath = {} -- 820
-	do -- 820
-		local i = 0 -- 827
-		while i < #checkpoints do -- 827
-			local entries = getCheckpointEntries(checkpoints[i + 1].id, false) -- 828
-			do -- 828
-				local j = 0 -- 829
-				while j < #entries do -- 829
-					local entry = entries[j + 1] -- 830
-					local item = filesByPath[entry.path] -- 831
-					if not item then -- 831
-						item = { -- 833
-							path = entry.path, -- 834
-							beforeExists = entry.beforeExists, -- 835
-							beforeContent = entry.beforeContent, -- 836
-							afterExists = entry.afterExists, -- 837
-							afterContent = entry.afterContent -- 838
-						} -- 838
-						filesByPath[entry.path] = item -- 840
-					end -- 840
-					item.afterExists = entry.afterExists -- 842
-					item.afterContent = entry.afterContent -- 843
-					j = j + 1 -- 829
-				end -- 829
-			end -- 829
-			i = i + 1 -- 827
-		end -- 827
+	local items = {} -- 753
+	do -- 753
+		local i = 0 -- 754
+		while i < #rows do -- 754
+			local row = rows[i + 1] -- 755
+			items[#items + 1] = {id = row[1], seq = row[2]} -- 756
+			i = i + 1 -- 754
+		end -- 754
+	end -- 754
+	return items -- 761
+end -- 744
+local function deriveFileOp(beforeExists, afterExists) -- 764
+	if not beforeExists and afterExists then -- 764
+		return "create" -- 765
+	end -- 765
+	if beforeExists and not afterExists then -- 765
+		return "delete" -- 766
+	end -- 766
+	return "write" -- 767
+end -- 764
+function ____exports.summarizeTaskChangeSet(taskId) -- 770
+	if not getTaskStatus(taskId) then -- 770
+		return {success = false, message = "task not found"} -- 772
+	end -- 772
+	local checkpoints = listCheckpointIdsForTask(taskId, false) -- 774
+	local filesByPath = {} -- 775
+	local latestCheckpointId = nil -- 781
+	local latestCheckpointSeq = nil -- 782
+	do -- 782
+		local i = 0 -- 783
+		while i < #checkpoints do -- 783
+			local checkpoint = checkpoints[i + 1] -- 784
+			latestCheckpointId = checkpoint.id -- 785
+			latestCheckpointSeq = checkpoint.seq -- 786
+			local entries = getCheckpointEntries(checkpoint.id, false) -- 787
+			do -- 787
+				local j = 0 -- 788
+				while j < #entries do -- 788
+					local entry = entries[j + 1] -- 789
+					local item = filesByPath[entry.path] -- 790
+					if not item then -- 790
+						item = {path = entry.path, beforeExists = entry.beforeExists, afterExists = entry.afterExists, checkpointIds = {}} -- 792
+						filesByPath[entry.path] = item -- 798
+					end -- 798
+					item.afterExists = entry.afterExists -- 800
+					local ____item_checkpointIds_2 = item.checkpointIds -- 800
+					____item_checkpointIds_2[#____item_checkpointIds_2 + 1] = checkpoint.id -- 801
+					j = j + 1 -- 788
+				end -- 788
+			end -- 788
+			i = i + 1 -- 783
+		end -- 783
+	end -- 783
+	local files = {} -- 804
+	for ____, item in pairs(filesByPath) do -- 805
+		files[#files + 1] = { -- 806
+			path = item.path, -- 807
+			op = deriveFileOp(item.beforeExists, item.afterExists), -- 808
+			checkpointCount = #item.checkpointIds, -- 809
+			checkpointIds = item.checkpointIds -- 810
+		} -- 810
+	end -- 810
+	__TS__ArraySort( -- 813
+		files, -- 813
+		function(____, a, b) return a.path < b.path and -1 or (a.path > b.path and 1 or 0) end -- 813
+	) -- 813
+	return { -- 814
+		success = true, -- 815
+		taskId = taskId, -- 816
+		checkpointCount = #checkpoints, -- 817
+		filesChanged = #files, -- 818
+		files = files, -- 819
+		latestCheckpointId = latestCheckpointId, -- 820
+		latestCheckpointSeq = latestCheckpointSeq -- 821
+	} -- 821
+end -- 770
+function ____exports.getTaskChangeSetDiff(taskId) -- 825
+	if not getTaskStatus(taskId) then -- 825
+		return {success = false, message = "task not found"} -- 827
 	end -- 827
-	local files = {} -- 846
-	for ____, item in pairs(filesByPath) do -- 847
-		files[#files + 1] = { -- 848
-			path = item.path, -- 849
-			op = deriveFileOp(item.beforeExists, item.afterExists), -- 850
-			beforeExists = item.beforeExists, -- 851
-			afterExists = item.afterExists, -- 852
-			beforeContent = item.beforeContent, -- 853
-			afterContent = item.afterContent -- 854
-		} -- 854
-	end -- 854
-	__TS__ArraySort( -- 857
-		files, -- 857
-		function(____, a, b) return a.path < b.path and -1 or (a.path > b.path and 1 or 0) end -- 857
-	) -- 857
-	return {success = true, files = files} -- 858
-end -- 812
-local function readWorkspaceFile(workDir, path, docLanguage) -- 861
-	local fullPath = resolveWorkspaceFilePath(workDir, path) -- 862
-	if fullPath and Content:exist(fullPath) and not Content:isdir(fullPath) then -- 862
-		local attr = inspectReadableFile(fullPath) -- 864
-		if not attr.success then -- 864
-			return attr -- 865
-		end -- 865
-		return { -- 866
-			success = true, -- 866
-			content = Content:load(fullPath), -- 866
-			size = attr.size -- 866
-		} -- 866
-	end -- 866
-	local docPath = resolveAgentTutorialDocFilePath(path, docLanguage) -- 868
-	if docPath then -- 868
-		local attr = inspectReadableFile(docPath) -- 870
-		if not attr.success then -- 870
-			return attr -- 871
-		end -- 871
-		return { -- 872
-			success = true, -- 872
-			content = Content:load(docPath), -- 872
-			size = attr.size -- 872
-		} -- 872
-	end -- 872
-	if not fullPath then -- 872
-		return {success = false, message = "invalid path or workDir"} -- 874
-	end -- 874
-	return {success = false, message = "file not found"} -- 875
-end -- 861
-function ____exports.readFileRaw(workDir, path, docLanguage) -- 878
-	local result = readWorkspaceFile(workDir, path, docLanguage) -- 879
-	if not result.success and Content:exist(path) and not Content:isdir(path) then -- 879
-		local attr = inspectReadableFile(path) -- 881
-		if not attr.success then -- 881
-			return attr -- 882
-		end -- 882
-		return { -- 883
-			success = true, -- 883
-			content = Content:load(path), -- 883
-			size = attr.size -- 883
-		} -- 883
-	end -- 883
-	return result -- 885
-end -- 878
-local function getEngineLogText() -- 888
-	local folder = Path(Content.writablePath, ENGINE_LOG_SNAPSHOT_DIR) -- 889
-	if not Content:exist(folder) then -- 889
-		Content:mkdir(folder) -- 891
-	end -- 891
-	local logPath = Path(folder, ENGINE_LOG_SNAPSHOT_FILE) -- 893
-	if not App:saveLog(logPath) then -- 893
-		return nil -- 895
-	end -- 895
-	return Content:load(logPath) -- 897
-end -- 888
-function ____exports.getLogs(req) -- 900
-	local text = getEngineLogText() -- 901
-	if text == nil then -- 901
-		return {success = false, message = "failed to read engine logs"} -- 903
-	end -- 903
-	local tailLines = math.max( -- 905
-		1, -- 905
-		math.floor(req and req.tailLines or 200) -- 905
-	) -- 905
-	local allLines = __TS__StringSplit(text, "\n") -- 906
-	local logs = __TS__ArraySlice( -- 907
-		allLines, -- 907
-		math.max(0, #allLines - tailLines) -- 907
-	) -- 907
-	return req and req.joinText and ({ -- 908
-		success = true, -- 908
-		logs = logs, -- 908
-		text = table.concat(logs, "\n") -- 908
-	}) or ({success = true, logs = logs}) -- 908
-end -- 900
-function ____exports.listFiles(req) -- 911
-	local root = req.path or "" -- 917
-	local searchRoot = resolveWorkspaceSearchPath(req.workDir, root) -- 918
-	if not searchRoot then -- 918
-		return {success = false, message = "invalid path or workDir"} -- 920
-	end -- 920
-	do -- 920
-		local function ____catch(e) -- 920
-			return true, { -- 938
-				success = false, -- 938
-				message = tostring(e) -- 938
-			} -- 938
-		end -- 938
-		local ____try, ____hasReturned, ____returnValue = pcall(function() -- 938
-			local userGlobs = req.globs and #req.globs > 0 and req.globs or ({"**"}) -- 923
-			local globs = ensureSafeSearchGlobs(userGlobs) -- 924
-			local files = Content:glob(searchRoot, globs, extensionLevels) -- 925
-			files = toWorkspaceRelativeFileList(req.workDir, files) -- 926
-			local totalEntries = #files -- 927
-			local maxEntries = math.max( -- 928
-				1, -- 928
-				math.floor(req.maxEntries or 200) -- 928
-			) -- 928
-			local truncated = totalEntries > maxEntries -- 929
-			return true, { -- 930
-				success = true, -- 931
-				files = truncated and __TS__ArraySlice(files, 0, maxEntries) or files, -- 932
-				totalEntries = totalEntries, -- 933
-				truncated = truncated, -- 934
-				maxEntries = maxEntries -- 935
-			} -- 935
-		end) -- 935
-		if not ____try then -- 935
-			____hasReturned, ____returnValue = ____catch(____hasReturned) -- 935
-		end -- 935
-		if ____hasReturned then -- 935
-			return ____returnValue -- 922
-		end -- 922
-	end -- 922
-end -- 911
-local function formatReadSlice(content, startLine, endLine) -- 942
-	local lines = __TS__StringSplit(content, "\n") -- 947
-	local totalLines = #lines -- 948
-	if totalLines == 0 then -- 948
-		return { -- 950
-			success = true, -- 951
-			content = "", -- 952
-			totalLines = 0, -- 953
-			startLine = 1, -- 954
-			endLine = 0, -- 955
-			truncated = false -- 956
-		} -- 956
-	end -- 956
-	local rawStart = math.floor(startLine) -- 959
-	local rawEnd = math.floor(endLine) -- 960
-	if rawStart == 0 then -- 960
-		return {success = false, message = "startLine cannot be 0"} -- 962
-	end -- 962
-	if rawEnd == 0 then -- 962
-		return {success = false, message = "endLine cannot be 0"} -- 965
-	end -- 965
-	local start = rawStart > 0 and rawStart or math.max(1, totalLines + rawStart + 1) -- 967
-	if start > totalLines then -- 967
-		return { -- 971
-			success = false, -- 971
-			message = (("startLine " .. tostring(start)) .. " exceeds file length ") .. tostring(totalLines) -- 971
+	local checkpoints = listCheckpointIdsForTask(taskId, false) -- 829
+	if #checkpoints == 0 then -- 829
+		return {success = false, message = "change set not found or empty"} -- 831
+	end -- 831
+	local filesByPath = {} -- 833
+	do -- 833
+		local i = 0 -- 840
+		while i < #checkpoints do -- 840
+			local entries = getCheckpointEntries(checkpoints[i + 1].id, false) -- 841
+			do -- 841
+				local j = 0 -- 842
+				while j < #entries do -- 842
+					local entry = entries[j + 1] -- 843
+					local item = filesByPath[entry.path] -- 844
+					if not item then -- 844
+						item = { -- 846
+							path = entry.path, -- 847
+							beforeExists = entry.beforeExists, -- 848
+							beforeContent = entry.beforeContent, -- 849
+							afterExists = entry.afterExists, -- 850
+							afterContent = entry.afterContent -- 851
+						} -- 851
+						filesByPath[entry.path] = item -- 853
+					end -- 853
+					item.afterExists = entry.afterExists -- 855
+					item.afterContent = entry.afterContent -- 856
+					j = j + 1 -- 842
+				end -- 842
+			end -- 842
+			i = i + 1 -- 840
+		end -- 840
+	end -- 840
+	local files = {} -- 859
+	for ____, item in pairs(filesByPath) do -- 860
+		files[#files + 1] = { -- 861
+			path = item.path, -- 862
+			op = deriveFileOp(item.beforeExists, item.afterExists), -- 863
+			beforeExists = item.beforeExists, -- 864
+			afterExists = item.afterExists, -- 865
+			beforeContent = item.beforeContent, -- 866
+			afterContent = item.afterContent -- 867
+		} -- 867
+	end -- 867
+	__TS__ArraySort( -- 870
+		files, -- 870
+		function(____, a, b) return a.path < b.path and -1 or (a.path > b.path and 1 or 0) end -- 870
+	) -- 870
+	return {success = true, files = files} -- 871
+end -- 825
+local function readWorkspaceFile(workDir, path, docLanguage) -- 874
+	local engineLog = readEngineLogFile(path) -- 875
+	if engineLog then -- 875
+		return engineLog -- 876
+	end -- 876
+	local fullPath = resolveWorkspaceFilePath(workDir, path) -- 877
+	if fullPath and Content:exist(fullPath) and not Content:isdir(fullPath) then -- 877
+		local attr = inspectReadableFile(fullPath) -- 879
+		if not attr.success then -- 879
+			return attr -- 880
+		end -- 880
+		return { -- 881
+			success = true, -- 881
+			content = Content:load(fullPath), -- 881
+			size = attr.size -- 881
+		} -- 881
+	end -- 881
+	local docPath = resolveAgentTutorialDocFilePath(path, docLanguage) -- 883
+	if docPath then -- 883
+		local attr = inspectReadableFile(docPath) -- 885
+		if not attr.success then -- 885
+			return attr -- 886
+		end -- 886
+		return { -- 887
+			success = true, -- 887
+			content = Content:load(docPath), -- 887
+			size = attr.size -- 887
+		} -- 887
+	end -- 887
+	if not fullPath then -- 887
+		return {success = false, message = "invalid path or workDir"} -- 889
+	end -- 889
+	return {success = false, message = "file not found"} -- 890
+end -- 874
+function ____exports.readFileRaw(workDir, path, docLanguage) -- 893
+	local result = readWorkspaceFile(workDir, path, docLanguage) -- 894
+	if not result.success and Content:exist(path) and not Content:isdir(path) then -- 894
+		local attr = inspectReadableFile(path) -- 896
+		if not attr.success then -- 896
+			return attr -- 897
+		end -- 897
+		return { -- 898
+			success = true, -- 898
+			content = Content:load(path), -- 898
+			size = attr.size -- 898
+		} -- 898
+	end -- 898
+	return result -- 900
+end -- 893
+function ____exports.getLogs(req) -- 915
+	local text = getEngineLogText() -- 916
+	if text == nil then -- 916
+		return {success = false, message = "failed to read engine logs"} -- 918
+	end -- 918
+	local tailLines = math.max( -- 920
+		1, -- 920
+		math.floor(req and req.tailLines or 200) -- 920
+	) -- 920
+	local allLines = __TS__StringSplit(text, "\n") -- 921
+	local logs = __TS__ArraySlice( -- 922
+		allLines, -- 922
+		math.max(0, #allLines - tailLines) -- 922
+	) -- 922
+	return req and req.joinText and ({ -- 923
+		success = true, -- 923
+		logs = logs, -- 923
+		text = table.concat(logs, "\n") -- 923
+	}) or ({success = true, logs = logs}) -- 923
+end -- 915
+function ____exports.listFiles(req) -- 926
+	local root = req.path or "" -- 932
+	local searchRoot = resolveWorkspaceSearchPath(req.workDir, root) -- 933
+	if not searchRoot then -- 933
+		return {success = false, message = "invalid path or workDir"} -- 935
+	end -- 935
+	do -- 935
+		local function ____catch(e) -- 935
+			return true, { -- 953
+				success = false, -- 953
+				message = tostring(e) -- 953
+			} -- 953
+		end -- 953
+		local ____try, ____hasReturned, ____returnValue = pcall(function() -- 953
+			local userGlobs = req.globs and #req.globs > 0 and req.globs or ({"**"}) -- 938
+			local globs = ensureSafeSearchGlobs(userGlobs) -- 939
+			local files = Content:glob(searchRoot, globs, extensionLevels) -- 940
+			files = toWorkspaceRelativeFileList(req.workDir, files) -- 941
+			local totalEntries = #files -- 942
+			local maxEntries = math.max( -- 943
+				1, -- 943
+				math.floor(req.maxEntries or 200) -- 943
+			) -- 943
+			local truncated = totalEntries > maxEntries -- 944
+			return true, { -- 945
+				success = true, -- 946
+				files = truncated and __TS__ArraySlice(files, 0, maxEntries) or files, -- 947
+				totalEntries = totalEntries, -- 948
+				truncated = truncated, -- 949
+				maxEntries = maxEntries -- 950
+			} -- 950
+		end) -- 950
+		if not ____try then -- 950
+			____hasReturned, ____returnValue = ____catch(____hasReturned) -- 950
+		end -- 950
+		if ____hasReturned then -- 950
+			return ____returnValue -- 937
+		end -- 937
+	end -- 937
+end -- 926
+local function formatReadSlice(content, startLine, endLine) -- 957
+	local lines = __TS__StringSplit(content, "\n") -- 962
+	local totalLines = #lines -- 963
+	if totalLines == 0 then -- 963
+		return { -- 965
+			success = true, -- 966
+			content = "", -- 967
+			totalLines = 0, -- 968
+			startLine = 1, -- 969
+			endLine = 0, -- 970
+			truncated = false -- 971
 		} -- 971
 	end -- 971
-	local ____end = math.min( -- 973
-		totalLines, -- 974
-		rawEnd > 0 and rawEnd or math.max(1, totalLines + rawEnd + 1) -- 975
-	) -- 975
-	if ____end < start then -- 975
-		return { -- 980
-			success = false, -- 981
-			message = (("resolved endLine " .. tostring(____end)) .. " is before startLine ") .. tostring(start) -- 982
-		} -- 982
-	end -- 982
-	local slice = {} -- 985
-	do -- 985
-		local i = start -- 986
-		while i <= ____end do -- 986
-			slice[#slice + 1] = lines[i] -- 987
-			i = i + 1 -- 986
-		end -- 986
+	local rawStart = math.floor(startLine) -- 974
+	local rawEnd = math.floor(endLine) -- 975
+	if rawStart == 0 then -- 975
+		return {success = false, message = "startLine cannot be 0"} -- 977
+	end -- 977
+	if rawEnd == 0 then -- 977
+		return {success = false, message = "endLine cannot be 0"} -- 980
+	end -- 980
+	local start = rawStart > 0 and rawStart or math.max(1, totalLines + rawStart + 1) -- 982
+	if start > totalLines then -- 982
+		return { -- 986
+			success = false, -- 986
+			message = (("startLine " .. tostring(start)) .. " exceeds file length ") .. tostring(totalLines) -- 986
+		} -- 986
 	end -- 986
-	local truncated = start > 1 or ____end < totalLines -- 989
-	local hint = ____end < totalLines and ((((((("(Showing lines " .. tostring(start)) .. "-") .. tostring(____end)) .. " of ") .. tostring(totalLines)) .. ". Use startLine=") .. tostring(____end + 1)) .. " to continue.)" or (truncated and ((((("(Showing lines " .. tostring(start)) .. "-") .. tostring(____end)) .. " of ") .. tostring(totalLines)) .. ".)" or ("(End of file - " .. tostring(totalLines)) .. " lines total)") -- 990
-	local body = table.concat(slice, "\n") -- 995
-	local output = body == "" and hint or (body .. "\n\n") .. hint -- 996
-	return { -- 997
-		success = true, -- 998
-		content = output, -- 999
-		totalLines = totalLines, -- 1000
-		startLine = start, -- 1001
-		endLine = ____end, -- 1002
-		truncated = truncated -- 1003
-	} -- 1003
-end -- 942
-function ____exports.readFile(workDir, path, startLine, endLine, docLanguage) -- 1007
-	local fallback = ____exports.readFileRaw(workDir, path, docLanguage) -- 1014
-	if not fallback.success or fallback.content == nil then -- 1014
-		return fallback -- 1015
-	end -- 1015
-	local resolvedStartLine = startLine or 1 -- 1016
-	local resolvedEndLine = endLine or (resolvedStartLine < 0 and -1 or 300) -- 1017
-	return formatReadSlice(fallback.content, resolvedStartLine, resolvedEndLine) -- 1018
-end -- 1007
-local codeExtensions = { -- 1025
-	".lua", -- 1025
-	".tl", -- 1025
-	".yue", -- 1025
-	".ts", -- 1025
-	".tsx", -- 1025
-	".xml", -- 1025
-	".md", -- 1025
-	".yarn", -- 1025
-	".wa", -- 1025
-	".mod" -- 1025
-} -- 1025
-extensionLevels = { -- 1026
-	vs = 2, -- 1027
-	bl = 2, -- 1028
-	ts = 1, -- 1029
-	tsx = 1, -- 1030
-	tl = 1, -- 1031
-	yue = 1, -- 1032
-	xml = 1, -- 1033
-	lua = 0 -- 1034
-} -- 1034
-local function splitSearchPatterns(pattern) -- 1051
-	local trimmed = __TS__StringTrim(pattern or "") -- 1052
-	if trimmed == "" then -- 1052
-		return {} -- 1053
-	end -- 1053
-	local out = {} -- 1054
-	local seen = __TS__New(Set) -- 1055
-	for p0 in string.gmatch(trimmed, "([^|]+)") do -- 1056
-		local p = __TS__StringTrim(tostring(p0)) -- 1057
-		if p ~= "" and not seen:has(p) then -- 1057
-			seen:add(p) -- 1059
-			out[#out + 1] = p -- 1060
-		end -- 1060
-	end -- 1060
-	return out -- 1063
-end -- 1051
-local function mergeSearchFileResultsUnique(resultsList) -- 1066
-	local merged = {} -- 1067
-	local seen = __TS__New(Set) -- 1068
-	do -- 1068
-		local i = 0 -- 1069
-		while i < #resultsList do -- 1069
-			local list = resultsList[i + 1] -- 1070
-			do -- 1070
-				local j = 0 -- 1071
-				while j < #list do -- 1071
-					do -- 1071
-						local row = list[j + 1] -- 1072
-						local key = (((((row.file .. ":") .. tostring(row.pos)) .. ":") .. tostring(row.line)) .. ":") .. tostring(row.column) -- 1073
-						if seen:has(key) then -- 1073
-							goto __continue201 -- 1074
-						end -- 1074
-						seen:add(key) -- 1075
-						merged[#merged + 1] = list[j + 1] -- 1076
-					end -- 1076
-					::__continue201:: -- 1076
-					j = j + 1 -- 1071
-				end -- 1071
-			end -- 1071
-			i = i + 1 -- 1069
-		end -- 1069
-	end -- 1069
-	return merged -- 1079
+	local ____end = math.min( -- 988
+		totalLines, -- 989
+		rawEnd > 0 and rawEnd or math.max(1, totalLines + rawEnd + 1) -- 990
+	) -- 990
+	if ____end < start then -- 990
+		return { -- 995
+			success = false, -- 996
+			message = (("resolved endLine " .. tostring(____end)) .. " is before startLine ") .. tostring(start) -- 997
+		} -- 997
+	end -- 997
+	local slice = {} -- 1000
+	do -- 1000
+		local i = start -- 1001
+		while i <= ____end do -- 1001
+			slice[#slice + 1] = lines[i] -- 1002
+			i = i + 1 -- 1001
+		end -- 1001
+	end -- 1001
+	local truncated = start > 1 or ____end < totalLines -- 1004
+	local hint = ____end < totalLines and ((((((("(Showing lines " .. tostring(start)) .. "-") .. tostring(____end)) .. " of ") .. tostring(totalLines)) .. ". Use startLine=") .. tostring(____end + 1)) .. " to continue.)" or (truncated and ((((("(Showing lines " .. tostring(start)) .. "-") .. tostring(____end)) .. " of ") .. tostring(totalLines)) .. ".)" or ("(End of file - " .. tostring(totalLines)) .. " lines total)") -- 1005
+	local body = table.concat(slice, "\n") -- 1010
+	local output = body == "" and hint or (body .. "\n\n") .. hint -- 1011
+	return { -- 1012
+		success = true, -- 1013
+		content = output, -- 1014
+		totalLines = totalLines, -- 1015
+		startLine = start, -- 1016
+		endLine = ____end, -- 1017
+		truncated = truncated -- 1018
+	} -- 1018
+end -- 957
+function ____exports.readFile(workDir, path, startLine, endLine, docLanguage) -- 1022
+	local fallback = ____exports.readFileRaw(workDir, path, docLanguage) -- 1029
+	if not fallback.success or fallback.content == nil then -- 1029
+		return fallback -- 1030
+	end -- 1030
+	local resolvedStartLine = startLine or 1 -- 1031
+	local resolvedEndLine = endLine or (resolvedStartLine < 0 and -1 or 300) -- 1032
+	return formatReadSlice(fallback.content, resolvedStartLine, resolvedEndLine) -- 1033
+end -- 1022
+local codeExtensions = { -- 1040
+	".lua", -- 1040
+	".tl", -- 1040
+	".yue", -- 1040
+	".ts", -- 1040
+	".tsx", -- 1040
+	".xml", -- 1040
+	".md", -- 1040
+	".yarn", -- 1040
+	".wa", -- 1040
+	".mod" -- 1040
+} -- 1040
+extensionLevels = { -- 1041
+	vs = 2, -- 1042
+	bl = 2, -- 1043
+	ts = 1, -- 1044
+	tsx = 1, -- 1045
+	tl = 1, -- 1046
+	yue = 1, -- 1047
+	xml = 1, -- 1048
+	lua = 0 -- 1049
+} -- 1049
+local function splitSearchPatterns(pattern) -- 1066
+	local trimmed = __TS__StringTrim(pattern or "") -- 1067
+	if trimmed == "" then -- 1067
+		return {} -- 1068
+	end -- 1068
+	local out = {} -- 1069
+	local seen = __TS__New(Set) -- 1070
+	for p0 in string.gmatch(trimmed, "([^|]+)") do -- 1071
+		local p = __TS__StringTrim(tostring(p0)) -- 1072
+		if p ~= "" and not seen:has(p) then -- 1072
+			seen:add(p) -- 1074
+			out[#out + 1] = p -- 1075
+		end -- 1075
+	end -- 1075
+	return out -- 1078
 end -- 1066
-local function buildGroupedSearchResults(results) -- 1082
-	local order = {} -- 1087
-	local grouped = __TS__New(Map) -- 1088
-	do -- 1088
-		local i = 0 -- 1093
-		while i < #results do -- 1093
-			local row = results[i + 1] -- 1094
-			local file = row.file -- 1095
-			local key = file ~= "" and file or ("(unknown:" .. tostring(i)) .. ")" -- 1096
-			local bucket = grouped:get(key) -- 1097
-			if not bucket then -- 1097
-				bucket = {file = file ~= "" and file or "(unknown)", totalMatches = 0, matches = {}} -- 1099
-				grouped:set(key, bucket) -- 1100
-				order[#order + 1] = key -- 1101
-			end -- 1101
-			bucket.totalMatches = bucket.totalMatches + 1 -- 1103
-			local ____bucket_matches_7 = bucket.matches -- 1103
-			____bucket_matches_7[#____bucket_matches_7 + 1] = results[i + 1] -- 1104
-			i = i + 1 -- 1093
-		end -- 1093
-	end -- 1093
-	local out = {} -- 1106
-	do -- 1106
-		local i = 0 -- 1111
-		while i < #order do -- 1111
-			local bucket = grouped:get(order[i + 1]) -- 1112
-			if bucket then -- 1112
-				out[#out + 1] = bucket -- 1113
-			end -- 1113
-			i = i + 1 -- 1111
-		end -- 1111
-	end -- 1111
-	return out -- 1115
-end -- 1082
-local function mergeDoraAPISearchHitsUnique(resultsList) -- 1118
-	local merged = {} -- 1119
-	local seen = __TS__New(Set) -- 1120
-	local index = 0 -- 1121
-	local advanced = true -- 1122
-	while advanced do -- 1122
-		advanced = false -- 1124
-		do -- 1124
-			local i = 0 -- 1125
-			while i < #resultsList do -- 1125
-				do -- 1125
-					local list = resultsList[i + 1] -- 1126
-					if index >= #list then -- 1126
-						goto __continue213 -- 1127
-					end -- 1127
-					advanced = true -- 1128
-					local row = list[index + 1] -- 1129
-					local key = (((row.file .. ":") .. tostring(row.line or "")) .. ":") .. tostring(row.content or "") -- 1130
-					if seen:has(key) then -- 1130
-						goto __continue213 -- 1131
-					end -- 1131
-					seen:add(key) -- 1132
-					merged[#merged + 1] = row -- 1133
-				end -- 1133
-				::__continue213:: -- 1133
-				i = i + 1 -- 1125
-			end -- 1125
-		end -- 1125
-		index = index + 1 -- 1135
-	end -- 1135
-	return merged -- 1137
-end -- 1118
-local function getDoraAPIFilePriority(file, docSource, programmingLanguage) -- 1140
-	if docSource ~= "api" then -- 1140
-		return 100 -- 1141
-	end -- 1141
-	if programmingLanguage ~= "tsx" then -- 1141
-		return 100 -- 1142
-	end -- 1142
-	repeat -- 1142
-		local ____switch219 = string.lower(Path:getFilename(file)) -- 1142
-		local ____cond219 = ____switch219 == "jsx.d.ts" -- 1142
-		if ____cond219 then -- 1142
-			return 0 -- 1144
-		end -- 1144
-		____cond219 = ____cond219 or ____switch219 == "dorax.d.ts" -- 1144
-		if ____cond219 then -- 1144
-			return 1 -- 1145
-		end -- 1145
-		____cond219 = ____cond219 or ____switch219 == "dora.d.ts" -- 1145
-		if ____cond219 then -- 1145
-			return 2 -- 1146
-		end -- 1146
-		do -- 1146
-			return 100 -- 1147
-		end -- 1147
-	until true -- 1147
-end -- 1140
-local function sortDoraAPISearchHits(hits, docSource, programmingLanguage) -- 1151
-	local sorted = __TS__ArraySlice(hits) -- 1156
-	__TS__ArraySort( -- 1157
-		sorted, -- 1157
-		function(____, a, b) -- 1157
-			local pa = getDoraAPIFilePriority(a.file, docSource, programmingLanguage) -- 1158
-			local pb = getDoraAPIFilePriority(b.file, docSource, programmingLanguage) -- 1159
-			if pa ~= pb then -- 1159
-				return pa - pb -- 1160
-			end -- 1160
-			local fa = string.lower(a.file) -- 1161
-			local fb = string.lower(b.file) -- 1162
-			if fa ~= fb then -- 1162
-				return fa < fb and -1 or 1 -- 1163
-			end -- 1163
-			return (a.line or 0) - (b.line or 0) -- 1164
-		end -- 1157
-	) -- 1157
-	return sorted -- 1166
-end -- 1151
-function ____exports.searchFiles(req) -- 1169
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 1169
-		local resolvedPath = resolveWorkspaceSearchPath(req.workDir, req.path) -- 1182
-		if not resolvedPath then -- 1182
-			return ____awaiter_resolve(nil, {success = false, message = "invalid path or workDir"}) -- 1182
-		end -- 1182
-		local searchIsSingleFile = Content:exist(resolvedPath) and not Content:isdir(resolvedPath) -- 1186
-		local searchRoot = searchIsSingleFile and Path:getPath(resolvedPath) or resolvedPath -- 1187
-		if not searchRoot then -- 1187
-			return ____awaiter_resolve(nil, {success = false, message = "invalid path or workDir"}) -- 1187
-		end -- 1187
-		if not req.pattern or __TS__StringTrim(req.pattern) == "" then -- 1187
-			return ____awaiter_resolve(nil, {success = false, message = "empty pattern"}) -- 1187
-		end -- 1187
-		local patterns = splitSearchPatterns(req.pattern) -- 1194
-		if #patterns == 0 then -- 1194
-			return ____awaiter_resolve(nil, {success = false, message = "empty pattern"}) -- 1194
-		end -- 1194
-		return ____awaiter_resolve( -- 1194
-			nil, -- 1194
-			__TS__New( -- 1198
-				__TS__Promise, -- 1198
-				function(____, resolve) -- 1198
-					Director.systemScheduler:schedule(once(function() -- 1199
-						do -- 1199
-							local function ____catch(e) -- 1199
-								resolve( -- 1241
-									nil, -- 1241
-									{ -- 1241
-										success = false, -- 1241
-										message = tostring(e) -- 1241
-									} -- 1241
-								) -- 1241
-							end -- 1241
-							local ____try, ____hasReturned = pcall(function() -- 1241
-								local searchGlobs = searchIsSingleFile and ({Path:getFilename(resolvedPath)}) or ensureSafeSearchGlobs(req.globs or ({"**"})) -- 1201
-								local allResults = {} -- 1204
-								do -- 1204
-									local i = 0 -- 1205
-									while i < #patterns do -- 1205
-										local ____Content_12 = Content -- 1206
-										local ____Content_searchFilesAsync_13 = Content.searchFilesAsync -- 1206
-										local ____patterns_index_11 = patterns[i + 1] -- 1211
-										local ____req_useRegex_8 = req.useRegex -- 1212
-										if ____req_useRegex_8 == nil then -- 1212
-											____req_useRegex_8 = false -- 1212
-										end -- 1212
-										local ____req_caseSensitive_9 = req.caseSensitive -- 1213
-										if ____req_caseSensitive_9 == nil then -- 1213
-											____req_caseSensitive_9 = false -- 1213
-										end -- 1213
-										local ____req_includeContent_10 = req.includeContent -- 1214
-										if ____req_includeContent_10 == nil then -- 1214
-											____req_includeContent_10 = true -- 1214
-										end -- 1214
-										allResults[#allResults + 1] = ____Content_searchFilesAsync_13( -- 1206
-											____Content_12, -- 1206
-											searchRoot, -- 1207
-											codeExtensions, -- 1208
-											extensionLevels, -- 1209
-											searchGlobs, -- 1210
-											____patterns_index_11, -- 1211
-											____req_useRegex_8, -- 1212
-											____req_caseSensitive_9, -- 1213
-											____req_includeContent_10, -- 1214
-											req.contentWindow or 120 -- 1215
-										) -- 1215
-										i = i + 1 -- 1205
-									end -- 1205
-								end -- 1205
-								local results = mergeSearchFileResultsUnique(allResults) -- 1218
-								local totalResults = #results -- 1219
-								local limit = math.max( -- 1220
-									1, -- 1220
-									math.floor(req.limit or 20) -- 1220
-								) -- 1220
-								local offset = math.max( -- 1221
-									0, -- 1221
-									math.floor(req.offset or 0) -- 1221
-								) -- 1221
-								local paged = offset >= totalResults and ({}) or __TS__ArraySlice(results, offset, offset + limit) -- 1222
-								local nextOffset = offset + #paged -- 1223
-								local hasMore = nextOffset < totalResults -- 1224
-								local truncated = offset > 0 or hasMore -- 1225
-								local relativeResults = toWorkspaceRelativeSearchResults(req.workDir, paged) -- 1226
-								local groupByFile = req.groupByFile == true -- 1227
-								resolve( -- 1228
-									nil, -- 1228
-									{ -- 1228
-										success = true, -- 1229
-										results = relativeResults, -- 1230
-										groupedResults = groupByFile and buildGroupedSearchResults(relativeResults) or nil, -- 1231
-										totalResults = totalResults, -- 1232
-										truncated = truncated, -- 1233
-										limit = limit, -- 1234
-										offset = offset, -- 1235
-										nextOffset = nextOffset, -- 1236
-										hasMore = hasMore, -- 1237
-										groupByFile = groupByFile -- 1238
-									} -- 1238
-								) -- 1238
-							end) -- 1238
-							if not ____try then -- 1238
-								____catch(____hasReturned) -- 1238
-							end -- 1238
-						end -- 1238
-					end)) -- 1199
-				end -- 1198
-			) -- 1198
-		) -- 1198
-	end) -- 1198
-end -- 1169
-function ____exports.searchDoraAPI(req) -- 1247
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 1247
-		local pattern = __TS__StringTrim(req.pattern or "") -- 1258
-		if pattern == "" then -- 1258
-			return ____awaiter_resolve(nil, {success = false, message = "empty pattern"}) -- 1258
-		end -- 1258
-		local patterns = splitSearchPatterns(pattern) -- 1260
-		if #patterns == 0 then -- 1260
-			return ____awaiter_resolve(nil, {success = false, message = "empty pattern"}) -- 1260
-		end -- 1260
-		local docSource = req.docSource or "api" -- 1262
-		local target = getDoraDocSearchTarget(docSource, req.docLanguage, req.programmingLanguage) -- 1263
-		local docRoot = target.root -- 1264
-		local resultBaseRoot = getDoraDocResultBaseRoot(docSource, req.docLanguage) -- 1265
-		if not Content:exist(docRoot) or not Content:isdir(docRoot) then -- 1265
-			return ____awaiter_resolve(nil, {success = false, message = "doc root not found: " .. docRoot}) -- 1265
-		end -- 1265
-		local exts = target.exts -- 1269
-		local dotExts = __TS__ArrayMap( -- 1270
-			exts, -- 1270
-			function(____, ext) return __TS__StringStartsWith(ext, ".") and ext or "." .. ext end -- 1270
-		) -- 1270
-		local globs = target.globs -- 1271
-		local limit = math.max( -- 1272
-			1, -- 1272
-			math.floor(req.limit or 10) -- 1272
-		) -- 1272
-		return ____awaiter_resolve( -- 1272
-			nil, -- 1272
-			__TS__New( -- 1274
-				__TS__Promise, -- 1274
-				function(____, resolve) -- 1274
-					Director.systemScheduler:schedule(once(function() -- 1275
-						do -- 1275
-							local function ____catch(e) -- 1275
-								resolve( -- 1316
-									nil, -- 1316
-									{ -- 1316
-										success = false, -- 1316
-										message = tostring(e) -- 1316
-									} -- 1316
-								) -- 1316
-							end -- 1316
-							local ____try, ____hasReturned = pcall(function() -- 1316
-								local allHits = {} -- 1277
-								do -- 1277
-									local p = 0 -- 1278
-									while p < #patterns do -- 1278
-										local ____Content_18 = Content -- 1279
-										local ____Content_searchFilesAsync_19 = Content.searchFilesAsync -- 1279
-										local ____array_17 = __TS__SparseArrayNew( -- 1279
-											docRoot, -- 1280
-											dotExts, -- 1281
-											{}, -- 1282
-											ensureSafeSearchGlobs(globs), -- 1283
-											patterns[p + 1] -- 1284
-										) -- 1284
-										local ____req_useRegex_14 = req.useRegex -- 1285
-										if ____req_useRegex_14 == nil then -- 1285
-											____req_useRegex_14 = false -- 1285
-										end -- 1285
-										__TS__SparseArrayPush(____array_17, ____req_useRegex_14) -- 1285
-										local ____req_caseSensitive_15 = req.caseSensitive -- 1286
-										if ____req_caseSensitive_15 == nil then -- 1286
-											____req_caseSensitive_15 = false -- 1286
-										end -- 1286
-										__TS__SparseArrayPush(____array_17, ____req_caseSensitive_15) -- 1286
-										local ____req_includeContent_16 = req.includeContent -- 1287
-										if ____req_includeContent_16 == nil then -- 1287
-											____req_includeContent_16 = true -- 1287
-										end -- 1287
-										__TS__SparseArrayPush(____array_17, ____req_includeContent_16, req.contentWindow or 80) -- 1287
-										local raw = ____Content_searchFilesAsync_19( -- 1279
-											____Content_18, -- 1279
-											__TS__SparseArraySpread(____array_17) -- 1279
-										) -- 1279
-										local hits = {} -- 1290
-										do -- 1290
-											local i = 0 -- 1291
-											while i < #raw do -- 1291
-												do -- 1291
-													local row = raw[i + 1] -- 1292
-													local file = toDocRelativePath(resultBaseRoot, row.file) -- 1293
-													if file == "" then -- 1293
-														goto __continue246 -- 1294
-													end -- 1294
-													hits[#hits + 1] = { -- 1295
-														file = file, -- 1296
-														line = type(row.line) == "number" and row.line or nil, -- 1297
-														content = type(row.content) == "string" and row.content or nil -- 1298
-													} -- 1298
-												end -- 1298
-												::__continue246:: -- 1298
-												i = i + 1 -- 1291
-											end -- 1291
-										end -- 1291
-										allHits[#allHits + 1] = __TS__ArraySlice( -- 1301
-											sortDoraAPISearchHits(hits, docSource, req.programmingLanguage), -- 1301
-											0, -- 1301
-											limit -- 1301
-										) -- 1301
-										p = p + 1 -- 1278
-									end -- 1278
-								end -- 1278
-								local hits = mergeDoraAPISearchHitsUnique(allHits) -- 1303
-								resolve(nil, { -- 1304
-									success = true, -- 1305
-									docSource = docSource, -- 1306
-									docLanguage = req.docLanguage, -- 1307
-									programmingLanguage = req.programmingLanguage, -- 1308
-									exts = exts, -- 1309
-									results = hits, -- 1310
-									totalResults = #hits, -- 1311
-									truncated = false, -- 1312
-									limit = limit -- 1313
-								}) -- 1313
-							end) -- 1313
-							if not ____try then -- 1313
-								____catch(____hasReturned) -- 1313
-							end -- 1313
-						end -- 1313
-					end)) -- 1275
-				end -- 1274
-			) -- 1274
-		) -- 1274
-	end) -- 1274
-end -- 1247
-function ____exports.applyFileChanges(taskId, workDir, changes, options) -- 1322
-	if options == nil then -- 1322
-		options = {} -- 1322
-	end -- 1322
-	if #changes == 0 then -- 1322
-		return {success = false, message = "empty changes"} -- 1324
-	end -- 1324
-	if not isValidWorkDir(workDir) then -- 1324
-		return {success = false, message = "invalid workDir"} -- 1327
-	end -- 1327
-	if not getTaskStatus(taskId) then -- 1327
-		return {success = false, message = "task not found"} -- 1330
-	end -- 1330
-	local expandedChanges = expandLinkedDeleteChanges(workDir, changes) -- 1332
-	local dup = rejectDuplicatePaths(expandedChanges) -- 1333
-	if dup then -- 1333
-		return {success = false, message = "duplicate path in batch: " .. dup} -- 1335
-	end -- 1335
-	for ____, change in ipairs(expandedChanges) do -- 1338
-		if not isValidWorkspacePath(change.path) then -- 1338
-			return {success = false, message = "invalid path: " .. change.path} -- 1340
-		end -- 1340
-		if (change.op == "write" or change.op == "create") and change.content == nil then -- 1340
-			return {success = false, message = "missing content for " .. change.path} -- 1343
-		end -- 1343
-	end -- 1343
-	local headSeq = getTaskHeadSeq(taskId) -- 1347
-	if headSeq == nil then -- 1347
-		return {success = false, message = "task not found"} -- 1348
-	end -- 1348
-	local nextSeq = headSeq + 1 -- 1349
-	local checkpointId = insertCheckpoint( -- 1350
-		taskId, -- 1350
-		nextSeq, -- 1350
-		options.summary or "", -- 1350
-		options.toolName or "", -- 1350
-		"PREPARED" -- 1350
-	) -- 1350
-	if checkpointId <= 0 then -- 1350
-		return {success = false, message = "failed to create checkpoint"} -- 1352
-	end -- 1352
-	do -- 1352
-		local i = 0 -- 1355
-		while i < #expandedChanges do -- 1355
-			local change = expandedChanges[i + 1] -- 1356
-			local fullPath = resolveWorkspaceFilePath(workDir, change.path) -- 1357
-			if not fullPath then -- 1357
-				DB:exec(("UPDATE " .. TABLE_CP) .. " SET status = ? WHERE id = ?", {"FAILED", checkpointId}) -- 1359
-				return {success = false, message = "invalid path: " .. change.path} -- 1360
-			end -- 1360
-			local before = getFileState(fullPath) -- 1362
-			local afterExists = change.op ~= "delete" -- 1363
-			local afterContent = afterExists and (change.content or "") or "" -- 1364
-			local inserted = DB:exec(("INSERT INTO " .. TABLE_ENTRY) .. "(checkpoint_id, ord, path, op, before_exists, before_content, after_exists, after_content, bytes_before, bytes_after)\n\t\t\tVALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", { -- 1365
-				checkpointId, -- 1369
-				i + 1, -- 1370
-				change.path, -- 1371
-				change.op, -- 1372
-				before.exists and 1 or 0, -- 1373
-				before.content, -- 1374
-				afterExists and 1 or 0, -- 1375
-				afterContent, -- 1376
-				before.bytes, -- 1377
-				#afterContent -- 1378
-			}) -- 1378
-			if inserted <= 0 then -- 1378
-				DB:exec(("UPDATE " .. TABLE_CP) .. " SET status = ? WHERE id = ?", {"FAILED", checkpointId}) -- 1382
-				return {success = false, message = "failed to insert checkpoint entry: " .. change.path} -- 1383
-			end -- 1383
-			i = i + 1 -- 1355
+local function mergeSearchFileResultsUnique(resultsList) -- 1081
+	local merged = {} -- 1082
+	local seen = __TS__New(Set) -- 1083
+	do -- 1083
+		local i = 0 -- 1084
+		while i < #resultsList do -- 1084
+			local list = resultsList[i + 1] -- 1085
+			do -- 1085
+				local j = 0 -- 1086
+				while j < #list do -- 1086
+					do -- 1086
+						local row = list[j + 1] -- 1087
+						local key = (((((row.file .. ":") .. tostring(row.pos)) .. ":") .. tostring(row.line)) .. ":") .. tostring(row.column) -- 1088
+						if seen:has(key) then -- 1088
+							goto __continue206 -- 1089
+						end -- 1089
+						seen:add(key) -- 1090
+						merged[#merged + 1] = list[j + 1] -- 1091
+					end -- 1091
+					::__continue206:: -- 1091
+					j = j + 1 -- 1086
+				end -- 1086
+			end -- 1086
+			i = i + 1 -- 1084
+		end -- 1084
+	end -- 1084
+	return merged -- 1094
+end -- 1081
+local function buildGroupedSearchResults(results) -- 1097
+	local order = {} -- 1102
+	local grouped = __TS__New(Map) -- 1103
+	do -- 1103
+		local i = 0 -- 1108
+		while i < #results do -- 1108
+			local row = results[i + 1] -- 1109
+			local file = row.file -- 1110
+			local key = file ~= "" and file or ("(unknown:" .. tostring(i)) .. ")" -- 1111
+			local bucket = grouped:get(key) -- 1112
+			if not bucket then -- 1112
+				bucket = {file = file ~= "" and file or "(unknown)", totalMatches = 0, matches = {}} -- 1114
+				grouped:set(key, bucket) -- 1115
+				order[#order + 1] = key -- 1116
+			end -- 1116
+			bucket.totalMatches = bucket.totalMatches + 1 -- 1118
+			local ____bucket_matches_7 = bucket.matches -- 1118
+			____bucket_matches_7[#____bucket_matches_7 + 1] = results[i + 1] -- 1119
+			i = i + 1 -- 1108
+		end -- 1108
+	end -- 1108
+	local out = {} -- 1121
+	do -- 1121
+		local i = 0 -- 1126
+		while i < #order do -- 1126
+			local bucket = grouped:get(order[i + 1]) -- 1127
+			if bucket then -- 1127
+				out[#out + 1] = bucket -- 1128
+			end -- 1128
+			i = i + 1 -- 1126
+		end -- 1126
+	end -- 1126
+	return out -- 1130
+end -- 1097
+local function mergeDoraAPISearchHitsUnique(resultsList) -- 1133
+	local merged = {} -- 1134
+	local seen = __TS__New(Set) -- 1135
+	local index = 0 -- 1136
+	local advanced = true -- 1137
+	while advanced do -- 1137
+		advanced = false -- 1139
+		do -- 1139
+			local i = 0 -- 1140
+			while i < #resultsList do -- 1140
+				do -- 1140
+					local list = resultsList[i + 1] -- 1141
+					if index >= #list then -- 1141
+						goto __continue218 -- 1142
+					end -- 1142
+					advanced = true -- 1143
+					local row = list[index + 1] -- 1144
+					local key = (((row.file .. ":") .. tostring(row.line or "")) .. ":") .. tostring(row.content or "") -- 1145
+					if seen:has(key) then -- 1145
+						goto __continue218 -- 1146
+					end -- 1146
+					seen:add(key) -- 1147
+					merged[#merged + 1] = row -- 1148
+				end -- 1148
+				::__continue218:: -- 1148
+				i = i + 1 -- 1140
+			end -- 1140
+		end -- 1140
+		index = index + 1 -- 1150
+	end -- 1150
+	return merged -- 1152
+end -- 1133
+local function getDoraAPIFilePriority(file, docSource, programmingLanguage) -- 1155
+	if docSource ~= "api" then -- 1155
+		return 100 -- 1156
+	end -- 1156
+	if programmingLanguage ~= "tsx" then -- 1156
+		return 100 -- 1157
+	end -- 1157
+	repeat -- 1157
+		local ____switch224 = string.lower(Path:getFilename(file)) -- 1157
+		local ____cond224 = ____switch224 == "jsx.d.ts" -- 1157
+		if ____cond224 then -- 1157
+			return 0 -- 1159
+		end -- 1159
+		____cond224 = ____cond224 or ____switch224 == "dorax.d.ts" -- 1159
+		if ____cond224 then -- 1159
+			return 1 -- 1160
+		end -- 1160
+		____cond224 = ____cond224 or ____switch224 == "dora.d.ts" -- 1160
+		if ____cond224 then -- 1160
+			return 2 -- 1161
+		end -- 1161
+		do -- 1161
+			return 100 -- 1162
+		end -- 1162
+	until true -- 1162
+end -- 1155
+local function sortDoraAPISearchHits(hits, docSource, programmingLanguage) -- 1166
+	local sorted = __TS__ArraySlice(hits) -- 1171
+	__TS__ArraySort( -- 1172
+		sorted, -- 1172
+		function(____, a, b) -- 1172
+			local pa = getDoraAPIFilePriority(a.file, docSource, programmingLanguage) -- 1173
+			local pb = getDoraAPIFilePriority(b.file, docSource, programmingLanguage) -- 1174
+			if pa ~= pb then -- 1174
+				return pa - pb -- 1175
+			end -- 1175
+			local fa = string.lower(a.file) -- 1176
+			local fb = string.lower(b.file) -- 1177
+			if fa ~= fb then -- 1177
+				return fa < fb and -1 or 1 -- 1178
+			end -- 1178
+			return (a.line or 0) - (b.line or 0) -- 1179
+		end -- 1172
+	) -- 1172
+	return sorted -- 1181
+end -- 1166
+function ____exports.searchFiles(req) -- 1184
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 1184
+		local resolvedPath = resolveWorkspaceSearchPath(req.workDir, req.path) -- 1197
+		if not resolvedPath then -- 1197
+			return ____awaiter_resolve(nil, {success = false, message = "invalid path or workDir"}) -- 1197
+		end -- 1197
+		local searchIsSingleFile = Content:exist(resolvedPath) and not Content:isdir(resolvedPath) -- 1201
+		local searchRoot = searchIsSingleFile and Path:getPath(resolvedPath) or resolvedPath -- 1202
+		if not searchRoot then -- 1202
+			return ____awaiter_resolve(nil, {success = false, message = "invalid path or workDir"}) -- 1202
+		end -- 1202
+		if not req.pattern or __TS__StringTrim(req.pattern) == "" then -- 1202
+			return ____awaiter_resolve(nil, {success = false, message = "empty pattern"}) -- 1202
+		end -- 1202
+		local patterns = splitSearchPatterns(req.pattern) -- 1209
+		if #patterns == 0 then -- 1209
+			return ____awaiter_resolve(nil, {success = false, message = "empty pattern"}) -- 1209
+		end -- 1209
+		return ____awaiter_resolve( -- 1209
+			nil, -- 1209
+			__TS__New( -- 1213
+				__TS__Promise, -- 1213
+				function(____, resolve) -- 1213
+					Director.systemScheduler:schedule(once(function() -- 1214
+						do -- 1214
+							local function ____catch(e) -- 1214
+								resolve( -- 1256
+									nil, -- 1256
+									{ -- 1256
+										success = false, -- 1256
+										message = tostring(e) -- 1256
+									} -- 1256
+								) -- 1256
+							end -- 1256
+							local ____try, ____hasReturned = pcall(function() -- 1256
+								local searchGlobs = searchIsSingleFile and ({Path:getFilename(resolvedPath)}) or ensureSafeSearchGlobs(req.globs or ({"**"})) -- 1216
+								local allResults = {} -- 1219
+								do -- 1219
+									local i = 0 -- 1220
+									while i < #patterns do -- 1220
+										local ____Content_12 = Content -- 1221
+										local ____Content_searchFilesAsync_13 = Content.searchFilesAsync -- 1221
+										local ____patterns_index_11 = patterns[i + 1] -- 1226
+										local ____req_useRegex_8 = req.useRegex -- 1227
+										if ____req_useRegex_8 == nil then -- 1227
+											____req_useRegex_8 = false -- 1227
+										end -- 1227
+										local ____req_caseSensitive_9 = req.caseSensitive -- 1228
+										if ____req_caseSensitive_9 == nil then -- 1228
+											____req_caseSensitive_9 = false -- 1228
+										end -- 1228
+										local ____req_includeContent_10 = req.includeContent -- 1229
+										if ____req_includeContent_10 == nil then -- 1229
+											____req_includeContent_10 = true -- 1229
+										end -- 1229
+										allResults[#allResults + 1] = ____Content_searchFilesAsync_13( -- 1221
+											____Content_12, -- 1221
+											searchRoot, -- 1222
+											codeExtensions, -- 1223
+											extensionLevels, -- 1224
+											searchGlobs, -- 1225
+											____patterns_index_11, -- 1226
+											____req_useRegex_8, -- 1227
+											____req_caseSensitive_9, -- 1228
+											____req_includeContent_10, -- 1229
+											req.contentWindow or 120 -- 1230
+										) -- 1230
+										i = i + 1 -- 1220
+									end -- 1220
+								end -- 1220
+								local results = mergeSearchFileResultsUnique(allResults) -- 1233
+								local totalResults = #results -- 1234
+								local limit = math.max( -- 1235
+									1, -- 1235
+									math.floor(req.limit or 20) -- 1235
+								) -- 1235
+								local offset = math.max( -- 1236
+									0, -- 1236
+									math.floor(req.offset or 0) -- 1236
+								) -- 1236
+								local paged = offset >= totalResults and ({}) or __TS__ArraySlice(results, offset, offset + limit) -- 1237
+								local nextOffset = offset + #paged -- 1238
+								local hasMore = nextOffset < totalResults -- 1239
+								local truncated = offset > 0 or hasMore -- 1240
+								local relativeResults = toWorkspaceRelativeSearchResults(req.workDir, paged) -- 1241
+								local groupByFile = req.groupByFile == true -- 1242
+								resolve( -- 1243
+									nil, -- 1243
+									{ -- 1243
+										success = true, -- 1244
+										results = relativeResults, -- 1245
+										groupedResults = groupByFile and buildGroupedSearchResults(relativeResults) or nil, -- 1246
+										totalResults = totalResults, -- 1247
+										truncated = truncated, -- 1248
+										limit = limit, -- 1249
+										offset = offset, -- 1250
+										nextOffset = nextOffset, -- 1251
+										hasMore = hasMore, -- 1252
+										groupByFile = groupByFile -- 1253
+									} -- 1253
+								) -- 1253
+							end) -- 1253
+							if not ____try then -- 1253
+								____catch(____hasReturned) -- 1253
+							end -- 1253
+						end -- 1253
+					end)) -- 1214
+				end -- 1213
+			) -- 1213
+		) -- 1213
+	end) -- 1213
+end -- 1184
+function ____exports.searchDoraAPI(req) -- 1262
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 1262
+		local pattern = __TS__StringTrim(req.pattern or "") -- 1273
+		if pattern == "" then -- 1273
+			return ____awaiter_resolve(nil, {success = false, message = "empty pattern"}) -- 1273
+		end -- 1273
+		local patterns = splitSearchPatterns(pattern) -- 1275
+		if #patterns == 0 then -- 1275
+			return ____awaiter_resolve(nil, {success = false, message = "empty pattern"}) -- 1275
+		end -- 1275
+		local docSource = req.docSource or "api" -- 1277
+		local target = getDoraDocSearchTarget(docSource, req.docLanguage, req.programmingLanguage) -- 1278
+		local docRoot = target.root -- 1279
+		local resultBaseRoot = getDoraDocResultBaseRoot(docSource, req.docLanguage) -- 1280
+		if not Content:exist(docRoot) or not Content:isdir(docRoot) then -- 1280
+			return ____awaiter_resolve(nil, {success = false, message = "doc root not found: " .. docRoot}) -- 1280
+		end -- 1280
+		local exts = target.exts -- 1284
+		local dotExts = __TS__ArrayMap( -- 1285
+			exts, -- 1285
+			function(____, ext) return __TS__StringStartsWith(ext, ".") and ext or "." .. ext end -- 1285
+		) -- 1285
+		local globs = target.globs -- 1286
+		local limit = math.max( -- 1287
+			1, -- 1287
+			math.floor(req.limit or 10) -- 1287
+		) -- 1287
+		return ____awaiter_resolve( -- 1287
+			nil, -- 1287
+			__TS__New( -- 1289
+				__TS__Promise, -- 1289
+				function(____, resolve) -- 1289
+					Director.systemScheduler:schedule(once(function() -- 1290
+						do -- 1290
+							local function ____catch(e) -- 1290
+								resolve( -- 1331
+									nil, -- 1331
+									{ -- 1331
+										success = false, -- 1331
+										message = tostring(e) -- 1331
+									} -- 1331
+								) -- 1331
+							end -- 1331
+							local ____try, ____hasReturned = pcall(function() -- 1331
+								local allHits = {} -- 1292
+								do -- 1292
+									local p = 0 -- 1293
+									while p < #patterns do -- 1293
+										local ____Content_18 = Content -- 1294
+										local ____Content_searchFilesAsync_19 = Content.searchFilesAsync -- 1294
+										local ____array_17 = __TS__SparseArrayNew( -- 1294
+											docRoot, -- 1295
+											dotExts, -- 1296
+											{}, -- 1297
+											ensureSafeSearchGlobs(globs), -- 1298
+											patterns[p + 1] -- 1299
+										) -- 1299
+										local ____req_useRegex_14 = req.useRegex -- 1300
+										if ____req_useRegex_14 == nil then -- 1300
+											____req_useRegex_14 = false -- 1300
+										end -- 1300
+										__TS__SparseArrayPush(____array_17, ____req_useRegex_14) -- 1300
+										local ____req_caseSensitive_15 = req.caseSensitive -- 1301
+										if ____req_caseSensitive_15 == nil then -- 1301
+											____req_caseSensitive_15 = false -- 1301
+										end -- 1301
+										__TS__SparseArrayPush(____array_17, ____req_caseSensitive_15) -- 1301
+										local ____req_includeContent_16 = req.includeContent -- 1302
+										if ____req_includeContent_16 == nil then -- 1302
+											____req_includeContent_16 = true -- 1302
+										end -- 1302
+										__TS__SparseArrayPush(____array_17, ____req_includeContent_16, req.contentWindow or 80) -- 1302
+										local raw = ____Content_searchFilesAsync_19( -- 1294
+											____Content_18, -- 1294
+											__TS__SparseArraySpread(____array_17) -- 1294
+										) -- 1294
+										local hits = {} -- 1305
+										do -- 1305
+											local i = 0 -- 1306
+											while i < #raw do -- 1306
+												do -- 1306
+													local row = raw[i + 1] -- 1307
+													local file = toDocRelativePath(resultBaseRoot, row.file) -- 1308
+													if file == "" then -- 1308
+														goto __continue251 -- 1309
+													end -- 1309
+													hits[#hits + 1] = { -- 1310
+														file = file, -- 1311
+														line = type(row.line) == "number" and row.line or nil, -- 1312
+														content = type(row.content) == "string" and row.content or nil -- 1313
+													} -- 1313
+												end -- 1313
+												::__continue251:: -- 1313
+												i = i + 1 -- 1306
+											end -- 1306
+										end -- 1306
+										allHits[#allHits + 1] = __TS__ArraySlice( -- 1316
+											sortDoraAPISearchHits(hits, docSource, req.programmingLanguage), -- 1316
+											0, -- 1316
+											limit -- 1316
+										) -- 1316
+										p = p + 1 -- 1293
+									end -- 1293
+								end -- 1293
+								local hits = mergeDoraAPISearchHitsUnique(allHits) -- 1318
+								resolve(nil, { -- 1319
+									success = true, -- 1320
+									docSource = docSource, -- 1321
+									docLanguage = req.docLanguage, -- 1322
+									programmingLanguage = req.programmingLanguage, -- 1323
+									exts = exts, -- 1324
+									results = hits, -- 1325
+									totalResults = #hits, -- 1326
+									truncated = false, -- 1327
+									limit = limit -- 1328
+								}) -- 1328
+							end) -- 1328
+							if not ____try then -- 1328
+								____catch(____hasReturned) -- 1328
+							end -- 1328
+						end -- 1328
+					end)) -- 1290
+				end -- 1289
+			) -- 1289
+		) -- 1289
+	end) -- 1289
+end -- 1262
+function ____exports.applyFileChanges(taskId, workDir, changes, options) -- 1337
+	if options == nil then -- 1337
+		options = {} -- 1337
+	end -- 1337
+	if #changes == 0 then -- 1337
+		return {success = false, message = "empty changes"} -- 1339
+	end -- 1339
+	if not isValidWorkDir(workDir) then -- 1339
+		return {success = false, message = "invalid workDir"} -- 1342
+	end -- 1342
+	if not getTaskStatus(taskId) then -- 1342
+		return {success = false, message = "task not found"} -- 1345
+	end -- 1345
+	local expandedChanges = expandLinkedDeleteChanges(workDir, changes) -- 1347
+	local dup = rejectDuplicatePaths(expandedChanges) -- 1348
+	if dup then -- 1348
+		return {success = false, message = "duplicate path in batch: " .. dup} -- 1350
+	end -- 1350
+	for ____, change in ipairs(expandedChanges) do -- 1353
+		if not isValidWorkspacePath(change.path) then -- 1353
+			return {success = false, message = "invalid path: " .. change.path} -- 1355
 		end -- 1355
-	end -- 1355
-	for ____, entry in ipairs(getCheckpointEntries(checkpointId, false)) do -- 1387
-		local fullPath = resolveWorkspaceFilePath(workDir, entry.path) -- 1388
-		if not fullPath then -- 1388
-			DB:exec(("UPDATE " .. TABLE_CP) .. " SET status = ? WHERE id = ?", {"FAILED", checkpointId}) -- 1390
-			return {success = false, message = "invalid path: " .. entry.path} -- 1391
-		end -- 1391
-		local ok = applySingleFile(fullPath, entry.afterExists, entry.afterContent) -- 1393
-		if not ok then -- 1393
-			DB:exec(("UPDATE " .. TABLE_CP) .. " SET status = ? WHERE id = ?", {"FAILED", checkpointId}) -- 1395
-			return {success = false, message = "failed to apply file change: " .. entry.path} -- 1396
-		end -- 1396
-		if not ____exports.sendWebIDEFileUpdate(fullPath, entry.afterExists, entry.afterContent) then -- 1396
-			DB:exec(("UPDATE " .. TABLE_CP) .. " SET status = ? WHERE id = ?", {"FAILED", checkpointId}) -- 1399
-			return {success = false, message = "failed to sync file change: " .. entry.path} -- 1400
-		end -- 1400
-	end -- 1400
-	DB:exec( -- 1404
-		("UPDATE " .. TABLE_CP) .. " SET status = ?, applied_at = ? WHERE id = ?", -- 1404
-		{ -- 1406
-			"APPLIED", -- 1406
-			now(), -- 1406
-			checkpointId -- 1406
-		} -- 1406
-	) -- 1406
-	DB:exec( -- 1408
-		("UPDATE " .. TABLE_TASK) .. " SET head_seq = ?, updated_at = ? WHERE id = ?", -- 1408
-		{ -- 1410
-			nextSeq, -- 1410
-			now(), -- 1410
-			taskId -- 1410
-		} -- 1410
-	) -- 1410
-	return {success = true, taskId = taskId, checkpointId = checkpointId, checkpointSeq = nextSeq} -- 1412
-end -- 1322
-function ____exports.rollbackCheckpoint(checkpointId, workDir) -- 1420
-	if not isValidWorkDir(workDir) then -- 1420
-		return {success = false, message = "invalid workDir"} -- 1421
-	end -- 1421
-	if checkpointId <= 0 then -- 1421
-		return {success = false, message = "invalid checkpointId"} -- 1422
-	end -- 1422
-	local entries = getCheckpointEntries(checkpointId, true) -- 1423
-	if #entries == 0 then -- 1423
-		return {success = false, message = "checkpoint not found or empty"} -- 1425
-	end -- 1425
-	for ____, entry in ipairs(entries) do -- 1427
-		local fullPath = resolveWorkspaceFilePath(workDir, entry.path) -- 1428
-		if not fullPath then -- 1428
-			return {success = false, message = "invalid path: " .. entry.path} -- 1430
-		end -- 1430
-		local ok = applySingleFile(fullPath, entry.beforeExists, entry.beforeContent) -- 1432
-		if not ok then -- 1432
-			Log( -- 1434
-				"Error", -- 1434
-				(("Agent rollback failed at checkpoint " .. tostring(checkpointId)) .. ", file ") .. entry.path -- 1434
-			) -- 1434
-			Log( -- 1435
-				"Info", -- 1435
-				(("[rollback] failed checkpoint=" .. tostring(checkpointId)) .. " file=") .. entry.path -- 1435
-			) -- 1435
-			return {success = false, message = "failed to rollback file: " .. entry.path} -- 1436
-		end -- 1436
-		if not ____exports.sendWebIDEFileUpdate(fullPath, entry.beforeExists, entry.beforeContent) then -- 1436
-			Log( -- 1439
-				"Error", -- 1439
-				(("Agent rollback sync failed at checkpoint " .. tostring(checkpointId)) .. ", file ") .. entry.path -- 1439
-			) -- 1439
-			Log( -- 1440
-				"Info", -- 1440
-				(("[rollback] sync_failed checkpoint=" .. tostring(checkpointId)) .. " file=") .. entry.path -- 1440
-			) -- 1440
-			return {success = false, message = "failed to sync rollback file: " .. entry.path} -- 1441
-		end -- 1441
-	end -- 1441
-	DB:exec( -- 1444
-		("UPDATE " .. TABLE_CP) .. " SET status = ?, reverted_at = ? WHERE id = ?", -- 1444
-		{ -- 1444
-			"REVERTED", -- 1444
-			now(), -- 1444
-			checkpointId -- 1444
-		} -- 1444
-	) -- 1444
-	return {success = true, checkpointId = checkpointId} -- 1445
-end -- 1420
-function ____exports.rollbackTaskChangeSet(taskId, workDir) -- 1448
-	if not isValidWorkDir(workDir) then -- 1448
-		return {success = false, message = "invalid workDir"} -- 1449
-	end -- 1449
-	if not getTaskStatus(taskId) then -- 1449
-		return {success = false, message = "task not found"} -- 1450
-	end -- 1450
-	local checkpoints = listCheckpointIdsForTask(taskId, true) -- 1451
-	if #checkpoints == 0 then -- 1451
-		return {success = false, message = "change set not found or empty"} -- 1453
-	end -- 1453
-	local lastCheckpointId = 0 -- 1455
-	do -- 1455
-		local i = 0 -- 1456
-		while i < #checkpoints do -- 1456
-			local result = ____exports.rollbackCheckpoint(checkpoints[i + 1].id, workDir) -- 1457
-			if not result.success then -- 1457
-				return {success = false, message = result.message} -- 1458
-			end -- 1458
-			lastCheckpointId = checkpoints[i + 1].id -- 1459
-			i = i + 1 -- 1456
+		if (change.op == "write" or change.op == "create") and change.content == nil then -- 1355
+			return {success = false, message = "missing content for " .. change.path} -- 1358
+		end -- 1358
+	end -- 1358
+	local headSeq = getTaskHeadSeq(taskId) -- 1362
+	if headSeq == nil then -- 1362
+		return {success = false, message = "task not found"} -- 1363
+	end -- 1363
+	local nextSeq = headSeq + 1 -- 1364
+	local checkpointId = insertCheckpoint( -- 1365
+		taskId, -- 1365
+		nextSeq, -- 1365
+		options.summary or "", -- 1365
+		options.toolName or "", -- 1365
+		"PREPARED" -- 1365
+	) -- 1365
+	if checkpointId <= 0 then -- 1365
+		return {success = false, message = "failed to create checkpoint"} -- 1367
+	end -- 1367
+	do -- 1367
+		local i = 0 -- 1370
+		while i < #expandedChanges do -- 1370
+			local change = expandedChanges[i + 1] -- 1371
+			local fullPath = resolveWorkspaceFilePath(workDir, change.path) -- 1372
+			if not fullPath then -- 1372
+				DB:exec(("UPDATE " .. TABLE_CP) .. " SET status = ? WHERE id = ?", {"FAILED", checkpointId}) -- 1374
+				return {success = false, message = "invalid path: " .. change.path} -- 1375
+			end -- 1375
+			local before = getFileState(fullPath) -- 1377
+			local afterExists = change.op ~= "delete" -- 1378
+			local afterContent = afterExists and (change.content or "") or "" -- 1379
+			local inserted = DB:exec(("INSERT INTO " .. TABLE_ENTRY) .. "(checkpoint_id, ord, path, op, before_exists, before_content, after_exists, after_content, bytes_before, bytes_after)\n\t\t\tVALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", { -- 1380
+				checkpointId, -- 1384
+				i + 1, -- 1385
+				change.path, -- 1386
+				change.op, -- 1387
+				before.exists and 1 or 0, -- 1388
+				before.content, -- 1389
+				afterExists and 1 or 0, -- 1390
+				afterContent, -- 1391
+				before.bytes, -- 1392
+				#afterContent -- 1393
+			}) -- 1393
+			if inserted <= 0 then -- 1393
+				DB:exec(("UPDATE " .. TABLE_CP) .. " SET status = ? WHERE id = ?", {"FAILED", checkpointId}) -- 1397
+				return {success = false, message = "failed to insert checkpoint entry: " .. change.path} -- 1398
+			end -- 1398
+			i = i + 1 -- 1370
+		end -- 1370
+	end -- 1370
+	for ____, entry in ipairs(getCheckpointEntries(checkpointId, false)) do -- 1402
+		local fullPath = resolveWorkspaceFilePath(workDir, entry.path) -- 1403
+		if not fullPath then -- 1403
+			DB:exec(("UPDATE " .. TABLE_CP) .. " SET status = ? WHERE id = ?", {"FAILED", checkpointId}) -- 1405
+			return {success = false, message = "invalid path: " .. entry.path} -- 1406
+		end -- 1406
+		local ok = applySingleFile(fullPath, entry.afterExists, entry.afterContent) -- 1408
+		if not ok then -- 1408
+			DB:exec(("UPDATE " .. TABLE_CP) .. " SET status = ? WHERE id = ?", {"FAILED", checkpointId}) -- 1410
+			return {success = false, message = "failed to apply file change: " .. entry.path} -- 1411
+		end -- 1411
+		if not ____exports.sendWebIDEFileUpdate(fullPath, entry.afterExists, entry.afterContent) then -- 1411
+			DB:exec(("UPDATE " .. TABLE_CP) .. " SET status = ? WHERE id = ?", {"FAILED", checkpointId}) -- 1414
+			return {success = false, message = "failed to sync file change: " .. entry.path} -- 1415
+		end -- 1415
+	end -- 1415
+	DB:exec( -- 1419
+		("UPDATE " .. TABLE_CP) .. " SET status = ?, applied_at = ? WHERE id = ?", -- 1419
+		{ -- 1421
+			"APPLIED", -- 1421
+			now(), -- 1421
+			checkpointId -- 1421
+		} -- 1421
+	) -- 1421
+	DB:exec( -- 1423
+		("UPDATE " .. TABLE_TASK) .. " SET head_seq = ?, updated_at = ? WHERE id = ?", -- 1423
+		{ -- 1425
+			nextSeq, -- 1425
+			now(), -- 1425
+			taskId -- 1425
+		} -- 1425
+	) -- 1425
+	return {success = true, taskId = taskId, checkpointId = checkpointId, checkpointSeq = nextSeq} -- 1427
+end -- 1337
+function ____exports.rollbackCheckpoint(checkpointId, workDir) -- 1435
+	if not isValidWorkDir(workDir) then -- 1435
+		return {success = false, message = "invalid workDir"} -- 1436
+	end -- 1436
+	if checkpointId <= 0 then -- 1436
+		return {success = false, message = "invalid checkpointId"} -- 1437
+	end -- 1437
+	local entries = getCheckpointEntries(checkpointId, true) -- 1438
+	if #entries == 0 then -- 1438
+		return {success = false, message = "checkpoint not found or empty"} -- 1440
+	end -- 1440
+	for ____, entry in ipairs(entries) do -- 1442
+		local fullPath = resolveWorkspaceFilePath(workDir, entry.path) -- 1443
+		if not fullPath then -- 1443
+			return {success = false, message = "invalid path: " .. entry.path} -- 1445
+		end -- 1445
+		local ok = applySingleFile(fullPath, entry.beforeExists, entry.beforeContent) -- 1447
+		if not ok then -- 1447
+			Log( -- 1449
+				"Error", -- 1449
+				(("Agent rollback failed at checkpoint " .. tostring(checkpointId)) .. ", file ") .. entry.path -- 1449
+			) -- 1449
+			Log( -- 1450
+				"Info", -- 1450
+				(("[rollback] failed checkpoint=" .. tostring(checkpointId)) .. " file=") .. entry.path -- 1450
+			) -- 1450
+			return {success = false, message = "failed to rollback file: " .. entry.path} -- 1451
+		end -- 1451
+		if not ____exports.sendWebIDEFileUpdate(fullPath, entry.beforeExists, entry.beforeContent) then -- 1451
+			Log( -- 1454
+				"Error", -- 1454
+				(("Agent rollback sync failed at checkpoint " .. tostring(checkpointId)) .. ", file ") .. entry.path -- 1454
+			) -- 1454
+			Log( -- 1455
+				"Info", -- 1455
+				(("[rollback] sync_failed checkpoint=" .. tostring(checkpointId)) .. " file=") .. entry.path -- 1455
+			) -- 1455
+			return {success = false, message = "failed to sync rollback file: " .. entry.path} -- 1456
 		end -- 1456
 	end -- 1456
-	return {success = true, taskId = taskId, checkpointId = lastCheckpointId, checkpointCount = #checkpoints} -- 1461
-end -- 1448
-function ____exports.getCheckpointEntriesForDebug(checkpointId) -- 1469
-	return getCheckpointEntries(checkpointId, false) -- 1470
-end -- 1469
-function ____exports.getCheckpointDiff(checkpointId) -- 1473
-	if checkpointId <= 0 then -- 1473
-		return {success = false, message = "invalid checkpointId"} -- 1475
-	end -- 1475
-	local entries = getCheckpointEntries(checkpointId, false) -- 1477
-	if #entries == 0 then -- 1477
-		return {success = false, message = "checkpoint not found or empty"} -- 1479
-	end -- 1479
-	return { -- 1481
-		success = true, -- 1482
-		files = __TS__ArrayMap( -- 1483
-			entries, -- 1483
-			function(____, entry) return { -- 1483
-				path = entry.path, -- 1484
-				op = entry.op, -- 1485
-				beforeExists = entry.beforeExists, -- 1486
-				afterExists = entry.afterExists, -- 1487
-				beforeContent = entry.beforeContent, -- 1488
-				afterContent = entry.afterContent -- 1489
-			} end -- 1489
-		) -- 1489
-	} -- 1489
-end -- 1473
-local function finalizeBuildResult(workDir, messages) -- 1494
-	local normalized = __TS__ArrayMap( -- 1495
-		messages, -- 1495
-		function(____, m) return m.success and __TS__ObjectAssign( -- 1495
-			{}, -- 1496
-			m, -- 1496
-			{file = toWorkspaceRelativePath(workDir, m.file)} -- 1496
-		) or __TS__ObjectAssign( -- 1496
-			{}, -- 1497
-			m, -- 1497
-			{file = toWorkspaceRelativePath(workDir, m.file)} -- 1497
-		) end -- 1497
-	) -- 1497
-	local total = #normalized -- 1498
-	local failed = 0 -- 1499
-	do -- 1499
-		local i = 0 -- 1500
-		while i < #normalized do -- 1500
-			if not normalized[i + 1].success then -- 1500
-				failed = failed + 1 -- 1501
-			end -- 1501
-			i = i + 1 -- 1500
-		end -- 1500
-	end -- 1500
-	local passed = total - failed -- 1503
-	if failed > 0 then -- 1503
-		return { -- 1505
-			success = false, -- 1506
-			message = ((("Build failed: " .. tostring(failed)) .. "/") .. tostring(total)) .. " file(s) failed.", -- 1507
-			total = total, -- 1508
-			passed = passed, -- 1509
-			failed = failed, -- 1510
-			messages = normalized -- 1511
-		} -- 1511
-	end -- 1511
-	return { -- 1514
-		success = true, -- 1515
-		message = ((("Build passed: " .. tostring(passed)) .. "/") .. tostring(total)) .. " file(s).", -- 1516
-		total = total, -- 1517
-		passed = passed, -- 1518
-		failed = 0, -- 1519
-		messages = normalized -- 1520
-	} -- 1520
-end -- 1494
-function ____exports.build(req) -- 1524
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 1524
-		local targetRel = req.path or "" -- 1525
-		local target = resolveWorkspaceSearchPath(req.workDir, targetRel) -- 1526
-		if not target then -- 1526
-			return ____awaiter_resolve(nil, {success = false, message = "invalid path or workDir"}) -- 1526
-		end -- 1526
-		if not Content:exist(target) then -- 1526
-			return ____awaiter_resolve(nil, {success = false, message = "path not existed"}) -- 1526
-		end -- 1526
-		local messages = {} -- 1533
-		if not Content:isdir(target) then -- 1533
-			local kind = getSupportedBuildKind(target) -- 1535
-			if not kind then -- 1535
-				return ____awaiter_resolve(nil, {success = false, message = "expecting a ts/tsx, tl, lua, yue or yarn file"}) -- 1535
-			end -- 1535
-			if kind == "ts" then -- 1535
-				local content = Content:load(target) -- 1540
-				if content == nil then -- 1540
-					return ____awaiter_resolve(nil, {success = false, message = "failed to read file"}) -- 1540
-				end -- 1540
-				if not ____exports.sendWebIDEFileUpdate(target, true, content) then -- 1540
-					return ____awaiter_resolve(nil, {success = false, message = "failed to encode UpdateFile request"}) -- 1540
-				end -- 1540
-				if not isDtsFile(target) then -- 1540
-					messages[#messages + 1] = __TS__Await(____exports.runSingleTsTranspile(target, content)) -- 1548
-				end -- 1548
-			else -- 1548
-				messages[#messages + 1] = __TS__Await(runSingleNonTsBuild(target)) -- 1551
-			end -- 1551
-			Log( -- 1553
-				"Info", -- 1553
-				(("[build] file=" .. target) .. " messages=") .. tostring(#messages) -- 1553
-			) -- 1553
-			return ____awaiter_resolve( -- 1553
-				nil, -- 1553
-				finalizeBuildResult(req.workDir, messages) -- 1554
-			) -- 1554
-		end -- 1554
-		local listResult = ____exports.listFiles({ -- 1556
-			workDir = req.workDir, -- 1557
-			path = targetRel, -- 1558
-			globs = __TS__ArrayMap( -- 1559
-				codeExtensions, -- 1559
-				function(____, e) return "**/*" .. e end -- 1559
-			), -- 1559
-			maxEntries = 10000 -- 1560
-		}) -- 1560
-		local relFiles = listResult.success and listResult.files or ({}) -- 1563
-		local tsFileData = {} -- 1564
-		local buildQueue = {} -- 1565
-		for ____, rel in ipairs(relFiles) do -- 1566
-			do -- 1566
-				local file = Content:isAbsolutePath(rel) and rel or Path(target, rel) -- 1567
-				local kind = getSupportedBuildKind(file) -- 1568
-				if not kind then -- 1568
-					goto __continue307 -- 1569
-				end -- 1569
-				buildQueue[#buildQueue + 1] = {file = file, kind = kind} -- 1570
-				if kind ~= "ts" then -- 1570
-					goto __continue307 -- 1572
-				end -- 1572
-				local content = Content:load(file) -- 1574
-				if content == nil then -- 1574
-					messages[#messages + 1] = {success = false, file = file, message = "failed to read file"} -- 1576
-					goto __continue307 -- 1577
-				end -- 1577
-				tsFileData[file] = content -- 1579
-				if not ____exports.sendWebIDEFileUpdate(file, true, content) then -- 1579
-					messages[#messages + 1] = {success = false, file = file, message = "failed to encode UpdateFile request"} -- 1581
-					goto __continue307 -- 1582
-				end -- 1582
-			end -- 1582
-			::__continue307:: -- 1582
-		end -- 1582
-		do -- 1582
-			local i = 0 -- 1585
-			while i < #buildQueue do -- 1585
-				do -- 1585
-					local ____buildQueue_index_20 = buildQueue[i + 1] -- 1586
-					local file = ____buildQueue_index_20.file -- 1586
-					local kind = ____buildQueue_index_20.kind -- 1586
-					if kind == "ts" then -- 1586
-						local content = tsFileData[file] -- 1588
-						if content == nil or isDtsFile(file) then -- 1588
-							goto __continue314 -- 1590
-						end -- 1590
-						messages[#messages + 1] = __TS__Await(____exports.runSingleTsTranspile(file, content)) -- 1592
-						goto __continue314 -- 1593
-					end -- 1593
-					messages[#messages + 1] = __TS__Await(runSingleNonTsBuild(file)) -- 1595
-				end -- 1595
-				::__continue314:: -- 1595
-				i = i + 1 -- 1585
-			end -- 1585
-		end -- 1585
-		if #messages == 0 then -- 1585
-			Log("Info", ("[build] dir=" .. target) .. " messages=0 no buildable code files found") -- 1598
-			return ____awaiter_resolve(nil, {success = false, message = "No code files were found to build."}) -- 1598
-		end -- 1598
-		Log( -- 1601
-			"Info", -- 1601
-			(("[build] dir=" .. target) .. " messages=") .. tostring(#messages) -- 1601
-		) -- 1601
-		return ____awaiter_resolve( -- 1601
-			nil, -- 1601
-			finalizeBuildResult(req.workDir, messages) -- 1602
-		) -- 1602
-	end) -- 1602
-end -- 1524
-return ____exports -- 1524
+	DB:exec( -- 1459
+		("UPDATE " .. TABLE_CP) .. " SET status = ?, reverted_at = ? WHERE id = ?", -- 1459
+		{ -- 1459
+			"REVERTED", -- 1459
+			now(), -- 1459
+			checkpointId -- 1459
+		} -- 1459
+	) -- 1459
+	return {success = true, checkpointId = checkpointId} -- 1460
+end -- 1435
+function ____exports.rollbackTaskChangeSet(taskId, workDir) -- 1463
+	if not isValidWorkDir(workDir) then -- 1463
+		return {success = false, message = "invalid workDir"} -- 1464
+	end -- 1464
+	if not getTaskStatus(taskId) then -- 1464
+		return {success = false, message = "task not found"} -- 1465
+	end -- 1465
+	local checkpoints = listCheckpointIdsForTask(taskId, true) -- 1466
+	if #checkpoints == 0 then -- 1466
+		return {success = false, message = "change set not found or empty"} -- 1468
+	end -- 1468
+	local lastCheckpointId = 0 -- 1470
+	do -- 1470
+		local i = 0 -- 1471
+		while i < #checkpoints do -- 1471
+			local result = ____exports.rollbackCheckpoint(checkpoints[i + 1].id, workDir) -- 1472
+			if not result.success then -- 1472
+				return {success = false, message = result.message} -- 1473
+			end -- 1473
+			lastCheckpointId = checkpoints[i + 1].id -- 1474
+			i = i + 1 -- 1471
+		end -- 1471
+	end -- 1471
+	return {success = true, taskId = taskId, checkpointId = lastCheckpointId, checkpointCount = #checkpoints} -- 1476
+end -- 1463
+function ____exports.getCheckpointEntriesForDebug(checkpointId) -- 1484
+	return getCheckpointEntries(checkpointId, false) -- 1485
+end -- 1484
+function ____exports.getCheckpointDiff(checkpointId) -- 1488
+	if checkpointId <= 0 then -- 1488
+		return {success = false, message = "invalid checkpointId"} -- 1490
+	end -- 1490
+	local entries = getCheckpointEntries(checkpointId, false) -- 1492
+	if #entries == 0 then -- 1492
+		return {success = false, message = "checkpoint not found or empty"} -- 1494
+	end -- 1494
+	return { -- 1496
+		success = true, -- 1497
+		files = __TS__ArrayMap( -- 1498
+			entries, -- 1498
+			function(____, entry) return { -- 1498
+				path = entry.path, -- 1499
+				op = entry.op, -- 1500
+				beforeExists = entry.beforeExists, -- 1501
+				afterExists = entry.afterExists, -- 1502
+				beforeContent = entry.beforeContent, -- 1503
+				afterContent = entry.afterContent -- 1504
+			} end -- 1504
+		) -- 1504
+	} -- 1504
+end -- 1488
+local function finalizeBuildResult(workDir, messages) -- 1509
+	local normalized = __TS__ArrayMap( -- 1510
+		messages, -- 1510
+		function(____, m) return m.success and __TS__ObjectAssign( -- 1510
+			{}, -- 1511
+			m, -- 1511
+			{file = toWorkspaceRelativePath(workDir, m.file)} -- 1511
+		) or __TS__ObjectAssign( -- 1511
+			{}, -- 1512
+			m, -- 1512
+			{file = toWorkspaceRelativePath(workDir, m.file)} -- 1512
+		) end -- 1512
+	) -- 1512
+	local total = #normalized -- 1513
+	local failed = 0 -- 1514
+	do -- 1514
+		local i = 0 -- 1515
+		while i < #normalized do -- 1515
+			if not normalized[i + 1].success then -- 1515
+				failed = failed + 1 -- 1516
+			end -- 1516
+			i = i + 1 -- 1515
+		end -- 1515
+	end -- 1515
+	local passed = total - failed -- 1518
+	if failed > 0 then -- 1518
+		return { -- 1520
+			success = false, -- 1521
+			message = ((("Build failed: " .. tostring(failed)) .. "/") .. tostring(total)) .. " file(s) failed.", -- 1522
+			total = total, -- 1523
+			passed = passed, -- 1524
+			failed = failed, -- 1525
+			messages = normalized -- 1526
+		} -- 1526
+	end -- 1526
+	return { -- 1529
+		success = true, -- 1530
+		message = ((("Build passed: " .. tostring(passed)) .. "/") .. tostring(total)) .. " file(s).", -- 1531
+		total = total, -- 1532
+		passed = passed, -- 1533
+		failed = 0, -- 1534
+		messages = normalized -- 1535
+	} -- 1535
+end -- 1509
+function ____exports.build(req) -- 1539
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 1539
+		local targetRel = req.path or "" -- 1540
+		local target = resolveWorkspaceSearchPath(req.workDir, targetRel) -- 1541
+		if not target then -- 1541
+			return ____awaiter_resolve(nil, {success = false, message = "invalid path or workDir"}) -- 1541
+		end -- 1541
+		if not Content:exist(target) then -- 1541
+			return ____awaiter_resolve(nil, {success = false, message = "path not existed"}) -- 1541
+		end -- 1541
+		local messages = {} -- 1548
+		if not Content:isdir(target) then -- 1548
+			local kind = getSupportedBuildKind(target) -- 1550
+			if not kind then -- 1550
+				return ____awaiter_resolve(nil, {success = false, message = "expecting a ts/tsx, tl, lua, yue or yarn file"}) -- 1550
+			end -- 1550
+			if kind == "ts" then -- 1550
+				local content = Content:load(target) -- 1555
+				if content == nil then -- 1555
+					return ____awaiter_resolve(nil, {success = false, message = "failed to read file"}) -- 1555
+				end -- 1555
+				if not ____exports.sendWebIDEFileUpdate(target, true, content) then -- 1555
+					return ____awaiter_resolve(nil, {success = false, message = "failed to encode UpdateFile request"}) -- 1555
+				end -- 1555
+				if not isDtsFile(target) then -- 1555
+					messages[#messages + 1] = __TS__Await(____exports.runSingleTsTranspile(target, content)) -- 1563
+				end -- 1563
+			else -- 1563
+				messages[#messages + 1] = __TS__Await(runSingleNonTsBuild(target)) -- 1566
+			end -- 1566
+			Log( -- 1568
+				"Info", -- 1568
+				(("[build] file=" .. target) .. " messages=") .. tostring(#messages) -- 1568
+			) -- 1568
+			return ____awaiter_resolve( -- 1568
+				nil, -- 1568
+				finalizeBuildResult(req.workDir, messages) -- 1569
+			) -- 1569
+		end -- 1569
+		local listResult = ____exports.listFiles({ -- 1571
+			workDir = req.workDir, -- 1572
+			path = targetRel, -- 1573
+			globs = __TS__ArrayMap( -- 1574
+				codeExtensions, -- 1574
+				function(____, e) return "**/*" .. e end -- 1574
+			), -- 1574
+			maxEntries = 10000 -- 1575
+		}) -- 1575
+		local relFiles = listResult.success and listResult.files or ({}) -- 1578
+		local tsFileData = {} -- 1579
+		local buildQueue = {} -- 1580
+		for ____, rel in ipairs(relFiles) do -- 1581
+			do -- 1581
+				local file = Content:isAbsolutePath(rel) and rel or Path(target, rel) -- 1582
+				local kind = getSupportedBuildKind(file) -- 1583
+				if not kind then -- 1583
+					goto __continue312 -- 1584
+				end -- 1584
+				buildQueue[#buildQueue + 1] = {file = file, kind = kind} -- 1585
+				if kind ~= "ts" then -- 1585
+					goto __continue312 -- 1587
+				end -- 1587
+				local content = Content:load(file) -- 1589
+				if content == nil then -- 1589
+					messages[#messages + 1] = {success = false, file = file, message = "failed to read file"} -- 1591
+					goto __continue312 -- 1592
+				end -- 1592
+				tsFileData[file] = content -- 1594
+				if not ____exports.sendWebIDEFileUpdate(file, true, content) then -- 1594
+					messages[#messages + 1] = {success = false, file = file, message = "failed to encode UpdateFile request"} -- 1596
+					goto __continue312 -- 1597
+				end -- 1597
+			end -- 1597
+			::__continue312:: -- 1597
+		end -- 1597
+		do -- 1597
+			local i = 0 -- 1600
+			while i < #buildQueue do -- 1600
+				do -- 1600
+					local ____buildQueue_index_20 = buildQueue[i + 1] -- 1601
+					local file = ____buildQueue_index_20.file -- 1601
+					local kind = ____buildQueue_index_20.kind -- 1601
+					if kind == "ts" then -- 1601
+						local content = tsFileData[file] -- 1603
+						if content == nil or isDtsFile(file) then -- 1603
+							goto __continue319 -- 1605
+						end -- 1605
+						messages[#messages + 1] = __TS__Await(____exports.runSingleTsTranspile(file, content)) -- 1607
+						goto __continue319 -- 1608
+					end -- 1608
+					messages[#messages + 1] = __TS__Await(runSingleNonTsBuild(file)) -- 1610
+				end -- 1610
+				::__continue319:: -- 1610
+				i = i + 1 -- 1600
+			end -- 1600
+		end -- 1600
+		if #messages == 0 then -- 1600
+			Log("Info", ("[build] dir=" .. target) .. " messages=0 no buildable code files found") -- 1613
+			return ____awaiter_resolve(nil, {success = false, message = "No code files were found to build."}) -- 1613
+		end -- 1613
+		Log( -- 1616
+			"Info", -- 1616
+			(("[build] dir=" .. target) .. " messages=") .. tostring(#messages) -- 1616
+		) -- 1616
+		return ____awaiter_resolve( -- 1616
+			nil, -- 1616
+			finalizeBuildResult(req.workDir, messages) -- 1617
+		) -- 1617
+	end) -- 1617
+end -- 1539
+return ____exports -- 1539
