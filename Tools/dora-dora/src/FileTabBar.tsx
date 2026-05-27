@@ -24,7 +24,7 @@ import {
 } from 'react-icons/ai';
 import { useTranslation } from 'react-i18next';
 import { Color } from './Theme';
-import { IconButton, Tooltip } from '@mui/material';
+import { Tooltip } from '@mui/material';
 
 export type TabStatus = "normal" | "warning" | "error";
 
@@ -82,23 +82,55 @@ interface StyledTabProps {
 }
 
 export const StyledTab = styled((props: StyledTabProps) => {
-	const { tooltip, onTabClose } = props;
+	const { label, tooltip, onTabClose } = props;
 	const newProps = { ...props };
 	delete newProps.onTabClose;
+	delete newProps.tooltip;
+	delete newProps.label;
 	return (
-		<div>
-			<Tooltip arrow title={props.tooltip}>
-				<Tab disableRipple style={{ textWrap: 'nowrap' }} {...newProps} />
-			</Tooltip>
-			<IconButton size='small' color="secondary" sx={{ marginLeft: -3, opacity: 0.6 }}
-				onPointerDown={() => {
-					if (onTabClose) {
-						onTabClose(tooltip);
-					}
-				}}>
-				<IoIosClose />
-			</IconButton>
-		</div>
+		<Tooltip arrow title={tooltip}>
+			<Tab
+				disableRipple
+				{...newProps}
+				label={
+					<Box component="span" sx={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
+						<Box component="span" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+							{label}
+						</Box>
+						<Box
+							component="span"
+							aria-label="Close tab"
+							onClick={(event) => {
+								event.stopPropagation();
+								if (onTabClose) {
+									onTabClose(tooltip);
+								}
+							}}
+							onMouseDown={(event) => event.stopPropagation()}
+							onPointerDown={(event) => event.stopPropagation()}
+							sx={{
+								display: 'inline-flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								width: 24,
+								height: 24,
+								marginLeft: 0.5,
+								flexShrink: 0,
+								color: Color.Secondary,
+								opacity: 0.65,
+								borderRadius: 1,
+								'&:hover': {
+									opacity: 1,
+									backgroundColor: Color.Line,
+								},
+							}}
+						>
+							<IoIosClose />
+						</Box>
+					</Box>
+				}
+			/>
+		</Tooltip>
 	);
 })(({ theme, status }) => {
 	let color = Color.Secondary;
@@ -118,12 +150,16 @@ export const StyledTab = styled((props: StyledTabProps) => {
 		fontWeight: theme.typography.fontWeightRegular,
 		fontSize: theme.typography.pxToRem(15),
 		marginRight: theme.spacing(1),
+		minHeight: 48,
+		minWidth: 0,
+		paddingLeft: theme.spacing(1.5),
+		paddingRight: theme.spacing(1),
 		color,
 		'&.Mui-selected': {
 			color: selectedColor,
 		},
 		'&.Mui-focusVisible': {
-			backgroundColor: 'rgba(100, 95, 228, 0.32)',
+			backgroundColor: 'rgba(250, 192, 61, 0.14)',
 		},
 	};
 });
@@ -240,4 +276,3 @@ export default memo(function FileTabBar(props: FileTabBarProps) {
 				item.status === nextItem.status;
 		});
 });
-
