@@ -231,8 +231,8 @@ interface CheckpointEntryRow {
 const TABLE_TASK = "AgentTask";
 const TABLE_CP = "AgentCheckpoint";
 const TABLE_ENTRY = "AgentCheckpointEntry";
-const ENGINE_LOG_SNAPSHOT_DIR = ".agent";
-const ENGINE_LOG_SNAPSHOT_FILE = "engine_logs_snapshot.txt";
+const ENGINE_LOG_DOWNLOAD_DIR = ".download";
+const ENGINE_LOG_FILE = "dora_full_logs.txt";
 
 const now = () => os.time();
 
@@ -429,6 +429,19 @@ function inspectReadableFile(path: string): { success: true; size?: number } | {
 		Log("Warn", `[Agent.Tools] Content.getAttr failed for ${path}: ${tostring(e)}`);
 		return { success: true };
 	}
+}
+
+function isEngineLogFilePath(path: string): boolean {
+	return path === ENGINE_LOG_FILE;
+}
+
+function readEngineLogFile(path: string): ReadFileResult | undefined {
+	if (!isEngineLogFilePath(path)) return undefined;
+	const content = getEngineLogText();
+	if (content === undefined) {
+		return { success: false, message: "failed to read engine logs" };
+	}
+	return { success: true, content, size: content.length };
 }
 
 function queryOne(sql: string, args?: (number | string | boolean)[]) {
@@ -859,6 +872,8 @@ export function getTaskChangeSetDiff(taskId: number): CheckpointDiffResult {
 }
 
 function readWorkspaceFile(workDir: string, path: string, docLanguage?: DoraAPIDocLanguage): ReadFileResult {
+	const engineLog = readEngineLogFile(path);
+	if (engineLog) return engineLog;
 	const fullPath = resolveWorkspaceFilePath(workDir, path);
 	if (fullPath && Content.exist(fullPath) && !Content.isdir(fullPath)) {
 		const attr = inspectReadableFile(fullPath);
@@ -886,11 +901,11 @@ export function readFileRaw(workDir: string, path: string, docLanguage?: DoraAPI
 }
 
 function getEngineLogText(): string | undefined {
-	const folder = Path(Content.writablePath, ENGINE_LOG_SNAPSHOT_DIR);
+	const folder = Path(Content.writablePath, ENGINE_LOG_DOWNLOAD_DIR);
 	if (!Content.exist(folder)) {
 		Content.mkdir(folder);
 	}
-	const logPath = Path(folder, ENGINE_LOG_SNAPSHOT_FILE);
+	const logPath = Path(folder, ENGINE_LOG_FILE);
 	if (!App.saveLog(logPath)) {
 		return undefined;
 	}
