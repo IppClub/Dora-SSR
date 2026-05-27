@@ -25,6 +25,7 @@ THE SOFTWARE.
 
 #include <functional>
 #include <list>
+#include <optional>
 #include <string>
 
 #include "Common/Own.h"
@@ -71,6 +72,8 @@ public:
 	bool isFolder(const std::string& path) const;
 
 	bool isOK() const;
+
+	std::optional<size_t> getFileSize(const std::string& filename) const;
 
 	/**
 	 * Get resource file data from a zip file.

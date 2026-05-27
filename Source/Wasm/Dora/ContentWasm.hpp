@@ -56,6 +56,9 @@ DORA_EXPORT int32_t content_remove(int64_t path) {
 DORA_EXPORT int64_t content_get_full_path(int64_t filename) {
 	return Str_Retain(SharedContent.getFullPath(*Str_From(filename)));
 }
+DORA_EXPORT int64_t content_get_attr(int64_t filename) {
+	return Object_From(Content_GetAttr(*Str_From(filename)));
+}
 DORA_EXPORT void content_add_search_path(int64_t path) {
 	SharedContent.addSearchPath(*Str_From(path));
 }
@@ -78,7 +81,7 @@ DORA_EXPORT int64_t content_get_all_files(int64_t path) {
 	return Vec_To(SharedContent.getAllFiles(*Str_From(path)));
 }
 DORA_EXPORT int64_t content_glob(int64_t path, int64_t globs, int64_t extension_levels) {
-	return Vec_To(Content_glob(*Str_From(path), Vec_FromStr(globs), r_cast<Dictionary*>(extension_levels)));
+	return Vec_To(Content_Glob(*Str_From(path), Vec_FromStr(globs), r_cast<Dictionary*>(extension_levels)));
 }
 DORA_EXPORT void content_search_files_async(int64_t path, int64_t exts, int64_t extension_levels, int64_t globs, int64_t pattern, int32_t use_regex, int32_t case_sensitive, int32_t include_content, int32_t content_window, int32_t func0, int64_t stack0) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
@@ -187,6 +190,7 @@ static void linkContent(wasm3::module3& mod) {
 	mod.link_optional("*", "content_move_to", content_move_to);
 	mod.link_optional("*", "content_remove", content_remove);
 	mod.link_optional("*", "content_get_full_path", content_get_full_path);
+	mod.link_optional("*", "content_get_attr", content_get_attr);
 	mod.link_optional("*", "content_add_search_path", content_add_search_path);
 	mod.link_optional("*", "content_insert_search_path", content_insert_search_path);
 	mod.link_optional("*", "content_remove_search_path", content_remove_search_path);

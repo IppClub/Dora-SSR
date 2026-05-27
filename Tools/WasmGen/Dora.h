@@ -530,6 +530,16 @@ singleton class Content
 	///
 	/// * `String` - The full path of the file.
 	string getFullPath(string filename);
+	/// Gets file attributes including byte size and whether the file is likely binary.
+	///
+	/// # Arguments
+	///
+	/// * `filename` - The name of the file to inspect.
+	///
+	/// # Returns
+	///
+	/// * `Array` - An array containing the file size and binary flag, or `nil` when the file is not found.
+	outside optional Array* Content_GetAttr @ getAttr(string filename);
 	/// Adds a new search path to the end of the list.
 	///
 	/// # Arguments
@@ -592,7 +602,7 @@ singleton class Content
 	/// # Returns
 	///
 	/// * `Vec<String>` - An array of the names of all files in the specified directory and its subdirectories.
-	outside VecStr Content_glob @ glob(string path, VecStr globs, Dictionary* extensionLevels);
+	outside VecStr Content_Glob @ glob(string path, VecStr globs, Dictionary* extensionLevels);
 	/// Asynchronously searches files and returns the match results. Should be run in a thread.
 	///
 	/// # Arguments

@@ -23,6 +23,7 @@ extern "C" {
 	fn content_move_to(src: i64, dst: i64) -> i32;
 	fn content_remove(path: i64) -> i32;
 	fn content_get_full_path(filename: i64) -> i64;
+	fn content_get_attr(filename: i64) -> i64;
 	fn content_add_search_path(path: i64);
 	fn content_insert_search_path(index: i32, path: i64);
 	fn content_remove_search_path(path: i64);
@@ -182,6 +183,18 @@ impl Content {
 	/// * `String` - The full path of the file.
 	pub fn get_full_path(filename: &str) -> String {
 		unsafe { return crate::dora::to_string(content_get_full_path(crate::dora::from_string(filename))); }
+	}
+	/// Gets file attributes including byte size and whether the file is likely binary.
+	///
+	/// # Arguments
+	///
+	/// * `filename` - The name of the file to inspect.
+	///
+	/// # Returns
+	///
+	/// * `Array` - An array containing the file size and binary flag, or `nil` when the file is not found.
+	pub fn get_attr(filename: &str) -> Option<crate::dora::Array> {
+		unsafe { return crate::dora::Array::from(content_get_attr(crate::dora::from_string(filename))); }
 	}
 	/// Adds a new search path to the end of the list.
 	///

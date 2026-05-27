@@ -82,6 +82,11 @@ local record Content
 	-- @return (string) 文件的完整路径。
 	getFullPath: function(self: Content, filename: string): string
 
+	-- 获取文件属性，包括字节长度以及文件是否可能是二进制文件。
+	-- @param filename (string) 要检查的文件名。
+	-- @return (integer | nil, boolean | nil) 文件字节长度和二进制标记；找不到文件时返回 nil。
+	getAttr: function(self: Content, filename: string): integer | nil, boolean | nil
+
 	-- 在指定索引处插入文件搜索路径。
 	-- @param index (integer) 要插入搜索路径的索引。
 	-- @param path (string) 要插入的搜索路径。

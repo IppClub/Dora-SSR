@@ -3693,6 +3693,13 @@ class Content {
 	getFullPath(filename: string): string;
 
 	/**
+	 * Gets file attributes including byte size and whether the file is likely binary.
+	 * @param filename The name of the file to inspect.
+	 * @returns The file size and binary flag, or `undefined` when the file is not found.
+	 */
+	getAttr(filename: string): LuaMultiReturn<[number, boolean]> | undefined;
+
+	/**
 	 * Inserts a search path at the specified index.
 	 * @param index The index at which to insert the search path.
 	 * @param path The search path to insert.

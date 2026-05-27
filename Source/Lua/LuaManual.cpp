@@ -436,6 +436,17 @@ void __Content_glob(lua_State* L, Content* self, String path, Slice globs[], int
 	pushListString(L, files);
 }
 
+int __Content_getAttr(lua_State* L, Content* self, String filename) {
+	auto res = self->getAttr(filename);
+	if (res) {
+		lua_pushinteger(L, res.value().size);
+		lua_pushboolean(L, res.value().isBinary ? 1 : 0);
+		return 2;
+	}
+	lua_pushnil(L);
+	return 1;
+}
+
 int Content_searchFilesAsync(lua_State* L) {
 #ifndef TOLUA_RELEASE
 	tolua_Error tolua_err;

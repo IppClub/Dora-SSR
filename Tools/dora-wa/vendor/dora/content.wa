@@ -54,6 +54,9 @@ func content_remove(path: i64) => i32
 #wa:import dora content_get_full_path
 func content_get_full_path(filename: i64) => i64
 
+#wa:import dora content_get_attr
+func content_get_attr(filename: i64) => i64
+
 #wa:import dora content_add_search_path
 func content_add_search_path(path: i64)
 
@@ -163,6 +166,14 @@ func _Content.Remove(path: string) => bool {
 }
 func _Content.GetFullPath(filename: string) => string {
 	return FromDoraString(content_get_full_path(ToDoraString(filename)))
+}
+func _Content.GetAttr(filename: string) => *Array {
+	ptr_ := content_get_attr(ToDoraString(filename))
+	if ptr_ == 0 {
+		return nil
+	}
+	obj_ := *ArrayFrom(ptr_)
+	return &obj_
 }
 func _Content.AddSearchPath(path: string) {
 	content_add_search_path(ToDoraString(path))

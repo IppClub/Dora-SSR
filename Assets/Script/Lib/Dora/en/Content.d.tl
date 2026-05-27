@@ -83,6 +83,11 @@ local record Content
 	-- @return (string) The full path of the file.
 	getFullPath: function(self: Content, filename: string): string
 
+	-- Gets file attributes including byte size and whether the file is likely binary.
+	-- @param filename (string) The name of the file to inspect.
+	-- @return (integer | nil, boolean | nil) The file size and binary flag, or nil when the file is not found.
+	getAttr: function(self: Content, filename: string): integer | nil, boolean | nil
+
 	-- Inserts a search path at the specified index.
 	-- @param index (integer) The index at which to insert the search path.
 	-- @param path (string) The search path to insert.

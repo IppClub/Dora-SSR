@@ -25,6 +25,11 @@ public:
 	bool exist(String filename);
 	bool isFolder(String path);
 	bool isAbsolutePath(String strPath);
+	struct FileAttr {
+		int64_t size = 0;
+		bool isBinary = false;
+	};
+	std::optional<FileAttr> getAttr(String filename);
 	std::string getFullPath(String filename);
 	std::list<std::string> getFullPathsToTry(String filename);
 	std::pair<OwnArray<uint8_t>, size_t> load(String filename);

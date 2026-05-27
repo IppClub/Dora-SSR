@@ -196,6 +196,14 @@ bool ZipFile::isOK() const {
 	return _file != nullptr;
 }
 
+std::optional<size_t> ZipFile::getFileSize(const std::string& filename) const {
+	if (!_file || filename.empty()) return std::nullopt;
+	std::string searchName = getSearchName(filename);
+	auto it = _file->fileList.find(searchName);
+	if (it == _file->fileList.end()) return std::nullopt;
+	return s_cast<size_t>(it->second.size);
+}
+
 uint8_t* ZipFile::getFileDataUnsafe(const std::string& filename, size_t* size) {
 	uint8_t* buffer = nullptr;
 	if (size) *size = 0;

@@ -41,10 +41,13 @@ namespace fs = std::filesystem;
 #include "SDL.h"
 
 #include <atomic>
+#include <cstring>
 #include <thread>
 
 #define TINY_REGEX_IMPLEMENTATION
 #include "tiny-regex-c/tiny_regex.h"
+
+#define DORA_BINARY_CHECK_SIZE 8000
 
 static void releaseFileData(void* _ptr, void* _userData) {
 	DORA_UNUSED_PARAM(_userData);
@@ -73,6 +76,11 @@ std::string Content::getAndroidAssetName(String fullPath) const {
 static std::mutex pathCacheMutex;
 
 Content::~Content() { }
+
+static bool isBinaryData(const uint8_t* data, size_t size) {
+	size_t n = size < DORA_BINARY_CHECK_SIZE ? size : DORA_BINARY_CHECK_SIZE;
+	return memchr(data, 0, n) != nullptr;
+}
 
 static void trimTrailingSlashes(std::string& str) {
 	while (!str.empty() && (str.back() == '\\' || str.back() == '/')) {
@@ -1357,6 +1365,56 @@ bool Content::exist(String filename) {
 
 bool Content::isFolder(String path) {
 	return Content::isPathFolder(Content::getFullPath(path));
+}
+
+std::optional<Content::FileAttr> Content::getAttr(String filename) {
+	if (filename.empty()) {
+		return std::nullopt;
+	}
+	auto fullPathAndPackage = Content::getFullPathAndPackage(filename);
+	FileAttr attr;
+	if (fullPathAndPackage.zipFile) {
+		auto size = fullPathAndPackage.zipFile->getFileSize(fullPathAndPackage.zipRelativePath);
+		if (!size) return std::nullopt;
+		attr.size = s_cast<int64_t>(*size);
+		fullPathAndPackage.zipFile->getFileDataByChunks(fullPathAndPackage.zipRelativePath, [&](uint8_t* buffer, int size) {
+			attr.isBinary = isBinaryData(buffer, s_cast<size_t>(size));
+			return true;
+		});
+		return attr;
+	}
+	std::string fullPath = fullPathAndPackage.fullPath;
+#if BX_PLATFORM_ANDROID
+	if (isAndroidAsset(fullPath)) {
+		std::string assetName = getAndroidAssetName(fullPath);
+		auto size = _apkFile->getFileSize(assetName);
+		if (!size) return std::nullopt;
+		attr.size = s_cast<int64_t>(*size);
+		_apkFile->getFileDataByChunks(assetName, [&](uint8_t* buffer, int size) {
+			attr.isBinary = isBinaryData(buffer, s_cast<size_t>(size));
+			return true;
+		});
+		return attr;
+	}
+#endif // BX_PLATFORM_ANDROID
+	std::error_code err;
+	if (!fs::is_regular_file(fullPath, err) || err) {
+		return std::nullopt;
+	}
+	auto fileSize = fs::file_size(fullPath, err);
+	if (err) {
+		return std::nullopt;
+	}
+	attr.size = s_cast<int64_t>(fileSize);
+	FILE* fp = fopen(fullPath.c_str(), "rb");
+	if (!fp) {
+		return std::nullopt;
+	}
+	DEFER(fclose(fp));
+	uint8_t buffer[DORA_COPY_BUFFER_SIZE];
+	size_t readSize = fread(buffer, sizeof(uint8_t), DORA_COPY_BUFFER_SIZE, fp);
+	attr.isBinary = isBinaryData(buffer, readSize);
+	return attr;
 }
 
 std::list<std::string> Content::getDirEntries(String path, bool isFolder) {
