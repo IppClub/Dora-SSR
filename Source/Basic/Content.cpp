@@ -1377,9 +1377,12 @@ std::optional<Content::FileAttr> Content::getAttr(String filename) {
 		auto size = fullPathAndPackage.zipFile->getFileSize(fullPathAndPackage.zipRelativePath);
 		if (!size) return std::nullopt;
 		attr.size = s_cast<int64_t>(*size);
+		size_t readTotal = 0;
 		fullPathAndPackage.zipFile->getFileDataByChunks(fullPathAndPackage.zipRelativePath, [&](uint8_t* buffer, int size) {
-			attr.isBinary = isBinaryData(buffer, s_cast<size_t>(size));
-			return true;
+			size_t readSize = std::min(s_cast<size_t>(size), s_cast<size_t>(DORA_BINARY_CHECK_SIZE) - readTotal);
+			attr.isBinary = isBinaryData(buffer, readSize);
+			readTotal += readSize;
+			return attr.isBinary || readTotal >= DORA_BINARY_CHECK_SIZE;
 		});
 		return attr;
 	}
@@ -1390,9 +1393,12 @@ std::optional<Content::FileAttr> Content::getAttr(String filename) {
 		auto size = _apkFile->getFileSize(assetName);
 		if (!size) return std::nullopt;
 		attr.size = s_cast<int64_t>(*size);
+		size_t readTotal = 0;
 		_apkFile->getFileDataByChunks(assetName, [&](uint8_t* buffer, int size) {
-			attr.isBinary = isBinaryData(buffer, s_cast<size_t>(size));
-			return true;
+			size_t readSize = std::min(s_cast<size_t>(size), s_cast<size_t>(DORA_BINARY_CHECK_SIZE) - readTotal);
+			attr.isBinary = isBinaryData(buffer, readSize);
+			readTotal += readSize;
+			return attr.isBinary || readTotal >= DORA_BINARY_CHECK_SIZE;
 		});
 		return attr;
 	}
@@ -1406,13 +1412,13 @@ std::optional<Content::FileAttr> Content::getAttr(String filename) {
 		return std::nullopt;
 	}
 	attr.size = s_cast<int64_t>(fileSize);
-	FILE* fp = fopen(fullPath.c_str(), "rb");
-	if (!fp) {
+	SDL_RWops* io = SDL_RWFromFile(fullPath.c_str(), "rb");
+	if (!io) {
 		return std::nullopt;
 	}
-	DEFER(fclose(fp));
-	uint8_t buffer[DORA_COPY_BUFFER_SIZE];
-	size_t readSize = fread(buffer, sizeof(uint8_t), DORA_COPY_BUFFER_SIZE, fp);
+	DEFER(SDL_RWclose(io));
+	uint8_t buffer[DORA_BINARY_CHECK_SIZE];
+	size_t readSize = SDL_RWread(io, buffer, sizeof(uint8_t), DORA_BINARY_CHECK_SIZE);
 	attr.isBinary = isBinaryData(buffer, readSize);
 	return attr;
 }
