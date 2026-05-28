@@ -44,15 +44,22 @@ export var Runner = function({
 	}) {
 	const self = this;
 	this.name = 'Runner';
+	const t = (key, params) => app.t(`runner.${key}`, params);
+	const typeLabels = {
+		string: () => t('typeString'),
+		number: () => t('typeNumber'),
+		boolean: () => t('typeBoolean'),
+	};
 
 	onLoad(() => {
 		// create a button in the file menu
 		createButton(self.name, {
-			name: 'Variables',
-			title: 'Playtest variables',
+			name: t('variables'),
+			title: t('playtestVariables'),
 			attachTo: 'fileMenuDropdown',
 			onClick: 'onOpenDialog()',
 			iconName: 'cog',
+			id: 'runnerVariablesButton',
 		});
 	});
 
@@ -75,11 +82,11 @@ export var Runner = function({
 				row.dataset.index = String(index);
 
 				const nameField = createElement('label', 'variables-editor-field variables-editor-name');
-				nameField.appendChild(createElement('span', null, 'Name'));
+				nameField.appendChild(createElement('span', null, t('name')));
 				const nameInput = createElement('input');
 				nameInput.type = 'text';
 				nameInput.value = variable.key;
-				nameInput.placeholder = 'variable_name';
+				nameInput.placeholder = t('variableNamePlaceholder');
 				nameInput.pattern = '[A-Za-z_][A-Za-z0-9_]*';
 				nameInput.autocomplete = 'off';
 				nameInput.addEventListener('input', event => {
@@ -89,10 +96,10 @@ export var Runner = function({
 				nameField.appendChild(nameInput);
 
 				const typeField = createElement('label', 'variables-editor-field variables-editor-type');
-				typeField.appendChild(createElement('span', null, 'Type'));
+				typeField.appendChild(createElement('span', null, t('type')));
 				const typeSelect = createElement('select');
 				variableTypes.forEach(type => {
-					const option = createElement('option', null, type);
+					const option = createElement('option', null, typeLabels[type]());
 					option.value = type;
 					option.selected = variable.type === type;
 					typeSelect.appendChild(option);
@@ -112,7 +119,7 @@ export var Runner = function({
 				typeField.appendChild(typeSelect);
 
 				const valueField = createElement('label', 'variables-editor-field variables-editor-value');
-				valueField.appendChild(createElement('span', null, 'Value'));
+				valueField.appendChild(createElement('span', null, t('value')));
 				let valueControl;
 				if (variable.type === 'boolean') {
 					valueControl = createElement('select');
@@ -137,7 +144,7 @@ export var Runner = function({
 				});
 				valueField.appendChild(valueControl);
 
-				const deleteButton = createElement('button', 'variables-editor-delete', 'Delete');
+				const deleteButton = createElement('button', 'variables-editor-delete', t('delete'));
 				deleteButton.type = 'button';
 				deleteButton.addEventListener('click', () => {
 					variableRows.splice(index, 1);
@@ -152,22 +159,22 @@ export var Runner = function({
 			});
 
 			if (variableRows.length === 0) {
-				list.appendChild(createElement('div', 'variables-editor-empty', 'No variables yet.'));
+				list.appendChild(createElement('div', 'variables-editor-empty', t('noVariables')));
 			}
 		};
 
 		const { value: formValues } = await Swal.fire({
-			title: 'Playtest starting variables',
+			title: t('playtestStartingVariables'),
 			html: `
 				<div class="variables-editor">
 					<div class="variables-editor-header">
-						<span>Name</span>
-						<span>Type</span>
-						<span>Value</span>
+						<span>${t('name')}</span>
+						<span>${t('type')}</span>
+						<span>${t('value')}</span>
 						<span></span>
 					</div>
 					<div class="variables-editor-rows" id="variablesEditorRows"></div>
-					<button class="variables-editor-add" id="variablesEditorAdd" type="button">Add Variable</button>
+					<button class="variables-editor-add" id="variablesEditorAdd" type="button">${t('addVariable')}</button>
 				</div>
 			`,
 			focusConfirm: false,
@@ -191,7 +198,7 @@ export var Runner = function({
 					.filter(variable => variable.key.trim() !== '');
 				const invalidName = sanitizedRows.find(variable => !/^[A-Za-z_][A-Za-z0-9_]*$/.test(variable.key));
 				if (invalidName) {
-					Swal.showValidationMessage('Variable names must start with a letter or underscore and contain only letters, numbers, or underscores.');
+					Swal.showValidationMessage(t('invalidVariableName'));
 					return false;
 				}
 				const invalidNumber = sanitizedRows.find(variable => (
@@ -199,7 +206,7 @@ export var Runner = function({
 					(variable.value.trim() === '' || !Number.isFinite(Number(variable.value)))
 				));
 				if (invalidNumber) {
-					Swal.showValidationMessage('Number variables require a valid numeric value.');
+					Swal.showValidationMessage(t('invalidNumber'));
 					return false;
 				}
 				return sanitizedRows.map(variable => ({
@@ -339,7 +346,7 @@ export var Runner = function({
 		onYarnEditorOpen(() => {
 			createButton(self.name, {
 				iconName: 'play',
-				title: 'Preview',
+				title: t('preview'),
 				attachTo: 'bbcodeToolbar',
 				onClick: 'togglePlayMode(true)',
 				className: 'bbcode-button bbcode-button-right',

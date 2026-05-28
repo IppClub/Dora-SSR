@@ -6,7 +6,8 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-import { memo } from "react";
+import { memo, useCallback, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import * as Service from "./Service";
 import { convertYarnTextToJson } from "./YarnConvert";
 
@@ -26,7 +27,24 @@ export interface YarnEditorProps {
 };
 
 const YarnEditor = memo((props: YarnEditorProps) => {
+	const frameRef = useRef<HTMLIFrameElement>(null);
+	const { i18n, t } = useTranslation();
+	const language = i18n.language.match(/^zh/i) ? "zh" : "en";
+	const initialLanguage = useRef(language);
+
+	const syncLanguage = useCallback((win: Window) => {
+		const event = new Event("YarnEditorSetLanguage") as Event & { language?: string };
+		event.language = language;
+		win.dispatchEvent(event);
+	}, [language]);
+
+	useEffect(() => {
+		const win = frameRef.current?.contentWindow;
+		if (win) syncLanguage(win);
+	}, [syncLanguage]);
+
 	return <iframe
+		ref={frameRef}
 		width={props.width}
 		height={props.height}
 		title={props.title}
@@ -34,8 +52,10 @@ const YarnEditor = memo((props: YarnEditorProps) => {
 			if (e.currentTarget.contentWindow === null) return;
 
 			const win = e.currentTarget.contentWindow as any;
+			syncLanguage(win);
 			const setupYarnEditor = () => {
 				if (!win.app?.data) return false;
+				syncLanguage(win);
 
 				win.addEventListener("yarnSavedStateToLocalStorage", () => {
 					props.onChange();
@@ -60,12 +80,12 @@ const YarnEditor = memo((props: YarnEditorProps) => {
 							(event as any).syntaxError = res.syntaxError;
 							win.document.dispatchEvent(event);
 						} else {
-							(event as any).syntaxError = "Failed to check syntax";
+							(event as any).syntaxError = t("yarn.failedSyntaxCheck", "Failed to check syntax");
 							win.document.dispatchEvent(event);
 						}
 					}).catch(() => {
 						const event = new Event("YarnChecked");
-						(event as any).syntaxError = "Failed to check syntax";
+						(event as any).syntaxError = t("yarn.failedSyntaxCheck", "Failed to check syntax");
 						win.document.dispatchEvent(event);
 					});
 				});
@@ -95,7 +115,7 @@ const YarnEditor = memo((props: YarnEditorProps) => {
 				win.addEventListener("YarnEditorReady", setupYarnEditor, { once: true });
 			}
 		}}
-		src="yarn-editor/index.html"
+		src={`yarn-editor/index.html?lang=${initialLanguage.current}`}
 		style={{
 			border: 'none',
 			overflowY: 'hidden',
