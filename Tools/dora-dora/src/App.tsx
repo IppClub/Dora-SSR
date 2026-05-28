@@ -20,7 +20,7 @@ import FileTabBar, { TabMenuEvent, TabStatus } from './FileTabBar';
 import Info from './Info';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
-import { Alert, AlertColor, Button, Collapse, DialogActions, DialogContent, DialogContentText, InputAdornment, TextField, Container, Link, Typography, Checkbox, FormControlLabel, Tooltip, Stack, MenuItem } from '@mui/material';
+import { AlertColor, Button, Collapse, DialogActions, DialogContent, DialogContentText, InputAdornment, TextField, Container, Link, Typography, Checkbox, FormControlLabel, Tooltip, Stack, MenuItem } from '@mui/material';
 import NewFileDialog, { DoraFileType } from './NewFileDialog';
 import logo from './logo.svg';
 import { TransitionGroup } from 'react-transition-group';
@@ -595,6 +595,15 @@ const transitionProps = {
 let writablePath = "";
 let assetPath = "";
 
+const getAlertAccentColor = (type: AlertColor) => {
+	switch (type) {
+		case "success": return "#4caf50";
+		case "warning": return Color.Warning;
+		case "error": return Color.Error;
+		default: return "#29a7e8";
+	}
+};
+
 export default function PersistentDrawerLeft() {
 	const { t } = useTranslation();
 	const [alerts, setAlerts] = useState<{
@@ -602,7 +611,10 @@ export default function PersistentDrawerLeft() {
 		key: string,
 		type: AlertColor,
 		openLog?: boolean,
+		count: number,
+		pulse: number,
 	}[]>([]);
+	const alertTimersRef = useRef(new Map<string, number>());
 	const [isWaSaving, setIsWaSaving] = useState(false);
 	const [drawerOpen, setDrawerOpen] = useState(true);
 	const [tabIndex, setTabIndex] = useState<number | null>(null);
@@ -656,8 +668,9 @@ export default function PersistentDrawerLeft() {
 		width: window.innerWidth,
 		height: window.innerHeight
 	});
+	const statusBarHeight = 26;
 	const editorWidth = winSize.width - (drawerOpen ? drawerWidth : 0);
-	const editorHeight = winSize.height - 48;
+	const editorHeight = winSize.height - 48 - statusBarHeight;
 	const showFullLogo = drawerWidth > 235;
 
 	const [openLog, setOpenLog] = useState<{ title: string, stopOnClose: boolean } | null>(null);
@@ -673,21 +686,68 @@ export default function PersistentDrawerLeft() {
 	const updateFileFlushTimerRef = useRef<number | null>(null);
 	const openFileInTabRef = useRef<(key: string, title: string, folder: boolean, position?: monaco.IPosition, readOnly?: boolean) => void>(() => { });
 
+	const removeAlert = useCallback((key: string) => {
+		const timer = alertTimersRef.current.get(key);
+		if (timer !== undefined) {
+			window.clearTimeout(timer);
+			alertTimersRef.current.delete(key);
+		}
+		setAlerts((prevState) => prevState.filter(a => a.key !== key));
+	}, []);
+
 	const addAlert = useCallback((msg: string, type: AlertColor, openLog?: boolean) => {
-		const key = msg + Date.now().toString();
+		const key = `${type}:${openLog ? "1" : "0"}:${msg}`;
+		const prevTimer = alertTimersRef.current.get(key);
+		if (prevTimer !== undefined) {
+			window.clearTimeout(prevTimer);
+		}
 		setAlerts((prevState) => {
-			return [...prevState, {
-				msg,
-				key,
-				type,
-				openLog,
-			}];
+			const index = prevState.findIndex(item => item.key === key);
+			const nextState = [...prevState];
+			if (index >= 0) {
+				const item = nextState[index];
+				nextState.splice(index, 1);
+				nextState.push({
+					...item,
+					count: item.count + 1,
+					pulse: item.pulse + 1,
+					openLog: item.openLog || openLog,
+				});
+			} else {
+				nextState.push({
+					msg,
+					key,
+					type,
+					openLog,
+					count: 1,
+					pulse: 0,
+				});
+			}
+			const visible = nextState.slice(-3);
+			for (const item of nextState.slice(0, -3)) {
+				const timer = alertTimersRef.current.get(item.key);
+				if (timer !== undefined) {
+					window.clearTimeout(timer);
+					alertTimersRef.current.delete(item.key);
+				}
+			}
+			return visible;
 		});
-		setTimeout(() => {
-			setAlerts((prevState) => {
-				return prevState.filter(a => a.key !== key);
-			});
+		const timer = window.setTimeout(() => {
+			alertTimersRef.current.delete(key);
+			setAlerts((prevState) => prevState.filter(a => a.key !== key));
 		}, 5000);
+		alertTimersRef.current.set(key, timer);
+	}, []);
+
+	useEffect(() => {
+		const alertTimers = alertTimersRef.current;
+		return () => {
+			for (const timer of alertTimers.values()) {
+				window.clearTimeout(timer);
+			}
+			alertTimers.clear();
+		};
 	}, []);
 
 	const [disconnected, setDisconnected] = useState(true);
@@ -3996,19 +4056,18 @@ export default function PersistentDrawerLeft() {
 					drawerWidth={drawerWidth}
 					isResizing={isResizing}
 				>
-					<Toolbar variant='dense' sx={{
+					<Toolbar disableGutters variant='dense' sx={{
 						backgroundColor: Color.BackgroundDark,
 						width: "100%",
 						color: Color.Primary,
 						minHeight: 48,
-						pr: 1,
+						pl: 2.2
 					}}>
 						<IconButton
 							color="inherit"
 							aria-label="open drawer"
 							onClick={handleDrawerOpen}
 							edge="start"
-							disableRipple
 							sx={{
 								width: 36,
 								height: 36,
@@ -4022,8 +4081,7 @@ export default function PersistentDrawerLeft() {
 						>
 							{drawerOpen ? <Fullscreen /> : <FullscreenExit />}
 						</IconButton>
-						<PlayControl onClick={onPlayControlClick} />
-						<Box sx={{ flex: 1, minWidth: 0 }}>
+						<Box sx={{ flex: 1, minWidth: 0, m: 0, p: 0 }}>
 							<FileTabBar
 								index={tabIndex}
 								items={files}
@@ -4091,7 +4149,6 @@ export default function PersistentDrawerLeft() {
 									<IconButton
 										size="small"
 										color="inherit"
-										disableRipple
 										aria-pressed={leftDockTab === "explorer"}
 										onClick={() => setLeftDockTab("explorer")}
 										sx={{
@@ -4107,7 +4164,6 @@ export default function PersistentDrawerLeft() {
 									<IconButton
 										size="small"
 										color="inherit"
-										disableRipple
 										aria-pressed={leftDockTab === "tools"}
 										onClick={() => {
 											setLeftDockTab("tools");
@@ -4126,7 +4182,6 @@ export default function PersistentDrawerLeft() {
 									<IconButton
 										size="small"
 										color="inherit"
-										disableRipple
 										aria-pressed={leftDockTab === "search"}
 										onClick={() => setLeftDockTab("search")}
 										sx={{
@@ -4172,7 +4227,6 @@ export default function PersistentDrawerLeft() {
 										size="small"
 										variant="outlined"
 										onClick={() => setEntryView("tool")}
-										disableRipple
 										sx={{
 											textTransform: "none",
 											minWidth: 0,
@@ -4192,7 +4246,6 @@ export default function PersistentDrawerLeft() {
 										size="small"
 										variant="outlined"
 										onClick={() => setEntryView("game")}
-										disableRipple
 										sx={{
 											textTransform: "none",
 											minWidth: 0,
@@ -4793,21 +4846,106 @@ export default function PersistentDrawerLeft() {
 				{files.length > 0 ? null :
 					<KeyboardShortcuts />
 				}
-				<div style={{ position: 'fixed', left: winSize.width - editorWidth, bottom: 0, width: editorWidth, zIndex: 998, transition: 'all 0.2s' }} hidden={!openBottomLog}>
+				<div style={{ position: 'fixed', left: winSize.width - editorWidth, bottom: statusBarHeight, width: editorWidth, zIndex: 998, transition: 'all 0.2s' }} hidden={!openBottomLog}>
 					<BottomLog height={editorHeight * 0.3} />
 				</div>
+				<Box sx={{
+					position: 'fixed',
+					left: winSize.width - editorWidth,
+					bottom: 0,
+					width: editorWidth,
+					height: statusBarHeight,
+					zIndex: 999,
+					display: 'flex',
+					alignItems: 'center',
+					justifyContent: 'space-between',
+					px: 1,
+					backgroundColor: Color.BackgroundDark,
+					color: Color.TextSecondary,
+					fontSize: 12,
+					lineHeight: `${statusBarHeight}px`,
+				}}>
+					<Box sx={{
+						minWidth: 0,
+						overflow: 'hidden',
+						textOverflow: 'ellipsis',
+						whiteSpace: 'nowrap',
+					}}>
+					</Box>
+					<Box sx={{ display: 'flex', alignItems: 'center', height: '100%', flexShrink: 0 }}>
+						<PlayControl compact onClick={onPlayControlClick} />
+					</Box>
+				</Box>
 				<div style={{ zIndex: 1200 }}>
 					<StyledStack>
 						<TransitionGroup>
 							{alerts.map((item) => (
 								<Collapse key={item.key} timeout='auto'>
-									<Alert variant='filled' onClose={() => {
-										const newAlerts = alerts.filter(a => a.key !== item.key);
-										setAlerts(newAlerts);
-									}} severity={item.type} color={item.type} style={{ margin: 5 }}>
-										{item.msg}
-										{item.openLog ? <>&emsp;[<Link color="inherit" onClick={() => onPlayControlClick("View Log")}>{t("menu.viewLog")}</Link>]</> : null}
-									</Alert>
+									<Box sx={{
+										display: 'flex',
+										alignItems: 'center',
+										gap: 1,
+										width: 300,
+										minHeight: 40,
+										mb: 0.75,
+										pr: 0.5,
+										backgroundColor: 'rgba(24, 24, 24, 0.94)',
+										border: `1px solid ${Color.Line}`,
+										borderLeft: `3px solid ${getAlertAccentColor(item.type)}`,
+										boxShadow: '0 8px 24px rgba(0, 0, 0, 0.28)',
+										color: Color.TextPrimary,
+									}}>
+										<Box sx={{
+											flex: 1,
+											minWidth: 0,
+											py: 0.75,
+											pl: 1.25,
+											fontSize: 13,
+											lineHeight: 1.35,
+											overflow: 'hidden',
+											textOverflow: 'ellipsis',
+											whiteSpace: 'nowrap',
+										}}>
+											{item.msg}
+											{item.count > 1 ? (
+												<Box
+													key={`${item.key}:${item.pulse}`}
+													component="span"
+													className="dora-alert-count-pulse"
+													sx={{
+														ml: 0.75,
+														color: Color.Theme,
+														fontWeight: 700,
+														display: 'inline-block',
+													}}
+												>
+													x{item.count}
+												</Box>
+											) : null}
+											{item.openLog ? (
+												<Link color="inherit" underline="hover" onClick={() => onPlayControlClick("View Log")} sx={{ ml: 1, color: Color.Theme, cursor: 'pointer', fontSize: 12 }}>
+													{t("menu.viewLog")}
+												</Link>
+											) : null}
+										</Box>
+										<IconButton
+											size="small"
+											aria-label="close alert"
+											onClick={() => removeAlert(item.key)}
+											sx={{
+												width: 28,
+												height: 28,
+												color: Color.TextSecondary,
+												borderRadius: 1,
+												'&:hover': {
+													backgroundColor: Color.Line,
+													color: Color.TextPrimary,
+												},
+											}}
+										>
+											x
+										</IconButton>
+									</Box>
 								</Collapse>
 							))}
 						</TransitionGroup>

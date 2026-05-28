@@ -259,7 +259,6 @@ const FileSearchPanel = (props: FileSearchDialogProps) => {
 											<IconButton
 												size="small"
 												onClick={runSearch}
-												disableRipple
 												sx={{
 													width: 36,
 													height: 36,
@@ -280,7 +279,6 @@ const FileSearchPanel = (props: FileSearchDialogProps) => {
 						<IconButton
 							size="small"
 							onClick={() => setIncludeEnabled(prev => !prev)}
-							disableRipple
 							sx={{
 								width: 28,
 								height: 28,
@@ -297,7 +295,6 @@ const FileSearchPanel = (props: FileSearchDialogProps) => {
 						<IconButton
 							size="small"
 							onClick={() => setCaseSensitive(prev => !prev)}
-							disableRipple
 							sx={{
 								width: 28,
 								height: 28,
@@ -314,7 +311,6 @@ const FileSearchPanel = (props: FileSearchDialogProps) => {
 						<IconButton
 							size="small"
 							onClick={() => setUseRegex(prev => !prev)}
-							disableRipple
 							sx={{
 								width: 28,
 								height: 28,

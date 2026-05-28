@@ -48,5 +48,5 @@ export const StyledMenu = styled((props: MenuProps) => (
 }));
 
 export function StyledMenuItem(props: MenuItemProps) {
-	return <MenuItem disableRipple {...props} />;
+	return <MenuItem {...props} />;
 }
