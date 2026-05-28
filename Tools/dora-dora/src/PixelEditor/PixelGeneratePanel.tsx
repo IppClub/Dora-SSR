@@ -244,6 +244,7 @@ export default function PixelGeneratePanel(props: PixelGeneratePanelProps) {
 		{isGoogleImageProvider(providerId) ? <TextField
 			size="small"
 			label={`${selectedProvider.name} endpoint`}
+			placeholder={selectedProvider.endpointPlaceholder}
 			value={providerEndpoint}
 			disabled={readOnly || generating}
 			onChange={(event) => {

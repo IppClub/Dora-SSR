@@ -1087,8 +1087,8 @@ function saveStepLLMDebugOutput(shared: AgentShared, stepId: number, phase: stri
 	updateLatestStepLLMDebugOutput(shared, stepId, sections.join("\n"));
 }
 
-function toJson(value: unknown): string {
-	const [text, err] = safeJsonEncode(value as object);
+function toJson(value: unknown, emptyAsArray = true): string {
+	const [text, err] = safeJsonEncode(value as object, false, emptyAsArray);
 	if (text !== undefined) return text;
 	return `{ "error": "json_encode_failed", "message": "${tostring(err)}" }`;
 }
@@ -1778,7 +1778,7 @@ function appendAssistantToolCallsMessage(
 			type: "function",
 			function: {
 				name: action.tool,
-				arguments: toJson(action.params),
+				arguments: toJson(action.params, false),
 			},
 		})),
 	});
@@ -2299,6 +2299,57 @@ function buildSkillsSection(shared: AgentShared): string {
 }
 
 function sanitizeMessagesForLLMInput(messages: Message[]): Message[] {
+	function sanitizeAssistantToolCalls(message: Message): Message {
+		const toolCalls = message.tool_calls;
+		if (!toolCalls || toolCalls.length === 0) return message;
+		let changed = false;
+		const sanitizedToolCalls = toolCalls.map(toolCall => {
+			const fn = toolCall.function ?? {};
+			const raw = typeof fn.arguments === "string" ? fn.arguments.trim() : "";
+			let safeArguments = "{}";
+			if (raw !== "") {
+				const [decoded, err] = safeJsonDecode(raw);
+				let encodedRaw: string | undefined = undefined;
+				if (err === undefined && decoded !== undefined) {
+					[encodedRaw] = safeJsonEncode(decoded as object, false, false);
+				}
+				if (
+					encodedRaw !== undefined
+					&& encodedRaw !== "null"
+					&& raw[0] !== "["
+					&& !Array.isArray(decoded)
+					&& decoded !== null
+					&& typeof decoded === "object"
+				) {
+					safeArguments = encodedRaw;
+				} else {
+					changed = true;
+					Log("Warn", `[CodingAgent] replacing invalid historical tool-call arguments with {}`);
+				}
+			}
+			if (
+				toolCall.type !== "function"
+				|| toolCall.function === undefined
+				|| fn.arguments !== safeArguments
+			) {
+				changed = true;
+			}
+			return {
+				...toolCall,
+				type: "function",
+				function: {
+					...fn,
+					arguments: safeArguments,
+				},
+			};
+		});
+		if (!changed) return message;
+		return {
+			...message,
+			tool_calls: sanitizedToolCalls,
+		};
+	}
+
 	const sanitized: Message[] = [];
 	let droppedAssistantToolCalls = 0;
 	let droppedToolResults = 0;
@@ -2314,7 +2365,7 @@ function sanitizeMessagesForLLMInput(messages: Message[]): Message[] {
 				}
 			}
 			if (requiredIds.length === 0) {
-				sanitized.push(message);
+				sanitized.push(sanitizeAssistantToolCalls(message));
 				continue;
 			}
 			const matchedIds: Record<string, boolean> = {};
@@ -2340,7 +2391,7 @@ function sanitizeMessagesForLLMInput(messages: Message[]): Message[] {
 				}
 			}
 			if (complete) {
-				sanitized.push(message, ...matchedTools);
+				sanitized.push(sanitizeAssistantToolCalls(message), ...matchedTools);
 			} else {
 				droppedAssistantToolCalls += 1;
 				droppedToolResults += matchedTools.length;
@@ -2857,6 +2908,82 @@ class MainDecisionAgent extends Node<AgentShared> {
 
 		if (shared.decisionMode === "tool_calling") {
 			Log("Info", `[CodingAgent] decision mode=tool_calling step=${shared.step + 1} messages=${getUnconsolidatedMessages(shared).length}`);
+			function containsAnyText(text: string, needles: string[]): boolean {
+				for (let i = 0; i < needles.length; i++) {
+					if (text.indexOf(needles[i]) >= 0) return true;
+				}
+				return false;
+			}
+			function shouldFallbackToolCallingToXml(message: string, raw?: string): boolean {
+				const text = `${message ?? ""}\n${raw ?? ""}`.toLowerCase();
+				if (text.indexOf("missing tool call") >= 0) return true;
+				if (containsAnyText(text, [
+					"cancelled",
+					"canceled",
+					"stopped",
+					"no active llm config",
+					"unauthorized",
+					"authentication",
+					"invalid api key",
+					"api key",
+					"forbidden",
+					"permission denied",
+					"insufficient_quota",
+					"quota",
+					"billing",
+					"balance",
+					"rate limit",
+					"too many requests",
+					"context length",
+					"context_length",
+					"maximum context",
+					"max context",
+					"token limit",
+					"too many tokens",
+					"input is too long",
+					"invalid model",
+					"model_not_found",
+					"model not found",
+					"not supported model",
+				])) {
+					return false;
+				}
+				if (
+					text.indexOf("can only get item pairs from a mapping") >= 0
+					|| text.indexOf("item pairs from a mapping") >= 0
+				) {
+					return true;
+				}
+				if (containsAnyText(text, [
+					"tool_choice",
+					"tool_calls",
+					"tool call",
+					"function calling",
+					"function_call",
+					"parallel_tool_calls",
+					"unsupported tool",
+					"tools are not supported",
+					"does not support tools",
+					"doesn't support tools",
+					"does not support function",
+					"doesn't support function",
+					"unsupported parameter: tools",
+					"unsupported parameter: tool_choice",
+					"unknown parameter: tools",
+					"unknown parameter: tool_choice",
+					"unrecognized request argument supplied: tools",
+					"unrecognized request argument supplied: tool_choice",
+				])) {
+					return true;
+				}
+				return containsAnyText(text, [
+					"llm returned no choices",
+					"internalservererror",
+					"internal server error",
+					"/500",
+					" 500",
+				]);
+			}
 			let lastError = "tool calling validation failed";
 			let lastRaw = "";
 			let shouldFallbackToXml = false;
@@ -2877,19 +3004,22 @@ class MainDecisionAgent extends Node<AgentShared> {
 				lastError = decision.message;
 				lastRaw = decision.raw ?? "";
 				Log("Error", `[CodingAgent] tool-calling attempt failed: ${lastError}`);
-				if (lastError === "missing tool call") {
+				if (shouldFallbackToolCallingToXml(lastError, lastRaw)) {
 					shouldFallbackToXml = true;
 					break;
 				}
 			}
 			if (shouldFallbackToXml) {
-				Log("Warn", `[CodingAgent] tool-calling returned no tool calls; falling back to XML decision format`);
-				lastError = "tool-calling returned no tool calls. Return exactly one valid XML tool_call block.";
+				const xmlFallbackPrompt = lastError.indexOf("missing tool call") >= 0
+					? "tool-calling returned no tool calls. Use XML decision format instead. Return exactly one valid XML tool_call block."
+					: `tool-calling provider/function-call format failed (${truncateText(lastError, 220)}). Use XML decision format instead. Return exactly one valid XML tool_call block.`;
+				Log("Warn", `[CodingAgent] tool-calling fallback to XML decision format: ${lastError}`);
+				lastError = xmlFallbackPrompt;
 				for (let attempt = 0; attempt < shared.llmMaxTry; attempt++) {
 					Log("Info", `[CodingAgent] xml fallback attempt=${attempt + 1}`);
 					const decision = await this.callDecisionByXml(
 						shared,
-						attempt > 0 ? lastError : "tool-calling returned no tool calls. Use XML decision format instead.",
+						attempt > 0 ? lastError : xmlFallbackPrompt,
 						attempt + 1,
 						lastRaw
 					);

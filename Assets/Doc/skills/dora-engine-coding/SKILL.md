@@ -135,6 +135,15 @@ Baseline mapping:
 - Screen size: `View.size.width`, `View.size.height`.
 - Coordinates: for nodes attached directly to `Director.entry` without extra transforms, the visible world is commonly centered around `(0, 0)`, so screen bounds are often `±View.size.width / 2`, `±View.size.height / 2`. For child nodes or cameras, compute in that node/camera coordinate space instead of assuming DOM top-left coordinates.
 
+## Animation Guidance Lives in Separate Skills
+
+This always-on skill should stay small. Do not load detailed animation recipes for every Dora coding task.
+
+- For ordinary Dora node animation, transitions, tweens, `Move`/`Scale`/`Sequence`/`Spawn`, or `Model`/`Spine`/`Playable.play()`, use the `dora-animation` skill.
+- For generated image-sprite assets such as `.sprite.json`, `.idle_front.png`, `.idle_back.png`, or frame-rate/duration metadata, use the `image-sprite` skill.
+- If neither skill is loaded but animation code is required, search Dora API before guessing signatures.
+
+
 ## Runtime API Coverage Map
 
 Use this as a decision map. It is not a full API reference; exact signatures come from `search_dora_api`.
@@ -146,7 +155,7 @@ Use this as a decision map. It is not a full API reference; exact signatures com
 | Sprites/assets | `Sprite`, `Content`, `Cache`, `Path` | Search before loading assets |
 | Text/UI/layout | `Label`, `Menu`, `Button`, `AlignNode`, `DoraX` | Search before UI controls/layout |
 | Keyboard/mouse/touch/controller | `Keyboard`, `KeyName`, `Mouse`, node slots | Search beyond simple keyboard |
-| Actions/animation | `Action`, `Move`, `Scale`, `Sequence`, `Playable`, `Model` | Search exact signatures |
+| Actions/animation | `Move`, `Scale`, `Frame`, `Sequence`, `Spawn`, `Playable`, `Model` | Use `dora-animation` for recipes; search exact signatures for advanced animation APIs |
 | Physics/collision | `PhysicsWorld`, `Body`, `BodyDef`, `FixtureDef`, `Sensor` | Always search first |
 | ECS/game architecture | `Entity`, `Group`, components | Always search first |
 | Audio | `Audio`, `AudioSource` | Always search first |
