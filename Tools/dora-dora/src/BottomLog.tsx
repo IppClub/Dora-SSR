@@ -42,27 +42,41 @@ const BottomLog = memo((props: BottomLogProps) => {
 		};
 	}, [t]);
 
-	return <LazyLog
-		height={props.height}
-		text={text}
-		style={{
-			msOverflowStyle: "none",
-			scrollbarWidth: "none",
-			WebkitScrollSnapType: "none",
-			fontSize: 18,
-			fontFamily: "Roboto,Helvetica,Arial,sans-serif",
-			color: Color.TextSecondary,
-			background: Color.BackgroundDark,
-		}}
-		formatPart={formatPart}
-		rowHeight={22}
-		extraLines={1}
-		selectableLines
-		enableSearch
-		caseInsensitive
-		stream
-		follow
-	/>;
+	return <div style={{
+		height: props.height,
+		backgroundColor: Color.BackgroundDark,
+		overflow: "hidden",
+		overscrollBehavior: "contain",
+	}}>
+		<LazyLog
+			height={props.height}
+			text={text}
+			containerStyle={{
+				width: 'auto',
+				maxWidth: 'initial',
+				overflow: 'initial',
+				backgroundColor: Color.BackgroundDark,
+			}}
+			style={{
+				msOverflowStyle: "none",
+				scrollbarWidth: "none",
+				WebkitScrollSnapType: "none",
+				overscrollBehavior: "contain",
+				fontSize: 18,
+				fontFamily: "Roboto,Helvetica,Arial,sans-serif",
+				color: Color.TextSecondary,
+				backgroundColor: Color.BackgroundDark,
+			}}
+			formatPart={formatPart}
+			rowHeight={22}
+			extraLines={1}
+			selectableLines
+			enableSearch
+			caseInsensitive
+			stream
+			follow
+		/>
+	</div>;
 });
 
 export default BottomLog;
