@@ -59,7 +59,7 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 		setInternalView(hasAgent ? "agent" : "upload");
 	}, [view, hasAgent, agentSessionId, uploadPath]);
 
-	const contentHeight = Math.max(height - 78, 0);
+	const contentHeight = Math.max(height - 48, 0);
 	const handleViewChange = (nextView: WorkspaceView) => {
 		setInternalView(nextView);
 		onViewChange?.(nextView);
@@ -68,31 +68,30 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 	return (
 		<Box sx={{ display: "flex", flexDirection: "column", height }}>
 			<Box sx={{ px: 2, py: 1.5, borderBottom: `0.5px solid ${Color.Line}`, background: `linear-gradient(180deg, ${Color.BackgroundDark} 0%, ${Color.Background} 100%)` }}>
-				<Stack direction="row" spacing={1.5} alignItems="center" justifyContent="space-between">
-					<Box sx={{ minWidth: 0 }}>
-						<Typography variant="h5" sx={{ color: Color.TextPrimary, fontWeight: 600, letterSpacing: "-0.02em" }}>
-							<Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0 }}>
-								<span>{title}</span>
-								{hasAgent ? (
-									<Chip
-										size="small"
-										label={t("agent.project")}
-										variant="outlined"
-										sx={{ color: Color.TextSecondary, borderColor: Color.Line, height: 28, borderRadius: 999 }}
-									/>
-								) : null}
-							</Stack>
-						</Typography>
-						<Typography variant="body2" sx={{ color: Color.TextSecondary, display: "block", mt: 0.4 }}>
-							{displayPath ?? uploadPath}
-						</Typography>
+				<Stack direction="row" spacing={1.5} alignItems="center" justifyContent="space-between" sx={{ minWidth: 0 }}>
+					<Box sx={{ minWidth: 0, flex: 1 }}>
+						<Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0 }}>
+							<Typography variant="h5" noWrap sx={{ color: Color.TextPrimary, fontWeight: 600, letterSpacing: "-0.02em", minWidth: 0, flexShrink: 1 }}>
+								{title}
+							</Typography>
+							{hasAgent ? (
+								<Chip
+									size="small"
+									label={t("agent.project")}
+									variant="outlined"
+									sx={{ color: Color.TextSecondary, borderColor: Color.Line, height: 28, borderRadius: 999, flexShrink: 0 }}
+								/>
+							) : null}
+							<Typography variant="body2" noWrap sx={{ color: Color.TextSecondary, minWidth: 0, flex: 1 }}>
+								{displayPath ?? uploadPath}
+							</Typography>
+						</Stack>
 					</Box>
-					<Stack direction="row" spacing={1}>
+					<Stack direction="row" spacing={1} sx={{ flexShrink: 0 }}>
 						{hasAgent ? (
 							<Button
 								size="small"
 								variant={currentView === "agent" ? "contained" : "outlined"}
-								disableRipple
 								onClick={() => handleViewChange("agent")}
 								sx={{
 									color: currentView === "agent" ? Color.BackgroundDark : Color.TextPrimary,
@@ -101,6 +100,7 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 									borderRadius: 3,
 									px: 1.5,
 									minWidth: 0,
+									whiteSpace: "nowrap",
 									"&:hover": {
 										borderColor: Color.Line,
 										backgroundColor: currentView === "agent" ? Color.Theme : "transparent",
@@ -114,7 +114,6 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 							size="small"
 							variant={currentView === "upload" ? "contained" : "outlined"}
 							onClick={() => handleViewChange("upload")}
-							disableRipple
 							sx={{
 								color: currentView === "upload" ? Color.BackgroundDark : Color.TextPrimary,
 								borderColor: Color.Line,
@@ -122,6 +121,7 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 								borderRadius: 3,
 								px: 1.5,
 								minWidth: 0,
+								whiteSpace: "nowrap",
 								"&:hover": {
 									borderColor: Color.Line,
 									backgroundColor: currentView === "upload" ? Color.Theme : "transparent",
@@ -148,7 +148,7 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 					/>
 				) : (
 					<MacScrollbar skin="dark" style={{ width: "100%", height: "100%" }}>
-						<Box sx={{ minHeight: "100%", py: 1 }}>
+						<Box sx={{ minHeight: "100%", py: 3, }}>
 							<DoraUpload
 								onUploaded={onUploaded}
 								title={title}

@@ -9,13 +9,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 import { styled, ThemeProvider } from '@mui/material/styles';
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
 import Stack from '@mui/system/Stack';
-import { Box, Divider, IconButton, ListItemIcon, ListItemText } from '@mui/material';
-import ArrowDropDown from '@mui/icons-material/ArrowDropDown';
+import { Box, Divider, IconButton, Tooltip } from '@mui/material';
 import { BsFillFileEarmarkPlayFill, BsFillPlayFill, BsFillStopFill, BsSearch, BsTerminal, BsGear } from 'react-icons/bs';
-import { memo, useState } from 'react';
+import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { theme, Color } from './Theme';
-import { StyledMenu, StyledMenuItem } from './Menu';
 
 export const Separator = () => <Divider style={{ backgroundColor: Color.Line }} />;
 
@@ -49,8 +47,8 @@ export const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open
 
 export const StyledStack = styled(Stack)(({ theme }) => ({
 	zIndex: 999,
-	width: 'fit-content',
-	top: 55,
+	width: 300,
+	top: 60,
 	flexGrow: 1,
 	position: 'fixed',
 	padding: theme.spacing(0),
@@ -58,7 +56,7 @@ export const StyledStack = styled(Stack)(({ theme }) => ({
 		easing: theme.transitions.easing.sharp,
 		duration: theme.transitions.duration.leavingScreen,
 	}),
-	right: 5,
+	right: 12,
 }));
 
 export interface AppBarProps extends MuiAppBarProps {
@@ -97,118 +95,62 @@ export type PlayControlMode = "Run" | "Run This" | "Stop" | "Go to File" | "View
 
 export interface PlayControlProp {
 	onClick: (mode: PlayControlMode, noLog?: boolean) => void;
+	compact?: boolean;
 }
 
 export const PlayControl = memo((prop: PlayControlProp) => {
-	const [anchorEl, setAnchorEl] = useState<Element | null>(null);
 	const { t } = useTranslation();
-	const open = Boolean(anchorEl);
+	const buttonSize = prop.compact ? 26 : 36;
+	const controlWidth = prop.compact ? undefined : 116;
+	const controlHeight = prop.compact ? 26 : 48;
+	const buttonRadius = prop.compact ? 1 : 1.5;
+	const iconSize = prop.compact ? 16 : undefined;
+	const iconStyle = { fontSize: iconSize };
+	const buttonSx = {
+		width: buttonSize,
+		height: buttonSize,
+		padding: 0,
+		borderRadius: buttonRadius,
+		color: Color.Secondary,
+		backgroundColor: 'transparent',
+		'&:hover': {
+			backgroundColor: Color.Line,
+		},
+		'& svg': {
+			width: iconSize,
+			height: iconSize,
+		},
+	};
 
-	const close = () => {
-		setAnchorEl(null);
-	};
-	const runMode = (mode: PlayControlMode) => () => {
-		close();
-		prop.onClick(mode);
-	};
 	const actions: { mode: PlayControlMode; icon: React.ReactNode; name: string; shortcut?: string }[] = [
-		{ mode: "Run This", icon: <BsFillFileEarmarkPlayFill />, name: t("menu.runThis"), shortcut: "Mod+Shift+R" },
-		{ mode: "View Log", icon: <BsTerminal />, name: t("menu.viewLog"), shortcut: "Mod+." },
-		{ mode: "Go to File", icon: <BsSearch />, name: t("menu.goToFile"), shortcut: "Mod+P" },
-		{ mode: "LLM Config", icon: <BsGear />, name: t("menu.llmConfig") },
+		{ mode: "Run", icon: <BsFillPlayFill style={iconStyle} />, name: t("menu.run"), shortcut: "Mod+R" },
+		{ mode: "Stop", icon: <BsFillStopFill style={iconStyle} />, name: t("menu.stop"), shortcut: "Mod+Q" },
+		{ mode: "Run This", icon: <BsFillFileEarmarkPlayFill style={iconStyle} />, name: t("menu.runThis"), shortcut: "Mod+Shift+R" },
+		{ mode: "View Log", icon: <BsTerminal style={iconStyle} />, name: t("menu.viewLog"), shortcut: "Mod+." },
+		{ mode: "Go to File", icon: <BsSearch style={iconStyle} />, name: t("menu.goToFile"), shortcut: "Mod+P" },
+		{ mode: "LLM Config", icon: <BsGear style={iconStyle} />, name: t("menu.llmConfig") },
 	];
 	return <Box style={{
 		backgroundColor: "#0000",
-		width: "116px",
-		height: "48px",
+		width: controlWidth === undefined ? "auto" : `${controlWidth}px`,
+		height: `${controlHeight}px`,
 		color: Color.Primary,
 		flexShrink: 0,
 		display: "flex",
 		alignItems: "center",
 		justifyContent: "center",
 	}}>
-		<IconButton
-			color="secondary"
-			aria-label="run"
-			disableRipple
-			onClick={runMode("Run")}
-			sx={{
-				width: 36,
-				height: 36,
-				borderRadius: 1.5,
-				color: Color.Secondary,
-				backgroundColor: 'transparent',
-				'&:hover': {
-					backgroundColor: Color.Line,
-				},
-			}}
-		>
-			<BsFillPlayFill />
-		</IconButton>
-		<IconButton
-			color="secondary"
-			aria-label="stop"
-			disableRipple
-			onClick={runMode("Stop")}
-			sx={{
-				width: 36,
-				height: 36,
-				borderRadius: 1.5,
-				color: Color.Secondary,
-				backgroundColor: 'transparent',
-				'&:hover': {
-					backgroundColor: Color.Line,
-				},
-			}}
-		>
-			<BsFillStopFill />
-		</IconButton>
-		<IconButton
-			color="secondary"
-			aria-label="more run actions"
-			aria-expanded={open}
-			disableRipple
-			onClick={(event) => setAnchorEl(event.currentTarget)}
-			sx={{
-				width: 36,
-				height: 36,
-				borderRadius: 1.5,
-				color: Color.Secondary,
-				backgroundColor: 'transparent',
-				'&:hover': {
-					backgroundColor: Color.Line,
-				},
-			}}
-		>
-			<ArrowDropDown fontSize="small" />
-		</IconButton>
-		<StyledMenu
-			anchorEl={anchorEl}
-			autoFocus={false}
-			keepMounted
-			open={open}
-			onClose={close}
-			anchorOrigin={{
-				vertical: 'bottom',
-				horizontal: 'left',
-			}}
-			transformOrigin={{
-				vertical: 'top',
-				horizontal: 'left',
-			}}
-			sx={{
-				'& .MuiPaper-root': {
-					marginTop: 0.5,
-				},
-			}}
-		>
-			{actions.map((action) => (
-				<StyledMenuItem key={action.mode} onClick={runMode(action.mode)}>
-					<ListItemIcon>{action.icon}</ListItemIcon>
-					<ListItemText primary={action.name} />
-					{action.shortcut ? <div style={{ fontSize: 10, color: Color.TextSecondary }}>{action.shortcut}</div> : null}
-				</StyledMenuItem>
-			))}
-		</StyledMenu>
+		{actions.map((action) => (
+			<Tooltip key={action.mode} title={action.shortcut ? `${action.name} ${action.shortcut}` : action.name}>
+				<IconButton
+					color="secondary"
+					aria-label={action.name}
+					onClick={() => prop.onClick(action.mode)}
+					sx={buttonSx}
+				>
+					{action.icon}
+				</IconButton>
+			</Tooltip>
+		))}
 	</Box>;
 });

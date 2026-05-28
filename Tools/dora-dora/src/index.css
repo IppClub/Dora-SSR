@@ -49,6 +49,70 @@ code {
 	background-color: #181818 !important;
 }
 
+@keyframes dora-alert-count-pulse {
+	0% {
+		transform: scale(1);
+		text-shadow: none;
+	}
+
+	35% {
+		transform: scale(1.28);
+		text-shadow: 0 0 10px rgba(250, 192, 61, 0.55);
+	}
+
+	100% {
+		transform: scale(1);
+		text-shadow: none;
+	}
+}
+
+.dora-alert-count-pulse {
+	animation: dora-alert-count-pulse 240ms ease-out;
+}
+
+.react-lazylog,
+.ReactVirtualized__Grid.react-lazylog {
+	scrollbar-width: auto !important;
+	scrollbar-color: hsla(0, 0%, 100%, 0.55) hsla(0, 0%, 82%, 0.14) !important;
+}
+
+.react-lazylog::-webkit-scrollbar,
+.ReactVirtualized__Grid.react-lazylog::-webkit-scrollbar {
+	width: 18px !important;
+	height: 18px !important;
+}
+
+.react-lazylog::-webkit-scrollbar-track,
+.ReactVirtualized__Grid.react-lazylog::-webkit-scrollbar-track {
+	background: hsla(0, 0%, 82%, 0.14) !important;
+	border-left: 1px solid hsla(0, 0%, 89%, 0.32) !important;
+}
+
+.react-lazylog::-webkit-scrollbar-track:horizontal,
+.ReactVirtualized__Grid.react-lazylog::-webkit-scrollbar-track:horizontal {
+	border-left: 0 !important;
+	border-top: 1px solid hsla(0, 0%, 89%, 0.32) !important;
+}
+
+.react-lazylog::-webkit-scrollbar-thumb,
+.ReactVirtualized__Grid.react-lazylog::-webkit-scrollbar-thumb {
+	background: hsla(0, 0%, 100%, 0.55) !important;
+	border: 4px solid transparent !important;
+	border-radius: 9px !important;
+	background-clip: content-box !important;
+}
+
+.react-lazylog::-webkit-scrollbar-thumb:horizontal,
+.ReactVirtualized__Grid.react-lazylog::-webkit-scrollbar-thumb:horizontal {
+	border-radius: 9px !important;
+}
+
+.react-lazylog::-webkit-scrollbar-thumb:hover,
+.ReactVirtualized__Grid.react-lazylog::-webkit-scrollbar-thumb:hover {
+	background: hsla(0, 0%, 100%, 0.7) !important;
+	background-clip: content-box !important;
+}
+
 .blocklyMainBackground {
 	stroke: unset !important;
 }

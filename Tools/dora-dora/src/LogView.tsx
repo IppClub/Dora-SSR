@@ -619,8 +619,6 @@ const LogView = memo((props: LogViewProps) => {
 					height={toggleProfiler ? consoleMinHeight : props.height}
 					text={text}
 					style={{
-						msOverflowStyle: "none",
-						scrollbarWidth: "none",
 						WebkitScrollSnapType: "none",
 						fontSize: 18,
 						fontFamily: "Roboto,Helvetica,Arial,sans-serif",

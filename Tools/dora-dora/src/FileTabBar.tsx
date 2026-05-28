@@ -55,8 +55,10 @@ export const StyledTabs = styled((props: StyledTabsProps) => (
 		variant='scrollable'
 		selectionFollowsFocus
 		{...props}
-		TabIndicatorProps={{
-			children: <span className="MuiTabs-indicatorSpan" />
+		slotProps={{
+			indicator: {
+				children: <span className="MuiTabs-indicatorSpan" />
+			}
 		}}
 	/>
 ))({
@@ -85,12 +87,9 @@ export const StyledTab = styled((props: StyledTabProps) => {
 	const { label, tooltip, onTabClose } = props;
 	const newProps = { ...props };
 	delete newProps.onTabClose;
-	delete newProps.tooltip;
-	delete newProps.label;
 	return (
 		<Tooltip arrow title={tooltip}>
 			<Tab
-				disableRipple
 				{...newProps}
 				label={
 					<Box component="span" sx={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
