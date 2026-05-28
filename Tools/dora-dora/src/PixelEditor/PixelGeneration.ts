@@ -21,6 +21,7 @@ export interface PixelGenerationProvider {
 	name: string;
 	description: string;
 	defaultEndpoint?: string;
+	endpointPlaceholder?: string;
 }
 
 export interface PixelGenerationStep {
@@ -93,8 +94,8 @@ interface PoseGeometry {
 }
 
 const sourceTemplateSize = 32;
-const googleGemini3ProImageDefaultEndpoint = "http://127.0.0.1:8877/api/google-gemini/generate-sprite";
-const googleVertexDefaultEndpoint = "http://127.0.0.1:8877/api/google-vertex/generate-frame";
+const googleGemini3ProImageEndpointPlaceholder = "http://127.0.0.1:8877/api/google-gemini/generate-sprite";
+const googleVertexEndpointPlaceholder = "http://127.0.0.1:8877/api/google-vertex/generate-frame";
 
 export const pixelGenerationProviders: PixelGenerationProvider[] = [
 	{
@@ -106,13 +107,13 @@ export const pixelGenerationProviders: PixelGenerationProvider[] = [
 		id: "google_gemini_3_pro_image",
 		name: "Gemini 3 Pro Image",
 		description: "Generate a reference-guided sprite sheet with Gemini 3 Pro Image, then auto-detect and extract the largest pose frames.",
-		defaultEndpoint: googleGemini3ProImageDefaultEndpoint,
+		endpointPlaceholder: googleGemini3ProImageEndpointPlaceholder,
 	},
 	{
 		id: "google_vertex",
 		name: "Google Vertex Custom",
 		description: "Generate one complete sprite sheet through a custom Google Vertex provider endpoint, then extract pose slots into frames.",
-		defaultEndpoint: googleVertexDefaultEndpoint,
+		endpointPlaceholder: googleVertexEndpointPlaceholder,
 	},
 ];
 

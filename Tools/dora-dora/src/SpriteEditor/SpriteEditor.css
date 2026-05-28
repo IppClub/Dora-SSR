@@ -1,0 +1,144 @@
+.image-sprite-editor-root {
+	display: flex;
+	flex-direction: column;
+	background: #151515;
+	color: rgba(255, 255, 255, 0.88);
+	overflow: hidden;
+}
+
+.image-sprite-toolbar,
+.image-sprite-status {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 10px 14px;
+	background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.025));
+	border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.image-sprite-status {
+	justify-content: space-between;
+	border-top: 1px solid rgba(255, 255, 255, 0.08);
+	border-bottom: 0;
+	font-size: 12px;
+	color: rgba(255, 255, 255, 0.56);
+}
+
+.image-sprite-body {
+	flex: 1;
+	display: grid;
+	grid-template-columns: 240px minmax(260px, 1fr) 360px;
+	min-height: 0;
+	overflow: hidden;
+}
+
+.image-sprite-sidebar,
+.image-sprite-inspector {
+	min-height: 0;
+	overflow: auto;
+	padding: 12px;
+	background: rgba(0, 0, 0, 0.18);
+}
+
+.image-sprite-sidebar {
+	border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.image-sprite-inspector {
+	border-left: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.image-sprite-stage {
+	position: relative;
+	min-width: 0;
+	min-height: 0;
+	display: grid;
+	grid-template-rows: minmax(180px, 1fr) 180px;
+	background:
+		linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+		linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+		#101010;
+	background-size: 24px 24px;
+}
+
+.image-sprite-frame-preview,
+.image-sprite-sheet-preview {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 0;
+	min-height: 0;
+	overflow: auto;
+	padding: 16px;
+}
+
+.image-sprite-sheet-preview {
+	border-top: 1px solid rgba(255, 255, 255, 0.08);
+	background: rgba(0, 0, 0, 0.22);
+}
+
+.image-sprite-frame-preview canvas,
+.image-sprite-sheet-preview img,
+.image-sprite-reference-preview img {
+	image-rendering: pixelated;
+	border: 1px solid rgba(255, 213, 74, 0.36);
+	box-shadow: 0 16px 48px rgba(0, 0, 0, 0.32);
+}
+
+.image-sprite-frame-preview canvas,
+.image-sprite-sheet-preview img {
+	background-color: #151515;
+	background-image:
+		linear-gradient(45deg, rgba(255, 255, 255, 0.08) 25%, transparent 25%),
+		linear-gradient(-45deg, rgba(255, 255, 255, 0.08) 25%, transparent 25%),
+		linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.08) 75%),
+		linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.08) 75%);
+	background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+	background-size: 16px 16px;
+}
+
+.image-sprite-reference-preview img {
+	background: rgba(0, 0, 0, 0.3);
+}
+
+.image-sprite-frame-list {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.image-sprite-frame-item {
+	justify-content: flex-start !important;
+	text-transform: none !important;
+}
+
+.image-sprite-panel {
+	padding: 12px;
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	border-radius: 10px;
+	background: rgba(255, 255, 255, 0.035);
+}
+
+.image-sprite-panel-title {
+	color: #ffd54a;
+	font-weight: 800 !important;
+}
+
+.image-sprite-reference-empty,
+.image-sprite-empty-preview {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 120px;
+	border: 1px dashed rgba(255, 255, 255, 0.16);
+	border-radius: 8px;
+	color: rgba(255, 255, 255, 0.48);
+	text-align: center;
+	padding: 16px;
+}
+
+.image-sprite-reference-preview img {
+	width: 128px;
+	height: 128px;
+	object-fit: contain;
+}
