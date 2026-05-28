@@ -4482,26 +4482,32 @@ export default function PersistentDrawerLeft() {
 									}}>
 										<Stack direction="row" spacing={1}>
 											<Tooltip title={t('yarn.editCode')}>
-												<IconButton
-													onClick={() => {
-														if (file.editor) {
-															const model = file.editor.getModel();
-															if (model) {
-																file.yarnData?.getJSONData().then((value) => {
-																	const text = Yarn.convertYarnJsonToText(JSON.parse(value));
-																	setTimeout(() => {
-																		model.pushStackElement();
-																		model.pushEditOperations(null, [{
-																			text,
-																			range: model.getFullModelRange()
-																		}], () => { return null });
-																	}, 500);
-																});
+														<IconButton
+													onClick={async () => {
+														try {
+															const value = await file.yarnData?.getJSONData();
+															if (value !== undefined) {
+																const text = Yarn.convertYarnJsonToText(JSON.parse(value));
+																const model = file.editor?.getModel();
+																if (model && model.getValue() !== text) {
+																	model.pushStackElement();
+																	model.pushEditOperations(null, [{
+																		text,
+																		range: model.getFullModelRange()
+																	}], () => { return null });
+																	model.pushStackElement();
+																}
+																file.contentModified = text !== file.content ? text : null;
 															}
+															file.yarnTextEditing = true;
+															file.yarnData = undefined;
+															setFiles([...files]);
+															requestAnimationFrame(() => {
+																file.editor?.focus();
+															});
+														} catch {
+															addAlert(t("alert.saveCurrent"), "error");
 														}
-														file.yarnTextEditing = true;
-														file.yarnData = undefined;
-														setFiles([...files]);
 													}}
 													sx={{
 														backgroundColor: 'rgba(50, 50, 50, 0.7)',

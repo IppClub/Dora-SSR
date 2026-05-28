@@ -31,7 +31,6 @@ const buildEnv = { ...process.env };
 // Apply a higher memory setting in a cross-platform way.
 buildEnv.NODE_OPTIONS = mergeNodeOptions("--max-old-space-size=8192");
 
-run(pnpmCmd, ["build-yarn-editor"]);
 run(pnpmCmd, ["exec", "vite", "build"], { env: buildEnv });
 run(process.execPath, [path.join("scripts", "minify-javascript-codes.js")]);
 run(process.execPath, [path.join("scripts", "sync-build-to-assets.js")]);

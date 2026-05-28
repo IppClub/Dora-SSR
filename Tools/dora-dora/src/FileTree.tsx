@@ -46,6 +46,7 @@ import blocklyLogo from './blockly.png';
 import spineLogo from './spine.png';
 import waLogo from './wa.svg';
 import tic80Logo from './tic80.png';
+import yarnLogo from './yarn.png';
 import doraAnimationLogo from './dora-animation.png';
 import doraBodyLogo from './dora-body.png';
 import { DiCode } from 'react-icons/di';
@@ -130,7 +131,7 @@ const fileIcon = (props: TreeNodeProps) => {
 				case ".skel":
 					return <img src={spineLogo} alt="spine" width="14px" height="14px" />;
 				case ".yarn":
-					return <img src="yarn-editor/icon_96x96.png" alt="yarn" width="14px" height="14px" />;
+					return <img src={yarnLogo} alt="yarn" width="14px" height="14px" />;
 				case ".bl":
 					return <img src={blocklyLogo} alt="blockly" width="12px" height="12px" />;
 				case ".vs":

@@ -1,6 +1,6 @@
 # Dora Dora Web IDE
 
-This project uses [Vite](https://vitejs.dev/) for development and builds, and integrates the external `Tools/YarnEditor` build output into the Web IDE.
+This project uses [Vite](https://vitejs.dev/) for development and builds. YarnEditor is integrated as a Vite multi-page entry under this project.
 
 ## Available Scripts
 
@@ -14,23 +14,15 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 The page will reload if you make edits.\
 You will also see any lint errors in the console.
 
-### `pnpm build-yarn-editor`
-
-Builds `Tools/YarnEditor` (platform-aware: macOS/Linux/Windows) and copies its `dist` output into `public/yarn-editor`.\
-The target folder is refreshed automatically and `.gitkeep` is restored after copying.
-
-Use this before `pnpm start` when you need the latest YarnEditor assets during local development.
-
 ### `pnpm build`
 
 Full production build pipeline for Dora Dora Web IDE. It will:
 
-1. Build and copy YarnEditor into `public/yarn-editor`
-2. Run `vite build`
-3. Minify generated JavaScript helper outputs
-4. Copy the final `build` output to `../../Assets/www`
+1. Run `vite build`, including the YarnEditor page and assets
+2. Minify generated JavaScript helper outputs
+3. Copy the final `build` output to `../../Assets/www`
 
-Both `public/yarn-editor` and `../../Assets/www` are refreshed automatically, and `.gitkeep` is restored after copying.
+The final `../../Assets/www` output is refreshed automatically.
 
 ### `pnpm preview`
 
