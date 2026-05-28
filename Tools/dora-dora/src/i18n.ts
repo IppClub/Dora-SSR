@@ -771,6 +771,7 @@ i18n
 					yarn: {
 						editCode: "Edit Code",
 						editVisual: "Visual Edit",
+						failedSyntaxCheck: "Failed to check syntax",
 					},
 					markdown: {
 						editText: "Edit Text",
@@ -1640,6 +1641,7 @@ i18n
 					yarn: {
 						editCode: "编辑代码",
 						editVisual: "可视化编辑",
+						failedSyntaxCheck: "语法检查失败",
 					},
 					markdown: {
 						editText: "编辑文本",

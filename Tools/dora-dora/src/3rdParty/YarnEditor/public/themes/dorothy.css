@@ -772,6 +772,19 @@ input.sp-input {
 .swal2-popup.variables-dialog .swal2-confirm.swal2-styled {
 	min-width: 104px;
 	border-radius: 6px;
+	border: 1px solid #5a5a5a;
+	background: #3a3a3a;
+	color: #f8f8f2;
+	box-shadow: none;
+}
+
+.swal2-popup.variables-dialog .swal2-confirm.swal2-styled:hover {
+	background: #464646;
+	border-color: #6a6a6a;
+}
+
+.swal2-popup.variables-dialog .swal2-confirm.swal2-styled:focus {
+	box-shadow: 0 0 0 2px rgba(139, 233, 253, 0.24);
 }
 
 .swal2-popup.variables-dialog .variables-editor {

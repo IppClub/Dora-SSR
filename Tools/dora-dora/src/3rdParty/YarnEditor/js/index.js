@@ -5,6 +5,7 @@ import 'sweetalert2/dist/sweetalert2.min.css';
 import '../scss/style.css';
 
 import { Utils } from './classes/utils';
+import { i18n } from './classes/i18n';
 
 import ko from 'knockout';
 window.ko = ko;
@@ -16,6 +17,12 @@ import ace from 'ace-builds/src-noconflict/ace';
 
 // Keep these imports, they are used elsewhere in the app
 import Swal from 'sweetalert2';
+
+window.yarnI18n = i18n;
+
+window.addEventListener('YarnEditorSetLanguage', event => {
+	i18n.setLanguage(event.language || event.detail?.language);
+});
 
 async function runYarnEditor() {
 	await import('jquery-contextmenu');
@@ -42,7 +49,10 @@ async function runYarnEditor() {
 	const { version } = await import('../public/version.json');
 
 	window.app = new App('Yarn', version);
+	window.app.i18n = i18n;
+	window.app.t = i18n.t;
 	window.app.run();
+	i18n.applyDomTranslations();
 
 	// Register plugins from plugin folder
 	const { Plugins } = await import('../public/plugins');

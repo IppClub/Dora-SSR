@@ -21,6 +21,7 @@ class EventEmitter {
 }
 
 export var yarnRender = function(app) {
+	const t = key => app.t(`runner.${key}`);
 	let visitedNodes = [];
 	this.visitedNodes = visitedNodes; // collects titles of ALL visited nodes
 	let node = { title: '' };
@@ -56,7 +57,7 @@ export var yarnRender = function(app) {
 			this.paused = true;
 			let errorMessage = 'string' === typeof err ? err : err.message;
 			if (errorMessage.includes("Parse error")) {
-				errorMessage = "Syntax error";
+				errorMessage = t('syntaxError');
 			}
 			emiter.emit('errorResult', errorMessage);
 		}
@@ -255,7 +256,7 @@ export var yarnRender = function(app) {
 		this.resourcesPath = resourcesPath;
 		this.finished = false;
 		document.getElementById(debugLabelIdToAttachTo).innerHTML =
-			"<br/><font color='#fbc400'>Press Z or Click to advance</font><br/>";
+			`<br/><font color='#fbc400'>${t('pressToAdvance')}</font><br/>`;
 		if (syntaxError && syntaxError.length > 0) {
 			const div = document.createElement("div");
 			div.textContent = syntaxError;
@@ -265,12 +266,12 @@ export var yarnRender = function(app) {
 		}
 		emiter.on('startedNode', function(nodeData) {
 			document.getElementById(debugLabelIdToAttachTo).innerHTML +=
-				"<br/><font color='CADETBLUE'>Title: " +
+				`<br/><font color='CADETBLUE'>${t('title')}: ` +
 				nodeData.title +
 				'</font>';
 			if (nodeData.tags.length > 0 && nodeData.tags[0].length > 0)
 				document.getElementById(debugLabelIdToAttachTo).innerHTML +=
-					"<br/><font color='deeppink'>Tags: " +
+					`<br/><font color='deeppink'>${t('tags')}: ` +
 					nodeData.tags +
 					'</font>';
 		});
@@ -282,7 +283,7 @@ export var yarnRender = function(app) {
 		emiter.on('commandCall', function(call) {
 			document.getElementById(
 				debugLabelIdToAttachTo
-			).innerHTML += `<br/><font color='green'>Command call:</font> <font color='#fbc400'>&lt;&lt;${call}&gt;&gt;</font>`;
+			).innerHTML += `<br/><font color='green'>${t('commandCall')}:</font> <font color='#fbc400'>&lt;&lt;${call}&gt;&gt;</font>`;
 		});
 		emiter.on('errorResult', function(text) {
 			document.getElementById(
@@ -408,7 +409,7 @@ export var yarnRender = function(app) {
 			this.paused = true;
 			let errorMessage = 'string' === typeof err ? err : err.message;
 			if (errorMessage.includes("Parse error")) {
-				errorMessage = "Syntax error";
+				errorMessage = t('syntaxError');
 			}
 			emiter.emit('errorResult', errorMessage);
 		}

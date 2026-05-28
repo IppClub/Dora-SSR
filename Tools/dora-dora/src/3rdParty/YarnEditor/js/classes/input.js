@@ -43,7 +43,13 @@ export const Input = function(app) {
 	// Keeps track of mouse/touch events
 	this.trackMouseEvents = function() {
 		$(document).on('pointerdown', e => {
-			self.isDragging = e.target.className === 'nodes' || (e.target.className === 'body' && (self.isMiddleButtonDown || app.workspace.selectedNodes.length === 0));
+			const target = $(e.target);
+			const isWorkspaceBackground =
+				target.hasClass('nodes') ||
+				target.hasClass('nodes-holder') ||
+				target.hasClass('arrows') ||
+				target.hasClass('grid-canvas');
+			self.isDragging = isWorkspaceBackground;
 			self.mouse.x = e.pageX;
 			self.mouse.y = e.pageY;
 
@@ -54,10 +60,8 @@ export const Input = function(app) {
 				if (self.isDragging) {
 					switch (e.button) {
 						case MouseButton.Left:
-							if (e.target.className === 'nodes') {
-								if (e.altKey) app.workspace.onMarqueeStart({ x: e.pageX, y: e.pageY });
-								else app.workspace.onDragStart({ x: e.pageX, y: e.pageY });
-							}
+							if (e.altKey) app.workspace.onMarqueeStart({ x: e.pageX, y: e.pageY });
+							else app.workspace.onDragStart({ x: e.pageX, y: e.pageY });
 							break;
 
 						case MouseButton.Middle:

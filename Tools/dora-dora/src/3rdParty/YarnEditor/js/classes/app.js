@@ -21,6 +21,8 @@ import synonyms from 'synonyms';
 export var App = function(name, version) {
 	const self = this;
 	this.utils = Utils;
+	this.i18n = window.yarnI18n;
+	this.t = (key, params) => self.i18n?.t(key, params) || key;
 
 	this.setTheme = function(name, e) {
 		let themeName = e ? e.target.value : name;
@@ -44,6 +46,7 @@ export var App = function(name, version) {
 	this.setDocumentType = function(documentType, e) {
 		const documentTypeId = e ? e.target.value : documentType;
 		self.settings.documentType(documentTypeId);
+		self.refreshSyntaxLabel();
 
 		app.updateNodeLinks();
 
@@ -75,6 +78,7 @@ export var App = function(name, version) {
 	this.data = data;
 	this.name = ko.observable(name);
 	this.version = ko.observable(version);
+	this.syntaxLabel = ko.observable('');
 	this.editing = ko.observable(null);
 	this.nodes = ko.observableArray([]);
 	this.tags = ko.observableArray([]);
@@ -109,6 +113,12 @@ export var App = function(name, version) {
 			self.editor.resize();
 			self.settings.editorSplitSize($('#editor-form').width());
 		},
+	};
+
+	this.refreshSyntaxLabel = function() {
+		self.syntaxLabel(self.t('editor.syntaxLabel', {
+			documentType: self.settings.documentType(),
+		}));
 	};
 
 	// inEditor
@@ -338,19 +348,21 @@ export var App = function(name, version) {
 	this.sanitiseNodeTitle = function() {
 	};
 	this.validateTitle = function() {
-		var enteredValue = document.getElementById('editorTitle').value;
+		const titleElement = document.getElementById('editorTitle');
+		if (!titleElement) return;
+		var enteredValue = titleElement.value;
 		var editorTitle = $('#editorTitle');
 		if (
 			self.getOtherNodeTitles().includes(enteredValue) ||
 			self.titleExistsTwice(enteredValue)
 		) {
 			editorTitle.attr('class', 'title title-error');
-			editorTitle.attr('title', 'Another node has the same title');
+			editorTitle.attr('title', self.t('errors.duplicateTitle'));
 		} else if (!Utils.isValidNodeTitle(enteredValue)) {
 			editorTitle.attr('class', 'title title-error');
 			editorTitle.attr(
 				'title',
-				'Node titles cannot be empty and cannot contain whitespace or angle brackets.'
+				self.t('errors.invalidTitle')
 			);
 		} else {
 			editorTitle.removeAttr('title');
@@ -361,11 +373,10 @@ export var App = function(name, version) {
 	this.refreshWindowTitle = function() {
 		let title = '';
 		if (data.lastStorageHost() === 'LOCAL') {
-			title =
-				'Yarn - ' +
-				(data.editingPath() || data.editingName()) +
-				' ' +
-				(data.isDocumentDirty() ? '*' : '');
+			title = self.t('windowTitle', {
+				title: data.editingPath() || data.editingName(),
+				dirty: data.isDocumentDirty() ? '*' : '',
+			});
 		}
 		document.title = title;
 	};
