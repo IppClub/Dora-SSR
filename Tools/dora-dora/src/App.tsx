@@ -1063,7 +1063,13 @@ export default function PersistentDrawerLeft() {
 		if (currentFile !== undefined) {
 			const ext = path.extname(currentFile.key).toLowerCase();
 			if (ext === ".yarn" && !currentFile.yarnTextEditing) {
-				currentFile.yarnData?.warpToFocusedNode();
+				requestAnimationFrame(() => {
+					currentFile.yarnData?.refreshLayout();
+					currentFile.yarnData?.warpToFocusedNode();
+					setTimeout(() => {
+						currentFile.yarnData?.refreshLayout();
+					}, 160);
+				});
 				return;
 			}
 			const { editor } = currentFile;
@@ -1997,6 +2003,10 @@ export default function PersistentDrawerLeft() {
 		}
 		let asProj = mode === "Run";
 		if (dir) {
+			if (mode === "Run This") {
+				addAlert(t("alert.runThisNoFolder"), "info");
+				return;
+			}
 			key = path.join(key, "init");
 			asProj = true;
 		}
@@ -4117,33 +4127,35 @@ export default function PersistentDrawerLeft() {
 							background: Color.BackgroundDark,
 							borderBottom: `0.5px solid ${Color.Line}`
 						}}>
-							<a
-								href={Info.locale.match(/^zh/) ? 'https://ippclub.gitee.io/Dora-SSR/zh-Hans/docs/api/intro' : 'https://dora-ssr.net/docs/api/intro'}
-								target="_blank"
-								rel="noreferrer"
-								style={{
-									display: 'flex',
-									alignItems: 'center',
-									gap: 6,
-									textDecoration: 'none'
-								}}
-							>
-								{showFullLogo ? (
-									<img
-										src={logo}
-										alt="logo"
-										height={32}
-									/>
-								) : (
-									<div style={{ width: 32, height: 32, overflow: 'hidden' }}>
+							<Tooltip title={t("menu.version", {version: Info.version ?? ""})}>
+								<a
+									href={Info.locale.match(/^zh/) ? 'https://ippclub.gitee.io/Dora-SSR/zh-Hans/docs/api/intro' : 'https://dora-ssr.net/docs/api/intro'}
+									target="_blank"
+									rel="noreferrer"
+									style={{
+										display: 'flex',
+										alignItems: 'center',
+										gap: 6,
+										textDecoration: 'none'
+									}}
+								>
+									{showFullLogo ? (
 										<img
 											src={logo}
 											alt="logo"
 											height={32}
 										/>
-									</div>
-								)}
-							</a>
+									) : (
+										<div style={{ width: 32, height: 32, overflow: 'hidden' }}>
+											<img
+												src={logo}
+												alt="logo"
+												height={32}
+											/>
+										</div>
+									)}
+								</a>
+							</Tooltip>
 							<Stack direction="row" spacing={1} alignItems="center">
 								<Tooltip title={t("menu.explorer")}>
 									<IconButton

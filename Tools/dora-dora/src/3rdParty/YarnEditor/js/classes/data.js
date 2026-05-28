@@ -474,10 +474,8 @@ export const data = {
 		if (type === FILETYPE.JSON) {
 			// store useful values for later use if the file type supports it
 			if (app.settings.filetypeVersion() === '2') {
-				const date = new Date();
 				data.documentHeader({
 					...data.documentHeader(),
-					lastSavedUnix: date,
 					language: app.settings.language(),
 					documentType: app.settings.documentType(),
 					markupLanguage: app.settings.markupLanguage(),
