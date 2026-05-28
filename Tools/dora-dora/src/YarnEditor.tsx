@@ -13,6 +13,7 @@ import { convertYarnTextToJson } from "./YarnConvert";
 
 export interface YarnEditorData {
 	warpToFocusedNode: () => void;
+	refreshLayout: () => void;
 	getJSONData: () => Promise<string>;
 };
 
@@ -71,7 +72,20 @@ const YarnEditor = memo((props: YarnEditorProps) => {
 				}
 
 				win.app.data.startNewFile(props.title, defaultValue);
-				props.onLoad(win.app.data as YarnEditorData);
+				const data = win.app.data as YarnEditorData;
+				data.refreshLayout = () => {
+					const refresh = () => {
+						win.app?.initGrid?.();
+						win.app?.workspace?.updateArrows?.(true);
+					};
+					win.requestAnimationFrame(() => {
+						refresh();
+						win.requestAnimationFrame(refresh);
+						win.setTimeout(refresh, 120);
+					});
+				};
+				props.onLoad(data);
+				data.refreshLayout();
 
 				win.document.addEventListener("YarnCheckSyntax", (e: { code: string }) => {
 					Service.checkYarn({ code: e.code }).then((res) => {

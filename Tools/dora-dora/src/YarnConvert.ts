@@ -15,12 +15,13 @@ function generateYamlHeader(header: any): string {
 
 	if (header.comments) {
 		for (const comment of header.comments) {
+			if (String(comment).trim().startsWith('lastSavedUnix:')) continue;
 			lines.push(comment);
 		}
 	}
 
 	// Plugin storage
-	if (header.pluginStorage?.Runner?.variables) {
+	if (header.pluginStorage?.Runner?.variables?.length > 0) {
 		lines.push(`variables:`);
 
 		for (const v of header.pluginStorage.Runner.variables) {
