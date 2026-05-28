@@ -145,7 +145,10 @@ typedef struct DoraXrtHttpStreamContext {
 	size_t contentLength;
 	size_t received;
 	size_t chunkRemaining;
+	int chunkTerminated;
 	char redirectLocation[XHTTP_URL_CAP];
+	int streamError;
+	int streamSysErr;
 	volatile long closeRequested;
 	volatile long resolved;
 	xnet_result finalStatus;
@@ -481,6 +484,7 @@ static int DoraXrtHttpProcessFixedBody(DoraXrtHttpStreamContext* ctx) {
 static int DoraXrtHttpParseChunkSize(const char* line, size_t len, size_t* outSize) {
 	size_t value = 0u;
 	size_t i = 0u;
+	int hasDigit = 0;
 	if (!line || !outSize) {
 		return 0;
 	}
@@ -498,19 +502,61 @@ static int DoraXrtHttpParseChunkSize(const char* line, size_t len, size_t* outSi
 		} else {
 			return 0;
 		}
+		if (value > (SIZE_MAX - digit) / 16u) {
+			return 0;
+		}
 		value = value * 16u + digit;
+		hasDigit = 1;
+	}
+	if (!hasDigit) {
+		return 0;
 	}
 	*outSize = value;
 	return 1;
 }
 
+static int DoraXrtHttpProcessChunkedTrailers(DoraXrtHttpStreamContext* ctx) {
+	size_t trailerEnd;
+	if (ctx->pendingLen >= 2u && ctx->pending[0] == '\r' && ctx->pending[1] == '\n') {
+		DoraXrtHttpStreamConsume(ctx, 2u);
+		DoraXrtHttpStreamCloseWith(ctx, XRT_NET_OK);
+		return 1;
+	}
+	trailerEnd = DoraXrtHttpFindBytes(ctx->pending, ctx->pendingLen, "\r\n\r\n", 4u);
+	if (trailerEnd != (size_t)-1) {
+		if (trailerEnd + 4u > DORA_XRT_HTTP_MAX_HEADER_BYTES) {
+			DoraXrtHttpStreamCloseWith(ctx, XRT_NET_ERROR);
+			return 0;
+		}
+		DoraXrtHttpStreamConsume(ctx, trailerEnd + 4u);
+		DoraXrtHttpStreamCloseWith(ctx, XRT_NET_OK);
+		return 1;
+	}
+	if (ctx->pendingLen > DORA_XRT_HTTP_MAX_HEADER_BYTES) {
+		DoraXrtHttpStreamCloseWith(ctx, XRT_NET_ERROR);
+		return 0;
+	}
+	return 1;
+}
+
 static int DoraXrtHttpProcessChunkedBody(DoraXrtHttpStreamContext* ctx) {
 	for (;;) {
+		if (ctx->chunkTerminated) {
+			return DoraXrtHttpProcessChunkedTrailers(ctx);
+		}
 		if (ctx->chunkRemaining == 0u) {
 			size_t lineEnd = DoraXrtHttpFindBytes(ctx->pending, ctx->pendingLen, "\r\n", 2u);
 			size_t nextSize = 0u;
 			if (lineEnd == (size_t)-1) {
+				if (ctx->pendingLen > XCODEC_HTTP1_HEADER_MAX_LENGTH) {
+					DoraXrtHttpStreamCloseWith(ctx, XRT_NET_ERROR);
+					return 0;
+				}
 				return 1;
+			}
+			if (lineEnd + 2u > XCODEC_HTTP1_HEADER_MAX_LENGTH) {
+				DoraXrtHttpStreamCloseWith(ctx, XRT_NET_ERROR);
+				return 0;
 			}
 			if (!DoraXrtHttpParseChunkSize(ctx->pending, lineEnd, &nextSize)) {
 				DoraXrtHttpStreamCloseWith(ctx, XRT_NET_ERROR);
@@ -518,13 +564,21 @@ static int DoraXrtHttpProcessChunkedBody(DoraXrtHttpStreamContext* ctx) {
 			}
 			DoraXrtHttpStreamConsume(ctx, lineEnd + 2u);
 			if (nextSize == 0u) {
-				DoraXrtHttpStreamCloseWith(ctx, XRT_NET_OK);
-				return 1;
+				ctx->chunkTerminated = 1;
+				continue;
 			}
 			ctx->chunkRemaining = nextSize;
 		}
+		if (ctx->chunkRemaining > SIZE_MAX - 2u) {
+			DoraXrtHttpStreamCloseWith(ctx, XRT_NET_ERROR);
+			return 0;
+		}
 		if (ctx->pendingLen < ctx->chunkRemaining + 2u) {
 			return 1;
+		}
+		if (ctx->pending[ctx->chunkRemaining] != '\r' || ctx->pending[ctx->chunkRemaining + 1u] != '\n') {
+			DoraXrtHttpStreamCloseWith(ctx, XRT_NET_ERROR);
+			return 0;
 		}
 		ctx->received += ctx->chunkRemaining;
 		if (!DoraXrtHttpDeliverChunk(ctx, ctx->pending, ctx->chunkRemaining, 0u)) {
@@ -616,7 +670,7 @@ static void DoraXrtHttpStreamOnClose(ptr owner, xnetstream* stream, xnet_result 
 	if (ctx->finalStatus == XRT_NET_AGAIN) {
 		if (!ctx->headerParsed) {
 			status = reason == XRT_NET_CANCELLED ? XRT_NET_CANCELLED : XRT_NET_ERROR;
-		} else if (ctx->chunked && ctx->chunkRemaining != 0u) {
+		} else if (ctx->chunked) {
 			status = XRT_NET_ERROR;
 		} else if (ctx->hasContentLength && ctx->received < ctx->contentLength) {
 			status = XRT_NET_ERROR;
@@ -630,8 +684,12 @@ static void DoraXrtHttpStreamOnClose(ptr owner, xnetstream* stream, xnet_result 
 
 static void DoraXrtHttpStreamOnError(ptr owner, xnetstream* stream, int sysErr) {
 	(void)stream;
-	(void)sysErr;
-	DoraXrtHttpStreamCloseWith((DoraXrtHttpStreamContext*)owner, XRT_NET_ERROR);
+	DoraXrtHttpStreamContext* ctx = (DoraXrtHttpStreamContext*)owner;
+	if (!ctx) {
+		return;
+	}
+	ctx->streamError = 1;
+	ctx->streamSysErr = sysErr;
 }
 
 static const xnetstreamevents* DoraXrtHttpStreamEvents(void) {
@@ -705,9 +763,6 @@ static xnet_result DoraXrtHttpExecuteStreamOnce(
 	}
 	if (!DoraXrtHttpHasHeader(headerNames, headerCount, "User-Agent")) {
 		(void)xrtHttpRequestSetHeader(&request, "User-Agent", DORA_XRT_HTTP_USER_AGENT);
-	}
-	if (!__xhttpRequestHasHeader(&request, "Connection")) {
-		(void)xrtHttpRequestSetHeader(&request, "Connection", "close");
 	}
 	if (body && bodyLen > 0u && !xrtHttpRequestSetBodyCopy(&request, body, bodyLen, NULL)) {
 		xrtHttpRequestUnit(&request);

@@ -1088,8 +1088,6 @@ static void prepare_xrt_http_headers(
 		headerNames.push_back(header.first);
 		headerValues.push_back(header.second);
 	}
-	headerNames.push_back("Connection"s);
-	headerValues.push_back("close"s);
 	headerNamePtrs.reserve(headerNames.size());
 	headerValuePtrs.reserve(headerValues.size());
 	for (size_t i = 0; i < headerNames.size(); ++i) {
