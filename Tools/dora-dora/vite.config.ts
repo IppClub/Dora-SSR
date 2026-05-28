@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
@@ -186,6 +187,111 @@ const monacoLocalePlugin = (options: MonacoLocaleOptions): Plugin => {
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 const emptyModule = path.join(rootDir, 'src/3rdParty/empty.ts');
+const yarnEditorPublicDir = path.join(rootDir, 'src/3rdParty/YarnEditor/public');
+
+const readStaticFiles = (dir: string, prefix = ''): { absolutePath: string; relativePath: string }[] => {
+	return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+		const relativePath = path.posix.join(prefix, entry.name);
+		const absolutePath = path.join(dir, entry.name);
+		if (entry.isDirectory()) {
+			return readStaticFiles(absolutePath, relativePath);
+		}
+		return [{ absolutePath, relativePath }];
+	});
+};
+
+const getContentType = (filePath: string) => {
+	switch (path.extname(filePath)) {
+		case '.css': return 'text/css';
+		case '.html': return 'text/html';
+		case '.js': return 'text/javascript';
+		case '.json': return 'application/json';
+		case '.png': return 'image/png';
+		case '.svg': return 'image/svg+xml';
+		case '.ico': return 'image/x-icon';
+		default: return 'application/octet-stream';
+	}
+};
+
+const yarnEditorStaticPlugin = (): Plugin => ({
+	name: 'yarn-editor-static',
+	configureServer(server) {
+		server.middlewares.use((req, res, next) => {
+			const url = req.url?.split('?')[0] || '';
+			if (url === '/yarn-editor/manifest.json') {
+				res.setHeader('Content-Type', 'application/manifest+json');
+				res.end(JSON.stringify(getYarnEditorManifest()));
+				return;
+			}
+				if (!url.startsWith('/yarn-editor/public/')) {
+					next();
+					return;
+				}
+				const relativePath = decodeURIComponent(url.slice('/yarn-editor/public/'.length));
+				const absolutePath = relativePath === 'mode-yarn.js' || relativePath === 'theme-yarn.js'
+					? path.join(rootDir, 'src/3rdParty/YarnEditor/js', relativePath)
+					: path.resolve(yarnEditorPublicDir, relativePath);
+				if (!absolutePath.startsWith(yarnEditorPublicDir) || !fs.existsSync(absolutePath)) {
+					if (!absolutePath.startsWith(path.join(rootDir, 'src/3rdParty/YarnEditor/js')) || !fs.existsSync(absolutePath)) {
+						next();
+						return;
+					}
+				}
+				if (!fs.existsSync(absolutePath)) {
+					next();
+					return;
+				}
+				res.setHeader('Cache-Control', 'no-store');
+				res.setHeader('Content-Type', getContentType(absolutePath));
+			res.end(fs.readFileSync(absolutePath));
+		});
+	},
+	generateBundle() {
+		this.emitFile({
+			type: 'asset',
+			fileName: 'yarn-editor/manifest.json',
+			source: JSON.stringify(getYarnEditorManifest(), null, '\t'),
+		});
+		for (const file of readStaticFiles(yarnEditorPublicDir)) {
+			this.emitFile({
+				type: 'asset',
+				fileName: `yarn-editor/public/${file.relativePath}`,
+				source: fs.readFileSync(file.absolutePath),
+			});
+		}
+		this.emitFile({
+			type: 'asset',
+			fileName: 'yarn-editor/public/mode-yarn.js',
+			source: fs.readFileSync(path.join(rootDir, 'src/3rdParty/YarnEditor/js/mode-yarn.js')),
+		});
+		this.emitFile({
+			type: 'asset',
+			fileName: 'yarn-editor/public/theme-yarn.js',
+			source: fs.readFileSync(path.join(rootDir, 'src/3rdParty/YarnEditor/js/theme-yarn.js')),
+		});
+	},
+});
+
+const getYarnEditorManifest = () => ({
+	name: 'Yarn Story Editor',
+	short_name: 'Yarn',
+	description: 'Yarn Story Editor',
+	background_color: '#3367D6',
+	theme_color: '#3367D6',
+	display: 'fullscreen',
+	icons: [
+		{
+			src: './public/icon.png',
+			sizes: '512x512',
+			type: 'image/png',
+		},
+		{
+			src: './public/icon.ico',
+			sizes: '32x32',
+			type: 'image/x-icon',
+		},
+	],
+});
 
 export default defineConfig(({ mode }) => {
 	const env = loadEnv(mode, process.cwd(), '');
@@ -198,6 +304,10 @@ export default defineConfig(({ mode }) => {
 			outDir: 'build',
 			sourcemap: env.GENERATE_SOURCEMAP !== 'false',
 			rollupOptions: {
+				input: {
+					main: path.join(rootDir, 'index.html'),
+					yarnEditor: path.join(rootDir, 'yarn-editor/index.html'),
+				},
 				output: {
 					manualChunks(id) {
 						if (id.includes('node_modules/monaco-editor')) {
@@ -218,6 +328,7 @@ export default defineConfig(({ mode }) => {
 		},
 		plugins: [
 			react(),
+			yarnEditorStaticPlugin(),
 			codeInspectorPlugin({
 				bundler: 'vite',
 				editor: 'code',

@@ -31,11 +31,16 @@ const YarnEditor = memo((props: YarnEditorProps) => {
 		height={props.height}
 		title={props.title}
 		onLoad={(e) => {
-			if (e.currentTarget.contentWindow !== null) {
-				const win = e.currentTarget.contentWindow as any;
+			if (e.currentTarget.contentWindow === null) return;
+
+			const win = e.currentTarget.contentWindow as any;
+			const setupYarnEditor = () => {
+				if (!win.app?.data) return false;
+
 				win.addEventListener("yarnSavedStateToLocalStorage", () => {
 					props.onChange();
 				});
+
 				let defaultValue: string | undefined;
 				if (props.defaultValue !== undefined) {
 					try {
@@ -44,8 +49,10 @@ const YarnEditor = memo((props: YarnEditorProps) => {
 						console.error(e);
 					}
 				}
+
 				win.app.data.startNewFile(props.title, defaultValue);
 				props.onLoad(win.app.data as YarnEditorData);
+
 				win.document.addEventListener("YarnCheckSyntax", (e: { code: string }) => {
 					Service.checkYarn({ code: e.code }).then((res) => {
 						const event = new Event("YarnChecked");
@@ -62,6 +69,7 @@ const YarnEditor = memo((props: YarnEditorProps) => {
 						win.document.dispatchEvent(event);
 					});
 				});
+
 				win.document.addEventListener("keydown", (event: KeyboardEvent) => {
 					if (event.ctrlKey || event.altKey || event.metaKey) {
 						switch (event.key) {
@@ -79,6 +87,12 @@ const YarnEditor = memo((props: YarnEditorProps) => {
 						}
 					}
 				});
+
+				return true;
+			};
+
+			if (!setupYarnEditor()) {
+				win.addEventListener("YarnEditorReady", setupYarnEditor, { once: true });
 			}
 		}}
 		src="yarn-editor/index.html"

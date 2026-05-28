@@ -257,20 +257,17 @@ Local Linux builds also use `pkg-config` and the `dbus-1` development package. O
 
 2. Install the latest version of **Node.js** and **pnpm**.
 
-3. Initialize the project and enter the Dora Dora editor development mode.
+3. Initialize the Dora Dora editor. Use `pnpm start` for development, or `pnpm build` to generate the Web IDE release files and sync them to `Assets/www`.
 
-	Please select the platform you are building with.
+	Please select your platform.
 
 <Tabs groupId="platform-select">
 <TabItem value="macos" label="macOS">
 
 	```sh
 	cd Tools/dora-dora && pnpm install
-	pnpm build-yarn-editor
 	pnpm start
 	```
-
-	Alternatively, you can generate the Web IDE release files for the full Dora SSR project. `pnpm build` now automatically builds and copies YarnEditor, then syncs the final Web IDE output to project folder `Assets/www`.
 
 	```sh
 	cd Tools/dora-dora
@@ -282,14 +279,10 @@ Local Linux builds also use `pkg-config` and the `dbus-1` development package. O
 
 	```sh
 	cd Tools/dora-dora && pnpm install
-	pnpm build-yarn-editor
 	pnpm start
 	```
 
-	Alternatively, you can generate the Web IDE release files for the full Dora SSR project. `pnpm build` now automatically builds and copies YarnEditor, then syncs the final Web IDE output to `Assets/www`.
-
 	```sh
-	# `pnpm build` also syncs the final output to Assets/www automatically
 	cd Tools/dora-dora
 	pnpm build
 	```
@@ -299,14 +292,10 @@ Local Linux builds also use `pkg-config` and the `dbus-1` development package. O
 
 	```sh
 	cd Tools\dora-dora && pnpm install
-	pnpm build-yarn-editor
 	pnpm start
 	```
 
-	Alternatively, you can generate the Web IDE release files for the full Dora SSR project. `pnpm build` now automatically builds and copies YarnEditor, then syncs the final Web IDE output to `Assets/www`.
-
 	```sh
-	# `pnpm build` also syncs the final output to Assets/www automatically
 	cd Tools\dora-dora
 	pnpm build
 	```

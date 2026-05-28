@@ -490,7 +490,7 @@ public:
 		});
 
 		node_name_error = pl::user(not_(eof()), [](const item_t& item) {
-			throw ParserError("invalid node name: only letters and digits are allowed"sv, item.begin);
+			throw ParserError("invalid node name: node titles cannot contain whitespace or angle brackets"sv, item.begin);
 			return false;
 		});
 
@@ -631,7 +631,7 @@ public:
 		Assignment =
 			key("set") >> space >> Variable >> space >> (AssignmentOp | UpdateOp >> '=' | missing_assign_op_error) >> space >> Exp;
 
-		Title = (range('a', 'z') | range('A', 'Z') | '_') >> *alpha_num;
+		Title = +(not_(line_break | space_one | '<' | '>') >> any_char);
 
 		Goto = key("jump") >> space >> (Title | node_name_error);
 
@@ -1476,7 +1476,7 @@ FileValidationResult validateFileFormat(std::string_view codes) {
 					return createError("node title cannot be empty", currentLine);
 				}
 				if (!parser.match<Title_t>(title)) {
-					return createError("invalid node title: only letters and digits are allowed", currentLine);
+					return createError("invalid node title: node titles cannot contain whitespace or angle brackets", currentLine);
 				}
 				if (nodeSet.contains(title)) {
 					return createError("duplicated node title: '"s + title + "'"s, currentLine);

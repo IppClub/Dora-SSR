@@ -49,7 +49,7 @@ THE OPEN SOURCE SOFTWARE IN THIS PRODUCT IS DISTRIBUTED IN THE HOPE THAT IT WILL
 - [AcfDelegate](https://www.codeproject.com/articles/11464/yet-another-c-style-delegate-class-in-standard-c): [AcfDelegate License](Source/3rdParty/Other/LICENSE-AcfDelegate)
 - [teal-language](https://github.com/teal-language/tl): [MIT License](Source/Lua/Builtin/LICENSE-tl)
 - [CodeWire](https://github.com/ayushk7/CodeWire): [MIT License](Tools/dora-dora/public/code-wire/LICENSE)
-- [YarnClassic](https://github.com/blurymind/YarnClassic): [MIT License](Tools/YarnEditor/LICENSE.md)
+- [YarnClassic](https://github.com/blurymind/YarnClassic): [MIT License](Tools/dora-dora/src/3rdParty/YarnEditor/LICENSE.md)
 - [LuLPeg](https://github.com/pygy/LuLPeg): [The Romantic WTF Public License](Tools/RustWasmGen/LICENSE-lulpeg)
 - [deno_std](https://github.com/denoland/deno_std): [MIT License](Tools/dora-dora/src/3rdParty/LICENSE-deno)
 - [monaco-editor-auto-typings](https://github.com/lukasbach/monaco-editor-auto-typings): [MIT License](Tools/dora-dora/src/3rdParty/monaco-editor-auto-typings/LICENSE)
