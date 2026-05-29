@@ -53,6 +53,8 @@ import LLMConfigDialog from './LLMConfigDialog';
 import ProjectWorkspacePanel from './ProjectWorkspacePanel';
 import { createEmptyActionDocument, writeLegacyModel } from './ActionEditor';
 import { createParticleDocument, writeParticleDocumentToXml } from './ParticleEditor';
+import { createEmptyPixelDocument, isPixelDocumentFile, writePixelDocument } from './PixelEditor/PixelDocument';
+import { createEmptyImageSpriteDocument, isImageSpriteDocumentContent, isImageSpriteDocumentFile, writeImageSpriteDocument } from './SpriteEditor/SpriteDocument';
 
 const SpinePlayer = React.lazy(() => import('./SpinePlayer'));
 const Markdown = React.lazy(() => import('./Markdown'));
@@ -65,6 +67,8 @@ const ActionEditor = React.lazy(() => import('./ActionEditor/ActionEditor'));
 const ActionClipPreview = React.lazy(() => import('./ActionEditor/ActionClipPreview'));
 const BodyEditor = React.lazy(() => import('./BodyEditor/BodyEditor'));
 const ParticleEditor = React.lazy(() => import('./ParticleEditor/ParticleEditor'));
+const PixelEditor = React.lazy(() => import('./PixelEditor/PixelEditor'));
+const SpriteEditor = React.lazy(() => import('./SpriteEditor/SpriteEditor'));
 
 const { path } = Info;
 
@@ -438,6 +442,12 @@ const getNewFileTemplate = (ext: string) => {
 			break;
 		case ".model":
 			content = writeLegacyModel(createEmptyActionDocument());
+			break;
+		case ".pixel.json":
+			content = writePixelDocument(createEmptyPixelDocument());
+			break;
+		case ".sprite.json":
+			content = writeImageSpriteDocument(createEmptyImageSpriteDocument());
 			break;
 		case ".b.lua":
 			content = `return {"Array"}`;
@@ -1533,6 +1543,30 @@ export default function PersistentDrawerLeft() {
 				return;
 			}
 			const ext = path.extname(title).toLowerCase();
+			if (isPixelDocumentFile(title)) {
+				Service.read({ path: key }).then((res) => {
+					if (res.success && res.content !== undefined) {
+						const { content } = res;
+						const newFile: EditingFile = {
+							key,
+							title,
+							content,
+							contentModified: null,
+							folder: false,
+							status: "normal",
+							onMount: () => { },
+						};
+						newFile.onMount = onEditorDidMount(newFile);
+						resolve(newFile);
+					} else {
+						reject("file read error");
+					}
+				}).catch(() => {
+					addAlert(t("alert.read", { title }), "error");
+					reject("file read error");
+				});
+				return;
+			}
 			switch (ext) {
 				case ".png":
 				case ".jpg":
@@ -2944,6 +2978,8 @@ export default function PersistentDrawerLeft() {
 			case "Blockly": ext = ".bl"; break;
 			case "Wa": ext = ".wa"; break;
 			case "TIC80": ext = ".tic"; break;
+			case "Image Sprite": ext = ".sprite.json"; break;
+			case "Pixel Sprite": ext = ".pixel.json"; break;
 			case "Folder": ext = ""; break;
 			case "TypeScript": ext = ".tsx"; break;
 		}
@@ -4389,6 +4425,15 @@ export default function PersistentDrawerLeft() {
 						let actionClip = false;
 						let bodyLua = false;
 						let particle = false;
+						let imageSprite = false;
+						let pixelSprite = false;
+						const sourceContent = file.contentModified ?? file.content;
+						if (isImageSpriteDocumentFile(file.title) || (ext.toLowerCase() === ".json" && isImageSpriteDocumentContent(sourceContent))) {
+							imageSprite = true;
+						}
+						if (isPixelDocumentFile(file.title)) {
+							pixelSprite = true;
+						}
 						switch (ext.toLowerCase()) {
 							case ".lua":
 								if (isBodyLuaFile(file.title) && !file.bodyTextEditing) {
@@ -4420,6 +4465,13 @@ export default function PersistentDrawerLeft() {
 							case ".vs": visualScript = true; break;
 							case ".tic": tic80 = true; break;
 							case ".model": actionModel = true; break;
+							case ".json":
+								if (pixelSprite || imageSprite) {
+									language = null;
+								} else {
+									language = "txt";
+								}
+								break;
 							case "": language = null; break;
 							default: language = "txt"; break
 						}
@@ -4519,6 +4571,40 @@ export default function PersistentDrawerLeft() {
 										</Suspense>
 									</MacScrollbar>
 								</div> : null
+							}
+							{pixelSprite ?
+								<Suspense fallback={<div />}>
+									<PixelEditor
+										filePath={file.key}
+										resourceBasePath={parentPath}
+										sourceContent={file.contentModified ?? file.content}
+										width={editorWidth}
+										height={editorHeight}
+										active={tabIndex === index}
+										readOnly={readOnly}
+										addAlert={addAlert}
+										onChange={(content) => {
+											setModified({ key: file.key, content });
+										}}
+									/>
+								</Suspense> : null
+							}
+							{imageSprite ?
+								<Suspense fallback={<div />}>
+									<SpriteEditor
+										filePath={file.key}
+										resourceBasePath={parentPath}
+										sourceContent={file.contentModified ?? file.content}
+										width={editorWidth}
+										height={editorHeight}
+										active={tabIndex === index}
+										readOnly={readOnly}
+										addAlert={addAlert}
+										onChange={(content) => {
+											setModified({ key: file.key, content });
+										}}
+									/>
+								</Suspense> : null
 							}
 							{yarn && !file.yarnTextEditing ?
 								<div style={{ display: 'flex', position: 'relative' }}>

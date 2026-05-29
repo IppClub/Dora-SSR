@@ -67,7 +67,10 @@
 		"build": "node scripts/build-project.js",
 		"preview": "vite preview",
 		"lint": "eslint src",
-		"postinstall": "node scripts/copy-typescript.js"
+		"postinstall": "node scripts/copy-typescript.js",
+		"google:vertex-proxy": "node scripts/google-vertex-proxy.mjs",
+		"evaluate-image-sprite": "node scripts/evaluate-image-sprite.mjs",
+		"clean-image-sprite-edges": "node scripts/clean-image-sprite-edges.mjs"
 	},
 	"browserslist": {
 		"production": [

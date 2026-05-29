@@ -494,6 +494,63 @@ export function fitMessagesToContext(messages: Message[], options: Record<string
 	};
 }
 
+type LLMProviderAdapter = {
+	id: string;
+	matches: (this: void, url: string, model: string) => boolean;
+	prepareRequest: (this: void, data: Record<string, any>) => void;
+};
+
+function isDisabledReasoningValue(value: unknown): boolean {
+	if (typeof value !== "string") return false;
+	const normalized = value.trim().toLowerCase();
+	return normalized === "disabled"
+		|| normalized === "disable"
+		|| normalized === "off"
+		|| normalized === "none"
+		|| normalized === "false"
+		|| normalized === "0";
+}
+
+const LLM_PROVIDER_ADAPTERS: LLMProviderAdapter[] = [
+	{
+		id: "xiaomi-mimo",
+		matches: (url, model) => {
+			const urlLower = url.toLowerCase();
+			const modelLower = model.toLowerCase();
+			return urlLower.includes("xiaomimimo.com") || modelLower.includes("mimo");
+		},
+		prepareRequest: (data) => {
+			// MiMo exposes thinking control as `thinking`, not OpenAI's
+			// `reasoning_effort`. Keep provider default thinking unless the
+			// config explicitly asks to disable reasoning.
+			if (isDisabledReasoningValue(data.reasoning_effort) && data.thinking === undefined) {
+				data.thinking = { type: "disabled" };
+			}
+			if (typeof data.reasoning_effort === "string") {
+				delete data.reasoning_effort;
+			}
+		},
+	},
+];
+
+function prepareLLMRequestData(
+	messages: Message[],
+	url: string,
+	model: string,
+	options: Record<string, any>,
+	stream: boolean
+): Record<string, any> {
+	const data: Record<string, any> = {
+		...options,
+		model,
+		messages,
+		stream,
+	};
+	const adapter = LLM_PROVIDER_ADAPTERS.find(item => item.matches(url, model));
+	adapter?.prepareRequest(data);
+	return data;
+}
+
 const postLLM = (
 	messages: Message[],
 	url: string,
@@ -505,12 +562,7 @@ const postLLM = (
 	stopToken?: StopToken
 ) => {
 	const requestTimeout = stream ? LLM_STREAM_TIMEOUT : LLM_TIMEOUT;
-	const data: Record<string, any> = {
-		...options,
-		model,
-		messages,
-		stream,
-	};
+	const data = prepareLLMRequestData(messages, url, model, options, stream);
 	stopToken ??= { stopped: false };
 	return new Promise<string>((resolve, reject) => {
 		let requestId = 0;
@@ -950,10 +1002,12 @@ function mergeStreamChoice(acc: StreamChoiceAccumulator, choice: Choice, onToolC
 	if (typeof reasoningContent === "string" && reasoningContent !== "") {
 		message.reasoning_content = (message.reasoning_content ?? "") + reasoningContent;
 	}
-	const toolCalls = (delta.tool_calls && delta.tool_calls.length > 0)
-		? delta.tool_calls
-		: (fullMessage.tool_calls ?? []);
-	if (toolCalls && toolCalls.length > 0) {
+	const deltaToolCalls = Array.isArray(delta.tool_calls) ? delta.tool_calls : undefined;
+	const messageToolCalls = Array.isArray(fullMessage.tool_calls) ? fullMessage.tool_calls : undefined;
+	const toolCalls = deltaToolCalls && deltaToolCalls.length > 0
+		? deltaToolCalls
+		: (messageToolCalls ?? []);
+	if (toolCalls.length > 0) {
 		message.tool_calls ??= [];
 		for (let i = 0; i < toolCalls.length; i++) {
 			const item: StreamDeltaToolCall = toolCalls[i] as StreamDeltaToolCall;

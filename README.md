@@ -392,6 +392,11 @@ For more detailed tutorials, please check [official documents](https://Dora-ssr.
 
 Welcome to participate in the development and maintenance of Dora SSR. Please see [Contributing Guidelines](CONTRIBUTING.md) to learn how to submit Issues and Pull Requests.
 
+### Contributors
+
+- [Li Jin](https://github.com/pigpigyyy) - Founder and main developer
+- [dsadsasdaddas](https://github.com/dsadsasdaddas) - Contributor
+
 <br>
 
 ## Dora SSR Joins the Open Atom Foundation
