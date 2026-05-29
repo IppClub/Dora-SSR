@@ -1,5 +1,9 @@
 import YarnBound from '../../../js/libs/yarn-bound/index.js';
 
+const isTextResult = result => result instanceof YarnBound.TextResult;
+const isOptionsResult = result => result instanceof YarnBound.OptionsResult;
+const isCommandResult = result => result instanceof YarnBound.CommandResult;
+
 class EventEmitter {
 	constructor() {
 		this.listeners = {};
@@ -122,7 +126,7 @@ export var yarnRender = function(app) {
 	};
 
 	this.advance = () => {
-		if (vnResult && vnResult.constructor.name !== 'OptionsResult') {
+		if (vnResult && !isOptionsResult(vnResult)) {
 			this.advanceRunner();
 			this.goToNext();
 		}
@@ -140,16 +144,16 @@ export var yarnRender = function(app) {
 		if (this.paused) {
 			return;
 		}
-		if (vnResult.constructor.name === 'TextResult') {
+		if (isTextResult(vnResult)) {
 			emiter.emit('textResult', vnResult.text);
-		} else if (vnResult.constructor.name === 'OptionsResult') {
+		} else if (isOptionsResult(vnResult)) {
 			// Add choices to text
 			if (this.vnSelectedChoice === -1) {
 				this.vnSelectedChoice = 0;
 				this.vnUpdateChoice();
 				this.startTimeWait = new Date().getTime();
 			}
-		} else if (vnResult.constructor.name === 'CommandResult') {
+		} else if (isCommandResult(vnResult)) {
 			this.runCommand();
 		}
 	};
@@ -201,7 +205,7 @@ export var yarnRender = function(app) {
 			}
 			vnResult.text = text;
 		}
-		if (vnResult.constructor.name === 'TextResult') {
+		if (isTextResult(vnResult)) {
 			if (vnResult.metadata && this.node.title !== vnResult.metadata.title) {
 				this.node = this.jsonCopy(vnResult.metadata);
 				this.visitedNodes.push(vnResult.metadata.title);

@@ -22,8 +22,12 @@
 
 			var editor = ace.edit(element.id);
 
-			if (options.theme) editor.setTheme('ace/theme/' + options.theme);
-			if (options.mode) editor.getSession().setMode('ace/mode/' + options.mode);
+			if (options.mode === 'yarn') {
+				window.applyYarnAceSyntax?.(editor);
+			} else {
+				if (options.theme) editor.setTheme('ace/theme/' + options.theme);
+				if (options.mode) editor.getSession().setMode('ace/mode/' + options.mode);
+			}
 
 			editor.setValue(value);
 			editor.gotoLine(0);

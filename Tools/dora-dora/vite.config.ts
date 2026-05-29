@@ -188,9 +188,28 @@ const monacoLocalePlugin = (options: MonacoLocaleOptions): Plugin => {
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 const emptyModule = path.join(rootDir, 'src/3rdParty/empty.ts');
 const yarnEditorPublicDir = path.join(rootDir, 'src/3rdParty/YarnEditor/public');
+const yarnEditorIndexHtml = path.join(yarnEditorPublicDir, 'index.html');
+const codeWirePublicDir = path.join(rootDir, 'src/3rdParty/CodeWire/public');
+const codeWireIndexHtml = path.join(codeWirePublicDir, 'index.html');
+const codeWireVendorScripts = [
+	'javascript/Dependencies/CodeMirror/codemirror.js',
+	'javascript/Dependencies/CodeMirror/lua/lua.js',
+	'javascript/Dependencies/jquery/jquery.js',
+	'javascript/Dependencies/Konva/konva.min.js',
+];
+const codeWireVendorStyles = [
+	'style.css',
+	'codewire-bootstrap.css',
+	'fontawesome/free.min.css',
+	'fontawesome/free-v4-shims.min.css',
+	'fontawesome/free-v4-font-face.min.css',
+	'javascript/Dependencies/CodeMirror/codemirror.css',
+	'javascript/Dependencies/CodeMirror/material-darker.css',
+];
 
 const readStaticFiles = (dir: string, prefix = ''): { absolutePath: string; relativePath: string }[] => {
 	return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+		if (entry.name.startsWith('.')) return [];
 		const relativePath = path.posix.join(prefix, entry.name);
 		const absolutePath = path.join(dir, entry.name);
 		if (entry.isDirectory()) {
@@ -209,88 +228,202 @@ const getContentType = (filePath: string) => {
 		case '.png': return 'image/png';
 		case '.svg': return 'image/svg+xml';
 		case '.ico': return 'image/x-icon';
+		case '.woff2': return 'font/woff2';
 		default: return 'application/octet-stream';
 	}
 };
 
+const findHtmlBundleAsset = (
+	bundle: Parameters<NonNullable<Plugin['generateBundle']>>[1],
+	htmlPath: string
+) => {
+	const htmlFileName = path.relative(rootDir, htmlPath).replace(/\\/g, '/');
+	const htmlKey = Object.keys(bundle).find((key) => (
+		key === htmlFileName ||
+		bundle[key].fileName === htmlFileName
+	));
+	return htmlKey ? { key: htmlKey, asset: bundle[htmlKey] } : undefined;
+};
+
+const stripSourceMapComments = (code: string) => (
+	code
+		.replace(/\/\/# sourceMappingURL=.*(?:\r?\n|$)/g, '')
+		.replace(/\/\*# sourceMappingURL=.*?\*\//g, '')
+);
+
+const shouldEmitCodeWireStaticFile = (relativePath: string) => {
+	if (relativePath === 'index.html') return false;
+	if (relativePath === 'javascript/Dependencies/CodeMirror/lua/index.html') return false;
+	if (relativePath === 'bootstrap.bundle.min.js' || relativePath === 'bootstrap.min.css') return false;
+	if (codeWireVendorScripts.includes(relativePath)) return false;
+	if (codeWireVendorStyles.includes(relativePath)) return false;
+	if (relativePath.startsWith('javascript/') && relativePath.endsWith('.js')) return false;
+	return true;
+};
+
+const readCodeWireVendorBundle = () => (
+	codeWireVendorScripts
+		.map((relativePath) => (
+			`/* ${relativePath} */\n${stripSourceMapComments(fs.readFileSync(path.join(codeWirePublicDir, relativePath), 'utf8'))}`
+		))
+		.join('\n;\n')
+);
+
+const readCodeWireVendorStyleBundle = () => (
+	codeWireVendorStyles
+		.map((relativePath) => {
+			const source = stripSourceMapComments(fs.readFileSync(path.join(codeWirePublicDir, relativePath), 'utf8'))
+				.replace(/url\(\.\.\/webfonts\//g, 'url(webfonts/');
+			return `/* ${relativePath} */\n${source}`;
+		})
+		.join('\n')
+);
+
+const replaceCodeWireVendorScripts = (html: string) => {
+	const vendorScriptTags = codeWireVendorScripts
+		.map((relativePath) => `<script src="./${relativePath}" ></script>`)
+		.join('\n');
+	return html.replace(vendorScriptTags, '<script src="./vendor.js"></script>');
+};
+
+const escapeRegExp = (value: string) => (
+	value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+);
+
+const replaceCodeWireVendorStyles = (html: string) => {
+	let replaced = false;
+	let output = html;
+	for (const relativePath of codeWireVendorStyles) {
+		const pattern = new RegExp(
+			`<link\\s+[^>]*href=["'](?:\\./)?${escapeRegExp(relativePath)}["'][^>]*>\\s*`,
+			'g'
+		);
+		output = output.replace(pattern, () => {
+			if (replaced) return '';
+			replaced = true;
+			return '<link rel="stylesheet" href="./vendor.css">\n';
+		});
+	}
+	return output;
+};
+
+const shouldEmitYarnEditorStaticFile = (relativePath: string) => {
+	if (relativePath === 'index.html' || relativePath === 'version.json') return false;
+	if (relativePath === 'templates/node.html') return false;
+	if (relativePath === 'plugins/index.js') return false;
+	if (relativePath === 'plugins/runner.js') return false;
+	if (relativePath === 'plugins/bondage/renderer.js') return false;
+	return true;
+};
+
 const yarnEditorStaticPlugin = (): Plugin => ({
 	name: 'yarn-editor-static',
+	enforce: 'post',
 	configureServer(server) {
-		server.middlewares.use((req, res, next) => {
+		server.middlewares.use(async (req, res, next) => {
 			const url = req.url?.split('?')[0] || '';
-			if (url === '/yarn-editor/manifest.json') {
-				res.setHeader('Content-Type', 'application/manifest+json');
-				res.end(JSON.stringify(getYarnEditorManifest()));
+			if (url === '/yarn-editor/index.html' || url === '/yarn-editor/') {
+				const html = fs.readFileSync(yarnEditorIndexHtml, 'utf8');
+				res.setHeader('Cache-Control', 'no-store');
+				res.setHeader('Content-Type', 'text/html');
+				res.end(await server.transformIndexHtml(url, html));
 				return;
 			}
-				if (!url.startsWith('/yarn-editor/public/')) {
-					next();
-					return;
-				}
-				const relativePath = decodeURIComponent(url.slice('/yarn-editor/public/'.length));
-				const absolutePath = relativePath === 'mode-yarn.js' || relativePath === 'theme-yarn.js'
-					? path.join(rootDir, 'src/3rdParty/YarnEditor/js', relativePath)
-					: path.resolve(yarnEditorPublicDir, relativePath);
-				if (!absolutePath.startsWith(yarnEditorPublicDir) || !fs.existsSync(absolutePath)) {
-					if (!absolutePath.startsWith(path.join(rootDir, 'src/3rdParty/YarnEditor/js')) || !fs.existsSync(absolutePath)) {
-						next();
-						return;
-					}
-				}
-				if (!fs.existsSync(absolutePath)) {
-					next();
-					return;
-				}
-				res.setHeader('Cache-Control', 'no-store');
-				res.setHeader('Content-Type', getContentType(absolutePath));
+			if (!url.startsWith('/yarn-editor/public/')) {
+				next();
+				return;
+			}
+			const relativePath = decodeURIComponent(url.slice('/yarn-editor/public/'.length));
+			const absolutePath = path.resolve(yarnEditorPublicDir, relativePath);
+			if (!absolutePath.startsWith(yarnEditorPublicDir) || !fs.existsSync(absolutePath)) {
+				next();
+				return;
+			}
+			res.setHeader('Cache-Control', 'no-store');
+			res.setHeader('Content-Type', getContentType(absolutePath));
 			res.end(fs.readFileSync(absolutePath));
 		});
 	},
-	generateBundle() {
-		this.emitFile({
-			type: 'asset',
-			fileName: 'yarn-editor/manifest.json',
-			source: JSON.stringify(getYarnEditorManifest(), null, '\t'),
-		});
+	generateBundle(_options, bundle) {
+		const yarnEditorHtmlFileName = path.relative(rootDir, yarnEditorIndexHtml).replace(/\\/g, '/');
+		const yarnEditorHtmlKey = Object.keys(bundle).find((key) => (
+			key === yarnEditorHtmlFileName ||
+			bundle[key].fileName === yarnEditorHtmlFileName
+		));
+		const yarnEditorHtml = yarnEditorHtmlKey ? bundle[yarnEditorHtmlKey] : undefined;
+		if (yarnEditorHtml) {
+			delete bundle[yarnEditorHtmlKey as string];
+			yarnEditorHtml.fileName = 'yarn-editor/index.html';
+			bundle[yarnEditorHtml.fileName] = yarnEditorHtml;
+		}
 		for (const file of readStaticFiles(yarnEditorPublicDir)) {
+			if (!shouldEmitYarnEditorStaticFile(file.relativePath)) continue;
 			this.emitFile({
 				type: 'asset',
 				fileName: `yarn-editor/public/${file.relativePath}`,
 				source: fs.readFileSync(file.absolutePath),
 			});
 		}
-		this.emitFile({
-			type: 'asset',
-			fileName: 'yarn-editor/public/mode-yarn.js',
-			source: fs.readFileSync(path.join(rootDir, 'src/3rdParty/YarnEditor/js/mode-yarn.js')),
-		});
-		this.emitFile({
-			type: 'asset',
-			fileName: 'yarn-editor/public/theme-yarn.js',
-			source: fs.readFileSync(path.join(rootDir, 'src/3rdParty/YarnEditor/js/theme-yarn.js')),
-		});
 	},
 });
 
-const getYarnEditorManifest = () => ({
-	name: 'Yarn Story Editor',
-	short_name: 'Yarn',
-	description: 'Yarn Story Editor',
-	background_color: '#3367D6',
-	theme_color: '#3367D6',
-	display: 'fullscreen',
-	icons: [
-		{
-			src: './public/icon.png',
-			sizes: '512x512',
-			type: 'image/png',
-		},
-		{
-			src: './public/icon.ico',
-			sizes: '32x32',
-			type: 'image/x-icon',
-		},
-	],
+const codeWireStaticPlugin = (): Plugin => ({
+	name: 'code-wire-static',
+	enforce: 'post',
+	configureServer(server) {
+		server.middlewares.use(async (req, res, next) => {
+			const url = req.url?.split('?')[0] || '';
+			if (url === '/code-wire/index.html' || url === '/code-wire/') {
+				const html = fs.readFileSync(codeWireIndexHtml, 'utf8');
+				res.setHeader('Cache-Control', 'no-store');
+				res.setHeader('Content-Type', 'text/html');
+				res.end(await server.transformIndexHtml(url, html));
+				return;
+			}
+			if (!url.startsWith('/code-wire/')) {
+				next();
+				return;
+			}
+			const relativePath = decodeURIComponent(url.slice('/code-wire/'.length));
+			const absolutePath = path.resolve(codeWirePublicDir, relativePath);
+			if (!absolutePath.startsWith(codeWirePublicDir) || !fs.existsSync(absolutePath)) {
+				next();
+				return;
+			}
+			res.setHeader('Cache-Control', 'no-store');
+			res.setHeader('Content-Type', getContentType(absolutePath));
+			res.end(fs.readFileSync(absolutePath));
+		});
+	},
+	generateBundle(_options, bundle) {
+		const codeWireHtml = findHtmlBundleAsset(bundle, codeWireIndexHtml);
+		if (codeWireHtml) {
+			delete bundle[codeWireHtml.key];
+			codeWireHtml.asset.fileName = 'code-wire/index.html';
+			if ('source' in codeWireHtml.asset && typeof codeWireHtml.asset.source === 'string') {
+				codeWireHtml.asset.source = replaceCodeWireVendorStyles(replaceCodeWireVendorScripts(codeWireHtml.asset.source));
+			}
+			bundle[codeWireHtml.asset.fileName] = codeWireHtml.asset;
+		}
+		this.emitFile({
+			type: 'asset',
+			fileName: 'code-wire/vendor.js',
+			source: readCodeWireVendorBundle(),
+		});
+		this.emitFile({
+			type: 'asset',
+			fileName: 'code-wire/vendor.css',
+			source: readCodeWireVendorStyleBundle(),
+		});
+		for (const file of readStaticFiles(codeWirePublicDir)) {
+			if (!shouldEmitCodeWireStaticFile(file.relativePath)) continue;
+			this.emitFile({
+				type: 'asset',
+				fileName: `code-wire/${file.relativePath}`,
+				source: fs.readFileSync(file.absolutePath),
+			});
+		}
+	},
 });
 
 export default defineConfig(({ mode }) => {
@@ -306,7 +439,8 @@ export default defineConfig(({ mode }) => {
 			rollupOptions: {
 				input: {
 					main: path.join(rootDir, 'index.html'),
-					yarnEditor: path.join(rootDir, 'yarn-editor/index.html'),
+					yarnEditor: yarnEditorIndexHtml,
+					codeWire: codeWireIndexHtml,
 				},
 				output: {
 					manualChunks(id) {
@@ -329,6 +463,7 @@ export default defineConfig(({ mode }) => {
 		plugins: [
 			react(),
 			yarnEditorStaticPlugin(),
+			codeWireStaticPlugin(),
 			codeInspectorPlugin({
 				bundler: 'vite',
 				editor: 'code',
