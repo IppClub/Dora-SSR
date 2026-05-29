@@ -1645,8 +1645,8 @@ local function saveStepLLMDebugOutput(shared, stepId, phase, text, meta) -- 1074
 		table.concat(sections, "\n") -- 1087
 	) -- 1087
 end -- 1074
-local function toJson(value) -- 1090
-	local text, err = safeJsonEncode(value) -- 1091
+local function toJson(value, emptyAsArray) -- 1090
+	local text, err = safeJsonEncode(value, false, emptyAsArray) -- 1091
 	if text ~= nil then -- 1091
 		return text -- 1092
 	end -- 1092
@@ -2098,7 +2098,7 @@ local function appendToolResultMessage(shared, action) -- 1757
 			role = "tool", -- 1759
 			tool_call_id = action.toolCallId, -- 1760
 			name = action.tool, -- 1761
-			content = action.result and toJson(action.result) or "" -- 1762
+			content = action.result and toJson(action.result, false) or "" -- 1762
 		} -- 1762
 	) -- 1762
 end -- 1757
@@ -2116,7 +2116,7 @@ local function appendAssistantToolCallsMessage(shared, actions, content, reasoni
 					type = "function", -- 1778
 					["function"] = { -- 1779
 						name = action.tool, -- 1780
-						arguments = toJson(action.params) -- 1781
+						arguments = toJson(action.params, false) -- 1781
 					} -- 1781
 				} end -- 1781
 			) -- 1781

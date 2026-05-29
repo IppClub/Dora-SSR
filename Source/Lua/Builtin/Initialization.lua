@@ -388,8 +388,10 @@ do
 	local Dictionary = Dora.Dictionary
 	Content.glob = function(self, path, globs, extensionLevels)
 		local dict = Dictionary()
-		for k, v in pairs(extensionLevels) do
-			dict[k] = v
+		if extensionLevels then
+			for k, v in pairs(extensionLevels) do
+				dict[k] = v
+			end
 		end
 		return Content_glob(self, path, globs, dict)
 	end

@@ -1087,8 +1087,8 @@ function saveStepLLMDebugOutput(shared: AgentShared, stepId: number, phase: stri
 	updateLatestStepLLMDebugOutput(shared, stepId, sections.join("\n"));
 }
 
-function toJson(value: unknown): string {
-	const [text, err] = safeJsonEncode(value as object);
+function toJson(value: unknown, emptyAsArray: boolean): string {
+	const [text, err] = safeJsonEncode(value as object, false, emptyAsArray);
 	if (text !== undefined) return text;
 	return `{ "error": "json_encode_failed", "message": "${tostring(err)}" }`;
 }
@@ -1759,7 +1759,7 @@ function appendToolResultMessage(shared: AgentShared, action: AgentActionRecord)
 		role: "tool",
 		tool_call_id: action.toolCallId,
 		name: action.tool,
-		content: action.result ? toJson(action.result) : "",
+		content: action.result ? toJson(action.result, false) : "",
 	});
 }
 
@@ -1778,7 +1778,7 @@ function appendAssistantToolCallsMessage(
 			type: "function",
 			function: {
 				name: action.tool,
-				arguments: toJson(action.params),
+				arguments: toJson(action.params, false),
 			},
 		})),
 	});
