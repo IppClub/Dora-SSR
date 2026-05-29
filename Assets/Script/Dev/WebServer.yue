@@ -1509,6 +1509,12 @@ HttpServer\postSchedule "/wa/create", (req): {success: false, message: "invalid 
 			return success: false, message: "failed to copy template"
 		return success: true
 
+tsBuildGlobs =
+	- "**/*.ts"
+	- "**/*.tsx"
+	- "!**/.*/**"
+	- "!**/node_modules/**"
+
 HttpServer\postSchedule "/ts/build", (req): success: false ->
 	switch req when {body: {:path}}
 		if HttpServer.wsConnectionCount == 0
@@ -1542,12 +1548,10 @@ HttpServer\postSchedule "/ts/build", (req): success: false ->
 				wait -> done
 			return success: true, :messages
 		else
-			files = Content\getAllFiles path
 			fileData = {}
 			messages = []
-			for f in *files
-				continue unless Path\getExt(f) in ["ts", "tsx"]
-				file = Path path, f
+			for subFile in *Content\glob path, tsBuildGlobs
+				file = Path path, subFile
 				if content := Content\load file
 					fileData[file] = content
 					emit "AppWS", "Send", json.encode name: "UpdateFile", :file, exists: true, :content
