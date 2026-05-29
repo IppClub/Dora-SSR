@@ -6,14 +6,13 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 	<title>CodeWire</title>
-	<link rel="icon" href="images/Code Wire Logo.svg">
-	<link rel="stylesheet" href="style.css">
-	<link href="./bootstrap.min.css" rel="stylesheet">
-	<link href="./fontawesome/free.min.css" rel="stylesheet">
-	<link href="./fontawesome/free-v4-shims.min.css" rel="stylesheet">
-	<link href="./fontawesome/free-v4-font-face.min.css" rel="stylesheet">
-	<link rel="stylesheet" href="./javascript/Dependencies/CodeMirror/codemirror.css">
-	<link rel="stylesheet" href="./javascript/Dependencies/CodeMirror/material-darker.css">
+	<link rel="stylesheet" href="style.css" vite-ignore>
+	<link href="./codewire-bootstrap.css" rel="stylesheet" vite-ignore>
+	<link href="./fontawesome/free.min.css" rel="stylesheet" vite-ignore>
+	<link href="./fontawesome/free-v4-shims.min.css" rel="stylesheet" vite-ignore>
+	<link href="./fontawesome/free-v4-font-face.min.css" rel="stylesheet" vite-ignore>
+	<link rel="stylesheet" href="./javascript/Dependencies/CodeMirror/codemirror.css" vite-ignore>
+	<link rel="stylesheet" href="./javascript/Dependencies/CodeMirror/material-darker.css" vite-ignore>
 
 </head>
 
@@ -21,7 +20,6 @@
 	<div class="main">
 		<div id="left-panel">
 			<!-- <div>Icons made by <a href="https://www.flaticon.com/authors/google" title="Google">Google</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div> -->
-			<!-- <img src="./images/right-chevron.svg" id="slider"> -->
 			<div class="slider-icon" id="slide-left-panel">
 				<div style="margin-top: 1rem;">
 					<i class="fas fa-arrow-left"></i>
@@ -32,10 +30,10 @@
 						style="position: absolute; right: 0.7rem; transition: 0.1s;"><i class="fas fa-chevron-down"></i></div>
 				</div>
 				<div id="add-variables-content" class="left-panel-tab-content">
-					<div id="create-variables" class="pb-5">
+					<div id="create-variables" class="pb-5" autocomplete="off">
 						<div class="input-group pt-3 ps-5 pe-5 input-group-lg">
 							<div class="icon2">Type</div>
-							<select class="form-select" id="variable-data-type">
+							<select class="form-select" id="variable-data-type" autocomplete="off">
 								<option value="Number" selected>Number</option>
 								<option value="Boolean">Boolean</option>
 								<option value="String">String</option>
@@ -44,27 +42,27 @@
 						</div>
 						<div class="input-group input-group-lg pt-3 ps-5 pe-5">
 							<div class="icon2">Name</div>
-							<input type="text" class="form-control" placeholder="Name" id="variable-name">
+							<input type="text" class="form-control" placeholder="Name" id="variable-name" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
 						</div>
 						<div class="input-group input-group-lg pt-3 ps-5 pe-5" id="number-default-form">
 							<div class="icon2">Value</div>
 							<input type="number" class="form-control" placeholder="Default" title="enter number"
-								id="number-default-value" value=0>
+								id="number-default-value" value=0 autocomplete="off">
 						</div>
 						<div class="input-group input-group-lg pt-3 ps-5 pe-5 hidden" id="string-default-form">
 							<div class="icon2">Value</div>
 							<input type="text" class="form-control" placeholder="Default" title="enter string"
-								id="string-default-value" value=hello>
+								id="string-default-value" value=hello autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
 						</div>
 						<div class="input-group input-group-lg pt-3 ps-5 pe-5 hidden" id="array-default-form">
 							<div class="icon2">Value</div>
 							<input type="text" class="form-control" placeholder="Default"
 								title="enter array values in [1, 2, 3, 4] or ['Love', 'Shove', 'Dove'] or [true, false, true] etc format"
-								id="array-default-value" value="{}">
+								id="array-default-value" value="{}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
 						</div>
 						<div class="input-group pt-3 ps-5 pe-5 input-group-lg hidden" id="bool-default-form">
 							<div class="icon2">Value</div>
-							<select class="form-select" id="bool-default-value">
+							<select class="form-select" id="bool-default-value" autocomplete="off">
 								<option value=true selected>True</option>
 								<option value=false>False</option>
 							</select>
@@ -257,11 +255,10 @@
 		</iframe>
 	</div>
 </body>
-<script src="./bootstrap.bundle.min.js"></script>
-<script src="./javascript/Dependencies/CodeMirror/codemirror.js"></script>
-<script src="./javascript/Dependencies/CodeMirror/lua/lua.js"></script>
-<script src="./javascript/Dependencies/jquery/jquery.js"></script>
-<script src="./javascript/Dependencies/Konva/konva.min.js"></script>
+<script src="./javascript/Dependencies/CodeMirror/codemirror.js" vite-ignore></script>
+<script src="./javascript/Dependencies/CodeMirror/lua/lua.js" vite-ignore></script>
+<script src="./javascript/Dependencies/jquery/jquery.js" vite-ignore></script>
+<script src="./javascript/Dependencies/Konva/konva.min.js" vite-ignore></script>
 <script type="module" src="./javascript/main/main.js"></script>
 
 </html>

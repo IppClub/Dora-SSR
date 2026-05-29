@@ -14,6 +14,8 @@ import jquery from 'jquery';
 window.$ = window.jQuery = jquery;
 
 import ace from 'ace-builds/src-noconflict/ace';
+import { registerYarnMode } from './mode-yarn.js';
+import { registerYarnTheme } from './theme-yarn.js';
 
 // Keep these imports, they are used elsewhere in the app
 import Swal from 'sweetalert2';
@@ -31,10 +33,28 @@ async function runYarnEditor() {
 	await import('jquery-resizable-dom');
 
 	window.ace = ace;
-	ace.config.set('basePath', Utils.getPublicPath()); //needed to import yarn mode
+	ace.config.set('basePath', Utils.getPublicPath());
 	window.define = ace.define;
-	await import('./mode-yarn.js');
-	await import('./theme-yarn.js');
+	registerYarnMode(ace);
+	registerYarnTheme(ace);
+	window.applyYarnAceSyntax = editor => {
+		if (!editor) return;
+		const YarnMode = ace.require('ace/mode/yarn').Mode;
+		ace.require('ace/theme/yarn');
+		editor.setTheme('ace/theme/yarn');
+		editor.getSession().setMode(new YarnMode());
+		const app = window.app;
+		if (!app) return;
+		if (!window.isYarnAceContextMenuRegistered) {
+			$.contextMenu(app.utils.getEditorContextMenu(/\|/g));
+			window.isYarnAceContextMenuRegistered = true;
+		}
+		editor.setOptions({
+			enableBasicAutocompletion: app.settings.autocompleteSuggestionsEnabled(),
+			enableLiveAutocompletion: app.settings.autocompleteSuggestionsEnabled(),
+			behavioursEnabled: app.settings.autoCloseBrackets(),
+		});
+	};
 
 	await import('ace-builds/src-min-noconflict/ext-language_tools');
 	await import('ace-builds/src-min-noconflict/ext-searchbox');
