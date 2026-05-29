@@ -84,9 +84,7 @@ interface StyledTabProps {
 }
 
 export const StyledTab = styled((props: StyledTabProps) => {
-	const { label, tooltip, onTabClose } = props;
-	const newProps = { ...props };
-	delete newProps.onTabClose;
+	const { label, tooltip, onTabClose, ...newProps } = props;
 	return (
 		<Tooltip arrow title={tooltip}>
 			<Tab

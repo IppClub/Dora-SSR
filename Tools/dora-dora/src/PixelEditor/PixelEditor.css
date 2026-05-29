@@ -1,0 +1,269 @@
+.pixel-editor-root {
+	background: linear-gradient(180deg, #151923 0%, #10141c 100%);
+	color: rgba(255,255,255,0.88);
+	display: grid;
+	grid-template-rows: 54px minmax(0, 1fr) 34px;
+	overflow: hidden;
+}
+
+.pixel-toolbar {
+	align-items: center;
+	background: rgba(255,255,255,0.045);
+	border-bottom: 1px solid rgba(255,255,255,0.08);
+	display: flex;
+	gap: 12px;
+	padding: 0 16px;
+}
+
+.pixel-editor-body {
+	display: grid;
+	grid-template-columns: 210px minmax(0, 1fr) 300px;
+	gap: 12px;
+	min-height: 0;
+	padding: 12px;
+}
+
+.pixel-stage {
+	align-items: center;
+	background: radial-gradient(circle at center, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.025) 48%, rgba(0,0,0,0.12) 100%);
+	border: 1px solid rgba(255,255,255,0.1);
+	border-radius: 14px;
+	display: flex;
+	justify-content: center;
+	min-height: 0;
+	overflow: auto;
+	padding: 32px;
+}
+
+.pixel-panel {
+	background: rgba(255,255,255,0.055);
+	border: 1px solid rgba(255,255,255,0.1);
+	border-radius: 14px;
+	min-height: 0;
+	padding: 14px;
+}
+
+.pixel-panel-title {
+	color: #ffd54a;
+	font-weight: 700 !important;
+	letter-spacing: 0.02em;
+}
+
+.pixel-inspector-column {
+	min-height: 0;
+	overflow: auto;
+	padding-right: 2px;
+}
+
+.pixel-reference-panel {
+	flex: 0 0 auto;
+}
+
+.pixel-reference-slot {
+	background: rgba(0,0,0,0.16);
+	border: 1px solid rgba(255,255,255,0.08);
+	border-radius: 12px;
+	padding: 10px;
+}
+
+.pixel-reference-slot-title {
+	color: rgba(255,255,255,0.84);
+	font-weight: 700 !important;
+}
+
+.pixel-reference-empty {
+	align-items: center;
+	background: rgba(0,0,0,0.2);
+	border: 1px dashed rgba(255,255,255,0.16);
+	border-radius: 10px;
+	color: rgba(255,255,255,0.48);
+	display: flex;
+	min-height: 66px;
+	justify-content: center;
+	padding: 10px;
+	text-align: center;
+}
+
+.pixel-reference-preview {
+	align-items: center;
+	background:
+		linear-gradient(45deg, rgba(255,255,255,0.045) 25%, transparent 25%),
+		linear-gradient(-45deg, rgba(255,255,255,0.045) 25%, transparent 25%),
+		linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.045) 75%),
+		linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.045) 75%);
+	background-color: rgba(0,0,0,0.24);
+	background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+	background-size: 16px 16px;
+	border: 1px solid rgba(255,255,255,0.12);
+	border-radius: 10px;
+	display: flex;
+	height: 132px;
+	justify-content: center;
+	overflow: hidden;
+	padding: 8px;
+}
+
+.pixel-reference-preview img {
+	image-rendering: pixelated;
+	max-height: 100%;
+	max-width: 100%;
+	object-fit: contain;
+}
+
+.pixel-generation-panel {
+	flex: 0 0 auto;
+}
+
+.pixel-generation-plan {
+	background: rgba(0,0,0,0.2);
+	border: 1px solid rgba(255,255,255,0.08);
+	border-radius: 10px;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	max-height: 92px;
+	overflow: auto;
+	padding: 8px;
+}
+
+.pixel-generation-step {
+	color: rgba(255,255,255,0.62);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.pixel-motion-panel {
+	display: flex;
+	flex: 0 0 auto;
+	max-height: 260px;
+	min-height: 170px;
+	overflow: hidden;
+}
+
+.pixel-motion-frame-list {
+	display: flex;
+	flex: 1 1 0;
+	flex-direction: column;
+	gap: 8px;
+	min-height: 0;
+	overflow: auto;
+	padding-right: 2px;
+}
+
+.pixel-motion-frame-card {
+	background: rgba(0,0,0,0.2);
+	border: 1px solid rgba(255,255,255,0.08);
+	border-radius: 10px;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: 8px;
+}
+
+.pixel-motion-frame-name {
+	color: rgba(255,255,255,0.86);
+	font-weight: 700 !important;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.pixel-motion-frame-anchor {
+	color: rgba(255,255,255,0.42);
+	flex-shrink: 0;
+}
+
+.pixel-palette-grid {
+	display: grid;
+	gap: 8px;
+	grid-template-columns: repeat(4, 1fr);
+}
+
+.pixel-swatch {
+	background: rgba(0,0,0,0.26);
+	border: 1px solid rgba(255,255,255,0.14);
+	border-radius: 8px;
+	cursor: pointer;
+	height: 36px;
+	padding: 3px;
+}
+
+.pixel-swatch span {
+	background-image: linear-gradient(45deg, #323a45 25%, transparent 25%), linear-gradient(-45deg, #323a45 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #323a45 75%), linear-gradient(-45deg, transparent 75%, #323a45 75%);
+	background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+	background-size: 16px 16px;
+	border-radius: 5px;
+	display: block;
+	height: 100%;
+	width: 100%;
+}
+
+.pixel-swatch-selected {
+	border-color: #ffd54a;
+	box-shadow: 0 0 0 2px rgba(255,213,74,0.24);
+}
+
+.pixel-color-input {
+	background: transparent;
+	border: 0;
+	height: 40px;
+	padding: 0;
+	width: 100%;
+}
+
+.pixel-frame-list {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	min-height: 0;
+	overflow: auto;
+}
+
+.pixel-frame-button {
+	align-items: center;
+	background: rgba(0,0,0,0.22);
+	border: 1px solid rgba(255,255,255,0.1);
+	border-radius: 10px;
+	color: rgba(255,255,255,0.78);
+	cursor: pointer;
+	display: flex;
+	gap: 10px;
+	min-height: 40px;
+	padding: 8px 10px;
+	text-align: left;
+}
+
+.pixel-frame-button span {
+	align-items: center;
+	background: rgba(255,213,74,0.16);
+	border-radius: 999px;
+	color: #ffd54a;
+	display: inline-flex;
+	font-size: 12px;
+	height: 24px;
+	justify-content: center;
+	min-width: 24px;
+}
+
+.pixel-frame-button strong {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.pixel-frame-selected {
+	background: rgba(255,213,74,0.16);
+	border-color: rgba(255,213,74,0.55);
+	color: #fff;
+}
+
+.pixel-status {
+	align-items: center;
+	background: rgba(0,0,0,0.22);
+	border-top: 1px solid rgba(255,255,255,0.08);
+	display: flex;
+	font-size: 12px;
+	justify-content: space-between;
+	padding: 0 16px;
+}
