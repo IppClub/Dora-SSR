@@ -307,6 +307,21 @@ const replaceCodeWireVendorStyles = (html: string) => {
 	return output;
 };
 
+const replaceCodeWireEntryScriptForDev = (html: string) => (
+	html.replace(
+		'<script type="module" src="./javascript/main/main.js"></script>',
+		'<script type="module" src="/src/3rdParty/CodeWire/public/javascript/main/main.js"></script>'
+	)
+);
+
+const prepareCodeWireHtml = (html: string, dev = false) => {
+	let output = replaceCodeWireVendorStyles(replaceCodeWireVendorScripts(html));
+	if (dev) {
+		output = replaceCodeWireEntryScriptForDev(output);
+	}
+	return output;
+};
+
 const shouldEmitYarnEditorStaticFile = (relativePath: string) => {
 	if (relativePath === 'index.html' || relativePath === 'version.json') return false;
 	if (relativePath === 'templates/node.html') return false;
@@ -374,10 +389,22 @@ const codeWireStaticPlugin = (): Plugin => ({
 		server.middlewares.use(async (req, res, next) => {
 			const url = req.url?.split('?')[0] || '';
 			if (url === '/code-wire/index.html' || url === '/code-wire/') {
-				const html = fs.readFileSync(codeWireIndexHtml, 'utf8');
+				const html = prepareCodeWireHtml(fs.readFileSync(codeWireIndexHtml, 'utf8'), true);
 				res.setHeader('Cache-Control', 'no-store');
 				res.setHeader('Content-Type', 'text/html');
 				res.end(await server.transformIndexHtml(url, html));
+				return;
+			}
+			if (url === '/code-wire/vendor.js') {
+				res.setHeader('Cache-Control', 'no-store');
+				res.setHeader('Content-Type', 'text/javascript');
+				res.end(readCodeWireVendorBundle());
+				return;
+			}
+			if (url === '/code-wire/vendor.css') {
+				res.setHeader('Cache-Control', 'no-store');
+				res.setHeader('Content-Type', 'text/css');
+				res.end(readCodeWireVendorStyleBundle());
 				return;
 			}
 			if (!url.startsWith('/code-wire/')) {
@@ -401,7 +428,7 @@ const codeWireStaticPlugin = (): Plugin => ({
 			delete bundle[codeWireHtml.key];
 			codeWireHtml.asset.fileName = 'code-wire/index.html';
 			if ('source' in codeWireHtml.asset && typeof codeWireHtml.asset.source === 'string') {
-				codeWireHtml.asset.source = replaceCodeWireVendorStyles(replaceCodeWireVendorScripts(codeWireHtml.asset.source));
+				codeWireHtml.asset.source = prepareCodeWireHtml(codeWireHtml.asset.source);
 			}
 			bundle[codeWireHtml.asset.fileName] = codeWireHtml.asset;
 		}

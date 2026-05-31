@@ -571,6 +571,7 @@ export interface LLMConfigItem {
 	temperature: number;
 	maxTokens: number;
 	reasoningEffort?: string;
+	customOptions?: string;
 	supportsFunctionCalling: boolean;
 	active: boolean;
 };

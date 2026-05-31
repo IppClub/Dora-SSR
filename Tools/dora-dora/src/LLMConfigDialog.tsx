@@ -26,6 +26,7 @@ type LLMTemplate = {
 	label: string;
 	url: string;
 	model: string;
+	customOptions?: string;
 };
 
 type LLMConfigFormState = Omit<Service.LLMConfigItem, "contextWindow" | "temperature" | "maxTokens"> & {
@@ -48,6 +49,7 @@ const emptyForm: LLMConfigFormState = {
 	temperature: DEFAULT_TEMPERATURE,
 	maxTokens: DEFAULT_MAX_TOKENS,
 	reasoningEffort: '',
+	customOptions: '',
 	supportsFunctionCalling: true,
 	active: true,
 };
@@ -62,6 +64,19 @@ const normalizeFormNumber = (value: unknown, fallback: number) => {
 	if (value === null || value === undefined || value === '') return fallback;
 	const numberValue = Number(value);
 	return Number.isFinite(numberValue) ? numberValue : fallback;
+};
+
+const normalizeCustomOptions = (value: unknown) => typeof value === 'string' ? value : '';
+
+const validateCustomOptions = (value: string) => {
+	const trimmed = value.trim();
+	if (trimmed === '') return true;
+	try {
+		const parsed = JSON.parse(trimmed);
+		return parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed);
+	} catch {
+		return false;
+	}
 };
 
 const BUILTIN_TEMPLATES: LLMTemplate[] = [
@@ -144,6 +159,20 @@ const BUILTIN_TEMPLATES: LLMTemplate[] = [
 		model: 'MiniMax-M1'
 	},
 	{
+		id: 'mimo',
+		label: 'Xiaomi MiMo',
+		url: 'https://api.xiaomimimo.com/v1/chat/completions',
+		model: 'mimo-v2.5-pro',
+		customOptions: JSON.stringify({
+			max_tokens: null,
+			max_completion_tokens: DEFAULT_MAX_TOKENS,
+			top_p: 0.95,
+			thinking: {
+				type: 'disabled',
+			},
+		}, null, 2)
+	},
+	{
 		id: 'zai',
 		label: 'ZAI',
 		url: 'https://open.bigmodel.cn/api/paas/v4/chat/completions',
@@ -204,6 +233,7 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 					temperature: normalizeFormNumber(item.temperature, DEFAULT_TEMPERATURE),
 					maxTokens: Number(item.maxTokens) > 0 ? Number(item.maxTokens) : DEFAULT_MAX_TOKENS,
 					reasoningEffort: typeof item.reasoningEffort === 'string' ? item.reasoningEffort : '',
+					customOptions: normalizeCustomOptions(item.customOptions),
 					supportsFunctionCalling: item.supportsFunctionCalling === undefined ? true : Boolean(item.supportsFunctionCalling),
 					active: item.active === undefined ? true : Boolean(item.active),
 				}));
@@ -234,6 +264,7 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 			temperature: DEFAULT_TEMPERATURE,
 			maxTokens: DEFAULT_MAX_TOKENS,
 			reasoningEffort: '',
+			customOptions: template.customOptions ?? '',
 		});
 	}, [templates]);
 
@@ -269,6 +300,7 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 			temperature: normalizeFormNumber(item.temperature, DEFAULT_TEMPERATURE),
 			maxTokens: Number(item.maxTokens) > 0 ? Number(item.maxTokens) : DEFAULT_MAX_TOKENS,
 			reasoningEffort: typeof item.reasoningEffort === 'string' ? item.reasoningEffort : '',
+			customOptions: normalizeCustomOptions(item.customOptions),
 			supportsFunctionCalling: item.supportsFunctionCalling === undefined ? true : Boolean(item.supportsFunctionCalling),
 			active: item.active === undefined ? true : Boolean(item.active),
 		});
@@ -295,11 +327,16 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 			temperature: normalizeFormNumber(form.temperature, DEFAULT_TEMPERATURE),
 			maxTokens: Math.floor(normalizeFormNumber(form.maxTokens, DEFAULT_MAX_TOKENS)),
 			reasoningEffort: (form.reasoningEffort ?? '').trim(),
+			customOptions: normalizeCustomOptions(form.customOptions).trim(),
 			supportsFunctionCalling: form.supportsFunctionCalling !== false,
 			active: form.active,
 		};
 		if (!payload.name || !payload.url || !payload.model || !payload.key) {
 			setError(t('llm.validationFailed'));
+			return;
+		}
+		if (!validateCustomOptions(payload.customOptions)) {
+			setError(t('llm.customOptionsInvalid'));
 			return;
 		}
 		const res = mode === 'create'
@@ -572,6 +609,18 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 								/>
 							}
 							label={t('llm.functionCalling')}
+						/>
+						<TextField
+							label={t('llm.customOptions')}
+							value={form.customOptions ?? ''}
+							onChange={(event) => setForm({ ...form, customOptions: event.target.value })}
+							fullWidth
+							autoComplete="off"
+							size="small"
+							multiline
+							minRows={4}
+							placeholder={'{\n  "max_tokens": null,\n  "top_p": 0.95\n}'}
+							sx={inputStyle}
 						/>
 						<Stack direction="row" spacing={2}>
 							<TextField

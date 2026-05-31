@@ -264,7 +264,7 @@ function getDefaultUseChineseResponse(): boolean {
 }
 
 function toStr(v: unknown): string {
-	if (v === false || v === null || v === undefined) return "";
+	if (v === false || v === undefined) return "";
 	return tostring(v);
 }
 
@@ -1196,7 +1196,7 @@ function setSessionState(sessionId: number, status: AgentSessionStatus, currentT
 			now(),
 			sessionId,
 		],
-		);
+	);
 }
 
 function mergeAgentMetrics(current: AgentMetricsItem | undefined, next: AgentMetricsItem): AgentMetricsItem {
@@ -1601,26 +1601,26 @@ function applyEvent(sessionId: number, event: AgentRuntimeEvent) {
 				step: getStepItem(sessionId, event.taskId, event.step),
 			});
 			break;
-			case "memory_compression_finished":
-				upsertStep(sessionId, event.taskId, event.step, event.tool, {
-					status: event.result.success === true ? "DONE" : "FAILED",
-					reason: event.reason,
-					result: event.result,
-				});
-				emitAgentSessionPatch(sessionId, {
-					step: getStepItem(sessionId, event.taskId, event.step),
-				});
-				break;
-			case "metrics_updated": {
-				const metrics = updateSessionMetrics(sessionId, event.metrics);
-				emitAgentSessionPatch(sessionId, {
-					metrics,
-				});
-				break;
-			}
-			case "assistant_message_updated": {
-				upsertStep(sessionId, event.taskId, event.step, "message", {
-					status: "RUNNING",
+		case "memory_compression_finished":
+			upsertStep(sessionId, event.taskId, event.step, event.tool, {
+				status: event.result.success === true ? "DONE" : "FAILED",
+				reason: event.reason,
+				result: event.result,
+			});
+			emitAgentSessionPatch(sessionId, {
+				step: getStepItem(sessionId, event.taskId, event.step),
+			});
+			break;
+		case "metrics_updated": {
+			const metrics = updateSessionMetrics(sessionId, event.metrics);
+			emitAgentSessionPatch(sessionId, {
+				metrics,
+			});
+			break;
+		}
+		case "assistant_message_updated": {
+			upsertStep(sessionId, event.taskId, event.step, "message", {
+				status: "RUNNING",
 				reason: event.content,
 				reasoningContent: event.reasoningContent,
 			});
@@ -1765,9 +1765,9 @@ function recreateSchema() {
 			created_at INTEGER NOT NULL,
 			updated_at INTEGER NOT NULL,
 			metrics_json TEXT NOT NULL DEFAULT ''
-			);`);
-			ensureSessionMetricsColumn();
-			DB.exec(`CREATE INDEX IF NOT EXISTS idx_agent_session_project_root ON ${TABLE_SESSION}(project_root, updated_at DESC);`);
+		);`);
+		ensureSessionMetricsColumn();
+		DB.exec(`CREATE INDEX IF NOT EXISTS idx_agent_session_project_root ON ${TABLE_SESSION}(project_root, updated_at DESC);`);
 		DB.exec(`CREATE TABLE IF NOT EXISTS ${TABLE_MESSAGE}(
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			session_id INTEGER NOT NULL,

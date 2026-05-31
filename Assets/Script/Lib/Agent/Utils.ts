@@ -128,6 +128,10 @@ export function safeJsonDecode(text: string) {
 	return $multi(sanitizeJSONValue(value), err);
 }
 
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === "object" && value !== undefined && !Array.isArray(value);
+}
+
 function normalizeLLMJSONResponse(text: string): string {
 	return text.trim();
 }
@@ -501,12 +505,14 @@ const postLLM = (
 	model: string,
 	options: Record<string, any>,
 	stream: boolean,
+	customOptions?: Record<string, unknown>,
 	receiver?: (this: void, data: string) => boolean,
 	stopToken?: StopToken
 ) => {
 	const requestTimeout = stream ? LLM_STREAM_TIMEOUT : LLM_TIMEOUT;
+	const requestOptions = applyCustomLLMOptions(options, customOptions);
 	const data: Record<string, any> = {
-		...options,
+		...requestOptions,
 		model,
 		messages,
 		stream,
@@ -753,6 +759,7 @@ export type LLMConfig = {
 	temperature: number;
 	maxTokens: number;
 	reasoningEffort?: string;
+	customOptions?: Record<string, unknown>;
 	supportsFunctionCalling: boolean;
 };
 
@@ -764,7 +771,7 @@ function normalizeContextWindow(value: unknown): number {
 }
 
 function normalizeSupportsFunctionCalling(value: unknown): boolean {
-	return value === undefined || value === null || value !== 0;
+	return value === undefined || value !== 0;
 }
 
 function normalizeLLMTemperature(value: unknown): number {
@@ -785,6 +792,31 @@ function normalizeReasoningEffort(value: unknown): string | undefined {
 	if (typeof value !== "string") return undefined;
 	const normalized = sanitizeUTF8(value).trim();
 	return normalized !== "" ? normalized : undefined;
+}
+
+function normalizeLLMCustomOptions(value: unknown): Record<string, unknown> | undefined {
+	if (typeof value !== "string") return undefined;
+	const text = sanitizeUTF8(value).trim();
+	if (text === "") return undefined;
+	const [decoded] = safeJsonDecode(text);
+	return isPlainRecord(decoded) ? decoded : undefined;
+}
+
+export function applyCustomLLMOptions(
+	options: Record<string, unknown>,
+	customOptions?: Record<string, unknown>
+): Record<string, unknown> {
+	if (!customOptions) return options;
+	const merged: Record<string, unknown> = { ...options };
+	for (const key in customOptions) {
+		const value = customOptions[key];
+		if (value === json.null) {
+			delete merged[key];
+		} else {
+			merged[key] = value;
+		}
+	}
+	return merged;
 }
 
 export function getActiveLLMConfig(): { success: true; config: LLMConfig } | { success: false; message: string } {
@@ -817,6 +849,7 @@ export function getActiveLLMConfig(): { success: true; config: LLMConfig } | { s
 			temperature: normalizeLLMTemperature(config["temperature"]),
 			maxTokens: normalizeLLMMaxTokens(config["max_tokens"]),
 			reasoningEffort: normalizeReasoningEffort(config["reasoning_effort"]),
+			customOptions: normalizeLLMCustomOptions(config["custom_options"]),
 			supportsFunctionCalling: normalizeSupportsFunctionCalling(config["supports_function_calling"]),
 		},
 	};
@@ -874,7 +907,7 @@ export const callLLMStream = (
 	});
 	(async () => {
 		try {
-			const result = await postLLM(fitted.messages, url, apiKey, model, options, true, (data) => {
+			const result = await postLLM(fitted.messages, url, apiKey, model, options, true, config.customOptions, (data) => {
 				if (stopLLM) {
 					if (onCancel) {
 						onCancel("LLM Stopped");
@@ -1120,7 +1153,7 @@ export async function callLLMStreamAggregated(
 				Log("Warn", `[Agent.Utils] callLLMStreamAggregated parse error: ${tostring(err)} raw=${previewText(context?.raw ?? "", 300)}`);
 			},
 		});
-		await postLLM(fitted.messages, url, apiKey, model, options, true, (data) => {
+		await postLLM(fitted.messages, url, apiKey, model, options, true, resolvedConfig.customOptions, (data) => {
 			if (stopToken?.stopped) return true;
 			httpChunkCount++;
 			rawStreamBytes += data.length;
@@ -1210,7 +1243,7 @@ export async function callLLM(
 		return { success: false, message: reason };
 	}
 	try {
-		const raw = sanitizeUTF8(await postLLM(fitted.messages, url, apiKey, model, options, false, undefined, stopToken));
+		const raw = sanitizeUTF8(await postLLM(fitted.messages, url, apiKey, model, options, false, resolvedConfig.customOptions, undefined, stopToken));
 		const normalizedRaw = normalizeLLMJSONResponse(raw);
 		Log("Info", `[Agent.Utils] callLLMOnce raw response length=${raw.length}${normalizedRaw.length !== raw.length ? ` normalized=${normalizedRaw.length}` : ""}`);
 		const [response, err] = safeJsonDecode(normalizedRaw);

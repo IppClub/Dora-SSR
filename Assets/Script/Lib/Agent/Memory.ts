@@ -287,7 +287,7 @@ You may return multiple tool calls in one response when the calls are independen
 	replyLanguageDirectiveZh: "Use Simplified Chinese for natural-language fields (message/summary).",
 	replyLanguageDirectiveEn: "Use English for natural-language fields (message/summary).",
 	toolCallingRetryPrompt: "Previous response was invalid ({{LAST_ERROR}}). Retry with one or more valid tool calls.",
-xmlDecisionFormatPrompt: `Respond with exactly one XML tool_call block. Do not include any prose before or after the XML.
+	xmlDecisionFormatPrompt: `Respond with exactly one XML tool_call block. Do not include any prose before or after the XML.
 
 ${XML_DECISION_SCHEMA_EXAMPLE}
 
@@ -447,18 +447,18 @@ function replaceTemplateVars(template: string, vars: Record<string, string>): st
 	return output;
 }
 
-export function resolveAgentPromptPack(value?: Record<string, unknown> | null): AgentPromptPack {
+export function resolveAgentPromptPack(value?: Record<string, unknown>): AgentPromptPack {
 	const merged: AgentPromptPack = {
 		...DEFAULT_AGENT_PROMPT_PACK,
 	};
-		if (value && !isArray(value) && isRecord(value)) {
-			for (let i = 0; i < EXPOSED_PROMPT_PACK_KEYS.length; i++) {
-				const key = EXPOSED_PROMPT_PACK_KEYS[i];
-				if (typeof value[key] === "string") {
-					merged[key] = value[key];
-				}
+	if (value && !isArray(value) && isRecord(value)) {
+		for (let i = 0; i < EXPOSED_PROMPT_PACK_KEYS.length; i++) {
+			const key = EXPOSED_PROMPT_PACK_KEYS[i];
+			if (typeof value[key] === "string") {
+				merged[key] = value[key];
 			}
 		}
+	}
 	return merged;
 }
 
@@ -1287,9 +1287,9 @@ export class DualLayerStorage {
 				continue;
 			}
 			const message = this.decodeConversationMessage(row.message ?? row);
-				if (message !== undefined) {
-					messages.push(message);
-				}
+			if (message !== undefined) {
+				messages.push(message);
+			}
 		}
 		const normalizedLastConsolidatedIndex = clampSessionIndex(messages, lastConsolidatedIndex);
 		const normalizedCarryMessageIndex = typeof carryMessageIndex === "number"
@@ -1422,9 +1422,9 @@ export class MemoryCompressor {
 		boundaryMode: MemoryCompressionBoundaryMode = "default",
 		systemPrompt = "",
 		toolDefinitions = ""
-	): Promise<CompressionResult | null> {
+	): Promise<CompressionResult | undefined> {
 		const toCompress = messages;
-		if (toCompress.length === 0) return null;
+		if (toCompress.length === 0) return undefined;
 		const currentMemory = this.storage.readMemory();
 
 		const boundary = this.findCompressionBoundary(
@@ -1436,7 +1436,7 @@ export class MemoryCompressor {
 		);
 		const chunk = toCompress.slice(0, boundary.chunkEnd);
 
-		if (chunk.length === 0) return null;
+		if (chunk.length === 0) return undefined;
 		const historyText = this.formatMessagesForCompression(chunk);
 
 		try {
