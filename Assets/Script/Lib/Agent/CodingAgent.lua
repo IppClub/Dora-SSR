@@ -1716,7 +1716,7 @@ end -- 1334
 local function createPreExecutedToolResult(shared, action) -- 1344
 	local cloneParamValue -- 1345
 	cloneParamValue = function(value) -- 1345
-		if value == nil or value == nil then -- 1345
+		if value == nil then -- 1345
 			return value -- 1346
 		end -- 1346
 		if isArray(value) then -- 1346
@@ -1740,7 +1740,7 @@ local function createPreExecutedToolResult(shared, action) -- 1344
 		if left == right then -- 1360
 			return true -- 1361
 		end -- 1361
-		if left == nil or left == nil or right == nil or right == nil then -- 1361
+		if left == nil or right == nil then -- 1361
 			return false -- 1362
 		end -- 1362
 		if isArray(left) or isArray(right) then -- 1362
@@ -2216,7 +2216,7 @@ local function parseDecisionToolCall(functionName, rawObj) -- 1890
 	if not isKnownToolName(functionName) then -- 1890
 		return {success = false, message = "unknown tool: " .. functionName} -- 1892
 	end -- 1892
-	if rawObj == nil or rawObj == nil then -- 1892
+	if rawObj == nil then -- 1892
 		return {success = true, tool = functionName, params = {}} -- 1895
 	end -- 1895
 	if not isRecord(rawObj) then -- 1895

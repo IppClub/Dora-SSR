@@ -642,17 +642,17 @@ export type CodingAgentEvent =
 		reason?: string;
 		result: Record<string, unknown>;
 	}
-		| {
-			type: "metrics_updated";
-			sessionId?: number;
-			taskId: number;
-			step?: number;
-			metrics: AgentMetrics;
-		}
-		| {
-			type: "assistant_message_updated";
-			sessionId?: number;
-			taskId: number;
+	| {
+		type: "metrics_updated";
+		sessionId?: number;
+		taskId: number;
+		step?: number;
+		metrics: AgentMetrics;
+	}
+	| {
+		type: "assistant_message_updated";
+		sessionId?: number;
+		taskId: number;
 		step: number;
 		content: string;
 		reasoningContent?: string;
@@ -1343,7 +1343,7 @@ async function startPreExecutedToolAction(shared: AgentShared, action: AgentActi
 
 function createPreExecutedToolResult(shared: AgentShared, action: AgentActionRecord): PreExecutedToolResult {
 	const cloneParamValue = (value: unknown): unknown => {
-		if (value === undefined || value === null) return value;
+		if (value === undefined) return value;
 		if (isArray(value)) {
 			return value.map(item => cloneParamValue(item));
 		}
@@ -1359,7 +1359,7 @@ function createPreExecutedToolResult(shared: AgentShared, action: AgentActionRec
 	const params = cloneParamValue(action.params) as Record<string, unknown>;
 	const areParamValuesEqual = (left: unknown, right: unknown): boolean => {
 		if (left === right) return true;
-		if (left === undefined || left === null || right === undefined || right === null) return false;
+		if (left === undefined || right === undefined) return false;
 		if (isArray(left) || isArray(right)) {
 			if (!isArray(left) || !isArray(right) || left.length !== right.length) return false;
 			for (let i = 0; i < left.length; i++) {
@@ -1891,7 +1891,7 @@ function parseDecisionToolCall(functionName: string, rawObj: unknown): DecisionS
 	if (!isKnownToolName(functionName)) {
 		return { success: false, message: `unknown tool: ${functionName}` };
 	}
-	if (rawObj === undefined || rawObj === null) {
+	if (rawObj === undefined) {
 		return { success: true, tool: functionName, params: {} };
 	}
 	if (!isRecord(rawObj)) {

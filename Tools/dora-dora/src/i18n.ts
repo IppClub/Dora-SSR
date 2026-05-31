@@ -388,6 +388,7 @@ i18n
 						temperature: "Temperature",
 						maxTokens: "Max Tokens",
 						reasoningEffort: "Reasoning Effort",
+						customOptions: "Custom Parameters (JSON)",
 						defaultReasoningEffort: "Default",
 						functionCalling: "Function Calling",
 						supported: "Supported",
@@ -410,6 +411,7 @@ i18n
 						loadFailed: "Failed to load configs.",
 						saveFailed: "Failed to save config.",
 						validationFailed: "Please fill in name, URL, model, and key.",
+						customOptionsInvalid: "Custom parameters must be a JSON object.",
 					},
 					log: {
 						wait: "Wait for logging messages ...",
@@ -1259,6 +1261,7 @@ i18n
 						temperature: "温度",
 						maxTokens: "最大输出 Tokens",
 						reasoningEffort: "推理强度",
+						customOptions: "自定义参数（JSON）",
 						defaultReasoningEffort: "默认",
 						functionCalling: "函数调用",
 						supported: "支持",
@@ -1281,6 +1284,7 @@ i18n
 						loadFailed: "加载配置失败",
 						saveFailed: "保存配置失败",
 						validationFailed: "请填写名称、URL、模型与密钥。",
+						customOptionsInvalid: "自定义参数必须是一个 JSON 对象。",
 					},
 					log: {
 						wait: "接收日志消息中……",

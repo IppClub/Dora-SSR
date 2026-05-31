@@ -2047,41 +2047,45 @@ ensureLLMConfigTable = function() -- 763
 			temperature = true, -- 773
 			max_tokens = true, -- 774
 			reasoning_effort = true, -- 775
-			supports_function_calling = true, -- 776
-			active = true, -- 777
-			created_at = true, -- 778
-			updated_at = true -- 779
+			custom_options = true, -- 776
+			supports_function_calling = true, -- 777
+			active = true, -- 778
+			created_at = true, -- 779
+			updated_at = true -- 780
 		} -- 766
-		local existing = { } -- 781
-		local valid = true -- 782
-		for _index_0 = 1, #columns do -- 783
-			local row = columns[_index_0] -- 783
-			local columnName = tostring(row[2]) -- 784
-			existing[columnName] = true -- 785
-			if not expected[columnName] then -- 786
-				valid = false -- 787
-				break -- 788
-			end -- 786
-		end -- 783
-		if valid then -- 789
-			if not existing.context_window then -- 790
-				DB:exec("ALTER TABLE LLMConfig ADD COLUMN context_window INTEGER NOT NULL DEFAULT 64000") -- 791
-			end -- 790
-			if not existing.temperature then -- 792
-				DB:exec("ALTER TABLE LLMConfig ADD COLUMN temperature REAL NOT NULL DEFAULT 0.1") -- 793
-			end -- 792
-			if not existing.max_tokens then -- 794
-				DB:exec("ALTER TABLE LLMConfig ADD COLUMN max_tokens INTEGER NOT NULL DEFAULT 8192") -- 795
-			end -- 794
-			if not existing.reasoning_effort then -- 796
-				DB:exec("ALTER TABLE LLMConfig ADD COLUMN reasoning_effort TEXT NOT NULL DEFAULT ''") -- 797
-			end -- 796
-			if not existing.supports_function_calling then -- 798
-				DB:exec("ALTER TABLE LLMConfig ADD COLUMN supports_function_calling INTEGER NOT NULL DEFAULT 1") -- 799
-			end -- 798
-		else -- 801
-			DB:exec("DROP TABLE IF EXISTS LLMConfig") -- 801
-		end -- 789
+		local existing = { } -- 782
+		local valid = true -- 783
+		for _index_0 = 1, #columns do -- 784
+			local row = columns[_index_0] -- 784
+			local columnName = tostring(row[2]) -- 785
+			existing[columnName] = true -- 786
+			if not expected[columnName] then -- 787
+				valid = false -- 788
+				break -- 789
+			end -- 787
+		end -- 784
+		if valid then -- 790
+			if not existing.context_window then -- 791
+				DB:exec("ALTER TABLE LLMConfig ADD COLUMN context_window INTEGER NOT NULL DEFAULT 64000") -- 792
+			end -- 791
+			if not existing.temperature then -- 793
+				DB:exec("ALTER TABLE LLMConfig ADD COLUMN temperature REAL NOT NULL DEFAULT 0.1") -- 794
+			end -- 793
+			if not existing.max_tokens then -- 795
+				DB:exec("ALTER TABLE LLMConfig ADD COLUMN max_tokens INTEGER NOT NULL DEFAULT 8192") -- 796
+			end -- 795
+			if not existing.reasoning_effort then -- 797
+				DB:exec("ALTER TABLE LLMConfig ADD COLUMN reasoning_effort TEXT NOT NULL DEFAULT ''") -- 798
+			end -- 797
+			if not existing.custom_options then -- 799
+				DB:exec("ALTER TABLE LLMConfig ADD COLUMN custom_options TEXT NOT NULL DEFAULT ''") -- 800
+			end -- 799
+			if not existing.supports_function_calling then -- 801
+				DB:exec("ALTER TABLE LLMConfig ADD COLUMN supports_function_calling INTEGER NOT NULL DEFAULT 1") -- 802
+			end -- 801
+		else -- 804
+			DB:exec("DROP TABLE IF EXISTS LLMConfig") -- 804
+		end -- 790
 	end -- 765
 	return DB:exec([[		CREATE TABLE IF NOT EXISTS LLMConfig(
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -2093,2128 +2097,2167 @@ ensureLLMConfigTable = function() -- 763
 			temperature REAL NOT NULL DEFAULT 0.1,
 			max_tokens INTEGER NOT NULL DEFAULT 8192,
 			reasoning_effort TEXT NOT NULL DEFAULT '',
+			custom_options TEXT NOT NULL DEFAULT '',
 			supports_function_calling INTEGER NOT NULL DEFAULT 1,
 			active INTEGER NOT NULL DEFAULT 1,
 			created_at INTEGER,
 			updated_at INTEGER
 		);
-	]]) -- 802
+	]]) -- 805
 end -- 763
-local normalizeContextWindow -- 820
-normalizeContextWindow = function(value) -- 820
-	local contextWindow = tonumber(value) -- 821
-	if contextWindow == nil or contextWindow < 64000 then -- 822
-		return 64000 -- 823
-	end -- 822
-	return math.max(64000, math.floor(contextWindow)) -- 824
-end -- 820
-local normalizeTemperature -- 826
-normalizeTemperature = function(value) -- 826
-	local temperature = tonumber(value) -- 827
-	if temperature == nil then -- 828
-		return 0.1 -- 829
-	end -- 828
-	return math.max(0, math.min(2, temperature)) -- 830
-end -- 826
-local normalizeMaxTokens -- 832
-normalizeMaxTokens = function(value) -- 832
-	local maxTokens = tonumber(value) -- 833
-	if maxTokens == nil or maxTokens < 1 then -- 834
-		return 8192 -- 835
-	end -- 834
-	return math.max(1, math.floor(maxTokens)) -- 836
-end -- 832
-local normalizeReasoningEffort -- 838
-normalizeReasoningEffort = function(value) -- 838
-	if value == nil then -- 839
-		return "" -- 840
-	end -- 839
-	local effort = tostring(value) -- 841
-	return effort:match("^%s*(.-)%s*$") or "" -- 842
-end -- 838
-HttpServer:post("/llm/list", function() -- 844
-	ensureLLMConfigTable() -- 845
-	local rows = DB:query("\n		select id, name, url, model, api_key, context_window, temperature, max_tokens, reasoning_effort, supports_function_calling, active\n		from LLMConfig\n		order by id asc") -- 846
-	local items -- 850
-	if rows and #rows > 0 then -- 850
-		local _accum_0 = { } -- 851
-		local _len_0 = 1 -- 851
-		for _index_0 = 1, #rows do -- 851
-			local _des_0 = rows[_index_0] -- 851
-			local id, name, url, model, key, contextWindow, temperature, maxTokens, reasoningEffort, supportsFunctionCalling, active = _des_0[1], _des_0[2], _des_0[3], _des_0[4], _des_0[5], _des_0[6], _des_0[7], _des_0[8], _des_0[9], _des_0[10], _des_0[11] -- 851
-			_accum_0[_len_0] = { -- 852
-				id = id, -- 852
-				name = name, -- 852
-				url = url, -- 852
-				model = model, -- 852
-				key = key, -- 852
-				contextWindow = normalizeContextWindow(contextWindow), -- 852
-				temperature = normalizeTemperature(temperature), -- 852
-				maxTokens = normalizeMaxTokens(maxTokens), -- 852
-				reasoningEffort = normalizeReasoningEffort(reasoningEffort), -- 852
-				supportsFunctionCalling = supportsFunctionCalling ~= 0, -- 852
-				active = active ~= 0 -- 852
-			} -- 852
-			_len_0 = _len_0 + 1 -- 852
-		end -- 851
-		items = _accum_0 -- 850
-	end -- 850
-	return { -- 853
-		success = true, -- 853
-		items = items -- 853
-	} -- 853
-end) -- 844
-HttpServer:post("/llm/create", function(req) -- 855
-	ensureLLMConfigTable() -- 856
-	do -- 857
-		local _type_0 = type(req) -- 857
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 857
-		if _tab_0 then -- 857
-			local body = req.body -- 857
-			if body ~= nil then -- 857
-				local name, url, model, key, active, contextWindow, temperature, maxTokens, reasoningEffort, supportsFunctionCalling = body.name, body.url, body.model, body.key, body.active, body.contextWindow, body.temperature, body.maxTokens, body.reasoningEffort, body.supportsFunctionCalling -- 858
-				local now = os.time() -- 859
-				if name == nil or url == nil or model == nil or key == nil then -- 860
-					return { -- 861
-						success = false, -- 861
-						message = "invalid" -- 861
-					} -- 861
-				end -- 860
-				contextWindow = normalizeContextWindow(contextWindow) -- 862
-				temperature = normalizeTemperature(temperature) -- 863
-				maxTokens = normalizeMaxTokens(maxTokens) -- 864
-				reasoningEffort = normalizeReasoningEffort(reasoningEffort) -- 865
-				if supportsFunctionCalling == false then -- 866
-					supportsFunctionCalling = 0 -- 866
-				else -- 866
-					supportsFunctionCalling = 1 -- 866
-				end -- 866
-				if active then -- 867
-					active = 1 -- 867
-				else -- 867
-					active = 0 -- 867
-				end -- 867
-				local affected = DB:exec("\n			insert into LLMConfig (\n				name, url, model, api_key, context_window, temperature, max_tokens, reasoning_effort, supports_function_calling, active, created_at, updated_at\n			) values (\n				?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?\n			)", { -- 874
-					tostring(name), -- 874
-					tostring(url), -- 875
-					tostring(model), -- 876
-					tostring(key), -- 877
-					contextWindow, -- 878
-					temperature, -- 879
-					maxTokens, -- 880
-					reasoningEffort, -- 881
-					supportsFunctionCalling, -- 882
-					active, -- 883
-					now, -- 884
-					now -- 885
-				}) -- 868
-				return { -- 887
-					success = affected >= 0 -- 887
-				} -- 887
-			end -- 857
-		end -- 857
+local normalizeContextWindow -- 824
+normalizeContextWindow = function(value) -- 824
+	local contextWindow = tonumber(value) -- 825
+	if contextWindow == nil or contextWindow < 64000 then -- 826
+		return 64000 -- 827
+	end -- 826
+	return math.max(64000, math.floor(contextWindow)) -- 828
+end -- 824
+local normalizeTemperature -- 830
+normalizeTemperature = function(value) -- 830
+	local temperature = tonumber(value) -- 831
+	if temperature == nil then -- 832
+		return 0.1 -- 833
+	end -- 832
+	return math.max(0, math.min(2, temperature)) -- 834
+end -- 830
+local normalizeMaxTokens -- 836
+normalizeMaxTokens = function(value) -- 836
+	local maxTokens = tonumber(value) -- 837
+	if maxTokens == nil or maxTokens < 1 then -- 838
+		return 8192 -- 839
+	end -- 838
+	return math.max(1, math.floor(maxTokens)) -- 840
+end -- 836
+local normalizeReasoningEffort -- 842
+normalizeReasoningEffort = function(value) -- 842
+	if value == nil then -- 843
+		return "" -- 844
+	end -- 843
+	local effort = tostring(value) -- 845
+	return effort:match("^%s*(.-)%s*$") or "" -- 846
+end -- 842
+local normalizeCustomOptions -- 848
+normalizeCustomOptions = function(value) -- 848
+	if value == nil then -- 849
+		return "" -- 850
+	end -- 849
+	local options = tostring(value) -- 851
+	options = options:match("^%s*(.-)%s*$") or "" -- 852
+	return options -- 853
+end -- 848
+local validateCustomOptions -- 855
+validateCustomOptions = function(value) -- 855
+	local options = normalizeCustomOptions(value) -- 856
+	if options == "" then -- 857
+		return true -- 857
 	end -- 857
-	return { -- 855
-		success = false, -- 855
-		message = "invalid" -- 855
-	} -- 855
-end) -- 855
-HttpServer:post("/llm/update", function(req) -- 889
-	ensureLLMConfigTable() -- 890
-	do -- 891
-		local _type_0 = type(req) -- 891
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 891
-		if _tab_0 then -- 891
-			local body = req.body -- 891
-			if body ~= nil then -- 891
-				local id, name, url, model, key, active, contextWindow, temperature, maxTokens, reasoningEffort, supportsFunctionCalling = body.id, body.name, body.url, body.model, body.key, body.active, body.contextWindow, body.temperature, body.maxTokens, body.reasoningEffort, body.supportsFunctionCalling -- 892
-				local now = os.time() -- 893
-				id = tonumber(id) -- 894
-				if id == nil then -- 895
-					return { -- 896
-						success = false, -- 896
-						message = "invalid" -- 896
-					} -- 896
-				end -- 895
-				contextWindow = normalizeContextWindow(contextWindow) -- 897
-				temperature = normalizeTemperature(temperature) -- 898
-				maxTokens = normalizeMaxTokens(maxTokens) -- 899
-				reasoningEffort = normalizeReasoningEffort(reasoningEffort) -- 900
-				if supportsFunctionCalling == false then -- 901
-					supportsFunctionCalling = 0 -- 901
-				else -- 901
-					supportsFunctionCalling = 1 -- 901
-				end -- 901
-				if active then -- 902
-					active = 1 -- 902
-				else -- 902
-					active = 0 -- 902
-				end -- 902
-				local affected = DB:exec("\n			update LLMConfig\n			set name = ?, url = ?, model = ?, api_key = ?, context_window = ?, temperature = ?, max_tokens = ?, reasoning_effort = ?, supports_function_calling = ?, active = ?, updated_at = ?\n			where id = ?", { -- 907
-					tostring(name), -- 907
-					tostring(url), -- 908
-					tostring(model), -- 909
-					tostring(key), -- 910
-					contextWindow, -- 911
-					temperature, -- 912
-					maxTokens, -- 913
-					reasoningEffort, -- 914
-					supportsFunctionCalling, -- 915
-					active, -- 916
-					now, -- 917
-					id -- 918
-				}) -- 903
-				return { -- 920
-					success = affected >= 0 -- 920
-				} -- 920
-			end -- 891
-		end -- 891
-	end -- 891
-	return { -- 889
-		success = false, -- 889
-		message = "invalid" -- 889
-	} -- 889
-end) -- 889
-HttpServer:post("/llm/delete", function(req) -- 922
-	ensureLLMConfigTable() -- 923
-	do -- 924
-		local _type_0 = type(req) -- 924
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 924
-		if _tab_0 then -- 924
-			local id -- 924
-			do -- 924
-				local _obj_0 = req.body -- 924
-				local _type_1 = type(_obj_0) -- 924
-				if "table" == _type_1 or "userdata" == _type_1 then -- 924
-					id = _obj_0.id -- 924
+	if not options:match("^%s*{") then -- 858
+		return false -- 858
+	end -- 858
+	local decoded = json.decode(options) -- 859
+	return type(decoded) == "table" -- 860
+end -- 855
+HttpServer:post("/llm/list", function() -- 862
+	ensureLLMConfigTable() -- 863
+	local rows = DB:query("\n		select id, name, url, model, api_key, context_window, temperature, max_tokens, reasoning_effort, custom_options, supports_function_calling, active\n		from LLMConfig\n		order by id asc") -- 864
+	local items -- 868
+	if rows and #rows > 0 then -- 868
+		local _accum_0 = { } -- 869
+		local _len_0 = 1 -- 869
+		for _index_0 = 1, #rows do -- 869
+			local _des_0 = rows[_index_0] -- 869
+			local id, name, url, model, key, contextWindow, temperature, maxTokens, reasoningEffort, customOptions, supportsFunctionCalling, active = _des_0[1], _des_0[2], _des_0[3], _des_0[4], _des_0[5], _des_0[6], _des_0[7], _des_0[8], _des_0[9], _des_0[10], _des_0[11], _des_0[12] -- 869
+			_accum_0[_len_0] = { -- 870
+				id = id, -- 870
+				name = name, -- 870
+				url = url, -- 870
+				model = model, -- 870
+				key = key, -- 870
+				contextWindow = normalizeContextWindow(contextWindow), -- 870
+				temperature = normalizeTemperature(temperature), -- 870
+				maxTokens = normalizeMaxTokens(maxTokens), -- 870
+				reasoningEffort = normalizeReasoningEffort(reasoningEffort), -- 870
+				customOptions = normalizeCustomOptions(customOptions), -- 870
+				supportsFunctionCalling = supportsFunctionCalling ~= 0, -- 870
+				active = active ~= 0 -- 870
+			} -- 870
+			_len_0 = _len_0 + 1 -- 870
+		end -- 869
+		items = _accum_0 -- 868
+	end -- 868
+	return { -- 871
+		success = true, -- 871
+		items = items -- 871
+	} -- 871
+end) -- 862
+HttpServer:post("/llm/create", function(req) -- 873
+	ensureLLMConfigTable() -- 874
+	do -- 875
+		local _type_0 = type(req) -- 875
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 875
+		if _tab_0 then -- 875
+			local body = req.body -- 875
+			if body ~= nil then -- 875
+				local name, url, model, key, active, contextWindow, temperature, maxTokens, reasoningEffort, customOptions, supportsFunctionCalling = body.name, body.url, body.model, body.key, body.active, body.contextWindow, body.temperature, body.maxTokens, body.reasoningEffort, body.customOptions, body.supportsFunctionCalling -- 876
+				local now = os.time() -- 877
+				if name == nil or url == nil or model == nil or key == nil then -- 878
+					return { -- 879
+						success = false, -- 879
+						message = "invalid" -- 879
+					} -- 879
+				end -- 878
+				contextWindow = normalizeContextWindow(contextWindow) -- 880
+				temperature = normalizeTemperature(temperature) -- 881
+				maxTokens = normalizeMaxTokens(maxTokens) -- 882
+				reasoningEffort = normalizeReasoningEffort(reasoningEffort) -- 883
+				customOptions = normalizeCustomOptions(customOptions) -- 884
+				if not validateCustomOptions(customOptions) then -- 885
+					return { -- 885
+						success = false, -- 885
+						message = "customOptions must be a JSON object" -- 885
+					} -- 885
+				end -- 885
+				if supportsFunctionCalling == false then -- 886
+					supportsFunctionCalling = 0 -- 886
+				else -- 886
+					supportsFunctionCalling = 1 -- 886
+				end -- 886
+				if active then -- 887
+					active = 1 -- 887
+				else -- 887
+					active = 0 -- 887
+				end -- 887
+				local affected = DB:exec("\n			insert into LLMConfig (\n				name, url, model, api_key, context_window, temperature, max_tokens, reasoning_effort, custom_options, supports_function_calling, active, created_at, updated_at\n			) values (\n				?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?\n			)", { -- 894
+					tostring(name), -- 894
+					tostring(url), -- 895
+					tostring(model), -- 896
+					tostring(key), -- 897
+					contextWindow, -- 898
+					temperature, -- 899
+					maxTokens, -- 900
+					reasoningEffort, -- 901
+					customOptions, -- 902
+					supportsFunctionCalling, -- 903
+					active, -- 904
+					now, -- 905
+					now -- 906
+				}) -- 888
+				return { -- 908
+					success = affected >= 0 -- 908
+				} -- 908
+			end -- 875
+		end -- 875
+	end -- 875
+	return { -- 873
+		success = false, -- 873
+		message = "invalid" -- 873
+	} -- 873
+end) -- 873
+HttpServer:post("/llm/update", function(req) -- 910
+	ensureLLMConfigTable() -- 911
+	do -- 912
+		local _type_0 = type(req) -- 912
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 912
+		if _tab_0 then -- 912
+			local body = req.body -- 912
+			if body ~= nil then -- 912
+				local id, name, url, model, key, active, contextWindow, temperature, maxTokens, reasoningEffort, customOptions, supportsFunctionCalling = body.id, body.name, body.url, body.model, body.key, body.active, body.contextWindow, body.temperature, body.maxTokens, body.reasoningEffort, body.customOptions, body.supportsFunctionCalling -- 913
+				local now = os.time() -- 914
+				id = tonumber(id) -- 915
+				if id == nil then -- 916
+					return { -- 917
+						success = false, -- 917
+						message = "invalid" -- 917
+					} -- 917
+				end -- 916
+				contextWindow = normalizeContextWindow(contextWindow) -- 918
+				temperature = normalizeTemperature(temperature) -- 919
+				maxTokens = normalizeMaxTokens(maxTokens) -- 920
+				reasoningEffort = normalizeReasoningEffort(reasoningEffort) -- 921
+				customOptions = normalizeCustomOptions(customOptions) -- 922
+				if not validateCustomOptions(customOptions) then -- 923
+					return { -- 923
+						success = false, -- 923
+						message = "customOptions must be a JSON object" -- 923
+					} -- 923
+				end -- 923
+				if supportsFunctionCalling == false then -- 924
+					supportsFunctionCalling = 0 -- 924
+				else -- 924
+					supportsFunctionCalling = 1 -- 924
 				end -- 924
-			end -- 924
-			if id ~= nil then -- 924
-				id = tonumber(id) -- 925
-				if id == nil then -- 926
-					return { -- 927
-						success = false, -- 927
-						message = "invalid" -- 927
-					} -- 927
-				end -- 926
-				local affected = DB:exec("delete from LLMConfig where id = ?", { -- 928
-					id -- 928
-				}) -- 928
-				return { -- 929
-					success = affected >= 0 -- 929
-				} -- 929
-			end -- 924
-		end -- 924
-	end -- 924
-	return { -- 922
-		success = false, -- 922
-		message = "invalid" -- 922
-	} -- 922
-end) -- 922
-HttpServer:post("/new", function(req) -- 931
-	do -- 932
-		local _type_0 = type(req) -- 932
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 932
-		if _tab_0 then -- 932
-			local path -- 932
-			do -- 932
-				local _obj_0 = req.body -- 932
-				local _type_1 = type(_obj_0) -- 932
-				if "table" == _type_1 or "userdata" == _type_1 then -- 932
-					path = _obj_0.path -- 932
-				end -- 932
-			end -- 932
-			local content -- 932
-			do -- 932
-				local _obj_0 = req.body -- 932
-				local _type_1 = type(_obj_0) -- 932
-				if "table" == _type_1 or "userdata" == _type_1 then -- 932
-					content = _obj_0.content -- 932
-				end -- 932
-			end -- 932
-			local folder -- 932
-			do -- 932
-				local _obj_0 = req.body -- 932
-				local _type_1 = type(_obj_0) -- 932
-				if "table" == _type_1 or "userdata" == _type_1 then -- 932
-					folder = _obj_0.folder -- 932
-				end -- 932
-			end -- 932
-			if path ~= nil and content ~= nil and folder ~= nil then -- 932
-				if Content:exist(path) then -- 933
-					return { -- 934
-						success = false, -- 934
-						message = "TargetExisted" -- 934
-					} -- 934
-				end -- 933
-				local parent = Path:getPath(path) -- 935
-				local files = Content:getFiles(parent) -- 936
-				if folder then -- 937
-					local name = Path:getFilename(path):lower() -- 938
-					for _index_0 = 1, #files do -- 939
-						local file = files[_index_0] -- 939
-						if name == Path:getFilename(file):lower() then -- 940
-							return { -- 941
-								success = false, -- 941
-								message = "TargetExisted" -- 941
-							} -- 941
-						end -- 940
-					end -- 939
-					if Content:mkdir(path) then -- 942
-						return { -- 943
-							success = true -- 943
-						} -- 943
-					end -- 942
-				else -- 945
-					local name = Path:getName(path):lower() -- 945
-					for _index_0 = 1, #files do -- 946
-						local file = files[_index_0] -- 946
-						if name == Path:getName(file):lower() then -- 947
-							local ext = Path:getExt(file) -- 948
-							if not ("tl" == ext or "yue" == ext or "ts" == ext or "tsx" == ext or "vs" == ext or "bl" == ext or "xml" == ext or "lua" == ext) then -- 949
-								goto _continue_0 -- 950
-							elseif ("d" == Path:getExt(name)) and (ext ~= Path:getExt(path)) then -- 951
-								goto _continue_0 -- 952
-							end -- 949
-							return { -- 953
-								success = false, -- 953
-								message = "SourceExisted" -- 953
-							} -- 953
-						end -- 947
-						::_continue_0:: -- 947
-					end -- 946
-					if Content:save(path, content) then -- 954
-						return { -- 955
-							success = true -- 955
-						} -- 955
-					end -- 954
-				end -- 937
-			end -- 932
-		end -- 932
-	end -- 932
-	return { -- 931
-		success = false, -- 931
-		message = "Failed" -- 931
-	} -- 931
-end) -- 931
-HttpServer:post("/delete", function(req) -- 957
-	do -- 958
-		local _type_0 = type(req) -- 958
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 958
-		if _tab_0 then -- 958
-			local path -- 958
-			do -- 958
-				local _obj_0 = req.body -- 958
-				local _type_1 = type(_obj_0) -- 958
-				if "table" == _type_1 or "userdata" == _type_1 then -- 958
-					path = _obj_0.path -- 958
-				end -- 958
-			end -- 958
-			if path ~= nil then -- 958
-				if Content:exist(path) then -- 959
-					local projectRoot -- 960
-					if Content:isdir(path) and isProjectRootDir(path) then -- 960
-						projectRoot = path -- 960
-					else -- 960
-						projectRoot = nil -- 960
-					end -- 960
-					local parent = Path:getPath(path) -- 961
-					local files = Content:getFiles(parent) -- 962
-					local name = Path:getName(path):lower() -- 963
-					local ext = Path:getExt(path) -- 964
-					for _index_0 = 1, #files do -- 965
-						local file = files[_index_0] -- 965
-						if name == Path:getName(file):lower() then -- 966
-							local _exp_0 = Path:getExt(file) -- 967
-							if "tl" == _exp_0 then -- 967
-								if ("vs" == ext) then -- 967
-									Content:remove(Path(parent, file)) -- 968
-								end -- 967
-							elseif "lua" == _exp_0 then -- 969
-								if ("tl" == ext or "yue" == ext or "ts" == ext or "tsx" == ext or "vs" == ext or "bl" == ext or "xml" == ext) then -- 969
-									Content:remove(Path(parent, file)) -- 970
-								end -- 969
-							end -- 967
-						end -- 966
-					end -- 965
-					if Content:remove(path) then -- 971
-						if projectRoot then -- 972
-							AgentSession.deleteSessionsByProjectRoot(projectRoot) -- 973
-						end -- 972
-						return { -- 974
-							success = true -- 974
-						} -- 974
-					end -- 971
-				end -- 959
-			end -- 958
-		end -- 958
-	end -- 958
-	return { -- 957
-		success = false -- 957
-	} -- 957
-end) -- 957
-HttpServer:post("/rename", function(req) -- 976
-	do -- 977
-		local _type_0 = type(req) -- 977
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 977
-		if _tab_0 then -- 977
-			local old -- 977
-			do -- 977
-				local _obj_0 = req.body -- 977
-				local _type_1 = type(_obj_0) -- 977
-				if "table" == _type_1 or "userdata" == _type_1 then -- 977
-					old = _obj_0.old -- 977
-				end -- 977
-			end -- 977
-			local new -- 977
-			do -- 977
-				local _obj_0 = req.body -- 977
-				local _type_1 = type(_obj_0) -- 977
-				if "table" == _type_1 or "userdata" == _type_1 then -- 977
-					new = _obj_0.new -- 977
-				end -- 977
-			end -- 977
-			if old ~= nil and new ~= nil then -- 977
-				if Content:exist(old) and not Content:exist(new) then -- 978
-					local renamedDir = Content:isdir(old) -- 979
-					local parent = Path:getPath(new) -- 980
-					local files = Content:getFiles(parent) -- 981
-					if renamedDir then -- 982
-						local name = Path:getFilename(new):lower() -- 983
-						for _index_0 = 1, #files do -- 984
-							local file = files[_index_0] -- 984
-							if name == Path:getFilename(file):lower() then -- 985
-								return { -- 986
-									success = false -- 986
-								} -- 986
-							end -- 985
-						end -- 984
-					else -- 988
-						local name = Path:getName(new):lower() -- 988
-						local ext = Path:getExt(new) -- 989
-						for _index_0 = 1, #files do -- 990
-							local file = files[_index_0] -- 990
-							if name == Path:getName(file):lower() then -- 991
-								if not ("tl" == ext or "yue" == ext or "ts" == ext or "tsx" == ext or "vs" == ext or "bl" == ext or "xml" == ext or "lua" == ext) then -- 992
-									goto _continue_0 -- 993
-								elseif ("d" == Path:getExt(name)) and (Path:getExt(file) ~= ext) then -- 994
-									goto _continue_0 -- 995
-								end -- 992
-								return { -- 996
-									success = false -- 996
-								} -- 996
+				if active then -- 925
+					active = 1 -- 925
+				else -- 925
+					active = 0 -- 925
+				end -- 925
+				local affected = DB:exec("\n			update LLMConfig\n			set name = ?, url = ?, model = ?, api_key = ?, context_window = ?, temperature = ?, max_tokens = ?, reasoning_effort = ?, custom_options = ?, supports_function_calling = ?, active = ?, updated_at = ?\n			where id = ?", { -- 930
+					tostring(name), -- 930
+					tostring(url), -- 931
+					tostring(model), -- 932
+					tostring(key), -- 933
+					contextWindow, -- 934
+					temperature, -- 935
+					maxTokens, -- 936
+					reasoningEffort, -- 937
+					customOptions, -- 938
+					supportsFunctionCalling, -- 939
+					active, -- 940
+					now, -- 941
+					id -- 942
+				}) -- 926
+				return { -- 944
+					success = affected >= 0 -- 944
+				} -- 944
+			end -- 912
+		end -- 912
+	end -- 912
+	return { -- 910
+		success = false, -- 910
+		message = "invalid" -- 910
+	} -- 910
+end) -- 910
+HttpServer:post("/llm/delete", function(req) -- 946
+	ensureLLMConfigTable() -- 947
+	do -- 948
+		local _type_0 = type(req) -- 948
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 948
+		if _tab_0 then -- 948
+			local id -- 948
+			do -- 948
+				local _obj_0 = req.body -- 948
+				local _type_1 = type(_obj_0) -- 948
+				if "table" == _type_1 or "userdata" == _type_1 then -- 948
+					id = _obj_0.id -- 948
+				end -- 948
+			end -- 948
+			if id ~= nil then -- 948
+				id = tonumber(id) -- 949
+				if id == nil then -- 950
+					return { -- 951
+						success = false, -- 951
+						message = "invalid" -- 951
+					} -- 951
+				end -- 950
+				local affected = DB:exec("delete from LLMConfig where id = ?", { -- 952
+					id -- 952
+				}) -- 952
+				return { -- 953
+					success = affected >= 0 -- 953
+				} -- 953
+			end -- 948
+		end -- 948
+	end -- 948
+	return { -- 946
+		success = false, -- 946
+		message = "invalid" -- 946
+	} -- 946
+end) -- 946
+HttpServer:post("/new", function(req) -- 955
+	do -- 956
+		local _type_0 = type(req) -- 956
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 956
+		if _tab_0 then -- 956
+			local path -- 956
+			do -- 956
+				local _obj_0 = req.body -- 956
+				local _type_1 = type(_obj_0) -- 956
+				if "table" == _type_1 or "userdata" == _type_1 then -- 956
+					path = _obj_0.path -- 956
+				end -- 956
+			end -- 956
+			local content -- 956
+			do -- 956
+				local _obj_0 = req.body -- 956
+				local _type_1 = type(_obj_0) -- 956
+				if "table" == _type_1 or "userdata" == _type_1 then -- 956
+					content = _obj_0.content -- 956
+				end -- 956
+			end -- 956
+			local folder -- 956
+			do -- 956
+				local _obj_0 = req.body -- 956
+				local _type_1 = type(_obj_0) -- 956
+				if "table" == _type_1 or "userdata" == _type_1 then -- 956
+					folder = _obj_0.folder -- 956
+				end -- 956
+			end -- 956
+			if path ~= nil and content ~= nil and folder ~= nil then -- 956
+				if Content:exist(path) then -- 957
+					return { -- 958
+						success = false, -- 958
+						message = "TargetExisted" -- 958
+					} -- 958
+				end -- 957
+				local parent = Path:getPath(path) -- 959
+				local files = Content:getFiles(parent) -- 960
+				if folder then -- 961
+					local name = Path:getFilename(path):lower() -- 962
+					for _index_0 = 1, #files do -- 963
+						local file = files[_index_0] -- 963
+						if name == Path:getFilename(file):lower() then -- 964
+							return { -- 965
+								success = false, -- 965
+								message = "TargetExisted" -- 965
+							} -- 965
+						end -- 964
+					end -- 963
+					if Content:mkdir(path) then -- 966
+						return { -- 967
+							success = true -- 967
+						} -- 967
+					end -- 966
+				else -- 969
+					local name = Path:getName(path):lower() -- 969
+					for _index_0 = 1, #files do -- 970
+						local file = files[_index_0] -- 970
+						if name == Path:getName(file):lower() then -- 971
+							local ext = Path:getExt(file) -- 972
+							if not ("tl" == ext or "yue" == ext or "ts" == ext or "tsx" == ext or "vs" == ext or "bl" == ext or "xml" == ext or "lua" == ext) then -- 973
+								goto _continue_0 -- 974
+							elseif ("d" == Path:getExt(name)) and (ext ~= Path:getExt(path)) then -- 975
+								goto _continue_0 -- 976
+							end -- 973
+							return { -- 977
+								success = false, -- 977
+								message = "SourceExisted" -- 977
+							} -- 977
+						end -- 971
+						::_continue_0:: -- 971
+					end -- 970
+					if Content:save(path, content) then -- 978
+						return { -- 979
+							success = true -- 979
+						} -- 979
+					end -- 978
+				end -- 961
+			end -- 956
+		end -- 956
+	end -- 956
+	return { -- 955
+		success = false, -- 955
+		message = "Failed" -- 955
+	} -- 955
+end) -- 955
+HttpServer:post("/delete", function(req) -- 981
+	do -- 982
+		local _type_0 = type(req) -- 982
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 982
+		if _tab_0 then -- 982
+			local path -- 982
+			do -- 982
+				local _obj_0 = req.body -- 982
+				local _type_1 = type(_obj_0) -- 982
+				if "table" == _type_1 or "userdata" == _type_1 then -- 982
+					path = _obj_0.path -- 982
+				end -- 982
+			end -- 982
+			if path ~= nil then -- 982
+				if Content:exist(path) then -- 983
+					local projectRoot -- 984
+					if Content:isdir(path) and isProjectRootDir(path) then -- 984
+						projectRoot = path -- 984
+					else -- 984
+						projectRoot = nil -- 984
+					end -- 984
+					local parent = Path:getPath(path) -- 985
+					local files = Content:getFiles(parent) -- 986
+					local name = Path:getName(path):lower() -- 987
+					local ext = Path:getExt(path) -- 988
+					for _index_0 = 1, #files do -- 989
+						local file = files[_index_0] -- 989
+						if name == Path:getName(file):lower() then -- 990
+							local _exp_0 = Path:getExt(file) -- 991
+							if "tl" == _exp_0 then -- 991
+								if ("vs" == ext) then -- 991
+									Content:remove(Path(parent, file)) -- 992
+								end -- 991
+							elseif "lua" == _exp_0 then -- 993
+								if ("tl" == ext or "yue" == ext or "ts" == ext or "tsx" == ext or "vs" == ext or "bl" == ext or "xml" == ext) then -- 993
+									Content:remove(Path(parent, file)) -- 994
+								end -- 993
 							end -- 991
-							::_continue_0:: -- 991
 						end -- 990
-					end -- 982
-					if Content:move(old, new) then -- 997
-						if renamedDir then -- 998
-							AgentSession.renameSessionsByProjectRoot(old, new) -- 999
-						end -- 998
-						local newParent = Path:getPath(new) -- 1000
-						parent = Path:getPath(old) -- 1001
-						files = Content:getFiles(parent) -- 1002
-						local newName = Path:getName(new) -- 1003
-						local oldName = Path:getName(old) -- 1004
-						local name = oldName:lower() -- 1005
-						local ext = Path:getExt(old) -- 1006
-						for _index_0 = 1, #files do -- 1007
-							local file = files[_index_0] -- 1007
-							if name == Path:getName(file):lower() then -- 1008
-								local _exp_0 = Path:getExt(file) -- 1009
-								if "tl" == _exp_0 then -- 1009
-									if ("vs" == ext) then -- 1009
-										Content:move(Path(parent, file), Path(newParent, newName .. ".tl")) -- 1010
-									end -- 1009
-								elseif "lua" == _exp_0 then -- 1011
-									if ("tl" == ext or "yue" == ext or "ts" == ext or "tsx" == ext or "vs" == ext or "bl" == ext or "xml" == ext) then -- 1011
-										Content:move(Path(parent, file), Path(newParent, newName .. ".lua")) -- 1012
-									end -- 1011
-								end -- 1009
-							end -- 1008
-						end -- 1007
-						return { -- 1013
-							success = true -- 1013
-						} -- 1013
-					end -- 997
-				end -- 978
-			end -- 977
-		end -- 977
-	end -- 977
-	return { -- 976
-		success = false -- 976
-	} -- 976
-end) -- 976
-HttpServer:post("/exist", function(req) -- 1015
-	do -- 1016
-		local _type_0 = type(req) -- 1016
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1016
-		if _tab_0 then -- 1016
-			local file -- 1016
-			do -- 1016
-				local _obj_0 = req.body -- 1016
-				local _type_1 = type(_obj_0) -- 1016
-				if "table" == _type_1 or "userdata" == _type_1 then -- 1016
-					file = _obj_0.file -- 1016
-				end -- 1016
-			end -- 1016
-			if file ~= nil then -- 1016
-				do -- 1017
-					local projFile = req.body.projFile -- 1017
-					if projFile then -- 1017
-						local projDir = getProjectDirFromFile(projFile) -- 1018
-						if projDir then -- 1018
-							local scriptDir = Path(projDir, "Script") -- 1019
-							local searchPaths = Content.searchPaths -- 1020
-							if Content:exist(scriptDir) then -- 1021
-								Content:addSearchPath(scriptDir) -- 1021
-							end -- 1021
-							if Content:exist(projDir) then -- 1022
-								Content:addSearchPath(projDir) -- 1022
-							end -- 1022
-							local _ <close> = setmetatable({ }, { -- 1023
-								__close = function() -- 1023
-									Content.searchPaths = searchPaths -- 1023
-								end -- 1023
-							}) -- 1023
-							return { -- 1024
-								success = Content:exist(file) -- 1024
-							} -- 1024
-						end -- 1018
-					end -- 1017
-				end -- 1017
-				return { -- 1025
-					success = Content:exist(file) -- 1025
-				} -- 1025
-			end -- 1016
-		end -- 1016
-	end -- 1016
-	return { -- 1015
-		success = false -- 1015
-	} -- 1015
-end) -- 1015
-HttpServer:postSchedule("/read", function(req) -- 1027
-	do -- 1028
-		local _type_0 = type(req) -- 1028
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1028
-		if _tab_0 then -- 1028
-			local path -- 1028
-			do -- 1028
-				local _obj_0 = req.body -- 1028
-				local _type_1 = type(_obj_0) -- 1028
-				if "table" == _type_1 or "userdata" == _type_1 then -- 1028
-					path = _obj_0.path -- 1028
-				end -- 1028
-			end -- 1028
-			if path ~= nil then -- 1028
-				local readFile -- 1029
-				readFile = function() -- 1029
-					if Content:exist(path) then -- 1030
-						local content = Content:loadAsync(path) -- 1031
-						if content then -- 1031
-							return { -- 1032
-								content = content, -- 1032
-								success = true, -- 1032
-								fullPath = Content:getFullPath(path) -- 1032
-							} -- 1032
+					end -- 989
+					if Content:remove(path) then -- 995
+						if projectRoot then -- 996
+							AgentSession.deleteSessionsByProjectRoot(projectRoot) -- 997
+						end -- 996
+						return { -- 998
+							success = true -- 998
+						} -- 998
+					end -- 995
+				end -- 983
+			end -- 982
+		end -- 982
+	end -- 982
+	return { -- 981
+		success = false -- 981
+	} -- 981
+end) -- 981
+HttpServer:post("/rename", function(req) -- 1000
+	do -- 1001
+		local _type_0 = type(req) -- 1001
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1001
+		if _tab_0 then -- 1001
+			local old -- 1001
+			do -- 1001
+				local _obj_0 = req.body -- 1001
+				local _type_1 = type(_obj_0) -- 1001
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1001
+					old = _obj_0.old -- 1001
+				end -- 1001
+			end -- 1001
+			local new -- 1001
+			do -- 1001
+				local _obj_0 = req.body -- 1001
+				local _type_1 = type(_obj_0) -- 1001
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1001
+					new = _obj_0.new -- 1001
+				end -- 1001
+			end -- 1001
+			if old ~= nil and new ~= nil then -- 1001
+				if Content:exist(old) and not Content:exist(new) then -- 1002
+					local renamedDir = Content:isdir(old) -- 1003
+					local parent = Path:getPath(new) -- 1004
+					local files = Content:getFiles(parent) -- 1005
+					if renamedDir then -- 1006
+						local name = Path:getFilename(new):lower() -- 1007
+						for _index_0 = 1, #files do -- 1008
+							local file = files[_index_0] -- 1008
+							if name == Path:getFilename(file):lower() then -- 1009
+								return { -- 1010
+									success = false -- 1010
+								} -- 1010
+							end -- 1009
+						end -- 1008
+					else -- 1012
+						local name = Path:getName(new):lower() -- 1012
+						local ext = Path:getExt(new) -- 1013
+						for _index_0 = 1, #files do -- 1014
+							local file = files[_index_0] -- 1014
+							if name == Path:getName(file):lower() then -- 1015
+								if not ("tl" == ext or "yue" == ext or "ts" == ext or "tsx" == ext or "vs" == ext or "bl" == ext or "xml" == ext or "lua" == ext) then -- 1016
+									goto _continue_0 -- 1017
+								elseif ("d" == Path:getExt(name)) and (Path:getExt(file) ~= ext) then -- 1018
+									goto _continue_0 -- 1019
+								end -- 1016
+								return { -- 1020
+									success = false -- 1020
+								} -- 1020
+							end -- 1015
+							::_continue_0:: -- 1015
+						end -- 1014
+					end -- 1006
+					if Content:move(old, new) then -- 1021
+						if renamedDir then -- 1022
+							AgentSession.renameSessionsByProjectRoot(old, new) -- 1023
+						end -- 1022
+						local newParent = Path:getPath(new) -- 1024
+						parent = Path:getPath(old) -- 1025
+						files = Content:getFiles(parent) -- 1026
+						local newName = Path:getName(new) -- 1027
+						local oldName = Path:getName(old) -- 1028
+						local name = oldName:lower() -- 1029
+						local ext = Path:getExt(old) -- 1030
+						for _index_0 = 1, #files do -- 1031
+							local file = files[_index_0] -- 1031
+							if name == Path:getName(file):lower() then -- 1032
+								local _exp_0 = Path:getExt(file) -- 1033
+								if "tl" == _exp_0 then -- 1033
+									if ("vs" == ext) then -- 1033
+										Content:move(Path(parent, file), Path(newParent, newName .. ".tl")) -- 1034
+									end -- 1033
+								elseif "lua" == _exp_0 then -- 1035
+									if ("tl" == ext or "yue" == ext or "ts" == ext or "tsx" == ext or "vs" == ext or "bl" == ext or "xml" == ext) then -- 1035
+										Content:move(Path(parent, file), Path(newParent, newName .. ".lua")) -- 1036
+									end -- 1035
+								end -- 1033
+							end -- 1032
 						end -- 1031
-					end -- 1030
-					return nil -- 1029
-				end -- 1029
-				do -- 1033
-					local projFile = req.body.projFile -- 1033
-					if projFile then -- 1033
-						local projDir = getProjectDirFromFile(projFile) -- 1034
-						if projDir then -- 1034
-							local scriptDir = Path(projDir, "Script") -- 1035
-							local searchPaths = Content.searchPaths -- 1036
-							if Content:exist(scriptDir) then -- 1037
-								Content:addSearchPath(scriptDir) -- 1037
-							end -- 1037
-							if Content:exist(projDir) then -- 1038
-								Content:addSearchPath(projDir) -- 1038
-							end -- 1038
-							local _ <close> = setmetatable({ }, { -- 1039
-								__close = function() -- 1039
-									Content.searchPaths = searchPaths -- 1039
-								end -- 1039
-							}) -- 1039
-							local result = readFile() -- 1040
-							if result then -- 1040
-								return result -- 1040
-							end -- 1040
-						end -- 1034
-					end -- 1033
-				end -- 1033
-				local result = readFile() -- 1041
-				if result then -- 1041
-					return result -- 1041
+						return { -- 1037
+							success = true -- 1037
+						} -- 1037
+					end -- 1021
+				end -- 1002
+			end -- 1001
+		end -- 1001
+	end -- 1001
+	return { -- 1000
+		success = false -- 1000
+	} -- 1000
+end) -- 1000
+HttpServer:post("/exist", function(req) -- 1039
+	do -- 1040
+		local _type_0 = type(req) -- 1040
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1040
+		if _tab_0 then -- 1040
+			local file -- 1040
+			do -- 1040
+				local _obj_0 = req.body -- 1040
+				local _type_1 = type(_obj_0) -- 1040
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1040
+					file = _obj_0.file -- 1040
+				end -- 1040
+			end -- 1040
+			if file ~= nil then -- 1040
+				do -- 1041
+					local projFile = req.body.projFile -- 1041
+					if projFile then -- 1041
+						local projDir = getProjectDirFromFile(projFile) -- 1042
+						if projDir then -- 1042
+							local scriptDir = Path(projDir, "Script") -- 1043
+							local searchPaths = Content.searchPaths -- 1044
+							if Content:exist(scriptDir) then -- 1045
+								Content:addSearchPath(scriptDir) -- 1045
+							end -- 1045
+							if Content:exist(projDir) then -- 1046
+								Content:addSearchPath(projDir) -- 1046
+							end -- 1046
+							local _ <close> = setmetatable({ }, { -- 1047
+								__close = function() -- 1047
+									Content.searchPaths = searchPaths -- 1047
+								end -- 1047
+							}) -- 1047
+							return { -- 1048
+								success = Content:exist(file) -- 1048
+							} -- 1048
+						end -- 1042
+					end -- 1041
 				end -- 1041
-			end -- 1028
-		end -- 1028
-	end -- 1028
-	return { -- 1027
-		success = false -- 1027
-	} -- 1027
-end) -- 1027
-HttpServer:get("/read-sync", function(req) -- 1043
-	do -- 1044
-		local _type_0 = type(req) -- 1044
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1044
-		if _tab_0 then -- 1044
-			local params = req.params -- 1044
-			if params ~= nil then -- 1044
-				local path = params.path -- 1045
-				local exts -- 1046
-				if params.exts then -- 1046
-					local _accum_0 = { } -- 1047
-					local _len_0 = 1 -- 1047
-					for ext in params.exts:gmatch("[^|]*") do -- 1047
-						_accum_0[_len_0] = ext -- 1048
-						_len_0 = _len_0 + 1 -- 1048
-					end -- 1047
-					exts = _accum_0 -- 1046
-				else -- 1049
-					exts = { -- 1049
-						"" -- 1049
-					} -- 1049
-				end -- 1046
-				local readFile -- 1050
-				readFile = function() -- 1050
-					for _index_0 = 1, #exts do -- 1051
-						local ext = exts[_index_0] -- 1051
-						local targetPath = path .. ext -- 1052
-						if Content:exist(targetPath) then -- 1053
-							local content = Content:load(targetPath) -- 1054
-							if content then -- 1054
-								return { -- 1055
-									content = content, -- 1055
-									success = true, -- 1055
-									fullPath = Content:getFullPath(targetPath) -- 1055
-								} -- 1055
-							end -- 1054
-						end -- 1053
-					end -- 1051
-					return nil -- 1050
-				end -- 1050
-				local searchPaths = Content.searchPaths -- 1056
-				local _ <close> = setmetatable({ }, { -- 1057
-					__close = function() -- 1057
-						Content.searchPaths = searchPaths -- 1057
-					end -- 1057
-				}) -- 1057
-				do -- 1058
-					local projFile = req.params.projFile -- 1058
-					if projFile then -- 1058
-						local projDir = getProjectDirFromFile(projFile) -- 1059
-						if projDir then -- 1059
-							local scriptDir = Path(projDir, "Script") -- 1060
+				return { -- 1049
+					success = Content:exist(file) -- 1049
+				} -- 1049
+			end -- 1040
+		end -- 1040
+	end -- 1040
+	return { -- 1039
+		success = false -- 1039
+	} -- 1039
+end) -- 1039
+HttpServer:postSchedule("/read", function(req) -- 1051
+	do -- 1052
+		local _type_0 = type(req) -- 1052
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1052
+		if _tab_0 then -- 1052
+			local path -- 1052
+			do -- 1052
+				local _obj_0 = req.body -- 1052
+				local _type_1 = type(_obj_0) -- 1052
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1052
+					path = _obj_0.path -- 1052
+				end -- 1052
+			end -- 1052
+			if path ~= nil then -- 1052
+				local readFile -- 1053
+				readFile = function() -- 1053
+					if Content:exist(path) then -- 1054
+						local content = Content:loadAsync(path) -- 1055
+						if content then -- 1055
+							return { -- 1056
+								content = content, -- 1056
+								success = true, -- 1056
+								fullPath = Content:getFullPath(path) -- 1056
+							} -- 1056
+						end -- 1055
+					end -- 1054
+					return nil -- 1053
+				end -- 1053
+				do -- 1057
+					local projFile = req.body.projFile -- 1057
+					if projFile then -- 1057
+						local projDir = getProjectDirFromFile(projFile) -- 1058
+						if projDir then -- 1058
+							local scriptDir = Path(projDir, "Script") -- 1059
+							local searchPaths = Content.searchPaths -- 1060
 							if Content:exist(scriptDir) then -- 1061
 								Content:addSearchPath(scriptDir) -- 1061
 							end -- 1061
 							if Content:exist(projDir) then -- 1062
 								Content:addSearchPath(projDir) -- 1062
 							end -- 1062
-						else -- 1064
-							projDir = Path:getPath(projFile) -- 1064
-							if Content:exist(projDir) then -- 1065
-								Content:addSearchPath(projDir) -- 1065
-							end -- 1065
-						end -- 1059
-					end -- 1058
-				end -- 1058
-				local result = readFile() -- 1066
-				if result then -- 1066
-					return result -- 1066
-				end -- 1066
-			end -- 1044
-		end -- 1044
-	end -- 1044
-	return { -- 1043
-		success = false -- 1043
-	} -- 1043
-end) -- 1043
-local compileFileAsync -- 1068
-compileFileAsync = function(inputFile, sourceCodes) -- 1068
-	local file = inputFile -- 1069
-	local searchPath -- 1070
-	do -- 1070
-		local dir = getProjectDirFromFile(inputFile) -- 1070
-		if dir then -- 1070
-			file = Path:getRelative(inputFile, Path(Content.writablePath, dir)) -- 1071
-			searchPath = Path(dir, "Script", "?.lua") .. ";" .. Path(dir, "?.lua") -- 1072
-		else -- 1074
-			file = Path:getRelative(inputFile, Content.writablePath) -- 1074
-			if file:sub(1, 2) == ".." then -- 1075
-				file = Path:getRelative(inputFile, Content.assetPath) -- 1076
-			end -- 1075
-			searchPath = "" -- 1077
-		end -- 1070
-	end -- 1070
-	local outputFile = Path:replaceExt(inputFile, "lua") -- 1078
-	local yueext = yue.options.extension -- 1079
-	local resultCodes = nil -- 1080
-	local resultError = nil -- 1081
-	do -- 1082
-		local _exp_0 = Path:getExt(inputFile) -- 1082
-		if yueext == _exp_0 then -- 1082
-			local isTIC80, tic80APIs = CheckTIC80Code(sourceCodes) -- 1083
-			yue.compile(inputFile, outputFile, searchPath, function(codes, err, globals) -- 1084
-				if not codes then -- 1085
-					resultError = err -- 1086
-					return -- 1087
-				end -- 1085
-				local extraGlobal -- 1088
-				if isTIC80 then -- 1088
-					extraGlobal = tic80APIs -- 1088
-				else -- 1088
-					extraGlobal = nil -- 1088
-				end -- 1088
-				local success, message = LintYueGlobals(codes, globals, true, extraGlobal) -- 1089
-				if not success then -- 1090
-					resultError = message -- 1091
-					return -- 1092
+							local _ <close> = setmetatable({ }, { -- 1063
+								__close = function() -- 1063
+									Content.searchPaths = searchPaths -- 1063
+								end -- 1063
+							}) -- 1063
+							local result = readFile() -- 1064
+							if result then -- 1064
+								return result -- 1064
+							end -- 1064
+						end -- 1058
+					end -- 1057
+				end -- 1057
+				local result = readFile() -- 1065
+				if result then -- 1065
+					return result -- 1065
+				end -- 1065
+			end -- 1052
+		end -- 1052
+	end -- 1052
+	return { -- 1051
+		success = false -- 1051
+	} -- 1051
+end) -- 1051
+HttpServer:get("/read-sync", function(req) -- 1067
+	do -- 1068
+		local _type_0 = type(req) -- 1068
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1068
+		if _tab_0 then -- 1068
+			local params = req.params -- 1068
+			if params ~= nil then -- 1068
+				local path = params.path -- 1069
+				local exts -- 1070
+				if params.exts then -- 1070
+					local _accum_0 = { } -- 1071
+					local _len_0 = 1 -- 1071
+					for ext in params.exts:gmatch("[^|]*") do -- 1071
+						_accum_0[_len_0] = ext -- 1072
+						_len_0 = _len_0 + 1 -- 1072
+					end -- 1071
+					exts = _accum_0 -- 1070
+				else -- 1073
+					exts = { -- 1073
+						"" -- 1073
+					} -- 1073
+				end -- 1070
+				local readFile -- 1074
+				readFile = function() -- 1074
+					for _index_0 = 1, #exts do -- 1075
+						local ext = exts[_index_0] -- 1075
+						local targetPath = path .. ext -- 1076
+						if Content:exist(targetPath) then -- 1077
+							local content = Content:load(targetPath) -- 1078
+							if content then -- 1078
+								return { -- 1079
+									content = content, -- 1079
+									success = true, -- 1079
+									fullPath = Content:getFullPath(targetPath) -- 1079
+								} -- 1079
+							end -- 1078
+						end -- 1077
+					end -- 1075
+					return nil -- 1074
+				end -- 1074
+				local searchPaths = Content.searchPaths -- 1080
+				local _ <close> = setmetatable({ }, { -- 1081
+					__close = function() -- 1081
+						Content.searchPaths = searchPaths -- 1081
+					end -- 1081
+				}) -- 1081
+				do -- 1082
+					local projFile = req.params.projFile -- 1082
+					if projFile then -- 1082
+						local projDir = getProjectDirFromFile(projFile) -- 1083
+						if projDir then -- 1083
+							local scriptDir = Path(projDir, "Script") -- 1084
+							if Content:exist(scriptDir) then -- 1085
+								Content:addSearchPath(scriptDir) -- 1085
+							end -- 1085
+							if Content:exist(projDir) then -- 1086
+								Content:addSearchPath(projDir) -- 1086
+							end -- 1086
+						else -- 1088
+							projDir = Path:getPath(projFile) -- 1088
+							if Content:exist(projDir) then -- 1089
+								Content:addSearchPath(projDir) -- 1089
+							end -- 1089
+						end -- 1083
+					end -- 1082
+				end -- 1082
+				local result = readFile() -- 1090
+				if result then -- 1090
+					return result -- 1090
 				end -- 1090
-				if codes == "" then -- 1093
-					resultCodes = "" -- 1094
-					return nil -- 1095
-				end -- 1093
-				resultCodes = "-- [yue]: " .. tostring(file) .. "\n" .. tostring(codes) -- 1096
-				return resultCodes -- 1097
-			end, function(success) -- 1084
-				if not success then -- 1098
-					Content:remove(outputFile) -- 1099
-					if resultCodes == nil then -- 1100
-						resultCodes = false -- 1101
-					end -- 1100
-				end -- 1098
-			end) -- 1084
-		elseif "tl" == _exp_0 then -- 1102
-			local isTIC80 = CheckTIC80Code(sourceCodes) -- 1103
-			if isTIC80 then -- 1104
-				sourceCodes = sourceCodes:gsub("^%-%-[ \t]*tic80[ \t]*", "require(\"tic80\")") -- 1105
-			end -- 1104
-			local codes, err = teal.toluaAsync(sourceCodes, file, searchPath) -- 1106
-			if codes then -- 1106
-				if isTIC80 then -- 1107
-					codes = codes:gsub("^require%(\"tic80\"%)", "-- tic80") -- 1108
-				end -- 1107
-				resultCodes = codes -- 1109
-				Content:saveAsync(outputFile, codes) -- 1110
-			else -- 1112
-				Content:remove(outputFile) -- 1112
-				resultCodes = false -- 1113
-				resultError = err -- 1114
-			end -- 1106
-		elseif "xml" == _exp_0 then -- 1115
-			local codes, err = xml.tolua(sourceCodes) -- 1116
-			if codes then -- 1116
-				resultCodes = "-- [xml]: " .. tostring(file) .. "\n" .. tostring(codes) -- 1117
-				Content:saveAsync(outputFile, resultCodes) -- 1118
-			else -- 1120
-				Content:remove(outputFile) -- 1120
-				resultCodes = false -- 1121
-				resultError = err -- 1122
-			end -- 1116
-		end -- 1082
-	end -- 1082
-	wait(function() -- 1123
-		return resultCodes ~= nil -- 1123
-	end) -- 1123
-	if resultCodes then -- 1124
-		return resultCodes -- 1125
-	else -- 1127
-		return nil, resultError -- 1127
-	end -- 1124
-	return nil -- 1068
-end -- 1068
-HttpServer:postSchedule("/write", function(req) -- 1129
-	do -- 1130
-		local _type_0 = type(req) -- 1130
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1130
-		if _tab_0 then -- 1130
-			local path -- 1130
-			do -- 1130
-				local _obj_0 = req.body -- 1130
-				local _type_1 = type(_obj_0) -- 1130
-				if "table" == _type_1 or "userdata" == _type_1 then -- 1130
-					path = _obj_0.path -- 1130
-				end -- 1130
-			end -- 1130
-			local content -- 1130
-			do -- 1130
-				local _obj_0 = req.body -- 1130
-				local _type_1 = type(_obj_0) -- 1130
-				if "table" == _type_1 or "userdata" == _type_1 then -- 1130
-					content = _obj_0.content -- 1130
-				end -- 1130
-			end -- 1130
-			if path ~= nil and content ~= nil then -- 1130
-				if Content:saveAsync(path, content) then -- 1131
-					do -- 1132
-						local _exp_0 = Path:getExt(path) -- 1132
-						if "tl" == _exp_0 or "yue" == _exp_0 or "xml" == _exp_0 then -- 1132
-							if '' == Path:getExt(Path:getName(path)) then -- 1133
-								local resultCodes = compileFileAsync(path, content) -- 1134
-								return { -- 1135
-									success = true, -- 1135
-									resultCodes = resultCodes -- 1135
-								} -- 1135
-							end -- 1133
-						end -- 1132
-					end -- 1132
-					return { -- 1136
-						success = true -- 1136
-					} -- 1136
+			end -- 1068
+		end -- 1068
+	end -- 1068
+	return { -- 1067
+		success = false -- 1067
+	} -- 1067
+end) -- 1067
+local compileFileAsync -- 1092
+compileFileAsync = function(inputFile, sourceCodes) -- 1092
+	local file = inputFile -- 1093
+	local searchPath -- 1094
+	do -- 1094
+		local dir = getProjectDirFromFile(inputFile) -- 1094
+		if dir then -- 1094
+			file = Path:getRelative(inputFile, Path(Content.writablePath, dir)) -- 1095
+			searchPath = Path(dir, "Script", "?.lua") .. ";" .. Path(dir, "?.lua") -- 1096
+		else -- 1098
+			file = Path:getRelative(inputFile, Content.writablePath) -- 1098
+			if file:sub(1, 2) == ".." then -- 1099
+				file = Path:getRelative(inputFile, Content.assetPath) -- 1100
+			end -- 1099
+			searchPath = "" -- 1101
+		end -- 1094
+	end -- 1094
+	local outputFile = Path:replaceExt(inputFile, "lua") -- 1102
+	local yueext = yue.options.extension -- 1103
+	local resultCodes = nil -- 1104
+	local resultError = nil -- 1105
+	do -- 1106
+		local _exp_0 = Path:getExt(inputFile) -- 1106
+		if yueext == _exp_0 then -- 1106
+			local isTIC80, tic80APIs = CheckTIC80Code(sourceCodes) -- 1107
+			yue.compile(inputFile, outputFile, searchPath, function(codes, err, globals) -- 1108
+				if not codes then -- 1109
+					resultError = err -- 1110
+					return -- 1111
+				end -- 1109
+				local extraGlobal -- 1112
+				if isTIC80 then -- 1112
+					extraGlobal = tic80APIs -- 1112
+				else -- 1112
+					extraGlobal = nil -- 1112
+				end -- 1112
+				local success, message = LintYueGlobals(codes, globals, true, extraGlobal) -- 1113
+				if not success then -- 1114
+					resultError = message -- 1115
+					return -- 1116
+				end -- 1114
+				if codes == "" then -- 1117
+					resultCodes = "" -- 1118
+					return nil -- 1119
+				end -- 1117
+				resultCodes = "-- [yue]: " .. tostring(file) .. "\n" .. tostring(codes) -- 1120
+				return resultCodes -- 1121
+			end, function(success) -- 1108
+				if not success then -- 1122
+					Content:remove(outputFile) -- 1123
+					if resultCodes == nil then -- 1124
+						resultCodes = false -- 1125
+					end -- 1124
+				end -- 1122
+			end) -- 1108
+		elseif "tl" == _exp_0 then -- 1126
+			local isTIC80 = CheckTIC80Code(sourceCodes) -- 1127
+			if isTIC80 then -- 1128
+				sourceCodes = sourceCodes:gsub("^%-%-[ \t]*tic80[ \t]*", "require(\"tic80\")") -- 1129
+			end -- 1128
+			local codes, err = teal.toluaAsync(sourceCodes, file, searchPath) -- 1130
+			if codes then -- 1130
+				if isTIC80 then -- 1131
+					codes = codes:gsub("^require%(\"tic80\"%)", "-- tic80") -- 1132
 				end -- 1131
+				resultCodes = codes -- 1133
+				Content:saveAsync(outputFile, codes) -- 1134
+			else -- 1136
+				Content:remove(outputFile) -- 1136
+				resultCodes = false -- 1137
+				resultError = err -- 1138
 			end -- 1130
-		end -- 1130
-	end -- 1130
-	return { -- 1129
-		success = false -- 1129
-	} -- 1129
-end) -- 1129
-HttpServer:postSchedule("/build", function(req) -- 1138
-	do -- 1139
-		local _type_0 = type(req) -- 1139
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1139
-		if _tab_0 then -- 1139
-			local path -- 1139
-			do -- 1139
-				local _obj_0 = req.body -- 1139
-				local _type_1 = type(_obj_0) -- 1139
-				if "table" == _type_1 or "userdata" == _type_1 then -- 1139
-					path = _obj_0.path -- 1139
-				end -- 1139
-			end -- 1139
-			if path ~= nil then -- 1139
-				local _exp_0 = Path:getExt(path) -- 1140
-				if "tl" == _exp_0 or "yue" == _exp_0 or "xml" == _exp_0 then -- 1140
-					if '' == Path:getExt(Path:getName(path)) then -- 1141
-						local content = Content:loadAsync(path) -- 1142
-						if content then -- 1142
-							local resultCodes = compileFileAsync(path, content) -- 1143
-							if resultCodes then -- 1143
-								return { -- 1144
-									success = true, -- 1144
-									resultCodes = resultCodes -- 1144
-								} -- 1144
-							end -- 1143
-						end -- 1142
-					end -- 1141
-				end -- 1140
-			end -- 1139
-		end -- 1139
-	end -- 1139
-	return { -- 1138
-		success = false -- 1138
-	} -- 1138
-end) -- 1138
-local extentionLevels = { -- 1147
-	vs = 2, -- 1147
-	bl = 2, -- 1148
-	ts = 1, -- 1149
-	tsx = 1, -- 1150
-	tl = 1, -- 1151
-	yue = 1, -- 1152
-	xml = 1, -- 1153
-	lua = 0 -- 1154
-} -- 1146
-HttpServer:post("/assets", function() -- 1156
-	local Entry = require("Script.Dev.Entry") -- 1159
-	local engineDev = Entry.getEngineDev() -- 1160
-	local visitAssets -- 1161
-	visitAssets = function(path, tag) -- 1161
-		local isWorkspace = tag == "Workspace" -- 1162
-		local builtin -- 1163
-		if tag == "Builtin" then -- 1163
-			builtin = true -- 1163
-		else -- 1163
-			builtin = nil -- 1163
+		elseif "xml" == _exp_0 then -- 1139
+			local codes, err = xml.tolua(sourceCodes) -- 1140
+			if codes then -- 1140
+				resultCodes = "-- [xml]: " .. tostring(file) .. "\n" .. tostring(codes) -- 1141
+				Content:saveAsync(outputFile, resultCodes) -- 1142
+			else -- 1144
+				Content:remove(outputFile) -- 1144
+				resultCodes = false -- 1145
+				resultError = err -- 1146
+			end -- 1140
+		end -- 1106
+	end -- 1106
+	wait(function() -- 1147
+		return resultCodes ~= nil -- 1147
+	end) -- 1147
+	if resultCodes then -- 1148
+		return resultCodes -- 1149
+	else -- 1151
+		return nil, resultError -- 1151
+	end -- 1148
+	return nil -- 1092
+end -- 1092
+HttpServer:postSchedule("/write", function(req) -- 1153
+	do -- 1154
+		local _type_0 = type(req) -- 1154
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1154
+		if _tab_0 then -- 1154
+			local path -- 1154
+			do -- 1154
+				local _obj_0 = req.body -- 1154
+				local _type_1 = type(_obj_0) -- 1154
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1154
+					path = _obj_0.path -- 1154
+				end -- 1154
+			end -- 1154
+			local content -- 1154
+			do -- 1154
+				local _obj_0 = req.body -- 1154
+				local _type_1 = type(_obj_0) -- 1154
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1154
+					content = _obj_0.content -- 1154
+				end -- 1154
+			end -- 1154
+			if path ~= nil and content ~= nil then -- 1154
+				if Content:saveAsync(path, content) then -- 1155
+					do -- 1156
+						local _exp_0 = Path:getExt(path) -- 1156
+						if "tl" == _exp_0 or "yue" == _exp_0 or "xml" == _exp_0 then -- 1156
+							if '' == Path:getExt(Path:getName(path)) then -- 1157
+								local resultCodes = compileFileAsync(path, content) -- 1158
+								return { -- 1159
+									success = true, -- 1159
+									resultCodes = resultCodes -- 1159
+								} -- 1159
+							end -- 1157
+						end -- 1156
+					end -- 1156
+					return { -- 1160
+						success = true -- 1160
+					} -- 1160
+				end -- 1155
+			end -- 1154
+		end -- 1154
+	end -- 1154
+	return { -- 1153
+		success = false -- 1153
+	} -- 1153
+end) -- 1153
+HttpServer:postSchedule("/build", function(req) -- 1162
+	do -- 1163
+		local _type_0 = type(req) -- 1163
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1163
+		if _tab_0 then -- 1163
+			local path -- 1163
+			do -- 1163
+				local _obj_0 = req.body -- 1163
+				local _type_1 = type(_obj_0) -- 1163
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1163
+					path = _obj_0.path -- 1163
+				end -- 1163
+			end -- 1163
+			if path ~= nil then -- 1163
+				local _exp_0 = Path:getExt(path) -- 1164
+				if "tl" == _exp_0 or "yue" == _exp_0 or "xml" == _exp_0 then -- 1164
+					if '' == Path:getExt(Path:getName(path)) then -- 1165
+						local content = Content:loadAsync(path) -- 1166
+						if content then -- 1166
+							local resultCodes = compileFileAsync(path, content) -- 1167
+							if resultCodes then -- 1167
+								return { -- 1168
+									success = true, -- 1168
+									resultCodes = resultCodes -- 1168
+								} -- 1168
+							end -- 1167
+						end -- 1166
+					end -- 1165
+				end -- 1164
+			end -- 1163
 		end -- 1163
-		local children = nil -- 1164
-		local dirs = Content:getDirs(path) -- 1165
-		for _index_0 = 1, #dirs do -- 1166
-			local dir = dirs[_index_0] -- 1166
-			if isWorkspace then -- 1167
-				if (".upload" == dir or ".download" == dir or ".www" == dir or ".build" == dir or ".git" == dir or ".cache" == dir) then -- 1168
-					goto _continue_0 -- 1169
-				end -- 1168
-			elseif dir == ".git" then -- 1170
-				goto _continue_0 -- 1171
-			end -- 1167
-			if not children then -- 1172
-				children = { } -- 1172
-			end -- 1172
-			children[#children + 1] = visitAssets(Path(path, dir)) -- 1173
-			::_continue_0:: -- 1167
-		end -- 1166
-		local files = Content:getFiles(path) -- 1174
-		local names = { } -- 1175
-		for _index_0 = 1, #files do -- 1176
-			local file = files[_index_0] -- 1176
-			if file:match("^%.") then -- 1177
-				goto _continue_1 -- 1177
-			end -- 1177
-			local name = Path:getName(file) -- 1178
-			local ext = names[name] -- 1179
-			if ext then -- 1179
-				local lv1 -- 1180
-				do -- 1180
-					local _exp_0 = extentionLevels[ext] -- 1180
-					if _exp_0 ~= nil then -- 1180
-						lv1 = _exp_0 -- 1180
-					else -- 1180
-						lv1 = -1 -- 1180
-					end -- 1180
-				end -- 1180
-				ext = Path:getExt(file) -- 1181
-				local lv2 -- 1182
-				do -- 1182
-					local _exp_0 = extentionLevels[ext] -- 1182
-					if _exp_0 ~= nil then -- 1182
-						lv2 = _exp_0 -- 1182
-					else -- 1182
-						lv2 = -1 -- 1182
-					end -- 1182
-				end -- 1182
-				if lv2 > lv1 then -- 1183
-					names[name] = ext -- 1184
-				elseif lv2 == lv1 then -- 1185
-					names[name .. '.' .. ext] = "" -- 1186
-				end -- 1183
-			else -- 1188
-				ext = Path:getExt(file) -- 1188
-				if not extentionLevels[ext] then -- 1189
-					names[file] = "" -- 1190
-				else -- 1192
-					names[name] = ext -- 1192
-				end -- 1189
-			end -- 1179
-			::_continue_1:: -- 1177
-		end -- 1176
-		do -- 1193
-			local _accum_0 = { } -- 1193
-			local _len_0 = 1 -- 1193
-			for name, ext in pairs(names) do -- 1193
-				_accum_0[_len_0] = ext == '' and name or name .. '.' .. ext -- 1193
-				_len_0 = _len_0 + 1 -- 1193
-			end -- 1193
-			files = _accum_0 -- 1193
-		end -- 1193
-		for _index_0 = 1, #files do -- 1194
-			local file = files[_index_0] -- 1194
-			if not children then -- 1195
-				children = { } -- 1195
-			end -- 1195
-			children[#children + 1] = { -- 1197
-				key = Path(path, file), -- 1197
-				dir = false, -- 1198
-				title = file, -- 1199
-				builtin = builtin -- 1200
-			} -- 1196
-		end -- 1194
-		if children then -- 1202
-			table.sort(children, function(a, b) -- 1203
-				if a.dir == b.dir then -- 1204
-					return a.title < b.title -- 1205
-				else -- 1207
-					return a.dir -- 1207
+	end -- 1163
+	return { -- 1162
+		success = false -- 1162
+	} -- 1162
+end) -- 1162
+local extentionLevels = { -- 1171
+	vs = 2, -- 1171
+	bl = 2, -- 1172
+	ts = 1, -- 1173
+	tsx = 1, -- 1174
+	tl = 1, -- 1175
+	yue = 1, -- 1176
+	xml = 1, -- 1177
+	lua = 0 -- 1178
+} -- 1170
+HttpServer:post("/assets", function() -- 1180
+	local Entry = require("Script.Dev.Entry") -- 1183
+	local engineDev = Entry.getEngineDev() -- 1184
+	local visitAssets -- 1185
+	visitAssets = function(path, tag) -- 1185
+		local isWorkspace = tag == "Workspace" -- 1186
+		local builtin -- 1187
+		if tag == "Builtin" then -- 1187
+			builtin = true -- 1187
+		else -- 1187
+			builtin = nil -- 1187
+		end -- 1187
+		local children = nil -- 1188
+		local dirs = Content:getDirs(path) -- 1189
+		for _index_0 = 1, #dirs do -- 1190
+			local dir = dirs[_index_0] -- 1190
+			if isWorkspace then -- 1191
+				if (".upload" == dir or ".download" == dir or ".www" == dir or ".build" == dir or ".git" == dir or ".cache" == dir) then -- 1192
+					goto _continue_0 -- 1193
+				end -- 1192
+			elseif dir == ".git" then -- 1194
+				goto _continue_0 -- 1195
+			end -- 1191
+			if not children then -- 1196
+				children = { } -- 1196
+			end -- 1196
+			children[#children + 1] = visitAssets(Path(path, dir)) -- 1197
+			::_continue_0:: -- 1191
+		end -- 1190
+		local files = Content:getFiles(path) -- 1198
+		local names = { } -- 1199
+		for _index_0 = 1, #files do -- 1200
+			local file = files[_index_0] -- 1200
+			if file:match("^%.") then -- 1201
+				goto _continue_1 -- 1201
+			end -- 1201
+			local name = Path:getName(file) -- 1202
+			local ext = names[name] -- 1203
+			if ext then -- 1203
+				local lv1 -- 1204
+				do -- 1204
+					local _exp_0 = extentionLevels[ext] -- 1204
+					if _exp_0 ~= nil then -- 1204
+						lv1 = _exp_0 -- 1204
+					else -- 1204
+						lv1 = -1 -- 1204
+					end -- 1204
 				end -- 1204
-			end) -- 1203
-		end -- 1202
-		if isWorkspace and children then -- 1208
-			return children -- 1209
-		else -- 1211
-			return { -- 1212
-				key = path, -- 1212
-				dir = true, -- 1213
-				title = Path:getFilename(path), -- 1214
-				builtin = builtin, -- 1215
-				children = children -- 1216
-			} -- 1211
-		end -- 1208
-	end -- 1161
-	local zh = (App.locale:match("^zh") ~= nil) -- 1218
-	return { -- 1220
-		key = Content.writablePath, -- 1220
-		dir = true, -- 1221
-		root = true, -- 1222
-		title = "Assets", -- 1223
-		children = (function() -- 1225
-			local _tab_0 = { -- 1225
-				{ -- 1226
-					key = Path(Content.assetPath), -- 1226
-					dir = true, -- 1227
-					builtin = true, -- 1228
-					title = zh and "内置资源" or "Built-in", -- 1229
-					children = { -- 1231
-						(function() -- 1231
-							local _with_0 = visitAssets((Path(Content.assetPath, "Doc", zh and "zh-Hans" or "en")), "Builtin") -- 1231
-							_with_0.title = zh and "说明文档" or "Readme" -- 1232
-							return _with_0 -- 1231
-						end)(), -- 1231
-						(function() -- 1233
-							local _with_0 = visitAssets((Path(Content.assetPath, "Script", "Lib", "Dora", zh and "zh-Hans" or "en")), "Builtin") -- 1233
-							_with_0.title = zh and "接口文档" or "API Doc" -- 1234
-							return _with_0 -- 1233
-						end)(), -- 1233
-						(function() -- 1235
-							local _with_0 = visitAssets((Path(Content.assetPath, "Script", "Tools")), "Builtin") -- 1235
-							_with_0.title = zh and "开发工具" or "Tools" -- 1236
-							return _with_0 -- 1235
-						end)(), -- 1235
-						(function() -- 1237
-							local _with_0 = visitAssets((Path(Content.assetPath, "Font")), "Builtin") -- 1237
-							_with_0.title = zh and "字体" or "Font" -- 1238
-							return _with_0 -- 1237
-						end)(), -- 1237
-						(function() -- 1239
-							local _with_0 = visitAssets((Path(Content.assetPath, "Script", "Lib")), "Builtin") -- 1239
-							_with_0.title = zh and "程序库" or "Lib" -- 1240
-							if engineDev then -- 1241
-								local _list_0 = _with_0.children -- 1242
-								for _index_0 = 1, #_list_0 do -- 1242
-									local child = _list_0[_index_0] -- 1242
-									if not (child.title == "Dora") then -- 1243
-										goto _continue_0 -- 1243
-									end -- 1243
-									local title = zh and "zh-Hans" or "en" -- 1244
-									do -- 1245
-										local _accum_0 = { } -- 1245
-										local _len_0 = 1 -- 1245
-										local _list_1 = child.children -- 1245
-										for _index_1 = 1, #_list_1 do -- 1245
-											local c = _list_1[_index_1] -- 1245
-											if c.title ~= title then -- 1245
-												_accum_0[_len_0] = c -- 1245
-												_len_0 = _len_0 + 1 -- 1245
-											end -- 1245
-										end -- 1245
-										child.children = _accum_0 -- 1245
-									end -- 1245
-									break -- 1246
-									::_continue_0:: -- 1243
-								end -- 1242
-							else -- 1248
-								local _accum_0 = { } -- 1248
-								local _len_0 = 1 -- 1248
-								local _list_0 = _with_0.children -- 1248
-								for _index_0 = 1, #_list_0 do -- 1248
-									local child = _list_0[_index_0] -- 1248
-									if child.title ~= "Dora" then -- 1248
-										_accum_0[_len_0] = child -- 1248
-										_len_0 = _len_0 + 1 -- 1248
-									end -- 1248
-								end -- 1248
-								_with_0.children = _accum_0 -- 1248
-							end -- 1241
-							return _with_0 -- 1239
-						end)(), -- 1239
-						(function() -- 1249
-							if engineDev then -- 1249
-								local _with_0 = visitAssets((Path(Content.assetPath, "Script", "Dev")), "Builtin") -- 1250
-								local _obj_0 = _with_0.children -- 1251
-								_obj_0[#_obj_0 + 1] = { -- 1252
-									key = Path(Content.assetPath, "Script", "init.yue"), -- 1252
-									dir = false, -- 1253
-									builtin = true, -- 1254
-									title = "init.yue" -- 1255
-								} -- 1251
-								return _with_0 -- 1250
-							end -- 1249
-						end)() -- 1249
-					} -- 1230
-				} -- 1225
-			} -- 1259
-			local _obj_0 = visitAssets(Content.writablePath, "Workspace") -- 1259
-			local _idx_0 = #_tab_0 + 1 -- 1259
-			for _index_0 = 1, #_obj_0 do -- 1259
-				local _value_0 = _obj_0[_index_0] -- 1259
-				_tab_0[_idx_0] = _value_0 -- 1259
-				_idx_0 = _idx_0 + 1 -- 1259
-			end -- 1259
-			return _tab_0 -- 1225
-		end)() -- 1224
-	} -- 1219
-end) -- 1156
-HttpServer:post("/entry/list", function() -- 1263
-	local Entry = require("Script.Dev.Entry") -- 1264
-	local res = Entry.getLaunchEntries() -- 1265
-	res.success = true -- 1266
-	return res -- 1267
-end) -- 1263
-HttpServer:postSchedule("/run", function(req) -- 1269
-	do -- 1270
-		local _type_0 = type(req) -- 1270
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1270
-		if _tab_0 then -- 1270
-			local file -- 1270
-			do -- 1270
-				local _obj_0 = req.body -- 1270
-				local _type_1 = type(_obj_0) -- 1270
-				if "table" == _type_1 or "userdata" == _type_1 then -- 1270
-					file = _obj_0.file -- 1270
-				end -- 1270
-			end -- 1270
-			local asProj -- 1270
-			do -- 1270
-				local _obj_0 = req.body -- 1270
-				local _type_1 = type(_obj_0) -- 1270
-				if "table" == _type_1 or "userdata" == _type_1 then -- 1270
-					asProj = _obj_0.asProj -- 1270
-				end -- 1270
-			end -- 1270
-			if file ~= nil and asProj ~= nil then -- 1270
-				if not Content:isAbsolutePath(file) then -- 1271
-					local devFile = Path(Content.writablePath, file) -- 1272
-					if Content:exist(devFile) then -- 1273
-						file = devFile -- 1273
-					end -- 1273
-				end -- 1271
-				local Entry = require("Script.Dev.Entry") -- 1274
-				local workDir -- 1275
-				if asProj then -- 1276
-					workDir = getProjectDirFromFile(file) -- 1277
-					if workDir then -- 1277
-						Entry.allClear() -- 1278
-						local target = Path(workDir, "init") -- 1279
-						local success, err = Entry.enterEntryAsync({ -- 1280
-							entryName = "Project", -- 1280
-							fileName = target -- 1280
-						}) -- 1280
-						target = Path:getName(Path:getPath(target)) -- 1281
-						return { -- 1282
-							success = success, -- 1282
-							target = target, -- 1282
-							err = err -- 1282
-						} -- 1282
-					end -- 1277
-				else -- 1284
-					workDir = getProjectDirFromFile(file) -- 1284
-				end -- 1276
-				Entry.allClear() -- 1285
-				file = Path:replaceExt(file, "") -- 1286
-				local success, err = Entry.enterEntryAsync({ -- 1288
-					entryName = Path:getName(file), -- 1288
-					fileName = file, -- 1289
-					workDir = workDir -- 1290
-				}) -- 1287
-				return { -- 1291
-					success = success, -- 1291
-					err = err -- 1291
-				} -- 1291
-			end -- 1270
-		end -- 1270
-	end -- 1270
-	return { -- 1269
-		success = false -- 1269
-	} -- 1269
-end) -- 1269
-HttpServer:postSchedule("/stop", function() -- 1293
-	local Entry = require("Script.Dev.Entry") -- 1294
-	return { -- 1295
-		success = Entry.stop() -- 1295
-	} -- 1295
+				ext = Path:getExt(file) -- 1205
+				local lv2 -- 1206
+				do -- 1206
+					local _exp_0 = extentionLevels[ext] -- 1206
+					if _exp_0 ~= nil then -- 1206
+						lv2 = _exp_0 -- 1206
+					else -- 1206
+						lv2 = -1 -- 1206
+					end -- 1206
+				end -- 1206
+				if lv2 > lv1 then -- 1207
+					names[name] = ext -- 1208
+				elseif lv2 == lv1 then -- 1209
+					names[name .. '.' .. ext] = "" -- 1210
+				end -- 1207
+			else -- 1212
+				ext = Path:getExt(file) -- 1212
+				if not extentionLevels[ext] then -- 1213
+					names[file] = "" -- 1214
+				else -- 1216
+					names[name] = ext -- 1216
+				end -- 1213
+			end -- 1203
+			::_continue_1:: -- 1201
+		end -- 1200
+		do -- 1217
+			local _accum_0 = { } -- 1217
+			local _len_0 = 1 -- 1217
+			for name, ext in pairs(names) do -- 1217
+				_accum_0[_len_0] = ext == '' and name or name .. '.' .. ext -- 1217
+				_len_0 = _len_0 + 1 -- 1217
+			end -- 1217
+			files = _accum_0 -- 1217
+		end -- 1217
+		for _index_0 = 1, #files do -- 1218
+			local file = files[_index_0] -- 1218
+			if not children then -- 1219
+				children = { } -- 1219
+			end -- 1219
+			children[#children + 1] = { -- 1221
+				key = Path(path, file), -- 1221
+				dir = false, -- 1222
+				title = file, -- 1223
+				builtin = builtin -- 1224
+			} -- 1220
+		end -- 1218
+		if children then -- 1226
+			table.sort(children, function(a, b) -- 1227
+				if a.dir == b.dir then -- 1228
+					return a.title < b.title -- 1229
+				else -- 1231
+					return a.dir -- 1231
+				end -- 1228
+			end) -- 1227
+		end -- 1226
+		if isWorkspace and children then -- 1232
+			return children -- 1233
+		else -- 1235
+			return { -- 1236
+				key = path, -- 1236
+				dir = true, -- 1237
+				title = Path:getFilename(path), -- 1238
+				builtin = builtin, -- 1239
+				children = children -- 1240
+			} -- 1235
+		end -- 1232
+	end -- 1185
+	local zh = (App.locale:match("^zh") ~= nil) -- 1242
+	return { -- 1244
+		key = Content.writablePath, -- 1244
+		dir = true, -- 1245
+		root = true, -- 1246
+		title = "Assets", -- 1247
+		children = (function() -- 1249
+			local _tab_0 = { -- 1249
+				{ -- 1250
+					key = Path(Content.assetPath), -- 1250
+					dir = true, -- 1251
+					builtin = true, -- 1252
+					title = zh and "内置资源" or "Built-in", -- 1253
+					children = { -- 1255
+						(function() -- 1255
+							local _with_0 = visitAssets((Path(Content.assetPath, "Doc", zh and "zh-Hans" or "en")), "Builtin") -- 1255
+							_with_0.title = zh and "说明文档" or "Readme" -- 1256
+							return _with_0 -- 1255
+						end)(), -- 1255
+						(function() -- 1257
+							local _with_0 = visitAssets((Path(Content.assetPath, "Script", "Lib", "Dora", zh and "zh-Hans" or "en")), "Builtin") -- 1257
+							_with_0.title = zh and "接口文档" or "API Doc" -- 1258
+							return _with_0 -- 1257
+						end)(), -- 1257
+						(function() -- 1259
+							local _with_0 = visitAssets((Path(Content.assetPath, "Script", "Tools")), "Builtin") -- 1259
+							_with_0.title = zh and "开发工具" or "Tools" -- 1260
+							return _with_0 -- 1259
+						end)(), -- 1259
+						(function() -- 1261
+							local _with_0 = visitAssets((Path(Content.assetPath, "Font")), "Builtin") -- 1261
+							_with_0.title = zh and "字体" or "Font" -- 1262
+							return _with_0 -- 1261
+						end)(), -- 1261
+						(function() -- 1263
+							local _with_0 = visitAssets((Path(Content.assetPath, "Script", "Lib")), "Builtin") -- 1263
+							_with_0.title = zh and "程序库" or "Lib" -- 1264
+							if engineDev then -- 1265
+								local _list_0 = _with_0.children -- 1266
+								for _index_0 = 1, #_list_0 do -- 1266
+									local child = _list_0[_index_0] -- 1266
+									if not (child.title == "Dora") then -- 1267
+										goto _continue_0 -- 1267
+									end -- 1267
+									local title = zh and "zh-Hans" or "en" -- 1268
+									do -- 1269
+										local _accum_0 = { } -- 1269
+										local _len_0 = 1 -- 1269
+										local _list_1 = child.children -- 1269
+										for _index_1 = 1, #_list_1 do -- 1269
+											local c = _list_1[_index_1] -- 1269
+											if c.title ~= title then -- 1269
+												_accum_0[_len_0] = c -- 1269
+												_len_0 = _len_0 + 1 -- 1269
+											end -- 1269
+										end -- 1269
+										child.children = _accum_0 -- 1269
+									end -- 1269
+									break -- 1270
+									::_continue_0:: -- 1267
+								end -- 1266
+							else -- 1272
+								local _accum_0 = { } -- 1272
+								local _len_0 = 1 -- 1272
+								local _list_0 = _with_0.children -- 1272
+								for _index_0 = 1, #_list_0 do -- 1272
+									local child = _list_0[_index_0] -- 1272
+									if child.title ~= "Dora" then -- 1272
+										_accum_0[_len_0] = child -- 1272
+										_len_0 = _len_0 + 1 -- 1272
+									end -- 1272
+								end -- 1272
+								_with_0.children = _accum_0 -- 1272
+							end -- 1265
+							return _with_0 -- 1263
+						end)(), -- 1263
+						(function() -- 1273
+							if engineDev then -- 1273
+								local _with_0 = visitAssets((Path(Content.assetPath, "Script", "Dev")), "Builtin") -- 1274
+								local _obj_0 = _with_0.children -- 1275
+								_obj_0[#_obj_0 + 1] = { -- 1276
+									key = Path(Content.assetPath, "Script", "init.yue"), -- 1276
+									dir = false, -- 1277
+									builtin = true, -- 1278
+									title = "init.yue" -- 1279
+								} -- 1275
+								return _with_0 -- 1274
+							end -- 1273
+						end)() -- 1273
+					} -- 1254
+				} -- 1249
+			} -- 1283
+			local _obj_0 = visitAssets(Content.writablePath, "Workspace") -- 1283
+			local _idx_0 = #_tab_0 + 1 -- 1283
+			for _index_0 = 1, #_obj_0 do -- 1283
+				local _value_0 = _obj_0[_index_0] -- 1283
+				_tab_0[_idx_0] = _value_0 -- 1283
+				_idx_0 = _idx_0 + 1 -- 1283
+			end -- 1283
+			return _tab_0 -- 1249
+		end)() -- 1248
+	} -- 1243
+end) -- 1180
+HttpServer:post("/entry/list", function() -- 1287
+	local Entry = require("Script.Dev.Entry") -- 1288
+	local res = Entry.getLaunchEntries() -- 1289
+	res.success = true -- 1290
+	return res -- 1291
+end) -- 1287
+HttpServer:postSchedule("/run", function(req) -- 1293
+	do -- 1294
+		local _type_0 = type(req) -- 1294
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1294
+		if _tab_0 then -- 1294
+			local file -- 1294
+			do -- 1294
+				local _obj_0 = req.body -- 1294
+				local _type_1 = type(_obj_0) -- 1294
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1294
+					file = _obj_0.file -- 1294
+				end -- 1294
+			end -- 1294
+			local asProj -- 1294
+			do -- 1294
+				local _obj_0 = req.body -- 1294
+				local _type_1 = type(_obj_0) -- 1294
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1294
+					asProj = _obj_0.asProj -- 1294
+				end -- 1294
+			end -- 1294
+			if file ~= nil and asProj ~= nil then -- 1294
+				if not Content:isAbsolutePath(file) then -- 1295
+					local devFile = Path(Content.writablePath, file) -- 1296
+					if Content:exist(devFile) then -- 1297
+						file = devFile -- 1297
+					end -- 1297
+				end -- 1295
+				local Entry = require("Script.Dev.Entry") -- 1298
+				local workDir -- 1299
+				if asProj then -- 1300
+					workDir = getProjectDirFromFile(file) -- 1301
+					if workDir then -- 1301
+						Entry.allClear() -- 1302
+						local target = Path(workDir, "init") -- 1303
+						local success, err = Entry.enterEntryAsync({ -- 1304
+							entryName = "Project", -- 1304
+							fileName = target -- 1304
+						}) -- 1304
+						target = Path:getName(Path:getPath(target)) -- 1305
+						return { -- 1306
+							success = success, -- 1306
+							target = target, -- 1306
+							err = err -- 1306
+						} -- 1306
+					end -- 1301
+				else -- 1308
+					workDir = getProjectDirFromFile(file) -- 1308
+				end -- 1300
+				Entry.allClear() -- 1309
+				file = Path:replaceExt(file, "") -- 1310
+				local success, err = Entry.enterEntryAsync({ -- 1312
+					entryName = Path:getName(file), -- 1312
+					fileName = file, -- 1313
+					workDir = workDir -- 1314
+				}) -- 1311
+				return { -- 1315
+					success = success, -- 1315
+					err = err -- 1315
+				} -- 1315
+			end -- 1294
+		end -- 1294
+	end -- 1294
+	return { -- 1293
+		success = false -- 1293
+	} -- 1293
 end) -- 1293
-local minifyAsync -- 1297
-minifyAsync = function(sourcePath, minifyPath) -- 1297
-	if not Content:exist(sourcePath) then -- 1298
-		return -- 1298
-	end -- 1298
-	local Entry = require("Script.Dev.Entry") -- 1299
-	local errors = { } -- 1300
-	local files = Entry.getAllFiles(sourcePath, { -- 1301
-		"lua" -- 1301
-	}, true) -- 1301
-	do -- 1302
-		local _accum_0 = { } -- 1302
-		local _len_0 = 1 -- 1302
-		for _index_0 = 1, #files do -- 1302
-			local file = files[_index_0] -- 1302
-			if file:sub(1, 1) ~= '.' then -- 1302
-				_accum_0[_len_0] = file -- 1302
-				_len_0 = _len_0 + 1 -- 1302
-			end -- 1302
-		end -- 1302
-		files = _accum_0 -- 1302
-	end -- 1302
-	local paths -- 1303
-	do -- 1303
-		local _tbl_0 = { } -- 1303
-		for _index_0 = 1, #files do -- 1303
-			local file = files[_index_0] -- 1303
-			_tbl_0[Path:getPath(file)] = true -- 1303
-		end -- 1303
-		paths = _tbl_0 -- 1303
-	end -- 1303
-	for path in pairs(paths) do -- 1304
-		Content:mkdir(Path(minifyPath, path)) -- 1304
-	end -- 1304
-	local _ <close> = setmetatable({ }, { -- 1305
-		__close = function() -- 1305
-			package.loaded["luaminify.FormatMini"] = nil -- 1306
-			package.loaded["luaminify.ParseLua"] = nil -- 1307
-			package.loaded["luaminify.Scope"] = nil -- 1308
-			package.loaded["luaminify.Util"] = nil -- 1309
-		end -- 1305
-	}) -- 1305
-	local FormatMini -- 1310
-	do -- 1310
-		local _obj_0 = require("luaminify") -- 1310
-		FormatMini = _obj_0.FormatMini -- 1310
-	end -- 1310
-	local fileCount = #files -- 1311
-	local count = 0 -- 1312
-	for _index_0 = 1, #files do -- 1313
-		local file = files[_index_0] -- 1313
-		thread(function() -- 1314
-			local _ <close> = setmetatable({ }, { -- 1315
-				__close = function() -- 1315
-					count = count + 1 -- 1315
-				end -- 1315
-			}) -- 1315
-			local input = Path(sourcePath, file) -- 1316
-			local output = Path(minifyPath, Path:replaceExt(file, "lua")) -- 1317
-			if Content:exist(input) then -- 1318
-				local sourceCodes = Content:loadAsync(input) -- 1319
-				local res, err = FormatMini(sourceCodes) -- 1320
-				if res then -- 1321
-					Content:saveAsync(output, res) -- 1322
-					return print("Minify " .. tostring(file)) -- 1323
-				else -- 1325
-					errors[#errors + 1] = "Minify errors in " .. tostring(file) .. ".\n" .. tostring(err) -- 1325
-				end -- 1321
-			else -- 1327
-				errors[#errors + 1] = "Minify errors in " .. tostring(file) .. ".\nTarget file is not exist!" -- 1327
-			end -- 1318
-		end) -- 1314
-		sleep() -- 1328
-	end -- 1313
-	wait(function() -- 1329
-		return count == fileCount -- 1329
-	end) -- 1329
-	if #errors > 0 then -- 1330
-		print(table.concat(errors, '\n')) -- 1331
-	end -- 1330
-	print("Obfuscation done.") -- 1332
-	return files -- 1333
-end -- 1297
-local zipping = false -- 1335
-HttpServer:postSchedule("/zip", function(req) -- 1337
-	do -- 1338
-		local _type_0 = type(req) -- 1338
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1338
-		if _tab_0 then -- 1338
-			local path -- 1338
-			do -- 1338
-				local _obj_0 = req.body -- 1338
-				local _type_1 = type(_obj_0) -- 1338
-				if "table" == _type_1 or "userdata" == _type_1 then -- 1338
-					path = _obj_0.path -- 1338
-				end -- 1338
-			end -- 1338
-			local zipFile -- 1338
-			do -- 1338
-				local _obj_0 = req.body -- 1338
-				local _type_1 = type(_obj_0) -- 1338
-				if "table" == _type_1 or "userdata" == _type_1 then -- 1338
-					zipFile = _obj_0.zipFile -- 1338
-				end -- 1338
-			end -- 1338
-			local obfuscated -- 1338
-			do -- 1338
-				local _obj_0 = req.body -- 1338
-				local _type_1 = type(_obj_0) -- 1338
-				if "table" == _type_1 or "userdata" == _type_1 then -- 1338
-					obfuscated = _obj_0.obfuscated -- 1338
-				end -- 1338
-			end -- 1338
-			if path ~= nil and zipFile ~= nil and obfuscated ~= nil then -- 1338
-				if zipping then -- 1339
-					goto failed -- 1339
+HttpServer:postSchedule("/stop", function() -- 1317
+	local Entry = require("Script.Dev.Entry") -- 1318
+	return { -- 1319
+		success = Entry.stop() -- 1319
+	} -- 1319
+end) -- 1317
+local minifyAsync -- 1321
+minifyAsync = function(sourcePath, minifyPath) -- 1321
+	if not Content:exist(sourcePath) then -- 1322
+		return -- 1322
+	end -- 1322
+	local Entry = require("Script.Dev.Entry") -- 1323
+	local errors = { } -- 1324
+	local files = Entry.getAllFiles(sourcePath, { -- 1325
+		"lua" -- 1325
+	}, true) -- 1325
+	do -- 1326
+		local _accum_0 = { } -- 1326
+		local _len_0 = 1 -- 1326
+		for _index_0 = 1, #files do -- 1326
+			local file = files[_index_0] -- 1326
+			if file:sub(1, 1) ~= '.' then -- 1326
+				_accum_0[_len_0] = file -- 1326
+				_len_0 = _len_0 + 1 -- 1326
+			end -- 1326
+		end -- 1326
+		files = _accum_0 -- 1326
+	end -- 1326
+	local paths -- 1327
+	do -- 1327
+		local _tbl_0 = { } -- 1327
+		for _index_0 = 1, #files do -- 1327
+			local file = files[_index_0] -- 1327
+			_tbl_0[Path:getPath(file)] = true -- 1327
+		end -- 1327
+		paths = _tbl_0 -- 1327
+	end -- 1327
+	for path in pairs(paths) do -- 1328
+		Content:mkdir(Path(minifyPath, path)) -- 1328
+	end -- 1328
+	local _ <close> = setmetatable({ }, { -- 1329
+		__close = function() -- 1329
+			package.loaded["luaminify.FormatMini"] = nil -- 1330
+			package.loaded["luaminify.ParseLua"] = nil -- 1331
+			package.loaded["luaminify.Scope"] = nil -- 1332
+			package.loaded["luaminify.Util"] = nil -- 1333
+		end -- 1329
+	}) -- 1329
+	local FormatMini -- 1334
+	do -- 1334
+		local _obj_0 = require("luaminify") -- 1334
+		FormatMini = _obj_0.FormatMini -- 1334
+	end -- 1334
+	local fileCount = #files -- 1335
+	local count = 0 -- 1336
+	for _index_0 = 1, #files do -- 1337
+		local file = files[_index_0] -- 1337
+		thread(function() -- 1338
+			local _ <close> = setmetatable({ }, { -- 1339
+				__close = function() -- 1339
+					count = count + 1 -- 1339
 				end -- 1339
-				zipping = true -- 1340
-				local _ <close> = setmetatable({ }, { -- 1341
-					__close = function() -- 1341
-						zipping = false -- 1341
-					end -- 1341
-				}) -- 1341
-				if not Content:exist(path) then -- 1342
-					goto failed -- 1342
-				end -- 1342
-				Content:mkdir(Path:getPath(zipFile)) -- 1343
-				if obfuscated then -- 1344
-					local scriptPath = Path(Content.writablePath, ".download", ".script") -- 1345
-					local obfuscatedPath = Path(Content.writablePath, ".download", ".obfuscated") -- 1346
-					local tempPath = Path(Content.writablePath, ".download", ".temp") -- 1347
-					Content:remove(scriptPath) -- 1348
-					Content:remove(obfuscatedPath) -- 1349
-					Content:remove(tempPath) -- 1350
-					Content:mkdir(scriptPath) -- 1351
-					Content:mkdir(obfuscatedPath) -- 1352
-					Content:mkdir(tempPath) -- 1353
-					if not Content:copyAsync(path, tempPath) then -- 1354
-						goto failed -- 1354
-					end -- 1354
-					local Entry = require("Script.Dev.Entry") -- 1355
-					local luaFiles = minifyAsync(tempPath, obfuscatedPath) -- 1356
-					local scriptFiles = Entry.getAllFiles(tempPath, { -- 1357
-						"tl", -- 1357
-						"yue", -- 1357
-						"lua", -- 1357
-						"ts", -- 1357
-						"tsx", -- 1357
-						"vs", -- 1357
-						"bl", -- 1357
-						"xml", -- 1357
-						"wa", -- 1357
-						"mod" -- 1357
-					}, true) -- 1357
-					for _index_0 = 1, #scriptFiles do -- 1358
-						local file = scriptFiles[_index_0] -- 1358
-						Content:remove(Path(tempPath, file)) -- 1359
-					end -- 1358
-					for _index_0 = 1, #luaFiles do -- 1360
-						local file = luaFiles[_index_0] -- 1360
-						Content:move(Path(obfuscatedPath, file), Path(tempPath, file)) -- 1361
-					end -- 1360
-					if not Content:zipAsync(tempPath, zipFile, function(file) -- 1362
-						return not (file:match('^%.') or file:match("[\\/]%.")) -- 1363
-					end) then -- 1362
-						goto failed -- 1362
-					end -- 1362
-					return { -- 1364
-						success = true -- 1364
-					} -- 1364
-				else -- 1366
-					return { -- 1366
-						success = Content:zipAsync(path, zipFile, function(file) -- 1366
-							return not (file:match('^%.') or file:match("[\\/]%.")) -- 1367
-						end) -- 1366
-					} -- 1366
-				end -- 1344
-			end -- 1338
-		end -- 1338
-	end -- 1338
-	::failed:: -- 1368
-	return { -- 1337
-		success = false -- 1337
-	} -- 1337
-end) -- 1337
-HttpServer:postSchedule("/unzip", function(req) -- 1370
-	do -- 1371
-		local _type_0 = type(req) -- 1371
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1371
-		if _tab_0 then -- 1371
-			local zipFile -- 1371
-			do -- 1371
-				local _obj_0 = req.body -- 1371
-				local _type_1 = type(_obj_0) -- 1371
-				if "table" == _type_1 or "userdata" == _type_1 then -- 1371
-					zipFile = _obj_0.zipFile -- 1371
-				end -- 1371
-			end -- 1371
-			local path -- 1371
-			do -- 1371
-				local _obj_0 = req.body -- 1371
-				local _type_1 = type(_obj_0) -- 1371
-				if "table" == _type_1 or "userdata" == _type_1 then -- 1371
-					path = _obj_0.path -- 1371
-				end -- 1371
-			end -- 1371
-			if zipFile ~= nil and path ~= nil then -- 1371
-				return { -- 1372
-					success = Content:unzipAsync(zipFile, path, function(file) -- 1372
-						return not (file:match('^%.') or file:match("[\\/]%.") or file:match("__MACOSX")) -- 1373
-					end) -- 1372
-				} -- 1372
-			end -- 1371
-		end -- 1371
-	end -- 1371
-	return { -- 1370
-		success = false -- 1370
-	} -- 1370
-end) -- 1370
-HttpServer:post("/editing-info", function(req) -- 1375
-	local Entry = require("Script.Dev.Entry") -- 1376
-	local config = Entry.getConfig() -- 1377
-	local _type_0 = type(req) -- 1378
-	local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1378
-	local _match_0 = false -- 1378
-	if _tab_0 then -- 1378
-		local editingInfo -- 1378
-		do -- 1378
-			local _obj_0 = req.body -- 1378
-			local _type_1 = type(_obj_0) -- 1378
-			if "table" == _type_1 or "userdata" == _type_1 then -- 1378
-				editingInfo = _obj_0.editingInfo -- 1378
-			end -- 1378
-		end -- 1378
-		if editingInfo ~= nil then -- 1378
-			_match_0 = true -- 1378
-			config.editingInfo = editingInfo -- 1379
-			return { -- 1380
-				success = true -- 1380
-			} -- 1380
-		end -- 1378
-	end -- 1378
-	if not _match_0 then -- 1378
-		if not (config.editingInfo ~= nil) then -- 1382
-			local folder -- 1383
-			if App.locale:match('^zh') then -- 1383
-				folder = 'zh-Hans' -- 1383
-			else -- 1383
-				folder = 'en' -- 1383
-			end -- 1383
-			config.editingInfo = json.encode({ -- 1385
-				index = 0, -- 1385
-				files = { -- 1387
-					{ -- 1388
-						key = Path(Content.assetPath, 'Doc', folder, 'welcome.md'), -- 1388
-						title = "welcome.md" -- 1389
-					} -- 1387
-				} -- 1386
-			}) -- 1384
-		end -- 1382
-		return { -- 1393
-			success = true, -- 1393
-			editingInfo = config.editingInfo -- 1393
-		} -- 1393
-	end -- 1378
-end) -- 1375
-HttpServer:post("/command", function(req) -- 1395
-	do -- 1396
-		local _type_0 = type(req) -- 1396
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1396
-		if _tab_0 then -- 1396
-			local code -- 1396
-			do -- 1396
-				local _obj_0 = req.body -- 1396
-				local _type_1 = type(_obj_0) -- 1396
-				if "table" == _type_1 or "userdata" == _type_1 then -- 1396
-					code = _obj_0.code -- 1396
-				end -- 1396
-			end -- 1396
-			local log -- 1396
-			do -- 1396
-				local _obj_0 = req.body -- 1396
-				local _type_1 = type(_obj_0) -- 1396
-				if "table" == _type_1 or "userdata" == _type_1 then -- 1396
-					log = _obj_0.log -- 1396
-				end -- 1396
-			end -- 1396
-			if code ~= nil and log ~= nil then -- 1396
-				emit("AppCommand", code, log) -- 1397
-				return { -- 1398
-					success = true -- 1398
-				} -- 1398
-			end -- 1396
-		end -- 1396
-	end -- 1396
-	return { -- 1395
-		success = false -- 1395
-	} -- 1395
-end) -- 1395
-HttpServer:post("/log/save", function() -- 1400
-	local folder = ".download" -- 1401
-	local fullLogFile = "dora_full_logs.txt" -- 1402
-	local fullFolder = Path(Content.writablePath, folder) -- 1403
-	Content:mkdir(fullFolder) -- 1404
-	local logPath = Path(fullFolder, fullLogFile) -- 1405
-	if App:saveLog(logPath) then -- 1406
-		return { -- 1407
-			success = true, -- 1407
-			path = Path(folder, fullLogFile) -- 1407
-		} -- 1407
-	end -- 1406
-	return { -- 1400
-		success = false -- 1400
-	} -- 1400
-end) -- 1400
-HttpServer:post("/yarn/check", function(req) -- 1409
-	local yarncompile = require("yarncompile") -- 1410
-	do -- 1411
-		local _type_0 = type(req) -- 1411
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1411
-		if _tab_0 then -- 1411
-			local code -- 1411
-			do -- 1411
-				local _obj_0 = req.body -- 1411
-				local _type_1 = type(_obj_0) -- 1411
-				if "table" == _type_1 or "userdata" == _type_1 then -- 1411
-					code = _obj_0.code -- 1411
-				end -- 1411
-			end -- 1411
-			if code ~= nil then -- 1411
-				local jsonObject = json.decode(code) -- 1412
-				if jsonObject then -- 1412
-					local errors = { } -- 1413
-					local _list_0 = jsonObject.nodes -- 1414
-					for _index_0 = 1, #_list_0 do -- 1414
-						local node = _list_0[_index_0] -- 1414
-						local title, body = node.title, node.body -- 1415
-						local luaCode, err = yarncompile(body) -- 1416
-						if not luaCode then -- 1416
-							errors[#errors + 1] = title .. ":" .. err -- 1417
-						end -- 1416
-					end -- 1414
-					return { -- 1418
-						success = true, -- 1418
-						syntaxError = table.concat(errors, "\n\n") -- 1418
-					} -- 1418
-				end -- 1412
-			end -- 1411
-		end -- 1411
-	end -- 1411
-	return { -- 1409
-		success = false -- 1409
-	} -- 1409
-end) -- 1409
-HttpServer:post("/yarn/check-file", function(req) -- 1420
-	local yarncompile = require("yarncompile") -- 1421
-	do -- 1422
-		local _type_0 = type(req) -- 1422
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1422
-		if _tab_0 then -- 1422
-			local code -- 1422
-			do -- 1422
-				local _obj_0 = req.body -- 1422
-				local _type_1 = type(_obj_0) -- 1422
-				if "table" == _type_1 or "userdata" == _type_1 then -- 1422
-					code = _obj_0.code -- 1422
-				end -- 1422
-			end -- 1422
-			if code ~= nil then -- 1422
-				local res, _, err = yarncompile(code, true) -- 1423
-				if not res then -- 1423
-					local message, line, column, node = err[1], err[2], err[3], err[4] -- 1424
-					return { -- 1425
-						success = false, -- 1425
-						message = message, -- 1425
-						line = line, -- 1425
-						column = column, -- 1425
-						node = node -- 1425
-					} -- 1425
-				end -- 1423
-			end -- 1422
-		end -- 1422
-	end -- 1422
-	return { -- 1420
-		success = true -- 1420
-	} -- 1420
-end) -- 1420
-local getWaProjectDirFromFile -- 1427
-getWaProjectDirFromFile = function(file) -- 1427
-	local writablePath = Content.writablePath -- 1428
-	local parent, current -- 1429
-	if (".." ~= Path:getRelative(file, writablePath):sub(1, 2)) and writablePath == file:sub(1, #writablePath) then -- 1429
-		parent, current = writablePath, Path:getRelative(file, writablePath) -- 1430
-	else -- 1432
-		parent, current = nil, nil -- 1432
-	end -- 1429
-	if not current then -- 1433
-		return nil -- 1433
-	end -- 1433
-	repeat -- 1434
-		current = Path:getPath(current) -- 1435
-		if current == "" then -- 1436
-			break -- 1436
-		end -- 1436
-		local _list_0 = Content:getFiles(Path(parent, current)) -- 1437
-		for _index_0 = 1, #_list_0 do -- 1437
-			local f = _list_0[_index_0] -- 1437
-			if Path:getFilename(f):lower() == "wa.mod" then -- 1438
-				return Path(parent, current, Path:getPath(f)) -- 1439
-			end -- 1438
-		end -- 1437
-	until false -- 1434
-	return nil -- 1441
-end -- 1427
-HttpServer:postSchedule("/wa/update_dora", function(req) -- 1443
-	do -- 1444
-		local _type_0 = type(req) -- 1444
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1444
-		if _tab_0 then -- 1444
-			local path -- 1444
-			do -- 1444
-				local _obj_0 = req.body -- 1444
-				local _type_1 = type(_obj_0) -- 1444
-				if "table" == _type_1 or "userdata" == _type_1 then -- 1444
-					path = _obj_0.path -- 1444
-				end -- 1444
-			end -- 1444
-			if path ~= nil then -- 1444
-				local projDir = getWaProjectDirFromFile(path) -- 1445
-				if projDir then -- 1445
-					local sourceDoraPath = Path(Content.assetPath, "dora-wa", "vendor", "dora") -- 1446
-					if not Content:exist(sourceDoraPath) then -- 1447
-						return { -- 1448
-							success = false, -- 1448
-							message = "missing dora template" -- 1448
-						} -- 1448
-					end -- 1447
-					local targetVendorPath = Path(projDir, "vendor") -- 1449
-					local targetDoraPath = Path(targetVendorPath, "dora") -- 1450
-					if not Content:exist(targetVendorPath) then -- 1451
-						if not Content:mkdir(targetVendorPath) then -- 1452
-							return { -- 1453
-								success = false, -- 1453
-								message = "failed to create vendor folder" -- 1453
-							} -- 1453
-						end -- 1452
-					elseif not Content:isdir(targetVendorPath) then -- 1454
-						return { -- 1455
-							success = false, -- 1455
-							message = "vendor path is not a folder" -- 1455
-						} -- 1455
-					end -- 1451
-					if Content:exist(targetDoraPath) then -- 1456
-						if not Content:remove(targetDoraPath) then -- 1457
-							return { -- 1458
-								success = false, -- 1458
-								message = "failed to remove old dora" -- 1458
-							} -- 1458
-						end -- 1457
-					end -- 1456
-					if not Content:copyAsync(sourceDoraPath, targetDoraPath) then -- 1459
-						return { -- 1460
-							success = false, -- 1460
-							message = "failed to copy dora" -- 1460
-						} -- 1460
-					end -- 1459
-					return { -- 1461
-						success = true -- 1461
-					} -- 1461
-				else -- 1463
-					return { -- 1463
-						success = false, -- 1463
-						message = 'Wa file needs a project' -- 1463
-					} -- 1463
-				end -- 1445
-			end -- 1444
-		end -- 1444
-	end -- 1444
-	return { -- 1443
-		success = false, -- 1443
-		message = "invalid call" -- 1443
-	} -- 1443
-end) -- 1443
-HttpServer:postSchedule("/wa/build", function(req) -- 1465
-	do -- 1466
-		local _type_0 = type(req) -- 1466
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1466
-		if _tab_0 then -- 1466
-			local path -- 1466
-			do -- 1466
-				local _obj_0 = req.body -- 1466
-				local _type_1 = type(_obj_0) -- 1466
-				if "table" == _type_1 or "userdata" == _type_1 then -- 1466
-					path = _obj_0.path -- 1466
-				end -- 1466
-			end -- 1466
-			if path ~= nil then -- 1466
-				local projDir = getWaProjectDirFromFile(path) -- 1467
-				if projDir then -- 1467
-					local message = Wasm:buildWaAsync(projDir) -- 1468
-					if message == "" then -- 1469
-						return { -- 1470
-							success = true -- 1470
-						} -- 1470
-					else -- 1472
+			}) -- 1339
+			local input = Path(sourcePath, file) -- 1340
+			local output = Path(minifyPath, Path:replaceExt(file, "lua")) -- 1341
+			if Content:exist(input) then -- 1342
+				local sourceCodes = Content:loadAsync(input) -- 1343
+				local res, err = FormatMini(sourceCodes) -- 1344
+				if res then -- 1345
+					Content:saveAsync(output, res) -- 1346
+					return print("Minify " .. tostring(file)) -- 1347
+				else -- 1349
+					errors[#errors + 1] = "Minify errors in " .. tostring(file) .. ".\n" .. tostring(err) -- 1349
+				end -- 1345
+			else -- 1351
+				errors[#errors + 1] = "Minify errors in " .. tostring(file) .. ".\nTarget file is not exist!" -- 1351
+			end -- 1342
+		end) -- 1338
+		sleep() -- 1352
+	end -- 1337
+	wait(function() -- 1353
+		return count == fileCount -- 1353
+	end) -- 1353
+	if #errors > 0 then -- 1354
+		print(table.concat(errors, '\n')) -- 1355
+	end -- 1354
+	print("Obfuscation done.") -- 1356
+	return files -- 1357
+end -- 1321
+local zipping = false -- 1359
+HttpServer:postSchedule("/zip", function(req) -- 1361
+	do -- 1362
+		local _type_0 = type(req) -- 1362
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1362
+		if _tab_0 then -- 1362
+			local path -- 1362
+			do -- 1362
+				local _obj_0 = req.body -- 1362
+				local _type_1 = type(_obj_0) -- 1362
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1362
+					path = _obj_0.path -- 1362
+				end -- 1362
+			end -- 1362
+			local zipFile -- 1362
+			do -- 1362
+				local _obj_0 = req.body -- 1362
+				local _type_1 = type(_obj_0) -- 1362
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1362
+					zipFile = _obj_0.zipFile -- 1362
+				end -- 1362
+			end -- 1362
+			local obfuscated -- 1362
+			do -- 1362
+				local _obj_0 = req.body -- 1362
+				local _type_1 = type(_obj_0) -- 1362
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1362
+					obfuscated = _obj_0.obfuscated -- 1362
+				end -- 1362
+			end -- 1362
+			if path ~= nil and zipFile ~= nil and obfuscated ~= nil then -- 1362
+				if zipping then -- 1363
+					goto failed -- 1363
+				end -- 1363
+				zipping = true -- 1364
+				local _ <close> = setmetatable({ }, { -- 1365
+					__close = function() -- 1365
+						zipping = false -- 1365
+					end -- 1365
+				}) -- 1365
+				if not Content:exist(path) then -- 1366
+					goto failed -- 1366
+				end -- 1366
+				Content:mkdir(Path:getPath(zipFile)) -- 1367
+				if obfuscated then -- 1368
+					local scriptPath = Path(Content.writablePath, ".download", ".script") -- 1369
+					local obfuscatedPath = Path(Content.writablePath, ".download", ".obfuscated") -- 1370
+					local tempPath = Path(Content.writablePath, ".download", ".temp") -- 1371
+					Content:remove(scriptPath) -- 1372
+					Content:remove(obfuscatedPath) -- 1373
+					Content:remove(tempPath) -- 1374
+					Content:mkdir(scriptPath) -- 1375
+					Content:mkdir(obfuscatedPath) -- 1376
+					Content:mkdir(tempPath) -- 1377
+					if not Content:copyAsync(path, tempPath) then -- 1378
+						goto failed -- 1378
+					end -- 1378
+					local Entry = require("Script.Dev.Entry") -- 1379
+					local luaFiles = minifyAsync(tempPath, obfuscatedPath) -- 1380
+					local scriptFiles = Entry.getAllFiles(tempPath, { -- 1381
+						"tl", -- 1381
+						"yue", -- 1381
+						"lua", -- 1381
+						"ts", -- 1381
+						"tsx", -- 1381
+						"vs", -- 1381
+						"bl", -- 1381
+						"xml", -- 1381
+						"wa", -- 1381
+						"mod" -- 1381
+					}, true) -- 1381
+					for _index_0 = 1, #scriptFiles do -- 1382
+						local file = scriptFiles[_index_0] -- 1382
+						Content:remove(Path(tempPath, file)) -- 1383
+					end -- 1382
+					for _index_0 = 1, #luaFiles do -- 1384
+						local file = luaFiles[_index_0] -- 1384
+						Content:move(Path(obfuscatedPath, file), Path(tempPath, file)) -- 1385
+					end -- 1384
+					if not Content:zipAsync(tempPath, zipFile, function(file) -- 1386
+						return not (file:match('^%.') or file:match("[\\/]%.")) -- 1387
+					end) then -- 1386
+						goto failed -- 1386
+					end -- 1386
+					return { -- 1388
+						success = true -- 1388
+					} -- 1388
+				else -- 1390
+					return { -- 1390
+						success = Content:zipAsync(path, zipFile, function(file) -- 1390
+							return not (file:match('^%.') or file:match("[\\/]%.")) -- 1391
+						end) -- 1390
+					} -- 1390
+				end -- 1368
+			end -- 1362
+		end -- 1362
+	end -- 1362
+	::failed:: -- 1392
+	return { -- 1361
+		success = false -- 1361
+	} -- 1361
+end) -- 1361
+HttpServer:postSchedule("/unzip", function(req) -- 1394
+	do -- 1395
+		local _type_0 = type(req) -- 1395
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1395
+		if _tab_0 then -- 1395
+			local zipFile -- 1395
+			do -- 1395
+				local _obj_0 = req.body -- 1395
+				local _type_1 = type(_obj_0) -- 1395
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1395
+					zipFile = _obj_0.zipFile -- 1395
+				end -- 1395
+			end -- 1395
+			local path -- 1395
+			do -- 1395
+				local _obj_0 = req.body -- 1395
+				local _type_1 = type(_obj_0) -- 1395
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1395
+					path = _obj_0.path -- 1395
+				end -- 1395
+			end -- 1395
+			if zipFile ~= nil and path ~= nil then -- 1395
+				return { -- 1396
+					success = Content:unzipAsync(zipFile, path, function(file) -- 1396
+						return not (file:match('^%.') or file:match("[\\/]%.") or file:match("__MACOSX")) -- 1397
+					end) -- 1396
+				} -- 1396
+			end -- 1395
+		end -- 1395
+	end -- 1395
+	return { -- 1394
+		success = false -- 1394
+	} -- 1394
+end) -- 1394
+HttpServer:post("/editing-info", function(req) -- 1399
+	local Entry = require("Script.Dev.Entry") -- 1400
+	local config = Entry.getConfig() -- 1401
+	local _type_0 = type(req) -- 1402
+	local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1402
+	local _match_0 = false -- 1402
+	if _tab_0 then -- 1402
+		local editingInfo -- 1402
+		do -- 1402
+			local _obj_0 = req.body -- 1402
+			local _type_1 = type(_obj_0) -- 1402
+			if "table" == _type_1 or "userdata" == _type_1 then -- 1402
+				editingInfo = _obj_0.editingInfo -- 1402
+			end -- 1402
+		end -- 1402
+		if editingInfo ~= nil then -- 1402
+			_match_0 = true -- 1402
+			config.editingInfo = editingInfo -- 1403
+			return { -- 1404
+				success = true -- 1404
+			} -- 1404
+		end -- 1402
+	end -- 1402
+	if not _match_0 then -- 1402
+		if not (config.editingInfo ~= nil) then -- 1406
+			local folder -- 1407
+			if App.locale:match('^zh') then -- 1407
+				folder = 'zh-Hans' -- 1407
+			else -- 1407
+				folder = 'en' -- 1407
+			end -- 1407
+			config.editingInfo = json.encode({ -- 1409
+				index = 0, -- 1409
+				files = { -- 1411
+					{ -- 1412
+						key = Path(Content.assetPath, 'Doc', folder, 'welcome.md'), -- 1412
+						title = "welcome.md" -- 1413
+					} -- 1411
+				} -- 1410
+			}) -- 1408
+		end -- 1406
+		return { -- 1417
+			success = true, -- 1417
+			editingInfo = config.editingInfo -- 1417
+		} -- 1417
+	end -- 1402
+end) -- 1399
+HttpServer:post("/command", function(req) -- 1419
+	do -- 1420
+		local _type_0 = type(req) -- 1420
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1420
+		if _tab_0 then -- 1420
+			local code -- 1420
+			do -- 1420
+				local _obj_0 = req.body -- 1420
+				local _type_1 = type(_obj_0) -- 1420
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1420
+					code = _obj_0.code -- 1420
+				end -- 1420
+			end -- 1420
+			local log -- 1420
+			do -- 1420
+				local _obj_0 = req.body -- 1420
+				local _type_1 = type(_obj_0) -- 1420
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1420
+					log = _obj_0.log -- 1420
+				end -- 1420
+			end -- 1420
+			if code ~= nil and log ~= nil then -- 1420
+				emit("AppCommand", code, log) -- 1421
+				return { -- 1422
+					success = true -- 1422
+				} -- 1422
+			end -- 1420
+		end -- 1420
+	end -- 1420
+	return { -- 1419
+		success = false -- 1419
+	} -- 1419
+end) -- 1419
+HttpServer:post("/log/save", function() -- 1424
+	local folder = ".download" -- 1425
+	local fullLogFile = "dora_full_logs.txt" -- 1426
+	local fullFolder = Path(Content.writablePath, folder) -- 1427
+	Content:mkdir(fullFolder) -- 1428
+	local logPath = Path(fullFolder, fullLogFile) -- 1429
+	if App:saveLog(logPath) then -- 1430
+		return { -- 1431
+			success = true, -- 1431
+			path = Path(folder, fullLogFile) -- 1431
+		} -- 1431
+	end -- 1430
+	return { -- 1424
+		success = false -- 1424
+	} -- 1424
+end) -- 1424
+HttpServer:post("/yarn/check", function(req) -- 1433
+	local yarncompile = require("yarncompile") -- 1434
+	do -- 1435
+		local _type_0 = type(req) -- 1435
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1435
+		if _tab_0 then -- 1435
+			local code -- 1435
+			do -- 1435
+				local _obj_0 = req.body -- 1435
+				local _type_1 = type(_obj_0) -- 1435
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1435
+					code = _obj_0.code -- 1435
+				end -- 1435
+			end -- 1435
+			if code ~= nil then -- 1435
+				local jsonObject = json.decode(code) -- 1436
+				if jsonObject then -- 1436
+					local errors = { } -- 1437
+					local _list_0 = jsonObject.nodes -- 1438
+					for _index_0 = 1, #_list_0 do -- 1438
+						local node = _list_0[_index_0] -- 1438
+						local title, body = node.title, node.body -- 1439
+						local luaCode, err = yarncompile(body) -- 1440
+						if not luaCode then -- 1440
+							errors[#errors + 1] = title .. ":" .. err -- 1441
+						end -- 1440
+					end -- 1438
+					return { -- 1442
+						success = true, -- 1442
+						syntaxError = table.concat(errors, "\n\n") -- 1442
+					} -- 1442
+				end -- 1436
+			end -- 1435
+		end -- 1435
+	end -- 1435
+	return { -- 1433
+		success = false -- 1433
+	} -- 1433
+end) -- 1433
+HttpServer:post("/yarn/check-file", function(req) -- 1444
+	local yarncompile = require("yarncompile") -- 1445
+	do -- 1446
+		local _type_0 = type(req) -- 1446
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1446
+		if _tab_0 then -- 1446
+			local code -- 1446
+			do -- 1446
+				local _obj_0 = req.body -- 1446
+				local _type_1 = type(_obj_0) -- 1446
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1446
+					code = _obj_0.code -- 1446
+				end -- 1446
+			end -- 1446
+			if code ~= nil then -- 1446
+				local res, _, err = yarncompile(code, true) -- 1447
+				if not res then -- 1447
+					local message, line, column, node = err[1], err[2], err[3], err[4] -- 1448
+					return { -- 1449
+						success = false, -- 1449
+						message = message, -- 1449
+						line = line, -- 1449
+						column = column, -- 1449
+						node = node -- 1449
+					} -- 1449
+				end -- 1447
+			end -- 1446
+		end -- 1446
+	end -- 1446
+	return { -- 1444
+		success = true -- 1444
+	} -- 1444
+end) -- 1444
+local getWaProjectDirFromFile -- 1451
+getWaProjectDirFromFile = function(file) -- 1451
+	local writablePath = Content.writablePath -- 1452
+	local parent, current -- 1453
+	if (".." ~= Path:getRelative(file, writablePath):sub(1, 2)) and writablePath == file:sub(1, #writablePath) then -- 1453
+		parent, current = writablePath, Path:getRelative(file, writablePath) -- 1454
+	else -- 1456
+		parent, current = nil, nil -- 1456
+	end -- 1453
+	if not current then -- 1457
+		return nil -- 1457
+	end -- 1457
+	repeat -- 1458
+		current = Path:getPath(current) -- 1459
+		if current == "" then -- 1460
+			break -- 1460
+		end -- 1460
+		local _list_0 = Content:getFiles(Path(parent, current)) -- 1461
+		for _index_0 = 1, #_list_0 do -- 1461
+			local f = _list_0[_index_0] -- 1461
+			if Path:getFilename(f):lower() == "wa.mod" then -- 1462
+				return Path(parent, current, Path:getPath(f)) -- 1463
+			end -- 1462
+		end -- 1461
+	until false -- 1458
+	return nil -- 1465
+end -- 1451
+HttpServer:postSchedule("/wa/update_dora", function(req) -- 1467
+	do -- 1468
+		local _type_0 = type(req) -- 1468
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1468
+		if _tab_0 then -- 1468
+			local path -- 1468
+			do -- 1468
+				local _obj_0 = req.body -- 1468
+				local _type_1 = type(_obj_0) -- 1468
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1468
+					path = _obj_0.path -- 1468
+				end -- 1468
+			end -- 1468
+			if path ~= nil then -- 1468
+				local projDir = getWaProjectDirFromFile(path) -- 1469
+				if projDir then -- 1469
+					local sourceDoraPath = Path(Content.assetPath, "dora-wa", "vendor", "dora") -- 1470
+					if not Content:exist(sourceDoraPath) then -- 1471
 						return { -- 1472
 							success = false, -- 1472
-							message = message -- 1472
+							message = "missing dora template" -- 1472
 						} -- 1472
-					end -- 1469
-				else -- 1474
-					return { -- 1474
-						success = false, -- 1474
-						message = 'Wa file needs a project' -- 1474
-					} -- 1474
-				end -- 1467
-			end -- 1466
-		end -- 1466
-	end -- 1466
-	return { -- 1475
-		success = false, -- 1475
-		message = 'failed to build' -- 1475
-	} -- 1475
-end) -- 1465
-HttpServer:postSchedule("/wa/format", function(req) -- 1477
-	do -- 1478
-		local _type_0 = type(req) -- 1478
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1478
-		if _tab_0 then -- 1478
-			local file -- 1478
-			do -- 1478
-				local _obj_0 = req.body -- 1478
-				local _type_1 = type(_obj_0) -- 1478
-				if "table" == _type_1 or "userdata" == _type_1 then -- 1478
-					file = _obj_0.file -- 1478
-				end -- 1478
-			end -- 1478
-			if file ~= nil then -- 1478
-				local code = Wasm:formatWaAsync(file) -- 1479
-				if code == "" then -- 1480
-					return { -- 1481
-						success = false -- 1481
-					} -- 1481
-				else -- 1483
-					return { -- 1483
-						success = true, -- 1483
-						code = code -- 1483
-					} -- 1483
-				end -- 1480
-			end -- 1478
-		end -- 1478
-	end -- 1478
-	return { -- 1484
-		success = false -- 1484
-	} -- 1484
-end) -- 1477
-HttpServer:postSchedule("/wa/create", function(req) -- 1486
-	do -- 1487
-		local _type_0 = type(req) -- 1487
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1487
-		if _tab_0 then -- 1487
-			local path -- 1487
-			do -- 1487
-				local _obj_0 = req.body -- 1487
-				local _type_1 = type(_obj_0) -- 1487
-				if "table" == _type_1 or "userdata" == _type_1 then -- 1487
-					path = _obj_0.path -- 1487
-				end -- 1487
-			end -- 1487
-			if path ~= nil then -- 1487
-				if not Content:exist(Path:getPath(path)) then -- 1488
-					return { -- 1489
-						success = false, -- 1489
-						message = "target path not existed" -- 1489
-					} -- 1489
-				end -- 1488
-				if Content:exist(path) then -- 1490
-					return { -- 1491
-						success = false, -- 1491
-						message = "target project folder existed" -- 1491
-					} -- 1491
+					end -- 1471
+					local targetVendorPath = Path(projDir, "vendor") -- 1473
+					local targetDoraPath = Path(targetVendorPath, "dora") -- 1474
+					if not Content:exist(targetVendorPath) then -- 1475
+						if not Content:mkdir(targetVendorPath) then -- 1476
+							return { -- 1477
+								success = false, -- 1477
+								message = "failed to create vendor folder" -- 1477
+							} -- 1477
+						end -- 1476
+					elseif not Content:isdir(targetVendorPath) then -- 1478
+						return { -- 1479
+							success = false, -- 1479
+							message = "vendor path is not a folder" -- 1479
+						} -- 1479
+					end -- 1475
+					if Content:exist(targetDoraPath) then -- 1480
+						if not Content:remove(targetDoraPath) then -- 1481
+							return { -- 1482
+								success = false, -- 1482
+								message = "failed to remove old dora" -- 1482
+							} -- 1482
+						end -- 1481
+					end -- 1480
+					if not Content:copyAsync(sourceDoraPath, targetDoraPath) then -- 1483
+						return { -- 1484
+							success = false, -- 1484
+							message = "failed to copy dora" -- 1484
+						} -- 1484
+					end -- 1483
+					return { -- 1485
+						success = true -- 1485
+					} -- 1485
+				else -- 1487
+					return { -- 1487
+						success = false, -- 1487
+						message = 'Wa file needs a project' -- 1487
+					} -- 1487
+				end -- 1469
+			end -- 1468
+		end -- 1468
+	end -- 1468
+	return { -- 1467
+		success = false, -- 1467
+		message = "invalid call" -- 1467
+	} -- 1467
+end) -- 1467
+HttpServer:postSchedule("/wa/build", function(req) -- 1489
+	do -- 1490
+		local _type_0 = type(req) -- 1490
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1490
+		if _tab_0 then -- 1490
+			local path -- 1490
+			do -- 1490
+				local _obj_0 = req.body -- 1490
+				local _type_1 = type(_obj_0) -- 1490
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1490
+					path = _obj_0.path -- 1490
 				end -- 1490
-				local srcPath = Path(Content.assetPath, "dora-wa", "src") -- 1492
-				local vendorPath = Path(Content.assetPath, "dora-wa", "vendor") -- 1493
-				local modPath = Path(Content.assetPath, "dora-wa", "wa.mod") -- 1494
-				if not Content:exist(srcPath) or not Content:exist(vendorPath) or not Content:exist(modPath) then -- 1495
+			end -- 1490
+			if path ~= nil then -- 1490
+				local projDir = getWaProjectDirFromFile(path) -- 1491
+				if projDir then -- 1491
+					local message = Wasm:buildWaAsync(projDir) -- 1492
+					if message == "" then -- 1493
+						return { -- 1494
+							success = true -- 1494
+						} -- 1494
+					else -- 1496
+						return { -- 1496
+							success = false, -- 1496
+							message = message -- 1496
+						} -- 1496
+					end -- 1493
+				else -- 1498
 					return { -- 1498
 						success = false, -- 1498
-						message = "missing template project" -- 1498
+						message = 'Wa file needs a project' -- 1498
 					} -- 1498
-				end -- 1495
-				if not Content:mkdir(path) then -- 1499
-					return { -- 1500
-						success = false, -- 1500
-						message = "failed to create project folder" -- 1500
-					} -- 1500
-				end -- 1499
-				if not Content:copyAsync(srcPath, Path(path, "src")) then -- 1501
-					Content:remove(path) -- 1502
-					return { -- 1503
-						success = false, -- 1503
-						message = "failed to copy template" -- 1503
-					} -- 1503
-				end -- 1501
-				if not Content:copyAsync(vendorPath, Path(path, "vendor")) then -- 1504
-					Content:remove(path) -- 1505
-					return { -- 1506
-						success = false, -- 1506
-						message = "failed to copy template" -- 1506
-					} -- 1506
+				end -- 1491
+			end -- 1490
+		end -- 1490
+	end -- 1490
+	return { -- 1499
+		success = false, -- 1499
+		message = 'failed to build' -- 1499
+	} -- 1499
+end) -- 1489
+HttpServer:postSchedule("/wa/format", function(req) -- 1501
+	do -- 1502
+		local _type_0 = type(req) -- 1502
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1502
+		if _tab_0 then -- 1502
+			local file -- 1502
+			do -- 1502
+				local _obj_0 = req.body -- 1502
+				local _type_1 = type(_obj_0) -- 1502
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1502
+					file = _obj_0.file -- 1502
+				end -- 1502
+			end -- 1502
+			if file ~= nil then -- 1502
+				local code = Wasm:formatWaAsync(file) -- 1503
+				if code == "" then -- 1504
+					return { -- 1505
+						success = false -- 1505
+					} -- 1505
+				else -- 1507
+					return { -- 1507
+						success = true, -- 1507
+						code = code -- 1507
+					} -- 1507
 				end -- 1504
-				if not Content:copyAsync(modPath, Path(path, "wa.mod")) then -- 1507
-					Content:remove(path) -- 1508
-					return { -- 1509
-						success = false, -- 1509
-						message = "failed to copy template" -- 1509
-					} -- 1509
-				end -- 1507
-				return { -- 1510
-					success = true -- 1510
-				} -- 1510
-			end -- 1487
-		end -- 1487
-	end -- 1487
-	return { -- 1486
-		success = false, -- 1486
-		message = "invalid call" -- 1486
-	} -- 1486
-end) -- 1486
-local tsBuildGlobs = { -- 1513
-	"**/*.ts", -- 1513
-	"**/*.tsx", -- 1514
-	"!**/.*/**", -- 1515
-	"!**/node_modules/**" -- 1516
-} -- 1512
-local _anon_func_5 = function(path) -- 1525
-	local _val_0 = Path:getExt(path) -- 1525
-	return "ts" == _val_0 or "tsx" == _val_0 -- 1525
-end -- 1525
-HttpServer:postSchedule("/ts/build", function(req) -- 1518
-	do -- 1519
-		local _type_0 = type(req) -- 1519
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1519
-		if _tab_0 then -- 1519
-			local path -- 1519
-			do -- 1519
-				local _obj_0 = req.body -- 1519
-				local _type_1 = type(_obj_0) -- 1519
-				if "table" == _type_1 or "userdata" == _type_1 then -- 1519
-					path = _obj_0.path -- 1519
+			end -- 1502
+		end -- 1502
+	end -- 1502
+	return { -- 1508
+		success = false -- 1508
+	} -- 1508
+end) -- 1501
+HttpServer:postSchedule("/wa/create", function(req) -- 1510
+	do -- 1511
+		local _type_0 = type(req) -- 1511
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1511
+		if _tab_0 then -- 1511
+			local path -- 1511
+			do -- 1511
+				local _obj_0 = req.body -- 1511
+				local _type_1 = type(_obj_0) -- 1511
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1511
+					path = _obj_0.path -- 1511
+				end -- 1511
+			end -- 1511
+			if path ~= nil then -- 1511
+				if not Content:exist(Path:getPath(path)) then -- 1512
+					return { -- 1513
+						success = false, -- 1513
+						message = "target path not existed" -- 1513
+					} -- 1513
+				end -- 1512
+				if Content:exist(path) then -- 1514
+					return { -- 1515
+						success = false, -- 1515
+						message = "target project folder existed" -- 1515
+					} -- 1515
+				end -- 1514
+				local srcPath = Path(Content.assetPath, "dora-wa", "src") -- 1516
+				local vendorPath = Path(Content.assetPath, "dora-wa", "vendor") -- 1517
+				local modPath = Path(Content.assetPath, "dora-wa", "wa.mod") -- 1518
+				if not Content:exist(srcPath) or not Content:exist(vendorPath) or not Content:exist(modPath) then -- 1519
+					return { -- 1522
+						success = false, -- 1522
+						message = "missing template project" -- 1522
+					} -- 1522
 				end -- 1519
-			end -- 1519
-			if path ~= nil then -- 1519
-				if HttpServer.wsConnectionCount == 0 then -- 1520
-					return { -- 1521
-						success = false, -- 1521
-						message = "Web IDE not connected" -- 1521
-					} -- 1521
-				end -- 1520
-				if not Content:exist(path) then -- 1522
-					return { -- 1523
-						success = false, -- 1523
-						message = "path not existed" -- 1523
-					} -- 1523
-				end -- 1522
-				if not Content:isdir(path) then -- 1524
-					if not (_anon_func_5(path)) then -- 1525
-						return { -- 1526
-							success = false, -- 1526
-							message = "expecting a TypeScript file" -- 1526
-						} -- 1526
-					end -- 1525
-					local messages = { } -- 1527
-					local content = Content:load(path) -- 1528
-					if not content then -- 1529
-						return { -- 1530
-							success = false, -- 1530
-							message = "failed to read file" -- 1530
-						} -- 1530
-					end -- 1529
-					emit("AppWS", "Send", json.encode({ -- 1531
-						name = "UpdateFile", -- 1531
-						file = path, -- 1531
-						exists = true, -- 1531
-						content = content -- 1531
-					})) -- 1531
-					if "d" ~= Path:getExt(Path:getName(path)) then -- 1532
-						local done = false -- 1533
-						do -- 1534
-							local _with_0 = Node() -- 1534
-							_with_0:gslot("AppWS", function(event) -- 1535
-								if event.type == "Receive" then -- 1536
-									local res = json.decode(event.msg) -- 1537
-									if res then -- 1537
-										if res.name == "TranspileTS" and res.file == path then -- 1538
-											_with_0:removeFromParent() -- 1539
-											if res.success then -- 1540
-												local luaFile = Path:replaceExt(path, "lua") -- 1541
-												Content:save(luaFile, res.luaCode) -- 1542
-												messages[#messages + 1] = { -- 1543
-													success = true, -- 1543
-													file = path -- 1543
-												} -- 1543
-											else -- 1545
-												messages[#messages + 1] = { -- 1545
-													success = false, -- 1545
-													file = path, -- 1545
-													message = res.message -- 1545
-												} -- 1545
-											end -- 1540
-											done = true -- 1546
-										end -- 1538
-									end -- 1537
-								end -- 1536
-							end) -- 1535
-						end -- 1534
-						emit("AppWS", "Send", json.encode({ -- 1547
-							name = "TranspileTS", -- 1547
-							file = path, -- 1547
-							content = content -- 1547
-						})) -- 1547
-						wait(function() -- 1548
-							return done -- 1548
-						end) -- 1548
-					end -- 1532
-					return { -- 1549
-						success = true, -- 1549
-						messages = messages -- 1549
-					} -- 1549
-				else -- 1551
-					local fileData = { } -- 1551
-					local messages = { } -- 1552
-					local _list_0 = Content:glob(path, tsBuildGlobs) -- 1553
-					for _index_0 = 1, #_list_0 do -- 1553
-						local subFile = _list_0[_index_0] -- 1553
-						local file = Path(path, subFile) -- 1554
-						local content = Content:load(file) -- 1555
-						if content then -- 1555
-							fileData[file] = content -- 1556
-							emit("AppWS", "Send", json.encode({ -- 1557
-								name = "UpdateFile", -- 1557
-								file = file, -- 1557
-								exists = true, -- 1557
-								content = content -- 1557
-							})) -- 1557
-						else -- 1559
-							messages[#messages + 1] = { -- 1559
-								success = false, -- 1559
-								file = file, -- 1559
-								message = "failed to read file" -- 1559
-							} -- 1559
-						end -- 1555
+				if not Content:mkdir(path) then -- 1523
+					return { -- 1524
+						success = false, -- 1524
+						message = "failed to create project folder" -- 1524
+					} -- 1524
+				end -- 1523
+				if not Content:copyAsync(srcPath, Path(path, "src")) then -- 1525
+					Content:remove(path) -- 1526
+					return { -- 1527
+						success = false, -- 1527
+						message = "failed to copy template" -- 1527
+					} -- 1527
+				end -- 1525
+				if not Content:copyAsync(vendorPath, Path(path, "vendor")) then -- 1528
+					Content:remove(path) -- 1529
+					return { -- 1530
+						success = false, -- 1530
+						message = "failed to copy template" -- 1530
+					} -- 1530
+				end -- 1528
+				if not Content:copyAsync(modPath, Path(path, "wa.mod")) then -- 1531
+					Content:remove(path) -- 1532
+					return { -- 1533
+						success = false, -- 1533
+						message = "failed to copy template" -- 1533
+					} -- 1533
+				end -- 1531
+				return { -- 1534
+					success = true -- 1534
+				} -- 1534
+			end -- 1511
+		end -- 1511
+	end -- 1511
+	return { -- 1510
+		success = false, -- 1510
+		message = "invalid call" -- 1510
+	} -- 1510
+end) -- 1510
+local tsBuildGlobs = { -- 1537
+	"**/*.ts", -- 1537
+	"**/*.tsx", -- 1538
+	"!**/.*/**", -- 1539
+	"!**/node_modules/**" -- 1540
+} -- 1536
+local _anon_func_5 = function(path) -- 1549
+	local _val_0 = Path:getExt(path) -- 1549
+	return "ts" == _val_0 or "tsx" == _val_0 -- 1549
+end -- 1549
+HttpServer:postSchedule("/ts/build", function(req) -- 1542
+	do -- 1543
+		local _type_0 = type(req) -- 1543
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1543
+		if _tab_0 then -- 1543
+			local path -- 1543
+			do -- 1543
+				local _obj_0 = req.body -- 1543
+				local _type_1 = type(_obj_0) -- 1543
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1543
+					path = _obj_0.path -- 1543
+				end -- 1543
+			end -- 1543
+			if path ~= nil then -- 1543
+				if HttpServer.wsConnectionCount == 0 then -- 1544
+					return { -- 1545
+						success = false, -- 1545
+						message = "Web IDE not connected" -- 1545
+					} -- 1545
+				end -- 1544
+				if not Content:exist(path) then -- 1546
+					return { -- 1547
+						success = false, -- 1547
+						message = "path not existed" -- 1547
+					} -- 1547
+				end -- 1546
+				if not Content:isdir(path) then -- 1548
+					if not (_anon_func_5(path)) then -- 1549
+						return { -- 1550
+							success = false, -- 1550
+							message = "expecting a TypeScript file" -- 1550
+						} -- 1550
+					end -- 1549
+					local messages = { } -- 1551
+					local content = Content:load(path) -- 1552
+					if not content then -- 1553
+						return { -- 1554
+							success = false, -- 1554
+							message = "failed to read file" -- 1554
+						} -- 1554
 					end -- 1553
-					for file, content in pairs(fileData) do -- 1560
-						if "d" == Path:getExt(Path:getName(file)) then -- 1561
-							goto _continue_0 -- 1561
-						end -- 1561
-						local done = false -- 1562
-						do -- 1563
-							local _with_0 = Node() -- 1563
-							_with_0:gslot("AppWS", function(event) -- 1564
-								if event.type == "Receive" then -- 1565
-									local res = json.decode(event.msg) -- 1566
-									if res then -- 1566
-										if res.name == "TranspileTS" and res.file == file then -- 1567
-											_with_0:removeFromParent() -- 1568
-											if res.success then -- 1569
-												local luaFile = Path:replaceExt(file, "lua") -- 1570
-												Content:save(luaFile, res.luaCode) -- 1571
-												messages[#messages + 1] = { -- 1572
-													success = true, -- 1572
-													file = file -- 1572
-												} -- 1572
-											else -- 1574
-												messages[#messages + 1] = { -- 1574
-													success = false, -- 1574
-													file = file, -- 1574
-													message = res.message -- 1574
-												} -- 1574
-											end -- 1569
-											done = true -- 1575
-										end -- 1567
-									end -- 1566
-								end -- 1565
-							end) -- 1564
-						end -- 1563
-						emit("AppWS", "Send", json.encode({ -- 1576
-							name = "TranspileTS", -- 1576
-							file = file, -- 1576
-							content = content -- 1576
-						})) -- 1576
-						wait(function() -- 1577
-							return done -- 1577
-						end) -- 1577
-						::_continue_0:: -- 1561
-					end -- 1560
-					return { -- 1578
-						success = true, -- 1578
-						messages = messages -- 1578
-					} -- 1578
-				end -- 1524
-			end -- 1519
-		end -- 1519
-	end -- 1519
-	return { -- 1518
-		success = false -- 1518
-	} -- 1518
-end) -- 1518
-HttpServer:post("/download", function(req) -- 1580
-	do -- 1581
-		local _type_0 = type(req) -- 1581
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1581
-		if _tab_0 then -- 1581
-			local url -- 1581
-			do -- 1581
-				local _obj_0 = req.body -- 1581
-				local _type_1 = type(_obj_0) -- 1581
-				if "table" == _type_1 or "userdata" == _type_1 then -- 1581
-					url = _obj_0.url -- 1581
-				end -- 1581
-			end -- 1581
-			local target -- 1581
-			do -- 1581
-				local _obj_0 = req.body -- 1581
-				local _type_1 = type(_obj_0) -- 1581
-				if "table" == _type_1 or "userdata" == _type_1 then -- 1581
-					target = _obj_0.target -- 1581
-				end -- 1581
-			end -- 1581
-			if url ~= nil and target ~= nil then -- 1581
-				local Entry = require("Script.Dev.Entry") -- 1582
-				Entry.downloadFile(url, target) -- 1583
-				return { -- 1584
-					success = true -- 1584
-				} -- 1584
-			end -- 1581
-		end -- 1581
-	end -- 1581
-	return { -- 1580
-		success = false -- 1580
-	} -- 1580
-end) -- 1580
-local status = { } -- 1586
-_module_0 = status -- 1587
-status.buildAsync = function(path) -- 1589
-	if not Content:exist(path) then -- 1590
-		return { -- 1591
-			success = false, -- 1591
-			file = path, -- 1591
-			message = "file not existed" -- 1591
-		} -- 1591
-	end -- 1590
-	do -- 1592
-		local _exp_0 = Path:getExt(path) -- 1592
-		if "tl" == _exp_0 or "yue" == _exp_0 or "xml" == _exp_0 then -- 1592
-			if '' == Path:getExt(Path:getName(path)) then -- 1593
-				local content = Content:loadAsync(path) -- 1594
-				if content then -- 1594
-					local resultCodes, err = compileFileAsync(path, content) -- 1595
-					if resultCodes then -- 1595
-						return { -- 1596
-							success = true, -- 1596
-							file = path -- 1596
-						} -- 1596
-					else -- 1598
-						return { -- 1598
-							success = false, -- 1598
-							file = path, -- 1598
-							message = err -- 1598
-						} -- 1598
-					end -- 1595
-				end -- 1594
-			end -- 1593
-		elseif "lua" == _exp_0 then -- 1599
-			local content = Content:loadAsync(path) -- 1600
-			if content then -- 1600
-				do -- 1601
-					local isTIC80 = CheckTIC80Code(content) -- 1601
-					if isTIC80 then -- 1601
-						content = content:gsub("^%-%-[ \t]*tic80[ \t]*", "require(\"tic80\")") -- 1602
-					end -- 1601
-				end -- 1601
-				local success, info -- 1603
-				do -- 1603
-					local _obj_0 = luaCheck(path, content) -- 1603
-					success, info = _obj_0.success, _obj_0.info -- 1603
-				end -- 1603
-				if success then -- 1604
-					return { -- 1605
-						success = true, -- 1605
-						file = path -- 1605
-					} -- 1605
-				elseif info and #info > 0 then -- 1606
-					local messages = { } -- 1607
-					for _index_0 = 1, #info do -- 1608
-						local _des_0 = info[_index_0] -- 1608
-						local _type, _file, line, column, message = _des_0[1], _des_0[2], _des_0[3], _des_0[4], _des_0[5] -- 1608
-						local lineText = "" -- 1609
-						if line then -- 1610
-							local currentLine = 1 -- 1611
-							for text in content:gmatch("([^\r\n]*)\r?\n?") do -- 1612
-								if currentLine == line then -- 1613
-									lineText = text -- 1614
-									break -- 1615
-								end -- 1613
-								currentLine = currentLine + 1 -- 1616
-							end -- 1612
-						end -- 1610
-						if line then -- 1617
-							messages[#messages + 1] = "line " .. tostring(line) .. ", col " .. tostring(column) .. ": " .. tostring(lineText) .. "\nerror: " .. tostring(message) -- 1618
-						else -- 1620
-							messages[#messages + 1] = message -- 1620
-						end -- 1617
-					end -- 1608
-					return { -- 1621
-						success = false, -- 1621
-						file = path, -- 1621
-						message = table.concat(messages, "\n") -- 1621
-					} -- 1621
-				else -- 1623
-					return { -- 1623
-						success = false, -- 1623
-						file = path, -- 1623
-						message = "lua check failed" -- 1623
-					} -- 1623
-				end -- 1604
-			end -- 1600
-		elseif "yarn" == _exp_0 then -- 1624
-			local content = Content:loadAsync(path) -- 1625
-			if content then -- 1625
-				local res, _, err = yarncompile(content, true) -- 1626
-				if res then -- 1626
-					return { -- 1627
-						success = true, -- 1627
-						file = path -- 1627
-					} -- 1627
-				else -- 1629
-					local message, line, column, node = err[1], err[2], err[3], err[4] -- 1629
-					local lineText = "" -- 1630
-					if line then -- 1631
-						local currentLine = 1 -- 1632
-						for text in content:gmatch("([^\r\n]*)\r?\n?") do -- 1633
-							if currentLine == line then -- 1634
-								lineText = text -- 1635
-								break -- 1636
-							end -- 1634
-							currentLine = currentLine + 1 -- 1637
-						end -- 1633
-					end -- 1631
-					if node ~= "" then -- 1638
-						node = "node: " .. tostring(node) .. ", " -- 1639
-					else -- 1640
-						node = "" -- 1640
-					end -- 1638
-					message = tostring(node) .. "line " .. tostring(line) .. ", col " .. tostring(column) .. ": " .. tostring(lineText) .. "\nerror: " .. tostring(message) -- 1641
-					return { -- 1642
-						success = false, -- 1642
-						file = path, -- 1642
-						message = message -- 1642
-					} -- 1642
-				end -- 1626
-			end -- 1625
-		end -- 1592
-	end -- 1592
-	return { -- 1643
-		success = false, -- 1643
-		file = path, -- 1643
-		message = "invalid file to build" -- 1643
-	} -- 1643
-end -- 1589
-thread(function() -- 1645
-	local doraWeb = Path(Content.assetPath, "www", "index.html") -- 1646
-	local doraReady = Path(Content.appPath, ".www", "dora-ready") -- 1647
-	if Content:exist(doraWeb) then -- 1648
-		local readyContent = App.version .. "\n" .. Content:load(doraWeb) -- 1649
-		local needReload -- 1650
-		if Content:exist(doraReady) then -- 1650
-			needReload = readyContent ~= Content:load(doraReady) -- 1651
-		else -- 1652
-			needReload = true -- 1652
-		end -- 1650
-		if needReload then -- 1653
-			Content:remove(Path(Content.appPath, ".www")) -- 1654
-			Content:copyAsync(Path(Content.assetPath, "www"), Path(Content.appPath, ".www")) -- 1655
-			Content:save(doraReady, readyContent) -- 1659
-			print("Dora Dora is ready!") -- 1660
-		end -- 1653
-	end -- 1648
-	if HttpServer:start(8866) then -- 1661
-		local localIP = HttpServer.localIP -- 1662
-		if localIP == "" then -- 1663
-			localIP = "localhost" -- 1663
-		end -- 1663
-		status.url = "http://" .. tostring(localIP) .. ":8866" -- 1664
-		return HttpServer:startWS(8868) -- 1665
-	else -- 1667
-		status.url = nil -- 1667
-		return print("8866 Port not available!") -- 1668
-	end -- 1661
-end) -- 1645
+					emit("AppWS", "Send", json.encode({ -- 1555
+						name = "UpdateFile", -- 1555
+						file = path, -- 1555
+						exists = true, -- 1555
+						content = content -- 1555
+					})) -- 1555
+					if "d" ~= Path:getExt(Path:getName(path)) then -- 1556
+						local done = false -- 1557
+						do -- 1558
+							local _with_0 = Node() -- 1558
+							_with_0:gslot("AppWS", function(event) -- 1559
+								if event.type == "Receive" then -- 1560
+									local res = json.decode(event.msg) -- 1561
+									if res then -- 1561
+										if res.name == "TranspileTS" and res.file == path then -- 1562
+											_with_0:removeFromParent() -- 1563
+											if res.success then -- 1564
+												local luaFile = Path:replaceExt(path, "lua") -- 1565
+												Content:save(luaFile, res.luaCode) -- 1566
+												messages[#messages + 1] = { -- 1567
+													success = true, -- 1567
+													file = path -- 1567
+												} -- 1567
+											else -- 1569
+												messages[#messages + 1] = { -- 1569
+													success = false, -- 1569
+													file = path, -- 1569
+													message = res.message -- 1569
+												} -- 1569
+											end -- 1564
+											done = true -- 1570
+										end -- 1562
+									end -- 1561
+								end -- 1560
+							end) -- 1559
+						end -- 1558
+						emit("AppWS", "Send", json.encode({ -- 1571
+							name = "TranspileTS", -- 1571
+							file = path, -- 1571
+							content = content -- 1571
+						})) -- 1571
+						wait(function() -- 1572
+							return done -- 1572
+						end) -- 1572
+					end -- 1556
+					return { -- 1573
+						success = true, -- 1573
+						messages = messages -- 1573
+					} -- 1573
+				else -- 1575
+					local fileData = { } -- 1575
+					local messages = { } -- 1576
+					local _list_0 = Content:glob(path, tsBuildGlobs) -- 1577
+					for _index_0 = 1, #_list_0 do -- 1577
+						local subFile = _list_0[_index_0] -- 1577
+						local file = Path(path, subFile) -- 1578
+						local content = Content:load(file) -- 1579
+						if content then -- 1579
+							fileData[file] = content -- 1580
+							emit("AppWS", "Send", json.encode({ -- 1581
+								name = "UpdateFile", -- 1581
+								file = file, -- 1581
+								exists = true, -- 1581
+								content = content -- 1581
+							})) -- 1581
+						else -- 1583
+							messages[#messages + 1] = { -- 1583
+								success = false, -- 1583
+								file = file, -- 1583
+								message = "failed to read file" -- 1583
+							} -- 1583
+						end -- 1579
+					end -- 1577
+					for file, content in pairs(fileData) do -- 1584
+						if "d" == Path:getExt(Path:getName(file)) then -- 1585
+							goto _continue_0 -- 1585
+						end -- 1585
+						local done = false -- 1586
+						do -- 1587
+							local _with_0 = Node() -- 1587
+							_with_0:gslot("AppWS", function(event) -- 1588
+								if event.type == "Receive" then -- 1589
+									local res = json.decode(event.msg) -- 1590
+									if res then -- 1590
+										if res.name == "TranspileTS" and res.file == file then -- 1591
+											_with_0:removeFromParent() -- 1592
+											if res.success then -- 1593
+												local luaFile = Path:replaceExt(file, "lua") -- 1594
+												Content:save(luaFile, res.luaCode) -- 1595
+												messages[#messages + 1] = { -- 1596
+													success = true, -- 1596
+													file = file -- 1596
+												} -- 1596
+											else -- 1598
+												messages[#messages + 1] = { -- 1598
+													success = false, -- 1598
+													file = file, -- 1598
+													message = res.message -- 1598
+												} -- 1598
+											end -- 1593
+											done = true -- 1599
+										end -- 1591
+									end -- 1590
+								end -- 1589
+							end) -- 1588
+						end -- 1587
+						emit("AppWS", "Send", json.encode({ -- 1600
+							name = "TranspileTS", -- 1600
+							file = file, -- 1600
+							content = content -- 1600
+						})) -- 1600
+						wait(function() -- 1601
+							return done -- 1601
+						end) -- 1601
+						::_continue_0:: -- 1585
+					end -- 1584
+					return { -- 1602
+						success = true, -- 1602
+						messages = messages -- 1602
+					} -- 1602
+				end -- 1548
+			end -- 1543
+		end -- 1543
+	end -- 1543
+	return { -- 1542
+		success = false -- 1542
+	} -- 1542
+end) -- 1542
+HttpServer:post("/download", function(req) -- 1604
+	do -- 1605
+		local _type_0 = type(req) -- 1605
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1605
+		if _tab_0 then -- 1605
+			local url -- 1605
+			do -- 1605
+				local _obj_0 = req.body -- 1605
+				local _type_1 = type(_obj_0) -- 1605
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1605
+					url = _obj_0.url -- 1605
+				end -- 1605
+			end -- 1605
+			local target -- 1605
+			do -- 1605
+				local _obj_0 = req.body -- 1605
+				local _type_1 = type(_obj_0) -- 1605
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1605
+					target = _obj_0.target -- 1605
+				end -- 1605
+			end -- 1605
+			if url ~= nil and target ~= nil then -- 1605
+				local Entry = require("Script.Dev.Entry") -- 1606
+				Entry.downloadFile(url, target) -- 1607
+				return { -- 1608
+					success = true -- 1608
+				} -- 1608
+			end -- 1605
+		end -- 1605
+	end -- 1605
+	return { -- 1604
+		success = false -- 1604
+	} -- 1604
+end) -- 1604
+local status = { } -- 1610
+_module_0 = status -- 1611
+status.buildAsync = function(path) -- 1613
+	if not Content:exist(path) then -- 1614
+		return { -- 1615
+			success = false, -- 1615
+			file = path, -- 1615
+			message = "file not existed" -- 1615
+		} -- 1615
+	end -- 1614
+	do -- 1616
+		local _exp_0 = Path:getExt(path) -- 1616
+		if "tl" == _exp_0 or "yue" == _exp_0 or "xml" == _exp_0 then -- 1616
+			if '' == Path:getExt(Path:getName(path)) then -- 1617
+				local content = Content:loadAsync(path) -- 1618
+				if content then -- 1618
+					local resultCodes, err = compileFileAsync(path, content) -- 1619
+					if resultCodes then -- 1619
+						return { -- 1620
+							success = true, -- 1620
+							file = path -- 1620
+						} -- 1620
+					else -- 1622
+						return { -- 1622
+							success = false, -- 1622
+							file = path, -- 1622
+							message = err -- 1622
+						} -- 1622
+					end -- 1619
+				end -- 1618
+			end -- 1617
+		elseif "lua" == _exp_0 then -- 1623
+			local content = Content:loadAsync(path) -- 1624
+			if content then -- 1624
+				do -- 1625
+					local isTIC80 = CheckTIC80Code(content) -- 1625
+					if isTIC80 then -- 1625
+						content = content:gsub("^%-%-[ \t]*tic80[ \t]*", "require(\"tic80\")") -- 1626
+					end -- 1625
+				end -- 1625
+				local success, info -- 1627
+				do -- 1627
+					local _obj_0 = luaCheck(path, content) -- 1627
+					success, info = _obj_0.success, _obj_0.info -- 1627
+				end -- 1627
+				if success then -- 1628
+					return { -- 1629
+						success = true, -- 1629
+						file = path -- 1629
+					} -- 1629
+				elseif info and #info > 0 then -- 1630
+					local messages = { } -- 1631
+					for _index_0 = 1, #info do -- 1632
+						local _des_0 = info[_index_0] -- 1632
+						local _type, _file, line, column, message = _des_0[1], _des_0[2], _des_0[3], _des_0[4], _des_0[5] -- 1632
+						local lineText = "" -- 1633
+						if line then -- 1634
+							local currentLine = 1 -- 1635
+							for text in content:gmatch("([^\r\n]*)\r?\n?") do -- 1636
+								if currentLine == line then -- 1637
+									lineText = text -- 1638
+									break -- 1639
+								end -- 1637
+								currentLine = currentLine + 1 -- 1640
+							end -- 1636
+						end -- 1634
+						if line then -- 1641
+							messages[#messages + 1] = "line " .. tostring(line) .. ", col " .. tostring(column) .. ": " .. tostring(lineText) .. "\nerror: " .. tostring(message) -- 1642
+						else -- 1644
+							messages[#messages + 1] = message -- 1644
+						end -- 1641
+					end -- 1632
+					return { -- 1645
+						success = false, -- 1645
+						file = path, -- 1645
+						message = table.concat(messages, "\n") -- 1645
+					} -- 1645
+				else -- 1647
+					return { -- 1647
+						success = false, -- 1647
+						file = path, -- 1647
+						message = "lua check failed" -- 1647
+					} -- 1647
+				end -- 1628
+			end -- 1624
+		elseif "yarn" == _exp_0 then -- 1648
+			local content = Content:loadAsync(path) -- 1649
+			if content then -- 1649
+				local res, _, err = yarncompile(content, true) -- 1650
+				if res then -- 1650
+					return { -- 1651
+						success = true, -- 1651
+						file = path -- 1651
+					} -- 1651
+				else -- 1653
+					local message, line, column, node = err[1], err[2], err[3], err[4] -- 1653
+					local lineText = "" -- 1654
+					if line then -- 1655
+						local currentLine = 1 -- 1656
+						for text in content:gmatch("([^\r\n]*)\r?\n?") do -- 1657
+							if currentLine == line then -- 1658
+								lineText = text -- 1659
+								break -- 1660
+							end -- 1658
+							currentLine = currentLine + 1 -- 1661
+						end -- 1657
+					end -- 1655
+					if node ~= "" then -- 1662
+						node = "node: " .. tostring(node) .. ", " -- 1663
+					else -- 1664
+						node = "" -- 1664
+					end -- 1662
+					message = tostring(node) .. "line " .. tostring(line) .. ", col " .. tostring(column) .. ": " .. tostring(lineText) .. "\nerror: " .. tostring(message) -- 1665
+					return { -- 1666
+						success = false, -- 1666
+						file = path, -- 1666
+						message = message -- 1666
+					} -- 1666
+				end -- 1650
+			end -- 1649
+		end -- 1616
+	end -- 1616
+	return { -- 1667
+		success = false, -- 1667
+		file = path, -- 1667
+		message = "invalid file to build" -- 1667
+	} -- 1667
+end -- 1613
+thread(function() -- 1669
+	local doraWeb = Path(Content.assetPath, "www", "index.html") -- 1670
+	local doraReady = Path(Content.appPath, ".www", "dora-ready") -- 1671
+	if Content:exist(doraWeb) then -- 1672
+		local readyContent = App.version .. "\n" .. Content:load(doraWeb) -- 1673
+		local needReload -- 1674
+		if Content:exist(doraReady) then -- 1674
+			needReload = readyContent ~= Content:load(doraReady) -- 1675
+		else -- 1676
+			needReload = true -- 1676
+		end -- 1674
+		if needReload then -- 1677
+			Content:remove(Path(Content.appPath, ".www")) -- 1678
+			Content:copyAsync(Path(Content.assetPath, "www"), Path(Content.appPath, ".www")) -- 1679
+			Content:save(doraReady, readyContent) -- 1683
+			print("Dora Dora is ready!") -- 1684
+		end -- 1677
+	end -- 1672
+	if HttpServer:start(8866) then -- 1685
+		local localIP = HttpServer.localIP -- 1686
+		if localIP == "" then -- 1687
+			localIP = "localhost" -- 1687
+		end -- 1687
+		status.url = "http://" .. tostring(localIP) .. ":8866" -- 1688
+		return HttpServer:startWS(8868) -- 1689
+	else -- 1691
+		status.url = nil -- 1691
+		return print("8866 Port not available!") -- 1692
+	end -- 1685
+end) -- 1669
 return _module_0 -- 1
