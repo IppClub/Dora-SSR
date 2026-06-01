@@ -27,14 +27,22 @@
  * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
-#include "spine/Updatable.h"
+#ifndef Spine_Pose_h
+#define Spine_Pose_h
 
-using namespace spine;
+#include "spine/SpineObject.h"
 
-RTTI_IMPL_NOPARENT(Updatable)
+namespace spine {
+	/// An interface for an object representing a pose.
+	template<class P>
+	class SP_API Pose : public SpineObject {
+	public:
+		Pose() {};
+		virtual ~Pose() {};
 
-Updatable::Updatable() {
+		/// Sets this pose to the specified pose.
+		virtual void set(P &pose) = 0;
+	};
 }
 
-Updatable::~Updatable() {
-}
+#endif

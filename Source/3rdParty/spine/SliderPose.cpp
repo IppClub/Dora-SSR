@@ -27,18 +27,33 @@
  * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
-#ifndef Spine_MixDirection_h
-#define Spine_MixDirection_h
+#include "spine/SliderPose.h"
 
-namespace spine {
+using namespace spine;
 
-/// Indicates whether a timeline's alpha is mixing out over time toward 0 (the setup or current pose) or mixing in toward 1 (the timeline's pose).
-/// See also Timeline::apply(Skeleton&, float, float, Vector&, float, MixPose, MixDirection)
-	enum MixDirection {
-		MixDirection_In = 0,
-		MixDirection_Out
-	};
-
+SliderPose::SliderPose() : _time(0), _mix(0) {
 }
 
-#endif /* Spine_MixDirection_h */
+SliderPose::~SliderPose() {
+}
+
+void SliderPose::set(SliderPose &pose) {
+	_time = pose._time;
+	_mix = pose._mix;
+}
+
+float SliderPose::getTime() {
+	return _time;
+}
+
+void SliderPose::setTime(float time) {
+	this->_time = time;
+}
+
+float SliderPose::getMix() {
+	return _mix;
+}
+
+void SliderPose::setMix(float mix) {
+	this->_mix = mix;
+}

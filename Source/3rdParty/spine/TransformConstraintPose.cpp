@@ -27,28 +27,69 @@
  * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
-#ifndef Spine_Updatable_h
-#define Spine_Updatable_h
+#include "spine/TransformConstraintPose.h"
 
-#include "spine/RTTI.h"
-#include "spine/SpineObject.h"
-#include "spine/Physics.h"
+using namespace spine;
 
-namespace spine {
-	class SP_API Updatable : public SpineObject {
-	RTTI_DECL
-
-	public:
-		Updatable();
-
-		virtual ~Updatable();
-
-		virtual void update(Physics physics) = 0;
-
-		virtual bool isActive() = 0;
-
-		virtual void setActive(bool inValue) = 0;
-	};
+TransformConstraintPose::TransformConstraintPose() : _mixRotate(0), _mixX(0), _mixY(0), _mixScaleX(0), _mixScaleY(0), _mixShearY(0) {
 }
 
-#endif /* Spine_Updatable_h */
+TransformConstraintPose::~TransformConstraintPose() {
+}
+
+void TransformConstraintPose::set(TransformConstraintPose &pose) {
+	_mixRotate = pose._mixRotate;
+	_mixX = pose._mixX;
+	_mixY = pose._mixY;
+	_mixScaleX = pose._mixScaleX;
+	_mixScaleY = pose._mixScaleY;
+	_mixShearY = pose._mixShearY;
+}
+
+float TransformConstraintPose::getMixRotate() {
+	return _mixRotate;
+}
+
+void TransformConstraintPose::setMixRotate(float mixRotate) {
+	this->_mixRotate = mixRotate;
+}
+
+float TransformConstraintPose::getMixX() {
+	return _mixX;
+}
+
+void TransformConstraintPose::setMixX(float mixX) {
+	this->_mixX = mixX;
+}
+
+float TransformConstraintPose::getMixY() {
+	return _mixY;
+}
+
+void TransformConstraintPose::setMixY(float mixY) {
+	this->_mixY = mixY;
+}
+
+float TransformConstraintPose::getMixScaleX() {
+	return _mixScaleX;
+}
+
+void TransformConstraintPose::setMixScaleX(float mixScaleX) {
+	this->_mixScaleX = mixScaleX;
+}
+
+float TransformConstraintPose::getMixScaleY() {
+	return _mixScaleY;
+}
+
+void TransformConstraintPose::setMixScaleY(float mixScaleY) {
+	this->_mixScaleY = mixScaleY;
+}
+
+float TransformConstraintPose::getMixShearY() {
+	return _mixShearY;
+}
+
+void TransformConstraintPose::setMixShearY(float mixShearY) {
+	this->_mixShearY = mixShearY;
+}

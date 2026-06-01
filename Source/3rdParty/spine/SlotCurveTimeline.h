@@ -27,17 +27,41 @@
  * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
-#ifndef Spine_Vertices_h
-#define Spine_Vertices_h
+#ifndef Spine_SlotCurveTimeline_h
+#define Spine_SlotCurveTimeline_h
 
-#include "spine/Vector.h"
+#include "spine/CurveTimeline.h"
+#include "spine/SlotTimeline.h"
 
 namespace spine {
-	class SP_API Vertices : public SpineObject {
+	class Slot;
+	class SlotPose;
+
+	/// Base class for slot timelines that use curves.
+	class SP_API SlotCurveTimeline : public CurveTimeline, public SlotTimeline {
+		friend class SkeletonBinary;
+		friend class SkeletonJson;
+
+		RTTI_DECL
+
 	public:
-		Vector <int> _bones;
-		Vector<float> _vertices;
+		SlotCurveTimeline(size_t frameCount, size_t frameEntries, size_t bezierCount, int slotIndex);
+
+		virtual ~SlotCurveTimeline();
+
+		virtual void apply(Skeleton &skeleton, float lastTime, float time, Array<Event *> *events, float alpha, bool fromSetup, bool add, bool out,
+						   bool appliedPose) override;
+
+		virtual int getSlotIndex() override;
+
+		virtual void setSlotIndex(int inValue) override;
+
+	protected:
+		/// Applies the timeline to the slot pose.
+		virtual void _apply(Slot &slot, SlotPose &pose, float time, float alpha, bool fromSetup, bool add) = 0;
+
+		int _slotIndex;
 	};
 }
 
-#endif /* Spine_Vertices_h */
+#endif /* Spine_SlotCurveTimeline_h */

@@ -24,6 +24,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DORA_BEGIN
 
+static spine::String toSpineString(Slice str) {
+	return spine::String(str.toString().c_str());
+}
+
+static float toDoraSpineY(float y) {
+	return -y;
+}
+
 class SpineExtension : public spine::DefaultSpineExtension {
 public:
 	virtual ~SpineExtension() { }
@@ -41,7 +49,7 @@ Spine::SpineListener::SpineListener(Spine* owner)
 
 void Spine::SpineListener::callback(spine::AnimationState* state, spine::EventType type, spine::TrackEntry* entry, spine::Event* event) {
 	spine::String empty;
-	const spine::String& name = (entry && entry->getAnimation()) ? entry->getAnimation()->getName() : empty;
+	const spine::String& name = entry ? entry->getAnimation().getName() : empty;
 	Slice animationName{name.buffer(), name.length()};
 	switch (type) {
 		case spine::EventType_End:
@@ -89,16 +97,16 @@ bool Spine::init() {
 		setAsManaged();
 		return false;
 	}
-	_animationStateData = New<spine::AnimationStateData>(_skeletonData->getSkel());
-	_animationState = New<spine::AnimationState>(_animationStateData.get());
-	_skeleton = New<spine::Skeleton>(_skeletonData->getSkel());
+	_animationStateData = New<spine::AnimationStateData>(*_skeletonData->getSkel());
+	_animationState = New<spine::AnimationState>(*_animationStateData.get());
+	_skeleton = New<spine::Skeleton>(*_skeletonData->getSkel());
 	_skeleton->updateWorldTransform(spine::Physics_Reset);
 	_clipper = New<spine::SkeletonClipping>();
 	auto& slots = _skeleton->getSlots();
 	for (size_t i = 0; i < slots.size(); i++) {
 		spine::Slot* slot = slots[i];
 		if (!slot->getBone().isActive()) continue;
-		spine::Attachment* attachment = slot->getAttachment();
+		spine::Attachment* attachment = slot->getAppliedPose().getAttachment();
 		if (attachment && !attachment->getRTTI().instanceOf(spine::BoundingBoxAttachment::rtti)) {
 			_bounds = New<spine::SkeletonBounds>();
 			setHitTestEnabled(true);
@@ -157,7 +165,7 @@ void Spine::setLook(String name) {
 	AssertIf(_flags.isOn(Node::Cleanup), "can not operate on an invalid Spine");
 	if (name.empty()) {
 		_skeleton->setSkin(nullptr);
-		_skeleton->setSlotsToSetupPose();
+		_skeleton->setupPoseSlots();
 		Playable::setLook(name);
 	} else {
 		Slice skinName = Slice::Empty, skinStr = name;
@@ -171,21 +179,21 @@ void Spine::setLook(String name) {
 			if (skinName.empty()) {
 				skinName = "unnamed"_slice;
 			}
-			_newSkin = New<spine::Skin>(spine::String{skinName.begin(), skinName.size(), false, false});
+			_newSkin = New<spine::Skin>(toSpineString(skinName));
 			for (const auto& token : tokens) {
-				auto skin = _skeletonData->getSkel()->findSkin(spine::String{token.begin(), token.size(), false, false});
+				auto skin = _skeletonData->getSkel()->findSkin(toSpineString(token));
 				if (skin) {
-					_newSkin->addSkin(skin);
+					_newSkin->addSkin(*skin);
 				}
 			}
 			_skeleton->setSkin(_newSkin.get());
-			_skeleton->setSlotsToSetupPose();
+			_skeleton->setupPoseSlots();
 			Playable::setLook(skinName);
 		} else {
-			auto skin = _skeletonData->getSkel()->findSkin(spine::String{name.begin(), name.size(), false, false});
+			auto skin = _skeletonData->getSkel()->findSkin(toSpineString(name));
 			if (skin) {
 				_skeleton->setSkin(skin);
-				_skeleton->setSlotsToSetupPose();
+				_skeleton->setupPoseSlots();
 				Playable::setLook(name);
 			}
 		}
@@ -210,36 +218,38 @@ Vec2 Spine::getKeyPoint(String name) {
 	AssertIf(_flags.isOn(Node::Cleanup), "can not operate on an invalid Spine");
 	auto tokens = name.split("/"_slice);
 	if (tokens.size() == 1) {
-		auto slotName = spine::String{name.begin(), name.size(), false, false};
+		auto slotName = toSpineString(name);
 		auto slot = _skeletonData->getSkel()->findSlot(slotName);
 		if (!slot) return Vec2::zero;
 		if (auto skin = _skeleton->getSkin()) {
 			auto slotIndex = slot->getIndex();
-			spine::Vector<spine::Attachment*> attachments;
+			spine::Array<spine::Attachment*> attachments;
 			skin->findAttachmentsForSlot(slotIndex, attachments);
 			for (size_t i = 0; i < attachments.size(); ++i) {
 				auto attachment = attachments[i];
 				if (attachment->getRTTI().isExactly(spine::PointAttachment::rtti)) {
 					spine::PointAttachment* point = s_cast<spine::PointAttachment*>(attachment);
 					Vec2 res = Vec2::zero;
-					auto& bone = _skeleton->getSlots()[slotIndex]->getBone();
+					auto& bone = _skeleton->getSlots()[slotIndex]->getBone().getAppliedPose();
 					point->computeWorldPosition(bone, res.x, res.y);
 					return res;
 				}
 			}
-		} else if (tokens.size() == 2) {
-			auto slotName = spine::String{tokens.front().begin(), tokens.front().size(), false, false};
-			int slotIndex = slot->getIndex();
-			if (slotIndex < 0) return Vec2::zero;
-			auto attachmentName = spine::String{tokens.back().begin(), tokens.back().size(), false, false};
-			auto attachment = _skeleton->getAttachment(slotIndex, attachmentName);
-			if (attachment->getRTTI().isExactly(spine::PointAttachment::rtti)) {
-				spine::PointAttachment* point = s_cast<spine::PointAttachment*>(attachment);
-				Vec2 res = Vec2::zero;
-				auto& bone = _skeleton->getSlots()[slotIndex]->getBone();
-				point->computeWorldPosition(bone, res.x, res.y);
-				return res;
-			}
+		}
+	} else if (tokens.size() == 2) {
+		auto slotName = toSpineString(tokens.front());
+		auto slot = _skeletonData->getSkel()->findSlot(slotName);
+		if (!slot) return Vec2::zero;
+		int slotIndex = slot->getIndex();
+		if (slotIndex < 0) return Vec2::zero;
+		auto attachmentName = toSpineString(tokens.back());
+		auto attachment = _skeleton->getAttachment(slotIndex, attachmentName);
+		if (attachment && attachment->getRTTI().isExactly(spine::PointAttachment::rtti)) {
+			spine::PointAttachment* point = s_cast<spine::PointAttachment*>(attachment);
+			Vec2 res = Vec2::zero;
+			auto& bone = _skeleton->getSlots()[slotIndex]->getBone().getAppliedPose();
+			point->computeWorldPosition(bone, res.x, res.y);
+			return res;
 		}
 	}
 	return Vec2::zero;
@@ -247,7 +257,7 @@ Vec2 Spine::getKeyPoint(String name) {
 
 float Spine::play(String name, bool loop) {
 	AssertIf(_flags.isOn(Node::Cleanup), "can not operate on an invalid Spine");
-	auto animation = _skeletonData->getSkel()->findAnimation(spine::String{name.begin(), name.size(), false, false});
+	auto animation = _skeletonData->getSkel()->findAnimation(toSpineString(name));
 	if (!animation) {
 		return 0.0f;
 	}
@@ -255,17 +265,17 @@ float Spine::play(String name, bool loop) {
 	float recoveryTime = _animationStateData->getDefaultMix();
 	if (recoveryTime > 0.0f) {
 		_animationState->setEmptyAnimation(0, recoveryTime);
-		auto trackEntry = _animationState->addAnimation(0, animation, loop, FLT_EPSILON);
-		trackEntry->setListener(&_listener);
+		auto& trackEntry = _animationState->addAnimation(0, *animation, loop, FLT_EPSILON);
+		trackEntry.setListener(&_listener);
 		_animationState->apply(*_skeleton);
 		_skeleton->updateWorldTransform(spine::Physics_Pose);
-		return trackEntry->getAnimationEnd() / std::max(_animationState->getTimeScale(), FLT_EPSILON);
+		return trackEntry.getAnimationEnd() / std::max(_animationState->getTimeScale(), FLT_EPSILON);
 	} else {
-		auto trackEntry = _animationState->setAnimation(0, animation, loop);
-		trackEntry->setListener(&_listener);
+		auto& trackEntry = _animationState->setAnimation(0, *animation, loop);
+		trackEntry.setListener(&_listener);
 		_animationState->apply(*_skeleton);
 		_skeleton->updateWorldTransform(spine::Physics_Pose);
-		return trackEntry->getAnimationEnd() / std::max(_animationState->getTimeScale(), FLT_EPSILON);
+		return trackEntry.getAnimationEnd() / std::max(_animationState->getTimeScale(), FLT_EPSILON);
 	}
 }
 
@@ -305,8 +315,8 @@ Node* Spine::getSlot(String name) {
 bool Spine::setBoneRotation(String name, float rotation) {
 	AssertIf(_flags.isOn(Node::Cleanup), "can not operate on an invalid Spine");
 	if (_skeleton) {
-		if (auto bone = _skeleton->findBone(spine::String{name.begin(), name.size(), false, false})) {
-			bone->setRotation(rotation);
+		if (auto bone = _skeleton->findBone(toSpineString(name))) {
+			bone->getPose().setRotation(rotation);
 			return true;
 		}
 	}
@@ -316,7 +326,7 @@ bool Spine::setBoneRotation(String name, float rotation) {
 std::string Spine::containsPoint(float x, float y) const {
 	AssertIf(_flags.isOn(Node::Cleanup), "can not operate on an invalid Spine");
 	if (!_bounds || !isHitTestEnabled()) return Slice::Empty;
-	if (_bounds->aabbcontainsPoint(x, y)) {
+	if (_bounds->aabbContainsPoint(x, y)) {
 		if (auto attachment = _bounds->containsPoint(x, y)) {
 			return std::string(
 				attachment->getName().buffer(),
@@ -329,7 +339,7 @@ std::string Spine::containsPoint(float x, float y) const {
 std::string Spine::intersectsSegment(float x1, float y1, float x2, float y2) const {
 	AssertIf(_flags.isOn(Node::Cleanup), "can not operate on an invalid Spine");
 	if (!_bounds || !isHitTestEnabled()) return Slice::Empty;
-	if (_bounds->aabbintersectsSegment(x1, y1, x2, y2)) {
+	if (_bounds->aabbIntersectsSegment(x1, y1, x2, y2)) {
 		if (auto attachment = _bounds->intersectsSegment(x1, y1, x2, y2)) {
 			return std::string(
 				attachment->getName().buffer(),
@@ -361,13 +371,15 @@ void Spine::render() {
 	}
 
 	std::vector<SpriteVertex> vertices;
-	for (size_t i = 0, n = _skeleton->getSlots().size(); i < n; ++i) {
-		spine::Slot* slot = _skeleton->getDrawOrder()[i];
+	auto& drawOrder = _skeleton->getDrawOrder().getAppliedPose();
+	for (size_t i = 0, n = drawOrder.size(); i < n; ++i) {
+		spine::Slot* slot = drawOrder[i];
 		if (!slot->getBone().isActive()) {
 			_clipper->clipEnd(*slot);
 			continue;
 		}
-		spine::Attachment* attachment = slot->getAttachment();
+		auto& slotPose = slot->getAppliedPose();
+		spine::Attachment* attachment = slotPose.getAttachment();
 		if (!attachment) continue;
 
 		BlendFunc blendFunc = BlendFunc::Default;
@@ -394,7 +406,7 @@ void Spine::render() {
 		}
 
 		spine::Color skeletonColor = _skeleton->getColor();
-		spine::Color slotColor = slot->getColor();
+		spine::Color slotColor = slotPose.getColor();
 		uint32_t abgr = Color(Vec4{
 								  skeletonColor.r * slotColor.r,
 								  skeletonColor.g * slotColor.g,
@@ -405,15 +417,20 @@ void Spine::render() {
 		Texture2D* texture = nullptr;
 		if (attachment->getRTTI().isExactly(spine::RegionAttachment::rtti)) {
 			spine::RegionAttachment* region = s_cast<spine::RegionAttachment*>(attachment);
-			if (!region->getRegion()) continue;
-			texture = r_cast<Texture2D*>(s_cast<spine::AtlasRegion*>(region->getRegion())->page->texture);
+			auto& sequence = region->getSequence();
+			int sequenceIndex = sequence.resolveIndex(slotPose);
+			auto textureRegion = sequence.getRegion(sequenceIndex);
+			if (!textureRegion) continue;
+			auto& uvs = sequence.getUVs(sequenceIndex);
+			auto& offsets = region->getOffsets(slotPose);
 			vertices.assign(4, {0, 0, 0, 1});
-			region->computeWorldVertices(*slot, &vertices[0].x, 0, sizeof(vertices[0]) / sizeof(float));
+			texture = r_cast<Texture2D*>(textureRegion->getRendererObject());
+			region->computeWorldVertices(*slot, offsets.buffer(), &vertices[0].x, 0, sizeof(vertices[0]) / sizeof(float));
 			if (_clipper->isClipping()) {
 				for (size_t j = 0, l = 0; j < 4; j++, l += 2) {
 					SpriteVertex& vertex = vertices[j];
-					vertex.u = region->getUVs()[l];
-					vertex.v = region->getUVs()[l + 1];
+					vertex.u = uvs[l];
+					vertex.v = uvs[l + 1];
 				}
 				unsigned short triangles[6]{0, 1, 2, 2, 3, 0};
 				_clipper->clipTriangles(&vertices[0].x, triangles, 6, &vertices[0].u, sizeof(vertices[0]) / sizeof(float));
@@ -422,25 +439,25 @@ void Spine::render() {
 				bool isCulled = verts.size() == 0;
 				if (!isCulled && SharedDirector.isFrustumCulling()) {
 					float minX = verts[0];
-					float minY = verts[1];
+					float minY = toDoraSpineY(verts[1]);
 					float maxX = verts[0];
-					float maxY = verts[1];
+					float maxY = toDoraSpineY(verts[1]);
 					for (size_t j = 1, l = 2; j < vertSize; j++, l += 2) {
 						std::tie(minX, maxX) = std::minmax({minX, maxX, verts[l]});
-						std::tie(minY, maxY) = std::minmax({minY, maxY, verts[l + 1]});
+						std::tie(minY, maxY) = std::minmax({minY, maxY, toDoraSpineY(verts[l + 1])});
 					}
 					AABB aabb;
 					Matrix::mulAABB(aabb, getWorld(), {
-													  {minX, minY, 0},
-													  {maxX, maxY, 0},
-												  });
+														  {minX, minY, 0},
+														  {maxX, maxY, 0},
+													  });
 					isCulled = !SharedDirector.isInFrustum(aabb);
 				}
 				if (!isCulled) {
 					auto& uvs = _clipper->getClippedUVs();
 					vertices.resize(vertSize);
 					for (size_t j = 0, l = 0; j < vertSize; j++, l += 2) {
-						Vec4 vec{verts[l], verts[l + 1], 0, 1};
+						Vec4 vec{verts[l], toDoraSpineY(verts[l + 1]), 0, 1};
 						SpriteVertex& vertex = vertices[j];
 						Matrix::mulVec4(&vertex.x, transform, vec);
 						vertex.abgr = abgr;
@@ -454,6 +471,9 @@ void Spine::render() {
 						_effect, texture, renderState);
 				}
 			} else {
+				for (auto& vertex : vertices) {
+					vertex.y = toDoraSpineY(vertex.y);
+				}
 				bool isCulled = vertices.empty();
 				if (!isCulled && SharedDirector.isFrustumCulling()) {
 					auto [minX, maxX] = std::minmax_element(vertices.begin(), vertices.end(), [](const auto& a, const auto& b) {
@@ -464,9 +484,9 @@ void Spine::render() {
 					});
 					AABB aabb;
 					Matrix::mulAABB(aabb, getWorld(), {
-													  {minX->x, minY->y, 0},
-													  {maxX->x, maxY->y, 0},
-												  });
+														  {minX->x, minY->y, 0},
+														  {maxX->x, maxY->y, 0},
+													  });
 					isCulled = !SharedDirector.isInFrustum(aabb);
 				}
 				if (!isCulled) {
@@ -475,8 +495,8 @@ void Spine::render() {
 						Vec4 oldVert{vertex.x, vertex.y, vertex.z, vertex.w};
 						Matrix::mulVec4(&vertex.x, transform, oldVert);
 						vertex.abgr = abgr;
-						vertex.u = region->getUVs()[l];
-						vertex.v = region->getUVs()[l + 1];
+						vertex.u = uvs[l];
+						vertex.v = uvs[l + 1];
 					}
 					SharedSpriteRenderer.push(
 						vertices.data(), vertices.size(),
@@ -486,16 +506,21 @@ void Spine::render() {
 			vertices.clear();
 		} else if (attachment->getRTTI().isExactly(spine::MeshAttachment::rtti)) {
 			spine::MeshAttachment* mesh = s_cast<spine::MeshAttachment*>(attachment);
-			texture = r_cast<Texture2D*>(s_cast<spine::AtlasRegion*>(mesh->getRegion())->page->texture);
+			auto& sequence = mesh->getSequence();
+			int sequenceIndex = sequence.resolveIndex(slotPose);
+			auto textureRegion = sequence.getRegion(sequenceIndex);
+			if (!textureRegion) continue;
+			auto& uvs = sequence.getUVs(sequenceIndex);
+			texture = r_cast<Texture2D*>(textureRegion->getRendererObject());
 			size_t verticeLength = mesh->getWorldVerticesLength();
 			size_t numVertices = verticeLength / 2;
 			vertices.assign(numVertices, {0, 0, 0, 1});
-			mesh->computeWorldVertices(*slot, 0, verticeLength, &vertices[0].x, 0, sizeof(vertices[0]) / sizeof(float));
+			mesh->computeWorldVertices(*_skeleton, *slot, 0, verticeLength, &vertices[0].x, 0, sizeof(vertices[0]) / sizeof(float));
 			if (_clipper->isClipping()) {
 				for (size_t j = 0, l = 0; j < numVertices; j++, l += 2) {
 					SpriteVertex& vertex = vertices[j];
-					vertex.u = mesh->getUVs()[l];
-					vertex.v = mesh->getUVs()[l + 1];
+					vertex.u = uvs[l];
+					vertex.v = uvs[l + 1];
 				}
 				auto& meshIndices = mesh->getTriangles();
 				_clipper->clipTriangles(&vertices[0].x, meshIndices.buffer(), meshIndices.size(), &vertices[0].u, sizeof(vertices[0]) / sizeof(float));
@@ -504,25 +529,25 @@ void Spine::render() {
 				bool isCulled = verts.size() == 0;
 				if (!isCulled && SharedDirector.isFrustumCulling()) {
 					float minX = verts[0];
-					float minY = verts[1];
+					float minY = toDoraSpineY(verts[1]);
 					float maxX = verts[0];
-					float maxY = verts[1];
+					float maxY = toDoraSpineY(verts[1]);
 					for (size_t j = 1, l = 2; j < vertSize; j++, l += 2) {
 						std::tie(minX, maxX) = std::minmax({minX, maxX, verts[l]});
-						std::tie(minY, maxY) = std::minmax({minY, maxY, verts[l + 1]});
+						std::tie(minY, maxY) = std::minmax({minY, maxY, toDoraSpineY(verts[l + 1])});
 					}
 					AABB aabb;
 					Matrix::mulAABB(aabb, getWorld(), {
-													  {minX, minY, 0},
-													  {maxX, maxY, 0},
-												  });
+														  {minX, minY, 0},
+														  {maxX, maxY, 0},
+													  });
 					isCulled = !SharedDirector.isInFrustum(aabb);
 				}
 				if (!isCulled) {
 					auto& uvs = _clipper->getClippedUVs();
 					vertices.resize(vertSize);
 					for (size_t j = 0, l = 0; j < vertSize; j++, l += 2) {
-						Vec4 vec{verts[l], verts[l + 1], 0, 1};
+						Vec4 vec{verts[l], toDoraSpineY(verts[l + 1]), 0, 1};
 						SpriteVertex& vertex = vertices[j];
 						Matrix::mulVec4(&vertex.x, transform, vec);
 						vertex.abgr = abgr;
@@ -536,6 +561,9 @@ void Spine::render() {
 						_effect, texture, renderState);
 				}
 			} else {
+				for (auto& vertex : vertices) {
+					vertex.y = toDoraSpineY(vertex.y);
+				}
 				bool isCulled = false;
 				if (SharedDirector.isFrustumCulling()) {
 					auto [minX, maxX] = std::minmax_element(vertices.begin(), vertices.end(), [](const auto& a, const auto& b) {
@@ -546,9 +574,9 @@ void Spine::render() {
 					});
 					AABB aabb;
 					Matrix::mulAABB(aabb, getWorld(), {
-													  {minX->x, minY->y, 0},
-													  {maxX->x, maxY->y, 0},
-												  });
+														  {minX->x, minY->y, 0},
+														  {maxX->x, maxY->y, 0},
+													  });
 					isCulled = !SharedDirector.isInFrustum(aabb);
 				}
 				if (!isCulled) {
@@ -557,8 +585,8 @@ void Spine::render() {
 						Vec4 oldVert{vertex.x, vertex.y, vertex.z, vertex.w};
 						Matrix::mulVec4(&vertex.x, transform, oldVert);
 						vertex.abgr = abgr;
-						vertex.u = mesh->getUVs()[l];
-						vertex.v = mesh->getUVs()[l + 1];
+						vertex.u = uvs[l];
+						vertex.v = uvs[l + 1];
 					}
 					auto& meshIndices = mesh->getTriangles();
 					SharedSpriteRenderer.push(
@@ -585,7 +613,7 @@ void Spine::render() {
 			}
 		} else if (attachment->getRTTI().isExactly(spine::ClippingAttachment::rtti)) {
 			spine::ClippingAttachment* clippingAttachment = s_cast<spine::ClippingAttachment*>(attachment);
-			_clipper->clipStart(*slot, clippingAttachment);
+			_clipper->clipStart(*_skeleton, *slot, clippingAttachment);
 		} else if (attachment->getRTTI().isExactly(spine::PointAttachment::rtti)) {
 			_clipper->clipEnd(*slot);
 			spine::PointAttachment* pointAttachment = s_cast<spine::PointAttachment*>(attachment);
@@ -593,13 +621,14 @@ void Spine::render() {
 			Slice name = {str.buffer(), str.length()};
 			if (name.left(2) == "s:"_slice) {
 				float x = 0, y = 0;
-				pointAttachment->computeWorldPosition(slot->getBone(), x, y);
-				float angle = -pointAttachment->computeWorldRotation(slot->getBone());
+				auto& bonePose = slot->getBone().getAppliedPose();
+				pointAttachment->computeWorldPosition(bonePose, x, y);
+				float angle = pointAttachment->computeWorldRotation(bonePose);
 				name.skip(2);
 				if (auto node = getSlot(name)) {
 					float scaleY = node->getScaleY();
 					node->setScaleY(isFliped() ? -scaleY : scaleY);
-					node->setPosition({x, y});
+					node->setPosition({x, toDoraSpineY(y)});
 					node->setAngle(angle);
 					node->setVisible(true);
 					node->visit();

@@ -76,12 +76,12 @@ SkeletonData* SkeletonCache::load(String skelFile, String atlasFile) {
 	auto ext = Path::getExt(skelPath);
 	switch (Switch::hash(ext)) {
 		case "skel"_hash: {
-			spine::SkeletonBinary bin(atlas->get());
+			spine::SkeletonBinary bin(*atlas->get());
 			skeletonData = SkeletonData::create(bin.readSkeletonDataFile(skelPath.c_str()), atlas);
 			break;
 		}
 		case "json"_hash: {
-			spine::SkeletonJson json(atlas->get());
+			spine::SkeletonJson json(*atlas->get());
 			skeletonData = SkeletonData::create(json.readSkeletonDataFile(skelPath.c_str()), atlas);
 			break;
 		}
@@ -132,12 +132,12 @@ void SkeletonCache::loadAsync(String skelFile, String atlasFile, const std::func
 					spine::SkeletonData* skelData = nullptr;
 					switch (Switch::hash(ext)) {
 						case "skel"_hash: {
-							spine::SkeletonBinary bin(at->get());
+							spine::SkeletonBinary bin(*at->get());
 							skelData = bin.readSkeletonData(data.get(), s_cast<int>(size));
 							break;
 						}
 						case "json"_hash: {
-							spine::SkeletonJson json(at->get());
+							spine::SkeletonJson json(*at->get());
 							skelData = json.readSkeletonData(std::string(r_cast<char*>(data.get()), s_cast<int>(size)).c_str());
 							break;
 						}
