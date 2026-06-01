@@ -27,31 +27,50 @@
  * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
-#ifndef SPINE_DEBUG_LOG_H
-#define SPINE_DEBUG_LOG_H
+#ifndef Spine_DrawOrderFolderTimeline_h
+#define Spine_DrawOrderFolderTimeline_h
 
-#include "spine/spine.h"
+#include "spine/Timeline.h"
 
 namespace spine {
-	SP_API void spDebug_printSkeletonData(SkeletonData *skeletonData);
+	class Slot;
 
-	SP_API void spDebug_printAnimation(Animation *animation);
+	/// Changes a subset of the Skeleton::getDrawOrder() draw order.
+	class SP_API DrawOrderFolderTimeline : public Timeline {
+		friend class SkeletonBinary;
 
-	SP_API void spDebug_printTimeline(Timeline *timeline);
+		friend class SkeletonJson;
 
-	SP_API void spDebug_printBoneDatas(Vector<BoneData *> &boneDatas);
+		RTTI_DECL
 
-	SP_API void spDebug_printBoneData(BoneData *boneData);
+	public:
+		DrawOrderFolderTimeline(size_t frameCount, Array<int> &slots, size_t slotCount);
 
-	SP_API void spDebug_printSkeleton(Skeleton *skeleton);
+		virtual void apply(Skeleton &skeleton, float lastTime, float time, Array<Event *> *events, float alpha, bool fromSetup, bool add, bool out,
+						   bool appliedPose) override;
 
-	SP_API void spDebug_printBones(Vector<Bone *> &bones);
+		size_t getFrameCount();
 
-	SP_API void spDebug_printBone(Bone *bone);
+		/// The Skeleton::getSlots() indices that this timeline affects, in setup order.
+		Array<int> &getSlots();
 
-	SP_API void spDebug_printFloats(float *values, int numFloats);
+		/// The draw order for each frame. See setFrame().
+		Array<Array<int>> &getDrawOrders();
 
-	SP_API void spDebug_printFloats(Vector<float> &values);
+		/// Sets the time and draw order for the specified frame.
+		/// @param frame Between 0 and frameCount, inclusive.
+		/// @param time The frame time in seconds.
+		/// @param drawOrder Ordered getSlots() indices, or null to use setup pose order.
+		void setFrame(size_t frame, float time, Array<int> *drawOrder);
+
+	private:
+		Array<int> _slots;
+		Array<bool> _inFolder;
+		Array<Array<int>> _drawOrders;
+
+		void setup(Array<Slot *> &pose, Array<Slot *> &setupPose);
+		void apply(Array<Slot *> &pose, Array<Slot *> &setupPose, Array<int> &drawOrder);
+	};
 }
 
-#endif
+#endif /* Spine_DrawOrderFolderTimeline_h */

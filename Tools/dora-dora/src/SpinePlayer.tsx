@@ -6,7 +6,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-import { SpinePlayer as Spine, SkeletonBinary, ManagedWebGLRenderingContext, AssetManager, AtlasAttachmentLoader, TextureAtlas } from '@esotericsoftware/spine-player';
+import { SpinePlayer as Spine } from '@esotericsoftware/spine-player';
 import { memo, useLayoutEffect, useRef } from 'react';
 import '@esotericsoftware/spine-player/dist/spine-player.css';
 import { Color } from './Theme';
@@ -25,59 +25,39 @@ const SpinePlayer = memo((props: SpinePlayerProps) => {
 	const skelUrl = Service.addr("/" + skelFile.replace(/\\/g, "/"));
 	const atlasUrl = Service.addr("/" + atlasFile.replace(/\\/g, "/"));
 	const playerRef = useRef<HTMLDivElement>(null);
-	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const { t } = useTranslation();
 
 	useLayoutEffect(() => {
 		let player: Spine | null = null;
-		if (canvasRef.current && playerRef.current) {
+		let loadFailed = false;
+		const reportLoadFailed = (file: string, error?: unknown) => {
+			if (loadFailed) return;
+			loadFailed = true;
+			if (error) console.error(error);
+			props.onLoadFailed(t("spine.load", { file: Info.path.basename(file) }));
+		};
+		if (playerRef.current) {
 			const currentPlayer = playerRef.current;
-			const context = new ManagedWebGLRenderingContext(canvasRef.current, {
-				preserveDrawingBuffer: false
-			});
-			const assetManager = new AssetManager(context, "");
-			new Promise((resolve: (atlas: TextureAtlas) => void, reject: (reason: string) => void) => {
-				assetManager.loadTextureAtlas(atlasUrl, (_path, atlas) => {
-					resolve(atlas);
-				}, (_path, message) => {
-					reject(message);
-				});
-			}).then((atlas) => {
-				return new Promise(() => {
-					assetManager.loadBinary(skelUrl, (_path, binaryData) => {
-						const binary = new SkeletonBinary(new AtlasAttachmentLoader(atlas));
-						try {
-							const skeletonData = binary.readSkeletonData(binaryData);
-							const animations = skeletonData.animations.map(a => a.name);
-							let animation: string | undefined;
-							if (animations.indexOf("idle") > 0) {
-								animation = "idle";
-							}
-							player = new Spine(currentPlayer, {
-								backgroundColor: Color.BackgroundDark,
-								animation,
-								animations,
-								preserveDrawingBuffer: false,
-								binaryUrl: skelUrl,
-								atlasUrl: atlasUrl,
-								premultipliedAlpha: false,
-								showControls: true,
-							});
-						} catch (error) {
-							console.error(error);
-							props.onLoadFailed(t("spine.load", { file: Info.path.basename(skelFile) }));
-						} finally {
-							assetManager.dispose();
+			try {
+				player = new Spine(currentPlayer, {
+					backgroundColor: Color.BackgroundDark,
+					preserveDrawingBuffer: false,
+					skeleton: skelUrl,
+					atlasUrl: atlasUrl,
+					premultipliedAlpha: false,
+					showControls: true,
+					success: (player) => {
+						if (player.skeleton?.data.findAnimation("idle")) {
+							player.setAnimation("idle");
 						}
-					}, (_path, message) => {
-						console.error(message);
-						props.onLoadFailed(t("spine.load", { file: Info.path.basename(skelFile) }));
-					});
+					},
+					error: (_player, message) => {
+						reportLoadFailed(message.includes("atlas") ? atlasFile : skelFile, message);
+					},
 				});
-			}).catch((message) => {
-				console.error(message);
-				props.onLoadFailed(t("spine.load", { file: Info.path.basename(atlasFile) }));
-			})
+			} catch (error) {
+				reportLoadFailed(skelFile, error);
+			}
 		}
 		return () => {
 			if (player) {
@@ -87,9 +67,7 @@ const SpinePlayer = memo((props: SpinePlayerProps) => {
 		// eslint-disable-next-line
 	}, []);
 
-	return <div ref={playerRef} style={{ height: '80vh' }}>
-		<canvas ref={canvasRef} hidden />
-	</div>;
+	return <div ref={playerRef} style={{ height: '80vh' }} />;
 });
 
 export default SpinePlayer;

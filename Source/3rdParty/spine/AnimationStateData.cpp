@@ -33,36 +33,32 @@
 
 using namespace spine;
 
-AnimationStateData::AnimationStateData(SkeletonData *skeletonData) : _skeletonData(skeletonData), _defaultMix(0) {
+AnimationStateData::AnimationStateData(SkeletonData &skeletonData) : _skeletonData(&skeletonData), _defaultMix(0) {
 }
 
 void AnimationStateData::setMix(const String &fromName, const String &toName, float duration) {
 	Animation *from = _skeletonData->findAnimation(fromName);
 	Animation *to = _skeletonData->findAnimation(toName);
-
-	setMix(from, to, duration);
-}
-
-void AnimationStateData::setMix(Animation *from, Animation *to, float duration) {
 	assert(from != NULL);
 	assert(to != NULL);
 
-	AnimationPair key(from, to);
+	setMix(*from, *to, duration);
+}
+
+void AnimationStateData::setMix(Animation &from, Animation &to, float duration) {
+	AnimationPair key(&from, &to);
 	_animationToMixTime.put(key, duration);
 }
 
-float AnimationStateData::getMix(Animation *from, Animation *to) {
-	assert(from != NULL);
-	assert(to != NULL);
-
-	AnimationPair key(from, to);
+float AnimationStateData::getMix(Animation &from, Animation &to) {
+	AnimationPair key(&from, &to);
 
 	if (_animationToMixTime.containsKey(key)) return _animationToMixTime[key];
 	return _defaultMix;
 }
 
-SkeletonData *AnimationStateData::getSkeletonData() {
-	return _skeletonData;
+SkeletonData &AnimationStateData::getSkeletonData() {
+	return *_skeletonData;
 }
 
 float AnimationStateData::getDefaultMix() {

@@ -114,6 +114,7 @@ function getTstlOptions(ts: TsModule, tstl: TstlModule): TstlCompilerOptions {
 			sourceMap: true,
 			noImplicitSelf: true,
 			moduleResolution: ts.ModuleResolutionKind.Classic,
+			ignoreDeprecations: "6.0",
 			target: scriptTarget,
 			module: moduleKind,
 		};
@@ -132,6 +133,7 @@ function getDeclarationOptions(ts: TsModule): CompilerOptions {
 			jsx: ts.JsxEmit.React,
 			sourceMap: true,
 			moduleResolution: ts.ModuleResolutionKind.Classic,
+			ignoreDeprecations: "6.0",
 			target: scriptTarget,
 			module: moduleKind,
 		};
