@@ -423,12 +423,11 @@ export async function transpileTypescript(
 			fileExists: () => true,
 			getCurrentDirectory: () => Info.path.dirname(fileName),
 			readFile: (filename) => {
-				if (tstlOptions.luaLibImport !== tstl.LuaLibImportKind.Inline) return "";
 				const res = Service.readSync({ path: filename });
 				if (res?.success) {
 					return res.content;
 				}
-				return "";
+				return undefined;
 			},
 			writeFile: () => { }
 		}
