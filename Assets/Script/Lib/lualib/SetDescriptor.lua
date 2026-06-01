@@ -31,6 +31,13 @@ do
 			metatable = {}
 			setmetatable(target, metatable)
 		end
+		if not isPrototype and not rawget(metatable, "_isOwnDescriptorMetatable") then
+			local instanceMetatable = {}
+			instanceMetatable._isOwnDescriptorMetatable = true
+			setmetatable(instanceMetatable, metatable)
+			setmetatable(target, instanceMetatable)
+			metatable = instanceMetatable
+		end
 		local value = rawget(target, key)
 		if value ~= nil then
 			rawset(target, key, nil)

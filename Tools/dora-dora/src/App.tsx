@@ -594,6 +594,20 @@ const transitionProps = {
 
 let writablePath = "";
 let assetPath = "";
+let configuredTypeScriptAssetPath = "";
+
+const configureTypeScriptSearchPaths = (nextAssetPath: string) => {
+	if (nextAssetPath === "" || nextAssetPath === configuredTypeScriptAssetPath) return;
+	configuredTypeScriptAssetPath = nextAssetPath;
+	const compilerOptions = { ...monacoTypescript.typescriptDefaults.getCompilerOptions() };
+	delete compilerOptions.baseUrl;
+	monacoTypescript.typescriptDefaults.setCompilerOptions({
+		...compilerOptions,
+		paths: {
+			"*": [`${monaco.Uri.file(path.join(nextAssetPath, "Script", "Lib")).toString()}/*`],
+		},
+	});
+};
 
 const getAlertAccentColor = (type: AlertColor) => {
 	switch (type) {
@@ -883,6 +897,10 @@ export default function PersistentDrawerLeft() {
 
 	writablePath = treeData.at(0)?.key ?? "";
 	assetPath = treeData.at(0)?.children?.at(0)?.key ?? "";
+
+	useEffect(() => {
+		configureTypeScriptSearchPaths(assetPath);
+	}, [treeData]);
 
 	const setModified = useCallback((modified: Modified) => {
 		setFiles(prev => {
@@ -1278,6 +1296,7 @@ export default function PersistentDrawerLeft() {
 					});
 				});
 			}
+			configureTypeScriptSearchPaths(assetPath);
 			const model = editor.getModel();
 			if (model === null) {
 				return;

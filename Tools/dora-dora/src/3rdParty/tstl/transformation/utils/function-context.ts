@@ -108,9 +108,7 @@ function computeDeclarationContextType(context: TransformationContext, signature
     const thisParameter = getExplicitThisParameter(signatureDeclaration);
     if (thisParameter) {
         // Explicit 'this'
-        return thisParameter.type && thisParameter.type.kind === ts.SyntaxKind.VoidKeyword
-            ? ContextType.Void
-            : ContextType.NonVoid;
+        return thisParameter.type?.kind === ts.SyntaxKind.VoidKeyword ? ContextType.Void : ContextType.NonVoid;
     }
 
     // noSelf declaration on function signature
@@ -143,6 +141,19 @@ function computeDeclarationContextType(context: TransformationContext, signature
 
     if (signatureDeclaration.parent && ts.isTypeParameterDeclaration(signatureDeclaration.parent)) {
         return ContextType.NonVoid;
+    }
+
+    // Call signature inside a class or interface respects @noSelf on the enclosing class/interface
+    if (ts.isCallSignatureDeclaration(signatureDeclaration)) {
+        const scopeDeclaration = findFirstNodeAbove(
+            signatureDeclaration,
+            (n): n is ts.ClassLikeDeclaration | ts.InterfaceDeclaration =>
+                ts.isClassDeclaration(n) || ts.isClassExpression(n) || ts.isInterfaceDeclaration(n)
+        );
+
+        if (scopeDeclaration !== undefined && getNodeAnnotations(scopeDeclaration).has(AnnotationKind.NoSelf)) {
+            return ContextType.Void;
+        }
     }
 
     // When using --noImplicitSelf and the signature is defined in a file targeted by the program apply the @noSelf rule.

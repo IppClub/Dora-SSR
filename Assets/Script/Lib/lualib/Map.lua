@@ -93,46 +93,70 @@ do
 		return self:entries()
 	end
 	function Map.prototype.entries(self)
+		local function getFirstKey()
+			return self.firstKey
+		end
 		local items = self.items
 		local nextKey = self.nextKey
-		local key = self.firstKey
+		local key
+		local started = false
 		return {
 			[Symbol.iterator] = function(self)
 				return self
 			end,
 			next = function(self)
-				local result = {done = not key, value = {key, items[key]}}
-				key = nextKey[key]
-				return result
+				if not started then
+					started = true
+					key = getFirstKey(nil)
+				else
+					key = nextKey[key]
+				end
+				return {done = not key, value = {key, items[key]}}
 			end
 		}
 	end
 	function Map.prototype.keys(self)
+		local function getFirstKey()
+			return self.firstKey
+		end
 		local nextKey = self.nextKey
-		local key = self.firstKey
+		local key
+		local started = false
 		return {
 			[Symbol.iterator] = function(self)
 				return self
 			end,
 			next = function(self)
-				local result = {done = not key, value = key}
-				key = nextKey[key]
-				return result
+				if not started then
+					started = true
+					key = getFirstKey(nil)
+				else
+					key = nextKey[key]
+				end
+				return {done = not key, value = key}
 			end
 		}
 	end
 	function Map.prototype.values(self)
+		local function getFirstKey()
+			return self.firstKey
+		end
 		local items = self.items
 		local nextKey = self.nextKey
-		local key = self.firstKey
+		local key
+		local started = false
 		return {
 			[Symbol.iterator] = function(self)
 				return self
 			end,
 			next = function(self)
-				local result = {done = not key, value = items[key]}
-				key = nextKey[key]
-				return result
+				if not started then
+					started = true
+					key = getFirstKey(nil)
+				else
+					key = nextKey[key]
+				end
+				return {done = not key, value = items[key]}
 			end
 		}
 	end

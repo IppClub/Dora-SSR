@@ -1214,6 +1214,7 @@ function MemoryCompressor.prototype.compress(self, messages, llmOptions, maxLLMT
 			return ____awaiter_resolve(nil, nil) -- 1437
 		end -- 1437
 		local historyText = self:formatMessagesForCompression(chunk) -- 1440
+		local ____hasReturned, ____returnValue -- 1440
 		local ____try = __TS__AsyncAwaiter(function() -- 1440
 			local result = __TS__Await(self:callLLMForCompression( -- 1444
 				currentMemory, -- 1445
@@ -1235,29 +1236,32 @@ function MemoryCompressor.prototype.compress(self, messages, llmOptions, maxLLMT
 					self.storage:appendHistoryRecord({ts = result.ts, summary = result.summary}) -- 1463
 				end -- 1463
 				self.consecutiveFailures = 0 -- 1468
-				return ____awaiter_resolve( -- 1468
-					nil, -- 1468
-					__TS__ObjectAssign({}, result, {compressedCount = boundary.compressedCount, carryMessageIndex = boundary.carryMessageIndex}) -- 1470
-				) -- 1470
+				____hasReturned = true -- 1470
+				____returnValue = __TS__ObjectAssign({}, result, {compressedCount = boundary.compressedCount, carryMessageIndex = boundary.carryMessageIndex}) -- 1470
+				return -- 1470
 			end -- 1470
-			return ____awaiter_resolve( -- 1470
-				nil, -- 1470
-				self:handleCompressionFailure(chunk, result.error or "Unknown error") -- 1478
-			) -- 1478
+			____hasReturned = true -- 1478
+			____returnValue = self:handleCompressionFailure(chunk, result.error or "Unknown error") -- 1478
+			return -- 1478
 		end) -- 1478
-		__TS__Await(____try.catch( -- 1442
-			____try, -- 1442
-			function(____, ____error) -- 1442
-				return ____awaiter_resolve( -- 1442
-					nil, -- 1442
-					self:handleCompressionFailure( -- 1481
+		____try = ____try.catch( -- 1478
+			____try, -- 1478
+			function(____, ____error) -- 1478
+				return __TS__AsyncAwaiter(function() -- 1478
+					____hasReturned = true -- 1481
+					____returnValue = self:handleCompressionFailure( -- 1481
 						chunk, -- 1481
 						__TS__InstanceOf(____error, Error) and ____error.message or "Unknown error" -- 1481
 					) -- 1481
-				) -- 1481
+					return -- 1481
+				end) -- 1481
 			end -- 1481
-		)) -- 1481
-	end) -- 1481
+		) -- 1481
+		__TS__Await(____try) -- 1442
+		if ____hasReturned then -- 1442
+			return ____awaiter_resolve(nil, ____returnValue) -- 1442
+		end -- 1442
+	end) -- 1442
 end -- 1416
 function MemoryCompressor.prototype.findCompressionBoundary(self, messages, currentMemory, boundaryMode, systemPrompt, toolDefinitions) -- 1490
 	local targetTokens = boundaryMode == "budget_max" and math.max( -- 1497
@@ -1615,29 +1619,38 @@ function MemoryCompressor.prototype.callLLMForCompressionByToolCalling(self, cur
 						) -- 1861
 						goto __continue285 -- 1862
 					end -- 1862
+					local ____hasReturned, ____returnValue -- 1862
 					local ____try = __TS__AsyncAwaiter(function() -- 1862
 						local result = self:buildCompressionResultFromObject(args, currentMemory) -- 1866
 						if result.success then -- 1866
-							return ____awaiter_resolve(nil, result) -- 1866
-						end -- 1866
+							____hasReturned = true -- 1870
+							____returnValue = result -- 1870
+							return -- 1870
+						end -- 1870
 						lastError = result.error or "invalid save_memory arguments" -- 1871
 						Log( -- 1872
 							"Warn", -- 1872
 							(((("[Memory] compression tool-calling attempt " .. tostring(i + 1)) .. "/") .. tostring(maxLLMTry)) .. " invalid: ") .. lastError -- 1872
 						) -- 1872
 					end) -- 1872
-					__TS__Await(____try.catch( -- 1865
-						____try, -- 1865
-						function(____, ____error) -- 1865
-							lastError = "Failed to process LLM response: " .. (__TS__InstanceOf(____error, Error) and ____error.message or tostring(____error)) -- 1874
-							Log( -- 1875
-								"Warn", -- 1875
-								(((("[Memory] compression tool-calling attempt " .. tostring(i + 1)) .. "/") .. tostring(maxLLMTry)) .. " invalid: ") .. lastError -- 1875
-							) -- 1875
+					____try = ____try.catch( -- 1872
+						____try, -- 1872
+						function(____, ____error) -- 1872
+							return __TS__AsyncAwaiter(function() -- 1872
+								lastError = "Failed to process LLM response: " .. (__TS__InstanceOf(____error, Error) and ____error.message or tostring(____error)) -- 1874
+								Log( -- 1875
+									"Warn", -- 1875
+									(((("[Memory] compression tool-calling attempt " .. tostring(i + 1)) .. "/") .. tostring(maxLLMTry)) .. " invalid: ") .. lastError -- 1875
+								) -- 1875
+							end) -- 1875
 						end -- 1875
-					)) -- 1875
-				end -- 1875
-				::__continue285:: -- 1875
+					) -- 1875
+					__TS__Await(____try) -- 1865
+					if ____hasReturned then -- 1865
+						return ____awaiter_resolve(nil, ____returnValue) -- 1865
+					end -- 1865
+				end -- 1865
+				::__continue285:: -- 1865
 				i = i + 1 -- 1801
 			end -- 1801
 		end -- 1801

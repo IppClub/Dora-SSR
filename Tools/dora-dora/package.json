@@ -59,7 +59,7 @@
 		"sweetalert2": "^9.17.4",
 		"synonyms": "^1.0.1",
 		"tailwindcss": "^4.3.0",
-		"typescript": "6.0.2"
+		"typescript": "5.9.3"
 	},
 	"scripts": {
 		"dev": "vite",
