@@ -28,12 +28,12 @@ static spine::String toSpineString(Slice str) {
 	return spine::String(str.toString().c_str());
 }
 
-static float toDoraSpineY(float y) {
-	return -y;
-}
-
 class SpineExtension : public spine::DefaultSpineExtension {
 public:
+	SpineExtension() {
+		spine::Bone::setYDown(false);
+	}
+
 	virtual ~SpineExtension() { }
 
 	virtual char* _readFile(const spine::String& path, int* length) {
@@ -427,24 +427,19 @@ void Spine::render() {
 			texture = r_cast<Texture2D*>(textureRegion->getRendererObject());
 			region->computeWorldVertices(*slot, offsets.buffer(), &vertices[0].x, 0, sizeof(vertices[0]) / sizeof(float));
 			if (_clipper->isClipping()) {
-				for (size_t j = 0, l = 0; j < 4; j++, l += 2) {
-					SpriteVertex& vertex = vertices[j];
-					vertex.u = uvs[l];
-					vertex.v = uvs[l + 1];
-				}
 				unsigned short triangles[6]{0, 1, 2, 2, 3, 0};
-				_clipper->clipTriangles(&vertices[0].x, triangles, 6, &vertices[0].u, sizeof(vertices[0]) / sizeof(float));
+				_clipper->clipTriangles(&vertices[0].x, triangles, 6, uvs.buffer(), sizeof(vertices[0]) / sizeof(float));
 				auto& verts = _clipper->getClippedVertices();
 				auto vertSize = verts.size() / 2;
 				bool isCulled = verts.size() == 0;
 				if (!isCulled && SharedDirector.isFrustumCulling()) {
 					float minX = verts[0];
-					float minY = toDoraSpineY(verts[1]);
+					float minY = verts[1];
 					float maxX = verts[0];
-					float maxY = toDoraSpineY(verts[1]);
+					float maxY = verts[1];
 					for (size_t j = 1, l = 2; j < vertSize; j++, l += 2) {
 						std::tie(minX, maxX) = std::minmax({minX, maxX, verts[l]});
-						std::tie(minY, maxY) = std::minmax({minY, maxY, toDoraSpineY(verts[l + 1])});
+						std::tie(minY, maxY) = std::minmax({minY, maxY, verts[l + 1]});
 					}
 					AABB aabb;
 					Matrix::mulAABB(aabb, getWorld(), {
@@ -457,7 +452,7 @@ void Spine::render() {
 					auto& uvs = _clipper->getClippedUVs();
 					vertices.resize(vertSize);
 					for (size_t j = 0, l = 0; j < vertSize; j++, l += 2) {
-						Vec4 vec{verts[l], toDoraSpineY(verts[l + 1]), 0, 1};
+						Vec4 vec{verts[l], verts[l + 1], 0, 1};
 						SpriteVertex& vertex = vertices[j];
 						Matrix::mulVec4(&vertex.x, transform, vec);
 						vertex.abgr = abgr;
@@ -471,9 +466,6 @@ void Spine::render() {
 						_effect, texture, renderState);
 				}
 			} else {
-				for (auto& vertex : vertices) {
-					vertex.y = toDoraSpineY(vertex.y);
-				}
 				bool isCulled = vertices.empty();
 				if (!isCulled && SharedDirector.isFrustumCulling()) {
 					auto [minX, maxX] = std::minmax_element(vertices.begin(), vertices.end(), [](const auto& a, const auto& b) {
@@ -517,24 +509,19 @@ void Spine::render() {
 			vertices.assign(numVertices, {0, 0, 0, 1});
 			mesh->computeWorldVertices(*_skeleton, *slot, 0, verticeLength, &vertices[0].x, 0, sizeof(vertices[0]) / sizeof(float));
 			if (_clipper->isClipping()) {
-				for (size_t j = 0, l = 0; j < numVertices; j++, l += 2) {
-					SpriteVertex& vertex = vertices[j];
-					vertex.u = uvs[l];
-					vertex.v = uvs[l + 1];
-				}
 				auto& meshIndices = mesh->getTriangles();
-				_clipper->clipTriangles(&vertices[0].x, meshIndices.buffer(), meshIndices.size(), &vertices[0].u, sizeof(vertices[0]) / sizeof(float));
+				_clipper->clipTriangles(&vertices[0].x, meshIndices.buffer(), meshIndices.size(), uvs.buffer(), sizeof(vertices[0]) / sizeof(float));
 				auto& verts = _clipper->getClippedVertices();
 				auto vertSize = _clipper->getClippedVertices().size() / 2;
 				bool isCulled = verts.size() == 0;
 				if (!isCulled && SharedDirector.isFrustumCulling()) {
 					float minX = verts[0];
-					float minY = toDoraSpineY(verts[1]);
+					float minY = verts[1];
 					float maxX = verts[0];
-					float maxY = toDoraSpineY(verts[1]);
+					float maxY = verts[1];
 					for (size_t j = 1, l = 2; j < vertSize; j++, l += 2) {
 						std::tie(minX, maxX) = std::minmax({minX, maxX, verts[l]});
-						std::tie(minY, maxY) = std::minmax({minY, maxY, toDoraSpineY(verts[l + 1])});
+						std::tie(minY, maxY) = std::minmax({minY, maxY, verts[l + 1]});
 					}
 					AABB aabb;
 					Matrix::mulAABB(aabb, getWorld(), {
@@ -547,7 +534,7 @@ void Spine::render() {
 					auto& uvs = _clipper->getClippedUVs();
 					vertices.resize(vertSize);
 					for (size_t j = 0, l = 0; j < vertSize; j++, l += 2) {
-						Vec4 vec{verts[l], toDoraSpineY(verts[l + 1]), 0, 1};
+						Vec4 vec{verts[l], verts[l + 1], 0, 1};
 						SpriteVertex& vertex = vertices[j];
 						Matrix::mulVec4(&vertex.x, transform, vec);
 						vertex.abgr = abgr;
@@ -561,9 +548,6 @@ void Spine::render() {
 						_effect, texture, renderState);
 				}
 			} else {
-				for (auto& vertex : vertices) {
-					vertex.y = toDoraSpineY(vertex.y);
-				}
 				bool isCulled = false;
 				if (SharedDirector.isFrustumCulling()) {
 					auto [minX, maxX] = std::minmax_element(vertices.begin(), vertices.end(), [](const auto& a, const auto& b) {
@@ -623,12 +607,12 @@ void Spine::render() {
 				float x = 0, y = 0;
 				auto& bonePose = slot->getBone().getAppliedPose();
 				pointAttachment->computeWorldPosition(bonePose, x, y);
-				float angle = pointAttachment->computeWorldRotation(bonePose);
+				float angle = -pointAttachment->computeWorldRotation(bonePose);
 				name.skip(2);
 				if (auto node = getSlot(name)) {
 					float scaleY = node->getScaleY();
 					node->setScaleY(isFliped() ? -scaleY : scaleY);
-					node->setPosition({x, toDoraSpineY(y)});
+					node->setPosition({x, y});
 					node->setAngle(angle);
 					node->setVisible(true);
 					node->visit();
