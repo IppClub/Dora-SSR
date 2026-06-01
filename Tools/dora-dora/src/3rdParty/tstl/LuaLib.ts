@@ -276,3 +276,25 @@ export function buildMinimalLualibBundle(
 
     return code + getLualibBundleReturn(exports);
 }
+
+export function findUsedLualibFeatures(
+    luaTarget: LuaTarget,
+    luaContents: string[]
+): Set<LuaLibFeature> {
+    const features = new Set<LuaLibFeature>();
+    const exportToFeatureMap = getLuaLibExportToFeatureMap(luaTarget);
+
+    for (const lua of luaContents) {
+        const regex = /^local (\w+) = ____lualib\.(\w+)$/gm;
+        while (true) {
+            const match = regex.exec(lua);
+            if (!match) break;
+            const [, localName, exportName] = match;
+            if (localName !== exportName) continue;
+            const feature = exportToFeatureMap.get(exportName);
+            if (feature) features.add(feature);
+        }
+    }
+
+    return features;
+}
