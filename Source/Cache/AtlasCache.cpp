@@ -104,6 +104,13 @@ void AtlasCache::loadAsync(String filename, const std::function<void(Atlas*)>& h
 					page->texture = texture;
 					page->width = texture->getWidth();
 					page->height = texture->getHeight();
+					auto& regions = atlas->get()->getRegions();
+					for (size_t j = 0; j < regions.size(); j++) {
+						auto region = regions[j];
+						if (region->getPage() == page) {
+							region->setRendererObject(texture);
+						}
+					}
 					texture->retain();
 				} else {
 					failed = true;
