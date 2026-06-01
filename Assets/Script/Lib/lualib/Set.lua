@@ -85,44 +85,68 @@ do
 		return self:values()
 	end
 	function Set.prototype.entries(self)
+		local function getFirstKey()
+			return self.firstKey
+		end
 		local nextKey = self.nextKey
-		local key = self.firstKey
+		local key
+		local started = false
 		return {
 			[Symbol.iterator] = function(self)
 				return self
 			end,
 			next = function(self)
-				local result = {done = not key, value = {key, key}}
-				key = nextKey[key]
-				return result
+				if not started then
+					started = true
+					key = getFirstKey(nil)
+				else
+					key = nextKey[key]
+				end
+				return {done = not key, value = {key, key}}
 			end
 		}
 	end
 	function Set.prototype.keys(self)
+		local function getFirstKey()
+			return self.firstKey
+		end
 		local nextKey = self.nextKey
-		local key = self.firstKey
+		local key
+		local started = false
 		return {
 			[Symbol.iterator] = function(self)
 				return self
 			end,
 			next = function(self)
-				local result = {done = not key, value = key}
-				key = nextKey[key]
-				return result
+				if not started then
+					started = true
+					key = getFirstKey(nil)
+				else
+					key = nextKey[key]
+				end
+				return {done = not key, value = key}
 			end
 		}
 	end
 	function Set.prototype.values(self)
+		local function getFirstKey()
+			return self.firstKey
+		end
 		local nextKey = self.nextKey
-		local key = self.firstKey
+		local key
+		local started = false
 		return {
 			[Symbol.iterator] = function(self)
 				return self
 			end,
 			next = function(self)
-				local result = {done = not key, value = key}
-				key = nextKey[key]
-				return result
+				if not started then
+					started = true
+					key = getFirstKey(nil)
+				else
+					key = nextKey[key]
+				end
+				return {done = not key, value = key}
 			end
 		}
 	end

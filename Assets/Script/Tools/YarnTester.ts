@@ -13,7 +13,6 @@ import * as ScrollArea from "UI/Control/Basic/ScrollArea";
 import { AlignMode } from "UI/Control/Basic/ScrollArea";
 import * as LineRect from 'UI/View/Shape/LineRect';
 import * as YarnRunner from "YarnRunner";
-import type { YarnRunner as Yarn } from "YarnRunner";
 import { AlignNode, App, Buffer, Content, Label, Menu, Path, Size, TextAlign, Vec2, View, thread, threadLoop } from "Dora";
 import { InputTextFlag, SetCond, WindowFlag } from "ImGui";
 import * as ImGui from 'ImGui';
@@ -100,7 +99,7 @@ const commands = setmetatable({}, {
 	}
 });
 
-let runner: Yarn.Type | undefined;
+let runner: YarnRunner.Type | undefined;
 if (filteredPaths.length > 0) {
 	runner = YarnRunner(filteredPaths[currentFile - 1], "Start", {}, commands, true);
 }

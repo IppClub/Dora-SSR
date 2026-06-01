@@ -653,7 +653,6 @@ do
 		self.state = 0
 		self.fulfilledCallbacks = {}
 		self.rejectedCallbacks = {}
-		self.finallyCallbacks = {}
 		local success, ____error = ____pcall(
 			executor,
 			nil,
@@ -703,14 +702,17 @@ do
 		return self["then"](self, nil, onRejected)
 	end
 	function __TS__Promise.prototype.finally(self, onFinally)
-		if onFinally then
-			local ____self_finallyCallbacks_2 = self.finallyCallbacks
-			____self_finallyCallbacks_2[#____self_finallyCallbacks_2 + 1] = onFinally
-			if self.state ~= 0 then
+		return self["then"](
+			self,
+			onFinally and (function(____, value)
 				onFinally(nil)
-			end
-		end
-		return self
+				return value
+			end) or nil,
+			onFinally and (function(____, reason)
+				onFinally(nil)
+				error(reason, 0)
+			end) or nil
+		)
 	end
 	function __TS__Promise.prototype.resolve(self, value)
 		if isPromiseLike(value) then
@@ -734,22 +736,11 @@ do
 	end
 	function __TS__Promise.prototype.invokeCallbacks(self, callbacks, value)
 		local callbacksLength = #callbacks
-		local finallyCallbacks = self.finallyCallbacks
-		local finallyCallbacksLength = #finallyCallbacks
 		if callbacksLength ~= 0 then
 			for i = 1, callbacksLength - 1 do
 				callbacks[i](callbacks, value)
 			end
-			if finallyCallbacksLength == 0 then
-				return callbacks[callbacksLength](callbacks, value)
-			end
-			callbacks[callbacksLength](callbacks, value)
-		end
-		if finallyCallbacksLength ~= 0 then
-			for i = 1, finallyCallbacksLength - 1 do
-				finallyCallbacks[i](finallyCallbacks)
-			end
-			return finallyCallbacks[finallyCallbacksLength](finallyCallbacks)
+			return callbacks[callbacksLength](callbacks, value)
 		end
 	end
 	function __TS__Promise.prototype.createPromiseResolvingCallback(self, f, resolve, reject)
@@ -904,8 +895,10 @@ local function __TS__ObjectAssign(target, ...)
 	local sources = {...}
 	for i = 1, #sources do
 		local source = sources[i]
-		for key in pairs(source) do
-			target[key] = source[key]
+		if type(source) == "table" then
+			for key in pairs(source) do
+				target[key] = source[key]
+			end
 		end
 	end
 	return target
@@ -1010,6 +1003,13 @@ do
 		if not metatable then
 			metatable = {}
 			setmetatable(target, metatable)
+		end
+		if not isPrototype and not rawget(metatable, "_isOwnDescriptorMetatable") then
+			local instanceMetatable = {}
+			instanceMetatable._isOwnDescriptorMetatable = true
+			setmetatable(instanceMetatable, metatable)
+			setmetatable(target, instanceMetatable)
+			metatable = instanceMetatable
 		end
 		local value = rawget(target, key)
 		if value ~= nil then
@@ -1383,46 +1383,70 @@ do
 		return self:entries()
 	end
 	function Map.prototype.entries(self)
+		local function getFirstKey()
+			return self.firstKey
+		end
 		local items = self.items
 		local nextKey = self.nextKey
-		local key = self.firstKey
+		local key
+		local started = false
 		return {
 			[Symbol.iterator] = function(self)
 				return self
 			end,
 			next = function(self)
-				local result = {done = not key, value = {key, items[key]}}
-				key = nextKey[key]
-				return result
+				if not started then
+					started = true
+					key = getFirstKey(nil)
+				else
+					key = nextKey[key]
+				end
+				return {done = not key, value = {key, items[key]}}
 			end
 		}
 	end
 	function Map.prototype.keys(self)
+		local function getFirstKey()
+			return self.firstKey
+		end
 		local nextKey = self.nextKey
-		local key = self.firstKey
+		local key
+		local started = false
 		return {
 			[Symbol.iterator] = function(self)
 				return self
 			end,
 			next = function(self)
-				local result = {done = not key, value = key}
-				key = nextKey[key]
-				return result
+				if not started then
+					started = true
+					key = getFirstKey(nil)
+				else
+					key = nextKey[key]
+				end
+				return {done = not key, value = key}
 			end
 		}
 	end
 	function Map.prototype.values(self)
+		local function getFirstKey()
+			return self.firstKey
+		end
 		local items = self.items
 		local nextKey = self.nextKey
-		local key = self.firstKey
+		local key
+		local started = false
 		return {
 			[Symbol.iterator] = function(self)
 				return self
 			end,
 			next = function(self)
-				local result = {done = not key, value = items[key]}
-				key = nextKey[key]
-				return result
+				if not started then
+					started = true
+					key = getFirstKey(nil)
+				else
+					key = nextKey[key]
+				end
+				return {done = not key, value = items[key]}
 			end
 		}
 	end
@@ -1999,44 +2023,68 @@ do
 		return self:values()
 	end
 	function Set.prototype.entries(self)
+		local function getFirstKey()
+			return self.firstKey
+		end
 		local nextKey = self.nextKey
-		local key = self.firstKey
+		local key
+		local started = false
 		return {
 			[Symbol.iterator] = function(self)
 				return self
 			end,
 			next = function(self)
-				local result = {done = not key, value = {key, key}}
-				key = nextKey[key]
-				return result
+				if not started then
+					started = true
+					key = getFirstKey(nil)
+				else
+					key = nextKey[key]
+				end
+				return {done = not key, value = {key, key}}
 			end
 		}
 	end
 	function Set.prototype.keys(self)
+		local function getFirstKey()
+			return self.firstKey
+		end
 		local nextKey = self.nextKey
-		local key = self.firstKey
+		local key
+		local started = false
 		return {
 			[Symbol.iterator] = function(self)
 				return self
 			end,
 			next = function(self)
-				local result = {done = not key, value = key}
-				key = nextKey[key]
-				return result
+				if not started then
+					started = true
+					key = getFirstKey(nil)
+				else
+					key = nextKey[key]
+				end
+				return {done = not key, value = key}
 			end
 		}
 	end
 	function Set.prototype.values(self)
+		local function getFirstKey()
+			return self.firstKey
+		end
 		local nextKey = self.nextKey
-		local key = self.firstKey
+		local key
+		local started = false
 		return {
 			[Symbol.iterator] = function(self)
 				return self
 			end,
 			next = function(self)
-				local result = {done = not key, value = key}
-				key = nextKey[key]
-				return result
+				if not started then
+					started = true
+					key = getFirstKey(nil)
+				else
+					key = nextKey[key]
+				end
+				return {done = not key, value = key}
 			end
 		}
 	end

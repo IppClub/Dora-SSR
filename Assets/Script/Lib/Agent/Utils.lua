@@ -1068,17 +1068,20 @@ ____exports.callLLMStream = function(messages, options, event, llmConfig) -- 858
 					onDone(result) -- 923
 				end -- 923
 			end) -- 923
-			__TS__Await(____try.catch( -- 909
-				____try, -- 909
-				function(____, e) -- 909
-					stopLLM = true -- 926
-					if onCancel then -- 926
-						onCancel(tostring(e)) -- 928
-						onCancel = nil -- 929
-					end -- 929
+			____try = ____try.catch( -- 923
+				____try, -- 923
+				function(____, e) -- 923
+					return __TS__AsyncAwaiter(function() -- 923
+						stopLLM = true -- 926
+						if onCancel then -- 926
+							onCancel(tostring(e)) -- 928
+							onCancel = nil -- 929
+						end -- 929
+					end) -- 929
 				end -- 929
-			)) -- 929
-		end) -- 929
+			) -- 929
+			__TS__Await(____try) -- 909
+		end) -- 909
 	end)() -- 908
 	return {success = true} -- 933
 end -- 858
@@ -1234,6 +1237,7 @@ function ____exports.callLLMStreamAggregated(messages, options, stopTokenOrConfi
 			____exports.Log("Info", "[Agent.Utils] callLLMStreamAggregated cancelled before request: " .. reason) -- 1078
 			return ____awaiter_resolve(nil, {success = false, message = reason}) -- 1078
 		end -- 1078
+		local ____hasReturned, ____returnValue -- 1078
 		local ____try = __TS__AsyncAwaiter(function() -- 1078
 			local states = {} -- 1082
 			local emittedToolCallIds = {} -- 1083
@@ -1405,32 +1409,43 @@ function ____exports.callLLMStreamAggregated(messages, options, stopTokenOrConfi
 				local lastJSON = lastJSONPreview ~= "" and " last_json=" .. lastJSONPreview or "" -- 1190
 				local message = providerMessage ~= "" and (((((("LLM returned no choices: " .. providerMessage) .. (details ~= "" and (" (" .. details) .. ")" or "")) .. "; ") .. streamStats) .. "; raw=") .. rawPreview) .. lastJSON or ((("LLM returned no choices; " .. streamStats) .. "; raw=") .. rawPreview) .. lastJSON -- 1191
 				____exports.Log("Error", ((("[Agent.Utils] callLLMStreamAggregated empty choices " .. streamStats) .. " raw_preview=") .. rawPreview) .. lastJSON) -- 1194
-				return ____awaiter_resolve(nil, {success = false, message = message, raw = rawStreamPreview}) -- 1194
-			end -- 1194
-			return ____awaiter_resolve(nil, {success = true, response = response}) -- 1194
-		end) -- 1194
-		__TS__Await(____try.catch( -- 1081
-			____try, -- 1081
-			function(____, e) -- 1081
-				if stopToken and stopToken.stopped then -- 1081
-					local reason = stopToken.reason or "request cancelled" -- 1207
-					____exports.Log("Info", "[Agent.Utils] callLLMStreamAggregated cancelled during request: " .. reason) -- 1208
-					return ____awaiter_resolve(nil, {success = false, message = reason}) -- 1208
-				end -- 1208
-				____exports.Log( -- 1211
-					"Error", -- 1211
-					"[Agent.Utils] callLLMStreamAggregated exception: " .. tostring(e) -- 1211
-				) -- 1211
-				return ____awaiter_resolve( -- 1211
-					nil, -- 1211
-					{ -- 1212
+				____hasReturned = true -- 1195
+				____returnValue = {success = false, message = message, raw = rawStreamPreview} -- 1195
+				return -- 1195
+			end -- 1195
+			____hasReturned = true -- 1201
+			____returnValue = {success = true, response = response} -- 1201
+			return -- 1201
+		end) -- 1201
+		____try = ____try.catch( -- 1201
+			____try, -- 1201
+			function(____, e) -- 1201
+				return __TS__AsyncAwaiter(function() -- 1201
+					if stopToken and stopToken.stopped then -- 1201
+						local reason = stopToken.reason or "request cancelled" -- 1207
+						____exports.Log("Info", "[Agent.Utils] callLLMStreamAggregated cancelled during request: " .. reason) -- 1208
+						____hasReturned = true -- 1209
+						____returnValue = {success = false, message = reason} -- 1209
+						return -- 1209
+					end -- 1209
+					____exports.Log( -- 1211
+						"Error", -- 1211
+						"[Agent.Utils] callLLMStreamAggregated exception: " .. tostring(e) -- 1211
+					) -- 1211
+					____hasReturned = true -- 1212
+					____returnValue = { -- 1212
 						success = false, -- 1212
 						message = tostring(e) -- 1212
 					} -- 1212
-				) -- 1212
+					return -- 1212
+				end) -- 1212
 			end -- 1212
-		)) -- 1212
-	end) -- 1212
+		) -- 1212
+		__TS__Await(____try) -- 1081
+		if ____hasReturned then -- 1081
+			return ____awaiter_resolve(nil, ____returnValue) -- 1081
+		end -- 1081
+	end) -- 1081
 end -- 1046
 function ____exports.callLLM(messages, options, stopTokenOrConfig, llmConfig) -- 1216
 	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 1216
@@ -1460,6 +1475,7 @@ function ____exports.callLLM(messages, options, stopTokenOrConfig, llmConfig) --
 			____exports.Log("Info", "[Agent.Utils] callLLMOnce cancelled before request: " .. reason) -- 1242
 			return ____awaiter_resolve(nil, {success = false, message = reason}) -- 1242
 		end -- 1242
+		local ____hasReturned, ____returnValue -- 1242
 		local ____try = __TS__AsyncAwaiter(function() -- 1242
 			local raw = ____exports.sanitizeUTF8(__TS__Await(postLLM( -- 1246
 				fitted.messages, -- 1246
@@ -1484,15 +1500,14 @@ function ____exports.callLLM(messages, options, stopTokenOrConfig, llmConfig) --
 					"Error", -- 1252
 					(("[Agent.Utils] callLLMOnce invalid JSON: " .. tostring(err)) .. " raw_preview=") .. rawPreview -- 1252
 				) -- 1252
-				return ____awaiter_resolve( -- 1252
-					nil, -- 1252
-					{ -- 1253
-						success = false, -- 1254
-						message = (("invalid LLM response JSON: " .. tostring(err)) .. "; raw=") .. rawPreview, -- 1255
-						raw = raw -- 1256
-					} -- 1256
-				) -- 1256
-			end -- 1256
+				____hasReturned = true -- 1253
+				____returnValue = { -- 1253
+					success = false, -- 1254
+					message = (("invalid LLM response JSON: " .. tostring(err)) .. "; raw=") .. rawPreview, -- 1255
+					raw = raw -- 1256
+				} -- 1256
+				return -- 1253
+			end -- 1253
 			local responseObj = response -- 1259
 			local choiceCount = responseObj.choices and #responseObj.choices or 0 -- 1260
 			____exports.Log( -- 1261
@@ -1514,31 +1529,42 @@ function ____exports.callLLM(messages, options, stopTokenOrConfig, llmConfig) --
 				local rawPreview = previewText(raw, 400) -- 1274
 				local message = providerMessage ~= "" and ("LLM returned no choices: " .. providerMessage) .. (details ~= "" and (" (" .. details) .. ")" or "") or "LLM returned no choices; raw=" .. rawPreview -- 1275
 				____exports.Log("Error", "[Agent.Utils] callLLMOnce empty choices raw_preview=" .. rawPreview) -- 1278
-				return ____awaiter_resolve(nil, {success = false, message = message, raw = raw}) -- 1278
-			end -- 1278
-			return ____awaiter_resolve(nil, {success = true, response = responseObj}) -- 1278
-		end) -- 1278
-		__TS__Await(____try.catch( -- 1245
-			____try, -- 1245
-			function(____, e) -- 1245
-				if stopToken and stopToken.stopped then -- 1245
-					local reason = stopToken.reason or "request cancelled" -- 1291
-					____exports.Log("Info", "[Agent.Utils] callLLMOnce cancelled during request: " .. reason) -- 1292
-					return ____awaiter_resolve(nil, {success = false, message = reason}) -- 1292
-				end -- 1292
-				____exports.Log( -- 1295
-					"Error", -- 1295
-					"[Agent.Utils] callLLMOnce exception: " .. tostring(e) -- 1295
-				) -- 1295
-				return ____awaiter_resolve( -- 1295
-					nil, -- 1295
-					{ -- 1296
+				____hasReturned = true -- 1279
+				____returnValue = {success = false, message = message, raw = raw} -- 1279
+				return -- 1279
+			end -- 1279
+			____hasReturned = true -- 1285
+			____returnValue = {success = true, response = responseObj} -- 1285
+			return -- 1285
+		end) -- 1285
+		____try = ____try.catch( -- 1285
+			____try, -- 1285
+			function(____, e) -- 1285
+				return __TS__AsyncAwaiter(function() -- 1285
+					if stopToken and stopToken.stopped then -- 1285
+						local reason = stopToken.reason or "request cancelled" -- 1291
+						____exports.Log("Info", "[Agent.Utils] callLLMOnce cancelled during request: " .. reason) -- 1292
+						____hasReturned = true -- 1293
+						____returnValue = {success = false, message = reason} -- 1293
+						return -- 1293
+					end -- 1293
+					____exports.Log( -- 1295
+						"Error", -- 1295
+						"[Agent.Utils] callLLMOnce exception: " .. tostring(e) -- 1295
+					) -- 1295
+					____hasReturned = true -- 1296
+					____returnValue = { -- 1296
 						success = false, -- 1296
 						message = tostring(e) -- 1296
 					} -- 1296
-				) -- 1296
+					return -- 1296
+				end) -- 1296
 			end -- 1296
-		)) -- 1296
-	end) -- 1296
+		) -- 1296
+		__TS__Await(____try) -- 1245
+		if ____hasReturned then -- 1245
+			return ____awaiter_resolve(nil, ____returnValue) -- 1245
+		end -- 1245
+	end) -- 1245
 end -- 1216
 return ____exports -- 1216

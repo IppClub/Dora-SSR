@@ -82,7 +82,7 @@ export const unsupportedAccessorInObjectLiteral = createErrorDiagnosticFactory(
 );
 
 export const unsupportedRightShiftOperator = createErrorDiagnosticFactory(
-    "Right shift operator is not supported for target Lua 5.3. Use `>>>` instead."
+    "Signed right shift `>>` is not supported on Lua 5.3+: Lua's native `>>` is logical (zero-fill) on 64-bit integers, with no built-in arithmetic shift. Use `>>>` if you don't need sign extension, or write your own helper."
 );
 
 const getLuaTargetName = (version: LuaTarget) => (version === LuaTarget.LuaJIT ? "LuaJIT" : `Lua ${version}`);
@@ -144,6 +144,10 @@ export const notAllowedOptionalAssignment = createErrorDiagnosticFactory(
 export const awaitMustBeInAsyncFunction = createErrorDiagnosticFactory(
     "Await can only be used inside async functions."
 );
+
+export const unsupportedAsyncGenerator = createErrorDiagnosticFactory("Async generator functions are not supported.");
+
+export const unsupportedForAwaitOf = createErrorDiagnosticFactory("'for await...of' loops are not supported.");
 
 export const unsupportedBuiltinOptionalCall = createErrorDiagnosticFactory(
     "Optional calls are not supported for builtin or language extension functions."

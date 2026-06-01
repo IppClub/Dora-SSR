@@ -25,7 +25,6 @@ do
 		self.state = 0
 		self.fulfilledCallbacks = {}
 		self.rejectedCallbacks = {}
-		self.finallyCallbacks = {}
 		local success, ____error = ____pcall(
 			executor,
 			nil,
@@ -75,14 +74,17 @@ do
 		return self["then"](self, nil, onRejected)
 	end
 	function __TS__Promise.prototype.finally(self, onFinally)
-		if onFinally then
-			local ____self_finallyCallbacks_2 = self.finallyCallbacks
-			____self_finallyCallbacks_2[#____self_finallyCallbacks_2 + 1] = onFinally
-			if self.state ~= 0 then
+		return self["then"](
+			self,
+			onFinally and (function(____, value)
 				onFinally(nil)
-			end
-		end
-		return self
+				return value
+			end) or nil,
+			onFinally and (function(____, reason)
+				onFinally(nil)
+				error(reason, 0)
+			end) or nil
+		)
 	end
 	function __TS__Promise.prototype.resolve(self, value)
 		if isPromiseLike(value) then
@@ -106,22 +108,11 @@ do
 	end
 	function __TS__Promise.prototype.invokeCallbacks(self, callbacks, value)
 		local callbacksLength = #callbacks
-		local finallyCallbacks = self.finallyCallbacks
-		local finallyCallbacksLength = #finallyCallbacks
 		if callbacksLength ~= 0 then
 			for i = 1, callbacksLength - 1 do
 				callbacks[i](callbacks, value)
 			end
-			if finallyCallbacksLength == 0 then
-				return callbacks[callbacksLength](callbacks, value)
-			end
-			callbacks[callbacksLength](callbacks, value)
-		end
-		if finallyCallbacksLength ~= 0 then
-			for i = 1, finallyCallbacksLength - 1 do
-				finallyCallbacks[i](finallyCallbacks)
-			end
-			return finallyCallbacks[finallyCallbacksLength](finallyCallbacks)
+			return callbacks[callbacksLength](callbacks, value)
 		end
 	end
 	function __TS__Promise.prototype.createPromiseResolvingCallback(self, f, resolve, reject)

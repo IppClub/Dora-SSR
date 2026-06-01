@@ -1697,21 +1697,29 @@ local function clearPreExecutedResults(shared) -- 1330
 end -- 1330
 local function startPreExecutedToolAction(shared, action) -- 1334
 	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 1334
+		local ____hasReturned, ____returnValue -- 1334
 		local ____try = __TS__AsyncAwaiter(function() -- 1334
-			return ____awaiter_resolve( -- 1334
-				nil, -- 1334
-				__TS__Await(executeToolAction(shared, action)) -- 1336
-			) -- 1336
+			____hasReturned = true -- 1336
+			____returnValue = __TS__Await(executeToolAction(shared, action)) -- 1336
+			return -- 1336
 		end) -- 1336
-		__TS__Await(____try.catch( -- 1335
-			____try, -- 1335
-			function(____, err) -- 1335
-				local message = tostring(err) -- 1338
-				Log("Error", (((("[CodingAgent] streaming pre-exec failed tool=" .. action.tool) .. " id=") .. action.toolCallId) .. ": ") .. message) -- 1339
-				return ____awaiter_resolve(nil, {success = false, message = message}) -- 1339
-			end -- 1339
-		)) -- 1339
-	end) -- 1339
+		____try = ____try.catch( -- 1336
+			____try, -- 1336
+			function(____, err) -- 1336
+				return __TS__AsyncAwaiter(function() -- 1336
+					local message = tostring(err) -- 1338
+					Log("Error", (((("[CodingAgent] streaming pre-exec failed tool=" .. action.tool) .. " id=") .. action.toolCallId) .. ": ") .. message) -- 1339
+					____hasReturned = true -- 1340
+					____returnValue = {success = false, message = message} -- 1340
+					return -- 1340
+				end) -- 1340
+			end -- 1340
+		) -- 1340
+		__TS__Await(____try) -- 1335
+		if ____hasReturned then -- 1335
+			return ____awaiter_resolve(nil, ____returnValue) -- 1335
+		end -- 1335
+	end) -- 1335
 end -- 1334
 local function createPreExecutedToolResult(shared, action) -- 1344
 	local cloneParamValue -- 1345
@@ -4215,6 +4223,7 @@ local function runCodingAgentAsync(options) -- 4082
 			spawnSubAgent = options.spawnSubAgent, -- 4147
 			listSubAgents = options.listSubAgents -- 4148
 		} -- 4148
+		local ____hasReturned, ____returnValue -- 4148
 		local ____try = __TS__AsyncAwaiter(function() -- 4148
 			emitAgentEvent(shared, { -- 4152
 				type = "task_started", -- 4153
@@ -4226,35 +4235,31 @@ local function runCodingAgentAsync(options) -- 4082
 			}) -- 4158
 			if shared.stopToken.stopped then -- 4158
 				Tools.setTaskStatus(shared.taskId, "STOPPED") -- 4161
-				return ____awaiter_resolve( -- 4161
-					nil, -- 4161
-					emitAgentTaskFinishEvent( -- 4162
-						shared, -- 4162
-						false, -- 4162
-						getCancelledReason(shared) -- 4162
-					) -- 4162
+				____hasReturned = true -- 4162
+				____returnValue = emitAgentTaskFinishEvent( -- 4162
+					shared, -- 4162
+					false, -- 4162
+					getCancelledReason(shared) -- 4162
 				) -- 4162
+				return -- 4162
 			end -- 4162
 			Tools.setTaskStatus(shared.taskId, "RUNNING") -- 4164
 			local promptCommand = getPromptCommand(shared.userQuery) -- 4165
 			if promptCommand == "clear" then -- 4165
-				return ____awaiter_resolve( -- 4165
-					nil, -- 4165
-					clearSessionHistory(shared) -- 4167
-				) -- 4167
+				____hasReturned = true -- 4167
+				____returnValue = clearSessionHistory(shared) -- 4167
+				return -- 4167
 			end -- 4167
 			if promptCommand == "compact" then -- 4167
 				if shared.role == "sub" then -- 4167
 					Tools.setTaskStatus(shared.taskId, "FAILED") -- 4171
-					return ____awaiter_resolve( -- 4171
-						nil, -- 4171
-						emitAgentTaskFinishEvent(shared, false, shared.useChineseResponse and "子代理会话不支持 /compact。" or "Sub-agent sessions do not support /compact.") -- 4172
-					) -- 4172
+					____hasReturned = true -- 4172
+					____returnValue = emitAgentTaskFinishEvent(shared, false, shared.useChineseResponse and "子代理会话不支持 /compact。" or "Sub-agent sessions do not support /compact.") -- 4172
+					return -- 4172
 				end -- 4172
-				return ____awaiter_resolve( -- 4172
-					nil, -- 4172
-					__TS__Await(compactAllHistory(shared)) -- 4180
-				) -- 4180
+				____hasReturned = true -- 4180
+				____returnValue = __TS__Await(compactAllHistory(shared)) -- 4180
+				return -- 4180
 			end -- 4180
 			appendConversationMessage(shared, {role = "user", content = normalizedPrompt}) -- 4182
 			persistHistoryState(shared) -- 4186
@@ -4262,40 +4267,42 @@ local function runCodingAgentAsync(options) -- 4082
 			__TS__Await(flow:run(shared)) -- 4188
 			if shared.stopToken.stopped then -- 4188
 				Tools.setTaskStatus(shared.taskId, "STOPPED") -- 4190
-				return ____awaiter_resolve( -- 4190
-					nil, -- 4190
-					emitAgentTaskFinishEvent( -- 4191
-						shared, -- 4191
-						false, -- 4191
-						getCancelledReason(shared) -- 4191
-					) -- 4191
+				____hasReturned = true -- 4191
+				____returnValue = emitAgentTaskFinishEvent( -- 4191
+					shared, -- 4191
+					false, -- 4191
+					getCancelledReason(shared) -- 4191
 				) -- 4191
+				return -- 4191
 			end -- 4191
 			if shared.error then -- 4191
-				return ____awaiter_resolve( -- 4191
-					nil, -- 4191
-					finalizeAgentFailure(shared, shared.response and shared.response ~= "" and shared.response or shared.error) -- 4194
-				) -- 4194
+				____hasReturned = true -- 4194
+				____returnValue = finalizeAgentFailure(shared, shared.response and shared.response ~= "" and shared.response or shared.error) -- 4194
+				return -- 4194
 			end -- 4194
 			Tools.setTaskStatus(shared.taskId, "DONE") -- 4197
-			return ____awaiter_resolve( -- 4197
-				nil, -- 4197
-				emitAgentTaskFinishEvent(shared, true, shared.response or (shared.useChineseResponse and "任务完成。" or "Task completed.")) -- 4198
-			) -- 4198
+			____hasReturned = true -- 4198
+			____returnValue = emitAgentTaskFinishEvent(shared, true, shared.response or (shared.useChineseResponse and "任务完成。" or "Task completed.")) -- 4198
+			return -- 4198
 		end) -- 4198
-		__TS__Await(____try.catch( -- 4151
-			____try, -- 4151
-			function(____, e) -- 4151
-				return ____awaiter_resolve( -- 4151
-					nil, -- 4151
-					finalizeAgentFailure( -- 4201
+		____try = ____try.catch( -- 4198
+			____try, -- 4198
+			function(____, e) -- 4198
+				return __TS__AsyncAwaiter(function() -- 4198
+					____hasReturned = true -- 4201
+					____returnValue = finalizeAgentFailure( -- 4201
 						shared, -- 4201
 						tostring(e) -- 4201
 					) -- 4201
-				) -- 4201
+					return -- 4201
+				end) -- 4201
 			end -- 4201
-		)) -- 4201
-	end) -- 4201
+		) -- 4201
+		__TS__Await(____try) -- 4151
+		if ____hasReturned then -- 4151
+			return ____awaiter_resolve(nil, ____returnValue) -- 4151
+		end -- 4151
+	end) -- 4151
 end -- 4082
 function ____exports.runCodingAgent(options, callback) -- 4205
 	local ____self_137 = runCodingAgentAsync(options) -- 4205

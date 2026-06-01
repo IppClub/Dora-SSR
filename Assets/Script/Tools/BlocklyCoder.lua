@@ -286,18 +286,21 @@ function SaveNode.prototype.exec(self, code) -- 254
 				end -- 272
 				logs[#logs + 1] = "生成代码成功！" -- 273
 			end) -- 273
-			__TS__Await(____try.catch( -- 270
-				____try, -- 270
-				function(____, e) -- 270
-					logs[#logs + 1] = "生成代码失败！" -- 275
-					Log( -- 276
-						"Error", -- 276
-						tostring(e) -- 276
-					) -- 276
+			____try = ____try.catch( -- 273
+				____try, -- 273
+				function(____, e) -- 273
+					return __TS__AsyncAwaiter(function() -- 273
+						logs[#logs + 1] = "生成代码失败！" -- 275
+						Log( -- 276
+							"Error", -- 276
+							tostring(e) -- 276
+						) -- 276
+					end) -- 276
 				end -- 276
-			)) -- 276
-		end -- 276
-	end) -- 276
+			) -- 276
+			__TS__Await(____try) -- 270
+		end -- 270
+	end) -- 270
 end -- 254
 local chatNode = __TS__New(ChatNode) -- 282
 local llmCode = __TS__New(LLMCode, 2, 1) -- 283
@@ -318,18 +321,21 @@ runFlow = function() -- 295
 		local ____try = __TS__AsyncAwaiter(function() -- 296
 			__TS__Await(flow:run(chatInfo)) -- 300
 		end) -- 300
-		__TS__Await(____try.catch( -- 299
-			____try, -- 299
-			function(____, err) -- 299
-				llmWorking = false -- 302
-				root:emit( -- 303
-					"Output", -- 303
-					"Coder: " .. tostring(err) -- 303
-				) -- 303
-				runFlow() -- 304
+		____try = ____try.catch( -- 300
+			____try, -- 300
+			function(____, err) -- 300
+				return __TS__AsyncAwaiter(function() -- 300
+					llmWorking = false -- 302
+					root:emit( -- 303
+						"Output", -- 303
+						"Coder: " .. tostring(err) -- 303
+					) -- 303
+					runFlow() -- 304
+				end) -- 304
 			end -- 304
-		)) -- 304
-	end) -- 304
+		) -- 304
+		__TS__Await(____try) -- 299
+	end) -- 299
 end -- 295
 runFlow() -- 307
 logs = {} -- 309

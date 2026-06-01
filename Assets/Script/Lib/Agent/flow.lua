@@ -136,34 +136,39 @@ function Node.prototype._exec(self, prepRes) -- 71
 		do -- 71
 			self.currentRetry = 0 -- 72
 			while self.currentRetry < self.maxRetries do -- 72
+				local ____hasReturned, ____returnValue -- 72
 				local ____try = __TS__AsyncAwaiter(function() -- 72
-					return ____awaiter_resolve( -- 72
-						nil, -- 72
-						__TS__Await(self:exec(prepRes)) -- 74
-					) -- 74
+					____hasReturned = true -- 74
+					____returnValue = __TS__Await(self:exec(prepRes)) -- 74
+					return -- 74
 				end) -- 74
-				__TS__Await(____try.catch( -- 73
-					____try, -- 73
-					function(____, e) -- 73
-						if self.currentRetry == self.maxRetries - 1 then -- 73
-							return ____awaiter_resolve( -- 73
-								nil, -- 73
-								__TS__Await(self:execFallback(prepRes, e)) -- 76
-							) -- 76
-						end -- 76
-						if self.wait > 0 then -- 76
-							__TS__Await(__TS__New( -- 77
-								__TS__Promise, -- 77
-								function(____, resolve) -- 77
-									Director.systemScheduler:schedule(once(function() -- 78
-										sleep(self.wait) -- 79
-										resolve(nil, nil) -- 80
-									end)) -- 78
-								end -- 77
-							)) -- 77
-						end -- 77
+				____try = ____try.catch( -- 74
+					____try, -- 74
+					function(____, e) -- 74
+						return __TS__AsyncAwaiter(function() -- 74
+							if self.currentRetry == self.maxRetries - 1 then -- 74
+								____hasReturned = true -- 76
+								____returnValue = __TS__Await(self:execFallback(prepRes, e)) -- 76
+								return -- 76
+							end -- 76
+							if self.wait > 0 then -- 76
+								__TS__Await(__TS__New( -- 77
+									__TS__Promise, -- 77
+									function(____, resolve) -- 77
+										Director.systemScheduler:schedule(once(function() -- 78
+											sleep(self.wait) -- 79
+											resolve(nil, nil) -- 80
+										end)) -- 78
+									end -- 77
+								)) -- 77
+							end -- 77
+						end) -- 77
 					end -- 77
-				)) -- 77
+				) -- 77
+				__TS__Await(____try) -- 73
+				if ____hasReturned then -- 73
+					return ____awaiter_resolve(nil, ____returnValue) -- 73
+				end -- 73
 				self.currentRetry = self.currentRetry + 1 -- 72
 			end -- 72
 		end -- 72
