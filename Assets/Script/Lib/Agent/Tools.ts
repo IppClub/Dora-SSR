@@ -167,6 +167,7 @@ export type DoraAPISearchResult = {
 	programmingLanguage: DoraAPIProgrammingLanguage;
 	exts: string[];
 	results: DoraAPISearchHit[];
+	hint?: string;
 	totalResults?: number;
 	truncated?: boolean;
 	limit?: number;
@@ -639,7 +640,8 @@ export function sendWebIDEFileUpdate(file: string, exists: boolean, content: str
 
 async function runSingleNonTsBuild(file: string): Promise<BuildMessage> {
 	return new Promise<BuildMessage>((resolve) => {
-		const { buildAsync } = require("Script.Dev.WebServer");
+		const moduleName = "Script.Dev.WebServer";
+		const { buildAsync } = require(moduleName);
 		Director.systemScheduler.schedule(once(() => {
 			const result = buildAsync(file);
 			resolve(result);
@@ -1323,6 +1325,7 @@ export async function searchDoraAPI(req: {
 					programmingLanguage: req.programmingLanguage,
 					exts,
 					results: hits,
+					hint: "Use read_file directly with the file value from a search result to view the complete document. Do not add any prefixes.",
 					totalResults: hits.length,
 					truncated: false,
 					limit,

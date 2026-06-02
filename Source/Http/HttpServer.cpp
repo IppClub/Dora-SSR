@@ -1096,11 +1096,53 @@ static void prepare_xrt_http_headers(
 	}
 }
 
+struct XrtPostStreamCompletion {
+	std::shared_ptr<HttpClient::ContentHandler> callback;
+	std::atomic<size_t> queuedChunks{0};
+	std::atomic<size_t> handledChunks{0};
+	std::atomic<size_t> queuedBytes{0};
+	std::atomic<size_t> handledBytes{0};
+	std::atomic_bool finalRequested{false};
+	std::atomic_bool finalSuccess{false};
+	std::atomic_bool completed{false};
+};
+
 struct XrtPostStreamContext {
 	std::shared_ptr<HttpRequestState> request;
 	std::shared_ptr<HttpClient::ContentPartHandler> partCallback;
 	std::shared_ptr<std::atomic<bool>> stopped;
+	std::shared_ptr<XrtPostStreamCompletion> completion;
 };
+
+static void try_finish_xrt_post_stream_in_logic(const std::shared_ptr<XrtPostStreamCompletion>& completion) {
+	if (!completion || !completion->finalRequested.load(std::memory_order_relaxed)) {
+		return;
+	}
+	const auto queuedChunkCount = completion->queuedChunks.load(std::memory_order_relaxed);
+	const auto handledChunkCount = completion->handledChunks.load(std::memory_order_relaxed);
+	const auto queuedByteCount = completion->queuedBytes.load(std::memory_order_relaxed);
+	const auto handledByteCount = completion->handledBytes.load(std::memory_order_relaxed);
+	if (handledChunkCount < queuedChunkCount || handledByteCount < queuedByteCount) {
+		return;
+	}
+	if (completion->completed.exchange(true, std::memory_order_relaxed)) {
+		return;
+	}
+	const auto success = completion->finalSuccess.load(std::memory_order_relaxed);
+	if (success) {
+		(*completion->callback)(""_slice);
+	} else {
+		(*completion->callback)(std::nullopt);
+	}
+}
+
+static void request_finish_xrt_post_stream_in_logic(const std::shared_ptr<XrtPostStreamCompletion>& completion, bool success) {
+	SharedApplication.invokeInLogic([completion, success]() {
+		completion->finalSuccess.store(success, std::memory_order_relaxed);
+		completion->finalRequested.store(true, std::memory_order_relaxed);
+		try_finish_xrt_post_stream_in_logic(completion);
+	});
+}
 
 static int on_xrt_post_stream_chunk(const char* data, size_t dataLen, size_t, size_t, void* userData) {
 	auto context = r_cast<XrtPostStreamContext*>(userData);
@@ -1108,14 +1150,20 @@ static int on_xrt_post_stream_chunk(const char* data, size_t dataLen, size_t, si
 		return context && context->request && context->request->cancelling.load(std::memory_order_relaxed);
 	}
 	std::string body(data, dataLen);
-	SharedApplication.invokeInLogic([request = context->request, partCallback = context->partCallback, stopped = context->stopped, body = std::move(body)]() {
+	context->completion->queuedChunks.fetch_add(1, std::memory_order_relaxed);
+	context->completion->queuedBytes.fetch_add(dataLen, std::memory_order_relaxed);
+	SharedApplication.invokeInLogic([request = context->request, partCallback = context->partCallback, stopped = context->stopped, completion = context->completion, body = std::move(body)]() {
+		completion->handledChunks.fetch_add(1, std::memory_order_relaxed);
+		completion->handledBytes.fetch_add(body.size(), std::memory_order_relaxed);
 		if (*stopped) {
+			try_finish_xrt_post_stream_in_logic(completion);
 			return;
 		}
 		if ((*partCallback)(body)) {
 			*stopped = true;
 			request->cancelling.store(true, std::memory_order_relaxed);
 		}
+		try_finish_xrt_post_stream_in_logic(completion);
 	});
 	return context->stopped->load(std::memory_order_relaxed) ||
 		(context->request && context->request->cancelling.load(std::memory_order_relaxed));
@@ -1213,7 +1261,9 @@ HttpClient::RequestId HttpClient::postAsync(String url, std::span<Slice> headers
 		prepare_xrt_http_headers(headerNames, headerValues, headerNamePtrs, headerValuePtrs, headers);
 		if (*partCallbackFunc) {
 			auto stopped = std::make_shared<std::atomic<bool>>(false);
-			XrtPostStreamContext streamContext{request, partCallbackFunc, stopped};
+			auto completion = std::make_shared<XrtPostStreamCompletion>();
+			completion->callback = callbackFunc;
+			XrtPostStreamContext streamContext{request, partCallbackFunc, stopped, completion};
 			int statusCode = 0;
 			auto status = DoraXrtHttpExecuteStream(
 				"POST",
@@ -1231,14 +1281,9 @@ HttpClient::RequestId HttpClient::postAsync(String url, std::span<Slice> headers
 				&streamContext,
 				&statusCode);
 			if (status != 0 || statusCode < 200 || statusCode >= 400 || stopped->load(std::memory_order_relaxed)) {
-				Info("failed to do streaming HTTP POST \"{}\"; network status: {}, HTTP status: {}", urlStr, DoraXrtHttpStatusName(status), statusCode);
-				SharedApplication.invokeInLogic([callbackFunc]() {
-					(*callbackFunc)(std::nullopt);
-				});
+				request_finish_xrt_post_stream_in_logic(completion, false);
 			} else {
-				SharedApplication.invokeInLogic([callbackFunc]() {
-					(*callbackFunc)(""_slice);
-				});
+				request_finish_xrt_post_stream_in_logic(completion, true);
 			}
 		} else {
 			auto status = DoraXrtHttpExecute(

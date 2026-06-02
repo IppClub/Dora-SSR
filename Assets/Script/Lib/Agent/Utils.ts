@@ -552,7 +552,7 @@ const postLLM = (
 				const headers = [
 					`Authorization: Bearer ${apiKey}`,
 					"Content-Type: application/json",
-					"Accept: application/json",
+					receiver ? "Accept: text/event-stream" : "Accept: application/json",
 				];
 				requestId = receiver
 					? HttpClient.post(url, headers, jsonStr, requestTimeout, (data) => {
@@ -1050,7 +1050,7 @@ export async function callLLMStreamAggregated(
 	llmConfig?: LLMConfig,
 	onChunk?: (response: LLMResponseData, chunk: LLMStreamData) => void,
 	onToolCallReady?: (toolCall: ToolCall) => void
-): Promise<{ success: true; response: LLMResponseData } | { success: false; message: string; raw?: string }> {
+): Promise<{ success: true; response: LLMResponseData } | { success: false; message: string; raw?: string; response?: LLMResponseData }> {
 	const stopToken = stopTokenOrConfig && "stopped" in stopTokenOrConfig ? stopTokenOrConfig : undefined;
 	const config = stopTokenOrConfig && "url" in stopTokenOrConfig
 		? stopTokenOrConfig
@@ -1179,6 +1179,18 @@ export async function callLLMStreamAggregated(
 		const choiceCount = response.choices ? response.choices.length : 0;
 		const streamStats = `http_chunks=${httpChunkCount} raw_bytes=${rawStreamBytes} sse_json_chunks=${sseJSONChunkCount} choice_chunks=${choiceJSONChunkCount} empty_choice_chunks=${emptyChoicesChunkCount} missing_choice_chunks=${missingChoicesChunkCount} parse_errors=${parseErrorCount} done=${doneChunkSeen ? "true" : "false"}`;
 		Log("Info", `[Agent.Utils] callLLMStreamAggregated decoded response choices=${choiceCount} ${streamStats}`);
+		if (!doneChunkSeen) {
+			const rawPreview = previewText(sanitizeUTF8(rawStreamPreview), 1200);
+			const lastJSON = lastJSONPreview !== "" ? ` last_json=${lastJSONPreview}` : "";
+			const message = `stream incomplete: missing [DONE]; ${streamStats}; raw=${rawPreview}${lastJSON}`;
+			Log("Error", `[Agent.Utils] callLLMStreamAggregated incomplete stream ${streamStats} raw_preview=${rawPreview}${lastJSON}`);
+			return {
+				success: false,
+				message,
+				raw: rawStreamPreview,
+				response,
+			};
+		}
 		if (!response.choices || response.choices.length === 0) {
 			const providerMessage = providerError?.message ?? "";
 			const providerType = providerError?.type ?? "";

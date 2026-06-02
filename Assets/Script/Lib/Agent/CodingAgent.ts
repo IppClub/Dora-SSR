@@ -715,6 +715,7 @@ export interface AgentActionRecord {
 }
 
 interface PreExecutedToolResult {
+	action: AgentActionRecord;
 	matches(action: AgentActionRecord): boolean;
 	promise: Promise<Record<string, unknown>>;
 }
@@ -1276,7 +1277,7 @@ function getDecisionToolDefinitions(shared?: AgentShared): string {
 	);
 	const spawnTool = `
 
-9. list_sub_agents: Query sub-agent state under the current main session
+10. list_sub_agents: Query sub-agent state under the current main session
 	- Parameters: status(optional), limit(optional), offset(optional), query(optional)
 	- Use this only when you do not already know the current sub-agent status and need to inspect running delegated work or recent completed results before deciding whether to dispatch more sub agents or read a result file.
 	- status defaults to active_or_recent and may also be running, done, failed, or all.
@@ -1284,7 +1285,7 @@ function getDecisionToolDefinitions(shared?: AgentShared): string {
 	- query filters by title, goal, or summary text.
 	- Do not use this after a successful spawn_sub_agent in the same turn.
 
-10. spawn_sub_agent: Create and start a sub agent session for delegated implementation work
+11. spawn_sub_agent: Create and start a sub agent session for delegated implementation work
 	- Parameters: title, prompt, expectedOutput(optional), filesHint(optional)
 	- Use this for large multi-file work, parallel exploration, long-running verification, or isolated execution tasks.
 	- For small focused edits, use edit_file/delete_file/build directly in the current main-agent run.
@@ -1387,6 +1388,7 @@ function createPreExecutedToolResult(shared: AgentShared, action: AgentActionRec
 		return false;
 	};
 	return {
+		action,
 		matches(nextAction: AgentActionRecord): boolean {
 			return action.tool === nextAction.tool && areParamValuesEqual(params, nextAction.params);
 		},
@@ -2398,9 +2400,12 @@ function buildDecisionMessages(
 		messages = appendPromptToLatestDecisionMessage(messages, getFinalDecisionTurnPrompt(shared));
 	}
 	if (lastError && lastError !== "") {
-		const retryHeader = decisionMode === "xml"
+		let retryHeader = decisionMode === "xml"
 			? `Previous response was invalid (${lastError}). Return exactly one valid XML tool_call block only.`
 			: replacePromptVars(shared.promptPack.toolCallingRetryPrompt, { LAST_ERROR: lastError });
+		if (decisionMode === "tool_calling" && lastError.indexOf("truncated by max tokens") >= 0) {
+			retryHeader += "\nYour previous response spent the token budget on reasoning and ended before any tool call. Do not continue that reasoning. Immediately emit one valid function tool call with compact arguments.";
+		}
 		messages.push({
 			role: "user",
 			content: `${retryHeader}
@@ -2561,6 +2566,64 @@ function findIndentTolerantReplacement(
 	oldStr: string,
 	newStr: string
 ): { success: true; content: string } | { success: false; message: string } {
+	const findWhitespaceTolerantReplacement = (): { success: true; content: string } | { success: false; message: string } => {
+		type FoldedWhitespaceChar = { char: string; start: number; end: number };
+		const foldWhitespace = (text: string, withMap: boolean): { text: string; map: FoldedWhitespaceChar[] } => {
+			const parts: string[] = [];
+			const map: FoldedWhitespaceChar[] = [];
+			let i = 0;
+			while (i < text.length) {
+				const ch = text[i];
+				if (ch === " " || ch === "\t" || ch === "\n" || ch === "\r") {
+					const start = i;
+					while (i < text.length) {
+						const next = text[i];
+						if (next !== " " && next !== "\t" && next !== "\n" && next !== "\r") break;
+						i += 1;
+					}
+					parts.push(" ");
+					if (withMap) map.push({ char: " ", start, end: i });
+				} else {
+					parts.push(ch);
+					if (withMap) map.push({ char: ch, start: i, end: i + 1 });
+					i += 1;
+				}
+			}
+			return { text: parts.join(""), map };
+		};
+		const foldedContent = foldWhitespace(content, true);
+		const foldedOld = foldWhitespace(oldStr, false).text.trim();
+		if (foldedOld === "") {
+			return { success: false, message: "old_str not found in file" };
+		}
+		const matches: { start: number; end: number }[] = [];
+		let pos = 0;
+		while (true) {
+			const idx = foldedContent.text.indexOf(foldedOld, pos);
+			if (idx < 0) break;
+			const lastIdx = idx + foldedOld.length - 1;
+			const startMap = foldedContent.map[idx];
+			const endMap = foldedContent.map[lastIdx];
+			if (startMap !== undefined && endMap !== undefined) {
+				matches.push({ start: startMap.start, end: endMap.end });
+			}
+			pos = idx + foldedOld.length;
+		}
+		if (matches.length === 0) {
+			return { success: false, message: "old_str not found in file" };
+		}
+		if (matches.length > 1) {
+			return {
+				success: false,
+				message: `old_str appears ${matches.length} times in file after whitespace normalization. Please provide more context to uniquely identify the target location.`,
+			};
+		}
+		const match = matches[0];
+		return {
+			success: true,
+			content: content.substring(0, match.start) + newStr + content.substring(match.end),
+		};
+	};
 	const contentLines = splitLines(content);
 	const oldLines = splitLines(oldStr);
 	if (oldLines.length === 0) {
@@ -2582,7 +2645,7 @@ function findIndentTolerantReplacement(
 		}
 	}
 	if (matches.length === 0) {
-		return { success: false, message: "old_str not found in file" };
+		return findWhitespaceTolerantReplacement();
 	}
 	if (matches.length > 1) {
 		return {
@@ -2609,6 +2672,33 @@ class MainDecisionAgent extends Node<AgentShared> {
 		await maybeCompressHistory(shared);
 
 		return { shared };
+	}
+
+	private commitPreExecutedDecision(shared: AgentShared): DecisionSuccess | DecisionBatchSuccess | undefined {
+		const preExecuted = shared.preExecutedResults;
+		if (!preExecuted || preExecuted.size === 0) return undefined;
+		const decisions: DecisionSuccess[] = [];
+		preExecuted.forEach(preResult => {
+			const action = preResult.action;
+			decisions.push({
+				success: true,
+				tool: action.tool,
+				params: action.params,
+				toolCallId: action.toolCallId,
+				reason: action.reason,
+				reasoningContent: action.reasoningContent,
+			});
+		});
+		if (decisions.length === 0) return undefined;
+		Log("Warn", `[CodingAgent] committing pre-executed tools after incomplete stream tools=${decisions.map(decision => decision.tool).join(",")}`);
+		if (decisions.length === 1) {
+			return decisions[0];
+		}
+		return {
+			success: true,
+			kind: "batch",
+			decisions,
+		};
 	}
 
 	private async callDecisionByToolCalling(
@@ -2669,6 +2759,64 @@ class MainDecisionAgent extends Node<AgentShared> {
 		if (!res.success) {
 			saveStepLLMDebugOutput(shared, stepId, "decision_tool_calling", res.raw ?? res.message, { success: false });
 			Log("Error", `[CodingAgent] tool-calling request failed: ${res.message}`);
+			if (res.message.indexOf("stream incomplete:") >= 0) {
+				const partialChoice = res.response?.choices && res.response.choices[0];
+				const partialMessage = partialChoice && partialChoice.message;
+				const partialToolCalls = partialMessage && partialMessage.tool_calls;
+				if (partialToolCalls && partialToolCalls.length > 0) {
+					const partialReasoningContent = partialMessage && typeof partialMessage.reasoning_content === "string"
+						? partialMessage.reasoning_content
+						: undefined;
+					const partialMessageContent = partialMessage && typeof partialMessage.content === "string"
+						? partialMessage.content.trim()
+						: undefined;
+					const partialDecisions: DecisionSuccess[] = [];
+					let partialFailure: DecisionFailure | undefined;
+					for (let i = 0; i < partialToolCalls.length; i++) {
+						const toolCall = partialToolCalls[i];
+						const fn = toolCall && toolCall.function;
+						if (!fn || typeof fn.name !== "string" || fn.name === "") {
+							partialFailure = {
+								success: false,
+								message: `missing function name for partial tool call ${i + 1}`,
+								raw: partialMessageContent,
+							};
+							break;
+						}
+						const decision = parseAndValidateToolCallDecision(
+							shared,
+							fn.name,
+							typeof fn.arguments === "string" ? fn.arguments : "",
+							toolCall && typeof toolCall.id === "string" ? toolCall.id : undefined,
+							partialMessageContent,
+							partialReasoningContent
+						);
+						if (!decision.success) {
+							partialFailure = decision;
+							break;
+						}
+						partialDecisions.push(decision);
+					}
+					if (!partialFailure && partialDecisions.length > 0) {
+						Log("Warn", `[CodingAgent] committing partial tool calls after incomplete stream tools=${partialDecisions.map(decision => decision.tool).join(",")}`);
+						if (partialDecisions.length === 1) {
+							return partialDecisions[0];
+						}
+						return {
+							success: true,
+							kind: "batch",
+							decisions: partialDecisions,
+							content: partialMessageContent,
+							reasoningContent: partialReasoningContent,
+						};
+					}
+					Log("Warn", `[CodingAgent] partial tool calls not commit-ready after incomplete stream: ${partialFailure ? partialFailure.message : "empty decisions"}`);
+				}
+				const committedDecision = this.commitPreExecutedDecision(shared);
+				if (committedDecision) {
+					return committedDecision;
+				}
+			}
 			clearPreExecutedResults(shared);
 			return { success: false, message: res.message, raw: res.raw };
 		}
@@ -2676,14 +2824,26 @@ class MainDecisionAgent extends Node<AgentShared> {
 		const choice = res.response.choices && res.response.choices[0];
 		const message = choice && choice.message;
 		const toolCalls = message && message.tool_calls;
+		const finishReason = choice && typeof choice.finish_reason === "string"
+			? choice.finish_reason
+			: "";
 		const reasoningContent = message && typeof message.reasoning_content === "string"
 			? message.reasoning_content
 			: undefined;
 		const messageContent = message && typeof message.content === "string"
 			? message.content.trim()
 			: undefined;
-		Log("Info", `[CodingAgent] tool-calling response finish_reason=${choice && choice.finish_reason ? choice.finish_reason : "unknown"} tool_calls=${toolCalls ? toolCalls.length : 0} content_len=${messageContent ? messageContent.length : 0} reasoning_len=${reasoningContent ? reasoningContent.length : 0}`);
+		Log("Info", `[CodingAgent] tool-calling response finish_reason=${finishReason !== "" ? finishReason : "unknown"} tool_calls=${toolCalls ? toolCalls.length : 0} content_len=${messageContent ? messageContent.length : 0} reasoning_len=${reasoningContent ? reasoningContent.length : 0}`);
 		if (!toolCalls || toolCalls.length === 0) {
+			if (finishReason === "length") {
+				Log("Error", `[CodingAgent] tool-calling output truncated before tool call reasoning_len=${reasoningContent ? reasoningContent.length : 0}`);
+				clearPreExecutedResults(shared);
+				return {
+					success: false,
+					message: "tool-calling output was truncated by max tokens before producing a tool call. Retry immediately with a valid tool call and keep reasoning minimal.",
+					raw: reasoningContent ?? messageContent ?? "",
+				};
+			}
 			if (messageContent && messageContent !== "") {
 				Log("Info", `[CodingAgent] tool-calling fallback direct_finish_len=${messageContent.length}`);
 				clearPreExecutedResults(shared);

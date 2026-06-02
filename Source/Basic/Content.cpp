@@ -654,6 +654,30 @@ void Content::searchFilesAsync(String path, std::vector<std::string>&& exts, std
 	}
 
 	std::string patternStr = pattern.toString();
+	std::string normalizedPattern;
+	normalizedPattern.reserve(patternStr.size());
+	for (size_t i = 0; i < patternStr.size(); ++i) {
+		if (patternStr[i] == '\\') {
+			if (i + 1 >= patternStr.size()) continue;
+			char next = patternStr[i + 1];
+			bool keepEscape = false;
+			if (useRegex) {
+				keepEscape =
+					next == '\\' || next == '^' || next == '$' || next == '.' ||
+					next == '*' || next == '+' || next == '?' || next == '[' ||
+					next == ']' || next == 'd' || next == 'D' || next == 'w' ||
+					next == 'W' || next == 's' || next == 'S';
+			} else {
+				keepEscape =
+					next == '\\' || next == '\'' || next == '"' || next == '/' ||
+					next == 'b' || next == 'f' || next == 'n' || next == 'r' ||
+					next == 't' || next == '0';
+			}
+			if (!keepEscape) continue;
+		}
+		normalizedPattern.push_back(patternStr[i]);
+	}
+	patternStr = std::move(normalizedPattern);
 	if (patternStr.empty()) {
 		notifyDone();
 		return;
