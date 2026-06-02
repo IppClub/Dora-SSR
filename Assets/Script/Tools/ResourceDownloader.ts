@@ -98,7 +98,8 @@ const sep = () => ImGui.SeparatorText("");
 const thinSep = () => ImGui.PushStyleVar(ImGui.StyleVarNum.SeparatorTextBorderSize, 1, sep);
 
 const run = (fileName: string) => {
-	const Entry = require("Script.Dev.Entry");
+	const moduleName = "Script.Dev.Entry";
+	const Entry = require(moduleName);
 	Entry.allClear();
 	thread(() => {
 		Entry.enterEntryAsync({ entryName: "Project", fileName });

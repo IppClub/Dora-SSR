@@ -424,10 +424,13 @@ const EXPOSED_PROMPT_PACK_KEYS: (keyof AgentPromptPack)[] = [
 	"agentIdentityPrompt",
 	"mainAgentRolePrompt",
 	"subAgentRolePrompt",
+	"replyLanguageDirectiveZh",
+	"replyLanguageDirectiveEn"
+];
+
+const INTERNAL_PROMPT_PACK_KEYS: (keyof AgentPromptPack)[] = [
 	"functionCallingPrompt",
 	"toolDefinitionsDetailed",
-	"replyLanguageDirectiveZh",
-	"replyLanguageDirectiveEn",
 	"toolCallingRetryPrompt",
 	"xmlDecisionFormatPrompt",
 	"xmlDecisionRepairPrompt",
@@ -462,17 +465,18 @@ export function resolveAgentPromptPack(value?: Record<string, unknown>): AgentPr
 	return merged;
 }
 
-export function renderDefaultAgentPromptPackMarkdown(): string {
-	const pack = DEFAULT_AGENT_PROMPT_PACK;
+export function renderDefaultAgentPromptPackMarkdown(overrides?: Record<string, unknown>): string {
 	const lines: string[] = [];
 	lines.push(`# Dora Agent Prompt Configuration`);
 	lines.push("");
-	lines.push(`Edit the content under each \`##\` heading. Missing sections fall back to built-in defaults.`);
+	lines.push(`Edit the content under each \`##\` heading. Tool-calling and decision-format prompts are kept in code and are not exposed here.`);
 	lines.push("");
 	for (let i = 0; i < EXPOSED_PROMPT_PACK_KEYS.length; i++) {
 		const key = EXPOSED_PROMPT_PACK_KEYS[i];
 		lines.push(`## \`${key}\``);
-		const text = pack[key] as string;
+		const text = typeof overrides?.[key] === "string"
+			? (overrides[key] as string)
+			: DEFAULT_AGENT_PROMPT_PACK[key];
 		const split = text.split("\n");
 		for (let j = 0; j < split.length; j++) {
 			lines.push(split[j]);
@@ -501,8 +505,8 @@ function ensurePromptPackConfig(projectRoot: string): string | undefined {
 	return undefined;
 }
 
-function rewriteDefaultPromptPackConfig(path: string): string | undefined {
-	const content = renderDefaultAgentPromptPackMarkdown();
+function rewriteDefaultPromptPackConfig(path: string, overrides?: Record<string, unknown>): string | undefined {
+	const content = renderDefaultAgentPromptPackMarkdown(overrides);
 	if (!Content.save(path, content)) {
 		return `Failed to recreate default Agent prompt config at ${path}. Using built-in defaults for this run.`;
 	}
@@ -514,6 +518,7 @@ function parsePromptPackMarkdown(text: string): {
 	value?: Record<string, unknown>;
 	missing: string[];
 	unknown: string[];
+	removed: string[];
 	error?: string;
 } {
 	if (!text || text.trim() === "") {
@@ -521,16 +526,24 @@ function parsePromptPackMarkdown(text: string): {
 			value: {},
 			missing: [...EXPOSED_PROMPT_PACK_KEYS],
 			unknown: [],
+			removed: [],
 		};
 	}
 	const normalized = text.replace("\r\n", "\n");
 	const lines = normalized.split("\n");
 	const sections: Record<string, string[]> = {};
 	const unknown: string[] = [];
+	const removed: string[] = [];
 	let currentHeading = "";
 	const isKnownPromptPackKey = (name: string): boolean => {
 		for (let i = 0; i < EXPOSED_PROMPT_PACK_KEYS.length; i++) {
 			if (EXPOSED_PROMPT_PACK_KEYS[i] === name) return true;
+		}
+		return false;
+	};
+	const isInternalPromptPackKey = (name: string): boolean => {
+		for (let i = 0; i < INTERNAL_PROMPT_PACK_KEYS.length; i++) {
+			if (INTERNAL_PROMPT_PACK_KEYS[i] === name) return true;
 		}
 		return false;
 	};
@@ -546,7 +559,13 @@ function parsePromptPackMarkdown(text: string): {
 				}
 				continue;
 			}
+			if (isInternalPromptPackKey(heading)) {
+				currentHeading = "";
+				removed.push(heading);
+				continue;
+			}
 			unknown.push(heading);
+			currentHeading = "";
 			continue;
 		}
 		if (currentHeading !== "") {
@@ -570,9 +589,10 @@ function parsePromptPackMarkdown(text: string): {
 			error: NO_PROMPT_PACK_SECTIONS_ERROR,
 			missing,
 			unknown,
+			removed,
 		};
 	}
-	return { value, missing, unknown };
+	return { value, missing, unknown, removed };
 }
 
 export function loadAgentPromptPack(projectRoot: string): { pack: AgentPromptPack; warnings: string[]; path: string } {
@@ -630,6 +650,14 @@ export function loadAgentPromptPack(projectRoot: string): { pack: AgentPromptPac
 	}
 	if (parsed.missing.length > 0) {
 		warnings.push(`Agent prompt config at ${path} is missing sections: ${parsed.missing.join(", ")}. Built-in defaults were used for those sections.`);
+	}
+	if (parsed.removed.length > 0) {
+		const rewriteWarning = rewriteDefaultPromptPackConfig(path, parsed.value);
+		if (rewriteWarning) {
+			warnings.push(rewriteWarning);
+		} else {
+			warnings.push(`Agent prompt config at ${path} contained internal tool/system prompt sections and was rewritten without them: ${parsed.removed.join(", ")}.`);
+		}
 	}
 	return {
 		pack: resolveAgentPromptPack(parsed.value),
