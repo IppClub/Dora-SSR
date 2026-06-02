@@ -25,6 +25,7 @@ const KeyboardShortcuts = () => {
 		{ description: t("menu.saveAll"), keys: ['Mod', (apple ? '⇧' : 'Shift'), 'S'] },
 		{ description: t("menu.viewLog"), keys: ['Mod', '.'] },
 		{ description: t("menu.stop"), keys: ['Mod', 'Q'] },
+		{ description: t("menu.buildProject"), keys: ['Mod', 'B'] },
 		{ description: t("menu.runThis"), keys: ['Mod', (apple ? '⇧' : 'Shift'), 'R'] },
 		{ description: t("menu.run"), keys: ['Mod', 'R'] },
 	];

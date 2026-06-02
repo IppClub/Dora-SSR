@@ -1270,46 +1270,30 @@ function sanitizeActionParamsForHistory(tool: AgentToolName, params: Record<stri
 	return clone;
 }
 
-function getDecisionToolDefinitions(shared?: AgentShared): string {
-	const base = replacePromptVars(
-		shared?.promptPack.toolDefinitionsDetailed ?? "",
-		{ SEARCH_DORA_API_LIMIT_MAX: tostring(SEARCH_DORA_API_LIMIT_MAX) }
+function getDecisionToolDefinitions(shared: AgentShared): string {
+	const params = { SEARCH_DORA_API_LIMIT_MAX: tostring(SEARCH_DORA_API_LIMIT_MAX) };
+	const base = shared.promptPack.toolDefinitionsDetailed;
+	const mainAgentTools = shared.role === "main" ?
+		shared.promptPack.mainAgentToolDefinitionsDetailed : "";
+	const availableTools = getAllowedToolsForRole(shared.role)
+		.filter(tool => shared.decisionMode === "xml" || tool !== "finish");
+	const availability = `
+
+Tool availability for this runtime:
+- role: ${shared.role}
+- allowed tools: ${availableTools.join(", ")}`;
+	const withRole = replacePromptVars(
+		`${base}${mainAgentTools}${availability}`,
+		params
 	);
-	const spawnTool = `
-
-10. list_sub_agents: Query sub-agent state under the current main session
-	- Parameters: status(optional), limit(optional), offset(optional), query(optional)
-	- Use this only when you do not already know the current sub-agent status and need to inspect running delegated work or recent completed results before deciding whether to dispatch more sub agents or read a result file.
-	- status defaults to active_or_recent and may also be running, done, failed, or all.
-	- limit defaults to a small recent window. Use offset to page older items.
-	- query filters by title, goal, or summary text.
-	- Do not use this after a successful spawn_sub_agent in the same turn.
-
-11. spawn_sub_agent: Create and start a sub agent session for delegated implementation work
-	- Parameters: title, prompt, expectedOutput(optional), filesHint(optional)
-	- Use this for large multi-file work, parallel exploration, long-running verification, or isolated execution tasks.
-	- For small focused edits, use edit_file/delete_file/build directly in the current main-agent run.
-	- The spawned sub agent can use read_file, edit_file, delete_file, grep_files, search_dora_api, glob_files, build, and finish.
-	- title should be short and specific.
-	- prompt should be self-contained and actionable, and should clearly describe the concrete work to execute, constraints, desired output, and any relevant files.
-	- If spawn succeeds, immediately finish the current turn and state that the work has been delegated.
-	- Do not call list_sub_agents or any other tool after a successful spawn_sub_agent in the same turn.
-	- Treat the actual implementation result as an asynchronous handoff that will be handled in later conversation turns.
-	- filesHint is an optional list of likely files or directories.`;
-	const availability = shared
-		? `\n\nTool availability for this runtime:\n- role: ${shared.role}\n- allowed tools: ${getAllowedToolsForRole(shared.role).join(", ")}`
-		: "";
-	const withRole = `${base}${shared?.role === "main" ? spawnTool : ""}${availability}`;
 	if (shared?.decisionMode !== "xml") {
 		return withRole;
 	}
-	return `${withRole}
-
-XML mode object fields:
-- Use a single root tag: <tool_call>.
-- For read_file, edit_file, delete_file, grep_files, search_dora_api, glob_files, and build, include <tool>, <reason>, and <params>.
-- For finish, do not include <reason>. Use only <tool> and <params><message>...</message></params>.
-- Inside <params>, use one child tag per parameter and preserve each tag content as raw text.`;
+	const xmlToolDefinitionsDetailed = shared.promptPack.xmlToolDefinitionsDetailed;
+	return replacePromptVars(
+		`${withRole}${xmlToolDefinitionsDetailed}`,
+		params
+	);
 }
 
 function isToolAllowedForRole(role: AgentRole, tool: AgentToolName): boolean {

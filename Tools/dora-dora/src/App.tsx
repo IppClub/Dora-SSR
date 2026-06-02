@@ -144,6 +144,19 @@ const isChildFolder = (child: string, parent: string) => {
 	return true;
 };
 
+const isSingleBuildFile = (key: string) => {
+	const ext = path.extname(key).toLowerCase();
+	const name = path.basename(key, ext);
+	if (path.extname(name) !== "") return false;
+	return ext === ".yue" ||
+		ext === ".tl" ||
+		ext === ".ts" ||
+		ext === ".tsx" ||
+		ext === ".xml" ||
+		ext === ".wa" ||
+		ext === ".mod";
+};
+
 const findTreeNode = (node: TreeDataType, key: string): TreeDataType | null => {
 	if (node.key === key) return node;
 	if (node.children !== undefined) {
@@ -691,6 +704,7 @@ export default function PersistentDrawerLeft() {
 	const [openBottomLog, setOpenBottomLog] = useState(false);
 	const [waitForSave, setWaitForSave] = useState(false);
 	const [isEditorActioning, setIsEditorActioning] = useState(false);
+	const [isProjectBuilding, setIsProjectBuilding] = useState(false);
 	const filesRef = useRef(files);
 	const treeDataRef = useRef(treeData);
 	const expandedKeysRef = useRef(expandedKeys);
@@ -816,6 +830,7 @@ export default function PersistentDrawerLeft() {
 					case 'S': case 's':
 					case 'W': case 'w':
 					case 'R': case 'r':
+					case 'B': case 'b':
 					case 'P': case 'p':
 					case 'Q': case 'q':
 					case '.': {
@@ -833,7 +848,7 @@ export default function PersistentDrawerLeft() {
 					}
 				}
 			}
-		}, false);
+		}, true);
 		window.addEventListener("resize", () => {
 			setDrawerOpen(open => {
 				setWinSize({
@@ -2484,6 +2499,240 @@ export default function PersistentDrawerLeft() {
 		});
 	}, [addAlert, files, tabIndex, t, switchTab]);
 
+	const buildTreeData = useCallback(async (data: TreeDataType) => {
+		const { key } = data;
+		let built = false;
+		const buildFile = async (key: string, buildFolder: boolean) => {
+			const preferLog = buildFolder;
+			if (checkFileReadonly(key, false)) return;
+			let title: string;
+			if (isChildFolder(key, writablePath)) {
+				title = path.relative(writablePath, key);
+			} else {
+				title = path.relative(assetPath, key);
+			}
+			const ext = path.extname(key).toLowerCase();
+			const name = path.basename(key, ext);
+			if (path.extname(name) === ".d") return;
+			const dir = path.dirname(key);
+			const luaFile = path.join(dir, name + ".lua");
+			const fileInTab = files.find(f => path.relative(f.key, luaFile) === "");
+			try {
+				if (ext === '.wa' && !buildFolder) {
+					built = true;
+					setIsWaSaving(true);
+					try {
+						const res = await Service.buildWa({ path: key });
+						if (res.success) {
+							addAlert(t("alert.build", { title }), "success");
+						} else {
+							addAlert(res.message, "error", true);
+							await Service.command({ code: `Log "Error", "${res.message.replace(/[\\"]/g, "\\$&")}"`, log: false });
+						}
+					} finally {
+						setIsWaSaving(false);
+					}
+				} else if (buildFolder && ext === '.mod') {
+					built = true;
+					setIsWaSaving(true);
+					try {
+						const res = await Service.buildWa({ path: key });
+						if (res.success) {
+							Service.command({ code: `Log "Info", "Built ${title.replace(/[\\"]/g, "\\$&")}"`, log: false });
+						} else {
+							await Service.command({ code: `Log "Error", "${res.message.replace(/[\\"]/g, "\\$&")}"`, log: false });
+						}
+					} finally {
+						setIsWaSaving(false);
+					}
+				} else if (!buildFolder && ext === '.mod') {
+					built = true;
+					setIsWaSaving(true);
+					try {
+						const res = await Service.buildWa({ path: key });
+						if (res.success) {
+							addAlert(t("alert.build", { title }), "success");
+						} else {
+							addAlert(res.message, "error", true);
+							await Service.command({ code: `Log "Error", "${res.message.replace(/[\\"]/g, "\\$&")}"`, log: false });
+						}
+					} finally {
+						setIsWaSaving(false);
+					}
+				} else if ((ext === '.ts' || ext === '.tsx') && !key.toLocaleLowerCase().endsWith(".d.ts")) {
+					built = true;
+					const res = await Service.read({ path: key });
+					if (res.success && res.content !== undefined) {
+						if (/^[\s\n\r]*<\?xml/.test(res.content)) {
+							return;
+						}
+						const { transpileTypescript, addDiagnosticToLog } = await import('./TranspileTS');
+						const { luaCode, diagnostics } = await transpileTypescript(key, res.content);
+						if (diagnostics.length > 0) {
+							await addDiagnosticToLog(key, diagnostics);
+							if (!preferLog) {
+								addAlert(t("alert.failedCompile", { title }), "warning");
+							}
+							return;
+						}
+						if (luaCode !== undefined) {
+							if (fileInTab !== undefined) {
+								fileInTab.content = luaCode;
+								const model = monaco.editor.getModel(monaco.Uri.file(luaFile));
+								if (model) {
+									model.setValue(luaCode);
+								}
+							}
+							const res = await Service.write({ path: luaFile, content: luaCode });
+							if (res.success) {
+								if (preferLog) {
+									Service.command({ code: `Log "Info", "Built ${title.replace(/[\\"]/g, "\\$&")}"`, log: false });
+								} else {
+									addAlert(t("alert.build", { title }), "success");
+								}
+							} else {
+								if (preferLog) {
+									Service.command({ code: `Log "Error", "Failed to save ${title.replace(/[\\"]/g, "\\$&")}"`, log: false });
+								} else {
+									addAlert(t("alert.saveCurrent"), "error");
+								}
+							}
+						}
+					}
+				} else if (ext === '.yue' || ext === '.tl' || ext === '.xml') {
+					const res = await Service.build({ path: key });
+					built = true;
+					if (res.success) {
+						if (preferLog) {
+							Service.command({ code: `Log "Info", "Built ${title.replace(/[\\"]/g, "\\$&")}"`, log: false });
+						} else {
+							addAlert(t("alert.build", { title }), "success");
+						}
+						if (fileInTab !== undefined) {
+							const resultCodes = res.resultCodes === undefined ? "" : res.resultCodes;
+							fileInTab.content = resultCodes;
+							setTimeout(() => {
+								const model = monaco.editor.getModel(monaco.Uri.file(luaFile));
+								if (model) {
+									model.setValue(resultCodes);
+								}
+							}, 10);
+						}
+					} else {
+						if (preferLog) {
+							Service.command({ code: `Log "Error", "Failed to build ${title.replace(/[\\"]/g, "\\$&")}"`, log: false });
+						} else {
+							addAlert(t("alert.failedCompile", { title }), "warning");
+						}
+					}
+				}
+			} catch (e) {
+				built = true;
+				console.error(e);
+				if (preferLog) {
+					Service.command({ code: `Log "Error", "Failed to build ${title.replace(/[\\"]/g, "\\$&")}"`, log: false });
+				} else {
+					addAlert(t("alert.failedCompile", { title }), "warning");
+				}
+			}
+		};
+		if (data.dir) {
+			const { title } = data;
+			setOpenLog({
+				title: t("menu.build") + " " + title,
+				stopOnClose: false
+			});
+			if (isSaving) {
+				addAlert(t("alert.waitForJob"), "info");
+				return;
+			}
+			isSaving = true;
+			const visitData = async (node: TreeDataType) => {
+				if (node.children !== undefined) {
+					for (let i = 0; i < node.children.length; i++) {
+						await visitData(node.children[i]);
+					}
+				}
+				if (node.dir) return;
+				await buildFile(node.key, true);
+			}
+			try {
+				await visitData(data);
+				await new Promise(resolve => setTimeout(resolve, 100));
+				Service.command({ code: `Log "Info", "${t(built ? "alert.buildDone" : "alert.noBuild", { title }).replace(/[\\"]/g, "\\$&")}"`, log: false });
+			} finally {
+				isSaving = false;
+			}
+		} else {
+			await buildFile(key, false);
+		}
+	}, [addAlert, checkFileReadonly, files, t]);
+
+	const buildCurrentProject = useCallback(async () => {
+		if (isProjectBuilding || isSaving) {
+			addAlert(t("alert.waitForJob"), "info");
+			return;
+		}
+		if (currentFile === undefined) {
+			addAlert(t("alert.buildProjectNoFile"), "info");
+			return;
+		}
+		const rootRes = await Service.projectRoot({ path: currentFile.key, isDir: currentFile.folder });
+		let buildTarget: TreeDataType | null = null;
+		if (rootRes.success && rootRes.found && rootRes.projectRoot) {
+			const runningSessionRes = await Service.agentRunningTasks();
+			if (!runningSessionRes.success) {
+				addAlert(runningSessionRes.message, "error", true);
+				return;
+			}
+			const runningSession = runningSessionRes.sessions[0];
+			if (runningSession !== undefined) {
+				addAlert(t("alert.buildProjectAgentRunning", { title: runningSession.title }), "info");
+				return;
+			}
+			const rootNode = treeDataRef.current.at(0);
+			const projectNode = rootNode !== undefined ? findTreeNode(rootNode, rootRes.projectRoot) : null;
+			if (projectNode === null || !projectNode.dir) {
+				addAlert(t("alert.buildProjectNoRoot"), "info");
+				return;
+			}
+			buildTarget = projectNode;
+		} else {
+			if (!rootRes.success) {
+				addAlert(rootRes.message ?? t("alert.buildProjectNoRoot"), "error");
+				return;
+			}
+			if (currentFile.folder || !isSingleBuildFile(currentFile.key)) {
+				addAlert(rootRes.message ?? t("alert.buildProjectNoRoot"), "info");
+				return;
+			}
+			buildTarget = {
+				key: currentFile.key,
+				title: currentFile.title,
+				dir: false,
+			};
+		}
+		if (buildTarget === null) return;
+		setIsProjectBuilding(true);
+		try {
+			try {
+				const stopRes = await Service.stop();
+				if (stopRes.success) {
+					addAlert(t("alert.stopped"), "success");
+					if (openLog?.stopOnClose) {
+						setOpenLog(null);
+					}
+				}
+			} catch {
+				addAlert(t("alert.stopFailed"), "error");
+				return;
+			}
+			await buildTreeData(buildTarget);
+		} finally {
+			setIsProjectBuilding(false);
+		}
+	}, [addAlert, buildTreeData, currentFile, isProjectBuilding, openLog?.stopOnClose, t]);
+
 	const onTreeMenuClick = useCallback((event: TreeMenuEvent, data?: TreeDataType) => {
 		if (isSaving) {
 			addAlert(t("alert.waitForJob"), "info");
@@ -2732,176 +2981,7 @@ export default function PersistentDrawerLeft() {
 				break;
 			}
 			case "Build": {
-				const { key } = data;
-				let built = false;
-				const buildFile = async (key: string, buildFolder: boolean) => {
-					const preferLog = buildFolder;
-					if (checkFileReadonly(key, false)) return;
-					let title: string;
-					if (isChildFolder(key, writablePath)) {
-						title = path.relative(writablePath, key);
-					} else {
-						title = path.relative(assetPath, key);
-					}
-					const ext = path.extname(key).toLowerCase();
-					const name = path.basename(key, ext);
-					if (path.extname(name) === ".d") return;
-					const dir = path.dirname(key);
-					const luaFile = path.join(dir, name + ".lua");
-					const fileInTab = files.find(f => path.relative(f.key, luaFile) === "");
-					try {
-						if (ext === '.wa' && !buildFolder) {
-							built = true;
-							setIsWaSaving(true);
-							try {
-								const res = await Service.buildWa({ path: key });
-								if (res.success) {
-									addAlert(t("alert.build", { title }), "success");
-								} else {
-									addAlert(res.message, "error", true);
-									await Service.command({ code: `Log "Error", "${res.message.replace(/[\\"]/g, "\\$&")}"`, log: false });
-								}
-							} finally {
-								setIsWaSaving(false);
-							}
-						} else if (buildFolder && ext === '.mod') {
-							built = true;
-							setIsWaSaving(true);
-							try {
-								const res = await Service.buildWa({ path: key });
-								if (res.success) {
-									Service.command({ code: `Log "Info", "Built ${title.replace(/[\\"]/g, "\\$&")}"`, log: false });
-								} else {
-									await Service.command({ code: `Log "Error", "${res.message.replace(/[\\"]/g, "\\$&")}"`, log: false });
-								}
-							} finally {
-								setIsWaSaving(false);
-							}
-						} else if (!buildFolder && ext === '.mod') {
-							built = true;
-							setIsWaSaving(true);
-							try {
-								const res = await Service.buildWa({ path: key });
-								if (res.success) {
-									addAlert(t("alert.build", { title }), "success");
-								} else {
-									addAlert(res.message, "error", true);
-									await Service.command({ code: `Log "Error", "${res.message.replace(/[\\"]/g, "\\$&")}"`, log: false });
-								}
-							} finally {
-								setIsWaSaving(false);
-							}
-						} else if ((ext === '.ts' || ext === '.tsx') && !key.toLocaleLowerCase().endsWith(".d.ts")) {
-							built = true;
-							const res = await Service.read({ path: key });
-							if (res.success && res.content !== undefined) {
-								if (/^[\s\n\r]*<\?xml/.test(res.content)) {
-									// TiledMapEditor file format, skip transpiling
-									return;
-								}
-								const { transpileTypescript, addDiagnosticToLog } = await import('./TranspileTS');
-								const { luaCode, diagnostics } = await transpileTypescript(key, res.content);
-								if (diagnostics.length > 0) {
-									await addDiagnosticToLog(key, diagnostics);
-									if (!preferLog) {
-										addAlert(t("alert.failedCompile", { title }), "warning");
-									}
-									return;
-								}
-								if (luaCode !== undefined) {
-									if (fileInTab !== undefined) {
-										fileInTab.content = luaCode;
-										const model = monaco.editor.getModel(monaco.Uri.file(luaFile));
-										if (model) {
-											model.setValue(luaCode);
-										}
-									}
-									const res = await Service.write({ path: luaFile, content: luaCode });
-									if (res.success) {
-										if (preferLog) {
-											Service.command({ code: `Log "Info", "Built ${title.replace(/[\\"]/g, "\\$&")}"`, log: false });
-										} else {
-											addAlert(t("alert.build", { title }), "success");
-										}
-									} else {
-										if (preferLog) {
-											Service.command({ code: `Log "Error", "Failed to save ${title.replace(/[\\"]/g, "\\$&")}"`, log: false });
-										} else {
-											addAlert(t("alert.saveCurrent"), "error");
-										}
-									}
-								}
-							}
-						} else if (ext === '.yue' || ext === '.tl' || ext === '.xml') {
-							const res = await Service.build({ path: key });
-							built = true;
-							if (res.success) {
-								if (preferLog) {
-									Service.command({ code: `Log "Info", "Built ${title.replace(/[\\"]/g, "\\$&")}"`, log: false });
-								} else {
-									addAlert(t("alert.build", { title }), "success");
-								}
-								if (fileInTab !== undefined) {
-									const resultCodes = res.resultCodes === undefined ? "" : res.resultCodes;
-									fileInTab.content = resultCodes;
-									setTimeout(() => {
-										const model = monaco.editor.getModel(monaco.Uri.file(luaFile));
-										if (model) {
-											model.setValue(resultCodes);
-										}
-									}, 10);
-								}
-							} else {
-								if (preferLog) {
-									Service.command({ code: `Log "Error", "Failed to build ${title.replace(/[\\"]/g, "\\$&")}"`, log: false });
-								} else {
-									addAlert(t("alert.failedCompile", { title }), "warning");
-								}
-							}
-						}
-					} catch (e) {
-						built = true;
-						console.error(e);
-						if (preferLog) {
-							Service.command({ code: `Log "Error", "Failed to build ${title.replace(/[\\"]/g, "\\$&")}"`, log: false });
-						} else {
-							addAlert(t("alert.failedCompile", { title }), "warning");
-						}
-					}
-				};
-				if (data.dir) {
-					const { title } = data;
-					setOpenLog({
-						title: t("menu.build") + " " + title,
-						stopOnClose: false
-					});
-					const buildAllFiles = async () => {
-						if (isSaving) {
-							addAlert(t("alert.waitForJob"), "info");
-							return;
-						}
-						isSaving = true;
-						const visitData = async (node: TreeDataType) => {
-							if (node.children !== undefined) {
-								for (let i = 0; i < node.children.length; i++) {
-									await visitData(node.children[i]);
-								}
-							}
-							if (node.dir) return;
-							await buildFile(node.key, true);
-						}
-						try {
-							await visitData(data);
-							await new Promise(resolve => setTimeout(resolve, 100));
-							Service.command({ code: `Log "Info", "${t(built ? "alert.buildDone" : "alert.noBuild", { title }).replace(/[\\"]/g, "\\$&")}"`, log: false });
-						} finally {
-							isSaving = false;
-						}
-					};
-					buildAllFiles();
-				} else {
-					buildFile(key, false);
-				}
+				void buildTreeData(data);
 				break;
 			}
 			case "View Compiled": {
@@ -2945,7 +3025,7 @@ export default function PersistentDrawerLeft() {
 				break;
 			}
 		}
-	}, [addAlert, checkFileReadonly, loadAssets, t, files, deleteFile, treeData, openFileInTab, onEditorDidMount, switchTab, openAgentSessionTab]);
+	}, [addAlert, buildTreeData, loadAssets, t, files, deleteFile, treeData, openFileInTab, onEditorDidMount, switchTab, openAgentSessionTab]);
 
 	const onNewFileClose = (item?: DoraFileType) => {
 		let ext: string | null = null;
@@ -3547,6 +3627,10 @@ export default function PersistentDrawerLeft() {
 			}
 			return;
 		}
+		if (isProjectBuilding && (mode === "Run" || mode === "Run This")) {
+			addAlert(t("alert.waitForJob"), "info");
+			return;
+		}
 		if (isSaving) {
 			let isMD = false;
 			if (tabIndex !== null) {
@@ -3575,7 +3659,7 @@ export default function PersistentDrawerLeft() {
 				}
 			}
 		});
-	}, [addAlert, openLog, t, onStopRunning, saveAllTabs, onPlayControlRun, files, tabIndex]);
+	}, [addAlert, openLog, t, onStopRunning, saveAllTabs, onPlayControlRun, files, tabIndex, isProjectBuilding]);
 
 	const saveCurrentTab = useCallback(async () => {
 		if (tabIndex === null) return;
@@ -3700,6 +3784,12 @@ export default function PersistentDrawerLeft() {
 				case 'R': case 'r': {
 					const shift = event.shiftKey;
 					onPlayControlClick(shift ? "Run This" : "Run");
+					break;
+				}
+				case 'B': case 'b': {
+					if (event.shiftKey) break;
+					event.preventDefault();
+					void buildCurrentProject();
 					break;
 				}
 				case 'P': case 'p': {
@@ -4904,7 +4994,13 @@ export default function PersistentDrawerLeft() {
 					}}>
 					</Box>
 					<Box sx={{ display: 'flex', alignItems: 'center', height: '100%', flexShrink: 0 }}>
-						<PlayControl compact onClick={onPlayControlClick} />
+						<PlayControl
+							compact
+							onClick={onPlayControlClick}
+							buildProjectAction={{
+								onClick: () => void buildCurrentProject(),
+							}}
+						/>
 					</Box>
 				</Box>
 				<div style={{ zIndex: 1200 }}>

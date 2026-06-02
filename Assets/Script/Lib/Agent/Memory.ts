@@ -184,6 +184,8 @@ export interface AgentPromptPack {
 	subAgentRolePrompt: string;
 	functionCallingPrompt: string;
 	toolDefinitionsDetailed: string;
+	mainAgentToolDefinitionsDetailed: string;
+	xmlToolDefinitionsDetailed: string;
 	replyLanguageDirectiveZh: string;
 	replyLanguageDirectiveEn: string;
 	toolCallingRetryPrompt: string;
@@ -280,10 +282,37 @@ You may return multiple tool calls in one response when the calls are independen
 7. build: Do compiling and static checks for ts/tsx, teal, lua, yue, yarn
 	- Parameters: path(optional)
 	- \`path\` can be workspace-relative file or directory to build.
-	- Read the result and then decide whether another action is needed.
+	- Read the result and then decide whether another action is needed.`,
+	mainAgentToolDefinitionsDetailed: `
+9. list_sub_agents: Query sub-agent state under the current main session
+	- Parameters: status(optional), limit(optional), offset(optional), query(optional)
+	- Use this only when you do not already know the current sub-agent status and need to inspect running delegated work or recent completed results before deciding whether to dispatch more sub agents or read a result file.
+	- status defaults to active_or_recent and may also be running, done, failed, or all.
+	- limit defaults to a small recent window. Use offset to page older items.
+	- query filters by title, goal, or summary text.
+	- Do not use this after a successful spawn_sub_agent in the same turn.
+
+10. spawn_sub_agent: Create and start a sub agent session for delegated implementation work
+	- Parameters: title, prompt, expectedOutput(optional), filesHint(optional)
+	- Use this for large multi-file work, parallel exploration, long-running verification, or isolated execution tasks.
+	- For small focused edits, use edit_file/delete_file/build directly in the current main-agent run.
+	- The spawned sub agent can use read_file, edit_file, delete_file, grep_files, search_dora_api, glob_files, build, and finish.
+	- title should be short and specific.
+	- prompt should be self-contained and actionable, and should clearly describe the concrete work to execute, constraints, desired output, and any relevant files.
+	- If spawn succeeds, immediately finish the current turn and state that the work has been delegated.
+	- Do not call list_sub_agents or any other tool after a successful spawn_sub_agent in the same turn.
+	- Treat the actual implementation result as an asynchronous handoff that will be handled in later conversation turns.
+	- filesHint is an optional list of likely files or directories.`,
+	xmlToolDefinitionsDetailed: `
 
 8. finish: End the task and reply directly to the user
-	- Parameters: message`,
+	- Parameters: message
+
+XML mode object fields:
+- Use a single root tag: <tool_call>.
+- For read_file, edit_file, delete_file, grep_files, search_dora_api, glob_files, and build, include <tool>, <reason>, and <params>.
+- For finish, do not include <reason>. Use only <tool> and <params><message>...</message></params>.
+- Inside <params>, use one child tag per parameter and preserve each tag content as raw text.`,
 	replyLanguageDirectiveZh: "Use Simplified Chinese for natural-language fields (message/summary).",
 	replyLanguageDirectiveEn: "Use English for natural-language fields (message/summary).",
 	toolCallingRetryPrompt: "Previous response was invalid ({{LAST_ERROR}}). Retry with one or more valid tool calls.",
@@ -431,6 +460,8 @@ const EXPOSED_PROMPT_PACK_KEYS: (keyof AgentPromptPack)[] = [
 const INTERNAL_PROMPT_PACK_KEYS: (keyof AgentPromptPack)[] = [
 	"functionCallingPrompt",
 	"toolDefinitionsDetailed",
+	"mainAgentToolDefinitionsDetailed",
+	"xmlToolDefinitionsDetailed",
 	"toolCallingRetryPrompt",
 	"xmlDecisionFormatPrompt",
 	"xmlDecisionRepairPrompt",
