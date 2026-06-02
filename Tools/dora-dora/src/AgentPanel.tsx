@@ -2,6 +2,7 @@ import React, { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
+import CircularProgress from '@mui/material/CircularProgress';
 import IconButton from '@mui/material/IconButton';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
@@ -65,11 +66,13 @@ function getFiniteNumber(value: unknown): number | undefined {
 
 export default function AgentPanel(props: AgentPanelProps) {
 	const HISTORY_VISIBLE_ROUNDS = 10;
-	const { t } = useTranslation();
+	const { t, i18n } = useTranslation();
 	const { sessionId, projectRoot, title, height, showHeader = true, addAlert, onRollbackComplete, onOpenFile, onOpenLLMConfig } = props;
 	const [selectedSessionId, setSelectedSessionId] = useState(sessionId);
 	const [prompt, setPrompt] = useState("");
 	const [loading, setLoading] = useState(false);
+	const [continueLoadingTaskId, setContinueLoadingTaskId] = useState<number | null>(null);
+	const [continuedTaskIds, setContinuedTaskIds] = useState<Set<number>>(() => new Set());
 	const [rollingBack, setRollingBack] = useState<number | null>(null);
 	const [session, setSession] = useState<Service.AgentSession | null>(null);
 	const [relatedSessions, setRelatedSessions] = useState<Service.AgentSession[]>([]);
@@ -289,6 +292,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 
 	useEffect(() => {
 		setVisibleHistoryRounds(HISTORY_VISIBLE_ROUNDS);
+		setContinuedTaskIds(new Set());
 	}, [selectedSessionId]);
 
 	const hasAnyRunningSession = useMemo(() => {
@@ -376,6 +380,17 @@ export default function AgentPanel(props: AgentPanelProps) {
 		if (!taskId) return steps;
 		return steps.filter(step => step.taskId === taskId);
 	}, [steps, session?.currentTaskId]);
+
+	const continuableTaskId = useMemo(() => {
+		if (session?.currentTaskStatus !== "FAILED" && session?.currentTaskStatus !== "STOPPED") {
+			return null;
+		}
+		const taskId = session?.currentTaskId;
+		if (!taskId) {
+			return null;
+		}
+		return continuedTaskIds.has(taskId) ? null : taskId;
+	}, [continuedTaskIds, session?.currentTaskId, session?.currentTaskStatus]);
 
 	const activeTaskId = useMemo(() => {
 		if (session?.currentTaskId) return session.currentTaskId;
@@ -507,7 +522,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 
 	const onSend = async () => {
 		const text = prompt.trim();
-		if (text === "" || loading) return;
+		if (text === "" || loading || continueLoadingTaskId !== null) return;
 		setLoading(true);
 		try {
 			const llmReady = await checkLLMConfigReady();
@@ -533,6 +548,46 @@ export default function AgentPanel(props: AgentPanelProps) {
 			await refresh(true, selectedSessionId);
 		} finally {
 			setLoading(false);
+		}
+	};
+
+	const getContinuePrompt = React.useCallback(() => {
+		const language = `${i18n.resolvedLanguage ?? i18n.language ?? ""}`.toLowerCase();
+		return language.startsWith("zh") ? "继续" : "continue";
+	}, [i18n.language, i18n.resolvedLanguage]);
+
+	const onContinueTask = async () => {
+		const taskId = continuableTaskId;
+		if (!taskId || loading || continueLoadingTaskId !== null || session?.currentTaskStatus === "RUNNING") return;
+		setContinueLoadingTaskId(taskId);
+		try {
+			const llmReady = await checkLLMConfigReady();
+			if (!llmReady) {
+				addAlert?.(t("agent.noLLMConfigAlert"), "error");
+				return;
+			}
+			const res = await Service.agentSessionSend({
+				sessionId: selectedSessionId,
+				prompt: getContinuePrompt(),
+			});
+			if (!res.success) {
+				if (res.message === "no active LLM config") {
+					setLLMConfigMissing(true);
+					addAlert?.(t("agent.noLLMConfigAlert"), "error");
+					return;
+				}
+				addAlert?.(res.message, "error");
+				return;
+			}
+			setLLMConfigMissing(false);
+			setContinuedTaskIds(prev => {
+				const next = new Set(prev);
+				next.add(taskId);
+				return next;
+			});
+			await refresh(true, selectedSessionId);
+		} finally {
+			setContinueLoadingTaskId(null);
 		}
 	};
 
@@ -813,13 +868,39 @@ export default function AgentPanel(props: AgentPanelProps) {
 								/>
 							</Box>
 						) : null}
-						{showSummaryShimmer || visibleSummaryMessages.length > 0 ? (
+						{showSummaryShimmer || visibleSummaryMessages.length > 0 || continuableTaskId ? (
 							<Box>
-								{visibleSummaryMessages.length > 0 ? (
+								{visibleSummaryMessages.length > 0 || continuableTaskId ? (
 									<Typography variant="overline" sx={{ color: Color.TextSecondary, letterSpacing: "0.08em", display: "block", mb: 1.25 }}>{t("agent.summary")}</Typography>
 								) : null}
 								{visibleSummaryMessages.length > 0 ? (
 									<AgentMessageList messages={visibleSummaryMessages} />
+								) : null}
+								{continuableTaskId ? (
+									<Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1.5 }}>
+										<Button
+											size="small"
+											variant="outlined"
+											onClick={() => void onContinueTask()}
+											disabled={loading || session?.currentTaskStatus === "RUNNING" || continueLoadingTaskId !== null}
+											sx={{
+												color: Color.TextSecondary,
+												borderColor: Color.Line,
+												borderRadius: 999,
+												"&.Mui-disabled": {
+													color: Color.TextSecondary,
+													borderColor: Color.Line,
+												},
+												"&:hover": {
+													borderColor: Color.Line,
+													backgroundColor: "rgba(255,255,255,0.03)",
+												},
+											}}
+										>
+											{t("agent.continueTask")}
+										</Button>
+										{continueLoadingTaskId === continuableTaskId ? <CircularProgress size={16} /> : null}
+									</Stack>
 								) : null}
 								{visibleSummaryMessages.length > 0 && currentTaskChangeSet && currentTaskChangeSet.filesChanged > 0 ? (
 									<AgentChangeSetSummaryCard
@@ -865,7 +946,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 			</MacScrollbar>
 			<AgentComposer
 				prompt={prompt}
-				loading={loading}
+				loading={loading || continueLoadingTaskId !== null}
 				running={session?.currentTaskStatus === "RUNNING"}
 				canStop={session?.currentTaskStatus === "RUNNING" && session?.currentTaskFinalizing !== true}
 				tabButtons={tabButtons}

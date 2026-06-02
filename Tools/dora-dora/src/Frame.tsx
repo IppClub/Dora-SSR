@@ -11,6 +11,7 @@ import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
 import Stack from '@mui/system/Stack';
 import { Box, Divider, IconButton, Tooltip } from '@mui/material';
 import { BsFillFileEarmarkPlayFill, BsFillPlayFill, BsFillStopFill, BsSearch, BsTerminal, BsGear } from 'react-icons/bs';
+import { GoChecklist } from "react-icons/go";
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { theme, Color } from './Theme';
@@ -96,6 +97,9 @@ export type PlayControlMode = "Run" | "Run This" | "Stop" | "Go to File" | "View
 export interface PlayControlProp {
 	onClick: (mode: PlayControlMode, noLog?: boolean) => void;
 	compact?: boolean;
+	buildProjectAction?: {
+		onClick: () => void;
+	};
 }
 
 export const PlayControl = memo((prop: PlayControlProp) => {
@@ -130,17 +134,25 @@ export const PlayControl = memo((prop: PlayControlProp) => {
 		{ mode: "Go to File", icon: <BsSearch style={iconStyle} />, name: t("menu.goToFile"), shortcut: "Mod+P" },
 		{ mode: "LLM Config", icon: <BsGear style={iconStyle} />, name: t("menu.llmConfig") },
 	];
-	return <Box style={{
-		backgroundColor: "#0000",
-		width: controlWidth === undefined ? "auto" : `${controlWidth}px`,
-		height: `${controlHeight}px`,
-		color: Color.Primary,
-		flexShrink: 0,
-		display: "flex",
-		alignItems: "center",
-		justifyContent: "center",
-	}}>
-		{actions.map((action) => (
+	const actionItems: React.ReactNode[] = [];
+	for (const action of actions) {
+		if (action.mode === "View Log" && prop.buildProjectAction !== undefined) {
+			actionItems.push(
+				<Tooltip key="Build Project" title={`${t("menu.buildProject")} Mod+B`}>
+					<span>
+						<IconButton
+							color="secondary"
+							aria-label={t("menu.buildProject")}
+							onClick={prop.buildProjectAction.onClick}
+							sx={buttonSx}
+						>
+							<GoChecklist style={iconStyle} />
+						</IconButton>
+					</span>
+				</Tooltip>
+			);
+		}
+		actionItems.push(
 			<Tooltip key={action.mode} title={action.shortcut ? `${action.name} ${action.shortcut}` : action.name}>
 				<IconButton
 					color="secondary"
@@ -151,6 +163,18 @@ export const PlayControl = memo((prop: PlayControlProp) => {
 					{action.icon}
 				</IconButton>
 			</Tooltip>
-		))}
+		);
+	}
+	return <Box style={{
+		backgroundColor: "#0000",
+		width: controlWidth === undefined ? "auto" : `${controlWidth}px`,
+		height: `${controlHeight}px`,
+		color: Color.Primary,
+		flexShrink: 0,
+		display: "flex",
+		alignItems: "center",
+		justifyContent: "center",
+	}}>
+		{actionItems}
 	</Box>;
 });
