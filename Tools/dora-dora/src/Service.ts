@@ -744,6 +744,26 @@ export const run = (req: RunRequest) => {
 	return post<RunResponse>("/run", req);
 };
 
+export type RunStatusResponse = {
+	success: true;
+	running: false;
+} | {
+	success: true;
+	running: true;
+	kind: "project" | "file";
+	entryName?: string;
+	fileName?: string;
+	workDir?: string;
+	projectRoot?: string;
+} | {
+	success: false;
+	message?: string;
+};
+
+export const runStatus = () => {
+	return post<RunStatusResponse>("/run/status");
+};
+
 // Stop
 
 export interface StopResponse {
@@ -1134,7 +1154,7 @@ export type AgentSessionDetailResponse = {
 
 export type AgentRunningSessionsResponse = {
 	success: true;
-	sessions: AgentSession[];
+	sessions?: AgentSession[];
 } | {
 	success: false;
 	message: string;

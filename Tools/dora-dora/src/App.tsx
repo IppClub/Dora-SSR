@@ -640,6 +640,8 @@ export default function PersistentDrawerLeft() {
 		key: string,
 		type: AlertColor,
 		openLog?: boolean,
+		actionLabel?: string,
+		onAction?: () => void,
 		count: number,
 		pulse: number,
 	}[]>([]);
@@ -714,6 +716,7 @@ export default function PersistentDrawerLeft() {
 	const tabIndexRef = useRef(tabIndex);
 	const pendingUpdateFilesRef = useRef(new Map<string, UpdateFileEvent>());
 	const updateFileFlushTimerRef = useRef<number | null>(null);
+	const notifiedAgentTaskEndKeysRef = useRef(new Set<string>());
 	const openFileInTabRef = useRef<(key: string, title: string, folder: boolean, position?: monaco.IPosition, readOnly?: boolean) => void>(() => { });
 
 	const removeAlert = useCallback((key: string) => {
@@ -725,34 +728,38 @@ export default function PersistentDrawerLeft() {
 		setAlerts((prevState) => prevState.filter(a => a.key !== key));
 	}, []);
 
-	const addAlert = useCallback((msg: string, type: AlertColor, openLog?: boolean) => {
+	const addAlert = useCallback((msg: string, type: AlertColor, openLog?: boolean, action?: { label: string; onClick: () => void }) => {
 		const key = `${type}:${openLog ? "1" : "0"}:${msg}`;
 		const prevTimer = alertTimersRef.current.get(key);
 		if (prevTimer !== undefined) {
 			window.clearTimeout(prevTimer);
 		}
-		setAlerts((prevState) => {
-			const index = prevState.findIndex(item => item.key === key);
-			const nextState = [...prevState];
-			if (index >= 0) {
-				const item = nextState[index];
-				nextState.splice(index, 1);
-				nextState.push({
-					...item,
-					count: item.count + 1,
-					pulse: item.pulse + 1,
-					openLog: item.openLog || openLog,
-				});
-			} else {
-				nextState.push({
-					msg,
-					key,
-					type,
-					openLog,
-					count: 1,
-					pulse: 0,
-				});
-			}
+			setAlerts((prevState) => {
+				const index = prevState.findIndex(item => item.key === key);
+				const nextState = [...prevState];
+				if (index >= 0) {
+					const item = nextState[index];
+					nextState.splice(index, 1);
+					nextState.push({
+						...item,
+						count: item.count + 1,
+						pulse: item.pulse + 1,
+						openLog: item.openLog || openLog,
+						actionLabel: action?.label ?? item.actionLabel,
+						onAction: action?.onClick ?? item.onAction,
+					});
+				} else {
+					nextState.push({
+						msg,
+						key,
+						type,
+						openLog,
+						actionLabel: action?.label,
+						onAction: action?.onClick,
+						count: 1,
+						pulse: 0,
+					});
+				}
 			const visible = nextState.slice(-3);
 			for (const item of nextState.slice(0, -3)) {
 				const timer = alertTimersRef.current.get(item.key);
@@ -1107,7 +1114,7 @@ export default function PersistentDrawerLeft() {
 			addAlert(runningSessionRes.message, "error", true);
 			return;
 		}
-		const runningSession = runningSessionRes.sessions[0];
+		const runningSession = runningSessionRes.sessions?.[0];
 		if (runningSession !== undefined) {
 			addAlert(t("log.fixAgentRunning", { title: runningSession.title }), "info");
 			return;
@@ -1971,6 +1978,40 @@ export default function PersistentDrawerLeft() {
 	}, []);
 
 	useEffect(() => {
+		const terminalStatuses = new Set(["DONE", "FAILED", "STOPPED"]);
+		const onPatch = (patch: Service.AgentSessionPatch) => {
+			const session = patch.session;
+			const taskStatus = session?.currentTaskStatus;
+			const taskId = session?.currentTaskId;
+			if (!session || !taskId || !taskStatus || !terminalStatuses.has(taskStatus)) {
+				return;
+			}
+			const notifyKey = `${session.id}:${taskId}:${taskStatus}`;
+			if (notifiedAgentTaskEndKeysRef.current.has(notifyKey)) {
+				return;
+			}
+			notifiedAgentTaskEndKeysRef.current.add(notifyKey);
+			const activeFile = tabIndexRef.current !== null ? filesRef.current[tabIndexRef.current] : undefined;
+			const activeView = activeFile?.workspaceView ?? (activeFile?.agentSessionId !== undefined ? "agent" : undefined);
+			const activeSessionTabOpen = activeView === "agent"
+				&& (activeFile?.agentSessionId === session.id || activeFile?.agentSessionId === session.rootSessionId);
+			if (activeSessionTabOpen) {
+				return;
+			}
+			addAlert(t("alert.agentTaskDone", { title: session.title }), "info", false, {
+				label: t("agent.open"),
+				onClick: () => {
+					void openAgentSessionTab(session.projectRoot, true);
+				},
+			});
+		};
+		Service.addAgentSessionPatchListener(onPatch);
+		return () => {
+			Service.removeAgentSessionPatchListener(onPatch);
+		};
+	}, [addAlert, openAgentSessionTab, t]);
+
+	useEffect(() => {
 		if (jumpToFile !== null) {
 			openFileInTab(jumpToFile.key, jumpToFile.title, false, {
 				lineNumber: jumpToFile.row,
@@ -2078,17 +2119,21 @@ export default function PersistentDrawerLeft() {
 		})();
 	}, [files, loadAssets, switchTab, tabIndex]);
 
+	const getRunningAgentSessionForProject = useCallback(async (projectRoot: string) => {
+		const runningSessionRes = await Service.agentRunningTasks();
+		if (!runningSessionRes.success) {
+			return runningSessionRes;
+		}
+		return {
+			success: true as const,
+			session: runningSessionRes.sessions?.find(item => item.projectRoot === projectRoot),
+		};
+	}, []);
+
 	const onPlayControlRun = useCallback(async (mode: "Run" | "Run This", noLog?: boolean, bottomLog?: boolean) => {
 		if (isEditorActioning) {
 			return;
 		}
-		const runningSessionRes = await Service.agentRunningTasks();
-		const runningSession = runningSessionRes.success ? (runningSessionRes.sessions[0] ?? null) : null;
-		if (runningSession) {
-			addAlert(t("alert.agentRunning", { title: runningSession.title }), "info");
-			return;
-		}
-		setOpenBottomLog(bottomLog ?? false);
 		let key: string | null = null;
 		let title: string | null = null;
 		let dir = false;
@@ -2153,6 +2198,19 @@ export default function PersistentDrawerLeft() {
 				if (ext === ".mod" && !asProj) {
 					asProj = true;
 				}
+				const rootRes = await Service.projectRoot({ path: key, isDir: false });
+				if (rootRes.success && rootRes.found && rootRes.projectRoot) {
+					const runningAgentRes = await getRunningAgentSessionForProject(rootRes.projectRoot);
+					if (!runningAgentRes.success) {
+						addAlert(runningAgentRes.message, "error", true);
+						return;
+					}
+					if (runningAgentRes.session !== undefined) {
+						addAlert(t("alert.agentRunning", { title: runningAgentRes.session.title }), "info");
+						return;
+					}
+				}
+				setOpenBottomLog(bottomLog ?? false);
 				Service.run({ file: key, asProj }).then((res) => {
 					if (res.success) {
 						addAlert(t("alert.run", { title: res.target ?? title }), "success");
@@ -2177,7 +2235,7 @@ export default function PersistentDrawerLeft() {
 			}
 		}
 		addAlert(t("alert.runFailed", { title }), "info");
-	}, [addAlert, files, tabIndex, t, selectedNode, isEditorActioning]);
+	}, [addAlert, files, getRunningAgentSessionForProject, tabIndex, t, selectedNode, isEditorActioning]);
 
 	const onLaunchToolEntry = useCallback((entry: Service.EntryLaunchInfo) => {
 		Service.run({ file: entry.file, asProj: entry.asProj }).then((res) => {
@@ -2759,14 +2817,13 @@ export default function PersistentDrawerLeft() {
 		const rootRes = await Service.projectRoot({ path: currentFile.key, isDir: currentFile.folder });
 		let buildTarget: TreeDataType | null = null;
 		if (rootRes.success && rootRes.found && rootRes.projectRoot) {
-			const runningSessionRes = await Service.agentRunningTasks();
-			if (!runningSessionRes.success) {
-				addAlert(runningSessionRes.message, "error", true);
+			const runningAgentRes = await getRunningAgentSessionForProject(rootRes.projectRoot);
+			if (!runningAgentRes.success) {
+				addAlert(runningAgentRes.message, "error", true);
 				return;
 			}
-			const runningSession = runningSessionRes.sessions[0];
-			if (runningSession !== undefined) {
-				addAlert(t("alert.buildProjectAgentRunning", { title: runningSession.title }), "info");
+			if (runningAgentRes.session !== undefined) {
+				addAlert(t("alert.buildProjectAgentRunning", { title: runningAgentRes.session.title }), "info");
 				return;
 			}
 			const rootNode = treeDataRef.current.at(0);
@@ -2810,7 +2867,7 @@ export default function PersistentDrawerLeft() {
 		} finally {
 			setIsProjectBuilding(false);
 		}
-	}, [addAlert, buildTreeData, currentFile, isProjectBuilding, openLog?.stopOnClose, t]);
+	}, [addAlert, buildTreeData, currentFile, getRunningAgentSessionForProject, isProjectBuilding, openLog?.stopOnClose, t]);
 
 	const onTreeMenuClick = useCallback((event: TreeMenuEvent, data?: TreeDataType) => {
 		if (isSaving) {
@@ -5139,6 +5196,14 @@ export default function PersistentDrawerLeft() {
 											{item.openLog ? (
 												<Link color="inherit" underline="hover" onClick={() => onPlayControlClick("View Log")} sx={{ ml: 1, color: Color.Theme, cursor: 'pointer', fontSize: 12 }}>
 													{t("menu.viewLog")}
+												</Link>
+											) : null}
+											{item.onAction && item.actionLabel ? (
+												<Link color="inherit" underline="hover" onClick={() => {
+													item.onAction?.();
+													removeAlert(item.key);
+												}} sx={{ ml: 1, color: Color.Theme, cursor: 'pointer', fontSize: 12 }}>
+													{item.actionLabel}
 												</Link>
 											) : null}
 										</Box>

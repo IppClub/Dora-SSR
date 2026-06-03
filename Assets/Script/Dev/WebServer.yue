@@ -160,7 +160,11 @@ HttpServer\post "/agent/task/status", (req): invalidArguments ->
 			steps: res.steps
 			checkpoints: checkpoints
 
-HttpServer\post "/agent/task/running", -> AgentSession.listRunningSessions!
+HttpServer\post "/agent/task/running", ->
+	res = AgentSession.listRunningSessions!
+	if res.success and #res.sessions == 0
+		res.sessions = nil
+	res
 
 HttpServer\post "/agent/task/stop", (req): invalidArguments ->
 	switch req when {body: {:sessionId}}
@@ -1290,6 +1294,10 @@ HttpServer\post "/entry/list", ->
 	res.success = true
 	res
 
+HttpServer\post "/run/status", ->
+	import "Script.Dev.Entry"
+	Entry.getCurrentEntryStatus!
+
 HttpServer\postSchedule "/run", (req): success: false ->
 	switch req when {body: {:file, :asProj}}
 		if not Content\isAbsolutePath file
@@ -1301,17 +1309,21 @@ HttpServer\postSchedule "/run", (req): success: false ->
 			if workDir := getProjectDirFromFile file
 				Entry.allClear!
 				target = Path workDir, "init"
-				success, err = Entry.enterEntryAsync entryName: "Project", fileName: target
+				success, err = Entry.enterEntryAsync entryName: "Project", fileName: target, workDir: workDir, projectRoot: workDir, runKind: "project"
 				target = target |> Path\getPath |> Path\getName
 				return :success, :target, :err
 		else
 			workDir = getProjectDirFromFile file
 		Entry.allClear!
 		file = Path\replaceExt file, ""
-		success, err = Entry.enterEntryAsync
+		entry =
 			entryName: Path\getName file
 			fileName: file
-			:workDir
+			runKind: "file"
+		if workDir
+			entry.workDir = workDir
+			entry.projectRoot = workDir
+		success, err = Entry.enterEntryAsync entry
 		return :success, :err
 
 HttpServer\postSchedule "/stop", ->
