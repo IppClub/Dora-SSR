@@ -1,11 +1,14 @@
 // @preview-file off clear
 import { App, Path, Content } from 'Dora';
 import { Flow, Node } from 'Agent/flow';
-import { callLLM, callLLMStreamAggregated, Message, StopToken, Log, getActiveLLMConfig, createLocalToolCallId, parseSimpleXMLChildren, parseXMLObjectFromText, safeJsonDecode, safeJsonEncode, sanitizeUTF8, estimateTextTokens } from 'Agent/Utils';
+import { callLLMStreamAggregated, Message, StopToken, Log, getActiveLLMConfig, createLocalToolCallId, parseSimpleXMLChildren, parseXMLObjectFromText, safeJsonDecode, safeJsonEncode, sanitizeUTF8, estimateTextTokens } from 'Agent/Utils';
 import type { LLMConfig, ToolCall } from 'Agent/Utils';
 import * as Tools from 'Agent/Tools';
 import { MemoryCompressor } from 'Agent/Memory';
 import type { AgentPromptPack, AgentConversationMessage } from 'Agent/Memory';
+import * as AgentToolRegistry from 'Agent/AgentToolRegistry';
+import type { AgentDecisionMode, AgentRole, AgentToolName } from 'Agent/AgentToolRegistry';
+import * as AgentSkills from 'Agent/AgentSkills';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === "object";
@@ -15,445 +18,6 @@ function isArray(value: unknown): value is any[] {
 	return Array.isArray(value);
 }
 
-interface SkillMetadata {
-	name: string;
-	description: string;
-	always?: boolean;
-}
-
-interface Skill extends SkillMetadata {
-	location: string;
-	body?: string;
-}
-
-interface SkillsLoaderConfig {
-	projectDir: string;
-}
-
-enum SkillPriority {
-	BuiltIn = 0,
-	User = 1,
-	Project = 2,
-}
-
-interface SkillEntry {
-	skill: Skill;
-	priority: SkillPriority;
-}
-
-function stripWrappingQuotes(value: string): string {
-	let [result] = string.gsub(value, '^"(.*)"$', "%1");
-	[result] = string.gsub(result, "^'(.*)'$", "%1");
-	return result;
-}
-
-function escapeXMLText(text: string): string {
-	let [result] = string.gsub(text, "&", "&amp;");
-	[result] = string.gsub(result, "<", "&lt;");
-	[result] = string.gsub(result, ">", "&gt;");
-	[result] = string.gsub(result, '"', "&quot;");
-	[result] = string.gsub(result, "'", "&apos;");
-	return result;
-}
-
-function parseYAMLFrontmatter(content: string): {
-	metadata: Record<string, unknown> | undefined;
-	body: string;
-	error?: string;
-} {
-	if (!content || content.trim() === "") {
-		return { metadata: undefined, body: "", error: "empty content" };
-	}
-
-	const trimmed = content.trim();
-	if (!trimmed.startsWith("---")) {
-		return { metadata: undefined, body: content };
-	}
-
-	const lines = trimmed.split("\n");
-	let endLine = -1;
-	for (let i = 1; i < lines.length; i++) {
-		if (lines[i].trim() === "---") {
-			endLine = i;
-			break;
-		}
-	}
-
-	if (endLine < 0) {
-		return { metadata: undefined, body: content, error: "missing closing ---" };
-	}
-
-	const frontmatterLines = lines.slice(1, endLine);
-	const frontmatterText = frontmatterLines.join("\n").trim();
-
-	const metadata = parseSimpleYAML(frontmatterText);
-
-	const bodyLines = lines.slice(endLine + 1);
-	const body = bodyLines.join("\n").trim();
-
-	return { metadata, body };
-}
-
-function parseSimpleYAML(text: string): Record<string, unknown> | undefined {
-	if (!text || text.trim() === "") {
-		return undefined;
-	}
-
-	const result: Record<string, unknown> = {};
-	const lines = text.split("\n");
-	let currentKey = "";
-	let currentArray: string[] | undefined = undefined;
-
-	for (let i = 0; i < lines.length; i++) {
-		const line = lines[i];
-		const trimmed = line.trim();
-
-		if (trimmed === "" || trimmed.startsWith("#")) {
-			continue;
-		}
-
-		if (trimmed.startsWith("- ")) {
-			if (currentArray !== undefined && currentKey !== "") {
-				const value = trimmed.substring(2).trim();
-				const cleaned = stripWrappingQuotes(value);
-				currentArray.push(cleaned);
-			}
-			continue;
-		}
-
-		const colonIndex = trimmed.indexOf(":");
-		if (colonIndex > 0) {
-			if (currentArray !== undefined && currentKey !== "") {
-				result[currentKey] = currentArray;
-				currentArray = undefined;
-			}
-
-			const key = trimmed.substring(0, colonIndex).trim();
-			let value = trimmed.substring(colonIndex + 1).trim();
-
-			if (value.startsWith("[") && value.endsWith("]")) {
-				const arrayText = value.substring(1, value.length - 1);
-				const items = arrayText.split(",").map(item => {
-					const cleaned = stripWrappingQuotes(item.trim());
-					return cleaned;
-				});
-				result[key] = items;
-				continue;
-			}
-
-			if (value === "true") {
-				result[key] = true;
-				continue;
-			}
-			if (value === "false") {
-				result[key] = false;
-				continue;
-			}
-
-			if (value === "") {
-				currentKey = key;
-				currentArray = [];
-				if (i + 1 < lines.length) {
-					const nextLine = lines[i + 1].trim();
-					if (!nextLine.startsWith("- ")) {
-						currentArray = undefined;
-						result[key] = "";
-					}
-				} else {
-					currentArray = undefined;
-					result[key] = "";
-				}
-				continue;
-			}
-
-			const cleaned = stripWrappingQuotes(value);
-			result[key] = cleaned;
-			currentKey = "";
-			currentArray = undefined;
-		}
-	}
-
-	if (currentArray !== undefined && currentKey !== "") {
-		result[currentKey] = currentArray;
-	}
-
-	return result;
-}
-
-function validateSkillMetadata(
-	metadata?: Record<string, unknown>
-): { metadata: SkillMetadata; error?: string } {
-	if (!metadata) {
-		return {
-			metadata: {
-				name: "",
-				description: "",
-			},
-			error: "missing frontmatter",
-		};
-	}
-
-	const name = typeof metadata.name === "string" ? metadata.name.trim() : "";
-	if (name === "") {
-		return {
-			metadata: {
-				name: "",
-				description: "",
-			},
-			error: "missing name in frontmatter",
-		};
-	}
-
-	const description = typeof metadata.description === "string"
-		? metadata.description.trim()
-		: "";
-
-	const always = metadata.always === true;
-
-	return {
-		metadata: {
-			name,
-			description,
-			always
-		},
-	};
-}
-
-class SkillsLoader {
-	private config: SkillsLoaderConfig;
-	private skills: Map<string, SkillEntry> = new Map();
-	private loaded = false;
-
-	constructor(config: SkillsLoaderConfig) {
-		this.config = config;
-	}
-
-	load(): void {
-		this.skills.clear();
-
-		const builtInDir = Path(Content.assetPath, "Doc", "skills");
-		const builtInParent = Content.assetPath;
-		this.loadSkillsFromDir(builtInDir, builtInParent, SkillPriority.BuiltIn);
-
-		const userDir = Path(Content.writablePath, ".agent", "skills");
-		const userParent = Content.writablePath;
-		this.loadSkillsFromDir(userDir, userParent, SkillPriority.User);
-
-		const projectDir = Path(this.config.projectDir, ".agent", "skills");
-		const projectParent = this.config.projectDir;
-		this.loadSkillsFromDir(projectDir, projectParent, SkillPriority.Project);
-
-		this.loaded = true;
-		Log("Info", `[SkillsLoader] Loaded ${this.skills.size} skills`);
-	}
-
-	private loadSkillsFromDir(dir: string, parent: string, priority: SkillPriority): void {
-		if (!Content.exist(dir) || !Content.isdir(dir)) {
-			return;
-		}
-
-		const subdirs = Content.getDirs(dir);
-		if (!subdirs || subdirs.length === 0) {
-			return;
-		}
-
-		for (const subdir of subdirs) {
-			const skillPath = Path(dir, subdir, "SKILL.md");
-			if (!Content.exist(skillPath)) {
-				continue;
-			}
-
-			const skill = this.loadSkillFile(skillPath);
-			if (!skill) {
-				continue;
-			}
-
-			skill.location = Path.getRelative(skillPath, parent);
-
-			const existing = this.skills.get(skill.name);
-			if (existing && existing.priority >= priority) {
-				continue;
-			}
-
-			this.skills.set(skill.name, { skill, priority });
-		}
-	}
-
-	private loadSkillFile(skillPath: string): Skill | undefined {
-		const content = Content.load(skillPath);
-		if (!content) {
-			Log("Warn", `[SkillsLoader] Failed to read ${skillPath}`);
-			return undefined;
-		}
-
-		const parsed = parseYAMLFrontmatter(content);
-		const validated = validateSkillMetadata(parsed.metadata);
-
-		if (validated.error) {
-			Log("Warn", `[SkillsLoader] Invalid SKILL.md at ${skillPath}: ${validated.error}`);
-			return undefined;
-		}
-
-		let displayLocation = skillPath;
-		if (skillPath.startsWith(this.config.projectDir)) {
-			displayLocation = Path.getRelative(skillPath, this.config.projectDir);
-		}
-
-		const skill: Skill = {
-			...validated.metadata,
-			location: displayLocation,
-			body: parsed.body,
-		};
-
-		return skill;
-	}
-
-	getAllSkills(): Skill[] {
-		if (!this.loaded) {
-			this.load();
-		}
-
-		const result: Skill[] = [];
-		for (const entry of this.skills.values()) {
-			result.push(entry.skill);
-		}
-
-		result.sort((a, b) => {
-			if (a.name < b.name) {
-				return -1;
-			}
-			if (a.name > b.name) {
-				return 1;
-			}
-			if (a.location < b.location) {
-				return -1;
-			}
-			if (a.location > b.location) {
-				return 1;
-			}
-			return 0;
-		});
-
-		return result;
-	}
-
-	getSkill(name: string): Skill | undefined {
-		if (!this.loaded) {
-			this.load();
-		}
-
-		return this.skills.get(name)?.skill;
-	}
-
-	getAlwaysSkills(): Skill[] {
-		const all = this.getAllSkills();
-		return all.filter(skill => skill.always === true);
-	}
-
-	getSummarySkills(): Skill[] {
-		const all = this.getAllSkills();
-		return all.filter(skill => skill.always !== true);
-	}
-
-	buildLevel1Summary(): string {
-		const skills = this.getSummarySkills();
-
-		if (skills.length === 0) {
-			return "";
-		}
-
-		const parts: string[] = [];
-
-		for (const skill of skills) {
-			let skillXML = `<skill>\n`;
-			skillXML += `	<name>${this.escapeXML(skill.name)}</name>\n`;
-			skillXML += `	<description>${this.escapeXML(skill.description)}</description>\n`;
-			skillXML += `	<location>${this.escapeXML(skill.location)}</location>\n`;
-			skillXML += `</skill>`;
-			parts.push(skillXML);
-		}
-
-		return parts.join("\n\n");
-	}
-
-	buildActiveSkillsContent(): string {
-		const skills = this.getAlwaysSkills();
-
-		if (skills.length === 0) {
-			return "";
-		}
-
-		const parts: string[] = [];
-
-		for (const skill of skills) {
-			parts.push(`## Skill: ${skill.name}\n`);
-			if (skill.description !== undefined) {
-				parts.push(`${skill.description}\n`);
-			}
-			if (skill.body && skill.body.trim() !== "") {
-				parts.push(`\n${skill.body}`);
-			}
-			parts.push("");
-		}
-
-		return parts.join("\n");
-	}
-
-	loadSkillContent(name: string): string | undefined {
-		const skill = this.getSkill(name);
-		if (!skill) {
-			return undefined;
-		}
-
-		if (skill.body && skill.body.trim() !== "") {
-			return skill.body;
-		}
-
-		const content = Content.load(skill.location);
-		if (!content) {
-			return undefined;
-		}
-
-		const parsed = parseYAMLFrontmatter(content);
-		return parsed.body || undefined;
-	}
-
-	buildSkillsPromptSection(): string {
-		if (!this.loaded) {
-			this.load();
-		}
-
-		const sections: string[] = [];
-
-		const activeContent = this.buildActiveSkillsContent();
-		sections.push(`# Active Skills\n\n${activeContent}`);
-
-		const summary = this.buildLevel1Summary();
-		sections.push(`# Skills\n\nRead a skill's SKILL.md with \`read_file\` for full instructions.\n\n${summary}`);
-
-		return sections.join("\n\n---\n\n");
-	}
-
-	private escapeXML(text: string): string {
-		return escapeXMLText(text);
-	}
-
-	reload(): void {
-		this.loaded = false;
-		this.load();
-	}
-
-	getSkillCount(): number {
-		if (!this.loaded) {
-			this.load();
-		}
-		return this.skills.size;
-	}
-}
-
-function createSkillsLoader(config: SkillsLoaderConfig): SkillsLoader {
-	return new SkillsLoader(config);
-}
 
 export type CodingAgentRunResult =
 	| {
@@ -538,21 +102,8 @@ export interface CodingAgentRunOptions {
 
 export const AGENT_USER_PROMPT_MAX_CHARS = 12000;
 
-type AgentDecisionMode = "tool_calling" | "xml";
 type AgentPromptCommand = "compact" | "clear";
-type AgentRole = "main" | "sub";
-
-export type AgentToolName =
-	| "read_file"
-	| "edit_file"
-	| "delete_file"
-	| "grep_files"
-	| "search_dora_api"
-	| "glob_files"
-	| "build"
-	| "list_sub_agents"
-	| "spawn_sub_agent"
-	| "finish";
+export type { AgentDecisionMode, AgentRole, AgentToolName };
 
 export type AgentStepToolName = AgentToolName | "compress_memory";
 
@@ -771,7 +322,7 @@ interface AgentShared {
 	// Skills 相关字段
 	skills: {
 		/** Skills 加载器实例 */
-		loader: SkillsLoader;
+		loader: AgentSkills.SkillsLoader;
 	};
 	spawnSubAgent?: CodingAgentRunOptions["spawnSubAgent"];
 	listSubAgents?: CodingAgentRunOptions["listSubAgents"];
@@ -1064,6 +615,11 @@ function saveStepLLMDebugInput(shared: AgentShared, stepId: number, phase: strin
 		encodeDebugJSON(options),
 		"```",
 	];
+	const firstMessage = messages.length > 0 ? messages[0] : undefined;
+	if (firstMessage && firstMessage.role === "system" && typeof firstMessage.content === "string") {
+		sections.push("# System Prompt");
+		sections.push(firstMessage.content);
+	}
 	for (let i = 0; i < messages.length; i++) {
 		const message = messages[i];
 		sections.push(`## Message ${i + 1}`);
@@ -1272,16 +828,27 @@ function sanitizeActionParamsForHistory(tool: AgentToolName, params: Record<stri
 
 function getDecisionToolDefinitions(shared: AgentShared): string {
 	const params = { SEARCH_DORA_API_LIMIT_MAX: tostring(SEARCH_DORA_API_LIMIT_MAX) };
+	const usesDefaultToolPrompts = shared.promptPack.toolDefinitionsDetailed === AgentToolRegistry.AGENT_TOOL_DEFINITIONS_DETAILED
+		&& shared.promptPack.mainAgentToolDefinitionsDetailed === AgentToolRegistry.MAIN_AGENT_TOOL_DEFINITIONS_DETAILED
+		&& shared.promptPack.xmlToolDefinitionsDetailed === AgentToolRegistry.XML_TOOL_DEFINITIONS_DETAILED;
 	const base = shared.promptPack.toolDefinitionsDetailed;
 	const mainAgentTools = shared.role === "main" ?
 		shared.promptPack.mainAgentToolDefinitionsDetailed : "";
-	const availableTools = getAllowedToolsForRole(shared.role)
+	const availableTools = AgentToolRegistry.getAllowedToolsForRole(shared.role)
 		.filter(tool => shared.decisionMode === "xml" || tool !== "finish");
 	const availability = `
 
 Tool availability for this runtime:
 - role: ${shared.role}
 - allowed tools: ${availableTools.join(", ")}`;
+	if (usesDefaultToolPrompts) {
+		const definitions = AgentToolRegistry.buildRoleToolDefinitionsDetailed(shared.role, {
+			includeFinish: true,
+			includeXmlRules: true,
+			context: { searchDoraApiLimitMax: SEARCH_DORA_API_LIMIT_MAX },
+		});
+		return replacePromptVars(`${definitions}${availability}`, params);
+	}
 	const withRole = replacePromptVars(
 		`${base}${mainAgentTools}${availability}`,
 		params
@@ -1296,20 +863,13 @@ Tool availability for this runtime:
 	);
 }
 
-function isToolAllowedForRole(role: AgentRole, tool: AgentToolName): boolean {
-	return getAllowedToolsForRole(role).indexOf(tool) >= 0;
+function getDecisionToolSchemaText(shared: AgentShared): string {
+	const [toolsText] = safeJsonEncode(AgentToolRegistry.buildDecisionToolSchema(shared.role, SEARCH_DORA_API_LIMIT_MAX) as object);
+	return toolsText ?? "";
 }
 
-const PRE_EXEC_SAFE_TOOLS: AgentToolName[] = [
-	"read_file",
-	"grep_files",
-	"search_dora_api",
-	"glob_files",
-	"list_sub_agents",
-];
-
-function canPreExecuteTool(tool: AgentToolName): boolean {
-	return PRE_EXEC_SAFE_TOOLS.indexOf(tool) >= 0;
+function isToolAllowedForRole(role: AgentRole, tool: AgentToolName): boolean {
+	return AgentToolRegistry.getAllowedToolsForRole(role).indexOf(tool) >= 0;
 }
 
 function clearPreExecutedResults(shared: AgentShared): void {
@@ -1400,11 +960,10 @@ async function maybeCompressHistory(shared: AgentShared): Promise<void> {
 	for (let round = 0; round < maxRounds; round++) {
 		const systemPrompt = buildAgentSystemPrompt(shared, shared.decisionMode === "xml");
 		const activeMessages = getActiveConversationMessages(shared);
-		// In tool_calling mode, tool definitions are passed as the tools API parameter and
-		// consume tokens, but are NOT embedded in the system prompt. Pass them separately
-		// so the token estimator accounts for them correctly.
+		// In tool_calling mode, tool descriptions come from the tools API schema, not from
+		// the XML-only detailed prompt. Pass the schema text only for token accounting.
 		const toolDefinitions = shared.decisionMode === "tool_calling"
-			? getDecisionToolDefinitions(shared)
+			? getDecisionToolSchemaText(shared)
 			: "";
 		if (!memory.compressor.shouldCompress(
 			activeMessages,
@@ -1630,19 +1189,6 @@ function clearSessionHistory(shared: AgentShared): CodingAgentRunResult {
 	);
 }
 
-function isKnownToolName(name: string): name is AgentToolName {
-	return name === "read_file"
-		|| name === "edit_file"
-		|| name === "delete_file"
-		|| name === "grep_files"
-		|| name === "search_dora_api"
-		|| name === "glob_files"
-		|| name === "build"
-		|| name === "list_sub_agents"
-		|| name === "spawn_sub_agent"
-		|| name === "finish";
-}
-
 function getFinishMessage(params: Record<string, unknown>, fallback = ""): string {
 	if (typeof params.message === "string" && params.message.trim() !== "") {
 		return params.message.trim();
@@ -1770,10 +1316,157 @@ function appendAssistantToolCallsMessage(
 	});
 }
 
+function hasXMLParam(params: Record<string, unknown>, name: string): boolean {
+	return params[name] !== undefined;
+}
+
+function inferToolNameFromXMLParams(params: Record<string, unknown>): AgentToolName | undefined {
+	if (hasXMLParam(params, "old_str") || hasXMLParam(params, "new_str")) {
+		return "edit_file";
+	}
+	if (hasXMLParam(params, "target_file")) {
+		return "delete_file";
+	}
+	if (hasXMLParam(params, "startLine") || hasXMLParam(params, "endLine")) {
+		if (hasXMLParam(params, "path")) return "read_file";
+		return undefined;
+	}
+	if (hasXMLParam(params, "docSource") || hasXMLParam(params, "programmingLanguage")) {
+		if (hasXMLParam(params, "pattern")) return "search_dora_api";
+		return undefined;
+	}
+	if (hasXMLParam(params, "groupByFile") || hasXMLParam(params, "caseSensitive")) {
+		if (hasXMLParam(params, "pattern")) return "grep_files";
+		return undefined;
+	}
+	if (hasXMLParam(params, "globs")) {
+		if (hasXMLParam(params, "pattern")) return "grep_files";
+		return "glob_files";
+	}
+	if (hasXMLParam(params, "maxEntries")) {
+		return "glob_files";
+	}
+	if (hasXMLParam(params, "message") || hasXMLParam(params, "response") || hasXMLParam(params, "summary")) {
+		return "finish";
+	}
+	if (hasXMLParam(params, "title") || hasXMLParam(params, "prompt") || hasXMLParam(params, "expectedOutput") || hasXMLParam(params, "filesHint")) {
+		return "spawn_sub_agent";
+	}
+	if (hasXMLParam(params, "status") || hasXMLParam(params, "query")) {
+		return "list_sub_agents";
+	}
+	return undefined;
+}
+
+function parseDSMLAttribute(source: string, offset: number, name: string): { success: true; value: string; next: number } | { success: false; message: string } {
+	const attrOpen = `${name}="`;
+	const attrStart = source.indexOf(attrOpen, offset);
+	if (attrStart < 0) return { success: false, message: `missing ${name} attribute` };
+	const valueStart = attrStart + attrOpen.length;
+	const valueEnd = source.indexOf('"', valueStart);
+	if (valueEnd < 0) return { success: false, message: `unterminated ${name} attribute` };
+	return {
+		success: true,
+		value: source.slice(valueStart, valueEnd),
+		next: valueEnd + 1,
+	};
+}
+
+function extractDSMLReason(text: string, invokeStart: number, tool: AgentToolName): string {
+	const toolCallsStart = text.indexOf("<｜｜DSML｜｜tool_calls>");
+	const before = toolCallsStart >= 0 && toolCallsStart < invokeStart
+		? text.slice(0, toolCallsStart).trim()
+		: text.slice(0, invokeStart).trim();
+	if (before !== "" && before.indexOf("<｜｜DSML") < 0) return before;
+	if (tool === "finish") return "";
+	return "Converted provider-native tool call syntax to XML.";
+}
+
+function parseDSMLToolCallObjectFromText(text: string): { success: true; obj: Record<string, unknown> } | { success: false; message: string } {
+	const invokeOpen = '<｜｜DSML｜｜invoke name="';
+	const invokeStart = text.indexOf(invokeOpen);
+	if (invokeStart < 0) return { success: false, message: "missing DSML invoke" };
+	const nameStart = invokeStart + invokeOpen.length;
+	const nameEnd = text.indexOf('"', nameStart);
+	if (nameEnd < 0) return { success: false, message: "unterminated DSML invoke name" };
+	const toolName = text.slice(nameStart, nameEnd);
+	if (!AgentToolRegistry.isKnownToolName(toolName)) {
+		return { success: false, message: `unknown DSML tool: ${toolName}` };
+	}
+	const invokeOpenEnd = text.indexOf(">", nameEnd);
+	if (invokeOpenEnd < 0) return { success: false, message: "unterminated DSML invoke open tag" };
+	const invokeClose = "</｜｜DSML｜｜invoke>";
+	const invokeEnd = text.indexOf(invokeClose, invokeOpenEnd + 1);
+	if (invokeEnd < 0) return { success: false, message: "missing DSML invoke close tag" };
+
+	const body = text.slice(invokeOpenEnd + 1, invokeEnd);
+	const params: Record<string, unknown> = {};
+	const paramOpen = "<｜｜DSML｜｜parameter";
+	const paramClose = "</｜｜DSML｜｜parameter>";
+	let pos = 0;
+	while (pos < body.length) {
+		const start = body.indexOf(paramOpen, pos);
+		if (start < 0) break;
+		const openEnd = body.indexOf(">", start + paramOpen.length);
+		if (openEnd < 0) return { success: false, message: "unterminated DSML parameter open tag" };
+		const name = parseDSMLAttribute(body, start + paramOpen.length, "name");
+		if (!name.success) return name;
+		const close = body.indexOf(paramClose, openEnd + 1);
+		if (close < 0) return { success: false, message: "missing DSML parameter close tag" };
+		params[name.value] = body.slice(openEnd + 1, close);
+		pos = close + paramClose.length;
+	}
+	return {
+		success: true,
+		obj: {
+			tool: toolName,
+			reason: extractDSMLReason(text, invokeStart, toolName),
+			params,
+		},
+	};
+}
+
 function parseXMLToolCallObjectFromText(text: string): { success: true; obj: Record<string, unknown> } | { success: false; message: string } {
 	const children = parseXMLObjectFromText(text, "tool_call");
-	if (!children.success) return children;
-	const rawObj = children.obj;
+	let rawObj: Record<string, unknown> | undefined;
+	if (children.success) {
+		rawObj = children.obj;
+	} else {
+			const dsml = parseDSMLToolCallObjectFromText(text);
+			if (dsml.success) return dsml;
+			const toolStart = text.indexOf("<tool>");
+			const paramsCloseToken = "</params>";
+			if (toolStart >= 0) {
+				const paramsClose = text.indexOf(paramsCloseToken, toolStart);
+				if (paramsClose >= toolStart) {
+					const bareCandidate = text.slice(toolStart, paramsClose + paramsCloseToken.length).trim();
+					const bare = parseSimpleXMLChildren(bareCandidate);
+					if (bare.success && typeof bare.obj.tool === "string" && typeof bare.obj.params === "string") {
+						rawObj = bare.obj;
+					}
+				}
+			}
+		if (rawObj === undefined) {
+			const paramsOpen = text.indexOf("<params>");
+			if (paramsOpen < 0) return children;
+			const paramsCloseOnly = text.indexOf(paramsCloseToken, paramsOpen);
+			if (paramsCloseOnly < paramsOpen) return children;
+			const paramsTextOnly = text.slice(paramsOpen + "<params>".length, paramsCloseOnly);
+			const paramsOnly = parseSimpleXMLChildren(paramsTextOnly);
+			if (!paramsOnly.success) return children;
+			const inferredTool = inferToolNameFromXMLParams(paramsOnly.obj);
+			if (inferredTool === undefined) return children;
+			return {
+				success: true,
+				obj: {
+					tool: inferredTool,
+					reason: inferredTool === "finish" ? undefined : "Inferred tool from XML params.",
+					params: paramsOnly.obj,
+				},
+			};
+		}
+	}
+	if (rawObj === undefined) return children;
 	const paramsText = typeof rawObj.params === "string" ? rawObj.params as string : "";
 	const params = paramsText !== ""
 		? parseSimpleXMLChildren(paramsText)
@@ -1809,7 +1502,23 @@ async function llm(
 	const stepId = shared.step + 1;
 	emitLLMContextMetrics(shared, stepId, phase, messages, shared.llmOptions);
 	saveStepLLMDebugInput(shared, stepId, phase, messages, shared.llmOptions);
-	const res = await callLLM(messages, shared.llmOptions, shared.stopToken, shared.llmConfig);
+	let lastStreamReasoning = "";
+	const res = await callLLMStreamAggregated(
+		messages,
+		shared.llmOptions,
+		shared.stopToken,
+		shared.llmConfig,
+		(response) => {
+			const streamMessage = response.choices?.[0]?.message;
+			const nextContent = typeof streamMessage?.content === "string"
+				? sanitizeUTF8(streamMessage.content)
+				: "";
+			if (nextContent === "") return;
+			if (nextContent === lastStreamReasoning) return;
+			lastStreamReasoning = nextContent;
+			emitAssistantMessageUpdated(shared, "", nextContent);
+		}
+	);
 	if (res.success) {
 		const message = res.response.choices?.[0]?.message;
 		const text = message?.content;
@@ -1817,6 +1526,11 @@ async function llm(
 			? sanitizeUTF8(message.reasoning_content)
 			: undefined;
 		if (text) {
+			const parsed = tryParseAndValidateDecision(text);
+			if (parsed.success) {
+				const reason = parsed.reason ?? "";
+				emitAssistantMessageUpdated(shared, "", reason !== "" ? reason : undefined);
+			}
 			saveStepLLMDebugOutput(shared, stepId, phase, text, { success: true });
 			return { success: true, text, reasoningContent };
 		} else {
@@ -1855,7 +1569,7 @@ function isDecisionBatchSuccess(result: DecisionSuccess | DecisionBatchSuccess):
 function parseDecisionObject(rawObj: Record<string, unknown>): DecisionSuccess | DecisionFailure {
 	if (typeof rawObj.tool !== "string") return { success: false, message: "missing tool" };
 	const tool = rawObj.tool;
-	if (!isKnownToolName(tool)) {
+	if (!AgentToolRegistry.isKnownToolName(tool)) {
 		return { success: false, message: `unknown tool: ${tool}` };
 	}
 	const reason = typeof rawObj.reason === "string"
@@ -1874,7 +1588,7 @@ function parseDecisionObject(rawObj: Record<string, unknown>): DecisionSuccess |
 }
 
 function parseDecisionToolCall(functionName: string, rawObj: unknown): DecisionSuccess | DecisionFailure {
-	if (!isKnownToolName(functionName)) {
+	if (!AgentToolRegistry.isKnownToolName(functionName)) {
 		return { success: false, message: `unknown tool: ${functionName}` };
 	}
 	if (rawObj === undefined) {
@@ -1964,7 +1678,7 @@ function createPreExecutableActionFromStream(shared: AgentShared, toolCall: Tool
 	const rawArgs = parseToolCallArguments(functionName, argsText);
 	if (isRecord(rawArgs) && rawArgs.success === false) return undefined;
 	const decision = parseDecisionToolCall(functionName, rawArgs);
-	if (!decision.success || !canPreExecuteTool(decision.tool)) return undefined;
+	if (!decision.success || !AgentToolRegistry.canPreExecuteTool(decision.tool)) return undefined;
 	const validation = validateDecision(decision.tool, decision.params);
 	if (!validation.success) return undefined;
 	if (!isToolAllowedForRole(shared.role, decision.tool)) return undefined;
@@ -2114,138 +1828,6 @@ function validateDecision(
 	return { success: true, params };
 }
 
-function createFunctionToolSchema(
-	name: AgentToolName,
-	description: string,
-	properties: Record<string, unknown>,
-	required: string[] = []
-) {
-	const parameters: Record<string, unknown> = {
-		type: "object",
-		properties,
-	};
-	if (required.length > 0) {
-		parameters.required = required;
-	}
-	return {
-		type: "function" as const,
-		function: {
-			name,
-			description,
-			parameters,
-		},
-	};
-}
-
-function getAllowedToolsForRole(role: AgentRole): AgentToolName[] {
-	return role === "main"
-		? ["read_file", "edit_file", "delete_file", "grep_files", "search_dora_api", "glob_files", "build", "list_sub_agents", "spawn_sub_agent", "finish"]
-		: ["read_file", "edit_file", "delete_file", "grep_files", "search_dora_api", "glob_files", "build", "finish"];
-}
-
-function buildDecisionToolSchema(shared: AgentShared) {
-	const allowed = getAllowedToolsForRole(shared.role);
-	const tools = [
-		createFunctionToolSchema(
-			"read_file",
-			"Read a specific line range from a file. Positive line numbers are 1-based. Negative line numbers count from the end, where -1 is the last line. startLine defaults to 1. If endLine is omitted, it defaults to 300 when startLine is positive, or -1 when startLine is negative.",
-			{
-				path: { type: "string", description: "Workspace-relative file path to read." },
-				startLine: { type: "number", description: "Starting line number. Positive values are 1-based; negative values count from the end. Defaults to 1. 0 is invalid." },
-				endLine: { type: "number", description: "Ending line number. Positive values are 1-based; negative values count from the end. If omitted, defaults to 300 for positive startLine, or -1 for negative startLine. 0 is invalid." },
-			},
-			["path"]
-		),
-		createFunctionToolSchema(
-			"edit_file",
-			"Make changes to a file. Parameters: path, old_str, new_str. old_str and new_str must be different. old_str must match existing text exactly when it is non-empty. If old_str is empty, create the file when it does not exist, or clear and rewrite the whole file with new_str when it already exists.",
-			{
-				path: { type: "string", description: "Workspace-relative file path to edit." },
-				old_str: { type: "string", description: "Existing text to replace. If empty, edit_file rewrites the whole file, or creates it when missing." },
-				new_str: { type: "string", description: "Replacement text or the full file content when rewriting or creating." },
-			},
-			["path", "old_str", "new_str"]
-		),
-		createFunctionToolSchema(
-			"delete_file",
-			"Remove a file. Parameters: target_file.",
-			{
-				target_file: { type: "string", description: "Workspace-relative file path to delete." },
-			},
-			["target_file"]
-		),
-		createFunctionToolSchema(
-			"grep_files",
-			"Search text patterns inside files. Parameters: path, pattern, globs(optional), useRegex(optional), caseSensitive(optional), limit(optional), offset(optional), groupByFile(optional). path may point to either a directory or a single file. This is content search, not filename search. globs only restrict which files are searched. Search results are intentionally capped, so refine the pattern or read a specific file next.",
-			{
-				path: { type: "string", description: "Base directory or file path to search within." },
-				pattern: { type: "string", description: "Content pattern to search for. Use | to express OR alternatives." },
-				globs: { type: "array", items: { type: "string" }, description: "Optional file glob filters." },
-				useRegex: { type: "boolean", description: "Set true when pattern is a regular expression." },
-				caseSensitive: { type: "boolean", description: "Set true for case-sensitive matching." },
-				limit: { type: "number", description: "Maximum number of results to return." },
-				offset: { type: "number", description: "Offset for paginating later result pages." },
-				groupByFile: { type: "boolean", description: "Set true to rank candidate files before drilling into one file." },
-			},
-			["pattern"]
-		),
-		createFunctionToolSchema(
-			"glob_files",
-			"Enumerate files under a directory. Parameters: path, globs(optional), maxEntries(optional). Use this to discover files by path, extension, or glob pattern. Directory listings are intentionally capped, so narrow the path before expanding further.",
-			{
-				path: { type: "string", description: "Base directory to enumerate. Defaults to the workspace root when omitted." },
-				globs: { type: "array", items: { type: "string" }, description: "Optional glob filters for returned paths." },
-				maxEntries: { type: "number", description: "Maximum number of entries to return." },
-			}
-		),
-		createFunctionToolSchema(
-			"search_dora_api",
-			`Search Dora SSR game engine docs and tutorials. Parameters: pattern, docSource(api/tutorial, optional), programmingLanguage(ts/tsx/lua/yue/teal/tl/wa), limit(optional). docSource defaults to api. Use | to express OR alternatives. limit must be <= ${SEARCH_DORA_API_LIMIT_MAX}.`,
-			{
-				pattern: { type: "string", description: "Query string to search for. Use | to express OR alternatives." },
-				docSource: { type: "string", enum: ["api", "tutorial"], description: "Search API docs or tutorials." },
-				programmingLanguage: {
-					type: "string",
-					enum: ["ts", "tsx", "lua", "yue", "teal", "tl", "wa"],
-					description: "Preferred language variant to search.",
-				},
-				limit: { type: "number", description: `Maximum number of matches to return, up to ${SEARCH_DORA_API_LIMIT_MAX}.` },
-				useRegex: { type: "boolean", description: "Set true when pattern is a regular expression." },
-			},
-			["pattern"]
-		),
-		createFunctionToolSchema(
-			"build",
-			"Do compiling and static checks for ts/tsx, teal, lua, yue, yarn. Parameters: path(optional). Read the result and then decide whether another action is needed.",
-			{
-				path: { type: "string", description: "Optional workspace-relative file or directory to build." },
-			}
-		),
-		createFunctionToolSchema(
-			"list_sub_agents",
-			"Query current sub-agent state under the current main session, including running items and a small recent window of completed results. Use this only when you do not already know the current sub-agent state and need to decide whether to dispatch more sub agents or read a result file.",
-			{
-				status: { type: "string", enum: ["active_or_recent", "running", "done", "failed", "all"], description: "Optional status filter. Defaults to active_or_recent." },
-				limit: { type: "number", description: "Maximum number of items to return. Defaults to 5." },
-				offset: { type: "number", description: "Offset for paging older items." },
-				query: { type: "string", description: "Optional text filter matched against title, goal, or summary." },
-			}
-		),
-		createFunctionToolSchema(
-			"spawn_sub_agent",
-			"Create and start a sub agent session to execute delegated work. Use this for large multi-file work, parallel exploration, long-running verification, or isolated execution tasks; for small focused edits, use edit_file/delete_file/build directly. If dispatch succeeds, you may immediately finish the current turn without waiting for completion; the sub agent result arrives asynchronously and should be handled in a later conversation turn.",
-			{
-				title: { type: "string", description: "Short tab title for the sub agent." },
-				prompt: { type: "string", description: "Detailed, self-contained task prompt sent to the sub agent. Describe the concrete work to execute, constraints, expected output, and relevant files when known." },
-				expectedOutput: { type: "string", description: "Optional expected result summary." },
-				filesHint: { type: "array", items: { type: "string" }, description: "Optional likely files or directories involved." },
-			},
-			["title", "prompt"]
-		),
-	];
-	return tools.filter(tool => allowed.indexOf(tool.function.name as AgentToolName) >= 0);
-}
-
 function buildAgentSystemPrompt(shared: AgentShared, includeToolDefinitions = false): string {
 	const rolePrompt = shared.role === "main"
 		? shared.promptPack.mainAgentRolePrompt
@@ -2263,16 +1845,15 @@ function buildAgentSystemPrompt(shared: AgentShared, includeToolDefinitions = fa
 	if (memoryContext !== "") {
 		sections.push(memoryContext);
 	}
+	const skillsSection = buildSkillsSection(shared);
+	if (skillsSection !== "") {
+		sections.push(skillsSection);
+	}
 	if (includeToolDefinitions) {
 		sections.push("### Available Tools\n\n" + getDecisionToolDefinitions(shared));
 		if (shared.decisionMode === "xml") {
 			sections.push(buildXmlDecisionInstruction(shared));
 		}
-	}
-	// 添加 Skills 部分
-	const skillsSection = buildSkillsSection(shared);
-	if (skillsSection !== "") {
-		sections.push(skillsSection);
 	}
 	return sections.join("\n\n");
 }
@@ -2387,6 +1968,12 @@ function buildDecisionMessages(
 		let retryHeader = decisionMode === "xml"
 			? `Previous response was invalid (${lastError}). Return exactly one valid XML tool_call block only.`
 			: replacePromptVars(shared.promptPack.toolCallingRetryPrompt, { LAST_ERROR: lastError });
+		if (decisionMode === "xml") {
+			retryHeader += "\nThe response must start with <tool_call> and end with </tool_call>. Do not use any other root tag. Do not return partial child tags.";
+		}
+		if (decisionMode === "xml" && lastRaw && lastRaw.trim() !== "") {
+			retryHeader += "\nIf the rejected output said you would inspect, read, search, build, edit, or continue working, convert that intent into the corresponding XML tool call. Do not use finish for intended future work.";
+		}
 		if (decisionMode === "tool_calling" && lastError.indexOf("truncated by max tokens") >= 0) {
 			retryHeader += "\nYour previous response spent the token budget on reasoning and ended before any tool call. Do not continue that reasoning. Immediately emit one valid function tool call with compact arguments.";
 		}
@@ -2394,9 +1981,9 @@ function buildDecisionMessages(
 			role: "user",
 			content: `${retryHeader}
 
-Retry attempt: ${attempt}.
-The next reply must differ from the previously rejected output.
-${lastRaw && lastRaw !== "" ? `Last rejected output summary: ${truncateText(lastRaw, 300)}` : ""}`,
+		Retry attempt: ${attempt}.
+	The next reply must differ from the previously rejected output.
+	${lastRaw && lastRaw !== "" ? `Last rejected output summary: ${truncateText(lastRaw, 300)}` : ""}`,
 		});
 	}
 	return messages;
@@ -2409,22 +1996,50 @@ function buildXmlDecisionInstruction(shared: AgentShared, feedback?: string): st
 function buildXmlRepairMessages(
 	shared: AgentShared,
 	originalRaw: string,
+	originalReasoning: string | undefined,
 	candidateRaw: string,
+	candidateReasoning: string | undefined,
 	lastError: string,
 	attempt: number
 ): Message[] {
+	const hasOriginalReasoning = originalReasoning !== undefined && originalReasoning.trim() !== "";
+	const originalReasoningSection = hasOriginalReasoning
+		? `### Original Reasoning
+\`\`\`
+${truncateText(originalReasoning as string, 4000)}
+\`\`\`
+
+`
+		: "";
 	const hasCandidate = candidateRaw.trim() !== "";
+	const hasCandidateReasoning = candidateReasoning !== undefined && candidateReasoning.trim() !== "";
+	const candidateReasoningSection = hasCandidateReasoning
+		? `### Current Candidate Reasoning
+\`\`\`
+${truncateText(candidateReasoning as string, 4000)}
+\`\`\`
+
+`
+		: "";
 	const candidateSection = hasCandidate
 		? `### Current Candidate To Repair
 \`\`\`
 ${truncateText(candidateRaw, 4000)}
 \`\`\`
 
-`
+${candidateReasoningSection}`
 		: "";
+	const toolRepairReference = AgentToolRegistry.buildRoleToolDefinitionsDetailed(shared.role, {
+		includeFinish: true,
+		includeXmlRules: true,
+		context: { searchDoraApiLimitMax: SEARCH_DORA_API_LIMIT_MAX },
+	});
+	const systemPrompt = replacePromptVars(shared.promptPack.xmlDecisionSystemRepairPrompt, {
+		TOOL_REPAIR_REFERENCE: toolRepairReference,
+	});
 	const repairPrompt = replacePromptVars(shared.promptPack.xmlDecisionRepairPrompt, {
-		TOOL_DEFINITIONS: getDecisionToolDefinitions(shared),
 		ORIGINAL_RAW: truncateText(originalRaw, 4000),
+		ORIGINAL_REASONING_SECTION: originalReasoningSection,
 		CANDIDATE_SECTION: candidateSection,
 		LAST_ERROR: lastError,
 		ATTEMPT: tostring(attempt),
@@ -2432,7 +2047,7 @@ ${truncateText(candidateRaw, 4000)}
 	return [
 		{
 			role: "system",
-			content: shared.promptPack.xmlDecisionSystemRepairPrompt,
+			content: systemPrompt,
 		},
 		{
 			role: "user",
@@ -2695,7 +2310,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 			return { success: false, message: getCancelledReason(shared) };
 		}
 		Log("Info", `[CodingAgent] tool-calling decision start step=${shared.step + 1}${lastError ? ` retry_error=${lastError}` : ""}`);
-		const tools = buildDecisionToolSchema(shared);
+		const tools = AgentToolRegistry.buildDecisionToolSchema(shared.role, SEARCH_DORA_API_LIMIT_MAX);
 		const messages = buildDecisionMessages(shared, lastError, attempt, lastRaw);
 		const stepId = shared.step + 1;
 		const llmOptions = {
@@ -2909,17 +2524,21 @@ class MainDecisionAgent extends Node<AgentShared> {
 	private async repairDecisionXml(
 		shared: AgentShared,
 		originalRaw: string,
+		originalReasoning: string | undefined,
 		initialError: string
 	): Promise<DecisionResult | DecisionFailure> {
 		Log("Info", `[CodingAgent] xml repair flow start step=${shared.step + 1} error=${initialError}`);
 		let lastError = initialError;
 		let candidateRaw = "";
+		let candidateReasoning: string | undefined = undefined;
 		for (let attempt = 0; attempt < shared.llmMaxTry; attempt++) {
 			Log("Info", `[CodingAgent] xml repair attempt=${attempt + 1}`);
 			const messages = buildXmlRepairMessages(
 				shared,
 				originalRaw,
+				originalReasoning,
 				candidateRaw,
+				candidateReasoning,
 				lastError,
 				attempt + 1
 			);
@@ -2933,6 +2552,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 				continue;
 			}
 			candidateRaw = llmRes.text;
+			candidateReasoning = llmRes.reasoningContent;
 			const decision = tryParseAndValidateDecision(candidateRaw);
 			if (decision.success) {
 				decision.reasoningContent = llmRes.reasoningContent;
@@ -2973,21 +2593,22 @@ class MainDecisionAgent extends Node<AgentShared> {
 				message: llmRes.message,
 				raw: llmRes.text ?? "",
 			};
-		}
-		const decision = tryParseAndValidateDecision(llmRes.text);
-		if (decision.success) {
-			decision.reasoningContent = llmRes.reasoningContent;
-			if (!isToolAllowedForRole(shared.role, decision.tool)) {
-				return this.repairDecisionXml(
-					shared,
-					llmRes.text,
-					`${decision.tool} is not allowed for role ${shared.role}`
-				);
 			}
-			return decision;
+			const decision = tryParseAndValidateDecision(llmRes.text);
+			if (decision.success) {
+				decision.reasoningContent = llmRes.reasoningContent;
+				if (!isToolAllowedForRole(shared.role, decision.tool)) {
+					return this.repairDecisionXml(
+						shared,
+						llmRes.text,
+						llmRes.reasoningContent,
+						`${decision.tool} is not allowed for role ${shared.role}`
+					);
+				}
+				return decision;
+			}
+			return this.repairDecisionXml(shared, llmRes.text, llmRes.reasoningContent, decision.message);
 		}
-		return this.repairDecisionXml(shared, llmRes.text, decision.message);
-	}
 
 	async exec(input: { shared: AgentShared }): Promise<DecisionResult | DecisionFailure> {
 		const shared = input.shared;
@@ -3184,7 +2805,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 		});
 		const action = shared.history[shared.history.length - 1];
 		appendAssistantToolCallsMessage(shared, [action], result.reason ?? "", result.reasoningContent);
-		if (canPreExecuteTool(action.tool)) {
+		if (AgentToolRegistry.canPreExecuteTool(action.tool)) {
 			shared.pendingToolActions = [action];
 			persistHistoryState(shared);
 			return "batch_tools";
@@ -4042,11 +3663,7 @@ function sanitizeToolActionResultForHistory(action: AgentActionRecord, result: R
 }
 
 function canRunBatchActionInParallel(this: any, action: AgentActionRecord): boolean {
-	return action.tool === "read_file"
-		|| action.tool === "grep_files"
-		|| action.tool === "search_dora_api"
-		|| action.tool === "glob_files"
-		|| action.tool === "list_sub_agents";
+	return AgentToolRegistry.canRunToolInParallel(action.tool);
 }
 
 interface ToolBatch {
@@ -4284,7 +3901,7 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 		},
 		// Skills 系统
 		skills: {
-			loader: createSkillsLoader({
+			loader: AgentSkills.createSkillsLoader({
 				projectDir: options.workDir,
 			}),
 		},

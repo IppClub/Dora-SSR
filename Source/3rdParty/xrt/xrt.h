@@ -58447,6 +58447,18 @@ static void __xhttpTxDiscardTransient(__xhttp_tx* pTx)
 	pTx->iSendLen = 0;
 	__xhttpRequestUnitInternal(&pTx->tReq);
 }
+// 内部函数：__xhttpFutureDetachTx
+static void __xhttpFutureDetachTx(xnetfuture* pFuture, const __xhttp_tx* pTx)
+{
+	if ( !pFuture ) { return; }
+	__xnetFutureLock(pFuture);
+	if ( pFuture->pPendingCtx == (ptr)pTx ) {
+		pFuture->pPendingCtx = NULL;
+		pFuture->pfnPendingCancel = NULL;
+		pFuture->pfnPendingCleanup = NULL;
+	}
+	__xnetFutureUnlock(pFuture);
+}
 // 内部函数：__xhttpTxComplete
 static bool __xhttpTxComplete(__xhttp_tx* pTx, xnet_result iStatus, xhttpresponse* pResp)
 {
@@ -58459,6 +58471,7 @@ static bool __xhttpTxComplete(__xhttp_tx* pTx, xnet_result iStatus, xhttprespons
 		return false;
 	}
 	if ( pTx->pFuture ) {
+		__xhttpFutureDetachTx(pTx->pFuture, pTx);
 		(void)__xnetFutureResolve(pTx->pFuture, iStatus, pResp);
 	} else if ( pResp ) {
 		xrtHttpResponseDestroy(pResp);
@@ -58586,6 +58599,27 @@ static void __xhttpTxAbortStream(__xhttp_tx* pTx)
 	if ( !pTx ) { return; }
 	if ( pTx->pConn && pTx->pConn->pStream ) { xrtNetStreamClose(pTx->pConn->pStream, XNET_CLOSE_F_ABORT); }
 	else if ( pTx->pStream ) { xrtNetStreamClose(pTx->pStream, XNET_CLOSE_F_ABORT); }
+}
+// 内部函数：__xhttpFutureCancelPending
+static bool __xhttpFutureCancelPending(xnetfuture* pFuture)
+{
+	__xhttp_tx* pTx = NULL;
+	if ( !pFuture ) { return false; }
+	__xnetFutureLock(pFuture);
+	if ( pFuture->bDone ) {
+		__xnetFutureUnlock(pFuture);
+		return pFuture->iStatus == XRT_NET_CANCELLED;
+	}
+	pTx = (__xhttp_tx*)pFuture->pPendingCtx;
+	if ( pTx ) { __xhttpTxAddRef(pTx); }
+	__xnetFutureUnlock(pFuture);
+	if ( !pTx ) {
+		return __xnetFutureCompleteEx(pFuture, XRT_NET_CANCELLED, NULL, "future cancel requested.", XFUTURE_RESULT_F_OWN_ERROR | XFUTURE_RESULT_F_CANCELLED);
+	}
+	(void)__xhttpTxComplete(pTx, XRT_NET_CANCELLED, NULL);
+	__xhttpTxAbortStream(pTx);
+	__xhttpTxRelease(pTx);
+	return true;
 }
 // 内部函数：__xhttpIdleTimeoutTask
 static void __xhttpIdleTimeoutTask(xnetworker* pWorker, ptr pArg)
@@ -58814,6 +58848,8 @@ XXAPI xnetfuture* xrtHttpExecuteAsync(xnetengine* pEngine, const xhttprequest* p
 	pTx->iRefCount = 1;
 	pTx->pEngine = pResolvedEngine;
 	pTx->pFuture = pFuture;
+	pFuture->pPendingCtx = pTx;
+	pFuture->pfnPendingCancel = __xhttpFutureCancelPending;
 	// 克隆请求数据到事务中
 	if ( !__xhttpRequestClone(&pTx->tReq, pReq) ) {
 		(void)__xnetFutureResolve(pFuture, XRT_NET_ERROR, NULL);

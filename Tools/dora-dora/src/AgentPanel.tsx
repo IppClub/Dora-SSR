@@ -523,6 +523,24 @@ export default function AgentPanel(props: AgentPanelProps) {
 		return new Map(checkpoints.map(checkpoint => [checkpoint.seq, checkpoint]));
 	}, [checkpoints]);
 
+	const stopProjectRunBeforeAgent = React.useCallback(async () => {
+		const status = await Service.runStatus();
+		if (!status.success) {
+			addAlert?.(status.message ?? t("agent.runStatusFailed"), "error");
+			return false;
+		}
+		if (!status.running || status.projectRoot !== projectRoot) {
+			return true;
+		}
+		const stopRes = await Service.stop();
+		if (!stopRes.success) {
+			addAlert?.(t("agent.stopProjectRunFailed"), "error");
+			return false;
+		}
+		addAlert?.(t("agent.stoppedProjectRun"), "info");
+		return true;
+	}, [addAlert, projectRoot, t]);
+
 	const sendPromptText = React.useCallback(async (text: string, targetSessionId = selectedSessionId) => {
 		if (text === "" || loading || continueLoadingTaskId !== null) return;
 		setLoading(true);
@@ -530,6 +548,10 @@ export default function AgentPanel(props: AgentPanelProps) {
 			const llmReady = await checkLLMConfigReady();
 			if (!llmReady) {
 				addAlert?.(t("agent.noLLMConfigAlert"), "error");
+				return;
+			}
+			const canStartAgent = await stopProjectRunBeforeAgent();
+			if (!canStartAgent) {
 				return;
 			}
 			const res = await Service.agentSessionSend({
@@ -552,7 +574,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 		} finally {
 			setLoading(false);
 		}
-	}, [addAlert, checkLLMConfigReady, continueLoadingTaskId, loading, refresh, selectedSessionId, t]);
+	}, [addAlert, checkLLMConfigReady, continueLoadingTaskId, loading, refresh, selectedSessionId, stopProjectRunBeforeAgent, t]);
 
 	const onSend = async () => {
 		const text = prompt.trim();
@@ -585,6 +607,10 @@ export default function AgentPanel(props: AgentPanelProps) {
 			const llmReady = await checkLLMConfigReady();
 			if (!llmReady) {
 				addAlert?.(t("agent.noLLMConfigAlert"), "error");
+				return;
+			}
+			const canStartAgent = await stopProjectRunBeforeAgent();
+			if (!canStartAgent) {
 				return;
 			}
 			const res = await Service.agentSessionSend({

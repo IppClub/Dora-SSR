@@ -666,6 +666,19 @@ export stop = ->
 	currentEntry = nil
 	true
 
+export getCurrentEntryStatus = ->
+	entry = currentEntry
+	return success: true, running: false unless entry and not isInEntry
+	status =
+		success: true
+		running: true
+		kind: entry.runKind or "file"
+		entryName: entry.entryName
+		fileName: entry.fileName
+	status.workDir = entry.workDir if entry.workDir
+	status.projectRoot = entry.projectRoot if entry.projectRoot
+	status
+
 setupEventHandlers = ->
 	with Director.postNode
 		\onAppEvent (eventType) -> switch eventType
