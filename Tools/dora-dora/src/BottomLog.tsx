@@ -10,10 +10,13 @@ import { LazyLog } from 'react-lazylog';
 import { useTranslation } from 'react-i18next';
 import { Color } from './Theme';
 import * as Service from './Service';
-import { memo, useEffect, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
+import { LogFixRequest, buildLogFixMessage, logFixLineClassName } from './LogFix';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 
 export interface BottomLogProps {
 	height: number;
+	onFixLog?: (request: LogFixRequest) => void;
 };
 
 const formatPart = (text: string) => {
@@ -29,7 +32,14 @@ const formatPart = (text: string) => {
 
 const BottomLog = memo((props: BottomLogProps) => {
 	const { t } = useTranslation();
+	const logContainerRef = useRef<HTMLDivElement | null>(null);
 	const [text, setText] = useState(t("log.wait"));
+	const [fixTarget, setFixTarget] = useState<{
+		lineNumber: number;
+		top: number;
+		left: number;
+		message: string;
+	} | null>(null);
 
 
 	useEffect(() => {
@@ -42,12 +52,51 @@ const BottomLog = memo((props: BottomLogProps) => {
 		};
 	}, [t]);
 
+	const showFixButton = (event: MouseEvent, container: HTMLElement) => {
+		if (!props.onFixLog) return;
+		const target = event.target as HTMLElement | null;
+		if (target?.closest("[data-log-fix-button]")) return;
+		const lineElement = target?.closest(`.${logFixLineClassName}`) as HTMLElement | null;
+		const lineNumberText = lineElement?.querySelector("a[id]")?.getAttribute("id");
+		const lineNumber = Number(lineNumberText);
+		if (!lineElement || !Number.isFinite(lineNumber) || lineNumber <= 0) {
+			setFixTarget(null);
+			return;
+		}
+		const message = buildLogFixMessage(text, lineNumber);
+		if (message === "") {
+			setFixTarget(null);
+			return;
+		}
+		const containerRect = container.getBoundingClientRect();
+		const lineRect = lineElement.getBoundingClientRect();
+		setFixTarget({
+			lineNumber,
+			message,
+			top: Math.max(4, lineRect.top - containerRect.top - 2),
+			left: Math.min(Math.max(8, event.clientX - containerRect.left + 8), Math.max(8, containerRect.width - 64)),
+		});
+	};
+
+	useEffect(() => {
+		const container = logContainerRef.current;
+		if (!container) return;
+		const onMouseDown = (event: MouseEvent) => {
+			showFixButton(event, container);
+		};
+		container.addEventListener("mousedown", onMouseDown, true);
+		return () => {
+			container.removeEventListener("mousedown", onMouseDown, true);
+		};
+	});
+
 	return <div style={{
 		height: props.height,
 		backgroundColor: Color.BackgroundDark,
 		overflow: "hidden",
 		overscrollBehavior: "contain",
-	}}>
+		position: "relative",
+	}} ref={logContainerRef}>
 		<LazyLog
 			height={props.height}
 			text={text}
@@ -68,6 +117,7 @@ const BottomLog = memo((props: BottomLogProps) => {
 				backgroundColor: Color.BackgroundDark,
 			}}
 			formatPart={formatPart}
+			lineClassName={logFixLineClassName}
 			rowHeight={22}
 			extraLines={1}
 			selectableLines
@@ -75,7 +125,43 @@ const BottomLog = memo((props: BottomLogProps) => {
 			caseInsensitive
 			stream
 			follow
+			onScroll={() => setFixTarget(null)}
 		/>
+		{fixTarget && props.onFixLog ? (
+			<button
+				type="button"
+				data-log-fix-button
+				onClick={(event) => {
+					event.stopPropagation();
+					props.onFixLog?.({
+						lineNumber: fixTarget.lineNumber,
+						message: fixTarget.message,
+					});
+					setFixTarget(null);
+				}}
+				style={{
+					position: "absolute",
+					top: fixTarget.top,
+					left: fixTarget.left,
+					height: 24,
+					padding: "0 10px",
+					border: `1px solid ${Color.Theme}`,
+					borderRadius: 6,
+					color: Color.BackgroundDark,
+					background: Color.Theme,
+					fontSize: 12,
+					fontWeight: 600,
+					cursor: "pointer",
+					zIndex: 2,
+					display: "inline-flex",
+					alignItems: "center",
+					gap: 4,
+				}}
+			>
+				<AutoAwesomeIcon sx={{ fontSize: 14 }} />
+				{t("log.fix")}
+			</button>
+		) : null}
 	</div>;
 });
 

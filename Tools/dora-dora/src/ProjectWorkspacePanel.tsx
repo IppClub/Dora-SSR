@@ -18,8 +18,10 @@ interface ProjectWorkspacePanelProps {
 	uploadPath: string;
 	displayPath?: string;
 	agentSessionId?: number;
+	agentInitialPrompt?: string;
 	view?: WorkspaceView;
 	addAlert?: (msg: string, type: "success" | "info" | "warning" | "error") => void;
+	onAgentInitialPromptConsumed?: () => void;
 	onRollbackComplete?: (projectRoot: string) => void;
 	onUploaded: (path: string, file: string, open: boolean) => void;
 	onViewChange?: (view: WorkspaceView) => void;
@@ -35,8 +37,10 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 		uploadPath,
 		displayPath,
 		agentSessionId,
+		agentInitialPrompt,
 		view,
 		addAlert,
+		onAgentInitialPromptConsumed,
 		onRollbackComplete,
 		onUploaded,
 		onViewChange,
@@ -141,7 +145,9 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 						title={title}
 						height={contentHeight}
 						showHeader={false}
+						initialPrompt={agentInitialPrompt}
 						addAlert={addAlert}
+						onInitialPromptConsumed={onAgentInitialPromptConsumed}
 						onRollbackComplete={onRollbackComplete}
 						onOpenFile={onOpenFile}
 						onOpenLLMConfig={onOpenLLMConfig}

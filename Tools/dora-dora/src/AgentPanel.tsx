@@ -23,7 +23,9 @@ interface AgentPanelProps {
 	title: string;
 	height: number;
 	showHeader?: boolean;
+	initialPrompt?: string;
 	addAlert?: (msg: string, type: "success" | "info" | "warning" | "error") => void;
+	onInitialPromptConsumed?: () => void;
 	onRollbackComplete?: (projectRoot: string) => void;
 	onOpenFile?: (filePath: string) => void;
 	onOpenLLMConfig?: () => void;
@@ -67,7 +69,7 @@ function getFiniteNumber(value: unknown): number | undefined {
 export default function AgentPanel(props: AgentPanelProps) {
 	const HISTORY_VISIBLE_ROUNDS = 10;
 	const { t, i18n } = useTranslation();
-	const { sessionId, projectRoot, title, height, showHeader = true, addAlert, onRollbackComplete, onOpenFile, onOpenLLMConfig } = props;
+	const { sessionId, projectRoot, title, height, showHeader = true, initialPrompt, addAlert, onInitialPromptConsumed, onRollbackComplete, onOpenFile, onOpenLLMConfig } = props;
 	const [selectedSessionId, setSelectedSessionId] = useState(sessionId);
 	const [prompt, setPrompt] = useState("");
 	const [loading, setLoading] = useState(false);
@@ -94,6 +96,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 	const isNearBottomRef = React.useRef(true);
 	const autoScrollTimerRef = React.useRef<number | null>(null);
 	const autoScrollRafRef = React.useRef<number | null>(null);
+	const consumedInitialPromptRef = React.useRef("");
 
 	const orderedRelatedSessions = useMemo(() => {
 		return [...relatedSessions].sort((a, b) => {
@@ -520,8 +523,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 		return new Map(checkpoints.map(checkpoint => [checkpoint.seq, checkpoint]));
 	}, [checkpoints]);
 
-	const onSend = async () => {
-		const text = prompt.trim();
+	const sendPromptText = React.useCallback(async (text: string, targetSessionId = selectedSessionId) => {
 		if (text === "" || loading || continueLoadingTaskId !== null) return;
 		setLoading(true);
 		try {
@@ -531,7 +533,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 				return;
 			}
 			const res = await Service.agentSessionSend({
-				sessionId: selectedSessionId,
+				sessionId: targetSessionId,
 				prompt: text
 			});
 			if (!res.success) {
@@ -545,11 +547,30 @@ export default function AgentPanel(props: AgentPanelProps) {
 			}
 			setLLMConfigMissing(false);
 			setPrompt("");
-			await refresh(true, selectedSessionId);
+			await refresh(true, targetSessionId);
+			return true;
 		} finally {
 			setLoading(false);
 		}
+	}, [addAlert, checkLLMConfigReady, continueLoadingTaskId, loading, refresh, selectedSessionId, t]);
+
+	const onSend = async () => {
+		const text = prompt.trim();
+		await sendPromptText(text, selectedSessionId);
 	};
+
+	useEffect(() => {
+		const text = initialPrompt?.trim() ?? "";
+		const key = `${sessionId}:${text}`;
+		if (text === "" || consumedInitialPromptRef.current === key) return;
+		consumedInitialPromptRef.current = key;
+		void (async () => {
+			const success = await sendPromptText(text, sessionId);
+			if (success) {
+				onInitialPromptConsumed?.();
+			}
+		})();
+	}, [initialPrompt, onInitialPromptConsumed, sendPromptText, sessionId]);
 
 	const getContinuePrompt = React.useCallback(() => {
 		const language = `${i18n.resolvedLanguage ?? i18n.language ?? ""}`.toLowerCase();
@@ -753,40 +774,6 @@ export default function AgentPanel(props: AgentPanelProps) {
 			<MacScrollbar ref={scrollRef} skin="dark" style={{ flex: 1, minHeight: 0 }}>
 				<Box ref={contentRef} sx={{ px: 3, py: 3 }}>
 					<Stack spacing={4}>
-						{llmConfigMissing && session?.currentTaskStatus !== "RUNNING" ? (
-							<Box
-								sx={{
-									border: `1px solid ${Color.Warning}44`,
-									backgroundColor: `${Color.Warning}14`,
-									borderRadius: 2,
-									px: 2,
-									py: 1.5,
-								}}
-							>
-								<Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between">
-									<Box sx={{ minWidth: 0 }}>
-										<Typography variant="subtitle2" sx={{ color: Color.TextPrimary, mb: 0.5 }}>
-											{t("agent.noLLMConfigTitle")}
-										</Typography>
-										<Typography variant="body2" sx={{ color: Color.TextSecondary }}>
-											{t("agent.noLLMConfigDescription")}
-										</Typography>
-									</Box>
-									<Button
-										variant="outlined"
-										size="small"
-										onClick={onOpenLLMConfig}
-										sx={{
-											flexShrink: 0,
-											borderColor: Color.Line,
-											color: Color.TextPrimary,
-										}}
-									>
-										{t("agent.openLLMConfig")}
-									</Button>
-								</Stack>
-							</Box>
-						) : null}
 						{session?.kind === "sub" && spawnInfo ? (
 							<Box
 								sx={{
@@ -876,6 +863,20 @@ export default function AgentPanel(props: AgentPanelProps) {
 								{visibleSummaryMessages.length > 0 ? (
 									<AgentMessageList messages={visibleSummaryMessages} />
 								) : null}
+								{visibleSummaryMessages.length > 0 && currentTaskChangeSet && currentTaskChangeSet.filesChanged > 0 ? (
+									<AgentChangeSetSummaryCard
+										changeSet={currentTaskChangeSet}
+										diffs={taskDiffs[currentTaskChangeSet.taskId] ?? []}
+										diffOpen={openedTaskDiffId === currentTaskChangeSet.taskId}
+										diffLoading={taskDiffLoadingId === currentTaskChangeSet.taskId}
+										rollbackLoading={rollingBack === -currentTaskChangeSet.taskId}
+										running={session?.currentTaskStatus === "RUNNING"}
+										rollbackLabel={t("agent.rollbackThisRunChanges")}
+										onToggleDiff={() => void onToggleTaskDiff(currentTaskChangeSet.taskId)}
+										onRollback={() => void onRollbackTaskChangeSet(currentTaskChangeSet.taskId)}
+										onOpenFile={onOpenFile}
+									/>
+								) : null}
 								{continuableTaskId ? (
 									<Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1.5 }}>
 										<Button
@@ -902,20 +903,6 @@ export default function AgentPanel(props: AgentPanelProps) {
 										{continueLoadingTaskId === continuableTaskId ? <CircularProgress size={16} /> : null}
 									</Stack>
 								) : null}
-								{visibleSummaryMessages.length > 0 && currentTaskChangeSet && currentTaskChangeSet.filesChanged > 0 ? (
-									<AgentChangeSetSummaryCard
-										changeSet={currentTaskChangeSet}
-										diffs={taskDiffs[currentTaskChangeSet.taskId] ?? []}
-										diffOpen={openedTaskDiffId === currentTaskChangeSet.taskId}
-										diffLoading={taskDiffLoadingId === currentTaskChangeSet.taskId}
-										rollbackLoading={rollingBack === -currentTaskChangeSet.taskId}
-										running={session?.currentTaskStatus === "RUNNING"}
-										rollbackLabel={t("agent.rollbackThisRunChanges")}
-										onToggleDiff={() => void onToggleTaskDiff(currentTaskChangeSet.taskId)}
-										onRollback={() => void onRollbackTaskChangeSet(currentTaskChangeSet.taskId)}
-										onOpenFile={onOpenFile}
-									/>
-								) : null}
 								{showSummaryShimmer ? (
 									<Typography
 										variant="body1"
@@ -939,6 +926,40 @@ export default function AgentPanel(props: AgentPanelProps) {
 										{t("agent.thinking")}
 									</Typography>
 								) : null}
+							</Box>
+						) : null}
+						{llmConfigMissing && session?.currentTaskStatus !== "RUNNING" ? (
+							<Box
+								sx={{
+									border: `1px solid ${Color.Warning}44`,
+									backgroundColor: `${Color.Warning}14`,
+									borderRadius: 2,
+									px: 2,
+									py: 1.5,
+								}}
+							>
+								<Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between">
+									<Box sx={{ minWidth: 0 }}>
+										<Typography variant="subtitle2" sx={{ color: Color.TextPrimary, mb: 0.5 }}>
+											{t("agent.noLLMConfigTitle")}
+										</Typography>
+										<Typography variant="body2" sx={{ color: Color.TextSecondary }}>
+											{t("agent.noLLMConfigDescription")}
+										</Typography>
+									</Box>
+									<Button
+										variant="outlined"
+										size="small"
+										onClick={onOpenLLMConfig}
+										sx={{
+											flexShrink: 0,
+											borderColor: Color.Line,
+											color: Color.TextPrimary,
+										}}
+									>
+										{t("agent.openLLMConfig")}
+									</Button>
+								</Stack>
 							</Box>
 						) : null}
 					</Stack>

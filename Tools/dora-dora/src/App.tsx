@@ -53,6 +53,7 @@ import LLMConfigDialog from './LLMConfigDialog';
 import ProjectWorkspacePanel from './ProjectWorkspacePanel';
 import { createEmptyActionDocument, writeLegacyModel } from './ActionEditor';
 import { createParticleDocument, writeParticleDocumentToXml } from './ParticleEditor';
+import { LogFixRequest } from './LogFix';
 
 const SpinePlayer = React.lazy(() => import('./SpinePlayer'));
 const Markdown = React.lazy(() => import('./Markdown'));
@@ -374,6 +375,7 @@ interface EditingFile {
 	readOnly?: boolean;
 	status: TabStatus;
 	agentSessionId?: number;
+	agentInitialPrompt?: string;
 	workspaceView?: "agent" | "upload";
 };
 
@@ -632,7 +634,7 @@ const getAlertAccentColor = (type: AlertColor) => {
 };
 
 export default function PersistentDrawerLeft() {
-	const { t } = useTranslation();
+	const { t, i18n } = useTranslation();
 	const [alerts, setAlerts] = useState<{
 		msg: string,
 		key: string,
@@ -1092,6 +1094,83 @@ export default function PersistentDrawerLeft() {
 		});
 		return true;
 	}, [addAlert, files, switchTab, t]);
+
+	const onFixLog = useCallback(async (request: LogFixRequest) => {
+		setOpenLog(null);
+		setOpenBottomLog(false);
+		if (currentFile === undefined) {
+			addAlert(t("log.fixNoProject"), "info");
+			return;
+		}
+		const runningSessionRes = await Service.agentRunningTasks();
+		if (!runningSessionRes.success) {
+			addAlert(runningSessionRes.message, "error", true);
+			return;
+		}
+		const runningSession = runningSessionRes.sessions[0];
+		if (runningSession !== undefined) {
+			addAlert(t("log.fixAgentRunning", { title: runningSession.title }), "info");
+			return;
+		}
+		const rootRes = await Service.agentProjectRoot({ path: currentFile.key, isDir: currentFile.folder });
+		if (!rootRes.success) {
+			addAlert(rootRes.message ?? t("log.fixNoProject"), "error");
+			return;
+		}
+		if (!rootRes.found || !rootRes.projectRoot) {
+			addAlert(rootRes.message ?? t("log.fixNoProject"), "info");
+			return;
+		}
+		try {
+			await Service.stop();
+		} catch {
+			addAlert(t("alert.stopFailed"), "error");
+			return;
+		}
+		const createRes = await Service.agentSessionCreate({
+			projectRoot: rootRes.projectRoot,
+			title: rootRes.title,
+		});
+		if (!createRes.success) {
+			addAlert(createRes.message, "error");
+			return;
+		}
+		const promptPrefix = i18n.language.toLowerCase().startsWith("zh") ? "修正这个问题：\n" : "Fix this:\n";
+		const initialPrompt = `${promptPrefix}${request.message}`;
+		const normalizedTitle = rootRes.title ?? path.basename(rootRes.projectRoot);
+		const tabKey = rootRes.projectRoot;
+		const existingIndex = files.findIndex(file => file.key === tabKey);
+		if (existingIndex >= 0) {
+			const updatedFile: EditingFile = {
+				...files[existingIndex],
+				title: normalizedTitle,
+				folder: true,
+				agentSessionId: createRes.session.id,
+				agentInitialPrompt: initialPrompt,
+				workspaceView: "agent",
+			};
+			setFiles(prev => prev.map((file, index) => index === existingIndex ? updatedFile : file));
+			switchTab(existingIndex, updatedFile);
+			return;
+		}
+		const newFile: EditingFile = {
+			key: tabKey,
+			title: normalizedTitle,
+			content: "",
+			contentModified: null,
+			folder: true,
+			status: "normal",
+			onMount: () => { },
+			agentSessionId: createRes.session.id,
+			agentInitialPrompt: initialPrompt,
+			workspaceView: "agent",
+		};
+		setFiles(prev => {
+			const next = [...prev, newFile];
+			switchTab(next.length - 1, newFile);
+			return next;
+		});
+	}, [addAlert, currentFile, files, i18n.language, switchTab, t]);
 	useEffect(() => {
 		if (currentFile !== undefined) {
 			const ext = path.extname(currentFile.key).toLowerCase();
@@ -3419,6 +3498,10 @@ export default function PersistentDrawerLeft() {
 		setFiles(prev => prev.map(file => file.key === fileKey ? { ...file, workspaceView: view } : file));
 	}, []);
 
+	const onAgentInitialPromptConsumed = useCallback((fileKey: string) => {
+		setFiles(prev => prev.map(file => file.key === fileKey ? { ...file, agentInitialPrompt: undefined } : file));
+	}, []);
+
 	const checkFile = (file: EditingFile, content: string, model: monaco.editor.ITextModel, lastChange?: monaco.editor.IModelContentChange) => {
 		const ext = path.extname(file.key).toLowerCase();
 		if (ext === ".yarn") {
@@ -3988,7 +4071,7 @@ export default function PersistentDrawerLeft() {
 					}
 				</DialogContent>
 			</Dialog>
-			<LogView openName={openLog === null ? null : openLog.title} height={editorHeight * 0.9} onClose={onCloseLog} />
+			<LogView openName={openLog === null ? null : openLog.title} height={editorHeight * 0.9} onClose={onCloseLog} onFixLog={onFixLog} />
 			<Dialog
 				maxWidth="lg"
 				open={popupInfo !== null}
@@ -4476,8 +4559,10 @@ export default function PersistentDrawerLeft() {
 									uploadPath={file.key}
 									displayPath={`${t("tree.assets")}/${file.title}`}
 									agentSessionId={file.agentSessionId}
+									agentInitialPrompt={file.agentInitialPrompt}
 									view={file.workspaceView ?? "agent"}
 									addAlert={addAlert}
+									onAgentInitialPromptConsumed={() => onAgentInitialPromptConsumed(file.key)}
 									onRollbackComplete={onAgentRollbackComplete}
 									onUploaded={onUploaded}
 									onViewChange={(view) => onWorkspaceViewChange(file.key, view)}
@@ -4949,8 +5034,10 @@ export default function PersistentDrawerLeft() {
 												}
 												return target + path.sep;
 											})()}
+											agentInitialPrompt={file.agentInitialPrompt}
 											view={file.workspaceView ?? "upload"}
 											addAlert={addAlert}
+											onAgentInitialPromptConsumed={() => onAgentInitialPromptConsumed(file.key)}
 											onUploaded={onUploaded}
 											onViewChange={(view) => onWorkspaceViewChange(file.key, view)}
 											onOpenFile={(filePath) => onAgentOpenFile(file.key, filePath)}
@@ -4968,7 +5055,7 @@ export default function PersistentDrawerLeft() {
 					<KeyboardShortcuts />
 				}
 				<div style={{ position: 'fixed', left: winSize.width - editorWidth, bottom: statusBarHeight, width: editorWidth, zIndex: 998, transition: 'all 0.2s' }} hidden={!openBottomLog}>
-					<BottomLog height={editorHeight * 0.3} />
+					<BottomLog height={editorHeight * 0.3} onFixLog={onFixLog} />
 				</div>
 				<Box sx={{
 					position: 'fixed',
@@ -5012,7 +5099,7 @@ export default function PersistentDrawerLeft() {
 										display: 'flex',
 										alignItems: 'center',
 										gap: 1,
-										width: 300,
+										width: '100%',
 										minHeight: 40,
 										mb: 0.75,
 										pr: 0.5,
@@ -5029,9 +5116,9 @@ export default function PersistentDrawerLeft() {
 											pl: 1.25,
 											fontSize: 13,
 											lineHeight: 1.35,
-											overflow: 'hidden',
-											textOverflow: 'ellipsis',
-											whiteSpace: 'nowrap',
+											whiteSpace: 'pre-wrap',
+											overflowWrap: 'anywhere',
+											wordBreak: 'break-word',
 										}}>
 											{item.msg}
 											{item.count > 1 ? (
@@ -5062,6 +5149,7 @@ export default function PersistentDrawerLeft() {
 											sx={{
 												width: 28,
 												height: 28,
+												flexShrink: 0,
 												color: Color.TextSecondary,
 												borderRadius: 1,
 												'&:hover': {
