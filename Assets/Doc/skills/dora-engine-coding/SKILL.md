@@ -92,6 +92,18 @@ Use Dora runtime modules, not browser packages:
 - Vector graphics: `import * as nvg from 'nvg';` when using `VGNode`/NanoVG APIs.
 - Do not import React from npm for DoraX runtime code.
 
+## TypeScript Hygiene
+
+- Do not use `any` in Dora runtime TypeScript. Use concrete types, `unknown` with narrowing, generics, or exact unions/records.
+- Do not use bare `null` in runtime code. Use `undefined`/omitted fields for absent Lua values.
+
+## Coordinate System
+
+- Dora uses a left-handed coordinate system, positive X is right and positive Y is up.
+- `Director.entry`, `Director.ui`, and similar root nodes use screen-center origin: `(0, 0)` is the screen center.
+- Do not use browser-style top-left coordinates unless explicitly converting from that space.
+- For game screen adaptation, read `ts/adapting-to-screen.md` directly before designing responsive layout behavior.
+
 ## Baseline Dora APIs for Simple 2D Prototypes
 
 For a tiny runtime prototype, this baseline is allowed without extra API search:
@@ -133,7 +145,7 @@ Baseline mapping:
 - Keyboard hold state: `Keyboard.isKeyPressed(KeyName.Left)`.
 - One-frame key down/up: `Keyboard.isKeyDown(...)` / `Keyboard.isKeyUp(...)`.
 - Screen size: `View.size.width`, `View.size.height`.
-- Coordinates: for nodes attached directly to `Director.entry` without extra transforms, the visible world is commonly centered around `(0, 0)`, so screen bounds are often `±View.size.width / 2`, `±View.size.height / 2`. For child nodes or cameras, compute in that node/camera coordinate space instead of assuming DOM top-left coordinates.
+- Coordinates: direct children of `Director.entry`/`Director.ui` use screen-center origin, positive X right, and positive Y up. For child nodes or cameras, compute in that local space.
 
 ## Runtime API Coverage Map
 
@@ -163,17 +175,20 @@ Use this as a decision map. It is not a full API reference; exact signatures com
 4. Keep entry wiring real: the entry must import/instantiate/start the game logic.
 5. Avoid orphan modules: if creating classes/modules, export/import them correctly and ensure `init.ts` uses them.
 6. For small prototypes, prefer one self-contained `init.ts` first; refactor into modules only when it is already running or the user asks.
-7. Run `build` on the changed file/project when available.
-8. Build success is not just the top-level `success` field. Inspect per-file `messages`; if any message reports failure or diagnostics, fix them before finishing.
-9. If TS build says the Web IDE/transpile service is not connected, tell the user to open the Web IDE/keep Dora running, or use the existing project build path if available.
+7. Replace any `any` or bare `null` introduced during implementation before building.
+8. Run `build` on the changed file/project when available.
+9. Build success is not just the top-level `success` field. Inspect per-file `messages`; if any message reports failure or diagnostics, fix them before finishing.
+10. If TS build says the Web IDE/transpile service is not connected, tell the user to open the Web IDE/keep Dora running, or use the existing project build path if available.
 
 ## Review Checklist Before Finish
 
 - Runtime entry actually starts the game/app.
 - No browser DOM/Canvas/Node-only APIs remain in runtime scripts.
 - Code imports from Dora runtime modules (`Dora`, `DoraX`, `Platformer`, `ImGui`, `nvg`) as appropriate.
+- No `any` or bare `null` was added to Dora runtime TypeScript.
 - Non-baseline Dora APIs were confirmed with `search_dora_api` or existing correct project code.
 - Game loop uses Dora scheduling and `dt`.
 - Rendering nodes are attached to `Director.entry` or an existing Dora node.
+- Direct `Director.entry`/`Director.ui` coordinates use screen-center origin with positive X right and positive Y up.
 - Input uses Dora input APIs and correct `KeyName` enums.
 - Build/transpile was run when possible and per-file messages were checked.
