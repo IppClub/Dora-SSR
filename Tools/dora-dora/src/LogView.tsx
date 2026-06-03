@@ -8,13 +8,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 import { LazyLog } from 'react-lazylog';
 import * as Service from './Service';
-import { FormEvent, memo, useEffect, useState } from 'react';
-import { Box, Button, Dialog, DialogActions, DialogContent, FormControl, IconButton, TextField, Tooltip } from '@mui/material';
+import { FormEvent, memo, useEffect, useRef, useState } from 'react';
+import { Box, Button, Dialog, DialogActions, DialogContent, FormControl, TextField, Tooltip } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { Entry, Separator } from './Frame';
 import { Color } from './Theme';
 import { BsTerminal } from 'react-icons/bs';
 import InsertChartIcon from '@mui/icons-material/InsertChart';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { ProfilerInfo } from './ProfilerInfo';
 import { Checkbox, ConfigProvider, Descriptions, Radio, theme } from 'antd';
 import type { DescriptionsProps, RadioChangeEvent } from 'antd';
@@ -24,11 +25,13 @@ import { Line, LineConfig, Pie, PieConfig } from '@ant-design/plots';
 import { Table, Divider } from 'antd';
 import type { TableColumnsType } from 'antd';
 import Info from './Info';
+import { LogFixRequest, buildLogFixMessage, logFixLineClassName } from './LogFix';
 
 export interface LogViewProps {
 	openName: string | null;
 	height: number;
 	onClose: () => void;
+	onFixLog?: (request: LogFixRequest) => void;
 };
 
 interface LoaderDataType {
@@ -91,6 +94,7 @@ const transitionProps = {
 
 const LogView = memo((props: LogViewProps) => {
 	const { t } = useTranslation();
+	const logContainerRef = useRef<HTMLDivElement | null>(null);
 	const [text, setText] = useState(t("log.wait"));
 	const [command, setCommand] = useState("");
 	const [history, setHistory] = useState<string[]>([]);
@@ -98,6 +102,12 @@ const LogView = memo((props: LogViewProps) => {
 	const [toggleProfiler, setToggleProfiler] = useState(Info.webProfiler);
 	const [profilerInfo, setProfilerInfo] = useState<ProfilerInfo | null>(null);
 	const [tableColumns, setTableColumns] = useState<TableColumnsType<LoaderDataType>>(getTableColumns(t));
+	const [fixTarget, setFixTarget] = useState<{
+		lineNumber: number;
+		top: number;
+		left: number;
+		message: string;
+	} | null>(null);
 
 	useEffect(() => {
 		setTableColumns(getTableColumns(t));
@@ -238,6 +248,44 @@ const LogView = memo((props: LogViewProps) => {
 			});
 		}
 	};
+
+	const showFixButton = (event: MouseEvent, container: HTMLElement) => {
+		if (!props.onFixLog) return;
+		const target = event.target as HTMLElement | null;
+		if (target?.closest("[data-log-fix-button]")) return;
+		const lineElement = target?.closest(`.${logFixLineClassName}`) as HTMLElement | null;
+		const lineNumberText = lineElement?.querySelector("a[id]")?.getAttribute("id");
+		const lineNumber = Number(lineNumberText);
+		if (!lineElement || !Number.isFinite(lineNumber) || lineNumber <= 0) {
+			setFixTarget(null);
+			return;
+		}
+		const message = buildLogFixMessage(text, lineNumber);
+		if (message === "") {
+			setFixTarget(null);
+			return;
+		}
+		const containerRect = container.getBoundingClientRect();
+		const lineRect = lineElement.getBoundingClientRect();
+		setFixTarget({
+			lineNumber,
+			message,
+			top: Math.max(4, lineRect.top - containerRect.top - 2),
+			left: Math.min(Math.max(8, event.clientX - containerRect.left + 8), Math.max(8, containerRect.width - 64)),
+		});
+	};
+
+	useEffect(() => {
+		const container = logContainerRef.current;
+		if (!container) return;
+		const onMouseDown = (event: MouseEvent) => {
+			showFixButton(event, container);
+		};
+		container.addEventListener("mousedown", onMouseDown, true);
+		return () => {
+			container.removeEventListener("mousedown", onMouseDown, true);
+		};
+	});
 
 	let basicItems: DescriptionsProps['items'];
 	let timeItems: DescriptionsProps['items'];
@@ -615,44 +663,71 @@ const LogView = memo((props: LogViewProps) => {
 					</Box>
 					<Separator />
 				</div>
-				<LazyLog
-					height={toggleProfiler ? consoleMinHeight : props.height}
-					text={text}
-					style={{
-						WebkitScrollSnapType: "none",
-						fontSize: 18,
-						fontFamily: "Roboto,Helvetica,Arial,sans-serif",
-						color: Color.TextSecondary,
-						background: Color.BackgroundDark,
-					}}
-					formatPart={formatPart}
-					rowHeight={22}
-					extraLines={5}
-					selectableLines
-					enableSearch
-					caseInsensitive
-					stream
-					follow
-				/>
-				<div style={{ position: 'absolute', bottom: 10, right: 10, opacity: 0.5, display: 'flex', alignItems: 'center' }}>
-					<p style={{ fontSize: 14, marginRight: 10, color: Color.Secondary }}>{props.openName}</p>
-					<IconButton
-						color="secondary"
-						aria-label="toggle-profiler"
-						onClick={onToggleProfiler}
-						sx={{ width: 40, height: 40 }}
-					>
-						{toggleProfiler ?
-							<BsTerminal /> :
-							<InsertChartIcon />
-						}
-					</IconButton>
+				<div style={{ position: "relative" }} ref={logContainerRef}>
+					<LazyLog
+						height={toggleProfiler ? consoleMinHeight : props.height}
+						text={text}
+						style={{
+							WebkitScrollSnapType: "none",
+							fontSize: 18,
+							fontFamily: "Roboto,Helvetica,Arial,sans-serif",
+							color: Color.TextSecondary,
+							background: Color.BackgroundDark,
+						}}
+						formatPart={formatPart}
+						lineClassName={logFixLineClassName}
+						rowHeight={22}
+						extraLines={5}
+						selectableLines
+						enableSearch
+						caseInsensitive
+						stream
+						follow
+						onScroll={() => setFixTarget(null)}
+					/>
+					{fixTarget && props.onFixLog ? (
+						<Button
+							size="small"
+							variant="contained"
+							data-log-fix-button
+							startIcon={<AutoAwesomeIcon sx={{ fontSize: 14 }} />}
+							onClick={(event) => {
+								event.stopPropagation();
+								props.onFixLog?.({
+									lineNumber: fixTarget.lineNumber,
+									message: fixTarget.message,
+								});
+								setFixTarget(null);
+							}}
+							sx={{
+								position: "absolute",
+								top: fixTarget.top,
+								left: fixTarget.left,
+								minWidth: 48,
+								height: 24,
+								px: 1,
+								fontSize: 12,
+								fontWeight: 600,
+								color: Color.BackgroundDark,
+								backgroundColor: Color.Theme,
+								zIndex: 2,
+								"& .MuiButton-startIcon": {
+									mr: 0.5,
+								},
+								"&:hover": {
+									backgroundColor: Color.Theme,
+								},
+							}}
+						>
+							{t("log.fix")}
+						</Button>
+					) : null}
 				</div>
 			</DialogContent>
 			<DialogActions>
-				<form noValidate autoComplete="off" style={{ width: "100%" }} onSubmit={onSubmit}>
+				<form noValidate autoComplete="off" style={{ flex: 1, minWidth: 0 }} onSubmit={onSubmit}>
 					<FormControl fullWidth sx={{
-						paddingRight: 3,
+						paddingRight: 1,
 					}}
 					>
 						<TextField
@@ -664,15 +739,32 @@ const LogView = memo((props: LogViewProps) => {
 						/>
 					</FormControl>
 				</form>
-				<Button onClick={onReload}>
-					{t("action.reload")}
-				</Button>
-				<Button onClick={onClear}>
-					{t("action.clear")}
-				</Button>
-				<Button onClick={props.onClose} style={{ marginRight: 20 }}>
-					{t("action.close")}
-				</Button>
+				<Box sx={{ flexShrink: 0, minWidth: 0, p: 0, m: 0 }}>
+					<Button
+						aria-label="toggle-profiler"
+						onClick={onToggleProfiler}
+						startIcon={toggleProfiler ? <BsTerminal /> : <InsertChartIcon />}
+						sx={{
+							color: Color.Secondary,
+							minWidth: 0,
+							height: 36,
+							pl: 2,
+							pr: 2,
+							whiteSpace: 'nowrap',
+						}}
+					>
+						{toggleProfiler ? t("log.modeLog") : t("log.modePerformance")}
+					</Button>
+					<Button onClick={onReload}>
+						{t("action.reload")}
+					</Button>
+					<Button onClick={onClear}>
+						{t("action.clear")}
+					</Button>
+					<Button onClick={props.onClose} style={{ marginRight: 10 }}>
+						{t("action.close")}
+					</Button>
+				</Box>
 			</DialogActions>
 		</Dialog>
 	</Entry>;

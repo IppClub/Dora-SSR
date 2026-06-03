@@ -421,7 +421,12 @@ i18n
 						wait: "Wait for logging messages ...",
 						open: "Dora SSR connected!",
 						close: "Dora SSR disconnected!",
-						command: "Commandline"
+						command: "Commandline",
+						fix: "Fix",
+						modePerformance: "Performance",
+						modeLog: "Log",
+						fixNoProject: "Open a file that belongs to a valid project before fixing this log.",
+						fixAgentRunning: "Dora is still running a task in {{title}}. Wait for it to finish or stop it before fixing this log."
 					},
 					pro: {
 						basic: "Basic",
@@ -1299,7 +1304,12 @@ i18n
 						wait: "接收日志消息中……",
 						open: "Dora SSR 已连接！",
 						close: "Dora SSR 断开连接！",
-						command: "命令行"
+						command: "命令行",
+						fix: "修复",
+						modePerformance: "性能",
+						modeLog: "日志",
+						fixNoProject: "请先打开有效工程中的文件，再修正这条日志",
+						fixAgentRunning: "Dora 正在 {{title}} 执行任务，请先等待完成或停止任务后再修正这条日志"
 					},
 					pro: {
 						basic: "基础",
