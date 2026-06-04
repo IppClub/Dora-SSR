@@ -69,6 +69,7 @@ public class MainActivity extends SDLActivity {
 	private static native void nativeSetPath(String path);
 	private static native void nativeSetScreenDensity(float density);
 	private static native String nativeGetInstallFile();
+	private static native void nativeSetMainActivityClass(Class<?> cls);
 	private Button sideHandleButton;
 	private LinearLayout sideMenu;
 	private Button switchModeButton;
@@ -100,6 +101,12 @@ public class MainActivity extends SDLActivity {
 	private final Runnable autoHideSideMenu = this::collapseSideMenu;
 	public static String waBuild(String path) { return Wa.waBuild(path); }
 	public static String waFormat(String path) { return Wa.waFormat(path); }
+	public static long waGitStartClone(String url, String path, String branch, String token, long depth) { return Wa.waGitStartClone(url, path, branch, token, depth); }
+	public static long waGitStartPull(String path, String branch, String token, boolean force) { return Wa.waGitStartPull(path, branch, token, force); }
+	public static long waGitRun(String repoPath, String command, String optionsJSON) { return Wa.waGitRun(repoPath, command, optionsJSON); }
+	public static String waGitPoll(long jobId) { return Wa.waGitPoll(jobId); }
+	public static boolean waGitCancel(long jobId) { return Wa.waGitCancel(jobId); }
+	public static boolean waGitDispose(long jobId) { return Wa.waGitDispose(jobId); }
 	@Override
 	protected void onCreate(final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -112,6 +119,7 @@ public class MainActivity extends SDLActivity {
 		}
 		MainActivity.nativeSetPath(this.getApplicationInfo().sourceDir);
 		MainActivity.nativeSetScreenDensity(this.getResources().getDisplayMetrics().density);
+		MainActivity.nativeSetMainActivityClass(MainActivity.class);
 		installIdeSwitcher();
 		hideSystemUI();
 	}

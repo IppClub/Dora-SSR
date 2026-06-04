@@ -20,12 +20,24 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 using WaBuildFunc = char* (*)(char* input);
 using WaFormatFunc = char* (*)(char* input);
 using WaFreeCStringFunc = void (*)(char* str);
+using WaGitStartCloneFunc = int64_t (*)(char* url, char* path, char* branch, char* token, int depth);
+using WaGitStartPullFunc = int64_t (*)(char* path, char* branch, char* token, int force);
+using WaGitRunFunc = int64_t (*)(char* repoPath, char* command, char* optionsJSON);
+using WaGitPollFunc = char* (*)(int64_t jobId);
+using WaGitCancelFunc = int (*)(int64_t jobId);
+using WaGitDisposeFunc = int (*)(int64_t jobId);
 
 struct WaApi {
 	void* module = nullptr;
 	WaBuildFunc build = nullptr;
 	WaFormatFunc format = nullptr;
 	WaFreeCStringFunc freeCString = nullptr;
+	WaGitStartCloneFunc gitStartClone = nullptr;
+	WaGitStartPullFunc gitStartPull = nullptr;
+	WaGitRunFunc gitRun = nullptr;
+	WaGitPollFunc gitPoll = nullptr;
+	WaGitCancelFunc gitCancel = nullptr;
+	WaGitDisposeFunc gitDispose = nullptr;
 };
 
 static WaApi& SharedWaApi() {
@@ -40,6 +52,12 @@ static WaApi& SharedWaApi() {
 		api.build = bx::dlsym<WaBuildFunc>(api.module, "WaBuild");
 		api.format = bx::dlsym<WaFormatFunc>(api.module, "WaFormat");
 		api.freeCString = bx::dlsym<WaFreeCStringFunc>(api.module, "WaFreeCString");
+		api.gitStartClone = bx::dlsym<WaGitStartCloneFunc>(api.module, "WaGitStartClone");
+		api.gitStartPull = bx::dlsym<WaGitStartPullFunc>(api.module, "WaGitStartPull");
+		api.gitRun = bx::dlsym<WaGitRunFunc>(api.module, "WaGitRun");
+		api.gitPoll = bx::dlsym<WaGitPollFunc>(api.module, "WaGitPoll");
+		api.gitCancel = bx::dlsym<WaGitCancelFunc>(api.module, "WaGitCancel");
+		api.gitDispose = bx::dlsym<WaGitDisposeFunc>(api.module, "WaGitDispose");
 		if (!api.build || !api.format || !api.freeCString) {
 			Issue("wa.dll missing required exports, Wa support disabled");
 			bx::dlclose(api.module);
@@ -63,11 +81,36 @@ static void WaFreeCString(const char* str) {
 		waApi.freeCString(const_cast<char*>(str));
 	}
 }
+static int64_t WaGitStartClone(char* url, char* path, char* branch, char* token, int depth) {
+	auto& waApi = SharedWaApi();
+	return waApi.gitStartClone ? waApi.gitStartClone(url, path, branch, token, depth) : 0;
+}
+static int64_t WaGitStartPull(char* path, char* branch, char* token, int force) {
+	auto& waApi = SharedWaApi();
+	return waApi.gitStartPull ? waApi.gitStartPull(path, branch, token, force) : 0;
+}
+static int64_t WaGitRun(char* repoPath, char* command, char* optionsJSON) {
+	auto& waApi = SharedWaApi();
+	return waApi.gitRun ? waApi.gitRun(repoPath, command, optionsJSON) : 0;
+}
+static const char* WaGitPoll(int64_t jobId) {
+	auto& waApi = SharedWaApi();
+	return waApi.gitPoll ? waApi.gitPoll(jobId) : nullptr;
+}
+static bool WaGitCancel(int64_t jobId) {
+	auto& waApi = SharedWaApi();
+	return waApi.gitCancel ? waApi.gitCancel(jobId) != 0 : false;
+}
+static bool WaGitDispose(int64_t jobId) {
+	auto& waApi = SharedWaApi();
+	return waApi.gitDispose ? waApi.gitDispose(jobId) != 0 : false;
+}
 #elif BX_PLATFORM_ANDROID
 extern "C" {
 #include <jni.h>
 extern "C" JNIEnv* Android_JNI_GetEnv();
 static JavaVM* g_VM = NULL;
+static jclass g_MainActivityClass = NULL;
 static void CacheJavaVM() {
 	if (!g_VM) {
 		JNIEnv* env = Android_JNI_GetEnv();
@@ -87,9 +130,45 @@ JNIEnv* GetEnv() {
 	}
 	return env;
 }
+JNIEXPORT void JNICALL Java_org_ippclub_dorassr_MainActivity_nativeSetMainActivityClass(JNIEnv* env, jclass, jclass cls) {
+	if (g_MainActivityClass) {
+		env->DeleteGlobalRef(g_MainActivityClass);
+		g_MainActivityClass = NULL;
+	}
+	g_MainActivityClass = s_cast<jclass>(env->NewGlobalRef(cls));
+}
+static jclass GetMainActivityClass(JNIEnv* env) {
+	if (g_MainActivityClass) {
+		return g_MainActivityClass;
+	}
+	jclass cls = env->FindClass("org/ippclub/dorassr/MainActivity");
+	if (!cls) {
+		if (env->ExceptionCheck()) {
+			env->ExceptionClear();
+		}
+		Issue("MainActivity class not found");
+		return nullptr;
+	}
+	g_MainActivityClass = s_cast<jclass>(env->NewGlobalRef(cls));
+	env->DeleteLocalRef(cls);
+	return g_MainActivityClass;
+}
+static char* CopyJString(JNIEnv* env, jstring jstr, const char* fallback) {
+	if (!jstr) {
+		size_t len = strlen(fallback);
+		char* result = new char[len + 1];
+		strcpy(result, fallback);
+		return result;
+	}
+	const char* str = env->GetStringUTFChars(jstr, nullptr);
+	char* result = new char[strlen(str) + 1];
+	strcpy(result, str);
+	env->ReleaseStringUTFChars(jstr, str);
+	return result;
+}
 static const char* WaBuild(char* input) {
 	auto env = GetEnv();
-	jclass cls = env->FindClass("org/ippclub/dorassr/MainActivity");
+	jclass cls = GetMainActivityClass(env);
 	if (!cls) return "failed to build Wa Project due to jni class not found";
 
 	jmethodID mid = env->GetStaticMethodID(cls, "waBuild", "(Ljava/lang/String;)Ljava/lang/String;");
@@ -98,20 +177,16 @@ static const char* WaBuild(char* input) {
 	jstring jpath = env->NewStringUTF(input);
 	jstring jresult = (jstring)env->CallStaticObjectMethod(cls, mid, jpath);
 
-	const char* str = env->GetStringUTFChars(jresult, nullptr);
-	char* result = new char[strlen(str) + 1];
-	strcpy(result, str);
-	env->ReleaseStringUTFChars(jresult, str);
+	char* result = CopyJString(env, jresult, "failed to build Wa Project due to empty jni result");
 
 	env->DeleteLocalRef(jpath);
 	env->DeleteLocalRef(jresult);
-	env->DeleteLocalRef(cls);
 
 	return result;
 }
 static const char* WaFormat(char* input) {
 	auto env = GetEnv();
-	jclass cls = env->FindClass("org/ippclub/dorassr/MainActivity");
+	jclass cls = GetMainActivityClass(env);
 	if (!cls) return "";
 
 	jmethodID mid = env->GetStaticMethodID(cls, "waFormat", "(Ljava/lang/String;)Ljava/lang/String;");
@@ -120,19 +195,111 @@ static const char* WaFormat(char* input) {
 	jstring jpath = env->NewStringUTF(input);
 	jstring jresult = (jstring)env->CallStaticObjectMethod(cls, mid, jpath);
 
-	const char* str = env->GetStringUTFChars(jresult, nullptr);
-	char* result = new char[strlen(str) + 1];
-	strcpy(result, str);
-	env->ReleaseStringUTFChars(jresult, str);
+	char* result = CopyJString(env, jresult, "");
 
 	env->DeleteLocalRef(jpath);
 	env->DeleteLocalRef(jresult);
-	env->DeleteLocalRef(cls);
 
 	return result;
 }
 void WaFreeCString(const char* str) {
 	delete[] str;
+}
+static int64_t WaGitStartClone(char* url, char* path, char* branch, char* token, int depth) {
+	auto env = GetEnv();
+	jclass cls = GetMainActivityClass(env);
+	if (!cls) return 0;
+
+	jmethodID mid = env->GetStaticMethodID(cls, "waGitStartClone", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;J)J");
+	if (!mid) return 0;
+
+	jstring jurl = env->NewStringUTF(url);
+	jstring jpath = env->NewStringUTF(path);
+	jstring jbranch = env->NewStringUTF(branch);
+	jstring jtoken = env->NewStringUTF(token);
+	jlong jobId = env->CallStaticLongMethod(cls, mid, jurl, jpath, jbranch, jtoken, s_cast<jlong>(depth));
+
+	env->DeleteLocalRef(jurl);
+	env->DeleteLocalRef(jpath);
+	env->DeleteLocalRef(jbranch);
+	env->DeleteLocalRef(jtoken);
+
+	return s_cast<int64_t>(jobId);
+}
+static int64_t WaGitStartPull(char* path, char* branch, char* token, int force) {
+	auto env = GetEnv();
+	jclass cls = GetMainActivityClass(env);
+	if (!cls) return 0;
+
+	jmethodID mid = env->GetStaticMethodID(cls, "waGitStartPull", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)J");
+	if (!mid) return 0;
+
+	jstring jpath = env->NewStringUTF(path);
+	jstring jbranch = env->NewStringUTF(branch);
+	jstring jtoken = env->NewStringUTF(token);
+	jlong jobId = env->CallStaticLongMethod(cls, mid, jpath, jbranch, jtoken, force ? JNI_TRUE : JNI_FALSE);
+
+	env->DeleteLocalRef(jpath);
+	env->DeleteLocalRef(jbranch);
+	env->DeleteLocalRef(jtoken);
+
+	return s_cast<int64_t>(jobId);
+}
+static int64_t WaGitRun(char* repoPath, char* command, char* optionsJSON) {
+	auto env = GetEnv();
+	jclass cls = GetMainActivityClass(env);
+	if (!cls) return 0;
+
+	jmethodID mid = env->GetStaticMethodID(cls, "waGitRun", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)J");
+	if (!mid) return 0;
+
+	jstring jrepoPath = env->NewStringUTF(repoPath);
+	jstring jcommand = env->NewStringUTF(command);
+	jstring joptionsJSON = env->NewStringUTF(optionsJSON);
+	jlong jobId = env->CallStaticLongMethod(cls, mid, jrepoPath, jcommand, joptionsJSON);
+
+	env->DeleteLocalRef(jrepoPath);
+	env->DeleteLocalRef(jcommand);
+	env->DeleteLocalRef(joptionsJSON);
+
+	return s_cast<int64_t>(jobId);
+}
+static const char* WaGitPoll(int64_t jobId) {
+	auto env = GetEnv();
+	jclass cls = GetMainActivityClass(env);
+	if (!cls) return nullptr;
+
+	jmethodID mid = env->GetStaticMethodID(cls, "waGitPoll", "(J)Ljava/lang/String;");
+	if (!mid) return nullptr;
+
+	jstring jresult = (jstring)env->CallStaticObjectMethod(cls, mid, s_cast<jlong>(jobId));
+	char* result = CopyJString(env, jresult, "{\"state\":\"error\",\"error\":\"empty jni result\"}");
+
+	env->DeleteLocalRef(jresult);
+
+	return result;
+}
+static bool WaGitCancel(int64_t jobId) {
+	auto env = GetEnv();
+	jclass cls = GetMainActivityClass(env);
+	if (!cls) return false;
+
+	jmethodID mid = env->GetStaticMethodID(cls, "waGitCancel", "(J)Z");
+	if (!mid) return false;
+
+	jboolean result = env->CallStaticBooleanMethod(cls, mid, s_cast<jlong>(jobId));
+	return result == JNI_TRUE;
+}
+static bool WaGitDispose(int64_t jobId) {
+	auto env = GetEnv();
+	jclass cls = GetMainActivityClass(env);
+	if (!cls) return false;
+
+	jmethodID mid = env->GetStaticMethodID(cls, "waGitDispose", "(J)Z");
+	if (!mid) return false;
+
+	jboolean result = env->CallStaticBooleanMethod(cls, mid, s_cast<jlong>(jobId));
+	return result == JNI_TRUE;
 }
 }
 #else
@@ -140,6 +307,12 @@ extern "C" {
 extern char* WaBuild(char* input);
 extern char* WaFormat(char* input);
 extern void WaFreeCString(char* str);
+extern int64_t WaGitStartClone(char* url, char* path, char* branch, char* token, int depth);
+extern int64_t WaGitStartPull(char* path, char* branch, char* token, int force);
+extern int64_t WaGitRun(char* repoPath, char* command, char* optionsJSON);
+extern char* WaGitPoll(int64_t jobId);
+extern int WaGitCancel(int64_t jobId);
+extern int WaGitDispose(int64_t jobId);
 }
 #endif
 #endif // DORA_NO_WA
@@ -2512,13 +2685,22 @@ void WasmRuntime::buildWaAsync(String fullPath, const std::function<void(String)
 	callback("Wa build not supported"s);
 #else // !DORA_NO_WA
 #if BX_PLATFORM_ANDROID
-	SharedApplication.invokeInRender([fullPath = fullPath.toString(), callback]() {
+	if (!_thread) {
+		_thread = SharedAsyncThread.newThread();
+	}
+	_thread->run([fullPath = fullPath.toString()]() {
 		auto result = WaBuild(c_cast<char*>(fullPath.c_str()));
-		SharedApplication.invokeInLogic([str = std::string(result), callback]() {
-			callback(str);
+		std::string data = result ? std::string(result) : "Wa build not available";
+		if (result) {
+			WaFreeCString(result);
+		}
+		return Values::alloc(std::move(data));
+	},
+		[callback](Own<Values> values) {
+			std::string data;
+			values->get(data);
+			callback(data);
 		});
-		WaFreeCString(result);
-	});
 #else // BX_PLATFORM_ANDROID
 	if (!_thread) {
 		_thread = SharedAsyncThread.newThread();
@@ -2547,13 +2729,22 @@ void WasmRuntime::formatWaAsync(String fullPath, const std::function<void(String
 	callback(Slice::Empty);
 #else // !DORA_NO_WA
 #if BX_PLATFORM_ANDROID
-	SharedApplication.invokeInRender([fullPath = fullPath.toString(), callback]() {
+	if (!_thread) {
+		_thread = SharedAsyncThread.newThread();
+	}
+	_thread->run([fullPath = fullPath.toString()]() {
 		auto result = WaFormat(c_cast<char*>(fullPath.c_str()));
-		SharedApplication.invokeInLogic([str = std::string(result), callback]() {
-			callback(str);
+		std::string data = result ? std::string(result) : ""s;
+		if (result) {
+			WaFreeCString(result);
+		}
+		return Values::alloc(std::move(data));
+	},
+		[callback](Own<Values> values) {
+			std::string data;
+			values->get(data);
+			callback(data);
 		});
-		WaFreeCString(result);
-	});
 #else // BX_PLATFORM_ANDROID
 	if (!_thread) {
 		_thread = SharedAsyncThread.newThread();
@@ -2572,6 +2763,199 @@ void WasmRuntime::formatWaAsync(String fullPath, const std::function<void(String
 			callback(data);
 		});
 #endif // BX_PLATFORM_ANDROID
+#endif // !DORA_NO_WA
+}
+
+static bool IsGitTerminalStatus(const std::string& status) {
+	return status.find("\"state\":\"done\"") != std::string::npos
+		|| status.find("\"state\":\"error\"") != std::string::npos
+		|| status.find("\"state\":\"canceled\"") != std::string::npos;
+}
+
+static std::string EscapeJsonString(const std::string& input) {
+	std::string output;
+	output.reserve(input.size());
+	for (char ch : input) {
+		switch (ch) {
+			case '\\':
+				output += "\\\\";
+				break;
+			case '"':
+				output += "\\\"";
+				break;
+			case '\n':
+				output += "\\n";
+				break;
+			case '\r':
+				output += "\\r";
+				break;
+			case '\t':
+				output += "\\t";
+				break;
+			default:
+				output += ch;
+				break;
+		}
+	}
+	return output;
+}
+
+std::unordered_map<int64_t, Git::GitHandle>& Git::handles() {
+	static std::unordered_map<int64_t, GitHandle> gitHandles;
+	return gitHandles;
+}
+
+int64_t Git::runJob(int64_t jobId, String path, String kind, const std::function<void(String)>& callback) {
+	if (jobId == 0) {
+		callback(fmt::format(
+			"{{\"id\":0,\"state\":\"error\",\"kind\":\"{}\",\"error\":\"failed to start git job\"}}",
+			EscapeJsonString(kind.toString())));
+		return 0;
+	}
+	std::string repoPath = path.toString();
+	handles()[jobId] = GitHandle{jobId, repoPath, kind.toString(), callback, std::string()};
+	SharedDirector.getScheduler()->schedule([jobId](double) {
+		auto& gitHandles = handles();
+		auto it = gitHandles.find(jobId);
+		if (it == gitHandles.end()) {
+			return true;
+		}
+		std::string status = poll(jobId);
+		it = gitHandles.find(jobId);
+		if (it == gitHandles.end()) {
+			return true;
+		}
+		bool isTerminal = IsGitTerminalStatus(status);
+		if (status != it->second.lastStatus || isTerminal) {
+			it->second.lastStatus = status;
+			it->second.callback(status);
+			it = gitHandles.find(jobId);
+			if (it == gitHandles.end()) {
+				return true;
+			}
+		}
+		if (isTerminal) {
+			dispose(jobId);
+			gitHandles.erase(jobId);
+			return true;
+		}
+		return false;
+	});
+	return jobId;
+}
+
+int64_t Git::run(String repoPath, String command, const std::function<void(String)>& callback, String optionsJSON) {
+#ifdef DORA_NO_WA
+	DORA_UNUSED_PARAM(repoPath);
+	DORA_UNUSED_PARAM(command);
+	DORA_UNUSED_PARAM(optionsJSON);
+	return runJob(0, repoPath, "run"_slice, callback);
+#else // !DORA_NO_WA
+	auto repoPathStr = repoPath.toString();
+	auto commandStr = command.toString();
+	auto optionsJSONStr = optionsJSON.toString();
+	return runJob(
+		WaGitRun(
+			c_cast<char*>(repoPathStr.c_str()),
+			c_cast<char*>(commandStr.c_str()),
+			c_cast<char*>(optionsJSONStr.c_str())),
+		repoPath,
+		"run"_slice,
+		callback);
+#endif // !DORA_NO_WA
+}
+
+int64_t WasmRuntime::gitStartClone(String url, String path, String branch, String token, int depth) {
+#ifdef DORA_NO_WA
+	DORA_UNUSED_PARAM(url);
+	DORA_UNUSED_PARAM(path);
+	DORA_UNUSED_PARAM(branch);
+	DORA_UNUSED_PARAM(token);
+	DORA_UNUSED_PARAM(depth);
+	return 0;
+#else // !DORA_NO_WA
+	if (depth < 0) {
+		depth = 0;
+	}
+	auto urlStr = url.toString();
+	auto pathStr = path.toString();
+	auto branchStr = branch.toString();
+	auto tokenStr = token.toString();
+	return WaGitStartClone(
+		c_cast<char*>(urlStr.c_str()),
+		c_cast<char*>(pathStr.c_str()),
+		c_cast<char*>(branchStr.c_str()),
+		c_cast<char*>(tokenStr.c_str()),
+		depth);
+#endif // !DORA_NO_WA
+}
+
+int64_t WasmRuntime::gitStartPull(String path, String branch, String token, bool force) {
+#ifdef DORA_NO_WA
+	DORA_UNUSED_PARAM(path);
+	DORA_UNUSED_PARAM(branch);
+	DORA_UNUSED_PARAM(token);
+	DORA_UNUSED_PARAM(force);
+	return 0;
+#else // !DORA_NO_WA
+	auto pathStr = path.toString();
+	auto branchStr = branch.toString();
+	auto tokenStr = token.toString();
+	return WaGitStartPull(
+		c_cast<char*>(pathStr.c_str()),
+		c_cast<char*>(branchStr.c_str()),
+		c_cast<char*>(tokenStr.c_str()),
+		force ? 1 : 0);
+#endif // !DORA_NO_WA
+}
+
+std::string Git::poll(int64_t jobId) {
+#ifdef DORA_NO_WA
+	DORA_UNUSED_PARAM(jobId);
+	return "{\"state\":\"error\",\"error\":\"Wa Git not supported\"}"s;
+#else // !DORA_NO_WA
+	auto result = WaGitPoll(jobId);
+	std::string data = result ? std::string(result) : "{\"state\":\"error\",\"error\":\"Wa Git not available\"}"s;
+	if (result) {
+		WaFreeCString(result);
+	}
+	return data;
+#endif // !DORA_NO_WA
+}
+
+bool Git::cancel(int64_t jobId) {
+#ifdef DORA_NO_WA
+	DORA_UNUSED_PARAM(jobId);
+	return false;
+#else // !DORA_NO_WA
+	auto& gitHandles = handles();
+	auto it = gitHandles.find(jobId);
+	if (it != gitHandles.end()) {
+		auto handle = std::move(it->second);
+		gitHandles.erase(it);
+		bool canceled = WaGitCancel(jobId);
+		std::string status = poll(jobId);
+		if (!IsGitTerminalStatus(status)) {
+			status = fmt::format(
+				"{{\"id\":{},\"state\":\"canceled\",\"kind\":\"{}\",\"repoPath\":\"{}\",\"message\":\"canceled\"}}",
+				jobId,
+				EscapeJsonString(handle.kind),
+				EscapeJsonString(handle.repoPath));
+		}
+		handle.callback(status);
+		dispose(jobId);
+		return canceled;
+	}
+	return WaGitCancel(jobId);
+#endif // !DORA_NO_WA
+}
+
+bool Git::dispose(int64_t jobId) {
+#ifdef DORA_NO_WA
+	DORA_UNUSED_PARAM(jobId);
+	return false;
+#else // !DORA_NO_WA
+	return WaGitDispose(jobId);
 #endif // !DORA_NO_WA
 }
 
