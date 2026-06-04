@@ -3196,9 +3196,14 @@ export default function PersistentDrawerLeft() {
 
 	const handleFilenameClose = () => {
 		if (fileInfo && fileInfo.node !== undefined) {
+			const trimmedName = fileInfo.name.trim();
+			if (trimmedName === "") {
+				setFileInfo(null);
+				return;
+			}
 			const target = fileInfo.node;
 			if (fileInfo.title === "file.rename") {
-				const newName = fileInfo.name + fileInfo.ext;
+				const newName = trimmedName + fileInfo.ext;
 				if (newName === target.title) {
 					setFileInfo(null);
 					return;
@@ -3268,7 +3273,7 @@ export default function PersistentDrawerLeft() {
 				const dir = target.dir ?
 					target.key : path.dirname(target.key);
 				const { ext } = fileInfo;
-				const projectPath = path.join(dir, fileInfo.name);
+				const projectPath = path.join(dir, trimmedName);
 				if (ext === ".wa" && fileInfo.project) {
 					Service.createWa({ path: projectPath }).then((res) => {
 						if (!res.success) {
@@ -3293,14 +3298,14 @@ export default function PersistentDrawerLeft() {
 					setFileInfo(null);
 					return;
 				}
-				const newName = fileInfo.name + ext;
+				const newName = trimmedName + ext;
 				const newFile = path.join(dir, newName);
 				const folder = fileInfo.title === "file.newFolder";
 				const template = getNewFileTemplate(ext);
 				let { content } = template;
 				const { position } = template;
 				if (ext === ".model") {
-					content = writeLegacyModel(createEmptyActionDocument(newFile, `${fileInfo.name}.clip`));
+					content = writeLegacyModel(createEmptyActionDocument(newFile, `${trimmedName}.clip`));
 				}
 				const initExt = folder && fileInfo.project ? getFolderProjectExtension(fileInfo.projectType ?? "TypeScript") : null;
 				const initFile = initExt ? path.join(newFile, `init${initExt}`) : null;
@@ -3408,8 +3413,7 @@ export default function PersistentDrawerLeft() {
 
 	const onFilenameChange = (event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
 		if (fileInfo) {
-			fileInfo.name = event.target.value;
-			setFileInfo(fileInfo);
+			setFileInfo({ ...fileInfo, name: event.target.value });
 		}
 	};
 

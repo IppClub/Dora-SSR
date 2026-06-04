@@ -8,11 +8,11 @@ always: true
 
 ## Structure
 
-- `.agent/MEMORY.md` — Core memory: user preferences, stable facts, decisions, known issues.
-- `.agent/PROJECT_MEMORY.md` — Project facts, build/run notes, files/architecture, project decisions and issues.
-- `.agent/SESSION_SUMMARY.md` — Current goal, recent progress, and open issues.
-- `.agent/HISTORY.jsonl` — Consolidated action history. Search it when older details are needed.
-- `.agent/SESSION.jsonl` — Crash-safe session tail. Do not edit manually.
+- `.agent/main/MEMORY.md` — Core memory: user preferences, stable facts, decisions, known issues.
+- `.agent/main/PROJECT_MEMORY.md` — Project facts, build/run notes, files/architecture, project decisions and issues.
+- `.agent/main/SESSION_SUMMARY.md` — Current goal, recent progress, and open issues.
+- `.agent/main/HISTORY.jsonl` — Consolidated action history. Search it when older details are needed.
+- `.agent/main/SESSION.jsonl` — Crash-safe session tail. Do not edit manually.
 
 Sub-agents use `.agent/subagents/<id>/...` for scoped memory.
 

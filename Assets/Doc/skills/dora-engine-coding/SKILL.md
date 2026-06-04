@@ -174,17 +174,19 @@ Use this as a decision map. It is not a full API reference; exact signatures com
 3. Search Dora API before any non-baseline API use.
 4. Keep entry wiring real: the entry must import/instantiate/start the game logic.
 5. Avoid orphan modules: if creating classes/modules, export/import them correctly and ensure `init.ts` uses them.
-6. For small prototypes, prefer one self-contained `init.ts` first; refactor into modules only when it is already running or the user asks.
-7. Replace any `any` or bare `null` introduced during implementation before building.
-8. Run `build` on the changed file/project when available.
-9. Build success is not just the top-level `success` field. Inspect per-file `messages`; if any message reports failure or diagnostics, fix them before finishing.
-10. If TS build says the Web IDE/transpile service is not connected, tell the user to open the Web IDE/keep Dora running, or use the existing project build path if available.
+6. When adding imports, choose Dora module names or project-root module paths from the init directory/search folders, not raw filesystem paths or `./`/`../` paths.
+7. For small prototypes, prefer one self-contained `init.ts` first; refactor into modules only when it is already running or the user asks.
+8. Replace any `any` or bare `null` introduced during implementation before building.
+9. Run `build` on the changed file/project when available.
+10. Build success is not just the top-level `success` field. Inspect per-file `messages`; if any message reports failure or diagnostics, fix them before finishing.
+11. If TS build says the Web IDE/transpile service is not connected, tell the user to open the Web IDE/keep Dora running, or use the existing project build path if available.
 
 ## Review Checklist Before Finish
 
 - Runtime entry actually starts the game/app.
 - No browser DOM/Canvas/Node-only APIs remain in runtime scripts.
 - Code imports from Dora runtime modules (`Dora`, `DoraX`, `Platformer`, `ImGui`, `nvg`) as appropriate.
+- Project module imports use valid Dora root/search-path module names, with no `./`/`../` prefix, or source/output file extension.
 - No `any` or bare `null` was added to Dora runtime TypeScript.
 - Non-baseline Dora APIs were confirmed with `search_dora_api` or existing correct project code.
 - Game loop uses Dora scheduling and `dt`.

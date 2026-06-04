@@ -660,7 +660,7 @@ export interface MemoryConfig {
 	/** 当前会话使用的 Prompt 配置 */
 	promptPack?: Partial<AgentPromptPack> | AgentPromptPack;
 
-	/** 当前 memory scope，留空表示 .agent 根目录 */
+	/** 当前 memory scope，留空表示主会话 .agent/main */
 	scope?: string;
 }
 
@@ -796,6 +796,11 @@ function normalizeMemoryFileContent(content: string | undefined, template: strin
 		return safeContent;
 	}
 	return `${template.trim()}\n\n## ${importedSectionTitle}\n\n${trimmed}\n`;
+}
+
+function normalizeMemoryScope(scope: string | undefined): string {
+	const trimmed = typeof scope === "string" ? scope.trim() : "";
+	return trimmed !== "" ? trimmed : "main";
 }
 
 function splitMemorySections(text: string): MemoryTextSection[] {
@@ -952,11 +957,9 @@ export class DualLayerStorage {
 
 	constructor(projectDir: string, scope = "") {
 		this.projectDir = projectDir;
-		this.scope = scope;
+		this.scope = normalizeMemoryScope(scope);
 		this.agentRootDir = Path(this.projectDir, ".agent");
-		this.agentDir = scope !== ""
-			? Path(this.agentRootDir, scope)
-			: this.agentRootDir;
+		this.agentDir = Path(this.agentRootDir, this.scope);
 		this.memoryPath = Path(this.agentDir, "MEMORY.md");
 		this.projectMemoryPath = Path(this.agentDir, "PROJECT_MEMORY.md");
 		this.sessionSummaryPath = Path(this.agentDir, "SESSION_SUMMARY.md");

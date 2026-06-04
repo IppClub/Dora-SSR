@@ -896,7 +896,7 @@ int DrawNode_drawVertices(lua_State* L) {
 					goto tolua_lerror;
 				}
 #endif
-				Vec2* vec = r_cast<Vec2*>(tolua_tousertype(L, -1, 0));
+				Vec2 vec = tolua_tolight(L, -1);
 				lua_pop(L, 1); // item
 				lua_geti(L, -1, 2); // item Color
 #ifndef TOLUA_RELEASE
@@ -906,7 +906,7 @@ int DrawNode_drawVertices(lua_State* L) {
 #endif
 				Color* color = r_cast<Color*>(tolua_tousertype(L, -1, 0));
 				lua_pop(L, 1); // item
-				verts[i] = VertexColor(*vec, *color);
+				verts[i] = VertexColor(vec, *color);
 				lua_pop(L, 1); // clear
 			}
 			self->drawVertices(verts);
