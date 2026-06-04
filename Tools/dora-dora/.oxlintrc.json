@@ -5,9 +5,7 @@
   "rules": {
     "react/rules-of-hooks": "error",
     "react/exhaustive-deps": "warn",
-    "react/only-export-components": ["error", {
-      "allowConstantExport": true
-    }],
+    "react/only-export-components": "off",
     "eslint/no-unused-vars": ["warn", {
       "args": "all",
       "argsIgnorePattern": "^_",
