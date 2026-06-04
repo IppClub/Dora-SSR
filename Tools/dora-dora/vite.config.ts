@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
-import Oxc from 'unplugin-oxc/vite';
+import react from '@vitejs/plugin-react';
 import { codeInspectorPlugin } from 'code-inspector-plugin';
 import monacoEditorPlugin from 'vite-plugin-monaco-editor';
 
@@ -484,7 +484,7 @@ export default defineConfig(({ mode }) => {
 			},
 		},
 		plugins: [
-			Oxc(),
+			react(),
 			yarnEditorStaticPlugin(),
 			codeWireStaticPlugin(),
 			codeInspectorPlugin({
