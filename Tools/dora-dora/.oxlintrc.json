@@ -1,0 +1,24 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
+  "ignorePatterns": ["build/**", "public/**", "src/3rdParty/**", "*.config.js"],
+  "plugins": ["react", "typescript", "import"],
+  "rules": {
+    "react/rules-of-hooks": "error",
+    "react/exhaustive-deps": "warn",
+    "react/only-export-components": ["error", {
+      "allowConstantExport": true
+    }],
+    "eslint/no-unused-vars": ["warn", {
+      "args": "all",
+      "argsIgnorePattern": "^_",
+      "caughtErrors": "all",
+      "caughtErrorsIgnorePattern": "^_",
+      "varsIgnorePattern": "^_",
+      "ignoreRestSiblings": true
+    }],
+    "typescript/no-explicit-any": "off",
+    "typescript/no-empty-object-type": ["warn", {
+      "allowInterfaces": "with-single-extends"
+    }]
+  }
+}
