@@ -94,7 +94,8 @@
 		"@types/react-lazylog": "^4.5.4",
 		"@types/react-syntax-highlighter": "^15.5.13",
 		"@types/react-transition-group": "^4.4.12",
-				"code-inspector-plugin": "^0.20.17",
+		"@vitejs/plugin-react": "^6.0.2",
+		"code-inspector-plugin": "^0.20.17",
 		"esbuild": "^0.28.0",
 		"eslint": "^9.39.3",
 		"eslint-plugin-react-hooks": "^7.1.1",
@@ -103,7 +104,6 @@
 		"oxlint": "^1.68.0",
 		"tslint-config-prettier": "^1.18.0",
 		"typescript-eslint": "^8.60.0",
-		"unplugin-oxc": "^0.6.1",
 		"vite": "^8.0.16",
 		"vite-plugin-monaco-editor": "^1.1.0",
 		"web-vitals": "^3.5.2"
