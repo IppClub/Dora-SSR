@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
-import react from '@vitejs/plugin-react';
+import Oxc from 'unplugin-oxc/vite';
 import { codeInspectorPlugin } from 'code-inspector-plugin';
 import monacoEditorPlugin from 'vite-plugin-monaco-editor';
 
@@ -367,9 +367,7 @@ const yarnEditorStaticPlugin = (): Plugin => ({
 		));
 		const yarnEditorHtml = yarnEditorHtmlKey ? bundle[yarnEditorHtmlKey] : undefined;
 		if (yarnEditorHtml) {
-			delete bundle[yarnEditorHtmlKey as string];
 			yarnEditorHtml.fileName = 'yarn-editor/index.html';
-			bundle[yarnEditorHtml.fileName] = yarnEditorHtml;
 		}
 		for (const file of readStaticFiles(yarnEditorPublicDir)) {
 			if (!shouldEmitYarnEditorStaticFile(file.relativePath)) continue;
@@ -425,12 +423,10 @@ const codeWireStaticPlugin = (): Plugin => ({
 	generateBundle(_options, bundle) {
 		const codeWireHtml = findHtmlBundleAsset(bundle, codeWireIndexHtml);
 		if (codeWireHtml) {
-			delete bundle[codeWireHtml.key];
 			codeWireHtml.asset.fileName = 'code-wire/index.html';
 			if ('source' in codeWireHtml.asset && typeof codeWireHtml.asset.source === 'string') {
 				codeWireHtml.asset.source = prepareCodeWireHtml(codeWireHtml.asset.source);
 			}
-			bundle[codeWireHtml.asset.fileName] = codeWireHtml.asset;
 		}
 		this.emitFile({
 			type: 'asset',
@@ -488,7 +484,7 @@ export default defineConfig(({ mode }) => {
 			},
 		},
 		plugins: [
-			react(),
+			Oxc(),
 			yarnEditorStaticPlugin(),
 			codeWireStaticPlugin(),
 			codeInspectorPlugin({
