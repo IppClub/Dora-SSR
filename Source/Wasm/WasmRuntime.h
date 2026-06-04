@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include <array>
+#include <unordered_map>
 #include "Support/Geometry.h"
 #include "wasm3_cpp.h"
 
@@ -17,6 +18,26 @@ NS_DORA_BEGIN
 class Scheduler;
 class Async;
 class WasmInstance;
+class WasmRuntime;
+
+class Git {
+public:
+	static int64_t run(String repoPath, String command, const std::function<void(String)>& callback, String optionsJSON = Slice::Empty);
+	static bool cancel(int64_t jobId);
+
+private:
+	struct GitHandle {
+		int64_t jobId = 0;
+		std::string repoPath;
+		std::string kind;
+		std::function<void(String)> callback;
+		std::string lastStatus;
+	};
+	static int64_t runJob(int64_t jobId, String path, String kind, const std::function<void(String)>& callback);
+	static std::string poll(int64_t jobId);
+	static bool dispose(int64_t jobId);
+	static std::unordered_map<int64_t, GitHandle>& handles();
+};
 
 using dora_val_t = std::variant<
 	int64_t,
@@ -76,6 +97,8 @@ public:
 
 	void buildWaAsync(String fullPath, const std::function<void(String)>& callback);
 	void formatWaAsync(String fullPath, const std::function<void(String)>& callback);
+	int64_t gitStartClone(String url, String path, String branch = Slice::Empty, String token = Slice::Empty, int depth = 0);
+	int64_t gitStartPull(String path, String branch = Slice::Empty, String token = Slice::Empty, bool force = false);
 
 protected:
 	WasmRuntime();

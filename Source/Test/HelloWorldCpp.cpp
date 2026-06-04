@@ -70,6 +70,73 @@ DORA_TEST_ENTRY(HelloWorldCpp) {
 	return true;
 }
 
+DORA_TEST_ENTRY(WaGitCloneCpp) {
+	struct State {
+		bool started = false;
+		bool finished = false;
+		bool logged = false;
+		int64_t jobId = 0;
+		double elapsed = 0.0;
+		std::string parentPath;
+		std::string repoPath;
+		std::string status = "pending";
+	};
+
+	auto state = std::make_shared<State>();
+	state->parentPath = Path::concat({SharedContent.getAppPath(), ".git-clone-test-parent"sv});
+	state->repoPath = Path::concat({state->parentPath, "dora-wa-git-test"sv});
+	SharedContent.remove(state->parentPath);
+	SharedContent.remove(state->repoPath);
+
+	auto ui = Node::create();
+	ui->schedule([state](double deltaTime) {
+		if (!state->started) {
+			state->started = true;
+			state->jobId = Git::run(
+				state->parentPath,
+				"git clone git://127.0.0.1:9418/dora-wa-git-test.git dora-wa-git-test"_slice,
+				[state](String status) {
+					state->status = status.toString();
+					if (state->status.find("\"state\":\"done\"") != std::string::npos
+						|| state->status.find("\"state\":\"error\"") != std::string::npos
+						|| state->status.find("\"state\":\"canceled\"") != std::string::npos) {
+						state->finished = true;
+					}
+				});
+			Println("[WaGitCloneCpp] started job {} at {}", state->jobId, state->repoPath);
+		}
+
+		if (!state->finished && state->jobId != 0) {
+			state->elapsed += deltaTime;
+			if (state->elapsed > 60.0) {
+				state->finished = true;
+				Git::cancel(state->jobId);
+			}
+		}
+
+		if (state->finished && !state->logged) {
+			state->logged = true;
+			bool pass = state->status.find("\"state\":\"done\"") != std::string::npos;
+			Println("[WaGitCloneCpp] result: {}", pass ? "PASS" : "CHECK");
+			Println("[WaGitCloneCpp] status: {}", state->status);
+		}
+
+		auto size = SharedApplication.getVisualSize();
+		ImGui::SetNextWindowBgAlpha(0.35f);
+		ImGui::SetNextWindowPos(Vec2{size.width - 10.0f, 10.0f}, ImGuiCond_Always, Vec2{1.0f, 0});
+		ImGui::SetNextWindowSize(Vec2{440.0f, 0}, ImGuiCond_FirstUseEver);
+		if (ImGui::Begin("Wa Git Clone", nullptr,
+				ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove)) {
+			ImGui::TextWrapped("Job: %lld", static_cast<long long>(state->jobId));
+			ImGui::TextWrapped("Path: %s", state->repoPath.c_str());
+			ImGui::TextWrapped("Status: %s", state->status.c_str());
+		}
+		ImGui::End();
+		return state->finished;
+	});
+	return true;
+}
+
 DORA_TEST_ENTRY(AsyncThreadStealingCpp) {
 	struct State {
 		bool started = false;

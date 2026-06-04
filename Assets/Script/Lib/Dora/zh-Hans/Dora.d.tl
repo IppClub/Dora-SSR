@@ -118,6 +118,7 @@ local yue = require("yue")
 local json = require("json")
 global p = require("p")
 local Wasm = require("Wasm")
+local Git = require("Git")
 local rgba = require("rgba")
 local Class: function(...: any): any
 local classmethod: function(...: any): any
@@ -248,5 +249,6 @@ global Dora = {
 	VideoNode = VideoNode,
 	TIC80Node = TIC80Node,
 	Wasm = Wasm,
+	Git = Git,
 	rgba = rgba,
 }
