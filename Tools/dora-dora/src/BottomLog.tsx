@@ -13,6 +13,7 @@ import * as Service from './Service';
 import { memo, useEffect, useRef, useState } from 'react';
 import { LogFixRequest, buildLogFixMessage, logFixLineClassName } from './LogFix';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import LogFixPanel from './LogFixPanel';
 
 export interface BottomLogProps {
 	height: number;
@@ -39,6 +40,7 @@ const BottomLog = memo((props: BottomLogProps) => {
 		top: number;
 		left: number;
 		message: string;
+		panelOpen: boolean;
 	} | null>(null);
 
 
@@ -55,7 +57,7 @@ const BottomLog = memo((props: BottomLogProps) => {
 	const showFixButton = (event: MouseEvent, container: HTMLElement) => {
 		if (!props.onFixLog) return;
 		const target = event.target as HTMLElement | null;
-		if (target?.closest("[data-log-fix-button]")) return;
+		if (target?.closest("[data-log-fix-button],[data-log-fix-panel]")) return;
 		const lineElement = target?.closest(`.${logFixLineClassName}`) as HTMLElement | null;
 		const lineNumberText = lineElement?.querySelector("a[id]")?.getAttribute("id");
 		const lineNumber = Number(lineNumberText);
@@ -75,6 +77,7 @@ const BottomLog = memo((props: BottomLogProps) => {
 			message,
 			top: Math.max(4, lineRect.top - containerRect.top - 2),
 			left: Math.min(Math.max(8, event.clientX - containerRect.left + 8), Math.max(8, containerRect.width - 64)),
+			panelOpen: false,
 		});
 	};
 
@@ -84,9 +87,15 @@ const BottomLog = memo((props: BottomLogProps) => {
 		const onMouseDown = (event: MouseEvent) => {
 			showFixButton(event, container);
 		};
+		const onScroll = (event: Event) => {
+			if ((event.target as HTMLElement | null)?.closest("[data-log-fix-panel]")) return;
+			setFixTarget(null);
+		};
 		container.addEventListener("mousedown", onMouseDown, true);
+		container.addEventListener("scroll", onScroll, true);
 		return () => {
 			container.removeEventListener("mousedown", onMouseDown, true);
+			container.removeEventListener("scroll", onScroll, true);
 		};
 	});
 
@@ -125,19 +134,19 @@ const BottomLog = memo((props: BottomLogProps) => {
 			caseInsensitive
 			stream
 			follow
-			onScroll={() => setFixTarget(null)}
 		/>
-		{fixTarget && props.onFixLog ? (
+		{fixTarget && props.onFixLog && !fixTarget.panelOpen ? (
 			<button
 				type="button"
 				data-log-fix-button
 				onClick={(event) => {
 					event.stopPropagation();
-					props.onFixLog?.({
-						lineNumber: fixTarget.lineNumber,
-						message: fixTarget.message,
+					const containerWidth = logContainerRef.current?.clientWidth ?? 360;
+					setFixTarget({
+						...fixTarget,
+						left: Math.min(fixTarget.left, Math.max(8, containerWidth - 356)),
+						panelOpen: true,
 					});
-					setFixTarget(null);
 				}}
 				style={{
 					position: "absolute",
@@ -145,10 +154,10 @@ const BottomLog = memo((props: BottomLogProps) => {
 					left: fixTarget.left,
 					height: 24,
 					padding: "0 10px",
-					border: `1px solid ${Color.Theme}`,
+					border: `1px solid ${Color.Theme}99`,
 					borderRadius: 6,
-					color: Color.BackgroundDark,
-					background: Color.Theme,
+					color: Color.Theme,
+					background: "rgba(34, 28, 14, 0.92)",
 					fontSize: 12,
 					fontWeight: 600,
 					cursor: "pointer",
@@ -157,10 +166,42 @@ const BottomLog = memo((props: BottomLogProps) => {
 					alignItems: "center",
 					gap: 4,
 				}}
+				onMouseEnter={(event) => {
+					event.currentTarget.style.color = "#ffd66a";
+					event.currentTarget.style.borderColor = Color.Theme;
+					event.currentTarget.style.background = "rgba(65, 48, 18, 0.96)";
+				}}
+				onMouseLeave={(event) => {
+					event.currentTarget.style.color = Color.Theme;
+					event.currentTarget.style.borderColor = `${Color.Theme}99`;
+					event.currentTarget.style.background = "rgba(34, 28, 14, 0.92)";
+				}}
 			>
 				<AutoAwesomeIcon sx={{ fontSize: 14 }} />
 				{t("log.fix")}
 			</button>
+		) : null}
+		{fixTarget && props.onFixLog && fixTarget.panelOpen ? (
+			<div
+				style={{
+					position: "absolute",
+					top: fixTarget.top,
+					left: fixTarget.left,
+					zIndex: 3,
+				}}
+			>
+				<LogFixPanel
+					defaultPrompt={`${t("log.fixPrompt")}${fixTarget.message}`}
+					onClose={() => setFixTarget(null)}
+					onSend={(prompt) => {
+						props.onFixLog?.({
+							lineNumber: fixTarget.lineNumber,
+							message: prompt,
+						});
+						setFixTarget(null);
+					}}
+				/>
+			</div>
 		) : null}
 	</div>;
 });

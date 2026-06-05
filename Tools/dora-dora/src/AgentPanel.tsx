@@ -312,6 +312,14 @@ export default function AgentPanel(props: AgentPanelProps) {
 
 	const lastMessage = messages[messages.length - 1];
 	const lastStep = steps[steps.length - 1];
+	const latestUserMessageId = useMemo(() => {
+		for (let i = messages.length - 1; i >= 0; i--) {
+			if (messages[i].role === "user") {
+				return messages[i].id;
+			}
+		}
+		return undefined;
+	}, [messages]);
 
 	useLayoutEffect(() => {
 		if (!isNearBottom) return;
@@ -575,6 +583,41 @@ export default function AgentPanel(props: AgentPanelProps) {
 			setLoading(false);
 		}
 	}, [addAlert, checkLLMConfigReady, continueLoadingTaskId, loading, refresh, selectedSessionId, stopProjectRunBeforeAgent, t]);
+
+	const resendPromptText = React.useCallback(async (message: Service.AgentSessionMessage, text: string) => {
+		if (text === "" || loading || continueLoadingTaskId !== null || session?.currentTaskStatus === "RUNNING") return false;
+		setLoading(true);
+		try {
+			const llmReady = await checkLLMConfigReady();
+			if (!llmReady) {
+				addAlert?.(t("agent.noLLMConfigAlert"), "error");
+				return false;
+			}
+			const canStartAgent = await stopProjectRunBeforeAgent();
+			if (!canStartAgent) {
+				return false;
+			}
+			const res = await Service.agentSessionResend({
+				sessionId: selectedSessionId,
+				messageId: message.id,
+				prompt: text,
+			});
+			if (!res.success) {
+				if (res.message === "no active LLM config") {
+					setLLMConfigMissing(true);
+					addAlert?.(t("agent.noLLMConfigAlert"), "error");
+					return false;
+				}
+				addAlert?.(res.message, "error");
+				return false;
+			}
+			setLLMConfigMissing(false);
+			await refresh(true, selectedSessionId);
+			return true;
+		} finally {
+			setLoading(false);
+		}
+	}, [addAlert, checkLLMConfigReady, continueLoadingTaskId, loading, refresh, selectedSessionId, session?.currentTaskStatus, stopProjectRunBeforeAgent, t]);
 
 	const onSend = async () => {
 		const text = prompt.trim();
@@ -851,12 +894,22 @@ export default function AgentPanel(props: AgentPanelProps) {
 										{t("agent.showEarlierHistory", { count: hiddenHistoryRevealCount })}
 									</Button>
 								) : null}
-								<AgentMessageList messages={visibleHistoryMessages} />
+								<AgentMessageList
+									messages={visibleHistoryMessages}
+									editableMessageId={latestUserMessageId}
+									editDisabled={loading || continueLoadingTaskId !== null || session?.currentTaskStatus === "RUNNING"}
+									onResendPrompt={resendPromptText}
+								/>
 							</Box>
 						) : null}
 						{messageGroups.currentPromptMessages.length > 0 ? (
 							<Box>
-								<AgentMessageList messages={messageGroups.currentPromptMessages} />
+								<AgentMessageList
+									messages={messageGroups.currentPromptMessages}
+									editableMessageId={latestUserMessageId}
+									editDisabled={loading || continueLoadingTaskId !== null || session?.currentTaskStatus === "RUNNING"}
+									onResendPrompt={resendPromptText}
+								/>
 							</Box>
 						) : null}
 						{latestSteps.length > 0 ? (
@@ -887,7 +940,12 @@ export default function AgentPanel(props: AgentPanelProps) {
 									<Typography variant="overline" sx={{ color: Color.TextSecondary, letterSpacing: "0.08em", display: "block", mb: 1.25 }}>{t("agent.summary")}</Typography>
 								) : null}
 								{visibleSummaryMessages.length > 0 ? (
-									<AgentMessageList messages={visibleSummaryMessages} />
+									<AgentMessageList
+										messages={visibleSummaryMessages}
+										editableMessageId={latestUserMessageId}
+										editDisabled={loading || continueLoadingTaskId !== null || session?.currentTaskStatus === "RUNNING"}
+										onResendPrompt={resendPromptText}
+									/>
 								) : null}
 								{visibleSummaryMessages.length > 0 && currentTaskChangeSet && currentTaskChangeSet.filesChanged > 0 ? (
 									<AgentChangeSetSummaryCard

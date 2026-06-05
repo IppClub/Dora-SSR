@@ -8053,6 +8053,181 @@ interface Wasm {
 const wasm: Wasm;
 export {wasm as Wasm};
 
+type GitJobState = "queued" | "running" | "done" | "error" | "canceled";
+type GitKind = "init" | "clone" | "ls-remote" | "status" | "add" | "rm" | "commit" | "pull" | "fetch" | "push" | "log" | "checkout" | "reset" | "restore" | "clean" | "branch" | "tag" | "remote" | "mv";
+type GitRefKind = "head" | "branch" | "tag" | "remote" | "ref";
+
+interface GitHashData {
+	head: string;
+	ref: string;
+}
+
+interface GitCloneData {
+	path: string;
+	head?: string;
+	ref?: string;
+}
+
+interface GitInitData {
+	path: string;
+	bare: boolean;
+	ref?: string;
+}
+
+interface GitRemoteRef {
+	name: string;
+	type: GitRefKind;
+	hash?: string;
+	target?: string;
+}
+
+interface GitLsRemoteData {
+	url: string;
+	refs: GitRemoteRef[];
+}
+
+interface GitFileStatus {
+	path: string;
+	staging: string;
+	worktree: string;
+}
+
+interface GitWorktreeStatusData {
+	clean: boolean;
+	files: GitFileStatus[];
+}
+
+interface GitPathsData {
+	paths: string[];
+}
+
+interface GitCommitData {
+	commit: string;
+}
+
+interface GitUpToDateData {
+	upToDate: boolean;
+}
+
+interface GitLogCommit {
+	hash: string;
+	message: string;
+	author: string;
+	email: string;
+	when: string;
+}
+
+interface GitLogData {
+	commits: GitLogCommit[];
+}
+
+interface GitRestoreData {
+	paths: string[];
+	staged: boolean;
+	worktree: boolean;
+}
+
+interface GitBranchInfo {
+	name: string;
+	hash: string;
+	current: boolean;
+}
+
+interface GitBranchData {
+	branch: string;
+	hash?: string;
+	deleted?: boolean;
+}
+
+interface GitBranchListData {
+	branches: GitBranchInfo[];
+	current: string;
+}
+
+interface GitTagInfo {
+	name: string;
+	hash: string;
+}
+
+interface GitTagData {
+	tag: string;
+	hash?: string;
+	annotated?: boolean;
+	deleted?: boolean;
+}
+
+interface GitTagListData {
+	tags: GitTagInfo[];
+}
+
+interface GitRemoteInfo {
+	name: string;
+	urls: string[];
+}
+
+interface GitRemoteData {
+	remote: string;
+	urls?: string[];
+	removed?: boolean;
+}
+
+interface GitRemoteListData {
+	remotes: GitRemoteInfo[];
+}
+
+interface GitMoveData {
+	from: string;
+	to: string;
+	hash: string;
+}
+
+type GitResultData = GitHashData | GitCloneData | GitInitData | GitLsRemoteData | GitWorktreeStatusData | GitPathsData | GitCommitData | GitUpToDateData | GitLogData | GitRestoreData | GitBranchData | GitBranchListData | GitTagData | GitTagListData | GitRemoteData | GitRemoteListData | GitMoveData;
+
+interface GitStatusBase {
+	id: number;
+	state: GitJobState;
+	kind: GitKind;
+	repoPath: string;
+	startedAt?: string;
+	endedAt?: string;
+	progress: number;
+	message?: string;
+	error?: string;
+}
+
+interface GitQueuedStatus extends GitStatusBase { state: "queued"; data?: undefined; }
+interface GitRunningStatus extends GitStatusBase { state: "running"; data?: undefined; }
+interface GitErrorStatus extends GitStatusBase { state: "error"; data?: undefined; }
+interface GitCanceledStatus extends GitStatusBase { state: "canceled"; data?: undefined; }
+
+interface GitDoneStatusBase extends GitStatusBase {
+	state: "done";
+	error?: undefined;
+}
+
+interface GitInitStatus extends GitDoneStatusBase { kind: "init"; data: GitInitData; }
+interface GitCloneStatus extends GitDoneStatusBase { kind: "clone"; data: GitCloneData; }
+interface GitLsRemoteStatus extends GitDoneStatusBase { kind: "ls-remote"; data: GitLsRemoteData; }
+interface GitWorktreeStatus extends GitDoneStatusBase { kind: "status"; data: GitWorktreeStatusData; }
+interface GitAddStatus extends GitDoneStatusBase { kind: "add"; data: GitPathsData; }
+interface GitRmStatus extends GitDoneStatusBase { kind: "rm"; data: GitPathsData; }
+interface GitCommitStatus extends GitDoneStatusBase { kind: "commit"; data: GitCommitData; }
+interface GitPullStatus extends GitDoneStatusBase { kind: "pull"; data?: GitUpToDateData; }
+interface GitFetchStatus extends GitDoneStatusBase { kind: "fetch"; data?: GitUpToDateData; }
+interface GitPushStatus extends GitDoneStatusBase { kind: "push"; data?: GitUpToDateData; }
+interface GitLogStatus extends GitDoneStatusBase { kind: "log"; data: GitLogData; }
+interface GitCheckoutStatus extends GitDoneStatusBase { kind: "checkout"; data: GitHashData; }
+interface GitResetStatus extends GitDoneStatusBase { kind: "reset"; data: GitHashData; }
+interface GitRestoreStatus extends GitDoneStatusBase { kind: "restore"; data: GitRestoreData; }
+interface GitCleanStatus extends GitDoneStatusBase { kind: "clean"; data?: undefined; }
+interface GitBranchStatus extends GitDoneStatusBase { kind: "branch"; data: GitBranchData | GitBranchListData; }
+interface GitTagStatus extends GitDoneStatusBase { kind: "tag"; data: GitTagData | GitTagListData; }
+interface GitRemoteStatus extends GitDoneStatusBase { kind: "remote"; data: GitRemoteData | GitRemoteListData; }
+interface GitMoveStatus extends GitDoneStatusBase { kind: "mv"; data: GitMoveData; }
+
+type GitDoneStatus = GitInitStatus | GitCloneStatus | GitLsRemoteStatus | GitWorktreeStatus | GitAddStatus | GitRmStatus | GitCommitStatus | GitPullStatus | GitFetchStatus | GitPushStatus | GitLogStatus | GitCheckoutStatus | GitResetStatus | GitRestoreStatus | GitCleanStatus | GitBranchStatus | GitTagStatus | GitRemoteStatus | GitMoveStatus;
+type GitStatus = GitQueuedStatus | GitRunningStatus | GitErrorStatus | GitCanceledStatus | GitDoneStatus;
+
 /**
  * An interface that provides Git command functions.
  */
@@ -8096,11 +8271,11 @@ interface Git {
 	 *
 	 * @param repoPath The repository path. For clone, this is the parent directory.
 	 * @param command The Git command string.
-	 * @param callback Receives a JSON status string.
+	 * @param callback Receives a decoded GitStatus table.
 	 * @param optionsJSON Optional JSON options.
 	 * @returns The Git command handle for canceling the task.
 	 */
-	run(repoPath: string, command: string, callback: (this: void, status: string) => void, optionsJSON?: string): number;
+	run(repoPath: string, command: string, callback: (this: void, status: GitStatus) => void, optionsJSON?: string): number;
 	/**
 	 * Cancels a Git job.
 	 * For a handle returned by run, this also disposes the Git task.

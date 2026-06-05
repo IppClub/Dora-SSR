@@ -14,6 +14,7 @@ local Dora <const> = Dora
 local package <const> = package
 local coroutine <const> = coroutine
 local assert <const> = assert
+local pcall <const> = pcall
 local xpcall <const> = xpcall
 local rawset <const> = rawset
 local setmetatable <const> = setmetatable
@@ -277,6 +278,27 @@ end
 
 -- async functions
 do
+	local Git = Dora.Git
+	local json = require("json")
+	local Git_run = Git.run
+	Git.run = function(self, repoPath, command, callback, ...)
+		return Git_run(self, repoPath, command, function(status)
+			local res, err = json.decode(status)
+			if err or type(res) ~= "table" then
+				res = {
+					id = 0,
+					state = "error",
+					kind = "run",
+					repoPath = repoPath,
+					progress = 0,
+					message = "failed",
+					error = "failed to decode git status"
+				}
+			end
+			callback(res)
+		end, ...)
+	end
+
 	local Content = getmetatable(Dora.Content)
 	local wait = Dora.wait
 	local Content_loadAsync = Content.loadAsync

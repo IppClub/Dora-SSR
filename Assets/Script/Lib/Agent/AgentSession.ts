@@ -147,6 +147,8 @@ export type AgentSessionSendResult = {
 	message: string;
 };
 
+export type AgentSessionResendResult = AgentSessionSendResult;
+
 export type AgentRunningSessionListResult = {
 	success: true;
 	sessions: AgentSessionItem[];
@@ -1262,6 +1264,47 @@ function updateMessage(messageId: number, content: string) {
 	);
 }
 
+function updateUserMessageForTask(messageId: number, content: string, taskId: number) {
+	DB.exec(
+		`UPDATE ${TABLE_MESSAGE}
+		SET content = ?, task_id = ?, updated_at = ?
+		WHERE id = ?`,
+		[sanitizeUTF8(content), taskId, now(), messageId],
+	);
+}
+
+function clearSessionAfterMessage(sessionId: number, message: AgentSessionMessageItem): number[] {
+	const removedStepRows = queryRows(
+		`SELECT id FROM ${TABLE_STEP}
+		WHERE session_id = ? AND task_id IN (
+			SELECT DISTINCT task_id FROM ${TABLE_MESSAGE}
+			WHERE session_id = ? AND id >= ? AND task_id > 0
+		)`,
+		[sessionId, sessionId, message.id],
+	) ?? [];
+	const removedStepIds: number[] = [];
+	for (let i = 0; i < removedStepRows.length; i++) {
+		const row = removedStepRows[i] as any[];
+		if (typeof row[0] === "number") {
+			removedStepIds.push(row[0] as number);
+		}
+	}
+	DB.exec(
+		`DELETE FROM ${TABLE_STEP}
+		WHERE session_id = ? AND task_id IN (
+			SELECT DISTINCT task_id FROM ${TABLE_MESSAGE}
+			WHERE session_id = ? AND id >= ? AND task_id > 0
+		)`,
+		[sessionId, sessionId, message.id],
+	);
+	DB.exec(
+		`DELETE FROM ${TABLE_MESSAGE}
+		WHERE session_id = ? AND id > ?`,
+		[sessionId, message.id],
+	);
+	return removedStepIds;
+}
+
 function upsertAssistantMessage(sessionId: number, taskId: number, content: string): number {
 	const row = queryOne(
 		`SELECT id FROM ${TABLE_MESSAGE}
@@ -2176,22 +2219,30 @@ export function sendPrompt(sessionId: number, prompt: string, allowSubSessionSta
 	if (normalizedPrompt === "") {
 		return { success: false, message: "prompt is empty" };
 	}
+	return startPromptTask(session, normalizedPrompt);
+}
+
+function startPromptTask(session: AgentSessionItem, normalizedPrompt: string, existingUserMessageId?: number): AgentSessionSendResult {
 	const taskRes = Tools.createTask(normalizedPrompt);
 	if (!taskRes.success) {
 		return { success: false, message: taskRes.message };
 	}
 	const taskId = taskRes.taskId;
 	const useChineseResponse = getDefaultUseChineseResponse();
-	insertMessage(sessionId, "user", normalizedPrompt, taskId);
+	if (existingUserMessageId !== undefined) {
+		updateUserMessageForTask(existingUserMessageId, normalizedPrompt, taskId);
+	} else {
+		insertMessage(session.id, "user", normalizedPrompt, taskId);
+	}
 	const stopToken: StopToken = { stopped: false };
 	activeStopTokens[taskId] = stopToken;
-	setSessionState(sessionId, "RUNNING", taskId, "RUNNING");
+	setSessionState(session.id, "RUNNING", taskId, "RUNNING");
 	runCodingAgent({
 		prompt: normalizedPrompt,
 		workDir: session.projectRoot,
 		useChineseResponse,
 		taskId,
-		sessionId,
+		sessionId: session.id,
 		memoryScope: session.memoryScope,
 		role: session.kind,
 		spawnSubAgent: session.kind === "main"
@@ -2201,47 +2252,47 @@ export function sendPrompt(sessionId: number, prompt: string, allowSubSessionSta
 			? listRunningSubAgents
 			: undefined,
 		stopToken,
-		onEvent: event => applyEvent(sessionId, event),
+		onEvent: event => applyEvent(session.id, event),
 	}, async (result: CodingAgentRunResult) => {
-		const nextSession = getSessionItem(sessionId);
+		const nextSession = getSessionItem(session.id);
 		if (nextSession && nextSession.kind === "sub") {
 			if (normalizedPrompt.trim() === "/clear") {
 				const stopped = stopClearedSubSession(nextSession, taskId);
 				if (!stopped.success) {
 					Log("Warn", `[AgentSession] sub session clear stop failed session=${nextSession.id} error=${stopped.message}`);
-					emitAgentSessionPatch(sessionId, {
-						session: getSessionItem(sessionId),
+					emitAgentSessionPatch(session.id, {
+						session: getSessionItem(session.id),
 					});
 				}
 				activeStopTokens[taskId] = undefined as any;
 				return;
 			}
-			setSessionState(sessionId, "RUNNING", taskId, "RUNNING");
-			emitAgentSessionPatch(sessionId, {
-				session: getSessionItem(sessionId),
+			setSessionState(session.id, "RUNNING", taskId, "RUNNING");
+			emitAgentSessionPatch(session.id, {
+				session: getSessionItem(session.id),
 			});
 			const finalized = await finalizeSubSession(nextSession, taskId, result.success, result.message);
 			if (!finalized.success) {
 				Log("Warn", `[AgentSession] sub session finalize failed session=${nextSession.id} error=${finalized.message}`);
 			}
-			const finalizedSession = getSessionItem(sessionId);
+			const finalizedSession = getSessionItem(session.id);
 			if (finalizedSession) {
 				const stopped = stopToken.stopped === true;
 				const finalStatus: AgentSessionStatus = result.success
 					? "DONE"
 					: (stopped ? "STOPPED" : "FAILED");
-				setSessionState(sessionId, finalStatus, taskId, finalStatus);
-				emitAgentSessionPatch(sessionId, {
-					session: getSessionItem(sessionId),
+				setSessionState(session.id, finalStatus, taskId, finalStatus);
+				emitAgentSessionPatch(session.id, {
+					session: getSessionItem(session.id),
 				});
 			}
 			activeStopTokens[taskId] = undefined as any;
 			finalizingSubSessionTaskIds[taskId] = undefined as any;
 		}
 		if (!result.success && (!nextSession || nextSession.kind !== "sub")) {
-			applyEvent(sessionId, {
+			applyEvent(session.id, {
 				type: "task_finished",
-				sessionId,
+				sessionId: session.id,
 				taskId: result.taskId,
 				success: false,
 				message: result.message,
@@ -2249,7 +2300,44 @@ export function sendPrompt(sessionId: number, prompt: string, allowSubSessionSta
 			});
 		}
 	});
-	return { success: true, sessionId, taskId };
+	return { success: true, sessionId: session.id, taskId };
+}
+
+export function resendPrompt(sessionId: number, messageId: number, prompt: string): AgentSessionResendResult {
+	const session = getSessionItem(sessionId);
+	if (!session) {
+		return { success: false, message: "session not found" };
+	}
+	if (session.currentTaskFinalizing === true || (session.currentTaskId !== undefined && finalizingSubSessionTaskIds[session.currentTaskId] === true)) {
+		return { success: false, message: "session task is finalizing" };
+	}
+	if ((session.currentTaskStatus === "RUNNING") && session.currentTaskId !== undefined && activeStopTokens[session.currentTaskId]) {
+		return { success: false, message: "session task is still running" };
+	}
+	const message = getMessageItem(messageId);
+	if (!message || message.sessionId !== sessionId || message.role !== "user") {
+		return { success: false, message: "message not found" };
+	}
+	const latestUserRow = queryOne(
+		`SELECT id FROM ${TABLE_MESSAGE}
+		WHERE session_id = ? AND role = ?
+		ORDER BY id DESC LIMIT 1`,
+		[sessionId, "user"],
+	);
+	const latestUserMessageId = latestUserRow && typeof latestUserRow[0] === "number" ? latestUserRow[0] as number : 0;
+	if (latestUserMessageId !== messageId) {
+		return { success: false, message: "only the latest user prompt can be edited" };
+	}
+	const normalizedPrompt = normalizePromptTextSafe(prompt);
+	if (normalizedPrompt === "") {
+		return { success: false, message: "prompt is empty" };
+	}
+	const removedStepIds = clearSessionAfterMessage(sessionId, message);
+	const result = startPromptTask(session, normalizedPrompt, messageId);
+	if (result.success && removedStepIds.length > 0) {
+		emitAgentSessionPatch(sessionId, { removedStepIds });
+	}
+	return result;
 }
 
 export function stopSessionTask(sessionId: number) {

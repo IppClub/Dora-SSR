@@ -4,7 +4,6 @@ import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
-import { codeInspectorPlugin } from 'code-inspector-plugin';
 import monacoEditorPlugin from 'vite-plugin-monaco-editor';
 
 const require = createRequire(import.meta.url);
@@ -174,7 +173,7 @@ const monacoLocalePlugin = (options: MonacoLocaleOptions): Plugin => {
 			out += `${endl}}`;
 			out += `${endl}localize.selectLang = ${selectLangStr};`;
 			if (selectLangStr.includes('(')) {
-				out += `${endl}try { localize.selectLang = eval(localize.selectLang); } catch(ex){}`;
+				out += `${endl}try { localize.selectLang = (0, eval)(localize.selectLang); } catch(ex){}`;
 			}
 			out += `${endl}localize.mapLangIdx = ${JSON.stringify(mapLangIdx)};`;
 			out += `${endl}localize.mapNlsLang = ${JSON.stringify(lang)};`;
@@ -449,9 +448,15 @@ const codeWireStaticPlugin = (): Plugin => ({
 	},
 });
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(async ({ command, mode }) => {
 	const env = loadEnv(mode, process.cwd(), '');
 	const publicUrl = env.PUBLIC_URL || '/';
+	const inspectorPlugins = command === 'serve'
+		? [(await import('code-inspector-plugin')).codeInspectorPlugin({
+			bundler: 'vite',
+			editor: 'code',
+		})]
+		: [];
 
 	return {
 		base: publicUrl.endsWith('/') ? publicUrl : `${publicUrl}/`,
@@ -459,6 +464,7 @@ export default defineConfig(({ mode }) => {
 		build: {
 			outDir: 'build',
 			sourcemap: env.GENERATE_SOURCEMAP !== 'false',
+			chunkSizeWarningLimit: 7000,
 			rollupOptions: {
 				input: {
 					main: path.join(rootDir, 'index.html'),
@@ -487,10 +493,7 @@ export default defineConfig(({ mode }) => {
 			react(),
 			yarnEditorStaticPlugin(),
 			codeWireStaticPlugin(),
-			codeInspectorPlugin({
-				bundler: 'vite',
-				editor: 'code',
-			}),
+			...inspectorPlugins,
 			monacoEditorPlugin({
 				languageWorkers: ['editorWorkerService', 'typescript'],
 			}),
@@ -512,6 +515,7 @@ export default defineConfig(({ mode }) => {
 				{ find: 'path', replacement: path.join(rootDir, 'src/3rdParty/Path') },
 				{ find: 'fs', replacement: emptyModule },
 				{ find: 'perf_hooks', replacement: emptyModule },
+				{ find: 'url', replacement: emptyModule },
 				{ find: 'typescript', replacement: path.join(rootDir, 'src/shims/typescript.ts') },
 			],
 		},
