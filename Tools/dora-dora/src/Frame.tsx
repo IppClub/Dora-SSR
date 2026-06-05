@@ -22,7 +22,7 @@ interface EntryProp {
 	children?: React.ReactNode;
 }
 export const Entry = (prop: EntryProp) => {
-	return <ThemeProvider theme={theme} children={prop.children} />
+	return <ThemeProvider theme={theme}>{prop.children}</ThemeProvider>
 };
 
 export const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' && prop !== 'drawerWidth' })<{
