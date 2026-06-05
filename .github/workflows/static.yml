@@ -37,15 +37,15 @@ jobs:
           pnpm install --frozen-lockfile
           pnpm build
       - name: Upload artifact
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && github.repository == 'IppClub/Dora-SSR'
         uses: actions/upload-pages-artifact@v3
         with:
           path: 'Docs/build'
 
-  # Only deploy on push to main or manual dispatch (skip pull_request).
+  # Only deploy on push to main or manual dispatch from the upstream repo (skip PRs and forks).
   deploy:
     needs: build
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && github.repository == 'IppClub/Dora-SSR'
     permissions:
       contents: read
       pages: write
