@@ -5,7 +5,8 @@ on:
     branches: [ main ]
     tags: 'v*.*.*'
     # Skip CI for changes that don't affect native builds
-    paths-ignore: &ci-paths-ignore
+    paths-ignore: &windows-paths-ignore
+      # Non-native changes — never trigger OS builds
       - 'Docs/**'
       - 'Tools/dora-dora/**'
       - 'Assets/**'
@@ -14,9 +15,14 @@ on:
       - '.claude/**'
       - '.gitattributes'
       - '.gitignore'
+      # Other platforms — only trigger when their own code changes
+      - 'Projects/Android/**'
+      - 'Projects/iOS/**'
+      - 'Projects/Linux/**'
+      - 'Projects/macOS/**'
   pull_request:
     branches: [ main ]
-    paths-ignore: *ci-paths-ignore
+    paths-ignore: *windows-paths-ignore
   workflow_dispatch:
 
 jobs:
