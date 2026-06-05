@@ -2814,7 +2814,7 @@ int64_t Git::runJob(int64_t jobId, String path, String kind, const std::function
 	}
 	std::string repoPath = path.toString();
 	handles()[jobId] = GitHandle{jobId, repoPath, kind.toString(), callback, std::string()};
-	SharedDirector.getScheduler()->schedule([jobId](double) {
+	SharedDirector.getSystemScheduler()->schedule([jobId](double) {
 		auto& gitHandles = handles();
 		auto it = gitHandles.find(jobId);
 		if (it == gitHandles.end()) {
