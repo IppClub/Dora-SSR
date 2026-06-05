@@ -3,8 +3,19 @@ name: Linux
 on:
   push:
     branches: [ main ]
+    # Skip CI for changes that don't affect native builds
+    paths-ignore: &ci-paths-ignore
+      - 'Docs/**'
+      - 'Tools/dora-dora/**'
+      - 'Assets/**'
+      - '**.md'
+      - '**.txt'
+      - '.claude/**'
+      - '.gitattributes'
+      - '.gitignore'
   pull_request:
     branches: [ main ]
+    paths-ignore: *ci-paths-ignore
   workflow_dispatch:
 
 jobs:
