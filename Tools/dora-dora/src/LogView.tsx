@@ -26,6 +26,7 @@ import { Table, Divider } from 'antd';
 import type { TableColumnsType } from 'antd';
 import Info from './Info';
 import { LogFixRequest, buildLogFixMessage, logFixLineClassName } from './LogFix';
+import LogFixPanel from './LogFixPanel';
 
 export interface LogViewProps {
 	openName: string | null;
@@ -107,6 +108,7 @@ const LogView = memo((props: LogViewProps) => {
 		top: number;
 		left: number;
 		message: string;
+		panelOpen: boolean;
 	} | null>(null);
 
 	useEffect(() => {
@@ -252,7 +254,7 @@ const LogView = memo((props: LogViewProps) => {
 	const showFixButton = (event: MouseEvent, container: HTMLElement) => {
 		if (!props.onFixLog) return;
 		const target = event.target as HTMLElement | null;
-		if (target?.closest("[data-log-fix-button]")) return;
+		if (target?.closest("[data-log-fix-button],[data-log-fix-panel]")) return;
 		const lineElement = target?.closest(`.${logFixLineClassName}`) as HTMLElement | null;
 		const lineNumberText = lineElement?.querySelector("a[id]")?.getAttribute("id");
 		const lineNumber = Number(lineNumberText);
@@ -272,6 +274,7 @@ const LogView = memo((props: LogViewProps) => {
 			message,
 			top: Math.max(4, lineRect.top - containerRect.top - 2),
 			left: Math.min(Math.max(8, event.clientX - containerRect.left + 8), Math.max(8, containerRect.width - 64)),
+			panelOpen: false,
 		});
 	};
 
@@ -281,9 +284,15 @@ const LogView = memo((props: LogViewProps) => {
 		const onMouseDown = (event: MouseEvent) => {
 			showFixButton(event, container);
 		};
+		const onScroll = (event: Event) => {
+			if ((event.target as HTMLElement | null)?.closest("[data-log-fix-panel]")) return;
+			setFixTarget(null);
+		};
 		container.addEventListener("mousedown", onMouseDown, true);
+		container.addEventListener("scroll", onScroll, true);
 		return () => {
 			container.removeEventListener("mousedown", onMouseDown, true);
+			container.removeEventListener("scroll", onScroll, true);
 		};
 	});
 
@@ -683,9 +692,8 @@ const LogView = memo((props: LogViewProps) => {
 						caseInsensitive
 						stream
 						follow
-						onScroll={() => setFixTarget(null)}
 					/>
-					{fixTarget && props.onFixLog ? (
+					{fixTarget && props.onFixLog && !fixTarget.panelOpen ? (
 						<Button
 							size="small"
 							variant="contained"
@@ -693,11 +701,12 @@ const LogView = memo((props: LogViewProps) => {
 							startIcon={<AutoAwesomeIcon sx={{ fontSize: 14 }} />}
 							onClick={(event) => {
 								event.stopPropagation();
-								props.onFixLog?.({
-									lineNumber: fixTarget.lineNumber,
-									message: fixTarget.message,
+								const containerWidth = logContainerRef.current?.clientWidth ?? 360;
+								setFixTarget({
+									...fixTarget,
+									left: Math.min(fixTarget.left, Math.max(8, containerWidth - 356)),
+									panelOpen: true,
 								});
-								setFixTarget(null);
 							}}
 							sx={{
 								position: "absolute",
@@ -708,19 +717,44 @@ const LogView = memo((props: LogViewProps) => {
 								px: 1,
 								fontSize: 12,
 								fontWeight: 600,
-								color: Color.BackgroundDark,
-								backgroundColor: Color.Theme,
+								color: Color.Theme,
+								border: `1px solid ${Color.Theme}99`,
+								backgroundColor: "rgba(34, 28, 14, 0.92)",
 								zIndex: 2,
 								"& .MuiButton-startIcon": {
 									mr: 0.5,
 								},
 								"&:hover": {
-									backgroundColor: Color.Theme,
+									color: "#ffd66a",
+									borderColor: Color.Theme,
+									backgroundColor: "rgba(65, 48, 18, 0.96)",
 								},
 							}}
 						>
 							{t("log.fix")}
 						</Button>
+					) : null}
+					{fixTarget && props.onFixLog && fixTarget.panelOpen ? (
+						<Box
+							sx={{
+								position: "absolute",
+								top: fixTarget.top,
+								left: fixTarget.left,
+								zIndex: 3,
+							}}
+						>
+							<LogFixPanel
+								defaultPrompt={`${t("log.fixPrompt")}${fixTarget.message}`}
+								onClose={() => setFixTarget(null)}
+								onSend={(prompt) => {
+									props.onFixLog?.({
+										lineNumber: fixTarget.lineNumber,
+										message: prompt,
+									});
+									setFixTarget(null);
+								}}
+							/>
+						</Box>
 					) : null}
 				</div>
 			</DialogContent>

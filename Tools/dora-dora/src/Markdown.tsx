@@ -61,7 +61,6 @@ const Markdown = memo((props: MarkdownProps) => {
 		}}
 	>
 		<ReactMarkdown
-			children={props.content}
 			remarkPlugins={[remarkGfm]}
 			components={{
 				img({ src, alt, ...iprops }) {
@@ -102,7 +101,6 @@ const Markdown = memo((props: MarkdownProps) => {
 					const match = /language-(\w+)/.exec(className || '');
 					return match ? (
 						<SyntaxHighlighter
-							children={String(children).replace(/\n$/, '')}
 							style={vscDarkPlus as any}
 							customStyle={{
 								backgroundColor: '#161b22',
@@ -124,7 +122,9 @@ const Markdown = memo((props: MarkdownProps) => {
 							}}
 							language={match[1]}
 							PreTag="div"
-						/>
+						>
+							{String(children).replace(/\n$/, '')}
+						</SyntaxHighlighter>
 					) : (
 						<code
 							className={className}
@@ -140,7 +140,9 @@ const Markdown = memo((props: MarkdownProps) => {
 					);
 				}
 			}}
-		/>
+		>
+			{props.content}
+		</ReactMarkdown>
 	</div>;
 });
 
