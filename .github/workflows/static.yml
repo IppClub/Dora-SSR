@@ -37,6 +37,7 @@ jobs:
           pnpm install --frozen-lockfile
           pnpm build
       - name: Upload artifact
+        if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v3
         with:
           path: 'Docs/build'
