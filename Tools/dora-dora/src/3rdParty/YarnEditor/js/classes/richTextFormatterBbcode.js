@@ -137,7 +137,7 @@ export const BbcodeRichTextFormatter = function(app, addExtraPreviewerEmbeds) {
 
 		return text.replace(globalRegex, m => {
 			const match = m.match(localRegex);
-			const template = eval('`' + outPattern + '`');
+			const template = outPattern.replace(/\$\{match\[(\d+)\]\}/g, (_, index) => match[index] || '');
 			return match.length ? template : null;
 		});
 	};

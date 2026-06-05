@@ -1216,6 +1216,17 @@ export const agentSessionSend = (req: { sessionId: number; prompt: string }) => 
 	}>("/agent/session/send", req);
 };
 
+export const agentSessionResend = (req: { sessionId: number; messageId: number; prompt: string }) => {
+	return post<{
+		success: true;
+		sessionId: number;
+		taskId: number;
+	} | {
+		success: false;
+		message: string;
+	}>("/agent/session/resend", req);
+};
+
 export const agentTaskStatus = (req: { sessionId: number; }) => {
 	return post<AgentTaskStatusResponse>("/agent/task/status", req);
 };

@@ -634,7 +634,7 @@ const getAlertAccentColor = (type: AlertColor) => {
 };
 
 export default function PersistentDrawerLeft() {
-	const { t, i18n } = useTranslation();
+	const { t } = useTranslation();
 	const [alerts, setAlerts] = useState<{
 		msg: string,
 		key: string,
@@ -1142,8 +1142,7 @@ export default function PersistentDrawerLeft() {
 			addAlert(createRes.message, "error");
 			return;
 		}
-		const promptPrefix = i18n.language.toLowerCase().startsWith("zh") ? "修正这个问题：\n" : "Fix this:\n";
-		const initialPrompt = `${promptPrefix}${request.message}`;
+		const initialPrompt = request.message;
 		const normalizedTitle = rootRes.title ?? path.basename(rootRes.projectRoot);
 		const tabKey = rootRes.projectRoot;
 		const existingIndex = files.findIndex(file => file.key === tabKey);
@@ -1177,7 +1176,7 @@ export default function PersistentDrawerLeft() {
 			switchTab(next.length - 1, newFile);
 			return next;
 		});
-	}, [addAlert, currentFile, files, i18n.language, switchTab, t]);
+	}, [addAlert, currentFile, files, switchTab, t]);
 	useEffect(() => {
 		if (currentFile !== undefined) {
 			const ext = path.extname(currentFile.key).toLowerCase();

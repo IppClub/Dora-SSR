@@ -1514,6 +1514,15 @@ export class MemoryCompressor {
 			const tokens = this.estimateCompressionMessageTokens(message, i);
 			accumulatedTokens += tokens;
 
+			// A non-tool message after pending tool calls means the historical tool
+			// chain was interrupted; do not let stale calls block later boundaries.
+			if (message.role !== "tool" && pendingToolCallCount > 0) {
+				for (const id in pendingToolCalls) {
+					pendingToolCalls[id] = false;
+				}
+				pendingToolCallCount = 0;
+			}
+
 			if (message.role === "assistant" && message.tool_calls && message.tool_calls.length > 0) {
 				for (let j = 0; j < message.tool_calls.length; j++) {
 					const toolCallEntry: ToolCall = message.tool_calls[j];

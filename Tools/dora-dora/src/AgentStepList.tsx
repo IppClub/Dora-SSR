@@ -11,8 +11,9 @@ import type { AgentChangeSetSummary, AgentCheckpointDiffFile, AgentCheckpointIte
 import { Color } from './Theme';
 import AgentFileDiff from './AgentFileDiff';
 import AgentChangeSetSummaryCard from './AgentChangeSetSummary';
-import Markdown from './Markdown';
 import './github-markdown-dark.css';
+
+const Markdown = React.lazy(() => import('./Markdown'));
 
 interface AgentStepListProps {
 	steps: AgentSessionStep[];
@@ -339,7 +340,9 @@ export default function AgentStepList(props: AgentStepListProps) {
 									'& .markdown-body > :last-child': { marginBottom: 0 },
 								}}
 							>
-								<Markdown content={visiblePrimaryContent} contentPadding={0} />
+								<React.Suspense fallback={null}>
+									<Markdown content={visiblePrimaryContent} contentPadding={0} />
+								</React.Suspense>
 							</Box>
 						) : null}
 						{historyEntryPreview !== "" ? (
@@ -366,7 +369,9 @@ export default function AgentStepList(props: AgentStepListProps) {
 												'& .markdown-body > :last-child': { marginBottom: 0 },
 											}}
 										>
-											<Markdown content={handoffMeta.summary} contentPadding={0} />
+											<React.Suspense fallback={null}>
+												<Markdown content={handoffMeta.summary} contentPadding={0} />
+											</React.Suspense>
 										</Box>
 									) : null}
 									<Stack direction="row" spacing={1} alignItems="center" useFlexGap flexWrap="wrap">
