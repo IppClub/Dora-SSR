@@ -717,6 +717,7 @@ export default function PersistentDrawerLeft() {
 	const tabIndexRef = useRef(tabIndex);
 	const pendingUpdateFilesRef = useRef(new Map<string, UpdateFileEvent>());
 	const updateFileFlushTimerRef = useRef<number | null>(null);
+	const gitAssetsRefreshTimerRef = useRef<number | null>(null);
 	const notifiedAgentTaskEndKeysRef = useRef(new Set<string>());
 	const openFileInTabRef = useRef<(key: string, title: string, folder: boolean, position?: monaco.IPosition, readOnly?: boolean) => void>(() => { });
 
@@ -807,6 +808,25 @@ export default function PersistentDrawerLeft() {
 			return null;
 		});
 	}, [addAlert, t]);
+
+	const scheduleGitAssetsRefresh = useCallback(() => {
+		if (gitAssetsRefreshTimerRef.current !== null) {
+			window.clearTimeout(gitAssetsRefreshTimerRef.current);
+		}
+		gitAssetsRefreshTimerRef.current = window.setTimeout(() => {
+			gitAssetsRefreshTimerRef.current = null;
+			void loadAssets();
+		}, 200);
+	}, [loadAssets]);
+
+	useEffect(() => {
+		return () => {
+			if (gitAssetsRefreshTimerRef.current !== null) {
+				window.clearTimeout(gitAssetsRefreshTimerRef.current);
+				gitAssetsRefreshTimerRef.current = null;
+			}
+		};
+	}, []);
 
 	const loadEntries = useCallback(() => {
 		return Service.entryList().then((res) => {
@@ -4664,6 +4684,7 @@ export default function PersistentDrawerLeft() {
 									onViewChange={(view) => onWorkspaceViewChange(file.key, view)}
 									onOpenFile={(filePath) => onAgentOpenFile(file.key, filePath)}
 									onOpenProject={onGitOpenProject}
+									onRepositoryFilesChanged={scheduleGitAssetsRefresh}
 									onOpenLLMConfig={() => setOpenLLMConfig(true)}
 								/>
 							</Main>;
@@ -5139,6 +5160,7 @@ export default function PersistentDrawerLeft() {
 											onViewChange={(view) => onWorkspaceViewChange(file.key, view)}
 											onOpenFile={(filePath) => onAgentOpenFile(file.key, filePath)}
 											onOpenProject={onGitOpenProject}
+											onRepositoryFilesChanged={scheduleGitAssetsRefresh}
 											onOpenLLMConfig={() => setOpenLLMConfig(true)}
 										/>
 									);

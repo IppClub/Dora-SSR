@@ -28,6 +28,7 @@ interface ProjectWorkspacePanelProps {
 	onViewChange?: (view: WorkspaceView) => void;
 	onOpenFile?: (filePath: string) => void;
 	onOpenProject?: (projectPath: string) => void;
+	onRepositoryFilesChanged?: (projectRoot: string) => void;
 	onOpenLLMConfig?: () => void;
 }
 
@@ -48,6 +49,7 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 		onViewChange,
 		onOpenFile,
 		onOpenProject,
+		onRepositoryFilesChanged,
 		onOpenLLMConfig,
 	} = props;
 	const hasAgent = agentSessionId !== undefined;
@@ -183,6 +185,7 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 						addAlert={addAlert}
 						onOpenFile={onOpenFile}
 						onOpenProject={onOpenProject}
+						onRepositoryFilesChanged={onRepositoryFilesChanged}
 					/>
 				) : (
 					<MacScrollbar skin="dark" style={{ width: "100%", height: "100%" }}>
