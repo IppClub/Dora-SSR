@@ -4,7 +4,7 @@ const { spawnSync } = require("child_process");
 const doraDoraDir = process.cwd();
 
 function getPnpmCommand() {
-	return process.platform === "win32" ? "pnpm.cmd" : "pnpm";
+	return "pnpm";
 }
 
 function mergeNodeOptions(extraOption) {
@@ -18,6 +18,7 @@ function run(command, args, options = {}) {
 	const result = spawnSync(command, args, {
 		cwd: doraDoraDir,
 		stdio: "inherit",
+		shell: true,
 		env: options.env || process.env,
 	});
 	if (result.error) throw result.error;
