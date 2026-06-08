@@ -809,7 +809,7 @@ export interface EditingInfo {
 		title: string,
 		folder: boolean,
 		agentSessionId?: number,
-		workspaceView?: "agent" | "upload",
+		workspaceView?: "agent" | "upload" | "git",
 		mdEditing?: boolean,
 		yarnTextEditing?: boolean,
 		bodyTextEditing?: boolean,
@@ -856,6 +856,234 @@ export interface FileExistResponse {
 };
 export const exist = (req: FileExistRequest) => {
 	return post<FileExistResponse>("/exist", req);
+};
+
+// Git
+
+export type GitJobState = "queued" | "running" | "done" | "error" | "canceled";
+export type GitKind = "init" | "clone" | "ls-remote" | "status" | "diff" | "add" | "rm" | "commit" | "pull" | "fetch" | "push" | "log" | "checkout" | "reset" | "restore" | "clean" | "branch" | "tag" | "remote" | "mv";
+
+export interface GitFileStatus {
+	path: string;
+	staging: string;
+	worktree: string;
+};
+
+export interface GitRemoteInfo {
+	name: string;
+	urls: string[];
+};
+
+export interface GitBranchInfo {
+	name: string;
+	hash?: string;
+	current: boolean;
+	unborn?: boolean;
+	remote?: string;
+};
+
+export interface GitTagInfo {
+	name: string;
+	hash: string;
+	ref?: string;
+};
+
+export interface GitCommitFile {
+	path: string;
+	status: string;
+};
+
+export interface GitLogCommit {
+	hash: string;
+	message: string;
+	author: string;
+	email: string;
+	when: string;
+	files?: GitCommitFile[];
+};
+
+export interface GitStatus {
+	id: number;
+	state: GitJobState;
+	kind: GitKind;
+	repoPath: string;
+	startedAt?: string;
+	endedAt?: string;
+	progress?: number;
+	message?: string;
+	error?: string;
+	data?: any;
+};
+
+export interface GitRunRequest {
+	repoPath: string;
+	command: string;
+	authId?: number;
+	optionsJSON?: string;
+};
+
+export type GitRunResponse = {
+	success: true;
+	jobId: number;
+} | {
+	success: false;
+	message?: string;
+	needsCredentialSelection?: boolean;
+	host?: string;
+	credentials?: GitCredentialMeta[];
+};
+
+export const gitRun = (req: GitRunRequest) => {
+	return post<GitRunResponse>("/git/run", req);
+};
+
+export type GitJobStatusResponse = {
+	success: true;
+	status: GitStatus;
+	command: string;
+} | {
+	success: false;
+	message?: string;
+};
+
+export const gitStatus = (req: { jobId: number }) => {
+	return post<GitJobStatusResponse>("/git/status", req);
+};
+
+export const gitCancel = (req: { jobId: number }) => {
+	return post<{ success: boolean; message?: string; }>("/git/cancel", req);
+};
+
+export type GitSummaryResponse = {
+	success: true;
+	isRepo: boolean;
+	message?: string;
+	clean?: boolean;
+	currentBranch?: string;
+	defaultRemote?: GitRemoteInfo;
+	remotes?: GitRemoteInfo[];
+	branches?: GitBranchInfo[];
+	lastCommit?: GitLogCommit;
+	status?: GitStatus;
+		branchStatus?: GitStatus;
+		remoteStatus?: GitStatus;
+		historyStatus?: GitStatus;
+		tagStatus?: GitStatus;
+	} | {
+	success: false;
+	message?: string;
+};
+
+export const gitSummary = (req: { repoPath: string }) => {
+	return post<GitSummaryResponse>("/git/summary", req);
+};
+
+export type GitSyncResponse = {
+	success: boolean;
+	message?: string;
+	jobId?: number;
+	status?: GitStatus;
+};
+
+export const gitStatusFiles = (req: { repoPath: string }) => {
+	return post<GitSyncResponse>("/git/status-files", req);
+};
+
+export const gitDiscardUntracked = (req: { repoPath: string; paths: string[] }) => {
+	return post<{ success: boolean; message?: string; removed?: string[]; }>("/git/discard-untracked", req);
+};
+
+export interface GitFileDiffResponse {
+	success: boolean;
+	message?: string;
+	status?: GitStatus;
+	data?: {
+		path?: string;
+		staged?: boolean;
+		mode?: "diff" | "empty" | "binary" | "large";
+		oldText?: string;
+		newText?: string;
+		binary?: boolean;
+		oldSize?: number;
+		newSize?: number;
+		message?: string;
+	};
+};
+
+export const gitFileDiff = (req: { repoPath: string; path: string; staged?: boolean }) => {
+	return post<GitFileDiffResponse>("/git/file-diff", req);
+};
+
+export const gitCommitFileDiff = (req: { repoPath: string; commit: string; path: string }) => {
+	return post<GitFileDiffResponse>("/git/commit-file-diff", req);
+};
+
+export const gitHistory = (req: { repoPath: string; limit?: number }) => {
+	return post<GitSyncResponse>("/git/history", req);
+};
+
+export const gitRemotes = (req: { repoPath: string; command?: string }) => {
+	return post<GitSyncResponse>("/git/remotes", req);
+};
+
+export const gitBranches = (req: { repoPath: string; command?: string }) => {
+	return post<GitSyncResponse>("/git/branches", req);
+};
+
+export const gitTags = (req: { repoPath: string; command?: string }) => {
+	return post<GitSyncResponse>("/git/tags", req);
+};
+
+export interface GitProfile {
+	name: string;
+	email: string;
+};
+
+export const gitProfileGet = () => {
+	return post<{ success: boolean; profile?: GitProfile; message?: string; }>("/git/profile/get", {});
+};
+
+export const gitProfileSave = (req: GitProfile) => {
+	return post<{ success: boolean; message?: string; }>("/git/profile/save", req);
+};
+
+export interface GitCredentialMeta {
+	id: number;
+	host: string;
+	label: string;
+	type: "basic" | "token";
+	username?: string;
+	createdAt?: number;
+	updatedAt?: number;
+	lastUsedAt?: number;
+};
+
+export const gitAuthList = (req: { host?: string } = {}) => {
+	return post<{ success: boolean; items?: GitCredentialMeta[]; message?: string; }>("/git/auth/list", req);
+};
+
+export const gitAuthMatch = (req: { repoPath?: string; command?: string; url?: string }) => {
+	return post<{ success: boolean; host?: string; items?: GitCredentialMeta[]; needsSelection?: boolean; authId?: number; message?: string; }>("/git/auth/match", req);
+};
+
+export const gitAuthSave = (req: {
+	id?: number;
+	host: string;
+	label: string;
+	type: "basic" | "token";
+	username?: string;
+	password?: string;
+	token?: string;
+}) => {
+	return post<{ success: boolean; id?: number; message?: string; }>("/git/auth/save", req);
+};
+
+export const gitAuthDelete = (req: { id: number }) => {
+	return post<{ success: boolean; message?: string; }>("/git/auth/delete", req);
+};
+
+export const gitAuthTest = (req: { repoPath: string; url: string; authId?: number }) => {
+	return post<GitSyncResponse>("/git/auth/test", req);
 };
 
 // saveLog

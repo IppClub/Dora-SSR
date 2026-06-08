@@ -40,6 +40,8 @@ declare namespace path {
 		extname(path: string): string;
 		format(pathObject: Partial<PathObject>): string;
 		parse(path: string): PathObject;
+		fromFileUrl(url: string | URL): string;
+		toFileUrl(path: string): URL;
 
 		readonly sep: string;
 		readonly delimiter: string;

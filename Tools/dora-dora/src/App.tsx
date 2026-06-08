@@ -54,6 +54,7 @@ import ProjectWorkspacePanel from './ProjectWorkspacePanel';
 import { createEmptyActionDocument, writeLegacyModel } from './ActionEditor';
 import { createParticleDocument, writeParticleDocumentToXml } from './ParticleEditor';
 import { LogFixRequest } from './LogFix';
+import { getExtraLib, toFilePath, toTypeScriptFileName } from './MonacoPath';
 
 const SpinePlayer = React.lazy(() => import('./SpinePlayer'));
 const Markdown = React.lazy(() => import('./Markdown'));
@@ -376,7 +377,7 @@ interface EditingFile {
 	status: TabStatus;
 	agentSessionId?: number;
 	agentInitialPrompt?: string;
-	workspaceView?: "agent" | "upload";
+	workspaceView?: "agent" | "upload" | "git";
 };
 
 interface Modified {
@@ -885,13 +886,13 @@ export default function PersistentDrawerLeft() {
 			loadEntries(),
 		]).then(([es6, lua, dora, res]) => {
 			if (es6.success) {
-				monacoTypescript.typescriptDefaults.addExtraLib(es6.content, es6.fullPath);
+				monacoTypescript.typescriptDefaults.addExtraLib(es6.content, toTypeScriptFileName(es6.fullPath));
 			}
 			if (lua.success) {
-				monacoTypescript.typescriptDefaults.addExtraLib(lua.content, lua.fullPath);
+				monacoTypescript.typescriptDefaults.addExtraLib(lua.content, toTypeScriptFileName(lua.fullPath));
 			}
 			if (dora.success) {
-				monacoTypescript.typescriptDefaults.addExtraLib(dora.content, dora.fullPath);
+				monacoTypescript.typescriptDefaults.addExtraLib(dora.content, toTypeScriptFileName(dora.fullPath));
 			}
 			if (res !== null) {
 				setExpandedKeys([res.key]);
@@ -1101,6 +1102,37 @@ export default function PersistentDrawerLeft() {
 		});
 		return true;
 	}, [addAlert, files, switchTab, t]);
+
+	const openProjectWorkspaceTab = useCallback((projectPath: string, workspaceView: "upload" | "git" = "upload") => {
+		const normalizedTitle = path.basename(projectPath);
+		const existingIndex = files.findIndex(file => file.key === projectPath);
+		if (existingIndex >= 0) {
+			const updatedFile: EditingFile = {
+				...files[existingIndex],
+				title: normalizedTitle,
+				folder: true,
+				workspaceView,
+			};
+			setFiles(prev => prev.map((file, index) => index === existingIndex ? updatedFile : file));
+			switchTab(existingIndex, updatedFile);
+			return;
+		}
+		const newFile: EditingFile = {
+			key: projectPath,
+			title: normalizedTitle,
+			content: "",
+			contentModified: null,
+			folder: true,
+			status: "normal",
+			onMount: () => { },
+			workspaceView,
+		};
+		setFiles(prev => {
+			const next = [...prev, newFile];
+			switchTab(next.length - 1, newFile);
+			return next;
+		});
+	}, [files, switchTab]);
 
 	const onFixLog = useCallback(async (request: LogFixRequest) => {
 		setOpenLog(null);
@@ -1431,7 +1463,7 @@ export default function PersistentDrawerLeft() {
 				};
 			};
 			const normalizeDefinitionFile = async (fileName: string) => {
-				const targetFile = fileName.startsWith("file:") ? monaco.Uri.parse(fileName).fsPath : fileName;
+				const targetFile = toFilePath(fileName);
 				if (path.isAbsolute(targetFile)) return targetFile;
 				const res = await Service.read({ path: targetFile, projFile });
 				if (res.success) return res.fullPath;
@@ -1569,7 +1601,7 @@ export default function PersistentDrawerLeft() {
 				debounceDuration: 2000,
 				sourceCache: {
 					resolveFile: async (uri: string) => {
-						const file = uri.startsWith("file:") ? monaco.Uri.parse(uri).fsPath : uri;
+						const file = toFilePath(uri);
 						const baseName = path.basename(file);
 						const baseNameLower = baseName.toLowerCase();
 						if (baseNameLower.startsWith('dora.') && baseName !== 'Dora.d.ts') {
@@ -1579,7 +1611,7 @@ export default function PersistentDrawerLeft() {
 						} else if (baseNameLower.startsWith('lua.')) {
 							return undefined;
 						}
-						const lib = monacoTypescript.typescriptDefaults.getExtraLibs()[file];
+						const lib = getExtraLib(uri);
 						if (lib !== undefined) return { content: lib.content, fullPath: file };
 						const model = monaco.editor.getModel(monaco.Uri.file(file));
 						if (model !== null) return { content: model.getValue(), fullPath: model.uri.fsPath };
@@ -1590,7 +1622,7 @@ export default function PersistentDrawerLeft() {
 						return undefined;
 					},
 					isFileAvailable: async (uri: string) => {
-						const file = uri.startsWith("file:") ? monaco.Uri.parse(uri).fsPath : uri;
+						const file = toFilePath(uri);
 						const baseName = path.basename(file);
 						const baseNameLower = baseName.toLowerCase();
 						if (baseNameLower.startsWith('dora.') && baseName !== 'Dora.d.ts') {
@@ -1600,7 +1632,7 @@ export default function PersistentDrawerLeft() {
 						} else if (baseNameLower.startsWith('lua.')) {
 							return false;
 						}
-						const lib = monacoTypescript.typescriptDefaults.getExtraLibs()[file];
+						const lib = getExtraLib(uri);
 						if (lib !== undefined) return true;
 						const model = monaco.editor.getModel(monaco.Uri.file(file));
 						if (model !== null) return true;
@@ -1608,8 +1640,8 @@ export default function PersistentDrawerLeft() {
 						return res.success;
 					},
 					getFile: async (uri: string) => {
-						const file = uri.startsWith("file:") ? monaco.Uri.parse(uri).fsPath : uri;
-						const lib = monacoTypescript.typescriptDefaults.getExtraLibs()[file];
+						const file = toFilePath(uri);
+						const lib = getExtraLib(uri);
 						if (lib !== undefined) return lib.content;
 						const model = monaco.editor.getModel(monaco.Uri.file(file));
 						if (model !== null) return model.getValue();
@@ -3554,7 +3586,7 @@ export default function PersistentDrawerLeft() {
 		}
 	}, [tabIndex, loadAssets, switchTab, files, openFileInTab]);
 
-	const onWorkspaceViewChange = useCallback((fileKey: string, view: "agent" | "upload") => {
+	const onWorkspaceViewChange = useCallback((fileKey: string, view: "agent" | "upload" | "git") => {
 		setFiles(prev => prev.map(file => file.key === fileKey ? { ...file, workspaceView: view } : file));
 	}, []);
 
@@ -4117,6 +4149,10 @@ export default function PersistentDrawerLeft() {
 		openFileInTab(targetPath, path.basename(targetPath), false);
 	}, [openFileInTab]);
 
+	const onGitOpenProject = useCallback((projectPath: string) => {
+		openProjectWorkspaceTab(projectPath, "git");
+	}, [openProjectWorkspaceTab]);
+
 	return (
 		<Entry>
 			<Dialog
@@ -4627,6 +4663,7 @@ export default function PersistentDrawerLeft() {
 									onUploaded={onUploaded}
 									onViewChange={(view) => onWorkspaceViewChange(file.key, view)}
 									onOpenFile={(filePath) => onAgentOpenFile(file.key, filePath)}
+									onOpenProject={onGitOpenProject}
 									onOpenLLMConfig={() => setOpenLLMConfig(true)}
 								/>
 							</Main>;
@@ -5101,6 +5138,7 @@ export default function PersistentDrawerLeft() {
 											onUploaded={onUploaded}
 											onViewChange={(view) => onWorkspaceViewChange(file.key, view)}
 											onOpenFile={(filePath) => onAgentOpenFile(file.key, filePath)}
+											onOpenProject={onGitOpenProject}
 											onOpenLLMConfig={() => setOpenLLMConfig(true)}
 										/>
 									);

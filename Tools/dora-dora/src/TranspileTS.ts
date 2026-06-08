@@ -12,6 +12,7 @@ import type { CompilerOptions as TstlCompilerOptions } from './3rdParty/tstl';
 import { SourceMapConsumer } from 'source-map';
 import Info from './Info';
 import * as Service from './Service';
+import { getExtraLib } from './MonacoPath';
 
 type TsModule = typeof import('typescript');
 type TstlModule = typeof import('./3rdParty/tstl');
@@ -173,8 +174,7 @@ function createCompilerHost(
 	};
 	syncModelContent(monaco.Uri.file(rootFileName), content);
 	const getCachedBuiltinLib = (fileName: string): SourceFileData | undefined => {
-		const extraLibs = monacoTypescript.typescriptDefaults.getExtraLibs();
-		const directLib = extraLibs[fileName];
+		const directLib = getExtraLib(fileName);
 		if (directLib !== undefined) {
 			return { fileName, content: directLib.content };
 		}
@@ -182,7 +182,7 @@ function createCompilerHost(
 		if (baseName !== "Dora.d.ts" && baseName !== "es6-subset.d.ts" && baseName !== "lua.d.ts") {
 			return undefined;
 		}
-		for (const [libFileName, lib] of Object.entries(extraLibs) as [string, { content: string }][]) {
+		for (const [libFileName, lib] of Object.entries(monacoTypescript.typescriptDefaults.getExtraLibs()) as [string, { content: string }][]) {
 			if (Info.path.basename(libFileName) === baseName) {
 				return { fileName: libFileName, content: lib.content };
 			}

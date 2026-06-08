@@ -129,6 +129,595 @@ HttpServer\post "/agent/project-root", (req): invalidArguments ->
 import "Agent.Tools" as AgentTools
 import "Agent.AgentSession"
 
+GitJobs = []
+
+gitTerminalState = (status) ->
+	return false unless status and status.state
+	status.state in ["done", "error", "canceled"]
+
+gitInvalidRepoPath = (repoPath) ->
+	not repoPath or repoPath == "" or not Content\isAbsolutePath repoPath
+
+gitShellSplit = (command) ->
+	args = {}
+	current = {}
+	quote = nil
+	escape = false
+	for i = 1, #command
+		ch = command\sub i, i
+		if escape
+			current[] = ch
+			escape = false
+		elseif ch == "\\"
+			escape = true
+		elseif quote
+			if ch == quote
+				quote = nil
+			else
+				current[] = ch
+		elseif ch == "'" or ch == '"'
+			quote = ch
+		elseif ch\match "%s"
+			if #current > 0
+				args[] = table.concat current
+				current = {}
+		else
+			current[] = ch
+	if #current > 0
+		args[] = table.concat current
+	if args[1] == "git"
+		table.remove args, 1
+	args
+
+gitQuote = (value) ->
+	text = tostring value
+	if text\match "^[%w%._%-%/]+$"
+		return text
+	"\"" .. text\gsub("\\", "\\\\")\gsub("\"", "\\\"") .. "\""
+
+gitDirNonEmpty = (targetPath) ->
+	return false unless Content\exist targetPath
+	return false unless Content\isdir targetPath
+	#Content\getFiles(targetPath) > 0 or #Content\getDirs(targetPath) > 0
+
+gitSafeChildPath = (parentPath, childPath) ->
+	return nil unless parentPath and childPath and childPath ~= ""
+	return nil if childPath\sub(1, 1) == "/" or childPath\match "^%a:[/\\]"
+	return nil if childPath == "." or childPath\match "^%.%.[/\\]?" or childPath\match "[/\\]%.%.[/\\]"
+	targetPath = Path parentPath, childPath
+	relative = Path\getRelative targetPath, parentPath
+	return nil if relative == ".." or relative\sub(1, 3) == "../" or relative\sub(1, 3) == "..\\"
+	targetPath
+
+gitCloneDirFromURL = (url) ->
+	return nil unless url and url ~= ""
+	text = tostring(url)\match "^%s*(.-)%s*$"
+	return nil if text == ""
+	text = text\gsub "[/\\]+$", ""
+	name = text\match "([^/:]+)$"
+	return nil unless name and name ~= ""
+	name = name\gsub "%.git$", ""
+	return nil if name == "" or name == "." or name == ".."
+	name
+
+gitCloneTargetPath = (repoPath, command) ->
+	args = gitShellSplit command
+	return nil unless args[1] == "clone"
+	url = args[2]
+	index = 3
+	while index <= #args
+		arg = args[index]
+		if arg in ["-b", "--branch", "--depth"]
+			index += 2
+		elseif arg\sub(1, 1) == "-"
+			index += 1
+		else
+			return gitSafeChildPath repoPath, arg
+	if dirName := gitCloneDirFromURL url
+		return gitSafeChildPath repoPath, dirName
+	nil
+
+gitPathInsideRepo = (repoPath, relPath) ->
+	return false unless repoPath and relPath and relPath ~= ""
+	return false if relPath\sub(1, 1) == "/" or relPath\match "^%a:[/\\]"
+	return false if relPath == "." or relPath\match "^%.%.[/\\]?" or relPath\match "[/\\]%.%.[/\\]"
+	targetPath = Path repoPath, relPath
+	relative = Path\getRelative targetPath, repoPath
+	relative ~= ".." and relative\sub(1, 3) ~= "../" and relative\sub(1, 3) ~= "..\\"
+
+gitHostFromURL = (url) ->
+	return nil unless url and url ~= ""
+	text = tostring(url)\match "^%s*(.-)%s*$"
+	return nil if text == ""
+	host = text\match "^[%w_%-]+://([^/:]+)"
+	host = text\match "@([^:/]+)[:/]" unless host
+	host = text\match "^([^:/]+):[^/]" unless host
+	return nil unless host and host ~= ""
+	string.lower host
+
+ensureGitTables = ->
+	DB\exec [[
+		CREATE TABLE IF NOT EXISTS GitCredential(
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			host TEXT NOT NULL,
+			label TEXT NOT NULL,
+			type TEXT NOT NULL,
+			username TEXT NOT NULL DEFAULT '',
+			secret TEXT NOT NULL DEFAULT '',
+			created_at INTEGER,
+			updated_at INTEGER,
+			last_used_at INTEGER
+		);
+	]]
+	DB\exec "CREATE INDEX IF NOT EXISTS idx_git_credential_host ON GitCredential(host);"
+	DB\exec [[
+		CREATE TABLE IF NOT EXISTS GitProfile(
+			id INTEGER PRIMARY KEY CHECK(id = 1),
+			name TEXT NOT NULL DEFAULT '',
+			email TEXT NOT NULL DEFAULT '',
+			updated_at INTEGER
+		);
+	]]
+
+gitCredentialToPublic = (row) ->
+	[id, host, label, typeName, username, createdAt, updatedAt, lastUsedAt] = row
+	:id, :host, :label, type: typeName, :username, :createdAt, :updatedAt, :lastUsedAt
+
+gitLoadCredential = (id) ->
+	ensureGitTables!
+	credentialId = tonumber(id) or 0
+	rows = DB\query "select id, host, label, type, username, secret from GitCredential where id = ? limit 1", [credentialId,]
+	return nil unless rows and rows[1]
+	row = rows[1]
+	id: row[1], host: row[2], label: row[3], type: row[4], username: row[5], secret: row[6]
+
+gitAuthOptionsJSON = (credential) ->
+	return nil unless credential
+	auth = if credential.type == "token"
+		{
+			type: "token"
+			token: credential.secret
+			username: credential.username ~= "" and credential.username or "token"
+		}
+	else
+		{
+			type: "basic"
+			username: credential.username
+			password: credential.secret
+		}
+	json.encode :auth
+
+gitLoadProfile = ->
+	ensureGitTables!
+	rows = DB\query "select name, email from GitProfile where id = 1 limit 1"
+	return nil unless rows and rows[1]
+	name = tostring(rows[1][1] or "")
+	email = tostring(rows[1][2] or "")
+	return nil if name == "" and email == ""
+	:name, :email
+
+gitApplyProfileToCommit = (command) ->
+	args = gitShellSplit command
+	return command unless args[1] == "commit"
+	hasName = false
+	hasEmail = false
+	for arg in *args
+		hasName = true if arg == "--author-name"
+		hasEmail = true if arg == "--author-email"
+	return command if hasName and hasEmail
+	profile = gitLoadProfile!
+	return command unless profile
+	if not hasName and profile.name ~= ""
+		args[] = "--author-name"
+		args[] = profile.name
+	if not hasEmail and profile.email ~= ""
+		args[] = "--author-email"
+		args[] = profile.email
+	table.concat [gitQuote arg for arg in *args], " "
+
+gitStartJob = (repoPath, command, optionsJSON = nil) ->
+	return nil, "invalid repoPath" if gitInvalidRepoPath repoPath
+	return nil, "invalid command" unless command and command ~= ""
+	optionsJSON = "" unless optionsJSON
+	command = gitApplyProfileToCommit command
+	if targetPath := gitCloneTargetPath repoPath, command
+		if gitDirNonEmpty targetPath
+			return nil, "clone target directory is not empty"
+	elseif (gitShellSplit command)[1] == "clone"
+		return nil, "invalid clone target"
+	statusRef = nil
+	startGit = ->
+		Git\run repoPath, command, ((status) ->
+			statusRef = status
+			GitJobs[status.id] =
+				command: command
+				status: status
+				updatedAt: os.time!
+		), optionsJSON
+	success, jobId = pcall startGit
+	return nil, tostring(jobId) unless success
+	return nil, "Git.run did not return a job id" unless jobId
+	GitJobs[jobId] =
+		command: command
+		status: statusRef or {
+			id: jobId
+			state: "queued"
+			kind: gitShellSplit(command)[1] or "status"
+			repoPath: repoPath
+			progress: 0
+			message: "queued"
+		}
+		updatedAt: os.time!
+	return jobId
+
+gitRunSync = (repoPath, command, optionsJSON = nil, timeout = 20) ->
+	jobId, err = gitStartJob repoPath, command, optionsJSON
+	return success: false, message: err unless jobId
+	startedAt = os.time!
+	wait ->
+		job = GitJobs[jobId]
+		status = job and job.status
+		gitTerminalState(status) or os.time! - startedAt >= timeout
+	status = GitJobs[jobId] and GitJobs[jobId].status
+	unless gitTerminalState status
+		Git\cancel jobId
+		return success: false, message: "git command timed out", :jobId, :status
+	return success: status.state == "done", :jobId, :status, message: status.error or status.message
+
+gitCredentialsForHost = (host) ->
+	return {} unless host and host ~= ""
+	ensureGitTables!
+	rows = DB\query "select id, host, label, type, username, created_at, updated_at, last_used_at from GitCredential where host = ? order by last_used_at desc, label asc, id asc", [host,]
+	if rows
+		[gitCredentialToPublic row for row in *rows]
+	else {}
+
+gitFirstRemoteURL = (repoPath, remoteName = nil) ->
+	remoteRes = gitRunSync repoPath, "remote -v", nil, 10
+	data = remoteRes.status and remoteRes.status.data
+	return nil unless data and data.remotes
+	for remote in *data.remotes
+		if (not remoteName or remote.name == remoteName) and remote.urls and remote.urls[1]
+			return remote.urls[1]
+	nil
+
+gitConfigRemoteURL = (repoPath, remoteName = nil) ->
+	return nil if gitInvalidRepoPath repoPath
+	configPath = Path repoPath, ".git/config"
+	return nil unless Content\exist configPath
+	content = Content\load configPath
+	return nil unless content and content ~= ""
+	currentRemote = nil
+	for line in content\gmatch "[^\r\n]+"
+		sectionRemote = line\match '^%s*%[remote%s+"([^"]+)"%]%s*$'
+		if sectionRemote
+			currentRemote = sectionRemote
+		elseif currentRemote and (not remoteName or currentRemote == remoteName)
+			url = line\match "^%s*url%s*=%s*(.-)%s*$"
+			return url if url and url ~= ""
+	nil
+
+gitCommandRemoteArg = (args, startIndex = 2) ->
+	index = startIndex
+	while index <= #args
+		arg = args[index]
+		if arg in ["-u", "--set-upstream", "-f", "--force", "--all", "--prune"]
+			index += 1
+		elseif arg in ["--depth", "-b", "--branch"]
+			index += 2
+		elseif arg and arg\sub(1, 1) == "-"
+			index += 1
+		else
+			return arg
+	nil
+
+gitCommandHost = (repoPath, command) ->
+	args = gitShellSplit command
+	return nil unless args[1]
+	switch args[1]
+		when "clone", "ls-remote"
+			return gitHostFromURL args[2]
+		when "fetch", "pull", "push"
+			remoteArg = gitCommandRemoteArg args, 2
+			return nil unless remoteArg
+			url = gitHostFromURL remoteArg
+			return url if url
+			return gitHostFromURL gitConfigRemoteURL repoPath, remoteArg
+	nil
+
+gitAuthSelectionForCommand = (repoPath, command) ->
+	host = gitCommandHost repoPath, command
+	return nil unless host
+	items = gitCredentialsForHost host
+	return nil if #items == 0
+	:host, :items
+
+gitDefaultRemote = (remoteStatus) ->
+	data = remoteStatus and remoteStatus.data
+	return nil unless data and data.remotes and data.remotes[1]
+	data.remotes[1]
+
+gitCurrentBranch = (branchStatus) ->
+	data = branchStatus and branchStatus.data
+	if data and data.current and data.current ~= ""
+		return data.current
+	if data and data.branches
+		for branch in *data.branches
+			return branch.name if branch.current
+	nil
+
+gitHeadBranch = (repoPath) ->
+	return nil if gitInvalidRepoPath repoPath
+	headPath = Path repoPath, ".git", "HEAD"
+	return nil unless Content\exist headPath
+	head = Content\load headPath
+	return nil unless head
+	branch = head\match "^ref:%s*refs/heads/(.-)%s*$"
+	return branch if branch and branch ~= ""
+	nil
+
+gitBranchesWithHead = (branchStatus, currentBranch) ->
+	branches = branchStatus and branchStatus.data and branchStatus.data.branches or {}
+	return branches unless currentBranch and currentBranch ~= ""
+	for branch in *branches
+		return branches if branch.name == currentBranch
+	withHead = [branch for branch in *branches]
+	withHead[] = name: currentBranch, current: true, unborn: true
+	withHead
+
+gitSummary = (repoPath) ->
+	statusRes = gitRunSync repoPath, "status", nil, 10
+	unless statusRes.success
+		return success: true, isRepo: false, message: statusRes.message, status: statusRes.status
+	branchRes = gitRunSync repoPath, "branch", nil, 10
+	remoteRes = gitRunSync repoPath, "remote -v", nil, 10
+	status = statusRes.status
+	branchStatus = branchRes.status
+	remoteStatus = remoteRes.status
+	currentBranch = gitCurrentBranch(branchStatus) or gitHeadBranch(repoPath)
+	branches = gitBranchesWithHead branchStatus, currentBranch
+	hasCommit = false
+	if branches and #branches > 0
+		for branch in *branches
+			if branch.hash and branch.hash ~= ""
+				hasCommit = true
+				break
+	logStatus = if hasCommit
+		(gitRunSync repoPath, "log -n 100", nil, 10).status
+	else
+		{
+			state: "done"
+			kind: "log"
+			repoPath: repoPath
+			progress: 1
+			message: "git log completed"
+			data: commits: {}
+		}
+	tagStatus = if hasCommit
+		(gitRunSync repoPath, "tag", nil, 10).status
+	else
+		{
+			state: "done"
+			kind: "tag"
+			repoPath: repoPath
+			progress: 1
+			message: "git tag completed"
+			data: tags: {}
+		}
+	defaultRemote = gitDefaultRemote remoteStatus
+	lastCommit = nil
+	if logStatus and logStatus.data and logStatus.data.commits and logStatus.data.commits[1]
+		lastCommit = logStatus.data.commits[1]
+	return
+		success: true
+		isRepo: true
+		clean: status.data and status.data.clean or false
+		currentBranch: currentBranch
+		defaultRemote: defaultRemote
+		remotes: remoteStatus and remoteStatus.data and remoteStatus.data.remotes or {}
+		branches: branches
+		lastCommit: lastCommit
+		status: status
+		branchStatus: branchStatus
+		remoteStatus: remoteStatus
+		historyStatus: logStatus
+		tagStatus: tagStatus
+
+HttpServer\post "/git/run", (req): invalidArguments ->
+	switch req when {body: body}
+		{:repoPath, :command, :authId, :optionsJSON} = body
+		if authId and not optionsJSON
+			if credential := gitLoadCredential authId
+				optionsJSON = gitAuthOptionsJSON credential
+				DB\exec "update GitCredential set last_used_at = ? where id = ?", [os.time!, credential.id]
+		elseif not optionsJSON
+			authOk, authSelection = pcall gitAuthSelectionForCommand, repoPath, command
+			authSelection = nil unless authOk
+			if authSelection
+				if #authSelection.items == 1
+					credential = gitLoadCredential authSelection.items[1].id
+					optionsJSON = gitAuthOptionsJSON credential
+					DB\exec "update GitCredential set last_used_at = ? where id = ?", [os.time!, credential.id]
+				else
+					return success: false, message: "select a Git credential", needsCredentialSelection: true, host: authSelection.host, credentials: authSelection.items
+		jobId, err = gitStartJob repoPath, command, optionsJSON
+		return success: false, message: err unless jobId
+		return success: true, :jobId
+
+HttpServer\post "/git/status", (req): invalidArguments ->
+	switch req when {body: {:jobId}}
+		job = GitJobs[tonumber(jobId) or 0]
+		return success: false, message: "git job not found" unless job
+		return success: true, status: job.status, command: job.command
+
+HttpServer\post "/git/cancel", (req): invalidArguments ->
+	switch req when {body: {:jobId}}
+		id = tonumber jobId
+		return success: false, message: "invalid jobId" unless id
+		return success: Git\cancel id
+
+HttpServer\postSchedule "/git/summary", (req): invalidArguments ->
+	switch req when {body: {:repoPath}}
+		return success: false, message: "invalid repoPath" if gitInvalidRepoPath repoPath
+		return gitSummary repoPath
+
+HttpServer\postSchedule "/git/status-files", (req): invalidArguments ->
+	switch req when {body: {:repoPath}}
+		return gitRunSync repoPath, "status", nil, 10
+
+HttpServer\postSchedule "/git/discard-untracked", (req): invalidArguments ->
+	switch req when {body: body}
+		{:repoPath, :paths} = body
+		return success: false, message: "invalid repoPath" if gitInvalidRepoPath repoPath
+		return success: false, message: "invalid paths" unless type(paths) == "table"
+		statusRes = gitRunSync repoPath, "status", nil, 10
+		return statusRes unless statusRes.success
+		untracked = {}
+		for file in *(statusRes.status.data and statusRes.status.data.files or {})
+			if file.staging == "?" or file.worktree == "?"
+				untracked[file.path] = true
+		removed = {}
+		for relPath in *paths
+			relPath = tostring relPath
+			return success: false, message: "unsafe path: #{relPath}" unless gitPathInsideRepo repoPath, relPath
+			return success: false, message: "path is not untracked: #{relPath}" unless untracked[relPath]
+		for relPath in *paths
+			targetPath = Path repoPath, tostring(relPath)
+			if Content\exist targetPath
+				Content\remove targetPath
+				removed[] = tostring relPath
+		return success: true, :removed
+
+HttpServer\postSchedule "/git/file-diff", (req): invalidArguments ->
+	switch req when {body: body}
+		{:repoPath, :path, :staged} = body
+		return success: false, message: "invalid repoPath" if gitInvalidRepoPath repoPath
+		return success: false, message: "unsafe path" unless gitPathInsideRepo repoPath, tostring path
+		command = if staged == true
+			"diff --staged -- #{gitQuote path}"
+		else
+			"diff -- #{gitQuote path}"
+		res = gitRunSync repoPath, command, nil, 10
+		return res unless res.success
+		return success: true, status: res.status, data: res.status and res.status.data
+
+HttpServer\postSchedule "/git/commit-file-diff", (req): invalidArguments ->
+	switch req when {body: body}
+		{:repoPath, :commit, :path} = body
+		return success: false, message: "invalid repoPath" if gitInvalidRepoPath repoPath
+		return success: false, message: "invalid commit" unless type(commit) == "string" and commit\match "^[0-9a-fA-F]+$"
+		return success: false, message: "unsafe path" unless gitPathInsideRepo repoPath, tostring path
+		res = gitRunSync repoPath, "diff #{gitQuote commit} -- #{gitQuote path}", nil, 10
+		return res unless res.success
+		return success: true, status: res.status, data: res.status and res.status.data
+
+HttpServer\postSchedule "/git/history", (req): invalidArguments ->
+	switch req when {body: body}
+		{:repoPath, :limit} = body
+		limit = math.max 1, math.min 100, tonumber(limit) or 20
+		return gitRunSync repoPath, "log -n #{limit}", nil, 10
+
+HttpServer\postSchedule "/git/remotes", (req): invalidArguments ->
+	switch req when {body: body}
+		{:repoPath, :command} = body
+		command = command or "remote -v"
+		return gitRunSync repoPath, command, nil, 10
+
+HttpServer\postSchedule "/git/branches", (req): invalidArguments ->
+	switch req when {body: body}
+		{:repoPath, :command} = body
+		command = command or "branch"
+		return gitRunSync repoPath, command, nil, 10
+
+HttpServer\postSchedule "/git/tags", (req): invalidArguments ->
+	switch req when {body: body}
+		{:repoPath, :command} = body
+		command = command or "tag"
+		return gitRunSync repoPath, command, nil, 10
+
+HttpServer\post "/git/profile/get", ->
+	ensureGitTables!
+	rows = DB\query "select name, email from GitProfile where id = 1 limit 1"
+	profile = if rows and rows[1]
+		name: rows[1][1], email: rows[1][2]
+	else
+		name: "", email: ""
+	return success: true, :profile
+
+HttpServer\post "/git/profile/save", (req): invalidArguments ->
+	switch req when {body: {:name, :email}}
+		ensureGitTables!
+		DB\exec "insert into GitProfile(id, name, email, updated_at) values(1, ?, ?, ?) on conflict(id) do update set name = excluded.name, email = excluded.email, updated_at = excluded.updated_at", [
+			tostring(name or "")
+			tostring(email or "")
+			os.time!
+		]
+		return success: true
+
+HttpServer\post "/git/auth/list", (req) ->
+	ensureGitTables!
+	host = nil
+	switch req when {body: body}
+		host = body.host
+	rows = if host and host ~= ""
+		DB\query "select id, host, label, type, username, created_at, updated_at, last_used_at from GitCredential where host = ? order by host asc, label asc, id asc", [tostring(host)\lower!,]
+	else
+		DB\query "select id, host, label, type, username, created_at, updated_at, last_used_at from GitCredential order by host asc, label asc, id asc"
+	items = if rows
+		[gitCredentialToPublic row for row in *rows]
+	else {}
+	return success: true, :items
+
+HttpServer\postSchedule "/git/auth/match", (req): invalidArguments ->
+	switch req when {body: body}
+		{:repoPath, :command, :url} = body
+		host = if url and url ~= "" then gitHostFromURL url else gitCommandHost repoPath, command
+		return success: false, message: "git host is required" unless host
+		items = gitCredentialsForHost host
+		return success: true, :host, :items, needsSelection: #items > 1, authId: (#items == 1 and items[1].id or nil)
+	else
+		return success: false, message: "invalid arguments"
+
+HttpServer\post "/git/auth/save", (req): invalidArguments ->
+	switch req when {body: body}
+		{:id, :host, :label, :username, :password, :token} = body
+		host = tostring(host or "")\lower!\match "^%s*(.-)%s*$"
+		label = tostring(label or "")\match "^%s*(.-)%s*$"
+		credentialType = tostring(body.type or "token")
+		username = tostring(username or "")
+		secret = if credentialType == "basic" then tostring(password or "") else tostring(token or password or "")
+		return success: false, message: "host is required" if host == ""
+		return success: false, message: "label is required" if label == ""
+		return success: false, message: "secret is required" if secret == ""
+		return success: false, message: "invalid type" unless credentialType in ["basic", "token"]
+		ensureGitTables!
+		now = os.time!
+		if id
+			DB\exec "update GitCredential set host = ?, label = ?, type = ?, username = ?, secret = ?, updated_at = ? where id = ?", [
+				host, label, credentialType, username, secret, now, (tonumber(id) or 0)
+			]
+			return success: true, id: tonumber(id)
+		else
+			DB\exec "insert into GitCredential(host, label, type, username, secret, created_at, updated_at) values(?, ?, ?, ?, ?, ?, ?)", [
+				host, label, credentialType, username, secret, now, now
+			]
+			rows = DB\query "select last_insert_rowid()"
+			return success: true, id: rows and rows[1] and rows[1][1]
+
+HttpServer\post "/git/auth/delete", (req): invalidArguments ->
+	switch req when {body: {:id}}
+		ensureGitTables!
+		credentialId = tonumber(id) or 0
+		DB\exec "delete from GitCredential where id = ?", [credentialId,]
+		return success: true
+
+HttpServer\postSchedule "/git/auth/test", (req): invalidArguments ->
+	switch req when {body: body}
+		{:repoPath, :url, :authId} = body
+		credential = gitLoadCredential authId
+		optionsJSON = gitAuthOptionsJSON credential
+		return gitRunSync repoPath, "ls-remote #{gitQuote url}", optionsJSON, 20
+
 HttpServer\post "/agent/session/create", (req): invalidArguments ->
 	switch req when {body: {:projectRoot, :title}}
 		return AgentSession.createSession projectRoot, title
