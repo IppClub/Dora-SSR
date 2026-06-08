@@ -8,9 +8,10 @@ import { MacScrollbar } from 'mac-scrollbar';
 import { useTranslation } from 'react-i18next';
 import AgentPanel from './AgentPanel';
 import DoraUpload from './Upload';
+import GitPanel from './GitPanel';
 import { Color } from './Theme';
 
-type WorkspaceView = "agent" | "upload";
+type WorkspaceView = "agent" | "upload" | "git";
 
 interface ProjectWorkspacePanelProps {
 	title: string;
@@ -26,6 +27,7 @@ interface ProjectWorkspacePanelProps {
 	onUploaded: (path: string, file: string, open: boolean) => void;
 	onViewChange?: (view: WorkspaceView) => void;
 	onOpenFile?: (filePath: string) => void;
+	onOpenProject?: (projectPath: string) => void;
 	onOpenLLMConfig?: () => void;
 }
 
@@ -45,6 +47,7 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 		onUploaded,
 		onViewChange,
 		onOpenFile,
+		onOpenProject,
 		onOpenLLMConfig,
 	} = props;
 	const hasAgent = agentSessionId !== undefined;
@@ -134,6 +137,26 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 						>
 							{t("menu.upload")}
 						</Button>
+						<Button
+							size="small"
+							variant={currentView === "git" ? "contained" : "outlined"}
+							onClick={() => handleViewChange("git")}
+							sx={{
+								color: currentView === "git" ? Color.BackgroundDark : Color.TextPrimary,
+								borderColor: Color.Line,
+								backgroundColor: currentView === "git" ? Color.Theme : "transparent",
+								borderRadius: 3,
+								px: 1.5,
+								minWidth: 0,
+								whiteSpace: "nowrap",
+								"&:hover": {
+									borderColor: Color.Line,
+									backgroundColor: currentView === "git" ? Color.Theme : "transparent",
+								},
+							}}
+						>
+							Git
+						</Button>
 					</Stack>
 				</Stack>
 			</Box>
@@ -151,6 +174,15 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 						onRollbackComplete={onRollbackComplete}
 						onOpenFile={onOpenFile}
 						onOpenLLMConfig={onOpenLLMConfig}
+					/>
+				) : currentView === "git" ? (
+					<GitPanel
+						projectRoot={uploadPath}
+						displayPath={displayPath}
+						height={contentHeight}
+						addAlert={addAlert}
+						onOpenFile={onOpenFile}
+						onOpenProject={onOpenProject}
 					/>
 				) : (
 					<MacScrollbar skin="dark" style={{ width: "100%", height: "100%" }}>

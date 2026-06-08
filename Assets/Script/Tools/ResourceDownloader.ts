@@ -60,6 +60,7 @@ interface RepoInfo {
 	};
 	categories?: string[];
 	exe?: boolean | string[];
+	noBanner?: boolean;
 }
 
 const windowsNoScrollFlags = [
@@ -242,6 +243,19 @@ class ResourceDownloader {
 	}
 
 	private loadPreviewImage(name: string) {
+		const repo = this.repos.get(name);
+		if (repo !== undefined && repo.noBanner) {
+			const cacheFile = Path(Content.assetPath, "Image", "banner.jpg");
+			if (Content.exist(cacheFile)) {
+				Cache.loadAsync(cacheFile);
+				const texture = Texture2D(cacheFile);
+				if (texture) {
+					this.previewTextures.set(name, texture);
+					this.previewFiles.set(name, cacheFile);
+				}
+				return;
+			}
+		}
 		const cachePath = Path(Content.appPath, ".cache", "preview");
 		const cacheFile = Path(cachePath, name + ".jpg");
 		if (Content.exist(cacheFile)) {

@@ -3022,7 +3022,9 @@ int HttpServer_get(lua_State* L) {
 			if (lua_istable(L, -1)) {
 				lua_pushcfunction(L, colibc_json_encode);
 				lua_insert(L, -2);
-				if (LuaEngine::call(L, 1, 1)) {
+				lua_pushboolean(L, 0);
+				lua_pushboolean(L, 1);
+				if (LuaEngine::call(L, 3, 1)) {
 					res.content = tolua_toslice(L, -1, nullptr).toString();
 					res.contentType = "application/json"s;
 				} else {
@@ -3117,7 +3119,9 @@ int HttpServer_post(lua_State* L) {
 			if (lua_istable(L, -1)) {
 				lua_pushcfunction(L, colibc_json_encode);
 				lua_insert(L, -2);
-				if (LuaEngine::call(L, 1, 1)) {
+				lua_pushboolean(L, 0);
+				lua_pushboolean(L, 1);
+				if (LuaEngine::call(L, 3, 1)) {
 					res.content = tolua_toslice(L, -1, nullptr).toString();
 					res.contentType = "application/json"s;
 				} else {
@@ -3227,7 +3231,9 @@ int HttpServer_postSchedule(lua_State* L) {
 					if (lua_istable(L, -1)) {
 						lua_pushcfunction(L, colibc_json_encode);
 						lua_insert(L, -2);
-						if (LuaEngine::call(L, 1, 1)) {
+						lua_pushboolean(L, 0);
+						lua_pushboolean(L, 1);
+						if (LuaEngine::call(L, 3, 1)) {
 							res.content = tolua_toslice(L, -1, nullptr).toString();
 							res.contentType = "application/json"s;
 						} else {
