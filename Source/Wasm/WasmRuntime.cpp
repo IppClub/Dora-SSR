@@ -153,6 +153,16 @@ static jclass GetMainActivityClass(JNIEnv* env) {
 	env->DeleteLocalRef(cls);
 	return g_MainActivityClass;
 }
+static jmethodID GetMainActivityStaticMethod(JNIEnv* env, jclass cls, const char* name, const char* signature) {
+	jmethodID mid = env->GetStaticMethodID(cls, name, signature);
+	if (!mid) {
+		if (env->ExceptionCheck()) {
+			env->ExceptionClear();
+		}
+		Issue("MainActivity static method {}{} not found", name, signature);
+	}
+	return mid;
+}
 static char* CopyJString(JNIEnv* env, jstring jstr, const char* fallback) {
 	if (!jstr) {
 		size_t len = strlen(fallback);
@@ -171,7 +181,7 @@ static const char* WaBuild(char* input) {
 	jclass cls = GetMainActivityClass(env);
 	if (!cls) return "failed to build Wa Project due to jni class not found";
 
-	jmethodID mid = env->GetStaticMethodID(cls, "waBuild", "(Ljava/lang/String;)Ljava/lang/String;");
+	jmethodID mid = GetMainActivityStaticMethod(env, cls, "waBuild", "(Ljava/lang/String;)Ljava/lang/String;");
 	if (!mid) return "failed to build Wa Project due to jni method not found";
 
 	jstring jpath = env->NewStringUTF(input);
@@ -189,7 +199,7 @@ static const char* WaFormat(char* input) {
 	jclass cls = GetMainActivityClass(env);
 	if (!cls) return "";
 
-	jmethodID mid = env->GetStaticMethodID(cls, "waFormat", "(Ljava/lang/String;)Ljava/lang/String;");
+	jmethodID mid = GetMainActivityStaticMethod(env, cls, "waFormat", "(Ljava/lang/String;)Ljava/lang/String;");
 	if (!mid) return "";
 
 	jstring jpath = env->NewStringUTF(input);
@@ -210,7 +220,7 @@ static int64_t WaGitStartClone(char* url, char* path, char* branch, char* token,
 	jclass cls = GetMainActivityClass(env);
 	if (!cls) return 0;
 
-	jmethodID mid = env->GetStaticMethodID(cls, "waGitStartClone", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;J)J");
+	jmethodID mid = GetMainActivityStaticMethod(env, cls, "waGitStartClone", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;J)J");
 	if (!mid) return 0;
 
 	jstring jurl = env->NewStringUTF(url);
@@ -231,7 +241,7 @@ static int64_t WaGitStartPull(char* path, char* branch, char* token, int force) 
 	jclass cls = GetMainActivityClass(env);
 	if (!cls) return 0;
 
-	jmethodID mid = env->GetStaticMethodID(cls, "waGitStartPull", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)J");
+	jmethodID mid = GetMainActivityStaticMethod(env, cls, "waGitStartPull", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)J");
 	if (!mid) return 0;
 
 	jstring jpath = env->NewStringUTF(path);
@@ -250,7 +260,7 @@ static int64_t WaGitRun(char* repoPath, char* command, char* optionsJSON) {
 	jclass cls = GetMainActivityClass(env);
 	if (!cls) return 0;
 
-	jmethodID mid = env->GetStaticMethodID(cls, "waGitRun", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)J");
+	jmethodID mid = GetMainActivityStaticMethod(env, cls, "waGitRun", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)J");
 	if (!mid) return 0;
 
 	jstring jrepoPath = env->NewStringUTF(repoPath);
@@ -269,7 +279,7 @@ static const char* WaGitPoll(int64_t jobId) {
 	jclass cls = GetMainActivityClass(env);
 	if (!cls) return nullptr;
 
-	jmethodID mid = env->GetStaticMethodID(cls, "waGitPoll", "(J)Ljava/lang/String;");
+	jmethodID mid = GetMainActivityStaticMethod(env, cls, "waGitPoll", "(J)Ljava/lang/String;");
 	if (!mid) return nullptr;
 
 	jstring jresult = (jstring)env->CallStaticObjectMethod(cls, mid, s_cast<jlong>(jobId));
@@ -284,7 +294,7 @@ static bool WaGitCancel(int64_t jobId) {
 	jclass cls = GetMainActivityClass(env);
 	if (!cls) return false;
 
-	jmethodID mid = env->GetStaticMethodID(cls, "waGitCancel", "(J)Z");
+	jmethodID mid = GetMainActivityStaticMethod(env, cls, "waGitCancel", "(J)Z");
 	if (!mid) return false;
 
 	jboolean result = env->CallStaticBooleanMethod(cls, mid, s_cast<jlong>(jobId));
@@ -295,7 +305,7 @@ static bool WaGitDispose(int64_t jobId) {
 	jclass cls = GetMainActivityClass(env);
 	if (!cls) return false;
 
-	jmethodID mid = env->GetStaticMethodID(cls, "waGitDispose", "(J)Z");
+	jmethodID mid = GetMainActivityStaticMethod(env, cls, "waGitDispose", "(J)Z");
 	if (!mid) return false;
 
 	jboolean result = env->CallStaticBooleanMethod(cls, mid, s_cast<jlong>(jobId));
