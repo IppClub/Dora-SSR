@@ -167,6 +167,7 @@ i18n
 						getInfo: "failed to get basic info",
 						builtin: "can not operate on built-in assets",
 						read: "failed to read {{title}}",
+						largeFile: "file is too large to preview {{title}}",
 						open: "failed to open files",
 						unsuppored: "unsupported file {{title}}",
 						reloading: "please save before reloading assets",
@@ -1019,6 +1020,7 @@ i18n
 						failedLoadPreview: "Failed to load preview",
 						failedLoadCommitDiff: "Failed to load commit diff",
 						noDiff: "No diff",
+						directorySelectedHint: "Folder selected. Select a file to view its diff.",
 						binaryFile: "Binary file: {{oldSize}} -> {{newSize}}",
 					},
 					tic: {
@@ -1182,6 +1184,7 @@ i18n
 						getInfo: "获取基本信息失败",
 						builtin: "无法操作内置资源",
 						read: "读取 {{title}} 失败",
+						largeFile: "文件过大，无法预览",
 						open: "打开文件失败",
 						unsuppored: "暂不支持预览文件 {{title}}",
 						reloading: "请在重新加载资源之前保存",
@@ -2032,6 +2035,7 @@ i18n
 						failedLoadPreview: "加载预览失败",
 						failedLoadCommitDiff: "加载提交 diff 失败",
 						noDiff: "没有 diff",
+						directorySelectedHint: "已选择文件夹。请选择文件以查看 diff。",
 						binaryFile: "二进制文件：{{oldSize}} -> {{newSize}}",
 					},
 					tic: {

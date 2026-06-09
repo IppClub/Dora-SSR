@@ -10,6 +10,9 @@ export namespace Color {
 
 	export const TextPrimary = '#eee';
 	export const TextSecondary = '#eee8';
+	export const DisabledText = '#9a9a9a';
+	export const DisabledBackground = '#292929';
+	export const DisabledBorder = '#414141';
 
 	export const Theme = '#fac03d';
 
@@ -40,6 +43,9 @@ export const theme = createTheme({
 			hover: Color.Theme + '66',
 			focus: Color.Theme + '44',
 			active: Color.Theme + '22',
+			disabled: Color.DisabledText,
+			disabledBackground: Color.DisabledBackground,
+			disabledOpacity: 1,
 		}
 	},
 	components: {
@@ -59,6 +65,56 @@ export const theme = createTheme({
 					},
 					'&.Mui-focused .MuiOutlinedInput-notchedOutline': {
 						borderColor: Color.TextPrimary,
+					},
+					'&.Mui-disabled': {
+						backgroundColor: Color.DisabledBackground,
+						color: Color.DisabledText,
+					},
+					'&.Mui-disabled .MuiOutlinedInput-notchedOutline': {
+						borderColor: Color.DisabledBorder,
+					},
+					'& .MuiInputBase-input.Mui-disabled': {
+						WebkitTextFillColor: Color.DisabledText,
+					},
+				},
+			},
+		},
+		MuiInputLabel: {
+			styleOverrides: {
+				root: {
+					'&.Mui-disabled': {
+						color: Color.DisabledText,
+					},
+				},
+			},
+		},
+		MuiButton: {
+			styleOverrides: {
+				root: {
+					'&.Mui-disabled': {
+						color: Color.DisabledText,
+						borderColor: Color.DisabledBorder,
+						backgroundColor: Color.DisabledBackground,
+					},
+				},
+			},
+		},
+		MuiIconButton: {
+			styleOverrides: {
+				root: {
+					'&.Mui-disabled': {
+						color: Color.DisabledText,
+						borderColor: Color.DisabledBorder,
+						backgroundColor: Color.DisabledBackground,
+					},
+				},
+			},
+		},
+		MuiFormControlLabel: {
+			styleOverrides: {
+				label: {
+					'&.Mui-disabled': {
+						color: Color.DisabledText,
 					},
 				},
 			},
