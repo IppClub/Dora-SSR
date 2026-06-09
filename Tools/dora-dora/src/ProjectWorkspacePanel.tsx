@@ -18,6 +18,7 @@ interface ProjectWorkspacePanelProps {
 	height: number;
 	uploadPath: string;
 	displayPath?: string;
+	isWorkspaceRoot?: boolean;
 	agentSessionId?: number;
 	agentInitialPrompt?: string;
 	view?: WorkspaceView;
@@ -28,7 +29,7 @@ interface ProjectWorkspacePanelProps {
 	onViewChange?: (view: WorkspaceView) => void;
 	onOpenFile?: (filePath: string) => void;
 	onOpenProject?: (projectPath: string) => void;
-	onRepositoryFilesChanged?: (projectRoot: string) => void;
+	onRepositoryFilesChanged?: (projectRoot: string) => void | Promise<void>;
 	onOpenLLMConfig?: () => void;
 }
 
@@ -39,6 +40,7 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 		height,
 		uploadPath,
 		displayPath,
+		isWorkspaceRoot,
 		agentSessionId,
 		agentInitialPrompt,
 		view,
@@ -182,6 +184,7 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 						projectRoot={uploadPath}
 						displayPath={displayPath}
 						height={contentHeight}
+						isWorkspaceRoot={isWorkspaceRoot}
 						addAlert={addAlert}
 						onOpenFile={onOpenFile}
 						onOpenProject={onOpenProject}
