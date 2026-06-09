@@ -4756,7 +4756,9 @@ export default function PersistentDrawerLeft() {
 							case ".vs": visualScript = true; break;
 							case ".tic": tic80 = true; break;
 							case ".model": actionModel = true; break;
-							default: language = "txt"; break
+							default:
+								if (!file.folder) language = "txt";
+								break
 						}
 						const markdown = language === "markdown";
 						const hidden = (markdown && !file.mdEditing) || (yarn && !file.yarnTextEditing);
