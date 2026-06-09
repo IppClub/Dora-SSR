@@ -23,7 +23,6 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import { DiffEditor } from '@monaco-editor/react';
 import { MacScrollbar } from 'mac-scrollbar';
-import AddIcon from '@mui/icons-material/Add';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import CallSplitIcon from '@mui/icons-material/CallSplit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -44,10 +43,11 @@ interface GitPanelProps {
 	projectRoot: string;
 	displayPath?: string;
 	height: number;
+	isWorkspaceRoot?: boolean;
 	addAlert?: (msg: string, type: "success" | "info" | "warning" | "error") => void;
 	onOpenFile?: (filePath: string) => void;
 	onOpenProject?: (projectPath: string) => void;
-	onRepositoryFilesChanged?: (projectRoot: string) => void;
+	onRepositoryFilesChanged?: (projectRoot: string) => void | Promise<void>;
 }
 
 type ChangeSection = "unstaged" | "staged";
@@ -645,7 +645,7 @@ const buildRemoteBranchRows = (remote: string, branches: Service.GitBranchInfo[]
 };
 
 export default function GitPanel(props: GitPanelProps) {
-	const { projectRoot, displayPath, height, addAlert, onOpenFile, onOpenProject, onRepositoryFilesChanged } = props;
+	const { projectRoot, displayPath, height, isWorkspaceRoot = false, addAlert, onOpenFile, onOpenProject, onRepositoryFilesChanged } = props;
 	const { t, i18n } = useTranslation();
 	const [summary, setSummary] = React.useState<Service.GitSummaryResponse | null>(null);
 	const [loading, setLoading] = React.useState(false);
@@ -668,6 +668,7 @@ export default function GitPanel(props: GitPanelProps) {
 	const [cloneDir, setCloneDir] = React.useState("");
 	const [cloneBranch, setCloneBranch] = React.useState("");
 	const [cloneDepth, setCloneDepth] = React.useState("");
+	const [cloneStarting, setCloneStarting] = React.useState(false);
 	const [settingsOpen, setSettingsOpen] = React.useState(false);
 	const [settingsTab, setSettingsTab] = React.useState<"profile" | "credentials">("profile");
 	const [profile, setProfile] = React.useState<Service.GitProfile>({ name: "", email: "" });
@@ -680,6 +681,7 @@ export default function GitPanel(props: GitPanelProps) {
 	const [dialogValues, setDialogValues] = React.useState<Record<string, string | boolean>>({});
 	const [diffPreview, setDiffPreview] = React.useState<GitDiffPreviewState | null>(null);
 	const [commitDiffPreview, setCommitDiffPreview] = React.useState<GitDiffPreviewState | null>(null);
+	const cloneStartingRef = React.useRef(false);
 	const pendingCredentialDoneRef = React.useRef<((status: Service.GitStatus) => void) | undefined>(undefined);
 
 	const files = React.useMemo(() => splitFiles(getStatusFiles(summary ?? undefined)), [summary]);
@@ -688,11 +690,13 @@ export default function GitPanel(props: GitPanelProps) {
 	const stagedCount = files.staged.length;
 	const localChangeCount = files.unstaged.length + files.staged.length;
 	const isRepo = !!summary?.success && summary.isRepo;
-	const repoName = React.useMemo(() => {
-		const source = trimSlash(displayPath ?? projectRoot);
-		const parts = source.split(/[\\/]+/);
-		return parts[parts.length - 1] || "Repository";
-	}, [displayPath, projectRoot]);
+	const jobRunning = !!job && (!job.status || !terminalStates.has(job.status.state));
+	const jobState = job?.status?.state ?? "idle";
+	const jobStatusText = job ? (job.status?.error ?? job.status?.message ?? job.status?.state ?? t("git.queued")) : t("git.noGitTask");
+	const cloneJob = job && /^clone(?:\s|$)/.test(job.command) ? job : null;
+	const cloneJobRunning = !!cloneJob && (!cloneJob.status || !terminalStates.has(cloneJob.status.state));
+	const cloneBusy = cloneStarting || jobRunning || !!pendingCredential && /^clone(?:\s|$)/.test(pendingCredential.command);
+
 	const commitList = React.useMemo(() => (
 		summary?.success ? asArray<Service.GitLogCommit>(summary.historyStatus?.data?.commits).slice(0, 100) : []
 	), [summary]);
@@ -1042,11 +1046,11 @@ export default function GitPanel(props: GitPanelProps) {
 				} else if (res.status.state === "error") {
 					showAlert(res.status.error ?? res.status.message ?? t("git.jobFailed", { command }), "error");
 				}
-				onDone?.(res.status);
 				void refresh();
 				if (res.status.state === "done" && gitCommandChangesWorkingTree(command)) {
-					onRepositoryFilesChanged?.(projectRoot);
+					await onRepositoryFilesChanged?.(projectRoot);
 				}
+				onDone?.(res.status);
 			}
 		}, 600);
 	}, [onRepositoryFilesChanged, projectRoot, refresh, showAlert, t]);
@@ -1207,45 +1211,54 @@ export default function GitPanel(props: GitPanelProps) {
 		}
 		const author = [
 			profile.name.trim() ? `--author-name ${quoteArg(profile.name.trim())}` : "",
-				profile.email.trim() ? `--author-email ${quoteArg(profile.email.trim())}` : "",
-			].filter(Boolean).join(" ");
-			void runCommand(`commit -m ${quoteArg(message)} ${author}`.trim(), () => {
-				setCommitMessage("");
-				setCommitDescription("");
-			});
-		}, [commitDescription, commitMessage, openConfirmDialog, profile.email, profile.name, runCommand, stagedCount, t]);
+			profile.email.trim() ? `--author-email ${quoteArg(profile.email.trim())}` : "",
+		].filter(Boolean).join(" ");
+		void runCommand(`commit -m ${quoteArg(message)} ${author}`.trim(), () => {
+			setCommitMessage("");
+			setCommitDescription("");
+		});
+	}, [commitDescription, commitMessage, openConfirmDialog, profile.email, profile.name, runCommand, stagedCount, t]);
 
 	const initRepo = React.useCallback(() => {
 		void runCommand("init");
 	}, [runCommand]);
 
 	const cloneRepo = React.useCallback(async () => {
+		if (cloneBusy || cloneStartingRef.current) return;
 		const url = cloneUrl.trim();
 		const dir = cloneDir.trim();
 		const branch = cloneBranch.trim();
 		const depth = cloneDepth.trim();
 		if (url === "") return;
-		if (depth !== "" && !/^[1-9]\d*$/.test(depth)) {
-			showAlert(t("git.cloneDepthInvalid"), "warning");
-			return;
-		}
-		if (dir !== "") {
-			const target = joinPath(projectRoot, dir);
-			const existRes = await Service.exist({ file: target });
-			if (existRes.success) {
-				const listRes = await Service.list({ path: target });
-				if (listRes.success && (listRes.files?.length ?? 0) > 0) {
-					showAlert(t("git.cloneTargetNotEmpty"), "warning");
-					return;
+		cloneStartingRef.current = true;
+		setCloneStarting(true);
+		try {
+			if (depth !== "" && !/^[1-9]\d*$/.test(depth)) {
+				showAlert(t("git.cloneDepthInvalid"), "warning");
+				return;
+			}
+			if (dir !== "") {
+				const target = joinPath(projectRoot, dir);
+				const existRes = await Service.exist({ file: target });
+				if (existRes.success) {
+					const listRes = await Service.list({ path: target });
+					if (listRes.success && (listRes.files?.length ?? 0) > 0) {
+						showAlert(t("git.cloneTargetNotEmpty"), "warning");
+						return;
+					}
 				}
 			}
+			const command = `clone ${quoteArg(url)}${dir ? ` ${quoteArg(dir)}` : ""}${branch ? ` -b ${quoteArg(branch)}` : ""}${depth ? ` --depth ${depth}` : ""}`;
+			await runCommand(command, status => {
+				if (status.state !== "done") return;
+				const clonedPath = status.data?.path ?? (dir ? joinPath(projectRoot, dir) : "");
+				if (clonedPath) onOpenProject?.(clonedPath);
+			});
+		} finally {
+			cloneStartingRef.current = false;
+			setCloneStarting(false);
 		}
-		const command = `clone ${quoteArg(url)}${dir ? ` ${quoteArg(dir)}` : ""}${branch ? ` -b ${quoteArg(branch)}` : ""}${depth ? ` --depth ${depth}` : ""}`;
-		void runCommand(command, status => {
-			const clonedPath = status.data?.path ?? (dir ? joinPath(projectRoot, dir) : "");
-			if (clonedPath) onOpenProject?.(clonedPath);
-		});
-	}, [cloneBranch, cloneDepth, cloneDir, cloneUrl, onOpenProject, projectRoot, runCommand, showAlert, t]);
+	}, [cloneBranch, cloneBusy, cloneDepth, cloneDir, cloneUrl, onOpenProject, projectRoot, runCommand, showAlert, t]);
 
 	const runFetch = React.useCallback(() => {
 		if (!summary?.success || !summary.isRepo) return;
@@ -1279,53 +1292,53 @@ export default function GitPanel(props: GitPanelProps) {
 			title: kind === "pull" ? t("git.pullBranch") : t("git.pushBranch"),
 			detail: displayPath ?? projectRoot,
 			submitLabel: kind === "pull" ? t("git.pull") : t("git.push"),
-				fields: [
-					{ name: "remote", label: t("git.remote"), value: defaultRemote, required: true, options: remoteNames },
-					{
-						name: "branch",
-						label: t("git.remoteBranch"),
-						value: defaultBranch,
-						required: true,
-						options: values => remoteBranchNames(String(values.remote ?? "")),
-					},
-						...(kind === "push" ? [
-							{ name: "setUpstream", label: t("git.setUpstream"), value: false, checkbox: true },
-							{ name: "force", label: t("git.force"), value: false, checkbox: true },
-						] : [
-							{ name: "force", label: t("git.force"), value: false, checkbox: true },
-						]),
-					],
-					onSubmit: values => {
-						const remote = String(values.remote ?? "").trim();
-						const branch = String(values.branch ?? "").trim();
-						if (!remote || !branch) return;
-						const setUpstream = kind === "push" && values.setUpstream === true;
-						const force = values.force === true;
-						const options = [
-							setUpstream ? "-u" : "",
-							force ? "-f" : "",
-						].filter(Boolean).join(" ");
-						const command = `${kind}${options ? ` ${options}` : ""} ${quoteArg(remote)} ${quoteArg(branch)}`;
-						if (force) {
-							const forceTitle = kind === "push" ? t("git.forcePush") : t("git.forcePull");
-							openConfirmDialog({
-								title: forceTitle,
-								detail: kind === "push"
-									? t("git.forcePushDetail", { remote, branch })
-									: t("git.forcePullDetail", { remote, branch }),
-								command,
-								submitLabel: forceTitle,
-								danger: true,
-								onConfirm: () => {
-									void runCommand(command);
-							},
-						});
-						return;
-					}
-					void runCommand(command);
+			fields: [
+				{ name: "remote", label: t("git.remote"), value: defaultRemote, required: true, options: remoteNames },
+				{
+					name: "branch",
+					label: t("git.remoteBranch"),
+					value: defaultBranch,
+					required: true,
+					options: values => remoteBranchNames(String(values.remote ?? "")),
 				},
-			});
-		}, [displayPath, openActionDialog, openConfirmDialog, preferredRemoteBranch, projectRoot, remoteBranchNames, remoteNames, runCommand, summary, t]);
+				...(kind === "push" ? [
+					{ name: "setUpstream", label: t("git.setUpstream"), value: false, checkbox: true },
+					{ name: "force", label: t("git.force"), value: false, checkbox: true },
+				] : [
+					{ name: "force", label: t("git.force"), value: false, checkbox: true },
+				]),
+			],
+			onSubmit: values => {
+				const remote = String(values.remote ?? "").trim();
+				const branch = String(values.branch ?? "").trim();
+				if (!remote || !branch) return;
+				const setUpstream = kind === "push" && values.setUpstream === true;
+				const force = values.force === true;
+				const options = [
+					setUpstream ? "-u" : "",
+					force ? "-f" : "",
+				].filter(Boolean).join(" ");
+				const command = `${kind}${options ? ` ${options}` : ""} ${quoteArg(remote)} ${quoteArg(branch)}`;
+				if (force) {
+					const forceTitle = kind === "push" ? t("git.forcePush") : t("git.forcePull");
+					openConfirmDialog({
+						title: forceTitle,
+						detail: kind === "push"
+							? t("git.forcePushDetail", { remote, branch })
+							: t("git.forcePullDetail", { remote, branch }),
+						command,
+						submitLabel: forceTitle,
+						danger: true,
+						onConfirm: () => {
+							void runCommand(command);
+						},
+					});
+					return;
+				}
+				void runCommand(command);
+			},
+		});
+	}, [displayPath, openActionDialog, openConfirmDialog, preferredRemoteBranch, projectRoot, remoteBranchNames, remoteNames, runCommand, summary, t]);
 
 	const saveProfile = React.useCallback(async () => {
 		const res = await Service.gitProfileSave(profile);
@@ -1625,44 +1638,44 @@ export default function GitPanel(props: GitPanelProps) {
 						</Stack>
 						<Box sx={{ mt: 0.75 }}>{remoteActionButtons}</Box>
 					</Box>
-				<Box>
-					<Typography variant="caption" sx={{ color: primaryText, fontWeight: 700 }}>{t("git.tags")}</Typography>
-					<Stack spacing={0.25} sx={{ mt: 0.75 }}>
-						{tagList.length === 0 ? (
-							<Typography variant="body2" sx={{ color: mutedText, fontSize: 12 }}>{t("git.noTags")}</Typography>
-						) : tagList.map(tag => {
-							const selected = selectedTagName === tag.name;
-							return (
-							<Stack
-								key={tag.name}
-								direction="row"
-								alignItems="center"
-								spacing={0.75}
-								onClick={() => {
-									setSelectedBranchName(null);
-									setSelectedRemoteName(null);
-									setSelectedRemoteBranch(null);
-									setSelectedTagName(tag.name);
-									setSelectedCommitHash(tag.hash);
-									setPreviewMode("commits");
-								}}
-								sx={{
-									height: 26,
-									px: 0.75,
-									cursor: "pointer",
-									color: primaryText,
-									background: selected ? accentSoft : "transparent",
-									"&:hover": { backgroundColor: selected ? "rgba(250, 192, 61, 0.22)" : "#242424" },
-								}}
-							>
-								<LocalOfferIcon sx={{ fontSize: 15, color: selected ? accent : Color.TextSecondary }} />
-								<Typography variant="body2" noWrap sx={{ minWidth: 0, fontSize: 12, fontWeight: selected ? 700 : 600 }}>{tag.name}</Typography>
-							</Stack>
-							);
-						})}
-					</Stack>
-					<Box sx={{ mt: 0.75 }}>{tagActionButtons}</Box>
-				</Box>
+					<Box>
+						<Typography variant="caption" sx={{ color: primaryText, fontWeight: 700 }}>{t("git.tags")}</Typography>
+						<Stack spacing={0.25} sx={{ mt: 0.75 }}>
+							{tagList.length === 0 ? (
+								<Typography variant="body2" sx={{ color: mutedText, fontSize: 12 }}>{t("git.noTags")}</Typography>
+							) : tagList.map(tag => {
+								const selected = selectedTagName === tag.name;
+								return (
+									<Stack
+										key={tag.name}
+										direction="row"
+										alignItems="center"
+										spacing={0.75}
+										onClick={() => {
+											setSelectedBranchName(null);
+											setSelectedRemoteName(null);
+											setSelectedRemoteBranch(null);
+											setSelectedTagName(tag.name);
+											setSelectedCommitHash(tag.hash);
+											setPreviewMode("commits");
+										}}
+										sx={{
+											height: 26,
+											px: 0.75,
+											cursor: "pointer",
+											color: primaryText,
+											background: selected ? accentSoft : "transparent",
+											"&:hover": { backgroundColor: selected ? "rgba(250, 192, 61, 0.22)" : "#242424" },
+										}}
+									>
+										<LocalOfferIcon sx={{ fontSize: 15, color: selected ? accent : Color.TextSecondary }} />
+										<Typography variant="body2" noWrap sx={{ minWidth: 0, fontSize: 12, fontWeight: selected ? 700 : 600 }}>{tag.name}</Typography>
+									</Stack>
+								);
+							})}
+						</Stack>
+						<Box sx={{ mt: 0.75 }}>{tagActionButtons}</Box>
+					</Box>
 				</Stack>
 			</MacScrollbar>
 		</Box>
@@ -1688,9 +1701,9 @@ export default function GitPanel(props: GitPanelProps) {
 					minRows={2}
 					maxRows={4}
 				/>
-					<Stack direction="row" alignItems="center" justifyContent="flex-end" sx={{ minWidth: 0 }}>
-						<Button variant="contained" onClick={commit} disabled={stagedCount === 0 || commitMessage.trim() === ""} sx={commitButtonSx}>{t("git.commit")}</Button>
-					</Stack>
+				<Stack direction="row" alignItems="center" justifyContent="flex-end" sx={{ minWidth: 0 }}>
+					<Button variant="contained" onClick={commit} disabled={stagedCount === 0 || commitMessage.trim() === ""} sx={commitButtonSx}>{t("git.commit")}</Button>
+				</Stack>
 			</Stack>
 		</Box>
 	);
@@ -1792,17 +1805,17 @@ export default function GitPanel(props: GitPanelProps) {
 									boxShadow: active ? `inset 3px 0 0 ${accent}` : "none",
 									"&:hover": { background: active ? "rgba(250, 192, 61, 0.22)" : "#242424" },
 								}}
-								>
-									<Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-										<Box sx={{ width: 10, height: 10, borderRadius: "50%", background: index === 0 ? accent : "#8f9aa6", boxShadow: `0 0 0 2px ${active ? "rgba(250, 192, 61, 0.38)" : "#333"}` }} />
-									</Box>
-									<Stack direction="row" alignItems="center" spacing={0.5} sx={{ minWidth: 0, overflow: "hidden" }}>
-										{commitRefs.map(ref => renderCommitRefChip(ref, active))}
-										<Typography variant="body2" noWrap sx={{ minWidth: 0, fontWeight: active ? 700 : 500, fontSize: 13 }}>{commitItem.message}</Typography>
-									</Stack>
-									<Typography variant="body2" noWrap sx={{ fontSize: 13, color: active ? primaryText : Color.TextSecondary }}>{commitItem.author}</Typography>
-									<Typography variant="body2" noWrap sx={{ fontFamily: "monospace", fontSize: 13, color: active ? primaryText : Color.TextSecondary }}>{commitItem.hash.slice(0, 8)}</Typography>
-									<Typography variant="body2" noWrap title={commitItem.when} sx={{ fontSize: 13, color: active ? primaryText : Color.TextSecondary }}>{formatCommitTime(commitItem.when, i18n.language)}</Typography>
+							>
+								<Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+									<Box sx={{ width: 10, height: 10, borderRadius: "50%", background: index === 0 ? accent : "#8f9aa6", boxShadow: `0 0 0 2px ${active ? "rgba(250, 192, 61, 0.38)" : "#333"}` }} />
+								</Box>
+								<Stack direction="row" alignItems="center" spacing={0.5} sx={{ minWidth: 0, overflow: "hidden" }}>
+									{commitRefs.map(ref => renderCommitRefChip(ref, active))}
+									<Typography variant="body2" noWrap sx={{ minWidth: 0, fontWeight: active ? 700 : 500, fontSize: 13 }}>{commitItem.message}</Typography>
+								</Stack>
+								<Typography variant="body2" noWrap sx={{ fontSize: 13, color: active ? primaryText : Color.TextSecondary }}>{commitItem.author}</Typography>
+								<Typography variant="body2" noWrap sx={{ fontFamily: "monospace", fontSize: 13, color: active ? primaryText : Color.TextSecondary }}>{commitItem.hash.slice(0, 8)}</Typography>
+								<Typography variant="body2" noWrap title={commitItem.when} sx={{ fontSize: 13, color: active ? primaryText : Color.TextSecondary }}>{formatCommitTime(commitItem.when, i18n.language)}</Typography>
 							</Box>
 						);
 					})}
@@ -1904,9 +1917,6 @@ export default function GitPanel(props: GitPanelProps) {
 		</Box>
 	);
 
-	const jobRunning = !!job && (!job.status || !terminalStates.has(job.status.state));
-	const jobState = job?.status?.state ?? "idle";
-	const jobStatusText = job ? (job.status?.error ?? job.status?.message ?? job.status?.state ?? t("git.queued")) : t("git.noGitTask");
 	const jobCard = (
 		<Box
 			sx={{
@@ -1969,15 +1979,15 @@ export default function GitPanel(props: GitPanelProps) {
 						size="small"
 						onClick={cancelJob}
 						disabled={!jobRunning}
-					sx={{
-						width: 20,
-						height: 20,
-						borderRadius: 0,
-						color: "#b9b9b9",
-						backgroundColor: "#2e2e2e",
-						"&:hover": { color: primaryText, backgroundColor: "#3a3a3a" },
-						"&.Mui-disabled": { color: "rgba(215, 215, 215, 0.24)", backgroundColor: "transparent" },
-					}}
+						sx={{
+							width: 20,
+							height: 20,
+							borderRadius: 0,
+							color: "#b9b9b9",
+							backgroundColor: "#2e2e2e",
+							"&:hover": { color: primaryText, backgroundColor: "#3a3a3a" },
+							"&.Mui-disabled": { color: "rgba(215, 215, 215, 0.24)", backgroundColor: "transparent" },
+						}}
 					>
 						×
 					</IconButton>
@@ -2060,15 +2070,18 @@ export default function GitPanel(props: GitPanelProps) {
 					<Typography variant="subtitle2" sx={{ color: primaryText }}>{t("git.repositorySetup")}</Typography>
 					<Typography variant="caption" noWrap sx={{ display: "block", color: mutedText, maxWidth: 560 }}>{displayPath ?? projectRoot}</Typography>
 				</Box>
-				<Button variant="contained" onClick={initRepo} sx={{ height: 32, borderRadius: 0, color: "#171717", backgroundColor: accent, "&:hover": { backgroundColor: "#ffd05a" } }}>{t("git.init")}</Button>
+				{isWorkspaceRoot ? null : (
+					<Button variant="contained" onClick={initRepo} disabled={jobRunning || cloneStarting} sx={{ height: 32, borderRadius: 0, color: "#171717", backgroundColor: accent, "&:hover": { backgroundColor: "#ffd05a" } }}>{t("git.init")}</Button>
+				)}
 			</Stack>
 			<Divider sx={{ borderColor: panelBorder }} />
 			<Stack spacing={1.25}>
-				<TextField size="small" label={t("git.cloneUrl")} value={cloneUrl} onChange={(event) => setCloneUrl(event.target.value)} />
+				<TextField disabled={cloneBusy} size="small" label={t("git.cloneUrl")} value={cloneUrl} onChange={(event) => setCloneUrl(event.target.value)} />
 				<Stack direction="row" spacing={1}>
-					<TextField size="small" label={t("git.targetFolder")} value={cloneDir} onChange={(event) => setCloneDir(event.target.value)} sx={{ flex: 1 }} />
-					<TextField size="small" label={t("git.branch")} value={cloneBranch} onChange={(event) => setCloneBranch(event.target.value)} sx={{ flex: 1 }} />
+					<TextField disabled={cloneBusy} size="small" label={t("git.targetFolder")} value={cloneDir} onChange={(event) => setCloneDir(event.target.value)} sx={{ flex: 1 }} />
+					<TextField disabled={cloneBusy} size="small" label={t("git.branch")} value={cloneBranch} onChange={(event) => setCloneBranch(event.target.value)} sx={{ flex: 1 }} />
 					<TextField
+						disabled={cloneBusy}
 						size="small"
 						label={t("git.depth")}
 						value={cloneDepth}
@@ -2077,7 +2090,32 @@ export default function GitPanel(props: GitPanelProps) {
 						sx={{ width: 112 }}
 					/>
 				</Stack>
-				<Button startIcon={<DownloadIcon />} variant="outlined" sx={toolButtonSx} onClick={cloneRepo} disabled={cloneUrl.trim() === ""}>{t("git.cloneRepository")}</Button>
+				<Button startIcon={<DownloadIcon />} variant="outlined" sx={toolButtonSx} onClick={cloneRepo} disabled={cloneUrl.trim() === "" || cloneBusy}>{t("git.cloneRepository")}</Button>
+				{cloneStarting && !cloneJobRunning ? (
+					<Box sx={{ border: `1px solid ${panelBorder}`, backgroundColor: "#202020", p: 1 }}>
+						<Typography variant="body2" noWrap sx={{ color: primaryText, mb: 0.75 }}>{t("git.cloneRepository")}</Typography>
+						<LinearProgress sx={{ height: 3, "& .MuiLinearProgress-bar": { backgroundColor: accent } }} />
+					</Box>
+				) : cloneJob ? (
+					<Box sx={{ border: `1px solid ${panelBorder}`, backgroundColor: "#202020", p: 1 }}>
+						<Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.75 }}>
+							<Box sx={{ minWidth: 0, flex: 1 }}>
+								<Typography variant="body2" noWrap sx={{ color: primaryText, fontFamily: "monospace", fontSize: 12 }}>{cloneJob.command}</Typography>
+								<Typography variant="caption" noWrap sx={{ display: "block", color: cloneJob.status?.state === "error" ? Color.Error : mutedText }}>
+									{cloneJob.status?.error ?? cloneJob.status?.message ?? cloneJob.status?.state ?? t("git.queued")}
+								</Typography>
+							</Box>
+							{cloneJobRunning ? (
+								<Button size="small" onClick={cancelJob} sx={{ minWidth: 0, color: mutedText }}>{t("git.cancel")}</Button>
+							) : null}
+						</Stack>
+						<LinearProgress
+							variant={cloneJob.status?.progress !== undefined ? "determinate" : "indeterminate"}
+							value={cloneJob.status?.progress !== undefined ? Math.max(0, Math.min(100, cloneJob.status.progress * 100)) : undefined}
+							sx={{ height: 3, backgroundColor: "#2b2b2b", "& .MuiLinearProgress-bar": { backgroundColor: cloneJob.status?.state === "error" ? Color.Error : accent } }}
+						/>
+					</Box>
+				) : null}
 			</Stack>
 		</Stack>
 	);
@@ -2114,7 +2152,7 @@ export default function GitPanel(props: GitPanelProps) {
 							label={field.label}
 							sx={{ color: primaryText }}
 						/>
-						) : field.options ? (
+					) : field.options ? (
 						<Autocomplete
 							key={field.name}
 							freeSolo
@@ -2211,31 +2249,31 @@ export default function GitPanel(props: GitPanelProps) {
 									<Typography variant="body2" sx={{ flex: 1 }}>{item.host} · {item.label} · {item.type} {item.username ? `· ${item.username}` : ""}</Typography>
 									<IconButton size="small" sx={iconButtonSx} onClick={async () => { await Service.gitAuthDelete({ id: item.id }); await loadSettings(); }}><DeleteIcon fontSize="small" /></IconButton>
 								</Stack>
-								))}
-								<Stack direction="row" spacing={1}>
-									<TextField
-										size="small"
-										label={t("git.host")}
-										placeholder="github.com"
-										value={credentialForm.host}
-										onChange={(event) => setCredentialForm(prev => ({ ...prev, host: event.target.value }))}
-										sx={{ flex: 1 }}
-									/>
-									<TextField size="small" label={t("git.label")} value={credentialForm.label} onChange={(event) => setCredentialForm(prev => ({ ...prev, label: event.target.value }))} sx={{ flex: 1 }} />
-								</Stack>
+							))}
 							<Stack direction="row" spacing={1}>
-									<Select size="small" value={credentialForm.type} onChange={(event) => {
-										const type = event.target.value as "basic" | "token";
-										setCredentialForm(prev => ({ ...prev, type, username: type === "token" ? "" : prev.username }));
-									}} sx={{ width: 120 }}>
-										<MenuItem value="token">{t("git.token")}</MenuItem>
-										<MenuItem value="basic">{t("git.basic")}</MenuItem>
-									</Select>
-									{credentialForm.type === "basic" ? (
-										<TextField size="small" label={t("git.username")} value={credentialForm.username} onChange={(event) => setCredentialForm(prev => ({ ...prev, username: event.target.value }))} sx={{ flex: 1 }} />
-									) : null}
-									<TextField size="small" label={credentialForm.type === "token" ? t("git.token") : t("git.password")} type="password" value={credentialForm.secret} onChange={(event) => setCredentialForm(prev => ({ ...prev, secret: event.target.value }))} sx={{ flex: 1 }} />
-								</Stack>
+								<TextField
+									size="small"
+									label={t("git.host")}
+									placeholder="github.com"
+									value={credentialForm.host}
+									onChange={(event) => setCredentialForm(prev => ({ ...prev, host: event.target.value }))}
+									sx={{ flex: 1 }}
+								/>
+								<TextField size="small" label={t("git.label")} value={credentialForm.label} onChange={(event) => setCredentialForm(prev => ({ ...prev, label: event.target.value }))} sx={{ flex: 1 }} />
+							</Stack>
+							<Stack direction="row" spacing={1}>
+								<Select size="small" value={credentialForm.type} onChange={(event) => {
+									const type = event.target.value as "basic" | "token";
+									setCredentialForm(prev => ({ ...prev, type, username: type === "token" ? "" : prev.username }));
+								}} sx={{ width: 120 }}>
+									<MenuItem value="token">{t("git.token")}</MenuItem>
+									<MenuItem value="basic">{t("git.basic")}</MenuItem>
+								</Select>
+								{credentialForm.type === "basic" ? (
+									<TextField size="small" label={t("git.username")} value={credentialForm.username} onChange={(event) => setCredentialForm(prev => ({ ...prev, username: event.target.value }))} sx={{ flex: 1 }} />
+								) : null}
+								<TextField size="small" label={credentialForm.type === "token" ? t("git.token") : t("git.password")} type="password" value={credentialForm.secret} onChange={(event) => setCredentialForm(prev => ({ ...prev, secret: event.target.value }))} sx={{ flex: 1 }} />
+							</Stack>
 							<Button sx={toolButtonSx} onClick={saveCredential}>{t("git.saveCredential")}</Button>
 						</Stack>
 					)}

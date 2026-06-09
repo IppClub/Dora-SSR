@@ -472,7 +472,7 @@ export default defineConfig(async ({ command, mode }) => {
 					codeWire: codeWireIndexHtml,
 				},
 				output: {
-					manualChunks(id) {
+					manualChunks(id: string) {
 						if (id.includes('node_modules/monaco-editor')) {
 							return 'monaco';
 						}

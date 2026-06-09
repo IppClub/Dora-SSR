@@ -717,7 +717,7 @@ export default function PersistentDrawerLeft() {
 	const tabIndexRef = useRef(tabIndex);
 	const pendingUpdateFilesRef = useRef(new Map<string, UpdateFileEvent>());
 	const updateFileFlushTimerRef = useRef<number | null>(null);
-	const gitAssetsRefreshTimerRef = useRef<number | null>(null);
+
 	const notifiedAgentTaskEndKeysRef = useRef(new Set<string>());
 	const openFileInTabRef = useRef<(key: string, title: string, folder: boolean, position?: monaco.IPosition, readOnly?: boolean) => void>(() => { });
 
@@ -736,32 +736,32 @@ export default function PersistentDrawerLeft() {
 		if (prevTimer !== undefined) {
 			window.clearTimeout(prevTimer);
 		}
-			setAlerts((prevState) => {
-				const index = prevState.findIndex(item => item.key === key);
-				const nextState = [...prevState];
-				if (index >= 0) {
-					const item = nextState[index];
-					nextState.splice(index, 1);
-					nextState.push({
-						...item,
-						count: item.count + 1,
-						pulse: item.pulse + 1,
-						openLog: item.openLog || openLog,
-						actionLabel: action?.label ?? item.actionLabel,
-						onAction: action?.onClick ?? item.onAction,
-					});
-				} else {
-					nextState.push({
-						msg,
-						key,
-						type,
-						openLog,
-						actionLabel: action?.label,
-						onAction: action?.onClick,
-						count: 1,
-						pulse: 0,
-					});
-				}
+		setAlerts((prevState) => {
+			const index = prevState.findIndex(item => item.key === key);
+			const nextState = [...prevState];
+			if (index >= 0) {
+				const item = nextState[index];
+				nextState.splice(index, 1);
+				nextState.push({
+					...item,
+					count: item.count + 1,
+					pulse: item.pulse + 1,
+					openLog: item.openLog || openLog,
+					actionLabel: action?.label ?? item.actionLabel,
+					onAction: action?.onClick ?? item.onAction,
+				});
+			} else {
+				nextState.push({
+					msg,
+					key,
+					type,
+					openLog,
+					actionLabel: action?.label,
+					onAction: action?.onClick,
+					count: 1,
+					pulse: 0,
+				});
+			}
 			const visible = nextState.slice(-3);
 			for (const item of nextState.slice(0, -3)) {
 				const timer = alertTimersRef.current.get(item.key);
@@ -809,24 +809,12 @@ export default function PersistentDrawerLeft() {
 		});
 	}, [addAlert, t]);
 
-	const scheduleGitAssetsRefresh = useCallback(() => {
-		if (gitAssetsRefreshTimerRef.current !== null) {
-			window.clearTimeout(gitAssetsRefreshTimerRef.current);
-		}
-		gitAssetsRefreshTimerRef.current = window.setTimeout(() => {
-			gitAssetsRefreshTimerRef.current = null;
-			void loadAssets();
-		}, 200);
+	const scheduleGitAssetsRefresh = useCallback((): Promise<void> => {
+		return loadAssets().then(() => { });
 	}, [loadAssets]);
 
-	useEffect(() => {
-		return () => {
-			if (gitAssetsRefreshTimerRef.current !== null) {
-				window.clearTimeout(gitAssetsRefreshTimerRef.current);
-				gitAssetsRefreshTimerRef.current = null;
-			}
-		};
-	}, []);
+
+
 
 	const loadEntries = useCallback(() => {
 		return Service.entryList().then((res) => {
@@ -4435,7 +4423,7 @@ export default function PersistentDrawerLeft() {
 							background: Color.BackgroundDark,
 							borderBottom: `0.5px solid ${Color.Line}`
 						}}>
-							<Tooltip title={t("menu.version", {version: Info.version ?? ""})}>
+							<Tooltip title={t("menu.version", { version: Info.version ?? "" })}>
 								<a
 									href={Info.locale.match(/^zh/) ? 'https://ippclub.gitee.io/Dora-SSR/zh-Hans/docs/api/intro' : 'https://dora-ssr.net/docs/api/intro'}
 									target="_blank"
@@ -4674,6 +4662,7 @@ export default function PersistentDrawerLeft() {
 									height={editorHeight}
 									uploadPath={file.key}
 									displayPath={`${t("tree.assets")}/${file.title}`}
+									isWorkspaceRoot={file.key === writablePath}
 									agentSessionId={file.agentSessionId}
 									agentInitialPrompt={file.agentInitialPrompt}
 									view={file.workspaceView ?? "agent"}
@@ -4859,7 +4848,7 @@ export default function PersistentDrawerLeft() {
 									}}>
 										<Stack direction="row" spacing={1}>
 											<Tooltip title={t('yarn.editCode')}>
-														<IconButton
+												<IconButton
 													onClick={async () => {
 														try {
 															const value = await file.yarnData?.getJSONData();
@@ -5141,6 +5130,7 @@ export default function PersistentDrawerLeft() {
 											title={file.title}
 											height={editorHeight}
 											uploadPath={file.key}
+											isWorkspaceRoot={file.key === writablePath}
 											displayPath={(() => {
 												let target: string;
 												if (isChildFolder(file.key, assetPath)) {
