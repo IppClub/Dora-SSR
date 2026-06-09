@@ -21,4 +21,10 @@
 -keep class org.ippclub.dorassr.MainActivity {
     public static java.lang.String waBuild(java.lang.String);
     public static java.lang.String waFormat(java.lang.String);
+    public static long waGitStartClone(java.lang.String, java.lang.String, java.lang.String, java.lang.String, long);
+    public static long waGitStartPull(java.lang.String, java.lang.String, java.lang.String, boolean);
+    public static long waGitRun(java.lang.String, java.lang.String, java.lang.String);
+    public static java.lang.String waGitPoll(long);
+    public static boolean waGitCancel(long);
+    public static boolean waGitDispose(long);
 }
