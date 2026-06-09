@@ -404,6 +404,19 @@ const selectedPathsSafe = (selectedSet: Set<string>, source: GitFileItem[]) => {
 	return Array.from(paths);
 };
 
+const selectedPreviewPath = (selectedSet: Set<string>, source: GitFileItem[]) => {
+	if (Array.from(selectedSet).some(key => key.includes(":dir:"))) return "";
+	return selectedPathsSafe(selectedSet, source)[0] ?? "";
+};
+
+const selectedDirectoryPath = (selectedSet: Set<string>) => {
+	for (const key of selectedSet) {
+		const [, type, rowPath] = key.split(/:(dir|file):/);
+		if (type === "dir" && rowPath) return rowPath;
+	}
+	return "";
+};
+
 const pruneSelectedKeys = (selectedSet: Set<string>, source: GitFileItem[]) => {
 	const filePaths = new Set(source.map(file => file.path));
 	const dirPaths = collectParentDirs(source);
@@ -566,10 +579,11 @@ interface GitDiffPreviewProps {
 	path: string;
 	preview: GitDiffPreviewState | null;
 	emptyMessage: string;
+	placeholderMessage?: string;
 }
 
 const GitDiffPreview = (props: GitDiffPreviewProps) => {
-	const { path, preview, emptyMessage } = props;
+	const { path, preview, emptyMessage, placeholderMessage } = props;
 	const message = diffPreviewMessage(preview, path !== "", emptyMessage);
 	return (
 		<Box sx={{ flex: 1, minHeight: 0, background: "#222", overflow: "hidden" }}>
@@ -609,8 +623,8 @@ const GitDiffPreview = (props: GitDiffPreviewProps) => {
 			) : (
 				<MacScrollbar skin="dark" style={{ height: "100%" }}>
 					<Box sx={{ p: 2 }}>
-						{message ? (
-							<Typography variant="body2" sx={{ color: mutedText, mt: 1 }}>{message}</Typography>
+						{message || placeholderMessage ? (
+							<Typography variant="body2" sx={{ color: mutedText, mt: 1 }}>{message || placeholderMessage}</Typography>
 						) : null}
 					</Box>
 				</MacScrollbar>
@@ -652,7 +666,7 @@ export default function GitPanel(props: GitPanelProps) {
 	const [job, setJob] = React.useState<GitJobViewState | null>(null);
 	const [commitMessage, setCommitMessage] = React.useState("");
 	const [commitDescription, setCommitDescription] = React.useState("");
-	const [previewMode, setPreviewMode] = React.useState<GitPreviewMode>("local");
+	const [previewMode, setPreviewMode] = React.useState<GitPreviewMode>("commits");
 	const [selectedCommitHash, setSelectedCommitHash] = React.useState<string | null>(null);
 	const [commitDetailTab, setCommitDetailTab] = React.useState<CommitDetailTab>("commit");
 	const [selectedCommitFilePath, setSelectedCommitFilePath] = React.useState<string>("");
@@ -669,6 +683,7 @@ export default function GitPanel(props: GitPanelProps) {
 	const [cloneBranch, setCloneBranch] = React.useState("");
 	const [cloneDepth, setCloneDepth] = React.useState("");
 	const [cloneStarting, setCloneStarting] = React.useState(false);
+	const [initStarting, setInitStarting] = React.useState(false);
 	const [settingsOpen, setSettingsOpen] = React.useState(false);
 	const [settingsTab, setSettingsTab] = React.useState<"profile" | "credentials">("profile");
 	const [profile, setProfile] = React.useState<Service.GitProfile>({ name: "", email: "" });
@@ -682,6 +697,7 @@ export default function GitPanel(props: GitPanelProps) {
 	const [diffPreview, setDiffPreview] = React.useState<GitDiffPreviewState | null>(null);
 	const [commitDiffPreview, setCommitDiffPreview] = React.useState<GitDiffPreviewState | null>(null);
 	const cloneStartingRef = React.useRef(false);
+	const initStartingRef = React.useRef(false);
 	const pendingCredentialDoneRef = React.useRef<((status: Service.GitStatus) => void) | undefined>(undefined);
 
 	const files = React.useMemo(() => splitFiles(getStatusFiles(summary ?? undefined)), [summary]);
@@ -795,9 +811,11 @@ export default function GitPanel(props: GitPanelProps) {
 		if (summary?.success && summary.currentBranch && names.includes(summary.currentBranch)) return summary.currentBranch;
 		return names[0] ?? currentValue;
 	}, [remoteBranchNames, summary]);
-	const selectedUnstagedPath = selectedPathsSafe(selected.unstaged, files.unstaged)[0] ?? "";
-	const selectedStagedPath = selectedPathsSafe(selected.staged, files.staged)[0] ?? "";
+	const selectedUnstagedPath = selectedPreviewPath(selected.unstaged, files.unstaged);
+	const selectedStagedPath = selectedPreviewPath(selected.staged, files.staged);
+	const selectedLocalDirectoryPath = selectedDirectoryPath(selected.unstaged) || selectedDirectoryPath(selected.staged);
 	const selectedLocalPath = selectedUnstagedPath || selectedStagedPath;
+	const selectedLocalLabel = selectedLocalPath || selectedLocalDirectoryPath;
 	const selectedLocalStaged = selectedStagedPath !== "";
 	React.useEffect(() => {
 		setSelected(prev => {
@@ -1041,11 +1059,6 @@ export default function GitPanel(props: GitPanelProps) {
 			setJob(current => current?.jobId === jobId ? { ...current, status: res.status } : current);
 			if (terminalStates.has(res.status.state)) {
 				window.clearInterval(timer);
-				if (res.status.state === "done") {
-					showAlert(t("git.jobCompleted", { command }), "success");
-				} else if (res.status.state === "error") {
-					showAlert(res.status.error ?? res.status.message ?? t("git.jobFailed", { command }), "error");
-				}
 				void refresh();
 				if (res.status.state === "done" && gitCommandChangesWorkingTree(command)) {
 					await onRepositoryFilesChanged?.(projectRoot);
@@ -1062,12 +1075,13 @@ export default function GitPanel(props: GitPanelProps) {
 			if (res.needsCredentialSelection && credentialItems.length > 0) {
 				pendingCredentialDoneRef.current = onDone;
 				setPendingCredential({ command, host: res.host, credentials: credentialItems });
-				return;
+				return false;
 			}
 			showAlert(res.message ?? t("git.failedStart", { command }), "error");
-			return;
+			return false;
 		}
 		pollJob(res.jobId, command, onDone);
+		return true;
 	}, [pollJob, projectRoot, showAlert, t]);
 
 	const runPendingCredential = React.useCallback((authId: number) => {
@@ -1219,9 +1233,21 @@ export default function GitPanel(props: GitPanelProps) {
 		});
 	}, [commitDescription, commitMessage, openConfirmDialog, profile.email, profile.name, runCommand, stagedCount, t]);
 
-	const initRepo = React.useCallback(() => {
-		void runCommand("init");
-	}, [runCommand]);
+	const initRepo = React.useCallback(async () => {
+		if (jobRunning || initStartingRef.current) return;
+		initStartingRef.current = true;
+		setInitStarting(true);
+		const release = () => {
+			initStartingRef.current = false;
+			setInitStarting(false);
+		};
+		let started = false;
+		try {
+			started = await runCommand("init", release);
+		} finally {
+			if (!started) release();
+		}
+	}, [jobRunning, runCommand]);
 
 	const cloneRepo = React.useCallback(async () => {
 		if (cloneBusy || cloneStartingRef.current) return;
@@ -1711,7 +1737,7 @@ export default function GitPanel(props: GitPanelProps) {
 	const localChangesView = (
 		<Box sx={{
 			display: "grid",
-			gridTemplateColumns: "minmax(260px, 32%) minmax(0, 1fr)",
+			gridTemplateColumns: "minmax(360px, 32%) minmax(0, 1fr)",
 			minHeight: 0,
 			flex: 1,
 			border: `1px solid ${panelBorder}`,
@@ -1751,13 +1777,18 @@ export default function GitPanel(props: GitPanelProps) {
 			</Box>
 			<Box sx={{ display: "flex", flexDirection: "column", minHeight: 0, minWidth: 0, "@media (max-width: 980px)": { minHeight: 460 } }}>
 				<Box sx={{ height: 36, px: 1.25, display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: `1px solid ${panelBorder}`, background: "#202020" }}>
-					<Typography variant="body2" noWrap sx={{ color: primaryText }}>{selectedLocalPath || t("git.localChanges")}</Typography>
+					<Typography variant="body2" noWrap sx={{ color: primaryText }}>{selectedLocalLabel || t("git.localChanges")}</Typography>
 					<Stack direction="row" spacing={0.75}>
 						<Button size="small" sx={toolButtonSx} onClick={discardSelected} disabled={selected.unstaged.size === 0}>{t("git.discard")}</Button>
 						<Button size="small" sx={toolButtonSx} onClick={() => selectedLocalPath && onOpenFile?.(selectedLocalPath)} disabled={!selectedLocalPath}>{t("git.open")}</Button>
 					</Stack>
 				</Box>
-				<GitDiffPreview path={selectedLocalPath} preview={diffPreview} emptyMessage={t("git.noDiff")} />
+				<GitDiffPreview
+					path={selectedLocalPath}
+					preview={diffPreview}
+					emptyMessage={t("git.noDiff")}
+					placeholderMessage={selectedLocalDirectoryPath ? t("git.directorySelectedHint") : undefined}
+				/>
 				{commitForm}
 			</Box>
 		</Box>
@@ -1793,7 +1824,7 @@ export default function GitPanel(props: GitPanelProps) {
 								onClick={() => setSelectedCommitHash(commitItem.hash)}
 								sx={{
 									display: "grid",
-									gridTemplateColumns: "36px minmax(260px, 1fr) 82px 80px 128px",
+									gridTemplateColumns: "36px minmax(360px, 1fr) 82px 80px 128px",
 									alignItems: "center",
 									height: 28,
 									px: 1,
@@ -1920,12 +1951,11 @@ export default function GitPanel(props: GitPanelProps) {
 	const jobCard = (
 		<Box
 			sx={{
-				position: "absolute",
-				left: "50%",
-				top: "50%",
-				transform: "translate(-50%, -50%)",
-				width: "clamp(260px, 32vw, 360px)",
+				width: "100%",
+				maxWidth: 360,
+				minWidth: 200,
 				height: 34,
+				justifySelf: "center",
 				border: `1px solid ${panelBorder}`,
 				backgroundColor: "#242424",
 				display: "grid",
@@ -1934,16 +1964,6 @@ export default function GitPanel(props: GitPanelProps) {
 				alignItems: "center",
 				columnGap: 0.75,
 				px: 1,
-				zIndex: 1,
-				"@media (max-width: 640px)": {
-					position: "static",
-					transform: "none",
-					order: 2,
-					width: "min(100%, 420px)",
-					height: 30,
-					mx: "auto",
-					flex: "1 1 100%",
-				},
 			}}
 		>
 			<Box
@@ -2021,21 +2041,32 @@ export default function GitPanel(props: GitPanelProps) {
 				gridTemplateRows: "auto minmax(0, 1fr)",
 			},
 		}}>
-			<Box sx={{ ...panelSx, px: 1, py: 0.5, position: "relative", display: "flex", alignItems: "center", gap: 1, minWidth: 0, "@media (max-width: 900px)": { flexWrap: "wrap" } }}>
-				<Stack direction="row" alignItems="center" sx={{ gap: 1, justifySelf: "start", minWidth: 0, flex: "0 1 auto" }}>
+			<Box sx={{
+				...panelSx,
+				px: 1,
+				py: 0.5,
+				display: "grid",
+				gridTemplateColumns: "max-content minmax(200px, 1fr) max-content",
+				alignItems: "center",
+				gap: 1,
+				minWidth: 0,
+				overflowX: "auto",
+				overflowY: "hidden",
+			}}>
+				<Stack direction="row" alignItems="center" sx={{ gap: 1, justifySelf: "start", minWidth: 0 }}>
 					<Tooltip title={t("git.refreshRepository")}><IconButton size="small" sx={iconButtonSx} onClick={refresh}><RefreshIcon fontSize="small" /></IconButton></Tooltip>
 					<Button size="small" sx={compactToolButtonSx} onClick={runFetch}>{t("git.fetch")}</Button>
 					<Button size="small" sx={compactToolButtonSx} startIcon={<DownloadIcon />} onClick={() => runPullPush("pull")}><Box component="span" sx={compactButtonTextSx}>{t("git.pull")}</Box></Button>
 					<Button size="small" sx={compactToolButtonSx} startIcon={<UploadIcon />} onClick={() => runPullPush("push")}><Box component="span" sx={compactButtonTextSx}>{t("git.push")}</Box></Button>
 				</Stack>
 				{jobCard}
-				<Stack direction="row" alignItems="center" sx={{ gap: 1, ml: "auto" }}>
+				<Stack direction="row" alignItems="center" sx={{ gap: 1, justifySelf: "end" }}>
 					<Tooltip title={t("git.gitSettings")}><IconButton size="small" sx={iconButtonSx} onClick={() => openSettings("profile")}><SettingsIcon fontSize="small" /></IconButton></Tooltip>
 				</Stack>
 			</Box>
 			<Box sx={{
 				display: "grid",
-				gridTemplateColumns: "minmax(220px, 260px) minmax(0, 1fr)",
+				gridTemplateColumns: "clamp(200px, 20%, 300px) minmax(0, 1fr)",
 				gap: 1,
 				minHeight: 0,
 				minWidth: 0,
@@ -2064,60 +2095,62 @@ export default function GitPanel(props: GitPanelProps) {
 	);
 
 	const setupView = (
-		<Stack spacing={1.25} sx={{ ...panelSx, maxWidth: 760, p: 1.25 }}>
-			<Stack direction="row" alignItems="center" justifyContent="space-between">
-				<Box>
-					<Typography variant="subtitle2" sx={{ color: primaryText }}>{t("git.repositorySetup")}</Typography>
-					<Typography variant="caption" noWrap sx={{ display: "block", color: mutedText, maxWidth: 560 }}>{displayPath ?? projectRoot}</Typography>
-				</Box>
-				{isWorkspaceRoot ? null : (
-					<Button variant="contained" onClick={initRepo} disabled={jobRunning || cloneStarting} sx={{ height: 32, borderRadius: 0, color: "#171717", backgroundColor: accent, "&:hover": { backgroundColor: "#ffd05a" } }}>{t("git.init")}</Button>
-				)}
-			</Stack>
-			<Divider sx={{ borderColor: panelBorder }} />
-			<Stack spacing={1.25}>
-				<TextField disabled={cloneBusy} size="small" label={t("git.cloneUrl")} value={cloneUrl} onChange={(event) => setCloneUrl(event.target.value)} />
-				<Stack direction="row" spacing={1}>
-					<TextField disabled={cloneBusy} size="small" label={t("git.targetFolder")} value={cloneDir} onChange={(event) => setCloneDir(event.target.value)} sx={{ flex: 1 }} />
-					<TextField disabled={cloneBusy} size="small" label={t("git.branch")} value={cloneBranch} onChange={(event) => setCloneBranch(event.target.value)} sx={{ flex: 1 }} />
-					<TextField
-						disabled={cloneBusy}
-						size="small"
-						label={t("git.depth")}
-						value={cloneDepth}
-						onChange={(event) => setCloneDepth(event.target.value.replace(/[^\d]/g, ""))}
-						placeholder={t("git.full")}
-						sx={{ width: 112 }}
-					/>
+		<MacScrollbar skin="dark" style={{ width: "100%", height: "100%" }}>
+			<Stack spacing={1.25} sx={{ ...panelSx, maxWidth: 760, p: 1.25 }}>
+				<Stack direction="row" alignItems="center" justifyContent="space-between">
+					<Box>
+						<Typography variant="subtitle2" sx={{ color: primaryText }}>{t("git.repositorySetup")}</Typography>
+						<Typography variant="caption" noWrap sx={{ display: "block", color: mutedText, maxWidth: 560 }}>{displayPath ?? projectRoot}</Typography>
+					</Box>
+					{isWorkspaceRoot ? null : (
+						<Button variant="contained" onClick={initRepo} disabled={jobRunning || cloneStarting || initStarting} sx={{ height: 32, borderRadius: 0, color: "#171717", backgroundColor: accent, "&:hover": { backgroundColor: "#ffd05a" } }}>{t("git.init")}</Button>
+					)}
 				</Stack>
-				<Button startIcon={<DownloadIcon />} variant="outlined" sx={toolButtonSx} onClick={cloneRepo} disabled={cloneUrl.trim() === "" || cloneBusy}>{t("git.cloneRepository")}</Button>
-				{cloneStarting && !cloneJobRunning ? (
-					<Box sx={{ border: `1px solid ${panelBorder}`, backgroundColor: "#202020", p: 1 }}>
-						<Typography variant="body2" noWrap sx={{ color: primaryText, mb: 0.75 }}>{t("git.cloneRepository")}</Typography>
-						<LinearProgress sx={{ height: 3, "& .MuiLinearProgress-bar": { backgroundColor: accent } }} />
-					</Box>
-				) : cloneJob ? (
-					<Box sx={{ border: `1px solid ${panelBorder}`, backgroundColor: "#202020", p: 1 }}>
-						<Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.75 }}>
-							<Box sx={{ minWidth: 0, flex: 1 }}>
-								<Typography variant="body2" noWrap sx={{ color: primaryText, fontFamily: "monospace", fontSize: 12 }}>{cloneJob.command}</Typography>
-								<Typography variant="caption" noWrap sx={{ display: "block", color: cloneJob.status?.state === "error" ? Color.Error : mutedText }}>
-									{cloneJob.status?.error ?? cloneJob.status?.message ?? cloneJob.status?.state ?? t("git.queued")}
-								</Typography>
-							</Box>
-							{cloneJobRunning ? (
-								<Button size="small" onClick={cancelJob} sx={{ minWidth: 0, color: mutedText }}>{t("git.cancel")}</Button>
-							) : null}
-						</Stack>
-						<LinearProgress
-							variant={cloneJob.status?.progress !== undefined ? "determinate" : "indeterminate"}
-							value={cloneJob.status?.progress !== undefined ? Math.max(0, Math.min(100, cloneJob.status.progress * 100)) : undefined}
-							sx={{ height: 3, backgroundColor: "#2b2b2b", "& .MuiLinearProgress-bar": { backgroundColor: cloneJob.status?.state === "error" ? Color.Error : accent } }}
+				<Divider sx={{ borderColor: panelBorder }} />
+				<Stack spacing={1.25}>
+					{cloneStarting && !cloneJobRunning ? (
+						<Box sx={{ border: `1px solid ${panelBorder}`, backgroundColor: "#202020", p: 1 }}>
+							<Typography variant="body2" noWrap sx={{ color: primaryText, mb: 0.75 }}>{t("git.cloneRepository")}</Typography>
+							<LinearProgress sx={{ height: 3, "& .MuiLinearProgress-bar": { backgroundColor: accent } }} />
+						</Box>
+					) : cloneJob ? (
+						<Box sx={{ border: `1px solid ${panelBorder}`, backgroundColor: "#202020", p: 1 }}>
+							<Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.75 }}>
+								<Box sx={{ minWidth: 0, flex: 1 }}>
+									<Typography variant="body2" noWrap sx={{ color: primaryText, fontFamily: "monospace", fontSize: 12 }}>{cloneJob.command}</Typography>
+									<Typography variant="caption" noWrap sx={{ display: "block", color: cloneJob.status?.state === "error" ? Color.Error : mutedText }}>
+										{cloneJob.status?.error ?? cloneJob.status?.message ?? cloneJob.status?.state ?? t("git.queued")}
+									</Typography>
+								</Box>
+								{cloneJobRunning ? (
+									<Button size="small" onClick={cancelJob} sx={{ minWidth: 0, color: mutedText }}>{t("git.cancel")}</Button>
+								) : null}
+							</Stack>
+							<LinearProgress
+								variant={cloneJob.status?.progress !== undefined ? "determinate" : "indeterminate"}
+								value={cloneJob.status?.progress !== undefined ? Math.max(0, Math.min(100, cloneJob.status.progress * 100)) : undefined}
+								sx={{ height: 3, backgroundColor: "#2b2b2b", "& .MuiLinearProgress-bar": { backgroundColor: cloneJob.status?.state === "error" ? Color.Error : accent } }}
+							/>
+						</Box>
+					) : null}
+					<TextField disabled={cloneBusy} size="small" label={t("git.cloneUrl")} value={cloneUrl} onChange={(event) => setCloneUrl(event.target.value)} />
+					<Stack direction="row" spacing={1}>
+						<TextField disabled={cloneBusy} size="small" label={t("git.targetFolder")} value={cloneDir} onChange={(event) => setCloneDir(event.target.value)} sx={{ flex: 1 }} />
+						<TextField disabled={cloneBusy} size="small" label={t("git.branch")} value={cloneBranch} onChange={(event) => setCloneBranch(event.target.value)} sx={{ flex: 1 }} />
+						<TextField
+							disabled={cloneBusy}
+							size="small"
+							label={t("git.depth")}
+							value={cloneDepth}
+							onChange={(event) => setCloneDepth(event.target.value.replace(/[^\d]/g, ""))}
+							placeholder={t("git.full")}
+							sx={{ width: 112 }}
 						/>
-					</Box>
-				) : null}
+					</Stack>
+					<Button startIcon={<DownloadIcon />} variant="outlined" sx={toolButtonSx} onClick={cloneRepo} disabled={cloneUrl.trim() === "" || cloneBusy}>{t("git.cloneRepository")}</Button>
+				</Stack>
 			</Stack>
-		</Stack>
+		</MacScrollbar>
 	);
 
 	const detectingView = (

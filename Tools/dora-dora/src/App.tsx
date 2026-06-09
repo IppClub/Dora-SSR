@@ -1749,8 +1749,45 @@ export default function PersistentDrawerLeft() {
 					break;
 				}
 				default: {
-					addAlert(t("alert.unsuppored", { title }), "warning");
-					reject("unknown file type");
+					Service.stat({ path: key }).then((res) => {
+						let unsuppored = true;
+						if (res.success) {
+							if (res.size > 1024 * 1024) {
+								addAlert(t("alert.largeFile", { title }), "error");
+								reject("file read error");
+							} else if (!res.isBinary) {
+								unsuppored = false;
+								Service.read({ path: key }).then((res) => {
+									if (res.success && res.content !== undefined) {
+										const { content } = res;
+										const newFile: EditingFile = {
+											key,
+											title,
+											content,
+											contentModified: null,
+											folder: false,
+											status: "normal",
+											onMount: () => { },
+										};
+										newFile.onMount = onEditorDidMount(newFile);
+										resolve(newFile);
+									} else {
+										reject("file read error");
+									}
+								}).catch(() => {
+									addAlert(t("alert.read", { title }), "error");
+									reject("file read error");
+								});
+							}
+						}
+						if (unsuppored) {
+							addAlert(t("alert.unsuppored", { title }), "warning");
+							reject("unknown file type");
+						}
+					}).catch(() => {
+						addAlert(t("alert.unsuppored", { title }), "warning");
+						reject("unknown file type");
+					});
 					break;
 				}
 			}
@@ -2079,9 +2116,7 @@ export default function PersistentDrawerLeft() {
 			})();
 			return;
 		}
-		if (path.extname(title) !== "") {
-			openFileInTab(key, title, dir);
-		}
+		openFileInTab(key, title, dir);
 	}, [openAgentSessionTab, openFileInTab]);
 
 	const onExpand = useCallback((keys: string[], info?: { node: TreeDataType; expanded: boolean }) => {
@@ -4721,7 +4756,6 @@ export default function PersistentDrawerLeft() {
 							case ".vs": visualScript = true; break;
 							case ".tic": tic80 = true; break;
 							case ".model": actionModel = true; break;
-							case "": language = null; break;
 							default: language = "txt"; break
 						}
 						const markdown = language === "markdown";

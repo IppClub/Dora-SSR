@@ -1335,7 +1335,8 @@ HttpServer\post "/list", (req): success: false ->
 					visitAssets Path(path, dir), current
 				fs = Content\getFiles path
 				for f in *fs
-					continue if f\match "^%."
+					if f in [".DS_Store",]
+						continue
 					files[] = if folder == ""
 						f
 					else
@@ -1548,6 +1549,15 @@ HttpServer\post "/llm/delete", (req): success: false, message: "invalid" ->
 			return success: false, message: "invalid"
 		affected = DB\exec "delete from LLMConfig where id = ?", [id,]
 		return success: affected >= 0
+
+HttpServer\post "/stat", (req): success: false, message: "failed to stat" ->
+	switch req when {body: {:path}}
+		unless Content\exist path
+			return success: false, message: "target not existed"
+		if Content\isdir path
+			return success: false, message: "failed to stat a directory"
+		if size, isBinary := Content\getAttr path
+			return success: true, :size, :isBinary
 
 HttpServer\post "/new", (req): success: false, message: "Failed" ->
 	switch req when {body: {:path, :content, :folder}}
@@ -1795,7 +1805,8 @@ HttpServer\post "/assets", ->
 		files = Content\getFiles path
 		names = {}
 		for file in *files
-			continue if file\match "^%."
+			if file in [".DS_Store",]
+				continue
 			name = Path\getName file
 			if ext := names[name]
 				lv1 = extentionLevels[ext] ?? -1

@@ -729,6 +729,23 @@ export const list = (req: ListRequest) => {
 	return post<ListResponse>("/list", req);
 };
 
+// Stat
+
+export interface StatRequest {
+	path: string;
+};
+export type StatResponse = {
+	success: true;
+	size: number;
+	isBinary: boolean;
+} | {
+	success: false;
+	message: string;
+};
+export const stat = (req: StatRequest) => {
+	return post<StatResponse>("/stat", req);
+};
+
 // Run
 
 export interface RunRequest {
