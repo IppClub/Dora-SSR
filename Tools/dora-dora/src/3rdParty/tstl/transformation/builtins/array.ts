@@ -2,10 +2,10 @@ import * as ts from "typescript";
 import { LuaTarget } from "../../CompilerOptions";
 import * as lua from "../../LuaAST";
 import { TransformationContext } from "../context";
-import { unsupportedProperty } from "../utils/diagnostics";
+import { unsupportedNilArrayElementType, unsupportedProperty } from "../utils/diagnostics";
 import { LuaLibFeature, transformLuaLibFunction } from "../utils/lualib";
 import { transformArguments, transformCallAndArguments } from "../visitors/call";
-import { expressionResultIsUsed, typeAlwaysHasSomeOfFlags } from "../utils/typescript";
+import { arrayElementTypeCanBeNil, expressionResultIsUsed, typeAlwaysHasSomeOfFlags } from "../utils/typescript";
 import { moveToPrecedingTemp } from "../visitors/expression-list";
 import { isUnpackCall, wrapInTable } from "../utils/lua-ast";
 
@@ -14,6 +14,11 @@ export function transformArrayConstructorCall(
     node: ts.CallExpression,
     calledMethod: ts.PropertyAccessExpression
 ): lua.Expression | undefined {
+    const resultType = context.checker.getTypeAtLocation(node);
+    if (arrayElementTypeCanBeNil(context, resultType)) {
+        context.diagnostics.push(unsupportedNilArrayElementType(node));
+    }
+
     const signature = context.checker.getResolvedSignature(node);
     const params = transformArguments(context, node.arguments, signature);
 
@@ -83,6 +88,15 @@ export function transformArrayPrototypeCall(
     node: ts.CallExpression,
     calledMethod: ts.PropertyAccessExpression
 ): lua.Expression | undefined {
+    const callerType = context.checker.getTypeAtLocation(calledMethod.expression);
+    if (arrayElementTypeCanBeNil(context, callerType)) {
+        context.diagnostics.push(unsupportedNilArrayElementType(calledMethod.expression));
+    }
+    const resultType = context.checker.getTypeAtLocation(node);
+    if (arrayElementTypeCanBeNil(context, resultType)) {
+        context.diagnostics.push(unsupportedNilArrayElementType(node));
+    }
+
     const signature = context.checker.getResolvedSignature(node);
     const [caller, params] = transformCallAndArguments(context, calledMethod.expression, node.arguments, signature);
 
@@ -159,7 +173,6 @@ export function transformArrayPrototypeCall(
         case "splice":
             return transformLuaLibFunction(context, LuaLibFeature.ArraySplice, node, caller, ...params);
         case "join":
-            const callerType = context.checker.getTypeAtLocation(calledMethod.expression);
             const elementType = context.checker.getElementTypeOfArrayType(callerType);
             if (
                 elementType &&

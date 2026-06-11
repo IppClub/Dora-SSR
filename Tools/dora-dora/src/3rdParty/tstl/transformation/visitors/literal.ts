@@ -2,10 +2,15 @@ import * as ts from "typescript";
 import * as lua from "../../LuaAST";
 import { assertNever } from "../../utils";
 import { FunctionVisitor, TransformationContext, Visitors } from "../context";
-import { undefinedInArrayLiteral, unsupportedAccessorInObjectLiteral, nullLiteralNotSupported } from "../utils/diagnostics";
+import {
+    undefinedInArrayLiteral,
+    unsupportedAccessorInObjectLiteral,
+    nullLiteralNotSupported,
+    unsupportedNilArrayElementType,
+} from "../utils/diagnostics";
 import { LuaLibFeature, transformLuaLibFunction } from "../utils/lualib";
 import { trackSymbolReference } from "../utils/symbols";
-import { isArrayType } from "../utils/typescript";
+import { arrayElementTypeCanBeNil, isArrayType } from "../utils/typescript";
 import { transformFunctionLikeDeclaration } from "./function";
 import { moveToPrecedingTemp, transformExpressionList } from "./expression-list";
 import { transformIdentifierWithSymbol } from "./identifier";
@@ -178,6 +183,10 @@ const transformObjectLiteralExpression: FunctionVisitor<ts.ObjectLiteralExpressi
 const transformArrayLiteralExpression: FunctionVisitor<ts.ArrayLiteralExpression> = (expression, context) => {
     // Disallow using undefined/null in array literals
     checkForUndefinedOrNullInArrayLiteral(expression, context);
+    const arrayType = context.checker.getContextualType(expression) ?? context.checker.getTypeAtLocation(expression);
+    if (arrayElementTypeCanBeNil(context, arrayType)) {
+        context.diagnostics.push(unsupportedNilArrayElementType(expression));
+    }
 
     const filteredElements = expression.elements.map(e =>
         ts.isOmittedExpression(e) ? ts.factory.createIdentifier("undefined") : e
