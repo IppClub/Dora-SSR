@@ -1,5 +1,6 @@
 -- 提供 Git 命令功能的记录。
 local record Git
+
 	enum JobState
 		"queued"
 		"running"
@@ -13,6 +14,7 @@ local record Git
 		"clone"
 		"ls-remote"
 		"status"
+		"diff"
 		"add"
 		"rm"
 		"commit"
@@ -38,15 +40,24 @@ local record Git
 		"ref"
 	end
 
+	record LFSData
+		objects: number
+		downloaded: number | nil
+		uploaded: number | nil
+		hydrated: boolean | nil
+	end
+
 	record HashData
 		head: string
 		ref: string
+		lfs: LFSData | nil
 	end
 
 	record CloneData
 		path: string
 		head: string | nil
 		ref: string | nil
+		lfs: LFSData | nil
 	end
 
 	record InitData
@@ -78,16 +89,50 @@ local record Git
 		files: {FileStatus}
 	end
 
+	enum DiffMode
+		"diff"
+		"empty"
+		"binary"
+		"large"
+	end
+
+	record DiffData
+		path: string
+		staged: boolean | nil
+		commit: string | nil
+		mode: DiffMode
+		oldText: string | nil
+		newText: string | nil
+		binary: boolean | nil
+		oldSize: number | nil
+		newSize: number | nil
+		message: string | nil
+	end
+
 	record PathsData
 		paths: {string}
+		lfs: {string} | nil
 	end
 
 	record CommitData
 		commit: string
 	end
 
+	record UpstreamData
+		branch: string
+		remote: string
+		merge: string
+	end
+
 	record UpToDateData
-		upToDate: boolean
+		upToDate: boolean | nil
+		lfs: LFSData | nil
+		upstream: UpstreamData | nil
+	end
+
+	record ChangedFile
+		path: string
+		status: string
 	end
 
 	record LogCommit
@@ -96,6 +141,7 @@ local record Git
 		author: string
 		email: string
 		when: string
+		files: {ChangedFile}
 	end
 
 	record LogData
@@ -106,18 +152,21 @@ local record Git
 		paths: {string}
 		staged: boolean
 		worktree: boolean
+		lfs: LFSData | nil
 	end
 
 	record BranchInfo
 		name: string
 		hash: string
-		current: boolean
+		current: boolean | nil
+		remote: string | nil
 	end
 
 	record BranchData
 		branch: string
 		hash: string | nil
 		deleted: boolean | nil
+		unborn: boolean | nil
 	end
 
 	record BranchListData
@@ -128,6 +177,7 @@ local record Git
 	record TagInfo
 		name: string
 		hash: string
+		ref: string
 	end
 
 	record TagData
@@ -160,6 +210,15 @@ local record Git
 		from: string
 		to: string
 		hash: string
+		lfs: {string} | nil
+	end
+
+	record CheckoutData
+		head: string | nil
+		ref: string | nil
+		lfs: LFSData | nil
+		branch: string | nil
+		unborn: boolean | nil
 	end
 
 	record Status
@@ -180,31 +239,42 @@ local record Git
 	-- 请通过 repoPath 传入工作仓库路径。包含空格的参数可用单引号或双引号包裹。
 	-- clone 时 repoPath 是父目录，可选 dir 参数是新建仓库文件夹名；
 	-- 省略 dir 时会从 URL 推导文件夹名。
+	-- 使用 Git LFS 的仓库会被透明处理：add 和 status 遵循 filter=lfs
+	-- 属性；clone、pull、checkout、hard reset 和 restore 会下载并展开
+	-- LFS 对象；fetch 会下载 LFS 对象；push 会先上传 LFS 对象再更新 Git 引用。
 	-- 支持的命令：
 	-- * init [--bare]
 	-- * clone <url> [dir] [-b|--branch <name>] [--depth <n>]
 	-- * ls-remote <url>
 	-- * status
+	-- * diff [--cached|--staged] [--] <path>
+	-- * diff <40位commit哈希> -- <path>
 	-- * add <path...> | add . | add -A|--all
 	-- * rm <path...>
 	-- * commit -m|--message <msg> [-a|--all] [--allow-empty] [--amend] [--author-name <name>] [--author-email <email>]
 	-- * pull [remote] [branch] [-f|--force]
 	-- * fetch [remote] [-f|--force] [-p|--prune] [--depth <n>]
-	-- * push [remote] [branch] [-f|--force]
-	-- * log [-n|--limit <n>] [-- <path...>]
-	-- * checkout <branch-or-commit> [-f|--force]
-	-- * checkout -b <branch>
-	-- * reset [--soft|--mixed|--hard] <commit> [--confirm]
+	-- * push [remote] [branch] [-f|--force] [-u|--set-upstream]
+	-- * log [-n|--limit <n>] [-- <path>]
+	-- * checkout [-f|--force] <branch或40位commit哈希>
+	-- * checkout [-f|--force] -b <branch> [start-point]
+	-- * reset [--soft|--mixed|--hard] <40位commit哈希> [--confirm]
 	-- * restore [--staged] [--worktree] <path...>
 	-- * clean -f|--force
 	-- * branch | branch <name> | branch -d <name>
 	-- * tag | tag <name> | tag -a <name> -m <msg> | tag -d <name>
-	-- * remote -v | remote add <name> <url> | remote set-url <name> <url> | remote remove <name>
+	-- * remote | remote -v | remote add <name> <url> | remote set-url <name> <url> | remote remove <name>
 	-- * mv <from> <to>（仅支持单文件）
+	-- 文件路径均相对于 repoPath。pull、fetch 和 push 默认使用 origin；
+	-- 省略分支时使用当前分支。reset --hard 必须带 --confirm。
+	-- push -u|--set-upstream 会在推送成功后更新本地分支配置。
 	-- optionsJSON 是可选参数，目前支持给 clone、ls-remote、fetch、pull 和 push
-	-- 提供认证信息：
+	-- 及其自动触发的 LFS 传输提供认证信息：
 	-- * {"auth":{"type":"basic","username":"user","password":"pass"}}
 	-- * {"auth":{"type":"token","token":"access-token","username":"token"}}
+	-- token 认证的 username 可省略，默认值为 "token"。仅当 LFS URL 与 Git
+	-- 远程地址同 host 时，自动 LFS 请求才会复用认证信息；LFS 服务端返回的
+	-- action 专用认证请求头优先。
 	-- @param repoPath (string) 仓库路径。clone 时该路径是父目录。
 	-- @param command (string) Git 命令字符串。
 	-- @param callback (function) 接收已解码 Status 表的回调函数。

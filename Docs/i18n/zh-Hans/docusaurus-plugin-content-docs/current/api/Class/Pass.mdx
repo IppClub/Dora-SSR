@@ -72,3 +72,43 @@ set: function(self: Pass, name: string, var: Color)
 | --- | --- | --- |
 | name | string | 要设置的参数名称。 |
 | var | Color | 要设置的颜色对象。 |
+
+## set
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;绑定一个纹理到指定采样器和纹理槽位。
+
+**签名：**
+```tl
+set: function(self: Pass, name: string, texture: Texture2D, slot: integer)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 着色器中的采样器名称。 |
+| texture | Texture2D | 要绑定的纹理。 |
+| slot | integer | 纹理槽位索引。 |
+
+## remove
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;移除指定名称的 uniform 或采样器绑定。
+
+**签名：**
+```tl
+remove: function(self: Pass, name: string)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 着色器中的 uniform 名称。 |

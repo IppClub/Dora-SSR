@@ -487,6 +487,34 @@ openFileDialog: function(self: App, folderOnly: boolean, callback: function(path
 | folderOnly | boolean | Whether the file dialog is only for selecting folders. |
 | callback | function | The callback function to be called when the file dialog is closed. The callback function should accept a string parameter which is the path of the selected file or folder. Get empty string if the user canceled the dialog. |
 
+## estimateTokens
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;A function that estimates how many LLM tokens a text will roughly consume.
+By default, ASCII characters are counted at roughly 0.4 token each, and non-ASCII characters are counted at 2 tokens each.
+
+**Signature:**
+```tl
+estimateTokens: function(self: App, text: string, asciiTokensPerChar?: number --[[0.4]], nonAsciiTokensPerChar?: number --[[2.0]]): integer
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| text | string | The text to estimate. |
+| asciiTokensPerChar | number | Optional override for ASCII characters. Default is 0.4. |
+| nonAsciiTokensPerChar | number | Optional override for non-ASCII characters. Default is 2.0. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | The estimated token count. |
+
 ## shutdown
 
 **Type:** Function.

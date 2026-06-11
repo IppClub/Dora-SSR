@@ -72,3 +72,43 @@ set: function(self: Pass, name: string, var: Color)
 | --- | --- | --- |
 | name | string | The name of the parameter to set. |
 | var | Color | The Color object to set. |
+
+## set
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Binds a texture to a sampler uniform and texture slot.
+
+**Signature:**
+```tl
+set: function(self: Pass, name: string, texture: Texture2D, slot: integer)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | The sampler name in the shader. |
+| texture | Texture2D | The texture to bind. |
+| slot | integer | The texture slot index. |
+
+## remove
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Removes a previously set uniform or sampler binding by name.
+
+**Signature:**
+```tl
+remove: function(self: Pass, name: string)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | The uniform name in the shader. |

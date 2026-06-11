@@ -1,0 +1,91 @@
+# Git
+
+**Description:**
+
+&emsp;&emsp;A record that provides Git command functions.
+
+## run
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Runs a supported Git command and polls status automatically.
+The command may start with "git ". Shell syntax is rejected, and "git -C"
+is not supported; pass the working repository path through repoPath
+instead. Use single or double quotes around arguments that contain spaces.
+For clone, repoPath is the parent directory and the optional dir argument
+is the new repository folder name; when dir is omitted, the folder name is
+inferred from the URL.
+Repositories using Git LFS are handled transparently: add and status
+honor filter=lfs attributes; clone, pull, checkout, hard reset, and
+restore download and hydrate LFS objects; fetch downloads LFS objects;
+push uploads LFS objects before updating Git refs.
+Supported commands:
+* init [--bare]
+* clone <url> [dir] [-b|--branch <name>] [--depth <n>]
+* ls-remote <url>
+* status
+* diff [--cached|--staged] [--] <path>
+* diff <40-character-commit-hash> -- <path>
+* add <path...> | add . | add -A|--all
+* rm <path...>
+* commit -m|--message <msg> [-a|--all] [--allow-empty] [--amend] [--author-name <name>] [--author-email <email>]
+* pull [remote] [branch] [-f|--force]
+* fetch [remote] [-f|--force] [-p|--prune] [--depth <n>]
+* push [remote] [branch] [-f|--force] [-u|--set-upstream]
+* log [-n|--limit <n>] [-- <path>]
+* checkout [-f|--force] <branch-or-40-character-commit-hash>
+* checkout [-f|--force] -b <branch> [start-point]
+* reset [--soft|--mixed|--hard] <40-character-commit-hash> [--confirm]
+* restore [--staged] [--worktree] <path...>
+* clean -f|--force
+* branch | branch <name> | branch -d <name>
+* tag | tag <name> | tag -a <name> -m <msg> | tag -d <name>
+* remote | remote -v | remote add <name> <url> | remote set-url <name> <url> | remote remove <name>
+* mv <from> <to> (single files only)
+Paths are relative to repoPath. pull, fetch, and push default to origin;
+omitting a branch uses the current branch. reset --hard requires --confirm.
+push -u|--set-upstream updates the local branch configuration after push.
+optionsJSON is optional and currently supports auth for clone, ls-remote,
+fetch, pull, push, and their automatic LFS transfers:
+* \{"auth":\{"type":"basic","username":"user","password":"pass"}}
+* \{"auth":\{"type":"token","token":"access-token","username":"token"}}
+For token auth, username is optional and defaults to "token". Automatic
+LFS requests reuse auth only when the LFS URL has the same host as the Git
+remote; action-specific authorization headers returned by the LFS server
+take precedence.
+
+**Signature:**
+```tl
+run: function(self: Git, repoPath: string, command: string, callback: function(status: Status), optionsJSON?: string): number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| repoPath | string | The repository path. For clone, this is the parent directory. |
+| command | string | The Git command string. |
+| callback | function | Receives a decoded Status table. |
+| optionsJSON | string | Optional JSON options. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The Git command handle for canceling the task. |
+
+## cancel
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Cancels a Git job.
+For a handle returned by run, this also disposes the Git task.
+
+**Signature:**
+```tl
+cancel: function(self: Git, jobId: number): boolean
+```
