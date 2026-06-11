@@ -2527,33 +2527,36 @@ export default function PersistentDrawerLeft() {
 							if (model) {
 								await setModelMarkers(model, diagnostics);
 							}
-							if (luaCode !== undefined) {
-								const extname = path.extname(file.key);
-								const name = path.basename(file.key, extname);
-								const luaFile = path.join(path.dirname(file.key), name + ".lua");
-								const fileInTab = files.find(f => path.relative(f.key, luaFile) === "");
-								if (fileInTab !== undefined) {
-									fileInTab.content = luaCode;
-									const model = monaco.editor.getModel(monaco.Uri.file(luaFile));
-									if (model) {
-										model.setValue(luaCode);
-									}
+							if (luaCode === undefined) {
+								saveFile();
+								return;
+							}
+							const extname = path.extname(file.key);
+							const name = path.basename(file.key, extname);
+							const luaFile = path.join(path.dirname(file.key), name + ".lua");
+							const fileInTab = files.find(f => path.relative(f.key, luaFile) === "");
+							if (fileInTab !== undefined) {
+								fileInTab.content = luaCode;
+								const model = monaco.editor.getModel(monaco.Uri.file(luaFile));
+								if (model) {
+									model.setValue(luaCode);
 								}
-								Service.write({ path: luaFile, content: luaCode }).then((res) => {
-									if (res.success) {
-										saveFile(fileInTab);
-									} else {
-										addAlert(t("alert.saveCurrent"), "error");
-										reject("failed to save file");
-									}
-								}).catch(() => {
+							}
+							Service.write({ path: luaFile, content: luaCode }).then((res) => {
+								if (res.success) {
+									saveFile(fileInTab);
+								} else {
 									addAlert(t("alert.saveCurrent"), "error");
 									reject("failed to save file");
-								});
-							}
-						} catch {
-							addAlert(t("alert.saveCurrent"), "error");
-							reject("failed to save file");
+								}
+							}).catch(() => {
+								addAlert(t("alert.saveCurrent"), "error");
+								reject("failed to save file");
+							});
+						} catch (error) {
+							console.error("failed to transpile TypeScript file", error);
+							addAlert(t("alert.failedTS"), "error", true);
+							saveFile();
 						}
 					});
 				} else {
@@ -2841,7 +2844,9 @@ export default function PersistentDrawerLeft() {
 				built = true;
 				console.error(e);
 				if (preferLog) {
-					Service.command({ code: `Log "Error", "Failed to build ${title.replace(/[\\"]/g, "\\$&")}"`, log: false });
+					const errorMessage = e instanceof Error ? e.message : String(e);
+					const message = `Failed to build ${title}: ${errorMessage}`.replace(/[\\"]/g, "\\$&").replace(/\r?\n/g, "\\n");
+					Service.command({ code: `Log "Error", "${message}"`, log: false });
 				} else {
 					addAlert(t("alert.failedCompile", { title }), "warning");
 				}

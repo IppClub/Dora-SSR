@@ -14,7 +14,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === "object";
 }
 
-function isArray(value: unknown): value is any[] {
+function isArray(value: unknown): value is unknown[] {
 	return Array.isArray(value);
 }
 
@@ -515,7 +515,7 @@ function ensureDirRecursive(dir: string): boolean {
 	if (!dir) return false;
 	if (Content.exist(dir)) return Content.isdir(dir);
 	const parent = Path.getPath(dir);
-	if (parent && parent !== dir && !Content.exist(parent) && !ensureDirRecursive(parent)) {
+	if (parent !== "" && parent !== dir && !Content.exist(parent) && !ensureDirRecursive(parent)) {
 		return false;
 	}
 	return Content.mkdir(dir);
@@ -752,7 +752,7 @@ function sanitizeSearchResultForHistory(
 	}
 	const maxItems = tool === "grep_files" ? HISTORY_SEARCH_FILES_MAX_MATCHES : HISTORY_SEARCH_DORA_API_MAX_MATCHES;
 	clone.results = sanitizeSearchMatchesForHistory(
-		result.results,
+		result.results as Record<string, unknown>[],
 		maxItems
 	);
 	if (tool === "grep_files" && isArray(result.groupedResults)) {
@@ -760,12 +760,12 @@ function sanitizeSearchResultForHistory(
 		const shown = math.min(grouped.length, HISTORY_SEARCH_FILES_MAX_MATCHES);
 		const sanitizedGroups: Record<string, unknown>[] = [];
 		for (let i = 0; i < shown; i++) {
-			const row = grouped[i];
+			const row = grouped[i] as AnyTable;
 			sanitizedGroups.push({
 				file: row.file,
 				totalMatches: row.totalMatches,
 				matches: isArray(row.matches)
-					? sanitizeSearchMatchesForHistory(row.matches, 3)
+					? sanitizeSearchMatchesForHistory(row.matches as Record<string, unknown>[], 3)
 					: [],
 			});
 		}
@@ -791,10 +791,16 @@ function sanitizeBuildResultForHistory(result: Record<string, unknown>): Record<
 		clone[key] = result[key];
 	}
 	const messages = result.messages as Record<string, unknown>[];
-	const shown = math.min(messages.length, HISTORY_BUILD_MAX_MESSAGES);
+	const ordered = messages.slice().sort((a, b) => {
+		const aFailed = a.success !== true;
+		const bFailed = b.success !== true;
+		if (aFailed === bFailed) return 0;
+		return aFailed ? -1 : 1;
+	});
+	const shown = math.min(ordered.length, HISTORY_BUILD_MAX_MESSAGES);
 	const sanitized: Record<string, unknown>[] = [];
 	for (let i = 0; i < shown; i++) {
-		const item = messages[i];
+		const item = ordered[i];
 		const next: Record<string, unknown> = {};
 		for (const key in item) {
 			const value = item[key];
@@ -805,8 +811,8 @@ function sanitizeBuildResultForHistory(result: Record<string, unknown>): Record<
 		sanitized.push(next);
 	}
 	clone.messages = sanitized;
-	if (messages.length > shown) {
-		clone.truncatedMessages = messages.length - shown;
+	if (ordered.length > shown) {
+		clone.truncatedMessages = ordered.length - shown;
 	}
 	return clone;
 }
@@ -1432,20 +1438,20 @@ function parseXMLToolCallObjectFromText(text: string): { success: true; obj: Rec
 	if (children.success) {
 		rawObj = children.obj;
 	} else {
-			const dsml = parseDSMLToolCallObjectFromText(text);
-			if (dsml.success) return dsml;
-			const toolStart = text.indexOf("<tool>");
-			const paramsCloseToken = "</params>";
-			if (toolStart >= 0) {
-				const paramsClose = text.indexOf(paramsCloseToken, toolStart);
-				if (paramsClose >= toolStart) {
-					const bareCandidate = text.slice(toolStart, paramsClose + paramsCloseToken.length).trim();
-					const bare = parseSimpleXMLChildren(bareCandidate);
-					if (bare.success && typeof bare.obj.tool === "string" && typeof bare.obj.params === "string") {
-						rawObj = bare.obj;
-					}
+		const dsml = parseDSMLToolCallObjectFromText(text);
+		if (dsml.success) return dsml;
+		const toolStart = text.indexOf("<tool>");
+		const paramsCloseToken = "</params>";
+		if (toolStart >= 0) {
+			const paramsClose = text.indexOf(paramsCloseToken, toolStart);
+			if (paramsClose >= toolStart) {
+				const bareCandidate = text.slice(toolStart, paramsClose + paramsCloseToken.length).trim();
+				const bare = parseSimpleXMLChildren(bareCandidate);
+				if (bare.success && typeof bare.obj.tool === "string" && typeof bare.obj.params === "string") {
+					rawObj = bare.obj;
 				}
 			}
+		}
 		if (rawObj === undefined) {
 			const paramsOpen = text.indexOf("<params>");
 			if (paramsOpen < 0) return children;
@@ -2363,17 +2369,17 @@ class MainDecisionAgent extends Node<AgentShared> {
 				const partialMessage = partialChoice && partialChoice.message;
 				const partialToolCalls = partialMessage && partialMessage.tool_calls;
 				if (partialToolCalls && partialToolCalls.length > 0) {
-					const partialReasoningContent = partialMessage && typeof partialMessage.reasoning_content === "string"
+					const partialReasoningContent = partialMessage !== undefined && typeof partialMessage.reasoning_content === "string"
 						? partialMessage.reasoning_content
 						: undefined;
-					const partialMessageContent = partialMessage && typeof partialMessage.content === "string"
+					const partialMessageContent = partialMessage !== undefined && typeof partialMessage.content === "string"
 						? partialMessage.content.trim()
 						: undefined;
 					const partialDecisions: DecisionSuccess[] = [];
 					let partialFailure: DecisionFailure | undefined;
 					for (let i = 0; i < partialToolCalls.length; i++) {
 						const toolCall = partialToolCalls[i];
-						const fn = toolCall && toolCall.function;
+						const fn = toolCall !== undefined && toolCall.function;
 						if (!fn || typeof fn.name !== "string" || fn.name === "") {
 							partialFailure = {
 								success: false,
@@ -2386,7 +2392,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 							shared,
 							fn.name,
 							typeof fn.arguments === "string" ? fn.arguments : "",
-							toolCall && typeof toolCall.id === "string" ? toolCall.id : undefined,
+							toolCall !== undefined && typeof toolCall.id === "string" ? toolCall.id : undefined,
 							partialMessageContent,
 							partialReasoningContent
 						);
@@ -2466,7 +2472,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 		const decisions: DecisionSuccess[] = [];
 		for (let i = 0; i < toolCalls.length; i++) {
 			const toolCall = toolCalls[i];
-			const fn = toolCall && toolCall.function;
+			const fn = toolCall != undefined && toolCall.function;
 			if (!fn || typeof fn.name !== "string" || fn.name === "") {
 				Log("Error", `[CodingAgent] missing function name for tool call index=${i + 1}`);
 				clearPreExecutedResults(shared);
@@ -2478,7 +2484,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 			}
 			const functionName = fn.name;
 			const argsText = typeof fn.arguments === "string" ? fn.arguments : "";
-			const toolCallId = toolCall && typeof toolCall.id === "string"
+			const toolCallId = toolCall != undefined && typeof toolCall.id === "string"
 				? toolCall.id
 				: undefined;
 			Log("Info", `[CodingAgent] tool-calling function=${functionName} index=${i + 1}/${toolCalls.length} args_len=${argsText.length}`);
@@ -2593,22 +2599,22 @@ class MainDecisionAgent extends Node<AgentShared> {
 				message: llmRes.message,
 				raw: llmRes.text ?? "",
 			};
-			}
-			const decision = tryParseAndValidateDecision(llmRes.text);
-			if (decision.success) {
-				decision.reasoningContent = llmRes.reasoningContent;
-				if (!isToolAllowedForRole(shared.role, decision.tool)) {
-					return this.repairDecisionXml(
-						shared,
-						llmRes.text,
-						llmRes.reasoningContent,
-						`${decision.tool} is not allowed for role ${shared.role}`
-					);
-				}
-				return decision;
-			}
-			return this.repairDecisionXml(shared, llmRes.text, llmRes.reasoningContent, decision.message);
 		}
+		const decision = tryParseAndValidateDecision(llmRes.text);
+		if (decision.success) {
+			decision.reasoningContent = llmRes.reasoningContent;
+			if (!isToolAllowedForRole(shared.role, decision.tool)) {
+				return this.repairDecisionXml(
+					shared,
+					llmRes.text,
+					llmRes.reasoningContent,
+					`${decision.tool} is not allowed for role ${shared.role}`
+				);
+			}
+			return decision;
+		}
+		return this.repairDecisionXml(shared, llmRes.text, llmRes.reasoningContent, decision.message);
+	}
 
 	async exec(input: { shared: AgentShared }): Promise<DecisionResult | DecisionFailure> {
 		const shared = input.shared;
@@ -3023,7 +3029,10 @@ class DeleteFileAction extends Node<AgentShared> {
 					tool: "delete_file",
 					checkpointId: result.checkpointId,
 					checkpointSeq: result.checkpointSeq,
-					files: result.files,
+					files: result.files as {
+						path: string;
+						op: "write" | "create" | "delete";
+					}[],
 				});
 			}
 		}
@@ -3331,7 +3340,10 @@ class EditFileAction extends Node<AgentShared> {
 					tool: last.tool,
 					checkpointId: result.checkpointId,
 					checkpointSeq: result.checkpointSeq,
-					files: result.files,
+					files: result.files as {
+						path: string;
+						op: "write" | "create" | "delete";
+					}[],
 				});
 			}
 		}
@@ -3357,7 +3369,10 @@ function emitCheckpointEventForAction(shared: AgentShared, action: AgentActionRe
 			tool: action.tool,
 			checkpointId: result.checkpointId,
 			checkpointSeq: result.checkpointSeq,
-			files: result.files,
+			files: result.files as {
+				path: string;
+				op: "write" | "create" | "delete";
+			}[],
 		});
 	}
 }
@@ -3662,7 +3677,7 @@ function sanitizeToolActionResultForHistory(action: AgentActionRecord, result: R
 	return result;
 }
 
-function canRunBatchActionInParallel(this: any, action: AgentActionRecord): boolean {
+function canRunBatchActionInParallel(this: unknown, action: AgentActionRecord): boolean {
 	return AgentToolRegistry.canRunToolInParallel(action.tool);
 }
 

@@ -870,7 +870,9 @@ i18n
 						caseSensitive: "Case Sensitive",
 						groupByFile: "Group by file",
 						showBuildResults: "Show {{count}} build results",
+						showBuildResultsPartial: "Show only {{count}} build results, {{total}} total",
 						hideBuildResults: "Hide {{count}} build results",
+						hideBuildResultsPartial: "Hide {{count}} shown build results, {{total}} total",
 						buildItemStatus: {
 							success: "SUCCESS",
 							failed: "FAILED",
@@ -1885,7 +1887,9 @@ i18n
 						caseSensitive: "区分大小写",
 						groupByFile: "按文件分组",
 						showBuildResults: "显示 {{count}} 条构建结果",
+						showBuildResultsPartial: "仅显示 {{count}} 条构建结果，共计 {{total}} 条",
 						hideBuildResults: "隐藏 {{count}} 条构建结果",
+						hideBuildResultsPartial: "隐藏已显示的 {{count}} 条构建结果，共计 {{total}} 条",
 						buildItemStatus: {
 							success: "成功",
 							failed: "失败",
