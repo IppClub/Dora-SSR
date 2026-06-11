@@ -7,7 +7,7 @@ on:
     paths:
       # Shared engine code — triggers all platforms
       - 'Source/**'
-      - 'Tools/tolua++/**'
+      - 'Tools/tolua[+][+]/**'
       - 'Tools/build-scripts/**'
       - 'Tools/dora-rust/**'
       # Platform-specific code
@@ -16,7 +16,7 @@ on:
     branches: [ main ]
     paths:
       - 'Source/**'
-      - 'Tools/tolua++/**'
+      - 'Tools/tolua[+][+]/**'
       - 'Tools/build-scripts/**'
       - 'Tools/dora-rust/**'
       - 'Projects/macOS/**'
