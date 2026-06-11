@@ -4,6 +4,7 @@ import { CompilerOptions, isBundleEnabled, LuaLibImportKind, LuaTarget } from ".
 import { buildMinimalLualibBundle, findUsedLualibFeatures, getLuaLibBundle } from "../LuaLib";
 import { normalizeSlashes, trimExtension } from "../utils";
 import { getBundleResult } from "./bundle";
+import { explicitAnyTypeNotAllowed } from "./diagnostics";
 import { resolveDependencies } from "./resolve";
 import { getProgramTranspileResult, TranspileOptions } from "./transpile";
 import { EmitFile, EmitHost, ProcessedFile } from "./utils";
@@ -38,6 +39,13 @@ export class Transpiler {
                 ...emitOptions,
             }
         );
+
+        if (transpileDiagnostics.some(diagnostic => diagnostic.code === explicitAnyTypeNotAllowed.code)) {
+            return {
+                diagnostics: transpileDiagnostics,
+                emitSkipped: true,
+            };
+        }
 
         const { emitPlan } = this.getEmitPlan(program, transpileDiagnostics, freshFiles);
 

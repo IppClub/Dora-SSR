@@ -5,6 +5,7 @@ import { FunctionVisitor, TransformationContext } from "../../context";
 import { wrapInToStringForConcat } from "../../utils/lua-ast";
 import { LuaLibFeature, transformLuaLibFunction } from "../../utils/lualib";
 import { canBeFalsyWhenNotNull, isStandardLibraryType, isStringType } from "../../utils/typescript";
+import { checkOnlyTruthyCondition } from "../conditional";
 import { transformTypeOfBinaryExpression } from "../typeof";
 import { transformAssignmentExpression, transformAssignmentStatement } from "./assignments";
 import { BitOperator, isBitOperator, transformBinaryBitOperation } from "./bit";
@@ -227,6 +228,9 @@ export const transformBinaryExpression: FunctionVisitor<ts.BinaryExpression> = (
         case ts.SyntaxKind.QuestionQuestionToken:
         case ts.SyntaxKind.AmpersandAmpersandToken:
         case ts.SyntaxKind.BarBarToken: {
+            if (operator !== ts.SyntaxKind.QuestionQuestionToken) {
+                checkOnlyTruthyCondition(node.left, context);
+            }
             const { precedingStatements, result } = transformShortCircuitBinaryExpression(context, node, operator);
             context.addPrecedingStatements(precedingStatements);
             return result;

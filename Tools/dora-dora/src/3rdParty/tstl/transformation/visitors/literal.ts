@@ -2,7 +2,7 @@ import * as ts from "typescript";
 import * as lua from "../../LuaAST";
 import { assertNever } from "../../utils";
 import { FunctionVisitor, TransformationContext, Visitors } from "../context";
-import { undefinedInArrayLiteral, unsupportedAccessorInObjectLiteral } from "../utils/diagnostics";
+import { undefinedInArrayLiteral, unsupportedAccessorInObjectLiteral, nullLiteralNotSupported } from "../utils/diagnostics";
 import { LuaLibFeature, transformLuaLibFunction } from "../utils/lualib";
 import { trackSymbolReference } from "../utils/symbols";
 import { isArrayType } from "../utils/typescript";
@@ -213,7 +213,13 @@ function isUndefinedOrNull(node: ts.Node) {
 }
 
 export const literalVisitors: Visitors = {
-    [ts.SyntaxKind.NullKeyword]: node => lua.createNilLiteral(node),
+    [ts.SyntaxKind.NullKeyword]: (node, context) => {
+        const originalNode = ts.getOriginalNode(node);
+        if (originalNode.pos >= 0 && originalNode.getSourceFile() !== undefined) {
+            context.diagnostics.push(nullLiteralNotSupported(originalNode));
+        }
+        return lua.createNilLiteral(node);
+    },
     [ts.SyntaxKind.TrueKeyword]: node => lua.createBooleanLiteral(true, node),
     [ts.SyntaxKind.FalseKeyword]: node => lua.createBooleanLiteral(false, node),
     [ts.SyntaxKind.NumericLiteral]: transformNumericLiteralExpression,

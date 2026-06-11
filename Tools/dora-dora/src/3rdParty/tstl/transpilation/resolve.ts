@@ -31,6 +31,14 @@ class ResolutionContext {
 
         // Do this backwards so the replacements do not mess with the positions of the previous requires
         for (const required of findLuaRequires(file.code).reverse()) {
+            // Direct require calls in TypeScript keep Lua's runtime resolution semantics.
+            if (required.requirePath.startsWith("@RuntimeRequire:")) {
+                const path = required.requirePath.replace("@RuntimeRequire:", "");
+                replaceRequireInCode(file, required, path, this.options.extension);
+                replaceRequireInSourceMap(file, required, path, this.options.extension);
+                continue;
+            }
+
             // Do not resolve noResolution paths
             if (required.requirePath.startsWith("@NoResolution:")) {
                 // Remove @NoResolution prefix if not building in library mode

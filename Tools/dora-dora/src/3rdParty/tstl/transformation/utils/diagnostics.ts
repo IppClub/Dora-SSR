@@ -137,6 +137,10 @@ export const truthyOnlyConditionalValue = createWarningDiagnosticFactory(
     "Only false and nil evaluate to 'false' in Lua, everything else is considered 'true'. Explicitly compare the value with ===."
 );
 
+export const nullLiteralNotSupported = createErrorDiagnosticFactory(
+    "Lua has no equivalent 'null' type, use 'undefined' instead."
+);
+
 export const notAllowedOptionalAssignment = createErrorDiagnosticFactory(
     "The left-hand side of an assignment expression may not be an optional property access."
 );
