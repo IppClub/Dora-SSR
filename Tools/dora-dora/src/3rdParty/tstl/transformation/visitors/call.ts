@@ -281,6 +281,10 @@ export const transformCallExpression: FunctionVisitor<ts.CallExpression> = (node
         );
     }
 
+    if (ts.isIdentifier(calledExpression) && calledExpression.text === "require" && lua.isStringLiteral(parameters[0])) {
+        parameters[0] = lua.createStringLiteral(`@RuntimeRequire:${parameters[0].value}`, node.arguments[0]);
+    }
+
     const callExpression = lua.createCallExpression(callPath, parameters, node);
     if (optionalContinuation && isContextualCall) {
         optionalContinuation.contextualCall = callExpression;

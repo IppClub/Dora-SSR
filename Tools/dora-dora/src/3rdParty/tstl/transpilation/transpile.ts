@@ -3,6 +3,7 @@ import * as ts from "typescript";
 import { CompilerOptions, LuaLibImportKind, validateOptions } from "../CompilerOptions";
 import { createPrinter } from "../LuaPrinter";
 import { createVisitorMap, transformSourceFile } from "../transformation";
+import { explicitAnyTypeNotAllowed } from "./diagnostics";
 import { getTransformers } from "./transformers";
 import { EmitHost, ProcessedFile } from "./utils";
 
@@ -15,6 +16,25 @@ export interface TranspileOptions {
 export interface TranspileResult {
     diagnostics: ts.Diagnostic[];
     transpiledFiles: ProcessedFile[];
+}
+
+function getExplicitAnyDiagnostics(program: ts.Program, sourceFiles?: readonly ts.SourceFile[]): ts.Diagnostic[] {
+    const diagnostics: ts.Diagnostic[] = [];
+    const files = sourceFiles ?? program.getRootFileNames().map(fileName => program.getSourceFile(fileName));
+
+    const visit = (sourceFile: ts.SourceFile, node: ts.Node) => {
+        if (node.kind === ts.SyntaxKind.AnyKeyword) {
+            diagnostics.push(explicitAnyTypeNotAllowed(node, sourceFile));
+        }
+    };
+
+    for (const sourceFile of files) {
+        if (sourceFile !== undefined && !sourceFile.isDeclarationFile) {
+            ts.forEachChildRecursively(sourceFile, node => visit(sourceFile, node));
+        }
+    }
+
+    return diagnostics;
 }
 
 export function getProgramTranspileResult(
@@ -30,7 +50,13 @@ export function getProgramTranspileResult(
     }
 
     const diagnostics = validateOptions(options);
+    const explicitAnyDiagnostics = getExplicitAnyDiagnostics(program, targetSourceFiles);
+    diagnostics.push(...explicitAnyDiagnostics);
     let transpiledFiles: ProcessedFile[] = [];
+
+    if (explicitAnyDiagnostics.length > 0) {
+        return { diagnostics, transpiledFiles };
+    }
 
     if (options.noEmitOnError) {
         const preEmitDiagnostics = [

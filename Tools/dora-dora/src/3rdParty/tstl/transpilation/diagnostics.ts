@@ -59,3 +59,11 @@ export const unsupportedJsxEmit = createDiagnosticFactory(() => 'JSX is only sup
 export const pathsWithoutBaseUrl = createDiagnosticFactory(
     () => "When configuring 'paths' in tsconfig.json, the option 'baseUrl' must also be provided."
 );
+
+export const explicitAnyTypeNotAllowed = createSerialDiagnosticFactory((node: ts.Node, sourceFile: ts.SourceFile) => ({
+    file: sourceFile,
+    start: node.getStart(sourceFile),
+    length: node.getWidth(sourceFile),
+    category: ts.DiagnosticCategory.Error,
+    messageText: "Explicit 'any' types are not allowed. Use a specific type or 'unknown' instead.",
+}));
