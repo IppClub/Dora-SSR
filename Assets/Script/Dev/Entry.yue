@@ -611,6 +611,7 @@ reloadDevEntry = -> thread ->
 	_G.require = oldRequire
 	Dora.require = oldRequire
 	package.loaded["Script.Dev.Entry"] = nil
+	package.loaded["Script.Dev.WebServer"] = nil
 	Director.systemScheduler\schedule ->
 		Routine\clear!
 		oldRequire "Script.Dev.Entry"

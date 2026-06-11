@@ -131,6 +131,10 @@ export function getArrayElementTypes(context: TransformationContext, type: ts.Ty
         type = baseConstraint;
     }
 
+    if (type.getProperty("__tstlMultiReturn") !== undefined) {
+        return [];
+    }
+
     if (context.checker.isArrayType(type)) {
         const elementType = context.checker.getElementTypeOfArrayType(type);
         return elementType ? [elementType] : [];
