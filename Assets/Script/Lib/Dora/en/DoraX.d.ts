@@ -13,7 +13,7 @@ export namespace React {
 	 */
 	export interface Element {
 		type: string;
-		props?: any;
+		props?: AnyTable;
 		children: Element[];
 	}
 

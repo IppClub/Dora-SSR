@@ -27,7 +27,7 @@ export namespace BehaviorTree {
 	export class Leaf implements React.Element {
 		private constructor() { }
 		type!: string;
-		props: any;
+		props!: AnyTable;
 		children!: React.Element[];
 	}
 
@@ -124,7 +124,7 @@ export namespace DecisionTree {
 	export class Leaf implements React.Element {
 		private constructor() { }
 		type!: string;
-		props: any;
+		props!: AnyTable;
 		children!: React.Element[];
 	}
 
@@ -199,8 +199,8 @@ function visitDTree(this: void, treeStack: P.Decision.Leaf[], node: JSX.CustomEl
 			if (children && children.length > 0) {
 				const stack: P.Decision.Leaf[] = [];
 				for (let i = 0; i < children.length; i++) {
-					if (!visitDTree(stack, children[i].props)) {
-						Warn(`unsupported DecisionTree node with name ${children[i].props.name}`);
+					if (!visitDTree(stack, children[i].props as JSX.CustomElement)) {
+						Warn(`unsupported DecisionTree node with name ${(children[i].props as AnyTable).name}`);
 					}
 				}
 				if (stack.length > 0) {
@@ -215,7 +215,7 @@ function visitDTree(this: void, treeStack: P.Decision.Leaf[], node: JSX.CustomEl
 			if (children && children.length > 0) {
 				const stack: P.Decision.Leaf[] = [];
 				for (let i = 0; i < children.length; i++) {
-					if (!visitDTree(stack, children[i].props)) {
+					if (!visitDTree(stack, children[i].props as JSX.CustomElement)) {
 						Warn(`unsupported DecisionTree node with name ${children[i].props.name}`);
 					}
 				}
@@ -236,7 +236,7 @@ function visitDTree(this: void, treeStack: P.Decision.Leaf[], node: JSX.CustomEl
 			if (children && children.length > 0) {
 				const stack: P.Decision.Leaf[] = [];
 				for (let i = 0; i < children.length; i++) {
-					if (!visitDTree(stack, children[i].props)) {
+					if (!visitDTree(stack, children[i].props as JSX.CustomElement)) {
 						Warn(`unsupported DecisionTree node with name ${children[i].props.name}`);
 					}
 				}
@@ -274,7 +274,7 @@ function visitDTree(this: void, treeStack: P.Decision.Leaf[], node: JSX.CustomEl
 			const children = props.children as BehaviorTree.Leaf[] | undefined;
 			if (children && children.length >= 1) {
 				const stack: P.Behavior.Leaf[] = [];
-				if (visitBTree(stack, children[0].props)) {
+				if (visitBTree(stack, children[0].props as JSX.CustomElement)) {
 					treeStack.push(P.Decision.Behave(props.name, stack[0]));
 				} else {
 					Warn("expects only one BehaviorTree child for DecisionTree.Behavior");
@@ -301,7 +301,7 @@ function visitBTree(this: void, treeStack: P.Behavior.Leaf[], node: JSX.CustomEl
 			if (children && children.length > 0) {
 				const stack: P.Behavior.Leaf[] = [];
 				for (let i = 0; i < children.length; i++) {
-					if (!visitBTree(stack, children[i].props)) {
+					if (!visitBTree(stack, children[i].props as JSX.CustomElement)) {
 						Warn(`unsupported BehaviorTree node with name ${children[i].props.name}`);
 					}
 				}
@@ -317,7 +317,7 @@ function visitBTree(this: void, treeStack: P.Behavior.Leaf[], node: JSX.CustomEl
 			if (children && children.length > 0) {
 				const stack: P.Behavior.Leaf[] = [];
 				for (let i = 0; i < children.length; i++) {
-					if (!visitBTree(stack, children[i].props)) {
+					if (!visitBTree(stack, children[i].props as JSX.CustomElement)) {
 						Warn(`unsupported BehaviorTree node with name ${children[i].props.name}`);
 					}
 				}
@@ -338,7 +338,7 @@ function visitBTree(this: void, treeStack: P.Behavior.Leaf[], node: JSX.CustomEl
 			if (children && children.length > 0) {
 				const stack: P.Behavior.Leaf[] = [];
 				for (let i = 0; i < children.length; i++) {
-					if (!visitBTree(stack, children[i].props)) {
+					if (!visitBTree(stack, children[i].props as JSX.CustomElement)) {
 						Warn(`unsupported BehaviorTree node with name ${children[i].props.name}`);
 					}
 				}
@@ -374,7 +374,7 @@ function visitBTree(this: void, treeStack: P.Behavior.Leaf[], node: JSX.CustomEl
 			const children = props.children as unknown as BehaviorTree.Leaf[] | undefined;
 			if (children && children.length >= 1) {
 				const stack: JSX.CustomElement[] = [];
-				if (visitBTree(stack, children[0].props)) {
+				if (visitBTree(stack, children[0].props as JSX.CustomElement)) {
 					treeStack.push(P.Behavior.Countdown(props.time, stack[0]));
 				} else {
 					Warn("expects only one BehaviorTree child for BehaviorTree.Countdown");
@@ -389,7 +389,7 @@ function visitBTree(this: void, treeStack: P.Behavior.Leaf[], node: JSX.CustomEl
 			const children = props.children as unknown as BehaviorTree.Leaf[] | undefined;
 			if (children && children.length >= 1) {
 				const stack: JSX.CustomElement[] = [];
-				if (visitBTree(stack, children[0].props)) {
+				if (visitBTree(stack, children[0].props as JSX.CustomElement)) {
 					treeStack.push(P.Behavior.Timeout(props.time, stack[0]));
 				} else {
 					Warn("expects only one BehaviorTree child for BehaviorTree.Timeout");
@@ -404,7 +404,7 @@ function visitBTree(this: void, treeStack: P.Behavior.Leaf[], node: JSX.CustomEl
 			const children = props.children as unknown as BehaviorTree.Leaf[] | undefined;
 			if (children && children.length >= 1) {
 				const stack: JSX.CustomElement[] = [];
-				if (visitBTree(stack, children[0].props)) {
+				if (visitBTree(stack, children[0].props as JSX.CustomElement)) {
 					if (props.times !== undefined) {
 						treeStack.push(P.Behavior.Repeat(props.times, stack[0]));
 					} else {
@@ -423,7 +423,7 @@ function visitBTree(this: void, treeStack: P.Behavior.Leaf[], node: JSX.CustomEl
 			const children = props.children as unknown as BehaviorTree.Leaf[] | undefined;
 			if (children && children.length >= 1) {
 				const stack: JSX.CustomElement[] = [];
-				if (visitBTree(stack, children[0].props)) {
+				if (visitBTree(stack, children[0].props as JSX.CustomElement)) {
 					if (props.times !== undefined) {
 						treeStack.push(P.Behavior.Retry(props.times, stack[0]));
 					} else {
@@ -448,7 +448,7 @@ export function toAI(this: void, node: DecisionTree.Leaf): P.Decision.Leaf | und
 		return undefined;
 	}
 	const treeStack: P.Decision.Leaf[] = [];
-	if (visitDTree(treeStack, node.props) && treeStack.length > 0) {
+	if (visitDTree(treeStack, node.props as JSX.CustomElement) && treeStack.length > 0) {
 		return treeStack[0];
 	}
 	return undefined;

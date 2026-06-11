@@ -4,12 +4,12 @@ import * as ImGui from "ImGui";
 import { InputTextFlag, SetCond, WindowFlag } from "ImGui";
 import { Node, Flow } from 'Agent/flow';
 import { callLLMStream, Message } from 'Agent/Utils';
-import * as Config from 'Config';
+import * as Config from 'Config'; 
 
 let zh = false;
 {
 	const [res] = string.match(App.locale, "^zh");
-	zh = res !== null;
+	zh = res !== undefined;
 }
 
 interface LLM {
@@ -298,7 +298,7 @@ const runFlow = async () => {
 	};
 	try {
 		await flow.run(chatInfo);
-	} catch (err: any) {
+	} catch (err: unknown) {
 		llmWorking = false;
 		root.emit('Output', `Coder: ${err}`);
 		runFlow();
