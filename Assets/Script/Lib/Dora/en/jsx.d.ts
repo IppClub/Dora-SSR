@@ -997,14 +997,14 @@ interface AlignStyle {
 	marginInlineStart?: StyleValuePercentAuto;
 	marginInlineEnd?: StyleValuePercentAuto;
 	marginInline?: StyleValuePercentAuto;
-	margin?: [StyleValuePercentAuto, StyleValuePercentAuto?, StyleValuePercentAuto?, StyleValuePercentAuto?] | StyleValuePercentAuto;
+	margin?: [StyleValuePercentAuto,] | [StyleValuePercentAuto, StyleValuePercentAuto] | [StyleValuePercentAuto, StyleValuePercentAuto, StyleValuePercentAuto] | [StyleValuePercentAuto, StyleValuePercentAuto, StyleValuePercentAuto, StyleValuePercentAuto] | StyleValuePercentAuto;
 	paddingTop?: StyleValuePercent;
 	paddingRight?: StyleValuePercent;
 	paddingBottom?: StyleValuePercent;
 	paddingLeft?: StyleValuePercent;
-	padding?: [StyleValuePercent, StyleValuePercent?, StyleValuePercent?, StyleValuePercent?] | StyleValuePercent;
-	border?: [number, number?, number?, number?] | number;
-	gap?: [StyleValuePercent, StyleValuePercent?] | StyleValuePercent;
+	padding?: [StyleValuePercent,] | [StyleValuePercent, StyleValuePercent] | [StyleValuePercent, StyleValuePercent, StyleValuePercent] | [StyleValuePercent, StyleValuePercent, StyleValuePercent, StyleValuePercent] | StyleValuePercent;
+	border?: [number,] | [number, number] | [number, number, number] | [number, number, number, number] | number;
+	gap?: [StyleValuePercent,] | [StyleValuePercent, StyleValuePercent] | StyleValuePercent;
 	aspectRatio?: number;
 }
 
