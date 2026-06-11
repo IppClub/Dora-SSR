@@ -819,7 +819,7 @@ end
 -- ShaderCompiler
 
 do
-	local Shader = Dora.Shader
+	local Shader = getmetatable(Dora.Shader)
 	local Shader_compile = Shader.compile
 	Shader.compile = function(self, sourceFile, targetFile, stageName)
 		local err = Shader_compile(self, sourceFile, targetFile, stageName)
