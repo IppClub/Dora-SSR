@@ -2,9 +2,9 @@ import * as ts from "typescript";
 import { LuaTarget } from "../../../CompilerOptions";
 import * as lua from "../../../LuaAST";
 import { FunctionVisitor, TransformationContext } from "../../context";
-import { wrapInToStringForConcat } from "../../utils/lua-ast";
+import { addToNumericExpression, wrapInToStringForConcat } from "../../utils/lua-ast";
 import { LuaLibFeature, transformLuaLibFunction } from "../../utils/lualib";
-import { canBeFalsyWhenNotNull, isStandardLibraryType, isStringType } from "../../utils/typescript";
+import { canBeFalsyWhenNotNull, isArrayType, isNumberType, isStandardLibraryType, isStringType } from "../../utils/typescript";
 import { checkOnlyTruthyCondition } from "../conditional";
 import { transformTypeOfBinaryExpression } from "../typeof";
 import { transformAssignmentExpression, transformAssignmentStatement } from "./assignments";
@@ -192,7 +192,12 @@ export const transformBinaryExpression: FunctionVisitor<ts.BinaryExpression> = (
             return transformAssignmentExpression(context, node as ts.AssignmentExpression<ts.EqualsToken>);
 
         case ts.SyntaxKind.InKeyword: {
-            const lhs = context.transformExpression(node.left);
+            const lhsType = context.checker.getTypeAtLocation(node.left);
+            const rhsType = context.checker.getTypeAtLocation(node.right);
+            let lhs = context.transformExpression(node.left);
+            if (isArrayType(context, rhsType) && isNumberType(context, lhsType)) {
+                lhs = addToNumericExpression(lhs, 1);
+            }
             const rhs = context.transformExpression(node.right);
             const indexExpression = lua.createTableIndexExpression(rhs, lhs);
             return lua.createBinaryExpression(

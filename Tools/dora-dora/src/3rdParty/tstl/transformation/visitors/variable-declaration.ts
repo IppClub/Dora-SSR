@@ -3,11 +3,12 @@ import * as lua from "../../LuaAST";
 import { assert, assertNever } from "../../utils";
 import { FunctionVisitor, TransformationContext } from "../context";
 import { validateAssignment } from "../utils/assignment-validation";
-import { unsupportedVarDeclaration } from "../utils/diagnostics";
+import { unsupportedNilArrayElementType, unsupportedVarDeclaration } from "../utils/diagnostics";
 import { addExportToIdentifier } from "../utils/export";
 import { createBoundedUnpackCall, createLocalOrExportedOrGlobalDeclaration, wrapInTable } from "../utils/lua-ast";
 import { LuaLibFeature, transformLuaLibFunction } from "../utils/lualib";
 import { transformInPrecedingStatementScope } from "../utils/preceding-statements";
+import { arrayElementTypeCanBeNil } from "../utils/typescript";
 import { createCallableTable, isFunctionTypeWithProperties } from "./function";
 import { transformIdentifier } from "./identifier";
 import { isMultiReturnCall } from "./language-extensions/multi";
@@ -249,6 +250,18 @@ export function transformVariableDeclaration(
     context: TransformationContext,
     statement: ts.VariableDeclaration
 ): lua.Statement[] {
+    if (statement.type) {
+        const varType = context.checker.getTypeFromTypeNode(statement.type);
+        if (arrayElementTypeCanBeNil(context, varType)) {
+            context.diagnostics.push(unsupportedNilArrayElementType(statement.type));
+        }
+    } else if (ts.isIdentifier(statement.name)) {
+        const varType = context.checker.getTypeAtLocation(statement.name);
+        if (arrayElementTypeCanBeNil(context, varType)) {
+            context.diagnostics.push(unsupportedNilArrayElementType(statement.name));
+        }
+    }
+
     if (statement.initializer && statement.type) {
         const initializerType = context.checker.getTypeAtLocation(statement.initializer);
         const varType = context.checker.getTypeFromTypeNode(statement.type);

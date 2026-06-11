@@ -125,6 +125,39 @@ export function isAlwaysArrayType(context: TransformationContext, type: ts.Type)
     return forTypeOrAnySupertype(context, type, t => isAlwaysExplicitArrayType(context, t));
 }
 
+export function getArrayElementTypes(context: TransformationContext, type: ts.Type): ts.Type[] {
+    const baseConstraint = context.checker.getBaseConstraintOfType(type);
+    if (baseConstraint && baseConstraint !== type) {
+        type = baseConstraint;
+    }
+
+    if (context.checker.isArrayType(type)) {
+        const elementType = context.checker.getElementTypeOfArrayType(type);
+        return elementType ? [elementType] : [];
+    }
+
+    if (context.checker.isTupleType(type)) {
+        return [...context.checker.getTypeArguments(type as ts.TypeReference)];
+    }
+
+    if (type.isUnionOrIntersection()) {
+        return type.types.flatMap(t => getArrayElementTypes(context, t));
+    }
+
+    const baseTypes = type.getBaseTypes();
+    if (baseTypes) {
+        return baseTypes.flatMap(t => getArrayElementTypes(context, t));
+    }
+
+    return [];
+}
+
+export function arrayElementTypeCanBeNil(context: TransformationContext, type: ts.Type): boolean {
+    return getArrayElementTypes(context, type).some(elementType =>
+        typeCanHaveSomeOfFlags(context, elementType, ts.TypeFlags.Undefined | ts.TypeFlags.Null)
+    );
+}
+
 export function isFunctionType(type: ts.Type): boolean {
     return type.getCallSignatures().length > 0;
 }

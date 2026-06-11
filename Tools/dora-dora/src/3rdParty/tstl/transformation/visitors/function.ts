@@ -15,8 +15,8 @@ import {
 import { LuaLibFeature, transformLuaLibFunction } from "../utils/lualib";
 import { transformInPrecedingStatementScope } from "../utils/preceding-statements";
 import { peekScope, performHoisting, Scope, ScopeType } from "../utils/scope";
-import { isFunctionType } from "../utils/typescript";
-import { unsupportedAsyncGenerator } from "../utils/diagnostics";
+import { arrayElementTypeCanBeNil, isFunctionType } from "../utils/typescript";
+import { unsupportedAsyncGenerator, unsupportedNilArrayElementType } from "../utils/diagnostics";
 import { isAsyncFunction, wrapInAsyncAwaiter } from "./async-await";
 import { transformIdentifier } from "./identifier";
 import { transformExpressionBodyToReturnStatement } from "./return";
@@ -197,6 +197,13 @@ export function transformParameters(
     for (const param of parameters) {
         if (ts.isIdentifier(param.name) && ts.identifierToKeywordKind(param.name) === ts.SyntaxKind.ThisKeyword) {
             continue;
+        }
+
+        if (param.type) {
+            const paramType = context.checker.getTypeFromTypeNode(param.type);
+            if (arrayElementTypeCanBeNil(context, paramType)) {
+                context.diagnostics.push(unsupportedNilArrayElementType(param.type));
+            }
         }
 
         // Binding patterns become ____bindingPattern0, ____bindingPattern1, etc as function parameters

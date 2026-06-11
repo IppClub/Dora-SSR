@@ -165,6 +165,10 @@ export const undefinedInArrayLiteral = createErrorDiagnosticFactory(
     "Array literals may not contain undefined or null."
 );
 
+export const unsupportedNilArrayElementType = createErrorDiagnosticFactory(
+    "Array element types may not include undefined or null because Lua arrays cannot represent nil elements."
+);
+
 export const invalidMethodCallExtensionUse = createErrorDiagnosticFactory(
     "This language extension must be called as a method."
 );
