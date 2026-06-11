@@ -1430,4 +1430,5 @@ entryWindow = threadLoop ->
 		Dummy Vec2 100, 80
 		ScrollWhenDraggingOnVoid!
 
-webStatus = require "Script.Dev.WebServer"
+-- Keep the Web IDE server outside moduleCache so allClear won't unload and restart it.
+webStatus = oldRequire "Script.Dev.WebServer"

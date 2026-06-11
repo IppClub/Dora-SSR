@@ -1,5 +1,5 @@
 // @preview-file off clear
-import { Content, DB, Path, Director, once, SearchFilesResult, Node, emit, wait, sleep, App, HttpServer } from 'Dora';
+import { Content, DB, Path, Director, once, SearchFilesResult, Node, emit, wait, App, HttpServer } from 'Dora';
 import { Log, safeJsonDecode, safeJsonEncode } from 'Agent/Utils';
 
 export type AgentTaskStatus = "RUNNING" | "DONE" | "FAILED" | "STOPPED";
@@ -234,8 +234,6 @@ const TABLE_CP = "AgentCheckpoint";
 const TABLE_ENTRY = "AgentCheckpointEntry";
 const ENGINE_LOG_DOWNLOAD_DIR = ".download";
 const ENGINE_LOG_FILE = "dora_full_logs.txt";
-const BUILD_TS_TRANSPILE_PAUSE_SECONDS = 0.03;
-
 const now = () => os.time();
 
 function toBool(v: unknown): boolean {
@@ -631,15 +629,6 @@ function encodeJSON(obj: object): string | undefined {
 	return text;
 }
 
-async function pauseBetweenTsTranspiles(): Promise<void> {
-	await new Promise<void>(resolve => {
-		Director.systemScheduler.schedule(once(() => {
-			sleep(BUILD_TS_TRANSPILE_PAUSE_SECONDS);
-			resolve();
-		}));
-	});
-}
-
 export function sendWebIDEFileUpdate(file: string, exists: boolean, content: string): boolean {
 	if (HttpServer.wsConnectionCount === 0) {
 		return true;
@@ -664,29 +653,8 @@ async function runSingleNonTsBuild(file: string): Promise<BuildMessage> {
 }
 
 let transpileRequestSeq = 0;
-let tsTranspileQueueTail: Promise<void> = Promise.resolve();
-let tsTranspileQueuedCount = 0;
 
-async function runWithTsTranspileLock<T>(task: () => Promise<T>): Promise<T> {
-	const previous = tsTranspileQueueTail;
-	let release: () => void = () => { };
-	tsTranspileQueueTail = new Promise<void>(resolve => {
-		release = () => resolve();
-	});
-	tsTranspileQueuedCount += 1;
-	if (tsTranspileQueuedCount > 1) {
-		Log("Info", `[build] waiting for TS transpile queue pending=${tsTranspileQueuedCount - 1}`);
-	}
-	await previous;
-	try {
-		return await task();
-	} finally {
-		tsTranspileQueuedCount = math.max(0, tsTranspileQueuedCount - 1);
-		release();
-	}
-}
-
-async function runSingleTsTranspileUnlocked(file: string, content: string): Promise<BuildMessage> {
+export async function runSingleTsTranspile(file: string, content: string): Promise<BuildMessage> {
 	let done = false;
 	transpileRequestSeq += 1;
 	const requestId = `agent-build-${transpileRequestSeq}`;
@@ -740,10 +708,6 @@ async function runSingleTsTranspileUnlocked(file: string, content: string): Prom
 		}));
 	});
 	return result;
-}
-
-export async function runSingleTsTranspile(file: string, content: string): Promise<BuildMessage> {
-	return runWithTsTranspileLock(() => runSingleTsTranspileUnlocked(file, content));
 }
 
 export function createTask(prompt = ""): CreateTaskResult {
@@ -1658,11 +1622,9 @@ export async function build(req: { workDir: string; path: string }): Promise<Bui
 			}
 			if (!sendWebIDEFileUpdate(file, true, content)) {
 				messages.push({ success: false, file, message: "failed to encode UpdateFile request" });
-				await pauseBetweenTsTranspiles();
 				continue;
 			}
 			messages.push(await runSingleTsTranspile(file, content));
-			await pauseBetweenTsTranspiles();
 			continue;
 		}
 		messages.push(await runSingleNonTsBuild(file));
