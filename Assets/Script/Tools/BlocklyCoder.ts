@@ -4,7 +4,7 @@ import * as ImGui from "ImGui";
 import { InputTextFlag, SetCond, WindowFlag } from "ImGui";
 import { Node, Flow } from 'Agent/flow';
 import { callLLMStream, Message } from 'Agent/Utils';
-import * as Config from 'Config'; 
+import * as Config from 'Config';
 
 let zh = false;
 {
