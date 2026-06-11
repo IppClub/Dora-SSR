@@ -14,6 +14,9 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Tools/dora-dora
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -31,11 +34,11 @@ jobs:
           cache-dependency-path: 'Tools/dora-dora/pnpm-lock.yaml'
 
       - name: Install dependencies
-        run: cd Tools/dora-dora && pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Lint (oxlint)
         # oxlint exits 0 for warnings, 1 for errors — only errors block the build
-        run: cd Tools/dora-dora && pnpm lint
+        run: pnpm lint
 
       - name: Build (Vite)
-        run: cd Tools/dora-dora && pnpm build
+        run: pnpm build
