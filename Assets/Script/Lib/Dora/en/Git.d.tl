@@ -1,5 +1,6 @@
 -- A record that provides Git command functions.
 local record Git
+
 	enum JobState
 		"queued"
 		"running"
@@ -13,6 +14,7 @@ local record Git
 		"clone"
 		"ls-remote"
 		"status"
+		"diff"
 		"add"
 		"rm"
 		"commit"
@@ -38,15 +40,24 @@ local record Git
 		"ref"
 	end
 
+	record LFSData
+		objects: number
+		downloaded: number | nil
+		uploaded: number | nil
+		hydrated: boolean | nil
+	end
+
 	record HashData
 		head: string
 		ref: string
+		lfs: LFSData | nil
 	end
 
 	record CloneData
 		path: string
 		head: string | nil
 		ref: string | nil
+		lfs: LFSData | nil
 	end
 
 	record InitData
@@ -78,16 +89,50 @@ local record Git
 		files: {FileStatus}
 	end
 
+	enum DiffMode
+		"diff"
+		"empty"
+		"binary"
+		"large"
+	end
+
+	record DiffData
+		path: string
+		staged: boolean | nil
+		commit: string | nil
+		mode: DiffMode
+		oldText: string | nil
+		newText: string | nil
+		binary: boolean | nil
+		oldSize: number | nil
+		newSize: number | nil
+		message: string | nil
+	end
+
 	record PathsData
 		paths: {string}
+		lfs: {string} | nil
 	end
 
 	record CommitData
 		commit: string
 	end
 
+	record UpstreamData
+		branch: string
+		remote: string
+		merge: string
+	end
+
 	record UpToDateData
-		upToDate: boolean
+		upToDate: boolean | nil
+		lfs: LFSData | nil
+		upstream: UpstreamData | nil
+	end
+
+	record ChangedFile
+		path: string
+		status: string
 	end
 
 	record LogCommit
@@ -96,6 +141,7 @@ local record Git
 		author: string
 		email: string
 		when: string
+		files: {ChangedFile}
 	end
 
 	record LogData
@@ -106,18 +152,21 @@ local record Git
 		paths: {string}
 		staged: boolean
 		worktree: boolean
+		lfs: LFSData | nil
 	end
 
 	record BranchInfo
 		name: string
 		hash: string
-		current: boolean
+		current: boolean | nil
+		remote: string | nil
 	end
 
 	record BranchData
 		branch: string
 		hash: string | nil
 		deleted: boolean | nil
+		unborn: boolean | nil
 	end
 
 	record BranchListData
@@ -128,6 +177,7 @@ local record Git
 	record TagInfo
 		name: string
 		hash: string
+		ref: string
 	end
 
 	record TagData
@@ -160,6 +210,15 @@ local record Git
 		from: string
 		to: string
 		hash: string
+		lfs: {string} | nil
+	end
+
+	record CheckoutData
+		head: string | nil
+		ref: string | nil
+		lfs: LFSData | nil
+		branch: string | nil
+		unborn: boolean | nil
 	end
 
 	record Status
@@ -182,31 +241,44 @@ local record Git
 	-- For clone, repoPath is the parent directory and the optional dir argument
 	-- is the new repository folder name; when dir is omitted, the folder name is
 	-- inferred from the URL.
+	-- Repositories using Git LFS are handled transparently: add and status
+	-- honor filter=lfs attributes; clone, pull, checkout, hard reset, and
+	-- restore download and hydrate LFS objects; fetch downloads LFS objects;
+	-- push uploads LFS objects before updating Git refs.
 	-- Supported commands:
 	-- * init [--bare]
 	-- * clone <url> [dir] [-b|--branch <name>] [--depth <n>]
 	-- * ls-remote <url>
 	-- * status
+	-- * diff [--cached|--staged] [--] <path>
+	-- * diff <40-character-commit-hash> -- <path>
 	-- * add <path...> | add . | add -A|--all
 	-- * rm <path...>
 	-- * commit -m|--message <msg> [-a|--all] [--allow-empty] [--amend] [--author-name <name>] [--author-email <email>]
 	-- * pull [remote] [branch] [-f|--force]
 	-- * fetch [remote] [-f|--force] [-p|--prune] [--depth <n>]
-	-- * push [remote] [branch] [-f|--force]
-	-- * log [-n|--limit <n>] [-- <path...>]
-	-- * checkout <branch-or-commit> [-f|--force]
-	-- * checkout -b <branch>
-	-- * reset [--soft|--mixed|--hard] <commit> [--confirm]
+	-- * push [remote] [branch] [-f|--force] [-u|--set-upstream]
+	-- * log [-n|--limit <n>] [-- <path>]
+	-- * checkout [-f|--force] <branch-or-40-character-commit-hash>
+	-- * checkout [-f|--force] -b <branch> [start-point]
+	-- * reset [--soft|--mixed|--hard] <40-character-commit-hash> [--confirm]
 	-- * restore [--staged] [--worktree] <path...>
 	-- * clean -f|--force
 	-- * branch | branch <name> | branch -d <name>
 	-- * tag | tag <name> | tag -a <name> -m <msg> | tag -d <name>
-	-- * remote -v | remote add <name> <url> | remote set-url <name> <url> | remote remove <name>
+	-- * remote | remote -v | remote add <name> <url> | remote set-url <name> <url> | remote remove <name>
 	-- * mv <from> <to> (single files only)
+	-- Paths are relative to repoPath. pull, fetch, and push default to origin;
+	-- omitting a branch uses the current branch. reset --hard requires --confirm.
+	-- push -u|--set-upstream updates the local branch configuration after push.
 	-- optionsJSON is optional and currently supports auth for clone, ls-remote,
-	-- fetch, pull, and push:
+	-- fetch, pull, push, and their automatic LFS transfers:
 	-- * {"auth":{"type":"basic","username":"user","password":"pass"}}
 	-- * {"auth":{"type":"token","token":"access-token","username":"token"}}
+	-- For token auth, username is optional and defaults to "token". Automatic
+	-- LFS requests reuse auth only when the LFS URL has the same host as the Git
+	-- remote; action-specific authorization headers returned by the LFS server
+	-- take precedence.
 	-- @param repoPath (string) The repository path. For clone, this is the parent directory.
 	-- @param command (string) The Git command string.
 	-- @param callback (function) Receives a decoded Status table.

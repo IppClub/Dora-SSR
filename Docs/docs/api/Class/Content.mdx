@@ -348,6 +348,31 @@ getFullPath: function(self: Content, filename: string): string
 | --- | --- |
 | string | The full path of the file. |
 
+## getAttr
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets file attributes including byte size and whether the file is likely binary.
+
+**Signature:**
+```tl
+getAttr: function(self: Content, filename: string): integer | nil, boolean | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The name of the file to inspect. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer \| nil, boolean \| nil | The file size and binary flag, or nil when the file is not found. |
+
 ## insertSearchPath
 
 **Type:** Function.

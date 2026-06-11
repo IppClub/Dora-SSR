@@ -347,6 +347,31 @@ getFullPath: function(self: Content, filename: string): string
 | --- | --- |
 | string | 文件的完整路径。 |
 
+## getAttr
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取文件属性，包括字节长度以及文件是否可能是二进制文件。
+
+**签名：**
+```tl
+getAttr: function(self: Content, filename: string): integer | nil, boolean | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 要检查的文件名。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer \| nil, boolean \| nil | 文件字节长度和二进制标记；找不到文件时返回 nil。 |
+
 ## insertSearchPath
 
 **类型：** 函数。

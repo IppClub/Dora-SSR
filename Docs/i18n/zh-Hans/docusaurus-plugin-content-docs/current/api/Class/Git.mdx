@@ -1,0 +1,86 @@
+# Git
+
+**描述：**
+
+&emsp;&emsp;提供 Git 命令功能的记录。
+
+## run
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;运行支持的 Git 命令，并自动轮询状态。
+命令可以带 "git " 前缀。不支持 shell 语法，也不支持 "git -C"；
+请通过 repoPath 传入工作仓库路径。包含空格的参数可用单引号或双引号包裹。
+clone 时 repoPath 是父目录，可选 dir 参数是新建仓库文件夹名；
+省略 dir 时会从 URL 推导文件夹名。
+使用 Git LFS 的仓库会被透明处理：add 和 status 遵循 filter=lfs
+属性；clone、pull、checkout、hard reset 和 restore 会下载并展开
+LFS 对象；fetch 会下载 LFS 对象；push 会先上传 LFS 对象再更新 Git 引用。
+支持的命令：
+* init [--bare]
+* clone <url> [dir] [-b|--branch <name>] [--depth <n>]
+* ls-remote <url>
+* status
+* diff [--cached|--staged] [--] <path>
+* diff <40位commit哈希> -- <path>
+* add <path...> | add . | add -A|--all
+* rm <path...>
+* commit -m|--message <msg> [-a|--all] [--allow-empty] [--amend] [--author-name <name>] [--author-email <email>]
+* pull [remote] [branch] [-f|--force]
+* fetch [remote] [-f|--force] [-p|--prune] [--depth <n>]
+* push [remote] [branch] [-f|--force] [-u|--set-upstream]
+* log [-n|--limit <n>] [-- <path>]
+* checkout [-f|--force] <branch或40位commit哈希>
+* checkout [-f|--force] -b <branch> [start-point]
+* reset [--soft|--mixed|--hard] <40位commit哈希> [--confirm]
+* restore [--staged] [--worktree] <path...>
+* clean -f|--force
+* branch | branch <name> | branch -d <name>
+* tag | tag <name> | tag -a <name> -m <msg> | tag -d <name>
+* remote | remote -v | remote add <name> <url> | remote set-url <name> <url> | remote remove <name>
+* mv <from> <to>（仅支持单文件）
+文件路径均相对于 repoPath。pull、fetch 和 push 默认使用 origin；
+省略分支时使用当前分支。reset --hard 必须带 --confirm。
+push -u|--set-upstream 会在推送成功后更新本地分支配置。
+optionsJSON 是可选参数，目前支持给 clone、ls-remote、fetch、pull 和 push
+及其自动触发的 LFS 传输提供认证信息：
+* \{"auth":\{"type":"basic","username":"user","password":"pass"}}
+* \{"auth":\{"type":"token","token":"access-token","username":"token"}}
+token 认证的 username 可省略，默认值为 "token"。仅当 LFS URL 与 Git
+远程地址同 host 时，自动 LFS 请求才会复用认证信息；LFS 服务端返回的
+action 专用认证请求头优先。
+
+**签名：**
+```tl
+run: function(self: Git, repoPath: string, command: string, callback: function(status: Status), optionsJSON?: string): number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| repoPath | string | 仓库路径。clone 时该路径是父目录。 |
+| command | string | Git 命令字符串。 |
+| callback | function | 接收已解码 Status 表的回调函数。 |
+| optionsJSON | string | 可选的 JSON 配置。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 用于取消任务的 Git 命令句柄。 |
+
+## cancel
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;取消 Git 任务。对 run 返回的句柄调用时，也会释放 Git 任务。
+
+**签名：**
+```tl
+cancel: function(self: Git, jobId: number): boolean
+```

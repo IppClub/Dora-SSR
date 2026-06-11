@@ -8052,18 +8052,28 @@ const wasm: Wasm;
 export {wasm as Wasm};
 
 type GitJobState = "queued" | "running" | "done" | "error" | "canceled";
-type GitKind = "init" | "clone" | "ls-remote" | "status" | "add" | "rm" | "commit" | "pull" | "fetch" | "push" | "log" | "checkout" | "reset" | "restore" | "clean" | "branch" | "tag" | "remote" | "mv";
+type GitKind = "init" | "clone" | "ls-remote" | "status" | "diff" | "add" | "rm" | "commit" | "pull" | "fetch" | "push" | "log" | "checkout" | "reset" | "restore" | "clean" | "branch" | "tag" | "remote" | "mv";
 type GitRefKind = "head" | "branch" | "tag" | "remote" | "ref";
+type GitDiffMode = "diff" | "empty" | "binary" | "large";
 
 interface GitHashData {
 	head: string;
 	ref: string;
+	lfs?: GitLFSData;
+}
+
+interface GitLFSData {
+	objects: number;
+	downloaded?: number;
+	uploaded?: number;
+	hydrated?: boolean;
 }
 
 interface GitCloneData {
 	path: string;
 	head?: string;
 	ref?: string;
+	lfs?: GitLFSData;
 }
 
 interface GitInitData {
@@ -8095,8 +8105,22 @@ interface GitWorktreeStatusData {
 	files: GitFileStatus[];
 }
 
+interface GitDiffData {
+	path: string;
+	staged?: boolean;
+	commit?: string;
+	mode: GitDiffMode;
+	oldText?: string;
+	newText?: string;
+	binary?: boolean;
+	oldSize?: number;
+	newSize?: number;
+	message?: string;
+}
+
 interface GitPathsData {
 	paths: string[];
+	lfs?: string[];
 }
 
 interface GitCommitData {
@@ -8104,7 +8128,20 @@ interface GitCommitData {
 }
 
 interface GitUpToDateData {
-	upToDate: boolean;
+	upToDate?: boolean;
+	lfs?: GitLFSData;
+	upstream?: GitUpstreamData;
+}
+
+interface GitUpstreamData {
+	branch: string;
+	remote: string;
+	merge: string;
+}
+
+interface GitChangedFile {
+	path: string;
+	status: string;
 }
 
 interface GitLogCommit {
@@ -8113,6 +8150,7 @@ interface GitLogCommit {
 	author: string;
 	email: string;
 	when: string;
+	files: GitChangedFile[];
 }
 
 interface GitLogData {
@@ -8123,18 +8161,21 @@ interface GitRestoreData {
 	paths: string[];
 	staged: boolean;
 	worktree: boolean;
+	lfs?: GitLFSData;
 }
 
 interface GitBranchInfo {
 	name: string;
 	hash: string;
-	current: boolean;
+	current?: boolean;
+	remote?: string;
 }
 
 interface GitBranchData {
 	branch: string;
 	hash?: string;
 	deleted?: boolean;
+	unborn?: boolean;
 }
 
 interface GitBranchListData {
@@ -8145,6 +8186,7 @@ interface GitBranchListData {
 interface GitTagInfo {
 	name: string;
 	hash: string;
+	ref: string;
 }
 
 interface GitTagData {
@@ -8177,9 +8219,18 @@ interface GitMoveData {
 	from: string;
 	to: string;
 	hash: string;
+	lfs?: string[];
 }
 
-type GitResultData = GitHashData | GitCloneData | GitInitData | GitLsRemoteData | GitWorktreeStatusData | GitPathsData | GitCommitData | GitUpToDateData | GitLogData | GitRestoreData | GitBranchData | GitBranchListData | GitTagData | GitTagListData | GitRemoteData | GitRemoteListData | GitMoveData;
+interface GitCheckoutData {
+	head?: string;
+	ref?: string;
+	lfs?: GitLFSData;
+	branch?: string;
+	unborn?: boolean;
+}
+
+type GitResultData = GitHashData | GitCloneData | GitInitData | GitLsRemoteData | GitWorktreeStatusData | GitDiffData | GitPathsData | GitCommitData | GitUpToDateData | GitLogData | GitRestoreData | GitBranchData | GitBranchListData | GitTagData | GitTagListData | GitRemoteData | GitRemoteListData | GitMoveData | GitCheckoutData;
 
 interface GitStatusBase {
 	id: number;
@@ -8207,14 +8258,15 @@ interface GitInitStatus extends GitDoneStatusBase { kind: "init"; data: GitInitD
 interface GitCloneStatus extends GitDoneStatusBase { kind: "clone"; data: GitCloneData; }
 interface GitLsRemoteStatus extends GitDoneStatusBase { kind: "ls-remote"; data: GitLsRemoteData; }
 interface GitWorktreeStatus extends GitDoneStatusBase { kind: "status"; data: GitWorktreeStatusData; }
+interface GitDiffStatus extends GitDoneStatusBase { kind: "diff"; data: GitDiffData; }
 interface GitAddStatus extends GitDoneStatusBase { kind: "add"; data: GitPathsData; }
 interface GitRmStatus extends GitDoneStatusBase { kind: "rm"; data: GitPathsData; }
 interface GitCommitStatus extends GitDoneStatusBase { kind: "commit"; data: GitCommitData; }
-interface GitPullStatus extends GitDoneStatusBase { kind: "pull"; data?: GitUpToDateData; }
-interface GitFetchStatus extends GitDoneStatusBase { kind: "fetch"; data?: GitUpToDateData; }
-interface GitPushStatus extends GitDoneStatusBase { kind: "push"; data?: GitUpToDateData; }
+interface GitPullStatus extends GitDoneStatusBase { kind: "pull"; data: GitUpToDateData; }
+interface GitFetchStatus extends GitDoneStatusBase { kind: "fetch"; data: GitUpToDateData; }
+interface GitPushStatus extends GitDoneStatusBase { kind: "push"; data: GitUpToDateData; }
 interface GitLogStatus extends GitDoneStatusBase { kind: "log"; data: GitLogData; }
-interface GitCheckoutStatus extends GitDoneStatusBase { kind: "checkout"; data: GitHashData; }
+interface GitCheckoutStatus extends GitDoneStatusBase { kind: "checkout"; data: GitCheckoutData; }
 interface GitResetStatus extends GitDoneStatusBase { kind: "reset"; data: GitHashData; }
 interface GitRestoreStatus extends GitDoneStatusBase { kind: "restore"; data: GitRestoreData; }
 interface GitCleanStatus extends GitDoneStatusBase { kind: "clean"; data?: undefined; }
@@ -8223,7 +8275,7 @@ interface GitTagStatus extends GitDoneStatusBase { kind: "tag"; data: GitTagData
 interface GitRemoteStatus extends GitDoneStatusBase { kind: "remote"; data: GitRemoteData | GitRemoteListData; }
 interface GitMoveStatus extends GitDoneStatusBase { kind: "mv"; data: GitMoveData; }
 
-type GitDoneStatus = GitInitStatus | GitCloneStatus | GitLsRemoteStatus | GitWorktreeStatus | GitAddStatus | GitRmStatus | GitCommitStatus | GitPullStatus | GitFetchStatus | GitPushStatus | GitLogStatus | GitCheckoutStatus | GitResetStatus | GitRestoreStatus | GitCleanStatus | GitBranchStatus | GitTagStatus | GitRemoteStatus | GitMoveStatus;
+type GitDoneStatus = GitInitStatus | GitCloneStatus | GitLsRemoteStatus | GitWorktreeStatus | GitDiffStatus | GitAddStatus | GitRmStatus | GitCommitStatus | GitPullStatus | GitFetchStatus | GitPushStatus | GitLogStatus | GitCheckoutStatus | GitResetStatus | GitRestoreStatus | GitCleanStatus | GitBranchStatus | GitTagStatus | GitRemoteStatus | GitMoveStatus;
 type GitStatus = GitQueuedStatus | GitRunningStatus | GitErrorStatus | GitCanceledStatus | GitDoneStatus;
 
 /**
@@ -8238,32 +8290,45 @@ interface Git {
 	 * clone 时 `repoPath` 是父目录，可选 `dir` 参数是新建仓库文件夹名；
 	 * 省略 `dir` 时会从 URL 推导文件夹名。
 	 *
+	 * 使用 Git LFS 的仓库会被透明处理：add 和 status 遵循 `filter=lfs`
+	 * 属性；clone、pull、checkout、hard reset 和 restore 会下载并展开
+	 * LFS 对象；fetch 会下载 LFS 对象；push 会先上传 LFS 对象再更新 Git 引用。
+	 *
 	 * 支持的命令：
 	 * - `init [--bare]`
 	 * - `clone <url> [dir] [-b|--branch <name>] [--depth <n>]`
 	 * - `ls-remote <url>`
 	 * - `status`
+	 * - `diff [--cached|--staged] [--] <path>`
+	 * - `diff <40位commit哈希> -- <path>`
 	 * - `add <path...>`、`add .`、`add -A|--all`
 	 * - `rm <path...>`
 	 * - `commit -m|--message <msg> [-a|--all] [--allow-empty] [--amend] [--author-name <name>] [--author-email <email>]`
 	 * - `pull [remote] [branch] [-f|--force]`
 	 * - `fetch [remote] [-f|--force] [-p|--prune] [--depth <n>]`
-	 * - `push [remote] [branch] [-f|--force]`
-	 * - `log [-n|--limit <n>] [-- <path...>]`
-	 * - `checkout <branch-or-commit> [-f|--force]`
-	 * - `checkout -b <branch>`
-	 * - `reset [--soft|--mixed|--hard] <commit> [--confirm]`
+	 * - `push [remote] [branch] [-f|--force] [-u|--set-upstream]`
+	 * - `log [-n|--limit <n>] [-- <path>]`
+	 * - `checkout [-f|--force] <branch或40位commit哈希>`
+	 * - `checkout [-f|--force] -b <branch> [start-point]`
+	 * - `reset [--soft|--mixed|--hard] <40位commit哈希> [--confirm]`
 	 * - `restore [--staged] [--worktree] <path...>`
 	 * - `clean -f|--force`
 	 * - `branch`、`branch <name>`、`branch -d <name>`
 	 * - `tag`、`tag <name>`、`tag -a <name> -m <msg>`、`tag -d <name>`
-	 * - `remote -v`、`remote add <name> <url>`、`remote set-url <name> <url>`、`remote remove <name>`
+	 * - `remote`、`remote -v`、`remote add <name> <url>`、`remote set-url <name> <url>`、`remote remove <name>`
 	 * - `mv <from> <to>`（仅支持单文件）
 	 *
+	 * 文件路径均相对于 `repoPath`。pull、fetch 和 push 默认使用 `origin`；
+	 * 省略分支时使用当前分支。`reset --hard` 必须带 `--confirm`。
+	 * `push -u|--set-upstream` 会在推送成功后更新本地分支配置。
+	 *
 	 * `optionsJSON` 是可选参数，目前支持给 clone、ls-remote、fetch、pull 和 push
-	 * 提供认证信息：
+	 * 及其自动触发的 LFS 传输提供认证信息：
 	 * - `{"auth":{"type":"basic","username":"user","password":"pass"}}`
 	 * - `{"auth":{"type":"token","token":"access-token","username":"token"}}`
+	 * token 认证的 `username` 可省略，默认值为 `"token"`。仅当 LFS URL 与
+	 * Git 远程地址同 host 时，自动 LFS 请求才会复用认证信息；LFS 服务端
+	 * 返回的 action 专用认证请求头优先。
 	 *
 	 * @param repoPath 仓库路径。clone 时该路径是父目录。
 	 * @param command Git 命令字符串。
