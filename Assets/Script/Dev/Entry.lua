@@ -2401,5 +2401,5 @@ entryWindow = threadLoop(function() -- 1211
 		end) -- 1277
 	end -- 1276
 end) -- 1211
-webStatus = require("Script.Dev.WebServer") -- 1433
+webStatus = oldRequire("Script.Dev.WebServer") -- 1434
 return _module_0 -- 1

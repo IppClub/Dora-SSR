@@ -217,10 +217,6 @@ type TranspileTSQueueItem = {
 	id?: unknown;
 };
 
-const waitForBrowserTurn = () => new Promise<void>(resolve => setTimeout(resolve, 0));
-const transpileTSQueue: TranspileTSQueueItem[] = [];
-let transpileTSQueueRunning = false;
-
 const sendTranspileTSResponse = (item: TranspileTSQueueItem, response: WebSocketPayload) => {
 	if (item.id !== undefined) {
 		response.id = item.id;
@@ -228,38 +224,20 @@ const sendTranspileTSResponse = (item: TranspileTSQueueItem, response: WebSocket
 	sendWebSocketMessage(response);
 };
 
-const processTranspileTSQueue = async () => {
-	if (transpileTSQueueRunning) return;
-	transpileTSQueueRunning = true;
+const handleTranspileTS = async (item: TranspileTSQueueItem) => {
 	try {
-		while (transpileTSQueue.length > 0) {
-			const item = transpileTSQueue.shift();
-			if (!item) continue;
-			await waitForBrowserTurn();
-			try {
-				const { transpileTypescript, getDiagnosticMessage } = await import('./TranspileTS');
-				await waitForBrowserTurn();
-				const { success, luaCode, diagnostics } = await transpileTypescript(item.file, item.content);
-				if (success) {
-					sendTranspileTSResponse(item, { name: WsEvent.TranspileTS, success, file: item.file, luaCode, message: "" });
-				} else {
-					const message = await getDiagnosticMessage(item.file, diagnostics);
-					sendTranspileTSResponse(item, { name: WsEvent.TranspileTS, success, file: item.file, luaCode: "", message });
-				}
-			} catch (err) {
-				const message = err instanceof Error ? err.message : String(err);
-				sendTranspileTSResponse(item, { name: WsEvent.TranspileTS, success: false, file: item.file, luaCode: "", message });
-			}
-			await waitForBrowserTurn();
+		const { transpileTypescript, getDiagnosticMessage } = await import('./TranspileTS');
+		const { success, luaCode, diagnostics } = await transpileTypescript(item.file, item.content);
+		if (success) {
+			sendTranspileTSResponse(item, { name: WsEvent.TranspileTS, success, file: item.file, luaCode, message: "" });
+		} else {
+			const message = await getDiagnosticMessage(item.file, diagnostics);
+			sendTranspileTSResponse(item, { name: WsEvent.TranspileTS, success, file: item.file, luaCode: "", message });
 		}
-	} finally {
-		transpileTSQueueRunning = false;
+	} catch (err) {
+		const message = err instanceof Error ? err.message : String(err);
+		sendTranspileTSResponse(item, { name: WsEvent.TranspileTS, success: false, file: item.file, luaCode: "", message });
 	}
-};
-
-const enqueueTranspileTS = (item: TranspileTSQueueItem) => {
-	transpileTSQueue.push(item);
-	void processTranspileTSQueue();
 };
 
 export function openWebSocket() {
@@ -336,7 +314,7 @@ export function openWebSocket() {
 							case WsEvent.TranspileTS: {
 								const { file, content } = result;
 								if (typeof file === 'string' && typeof content === 'string') {
-									enqueueTranspileTS({ file, content, id: result.id });
+									void handleTranspileTS({ file, content, id: result.id });
 								}
 								break;
 							}
