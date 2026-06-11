@@ -50,9 +50,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === "object";
 }
 
-function isArray(value: unknown): value is any[] {
+function isArray(value: unknown): value is unknown[] {
 	return Array.isArray(value);
 }
+
+const optStr = (str: string, def: string) => str === '' ? def : str;
 
 export interface AgentConversationMessage extends Message {
 	timestamp?: string;
@@ -780,7 +782,7 @@ function ensureDirRecursive(dir: string): boolean {
 	if (!dir || dir === "") return false;
 	if (Content.exist(dir)) return Content.isdir(dir);
 	const parent = Path.getPath(dir);
-	if (parent && parent !== dir && !Content.exist(parent)) {
+	if (parent !== "" && parent !== dir && !Content.exist(parent)) {
 		if (!ensureDirRecursive(parent)) {
 			return false;
 		}
@@ -1068,7 +1070,7 @@ export class DualLayerStorage {
 		const evidence: string[] = [];
 		if (!isArray(value)) return evidence;
 		for (let i = 0; i < value.length && evidence.length < SUB_AGENT_MEMORY_EVIDENCE_MAX_ITEMS; i++) {
-			const item = typeof value[i] === "string" ? sanitizeUTF8(value[i]).trim() : "";
+			const item = typeof value[i] === "string" ? sanitizeUTF8(value[i] as string).trim() : "";
 			if (item !== "" && evidence.indexOf(item) < 0) {
 				evidence.push(item);
 			}
@@ -1744,15 +1746,15 @@ export class MemoryCompressor {
 			COMPRESSION_DYNAMIC_MIN_TOKENS,
 			contextWindow - reservedOutputTokens - staticPromptTokens - COMPRESSION_DYNAMIC_PROMPT_OVERHEAD_TOKENS
 		);
-		const boundedMemory = clipTextToTokenBudget(currentMemory || "(empty)", math.max(
+		const boundedMemory = clipTextToTokenBudget(optStr(currentMemory, "(empty)"), math.max(
 			COMPRESSION_SECTION_MEMORY_MIN_TOKENS,
 			math.floor(dynamicBudget * COMPRESSION_SECTION_MEMORY_RATIO)
 		));
-		const boundedProjectMemory = clipTextToTokenBudget(this.storage.readProjectMemory() || "(empty)", math.max(
+		const boundedProjectMemory = clipTextToTokenBudget(optStr(this.storage.readProjectMemory(), "(empty)"), math.max(
 			COMPRESSION_SECTION_MEMORY_MIN_TOKENS,
 			math.floor(dynamicBudget * COMPRESSION_SECTION_MEMORY_RATIO)
 		));
-		const boundedSessionSummary = clipTextToTokenBudget(this.storage.readSessionSummary() || "(empty)", math.max(
+		const boundedSessionSummary = clipTextToTokenBudget(optStr(this.storage.readSessionSummary(), "(empty)"), math.max(
 			COMPRESSION_SECTION_SESSION_MIN_TOKENS,
 			math.floor(dynamicBudget * COMPRESSION_SECTION_SESSION_RATIO)
 		));
@@ -1965,9 +1967,9 @@ export class MemoryCompressor {
 	 */
 	private buildCompressionPromptBodyRaw(currentMemory: string, historyText: string): string {
 		return replaceTemplateVars(this.config.promptPack.memoryCompressionBodyPrompt, {
-			CURRENT_MEMORY: currentMemory || "(empty)",
-			CURRENT_PROJECT_MEMORY: this.storage.readProjectMemory() || "(empty)",
-			CURRENT_SESSION_SUMMARY: this.storage.readSessionSummary() || "(empty)",
+			CURRENT_MEMORY: optStr(currentMemory, "(empty)"),
+			CURRENT_PROJECT_MEMORY: optStr(this.storage.readProjectMemory(), "(empty)"),
+			CURRENT_SESSION_SUMMARY: optStr(this.storage.readSessionSummary(), "(empty)"),
 			HISTORY_TEXT: historyText,
 		});
 	}

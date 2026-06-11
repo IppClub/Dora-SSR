@@ -43,7 +43,7 @@ class BaseNode<S = unknown, P extends NonIterableObject = NonIterableObject> {
 		return this;
 	}
 	getNextNode(action: Action = "default"): BaseNode | undefined {
-		const nextAction = action || 'default', next = this._successors.get(nextAction)
+		const nextAction = (action === '' ? undefined : action) || 'default', next = this._successors.get(nextAction)
 		if (!next && this._successors.size > 0)
 			Log("Error", `Flow ends: '${nextAction}' not found in [${Array.from(this._successors.keys())}]`)
 		return next

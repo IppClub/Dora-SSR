@@ -1138,7 +1138,7 @@ local function mergeStreamChoice(acc, choice, onToolCallReady, emittedToolCallId
 		message.reasoning_content = (message.reasoning_content or "") .. reasoningContent -- 984
 	end -- 984
 	local toolCalls = delta.tool_calls and #delta.tool_calls > 0 and delta.tool_calls or (fullMessage.tool_calls or ({})) -- 986
-	if toolCalls and #toolCalls > 0 then -- 986
+	if #toolCalls > 0 then -- 986
 		if message.tool_calls == nil then -- 986
 			message.tool_calls = {} -- 990
 		end -- 990
@@ -1154,7 +1154,7 @@ local function mergeStreamChoice(acc, choice, onToolCallReady, emittedToolCallId
 				mergeStreamToolCall(message.tool_calls[index + 1], item) -- 997
 				if onToolCallReady and emittedToolCallIds then -- 997
 					local tc = message.tool_calls[index + 1] -- 999
-					if tc and isToolCallComplete(tc) and not emittedToolCallIds[tc.id] then -- 999
+					if isToolCallComplete(tc) and not emittedToolCallIds[tc.id] then -- 999
 						emittedToolCallIds[tc.id] = true -- 1001
 						onToolCallReady(tc) -- 1002
 					end -- 1002

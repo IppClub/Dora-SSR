@@ -11,7 +11,7 @@ namespace Gen {
 	}
 
 	type InputMap = Record<string, Blk>;
-	type FieldMap = Record<string, any>;
+	type FieldMap = Record<string, unknown>;
 
 	export class Blk {
 		readonly id: string;
@@ -37,8 +37,8 @@ namespace Gen {
 			return node;
 		}
 
-		toJSON(): any {
-			const j: any = { type: this.type, id: this.id };
+		toJSON(): AnyTable {
+			const j: AnyTable = { type: this.type, id: this.id };
 			if (this.fields) j.fields = this.fields;
 			if (this.inputs) {
 				j.inputs = {};
@@ -142,26 +142,27 @@ namespace Gen {
 	};
 
 	const collectVariables = (node: Blk, set = new Set<string>()) => {
-		if (node.type === "declare_variable" && node.fields?.VAR?.id) {
-			set.add(node.fields.VAR.id);
+		const v = node.fields?.VAR as AnyTable | undefined;
+		if (node.type === "declare_variable" && v?.id) {
+			set.add(v.id);
 		}
 		if (node.inputs) {
 			for (let [, n] of pairs(node.inputs)) {
 				collectVariables(n, set);
 			}
 		}
-		if ((node as any)._next) collectVariables((node as any)._next, set);
+		if ((node as AnyTable)._next) collectVariables((node as AnyTable)._next, set);
 		return set;
 	};
 
 	const fixProcParamNames = (node: Blk, funcs: Blk[]) => {
 		if (node.type === "procedures_callnoreturn" || node.type === "procedures_callreturn") {
-			const funcName = (node.extraState as any).name as string;
+			const funcName = (node.extraState as AnyTable).name as string;
 			for (let func of funcs) {
 				const name = func.fields?.NAME as string;
 				if (funcName === name) {
-					const params = (func.extraState as any).params as ProcParam[];
-					(node.extraState as any).params = params.map(param => param.name);
+					const params = (func.extraState as AnyTable).params as ProcParam[];
+					(node.extraState as AnyTable).params = params.map(param => param.name);
 				}
 			}
 		}
@@ -170,7 +171,7 @@ namespace Gen {
 				fixProcParamNames(n, funcs);
 			}
 		}
-		if ((node as any)._next) fixProcParamNames((node as any)._next, funcs);
+		if ((node as AnyTable)._next) fixProcParamNames((node as AnyTable)._next, funcs);
 	};
 
 	export const Num = (n: number) =>
