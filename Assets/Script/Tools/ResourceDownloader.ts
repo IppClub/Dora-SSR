@@ -430,7 +430,7 @@ class ResourceDownloader {
 				}
 			}));
 		}));
-		function matchCat(this: any, cat: string) { return filterCategory === cat; }
+		function matchCat(this: unknown, cat: string) { return filterCategory === cat; }
 		const maxColumns = math.max(math.floor(width / 320), 1);
 		const itemWidth = (width - 60) / maxColumns - 10;
 		ImGui.SetNextWindowPos(Vec2(0, this.headerHeight), SetCond.Always, Vec2.zero);

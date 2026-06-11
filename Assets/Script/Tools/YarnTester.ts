@@ -88,7 +88,7 @@ control.onAlignLayout((w, h) => {
 
 const commands = setmetatable({}, {
 	__index(this: {}, name: string) {
-		return (...args: any[]) => {
+		return (...args: unknown[]) => {
 			const argStrs = [];
 			for (let i = 0; i < args.length; i++) {
 				argStrs.push(tostring(args[i]));
