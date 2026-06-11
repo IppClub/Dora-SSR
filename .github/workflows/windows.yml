@@ -4,26 +4,22 @@ on:
   push:
     branches: [ main ]
     tags: 'v*.*.*'
-    # Skip CI for changes that don't affect native builds
-    paths-ignore: &windows-paths-ignore
-      # Non-native changes — never trigger OS builds
-      - 'Docs/**'
-      - 'Tools/dora-dora/**'
-      - 'Assets/**'
-      - '**.md'
-      - '**.txt'
-      - '.claude/**'
-      - '.gitattributes'
-      - '.github/**'
-      - '.gitignore'
-      # Other platforms — only trigger when their own code changes
-      - 'Projects/Android/**'
-      - 'Projects/iOS/**'
-      - 'Projects/Linux/**'
-      - 'Projects/macOS/**'
+    paths:
+      # Shared engine code — triggers all platforms
+      - 'Source/**'
+      - 'Tools/tolua++/**'
+      - 'Tools/build-scripts/**'
+      - 'Tools/dora-rust/**'
+      # Platform-specific code
+      - 'Projects/Windows/**'
   pull_request:
     branches: [ main ]
-    paths-ignore: *windows-paths-ignore
+    paths:
+      - 'Source/**'
+      - 'Tools/tolua++/**'
+      - 'Tools/build-scripts/**'
+      - 'Tools/dora-rust/**'
+      - 'Projects/Windows/**'
   workflow_dispatch:
 
 jobs:
