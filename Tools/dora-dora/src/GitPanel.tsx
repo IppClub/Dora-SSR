@@ -666,7 +666,7 @@ export default function GitPanel(props: GitPanelProps) {
 	const [job, setJob] = React.useState<GitJobViewState | null>(null);
 	const [commitMessage, setCommitMessage] = React.useState("");
 	const [commitDescription, setCommitDescription] = React.useState("");
-	const [previewMode, setPreviewMode] = React.useState<GitPreviewMode>("commits");
+	const [previewMode, setPreviewMode] = React.useState<GitPreviewMode>("local");
 	const [selectedCommitHash, setSelectedCommitHash] = React.useState<string | null>(null);
 	const [commitDetailTab, setCommitDetailTab] = React.useState<CommitDetailTab>("commit");
 	const [selectedCommitFilePath, setSelectedCommitFilePath] = React.useState<string>("");
@@ -1028,8 +1028,38 @@ export default function GitPanel(props: GitPanelProps) {
 	}, [projectRoot]);
 
 	React.useEffect(() => {
-		void refresh();
-	}, [refresh]);
+		let retryTimer: ReturnType<typeof setTimeout> | undefined;
+		const tryRefresh = async (attempt: number) => {
+			const res = await Service.gitSummary({ repoPath: projectRoot });
+			if (res.success && res.isRepo) {
+				setSummary(res);
+				if (res.status?.data?.files) {
+					const statusFiles = res.status.data.files as Service.GitFileStatus[];
+					setExpanded(prev => {
+						const nextExpanded = new Set(prev);
+						for (const file of statusFiles) {
+							const parts = file.path.split(/[\\/]+/);
+							for (let i = 1; i < parts.length; i++) nextExpanded.add(parts.slice(0, i).join("/"));
+						}
+						return nextExpanded;
+					});
+				}
+				setLoading(false);
+				return;
+			}
+			if (!res.success || !res.isRepo) {
+				setSummary(res);
+				setLoading(false);
+				return;
+			}
+			retryTimer = setTimeout(() => void tryRefresh(attempt + 1), Math.min(200 + attempt * 100, 3000));
+		};
+		setLoading(true);
+		void tryRefresh(0);
+		return () => {
+			if (retryTimer !== undefined) clearTimeout(retryTimer);
+		};
+	}, [projectRoot]);
 
 	const loadSettings = React.useCallback(async () => {
 		const [profileRes, authRes] = await Promise.all([Service.gitProfileGet(), Service.gitAuthList()]);
@@ -1870,7 +1900,7 @@ export default function GitPanel(props: GitPanelProps) {
 										</Box>
 									</Stack>
 									<Stack spacing={1.25}>
-										<Typography variant="h6" sx={{ color: primaryText, fontSize: 18 }}>{selectedCommit.message}</Typography>
+										<Typography variant="h6" sx={{ color: primaryText, fontSize: 14 }}>{selectedCommit.message}</Typography>
 										<Stack spacing={0.5}>
 											<Typography variant="body2" sx={{ color: mutedText }}>{t("git.sha")} <Box component="span" sx={{ color: primaryText, fontFamily: "monospace" }}>{selectedCommit.hash}</Box></Typography>
 											<Typography variant="body2" sx={{ color: mutedText }}>{t("git.branch")} <Box component="span" sx={{ color: primaryText }}>{summary?.success ? summary.currentBranch ?? t("git.detached") : "-"}</Box></Typography>
