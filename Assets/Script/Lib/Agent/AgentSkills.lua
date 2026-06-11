@@ -330,33 +330,36 @@ function SkillsLoader.prototype.loadSkillContent(self, name) -- 386
 		return nil -- 398
 	end -- 398
 	local parsed = parseYAMLFrontmatter(content) -- 401
-	return parsed.body or nil -- 402
+	if parsed.body == "" then -- 401
+		return nil -- 403
+	end -- 403
+	return parsed.body -- 405
 end -- 386
-function SkillsLoader.prototype.buildSkillsPromptSection(self) -- 405
-	if not self.loaded then -- 405
-		self:load() -- 407
-	end -- 407
-	local sections = {} -- 410
-	local activeContent = self:buildActiveSkillsContent() -- 412
-	sections[#sections + 1] = "# Active Skills\n\n" .. activeContent -- 413
-	local summary = self:buildLevel1Summary() -- 415
-	sections[#sections + 1] = "# Skills\n\nRead a skill's SKILL.md with `read_file` for full instructions.\n\n" .. summary -- 416
+function SkillsLoader.prototype.buildSkillsPromptSection(self) -- 408
+	if not self.loaded then -- 408
+		self:load() -- 410
+	end -- 410
+	local sections = {} -- 413
+	local activeContent = self:buildActiveSkillsContent() -- 415
+	sections[#sections + 1] = "# Active Skills\n\n" .. activeContent -- 416
+	local summary = self:buildLevel1Summary() -- 418
+	sections[#sections + 1] = "# Skills\n\nRead a skill's SKILL.md with `read_file` for full instructions.\n\n" .. summary -- 419
 	return table.concat(sections, "\n\n---\n\n")
-end -- 405
-function SkillsLoader.prototype.escapeXML(self, text) -- 421
-	return escapeXMLText(text) -- 422
-end -- 421
-function SkillsLoader.prototype.reload(self) -- 425
-	self.loaded = false -- 426
-	self:load() -- 427
-end -- 425
-function SkillsLoader.prototype.getSkillCount(self) -- 430
-	if not self.loaded then -- 430
-		self:load() -- 432
-	end -- 432
-	return self.skills.size -- 434
-end -- 430
-function ____exports.createSkillsLoader(config) -- 438
-	return __TS__New(____exports.SkillsLoader, config) -- 439
-end -- 438
-return ____exports -- 438
+end -- 408
+function SkillsLoader.prototype.escapeXML(self, text) -- 424
+	return escapeXMLText(text) -- 425
+end -- 424
+function SkillsLoader.prototype.reload(self) -- 428
+	self.loaded = false -- 429
+	self:load() -- 430
+end -- 428
+function SkillsLoader.prototype.getSkillCount(self) -- 433
+	if not self.loaded then -- 433
+		self:load() -- 435
+	end -- 435
+	return self.skills.size -- 437
+end -- 433
+function ____exports.createSkillsLoader(config) -- 441
+	return __TS__New(____exports.SkillsLoader, config) -- 442
+end -- 441
+return ____exports -- 441

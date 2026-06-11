@@ -290,7 +290,7 @@ function decodeJsonFiles(text: string): { path: string; op: string }[] | undefin
 	if (!value || !Array.isArray(value)) return undefined;
 	const files: { path: string; op: string }[] = [];
 	for (let i = 0; i < value.length; i++) {
-		const item = value[i] as any;
+		const item = value[i];
 		if (type(item) !== "table") continue;
 		files.push({
 			path: sanitizeUTF8(toStr(item.path)),
@@ -383,7 +383,7 @@ function getTaskChangeSetSummary(taskId: number): AgentChangeSetSummaryItem | un
 }
 
 function queryRows(sql: string, args?: (string | number | boolean)[]) {
-	return args ? DB.query(sql, args as any) : DB.query(sql);
+	return args ? DB.query(sql, args) : DB.query(sql);
 }
 
 function queryOne(sql: string, args?: (string | number | boolean)[]) {
@@ -394,14 +394,14 @@ function queryOne(sql: string, args?: (string | number | boolean)[]) {
 
 function getLastInsertRowId(): number {
 	const row = queryOne("SELECT last_insert_rowid()");
-	return row ? ((row[0] as number) || 0) : 0;
+	return row ? (row[0] as number | undefined) || 0 : 0;
 }
 
 function isValidProjectRoot(path: string): boolean {
 	return !!path && Content.isAbsolutePath(path) && Content.exist(path) && Content.isdir(path);
 }
 
-function rowToSession(row: any[]): AgentSessionItem {
+function rowToSession(row: unknown[]): AgentSessionItem {
 	return {
 		id: row[0] as number,
 		projectRoot: toStr(row[1]),
@@ -420,7 +420,7 @@ function rowToSession(row: any[]): AgentSessionItem {
 	};
 }
 
-function rowToMessage(row: any[]): AgentSessionMessageItem {
+function rowToMessage(row: unknown[]): AgentSessionMessageItem {
 	return {
 		id: row[0] as number,
 		sessionId: row[1] as number,
@@ -432,7 +432,7 @@ function rowToMessage(row: any[]): AgentSessionMessageItem {
 	};
 }
 
-function rowToStep(row: any[]): AgentSessionStepItem {
+function rowToStep(row: unknown[]): AgentSessionStepItem {
 	return {
 		id: row[0] as number,
 		sessionId: row[1] as number,
@@ -459,7 +459,7 @@ function getMessageItem(messageId: number): AgentSessionMessageItem | undefined 
 		WHERE id = ?`,
 		[messageId],
 	);
-	return row ? rowToMessage(row as any[]) : undefined;
+	return row ? rowToMessage(row as unknown[]) : undefined;
 }
 
 function getStepItem(sessionId: number, taskId: number, step: number): AgentSessionStepItem | undefined {
@@ -469,7 +469,7 @@ function getStepItem(sessionId: number, taskId: number, step: number): AgentSess
 		WHERE session_id = ? AND task_id = ? AND step = ?`,
 		[sessionId, taskId, step],
 	);
-	return row ? rowToStep(row as any[]) : undefined;
+	return row ? rowToStep(row as unknown[]) : undefined;
 }
 
 function deleteMessageSteps(sessionId: number, taskId: number): number[] {
@@ -480,7 +480,7 @@ function deleteMessageSteps(sessionId: number, taskId: number): number[] {
 	) ?? [];
 	const ids: number[] = [];
 	for (let i = 0; i < rows.length; i++) {
-		const row = rows[i] as any[];
+		const row = rows[i];
 		if (typeof row[0] === "number") {
 			ids.push(row[0] as number);
 		}
@@ -506,7 +506,7 @@ function getSessionRow(sessionId: number) {
 
 function getSessionItem(sessionId: number): AgentSessionItem | undefined {
 	const row = getSessionRow(sessionId);
-	return row ? rowToSession(row as any[]) : undefined;
+	return row ? rowToSession(row) : undefined;
 }
 
 function getTaskPrompt(taskId: number): string | undefined {
@@ -525,7 +525,7 @@ function getLatestMainSessionByProjectRoot(projectRoot: string): AgentSessionIte
 		LIMIT 1`,
 		[projectRoot],
 	);
-	return row ? rowToSession(row as any[]) : undefined;
+	return row ? rowToSession(row) : undefined;
 }
 
 function countRunningSubSessions(rootSessionId: number): number {
@@ -538,7 +538,7 @@ function countRunningSubSessions(rootSessionId: number): number {
 	) ?? [];
 	let count = 0;
 	for (let i = 0; i < rows.length; i++) {
-		const session = normalizeSessionRuntimeState(rowToSession(rows[i] as any[]));
+		const session = normalizeSessionRuntimeState(rowToSession(rows[i]));
 		if (session.currentTaskStatus === "RUNNING") {
 			count++;
 		}
@@ -550,7 +550,7 @@ function deleteSessionRecords(sessionId: number, preserveArtifacts = false) {
 	const session = getSessionItem(sessionId);
 	const children = queryRows(`SELECT id FROM ${TABLE_SESSION} WHERE parent_session_id = ?`, [sessionId]) ?? [];
 	for (let i = 0; i < children.length; i++) {
-		const row = children[i] as any[];
+		const row = children[i];
 		if (typeof row[0] === "number" && row[0] > 0) {
 			deleteSessionRecords(row[0] as number, preserveArtifacts);
 		}
@@ -586,7 +586,7 @@ function listRelatedSessions(sessionId: number): AgentSessionItem[] {
 			id ASC`,
 		[root.id, root.id],
 	) ?? [];
-	return rows.map(row => normalizeSessionRuntimeState(rowToSession(row as any[])));
+	return rows.map(row => normalizeSessionRuntimeState(rowToSession(row)));
 }
 
 function getSessionSpawnInfo(session: AgentSessionItem): AgentSessionSpawnInfo | undefined {
@@ -638,7 +638,7 @@ function ensureDirRecursive(dir: string): boolean {
 	if (!dir || dir === "") return false;
 	if (Content.exist(dir)) return Content.isdir(dir);
 	const parent = Path.getPath(dir);
-	if (parent && parent !== dir && !Content.exist(parent)) {
+	if (parent !== "" && parent !== dir && !Content.exist(parent)) {
 		if (!ensureDirRecursive(parent)) {
 			return false;
 		}
@@ -858,7 +858,7 @@ function normalizeGeneratedSubAgentMemoryEntry(value: unknown, record: SubAgentR
 
 function getMemoryEntryToolFunction(response: unknown): ToolCallFunction | undefined {
 	if (!response || Array.isArray(response) || type(response) !== "table") return undefined;
-	const row = response as Record<string, any>;
+	const row = response as Record<string, unknown>;
 	const choices = row.choices;
 	if (!Array.isArray(choices) || choices.length === 0) return undefined;
 	const message = choices[0]?.message;
@@ -873,7 +873,7 @@ function getMemoryEntryToolFunction(response: unknown): ToolCallFunction | undef
 
 function getMemoryEntryPlainContent(response: unknown): string {
 	if (!response || Array.isArray(response) || type(response) !== "table") return "";
-	const row = response as Record<string, any>;
+	const row = response as Record<string, unknown>;
 	const choices = row.choices;
 	if (!Array.isArray(choices) || choices.length === 0) return "";
 	const message = choices[0]?.message;
@@ -1025,36 +1025,37 @@ function listSubAgentResultRecords(projectRoot: string, rootSessionId: number): 
 		if (!Content.exist(path) || !Content.isdir(path)) continue;
 		const info = readSpawnInfo(projectRoot, Path("subagents", Path.getFilename(path)));
 		if (!info) continue;
-		const sessionId = tonumber((info as any).sessionId);
-		const infoRootSessionId = tonumber((info as any).rootSessionId);
-		const sourceTaskId = tonumber((info as any).sourceTaskId);
-		const status = sanitizeUTF8(toStr((info as any).status));
+		const sessionId = tonumber(info.sessionId);
+		const infoRootSessionId = tonumber(info.rootSessionId);
+		const sourceTaskId = tonumber(info.sourceTaskId);
+		const status = sanitizeUTF8(toStr(info.status));
 		if (!(sessionId && sessionId > 0) || !(infoRootSessionId && infoRootSessionId > 0) || infoRootSessionId !== rootSessionId) continue;
 		if (status !== "DONE" && status !== "FAILED" && status !== "STOPPED") continue;
+		const artifactDir = sanitizeUTF8(toStr(info.artifactDir));
 		items.push({
 			sessionId,
 			rootSessionId: infoRootSessionId,
-			parentSessionId: tonumber((info as any).parentSessionId) || undefined,
-			title: sanitizeUTF8(toStr((info as any).title)),
-			prompt: sanitizeUTF8(toStr((info as any).prompt)),
-			goal: sanitizeUTF8(toStr((info as any).goal)),
-			expectedOutput: sanitizeUTF8(toStr((info as any).expectedOutput)),
-			filesHint: Array.isArray((info as any).filesHint)
-				? ((info as any).filesHint as unknown[]).filter(item => typeof item === "string").map(item => sanitizeUTF8(item as string))
+			parentSessionId: tonumber(info.parentSessionId) || undefined,
+			title: sanitizeUTF8(toStr(info.title)),
+			prompt: sanitizeUTF8(toStr(info.prompt)),
+			goal: sanitizeUTF8(toStr(info.goal)),
+			expectedOutput: sanitizeUTF8(toStr(info.expectedOutput)),
+			filesHint: Array.isArray(info.filesHint)
+				? info.filesHint.filter(item => typeof item === "string").map(item => sanitizeUTF8(item as string))
 				: [],
 			status: status === "FAILED" ? "FAILED" : (status === "STOPPED" ? "STOPPED" : "DONE"),
-			success: (info as any).success === true,
-			cleared: (info as any).cleared === true,
-			resultFilePath: sanitizeUTF8(toStr((info as any).resultFilePath)),
-			artifactDir: sanitizeUTF8(toStr((info as any).artifactDir)) || getArtifactRelativeDir(Path("subagents", Path.getFilename(path))),
+			success: info.success === true,
+			cleared: info.cleared === true,
+			resultFilePath: sanitizeUTF8(toStr(info.resultFilePath)),
+			artifactDir: artifactDir !== "" ? artifactDir : getArtifactRelativeDir(Path("subagents", Path.getFilename(path))),
 			sourceTaskId: sourceTaskId || 0,
-			changeSet: decodeChangeSetSummary((info as any).changeSet),
-			memoryEntry: decodeSubAgentMemoryEntry((info as any).memoryEntry),
-			memoryEntryError: sanitizeUTF8(toStr((info as any).memoryEntryError)),
-			createdAt: sanitizeUTF8(toStr((info as any).createdAt)),
-			finishedAt: sanitizeUTF8(toStr((info as any).finishedAt)),
-			createdAtTs: tonumber((info as any).createdAtTs) || 0,
-			finishedAtTs: tonumber((info as any).finishedAtTs) || 0,
+			changeSet: decodeChangeSetSummary(info.changeSet),
+			memoryEntry: decodeSubAgentMemoryEntry(info.memoryEntry),
+			memoryEntryError: sanitizeUTF8(toStr(info.memoryEntryError)),
+			createdAt: sanitizeUTF8(toStr(info.createdAt)),
+			finishedAt: sanitizeUTF8(toStr(info.finishedAt)),
+			createdAtTs: tonumber(info.createdAtTs) || 0,
+			finishedAtTs: tonumber(info.finishedAtTs) || 0,
 		});
 	}
 	items.sort((a, b) => a.finishedAtTs > b.finishedAtTs ? -1 : (a.finishedAtTs < b.finishedAtTs ? 1 : 0));
@@ -1083,18 +1084,19 @@ function listPendingHandoffs(projectRoot: string, memoryScope: string): PendingS
 	for (const rawPath of Content.getFiles(dir)) {
 		const path = Content.isAbsolutePath(rawPath) ? rawPath : Path(dir, rawPath);
 		if (!path.endsWith(".json") || !Content.exist(path)) continue;
-		const text = Content.load(path) as string;
+		const text = Content.load(path);
 		if (!text || text.trim() === "") continue;
-		const [value] = safeJsonDecode(text);
-		if (!value || Array.isArray(value) || type(value) !== "table") continue;
-		const sourceTaskId = tonumber((value as any).sourceTaskId);
-		const sourceSessionId = tonumber((value as any).sourceSessionId);
-		const id = sanitizeUTF8(toStr((value as any).id));
-		const sourceTitle = sanitizeUTF8(toStr((value as any).sourceTitle));
-		const message = sanitizeUTF8(toStr((value as any).message));
-		const prompt = sanitizeUTF8(toStr((value as any).prompt));
-		const goal = sanitizeUTF8(toStr((value as any).goal));
-		const createdAt = sanitizeUTF8(toStr((value as any).createdAt));
+		const [obj] = safeJsonDecode(text);
+		if (!obj || Array.isArray(obj) || type(obj) !== "table") continue;
+		const value = obj as AnyTable;
+		const sourceTaskId = tonumber(value.sourceTaskId);
+		const sourceSessionId = tonumber(value.sourceSessionId);
+		const id = sanitizeUTF8(toStr(value.id));
+		const sourceTitle = sanitizeUTF8(toStr(value.sourceTitle));
+		const message = sanitizeUTF8(toStr(value.message));
+		const prompt = sanitizeUTF8(toStr(value.prompt));
+		const goal = sanitizeUTF8(toStr(value.goal));
+		const createdAt = sanitizeUTF8(toStr(value.createdAt));
 		if (!(sourceTaskId && sourceTaskId > 0) || !(sourceSessionId && sourceSessionId > 0) || id === "" || createdAt === "") {
 			continue;
 		}
@@ -1106,16 +1108,16 @@ function listPendingHandoffs(projectRoot: string, memoryScope: string): PendingS
 			message,
 			prompt,
 			goal,
-			expectedOutput: sanitizeUTF8(toStr((value as any).expectedOutput)),
-			filesHint: Array.isArray((value as any).filesHint)
-				? ((value as any).filesHint as unknown[]).filter(item => typeof item === "string").map(item => sanitizeUTF8(item as string))
+			expectedOutput: sanitizeUTF8(toStr(value.expectedOutput)),
+			filesHint: Array.isArray(value.filesHint)
+				? value.filesHint.filter(item => typeof item === "string").map(item => sanitizeUTF8(item as string))
 				: [],
-			success: (value as any).success === true,
-			resultFilePath: sanitizeUTF8(toStr((value as any).resultFilePath)),
-			artifactDir: sanitizeUTF8(toStr((value as any).artifactDir)),
-			finishedAt: sanitizeUTF8(toStr((value as any).finishedAt)),
-			changeSet: decodeChangeSetSummary((value as any).changeSet),
-			memoryEntry: decodeSubAgentMemoryEntry((value as any).memoryEntry),
+			success: value.success === true,
+			resultFilePath: sanitizeUTF8(toStr(value.resultFilePath)),
+			artifactDir: sanitizeUTF8(toStr(value.artifactDir)),
+			finishedAt: sanitizeUTF8(toStr(value.finishedAt)),
+			changeSet: decodeChangeSetSummary(value.changeSet),
+			memoryEntry: decodeSubAgentMemoryEntry(value.memoryEntry),
 			createdAt,
 		});
 	}
@@ -1173,7 +1175,7 @@ function normalizeSessionRuntimeState(session: AgentSessionItem): AgentSessionIt
 	if (session.currentTaskId === undefined || session.currentTaskStatus !== "RUNNING") {
 		return session;
 	}
-	if (activeStopTokens[session.currentTaskId]) {
+	if (activeStopTokens[session.currentTaskId] !== undefined) {
 		return session;
 	}
 	Tools.setTaskStatus(session.currentTaskId, "STOPPED");
@@ -1232,7 +1234,7 @@ function setSessionStateForTaskEvent(sessionId: number, taskId: number | undefin
 	}
 	const row = getSessionRow(sessionId);
 	if (!row) return;
-	const session = rowToSession(row as any[]);
+	const session = rowToSession(row);
 	if (session.currentTaskId !== taskId) {
 		Log("Info", `[AgentSession] ignore stale task event session=${sessionId} eventTask=${taskId} currentTask=${tostring(session.currentTaskId)}`);
 		return;
@@ -1284,7 +1286,7 @@ function clearSessionAfterMessage(sessionId: number, message: AgentSessionMessag
 	) ?? [];
 	const removedStepIds: number[] = [];
 	for (let i = 0; i < removedStepRows.length; i++) {
-		const row = removedStepRows[i] as any[];
+		const row = removedStepRows[i];
 		if (typeof row[0] === "number") {
 			removedStepIds.push(row[0] as number);
 		}
@@ -1694,7 +1696,7 @@ function applyEvent(sessionId: number, event: AgentRuntimeEvent) {
 				);
 				const messageId = upsertAssistantMessage(sessionId, event.taskId, event.message);
 				if (!isSubSession) {
-					activeStopTokens[event.taskId] = undefined as any;
+					delete activeStopTokens[event.taskId];
 				}
 				emitAgentSessionPatch(sessionId, {
 					session: getSessionItem(sessionId),
@@ -1723,7 +1725,7 @@ function setSchemaVersion(version: number) {
 function hasTableColumn(tableName: string, columnName: string): boolean {
 	const rows = queryRows(`PRAGMA table_info(${tableName})`) ?? [];
 	for (let i = 0; i < rows.length; i++) {
-		const row = rows[i] as any[];
+		const row = rows[i];
 		if (toStr(row[1]) === columnName) {
 			return true;
 		}
@@ -1856,7 +1858,7 @@ export function createSession(projectRoot: string, title = "") {
 		[projectRoot],
 	);
 	if (row) {
-		return { success: true as const, session: rowToSession(row as any[]) };
+		return { success: true as const, session: rowToSession(row) };
 	}
 	const t = now();
 	DB.exec(
@@ -2044,8 +2046,8 @@ export function getSession(sessionId: number): AgentSessionDetailResult {
 		session: normalizedSession,
 		relatedSessions,
 		spawnInfo: normalizedSession.kind === "sub" ? getSessionSpawnInfo(normalizedSession) : undefined,
-		messages: messages.map(row => rowToMessage(row as any[])),
-		steps: steps.map(row => rowToStep(row as any[])),
+		messages: messages.map(row => rowToMessage(row)),
+		steps: steps.map(row => rowToStep(row)),
 		checkpoints: normalizedSession.currentTaskId ? Tools.listCheckpoints(normalizedSession.currentTaskId) : [],
 	};
 }
@@ -2264,7 +2266,7 @@ function startPromptTask(session: AgentSessionItem, normalizedPrompt: string, ex
 						session: getSessionItem(session.id),
 					});
 				}
-				activeStopTokens[taskId] = undefined as any;
+				delete activeStopTokens[taskId];
 				return;
 			}
 			setSessionState(session.id, "RUNNING", taskId, "RUNNING");
@@ -2286,8 +2288,8 @@ function startPromptTask(session: AgentSessionItem, normalizedPrompt: string, ex
 					session: getSessionItem(session.id),
 				});
 			}
-			activeStopTokens[taskId] = undefined as any;
-			finalizingSubSessionTaskIds[taskId] = undefined as any;
+			delete activeStopTokens[taskId];
+			delete finalizingSubSessionTaskIds[taskId];
 		}
 		if (!result.success && (!nextSession || nextSession.kind !== "sub")) {
 			applyEvent(session.id, {
@@ -2376,7 +2378,7 @@ export function listRunningSessions(): AgentRunningSessionListResult {
 	) ?? [];
 	const sessions: AgentSessionItem[] = [];
 	for (let i = 0; i < rows.length; i++) {
-		const session = normalizeSessionRuntimeState(rowToSession(rows[i] as any[]));
+		const session = normalizeSessionRuntimeState(rowToSession(rows[i]));
 		if (session.currentTaskStatus === "RUNNING") {
 			sessions.push(session);
 		}
@@ -2408,8 +2410,8 @@ export async function listRunningSubAgents(request: {
 	}
 	const requestedStatus = sanitizeUTF8(toStr(request.status)).trim();
 	const status = requestedStatus !== "" ? requestedStatus : "active_or_recent";
-	const limit = math.max(1, math.floor(tonumber(request.limit as any) || 5));
-	const offset = math.max(0, math.floor(tonumber(request.offset as any) || 0));
+	const limit = math.max(1, math.floor(tonumber(request.limit) || 5));
+	const offset = math.max(0, math.floor(tonumber(request.offset) || 0));
 	const query = sanitizeUTF8(toStr(request.query)).trim();
 	const rows = queryRows(
 		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at, metrics_json
@@ -2420,7 +2422,7 @@ export async function listRunningSubAgents(request: {
 	) ?? [];
 	const runningSessions: AgentRunningSubAgentInfo[] = [];
 	for (let i = 0; i < rows.length; i++) {
-		const current = normalizeSessionRuntimeState(rowToSession(rows[i] as any[]));
+		const current = normalizeSessionRuntimeState(rowToSession(rows[i]));
 		if (current.currentTaskStatus !== "RUNNING") {
 			continue;
 		}

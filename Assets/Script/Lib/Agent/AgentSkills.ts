@@ -399,7 +399,10 @@ export class SkillsLoader {
 		}
 
 		const parsed = parseYAMLFrontmatter(content);
-		return parsed.body || undefined;
+		if (parsed.body === "") {
+			return undefined;
+		}
+		return parsed.body;
 	}
 
 	buildSkillsPromptSection(): string {

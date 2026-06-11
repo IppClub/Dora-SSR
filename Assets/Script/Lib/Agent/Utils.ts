@@ -174,12 +174,12 @@ function estimateMessagesTokens(messages: Message[]): number {
 	return total;
 }
 
-function estimateOptionsTokens(options: Record<string, any>): number {
+function estimateOptionsTokens(options: Record<string, unknown>): number {
 	const [text] = safeJsonEncode(options as object);
 	return text ? estimateTextTokens(text) : 0;
 }
 
-function getReservedOutputTokens(options: Record<string, any>, contextWindow: number): number {
+function getReservedOutputTokens(options: Record<string, unknown>, contextWindow: number): number {
 	const explicitMax = typeof options.max_tokens === "number"
 		? math.floor(options.max_tokens)
 		: (typeof options.max_completion_tokens === "number"
@@ -189,7 +189,7 @@ function getReservedOutputTokens(options: Record<string, any>, contextWindow: nu
 	return math.max(1024, math.floor(contextWindow * 0.2));
 }
 
-function getInputTokenBudget(messages: Message[], options: Record<string, any>, config: LLMConfig): number {
+function getInputTokenBudget(messages: Message[], options: Record<string, unknown>, config: LLMConfig): number {
 	const contextWindow = math.max(64000, config.contextWindow);
 	const reservedOutputTokens = getReservedOutputTokens(options, contextWindow);
 	const optionTokens = estimateOptionsTokens(options);
@@ -395,7 +395,7 @@ export function parseXMLObjectFromText(text: string, rootTag: string): SimpleXML
 	return parseSimpleXMLChildren(rootContent);
 }
 
-export function fitMessagesToContext(messages: Message[], options: Record<string, any>, config: LLMConfig): {
+export function fitMessagesToContext(messages: Message[], options: Record<string, unknown>, config: LLMConfig): {
 	messages: Message[];
 	trimmed: boolean;
 	originalTokens: number;
@@ -503,7 +503,7 @@ const postLLM = (
 	url: string,
 	apiKey: string,
 	model: string,
-	options: Record<string, any>,
+	options: Record<string, unknown>,
 	stream: boolean,
 	customOptions?: Record<string, unknown>,
 	receiver?: (this: void, data: string) => boolean,
@@ -511,7 +511,7 @@ const postLLM = (
 ) => {
 	const requestTimeout = stream ? LLM_STREAM_TIMEOUT : LLM_TIMEOUT;
 	const requestOptions = applyCustomLLMOptions(options, customOptions);
-	const data: Record<string, any> = {
+	const data: Record<string, unknown> = {
 		...requestOptions,
 		model,
 		messages,
@@ -592,7 +592,7 @@ const postLLM = (
 	});
 };
 
-type OnJSON = (this: void, obj: any, raw: string) => void;
+type OnJSON = (this: void, obj: unknown, raw: string) => void;
 type OnDone = (this: void, text: string) => void;
 type OnError = (this: void, err: unknown, context?: { raw?: string }) => void;
 
@@ -821,10 +821,10 @@ export function applyCustomLLMOptions(
 
 export function getActiveLLMConfig(): { success: true; config: LLMConfig } | { success: false; message: string } {
 	const rows = DB.query("select * from LLMConfig", true);
-	const records: Record<string, any>[] = [];
+	const records: Record<string, unknown>[] = [];
 	if (rows && rows.length > 1) {
 		for (let i = 1; i < rows.length; i++) {
-			const record: Record<string, any> = {};
+			const record: Record<string, unknown> = {};
 			for (let c = 0; c < rows[i].length; c++) {
 				record[rows[0][c] as string] = rows[i][c];
 			}
@@ -857,7 +857,7 @@ export function getActiveLLMConfig(): { success: true; config: LLMConfig } | { s
 
 export const callLLMStream = (
 	messages: Message[],
-	options: Record<string, any>,
+	options: Record<string, unknown>,
 	event: CallEvent | CallStream,
 	llmConfig?: LLMConfig
 ): { success: true } | { success: false, message: string } => {
@@ -901,7 +901,7 @@ export const callLLMStream = (
 	let stopLLM = false;
 	const parser = createSSEJSONParser({
 		onJSON: (obj) => {
-			const result = onData(obj);
+			const result = onData(obj as LLMStreamData);
 			if (result) stopLLM = result;
 		}
 	});
@@ -986,7 +986,7 @@ function mergeStreamChoice(acc: StreamChoiceAccumulator, choice: Choice, onToolC
 	const toolCalls = (delta.tool_calls && delta.tool_calls.length > 0)
 		? delta.tool_calls
 		: (fullMessage.tool_calls ?? []);
-	if (toolCalls && toolCalls.length > 0) {
+	if (toolCalls.length > 0) {
 		message.tool_calls ??= [];
 		for (let i = 0; i < toolCalls.length; i++) {
 			const item: StreamDeltaToolCall = toolCalls[i] as StreamDeltaToolCall;
@@ -997,7 +997,7 @@ function mergeStreamChoice(acc: StreamChoiceAccumulator, choice: Choice, onToolC
 			mergeStreamToolCall(message.tool_calls[index], item);
 			if (onToolCallReady && emittedToolCallIds) {
 				const tc = message.tool_calls[index];
-				if (tc && isToolCallComplete(tc) && !emittedToolCallIds[tc.id!]) {
+				if (isToolCallComplete(tc) && !emittedToolCallIds[tc.id!]) {
 					emittedToolCallIds[tc.id!] = true;
 					onToolCallReady(tc);
 				}
@@ -1045,7 +1045,7 @@ function buildStreamResponse(
 
 export async function callLLMStreamAggregated(
 	messages: Message[],
-	options: Record<string, any>,
+	options: Record<string, unknown>,
 	stopTokenOrConfig?: StopToken | LLMConfig,
 	llmConfig?: LLMConfig,
 	onChunk?: (response: LLMResponseData, chunk: LLMStreamData) => void,
@@ -1227,7 +1227,7 @@ export async function callLLMStreamAggregated(
 
 export async function callLLM(
 	messages: Message[],
-	options: Record<string, any>,
+	options: Record<string, unknown>,
 	stopTokenOrConfig?: StopToken | LLMConfig,
 	llmConfig?: LLMConfig
 ): Promise<{ success: true; response: LLMResponseData } | { success: false; message: string; raw?: string }> {

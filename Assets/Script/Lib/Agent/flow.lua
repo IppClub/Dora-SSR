@@ -93,7 +93,13 @@ function BaseNode.prototype.getNextNode(self, action) -- 45
 	if action == nil then -- 45
 		action = "default" -- 45
 	end -- 45
-	local nextAction = action or "default" -- 46
+	local ____temp_0 -- 46
+	if action == "" then -- 46
+		____temp_0 = nil -- 46
+	else -- 46
+		____temp_0 = action -- 46
+	end -- 46
+	local nextAction = ____temp_0 or "default" -- 46
 	local next = self._successors:get(nextAction) -- 46
 	if not next and self._successors.size > 0 then -- 46
 		Log( -- 48
