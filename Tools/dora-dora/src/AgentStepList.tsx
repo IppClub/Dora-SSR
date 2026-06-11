@@ -261,6 +261,13 @@ function getBuildItems(step: AgentSessionStep): { file: string; message: string;
 		}));
 }
 
+function getBuildTotal(step: AgentSessionStep, shownCount: number): number {
+	const result = step.result;
+	if (!result || typeof result !== "object") return shownCount;
+	const total = (result as { total?: unknown }).total;
+	return typeof total === "number" && total > shownCount ? total : shownCount;
+}
+
 export default function AgentStepList(props: AgentStepListProps) {
 	const { t } = useTranslation();
 	const [openedBuildErrors, setOpenedBuildErrors] = React.useState<Record<number, boolean>>({});
@@ -287,6 +294,8 @@ export default function AgentStepList(props: AgentStepListProps) {
 				const paramItems = summarizeToolParams(step, t);
 				const canViewDiff = step.tool !== "delete_file";
 				const buildItems = step.tool === "build" ? getBuildItems(step) : [];
+				const buildTotal = step.tool === "build" ? getBuildTotal(step, buildItems.length) : buildItems.length;
+				const buildResultsTruncated = buildTotal > buildItems.length;
 				const showBuildResults = buildItems.length > 0;
 				const buildErrorsOpened = openedBuildErrors[step.id] === true;
 				const hasReasoning = step.reasoningContent.trim() !== "";
@@ -498,12 +507,12 @@ export default function AgentStepList(props: AgentStepListProps) {
 											backgroundColor: "transparent",
 											color: Color.TextPrimary,
 										},
-									}}
-								>
-									{buildErrorsOpened
-										? t("agent.hideBuildResults", { count: buildItems.length })
-										: t("agent.showBuildResults", { count: buildItems.length })}
-								</Button>
+										}}
+									>
+										{buildErrorsOpened
+											? t(buildResultsTruncated ? "agent.hideBuildResultsPartial" : "agent.hideBuildResults", { count: buildItems.length, total: buildTotal })
+											: t(buildResultsTruncated ? "agent.showBuildResultsPartial" : "agent.showBuildResults", { count: buildItems.length, total: buildTotal })}
+									</Button>
 								<Collapse in={buildErrorsOpened} timeout="auto" unmountOnExit>
 									<Stack spacing={1} sx={{ mt: 1 }}>
 										{buildItems.map((item, index) => (

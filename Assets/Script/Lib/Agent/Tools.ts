@@ -1,5 +1,5 @@
 // @preview-file off clear
-import { Content, DB, Path, Director, once, SearchFilesResult, Node, emit, wait, App, HttpServer } from 'Dora';
+import { Content, DB, Path, Director, once, SearchFilesResult, Node, emit, wait, sleep, App, HttpServer } from 'Dora';
 import { Log, safeJsonDecode, safeJsonEncode } from 'Agent/Utils';
 
 export type AgentTaskStatus = "RUNNING" | "DONE" | "FAILED" | "STOPPED";
@@ -234,6 +234,7 @@ const TABLE_CP = "AgentCheckpoint";
 const TABLE_ENTRY = "AgentCheckpointEntry";
 const ENGINE_LOG_DOWNLOAD_DIR = ".download";
 const ENGINE_LOG_FILE = "dora_full_logs.txt";
+const BUILD_TS_TRANSPILE_PAUSE_SECONDS = 0.03;
 
 const now = () => os.time();
 
@@ -377,7 +378,7 @@ function ensureDirPath(dir: string): boolean {
 	if (!dir || dir === "." || dir === "") return true;
 	if (Content.exist(dir)) return Content.isdir(dir);
 	const parent = Path.getPath(dir);
-	if (parent && parent !== dir && parent !== "." && parent !== "") {
+	if (parent !== dir && parent !== "." && parent !== "") {
 		if (!ensureDirPath(parent)) return false;
 	}
 	return Content.mkdir(dir);
@@ -446,7 +447,7 @@ function readEngineLogFile(path: string): ReadFileResult | undefined {
 }
 
 function queryOne(sql: string, args?: (number | string | boolean)[]) {
-	const rows = args ? DB.query(sql, args as any) : DB.query(sql);
+	const rows = args ? DB.query(sql, args) : DB.query(sql);
 	if (!rows || rows.length === 0) return undefined;
 	return rows[0];
 }
@@ -493,6 +494,10 @@ function isDtsFile(path: string): boolean {
 	return Path.getExt(Path.getName(path)) === "d";
 }
 
+function isTiledEditorContent(content: string): boolean {
+	return content.trim().startsWith("<?xml");
+}
+
 type SupportedBuildKind = "ts" | "xml" | "teal" | "lua" | "yue" | "yarn";
 
 function getSupportedBuildKind(path: string): SupportedBuildKind | undefined {
@@ -510,7 +515,7 @@ function getSupportedBuildKind(path: string): SupportedBuildKind | undefined {
 function getTaskHeadSeq(taskId: number): number | undefined {
 	const row = queryOne(`SELECT head_seq FROM ${TABLE_TASK} WHERE id = ?`, [taskId]);
 	if (!row) return undefined;
-	return (row[0] as number) || 0;
+	return (row[0] as number | undefined) || 0;
 }
 
 function getTaskStatus(taskId: number): string | undefined {
@@ -521,7 +526,7 @@ function getTaskStatus(taskId: number): string | undefined {
 
 function getLastInsertRowId(): number {
 	const row = queryOne("SELECT last_insert_rowid()");
-	return row ? ((row[0] as number) || 0) : 0;
+	return row ? ((row[0] as number | undefined) || 0) : 0;
 }
 
 function insertCheckpoint(taskId: number, seq: number, summary: string, toolName: string, status: CheckpointStatus): number {
@@ -626,6 +631,15 @@ function encodeJSON(obj: object): string | undefined {
 	return text;
 }
 
+async function pauseBetweenTsTranspiles(): Promise<void> {
+	await new Promise<void>(resolve => {
+		Director.systemScheduler.schedule(once(() => {
+			sleep(BUILD_TS_TRANSPILE_PAUSE_SECONDS);
+			resolve();
+		}));
+	});
+}
+
 export function sendWebIDEFileUpdate(file: string, exists: boolean, content: string): boolean {
 	if (HttpServer.wsConnectionCount === 0) {
 		return true;
@@ -649,8 +663,33 @@ async function runSingleNonTsBuild(file: string): Promise<BuildMessage> {
 	})
 }
 
-export async function runSingleTsTranspile(file: string, content: string): Promise<BuildMessage> {
+let transpileRequestSeq = 0;
+let tsTranspileQueueTail: Promise<void> = Promise.resolve();
+let tsTranspileQueuedCount = 0;
+
+async function runWithTsTranspileLock<T>(task: () => Promise<T>): Promise<T> {
+	const previous = tsTranspileQueueTail;
+	let release: () => void = () => { };
+	tsTranspileQueueTail = new Promise<void>(resolve => {
+		release = () => resolve();
+	});
+	tsTranspileQueuedCount += 1;
+	if (tsTranspileQueuedCount > 1) {
+		Log("Info", `[build] waiting for TS transpile queue pending=${tsTranspileQueuedCount - 1}`);
+	}
+	await previous;
+	try {
+		return await task();
+	} finally {
+		tsTranspileQueuedCount = math.max(0, tsTranspileQueuedCount - 1);
+		release();
+	}
+}
+
+async function runSingleTsTranspileUnlocked(file: string, content: string): Promise<BuildMessage> {
 	let done = false;
+	transpileRequestSeq += 1;
+	const requestId = `agent-build-${transpileRequestSeq}`;
 	let result: BuildMessage = {
 		success: false,
 		file,
@@ -664,8 +703,9 @@ export async function runSingleTsTranspile(file: string, content: string): Promi
 		if (event.type !== "Receive") return;
 		const [res] = safeJsonDecode(event.msg);
 		if (!res || Array.isArray(res)) return;
-		const payload = res as any;
+		const payload = res as AnyTable;
 		if (payload.name !== "TranspileTS") return;
+		if (payload.id !== requestId) return;
 		if (tostring(payload.file) !== file) return;
 		if (payload.success) {
 			const luaFile = Path.replaceExt(file, "lua");
@@ -681,6 +721,7 @@ export async function runSingleTsTranspile(file: string, content: string): Promi
 	});
 	const payload = encodeJSON({
 		name: "TranspileTS",
+		id: requestId,
 		file,
 		content,
 	});
@@ -699,6 +740,10 @@ export async function runSingleTsTranspile(file: string, content: string): Promi
 		}));
 	});
 	return result;
+}
+
+export async function runSingleTsTranspile(file: string, content: string): Promise<BuildMessage> {
+	return runWithTsTranspileLock(() => runSingleTsTranspileUnlocked(file, content));
 }
 
 export function createTask(prompt = ""): CreateTaskResult {
@@ -1559,6 +1604,10 @@ export async function build(req: { workDir: string; path: string }): Promise<Bui
 			if (content === undefined) {
 				return { success: false, message: "failed to read file" };
 			}
+			if (isTiledEditorContent(content)) {
+				Log("Info", `[build] skip tiled editor file=${target}`);
+				return finalizeBuildResult(req.workDir, messages);
+			}
 			if (!sendWebIDEFileUpdate(target, true, content)) {
 				return { success: false, message: "failed to encode UpdateFile request" };
 			}
@@ -1594,11 +1643,11 @@ export async function build(req: { workDir: string; path: string }): Promise<Bui
 			messages.push({ success: false, file, message: "failed to read file" });
 			continue;
 		}
-		tsFileData[file] = content;
-		if (!sendWebIDEFileUpdate(file, true, content)) {
-			messages.push({ success: false, file, message: "failed to encode UpdateFile request" });
+		if (isTiledEditorContent(content)) {
+			Log("Info", `[build] skip tiled editor file=${file}`);
 			continue;
 		}
+		tsFileData[file] = content;
 	}
 	for (let i = 0; i < buildQueue.length; i++) {
 		const { file, kind } = buildQueue[i];
@@ -1607,7 +1656,13 @@ export async function build(req: { workDir: string; path: string }): Promise<Bui
 			if (content === undefined || isDtsFile(file)) {
 				continue;
 			}
+			if (!sendWebIDEFileUpdate(file, true, content)) {
+				messages.push({ success: false, file, message: "failed to encode UpdateFile request" });
+				await pauseBetweenTsTranspiles();
+				continue;
+			}
 			messages.push(await runSingleTsTranspile(file, content));
+			await pauseBetweenTsTranspiles();
 			continue;
 		}
 		messages.push(await runSingleNonTsBuild(file));
