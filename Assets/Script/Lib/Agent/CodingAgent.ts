@@ -48,6 +48,7 @@ export interface CodingAgentRunOptions {
 	sessionId?: number;
 	memoryScope?: string;
 	role?: "main" | "sub";
+	disabledAgentTools?: AgentToolName[];
 	spawnSubAgent?: (this: void, request: {
 		parentSessionId: number;
 		projectRoot?: string;
@@ -55,6 +56,7 @@ export interface CodingAgentRunOptions {
 		prompt: string;
 		expectedOutput?: string;
 		filesHint?: string[];
+		disabledAgentTools?: AgentToolName[];
 	}) => Promise<
 		| { success: true; sessionId: number; taskId: number; title: string }
 		| { success: false; message: string }
@@ -160,6 +162,14 @@ export type CodingAgentEvent =
 		step: number;
 		tool: AgentToolName;
 		reason?: string;
+		result: Record<string, unknown>;
+	}
+	| {
+		type: "tool_progress";
+		sessionId?: number;
+		taskId: number;
+		step: number;
+		tool: AgentToolName;
 		result: Record<string, unknown>;
 	}
 	| {
@@ -326,6 +336,7 @@ interface AgentShared {
 	};
 	spawnSubAgent?: CodingAgentRunOptions["spawnSubAgent"];
 	listSubAgents?: CodingAgentRunOptions["listSubAgents"];
+	disabledAgentTools: AgentToolName[];
 }
 
 function emitAgentEvent(shared: AgentShared, event: CodingAgentEvent) {
@@ -840,7 +851,9 @@ function getDecisionToolDefinitions(shared: AgentShared): string {
 	const base = shared.promptPack.toolDefinitionsDetailed;
 	const mainAgentTools = shared.role === "main" ?
 		shared.promptPack.mainAgentToolDefinitionsDetailed : "";
-	const availableTools = AgentToolRegistry.getAllowedToolsForRole(shared.role)
+	const availableTools = AgentToolRegistry.getAllowedToolsForRole(shared.role, {
+		disabledAgentTools: shared.disabledAgentTools,
+	})
 		.filter(tool => shared.decisionMode === "xml" || tool !== "finish");
 	const availability = `
 
@@ -852,6 +865,7 @@ Tool availability for this runtime:
 			includeFinish: true,
 			includeXmlRules: true,
 			context: { searchDoraApiLimitMax: SEARCH_DORA_API_LIMIT_MAX },
+			disabledAgentTools: shared.disabledAgentTools,
 		});
 		return replacePromptVars(`${definitions}${availability}`, params);
 	}
@@ -870,12 +884,16 @@ Tool availability for this runtime:
 }
 
 function getDecisionToolSchemaText(shared: AgentShared): string {
-	const [toolsText] = safeJsonEncode(AgentToolRegistry.buildDecisionToolSchema(shared.role, SEARCH_DORA_API_LIMIT_MAX) as object);
+	const [toolsText] = safeJsonEncode(AgentToolRegistry.buildDecisionToolSchema(shared.role, SEARCH_DORA_API_LIMIT_MAX, {
+		disabledAgentTools: shared.disabledAgentTools,
+	}) as object);
 	return toolsText ?? "";
 }
 
-function isToolAllowedForRole(role: AgentRole, tool: AgentToolName): boolean {
-	return AgentToolRegistry.getAllowedToolsForRole(role).indexOf(tool) >= 0;
+function isToolAllowedForRole(shared: AgentShared, tool: AgentToolName): boolean {
+	return AgentToolRegistry.getAllowedToolsForRole(shared.role, {
+		disabledAgentTools: shared.disabledAgentTools,
+	}).indexOf(tool) >= 0;
 }
 
 function clearPreExecutedResults(shared: AgentShared): void {
@@ -1662,7 +1680,7 @@ function parseAndValidateToolCallDecision(
 			raw: argsText,
 		};
 	}
-	if (!isToolAllowedForRole(shared.role, decision.tool)) {
+	if (!isToolAllowedForRole(shared, decision.tool)) {
 		return {
 			success: false,
 			message: `${decision.tool} is not allowed for role ${shared.role}`,
@@ -1687,7 +1705,7 @@ function createPreExecutableActionFromStream(shared: AgentShared, toolCall: Tool
 	if (!decision.success || !AgentToolRegistry.canPreExecuteTool(decision.tool)) return undefined;
 	const validation = validateDecision(decision.tool, decision.params);
 	if (!validation.success) return undefined;
-	if (!isToolAllowedForRole(shared.role, decision.tool)) return undefined;
+	if (!isToolAllowedForRole(shared, decision.tool)) return undefined;
 	return {
 		step: shared.step + 1,
 		toolCallId,
@@ -2039,6 +2057,7 @@ ${candidateReasoningSection}`
 		includeFinish: true,
 		includeXmlRules: true,
 		context: { searchDoraApiLimitMax: SEARCH_DORA_API_LIMIT_MAX },
+		disabledAgentTools: shared.disabledAgentTools,
 	});
 	const systemPrompt = replacePromptVars(shared.promptPack.xmlDecisionSystemRepairPrompt, {
 		TOOL_REPAIR_REFERENCE: toolRepairReference,
@@ -2316,7 +2335,9 @@ class MainDecisionAgent extends Node<AgentShared> {
 			return { success: false, message: getCancelledReason(shared) };
 		}
 		Log("Info", `[CodingAgent] tool-calling decision start step=${shared.step + 1}${lastError ? ` retry_error=${lastError}` : ""}`);
-		const tools = AgentToolRegistry.buildDecisionToolSchema(shared.role, SEARCH_DORA_API_LIMIT_MAX);
+		const tools = AgentToolRegistry.buildDecisionToolSchema(shared.role, SEARCH_DORA_API_LIMIT_MAX, {
+			disabledAgentTools: shared.disabledAgentTools,
+		});
 		const messages = buildDecisionMessages(shared, lastError, attempt, lastRaw);
 		const stepId = shared.step + 1;
 		const llmOptions = {
@@ -2603,7 +2624,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 		const decision = tryParseAndValidateDecision(llmRes.text);
 		if (decision.success) {
 			decision.reasoningContent = llmRes.reasoningContent;
-			if (!isToolAllowedForRole(shared.role, decision.tool)) {
+			if (!isToolAllowedForRole(shared, decision.tool)) {
 				return this.repairDecisionXml(
 					shared,
 					llmRes.text,
@@ -3083,6 +3104,7 @@ class SpawnSubAgentAction extends Node<AgentShared> {
 		sessionId?: number;
 		projectRoot: string;
 		spawnSubAgent?: CodingAgentRunOptions["spawnSubAgent"];
+		disabledAgentTools: AgentToolName[];
 	}> {
 		const last = shared.history[shared.history.length - 1];
 		if (!last) throw new Error("no history");
@@ -3098,6 +3120,7 @@ class SpawnSubAgentAction extends Node<AgentShared> {
 			sessionId: shared.sessionId,
 			projectRoot: shared.workingDir,
 			spawnSubAgent: shared.spawnSubAgent,
+			disabledAgentTools: shared.disabledAgentTools,
 		};
 	}
 
@@ -3109,6 +3132,7 @@ class SpawnSubAgentAction extends Node<AgentShared> {
 		sessionId?: number;
 		projectRoot: string;
 		spawnSubAgent?: CodingAgentRunOptions["spawnSubAgent"];
+		disabledAgentTools: AgentToolName[];
 	}): Promise<Record<string, unknown>> {
 		if (!input.spawnSubAgent) {
 			return { success: false, message: "spawn_sub_agent is not available in this runtime" };
@@ -3124,6 +3148,7 @@ class SpawnSubAgentAction extends Node<AgentShared> {
 			prompt: input.prompt,
 			expectedOutput: input.expectedOutput,
 			filesHint: input.filesHint,
+			disabledAgentTools: input.disabledAgentTools,
 		});
 		if (!result.success) {
 			return result as unknown as Record<string, unknown>;
@@ -3354,6 +3379,32 @@ class EditFileAction extends Node<AgentShared> {
 	}
 }
 
+class FetchUrlAction extends Node<AgentShared> {
+	async prep(shared: AgentShared): Promise<{ shared: AgentShared; action: AgentActionRecord }> {
+		const last = shared.history[shared.history.length - 1];
+		if (!last) throw new Error("no history");
+		emitAgentStartEvent(shared, last);
+		return { shared, action: last };
+	}
+
+	async exec(input: { shared: AgentShared; action: AgentActionRecord }): Promise<Record<string, unknown>> {
+		return executeToolAction(input.shared, input.action);
+	}
+
+	async post(shared: AgentShared, _prepRes: unknown, execRes: unknown): Promise<string | undefined> {
+		const last = shared.history[shared.history.length - 1];
+		if (last !== undefined) {
+			last.result = execRes as Record<string, unknown>;
+			appendToolResultMessage(shared, last);
+			emitAgentFinishEvent(shared, last);
+		}
+		persistHistoryState(shared);
+		await maybeCompressHistory(shared);
+		persistHistoryState(shared);
+		return "main";
+	}
+}
+
 function emitCheckpointEventForAction(shared: AgentShared, action: AgentActionRecord): void {
 	const result = action.result;
 	if (!result) return;
@@ -3462,6 +3513,34 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 		});
 		return result as unknown as Record<string, unknown>;
 	}
+	if (action.tool === "fetch_url") {
+		if (shared.disabledAgentTools.indexOf("fetch_url") >= 0) {
+			return { success: false, state: "failed", message: "fetch_url is not enabled for this session" };
+		}
+		const mode = typeof params.mode === "string" ? params.mode : "";
+		const result = await Tools.fetchUrl({
+			workDir: shared.workingDir,
+			mode: mode as Tools.FetchUrlMode,
+			url: typeof params.url === "string" ? params.url : "",
+			target: typeof params.target === "string" ? params.target : "",
+			ref: typeof params.ref === "string" ? params.ref : undefined,
+			isCancelled: () => shared.stopToken.stopped === true,
+			onProgress: progress => {
+				emitAgentEvent(shared, {
+					type: "tool_progress",
+					sessionId: shared.sessionId,
+					taskId: shared.taskId,
+					step: action.step,
+					tool: action.tool,
+					result: {
+						success: false,
+						...progress,
+					},
+				});
+			},
+		});
+		return result as unknown as Record<string, unknown>;
+	}
 	if (action.tool === "spawn_sub_agent") {
 		if (!shared.spawnSubAgent) {
 			return { success: false, message: "spawn_sub_agent is not available in this runtime" };
@@ -3479,6 +3558,7 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 			prompt: typeof params.prompt === "string" ? params.prompt : "",
 			expectedOutput: typeof params.expectedOutput === "string" ? params.expectedOutput : undefined,
 			filesHint,
+			disabledAgentTools: shared.disabledAgentTools,
 		});
 		if (!result.success) {
 			return result as unknown as Record<string, unknown>;
@@ -3800,6 +3880,7 @@ class CodingAgentFlow extends Flow<AgentShared> {
 		const build = new BuildAction(1, 0);
 		const spawn = new SpawnSubAgentAction(1, 0);
 		const edit = new EditFileAction(1, 0);
+		const fetch = new FetchUrlAction(1, 0);
 		const batch = new BatchToolAction(1, 0);
 		const done = new EndNode(1, 0);
 
@@ -3807,6 +3888,7 @@ class CodingAgentFlow extends Flow<AgentShared> {
 		main.on("grep_files", search);
 		main.on("search_dora_api", searchDora);
 		main.on("glob_files", list);
+		main.on("fetch_url", fetch);
 		if (role === "main") {
 			main.on("read_file", read);
 			main.on("delete_file", del);
@@ -3832,6 +3914,7 @@ class CodingAgentFlow extends Flow<AgentShared> {
 		del.on("main", main);
 		build.on("main", main);
 		edit.on("main", main);
+		fetch.on("main", main);
 
 		super(main);
 	}
@@ -3922,6 +4005,7 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 		},
 		spawnSubAgent: options.spawnSubAgent,
 		listSubAgents: options.listSubAgents,
+		disabledAgentTools: options.disabledAgentTools ?? [],
 	};
 
 	try {

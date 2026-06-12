@@ -1,10 +1,12 @@
 // @preview-file off clear
 import { App, Content, DB, Path, HttpServer, emit } from 'Dora';
 import { runCodingAgent, CodingAgentEvent, CodingAgentRunResult, truncateAgentUserPrompt } from 'Agent/CodingAgent';
+import * as AgentToolRegistry from 'Agent/AgentToolRegistry';
 import * as Tools from 'Agent/Tools';
 import { DualLayerStorage } from 'Agent/Memory';
 import { Log, callLLM, clipTextToTokenBudget, estimateTextTokens, getActiveLLMConfig, safeJsonDecode, safeJsonEncode, sanitizeUTF8 } from 'Agent/Utils';
 import type { LLMConfig, Message, StopToken, ToolCallFunction } from 'Agent/Utils';
+import type { AgentToolName } from 'Agent/AgentToolRegistry';
 
 export type AgentSessionStatus = "IDLE" | "RUNNING" | "DONE" | "FAILED" | "STOPPED";
 export type AgentSessionKind = "main" | "sub";
@@ -493,6 +495,17 @@ function deleteMessageSteps(sessionId: number, taskId: number): number[] {
 		);
 	}
 	return ids;
+}
+
+function normalizeDisabledAgentTools(value: unknown): AgentToolName[] {
+	if (!Array.isArray(value)) return [];
+	const tools: AgentToolName[] = [];
+	for (let i = 0; i < value.length; i++) {
+		const name = value[i];
+		if (typeof name !== "string" || !AgentToolRegistry.isKnownToolName(name)) continue;
+		if (tools.indexOf(name) < 0) tools.push(name);
+	}
+	return tools;
 }
 
 function getSessionRow(sessionId: number) {
@@ -1178,6 +1191,34 @@ function normalizeSessionRuntimeState(session: AgentSessionItem): AgentSessionIt
 	if (activeStopTokens[session.currentTaskId] !== undefined) {
 		return session;
 	}
+	const pendingFetchRows = queryRows(
+		`SELECT id, result_json FROM ${TABLE_STEP}
+		WHERE session_id = ? AND task_id = ? AND tool = ? AND status IN ('PENDING', 'RUNNING')`,
+		[session.id, session.currentTaskId, "fetch_url"],
+	) ?? [];
+	if (pendingFetchRows.length > 0) {
+		const t = now();
+		for (let i = 0; i < pendingFetchRows.length; i++) {
+			const row = pendingFetchRows[i];
+			const result = decodeJsonObject(toStr(row[1])) ?? {};
+			result.success = false;
+			result.state = "failed";
+			result.interrupted = true;
+			result.message = "fetch_url was interrupted because the program exited before it completed.";
+			DB.exec(
+				`UPDATE ${TABLE_STEP} SET status = 'FAILED', result_json = ?, updated_at = ? WHERE id = ?`,
+				[encodeJson(result), t, row[0] as number],
+			);
+		}
+		Tools.setTaskStatus(session.currentTaskId, "FAILED");
+		setSessionState(session.id, "FAILED", session.currentTaskId, "FAILED");
+		return {
+			...session,
+			status: "FAILED",
+			currentTaskStatus: "FAILED",
+			updatedAt: t,
+		};
+	}
 	Tools.setTaskStatus(session.currentTaskId, "STOPPED");
 	setSessionState(session.id, "STOPPED", session.currentTaskId, "STOPPED");
 	return {
@@ -1305,6 +1346,27 @@ function clearSessionAfterMessage(sessionId: number, message: AgentSessionMessag
 		[sessionId, message.id],
 	);
 	return removedStepIds;
+}
+
+function truncatePersistedSessionBeforeLatestUserPrompt(session: AgentSessionItem): void {
+	const storage = new DualLayerStorage(session.projectRoot, session.memoryScope);
+	const persisted = storage.readSessionState();
+	let userIndex = -1;
+	for (let i = persisted.messages.length - 1; i >= 0; i--) {
+		if (persisted.messages[i].role === "user") {
+			userIndex = i;
+			break;
+		}
+	}
+	if (userIndex < 0) return;
+	const messages = persisted.messages.slice(0, userIndex);
+	const lastConsolidatedIndex = math.min(persisted.lastConsolidatedIndex, messages.length);
+	const carryMessageIndex = typeof persisted.carryMessageIndex === "number"
+		&& persisted.carryMessageIndex >= 0
+		&& persisted.carryMessageIndex < lastConsolidatedIndex
+		? persisted.carryMessageIndex
+		: undefined;
+	storage.writeSessionState(messages, lastConsolidatedIndex, carryMessageIndex);
 }
 
 function upsertAssistantMessage(sessionId: number, taskId: number, content: string): number {
@@ -1625,6 +1687,21 @@ function applyEvent(sessionId: number, event: AgentRuntimeEvent) {
 				step: getStepItem(sessionId, event.taskId, event.step),
 			});
 			break;
+		case "tool_progress":
+			{
+				const currentStep = getStepItem(sessionId, event.taskId, event.step);
+				if (currentStep && currentStep.status !== "PENDING" && currentStep.status !== "RUNNING") {
+					break;
+				}
+			}
+			upsertStep(sessionId, event.taskId, event.step, event.tool, {
+				status: "RUNNING",
+				result: event.result,
+			});
+			emitAgentSessionPatch(sessionId, {
+				step: getStepItem(sessionId, event.taskId, event.step),
+			});
+			break;
 		case "checkpoint_created":
 			upsertStep(sessionId, event.taskId, event.step, event.tool, {
 				checkpointId: event.checkpointId,
@@ -1907,6 +1984,7 @@ async function spawnSubAgentSession(request: {
 	prompt: string;
 	expectedOutput?: string;
 	filesHint?: string[];
+	disabledAgentTools?: AgentToolName[];
 }): Promise<
 	| { success: true; sessionId: number; taskId: number; title: string }
 	| { success: false; message: string }
@@ -1971,7 +2049,7 @@ async function spawnSubAgentSession(request: {
 		finishedAt: "",
 		finishedAtTs: 0,
 	});
-	const sent = sendPrompt(created.session.id, normalizedPrompt, true);
+	const sent = sendPrompt(created.session.id, normalizedPrompt, true, request.disabledAgentTools);
 	if (!sent.success) {
 		return { success: false, message: sent.message };
 	}
@@ -2193,7 +2271,7 @@ function stopClearedSubSession(session: AgentSessionItem, taskId: number): { suc
 	return { success: true };
 }
 
-export function sendPrompt(sessionId: number, prompt: string, allowSubSessionStart = false): AgentSessionSendResult {
+export function sendPrompt(sessionId: number, prompt: string, allowSubSessionStart = false, disabledAgentTools?: unknown): AgentSessionSendResult {
 	const session = getSessionItem(sessionId);
 	if (!session) {
 		return { success: false, message: "session not found" };
@@ -2221,10 +2299,10 @@ export function sendPrompt(sessionId: number, prompt: string, allowSubSessionSta
 	if (normalizedPrompt === "") {
 		return { success: false, message: "prompt is empty" };
 	}
-	return startPromptTask(session, normalizedPrompt);
+	return startPromptTask(session, normalizedPrompt, undefined, normalizeDisabledAgentTools(disabledAgentTools));
 }
 
-function startPromptTask(session: AgentSessionItem, normalizedPrompt: string, existingUserMessageId?: number): AgentSessionSendResult {
+function startPromptTask(session: AgentSessionItem, normalizedPrompt: string, existingUserMessageId?: number, disabledAgentTools: AgentToolName[] = []): AgentSessionSendResult {
 	const taskRes = Tools.createTask(normalizedPrompt);
 	if (!taskRes.success) {
 		return { success: false, message: taskRes.message };
@@ -2247,6 +2325,7 @@ function startPromptTask(session: AgentSessionItem, normalizedPrompt: string, ex
 		sessionId: session.id,
 		memoryScope: session.memoryScope,
 		role: session.kind,
+		disabledAgentTools,
 		spawnSubAgent: session.kind === "main"
 			? spawnSubAgentSession
 			: undefined,
@@ -2305,7 +2384,7 @@ function startPromptTask(session: AgentSessionItem, normalizedPrompt: string, ex
 	return { success: true, sessionId: session.id, taskId };
 }
 
-export function resendPrompt(sessionId: number, messageId: number, prompt: string): AgentSessionResendResult {
+export function resendPrompt(sessionId: number, messageId: number, prompt: string, disabledAgentTools?: unknown): AgentSessionResendResult {
 	const session = getSessionItem(sessionId);
 	if (!session) {
 		return { success: false, message: "session not found" };
@@ -2335,7 +2414,8 @@ export function resendPrompt(sessionId: number, messageId: number, prompt: strin
 		return { success: false, message: "prompt is empty" };
 	}
 	const removedStepIds = clearSessionAfterMessage(sessionId, message);
-	const result = startPromptTask(session, normalizedPrompt, messageId);
+	truncatePersistedSessionBeforeLatestUserPrompt(session);
+	const result = startPromptTask(session, normalizedPrompt, messageId, normalizeDisabledAgentTools(disabledAgentTools));
 	if (result.success && removedStepIds.length > 0) {
 		emitAgentSessionPatch(sessionId, { removedStepIds });
 	}

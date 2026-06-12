@@ -28,6 +28,7 @@ interface AgentPanelProps {
 	onInitialPromptConsumed?: () => void;
 	onRollbackComplete?: (projectRoot: string) => void;
 	onOpenFile?: (filePath: string) => void;
+	onRepositoryFilesChanged?: (projectRoot: string) => void | Promise<void>;
 	onOpenLLMConfig?: () => void;
 }
 
@@ -68,8 +69,9 @@ function getFiniteNumber(value: unknown): number | undefined {
 
 export default function AgentPanel(props: AgentPanelProps) {
 	const HISTORY_VISIBLE_ROUNDS = 10;
+	const FETCH_URL_TOOL = "fetch_url";
 	const { t, i18n } = useTranslation();
-	const { sessionId, projectRoot, title, height, showHeader = true, initialPrompt, addAlert, onInitialPromptConsumed, onRollbackComplete, onOpenFile, onOpenLLMConfig } = props;
+	const { sessionId, projectRoot, title, height, showHeader = true, initialPrompt, addAlert, onInitialPromptConsumed, onRollbackComplete, onOpenFile, onRepositoryFilesChanged, onOpenLLMConfig } = props;
 	const [selectedSessionId, setSelectedSessionId] = useState(sessionId);
 	const [prompt, setPrompt] = useState("");
 	const [loading, setLoading] = useState(false);
@@ -91,12 +93,14 @@ export default function AgentPanel(props: AgentPanelProps) {
 	const [visibleHistoryRounds, setVisibleHistoryRounds] = useState(HISTORY_VISIBLE_ROUNDS);
 	const [isNearBottom, setIsNearBottom] = useState(true);
 	const [llmConfigMissing, setLLMConfigMissing] = useState(false);
+	const [disabledAgentTools, setDisabledAgentTools] = useState<string[]>([FETCH_URL_TOOL]);
 	const scrollRef = React.useRef<HTMLElement | null>(null);
 	const contentRef = React.useRef<HTMLDivElement | null>(null);
 	const isNearBottomRef = React.useRef(true);
 	const autoScrollTimerRef = React.useRef<number | null>(null);
 	const autoScrollRafRef = React.useRef<number | null>(null);
 	const consumedInitialPromptRef = React.useRef("");
+	const notifiedFetchUrlStepIdsRef = React.useRef<Set<number>>(new Set());
 
 	const orderedRelatedSessions = useMemo(() => {
 		return [...relatedSessions].sort((a, b) => {
@@ -104,6 +108,15 @@ export default function AgentPanel(props: AgentPanelProps) {
 			return a.id - b.id;
 		});
 	}, [relatedSessions]);
+	const fetchUrlEnabled = disabledAgentTools.indexOf(FETCH_URL_TOOL) < 0;
+	const setFetchUrlEnabled = React.useCallback((enabled: boolean) => {
+		setDisabledAgentTools(prev => {
+			const disabled = prev.indexOf(FETCH_URL_TOOL) >= 0;
+			if (enabled && disabled) return prev.filter(tool => tool !== FETCH_URL_TOOL);
+			if (!enabled && !disabled) return [...prev, FETCH_URL_TOOL];
+			return prev;
+		});
+	}, []);
 
 	const tabLabelMap = useMemo(() => {
 		const map = new Map<number, string>();
@@ -297,6 +310,20 @@ export default function AgentPanel(props: AgentPanelProps) {
 		setVisibleHistoryRounds(HISTORY_VISIBLE_ROUNDS);
 		setContinuedTaskIds(new Set());
 	}, [selectedSessionId]);
+
+	useEffect(() => {
+		if (!onRepositoryFilesChanged) return;
+		const completedFetchUrlStep = steps.find(step => {
+			if (notifiedFetchUrlStepIdsRef.current.has(step.id)) return false;
+			if (step.tool !== FETCH_URL_TOOL || step.status !== "DONE") return false;
+			const mode = typeof step.result?.mode === "string" ? step.result.mode : step.params?.mode;
+			if (mode !== "git_clone") return false;
+			return step.result?.success === true;
+		});
+		if (!completedFetchUrlStep) return;
+		notifiedFetchUrlStepIdsRef.current.add(completedFetchUrlStep.id);
+		void onRepositoryFilesChanged(projectRoot);
+	}, [FETCH_URL_TOOL, onRepositoryFilesChanged, projectRoot, steps]);
 
 	const hasAnyRunningSession = useMemo(() => {
 		return orderedRelatedSessions.some(item => item.currentTaskStatus === "RUNNING");
@@ -564,7 +591,8 @@ export default function AgentPanel(props: AgentPanelProps) {
 			}
 			const res = await Service.agentSessionSend({
 				sessionId: targetSessionId,
-				prompt: text
+				prompt: text,
+				disabledAgentTools,
 			});
 			if (!res.success) {
 				if (res.message === "no active LLM config") {
@@ -582,7 +610,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 		} finally {
 			setLoading(false);
 		}
-	}, [addAlert, checkLLMConfigReady, continueLoadingTaskId, loading, refresh, selectedSessionId, stopProjectRunBeforeAgent, t]);
+	}, [addAlert, checkLLMConfigReady, continueLoadingTaskId, loading, disabledAgentTools, refresh, selectedSessionId, stopProjectRunBeforeAgent, t]);
 
 	const resendPromptText = React.useCallback(async (message: Service.AgentSessionMessage, text: string) => {
 		if (text === "" || loading || continueLoadingTaskId !== null || session?.currentTaskStatus === "RUNNING") return false;
@@ -601,6 +629,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 				sessionId: selectedSessionId,
 				messageId: message.id,
 				prompt: text,
+				disabledAgentTools,
 			});
 			if (!res.success) {
 				if (res.message === "no active LLM config") {
@@ -617,7 +646,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 		} finally {
 			setLoading(false);
 		}
-	}, [addAlert, checkLLMConfigReady, continueLoadingTaskId, loading, refresh, selectedSessionId, session?.currentTaskStatus, stopProjectRunBeforeAgent, t]);
+	}, [addAlert, checkLLMConfigReady, continueLoadingTaskId, loading, disabledAgentTools, refresh, selectedSessionId, session?.currentTaskStatus, stopProjectRunBeforeAgent, t]);
 
 	const onSend = async () => {
 		const text = prompt.trim();
@@ -659,6 +688,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 			const res = await Service.agentSessionSend({
 				sessionId: selectedSessionId,
 				prompt: getContinuePrompt(),
+				disabledAgentTools,
 			});
 			if (!res.success) {
 				if (res.message === "no active LLM config") {
@@ -1058,9 +1088,11 @@ export default function AgentPanel(props: AgentPanelProps) {
 				contextRatio={contextStats.contextRatio}
 				usedTokens={contextStats.usedTokens}
 				maxTokens={contextStats.maxTokens}
+				fetchUrlEnabled={fetchUrlEnabled}
 				onPromptChange={setPrompt}
 				onSend={() => void onSend()}
 				onStop={() => void onStop()}
+				onFetchUrlEnabledChange={session?.kind === "main" ? setFetchUrlEnabled : undefined}
 			/>
 			{!isNearBottom ? (
 				<Tooltip title={t("agent.scrollToBottom")}>

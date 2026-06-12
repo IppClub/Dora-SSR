@@ -1470,7 +1470,7 @@ export const agentSessionGet = (req: { sessionId: number; }) => {
 	return post<AgentSessionDetailResponse>("/agent/session/get", req);
 };
 
-export const agentSessionSend = (req: { sessionId: number; prompt: string }) => {
+export const agentSessionSend = (req: { sessionId: number; prompt: string; disabledAgentTools?: string[] }) => {
 	return post<{
 		success: true;
 		sessionId: number;
@@ -1481,7 +1481,7 @@ export const agentSessionSend = (req: { sessionId: number; prompt: string }) => 
 	}>("/agent/session/send", req);
 };
 
-export const agentSessionResend = (req: { sessionId: number; messageId: number; prompt: string }) => {
+export const agentSessionResend = (req: { sessionId: number; messageId: number; prompt: string; disabledAgentTools?: string[] }) => {
 	return post<{
 		success: true;
 		sessionId: number;

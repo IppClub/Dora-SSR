@@ -1,5 +1,5 @@
 // @preview-file off clear
-import { Content, DB, Path, Director, once, SearchFilesResult, Node, emit, wait, App, HttpServer } from 'Dora';
+import { Content, DB, Path, Director, once, SearchFilesResult, Node, emit, wait, App, HttpServer, HttpClient, Git } from 'Dora';
 import { Log, safeJsonDecode, safeJsonEncode } from 'Agent/Utils';
 
 export type AgentTaskStatus = "RUNNING" | "DONE" | "FAILED" | "STOPPED";
@@ -104,6 +104,42 @@ export type BuildResult = {
 	passed?: number;
 	failed?: number;
 	messages?: BuildMessage[];
+};
+
+export type FetchUrlMode = "download" | "git_clone";
+
+export type FetchUrlProgress = {
+	state: "pending" | "running";
+	mode: FetchUrlMode;
+	operationId: string;
+	target: string;
+	tempPath: string;
+	progress?: number;
+	current?: number;
+	total?: number;
+	message?: string;
+	stage?: string;
+	jobId?: number;
+	gitState?: string;
+	gitKind?: string;
+};
+
+export type FetchUrlResult = {
+	success: true;
+	state: "done";
+	mode: FetchUrlMode;
+	target: string;
+	bytesWritten?: number;
+	ref?: string;
+	commit?: string;
+} | {
+	success: false;
+	state: "failed";
+	mode?: FetchUrlMode;
+	target?: string;
+	message: string;
+	interrupted?: boolean;
+	cleanupError?: string;
 };
 
 export type GetLogsResult = {
@@ -234,6 +270,7 @@ const TABLE_CP = "AgentCheckpoint";
 const TABLE_ENTRY = "AgentCheckpointEntry";
 const ENGINE_LOG_DOWNLOAD_DIR = ".download";
 const ENGINE_LOG_FILE = "dora_full_logs.txt";
+const AGENT_DOWNLOAD_TEMP_DIR = "agent";
 const now = () => os.time();
 
 function toBool(v: unknown): boolean {
@@ -387,6 +424,191 @@ function ensureDirForFile(path: string): boolean {
 	return ensureDirPath(dir);
 }
 
+function isHttpUrl(url: string): boolean {
+	const normalized = url.trim().toLowerCase();
+	return normalized.startsWith("http://") || normalized.startsWith("https://");
+}
+
+function createOperationId(): string {
+	const raw = `${tostring(os.time())}-${tostring(math.floor(math.random() * 1000000000))}`;
+	const [safe] = string.gsub(raw, "[^%w%-_]", "-");
+	return safe;
+}
+
+function getAgentDownloadTempRoot(): string {
+	return Path(Content.writablePath, ENGINE_LOG_DOWNLOAD_DIR, AGENT_DOWNLOAD_TEMP_DIR);
+}
+
+function cleanupPath(path: string): string | undefined {
+	if (!path || path === "" || !Content.exist(path)) return undefined;
+	if (Content.remove(path)) return undefined;
+	return `failed to remove temporary path: ${path}`;
+}
+
+function quoteGitArg(value: string): string {
+	if (string.match(value, "^[%w%._%-%/]+$") !== undefined) {
+		return value;
+	}
+	let [escaped] = string.gsub(value, "\\", "\\\\");
+	[escaped] = string.gsub(escaped, '"', '\\"');
+	return `"${escaped}"`;
+}
+
+function getGitHeadCommit(repoPath: string): string | undefined {
+	const headPath = Path(repoPath, ".git", "HEAD");
+	if (!Content.exist(headPath)) return undefined;
+	const head = toStr(Content.load(headPath)).trim();
+	const [ref] = string.match(head, "^ref:%s*(.-)%s*$");
+	if (ref !== undefined && ref !== "") {
+		const refPath = Path(repoPath, ".git", ref);
+		if (Content.exist(refPath)) {
+			const commit = toStr(Content.load(refPath)).trim();
+			return commit !== "" ? commit : undefined;
+		}
+		return undefined;
+	}
+	return head !== "" ? head : undefined;
+}
+
+function runGitAndWait(
+	repoPath: string,
+	command: string,
+	onStatus?: (status: Record<string, unknown>) => void,
+	isCancelled?: () => boolean,
+	timeout = 600,
+): Promise<{ success: boolean; message?: string; status?: Record<string, unknown>; interrupted?: boolean }> {
+	return new Promise(resolve => {
+		let status: Record<string, unknown> | undefined;
+		let jobId = 0;
+		let settled = false;
+		let canceled = false;
+		const finish = (result: { success: boolean; message?: string; status?: Record<string, unknown>; interrupted?: boolean }) => {
+			if (settled) return;
+			settled = true;
+			resolve(result);
+		};
+		const finishFromStatus = () => {
+			const state = toStr(status?.state);
+			if (state === "done") {
+				finish({ success: true, status });
+				return true;
+			}
+			if (state === "error" || state === "canceled") {
+				const errorMessage = toStr(status?.error);
+				const statusMessage = toStr(status?.message);
+				finish({
+					success: false,
+					message: errorMessage !== "" ? errorMessage : (statusMessage !== "" ? statusMessage : (state === "canceled" ? "git clone canceled" : "git clone failed")),
+					status,
+					interrupted: state === "canceled",
+				});
+				return true;
+			}
+			return false;
+		};
+		jobId = Git.run(repoPath, command, (nextStatus) => {
+			status = nextStatus as unknown as Record<string, unknown>;
+			if (onStatus) onStatus(status);
+			return finishFromStatus();
+		});
+		if (jobId === undefined || jobId <= 0) {
+			finish({ success: false, message: "failed to start git clone" });
+			return;
+		}
+		if (!status) {
+			const [kind] = string.match(command, "^(%S+)");
+			status = {
+				id: jobId,
+				state: "queued",
+				kind: toStr(kind),
+				repoPath,
+				progress: 0,
+				message: "queued",
+			};
+		}
+		if (onStatus) onStatus(status);
+		const startedAt = os.time();
+		let lastEmitAt = startedAt;
+		Director.systemScheduler.schedule(() => {
+			if (settled) return true;
+			if (!canceled && isCancelled && isCancelled()) {
+				canceled = true;
+				Git.cancel(jobId);
+				finish({ success: false, message: "git clone canceled", status, interrupted: true });
+				return true;
+			}
+			if (finishFromStatus()) return true;
+			const nowTime = os.time();
+			if (nowTime - startedAt >= timeout) {
+				Git.cancel(jobId);
+				finish({ success: false, message: "git clone timed out", status });
+				return true;
+			}
+			if (onStatus && status && nowTime > lastEmitAt) {
+				lastEmitAt = nowTime;
+				onStatus(status);
+			}
+			return false;
+		});
+	});
+}
+
+function downloadFile(req: {
+	url: string;
+	tempPath: string;
+	timeout: number;
+	onProgress: (current: number, total: number) => void;
+	isCancelled?: () => boolean;
+}): Promise<{ success: boolean; interrupted?: boolean; message?: string }> {
+	return new Promise(resolve => {
+		let requestId = 0;
+		let settled = false;
+		const finish = (result: { success: boolean; interrupted?: boolean; message?: string }) => {
+			if (settled) return;
+			settled = true;
+			requestId = 0;
+			resolve(result);
+		};
+		Director.systemScheduler.schedule(() => {
+			if (settled) return true;
+			if (req.isCancelled?.() === true && requestId !== 0) {
+				HttpClient.cancel(requestId);
+				finish({ success: false, interrupted: true, message: "download canceled" });
+				return true;
+			}
+			if (requestId !== 0 && !HttpClient.isRequestActive(requestId)) {
+				finish({ success: false, message: "download request ended without a completion callback" });
+				return true;
+			}
+			return false;
+		});
+		Director.systemScheduler.schedule(once(() => {
+			requestId = HttpClient.download(req.url, req.tempPath, req.timeout, (interrupted, current, total) => {
+				if (interrupted) {
+					finish({ success: false, interrupted: true, message: "download failed" });
+					return true;
+				}
+				if (req.isCancelled?.() === true) {
+					finish({ success: false, interrupted: true, message: "download canceled" });
+					return true;
+				}
+				if (current === total) {
+					finish({ success: true });
+					return false;
+				}
+				req.onProgress(current, total);
+				return false;
+			});
+			if (requestId === 0) {
+				finish({ success: false, message: "failed to schedule download request" });
+			} else if (req.isCancelled?.() === true) {
+				HttpClient.cancel(requestId);
+				finish({ success: false, interrupted: true, message: "download canceled" });
+			}
+		}));
+	});
+}
+
 function getFileState(path: string) {
 	const exists = Content.exist(path);
 	if (!exists) {
@@ -396,7 +618,22 @@ function getFileState(path: string) {
 			bytes: 0,
 		};
 	}
+	if (Content.isdir(path)) {
+		return {
+			exists: true,
+			content: "",
+			bytes: 0,
+			isDirectory: true,
+		};
+	}
 	const content = Content.load(path);
+	if (typeof content !== "string") {
+		return {
+			exists: true,
+			content: "",
+			bytes: 0,
+		};
+	}
 	return {
 		exists: true,
 		content,
@@ -639,6 +876,20 @@ export function sendWebIDEFileUpdate(file: string, exists: boolean, content: str
 	}
 	emit("AppWS", "Send", payload);
 	return true;
+}
+
+function syncDownloadedFileToWebIDE(file: string): boolean {
+	let content = "";
+	try {
+		const [, isBinary] = Content.getAttr(file);
+		if (!isBinary) {
+			const loaded = Content.load(file);
+			content = typeof loaded === "string" ? loaded : "";
+		}
+	} catch (e) {
+		Log("Warn", `[fetch_url] failed to inspect downloaded file for Web IDE update file=${file}: ${tostring(e)}`);
+	}
+	return sendWebIDEFileUpdate(file, true, content);
 }
 
 async function runSingleNonTsBuild(file: string): Promise<BuildMessage> {
@@ -1386,6 +1637,10 @@ export function applyFileChanges(taskId: number, workDir: string, changes: FileC
 			DB.exec(`UPDATE ${TABLE_CP} SET status = ? WHERE id = ?`, ["FAILED", checkpointId]);
 			return { success: false, message: `invalid path: ${change.path}` };
 		}
+		if (change.op === "delete" && Content.exist(fullPath) && Content.isdir(fullPath)) {
+			DB.exec(`UPDATE ${TABLE_CP} SET status = ? WHERE id = ?`, ["FAILED", checkpointId]);
+			return { success: false, message: `delete_file only supports files, not directories: ${change.path}` };
+		}
 		const before = getFileState(fullPath);
 		const afterExists = change.op !== "delete";
 		const afterContent = afterExists ? (change.content ?? "") : "";
@@ -1635,4 +1890,168 @@ export async function build(req: { workDir: string; path: string }): Promise<Bui
 	}
 	Log("Info", `[build] dir=${target} messages=${messages.length}`);
 	return finalizeBuildResult(req.workDir, messages);
+}
+
+export async function fetchUrl(req: {
+	workDir: string;
+	mode: FetchUrlMode;
+	url: string;
+	target: string;
+	ref?: string;
+	onProgress?: (progress: FetchUrlProgress) => void;
+	isCancelled?: () => boolean;
+}): Promise<FetchUrlResult> {
+	const mode = req.mode;
+	if (mode !== "download" && mode !== "git_clone") {
+		return { success: false, state: "failed", message: "mode must be download or git_clone" };
+	}
+	const url = (req.url ?? "").trim();
+	const targetRel = (req.target ?? "").trim();
+	if (!isHttpUrl(url)) {
+		return { success: false, state: "failed", mode, target: targetRel, message: "fetch_url only supports http:// and https:// URLs" };
+	}
+	if (targetRel === "") {
+		return { success: false, state: "failed", mode, message: "missing target" };
+	}
+	const target = resolveWorkspaceFilePath(req.workDir, targetRel);
+	if (!target) {
+		return { success: false, state: "failed", mode, target: targetRel, message: "invalid target path" };
+	}
+	if (Content.exist(target)) {
+		return { success: false, state: "failed", mode, target: targetRel, message: "target already exists" };
+	}
+	const operationId = createOperationId();
+	const tempRoot = getAgentDownloadTempRoot();
+	if (!ensureDirPath(tempRoot)) {
+		return { success: false, state: "failed", mode, target: targetRel, message: "failed to create agent download temp directory" };
+	}
+	const tempPath = Path(tempRoot, mode === "download" ? `${operationId}.download` : `${operationId}.repo`);
+	Content.remove(tempPath);
+	const emitProgress = (progress: Partial<FetchUrlProgress>) => {
+		if (!req.onProgress) return;
+		req.onProgress({
+			state: "running",
+			mode,
+			operationId,
+			target: targetRel,
+			tempPath,
+			...progress,
+		});
+	};
+	emitProgress({
+		state: "pending",
+		message: mode === "download" ? "download pending" : "clone pending",
+		stage: mode === "download" ? "download" : "clone",
+	});
+	const interrupted = () => req.isCancelled?.() === true;
+	if (mode === "download") {
+		if (!ensureDirForFile(tempPath)) {
+			return { success: false, state: "failed", mode, target: targetRel, message: "failed to create temporary file directory" };
+		}
+		const downloadRes = await downloadFile({
+			url,
+			tempPath,
+			timeout: 600,
+			isCancelled: interrupted,
+			onProgress: (current, total) => {
+				const totalNumber = typeof total === "number" ? total : 0;
+				emitProgress({
+					stage: "download",
+					message: totalNumber > 0 ? "downloading" : "downloading",
+					current,
+					total,
+					progress: totalNumber > 0 ? current / totalNumber : undefined,
+				});
+			},
+		});
+		if (!downloadRes.success) {
+			const cleanupError = cleanupPath(tempPath);
+			return {
+				success: false,
+				state: "failed",
+				mode,
+				target: targetRel,
+				message: interrupted() ? "download canceled" : (downloadRes.message ?? "download failed"),
+				interrupted: downloadRes.interrupted || interrupted(),
+				cleanupError,
+			};
+		}
+		if (!ensureDirForFile(target)) {
+			const cleanupError = cleanupPath(tempPath);
+			return { success: false, state: "failed", mode, target: targetRel, message: "failed to create target directory", cleanupError };
+		}
+		if (!Content.move(tempPath, target)) {
+			const cleanupError = cleanupPath(tempPath);
+			return { success: false, state: "failed", mode, target: targetRel, message: "failed to move downloaded file into target path", cleanupError };
+		}
+		let bytesWritten: number | undefined;
+		try {
+			const [size] = Content.getAttr(target);
+			bytesWritten = typeof size === "number" ? size : undefined;
+		} catch (_) {
+			bytesWritten = undefined;
+		}
+		if (!syncDownloadedFileToWebIDE(target)) {
+			Log("Warn", `[fetch_url] failed to sync downloaded file update target=${target}`);
+		}
+		return { success: true, state: "done", mode, target: targetRel, bytesWritten };
+	}
+	const targetParent = Path.getPath(target);
+	if (!ensureDirPath(targetParent)) {
+		return { success: false, state: "failed", mode, target: targetRel, message: "failed to create target parent directory" };
+	}
+	const ref = (req.ref ?? "").trim();
+	const command = [
+		"clone",
+		quoteGitArg(url),
+		quoteGitArg(Path.getFilename(tempPath)),
+		...(ref !== "" ? ["-b", quoteGitArg(ref)] : []),
+		"--depth",
+		"1",
+	].join(" ");
+	const gitRes = await runGitAndWait(
+		tempRoot,
+		command,
+		status => {
+			const progress = typeof status.progress === "number" ? status.progress as number : undefined;
+			const kind = toStr(status.kind);
+			const message = toStr(status.message);
+			const state = toStr(status.state);
+			const jobId = typeof status.id === "number" ? status.id as number : undefined;
+			emitProgress({
+				stage: kind !== "" ? kind : "clone",
+				message: message !== "" ? message : (state !== "" ? state : "cloning"),
+				progress,
+				jobId,
+				gitState: state !== "" ? state : undefined,
+				gitKind: kind !== "" ? kind : undefined,
+			});
+		},
+		interrupted,
+		600,
+	);
+	if (!gitRes.success) {
+		const cleanupError = cleanupPath(tempPath);
+		return {
+			success: false,
+			state: "failed",
+			mode,
+			target: targetRel,
+			message: gitRes.message ?? "git clone failed",
+			interrupted: gitRes.interrupted || interrupted(),
+			cleanupError,
+		};
+	}
+	if (!Content.move(tempPath, target)) {
+		const cleanupError = cleanupPath(tempPath);
+		return { success: false, state: "failed", mode, target: targetRel, message: "failed to move cloned repository into target path", cleanupError };
+	}
+	return {
+		success: true,
+		state: "done",
+		mode,
+		target: targetRel,
+		ref: ref !== "" ? ref : undefined,
+		commit: getGitHeadCommit(target),
+	};
 }

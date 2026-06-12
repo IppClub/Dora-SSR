@@ -11,6 +11,7 @@ export type AgentToolName =
 	| "search_dora_api"
 	| "glob_files"
 	| "build"
+	| "fetch_url"
 	| "list_sub_agents"
 	| "spawn_sub_agent"
 	| "finish";
@@ -23,6 +24,7 @@ const BUILT_IN_AGENT_TOOL_NAMES: AgentToolName[] = [
 	"search_dora_api",
 	"glob_files",
 	"build",
+	"fetch_url",
 	"list_sub_agents",
 	"spawn_sub_agent",
 	"finish",
@@ -39,6 +41,10 @@ export type AgentFunctionToolSchema = {
 
 export interface AgentToolSchemaContext {
 	searchDoraApiLimitMax: number;
+}
+
+export interface AgentToolCapabilityOptions {
+	disabledAgentTools?: AgentToolName[];
 }
 
 export interface ToolParameterPrompt {
@@ -227,6 +233,23 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 		],
 	},
 	{
+		name: "fetch_url",
+		roles: ["main", "sub"],
+		description: "Import an HTTP or HTTPS network resource into the project.",
+		parameters: [
+			{ name: "mode", type: "string", required: true, enum: ["download", "git_clone"], description: "Use download to GET a file, or git_clone to shallow clone an HTTP or HTTPS Git repository." },
+			{ name: "url", type: "string", required: true, description: "HTTP or HTTPS URL to download or clone. Other schemes are rejected." },
+			{ name: "target", type: "string", required: true, description: "Workspace-relative target file path for download, or target directory path for git_clone. The target must not already exist." },
+			{ name: "ref", type: "string", description: "Optional branch, tag, or commit-ish for git_clone." },
+		],
+		rules: [
+			"This tool is available only when the user enables fetch_url for the current Agent task.",
+			"Targets must stay inside the current project and existing files or directories are not overwritten.",
+			"download writes to a temporary file first, then moves it into place only after the GET succeeds.",
+			"git_clone uses an HTTP or HTTPS shallow clone into a temporary directory, then moves it into place only after clone succeeds.",
+		],
+	},
+	{
 		name: "finish",
 		roles: ["main", "sub"],
 		description: "End the task and reply directly to the user.",
@@ -267,7 +290,7 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 		rules: [
 			"Use this for large multi-file work, parallel exploration, long-running verification, or isolated execution tasks.",
 			"For small focused edits, use edit_file/delete_file/build directly in the current main-agent run.",
-			"The spawned sub agent can use read_file, edit_file, delete_file, grep_files, search_dora_api, glob_files, build, and finish.",
+			"The spawned sub agent inherits the current session tool capabilities, including fetch_url when network import is enabled.",
 			"title should be short and specific.",
 			"prompt should be self-contained and actionable, and should clearly describe the concrete work to execute, constraints, desired output, and any relevant files.",
 			"If spawn succeeds, immediately finish the current turn and state that the work has been delegated.",
@@ -291,6 +314,11 @@ function getToolPrompt(name: string): ToolPrompt | undefined {
 		if (tool.name === name) return tool;
 	}
 	return undefined;
+}
+
+function isToolCapabilityEnabled(tool: ToolPrompt, options?: AgentToolCapabilityOptions): boolean {
+	if (!isKnownToolName(tool.name)) return false;
+	return (options?.disabledAgentTools ?? []).indexOf(tool.name as AgentToolName) < 0;
 }
 
 function formatParameterList(tool: ToolPrompt): string {
@@ -328,18 +356,20 @@ export function isKnownToolName(name: string): name is AgentToolName {
 	return BUILT_IN_AGENT_TOOL_NAMES.indexOf(name as AgentToolName) >= 0;
 }
 
-export function getAllowedToolsForRole(role: AgentRole): AgentToolName[] {
+export function getAllowedToolsForRole(role: AgentRole, options?: AgentToolCapabilityOptions): AgentToolName[] {
 	return AGENT_TOOL_PROMPTS
-		.filter(tool => hasRole(tool, role) && isKnownToolName(tool.name))
+		.filter(tool => hasRole(tool, role) && isKnownToolName(tool.name) && isToolCapabilityEnabled(tool, options))
 		.map(tool => tool.name as AgentToolName);
 }
 
 export function getToolPromptsForRole(role: AgentRole, options?: {
 	includeFinish?: boolean;
+	disabledAgentTools?: AgentToolName[];
 }): ToolPrompt[] {
 	return AGENT_TOOL_PROMPTS.filter(tool =>
 		hasRole(tool, role)
 		&& (options?.includeFinish === true || tool.name !== "finish")
+		&& isToolCapabilityEnabled(tool, options)
 	);
 }
 
@@ -354,7 +384,7 @@ export function buildToolDefinitionsDetailed(tools: ToolPrompt[], options?: {
 	if (options?.includeXmlRules === true) {
 		sections.push(`XML mode object fields:
 - Use a single root tag: <tool_call>.
-- For read_file, edit_file, delete_file, grep_files, search_dora_api, glob_files, and build, include <tool>, <reason>, and <params>.
+- For read_file, edit_file, delete_file, grep_files, search_dora_api, glob_files, build, and fetch_url, include <tool>, <reason>, and <params>.
 - For finish, do not include <reason>. Use only <tool> and <params><message>...</message></params>.
 - Inside <params>, use one child tag per parameter and preserve each tag content as raw text.`);
 	}
@@ -367,9 +397,13 @@ export function buildRoleToolDefinitionsDetailed(role: AgentRole, options?: {
 	includeXmlRules?: boolean;
 	title?: string;
 	context?: AgentToolSchemaContext;
+	disabledAgentTools?: AgentToolName[];
 }): string {
 	return buildToolDefinitionsDetailed(
-		getToolPromptsForRole(role, { includeFinish: options?.includeFinish }),
+		getToolPromptsForRole(role, {
+			includeFinish: options?.includeFinish,
+			disabledAgentTools: options?.disabledAgentTools,
+		}),
 		{
 			title: options?.title,
 			includeXmlRules: options?.includeXmlRules,
@@ -378,8 +412,8 @@ export function buildRoleToolDefinitionsDetailed(role: AgentRole, options?: {
 	);
 }
 
-export function buildXMLRepairToolReference(role: AgentRole): string {
-	const tools = getToolPromptsForRole(role, { includeFinish: true });
+export function buildXMLRepairToolReference(role: AgentRole, options?: AgentToolCapabilityOptions): string {
+	const tools = getToolPromptsForRole(role, { includeFinish: true, disabledAgentTools: options?.disabledAgentTools });
 	const lines = [
 		"Allowed tools and XML params:",
 		...tools.map(tool => formatXMLRepairToolReference(tool)),
@@ -419,9 +453,11 @@ export function canRunToolInParallel(tool: AgentToolName): boolean {
 	return prompt?.parallelSafe === true;
 }
 
-export function buildDecisionToolSchema(role: AgentRole, searchDoraApiLimitMax: number) {
+export function buildDecisionToolSchema(role: AgentRole, searchDoraApiLimitMax: number, options?: AgentToolCapabilityOptions) {
 	const context = { searchDoraApiLimitMax };
-	return buildDecisionToolSchemaForTools(getToolPromptsForRole(role), context);
+	return buildDecisionToolSchemaForTools(getToolPromptsForRole(role, {
+		disabledAgentTools: options?.disabledAgentTools,
+	}), context);
 }
 
 export function buildDecisionToolSchemaForTools(tools: ToolPrompt[], context: AgentToolSchemaContext) {

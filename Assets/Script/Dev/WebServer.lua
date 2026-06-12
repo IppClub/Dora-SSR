@@ -1735,7 +1735,7 @@ HttpServer:post("/agent/session/send", function(req) -- 733
 				end -- 734
 			end -- 734
 			if sessionId ~= nil and prompt ~= nil then -- 734
-				return AgentSession.sendPrompt(sessionId, prompt) -- 735
+				return AgentSession.sendPrompt(sessionId, prompt, false, req.body.disabledAgentTools) -- 735
 			end -- 734
 		end -- 734
 	end -- 734
@@ -1771,7 +1771,7 @@ HttpServer:post("/agent/session/resend", function(req) -- 737
 				end -- 738
 			end -- 738
 			if sessionId ~= nil and messageId ~= nil and prompt ~= nil then -- 738
-				return AgentSession.resendPrompt(sessionId, messageId, prompt) -- 739
+				return AgentSession.resendPrompt(sessionId, messageId, prompt, req.body.disabledAgentTools) -- 739
 			end -- 738
 		end -- 738
 	end -- 738
