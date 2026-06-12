@@ -3,6 +3,8 @@ import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
+import DownloadIcon from '@mui/icons-material/Download';
+import TerminalIcon from '@mui/icons-material/Terminal';
 import { MacScrollbar } from 'mac-scrollbar';
 import { useTranslation } from 'react-i18next';
 import { BsFillSendFill, BsStopFill } from 'react-icons/bs';
@@ -21,9 +23,11 @@ interface AgentComposerProps {
 	contextRatio?: number;
 	usedTokens?: number;
 	maxTokens?: number;
+	fetchUrlEnabled?: boolean;
 	onPromptChange: (value: string) => void;
 	onSend: () => void;
 	onStop: () => void;
+	onFetchUrlEnabledChange?: (value: boolean) => void;
 }
 
 function formatCompactNumber(value: number): string {
@@ -89,13 +93,31 @@ function ContextUsageRing(props: { ratio?: number; usedTokens?: number; maxToken
 
 export default function AgentComposer(props: AgentComposerProps) {
 	const { t } = useTranslation();
-	const { prompt, loading, running, canStop = true, tabButtons, contextRatio, usedTokens, maxTokens, onPromptChange, onSend, onStop } = props;
+	const {
+		prompt,
+		loading,
+		running,
+		canStop = true,
+		tabButtons,
+		contextRatio,
+		usedTokens,
+		maxTokens,
+		fetchUrlEnabled = false,
+		onPromptChange,
+		onSend,
+		onStop,
+		onFetchUrlEnabledChange,
+	} = props;
 	const disabledInput = loading || running;
 	const actionDisabled = running ? !canStop : loading || prompt.trim() === "";
 	const showActionButton = running || prompt.trim() !== "";
+	const toolToggleDisabled = loading || running || onFetchUrlEnabledChange === undefined;
+	const showTopControls = tabButtons !== undefined || onFetchUrlEnabledChange !== undefined;
+	const showFetchUrlButton = onFetchUrlEnabledChange !== undefined;
 	const textAreaRef = React.useRef<HTMLTextAreaElement | null>(null);
 	const scrollRef = React.useRef<HTMLElement | null>(null);
 	const isComposingRef = React.useRef(false);
+	const [executeCommandEnabled, setExecuteCommandEnabled] = React.useState(false);
 
 	React.useLayoutEffect(() => {
 		const textarea = textAreaRef.current;
@@ -118,9 +140,78 @@ export default function AgentComposer(props: AgentComposerProps) {
 		}
 	}, [prompt]);
 
+	const fetchUrlButton = (
+		<Tooltip title={t("agent.networkToolsToggle")}>
+			<span>
+				<IconButton
+					onClick={() => onFetchUrlEnabledChange?.(!fetchUrlEnabled)}
+					disabled={toolToggleDisabled}
+					sx={{
+						width: 30,
+						height: 30,
+						borderRadius: 999,
+						border: `1px solid ${fetchUrlEnabled ? `${Color.Theme}7d` : 'rgba(255, 255, 255, 0.14)'}`,
+						backgroundColor: fetchUrlEnabled ? `${Color.Theme}14` : 'rgba(24, 24, 24, 0.46)',
+						backdropFilter: "blur(10px)",
+						color: fetchUrlEnabled ? `${Color.Theme}d6` : Color.TextSecondary,
+						boxShadow: fetchUrlEnabled ? `0 0 0 1px ${Color.Theme}1a inset` : "none",
+						'&:hover': {
+							borderColor: fetchUrlEnabled ? `${Color.Theme}b3` : 'rgba(255, 255, 255, 0.22)',
+							backgroundColor: fetchUrlEnabled ? `${Color.Theme}1c` : 'rgba(255, 255, 255, 0.08)',
+						},
+						"&.Mui-disabled": {
+							borderColor: fetchUrlEnabled ? `${Color.Theme}7d` : 'rgba(255, 255, 255, 0.1)',
+							backgroundColor: fetchUrlEnabled ? `${Color.Theme}14` : 'rgba(24, 24, 24, 0.38)',
+							color: fetchUrlEnabled ? `${Color.Theme}d6` : "rgba(255, 255, 255, 0.34)",
+							opacity: 1,
+						},
+					}}
+					aria-pressed={fetchUrlEnabled}
+					aria-label={t("agent.fetchUrl.toggle")}
+				>
+					<DownloadIcon sx={{ fontSize: 18, display: "block" }} />
+				</IconButton>
+			</span>
+		</Tooltip>
+	);
+	const executeCommandButton = (
+		<Tooltip title={t("agent.executeCommandToggle")}>
+			<span>
+				<IconButton
+					onClick={() => setExecuteCommandEnabled(value => !value)}
+					disabled={loading || running}
+					sx={{
+						width: 30,
+						height: 30,
+						borderRadius: 999,
+						border: `1px solid ${executeCommandEnabled ? `${Color.Theme}7d` : 'rgba(255, 255, 255, 0.14)'}`,
+						backgroundColor: executeCommandEnabled ? `${Color.Theme}14` : 'rgba(24, 24, 24, 0.46)',
+						backdropFilter: "blur(10px)",
+						color: executeCommandEnabled ? `${Color.Theme}d6` : Color.TextSecondary,
+						boxShadow: executeCommandEnabled ? `0 0 0 1px ${Color.Theme}1a inset` : "none",
+						'&:hover': {
+							borderColor: executeCommandEnabled ? `${Color.Theme}b3` : 'rgba(255, 255, 255, 0.22)',
+							backgroundColor: executeCommandEnabled ? `${Color.Theme}1c` : 'rgba(255, 255, 255, 0.08)',
+						},
+						"&.Mui-disabled": {
+							borderColor: executeCommandEnabled ? `${Color.Theme}7d` : 'rgba(255, 255, 255, 0.1)',
+							backgroundColor: executeCommandEnabled ? `${Color.Theme}14` : 'rgba(24, 24, 24, 0.38)',
+							color: executeCommandEnabled ? `${Color.Theme}d6` : "rgba(255, 255, 255, 0.34)",
+							opacity: 1,
+						},
+					}}
+					aria-pressed={executeCommandEnabled}
+					aria-label={t("agent.executeCommand")}
+				>
+					<TerminalIcon sx={{ fontSize: 18, display: "block" }} />
+				</IconButton>
+			</span>
+		</Tooltip>
+	);
+
 	return (
 		<Box sx={{ px: 2, pt: 0, pb: 2, backgroundColor: Color.Background, position: "relative", flexShrink: 0, overflow: "visible" }}>
-			{tabButtons ? (
+			{showTopControls ? (
 				<Stack
 					direction="row"
 					spacing={1}
@@ -146,6 +237,8 @@ export default function AgentComposer(props: AgentComposerProps) {
 							pointerEvents: "auto",
 						}}
 					>
+						{showFetchUrlButton ? fetchUrlButton : null}
+						{showFetchUrlButton ? executeCommandButton : null}
 						{tabButtons}
 					</Stack>
 					<Box sx={{ flex: "0 0 auto", pointerEvents: "auto" }}>

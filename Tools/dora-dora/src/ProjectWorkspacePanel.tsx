@@ -177,6 +177,7 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 						onInitialPromptConsumed={onAgentInitialPromptConsumed}
 						onRollbackComplete={onRollbackComplete}
 						onOpenFile={onOpenFile}
+						onRepositoryFilesChanged={onRepositoryFilesChanged}
 						onOpenLLMConfig={onOpenLLMConfig}
 					/>
 				) : currentView === "git" ? (

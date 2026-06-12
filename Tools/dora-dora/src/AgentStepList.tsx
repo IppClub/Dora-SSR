@@ -4,6 +4,7 @@ import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import Collapse from '@mui/material/Collapse';
 import CircularProgress from '@mui/material/CircularProgress';
+import LinearProgress from '@mui/material/LinearProgress';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useTranslation } from 'react-i18next';
@@ -162,6 +163,17 @@ function summarizeToolParams(step: AgentSessionStep, t: (key: string, options?: 
 			push(t("agent.paramLabels.buildTarget"), path !== "" ? path : t("agent.workspace"));
 			return items;
 		}
+		case "fetch_url": {
+			const mode = typeof params.mode === "string" ? params.mode : "";
+			const url = typeof params.url === "string" ? params.url : "";
+			const target = typeof params.target === "string" ? params.target : "";
+			const ref = typeof params.ref === "string" ? params.ref : "";
+			push(t("agent.paramLabels.mode"), mode !== "" ? t(`agent.fetchUrl.${mode}`, { defaultValue: mode }) : "");
+			push(t("agent.paramLabels.url"), url);
+			push(t("agent.paramLabels.target"), target);
+			push(t("agent.paramLabels.ref"), ref);
+			return items;
+		}
 		case "list_sub_agents": {
 			const status = typeof params.status === "string" ? params.status : "";
 			const limit = typeof params.limit === "number" ? params.limit : undefined;
@@ -268,6 +280,39 @@ function getBuildTotal(step: AgentSessionStep, shownCount: number): number {
 	return typeof total === "number" && total > shownCount ? total : shownCount;
 }
 
+function getFetchUrlProgress(step: AgentSessionStep): {
+	mode: string;
+	message: string;
+	progress?: number;
+	hasDeterminateProgress: boolean;
+	stage?: string;
+	gitState?: string;
+	jobId?: number;
+} | undefined {
+	if (step.tool !== "fetch_url") return undefined;
+	if (step.status !== "RUNNING") return undefined;
+	const result = step.result;
+	if (!result || typeof result !== "object") return undefined;
+	const mode = typeof result.mode === "string"
+		? result.mode
+		: (typeof step.params?.mode === "string" ? step.params.mode : "");
+	const progress = typeof result.progress === "number" && Number.isFinite(result.progress)
+		? Math.max(0, Math.min(1, result.progress))
+		: undefined;
+	const message = typeof result.message === "string" && result.message !== ""
+		? result.message
+		: (mode === "git_clone" ? "cloning" : "downloading");
+	const stage = typeof result.gitKind === "string" && result.gitKind !== ""
+		? result.gitKind
+		: (typeof result.stage === "string" && result.stage !== "" ? result.stage : undefined);
+	const gitState = typeof result.gitState === "string" && result.gitState !== "" ? result.gitState : undefined;
+	const jobId = typeof result.jobId === "number" ? result.jobId : undefined;
+	const hasDeterminateProgress = mode === "git_clone"
+		? progress !== undefined && progress > 0
+		: progress !== undefined;
+	return { mode, message, progress, hasDeterminateProgress, stage, gitState, jobId };
+}
+
 export default function AgentStepList(props: AgentStepListProps) {
 	const { t } = useTranslation();
 	const [openedBuildErrors, setOpenedBuildErrors] = React.useState<Record<number, boolean>>({});
@@ -298,6 +343,7 @@ export default function AgentStepList(props: AgentStepListProps) {
 				const buildResultsTruncated = buildTotal > buildItems.length;
 				const showBuildResults = buildItems.length > 0;
 				const buildErrorsOpened = openedBuildErrors[step.id] === true;
+				const fetchProgress = getFetchUrlProgress(step);
 				const hasReasoning = step.reasoningContent.trim() !== "";
 				const primaryContent = step.reason || (hasReasoning ? step.reasoningContent : "");
 				const handoffMeta = getSubAgentHandoffMeta(step);
@@ -491,6 +537,35 @@ export default function AgentStepList(props: AgentStepListProps) {
 									</React.Fragment>
 								))}
 							</Typography>
+						) : null}
+						{fetchProgress ? (
+							<Box sx={{ mt: 1.25 }}>
+								<Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.75 }}>
+									<Typography variant="caption" sx={{ color: Color.TextSecondary }}>
+										{fetchProgress.mode === "git_clone" ? t("agent.fetchUrl.cloning") : t("agent.fetchUrl.downloading")}
+									</Typography>
+									<Typography variant="caption" sx={{ color: Color.TextSecondary }}>
+										{[
+											fetchProgress.stage,
+											fetchProgress.gitState,
+											fetchProgress.jobId !== undefined ? `#${fetchProgress.jobId}` : undefined,
+											fetchProgress.message,
+											fetchProgress.hasDeterminateProgress && fetchProgress.progress !== undefined ? `${Math.round(fetchProgress.progress * 100)}%` : undefined,
+										].filter(Boolean).join(" · ")}
+									</Typography>
+								</Stack>
+								<LinearProgress
+									variant={fetchProgress.hasDeterminateProgress ? "determinate" : "indeterminate"}
+									value={fetchProgress.hasDeterminateProgress && fetchProgress.progress !== undefined ? fetchProgress.progress * 100 : undefined}
+									sx={{
+										height: 3,
+										backgroundColor: `${Color.Theme}1f`,
+										"& .MuiLinearProgress-bar": {
+											backgroundColor: `${Color.Theme}b3`,
+										},
+									}}
+								/>
+							</Box>
 						) : null}
 						{showBuildResults ? (
 							<Box sx={{ mt: 1.25 }}>

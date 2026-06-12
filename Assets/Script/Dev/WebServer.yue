@@ -732,11 +732,11 @@ HttpServer\post "/agent/session/get", (req): invalidArguments ->
 
 HttpServer\post "/agent/session/send", (req): invalidArguments ->
 	switch req when {body: {:sessionId, :prompt}}
-		return AgentSession.sendPrompt sessionId, prompt
+		return AgentSession.sendPrompt sessionId, prompt, false, req.body.disabledAgentTools
 
 HttpServer\post "/agent/session/resend", (req): invalidArguments ->
 	switch req when {body: {:sessionId, :messageId, :prompt}}
-		return AgentSession.resendPrompt sessionId, messageId, prompt
+		return AgentSession.resendPrompt sessionId, messageId, prompt, req.body.disabledAgentTools
 
 HttpServer\post "/agent/task/status", (req): invalidArguments ->
 	switch req when {body: {:sessionId}}
