@@ -159,6 +159,22 @@ const lightCodeTheme = {
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
+	// Enable Docusaurus Faster (Rspack + SWC + Lightning CSS + SSG threads)
+	future: {
+		v4: {
+			removeLegacyPostBuildHeadAttribute: true,
+		},
+		// Exclude swcHtmlMinimizer — content has self-closing tags it flags as errors
+		faster: {
+			swcJsLoader: true,
+			swcJsMinimizer: true,
+			lightningCssMinimizer: true,
+			rspackBundler: true,
+			mdxCrossCompilerCache: true,
+			ssgWorkerThreads: true,
+		},
+	},
+
 	title: 'Dora SSR',
 	tagline: 'The Dora project, Special Super Rare edition.',
 	favicon: 'img/site/favicon.ico',
