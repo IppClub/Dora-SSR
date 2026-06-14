@@ -992,292 +992,293 @@ function executeToolAction(shared, action) -- 3431
 				mode = mode, -- 3548
 				code = type(params.code) == "string" and params.code or nil, -- 3549
 				command = type(params.command) == "string" and params.command or nil, -- 3550
-				timeoutSeconds = type(params.timeoutSeconds) == "number" and params.timeoutSeconds or nil, -- 3551
-				isCancelled = function() return shared.stopToken.stopped == true end, -- 3552
-				onProgress = function(____, progress) -- 3553
-					emitAgentEvent( -- 3554
-						shared, -- 3554
-						{ -- 3554
-							type = "tool_progress", -- 3555
-							sessionId = shared.sessionId, -- 3556
-							taskId = shared.taskId, -- 3557
-							step = action.step, -- 3558
-							tool = action.tool, -- 3559
-							result = __TS__ObjectAssign({success = false}, progress) -- 3560
-						} -- 3560
-					) -- 3560
-				end -- 3553
-			})) -- 3553
-			return ____awaiter_resolve(nil, result) -- 3553
-		end -- 3553
-		if action.tool == "spawn_sub_agent" then -- 3553
-			if not shared.spawnSubAgent then -- 3553
-				return ____awaiter_resolve(nil, {success = false, message = "spawn_sub_agent is not available in this runtime"}) -- 3553
-			end -- 3553
-			if shared.sessionId == nil or shared.sessionId <= 0 then -- 3553
-				return ____awaiter_resolve(nil, {success = false, message = "spawn_sub_agent requires a parent session"}) -- 3553
-			end -- 3553
-			local filesHint = isArray(params.filesHint) and __TS__ArrayFilter( -- 3576
-				params.filesHint, -- 3577
-				function(____, item) return type(item) == "string" end -- 3577
-			) or nil -- 3577
-			local result = __TS__Await(shared.spawnSubAgent({ -- 3579
-				parentSessionId = shared.sessionId, -- 3580
-				projectRoot = shared.workingDir, -- 3581
-				title = type(params.title) == "string" and params.title or "Sub", -- 3582
-				prompt = type(params.prompt) == "string" and params.prompt or "", -- 3583
-				expectedOutput = type(params.expectedOutput) == "string" and params.expectedOutput or nil, -- 3584
-				filesHint = filesHint, -- 3585
-				disabledAgentTools = shared.disabledAgentTools -- 3586
-			})) -- 3586
-			if not result.success then -- 3586
-				return ____awaiter_resolve(nil, result) -- 3586
-			end -- 3586
-			return ____awaiter_resolve(nil, { -- 3586
-				success = true, -- 3592
-				sessionId = result.sessionId, -- 3593
-				taskId = result.taskId, -- 3594
-				title = result.title, -- 3595
-				hint = "If the necessary sub-agents have already been dispatched, end this turn directly and do not immediately check their results." -- 3596
-			}) -- 3596
-		end -- 3596
-		if action.tool == "list_sub_agents" then -- 3596
-			if not shared.listSubAgents then -- 3596
-				return ____awaiter_resolve(nil, {success = false, message = "list_sub_agents is not available in this runtime"}) -- 3596
-			end -- 3596
-			if shared.sessionId == nil or shared.sessionId <= 0 then -- 3596
-				return ____awaiter_resolve(nil, {success = false, message = "list_sub_agents requires a current session"}) -- 3596
-			end -- 3596
-			local result = __TS__Await(shared.listSubAgents({ -- 3606
-				sessionId = shared.sessionId, -- 3607
-				projectRoot = shared.workingDir, -- 3608
-				status = type(params.status) == "string" and params.status or nil, -- 3609
-				limit = type(params.limit) == "number" and params.limit or nil, -- 3610
-				offset = type(params.offset) == "number" and params.offset or nil, -- 3611
-				query = type(params.query) == "string" and params.query or nil -- 3612
-			})) -- 3612
-			return ____awaiter_resolve(nil, result) -- 3612
-		end -- 3612
-		if action.tool == "edit_file" then -- 3612
-			local path = type(params.path) == "string" and params.path or (type(params.target_file) == "string" and params.target_file or "") -- 3617
-			local oldStr = type(params.old_str) == "string" and params.old_str or "" -- 3620
-			local newStr = type(params.new_str) == "string" and params.new_str or "" -- 3621
-			if __TS__StringTrim(path) == "" then -- 3621
-				return ____awaiter_resolve(nil, {success = false, message = "missing path"}) -- 3621
-			end -- 3621
-			local actionNode = __TS__New(EditFileAction, 1, 0) -- 3623
-			return ____awaiter_resolve( -- 3623
-				nil, -- 3623
-				actionNode:exec({ -- 3624
-					path = path, -- 3625
-					oldStr = oldStr, -- 3626
-					newStr = newStr, -- 3627
-					taskId = shared.taskId, -- 3628
-					workDir = shared.workingDir -- 3629
-				}) -- 3629
-			) -- 3629
-		end -- 3629
-		return ____awaiter_resolve(nil, {success = false, message = action.tool .. " cannot be executed as a batched tool"}) -- 3629
-	end) -- 3629
-end -- 3629
-function sanitizeToolActionResultForHistory(action, result) -- 3635
-	if action.tool == "read_file" then -- 3635
-		return sanitizeReadResultForHistory(action.tool, result) -- 3637
-	end -- 3637
-	if action.tool == "grep_files" or action.tool == "search_dora_api" then -- 3637
-		return sanitizeSearchResultForHistory(action.tool, result) -- 3640
-	end -- 3640
-	if action.tool == "glob_files" then -- 3640
-		return sanitizeListFilesResultForHistory(result) -- 3643
-	end -- 3643
-	if action.tool == "build" then -- 3643
-		return sanitizeBuildResultForHistory(result) -- 3646
-	end -- 3646
-	if action.tool == "edit_file" or action.tool == "delete_file" then -- 3646
-		if result.success ~= true then -- 3646
-			return result -- 3649
-		end -- 3649
-		if type(result.checkpointId) ~= "number" or type(result.checkpointSeq) ~= "number" then -- 3649
+				cwd = type(params.cwd) == "string" and params.cwd or nil, -- 3551
+				timeoutSeconds = type(params.timeoutSeconds) == "number" and params.timeoutSeconds or nil, -- 3552
+				isCancelled = function() return shared.stopToken.stopped == true end, -- 3553
+				onProgress = function(____, progress) -- 3554
+					emitAgentEvent( -- 3555
+						shared, -- 3555
+						{ -- 3555
+							type = "tool_progress", -- 3556
+							sessionId = shared.sessionId, -- 3557
+							taskId = shared.taskId, -- 3558
+							step = action.step, -- 3559
+							tool = action.tool, -- 3560
+							result = __TS__ObjectAssign({success = false}, progress) -- 3561
+						} -- 3561
+					) -- 3561
+				end -- 3554
+			})) -- 3554
+			return ____awaiter_resolve(nil, result) -- 3554
+		end -- 3554
+		if action.tool == "spawn_sub_agent" then -- 3554
+			if not shared.spawnSubAgent then -- 3554
+				return ____awaiter_resolve(nil, {success = false, message = "spawn_sub_agent is not available in this runtime"}) -- 3554
+			end -- 3554
+			if shared.sessionId == nil or shared.sessionId <= 0 then -- 3554
+				return ____awaiter_resolve(nil, {success = false, message = "spawn_sub_agent requires a parent session"}) -- 3554
+			end -- 3554
+			local filesHint = isArray(params.filesHint) and __TS__ArrayFilter( -- 3577
+				params.filesHint, -- 3578
+				function(____, item) return type(item) == "string" end -- 3578
+			) or nil -- 3578
+			local result = __TS__Await(shared.spawnSubAgent({ -- 3580
+				parentSessionId = shared.sessionId, -- 3581
+				projectRoot = shared.workingDir, -- 3582
+				title = type(params.title) == "string" and params.title or "Sub", -- 3583
+				prompt = type(params.prompt) == "string" and params.prompt or "", -- 3584
+				expectedOutput = type(params.expectedOutput) == "string" and params.expectedOutput or nil, -- 3585
+				filesHint = filesHint, -- 3586
+				disabledAgentTools = shared.disabledAgentTools -- 3587
+			})) -- 3587
+			if not result.success then -- 3587
+				return ____awaiter_resolve(nil, result) -- 3587
+			end -- 3587
+			return ____awaiter_resolve(nil, { -- 3587
+				success = true, -- 3593
+				sessionId = result.sessionId, -- 3594
+				taskId = result.taskId, -- 3595
+				title = result.title, -- 3596
+				hint = "If the necessary sub-agents have already been dispatched, end this turn directly and do not immediately check their results." -- 3597
+			}) -- 3597
+		end -- 3597
+		if action.tool == "list_sub_agents" then -- 3597
+			if not shared.listSubAgents then -- 3597
+				return ____awaiter_resolve(nil, {success = false, message = "list_sub_agents is not available in this runtime"}) -- 3597
+			end -- 3597
+			if shared.sessionId == nil or shared.sessionId <= 0 then -- 3597
+				return ____awaiter_resolve(nil, {success = false, message = "list_sub_agents requires a current session"}) -- 3597
+			end -- 3597
+			local result = __TS__Await(shared.listSubAgents({ -- 3607
+				sessionId = shared.sessionId, -- 3608
+				projectRoot = shared.workingDir, -- 3609
+				status = type(params.status) == "string" and params.status or nil, -- 3610
+				limit = type(params.limit) == "number" and params.limit or nil, -- 3611
+				offset = type(params.offset) == "number" and params.offset or nil, -- 3612
+				query = type(params.query) == "string" and params.query or nil -- 3613
+			})) -- 3613
+			return ____awaiter_resolve(nil, result) -- 3613
+		end -- 3613
+		if action.tool == "edit_file" then -- 3613
+			local path = type(params.path) == "string" and params.path or (type(params.target_file) == "string" and params.target_file or "") -- 3618
+			local oldStr = type(params.old_str) == "string" and params.old_str or "" -- 3621
+			local newStr = type(params.new_str) == "string" and params.new_str or "" -- 3622
+			if __TS__StringTrim(path) == "" then -- 3622
+				return ____awaiter_resolve(nil, {success = false, message = "missing path"}) -- 3622
+			end -- 3622
+			local actionNode = __TS__New(EditFileAction, 1, 0) -- 3624
+			return ____awaiter_resolve( -- 3624
+				nil, -- 3624
+				actionNode:exec({ -- 3625
+					path = path, -- 3626
+					oldStr = oldStr, -- 3627
+					newStr = newStr, -- 3628
+					taskId = shared.taskId, -- 3629
+					workDir = shared.workingDir -- 3630
+				}) -- 3630
+			) -- 3630
+		end -- 3630
+		return ____awaiter_resolve(nil, {success = false, message = action.tool .. " cannot be executed as a batched tool"}) -- 3630
+	end) -- 3630
+end -- 3630
+function sanitizeToolActionResultForHistory(action, result) -- 3636
+	if action.tool == "read_file" then -- 3636
+		return sanitizeReadResultForHistory(action.tool, result) -- 3638
+	end -- 3638
+	if action.tool == "grep_files" or action.tool == "search_dora_api" then -- 3638
+		return sanitizeSearchResultForHistory(action.tool, result) -- 3641
+	end -- 3641
+	if action.tool == "glob_files" then -- 3641
+		return sanitizeListFilesResultForHistory(result) -- 3644
+	end -- 3644
+	if action.tool == "build" then -- 3644
+		return sanitizeBuildResultForHistory(result) -- 3647
+	end -- 3647
+	if action.tool == "edit_file" or action.tool == "delete_file" then -- 3647
+		if result.success ~= true then -- 3647
 			return result -- 3650
 		end -- 3650
-		if isArray(result.fileContext) then -- 3650
+		if type(result.checkpointId) ~= "number" or type(result.checkpointSeq) ~= "number" then -- 3650
 			return result -- 3651
 		end -- 3651
-		local contextLimits = { -- 3653
-			fullContentChars = 12000, -- 3654
-			previewChars = 4000, -- 3655
-			diffChars = 8000, -- 3656
-			totalChars = 24000, -- 3657
-			maxFiles = 8 -- 3658
-		} -- 3658
-		local function truncateContextSnippet(sourceText, maxChars, label) -- 3660
-			if maxChars <= 0 then -- 3660
-				return ((("..." .. label) .. " omitted (") .. tostring(#sourceText)) .. " chars total)..." -- 3661
-			end -- 3661
-			if #sourceText <= maxChars then -- 3661
-				return sourceText -- 3662
+		if isArray(result.fileContext) then -- 3651
+			return result -- 3652
+		end -- 3652
+		local contextLimits = { -- 3654
+			fullContentChars = 12000, -- 3655
+			previewChars = 4000, -- 3656
+			diffChars = 8000, -- 3657
+			totalChars = 24000, -- 3658
+			maxFiles = 8 -- 3659
+		} -- 3659
+		local function truncateContextSnippet(sourceText, maxChars, label) -- 3661
+			if maxChars <= 0 then -- 3661
+				return ((("..." .. label) .. " omitted (") .. tostring(#sourceText)) .. " chars total)..." -- 3662
 			end -- 3662
-			local nextUtf8Offset = utf8.offset(sourceText, maxChars + 1) -- 3663
-			local visiblePrefix = nextUtf8Offset == nil and sourceText or string.sub(sourceText, 1, nextUtf8Offset - 1) -- 3664
-			return ((((visiblePrefix .. "\n...") .. label) .. " truncated (") .. tostring(#sourceText)) .. " chars total)..." -- 3665
-		end -- 3660
-		local function countLines(sourceText) -- 3667
-			if sourceText == "" then -- 3667
-				return 0 -- 3668
-			end -- 3668
-			return #__TS__StringSplit(sourceText, "\n") -- 3669
-		end -- 3667
-		local function buildUnifiedDiffPreview(filePath, beforeContent, afterContent, maxChars) -- 3671
-			if beforeContent == afterContent then -- 3671
-				return "" -- 3672
-			end -- 3672
-			local beforeLines = __TS__StringSplit(beforeContent, "\n") -- 3673
-			local afterLines = __TS__StringSplit(afterContent, "\n") -- 3674
+			if #sourceText <= maxChars then -- 3662
+				return sourceText -- 3663
+			end -- 3663
+			local nextUtf8Offset = utf8.offset(sourceText, maxChars + 1) -- 3664
+			local visiblePrefix = nextUtf8Offset == nil and sourceText or string.sub(sourceText, 1, nextUtf8Offset - 1) -- 3665
+			return ((((visiblePrefix .. "\n...") .. label) .. " truncated (") .. tostring(#sourceText)) .. " chars total)..." -- 3666
+		end -- 3661
+		local function countLines(sourceText) -- 3668
+			if sourceText == "" then -- 3668
+				return 0 -- 3669
+			end -- 3669
+			return #__TS__StringSplit(sourceText, "\n") -- 3670
+		end -- 3668
+		local function buildUnifiedDiffPreview(filePath, beforeContent, afterContent, maxChars) -- 3672
+			if beforeContent == afterContent then -- 3672
+				return "" -- 3673
+			end -- 3673
+			local beforeLines = __TS__StringSplit(beforeContent, "\n") -- 3674
+			local afterLines = __TS__StringSplit(afterContent, "\n") -- 3675
 			local unifiedDiffLines = {"--- " .. filePath, "+++ " .. filePath}
-			local firstChangedLine = 0 -- 3676
-			while firstChangedLine < #beforeLines and firstChangedLine < #afterLines and beforeLines[firstChangedLine + 1] == afterLines[firstChangedLine + 1] do -- 3676
-				firstChangedLine = firstChangedLine + 1 -- 3682
-			end -- 3682
-			local lastChangedBeforeLine = #beforeLines - 1 -- 3684
-			local lastChangedAfterLine = #afterLines - 1 -- 3685
-			while lastChangedBeforeLine >= firstChangedLine and lastChangedAfterLine >= firstChangedLine and beforeLines[lastChangedBeforeLine + 1] == afterLines[lastChangedAfterLine + 1] do -- 3685
-				lastChangedBeforeLine = lastChangedBeforeLine - 1 -- 3691
-				lastChangedAfterLine = lastChangedAfterLine - 1 -- 3692
-			end -- 3692
-			local previewStartLine = math.max(0, firstChangedLine - 3) -- 3694
-			local previewEndLine = math.max( -- 3695
-				math.min(#beforeLines - 1, lastChangedBeforeLine + 3), -- 3696
-				math.min(#afterLines - 1, lastChangedAfterLine + 3) -- 3697
-			) -- 3697
-			unifiedDiffLines[#unifiedDiffLines + 1] = ("@@ " .. tostring(previewStartLine + 1)) .. " @@" -- 3699
-			do -- 3699
-				local lineIndex = previewStartLine -- 3700
-				while lineIndex <= previewEndLine do -- 3700
-					do -- 3700
-						local beforeLine = lineIndex < #beforeLines and beforeLines[lineIndex + 1] or nil -- 3701
-						local afterLine = lineIndex < #afterLines and afterLines[lineIndex + 1] or nil -- 3702
-						local beforeChanged = lineIndex >= firstChangedLine and lineIndex <= lastChangedBeforeLine -- 3703
-						local afterChanged = lineIndex >= firstChangedLine and lineIndex <= lastChangedAfterLine -- 3704
-						if not beforeChanged and not afterChanged then -- 3704
-							local contextLine = afterLine ~= nil and afterLine or beforeLine -- 3706
-							if contextLine ~= nil then -- 3706
-								unifiedDiffLines[#unifiedDiffLines + 1] = " " .. contextLine -- 3707
-							end -- 3707
-							goto __continue614 -- 3708
-						end -- 3708
-						if beforeChanged and beforeLine ~= nil then -- 3708
-							unifiedDiffLines[#unifiedDiffLines + 1] = "-" .. beforeLine -- 3710
-						end -- 3710
-						if afterChanged and afterLine ~= nil then -- 3710
-							unifiedDiffLines[#unifiedDiffLines + 1] = "+" .. afterLine -- 3711
+			local firstChangedLine = 0 -- 3677
+			while firstChangedLine < #beforeLines and firstChangedLine < #afterLines and beforeLines[firstChangedLine + 1] == afterLines[firstChangedLine + 1] do -- 3677
+				firstChangedLine = firstChangedLine + 1 -- 3683
+			end -- 3683
+			local lastChangedBeforeLine = #beforeLines - 1 -- 3685
+			local lastChangedAfterLine = #afterLines - 1 -- 3686
+			while lastChangedBeforeLine >= firstChangedLine and lastChangedAfterLine >= firstChangedLine and beforeLines[lastChangedBeforeLine + 1] == afterLines[lastChangedAfterLine + 1] do -- 3686
+				lastChangedBeforeLine = lastChangedBeforeLine - 1 -- 3692
+				lastChangedAfterLine = lastChangedAfterLine - 1 -- 3693
+			end -- 3693
+			local previewStartLine = math.max(0, firstChangedLine - 3) -- 3695
+			local previewEndLine = math.max( -- 3696
+				math.min(#beforeLines - 1, lastChangedBeforeLine + 3), -- 3697
+				math.min(#afterLines - 1, lastChangedAfterLine + 3) -- 3698
+			) -- 3698
+			unifiedDiffLines[#unifiedDiffLines + 1] = ("@@ " .. tostring(previewStartLine + 1)) .. " @@" -- 3700
+			do -- 3700
+				local lineIndex = previewStartLine -- 3701
+				while lineIndex <= previewEndLine do -- 3701
+					do -- 3701
+						local beforeLine = lineIndex < #beforeLines and beforeLines[lineIndex + 1] or nil -- 3702
+						local afterLine = lineIndex < #afterLines and afterLines[lineIndex + 1] or nil -- 3703
+						local beforeChanged = lineIndex >= firstChangedLine and lineIndex <= lastChangedBeforeLine -- 3704
+						local afterChanged = lineIndex >= firstChangedLine and lineIndex <= lastChangedAfterLine -- 3705
+						if not beforeChanged and not afterChanged then -- 3705
+							local contextLine = afterLine ~= nil and afterLine or beforeLine -- 3707
+							if contextLine ~= nil then -- 3707
+								unifiedDiffLines[#unifiedDiffLines + 1] = " " .. contextLine -- 3708
+							end -- 3708
+							goto __continue614 -- 3709
+						end -- 3709
+						if beforeChanged and beforeLine ~= nil then -- 3709
+							unifiedDiffLines[#unifiedDiffLines + 1] = "-" .. beforeLine -- 3711
 						end -- 3711
-					end -- 3711
-					::__continue614:: -- 3711
-					lineIndex = lineIndex + 1 -- 3700
-				end -- 3700
-			end -- 3700
-			return truncateContextSnippet( -- 3713
-				table.concat(unifiedDiffLines, "\n"), -- 3713
-				maxChars, -- 3713
-				"diff" -- 3713
-			) -- 3713
-		end -- 3671
-		local checkpointDiff = Tools.getCheckpointDiff(result.checkpointId) -- 3716
-		if not checkpointDiff.success then -- 3716
-			return result -- 3717
-		end -- 3717
-		local remainingContextBudget = contextLimits.totalChars -- 3718
-		local fileContextItems = {} -- 3719
-		local changedFiles = checkpointDiff.files -- 3720
-		local maxContextFiles = math.min(#changedFiles, contextLimits.maxFiles) -- 3721
-		do -- 3721
-			local fileIndex = 0 -- 3722
-			while fileIndex < maxContextFiles do -- 3722
-				if remainingContextBudget <= 0 then -- 3722
-					break -- 3723
-				end -- 3723
-				local changedFile = changedFiles[fileIndex + 1] -- 3724
-				local beforeContent = changedFile.beforeExists and changedFile.beforeContent or "" -- 3725
-				local afterContent = changedFile.afterExists and changedFile.afterContent or "" -- 3726
-				local contextItem = { -- 3727
-					path = changedFile.path, -- 3728
-					op = changedFile.op, -- 3729
-					checkpointId = result.checkpointId, -- 3730
-					checkpointSeq = result.checkpointSeq, -- 3731
-					beforeExists = changedFile.beforeExists, -- 3732
-					afterExists = changedFile.afterExists, -- 3733
-					beforeBytes = #beforeContent, -- 3734
-					afterBytes = #afterContent, -- 3735
-					diffPreview = "", -- 3736
-					lineCount = changedFile.afterExists and countLines(afterContent) or 0, -- 3737
-					contentTruncated = false, -- 3738
-					fileListTruncated = #changedFiles > contextLimits.maxFiles -- 3739
-				} -- 3739
-				if changedFile.afterExists then -- 3739
-					if #afterContent <= contextLimits.fullContentChars and #afterContent <= remainingContextBudget then -- 3739
-						contextItem.afterContent = afterContent -- 3743
-						remainingContextBudget = remainingContextBudget - #afterContent -- 3744
-					else -- 3744
-						contextItem.afterContentPreview = truncateContextSnippet( -- 3746
-							afterContent, -- 3747
-							math.min( -- 3748
-								contextLimits.previewChars, -- 3748
-								math.max(400, remainingContextBudget) -- 3748
-							), -- 3748
-							"afterContent" -- 3749
-						) -- 3749
-						remainingContextBudget = remainingContextBudget - #contextItem.afterContentPreview -- 3751
-						contextItem.contentTruncated = true -- 3752
-					end -- 3752
-				end -- 3752
-				local diffPreview = buildUnifiedDiffPreview( -- 3755
-					changedFile.path, -- 3756
-					beforeContent, -- 3757
-					afterContent, -- 3758
-					math.min( -- 3759
-						contextLimits.diffChars, -- 3759
-						math.max(400, remainingContextBudget) -- 3759
-					) -- 3759
-				) -- 3759
-				contextItem.diffPreview = diffPreview -- 3761
-				remainingContextBudget = remainingContextBudget - #diffPreview -- 3762
-				if not changedFile.afterExists and beforeContent ~= "" then -- 3762
-					contextItem.beforeContentPreview = truncateContextSnippet( -- 3764
-						beforeContent, -- 3765
-						math.min( -- 3766
-							contextLimits.previewChars, -- 3766
-							math.max(400, remainingContextBudget) -- 3766
-						), -- 3766
-						"beforeContent" -- 3767
-					) -- 3767
-					remainingContextBudget = remainingContextBudget - #contextItem.beforeContentPreview -- 3769
-					if #beforeContent > contextLimits.previewChars then -- 3769
-						contextItem.contentTruncated = true -- 3770
-					end -- 3770
-				end -- 3770
-				fileContextItems[#fileContextItems + 1] = contextItem -- 3772
-				fileIndex = fileIndex + 1 -- 3722
-			end -- 3722
-		end -- 3722
-		if #fileContextItems == 0 then -- 3722
-			return result -- 3774
-		end -- 3774
-		return __TS__ObjectAssign({}, result, {fileContext = fileContextItems}, #changedFiles > maxContextFiles and ({truncatedFileContextItems = #changedFiles - maxContextFiles}) or ({})) -- 3775
-	end -- 3775
-	return result -- 3782
-end -- 3782
-function emitAgentTaskFinishEvent(shared, success, message) -- 3950
-	local result = {success = success, taskId = shared.taskId, message = message, steps = shared.step} -- 3951
-	emitAgentEvent(shared, { -- 3957
-		type = "task_finished", -- 3958
-		sessionId = shared.sessionId, -- 3959
-		taskId = shared.taskId, -- 3960
-		success = result.success, -- 3961
-		message = result.message, -- 3962
-		steps = result.steps -- 3963
-	}) -- 3963
-	return result -- 3965
-end -- 3965
+						if afterChanged and afterLine ~= nil then -- 3711
+							unifiedDiffLines[#unifiedDiffLines + 1] = "+" .. afterLine -- 3712
+						end -- 3712
+					end -- 3712
+					::__continue614:: -- 3712
+					lineIndex = lineIndex + 1 -- 3701
+				end -- 3701
+			end -- 3701
+			return truncateContextSnippet( -- 3714
+				table.concat(unifiedDiffLines, "\n"), -- 3714
+				maxChars, -- 3714
+				"diff" -- 3714
+			) -- 3714
+		end -- 3672
+		local checkpointDiff = Tools.getCheckpointDiff(result.checkpointId) -- 3717
+		if not checkpointDiff.success then -- 3717
+			return result -- 3718
+		end -- 3718
+		local remainingContextBudget = contextLimits.totalChars -- 3719
+		local fileContextItems = {} -- 3720
+		local changedFiles = checkpointDiff.files -- 3721
+		local maxContextFiles = math.min(#changedFiles, contextLimits.maxFiles) -- 3722
+		do -- 3722
+			local fileIndex = 0 -- 3723
+			while fileIndex < maxContextFiles do -- 3723
+				if remainingContextBudget <= 0 then -- 3723
+					break -- 3724
+				end -- 3724
+				local changedFile = changedFiles[fileIndex + 1] -- 3725
+				local beforeContent = changedFile.beforeExists and changedFile.beforeContent or "" -- 3726
+				local afterContent = changedFile.afterExists and changedFile.afterContent or "" -- 3727
+				local contextItem = { -- 3728
+					path = changedFile.path, -- 3729
+					op = changedFile.op, -- 3730
+					checkpointId = result.checkpointId, -- 3731
+					checkpointSeq = result.checkpointSeq, -- 3732
+					beforeExists = changedFile.beforeExists, -- 3733
+					afterExists = changedFile.afterExists, -- 3734
+					beforeBytes = #beforeContent, -- 3735
+					afterBytes = #afterContent, -- 3736
+					diffPreview = "", -- 3737
+					lineCount = changedFile.afterExists and countLines(afterContent) or 0, -- 3738
+					contentTruncated = false, -- 3739
+					fileListTruncated = #changedFiles > contextLimits.maxFiles -- 3740
+				} -- 3740
+				if changedFile.afterExists then -- 3740
+					if #afterContent <= contextLimits.fullContentChars and #afterContent <= remainingContextBudget then -- 3740
+						contextItem.afterContent = afterContent -- 3744
+						remainingContextBudget = remainingContextBudget - #afterContent -- 3745
+					else -- 3745
+						contextItem.afterContentPreview = truncateContextSnippet( -- 3747
+							afterContent, -- 3748
+							math.min( -- 3749
+								contextLimits.previewChars, -- 3749
+								math.max(400, remainingContextBudget) -- 3749
+							), -- 3749
+							"afterContent" -- 3750
+						) -- 3750
+						remainingContextBudget = remainingContextBudget - #contextItem.afterContentPreview -- 3752
+						contextItem.contentTruncated = true -- 3753
+					end -- 3753
+				end -- 3753
+				local diffPreview = buildUnifiedDiffPreview( -- 3756
+					changedFile.path, -- 3757
+					beforeContent, -- 3758
+					afterContent, -- 3759
+					math.min( -- 3760
+						contextLimits.diffChars, -- 3760
+						math.max(400, remainingContextBudget) -- 3760
+					) -- 3760
+				) -- 3760
+				contextItem.diffPreview = diffPreview -- 3762
+				remainingContextBudget = remainingContextBudget - #diffPreview -- 3763
+				if not changedFile.afterExists and beforeContent ~= "" then -- 3763
+					contextItem.beforeContentPreview = truncateContextSnippet( -- 3765
+						beforeContent, -- 3766
+						math.min( -- 3767
+							contextLimits.previewChars, -- 3767
+							math.max(400, remainingContextBudget) -- 3767
+						), -- 3767
+						"beforeContent" -- 3768
+					) -- 3768
+					remainingContextBudget = remainingContextBudget - #contextItem.beforeContentPreview -- 3770
+					if #beforeContent > contextLimits.previewChars then -- 3770
+						contextItem.contentTruncated = true -- 3771
+					end -- 3771
+				end -- 3771
+				fileContextItems[#fileContextItems + 1] = contextItem -- 3773
+				fileIndex = fileIndex + 1 -- 3723
+			end -- 3723
+		end -- 3723
+		if #fileContextItems == 0 then -- 3723
+			return result -- 3775
+		end -- 3775
+		return __TS__ObjectAssign({}, result, {fileContext = fileContextItems}, #changedFiles > maxContextFiles and ({truncatedFileContextItems = #changedFiles - maxContextFiles}) or ({})) -- 3776
+	end -- 3776
+	return result -- 3783
+end -- 3783
+function emitAgentTaskFinishEvent(shared, success, message) -- 3951
+	local result = {success = success, taskId = shared.taskId, message = message, steps = shared.step} -- 3952
+	emitAgentEvent(shared, { -- 3958
+		type = "task_finished", -- 3959
+		sessionId = shared.sessionId, -- 3960
+		taskId = shared.taskId, -- 3961
+		success = result.success, -- 3962
+		message = result.message, -- 3963
+		steps = result.steps -- 3964
+	}) -- 3964
+	return result -- 3966
+end -- 3966
 ____exports.AGENT_USER_PROMPT_MAX_CHARS = 12000 -- 105
 HISTORY_READ_FILE_MAX_CHARS = 12000 -- 230
 HISTORY_READ_FILE_MAX_LINES = 300 -- 231
@@ -4094,364 +4095,364 @@ local function emitCheckpointEventForAction(shared, action) -- 3408
 		}) -- 3423
 	end -- 3423
 end -- 3408
-local function canRunBatchActionInParallel(self, action) -- 3785
-	return AgentToolRegistry.canRunToolInParallel(action.tool) -- 3786
-end -- 3785
-local function partitionToolCalls(actions) -- 3794
-	local batches = {} -- 3795
-	do -- 3795
-		local i = 0 -- 3796
-		while i < #actions do -- 3796
-			local action = actions[i + 1] -- 3797
-			local isSafe = canRunBatchActionInParallel(nil, action) -- 3798
-			local lastBatch = #batches > 0 and batches[#batches] or nil -- 3799
-			if isSafe and lastBatch and lastBatch.isConcurrencySafe then -- 3799
-				local ____lastBatch_actions_137 = lastBatch.actions -- 3799
-				____lastBatch_actions_137[#____lastBatch_actions_137 + 1] = action -- 3801
-			else -- 3801
-				batches[#batches + 1] = {isConcurrencySafe = isSafe, actions = {action}} -- 3803
-			end -- 3803
-			i = i + 1 -- 3796
-		end -- 3796
-	end -- 3796
-	return batches -- 3806
-end -- 3794
-local BatchToolAction = __TS__Class() -- 3809
-BatchToolAction.name = "BatchToolAction" -- 3809
-__TS__ClassExtends(BatchToolAction, Node) -- 3809
-function BatchToolAction.prototype.prep(self, shared) -- 3810
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3810
-		return ____awaiter_resolve(nil, {shared = shared, actions = shared.pendingToolActions or ({})}) -- 3810
-	end) -- 3810
-end -- 3810
-function BatchToolAction.prototype.exec(self, input) -- 3814
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3814
-		local shared = input.shared -- 3815
-		local preExecuted = shared.preExecutedResults -- 3816
-		local batches = partitionToolCalls(input.actions) -- 3817
-		local parallelBatchCount = #__TS__ArrayFilter( -- 3818
-			batches, -- 3818
-			function(____, b) return b.isConcurrencySafe end -- 3818
-		) -- 3818
-		local serialBatchCount = #__TS__ArrayFilter( -- 3819
+local function canRunBatchActionInParallel(self, action) -- 3786
+	return AgentToolRegistry.canRunToolInParallel(action.tool) -- 3787
+end -- 3786
+local function partitionToolCalls(actions) -- 3795
+	local batches = {} -- 3796
+	do -- 3796
+		local i = 0 -- 3797
+		while i < #actions do -- 3797
+			local action = actions[i + 1] -- 3798
+			local isSafe = canRunBatchActionInParallel(nil, action) -- 3799
+			local lastBatch = #batches > 0 and batches[#batches] or nil -- 3800
+			if isSafe and lastBatch and lastBatch.isConcurrencySafe then -- 3800
+				local ____lastBatch_actions_137 = lastBatch.actions -- 3800
+				____lastBatch_actions_137[#____lastBatch_actions_137 + 1] = action -- 3802
+			else -- 3802
+				batches[#batches + 1] = {isConcurrencySafe = isSafe, actions = {action}} -- 3804
+			end -- 3804
+			i = i + 1 -- 3797
+		end -- 3797
+	end -- 3797
+	return batches -- 3807
+end -- 3795
+local BatchToolAction = __TS__Class() -- 3810
+BatchToolAction.name = "BatchToolAction" -- 3810
+__TS__ClassExtends(BatchToolAction, Node) -- 3810
+function BatchToolAction.prototype.prep(self, shared) -- 3811
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3811
+		return ____awaiter_resolve(nil, {shared = shared, actions = shared.pendingToolActions or ({})}) -- 3811
+	end) -- 3811
+end -- 3811
+function BatchToolAction.prototype.exec(self, input) -- 3815
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3815
+		local shared = input.shared -- 3816
+		local preExecuted = shared.preExecutedResults -- 3817
+		local batches = partitionToolCalls(input.actions) -- 3818
+		local parallelBatchCount = #__TS__ArrayFilter( -- 3819
 			batches, -- 3819
-			function(____, b) return not b.isConcurrencySafe end -- 3819
+			function(____, b) return b.isConcurrencySafe end -- 3819
 		) -- 3819
-		Log( -- 3820
-			"Info", -- 3820
-			(((("[CodingAgent] smart batch partition total=" .. tostring(#input.actions)) .. " parallel_batches=") .. tostring(parallelBatchCount)) .. " serial_batches=") .. tostring(serialBatchCount) -- 3820
+		local serialBatchCount = #__TS__ArrayFilter( -- 3820
+			batches, -- 3820
+			function(____, b) return not b.isConcurrencySafe end -- 3820
 		) -- 3820
-		do -- 3820
-			local batchIdx = 0 -- 3822
-			while batchIdx < #batches do -- 3822
-				do -- 3822
-					local batch = batches[batchIdx + 1] -- 3823
-					if shared.stopToken.stopped then -- 3823
-						for ____, action in ipairs(batch.actions) do -- 3825
-							if not action.result then -- 3825
-								action.result = { -- 3827
-									success = false, -- 3827
-									message = getCancelledReason(shared) -- 3827
-								} -- 3827
-							end -- 3827
-						end -- 3827
-						goto __continue640 -- 3830
-					end -- 3830
-					if batch.isConcurrencySafe and #batch.actions > 1 then -- 3830
-						local preExecCount = #__TS__ArrayFilter( -- 3834
-							batch.actions, -- 3834
-							function(____, a) return preExecuted and preExecuted:has(a.toolCallId) end -- 3834
-						) -- 3834
-						Log( -- 3835
-							"Info", -- 3835
-							(((((("[CodingAgent] batch " .. tostring(batchIdx + 1)) .. "/") .. tostring(#batches)) .. " parallel count=") .. tostring(#batch.actions)) .. " pre_executed=") .. tostring(preExecCount) -- 3835
+		Log( -- 3821
+			"Info", -- 3821
+			(((("[CodingAgent] smart batch partition total=" .. tostring(#input.actions)) .. " parallel_batches=") .. tostring(parallelBatchCount)) .. " serial_batches=") .. tostring(serialBatchCount) -- 3821
+		) -- 3821
+		do -- 3821
+			local batchIdx = 0 -- 3823
+			while batchIdx < #batches do -- 3823
+				do -- 3823
+					local batch = batches[batchIdx + 1] -- 3824
+					if shared.stopToken.stopped then -- 3824
+						for ____, action in ipairs(batch.actions) do -- 3826
+							if not action.result then -- 3826
+								action.result = { -- 3828
+									success = false, -- 3828
+									message = getCancelledReason(shared) -- 3828
+								} -- 3828
+							end -- 3828
+						end -- 3828
+						goto __continue640 -- 3831
+					end -- 3831
+					if batch.isConcurrencySafe and #batch.actions > 1 then -- 3831
+						local preExecCount = #__TS__ArrayFilter( -- 3835
+							batch.actions, -- 3835
+							function(____, a) return preExecuted and preExecuted:has(a.toolCallId) end -- 3835
 						) -- 3835
-						do -- 3835
-							local i = 0 -- 3836
-							while i < #batch.actions do -- 3836
-								emitAgentStartEvent(shared, batch.actions[i + 1]) -- 3837
-								i = i + 1 -- 3836
-							end -- 3836
-						end -- 3836
-						__TS__Await(__TS__PromiseAll(__TS__ArrayMap( -- 3839
-							batch.actions, -- 3839
-							function(____, action) -- 3839
-								return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3839
-									if shared.stopToken.stopped then -- 3839
-										action.result = { -- 3841
-											success = false, -- 3841
-											message = getCancelledReason(shared) -- 3841
-										} -- 3841
-										return ____awaiter_resolve(nil, action) -- 3841
-									end -- 3841
-									local result = __TS__Await(executeToolActionWithPreExecution(shared, action)) -- 3844
-									action.params = sanitizeActionParamsForHistory(action.tool, action.params) -- 3845
-									action.result = sanitizeToolActionResultForHistory(action, result) -- 3846
-									return ____awaiter_resolve(nil, action) -- 3846
-								end) -- 3846
-							end -- 3839
-						))) -- 3839
-						do -- 3839
-							local i = 0 -- 3849
-							while i < #batch.actions do -- 3849
-								local action = batch.actions[i + 1] -- 3850
-								if not action.result then -- 3850
-									action.result = {success = false, message = "tool did not produce a result"} -- 3852
-								end -- 3852
-								appendToolResultMessage(shared, action) -- 3854
-								emitAgentFinishEvent(shared, action) -- 3855
-								emitCheckpointEventForAction(shared, action) -- 3856
-								i = i + 1 -- 3849
-							end -- 3849
-						end -- 3849
-					else -- 3849
-						Log( -- 3859
-							"Info", -- 3859
-							(((("[CodingAgent] batch " .. tostring(batchIdx + 1)) .. "/") .. tostring(#batches)) .. " serial count=") .. tostring(#batch.actions) -- 3859
-						) -- 3859
-						do -- 3859
-							local i = 0 -- 3860
-							while i < #batch.actions do -- 3860
-								local action = batch.actions[i + 1] -- 3861
-								emitAgentStartEvent(shared, action) -- 3862
-								local result = __TS__Await(executeToolActionWithPreExecution(shared, action)) -- 3863
-								action.params = sanitizeActionParamsForHistory(action.tool, action.params) -- 3864
-								action.result = sanitizeToolActionResultForHistory(action, result) -- 3865
-								appendToolResultMessage(shared, action) -- 3866
-								emitAgentFinishEvent(shared, action) -- 3867
-								emitCheckpointEventForAction(shared, action) -- 3868
-								persistHistoryState(shared) -- 3869
-								if shared.stopToken.stopped then -- 3869
-									break -- 3871
-								end -- 3871
-								i = i + 1 -- 3860
-							end -- 3860
-						end -- 3860
-					end -- 3860
-				end -- 3860
-				::__continue640:: -- 3860
-				batchIdx = batchIdx + 1 -- 3822
-			end -- 3822
-		end -- 3822
-		persistHistoryState(shared) -- 3876
-		return ____awaiter_resolve(nil, input.actions) -- 3876
-	end) -- 3876
-end -- 3814
-function BatchToolAction.prototype.post(self, shared, _prepRes, _execRes) -- 3880
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3880
-		shared.pendingToolActions = nil -- 3881
-		shared.preExecutedResults = nil -- 3882
-		persistHistoryState(shared) -- 3883
-		__TS__Await(maybeCompressHistory(shared)) -- 3884
-		persistHistoryState(shared) -- 3885
-		return ____awaiter_resolve(nil, "main") -- 3885
-	end) -- 3885
-end -- 3880
-local EndNode = __TS__Class() -- 3890
-EndNode.name = "EndNode" -- 3890
-__TS__ClassExtends(EndNode, Node) -- 3890
-function EndNode.prototype.post(self, _shared, _prepRes, _execRes) -- 3891
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3891
-		return ____awaiter_resolve(nil, nil) -- 3891
-	end) -- 3891
-end -- 3891
-local CodingAgentFlow = __TS__Class() -- 3896
-CodingAgentFlow.name = "CodingAgentFlow" -- 3896
-__TS__ClassExtends(CodingAgentFlow, Flow) -- 3896
-function CodingAgentFlow.prototype.____constructor(self, role) -- 3897
-	local main = __TS__New(MainDecisionAgent, 1, 0) -- 3898
-	local read = __TS__New(ReadFileAction, 1, 0) -- 3899
-	local search = __TS__New(SearchFilesAction, 1, 0) -- 3900
-	local searchDora = __TS__New(SearchDoraAPIAction, 1, 0) -- 3901
-	local list = __TS__New(ListFilesAction, 1, 0) -- 3902
-	local listSub = __TS__New(ListSubAgentsAction, 1, 0) -- 3903
-	local del = __TS__New(DeleteFileAction, 1, 0) -- 3904
-	local build = __TS__New(BuildAction, 1, 0) -- 3905
-	local spawn = __TS__New(SpawnSubAgentAction, 1, 0) -- 3906
-	local edit = __TS__New(EditFileAction, 1, 0) -- 3907
-	local fetch = __TS__New(FetchUrlAction, 1, 0) -- 3908
-	local exec = __TS__New(FetchUrlAction, 1, 0) -- 3909
-	local batch = __TS__New(BatchToolAction, 1, 0) -- 3910
-	local done = __TS__New(EndNode, 1, 0) -- 3911
-	main:on("batch_tools", batch) -- 3913
-	main:on("grep_files", search) -- 3914
-	main:on("search_dora_api", searchDora) -- 3915
-	main:on("glob_files", list) -- 3916
-	main:on("fetch_url", fetch) -- 3917
-	main:on("execute_command", exec) -- 3918
-	if role == "main" then -- 3918
-		main:on("read_file", read) -- 3920
-		main:on("delete_file", del) -- 3921
-		main:on("build", build) -- 3922
-		main:on("edit_file", edit) -- 3923
-		main:on("list_sub_agents", listSub) -- 3924
-		main:on("spawn_sub_agent", spawn) -- 3925
-	else -- 3925
-		main:on("read_file", read) -- 3927
-		main:on("delete_file", del) -- 3928
-		main:on("build", build) -- 3929
-		main:on("edit_file", edit) -- 3930
-	end -- 3930
-	main:on("done", done) -- 3932
-	search:on("main", main) -- 3934
-	searchDora:on("main", main) -- 3935
-	list:on("main", main) -- 3936
-	listSub:on("main", main) -- 3937
-	spawn:on("main", main) -- 3938
-	batch:on("main", main) -- 3939
-	read:on("main", main) -- 3940
-	del:on("main", main) -- 3941
-	build:on("main", main) -- 3942
-	edit:on("main", main) -- 3943
-	fetch:on("main", main) -- 3944
-	Flow.prototype.____constructor(self, main) -- 3946
-end -- 3897
-local function runCodingAgentAsync(options) -- 3968
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3968
-		if not options.workDir or not Content:isAbsolutePath(options.workDir) or not Content:exist(options.workDir) or not Content:isdir(options.workDir) then -- 3968
-			return ____awaiter_resolve(nil, {success = false, message = "workDir must be an existing absolute directory path"}) -- 3968
-		end -- 3968
-		local normalizedPrompt = ____exports.truncateAgentUserPrompt(options.prompt) -- 3972
-		local llmConfigRes = options.llmConfig and ({success = true, config = options.llmConfig}) or getActiveLLMConfig() -- 3973
-		if not llmConfigRes.success then -- 3973
-			return ____awaiter_resolve(nil, {success = false, message = llmConfigRes.message}) -- 3973
-		end -- 3973
-		local llmConfig = llmConfigRes.config -- 3979
-		local taskRes = options.taskId ~= nil and ({success = true, taskId = options.taskId}) or Tools.createTask(normalizedPrompt) -- 3980
-		if not taskRes.success then -- 3980
-			return ____awaiter_resolve(nil, {success = false, message = taskRes.message}) -- 3980
-		end -- 3980
-		local compressor = __TS__New(MemoryCompressor, { -- 3987
-			compressionThreshold = 0.8, -- 3988
-			compressionTargetThreshold = 0.5, -- 3989
-			maxCompressionRounds = 3, -- 3990
-			projectDir = options.workDir, -- 3991
-			llmConfig = llmConfig, -- 3992
-			promptPack = options.promptPack, -- 3993
-			scope = options.memoryScope -- 3994
-		}) -- 3994
-		local persistedSession = compressor:getStorage():readSessionState() -- 3996
-		local promptPack = compressor:getPromptPack() -- 3997
-		local shared = { -- 3999
-			sessionId = options.sessionId, -- 4000
-			taskId = taskRes.taskId, -- 4001
-			role = options.role or "main", -- 4002
-			maxSteps = math.max( -- 4003
-				1, -- 4003
-				math.floor(options.maxSteps or AGENT_DEFAULT_MAX_STEPS) -- 4003
-			), -- 4003
-			llmMaxTry = math.max( -- 4004
+						Log( -- 3836
+							"Info", -- 3836
+							(((((("[CodingAgent] batch " .. tostring(batchIdx + 1)) .. "/") .. tostring(#batches)) .. " parallel count=") .. tostring(#batch.actions)) .. " pre_executed=") .. tostring(preExecCount) -- 3836
+						) -- 3836
+						do -- 3836
+							local i = 0 -- 3837
+							while i < #batch.actions do -- 3837
+								emitAgentStartEvent(shared, batch.actions[i + 1]) -- 3838
+								i = i + 1 -- 3837
+							end -- 3837
+						end -- 3837
+						__TS__Await(__TS__PromiseAll(__TS__ArrayMap( -- 3840
+							batch.actions, -- 3840
+							function(____, action) -- 3840
+								return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3840
+									if shared.stopToken.stopped then -- 3840
+										action.result = { -- 3842
+											success = false, -- 3842
+											message = getCancelledReason(shared) -- 3842
+										} -- 3842
+										return ____awaiter_resolve(nil, action) -- 3842
+									end -- 3842
+									local result = __TS__Await(executeToolActionWithPreExecution(shared, action)) -- 3845
+									action.params = sanitizeActionParamsForHistory(action.tool, action.params) -- 3846
+									action.result = sanitizeToolActionResultForHistory(action, result) -- 3847
+									return ____awaiter_resolve(nil, action) -- 3847
+								end) -- 3847
+							end -- 3840
+						))) -- 3840
+						do -- 3840
+							local i = 0 -- 3850
+							while i < #batch.actions do -- 3850
+								local action = batch.actions[i + 1] -- 3851
+								if not action.result then -- 3851
+									action.result = {success = false, message = "tool did not produce a result"} -- 3853
+								end -- 3853
+								appendToolResultMessage(shared, action) -- 3855
+								emitAgentFinishEvent(shared, action) -- 3856
+								emitCheckpointEventForAction(shared, action) -- 3857
+								i = i + 1 -- 3850
+							end -- 3850
+						end -- 3850
+					else -- 3850
+						Log( -- 3860
+							"Info", -- 3860
+							(((("[CodingAgent] batch " .. tostring(batchIdx + 1)) .. "/") .. tostring(#batches)) .. " serial count=") .. tostring(#batch.actions) -- 3860
+						) -- 3860
+						do -- 3860
+							local i = 0 -- 3861
+							while i < #batch.actions do -- 3861
+								local action = batch.actions[i + 1] -- 3862
+								emitAgentStartEvent(shared, action) -- 3863
+								local result = __TS__Await(executeToolActionWithPreExecution(shared, action)) -- 3864
+								action.params = sanitizeActionParamsForHistory(action.tool, action.params) -- 3865
+								action.result = sanitizeToolActionResultForHistory(action, result) -- 3866
+								appendToolResultMessage(shared, action) -- 3867
+								emitAgentFinishEvent(shared, action) -- 3868
+								emitCheckpointEventForAction(shared, action) -- 3869
+								persistHistoryState(shared) -- 3870
+								if shared.stopToken.stopped then -- 3870
+									break -- 3872
+								end -- 3872
+								i = i + 1 -- 3861
+							end -- 3861
+						end -- 3861
+					end -- 3861
+				end -- 3861
+				::__continue640:: -- 3861
+				batchIdx = batchIdx + 1 -- 3823
+			end -- 3823
+		end -- 3823
+		persistHistoryState(shared) -- 3877
+		return ____awaiter_resolve(nil, input.actions) -- 3877
+	end) -- 3877
+end -- 3815
+function BatchToolAction.prototype.post(self, shared, _prepRes, _execRes) -- 3881
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3881
+		shared.pendingToolActions = nil -- 3882
+		shared.preExecutedResults = nil -- 3883
+		persistHistoryState(shared) -- 3884
+		__TS__Await(maybeCompressHistory(shared)) -- 3885
+		persistHistoryState(shared) -- 3886
+		return ____awaiter_resolve(nil, "main") -- 3886
+	end) -- 3886
+end -- 3881
+local EndNode = __TS__Class() -- 3891
+EndNode.name = "EndNode" -- 3891
+__TS__ClassExtends(EndNode, Node) -- 3891
+function EndNode.prototype.post(self, _shared, _prepRes, _execRes) -- 3892
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3892
+		return ____awaiter_resolve(nil, nil) -- 3892
+	end) -- 3892
+end -- 3892
+local CodingAgentFlow = __TS__Class() -- 3897
+CodingAgentFlow.name = "CodingAgentFlow" -- 3897
+__TS__ClassExtends(CodingAgentFlow, Flow) -- 3897
+function CodingAgentFlow.prototype.____constructor(self, role) -- 3898
+	local main = __TS__New(MainDecisionAgent, 1, 0) -- 3899
+	local read = __TS__New(ReadFileAction, 1, 0) -- 3900
+	local search = __TS__New(SearchFilesAction, 1, 0) -- 3901
+	local searchDora = __TS__New(SearchDoraAPIAction, 1, 0) -- 3902
+	local list = __TS__New(ListFilesAction, 1, 0) -- 3903
+	local listSub = __TS__New(ListSubAgentsAction, 1, 0) -- 3904
+	local del = __TS__New(DeleteFileAction, 1, 0) -- 3905
+	local build = __TS__New(BuildAction, 1, 0) -- 3906
+	local spawn = __TS__New(SpawnSubAgentAction, 1, 0) -- 3907
+	local edit = __TS__New(EditFileAction, 1, 0) -- 3908
+	local fetch = __TS__New(FetchUrlAction, 1, 0) -- 3909
+	local exec = __TS__New(FetchUrlAction, 1, 0) -- 3910
+	local batch = __TS__New(BatchToolAction, 1, 0) -- 3911
+	local done = __TS__New(EndNode, 1, 0) -- 3912
+	main:on("batch_tools", batch) -- 3914
+	main:on("grep_files", search) -- 3915
+	main:on("search_dora_api", searchDora) -- 3916
+	main:on("glob_files", list) -- 3917
+	main:on("fetch_url", fetch) -- 3918
+	main:on("execute_command", exec) -- 3919
+	if role == "main" then -- 3919
+		main:on("read_file", read) -- 3921
+		main:on("delete_file", del) -- 3922
+		main:on("build", build) -- 3923
+		main:on("edit_file", edit) -- 3924
+		main:on("list_sub_agents", listSub) -- 3925
+		main:on("spawn_sub_agent", spawn) -- 3926
+	else -- 3926
+		main:on("read_file", read) -- 3928
+		main:on("delete_file", del) -- 3929
+		main:on("build", build) -- 3930
+		main:on("edit_file", edit) -- 3931
+	end -- 3931
+	main:on("done", done) -- 3933
+	search:on("main", main) -- 3935
+	searchDora:on("main", main) -- 3936
+	list:on("main", main) -- 3937
+	listSub:on("main", main) -- 3938
+	spawn:on("main", main) -- 3939
+	batch:on("main", main) -- 3940
+	read:on("main", main) -- 3941
+	del:on("main", main) -- 3942
+	build:on("main", main) -- 3943
+	edit:on("main", main) -- 3944
+	fetch:on("main", main) -- 3945
+	Flow.prototype.____constructor(self, main) -- 3947
+end -- 3898
+local function runCodingAgentAsync(options) -- 3969
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3969
+		if not options.workDir or not Content:isAbsolutePath(options.workDir) or not Content:exist(options.workDir) or not Content:isdir(options.workDir) then -- 3969
+			return ____awaiter_resolve(nil, {success = false, message = "workDir must be an existing absolute directory path"}) -- 3969
+		end -- 3969
+		local normalizedPrompt = ____exports.truncateAgentUserPrompt(options.prompt) -- 3973
+		local llmConfigRes = options.llmConfig and ({success = true, config = options.llmConfig}) or getActiveLLMConfig() -- 3974
+		if not llmConfigRes.success then -- 3974
+			return ____awaiter_resolve(nil, {success = false, message = llmConfigRes.message}) -- 3974
+		end -- 3974
+		local llmConfig = llmConfigRes.config -- 3980
+		local taskRes = options.taskId ~= nil and ({success = true, taskId = options.taskId}) or Tools.createTask(normalizedPrompt) -- 3981
+		if not taskRes.success then -- 3981
+			return ____awaiter_resolve(nil, {success = false, message = taskRes.message}) -- 3981
+		end -- 3981
+		local compressor = __TS__New(MemoryCompressor, { -- 3988
+			compressionThreshold = 0.8, -- 3989
+			compressionTargetThreshold = 0.5, -- 3990
+			maxCompressionRounds = 3, -- 3991
+			projectDir = options.workDir, -- 3992
+			llmConfig = llmConfig, -- 3993
+			promptPack = options.promptPack, -- 3994
+			scope = options.memoryScope -- 3995
+		}) -- 3995
+		local persistedSession = compressor:getStorage():readSessionState() -- 3997
+		local promptPack = compressor:getPromptPack() -- 3998
+		local shared = { -- 4000
+			sessionId = options.sessionId, -- 4001
+			taskId = taskRes.taskId, -- 4002
+			role = options.role or "main", -- 4003
+			maxSteps = math.max( -- 4004
 				1, -- 4004
-				math.floor(options.llmMaxTry or AGENT_DEFAULT_LLM_MAX_TRY) -- 4004
+				math.floor(options.maxSteps or AGENT_DEFAULT_MAX_STEPS) -- 4004
 			), -- 4004
-			step = 0, -- 4005
-			done = false, -- 4006
-			stopToken = options.stopToken or ({stopped = false}), -- 4007
-			response = "", -- 4008
-			userQuery = normalizedPrompt, -- 4009
-			workingDir = options.workDir, -- 4010
-			useChineseResponse = options.useChineseResponse == true, -- 4011
-			decisionMode = options.decisionMode and options.decisionMode or (llmConfig.supportsFunctionCalling and "tool_calling" or "xml"), -- 4012
-			llmOptions = buildLLMOptions(llmConfig, options.llmOptions), -- 4015
-			llmConfig = llmConfig, -- 4016
-			onEvent = options.onEvent, -- 4017
-			promptPack = promptPack, -- 4018
-			history = {}, -- 4019
-			messages = persistedSession.messages, -- 4020
-			lastConsolidatedIndex = persistedSession.lastConsolidatedIndex, -- 4021
-			carryMessageIndex = persistedSession.carryMessageIndex, -- 4022
-			memory = {compressor = compressor}, -- 4024
-			skills = {loader = AgentSkills.createSkillsLoader({projectDir = options.workDir})}, -- 4028
-			spawnSubAgent = options.spawnSubAgent, -- 4033
-			listSubAgents = options.listSubAgents, -- 4034
-			disabledAgentTools = options.disabledAgentTools or ({}) -- 4035
-		} -- 4035
-		local ____hasReturned, ____returnValue -- 4035
-		local ____try = __TS__AsyncAwaiter(function() -- 4035
-			emitAgentEvent(shared, { -- 4039
-				type = "task_started", -- 4040
-				sessionId = shared.sessionId, -- 4041
-				taskId = shared.taskId, -- 4042
-				prompt = shared.userQuery, -- 4043
-				workDir = shared.workingDir, -- 4044
-				maxSteps = shared.maxSteps -- 4045
-			}) -- 4045
-			if shared.stopToken.stopped then -- 4045
-				Tools.setTaskStatus(shared.taskId, "STOPPED") -- 4048
-				____hasReturned = true -- 4049
-				____returnValue = emitAgentTaskFinishEvent( -- 4049
-					shared, -- 4049
-					false, -- 4049
-					getCancelledReason(shared) -- 4049
-				) -- 4049
-				return -- 4049
-			end -- 4049
-			Tools.setTaskStatus(shared.taskId, "RUNNING") -- 4051
-			local promptCommand = getPromptCommand(shared.userQuery) -- 4052
-			if promptCommand == "clear" then -- 4052
-				____hasReturned = true -- 4054
-				____returnValue = clearSessionHistory(shared) -- 4054
-				return -- 4054
-			end -- 4054
-			if promptCommand == "compact" then -- 4054
-				if shared.role == "sub" then -- 4054
-					Tools.setTaskStatus(shared.taskId, "FAILED") -- 4058
-					____hasReturned = true -- 4059
-					____returnValue = emitAgentTaskFinishEvent(shared, false, shared.useChineseResponse and "子代理会话不支持 /compact。" or "Sub-agent sessions do not support /compact.") -- 4059
-					return -- 4059
-				end -- 4059
-				____hasReturned = true -- 4067
-				____returnValue = __TS__Await(compactAllHistory(shared)) -- 4067
-				return -- 4067
-			end -- 4067
-			appendConversationMessage(shared, {role = "user", content = normalizedPrompt}) -- 4069
-			persistHistoryState(shared) -- 4073
-			local flow = __TS__New(CodingAgentFlow, shared.role) -- 4074
-			__TS__Await(flow:run(shared)) -- 4075
-			if shared.stopToken.stopped then -- 4075
-				Tools.setTaskStatus(shared.taskId, "STOPPED") -- 4077
-				____hasReturned = true -- 4078
-				____returnValue = emitAgentTaskFinishEvent( -- 4078
-					shared, -- 4078
-					false, -- 4078
-					getCancelledReason(shared) -- 4078
-				) -- 4078
-				return -- 4078
-			end -- 4078
-			if shared.error then -- 4078
-				____hasReturned = true -- 4081
-				____returnValue = finalizeAgentFailure(shared, shared.response and shared.response ~= "" and shared.response or shared.error) -- 4081
-				return -- 4081
-			end -- 4081
-			Tools.setTaskStatus(shared.taskId, "DONE") -- 4084
-			____hasReturned = true -- 4085
-			____returnValue = emitAgentTaskFinishEvent(shared, true, shared.response or (shared.useChineseResponse and "任务完成。" or "Task completed.")) -- 4085
-			return -- 4085
-		end) -- 4085
-		____try = ____try.catch( -- 4085
-			____try, -- 4085
-			function(____, e) -- 4085
-				return __TS__AsyncAwaiter(function() -- 4085
-					____hasReturned = true -- 4088
-					____returnValue = finalizeAgentFailure( -- 4088
-						shared, -- 4088
-						tostring(e) -- 4088
-					) -- 4088
-					return -- 4088
-				end) -- 4088
-			end -- 4088
-		) -- 4088
-		__TS__Await(____try) -- 4038
-		if ____hasReturned then -- 4038
-			return ____awaiter_resolve(nil, ____returnValue) -- 4038
-		end -- 4038
-	end) -- 4038
-end -- 3968
-function ____exports.runCodingAgent(options, callback) -- 4092
-	local ____self_140 = runCodingAgentAsync(options) -- 4092
-	____self_140["then"]( -- 4092
-		____self_140, -- 4092
-		function(____, result) return callback(result) end -- 4093
-	) -- 4093
-end -- 4092
-return ____exports -- 4092
+			llmMaxTry = math.max( -- 4005
+				1, -- 4005
+				math.floor(options.llmMaxTry or AGENT_DEFAULT_LLM_MAX_TRY) -- 4005
+			), -- 4005
+			step = 0, -- 4006
+			done = false, -- 4007
+			stopToken = options.stopToken or ({stopped = false}), -- 4008
+			response = "", -- 4009
+			userQuery = normalizedPrompt, -- 4010
+			workingDir = options.workDir, -- 4011
+			useChineseResponse = options.useChineseResponse == true, -- 4012
+			decisionMode = options.decisionMode and options.decisionMode or (llmConfig.supportsFunctionCalling and "tool_calling" or "xml"), -- 4013
+			llmOptions = buildLLMOptions(llmConfig, options.llmOptions), -- 4016
+			llmConfig = llmConfig, -- 4017
+			onEvent = options.onEvent, -- 4018
+			promptPack = promptPack, -- 4019
+			history = {}, -- 4020
+			messages = persistedSession.messages, -- 4021
+			lastConsolidatedIndex = persistedSession.lastConsolidatedIndex, -- 4022
+			carryMessageIndex = persistedSession.carryMessageIndex, -- 4023
+			memory = {compressor = compressor}, -- 4025
+			skills = {loader = AgentSkills.createSkillsLoader({projectDir = options.workDir, disabledAgentTools = options.disabledAgentTools or ({})})}, -- 4029
+			spawnSubAgent = options.spawnSubAgent, -- 4035
+			listSubAgents = options.listSubAgents, -- 4036
+			disabledAgentTools = options.disabledAgentTools or ({}) -- 4037
+		} -- 4037
+		local ____hasReturned, ____returnValue -- 4037
+		local ____try = __TS__AsyncAwaiter(function() -- 4037
+			emitAgentEvent(shared, { -- 4041
+				type = "task_started", -- 4042
+				sessionId = shared.sessionId, -- 4043
+				taskId = shared.taskId, -- 4044
+				prompt = shared.userQuery, -- 4045
+				workDir = shared.workingDir, -- 4046
+				maxSteps = shared.maxSteps -- 4047
+			}) -- 4047
+			if shared.stopToken.stopped then -- 4047
+				Tools.setTaskStatus(shared.taskId, "STOPPED") -- 4050
+				____hasReturned = true -- 4051
+				____returnValue = emitAgentTaskFinishEvent( -- 4051
+					shared, -- 4051
+					false, -- 4051
+					getCancelledReason(shared) -- 4051
+				) -- 4051
+				return -- 4051
+			end -- 4051
+			Tools.setTaskStatus(shared.taskId, "RUNNING") -- 4053
+			local promptCommand = getPromptCommand(shared.userQuery) -- 4054
+			if promptCommand == "clear" then -- 4054
+				____hasReturned = true -- 4056
+				____returnValue = clearSessionHistory(shared) -- 4056
+				return -- 4056
+			end -- 4056
+			if promptCommand == "compact" then -- 4056
+				if shared.role == "sub" then -- 4056
+					Tools.setTaskStatus(shared.taskId, "FAILED") -- 4060
+					____hasReturned = true -- 4061
+					____returnValue = emitAgentTaskFinishEvent(shared, false, shared.useChineseResponse and "子代理会话不支持 /compact。" or "Sub-agent sessions do not support /compact.") -- 4061
+					return -- 4061
+				end -- 4061
+				____hasReturned = true -- 4069
+				____returnValue = __TS__Await(compactAllHistory(shared)) -- 4069
+				return -- 4069
+			end -- 4069
+			appendConversationMessage(shared, {role = "user", content = normalizedPrompt}) -- 4071
+			persistHistoryState(shared) -- 4075
+			local flow = __TS__New(CodingAgentFlow, shared.role) -- 4076
+			__TS__Await(flow:run(shared)) -- 4077
+			if shared.stopToken.stopped then -- 4077
+				Tools.setTaskStatus(shared.taskId, "STOPPED") -- 4079
+				____hasReturned = true -- 4080
+				____returnValue = emitAgentTaskFinishEvent( -- 4080
+					shared, -- 4080
+					false, -- 4080
+					getCancelledReason(shared) -- 4080
+				) -- 4080
+				return -- 4080
+			end -- 4080
+			if shared.error then -- 4080
+				____hasReturned = true -- 4083
+				____returnValue = finalizeAgentFailure(shared, shared.response and shared.response ~= "" and shared.response or shared.error) -- 4083
+				return -- 4083
+			end -- 4083
+			Tools.setTaskStatus(shared.taskId, "DONE") -- 4086
+			____hasReturned = true -- 4087
+			____returnValue = emitAgentTaskFinishEvent(shared, true, shared.response or (shared.useChineseResponse and "任务完成。" or "Task completed.")) -- 4087
+			return -- 4087
+		end) -- 4087
+		____try = ____try.catch( -- 4087
+			____try, -- 4087
+			function(____, e) -- 4087
+				return __TS__AsyncAwaiter(function() -- 4087
+					____hasReturned = true -- 4090
+					____returnValue = finalizeAgentFailure( -- 4090
+						shared, -- 4090
+						tostring(e) -- 4090
+					) -- 4090
+					return -- 4090
+				end) -- 4090
+			end -- 4090
+		) -- 4090
+		__TS__Await(____try) -- 4040
+		if ____hasReturned then -- 4040
+			return ____awaiter_resolve(nil, ____returnValue) -- 4040
+		end -- 4040
+	end) -- 4040
+end -- 3969
+function ____exports.runCodingAgent(options, callback) -- 4094
+	local ____self_140 = runCodingAgentAsync(options) -- 4094
+	____self_140["then"]( -- 4094
+		____self_140, -- 4094
+		function(____, result) return callback(result) end -- 4095
+	) -- 4095
+end -- 4094
+return ____exports -- 4094

@@ -6,6 +6,7 @@ interface SkillMetadata {
 	name: string;
 	description: string;
 	always?: boolean;
+	requiredTools?: string[];
 }
 
 interface Skill extends SkillMetadata {
@@ -15,6 +16,7 @@ interface Skill extends SkillMetadata {
 
 export interface SkillsLoaderConfig {
 	projectDir: string;
+	disabledAgentTools?: string[];
 }
 
 enum SkillPriority {
@@ -193,14 +195,37 @@ function validateSkillMetadata(
 		: "";
 
 	const always = metadata.always === true;
+	const requiredTools = normalizeStringList(metadata.requiredTools);
 
 	return {
 		metadata: {
 			name,
 			description,
-			always
+			always,
+			requiredTools,
 		},
 	};
+}
+
+function normalizeStringList(value: unknown): string[] | undefined {
+	if (typeof value === "string") {
+		const trimmed = value.trim();
+		return trimmed === "" ? undefined : [trimmed];
+	}
+	if (!Array.isArray(value)) {
+		return undefined;
+	}
+	const result: string[] = [];
+	for (const item of value) {
+		if (typeof item !== "string") {
+			continue;
+		}
+		const trimmed = item.trim();
+		if (trimmed !== "" && result.indexOf(trimmed) < 0) {
+			result.push(trimmed);
+		}
+	}
+	return result.length > 0 ? result : undefined;
 }
 
 export class SkillsLoader {
@@ -299,6 +324,9 @@ export class SkillsLoader {
 
 		const result: Skill[] = [];
 		for (const entry of this.skills.values()) {
+			if (!this.isSkillEnabled(entry.skill)) {
+				continue;
+			}
 			result.push(entry.skill);
 		}
 
@@ -326,7 +354,11 @@ export class SkillsLoader {
 			this.load();
 		}
 
-		return this.skills.get(name)?.skill;
+		const skill = this.skills.get(name)?.skill;
+		if (!skill || !this.isSkillEnabled(skill)) {
+			return undefined;
+		}
+		return skill;
 	}
 
 	getAlwaysSkills(): Skill[] {
@@ -423,6 +455,20 @@ export class SkillsLoader {
 
 	private escapeXML(text: string): string {
 		return escapeXMLText(text);
+	}
+
+	private isSkillEnabled(skill: Skill): boolean {
+		const requiredTools = skill.requiredTools ?? [];
+		if (requiredTools.length === 0) {
+			return true;
+		}
+		const disabledTools = this.config.disabledAgentTools ?? [];
+		for (const tool of requiredTools) {
+			if (disabledTools.indexOf(tool) >= 0) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	reload(): void {

@@ -29,6 +29,7 @@ The entry file must be named `SKILL.md`. Do not use any other filename.
    - `description`
 6. Optional field:
    - `always: true`, only add this when the skill should always be active.
+   - `requiredTools: [...]`, only add this when the skill should be visible only if specific agent tools are enabled.
 
 ## Required Metadata Template
 
@@ -50,6 +51,19 @@ description: One-sentence description of when this skill should be used.
 always: true
 ---
 ```
+
+If the skill depends on a tool that may be disabled for a session, add `requiredTools`:
+
+```md
+---
+name: your-skill-name
+description: One-sentence description of when this skill should be used.
+requiredTools:
+  - execute_command
+---
+```
+
+When any listed tool is disabled, the skill is hidden from both active skill content and the skill summary.
 
 ## Writing Requirements
 
