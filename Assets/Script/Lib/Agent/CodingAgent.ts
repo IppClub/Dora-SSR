@@ -3943,6 +3943,7 @@ class CodingAgentFlow extends Flow<AgentShared> {
 		build.on("main", main);
 		edit.on("main", main);
 		fetch.on("main", main);
+		exec.on("main", main);
 
 		super(main);
 	}

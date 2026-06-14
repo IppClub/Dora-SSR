@@ -867,13 +867,14 @@ i18n
 							ref: "Ref",
 							command: "Command",
 							code: "Code",
+							cwd: "Working dir",
 							timeout: "Timeout",
 						},
 						tools: "Tools",
 						toolSettings: "Agent tool switches",
 						executeCommand: "Run Command",
-						executeCommandToggle: "Enable command execution.",
-						networkToolsToggle: "Enable web fetch tool for downloading files. Use with caution.",
+						executeCommandToggle: "Enable command execution for Lua scripts and Git commands.",
+						networkToolsToggle: "Enable web fetch tool for downloading files.",
 						executeCommandModes: {
 							lua: "Lua",
 							git: "Git",
@@ -881,6 +882,12 @@ i18n
 						executeCommandRunning: {
 							lua: "Running Lua",
 							git: "Running Git",
+						},
+						executeCommandDetails: {
+							script: "Script",
+							command: "Command",
+							output: "Output",
+							noOutput: "No output",
 						},
 						fetchUrl: {
 							downloading: "Downloading",
@@ -1911,13 +1918,14 @@ i18n
 							ref: "引用",
 							command: "命令",
 							code: "代码",
+							cwd: "工作目录",
 							timeout: "超时",
 						},
 						tools: "工具",
 						toolSettings: "Agent 工具开关",
 						executeCommand: "执行命令",
-						executeCommandToggle: "启用执行命令。",
-						networkToolsToggle: "启用网络获取工具，从互联网下载文件。请谨慎使用。",
+						executeCommandToggle: "启用执行命令，支持 Lua 脚本和 Git 命令。",
+						networkToolsToggle: "启用网络获取工具，从互联网下载文件。",
 						executeCommandModes: {
 							lua: "Lua",
 							git: "Git",
@@ -1925,6 +1933,12 @@ i18n
 						executeCommandRunning: {
 							lua: "执行 Lua 中",
 							git: "执行 Git 中",
+						},
+						executeCommandDetails: {
+							script: "脚本代码",
+							command: "命令",
+							output: "输出结果",
+							noOutput: "无输出",
 						},
 						fetchUrl: {
 							downloading: "下载中",

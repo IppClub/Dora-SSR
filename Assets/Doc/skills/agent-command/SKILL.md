@@ -14,7 +14,6 @@ Use `execute_command` only for short engine-side Lua snippets or supported Git o
 
 - `mode: "lua"` runs raw Lua code in the Dora engine.
 - `mode: "git"` runs a supported Git command through the engine Git client.
-- YueScript is not supported in command input.
 - Shell syntax is not supported. Do not use pipes, redirects, command chaining, subshells, environment assignments, or `git -C`.
 
 ## Lua Mode
