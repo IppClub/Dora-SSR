@@ -105,6 +105,11 @@ const sidebars = {
 							label: 'DB',
 							id: 'api/Class/DB',
 						},
+						{
+							type: 'doc',
+							label: 'Git',
+							id: 'api/Class/Git',
+						},
 					]
 				},
 				{
