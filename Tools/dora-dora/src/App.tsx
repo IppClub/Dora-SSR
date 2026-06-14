@@ -941,6 +941,16 @@ export default function PersistentDrawerLeft() {
 	writablePath = treeData.at(0)?.key ?? "";
 	assetPath = treeData.at(0)?.children?.at(0)?.key ?? "";
 
+	const getWorkspaceDisplayPath = (targetPath: string, trailingSep = false) => {
+		const builtin = assetPath !== "" && isChildFolder(targetPath, assetPath);
+		const basePath = builtin ? assetPath : writablePath;
+		const rootLabel = builtin ? t("tree.builtin") : t("tree.assets");
+		const relativePath = basePath !== "" ? path.relative(basePath, targetPath) : "";
+		const segments = relativePath.split(/[\\/]+/).filter(Boolean);
+		const displayPath = segments.length > 0 ? [rootLabel, ...segments].join("/") : rootLabel;
+		return trailingSep && segments.length > 0 ? displayPath + path.sep : displayPath;
+	};
+
 	useEffect(() => {
 		configureTypeScriptSearchPaths(assetPath);
 	}, [treeData]);
@@ -4440,7 +4450,11 @@ export default function PersistentDrawerLeft() {
 						<Box sx={{ flex: 1, minWidth: 0, m: 0, p: 0 }}>
 							<FileTabBar
 								index={tabIndex}
-								items={files}
+								items={files.map(file => (
+									file.agentSessionId !== undefined && file.key === writablePath
+										? { ...file, title: t("tree.assets") }
+										: file
+								))}
 								onChange={tabBarOnChange}
 								onMenuClick={onTabMenuClick}
 								onTabClose={onTabClose}
@@ -4711,7 +4725,7 @@ export default function PersistentDrawerLeft() {
 									title={file.title}
 									height={editorHeight}
 									uploadPath={file.key}
-									displayPath={`${t("tree.assets")}/${file.title}`}
+									displayPath={getWorkspaceDisplayPath(file.key)}
 									isWorkspaceRoot={file.key === writablePath}
 									agentSessionId={file.agentSessionId}
 									agentInitialPrompt={file.agentInitialPrompt}
@@ -5182,17 +5196,7 @@ export default function PersistentDrawerLeft() {
 											height={editorHeight}
 											uploadPath={file.key}
 											isWorkspaceRoot={file.key === writablePath}
-											displayPath={(() => {
-												let target: string;
-												if (isChildFolder(file.key, assetPath)) {
-													target = path.relative(parentPath, file.key);
-													target = path.join(t("tree.builtin"), target);
-												} else {
-													target = path.relative(parentPath, file.key);
-													target = path.join(t("tree.assets"), target);
-												}
-												return target + path.sep;
-											})()}
+											displayPath={getWorkspaceDisplayPath(file.key, true)}
 											agentInitialPrompt={file.agentInitialPrompt}
 											view={file.workspaceView ?? "upload"}
 											addAlert={addAlert}

@@ -7,6 +7,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import LinearProgress from '@mui/material/LinearProgress';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { MacScrollbar } from 'mac-scrollbar';
 import { useTranslation } from 'react-i18next';
 import type { AgentChangeSetSummary, AgentCheckpointDiffFile, AgentCheckpointItem, AgentSessionStep } from './Service';
 import { Color } from './Theme';
@@ -48,6 +49,12 @@ type SubAgentListItem = {
 	resultFilePath?: string;
 	artifactDir?: string;
 	finishedAt?: string;
+};
+
+type ExecuteCommandDetails = {
+	scriptLabelKey: string;
+	script: string;
+	output?: string;
 };
 
 const stepActionButtonSx = {
@@ -172,15 +179,14 @@ function summarizeToolParams(step: AgentSessionStep, t: (key: string, options?: 
 		}
 		case "execute_command": {
 			const mode = typeof params.mode === "string" ? params.mode : "";
-			const code = typeof params.code === "string" ? params.code : "";
+			const cwd = typeof params.cwd === "string" ? params.cwd : "";
 			const command = typeof params.command === "string" ? params.command : "";
 			const timeoutSeconds = typeof params.timeoutSeconds === "number" ? params.timeoutSeconds : undefined;
 			push(t("agent.paramLabels.mode"), mode !== "" ? t(`agent.executeCommandModes.${mode}`, { defaultValue: mode }) : "");
 			if (mode === "git") {
 				push(t("agent.paramLabels.command"), command);
-			} else {
-				push(t("agent.paramLabels.code"), code.length > 80 ? `${code.slice(0, 80)}...` : code);
 			}
+			push(t("agent.paramLabels.cwd"), cwd);
 			if (timeoutSeconds !== undefined) push(t("agent.paramLabels.timeout"), String(timeoutSeconds));
 			return items;
 		}
@@ -290,6 +296,20 @@ function getBuildTotal(step: AgentSessionStep, shownCount: number): number {
 	return typeof total === "number" && total > shownCount ? total : shownCount;
 }
 
+function getExecuteCommandDetails(step: AgentSessionStep): ExecuteCommandDetails | null {
+	if (step.tool !== "execute_command") return null;
+	const params = step.params ?? {};
+	const result = step.result ?? {};
+	const mode = typeof params.mode === "string" ? params.mode : "";
+	const script = mode === "lua" && typeof params.code === "string" ? params.code : "";
+	const output = typeof result.output === "string" ? result.output : undefined;
+	return {
+		scriptLabelKey: "agent.executeCommandDetails.script",
+		script,
+		output,
+	};
+}
+
 function getToolProgress(step: AgentSessionStep): {
 	mode: string;
 	label: string;
@@ -327,9 +347,89 @@ function getToolProgress(step: AgentSessionStep): {
 	return { mode, label, message, progress, hasDeterminateProgress, stage, gitState, jobId };
 }
 
+function ExpandableCommandBlock(props: {
+	title: string;
+	content: string;
+	emptyText?: string;
+	language?: string;
+	open: boolean;
+	onToggle: () => void;
+}) {
+	const content = props.content !== "" ? props.content : (props.emptyText ?? "");
+	const markdownContent = props.language ? `~~~${props.language}\n${content}\n~~~` : "";
+	return (
+		<Box>
+			<Button
+				size="small"
+				variant="text"
+				onClick={props.onToggle}
+				sx={{
+					px: 0,
+					minWidth: 0,
+					color: Color.TextSecondary,
+					textTransform: "none",
+					"&:hover": {
+						backgroundColor: "transparent",
+						color: Color.TextPrimary,
+					},
+				}}
+			>
+				{props.open ? "▾" : "▸"} {props.title}
+			</Button>
+			<Collapse in={props.open} timeout="auto" unmountOnExit>
+				<Box
+					sx={{
+						border: `0.5px solid ${Color.Line}`,
+						borderRadius: 2,
+						backgroundColor: "rgba(255,255,255,0.025)",
+						color: Color.TextPrimary,
+						fontSize: 12,
+						lineHeight: 1.55,
+						overflow: "hidden",
+						"& .markdown-body pre": {
+							m: 0,
+							backgroundColor: "transparent",
+						},
+						"& .markdown-body pre > div": {
+							overflow: "visible !important",
+						},
+						"& .markdown-body pre code": {
+							display: "block",
+							padding: "8px",
+						},
+					}}
+				>
+					<MacScrollbar skin="dark" style={{ width: "100%", maxHeight: 320, padding: props.language ? undefined : "8px 10px" }}>
+						{props.language ? (
+							<React.Suspense fallback={null}>
+								<Markdown content={markdownContent} contentPadding={0} />
+							</React.Suspense>
+						) : (
+							<Box
+								component="pre"
+								sx={{
+									m: 0,
+									fontFamily: 'Menlo, Monaco, Consolas, "Liberation Mono", monospace',
+									fontSize: "inherit",
+									lineHeight: "inherit",
+									whiteSpace: "pre-wrap",
+									wordBreak: "break-word",
+								}}
+							>
+								{content}
+							</Box>
+						)}
+					</MacScrollbar>
+				</Box>
+			</Collapse>
+		</Box>
+	);
+}
+
 export default function AgentStepList(props: AgentStepListProps) {
 	const { t } = useTranslation();
 	const [openedBuildErrors, setOpenedBuildErrors] = React.useState<Record<number, boolean>>({});
+	const [openedCommandBlocks, setOpenedCommandBlocks] = React.useState<Record<string, boolean>>({});
 	const {
 		steps,
 		checkpointMap,
@@ -358,6 +458,7 @@ export default function AgentStepList(props: AgentStepListProps) {
 				const showBuildResults = buildItems.length > 0;
 				const buildErrorsOpened = openedBuildErrors[step.id] === true;
 				const toolProgress = getToolProgress(step);
+				const executeCommandDetails = getExecuteCommandDetails(step);
 				const hasReasoning = step.reasoningContent.trim() !== "";
 				const primaryContent = step.reason || (hasReasoning ? step.reasoningContent : "");
 				const handoffMeta = getSubAgentHandoffMeta(step);
@@ -551,6 +652,34 @@ export default function AgentStepList(props: AgentStepListProps) {
 									</React.Fragment>
 								))}
 							</Typography>
+						) : null}
+						{executeCommandDetails ? (
+							<Stack spacing={0.25} sx={{ mt: 1 }}>
+								{executeCommandDetails.script !== "" ? (
+									<ExpandableCommandBlock
+										title={t(executeCommandDetails.scriptLabelKey)}
+										content={executeCommandDetails.script}
+										language="lua"
+										open={openedCommandBlocks[`${step.id}:script`] === true}
+										onToggle={() => setOpenedCommandBlocks(prev => ({
+											...prev,
+											[`${step.id}:script`]: prev[`${step.id}:script`] !== true,
+										}))}
+									/>
+								) : null}
+								{executeCommandDetails.output !== undefined ? (
+									<ExpandableCommandBlock
+										title={t("agent.executeCommandDetails.output")}
+										content={executeCommandDetails.output}
+										emptyText={t("agent.executeCommandDetails.noOutput")}
+										open={openedCommandBlocks[`${step.id}:output`] === true}
+										onToggle={() => setOpenedCommandBlocks(prev => ({
+											...prev,
+											[`${step.id}:output`]: prev[`${step.id}:output`] !== true,
+										}))}
+									/>
+								) : null}
+							</Stack>
 						) : null}
 						{toolProgress ? (
 							<Box sx={{ mt: 1.25 }}>
