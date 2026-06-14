@@ -12,6 +12,7 @@ export type AgentToolName =
 	| "glob_files"
 	| "build"
 	| "fetch_url"
+	| "execute_command"
 	| "list_sub_agents"
 	| "spawn_sub_agent"
 	| "finish";
@@ -25,6 +26,7 @@ const BUILT_IN_AGENT_TOOL_NAMES: AgentToolName[] = [
 	"glob_files",
 	"build",
 	"fetch_url",
+	"execute_command",
 	"list_sub_agents",
 	"spawn_sub_agent",
 	"finish",
@@ -235,18 +237,36 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 	{
 		name: "fetch_url",
 		roles: ["main", "sub"],
-		description: "Import an HTTP or HTTPS network resource into the project.",
+		description: "Download a single HTTP or HTTPS resource into the project.",
 		parameters: [
-			{ name: "mode", type: "string", required: true, enum: ["download", "git_clone"], description: "Use download to GET a file, or git_clone to shallow clone an HTTP or HTTPS Git repository." },
-			{ name: "url", type: "string", required: true, description: "HTTP or HTTPS URL to download or clone. Other schemes are rejected." },
-			{ name: "target", type: "string", required: true, description: "Workspace-relative target file path for download, or target directory path for git_clone. The target must not already exist." },
-			{ name: "ref", type: "string", description: "Optional branch, tag, or commit-ish for git_clone." },
+			{ name: "url", type: "string", required: true, description: "HTTP or HTTPS URL to download. Other schemes are rejected." },
+			{ name: "target", type: "string", required: true, description: "Workspace-relative target file path. The target must not already exist." },
 		],
 		rules: [
 			"This tool is available only when the user enables fetch_url for the current Agent task.",
 			"Targets must stay inside the current project and existing files or directories are not overwritten.",
-			"download writes to a temporary file first, then moves it into place only after the GET succeeds.",
-			"git_clone uses an HTTP or HTTPS shallow clone into a temporary directory, then moves it into place only after clone succeeds.",
+			"This tool writes to a temporary file first, then moves it into place only after the GET succeeds.",
+			"Use execute_command with mode=git for Git operations such as clone, status, diff, add, commit, pull, fetch, and push.",
+		],
+	},
+	{
+		name: "execute_command",
+		roles: ["main", "sub"],
+		description: "Execute a controlled engine command.",
+		parameters: [
+			{ name: "mode", type: "string", required: true, enum: ["lua", "git"], description: "Use lua for a short Lua snippet inside the Dora engine, or git for a supported Git command handled by the engine Git client." },
+			{ name: "code", type: "string", description: "Raw Lua code to execute when mode is lua. YueScript is not supported. Use print(...) for output that should appear in the tool result." },
+			{ name: "command", type: "string", description: "Git command to execute when mode is git. The command may start with git, but shell syntax, pipes, redirects, and git -C are not supported." },
+			{ name: "timeoutSeconds", type: "number", description: "Optional timeout for git mode. Defaults to 600 seconds. Lua mode should be short-running and cannot forcibly interrupt pure CPU infinite loops." },
+		],
+		rules: [
+			"This tool is available only when the user enables command execution for the current Agent task.",
+			"Lua mode accepts raw Lua code only; do not send YueScript syntax.",
+			"Lua mode runs with a temporary environment whose global lookups fall back to Dora APIs; global writes stay in that one command and are not shared with later commands.",
+			"Lua mode exposes projectDir and refreshTree(path?). Call refreshTree(\"relative/file\") after single-file changes, or refreshTree() after directory or bulk changes.",
+			"Lua mode returns only text printed with print(...). It does not return arbitrary Lua return values.",
+			"Git mode uses the engine Git client, not a system shell. Supported commands follow Dora Git API support.",
+			"Git clone uses a temporary directory first, then moves into the project only after clone succeeds; existing targets are not overwritten.",
 		],
 	},
 	{
@@ -290,7 +310,7 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 		rules: [
 			"Use this for large multi-file work, parallel exploration, long-running verification, or isolated execution tasks.",
 			"For small focused edits, use edit_file/delete_file/build directly in the current main-agent run.",
-			"The spawned sub agent inherits the current session tool capabilities, including fetch_url when network import is enabled.",
+			"The spawned sub agent inherits the current session tool capabilities, including fetch_url and execute_command when enabled.",
 			"title should be short and specific.",
 			"prompt should be self-contained and actionable, and should clearly describe the concrete work to execute, constraints, desired output, and any relevant files.",
 			"If spawn succeeds, immediately finish the current turn and state that the work has been delegated.",
@@ -384,7 +404,7 @@ export function buildToolDefinitionsDetailed(tools: ToolPrompt[], options?: {
 	if (options?.includeXmlRules === true) {
 		sections.push(`XML mode object fields:
 - Use a single root tag: <tool_call>.
-- For read_file, edit_file, delete_file, grep_files, search_dora_api, glob_files, build, and fetch_url, include <tool>, <reason>, and <params>.
+- For read_file, edit_file, delete_file, grep_files, search_dora_api, glob_files, build, fetch_url, and execute_command, include <tool>, <reason>, and <params>.
 - For finish, do not include <reason>. Use only <tool> and <params><message>...</message></params>.
 - Inside <params>, use one child tag per parameter and preserve each tag content as raw text.`);
 	}

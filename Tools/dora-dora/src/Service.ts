@@ -33,6 +33,7 @@ type ServiceEvents = {
 	[WsEvent.Log]: [string, string];
 	[WsEvent.Profiler]: [ProfilerInfo];
 	[WsEvent.UpdateFile]: [string, boolean, string];
+	[WsEvent.RefreshTree]: [];
 	[WsEvent.OpenFile]: [OpenFileMessage];
 	[WsEvent.Download]: [string, WsDownloadStatus, number];
 	[WsOpenEvent]: [];
@@ -127,6 +128,7 @@ const enum WsEvent {
 	Profiler = "Profiler",
 	TranspileTS = "TranspileTS",
 	UpdateFile = "UpdateFile",
+	RefreshTree = "RefreshTree",
 	OpenFile = "OpenFile",
 	Download = "Download",
 };
@@ -173,6 +175,14 @@ export const removeUpdateFileListener = (listener: (file: string, exists: boolea
 
 export const emitUpdateFile = (file: string, exists: boolean, content = "") => {
 	eventEmitter.emit(WsEvent.UpdateFile, file, exists, content);
+};
+
+export const addRefreshTreeListener = (listener: () => void) => {
+	eventEmitter.on(WsEvent.RefreshTree, listener);
+};
+
+export const removeRefreshTreeListener = (listener: () => void) => {
+	eventEmitter.off(WsEvent.RefreshTree, listener);
 };
 
 export const addOpenFileListener = (listener: (message: OpenFileMessage) => void) => {
@@ -293,6 +303,10 @@ export function openWebSocket() {
 							}
 							case WsEvent.UpdateFile: {
 								eventEmitter.emit(result.name, result.file, result.exists !== false, result.content ?? "");
+								break;
+							}
+							case WsEvent.RefreshTree: {
+								eventEmitter.emit(result.name);
 								break;
 							}
 							case WsEvent.OpenFile: {

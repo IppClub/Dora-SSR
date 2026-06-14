@@ -3517,13 +3517,38 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 		if (shared.disabledAgentTools.indexOf("fetch_url") >= 0) {
 			return { success: false, state: "failed", message: "fetch_url is not enabled for this session" };
 		}
-		const mode = typeof params.mode === "string" ? params.mode : "";
 		const result = await Tools.fetchUrl({
 			workDir: shared.workingDir,
-			mode: mode as Tools.FetchUrlMode,
 			url: typeof params.url === "string" ? params.url : "",
 			target: typeof params.target === "string" ? params.target : "",
-			ref: typeof params.ref === "string" ? params.ref : undefined,
+			isCancelled: () => shared.stopToken.stopped === true,
+			onProgress: progress => {
+				emitAgentEvent(shared, {
+					type: "tool_progress",
+					sessionId: shared.sessionId,
+					taskId: shared.taskId,
+					step: action.step,
+					tool: action.tool,
+					result: {
+						success: false,
+						...progress,
+					},
+				});
+			},
+		});
+		return result as unknown as Record<string, unknown>;
+	}
+	if (action.tool === "execute_command") {
+		if (shared.disabledAgentTools.indexOf("execute_command") >= 0) {
+			return { success: false, message: "execute_command is not enabled for this session" };
+		}
+		const mode = typeof params.mode === "string" ? params.mode : "";
+		const result = await Tools.executeCommand({
+			workDir: shared.workingDir,
+			mode: mode as Tools.ExecuteCommandMode,
+			code: typeof params.code === "string" ? params.code : undefined,
+			command: typeof params.command === "string" ? params.command : undefined,
+			timeoutSeconds: typeof params.timeoutSeconds === "number" ? params.timeoutSeconds : undefined,
 			isCancelled: () => shared.stopToken.stopped === true,
 			onProgress: progress => {
 				emitAgentEvent(shared, {
@@ -3881,6 +3906,7 @@ class CodingAgentFlow extends Flow<AgentShared> {
 		const spawn = new SpawnSubAgentAction(1, 0);
 		const edit = new EditFileAction(1, 0);
 		const fetch = new FetchUrlAction(1, 0);
+		const exec = new FetchUrlAction(1, 0);
 		const batch = new BatchToolAction(1, 0);
 		const done = new EndNode(1, 0);
 
@@ -3889,6 +3915,7 @@ class CodingAgentFlow extends Flow<AgentShared> {
 		main.on("search_dora_api", searchDora);
 		main.on("glob_files", list);
 		main.on("fetch_url", fetch);
+		main.on("execute_command", exec);
 		if (role === "main") {
 			main.on("read_file", read);
 			main.on("delete_file", del);

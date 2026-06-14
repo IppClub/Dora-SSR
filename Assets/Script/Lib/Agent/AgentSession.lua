@@ -1120,18 +1120,18 @@ function normalizeSessionRuntimeState(session) -- 1187
 	if activeStopTokens[session.currentTaskId] ~= nil then -- 1189
 		return session -- 1192
 	end -- 1192
-	local pendingFetchRows = queryRows(("SELECT id, result_json FROM " .. TABLE_STEP) .. "\n\t\tWHERE session_id = ? AND task_id = ? AND tool = ? AND status IN ('PENDING', 'RUNNING')", {session.id, session.currentTaskId, "fetch_url"}) or ({}) -- 1194
-	if #pendingFetchRows > 0 then -- 1194
+	local pendingToolRows = queryRows(("SELECT id, result_json FROM " .. TABLE_STEP) .. "\n\t\tWHERE session_id = ? AND task_id = ? AND tool IN (?, ?) AND status IN ('PENDING', 'RUNNING')", {session.id, session.currentTaskId, "fetch_url", "execute_command"}) or ({}) -- 1194
+	if #pendingToolRows > 0 then -- 1194
 		local t = now() -- 1200
 		do -- 1200
 			local i = 0 -- 1201
-			while i < #pendingFetchRows do -- 1201
-				local row = pendingFetchRows[i + 1] -- 1202
+			while i < #pendingToolRows do -- 1201
+				local row = pendingToolRows[i + 1] -- 1202
 				local result = decodeJsonObject(toStr(row[2])) or ({}) -- 1203
 				result.success = false -- 1204
 				result.state = "failed" -- 1205
 				result.interrupted = true -- 1206
-				result.message = "fetch_url was interrupted because the program exited before it completed." -- 1207
+				result.message = "tool call was interrupted because the program exited before it completed." -- 1207
 				DB:exec( -- 1208
 					("UPDATE " .. TABLE_STEP) .. " SET status = 'FAILED', result_json = ?, updated_at = ? WHERE id = ?", -- 1208
 					{ -- 1210
