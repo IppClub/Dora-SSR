@@ -4,8 +4,22 @@ on:
   push:
     branches: [ main ]
     tags: 'v*.*.*'
+    paths:
+      # Shared engine code — triggers all platforms
+      - 'Source/**'
+      - 'Tools/tolua\+\+/**'
+      - 'Tools/build-scripts/**'
+      - 'Tools/dora-rust/**'
+      # Platform-specific code
+      - 'Projects/Android/**'
   pull_request:
     branches: [ main ]
+    paths:
+      - 'Source/**'
+      - 'Tools/tolua\+\+/**'
+      - 'Tools/build-scripts/**'
+      - 'Tools/dora-rust/**'
+      - 'Projects/Android/**'
   workflow_dispatch:
 
 jobs:

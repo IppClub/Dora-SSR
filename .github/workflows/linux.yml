@@ -3,8 +3,22 @@ name: Linux
 on:
   push:
     branches: [ main ]
+    paths:
+      # Shared engine code — triggers all platforms
+      - 'Source/**'
+      - 'Tools/tolua\+\+/**'
+      - 'Tools/build-scripts/**'
+      - 'Tools/dora-rust/**'
+      # Platform-specific code
+      - 'Projects/Linux/**'
   pull_request:
     branches: [ main ]
+    paths:
+      - 'Source/**'
+      - 'Tools/tolua\+\+/**'
+      - 'Tools/build-scripts/**'
+      - 'Tools/dora-rust/**'
+      - 'Projects/Linux/**'
   workflow_dispatch:
 
 jobs:
