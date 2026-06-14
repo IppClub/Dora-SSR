@@ -164,14 +164,24 @@ function summarizeToolParams(step: AgentSessionStep, t: (key: string, options?: 
 			return items;
 		}
 		case "fetch_url": {
-			const mode = typeof params.mode === "string" ? params.mode : "";
 			const url = typeof params.url === "string" ? params.url : "";
 			const target = typeof params.target === "string" ? params.target : "";
-			const ref = typeof params.ref === "string" ? params.ref : "";
-			push(t("agent.paramLabels.mode"), mode !== "" ? t(`agent.fetchUrl.${mode}`, { defaultValue: mode }) : "");
 			push(t("agent.paramLabels.url"), url);
 			push(t("agent.paramLabels.target"), target);
-			push(t("agent.paramLabels.ref"), ref);
+			return items;
+		}
+		case "execute_command": {
+			const mode = typeof params.mode === "string" ? params.mode : "";
+			const code = typeof params.code === "string" ? params.code : "";
+			const command = typeof params.command === "string" ? params.command : "";
+			const timeoutSeconds = typeof params.timeoutSeconds === "number" ? params.timeoutSeconds : undefined;
+			push(t("agent.paramLabels.mode"), mode !== "" ? t(`agent.executeCommandModes.${mode}`, { defaultValue: mode }) : "");
+			if (mode === "git") {
+				push(t("agent.paramLabels.command"), command);
+			} else {
+				push(t("agent.paramLabels.code"), code.length > 80 ? `${code.slice(0, 80)}...` : code);
+			}
+			if (timeoutSeconds !== undefined) push(t("agent.paramLabels.timeout"), String(timeoutSeconds));
 			return items;
 		}
 		case "list_sub_agents": {
@@ -280,8 +290,9 @@ function getBuildTotal(step: AgentSessionStep, shownCount: number): number {
 	return typeof total === "number" && total > shownCount ? total : shownCount;
 }
 
-function getFetchUrlProgress(step: AgentSessionStep): {
+function getToolProgress(step: AgentSessionStep): {
 	mode: string;
+	label: string;
 	message: string;
 	progress?: number;
 	hasDeterminateProgress: boolean;
@@ -289,28 +300,31 @@ function getFetchUrlProgress(step: AgentSessionStep): {
 	gitState?: string;
 	jobId?: number;
 } | undefined {
-	if (step.tool !== "fetch_url") return undefined;
+	if (step.tool !== "fetch_url" && step.tool !== "execute_command") return undefined;
 	if (step.status !== "RUNNING") return undefined;
 	const result = step.result;
 	if (!result || typeof result !== "object") return undefined;
 	const mode = typeof result.mode === "string"
 		? result.mode
-		: (typeof step.params?.mode === "string" ? step.params.mode : "");
+		: (step.tool === "fetch_url" ? "download" : (typeof step.params?.mode === "string" ? step.params.mode : ""));
 	const progress = typeof result.progress === "number" && Number.isFinite(result.progress)
 		? Math.max(0, Math.min(1, result.progress))
 		: undefined;
+	const label = step.tool === "fetch_url"
+		? "agent.fetchUrl.downloading"
+		: (mode === "git" ? "agent.executeCommandRunning.git" : "agent.executeCommandRunning.lua");
 	const message = typeof result.message === "string" && result.message !== ""
 		? result.message
-		: (mode === "git_clone" ? "cloning" : "downloading");
+		: (step.tool === "fetch_url" ? "downloading" : "running");
 	const stage = typeof result.gitKind === "string" && result.gitKind !== ""
 		? result.gitKind
 		: (typeof result.stage === "string" && result.stage !== "" ? result.stage : undefined);
 	const gitState = typeof result.gitState === "string" && result.gitState !== "" ? result.gitState : undefined;
 	const jobId = typeof result.jobId === "number" ? result.jobId : undefined;
-	const hasDeterminateProgress = mode === "git_clone"
+	const hasDeterminateProgress = step.tool === "execute_command" && mode === "git"
 		? progress !== undefined && progress > 0
 		: progress !== undefined;
-	return { mode, message, progress, hasDeterminateProgress, stage, gitState, jobId };
+	return { mode, label, message, progress, hasDeterminateProgress, stage, gitState, jobId };
 }
 
 export default function AgentStepList(props: AgentStepListProps) {
@@ -343,7 +357,7 @@ export default function AgentStepList(props: AgentStepListProps) {
 				const buildResultsTruncated = buildTotal > buildItems.length;
 				const showBuildResults = buildItems.length > 0;
 				const buildErrorsOpened = openedBuildErrors[step.id] === true;
-				const fetchProgress = getFetchUrlProgress(step);
+				const toolProgress = getToolProgress(step);
 				const hasReasoning = step.reasoningContent.trim() !== "";
 				const primaryContent = step.reason || (hasReasoning ? step.reasoningContent : "");
 				const handoffMeta = getSubAgentHandoffMeta(step);
@@ -538,25 +552,25 @@ export default function AgentStepList(props: AgentStepListProps) {
 								))}
 							</Typography>
 						) : null}
-						{fetchProgress ? (
+						{toolProgress ? (
 							<Box sx={{ mt: 1.25 }}>
 								<Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.75 }}>
 									<Typography variant="caption" sx={{ color: Color.TextSecondary }}>
-										{fetchProgress.mode === "git_clone" ? t("agent.fetchUrl.cloning") : t("agent.fetchUrl.downloading")}
+										{t(toolProgress.label)}
 									</Typography>
 									<Typography variant="caption" sx={{ color: Color.TextSecondary }}>
 										{[
-											fetchProgress.stage,
-											fetchProgress.gitState,
-											fetchProgress.jobId !== undefined ? `#${fetchProgress.jobId}` : undefined,
-											fetchProgress.message,
-											fetchProgress.hasDeterminateProgress && fetchProgress.progress !== undefined ? `${Math.round(fetchProgress.progress * 100)}%` : undefined,
+											toolProgress.stage,
+											toolProgress.gitState,
+											toolProgress.jobId !== undefined ? `#${toolProgress.jobId}` : undefined,
+											toolProgress.message,
+											toolProgress.hasDeterminateProgress && toolProgress.progress !== undefined ? `${Math.round(toolProgress.progress * 100)}%` : undefined,
 										].filter(Boolean).join(" · ")}
 									</Typography>
 								</Stack>
 								<LinearProgress
-									variant={fetchProgress.hasDeterminateProgress ? "determinate" : "indeterminate"}
-									value={fetchProgress.hasDeterminateProgress && fetchProgress.progress !== undefined ? fetchProgress.progress * 100 : undefined}
+									variant={toolProgress.hasDeterminateProgress ? "determinate" : "indeterminate"}
+									value={toolProgress.hasDeterminateProgress && toolProgress.progress !== undefined ? toolProgress.progress * 100 : undefined}
 									sx={{
 										height: 3,
 										backgroundColor: `${Color.Theme}1f`,

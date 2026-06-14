@@ -1,4 +1,5 @@
 // @preview-file off clear
+import * as Dora from 'Dora';
 import { Content, DB, Path, Director, once, SearchFilesResult, Node, emit, wait, App, HttpServer, HttpClient, Git } from 'Dora';
 import { Log, safeJsonDecode, safeJsonEncode } from 'Agent/Utils';
 
@@ -106,7 +107,7 @@ export type BuildResult = {
 	messages?: BuildMessage[];
 };
 
-export type FetchUrlMode = "download" | "git_clone";
+export type FetchUrlMode = "download";
 
 export type FetchUrlProgress = {
 	state: "pending" | "running";
@@ -130,14 +131,40 @@ export type FetchUrlResult = {
 	mode: FetchUrlMode;
 	target: string;
 	bytesWritten?: number;
-	ref?: string;
-	commit?: string;
 } | {
 	success: false;
 	state: "failed";
 	mode?: FetchUrlMode;
 	target?: string;
 	message: string;
+	interrupted?: boolean;
+	cleanupError?: string;
+};
+
+export type ExecuteCommandMode = "lua" | "git";
+
+export type ExecuteCommandProgress = {
+	state: "pending" | "running";
+	mode: ExecuteCommandMode;
+	operationId: string;
+	progress?: number;
+	message?: string;
+	stage?: string;
+	jobId?: number;
+	gitState?: string;
+	gitKind?: string;
+};
+
+export type ExecuteCommandResult = {
+	success: true;
+	mode: ExecuteCommandMode;
+	output: string;
+} | {
+	success: false;
+	mode?: ExecuteCommandMode;
+	output?: string;
+	message: string;
+	phase?: "compile" | "execute" | "timeout" | "validate";
 	interrupted?: boolean;
 	cleanupError?: string;
 };
@@ -454,6 +481,134 @@ function quoteGitArg(value: string): string {
 	return `"${escaped}"`;
 }
 
+function shellSplit(command: string): string[] {
+	const args: string[] = [];
+	let current = "";
+	let quote = "";
+	let escaped = false;
+	for (let i = 0; i < command.length; i++) {
+		const ch = command.charAt(i);
+		if (escaped) {
+			current += ch;
+			escaped = false;
+			continue;
+		}
+		if (ch === "\\") {
+			escaped = true;
+			continue;
+		}
+		if (quote !== "") {
+			if (ch === quote) {
+				quote = "";
+			} else {
+				current += ch;
+			}
+			continue;
+		}
+		if (ch === "'" || ch === '"') {
+			quote = ch;
+			continue;
+		}
+		if (ch === " " || ch === "\t" || ch === "\n" || ch === "\r") {
+			if (current !== "") {
+				args.push(current);
+				current = "";
+			}
+			continue;
+		}
+		current += ch;
+	}
+	if (escaped) {
+		current += "\\";
+	}
+	if (current !== "") {
+		args.push(current);
+	}
+	return args;
+}
+
+function normalizeGitCommand(command: string): string {
+	const trimmed = command.trim();
+	if (trimmed.slice(0, 4).toLowerCase() === "git ") {
+		return trimmed.slice(4).trim();
+	}
+	return trimmed;
+}
+
+function gitDefaultTargetFromUrl(url: string): string {
+	let target = url;
+	const hashIndex = target.indexOf("#");
+	if (hashIndex >= 0) target = target.slice(0, hashIndex);
+	const queryIndex = target.indexOf("?");
+	if (queryIndex >= 0) target = target.slice(0, queryIndex);
+	[target] = string.gsub(target, "/+$", "");
+	const [name] = string.match(target, "([^/]+)$");
+	if (name !== undefined && name !== "") target = name;
+	if (target.toLowerCase().endsWith(".git")) {
+		target = target.slice(0, target.length - 4);
+	}
+	return target !== "" ? target : "repo";
+}
+
+function parseGitCloneCommand(command: string): {
+	success: true;
+	url: string;
+	target: string;
+	ref?: string;
+	depth?: string;
+} | {
+	success: false;
+	message: string;
+} | undefined {
+	const args = shellSplit(normalizeGitCommand(command));
+	if (args.length === 0 || args[0] !== "clone") return undefined;
+	let url = "";
+	let target = "";
+	let ref: string | undefined;
+	let depth: string | undefined;
+	for (let i = 1; i < args.length; i++) {
+		const arg = args[i];
+		if (arg === "-b" || arg === "--branch") {
+			i += 1;
+			if (i >= args.length) return { success: false, message: `${arg} requires a value` };
+			ref = args[i];
+			continue;
+		}
+		if (arg === "--depth") {
+			i += 1;
+			if (i >= args.length) return { success: false, message: "--depth requires a value" };
+			depth = args[i];
+			continue;
+		}
+		if (arg.startsWith("--depth=")) {
+			depth = arg.slice("--depth=".length);
+			continue;
+		}
+		if (arg.startsWith("-")) {
+			return { success: false, message: `unsupported clone option: ${arg}` };
+		}
+		if (url === "") {
+			url = arg;
+			continue;
+		}
+		if (target === "") {
+			target = arg;
+			continue;
+		}
+		return { success: false, message: `unexpected clone argument: ${arg}` };
+	}
+	if (url === "") return { success: false, message: "git clone requires a URL" };
+	if (!isHttpUrl(url)) return { success: false, message: "git clone only supports http:// and https:// URLs" };
+	if (target === "") target = gitDefaultTargetFromUrl(url);
+	return {
+		success: true,
+		url,
+		target,
+		ref,
+		depth: depth !== undefined && depth !== "" ? depth : "1",
+	};
+}
+
 function getGitHeadCommit(repoPath: string): string | undefined {
 	const headPath = Path(repoPath, ".git", "HEAD");
 	if (!Content.exist(headPath)) return undefined;
@@ -498,7 +653,7 @@ function runGitAndWait(
 				const statusMessage = toStr(status?.message);
 				finish({
 					success: false,
-					message: errorMessage !== "" ? errorMessage : (statusMessage !== "" ? statusMessage : (state === "canceled" ? "git clone canceled" : "git clone failed")),
+					message: errorMessage !== "" ? errorMessage : (statusMessage !== "" ? statusMessage : (state === "canceled" ? "git command canceled" : "git command failed")),
 					status,
 					interrupted: state === "canceled",
 				});
@@ -512,7 +667,7 @@ function runGitAndWait(
 			return finishFromStatus();
 		});
 		if (jobId === undefined || jobId <= 0) {
-			finish({ success: false, message: "failed to start git clone" });
+			finish({ success: false, message: "failed to start git command" });
 			return;
 		}
 		if (!status) {
@@ -534,14 +689,14 @@ function runGitAndWait(
 			if (!canceled && isCancelled && isCancelled()) {
 				canceled = true;
 				Git.cancel(jobId);
-				finish({ success: false, message: "git clone canceled", status, interrupted: true });
+				finish({ success: false, message: "git command canceled", status, interrupted: true });
 				return true;
 			}
 			if (finishFromStatus()) return true;
 			const nowTime = os.time();
 			if (nowTime - startedAt >= timeout) {
 				Git.cancel(jobId);
-				finish({ success: false, message: "git clone timed out", status });
+				finish({ success: false, message: "git command timed out", status });
 				return true;
 			}
 			if (onStatus && status && nowTime > lastEmitAt) {
@@ -559,11 +714,12 @@ function downloadFile(req: {
 	timeout: number;
 	onProgress: (current: number, total: number) => void;
 	isCancelled?: () => boolean;
-}): Promise<{ success: boolean; interrupted?: boolean; message?: string }> {
+}): Promise<{ success: boolean; interrupted?: boolean; message?: string; bytesWritten?: number }> {
 	return new Promise(resolve => {
 		let requestId = 0;
 		let settled = false;
-		const finish = (result: { success: boolean; interrupted?: boolean; message?: string }) => {
+		let bytesWritten = 0;
+		const finish = (result: { success: boolean; interrupted?: boolean; message?: string; bytesWritten?: number }) => {
 			if (settled) return;
 			settled = true;
 			requestId = 0;
@@ -584,6 +740,9 @@ function downloadFile(req: {
 		});
 		Director.systemScheduler.schedule(once(() => {
 			requestId = HttpClient.download(req.url, req.tempPath, req.timeout, (interrupted, current, total) => {
+				if (typeof current === "number" && current > bytesWritten) {
+					bytesWritten = current;
+				}
 				if (interrupted) {
 					finish({ success: false, interrupted: true, message: "download failed" });
 					return true;
@@ -593,7 +752,7 @@ function downloadFile(req: {
 					return true;
 				}
 				if (current === total) {
-					finish({ success: true });
+					finish({ success: true, bytesWritten });
 					return false;
 				}
 				req.onProgress(current, total);
@@ -876,6 +1035,48 @@ export function sendWebIDEFileUpdate(file: string, exists: boolean, content: str
 	}
 	emit("AppWS", "Send", payload);
 	return true;
+}
+
+export function sendWebIDERefreshTree(): boolean {
+	if (HttpServer.wsConnectionCount === 0) {
+		return true;
+	}
+	const payload = encodeJSON({ name: "RefreshTree" });
+	if (!payload) {
+		return false;
+	}
+	emit("AppWS", "Send", payload);
+	return true;
+}
+
+function syncProjectFileToWebIDE(workDir: string, path: string): boolean {
+	const target = resolveWorkspaceFilePath(workDir, path);
+	if (!target) return false;
+	if (!Content.exist(target)) {
+		return sendWebIDEFileUpdate(target, false, "");
+	}
+	if (Content.isdir(target)) {
+		return sendWebIDERefreshTree();
+	}
+	let content = "";
+	try {
+		const [, isBinary] = Content.getAttr(target);
+		if (!isBinary) {
+			const loaded = Content.load(target);
+			content = typeof loaded === "string" ? loaded : "";
+		}
+	} catch (e) {
+		Log("Warn", `[Agent.Tools] failed to inspect file for Web IDE update file=${target}: ${tostring(e)}`);
+	}
+	return sendWebIDEFileUpdate(target, true, content);
+}
+
+function refreshProjectTree(workDir: string, path?: string): boolean {
+	const normalized = typeof path === "string" ? path.trim() : "";
+	if (normalized === "") {
+		return sendWebIDERefreshTree();
+	}
+	return syncProjectFileToWebIDE(workDir, normalized);
 }
 
 function syncDownloadedFileToWebIDE(file: string): boolean {
@@ -1892,19 +2093,272 @@ export async function build(req: { workDir: string; path: string }): Promise<Bui
 	return finalizeBuildResult(req.workDir, messages);
 }
 
+const EXECUTE_COMMAND_OUTPUT_MAX = 12000;
+
+function truncateCommandOutput(output: string): string {
+	if (output.length <= EXECUTE_COMMAND_OUTPUT_MAX) return output;
+	return `${output.slice(0, EXECUTE_COMMAND_OUTPUT_MAX)}\n... output truncated ...`;
+}
+
+function executeLuaCommand(req: { workDir: string; code: string }): ExecuteCommandResult {
+	const code = (req.code ?? "").trim();
+	if (code === "") {
+		return { success: false, mode: "lua", output: "", message: "missing code", phase: "validate" };
+	}
+	const output: string[] = [];
+	const env = setmetatable({
+		projectDir: req.workDir,
+		print: (...values: unknown[]) => {
+			const parts: string[] = [];
+			for (let i = 0; i < values.length; i++) {
+				parts.push(tostring(values[i]));
+			}
+			output.push(parts.join("\t"));
+		},
+		refreshTree: (path?: unknown) => {
+			if (path === undefined) {
+				return refreshProjectTree(req.workDir);
+			}
+			if (typeof path !== "string") {
+				error("refreshTree expects a project-relative file path string or no argument");
+			}
+			return refreshProjectTree(req.workDir, path as string);
+		},
+	}, {
+		__index: Dora,
+	});
+	const [fn, compileErr] = load(code, "=(agent_command)", "t", env);
+	if (!fn) {
+		return {
+			success: false,
+			mode: "lua",
+			output: truncateCommandOutput(output.join("\n")),
+			message: toStr(compileErr),
+			phase: "compile",
+		};
+	}
+	const [ok, runtimeErr] = pcall(fn);
+	if (!ok) {
+		return {
+			success: false,
+			mode: "lua",
+			output: truncateCommandOutput(output.join("\n")),
+			message: toStr(runtimeErr),
+			phase: "execute",
+		};
+	}
+	return { success: true, mode: "lua", output: truncateCommandOutput(output.join("\n")) };
+}
+
+function formatGitStatusOutput(status?: Record<string, unknown>): string {
+	if (!status) return "";
+	const lines: string[] = [];
+	const state = toStr(status.state);
+	const kind = toStr(status.kind);
+	const message = toStr(status.message);
+	const errorMessage = toStr(status.error);
+	if (kind !== "" || state !== "") {
+		lines.push([kind, state].filter(item => item !== "").join(": "));
+	}
+	if (message !== "") lines.push(message);
+	if (errorMessage !== "") lines.push(errorMessage);
+	const data = status.data;
+	if (data !== undefined) {
+		const dataText = encodeJSON(data as object);
+		lines.push(dataText !== undefined ? dataText : tostring(data));
+	}
+	return truncateCommandOutput(lines.join("\n"));
+}
+
+function emitGitProgress(
+	mode: ExecuteCommandMode,
+	operationId: string,
+	onProgress: ((progress: ExecuteCommandProgress) => void) | undefined,
+	status: Record<string, unknown>,
+) {
+	if (!onProgress) return;
+	const progress = typeof status.progress === "number" ? status.progress as number : undefined;
+	const kind = toStr(status.kind);
+	const message = toStr(status.message);
+	const state = toStr(status.state);
+	const jobId = typeof status.id === "number" ? status.id as number : undefined;
+	onProgress({
+		state: "running",
+		mode,
+		operationId,
+		stage: kind !== "" ? kind : "git",
+		message: message !== "" ? message : (state !== "" ? state : "running"),
+		progress,
+		jobId,
+		gitState: state !== "" ? state : undefined,
+		gitKind: kind !== "" ? kind : undefined,
+	});
+}
+
+async function cloneGitToTarget(req: {
+	workDir: string;
+	command: string;
+	operationId: string;
+	timeoutSeconds: number;
+	onProgress?: (progress: ExecuteCommandProgress) => void;
+	isCancelled?: () => boolean;
+}): Promise<ExecuteCommandResult | undefined> {
+	const parsed = parseGitCloneCommand(req.command);
+	if (parsed === undefined) return undefined;
+	if (!parsed.success) {
+		return { success: false, mode: "git", output: "", message: parsed.message, phase: "validate" };
+	}
+	const target = resolveWorkspaceFilePath(req.workDir, parsed.target);
+	if (!target) {
+		return { success: false, mode: "git", output: "", message: "invalid clone target path", phase: "validate" };
+	}
+	if (Content.exist(target)) {
+		return { success: false, mode: "git", output: "", message: "target already exists", phase: "validate" };
+	}
+	const targetParent = Path.getPath(target);
+	if (!ensureDirPath(targetParent)) {
+		return { success: false, mode: "git", output: "", message: "failed to create target parent directory" };
+	}
+	const tempRoot = getAgentDownloadTempRoot();
+	if (!ensureDirPath(tempRoot)) {
+		return { success: false, mode: "git", output: "", message: "failed to create agent download temp directory" };
+	}
+	const tempPath = Path(tempRoot, `${req.operationId}.repo`);
+	Content.remove(tempPath);
+	const depth = parsed.depth ?? "1";
+	const command = [
+		"clone",
+		quoteGitArg(parsed.url),
+		quoteGitArg(Path.getFilename(tempPath)),
+		...(parsed.ref !== undefined && parsed.ref !== "" ? ["-b", quoteGitArg(parsed.ref)] : []),
+		...(depth !== "" ? ["--depth", quoteGitArg(depth)] : []),
+	].join(" ");
+	req.onProgress?.({
+		state: "pending",
+		mode: "git",
+		operationId: req.operationId,
+		stage: "clone",
+		message: "clone pending",
+		progress: 0,
+	});
+	const gitRes = await runGitAndWait(
+		tempRoot,
+		command,
+		status => emitGitProgress("git", req.operationId, req.onProgress, status),
+		() => req.isCancelled?.() === true,
+		req.timeoutSeconds,
+	);
+	if (!gitRes.success) {
+		const cleanupError = cleanupPath(tempPath);
+		return {
+			success: false,
+			mode: "git",
+			output: formatGitStatusOutput(gitRes.status),
+			message: gitRes.message ?? "git clone failed",
+			interrupted: gitRes.interrupted || req.isCancelled?.() === true,
+			cleanupError,
+		};
+	}
+	if (!Content.move(tempPath, target)) {
+		const cleanupError = cleanupPath(tempPath);
+		return { success: false, mode: "git", output: formatGitStatusOutput(gitRes.status), message: "failed to move cloned repository into target path", cleanupError };
+	}
+	if (!refreshProjectTree(req.workDir)) {
+		Log("Warn", `[execute_command] failed to refresh Web IDE tree after clone target=${target}`);
+	}
+	const commit = getGitHeadCommit(target);
+	const output = [
+		formatGitStatusOutput(gitRes.status),
+		`cloned ${parsed.url} to ${parsed.target}`,
+		commit !== undefined ? `commit ${commit}` : "",
+	].filter(item => item !== "").join("\n");
+	return { success: true, mode: "git", output: truncateCommandOutput(output) };
+}
+
+async function executeGitCommand(req: {
+	workDir: string;
+	command: string;
+	timeoutSeconds: number;
+	operationId: string;
+	onProgress?: (progress: ExecuteCommandProgress) => void;
+	isCancelled?: () => boolean;
+}): Promise<ExecuteCommandResult> {
+	const command = normalizeGitCommand(req.command ?? "");
+	if (command === "") {
+		return { success: false, mode: "git", output: "", message: "missing command", phase: "validate" };
+	}
+	const cloneResult = await cloneGitToTarget({
+		workDir: req.workDir,
+		command,
+		operationId: req.operationId,
+		timeoutSeconds: req.timeoutSeconds,
+		onProgress: req.onProgress,
+		isCancelled: req.isCancelled,
+	});
+	if (cloneResult !== undefined) return cloneResult;
+	req.onProgress?.({
+		state: "pending",
+		mode: "git",
+		operationId: req.operationId,
+		stage: "git",
+		message: "git command pending",
+		progress: 0,
+	});
+	const gitRes = await runGitAndWait(
+		req.workDir,
+		command,
+		status => emitGitProgress("git", req.operationId, req.onProgress, status),
+		() => req.isCancelled?.() === true,
+		req.timeoutSeconds,
+	);
+	const output = formatGitStatusOutput(gitRes.status);
+	if (!gitRes.success) {
+		return {
+			success: false,
+			mode: "git",
+			output,
+			message: gitRes.message ?? "git command failed",
+			interrupted: gitRes.interrupted || req.isCancelled?.() === true,
+		};
+	}
+	return { success: true, mode: "git", output };
+}
+
+export async function executeCommand(req: {
+	workDir: string;
+	mode: ExecuteCommandMode;
+	code?: string;
+	command?: string;
+	timeoutSeconds?: number;
+	onProgress?: (progress: ExecuteCommandProgress) => void;
+	isCancelled?: () => boolean;
+}): Promise<ExecuteCommandResult> {
+	const mode = req.mode;
+	if (mode !== "lua" && mode !== "git") {
+		return { success: false, message: "mode must be lua or git", phase: "validate" };
+	}
+	if (mode === "lua") {
+		return executeLuaCommand({ workDir: req.workDir, code: req.code ?? "" });
+	}
+	const operationId = createOperationId();
+	return executeGitCommand({
+		workDir: req.workDir,
+		command: req.command ?? "",
+		timeoutSeconds: math.max(1, math.floor(Number(req.timeoutSeconds ?? 600))),
+		operationId,
+		onProgress: req.onProgress,
+		isCancelled: req.isCancelled,
+	});
+}
+
 export async function fetchUrl(req: {
 	workDir: string;
-	mode: FetchUrlMode;
 	url: string;
 	target: string;
-	ref?: string;
 	onProgress?: (progress: FetchUrlProgress) => void;
 	isCancelled?: () => boolean;
 }): Promise<FetchUrlResult> {
-	const mode = req.mode;
-	if (mode !== "download" && mode !== "git_clone") {
-		return { success: false, state: "failed", message: "mode must be download or git_clone" };
-	}
+	const mode: FetchUrlMode = "download";
 	const url = (req.url ?? "").trim();
 	const targetRel = (req.target ?? "").trim();
 	if (!isHttpUrl(url)) {
@@ -1925,7 +2379,7 @@ export async function fetchUrl(req: {
 	if (!ensureDirPath(tempRoot)) {
 		return { success: false, state: "failed", mode, target: targetRel, message: "failed to create agent download temp directory" };
 	}
-	const tempPath = Path(tempRoot, mode === "download" ? `${operationId}.download` : `${operationId}.repo`);
+	const tempPath = Path(tempRoot, `${operationId}.download`);
 	Content.remove(tempPath);
 	const emitProgress = (progress: Partial<FetchUrlProgress>) => {
 		if (!req.onProgress) return;
@@ -1940,118 +2394,70 @@ export async function fetchUrl(req: {
 	};
 	emitProgress({
 		state: "pending",
-		message: mode === "download" ? "download pending" : "clone pending",
-		stage: mode === "download" ? "download" : "clone",
+		message: "download pending",
+		stage: "download",
 	});
 	const interrupted = () => req.isCancelled?.() === true;
-	if (mode === "download") {
-		if (!ensureDirForFile(tempPath)) {
-			return { success: false, state: "failed", mode, target: targetRel, message: "failed to create temporary file directory" };
-		}
-		const downloadRes = await downloadFile({
-			url,
-			tempPath,
-			timeout: 600,
-			isCancelled: interrupted,
-			onProgress: (current, total) => {
-				const totalNumber = typeof total === "number" ? total : 0;
-				emitProgress({
-					stage: "download",
-					message: totalNumber > 0 ? "downloading" : "downloading",
-					current,
-					total,
-					progress: totalNumber > 0 ? current / totalNumber : undefined,
-				});
-			},
-		});
-		if (!downloadRes.success) {
-			const cleanupError = cleanupPath(tempPath);
-			return {
-				success: false,
-				state: "failed",
-				mode,
-				target: targetRel,
-				message: interrupted() ? "download canceled" : (downloadRes.message ?? "download failed"),
-				interrupted: downloadRes.interrupted || interrupted(),
-				cleanupError,
-			};
-		}
-		if (!ensureDirForFile(target)) {
-			const cleanupError = cleanupPath(tempPath);
-			return { success: false, state: "failed", mode, target: targetRel, message: "failed to create target directory", cleanupError };
-		}
-		if (!Content.move(tempPath, target)) {
-			const cleanupError = cleanupPath(tempPath);
-			return { success: false, state: "failed", mode, target: targetRel, message: "failed to move downloaded file into target path", cleanupError };
-		}
-		let bytesWritten: number | undefined;
-		try {
-			const [size] = Content.getAttr(target);
-			bytesWritten = typeof size === "number" ? size : undefined;
-		} catch (_) {
-			bytesWritten = undefined;
-		}
-		if (!syncDownloadedFileToWebIDE(target)) {
-			Log("Warn", `[fetch_url] failed to sync downloaded file update target=${target}`);
-		}
-		return { success: true, state: "done", mode, target: targetRel, bytesWritten };
+	if (!ensureDirForFile(tempPath)) {
+		return { success: false, state: "failed", mode, target: targetRel, message: "failed to create temporary file directory" };
 	}
-	const targetParent = Path.getPath(target);
-	if (!ensureDirPath(targetParent)) {
-		return { success: false, state: "failed", mode, target: targetRel, message: "failed to create target parent directory" };
-	}
-	const ref = (req.ref ?? "").trim();
-	const command = [
-		"clone",
-		quoteGitArg(url),
-		quoteGitArg(Path.getFilename(tempPath)),
-		...(ref !== "" ? ["-b", quoteGitArg(ref)] : []),
-		"--depth",
-		"1",
-	].join(" ");
-	const gitRes = await runGitAndWait(
-		tempRoot,
-		command,
-		status => {
-			const progress = typeof status.progress === "number" ? status.progress as number : undefined;
-			const kind = toStr(status.kind);
-			const message = toStr(status.message);
-			const state = toStr(status.state);
-			const jobId = typeof status.id === "number" ? status.id as number : undefined;
+	const downloadRes = await downloadFile({
+		url,
+		tempPath,
+		timeout: 600,
+		isCancelled: interrupted,
+		onProgress: (current, total) => {
+			const totalNumber = typeof total === "number" ? total : 0;
 			emitProgress({
-				stage: kind !== "" ? kind : "clone",
-				message: message !== "" ? message : (state !== "" ? state : "cloning"),
-				progress,
-				jobId,
-				gitState: state !== "" ? state : undefined,
-				gitKind: kind !== "" ? kind : undefined,
+				stage: "download",
+				message: "downloading",
+				current,
+				total,
+				progress: totalNumber > 0 ? current / totalNumber : undefined,
 			});
 		},
-		interrupted,
-		600,
-	);
-	if (!gitRes.success) {
+	});
+	if (!downloadRes.success) {
 		const cleanupError = cleanupPath(tempPath);
 		return {
 			success: false,
 			state: "failed",
 			mode,
 			target: targetRel,
-			message: gitRes.message ?? "git clone failed",
-			interrupted: gitRes.interrupted || interrupted(),
+			message: interrupted() ? "download canceled" : (downloadRes.message ?? "download failed"),
+			interrupted: downloadRes.interrupted || interrupted(),
 			cleanupError,
 		};
 	}
+	if (!ensureDirForFile(target)) {
+		const cleanupError = cleanupPath(tempPath);
+		return { success: false, state: "failed", mode, target: targetRel, message: "failed to create target directory", cleanupError };
+	}
 	if (!Content.move(tempPath, target)) {
 		const cleanupError = cleanupPath(tempPath);
-		return { success: false, state: "failed", mode, target: targetRel, message: "failed to move cloned repository into target path", cleanupError };
+		return { success: false, state: "failed", mode, target: targetRel, message: "failed to move downloaded file into target path", cleanupError };
 	}
-	return {
-		success: true,
-		state: "done",
-		mode,
-		target: targetRel,
-		ref: ref !== "" ? ref : undefined,
-		commit: getGitHeadCommit(target),
-	};
+	let bytesWritten: number | undefined = downloadRes.bytesWritten;
+	try {
+		const [size] = Content.getAttr(target);
+		if (bytesWritten === undefined || bytesWritten <= 0) {
+			bytesWritten = typeof size === "number" ? size : undefined;
+		}
+	} catch (_) {
+		// Keep the download callback byte count when Content attributes are unavailable.
+	}
+	if (bytesWritten === undefined || bytesWritten <= 0) {
+		try {
+			const loaded = Content.load(target);
+			if (typeof loaded === "string") {
+				bytesWritten = loaded.length;
+			}
+		} catch (_) {
+			// Keep the stat result when the downloaded file cannot be loaded as text.
+		}
+	}
+	if (!syncDownloadedFileToWebIDE(target)) {
+		Log("Warn", `[fetch_url] failed to sync downloaded file update target=${target}`);
+	}
+	return { success: true, state: "done", mode, target: targetRel, bytesWritten };
 }

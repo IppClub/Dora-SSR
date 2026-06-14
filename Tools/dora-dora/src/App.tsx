@@ -813,6 +813,16 @@ export default function PersistentDrawerLeft() {
 		return loadAssets().then(() => { });
 	}, [loadAssets]);
 
+	useEffect(() => {
+		const handleRefreshTree = () => {
+			void scheduleGitAssetsRefresh();
+		};
+		Service.addRefreshTreeListener(handleRefreshTree);
+		return () => {
+			Service.removeRefreshTreeListener(handleRefreshTree);
+		};
+	}, [scheduleGitAssetsRefresh]);
+
 
 
 

@@ -24,10 +24,12 @@ interface AgentComposerProps {
 	usedTokens?: number;
 	maxTokens?: number;
 	fetchUrlEnabled?: boolean;
+	executeCommandEnabled?: boolean;
 	onPromptChange: (value: string) => void;
 	onSend: () => void;
 	onStop: () => void;
 	onFetchUrlEnabledChange?: (value: boolean) => void;
+	onExecuteCommandEnabledChange?: (value: boolean) => void;
 }
 
 function formatCompactNumber(value: number): string {
@@ -103,21 +105,25 @@ export default function AgentComposer(props: AgentComposerProps) {
 		usedTokens,
 		maxTokens,
 		fetchUrlEnabled = false,
+		executeCommandEnabled = false,
 		onPromptChange,
 		onSend,
 		onStop,
 		onFetchUrlEnabledChange,
+		onExecuteCommandEnabledChange,
 	} = props;
 	const disabledInput = loading || running;
 	const actionDisabled = running ? !canStop : loading || prompt.trim() === "";
 	const showActionButton = running || prompt.trim() !== "";
-	const toolToggleDisabled = loading || running || onFetchUrlEnabledChange === undefined;
-	const showTopControls = tabButtons !== undefined || onFetchUrlEnabledChange !== undefined;
+	const toolToggleDisabled = loading || running;
+	const fetchUrlToggleDisabled = toolToggleDisabled || onFetchUrlEnabledChange === undefined;
+	const executeCommandToggleDisabled = toolToggleDisabled || onExecuteCommandEnabledChange === undefined;
+	const showTopControls = tabButtons !== undefined || onFetchUrlEnabledChange !== undefined || onExecuteCommandEnabledChange !== undefined;
 	const showFetchUrlButton = onFetchUrlEnabledChange !== undefined;
+	const showExecuteCommandButton = onExecuteCommandEnabledChange !== undefined;
 	const textAreaRef = React.useRef<HTMLTextAreaElement | null>(null);
 	const scrollRef = React.useRef<HTMLElement | null>(null);
 	const isComposingRef = React.useRef(false);
-	const [executeCommandEnabled, setExecuteCommandEnabled] = React.useState(false);
 
 	React.useLayoutEffect(() => {
 		const textarea = textAreaRef.current;
@@ -145,7 +151,7 @@ export default function AgentComposer(props: AgentComposerProps) {
 			<span>
 				<IconButton
 					onClick={() => onFetchUrlEnabledChange?.(!fetchUrlEnabled)}
-					disabled={toolToggleDisabled}
+					disabled={fetchUrlToggleDisabled}
 					sx={{
 						width: 30,
 						height: 30,
@@ -178,8 +184,8 @@ export default function AgentComposer(props: AgentComposerProps) {
 		<Tooltip title={t("agent.executeCommandToggle")}>
 			<span>
 				<IconButton
-					onClick={() => setExecuteCommandEnabled(value => !value)}
-					disabled={loading || running}
+					onClick={() => onExecuteCommandEnabledChange?.(!executeCommandEnabled)}
+					disabled={executeCommandToggleDisabled}
 					sx={{
 						width: 30,
 						height: 30,
@@ -238,7 +244,7 @@ export default function AgentComposer(props: AgentComposerProps) {
 						}}
 					>
 						{showFetchUrlButton ? fetchUrlButton : null}
-						{showFetchUrlButton ? executeCommandButton : null}
+						{showExecuteCommandButton ? executeCommandButton : null}
 						{tabButtons}
 					</Stack>
 					<Box sx={{ flex: "0 0 auto", pointerEvents: "auto" }}>

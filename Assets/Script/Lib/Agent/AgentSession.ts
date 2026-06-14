@@ -1191,20 +1191,20 @@ function normalizeSessionRuntimeState(session: AgentSessionItem): AgentSessionIt
 	if (activeStopTokens[session.currentTaskId] !== undefined) {
 		return session;
 	}
-	const pendingFetchRows = queryRows(
+	const pendingToolRows = queryRows(
 		`SELECT id, result_json FROM ${TABLE_STEP}
-		WHERE session_id = ? AND task_id = ? AND tool = ? AND status IN ('PENDING', 'RUNNING')`,
-		[session.id, session.currentTaskId, "fetch_url"],
+		WHERE session_id = ? AND task_id = ? AND tool IN (?, ?) AND status IN ('PENDING', 'RUNNING')`,
+		[session.id, session.currentTaskId, "fetch_url", "execute_command"],
 	) ?? [];
-	if (pendingFetchRows.length > 0) {
+	if (pendingToolRows.length > 0) {
 		const t = now();
-		for (let i = 0; i < pendingFetchRows.length; i++) {
-			const row = pendingFetchRows[i];
+		for (let i = 0; i < pendingToolRows.length; i++) {
+			const row = pendingToolRows[i];
 			const result = decodeJsonObject(toStr(row[1])) ?? {};
 			result.success = false;
 			result.state = "failed";
 			result.interrupted = true;
-			result.message = "fetch_url was interrupted because the program exited before it completed.";
+			result.message = "tool call was interrupted because the program exited before it completed.";
 			DB.exec(
 				`UPDATE ${TABLE_STEP} SET status = 'FAILED', result_json = ?, updated_at = ? WHERE id = ?`,
 				[encodeJson(result), t, row[0] as number],
