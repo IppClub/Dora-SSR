@@ -243,28 +243,28 @@ local record Git
 	-- 属性；clone、pull、checkout、hard reset 和 restore 会下载并展开
 	-- LFS 对象；fetch 会下载 LFS 对象；push 会先上传 LFS 对象再更新 Git 引用。
 	-- 支持的命令：
-	-- * init [--bare]
-	-- * clone <url> [dir] [-b|--branch <name>] [--depth <n>]
-	-- * ls-remote <url>
-	-- * status
-	-- * diff [--cached|--staged] [--] <path>
-	-- * diff <40位commit哈希> -- <path>
-	-- * add <path...> | add . | add -A|--all
-	-- * rm <path...>
-	-- * commit -m|--message <msg> [-a|--all] [--allow-empty] [--amend] [--author-name <name>] [--author-email <email>]
-	-- * pull [remote] [branch] [-f|--force]
-	-- * fetch [remote] [-f|--force] [-p|--prune] [--depth <n>]
-	-- * push [remote] [branch] [-f|--force] [-u|--set-upstream]
-	-- * log [-n|--limit <n>] [-- <path>]
-	-- * checkout [-f|--force] <branch或40位commit哈希>
-	-- * checkout [-f|--force] -b <branch> [start-point]
-	-- * reset [--soft|--mixed|--hard] <40位commit哈希> [--confirm]
-	-- * restore [--staged] [--worktree] <path...>
-	-- * clean -f|--force
-	-- * branch | branch <name> | branch -d <name>
-	-- * tag | tag <name> | tag -a <name> -m <msg> | tag -d <name>
-	-- * remote | remote -v | remote add <name> <url> | remote set-url <name> <url> | remote remove <name>
-	-- * mv <from> <to>（仅支持单文件）
+	-- * `init [--bare]`
+	-- * `clone <url> [dir] [-b|--branch <name>] [--depth <n>]`
+	-- * `ls-remote <url>`
+	-- * `status`
+	-- * `diff [--cached|--staged] [--] <path>`
+	-- * `diff <40位commit哈希> -- <path>`
+	-- * `add <path...>` | `add .` | `add -A|--all`
+	-- * `rm <path...>`
+	-- * `commit -m|--message <msg> [-a|--all] [--allow-empty] [--amend] [--author-name <name>] [--author-email <email>]`
+	-- * `pull [remote] [branch] [-f|--force]`
+	-- * `fetch [remote] [-f|--force] [-p|--prune] [--depth <n>]`
+	-- * `push [remote] [branch] [-f|--force] [-u|--set-upstream]`
+	-- * `log [-n|--limit <n>] [-- <path>]`
+	-- * `checkout [-f|--force] <branch或40位commit哈希>`
+	-- * `checkout [-f|--force] -b <branch> [start-point]`
+	-- * `reset [--soft|--mixed|--hard] <40位commit哈希> [--confirm]`
+	-- * `restore [--staged] [--worktree] <path...>`
+	-- * `clean -f|--force`
+	-- * `branch` | `branch <name>` | `branch -d <name>`
+	-- * `tag` | `tag <name>` | `tag -a <name> -m <msg>` | `tag -d <name>`
+	-- * `remote` | `remote -v` | `remote add <name> <url>` | `remote set-url <name> <url>` | `remote remove <name>`
+	-- * `mv <from> <to>`（仅支持单文件）
 	-- 文件路径均相对于 repoPath。pull、fetch 和 push 默认使用 origin；
 	-- 省略分支时使用当前分支。reset --hard 必须带 --confirm。
 	-- push -u|--set-upstream 会在推送成功后更新本地分支配置。

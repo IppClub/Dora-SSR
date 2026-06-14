@@ -246,28 +246,28 @@ local record Git
 	-- restore download and hydrate LFS objects; fetch downloads LFS objects;
 	-- push uploads LFS objects before updating Git refs.
 	-- Supported commands:
-	-- * init [--bare]
-	-- * clone <url> [dir] [-b|--branch <name>] [--depth <n>]
-	-- * ls-remote <url>
-	-- * status
-	-- * diff [--cached|--staged] [--] <path>
-	-- * diff <40-character-commit-hash> -- <path>
-	-- * add <path...> | add . | add -A|--all
-	-- * rm <path...>
-	-- * commit -m|--message <msg> [-a|--all] [--allow-empty] [--amend] [--author-name <name>] [--author-email <email>]
-	-- * pull [remote] [branch] [-f|--force]
-	-- * fetch [remote] [-f|--force] [-p|--prune] [--depth <n>]
-	-- * push [remote] [branch] [-f|--force] [-u|--set-upstream]
-	-- * log [-n|--limit <n>] [-- <path>]
-	-- * checkout [-f|--force] <branch-or-40-character-commit-hash>
-	-- * checkout [-f|--force] -b <branch> [start-point]
-	-- * reset [--soft|--mixed|--hard] <40-character-commit-hash> [--confirm]
-	-- * restore [--staged] [--worktree] <path...>
-	-- * clean -f|--force
-	-- * branch | branch <name> | branch -d <name>
-	-- * tag | tag <name> | tag -a <name> -m <msg> | tag -d <name>
-	-- * remote | remote -v | remote add <name> <url> | remote set-url <name> <url> | remote remove <name>
-	-- * mv <from> <to> (single files only)
+	-- * `init [--bare]`
+	-- * `clone <url> [dir] [-b|--branch <name>] [--depth <n>]`
+	-- * `ls-remote <url>`
+	-- * `status`
+	-- * `diff [--cached|--staged] [--] <path>`
+	-- * `diff <40-character-commit-hash> -- <path>`
+	-- * `add <path...>` | `add .` | `add -A|--all`
+	-- * `rm <path...>`
+	-- * `commit -m|--message <msg> [-a|--all] [--allow-empty] [--amend] [--author-name <name>] [--author-email <email>]`
+	-- * `pull [remote] [branch] [-f|--force]`
+	-- * `fetch [remote] [-f|--force] [-p|--prune] [--depth <n>]`
+	-- * `push [remote] [branch] [-f|--force] [-u|--set-upstream]`
+	-- * `log [-n|--limit <n>] [-- <path>]`
+	-- * `checkout [-f|--force] <branch-or-40-character-commit-hash>`
+	-- * `checkout [-f|--force] -b <branch> [start-point]`
+	-- * `reset [--soft|--mixed|--hard] <40-character-commit-hash> [--confirm]`
+	-- * `restore [--staged] [--worktree] <path...>`
+	-- * `clean -f|--force`
+	-- * `branch` | `branch <name>` | `branch -d <name>`
+	-- * `tag` | `tag <name>` | `tag -a <name> -m <msg>` | `tag -d <name>`
+	-- * `remote` | `remote -v` | `remote add <name> <url>` | `remote set-url <name> <url>` | `remote remove <name>`
+	-- * `mv <from> <to>` (single files only)
 	-- Paths are relative to repoPath. pull, fetch, and push default to origin;
 	-- omitting a branch uses the current branch. reset --hard requires --confirm.
 	-- push -u|--set-upstream updates the local branch configuration after push.
