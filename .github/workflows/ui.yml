@@ -1,0 +1,44 @@
+name: UI CI
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'Tools/dora-dora/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'Tools/dora-dora/**'
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Tools/dora-dora
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          package_json_file: 'Tools/dora-dora/package.json'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+          cache-dependency-path: 'Tools/dora-dora/pnpm-lock.yaml'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint (oxlint)
+        # oxlint exits 0 for warnings, 1 for errors — only errors block the build
+        run: pnpm lint
+
+      - name: Build (Vite)
+        run: pnpm build
