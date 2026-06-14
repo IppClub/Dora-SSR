@@ -159,10 +159,12 @@ export type ExecuteCommandResult = {
 	success: true;
 	mode: ExecuteCommandMode;
 	output: string;
+	cwd?: string;
 } | {
 	success: false;
 	mode?: ExecuteCommandMode;
 	output?: string;
+	cwd?: string;
 	message: string;
 	phase?: "compile" | "execute" | "timeout" | "validate";
 	interrupted?: boolean;
@@ -362,6 +364,24 @@ function toWorkspaceRelativeSearchResults(workDir: string, results: SearchFilesR
 		mapped.push(clone);
 	}
 	return mapped;
+}
+
+function resolveWorkspaceDirectoryPath(workDir: string, path?: string): { success: true; path: string; relative: string } | { success: false; message: string } {
+	const relative = (path ?? "").trim();
+	if (relative === "") {
+		return { success: true, path: workDir, relative: "." };
+	}
+	if (!isValidWorkDir(workDir) || !isValidWorkspacePath(relative)) {
+		return { success: false, message: "invalid cwd path" };
+	}
+	const resolved = Path(workDir, relative);
+	if (!Content.exist(resolved)) {
+		return { success: false, message: "cwd does not exist" };
+	}
+	if (!Content.isdir(resolved)) {
+		return { success: false, message: "cwd is not a directory" };
+	}
+	return { success: true, path: resolved, relative };
 }
 
 function getDoraAPIDocRoot(docLanguage: DoraAPIDocLanguage): string {
@@ -2100,10 +2120,10 @@ function truncateCommandOutput(output: string): string {
 	return `${output.slice(0, EXECUTE_COMMAND_OUTPUT_MAX)}\n... output truncated ...`;
 }
 
-function executeLuaCommand(req: { workDir: string; code: string }): ExecuteCommandResult {
+function executeLuaCommand(req: { workDir: string; code: string }): Promise<ExecuteCommandResult> {
 	const code = (req.code ?? "").trim();
 	if (code === "") {
-		return { success: false, mode: "lua", output: "", message: "missing code", phase: "validate" };
+		return Promise.resolve({ success: false, mode: "lua", output: "", message: "missing code", phase: "validate" });
 	}
 	const output: string[] = [];
 	const env = setmetatable({
@@ -2129,25 +2149,30 @@ function executeLuaCommand(req: { workDir: string; code: string }): ExecuteComma
 	});
 	const [fn, compileErr] = load(code, "=(agent_command)", "t", env);
 	if (!fn) {
-		return {
+		return Promise.resolve({
 			success: false,
 			mode: "lua",
 			output: truncateCommandOutput(output.join("\n")),
 			message: toStr(compileErr),
 			phase: "compile",
-		};
+		});
 	}
-	const [ok, runtimeErr] = pcall(fn);
-	if (!ok) {
-		return {
-			success: false,
-			mode: "lua",
-			output: truncateCommandOutput(output.join("\n")),
-			message: toStr(runtimeErr),
-			phase: "execute",
-		};
-	}
-	return { success: true, mode: "lua", output: truncateCommandOutput(output.join("\n")) };
+	return new Promise(resolve => {
+		Director.systemScheduler.schedule(once(() => {
+			const [ok, runtimeErr] = pcall(fn);
+			if (!ok) {
+				resolve({
+					success: false,
+					mode: "lua",
+					output: truncateCommandOutput(output.join("\n")),
+					message: toStr(runtimeErr),
+					phase: "execute",
+				});
+				return;
+			}
+			resolve({ success: true, mode: "lua", output: truncateCommandOutput(output.join("\n")) });
+		}));
+	});
 }
 
 function formatGitStatusOutput(status?: Record<string, unknown>): string {
@@ -2278,6 +2303,7 @@ async function cloneGitToTarget(req: {
 async function executeGitCommand(req: {
 	workDir: string;
 	command: string;
+	cwd?: string;
 	timeoutSeconds: number;
 	operationId: string;
 	onProgress?: (progress: ExecuteCommandProgress) => void;
@@ -2296,6 +2322,10 @@ async function executeGitCommand(req: {
 		isCancelled: req.isCancelled,
 	});
 	if (cloneResult !== undefined) return cloneResult;
+	const cwd = resolveWorkspaceDirectoryPath(req.workDir, req.cwd);
+	if (!cwd.success) {
+		return { success: false, mode: "git", output: "", cwd: req.cwd, message: cwd.message, phase: "validate" };
+	}
 	req.onProgress?.({
 		state: "pending",
 		mode: "git",
@@ -2305,7 +2335,7 @@ async function executeGitCommand(req: {
 		progress: 0,
 	});
 	const gitRes = await runGitAndWait(
-		req.workDir,
+		cwd.path,
 		command,
 		status => emitGitProgress("git", req.operationId, req.onProgress, status),
 		() => req.isCancelled?.() === true,
@@ -2317,11 +2347,12 @@ async function executeGitCommand(req: {
 			success: false,
 			mode: "git",
 			output,
+			cwd: cwd.relative,
 			message: gitRes.message ?? "git command failed",
 			interrupted: gitRes.interrupted || req.isCancelled?.() === true,
 		};
 	}
-	return { success: true, mode: "git", output };
+	return { success: true, mode: "git", cwd: cwd.relative, output };
 }
 
 export async function executeCommand(req: {
@@ -2329,6 +2360,7 @@ export async function executeCommand(req: {
 	mode: ExecuteCommandMode;
 	code?: string;
 	command?: string;
+	cwd?: string;
 	timeoutSeconds?: number;
 	onProgress?: (progress: ExecuteCommandProgress) => void;
 	isCancelled?: () => boolean;
@@ -2344,6 +2376,7 @@ export async function executeCommand(req: {
 	return executeGitCommand({
 		workDir: req.workDir,
 		command: req.command ?? "",
+		cwd: req.cwd,
 		timeoutSeconds: math.max(1, math.floor(Number(req.timeoutSeconds ?? 600))),
 		operationId,
 		onProgress: req.onProgress,

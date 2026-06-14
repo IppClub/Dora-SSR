@@ -3548,6 +3548,7 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 			mode: mode as Tools.ExecuteCommandMode,
 			code: typeof params.code === "string" ? params.code : undefined,
 			command: typeof params.command === "string" ? params.command : undefined,
+			cwd: typeof params.cwd === "string" ? params.cwd : undefined,
 			timeoutSeconds: typeof params.timeoutSeconds === "number" ? params.timeoutSeconds : undefined,
 			isCancelled: () => shared.stopToken.stopped === true,
 			onProgress: progress => {
@@ -4028,6 +4029,7 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 		skills: {
 			loader: AgentSkills.createSkillsLoader({
 				projectDir: options.workDir,
+				disabledAgentTools: options.disabledAgentTools ?? [],
 			}),
 		},
 		spawnSubAgent: options.spawnSubAgent,

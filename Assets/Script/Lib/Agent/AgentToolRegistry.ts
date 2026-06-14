@@ -257,6 +257,7 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 			{ name: "mode", type: "string", required: true, enum: ["lua", "git"], description: "Use lua for a short Lua snippet inside the Dora engine, or git for a supported Git command handled by the engine Git client." },
 			{ name: "code", type: "string", description: "Raw Lua code to execute when mode is lua. YueScript is not supported. Use print(...) for output that should appear in the tool result." },
 			{ name: "command", type: "string", description: "Git command to execute when mode is git. The command may start with git, but shell syntax, pipes, redirects, and git -C are not supported." },
+			{ name: "cwd", type: "string", description: "Optional project-relative directory for non-clone git commands. Defaults to the project root. Use this for Git operations inside a cloned sub-repository instead of git -C." },
 			{ name: "timeoutSeconds", type: "number", description: "Optional timeout for git mode. Defaults to 600 seconds. Lua mode should be short-running and cannot forcibly interrupt pure CPU infinite loops." },
 		],
 		rules: [
@@ -266,6 +267,7 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 			"Lua mode exposes projectDir and refreshTree(path?). Call refreshTree(\"relative/file\") after single-file changes, or refreshTree() after directory or bulk changes.",
 			"Lua mode returns only text printed with print(...). It does not return arbitrary Lua return values.",
 			"Git mode uses the engine Git client, not a system shell. Supported commands follow Dora Git API support.",
+			"Git mode accepts cwd for non-clone commands. cwd must be a project-relative existing directory. Do not use git -C.",
 			"Git clone uses a temporary directory first, then moves into the project only after clone succeeds; existing targets are not overwritten.",
 		],
 	},
