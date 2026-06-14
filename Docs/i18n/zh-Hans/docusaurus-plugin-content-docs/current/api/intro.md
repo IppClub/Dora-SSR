@@ -31,6 +31,7 @@ sidebar_position: 0
 * [Path](/docs/api/Class/Path)
 * [Cache](/docs/api/Class/Cache)
 * [DB](/docs/api/Class/DB)
+* [Git](/docs/api/Class/Git)
 
 ### 输入管理
 
