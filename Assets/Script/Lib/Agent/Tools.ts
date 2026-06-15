@@ -493,7 +493,8 @@ function cleanupPath(path: string): string | undefined {
 }
 
 function quoteGitArg(value: string): string {
-	if (string.match(value, "^[%w%._%-%/]+$") !== undefined) {
+	const [plain] = string.match(value, "^[%w%._%-%/]+$");
+	if (plain !== undefined) {
 		return value;
 	}
 	let [escaped] = string.gsub(value, "\\", "\\\\");
@@ -549,10 +550,25 @@ function shellSplit(command: string): string[] {
 
 function normalizeGitCommand(command: string): string {
 	const trimmed = command.trim();
-	if (trimmed.slice(0, 4).toLowerCase() === "git ") {
-		return trimmed.slice(4).trim();
+	const normalized = trimmed.slice(0, 4).toLowerCase() === "git "
+		? trimmed.slice(4).trim()
+		: trimmed;
+	return normalizeEscapedGitQuotes(normalized);
+}
+
+function normalizeEscapedGitQuotes(command: string): string {
+	let result = "";
+	for (let i = 0; i < command.length; i++) {
+		const ch = command.charAt(i);
+		const next = command.charAt(i + 1);
+		if (ch === "\\" && (next === '"' || next === "'")) {
+			result += next;
+			i += 1;
+			continue;
+		}
+		result += ch;
 	}
-	return trimmed;
+	return result;
 }
 
 function gitDefaultTargetFromUrl(url: string): string {
@@ -685,7 +701,7 @@ function runGitAndWait(
 			status = nextStatus as unknown as Record<string, unknown>;
 			if (onStatus) onStatus(status);
 			return finishFromStatus();
-		});
+		}, "");
 		if (jobId === undefined || jobId <= 0) {
 			finish({ success: false, message: "failed to start git command" });
 			return;
@@ -2300,6 +2316,43 @@ async function cloneGitToTarget(req: {
 	return { success: true, mode: "git", output: truncateCommandOutput(output) };
 }
 
+function loadGitProfile(): { name: string; email: string } | undefined {
+	let rows: unknown[][] | undefined;
+	try {
+		rows = DB.query("select name, email from GitProfile where id = 1 limit 1") as unknown[][];
+	} catch {
+		return undefined;
+	}
+	if (!rows || !rows[0]) return undefined;
+	const name = toStr(rows[0][0]);
+	const email = toStr(rows[0][1]);
+	if (name === "" && email === "") return undefined;
+	return { name, email };
+}
+
+function applyGitProfileToCommit(command: string): string {
+	const args = shellSplit(command);
+	if (args[0] !== "commit") return command;
+	let hasName = false;
+	let hasEmail = false;
+	for (const arg of args) {
+		if (arg === "--author-name") hasName = true;
+		if (arg === "--author-email") hasEmail = true;
+	}
+	if (hasName && hasEmail) return command;
+	const profile = loadGitProfile();
+	if (!profile) return command;
+	const additions: string[] = [];
+	if (!hasName && profile.name !== "") {
+		additions.push("--author-name", quoteGitArg(profile.name));
+	}
+	if (!hasEmail && profile.email !== "") {
+		additions.push("--author-email", quoteGitArg(profile.email));
+	}
+	if (additions.length === 0) return command;
+	return `${command} ${additions.join(" ")}`;
+}
+
 async function executeGitCommand(req: {
 	workDir: string;
 	command: string;
@@ -2309,7 +2362,7 @@ async function executeGitCommand(req: {
 	onProgress?: (progress: ExecuteCommandProgress) => void;
 	isCancelled?: () => boolean;
 }): Promise<ExecuteCommandResult> {
-	const command = normalizeGitCommand(req.command ?? "");
+	let command = normalizeGitCommand(req.command ?? "");
 	if (command === "") {
 		return { success: false, mode: "git", output: "", message: "missing command", phase: "validate" };
 	}
@@ -2326,6 +2379,7 @@ async function executeGitCommand(req: {
 	if (!cwd.success) {
 		return { success: false, mode: "git", output: "", cwd: req.cwd, message: cwd.message, phase: "validate" };
 	}
+	command = applyGitProfileToCommit(command);
 	req.onProgress?.({
 		state: "pending",
 		mode: "git",

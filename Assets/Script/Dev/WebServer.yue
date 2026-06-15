@@ -476,14 +476,9 @@ gitSummary = (repoPath) ->
 	remoteStatus = remoteRes.status
 	currentBranch = gitCurrentBranch(branchStatus) or gitHeadBranch(repoPath)
 	branches = gitBranchesWithHead branchStatus, currentBranch
-	hasCommit = false
-	if branches and #branches > 0
-		for branch in *branches
-			if branch.hash and branch.hash ~= ""
-				hasCommit = true
-				break
-	logStatus = if hasCommit
-		(gitRunSync repoPath, "log -n 100", nil, 10).status
+	logRes = gitRunSync repoPath, "log -n 100", nil, 10
+	logStatus = if logRes.success
+		logRes.status
 	else
 		{
 			state: "done"
@@ -493,6 +488,7 @@ gitSummary = (repoPath) ->
 			message: "git log completed"
 			data: commits: {}
 		}
+	hasCommit = logStatus and logStatus.data and logStatus.data.commits and logStatus.data.commits[1] ~= nil
 	tagStatus = if hasCommit
 		(gitRunSync repoPath, "tag", nil, 10).status
 	else
