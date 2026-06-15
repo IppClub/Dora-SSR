@@ -465,18 +465,25 @@ gitBranchesWithHead = (branchStatus, currentBranch) ->
 	withHead[] = name: currentBranch, current: true, unborn: true
 	withHead
 
+gitStatusMeansNotRepo = (statusRes) ->
+	message = statusRes and (statusRes.message or statusRes.status and (statusRes.status.error or statusRes.status.message)) or ""
+	message = tostring(message)\lower!
+	message\find("repository does not exist", 1, true) or message\find("not a git repository", 1, true)
+
 gitSummary = (repoPath) ->
-	statusRes = gitRunSync repoPath, "status", nil, 10
+	statusRes = gitRunSync repoPath, "status", nil, 120
 	unless statusRes.success
-		return success: true, isRepo: false, message: statusRes.message, status: statusRes.status
-	branchRes = gitRunSync repoPath, "branch", nil, 10
-	remoteRes = gitRunSync repoPath, "remote -v", nil, 10
+		if gitStatusMeansNotRepo statusRes
+			return success: true, isRepo: false, message: statusRes.message, status: statusRes.status
+		return success: false, message: statusRes.message or statusRes.status and (statusRes.status.error or statusRes.status.message) or "failed to check Git repository", status: statusRes.status
+	branchRes = gitRunSync repoPath, "branch", nil, 120
+	remoteRes = gitRunSync repoPath, "remote -v", nil, 120
 	status = statusRes.status
 	branchStatus = branchRes.status
 	remoteStatus = remoteRes.status
 	currentBranch = gitCurrentBranch(branchStatus) or gitHeadBranch(repoPath)
 	branches = gitBranchesWithHead branchStatus, currentBranch
-	logRes = gitRunSync repoPath, "log -n 100", nil, 10
+	logRes = gitRunSync repoPath, "log -n 100", nil, 120
 	logStatus = if logRes.success
 		logRes.status
 	else
@@ -490,7 +497,7 @@ gitSummary = (repoPath) ->
 		}
 	hasCommit = logStatus and logStatus.data and logStatus.data.commits and logStatus.data.commits[1] ~= nil
 	tagStatus = if hasCommit
-		(gitRunSync repoPath, "tag", nil, 10).status
+		(gitRunSync repoPath, "tag", nil, 120).status
 	else
 		{
 			state: "done"

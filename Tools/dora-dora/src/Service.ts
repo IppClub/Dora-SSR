@@ -1023,6 +1023,7 @@ export type GitSummaryResponse = {
 	} | {
 	success: false;
 	message?: string;
+	status?: GitStatus;
 };
 
 export const gitSummary = (req: { repoPath: string }) => {
