@@ -995,6 +995,9 @@ export default function GitPanel(props: GitPanelProps) {
 				if (isTransientSummaryFailure(res) && prev?.success && prev.isRepo) return prev;
 				return res;
 			});
+			if (!res.success) {
+				showAlert(res.message ?? t("git.failedDetectRepository"), "error");
+			}
 			if (res.success && res.status?.data?.files) {
 				const statusFiles = res.status.data.files as Service.GitFileStatus[];
 				setExpanded(prev => {
@@ -1025,7 +1028,7 @@ export default function GitPanel(props: GitPanelProps) {
 		setSelected({ unstaged: new Set(), staged: new Set() });
 		setLastRow({ unstaged: null, staged: null });
 		setDiffPreview(null);
-	}, [projectRoot]);
+	}, [projectRoot, showAlert, t]);
 
 	React.useEffect(() => {
 		let retryTimer: ReturnType<typeof setTimeout> | undefined;
@@ -1047,7 +1050,17 @@ export default function GitPanel(props: GitPanelProps) {
 				setLoading(false);
 				return;
 			}
-			if (!res.success || !res.isRepo) {
+			if (isTransientSummaryFailure(res)) {
+				retryTimer = setTimeout(() => void tryRefresh(attempt + 1), Math.min(200 + attempt * 100, 3000));
+				return;
+			}
+			if (!res.success) {
+				setSummary(res);
+				showAlert(res.message ?? t("git.failedDetectRepository"), "error");
+				setLoading(false);
+				return;
+			}
+			if (!res.isRepo) {
 				setSummary(res);
 				setLoading(false);
 				return;
@@ -2190,11 +2203,22 @@ export default function GitPanel(props: GitPanelProps) {
 		</Stack>
 	);
 
+	const errorView = (
+		<Stack spacing={1.25} sx={{ ...panelSx, maxWidth: 640, p: 1.5 }}>
+			<Typography variant="subtitle2" sx={{ color: Color.Error }}>{t("git.failedDetectRepository")}</Typography>
+			<Typography variant="body2" sx={{ color: mutedText, overflowWrap: "anywhere" }}>{summary && !summary.success ? summary.message ?? t("git.failedRefresh") : t("git.failedRefresh")}</Typography>
+			<Typography variant="caption" sx={{ color: mutedText, overflowWrap: "anywhere" }}>{displayPath ?? projectRoot}</Typography>
+			<Box>
+				<Button startIcon={<RefreshIcon />} variant="outlined" sx={toolButtonSx} onClick={refresh} disabled={loading}>{t("git.refreshRepository")}</Button>
+			</Box>
+		</Stack>
+	);
+
 	return (
 		<Box sx={{ height, pb: 1, display: "flex", flexDirection: "column", backgroundColor: "#141414", color: Color.TextPrimary }}>
 			{loading ? <LinearProgress sx={{ height: 2 }} /> : <Box sx={{ height: 2 }} />}
 			<Box sx={{ flex: 1, minHeight: 0, p: 1, display: "flex", flexDirection: "column" }}>
-				{summary === null || (loading && summary.success && !summary.isRepo) ? detectingView : isRepo ? normalView : setupView}
+				{summary === null || (loading && summary.success && !summary.isRepo) ? detectingView : isRepo ? normalView : summary.success === false ? errorView : setupView}
 			</Box>
 			<Menu open={!!moreAnchor} anchorEl={moreAnchor?.anchor ?? null} onClose={() => setMoreAnchor(null)}>
 				<MenuItem onClick={() => { setMoreAnchor(null); runSecondary("clean -f", t("git.cleanUntracked"), true); }}>{t("git.cleanUntracked")}</MenuItem>
