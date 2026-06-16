@@ -34,15 +34,7 @@ jobs:
       - uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: latest
-      - name: Build SDL2 libraries
-        run: Tools/build-scripts/build_lib_sdl2.sh ios
-      - name: Build bgfx libraries
-        run: Tools/build-scripts/build_lib_bgfx.sh ios
       - name: iOS build
         run: |
           Tools/tolua++/build.sh
-          cd Source/Rust
-          rustup target add aarch64-apple-ios-sim
-          cargo build --target aarch64-apple-ios-sim
-          cp target/aarch64-apple-ios-sim/debug/libdora_runtime.a lib/iOS-Simulator/libdora_runtime.a
-          xcodebuild ARCHS=arm64 ONLY_ACTIVE_ARCH=NO -project ../../Projects/iOS/Dora.xcodeproj -configuration Debug -target Simulator -sdk iphonesimulator
+          Tools/build-scripts/build_ios.sh debug

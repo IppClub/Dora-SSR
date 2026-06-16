@@ -8,11 +8,9 @@ BUILD_MODE="${1:-debug}"
 case "$BUILD_MODE" in
 	debug|--debug|-d)
 		BUILD_MODE="debug"
-		CARGO_ARGS=()
 		;;
 	release|--release|-r)
 		BUILD_MODE="release"
-		CARGO_ARGS=(--release)
 		;;
 	*)
 		echo "Usage: $0 [debug|release]" >&2
@@ -20,8 +18,7 @@ case "$BUILD_MODE" in
 		;;
 esac
 
-cd "$SCRIPT_DIR/../../Source/Rust"
+cd "$SCRIPT_DIR/../../Projects/Linux"
+make "$BUILD_MODE"
 
-rustup target add i686-pc-windows-msvc
-cargo build "${CARGO_ARGS[@]}" --target i686-pc-windows-msvc
-cp "target/i686-pc-windows-msvc/$BUILD_MODE/dora_runtime.lib" lib/Windows/dora_runtime.lib
+echo "Built APP in 'Projects/Linux/build/dora-ssr' ($BUILD_MODE)"

@@ -34,14 +34,16 @@ git clone https://gitcode.com/ippclub/Dora-SSR.git
 
 Please select the target platform you want to build for.
 
+The platform library scripts under `Tools/build-scripts` build the native dependencies required by the engine, including SDL2, bgfx, and the Rust runtime. You normally do not need to enter `Source/3rdParty/bgfx` and build bgfx manually.
+
 <Tabs groupId="platform-select">
 <TabItem value="windows" label="Windows">
 
-1. Install **Rust**, **xmake**, and **Visual Studio Community 2022** with MSBuild tools.
+1. Install **Rust**, **xmake**, and **Visual Studio Community 2026** with MSBuild tools, matching the Windows GitHub Actions build environment.
 
-2. Build bgfx libraries first, the same way as GitHub Actions.
+2. Build native dependencies.
 	```bat
-	Tools\build-scripts\build_lib_bgfx_windows.bat
+	Tools\build-scripts\build_lib_windows.bat
 	```
 
 3. Build the Windows runtime and solution.
@@ -56,9 +58,9 @@ Please select the target platform you want to build for.
 
 1. Install **Rust**, **xmake**, and the latest **Xcode**.
 
-2. Build bgfx libraries, matching the CI workflow.
+2. Build native dependencies.
 	```sh
-	Tools/build-scripts/build_lib_bgfx.sh macos
+	Tools/build-scripts/build_lib_macos.sh
 	```
 
 3. Generate Lua bindings.
@@ -67,29 +69,21 @@ Please select the target platform you want to build for.
 	./build.sh
 	```
 
-4. Build the Rust runtime for macOS and copy the generated library.
-	```sh
-	cd Source/Rust
-	rustup target add x86_64-apple-darwin
-	cargo build --target x86_64-apple-darwin
-	cp target/x86_64-apple-darwin/debug/libdora_runtime.a lib/macOS/libdora_runtime.a
-	```
-
-5. Build and run the app locally.
+4. Build and run the app locally.
 	```sh
 	xcodebuild ARCHS=x86_64 ONLY_ACTIVE_ARCH=NO -project Projects/macOS/Dora.xcodeproj -target Dora -configuration Debug
 	```
 
-6. For IDE debugging, open **Projects/macOS/Dora.xcodeproj** in Xcode and run the `Dora` target.
+5. For IDE debugging, open **Projects/macOS/Dora.xcodeproj** in Xcode and run the `Dora` target.
 
 </TabItem>
 <TabItem value="ios" label="iOS">
 
 1. Install **Rust**, **xmake**, and the latest **Xcode**.
 
-2. Build bgfx libraries first.
+2. Build native dependencies.
 	```sh
-	Tools/build-scripts/build_lib_bgfx.sh ios
+	Tools/build-scripts/build_lib_ios.sh
 	```
 
 3. Generate Lua bindings.
@@ -98,20 +92,12 @@ Please select the target platform you want to build for.
 	./build.sh
 	```
 
-4. Build the Rust runtime for the iOS simulator.
-	```sh
-	cd Source/Rust
-	rustup target add aarch64-apple-ios-sim
-	cargo build --target aarch64-apple-ios-sim
-	cp target/aarch64-apple-ios-sim/debug/libdora_runtime.a lib/iOS-Simulator/libdora_runtime.a
-	```
-
-5. Build the simulator target.
+4. Build the simulator target.
 	```sh
 	xcodebuild ARCHS=arm64 ONLY_ACTIVE_ARCH=NO -project Projects/iOS/Dora.xcodeproj -configuration Debug -target Simulator -sdk iphonesimulator
 	```
 
-6. For IDE debugging, open **Projects/iOS/Dora.xcodeproj** in Xcode and run the `Simulator` target.
+5. For IDE debugging, open **Projects/iOS/Dora.xcodeproj** in Xcode and run the `Simulator` target.
 
 </TabItem>
 <TabItem value="android" label="Android">
@@ -140,29 +126,24 @@ Local Android builds require **JDK 17** in addition to **Android Studio**.
 	build.bat
 	```
 
-3. Build bgfx libraries for Android.
-	```sh
-	Tools/build-scripts/build_lib_bgfx.sh android
-	```
-
-4. Build the Rust runtime for Android ABIs.
+3. Build native dependencies for Android ABIs.
 	```sh
 	Tools/build-scripts/build_lib_android.sh
 	```
 
-5. Build the Android app locally.
+4. Build the Android app locally.
 	```sh
 	cd Projects/Android/Dora
 	./gradlew assembleDebug
 	```
 
-6. For IDE debugging, open **Projects/Android/Dora** in Android Studio and run the `app` module.
+5. For IDE debugging, open **Projects/Android/Dora** in Android Studio and run the `app` module.
 
 </TabItem>
 <TabItem value="linux" label="Linux">
 
 :::tip
-Local Linux builds also use `pkg-config` and the `dbus-1` development package. On typical desktop Linux environments, they are usually already installed, so no extra setup is normally needed.
+Local Linux builds use the vendored SDL2 source and SDL's upstream CMake detection. Install the development packages for the backends you want to enable, such as X11, Wayland, ALSA, PulseAudio, PipeWire, DBus, udev, and KMSDRM.
 :::
 
 1. Install **Rust** and **xmake**.
@@ -173,7 +154,13 @@ Local Linux builds also use `pkg-config` and the `dbus-1` development package. O
 3. Install dependent packages.
 	```sh
 	sudo apt-get update
-	sudo apt-get install -y libsdl2-dev libgl1-mesa-dev libx11-dev lua5.1 luarocks
+	sudo apt-get install -y cmake pkg-config lua5.1 luarocks \
+	  libgl1-mesa-dev libssl-dev libdbus-1-dev \
+	  libasound2-dev libjack-jackd2-dev libpulse-dev libpipewire-0.3-dev libsamplerate0-dev libsndio-dev \
+	  libibus-1.0-dev libudev-dev libusb-1.0-0-dev \
+	  libx11-dev libxext-dev libxcursor-dev libxi-dev libxfixes-dev libxrandr-dev libxrender-dev libxss-dev \
+	  libdrm-dev libgbm-dev libegl1-mesa-dev libwayland-dev libwayland-bin wayland-protocols \
+	  libxkbcommon-dev libdecor-0-dev
 	```
 
 4. Manually generate Lua bindings.
@@ -188,7 +175,9 @@ Local Linux builds also use `pkg-config` and the `dbus-1` development package. O
 
 3. Install dependent packages.
 	```sh
-	sudo pacman -S lua51 luarocks sdl2 openssl gcc make cmake --needed
+	sudo pacman -S lua51 luarocks openssl gcc make cmake pkgconf \
+	  mesa libx11 libxext libxcursor libxi libxfixes libxrandr libxrender libxss \
+	  wayland wayland-protocols libxkbcommon libdecor alsa-lib libpulse pipewire libusb libdrm --needed
 	# Because the lua version must be 5.1,you need to use lua 5.1 instead of the newest version of lua
 	# The easiest way is using 'ln' to create a soft link
 	sudo ln -s /usr/bin/lua5.1 /usr/local/bin/lua
@@ -204,21 +193,13 @@ Local Linux builds also use `pkg-config` and the `dbus-1` development package. O
 </TabItem>
 </Tabs>
 
-2. Build bgfx libraries, matching the Linux GitHub Action.
-	```sh
-	cd Source/3rdParty/bgfx
-	xmake f -p linux -a x86_64 -m release -y
-	xmake -v
-	```
-
-3. Run the compile script for the current architecture.
+2. Run the compile script for the current architecture. It automatically builds SDL2, bgfx, and the Rust runtime before compiling the engine.
 
 	```sh
-	cd Projects/Linux
-	make
+	Tools/build-scripts/build_linux.sh
 	```
 
-4. Run the generated software.
+3. Run the generated software.
 	```sh
 	cd Assets
 	../Projects/Linux/build/dora-ssr

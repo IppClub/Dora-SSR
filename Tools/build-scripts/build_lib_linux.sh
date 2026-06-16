@@ -3,9 +3,27 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+BUILD_MODE="${1:-debug}"
 
-"$SCRIPT_DIR/build_lib_sdl2.sh" linux
-"$SCRIPT_DIR/build_lib_bgfx.sh" linux
+case "$BUILD_MODE" in
+	debug|--debug|-d)
+		BUILD_MODE="debug"
+		CARGO_PROFILE="debug"
+		CARGO_ARGS=()
+		;;
+	release|--release|-r)
+		BUILD_MODE="release"
+		CARGO_PROFILE="release"
+		CARGO_ARGS=(--release)
+		;;
+	*)
+		echo "Usage: $0 [debug|release]" >&2
+		exit 1
+		;;
+esac
+
+"$SCRIPT_DIR/build_lib_sdl2.sh" linux "--$BUILD_MODE"
+"$SCRIPT_DIR/build_lib_bgfx.sh" linux "--$BUILD_MODE"
 
 cd "$SCRIPT_DIR/../../Source/Rust"
 
@@ -27,18 +45,18 @@ build_arch() {
 build_target() {
 	local target="$1"
 	local output_dir="$2"
-	local source_lib="target/$target/release/libdora_runtime.a"
+	local source_lib="target/$target/$CARGO_PROFILE/libdora_runtime.a"
 	local output_lib="$output_dir/libdora_runtime.a"
 
 	rustup target add "$target"
-	cargo build --release --target "$target"
+	cargo build "${CARGO_ARGS[@]}" --target "$target"
 	if [ ! -f "$output_lib" ] || ! cmp -s "$source_lib" "$output_lib"; then
 		cp "$source_lib" "$output_lib"
 	fi
 }
 
-if [ "$#" -ne 0 ]; then
-	echo "Usage: $0" >&2
+if [ "$#" -gt 1 ]; then
+	echo "Usage: $0 [debug|release]" >&2
 	exit 1
 fi
 

@@ -39,11 +39,7 @@ jobs:
           sudo luarocks install luafilesystem
           cd Tools/tolua++
           lua tolua++.lua
-      - name: Build bgfx libraries
-        run: Tools/build-scripts/build_lib_bgfx.sh android
       - uses: dtolnay/rust-toolchain@stable
-      - name: Build SDL2 and Rust libraries
-        run: Tools/build-scripts/build_lib_android.sh
       - name: Set up JDK 17
         uses: actions/setup-java@v2
         with:
@@ -51,7 +47,10 @@ jobs:
           java-version: '17'
       - name: Build Android
         if: "!startsWith(github.ref, 'refs/tags/')"
-        run: cd Projects/Android/Dora && ./gradlew assembleDebug
+        run: Tools/build-scripts/build_android.sh debug
+      - name: Build native libraries
+        if: startsWith(github.ref, 'refs/tags/')
+        run: Tools/build-scripts/build_lib_android.sh release
       - name: Generate tutorial docs
         if: startsWith(github.ref, 'refs/tags/')
         run: node Docs/scripts/generate-language-docs.js
