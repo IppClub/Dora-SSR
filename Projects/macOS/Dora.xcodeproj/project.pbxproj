@@ -5417,7 +5417,7 @@
 				USER_HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)/../../Source",
 					"$(SRCROOT)/../../Source/3rdParty",
-					"$(SRCROOT)/../../Source/3rdParty/SDL2/Header",
+					"$(SRCROOT)/../../Source/3rdParty/SDL2/include",
 					"$(SRCROOT)/../../Source/3rdParty/Lua",
 					"$(SRCROOT)/../../Source/3rdParty/soloud",
 					"$(SRCROOT)/../../Source/3rdParty/Zip",
@@ -5494,7 +5494,7 @@
 				USER_HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)/../../Source",
 					"$(SRCROOT)/../../Source/3rdParty",
-					"$(SRCROOT)/../../Source/3rdParty/SDL2/Header",
+					"$(SRCROOT)/../../Source/3rdParty/SDL2/include",
 					"$(SRCROOT)/../../Source/3rdParty/Lua",
 					"$(SRCROOT)/../../Source/3rdParty/soloud",
 					"$(SRCROOT)/../../Source/3rdParty/Zip",

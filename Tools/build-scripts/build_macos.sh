@@ -4,6 +4,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
+"$SCRIPT_DIR/build_lib_sdl2.sh" macos
 "$SCRIPT_DIR/build_lib_bgfx.sh" macos
 
 cd "$SCRIPT_DIR/../../Source/Rust"

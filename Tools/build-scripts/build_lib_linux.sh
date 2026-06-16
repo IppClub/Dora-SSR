@@ -3,6 +3,9 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+"$SCRIPT_DIR/build_lib_bgfx.sh" linux
+
 cd "$SCRIPT_DIR/../../Source/Rust"
 
 build_arch() {

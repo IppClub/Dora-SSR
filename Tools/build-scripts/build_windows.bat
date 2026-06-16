@@ -1,5 +1,8 @@
 set SCRIPT_DIR=%~dp0
 
+call "%SCRIPT_DIR%build_lib_sdl2_windows.bat" release
+if errorlevel 1 exit /b %errorlevel%
+
 call "%SCRIPT_DIR%build_lib_bgfx_windows.bat" release
 if errorlevel 1 exit /b %errorlevel%
 

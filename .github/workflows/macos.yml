@@ -35,6 +35,7 @@ jobs:
       - name: macOS build
         if: "!startsWith(github.ref, 'refs/tags/')"
         run: |
+          Tools/build-scripts/build_lib_sdl2.sh macos -d
           Tools/build-scripts/build_lib_bgfx.sh macos -d
           Tools/tolua++/build.sh
           cd Source/Rust

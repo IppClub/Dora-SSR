@@ -6642,7 +6642,7 @@
 				USER_HEADER_SEARCH_PATHS = (
 					../../Source,
 					../../Source/3rdParty,
-					../../Source/3rdParty/SDL2/Header,
+					../../Source/3rdParty/SDL2/include,
 					../../Source/3rdParty/Lua,
 					../../Source/3rdParty/soloud,
 					../../Source/3rdParty/lodepng,
@@ -6717,7 +6717,7 @@
 				USER_HEADER_SEARCH_PATHS = (
 					../../Source,
 					../../Source/3rdParty,
-					../../Source/3rdParty/SDL2/Header,
+					../../Source/3rdParty/SDL2/include,
 					../../Source/3rdParty/Lua,
 					../../Source/3rdParty/soloud,
 					../../Source/3rdParty/lodepng,
@@ -6801,7 +6801,7 @@
 				USER_HEADER_SEARCH_PATHS = (
 					../../Source,
 					../../Source/3rdParty,
-					../../Source/3rdParty/SDL2/Header,
+					../../Source/3rdParty/SDL2/include,
 					../../Source/3rdParty/Lua/Header,
 					../../Source/3rdParty/soloud/Header,
 					../../Source/3rdParty/lodepng,
@@ -6874,7 +6874,7 @@
 				USER_HEADER_SEARCH_PATHS = (
 					../../Source,
 					../../Source/3rdParty,
-					../../Source/3rdParty/SDL2/Header,
+					../../Source/3rdParty/SDL2/include,
 					../../Source/3rdParty/Lua/Header,
 					../../Source/3rdParty/soloud/Header,
 					../../Source/3rdParty/lodepng,
@@ -6946,7 +6946,7 @@
 				USER_HEADER_SEARCH_PATHS = (
 					../../Source,
 					../../Source/3rdParty,
-					../../Source/3rdParty/SDL2/Header,
+					../../Source/3rdParty/SDL2/include,
 					../../Source/3rdParty/Lua,
 					../../Source/3rdParty/soloud,
 					../../Source/3rdParty/lodepng,
@@ -7020,7 +7020,7 @@
 				USER_HEADER_SEARCH_PATHS = (
 					../../Source,
 					../../Source/3rdParty,
-					../../Source/3rdParty/SDL2/Header,
+					../../Source/3rdParty/SDL2/include,
 					../../Source/3rdParty/Lua,
 					../../Source/3rdParty/soloud,
 					../../Source/3rdParty/lodepng,

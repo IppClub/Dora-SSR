@@ -175,6 +175,29 @@ build_android() {
     ls -lh build/android/arm64-v8a/*.a | head -5
 }
 
+build_linux() {
+    local host_arch
+    case "$(uname -m)" in
+        x86_64|amd64)
+            host_arch=x86_64
+            ;;
+        aarch64|arm64)
+            host_arch=arm64
+            ;;
+        *)
+            log_error "Unsupported Linux architecture: $(uname -m)"
+            exit 1
+            ;;
+    esac
+
+    log_info "=== Building Linux ($host_arch) ==="
+    clean_build
+    build_arch linux "$host_arch" "$BUILD_MODE"
+
+    log_info "Linux libraries created at: build/linux/$host_arch/$BUILD_MODE/"
+    ls -lh "build/linux/$host_arch/$BUILD_MODE"/*.a | head -8
+}
+
 show_help() {
     echo "Usage: $0 [command] [--debug]"
     echo ""
@@ -182,6 +205,7 @@ show_help() {
     echo "  macos    Build macOS universal libraries (x86_64 + arm64)"
     echo "  ios      Build iOS libraries (device + simulator)"
     echo "  android  Build Android libraries (arm64-v8a + armeabi-v7a + x86_64)"
+    echo "  linux    Build Linux libraries for the host architecture"
     echo "  all      Build macOS, iOS and Android"
     echo "  clean    Clean build directory"
     echo "  help     Show this help"
@@ -214,7 +238,7 @@ for arg in "$@"; do
         --release|-r)
             BUILD_MODE="release"
             ;;
-        macos|ios|android|all|clean|help|--help|-h)
+        macos|ios|android|linux|all|clean|help|--help|-h)
             if [ -n "$COMMAND" ]; then
                 log_error "Multiple commands specified: $COMMAND and $arg"
                 show_help
@@ -239,6 +263,9 @@ case "${COMMAND:-help}" in
         ;;
     android)
         build_android
+        ;;
+    linux)
+        build_linux
         ;;
     all)
         build_macos

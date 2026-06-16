@@ -33,7 +33,7 @@ jobs:
     - name: Install deps
       run: |
         sudo apt-get update
-        sudo apt-get install -y libsdl2-dev libgl1-mesa-dev libssl-dev libx11-dev
+        sudo apt-get install -y libsdl2-dev libgl1-mesa-dev libssl-dev libx11-dev libdbus-1-dev
     - name: Generate Lua bindings
       run: |
         sudo apt-get install lua5.1
@@ -46,11 +46,6 @@ jobs:
       uses: xmake-io/github-action-setup-xmake@v1
       with:
         xmake-version: v2.9.4
-    - name: Build bgfx with xmake
-      run: |
-        cd Source/3rdParty/bgfx
-        xmake f -p linux -a x86_64 -m release -y
-        xmake -v
     - name: Make
       run: |
         cd Projects/Linux

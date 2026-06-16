@@ -95,3 +95,4 @@ Docs/design
 # xmake build cache
 .xmake/
 Source/3rdParty/bgfx/dora/generated
+Source/3rdParty/SDL2/Lib/

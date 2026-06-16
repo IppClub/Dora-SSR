@@ -1,6 +1,9 @@
 #!/bin/bash
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+"$SCRIPT_DIR/build_lib_sdl2.sh" ios
+
 cd "$SCRIPT_DIR/../../Source/Rust"
 
 rustup target add aarch64-apple-ios

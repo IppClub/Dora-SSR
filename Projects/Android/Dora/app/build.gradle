@@ -33,7 +33,7 @@ android {
 	sourceSets {
 		main {
 			jniLibs.srcDirs = [
-				'src/main/cpp/3rdParty/SDL2/Lib/Android',
+				'../../../../Source/3rdParty/SDL2/Lib/Android',
 			]
 		}
 	}
