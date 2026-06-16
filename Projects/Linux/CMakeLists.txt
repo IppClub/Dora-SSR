@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(DORA_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../..)
 set(DORA_SOURCE_ROOT ${DORA_ROOT}/Source)
 set(DORA_BGFX_ROOT ${DORA_SOURCE_ROOT}/3rdParty/bgfx)
+set(DORA_SDL2_ROOT ${DORA_SOURCE_ROOT}/3rdParty/SDL2)
 
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|amd64)$")
 	set(DORA_BGFX_ARCH x86_64)
@@ -22,15 +23,15 @@ else()
 endif()
 
 set(DORA_BGFX_BUILD_DIR ${DORA_BGFX_ROOT}/build/linux/${DORA_BGFX_ARCH}/release)
+set(DORA_SDL2_BUILD_DIR ${DORA_SDL2_ROOT}/Lib/Linux/${DORA_RUNTIME_ARCH})
 set(DORA_WA_BUILD_DIR ${DORA_SOURCE_ROOT}/3rdParty/Wa/Lib/Linux/${DORA_WA_ARCH})
 set(DORA_RUNTIME_BUILD_DIR ${DORA_SOURCE_ROOT}/Rust/lib/Linux/${DORA_RUNTIME_ARCH})
 
-find_package(SDL2 REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(DBUS REQUIRED dbus-1)
 
 include_directories(
-	${SDL2_INCLUDE_DIRS}
+	${DORA_SDL2_ROOT}/include
 	${DBUS_INCLUDE_DIRS}
 	${DORA_BGFX_ROOT}/include
 	${DORA_SOURCE_ROOT}/3rdParty/bimg/include
@@ -93,6 +94,12 @@ add_library(SHADERC-lib STATIC IMPORTED)
 set_target_properties(
 	SHADERC-lib PROPERTIES IMPORTED_LOCATION
 	${DORA_BGFX_BUILD_DIR}/libshaderc-lib.a
+)
+
+add_library(SDL2-lib STATIC IMPORTED)
+set_target_properties(
+	SDL2-lib PROPERTIES IMPORTED_LOCATION
+	${DORA_SDL2_BUILD_DIR}/libSDL2.a
 )
 
 add_library(WA-lib STATIC IMPORTED)
@@ -704,4 +711,4 @@ add_executable(dora-ssr
 	../../Source/3rdParty/tic80/vendor/blip-buf/blip_wasm_host.cpp
 )
 
-target_link_libraries(dora-ssr z dl pthread rt ${SDL2_LIBRARIES} BGFX-lib BIMGDE-lib BIMG-lib SHADERC-lib GLSLO-lib FCPP-lib BX-lib GL X11 ${DBUS_LINK_LIBRARIES} DORA-lib WA-lib)
+target_link_libraries(dora-ssr z SDL2-lib BGFX-lib BIMGDE-lib BIMG-lib SHADERC-lib GLSLO-lib FCPP-lib BX-lib GL X11 ${DBUS_LINK_LIBRARIES} DORA-lib WA-lib m dl pthread rt)

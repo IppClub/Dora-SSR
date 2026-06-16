@@ -4,6 +4,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
+"$SCRIPT_DIR/build_lib_sdl2.sh" linux
 "$SCRIPT_DIR/build_lib_bgfx.sh" linux
 
 cd "$SCRIPT_DIR/../../Source/Rust"

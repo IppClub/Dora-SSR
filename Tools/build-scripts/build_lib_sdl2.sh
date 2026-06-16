@@ -1,6 +1,6 @@
 #!/bin/bash
 # SDL2 multi-platform build script.
-# Usage: ./build_lib_sdl2.sh [macos|ios|android|all] [--debug]
+# Usage: ./build_lib_sdl2.sh [macos|ios|android|linux|all] [--debug]
 
 set -e
 
@@ -34,6 +34,11 @@ clean_build() {
 	else
 		xmake f -c -y 2>/dev/null || true
 	fi
+}
+
+clean_cmake_build() {
+	local build_dir=$1
+	rm -rf "$build_dir"
 }
 
 build_arch() {
@@ -105,6 +110,58 @@ build_android() {
 	find Lib/Android -name libSDL2.so -exec file {} \;
 }
 
+build_linux() {
+	local host_arch
+	local arch
+	local cmake_build_type
+	local build_dir
+	if [ "$(uname -s)" != "Linux" ]; then
+		log_error "Linux SDL2 build must run on a Linux host"
+		exit 1
+	fi
+
+	host_arch="$(uname -m)"
+	case "$host_arch" in
+		x86_64|amd64)
+			arch=x86_64
+			;;
+		aarch64|arm64)
+			arch=aarch64
+			;;
+		*)
+			log_error "Unsupported Linux architecture: $host_arch"
+			exit 1
+			;;
+	esac
+
+	log_info "=== Building SDL2 Linux ($arch) ==="
+	if [ "$BUILD_MODE" = "debug" ]; then
+		cmake_build_type="Debug"
+	else
+		cmake_build_type="Release"
+	fi
+
+	build_dir="build/cmake-linux-$arch-$BUILD_MODE"
+	clean_cmake_build "$build_dir"
+	cmake -S . -B "$build_dir" \
+		-DCMAKE_BUILD_TYPE="$cmake_build_type" \
+		-DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+		-DSDL_CMAKE_DEBUG_POSTFIX= \
+		-DSDL_SHARED=OFF \
+		-DSDL_STATIC=ON \
+		-DSDL_STATIC_PIC=ON \
+		-DSDL_TEST=OFF \
+		-DSDL_TESTS=OFF \
+		-DSDL2_DISABLE_INSTALL=ON
+	cmake --build "$build_dir" --target SDL2-static --parallel 8
+
+	mkdir -p "Lib/Linux/$arch"
+	cp "$build_dir/libSDL2.a" "Lib/Linux/$arch/libSDL2.a"
+
+	log_info "Created Lib/Linux/$arch/libSDL2.a"
+	file "Lib/Linux/$arch/libSDL2.a"
+}
+
 show_help() {
 	echo "Usage: $0 [command] [--debug]"
 	echo ""
@@ -112,7 +169,8 @@ show_help() {
 	echo "  macos    Build macOS universal SDL2 library"
 	echo "  ios      Build iOS device and simulator SDL2 libraries"
 	echo "  android  Build Android SDL2 shared libraries"
-	echo "  all      Build macOS, iOS and Android"
+	echo "  linux    Build Linux SDL2 library for the host architecture"
+	echo "  all      Build macOS, iOS, Android and Linux"
 	echo "  clean    Clean xmake configuration"
 	echo "  help     Show this help"
 	echo ""
@@ -130,7 +188,7 @@ for arg in "$@"; do
 		--release|-r)
 			BUILD_MODE="release"
 			;;
-		macos|ios|android|all|clean|help|--help|-h)
+		macos|ios|android|linux|all|clean|help|--help|-h)
 			if [ -n "$COMMAND" ]; then
 				log_error "Multiple commands specified: $COMMAND and $arg"
 				show_help
@@ -158,13 +216,18 @@ case "$COMMAND" in
 	android)
 		build_android
 		;;
+	linux)
+		build_linux
+		;;
 	all)
 		build_macos
 		build_ios
 		build_android
+		build_linux
 		;;
 	clean)
 		clean_build
+		rm -rf build/cmake-linux-*
 		;;
 	help|--help|-h)
 		show_help
