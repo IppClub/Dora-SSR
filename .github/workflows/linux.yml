@@ -54,4 +54,4 @@ jobs:
     - name: Make
       run: |
         cd Projects/Linux
-        make x86_64
+        make
