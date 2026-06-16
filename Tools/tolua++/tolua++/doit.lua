@@ -38,6 +38,9 @@ function doit()
 	-- do this after setting the package name
 	if flags["L"] then
 		dofile(flags["L"])
+		if flags.skip_build then
+			return
+		end
 	end
 
 	-- proccess package

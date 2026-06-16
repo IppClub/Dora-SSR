@@ -5,6 +5,7 @@ local rebuild = output_change == nil
 if not rebuild then
 	local input_changes = {
 		lfs.attributes(flags.f, "modification"),
+		lfs.attributes("tolua++.lua", "modification"),
 		lfs.attributes("basic.lua", "modification"),
 		lfs.attributes("tolua++/compat.lua", "modification"),
 		lfs.attributes("tolua++/basic.lua", "modification"),
@@ -44,9 +45,7 @@ end
 
 if not rebuild then
 	print(string.format('C++ codes for "%s" are updated.', flags.f))
-	if not flags.lua_entry then
-		os.exit(0)
-	end
+	flags.skip_build = true
 else
 	print(string.format('Generating C++ codes for "%s"...', flags.f))
 end

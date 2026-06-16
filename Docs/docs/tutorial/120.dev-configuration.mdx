@@ -211,35 +211,14 @@ Local Linux builds also use `pkg-config` and the `dbus-1` development package. O
 	xmake -v
 	```
 
-3. Build the Rust runtime.
-	```sh title="For x86_64 architecture"
-	Tools/build-scripts/build_lib_linux_x86_64.sh
+3. Run the compile script for the current architecture.
+
+	```sh
+	cd Projects/Linux
+	make
 	```
 
-	```sh title="For ARM64 architecture"
-	Tools/build-scripts/build_lib_linux_aarch64.sh
-	```
-
-4. Run the compile scripts.
-
-	- For the first time build
-		```sh title="For ARM architecture"
-		cd Projects/Linux
-		make arm
-		```
-
-		```sh title="For x86_64 architecture"
-		cd Projects/Linux
-		make x86_64
-		```
-
-	- For incremental build
-		```sh
-		cd Projects/Linux
-		make
-		```
-
-5. Run the generated software.
+4. Run the generated software.
 	```sh
 	cd Assets
 	../Projects/Linux/build/dora-ssr

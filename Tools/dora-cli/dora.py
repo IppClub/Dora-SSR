@@ -37,6 +37,7 @@ DEFAULT_HOST = os.environ.get("DORA_HOST", "127.0.0.1")
 DEFAULT_PORT = int(os.environ.get("DORA_PORT", "8866"))
 DEFAULT_TIMEOUT = float(os.environ.get("DORA_TIMEOUT", "10"))
 DEFAULT_PROJECT = os.environ.get("DORA_PROJECT", os.getcwd())
+DEFAULT_ENTRY = "init.lua"
 SUPPORTED_LANGUAGES = ("zh-Hans", "en")
 API_FILES = {
     "BlocklyGen.d.ts",
@@ -93,6 +94,55 @@ WASM_TOOL_CONFIG = {
         "build_dir": Path("output"),
     },
 }
+SOURCE_BUILD_CONFIG = {
+    "yue": {
+        "label": "YueScript",
+        "extension": "yue",
+        "default_file": "init.yue",
+    },
+    "tl": {
+        "label": "Teal",
+        "extension": "tl",
+        "default_file": "init.tl",
+    },
+    "xml": {
+        "label": "XML",
+        "extension": "xml",
+        "default_file": "init.xml",
+    },
+}
+BUILD_LANGUAGES = ("auto", "all", "ts", "yue", "tl", "xml")
+BUILD_FILE_EXTENSIONS = {
+    ".ts": "ts",
+    ".tsx": "ts",
+    ".yue": "yue",
+    ".tl": "tl",
+    ".xml": "xml",
+}
+BUILD_PROJECT_MARKERS = {
+    "ts": ("tsconfig.json", "init.ts", "init.tsx"),
+    "yue": ("init.yue",),
+    "tl": ("init.tl",),
+    "xml": ("init.xml",),
+}
+PROJECT_SOURCE_EXTENSIONS = {
+    "yue": ".yue",
+    "tl": ".tl",
+    "xml": ".xml",
+}
+IGNORED_SOURCE_DIRS = {
+    ".build",
+    ".cache",
+    ".download",
+    ".git",
+    ".upload",
+    ".www",
+    "API",
+    "build",
+    "dist",
+    "node_modules",
+    "target",
+}
 
 
 class DoraError(RuntimeError):
@@ -135,7 +185,7 @@ def add_connection_arguments(parser: argparse.ArgumentParser) -> None:
 def add_entry_argument(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--entry",
-        default="init.lua",
+        default=DEFAULT_ENTRY,
         help="Entry file used by run/buildrun. Defaults to init.lua.",
     )
 
@@ -150,13 +200,18 @@ def add_target_path_argument(parser: argparse.ArgumentParser) -> None:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog=program_name(),
-        description="Dora SSR development CLI for TypeScript, Rust, and Wa projects.",
+        description=(
+            "Dora SSR development CLI for TypeScript, YueScript, Teal, XML, "
+            "Rust, and Wa projects."
+        ),
     )
     subparsers = parser.add_subparsers(dest="tool", metavar="tool")
 
-    build_ts_parser(subparsers)
-    build_wasm_parser(subparsers, "rust")
-    build_wasm_parser(subparsers, "wa")
+    build_init_parser(subparsers)
+    build_top_level_build_parser(subparsers)
+    build_run_parser(subparsers)
+    build_top_level_buildrun_parser(subparsers)
+    build_wasm_parser(subparsers)
 
     stop_parser = subparsers.add_parser("stop", help="Stop the running Dora SSR project.")
     add_connection_arguments(stop_parser)
@@ -164,12 +219,9 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def build_ts_parser(subparsers: argparse._SubParsersAction) -> None:
-    ts_parser = subparsers.add_parser("ts", help="TypeScript workflow commands.")
-    ts_subparsers = ts_parser.add_subparsers(dest="action", metavar="command")
-
-    init_parser = ts_subparsers.add_parser(
-        "init", help="Initialize a Dora SSR TypeScript project."
+def build_init_parser(subparsers: argparse._SubParsersAction) -> None:
+    init_parser = subparsers.add_parser(
+        "init", help="Initialize a Dora SSR project."
     )
     add_project_argument(init_parser)
     add_connection_arguments(init_parser)
@@ -178,65 +230,87 @@ def build_ts_parser(subparsers: argparse._SubParsersAction) -> None:
         "--language",
         default=DEFAULT_LANGUAGE,
         choices=SUPPORTED_LANGUAGES,
-        help="API language used by init.",
+        help="API language used by TypeScript initialization.",
     )
 
-    build_parser = ts_subparsers.add_parser(
-        "build", help="Build a Dora SSR TypeScript project."
+
+def add_build_selection_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "-f",
+        "--file",
+        dest="files",
+        action="append",
+        help=(
+            "File or directory to build. Can be passed more than once. "
+            "Defaults to project auto build."
+        ),
+    )
+    parser.add_argument(
+        "--lang",
+        default="auto",
+        choices=BUILD_LANGUAGES,
+        help="Language/toolchain to build. Defaults to auto.",
+    )
+
+
+def build_top_level_build_parser(subparsers: argparse._SubParsersAction) -> None:
+    build_parser = subparsers.add_parser(
+        "build", help="Build a Dora SSR project or source file."
     )
     add_project_argument(build_parser)
     add_connection_arguments(build_parser)
-    build_parser.add_argument(
-        "-f",
-        "--file",
-        help="File or directory to build. Defaults to the project directory.",
-    )
+    add_build_selection_arguments(build_parser)
 
-    run_parser = ts_subparsers.add_parser("run", help="Run a Dora SSR TypeScript project.")
+
+def build_run_parser(subparsers: argparse._SubParsersAction) -> None:
+    run_parser = subparsers.add_parser(
+        "run", help="Run a Dora SSR project from a Lua entry file."
+    )
     add_project_argument(run_parser)
     add_connection_arguments(run_parser)
     add_entry_argument(run_parser)
 
-    buildrun_parser = ts_subparsers.add_parser(
-        "buildrun", help="Build and then run a Dora SSR TypeScript project."
+
+def build_top_level_buildrun_parser(subparsers: argparse._SubParsersAction) -> None:
+    buildrun_parser = subparsers.add_parser(
+        "buildrun", help="Build and then run a Dora SSR project."
     )
     add_project_argument(buildrun_parser)
     add_connection_arguments(buildrun_parser)
     add_entry_argument(buildrun_parser)
-    buildrun_parser.add_argument(
-        "-f",
-        "--file",
-        help="File or directory to build. Defaults to the project directory.",
-    )
-
-    stop_parser = ts_subparsers.add_parser(
-        "stop", help="Stop the running Dora SSR project."
-    )
-    add_connection_arguments(stop_parser)
+    add_build_selection_arguments(buildrun_parser)
 
 
-def build_wasm_parser(subparsers: argparse._SubParsersAction, kind: str) -> None:
-    config = WASM_TOOL_CONFIG[kind]
-    tool_parser = subparsers.add_parser(
-        kind, help=f"{config['label']} workflow commands."
+def add_wasm_kind_argument(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "kind",
+        choices=tuple(WASM_TOOL_CONFIG.keys()),
+        help="WASM toolchain to use.",
     )
-    tool_subparsers = tool_parser.add_subparsers(dest="action", metavar="command")
+
+
+def build_wasm_parser(subparsers: argparse._SubParsersAction) -> None:
+    wasm_parser = subparsers.add_parser("wasm", help="WASM build/upload/run helpers.")
+    tool_subparsers = wasm_parser.add_subparsers(dest="action", metavar="command")
 
     build_parser = tool_subparsers.add_parser(
-        "build", help=f"Build the {config['label']} project into WASM."
+        "build", help="Build a Rust or Wa WASM project."
     )
+    add_wasm_kind_argument(build_parser)
     add_project_argument(build_parser)
 
     run_parser = tool_subparsers.add_parser(
-        "run", help=f"Build, upload, and run the {config['label']} WASM project."
+        "run", help="Build, upload, and run a Rust or Wa WASM project."
     )
+    add_wasm_kind_argument(run_parser)
     add_project_argument(run_parser)
     add_connection_arguments(run_parser)
     add_target_path_argument(run_parser)
 
     upload_parser = tool_subparsers.add_parser(
-        "upload", help=f"Upload the latest built {config['label']} WASM file."
+        "upload", help="Upload the latest built Rust or Wa WASM file."
     )
+    add_wasm_kind_argument(upload_parser)
     add_project_argument(upload_parser)
     add_connection_arguments(upload_parser)
     add_target_path_argument(upload_parser)
@@ -245,6 +319,8 @@ def build_wasm_parser(subparsers: argparse._SubParsersAction, kind: str) -> None
         action="store_true",
         help="Run the uploaded WASM after upload completes.",
     )
+
+
 def base_url(host: str, port: int) -> str:
     return f"http://{host}:{port}"
 
@@ -272,6 +348,63 @@ def resolve_entry_file(project_dir: Path, entry: str) -> Path:
     if not candidate.is_absolute():
         candidate = project_dir / candidate
     return candidate.resolve()
+
+
+def infer_build_kind(project_dir: Path, target: str | None) -> str:
+    if target:
+        build_target = resolve_build_target(project_dir, target)
+        suffix = build_target.suffix.lower()
+        if suffix in BUILD_FILE_EXTENSIONS:
+            return BUILD_FILE_EXTENSIONS[suffix]
+        raise DoraError(f"Cannot infer build language from file extension: {build_target}")
+
+    matches = [
+        kind
+        for kind, markers in BUILD_PROJECT_MARKERS.items()
+        if any((project_dir / marker).exists() for marker in markers)
+    ]
+    if len(matches) == 1:
+        return matches[0]
+    if matches:
+        return "all"
+    raise DoraError(
+        "Cannot infer build language. Please specify --lang or pass -f with a "
+        "supported source file."
+    )
+
+
+def should_skip_source_dir(path: Path) -> bool:
+    return any(part in IGNORED_SOURCE_DIRS for part in path.parts)
+
+
+def is_buildable_source_file(path: Path, kind: str) -> bool:
+    if kind == "tl" and path.name.endswith(".d.tl"):
+        return False
+    return True
+
+
+def iter_project_source_files(project_dir: Path, kind: str) -> list[Path]:
+    extension = PROJECT_SOURCE_EXTENSIONS[kind]
+    files = [
+        path
+        for path in project_dir.rglob(f"*{extension}")
+        if (
+            path.is_file()
+            and not should_skip_source_dir(path.relative_to(project_dir))
+            and is_buildable_source_file(path, kind)
+        )
+    ]
+    return sorted(files)
+
+
+def detect_project_build_kinds(project_dir: Path) -> list[str]:
+    kinds: list[str] = []
+    if any((project_dir / marker).exists() for marker in BUILD_PROJECT_MARKERS["ts"]):
+        kinds.append("ts")
+    for kind in ("yue", "tl", "xml"):
+        if iter_project_source_files(project_dir, kind):
+            kinds.append(kind)
+    return kinds
 
 
 def create_session(timeout: float) -> requests.Session:
@@ -388,18 +521,71 @@ def build_ts_project(
             print(f"\033[91m[error]\033[0m {message.get('message')}")
 
 
-def run_ts_project(
+def build_script_file(
+    kind: str,
+    session: requests.Session,
+    root_url: str,
+    project_dir: Path,
+    target: str | None,
+) -> None:
+    config = SOURCE_BUILD_CONFIG[kind]
+    build_target = resolve_build_target(project_dir, target or config["default_file"])
+    if build_target.suffix.lower() != f".{config['extension']}":
+        raise DoraError(
+            f"{config['label']} build expects a .{config['extension']} file: {build_target}"
+        )
+    if not is_buildable_source_file(build_target, kind):
+        raise DoraError(
+            f"{config['label']} build does not accept definition files: {build_target}"
+        )
+
+    print(f"Compiling Dora SSR {config['label']} file: {build_target}")
+    json_response = post_json(
+        session, f"{root_url}/build", json={"path": str(build_target)}
+    )
+    if not json_response.get("success"):
+        message = (
+            json_response.get("message")
+            or json_response.get("err")
+            or "Unknown error."
+        )
+        raise DoraError(f"Compilation failed. {message}")
+
+    print("Compilation complete.")
+    if "resultCodes" in json_response:
+        output_file = build_target.with_suffix(".lua")
+        print(f"\033[92m[info]\033[0m {output_file} built.")
+
+
+def build_project_sources(
+    kind: str, session: requests.Session, root_url: str, project_dir: Path
+) -> None:
+    files = iter_project_source_files(project_dir, kind)
+    if not files:
+        print(f"No {SOURCE_BUILD_CONFIG[kind]['label']} files found.")
+        return
+
+    for source_file in files:
+        build_script_file(kind, session, root_url, project_dir, str(source_file))
+
+
+def run_project(
     session: requests.Session, root_url: str, project_dir: Path, entry: str
 ) -> None:
     entry_file = resolve_entry_file(project_dir, entry)
+    run_as_project = entry == DEFAULT_ENTRY
+    run_file = project_dir / "__dora_project_root_search__.lua" if run_as_project else entry_file
     json_response = post_json(
         session,
         f"{root_url}/run",
-        json={"file": str(entry_file), "asProj": True},
+        json={"file": str(run_file), "asProj": run_as_project},
     )
     if not json_response.get("success"):
-        raise DoraError(f"Failed to run project with entry {entry_file}")
-    print(f"Start running {entry_file}...")
+        message = json_response.get("err") or json_response.get("message")
+        suffix = f" {message}" if message else ""
+        raise DoraError(f"Failed to run project at {project_dir}.{suffix}")
+    target = json_response.get("target") or entry_file
+    print(f"Start running {target}...")
 
 
 def stop_project(session: requests.Session, root_url: str) -> None:
@@ -494,48 +680,120 @@ def run_wasm_workflow(
         run_remote_file(session, root_url, remote_file)
 
 
+def run_build_command(args: argparse.Namespace) -> None:
+    run_build(args)
+
+
+def run_build(args: argparse.Namespace) -> None:
+    project_dir = resolve_project_dir(args.project)
+    files = getattr(args, "files", None)
+    root_url = base_url(args.host, args.port)
+
+    if files:
+        if args.lang not in ("auto", "all"):
+            for target in files:
+                build_one(args.lang, args, project_dir, root_url, target)
+            return
+        for target in files:
+            build_one(infer_build_kind(project_dir, target), args, project_dir, root_url, target)
+        return
+
+    kinds = detect_project_build_kinds(project_dir) if args.lang in ("auto", "all") else [args.lang]
+    if not kinds:
+        raise DoraError(
+            "Cannot infer build language. Please specify --lang or pass -f with a "
+            "supported source file."
+        )
+    for kind in kinds:
+        build_one(kind, args, project_dir, root_url, None)
+
+
+def build_one(
+    kind: str,
+    args: argparse.Namespace,
+    project_dir: Path,
+    root_url: str,
+    target: str | None,
+) -> None:
+    if kind == "all":
+        for detected_kind in detect_project_build_kinds(project_dir):
+            build_one(detected_kind, args, project_dir, root_url, target)
+        return
+
+    if kind == "ts":
+        session = create_session(args.timeout)
+        build_ts_project(session, root_url, project_dir, target)
+        return
+
+    if kind in SOURCE_BUILD_CONFIG:
+        session = create_session(args.timeout)
+        if target:
+            build_script_file(kind, session, root_url, project_dir, target)
+        else:
+            build_project_sources(kind, session, root_url, project_dir)
+        return
+
+    raise DoraError(f"Unsupported build language: {kind}")
+
+
+def run_buildrun_command(args: argparse.Namespace) -> None:
+    run_build(args)
+    project_dir = resolve_project_dir(args.project)
+    session = create_session(args.timeout)
+    run_project(session, base_url(args.host, args.port), project_dir, args.entry)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
 
     try:
+        if args.tool == "init":
+            session = create_session(args.timeout)
+            init_ts_project(
+                session,
+                base_url(args.host, args.port),
+                resolve_project_dir(args.project),
+                args.language,
+            )
+            return 0
+
+        if args.tool == "build":
+            run_build_command(args)
+            return 0
+
+        if args.tool == "run":
+            session = create_session(args.timeout)
+            run_project(
+                session,
+                base_url(args.host, args.port),
+                resolve_project_dir(args.project),
+                args.entry,
+            )
+            return 0
+
+        if args.tool == "buildrun":
+            run_buildrun_command(args)
+            return 0
+
         if args.tool == "stop":
             session = create_session(args.timeout)
             stop_project(session, base_url(args.host, args.port))
             return 0
 
-        if args.tool == "ts":
-            session = create_session(args.timeout)
-            root_url = base_url(args.host, args.port)
-            if args.action == "stop":
-                stop_project(session, root_url)
-                return 0
-
-            project_dir = resolve_project_dir(args.project)
-            if args.action == "init":
-                init_ts_project(session, root_url, project_dir, args.language)
-            elif args.action == "build":
-                build_ts_project(session, root_url, project_dir, args.file)
-            elif args.action == "run":
-                run_ts_project(session, root_url, project_dir, args.entry)
-            elif args.action == "buildrun":
-                build_ts_project(session, root_url, project_dir, args.file)
-                run_ts_project(session, root_url, project_dir, args.entry)
-            else:
-                raise DoraError("Missing ts command.")
-            return 0
-
-        if args.tool in WASM_TOOL_CONFIG:
+        if args.tool == "wasm":
+            if not args.action:
+                raise DoraError("Missing wasm command.")
             project_dir = resolve_project_dir(args.project)
             if args.action == "build":
-                build_wasm_project(args.tool, project_dir)
+                build_wasm_project(args.kind, project_dir)
                 return 0
 
             session = create_session(args.timeout)
             root_url = base_url(args.host, args.port)
             if args.action == "run":
                 run_wasm_workflow(
-                    args.tool,
+                    args.kind,
                     session,
                     root_url,
                     project_dir,
@@ -545,7 +803,7 @@ def main(argv: list[str] | None = None) -> int:
                 )
             elif args.action == "upload":
                 run_wasm_workflow(
-                    args.tool,
+                    args.kind,
                     session,
                     root_url,
                     project_dir,
@@ -554,7 +812,7 @@ def main(argv: list[str] | None = None) -> int:
                     run_after_upload=args.run,
                 )
             else:
-                raise DoraError(f"Missing {args.tool} command.")
+                raise DoraError("Missing wasm command.")
             return 0
 
         parser.print_help()
