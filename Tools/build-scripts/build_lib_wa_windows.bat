@@ -24,7 +24,10 @@ set GOARCH=386
 set CGO_ENABLED=1
 set GOFLAGS=-buildvcs=false -mod=vendor
 set GO_LDFLAGS=-ldflags="-s -w"
-if exist C:\msys64\mingw32\bin\gcc.exe set CC=C:\msys64\mingw32\bin\gcc.exe
+if exist "C:\msys64\mingw32\bin\gcc.exe" (
+	set "PATH=C:\msys64\mingw32\bin;%PATH%"
+	set "CC=C:\msys64\mingw32\bin\gcc.exe"
+)
 
 mkdir "%OUTPUT_DIR%" 2>nul
 cd /d "%WA_DIR%"
