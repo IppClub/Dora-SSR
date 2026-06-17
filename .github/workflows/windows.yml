@@ -41,10 +41,15 @@ jobs:
           install: mingw-w64-i686-gcc
       - name: Setup MinGW32 for Go cgo
         run: |
-          $mingw32 = 'C:\msys64\mingw32\bin'
-          if (!(Test-Path "$mingw32\gcc.exe")) {
-            Get-ChildItem C:\msys64 -Recurse -Filter gcc.exe | Select-Object -ExpandProperty FullName
-            throw "MINGW32 gcc was not installed at $mingw32"
+          $mingw32Candidates = @(
+            "$env:GITHUB_WORKSPACE\msys64\mingw32\bin",
+            'C:\msys64\mingw32\bin'
+          )
+          $mingw32 = $mingw32Candidates | Where-Object { Test-Path "$_\gcc.exe" } | Select-Object -First 1
+          if (!$mingw32) {
+            Get-ChildItem $env:GITHUB_WORKSPACE, C:\ -Recurse -Filter gcc.exe -ErrorAction SilentlyContinue |
+              Select-Object -ExpandProperty FullName
+            throw "MINGW32 gcc was not installed"
           }
           "$mingw32" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
           "CC=$mingw32\gcc.exe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
