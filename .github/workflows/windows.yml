@@ -42,20 +42,18 @@ jobs:
           path-type: inherit
           install: mingw-w64-i686-gcc
       - name: Setup MinGW32 for Go cgo
+        shell: msys2 {0}
         run: |
-          $mingw32Candidates = @(
-            "$env:GITHUB_WORKSPACE\msys64\mingw32\bin",
-            'C:\msys64\mingw32\bin'
-          )
-          $mingw32 = $mingw32Candidates | Where-Object { Test-Path (Join-Path $_ 'gcc.exe') } | Select-Object -First 1
-          if (!$mingw32) {
-            Get-ChildItem (Join-Path $env:GITHUB_WORKSPACE 'msys64') -Recurse -Filter gcc.exe -ErrorAction SilentlyContinue |
-              Select-Object -ExpandProperty FullName
-            throw "MINGW32 gcc was not installed"
-          }
-          Write-Host "Using MinGW32 gcc: $mingw32\gcc.exe"
-          "$mingw32" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-          "CC=$mingw32\gcc.exe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          mingw32_bin="$(cygpath -w /mingw32/bin)"
+          mingw32_gcc="$(cygpath -w /mingw32/bin/gcc.exe)"
+          if [ ! -x /mingw32/bin/gcc.exe ]; then
+            find / -path '*/gcc.exe' -print
+            echo "MINGW32 gcc was not installed" >&2
+            exit 1
+          fi
+          echo "Using MinGW32 gcc: ${mingw32_gcc}"
+          echo "${mingw32_bin}" >> "${GITHUB_PATH}"
+          echo "CC=${mingw32_gcc}" >> "${GITHUB_ENV}"
       - uses: dtolnay/rust-toolchain@stable
       - name: Setup msbuild
         uses: microsoft/setup-msbuild@v1.0.2
