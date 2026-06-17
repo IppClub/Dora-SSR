@@ -29,6 +29,12 @@ stop_running_dora() {
 	fi
 }
 
+"$SCRIPT_DIR/check_build_env.sh" macos run
+
+if [ ! -f "$SCRIPT_DIR/../../Source/3rdParty/Wa/Lib/macOS/libwa.a" ]; then
+	"$SCRIPT_DIR/build_lib_wa.sh" macos debug
+fi
+
 cd "$SCRIPT_DIR/../../Source/Rust"
 cargo build --target "$RUST_TARGET"
 cp "target/$RUST_TARGET/debug/libdora_runtime.a" lib/macOS/libdora_runtime.a

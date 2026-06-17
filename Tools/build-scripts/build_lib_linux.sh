@@ -22,8 +22,11 @@ case "$BUILD_MODE" in
 		;;
 esac
 
+"$SCRIPT_DIR/check_build_env.sh" linux lib
+
 "$SCRIPT_DIR/build_lib_sdl2.sh" linux "--$BUILD_MODE"
 "$SCRIPT_DIR/build_lib_bgfx.sh" linux "--$BUILD_MODE"
+"$SCRIPT_DIR/build_lib_wa.sh" linux "$BUILD_MODE"
 
 cd "$SCRIPT_DIR/../../Source/Rust"
 

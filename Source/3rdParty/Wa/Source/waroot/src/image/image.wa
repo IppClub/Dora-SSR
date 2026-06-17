@@ -1,0 +1,23 @@
+// Copyright (C) 2024 武汉凹语言科技有限公司
+// SPDX-License-Identifier: MIT
+
+import "image/color"
+
+// 图像大小
+type Config :struct {
+	Width, Height: int
+}
+
+// 二维图像 Gray
+type Gray :struct {
+	Width:  int
+	Height: int
+	Pix:    []color.Gray
+}
+
+// 二维图像 RGBA
+type RGBA :struct {
+	Width:  int
+	Height: int
+	Pix:    []color.RGBA
+}

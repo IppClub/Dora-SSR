@@ -31,6 +31,14 @@ jobs:
       - uses: xmake-io/github-action-setup-xmake@v1
         with:
           xmake-version: latest
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.3'
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW32
+          path-type: inherit
+          install: mingw-w64-i686-gcc
       - uses: dtolnay/rust-toolchain@stable
       - name: Setup msbuild
         uses: microsoft/setup-msbuild@v1.0.2

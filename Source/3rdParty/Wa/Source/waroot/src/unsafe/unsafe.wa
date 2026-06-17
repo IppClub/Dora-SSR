@@ -1,0 +1,17 @@
+// Copyright (C) 2024 武汉凹语言科技有限公司
+// SPDX-License-Identifier: MIT
+
+// 裸指针
+type Pointer :*ArbitraryType
+
+// 类型的大小
+func Sizeof(x: ArbitraryType) => uintptr
+
+// 结构体成员的偏移地址
+func Offsetof(x: ArbitraryType) => uintptr
+
+// 几个字节对齐
+func Alignof(x: ArbitraryType) => uintptr
+
+// 返回切片的底层数据
+func Raw(sclice: []ArbitraryType) => []byte

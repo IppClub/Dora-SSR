@@ -1,0 +1,32 @@
+// Copyright (C) 2024 武汉凹语言科技有限公司
+// SPDX-License-Identifier: MIT
+
+global (
+	DefaultPrintI32  :func(i: i32)
+	DefaultPrintRune :func(ch: i32)
+	DefaultPuts      :func(ptr: i32, len: i32)
+)
+
+func PrintI32(i: i32) {
+	if DefaultPrintI32 != nil {
+		DefaultPrintI32(i)
+	}
+}
+
+func PrintRune(ch: i32) {
+	if DefaultPrintRune != nil {
+		DefaultPrintRune(ch)
+	}
+}
+
+func Puts(ptr: i32, len: i32) {
+	if DefaultPuts != nil {
+		DefaultPuts(ptr, len)
+	}
+}
+
+func PrintString(s: string) {
+	if DefaultPuts != nil {
+		DefaultPuts(__linkname__string_to_ptr(s), i32(len(s)))
+	}
+}

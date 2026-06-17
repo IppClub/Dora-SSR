@@ -1,0 +1,12 @@
+// Copyright (C) 2024 武汉凹语言科技有限公司
+// SPDX-License-Identifier: MIT
+
+// 读磁盘数据
+func DiskR(data: []byte) => int {
+	return int(__import__diskr(__linkname__slice_data_ptr(data), i32(len(data))))
+}
+
+// 写磁盘数据
+func DiskW(data: []byte) => int {
+	return int(__import__diskw(__linkname__slice_data_ptr(data), i32(len(data))))
+}

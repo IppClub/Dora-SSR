@@ -3,6 +3,15 @@ setlocal
 
 set "SCRIPT_DIR=%~dp0"
 set "SUBDIR_PATH=%SCRIPT_DIR%..\..\Source\Rust"
+set "WA_DLL=%SCRIPT_DIR%..\..\Source\3rdParty\Wa\Lib\Windows\wa.dll"
+
+call "%SCRIPT_DIR%check_build_env_windows.bat" run
+if errorlevel 1 exit /b %errorlevel%
+
+if not exist "%WA_DLL%" (
+	call "%SCRIPT_DIR%build_lib_wa_windows.bat" debug
+	if errorlevel 1 exit /b %errorlevel%
+)
 
 cd /d "%SUBDIR_PATH%"
 cargo build --target i686-pc-windows-msvc

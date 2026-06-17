@@ -10,10 +10,16 @@ if /I not "%BUILD_MODE%"=="debug" if /I not "%BUILD_MODE%"=="release" (
 	exit /b 1
 )
 
+call "%SCRIPT_DIR%check_build_env_windows.bat" lib
+if errorlevel 1 exit /b %errorlevel%
+
 call "%SCRIPT_DIR%build_lib_sdl2_windows.bat" %BUILD_MODE%
 if errorlevel 1 exit /b %errorlevel%
 
 call "%SCRIPT_DIR%build_lib_bgfx_windows.bat" %BUILD_MODE%
+if errorlevel 1 exit /b %errorlevel%
+
+call "%SCRIPT_DIR%build_lib_wa_windows.bat" %BUILD_MODE%
 if errorlevel 1 exit /b %errorlevel%
 
 set SUBDIR_PATH=%SCRIPT_DIR%..\..\Source\Rust

@@ -1,0 +1,138 @@
+package wa
+
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+
+	"wa-lang.org/wa/internal/app/appbase"
+	"wa-lang.org/wa/internal/backends/compiler_wat"
+	"wa-lang.org/wa/internal/config"
+	"wa-lang.org/wa/internal/format"
+	"wa-lang.org/wa/internal/gitjobs"
+	"wa-lang.org/wa/internal/loader"
+	"wa-lang.org/wa/internal/wat/watutil"
+	"wa-lang.org/wa/internal/wat/watutil/watstrip"
+)
+
+func buildApp(input string) (err error) {
+	// 路径是否存在
+	if !appbase.PathExists(input) {
+		return fmt.Errorf("%q not found", input)
+	}
+
+	// 构建目录
+	if !appbase.IsNativeDir(input) {
+		return fmt.Errorf("%q is not valid input path", input)
+	}
+
+	// 尝试读取模块信息
+	manifest, err := config.LoadManifest(nil, input)
+	if err != nil {
+		return fmt.Errorf("%q is invalid wa moudle", input)
+	}
+
+	outfile := filepath.Join(input, manifest.Pkg.Name+".wasm")
+
+	manifest.Pkg.Target = config.WaOS_wasi
+
+	if err := manifest.Valid(); err != nil {
+		return fmt.Errorf("%q is invalid wa module; %v", input, err)
+	}
+
+	// 编译出 wat 文件
+	_, _, watOutput, err := buildWat(input)
+	if err != nil {
+		return err
+	}
+
+	// 优化 wat 文件
+	watOutput, err = watstrip.WatStrip(input, watOutput)
+	if err != nil {
+		return err
+	}
+
+	// wat 编译为 wasm
+	wasmBytes, err := watutil.Wat2Wasm(input, watOutput)
+	if err != nil {
+		return fmt.Errorf("wat2wasm %s failed: %v", input, err)
+	}
+
+	// wasm 写到文件
+	err = os.WriteFile(outfile, wasmBytes, 0666)
+	if err != nil {
+		return fmt.Errorf("write %s failed: %v", outfile, err)
+	}
+
+	// OK
+	return nil
+}
+
+func buildWat(filename string) (
+	prog *loader.Program, compiler *compiler_wat.Compiler,
+	watBytes []byte, err error,
+) {
+	cfg := config.DefaultConfig()
+	cfg.Target = config.WaOS_wasi
+	cfg.WaSizes.MaxAlign = 8
+	cfg.WaSizes.WordSize = 4
+
+	prog, err = loader.LoadProgram(cfg, filename)
+	if err != nil {
+		return prog, nil, nil, err
+	}
+
+	compiler = compiler_wat.New()
+	output, err := compiler.Compile(prog)
+
+	if err != nil {
+		return prog, nil, nil, err
+	}
+
+	return prog, compiler, []byte(output), nil
+}
+
+//export WaBuild
+func WaBuild(input string) string {
+	err := buildApp(input)
+	if err != nil {
+		return err.Error()
+	}
+	return ""
+}
+
+//export WaFormat
+func WaFormat(input string) string {
+	code, changed, err := format.File(nil, input, nil)
+	if err != nil {
+		return ""
+	}
+	if changed {
+		return string(code)
+	}
+	return ""
+}
+
+func WaGitStartClone(url string, path string, branch string, token string, depth int) int64 {
+	return gitjobs.StartClone(url, path, branch, token, depth)
+}
+
+func WaGitStartPull(path string, branch string, token string, force bool) int64 {
+	return gitjobs.StartPull(path, branch, token, force)
+}
+
+func WaGitRun(repoPath string, command string, optionsJSON string) int64 {
+	return gitjobs.StartRun(repoPath, command, optionsJSON)
+}
+
+func WaGitPoll(jobID int64) string {
+	return gitjobs.Poll(jobID)
+}
+
+func WaGitCancel(jobID int64) bool {
+	return gitjobs.Cancel(jobID)
+}
+
+func WaGitDispose(jobID int64) bool {
+	return gitjobs.Dispose(jobID)
+}

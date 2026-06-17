@@ -31,6 +31,9 @@ jobs:
       - uses: xmake-io/github-action-setup-xmake@v1
         with:
           xmake-version: latest
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.3'
       - uses: dtolnay/rust-toolchain@stable
       - name: macOS build
         if: "!startsWith(github.ref, 'refs/tags/')"

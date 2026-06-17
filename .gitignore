@@ -96,3 +96,7 @@ Docs/design
 .xmake/
 Source/3rdParty/bgfx/dora/generated
 Source/3rdParty/SDL2/Lib/
+Source/3rdParty/Wa/Lib/
+Source/3rdParty/Wa/Source/.build/
+!Source/3rdParty/Wa/Source/waroot/src/debug/
+!Source/3rdParty/Wa/Source/waroot/src/debug/**

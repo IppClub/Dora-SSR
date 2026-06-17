@@ -1,0 +1,8 @@
+EXPORTS
+    WaBuild
+    WaFormat
+    WaFreeCString
+    WaGitRun
+    WaGitPoll
+    WaGitCancel
+    WaGitDispose

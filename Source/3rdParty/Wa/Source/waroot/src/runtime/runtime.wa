@@ -1,0 +1,65 @@
+// Copyright (C) 2024 武汉凹语言科技有限公司
+// SPDX-License-Identifier: MIT
+
+// K&R 第8章 首次适配算法的 malloc 实现
+
+// sizeof(knr_Header) 大小
+const sizeof_Header = 8
+
+#wa:linkname $knr_basep
+global knr_basep: u32
+
+#wa:linkname $knr_freep
+global knr_freep: u32
+
+// K&R malloc 实现, Block 头部
+type knr_Header :struct {
+	ptr:  u32
+	size: u32
+}
+
+// 抛出异常
+#wa:linkname runtime.throw
+func throw()
+
+// Heap 开始地址
+#wa:linkname runtime.heapBase
+func heapBase() => u32
+
+#wa:runtime_getter
+func knr_getBlockHeader(p: u32) => knr_Header
+
+#wa:runtime_setter
+func knr_setBlockHeader(p: u32, hdr: knr_Header)
+
+// 分配 nbytes 字节, 返回地址
+#wa:linkname runtime.malloc
+func malloc(nbytes: i32) => i32
+
+// 回收内存, 释放到空闲列表
+#wa:linkname runtime.free
+func free(ap: i32)
+
+#wa:linkname $wa.runtime.i32_ref_to_ptr
+func I32_ref_to_ptr(t: *i32) => i32
+
+#wa:linkname $wa.runtime.i64_ref_to_ptr
+func I64_ref_to_ptr(t: *i64) => i32
+
+#wa:linkname $wa.runtime.slice_to_ptr
+func U8_slice_to_ptr(t: []byte) => i32
+
+#wa:linkname $wa.runtime.string_to_ptr
+func U8_string_to_ptr(s: string) => i32
+
+func refToPtr_i32(p: *i32) => i32 {
+	return I32_ref_to_ptr(p)
+}
+
+func refToPtr_byteSlice(t: []byte) => i32 {
+	return U8_slice_to_ptr(t)
+}
+
+func refToPtr_string(s: string) => i32 {
+	return U8_string_to_ptr(s)
+}

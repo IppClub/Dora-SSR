@@ -1,0 +1,14 @@
+// Copyright (C) 2024 武汉凹语言科技有限公司
+// SPDX-License-Identifier: MIT
+
+【曰】(x: 数) ：
+	println(x)
+。
+
+【说】(s: 文)：
+	println(s)
+。
+
+【字】(s: byte)：
+	print(rune(s))
+。
