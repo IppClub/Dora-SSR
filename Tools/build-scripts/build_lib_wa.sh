@@ -131,7 +131,7 @@ build_android() {
 	rm -f "$temp_dir/wa/main.go"
 	(
 		cd "$temp_dir/wa"
-		GOFLAGS="-mod=vendor" gomobile bind -v -androidapi 21 -o wa.aar -target=android .
+		GOFLAGS="-mod=mod" gomobile bind -v -androidapi 21 -o wa.aar -target=android .
 	)
 
 	mkdir -p "$OUTPUT_DIR/Android"

@@ -27,9 +27,9 @@ exit /b 0
 where %~1 >nul 2>nul
 if errorlevel 1 (
 	if not defined HAS_MISSING (
-		echo Missing build environment tools for Windows (%SCOPE%):
+		echo Missing build environment tools for Windows [%SCOPE%]:
 		set "HAS_MISSING=1"
 	)
-	echo   - %~1 (%~2)
+	echo   - %~1 - %~2
 )
 exit /b 0
