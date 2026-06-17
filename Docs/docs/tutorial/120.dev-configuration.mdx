@@ -34,29 +34,40 @@ git clone https://gitcode.com/ippclub/Dora-SSR.git
 
 Please select the target platform you want to build for.
 
-The platform library scripts under `Tools/build-scripts` build the native dependencies required by the engine, including SDL2, bgfx, and the Rust runtime. You normally do not need to enter `Source/3rdParty/bgfx` and build bgfx manually.
+The platform library scripts under `Tools/build-scripts` build the native dependencies required by the engine, including SDL2, bgfx, the Rust runtime, and the Wa native runtime. You normally do not need to enter `Source/3rdParty/bgfx` and build bgfx manually.
 
 <Tabs groupId="platform-select">
 <TabItem value="windows" label="Windows">
 
-1. Install **Rust**, **xmake**, and **Visual Studio Community 2026** with MSBuild tools, matching the Windows GitHub Actions build environment.
+1. Install **Go 1.24 or later**, **Rust**, **xmake**, and **Visual Studio Community 2026** with MSBuild tools, matching the Windows GitHub Actions build environment.
 
-2. Build native dependencies.
+2. Install a 32-bit MinGW toolchain for Go cgo when building the Wa runtime DLL. The CI build uses MSYS2 MINGW32; run this from an MSYS2 MINGW32 shell:
+	```sh
+	pacman -S --needed mingw-w64-i686-gcc
+	```
+
+	Make sure the MINGW32 `gcc.exe` is available before other MinGW toolchains. With a default MSYS2 install this is:
+	```bat
+	set PATH=C:\msys64\mingw32\bin;%PATH%
+	set CC=C:\msys64\mingw32\bin\gcc.exe
+	```
+
+3. Build native dependencies.
 	```bat
 	Tools\build-scripts\build_lib_windows.bat debug
 	```
 
-3. Build the Windows runtime and solution.
+4. Build the Windows runtime and solution.
 	```bat
 	Tools\build-scripts\build_windows.bat debug
 	```
 
-4. For local debugging, open **Projects/Windows/Dora.sln** in Visual Studio and run the `Debug` configuration.
+5. For local debugging, open **Projects/Windows/Dora.sln** in Visual Studio and run the `Debug` configuration.
 
 </TabItem>
 <TabItem value="macos" label="macOS">
 
-1. Install **Rust**, **xmake**, and the latest **Xcode**.
+1. Install **Go 1.24 or later**, **Rust**, **xmake**, and the latest **Xcode**.
 
 2. Build native dependencies.
 	```sh
@@ -79,7 +90,7 @@ The platform library scripts under `Tools/build-scripts` build the native depend
 </TabItem>
 <TabItem value="ios" label="iOS">
 
-1. Install **Rust**, **xmake**, and the latest **Xcode**.
+1. Install **Go 1.24 or later**, **Rust**, **xmake**, and the latest **Xcode**.
 
 2. Build native dependencies.
 	```sh
@@ -103,10 +114,10 @@ The platform library scripts under `Tools/build-scripts` build the native depend
 <TabItem value="android" label="Android">
 
 :::tip
-Local Android builds require **JDK 17** in addition to **Android Studio**.
+Local Android builds require **JDK 17** in addition to **Android Studio**. The Wa Android AAR is built with Go and gomobile; the build script installs the pinned gomobile version automatically if it is missing.
 :::
 
-1. Install **Rust**, **xmake**, and the latest **Android Studio**.
+1. Install **Go 1.24 or later**, **Rust**, **xmake**, and the latest **Android Studio**.
 
 2. Generate Lua bindings first.
 	```sh
@@ -146,7 +157,7 @@ Local Android builds require **JDK 17** in addition to **Android Studio**.
 Local Linux builds use the vendored SDL2 source and SDL's upstream CMake detection. Install the development packages for the backends you want to enable, such as X11, Wayland, ALSA, PulseAudio, PipeWire, DBus, udev, and KMSDRM.
 :::
 
-1. Install **Rust** and **xmake**.
+1. Install **Go 1.24 or later**, **Rust**, and **xmake**.
 
 <Tabs groupId="linux-distribution-select">
 <TabItem value="ubuntu" label="Ubuntu/Debian">
