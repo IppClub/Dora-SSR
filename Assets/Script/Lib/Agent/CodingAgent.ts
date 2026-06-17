@@ -223,6 +223,7 @@ class SkillsLoader {
 	private config: SkillsLoaderConfig;
 	private skills: Map<string, SkillEntry> = new Map();
 	private loaded = false;
+	private promptSectionCache?: string;
 
 	constructor(config: SkillsLoaderConfig) {
 		this.config = config;
@@ -230,6 +231,7 @@ class SkillsLoader {
 
 	load(): void {
 		this.skills.clear();
+		this.promptSectionCache = undefined;
 
 		const builtInDir = Path(Content.assetPath, "Doc", "skills");
 		const builtInParent = Content.assetPath;
@@ -422,6 +424,9 @@ class SkillsLoader {
 		if (!this.loaded) {
 			this.load();
 		}
+		if (this.promptSectionCache !== undefined) {
+			return this.promptSectionCache;
+		}
 
 		const sections: string[] = [];
 
@@ -431,7 +436,8 @@ class SkillsLoader {
 		const summary = this.buildLevel1Summary();
 		sections.push(`# Skills\n\nRead a skill's SKILL.md with \`read_file\` for full instructions.\n\n${summary}`);
 
-		return sections.join("\n\n---\n\n");
+		this.promptSectionCache = sections.join("\n\n---\n\n");
+		return this.promptSectionCache;
 	}
 
 	private escapeXML(text: string): string {
@@ -440,6 +446,7 @@ class SkillsLoader {
 
 	reload(): void {
 		this.loaded = false;
+		this.promptSectionCache = undefined;
 		this.load();
 	}
 
@@ -719,6 +726,33 @@ interface PreExecutedToolResult {
 	promise: Promise<Record<string, unknown>>;
 }
 
+interface AgentToolCacheEntry {
+	result: Record<string, unknown>;
+	insertedAtStep: number;
+	usedAtStep: number;
+}
+
+interface AgentToolCache {
+	readonlyResults: Map<string, AgentToolCacheEntry>;
+	readonlyInFlight: Map<string, Promise<Record<string, unknown>>>;
+	version: number;
+	maxEntries: number;
+	hits: number;
+	pendingHits: number;
+	misses: number;
+	stores: number;
+	evictions: number;
+	invalidations: number;
+}
+
+interface AgentPromptCache {
+	decisionToolDefinitions?: string;
+	decisionToolDefinitionsRole?: AgentRole;
+	decisionToolDefinitionsMode?: AgentDecisionMode;
+	decisionToolSchema?: any[];
+	decisionToolSchemaRole?: AgentRole;
+}
+
 interface AgentFileContextItem {
 	path: string;
 	op: Tools.FileOp;
@@ -759,6 +793,8 @@ interface AgentShared {
 	history: AgentActionRecord[];
 	pendingToolActions?: AgentActionRecord[];
 	preExecutedResults?: Map<string, PreExecutedToolResult>;
+	toolCache: AgentToolCache;
+	promptCache: AgentPromptCache;
 	messages: AgentConversationMessage[];
 	lastConsolidatedIndex: number;
 	carryMessageIndex?: number;
@@ -1270,6 +1306,14 @@ function sanitizeActionParamsForHistory(tool: AgentToolName, params: Record<stri
 }
 
 function getDecisionToolDefinitions(shared?: AgentShared): string {
+	if (
+		shared !== undefined
+		&& shared.promptCache.decisionToolDefinitions !== undefined
+		&& shared.promptCache.decisionToolDefinitionsRole === shared.role
+		&& shared.promptCache.decisionToolDefinitionsMode === shared.decisionMode
+	) {
+		return shared.promptCache.decisionToolDefinitions;
+	}
 	const base = replacePromptVars(
 		shared?.promptPack.toolDefinitionsDetailed ?? "",
 		{ SEARCH_DORA_API_LIMIT_MAX: tostring(SEARCH_DORA_API_LIMIT_MAX) }
@@ -1299,16 +1343,24 @@ function getDecisionToolDefinitions(shared?: AgentShared): string {
 		? `\n\nTool availability for this runtime:\n- role: ${shared.role}\n- allowed tools: ${getAllowedToolsForRole(shared.role).join(", ")}`
 		: "";
 	const withRole = `${base}${shared?.role === "main" ? spawnTool : ""}${availability}`;
+	let result: string;
 	if (shared?.decisionMode !== "xml") {
-		return withRole;
-	}
-	return `${withRole}
+		result = withRole;
+	} else {
+		result = `${withRole}
 
 XML mode object fields:
 - Use a single root tag: <tool_call>.
 - For read_file, edit_file, delete_file, grep_files, search_dora_api, glob_files, and build, include <tool>, <reason>, and <params>.
 - For finish, do not include <reason>. Use only <tool> and <params><message>...</message></params>.
 - Inside <params>, use one child tag per parameter and preserve each tag content as raw text.`;
+	}
+	if (shared !== undefined) {
+		shared.promptCache.decisionToolDefinitions = result;
+		shared.promptCache.decisionToolDefinitionsRole = shared.role;
+		shared.promptCache.decisionToolDefinitionsMode = shared.decisionMode;
+	}
+	return result;
 }
 
 function isToolAllowedForRole(role: AgentRole, tool: AgentToolName): boolean {
@@ -1323,8 +1375,143 @@ const PRE_EXEC_SAFE_TOOLS: AgentToolName[] = [
 	"list_sub_agents",
 ];
 
+const TOOL_RESULT_CACHE_MAX_ENTRIES = 128;
+
 function canPreExecuteTool(tool: AgentToolName): boolean {
 	return PRE_EXEC_SAFE_TOOLS.indexOf(tool) >= 0;
+}
+
+function isCacheableReadOnlyTool(tool: AgentToolName): boolean {
+	return tool === "read_file"
+		|| tool === "grep_files"
+		|| tool === "search_dora_api"
+		|| tool === "glob_files";
+}
+
+function shouldInvalidateToolCacheAfterResult(tool: AgentToolName, result: Record<string, unknown>): boolean {
+	if (tool === "build") return true;
+	if (tool === "edit_file" || tool === "delete_file") {
+		return result.success === true;
+	}
+	return false;
+}
+
+function createAgentToolCache(maxEntries = TOOL_RESULT_CACHE_MAX_ENTRIES): AgentToolCache {
+	return {
+		readonlyResults: new Map(),
+		readonlyInFlight: new Map(),
+		version: 0,
+		maxEntries,
+		hits: 0,
+		pendingHits: 0,
+		misses: 0,
+		stores: 0,
+		evictions: 0,
+		invalidations: 0,
+	};
+}
+
+function stableToolCacheValue(value: unknown): string {
+	if (value === undefined || value === null) return "nil";
+	const kind = typeof value;
+	if (kind === "string") {
+		const text = value as string;
+		return `s${text.length}:${text}`;
+	}
+	if (kind === "number" || kind === "boolean") {
+		return `${kind}:${tostring(value)}`;
+	}
+	if (isArray(value)) {
+		const parts: string[] = [];
+		for (let i = 0; i < value.length; i++) {
+			parts.push(stableToolCacheValue(value[i]));
+		}
+		return `a${parts.length}:[${parts.join("|")}]`;
+	}
+	if (kind === "object") {
+		const record = value as Record<string, unknown>;
+		const keys = Object.keys(record);
+		keys.sort();
+		const parts: string[] = [];
+		for (let i = 0; i < keys.length; i++) {
+			const key = keys[i];
+			parts.push(`k${key.length}:${key}=${stableToolCacheValue(record[key])}`);
+		}
+		return `o${parts.length}:{${parts.join("|")}}`;
+	}
+	return `${kind}:${tostring(value)}`;
+}
+
+function createToolActionCacheKey(shared: AgentShared, action: AgentActionRecord): string {
+	return stableToolCacheValue({
+		version: 1,
+		workingDir: shared.workingDir,
+		language: shared.useChineseResponse ? "zh" : "en",
+		tool: action.tool,
+		params: action.params,
+	});
+}
+
+function cloneToolCacheValue(value: unknown): unknown {
+	if (value === undefined || value === null) return value;
+	if (isArray(value)) {
+		return value.map(item => cloneToolCacheValue(item));
+	}
+	if (typeof value === "object") {
+		const clone: Record<string, unknown> = {};
+		for (const key in value as Record<string, unknown>) {
+			clone[key] = cloneToolCacheValue((value as Record<string, unknown>)[key]);
+		}
+		return clone;
+	}
+	return value;
+}
+
+function cloneToolCacheResult(result: Record<string, unknown>): Record<string, unknown> {
+	return cloneToolCacheValue(result) as Record<string, unknown>;
+}
+
+function evictOldestToolCacheEntry(cache: AgentToolCache): void {
+	if (cache.readonlyResults.size < cache.maxEntries) return;
+	cache.readonlyResults.clear();
+	cache.evictions += 1;
+}
+
+function getCachedToolActionResult(shared: AgentShared, action: AgentActionRecord, cacheKey: string): Record<string, unknown> | undefined {
+	const cache = shared.toolCache;
+	const entry = cache.readonlyResults.get(cacheKey);
+	if (entry === undefined) return undefined;
+	entry.usedAtStep = shared.step;
+	cache.hits += 1;
+	Log("Info", `[CodingAgent] tool cache hit tool=${action.tool} hits=${cache.hits}`);
+	return cloneToolCacheResult(entry.result);
+}
+
+function rememberToolActionResult(shared: AgentShared, action: AgentActionRecord, cacheKey: string, result: Record<string, unknown>): void {
+	const cache = shared.toolCache;
+	evictOldestToolCacheEntry(cache);
+	cache.readonlyResults.set(cacheKey, {
+		result: cloneToolCacheResult(result),
+		insertedAtStep: shared.step,
+		usedAtStep: shared.step,
+	});
+	cache.stores += 1;
+	Log("Info", `[CodingAgent] tool cache store tool=${action.tool} size=${cache.readonlyResults.size} stores=${cache.stores}`);
+}
+
+function invalidateReadOnlyToolCache(shared: AgentShared, reason: string): void {
+	const cache = shared.toolCache;
+	if (cache.readonlyResults.size === 0 && cache.readonlyInFlight.size === 0) {
+		cache.version += 1;
+		return;
+	}
+	const size = cache.readonlyResults.size;
+	const pending = cache.readonlyInFlight.size;
+	cache.readonlyResults.clear();
+	cache.readonlyInFlight.clear();
+	cache.version += 1;
+	cache.invalidations += 1;
+	Log("Info", `[CodingAgent] tool cache invalidated reason=${reason} cleared=${size} pending=${pending} invalidations=${cache.invalidations}`);
 }
 
 function clearPreExecutedResults(shared: AgentShared): void {
@@ -2158,6 +2345,12 @@ function getAllowedToolsForRole(role: AgentRole): AgentToolName[] {
 }
 
 function buildDecisionToolSchema(shared: AgentShared) {
+	if (
+		shared.promptCache.decisionToolSchema !== undefined
+		&& shared.promptCache.decisionToolSchemaRole === shared.role
+	) {
+		return shared.promptCache.decisionToolSchema;
+	}
 	const allowed = getAllowedToolsForRole(shared.role);
 	const tools = [
 		createFunctionToolSchema(
@@ -2257,7 +2450,10 @@ function buildDecisionToolSchema(shared: AgentShared) {
 			["title", "prompt"]
 		),
 	];
-	return tools.filter(tool => allowed.indexOf(tool.function.name as AgentToolName) >= 0);
+	const filtered = tools.filter(tool => allowed.indexOf(tool.function.name as AgentToolName) >= 0);
+	shared.promptCache.decisionToolSchema = filtered;
+	shared.promptCache.decisionToolSchemaRole = shared.role;
+	return filtered;
 }
 
 function buildAgentSystemPrompt(shared: AgentShared, includeToolDefinitions = false): string {
@@ -3391,6 +3587,9 @@ class DeleteFileAction extends Node<AgentShared> {
 					files: result.files,
 				});
 			}
+			if (last.result && last.result.success === true) {
+				invalidateReadOnlyToolCache(shared, "delete_file");
+			}
 		}
 		persistHistoryState(shared);
 		await maybeCompressHistory(shared);
@@ -3423,6 +3622,7 @@ class BuildAction extends Node<AgentShared> {
 			appendToolResultMessage(shared, last);
 			emitAgentFinishEvent(shared, last);
 		}
+		invalidateReadOnlyToolCache(shared, "build");
 		persistHistoryState(shared);
 		await maybeCompressHistory(shared);
 		persistHistoryState(shared);
@@ -3699,6 +3899,9 @@ class EditFileAction extends Node<AgentShared> {
 					files: result.files,
 				});
 			}
+			if (last.result && last.result.success === true) {
+				invalidateReadOnlyToolCache(shared, last.tool);
+			}
 		}
 		persistHistoryState(shared);
 		await maybeCompressHistory(shared);
@@ -3727,7 +3930,7 @@ function emitCheckpointEventForAction(shared: AgentShared, action: AgentActionRe
 	}
 }
 
-async function executeToolAction(shared: AgentShared, action: AgentActionRecord): Promise<Record<string, unknown>> {
+async function executeToolActionUncached(shared: AgentShared, action: AgentActionRecord): Promise<Record<string, unknown>> {
 	if (shared.stopToken.stopped) {
 		return { success: false, message: getCancelledReason(shared) };
 	}
@@ -3875,6 +4078,47 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 		});
 	}
 	return { success: false, message: `${action.tool} cannot be executed as a batched tool` };
+}
+
+async function executeToolAction(shared: AgentShared, action: AgentActionRecord): Promise<Record<string, unknown>> {
+	if (shared.stopToken.stopped) {
+		return { success: false, message: getCancelledReason(shared) };
+	}
+	if (!isCacheableReadOnlyTool(action.tool)) {
+		const result = await executeToolActionUncached(shared, action);
+		if (shouldInvalidateToolCacheAfterResult(action.tool, result)) {
+			invalidateReadOnlyToolCache(shared, action.tool);
+		}
+		return result;
+	}
+
+	const cacheKey = createToolActionCacheKey(shared, action);
+	const cached = getCachedToolActionResult(shared, action, cacheKey);
+	if (cached !== undefined) {
+		return cached;
+	}
+
+	const pending = shared.toolCache.readonlyInFlight.get(cacheKey);
+	if (pending !== undefined) {
+		shared.toolCache.pendingHits += 1;
+		Log("Info", `[CodingAgent] tool cache pending-hit tool=${action.tool} pending_hits=${shared.toolCache.pendingHits}`);
+		const pendingResult = await pending;
+		return cloneToolCacheResult(pendingResult);
+	}
+
+	shared.toolCache.misses += 1;
+	const cacheVersion = shared.toolCache.version;
+	const promise = executeToolActionUncached(shared, action);
+	shared.toolCache.readonlyInFlight.set(cacheKey, promise);
+	try {
+		const result = await promise;
+		if (shared.toolCache.version === cacheVersion) {
+			rememberToolActionResult(shared, action, cacheKey, result);
+		}
+		return cloneToolCacheResult(result);
+	} finally {
+		shared.toolCache.readonlyInFlight.delete(cacheKey);
+	}
 }
 
 function sanitizeToolActionResultForHistory(action: AgentActionRecord, result: Record<string, unknown>): Record<string, unknown> {
@@ -4261,6 +4505,8 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 		onEvent: options.onEvent,
 		promptPack,
 		history: [],
+		toolCache: createAgentToolCache(),
+		promptCache: {},
 		messages: persistedSession.messages,
 		lastConsolidatedIndex: persistedSession.lastConsolidatedIndex,
 		carryMessageIndex: persistedSession.carryMessageIndex,
