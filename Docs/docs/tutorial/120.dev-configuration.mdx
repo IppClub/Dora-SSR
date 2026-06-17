@@ -43,12 +43,12 @@ The platform library scripts under `Tools/build-scripts` build the native depend
 
 2. Build native dependencies.
 	```bat
-	Tools\build-scripts\build_lib_windows.bat
+	Tools\build-scripts\build_lib_windows.bat debug
 	```
 
 3. Build the Windows runtime and solution.
 	```bat
-	Tools\build-scripts\build_windows.bat
+	Tools\build-scripts\build_windows.bat debug
 	```
 
 4. For local debugging, open **Projects/Windows/Dora.sln** in Visual Studio and run the `Debug` configuration.
@@ -60,7 +60,7 @@ The platform library scripts under `Tools/build-scripts` build the native depend
 
 2. Build native dependencies.
 	```sh
-	Tools/build-scripts/build_lib_macos.sh
+	Tools/build-scripts/build_lib_macos.sh debug
 	```
 
 3. Generate Lua bindings.
@@ -83,7 +83,7 @@ The platform library scripts under `Tools/build-scripts` build the native depend
 
 2. Build native dependencies.
 	```sh
-	Tools/build-scripts/build_lib_ios.sh
+	Tools/build-scripts/build_lib_ios.sh debug
 	```
 
 3. Generate Lua bindings.
@@ -128,7 +128,7 @@ Local Android builds require **JDK 17** in addition to **Android Studio**.
 
 3. Build native dependencies for Android ABIs.
 	```sh
-	Tools/build-scripts/build_lib_android.sh
+	Tools/build-scripts/build_lib_android.sh debug
 	```
 
 4. Build the Android app locally.
@@ -196,7 +196,7 @@ Local Linux builds use the vendored SDL2 source and SDL's upstream CMake detecti
 2. Run the compile script for the current architecture. It automatically builds SDL2, bgfx, and the Rust runtime before compiling the engine.
 
 	```sh
-	Tools/build-scripts/build_linux.sh
+	Tools/build-scripts/build_linux.sh debug
 	```
 
 3. Run the generated software.

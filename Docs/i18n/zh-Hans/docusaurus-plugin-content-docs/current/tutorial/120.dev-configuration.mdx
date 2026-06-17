@@ -42,12 +42,12 @@ git clone https://gitcode.com/ippclub/Dora-SSR.git
 
 2. 构建原生依赖库。
 	```bat
-	Tools\build-scripts\build_lib_windows.bat
+	Tools\build-scripts\build_lib_windows.bat debug
 	```
 
 3. 构建 Windows 运行时与解决方案。
 	```bat
-	Tools\build-scripts\build_windows.bat
+	Tools\build-scripts\build_windows.bat debug
 	```
 
 4. 如果需要本地调试，可在 Visual Studio 中打开 **Projects/Windows/Dora.sln**，运行 `Debug` 配置。
@@ -59,7 +59,7 @@ git clone https://gitcode.com/ippclub/Dora-SSR.git
 
 2. 构建原生依赖库。
 	```sh
-	Tools/build-scripts/build_lib_macos.sh
+	Tools/build-scripts/build_lib_macos.sh debug
 	```
 
 3. 生成 Lua 绑定。
@@ -82,7 +82,7 @@ git clone https://gitcode.com/ippclub/Dora-SSR.git
 
 2. 构建原生依赖库。
 	```sh
-	Tools/build-scripts/build_lib_ios.sh
+	Tools/build-scripts/build_lib_ios.sh debug
 	```
 
 3. 生成 Lua 绑定。
@@ -127,7 +127,7 @@ Android 本地构建除了 **Android Studio** 外，还需要 **JDK 17**。
 
 3. 构建 Android 各 ABI 对应的原生依赖库。
 	```sh
-	Tools/build-scripts/build_lib_android.sh
+	Tools/build-scripts/build_lib_android.sh debug
 	```
 
 4. 本地构建 Android 应用。
@@ -195,7 +195,7 @@ Linux 本地构建会使用仓库内置的 SDL2 源码，并交给 SDL 原版 CM
 2. 运行当前架构的编译脚本。它会在构建引擎前自动构建 SDL2、bgfx 和 Rust runtime。
 
 	```sh
-	Tools/build-scripts/build_linux.sh
+	Tools/build-scripts/build_linux.sh debug
 	```
 
 3. 运行生成的软件。
