@@ -34,14 +34,14 @@ git clone https://gitcode.com/ippclub/Dora-SSR.git
 
 Please select the target platform you want to build for.
 
-The platform library scripts under `Tools/build-scripts` build the native dependencies required by the engine, including SDL2, bgfx, the Rust runtime, and the Wa native runtime. You normally do not need to enter `Source/3rdParty/bgfx` and build bgfx manually.
+For the fastest local desktop loop, use the `run_*` scripts where available. They check the required native dependency outputs and build the full dependency set automatically when any dependency is missing. The platform library scripts under `Tools/build-scripts` build the native dependencies required by the engine, including SDL2, bgfx, the Rust runtime, and the Wa native runtime. You normally do not need to enter `Source/3rdParty/bgfx` and build bgfx manually.
 
 <Tabs groupId="platform-select">
 <TabItem value="windows" label="Windows">
 
-1. Install **Go 1.24 or later**, **Rust**, **xmake**, and **Visual Studio Community 2026** with MSBuild tools, matching the Windows GitHub Actions build environment.
+1. Install [Go 1.24 or later](https://go.dev/dl/), [Rust](https://www.rust-lang.org/tools/install), [xmake](https://xmake.io/#/guide/installation), and [Visual Studio Community 2026](https://visualstudio.microsoft.com/vs/community/) with MSBuild tools, matching the Windows GitHub Actions build environment.
 
-2. Install a 32-bit MinGW toolchain for Go cgo when building the Wa runtime DLL. The CI build uses MSYS2 MINGW32; run this from an MSYS2 MINGW32 shell:
+2. Install [MSYS2](https://www.msys2.org/) and a 32-bit [MinGW-w64](https://www.mingw-w64.org/) toolchain for Go cgo when building the Wa runtime DLL. The CI build uses MSYS2 MINGW32; run this from an MSYS2 MINGW32 shell:
 	```sh
 	pacman -S --needed mingw-w64-i686-gcc
 	```
@@ -52,103 +52,63 @@ The platform library scripts under `Tools/build-scripts` build the native depend
 	set CC=C:\msys64\mingw32\bin\gcc.exe
 	```
 
-3. Build native dependencies.
+3. Build and run the local debug runtime.
 	```bat
-	Tools\build-scripts\build_lib_windows.bat debug
+	Tools\build-scripts\run_windows.bat
 	```
 
-4. Build the Windows runtime and solution.
-	```bat
-	Tools\build-scripts\build_windows.bat debug
-	```
-
-5. For local debugging, open **Projects/Windows/Dora.sln** in Visual Studio and run the `Debug` configuration.
+4. For local debugging, open **Projects/Windows/Dora.sln** in Visual Studio and run the `Debug` configuration.
 
 </TabItem>
 <TabItem value="macos" label="macOS">
 
-1. Install **Go 1.24 or later**, **Rust**, **xmake**, and the latest **Xcode**.
+1. Install [Go 1.24 or later](https://go.dev/dl/), [Rust](https://www.rust-lang.org/tools/install), [xmake](https://xmake.io/#/guide/installation), and the latest [Xcode](https://developer.apple.com/xcode/).
 
-2. Build native dependencies.
+2. Build and run the local debug runtime.
 	```sh
-	Tools/build-scripts/build_lib_macos.sh debug
+	Tools/build-scripts/run_macos.sh
 	```
 
-3. Generate Lua bindings.
-	```sh
-	cd Tools/tolua++
-	./build.sh
-	```
-
-4. Build and run the app locally.
-	```sh
-	xcodebuild ARCHS=x86_64 ONLY_ACTIVE_ARCH=NO -project Projects/macOS/Dora.xcodeproj -target Dora -configuration Debug
-	```
-
-5. For IDE debugging, open **Projects/macOS/Dora.xcodeproj** in Xcode and run the `Dora` target.
+3. For IDE debugging, open **Projects/macOS/Dora.xcodeproj** in Xcode and run the `Dora` target.
 
 </TabItem>
 <TabItem value="ios" label="iOS">
 
-1. Install **Go 1.24 or later**, **Rust**, **xmake**, and the latest **Xcode**.
+1. Install [Go 1.24 or later](https://go.dev/dl/), [Rust](https://www.rust-lang.org/tools/install), [xmake](https://xmake.io/#/guide/installation), and the latest [Xcode](https://developer.apple.com/xcode/).
 
-2. Build native dependencies.
+2. Build the iOS native dependencies.
 	```sh
 	Tools/build-scripts/build_lib_ios.sh debug
 	```
 
-3. Generate Lua bindings.
-	```sh
-	cd Tools/tolua++
-	./build.sh
-	```
-
-4. Build the simulator target.
+3. Build the simulator target.
 	```sh
 	xcodebuild ARCHS=arm64 ONLY_ACTIVE_ARCH=NO -project Projects/iOS/Dora.xcodeproj -configuration Debug -target Simulator -sdk iphonesimulator
 	```
 
-5. For IDE debugging, open **Projects/iOS/Dora.xcodeproj** in Xcode and run the `Simulator` target.
+4. For IDE debugging, open **Projects/iOS/Dora.xcodeproj** in Xcode and run the `Simulator` target.
 
 </TabItem>
 <TabItem value="android" label="Android">
 
 :::tip
-Local Android builds require **JDK 17** in addition to **Android Studio**. The Wa Android AAR is built with Go and gomobile; the build script installs the pinned gomobile version automatically if it is missing.
+Local Android builds require [JDK 17](https://adoptium.net/temurin/releases/?version=17) in addition to [Android Studio](https://developer.android.com/studio). The Wa Android AAR is built with Go and gomobile; the build script installs the pinned gomobile version automatically if it is missing.
 :::
 
-1. Install **Go 1.24 or later**, **Rust**, **xmake**, and the latest **Android Studio**.
+1. Install [Go 1.24 or later](https://go.dev/dl/), [Rust](https://www.rust-lang.org/tools/install), [xmake](https://xmake.io/#/guide/installation), and the latest Android Studio.
 
-2. Generate Lua bindings first.
-	```sh
-	# Build on Ubuntu
-	sudo apt-get install lua5.1
-	sudo apt-get install -y luarocks
-	sudo luarocks install luafilesystem
-	cd Tools/tolua++
-	lua tolua++.lua
-
-	# Build on macOS
-	cd Tools/tolua++
-	./build.sh
-
-	# Build on Windows
-	cd Tools\tolua++
-	build.bat
-	```
-
-3. Build native dependencies for Android ABIs.
+2. Build the Android native dependencies.
 	```sh
 	Tools/build-scripts/build_lib_android.sh debug
 	```
 
-4. Build the Android app locally.
+3. Build the Android app locally.
 	```sh
 	cd Projects/Android/Dora
 	./gradlew assembleDebug
 	```
 
-5. For IDE debugging, open **Projects/Android/Dora** in Android Studio and run the `app` module.
+4. For IDE debugging, open **Projects/Android/Dora** in Android Studio and run the `app` module.
 
 </TabItem>
 <TabItem value="linux" label="Linux">
@@ -157,7 +117,7 @@ Local Android builds require **JDK 17** in addition to **Android Studio**. The W
 Local Linux builds use the vendored SDL2 source and SDL's upstream CMake detection. Install the development packages for the backends you want to enable, such as X11, Wayland, ALSA, PulseAudio, PipeWire, DBus, udev, and KMSDRM.
 :::
 
-1. Install **Go 1.24 or later**, **Rust**, and **xmake**.
+1. Install [Go 1.24 or later](https://go.dev/dl/), [Rust](https://www.rust-lang.org/tools/install), and [xmake](https://xmake.io/#/guide/installation).
 
 <Tabs groupId="linux-distribution-select">
 <TabItem value="ubuntu" label="Ubuntu/Debian">
@@ -204,7 +164,7 @@ Local Linux builds use the vendored SDL2 source and SDL's upstream CMake detecti
 </TabItem>
 </Tabs>
 
-2. Run the compile script for the current architecture. It automatically builds SDL2, bgfx, and the Rust runtime before compiling the engine.
+2. Run the compile script for the current architecture. It automatically builds SDL2, bgfx, the Rust runtime, and the Wa native runtime before compiling the engine.
 
 	```sh
 	Tools/build-scripts/build_linux.sh debug
@@ -226,9 +186,11 @@ Local Linux builds use the vendored SDL2 source and SDL's upstream CMake detecti
 
 1. Compile and run the Dora SSR engine.
 
-2. Install the latest version of **Node.js** and **pnpm**.
+2. Install the latest version of [Node.js](https://nodejs.org/) and [pnpm](https://pnpm.io/installation).
 
-3. Initialize the Dora Dora editor. Use `pnpm start` for development, or `pnpm build` to generate the Web IDE release files and sync them to `Assets/www`.
+3. Initialize the Dora Dora editor. Use `pnpm start` for development.
+
+	When you need the engine runtime to serve the updated Web IDE, run `pnpm build`. It creates the production Web IDE static files and syncs them to `Assets/www`.
 
 	Please select your platform.
 
@@ -273,3 +235,32 @@ Local Linux builds use the vendored SDL2 source and SDL's upstream CMake detecti
 
 </TabItem>
 </Tabs>
+
+## 4. Runtime and Dependency Build Flow
+
+```mermaid
+flowchart TD
+	A["Choose build entry"] --> B{"Entry type"}
+	B -->|"run_macos.sh / run_windows.bat"| C["Check local tools"]
+	C --> D["Build full dependencies if any native output is missing"]
+	D --> E["Build Rust runtime"]
+	E --> F["Build platform app in Debug"]
+	F --> G["Stop old Dora runtime and launch with Assets"]
+
+	B -->|"build_lib scripts"| H["Check full dependency tools"]
+	H --> I["Build SDL2 from Source/3rdParty/SDL2"]
+	I --> J["Build bgfx, bx, and bimg"]
+	J --> K["Build Wa native runtime with Go and cgo"]
+	K --> L["Build Rust runtime with cargo"]
+	L --> M["Write platform native libraries"]
+
+	B -->|"build scripts"| N["Build dependencies as needed"]
+	N --> O["Refresh Lua bindings when required"]
+	O --> P["Build or package the platform app"]
+```
+
+The `run_macos.sh` and `run_windows.bat` scripts are the shortest local desktop development path: they check the required tools, verify the SDL2, bgfx, and Wa native outputs, build the full dependency set if any required output is missing, rebuild the Rust runtime and app project, stop any old Dora process, and launch the debug runtime with the repository `Assets` directory.
+
+The `build_lib_*` scripts are dependency builders. They are used when native libraries are missing, stale, or being prepared for CI and release builds. These scripts are responsible for SDL2, bgfx/bx/bimg, the Wa native runtime, and the Rust runtime.
+
+The platform `build_*` scripts are higher-level build wrappers. They call dependency build steps where appropriate, refresh Lua bindings when the platform build requires it, and then build the platform app with the native build system such as MSBuild, Xcode, Make, or Gradle.
