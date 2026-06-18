@@ -49,16 +49,16 @@ jobs:
           corepack enable
           cd Tools/dora-dora && pnpm install && pnpm build && cd ../..
           cd Assets/www && zip -vr ../../web-ide-files.zip . && cd ../..
-          cd $GITHUB_WORKSPACE
+          cd "$GITHUB_WORKSPACE"
           cp Tools/dora-wa/wa.mod Assets/dora-wa
           cp -r Tools/dora-wa/vendor Assets/dora-wa
           Tools/tolua++/build.sh
           Tools/build-scripts/build_macos.sh release
           cd Projects/macOS/build/Release/dora.xcarchive/Products/Applications
           zip -vr Dora.zip Dora.app
-          mv Dora.zip $GITHUB_WORKSPACE/dora-ssr-${{ github.ref_name }}-macos-universal.zip
+          mv Dora.zip "$GITHUB_WORKSPACE/dora-ssr-${{ github.ref_name }}-macos-universal.zip"
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
@@ -66,3 +66,45 @@ jobs:
             web-ide-files.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Check Homebrew tap token
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        run: |
+          if [ -z "$HOMEBREW_TAP_TOKEN" ]; then
+            echo "::error::Missing HOMEBREW_TAP_TOKEN secret. It must have write access to IppClub/homebrew-tap."
+            exit 1
+          fi
+      - name: Checkout Homebrew tap
+        uses: actions/checkout@v4
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          repository: IppClub/homebrew-tap
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: homebrew-tap
+      - name: Update Homebrew cask
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          DORA_VERSION: ${{ github.ref_name }}
+          HOMEBREW_PACKAGE: dora-ssr-${{ github.ref_name }}-macos-universal.zip
+        run: |
+          set -euo pipefail
+
+          version="${DORA_VERSION#v}"
+          sha256="$(shasum -a 256 "$HOMEBREW_PACKAGE" | awk '{print $1}')"
+          cask="homebrew-tap/Casks/dora-ssr.rb"
+          cask_path="Casks/dora-ssr.rb"
+
+          DORA_VERSION="$version" DORA_SHA256="$sha256" ruby -0pi -e 'version = ENV.fetch("DORA_VERSION"); sha256 = ENV.fetch("DORA_SHA256"); gsub(/version "[^"]+"/, "version \"#{version}\""); gsub(/sha256 "[a-fA-F0-9]+"/, "sha256 \"#{sha256}\"")' "$cask"
+
+          git -C homebrew-tap diff -- "$cask_path"
+          if git -C homebrew-tap diff --quiet -- "$cask_path"; then
+            echo "Homebrew cask is already up to date."
+            exit 0
+          fi
+
+          git -C homebrew-tap config user.name "github-actions[bot]"
+          git -C homebrew-tap config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C homebrew-tap add "$cask_path"
+          git -C homebrew-tap commit -m "Update Dora SSR to ${DORA_VERSION}"
+          git -C homebrew-tap push
