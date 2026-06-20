@@ -48,24 +48,23 @@ export function bar(): void;
 
 &emsp;&emsp;通过这种方式，你可以在 TypeScript 中无缝调用 Lua 代码，同时保持类型检查的优势。
 
-## 2. 使用 dora-cli 管理外部 TypeScript 项目
+## 2. 使用引擎内置 CLI 模式管理外部 TypeScript 项目
 
-&emsp;&emsp;如果你是在 Dora SSR 的 Web IDE 之外开发 TypeScript 项目，也可以使用 [dora-cli](https://github.com/IppClub/Dora-SSR/tree/main/Tools/dora-cli) 来初始化项目、构建代码，并连接到一个正在运行的 Dora SSR 实例执行它。
+&emsp;&emsp;如果你是在 Dora SSR 的 Web IDE 之外开发 TypeScript 项目，请先启动 Dora SSR 并保持 Web IDE 已连接，然后使用引擎内置 CLI 模式来初始化项目、构建代码，并连接到正在运行的 Dora SSR 实例执行它。如果需要，请将 `Dora` 替换为实际的 Dora 可执行文件路径。
 
 ##### 典型工作流：
 
 ```sh
-uv tool install Dora-SSR/Tools/dora-cli
 cd your-ts-project
-dora ts init -l en
-dora ts build
-dora ts run --host 192.168.3.1
+Dora cli init -l en
+Dora cli build --host 192.168.3.1
+Dora cli run --host 192.168.3.1
 ```
 
 &emsp;&emsp;如果项目较大，也可以只构建并运行改动的目标文件，以加快迭代速度：
 
 ```sh
-dora ts buildrun -f src/module.ts --host 192.168.3.1
+Dora cli buildrun -f src/module.ts --host 192.168.3.1
 ```
 
 &emsp;&emsp;其中 `--host` 参数应填写 Dora SSR Web IDE 启动后显示的地址。

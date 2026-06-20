@@ -16,7 +16,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Director.h"
 #include "Common/Async.h"
 #include "Event/Event.h"
+#include "Http/XrtHttpClient.h"
 #include "Input/Controller.h"
+#include "Lua/ToLua/tolua++.h"
 
 #include "Other/utf8.h"
 
@@ -27,6 +29,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <chrono>
 #include <cstdlib>
 #include <ctime>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
 #include <thread>
 
 #define DORA_VERSION "1.8.0"_slice
@@ -72,6 +77,370 @@ extern "C" JNIEnv* Android_JNI_GetEnv();
 #endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_LINUX
 
 NS_DORA_BEGIN
+
+namespace {
+
+namespace fs = std::filesystem;
+
+extern "C" {
+int luaopen_yue(lua_State* L);
+int luaopen_colibc_json(lua_State* L);
+} // extern "C"
+
+struct CliLuaState {
+	lua_State* L = nullptr;
+	~CliLuaState() {
+		if (L) lua_close(L);
+	}
+};
+
+bool isCliRequested(int argc, char* argv[]) {
+	return argc >= 2 && std::string_view(argv[1]) == "cli";
+}
+
+std::string cliGetString(lua_State* L, int index) {
+	size_t len = 0;
+	auto str = luaL_checklstring(L, index, &len);
+	return {str, len};
+}
+
+fs::path cliAbsolutePath(const fs::path& path, const fs::path& base = fs::current_path()) {
+	return fs::absolute(path.is_relative() ? base / path : path).lexically_normal();
+}
+
+void cliPushFileError(lua_State* L, const std::string& message) {
+	lua_pushnil(L);
+	lua_pushlstring(L, message.c_str(), message.size());
+}
+
+int cliLuaCwd(lua_State* L) {
+	auto path = fs::current_path().string();
+	lua_pushlstring(L, path.c_str(), path.size());
+	return 1;
+}
+
+int cliLuaEnv(lua_State* L) {
+	auto name = cliGetString(L, 1);
+	if (auto value = std::getenv(name.c_str())) {
+		lua_pushstring(L, value);
+	} else if (lua_gettop(L) >= 2) {
+		lua_pushvalue(L, 2);
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+int cliLuaAbsolute(lua_State* L) {
+	auto path = fs::path(cliGetString(L, 1));
+	auto base = lua_gettop(L) >= 2 && !lua_isnil(L, 2) ? fs::path(cliGetString(L, 2)) : fs::current_path();
+	auto result = cliAbsolutePath(path, base).string();
+	lua_pushlstring(L, result.c_str(), result.size());
+	return 1;
+}
+
+int cliLuaExists(lua_State* L) {
+	std::error_code err;
+	lua_pushboolean(L, fs::exists(cliGetString(L, 1), err));
+	return 1;
+}
+
+int cliLuaIsDir(lua_State* L) {
+	std::error_code err;
+	lua_pushboolean(L, fs::is_directory(cliGetString(L, 1), err));
+	return 1;
+}
+
+int cliLuaIsFile(lua_State* L) {
+	std::error_code err;
+	lua_pushboolean(L, fs::is_regular_file(cliGetString(L, 1), err));
+	return 1;
+}
+
+int cliLuaMkdirs(lua_State* L) {
+	std::error_code err;
+	fs::create_directories(cliGetString(L, 1), err);
+	lua_pushboolean(L, !err);
+	if (err) lua_pushstring(L, err.message().c_str());
+	return err ? 2 : 1;
+}
+
+int cliLuaReadFile(lua_State* L) {
+	auto path = cliGetString(L, 1);
+	std::ifstream in(path, std::ios::binary);
+	if (!in) {
+		cliPushFileError(L, "failed to read file: " + path);
+		return 2;
+	}
+	std::string content((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+	lua_pushlstring(L, content.data(), content.size());
+	return 1;
+}
+
+int cliLuaWriteFile(lua_State* L) {
+	auto path = fs::path(cliGetString(L, 1));
+	size_t len = 0;
+	auto data = luaL_checklstring(L, 2, &len);
+	if (auto parent = path.parent_path(); !parent.empty()) {
+		std::error_code err;
+		fs::create_directories(parent, err);
+		if (err) {
+			lua_pushboolean(L, false);
+			lua_pushstring(L, err.message().c_str());
+			return 2;
+		}
+	}
+	std::ofstream out(path, std::ios::binary);
+	if (!out) {
+		lua_pushboolean(L, false);
+		lua_pushstring(L, ("failed to write file: " + path.string()).c_str());
+		return 2;
+	}
+	out.write(data, s_cast<std::streamsize>(len));
+	lua_pushboolean(L, true);
+	return 1;
+}
+
+int cliLuaListDir(lua_State* L) {
+	auto path = cliGetString(L, 1);
+	std::error_code err;
+	if (!fs::is_directory(path, err)) {
+		lua_newtable(L);
+		return 1;
+	}
+	lua_newtable(L);
+	int i = 1;
+	for (const auto& entry : fs::directory_iterator(path, err)) {
+		if (err) break;
+		lua_newtable(L);
+		auto name = entry.path().filename().string();
+		auto fullPath = entry.path().string();
+		lua_pushlstring(L, name.c_str(), name.size());
+		lua_setfield(L, -2, "name");
+		lua_pushlstring(L, fullPath.c_str(), fullPath.size());
+		lua_setfield(L, -2, "path");
+		lua_pushboolean(L, entry.is_directory());
+		lua_setfield(L, -2, "isDir");
+		lua_pushboolean(L, entry.is_regular_file());
+		lua_setfield(L, -2, "isFile");
+		lua_rawseti(L, -2, i++);
+	}
+	return 1;
+}
+
+int cliLuaMTime(lua_State* L) {
+	std::error_code err;
+	auto time = fs::last_write_time(cliGetString(L, 1), err);
+	lua_pushnumber(L, err ? 0.0 : s_cast<lua_Number>(time.time_since_epoch().count()));
+	return 1;
+}
+
+int cliLuaSystem(lua_State* L) {
+	auto command = cliGetString(L, 1);
+	fs::path cwd;
+	bool hasCwd = lua_gettop(L) >= 2 && !lua_isnil(L, 2);
+	if (hasCwd) cwd = cliGetString(L, 2);
+	auto oldPath = fs::current_path();
+	if (hasCwd) fs::current_path(cwd);
+	int result = std::system(command.c_str());
+	if (hasCwd) fs::current_path(oldPath);
+	lua_pushinteger(L, result);
+	return 1;
+}
+
+int cliLuaHttp(lua_State* L) {
+	auto method = cliGetString(L, 1);
+	auto url = cliGetString(L, 2);
+	std::vector<std::string> names;
+	std::vector<std::string> values;
+	if (lua_istable(L, 3)) {
+		lua_pushnil(L);
+		while (lua_next(L, 3) != 0) {
+			size_t keyLen = 0;
+			size_t valueLen = 0;
+			auto key = luaL_tolstring(L, -2, &keyLen);
+			auto value = luaL_tolstring(L, -2, &valueLen);
+			names.emplace_back(key, keyLen);
+			values.emplace_back(value, valueLen);
+			lua_pop(L, 3);
+		}
+	}
+	size_t bodyLen = 0;
+	auto body = lua_gettop(L) >= 4 && !lua_isnil(L, 4) ? luaL_checklstring(L, 4, &bodyLen) : nullptr;
+	auto timeout = lua_gettop(L) >= 5 && !lua_isnil(L, 5) ? luaL_checknumber(L, 5) : 10.0;
+	std::vector<const char*> headerNames;
+	std::vector<const char*> headerValues;
+	headerNames.reserve(names.size());
+	headerValues.reserve(values.size());
+	for (const auto& name : names) headerNames.push_back(name.c_str());
+	for (const auto& value : values) headerValues.push_back(value.c_str());
+	std::string responseBody;
+	int statusCode = 0;
+	auto status = DoraXrtHttpExecuteStream(
+		method.c_str(),
+		url.c_str(),
+		headerNames.data(),
+		headerValues.data(),
+		headerNames.size(),
+		body,
+		bodyLen,
+		s_cast<unsigned int>(timeout * 1000.0),
+		0,
+		nullptr,
+		nullptr,
+		[](const char* data, size_t dataLen, size_t, size_t, void* userData) {
+			auto body = s_cast<std::string*>(userData);
+			body->append(data, dataLen);
+			return 0;
+		},
+		&responseBody,
+		&statusCode);
+	lua_newtable(L);
+	lua_pushinteger(L, status);
+	lua_setfield(L, -2, "netStatus");
+	lua_pushstring(L, DoraXrtHttpStatusName(status));
+	lua_setfield(L, -2, "netStatusName");
+	lua_pushinteger(L, statusCode);
+	lua_setfield(L, -2, "statusCode");
+	lua_pushlstring(L, responseBody.data(), responseBody.size());
+	lua_setfield(L, -2, "body");
+	return 1;
+}
+
+void cliSetFunc(lua_State* L, const char* name, lua_CFunction func) {
+	lua_pushcfunction(L, func);
+	lua_setfield(L, -2, name);
+}
+
+void cliRegisterLua(lua_State* L, int argc, char* argv[], const fs::path& scriptPath) {
+	luaL_openlibs(L);
+	luaL_requiref(L, "json", luaopen_colibc_json, 1);
+	lua_pop(L, 1);
+	luaL_requiref(L, "yue", luaopen_yue, 1);
+	lua_pop(L, 1);
+	lua_getglobal(L, "package");
+	lua_getfield(L, -1, "path");
+	auto packagePath = cliGetString(L, -1);
+	lua_pop(L, 1);
+	auto scriptDir = scriptPath.parent_path().string();
+	auto assetsScriptDir = scriptPath.parent_path().parent_path().string();
+	packagePath = scriptDir + "/?.lua;" + assetsScriptDir + "/?.lua;" + assetsScriptDir + "/?/init.lua;" + packagePath;
+	lua_pushlstring(L, packagePath.c_str(), packagePath.size());
+	lua_setfield(L, -2, "path");
+	lua_pop(L, 1);
+
+	lua_newtable(L); // Dora
+	lua_newtable(L); // Dora.CLI
+	lua_newtable(L); // args
+	for (int i = 2; i < argc; i++) {
+		lua_pushstring(L, argv[i]);
+		lua_rawseti(L, -2, i - 1);
+	}
+	lua_setfield(L, -2, "args");
+	auto path = scriptPath.string();
+	lua_pushlstring(L, path.c_str(), path.size());
+	lua_setfield(L, -2, "scriptPath");
+	cliSetFunc(L, "cwd", cliLuaCwd);
+	cliSetFunc(L, "env", cliLuaEnv);
+	cliSetFunc(L, "absolute", cliLuaAbsolute);
+	cliSetFunc(L, "exists", cliLuaExists);
+	cliSetFunc(L, "isDir", cliLuaIsDir);
+	cliSetFunc(L, "isFile", cliLuaIsFile);
+	cliSetFunc(L, "mkdirs", cliLuaMkdirs);
+	cliSetFunc(L, "readFile", cliLuaReadFile);
+	cliSetFunc(L, "writeFile", cliLuaWriteFile);
+	cliSetFunc(L, "listDir", cliLuaListDir);
+	cliSetFunc(L, "mtime", cliLuaMTime);
+	cliSetFunc(L, "system", cliLuaSystem);
+	cliSetFunc(L, "http", cliLuaHttp);
+	lua_setfield(L, -2, "CLI");
+	lua_setglobal(L, "Dora");
+}
+
+bool cliSkipEntrySearchDir(const fs::path& path) {
+	static const std::unordered_set<std::string> ignoredDirs = {
+		".git", ".svn", ".hg", "build", "dist", "node_modules", "target",
+	};
+	return ignoredDirs.contains(path.filename().string());
+}
+
+std::optional<fs::path> cliFindScriptInRoot(const fs::path& root) {
+	std::error_code err;
+	auto base = fs::weakly_canonical(root, err);
+	if (err) base = root;
+	if (!fs::is_directory(base, err)) return std::nullopt;
+	for (auto it = fs::recursive_directory_iterator(base, fs::directory_options::skip_permission_denied, err); it != fs::recursive_directory_iterator(); it.increment(err)) {
+		if (err) {
+			err.clear();
+			continue;
+		}
+		const auto& entry = *it;
+		if (entry.is_directory(err)) {
+			if (cliSkipEntrySearchDir(entry.path())) {
+				it.disable_recursion_pending();
+			}
+			continue;
+		}
+		if (entry.is_regular_file(err) && entry.path().filename() == "cli.lua") {
+			return fs::weakly_canonical(entry.path(), err);
+		}
+	}
+	return std::nullopt;
+}
+
+std::optional<fs::path> cliFindScript(int argc, char* argv[]) {
+	if (auto script = std::getenv("DORA_CLI_SCRIPT")) {
+		if (*script) return cliAbsolutePath(script);
+	}
+	std::vector<fs::path> candidates = {
+		fs::current_path() / "Assets",
+		fs::current_path(),
+	};
+	if (argc > 0 && argv[0] && *argv[0]) {
+		auto exe = cliAbsolutePath(argv[0]);
+		auto exeDir = exe.parent_path();
+		candidates.push_back(exeDir / "../Resources");
+		candidates.push_back(exeDir / "..");
+	}
+	for (const auto& candidate : candidates) {
+		if (auto script = cliFindScriptInRoot(candidate)) {
+			return script;
+		}
+	}
+	return std::nullopt;
+}
+
+int runCliApplication(int argc, char* argv[]) {
+	auto scriptPath = cliFindScript(argc, argv);
+	if (!scriptPath) {
+		std::cerr << "Dora CLI script cli.lua not found. Set DORA_CLI_SCRIPT or run from a Dora asset root.\n";
+		return 1;
+	}
+	CliLuaState state{luaL_newstate()};
+	if (!state.L) {
+		std::cerr << "Failed to create Lua state for Dora CLI.\n";
+		return 1;
+	}
+	cliRegisterLua(state.L, argc, argv, *scriptPath);
+	auto path = scriptPath->string();
+	if (luaL_loadfile(state.L, path.c_str()) != LUA_OK) {
+		std::cerr << lua_tostring(state.L, -1) << "\n";
+		return 1;
+	}
+	if (lua_pcall(state.L, 0, 1, 0) != LUA_OK) {
+		std::cerr << lua_tostring(state.L, -1) << "\n";
+		return 1;
+	}
+	int exitCode = 0;
+	if (lua_isinteger(state.L, -1)) {
+		exitCode = s_cast<int>(lua_tointeger(state.L, -1));
+	} else if (lua_isboolean(state.L, -1)) {
+		exitCode = lua_toboolean(state.L, -1) ? 0 : 1;
+	}
+	return exitCode;
+}
+
+} // namespace
 
 bool BGFXDora::init(const bgfx::PlatformData& data) {
 	bgfx::Init init{};
@@ -902,6 +1271,11 @@ NS_DORA_END
 #if BX_PLATFORM_OSX || BX_PLATFORM_ANDROID || BX_PLATFORM_IOS || BX_PLATFORM_LINUX
 #ifndef DORA_AS_LIB
 int main(int argc, char* argv[]) {
+	if (Dora::isCliRequested(argc, argv)) {
+		int exitCode = Dora::runCliApplication(argc, argv);
+		Dora::Life::destroy(Slice::Empty);
+		return exitCode;
+	}
 	int exitCode = SharedApplication.run();
 	Dora::Life::destroy(Slice::Empty);
 	return exitCode;
@@ -946,6 +1320,31 @@ int CALLBACK WinMain(
 #if DORA_WIN_CONSOLE
 	SharedConsole.init();
 #endif
+	int argc = 0;
+	LPWSTR* argvW = CommandLineToArgvW(GetCommandLineW(), &argc);
+	std::vector<std::string> argvStorage;
+	std::vector<char*> argv;
+	if (argvW) {
+		argvStorage.reserve(s_cast<size_t>(argc));
+		argv.reserve(s_cast<size_t>(argc));
+		for (int i = 0; i < argc; i++) {
+			int len = WideCharToMultiByte(CP_UTF8, 0, argvW[i], -1, nullptr, 0, nullptr, nullptr);
+			std::string item(s_cast<size_t>(len > 0 ? len - 1 : 0), '\0');
+			if (len > 0) {
+				WideCharToMultiByte(CP_UTF8, 0, argvW[i], -1, item.data(), len, nullptr, nullptr);
+			}
+			argvStorage.push_back(std::move(item));
+		}
+		LocalFree(argvW);
+		for (auto& item : argvStorage) {
+			argv.push_back(item.data());
+		}
+	}
+	if (!argv.empty() && Dora::isCliRequested(argc, argv.data())) {
+		int exitCode = Dora::runCliApplication(argc, argv.data());
+		Dora::Life::destroy(Slice::Empty);
+		return exitCode;
+	}
 	int exitCode = SharedApplication.run();
 	Dora::Life::destroy(Slice::Empty);
 	return exitCode;

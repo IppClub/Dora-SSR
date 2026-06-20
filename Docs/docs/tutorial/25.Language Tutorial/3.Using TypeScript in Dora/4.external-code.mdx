@@ -48,24 +48,23 @@ export function bar(): void;
 
 In this way, you can seamlessly call Lua code from TypeScript while keeping the benefits of type checking.
 
-## 2. Using dora-cli for External TypeScript Projects
+## 2. Using Built-in Dora CLI Mode for External TypeScript Projects
 
-If you are developing a TypeScript project outside Dora SSR's Web IDE, you can use [dora-cli](https://github.com/IppClub/Dora-SSR/tree/main/Tools/dora-cli) to initialize the project, build it, and run it against a running Dora SSR instance.
+If you are developing a TypeScript project outside Dora SSR's Web IDE, start Dora SSR and keep the Web IDE connected, then use the built-in Dora CLI mode to initialize the project, build it, and run it against the running Dora SSR instance. Replace `Dora` with the path to your Dora executable if it is not on `PATH`.
 
 ##### Typical workflow:
 
 ```sh
-uv tool install Dora-SSR/Tools/dora-cli
 cd your-ts-project
-dora ts init -l en
-dora ts build
-dora ts run --host 192.168.3.1
+Dora cli init -l en
+Dora cli build --host 192.168.3.1
+Dora cli run --host 192.168.3.1
 ```
 
 If your project is large, you can build and run only the changed entry or target file more quickly:
 
 ```sh
-dora ts buildrun -f src/module.ts --host 192.168.3.1
+Dora cli buildrun -f src/module.ts --host 192.168.3.1
 ```
 
 The `--host` parameter should be the address shown by Dora SSR's Web IDE after startup.

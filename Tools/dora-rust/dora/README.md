@@ -151,7 +151,7 @@ English | [简体中文](README.zh-CN.md)
 
     - Upload it to engine to run. From Dora SSR Web IDE, Open the right-click menu of the game resource tree on the created folder `Hello`. Click on the menu item `Upload` and choose the compiled WASM file named `init.wasm` to upload.
 
-    - Or install the unified [dora-cli](https://github.com/IppClub/Dora-SSR/blob/main/Tools/dora-cli) tool with `uv tool install Dora-SSR/Tools/dora-cli` and run `dora rust run Hello --host 192.168.3.1` inside your Rust project folder. The IP address is the Dora SSR Web IDE address.
+    - Or start Dora SSR and its Web IDE, then run the built-in Dora CLI mode inside your Rust project folder: `Dora cli wasm run rust Hello --host 192.168.3.1`. The IP address is the Dora SSR Web IDE address, and `Hello` is an existing destination folder in the Dora SSR resource tree. Replace `Dora` with the path to your Dora executable if it is not on `PATH`.
 
 3. Step 3: Run the game
 
