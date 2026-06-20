@@ -1,0 +1,110 @@
+# Dora CLI Mode
+
+Dora CLI mode is a special execution mode of the Dora engine executable. When the first command-line argument is `cli`, the executable switches from running the normal engine startup flow to running the minimum required Dora game development helper environment.
+
+In this mode, Dora does not start the normal game runtime. It only loads the CLI Lua script and the minimum helper capabilities needed for command-line development tasks. It is intended to work together with a running Dora SSR engine and Web IDE.
+
+CLI mode is supported on Windows, macOS, and Linux only.
+
+Use `Dora` in the examples below as the Dora executable name. If it is not on `PATH`, replace it with the full executable path.
+
+## 1. Start Dora SSR
+
+Start Dora SSR normally and keep the Web IDE available. Most CLI commands call the Web IDE HTTP service, so pass the host shown by the Web IDE if it is not `127.0.0.1`.
+
+```sh
+Dora cli --help
+```
+
+Common connection options:
+
+```sh
+--host 127.0.0.1
+--port 8866
+--timeout 10
+```
+
+## 2. TypeScript and Script Projects
+
+Initialize a TypeScript project with Dora API definitions:
+
+```sh
+Dora cli init -p /path/to/project -l en
+```
+
+Build the project. When the language is not specified, Dora CLI tries to infer it from project files.
+
+```sh
+Dora cli build -p /path/to/project
+Dora cli build --lang ts -p /path/to/project
+Dora cli build -f src/main.ts -p /path/to/project
+```
+
+Run or stop the project:
+
+```sh
+Dora cli run -p /path/to/project
+Dora cli run --entry Script/main.lua -p /path/to/project
+Dora cli stop
+```
+
+Build and run in one command:
+
+```sh
+Dora cli buildrun -p /path/to/project
+Dora cli buildrun -f src/main.ts -p /path/to/project
+```
+
+Supported build languages are `ts`, `yue`, `tl`, `xml`, and `wa`.
+
+## 3. Wa Projects
+
+Create a new Wa project. This writes `wa.mod`, `src/main.wa`, and `vendor/dora` using the Dora engine's current Wa bindings.
+
+```sh
+Dora cli wa init hello_dora --host 127.0.0.1
+cd hello_dora
+```
+
+Update `vendor/dora` later when the engine version changes:
+
+```sh
+Dora cli wa update --host 127.0.0.1
+```
+
+Build only:
+
+```sh
+Dora cli wa build --host 127.0.0.1
+```
+
+Run directly from the external Wa project directory:
+
+```sh
+Dora cli wa run --host 127.0.0.1
+```
+
+Wa projects for Dora SSR should use the Wa compiler integrated in the engine. Do not build Dora Wa projects with a separately installed Wa toolchain.
+
+## 4. Rust WASM Projects
+
+Build a Rust WASM project with the local Rust toolchain:
+
+```sh
+Dora cli rust build -p /path/to/rust-project
+```
+
+Build, upload, and run it in a Dora resource tree folder:
+
+```sh
+Dora cli rust run Hello --host 127.0.0.1 -p /path/to/rust-project
+```
+
+Upload an already-built WASM file, optionally running it after upload:
+
+```sh
+Dora cli rust upload Hello --host 127.0.0.1 -p /path/to/rust-project
+Dora cli rust upload Hello --run --host 127.0.0.1 -p /path/to/rust-project
+```
+
+`Hello` must already exist in the Dora SSR resource tree.

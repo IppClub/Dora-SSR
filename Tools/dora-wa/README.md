@@ -79,15 +79,19 @@ This repo provides language bindings and a testing project to demonstrate Wa-lan
         }
         ```
 
-    - Build it into WASM file.
+    - To compile only, run the build command. This writes `init.wasm` in the Wa project folder.
 
       ```sh
       Dora cli wa build --host 192.168.3.1
       ```
 
-    - Upload it to engine to run. From Dora SSR Web IDE, Open the right-click menu of the game resource tree on the created folder `Hello`. Click on the menu item `Upload` and choose the compiled WASM file named `init.wasm` to upload.
+    - For the normal command-line workflow, run the project directly. This command builds the WASM file and runs it from the Wa project folder.
 
-    - Or start Dora SSR and its Web IDE, then run the built-in Dora CLI mode inside your Wa project folder: `Dora cli wa run Hello --host 192.168.3.1`. The IP address is the Dora SSR Web IDE address, and `Hello` is an existing destination folder in the Dora SSR resource tree. Replace `Dora` with the path to your Dora executable if it is not on `PATH`. This command uses the Wa compiler integrated in the engine.
+      ```sh
+      Dora cli wa run --host 192.168.3.1
+      ```
+
+      The IP address is the Dora SSR Web IDE address. Replace `Dora` with the path to your Dora executable if it is not on `PATH`. This command uses the Wa compiler integrated in the engine.
 
 3. Step 3: Run the game
 

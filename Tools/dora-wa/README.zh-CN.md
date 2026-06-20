@@ -75,15 +75,19 @@
       }
       ```
 
-    - 将其构建成 WASM 文件。
+    - 如果只需要编译检查，可以执行构建命令。该命令会在 Wa 项目目录中生成 `init.wasm`。
 
       ```sh
       Dora cli wa build --host 192.168.3.1
       ```
 
-    - 上传到引擎中运行。在 Dora SSR Web IDE 中，打开游戏资源树中新建目录 `Hello` 的右键菜单，点击 `Upload`，选择编译得到的 `init.wasm` 文件。
+    - 常规命令行工作流可以直接运行项目。该命令会构建 WASM 文件，并从 Wa 项目目录直接运行。
 
-    - 或者先启动 Dora SSR 和 Web IDE，然后在 Wa 项目目录中使用引擎内置 CLI 模式执行 `Dora cli wa run Hello --host 192.168.3.1`。这里的 IP 地址是 Dora SSR Web IDE 的地址，`Hello` 是 Dora SSR 资源树中已存在的目标目录名。如果 `Dora` 不在 `PATH` 中，请替换为实际的 Dora 可执行文件路径。该命令使用引擎内置的 Wa 编译器。
+      ```sh
+      Dora cli wa run --host 192.168.3.1
+      ```
+
+      这里的 IP 地址是 Dora SSR Web IDE 的地址。如果 `Dora` 不在 `PATH` 中，请替换为实际的 Dora 可执行文件路径。该命令使用引擎内置的 Wa 编译器。
 
 3. 第三步：运行游戏
 

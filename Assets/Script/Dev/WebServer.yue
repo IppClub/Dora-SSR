@@ -1940,6 +1940,10 @@ HttpServer\postSchedule "/run", (req): success: false ->
 				return :success, :target, :err
 		else
 			workDir = getProjectDirFromFile file
+			if not workDir and Path\getExt(file) == "wasm"
+				parent = Path\getPath file
+				if Content\exist Path(parent, "wa.mod")
+					workDir = parent
 		Entry.allClear!
 		file = Path\replaceExt file, ""
 		entry =

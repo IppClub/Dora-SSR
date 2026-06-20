@@ -4681,9 +4681,15 @@ HttpServer:postSchedule("/run", function(req) -- 1908
 							err = err -- 1921
 						} -- 1921
 					end -- 1916
-				else -- 1923
-					workDir = getProjectDirFromFile(file) -- 1923
-				end -- 1915
+					else -- 1923
+						workDir = getProjectDirFromFile(file) -- 1923
+						if not workDir and Path:getExt(file) == "wasm" then
+							local parent = Path:getPath(file)
+							if Content:exist(Path(parent, "wa.mod")) then
+								workDir = parent
+							end
+						end
+					end -- 1915
 				Entry.allClear() -- 1924
 				file = Path:replaceExt(file, "") -- 1925
 				local entry = { -- 1927

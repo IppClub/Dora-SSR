@@ -65,8 +65,7 @@ Commands:
   rust run <target-path> [-p project]
   rust upload <target-path> [-p project] [--run]
   wa build [-p project]
-  wa run <target-path> [-p project]
-  wa upload <target-path> [-p project] [--run]
+  wa run [-p project]
   wa init [project] [-p parent]
   wa update [-p project]
 
@@ -596,6 +595,11 @@ local function runRemoteFile(options, remoteFile)
 	print("Started running.")
 end
 
+local function runLocalFile(options, file)
+	expectSuccess(postJson(options, "/run", {file = file, asProj = false}), "Failed to run file " .. file)
+	print("Started running.")
+end
+
 local function runToolchainCommand(kind, args)
 	local action = args[2] or fail("Missing " .. kind .. " command.")
 	if action == "build" then
@@ -620,7 +624,12 @@ local function runToolchainCommand(kind, args)
 	elseif kind == "wa" and action == "update" then
 		local options = parseOptionsExact(args, 3)
 		updateWaVendor(options, ensureProject(options))
-	elseif action == "run" or action == "upload" then
+	elseif kind == "wa" and action == "run" then
+		local options = parseOptionsExact(args, 3)
+		local project = ensureProject(options)
+		buildWa(options, project)
+		runLocalFile(options, findLatestWasm(kind, project))
+	elseif kind == "rust" and (action == "run" or action == "upload") then
 		local targetPath = args[3] or fail("Missing target path.")
 		local options = parseOptionsExact(args, 4)
 		local project = ensureProject(options)
