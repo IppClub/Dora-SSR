@@ -902,7 +902,9 @@ NS_DORA_END
 #if BX_PLATFORM_OSX || BX_PLATFORM_ANDROID || BX_PLATFORM_IOS || BX_PLATFORM_LINUX
 #ifndef DORA_AS_LIB
 int main(int argc, char* argv[]) {
-	return SharedApplication.run();
+	int exitCode = SharedApplication.run();
+	Dora::Life::destroy(Slice::Empty);
+	return exitCode;
 }
 #endif // !DORA_AS_LIB
 #endif // BX_PLATFORM_OSX || BX_PLATFORM_ANDROID || BX_PLATFORM_IOS || BX_PLATFORM_LINUX
@@ -944,7 +946,9 @@ int CALLBACK WinMain(
 #if DORA_WIN_CONSOLE
 	SharedConsole.init();
 #endif
-	return SharedApplication.run();
+	int exitCode = SharedApplication.run();
+	Dora::Life::destroy(Slice::Empty);
+	return exitCode;
 }
 #endif // !DORA_AS_LIB
 

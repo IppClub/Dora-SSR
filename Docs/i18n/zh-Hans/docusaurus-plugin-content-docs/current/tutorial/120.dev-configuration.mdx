@@ -163,19 +163,15 @@ Linux 本地构建会使用仓库内置的 SDL2 源码，并交给 SDL 原版 CM
 </TabItem>
 </Tabs>
 
-2. 运行当前架构的编译脚本。它会在构建引擎前自动构建 SDL2、bgfx、Rust runtime 和 Wa 原生运行时。
+2. 构建并运行本地 Debug 运行时。它会检查当前架构的 SDL2、bgfx 和 Wa 原生产物，缺失时自动构建依赖，然后重新构建 Rust runtime 和 Linux 应用。
 
 	```sh
-	Tools/build-scripts/build_linux.sh debug
+	Tools/build-scripts/run_linux.sh
 	```
 
-3. 运行生成的软件。
+3. 如果只需要构建而不启动运行时，可使用平台构建脚本。
 	```sh
-	cd Assets
-	../Projects/Linux/build/dora-ssr
-
-	# 或者用命令行参数指定资源目录
-	./Projects/Linux/build/dora-ssr --asset Assets
+	Tools/build-scripts/build_linux.sh debug
 	```
 
 </TabItem>
@@ -237,7 +233,7 @@ Linux 本地构建会使用仓库内置的 SDL2 源码，并交给 SDL 原版 CM
 ```mermaid
 flowchart TD
 	A["选择构建入口"] --> B{"入口类型"}
-	B -->|"run_macos.sh / run_windows.bat"| C["检查本地工具链"]
+	B -->|"run_macos.sh / run_windows.bat / run_linux.sh"| C["检查本地工具链"]
 	C --> D["任一原生依赖产物缺失时构建完整依赖"]
 	D --> E["构建 Rust runtime"]
 	E --> F["以 Debug 构建平台工程"]
@@ -255,7 +251,7 @@ flowchart TD
 	O --> P["构建或打包平台应用"]
 ```
 
-`run_macos.sh` 和 `run_windows.bat` 是本地桌面开发的最短路径：它们会检查必要工具，确认 SDL2、bgfx 和 Wa 原生产物是否存在；如果任一必要产物缺失，会先构建完整依赖，然后重新构建 Rust runtime 和平台工程，停止已有 Dora 进程，并使用仓库里的 `Assets` 目录启动 Debug 运行时。
+`run_macos.sh`、`run_windows.bat` 和 `run_linux.sh` 是本地桌面开发的最短路径：它们会检查必要工具，确认 SDL2、bgfx 和 Wa 原生产物是否存在；如果任一必要产物缺失，会先构建完整依赖，然后重新构建 Rust runtime 和平台工程，停止已有 Dora 进程，并使用仓库里的 `Assets` 目录启动 Debug 运行时。
 
 `build_lib_*` 脚本负责依赖构建。原生库缺失、过期，或者 CI 和发布流程需要重新准备依赖时，会使用这类脚本构建 SDL2、bgfx/bx/bimg、Wa 原生运行时和 Rust runtime。
 

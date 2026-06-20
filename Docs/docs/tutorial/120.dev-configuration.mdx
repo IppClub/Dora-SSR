@@ -164,19 +164,15 @@ Local Linux builds use the vendored SDL2 source and SDL's upstream CMake detecti
 </TabItem>
 </Tabs>
 
-2. Run the compile script for the current architecture. It automatically builds SDL2, bgfx, the Rust runtime, and the Wa native runtime before compiling the engine.
+2. Build and run the local debug runtime. It checks the SDL2, bgfx, and Wa native outputs for the current architecture, builds missing dependencies automatically, then rebuilds the Rust runtime and Linux app.
 
 	```sh
-	Tools/build-scripts/build_linux.sh debug
+	Tools/build-scripts/run_linux.sh
 	```
 
-3. Run the generated software.
+3. To build without launching the runtime, use the platform build script.
 	```sh
-	cd Assets
-	../Projects/Linux/build/dora-ssr
-
-	# Or specify the resource directory with command line arguments
-	./Projects/Linux/build/dora-ssr --asset Assets
+	Tools/build-scripts/build_linux.sh debug
 	```
 
 </TabItem>
@@ -241,7 +237,7 @@ Local Linux builds use the vendored SDL2 source and SDL's upstream CMake detecti
 ```mermaid
 flowchart TD
 	A["Choose build entry"] --> B{"Entry type"}
-	B -->|"run_macos.sh / run_windows.bat"| C["Check local tools"]
+	B -->|"run_macos.sh / run_windows.bat / run_linux.sh"| C["Check local tools"]
 	C --> D["Build full dependencies if any native output is missing"]
 	D --> E["Build Rust runtime"]
 	E --> F["Build platform app in Debug"]
@@ -259,7 +255,7 @@ flowchart TD
 	O --> P["Build or package the platform app"]
 ```
 
-The `run_macos.sh` and `run_windows.bat` scripts are the shortest local desktop development path: they check the required tools, verify the SDL2, bgfx, and Wa native outputs, build the full dependency set if any required output is missing, rebuild the Rust runtime and app project, stop any old Dora process, and launch the debug runtime with the repository `Assets` directory.
+The `run_macos.sh`, `run_windows.bat`, and `run_linux.sh` scripts are the shortest local desktop development path: they check the required tools, verify the SDL2, bgfx, and Wa native outputs, build the full dependency set if any required output is missing, rebuild the Rust runtime and app project, stop any old Dora process, and launch the debug runtime with the repository `Assets` directory.
 
 The `build_lib_*` scripts are dependency builders. They are used when native libraries are missing, stale, or being prepared for CI and release builds. These scripts are responsible for SDL2, bgfx/bx/bimg, the Wa native runtime, and the Rust runtime.
 
