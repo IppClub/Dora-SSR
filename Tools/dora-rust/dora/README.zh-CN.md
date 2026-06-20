@@ -130,7 +130,7 @@
 
     - 上传到引擎中运行。在 Dora SSR Web IDE 中，打开游戏资源树里新建目录 `Hello` 的右键菜单，点击 `Upload`，选择编译得到的 `init.wasm` 文件。
 
-    - 或者先启动 Dora SSR 和 Web IDE，然后在 Rust 项目目录中使用引擎内置 CLI 模式执行 `Dora cli wasm run rust Hello --host 192.168.3.1`。这里的 IP 地址是 Dora SSR Web IDE 的地址，`Hello` 是 Dora SSR 资源树中已存在的目标目录名。如果 `Dora` 不在 `PATH` 中，请替换为实际的 Dora 可执行文件路径。
+    - 或者先启动 Dora SSR 和 Web IDE，然后在 Rust 项目目录中使用引擎内置 CLI 模式执行 `Dora cli rust run Hello --host 192.168.3.1`。这里的 IP 地址是 Dora SSR Web IDE 的地址，`Hello` 是 Dora SSR 资源树中已存在的目标目录名。如果 `Dora` 不在 `PATH` 中，请替换为实际的 Dora 可执行文件路径。
 
 3. 第三步：运行游戏
 

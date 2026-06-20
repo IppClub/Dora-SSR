@@ -25,15 +25,15 @@ This repo provides language bindings and a testing project to demonstrate Wa-lan
 
     See [Dora SSR Installation Guide](https://dora-ssr.net/docs/tutorial/quick-start)
 
-- Install Wa-lang compiler
+- Use the Wa compiler integrated in Dora SSR
 
-    See [Wa-lang Installation Guide](https://wa-lang.org/tutorial/)
+    Dora SSR ships the Wa compiler used by Dora projects. Use `Dora cli wa ...` commands instead of a separately installed Wa toolchain.
 
 ## Usage
 
 1. Step 1: Create a new Dora SSR game project
 
-    - Make sure Dora SSR engine and Wa-lang compiler are installed.
+    - Make sure Dora SSR engine is installed. Wa projects for Dora SSR should be built with the Wa compiler integrated in the engine.
 
     - Launch Dora SSR software and open the Web IDE in the browser.
 
@@ -43,16 +43,14 @@ This repo provides language bindings and a testing project to demonstrate Wa-lan
 
 2. Step 2: Write Wa game code
 
-    - Create a new Wa project in command line.
+    - Start Dora SSR and its Web IDE, then create a new Wa project in command line.
 
       ```sh
-      wa init -n hello_dora --wasi
+      Dora cli wa init hello_dora --host 192.168.3.1
       cd hello_dora
       ```
 
-    - Change the `name` field in `hello_dora/wa.mod` to `init`.
-
-    - Copy the whole module from `this_repo/vendor/dora` to `hello_dora/vendor/dora`.
+    - The command creates `wa.mod`, `src/main.wa`, and `vendor/dora`. To refresh `vendor/dora` later, run `Dora cli wa update` inside the Wa project folder.
 
     - Write code in `src/main.wa`.
 
@@ -84,12 +82,12 @@ This repo provides language bindings and a testing project to demonstrate Wa-lan
     - Build it into WASM file.
 
       ```sh
-      wa build -optimize
+      Dora cli wa build --host 192.168.3.1
       ```
 
-    - Upload it to engine to run. From Dora SSR Web IDE, Open the right-click menu of the game resource tree on the created folder `Hello`. Click on the menu item `Upload` and choose the compiled WASM file named `output/init.wasm` to upload.
+    - Upload it to engine to run. From Dora SSR Web IDE, Open the right-click menu of the game resource tree on the created folder `Hello`. Click on the menu item `Upload` and choose the compiled WASM file named `init.wasm` to upload.
 
-    - Or start Dora SSR and its Web IDE, then run the built-in Dora CLI mode inside your Wa project folder: `Dora cli wasm run wa Hello --host 192.168.3.1`. The IP address is the Dora SSR Web IDE address, and `Hello` is an existing destination folder in the Dora SSR resource tree. Replace `Dora` with the path to your Dora executable if it is not on `PATH`.
+    - Or start Dora SSR and its Web IDE, then run the built-in Dora CLI mode inside your Wa project folder: `Dora cli wa run Hello --host 192.168.3.1`. The IP address is the Dora SSR Web IDE address, and `Hello` is an existing destination folder in the Dora SSR resource tree. Replace `Dora` with the path to your Dora executable if it is not on `PATH`. This command uses the Wa compiler integrated in the engine.
 
 3. Step 3: Run the game
 

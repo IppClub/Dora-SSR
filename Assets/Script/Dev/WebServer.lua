@@ -4321,6 +4321,7 @@ HttpServer:postSchedule("/write", function(req) -- 1763
 		success = false -- 1763
 	} -- 1763
 end) -- 1763
+local getWaProjectDirFromFile -- 1772
 HttpServer:postSchedule("/build", function(req) -- 1772
 	do -- 1773
 		local _type_0 = type(req) -- 1773
@@ -4335,6 +4336,22 @@ HttpServer:postSchedule("/build", function(req) -- 1772
 				end -- 1773
 			end -- 1773
 			if path ~= nil then -- 1773
+				if Content:isdir(path) then
+					local projDir = getWaProjectDirFromFile(path)
+					if projDir then
+						local message = Wasm:buildWaAsync(projDir)
+						if message == "" then
+							return {
+								success = true
+							}
+						else
+							return {
+								success = false,
+								message = message
+							}
+						end
+					end
+				end
 				local _exp_0 = Path:getExt(path) -- 1774
 				if "tl" == _exp_0 or "yue" == _exp_0 or "xml" == _exp_0 then -- 1774
 					if '' == Path:getExt(Path:getName(path)) then -- 1775
@@ -4349,6 +4366,26 @@ HttpServer:postSchedule("/build", function(req) -- 1772
 							end -- 1777
 						end -- 1776
 					end -- 1775
+				elseif "wa" == _exp_0 then
+					local projDir = getWaProjectDirFromFile(path)
+					if projDir then
+						local message = Wasm:buildWaAsync(projDir)
+						if message == "" then
+							return {
+								success = true
+							}
+						else
+							return {
+								success = false,
+								message = message
+							}
+						end
+					else
+						return {
+							success = false,
+							message = "Wa file needs a project"
+						}
+					end
 				end -- 1774
 			end -- 1773
 		end -- 1773
@@ -5063,31 +5100,27 @@ HttpServer:post("/yarn/check-file", function(req) -- 2063
 		success = true -- 2063
 	} -- 2063
 end) -- 2063
-local getWaProjectDirFromFile -- 2070
 getWaProjectDirFromFile = function(file) -- 2070
-	local writablePath = Content.writablePath -- 2071
-	local parent, current -- 2072
-	if (".." ~= Path:getRelative(file, writablePath):sub(1, 2)) and writablePath == file:sub(1, #writablePath) then -- 2072
-		parent, current = writablePath, Path:getRelative(file, writablePath) -- 2073
-	else -- 2075
-		parent, current = nil, nil -- 2075
+	local current -- 2071
+	if Content:isdir(file) then -- 2071
+		current = file -- 2071
+	else -- 2071
+		current = Path:getPath(file) -- 2071
+	end -- 2071
+	if current == "" then -- 2072
+		return nil -- 2072
 	end -- 2072
-	if not current then -- 2076
-		return nil -- 2076
-	end -- 2076
-	repeat -- 2077
-		current = Path:getPath(current) -- 2078
-		if current == "" then -- 2079
-			break -- 2079
-		end -- 2079
-		local _list_0 = Content:getFiles(Path(parent, current)) -- 2080
-		for _index_0 = 1, #_list_0 do -- 2080
-			local f = _list_0[_index_0] -- 2080
-			if Path:getFilename(f):lower() == "wa.mod" then -- 2081
-				return Path(parent, current, Path:getPath(f)) -- 2082
-			end -- 2081
-		end -- 2080
-	until false -- 2077
+	repeat -- 2073
+		local modPath = Path(current, "wa.mod") -- 2074
+		if Content:exist(modPath) then -- 2075
+			return current, modPath -- 2076
+		end -- 2075
+		local parent = Path:getPath(current) -- 2077
+		if parent == "" or parent == current then -- 2078
+			break -- 2078
+		end -- 2078
+		current = parent -- 2079
+	until false -- 2073
 	return nil -- 2084
 end -- 2070
 HttpServer:postSchedule("/wa/update_dora", function(req) -- 2086

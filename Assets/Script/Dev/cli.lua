@@ -44,6 +44,7 @@ local ignoredDirs = {
 	dist = true,
 	node_modules = true,
 	target = true,
+	vendor = true,
 }
 
 local function fail(message)
@@ -56,13 +57,18 @@ Usage: dora cli <command> [options]
 
 Commands:
   init [-p project] [-l zh-Hans|en]
-  build [-p project] [-f file] [--lang auto|all|ts|yue|tl|xml]
+  build [-p project] [-f file] [--lang auto|all|ts|yue|tl|xml|wa]
   run [-p project] [--entry init.lua]
   buildrun [-p project] [-f file] [--lang ...] [--entry init.lua]
   stop
-  wasm build <rust|wa> [-p project]
-  wasm run <rust|wa> <target-path> [-p project]
-  wasm upload <rust|wa> <target-path> [-p project] [--run]
+  rust build [-p project]
+  rust run <target-path> [-p project]
+  rust upload <target-path> [-p project] [--run]
+  wa build [-p project]
+  wa run <target-path> [-p project]
+  wa upload <target-path> [-p project] [--run]
+  wa init [project] [-p parent]
+  wa update [-p project]
 
 Connection options: --host, --port, --timeout
 ]])
@@ -186,6 +192,14 @@ local function parseOptions(args, index)
 	return options, index
 end
 
+local function parseOptionsExact(args, index)
+	local options, nextIndex = parseOptions(args, index)
+	if nextIndex <= #args then
+		fail("Unexpected argument: " .. tostring(args[nextIndex]))
+	end
+	return options
+end
+
 local function ensureProject(options)
 	if not CLI.exists(options.project) then
 		fail("Project directory does not exist: " .. options.project)
@@ -249,6 +263,9 @@ local function detectBuildKinds(project)
 	if CLI.exists(pathJoin(project, "tsconfig.json")) or CLI.exists(pathJoin(project, "init.ts")) or CLI.exists(pathJoin(project, "init.tsx")) then
 		kinds[#kinds + 1] = "ts"
 	end
+	if CLI.exists(pathJoin(project, "wa.mod")) then
+		kinds[#kinds + 1] = "wa"
+	end
 	for _, kind in ipairs({"yue", "tl", "xml"}) do
 		if #sourceFiles(project, kind) > 0 then
 			kinds[#kinds + 1] = kind
@@ -261,7 +278,7 @@ local function inferBuildKind(project, target)
 	if target and target ~= "" then
 		local ext = extension(target)
 		if ext == "ts" or ext == "tsx" then return "ts" end
-		if ext == "yue" or ext == "tl" or ext == "xml" then return ext end
+		if ext == "yue" or ext == "tl" or ext == "xml" or ext == "wa" then return ext end
 		fail("Cannot infer build language from file extension: " .. target)
 	end
 	local kinds = detectBuildKinds(project)
@@ -304,6 +321,69 @@ local function buildScriptFile(options, project, kind, target)
 	print("Compilation complete.")
 end
 
+local function updateWaVendor(options, project)
+	print("Updating Wa vendor/dora from engine template...")
+	local doc = postJson(options, "/wa/update_dora", {path = project})
+	expectSuccess(doc, "Failed to update Wa vendor/dora.")
+	print("Wa vendor/dora updated.")
+end
+
+local function buildWa(options, project, target)
+	local buildTarget = resolve(project, target or "")
+	print("Compiling Dora SSR Wa project: " .. buildTarget)
+	local doc = postJson(options, "/build", {path = buildTarget})
+	expectSuccess(doc, "Compilation failed.")
+	print("Compilation complete.")
+end
+
+local function waMod()
+	return [[name = "init"
+pkgpath = "dora_wa"
+target = "wasi"
+]]
+end
+
+local function waMain()
+	return [[import "dora"
+
+func init {
+	sprite := dora.NewSpriteWithTexture(dora.Nvg.GetDoraSsr(1.0))
+	sprite.SetWidth(400)
+	sprite.SetHeight(400)
+
+	root := dora.NewNode()
+	root.AddChild(sprite.Node)
+	root.OnTapBegan(func(touch: dora.Touch) {
+		sprite.PerformDef(dora.ActionDefMoveTo(
+			1.0,
+			sprite.GetPosition(),
+			touch.GetLocation(),
+			dora.EaseOutBack,
+		), false)
+	})
+}
+]]
+end
+
+local function writeNewFile(path, content)
+	if CLI.exists(path) then
+		fail("File already exists: " .. path)
+	end
+	CLI.writeFile(path, content)
+end
+
+local function initWaProject(options, project)
+	if CLI.exists(project) and not CLI.isDir(project) then
+		fail("Project path is not a directory: " .. project)
+	end
+	CLI.mkdirs(project)
+	CLI.mkdirs(pathJoin(project, "src"))
+	writeNewFile(pathJoin(project, "wa.mod"), waMod())
+	writeNewFile(pathJoin(project, "src/main.wa"), waMain())
+	print("Wa project initialized in " .. project .. ".")
+	updateWaVendor(options, project)
+end
+
 local function buildOne(options, project, kind, target)
 	if kind == "all" then
 		for _, detected in ipairs(detectBuildKinds(project)) do
@@ -311,6 +391,8 @@ local function buildOne(options, project, kind, target)
 		end
 	elseif kind == "ts" then
 		buildTs(options, project, target)
+	elseif kind == "wa" then
+		buildWa(options, project, target)
 	elseif kind == "yue" or kind == "tl" or kind == "xml" then
 		if target and target ~= "" then
 			buildScriptFile(options, project, kind, target)
@@ -437,8 +519,6 @@ local function buildWasm(kind, project)
 	local command
 	if kind == "rust" then
 		command = "cargo build --release --target wasm32-wasip1"
-	elseif kind == "wa" then
-		command = "wa build --target wasi -optimize"
 	else
 		fail("Unsupported WASM toolchain: " .. tostring(kind))
 	end
@@ -451,12 +531,14 @@ local function buildWasm(kind, project)
 end
 
 local function findLatestWasm(kind, project)
-	local buildDir = pathJoin(project, kind == "rust" and "target/wasm32-wasip1/release" or "output")
-	if not CLI.exists(buildDir) then
-		fail("No .wasm file found in " .. buildDir .. ".")
-	end
 	local latest, latestTime = nil, 0
+	local buildDirs = kind == "rust"
+		and {pathJoin(project, "target/wasm32-wasip1/release")}
+		or {project, pathJoin(project, "output")}
 	local function scan(dir)
+		if not CLI.exists(dir) then
+			return
+		end
 		for _, entry in ipairs(CLI.listDir(dir)) do
 			if entry.isDir then
 				scan(entry.path)
@@ -469,9 +551,11 @@ local function findLatestWasm(kind, project)
 			end
 		end
 	end
-	scan(buildDir)
+	for _, dir in ipairs(buildDirs) do
+		scan(dir)
+	end
 	if latest == nil then
-		fail("No .wasm file found in " .. buildDir .. ".")
+		fail("No .wasm file found in " .. table.concat(buildDirs, " or ") .. ".")
 	end
 	print("Found .wasm file: " .. latest)
 	return latest
@@ -512,6 +596,50 @@ local function runRemoteFile(options, remoteFile)
 	print("Started running.")
 end
 
+local function runToolchainCommand(kind, args)
+	local action = args[2] or fail("Missing " .. kind .. " command.")
+	if action == "build" then
+		local options = parseOptionsExact(args, 3)
+		local project = ensureProject(options)
+		if kind == "wa" then
+			buildWa(options, project)
+		else
+			buildWasm(kind, project)
+		end
+	elseif kind == "wa" and action == "init" then
+		local target = args[3]
+		local optionIndex = 3
+		if target and not startsWith(target, "-") then
+			optionIndex = 4
+		else
+			target = nil
+		end
+		local options = parseOptionsExact(args, optionIndex)
+		local project = target and resolve(options.project, target) or options.project
+		initWaProject(options, project)
+	elseif kind == "wa" and action == "update" then
+		local options = parseOptionsExact(args, 3)
+		updateWaVendor(options, ensureProject(options))
+	elseif action == "run" or action == "upload" then
+		local targetPath = args[3] or fail("Missing target path.")
+		local options = parseOptionsExact(args, 4)
+		local project = ensureProject(options)
+		if action == "run" then
+			if kind == "wa" then
+				buildWa(options, project)
+			else
+				buildWasm(kind, project)
+			end
+		end
+		local remote = uploadFile(options, findLatestWasm(kind, project), targetPath)
+		if action == "run" or options.runAfterUpload then
+			runRemoteFile(options, remote)
+		end
+	else
+		fail("Unsupported " .. kind .. " command: " .. tostring(action))
+	end
+end
+
 local function main()
 	local args = CLI.args
 	if #args < 1 or args[1] == "-h" or args[1] == "--help" then
@@ -520,44 +648,23 @@ local function main()
 	end
 	local command = args[1]
 	if command == "init" then
-		local options = parseOptions(args, 2)
+		local options = parseOptionsExact(args, 2)
 		initProject(options)
 	elseif command == "build" then
-		local options = parseOptions(args, 2)
+		local options = parseOptionsExact(args, 2)
 		runBuild(options)
 	elseif command == "run" then
-		local options = parseOptions(args, 2)
+		local options = parseOptionsExact(args, 2)
 		runProject(options)
 	elseif command == "buildrun" then
-		local options = parseOptions(args, 2)
+		local options = parseOptionsExact(args, 2)
 		runBuild(options)
 		runProject(options)
 	elseif command == "stop" then
-		local options = parseOptions(args, 2)
+		local options = parseOptionsExact(args, 2)
 		stopProject(options)
-	elseif command == "wasm" then
-		local action = args[2] or fail("Missing wasm command.")
-		local kind = args[3] or fail("Missing WASM toolchain.")
-		if action == "build" then
-			local options = parseOptions(args, 4)
-			buildWasm(kind, ensureProject(options))
-		else
-			local targetPath = args[4] or fail("Missing target path.")
-			local options = parseOptions(args, 5)
-			local project = ensureProject(options)
-			if action == "run" then
-				buildWasm(kind, project)
-				local remote = uploadFile(options, findLatestWasm(kind, project), targetPath)
-				runRemoteFile(options, remote)
-			elseif action == "upload" then
-				local remote = uploadFile(options, findLatestWasm(kind, project), targetPath)
-				if options.runAfterUpload then
-					runRemoteFile(options, remote)
-				end
-			else
-				fail("Unsupported wasm command: " .. tostring(action))
-			end
-		end
+	elseif command == "rust" or command == "wa" then
+		runToolchainCommand(command, args)
 	else
 		help()
 		return 1

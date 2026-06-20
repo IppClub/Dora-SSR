@@ -1769,13 +1769,32 @@ HttpServer\postSchedule "/write", (req): success: false ->
 					return success: true, :resultCodes
 			return success: true
 
+getWaProjectDirFromFile = nil
+
 HttpServer\postSchedule "/build", (req): success: false ->
 	switch req when {body: {:path}}
-		switch Path\getExt path when "tl", "yue", "xml"
-			if '' == Path\getExt Path\getName path
-				if content := Content\loadAsync path
-					if resultCodes := compileFileAsync path, content
-						return success: true, :resultCodes
+		if Content\isdir path
+			if projDir := getWaProjectDirFromFile path
+				message = Wasm\buildWaAsync projDir
+				return if message == ""
+					success: true
+				else
+					success: false, :message
+		switch Path\getExt path
+			when "tl", "yue", "xml"
+				if '' == Path\getExt Path\getName path
+					if content := Content\loadAsync path
+						if resultCodes := compileFileAsync path, content
+							return success: true, :resultCodes
+			when "wa"
+				if projDir := getWaProjectDirFromFile path
+					message = Wasm\buildWaAsync projDir
+					return if message == ""
+						success: true
+					else
+						success: false, :message
+				else
+					return success: false, message: 'Wa file needs a project'
 
 extentionLevels =
 	vs: 2
@@ -2068,18 +2087,15 @@ HttpServer\post "/yarn/check-file", (req): success: true ->
 			return success: false, :message, :line, :column, :node
 
 getWaProjectDirFromFile = (file) ->
-	:writablePath = Content
-	parent, current = if (".." ~= Path\getRelative(file, writablePath)\sub 1, 2) and writablePath == file\sub 1, #writablePath
-		writablePath, Path\getRelative file, writablePath
-	else
-		nil, nil
-	return nil unless current
+	current = if Content\isdir file then file else Path\getPath file
+	return nil if current == ""
 	repeat
-		current = Path\getPath current
-		break if current == ""
-		for f in *Content\getFiles Path parent, current
-			if Path\getFilename(f)\lower! == "wa.mod"
-				return Path parent, current, Path\getPath f
+		modPath = Path current, "wa.mod"
+		if Content\exist modPath
+			return current, modPath
+		parent = Path\getPath current
+		break if parent == "" or parent == current
+		current = parent
 	until false
 	nil
 

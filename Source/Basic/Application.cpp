@@ -82,6 +82,14 @@ namespace {
 
 namespace fs = std::filesystem;
 
+#define DORA_CLI_SUPPORTED (BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_LINUX)
+
+bool isCliRequested(int argc, char* argv[]) {
+	return argc >= 2 && std::string_view(argv[1]) == "cli";
+}
+
+#if DORA_CLI_SUPPORTED
+
 extern "C" {
 int luaopen_yue(lua_State* L);
 int luaopen_colibc_json(lua_State* L);
@@ -93,10 +101,6 @@ struct CliLuaState {
 		if (L) lua_close(L);
 	}
 };
-
-bool isCliRequested(int argc, char* argv[]) {
-	return argc >= 2 && std::string_view(argv[1]) == "cli";
-}
 
 std::string cliGetString(lua_State* L, int index) {
 	size_t len = 0;
@@ -439,6 +443,17 @@ int runCliApplication(int argc, char* argv[]) {
 	}
 	return exitCode;
 }
+
+#else // DORA_CLI_SUPPORTED
+
+int runCliApplication(int, char*[]) {
+	std::cerr << "Dora CLI mode is only supported on Windows, macOS, and Linux.\n";
+	return 1;
+}
+
+#endif // DORA_CLI_SUPPORTED
+
+#undef DORA_CLI_SUPPORTED
 
 } // namespace
 

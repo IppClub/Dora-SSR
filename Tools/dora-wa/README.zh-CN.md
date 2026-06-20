@@ -24,31 +24,29 @@
 
     参考 [Dora SSR 安装指南](https://dora-ssr.net/docs/tutorial/quick-start)
 
-- 安装 Wa-lang 编译器
+- 使用 Dora SSR 内置的 Wa 编译器
 
-    参考 [Wa-lang 上手指南](https://wa-lang.org/tutorial/)
+    Dora SSR 自带用于 Dora 项目的 Wa 编译器。请使用 `Dora cli wa ...` 命令，不要使用单独安装的 Wa 工具链构建 Dora 项目。
 
 ## 使用方法
 
 1. 第一步：创建新的 Dora SSR 游戏项目
 
-    - 确保已经安装 Dora SSR 引擎和 Wa-lang 编译器。
+    - 确保已经安装 Dora SSR 引擎。Dora SSR 的 Wa 项目应使用引擎内置的 Wa 编译器构建。
     - 启动 Dora SSR 软件，并在浏览器中打开 Web IDE。
     - 在左侧游戏资源树中，打开 `Workspace` 的右键菜单。
     - 点击 `New` 菜单项，创建一个名为 `Hello` 的文件夹。
 
 2. 第二步：编写 Wa 游戏代码
 
-    - 在命令行中创建新的 Wa 项目。
+    - 先启动 Dora SSR 和 Web IDE，然后在命令行中创建新的 Wa 项目。
 
       ```sh
-      wa init -n hello_dora --wasi
+      Dora cli wa init hello_dora --host 192.168.3.1
       cd hello_dora
       ```
 
-    - 将 `hello_dora/wa.mod` 中的 `name` 字段改为 `init`。
-
-    - 把本仓库 `vendor/dora` 目录中的整个模块复制到 `hello_dora/vendor/dora`。
+    - 该命令会创建 `wa.mod`、`src/main.wa` 和 `vendor/dora`。之后如需刷新 `vendor/dora`，可以在 Wa 项目目录中执行 `Dora cli wa update`。
 
     - 在 `src/main.wa` 中编写代码。
 
@@ -80,12 +78,12 @@
     - 将其构建成 WASM 文件。
 
       ```sh
-      wa build -optimize
+      Dora cli wa build --host 192.168.3.1
       ```
 
-    - 上传到引擎中运行。在 Dora SSR Web IDE 中，打开游戏资源树中新建目录 `Hello` 的右键菜单，点击 `Upload`，选择编译得到的 `output/init.wasm` 文件。
+    - 上传到引擎中运行。在 Dora SSR Web IDE 中，打开游戏资源树中新建目录 `Hello` 的右键菜单，点击 `Upload`，选择编译得到的 `init.wasm` 文件。
 
-    - 或者先启动 Dora SSR 和 Web IDE，然后在 Wa 项目目录中使用引擎内置 CLI 模式执行 `Dora cli wasm run wa Hello --host 192.168.3.1`。这里的 IP 地址是 Dora SSR Web IDE 的地址，`Hello` 是 Dora SSR 资源树中已存在的目标目录名。如果 `Dora` 不在 `PATH` 中，请替换为实际的 Dora 可执行文件路径。
+    - 或者先启动 Dora SSR 和 Web IDE，然后在 Wa 项目目录中使用引擎内置 CLI 模式执行 `Dora cli wa run Hello --host 192.168.3.1`。这里的 IP 地址是 Dora SSR Web IDE 的地址，`Hello` 是 Dora SSR 资源树中已存在的目标目录名。如果 `Dora` 不在 `PATH` 中，请替换为实际的 Dora 可执行文件路径。该命令使用引擎内置的 Wa 编译器。
 
 3. 第三步：运行游戏
 
