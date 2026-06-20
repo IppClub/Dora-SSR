@@ -24,7 +24,31 @@ Dora cli --help
 --timeout 10
 ```
 
-## 2. TypeScript 和脚本项目
+## 2. 命令速查
+
+`Dora cli --help` 输出的命令列表如下：
+
+```text
+Usage: dora cli <command> [options]
+
+Commands:
+  init [-p project] [-l zh-Hans|en]
+  build [-p project] [-f file] [--lang auto|all|ts|yue|tl|xml|wa]
+  run [-p project] [--entry init.lua]
+  buildrun [-p project] [-f file] [--lang ...] [--entry init.lua]
+  stop
+  rust build [-p project]
+  rust run <target-path> [-p project]
+  rust upload <target-path> [-p project] [--run]
+  wa build [-p project]
+  wa run [-p project]
+  wa init [project] [-p parent]
+  wa update [-p project]
+
+Connection options: --host, --port, --timeout
+```
+
+## 3. TypeScript 和脚本项目
 
 初始化带 Dora API 定义的 TypeScript 项目：
 
@@ -57,7 +81,7 @@ Dora cli buildrun -f src/main.ts -p /path/to/project
 
 支持的构建语言包括 `ts`、`yue`、`tl`、`xml` 和 `wa`。
 
-## 3. Wa 项目
+## 4. Wa 项目
 
 创建新的 Wa 项目。该命令会基于当前 Dora 引擎版本写入 `wa.mod`、`src/main.wa` 和 `vendor/dora`。
 
@@ -86,7 +110,7 @@ Dora cli wa run --host 127.0.0.1
 
 Dora SSR 的 Wa 项目应使用引擎内置的 Wa 编译器。不要使用单独安装的 Wa 工具链构建 Dora Wa 项目。
 
-## 4. Rust WASM 项目
+## 5. Rust WASM 项目
 
 使用本地 Rust 工具链构建 Rust WASM 项目：
 
