@@ -61,6 +61,8 @@ Commands:
   run [-p project] [--entry init.lua]
   buildrun [-p project] [-f file] [--lang ...] [--entry init.lua]
   stop
+  status [-p project]
+  doctor [-p project] [--fix]
   rust build [-p project]
   rust run <target-path> [-p project]
   rust upload <target-path> [-p project] [--run]
@@ -138,6 +140,7 @@ local function parseOptions(args, index)
 		lang = "auto",
 		files = {},
 		runAfterUpload = false,
+		fix = false,
 	}
 	while index <= #args do
 		local arg = args[index]
@@ -183,6 +186,9 @@ local function parseOptions(args, index)
 			index = index + 1
 		elseif arg == "--run" then
 			options.runAfterUpload = true
+			index = index + 1
+		elseif arg == "--fix" then
+			options.fix = true
 			index = index + 1
 		else
 			break
@@ -445,6 +451,42 @@ local function stopProject(options)
 	end
 end
 
+local function isLocalHost(host)
+	return host == "127.0.0.1" or host == "localhost" or host == "::1"
+end
+
+local function statusText(value)
+	return value and "yes" or "no"
+end
+
+local function runDoctor(options)
+	print("Checking Dora SSR service at " .. baseUrl(options) .. "...")
+	local doc = postJson(options, "/status", {})
+	expectSuccess(doc, "Doctor failed.")
+	print("Dora SSR: " .. tostring(doc.version or "unknown") .. " on " .. tostring(doc.platform or "unknown"))
+	print("Web IDE URL: " .. tostring(doc.url or "unavailable"))
+	print("Web IDE connected: " .. statusText(doc.webIDEConnected) .. " (" .. tostring(doc.wsConnectionCount or 0) .. ")")
+	if type(doc.running) == "table" and doc.running.running then
+		print("Running: " .. tostring(doc.running.kind or "file") .. " " .. tostring(doc.running.fileName or doc.running.entryName or ""))
+	else
+		print("Running: no")
+	end
+	print("Wa template: " .. statusText(doc.waTemplateReady))
+	if options.fix then
+		if doc.webIDEConnected then
+			print("No fix needed.")
+		elseif not isLocalHost(options.host) then
+			fail("doctor --fix can only open Web IDE for a local Dora service. Use --host 127.0.0.1 or open the Web IDE URL manually.")
+		else
+			local fixed = postJson(options, "/doctor/fix", {openWebIDE = true})
+			expectSuccess(fixed, "Doctor fix failed.")
+			print(tostring(fixed.message or "Doctor fix complete."))
+		end
+	elseif not doc.webIDEConnected then
+		print("Hint: run Dora cli doctor --fix to open the local Web IDE.")
+	end
+end
+
 local function tsConfig()
 	return [[
 {
@@ -672,6 +714,12 @@ local function main()
 	elseif command == "stop" then
 		local options = parseOptionsExact(args, 2)
 		stopProject(options)
+	elseif command == "status" then
+		local options = parseOptionsExact(args, 2)
+		runDoctor(options)
+	elseif command == "doctor" then
+		local options = parseOptionsExact(args, 2)
+		runDoctor(options)
 	elseif command == "rust" or command == "wa" then
 		runToolchainCommand(command, args)
 	else

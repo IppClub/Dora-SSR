@@ -2246,6 +2246,44 @@ HttpServer\post "/download", (req): success: false ->
 		Entry.downloadFile url, target
 		return success: true
 
+isDesktopPlatform = ->
+	App.platform in ["Linux", "Windows", "macOS"]
+
+getServerStatus = ->
+	import "Script.Dev.Entry"
+	running = Entry.getCurrentEntryStatus!
+	waTemplateReady = Content\exist Path Content.assetPath, "dora-wa", "wa.mod"
+	{
+		success: true
+		platform: App.platform
+		locale: App.locale
+		version: App.version
+		url: "http://localhost:8866"
+		wsConnectionCount: HttpServer.wsConnectionCount
+		webIDEConnected: HttpServer.wsConnectionCount > 0
+		assetPath: Content.assetPath
+		writablePath: Content.writablePath
+		:waTemplateReady
+		:running
+	}
+
+HttpServer\post "/status", ->
+	getServerStatus!
+
+HttpServer\post "/doctor/fix", (req): success: false, message: "invalid call" ->
+	switch req when {body: {:openWebIDE}}
+		unless openWebIDE
+			return success: false, message: "nothing to fix"
+		status = getServerStatus!
+		if status.webIDEConnected
+			return success: true, fixed: false, message: "Web IDE already connected.", :status
+		unless isDesktopPlatform!
+			return success: false, message: "opening Web IDE is only supported on desktop platforms", :status
+		url = "http://localhost:8866"
+		App\openURL url
+		status.openedURL = url
+		return success: true, fixed: true, message: "Opened Web IDE in the local browser.", :url, :status
+
 status = {}
 export default status
 
