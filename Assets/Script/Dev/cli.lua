@@ -3,7 +3,7 @@ local json = require("json")
 
 local defaultHost = "127.0.0.1"
 local defaultPort = 8866
-local defaultTimeout = 10
+local defaultTimeout = 30
 
 local apiFiles = {
 	["BlocklyGen.d.ts"] = true,
@@ -56,23 +56,90 @@ local function help()
 Usage: dora cli <command> [options]
 
 Commands:
-  init [-p project] [-l zh-Hans|en]
-  build [-p project] [-f file] [--lang all|ts|yue|tl|xml|wa]
-  run [-p project] [--entry init.lua]
-  buildrun [-p project] [-f file] [--lang ...] [--entry init.lua]
-  stop
-  status [-p project]
-  doctor [-p project] [--fix]
-  rust build [-p project]
-  rust run <target-path> [-p project]
-  rust upload <target-path> [-p project] [--run]
-  wa build [-p project]
-  wa run [-p project]
-  wa init [project] [-p parent]
-  wa update [-p project]
+	ts install [-p project] [-l zh-Hans|en]
+	wa install [-p project]
+	build [-p project] [-f file] [--lang all|ts|yue|tl|xml|wa]
+	run [-p project] [--entry init.lua]
+	buildrun [-p project] [-f file] [--lang ...] [--entry init.lua]
+	stop
+	status [-p project]
+	doctor [-p project] [--fix]
+	log [-n lines]
+	rust build [-p project]
+	rust run <target-path> [-p project]
+	rust upload <target-path> [-p project] [--run]
 
 Connection options: --host, --port, --timeout
 ]])
+end
+
+local function isHelpArg(arg)
+	return arg == "-h" or arg == "--help"
+end
+
+local function toolchainHelp(kind, action)
+	if kind == "ts" then
+		if action == "install" then
+			print([[
+Usage: dora cli ts install [-p project] [-l zh-Hans|en]
+
+Install or update Dora TypeScript API definitions.
+]])
+		else
+			print([[
+Usage: dora cli ts <command> [options]
+
+Commands:
+	install [-p project] [-l zh-Hans|en]
+]])
+		end
+	elseif kind == "wa" then
+		if action == "install" then
+			print([[
+Usage: dora cli wa install [-p project]
+
+Install or update Dora Wa project files and vendor/dora.
+]])
+		else
+			print([[
+Usage: dora cli wa <command> [options]
+
+Commands:
+	install [-p project]
+]])
+		end
+	elseif kind == "rust" then
+		if action == "build" then
+			print([[
+Usage: dora cli rust build [-p project]
+
+Build a Rust WASM project.
+]])
+		elseif action == "run" then
+			print([[
+Usage: dora cli rust run <target-path> [-p project]
+
+Build, upload, and run a Rust WASM project.
+]])
+		elseif action == "upload" then
+			print([[
+Usage: dora cli rust upload <target-path> [-p project] [--run]
+
+Upload an already-built Rust WASM file, optionally running it.
+]])
+		else
+			print([[
+Usage: dora cli rust <command> [options]
+
+Commands:
+	build [-p project]
+	run <target-path> [-p project]
+	upload <target-path> [-p project] [--run]
+]])
+		end
+	else
+		help()
+	end
 end
 
 local function pathJoin(...)
@@ -93,6 +160,10 @@ end
 
 local function filename(path)
 	return (path:gsub("\\", "/"):match("([^/]+)$") or path)
+end
+
+local function stem(path)
+	return (filename(path):match("(.+)%.[^%.]+$") or filename(path))
 end
 
 local function dirname(path)
@@ -201,6 +272,11 @@ local function parseOptions(args, index)
 			if index > #args then fail("--timeout expects a value") end
 			options.timeout = tonumber(args[index]) or fail("--timeout expects a number")
 			index = index + 1
+		elseif arg == "-n" then
+			index = index + 1
+			if index > #args then fail("-n expects a value") end
+			options.logLines = tonumber(args[index]) or fail("-n expects a number")
+			index = index + 1
 		elseif arg == "-l" or arg == "--language" then
 			index = index + 1
 			if index > #args then fail(arg .. " expects a value") end
@@ -251,6 +327,27 @@ local function ensureProject(options)
 		fail("Project path is not a directory: " .. options.project)
 	end
 	return options.project
+end
+
+local function findProjectRoot(start, isDir)
+	local dir = CLI.absolute(isDir and start or dirname(start)):gsub("\\", "/"):gsub("/+$", "")
+	while dir and dir ~= "" do
+		for _, entry in ipairs(CLI.listDir(dir)) do
+			if entry.isFile and stem(entry.name):lower() == "init" then
+				return dir
+			end
+		end
+		local parent = dirname(dir)
+		if not parent or parent == "" or parent == dir then
+			break
+		end
+		dir = parent
+	end
+	return nil
+end
+
+local function projectRootFor(project, target, targetIsDir)
+	return findProjectRoot(target, targetIsDir) or findProjectRoot(project, true) or project
 end
 
 local function baseUrl(options)
@@ -349,7 +446,10 @@ end
 local function buildTs(options, project, target)
 	local buildTarget = resolve(project, target or "")
 	print("Compiling Dora SSR TypeScript project: " .. buildTarget)
-	local doc = postJson(options, "/ts/build", {path = buildTarget:gsub("\\", "/")})
+	local doc = postJson(options, "/ts/build", {
+		path = buildTarget:gsub("\\", "/"),
+		projectRoot = projectRootFor(project, buildTarget, CLI.isDir(buildTarget)):gsub("\\", "/"),
+	})
 	expectSuccess(doc, "Compilation failed.")
 	print("Compilation complete.")
 	if type(doc.messages) == "table" then
@@ -373,7 +473,10 @@ local function buildScriptFile(options, project, kind, target)
 		fail(("%s build does not accept definition files: %s"):format(kind, source))
 	end
 	print("Compiling Dora SSR " .. kind .. " file: " .. source)
-	local doc = postJson(options, "/build", {path = serverPath(source)})
+	local doc = postJson(options, "/build", {
+		path = serverPath(source),
+		projectRoot = projectRootFor(project, source, false):gsub("\\", "/"),
+	})
 	expectSuccess(doc, "Compilation failed.")
 	print("Compilation complete.")
 end
@@ -391,6 +494,10 @@ local function buildWa(options, project, target)
 	local doc = postJson(options, "/build", {path = buildTarget:gsub("\\", "/")})
 	expectSuccess(doc, "Compilation failed.")
 	print("Compilation complete.")
+end
+
+local function isWaProject(project)
+	return CLI.exists(pathJoin(project, "wa.mod"))
 end
 
 local function waMod()
@@ -433,11 +540,20 @@ local function initWaProject(options, project)
 	if CLI.exists(project) and not CLI.isDir(project) then
 		fail("Project path is not a directory: " .. project)
 	end
+	local isNewProject = not CLI.exists(project)
 	CLI.mkdirs(project)
 	CLI.mkdirs(pathJoin(project, "src"))
-	writeNewFile(pathJoin(project, "wa.mod"), waMod())
-	writeNewFile(pathJoin(project, "src/main.wa"), waMain())
-	print("Wa project initialized in " .. project .. ".")
+	if isNewProject then
+		writeNewFile(pathJoin(project, "wa.mod"), waMod())
+		writeNewFile(pathJoin(project, "src/main.wa"), waMain())
+		print("Wa project initialized in " .. project .. ".")
+	elseif not CLI.exists(pathJoin(project, "wa.mod")) then
+		writeNewFile(pathJoin(project, "wa.mod"), waMod())
+		if not CLI.exists(pathJoin(project, "src/main.wa")) then
+			writeNewFile(pathJoin(project, "src/main.wa"), waMain())
+		end
+		print("Wa module file written to " .. pathJoin(project, "wa.mod") .. ".")
+	end
 	updateWaVendor(options, project)
 end
 
@@ -485,13 +601,35 @@ local function runBuild(options)
 	end
 end
 
+local findLatestWasm
+local runLocalFile
+
 local function runProject(options)
 	local project = ensureProject(options)
 	local asProject = options.entry == "init.lua"
+	if asProject and isWaProject(project) then
+		buildWa(options, project)
+		runLocalFile(options, findLatestWasm("wa", project))
+		return
+	end
 	local runFile = asProject and pathJoin(project, "__dora_project_root_search__.lua") or resolve(project, options.entry)
-	local doc = postJson(options, "/run", {file = runFile, asProj = asProject})
+	local doc = postJson(options, "/run", {
+		file = runFile:gsub("\\", "/"),
+		asProj = asProject,
+		projectRoot = projectRootFor(project, runFile, false):gsub("\\", "/"),
+	})
 	expectSuccess(doc, "Failed to run project at " .. project .. ".")
 	print("Start running " .. tostring(doc.target or options.entry) .. "...")
+end
+
+local function runBuildRun(options)
+	local project = ensureProject(options)
+	if options.entry == "init.lua" and #options.files == 0 and options.lang == "all" and isWaProject(project) then
+		runProject(options)
+		return
+	end
+	runBuild(options)
+	runProject(options)
 end
 
 local function stopProject(options)
@@ -559,6 +697,16 @@ local function statusText(value)
 	return value and "yes" or "no"
 end
 
+local function runLog(options)
+	local count = options.logLines or 20
+	if count < 1 or count ~= math.floor(count) then
+		fail("-n expects a positive integer")
+	end
+	local doc = postJson(options, "/log", {count = count})
+	expectSuccess(doc, "Log failed.")
+	io.write(tostring(doc.log or ""))
+end
+
 local function runDoctor(options, diagnose)
 	print("Checking Dora SSR service at " .. baseUrl(options) .. "...")
 	local doc, err = tryPostJson(options, "/status", {}, math.min(options.timeout, 2))
@@ -623,21 +771,21 @@ end
 local function tsConfig()
 	return [[
 {
-  "compilerOptions": {
-    "jsx": "react",
-    "target": "ESNext",
-    "module": "ESNext",
-    "strict": true,
-    "esModuleInterop": false,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "allowSyntheticDefaultImports": true,
-    "rootDir": "./",
-    "typeRoots": ["API"],
-    "types": ["Dora"]
-  },
-  "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", "dist"]
+	"compilerOptions": {
+		"jsx": "react",
+		"target": "ESNext",
+		"module": "ESNext",
+		"strict": true,
+		"esModuleInterop": false,
+		"skipLibCheck": true,
+		"forceConsistentCasingInFileNames": true,
+		"allowSyntheticDefaultImports": true,
+		"rootDir": "./",
+		"typeRoots": ["API"],
+		"types": ["Dora"]
+	},
+	"include": ["**/*.ts", "**/*.tsx"],
+	"exclude": ["node_modules", "dist"]
 }
 ]]
 end
@@ -668,9 +816,9 @@ local function collectApiTargets(node, builtinKey, language, out)
 	out[#out + 1] = {relative = pos and key:sub(pos + #prefix) or node.title, key = key}
 end
 
-local function initProject(options)
+local function installTsProject(options)
 	local project = ensureProject(options)
-	print("Initializing Dora SSR TypeScript project in " .. project .. "...")
+	print("Installing Dora SSR TypeScript support in " .. project .. "...")
 	local assets = postJson(options, "/assets", {})
 	if type(assets.children) ~= "table" or type(assets.children[1]) ~= "table" or type(assets.children[1].key) ~= "string" then
 		fail("Unexpected /assets response: missing builtin asset tree.")
@@ -684,9 +832,12 @@ local function initProject(options)
 		expectSuccess(read, "Failed to read " .. target.key)
 		CLI.writeFile(pathJoin(apiDir, target.relative), read.content or "")
 	end
-	CLI.writeFile(pathJoin(project, "tsconfig.json"), tsConfig())
+	local tsconfigPath = pathJoin(project, "tsconfig.json")
+	if not CLI.exists(tsconfigPath) then
+		CLI.writeFile(tsconfigPath, tsConfig())
+		print("TypeScript config written to " .. tsconfigPath)
+	end
 	print("API files written to " .. apiDir)
-	print("TypeScript config written to " .. pathJoin(project, "tsconfig.json"))
 end
 
 local function buildWasm(kind, project)
@@ -704,7 +855,7 @@ local function buildWasm(kind, project)
 	print("Compilation complete.")
 end
 
-local function findLatestWasm(kind, project)
+findLatestWasm = function(kind, project)
 	local latest, latestTime = nil, 0
 	local buildDirs = kind == "rust"
 		and {pathJoin(project, "target/wasm32-wasip1/release")}
@@ -770,57 +921,44 @@ local function runRemoteFile(options, remoteFile)
 	print("Started running.")
 end
 
-local function runLocalFile(options, file)
+runLocalFile = function(options, file)
 	expectSuccess(postJson(options, "/run", {file = file, asProj = false}), "Failed to run file " .. file)
 	print("Started running.")
 end
 
 local function runToolchainCommand(kind, args)
-	local action = args[2] or fail("Missing " .. kind .. " command.")
-	if action == "build" then
+	local action = args[2]
+	if not action or isHelpArg(action) then
+		toolchainHelp(kind)
+		return
+	end
+	if isHelpArg(args[3]) then
+		toolchainHelp(kind, action)
+		return
+	end
+	if kind == "ts" and action == "install" then
+		local options = parseOptionsExact(args, 3)
+		installTsProject(options)
+	elseif kind == "wa" and action == "install" then
+		local options = parseOptionsExact(args, 3)
+		initWaProject(options, options.project)
+	elseif kind == "rust" and action == "build" then
 		local options = parseOptionsExact(args, 3)
 		local project = ensureProject(options)
-		if kind == "wa" then
-			buildWa(options, project)
-		else
-			buildWasm(kind, project)
-		end
-	elseif kind == "wa" and action == "init" then
-		local target = args[3]
-		local optionIndex = 3
-		if target and not startsWith(target, "-") then
-			optionIndex = 4
-		else
-			target = nil
-		end
-		local options = parseOptionsExact(args, optionIndex)
-		local project = target and resolve(options.project, target) or options.project
-		initWaProject(options, project)
-	elseif kind == "wa" and action == "update" then
-		local options = parseOptionsExact(args, 3)
-		updateWaVendor(options, ensureProject(options))
-	elseif kind == "wa" and action == "run" then
-		local options = parseOptionsExact(args, 3)
-		local project = ensureProject(options)
-		buildWa(options, project)
-		runLocalFile(options, findLatestWasm(kind, project))
+		buildWasm(kind, project)
 	elseif kind == "rust" and (action == "run" or action == "upload") then
 		local targetPath = args[3] or fail("Missing target path.")
 		local options = parseOptionsExact(args, 4)
 		local project = ensureProject(options)
 		if action == "run" then
-			if kind == "wa" then
-				buildWa(options, project)
-			else
-				buildWasm(kind, project)
-			end
+			buildWasm(kind, project)
 		end
 		local remote = uploadFile(options, findLatestWasm(kind, project), targetPath)
 		if action == "run" or options.runAfterUpload then
 			runRemoteFile(options, remote)
 		end
 	else
-		fail("Unsupported " .. kind .. " command: " .. tostring(action))
+		fail("Unsupported " .. kind .. " command: " .. tostring(action) .. ". Run Dora cli " .. kind .. " --help.")
 	end
 end
 
@@ -831,10 +969,7 @@ local function main()
 		return #args < 1 and 1 or 0
 	end
 	local command = args[1]
-	if command == "init" then
-		local options = parseOptionsExact(args, 2)
-		initProject(options)
-	elseif command == "build" then
+	if command == "build" then
 		local options = parseOptionsExact(args, 2)
 		runBuild(options)
 	elseif command == "run" then
@@ -842,8 +977,7 @@ local function main()
 		runProject(options)
 	elseif command == "buildrun" then
 		local options = parseOptionsExact(args, 2)
-		runBuild(options)
-		runProject(options)
+		runBuildRun(options)
 	elseif command == "stop" then
 		local options = parseOptionsExact(args, 2)
 		stopProject(options)
@@ -853,7 +987,10 @@ local function main()
 	elseif command == "doctor" then
 		local options = parseOptionsExact(args, 2)
 		runDoctor(options, true)
-	elseif command == "rust" or command == "wa" then
+	elseif command == "log" then
+		local options = parseOptionsExact(args, 2)
+		runLog(options)
+	elseif command == "rust" or command == "wa" or command == "ts" then
 		runToolchainCommand(command, args)
 	else
 		help()

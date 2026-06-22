@@ -36,6 +36,15 @@ Dora cli doctor --fix
 
 `status` 输出当前服务状态。`doctor` 输出相同的核心状态，并在异常时给出修复提示。`doctor --fix` 可以在需要时启动本地 native 引擎并打开 Web IDE。
 
+读取最近的引擎日志：
+
+```sh
+Dora cli log
+Dora cli log -n 100
+```
+
+`log` 默认输出最后 100 行日志。使用 `-n` 可以指定其它正整数行数。
+
 ## 2. 命令速查
 
 `Dora cli --help` 输出的命令列表如下：
@@ -44,30 +53,36 @@ Dora cli doctor --fix
 Usage: dora cli <command> [options]
 
 Commands:
-  init [-p project] [-l zh-Hans|en]
+  ts install [-p project] [-l zh-Hans|en]
   build [-p project] [-f file] [--lang all|ts|yue|tl|xml|wa]
   run [-p project] [--entry init.lua]
   buildrun [-p project] [-f file] [--lang ...] [--entry init.lua]
   stop
   status [-p project]
   doctor [-p project] [--fix]
+  log [-n lines]
+  wa install [-p project]
   rust build [-p project]
   rust run <target-path> [-p project]
   rust upload <target-path> [-p project] [--run]
-  wa build [-p project]
-  wa run [-p project]
-  wa init [project] [-p parent]
-  wa update [-p project]
 
 Connection options: --host, --port, --timeout
 ```
 
-## 3. TypeScript 和脚本项目
-
-初始化带 Dora API 定义的 TypeScript 项目：
+在分组命令后使用 `-h` 或 `--help` 可以查看详细说明：
 
 ```sh
-Dora cli init -p /path/to/project -l zh-Hans
+Dora cli ts --help
+Dora cli wa install -h
+Dora cli rust run --help
+```
+
+## 3. TypeScript 和脚本项目
+
+安装 TypeScript 支持。新项目会创建 `tsconfig.json`，并把 Dora API 定义写入 `API` 目录。已有项目会刷新 API 定义，并保留已有的 `tsconfig.json`。
+
+```sh
+Dora cli ts install -p /path/to/project -l zh-Hans
 ```
 
 构建项目。不指定语言时，Dora CLI 会扫描支持的源码文件，并按每个文件的后缀逐个编译。只有需要限定某一类语言时才使用 `--lang`。
@@ -97,29 +112,29 @@ Dora cli buildrun -f src/main.ts -p /path/to/project
 
 ## 4. Wa 项目
 
-创建新的 Wa 项目。该命令会基于当前 Dora 引擎版本写入 `wa.mod`、`src/main.wa` 和 `vendor/dora`。
+安装 Wa 支持。新项目会基于当前 Dora 引擎版本写入 `wa.mod`、`src/main.wa` 和 `vendor/dora`。已有 Wa 项目会刷新 `vendor/dora`。
 
 ```sh
-Dora cli wa init hello_dora --host 127.0.0.1
-cd hello_dora
+Dora cli wa install -p /path/to/wa-project --host 127.0.0.1
+cd /path/to/wa-project
 ```
 
 引擎版本变化后，可以更新 `vendor/dora`：
 
 ```sh
-Dora cli wa update --host 127.0.0.1
+Dora cli wa install --host 127.0.0.1
 ```
 
-只构建：
+使用通用构建命令：
 
 ```sh
-Dora cli wa build --host 127.0.0.1
+Dora cli build --host 127.0.0.1
 ```
 
-从外部 Wa 项目目录直接运行：
+使用通用运行命令：
 
 ```sh
-Dora cli wa run --host 127.0.0.1
+Dora cli run --host 127.0.0.1
 ```
 
 Dora SSR 的 Wa 项目应使用引擎内置的 Wa 编译器。不要使用单独安装的 Wa 工具链构建 Dora Wa 项目。

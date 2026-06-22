@@ -224,6 +224,7 @@ const sendWebSocketMessage = (payload: WebSocketPayload) => {
 type TranspileTSQueueItem = {
 	file: string;
 	content: string;
+	projectRoot?: string;
 	id?: unknown;
 };
 
@@ -237,7 +238,7 @@ const sendTranspileTSResponse = (item: TranspileTSQueueItem, response: WebSocket
 const handleTranspileTS = async (item: TranspileTSQueueItem) => {
 	try {
 		const { transpileTypescript, getDiagnosticMessage } = await import('./TranspileTS');
-		const { success, luaCode, diagnostics } = await transpileTypescript(item.file, item.content);
+		const { success, luaCode, diagnostics } = await transpileTypescript(item.file, item.content, item.projectRoot);
 		if (success) {
 			sendTranspileTSResponse(item, { name: WsEvent.TranspileTS, success, file: item.file, luaCode, message: "" });
 		} else {
@@ -326,9 +327,14 @@ export function openWebSocket() {
 								break;
 							}
 							case WsEvent.TranspileTS: {
-								const { file, content } = result;
+								const { file, content, projectRoot } = result;
 								if (typeof file === 'string' && typeof content === 'string') {
-									void handleTranspileTS({ file, content, id: result.id });
+									void handleTranspileTS({
+										file,
+										content,
+										projectRoot: typeof projectRoot === "string" ? projectRoot : undefined,
+										id: result.id
+									});
 								}
 								break;
 							}
@@ -660,6 +666,7 @@ export interface ReadSyncRequest {
 	path: string;
 	exts?: string[];
 	projFile?: string;
+	projectRoot?: string;
 };
 export type ReadSyncResponse = {
 	success: false;
@@ -672,10 +679,12 @@ export const readSync = (req: ReadSyncRequest) => {
 	const { path } = req;
 	const exts = req.exts ? req.exts.join("|") : "";
 	const projFile = req.projFile ? req.projFile : "";
+	const projectRoot = req.projectRoot ? req.projectRoot : "";
 	const params = new URLSearchParams();
 	params.set('path', path);
 	if (exts !== "") params.set('exts', exts);
 	if (projFile !== "") params.set('projFile', projFile);
+	if (projectRoot !== "") params.set('projectRoot', projectRoot);
 	return getSync<ReadSyncResponse>("/read-sync", params);
 };
 

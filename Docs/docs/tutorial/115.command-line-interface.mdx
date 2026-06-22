@@ -36,6 +36,15 @@ Dora cli doctor --fix
 
 `status` reports the current service state. `doctor` reports the same core state with recovery hints. `doctor --fix` can start the local native engine and open the Web IDE when needed.
 
+Read the latest engine logs:
+
+```sh
+Dora cli log
+Dora cli log -n 100
+```
+
+`log` prints the latest 100 log lines by default. Use `-n` to choose another positive line count.
+
 ## 2. Command Reference
 
 The command list from `Dora cli --help`:
@@ -44,30 +53,36 @@ The command list from `Dora cli --help`:
 Usage: dora cli <command> [options]
 
 Commands:
-  init [-p project] [-l zh-Hans|en]
+  ts install [-p project] [-l zh-Hans|en]
   build [-p project] [-f file] [--lang all|ts|yue|tl|xml|wa]
   run [-p project] [--entry init.lua]
   buildrun [-p project] [-f file] [--lang ...] [--entry init.lua]
   stop
   status [-p project]
   doctor [-p project] [--fix]
+  log [-n lines]
+  wa install [-p project]
   rust build [-p project]
   rust run <target-path> [-p project]
   rust upload <target-path> [-p project] [--run]
-  wa build [-p project]
-  wa run [-p project]
-  wa init [project] [-p parent]
-  wa update [-p project]
 
 Connection options: --host, --port, --timeout
 ```
 
-## 3. TypeScript and Script Projects
-
-Initialize a TypeScript project with Dora API definitions:
+Use `-h` or `--help` after a grouped command for details:
 
 ```sh
-Dora cli init -p /path/to/project -l en
+Dora cli ts --help
+Dora cli wa install -h
+Dora cli rust run --help
+```
+
+## 3. TypeScript and Script Projects
+
+Install TypeScript support. On a new project this creates `tsconfig.json` and writes Dora API definitions under `API`. On an existing project it refreshes the API definitions and keeps an existing `tsconfig.json` unchanged.
+
+```sh
+Dora cli ts install -p /path/to/project -l en
 ```
 
 Build the project. When the language is not specified, Dora CLI scans supported source files and builds each one by extension. Use `--lang` only when you want to build one language family.
@@ -97,29 +112,29 @@ Supported build languages are `all`, `ts`, `yue`, `tl`, `xml`, and `wa`. `all` i
 
 ## 4. Wa Projects
 
-Create a new Wa project. This writes `wa.mod`, `src/main.wa`, and `vendor/dora` using the Dora engine's current Wa bindings.
+Install Wa support. On a new project this writes `wa.mod`, `src/main.wa`, and `vendor/dora` using the Dora engine's current Wa bindings. On an existing Wa project it refreshes `vendor/dora`.
 
 ```sh
-Dora cli wa init hello_dora --host 127.0.0.1
-cd hello_dora
+Dora cli wa install -p /path/to/wa-project --host 127.0.0.1
+cd /path/to/wa-project
 ```
 
 Update `vendor/dora` later when the engine version changes:
 
 ```sh
-Dora cli wa update --host 127.0.0.1
+Dora cli wa install --host 127.0.0.1
 ```
 
-Build only:
+Build with the common build command:
 
 ```sh
-Dora cli wa build --host 127.0.0.1
+Dora cli build --host 127.0.0.1
 ```
 
-Run directly from the external Wa project directory:
+Run with the common run command:
 
 ```sh
-Dora cli wa run --host 127.0.0.1
+Dora cli run --host 127.0.0.1
 ```
 
 Wa projects for Dora SSR should use the Wa compiler integrated in the engine. Do not build Dora Wa projects with a separately installed Wa toolchain.

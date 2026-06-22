@@ -143,9 +143,10 @@ function getDeclarationOptions(ts: TsModule): CompilerOptions {
 function createCompilerHost(
 	ts: TsModule,
 	rootFileName: string,
-	content: string
+	content: string,
+	projectRoot?: string
 ): [CompilerHost, Map<string, string>] {
-	const currentDirectory = Info.path.dirname(rootFileName);
+	const currentDirectory = projectRoot && projectRoot !== "" ? projectRoot : Info.path.dirname(rootFileName);
 	const writeFiles = new Map<string, string>();
 	const pathMap = new Map<string, monaco.Uri>();
 	const unexistMap = new Set<string>();
@@ -212,7 +213,7 @@ function createCompilerHost(
 				sourceCache.set(resolvedCacheKey, source ?? null);
 				return source;
 			};
-			const readSync = (path: string) => Service.readSync({ path, exts, projFile: rootFileName });
+			const readSync = (path: string) => Service.readSync({ path, exts, projFile: rootFileName, projectRoot });
 			let res = readSync(targetPath);
 			if (!res?.success && fallbackToBaseName && Info.path.isAbsolute(targetPath)) {
 				const ext = Info.path.extname(targetPath);
@@ -395,10 +396,11 @@ function createTypescriptProgram(
 	ts: TsModule,
 	tstlOptions: TstlCompilerOptions,
 	rootFileName: string,
-	content: string
+	content: string,
+	projectRoot?: string
 ): Program {
-	const [compilerHost] = createCompilerHost(ts, rootFileName, content);
-	tstlOptions.baseUrl = Info.path.dirname(rootFileName);
+	const [compilerHost] = createCompilerHost(ts, rootFileName, content, projectRoot);
+	tstlOptions.baseUrl = projectRoot && projectRoot !== "" ? projectRoot : Info.path.dirname(rootFileName);
 	return ts.createProgram([rootFileName], tstlOptions, compilerHost);
 }
 
@@ -408,12 +410,13 @@ function createTypescriptProgram(
 
 export async function transpileTypescript(
 	fileName: string,
-	content: string
+	content: string,
+	projectRoot?: string
 ) {
 	const ts = await loadTypescriptCompiler();
 	const tstl = await loadTstl();
 	const tstlOptions = getTstlOptions(ts, tstl);
-	const program = createTypescriptProgram(ts, tstlOptions, fileName, content);
+	const program = createTypescriptProgram(ts, tstlOptions, fileName, content, projectRoot);
 	let diagnostics = ts.getPreEmitDiagnostics(program);
 	const { createEmitOutputCollector } = await loadOutputCollector();
 	const collector = createEmitOutputCollector();
@@ -421,9 +424,9 @@ export async function transpileTypescript(
 		emitHost: {
 			directoryExists: () => false,
 			fileExists: () => true,
-			getCurrentDirectory: () => Info.path.dirname(fileName),
+			getCurrentDirectory: () => projectRoot && projectRoot !== "" ? projectRoot : Info.path.dirname(fileName),
 			readFile: (filename) => {
-				const res = Service.readSync({ path: filename });
+				const res = Service.readSync({ path: filename, projectRoot });
 				if (res?.success) {
 					return res.content;
 				}

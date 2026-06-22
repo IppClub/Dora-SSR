@@ -113,6 +113,14 @@ relativeToRoot = (file, root) ->
 	else
 		nil
 
+getProjectSourceRoot = (projectRoot) ->
+	return nil unless projectRoot and projectRoot ~= "" and Content\exist(projectRoot) and Content\isdir(projectRoot)
+	scriptDir = Path projectRoot, "Script"
+	if Content\exist(scriptDir) and Content\isdir(scriptDir)
+		scriptDir
+	else
+		projectRoot
+
 isProjectRootDir = (dir) ->
 	return false unless dir and dir ~= "" and Content\exist(dir) and Content\isdir(dir)
 	for f in *Content\getFiles dir
@@ -1688,30 +1696,54 @@ HttpServer\get "/read-sync", (req): success: false ->
 	switch req when :params
 		:path = params
 		exts = if params.exts
-			for ext in params.exts\gmatch "[^|]*"
-				ext
+			[ext for ext in params.exts\gmatch "[^|]*"]
 		else ["",]
-		readFile = (): nil ->
+		readFileAt = (targetPath): nil ->
+			if Content\exist targetPath
+				if content := Content\load targetPath
+					return :content, success: true, fullPath: Content\getFullPath targetPath
+		readFile = (fallbackPaths): nil ->
 			for ext in *exts
 				targetPath = path .. ext
-				if Content\exist targetPath
-					if content := Content\load targetPath
-						return :content, success: true, fullPath: Content\getFullPath targetPath
-		:searchPaths = Content
-		close _ = <close>: -> Content.searchPaths = searchPaths
+				unless Content\isAbsolutePath targetPath
+					for fallback in *fallbackPaths
+						if fallbackResult := readFileAt Path fallback, targetPath
+							return fallbackResult
+				if fileResult := readFileAt targetPath
+					return fileResult
+		fallbackPaths = []
+		fallbackCandidates = []
+		if projectRoot := req.params.projectRoot
+			if projectRoot ~= "" and Content\exist(projectRoot) and Content\isdir(projectRoot)
+				fallbackCandidates[] = Path projectRoot, "Script"
+				fallbackCandidates[] = projectRoot
 		if projFile := req.params.projFile
 			if projDir := getProjectDirFromFile projFile
-				scriptDir = Path projDir, "Script"
-				Content\addSearchPath scriptDir if Content\exist scriptDir
-				Content\addSearchPath projDir if Content\exist projDir
+				fallbackCandidates[] = Path projDir, "Script"
+				fallbackCandidates[] = projDir
 			else
 				projDir = Path\getPath projFile
-				Content\addSearchPath projDir if Content\exist projDir
-		return result if result := readFile!
+				fallbackCandidates[] = projDir
+		for dir in *fallbackCandidates
+			if dir and dir ~= "" and Content\exist(dir) and Content\isdir(dir)
+				exists = false
+				for fallback in *fallbackPaths
+					if fallback == dir
+						exists = true
+						break
+				fallbackPaths[] = dir unless exists
+		if readResult := readFile fallbackPaths
+			return readResult
 
-compileFileAsync = (inputFile, sourceCodes): nil ->
+compileFileAsync = (inputFile, sourceCodes, projectRoot = nil): nil ->
 	file = inputFile
-	searchPath = if not Content\isAbsolutePath inputFile
+	searchPath = if projectRoot and projectRoot ~= "" and Content\exist(projectRoot) and Content\isdir(projectRoot)
+		file = relativeToRoot(inputFile, Content.writablePath) or
+			relativeToRoot(inputFile, Content.assetPath) or
+			relativeToRoot(inputFile, projectRoot) or
+			inputFile
+		Path(projectRoot, "Script", "?.lua") .. ";" .. Path projectRoot, "?.lua"
+	elseif not Content\isAbsolutePath inputFile
 		""
 	elseif dir := getProjectDirFromFile inputFile
 		file = relativeToRoot(inputFile, Content.writablePath) or
@@ -1788,6 +1820,7 @@ getWaProjectDirFromFile = nil
 
 HttpServer\postSchedule "/build", (req): success: false ->
 	switch req when {body: {:path}}
+		projectRoot = req.body.projectRoot
 		if Content\isdir path
 			if projDir := getWaProjectDirFromFile path
 				message = Wasm\buildWaAsync projDir
@@ -1799,7 +1832,7 @@ HttpServer\postSchedule "/build", (req): success: false ->
 			when "tl", "yue", "xml"
 				if '' == Path\getExt Path\getName path
 					if content := Content\loadAsync path
-						if resultCodes := compileFileAsync path, content
+						if resultCodes := compileFileAsync path, content, projectRoot
 							return success: true, :resultCodes
 			when "wa"
 				if projDir := getWaProjectDirFromFile path
@@ -1947,7 +1980,12 @@ HttpServer\postSchedule "/run", (req): success: false ->
 		import "Script.Dev.Entry"
 		local workDir
 		if asProj
-			if workDir := getProjectDirFromFile file
+			projectRoot = req.body.projectRoot
+			workDir = if projectRoot and projectRoot ~= "" and Content\exist(projectRoot) and Content\isdir(projectRoot)
+				projectRoot
+			else
+				getProjectDirFromFile file
+			if workDir
 				Entry.allClear!
 				target = Path workDir, "init"
 				success, err = Entry.enterEntryAsync entryName: "Project", fileName: target, workDir: workDir, projectRoot: workDir, runKind: "project"
@@ -2087,6 +2125,39 @@ HttpServer\post "/log/save", (): success: false ->
 	if App\saveLog logPath
 		return success: true, path: Path folder, fullLogFile
 
+tailLines = (text, count) ->
+	lines = {}
+	text = text\gsub "\r\n", "\n"
+	for line in (text .. "\n")\gmatch "(.-)\n"
+		lines[#lines + 1] = line
+	if #lines > 0 and lines[#lines] == "" and text\sub(#text) == "\n"
+		table.remove lines
+	start = math.max 1, #lines - count + 1
+	out = {}
+	for i = start, #lines
+		out[#out + 1] = lines[i]
+	table.concat out, "\n"
+
+HttpServer\post "/log", (req): success: false ->
+	count = 100
+	if req and req.body and req.body.count ~= nil
+		count = req.body.count
+	unless type(count) == "number" and count >= 1 and count == math.floor(count)
+		return success: false, message: "count must be a positive integer"
+	folder = ".download"
+	fullLogFile = "dora_full_logs.txt"
+	fullFolder = Path Content.writablePath, folder
+	Content\mkdir fullFolder
+	logPath = Path fullFolder, fullLogFile
+	if App\saveLog logPath
+		text = Content\load logPath
+		if text
+			return success: true, log: tailLines text, count
+		else
+			return success: false, message: "failed to read log"
+	else
+		return success: false, message: "failed to save log"
+
 HttpServer\post "/yarn/check", (req): success: false ->
 	import "yarncompile"
 	switch req when {body: {:code}}
@@ -2197,6 +2268,8 @@ HttpServer\postSchedule "/ts/build", (req): success: false ->
 	switch req when {body: {:path}}
 		if HttpServer.wsConnectionCount == 0
 			return success: false, message: "Web IDE not connected"
+		projectRoot = req.body.projectRoot
+		sourceRoot = getProjectSourceRoot projectRoot
 		unless Content\exist path
 			return success: false, message: "path not existed"
 		if not Content\isdir path
@@ -2206,7 +2279,7 @@ HttpServer\postSchedule "/ts/build", (req): success: false ->
 			content = Content\load path
 			unless content
 				return success: false, message: "failed to read file"
-			emit "AppWS", "Send", json.encode name: "UpdateFile", file: path, exists: true, :content
+			emit "AppWS", "Send", json.encode name: "UpdateFile", file: path, exists: true, :content, projectRoot: sourceRoot
 			if "d" ~= Path\getExt Path\getName path
 				done = false
 				with Node!
@@ -2222,7 +2295,7 @@ HttpServer\postSchedule "/ts/build", (req): success: false ->
 									else
 										messages[] = success: false, file: path, message: res.message
 									done = true
-				emit "AppWS", "Send", json.encode name: "TranspileTS", file: path, :content
+				emit "AppWS", "Send", json.encode name: "TranspileTS", file: path, :content, projectRoot: sourceRoot
 				wait -> done
 			return success: true, :messages
 		else
@@ -2232,7 +2305,7 @@ HttpServer\postSchedule "/ts/build", (req): success: false ->
 				file = Path path, subFile
 				if content := Content\load file
 					fileData[file] = content
-					emit "AppWS", "Send", json.encode name: "UpdateFile", :file, exists: true, :content
+					emit "AppWS", "Send", json.encode name: "UpdateFile", :file, exists: true, :content, projectRoot: sourceRoot
 				else
 					messages[] = success: false, :file, message: "failed to read file"
 			for file, content in pairs fileData
@@ -2251,7 +2324,7 @@ HttpServer\postSchedule "/ts/build", (req): success: false ->
 									else
 										messages[] = success: false, :file, message: res.message
 									done = true
-				emit "AppWS", "Send", json.encode name: "TranspileTS", :file, :content
+				emit "AppWS", "Send", json.encode name: "TranspileTS", :file, :content, projectRoot: sourceRoot
 				wait -> done
 			return success: true, :messages
 
