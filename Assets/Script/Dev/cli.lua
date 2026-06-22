@@ -697,6 +697,65 @@ local function statusText(value)
 	return value and "yes" or "no"
 end
 
+local function printDoctorField(name, value)
+	print(name .. ": " .. tostring(value == nil and "unknown" or value))
+end
+
+local function initFilesIn(dir)
+	local files = {}
+	if not dir or dir == "" or not CLI.exists(dir) or not CLI.isDir(dir) then
+		return files
+	end
+	for _, entry in ipairs(CLI.listDir(dir)) do
+		if entry.isFile and stem(entry.name):lower() == "init" then
+			files[#files + 1] = entry.name
+		end
+	end
+	table.sort(files)
+	return files
+end
+
+local function joinList(items)
+	return #items > 0 and table.concat(items, ", ") or "no"
+end
+
+local function printDoctorCliContext(options)
+	print("CLI:")
+	printDoctorField("  Executable", CLI.executablePath)
+	printDoctorField("  Script", CLI.scriptPath)
+	printDoctorField("  CWD", CLI.cwd())
+	printDoctorField("  CLI asset root", assetRoot())
+	if Content and Content.assetPath then
+		printDoctorField("  --asset", Content.assetPath)
+	end
+	printDoctorField("  Project option", options.project)
+end
+
+local function printDoctorProject(options)
+	local project = options.project
+	print("Project:")
+	print("  Path exists: " .. statusText(CLI.exists(project)))
+	print("  Is directory: " .. statusText(CLI.exists(project) and CLI.isDir(project)))
+	if not CLI.exists(project) or not CLI.isDir(project) then
+		return
+	end
+	local projectRoot = findProjectRoot(project, true)
+	printDoctorField("  Project root", projectRoot or "not found")
+	local root = projectRoot or project
+	print("  Init files: " .. joinList(initFilesIn(root)))
+	local scriptDir = pathJoin(root, "Script")
+	print("  Script dir: " .. statusText(CLI.exists(scriptDir) and CLI.isDir(scriptDir)) .. " (" .. scriptDir .. ")")
+	print("  wa.mod: " .. statusText(CLI.exists(pathJoin(root, "wa.mod"))))
+	print("  tsconfig.json: " .. statusText(CLI.exists(pathJoin(root, "tsconfig.json"))))
+	print("  API dir: " .. statusText(CLI.exists(pathJoin(root, "API")) and CLI.isDir(pathJoin(root, "API"))))
+	local buildDir = pathJoin(root, ".build")
+	if CLI.exists(buildDir) then
+		print("  .build dir: " .. statusText(CLI.isDir(buildDir)) .. " (" .. buildDir .. ")")
+	else
+		print("  .build dir: no (" .. buildDir .. ")")
+	end
+end
+
 local function runLog(options)
 	local count = options.logLines or 20
 	if count < 1 or count ~= math.floor(count) then
@@ -708,6 +767,10 @@ local function runLog(options)
 end
 
 local function runDoctor(options, diagnose)
+	if diagnose then
+		printDoctorCliContext(options)
+		printDoctorProject(options)
+	end
 	print("Checking Dora SSR service at " .. baseUrl(options) .. "...")
 	local doc, err = tryPostJson(options, "/status", {}, math.min(options.timeout, 2))
 	local nativeStarted = false
@@ -738,15 +801,26 @@ local function runDoctor(options, diagnose)
 		print("Native engine: yes")
 	end
 	expectSuccess(doc, "Doctor failed.")
+	if diagnose then
+		print("Service:")
+	end
 	print("Dora SSR: " .. tostring(doc.version or "unknown") .. " on " .. tostring(doc.platform or "unknown"))
 	print("Web IDE URL: " .. tostring(doc.url or "unavailable"))
 	print("Web IDE connected: " .. statusText(doc.webIDEConnected) .. " (" .. tostring(doc.wsConnectionCount or 0) .. ")")
+	if diagnose then
+		printDoctorField("Asset path", doc.assetPath)
+		printDoctorField("Writable path", doc.writablePath)
+		printDoctorField("App path", doc.appPath)
+	end
 	if type(doc.running) == "table" and doc.running.running then
 		print("Running: " .. tostring(doc.running.kind or "file") .. " " .. tostring(doc.running.fileName or doc.running.entryName or ""))
 	else
 		print("Running: no")
 	end
-	print("Wa template: " .. statusText(doc.waTemplateReady))
+	if diagnose then
+		print("Tooling:")
+		print("Wa template: " .. statusText(doc.waTemplateReady))
+	end
 	if options.fix then
 		if not doc.webIDEConnected then
 			if not isLocalHost(options.host) then

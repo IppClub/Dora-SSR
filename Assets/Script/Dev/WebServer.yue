@@ -2341,16 +2341,18 @@ getServerStatus = ->
 	import "Script.Dev.Entry"
 	running = Entry.getCurrentEntryStatus!
 	waTemplateReady = Content\exist Path Content.assetPath, "dora-wa", "wa.mod"
+	wsConnectionCount = HttpServer.wsConnectionCount
 	{
 		success: true
 		platform: App.platform
 		locale: App.locale
 		version: App.version
 		url: "http://localhost:8866"
-		wsConnectionCount: HttpServer.wsConnectionCount
-		webIDEConnected: HttpServer.wsConnectionCount > 0
+		:wsConnectionCount
+		webIDEConnected: wsConnectionCount > 0
 		assetPath: Content.assetPath
 		writablePath: Content.writablePath
+		appPath: Content.appPath
 		:waTemplateReady
 		:running
 	}

@@ -77,12 +77,24 @@ SkeletonData* SkeletonCache::load(String skelFile, String atlasFile) {
 	switch (Switch::hash(ext)) {
 		case "skel"_hash: {
 			spine::SkeletonBinary bin(*atlas->get());
-			skeletonData = SkeletonData::create(bin.readSkeletonDataFile(skelPath.c_str()), atlas);
+			spine::SkeletonData* skelData = bin.readSkeletonDataFile(skelPath.c_str());
+			if (skelData) {
+				skeletonData = SkeletonData::create(skelData, atlas);
+			} else {
+				auto err = bin.getError();
+				Error("failed to load spine skeleton binary data \"{}\", due to \"{}\".", skelFile.toString(), std::string{err.buffer(), err.length()});
+			}
 			break;
 		}
 		case "json"_hash: {
 			spine::SkeletonJson json(*atlas->get());
-			skeletonData = SkeletonData::create(json.readSkeletonDataFile(skelPath.c_str()), atlas);
+			spine::SkeletonData* skelData = json.readSkeletonDataFile(skelPath.c_str());
+			if (skelData) {
+				skeletonData = SkeletonData::create(skelData, atlas);
+			} else {
+				auto err = json.getError();
+				Error("failed to load spine skeleton JSON data \"{}\", due to \"{}\".", skelFile.toString(), std::string{err.buffer(), err.length()});
+			}
 			break;
 		}
 		default:
