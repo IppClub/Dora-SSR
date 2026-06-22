@@ -35,7 +35,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <thread>
 
 #define DORA_VERSION "1.8.1"_slice
-#define DORA_REVISION "2"_slice
+#define DORA_REVISION "3"_slice
 
 #if BX_PLATFORM_ANDROID
 #include <jni.h>
@@ -900,6 +900,12 @@ int Application::run(MainFunc mainFunc) {
 					break;
 				}
 #endif // BX_PLATFORM_ANDROID || BX_PLATFORM_IOS
+				case SDL_KEYDOWN:
+				case SDL_KEYUP:
+					SharedController.handleDevVirtualControllerEventInRender(event);
+					break;
+				case SDL_CONTROLLERDEVICEADDED:
+				case SDL_CONTROLLERDEVICEREMOVED:
 				case SDL_CONTROLLERAXISMOTION:
 				case SDL_CONTROLLERBUTTONDOWN:
 				case SDL_CONTROLLERBUTTONUP:

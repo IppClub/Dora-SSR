@@ -907,6 +907,200 @@ static void PlatformSetImeDataFn(ImGuiContext*, ImGuiViewport*, ImGuiPlatformIme
 	ImGuiDora::setImePositionHint(s_cast<int>(data->InputPos.x), s_cast<int>(data->InputPos.y + data->InputLineHeight));
 }
 
+static bool s_gamepadWindowingDown = false;
+static bool s_gamepadWindowingDpadUpDown = false;
+static bool s_gamepadWindowingDpadDownDown = false;
+static bool s_gamepadBackDown = false;
+
+static bool DoraIsGamepadInputFocused() {
+	ImGuiContext* context = ImGui::GetCurrentContext();
+	return context && context->NavWindow && std::strcmp(context->NavWindow->Name, "DoraGamepadInput") == 0;
+}
+
+static ImGuiKey DoraGetGamepadButtonKey(SDL_GameControllerButton button) {
+	switch (button) {
+		case SDL_CONTROLLER_BUTTON_START:
+			return ImGuiKey_GamepadStart;
+		case SDL_CONTROLLER_BUTTON_BACK:
+			return ImGuiKey_GamepadBack;
+		case SDL_CONTROLLER_BUTTON_X:
+			return ImGuiKey_GamepadFaceUp;
+		case SDL_CONTROLLER_BUTTON_B:
+			return ImGuiKey_GamepadFaceRight;
+		case SDL_CONTROLLER_BUTTON_Y:
+			return ImGuiKey_GamepadFaceLeft;
+		case SDL_CONTROLLER_BUTTON_A:
+			return ImGuiKey_GamepadFaceDown;
+		case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
+			return ImGuiKey_GamepadDpadLeft;
+		case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
+			return ImGuiKey_GamepadDpadRight;
+		case SDL_CONTROLLER_BUTTON_DPAD_UP:
+			return ImGuiKey_GamepadDpadUp;
+		case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
+			return ImGuiKey_GamepadDpadDown;
+		case SDL_CONTROLLER_BUTTON_LEFTSHOULDER:
+			return ImGuiKey_GamepadL1;
+		case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:
+			return ImGuiKey_GamepadR1;
+		case SDL_CONTROLLER_BUTTON_LEFTSTICK:
+			return ImGuiKey_GamepadL3;
+		case SDL_CONTROLLER_BUTTON_RIGHTSTICK:
+			return ImGuiKey_GamepadR3;
+		default:
+			return ImGuiKey_None;
+	}
+}
+
+static float DoraGetGamepadAxisValue(Sint16 value) {
+	return value < 0 ? s_cast<float>(value) / 32768.0f : s_cast<float>(value) / 32767.0f;
+}
+
+static void DoraAddGamepadAxisEvent(ImGuiIO& io, ImGuiKey negativeKey, ImGuiKey positiveKey, Sint16 value) {
+	constexpr float deadZone = 0.20f;
+	float axisValue = DoraGetGamepadAxisValue(value);
+	if (axisValue < -deadZone) {
+		if (negativeKey != ImGuiKey_None) io.AddKeyAnalogEvent(negativeKey, true, (-axisValue - deadZone) / (1.0f - deadZone));
+		if (positiveKey != ImGuiKey_None) io.AddKeyAnalogEvent(positiveKey, false, 0.0f);
+	} else if (axisValue > deadZone) {
+		if (negativeKey != ImGuiKey_None) io.AddKeyAnalogEvent(negativeKey, false, 0.0f);
+		if (positiveKey != ImGuiKey_None) io.AddKeyAnalogEvent(positiveKey, true, (axisValue - deadZone) / (1.0f - deadZone));
+	} else {
+		if (negativeKey != ImGuiKey_None) io.AddKeyAnalogEvent(negativeKey, false, 0.0f);
+		if (positiveKey != ImGuiKey_None) io.AddKeyAnalogEvent(positiveKey, false, 0.0f);
+	}
+}
+
+static void DoraClearGamepadInputs(ImGuiIO& io) {
+	s_gamepadWindowingDown = false;
+	s_gamepadWindowingDpadUpDown = false;
+	s_gamepadWindowingDpadDownDown = false;
+	s_gamepadBackDown = false;
+	const ImGuiKey keys[] = {
+		ImGuiKey_GamepadStart,
+		ImGuiKey_GamepadBack,
+		ImGuiKey_GamepadFaceLeft,
+		ImGuiKey_GamepadFaceRight,
+		ImGuiKey_GamepadFaceUp,
+		ImGuiKey_GamepadFaceDown,
+		ImGuiKey_GamepadDpadLeft,
+		ImGuiKey_GamepadDpadRight,
+		ImGuiKey_GamepadDpadUp,
+		ImGuiKey_GamepadDpadDown,
+		ImGuiKey_GamepadL1,
+		ImGuiKey_GamepadR1,
+		ImGuiKey_GamepadL2,
+		ImGuiKey_GamepadR2,
+		ImGuiKey_GamepadL3,
+		ImGuiKey_GamepadR3,
+		ImGuiKey_GamepadLStickLeft,
+		ImGuiKey_GamepadLStickRight,
+		ImGuiKey_GamepadLStickUp,
+		ImGuiKey_GamepadLStickDown,
+		ImGuiKey_GamepadRStickLeft,
+		ImGuiKey_GamepadRStickRight,
+		ImGuiKey_GamepadRStickUp,
+		ImGuiKey_GamepadRStickDown};
+	for (auto key : keys) {
+		io.AddKeyEvent(key, false);
+	}
+}
+
+static bool DoraHasGameController() {
+	for (int i = 0; i < SDL_NumJoysticks(); ++i) {
+		if (SDL_IsGameController(i)) return true;
+	}
+	return false;
+}
+
+static void DoraHandleGamepadEvent(ImGuiIO& io, const SDL_Event& event) {
+	switch (event.type) {
+		case SDL_CONTROLLERDEVICEADDED:
+			io.BackendFlags |= ImGuiBackendFlags_HasGamepad;
+			break;
+		case SDL_CONTROLLERDEVICEREMOVED:
+			DoraClearGamepadInputs(io);
+			if (!DoraHasGameController()) {
+				io.BackendFlags &= ~ImGuiBackendFlags_HasGamepad;
+			}
+			break;
+		case SDL_CONTROLLERBUTTONDOWN:
+		case SDL_CONTROLLERBUTTONUP: {
+			io.BackendFlags |= ImGuiBackendFlags_HasGamepad;
+			auto down = event.type == SDL_CONTROLLERBUTTONDOWN;
+			auto button = static_cast<SDL_GameControllerButton>(event.cbutton.button);
+			bool suppressButton = false;
+			if (button == SDL_CONTROLLER_BUTTON_BACK) {
+				s_gamepadBackDown = down;
+			}
+			switch (button) {
+				case SDL_CONTROLLER_BUTTON_Y:
+					if (DoraIsGamepadInputFocused() && !s_gamepadBackDown) {
+						s_gamepadWindowingDown = false;
+						io.AddKeyEvent(ImGuiKey_GamepadL1, false);
+						io.AddKeyEvent(ImGuiKey_GamepadR1, false);
+						suppressButton = true;
+					} else {
+						s_gamepadWindowingDown = down;
+						io.AddKeyEvent(ImGuiKey_GamepadL1, down && s_gamepadWindowingDpadUpDown);
+						io.AddKeyEvent(ImGuiKey_GamepadR1, down && s_gamepadWindowingDpadDownDown);
+					}
+					break;
+				case SDL_CONTROLLER_BUTTON_DPAD_UP:
+					s_gamepadWindowingDpadUpDown = down;
+					if (s_gamepadWindowingDown) {
+						io.AddKeyEvent(ImGuiKey_GamepadL1, down);
+						io.AddKeyEvent(ImGuiKey_GamepadDpadUp, false);
+						suppressButton = true;
+					}
+					break;
+				case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
+					s_gamepadWindowingDpadDownDown = down;
+					if (s_gamepadWindowingDown) {
+						io.AddKeyEvent(ImGuiKey_GamepadR1, down);
+						io.AddKeyEvent(ImGuiKey_GamepadDpadDown, false);
+						suppressButton = true;
+					}
+					break;
+				default:
+					break;
+			}
+			auto key = DoraGetGamepadButtonKey(button);
+			if (!suppressButton && key != ImGuiKey_None) {
+				io.AddKeyEvent(key, down);
+			}
+			break;
+		}
+		case SDL_CONTROLLERAXISMOTION:
+			io.BackendFlags |= ImGuiBackendFlags_HasGamepad;
+			switch (event.caxis.axis) {
+				case SDL_CONTROLLER_AXIS_LEFTX:
+					DoraAddGamepadAxisEvent(io, ImGuiKey_GamepadLStickLeft, ImGuiKey_GamepadLStickRight, event.caxis.value);
+					break;
+				case SDL_CONTROLLER_AXIS_LEFTY:
+					DoraAddGamepadAxisEvent(io, ImGuiKey_GamepadLStickUp, ImGuiKey_GamepadLStickDown, event.caxis.value);
+					break;
+				case SDL_CONTROLLER_AXIS_RIGHTX:
+					DoraAddGamepadAxisEvent(io, ImGuiKey_GamepadRStickLeft, ImGuiKey_GamepadRStickRight, event.caxis.value);
+					break;
+				case SDL_CONTROLLER_AXIS_RIGHTY:
+					DoraAddGamepadAxisEvent(io, ImGuiKey_GamepadRStickUp, ImGuiKey_GamepadRStickDown, event.caxis.value);
+					break;
+				case SDL_CONTROLLER_AXIS_TRIGGERLEFT:
+					DoraAddGamepadAxisEvent(io, ImGuiKey_None, ImGuiKey_GamepadL2, event.caxis.value);
+					break;
+				case SDL_CONTROLLER_AXIS_TRIGGERRIGHT:
+					DoraAddGamepadAxisEvent(io, ImGuiKey_None, ImGuiKey_GamepadR2, event.caxis.value);
+					break;
+				default:
+					break;
+			}
+			break;
+		default:
+			break;
+	}
+}
+
 bool ImGuiDora::init() {
 	ImGui::CreateContext();
 	ImPlot::CreateContext();
@@ -978,7 +1172,11 @@ bool ImGuiDora::init() {
 	io.ConfigErrorRecoveryEnableAssert = false;
 	io.ConfigErrorRecoveryEnableTooltip = true;
 
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
 	io.BackendFlags |= ImGuiBackendFlags_RendererHasTextures;
+	if (DoraHasGameController()) {
+		io.BackendFlags |= ImGuiBackendFlags_HasGamepad;
+	}
 	float scale = SharedApplication.getDevicePixelRatio();
 	io.DisplayFramebufferScale = {scale, scale};
 
@@ -1032,6 +1230,13 @@ bool ImGuiDora::init() {
 					}
 					break;
 				}
+				case SDL_CONTROLLERDEVICEADDED:
+				case SDL_CONTROLLERDEVICEREMOVED:
+				case SDL_CONTROLLERBUTTONDOWN:
+				case SDL_CONTROLLERBUTTONUP:
+				case SDL_CONTROLLERAXISMOTION:
+					DoraHandleGamepadEvent(io, event);
+					break;
 			}
 			_inputs.pop_front();
 		}
@@ -1312,6 +1517,13 @@ void ImGuiDora::handleEvent(const SDL_Event& event) {
 			}
 			break;
 		}
+		case SDL_CONTROLLERDEVICEADDED:
+		case SDL_CONTROLLERDEVICEREMOVED:
+		case SDL_CONTROLLERBUTTONDOWN:
+		case SDL_CONTROLLERBUTTONUP:
+		case SDL_CONTROLLERAXISMOTION:
+			_inputs.push_back(event);
+			break;
 		case SDL_TEXTINPUT: {
 			int size = s_cast<int>(_textEditing.size());
 			if (_lastCursor < size) {

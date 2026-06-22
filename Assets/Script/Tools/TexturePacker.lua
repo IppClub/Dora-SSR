@@ -338,141 +338,140 @@ local windowFlags = { -- 278
 	"NoDecoration", -- 279
 	"NoSavedSettings", -- 280
 	"NoFocusOnAppearing", -- 281
-	"NoNav", -- 282
-	"NoMove", -- 283
-	"NoScrollWithMouse" -- 284
-} -- 284
-local inputTextFlags = {"AutoSelectAll"} -- 286
-local filteredNames = clipNames -- 287
-local filteredFolders = clipFolders -- 288
-local scaleChecked = false -- 289
-local themeColor = App.themeColor -- 290
-threadLoop(function() -- 291
-	local ____App_visualSize_12 = App.visualSize -- 292
-	local width = ____App_visualSize_12.width -- 292
-	ImGui.SetNextWindowPos( -- 293
-		Vec2(width - 10, 10), -- 293
-		"Always", -- 293
-		Vec2(1, 0) -- 293
+	"NoMove", -- 282
+	"NoScrollWithMouse" -- 283
+} -- 283
+local inputTextFlags = {"AutoSelectAll"} -- 285
+local filteredNames = clipNames -- 286
+local filteredFolders = clipFolders -- 287
+local scaleChecked = false -- 288
+local themeColor = App.themeColor -- 289
+threadLoop(function() -- 290
+	local ____App_visualSize_12 = App.visualSize -- 291
+	local width = ____App_visualSize_12.width -- 291
+	ImGui.SetNextWindowPos( -- 292
+		Vec2(width - 10, 10), -- 292
+		"Always", -- 292
+		Vec2(1, 0) -- 292
+	) -- 292
+	ImGui.SetNextWindowSize( -- 293
+		Vec2(230, 0), -- 293
+		"Always" -- 293
 	) -- 293
-	ImGui.SetNextWindowSize( -- 294
-		Vec2(230, 0), -- 294
-		"Always" -- 294
-	) -- 294
-	ImGui.Begin( -- 295
-		"Texture Packer", -- 295
-		windowFlags, -- 295
-		function() -- 295
-			ImGui.Text(zh and "纹理打包工具" or "Texture Packer") -- 296
-			ImGui.SameLine() -- 297
-			ImGui.TextDisabled("(?)") -- 298
-			if ImGui.IsItemHovered() then -- 298
-				ImGui.BeginTooltip(function() -- 300
-					ImGui.PushTextWrapPos( -- 301
-						300, -- 301
-						function() -- 301
-							ImGui.Text(zh and "将图像文件（png、jpg、ktx、pvr）放入一个以 '.clips' 结尾的文件夹中，然后重新加载纹理打包工具以找到该文件夹并创建一个打包图像文件。打包后的图像将保存为 '.png' 文件，并生成一个对应的描述文件，保存为 '.clip' 文件。例如，'items.clips' 会变成 'items.png' 和 'items.clip'。" or "Place image files (png, jpg, ktx, pvr) in a folder named with a '.clips' suffix. Reload the texture packer to locate the folder and create a packed image file. The packed image will be saved as a '.png' file, and a corresponding description file will be saved as a '.clip' file. For example, 'items.clips' becomes 'items.png' and 'items.clip'.") -- 302
-						end -- 301
-					) -- 301
-				end) -- 300
-			end -- 300
-			ImGui.Separator() -- 306
-			ImGui.InputText("##FilterInput", filterBuf, inputTextFlags) -- 307
-			ImGui.SameLine() -- 308
-			if ImGui.Button(zh and "筛选" or "Filter") then -- 308
-				local filterText = filterBuf.text -- 310
-				if filterText == "" then -- 310
-					filteredNames = clipNames -- 312
-					filteredFolders = clipFolders -- 313
-					current = 1 -- 314
-					if #filteredFolders > 0 then -- 314
-						displayClips(filteredFolders[current]) -- 316
-					end -- 316
-				else -- 316
-					local filtered = __TS__ArrayFilter( -- 319
-						__TS__ArrayMap( -- 319
-							clipNames, -- 319
-							function(____, n, i) return {n, clipFolders[i + 1]} end -- 319
-						), -- 319
-						function(____, it, i) -- 319
-							local matched = string.match( -- 320
-								string.lower(it[1]), -- 320
-								filterText -- 320
-							) -- 320
-							if matched ~= nil then -- 320
-								return true -- 322
-							end -- 322
-							return false -- 324
-						end -- 319
-					) -- 319
-					filteredNames = __TS__ArrayMap( -- 326
+	ImGui.Begin( -- 294
+		"Texture Packer", -- 294
+		windowFlags, -- 294
+		function() -- 294
+			ImGui.Text(zh and "纹理打包工具" or "Texture Packer") -- 295
+			ImGui.SameLine() -- 296
+			ImGui.TextDisabled("(?)") -- 297
+			if ImGui.IsItemHovered() then -- 297
+				ImGui.BeginTooltip(function() -- 299
+					ImGui.PushTextWrapPos( -- 300
+						300, -- 300
+						function() -- 300
+							ImGui.Text(zh and "将图像文件（png、jpg、ktx、pvr）放入一个以 '.clips' 结尾的文件夹中，然后重新加载纹理打包工具以找到该文件夹并创建一个打包图像文件。打包后的图像将保存为 '.png' 文件，并生成一个对应的描述文件，保存为 '.clip' 文件。例如，'items.clips' 会变成 'items.png' 和 'items.clip'。" or "Place image files (png, jpg, ktx, pvr) in a folder named with a '.clips' suffix. Reload the texture packer to locate the folder and create a packed image file. The packed image will be saved as a '.png' file, and a corresponding description file will be saved as a '.clip' file. For example, 'items.clips' becomes 'items.png' and 'items.clip'.") -- 301
+						end -- 300
+					) -- 300
+				end) -- 299
+			end -- 299
+			ImGui.Separator() -- 305
+			ImGui.InputText("##FilterInput", filterBuf, inputTextFlags) -- 306
+			ImGui.SameLine() -- 307
+			if ImGui.Button(zh and "筛选" or "Filter") then -- 307
+				local filterText = filterBuf.text -- 309
+				if filterText == "" then -- 309
+					filteredNames = clipNames -- 311
+					filteredFolders = clipFolders -- 312
+					current = 1 -- 313
+					if #filteredFolders > 0 then -- 313
+						displayClips(filteredFolders[current]) -- 315
+					end -- 315
+				else -- 315
+					local filtered = __TS__ArrayFilter( -- 318
+						__TS__ArrayMap( -- 318
+							clipNames, -- 318
+							function(____, n, i) return {n, clipFolders[i + 1]} end -- 318
+						), -- 318
+						function(____, it, i) -- 318
+							local matched = string.match( -- 319
+								string.lower(it[1]), -- 319
+								filterText -- 319
+							) -- 319
+							if matched ~= nil then -- 319
+								return true -- 321
+							end -- 321
+							return false -- 323
+						end -- 318
+					) -- 318
+					filteredNames = __TS__ArrayMap( -- 325
+						filtered, -- 325
+						function(____, f) return f[1] end -- 325
+					) -- 325
+					filteredFolders = __TS__ArrayMap( -- 326
 						filtered, -- 326
-						function(____, f) return f[1] end -- 326
+						function(____, f) return f[2] end -- 326
 					) -- 326
-					filteredFolders = __TS__ArrayMap( -- 327
-						filtered, -- 327
-						function(____, f) return f[2] end -- 327
-					) -- 327
-					current = 1 -- 328
-					if #filteredFolders > 0 then -- 328
-						displayClips(filteredFolders[current]) -- 330
-					end -- 330
-				end -- 330
-			end -- 330
-			if #filteredNames > 0 then -- 330
-				local changed = false -- 335
-				changed, current = ImGui.Combo(zh and "文件" or "File", current, filteredNames) -- 336
-				if changed then -- 336
-					displayClips(filteredFolders[current]) -- 338
-				end -- 338
-				if ImGui.Button(zh and "生成切片图集" or "Generate Clip") then -- 338
-					generateClips(filteredFolders[current]) -- 341
-				end -- 341
-			end -- 341
-			ImGui.Separator() -- 344
-			ImGui.Text(zh and "预览" or "Preview") -- 345
-			local sprite = tolua.cast(currentDisplay, "Sprite") -- 346
-			if sprite then -- 346
-				ImGui.TextColored(themeColor, zh and "尺寸：" or "Size:") -- 348
-				ImGui.SameLine() -- 349
-				ImGui.Text((tostring(math.floor(sprite.width)) .. " x ") .. tostring(math.floor(sprite.height))) -- 350
-				ImGui.TextColored(themeColor, zh and "切片名称：" or "Clip Name:") -- 351
-				ImGui.SameLine() -- 352
-				ImGui.Text(clipHover) -- 353
-			end -- 353
-			local changed = false -- 355
-			changed, anisotropic = ImGui.Checkbox(zh and "各向异性过滤" or "Anisotropic", anisotropic) -- 356
-			if changed then -- 356
-				if sprite then -- 356
-					sprite.filter = anisotropic and "Anisotropic" or "Point" -- 359
-				end -- 359
-			end -- 359
-			ImGui.Separator() -- 362
-			changed = false -- 363
-			changed, scaleChecked = ImGui.Checkbox(zh and "缩放工具" or "Scale Helper", scaleChecked) -- 364
-			if changed then -- 364
-				if scaleChecked then -- 364
-					ruler:show( -- 367
-						scaledSize, -- 367
-						0.5, -- 367
-						5, -- 367
-						1, -- 367
-						function(value) -- 367
-							scaledSize = value -- 368
-							if currentDisplay and tolua.cast(currentDisplay, "Sprite") then -- 368
-								local ____currentDisplay_14 = currentDisplay -- 370
-								local ____scaledSize_13 = scaledSize -- 370
-								currentDisplay.scaleY = ____scaledSize_13 -- 370
-								____currentDisplay_14.scaleX = ____scaledSize_13 -- 370
-							end -- 370
-						end -- 367
-					) -- 367
-				else -- 367
-					ruler:hide() -- 374
-				end -- 374
-			end -- 374
-		end -- 295
-	) -- 295
-	return false -- 378
-end) -- 291
-return ____exports -- 291
+					current = 1 -- 327
+					if #filteredFolders > 0 then -- 327
+						displayClips(filteredFolders[current]) -- 329
+					end -- 329
+				end -- 329
+			end -- 329
+			if #filteredNames > 0 then -- 329
+				local changed = false -- 334
+				changed, current = ImGui.Combo(zh and "文件" or "File", current, filteredNames) -- 335
+				if changed then -- 335
+					displayClips(filteredFolders[current]) -- 337
+				end -- 337
+				if ImGui.Button(zh and "生成切片图集" or "Generate Clip") then -- 337
+					generateClips(filteredFolders[current]) -- 340
+				end -- 340
+			end -- 340
+			ImGui.Separator() -- 343
+			ImGui.Text(zh and "预览" or "Preview") -- 344
+			local sprite = tolua.cast(currentDisplay, "Sprite") -- 345
+			if sprite then -- 345
+				ImGui.TextColored(themeColor, zh and "尺寸：" or "Size:") -- 347
+				ImGui.SameLine() -- 348
+				ImGui.Text((tostring(math.floor(sprite.width)) .. " x ") .. tostring(math.floor(sprite.height))) -- 349
+				ImGui.TextColored(themeColor, zh and "切片名称：" or "Clip Name:") -- 350
+				ImGui.SameLine() -- 351
+				ImGui.Text(clipHover) -- 352
+			end -- 352
+			local changed = false -- 354
+			changed, anisotropic = ImGui.Checkbox(zh and "各向异性过滤" or "Anisotropic", anisotropic) -- 355
+			if changed then -- 355
+				if sprite then -- 355
+					sprite.filter = anisotropic and "Anisotropic" or "Point" -- 358
+				end -- 358
+			end -- 358
+			ImGui.Separator() -- 361
+			changed = false -- 362
+			changed, scaleChecked = ImGui.Checkbox(zh and "缩放工具" or "Scale Helper", scaleChecked) -- 363
+			if changed then -- 363
+				if scaleChecked then -- 363
+					ruler:show( -- 366
+						scaledSize, -- 366
+						0.5, -- 366
+						5, -- 366
+						1, -- 366
+						function(value) -- 366
+							scaledSize = value -- 367
+							if currentDisplay and tolua.cast(currentDisplay, "Sprite") then -- 367
+								local ____currentDisplay_14 = currentDisplay -- 369
+								local ____scaledSize_13 = scaledSize -- 369
+								currentDisplay.scaleY = ____scaledSize_13 -- 369
+								____currentDisplay_14.scaleX = ____scaledSize_13 -- 369
+							end -- 369
+						end -- 366
+					) -- 366
+				else -- 366
+					ruler:hide() -- 373
+				end -- 373
+			end -- 373
+		end -- 294
+	) -- 294
+	return false -- 377
+end) -- 290
+return ____exports -- 290

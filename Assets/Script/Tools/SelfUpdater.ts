@@ -145,7 +145,6 @@ const { themeColor } = App;
 const windowFlags = [
 	WindowFlag.NoDecoration,
 	WindowFlag.NoSavedSettings,
-	WindowFlag.NoNav,
 	WindowFlag.NoMove
 ];
 const messagePopupFlags = [

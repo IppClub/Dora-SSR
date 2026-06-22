@@ -328,7 +328,6 @@ const windowsFlags = [
 	WindowFlag.NoCollapse,
 	WindowFlag.NoResize,
 	WindowFlag.NoDecoration,
-	WindowFlag.NoNav,
 	WindowFlag.NoSavedSettings,
 	WindowFlag.NoBringToFrontOnFocus,
 	WindowFlag.NoFocusOnAppearing,

@@ -991,13 +991,22 @@ statusFlags = $WindowFlag(
 displayWindowFlags = $WindowFlag(
 	NoDecoration
 	NoSavedSettings
-	NoNav
 	NoMove
 	NoScrollWithMouse
 	AlwaysAutoResize
 	NoFocusOnAppearing
 )
+gamepadInputWindowFlags = $WindowFlag(
+	NoDecoration
+	NoSavedSettings
+	NoMove
+	NoScrollbar
+	NoScrollWithMouse
+	NoFocusOnAppearing
+	NoBringToFrontOnFocus
+)
 initFooter = true
+gamepadInputFocused = false
 footerWindow = threadLoop ->
 	zh = useChinese
 	authCodeTTL = math.max 0, authCodeTTL - App.deltaTime
@@ -1060,6 +1069,19 @@ footerWindow = threadLoop ->
 		initFooter = false
 
 	:width, :height = App.visualSize
+	if isInEntry
+		gamepadInputFocused = false
+	else
+		SetNextWindowBgAlpha 0.0
+		SetNextWindowSize Vec2(1, 1), $SetCond Always
+		SetNextWindowPos Vec2.zero, $SetCond Always
+		<- PushStyleVar "WindowPadding", Vec2.zero
+		<- PushStyleVar "WindowMinSize", Vec2 1, 1
+		Begin "DoraGamepadInput", gamepadInputWindowFlags, ->
+			unless gamepadInputFocused
+				SetWindowFocus "DoraGamepadInput"
+				gamepadInputFocused = true
+
 	if isInEntry or showFooter
 		SetNextWindowSize Vec2 width, 50
 		SetNextWindowPos Vec2 0, height - 50

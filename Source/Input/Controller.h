@@ -27,6 +27,7 @@ public:
 	ControllerHandler handler;
 	void clearChanges();
 	void handleEventInRender(const SDL_Event& event);
+	void handleDevVirtualControllerEventInRender(const SDL_Event& event);
 
 protected:
 	Controller();
@@ -49,6 +50,9 @@ private:
 	};
 	std::unordered_map<DeviceID, Own<Device>> _deviceMap;
 	std::stack<int> _availableDeviceIds;
+	void* _devVirtualController = nullptr;
+	void* _devVirtualJoystick = nullptr;
+	int _devVirtualDeviceIndex = -1;
 	SINGLETON_REF(Controller, Director);
 };
 

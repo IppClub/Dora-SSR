@@ -361,79 +361,78 @@ local windowsFlags = { -- 326
 	"NoCollapse", -- 328
 	"NoResize", -- 329
 	"NoDecoration", -- 330
-	"NoNav", -- 331
-	"NoSavedSettings", -- 332
-	"NoBringToFrontOnFocus", -- 333
-	"NoFocusOnAppearing" -- 334
-} -- 334
-root:loop(function() -- 336
-	local ____App_visualSize_5 = App.visualSize -- 337
-	local width = ____App_visualSize_5.width -- 337
-	local height = ____App_visualSize_5.height -- 337
-	ImGui.SetNextWindowPos(Vec2.zero, "Always", Vec2.zero) -- 338
-	ImGui.SetNextWindowSize( -- 339
-		Vec2(width, height - 40), -- 339
-		"Always" -- 339
+	"NoSavedSettings", -- 331
+	"NoBringToFrontOnFocus", -- 332
+	"NoFocusOnAppearing" -- 333
+} -- 333
+root:loop(function() -- 335
+	local ____App_visualSize_5 = App.visualSize -- 336
+	local width = ____App_visualSize_5.width -- 336
+	local height = ____App_visualSize_5.height -- 336
+	ImGui.SetNextWindowPos(Vec2.zero, "Always", Vec2.zero) -- 337
+	ImGui.SetNextWindowSize( -- 338
+		Vec2(width, height - 40), -- 338
+		"Always" -- 338
+	) -- 338
+	ImGui.Begin( -- 339
+		"Blockly Coder", -- 339
+		windowsFlags, -- 339
+		function() -- 339
+			ImGui.Text(zh and "Blockly 编程家" or "Blockly Coder") -- 340
+			ImGui.SameLine() -- 341
+			ImGui.TextDisabled("(?)") -- 342
+			if ImGui.IsItemHovered() then -- 342
+				ImGui.BeginTooltip(function() -- 344
+					ImGui.PushTextWrapPos( -- 345
+						400, -- 345
+						function() -- 345
+							ImGui.Text(zh and "请先在 Web IDE 配置大模型 API 密钥，然后输入自然语言需求，Agent 将自动生成 TypeScript 积木代码，编译成 Blockly 积木并翻译为 Lua 脚本运行。遇到编译失败会自动修正，无需手动干预。" or "First, configure the API key for the large language model in Web IDE. Then, input your natural language requirements. The Agent will automatically generate TypeScript building block code, compile it into Blockly blocks, and translate it into Lua scripts for execution. If any compilation errors occur, they will be automatically corrected without requiring manual intervention.") -- 346
+						end -- 345
+					) -- 345
+				end) -- 344
+			end -- 344
+			ImGui.SameLine() -- 351
+			ImGui.Dummy(Vec2(width - 290, 0)) -- 352
+			ImGui.SameLine() -- 353
+			if ImGui.CollapsingHeader(zh and "配置" or "Config") then -- 353
+				if ImGui.InputText(zh and "输出文件" or "Output File", outputFile) then -- 353
+					config.output = outputFile.text -- 356
+				end -- 356
+			end -- 356
+			ImGui.Separator() -- 359
+			ImGui.BeginChild( -- 360
+				"LogArea", -- 360
+				Vec2(0, -40), -- 360
+				function() -- 360
+					for ____, log in ipairs(logs) do -- 361
+						ImGui.TextWrapped(log) -- 362
+					end -- 362
+					if ImGui.GetScrollY() >= ImGui.GetScrollMaxY() then -- 362
+						ImGui.SetScrollHereY(1) -- 365
+					end -- 365
+				end -- 360
+			) -- 360
+			if llmWorking or config.output == "" then -- 360
+				ImGui.BeginDisabled(function() -- 369
+					ChatButton() -- 370
+				end) -- 369
+			else -- 369
+				ChatButton() -- 373
+			end -- 373
+		end -- 339
 	) -- 339
-	ImGui.Begin( -- 340
-		"Blockly Coder", -- 340
-		windowsFlags, -- 340
-		function() -- 340
-			ImGui.Text(zh and "Blockly 编程家" or "Blockly Coder") -- 341
-			ImGui.SameLine() -- 342
-			ImGui.TextDisabled("(?)") -- 343
-			if ImGui.IsItemHovered() then -- 343
-				ImGui.BeginTooltip(function() -- 345
-					ImGui.PushTextWrapPos( -- 346
-						400, -- 346
-						function() -- 346
-							ImGui.Text(zh and "请先在 Web IDE 配置大模型 API 密钥，然后输入自然语言需求，Agent 将自动生成 TypeScript 积木代码，编译成 Blockly 积木并翻译为 Lua 脚本运行。遇到编译失败会自动修正，无需手动干预。" or "First, configure the API key for the large language model in Web IDE. Then, input your natural language requirements. The Agent will automatically generate TypeScript building block code, compile it into Blockly blocks, and translate it into Lua scripts for execution. If any compilation errors occur, they will be automatically corrected without requiring manual intervention.") -- 347
-						end -- 346
-					) -- 346
-				end) -- 345
-			end -- 345
-			ImGui.SameLine() -- 352
-			ImGui.Dummy(Vec2(width - 290, 0)) -- 353
-			ImGui.SameLine() -- 354
-			if ImGui.CollapsingHeader(zh and "配置" or "Config") then -- 354
-				if ImGui.InputText(zh and "输出文件" or "Output File", outputFile) then -- 354
-					config.output = outputFile.text -- 357
-				end -- 357
-			end -- 357
-			ImGui.Separator() -- 360
-			ImGui.BeginChild( -- 361
-				"LogArea", -- 361
-				Vec2(0, -40), -- 361
-				function() -- 361
-					for ____, log in ipairs(logs) do -- 362
-						ImGui.TextWrapped(log) -- 363
-					end -- 363
-					if ImGui.GetScrollY() >= ImGui.GetScrollMaxY() then -- 363
-						ImGui.SetScrollHereY(1) -- 366
-					end -- 366
-				end -- 361
-			) -- 361
-			if llmWorking or config.output == "" then -- 361
-				ImGui.BeginDisabled(function() -- 370
-					ChatButton() -- 371
-				end) -- 370
-			else -- 370
-				ChatButton() -- 374
-			end -- 374
-		end -- 340
-	) -- 340
-	return false -- 377
-end) -- 336
-root:slot( -- 380
-	"Output", -- 380
-	function(message) -- 380
-		logs[#logs + 1] = message -- 381
-	end -- 380
-) -- 380
-root:slot( -- 384
-	"Update", -- 384
-	function(message) -- 384
-		logs[#logs] = message -- 385
-	end -- 384
-) -- 384
-return ____exports -- 384
+	return false -- 376
+end) -- 335
+root:slot( -- 379
+	"Output", -- 379
+	function(message) -- 379
+		logs[#logs + 1] = message -- 380
+	end -- 379
+) -- 379
+root:slot( -- 383
+	"Update", -- 383
+	function(message) -- 383
+		logs[#logs] = message -- 384
+	end -- 383
+) -- 383
+return ____exports -- 383

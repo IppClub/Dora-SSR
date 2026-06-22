@@ -189,120 +189,114 @@ advance = function(option) -- 125
 end -- 125
 advance() -- 164
 local filterBuf = Buffer(20) -- 166
-local windowFlags = { -- 167
-	"NoDecoration", -- 168
-	"NoSavedSettings", -- 169
-	"NoFocusOnAppearing", -- 170
-	"NoNav", -- 171
-	"NoMove" -- 172
-} -- 172
-local inputTextFlags = {"AutoSelectAll"} -- 174
-threadLoop(function() -- 175
-	local ____App_visualSize_5 = App.visualSize -- 176
-	local width = ____App_visualSize_5.width -- 176
-	ImGui.SetNextWindowPos( -- 177
-		Vec2(width - 10, 10), -- 177
-		"Always", -- 177
-		Vec2(1, 0) -- 177
+local windowFlags = {"NoDecoration", "NoSavedSettings", "NoFocusOnAppearing", "NoMove"} -- 167
+local inputTextFlags = {"AutoSelectAll"} -- 173
+threadLoop(function() -- 174
+	local ____App_visualSize_5 = App.visualSize -- 175
+	local width = ____App_visualSize_5.width -- 175
+	ImGui.SetNextWindowPos( -- 176
+		Vec2(width - 10, 10), -- 176
+		"Always", -- 176
+		Vec2(1, 0) -- 176
+	) -- 176
+	ImGui.SetNextWindowSize( -- 177
+		Vec2(230, 0), -- 177
+		"Always" -- 177
 	) -- 177
-	ImGui.SetNextWindowSize( -- 178
-		Vec2(230, 0), -- 178
-		"Always" -- 178
-	) -- 178
-	ImGui.Begin( -- 179
-		"Yarn Tester", -- 179
-		windowFlags, -- 179
-		function() -- 179
-			ImGui.Text(zh and "Yarn 测试工具" or "Yarn Tester") -- 180
-			ImGui.SameLine() -- 181
-			ImGui.TextDisabled("(?)") -- 182
-			if ImGui.IsItemHovered() then -- 182
-				ImGui.BeginTooltip(function() -- 184
-					ImGui.PushTextWrapPos( -- 185
-						300, -- 185
-						function() -- 185
-							ImGui.Text(zh and "重新加载 Yarn 测试工具，以检测任何新添加的以 '.yarn' 结尾的 Yarn Spinner 文件。" or "Reload Yarn Tester to detect any newly added Yarn Spinner files with a '.yarn' extension.") -- 186
-						end -- 185
-					) -- 185
-				end) -- 184
-			end -- 184
-			ImGui.Separator() -- 190
-			ImGui.InputText("##FilterInput", filterBuf, inputTextFlags) -- 191
-			ImGui.SameLine() -- 192
-			local function runFile() -- 193
-				do -- 193
-					local function ____catch(err) -- 193
-						label.text = (("failed to load file " .. filteredPaths[currentFile]) .. "\n") .. tostring(err) -- 199
-						scroll:adjustSizeWithAlign("Auto", 10) -- 200
-					end -- 200
-					local ____try, ____hasReturned = pcall(function() -- 200
-						runner = YarnRunner( -- 195
-							filteredPaths[currentFile], -- 195
-							"Start", -- 195
-							{}, -- 195
-							commands, -- 195
-							true -- 195
-						) -- 195
-						texts = {} -- 196
-						advance() -- 197
-					end) -- 197
-					if not ____try then -- 197
-						____catch(____hasReturned) -- 197
-					end -- 197
-				end -- 197
-			end -- 193
-			if ImGui.Button(zh and "筛选" or "Filter") then -- 193
-				local filterText = string.lower(filterBuf.text) -- 204
-				local filtered = __TS__ArrayFilter( -- 205
-					__TS__ArrayMap( -- 205
-						testFileNames, -- 205
-						function(____, n, i) return {n, testFilePaths[i + 1]} end -- 205
-					), -- 205
-					function(____, it, i) -- 205
-						local matched = string.match( -- 206
-							string.lower(it[1]), -- 206
-							filterText -- 206
-						) -- 206
-						if matched ~= nil then -- 206
-							return true -- 208
-						end -- 208
-						return false -- 210
-					end -- 205
-				) -- 205
-				filteredNames = __TS__ArrayMap( -- 212
+	ImGui.Begin( -- 178
+		"Yarn Tester", -- 178
+		windowFlags, -- 178
+		function() -- 178
+			ImGui.Text(zh and "Yarn 测试工具" or "Yarn Tester") -- 179
+			ImGui.SameLine() -- 180
+			ImGui.TextDisabled("(?)") -- 181
+			if ImGui.IsItemHovered() then -- 181
+				ImGui.BeginTooltip(function() -- 183
+					ImGui.PushTextWrapPos( -- 184
+						300, -- 184
+						function() -- 184
+							ImGui.Text(zh and "重新加载 Yarn 测试工具，以检测任何新添加的以 '.yarn' 结尾的 Yarn Spinner 文件。" or "Reload Yarn Tester to detect any newly added Yarn Spinner files with a '.yarn' extension.") -- 185
+						end -- 184
+					) -- 184
+				end) -- 183
+			end -- 183
+			ImGui.Separator() -- 189
+			ImGui.InputText("##FilterInput", filterBuf, inputTextFlags) -- 190
+			ImGui.SameLine() -- 191
+			local function runFile() -- 192
+				do -- 192
+					local function ____catch(err) -- 192
+						label.text = (("failed to load file " .. filteredPaths[currentFile]) .. "\n") .. tostring(err) -- 198
+						scroll:adjustSizeWithAlign("Auto", 10) -- 199
+					end -- 199
+					local ____try, ____hasReturned = pcall(function() -- 199
+						runner = YarnRunner( -- 194
+							filteredPaths[currentFile], -- 194
+							"Start", -- 194
+							{}, -- 194
+							commands, -- 194
+							true -- 194
+						) -- 194
+						texts = {} -- 195
+						advance() -- 196
+					end) -- 196
+					if not ____try then -- 196
+						____catch(____hasReturned) -- 196
+					end -- 196
+				end -- 196
+			end -- 192
+			if ImGui.Button(zh and "筛选" or "Filter") then -- 192
+				local filterText = string.lower(filterBuf.text) -- 203
+				local filtered = __TS__ArrayFilter( -- 204
+					__TS__ArrayMap( -- 204
+						testFileNames, -- 204
+						function(____, n, i) return {n, testFilePaths[i + 1]} end -- 204
+					), -- 204
+					function(____, it, i) -- 204
+						local matched = string.match( -- 205
+							string.lower(it[1]), -- 205
+							filterText -- 205
+						) -- 205
+						if matched ~= nil then -- 205
+							return true -- 207
+						end -- 207
+						return false -- 209
+					end -- 204
+				) -- 204
+				filteredNames = __TS__ArrayMap( -- 211
+					filtered, -- 211
+					function(____, f) return f[1] end -- 211
+				) -- 211
+				filteredPaths = __TS__ArrayMap( -- 212
 					filtered, -- 212
-					function(____, f) return f[1] end -- 212
+					function(____, f) return f[2] end -- 212
 				) -- 212
-				filteredPaths = __TS__ArrayMap( -- 213
-					filtered, -- 213
-					function(____, f) return f[2] end -- 213
-				) -- 213
-				currentFile = 1 -- 214
-				if #filteredPaths > 0 then -- 214
-					runFile() -- 216
-				end -- 216
-			end -- 216
-			if #filteredNames == 0 then -- 216
-				return -- 220
-			end -- 220
-			local changed = false -- 222
-			changed, currentFile = ImGui.Combo(zh and "文件" or "File", currentFile, filteredNames) -- 223
-			if changed then -- 223
-				runFile() -- 225
-			end -- 225
-			if ImGui.Button(zh and "重载" or "Reload") then -- 225
-				runFile() -- 228
-			end -- 228
-			if runner then -- 228
-				ImGui.SameLine() -- 231
-				ImGui.Text(zh and "变量：" or "Variables:") -- 232
-				ImGui.Separator() -- 233
-				for k, v in pairs(runner.state) do -- 234
-					ImGui.Text((k .. ": ") .. tostring(v)) -- 235
-				end -- 235
-			end -- 235
-		end -- 179
-	) -- 179
-	return false -- 239
-end) -- 175
-return ____exports -- 175
+				currentFile = 1 -- 213
+				if #filteredPaths > 0 then -- 213
+					runFile() -- 215
+				end -- 215
+			end -- 215
+			if #filteredNames == 0 then -- 215
+				return -- 219
+			end -- 219
+			local changed = false -- 221
+			changed, currentFile = ImGui.Combo(zh and "文件" or "File", currentFile, filteredNames) -- 222
+			if changed then -- 222
+				runFile() -- 224
+			end -- 224
+			if ImGui.Button(zh and "重载" or "Reload") then -- 224
+				runFile() -- 227
+			end -- 227
+			if runner then -- 227
+				ImGui.SameLine() -- 230
+				ImGui.Text(zh and "变量：" or "Variables:") -- 231
+				ImGui.Separator() -- 232
+				for k, v in pairs(runner.state) do -- 233
+					ImGui.Text((k .. ": ") .. tostring(v)) -- 234
+				end -- 234
+			end -- 234
+		end -- 178
+	) -- 178
+	return false -- 238
+end) -- 174
+return ____exports -- 174

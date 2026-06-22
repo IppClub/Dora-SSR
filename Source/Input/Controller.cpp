@@ -18,6 +18,31 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DORA_BEGIN
 
+#define DORA_DEV_VIRTUAL_CONTROLLER (DORA_DEBUG && (BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_LINUX))
+
+#if DORA_DEV_VIRTUAL_CONTROLLER
+static bool isDevVirtualControllerEnabled() {
+	auto value = SDL_getenv("DORA_VIRTUAL_CONTROLLER");
+	return value && SDL_strcasecmp(value, "0") != 0 && SDL_strcasecmp(value, "false") != 0;
+}
+
+static Uint32 makeControllerButtonMask() {
+	Uint32 mask = 0;
+	for (int i = 0; i < SDL_CONTROLLER_BUTTON_MAX; ++i) {
+		mask |= 1u << i;
+	}
+	return mask;
+}
+
+static Uint32 makeControllerAxisMask() {
+	Uint32 mask = 0;
+	for (int i = 0; i < SDL_CONTROLLER_AXIS_MAX; ++i) {
+		mask |= 1u << i;
+	}
+	return mask;
+}
+#endif // DORA_DEV_VIRTUAL_CONTROLLER
+
 Controller::Controller() {
 	static_assert(sizeof(SDL_JoystickID) <= sizeof(DeviceID), "can not hold SDL_JoystickID in DeviceID");
 }
@@ -73,6 +98,26 @@ bool Controller::initInRender() {
 	for (int i = 0; i < SDL_NumJoysticks(); ++i) {
 		addControllerInRender(i);
 	}
+#if DORA_DEV_VIRTUAL_CONTROLLER
+	if (isDevVirtualControllerEnabled()) {
+		SDL_VirtualJoystickDesc desc;
+		SDL_zero(desc);
+		desc.version = SDL_VIRTUAL_JOYSTICK_DESC_VERSION;
+		desc.type = SDL_JOYSTICK_TYPE_GAMECONTROLLER;
+		desc.naxes = SDL_CONTROLLER_AXIS_MAX;
+		desc.nbuttons = SDL_CONTROLLER_BUTTON_MAX;
+		desc.button_mask = makeControllerButtonMask();
+		desc.axis_mask = makeControllerAxisMask();
+		desc.name = "Dora Dev Virtual Controller";
+		_devVirtualDeviceIndex = SDL_JoystickAttachVirtualEx(&desc);
+		if (_devVirtualDeviceIndex >= 0) {
+			addControllerInRender(_devVirtualDeviceIndex);
+			Info("enabled Dora dev virtual controller. Keyboard mapping: Arrow keys/WASD=D-pad, J=A, K=B, U=X, I=Y/context, Tab=Back, Q=L1, E=R1, Enter=Start.");
+		} else {
+			Warn("failed to attach Dora dev virtual controller! {}", SDL_GetError());
+		}
+	}
+#endif // DORA_DEV_VIRTUAL_CONTROLLER
 	return true;
 }
 
@@ -137,10 +182,19 @@ void Controller::clearChanges() {
 }
 
 void Controller::addControllerInRender(int deviceIndex) {
+#if DORA_DEV_VIRTUAL_CONTROLLER
+	if (deviceIndex == _devVirtualDeviceIndex && _devVirtualController) return;
+#endif // DORA_DEV_VIRTUAL_CONTROLLER
 	auto joystickId = s_cast<DeviceID>(SDL_JoystickGetDeviceInstanceID(deviceIndex));
 	if (joystickId < 0) return;
 	auto controller = SDL_GameControllerOpen(deviceIndex);
 	if (controller) {
+#if DORA_DEV_VIRTUAL_CONTROLLER
+		if (deviceIndex == _devVirtualDeviceIndex) {
+			_devVirtualController = controller;
+			_devVirtualJoystick = SDL_GameControllerGetJoystick(controller);
+		}
+#endif // DORA_DEV_VIRTUAL_CONTROLLER
 		SharedApplication.invokeInLogic([controller, joystickId, this]() {
 			if (_deviceMap.contains(joystickId)) return;
 			int deviceId = -1;
@@ -157,14 +211,69 @@ void Controller::addControllerInRender(int deviceIndex) {
 	}
 }
 
+void Controller::handleDevVirtualControllerEventInRender(const SDL_Event& event) {
+#if DORA_DEV_VIRTUAL_CONTROLLER
+	if (!_devVirtualJoystick) return;
+	if (event.type != SDL_KEYDOWN && event.type != SDL_KEYUP) return;
+	if (event.type == SDL_KEYDOWN && event.key.repeat) return;
+	auto pressed = event.key.state == SDL_PRESSED ? 1 : 0;
+	switch (event.key.keysym.scancode) {
+		case SDL_SCANCODE_LEFT:
+		case SDL_SCANCODE_A:
+			SDL_JoystickSetVirtualButton(s_cast<SDL_Joystick*>(_devVirtualJoystick), SDL_CONTROLLER_BUTTON_DPAD_LEFT, pressed);
+			break;
+		case SDL_SCANCODE_RIGHT:
+		case SDL_SCANCODE_D:
+			SDL_JoystickSetVirtualButton(s_cast<SDL_Joystick*>(_devVirtualJoystick), SDL_CONTROLLER_BUTTON_DPAD_RIGHT, pressed);
+			break;
+		case SDL_SCANCODE_UP:
+		case SDL_SCANCODE_W:
+			SDL_JoystickSetVirtualButton(s_cast<SDL_Joystick*>(_devVirtualJoystick), SDL_CONTROLLER_BUTTON_DPAD_UP, pressed);
+			break;
+		case SDL_SCANCODE_DOWN:
+		case SDL_SCANCODE_S:
+			SDL_JoystickSetVirtualButton(s_cast<SDL_Joystick*>(_devVirtualJoystick), SDL_CONTROLLER_BUTTON_DPAD_DOWN, pressed);
+			break;
+		case SDL_SCANCODE_J:
+			SDL_JoystickSetVirtualButton(s_cast<SDL_Joystick*>(_devVirtualJoystick), SDL_CONTROLLER_BUTTON_A, pressed);
+			break;
+		case SDL_SCANCODE_K:
+			SDL_JoystickSetVirtualButton(s_cast<SDL_Joystick*>(_devVirtualJoystick), SDL_CONTROLLER_BUTTON_B, pressed);
+			break;
+		case SDL_SCANCODE_U:
+			SDL_JoystickSetVirtualButton(s_cast<SDL_Joystick*>(_devVirtualJoystick), SDL_CONTROLLER_BUTTON_X, pressed);
+			break;
+		case SDL_SCANCODE_I:
+			SDL_JoystickSetVirtualButton(s_cast<SDL_Joystick*>(_devVirtualJoystick), SDL_CONTROLLER_BUTTON_Y, pressed);
+			break;
+		case SDL_SCANCODE_TAB:
+			SDL_JoystickSetVirtualButton(s_cast<SDL_Joystick*>(_devVirtualJoystick), SDL_CONTROLLER_BUTTON_BACK, pressed);
+			break;
+		case SDL_SCANCODE_Q:
+			SDL_JoystickSetVirtualButton(s_cast<SDL_Joystick*>(_devVirtualJoystick), SDL_CONTROLLER_BUTTON_LEFTSHOULDER, pressed);
+			break;
+		case SDL_SCANCODE_E:
+			SDL_JoystickSetVirtualButton(s_cast<SDL_Joystick*>(_devVirtualJoystick), SDL_CONTROLLER_BUTTON_RIGHTSHOULDER, pressed);
+			break;
+		case SDL_SCANCODE_RETURN:
+		case SDL_SCANCODE_RETURN2:
+			SDL_JoystickSetVirtualButton(s_cast<SDL_Joystick*>(_devVirtualJoystick), SDL_CONTROLLER_BUTTON_START, pressed);
+			break;
+		default:
+			break;
+	}
+#else
+	DORA_UNUSED_PARAM(event);
+#endif // DORA_DEV_VIRTUAL_CONTROLLER
+}
+
 void Controller::handleEventInRender(const SDL_Event& event) {
 	switch (event.type) {
 		case SDL_CONTROLLERDEVICEADDED:
 			addControllerInRender(event.cdevice.which);
 			break;
 		case SDL_CONTROLLERDEVICEREMOVED: {
-			auto joystickId = s_cast<DeviceID>(SDL_JoystickGetDeviceInstanceID(event.cdevice.which));
-			if (joystickId < 0) break;
+			auto joystickId = s_cast<DeviceID>(event.cdevice.which);
 			if (auto it = _deviceMap.find(joystickId); it != _deviceMap.end()) {
 				SDL_GameControllerClose(s_cast<SDL_GameController*>(it->second->controller));
 				SharedApplication.invokeInLogic([joystickId, this]() {

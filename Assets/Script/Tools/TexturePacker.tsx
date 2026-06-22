@@ -279,7 +279,6 @@ const windowFlags = [
 	WindowFlag.NoDecoration,
 	WindowFlag.NoSavedSettings,
 	WindowFlag.NoFocusOnAppearing,
-	WindowFlag.NoNav,
 	WindowFlag.NoMove,
 	WindowFlag.NoScrollWithMouse
 ];
