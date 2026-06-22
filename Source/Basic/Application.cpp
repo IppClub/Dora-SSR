@@ -35,7 +35,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <thread>
 
 #define DORA_VERSION "1.8.1"_slice
-#define DORA_REVISION "1"_slice
+#define DORA_REVISION "2"_slice
 
 #if BX_PLATFORM_ANDROID
 #include <jni.h>
@@ -85,7 +85,22 @@ namespace fs = std::filesystem;
 #define DORA_CLI_SUPPORTED (BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_LINUX)
 
 bool isCliRequested(int argc, char* argv[]) {
-	return argc >= 2 && std::string_view(argv[1]) == "cli";
+	for (int i = 1; i < argc; i++) {
+		if (!argv[i]) continue;
+		std::string_view arg(argv[i]);
+		if (arg == "cli") {
+			return true;
+		}
+		if (arg == "--asset") {
+			if (i + 1 < argc) i++;
+			continue;
+		}
+		if (arg.rfind("--asset=", 0) == 0) {
+			continue;
+		}
+		break;
+	}
+	return false;
 }
 
 #if DORA_CLI_SUPPORTED
@@ -110,6 +125,62 @@ std::string cliGetString(lua_State* L, int index) {
 
 fs::path cliAbsolutePath(const fs::path& path, const fs::path& base = fs::current_path()) {
 	return fs::absolute(path.is_relative() ? base / path : path).lexically_normal();
+}
+
+int cliCommandIndex(int argc, char* argv[]) {
+	for (int i = 1; i < argc; i++) {
+		if (!argv[i]) continue;
+		std::string_view arg(argv[i]);
+		if (arg == "cli") {
+			return i;
+		}
+		if (arg == "--asset") {
+			if (i + 1 < argc) i++;
+			continue;
+		}
+		if (arg.rfind("--asset=", 0) == 0) {
+			continue;
+		}
+		break;
+	}
+	return -1;
+}
+
+struct CliAssetArgument {
+	std::optional<fs::path> path;
+	std::string error;
+};
+
+CliAssetArgument cliFindAssetArgument(int argc, char* argv[]) {
+	constexpr std::string_view assetPrefix = "--asset=";
+	for (int i = 1; i < argc; i++) {
+		if (!argv[i]) continue;
+		std::string_view arg(argv[i]);
+		if (arg == "--asset") {
+			if (i + 1 >= argc || !argv[i + 1] || !*argv[i + 1]) {
+				return {std::nullopt, "--asset expects a value"};
+			}
+			return {cliAbsolutePath(argv[i + 1]), {}};
+		}
+		if (arg.rfind(assetPrefix, 0) == 0) {
+			auto value = arg.substr(assetPrefix.size());
+			if (value.empty()) {
+				return {std::nullopt, "--asset expects a value"};
+			}
+			return {cliAbsolutePath(std::string(value)), {}};
+		}
+	}
+	return {};
+}
+
+bool cliIsAssetArgument(int argc, char* argv[], int& index) {
+	if (!argv[index]) return false;
+	std::string_view arg(argv[index]);
+	if (arg == "--asset") {
+		if (index + 1 < argc) index++;
+		return true;
+	}
+	return arg.rfind("--asset=", 0) == 0;
 }
 
 void cliPushFileError(lua_State* L, const std::string& message) {
@@ -316,7 +387,7 @@ void cliSetFunc(lua_State* L, const char* name, lua_CFunction func) {
 	lua_setfield(L, -2, name);
 }
 
-void cliRegisterLua(lua_State* L, int argc, char* argv[], const fs::path& scriptPath) {
+void cliRegisterLua(lua_State* L, int argc, char* argv[], const fs::path& scriptPath, int cliIndex, const std::optional<fs::path>& assetPath) {
 	luaL_openlibs(L);
 	luaL_requiref(L, "json", luaopen_colibc_json, 1);
 	lua_pop(L, 1);
@@ -333,12 +404,22 @@ void cliRegisterLua(lua_State* L, int argc, char* argv[], const fs::path& script
 	lua_setfield(L, -2, "path");
 	lua_pop(L, 1);
 
+	if (assetPath) {
+		auto path = assetPath->string();
+		lua_newtable(L); // Content
+		lua_pushlstring(L, path.c_str(), path.size());
+		lua_setfield(L, -2, "assetPath");
+		lua_setglobal(L, "Content");
+	}
+
 	lua_newtable(L); // Dora
 	lua_newtable(L); // Dora.CLI
 	lua_newtable(L); // args
-	for (int i = 2; i < argc; i++) {
+	int argIndex = 1;
+	for (int i = cliIndex + 1; i < argc; i++) {
+		if (cliIsAssetArgument(argc, argv, i)) continue;
 		lua_pushstring(L, argv[i]);
-		lua_rawseti(L, -2, i - 1);
+		lua_rawseti(L, -2, argIndex++);
 	}
 	lua_setfield(L, -2, "args");
 	auto executablePath = cliAbsolutePath(argv[0]).string();
@@ -376,6 +457,12 @@ std::optional<fs::path> cliFindScriptInRoot(const fs::path& root) {
 	auto base = fs::weakly_canonical(root, err);
 	if (err) base = root;
 	if (!fs::is_directory(base, err)) return std::nullopt;
+	for (const auto& candidate : {base / "Script" / "Dev" / "cli.lua", base / "cli.lua"}) {
+		if (fs::is_regular_file(candidate, err)) {
+			return fs::weakly_canonical(candidate, err);
+		}
+		err.clear();
+	}
 	for (auto it = fs::recursive_directory_iterator(base, fs::directory_options::skip_permission_denied, err); it != fs::recursive_directory_iterator(); it.increment(err)) {
 		if (err) {
 			err.clear();
@@ -395,14 +482,18 @@ std::optional<fs::path> cliFindScriptInRoot(const fs::path& root) {
 	return std::nullopt;
 }
 
-std::optional<fs::path> cliFindScript(int argc, char* argv[]) {
+std::optional<fs::path> cliFindScript(int argc, char* argv[], const std::optional<fs::path>& assetPath) {
 	if (auto script = std::getenv("DORA_CLI_SCRIPT")) {
 		if (*script) return cliAbsolutePath(script);
 	}
-	std::vector<fs::path> candidates = {
+	std::vector<fs::path> candidates;
+	if (assetPath) {
+		candidates.push_back(*assetPath);
+	}
+	candidates.insert(candidates.end(), {
 		fs::current_path() / "Assets",
 		fs::current_path(),
-	};
+	});
 	if (argc > 0 && argv[0] && *argv[0]) {
 		auto exe = cliAbsolutePath(argv[0]);
 		auto exeDir = exe.parent_path();
@@ -418,7 +509,17 @@ std::optional<fs::path> cliFindScript(int argc, char* argv[]) {
 }
 
 int runCliApplication(int argc, char* argv[]) {
-	auto scriptPath = cliFindScript(argc, argv);
+	auto cliIndex = cliCommandIndex(argc, argv);
+	if (cliIndex < 0) {
+		std::cerr << "Dora CLI command not found.\n";
+		return 1;
+	}
+	auto asset = cliFindAssetArgument(argc, argv);
+	if (!asset.error.empty()) {
+		std::cerr << asset.error << "\n";
+		return 1;
+	}
+	auto scriptPath = cliFindScript(argc, argv, asset.path);
 	if (!scriptPath) {
 		std::cerr << "Dora CLI script cli.lua not found. Set DORA_CLI_SCRIPT or run from a Dora asset root.\n";
 		return 1;
@@ -428,7 +529,7 @@ int runCliApplication(int argc, char* argv[]) {
 		std::cerr << "Failed to create Lua state for Dora CLI.\n";
 		return 1;
 	}
-	cliRegisterLua(state.L, argc, argv, *scriptPath);
+	cliRegisterLua(state.L, argc, argv, *scriptPath, cliIndex, asset.path);
 	auto path = scriptPath->string();
 	if (luaL_loadfile(state.L, path.c_str()) != LUA_OK) {
 		std::cerr << lua_tostring(state.L, -1) << "\n";

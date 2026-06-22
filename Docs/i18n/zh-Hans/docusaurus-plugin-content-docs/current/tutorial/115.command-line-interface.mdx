@@ -1,6 +1,6 @@
 # Dora CLI 模式
 
-Dora CLI 模式是 Dora 引擎可执行文件的一种特殊执行模式。当第一个命令行参数是 `cli` 时，二进制会从正常的引擎启动流程切换为执行 Dora 游戏开发辅助命令所需的最小环境。
+Dora CLI 模式是 Dora 引擎可执行文件的一种特殊执行模式。当命令行参数中包含 `cli` 时，二进制会从正常的引擎启动流程切换为执行 Dora 游戏开发辅助命令所需的最小环境。
 
 在这个模式下，Dora 不会启动常规游戏运行流程。它只加载 CLI Lua 脚本，以及命令行开发任务需要的最小辅助能力。它用于配合一个正在运行的 Dora SSR 引擎和 Web IDE。
 
@@ -16,6 +16,13 @@ CLI 模式只支持 Windows、macOS 和 Linux。
 
 ```sh
 Dora cli --help
+```
+
+当 CLI 需要使用不同的 Dora 资源根目录时，可以把 `--asset` 作为全局参数使用。它可以放在 `cli` 前面或后面：
+
+```sh
+Dora --asset /path/to/Assets cli status
+Dora cli status --asset /path/to/Assets
 ```
 
 常用连接参数：
@@ -54,6 +61,7 @@ Usage: dora cli <command> [options]
 
 Commands:
   ts install [-p project] [-l zh-Hans|en]
+  wa install [-p project]
   build [-p project] [-f file] [--lang all|ts|yue|tl|xml|wa]
   run [-p project] [--entry init.lua]
   buildrun [-p project] [-f file] [--lang ...] [--entry init.lua]
@@ -61,7 +69,6 @@ Commands:
   status [-p project]
   doctor [-p project] [--fix]
   log [-n lines]
-  wa install [-p project]
   rust build [-p project]
   rust run <target-path> [-p project]
   rust upload <target-path> [-p project] [--run]

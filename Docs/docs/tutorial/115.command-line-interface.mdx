@@ -1,6 +1,6 @@
 # Dora CLI Mode
 
-Dora CLI mode is a special execution mode of the Dora engine executable. When the first command-line argument is `cli`, the executable switches from running the normal engine startup flow to running the minimum required Dora game development helper environment.
+Dora CLI mode is a special execution mode of the Dora engine executable. When the command-line arguments include `cli`, the executable switches from running the normal engine startup flow to running the minimum required Dora game development helper environment.
 
 In this mode, Dora does not start the normal game runtime. It only loads the CLI Lua script and the minimum helper capabilities needed for command-line development tasks. It is intended to work together with a running Dora SSR engine and Web IDE.
 
@@ -16,6 +16,13 @@ If you are working with the local engine and the service is not running, `doctor
 
 ```sh
 Dora cli --help
+```
+
+Use `--asset` as a global option when the CLI should use a different Dora asset root. The option can be placed before or after `cli`:
+
+```sh
+Dora --asset /path/to/Assets cli status
+Dora cli status --asset /path/to/Assets
 ```
 
 Common connection options:
@@ -54,6 +61,7 @@ Usage: dora cli <command> [options]
 
 Commands:
   ts install [-p project] [-l zh-Hans|en]
+  wa install [-p project]
   build [-p project] [-f file] [--lang all|ts|yue|tl|xml|wa]
   run [-p project] [--entry init.lua]
   buildrun [-p project] [-f file] [--lang ...] [--entry init.lua]
@@ -61,7 +69,6 @@ Commands:
   status [-p project]
   doctor [-p project] [--fix]
   log [-n lines]
-  wa install [-p project]
   rust build [-p project]
   rust run <target-path> [-p project]
   rust upload <target-path> [-p project] [--run]
