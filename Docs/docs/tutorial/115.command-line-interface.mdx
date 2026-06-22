@@ -12,6 +12,8 @@ Use `Dora` in the examples below as the Dora executable name. If it is not on `P
 
 Start Dora SSR normally and keep the Web IDE available. Most CLI commands call the Web IDE HTTP service, so pass the host shown by the Web IDE if it is not `127.0.0.1`.
 
+If you are working with the local engine and the service is not running, `doctor --fix` can start the native Dora engine for the current desktop platform. If the Web IDE is not connected, it waits briefly for an existing browser tab to reconnect before opening `http://localhost:8866` in the local browser.
+
 ```sh
 Dora cli --help
 ```
@@ -24,6 +26,16 @@ Common connection options:
 --timeout 10
 ```
 
+Check the local service:
+
+```sh
+Dora cli status
+Dora cli doctor
+Dora cli doctor --fix
+```
+
+`status` reports the current service state. `doctor` reports the same core state with recovery hints. `doctor --fix` can start the local native engine and open the Web IDE when needed.
+
 ## 2. Command Reference
 
 The command list from `Dora cli --help`:
@@ -33,10 +45,12 @@ Usage: dora cli <command> [options]
 
 Commands:
   init [-p project] [-l zh-Hans|en]
-  build [-p project] [-f file] [--lang auto|all|ts|yue|tl|xml|wa]
+  build [-p project] [-f file] [--lang all|ts|yue|tl|xml|wa]
   run [-p project] [--entry init.lua]
   buildrun [-p project] [-f file] [--lang ...] [--entry init.lua]
   stop
+  status [-p project]
+  doctor [-p project] [--fix]
   rust build [-p project]
   rust run <target-path> [-p project]
   rust upload <target-path> [-p project] [--run]
@@ -56,7 +70,7 @@ Initialize a TypeScript project with Dora API definitions:
 Dora cli init -p /path/to/project -l en
 ```
 
-Build the project. When the language is not specified, Dora CLI tries to infer it from project files.
+Build the project. When the language is not specified, Dora CLI scans supported source files and builds each one by extension. Use `--lang` only when you want to build one language family.
 
 ```sh
 Dora cli build -p /path/to/project
@@ -79,7 +93,7 @@ Dora cli buildrun -p /path/to/project
 Dora cli buildrun -f src/main.ts -p /path/to/project
 ```
 
-Supported build languages are `ts`, `yue`, `tl`, `xml`, and `wa`.
+Supported build languages are `all`, `ts`, `yue`, `tl`, `xml`, and `wa`. `all` is the default.
 
 ## 4. Wa Projects
 

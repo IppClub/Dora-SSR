@@ -341,6 +341,9 @@ void cliRegisterLua(lua_State* L, int argc, char* argv[], const fs::path& script
 		lua_rawseti(L, -2, i - 1);
 	}
 	lua_setfield(L, -2, "args");
+	auto executablePath = cliAbsolutePath(argv[0]).string();
+	lua_pushlstring(L, executablePath.c_str(), executablePath.size());
+	lua_setfield(L, -2, "executablePath");
 	auto path = scriptPath.string();
 	lua_pushlstring(L, path.c_str(), path.size());
 	lua_setfield(L, -2, "scriptPath");

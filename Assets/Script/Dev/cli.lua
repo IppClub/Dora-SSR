@@ -57,7 +57,7 @@ Usage: dora cli <command> [options]
 
 Commands:
   init [-p project] [-l zh-Hans|en]
-  build [-p project] [-f file] [--lang auto|all|ts|yue|tl|xml|wa]
+  build [-p project] [-f file] [--lang all|ts|yue|tl|xml|wa]
   run [-p project] [--entry init.lua]
   buildrun [-p project] [-f file] [--lang ...] [--entry init.lua]
   stop
@@ -121,6 +121,42 @@ local function resolve(project, target)
 	return CLI.absolute(pathJoin(project, target))
 end
 
+local function assetRoot()
+	return dirname(dirname(dirname(CLI.scriptPath)))
+end
+
+local function relativeToRoot(path, root)
+	if not root or root == "" then
+		return nil
+	end
+	local fullPath = CLI.absolute(path):gsub("\\", "/"):gsub("/+$", "")
+	local fullRoot = CLI.absolute(root):gsub("\\", "/"):gsub("/+$", "")
+	if fullPath == fullRoot then
+		return ""
+	end
+	local prefix = fullRoot .. "/"
+	if startsWith(fullPath, prefix) then
+		return fullPath:sub(#prefix + 1)
+	end
+	return nil
+end
+
+local function serverPath(path)
+	local roots = {}
+	if Content then
+		roots[#roots + 1] = Content.assetPath
+		roots[#roots + 1] = Content.writablePath
+	end
+	roots[#roots + 1] = assetRoot()
+	for _, root in ipairs(roots) do
+		local relative = relativeToRoot(path, root)
+		if relative ~= nil then
+			return relative
+		end
+	end
+	return CLI.absolute(path):gsub("\\", "/")
+end
+
 local function parseNumber(value, fallback)
 	value = tonumber(value)
 	if value == nil then
@@ -137,7 +173,8 @@ local function parseOptions(args, index)
 		project = CLI.absolute(CLI.env("DORA_PROJECT", CLI.cwd())),
 		language = "zh-Hans",
 		entry = "init.lua",
-		lang = "auto",
+		lang = "all",
+		langProvided = false,
 		files = {},
 		runAfterUpload = false,
 		fix = false,
@@ -183,6 +220,7 @@ local function parseOptions(args, index)
 			index = index + 1
 			if index > #args then fail("--lang expects a value") end
 			options.lang = args[index]
+			options.langProvided = true
 			index = index + 1
 		elseif arg == "--run" then
 			options.runAfterUpload = true
@@ -219,16 +257,22 @@ local function baseUrl(options)
 	return "http://" .. options.host .. ":" .. tostring(options.port)
 end
 
-local function postJson(options, path, data)
+local function tryPostJson(options, path, data, timeout)
 	local body = json.encode(data or {})
-	local res = CLI.http("POST", baseUrl(options) .. path, {["Content-Type"] = "application/json"}, body, options.timeout)
+	local res = CLI.http("POST", baseUrl(options) .. path, {["Content-Type"] = "application/json"}, body, timeout or options.timeout)
 	if res.netStatus ~= 0 or res.statusCode < 200 or res.statusCode >= 400 then
-		fail(("Request failed: %s%s (network=%s, http=%d)"):format(baseUrl(options), path, res.netStatusName, res.statusCode))
+		return nil, ("Request failed: %s%s (network=%s, http=%d)"):format(baseUrl(options), path, res.netStatusName, res.statusCode)
 	end
 	local decoded, err = json.decode(res.body)
 	if decoded == nil then
-		fail("Invalid JSON response from " .. path .. ": " .. tostring(err))
+		return nil, "Invalid JSON response from " .. path .. ": " .. tostring(err)
 	end
+	return decoded
+end
+
+local function postJson(options, path, data)
+	local decoded, err = tryPostJson(options, path, data)
+	if decoded == nil then fail(err) end
 	return decoded
 end
 
@@ -239,7 +283,13 @@ local function expectSuccess(doc, prefix)
 end
 
 local function buildableSource(path, kind)
-	return kind ~= "tl" or not filename(path):find("%.d%.tl$")
+	if kind == "tl" then
+		return not filename(path):find("%.d%.tl$")
+	end
+	if kind == "ts" then
+		return not filename(path):find("%.d%.ts$")
+	end
+	return true
 end
 
 local function sourceFiles(project, kind)
@@ -263,20 +313,27 @@ local function sourceFiles(project, kind)
 	return files
 end
 
-local function detectBuildKinds(project)
-	local kinds = {}
-	if CLI.exists(pathJoin(project, "tsconfig.json")) or CLI.exists(pathJoin(project, "init.ts")) or CLI.exists(pathJoin(project, "init.tsx")) then
-		kinds[#kinds + 1] = "ts"
+local function buildFileKinds(lang)
+	if lang == "all" then
+		return {"ts", "tsx", "yue", "tl", "xml", "wa"}
+	elseif lang == "ts" then
+		return {"ts", "tsx"}
+	elseif lang == "yue" or lang == "tl" or lang == "xml" or lang == "wa" then
+		return {lang}
+	else
+		fail("Unsupported build language: " .. tostring(lang))
 	end
-	if CLI.exists(pathJoin(project, "wa.mod")) then
-		kinds[#kinds + 1] = "wa"
-	end
-	for _, kind in ipairs({"yue", "tl", "xml"}) do
-		if #sourceFiles(project, kind) > 0 then
-			kinds[#kinds + 1] = kind
+end
+
+local function collectBuildFiles(project, lang)
+	local files = {}
+	for _, kind in ipairs(buildFileKinds(lang)) do
+		for _, file in ipairs(sourceFiles(project, kind)) do
+			files[#files + 1] = file
 		end
 	end
-	return kinds
+	table.sort(files)
+	return files
 end
 
 local function inferBuildKind(project, target)
@@ -286,18 +343,13 @@ local function inferBuildKind(project, target)
 		if ext == "yue" or ext == "tl" or ext == "xml" or ext == "wa" then return ext end
 		fail("Cannot infer build language from file extension: " .. target)
 	end
-	local kinds = detectBuildKinds(project)
-	if #kinds == 0 then
-		fail("Cannot infer build language. Please specify --lang or pass -f with a supported source file.")
-	end
-	if #kinds == 1 then return kinds[1] end
 	return "all"
 end
 
 local function buildTs(options, project, target)
 	local buildTarget = resolve(project, target or "")
 	print("Compiling Dora SSR TypeScript project: " .. buildTarget)
-	local doc = postJson(options, "/ts/build", {path = buildTarget})
+	local doc = postJson(options, "/ts/build", {path = buildTarget:gsub("\\", "/")})
 	expectSuccess(doc, "Compilation failed.")
 	print("Compilation complete.")
 	if type(doc.messages) == "table" then
@@ -321,7 +373,7 @@ local function buildScriptFile(options, project, kind, target)
 		fail(("%s build does not accept definition files: %s"):format(kind, source))
 	end
 	print("Compiling Dora SSR " .. kind .. " file: " .. source)
-	local doc = postJson(options, "/build", {path = source})
+	local doc = postJson(options, "/build", {path = serverPath(source)})
 	expectSuccess(doc, "Compilation failed.")
 	print("Compilation complete.")
 end
@@ -336,7 +388,7 @@ end
 local function buildWa(options, project, target)
 	local buildTarget = resolve(project, target or "")
 	print("Compiling Dora SSR Wa project: " .. buildTarget)
-	local doc = postJson(options, "/build", {path = buildTarget})
+	local doc = postJson(options, "/build", {path = buildTarget:gsub("\\", "/")})
 	expectSuccess(doc, "Compilation failed.")
 	print("Compilation complete.")
 end
@@ -391,8 +443,8 @@ end
 
 local function buildOne(options, project, kind, target)
 	if kind == "all" then
-		for _, detected in ipairs(detectBuildKinds(project)) do
-			buildOne(options, project, detected, target)
+		for _, file in ipairs(collectBuildFiles(project, "all")) do
+			buildOne(options, project, inferBuildKind(project, file), file)
 		end
 	elseif kind == "ts" then
 		buildTs(options, project, target)
@@ -419,17 +471,17 @@ local function runBuild(options)
 	local project = ensureProject(options)
 	if #options.files > 0 then
 		for _, target in ipairs(options.files) do
-			local kind = (options.lang == "auto" or options.lang == "all") and inferBuildKind(project, target) or options.lang
+			local kind = options.lang == "all" and inferBuildKind(project, target) or options.lang
 			buildOne(options, project, kind, target)
 		end
 		return
 	end
-	local kinds = (options.lang == "auto" or options.lang == "all") and detectBuildKinds(project) or {options.lang}
-	if #kinds == 0 then
-		fail("Cannot infer build language. Please specify --lang or pass -f with a supported source file.")
+	local files = collectBuildFiles(project, options.lang)
+	if #files == 0 then
+		fail("No supported source files found for --lang " .. tostring(options.lang) .. ".")
 	end
-	for _, kind in ipairs(kinds) do
-		buildOne(options, project, kind)
+	for _, target in ipairs(files) do
+		buildOne(options, project, inferBuildKind(project, target), target)
 	end
 end
 
@@ -455,13 +507,88 @@ local function isLocalHost(host)
 	return host == "127.0.0.1" or host == "localhost" or host == "::1"
 end
 
+local function shellQuote(value)
+	value = tostring(value)
+	if package.config:sub(1, 1) == "\\" then
+		return '"' .. value:gsub('"', '\\"') .. '"'
+	end
+	return "'" .. value:gsub("'", "'\\''") .. "'"
+end
+
+local function appBundlePath(executable)
+	local path = executable:gsub("\\", "/")
+	local app = path:match("^(.-%.app)/Contents/MacOS/[^/]+$")
+	return app
+end
+
+local function startNativeEngine()
+	local executable = CLI.executablePath
+	if not executable or executable == "" then
+		fail("Cannot start native engine: CLI executable path is unavailable.")
+	end
+	local assets = assetRoot()
+	local command
+	if package.config:sub(1, 1) == "\\" then
+		command = ("start \"\" %s --asset %s"):format(shellQuote(executable), shellQuote(assets))
+	elseif appBundlePath(executable) then
+		command = ("open -n %s --args --asset %s"):format(shellQuote(appBundlePath(executable)), shellQuote(assets))
+	else
+		command = ("nohup %s --asset %s >/dev/null 2>&1 &"):format(shellQuote(executable), shellQuote(assets))
+	end
+	return CLI.system(command, dirname(executable))
+end
+
+local function waitOneSecond()
+	if package.config:sub(1, 1) == "\\" then
+		CLI.system("timeout /t 1 /nobreak >nul")
+	else
+		CLI.system("sleep 1")
+	end
+end
+
+local function waitForStatus(options, seconds)
+	for _ = 1, seconds do
+		local doc = tryPostJson(options, "/status", {}, 1)
+		if doc then return doc end
+		waitOneSecond()
+	end
+	return nil
+end
+
 local function statusText(value)
 	return value and "yes" or "no"
 end
 
-local function runDoctor(options)
+local function runDoctor(options, diagnose)
 	print("Checking Dora SSR service at " .. baseUrl(options) .. "...")
-	local doc = postJson(options, "/status", {})
+	local doc, err = tryPostJson(options, "/status", {}, math.min(options.timeout, 2))
+	local nativeStarted = false
+	if doc == nil then
+		print("Native engine: no")
+		if options.fix and diagnose then
+			if not isLocalHost(options.host) then
+				fail("doctor --fix can only start a local Dora service. Use --host 127.0.0.1 or start the native engine manually.")
+			end
+			print("Starting native Dora engine...")
+			local result = startNativeEngine()
+			if result ~= 0 then
+				fail("Failed to start native Dora engine.")
+			end
+			nativeStarted = true
+			doc = waitForStatus(options, 10)
+			if doc == nil then
+				fail("Native Dora engine was started, but the Web IDE service did not become ready.")
+			end
+		else
+			print("Service error: " .. tostring(err))
+			if diagnose then
+				print("Hint: run Dora cli doctor --fix to start the local native engine.")
+			end
+			return
+		end
+	else
+		print("Native engine: yes")
+	end
 	expectSuccess(doc, "Doctor failed.")
 	print("Dora SSR: " .. tostring(doc.version or "unknown") .. " on " .. tostring(doc.platform or "unknown"))
 	print("Web IDE URL: " .. tostring(doc.url or "unavailable"))
@@ -473,16 +600,22 @@ local function runDoctor(options)
 	end
 	print("Wa template: " .. statusText(doc.waTemplateReady))
 	if options.fix then
-		if doc.webIDEConnected then
-			print("No fix needed.")
-		elseif not isLocalHost(options.host) then
-			fail("doctor --fix can only open Web IDE for a local Dora service. Use --host 127.0.0.1 or open the Web IDE URL manually.")
-		else
-			local fixed = postJson(options, "/doctor/fix", {openWebIDE = true})
+		if not doc.webIDEConnected then
+			if not isLocalHost(options.host) then
+				fail("doctor --fix can only open Web IDE for a local Dora service. Use --host 127.0.0.1 or open the Web IDE URL manually.")
+			end
+			local fixed = postJson(options, "/doctor/fix", {openWebIDE = true, waitSeconds = 3})
 			expectSuccess(fixed, "Doctor fix failed.")
+			if nativeStarted then
+				print("Native engine started.")
+			end
 			print(tostring(fixed.message or "Doctor fix complete."))
+		elseif nativeStarted then
+			print("Native engine started.")
+		else
+			print("No fix needed.")
 		end
-	elseif not doc.webIDEConnected then
+	elseif diagnose and not doc.webIDEConnected then
 		print("Hint: run Dora cli doctor --fix to open the local Web IDE.")
 	end
 end
@@ -716,10 +849,10 @@ local function main()
 		stopProject(options)
 	elseif command == "status" then
 		local options = parseOptionsExact(args, 2)
-		runDoctor(options)
+		runDoctor(options, false)
 	elseif command == "doctor" then
 		local options = parseOptionsExact(args, 2)
-		runDoctor(options)
+		runDoctor(options, true)
 	elseif command == "rust" or command == "wa" then
 		runToolchainCommand(command, args)
 	else

@@ -103,6 +103,16 @@ getProjectDirFromFile = (file) ->
 	until false
 	nil
 
+relativeToRoot = (file, root) ->
+	return nil unless file and file ~= "" and root and root ~= ""
+	return "" if file == root
+	prefix = root
+	prefix ..= "/" unless prefix\sub(-1) == "/"
+	if file\sub(1, #prefix) == prefix
+		file\sub #prefix + 1
+	else
+		nil
+
 isProjectRootDir = (dir) ->
 	return false unless dir and dir ~= "" and Content\exist(dir) and Content\isdir(dir)
 	for f in *Content\getFiles dir
@@ -1701,13 +1711,18 @@ HttpServer\get "/read-sync", (req): success: false ->
 
 compileFileAsync = (inputFile, sourceCodes): nil ->
 	file = inputFile
-	searchPath = if dir := getProjectDirFromFile inputFile
-		file = Path\getRelative inputFile, Path Content.writablePath, dir
+	searchPath = if not Content\isAbsolutePath inputFile
+		""
+	elseif dir := getProjectDirFromFile inputFile
+		file = relativeToRoot(inputFile, Content.writablePath) or
+			relativeToRoot(inputFile, Content.assetPath) or
+			relativeToRoot(inputFile, dir) or
+			inputFile
 		Path(dir, "Script", "?.lua") .. ";" .. Path dir, "?.lua"
 	else
-		file = Path\getRelative inputFile, Content.writablePath
-		if file\sub(1, 2) == ".."
-			file = Path\getRelative inputFile, Content.assetPath
+		file = relativeToRoot(inputFile, Content.writablePath) or
+			relativeToRoot(inputFile, Content.assetPath) or
+			inputFile
 		""
 	outputFile = Path\replaceExt inputFile, "lua"
 	options: {extension: yueext} = yue
@@ -2270,13 +2285,22 @@ getServerStatus = ->
 HttpServer\post "/status", ->
 	getServerStatus!
 
-HttpServer\post "/doctor/fix", (req): success: false, message: "invalid call" ->
+HttpServer\postSchedule "/doctor/fix", (req): success: false, message: "invalid call" ->
 	switch req when {body: {:openWebIDE}}
 		unless openWebIDE
 			return success: false, message: "nothing to fix"
 		status = getServerStatus!
 		if status.webIDEConnected
 			return success: true, fixed: false, message: "Web IDE already connected.", :status
+		waitSeconds = math.max 0, math.min 10, tonumber(req.body.waitSeconds) or 3
+		if waitSeconds > 0
+			deadline = os.time! + waitSeconds
+			repeat
+				sleep 0.2
+				status = getServerStatus!
+				if status.webIDEConnected
+					return success: true, fixed: false, reconnected: true, message: "Web IDE reconnected.", :status
+			until os.time! >= deadline
 		unless isDesktopPlatform!
 			return success: false, message: "opening Web IDE is only supported on desktop platforms", :status
 		url = "http://localhost:8866"

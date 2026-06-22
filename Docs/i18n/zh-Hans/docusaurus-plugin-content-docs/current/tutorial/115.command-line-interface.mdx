@@ -12,6 +12,8 @@ CLI 模式只支持 Windows、macOS 和 Linux。
 
 先正常启动 Dora SSR，并保持 Web IDE 可用。大多数 CLI 命令会调用 Web IDE 的 HTTP 服务；如果地址不是 `127.0.0.1`，请传入 Web IDE 显示的 host。
 
+如果使用本机引擎但服务还没有运行，`doctor --fix` 可以按当前桌面平台启动 native Dora 引擎。如果 Web IDE 还没有连接，它会先短暂等待已有浏览器标签页重连，仍未连接时才在本地浏览器中打开 `http://localhost:8866`。
+
 ```sh
 Dora cli --help
 ```
@@ -24,6 +26,16 @@ Dora cli --help
 --timeout 10
 ```
 
+检查本地服务状态：
+
+```sh
+Dora cli status
+Dora cli doctor
+Dora cli doctor --fix
+```
+
+`status` 输出当前服务状态。`doctor` 输出相同的核心状态，并在异常时给出修复提示。`doctor --fix` 可以在需要时启动本地 native 引擎并打开 Web IDE。
+
 ## 2. 命令速查
 
 `Dora cli --help` 输出的命令列表如下：
@@ -33,10 +45,12 @@ Usage: dora cli <command> [options]
 
 Commands:
   init [-p project] [-l zh-Hans|en]
-  build [-p project] [-f file] [--lang auto|all|ts|yue|tl|xml|wa]
+  build [-p project] [-f file] [--lang all|ts|yue|tl|xml|wa]
   run [-p project] [--entry init.lua]
   buildrun [-p project] [-f file] [--lang ...] [--entry init.lua]
   stop
+  status [-p project]
+  doctor [-p project] [--fix]
   rust build [-p project]
   rust run <target-path> [-p project]
   rust upload <target-path> [-p project] [--run]
@@ -56,7 +70,7 @@ Connection options: --host, --port, --timeout
 Dora cli init -p /path/to/project -l zh-Hans
 ```
 
-构建项目。不指定语言时，Dora CLI 会尝试从项目文件自动判断。
+构建项目。不指定语言时，Dora CLI 会扫描支持的源码文件，并按每个文件的后缀逐个编译。只有需要限定某一类语言时才使用 `--lang`。
 
 ```sh
 Dora cli build -p /path/to/project
@@ -79,7 +93,7 @@ Dora cli buildrun -p /path/to/project
 Dora cli buildrun -f src/main.ts -p /path/to/project
 ```
 
-支持的构建语言包括 `ts`、`yue`、`tl`、`xml` 和 `wa`。
+支持的构建语言包括 `all`、`ts`、`yue`、`tl`、`xml` 和 `wa`。`all` 是默认值。
 
 ## 4. Wa 项目
 
