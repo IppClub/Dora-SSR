@@ -100,6 +100,7 @@ bool Controller::initInRender() {
 	}
 #if DORA_DEV_VIRTUAL_CONTROLLER
 	if (isDevVirtualControllerEnabled()) {
+#if SDL_VERSION_ATLEAST(2, 24, 0)
 		SDL_VirtualJoystickDesc desc;
 		SDL_zero(desc);
 		desc.version = SDL_VIRTUAL_JOYSTICK_DESC_VERSION;
@@ -110,6 +111,9 @@ bool Controller::initInRender() {
 		desc.axis_mask = makeControllerAxisMask();
 		desc.name = "Dora Dev Virtual Controller";
 		_devVirtualDeviceIndex = SDL_JoystickAttachVirtualEx(&desc);
+#else
+		_devVirtualDeviceIndex = SDL_JoystickAttachVirtual(SDL_JOYSTICK_TYPE_GAMECONTROLLER, SDL_CONTROLLER_AXIS_MAX, SDL_CONTROLLER_BUTTON_MAX, 0);
+#endif
 		if (_devVirtualDeviceIndex >= 0) {
 			addControllerInRender(_devVirtualDeviceIndex);
 			Info("enabled Dora dev virtual controller. Keyboard mapping: Arrow keys/WASD=D-pad, J=A, K=B, U=X, I=Y/context, Tab=Back, Q=L1, E=R1, Enter=Start.");
