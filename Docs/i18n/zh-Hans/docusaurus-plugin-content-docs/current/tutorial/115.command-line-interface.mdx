@@ -62,7 +62,7 @@ Usage: dora cli <command> [options]
 Commands:
   ts install [-p project] [-l zh-Hans|en]
   wa install [-p project]
-  build [-p project] [-f file] [--lang all|ts|yue|tl|xml|wa]
+  build [-p project] [-f file] [--lang all|ts|yue|tl|xml|wa|yarn]
   run [-p project] [--entry init.lua]
   buildrun [-p project] [-f file] [--lang ...] [--entry init.lua]
   stop
@@ -92,11 +92,12 @@ Dora cli rust run --help
 Dora cli ts install -p /path/to/project -l zh-Hans
 ```
 
-构建项目。不指定语言时，Dora CLI 会扫描支持的源码文件，并按每个文件的后缀逐个编译。只有需要限定某一类语言时才使用 `--lang`。
+构建项目。不指定语言时，Dora CLI 会扫描支持的源码文件，并按每个文件的后缀逐个编译或检查。只有需要限定某一类语言时才使用 `--lang`。
 
 ```sh
 Dora cli build -p /path/to/project
 Dora cli build --lang ts -p /path/to/project
+Dora cli build --lang yarn -p /path/to/project
 Dora cli build -f src/main.ts -p /path/to/project
 ```
 
@@ -115,7 +116,7 @@ Dora cli buildrun -p /path/to/project
 Dora cli buildrun -f src/main.ts -p /path/to/project
 ```
 
-支持的构建语言包括 `all`、`ts`、`yue`、`tl`、`xml` 和 `wa`。`all` 是默认值。
+支持的构建语言包括 `all`、`ts`、`yue`、`tl`、`xml`、`wa` 和 `yarn`。`all` 是默认值。Yarn 文件会通过同一个构建命令执行语法检查，因此项目构建可以和其它源码一起报告 Yarn 语法错误。
 
 ## 4. Wa 项目
 

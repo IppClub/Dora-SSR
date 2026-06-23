@@ -62,7 +62,7 @@ Usage: dora cli <command> [options]
 Commands:
   ts install [-p project] [-l zh-Hans|en]
   wa install [-p project]
-  build [-p project] [-f file] [--lang all|ts|yue|tl|xml|wa]
+  build [-p project] [-f file] [--lang all|ts|yue|tl|xml|wa|yarn]
   run [-p project] [--entry init.lua]
   buildrun [-p project] [-f file] [--lang ...] [--entry init.lua]
   stop
@@ -92,11 +92,12 @@ Install TypeScript support. On a new project this creates `tsconfig.json` and wr
 Dora cli ts install -p /path/to/project -l en
 ```
 
-Build the project. When the language is not specified, Dora CLI scans supported source files and builds each one by extension. Use `--lang` only when you want to build one language family.
+Build the project. When the language is not specified, Dora CLI scans supported source files and builds or checks each one by extension. Use `--lang` only when you want to build one language family.
 
 ```sh
 Dora cli build -p /path/to/project
 Dora cli build --lang ts -p /path/to/project
+Dora cli build --lang yarn -p /path/to/project
 Dora cli build -f src/main.ts -p /path/to/project
 ```
 
@@ -115,7 +116,7 @@ Dora cli buildrun -p /path/to/project
 Dora cli buildrun -f src/main.ts -p /path/to/project
 ```
 
-Supported build languages are `all`, `ts`, `yue`, `tl`, `xml`, and `wa`. `all` is the default.
+Supported build languages are `all`, `ts`, `yue`, `tl`, `xml`, `wa`, and `yarn`. `all` is the default. Yarn files are checked through the same build command, so a project build can report Yarn syntax errors together with the other source files.
 
 ## 4. Wa Projects
 

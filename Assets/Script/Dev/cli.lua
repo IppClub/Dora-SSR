@@ -58,7 +58,7 @@ Usage: dora cli <command> [options]
 Commands:
 	ts install [-p project] [-l zh-Hans|en]
 	wa install [-p project]
-	build [-p project] [-f file] [--lang all|ts|yue|tl|xml|wa]
+	build [-p project] [-f file] [--lang all|ts|yue|tl|xml|wa|yarn]
 	run [-p project] [--entry init.lua]
 	buildrun [-p project] [-f file] [--lang ...] [--entry init.lua]
 	stop
@@ -412,10 +412,10 @@ end
 
 local function buildFileKinds(lang)
 	if lang == "all" then
-		return {"ts", "tsx", "yue", "tl", "xml", "wa"}
+		return {"ts", "tsx", "yue", "tl", "xml", "wa", "yarn"}
 	elseif lang == "ts" then
 		return {"ts", "tsx"}
-	elseif lang == "yue" or lang == "tl" or lang == "xml" or lang == "wa" then
+	elseif lang == "yue" or lang == "tl" or lang == "xml" or lang == "wa" or lang == "yarn" then
 		return {lang}
 	else
 		fail("Unsupported build language: " .. tostring(lang))
@@ -437,7 +437,7 @@ local function inferBuildKind(project, target)
 	if target and target ~= "" then
 		local ext = extension(target)
 		if ext == "ts" or ext == "tsx" then return "ts" end
-		if ext == "yue" or ext == "tl" or ext == "xml" or ext == "wa" then return ext end
+		if ext == "yue" or ext == "tl" or ext == "xml" or ext == "wa" or ext == "yarn" then return ext end
 		fail("Cannot infer build language from file extension: " .. target)
 	end
 	return "all"
@@ -494,6 +494,29 @@ local function buildWa(options, project, target)
 	local doc = postJson(options, "/build", {path = buildTarget:gsub("\\", "/")})
 	expectSuccess(doc, "Compilation failed.")
 	print("Compilation complete.")
+end
+
+local function checkYarn(options, project, target)
+	local source = resolve(project, target or "")
+	if extension(source) ~= "yarn" then
+		fail("Yarn check expects a .yarn file: " .. source)
+	end
+	local content, err = CLI.readFile(source)
+	if content == nil then fail(err) end
+	print("Checking Dora SSR Yarn file: " .. source)
+	local doc = postJson(options, "/yarn/check-file", {code = content})
+	if type(doc) ~= "table" or doc.success ~= true then
+		local parts = {source}
+		if doc and doc.node then parts[#parts + 1] = "node " .. tostring(doc.node) end
+		if doc and doc.line then
+			local location = "line " .. tostring(doc.line)
+			if doc.column then location = location .. ", column " .. tostring(doc.column) end
+			parts[#parts + 1] = location
+		end
+		local message = doc and (doc.message or doc.err) or "Unknown error."
+		fail("Yarn check failed: " .. table.concat(parts, ": ") .. ": " .. tostring(message))
+	end
+	print("Yarn check complete.")
 end
 
 local function isWaProject(project)
@@ -566,6 +589,18 @@ local function buildOne(options, project, kind, target)
 		buildTs(options, project, target)
 	elseif kind == "wa" then
 		buildWa(options, project, target)
+	elseif kind == "yarn" then
+		if target and target ~= "" then
+			checkYarn(options, project, target)
+		else
+			local files = sourceFiles(project, kind)
+			if #files == 0 then
+				print("No " .. kind .. " files found.")
+			end
+			for _, file in ipairs(files) do
+				checkYarn(options, project, file)
+			end
+		end
 	elseif kind == "yue" or kind == "tl" or kind == "xml" then
 		if target and target ~= "" then
 			buildScriptFile(options, project, kind, target)
