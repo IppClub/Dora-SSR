@@ -52,7 +52,6 @@ export class Root {
 	render(enode: RenderInput): void;
 	update(): void;
 	unmount(): void;
-	dispose(): void;
 }
 
 /**

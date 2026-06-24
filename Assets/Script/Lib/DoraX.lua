@@ -2743,161 +2743,158 @@ function Root.prototype.unmount(self) -- 2036
 		self.active = false -- 2045
 	end -- 2045
 end -- 2036
-function Root.prototype.dispose(self) -- 2049
-	self:unmount() -- 2050
+function Root.prototype.trackSignal(self, signal) -- 2049
+	for i = 1, #self.signals do -- 2049
+		if self.signals[i] == signal then -- 2049
+			return -- 2051
+		end -- 2051
+	end -- 2051
+	local ____self_signals_59 = self.signals -- 2051
+	____self_signals_59[#____self_signals_59 + 1] = signal -- 2053
+	signal:addRoot(self) -- 2054
 end -- 2049
-function Root.prototype.trackSignal(self, signal) -- 2053
-	for i = 1, #self.signals do -- 2053
-		if self.signals[i] == signal then -- 2053
-			return -- 2055
-		end -- 2055
-	end -- 2055
-	local ____self_signals_59 = self.signals -- 2055
-	____self_signals_59[#____self_signals_59 + 1] = signal -- 2057
-	signal:addRoot(self) -- 2058
-end -- 2053
-function Root.prototype.unsubscribeSignals(self) -- 2061
-	for i = 1, #self.signals do -- 2061
-		self.signals[i]:removeRoot(self) -- 2063
-	end -- 2063
-	self.signals = {} -- 2065
-end -- 2061
-function ____exports.createRoot(parent) -- 2069
-	local root = __TS__New(____exports.Root, parent) -- 2070
-	roots[#roots + 1] = root -- 2071
-	return root -- 2072
-end -- 2069
-____exports.Signal = __TS__Class() -- 2075
-local Signal = ____exports.Signal -- 2075
-Signal.name = "Signal" -- 2075
-function Signal.prototype.____constructor(self, item) -- 2078
-	self.item = item -- 2078
-	self.roots = {} -- 2076
-end -- 2078
-function Signal.prototype.addRoot(self, root) -- 2095
-	for i = 1, #self.roots do -- 2095
-		if self.roots[i] == root then -- 2095
-			return -- 2097
-		end -- 2097
-	end -- 2097
-	local ____self_roots_60 = self.roots -- 2097
-	____self_roots_60[#____self_roots_60 + 1] = root -- 2099
-end -- 2095
-function Signal.prototype.removeRoot(self, root) -- 2102
-	for i = 1, #self.roots do -- 2102
-		if self.roots[i] == root then -- 2102
-			table.remove(self.roots, i) -- 2105
-			break -- 2106
-		end -- 2106
-	end -- 2106
-end -- 2102
-__TS__SetDescriptor( -- 2102
-	Signal.prototype, -- 2102
-	"value", -- 2102
-	{ -- 2102
-		get = function(self) -- 2102
-			if trackingRoot ~= nil then -- 2102
-				trackingRoot:trackSignal(self) -- 2082
-			end -- 2082
-			return self.item -- 2084
-		end, -- 2084
-		set = function(self, value) -- 2084
-			if self.item == value then -- 2084
-				return -- 2088
-			end -- 2088
-			self.item = value -- 2089
-			for i = 1, #self.roots do -- 2089
-				scheduleRootRender(self.roots[i]) -- 2091
-			end -- 2091
-		end -- 2091
-	}, -- 2091
-	true -- 2091
-) -- 2091
-function ____exports.signal(value) -- 2112
-	return __TS__New(____exports.Signal, value) -- 2113
+function Root.prototype.unsubscribeSignals(self) -- 2057
+	for i = 1, #self.signals do -- 2057
+		self.signals[i]:removeRoot(self) -- 2059
+	end -- 2059
+	self.signals = {} -- 2061
+end -- 2057
+function ____exports.createRoot(parent) -- 2065
+	local root = __TS__New(____exports.Root, parent) -- 2066
+	roots[#roots + 1] = root -- 2067
+	return root -- 2068
+end -- 2065
+____exports.Signal = __TS__Class() -- 2071
+local Signal = ____exports.Signal -- 2071
+Signal.name = "Signal" -- 2071
+function Signal.prototype.____constructor(self, item) -- 2074
+	self.item = item -- 2074
+	self.roots = {} -- 2072
+end -- 2074
+function Signal.prototype.addRoot(self, root) -- 2091
+	for i = 1, #self.roots do -- 2091
+		if self.roots[i] == root then -- 2091
+			return -- 2093
+		end -- 2093
+	end -- 2093
+	local ____self_roots_60 = self.roots -- 2093
+	____self_roots_60[#____self_roots_60 + 1] = root -- 2095
+end -- 2091
+function Signal.prototype.removeRoot(self, root) -- 2098
+	for i = 1, #self.roots do -- 2098
+		if self.roots[i] == root then -- 2098
+			table.remove(self.roots, i) -- 2101
+			break -- 2102
+		end -- 2102
+	end -- 2102
+end -- 2098
+__TS__SetDescriptor( -- 2098
+	Signal.prototype, -- 2098
+	"value", -- 2098
+	{ -- 2098
+		get = function(self) -- 2098
+			if trackingRoot ~= nil then -- 2098
+				trackingRoot:trackSignal(self) -- 2078
+			end -- 2078
+			return self.item -- 2080
+		end, -- 2080
+		set = function(self, value) -- 2080
+			if self.item == value then -- 2080
+				return -- 2084
+			end -- 2084
+			self.item = value -- 2085
+			for i = 1, #self.roots do -- 2085
+				scheduleRootRender(self.roots[i]) -- 2087
+			end -- 2087
+		end -- 2087
+	}, -- 2087
+	true -- 2087
+) -- 2087
+function ____exports.signal(value) -- 2108
+	return __TS__New(____exports.Signal, value) -- 2109
+end -- 2108
+function ____exports.useRef(item) -- 2112
+	local ____item_61 = item -- 2113
+	if ____item_61 == nil then -- 2113
+		____item_61 = nil -- 2113
+	end -- 2113
+	return {current = ____item_61} -- 2113
 end -- 2112
-function ____exports.useRef(item) -- 2116
-	local ____item_61 = item -- 2117
-	if ____item_61 == nil then -- 2117
-		____item_61 = nil -- 2117
-	end -- 2117
-	return {current = ____item_61} -- 2117
-end -- 2116
-local function getPreload(preloadList, node) -- 2120
-	if type(node) ~= "table" then -- 2120
-		return -- 2122
-	end -- 2122
-	local enode = node -- 2124
-	if enode.type == nil then -- 2124
-		local list = node -- 2126
-		if #list > 0 then -- 2126
-			for i = 1, #list do -- 2126
-				getPreload(preloadList, list[i]) -- 2129
-			end -- 2129
-		end -- 2129
-	else -- 2129
-		repeat -- 2129
-			local ____switch493 = enode.type -- 2129
-			local sprite, playable, frame, model, spine, dragonBone, label -- 2129
-			local ____cond493 = ____switch493 == "sprite" -- 2129
-			if ____cond493 then -- 2129
-				sprite = enode.props -- 2135
-				if sprite.file then -- 2135
-					preloadList[#preloadList + 1] = sprite.file -- 2137
-				end -- 2137
+local function getPreload(preloadList, node) -- 2116
+	if type(node) ~= "table" then -- 2116
+		return -- 2118
+	end -- 2118
+	local enode = node -- 2120
+	if enode.type == nil then -- 2120
+		local list = node -- 2122
+		if #list > 0 then -- 2122
+			for i = 1, #list do -- 2122
+				getPreload(preloadList, list[i]) -- 2125
+			end -- 2125
+		end -- 2125
+	else -- 2125
+		repeat -- 2125
+			local ____switch492 = enode.type -- 2125
+			local sprite, playable, frame, model, spine, dragonBone, label -- 2125
+			local ____cond492 = ____switch492 == "sprite" -- 2125
+			if ____cond492 then -- 2125
+				sprite = enode.props -- 2131
+				if sprite.file then -- 2131
+					preloadList[#preloadList + 1] = sprite.file -- 2133
+				end -- 2133
+				break -- 2135
+			end -- 2135
+			____cond492 = ____cond492 or ____switch492 == "playable" -- 2135
+			if ____cond492 then -- 2135
+				playable = enode.props -- 2137
+				preloadList[#preloadList + 1] = playable.file -- 2138
 				break -- 2139
 			end -- 2139
-			____cond493 = ____cond493 or ____switch493 == "playable" -- 2139
-			if ____cond493 then -- 2139
-				playable = enode.props -- 2141
-				preloadList[#preloadList + 1] = playable.file -- 2142
+			____cond492 = ____cond492 or ____switch492 == "frame" -- 2139
+			if ____cond492 then -- 2139
+				frame = enode.props -- 2141
+				preloadList[#preloadList + 1] = frame.file -- 2142
 				break -- 2143
 			end -- 2143
-			____cond493 = ____cond493 or ____switch493 == "frame" -- 2143
-			if ____cond493 then -- 2143
-				frame = enode.props -- 2145
-				preloadList[#preloadList + 1] = frame.file -- 2146
+			____cond492 = ____cond492 or ____switch492 == "model" -- 2143
+			if ____cond492 then -- 2143
+				model = enode.props -- 2145
+				preloadList[#preloadList + 1] = "model:" .. model.file -- 2146
 				break -- 2147
 			end -- 2147
-			____cond493 = ____cond493 or ____switch493 == "model" -- 2147
-			if ____cond493 then -- 2147
-				model = enode.props -- 2149
-				preloadList[#preloadList + 1] = "model:" .. model.file -- 2150
+			____cond492 = ____cond492 or ____switch492 == "spine" -- 2147
+			if ____cond492 then -- 2147
+				spine = enode.props -- 2149
+				preloadList[#preloadList + 1] = "spine:" .. spine.file -- 2150
 				break -- 2151
 			end -- 2151
-			____cond493 = ____cond493 or ____switch493 == "spine" -- 2151
-			if ____cond493 then -- 2151
-				spine = enode.props -- 2153
-				preloadList[#preloadList + 1] = "spine:" .. spine.file -- 2154
+			____cond492 = ____cond492 or ____switch492 == "dragon-bone" -- 2151
+			if ____cond492 then -- 2151
+				dragonBone = enode.props -- 2153
+				preloadList[#preloadList + 1] = "bone:" .. dragonBone.file -- 2154
 				break -- 2155
 			end -- 2155
-			____cond493 = ____cond493 or ____switch493 == "dragon-bone" -- 2155
-			if ____cond493 then -- 2155
-				dragonBone = enode.props -- 2157
-				preloadList[#preloadList + 1] = "bone:" .. dragonBone.file -- 2158
+			____cond492 = ____cond492 or ____switch492 == "label" -- 2155
+			if ____cond492 then -- 2155
+				label = enode.props -- 2157
+				preloadList[#preloadList + 1] = (("font:" .. label.fontName) .. ";") .. tostring(label.fontSize) -- 2158
 				break -- 2159
 			end -- 2159
-			____cond493 = ____cond493 or ____switch493 == "label" -- 2159
-			if ____cond493 then -- 2159
-				label = enode.props -- 2161
-				preloadList[#preloadList + 1] = (("font:" .. label.fontName) .. ";") .. tostring(label.fontSize) -- 2162
-				break -- 2163
-			end -- 2163
-		until true -- 2163
-	end -- 2163
-	getPreload(preloadList, enode.children) -- 2166
-end -- 2120
-function ____exports.preloadAsync(enode, handler) -- 2169
-	local preloadList = {} -- 2170
-	getPreload(preloadList, enode) -- 2171
-	Dora.Cache:loadAsync(preloadList, handler) -- 2172
-end -- 2169
-function ____exports.toAction(enode) -- 2175
-	local actionDef = ____exports.useRef() -- 2176
-	____exports.toNode(____exports.React.createElement("action", {ref = actionDef}, enode)) -- 2177
-	if not actionDef.current then -- 2177
-		error("failed to create action") -- 2178
-	end -- 2178
-	return actionDef.current -- 2179
-end -- 2175
-return ____exports -- 2175
+		until true -- 2159
+	end -- 2159
+	getPreload(preloadList, enode.children) -- 2162
+end -- 2116
+function ____exports.preloadAsync(enode, handler) -- 2165
+	local preloadList = {} -- 2166
+	getPreload(preloadList, enode) -- 2167
+	Dora.Cache:loadAsync(preloadList, handler) -- 2168
+end -- 2165
+function ____exports.toAction(enode) -- 2171
+	local actionDef = ____exports.useRef() -- 2172
+	____exports.toNode(____exports.React.createElement("action", {ref = actionDef}, enode)) -- 2173
+	if not actionDef.current then -- 2173
+		error("failed to create action") -- 2174
+	end -- 2174
+	return actionDef.current -- 2175
+end -- 2171
+return ____exports -- 2171

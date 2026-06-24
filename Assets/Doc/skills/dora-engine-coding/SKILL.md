@@ -87,7 +87,7 @@ Use Dora runtime modules, not browser packages:
 
 - Core engine APIs: `import { ... } from 'Dora';`
 - JSX/DoraX UI syntax: use `.tsx` and import from `DoraX`. Use `toNode()` for one-shot scene creation, or `createRoot()` with `signal()` for dynamic TSX diff rendering.
-- DoraX dynamic roots track the signals read during render. Use stable `key` values for dynamic sibling lists, and call `root.dispose()` or `root.unmount()` when a dynamic root is no longer needed.
+- DoraX dynamic roots track the signals read during render. Use stable `key` values for dynamic sibling lists, and call `root.unmount()` when a dynamic root is no longer needed.
 - Platformer framework: `import * as Platformer from 'Platformer';` or exact exports found by API search.
 - ImGui tools/UI: `import * as ImGui from 'ImGui';` plus enum exports from `ImGui` when needed.
 - Vector graphics: `import * as nvg from 'nvg';` when using `VGNode`/NanoVG APIs.

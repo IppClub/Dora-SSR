@@ -2046,10 +2046,6 @@ export class Root {
 		}
 	}
 
-	dispose(this: Root): void {
-		this.unmount();
-	}
-
 	trackSignal(this: Root, signal: Signal<unknown>): void {
 		for (let i of $range(1, this.signals.length)) {
 			if (this.signals[i - 1] === signal) return;

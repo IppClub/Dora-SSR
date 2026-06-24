@@ -93,7 +93,7 @@ Director.entry.onTapped(() => {
 
 &emsp;&emsp;在这个例子里，点击屏幕后会修改 `count.value`。DoraX 随后会重新执行传给 `root.render()` 的函数，并更新已有的 label 节点，而不是要求你手动重新创建整个场景。
 
-&emsp;&emsp;当动态根节点不再需要时，应当调用 `root.unmount()` 或 `root.dispose()`。这会移除它渲染出来的节点，取消它读取过的 signal 订阅，并避免后续 signal 变化继续更新这个 root。
+&emsp;&emsp;当动态根节点不再需要时，应当调用 `root.unmount()`。这会移除它渲染出来的节点，取消它读取过的 signal 订阅，并避免后续 signal 变化继续更新这个 root。
 
 &emsp;&emsp;如果节点在被 diff 删除或 root 销毁时需要执行确定性的清理逻辑，可以使用 `onUnmount`：
 
@@ -624,7 +624,7 @@ p(jsxObject);
 
 - **`React.createElement`**：用于创建 TSX 元素，一般不需要直接使用，会被引擎自动调用。
 - **`toNode(enode)`**：将 TSX 元素或元素数组转换为游戏节点。
-- **`createRoot(parent)`**：在 Dora 节点下创建动态 TSX 根节点。调用 `root.render(enodeOrFunction)` 会将新的 TSX 树和上一次渲染结果做 diff，并更新子节点。`root.unmount()` 和 `root.dispose()` 会移除渲染出的节点并取消 signal 订阅。
+- **`createRoot(parent)`**：在 Dora 节点下创建动态 TSX 根节点。调用 `root.render(enodeOrFunction)` 会将新的 TSX 树和上一次渲染结果做 diff，并更新子节点。`root.unmount()` 会移除渲染出的节点并取消 signal 订阅。
 - **`signal(value)`**：创建响应式值。给 `signal.value` 赋值会调度读取过该 signal 的动态根节点更新。
 - **`useRef<T>(item?: T)`**：创建一个引用，用于获取实例化后的对象。
 - **`preloadAsync(enode, handler?)`**：异步预加载节点所需的美术资源。
