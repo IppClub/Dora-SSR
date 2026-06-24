@@ -4,14 +4,10 @@ on:
   push:
     branches: [ main ]
     tags: 'v*.*.*'
-    paths:
-      # Shared engine code — triggers all platforms
-      - 'Source/**'
-      - 'Tools/tolua\+\+/**'
-      - 'Tools/build-scripts/**'
-      - 'Tools/dora-rust/**'
-      # Platform-specific code
-      - 'Projects/Android/**'
+    paths-ignore:
+      - 'Docs/**'
+      - 'README.md'
+      - 'LICENSE'
   pull_request:
     branches: [ main ]
     paths:
