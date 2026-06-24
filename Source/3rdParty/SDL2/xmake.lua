@@ -124,6 +124,7 @@ local function add_android_sources()
         "src/hidapi/android/hid.cpp",
         "src/joystick/android/*.c",
         "src/locale/android/*.c",
+        "src/loadso/dlopen/*.c",
         "src/main/android/*.c",
         "src/misc/android/*.c",
         "src/power/android/*.c",

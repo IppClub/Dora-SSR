@@ -77,6 +77,10 @@ let lastUploadedTime = Date.now();
 let isSaving = false;
 
 document.addEventListener("contextmenu", (event) => {
+	const target = event.target instanceof Element ? event.target : null;
+	if (target?.closest("input, textarea, [contenteditable='true'], .monaco-editor")) {
+		return;
+	}
 	event.preventDefault();
 });
 

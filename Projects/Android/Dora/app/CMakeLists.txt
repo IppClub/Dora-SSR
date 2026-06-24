@@ -30,6 +30,7 @@ add_library(SDL2-lib SHARED IMPORTED)
 set_target_properties(
 	SDL2-lib PROPERTIES IMPORTED_LOCATION
 	${DORA_SDL2_ROOT}/Lib/Android/${ANDROID_ABI}/libSDL2.so
+	IMPORTED_NO_SONAME TRUE
 )
 
 set(DORA_BGFX_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/3rdParty/bgfx)

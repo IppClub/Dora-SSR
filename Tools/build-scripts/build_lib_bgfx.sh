@@ -47,6 +47,43 @@ clean_build() {
     xmake f -c -y 2>/dev/null || true
 }
 
+find_android_llvm_ar() {
+    local candidates=()
+
+    if [ -n "${ANDROID_NDK_HOME:-}" ]; then
+        candidates+=("$ANDROID_NDK_HOME")
+    fi
+    if [ -n "${ANDROID_NDK_ROOT:-}" ]; then
+        candidates+=("$ANDROID_NDK_ROOT")
+    fi
+    if [ -n "${NDK_ROOT:-}" ]; then
+        candidates+=("$NDK_ROOT")
+    fi
+
+    local sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-$HOME/Library/Android/sdk}}"
+    candidates+=("$sdk_root/ndk-bundle")
+
+    if [ -d "$sdk_root/ndk" ]; then
+        while IFS= read -r ndk_dir; do
+            candidates+=("$ndk_dir")
+        done < <(find "$sdk_root/ndk" -mindepth 1 -maxdepth 1 -type d | sort -r)
+    fi
+
+    local ndk_dir
+    for ndk_dir in "${candidates[@]}"; do
+        [ -d "$ndk_dir" ] || continue
+
+        local ar
+        ar=$(find "$ndk_dir/toolchains/llvm/prebuilt" -path "*/bin/llvm-ar" -type f 2>/dev/null | head -n 1 || true)
+        if [ -n "$ar" ] && [ -x "$ar" ]; then
+            echo "$ar"
+            return 0
+        fi
+    done
+
+    return 1
+}
+
 build_arch() {
     local platform=$1
     local arch=$2
@@ -131,23 +168,33 @@ build_android() {
     log_info "=== Building Android (arm64-v8a + armeabi-v7a + x86_64) ==="
     local libs
     libs=$(get_libs_for_platform "android")
+    local android_extra_opts=()
 
     if [ -z "$ANDROID_NDK_HOME" ] && [ -z "$NDK_ROOT" ]; then
         log_warn "ANDROID_NDK_HOME or NDK_ROOT not set, xmake will try to auto-detect NDK"
     fi
 
+    local android_ar
+    android_ar=$(find_android_llvm_ar || true)
+    if [ -n "$android_ar" ]; then
+        log_info "Using Android LLVM archiver: $android_ar"
+        android_extra_opts+=(--ar="$android_ar")
+    else
+        log_warn "Android llvm-ar not found; xmake will choose the archiver"
+    fi
+
     clean_build
 
     log_info "Building arm64-v8a..."
-    build_arch android arm64-v8a "$BUILD_MODE"
+    build_arch android arm64-v8a "$BUILD_MODE" "${android_extra_opts[@]}"
 
     log_info "Building armeabi-v7a..."
     xmake f -c -y
-    build_arch android armeabi-v7a "$BUILD_MODE"
+    build_arch android armeabi-v7a "$BUILD_MODE" "${android_extra_opts[@]}"
 
     log_info "Building x86_64..."
     xmake f -c -y
-    build_arch android x86_64 "$BUILD_MODE"
+    build_arch android x86_64 "$BUILD_MODE" "${android_extra_opts[@]}"
 
     mkdir -p build/android/arm64-v8a
     mkdir -p build/android/armeabi-v7a
