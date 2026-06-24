@@ -52,6 +52,7 @@ export class Root {
 	render(enode: RenderInput): void;
 	update(): void;
 	unmount(): void;
+	dispose(): void;
 }
 
 /**
@@ -62,7 +63,7 @@ export class Root {
 export function createRoot(this: void, parent: Dora.Node.Type): Root;
 
 /**
- * A small reactive value. Assigning `value` schedules all mounted dynamic roots to update.
+ * A small reactive value. Assigning `value` schedules dynamic roots that read the signal to update.
  */
 export class Signal<T> {
 	constructor(value: T);

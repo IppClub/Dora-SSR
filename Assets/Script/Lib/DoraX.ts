@@ -150,6 +150,7 @@ function getNode(this: void, enode: React.Element, cnode?: Dora.Node.Type, attri
 			case 'onEnter': cnode.slot(Dora.Slot.Enter, v); break;
 			case 'onExit': cnode.slot(Dora.Slot.Exit, v); break;
 			case 'onCleanup': cnode.slot(Dora.Slot.Cleanup, v); break;
+			case 'onUnmount': break;
 			case 'onKeyDown': cnode.slot(Dora.Slot.KeyDown, v); break;
 			case 'onKeyUp': cnode.slot(Dora.Slot.KeyUp, v); break;
 			case 'onKeyPressed': cnode.slot(Dora.Slot.KeyPressed, v); break;
@@ -1508,6 +1509,8 @@ interface MountedElement {
 
 const roots: Root[] = [];
 let renderQueued = false;
+let queuedRoots: Root[] = [];
+let trackingRoot: Root | undefined;
 
 function isElementList(this: void, node: React.Element | React.Element[]): boolean {
 	return (node as React.Element).type === undefined;
@@ -1565,19 +1568,109 @@ function isPhysicsWorldInputElement(this: void, element: React.Element): boolean
 	return element.type === "contact";
 }
 
-function hasPhysicsWorldInput(this: void, element: React.Element): boolean {
+function shallowPropsEqual(this: void, oldProps: AnyTable, newProps: AnyTable): boolean {
+	for (let [k, v] of pairs(oldProps)) {
+		if (k !== "ref" && newProps[k] !== v) return false;
+	}
+	for (let [k, v] of pairs(newProps)) {
+		if (k !== "ref" && oldProps[k] !== v) return false;
+	}
+	return true;
+}
+
+function collectContactElements(this: void, element: React.Element): React.Element[] {
+	const contacts: React.Element[] = [];
 	for (let i of $range(1, element.children.length)) {
 		const child = element.children[i - 1];
 		if (type(child) === "table" && isPhysicsWorldInputElement(child as React.Element)) {
-			return true;
+			contacts.push(child as React.Element);
 		}
 	}
-	return false;
+	return contacts;
+}
+
+function getContactKey(this: void, contact: JSX.Contact): string {
+	return `${contact.groupA}:${contact.groupB}`;
+}
+
+function patchPhysicsWorldInputs(this: void, world: Dora.PhysicsWorld.Type, oldElement: React.Element, newElement: React.Element) {
+	const oldContacts = collectContactElements(oldElement);
+	const newContacts = collectContactElements(newElement);
+	const oldByKey: LuaTable<string, JSX.Contact> = new LuaTable();
+	const newByKey: LuaTable<string, JSX.Contact> = new LuaTable();
+	for (let i of $range(1, oldContacts.length)) {
+		const contact = oldContacts[i - 1].props as JSX.Contact;
+		oldByKey.set(getContactKey(contact), contact);
+	}
+	for (let i of $range(1, newContacts.length)) {
+		const contact = newContacts[i - 1].props as JSX.Contact;
+		newByKey.set(getContactKey(contact), contact);
+	}
+	for (let i of $range(1, oldContacts.length)) {
+		const oldContact = oldContacts[i - 1].props as JSX.Contact;
+		const key = getContactKey(oldContact);
+		const newContact = newByKey.get(key);
+		if (newContact === undefined) {
+			world.setShouldContact(oldContact.groupA, oldContact.groupB, true);
+		} else if (oldContact.enabled !== newContact.enabled) {
+			world.setShouldContact(newContact.groupA, newContact.groupB, newContact.enabled);
+		}
+	}
+	for (let i of $range(1, newContacts.length)) {
+		const newContact = newContacts[i - 1].props as JSX.Contact;
+		if (oldByKey.get(getContactKey(newContact)) === undefined) {
+			world.setShouldContact(newContact.groupA, newContact.groupB, newContact.enabled);
+		}
+	}
+}
+
+function structuralChildrenEqual(
+	this: void,
+	oldElement: React.Element,
+	newElement: React.Element,
+	check: (this: void, element: React.Element) => boolean
+): boolean {
+	const oldChildren: React.Element[] = [];
+	const newChildren: React.Element[] = [];
+	for (let i of $range(1, oldElement.children.length)) {
+		const child = oldElement.children[i - 1];
+		if (type(child) === "table" && check(child as React.Element)) {
+			oldChildren.push(child as React.Element);
+		}
+	}
+	for (let i of $range(1, newElement.children.length)) {
+		const child = newElement.children[i - 1];
+		if (type(child) === "table" && check(child as React.Element)) {
+			newChildren.push(child as React.Element);
+		}
+	}
+	if (oldChildren.length !== newChildren.length) return false;
+	for (let i of $range(1, oldChildren.length)) {
+		const oldChild = oldChildren[i - 1];
+		const newChild = newChildren[i - 1];
+		if (oldChild.type !== newChild.type) return false;
+		if (!shallowPropsEqual(oldChild.props as AnyTable, newChild.props as AnyTable)) return false;
+	}
+	return true;
+}
+
+function removeRoot(this: void, root: Root) {
+	for (let i of $range(1, roots.length)) {
+		if (roots[i - 1] === root) {
+			table.remove(roots, i);
+			break;
+		}
+	}
 }
 
 function toHostElement(this: void, enode: React.Element, parent?: Dora.Node.Type): React.Element {
 	const hostChildren: unknown[] = [];
-	const props = enode.props ?? {};
+	const props: AnyTable = {};
+	if (enode.props !== undefined) {
+		for (let [k, v] of pairs(enode.props as AnyTable)) {
+			props[k] = v;
+		}
+	}
 	if (enode.type === "label") {
 		for (let i of $range(1, enode.children.length)) {
 			const child = enode.children[i - 1];
@@ -1698,16 +1791,19 @@ function shouldRecreate(this: void, oldElement: React.Element, newElement: React
 			return oldProps.windowRoot !== newProps.windowRoot;
 		case "custom-node":
 			return oldProps.onCreate !== newProps.onCreate;
-		case "physics-world":
-			return hasPhysicsWorldInput(oldElement) || hasPhysicsWorldInput(newElement);
 		case "body":
-			return true;
+			return oldProps.type !== newProps.type ||
+				oldProps.world !== newProps.world ||
+				oldProps.fixedRotation !== newProps.fixedRotation ||
+				oldProps.bullet !== newProps.bullet ||
+				oldProps.linearAcceleration !== newProps.linearAcceleration ||
+				!structuralChildrenEqual(oldElement, newElement, isBodyFixtureElement);
 	}
 	return false;
 }
 
 function isEventProp(this: void, key: unknown): boolean {
-	return type(key) === "string" && string.sub(key as string, 1, 2) === "on";
+	return type(key) === "string" && key !== "onUnmount" && string.sub(key as string, 1, 2) === "on";
 }
 
 function applyProp(this: void, node: Dora.Node.Type, enode: React.Element, key: unknown, value: unknown) {
@@ -1716,6 +1812,7 @@ function applyProp(this: void, node: Dora.Node.Type, enode: React.Element, key: 
 		case "key":
 		case "children":
 		case "onMount":
+		case "onUnmount":
 			return;
 		case "ref":
 			(value as AnyTable).current = node;
@@ -1767,6 +1864,11 @@ function patchProps(this: void, node: Dora.Node.Type, oldElement: React.Element,
 	}
 	if (newElement.type === "label") {
 		(node as Dora.Label.Type).text = getPrimitiveLabelText(newElement);
+	} else if (newElement.type === "physics-world") {
+		const world = Dora.tolua.cast(node, Dora.TypeName.PhysicsWorld);
+		if (world !== undefined) {
+			patchPhysicsWorldInputs(world, oldElement, newElement);
+		}
 	}
 }
 
@@ -1804,6 +1906,10 @@ function mountElement(this: void, parent: Dora.Node.Type, enode: React.Element):
 function unmountElement(this: void, mounted: MountedElement) {
 	for (let i of $range(1, mounted.children.length)) {
 		unmountElement(mounted.children[i - 1]);
+	}
+	const props = mounted.element.props as JSX.Node;
+	if (props.onUnmount !== undefined) {
+		props.onUnmount(mounted.node);
 	}
 	mounted.node.removeFromParent(true);
 }
@@ -1878,13 +1984,20 @@ function toElementList(this: void, node: React.Element | React.Element[]): React
 	return [node as React.Element];
 }
 
-function scheduleRender(this: void) {
+function scheduleRootRender(this: void, root: Root) {
+	if (!root.active) return;
+	for (let i of $range(1, queuedRoots.length)) {
+		if (queuedRoots[i - 1] === root) return;
+	}
+	queuedRoots.push(root);
 	if (renderQueued) return;
 	renderQueued = true;
 	Dora.Director.systemScheduler.schedule(Dora.once(() => {
 		renderQueued = false;
-		for (let i of $range(1, roots.length)) {
-			roots[i - 1].update();
+		const updatingRoots = queuedRoots;
+		queuedRoots = [];
+		for (let i of $range(1, updatingRoots.length)) {
+			updatingRoots[i - 1].update();
 		}
 	}));
 }
@@ -1892,17 +2005,32 @@ function scheduleRender(this: void) {
 export class Root {
 	private mounted: MountedElement[] = [];
 	private renderable?: RenderInput;
+	private signals: Signal<unknown>[] = [];
+	active = true;
 
 	constructor(private parent: Dora.Node.Type) { }
 
 	render(this: Root, enode: RenderInput): void {
+		if (!this.active) {
+			roots.push(this);
+			this.active = true;
+		}
 		this.renderable = enode;
 		this.update();
 	}
 
 	update(this: Root): void {
-		if (this.renderable === undefined) return;
-		this.mounted = reconcileChildren(this.parent, this.mounted, toElementList(getRenderableElement(this.renderable)));
+		if (!this.active || this.renderable === undefined) return;
+		this.unsubscribeSignals();
+		const lastTrackingRoot = trackingRoot;
+		trackingRoot = this;
+		let elements: React.Element | React.Element[];
+		try {
+			elements = getRenderableElement(this.renderable);
+		} finally {
+			trackingRoot = lastTrackingRoot;
+		}
+		this.mounted = reconcileChildren(this.parent, this.mounted, toElementList(elements));
 	}
 
 	unmount(this: Root): void {
@@ -1911,6 +2039,30 @@ export class Root {
 		}
 		this.mounted = [];
 		this.renderable = undefined;
+		this.unsubscribeSignals();
+		if (this.active) {
+			removeRoot(this);
+			this.active = false;
+		}
+	}
+
+	dispose(this: Root): void {
+		this.unmount();
+	}
+
+	trackSignal(this: Root, signal: Signal<unknown>): void {
+		for (let i of $range(1, this.signals.length)) {
+			if (this.signals[i - 1] === signal) return;
+		}
+		this.signals.push(signal);
+		signal.addRoot(this);
+	}
+
+	private unsubscribeSignals(this: Root): void {
+		for (let i of $range(1, this.signals.length)) {
+			this.signals[i - 1].removeRoot(this);
+		}
+		this.signals = [];
 	}
 }
 
@@ -1921,16 +2073,39 @@ export function createRoot(this: void, parent: Dora.Node.Type): Root {
 }
 
 export class Signal<T> {
+	private roots: Root[] = [];
+
 	constructor(private item: T) { }
 
 	get value(): T {
+		if (trackingRoot !== undefined) {
+			trackingRoot.trackSignal(this as unknown as Signal<unknown>);
+		}
 		return this.item;
 	}
 
 	set value(value: T) {
 		if (this.item === value) return;
 		this.item = value;
-		scheduleRender();
+		for (let i of $range(1, this.roots.length)) {
+			scheduleRootRender(this.roots[i - 1]);
+		}
+	}
+
+	addRoot(this: Signal<T>, root: Root): void {
+		for (let i of $range(1, this.roots.length)) {
+			if (this.roots[i - 1] === root) return;
+		}
+		this.roots.push(root);
+	}
+
+	removeRoot(this: Signal<T>, root: Root): void {
+		for (let i of $range(1, this.roots.length)) {
+			if (this.roots[i - 1] === root) {
+				table.remove(this.roots, i);
+				break;
+			}
+		}
 	}
 }
 

@@ -243,7 +243,7 @@ Yes, the underlying technology of Dora SSR is actually based on Lua and WASM vir
 
 ### 2. Is There a Connection with React?
 
-Yes, DoraX now provides two TSX rendering paths. `toNode()` keeps the original one-shot behavior: it materializes a TSX element tree into Dora nodes and then hands control to the engine. For state-driven UI or scene fragments, `createRoot(parent)` mounts a dynamic TSX root. Calling `root.render(() => ...)` lets DoraX re-evaluate the element tree, diff it against the previous tree, patch node properties, and mount or unmount changed children. `signal(value)` is a small reactive value helper; assigning `signal.value` schedules mounted dynamic roots to update on the engine scheduler.
+Yes, DoraX now provides two TSX rendering paths. `toNode()` keeps the original one-shot behavior: it materializes a TSX element tree into Dora nodes and then hands control to the engine. For state-driven UI or scene fragments, `createRoot(parent)` mounts a dynamic TSX root. Calling `root.render(() => ...)` lets DoraX re-evaluate the element tree, diff it against the previous tree, patch node properties, and mount or unmount changed children. `signal(value)` is a small reactive value helper; assigning `signal.value` schedules the dynamic roots that read that signal to update on the engine scheduler.
 
 This mechanism is React-like, but it is still Dora engine rendering rather than a browser DOM. Stable `key` values are important for dynamic sibling lists so that moved, inserted, or removed nodes keep the correct identity. Constructor-style nodes such as bodies, draw shapes, resource nodes, and custom nodes may still be recreated when their structural inputs change.
 

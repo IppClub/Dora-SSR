@@ -259,7 +259,7 @@ toNode(
 
 ### 2. 和 React 有关系吗
 
-&emsp;&emsp;有关系，但 DoraX 面向的是 Dora 引擎节点而不是浏览器 DOM。现在 DoraX 提供两种 TSX 渲染路径：`toNode()` 保留原来的一次性构建行为，会把 TSX 元素树实例化为 Dora 节点，然后交给引擎继续运行；需要让 UI 或场景片段跟随数据变化时，可以使用 `createRoot(parent)` 创建动态 TSX 根节点，再通过 `root.render(() => ...)` 让 DoraX 重新计算元素树，和上一次的树做 diff，更新节点属性并挂载或移除变化的子节点。`signal(value)` 是一个轻量的响应式值，给 `signal.value` 赋值会在引擎调度器上安排动态根节点更新。
+&emsp;&emsp;有关系，但 DoraX 面向的是 Dora 引擎节点而不是浏览器 DOM。现在 DoraX 提供两种 TSX 渲染路径：`toNode()` 保留原来的一次性构建行为，会把 TSX 元素树实例化为 Dora 节点，然后交给引擎继续运行；需要让 UI 或场景片段跟随数据变化时，可以使用 `createRoot(parent)` 创建动态 TSX 根节点，再通过 `root.render(() => ...)` 让 DoraX 重新计算元素树，和上一次的树做 diff，更新节点属性并挂载或移除变化的子节点。`signal(value)` 是一个轻量的响应式值，给 `signal.value` 赋值会在引擎调度器上安排读取过该 signal 的动态根节点更新。
 
 &emsp;&emsp;这个机制的使用方式接近 React，不过它仍然是在操作 Dora 节点。动态同级列表应当提供稳定的 `key`，这样节点在插入、删除和排序时才能保持正确身份。像物理 body、draw-node 的图形描述、资源节点、custom-node 这类依赖构造参数的节点，在结构输入变化时仍会按需要重建。
 

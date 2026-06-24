@@ -107,6 +107,8 @@ count.value += 1;
 
 For dynamic sibling lists, provide stable `key` values. Omitted keys are only safe when child order and identity do not change.
 
+Signals update only dynamic roots that read them during render. Dispose roots that are no longer needed with `root.dispose()` or `root.unmount()`, and use `onUnmount` for deterministic cleanup when nodes are removed by diffing.
+
 ### ImGui
 
 For debug/development UI, use ImGui:

@@ -12,6 +12,9 @@ class Node {
 
 	ref?: Ref<Dora.Node.Type>;
 
+	/** Called by DoraX dynamic rendering before the node is removed by diffing or root unmount. */
+	onUnmount?(this: void, self: Dora.Node.Type): void;
+
 	/** The order of the node in the parent's children array. */
 	order?: number;
 

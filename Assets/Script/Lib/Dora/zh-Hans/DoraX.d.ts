@@ -52,6 +52,7 @@ export class Root {
 	render(enode: RenderInput): void;
 	update(): void;
 	unmount(): void;
+	dispose(): void;
 }
 
 /**
@@ -62,7 +63,7 @@ export class Root {
 export function createRoot(this: void, parent: Dora.Node.Type): Root;
 
 /**
- * 一个小型响应式值。给 `value` 赋值会调度所有已挂载的动态根节点更新。
+ * 一个小型响应式值。给 `value` 赋值会调度读取过该 signal 的动态根节点更新。
  */
 export class Signal<T> {
 	constructor(value: T);

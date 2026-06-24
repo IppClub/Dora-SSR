@@ -12,6 +12,9 @@ class Node {
 
 	ref?: Ref<Dora.Node.Type>;
 
+	/** DoraX 动态渲染在节点因 diff 或根节点卸载被移除前调用。 */
+	onUnmount?(this: void, self: Dora.Node.Type): void;
+
 	/** 节点在父节点的子节点数组中的顺序。 */
 	order?: number;
 
