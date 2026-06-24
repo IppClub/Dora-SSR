@@ -42,6 +42,40 @@ export namespace React {
  */
 export function toNode(this: void, enode: React.Element | React.Element[]): Dora.Node.Type | undefined;
 
+export type RenderInput = React.Element | React.Element[] | (() => React.Element | React.Element[]);
+
+/**
+ * A mounted dynamic TSX root that updates Dora nodes by diffing new element trees.
+ */
+export class Root {
+	constructor(parent: Dora.Node.Type);
+	render(enode: RenderInput): void;
+	update(): void;
+	unmount(): void;
+}
+
+/**
+ * Creates a dynamic TSX root under the specified Dora node.
+ * @param parent The Dora node that owns rendered children.
+ * @returns The created dynamic root.
+ */
+export function createRoot(this: void, parent: Dora.Node.Type): Root;
+
+/**
+ * A small reactive value. Assigning `value` schedules all mounted dynamic roots to update.
+ */
+export class Signal<T> {
+	constructor(value: T);
+	value: T;
+}
+
+/**
+ * Creates a reactive value for dynamic TSX rendering.
+ * @param value The initial value.
+ * @returns The created signal.
+ */
+export function signal<T>(this: void, value: T): Signal<T>;
+
 /**
  * Converts a React element to a Dora action definition.
  * @param enode The React element to convert.

@@ -243,4 +243,22 @@ Yes, the underlying technology of Dora SSR is actually based on Lua and WASM vir
 
 ### 2. Is There a Connection with React?
 
-The answer to this question is currently: it could be (thus far, it hasn’t been). React’s most important capability is synchronizing the rendering of components and business data states through the Virtual DOM and Tree Diff process, which has not yet been implemented in Dora SSR. Currently, the code written in TSX for game rendering objects is only built once at runtime, and then the underlying C++ engine functionality continues to handle processing. Maybe one day we will provide a React-like mechanism for game UI development, executing Tree Diff to synchronize state, or a mechanism based on TSX like SolidJS for other rendering component state synchronizations. So here, we sincerely invite all frontend developers to join us, play with the Dora SSR project, and explore how to apply frontend development ideas to game development, bringing more convenient tools into the mix.
+Yes, DoraX now provides two TSX rendering paths. `toNode()` keeps the original one-shot behavior: it materializes a TSX element tree into Dora nodes and then hands control to the engine. For state-driven UI or scene fragments, `createRoot(parent)` mounts a dynamic TSX root. Calling `root.render(() => ...)` lets DoraX re-evaluate the element tree, diff it against the previous tree, patch node properties, and mount or unmount changed children. `signal(value)` is a small reactive value helper; assigning `signal.value` schedules mounted dynamic roots to update on the engine scheduler.
+
+This mechanism is React-like, but it is still Dora engine rendering rather than a browser DOM. Stable `key` values are important for dynamic sibling lists so that moved, inserted, or removed nodes keep the correct identity. Constructor-style nodes such as bodies, draw shapes, resource nodes, and custom nodes may still be recreated when their structural inputs change.
+
+```tsx
+import { React, createRoot, signal } from 'DoraX';
+import { Director } from 'Dora';
+
+const count = signal(0);
+const root = createRoot(Director.entry);
+
+root.render(() => (
+  <label fontName="sarasa-mono-sc-regular" fontSize={30}>
+    Count: {count.value}
+  </label>
+));
+
+count.value += 1;
+```

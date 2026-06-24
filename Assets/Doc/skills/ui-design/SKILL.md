@@ -96,6 +96,17 @@ Use `.tsx` files with DoraX for declarative UI:
 <move>, <opacity>, <scale>, <sequence>, <spawn>, <loop>
 ```
 
+Use `toNode()` when the TSX tree only needs to be materialized once. For state-driven UI, mount a dynamic root with `createRoot(parent)` and render from a function that reads `signal()` values:
+
+```tsx
+const count = signal(0);
+const root = createRoot(parent);
+root.render(() => <label text={`Count: ${count.value}`} />);
+count.value += 1;
+```
+
+For dynamic sibling lists, provide stable `key` values. Omitted keys are only safe when child order and identity do not change.
+
 ### ImGui
 
 For debug/development UI, use ImGui:

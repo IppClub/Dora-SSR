@@ -1498,6 +1498,446 @@ export function toNode(this: void, enode: React.Element | React.Element[]): Dora
 	return undefined;
 }
 
+export type RenderInput = React.Element | React.Element[] | (() => React.Element | React.Element[]);
+
+interface MountedElement {
+	element: React.Element;
+	node: Dora.Node.Type;
+	children: MountedElement[];
+}
+
+const roots: Root[] = [];
+let renderQueued = false;
+
+function isElementList(this: void, node: React.Element | React.Element[]): boolean {
+	return (node as React.Element).type === undefined;
+}
+
+function getElementKey(this: void, element: React.Element): string | number | undefined {
+	const props = element.props as AnyTable | undefined;
+	return props ? props.key as string | number | undefined : undefined;
+}
+
+function getRenderableElement(this: void, renderable: RenderInput): React.Element | React.Element[] {
+	if (type(renderable) === "function") {
+		return (renderable as () => React.Element | React.Element[])();
+	}
+	return renderable as React.Element | React.Element[];
+}
+
+function getPrimitiveLabelText(this: void, enode: React.Element): string {
+	const label = enode.props as JSX.Label;
+	let text = label.text ?? "";
+	for (let i of $range(1, enode.children.length)) {
+		const child = enode.children[i - 1];
+		if (type(child) !== "table") {
+			text += tostring(child);
+		}
+	}
+	return text;
+}
+
+function isDrawShapeElement(this: void, element: React.Element): boolean {
+	switch (element.type as keyof JSX.IntrinsicElements) {
+		case "dot-shape":
+		case "segment-shape":
+		case "rect-shape":
+		case "polygon-shape":
+		case "verts-shape":
+			return true;
+	}
+	return false;
+}
+
+function isBodyFixtureElement(this: void, element: React.Element): boolean {
+	switch (element.type as keyof JSX.IntrinsicElements) {
+		case "rect-fixture":
+		case "polygon-fixture":
+		case "multi-fixture":
+		case "disk-fixture":
+		case "chain-fixture":
+			return true;
+	}
+	return false;
+}
+
+function isPhysicsWorldInputElement(this: void, element: React.Element): boolean {
+	return element.type === "contact";
+}
+
+function hasPhysicsWorldInput(this: void, element: React.Element): boolean {
+	for (let i of $range(1, element.children.length)) {
+		const child = element.children[i - 1];
+		if (type(child) === "table" && isPhysicsWorldInputElement(child as React.Element)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+function toHostElement(this: void, enode: React.Element, parent?: Dora.Node.Type): React.Element {
+	const hostChildren: unknown[] = [];
+	const props = enode.props ?? {};
+	if (enode.type === "label") {
+		for (let i of $range(1, enode.children.length)) {
+			const child = enode.children[i - 1];
+			if (type(child) !== "table") {
+				hostChildren.push(child);
+			}
+		}
+	} else if (enode.type === "draw-node") {
+		for (let i of $range(1, enode.children.length)) {
+			const child = enode.children[i - 1];
+			if (type(child) === "table" && isDrawShapeElement(child as React.Element)) {
+				hostChildren.push(child);
+			}
+		}
+	} else if (enode.type === "body") {
+		for (let i of $range(1, enode.children.length)) {
+			const child = enode.children[i - 1];
+			if (type(child) === "table" && isBodyFixtureElement(child as React.Element)) {
+				hostChildren.push(child);
+			}
+		}
+	} else if (enode.type === "physics-world") {
+		for (let i of $range(1, enode.children.length)) {
+			const child = enode.children[i - 1];
+			if (type(child) === "table" && isPhysicsWorldInputElement(child as React.Element)) {
+				hostChildren.push(child);
+			}
+		}
+	}
+	if (enode.type === "body" && (props as JSX.Body).world === undefined) {
+		const world = Dora.tolua.cast(parent, Dora.TypeName.PhysicsWorld);
+		if (world !== undefined) {
+			(props as JSX.Body).world = world;
+		}
+	}
+	return {
+		type: enode.type,
+		props,
+		children: hostChildren as React.Element[],
+	};
+}
+
+function createHostNode(this: void, enode: React.Element, parent?: Dora.Node.Type): Dora.Node.Type | undefined {
+	const nodeStack: Dora.Node.Type[] = [];
+	visitNode(nodeStack, toHostElement(enode, parent));
+	if (nodeStack.length === 1) {
+		return nodeStack[0];
+	} else if (nodeStack.length > 1) {
+		const node = Dora.Node();
+		for (let i of $range(1, nodeStack.length)) {
+			node.addChild(nodeStack[i - 1]);
+		}
+		return node;
+	}
+	return undefined;
+}
+
+function getElementChildren(this: void, enode: React.Element): React.Element[] {
+	const children: React.Element[] = [];
+	if (enode.type === "draw-node" || enode.type === "body") return children;
+	for (let i of $range(1, enode.children.length)) {
+		const child = enode.children[i - 1];
+		if (type(child) === "table") {
+			const childElement = child as React.Element;
+			if (childElement.type !== undefined) {
+				if (enode.type !== "physics-world" || !isPhysicsWorldInputElement(childElement)) {
+					children.push(childElement);
+				}
+			} else {
+				const list = child as unknown as React.Element[];
+				for (let j of $range(1, list.length)) {
+					const item = list[j - 1];
+					if (type(item) === "table" && item.type !== undefined) {
+						if (enode.type !== "physics-world" || !isPhysicsWorldInputElement(item)) {
+							children.push(item);
+						}
+					}
+				}
+			}
+		}
+	}
+	return children;
+}
+
+function shouldRecreate(this: void, oldElement: React.Element, newElement: React.Element): boolean {
+	if (oldElement.type !== newElement.type) return true;
+	if (getElementKey(oldElement) !== getElementKey(newElement)) return true;
+	const oldProps = oldElement.props as AnyTable;
+	const newProps = newElement.props as AnyTable;
+	if (newElement.type === "draw-node") return true;
+	for (let [k, v] of pairs(oldProps)) {
+		if ((isEventProp(k) || k === "onMount") && newProps[k] !== v) {
+			return true;
+		}
+	}
+	for (let [k, v] of pairs(newProps)) {
+		if ((isEventProp(k) || k === "onMount") && oldProps[k] !== v) {
+			return true;
+		}
+	}
+	switch (newElement.type as keyof JSX.IntrinsicElements) {
+		case "grid":
+			return oldProps.file !== newProps.file || oldProps.gridX !== newProps.gridX || oldProps.gridY !== newProps.gridY;
+		case "sprite":
+		case "video-node":
+		case "tic80-node":
+		case "audio-source":
+		case "particle":
+		case "tile-node":
+		case "playable":
+		case "dragon-bone":
+		case "spine":
+		case "model":
+			return oldProps.file !== newProps.file;
+		case "label":
+			return oldProps.fontName !== newProps.fontName || oldProps.fontSize !== newProps.fontSize || oldProps.sdf !== newProps.sdf;
+		case "align-node":
+			return oldProps.windowRoot !== newProps.windowRoot;
+		case "custom-node":
+			return oldProps.onCreate !== newProps.onCreate;
+		case "physics-world":
+			return hasPhysicsWorldInput(oldElement) || hasPhysicsWorldInput(newElement);
+		case "body":
+			return true;
+	}
+	return false;
+}
+
+function isEventProp(this: void, key: unknown): boolean {
+	return type(key) === "string" && string.sub(key as string, 1, 2) === "on";
+}
+
+function applyProp(this: void, node: Dora.Node.Type, enode: React.Element, key: unknown, value: unknown) {
+	const name = key as string;
+	switch (name) {
+		case "key":
+		case "children":
+		case "onMount":
+			return;
+		case "ref":
+			(value as AnyTable).current = node;
+			return;
+		case "anchorX":
+			node.anchor = Dora.Vec2(value as number, node.anchor.y);
+			return;
+		case "anchorY":
+			node.anchor = Dora.Vec2(node.anchor.x, value as number);
+			return;
+		case "color3":
+			node.color3 = Dora.Color3(value as number);
+			return;
+		case "transformTarget":
+			node.transformTarget = (value as JSX.Ref<Dora.Node.Type>).current;
+			return;
+		case "outlineColor":
+			(node as AnyTable)[name] = Dora.Color(value as number);
+			return;
+		case "smoothLower": {
+			const smooth = (node as AnyTable).smooth;
+			(node as AnyTable).smooth = Dora.Vec2(value as number, smooth.y);
+			return;
+		}
+		case "smoothUpper": {
+			const smooth = (node as AnyTable).smooth;
+			(node as AnyTable).smooth = Dora.Vec2(smooth.x, value as number);
+			return;
+		}
+	}
+	if (isEventProp(key)) {
+		return;
+	}
+	(node as AnyTable)[name] = value;
+}
+
+function patchProps(this: void, node: Dora.Node.Type, oldElement: React.Element, newElement: React.Element) {
+	const oldProps = oldElement.props as AnyTable;
+	const newProps = newElement.props as AnyTable;
+	for (let [k] of pairs(oldProps)) {
+		if (k !== "ref" && k !== "key" && !isEventProp(k) && newProps[k] === undefined) {
+			(node as AnyTable)[k] = undefined;
+		}
+	}
+	for (let [k, v] of pairs(newProps)) {
+		if (oldProps[k] !== v) {
+			applyProp(node, newElement, k, v);
+		}
+	}
+	if (newElement.type === "label") {
+		(node as Dora.Label.Type).text = getPrimitiveLabelText(newElement);
+	}
+}
+
+function addChildToParent(this: void, parent: Dora.Node.Type, node: Dora.Node.Type, props: JSX.Node) {
+	if (props.tag !== undefined) {
+		parent.addChild(node, props.order ?? 0, props.tag);
+	} else if (props.order !== undefined) {
+		parent.addChild(node, props.order);
+	} else {
+		parent.addChild(node);
+	}
+}
+
+function mountElement(this: void, parent: Dora.Node.Type, enode: React.Element): MountedElement | undefined {
+	const node = createHostNode(enode, parent);
+	if (node === undefined) {
+		return undefined;
+	}
+	if (
+		enode.type === "dot-shape" ||
+		enode.type === "segment-shape" ||
+		enode.type === "rect-shape" ||
+		enode.type === "polygon-shape" ||
+		enode.type === "verts-shape"
+	) {
+		return undefined;
+	}
+	const props = enode.props as JSX.Node;
+	addChildToParent(parent, node, props);
+	const mounted: MountedElement = { element: enode, node, children: [] };
+	mounted.children = reconcileChildren(node, [], getElementChildren(enode));
+	return mounted;
+}
+
+function unmountElement(this: void, mounted: MountedElement) {
+	for (let i of $range(1, mounted.children.length)) {
+		unmountElement(mounted.children[i - 1]);
+	}
+	mounted.node.removeFromParent(true);
+}
+
+function reconcileElement(this: void, parent: Dora.Node.Type, oldMounted: MountedElement | undefined, newElement: React.Element): MountedElement | undefined {
+	if (oldMounted === undefined) {
+		return mountElement(parent, newElement);
+	}
+	if (shouldRecreate(oldMounted.element, newElement)) {
+		const oldNode = oldMounted.node;
+		const oldOrder = oldNode.order;
+		const oldTag = oldNode.tag;
+		unmountElement(oldMounted);
+		const mounted = mountElement(parent, newElement);
+		if (mounted !== undefined) {
+			mounted.node.order = (newElement.props as JSX.Node).order ?? oldOrder;
+			mounted.node.tag = (newElement.props as JSX.Node).tag ?? oldTag;
+		}
+		return mounted;
+	}
+	patchProps(oldMounted.node, oldMounted.element, newElement);
+	oldMounted.children = reconcileChildren(oldMounted.node, oldMounted.children, getElementChildren(newElement));
+	oldMounted.element = newElement;
+	return oldMounted;
+}
+
+function reconcileChildren(this: void, parent: Dora.Node.Type, oldChildren: MountedElement[], newElements: React.Element[]): MountedElement[] {
+	const oldByKey: LuaTable<string | number, MountedElement> = new LuaTable();
+	const usedOld: LuaTable<MountedElement, boolean> = new LuaTable();
+	for (let i of $range(1, oldChildren.length)) {
+		const oldChild = oldChildren[i - 1];
+		const key = getElementKey(oldChild.element);
+		if (key !== undefined) {
+			oldByKey.set(key, oldChild);
+		}
+	}
+	const nextChildren: MountedElement[] = [];
+	for (let i of $range(1, newElements.length)) {
+		const newElement = newElements[i - 1];
+		const key = getElementKey(newElement);
+		let oldChild: MountedElement | undefined;
+		if (key !== undefined) {
+			oldChild = oldByKey.get(key);
+		} else {
+			oldChild = oldChildren[i - 1];
+			if (oldChild !== undefined && getElementKey(oldChild.element) !== undefined) {
+				oldChild = undefined;
+			}
+		}
+		const mounted = reconcileElement(parent, oldChild, newElement);
+		if (mounted !== undefined) {
+			usedOld.set(mounted, true);
+			nextChildren.push(mounted);
+			const props = newElement.props as JSX.Node;
+			mounted.node.order = props.order ?? i;
+			if (props.tag !== undefined) mounted.node.tag = props.tag;
+		}
+	}
+	for (let i of $range(1, oldChildren.length)) {
+		const oldChild = oldChildren[i - 1];
+		if (!usedOld.get(oldChild)) {
+			unmountElement(oldChild);
+		}
+	}
+	return nextChildren;
+}
+
+function toElementList(this: void, node: React.Element | React.Element[]): React.Element[] {
+	if (isElementList(node)) {
+		return node as React.Element[];
+	}
+	return [node as React.Element];
+}
+
+function scheduleRender(this: void) {
+	if (renderQueued) return;
+	renderQueued = true;
+	Dora.Director.systemScheduler.schedule(Dora.once(() => {
+		renderQueued = false;
+		for (let i of $range(1, roots.length)) {
+			roots[i - 1].update();
+		}
+	}));
+}
+
+export class Root {
+	private mounted: MountedElement[] = [];
+	private renderable?: RenderInput;
+
+	constructor(private parent: Dora.Node.Type) { }
+
+	render(this: Root, enode: RenderInput): void {
+		this.renderable = enode;
+		this.update();
+	}
+
+	update(this: Root): void {
+		if (this.renderable === undefined) return;
+		this.mounted = reconcileChildren(this.parent, this.mounted, toElementList(getRenderableElement(this.renderable)));
+	}
+
+	unmount(this: Root): void {
+		for (let i of $range(1, this.mounted.length)) {
+			unmountElement(this.mounted[i - 1]);
+		}
+		this.mounted = [];
+		this.renderable = undefined;
+	}
+}
+
+export function createRoot(this: void, parent: Dora.Node.Type): Root {
+	const root = new Root(parent);
+	roots.push(root);
+	return root;
+}
+
+export class Signal<T> {
+	constructor(private item: T) { }
+
+	get value(): T {
+		return this.item;
+	}
+
+	set value(value: T) {
+		if (this.item === value) return;
+		this.item = value;
+		scheduleRender();
+	}
+}
+
+export function signal<T>(this: void, value: T): Signal<T> {
+	return new Signal(value);
+}
+
 export function useRef<T>(this: void, item?: T): JSX.Ref<T> {
 	return { current: item ?? undefined };
 }

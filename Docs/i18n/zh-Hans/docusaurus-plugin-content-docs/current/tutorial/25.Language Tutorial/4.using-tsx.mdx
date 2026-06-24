@@ -65,6 +65,62 @@ const node = toNode(<sprite file="Image/logo.png" scaleX={0.2} scaleY={0.2}/>);
 
 &emsp;&emsp;这样，`node` 就是一个实例化的游戏场景节点对象。
 
+### 2.3 使用 createRoot 和 signal 做动态渲染
+
+&emsp;&emsp;`toNode()` 是一次性的转换接口，适合只需要构建一次场景或 UI 树，然后交给引擎系统、动作、事件或你自己的代码继续操作这些节点的场景。
+
+&emsp;&emsp;如果 TSX 树需要跟随数据变化更新，可以使用 `createRoot(parent)` 创建一个动态根节点。动态根节点会保存上一次渲染的树。每次更新时，它会重新执行渲染函数，将新的树和旧的树进行比较，更新节点属性，并挂载或移除发生变化的子节点。
+
+&emsp;&emsp;`signal(value)` 用于创建一个轻量的响应式值。给 `signal.value` 赋值会在 Dora 的系统调度器上安排动态根节点更新。
+
+```tsx
+import { Director } from 'Dora';
+import { React, createRoot, signal } from 'DoraX';
+
+const count = signal(0);
+const root = createRoot(Director.entry);
+
+root.render(() => (
+	<label fontName="sarasa-mono-sc-regular" fontSize={60}>
+		Count: {count.value}
+	</label>
+));
+
+Director.entry.onTapped(() => {
+	count.value += 1;
+});
+```
+
+&emsp;&emsp;在这个例子里，点击屏幕后会修改 `count.value`。DoraX 随后会重新执行传给 `root.render()` 的函数，并更新已有的 label 节点，而不是要求你手动重新创建整个场景。
+
+### 2.4 动态列表中的 key
+
+&emsp;&emsp;当一个列表会发生插入、删除、过滤或排序时，应当给每个同级元素提供稳定的 `key`。`key` 会告诉动态渲染器：新的元素应该复用哪一个旧节点。
+
+```tsx
+interface Item {
+	id: number;
+	name: string;
+}
+
+const items = signal<Item[]>([
+	{id: 1, name: "Start"},
+	{id: 2, name: "Options"},
+]);
+
+root.render(() => (
+	<node>
+		{items.value.map(item => (
+			<label key={item.id} fontName="sarasa-mono-sc-regular" fontSize={30}>
+				{item.name}
+			</label>
+		))}
+	</node>
+));
+```
+
+&emsp;&emsp;只有当同级子元素的顺序和身份都不会变化时，才适合省略 `key`。没有 `key` 的子元素会按照数组下标进行匹配。
+
 ## 3. 创建 TSX 函数组件
 
 &emsp;&emsp;函数组件使你的代码更具可重用性和可读性。以下是如何在 Dora SSR 中创建一个简单的盒子组件。
@@ -541,6 +597,8 @@ p(jsxObject);
 
 - TSX 的基础概念：标签、属性和函数组件
 - 使用 `toNode()` 将 TSX 标签转换为渲染对象实例
+- 使用 `createRoot()` 和 `signal()` 根据数据变化 diff 更新 TSX 树
+- 在动态同级列表中使用稳定的 `key`
 - 使用 `useRef` 获取实例化的游戏对象
 - 创建自定义的游戏组件
 - 组合组件构建完整的游戏场景
@@ -553,6 +611,8 @@ p(jsxObject);
 
 - **`React.createElement`**：用于创建 TSX 元素，一般不需要直接使用，会被引擎自动调用。
 - **`toNode(enode)`**：将 TSX 元素或元素数组转换为游戏节点。
+- **`createRoot(parent)`**：在 Dora 节点下创建动态 TSX 根节点。调用 `root.render(enodeOrFunction)` 会将新的 TSX 树和上一次渲染结果做 diff，并更新子节点。
+- **`signal(value)`**：创建响应式值。给 `signal.value` 赋值会调度动态根节点更新。
 - **`useRef<T>(item?: T)`**：创建一个引用，用于获取实例化后的对象。
 - **`preloadAsync(enode, handler?)`**：异步预加载节点所需的美术资源。
 

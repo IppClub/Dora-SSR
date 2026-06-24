@@ -14,6 +14,7 @@ interface Param {
 
 class Button extends Node {
 	private constructor();
+	face: Node;
 	text: string;
 }
 

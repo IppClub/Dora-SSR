@@ -42,6 +42,40 @@ export namespace React {
  */
 export function toNode(this: void, enode: React.Element | React.Element[]): Dora.Node.Type | undefined;
 
+export type RenderInput = React.Element | React.Element[] | (() => React.Element | React.Element[]);
+
+/**
+ * 已挂载的动态 TSX 根节点，通过 diff 新的元素树来更新 Dora 节点。
+ */
+export class Root {
+	constructor(parent: Dora.Node.Type);
+	render(enode: RenderInput): void;
+	update(): void;
+	unmount(): void;
+}
+
+/**
+ * 在指定 Dora 节点下创建动态 TSX 根节点。
+ * @param parent 持有渲染子节点的 Dora 节点。
+ * @returns 创建的动态根节点。
+ */
+export function createRoot(this: void, parent: Dora.Node.Type): Root;
+
+/**
+ * 一个小型响应式值。给 `value` 赋值会调度所有已挂载的动态根节点更新。
+ */
+export class Signal<T> {
+	constructor(value: T);
+	value: T;
+}
+
+/**
+ * 创建用于动态 TSX 渲染的响应式值。
+ * @param value 初始值。
+ * @returns 创建的 signal。
+ */
+export function signal<T>(this: void, value: T): Signal<T>;
+
 /**
  * 将 React 元素转换为 Dora 动作定义。
  * @param enode 要转换的 React 元素。

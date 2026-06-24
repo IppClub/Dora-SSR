@@ -9,6 +9,7 @@ local record Param
 end
 local record CircleButton
 	embed Node
+	face: Node
 	text: string
 end
 local record CircleButtonClass

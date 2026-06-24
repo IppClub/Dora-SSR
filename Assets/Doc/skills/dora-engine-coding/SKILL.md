@@ -86,7 +86,7 @@ search_dora_api pattern="thread|sleep|threadLoop" docSource="api" programmingLan
 Use Dora runtime modules, not browser packages:
 
 - Core engine APIs: `import { ... } from 'Dora';`
-- JSX/DoraX UI syntax: `import { React, toNode } from 'DoraX';` and use `.tsx`.
+- JSX/DoraX UI syntax: use `.tsx` and import from `DoraX`. Use `toNode()` for one-shot scene creation, or `createRoot()` with `signal()` for dynamic TSX diff rendering.
 - Platformer framework: `import * as Platformer from 'Platformer';` or exact exports found by API search.
 - ImGui tools/UI: `import * as ImGui from 'ImGui';` plus enum exports from `ImGui` when needed.
 - Vector graphics: `import * as nvg from 'nvg';` when using `VGNode`/NanoVG APIs.

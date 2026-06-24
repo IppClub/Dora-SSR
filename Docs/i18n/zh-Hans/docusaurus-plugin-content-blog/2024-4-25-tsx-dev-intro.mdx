@@ -259,4 +259,22 @@ toNode(
 
 ### 2. 和 React 有关系吗
 
-&emsp;&emsp;这个问题的答案目前是：可以有（所以截至发文前还没有）。React 最重要的能力是通过 Virtual DOM 和执行 Tree Diff 处理的过程来进行渲染组件和业务数据的状态同步，目前这个机制还没有在 Dora SSR 中实现，所以大家目前看到的用 TSX 编写出的类似 VDOM 的构建代码只会在运行时做一次性的游戏渲染对象的构建，往后都是底层 C++ 实现的引擎功能在负责继续处理。也许有一天我们会为游戏 UI 的开发，提供仿 React 通过执行 Tree Diff 做状态同步的能力，或是仿 SolidJS 基于 TSX 实现其它的渲染组件状态同步的机制。所以在这里也诚挚地邀请广大前端开发的朋友，加入我们，一起玩 Dora SSR 项目，一起研究怎么运用前端开发技术思想，为游戏开发也引入更多好用便捷的轮子吧。
+&emsp;&emsp;有关系，但 DoraX 面向的是 Dora 引擎节点而不是浏览器 DOM。现在 DoraX 提供两种 TSX 渲染路径：`toNode()` 保留原来的一次性构建行为，会把 TSX 元素树实例化为 Dora 节点，然后交给引擎继续运行；需要让 UI 或场景片段跟随数据变化时，可以使用 `createRoot(parent)` 创建动态 TSX 根节点，再通过 `root.render(() => ...)` 让 DoraX 重新计算元素树，和上一次的树做 diff，更新节点属性并挂载或移除变化的子节点。`signal(value)` 是一个轻量的响应式值，给 `signal.value` 赋值会在引擎调度器上安排动态根节点更新。
+
+&emsp;&emsp;这个机制的使用方式接近 React，不过它仍然是在操作 Dora 节点。动态同级列表应当提供稳定的 `key`，这样节点在插入、删除和排序时才能保持正确身份。像物理 body、draw-node 的图形描述、资源节点、custom-node 这类依赖构造参数的节点，在结构输入变化时仍会按需要重建。
+
+```tsx
+import { React, createRoot, signal } from 'DoraX';
+import { Director } from 'Dora';
+
+const count = signal(0);
+const root = createRoot(Director.entry);
+
+root.render(() => (
+  <label fontName="sarasa-mono-sc-regular" fontSize={30}>
+    Count: {count.value}
+  </label>
+));
+
+count.value += 1;
+```

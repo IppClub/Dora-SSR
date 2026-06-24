@@ -7,6 +7,9 @@ interface Ref<T> {
 }
 
 class Node {
+	/** The identity used by DoraX dynamic rendering to reuse nodes across updates. */
+	key?: string | number;
+
 	ref?: Ref<Dora.Node.Type>;
 
 	/** The order of the node in the parent's children array. */

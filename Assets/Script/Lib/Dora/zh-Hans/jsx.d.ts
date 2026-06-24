@@ -7,6 +7,9 @@ interface Ref<T> {
 }
 
 class Node {
+	/** DoraX 动态渲染用于在更新之间复用节点的标识。 */
+	key?: string | number;
+
 	ref?: Ref<Dora.Node.Type>;
 
 	/** 节点在父节点的子节点数组中的顺序。 */

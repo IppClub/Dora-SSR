@@ -10,6 +10,7 @@ local record Param
 end
 local record Button
 	embed Node
+	face: Node
 	text: string
 end
 local record ButtonClass

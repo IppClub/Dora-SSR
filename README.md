@@ -283,7 +283,7 @@ if (sprite) {
 
 - **TSX**
 
-	A much easier approach for building a game scene in Dora SSR. Take the tutorials [here](https://dora-ssr.net/blog/2024/4/25/tsx-dev-intro).
+	A much easier approach for building a game scene in Dora SSR. Use `toNode()` for one-shot scene construction, or `createRoot()` with `signal()` when a TSX tree should update by diffing changed data. Take the tutorials [here](https://dora-ssr.net/blog/2024/4/25/tsx-dev-intro).
 
 ```tsx
 import { React, toNode } from 'DoraX';
@@ -303,6 +303,22 @@ toNode(
     </sequence>
   </sprite>
 )?.slot("Count", (_, param) => print(param));
+```
+
+```tsx
+import { React, createRoot, signal } from 'DoraX';
+import { Director } from 'Dora';
+
+const count = signal(0);
+const root = createRoot(Director.entry);
+
+root.render(() => (
+  <label fontName="sarasa-mono-sc-regular" fontSize={30}>
+    Count: {count.value}
+  </label>
+));
+
+count.value += 1;
 ```
 
 - **Wa**

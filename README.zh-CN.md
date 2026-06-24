@@ -285,7 +285,7 @@ if (sprite) {
 
 - **TSX**
 
-&emsp;&emsp;使用 TSX 语言来创建 Dora SSR 的游戏场景是一个比较容易上手的选择。新手教程可以参见[这里](https://dora-ssr.net/zh-Hans/blog/2024/4/25/tsx-dev-intro)。
+&emsp;&emsp;使用 TSX 语言来创建 Dora SSR 的游戏场景是一个比较容易上手的选择。`toNode()` 适合一次性的静态场景构建；需要根据数据变化更新 TSX 树时，可以使用 `createRoot()` 配合 `signal()` 进行 diff 渲染。新手教程可以参见[这里](https://dora-ssr.net/zh-Hans/blog/2024/4/25/tsx-dev-intro)。
 
 ```tsx
 import { React, toNode } from 'DoraX';
@@ -305,6 +305,22 @@ toNode(
     </sequence>
   </sprite>
 )?.slot("Count", (_, param) => print(param));
+```
+
+```tsx
+import { React, createRoot, signal } from 'DoraX';
+import { Director } from 'Dora';
+
+const count = signal(0);
+const root = createRoot(Director.entry);
+
+root.render(() => (
+  <label fontName="sarasa-mono-sc-regular" fontSize={30}>
+    Count: {count.value}
+  </label>
+));
+
+count.value += 1;
 ```
 
 - **Wa**

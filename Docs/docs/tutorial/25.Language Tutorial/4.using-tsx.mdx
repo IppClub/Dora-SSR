@@ -65,6 +65,62 @@ const node = toNode(<sprite file="Image/logo.png" scaleX={0.2} scaleY={0.2}/>);
 
 Now, `node` is an instantiated game scene node object.
 
+### 2.3 Dynamic Rendering with createRoot and signal
+
+`toNode()` is a one-shot conversion API. It is a good fit when you only need to build a scene or UI tree once, and then let engine systems, actions, events, or your own code manipulate the created nodes.
+
+When a TSX tree should follow data changes, use `createRoot(parent)` to create a dynamic root. A dynamic root stores the previously rendered tree. Each update re-runs the render function, compares the new tree with the previous one, patches node properties, and mounts or removes changed children.
+
+`signal(value)` creates a small reactive value. Assigning to `signal.value` schedules dynamic roots to update on Dora's system scheduler.
+
+```tsx
+import { Director } from 'Dora';
+import { React, createRoot, signal } from 'DoraX';
+
+const count = signal(0);
+const root = createRoot(Director.entry);
+
+root.render(() => (
+	<label fontName="sarasa-mono-sc-regular" fontSize={60}>
+		Count: {count.value}
+	</label>
+));
+
+Director.entry.onTapped(() => {
+	count.value += 1;
+});
+```
+
+In this example, tapping the screen changes `count.value`. DoraX then re-renders the function passed to `root.render()` and updates the existing label node instead of recreating the whole scene manually.
+
+### 2.4 Using key in Dynamic Lists
+
+When rendering a list that can be inserted, removed, filtered, or reordered, provide a stable `key` for each sibling element. The key tells the dynamic renderer which old node should be reused for a new element.
+
+```tsx
+interface Item {
+	id: number;
+	name: string;
+}
+
+const items = signal<Item[]>([
+	{id: 1, name: "Start"},
+	{id: 2, name: "Options"},
+]);
+
+root.render(() => (
+	<node>
+		{items.value.map(item => (
+			<label key={item.id} fontName="sarasa-mono-sc-regular" fontSize={30}>
+				{item.name}
+			</label>
+		))}
+	</node>
+));
+```
+
+Omitting `key` is safe only when the order and identity of sibling elements never change. Without keys, DoraX matches unkeyed children by their array index.
+
 ## 3. Creating TSX Function Components
 
 Function components make your code more reusable and readable. Here's how to create a simple box component in Dora SSR.
@@ -673,6 +729,8 @@ In this tutorial, we covered how to develop games using Dora SSR and TSX, includ
 
 - TSX basics: tags, attributes, and function components
 - Using `toNode()` to convert TSX tags into renderable object instances
+- Using `createRoot()` and `signal()` to update TSX trees by diffing data changes
+- Using stable `key` values for dynamic sibling lists
 - Using `useRef` to access instantiated game objects
 - Creating custom game components
 - Combining components to build a complete game scene
@@ -685,6 +743,8 @@ Here are some important functions and types used in Dora SSR:
 
 - **`React.createElement`**: Used to create TSX elements. Typically, this doesn't need to be used directly as it's called automatically by the engine.
 - **`toNode(enode)`**: Converts a TSX element or array of elements into game nodes.
+- **`createRoot(parent)`**: Creates a dynamic TSX root under a Dora node. Calling `root.render(enodeOrFunction)` updates children by diffing new TSX trees against previous ones.
+- **`signal(value)`**: Creates a reactive value. Assigning `signal.value` schedules dynamic roots to update.
 - **`useRef<T>(item?: T)`**: Creates a reference to access instantiated objects.
 - **`preloadAsync(enode, handler?)`**: Asynchronously preloads the art assets required by a node.
 

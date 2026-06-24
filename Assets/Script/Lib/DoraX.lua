@@ -7,8 +7,9 @@ local __TS__SparseArrayPush = ____lualib.__TS__SparseArrayPush -- 1
 local __TS__SparseArraySpread = ____lualib.__TS__SparseArraySpread -- 1
 local __TS__New = ____lualib.__TS__New -- 1
 local __TS__ArrayMap = ____lualib.__TS__ArrayMap -- 1
+local __TS__SetDescriptor = ____lualib.__TS__SetDescriptor -- 1
 local ____exports = {} -- 1
-local Warn, visitNode, actionMap, elementMap -- 1
+local Warn, visitNode, getElementKey, getPrimitiveLabelText, isDrawShapeElement, isBodyFixtureElement, isPhysicsWorldInputElement, hasPhysicsWorldInput, toHostElement, createHostNode, getElementChildren, shouldRecreate, isEventProp, applyProp, patchProps, addChildToParent, mountElement, unmountElement, reconcileElement, reconcileChildren, actionMap, elementMap -- 1
 local Dora = require("Dora") -- 11
 function Warn(msg) -- 13
 	Dora.Log("Warn", "[Dora Warning] " .. msg) -- 14
@@ -52,9 +53,382 @@ function ____exports.toNode(enode) -- 1486
 	end -- 1496
 	return nil -- 1498
 end -- 1486
-____exports.React = {} -- 1486
-local React = ____exports.React -- 1486
-do -- 1486
+function getElementKey(element) -- 1516
+	local props = element.props -- 1517
+	local ____props_58 -- 1518
+	if props then -- 1518
+		____props_58 = props.key -- 1518
+	else -- 1518
+		____props_58 = nil -- 1518
+	end -- 1518
+	return ____props_58 -- 1518
+end -- 1518
+function getPrimitiveLabelText(enode) -- 1528
+	local label = enode.props -- 1529
+	local text = label.text or "" -- 1530
+	for i = 1, #enode.children do -- 1530
+		local child = enode.children[i] -- 1532
+		if type(child) ~= "table" then -- 1532
+			text = text .. tostring(child) -- 1534
+		end -- 1534
+	end -- 1534
+	return text -- 1537
+end -- 1537
+function isDrawShapeElement(element) -- 1540
+	repeat -- 1540
+		local ____switch335 = element.type -- 1540
+		local ____cond335 = ____switch335 == "dot-shape" or ____switch335 == "segment-shape" or ____switch335 == "rect-shape" or ____switch335 == "polygon-shape" or ____switch335 == "verts-shape" -- 1540
+		if ____cond335 then -- 1540
+			return true -- 1547
+		end -- 1547
+	until true -- 1547
+	return false -- 1549
+end -- 1549
+function isBodyFixtureElement(element) -- 1552
+	repeat -- 1552
+		local ____switch337 = element.type -- 1552
+		local ____cond337 = ____switch337 == "rect-fixture" or ____switch337 == "polygon-fixture" or ____switch337 == "multi-fixture" or ____switch337 == "disk-fixture" or ____switch337 == "chain-fixture" -- 1552
+		if ____cond337 then -- 1552
+			return true -- 1559
+		end -- 1559
+	until true -- 1559
+	return false -- 1561
+end -- 1561
+function isPhysicsWorldInputElement(element) -- 1564
+	return element.type == "contact" -- 1565
+end -- 1565
+function hasPhysicsWorldInput(element) -- 1568
+	for i = 1, #element.children do -- 1568
+		local child = element.children[i] -- 1570
+		if type(child) == "table" and isPhysicsWorldInputElement(child) then -- 1570
+			return true -- 1572
+		end -- 1572
+	end -- 1572
+	return false -- 1575
+end -- 1575
+function toHostElement(enode, parent) -- 1578
+	local hostChildren = {} -- 1579
+	local props = enode.props or ({}) -- 1580
+	if enode.type == "label" then -- 1580
+		for i = 1, #enode.children do -- 1580
+			local child = enode.children[i] -- 1583
+			if type(child) ~= "table" then -- 1583
+				hostChildren[#hostChildren + 1] = child -- 1585
+			end -- 1585
+		end -- 1585
+	elseif enode.type == "draw-node" then -- 1585
+		for i = 1, #enode.children do -- 1585
+			local child = enode.children[i] -- 1590
+			if type(child) == "table" and isDrawShapeElement(child) then -- 1590
+				hostChildren[#hostChildren + 1] = child -- 1592
+			end -- 1592
+		end -- 1592
+	elseif enode.type == "body" then -- 1592
+		for i = 1, #enode.children do -- 1592
+			local child = enode.children[i] -- 1597
+			if type(child) == "table" and isBodyFixtureElement(child) then -- 1597
+				hostChildren[#hostChildren + 1] = child -- 1599
+			end -- 1599
+		end -- 1599
+	elseif enode.type == "physics-world" then -- 1599
+		for i = 1, #enode.children do -- 1599
+			local child = enode.children[i] -- 1604
+			if type(child) == "table" and isPhysicsWorldInputElement(child) then -- 1604
+				hostChildren[#hostChildren + 1] = child -- 1606
+			end -- 1606
+		end -- 1606
+	end -- 1606
+	if enode.type == "body" and props.world == nil then -- 1606
+		local world = Dora.tolua.cast(parent, "PhysicsWorld") -- 1611
+		if world ~= nil then -- 1611
+			props.world = world -- 1613
+		end -- 1613
+	end -- 1613
+	return {type = enode.type, props = props, children = hostChildren} -- 1616
+end -- 1616
+function createHostNode(enode, parent) -- 1623
+	local nodeStack = {} -- 1624
+	visitNode( -- 1625
+		nodeStack, -- 1625
+		toHostElement(enode, parent) -- 1625
+	) -- 1625
+	if #nodeStack == 1 then -- 1625
+		return nodeStack[1] -- 1627
+	elseif #nodeStack > 1 then -- 1627
+		local node = Dora.Node() -- 1629
+		for i = 1, #nodeStack do -- 1629
+			node:addChild(nodeStack[i]) -- 1631
+		end -- 1631
+		return node -- 1633
+	end -- 1633
+	return nil -- 1635
+end -- 1635
+function getElementChildren(enode) -- 1638
+	local children = {} -- 1639
+	if enode.type == "draw-node" or enode.type == "body" then -- 1639
+		return children -- 1640
+	end -- 1640
+	for i = 1, #enode.children do -- 1640
+		local child = enode.children[i] -- 1642
+		if type(child) == "table" then -- 1642
+			local childElement = child -- 1644
+			if childElement.type ~= nil then -- 1644
+				if enode.type ~= "physics-world" or not isPhysicsWorldInputElement(childElement) then -- 1644
+					children[#children + 1] = childElement -- 1647
+				end -- 1647
+			else -- 1647
+				local list = child -- 1650
+				for j = 1, #list do -- 1650
+					local item = list[j] -- 1652
+					if type(item) == "table" and item.type ~= nil then -- 1652
+						if enode.type ~= "physics-world" or not isPhysicsWorldInputElement(item) then -- 1652
+							children[#children + 1] = item -- 1655
+						end -- 1655
+					end -- 1655
+				end -- 1655
+			end -- 1655
+		end -- 1655
+	end -- 1655
+	return children -- 1662
+end -- 1662
+function shouldRecreate(oldElement, newElement) -- 1665
+	if oldElement.type ~= newElement.type then -- 1665
+		return true -- 1666
+	end -- 1666
+	if getElementKey(oldElement) ~= getElementKey(newElement) then -- 1666
+		return true -- 1667
+	end -- 1667
+	local oldProps = oldElement.props -- 1668
+	local newProps = newElement.props -- 1669
+	if newElement.type == "draw-node" then -- 1669
+		return true -- 1670
+	end -- 1670
+	for k, v in pairs(oldProps) do -- 1671
+		if (isEventProp(k) or k == "onMount") and newProps[k] ~= v then -- 1671
+			return true -- 1673
+		end -- 1673
+	end -- 1673
+	for k, v in pairs(newProps) do -- 1676
+		if (isEventProp(k) or k == "onMount") and oldProps[k] ~= v then -- 1676
+			return true -- 1678
+		end -- 1678
+	end -- 1678
+	repeat -- 1678
+		local ____switch379 = newElement.type -- 1678
+		local ____cond379 = ____switch379 == "grid" -- 1678
+		if ____cond379 then -- 1678
+			return oldProps.file ~= newProps.file or oldProps.gridX ~= newProps.gridX or oldProps.gridY ~= newProps.gridY -- 1683
+		end -- 1683
+		____cond379 = ____cond379 or (____switch379 == "sprite" or ____switch379 == "video-node" or ____switch379 == "tic80-node" or ____switch379 == "audio-source" or ____switch379 == "particle" or ____switch379 == "tile-node" or ____switch379 == "playable" or ____switch379 == "dragon-bone" or ____switch379 == "spine" or ____switch379 == "model") -- 1683
+		if ____cond379 then -- 1683
+			return oldProps.file ~= newProps.file -- 1694
+		end -- 1694
+		____cond379 = ____cond379 or ____switch379 == "label" -- 1694
+		if ____cond379 then -- 1694
+			return oldProps.fontName ~= newProps.fontName or oldProps.fontSize ~= newProps.fontSize or oldProps.sdf ~= newProps.sdf -- 1696
+		end -- 1696
+		____cond379 = ____cond379 or ____switch379 == "align-node" -- 1696
+		if ____cond379 then -- 1696
+			return oldProps.windowRoot ~= newProps.windowRoot -- 1698
+		end -- 1698
+		____cond379 = ____cond379 or ____switch379 == "custom-node" -- 1698
+		if ____cond379 then -- 1698
+			return oldProps.onCreate ~= newProps.onCreate -- 1700
+		end -- 1700
+		____cond379 = ____cond379 or ____switch379 == "physics-world" -- 1700
+		if ____cond379 then -- 1700
+			return hasPhysicsWorldInput(oldElement) or hasPhysicsWorldInput(newElement) -- 1702
+		end -- 1702
+		____cond379 = ____cond379 or ____switch379 == "body" -- 1702
+		if ____cond379 then -- 1702
+			return true -- 1704
+		end -- 1704
+	until true -- 1704
+	return false -- 1706
+end -- 1706
+function isEventProp(key) -- 1709
+	return type(key) == "string" and string.sub(key, 1, 2) == "on" -- 1710
+end -- 1710
+function applyProp(node, enode, key, value) -- 1713
+	local name = key -- 1714
+	repeat -- 1714
+		local ____switch382 = name -- 1714
+		local ____cond382 = ____switch382 == "key" or ____switch382 == "children" or ____switch382 == "onMount" -- 1714
+		if ____cond382 then -- 1714
+			return -- 1719
+		end -- 1719
+		____cond382 = ____cond382 or ____switch382 == "ref" -- 1719
+		if ____cond382 then -- 1719
+			value.current = node -- 1721
+			return -- 1722
+		end -- 1722
+		____cond382 = ____cond382 or ____switch382 == "anchorX" -- 1722
+		if ____cond382 then -- 1722
+			node.anchor = Dora.Vec2(value, node.anchor.y) -- 1724
+			return -- 1725
+		end -- 1725
+		____cond382 = ____cond382 or ____switch382 == "anchorY" -- 1725
+		if ____cond382 then -- 1725
+			node.anchor = Dora.Vec2(node.anchor.x, value) -- 1727
+			return -- 1728
+		end -- 1728
+		____cond382 = ____cond382 or ____switch382 == "color3" -- 1728
+		if ____cond382 then -- 1728
+			node.color3 = Dora.Color3(value) -- 1730
+			return -- 1731
+		end -- 1731
+		____cond382 = ____cond382 or ____switch382 == "transformTarget" -- 1731
+		if ____cond382 then -- 1731
+			node.transformTarget = value.current -- 1733
+			return -- 1734
+		end -- 1734
+		____cond382 = ____cond382 or ____switch382 == "outlineColor" -- 1734
+		if ____cond382 then -- 1734
+			node[name] = Dora.Color(value) -- 1736
+			return -- 1737
+		end -- 1737
+		____cond382 = ____cond382 or ____switch382 == "smoothLower" -- 1737
+		if ____cond382 then -- 1737
+			do -- 1737
+				local smooth = node.smooth -- 1739
+				node.smooth = Dora.Vec2(value, smooth.y) -- 1740
+				return -- 1741
+			end -- 1741
+		end -- 1741
+		____cond382 = ____cond382 or ____switch382 == "smoothUpper" -- 1741
+		if ____cond382 then -- 1741
+			do -- 1741
+				local smooth = node.smooth -- 1744
+				node.smooth = Dora.Vec2(smooth.x, value) -- 1745
+				return -- 1746
+			end -- 1746
+		end -- 1746
+	until true -- 1746
+	if isEventProp(key) then -- 1746
+		return -- 1750
+	end -- 1750
+	node[name] = value -- 1752
+end -- 1752
+function patchProps(node, oldElement, newElement) -- 1755
+	local oldProps = oldElement.props -- 1756
+	local newProps = newElement.props -- 1757
+	for k in pairs(oldProps) do -- 1758
+		if k ~= "ref" and k ~= "key" and not isEventProp(k) and newProps[k] == nil then -- 1758
+			node[k] = nil -- 1760
+		end -- 1760
+	end -- 1760
+	for k, v in pairs(newProps) do -- 1763
+		if oldProps[k] ~= v then -- 1763
+			applyProp(node, newElement, k, v) -- 1765
+		end -- 1765
+	end -- 1765
+	if newElement.type == "label" then -- 1765
+		node.text = getPrimitiveLabelText(newElement) -- 1769
+	end -- 1769
+end -- 1769
+function addChildToParent(parent, node, props) -- 1773
+	if props.tag ~= nil then -- 1773
+		parent:addChild(node, props.order or 0, props.tag) -- 1775
+	elseif props.order ~= nil then -- 1775
+		parent:addChild(node, props.order) -- 1777
+	else -- 1777
+		parent:addChild(node) -- 1779
+	end -- 1779
+end -- 1779
+function mountElement(parent, enode) -- 1783
+	local node = createHostNode(enode, parent) -- 1784
+	if node == nil then -- 1784
+		return nil -- 1786
+	end -- 1786
+	if enode.type == "dot-shape" or enode.type == "segment-shape" or enode.type == "rect-shape" or enode.type == "polygon-shape" or enode.type == "verts-shape" then -- 1786
+		return nil -- 1795
+	end -- 1795
+	local props = enode.props -- 1797
+	addChildToParent(parent, node, props) -- 1798
+	local mounted = {element = enode, node = node, children = {}} -- 1799
+	mounted.children = reconcileChildren( -- 1800
+		node, -- 1800
+		{}, -- 1800
+		getElementChildren(enode) -- 1800
+	) -- 1800
+	return mounted -- 1801
+end -- 1801
+function unmountElement(mounted) -- 1804
+	for i = 1, #mounted.children do -- 1804
+		unmountElement(mounted.children[i]) -- 1806
+	end -- 1806
+	mounted.node:removeFromParent(true) -- 1808
+end -- 1808
+function reconcileElement(parent, oldMounted, newElement) -- 1811
+	if oldMounted == nil then -- 1811
+		return mountElement(parent, newElement) -- 1813
+	end -- 1813
+	if shouldRecreate(oldMounted.element, newElement) then -- 1813
+		local oldNode = oldMounted.node -- 1816
+		local oldOrder = oldNode.order -- 1817
+		local oldTag = oldNode.tag -- 1818
+		unmountElement(oldMounted) -- 1819
+		local mounted = mountElement(parent, newElement) -- 1820
+		if mounted ~= nil then -- 1820
+			mounted.node.order = newElement.props.order or oldOrder -- 1822
+			mounted.node.tag = newElement.props.tag or oldTag -- 1823
+		end -- 1823
+		return mounted -- 1825
+	end -- 1825
+	patchProps(oldMounted.node, oldMounted.element, newElement) -- 1827
+	oldMounted.children = reconcileChildren( -- 1828
+		oldMounted.node, -- 1828
+		oldMounted.children, -- 1828
+		getElementChildren(newElement) -- 1828
+	) -- 1828
+	oldMounted.element = newElement -- 1829
+	return oldMounted -- 1830
+end -- 1830
+function reconcileChildren(parent, oldChildren, newElements) -- 1833
+	local oldByKey = {} -- 1834
+	local usedOld = {} -- 1835
+	for i = 1, #oldChildren do -- 1835
+		local oldChild = oldChildren[i] -- 1837
+		local key = getElementKey(oldChild.element) -- 1838
+		if key ~= nil then -- 1838
+			oldByKey[key] = oldChild -- 1840
+		end -- 1840
+	end -- 1840
+	local nextChildren = {} -- 1843
+	for i = 1, #newElements do -- 1843
+		local newElement = newElements[i] -- 1845
+		local key = getElementKey(newElement) -- 1846
+		local oldChild -- 1847
+		if key ~= nil then -- 1847
+			oldChild = oldByKey[key] -- 1849
+		else -- 1849
+			oldChild = oldChildren[i] -- 1851
+			if oldChild ~= nil and getElementKey(oldChild.element) ~= nil then -- 1851
+				oldChild = nil -- 1853
+			end -- 1853
+		end -- 1853
+		local mounted = reconcileElement(parent, oldChild, newElement) -- 1856
+		if mounted ~= nil then -- 1856
+			usedOld[mounted] = true -- 1858
+			nextChildren[#nextChildren + 1] = mounted -- 1859
+			local props = newElement.props -- 1860
+			mounted.node.order = props.order or i -- 1861
+			if props.tag ~= nil then -- 1861
+				mounted.node.tag = props.tag -- 1862
+			end -- 1862
+		end -- 1862
+	end -- 1862
+	for i = 1, #oldChildren do -- 1862
+		local oldChild = oldChildren[i] -- 1866
+		if not usedOld[oldChild] then -- 1866
+			unmountElement(oldChild) -- 1868
+		end -- 1868
+	end -- 1868
+	return nextChildren -- 1871
+end -- 1871
+____exports.React = {} -- 1871
+local React = ____exports.React -- 1871
+do -- 1871
 	React.Component = __TS__Class() -- 17
 	local Component = React.Component -- 17
 	Component.name = "Component" -- 19
@@ -2174,88 +2548,176 @@ elementMap = { -- 977
 		end -- 1456
 	end -- 1453
 } -- 1453
-function ____exports.useRef(item) -- 1501
-	local ____item_58 = item -- 1502
-	if ____item_58 == nil then -- 1502
-		____item_58 = nil -- 1502
-	end -- 1502
-	return {current = ____item_58} -- 1502
-end -- 1501
-local function getPreload(preloadList, node) -- 1505
-	if type(node) ~= "table" then -- 1505
-		return -- 1507
-	end -- 1507
-	local enode = node -- 1509
-	if enode.type == nil then -- 1509
-		local list = node -- 1511
-		if #list > 0 then -- 1511
-			for i = 1, #list do -- 1511
-				getPreload(preloadList, list[i]) -- 1514
-			end -- 1514
-		end -- 1514
-	else -- 1514
-		repeat -- 1514
-			local ____switch334 = enode.type -- 1514
-			local sprite, playable, frame, model, spine, dragonBone, label -- 1514
-			local ____cond334 = ____switch334 == "sprite" -- 1514
-			if ____cond334 then -- 1514
-				sprite = enode.props -- 1520
-				if sprite.file then -- 1520
-					preloadList[#preloadList + 1] = sprite.file -- 1522
-				end -- 1522
-				break -- 1524
-			end -- 1524
-			____cond334 = ____cond334 or ____switch334 == "playable" -- 1524
-			if ____cond334 then -- 1524
-				playable = enode.props -- 1526
-				preloadList[#preloadList + 1] = playable.file -- 1527
-				break -- 1528
-			end -- 1528
-			____cond334 = ____cond334 or ____switch334 == "frame" -- 1528
-			if ____cond334 then -- 1528
-				frame = enode.props -- 1530
-				preloadList[#preloadList + 1] = frame.file -- 1531
-				break -- 1532
-			end -- 1532
-			____cond334 = ____cond334 or ____switch334 == "model" -- 1532
-			if ____cond334 then -- 1532
-				model = enode.props -- 1534
-				preloadList[#preloadList + 1] = "model:" .. model.file -- 1535
-				break -- 1536
-			end -- 1536
-			____cond334 = ____cond334 or ____switch334 == "spine" -- 1536
-			if ____cond334 then -- 1536
-				spine = enode.props -- 1538
-				preloadList[#preloadList + 1] = "spine:" .. spine.file -- 1539
-				break -- 1540
-			end -- 1540
-			____cond334 = ____cond334 or ____switch334 == "dragon-bone" -- 1540
-			if ____cond334 then -- 1540
-				dragonBone = enode.props -- 1542
-				preloadList[#preloadList + 1] = "bone:" .. dragonBone.file -- 1543
-				break -- 1544
-			end -- 1544
-			____cond334 = ____cond334 or ____switch334 == "label" -- 1544
-			if ____cond334 then -- 1544
-				label = enode.props -- 1546
-				preloadList[#preloadList + 1] = (("font:" .. label.fontName) .. ";") .. tostring(label.fontSize) -- 1547
-				break -- 1548
-			end -- 1548
-		until true -- 1548
-	end -- 1548
-	getPreload(preloadList, enode.children) -- 1551
-end -- 1505
-function ____exports.preloadAsync(enode, handler) -- 1554
-	local preloadList = {} -- 1555
-	getPreload(preloadList, enode) -- 1556
-	Dora.Cache:loadAsync(preloadList, handler) -- 1557
-end -- 1554
-function ____exports.toAction(enode) -- 1560
-	local actionDef = ____exports.useRef() -- 1561
-	____exports.toNode(____exports.React.createElement("action", {ref = actionDef}, enode)) -- 1562
-	if not actionDef.current then -- 1562
-		error("failed to create action") -- 1563
-	end -- 1563
-	return actionDef.current -- 1564
-end -- 1560
-return ____exports -- 1560
+local roots = {} -- 1509
+local renderQueued = false -- 1510
+local function isElementList(node) -- 1512
+	return node.type == nil -- 1513
+end -- 1512
+local function getRenderableElement(renderable) -- 1521
+	if type(renderable) == "function" then -- 1521
+		return renderable() -- 1523
+	end -- 1523
+	return renderable -- 1525
+end -- 1521
+local function toElementList(node) -- 1874
+	if isElementList(node) then -- 1874
+		return node -- 1876
+	end -- 1876
+	return {node} -- 1878
+end -- 1874
+local function scheduleRender() -- 1881
+	if renderQueued then -- 1881
+		return -- 1882
+	end -- 1882
+	renderQueued = true -- 1883
+	Dora.Director.systemScheduler:schedule(Dora.once(function() -- 1884
+		renderQueued = false -- 1885
+		for i = 1, #roots do -- 1885
+			roots[i]:update() -- 1887
+		end -- 1887
+	end)) -- 1884
+end -- 1881
+____exports.Root = __TS__Class() -- 1892
+local Root = ____exports.Root -- 1892
+Root.name = "Root" -- 1892
+function Root.prototype.____constructor(self, parent) -- 1896
+	self.parent = parent -- 1896
+	self.mounted = {} -- 1893
+end -- 1896
+function Root.prototype.render(self, enode) -- 1898
+	self.renderable = enode -- 1899
+	self:update() -- 1900
+end -- 1898
+function Root.prototype.update(self) -- 1903
+	if self.renderable == nil then -- 1903
+		return -- 1904
+	end -- 1904
+	self.mounted = reconcileChildren( -- 1905
+		self.parent, -- 1905
+		self.mounted, -- 1905
+		toElementList(getRenderableElement(self.renderable)) -- 1905
+	) -- 1905
+end -- 1903
+function Root.prototype.unmount(self) -- 1908
+	for i = 1, #self.mounted do -- 1908
+		unmountElement(self.mounted[i]) -- 1910
+	end -- 1910
+	self.mounted = {} -- 1912
+	self.renderable = nil -- 1913
+end -- 1908
+function ____exports.createRoot(parent) -- 1917
+	local root = __TS__New(____exports.Root, parent) -- 1918
+	roots[#roots + 1] = root -- 1919
+	return root -- 1920
+end -- 1917
+____exports.Signal = __TS__Class() -- 1923
+local Signal = ____exports.Signal -- 1923
+Signal.name = "Signal" -- 1923
+function Signal.prototype.____constructor(self, item) -- 1924
+	self.item = item -- 1924
+end -- 1924
+__TS__SetDescriptor( -- 1924
+	Signal.prototype, -- 1924
+	"value", -- 1924
+	{ -- 1924
+		get = function(self) -- 1924
+			return self.item -- 1927
+		end, -- 1927
+		set = function(self, value) -- 1927
+			if self.item == value then -- 1927
+				return -- 1931
+			end -- 1931
+			self.item = value -- 1932
+			scheduleRender() -- 1933
+		end -- 1933
+	}, -- 1933
+	true -- 1933
+) -- 1933
+function ____exports.signal(value) -- 1937
+	return __TS__New(____exports.Signal, value) -- 1938
+end -- 1937
+function ____exports.useRef(item) -- 1941
+	local ____item_59 = item -- 1942
+	if ____item_59 == nil then -- 1942
+		____item_59 = nil -- 1942
+	end -- 1942
+	return {current = ____item_59} -- 1942
+end -- 1941
+local function getPreload(preloadList, node) -- 1945
+	if type(node) ~= "table" then -- 1945
+		return -- 1947
+	end -- 1947
+	local enode = node -- 1949
+	if enode.type == nil then -- 1949
+		local list = node -- 1951
+		if #list > 0 then -- 1951
+			for i = 1, #list do -- 1951
+				getPreload(preloadList, list[i]) -- 1954
+			end -- 1954
+		end -- 1954
+	else -- 1954
+		repeat -- 1954
+			local ____switch441 = enode.type -- 1954
+			local sprite, playable, frame, model, spine, dragonBone, label -- 1954
+			local ____cond441 = ____switch441 == "sprite" -- 1954
+			if ____cond441 then -- 1954
+				sprite = enode.props -- 1960
+				if sprite.file then -- 1960
+					preloadList[#preloadList + 1] = sprite.file -- 1962
+				end -- 1962
+				break -- 1964
+			end -- 1964
+			____cond441 = ____cond441 or ____switch441 == "playable" -- 1964
+			if ____cond441 then -- 1964
+				playable = enode.props -- 1966
+				preloadList[#preloadList + 1] = playable.file -- 1967
+				break -- 1968
+			end -- 1968
+			____cond441 = ____cond441 or ____switch441 == "frame" -- 1968
+			if ____cond441 then -- 1968
+				frame = enode.props -- 1970
+				preloadList[#preloadList + 1] = frame.file -- 1971
+				break -- 1972
+			end -- 1972
+			____cond441 = ____cond441 or ____switch441 == "model" -- 1972
+			if ____cond441 then -- 1972
+				model = enode.props -- 1974
+				preloadList[#preloadList + 1] = "model:" .. model.file -- 1975
+				break -- 1976
+			end -- 1976
+			____cond441 = ____cond441 or ____switch441 == "spine" -- 1976
+			if ____cond441 then -- 1976
+				spine = enode.props -- 1978
+				preloadList[#preloadList + 1] = "spine:" .. spine.file -- 1979
+				break -- 1980
+			end -- 1980
+			____cond441 = ____cond441 or ____switch441 == "dragon-bone" -- 1980
+			if ____cond441 then -- 1980
+				dragonBone = enode.props -- 1982
+				preloadList[#preloadList + 1] = "bone:" .. dragonBone.file -- 1983
+				break -- 1984
+			end -- 1984
+			____cond441 = ____cond441 or ____switch441 == "label" -- 1984
+			if ____cond441 then -- 1984
+				label = enode.props -- 1986
+				preloadList[#preloadList + 1] = (("font:" .. label.fontName) .. ";") .. tostring(label.fontSize) -- 1987
+				break -- 1988
+			end -- 1988
+		until true -- 1988
+	end -- 1988
+	getPreload(preloadList, enode.children) -- 1991
+end -- 1945
+function ____exports.preloadAsync(enode, handler) -- 1994
+	local preloadList = {} -- 1995
+	getPreload(preloadList, enode) -- 1996
+	Dora.Cache:loadAsync(preloadList, handler) -- 1997
+end -- 1994
+function ____exports.toAction(enode) -- 2000
+	local actionDef = ____exports.useRef() -- 2001
+	____exports.toNode(____exports.React.createElement("action", {ref = actionDef}, enode)) -- 2002
+	if not actionDef.current then -- 2002
+		error("failed to create action") -- 2003
+	end -- 2003
+	return actionDef.current -- 2004
+end -- 2000
+return ____exports -- 2000

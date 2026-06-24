@@ -13,6 +13,7 @@ interface Param {
 
 class CircleButton extends Node {
 	private constructor();
+	face: Node;
 	text: string;
 }
 
