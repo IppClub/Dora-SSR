@@ -77,7 +77,7 @@ export namespace React {
 				} else {
 					props.children = children;
 				}
-				return (typeName as Function)(props);
+				return renderFunctionComponent(typeName as (this: void, props: AnyTable) => Element | Element[], props);
 			}
 			case 'table': {
 				if (!(typeName as AnyTable).isComponent) {
@@ -123,6 +123,34 @@ export namespace React {
 	}
 
 } // namespace React
+
+type FunctionComponentType = (this: void, props: AnyTable) => React.Element | React.Element[];
+
+interface HookEntry<T = unknown> {
+	value: T;
+	deps?: unknown[];
+}
+
+interface HookFrame {
+	type: unknown;
+	key?: string | number;
+	hooks: HookEntry[];
+	hookIndex: number;
+}
+
+function renderFunctionComponent(this: void, component: FunctionComponentType, props: AnyTable): React.Element | React.Element[] {
+	const frame = renderingHookRoot?.beginComponentHooks(component, props.key as string | number | undefined);
+	if (frame === undefined) {
+		return component(props);
+	}
+	const lastHookFrame = currentHookFrame;
+	currentHookFrame = frame;
+	try {
+		return component(props);
+	} finally {
+		currentHookFrame = lastHookFrame;
+	}
+}
 
 type AttribHandler = (this: void, cnode: unknown, enode: React.Element, k: unknown, v: unknown) => boolean;
 
@@ -1499,6 +1527,8 @@ const roots: Root[] = [];
 let renderQueued = false;
 let queuedRoots: Root[] = [];
 let trackingRoot: Root | undefined;
+let renderingHookRoot: Root | undefined;
+let currentHookFrame: HookFrame | undefined;
 
 function isElementList(this: void, node: React.Element | React.Element[]): boolean {
 	return (node as React.Element).type === undefined;
@@ -2309,6 +2339,8 @@ export class Root {
 	private mounted: MountedElement[] = [];
 	private renderable?: RenderInput;
 	private signals: Signal<unknown>[] = [];
+	private hookFrames: HookFrame[] = [];
+	private hookFrameIndex = 0;
 	active = true;
 
 	constructor(private parent: Dora.Node.Type) { }
@@ -2326,12 +2358,17 @@ export class Root {
 		if (!this.active || this.renderable === undefined) return;
 		this.unsubscribeSignals();
 		const lastTrackingRoot = trackingRoot;
+		const lastRenderingHookRoot = renderingHookRoot;
 		trackingRoot = this;
+		renderingHookRoot = this;
 		let elements: React.Element | React.Element[];
 		try {
+			this.beginHookRender();
 			elements = getRenderableElement(this.renderable);
 		} finally {
+			this.finishHookRender();
 			trackingRoot = lastTrackingRoot;
+			renderingHookRoot = lastRenderingHookRoot;
 		}
 		this.mounted = reconcileChildren(this.parent, this.mounted, toElementList(elements));
 	}
@@ -2342,6 +2379,8 @@ export class Root {
 		}
 		this.mounted = [];
 		this.renderable = undefined;
+		this.hookFrames = [];
+		this.hookFrameIndex = 0;
 		this.unsubscribeSignals();
 		if (this.active) {
 			removeRoot(this);
@@ -2355,6 +2394,28 @@ export class Root {
 		}
 		this.signals.push(signal);
 		signal.addRoot(this);
+	}
+
+	beginComponentHooks(this: Root, type: unknown, key?: string | number): HookFrame {
+		const index = this.hookFrameIndex;
+		this.hookFrameIndex += 1;
+		let frame = this.hookFrames[index];
+		if (frame === undefined || frame.type !== type || frame.key !== key) {
+			frame = { type, key, hooks: [], hookIndex: 0 };
+			this.hookFrames[index] = frame;
+		}
+		frame.hookIndex = 0;
+		return frame;
+	}
+
+	private beginHookRender(this: Root): void {
+		this.hookFrameIndex = 0;
+	}
+
+	private finishHookRender(this: Root): void {
+		while (this.hookFrames.length > this.hookFrameIndex) {
+			this.hookFrames.pop();
+		}
 	}
 
 	private unsubscribeSignals(this: Root): void {
@@ -2412,8 +2473,59 @@ export function signal<T>(this: void, value: T): Signal<T> {
 	return new Signal(value);
 }
 
-export function useRef<T>(this: void, item?: T): JSX.Ref<T> {
+export function reference<T>(this: void, item?: T): JSX.Ref<T> {
 	return { current: item ?? undefined };
+}
+
+function hookDepsEqual(this: void, oldDeps: unknown[] | undefined, newDeps: unknown[] | undefined): boolean {
+	if (oldDeps === undefined || newDeps === undefined) return false;
+	if (oldDeps.length !== newDeps.length) return false;
+	for (let i of $range(1, oldDeps.length)) {
+		if (oldDeps[i - 1] !== newDeps[i - 1]) return false;
+	}
+	return true;
+}
+
+function copyDeps(this: void, deps: unknown[] | undefined): unknown[] | undefined {
+	if (deps === undefined) return undefined;
+	const copied: unknown[] = [];
+	for (let i of $range(1, deps.length)) {
+		copied.push(deps[i - 1]);
+	}
+	return copied;
+}
+
+export function useMemo<T>(this: void, factory: (this: void) => T, deps?: unknown[]): T {
+	const frame = currentHookFrame;
+	if (frame === undefined) {
+		error("useMemo() can only be called inside a function component");
+	}
+	const index = frame.hookIndex;
+	frame.hookIndex += 1;
+	let hook = frame.hooks[index] as HookEntry<T> | undefined;
+	if (hook === undefined || !hookDepsEqual(hook.deps, deps)) {
+		hook = { value: factory(), deps: copyDeps(deps) };
+		frame.hooks[index] = hook;
+	}
+	return hook.value;
+}
+
+export function useCallback<T extends Function>(this: void, callback: T, deps?: unknown[]): T {
+	return useMemo(() => callback, deps);
+}
+
+export function useRef<T>(this: void, item?: T): JSX.Ref<T> {
+	if (currentHookFrame === undefined) {
+		error("useRef() can only be called inside a function component");
+	}
+	return useMemo(() => reference(item), []);
+}
+
+export function useSignal<T>(this: void, value: T): Signal<T> {
+	if (currentHookFrame === undefined) {
+		error("useSignal() can only be called inside a function component");
+	}
+	return useMemo(() => signal(value), []);
 }
 
 function getPreload(this: void, preloadList: string[], node: React.Element | React.Element[]) {
@@ -2472,7 +2584,7 @@ export function preloadAsync(this: void, enode: React.Element | React.Element[],
 }
 
 export function toAction(this: void, enode: React.Element): Dora.ActionDef.Type {
-	const actionDef = useRef<Dora.ActionDef.Type>();
+	const actionDef = reference<Dora.ActionDef.Type>();
 	toNode(React.createElement('action', { ref: actionDef }, enode));
 	if (!actionDef.current) error('failed to create action');
 	return actionDef.current;

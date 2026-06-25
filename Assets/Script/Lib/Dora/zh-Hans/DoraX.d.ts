@@ -88,7 +88,37 @@ export function toAction(this: void, enode: React.Element): Dora.ActionDef.Type;
  * @param item 初始值。
  * @returns 创建的 Ref 对象。
  */
+export function reference<T>(this: void, item?: T): JSX.Ref<T>;
+
+/**
+ * 创建组件本地 Ref 对象。只能在函数组件内调用。
+ * @param item 初始值。
+ * @returns 创建的 Ref 对象。
+ */
 export function useRef<T>(this: void, item?: T): JSX.Ref<T>;
+
+/**
+ * 创建组件本地 signal。只能在函数组件内调用。
+ * @param value signal 初始值。
+ * @returns 创建或复用的 signal。
+ */
+export function useSignal<T>(this: void, value: T): Signal<T>;
+
+/**
+ * 为当前函数组件记忆一个值，直到依赖列表发生变化。只能在函数组件内调用。
+ * @param factory 用于创建记忆值的函数。
+ * @param deps 按引用比较的依赖列表。
+ * @returns 记忆后的值。
+ */
+export function useMemo<T>(this: void, factory: (this: void) => T, deps?: unknown[]): T;
+
+/**
+ * 为当前函数组件记忆一个回调，直到依赖列表发生变化。只能在函数组件内调用。
+ * @param callback 要记忆的回调。
+ * @param deps 按引用比较的依赖列表。
+ * @returns 记忆后的回调。
+ */
+export function useCallback<T>(this: void, callback: T, deps?: unknown[]): T;
 
 /**
  * 异步地预加载指定的节点使用的资源文件。
