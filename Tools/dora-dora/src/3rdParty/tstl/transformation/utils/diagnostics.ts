@@ -192,3 +192,15 @@ export const unsupportedArrayWithLengthConstructor = createErrorDiagnosticFactor
 export const unsupportedRelativePathImport = createErrorDiagnosticFactory(
     (importPath: string) => `Relative path imports (like '${importPath}') are not supported. Please use the Lua style module path instead.`
 );
+
+export const doraHookDependencyArrayRequired = createErrorDiagnosticFactory(
+    (hookName: string) => `DoraX ${hookName} requires an explicit dependency array literal.`
+);
+
+export const doraHookMissingDependency = createErrorDiagnosticFactory(
+    (hookName: string, dependency: string) => `DoraX ${hookName} is missing dependency '${dependency}'.`
+);
+
+export const doraHookExtraDependency = createWarningDiagnosticFactory(
+    (hookName: string, dependency: string) => `DoraX ${hookName} has unnecessary dependency '${dependency}'.`
+);

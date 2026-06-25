@@ -16,6 +16,7 @@ import { getOptionalContinuationData, transformOptionalChain } from "./optional-
 import { transformImportExpression } from "./modules/import";
 import { transformLanguageExtensionCallExpression } from "./language-extensions/call-extension";
 import { getCustomNameFromSymbol } from "./identifier";
+import { validateDoraHookDependencies } from "../utils/dora-hooks";
 
 export function validateArguments(
     context: TransformationContext,
@@ -211,6 +212,8 @@ function transformElementCall(context: TransformationContext, node: ts.CallExpre
 }
 
 export const transformCallExpression: FunctionVisitor<ts.CallExpression> = (node, context) => {
+    validateDoraHookDependencies(context, node);
+
     const calledExpression = getCalledExpression(node);
 
     if (calledExpression.kind === ts.SyntaxKind.ImportKeyword) {

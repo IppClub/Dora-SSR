@@ -2399,10 +2399,28 @@ export class Root {
 	beginComponentHooks(this: Root, type: unknown, key?: string | number): HookFrame {
 		const index = this.hookFrameIndex;
 		this.hookFrameIndex += 1;
-		let frame = this.hookFrames[index];
+		let frame: HookFrame | undefined = this.hookFrames[index];
 		if (frame === undefined || frame.type !== type || frame.key !== key) {
-			frame = { type, key, hooks: [], hookIndex: 0 };
-			this.hookFrames[index] = frame;
+			frame = undefined;
+			if (key !== undefined) {
+				for (let i of $range(index + 2, this.hookFrames.length)) {
+					const candidate = this.hookFrames[i - 1];
+					if (candidate.type === type && candidate.key === key) {
+						table.remove(this.hookFrames, i);
+						table.insert(this.hookFrames, index + 1, candidate);
+						frame = candidate;
+						break;
+					}
+				}
+			}
+			if (frame === undefined) {
+				frame = { type, key, hooks: [], hookIndex: 0 };
+				if (key !== undefined) {
+					table.insert(this.hookFrames, index + 1, frame);
+				} else {
+					this.hookFrames[index] = frame;
+				}
+			}
 		}
 		frame.hookIndex = 0;
 		return frame;
@@ -2511,21 +2529,49 @@ export function useMemo<T>(this: void, factory: (this: void) => T, deps?: unknow
 }
 
 export function useCallback<T extends Function>(this: void, callback: T, deps?: unknown[]): T {
-	return useMemo(() => callback, deps);
+	const frame = currentHookFrame;
+	if (frame === undefined) {
+		error("useCallback() can only be called inside a function component");
+	}
+	const actualDeps = deps ?? [];
+	const index = frame.hookIndex;
+	frame.hookIndex += 1;
+	let hook = frame.hooks[index] as HookEntry<T> | undefined;
+	if (hook === undefined || !hookDepsEqual(hook.deps, actualDeps)) {
+		hook = { value: callback, deps: copyDeps(actualDeps) };
+		frame.hooks[index] = hook;
+	}
+	return hook.value;
 }
 
 export function useRef<T>(this: void, item?: T): JSX.Ref<T> {
-	if (currentHookFrame === undefined) {
+	const frame = currentHookFrame;
+	if (frame === undefined) {
 		error("useRef() can only be called inside a function component");
 	}
-	return useMemo(() => reference(item), []);
+	const index = frame.hookIndex;
+	frame.hookIndex += 1;
+	let hook = frame.hooks[index] as HookEntry<JSX.Ref<T>> | undefined;
+	if (hook === undefined) {
+		hook = { value: reference(item) };
+		frame.hooks[index] = hook;
+	}
+	return hook.value;
 }
 
 export function useSignal<T>(this: void, value: T): Signal<T> {
-	if (currentHookFrame === undefined) {
+	const frame = currentHookFrame;
+	if (frame === undefined) {
 		error("useSignal() can only be called inside a function component");
 	}
-	return useMemo(() => signal(value), []);
+	const index = frame.hookIndex;
+	frame.hookIndex += 1;
+	let hook = frame.hooks[index] as HookEntry<Signal<T>> | undefined;
+	if (hook === undefined) {
+		hook = { value: signal(value) };
+		frame.hooks[index] = hook;
+	}
+	return hook.value;
 }
 
 function getPreload(this: void, preloadList: string[], node: React.Element | React.Element[]) {

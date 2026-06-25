@@ -10,7 +10,7 @@ local ____exports = {} -- 1
 local ____DoraX = require("DoraX") -- 1
 local React = ____DoraX.React -- 1
 local toNode = ____DoraX.toNode -- 1
-local useRef = ____DoraX.useRef -- 1
+local reference = ____DoraX.reference -- 1
 local ____Dora = require("Dora") -- 2
 local Node = ____Dora.Node -- 2
 local Vec2 = ____Dora.Vec2 -- 2
@@ -1521,7 +1521,7 @@ function ____exports.DPad(props) -- 1530
 	local dOffset = height / 2 + width / 2 + offset -- 1539
 	local function DPadButton(props) -- 1541
 		local hw = width / 2 -- 1542
-		local drawNode = useRef() -- 1543
+		local drawNode = reference() -- 1543
 		return React.createElement( -- 1544
 			"node", -- 1544
 			__TS__ObjectAssign( -- 1544
@@ -1573,11 +1573,11 @@ function ____exports.DPad(props) -- 1530
 			) -- 1573
 		end -- 1571
 	end -- 1570
-	local up = useRef() -- 1577
-	local down = useRef() -- 1578
-	local left = useRef() -- 1579
-	local right = useRef() -- 1580
-	local center = useRef() -- 1581
+	local up = reference() -- 1577
+	local down = reference() -- 1578
+	local left = reference() -- 1579
+	local right = reference() -- 1580
+	local center = reference() -- 1581
 	local current -- 1583
 	local function clearButton() -- 1585
 		if current then -- 1585
@@ -1704,7 +1704,7 @@ local function Button(props) -- 1654
 	if primaryOpacity == nil then -- 1660
 		primaryOpacity = 0.3 -- 1661
 	end -- 1661
-	local drawNode = useRef() -- 1663
+	local drawNode = reference() -- 1663
 	return React.createElement( -- 1664
 		"node", -- 1664
 		{ -- 1664
@@ -1742,7 +1742,7 @@ local function Button(props) -- 1654
 	) -- 1671
 end -- 1654
 function ____exports.JoyStick(props) -- 1699
-	local hat = useRef() -- 1700
+	local hat = reference() -- 1700
 	local ____props_5 = props -- 1710
 	local moveSize = ____props_5.moveSize -- 1710
 	if moveSize == nil then -- 1710
@@ -1992,7 +1992,7 @@ function ____exports.ControlPad(props) -- 1860
 		primaryOpacity = 0.3 -- 1865
 	end -- 1865
 	local function Button(props) -- 1867
-		local drawNode = useRef() -- 1868
+		local drawNode = reference() -- 1868
 		return React.createElement( -- 1869
 			"node", -- 1869
 			__TS__ObjectAssign( -- 1869
@@ -2102,7 +2102,7 @@ function ____exports.TriggerPad(props) -- 1930
 		primaryOpacity = 0.3 -- 1935
 	end -- 1935
 	local function Button(props) -- 1937
-		local drawNode = useRef() -- 1938
+		local drawNode = reference() -- 1938
 		return React.createElement( -- 1939
 			"node", -- 1939
 			__TS__ObjectAssign( -- 1939

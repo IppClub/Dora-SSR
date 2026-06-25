@@ -3206,227 +3206,267 @@ function Root.prototype.beginComponentHooks(self, ____type, key) -- 2399
 	self.hookFrameIndex = self.hookFrameIndex + 1 -- 2401
 	local frame = self.hookFrames[index + 1] -- 2402
 	if frame == nil or frame.type ~= ____type or frame.key ~= key then -- 2402
-		frame = {type = ____type, key = key, hooks = {}, hookIndex = 0} -- 2404
-		self.hookFrames[index + 1] = frame -- 2405
-	end -- 2405
-	frame.hookIndex = 0 -- 2407
-	return frame -- 2408
+		frame = nil -- 2404
+		if key ~= nil then -- 2404
+			for i = index + 2, #self.hookFrames do -- 2404
+				local candidate = self.hookFrames[i] -- 2407
+				if candidate.type == ____type and candidate.key == key then -- 2407
+					table.remove(self.hookFrames, i) -- 2409
+					table.insert(self.hookFrames, index + 1, candidate) -- 2410
+					frame = candidate -- 2411
+					break -- 2412
+				end -- 2412
+			end -- 2412
+		end -- 2412
+		if frame == nil then -- 2412
+			frame = {type = ____type, key = key, hooks = {}, hookIndex = 0} -- 2417
+			if key ~= nil then -- 2417
+				table.insert(self.hookFrames, index + 1, frame) -- 2419
+			else -- 2419
+				self.hookFrames[index + 1] = frame -- 2421
+			end -- 2421
+		end -- 2421
+	end -- 2421
+	frame.hookIndex = 0 -- 2425
+	return frame -- 2426
 end -- 2399
-function Root.prototype.beginHookRender(self) -- 2411
-	self.hookFrameIndex = 0 -- 2412
-end -- 2411
-function Root.prototype.finishHookRender(self) -- 2415
-	while #self.hookFrames > self.hookFrameIndex do -- 2415
-		table.remove(self.hookFrames) -- 2417
-	end -- 2417
-end -- 2415
-function Root.prototype.unsubscribeSignals(self) -- 2421
-	for i = 1, #self.signals do -- 2421
-		self.signals[i]:removeRoot(self) -- 2423
-	end -- 2423
-	self.signals = {} -- 2425
-end -- 2421
-function ____exports.createRoot(parent) -- 2429
-	local root = __TS__New(____exports.Root, parent) -- 2430
-	roots[#roots + 1] = root -- 2431
-	return root -- 2432
+function Root.prototype.beginHookRender(self) -- 2429
+	self.hookFrameIndex = 0 -- 2430
 end -- 2429
-____exports.Signal = __TS__Class() -- 2435
-local Signal = ____exports.Signal -- 2435
-Signal.name = "Signal" -- 2435
-function Signal.prototype.____constructor(self, item) -- 2438
-	self.item = item -- 2438
-	self.roots = {} -- 2436
-end -- 2438
-function Signal.prototype.addRoot(self, root) -- 2455
-	for i = 1, #self.roots do -- 2455
-		if self.roots[i] == root then -- 2455
-			return -- 2457
-		end -- 2457
-	end -- 2457
-	local ____self_roots_71 = self.roots -- 2457
-	____self_roots_71[#____self_roots_71 + 1] = root -- 2459
-end -- 2455
-function Signal.prototype.removeRoot(self, root) -- 2462
-	for i = 1, #self.roots do -- 2462
-		if self.roots[i] == root then -- 2462
-			table.remove(self.roots, i) -- 2465
-			break -- 2466
-		end -- 2466
-	end -- 2466
-end -- 2462
-__TS__SetDescriptor( -- 2462
-	Signal.prototype, -- 2462
-	"value", -- 2462
-	{ -- 2462
-		get = function(self) -- 2462
-			if trackingRoot ~= nil then -- 2462
-				trackingRoot:trackSignal(self) -- 2442
-			end -- 2442
-			return self.item -- 2444
-		end, -- 2444
-		set = function(self, value) -- 2444
-			if self.item == value then -- 2444
-				return -- 2448
-			end -- 2448
-			self.item = value -- 2449
-			for i = 1, #self.roots do -- 2449
-				scheduleRootRender(self.roots[i]) -- 2451
-			end -- 2451
-		end -- 2451
-	}, -- 2451
-	true -- 2451
-) -- 2451
-function ____exports.signal(value) -- 2472
-	return __TS__New(____exports.Signal, value) -- 2473
-end -- 2472
-function ____exports.reference(item) -- 2476
-	local ____item_72 = item -- 2477
-	if ____item_72 == nil then -- 2477
-		____item_72 = nil -- 2477
-	end -- 2477
-	return {current = ____item_72} -- 2477
-end -- 2476
-local function hookDepsEqual(oldDeps, newDeps) -- 2480
-	if oldDeps == nil or newDeps == nil then -- 2480
-		return false -- 2481
-	end -- 2481
-	if #oldDeps ~= #newDeps then -- 2481
-		return false -- 2482
-	end -- 2482
-	for i = 1, #oldDeps do -- 2482
-		if oldDeps[i] ~= newDeps[i] then -- 2482
-			return false -- 2484
+function Root.prototype.finishHookRender(self) -- 2433
+	while #self.hookFrames > self.hookFrameIndex do -- 2433
+		table.remove(self.hookFrames) -- 2435
+	end -- 2435
+end -- 2433
+function Root.prototype.unsubscribeSignals(self) -- 2439
+	for i = 1, #self.signals do -- 2439
+		self.signals[i]:removeRoot(self) -- 2441
+	end -- 2441
+	self.signals = {} -- 2443
+end -- 2439
+function ____exports.createRoot(parent) -- 2447
+	local root = __TS__New(____exports.Root, parent) -- 2448
+	roots[#roots + 1] = root -- 2449
+	return root -- 2450
+end -- 2447
+____exports.Signal = __TS__Class() -- 2453
+local Signal = ____exports.Signal -- 2453
+Signal.name = "Signal" -- 2453
+function Signal.prototype.____constructor(self, item) -- 2456
+	self.item = item -- 2456
+	self.roots = {} -- 2454
+end -- 2456
+function Signal.prototype.addRoot(self, root) -- 2473
+	for i = 1, #self.roots do -- 2473
+		if self.roots[i] == root then -- 2473
+			return -- 2475
+		end -- 2475
+	end -- 2475
+	local ____self_roots_71 = self.roots -- 2475
+	____self_roots_71[#____self_roots_71 + 1] = root -- 2477
+end -- 2473
+function Signal.prototype.removeRoot(self, root) -- 2480
+	for i = 1, #self.roots do -- 2480
+		if self.roots[i] == root then -- 2480
+			table.remove(self.roots, i) -- 2483
+			break -- 2484
 		end -- 2484
 	end -- 2484
-	return true -- 2486
 end -- 2480
-local function copyDeps(deps) -- 2489
-	if deps == nil then -- 2489
-		return nil -- 2490
-	end -- 2490
-	local copied = {} -- 2491
-	for i = 1, #deps do -- 2491
-		copied[#copied + 1] = deps[i] -- 2493
-	end -- 2493
-	return copied -- 2495
-end -- 2489
-function ____exports.useMemo(factory, deps) -- 2498
-	local frame = currentHookFrame -- 2499
-	if frame == nil then -- 2499
-		error("useMemo() can only be called inside a function component") -- 2501
-	end -- 2501
-	local index = frame.hookIndex -- 2503
-	frame.hookIndex = frame.hookIndex + 1 -- 2504
-	local hook = frame.hooks[index + 1] -- 2505
-	if hook == nil or not hookDepsEqual(hook.deps, deps) then -- 2505
-		hook = { -- 2507
-			value = factory(), -- 2507
-			deps = copyDeps(deps) -- 2507
-		} -- 2507
-		frame.hooks[index + 1] = hook -- 2508
-	end -- 2508
-	return hook.value -- 2510
+__TS__SetDescriptor( -- 2480
+	Signal.prototype, -- 2480
+	"value", -- 2480
+	{ -- 2480
+		get = function(self) -- 2480
+			if trackingRoot ~= nil then -- 2480
+				trackingRoot:trackSignal(self) -- 2460
+			end -- 2460
+			return self.item -- 2462
+		end, -- 2462
+		set = function(self, value) -- 2462
+			if self.item == value then -- 2462
+				return -- 2466
+			end -- 2466
+			self.item = value -- 2467
+			for i = 1, #self.roots do -- 2467
+				scheduleRootRender(self.roots[i]) -- 2469
+			end -- 2469
+		end -- 2469
+	}, -- 2469
+	true -- 2469
+) -- 2469
+function ____exports.signal(value) -- 2490
+	return __TS__New(____exports.Signal, value) -- 2491
+end -- 2490
+function ____exports.reference(item) -- 2494
+	local ____item_72 = item -- 2495
+	if ____item_72 == nil then -- 2495
+		____item_72 = nil -- 2495
+	end -- 2495
+	return {current = ____item_72} -- 2495
+end -- 2494
+local function hookDepsEqual(oldDeps, newDeps) -- 2498
+	if oldDeps == nil or newDeps == nil then -- 2498
+		return false -- 2499
+	end -- 2499
+	if #oldDeps ~= #newDeps then -- 2499
+		return false -- 2500
+	end -- 2500
+	for i = 1, #oldDeps do -- 2500
+		if oldDeps[i] ~= newDeps[i] then -- 2500
+			return false -- 2502
+		end -- 2502
+	end -- 2502
+	return true -- 2504
 end -- 2498
-function ____exports.useCallback(callback, deps) -- 2513
-	return ____exports.useMemo( -- 2514
-		function() return callback end, -- 2514
-		deps -- 2514
-	) -- 2514
-end -- 2513
-function ____exports.useRef(item) -- 2517
-	if currentHookFrame == nil then -- 2517
-		error("useRef() can only be called inside a function component") -- 2519
+local function copyDeps(deps) -- 2507
+	if deps == nil then -- 2507
+		return nil -- 2508
+	end -- 2508
+	local copied = {} -- 2509
+	for i = 1, #deps do -- 2509
+		copied[#copied + 1] = deps[i] -- 2511
+	end -- 2511
+	return copied -- 2513
+end -- 2507
+function ____exports.useMemo(factory, deps) -- 2516
+	local frame = currentHookFrame -- 2517
+	if frame == nil then -- 2517
+		error("useMemo() can only be called inside a function component") -- 2519
 	end -- 2519
-	return ____exports.useMemo( -- 2521
-		function() return ____exports.reference(item) end, -- 2521
-		{} -- 2521
-	) -- 2521
-end -- 2517
-function ____exports.useSignal(value) -- 2524
-	if currentHookFrame == nil then -- 2524
-		error("useSignal() can only be called inside a function component") -- 2526
+	local index = frame.hookIndex -- 2521
+	frame.hookIndex = frame.hookIndex + 1 -- 2522
+	local hook = frame.hooks[index + 1] -- 2523
+	if hook == nil or not hookDepsEqual(hook.deps, deps) then -- 2523
+		hook = { -- 2525
+			value = factory(), -- 2525
+			deps = copyDeps(deps) -- 2525
+		} -- 2525
+		frame.hooks[index + 1] = hook -- 2526
 	end -- 2526
-	return ____exports.useMemo( -- 2528
-		function() return ____exports.signal(value) end, -- 2528
-		{} -- 2528
-	) -- 2528
-end -- 2524
-local function getPreload(preloadList, node) -- 2531
-	if type(node) ~= "table" then -- 2531
-		return -- 2533
-	end -- 2533
-	local enode = node -- 2535
-	if enode.type == nil then -- 2535
-		local list = node -- 2537
-		if #list > 0 then -- 2537
-			for i = 1, #list do -- 2537
-				getPreload(preloadList, list[i]) -- 2540
-			end -- 2540
-		end -- 2540
-	else -- 2540
-		repeat -- 2540
-			local ____switch608 = enode.type -- 2540
-			local sprite, playable, frame, model, spine, dragonBone, label -- 2540
-			local ____cond608 = ____switch608 == "sprite" -- 2540
-			if ____cond608 then -- 2540
-				sprite = enode.props -- 2546
-				if sprite.file then -- 2546
-					preloadList[#preloadList + 1] = sprite.file -- 2548
-				end -- 2548
-				break -- 2550
-			end -- 2550
-			____cond608 = ____cond608 or ____switch608 == "playable" -- 2550
-			if ____cond608 then -- 2550
-				playable = enode.props -- 2552
-				preloadList[#preloadList + 1] = playable.file -- 2553
-				break -- 2554
-			end -- 2554
-			____cond608 = ____cond608 or ____switch608 == "frame" -- 2554
-			if ____cond608 then -- 2554
-				frame = enode.props -- 2556
-				preloadList[#preloadList + 1] = frame.file -- 2557
-				break -- 2558
-			end -- 2558
-			____cond608 = ____cond608 or ____switch608 == "model" -- 2558
-			if ____cond608 then -- 2558
-				model = enode.props -- 2560
-				preloadList[#preloadList + 1] = "model:" .. model.file -- 2561
-				break -- 2562
-			end -- 2562
-			____cond608 = ____cond608 or ____switch608 == "spine" -- 2562
-			if ____cond608 then -- 2562
-				spine = enode.props -- 2564
-				preloadList[#preloadList + 1] = "spine:" .. spine.file -- 2565
-				break -- 2566
-			end -- 2566
-			____cond608 = ____cond608 or ____switch608 == "dragon-bone" -- 2566
-			if ____cond608 then -- 2566
-				dragonBone = enode.props -- 2568
-				preloadList[#preloadList + 1] = "bone:" .. dragonBone.file -- 2569
-				break -- 2570
-			end -- 2570
-			____cond608 = ____cond608 or ____switch608 == "label" -- 2570
-			if ____cond608 then -- 2570
-				label = enode.props -- 2572
-				preloadList[#preloadList + 1] = (("font:" .. label.fontName) .. ";") .. tostring(label.fontSize) -- 2573
-				break -- 2574
-			end -- 2574
-		until true -- 2574
-	end -- 2574
-	getPreload(preloadList, enode.children) -- 2577
+	return hook.value -- 2528
+end -- 2516
+function ____exports.useCallback(callback, deps) -- 2531
+	local frame = currentHookFrame -- 2532
+	if frame == nil then -- 2532
+		error("useCallback() can only be called inside a function component") -- 2534
+	end -- 2534
+	local actualDeps = deps or ({}) -- 2536
+	local index = frame.hookIndex -- 2537
+	frame.hookIndex = frame.hookIndex + 1 -- 2538
+	local hook = frame.hooks[index + 1] -- 2539
+	if hook == nil or not hookDepsEqual(hook.deps, actualDeps) then -- 2539
+		hook = { -- 2541
+			value = callback, -- 2541
+			deps = copyDeps(actualDeps) -- 2541
+		} -- 2541
+		frame.hooks[index + 1] = hook -- 2542
+	end -- 2542
+	return hook.value -- 2544
 end -- 2531
-function ____exports.preloadAsync(enode, handler) -- 2580
-	local preloadList = {} -- 2581
-	getPreload(preloadList, enode) -- 2582
-	Dora.Cache:loadAsync(preloadList, handler) -- 2583
-end -- 2580
-function ____exports.toAction(enode) -- 2586
-	local actionDef = ____exports.reference() -- 2587
-	____exports.toNode(____exports.React.createElement("action", {ref = actionDef}, enode)) -- 2588
-	if not actionDef.current then -- 2588
-		error("failed to create action") -- 2589
-	end -- 2589
-	return actionDef.current -- 2590
-end -- 2586
-return ____exports -- 2586
+function ____exports.useRef(item) -- 2547
+	local frame = currentHookFrame -- 2548
+	if frame == nil then -- 2548
+		error("useRef() can only be called inside a function component") -- 2550
+	end -- 2550
+	local index = frame.hookIndex -- 2552
+	frame.hookIndex = frame.hookIndex + 1 -- 2553
+	local hook = frame.hooks[index + 1] -- 2554
+	if hook == nil then -- 2554
+		hook = {value = ____exports.reference(item)} -- 2556
+		frame.hooks[index + 1] = hook -- 2557
+	end -- 2557
+	return hook.value -- 2559
+end -- 2547
+function ____exports.useSignal(value) -- 2562
+	local frame = currentHookFrame -- 2563
+	if frame == nil then -- 2563
+		error("useSignal() can only be called inside a function component") -- 2565
+	end -- 2565
+	local index = frame.hookIndex -- 2567
+	frame.hookIndex = frame.hookIndex + 1 -- 2568
+	local hook = frame.hooks[index + 1] -- 2569
+	if hook == nil then -- 2569
+		hook = {value = ____exports.signal(value)} -- 2571
+		frame.hooks[index + 1] = hook -- 2572
+	end -- 2572
+	return hook.value -- 2574
+end -- 2562
+local function getPreload(preloadList, node) -- 2577
+	if type(node) ~= "table" then -- 2577
+		return -- 2579
+	end -- 2579
+	local enode = node -- 2581
+	if enode.type == nil then -- 2581
+		local list = node -- 2583
+		if #list > 0 then -- 2583
+			for i = 1, #list do -- 2583
+				getPreload(preloadList, list[i]) -- 2586
+			end -- 2586
+		end -- 2586
+	else -- 2586
+		repeat -- 2586
+			local ____switch615 = enode.type -- 2586
+			local sprite, playable, frame, model, spine, dragonBone, label -- 2586
+			local ____cond615 = ____switch615 == "sprite" -- 2586
+			if ____cond615 then -- 2586
+				sprite = enode.props -- 2592
+				if sprite.file then -- 2592
+					preloadList[#preloadList + 1] = sprite.file -- 2594
+				end -- 2594
+				break -- 2596
+			end -- 2596
+			____cond615 = ____cond615 or ____switch615 == "playable" -- 2596
+			if ____cond615 then -- 2596
+				playable = enode.props -- 2598
+				preloadList[#preloadList + 1] = playable.file -- 2599
+				break -- 2600
+			end -- 2600
+			____cond615 = ____cond615 or ____switch615 == "frame" -- 2600
+			if ____cond615 then -- 2600
+				frame = enode.props -- 2602
+				preloadList[#preloadList + 1] = frame.file -- 2603
+				break -- 2604
+			end -- 2604
+			____cond615 = ____cond615 or ____switch615 == "model" -- 2604
+			if ____cond615 then -- 2604
+				model = enode.props -- 2606
+				preloadList[#preloadList + 1] = "model:" .. model.file -- 2607
+				break -- 2608
+			end -- 2608
+			____cond615 = ____cond615 or ____switch615 == "spine" -- 2608
+			if ____cond615 then -- 2608
+				spine = enode.props -- 2610
+				preloadList[#preloadList + 1] = "spine:" .. spine.file -- 2611
+				break -- 2612
+			end -- 2612
+			____cond615 = ____cond615 or ____switch615 == "dragon-bone" -- 2612
+			if ____cond615 then -- 2612
+				dragonBone = enode.props -- 2614
+				preloadList[#preloadList + 1] = "bone:" .. dragonBone.file -- 2615
+				break -- 2616
+			end -- 2616
+			____cond615 = ____cond615 or ____switch615 == "label" -- 2616
+			if ____cond615 then -- 2616
+				label = enode.props -- 2618
+				preloadList[#preloadList + 1] = (("font:" .. label.fontName) .. ";") .. tostring(label.fontSize) -- 2619
+				break -- 2620
+			end -- 2620
+		until true -- 2620
+	end -- 2620
+	getPreload(preloadList, enode.children) -- 2623
+end -- 2577
+function ____exports.preloadAsync(enode, handler) -- 2626
+	local preloadList = {} -- 2627
+	getPreload(preloadList, enode) -- 2628
+	Dora.Cache:loadAsync(preloadList, handler) -- 2629
+end -- 2626
+function ____exports.toAction(enode) -- 2632
+	local actionDef = ____exports.reference() -- 2633
+	____exports.toNode(____exports.React.createElement("action", {ref = actionDef}, enode)) -- 2634
+	if not actionDef.current then -- 2634
+		error("failed to create action") -- 2635
+	end -- 2635
+	return actionDef.current -- 2636
+end -- 2632
+return ____exports -- 2632

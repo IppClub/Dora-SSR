@@ -1,4 +1,4 @@
-import { React, toNode, useRef } from 'DoraX';
+import { React, toNode, reference } from 'DoraX';
 import { AxisName, ButtonName, DrawNode, KeyName, Node, Slot, Touch, Vec2, emit } from 'Dora';
 
 export const enum TriggerState {
@@ -1540,7 +1540,7 @@ export function DPad(props: DPadProps) {
 
 	function DPadButton(props: JSX.Node) {
 		const hw = width / 2;
-		const drawNode = useRef<DrawNode.Type>();
+		const drawNode = reference<DrawNode.Type>();
 		return (
 			<node {...props} width={width} height={height}
 				onTapBegan={() => {
@@ -1574,11 +1574,11 @@ export function DPad(props: DPadProps) {
 		};
 	}
 
-	const up = useRef<Node.Type>();
-	const down = useRef<Node.Type>();
-	const left = useRef<Node.Type>();
-	const right = useRef<Node.Type>();
-	const center = useRef<Node.Type>();
+	const up = reference<Node.Type>();
+	const down = reference<Node.Type>();
+	const left = reference<Node.Type>();
+	const right = reference<Node.Type>();
+	const center = reference<Node.Type>();
 
 	let current: Node.Type | undefined;
 
@@ -1660,7 +1660,7 @@ function Button(props: ButtonProps) {
 		color = 0xffffffff,
 		primaryOpacity = 0.3
 	} = props;
-	const drawNode = useRef<DrawNode.Type>();
+	const drawNode = reference<DrawNode.Type>();
 	return (
 		<node x={x} y={y} onMount={onMount} width={buttonSize * 2} height={buttonSize * 2}
 			onTapBegan={() => {
@@ -1697,7 +1697,7 @@ export interface JoyStickProps {
 }
 
 export function JoyStick(props: JoyStickProps) {
-	const hat = useRef<DrawNode.Type>();
+	const hat = reference<DrawNode.Type>();
 	const {
 		moveSize = 70,
 		hatSize = 40,
@@ -1865,7 +1865,7 @@ export function ControlPad(props: ControlPadProps) {
 		primaryOpacity = 0.3,
 	} = props;
 	function Button(props: JSX.Node & { text: string }) {
-		const drawNode = useRef<DrawNode.Type>();
+		const drawNode = reference<DrawNode.Type>();
 		return (
 			<node {...props} width={buttonSize * 2} height={buttonSize}
 				onTapBegan={() => {
@@ -1935,7 +1935,7 @@ export function TriggerPad(props: TriggerPadProps) {
 		primaryOpacity = 0.3,
 	} = props;
 	function Button(props: JSX.Node & { text: string }) {
-		const drawNode = useRef<DrawNode.Type>();
+		const drawNode = reference<DrawNode.Type>();
 		return (
 			<node {...props} width={buttonSize * 2} height={buttonSize}
 				onTapBegan={() => {
