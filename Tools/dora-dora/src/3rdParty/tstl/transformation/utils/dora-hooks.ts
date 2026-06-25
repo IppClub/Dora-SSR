@@ -115,12 +115,7 @@ function getCalledSymbol(context: TransformationContext, node: ts.CallExpression
     return (symbol.flags & ts.SymbolFlags.Alias) !== 0 ? context.checker.getAliasedSymbol(symbol) : symbol;
 }
 
-function isDoraXHookCall(context: TransformationContext, node: ts.CallExpression): boolean {
-    const hookName = getHookName(node);
-    if (!hookName) {
-        return false;
-    }
-
+function isDoraXHookCall(context: TransformationContext, node: ts.CallExpression, hookName: string): boolean {
     const symbol = getCalledSymbol(context, node);
     return (
         symbol?.getDeclarations()?.some(declaration => {
@@ -153,23 +148,6 @@ function getDependencyArray(node: ts.CallExpression): DependencyArrayInfo {
         argument: deps,
         array: ts.isArrayLiteralExpression(expression) ? expression : undefined,
     };
-}
-
-function collectDeclaredSymbols(context: TransformationContext, node: ts.Node): Set<ts.Symbol> {
-    const declarations = new Set<ts.Symbol>();
-
-    const visit = (current: ts.Node) => {
-        if (ts.isIdentifier(current) && isDeclarationName(current)) {
-            const symbol = context.checker.getSymbolAtLocation(current);
-            if (symbol) {
-                declarations.add(symbol);
-            }
-        }
-        ts.forEachChild(current, visit);
-    };
-
-    visit(node);
-    return declarations;
 }
 
 function getIdentifierSymbol(context: TransformationContext, node: ts.Identifier): ts.Symbol | undefined {
@@ -220,24 +198,34 @@ function shouldTrackSymbol(
 }
 
 function collectUsedDependencies(context: TransformationContext, callback: ts.Node): string[] {
-    const localSymbols = collectDeclaredSymbols(context, callback);
-    const dependencies = new Map<string, ts.Node>();
+    const localSymbols = new Set<ts.Symbol>();
+    const candidates = new Map<ts.Symbol, Map<string, ts.Identifier>>();
 
     const visit = (current: ts.Node) => {
         if (ts.isFunctionLike(current) && current !== callback) {
             return;
         }
 
-        if (ts.isIdentifier(current) && !isPropertyNameUse(current) && !isDeclarationName(current)) {
-            const symbol = getIdentifierSymbol(context, current);
-            const dependency = getPropertyAccessText(current) ?? current.getText();
-            if (
-                symbol &&
-                !localSymbols.has(symbol) &&
-                shouldTrackSymbol(context, callback, current, dependency, symbol)
-            ) {
-                if (!dependency.includes(".current")) {
-                    dependencies.set(dependency, current);
+        if (ts.isIdentifier(current)) {
+            if (isDeclarationName(current)) {
+                const symbol = context.checker.getSymbolAtLocation(current);
+                if (symbol) {
+                    localSymbols.add(symbol);
+                }
+            } else if (!isPropertyNameUse(current)) {
+                const symbol = getIdentifierSymbol(context, current);
+                const dependency = getPropertyAccessText(current) ?? current.getText();
+                if (
+                    symbol &&
+                    !dependency.includes(".current") &&
+                    shouldTrackSymbol(context, callback, current, dependency, symbol)
+                ) {
+                    let symbolDependencies = candidates.get(symbol);
+                    if (!symbolDependencies) {
+                        symbolDependencies = new Map();
+                        candidates.set(symbol, symbolDependencies);
+                    }
+                    symbolDependencies.set(dependency, current);
                 }
             }
         }
@@ -246,7 +234,16 @@ function collectUsedDependencies(context: TransformationContext, callback: ts.No
     };
 
     visit(callback);
-    return [...dependencies.keys()].sort();
+    const dependencies = new Set<string>();
+    for (const [symbol, symbolDependencies] of candidates) {
+        if (localSymbols.has(symbol)) {
+            continue;
+        }
+        for (const dependency of symbolDependencies.keys()) {
+            dependencies.add(dependency);
+        }
+    }
+    return [...dependencies].sort();
 }
 
 function collectDeclaredDependencies(deps: ts.ArrayLiteralExpression): Map<string, ts.Expression> {
@@ -261,13 +258,17 @@ function collectDeclaredDependencies(deps: ts.ArrayLiteralExpression): Map<strin
 }
 
 export function validateDoraHookDependencies(context: TransformationContext, node: ts.CallExpression): void {
+    const hookName = getHookName(node);
+    if (!hookName) {
+        return;
+    }
+
     const sourceFileName = getNodeSourceFileName(context, node);
     if (sourceFileName === "DoraX.ts" || sourceFileName.endsWith("/DoraX.ts")) {
         return;
     }
 
-    const hookName = getHookName(node);
-    if (!hookName || !isDoraXHookCall(context, node)) {
+    if (!isDoraXHookCall(context, node, hookName)) {
         return;
     }
 
