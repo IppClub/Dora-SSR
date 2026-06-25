@@ -1762,12 +1762,18 @@ function shouldRecreate(this: void, oldElement: React.Element, newElement: React
 	const newProps = newElement.props as AnyTable;
 	if (newElement.type === "draw-node") return true;
 	for (let [k, v] of pairs(oldProps)) {
-		if ((isEventProp(k) || k === "onMount") && newProps[k] !== v) {
+		if (k === "onMount" && newProps[k] !== v) {
+			return true;
+		}
+		if (isEventProp(k) && !isPatchableEventProp(k) && newProps[k] !== v) {
 			return true;
 		}
 	}
 	for (let [k, v] of pairs(newProps)) {
-		if ((isEventProp(k) || k === "onMount") && oldProps[k] !== v) {
+		if (k === "onMount" && oldProps[k] !== v) {
+			return true;
+		}
+		if (isEventProp(k) && !isPatchableEventProp(k) && oldProps[k] !== v) {
 			return true;
 		}
 	}
@@ -1804,6 +1810,53 @@ function shouldRecreate(this: void, oldElement: React.Element, newElement: React
 
 function isEventProp(this: void, key: unknown): boolean {
 	return type(key) === "string" && key !== "onUnmount" && string.sub(key as string, 1, 2) === "on";
+}
+
+function getEventSlot(this: void, key: unknown): string | undefined {
+	switch (key as string) {
+		case "onActionEnd": return Dora.Slot.ActionEnd;
+		case "onTapFilter": return Dora.Slot.TapFilter;
+		case "onTapBegan": return Dora.Slot.TapBegan;
+		case "onTapEnded": return Dora.Slot.TapEnded;
+		case "onTapped": return Dora.Slot.Tapped;
+		case "onTapMoved": return Dora.Slot.TapMoved;
+		case "onMouseWheel": return Dora.Slot.MouseWheel;
+		case "onGesture": return Dora.Slot.Gesture;
+		case "onEnter": return Dora.Slot.Enter;
+		case "onExit": return Dora.Slot.Exit;
+		case "onCleanup": return Dora.Slot.Cleanup;
+		case "onKeyDown": return Dora.Slot.KeyDown;
+		case "onKeyUp": return Dora.Slot.KeyUp;
+		case "onKeyPressed": return Dora.Slot.KeyPressed;
+		case "onAttachIME": return Dora.Slot.AttachIME;
+		case "onDetachIME": return Dora.Slot.DetachIME;
+		case "onTextInput": return Dora.Slot.TextInput;
+		case "onTextEditing": return Dora.Slot.TextEditing;
+		case "onButtonDown": return Dora.Slot.ButtonDown;
+		case "onButtonUp": return Dora.Slot.ButtonUp;
+		case "onAxis": return Dora.Slot.Axis;
+		case "onAnimationEnd": return Dora.Slot.AnimationEnd;
+		case "onFinished": return Dora.Slot.Finished;
+		case "onLayout": return Dora.Slot.AlignLayout;
+		case "onBodyEnter": return Dora.Slot.BodyEnter;
+		case "onBodyLeave": return Dora.Slot.BodyLeave;
+		case "onContactStart": return Dora.Slot.ContactStart;
+		case "onContactEnd": return Dora.Slot.ContactEnd;
+	}
+	return undefined;
+}
+
+function isPatchableEventProp(this: void, key: unknown): boolean {
+	return getEventSlot(key) !== undefined;
+}
+
+function patchEventProp(this: void, node: Dora.Node.Type, key: unknown, value: unknown) {
+	const slotName = getEventSlot(key);
+	if (slotName === undefined) return;
+	node.slot(slotName).clear();
+	if (value !== undefined) {
+		node.slot(slotName, value as (this: void, ...args: unknown[]) => void);
+	}
 }
 
 function applyProp(this: void, node: Dora.Node.Type, enode: React.Element, key: unknown, value: unknown) {
@@ -1844,6 +1897,9 @@ function applyProp(this: void, node: Dora.Node.Type, enode: React.Element, key: 
 		}
 	}
 	if (isEventProp(key)) {
+		if (isPatchableEventProp(key)) {
+			patchEventProp(node, key, value);
+		}
 		return;
 	}
 	(node as AnyTable)[name] = value;
@@ -1853,7 +1909,9 @@ function patchProps(this: void, node: Dora.Node.Type, oldElement: React.Element,
 	const oldProps = oldElement.props as AnyTable;
 	const newProps = newElement.props as AnyTable;
 	for (let [k] of pairs(oldProps)) {
-		if (k !== "ref" && k !== "key" && !isEventProp(k) && newProps[k] === undefined) {
+		if (isPatchableEventProp(k) && newProps[k] === undefined) {
+			patchEventProp(node, k, undefined);
+		} else if (k !== "ref" && k !== "key" && !isEventProp(k) && newProps[k] === undefined) {
 			(node as AnyTable)[k] = undefined;
 		}
 	}
