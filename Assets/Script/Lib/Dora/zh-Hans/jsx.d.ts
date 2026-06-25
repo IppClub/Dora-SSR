@@ -1123,7 +1123,12 @@ class Action {
 	children: any[] | any;
 }
 
-class AnchorX {
+class ActionOptions {
+	/** 这个动作是否通过 `perform()` 替换节点上当前正在运行的动作。 */
+	exclusive?: boolean;
+}
+
+class AnchorX extends ActionOptions {
 	/** 动画的持续时间（以秒为单位）。 */
 	time: number;
 	/** 锚点的起始值。 */
@@ -1134,7 +1139,7 @@ class AnchorX {
 	easing?: Dora.EaseFunc;
 }
 
-class AnchorY {
+class AnchorY extends ActionOptions {
 	/** 动画的持续时间（以秒为单位）。 */
 	time: number;
 	/** 锚点的起始值。 */
@@ -1145,7 +1150,7 @@ class AnchorY {
 	easing?: Dora.EaseFunc;
 }
 
-class Angle {
+class Angle extends ActionOptions {
 	/** 动画的持续时间（以秒为单位）。 */
 	time: number;
 	/** 角度的起始值（以度为单位）。 */
@@ -1156,7 +1161,7 @@ class Angle {
 	easing?: Dora.EaseFunc;
 }
 
-class AngleX {
+class AngleX extends ActionOptions {
 	/** 动画的持续时间（以秒为单位）。 */
 	time: number;
 	/** X轴旋转角度的起始值（以度为单位）。 */
@@ -1167,7 +1172,7 @@ class AngleX {
 	easing?: Dora.EaseFunc;
 }
 
-class AngleY {
+class AngleY extends ActionOptions {
 	/** 动画的持续时间（以秒为单位）。 */
 	time: number;
 	/** Y轴旋转角度的起始值（以度为单位）。 */
@@ -1178,19 +1183,19 @@ class AngleY {
 	easing?: Dora.EaseFunc;
 }
 
-class Delay {
+class Delay extends ActionOptions {
 	/** 延迟的持续时间（以秒为单位）。 */
 	time: number;
 }
 
-class Event {
+class Event extends ActionOptions {
 	/** 要触发的事件的名称。 */
 	name: string;
 	/** 传递给事件的参数。 (默认: "") */
 	param?: string;
 }
 
-class Width {
+class Width extends ActionOptions {
 	/** 动画的持续时间（以秒为单位）。 */
 	time: number;
 	/** 节点的起始宽度值。 */
@@ -1201,7 +1206,7 @@ class Width {
 	easing?: Dora.EaseFunc;
 }
 
-class Height {
+class Height extends ActionOptions {
 	/** 动画的持续时间（以秒为单位）。 */
 	time: number;
 	/** 节点的起始高度值。 */
@@ -1212,11 +1217,11 @@ class Height {
 	easing?: Dora.EaseFunc;
 }
 
-class Hide {}
+class Hide extends ActionOptions {}
 
-class Show {}
+class Show extends ActionOptions {}
 
-class Move {
+class Move extends ActionOptions {
 	/** 动画的持续时间（以秒为单位）。 */
 	time: number;
 	/** 节点的起始X位置。 */
@@ -1231,7 +1236,7 @@ class Move {
 	easing?: Dora.EaseFunc;
 }
 
-class Opacity {
+class Opacity extends ActionOptions {
 	/** 动画的持续时间（以秒为单位）。 */
 	time: number;
 	/** 节点的起始不透明度值（0-1.0）。 */
@@ -1242,7 +1247,7 @@ class Opacity {
 	easing?: Dora.EaseFunc;
 }
 
-class Roll {
+class Roll extends ActionOptions {
 	/** 动画的持续时间（以秒为单位）。 */
 	time: number;
 	/** 节点的起始滚动值（以度为单位）。 */
@@ -1253,7 +1258,7 @@ class Roll {
 	easing?: Dora.EaseFunc;
 }
 
-class Scale {
+class Scale extends ActionOptions {
 	/** 动画的持续时间（以秒为单位）。 */
 	time: number;
 	/** X轴和Y轴缩放的起始值。 */
@@ -1264,7 +1269,7 @@ class Scale {
 	easing?: Dora.EaseFunc;
 }
 
-class ScaleX {
+class ScaleX extends ActionOptions {
 	/** 动画的持续时间（以秒为单位）。 */
 	time: number;
 	/** X轴缩放的起始值。 */
@@ -1275,7 +1280,7 @@ class ScaleX {
 	easing?: Dora.EaseFunc;
 }
 
-class ScaleY {
+class ScaleY extends ActionOptions {
 	/** 动画的持续时间（以秒为单位）。 */
 	time: number;
 	/** Y轴缩放的起始值。 */
@@ -1286,7 +1291,7 @@ class ScaleY {
 	easing?: Dora.EaseFunc;
 }
 
-class SkewX {
+class SkewX extends ActionOptions {
 	/** 动画的持续时间（以秒为单位）。 */
 	time: number;
 	/** 节点在x轴上的起始倾斜值（以度为单位）。 */
@@ -1297,7 +1302,7 @@ class SkewX {
 	easing?: Dora.EaseFunc;
 }
 
-class SkewY {
+class SkewY extends ActionOptions {
 	/** 动画的持续时间（以秒为单位）。 */
 	time: number;
 	/** 节点在Y轴上的起始倾斜值（以度为单位）。 */
@@ -1308,7 +1313,7 @@ class SkewY {
 	easing?: Dora.EaseFunc;
 }
 
-class MoveX {
+class MoveX extends ActionOptions {
 	/** 动画的持续时间（以秒为单位）。 */
 	time: number;
 	/** 节点的起始X坐标位置。 */
@@ -1319,7 +1324,7 @@ class MoveX {
 	easing?: Dora.EaseFunc;
 }
 
-class MoveY {
+class MoveY extends ActionOptions {
 	/** 动画的持续时间（以秒为单位）。 */
 	time: number;
 	/** 节点的起始Y坐标位置。 */
@@ -1330,7 +1335,7 @@ class MoveY {
 	easing?: Dora.EaseFunc;
 }
 
-class MoveZ {
+class MoveZ extends ActionOptions {
 	/** 动画的持续时间（以秒为单位）。 */
 	time: number;
 	/** 节点的起始Z坐标位置。 */
@@ -1341,7 +1346,7 @@ class MoveZ {
 	easing?: Dora.EaseFunc;
 }
 
-class Frame {
+class Frame extends ActionOptions {
 	/** 动画的持续时间（以秒为单位）。 */
 	time: number;
 	/** 包含加载纹理文件格式的字符串，可以是 "Image/file.png" 和 "Image/items.clip|itemA"，支持的图片文件格式有：jpg、png、dds、pvr、ktx。 */
@@ -1350,7 +1355,7 @@ class Frame {
 	frames?: number[];
 }
 
-class Loop {
+class Loop extends ActionOptions {
 	/** 子动作定义对象是否要并行运行。 */
 	spawn?: boolean;
 
@@ -1358,12 +1363,12 @@ class Loop {
 	children: any[] | any;
 }
 
-class Spawn {
+class Spawn extends ActionOptions {
 	/** 要并行运行的一组动作定义对象。 */
 	children: any[] | any;
 }
 
-class Sequence {
+class Sequence extends ActionOptions {
 	/** 要按顺序执行的一组动作定义对象。 */
 	children: any[] | any;
 }

@@ -126,6 +126,45 @@ export namespace React {
 
 type AttribHandler = (this: void, cnode: unknown, enode: React.Element, k: unknown, v: unknown) => boolean;
 
+function applyAutoEnableProps(this: void, node: Dora.Node.Type, props: AnyTable) {
+	const jnode = props as JSX.Node;
+	if (jnode.touchEnabled !== false && (
+		jnode.onTapFilter ||
+		jnode.onTapBegan ||
+		jnode.onTapMoved ||
+		jnode.onTapEnded ||
+		jnode.onTapped ||
+		jnode.onMouseWheel ||
+		jnode.onGesture
+	)) {
+		node.touchEnabled = true;
+	}
+	if (jnode.keyboardEnabled !== false && (
+		jnode.onKeyDown ||
+		jnode.onKeyUp ||
+		jnode.onKeyPressed
+	)) {
+		node.keyboardEnabled = true;
+	}
+	if (jnode.controllerEnabled !== false && (
+		jnode.onButtonDown ||
+		jnode.onButtonUp ||
+		jnode.onAxis
+	)) {
+		node.controllerEnabled = true;
+	}
+	const body = Dora.tolua.cast(node, Dora.TypeName.Body);
+	if (body !== undefined) {
+		const bodyProps = props as JSX.Body;
+		if (bodyProps.receivingContact !== false && (
+			bodyProps.onContactStart ||
+			bodyProps.onContactEnd
+		)) {
+			body.receivingContact = true;
+		}
+	}
+}
+
 function getNode(this: void, enode: React.Element, cnode?: Dora.Node.Type, attribHandler?: AttribHandler) {
 	cnode = cnode ?? Dora.Node();
 	const jnode = enode.props as JSX.Node;
@@ -173,31 +212,7 @@ function getNode(this: void, enode: React.Element, cnode?: Dora.Node.Type, attri
 			}
 		}
 	}
-	if (jnode.touchEnabled !== false && (
-		jnode.onTapFilter ||
-		jnode.onTapBegan ||
-		jnode.onTapMoved ||
-		jnode.onTapEnded ||
-		jnode.onTapped ||
-		jnode.onMouseWheel ||
-		jnode.onGesture
-	)) {
-		cnode.touchEnabled = true;
-	}
-	if (jnode.keyboardEnabled !== false && (
-		jnode.onKeyDown ||
-		jnode.onKeyUp ||
-		jnode.onKeyPressed
-	)) {
-		cnode.keyboardEnabled = true;
-	}
-	if (jnode.controllerEnabled !== false && (
-		jnode.onButtonDown ||
-		jnode.onButtonUp ||
-		jnode.onAxis
-	)) {
-		cnode.controllerEnabled = true;
-	}
+	applyAutoEnableProps(cnode, enode.props as AnyTable);
 	if (anchor !== undefined) cnode.anchor = anchor;
 	if (color3 !== undefined) cnode.color3 = color3;
 	if (jnode.onMount !== undefined) {
@@ -740,12 +755,6 @@ let getBody: (this: void, enode: React.Element, world: Dora.PhysicsWorld.Type) =
 			}
 		}
 		const cnode = getNode(enode, body, handleBodyAttribute as AttribHandler);
-		if (def.receivingContact !== false && (
-			def.onContactStart ||
-			def.onContactEnd
-		)) {
-			body.receivingContact = true;
-		}
 		return cnode as Dora.Body.Type;
 	};
 }
@@ -783,28 +792,7 @@ let getAlignNode: (this: void, enode: React.Element) => Dora.AlignNode.Type;
 		const alignNode = enode.props as JSX.AlignNode;
 		const node = Dora.AlignNode(alignNode.windowRoot);
 		if (alignNode.style) {
-			const items: string[] = [];
-			for (let [k, v] of pairs(alignNode.style)) {
-				let [name] = string.gsub(k, "%u", "-%1");
-				name = name.toLowerCase();
-				switch (k) {
-					case 'margin': case 'padding':
-					case 'border': case 'gap': {
-						if (type(v) === 'table') {
-							const valueStr = table.concat((v as unknown[]).map(item => tostring(item)), ',')
-							items.push(`${name}:${valueStr}`);
-						} else {
-							items.push(`${name}:${v}`);
-						}
-						break;
-					}
-					default:
-						items.push(`${name}:${v}`);
-						break;
-				}
-			}
-			const styleStr = table.concat(items, ';');
-			node.css(styleStr);
+			node.css(getAlignStyleText(alignNode.style as AnyTable));
 		}
 		if (alignNode.onLayout) {
 			node.slot(Dora.Slot.AlignLayout, alignNode.onLayout);
@@ -1568,6 +1556,19 @@ function isPhysicsWorldInputElement(this: void, element: React.Element): boolean
 	return element.type === "contact";
 }
 
+function isRunnableActionElement(this: void, element: React.Element): boolean {
+	if (element.type === "loop") return true;
+	return actionMap[element.type] !== undefined ||
+		element.type === "delay" ||
+		element.type === "event" ||
+		element.type === "hide" ||
+		element.type === "show" ||
+		element.type === "move" ||
+		element.type === "frame" ||
+		element.type === "spawn" ||
+		element.type === "sequence";
+}
+
 function shallowPropsEqual(this: void, oldProps: AnyTable, newProps: AnyTable): boolean {
 	for (let [k, v] of pairs(oldProps)) {
 		if (k !== "ref" && newProps[k] !== v) return false;
@@ -1576,6 +1577,17 @@ function shallowPropsEqual(this: void, oldProps: AnyTable, newProps: AnyTable): 
 		if (k !== "ref" && oldProps[k] !== v) return false;
 	}
 	return true;
+}
+
+function collectRunnableActionElements(this: void, element: React.Element): React.Element[] {
+	const actions: React.Element[] = [];
+	for (let i of $range(1, element.children.length)) {
+		const child = element.children[i - 1];
+		if (type(child) === "table" && isRunnableActionElement(child as React.Element)) {
+			actions.push(child as React.Element);
+		}
+	}
+	return actions;
 }
 
 function collectContactElements(this: void, element: React.Element): React.Element[] {
@@ -1624,6 +1636,52 @@ function patchPhysicsWorldInputs(this: void, world: Dora.PhysicsWorld.Type, oldE
 	}
 }
 
+function actionElementEqual(this: void, oldElement: React.Element, newElement: React.Element): boolean {
+	if (oldElement.type !== newElement.type) return false;
+	if (!shallowPropsEqual(oldElement.props as AnyTable, newElement.props as AnyTable)) return false;
+	if (oldElement.children.length !== newElement.children.length) return false;
+	for (let i of $range(1, oldElement.children.length)) {
+		const oldChild = oldElement.children[i - 1];
+		const newChild = newElement.children[i - 1];
+		if (type(oldChild) !== type(newChild)) return false;
+		if (type(oldChild) === "table") {
+			if (!actionElementEqual(oldChild as React.Element, newChild as React.Element)) return false;
+		} else if (oldChild !== newChild) {
+			return false;
+		}
+	}
+	return true;
+}
+
+function actionChildrenEqual(this: void, oldElement: React.Element, newElement: React.Element): boolean {
+	const oldActions = collectRunnableActionElements(oldElement);
+	const newActions = collectRunnableActionElements(newElement);
+	if (oldActions.length !== newActions.length) return false;
+	for (let i of $range(1, oldActions.length)) {
+		if (!actionElementEqual(oldActions[i - 1], newActions[i - 1])) return false;
+	}
+	return true;
+}
+
+function createActionDef(this: void, actionElement: React.Element): LuaMultiReturn<[Dora.ActionDef.Type | undefined, boolean]> {
+	if (actionElement.type === "loop") {
+		const actionStack: Dora.ActionDef.Type[] = [];
+		for (let i of $range(1, actionElement.children.length)) {
+			visitAction(actionStack, actionElement.children[i - 1]);
+		}
+		if (actionStack.length === 1) {
+			return $multi(actionStack[0], true);
+		} else if (actionStack.length > 1) {
+			const loop = actionElement.props as JSX.Loop;
+			return $multi(loop.spawn ? Dora.Spawn(...actionStack) : Dora.Sequence(...actionStack), true);
+		}
+		return $multi(undefined, true);
+	}
+	const actionStack: Dora.ActionDef.Type[] = [];
+	visitAction(actionStack, actionElement);
+	return $multi(actionStack.length === 1 ? actionStack[0] : undefined, false);
+}
+
 function structuralChildrenEqual(
 	this: void,
 	oldElement: React.Element,
@@ -1652,6 +1710,48 @@ function structuralChildrenEqual(
 		if (!shallowPropsEqual(oldChild.props as AnyTable, newChild.props as AnyTable)) return false;
 	}
 	return true;
+}
+
+function runActionChildren(this: void, node: Dora.Node.Type, element: React.Element) {
+	const actionChildren = collectRunnableActionElements(element);
+	const exclusiveActions: Dora.ActionDef.Type[] = [];
+	let exclusiveLoop: boolean | undefined;
+	let warnedExclusiveConflict = false;
+	for (let i of $range(1, actionChildren.length)) {
+		const actionElement = actionChildren[i - 1];
+		const [action, loop] = createActionDef(actionElement);
+		if (action === undefined) continue;
+		if ((actionElement.props as AnyTable).exclusive === true) {
+			if (exclusiveLoop === undefined) {
+				exclusiveLoop = loop;
+			}
+			if (exclusiveLoop === loop) {
+				exclusiveActions.push(action);
+			} else if (!warnedExclusiveConflict) {
+				Warn(`exclusive action children on the same node can not mix <loop> and non-<loop>; ignoring conflicting exclusive actions`);
+				warnedExclusiveConflict = true;
+			}
+		}
+	}
+	if (exclusiveActions.length === 1) {
+		node.perform(exclusiveActions[0], exclusiveLoop === true);
+	} else if (exclusiveActions.length > 1) {
+		node.perform(Dora.Spawn(...exclusiveActions), exclusiveLoop === true);
+	}
+	for (let i of $range(1, actionChildren.length)) {
+		const actionElement = actionChildren[i - 1];
+		if ((actionElement.props as AnyTable).exclusive === true) continue;
+		const [action, loop] = createActionDef(actionElement);
+		if (action !== undefined) {
+			node.runAction(action, loop);
+		}
+	}
+}
+
+function patchActionChildren(this: void, node: Dora.Node.Type, oldElement: React.Element, newElement: React.Element) {
+	if (!actionChildrenEqual(oldElement, newElement)) {
+		runActionChildren(node, newElement);
+	}
 }
 
 function removeRoot(this: void, root: Root) {
@@ -1736,7 +1836,10 @@ function getElementChildren(this: void, enode: React.Element): React.Element[] {
 		if (type(child) === "table") {
 			const childElement = child as React.Element;
 			if (childElement.type !== undefined) {
-				if (enode.type !== "physics-world" || !isPhysicsWorldInputElement(childElement)) {
+				if (
+					(enode.type !== "physics-world" || !isPhysicsWorldInputElement(childElement)) &&
+					!isRunnableActionElement(childElement)
+				) {
 					children.push(childElement);
 				}
 			} else {
@@ -1744,7 +1847,10 @@ function getElementChildren(this: void, enode: React.Element): React.Element[] {
 				for (let j of $range(1, list.length)) {
 					const item = list[j - 1];
 					if (type(item) === "table" && item.type !== undefined) {
-						if (enode.type !== "physics-world" || !isPhysicsWorldInputElement(item)) {
+						if (
+							(enode.type !== "physics-world" || !isPhysicsWorldInputElement(item)) &&
+							!isRunnableActionElement(item)
+						) {
 							children.push(item);
 						}
 					}
@@ -1847,7 +1953,7 @@ function getEventSlot(this: void, key: unknown): string | undefined {
 }
 
 function isPatchableEventProp(this: void, key: unknown): boolean {
-	return getEventSlot(key) !== undefined;
+	return getEventSlot(key) !== undefined || key === "onContactFilter" || key === "onUpdate";
 }
 
 function patchEventProp(this: void, node: Dora.Node.Type, key: unknown, value: unknown) {
@@ -1856,6 +1962,117 @@ function patchEventProp(this: void, node: Dora.Node.Type, key: unknown, value: u
 	node.slot(slotName).clear();
 	if (value !== undefined) {
 		node.slot(slotName, value as (this: void, ...args: unknown[]) => void);
+	}
+}
+
+function patchContactFilterProp(this: void, node: Dora.Node.Type, value: unknown) {
+	const body = Dora.tolua.cast(node, Dora.TypeName.Body);
+	if (body === undefined) return;
+	if (value === undefined) {
+		body.onContactFilter(() => true);
+	} else {
+		body.onContactFilter(value as (this: void, other: Dora.Body.Type) => boolean);
+	}
+}
+
+function patchUpdateProp(this: void, node: Dora.Node.Type, value: unknown) {
+	if (value === undefined) {
+		node.unschedule();
+	} else if (type(value) === "thread") {
+		node.schedule(value as Dora.Job);
+	} else {
+		node.schedule(value as (this: void, deltaTime: number) => boolean);
+	}
+}
+
+function clearRemovedProp(this: void, node: Dora.Node.Type, key: unknown): boolean {
+	switch (key as string) {
+		case "transformTarget":
+		case "stencil":
+			(node as AnyTable)[key as string] = undefined;
+			return true;
+	}
+	return false;
+}
+
+function getAlignStyleText(this: void, style: AnyTable): string {
+	const items: string[] = [];
+	for (let [k, v] of pairs(style)) {
+		let [name] = string.gsub(k as string, "%u", "-%1");
+		name = name.toLowerCase();
+		switch (k) {
+			case 'margin': case 'padding':
+			case 'border': case 'gap': {
+				if (type(v) === 'table') {
+					const valueStr = table.concat((v as unknown[]).map(item => tostring(item)), ',')
+					items.push(`${name}:${valueStr}`);
+				} else {
+					items.push(`${name}:${v}`);
+				}
+				break;
+			}
+			default:
+				items.push(`${name}:${v}`);
+				break;
+		}
+	}
+	return table.concat(items, ';');
+}
+
+function patchPlayableProps(this: void, node: Dora.Node.Type, oldProps: AnyTable, newProps: AnyTable) {
+	if (newProps.play !== undefined && (oldProps.play !== newProps.play || oldProps.loop !== newProps.loop)) {
+		(node as Dora.Playable.Type).play(newProps.play as string, newProps.loop === true);
+	}
+}
+
+function patchAudioSourceProps(this: void, node: Dora.Node.Type, oldProps: AnyTable, newProps: AnyTable) {
+	if (newProps.playMode !== undefined && (oldProps.playMode !== newProps.playMode || oldProps.delayTime !== newProps.delayTime)) {
+		const audio = node as Dora.AudioSource.Type;
+		switch (newProps.playMode as "normal" | "background" | "3D") {
+			case "normal": audio.play(newProps.delayTime ?? 0); break;
+			case "background": audio.playBackground(); break;
+			case "3D": audio.play3D(newProps.delayTime ?? 0); break;
+		}
+	}
+}
+
+function patchParticleProps(this: void, node: Dora.Node.Type, oldProps: AnyTable, newProps: AnyTable) {
+	if (newProps.emit !== undefined && oldProps.emit !== newProps.emit) {
+		const particle = node as Dora.Particle.Type;
+		if (newProps.emit) {
+			particle.start();
+		} else {
+			particle.stop();
+		}
+	}
+}
+
+function patchAlignNodeProps(this: void, node: Dora.Node.Type, oldProps: AnyTable, newProps: AnyTable) {
+	if (newProps.style !== undefined && oldProps.style !== newProps.style) {
+		(node as Dora.AlignNode.Type).css(getAlignStyleText(newProps.style as AnyTable));
+	}
+}
+
+function patchLineProps(this: void, node: Dora.Node.Type, oldProps: AnyTable, newProps: AnyTable) {
+	if (newProps.verts !== undefined && (oldProps.verts !== newProps.verts || oldProps.lineColor !== newProps.lineColor)) {
+		(node as Dora.Line.Type).set(newProps.verts as Dora.Vec2.Type[], Dora.Color(newProps.lineColor ?? 0xffffffff));
+	}
+}
+
+function clearRef(this: void, props: AnyTable, node?: Dora.Node.Type) {
+	const ref = props.ref as AnyTable | undefined;
+	if (ref !== undefined && (node === undefined || ref.current === node)) {
+		ref.current = undefined;
+	}
+}
+
+function patchRef(this: void, node: Dora.Node.Type, oldProps: AnyTable, newProps: AnyTable) {
+	if (oldProps.ref !== newProps.ref) {
+		clearRef(oldProps, node);
+		const ref = newProps.ref as AnyTable | undefined;
+		if (ref !== undefined) {
+			ref.current = node;
+		}
 	}
 }
 
@@ -1897,7 +2114,11 @@ function applyProp(this: void, node: Dora.Node.Type, enode: React.Element, key: 
 		}
 	}
 	if (isEventProp(key)) {
-		if (isPatchableEventProp(key)) {
+		if (key === "onUpdate") {
+			patchUpdateProp(node, value);
+		} else if (key === "onContactFilter") {
+			patchContactFilterProp(node, value);
+		} else if (isPatchableEventProp(key)) {
 			patchEventProp(node, key, value);
 		}
 		return;
@@ -1909,14 +2130,19 @@ function patchProps(this: void, node: Dora.Node.Type, oldElement: React.Element,
 	const oldProps = oldElement.props as AnyTable;
 	const newProps = newElement.props as AnyTable;
 	for (let [k] of pairs(oldProps)) {
-		if (isPatchableEventProp(k) && newProps[k] === undefined) {
+		if (k === "onUpdate" && newProps[k] === undefined) {
+			patchUpdateProp(node, undefined);
+		} else if (k === "onContactFilter" && newProps[k] === undefined) {
+			patchContactFilterProp(node, undefined);
+		} else if (isPatchableEventProp(k) && newProps[k] === undefined) {
 			patchEventProp(node, k, undefined);
-		} else if (k !== "ref" && k !== "key" && !isEventProp(k) && newProps[k] === undefined) {
-			(node as AnyTable)[k] = undefined;
+		} else if (newProps[k] === undefined) {
+			clearRemovedProp(node, k);
 		}
 	}
+	patchRef(node, oldProps, newProps);
 	for (let [k, v] of pairs(newProps)) {
-		if (oldProps[k] !== v) {
+		if (k !== "ref" && oldProps[k] !== v) {
 			applyProp(node, newElement, k, v);
 		}
 	}
@@ -1927,7 +2153,23 @@ function patchProps(this: void, node: Dora.Node.Type, oldElement: React.Element,
 		if (world !== undefined) {
 			patchPhysicsWorldInputs(world, oldElement, newElement);
 		}
+	} else if (
+		newElement.type === "playable" ||
+		newElement.type === "dragon-bone" ||
+		newElement.type === "spine" ||
+		newElement.type === "model"
+	) {
+		patchPlayableProps(node, oldProps, newProps);
+	} else if (newElement.type === "audio-source") {
+		patchAudioSourceProps(node, oldProps, newProps);
+	} else if (newElement.type === "particle") {
+		patchParticleProps(node, oldProps, newProps);
+	} else if (newElement.type === "align-node") {
+		patchAlignNodeProps(node, oldProps, newProps);
+	} else if (newElement.type === "line") {
+		patchLineProps(node, oldProps, newProps);
 	}
+	applyAutoEnableProps(node, newProps);
 }
 
 function addChildToParent(this: void, parent: Dora.Node.Type, node: Dora.Node.Type, props: JSX.Node) {
@@ -1957,6 +2199,7 @@ function mountElement(this: void, parent: Dora.Node.Type, enode: React.Element):
 	const props = enode.props as JSX.Node;
 	addChildToParent(parent, node, props);
 	const mounted: MountedElement = { element: enode, node, children: [] };
+	runActionChildren(node, enode);
 	mounted.children = reconcileChildren(node, [], getElementChildren(enode));
 	return mounted;
 }
@@ -1969,6 +2212,7 @@ function unmountElement(this: void, mounted: MountedElement) {
 	if (props.onUnmount !== undefined) {
 		props.onUnmount(mounted.node);
 	}
+	clearRef(mounted.element.props as AnyTable, mounted.node);
 	mounted.node.removeFromParent(true);
 }
 
@@ -1989,6 +2233,7 @@ function reconcileElement(this: void, parent: Dora.Node.Type, oldMounted: Mounte
 		return mounted;
 	}
 	patchProps(oldMounted.node, oldMounted.element, newElement);
+	patchActionChildren(oldMounted.node, oldMounted.element, newElement);
 	oldMounted.children = reconcileChildren(oldMounted.node, oldMounted.children, getElementChildren(newElement));
 	oldMounted.element = newElement;
 	return oldMounted;

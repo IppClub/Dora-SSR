@@ -1127,7 +1127,12 @@ class Action {
 	children: any[] | any;
 }
 
-class AnchorX {
+class ActionOptions {
+	/** Whether this action should replace current running actions on the node via `perform()`. */
+	exclusive?: boolean;
+}
+
+class AnchorX extends ActionOptions {
 	/** The duration of the animation in seconds. */
 	time: number;
 	/** The starting value of the anchor point. */
@@ -1137,7 +1142,7 @@ class AnchorX {
 	easing?: Dora.EaseFunc;
 }
 
-class AnchorY {
+class AnchorY extends ActionOptions {
 	/** The duration of the animation in seconds. */
 	time: number;
 	/** The starting value of the anchor point. */
@@ -1147,7 +1152,7 @@ class AnchorY {
 	easing?: Dora.EaseFunc;
 }
 
-class Angle {
+class Angle extends ActionOptions {
 	/** The duration of the animation in seconds. */
 	time: number;
 	/** The starting value of the angle in degrees. */
@@ -1158,7 +1163,7 @@ class Angle {
 	easing?: Dora.EaseFunc;
 }
 
-class AngleX {
+class AngleX extends ActionOptions {
 	/** The duration of the animation in seconds. */
 	time: number;
 	/** The starting value of the x-axis rotation angle in degrees. */
@@ -1169,7 +1174,7 @@ class AngleX {
 	easing?: Dora.EaseFunc;
 }
 
-class AngleY {
+class AngleY extends ActionOptions {
 	/** The duration of the animation in seconds. */
 	time: number;
 	/** The starting value of the y-axis rotation angle in degrees. */
@@ -1180,19 +1185,19 @@ class AngleY {
 	easing?: Dora.EaseFunc;
 }
 
-class Delay {
+class Delay extends ActionOptions {
 	/** The duration of the delay in seconds. */
 	time: number;
 }
 
-class Event {
+class Event extends ActionOptions {
 	/** The name of the event to be triggered. */
 	name: string;
 	/** The parameter to pass to the event. (default: "") */
 	param?: string;
 }
 
-class Width {
+class Width extends ActionOptions {
 	/** The duration of the animation in seconds. */
 	time: number;
 	/** The starting width value of the Node. */
@@ -1203,7 +1208,7 @@ class Width {
 	easing?: Dora.EaseFunc;
 }
 
-class Height {
+class Height extends ActionOptions {
 	/** The duration of the animation in seconds. */
 	time: number;
 	/** The starting height value of the Node. */
@@ -1214,11 +1219,11 @@ class Height {
 	easing?: Dora.EaseFunc;
 }
 
-class Hide {}
+class Hide extends ActionOptions {}
 
-class Show {}
+class Show extends ActionOptions {}
 
-class Move {
+class Move extends ActionOptions {
 	/** The duration of the animation in seconds. */
 	time: number;
 	/** The starting x position of the Node. */
@@ -1233,7 +1238,7 @@ class Move {
 	easing?: Dora.EaseFunc;
 }
 
-class Opacity {
+class Opacity extends ActionOptions {
 	/** The duration of the animation in seconds. */
 	time: number;
 	/** The starting opacity value of the Node (0 - 1.0). */
@@ -1244,7 +1249,7 @@ class Opacity {
 	easing?: Dora.EaseFunc;
 }
 
-class Roll {
+class Roll extends ActionOptions {
 	/** The duration of the animation in seconds. */
 	time: number;
 	/** The starting roll value of the Node (in degrees). */
@@ -1255,7 +1260,7 @@ class Roll {
 	easing?: Dora.EaseFunc;
 }
 
-class Scale {
+class Scale extends ActionOptions {
 	/** The duration of the animation in seconds. */
 	time: number;
 	/** The starting value of the x-axis and y-axis scale. */
@@ -1266,7 +1271,7 @@ class Scale {
 	easing?: Dora.EaseFunc;
 }
 
-class ScaleX {
+class ScaleX extends ActionOptions {
 	/** The duration of the animation in seconds. */
 	time: number;
 	/** The starting value of the x-axis scale. */
@@ -1277,7 +1282,7 @@ class ScaleX {
 	easing?: Dora.EaseFunc;
 }
 
-class ScaleY {
+class ScaleY extends ActionOptions {
 	/** The duration of the animation in seconds. */
 	time: number;
 	/** The starting value of the y-axis scale. */
@@ -1288,7 +1293,7 @@ class ScaleY {
 	easing?: Dora.EaseFunc;
 }
 
-class SkewX {
+class SkewX extends ActionOptions {
 	/** The duration of the animation in seconds. */
 	time: number;
 	/** The starting skew value of the Node on the x-axis (in degrees). */
@@ -1299,7 +1304,7 @@ class SkewX {
 	easing?: Dora.EaseFunc;
 }
 
-class SkewY {
+class SkewY extends ActionOptions {
 	/** The duration of the animation in seconds. */
 	time: number;
 	/** The starting skew value of the Node on the y-axis (in degrees). */
@@ -1310,7 +1315,7 @@ class SkewY {
 	easing?: Dora.EaseFunc;
 }
 
-class MoveX {
+class MoveX extends ActionOptions {
 	/** The duration of the animation in seconds. */
 	time: number;
 	/** The starting x-position of the Node. */
@@ -1321,7 +1326,7 @@ class MoveX {
 	easing?: Dora.EaseFunc;
 }
 
-class MoveY {
+class MoveY extends ActionOptions {
 	/** The duration of the animation in seconds. */
 	time: number;
 	/** The starting y-position of the Node. */
@@ -1332,7 +1337,7 @@ class MoveY {
 	easing?: Dora.EaseFunc;
 }
 
-class MoveZ {
+class MoveZ extends ActionOptions {
 	/** The duration of the animation in seconds. */
 	time: number;
 	/** The starting z-position of the Node. */
@@ -1343,7 +1348,7 @@ class MoveZ {
 	easing?: Dora.EaseFunc;
 }
 
-class Frame {
+class Frame extends ActionOptions {
 	/** The duration of the animation in seconds. */
 	time: number;
 	/** The number of frames for each frame. The number of frames should match the number of frames in the clip. */
@@ -1352,7 +1357,7 @@ class Frame {
 	frames?: number[];
 }
 
-class Loop {
+class Loop extends ActionOptions {
 	/** Whether the action definitions should run in parallel. */
 	spawn?: boolean;
 
@@ -1360,12 +1365,12 @@ class Loop {
 	children: any[] | any;
 }
 
-class Spawn {
+class Spawn extends ActionOptions {
 	/** The action definitions to run in parallel. */
 	children: any[] | any;
 }
 
-class Sequence {
+class Sequence extends ActionOptions {
 	/** The action definitions to run in sequence. */
 	children: any[] | any;
 }
