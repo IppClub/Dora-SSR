@@ -119,6 +119,11 @@ class Node {
 	onUpdate?: ((this: void, deltaTime: number) => boolean) | Dora.Job;
 
 	/**
+	 * Registers a callback when the node enters the rendering phase. Return true to stop the running function.
+	 */
+	onRender?: (this: void, deltaTime: number) => boolean;
+
+	/**
 	 * The ActionEnd slot is triggered when an action is finished.
 	 * Triggers after `node.runAction()` and `node.perform()`.
 	 * @param action The finished action.

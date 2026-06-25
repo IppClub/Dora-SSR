@@ -1581,6 +1581,19 @@ onUpdate: function(self: Node, func: function(number): boolean)
 | --- | --- | --- |
 | func | function | The function to run every frame, returns true to stop. |
 
+## clearUpdate
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Clears all functions scheduled with `onUpdate`.
+
+**Signature:**
+```tl
+clearUpdate: function(self: Node)
+```
+
 ## onUpdate
 
 **Type:** Function.
@@ -1618,6 +1631,19 @@ onRender: function(self: Node, func: function(number): boolean)
 | Parameter | Type | Description |
 | --- | --- | --- |
 | func | function | The function to call when the node is entering the rendering phase, returns true to stop. |
+
+## clearRender
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Clears all functions registered with `onRender`.
+
+**Signature:**
+```tl
+clearRender: function(self: Node)
+```
 
 ## onActionEnd
 

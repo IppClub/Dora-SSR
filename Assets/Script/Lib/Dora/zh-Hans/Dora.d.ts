@@ -3292,6 +3292,11 @@ class Node extends Object {
 	onUpdate(func: (this: void, deltaTime: number) => boolean): void;
 
 	/**
+	 * 清理所有通过 `onUpdate` 调度的函数。
+	 */
+	clearUpdate(): void;
+
+	/**
 	 * 调度一个协程，该协程会在每一帧运行。可以反复调用以同时调度多个协程。
 	 * @param job 要在每一帧运行的协程。
 	 */
@@ -3302,6 +3307,11 @@ class Node extends Object {
 	 * @param func 要注册的渲染回调函数，返回true以停止。
 	 */
 	onRender(func: (this: void, deltaTime: number) => boolean): void;
+
+	/**
+	 * 清理所有通过 `onRender` 注册的函数。
+	 */
+	clearRender(): void;
 
 	/**
 	 * 注册一个回调函数，当动作结束时触发。

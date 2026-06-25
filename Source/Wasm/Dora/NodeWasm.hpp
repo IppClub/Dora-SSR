@@ -428,6 +428,9 @@ DORA_EXPORT void node_on_update(int64_t self, int32_t func0, int64_t stack0) {
 		return args0->pop_bool_or(true);
 	});
 }
+DORA_EXPORT void node_clear_update(int64_t self) {
+	r_cast<Node*>(self)->clearUpdate();
+}
 DORA_EXPORT void node_on_render(int64_t self, int32_t func0, int64_t stack0) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
@@ -439,6 +442,9 @@ DORA_EXPORT void node_on_render(int64_t self, int32_t func0, int64_t stack0) {
 		SharedWasmRuntime.invoke(func0);
 		return args0->pop_bool_or(true);
 	});
+}
+DORA_EXPORT void node_clear_render(int64_t self) {
+	r_cast<Node*>(self)->clearRender();
 }
 DORA_EXPORT int64_t node_new() {
 	return Object_From(Node::create());
@@ -563,6 +569,8 @@ static void linkNode(wasm3::module3& mod) {
 	mod.link_optional("*", "node_gslot", node_gslot);
 	mod.link_optional("*", "node_emit", node_emit);
 	mod.link_optional("*", "node_on_update", node_on_update);
+	mod.link_optional("*", "node_clear_update", node_clear_update);
 	mod.link_optional("*", "node_on_render", node_on_render);
+	mod.link_optional("*", "node_clear_render", node_clear_render);
 	mod.link_optional("*", "node_new", node_new);
 }

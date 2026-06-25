@@ -1635,6 +1635,8 @@ interface object class Node
 	///
 	/// * `updateFunc` - The function to run every frame. If the function returns `true`, it will not be called again.
 	void onUpdate(function<def_true bool(double deltaTime)> updateFunc);
+	/// Clears all functions scheduled with `onUpdate`.
+	void clearUpdate();
 	/// Registers a callback for event triggered when the node is entering the rendering phase. The callback is called every frame, and ensures that its call order is consistent with the rendering order of the scene tree, such as rendering child nodes after their parent nodes. Recommended for calling vector drawing functions.
 	///
 	/// # Arguments
@@ -1645,6 +1647,8 @@ interface object class Node
 	///
 	/// * `void` - True to stop the function from running.
 	void onRender(function<def_true bool(double deltaTime)> renderFunc);
+	/// Clears all functions registered with `onRender`.
+	void clearRender();
 	/// Creates a new instance of the `Node` struct.
 	static Node* create();
 };

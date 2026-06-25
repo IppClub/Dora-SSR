@@ -206,6 +206,7 @@ function getNode(this: void, enode: React.Element, cnode?: Dora.Node.Type, attri
 			case 'color3': color3 = Dora.Color3(v); break;
 			case 'transformTarget': cnode.transformTarget = v.current; break;
 			case 'onUpdate': cnode.schedule(v); break;
+			case 'onRender': patchRenderProp(cnode, v); break;
 			case 'onActionEnd': cnode.slot(Dora.Slot.ActionEnd, v); break;
 			case 'onTapFilter': cnode.slot(Dora.Slot.TapFilter, v); break;
 			case 'onTapBegan': cnode.slot(Dora.Slot.TapBegan, v); break;
@@ -1983,7 +1984,7 @@ function getEventSlot(this: void, key: unknown): string | undefined {
 }
 
 function isPatchableEventProp(this: void, key: unknown): boolean {
-	return getEventSlot(key) !== undefined || key === "onContactFilter" || key === "onUpdate";
+	return getEventSlot(key) !== undefined || key === "onContactFilter" || key === "onUpdate" || key === "onRender";
 }
 
 function patchEventProp(this: void, node: Dora.Node.Type, key: unknown, value: unknown) {
@@ -2013,6 +2014,14 @@ function patchUpdateProp(this: void, node: Dora.Node.Type, value: unknown) {
 	} else {
 		node.schedule(value as (this: void, deltaTime: number) => boolean);
 	}
+}
+
+function patchRenderProp(this: void, node: Dora.Node.Type, value: unknown) {
+	node.clearRender();
+	if (value === undefined) {
+		return;
+	}
+	node.onRender(value as (this: void, deltaTime: number) => boolean);
 }
 
 function clearRemovedProp(this: void, node: Dora.Node.Type, key: unknown): boolean {
@@ -2146,6 +2155,8 @@ function applyProp(this: void, node: Dora.Node.Type, enode: React.Element, key: 
 	if (isEventProp(key)) {
 		if (key === "onUpdate") {
 			patchUpdateProp(node, value);
+		} else if (key === "onRender") {
+			patchRenderProp(node, value);
 		} else if (key === "onContactFilter") {
 			patchContactFilterProp(node, value);
 		} else if (isPatchableEventProp(key)) {
@@ -2162,6 +2173,8 @@ function patchProps(this: void, node: Dora.Node.Type, oldElement: React.Element,
 	for (let [k] of pairs(oldProps)) {
 		if (k === "onUpdate" && newProps[k] === undefined) {
 			patchUpdateProp(node, undefined);
+		} else if (k === "onRender" && newProps[k] === undefined) {
+			patchRenderProp(node, undefined);
 		} else if (k === "onContactFilter" && newProps[k] === undefined) {
 			patchContactFilterProp(node, undefined);
 		} else if (isPatchableEventProp(k) && newProps[k] === undefined) {

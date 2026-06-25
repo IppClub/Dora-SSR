@@ -115,7 +115,9 @@ public:
 	void unschedule();
 
 	void onUpdate(const Update& func);
+	void clearUpdate();
 	void onRender(const Update& func);
+	void clearRender();
 
 	Vec2 convertToNodeSpace(const Vec2& worldPoint);
 	Vec2 convertToWorldSpace(const Vec2& nodePoint);

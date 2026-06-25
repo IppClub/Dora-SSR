@@ -331,7 +331,7 @@ NS_DORA_BEGIN
 
 #define DoraVersion(major, minor, patch) ((major) << 16 | (minor) << 8 | (patch))
 
-static const int doraWASMVersion = DoraVersion(0, 5, 10);
+static const int doraWASMVersion = DoraVersion(0, 5, 11);
 static std::vector<WasmInstance*> s_wasmInstanceStack;
 
 static std::string VersionToStr(int version) {

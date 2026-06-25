@@ -1,0 +1,197 @@
+# Dynamic TSX Rendering and Data Binding
+
+The basic TSX tutorial introduces how to describe Dora nodes with TSX and create them with `toNode()`. This page focuses on the React-like dynamic rendering path in DoraX: `createRoot()`, `signal()`, hooks, keyed diffing, and the cases where DoraX patches or recreates engine nodes.
+
+## One-Shot Trees and Dynamic Roots
+
+`toNode(element)` is a one-shot conversion. DoraX walks the TSX tree once, creates Dora nodes, assigns properties, and returns the created node or node group. It is a good fit for static scene fragments, prefabs, and objects that will be controlled directly by engine APIs after creation.
+
+`createRoot(parent)` creates a dynamic TSX root under an existing Dora node. A root remembers the last rendered element tree. When it updates, DoraX renders the next tree, compares it with the previous one, and applies the smallest practical change to the engine scene tree.
+
+```tsx
+import { Director } from 'Dora';
+import { React, createRoot, signal } from 'DoraX';
+
+const count = signal(0);
+const root = createRoot(Director.entry);
+
+root.render(() => (
+	<label fontName="sarasa-mono-sc-regular" fontSize={48}>
+		Clicks: {count.value}
+	</label>
+));
+
+Director.entry.onTapped(() => {
+	count.value += 1;
+});
+```
+
+When `count.value` changes, DoraX schedules the roots that read that signal and updates them on Dora's scheduler. The label node is reused and its text is patched.
+
+Call `root.unmount()` when the dynamic UI or scene fragment is no longer needed. This removes rendered nodes, clears refs, calls `onUnmount`, unsubscribes from signals, and prevents later signal changes from updating the root.
+
+## Signals and Hooks
+
+DoraX separates module-level state helpers from component-local hooks.
+
+| API | Where to use it | Purpose |
+| --- | --- | --- |
+| `signal(value)` | Module scope or ordinary code | Shared reactive state that can update dynamic roots. |
+| `reference(value?)` | Module scope or ordinary code | A ref object for nodes or values created outside hooks. |
+| `useSignal(value)` | Function components only | Component-local reactive state with stable identity across renders. |
+| `useRef(value?)` | Function components only | Component-local mutable ref with stable identity across renders. |
+| `useMemo(factory, deps)` | Function components only | Cache an expensive value until dependencies change. |
+| `useCallback(callback, deps)` | Function components only | Keep callback identity stable until dependencies change. |
+
+Hooks must be called from DoraX function components. Calling `useSignal`, `useRef`, `useMemo`, or `useCallback` outside a component is an error. For state or refs outside components, use `signal()` and `reference()`.
+
+```tsx
+import { React, useCallback, useSignal } from 'DoraX';
+
+function CounterButton() {
+	const count = useSignal(0);
+	const onTapped = useCallback(() => {
+		count.value += 1;
+	}, [count.value]);
+
+	return (
+		<label
+			fontName="sarasa-mono-sc-regular"
+			fontSize={36}
+			onTapped={onTapped}
+		>
+			{count.value}
+		</label>
+	);
+}
+```
+
+For `useMemo()` and `useCallback()`, DoraX checks the dependency array at compile time. If the callback closes over a value that is not listed, the compiler reports a missing dependency. If a listed dependency is not used by the callback, the compiler reports an unnecessary dependency. This is important because changing callback identity can cause some nodes, such as `<custom-node>`, to recreate.
+
+## Stable Keys in Dynamic Lists
+
+When siblings can be inserted, removed, filtered, or reordered, give each item a stable `key`. DoraX uses the key to find the old node that should be reused by the new element.
+
+```tsx
+interface MenuItem {
+	id: number;
+	text: string;
+}
+
+const items = signal<MenuItem[]>([
+	{ id: 1, text: "Start" },
+	{ id: 2, text: "Options" },
+	{ id: 3, text: "Exit" },
+]);
+
+root.render(() => (
+	<node>
+		{items.value.map(item => (
+			<label key={item.id} fontName="sarasa-mono-sc-regular" fontSize={30}>
+				{item.text}
+			</label>
+		))}
+	</node>
+));
+```
+
+If the list changes from `[1, 2, 3, 4]` to `[4, 2, 1, 3]`, keyed nodes keep their identity. DoraX also updates each reused node's `order` so the actual `parent.children` order follows the new TSX order, unless an element explicitly sets its own `order`.
+
+Unkeyed children are matched by index. That is fine for fixed child layouts, but not for dynamic lists.
+
+## Patch, Recreate, and Cleanup Patch
+
+During a dynamic update, DoraX chooses one of three behaviors:
+
+| Behavior | Meaning | Examples |
+| --- | --- | --- |
+| Patch | Reuse the Dora node and assign changed properties. | Position, scale, text, many ordinary node properties. |
+| Recreate | Unmount the old node and create a new one. | Element type change, key change, resource `file` change, `<custom-node onCreate>` change. |
+| Cleanup patch | Reuse the node, but clear or replace engine-side registrations. | Replacing event callbacks, replacing refs, changing `onUpdate`. |
+
+Most ordinary properties are patched with direct assignment. When an ordinary property is removed from the new TSX element, DoraX usually leaves the previous engine value unchanged instead of assigning `undefined`. Properties that support `undefined` or have explicit cleanup APIs are handled specially.
+
+### Common Recreate Cases
+
+| Element or property | Recreate condition |
+| --- | --- |
+| All elements | Element type changes or `key` changes. |
+| `onMount` | Changing, adding, or removing `onMount` recreates the node because it only runs during mount. |
+| `<draw-node>` | Any update recreates the draw node because draw shape children are immediate drawing commands. |
+| Resource nodes | `file` changes recreate nodes such as `sprite`, `playable`, `spine`, `model`, `audio-source`, `particle`, `tile-node`, and `video-node`. |
+| `<label>` | `fontName`, `fontSize`, or `sdf` changes recreate the label. Text itself is patched. |
+| `<body>` | Structural body settings and fixture child changes recreate the body. |
+| `<custom-node>` | `onCreate` changes recreate the custom node. |
+| `<align-node>` | `windowRoot` changes recreate the align node. |
+
+### Special Patch Cases
+
+| Element or property | Patch behavior |
+| --- | --- |
+| `ref` | Writes `ref.current = node`; replacing, removing, or unmounting clears the old ref. |
+| Slot events such as `onTapped`, `onKeyDown`, `onContactStart` | Clears the old slot handler and registers the new callback. Removing the prop clears the slot. |
+| Input events | Adding tap, keyboard, or controller events automatically enables the matching engine switch unless the prop explicitly disables it. |
+| `onUpdate` | Schedules the new function or job; removing it calls `unschedule()`. |
+| `onRender` | Replaces the render-phase callback by calling `clearRender()` before registering the new callback. Removing the prop calls `clearRender()`. |
+| `onContactFilter` | Replaces the current filter callback. |
+| `<contact>` under `<physics-world>` | Calls `setShouldContact()` for changed contact rules without recreating the physics world. |
+| `<playable play>` | Calls `play()` again when `play` or `loop` changes. |
+| `<audio-source playMode>` | Calls the matching play method when `playMode` or `delayTime` changes. |
+| `<particle emit>` | Starts when changed to true and stops when changed to false. |
+| `<align-node style>` | Rebuilds CSS text and calls `css()`. |
+| `<line verts>` | Calls `line.set()` when vertices or line color change. |
+
+## Event Callback Identity
+
+Most Dora slot-style event props are patchable, so changing a callback does not recreate the node. DoraX clears the old slot and registers the new function.
+
+`custom-node.onCreate` is different. It is the function that creates the Dora node itself, so if its identity changes, DoraX must recreate the node.
+
+Use `useCallback()` when a function component returns a `<custom-node>`:
+
+```tsx
+import { React, useCallback } from 'DoraX';
+import * as ButtonCreate from 'UI/Control/Basic/Button';
+
+function Button(props: { key?: number; text: string; onClick: () => void }) {
+	const createButton = useCallback(() => {
+		const button = ButtonCreate({
+			text: props.text,
+			width: 80,
+			height: 48,
+		});
+		button.onTapped(props.onClick);
+		return button;
+	}, [props.text, props.onClick]);
+
+	return <custom-node key={props.key} onCreate={createButton} />;
+}
+```
+
+If `props.text` is omitted from the dependency array, the compiler reports the missing dependency. If a listed dependency is not used, it reports the unnecessary dependency.
+
+## Action Children
+
+Action elements such as `<move-x>`, `<sequence>`, and `<loop>` are command-like children. When the action subtree changes, DoraX builds the action again and runs it on the host node. Removing an action child does not automatically stop an already running action.
+
+By default, action children use `runAction()`, so multiple actions can run in parallel. Add `exclusive` when the new action should replace the node's current action through `perform()`:
+
+```tsx
+<node>
+	<move-x time={0.2} start={0} stop={120} />
+	<scale exclusive time={0.2} start={1} stop={1.2} />
+</node>
+```
+
+If multiple exclusive actions appear in the same render pass, DoraX combines compatible actions with `Spawn(...)`. If `<loop exclusive>` and non-loop exclusive actions appear together on the same host node, DoraX chooses the first exclusive group by source order, ignores the conflicting group, and emits a warning.
+
+## Practical Rules
+
+- Use `toNode()` for one-shot construction.
+- Use `createRoot()` when TSX should follow data changes.
+- Use `signal()` and `reference()` outside components.
+- Use `useSignal()`, `useRef()`, `useMemo()`, and `useCallback()` inside function components.
+- Give dynamic sibling lists stable keys.
+- Keep `<custom-node onCreate>` stable with `useCallback()`.
+- Treat `file`, body fixtures, draw shapes, and other structural inputs as recreate boundaries.
+- Use `onUnmount` for cleanup when a diff removes a node.

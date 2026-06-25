@@ -1612,11 +1612,19 @@ object class Node
 	/// <param name="updateFunc">The function to run every frame. If the function returns `true`, it will not be called again.</param>
 	void onUpdate(function<def_true bool(double deltaTime)> updateFunc);
 	/// <summary>
+	/// Clears all functions scheduled with `onUpdate`.
+	/// </summary>
+	void clearUpdate();
+	/// <summary>
 	/// Registers a callback for event triggered when the node is entering the rendering phase. The callback is called every frame, and ensures that its call order is consistent with the rendering order of the scene tree, such as rendering child nodes after their parent nodes. Recommended for calling vector drawing functions.
 	/// </summary>
 	/// <param name="renderFunc">The function to call when the node is entering the rendering phase, returns true to stop.</param>
 	/// <returns>True to stop the function from running.</returns>
 	void onRender(function<def_true bool(double deltaTime)> renderFunc);
+	/// <summary>
+	/// Clears all functions registered with `onRender`.
+	/// </summary>
+	void clearRender();
 	/// <summary>
 	/// Creates a new instance of the `Node` struct.
 	/// </summary>

@@ -395,7 +395,9 @@ class Node : public Object
 	void unschedule();
 
 	void onUpdate(tolua_function_bool func);
+	void clearUpdate();
 	void onRender(tolua_function_bool func);
+	void clearRender();
 
 	Vec2 convertToNodeSpace(Vec2 worldPoint);
 	Vec2 convertToNodeSpace(Vec2 worldPoint, float& zInOut);

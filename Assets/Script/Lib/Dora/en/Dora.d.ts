@@ -3294,6 +3294,11 @@ class Node extends Object {
 	onUpdate(func: (this: void, deltaTime: number) => boolean): void;
 
 	/**
+	 * Clears all functions scheduled with `onUpdate`.
+	 */
+	clearUpdate(): void;
+
+	/**
 	 * Schedules a coroutine to run every frame. Call this function again to schedule multiple coroutines.
 	 * @param job The coroutine to run every frame.
 	 */
@@ -3304,6 +3309,11 @@ class Node extends Object {
 	 * @param func The function to call when the node is entering the rendering phase, returns true to stop.
 	 */
 	onRender(func: (this: void, deltaTime: number) => boolean): void;
+
+	/**
+	 * Clears all functions registered with `onRender`.
+	 */
+	clearRender(): void;
 
 	/**
 	 * Registers a callback for the event triggered when an action is finished.

@@ -804,12 +804,26 @@ void Node::onUpdate(const Update& func) {
 	}
 }
 
+void Node::clearUpdate() {
+	if (!_updateItem) return;
+	_updateItem->scheduledThreadFuncs.clear();
+	if (!_updateItem->hasFunc() && _flags.isOff(Node::Updating) && _updateItem->scheduledItem->iter) {
+		_scheduler->unschedule(_updateItem->scheduledItem.get());
+	}
+}
+
 void Node::onRender(const Update& func) {
 	auto updateItem = getUpdateItem();
 	if (!updateItem->renderFuncs) {
 		updateItem->renderFuncs = New<std::list<Update>>();
 	}
 	updateItem->renderFuncs->push_back(func);
+}
+
+void Node::clearRender() {
+	if (_updateItem) {
+		_updateItem->renderFuncs = nullptr;
+	}
 }
 
 bool Node::isUpdating() const noexcept {

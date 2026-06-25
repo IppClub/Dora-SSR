@@ -1,0 +1,197 @@
+# 动态 TSX 渲染和数据绑定
+
+基础 TSX 教程介绍了如何用 TSX 描述 Dora 节点，并通过 `toNode()` 创建节点。本篇补充说明 DoraX 中更接近 React 的动态渲染路径：`createRoot()`、`signal()`、hooks、keyed diff，以及哪些情况下 DoraX 会 patch 或重建引擎节点。
+
+## 一次性创建和动态根节点
+
+`toNode(element)` 是一次性转换。DoraX 会遍历 TSX 树，创建 Dora 节点，设置属性，然后返回创建出的节点或节点组。它适合静态场景片段、预制对象，以及创建后主要由引擎 API 或你的代码直接控制的对象。
+
+`createRoot(parent)` 会在一个已有 Dora 节点下创建动态 TSX 根节点。动态 root 会记住上一次渲染出的元素树。更新时，DoraX 会重新执行渲染函数，把新的树和旧树比较，并尽量以较小的代价更新引擎场景树。
+
+```tsx
+import { Director } from 'Dora';
+import { React, createRoot, signal } from 'DoraX';
+
+const count = signal(0);
+const root = createRoot(Director.entry);
+
+root.render(() => (
+	<label fontName="sarasa-mono-sc-regular" fontSize={48}>
+		Clicks: {count.value}
+	</label>
+));
+
+Director.entry.onTapped(() => {
+	count.value += 1;
+});
+```
+
+当 `count.value` 变化时，DoraX 会调度读取过该 signal 的 root，在 Dora 的调度器上更新它们。上面的 label 节点会被复用，只更新文本内容。
+
+当动态 UI 或场景片段不再需要时，调用 `root.unmount()`。它会移除渲染出的节点，清理 ref，调用 `onUnmount`，取消 signal 订阅，并避免后续 signal 变化继续更新这个 root。
+
+## Signals 和 Hooks
+
+DoraX 区分模块级状态工具和组件内 hooks。
+
+| API | 使用位置 | 用途 |
+| --- | --- | --- |
+| `signal(value)` | 模块作用域或普通代码 | 可驱动动态 root 更新的共享响应式状态。 |
+| `reference(value?)` | 模块作用域或普通代码 | 在 hooks 外创建节点或值引用。 |
+| `useSignal(value)` | 只能在函数组件内 | 组件本地响应式状态，跨 render 保持同一实例。 |
+| `useRef(value?)` | 只能在函数组件内 | 组件本地可变引用，跨 render 保持同一对象。 |
+| `useMemo(factory, deps)` | 只能在函数组件内 | 缓存计算结果，直到依赖变化。 |
+| `useCallback(callback, deps)` | 只能在函数组件内 | 保持回调函数身份稳定，直到依赖变化。 |
+
+Hooks 必须在 DoraX 函数组件内调用。在组件外调用 `useSignal`、`useRef`、`useMemo` 或 `useCallback` 会报错。组件外需要状态或 ref 时，使用 `signal()` 和 `reference()`。
+
+```tsx
+import { React, useCallback, useSignal } from 'DoraX';
+
+function CounterButton() {
+	const count = useSignal(0);
+	const onTapped = useCallback(() => {
+		count.value += 1;
+	}, [count.value]);
+
+	return (
+		<label
+			fontName="sarasa-mono-sc-regular"
+			fontSize={36}
+			onTapped={onTapped}
+		>
+			{count.value}
+		</label>
+	);
+}
+```
+
+对 `useMemo()` 和 `useCallback()`，DoraX 会在编译期检查依赖数组。如果回调闭包里使用了某个值但没有写进依赖数组，编译器会报缺失依赖。如果依赖数组里写了回调没有使用的值，编译器会报告多余依赖。这个检查很重要，因为回调身份变化可能导致某些节点重建，例如 `<custom-node>`。
+
+## 动态列表中的稳定 key
+
+当同级列表会插入、删除、过滤或重排时，应给每一项提供稳定的 `key`。DoraX 使用 key 找回应该被新元素复用的旧节点。
+
+```tsx
+interface MenuItem {
+	id: number;
+	text: string;
+}
+
+const items = signal<MenuItem[]>([
+	{ id: 1, text: "Start" },
+	{ id: 2, text: "Options" },
+	{ id: 3, text: "Exit" },
+]);
+
+root.render(() => (
+	<node>
+		{items.value.map(item => (
+			<label key={item.id} fontName="sarasa-mono-sc-regular" fontSize={30}>
+				{item.text}
+			</label>
+		))}
+	</node>
+));
+```
+
+如果列表从 `[1, 2, 3, 4]` 变为 `[4, 2, 1, 3]`，带 key 的节点会保持身份不变。DoraX 还会更新复用节点的 `order`，让实际的 `parent.children` 顺序跟随新的 TSX 顺序，除非元素显式设置了自己的 `order`。
+
+没有 key 的子节点会按下标匹配。固定布局中可以这样做，但动态列表不应省略 key。
+
+## Patch、重建和带清理的 Patch
+
+动态更新时，DoraX 会在三种行为中选择一种：
+
+| 行为 | 含义 | 示例 |
+| --- | --- | --- |
+| Patch | 复用 Dora 节点，并更新变化的属性。 | 位置、缩放、文本、多数普通节点属性。 |
+| 重建 | unmount 旧节点，再创建新节点。 | 元素类型变化、key 变化、资源 `file` 变化、`<custom-node onCreate>` 变化。 |
+| 带清理的 patch | 复用节点，但清理或替换引擎侧注册。 | 替换事件回调、替换 ref、修改 `onUpdate`。 |
+
+多数普通属性会直接赋值 patch。当一个普通属性从新的 TSX 元素中移除时，DoraX 通常不会给引擎属性写入 `undefined`，而是保留之前的引擎值。只有属性本身支持 `undefined`，或存在明确清理 API 时，DoraX 才会做专门清理。
+
+### 常见重建场景
+
+| 元素或属性 | 重建条件 |
+| --- | --- |
+| 所有元素 | 元素类型变化或 `key` 变化。 |
+| `onMount` | 修改、添加或删除 `onMount` 都会重建，因为它只在 mount 阶段执行。 |
+| `<draw-node>` | 任意更新都会重建，因为 draw shape 子节点是即时绘制命令。 |
+| 资源节点 | `sprite`、`playable`、`spine`、`model`、`audio-source`、`particle`、`tile-node`、`video-node` 等节点的 `file` 变化会重建。 |
+| `<label>` | `fontName`、`fontSize` 或 `sdf` 变化会重建。文本内容本身会 patch。 |
+| `<body>` | 结构性的 body 设置和 fixture 子节点变化会重建 body。 |
+| `<custom-node>` | `onCreate` 变化会重建 custom node。 |
+| `<align-node>` | `windowRoot` 变化会重建 align node。 |
+
+### 特殊 patch 场景
+
+| 元素或属性 | Patch 行为 |
+| --- | --- |
+| `ref` | 写入 `ref.current = node`；替换、删除或 unmount 时清理旧 ref。 |
+| `onTapped`、`onKeyDown`、`onContactStart` 等 slot 事件 | 清理旧 slot 回调并注册新回调。删除属性时清理 slot。 |
+| 输入事件 | 新增 tap、keyboard 或 controller 事件时，会自动开启对应的引擎开关，除非属性显式禁用。 |
+| `onUpdate` | 注册新的函数或 job；删除时调用 `unschedule()`。 |
+| `onRender` | 替换渲染阶段回调时先调用 `clearRender()`，再注册新回调。删除属性时调用 `clearRender()`。 |
+| `onContactFilter` | 替换当前 filter 回调。 |
+| `<physics-world>` 下的 `<contact>` | 调用 `setShouldContact()` 更新碰撞规则，不重建 physics world。 |
+| `<playable play>` | `play` 或 `loop` 变化时重新调用 `play()`。 |
+| `<audio-source playMode>` | `playMode` 或 `delayTime` 变化时调用对应播放方法。 |
+| `<particle emit>` | 变化为 true 时 `start()`，变化为 false 时 `stop()`。 |
+| `<align-node style>` | 重新生成 CSS 文本并调用 `css()`。 |
+| `<line verts>` | 顶点或颜色变化时调用 `line.set()`。 |
+
+## 事件回调身份
+
+多数 Dora slot 风格事件属性是可 patch 的，因此回调变化不会重建节点。DoraX 会清理旧 slot，再注册新函数。
+
+`custom-node.onCreate` 不同。它是创建 Dora 节点本身的函数，所以函数身份变化时，DoraX 必须重建节点。
+
+在函数组件中返回 `<custom-node>` 时，应使用 `useCallback()` 保持 `onCreate` 稳定：
+
+```tsx
+import { React, useCallback } from 'DoraX';
+import * as ButtonCreate from 'UI/Control/Basic/Button';
+
+function Button(props: { key?: number; text: string; onClick: () => void }) {
+	const createButton = useCallback(() => {
+		const button = ButtonCreate({
+			text: props.text,
+			width: 80,
+			height: 48,
+		});
+		button.onTapped(props.onClick);
+		return button;
+	}, [props.text, props.onClick]);
+
+	return <custom-node key={props.key} onCreate={createButton} />;
+}
+```
+
+如果漏写 `props.text`，编译器会报告缺失依赖。如果依赖数组里写了回调没有使用的值，编译器会报告多余依赖。
+
+## Action 子节点
+
+`<move-x>`、`<sequence>`、`<loop>` 等 action 元素是命令型子节点。当 action 子树变化时，DoraX 会重新构造 action，并在宿主节点上再次执行。删除 action 子节点不会主动停止已经运行的 action。
+
+默认 action 子节点使用 `runAction()`，因此多个 action 可以并行运行。如果新 action 应该通过 `perform()` 替换节点当前动作，可以添加 `exclusive`：
+
+```tsx
+<node>
+	<move-x time={0.2} start={0} stop={120} />
+	<scale exclusive time={0.2} start={1} stop={1.2} />
+</node>
+```
+
+如果同一轮渲染中出现多个 exclusive action，DoraX 会把兼容的 action 用 `Spawn(...)` 合并。如果同一宿主节点上同时出现 `<loop exclusive>` 和非 loop 的 exclusive action，DoraX 会按源码顺序选择先出现的独占组，忽略冲突组，并输出 warning。
+
+## 实用规则
+
+- 只需要一次性创建时使用 `toNode()`。
+- TSX 需要跟随数据变化时使用 `createRoot()`。
+- 组件外使用 `signal()` 和 `reference()`。
+- 函数组件内使用 `useSignal()`、`useRef()`、`useMemo()` 和 `useCallback()`。
+- 动态同级列表必须提供稳定 key。
+- 用 `useCallback()` 保持 `<custom-node onCreate>` 稳定。
+- 把 `file`、body fixture、draw shape 等结构性输入看作重建边界。
+- 节点被 diff 删除时需要清理逻辑，就使用 `onUnmount`。

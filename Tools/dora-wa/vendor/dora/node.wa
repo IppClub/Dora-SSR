@@ -359,8 +359,14 @@ func node_emit(slf: i64, name: i64, stack: i64)
 #wa:import dora node_on_update
 func node_on_update(slf: i64, func0: i32, stack0: i64)
 
+#wa:import dora node_clear_update
+func node_clear_update(slf: i64)
+
 #wa:import dora node_on_render
 func node_on_render(slf: i64, func0: i32, stack0: i64)
+
+#wa:import dora node_clear_render
+func node_clear_render(slf: i64)
 
 #wa:import dora node_new
 func node_new() => i64
@@ -1292,6 +1298,11 @@ func Node.OnUpdate(update_func: func(delta_time: f64) => bool) {
 	node_on_update(*this.raw, func_id0, *stack0.raw)
 }
 
+/// Clears all functions scheduled with `onUpdate`.
+func Node.ClearUpdate() {
+	node_clear_update(*this.raw)
+}
+
 /// Registers a callback for event triggered when the node is entering the rendering phase. The callback is called every frame, and ensures that its call order is consistent with the rendering order of the scene tree, such as rendering child nodes after their parent nodes. Recommended for calling vector drawing functions.
 ///
 /// # Arguments
@@ -1309,6 +1320,11 @@ func Node.OnRender(render_func: func(delta_time: f64) => bool) {
 		stack0.Push(result_)
 	})
 	node_on_render(*this.raw, func_id0, *stack0.raw)
+}
+
+/// Clears all functions registered with `onRender`.
+func Node.ClearRender() {
+	node_clear_render(*this.raw)
 }
 
 /// Creates a new instance of the `Node` struct.

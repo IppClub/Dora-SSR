@@ -476,6 +476,9 @@ local record Node
 	-- 	@return (boolean) 如果返回true，则停止调度。
 	onUpdate: function(self: Node, func: function(number): boolean)
 
+	-- 清理所有通过`onUpdate`调度的函数。
+	clearUpdate: function(self: Node)
+
 	-- 调度一个协程，该协程会在每一帧运行。可以反复调用以同时调度多个协程。
 	-- @param job (Routine.Job) 要在每一帧运行的协程。
 	onUpdate: function(self: Node, job: Routine.Job)
@@ -485,6 +488,9 @@ local record Node
 	-- 	@parem deltaTime (number) 从上一帧到当前帧的时间间隔。
 	-- 	@return (boolean) 如果返回true，则停止触发该渲染回调。
 	onRender: function(self: Node, func: function(number): boolean)
+
+	-- 清理所有通过`onRender`注册的函数。
+	clearRender: function(self: Node)
 
 	-- 注册节点执行完一个动作时触发的回调函数。
 	-- @param callback (function) 动作执行完时的回调函数。

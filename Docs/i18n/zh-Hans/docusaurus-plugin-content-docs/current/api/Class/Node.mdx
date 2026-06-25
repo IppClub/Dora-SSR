@@ -1583,6 +1583,19 @@ onUpdate: function(self: Node, func: function(number): boolean)
 | --- | --- | --- |
 | func | function | 要在每一帧运行的函数，返回true以停止。 |
 
+## clearUpdate
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;清理所有通过 `onUpdate` 调度的函数。
+
+**签名：**
+```tl
+clearUpdate: function(self: Node)
+```
+
 ## onUpdate
 
 **类型：** 函数。
@@ -1620,6 +1633,19 @@ onRender: function(self: Node, func: function(number): boolean)
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
 | func | function | 渲染时的回调函数。 |
+
+## clearRender
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;清理所有通过 `onRender` 注册的函数。
+
+**签名：**
+```tl
+clearRender: function(self: Node)
+```
 
 ## onActionEnd
 

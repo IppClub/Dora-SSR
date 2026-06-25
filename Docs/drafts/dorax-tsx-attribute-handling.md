@@ -111,6 +111,7 @@
 | 属性 | 所属元素 | 动态更新模式 | 额外清理 |
 | --- | --- | --- | --- |
 | `onUpdate` | 所有 `node` 派生元素 | patch | 新值为函数时调用 `node.schedule(fn)`；新值为 `Dora.Job` 时调用 `node.schedule(job)`；删除时调用 `node.unschedule()` |
+| `onRender` | 所有 `node` 派生元素 | patch | 更新前调用 `node.clearRender()`；新值存在时再调用 `node.onRender(fn)`；删除时只调用 `node.clearRender()` |
 | `onContactFilter` | `body` | patch | 新值调用 `body.onContactFilter(fn)` 替换旧 filter；删除时设置为 `() => true`，保持当前默认放行行为，避免旧 filter 残留 |
 
 ## 元素专用属性

@@ -119,6 +119,11 @@ class Node {
 	onUpdate?: ((this: void, deltaTime: number) => boolean) | Dora.Job;
 
 	/**
+	 * 注册节点进入渲染阶段时调用的回调。返回true以停止要运行的函数。
+	 */
+	onRender?: (this: void, deltaTime: number) => boolean;
+
+	/**
 	 * ActionEnd事件会在节点执行完动作时触发。
 	 * 在`node.runAction()`和`node.perform()`之后触发。
 	 * @param action 执行完成的动作。

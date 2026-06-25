@@ -473,6 +473,9 @@ local record Node
 	-- 	@return (boolean) True to stop the function from running.
 	onUpdate: function(self: Node, func: function(number): boolean)
 
+	-- Clears all functions scheduled with `onUpdate`.
+	clearUpdate: function(self: Node)
+
 	-- Schedules a coroutine to run every frame. Call this function again to schedule multiple coroutines.
 	-- @param job (Routine.Job) The coroutine to run every frame.
 	onUpdate: function(self: Node, job: Routine.Job)
@@ -482,6 +485,9 @@ local record Node
 	-- 	@param deltaTime (number) The time interval in seconds since the last frame.
 	-- 	@return (boolean) True to stop the function from running.
 	onRender: function(self: Node, func: function(number): boolean)
+
+	-- Clears all functions registered with `onRender`.
+	clearRender: function(self: Node)
 
 	-- Registers a callback for event triggered when an action is finished.
 	-- @param callback (function) The callback function to register.

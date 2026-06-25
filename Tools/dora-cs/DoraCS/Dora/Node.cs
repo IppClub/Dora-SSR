@@ -250,7 +250,11 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void node_on_update(int64_t self, int32_t func0, int64_t stack0);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void node_clear_update(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void node_on_render(int64_t self, int32_t func0, int64_t stack0);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void node_clear_render(int64_t self);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t node_new();
 	}
@@ -1020,6 +1024,13 @@ namespace Dora
 			Native.node_on_update(Raw, func_id0, stack_raw0);
 		}
 		/// <summary>
+		/// Clears all functions scheduled with `onUpdate`.
+		/// </summary>
+		public void ClearUpdate()
+		{
+			Native.node_clear_update(Raw);
+		}
+		/// <summary>
 		/// Registers a callback for event triggered when the node is entering the rendering phase. The callback is called every frame, and ensures that its call order is consistent with the rendering order of the scene tree, such as rendering child nodes after their parent nodes. Recommended for calling vector drawing functions.
 		/// </summary>
 		/// <param name="renderFunc">The function to call when the node is entering the rendering phase, returns true to stop.</param>
@@ -1034,6 +1045,13 @@ namespace Dora
 				stack0.Push(result);
 			});
 			Native.node_on_render(Raw, func_id0, stack_raw0);
+		}
+		/// <summary>
+		/// Clears all functions registered with `onRender`.
+		/// </summary>
+		public void ClearRender()
+		{
+			Native.node_clear_render(Raw);
 		}
 		/// <summary>
 		/// Creates a new instance of the `Node` struct.
