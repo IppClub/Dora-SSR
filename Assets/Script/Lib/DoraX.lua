@@ -9,7 +9,7 @@ local __TS__New = ____lualib.__TS__New -- 1
 local __TS__ArrayMap = ____lualib.__TS__ArrayMap -- 1
 local __TS__SetDescriptor = ____lualib.__TS__SetDescriptor -- 1
 local ____exports = {} -- 1
-local Warn, renderFunctionComponent, applyAutoEnableProps, visitAction, visitNode, getElementKey, getPrimitiveLabelText, isDrawShapeElement, isBodyFixtureElement, isPhysicsWorldInputElement, isRunnableActionElement, shallowPropsEqual, collectRunnableActionElements, collectContactElements, getContactKey, patchPhysicsWorldInputs, actionElementEqual, actionChildrenEqual, createActionDef, structuralChildrenEqual, runActionChildren, patchActionChildren, toHostElement, createHostNode, getElementChildren, shouldRecreate, isEventProp, getEventSlot, isPatchableEventProp, patchEventProp, patchContactFilterProp, patchUpdateProp, patchRenderProp, clearRemovedProp, getAlignStyleText, patchPlayableProps, patchAudioSourceProps, patchParticleProps, patchAlignNodeProps, patchLineProps, clearRef, patchRef, applyProp, patchProps, addChildToParent, mountElement, unmountElement, reconcileElement, reconcileChildren, actionMap, elementMap, renderingHookRoot, currentHookFrame -- 1
+local Warn, renderFunctionComponent, applyAutoEnableProps, visitAction, visitNode, getElementKey, getPrimitiveLabelText, isDrawShapeElement, isBodyFixtureElement, isPhysicsWorldInputElement, isRunnableActionElement, shallowPropsEqual, collectRunnableActionElements, collectContactElements, getContactKey, patchPhysicsWorldInputs, actionElementEqual, actionChildrenEqual, createActionDef, structuralChildrenEqual, runActionChildren, patchActionChildren, toHostElement, createHostNode, getElementChildren, getRecreateMode, isEventProp, getEventSlot, isPatchableEventProp, patchEventProp, patchContactFilterProp, patchUpdateProp, patchRenderProp, clearRemovedProp, getAlignStyleText, patchPlayableProps, patchAudioSourceProps, patchParticleProps, patchAlignNodeProps, patchLineProps, clearRef, patchRef, applyProp, patchProps, addChildToParent, mountElement, unmountHostElement, unmountElement, reconcileElement, reconcileChildren, actionMap, elementMap, renderingHookRoot, currentHookFrame -- 1
 local Dora = require("Dora") -- 11
 function Warn(msg) -- 13
 	Dora.Log("Warn", "[Dora Warning] " .. msg) -- 14
@@ -527,574 +527,604 @@ function getElementChildren(enode) -- 1862
 	end -- 1885
 	return children -- 1892
 end -- 1892
-function shouldRecreate(oldElement, newElement) -- 1895
-	if oldElement.type ~= newElement.type then -- 1895
-		return true -- 1896
-	end -- 1896
-	if getElementKey(oldElement) ~= getElementKey(newElement) then -- 1896
-		return true -- 1897
-	end -- 1897
-	local oldProps = oldElement.props -- 1898
-	local newProps = newElement.props -- 1899
-	if newElement.type == "draw-node" then -- 1899
-		return true -- 1900
-	end -- 1900
-	for k, v in pairs(oldProps) do -- 1901
-		if k == "onMount" and newProps[k] ~= v then -- 1901
-			return true -- 1903
-		end -- 1903
-		if isEventProp(k) and not isPatchableEventProp(k) and newProps[k] ~= v then -- 1903
-			return true -- 1906
-		end -- 1906
-	end -- 1906
-	for k, v in pairs(newProps) do -- 1909
-		if k == "onMount" and oldProps[k] ~= v then -- 1909
-			return true -- 1911
-		end -- 1911
-		if isEventProp(k) and not isPatchableEventProp(k) and oldProps[k] ~= v then -- 1911
-			return true -- 1914
-		end -- 1914
-	end -- 1914
-	repeat -- 1914
-		local ____switch446 = newElement.type -- 1914
-		local ____cond446 = ____switch446 == "grid" -- 1914
-		if ____cond446 then -- 1914
-			return oldProps.file ~= newProps.file or oldProps.gridX ~= newProps.gridX or oldProps.gridY ~= newProps.gridY -- 1919
-		end -- 1919
-		____cond446 = ____cond446 or (____switch446 == "sprite" or ____switch446 == "video-node" or ____switch446 == "tic80-node" or ____switch446 == "audio-source" or ____switch446 == "particle" or ____switch446 == "tile-node" or ____switch446 == "playable" or ____switch446 == "dragon-bone" or ____switch446 == "spine" or ____switch446 == "model") -- 1919
-		if ____cond446 then -- 1919
-			return oldProps.file ~= newProps.file -- 1930
-		end -- 1930
-		____cond446 = ____cond446 or ____switch446 == "label" -- 1930
-		if ____cond446 then -- 1930
-			return oldProps.fontName ~= newProps.fontName or oldProps.fontSize ~= newProps.fontSize or oldProps.sdf ~= newProps.sdf -- 1932
+function getRecreateMode(oldElement, newElement) -- 1897
+	if oldElement.type ~= newElement.type then -- 1897
+		return "subtree" -- 1898
+	end -- 1898
+	if getElementKey(oldElement) ~= getElementKey(newElement) then -- 1898
+		return "subtree" -- 1899
+	end -- 1899
+	local oldProps = oldElement.props -- 1900
+	local newProps = newElement.props -- 1901
+	if newElement.type == "draw-node" then -- 1901
+		return "host" -- 1902
+	end -- 1902
+	for k, v in pairs(oldProps) do -- 1903
+		if k == "onMount" and newProps[k] ~= v then -- 1903
+			return "host" -- 1905
+		end -- 1905
+		if isEventProp(k) and not isPatchableEventProp(k) and newProps[k] ~= v then -- 1905
+			return "host" -- 1908
+		end -- 1908
+	end -- 1908
+	for k, v in pairs(newProps) do -- 1911
+		if k == "onMount" and oldProps[k] ~= v then -- 1911
+			return "host" -- 1913
+		end -- 1913
+		if isEventProp(k) and not isPatchableEventProp(k) and oldProps[k] ~= v then -- 1913
+			return "host" -- 1916
+		end -- 1916
+	end -- 1916
+	repeat -- 1916
+		local ____switch446 = newElement.type -- 1916
+		local ____cond446 = ____switch446 == "grid" -- 1916
+		if ____cond446 then -- 1916
+			return (oldProps.file ~= newProps.file or oldProps.gridX ~= newProps.gridX or oldProps.gridY ~= newProps.gridY) and "host" or nil -- 1921
+		end -- 1921
+		____cond446 = ____cond446 or (____switch446 == "sprite" or ____switch446 == "video-node" or ____switch446 == "tic80-node" or ____switch446 == "audio-source" or ____switch446 == "particle" or ____switch446 == "tile-node" or ____switch446 == "playable" or ____switch446 == "dragon-bone" or ____switch446 == "spine" or ____switch446 == "model") -- 1921
+		if ____cond446 then -- 1921
+			return oldProps.file ~= newProps.file and "host" or nil -- 1932
 		end -- 1932
-		____cond446 = ____cond446 or ____switch446 == "align-node" -- 1932
+		____cond446 = ____cond446 or ____switch446 == "label" -- 1932
 		if ____cond446 then -- 1932
-			return oldProps.windowRoot ~= newProps.windowRoot -- 1934
+			return (oldProps.fontName ~= newProps.fontName or oldProps.fontSize ~= newProps.fontSize or oldProps.sdf ~= newProps.sdf) and "host" or nil -- 1934
 		end -- 1934
-		____cond446 = ____cond446 or ____switch446 == "custom-node" -- 1934
+		____cond446 = ____cond446 or ____switch446 == "align-node" -- 1934
 		if ____cond446 then -- 1934
-			return oldProps.onCreate ~= newProps.onCreate -- 1936
+			return oldProps.windowRoot ~= newProps.windowRoot and "host" or nil -- 1936
 		end -- 1936
-		____cond446 = ____cond446 or ____switch446 == "body" -- 1936
+		____cond446 = ____cond446 or ____switch446 == "custom-node" -- 1936
 		if ____cond446 then -- 1936
-			return oldProps.type ~= newProps.type or oldProps.world ~= newProps.world or oldProps.fixedRotation ~= newProps.fixedRotation or oldProps.bullet ~= newProps.bullet or oldProps.linearAcceleration ~= newProps.linearAcceleration or not structuralChildrenEqual(oldElement, newElement, isBodyFixtureElement) -- 1938
+			return oldProps.onCreate ~= newProps.onCreate and "host" or nil -- 1938
 		end -- 1938
-	until true -- 1938
-	return false -- 1945
-end -- 1945
-function isEventProp(key) -- 1948
-	return type(key) == "string" and key ~= "onUnmount" and string.sub(key, 1, 2) == "on" -- 1949
-end -- 1949
-function getEventSlot(key) -- 1952
-	repeat -- 1952
-		local ____switch449 = key -- 1952
-		local ____cond449 = ____switch449 == "onActionEnd" -- 1952
-		if ____cond449 then -- 1952
-			return "ActionEnd" -- 1954
-		end -- 1954
-		____cond449 = ____cond449 or ____switch449 == "onTapFilter" -- 1954
+		____cond446 = ____cond446 or ____switch446 == "body" -- 1938
+		if ____cond446 then -- 1938
+			return (oldProps.type ~= newProps.type or oldProps.world ~= newProps.world or oldProps.fixedRotation ~= newProps.fixedRotation or oldProps.bullet ~= newProps.bullet or oldProps.linearAcceleration ~= newProps.linearAcceleration or not structuralChildrenEqual(oldElement, newElement, isBodyFixtureElement)) and "host" or nil -- 1940
+		end -- 1940
+	until true -- 1940
+	return nil -- 1947
+end -- 1947
+function isEventProp(key) -- 1950
+	return type(key) == "string" and key ~= "onUnmount" and string.sub(key, 1, 2) == "on" -- 1951
+end -- 1951
+function getEventSlot(key) -- 1954
+	repeat -- 1954
+		local ____switch449 = key -- 1954
+		local ____cond449 = ____switch449 == "onActionEnd" -- 1954
 		if ____cond449 then -- 1954
-			return "TapFilter" -- 1955
-		end -- 1955
-		____cond449 = ____cond449 or ____switch449 == "onTapBegan" -- 1955
-		if ____cond449 then -- 1955
-			return "TapBegan" -- 1956
+			return "ActionEnd" -- 1956
 		end -- 1956
-		____cond449 = ____cond449 or ____switch449 == "onTapEnded" -- 1956
+		____cond449 = ____cond449 or ____switch449 == "onTapFilter" -- 1956
 		if ____cond449 then -- 1956
-			return "TapEnded" -- 1957
+			return "TapFilter" -- 1957
 		end -- 1957
-		____cond449 = ____cond449 or ____switch449 == "onTapped" -- 1957
+		____cond449 = ____cond449 or ____switch449 == "onTapBegan" -- 1957
 		if ____cond449 then -- 1957
-			return "Tapped" -- 1958
+			return "TapBegan" -- 1958
 		end -- 1958
-		____cond449 = ____cond449 or ____switch449 == "onTapMoved" -- 1958
+		____cond449 = ____cond449 or ____switch449 == "onTapEnded" -- 1958
 		if ____cond449 then -- 1958
-			return "TapMoved" -- 1959
+			return "TapEnded" -- 1959
 		end -- 1959
-		____cond449 = ____cond449 or ____switch449 == "onMouseWheel" -- 1959
+		____cond449 = ____cond449 or ____switch449 == "onTapped" -- 1959
 		if ____cond449 then -- 1959
-			return "MouseWheel" -- 1960
+			return "Tapped" -- 1960
 		end -- 1960
-		____cond449 = ____cond449 or ____switch449 == "onGesture" -- 1960
+		____cond449 = ____cond449 or ____switch449 == "onTapMoved" -- 1960
 		if ____cond449 then -- 1960
-			return "Gesture" -- 1961
+			return "TapMoved" -- 1961
 		end -- 1961
-		____cond449 = ____cond449 or ____switch449 == "onEnter" -- 1961
+		____cond449 = ____cond449 or ____switch449 == "onMouseWheel" -- 1961
 		if ____cond449 then -- 1961
-			return "Enter" -- 1962
+			return "MouseWheel" -- 1962
 		end -- 1962
-		____cond449 = ____cond449 or ____switch449 == "onExit" -- 1962
+		____cond449 = ____cond449 or ____switch449 == "onGesture" -- 1962
 		if ____cond449 then -- 1962
-			return "Exit" -- 1963
+			return "Gesture" -- 1963
 		end -- 1963
-		____cond449 = ____cond449 or ____switch449 == "onCleanup" -- 1963
+		____cond449 = ____cond449 or ____switch449 == "onEnter" -- 1963
 		if ____cond449 then -- 1963
-			return "Cleanup" -- 1964
+			return "Enter" -- 1964
 		end -- 1964
-		____cond449 = ____cond449 or ____switch449 == "onKeyDown" -- 1964
+		____cond449 = ____cond449 or ____switch449 == "onExit" -- 1964
 		if ____cond449 then -- 1964
-			return "KeyDown" -- 1965
+			return "Exit" -- 1965
 		end -- 1965
-		____cond449 = ____cond449 or ____switch449 == "onKeyUp" -- 1965
+		____cond449 = ____cond449 or ____switch449 == "onCleanup" -- 1965
 		if ____cond449 then -- 1965
-			return "KeyUp" -- 1966
+			return "Cleanup" -- 1966
 		end -- 1966
-		____cond449 = ____cond449 or ____switch449 == "onKeyPressed" -- 1966
+		____cond449 = ____cond449 or ____switch449 == "onKeyDown" -- 1966
 		if ____cond449 then -- 1966
-			return "KeyPressed" -- 1967
+			return "KeyDown" -- 1967
 		end -- 1967
-		____cond449 = ____cond449 or ____switch449 == "onAttachIME" -- 1967
+		____cond449 = ____cond449 or ____switch449 == "onKeyUp" -- 1967
 		if ____cond449 then -- 1967
-			return "AttachIME" -- 1968
+			return "KeyUp" -- 1968
 		end -- 1968
-		____cond449 = ____cond449 or ____switch449 == "onDetachIME" -- 1968
+		____cond449 = ____cond449 or ____switch449 == "onKeyPressed" -- 1968
 		if ____cond449 then -- 1968
-			return "DetachIME" -- 1969
+			return "KeyPressed" -- 1969
 		end -- 1969
-		____cond449 = ____cond449 or ____switch449 == "onTextInput" -- 1969
+		____cond449 = ____cond449 or ____switch449 == "onAttachIME" -- 1969
 		if ____cond449 then -- 1969
-			return "TextInput" -- 1970
+			return "AttachIME" -- 1970
 		end -- 1970
-		____cond449 = ____cond449 or ____switch449 == "onTextEditing" -- 1970
+		____cond449 = ____cond449 or ____switch449 == "onDetachIME" -- 1970
 		if ____cond449 then -- 1970
-			return "TextEditing" -- 1971
+			return "DetachIME" -- 1971
 		end -- 1971
-		____cond449 = ____cond449 or ____switch449 == "onButtonDown" -- 1971
+		____cond449 = ____cond449 or ____switch449 == "onTextInput" -- 1971
 		if ____cond449 then -- 1971
-			return "ButtonDown" -- 1972
+			return "TextInput" -- 1972
 		end -- 1972
-		____cond449 = ____cond449 or ____switch449 == "onButtonUp" -- 1972
+		____cond449 = ____cond449 or ____switch449 == "onTextEditing" -- 1972
 		if ____cond449 then -- 1972
-			return "ButtonUp" -- 1973
+			return "TextEditing" -- 1973
 		end -- 1973
-		____cond449 = ____cond449 or ____switch449 == "onAxis" -- 1973
+		____cond449 = ____cond449 or ____switch449 == "onButtonDown" -- 1973
 		if ____cond449 then -- 1973
-			return "Axis" -- 1974
+			return "ButtonDown" -- 1974
 		end -- 1974
-		____cond449 = ____cond449 or ____switch449 == "onAnimationEnd" -- 1974
+		____cond449 = ____cond449 or ____switch449 == "onButtonUp" -- 1974
 		if ____cond449 then -- 1974
-			return "AnimationEnd" -- 1975
+			return "ButtonUp" -- 1975
 		end -- 1975
-		____cond449 = ____cond449 or ____switch449 == "onFinished" -- 1975
+		____cond449 = ____cond449 or ____switch449 == "onAxis" -- 1975
 		if ____cond449 then -- 1975
-			return "Finished" -- 1976
+			return "Axis" -- 1976
 		end -- 1976
-		____cond449 = ____cond449 or ____switch449 == "onLayout" -- 1976
+		____cond449 = ____cond449 or ____switch449 == "onAnimationEnd" -- 1976
 		if ____cond449 then -- 1976
-			return "AlignLayout" -- 1977
+			return "AnimationEnd" -- 1977
 		end -- 1977
-		____cond449 = ____cond449 or ____switch449 == "onBodyEnter" -- 1977
+		____cond449 = ____cond449 or ____switch449 == "onFinished" -- 1977
 		if ____cond449 then -- 1977
-			return "BodyEnter" -- 1978
+			return "Finished" -- 1978
 		end -- 1978
-		____cond449 = ____cond449 or ____switch449 == "onBodyLeave" -- 1978
+		____cond449 = ____cond449 or ____switch449 == "onLayout" -- 1978
 		if ____cond449 then -- 1978
-			return "BodyLeave" -- 1979
+			return "AlignLayout" -- 1979
 		end -- 1979
-		____cond449 = ____cond449 or ____switch449 == "onContactStart" -- 1979
+		____cond449 = ____cond449 or ____switch449 == "onBodyEnter" -- 1979
 		if ____cond449 then -- 1979
-			return "ContactStart" -- 1980
+			return "BodyEnter" -- 1980
 		end -- 1980
-		____cond449 = ____cond449 or ____switch449 == "onContactEnd" -- 1980
+		____cond449 = ____cond449 or ____switch449 == "onBodyLeave" -- 1980
 		if ____cond449 then -- 1980
-			return "ContactEnd" -- 1981
+			return "BodyLeave" -- 1981
 		end -- 1981
-	until true -- 1981
-	return nil -- 1983
-end -- 1983
-function isPatchableEventProp(key) -- 1986
-	return getEventSlot(key) ~= nil or key == "onContactFilter" or key == "onUpdate" or key == "onRender" -- 1987
-end -- 1987
-function patchEventProp(node, key, value) -- 1990
-	local slotName = getEventSlot(key) -- 1991
-	if slotName == nil then -- 1991
-		return -- 1992
-	end -- 1992
-	node:slot(slotName):clear() -- 1993
-	if value ~= nil then -- 1993
-		node:slot(slotName, value) -- 1995
-	end -- 1995
-end -- 1995
-function patchContactFilterProp(node, value) -- 1999
-	local body = Dora.tolua.cast(node, "Body") -- 2000
-	if body == nil then -- 2000
-		return -- 2001
-	end -- 2001
-	if value == nil then -- 2001
-		body:onContactFilter(function() return true end) -- 2003
-	else -- 2003
-		body:onContactFilter(value) -- 2005
-	end -- 2005
-end -- 2005
-function patchUpdateProp(node, value) -- 2009
-	if value == nil then -- 2009
-		node:unschedule() -- 2011
-	elseif type(value) == "thread" then -- 2011
-		node:schedule(value) -- 2013
-	else -- 2013
+		____cond449 = ____cond449 or ____switch449 == "onContactStart" -- 1981
+		if ____cond449 then -- 1981
+			return "ContactStart" -- 1982
+		end -- 1982
+		____cond449 = ____cond449 or ____switch449 == "onContactEnd" -- 1982
+		if ____cond449 then -- 1982
+			return "ContactEnd" -- 1983
+		end -- 1983
+	until true -- 1983
+	return nil -- 1985
+end -- 1985
+function isPatchableEventProp(key) -- 1988
+	return getEventSlot(key) ~= nil or key == "onContactFilter" or key == "onUpdate" or key == "onRender" -- 1989
+end -- 1989
+function patchEventProp(node, key, value) -- 1992
+	local slotName = getEventSlot(key) -- 1993
+	if slotName == nil then -- 1993
+		return -- 1994
+	end -- 1994
+	node:slot(slotName):clear() -- 1995
+	if value ~= nil then -- 1995
+		node:slot(slotName, value) -- 1997
+	end -- 1997
+end -- 1997
+function patchContactFilterProp(node, value) -- 2001
+	local body = Dora.tolua.cast(node, "Body") -- 2002
+	if body == nil then -- 2002
+		return -- 2003
+	end -- 2003
+	if value == nil then -- 2003
+		body:onContactFilter(function() return true end) -- 2005
+	else -- 2005
+		body:onContactFilter(value) -- 2007
+	end -- 2007
+end -- 2007
+function patchUpdateProp(node, value) -- 2011
+	if value == nil then -- 2011
+		node:unschedule() -- 2013
+	elseif type(value) == "thread" then -- 2013
 		node:schedule(value) -- 2015
-	end -- 2015
-end -- 2015
-function patchRenderProp(node, value) -- 2019
-	node:clearRender() -- 2020
-	if value == nil then -- 2020
-		return -- 2022
-	end -- 2022
-	node:onRender(value) -- 2024
-end -- 2024
-function clearRemovedProp(node, key) -- 2027
-	repeat -- 2027
-		local ____switch466 = key -- 2027
-		local ____cond466 = ____switch466 == "transformTarget" or ____switch466 == "stencil" -- 2027
-		if ____cond466 then -- 2027
-			node[key] = nil -- 2031
-			return true -- 2032
-		end -- 2032
-	until true -- 2032
-	return false -- 2034
-end -- 2034
-function getAlignStyleText(style) -- 2037
-	local items = {} -- 2038
-	for k, v in pairs(style) do -- 2039
-		local name = string.gsub(k, "%u", "-%1") -- 2040
-		name = string.lower(name) -- 2041
-		repeat -- 2041
-			local ____switch469 = k -- 2041
-			local ____cond469 = ____switch469 == "margin" or ____switch469 == "padding" or ____switch469 == "border" or ____switch469 == "gap" -- 2041
-			if ____cond469 then -- 2041
-				do -- 2041
-					if type(v) == "table" then -- 2041
-						local valueStr = table.concat( -- 2046
-							__TS__ArrayMap( -- 2046
-								v, -- 2046
-								function(____, item) return tostring(item) end -- 2046
-							), -- 2046
-							"," -- 2046
-						) -- 2046
-						items[#items + 1] = (name .. ":") .. valueStr -- 2047
-					else -- 2047
-						items[#items + 1] = (name .. ":") .. tostring(v) -- 2049
-					end -- 2049
-					break -- 2051
-				end -- 2051
-			end -- 2051
-			do -- 2051
-				items[#items + 1] = (name .. ":") .. tostring(v) -- 2054
-				break -- 2055
-			end -- 2055
-		until true -- 2055
-	end -- 2055
-	return table.concat(items, ";") -- 2058
-end -- 2058
-function patchPlayableProps(node, oldProps, newProps) -- 2061
-	if newProps.play ~= nil and (oldProps.play ~= newProps.play or oldProps.loop ~= newProps.loop) then -- 2061
-		node:play(newProps.play, newProps.loop == true) -- 2063
-	end -- 2063
-end -- 2063
-function patchAudioSourceProps(node, oldProps, newProps) -- 2067
-	if newProps.playMode ~= nil and (oldProps.playMode ~= newProps.playMode or oldProps.delayTime ~= newProps.delayTime) then -- 2067
-		local audio = node -- 2069
-		repeat -- 2069
-			local ____switch478 = newProps.playMode -- 2069
-			local ____cond478 = ____switch478 == "normal" -- 2069
-			if ____cond478 then -- 2069
-				local ____audio_play_62 = audio.play -- 2071
-				local ____newProps_delayTime_61 = newProps.delayTime -- 2071
-				if ____newProps_delayTime_61 == nil then -- 2071
-					____newProps_delayTime_61 = 0 -- 2071
-				end -- 2071
-				____audio_play_62(audio, ____newProps_delayTime_61) -- 2071
-				break -- 2071
-			end -- 2071
-			____cond478 = ____cond478 or ____switch478 == "background" -- 2071
+	else -- 2015
+		node:schedule(value) -- 2017
+	end -- 2017
+end -- 2017
+function patchRenderProp(node, value) -- 2021
+	node:clearRender() -- 2022
+	if value == nil then -- 2022
+		return -- 2024
+	end -- 2024
+	node:onRender(value) -- 2026
+end -- 2026
+function clearRemovedProp(node, key) -- 2029
+	repeat -- 2029
+		local ____switch466 = key -- 2029
+		local ____cond466 = ____switch466 == "transformTarget" or ____switch466 == "stencil" -- 2029
+		if ____cond466 then -- 2029
+			node[key] = nil -- 2033
+			return true -- 2034
+		end -- 2034
+	until true -- 2034
+	return false -- 2036
+end -- 2036
+function getAlignStyleText(style) -- 2039
+	local items = {} -- 2040
+	for k, v in pairs(style) do -- 2041
+		local name = string.gsub(k, "%u", "-%1") -- 2042
+		name = string.lower(name) -- 2043
+		repeat -- 2043
+			local ____switch469 = k -- 2043
+			local ____cond469 = ____switch469 == "margin" or ____switch469 == "padding" or ____switch469 == "border" or ____switch469 == "gap" -- 2043
+			if ____cond469 then -- 2043
+				do -- 2043
+					if type(v) == "table" then -- 2043
+						local valueStr = table.concat( -- 2048
+							__TS__ArrayMap( -- 2048
+								v, -- 2048
+								function(____, item) return tostring(item) end -- 2048
+							), -- 2048
+							"," -- 2048
+						) -- 2048
+						items[#items + 1] = (name .. ":") .. valueStr -- 2049
+					else -- 2049
+						items[#items + 1] = (name .. ":") .. tostring(v) -- 2051
+					end -- 2051
+					break -- 2053
+				end -- 2053
+			end -- 2053
+			do -- 2053
+				items[#items + 1] = (name .. ":") .. tostring(v) -- 2056
+				break -- 2057
+			end -- 2057
+		until true -- 2057
+	end -- 2057
+	return table.concat(items, ";") -- 2060
+end -- 2060
+function patchPlayableProps(node, oldProps, newProps) -- 2063
+	if newProps.play ~= nil and (oldProps.play ~= newProps.play or oldProps.loop ~= newProps.loop) then -- 2063
+		node:play(newProps.play, newProps.loop == true) -- 2065
+	end -- 2065
+end -- 2065
+function patchAudioSourceProps(node, oldProps, newProps) -- 2069
+	if newProps.playMode ~= nil and (oldProps.playMode ~= newProps.playMode or oldProps.delayTime ~= newProps.delayTime) then -- 2069
+		local audio = node -- 2071
+		repeat -- 2071
+			local ____switch478 = newProps.playMode -- 2071
+			local ____cond478 = ____switch478 == "normal" -- 2071
 			if ____cond478 then -- 2071
-				audio:playBackground() -- 2072
-				break -- 2072
-			end -- 2072
-			____cond478 = ____cond478 or ____switch478 == "3D" -- 2072
-			if ____cond478 then -- 2072
-				local ____audio_play3D_64 = audio.play3D -- 2073
-				local ____newProps_delayTime_63 = newProps.delayTime -- 2073
-				if ____newProps_delayTime_63 == nil then -- 2073
-					____newProps_delayTime_63 = 0 -- 2073
+				local ____audio_play_62 = audio.play -- 2073
+				local ____newProps_delayTime_61 = newProps.delayTime -- 2073
+				if ____newProps_delayTime_61 == nil then -- 2073
+					____newProps_delayTime_61 = 0 -- 2073
 				end -- 2073
-				____audio_play3D_64(audio, ____newProps_delayTime_63) -- 2073
+				____audio_play_62(audio, ____newProps_delayTime_61) -- 2073
 				break -- 2073
 			end -- 2073
-		until true -- 2073
-	end -- 2073
-end -- 2073
-function patchParticleProps(node, oldProps, newProps) -- 2078
-	if newProps.emit ~= nil and oldProps.emit ~= newProps.emit then -- 2078
-		local particle = node -- 2080
-		if newProps.emit then -- 2080
-			particle:start() -- 2082
-		else -- 2082
-			particle:stop() -- 2084
-		end -- 2084
-	end -- 2084
-end -- 2084
-function patchAlignNodeProps(node, oldProps, newProps) -- 2089
-	if newProps.style ~= nil and oldProps.style ~= newProps.style then -- 2089
-		node:css(getAlignStyleText(newProps.style)) -- 2091
-	end -- 2091
-end -- 2091
-function patchLineProps(node, oldProps, newProps) -- 2095
-	if newProps.verts ~= nil and (oldProps.verts ~= newProps.verts or oldProps.lineColor ~= newProps.lineColor) then -- 2095
-		local ____self_68 = node -- 2095
-		local ____self_68_set_69 = ____self_68.set -- 2095
-		local ____newProps_verts_67 = newProps.verts -- 2097
-		local ____Dora_Color_66 = Dora.Color -- 2097
-		local ____newProps_lineColor_65 = newProps.lineColor -- 2097
-		if ____newProps_lineColor_65 == nil then -- 2097
-			____newProps_lineColor_65 = 4294967295 -- 2097
-		end -- 2097
-		____self_68_set_69( -- 2097
-			____self_68, -- 2097
-			____newProps_verts_67, -- 2097
-			____Dora_Color_66(____newProps_lineColor_65) -- 2097
-		) -- 2097
-	end -- 2097
-end -- 2097
-function clearRef(props, node) -- 2101
-	local ref = props.ref -- 2102
-	if ref ~= nil and (node == nil or ref.current == node) then -- 2102
-		ref.current = nil -- 2104
-	end -- 2104
-end -- 2104
-function patchRef(node, oldProps, newProps) -- 2108
-	if oldProps.ref ~= newProps.ref then -- 2108
-		clearRef(oldProps, node) -- 2110
-		local ref = newProps.ref -- 2111
-		if ref ~= nil then -- 2111
-			ref.current = node -- 2113
-		end -- 2113
-	end -- 2113
-end -- 2113
-function applyProp(node, enode, key, value) -- 2118
-	local name = key -- 2119
-	repeat -- 2119
-		local ____switch493 = name -- 2119
-		local ____cond493 = ____switch493 == "key" or ____switch493 == "children" or ____switch493 == "onMount" or ____switch493 == "onUnmount" -- 2119
-		if ____cond493 then -- 2119
-			return -- 2125
-		end -- 2125
-		____cond493 = ____cond493 or ____switch493 == "ref" -- 2125
-		if ____cond493 then -- 2125
-			value.current = node -- 2127
-			return -- 2128
-		end -- 2128
-		____cond493 = ____cond493 or ____switch493 == "anchorX" -- 2128
-		if ____cond493 then -- 2128
-			node.anchor = Dora.Vec2(value, node.anchor.y) -- 2130
-			return -- 2131
-		end -- 2131
-		____cond493 = ____cond493 or ____switch493 == "anchorY" -- 2131
-		if ____cond493 then -- 2131
-			node.anchor = Dora.Vec2(node.anchor.x, value) -- 2133
-			return -- 2134
-		end -- 2134
-		____cond493 = ____cond493 or ____switch493 == "color3" -- 2134
-		if ____cond493 then -- 2134
-			node.color3 = Dora.Color3(value) -- 2136
-			return -- 2137
-		end -- 2137
-		____cond493 = ____cond493 or ____switch493 == "transformTarget" -- 2137
-		if ____cond493 then -- 2137
-			node.transformTarget = value.current -- 2139
-			return -- 2140
-		end -- 2140
-		____cond493 = ____cond493 or ____switch493 == "outlineColor" -- 2140
-		if ____cond493 then -- 2140
-			node[name] = Dora.Color(value) -- 2142
-			return -- 2143
-		end -- 2143
-		____cond493 = ____cond493 or ____switch493 == "smoothLower" -- 2143
-		if ____cond493 then -- 2143
-			do -- 2143
-				local smooth = node.smooth -- 2145
-				node.smooth = Dora.Vec2(value, smooth.y) -- 2146
-				return -- 2147
-			end -- 2147
-		end -- 2147
-		____cond493 = ____cond493 or ____switch493 == "smoothUpper" -- 2147
-		if ____cond493 then -- 2147
-			do -- 2147
-				local smooth = node.smooth -- 2150
-				node.smooth = Dora.Vec2(smooth.x, value) -- 2151
-				return -- 2152
-			end -- 2152
-		end -- 2152
-	until true -- 2152
-	if isEventProp(key) then -- 2152
-		if key == "onUpdate" then -- 2152
-			patchUpdateProp(node, value) -- 2157
-		elseif key == "onRender" then -- 2157
-			patchRenderProp(node, value) -- 2159
-		elseif key == "onContactFilter" then -- 2159
-			patchContactFilterProp(node, value) -- 2161
-		elseif isPatchableEventProp(key) then -- 2161
-			patchEventProp(node, key, value) -- 2163
-		end -- 2163
-		return -- 2165
-	end -- 2165
-	node[name] = value -- 2167
-end -- 2167
-function patchProps(node, oldElement, newElement) -- 2170
-	local oldProps = oldElement.props -- 2171
-	local newProps = newElement.props -- 2172
-	for k in pairs(oldProps) do -- 2173
-		if k == "onUpdate" and newProps[k] == nil then -- 2173
-			patchUpdateProp(node, nil) -- 2175
-		elseif k == "onRender" and newProps[k] == nil then -- 2175
-			patchRenderProp(node, nil) -- 2177
-		elseif k == "onContactFilter" and newProps[k] == nil then -- 2177
-			patchContactFilterProp(node, nil) -- 2179
-		elseif isPatchableEventProp(k) and newProps[k] == nil then -- 2179
-			patchEventProp(node, k, nil) -- 2181
-		elseif newProps[k] == nil then -- 2181
-			clearRemovedProp(node, k) -- 2183
-		end -- 2183
-	end -- 2183
-	patchRef(node, oldProps, newProps) -- 2186
-	for k, v in pairs(newProps) do -- 2187
-		if k ~= "ref" and oldProps[k] ~= v then -- 2187
-			applyProp(node, newElement, k, v) -- 2189
-		end -- 2189
-	end -- 2189
-	if newElement.type == "label" then -- 2189
-		node.text = getPrimitiveLabelText(newElement) -- 2193
-	elseif newElement.type == "physics-world" then -- 2193
-		local world = Dora.tolua.cast(node, "PhysicsWorld") -- 2195
-		if world ~= nil then -- 2195
-			patchPhysicsWorldInputs(world, oldElement, newElement) -- 2197
-		end -- 2197
-	elseif newElement.type == "playable" or newElement.type == "dragon-bone" or newElement.type == "spine" or newElement.type == "model" then -- 2197
-		patchPlayableProps(node, oldProps, newProps) -- 2205
-	elseif newElement.type == "audio-source" then -- 2205
-		patchAudioSourceProps(node, oldProps, newProps) -- 2207
-	elseif newElement.type == "particle" then -- 2207
-		patchParticleProps(node, oldProps, newProps) -- 2209
-	elseif newElement.type == "align-node" then -- 2209
-		patchAlignNodeProps(node, oldProps, newProps) -- 2211
-	elseif newElement.type == "line" then -- 2211
-		patchLineProps(node, oldProps, newProps) -- 2213
-	end -- 2213
-	applyAutoEnableProps(node, newProps) -- 2215
-end -- 2215
-function addChildToParent(parent, node, props) -- 2218
-	if props.tag ~= nil then -- 2218
-		parent:addChild(node, props.order or 0, props.tag) -- 2220
-	elseif props.order ~= nil then -- 2220
-		parent:addChild(node, props.order) -- 2222
-	else -- 2222
-		parent:addChild(node) -- 2224
-	end -- 2224
-end -- 2224
-function mountElement(parent, enode) -- 2228
-	local node = createHostNode(enode, parent) -- 2229
-	if node == nil then -- 2229
-		return nil -- 2231
-	end -- 2231
-	if enode.type == "dot-shape" or enode.type == "segment-shape" or enode.type == "rect-shape" or enode.type == "polygon-shape" or enode.type == "verts-shape" then -- 2231
-		return nil -- 2240
-	end -- 2240
-	local props = enode.props -- 2242
-	addChildToParent(parent, node, props) -- 2243
-	local mounted = {element = enode, node = node, children = {}} -- 2244
-	runActionChildren(node, enode) -- 2245
-	mounted.children = reconcileChildren( -- 2246
-		node, -- 2246
-		{}, -- 2246
-		getElementChildren(enode) -- 2246
-	) -- 2246
-	return mounted -- 2247
-end -- 2247
-function unmountElement(mounted) -- 2250
-	for i = 1, #mounted.children do -- 2250
-		unmountElement(mounted.children[i]) -- 2252
-	end -- 2252
-	local props = mounted.element.props -- 2254
-	if props.onUnmount ~= nil then -- 2254
-		props.onUnmount(mounted.node) -- 2256
-	end -- 2256
-	clearRef(mounted.element.props, mounted.node) -- 2258
-	mounted.node:removeFromParent(true) -- 2259
-end -- 2259
-function reconcileElement(parent, oldMounted, newElement) -- 2262
-	if oldMounted == nil then -- 2262
-		return mountElement(parent, newElement) -- 2264
-	end -- 2264
-	if shouldRecreate(oldMounted.element, newElement) then -- 2264
-		local oldNode = oldMounted.node -- 2267
-		local oldOrder = oldNode.order -- 2268
-		local oldTag = oldNode.tag -- 2269
-		unmountElement(oldMounted) -- 2270
-		local mounted = mountElement(parent, newElement) -- 2271
-		if mounted ~= nil then -- 2271
-			mounted.node.order = newElement.props.order or oldOrder -- 2273
-			mounted.node.tag = newElement.props.tag or oldTag -- 2274
-		end -- 2274
-		return mounted -- 2276
-	end -- 2276
-	patchProps(oldMounted.node, oldMounted.element, newElement) -- 2278
-	patchActionChildren(oldMounted.node, oldMounted.element, newElement) -- 2279
-	oldMounted.children = reconcileChildren( -- 2280
-		oldMounted.node, -- 2280
-		oldMounted.children, -- 2280
-		getElementChildren(newElement) -- 2280
-	) -- 2280
-	oldMounted.element = newElement -- 2281
-	return oldMounted -- 2282
-end -- 2282
-function reconcileChildren(parent, oldChildren, newElements) -- 2285
-	local oldByKey = {} -- 2286
-	local usedOld = {} -- 2287
-	for i = 1, #oldChildren do -- 2287
-		local oldChild = oldChildren[i] -- 2289
-		local key = getElementKey(oldChild.element) -- 2290
-		if key ~= nil then -- 2290
-			oldByKey[key] = oldChild -- 2292
+			____cond478 = ____cond478 or ____switch478 == "background" -- 2073
+			if ____cond478 then -- 2073
+				audio:playBackground() -- 2074
+				break -- 2074
+			end -- 2074
+			____cond478 = ____cond478 or ____switch478 == "3D" -- 2074
+			if ____cond478 then -- 2074
+				local ____audio_play3D_64 = audio.play3D -- 2075
+				local ____newProps_delayTime_63 = newProps.delayTime -- 2075
+				if ____newProps_delayTime_63 == nil then -- 2075
+					____newProps_delayTime_63 = 0 -- 2075
+				end -- 2075
+				____audio_play3D_64(audio, ____newProps_delayTime_63) -- 2075
+				break -- 2075
+			end -- 2075
+		until true -- 2075
+	end -- 2075
+end -- 2075
+function patchParticleProps(node, oldProps, newProps) -- 2080
+	if newProps.emit ~= nil and oldProps.emit ~= newProps.emit then -- 2080
+		local particle = node -- 2082
+		if newProps.emit then -- 2082
+			particle:start() -- 2084
+		else -- 2084
+			particle:stop() -- 2086
+		end -- 2086
+	end -- 2086
+end -- 2086
+function patchAlignNodeProps(node, oldProps, newProps) -- 2091
+	if newProps.style ~= nil and oldProps.style ~= newProps.style then -- 2091
+		node:css(getAlignStyleText(newProps.style)) -- 2093
+	end -- 2093
+end -- 2093
+function patchLineProps(node, oldProps, newProps) -- 2097
+	if newProps.verts ~= nil and (oldProps.verts ~= newProps.verts or oldProps.lineColor ~= newProps.lineColor) then -- 2097
+		local ____self_68 = node -- 2097
+		local ____self_68_set_69 = ____self_68.set -- 2097
+		local ____newProps_verts_67 = newProps.verts -- 2099
+		local ____Dora_Color_66 = Dora.Color -- 2099
+		local ____newProps_lineColor_65 = newProps.lineColor -- 2099
+		if ____newProps_lineColor_65 == nil then -- 2099
+			____newProps_lineColor_65 = 4294967295 -- 2099
+		end -- 2099
+		____self_68_set_69( -- 2099
+			____self_68, -- 2099
+			____newProps_verts_67, -- 2099
+			____Dora_Color_66(____newProps_lineColor_65) -- 2099
+		) -- 2099
+	end -- 2099
+end -- 2099
+function clearRef(props, node) -- 2103
+	local ref = props.ref -- 2104
+	if ref ~= nil and (node == nil or ref.current == node) then -- 2104
+		ref.current = nil -- 2106
+	end -- 2106
+end -- 2106
+function patchRef(node, oldProps, newProps) -- 2110
+	if oldProps.ref ~= newProps.ref then -- 2110
+		clearRef(oldProps, node) -- 2112
+		local ref = newProps.ref -- 2113
+		if ref ~= nil then -- 2113
+			ref.current = node -- 2115
+		end -- 2115
+	end -- 2115
+end -- 2115
+function applyProp(node, enode, key, value) -- 2120
+	local name = key -- 2121
+	repeat -- 2121
+		local ____switch493 = name -- 2121
+		local ____cond493 = ____switch493 == "key" or ____switch493 == "children" or ____switch493 == "onMount" or ____switch493 == "onUnmount" -- 2121
+		if ____cond493 then -- 2121
+			return -- 2127
+		end -- 2127
+		____cond493 = ____cond493 or ____switch493 == "ref" -- 2127
+		if ____cond493 then -- 2127
+			value.current = node -- 2129
+			return -- 2130
+		end -- 2130
+		____cond493 = ____cond493 or ____switch493 == "anchorX" -- 2130
+		if ____cond493 then -- 2130
+			node.anchor = Dora.Vec2(value, node.anchor.y) -- 2132
+			return -- 2133
+		end -- 2133
+		____cond493 = ____cond493 or ____switch493 == "anchorY" -- 2133
+		if ____cond493 then -- 2133
+			node.anchor = Dora.Vec2(node.anchor.x, value) -- 2135
+			return -- 2136
+		end -- 2136
+		____cond493 = ____cond493 or ____switch493 == "color3" -- 2136
+		if ____cond493 then -- 2136
+			node.color3 = Dora.Color3(value) -- 2138
+			return -- 2139
+		end -- 2139
+		____cond493 = ____cond493 or ____switch493 == "transformTarget" -- 2139
+		if ____cond493 then -- 2139
+			node.transformTarget = value.current -- 2141
+			return -- 2142
+		end -- 2142
+		____cond493 = ____cond493 or ____switch493 == "outlineColor" -- 2142
+		if ____cond493 then -- 2142
+			node[name] = Dora.Color(value) -- 2144
+			return -- 2145
+		end -- 2145
+		____cond493 = ____cond493 or ____switch493 == "smoothLower" -- 2145
+		if ____cond493 then -- 2145
+			do -- 2145
+				local smooth = node.smooth -- 2147
+				node.smooth = Dora.Vec2(value, smooth.y) -- 2148
+				return -- 2149
+			end -- 2149
+		end -- 2149
+		____cond493 = ____cond493 or ____switch493 == "smoothUpper" -- 2149
+		if ____cond493 then -- 2149
+			do -- 2149
+				local smooth = node.smooth -- 2152
+				node.smooth = Dora.Vec2(smooth.x, value) -- 2153
+				return -- 2154
+			end -- 2154
+		end -- 2154
+	until true -- 2154
+	if isEventProp(key) then -- 2154
+		if key == "onUpdate" then -- 2154
+			patchUpdateProp(node, value) -- 2159
+		elseif key == "onRender" then -- 2159
+			patchRenderProp(node, value) -- 2161
+		elseif key == "onContactFilter" then -- 2161
+			patchContactFilterProp(node, value) -- 2163
+		elseif isPatchableEventProp(key) then -- 2163
+			patchEventProp(node, key, value) -- 2165
+		end -- 2165
+		return -- 2167
+	end -- 2167
+	node[name] = value -- 2169
+end -- 2169
+function patchProps(node, oldElement, newElement) -- 2172
+	local oldProps = oldElement.props -- 2173
+	local newProps = newElement.props -- 2174
+	for k in pairs(oldProps) do -- 2175
+		if k == "onUpdate" and newProps[k] == nil then -- 2175
+			patchUpdateProp(node, nil) -- 2177
+		elseif k == "onRender" and newProps[k] == nil then -- 2177
+			patchRenderProp(node, nil) -- 2179
+		elseif k == "onContactFilter" and newProps[k] == nil then -- 2179
+			patchContactFilterProp(node, nil) -- 2181
+		elseif isPatchableEventProp(k) and newProps[k] == nil then -- 2181
+			patchEventProp(node, k, nil) -- 2183
+		elseif newProps[k] == nil then -- 2183
+			clearRemovedProp(node, k) -- 2185
+		end -- 2185
+	end -- 2185
+	patchRef(node, oldProps, newProps) -- 2188
+	for k, v in pairs(newProps) do -- 2189
+		if k ~= "ref" and oldProps[k] ~= v then -- 2189
+			applyProp(node, newElement, k, v) -- 2191
+		end -- 2191
+	end -- 2191
+	if newElement.type == "label" then -- 2191
+		node.text = getPrimitiveLabelText(newElement) -- 2195
+	elseif newElement.type == "physics-world" then -- 2195
+		local world = Dora.tolua.cast(node, "PhysicsWorld") -- 2197
+		if world ~= nil then -- 2197
+			patchPhysicsWorldInputs(world, oldElement, newElement) -- 2199
+		end -- 2199
+	elseif newElement.type == "playable" or newElement.type == "dragon-bone" or newElement.type == "spine" or newElement.type == "model" then -- 2199
+		patchPlayableProps(node, oldProps, newProps) -- 2207
+	elseif newElement.type == "audio-source" then -- 2207
+		patchAudioSourceProps(node, oldProps, newProps) -- 2209
+	elseif newElement.type == "particle" then -- 2209
+		patchParticleProps(node, oldProps, newProps) -- 2211
+	elseif newElement.type == "align-node" then -- 2211
+		patchAlignNodeProps(node, oldProps, newProps) -- 2213
+	elseif newElement.type == "line" then -- 2213
+		patchLineProps(node, oldProps, newProps) -- 2215
+	end -- 2215
+	applyAutoEnableProps(node, newProps) -- 2217
+end -- 2217
+function addChildToParent(parent, node, props) -- 2220
+	if props.tag ~= nil then -- 2220
+		parent:addChild(node, props.order or 0, props.tag) -- 2222
+	elseif props.order ~= nil then -- 2222
+		parent:addChild(node, props.order) -- 2224
+	else -- 2224
+		parent:addChild(node) -- 2226
+	end -- 2226
+end -- 2226
+function mountElement(parent, enode) -- 2230
+	local node = createHostNode(enode, parent) -- 2231
+	if node == nil then -- 2231
+		return nil -- 2233
+	end -- 2233
+	if enode.type == "dot-shape" or enode.type == "segment-shape" or enode.type == "rect-shape" or enode.type == "polygon-shape" or enode.type == "verts-shape" then -- 2233
+		return nil -- 2242
+	end -- 2242
+	local props = enode.props -- 2244
+	addChildToParent(parent, node, props) -- 2245
+	local mounted = {element = enode, node = node, children = {}} -- 2246
+	runActionChildren(node, enode) -- 2247
+	mounted.children = reconcileChildren( -- 2248
+		node, -- 2248
+		{}, -- 2248
+		getElementChildren(enode) -- 2248
+	) -- 2248
+	return mounted -- 2249
+end -- 2249
+function unmountHostElement(mounted) -- 2252
+	local props = mounted.element.props -- 2253
+	if props.onUnmount ~= nil then -- 2253
+		props.onUnmount(mounted.node) -- 2255
+	end -- 2255
+	clearRef(mounted.element.props, mounted.node) -- 2257
+	mounted.node:removeFromParent(true) -- 2258
+end -- 2258
+function unmountElement(mounted) -- 2261
+	for i = 1, #mounted.children do -- 2261
+		unmountElement(mounted.children[i]) -- 2263
+	end -- 2263
+	unmountHostElement(mounted) -- 2265
+end -- 2265
+function reconcileElement(parent, oldMounted, newElement) -- 2268
+	if oldMounted == nil then -- 2268
+		return mountElement(parent, newElement) -- 2270
+	end -- 2270
+	local recreateMode = getRecreateMode(oldMounted.element, newElement) -- 2272
+	if recreateMode == "subtree" then -- 2272
+		local oldNode = oldMounted.node -- 2274
+		local oldOrder = oldNode.order -- 2275
+		local oldTag = oldNode.tag -- 2276
+		unmountElement(oldMounted) -- 2277
+		local mounted = mountElement(parent, newElement) -- 2278
+		if mounted ~= nil then -- 2278
+			mounted.node.order = newElement.props.order or oldOrder -- 2280
+			mounted.node.tag = newElement.props.tag or oldTag -- 2281
+		end -- 2281
+		return mounted -- 2283
+	end -- 2283
+	if recreateMode == "host" then -- 2283
+		local oldNode = oldMounted.node -- 2286
+		local oldOrder = oldNode.order -- 2287
+		local oldTag = oldNode.tag -- 2288
+		local node = createHostNode(newElement, parent) -- 2289
+		if node == nil then -- 2289
+			unmountElement(oldMounted) -- 2291
+			return nil -- 2292
 		end -- 2292
-	end -- 2292
-	local nextChildren = {} -- 2295
-	for i = 1, #newElements do -- 2295
-		local newElement = newElements[i] -- 2297
-		local key = getElementKey(newElement) -- 2298
-		local oldChild -- 2299
-		if key ~= nil then -- 2299
-			oldChild = oldByKey[key] -- 2301
-		else -- 2301
-			oldChild = oldChildren[i] -- 2303
-			if oldChild ~= nil and getElementKey(oldChild.element) ~= nil then -- 2303
-				oldChild = nil -- 2305
-			end -- 2305
-		end -- 2305
-		local mounted = reconcileElement(parent, oldChild, newElement) -- 2308
-		if mounted ~= nil then -- 2308
-			usedOld[mounted] = true -- 2310
-			nextChildren[#nextChildren + 1] = mounted -- 2311
-			local props = newElement.props -- 2312
-			mounted.node.order = props.order or i -- 2313
-			if props.tag ~= nil then -- 2313
-				mounted.node.tag = props.tag -- 2314
-			end -- 2314
-		end -- 2314
-	end -- 2314
-	for i = 1, #oldChildren do -- 2314
+		addChildToParent(parent, node, newElement.props) -- 2294
+		node.order = newElement.props.order or oldOrder -- 2295
+		node.tag = newElement.props.tag or oldTag -- 2296
+		runActionChildren(node, newElement) -- 2297
+		for i = 1, #oldMounted.children do -- 2297
+			oldMounted.children[i].node:moveToParent(node) -- 2299
+		end -- 2299
+		unmountHostElement(oldMounted) -- 2301
+		oldMounted.node = node -- 2302
+		oldMounted.children = reconcileChildren( -- 2303
+			node, -- 2303
+			oldMounted.children, -- 2303
+			getElementChildren(newElement) -- 2303
+		) -- 2303
+		oldMounted.element = newElement -- 2304
+		return oldMounted -- 2305
+	end -- 2305
+	patchProps(oldMounted.node, oldMounted.element, newElement) -- 2307
+	patchActionChildren(oldMounted.node, oldMounted.element, newElement) -- 2308
+	oldMounted.children = reconcileChildren( -- 2309
+		oldMounted.node, -- 2309
+		oldMounted.children, -- 2309
+		getElementChildren(newElement) -- 2309
+	) -- 2309
+	oldMounted.element = newElement -- 2310
+	return oldMounted -- 2311
+end -- 2311
+function reconcileChildren(parent, oldChildren, newElements) -- 2314
+	local oldByKey = {} -- 2315
+	local usedOld = {} -- 2316
+	for i = 1, #oldChildren do -- 2316
 		local oldChild = oldChildren[i] -- 2318
-		if not usedOld[oldChild] then -- 2318
-			unmountElement(oldChild) -- 2320
-		end -- 2320
-	end -- 2320
-	return nextChildren -- 2323
-end -- 2323
-____exports.React = {} -- 2323
-local React = ____exports.React -- 2323
-do -- 2323
+		local key = getElementKey(oldChild.element) -- 2319
+		if key ~= nil then -- 2319
+			oldByKey[key] = oldChild -- 2321
+		end -- 2321
+	end -- 2321
+	local nextChildren = {} -- 2324
+	for i = 1, #newElements do -- 2324
+		local newElement = newElements[i] -- 2326
+		local key = getElementKey(newElement) -- 2327
+		local oldChild -- 2328
+		if key ~= nil then -- 2328
+			oldChild = oldByKey[key] -- 2330
+		else -- 2330
+			oldChild = oldChildren[i] -- 2332
+			if oldChild ~= nil and getElementKey(oldChild.element) ~= nil then -- 2332
+				oldChild = nil -- 2334
+			end -- 2334
+		end -- 2334
+		local mounted = reconcileElement(parent, oldChild, newElement) -- 2337
+		if mounted ~= nil then -- 2337
+			usedOld[mounted] = true -- 2339
+			nextChildren[#nextChildren + 1] = mounted -- 2340
+			local props = newElement.props -- 2341
+			mounted.node.order = props.order or i -- 2342
+			if props.tag ~= nil then -- 2342
+				mounted.node.tag = props.tag -- 2343
+			end -- 2343
+		end -- 2343
+	end -- 2343
+	for i = 1, #oldChildren do -- 2343
+		local oldChild = oldChildren[i] -- 2347
+		if not usedOld[oldChild] then -- 2347
+			unmountElement(oldChild) -- 2349
+		end -- 2349
+	end -- 2349
+	return nextChildren -- 2352
+end -- 2352
+____exports.React = {} -- 2352
+local React = ____exports.React -- 2352
+do -- 2352
 	React.Component = __TS__Class() -- 17
 	local Component = React.Component -- 17
 	Component.name = "Component" -- 19
@@ -3115,374 +3145,374 @@ local function removeRoot(root) -- 1788
 		end -- 1792
 	end -- 1792
 end -- 1788
-local function toElementList(node) -- 2326
-	if isElementList(node) then -- 2326
-		return node -- 2328
-	end -- 2328
-	return {node} -- 2330
-end -- 2326
-local function scheduleRootRender(root) -- 2333
-	if not root.active then -- 2333
-		return -- 2334
-	end -- 2334
-	for i = 1, #queuedRoots do -- 2334
-		if queuedRoots[i] == root then -- 2334
-			return -- 2336
-		end -- 2336
-	end -- 2336
-	queuedRoots[#queuedRoots + 1] = root -- 2338
-	if renderQueued then -- 2338
-		return -- 2339
-	end -- 2339
-	renderQueued = true -- 2340
-	Dora.Director.systemScheduler:schedule(Dora.once(function() -- 2341
-		renderQueued = false -- 2342
-		local updatingRoots = queuedRoots -- 2343
-		queuedRoots = {} -- 2344
-		for i = 1, #updatingRoots do -- 2344
-			updatingRoots[i]:update() -- 2346
-		end -- 2346
-	end)) -- 2341
-end -- 2333
-____exports.Root = __TS__Class() -- 2351
-local Root = ____exports.Root -- 2351
-Root.name = "Root" -- 2351
-function Root.prototype.____constructor(self, parent) -- 2359
-	self.parent = parent -- 2359
-	self.mounted = {} -- 2352
-	self.signals = {} -- 2354
-	self.hookFrames = {} -- 2355
-	self.hookFrameIndex = 0 -- 2356
-	self.active = true -- 2357
-end -- 2359
-function Root.prototype.render(self, enode) -- 2361
-	if not self.active then -- 2361
-		roots[#roots + 1] = self -- 2363
-		self.active = true -- 2364
-	end -- 2364
-	self.renderable = enode -- 2366
-	self:update() -- 2367
-end -- 2361
-function Root.prototype.update(self) -- 2370
-	if not self.active or self.renderable == nil then -- 2370
-		return -- 2371
-	end -- 2371
-	self:unsubscribeSignals() -- 2372
-	local lastTrackingRoot = trackingRoot -- 2373
-	local lastRenderingHookRoot = renderingHookRoot -- 2374
-	trackingRoot = self -- 2375
-	renderingHookRoot = self -- 2376
-	local elements -- 2377
-	do -- 2377
-		local ____try, ____error = pcall(function() -- 2377
-			self:beginHookRender() -- 2379
-			elements = getRenderableElement(self.renderable) -- 2380
-		end) -- 2380
-		do -- 2380
-			self:finishHookRender() -- 2382
-			trackingRoot = lastTrackingRoot -- 2383
-			renderingHookRoot = lastRenderingHookRoot -- 2384
-		end -- 2384
-		if not ____try then -- 2384
-			error(____error, 0) -- 2384
-		end -- 2384
-	end -- 2384
-	self.mounted = reconcileChildren( -- 2386
-		self.parent, -- 2386
-		self.mounted, -- 2386
-		toElementList(elements) -- 2386
-	) -- 2386
-end -- 2370
-function Root.prototype.unmount(self) -- 2389
-	for i = 1, #self.mounted do -- 2389
-		unmountElement(self.mounted[i]) -- 2391
-	end -- 2391
-	self.mounted = {} -- 2393
-	self.renderable = nil -- 2394
-	self.hookFrames = {} -- 2395
-	self.hookFrameIndex = 0 -- 2396
-	self:unsubscribeSignals() -- 2397
-	if self.active then -- 2397
-		removeRoot(self) -- 2399
-		self.active = false -- 2400
+local function toElementList(node) -- 2355
+	if isElementList(node) then -- 2355
+		return node -- 2357
+	end -- 2357
+	return {node} -- 2359
+end -- 2355
+local function scheduleRootRender(root) -- 2362
+	if not root.active then -- 2362
+		return -- 2363
+	end -- 2363
+	for i = 1, #queuedRoots do -- 2363
+		if queuedRoots[i] == root then -- 2363
+			return -- 2365
+		end -- 2365
+	end -- 2365
+	queuedRoots[#queuedRoots + 1] = root -- 2367
+	if renderQueued then -- 2367
+		return -- 2368
+	end -- 2368
+	renderQueued = true -- 2369
+	Dora.Director.systemScheduler:schedule(Dora.once(function() -- 2370
+		renderQueued = false -- 2371
+		local updatingRoots = queuedRoots -- 2372
+		queuedRoots = {} -- 2373
+		for i = 1, #updatingRoots do -- 2373
+			updatingRoots[i]:update() -- 2375
+		end -- 2375
+	end)) -- 2370
+end -- 2362
+____exports.Root = __TS__Class() -- 2380
+local Root = ____exports.Root -- 2380
+Root.name = "Root" -- 2380
+function Root.prototype.____constructor(self, parent) -- 2388
+	self.parent = parent -- 2388
+	self.mounted = {} -- 2381
+	self.signals = {} -- 2383
+	self.hookFrames = {} -- 2384
+	self.hookFrameIndex = 0 -- 2385
+	self.active = true -- 2386
+end -- 2388
+function Root.prototype.render(self, enode) -- 2390
+	if not self.active then -- 2390
+		roots[#roots + 1] = self -- 2392
+		self.active = true -- 2393
+	end -- 2393
+	self.renderable = enode -- 2395
+	self:update() -- 2396
+end -- 2390
+function Root.prototype.update(self) -- 2399
+	if not self.active or self.renderable == nil then -- 2399
+		return -- 2400
 	end -- 2400
-end -- 2389
-function Root.prototype.trackSignal(self, signal) -- 2404
-	for i = 1, #self.signals do -- 2404
-		if self.signals[i] == signal then -- 2404
-			return -- 2406
-		end -- 2406
-	end -- 2406
-	local ____self_signals_70 = self.signals -- 2406
-	____self_signals_70[#____self_signals_70 + 1] = signal -- 2408
-	signal:addRoot(self) -- 2409
-end -- 2404
-function Root.prototype.beginComponentHooks(self, ____type, key) -- 2412
-	local index = self.hookFrameIndex -- 2413
-	self.hookFrameIndex = self.hookFrameIndex + 1 -- 2414
-	local frame = self.hookFrames[index + 1] -- 2415
-	if frame == nil or frame.type ~= ____type or frame.key ~= key then -- 2415
-		frame = nil -- 2417
-		if key ~= nil then -- 2417
-			for i = index + 2, #self.hookFrames do -- 2417
-				local candidate = self.hookFrames[i] -- 2420
-				if candidate.type == ____type and candidate.key == key then -- 2420
-					table.remove(self.hookFrames, i) -- 2422
-					table.insert(self.hookFrames, index + 1, candidate) -- 2423
-					frame = candidate -- 2424
-					break -- 2425
-				end -- 2425
-			end -- 2425
-		end -- 2425
-		if frame == nil then -- 2425
-			frame = {type = ____type, key = key, hooks = {}, hookIndex = 0} -- 2430
-			if key ~= nil then -- 2430
-				table.insert(self.hookFrames, index + 1, frame) -- 2432
-			else -- 2432
-				self.hookFrames[index + 1] = frame -- 2434
-			end -- 2434
-		end -- 2434
-	end -- 2434
-	frame.hookIndex = 0 -- 2438
-	return frame -- 2439
-end -- 2412
-function Root.prototype.beginHookRender(self) -- 2442
-	self.hookFrameIndex = 0 -- 2443
-end -- 2442
-function Root.prototype.finishHookRender(self) -- 2446
-	while #self.hookFrames > self.hookFrameIndex do -- 2446
-		table.remove(self.hookFrames) -- 2448
-	end -- 2448
-end -- 2446
-function Root.prototype.unsubscribeSignals(self) -- 2452
-	for i = 1, #self.signals do -- 2452
-		self.signals[i]:removeRoot(self) -- 2454
-	end -- 2454
-	self.signals = {} -- 2456
-end -- 2452
-function ____exports.createRoot(parent) -- 2460
-	local root = __TS__New(____exports.Root, parent) -- 2461
-	roots[#roots + 1] = root -- 2462
-	return root -- 2463
-end -- 2460
-____exports.Signal = __TS__Class() -- 2466
-local Signal = ____exports.Signal -- 2466
-Signal.name = "Signal" -- 2466
-function Signal.prototype.____constructor(self, item) -- 2469
-	self.item = item -- 2469
-	self.roots = {} -- 2467
-end -- 2469
-function Signal.prototype.addRoot(self, root) -- 2486
-	for i = 1, #self.roots do -- 2486
-		if self.roots[i] == root then -- 2486
-			return -- 2488
-		end -- 2488
-	end -- 2488
-	local ____self_roots_71 = self.roots -- 2488
-	____self_roots_71[#____self_roots_71 + 1] = root -- 2490
-end -- 2486
-function Signal.prototype.removeRoot(self, root) -- 2493
-	for i = 1, #self.roots do -- 2493
-		if self.roots[i] == root then -- 2493
-			table.remove(self.roots, i) -- 2496
-			break -- 2497
-		end -- 2497
-	end -- 2497
-end -- 2493
-__TS__SetDescriptor( -- 2493
-	Signal.prototype, -- 2493
-	"value", -- 2493
-	{ -- 2493
-		get = function(self) -- 2493
-			if trackingRoot ~= nil then -- 2493
-				trackingRoot:trackSignal(self) -- 2473
-			end -- 2473
-			return self.item -- 2475
-		end, -- 2475
-		set = function(self, value) -- 2475
-			if self.item == value then -- 2475
-				return -- 2479
-			end -- 2479
-			self.item = value -- 2480
-			for i = 1, #self.roots do -- 2480
-				scheduleRootRender(self.roots[i]) -- 2482
-			end -- 2482
-		end -- 2482
-	}, -- 2482
-	true -- 2482
-) -- 2482
-function ____exports.signal(value) -- 2503
-	return __TS__New(____exports.Signal, value) -- 2504
-end -- 2503
-function ____exports.reference(item) -- 2507
-	local ____item_72 = item -- 2508
-	if ____item_72 == nil then -- 2508
-		____item_72 = nil -- 2508
-	end -- 2508
-	return {current = ____item_72} -- 2508
-end -- 2507
-local function hookDepsEqual(oldDeps, newDeps) -- 2511
-	if oldDeps == nil or newDeps == nil then -- 2511
-		return false -- 2512
-	end -- 2512
-	if #oldDeps ~= #newDeps then -- 2512
-		return false -- 2513
-	end -- 2513
-	for i = 1, #oldDeps do -- 2513
-		if oldDeps[i] ~= newDeps[i] then -- 2513
-			return false -- 2515
-		end -- 2515
-	end -- 2515
-	return true -- 2517
-end -- 2511
-local function copyDeps(deps) -- 2520
-	if deps == nil then -- 2520
-		return nil -- 2521
-	end -- 2521
-	local copied = {} -- 2522
-	for i = 1, #deps do -- 2522
-		copied[#copied + 1] = deps[i] -- 2524
-	end -- 2524
-	return copied -- 2526
-end -- 2520
-function ____exports.useMemo(factory, deps) -- 2529
-	local frame = currentHookFrame -- 2530
-	if frame == nil then -- 2530
-		error("useMemo() can only be called inside a function component") -- 2532
-	end -- 2532
-	local index = frame.hookIndex -- 2534
-	frame.hookIndex = frame.hookIndex + 1 -- 2535
-	local hook = frame.hooks[index + 1] -- 2536
-	if hook == nil or not hookDepsEqual(hook.deps, deps) then -- 2536
-		hook = { -- 2538
-			value = factory(), -- 2538
-			deps = copyDeps(deps) -- 2538
-		} -- 2538
-		frame.hooks[index + 1] = hook -- 2539
-	end -- 2539
-	return hook.value -- 2541
-end -- 2529
-function ____exports.useCallback(callback, deps) -- 2544
-	local frame = currentHookFrame -- 2545
-	if frame == nil then -- 2545
-		error("useCallback() can only be called inside a function component") -- 2547
-	end -- 2547
-	local actualDeps = deps or ({}) -- 2549
-	local index = frame.hookIndex -- 2550
-	frame.hookIndex = frame.hookIndex + 1 -- 2551
-	local hook = frame.hooks[index + 1] -- 2552
-	if hook == nil or not hookDepsEqual(hook.deps, actualDeps) then -- 2552
-		hook = { -- 2554
-			value = callback, -- 2554
-			deps = copyDeps(actualDeps) -- 2554
-		} -- 2554
-		frame.hooks[index + 1] = hook -- 2555
-	end -- 2555
-	return hook.value -- 2557
-end -- 2544
-function ____exports.useRef(item) -- 2560
-	local frame = currentHookFrame -- 2561
-	if frame == nil then -- 2561
-		error("useRef() can only be called inside a function component") -- 2563
-	end -- 2563
-	local index = frame.hookIndex -- 2565
-	frame.hookIndex = frame.hookIndex + 1 -- 2566
-	local hook = frame.hooks[index + 1] -- 2567
-	if hook == nil then -- 2567
-		hook = {value = ____exports.reference(item)} -- 2569
-		frame.hooks[index + 1] = hook -- 2570
-	end -- 2570
-	return hook.value -- 2572
-end -- 2560
-function ____exports.useSignal(value) -- 2575
-	local frame = currentHookFrame -- 2576
-	if frame == nil then -- 2576
-		error("useSignal() can only be called inside a function component") -- 2578
-	end -- 2578
-	local index = frame.hookIndex -- 2580
-	frame.hookIndex = frame.hookIndex + 1 -- 2581
-	local hook = frame.hooks[index + 1] -- 2582
-	if hook == nil then -- 2582
-		hook = {value = ____exports.signal(value)} -- 2584
-		frame.hooks[index + 1] = hook -- 2585
-	end -- 2585
-	return hook.value -- 2587
-end -- 2575
-local function getPreload(preloadList, node) -- 2590
-	if type(node) ~= "table" then -- 2590
-		return -- 2592
+	self:unsubscribeSignals() -- 2401
+	local lastTrackingRoot = trackingRoot -- 2402
+	local lastRenderingHookRoot = renderingHookRoot -- 2403
+	trackingRoot = self -- 2404
+	renderingHookRoot = self -- 2405
+	local elements -- 2406
+	do -- 2406
+		local ____try, ____error = pcall(function() -- 2406
+			self:beginHookRender() -- 2408
+			elements = getRenderableElement(self.renderable) -- 2409
+		end) -- 2409
+		do -- 2409
+			self:finishHookRender() -- 2411
+			trackingRoot = lastTrackingRoot -- 2412
+			renderingHookRoot = lastRenderingHookRoot -- 2413
+		end -- 2413
+		if not ____try then -- 2413
+			error(____error, 0) -- 2413
+		end -- 2413
+	end -- 2413
+	self.mounted = reconcileChildren( -- 2415
+		self.parent, -- 2415
+		self.mounted, -- 2415
+		toElementList(elements) -- 2415
+	) -- 2415
+end -- 2399
+function Root.prototype.unmount(self) -- 2418
+	for i = 1, #self.mounted do -- 2418
+		unmountElement(self.mounted[i]) -- 2420
+	end -- 2420
+	self.mounted = {} -- 2422
+	self.renderable = nil -- 2423
+	self.hookFrames = {} -- 2424
+	self.hookFrameIndex = 0 -- 2425
+	self:unsubscribeSignals() -- 2426
+	if self.active then -- 2426
+		removeRoot(self) -- 2428
+		self.active = false -- 2429
+	end -- 2429
+end -- 2418
+function Root.prototype.trackSignal(self, signal) -- 2433
+	for i = 1, #self.signals do -- 2433
+		if self.signals[i] == signal then -- 2433
+			return -- 2435
+		end -- 2435
+	end -- 2435
+	local ____self_signals_70 = self.signals -- 2435
+	____self_signals_70[#____self_signals_70 + 1] = signal -- 2437
+	signal:addRoot(self) -- 2438
+end -- 2433
+function Root.prototype.beginComponentHooks(self, ____type, key) -- 2441
+	local index = self.hookFrameIndex -- 2442
+	self.hookFrameIndex = self.hookFrameIndex + 1 -- 2443
+	local frame = self.hookFrames[index + 1] -- 2444
+	if frame == nil or frame.type ~= ____type or frame.key ~= key then -- 2444
+		frame = nil -- 2446
+		if key ~= nil then -- 2446
+			for i = index + 2, #self.hookFrames do -- 2446
+				local candidate = self.hookFrames[i] -- 2449
+				if candidate.type == ____type and candidate.key == key then -- 2449
+					table.remove(self.hookFrames, i) -- 2451
+					table.insert(self.hookFrames, index + 1, candidate) -- 2452
+					frame = candidate -- 2453
+					break -- 2454
+				end -- 2454
+			end -- 2454
+		end -- 2454
+		if frame == nil then -- 2454
+			frame = {type = ____type, key = key, hooks = {}, hookIndex = 0} -- 2459
+			if key ~= nil then -- 2459
+				table.insert(self.hookFrames, index + 1, frame) -- 2461
+			else -- 2461
+				self.hookFrames[index + 1] = frame -- 2463
+			end -- 2463
+		end -- 2463
+	end -- 2463
+	frame.hookIndex = 0 -- 2467
+	return frame -- 2468
+end -- 2441
+function Root.prototype.beginHookRender(self) -- 2471
+	self.hookFrameIndex = 0 -- 2472
+end -- 2471
+function Root.prototype.finishHookRender(self) -- 2475
+	while #self.hookFrames > self.hookFrameIndex do -- 2475
+		table.remove(self.hookFrames) -- 2477
+	end -- 2477
+end -- 2475
+function Root.prototype.unsubscribeSignals(self) -- 2481
+	for i = 1, #self.signals do -- 2481
+		self.signals[i]:removeRoot(self) -- 2483
+	end -- 2483
+	self.signals = {} -- 2485
+end -- 2481
+function ____exports.createRoot(parent) -- 2489
+	local root = __TS__New(____exports.Root, parent) -- 2490
+	roots[#roots + 1] = root -- 2491
+	return root -- 2492
+end -- 2489
+____exports.Signal = __TS__Class() -- 2495
+local Signal = ____exports.Signal -- 2495
+Signal.name = "Signal" -- 2495
+function Signal.prototype.____constructor(self, item) -- 2498
+	self.item = item -- 2498
+	self.roots = {} -- 2496
+end -- 2498
+function Signal.prototype.addRoot(self, root) -- 2515
+	for i = 1, #self.roots do -- 2515
+		if self.roots[i] == root then -- 2515
+			return -- 2517
+		end -- 2517
+	end -- 2517
+	local ____self_roots_71 = self.roots -- 2517
+	____self_roots_71[#____self_roots_71 + 1] = root -- 2519
+end -- 2515
+function Signal.prototype.removeRoot(self, root) -- 2522
+	for i = 1, #self.roots do -- 2522
+		if self.roots[i] == root then -- 2522
+			table.remove(self.roots, i) -- 2525
+			break -- 2526
+		end -- 2526
+	end -- 2526
+end -- 2522
+__TS__SetDescriptor( -- 2522
+	Signal.prototype, -- 2522
+	"value", -- 2522
+	{ -- 2522
+		get = function(self) -- 2522
+			if trackingRoot ~= nil then -- 2522
+				trackingRoot:trackSignal(self) -- 2502
+			end -- 2502
+			return self.item -- 2504
+		end, -- 2504
+		set = function(self, value) -- 2504
+			if self.item == value then -- 2504
+				return -- 2508
+			end -- 2508
+			self.item = value -- 2509
+			for i = 1, #self.roots do -- 2509
+				scheduleRootRender(self.roots[i]) -- 2511
+			end -- 2511
+		end -- 2511
+	}, -- 2511
+	true -- 2511
+) -- 2511
+function ____exports.signal(value) -- 2532
+	return __TS__New(____exports.Signal, value) -- 2533
+end -- 2532
+function ____exports.reference(item) -- 2536
+	local ____item_72 = item -- 2537
+	if ____item_72 == nil then -- 2537
+		____item_72 = nil -- 2537
+	end -- 2537
+	return {current = ____item_72} -- 2537
+end -- 2536
+local function hookDepsEqual(oldDeps, newDeps) -- 2540
+	if oldDeps == nil or newDeps == nil then -- 2540
+		return false -- 2541
+	end -- 2541
+	if #oldDeps ~= #newDeps then -- 2541
+		return false -- 2542
+	end -- 2542
+	for i = 1, #oldDeps do -- 2542
+		if oldDeps[i] ~= newDeps[i] then -- 2542
+			return false -- 2544
+		end -- 2544
+	end -- 2544
+	return true -- 2546
+end -- 2540
+local function copyDeps(deps) -- 2549
+	if deps == nil then -- 2549
+		return nil -- 2550
+	end -- 2550
+	local copied = {} -- 2551
+	for i = 1, #deps do -- 2551
+		copied[#copied + 1] = deps[i] -- 2553
+	end -- 2553
+	return copied -- 2555
+end -- 2549
+function ____exports.useMemo(factory, deps) -- 2558
+	local frame = currentHookFrame -- 2559
+	if frame == nil then -- 2559
+		error("useMemo() can only be called inside a function component") -- 2561
+	end -- 2561
+	local index = frame.hookIndex -- 2563
+	frame.hookIndex = frame.hookIndex + 1 -- 2564
+	local hook = frame.hooks[index + 1] -- 2565
+	if hook == nil or not hookDepsEqual(hook.deps, deps) then -- 2565
+		hook = { -- 2567
+			value = factory(), -- 2567
+			deps = copyDeps(deps) -- 2567
+		} -- 2567
+		frame.hooks[index + 1] = hook -- 2568
+	end -- 2568
+	return hook.value -- 2570
+end -- 2558
+function ____exports.useCallback(callback, deps) -- 2573
+	local frame = currentHookFrame -- 2574
+	if frame == nil then -- 2574
+		error("useCallback() can only be called inside a function component") -- 2576
+	end -- 2576
+	local actualDeps = deps or ({}) -- 2578
+	local index = frame.hookIndex -- 2579
+	frame.hookIndex = frame.hookIndex + 1 -- 2580
+	local hook = frame.hooks[index + 1] -- 2581
+	if hook == nil or not hookDepsEqual(hook.deps, actualDeps) then -- 2581
+		hook = { -- 2583
+			value = callback, -- 2583
+			deps = copyDeps(actualDeps) -- 2583
+		} -- 2583
+		frame.hooks[index + 1] = hook -- 2584
+	end -- 2584
+	return hook.value -- 2586
+end -- 2573
+function ____exports.useRef(item) -- 2589
+	local frame = currentHookFrame -- 2590
+	if frame == nil then -- 2590
+		error("useRef() can only be called inside a function component") -- 2592
 	end -- 2592
-	local enode = node -- 2594
-	if enode.type == nil then -- 2594
-		local list = node -- 2596
-		if #list > 0 then -- 2596
-			for i = 1, #list do -- 2596
-				getPreload(preloadList, list[i]) -- 2599
-			end -- 2599
-		end -- 2599
-	else -- 2599
-		repeat -- 2599
-			local ____switch619 = enode.type -- 2599
-			local sprite, playable, frame, model, spine, dragonBone, label -- 2599
-			local ____cond619 = ____switch619 == "sprite" -- 2599
-			if ____cond619 then -- 2599
-				sprite = enode.props -- 2605
-				if sprite.file then -- 2605
-					preloadList[#preloadList + 1] = sprite.file -- 2607
-				end -- 2607
-				break -- 2609
-			end -- 2609
-			____cond619 = ____cond619 or ____switch619 == "playable" -- 2609
-			if ____cond619 then -- 2609
-				playable = enode.props -- 2611
-				preloadList[#preloadList + 1] = playable.file -- 2612
-				break -- 2613
-			end -- 2613
-			____cond619 = ____cond619 or ____switch619 == "frame" -- 2613
-			if ____cond619 then -- 2613
-				frame = enode.props -- 2615
-				preloadList[#preloadList + 1] = frame.file -- 2616
-				break -- 2617
-			end -- 2617
-			____cond619 = ____cond619 or ____switch619 == "model" -- 2617
-			if ____cond619 then -- 2617
-				model = enode.props -- 2619
-				preloadList[#preloadList + 1] = "model:" .. model.file -- 2620
-				break -- 2621
-			end -- 2621
-			____cond619 = ____cond619 or ____switch619 == "spine" -- 2621
-			if ____cond619 then -- 2621
-				spine = enode.props -- 2623
-				preloadList[#preloadList + 1] = "spine:" .. spine.file -- 2624
-				break -- 2625
-			end -- 2625
-			____cond619 = ____cond619 or ____switch619 == "dragon-bone" -- 2625
-			if ____cond619 then -- 2625
-				dragonBone = enode.props -- 2627
-				preloadList[#preloadList + 1] = "bone:" .. dragonBone.file -- 2628
-				break -- 2629
-			end -- 2629
-			____cond619 = ____cond619 or ____switch619 == "label" -- 2629
-			if ____cond619 then -- 2629
-				label = enode.props -- 2631
-				preloadList[#preloadList + 1] = (("font:" .. label.fontName) .. ";") .. tostring(label.fontSize) -- 2632
-				break -- 2633
-			end -- 2633
-		until true -- 2633
-	end -- 2633
-	getPreload(preloadList, enode.children) -- 2636
-end -- 2590
-function ____exports.preloadAsync(enode, handler) -- 2639
-	local preloadList = {} -- 2640
-	getPreload(preloadList, enode) -- 2641
-	Dora.Cache:loadAsync(preloadList, handler) -- 2642
-end -- 2639
-function ____exports.toAction(enode) -- 2645
-	local actionDef = ____exports.reference() -- 2646
-	____exports.toNode(____exports.React.createElement("action", {ref = actionDef}, enode)) -- 2647
-	if not actionDef.current then -- 2647
-		error("failed to create action") -- 2648
-	end -- 2648
-	return actionDef.current -- 2649
-end -- 2645
-return ____exports -- 2645
+	local index = frame.hookIndex -- 2594
+	frame.hookIndex = frame.hookIndex + 1 -- 2595
+	local hook = frame.hooks[index + 1] -- 2596
+	if hook == nil then -- 2596
+		hook = {value = ____exports.reference(item)} -- 2598
+		frame.hooks[index + 1] = hook -- 2599
+	end -- 2599
+	return hook.value -- 2601
+end -- 2589
+function ____exports.useSignal(value) -- 2604
+	local frame = currentHookFrame -- 2605
+	if frame == nil then -- 2605
+		error("useSignal() can only be called inside a function component") -- 2607
+	end -- 2607
+	local index = frame.hookIndex -- 2609
+	frame.hookIndex = frame.hookIndex + 1 -- 2610
+	local hook = frame.hooks[index + 1] -- 2611
+	if hook == nil then -- 2611
+		hook = {value = ____exports.signal(value)} -- 2613
+		frame.hooks[index + 1] = hook -- 2614
+	end -- 2614
+	return hook.value -- 2616
+end -- 2604
+local function getPreload(preloadList, node) -- 2619
+	if type(node) ~= "table" then -- 2619
+		return -- 2621
+	end -- 2621
+	local enode = node -- 2623
+	if enode.type == nil then -- 2623
+		local list = node -- 2625
+		if #list > 0 then -- 2625
+			for i = 1, #list do -- 2625
+				getPreload(preloadList, list[i]) -- 2628
+			end -- 2628
+		end -- 2628
+	else -- 2628
+		repeat -- 2628
+			local ____switch623 = enode.type -- 2628
+			local sprite, playable, frame, model, spine, dragonBone, label -- 2628
+			local ____cond623 = ____switch623 == "sprite" -- 2628
+			if ____cond623 then -- 2628
+				sprite = enode.props -- 2634
+				if sprite.file then -- 2634
+					preloadList[#preloadList + 1] = sprite.file -- 2636
+				end -- 2636
+				break -- 2638
+			end -- 2638
+			____cond623 = ____cond623 or ____switch623 == "playable" -- 2638
+			if ____cond623 then -- 2638
+				playable = enode.props -- 2640
+				preloadList[#preloadList + 1] = playable.file -- 2641
+				break -- 2642
+			end -- 2642
+			____cond623 = ____cond623 or ____switch623 == "frame" -- 2642
+			if ____cond623 then -- 2642
+				frame = enode.props -- 2644
+				preloadList[#preloadList + 1] = frame.file -- 2645
+				break -- 2646
+			end -- 2646
+			____cond623 = ____cond623 or ____switch623 == "model" -- 2646
+			if ____cond623 then -- 2646
+				model = enode.props -- 2648
+				preloadList[#preloadList + 1] = "model:" .. model.file -- 2649
+				break -- 2650
+			end -- 2650
+			____cond623 = ____cond623 or ____switch623 == "spine" -- 2650
+			if ____cond623 then -- 2650
+				spine = enode.props -- 2652
+				preloadList[#preloadList + 1] = "spine:" .. spine.file -- 2653
+				break -- 2654
+			end -- 2654
+			____cond623 = ____cond623 or ____switch623 == "dragon-bone" -- 2654
+			if ____cond623 then -- 2654
+				dragonBone = enode.props -- 2656
+				preloadList[#preloadList + 1] = "bone:" .. dragonBone.file -- 2657
+				break -- 2658
+			end -- 2658
+			____cond623 = ____cond623 or ____switch623 == "label" -- 2658
+			if ____cond623 then -- 2658
+				label = enode.props -- 2660
+				preloadList[#preloadList + 1] = (("font:" .. label.fontName) .. ";") .. tostring(label.fontSize) -- 2661
+				break -- 2662
+			end -- 2662
+		until true -- 2662
+	end -- 2662
+	getPreload(preloadList, enode.children) -- 2665
+end -- 2619
+function ____exports.preloadAsync(enode, handler) -- 2668
+	local preloadList = {} -- 2669
+	getPreload(preloadList, enode) -- 2670
+	Dora.Cache:loadAsync(preloadList, handler) -- 2671
+end -- 2668
+function ____exports.toAction(enode) -- 2674
+	local actionDef = ____exports.reference() -- 2675
+	____exports.toNode(____exports.React.createElement("action", {ref = actionDef}, enode)) -- 2676
+	if not actionDef.current then -- 2676
+		error("failed to create action") -- 2677
+	end -- 2677
+	return actionDef.current -- 2678
+end -- 2674
+return ____exports -- 2674

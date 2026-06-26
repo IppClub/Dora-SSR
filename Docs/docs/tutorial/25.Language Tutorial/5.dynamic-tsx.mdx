@@ -101,12 +101,13 @@ Unkeyed children are matched by index. That is fine for fixed child layouts, but
 
 ## Patch, Recreate, and Cleanup Patch
 
-During a dynamic update, DoraX chooses one of three behaviors:
+During a dynamic update, DoraX chooses one of four behaviors:
 
 | Behavior | Meaning | Examples |
 | --- | --- | --- |
 | Patch | Reuse the Dora node and assign changed properties. | Position, scale, text, many ordinary node properties. |
-| Recreate | Unmount the old node and create a new one. | Element type change, key change, resource `file` change, `<custom-node onCreate>` change. |
+| Subtree recreate | Unmount the old node and its children, then mount a new subtree. | Element type change, `key` change. |
+| Host recreate | Replace only the current Dora node. Existing child nodes are moved to the new node and then diffed against the new children. | Resource `file` change, `<custom-node onCreate>` change, initialization-only prop change. |
 | Cleanup patch | Reuse the node, but clear or replace engine-side registrations. | Replacing event callbacks, replacing refs, changing `onUpdate`. |
 
 Most ordinary properties are patched with direct assignment. When an ordinary property is removed from the new TSX element, DoraX usually leaves the previous engine value unchanged instead of assigning `undefined`. Properties that support `undefined` or have explicit cleanup APIs are handled specially.
@@ -115,7 +116,7 @@ Most ordinary properties are patched with direct assignment. When an ordinary pr
 
 | Element or property | Recreate condition |
 | --- | --- |
-| All elements | Element type changes or `key` changes. |
+| All elements | Element type changes or `key` changes cause subtree recreation. |
 | `onMount` | Changing, adding, or removing `onMount` recreates the node because it only runs during mount. |
 | `<draw-node>` | Any update recreates the draw node because draw shape children are immediate drawing commands. |
 | Resource nodes | `file` changes recreate nodes such as `sprite`, `playable`, `spine`, `model`, `audio-source`, `particle`, `tile-node`, and `video-node`. |
@@ -123,6 +124,8 @@ Most ordinary properties are patched with direct assignment. When an ordinary pr
 | `<body>` | Structural body settings and fixture child changes recreate the body. |
 | `<custom-node>` | `onCreate` changes recreate the custom node. |
 | `<align-node>` | `windowRoot` changes recreate the align node. |
+
+Except for element type and `key` changes, recreate usually means host recreation: DoraX replaces the current engine node, moves still-matching mounted children to the new node, and then continues normal keyed child diffing. Children that also need recreation are recreated, removed children are unmounted, and new children are mounted.
 
 ### Special Patch Cases
 

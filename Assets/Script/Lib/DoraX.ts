@@ -1892,31 +1892,33 @@ function getElementChildren(this: void, enode: React.Element): React.Element[] {
 	return children;
 }
 
-function shouldRecreate(this: void, oldElement: React.Element, newElement: React.Element): boolean {
-	if (oldElement.type !== newElement.type) return true;
-	if (getElementKey(oldElement) !== getElementKey(newElement)) return true;
+type RecreateMode = "subtree" | "host";
+
+function getRecreateMode(this: void, oldElement: React.Element, newElement: React.Element): RecreateMode | undefined {
+	if (oldElement.type !== newElement.type) return "subtree";
+	if (getElementKey(oldElement) !== getElementKey(newElement)) return "subtree";
 	const oldProps = oldElement.props as AnyTable;
 	const newProps = newElement.props as AnyTable;
-	if (newElement.type === "draw-node") return true;
+	if (newElement.type === "draw-node") return "host";
 	for (let [k, v] of pairs(oldProps)) {
 		if (k === "onMount" && newProps[k] !== v) {
-			return true;
+			return "host";
 		}
 		if (isEventProp(k) && !isPatchableEventProp(k) && newProps[k] !== v) {
-			return true;
+			return "host";
 		}
 	}
 	for (let [k, v] of pairs(newProps)) {
 		if (k === "onMount" && oldProps[k] !== v) {
-			return true;
+			return "host";
 		}
 		if (isEventProp(k) && !isPatchableEventProp(k) && oldProps[k] !== v) {
-			return true;
+			return "host";
 		}
 	}
 	switch (newElement.type as keyof JSX.IntrinsicElements) {
 		case "grid":
-			return oldProps.file !== newProps.file || oldProps.gridX !== newProps.gridX || oldProps.gridY !== newProps.gridY;
+			return oldProps.file !== newProps.file || oldProps.gridX !== newProps.gridX || oldProps.gridY !== newProps.gridY ? "host" : undefined;
 		case "sprite":
 		case "video-node":
 		case "tic80-node":
@@ -1927,22 +1929,22 @@ function shouldRecreate(this: void, oldElement: React.Element, newElement: React
 		case "dragon-bone":
 		case "spine":
 		case "model":
-			return oldProps.file !== newProps.file;
+			return oldProps.file !== newProps.file ? "host" : undefined;
 		case "label":
-			return oldProps.fontName !== newProps.fontName || oldProps.fontSize !== newProps.fontSize || oldProps.sdf !== newProps.sdf;
+			return oldProps.fontName !== newProps.fontName || oldProps.fontSize !== newProps.fontSize || oldProps.sdf !== newProps.sdf ? "host" : undefined;
 		case "align-node":
-			return oldProps.windowRoot !== newProps.windowRoot;
+			return oldProps.windowRoot !== newProps.windowRoot ? "host" : undefined;
 		case "custom-node":
-			return oldProps.onCreate !== newProps.onCreate;
+			return oldProps.onCreate !== newProps.onCreate ? "host" : undefined;
 		case "body":
 			return oldProps.type !== newProps.type ||
 				oldProps.world !== newProps.world ||
 				oldProps.fixedRotation !== newProps.fixedRotation ||
 				oldProps.bullet !== newProps.bullet ||
 				oldProps.linearAcceleration !== newProps.linearAcceleration ||
-				!structuralChildrenEqual(oldElement, newElement, isBodyFixtureElement);
+				!structuralChildrenEqual(oldElement, newElement, isBodyFixtureElement) ? "host" : undefined;
 	}
-	return false;
+	return undefined;
 }
 
 function isEventProp(this: void, key: unknown): boolean {
@@ -2247,10 +2249,7 @@ function mountElement(this: void, parent: Dora.Node.Type, enode: React.Element):
 	return mounted;
 }
 
-function unmountElement(this: void, mounted: MountedElement) {
-	for (let i of $range(1, mounted.children.length)) {
-		unmountElement(mounted.children[i - 1]);
-	}
+function unmountHostElement(this: void, mounted: MountedElement) {
 	const props = mounted.element.props as JSX.Node;
 	if (props.onUnmount !== undefined) {
 		props.onUnmount(mounted.node);
@@ -2259,11 +2258,19 @@ function unmountElement(this: void, mounted: MountedElement) {
 	mounted.node.removeFromParent(true);
 }
 
+function unmountElement(this: void, mounted: MountedElement) {
+	for (let i of $range(1, mounted.children.length)) {
+		unmountElement(mounted.children[i - 1]);
+	}
+	unmountHostElement(mounted);
+}
+
 function reconcileElement(this: void, parent: Dora.Node.Type, oldMounted: MountedElement | undefined, newElement: React.Element): MountedElement | undefined {
 	if (oldMounted === undefined) {
 		return mountElement(parent, newElement);
 	}
-	if (shouldRecreate(oldMounted.element, newElement)) {
+	const recreateMode = getRecreateMode(oldMounted.element, newElement);
+	if (recreateMode === "subtree") {
 		const oldNode = oldMounted.node;
 		const oldOrder = oldNode.order;
 		const oldTag = oldNode.tag;
@@ -2274,6 +2281,28 @@ function reconcileElement(this: void, parent: Dora.Node.Type, oldMounted: Mounte
 			mounted.node.tag = (newElement.props as JSX.Node).tag ?? oldTag;
 		}
 		return mounted;
+	}
+	if (recreateMode === "host") {
+		const oldNode = oldMounted.node;
+		const oldOrder = oldNode.order;
+		const oldTag = oldNode.tag;
+		const node = createHostNode(newElement, parent);
+		if (node === undefined) {
+			unmountElement(oldMounted);
+			return undefined;
+		}
+		addChildToParent(parent, node, newElement.props as JSX.Node);
+		node.order = (newElement.props as JSX.Node).order ?? oldOrder;
+		node.tag = (newElement.props as JSX.Node).tag ?? oldTag;
+		runActionChildren(node, newElement);
+		for (let i of $range(1, oldMounted.children.length)) {
+			oldMounted.children[i - 1].node.moveToParent(node);
+		}
+		unmountHostElement(oldMounted);
+		oldMounted.node = node;
+		oldMounted.children = reconcileChildren(node, oldMounted.children, getElementChildren(newElement));
+		oldMounted.element = newElement;
+		return oldMounted;
 	}
 	patchProps(oldMounted.node, oldMounted.element, newElement);
 	patchActionChildren(oldMounted.node, oldMounted.element, newElement);
