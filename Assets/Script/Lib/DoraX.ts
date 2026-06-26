@@ -824,7 +824,7 @@ let getAlignNode: (this: void, enode: React.Element) => Dora.AlignNode.Type;
 			node.css(getAlignStyleText(alignNode.style as AnyTable));
 		}
 		if (alignNode.onLayout) {
-			node.slot(Dora.Slot.AlignLayout, alignNode.onLayout);
+			node.onAlignLayout(alignNode.onLayout);
 		}
 		const cnode = getNode(enode, node, handleAlignNode as AttribHandler);
 		return cnode as Dora.AlignNode.Type;
@@ -1525,6 +1525,7 @@ interface MountedElement {
 }
 
 const roots: Root[] = [];
+const warnedUnkeyedChildTypes = new LuaTable<string, boolean>();
 let renderQueued = false;
 let queuedRoots: Root[] = [];
 let trackingRoot: Root | undefined;
@@ -1538,6 +1539,32 @@ function isElementList(this: void, node: React.Element | React.Element[]): boole
 function getElementKey(this: void, element: React.Element): string | number | undefined {
 	const props = element.props as AnyTable | undefined;
 	return props ? props.key as string | number | undefined : undefined;
+}
+
+function getElementTypeName(this: void, element: React.Element): string {
+	const elementType = element.type;
+	if (type(elementType) === "string") return elementType as string;
+	return tostring(elementType);
+}
+
+function warnUnkeyedDynamicChildren(this: void, oldChildren: MountedElement[], newElements: React.Element[]) {
+	if (oldChildren.length === newElements.length) return;
+	const oldTypes = new LuaTable<string, boolean>();
+	for (let i of $range(1, oldChildren.length)) {
+		const oldElement = oldChildren[i - 1].element;
+		if (getElementKey(oldElement) === undefined) {
+			oldTypes.set(getElementTypeName(oldElement), true);
+		}
+	}
+	for (let i of $range(1, newElements.length)) {
+		const newElement = newElements[i - 1];
+		if (getElementKey(newElement) !== undefined) continue;
+		const typeName = getElementTypeName(newElement);
+		if (oldTypes.get(typeName) === true && !warnedUnkeyedChildTypes.get(typeName)) {
+			warnedUnkeyedChildTypes.set(typeName, true);
+			Warn(`dynamic children include unkeyed <${typeName}> siblings while child count changed; add stable key props to conditional, inserted, removed or reordered siblings to avoid index-based reuse`);
+		}
+	}
 }
 
 function getRenderableElement(this: void, renderable: RenderInput): React.Element | React.Element[] {
@@ -1994,7 +2021,11 @@ function patchEventProp(this: void, node: Dora.Node.Type, key: unknown, value: u
 	if (slotName === undefined) return;
 	node.slot(slotName).clear();
 	if (value !== undefined) {
-		node.slot(slotName, value as (this: void, ...args: unknown[]) => void);
+		if (key === "onLayout") {
+			(node as Dora.AlignNode.Type).onAlignLayout(value as (this: void, width: number, height: number) => void);
+		} else {
+			node.slot(slotName, value as (this: void, ...args: unknown[]) => void);
+		}
 	}
 }
 
@@ -2019,7 +2050,10 @@ function patchUpdateProp(this: void, node: Dora.Node.Type, value: unknown) {
 }
 
 function patchRenderProp(this: void, node: Dora.Node.Type, value: unknown) {
-	node.clearRender();
+	const clearRender = (node as AnyTable).clearRender;
+	if (type(clearRender) === "function") {
+		(clearRender as (node: Dora.Node.Type) => void)(node);
+	}
 	if (value === undefined) {
 		return;
 	}
@@ -2312,6 +2346,7 @@ function reconcileElement(this: void, parent: Dora.Node.Type, oldMounted: Mounte
 }
 
 function reconcileChildren(this: void, parent: Dora.Node.Type, oldChildren: MountedElement[], newElements: React.Element[]): MountedElement[] {
+	warnUnkeyedDynamicChildren(oldChildren, newElements);
 	const oldByKey: LuaTable<string | number, MountedElement> = new LuaTable();
 	const usedOld: LuaTable<MountedElement, boolean> = new LuaTable();
 	for (let i of $range(1, oldChildren.length)) {
