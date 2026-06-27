@@ -37,6 +37,11 @@ set(DORA_BGFX_BUILD_DIR ${DORA_BGFX_ROOT}/build/linux/${DORA_BGFX_ARCH}/${DORA_B
 set(DORA_SDL2_BUILD_DIR ${DORA_SDL2_ROOT}/Lib/Linux/${DORA_RUNTIME_ARCH})
 set(DORA_WA_BUILD_DIR ${DORA_SOURCE_ROOT}/3rdParty/Wa/Lib/Linux/${DORA_WA_ARCH})
 set(DORA_RUNTIME_BUILD_DIR ${DORA_SOURCE_ROOT}/Rust/lib/Linux/${DORA_RUNTIME_ARCH})
+if(DORA_BGFX_ARCH STREQUAL "arm64")
+	set(DORA_RENDER_LINK_LIBS EGL GLESv2 X11)
+else()
+	set(DORA_RENDER_LINK_LIBS GL X11)
+endif()
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(DBUS REQUIRED dbus-1)
@@ -722,4 +727,4 @@ add_executable(dora-ssr
 	../../Source/3rdParty/tic80/vendor/blip-buf/blip_wasm_host.cpp
 )
 
-target_link_libraries(dora-ssr z SDL2-lib BGFX-lib BIMGDE-lib BIMG-lib SHADERC-lib GLSLO-lib FCPP-lib BX-lib GL X11 ${DBUS_LINK_LIBRARIES} DORA-lib WA-lib m dl pthread rt)
+target_link_libraries(dora-ssr z SDL2-lib BGFX-lib BIMGDE-lib BIMG-lib SHADERC-lib GLSLO-lib FCPP-lib BX-lib ${DORA_RENDER_LINK_LIBS} ${DBUS_LINK_LIBRARIES} DORA-lib WA-lib m dl pthread rt)

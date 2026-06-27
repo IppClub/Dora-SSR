@@ -493,6 +493,10 @@ WL_EGL_IMPORT
 
 			eglSwapInterval(m_display, 0);
 		}
+		else
+		{
+			m_context = (EGLContext)g_platformData.context;
+		}
 
 		import();
 

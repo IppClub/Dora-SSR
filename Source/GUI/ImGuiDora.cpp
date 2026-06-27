@@ -831,6 +831,12 @@ void ImGuiDora::showStats(bool* pOpen, uint32_t windowFlags, const std::function
 				ImGui::EndTable();
 			}
 		}
+#if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_LINUX
+		if (ImGui::Button(useChinese ? r_cast<const char*>(u8"关闭引擎") : "Shut Engine", Vec2{200.0f, 30.0f})) {
+			SharedApplication.setDevMode(false);
+			SharedApplication.shutdown();
+		}
+#endif
 		ImGui::Dummy(Vec2{200.0f, 0.0f});
 	}
 	ImGui::End();

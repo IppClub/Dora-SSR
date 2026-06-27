@@ -51,6 +51,8 @@ local function add_bgfx_renderer_config()
         add_defines("BGFX_CONFIG_RENDERER_DIRECT3D11=1")
     elseif is_plat("android") then
         add_defines("BGFX_CONFIG_RENDERER_OPENGLES=30")
+    elseif is_plat("linux") and is_arch("arm64", "aarch64") then
+        add_defines("BGFX_CONFIG_RENDERER_OPENGLES=30")
     elseif is_plat("macosx", "iphoneos") then
         add_defines("BGFX_CONFIG_RENDERER_METAL=1")
     end
@@ -562,7 +564,11 @@ local shaderc_src = {
 -- 平台相关链接库
 local function add_platform_links()
     if is_plat("linux") then
-        add_syslinks("X11", "GL", "pthread", "dl", "rt")
+        if is_arch("arm64", "aarch64") then
+            add_syslinks("EGL", "GLESv2", "X11", "pthread", "dl", "rt")
+        else
+            add_syslinks("X11", "GL", "pthread", "dl", "rt")
+        end
     elseif is_plat("macosx") then
         -- GENie 脚本中的完整框架列表
         add_frameworks("Cocoa", "IOKit", "OpenGL", "QuartzCore")

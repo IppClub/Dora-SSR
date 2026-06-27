@@ -130,6 +130,7 @@ private:
 	EventQueue _renderEvent;
 	std::thread::id _logicThreadID;
 	SDL_Window* _sdlWindow;
+	void* _sdlGLContext;
 	std::mt19937 _randomEngine;
 	bgfx::PlatformData _platformData;
 	MainFunc _mainFunc;

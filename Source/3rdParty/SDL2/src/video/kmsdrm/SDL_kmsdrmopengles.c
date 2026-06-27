@@ -68,7 +68,14 @@ void KMSDRM_GLES_UnloadLibrary(_THIS)
        so we manually unload the library whenever we want. */
 }
 
-SDL_EGL_CreateContext_impl(KMSDRM)
+SDL_GLContext
+KMSDRM_GLES_CreateContext(_THIS, SDL_Window *window)
+{
+    _this->gl_config.profile_mask = SDL_GL_CONTEXT_PROFILE_ES;
+    _this->gl_config.major_version = 2;
+    _this->gl_config.minor_version = 0;
+    return SDL_EGL_CreateContext(_this, ((SDL_WindowData *)window->driverdata)->egl_surface);
+}
 
     int KMSDRM_GLES_SetSwapInterval(_THIS, int interval)
 {
@@ -174,7 +181,8 @@ int KMSDRM_GLES_SwapWindow(_THIS, SDL_Window *window)
            That makes it flip immediately, without waiting for the next vblank
            to do so, so even if we don't block on EGL, the flip will have completed
            when we get here again. */
-        if (_this->egl_data->egl_swapinterval == 0 && viddata->async_pageflip_support) {
+        /* Some older KMSDRM stacks advertise async pageflip but reject it at runtime. */
+        if (SDL_FALSE && _this->egl_data->egl_swapinterval == 0 && viddata->async_pageflip_support) {
             flip_flags |= DRM_MODE_PAGE_FLIP_ASYNC;
         }
 

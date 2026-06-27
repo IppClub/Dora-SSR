@@ -27,6 +27,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "bx/timer.h"
 
 #include <chrono>
+#include <cstring>
 #include <cstdlib>
 #include <ctime>
 #include <filesystem>
@@ -563,6 +564,11 @@ int runCliApplication(int, char*[]) {
 
 bool BGFXDora::init(const bgfx::PlatformData& data) {
 	bgfx::Init init{};
+#if BX_PLATFORM_LINUX
+	if (data.context) {
+		init.type = bgfx::RendererType::OpenGLES;
+	}
+#endif // BX_PLATFORM_LINUX
 	bx::memCopy(&init.platformData, &data, sizeof(bgfx::PlatformData));
 	return bgfx::init(init);
 }
@@ -594,6 +600,7 @@ Application::Application()
 	, _totalTime(0)
 	, _frequency(double(bx::getHPFrequency()))
 	, _sdlWindow(nullptr)
+	, _sdlGLContext(nullptr)
 	, _themeColor(0xfffac03d)
 	, _winPosition{-1.0f, -1.0f}
 	, _platformData{} {
@@ -812,6 +819,23 @@ int Application::run(MainFunc mainFunc) {
 	uint32_t windowFlags = SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_RESIZABLE;
 #if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_LINUX
 	windowFlags |= SDL_WINDOW_HIDDEN;
+#if BX_PLATFORM_LINUX
+	const char* videoDriver = SDL_GetCurrentVideoDriver();
+	const bool useKmsdrmGL = videoDriver && std::strcmp(videoDriver, "KMSDRM") == 0;
+	if (useKmsdrmGL) {
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+		SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+		SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+		SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+		SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+		windowFlags |= SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN | SDL_WINDOW_BORDERLESS;
+		_fullScreen = true;
+	}
+#endif // BX_PLATFORM_LINUX
 	if (_alwaysOnTop) {
 		windowFlags |= SDL_WINDOW_ALWAYS_ON_TOP;
 	}
@@ -850,6 +874,9 @@ int Application::run(MainFunc mainFunc) {
 	while (_renderRunning) {
 		// do render staff and swap buffers
 		bgfx::renderFrame();
+		if (_sdlGLContext) {
+			SDL_GL_SwapWindow(_sdlWindow);
+		}
 
 		// handle SDL event in this main thread only
 		while (SDL_PollEvent(&event)) {
@@ -944,6 +971,10 @@ int Application::run(MainFunc mainFunc) {
 	while (bgfx::RenderFrame::NoContext != bgfx::renderFrame());
 	_logicThread.shutdown();
 
+	if (_sdlGLContext) {
+		SDL_GL_DeleteContext(_sdlGLContext);
+		_sdlGLContext = nullptr;
+	}
 	SDL_DestroyWindow(_sdlWindow);
 	SDL_Quit();
 
@@ -1245,6 +1276,18 @@ void Application::setupSdlWindow() {
 		_platformData.ndt = wmi.info.wl.display;
 		_platformData.nwh = r_cast<void*>(wmi.info.wl.surface);
 		_platformData.type = bgfx::NativeWindowHandleType::Wayland;
+	} else if (wmi.subsystem == SDL_SYSWM_KMSDRM) {
+		_sdlGLContext = SDL_GL_CreateContext(_sdlWindow);
+		if (!_sdlGLContext) {
+			Error("SDL failed to create KMSDRM GL context! {}", SDL_GetError());
+			return;
+		}
+		if (SDL_GL_MakeCurrent(_sdlWindow, _sdlGLContext) != 0) {
+			Error("SDL failed to make KMSDRM GL context current! {}", SDL_GetError());
+			return;
+		}
+		_platformData.context = _sdlGLContext;
+		_platformData.type = bgfx::NativeWindowHandleType::Default;
 	} else {
 		_platformData.ndt = wmi.info.x11.display;
 		_platformData.nwh = r_cast<void*>(wmi.info.x11.window);

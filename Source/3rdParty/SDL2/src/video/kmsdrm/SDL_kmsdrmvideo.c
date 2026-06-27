@@ -365,7 +365,9 @@ KMSDRM_FBInfo *KMSDRM_FBFromBO(_THIS, struct gbm_bo *bo)
     h = KMSDRM_gbm_bo_get_height(bo);
     format = KMSDRM_gbm_bo_get_format(bo);
 
-    if (KMSDRM_drmModeAddFB2WithModifiers &&
+    /* Legacy Rockchip/Mali GBM buffers work with drmModeAddFB but not modifiers. */
+    if (SDL_FALSE &&
+        KMSDRM_drmModeAddFB2WithModifiers &&
         KMSDRM_gbm_bo_get_modifier &&
         KMSDRM_gbm_bo_get_plane_count &&
         KMSDRM_gbm_bo_get_offset &&
@@ -1193,7 +1195,7 @@ int KMSDRM_CreateSurfaces(_THIS, SDL_Window *window)
     SDL_VideoDisplay *display = SDL_GetDisplayForWindow(window);
     SDL_DisplayData *dispdata = (SDL_DisplayData *)display->driverdata;
 
-    uint32_t surface_fmt = GBM_FORMAT_ARGB8888;
+    uint32_t surface_fmt = GBM_FORMAT_XRGB8888;
     uint32_t surface_flags = GBM_BO_USE_SCANOUT | GBM_BO_USE_RENDERING;
 
     EGLContext egl_context;
@@ -1233,7 +1235,46 @@ int KMSDRM_CreateSurfaces(_THIS, SDL_Window *window)
        but we need an EGL surface NOW, or GL won't be able to render into any surface
        and we won't see the first frame. */
     SDL_EGL_SetRequiredVisualId(_this, surface_fmt);
-    windata->egl_surface = SDL_EGL_CreateSurface(_this, (NativeWindowType)windata->gs);
+    if (_this->egl_data) {
+        EGLint config_attrs[] = {
+            EGL_RED_SIZE, 8,
+            EGL_GREEN_SIZE, 8,
+            EGL_BLUE_SIZE, 8,
+            EGL_DEPTH_SIZE, 24,
+            EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+            EGL_NONE
+        };
+        EGLConfig configs[64];
+        EGLint found_configs = 0;
+        EGLint i;
+        if (_this->egl_data->eglChooseConfig(_this->egl_data->egl_display,
+                                             config_attrs,
+                                             configs, SDL_arraysize(configs),
+                                             &found_configs) == EGL_TRUE) {
+            for (i = 0; i < found_configs; i++) {
+                EGLint native_visual_id = 0;
+                _this->egl_data->eglGetConfigAttrib(_this->egl_data->egl_display,
+                                                    configs[i],
+                                                    EGL_NATIVE_VISUAL_ID,
+                                                    &native_visual_id);
+                if ((uint32_t)native_visual_id == surface_fmt) {
+                    _this->egl_data->egl_config = configs[i];
+                    break;
+                }
+            }
+        }
+        if (_this->egl_data->egl_config) {
+            windata->egl_surface = _this->egl_data->eglCreateWindowSurface(
+                _this->egl_data->egl_display,
+                _this->egl_data->egl_config,
+                (NativeWindowType)windata->gs,
+                NULL);
+        }
+    }
+    if (windata->egl_surface == EGL_NO_SURFACE) {
+        windata->egl_surface = SDL_EGL_CreateSurface(_this, (NativeWindowType)windata->gs);
+    }
 
     if (windata->egl_surface == EGL_NO_SURFACE) {
         ret = SDL_SetError("Could not create EGL window surface");
