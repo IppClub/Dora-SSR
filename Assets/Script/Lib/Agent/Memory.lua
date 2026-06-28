@@ -509,12 +509,13 @@ local function splitMemorySections(text) -- 808
 		"\n" -- 810
 	) -- 810
 	local title = "Overview" -- 811
+	local headingLine = "" -- 811
 	local bodyLines = {} -- 812
 	local index = 0 -- 813
 	local function flush() -- 814
 		local body = __TS__StringTrim(table.concat(bodyLines, "\n")) -- 815
 		if body ~= "" then -- 815
-			local fullText = title == "Overview" and body or (("## " .. title) .. "\n\n") .. body -- 817
+			local fullText = title == "Overview" and body or (headingLine .. "\n\n") .. body -- 817
 			sections[#sections + 1] = { -- 818
 				title = title, -- 818
 				body = body, -- 818
@@ -530,8 +531,14 @@ local function splitMemorySections(text) -- 808
 		while i < #lines do -- 822
 			do -- 822
 				local line = lines[i + 1] -- 823
-				if string.sub(line, 1, 3) == "## " then -- 823
+				if string.sub(line, 1, 4) == "### " then -- 823
 					flush() -- 825
+					headingLine = line -- 825
+					title = __TS__StringTrim(string.sub(line, 5)) -- 826
+					bodyLines = {} -- 827
+				elseif string.sub(line, 1, 3) == "## " then -- 827
+					flush() -- 825
+					headingLine = line -- 825
 					title = __TS__StringTrim(string.sub(line, 4)) -- 826
 					bodyLines = {} -- 827
 				elseif string.sub(line, 1, 2) == "# " then -- 827
@@ -612,7 +619,7 @@ local function scoreMemorySection(section, terms) -- 877
 			i = i + 1 -- 881
 		end -- 881
 	end -- 881
-	if (string.find(titleLower, "user preference", nil, true) or 0) - 1 >= 0 or (string.find(titleLower, "stable fact", nil, true) or 0) - 1 >= 0 or (string.find(titleLower, "known decision", nil, true) or 0) - 1 >= 0 or (string.find(titleLower, "known issue", nil, true) or 0) - 1 >= 0 or (string.find(titleLower, "current goal", nil, true) or 0) - 1 >= 0 or (string.find(titleLower, "recent progress", nil, true) or 0) - 1 >= 0 or (string.find(titleLower, "build and run", nil, true) or 0) - 1 >= 0 then -- 881
+	if (string.find(titleLower, "user preference", nil, true) or 0) - 1 >= 0 or (string.find(titleLower, "stable fact", nil, true) or 0) - 1 >= 0 or (string.find(titleLower, "known decision", nil, true) or 0) - 1 >= 0 or (string.find(titleLower, "known issue", nil, true) or 0) - 1 >= 0 or (string.find(titleLower, "current goal", nil, true) or 0) - 1 >= 0 or (string.find(titleLower, "recent progress", nil, true) or 0) - 1 >= 0 or (string.find(titleLower, "build and run", nil, true) or 0) - 1 >= 0 or (string.find(titleLower, "project fact", nil, true) or 0) - 1 >= 0 or (string.find(titleLower, "files and architecture", nil, true) or 0) - 1 >= 0 or (string.find(titleLower, "open issue", nil, true) or 0) - 1 >= 0 then -- 881
 		score = score + (#terms > 0 and 1 or 3) -- 895
 	end -- 895
 	return score -- 897
