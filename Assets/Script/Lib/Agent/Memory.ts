@@ -809,20 +809,30 @@ function splitMemorySections(text: string): MemoryTextSection[] {
 	const sections: MemoryTextSection[] = [];
 	const lines = sanitizeUTF8(text ?? "").split("\n");
 	let title = "Overview";
+	let headingLine = "";
 	let bodyLines: string[] = [];
 	let index = 0;
 	function flush(): void {
 		const body = bodyLines.join("\n").trim();
 		if (body !== "") {
-			const fullText = title === "Overview" ? body : `## ${title}\n\n${body}`;
+			// fullText 保留原始标题行（## 或 ###），注入 prompt 时保持原结构
+			const fullText = title === "Overview" ? body : `${headingLine}\n\n${body}`;
 			sections.push({ title, body, fullText, index, score: 0 });
 			index += 1;
 		}
 	}
 	for (let i = 0; i < lines.length; i++) {
 		const line = lines[i];
-		if (line.slice(0, 3) === "## ") {
+		// 同时认 ## 和 ###，把模板里的子标题（User Preferences 等）切成独立 section，
+		// 这样打分加权的 title 检查才能匹配到子标题级。
+		if (line.slice(0, 4) === "### ") {
 			flush();
+			headingLine = line;
+			title = line.slice(4).trim();
+			bodyLines = [];
+		} else if (line.slice(0, 3) === "## ") {
+			flush();
+			headingLine = line;
 			title = line.slice(3).trim();
 			bodyLines = [];
 		} else if (line.slice(0, 2) === "# ") {
@@ -890,7 +900,10 @@ function scoreMemorySection(section: MemoryTextSection, terms: string[]): number
 		titleLower.indexOf("known issue") >= 0 ||
 		titleLower.indexOf("current goal") >= 0 ||
 		titleLower.indexOf("recent progress") >= 0 ||
-		titleLower.indexOf("build and run") >= 0
+		titleLower.indexOf("build and run") >= 0 ||
+		titleLower.indexOf("project fact") >= 0 ||
+		titleLower.indexOf("files and architecture") >= 0 ||
+		titleLower.indexOf("open issue") >= 0
 	) {
 		score += terms.length > 0 ? 1 : 3;
 	}
