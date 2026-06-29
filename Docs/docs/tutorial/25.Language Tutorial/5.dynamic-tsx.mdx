@@ -39,11 +39,11 @@ DoraX separates module-level state helpers from component-local hooks.
 | `signal(value)` | Module scope or ordinary code | Shared reactive state that can update dynamic roots. |
 | `reference(value?)` | Module scope or ordinary code | A ref object for nodes or values created outside hooks. |
 | `useSignal(value)` | Function components only | Component-local reactive state with stable identity across renders. |
-| `useRef(value?)` | Function components only | Component-local mutable ref with stable identity across renders. |
+| `useRef(value?)` | Prefer function components | Component-local mutable ref with stable identity across renders. Outside components it warns and falls back to `reference(value?)` for compatibility. |
 | `useMemo(factory, deps)` | Function components only | Cache an expensive value until dependencies change. |
 | `useCallback(callback, deps)` | Function components only | Keep callback identity stable until dependencies change. |
 
-Hooks must be called from DoraX function components. Calling `useSignal`, `useRef`, `useMemo`, or `useCallback` outside a component is an error. For state or refs outside components, use `signal()` and `reference()`.
+Hooks should be called from DoraX function components. Calling `useSignal`, `useMemo`, or `useCallback` outside a component is an error. `useRef` keeps backward compatibility outside components by warning and returning `reference(value?)`. For new code outside components, use `signal()` and `reference()`.
 
 ```tsx
 import { React, useCallback, useSignal } from 'DoraX';

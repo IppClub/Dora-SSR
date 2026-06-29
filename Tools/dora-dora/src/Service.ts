@@ -648,6 +648,7 @@ export const deleteLLMConfig = (id: number) => {
 export interface ReadRequest {
 	path: string;
 	projFile?: string;
+	projectRoot?: string;
 };
 export type ReadResponse = {
 	success: true;
@@ -910,6 +911,7 @@ export const command = (req: CommandRequest) => {
 export interface FileExistRequest {
 	file: string;
 	projFile?: string;
+	projectRoot?: string;
 };
 export interface FileExistResponse {
 	success: boolean;

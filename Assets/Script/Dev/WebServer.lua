@@ -4022,118 +4022,108 @@ HttpServer:post("/rename", function(req) -- 1628
 		success = false -- 1628
 	} -- 1628
 end) -- 1628
-HttpServer:post("/exist", function(req) -- 1667
-	do -- 1668
-		local _type_0 = type(req) -- 1668
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1668
-		if _tab_0 then -- 1668
-			local file -- 1668
-			do -- 1668
-				local _obj_0 = req.body -- 1668
-				local _type_1 = type(_obj_0) -- 1668
-				if "table" == _type_1 or "userdata" == _type_1 then -- 1668
-					file = _obj_0.file -- 1668
-				end -- 1668
-			end -- 1668
-			if file ~= nil then -- 1668
-				do -- 1669
-					local projFile = req.body.projFile -- 1669
-					if projFile then -- 1669
-						local projDir = getProjectDirFromFile(projFile) -- 1670
-						if projDir then -- 1670
-							local scriptDir = Path(projDir, "Script") -- 1671
-							local searchPaths = Content.searchPaths -- 1672
-							if Content:exist(scriptDir) then -- 1673
-								Content:addSearchPath(scriptDir) -- 1673
-							end -- 1673
-							if Content:exist(projDir) then -- 1674
-								Content:addSearchPath(projDir) -- 1674
-							end -- 1674
-							local _ <close> = setmetatable({ }, { -- 1675
-								__close = function() -- 1675
-									Content.searchPaths = searchPaths -- 1675
-								end -- 1675
-							}) -- 1675
-							return { -- 1676
-								success = Content:exist(file) -- 1676
-							} -- 1676
-						end -- 1670
-					end -- 1669
-				end -- 1669
-				return { -- 1677
-					success = Content:exist(file) -- 1677
-				} -- 1677
-			end -- 1668
-		end -- 1668
-	end -- 1668
-	return { -- 1667
-		success = false -- 1667
-	} -- 1667
-end) -- 1667
-HttpServer:postSchedule("/read", function(req) -- 1679
-	do -- 1680
-		local _type_0 = type(req) -- 1680
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1680
-		if _tab_0 then -- 1680
-			local path -- 1680
-			do -- 1680
-				local _obj_0 = req.body -- 1680
-				local _type_1 = type(_obj_0) -- 1680
-				if "table" == _type_1 or "userdata" == _type_1 then -- 1680
-					path = _obj_0.path -- 1680
-				end -- 1680
-			end -- 1680
-			if path ~= nil then -- 1680
-				local readFile -- 1681
-				readFile = function() -- 1681
-					if Content:exist(path) then -- 1682
-						local content = Content:loadAsync(path) -- 1683
-						if content then -- 1683
-							return { -- 1684
-								content = content, -- 1684
-								success = true, -- 1684
-								fullPath = Content:getFullPath(path) -- 1684
-							} -- 1684
-						end -- 1683
-					end -- 1682
-					return nil -- 1681
-				end -- 1681
-				do -- 1685
-					local projFile = req.body.projFile -- 1685
-					if projFile then -- 1685
-						local projDir = getProjectDirFromFile(projFile) -- 1686
-						if projDir then -- 1686
-							local scriptDir = Path(projDir, "Script") -- 1687
-							local searchPaths = Content.searchPaths -- 1688
-							if Content:exist(scriptDir) then -- 1689
-								Content:addSearchPath(scriptDir) -- 1689
-							end -- 1689
-							if Content:exist(projDir) then -- 1690
-								Content:addSearchPath(projDir) -- 1690
-							end -- 1690
-							local _ <close> = setmetatable({ }, { -- 1691
-								__close = function() -- 1691
-									Content.searchPaths = searchPaths -- 1691
-								end -- 1691
-							}) -- 1691
-							local result = readFile() -- 1692
-							if result then -- 1692
-								return result -- 1692
-							end -- 1692
-						end -- 1686
-					end -- 1685
+local withProjectSearchPaths -- 1667
+withProjectSearchPaths = function(projectRoot, projFile, fn) -- 1667
+	local fallbackPaths = { } -- 1668
+	local addFallback -- 1669
+	addFallback = function(dir) -- 1669
+		if dir and dir ~= "" and Content:exist(dir) and Content:isdir(dir) then -- 1669
+			fallbackPaths[#fallbackPaths + 1] = dir -- 1669
+		end -- 1669
+	end -- 1669
+	if projectRoot and projectRoot ~= "" then -- 1670
+		addFallback(Path(projectRoot, "Script")) -- 1671
+		addFallback(projectRoot) -- 1672
+	end -- 1670
+	if projFile then -- 1673
+		local projDir = getProjectDirFromFile(projFile) -- 1674
+		if projDir then -- 1674
+			addFallback(Path(projDir, "Script")) -- 1675
+			addFallback(projDir) -- 1676
+		else -- 1678
+			addFallback(Path:getPath(projFile)) -- 1678
+		end -- 1674
+	end -- 1673
+	if not (#fallbackPaths > 0) then -- 1679
+		return fn() -- 1679
+	end -- 1679
+	local searchPaths = Content.searchPaths -- 1680
+	for _index_0 = 1, #fallbackPaths do -- 1681
+		local dir = fallbackPaths[_index_0] -- 1681
+		Content:addSearchPath(dir) -- 1681
+	end -- 1681
+	local _ <close> = setmetatable({ }, { -- 1682
+		__close = function() -- 1682
+			Content.searchPaths = searchPaths -- 1682
+		end -- 1682
+	}) -- 1682
+	return fn() -- 1683
+end -- 1667
+HttpServer:post("/exist", function(req) -- 1684
+	do -- 1685
+		local _type_0 = type(req) -- 1685
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1685
+		if _tab_0 then -- 1685
+			local file -- 1685
+			do -- 1685
+				local _obj_0 = req.body -- 1685
+				local _type_1 = type(_obj_0) -- 1685
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1685
+					file = _obj_0.file -- 1685
 				end -- 1685
-				local result = readFile() -- 1693
-				if result then -- 1693
-					return result -- 1693
-				end -- 1693
-			end -- 1680
-		end -- 1680
-	end -- 1680
-	return { -- 1679
-		success = false -- 1679
-	} -- 1679
-end) -- 1679
+			end -- 1685
+			if file ~= nil then -- 1685
+				return withProjectSearchPaths(req.body.projectRoot, req.body.projFile, function() -- 1686
+					return { -- 1687
+						success = Content:exist(file) -- 1687
+					} -- 1687
+				end) -- 1686
+			end -- 1685
+		end -- 1685
+	end -- 1685
+	return { -- 1684
+		success = false -- 1684
+	} -- 1684
+end) -- 1684
+HttpServer:postSchedule("/read", function(req) -- 1688
+	do -- 1689
+		local _type_0 = type(req) -- 1689
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1689
+		if _tab_0 then -- 1689
+			local path -- 1689
+			do -- 1689
+				local _obj_0 = req.body -- 1689
+				local _type_1 = type(_obj_0) -- 1689
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1689
+					path = _obj_0.path -- 1689
+				end -- 1689
+			end -- 1689
+			if path ~= nil then -- 1689
+				local readFile -- 1690
+				readFile = function() -- 1690
+					if Content:exist(path) then -- 1691
+						local content = Content:loadAsync(path) -- 1692
+						if content then -- 1692
+							return { -- 1693
+								content = content, -- 1693
+								success = true, -- 1693
+								fullPath = Content:getFullPath(path) -- 1693
+							} -- 1693
+						end -- 1692
+					end -- 1691
+					return nil -- 1690
+				end -- 1690
+				local result = withProjectSearchPaths(req.body.projectRoot, req.body.projFile, readFile) -- 1694
+				if result then -- 1694
+					return result -- 1694
+				end -- 1694
+			end -- 1689
+		end -- 1689
+	end -- 1689
+	return { -- 1688
+		success = false -- 1688
+	} -- 1688
+end) -- 1688
 HttpServer:get("/read-sync", function(req) -- 1695
 	do -- 1696
 		local _type_0 = type(req) -- 1696

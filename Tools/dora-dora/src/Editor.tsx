@@ -57,6 +57,12 @@ options.target = monacoTypescript.ScriptTarget.ESNext;
 options.module = monacoTypescript.ModuleKind.ESNext;
 options.moduleResolution = monacoTypescript.ModuleResolutionKind.Classic;
 monacoTypescript.typescriptDefaults.setCompilerOptions(options);
+monacoTypescript.typescriptDefaults.setDiagnosticsOptions({
+	...monacoTypescript.typescriptDefaults.diagnosticsOptions,
+	noSemanticValidation: true,
+	noSuggestionDiagnostics: true,
+	noSyntaxValidation: true,
+});
 monacoTypescript.typescriptDefaults.setModeConfiguration({
 	...monacoTypescript.typescriptDefaults.modeConfiguration,
 	hovers: false,

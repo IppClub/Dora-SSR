@@ -2624,7 +2624,8 @@ export function useCallback<T extends Function>(this: void, callback: T, deps?: 
 export function useRef<T>(this: void, item?: T): JSX.Ref<T> {
 	const frame = currentHookFrame;
 	if (frame === undefined) {
-		error("useRef() can only be called inside a function component");
+		Warn("useRef() called outside a function component; falling back to reference()");
+		return reference(item);
 	}
 	const index = frame.hookIndex;
 	frame.hookIndex += 1;

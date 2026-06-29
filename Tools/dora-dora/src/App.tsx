@@ -614,19 +614,34 @@ const transitionProps = {
 
 let writablePath = "";
 let assetPath = "";
-let configuredTypeScriptAssetPath = "";
+let configuredTypeScriptSearchPathKey = "";
+let typeScriptSearchPathUpdateId = 0;
 
-const configureTypeScriptSearchPaths = (nextAssetPath: string) => {
-	if (nextAssetPath === "" || nextAssetPath === configuredTypeScriptAssetPath) return;
-	configuredTypeScriptAssetPath = nextAssetPath;
+const configureTypeScriptSearchPaths = (nextAssetPath: string, projectSourceRoot = "") => {
+	if (nextAssetPath === "") return;
+	const searchRoots = [
+		projectSourceRoot,
+		path.join(nextAssetPath, "Script", "Lib"),
+	].filter(root => root !== "");
+	const nextSearchPathKey = searchRoots.join("\n");
+	if (nextSearchPathKey === configuredTypeScriptSearchPathKey) return;
+	configuredTypeScriptSearchPathKey = nextSearchPathKey;
 	const compilerOptions = { ...monacoTypescript.typescriptDefaults.getCompilerOptions() };
 	delete compilerOptions.baseUrl;
 	monacoTypescript.typescriptDefaults.setCompilerOptions({
 		...compilerOptions,
 		paths: {
-			"*": [`${monaco.Uri.file(path.join(nextAssetPath, "Script", "Lib")).toString()}/*`],
+			"*": searchRoots.map(root => `${monaco.Uri.file(root).toString()}/*`),
 		},
 	});
+};
+
+const getProjectSourceRoot = async (projectFile: string) => {
+	const rootRes = await Service.projectRoot({ path: projectFile, isDir: false });
+	if (!rootRes.success || !rootRes.found || !rootRes.projectRoot) return "";
+	const scriptDir = path.join(rootRes.projectRoot, "Script");
+	const scriptRes = await Service.list({ path: scriptDir });
+	return scriptRes.success ? scriptDir : rootRes.projectRoot;
 };
 
 const getAlertAccentColor = (type: AlertColor) => {
@@ -719,6 +734,7 @@ export default function PersistentDrawerLeft() {
 	const expandedKeysRef = useRef(expandedKeys);
 	const selectedKeysRef = useRef(selectedKeys);
 	const tabIndexRef = useRef(tabIndex);
+	const currentTypeScriptModelRef = useRef<monaco.editor.ITextModel | null>(null);
 	const pendingUpdateFilesRef = useRef(new Map<string, UpdateFileEvent>());
 	const updateFileFlushTimerRef = useRef<number | null>(null);
 
@@ -1077,6 +1093,27 @@ export default function PersistentDrawerLeft() {
 	}, [switchTab, files]);
 
 	const currentFile = tabIndex !== null ? files.at(tabIndex) : undefined;
+	const revalidateActiveTypeScriptModel = useCallback((model: monaco.editor.ITextModel) => {
+		const ext = path.extname(model.uri.fsPath).toLowerCase();
+		if (ext !== ".ts" && ext !== ".tsx") return;
+		const searchPathUpdateId = ++typeScriptSearchPathUpdateId;
+		void (async () => {
+			const projectSourceRoot = await getProjectSourceRoot(model.uri.fsPath);
+			if (
+				searchPathUpdateId !== typeScriptSearchPathUpdateId ||
+				model.isDisposed() ||
+				currentTypeScriptModelRef.current !== model
+			) return;
+			configureTypeScriptSearchPaths(assetPath, projectSourceRoot);
+			const { revalidateModel } = await import('./TranspileTS');
+			if (
+				searchPathUpdateId !== typeScriptSearchPathUpdateId ||
+				model.isDisposed() ||
+				currentTypeScriptModelRef.current !== model
+			) return;
+			void revalidateModel(model);
+		})();
+	}, []);
 	const openAgentSessionTab = useCallback(async (
 		targetPath: string,
 		isDir: boolean,
@@ -1244,6 +1281,9 @@ export default function PersistentDrawerLeft() {
 	useEffect(() => {
 		if (currentFile !== undefined) {
 			const ext = path.extname(currentFile.key).toLowerCase();
+			if (ext !== ".ts" && ext !== ".tsx") {
+				currentTypeScriptModelRef.current = null;
+			}
 			if (ext === ".yarn" && !currentFile.yarnTextEditing) {
 				requestAnimationFrame(() => {
 					currentFile.yarnData?.refreshLayout();
@@ -1272,17 +1312,23 @@ export default function PersistentDrawerLeft() {
 				}, 100);
 			}
 			const model = editor.getModel();
-			if (model === null) return;
+			if (model === null) {
+				currentTypeScriptModelRef.current = null;
+				return;
+			}
 			if (!checkFileReadonly(currentFile.key, false) && !currentFile.readOnly) {
 				checkFile(currentFile, currentFile.contentModified ?? currentFile.content, model);
 			}
 			if (ext === ".ts" || ext === ".tsx") {
-				import('./TranspileTS').then(({ revalidateModel }) => {
-					revalidateModel(model);
-				});
+				currentTypeScriptModelRef.current = model;
+				revalidateActiveTypeScriptModel(model);
+			} else if (currentTypeScriptModelRef.current === model) {
+				currentTypeScriptModelRef.current = null;
 			}
+		} else {
+			currentTypeScriptModelRef.current = null;
 		}
-	}, [currentFile, currentFile?.editor, checkFileReadonly]);
+	}, [currentFile, currentFile?.editor, checkFileReadonly, revalidateActiveTypeScriptModel]);
 
 	const onEditorDidMount = useCallback((file: EditingFile) => async (editor: monaco.editor.IStandaloneCodeEditor) => {
 		file.editor = editor;
@@ -1460,12 +1506,33 @@ export default function PersistentDrawerLeft() {
 					});
 				});
 			}
-			configureTypeScriptSearchPaths(assetPath);
 			const model = editor.getModel();
 			if (model === null) {
 				return;
 			}
 			const projFile = model.uri.fsPath;
+			const projectSourceRoot = await getProjectSourceRoot(projFile);
+			configureTypeScriptSearchPaths(assetPath, projectSourceRoot);
+			let revalidateTimer: number | undefined;
+			const scheduleModelRevalidation = () => {
+				if (editor.getModel() !== model || currentTypeScriptModelRef.current !== model) return;
+				if (revalidateTimer !== undefined) {
+					window.clearTimeout(revalidateTimer);
+				}
+				revalidateTimer = window.setTimeout(() => {
+					revalidateTimer = undefined;
+					if (editor.getModel() !== model || currentTypeScriptModelRef.current !== model) return;
+					revalidateActiveTypeScriptModel(model);
+				}, 500);
+			};
+			const revalidateContentChange = editor.onDidChangeModelContent(scheduleModelRevalidation);
+			editor.onDidDispose(() => {
+				if (revalidateTimer !== undefined) {
+					window.clearTimeout(revalidateTimer);
+					revalidateTimer = undefined;
+				}
+				revalidateContentChange.dispose();
+			});
 			type TypeScriptDefinitionTarget = {
 				file: string;
 				lineNumber: number;
@@ -1497,7 +1564,7 @@ export default function PersistentDrawerLeft() {
 			const normalizeDefinitionFile = async (fileName: string) => {
 				const targetFile = toFilePath(fileName);
 				if (path.isAbsolute(targetFile)) return targetFile;
-				const res = await Service.read({ path: targetFile, projFile });
+				const res = await Service.read({ path: targetFile, projFile, projectRoot: projectSourceRoot });
 				if (res.success) return res.fullPath;
 				return path.join(path.dirname(projFile), targetFile);
 			};
@@ -1523,7 +1590,7 @@ export default function PersistentDrawerLeft() {
 						...targetModel.getPositionAt(definition.textSpan.start),
 					};
 				}
-				const res = await Service.read({ path: targetFile, projFile });
+				const res = await Service.read({ path: targetFile, projFile, projectRoot: projectSourceRoot });
 				if (!res.success) return null;
 				return {
 					file: targetFile,
@@ -1647,7 +1714,7 @@ export default function PersistentDrawerLeft() {
 						if (lib !== undefined) return { content: lib.content, fullPath: file };
 						const model = monaco.editor.getModel(monaco.Uri.file(file));
 						if (model !== null) return { content: model.getValue(), fullPath: model.uri.fsPath };
-						const res = await Service.read({ path: file, projFile });
+						const res = await Service.read({ path: file, projFile, projectRoot: projectSourceRoot });
 						if (res.success) {
 							return { content: res.content, fullPath: res.fullPath };
 						}
@@ -1668,7 +1735,7 @@ export default function PersistentDrawerLeft() {
 						if (lib !== undefined) return true;
 						const model = monaco.editor.getModel(monaco.Uri.file(file));
 						if (model !== null) return true;
-						const res = await Service.exist({ file, projFile });
+						const res = await Service.exist({ file, projFile, projectRoot: projectSourceRoot });
 						return res.success;
 					},
 					getFile: async (uri: string) => {
@@ -1677,7 +1744,7 @@ export default function PersistentDrawerLeft() {
 						if (lib !== undefined) return lib.content;
 						const model = monaco.editor.getModel(monaco.Uri.file(file));
 						if (model !== null) return model.getValue();
-						const res = await Service.read({ path: file, projFile });
+						const res = await Service.read({ path: file, projFile, projectRoot: projectSourceRoot });
 						if (res.success) {
 							return res.content;
 						}
@@ -1687,9 +1754,9 @@ export default function PersistentDrawerLeft() {
 			});
 			await autoTyping.resolveContents();
 			const { revalidateModel } = await import('./TranspileTS');
-			revalidateModel(model);
+			void revalidateModel(model);
 		}
-	}, [t, checkFileReadonly]);
+	}, [t, checkFileReadonly, revalidateActiveTypeScriptModel]);
 	const switchTabRef = useRef(switchTab);
 	const onEditorDidMountRef = useRef(onEditorDidMount);
 	switchTabRef.current = switchTab;

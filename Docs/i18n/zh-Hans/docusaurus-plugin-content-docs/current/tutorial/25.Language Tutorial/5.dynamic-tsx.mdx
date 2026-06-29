@@ -39,11 +39,11 @@ Director.entry.onTapped(() => {
 | `signal(value)` | 模块作用域或普通代码 | 可驱动动态 root 更新的共享响应式状态。 |
 | `reference(value?)` | 模块作用域或普通代码 | 在 hooks 外创建节点或值引用。 |
 | `useSignal(value)` | 只能在函数组件内 | 组件本地响应式状态，跨 render 保持同一实例。 |
-| `useRef(value?)` | 只能在函数组件内 | 组件本地可变引用，跨 render 保持同一对象。 |
+| `useRef(value?)` | 建议只在函数组件内 | 组件本地可变引用，跨 render 保持同一对象。在组件外调用时会输出 warning，并为兼容旧代码退回 `reference(value?)`。 |
 | `useMemo(factory, deps)` | 只能在函数组件内 | 缓存计算结果，直到依赖变化。 |
 | `useCallback(callback, deps)` | 只能在函数组件内 | 保持回调函数身份稳定，直到依赖变化。 |
 
-&emsp;&emsp;Hooks 必须在 DoraX 函数组件内调用。在组件外调用 `useSignal`、`useRef`、`useMemo` 或 `useCallback` 会报错。组件外需要状态或 ref 时，使用 `signal()` 和 `reference()`。
+&emsp;&emsp;Hooks 应在 DoraX 函数组件内调用。在组件外调用 `useSignal`、`useMemo` 或 `useCallback` 会报错。`useRef` 为兼容旧代码，在组件外调用时只会输出 warning，并返回 `reference(value?)`。新的组件外代码仍建议直接使用 `signal()` 和 `reference()`。
 
 ```tsx
 import { React, useCallback, useSignal } from 'DoraX';
