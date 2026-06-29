@@ -34,6 +34,7 @@ public:
 	void showStats(bool* pOpen, uint32_t windowFlags, const std::function<void()>& extra = nullptr);
 	void showConsole(bool initOnly);
 	void handleEvent(const SDL_Event& event);
+	bool shouldCaptureControllerEvent(const SDL_Event& event, bool* updateControllerState = nullptr);
 
 	class ImGuiTouchHandler : public TouchHandler {
 	public:

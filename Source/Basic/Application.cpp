@@ -16,6 +16,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Director.h"
 #include "Common/Async.h"
 #include "Event/Event.h"
+#include "GUI/ImGuiDora.h"
 #include "Http/XrtHttpClient.h"
 #include "Input/Controller.h"
 #include "Lua/ToLua/tolua++.h"
@@ -36,7 +37,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <thread>
 
 #define DORA_VERSION "1.8.1"_slice
-#define DORA_REVISION "10"_slice
+#define DORA_REVISION "11"_slice
 
 #if BX_PLATFORM_ANDROID
 #include <jni.h>
@@ -935,9 +936,17 @@ int Application::run(MainFunc mainFunc) {
 				case SDL_CONTROLLERDEVICEREMOVED:
 				case SDL_CONTROLLERAXISMOTION:
 				case SDL_CONTROLLERBUTTONDOWN:
-				case SDL_CONTROLLERBUTTONUP:
-					SharedController.handleEventInRender(event);
+				case SDL_CONTROLLERBUTTONUP: {
+					bool updateControllerState = false;
+					if (Singleton<ImGuiDora>::isInitialized() && SharedImGui.shouldCaptureControllerEvent(event, &updateControllerState)) {
+						if (updateControllerState) {
+							SharedController.handleEventInRender(event, false);
+						}
+					} else {
+						SharedController.handleEventInRender(event);
+					}
 					break;
+				}
 				default:
 					break;
 			}

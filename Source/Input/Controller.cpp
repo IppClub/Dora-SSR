@@ -271,7 +271,7 @@ void Controller::handleDevVirtualControllerEventInRender(const SDL_Event& event)
 #endif // DORA_DEV_VIRTUAL_CONTROLLER
 }
 
-void Controller::handleEventInRender(const SDL_Event& event) {
+void Controller::handleEventInRender(const SDL_Event& event, bool emitEvents) {
 	switch (event.type) {
 		case SDL_CONTROLLERDEVICEADDED:
 			addControllerInRender(event.cdevice.which);
@@ -293,9 +293,10 @@ void Controller::handleEventInRender(const SDL_Event& event) {
 			auto joystickId = s_cast<DeviceID>(event.caxis.which);
 			std::string axisName = SDL_GameControllerGetStringForAxis(s_cast<SDL_GameControllerAxis>(event.caxis.axis));
 			float value = s_cast<float>(event.caxis.value) / SDL_JOYSTICK_AXIS_MAX;
-			SharedApplication.invokeInLogic([axisName, joystickId, value, this]() {
+			SharedApplication.invokeInLogic([axisName, joystickId, value, emitEvents, this]() {
 				if (auto it = _deviceMap.find(joystickId); it != _deviceMap.end()) {
 					it->second->axisMap[axisName] = value;
+					if (!emitEvents) return;
 					EventArgs<int, Slice, float> axis("Axis"_slice, it->second->id, axisName, value);
 					handler(&axis);
 				}
@@ -307,7 +308,7 @@ void Controller::handleEventInRender(const SDL_Event& event) {
 			auto joystickId = s_cast<DeviceID>(event.cbutton.which);
 			std::string buttonName = SDL_GameControllerGetStringForButton(s_cast<SDL_GameControllerButton>(event.cbutton.button));
 			bool isDown = event.cbutton.state > 0;
-			SharedApplication.invokeInLogic([buttonName, joystickId, isDown, this]() {
+			SharedApplication.invokeInLogic([buttonName, joystickId, isDown, emitEvents, this]() {
 				if (auto it = _deviceMap.find(joystickId); it != _deviceMap.end()) {
 					Device::ButtonState state{.oldState = false, .newState = false};
 					if (auto bit = it->second->buttonMap.find(buttonName); bit != it->second->buttonMap.end()) {
@@ -317,6 +318,7 @@ void Controller::handleEventInRender(const SDL_Event& event) {
 						state.newState = isDown;
 						it->second->buttonMap[buttonName] = state;
 					}
+					if (!emitEvents) return;
 					if (!state.oldState && state.newState) {
 						EventArgs<int, Slice> button("ButtonDown"_slice, it->second->id, buttonName);
 						handler(&button);

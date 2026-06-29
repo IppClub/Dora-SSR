@@ -26,7 +26,7 @@ public:
 	float getAxis(int controllerId, String name) const;
 	ControllerHandler handler;
 	void clearChanges();
-	void handleEventInRender(const SDL_Event& event);
+	void handleEventInRender(const SDL_Event& event, bool emitEvents = true);
 	void handleDevVirtualControllerEventInRender(const SDL_Event& event);
 
 protected:
