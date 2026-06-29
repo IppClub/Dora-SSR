@@ -913,19 +913,31 @@ static void PlatformSetImeDataFn(ImGuiContext*, ImGuiViewport*, ImGuiPlatformIme
 	ImGuiDora::setImePositionHint(s_cast<int>(data->InputPos.x), s_cast<int>(data->InputPos.y + data->InputLineHeight));
 }
 
-static bool s_gamepadWindowingDown = false;
-static bool s_gamepadWindowingActive = false;
-static bool s_gamepadWindowingDpadUpDown = false;
-static bool s_gamepadWindowingDpadDownDown = false;
-static bool s_gamepadBackDown = false;
-static bool s_gamepadCaptureBackDown = false;
-static bool s_gamepadCaptureYDown = false;
-static bool s_gamepadCaptureWindowingActive = false;
-static bool s_gamepadCaptureComboActive = false;
+static bool DoraIsGamepadInputWindow(ImGuiWindow* window) {
+	for (auto current = window; current; current = current->ParentWindowForFocusRoute ? current->ParentWindowForFocusRoute : current->ParentWindow) {
+		if (std::strcmp(current->Name, "DoraGamepadInput") == 0) {
+			return true;
+		}
+	}
+	return false;
+}
+
+static ImGuiWindow* DoraGetFocusedImGuiWindow() {
+	ImGuiContext* context = ImGui::GetCurrentContext();
+	if (!context) return nullptr;
+	if (context->NavWindowingTarget) return context->NavWindowingTarget;
+	if (context->NavWindow) return context->NavWindow;
+	if (context->ActiveIdWindow) return context->ActiveIdWindow;
+	return nullptr;
+}
 
 static bool DoraIsGamepadInputFocused() {
-	ImGuiContext* context = ImGui::GetCurrentContext();
-	return context && context->NavWindow && std::strcmp(context->NavWindow->Name, "DoraGamepadInput") == 0;
+	return DoraIsGamepadInputWindow(DoraGetFocusedImGuiWindow());
+}
+
+static bool DoraIsOtherImGuiWindowFocused() {
+	auto window = DoraGetFocusedImGuiWindow();
+	return window && !DoraIsGamepadInputWindow(window);
 }
 
 static ImGuiKey DoraGetGamepadButtonKey(SDL_GameControllerButton button) {
@@ -982,16 +994,23 @@ static void DoraAddGamepadAxisEvent(ImGuiIO& io, ImGuiKey negativeKey, ImGuiKey 
 	}
 }
 
-static void DoraClearGamepadInputs(ImGuiIO& io) {
-	s_gamepadWindowingDown = false;
-	s_gamepadWindowingActive = false;
-	s_gamepadWindowingDpadUpDown = false;
-	s_gamepadWindowingDpadDownDown = false;
-	s_gamepadBackDown = false;
-	s_gamepadCaptureBackDown = false;
-	s_gamepadCaptureYDown = false;
-	s_gamepadCaptureWindowingActive = false;
-	s_gamepadCaptureComboActive = false;
+static bool DoraHasGameController() {
+	for (int i = 0; i < SDL_NumJoysticks(); ++i) {
+		if (SDL_IsGameController(i)) return true;
+	}
+	return false;
+}
+
+void ImGuiDora::clearGamepadInputs(ImGuiIO& io) {
+	_gamepadWindowingDown = false;
+	_gamepadWindowingActive = false;
+	_gamepadWindowingDpadUpDown = false;
+	_gamepadWindowingDpadDownDown = false;
+	_gamepadBackDown = false;
+	_gamepadCaptureBackDown = false;
+	_gamepadCaptureYDown = false;
+	_gamepadCaptureWindowingActive = false;
+	_gamepadCaptureComboActive = false;
 	const ImGuiKey keys[] = {
 		ImGuiKey_GamepadStart,
 		ImGuiKey_GamepadBack,
@@ -1022,20 +1041,13 @@ static void DoraClearGamepadInputs(ImGuiIO& io) {
 	}
 }
 
-static bool DoraHasGameController() {
-	for (int i = 0; i < SDL_NumJoysticks(); ++i) {
-		if (SDL_IsGameController(i)) return true;
-	}
-	return false;
-}
-
-static void DoraHandleGamepadEvent(ImGuiIO& io, const SDL_Event& event) {
+void ImGuiDora::handleGamepadEvent(ImGuiIO& io, const SDL_Event& event) {
 	switch (event.type) {
 		case SDL_CONTROLLERDEVICEADDED:
 			io.BackendFlags |= ImGuiBackendFlags_HasGamepad;
 			break;
 		case SDL_CONTROLLERDEVICEREMOVED:
-			DoraClearGamepadInputs(io);
+			clearGamepadInputs(io);
 			if (!DoraHasGameController()) {
 				io.BackendFlags &= ~ImGuiBackendFlags_HasGamepad;
 			}
@@ -1047,10 +1059,10 @@ static void DoraHandleGamepadEvent(ImGuiIO& io, const SDL_Event& event) {
 			auto button = static_cast<SDL_GameControllerButton>(event.cbutton.button);
 			bool suppressButton = false;
 			if (button == SDL_CONTROLLER_BUTTON_BACK) {
-				s_gamepadBackDown = down;
-				if (!down && s_gamepadWindowingActive) {
-					s_gamepadWindowingDown = false;
-					s_gamepadWindowingActive = false;
+				_gamepadBackDown = down;
+				if (!down && _gamepadWindowingActive) {
+					_gamepadWindowingDown = false;
+					_gamepadWindowingActive = false;
 					io.AddKeyEvent(ImGuiKey_GamepadFaceLeft, false);
 					io.AddKeyEvent(ImGuiKey_GamepadL1, false);
 					io.AddKeyEvent(ImGuiKey_GamepadR1, false);
@@ -1058,36 +1070,36 @@ static void DoraHandleGamepadEvent(ImGuiIO& io, const SDL_Event& event) {
 			}
 			switch (button) {
 				case SDL_CONTROLLER_BUTTON_Y:
-					if (!down && s_gamepadWindowingActive) {
-						s_gamepadWindowingDown = false;
-						s_gamepadWindowingActive = false;
+					if (!down && _gamepadWindowingActive) {
+						_gamepadWindowingDown = false;
+						_gamepadWindowingActive = false;
 						io.AddKeyEvent(ImGuiKey_GamepadL1, false);
 						io.AddKeyEvent(ImGuiKey_GamepadR1, false);
-					} else if (DoraIsGamepadInputFocused() && !s_gamepadBackDown) {
-						s_gamepadWindowingDown = false;
-						s_gamepadWindowingActive = false;
+					} else if (DoraIsGamepadInputFocused() && !_gamepadBackDown) {
+						_gamepadWindowingDown = false;
+						_gamepadWindowingActive = false;
 						io.AddKeyEvent(ImGuiKey_GamepadFaceLeft, false);
 						io.AddKeyEvent(ImGuiKey_GamepadL1, false);
 						io.AddKeyEvent(ImGuiKey_GamepadR1, false);
 						suppressButton = true;
 					} else {
-						s_gamepadWindowingDown = down;
-						s_gamepadWindowingActive = down;
-						io.AddKeyEvent(ImGuiKey_GamepadL1, down && s_gamepadWindowingDpadUpDown);
-						io.AddKeyEvent(ImGuiKey_GamepadR1, down && s_gamepadWindowingDpadDownDown);
+						_gamepadWindowingDown = down;
+						_gamepadWindowingActive = down;
+						io.AddKeyEvent(ImGuiKey_GamepadL1, down && _gamepadWindowingDpadUpDown);
+						io.AddKeyEvent(ImGuiKey_GamepadR1, down && _gamepadWindowingDpadDownDown);
 					}
 					break;
 				case SDL_CONTROLLER_BUTTON_DPAD_UP:
-					s_gamepadWindowingDpadUpDown = down;
-					if (s_gamepadWindowingDown) {
+					_gamepadWindowingDpadUpDown = down;
+					if (_gamepadWindowingDown) {
 						io.AddKeyEvent(ImGuiKey_GamepadL1, down);
 						io.AddKeyEvent(ImGuiKey_GamepadDpadUp, false);
 						suppressButton = true;
 					}
 					break;
 				case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
-					s_gamepadWindowingDpadDownDown = down;
-					if (s_gamepadWindowingDown) {
+					_gamepadWindowingDpadDownDown = down;
+					if (_gamepadWindowingDown) {
 						io.AddKeyEvent(ImGuiKey_GamepadR1, down);
 						io.AddKeyEvent(ImGuiKey_GamepadDpadDown, false);
 						suppressButton = true;
@@ -1266,7 +1278,7 @@ bool ImGuiDora::init() {
 				case SDL_CONTROLLERBUTTONDOWN:
 				case SDL_CONTROLLERBUTTONUP:
 				case SDL_CONTROLLERAXISMOTION:
-					DoraHandleGamepadEvent(io, event);
+					handleGamepadEvent(io, event);
 					break;
 			}
 			_inputs.pop_front();
@@ -1480,72 +1492,73 @@ bool ImGuiDora::shouldCaptureControllerEvent(const SDL_Event& event, bool* updat
 	if (updateControllerState) *updateControllerState = false;
 	switch (event.type) {
 		case SDL_CONTROLLERDEVICEREMOVED:
-			s_gamepadCaptureBackDown = false;
-			s_gamepadCaptureYDown = false;
-			s_gamepadCaptureWindowingActive = false;
-			s_gamepadCaptureComboActive = false;
+			_gamepadCaptureBackDown = false;
+			_gamepadCaptureYDown = false;
+			_gamepadCaptureWindowingActive = false;
+			_gamepadCaptureComboActive = false;
 			return false;
 		case SDL_CONTROLLERAXISMOTION:
-			if (!DoraIsGamepadInputFocused()) {
+			if (DoraIsOtherImGuiWindowFocused()) {
 				if (updateControllerState) *updateControllerState = true;
 				return true;
 			}
-			return s_gamepadCaptureWindowingActive;
+			return _gamepadCaptureWindowingActive;
 		case SDL_CONTROLLERBUTTONDOWN:
 		case SDL_CONTROLLERBUTTONUP: {
 			const bool gameInputFocused = DoraIsGamepadInputFocused();
+			const bool otherImGuiWindowFocused = DoraIsOtherImGuiWindowFocused();
 			auto down = event.type == SDL_CONTROLLERBUTTONDOWN;
 			auto button = static_cast<SDL_GameControllerButton>(event.cbutton.button);
 			switch (button) {
 				case SDL_CONTROLLER_BUTTON_BACK:
-					s_gamepadCaptureBackDown = down;
-					if (!down && s_gamepadCaptureComboActive) {
-						s_gamepadCaptureWindowingActive = false;
-						if (!s_gamepadCaptureYDown) {
-							s_gamepadCaptureComboActive = false;
+					_gamepadCaptureBackDown = down;
+					if (!down && _gamepadCaptureComboActive) {
+						_gamepadCaptureWindowingActive = false;
+						if (!_gamepadCaptureYDown) {
+							_gamepadCaptureComboActive = false;
 						}
 						if (updateControllerState) *updateControllerState = true;
 						return true;
 					}
-					if (!gameInputFocused) {
+					if (otherImGuiWindowFocused) {
 						if (updateControllerState) *updateControllerState = true;
 						return true;
 					}
 					return false;
 				case SDL_CONTROLLER_BUTTON_Y:
 					if (down) {
-						s_gamepadCaptureYDown = true;
-						if (gameInputFocused && s_gamepadCaptureBackDown) {
-							s_gamepadCaptureWindowingActive = true;
-							s_gamepadCaptureComboActive = true;
+						_gamepadCaptureYDown = true;
+						if (gameInputFocused && _gamepadCaptureBackDown) {
+							_gamepadCaptureWindowingActive = true;
+							_gamepadCaptureComboActive = true;
 							return true;
 						}
-						if (!gameInputFocused) {
+						if (otherImGuiWindowFocused) {
 							if (updateControllerState) *updateControllerState = true;
 							return true;
 						}
-						return s_gamepadCaptureWindowingActive;
+						return _gamepadCaptureWindowingActive;
 					}
-					if (s_gamepadCaptureComboActive) {
-						s_gamepadCaptureYDown = false;
-						s_gamepadCaptureWindowingActive = false;
-						if (!s_gamepadCaptureBackDown) {
-							s_gamepadCaptureComboActive = false;
+					if (_gamepadCaptureComboActive) {
+						_gamepadCaptureYDown = false;
+						_gamepadCaptureWindowingActive = false;
+						if (!_gamepadCaptureBackDown) {
+							_gamepadCaptureComboActive = false;
 						}
 						return true;
 					}
-					s_gamepadCaptureYDown = false;
-					if (!gameInputFocused) {
+					_gamepadCaptureYDown = false;
+					if (otherImGuiWindowFocused) {
 						if (updateControllerState) *updateControllerState = true;
 						return true;
 					}
 					return false;
 				default:
-					if (!gameInputFocused) {
+					if (otherImGuiWindowFocused) {
 						if (updateControllerState) *updateControllerState = true;
 						return true;
 					}
-					return s_gamepadCaptureWindowingActive;
+					return _gamepadCaptureWindowingActive;
 			}
 		}
 		default:

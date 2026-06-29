@@ -14,6 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 struct ImDrawData;
 struct ImFontAtlas;
 struct ImGuiContext;
+struct ImGuiIO;
 
 NS_DORA_BEGIN
 
@@ -58,6 +59,19 @@ protected:
 	static const char* getClipboardText(ImGuiContext*);
 	static void setClipboardText(ImGuiContext*, const char* text);
 	static int _lastIMEPosX, _lastIMEPosY;
+
+private:
+	void clearGamepadInputs(ImGuiIO& io);
+	void handleGamepadEvent(ImGuiIO& io, const SDL_Event& event);
+	bool _gamepadWindowingDown = false;
+	bool _gamepadWindowingActive = false;
+	bool _gamepadWindowingDpadUpDown = false;
+	bool _gamepadWindowingDpadDownDown = false;
+	bool _gamepadBackDown = false;
+	bool _gamepadCaptureBackDown = false;
+	bool _gamepadCaptureYDown = false;
+	bool _gamepadCaptureWindowingActive = false;
+	bool _gamepadCaptureComboActive = false;
 
 private:
 	bool _showPlot;

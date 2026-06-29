@@ -295,8 +295,11 @@ void Controller::handleEventInRender(const SDL_Event& event, bool emitEvents) {
 			float value = s_cast<float>(event.caxis.value) / SDL_JOYSTICK_AXIS_MAX;
 			SharedApplication.invokeInLogic([axisName, joystickId, value, emitEvents, this]() {
 				if (auto it = _deviceMap.find(joystickId); it != _deviceMap.end()) {
+					if (!emitEvents) {
+						it->second->axisMap[axisName] = 0.0f;
+						return;
+					}
 					it->second->axisMap[axisName] = value;
-					if (!emitEvents) return;
 					EventArgs<int, Slice, float> axis("Axis"_slice, it->second->id, axisName, value);
 					handler(&axis);
 				}
@@ -310,6 +313,10 @@ void Controller::handleEventInRender(const SDL_Event& event, bool emitEvents) {
 			bool isDown = event.cbutton.state > 0;
 			SharedApplication.invokeInLogic([buttonName, joystickId, isDown, emitEvents, this]() {
 				if (auto it = _deviceMap.find(joystickId); it != _deviceMap.end()) {
+					if (!emitEvents) {
+						it->second->buttonMap[buttonName] = Device::ButtonState{.oldState = false, .newState = false};
+						return;
+					}
 					Device::ButtonState state{.oldState = false, .newState = false};
 					if (auto bit = it->second->buttonMap.find(buttonName); bit != it->second->buttonMap.end()) {
 						bit->second.newState = isDown;
@@ -318,7 +325,6 @@ void Controller::handleEventInRender(const SDL_Event& event, bool emitEvents) {
 						state.newState = isDown;
 						it->second->buttonMap[buttonName] = state;
 					}
-					if (!emitEvents) return;
 					if (!state.oldState && state.newState) {
 						EventArgs<int, Slice> button("ButtonDown"_slice, it->second->id, buttonName);
 						handler(&button);
