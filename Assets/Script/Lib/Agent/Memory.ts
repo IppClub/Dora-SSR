@@ -1458,11 +1458,19 @@ export class MemoryCompressor {
 		const historyText = this.formatMessagesForCompression(chunk);
 
 		try {
-			// 调用 LLM 压缩
+			// 调用 LLM 压缩。摘要/归纳类操作用低 effort 加速(对齐 codex thread_summary 独立 effort 分档)。
+			// effort 从 LLMConfig.customOptions.auxiliaryReasoningEffort 读:用户在 customOptions JSON 里
+			// 填当前模型的合法低值(如 glm "minimal"、OpenAI "low"),跨模型安全、不依赖 LLM 决策。
+			// 没配则用全局 effort(不动 llmOptions),保持原行为。
+			const auxEffortRaw = this.config.llmConfig.customOptions?.auxiliaryReasoningEffort;
+			const auxEffort = typeof auxEffortRaw === "string" ? auxEffortRaw.trim() : "";
+			const compressionLLMOptions = auxEffort !== ""
+				? { ...llmOptions, reasoning_effort: auxEffort }
+				: llmOptions;
 			const result = await this.callLLMForCompression(
 				currentMemory,
 				historyText,
-				llmOptions,
+				compressionLLMOptions,
 				maxLLMTry ?? 3,
 				decisionMode,
 				debugContext
