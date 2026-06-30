@@ -27,9 +27,9 @@ Use `Trigger` to define the trigger conditions for different keys, unifying keyb
 
 ```ts title="dodge_the_creeps/init.tsx"
 const Pressed = (keyName: KeyName, buttonName: ButtonName) => {
-	return Trigger.Selector([
-		Trigger.KeyPressed(keyName),
-		Trigger.ButtonPressed(buttonName),
+	return Trigger.Pressed([
+		{ key: keyName },
+		{ button: buttonName },
 	]);
 };
 ```
@@ -49,9 +49,9 @@ const inputManager = CreateManager({
 		Right: Pressed(KeyName.D, ButtonName.Right),
 	},
 	UI: {
-		Start: Trigger.Selector([
-			Trigger.KeyDown(KeyName.Return),
-			Trigger.ButtonDown(ButtonName.Start),
+		Start: Trigger.Down([
+			{ key: KeyName.Return },
+			{ button: ButtonName.Start },
 		]),
 	},
 });
@@ -110,7 +110,7 @@ const Game = () => {
 
 ## 7. Responding to Player Actions
 
-Bind player input events to control the player's movement. Assume we have a `player` entity and bind the controls for up, down, left, and right movement. The event names must match the context definitions and include the `Input.` prefix.
+Bind player input events to control the player's movement. Assume we have a `player` entity and bind the controls for up, down, left, and right movement. For new code, use `inputManager.onCompleted()` so the callback receives a structured input event and you do not need to build the `Input.` event name manually.
 
 ```ts title="Example Code"
 // Switch to the Game input context to respond to player actions
@@ -125,10 +125,10 @@ let x = 0;
 let y = 0;
 
 // Bind events for up, down, left, and right directions
-player.gslot('Input.Up', () => y = 1);
-player.gslot('Input.Down', () => y = -1);
-player.gslot('Input.Left', () => x = -1);
-player.gslot('Input.Right', () => x = 1);
+inputManager.onCompleted('Up', () => y = 1);
+inputManager.onCompleted('Down', () => y = -1);
+inputManager.onCompleted('Left', () => x = -1);
+inputManager.onCompleted('Right', () => x = 1);
 
 // Implement movement logic
 player.loop(() => {

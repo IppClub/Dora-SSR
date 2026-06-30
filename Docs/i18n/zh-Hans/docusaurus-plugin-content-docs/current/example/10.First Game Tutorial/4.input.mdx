@@ -27,9 +27,9 @@ import { KeyName, ButtonName } from 'Dora';
 
 ```ts title="dodge_the_creeps/init.tsx"
 const Pressed = (keyName: KeyName, buttonName: ButtonName) => {
-	return Trigger.Selector([
-		Trigger.KeyPressed(keyName),
-		Trigger.ButtonPressed(buttonName),
+	return Trigger.Pressed([
+		{ key: keyName },
+		{ button: buttonName },
 	]);
 };
 ```
@@ -49,9 +49,9 @@ const inputManager = CreateManager({
 		Right: Pressed(KeyName.D, ButtonName.Right),
 	},
 	UI: {
-		Start: Trigger.Selector([
-			Trigger.KeyDown(KeyName.Return),
-			Trigger.ButtonDown(ButtonName.Start),
+		Start: Trigger.Down([
+			{ key: KeyName.Return },
+			{ button: ButtonName.Start },
 		]),
 	},
 });
@@ -110,7 +110,7 @@ const Game = () => {
 
 ## 7. 响应玩家操作
 
-&emsp;&emsp;将玩家输入事件绑定到角色的移动控制上。这里假设我们有一个 `player` 实体，并为其绑定上下左右移动的控制。注意注册的事件名称需要与上下文中定义的一致，并添加 `Input.` 前缀。
+&emsp;&emsp;将玩家输入事件绑定到角色的移动控制上。这里假设我们有一个 `player` 实体，并为其绑定上下左右移动的控制。新代码推荐使用 `inputManager.onCompleted()`，这样回调会收到结构化的输入事件，也不需要手写带 `Input.` 前缀的全局事件名。
 
 ```ts title="示例代码"
 // 切换到 Game 输入上下文，响应玩家操作
@@ -125,10 +125,10 @@ let x = 0;
 let y = 0;
 
 // 为上下左右方向绑定事件
-player.gslot('Input.Up', () => y = 1);
-player.gslot('Input.Down', () => y = -1);
-player.gslot('Input.Left', () => x = -1);
-player.gslot('Input.Right', () => x = 1);
+inputManager.onCompleted('Up', () => y = 1);
+inputManager.onCompleted('Down', () => y = -1);
+inputManager.onCompleted('Left', () => x = -1);
+inputManager.onCompleted('Right', () => x = 1);
 
 // 实现移动逻辑
 player.loop(() => {

@@ -20,6 +20,58 @@ enum JoyStickType
 end
 ```
 
+## InputBinding
+
+**类型：** 类型定义。
+
+**描述：**
+
+&emsp;&emsp;通用触发器辅助接口使用的键盘或手柄输入绑定类型。
+
+**签名：**
+```tl
+type InputBinding = InputBinding
+```
+
+## InputAction
+
+**类型：** 类型定义。
+
+**描述：**
+
+&emsp;&emsp;输入动作类型，包含动作名称和对应的触发器。
+
+**签名：**
+```tl
+type InputAction = InputAction
+```
+
+## InputEvent
+
+**类型：** 类型定义。
+
+**描述：**
+
+&emsp;&emsp;输入管理器发出的动作事件类型。
+
+**签名：**
+```tl
+type InputEvent = InputEvent
+```
+
+## InputHandler
+
+**类型：** 类型定义。
+
+**描述：**
+
+&emsp;&emsp;输入事件处理器类型。
+
+**签名：**
+```tl
+type InputHandler = InputHandler
+```
+
 ## InputManager.TriggerState
 
 **类型：** 枚举。
@@ -66,7 +118,7 @@ CreateManager: function(contexts: {--[[contextName]] string: {--[[actionName]] s
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| contexts | \{string: \{string: Trigger} | 要创建的一组输入上下文。 |
+| contexts | \{string: \{string: Trigger}} | 要创建的一组输入上下文。 |
 
 **返回值：**
 

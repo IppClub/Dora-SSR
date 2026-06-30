@@ -128,7 +128,7 @@ graph TD
 	A -->|Or hold down| C[ButtonHold<br>Button A]
 ```
 
-The corresponding trigger code definition:
+The standard trigger composition is:
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
@@ -173,6 +173,51 @@ Trigger.Selector [
 </TabItem>
 </Tabs>
 
+For this common “keyboard or gamepad” case, you can use the shorter binding form:
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+Trigger.Hold({
+	{key = "Return"},
+	{button = "a"}
+}, 1)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```lua
+Trigger.Hold({
+	{key = "Return"},
+	{button = "a"}
+}, 1)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+Trigger.Hold([
+	{ key: KeyName.Return },
+	{ button: ButtonName.A },
+], 1)
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+Trigger.Hold [
+	{key: "Return"}
+	{button: "a"}
+], 1
+```
+
+</TabItem>
+</Tabs>
+
 ## 2. Creating the Input System
 
 ### 2.1 Simple Input System Example 1
@@ -186,7 +231,6 @@ Here is a simple code example for creating an input system:
 -- Import modules
 local InputManager <const> = require("InputManager")
 local Trigger <const> = InputManager.Trigger
-local Node <const> = require("Node")
 
 -- Create input manager with one context and one action
 local input = InputManager.CreateManager({
@@ -198,16 +242,11 @@ local input = InputManager.CreateManager({
 	}
 })
 
--- Create a node to receive and process input events
-local node = Node()
-
--- Connect global event signals; note the "Input." prefix matches the action's name
-node:gslot("Input.Ctrl+C", function(state, progress, value)
-	if state == "Completed" then
-		print("Ctrl+C triggered successfully")
-		-- Remove the current active context, pressing Ctrl+C won't trigger again
-		input:popContext()
-	end
+-- Listen only for the completed state of this action
+input:onCompleted("Ctrl+C", function(event)
+	print("Ctrl+C triggered successfully")
+	-- Remove the current active context, pressing Ctrl+C won't trigger again
+	input:popContext()
 end)
 
 -- Activate the testContext to enable its input triggers
@@ -221,8 +260,7 @@ input:pushContext("testContext")
 -- Import modules
 local InputManager <const> = require("InputManager")
 local Trigger <const> = InputManager.Trigger
-local Node <const> = require("Node")
-local type Vec2 = require("Vec2")
+local type InputEvent = InputManager.InputEvent
 
 -- Create input manager with one context and one action
 local input = InputManager.CreateManager({
@@ -234,18 +272,11 @@ local input = InputManager.CreateManager({
 	}
 })
 
--- Create a node to receive and process input events
-local node = Node()
-
--- Connect global event signals; note the "Input." prefix matches the action's name
-node:gslot("Input.Ctrl
-
-+C", function(state: InputManager.TriggerState, progress: number, value: number | boolean | Vec2.Type)
-	if state == "Completed" then
-		print("Ctrl+C triggered successfully")
-		-- Remove the current active context, pressing Ctrl+C won't trigger again
-		input:popContext()
-	end
+-- Listen only for the completed state of this action
+input:onCompleted("Ctrl+C", function(event: InputEvent)
+	print("Ctrl+C triggered successfully")
+	-- Remove the current active context, pressing Ctrl+C won't trigger again
+	input:popContext()
 end)
 
 -- Activate the testContext to enable its input triggers
@@ -256,8 +287,8 @@ input:pushContext("testContext")
 <TabItem value="ts" label="TypeScript">
 
 ```ts
-import { Node, KeyName, Vec2 } from "Dora";
-import { CreateManager, Trigger, TriggerState } from "InputManager";
+import { KeyName } from "Dora";
+import { CreateManager, Trigger } from "InputManager";
 
 // Create input manager with one context and one action
 const inputManager = CreateManager({
@@ -269,16 +300,11 @@ const inputManager = CreateManager({
 	}
 });
 
-// Create a node to receive and process input events
-const node = Node();
-
-// Connect global event signals; note the "Input." prefix matches the action's name
-node.gslot("Input.Ctrl+C", (state: TriggerState, progress: number, value: number | boolean | Vec2.Type) => {
-	if (state === TriggerState.Completed) {
-		print("Ctrl+C triggered successfully");
-		// Remove the current active context, pressing Ctrl+C won't trigger again
-		inputManager.popContext();
-	}
+// Listen only for the completed state of this action
+inputManager.onCompleted("Ctrl+C", () => {
+	print("Ctrl+C triggered successfully");
+	// Remove the current active context, pressing Ctrl+C won't trigger again
+	inputManager.popContext();
 });
 
 // Activate the testContext to enable its input triggers
@@ -300,14 +326,11 @@ inputManager = CreateManager
 			Trigger.KeyDown "C"
 		]
 
--- Create a node to receive and process input events
-with Node!
-	-- Connect global event signals; note the "Input." prefix matches the action's name
-	\gslot "Input.Ctrl+C", (state, progress, value) ->
-		if state == "Completed"
-			print "Ctrl+C triggered successfully"
-			-- Remove the current active context, pressing Ctrl+C won't trigger again
-			inputManager\popContext!
+-- Listen only for the completed state of this action
+inputManager\onCompleted "Ctrl+C", ->
+	print "Ctrl+C triggered successfully"
+	-- Remove the current active context, pressing Ctrl+C won't trigger again
+	inputManager\popContext!
 
 -- Activate the testContext to enable its input triggers
 inputManager\pushContext "testContext"
@@ -316,10 +339,10 @@ inputManager\pushContext "testContext"
 </TabItem>
 </Tabs>
 
-In this example, we created an input manager, defined an input context, and one action. The action `Ctrl+C` trigger defined the conditions for pressing the `Ctrl` key and the `C` key. We pushed this context into the input manager for activation. Then we created a scene node to receive and process input events. Finally, we connected the corresponding global event signals, printing a message when the action `Ctrl+C` is completed and removing the current active context.
+In this example, we created an input manager, defined an input context, and one action. The action `Ctrl+C` trigger defined the conditions for pressing the `Ctrl` key and the `C` key. We pushed this context into the input manager for activation. Finally, we registered an action handler with `onCompleted`, printing a message when the action `Ctrl+C` is completed and removing the current active context.
 
 :::tip Tip
-When registering global event signals for handling input events, use the `Input.` prefix followed by the action's name, such as `Input.Confirm`. Note that in the global event callback function, we can retrieve the trigger's state (`state`), progress (`progress`), and value (`value`). In this example, we only handled the completion state of the action. When using triggers related to time (Hold or Timed), we can obtain the current progress of the trigger through the progress parameter (ranging from 0 to 1). When using triggers that provide varying input values (like joystick axis input), we can retrieve the current input value through the value parameter (`value`).
+Use `inputManager:on(actionName, handler)` when you need every state change, and `inputManager:onCompleted(actionName, handler)` when you only care about completion. The handler receives an event object with `state`, `progress`, and `value`. When using time-related triggers such as Hold or Timed, `progress` ranges from 0 to 1. When using triggers that provide varying input values, such as joystick axis input, use `value`.
 :::
 
 ### 2.2 Simple Input System Example 2
@@ -332,51 +355,43 @@ Here is another simple input system example, including a long-press confirmation
 ```lua
 local InputManager <const> = require("InputManager")
 local Trigger <const> = InputManager.Trigger
-local Node <const> = require("Node")
 
 -- Create input manager with two contexts and their actions
 local inputManager = InputManager.CreateManager({
 	UI = {
-		Confirm = Trigger.Selector({
-			Trigger.KeyHold("Return", 1),
-			Trigger.ButtonHold("a", 1)
-		})
+		Confirm = Trigger.Hold({
+			{key = "Return"},
+			{button = "a"}
+		}, 1)
 	},
 	Game = {
-		MoveLeft = Trigger.Selector({
-			Trigger.KeyPressed("Left"),
-			Trigger.ButtonPressed("dpleft")
+		MoveLeft = Trigger.Pressed({
+			{key = "Left"},
+			{button = "dpleft"}
 		}),
-		MoveRight = Trigger.Selector({
-			Trigger.KeyPressed("Right"),
-			Trigger.ButtonPressed("dpright")
+		MoveRight = Trigger.Pressed({
+			{key = "Right"},
+			{button = "dpright"}
 		})
 	}
 })
 
--- Create a node to receive and process input events
-local node = Node()
-
--- Connect global event signals to handle the confirm action in the UI context
-node:gslot("Input.Confirm", function(state, progress)
-	if state == "Ongoing" then
-		print(string.format("Confirming, progress: %d", progress * 100))
-	elseif state == "Completed" then
+-- Listen for confirm state changes in the UI context
+inputManager:on("Confirm", function(event)
+	if event.state == "Ongoing" then
+		print(string.format("Confirming, progress: %d", event.progress * 100))
+	elseif event.state == "Completed" then
 		print("Confirmation complete")
 	end
 end)
 
--- Connect global event signals to handle movement actions in the Game context
-node:gslot("Input.MoveLeft", function(state)
-	if state == "Completed" then
-		print("Moving left")
-	end
+-- Listen for completed movement actions in the Game context
+inputManager:onCompleted("MoveLeft", function(event)
+	print("Moving left")
 end)
 
-node:gslot("Input.MoveRight", function(state)
-	if state == "Completed" then
-		print("Moving right")
-	end
+inputManager:onCompleted("MoveRight", function(event)
+	print("Moving right")
 end)
 ```
 
@@ -386,51 +401,44 @@ end)
 ```tl
 local InputManager <const> = require("InputManager")
 local Trigger <const> = InputManager.Trigger
-local Node <const> = require("Node")
+local type InputEvent = InputManager.InputEvent
 
 -- Create input manager with two contexts and their actions
 local inputManager = InputManager.CreateManager({
 	UI = {
-		Confirm = Trigger.Selector({
-			Trigger.KeyHold("Return", 1),
-			Trigger.ButtonHold("a", 1)
-		})
+		Confirm = Trigger.Hold({
+			{key = "Return"},
+			{button = "a"}
+		}, 1)
 	},
 	Game = {
-		MoveLeft = Trigger.Selector({
-			Trigger.KeyPressed("Left"),
-			Trigger.ButtonPressed("dpleft")
+		MoveLeft = Trigger.Pressed({
+			{key = "Left"},
+			{button = "dpleft"}
 		}),
-		MoveRight = Trigger.Selector({
-			Trigger.KeyPressed("Right"),
-			Trigger.ButtonPressed("dpright")
+		MoveRight = Trigger.Pressed({
+			{key = "Right"},
+			{button = "dpright"}
 		})
 	}
 })
 
--- Create a node to receive and process input events
-local node = Node()
-
--- Connect global event signals to handle the confirm action in the UI context
-node:gslot("Input.Confirm", function(state: InputManager.TriggerState, progress: number)
-	if state == "Ongoing" then
-		print(string.format("Confirming, progress: %d", progress * 100))
-	elseif state == "Completed" then
+-- Listen for confirm state changes in the UI context
+inputManager:on("Confirm", function(event: InputEvent)
+	if event.state == "Ongoing" then
+		print(string.format("Confirming, progress: %d", event.progress * 100))
+	elseif event.state == "Completed" then
 		print("Confirmation complete")
 	end
 end)
 
--- Connect global event signals to handle movement actions in the Game context
-node:gslot("Input.MoveLeft", function(state: InputManager.TriggerState)
-	if state == "Completed" then
-		print("Moving left")
-	end
+-- Listen for completed movement actions in the Game context
+inputManager:onCompleted("MoveLeft", function(event: InputEvent)
+	print("Moving left")
 end)
 
-node:gslot("Input.MoveRight", function(state: InputManager.TriggerState)
-	if state == "Completed" then
-		print("Moving right")
-	end
+inputManager:onCompleted("MoveRight", function(event: InputEvent)
+	print("Moving right")
 end)
 ```
 
@@ -438,52 +446,45 @@ end)
 <TabItem value="ts" label="TypeScript">
 
 ```ts
-import { Node, KeyName, ButtonName } from "Dora";
+import { KeyName, ButtonName } from "Dora";
 import { CreateManager, Trigger, TriggerState } from "InputManager";
 
 // Create input manager with two contexts and their actions
 const inputManager = CreateManager({
 	UI: {
-		Confirm: Trigger.Selector([
-			Trigger.KeyHold(KeyName.Return, 1),
-			Trigger.ButtonHold(ButtonName.A, 1)
-		])
+		Confirm: Trigger.Hold([
+			{ key: KeyName.Return },
+			{ button: ButtonName.A }
+		], 1)
 	},
 	Game: {
-		MoveLeft: Trigger.Selector([
-			Trigger.KeyPressed(KeyName.Left),
-			Trigger.ButtonPressed(ButtonName.Left)
+		MoveLeft: Trigger.Pressed([
+			{ key: KeyName.Left },
+			{ button: ButtonName.Left }
 		]),
-		MoveRight: Trigger.Selector([
-			Trigger.KeyPressed(KeyName.Right),
-			Trigger.ButtonPressed(ButtonName.Right)
+		MoveRight: Trigger.Pressed([
+			{ key: KeyName.Right },
+			{ button: ButtonName.Right }
 		])
 	}
 });
 
-// Create a node to receive and process input events
-const node = Node();
-
-// Connect global event signals to handle the confirm action in the UI context
-node.gslot("Input.Confirm", (state: TriggerState, progress: number) => {
-	if (state === TriggerState.Ongoing) {
-		print(`Confirming, progress: ${progress * 100}`);
-	} else if (state === TriggerState.Completed) {
+// Listen for confirm state changes in the UI context
+inputManager.on("Confirm", event => {
+	if (event.state === TriggerState.Ongoing) {
+		print(`Confirming, progress: ${event.progress * 100}`);
+	} else if (event.state === TriggerState.Completed) {
 		print("Confirmation complete");
 	}
 });
 
-// Connect global event signals to handle movement actions in the Game context
-node.gslot("Input.MoveLeft", (state: TriggerState) => {
-	if (state === TriggerState.Completed) {
-		print("Moving left");
-	}
+// Listen for completed movement actions in the Game context
+inputManager.onCompleted("MoveLeft", () => {
+	print("Moving left");
 });
 
-node.gslot("Input.MoveRight", (state: TriggerState) => {
-	if (state === TriggerState.Completed) {
-		print("Moving right");
-	}
+inputManager.onCompleted("MoveRight", () => {
+	print("Moving right");
 });
 ```
 
@@ -533,7 +534,7 @@ with Node!
 </TabItem>
 </Tabs>
 
-In this example, we created an input manager that includes two contexts: `UI` and `Game`. The `UI` context contains a long-press confirmation action `Confirm`, while the `Game` context contains two movement actions `MoveLeft` and `MoveRight`. We created a node to receive and process input events. We then connected the global event signals to handle the confirm action in the UI context and the movement actions in the Game context.
+In this example, we created an input manager that includes two contexts: `UI` and `Game`. The `UI` context contains a long-press confirmation action `Confirm`, while the `Game` context contains two movement actions `MoveLeft` and `MoveRight`. We used `on` to handle all state changes of the confirm action, and `onCompleted` to handle only completed movement actions.
 
 When handling the confirm action in the UI context, we can also retrieve the current trigger state and the long-press progress. When handling the movement actions in the Game context, we only need to handle the action completion state.
 
@@ -697,7 +698,7 @@ local type Controller = require("Controller")
 local Trigger <const> = InputManager.Trigger
 
 -- Function to define a QTE challenge input context supporting both keyboard and game controller buttons
-local function QTEContext(keyName: Keyboard.KeyName, buttonName: Controller.ButtonName, timeWindow: number): InputManager.InputContext
+local function QTEContext(keyName: Keyboard.KeyName, buttonName: Controller.ButtonName, timeWindow: number): {string: any}
 	return {
 		QTE = Trigger.Sequence({
 			Trigger.Selector({
@@ -729,10 +730,10 @@ end
 
 ```ts
 import { KeyName, ButtonName } from "Dora";
-import { CreateManager, Trigger, InputContext } from "InputManager";
+import { CreateManager, Trigger } from "InputManager";
 
 // Function to define a QTE challenge input context supporting both keyboard and game controller buttons
-function QTEContext(keyName: KeyName, buttonName: ButtonName, timeWindow: number): InputContext {
+function QTEContext(keyName: KeyName, buttonName: ButtonName, timeWindow: number) {
 	return {
 		QTE: Trigger.Sequence([
 			Trigger.Selector([
@@ -814,9 +815,9 @@ Now, we will create an input manager and add the default context along with mult
 -- Create input manager and add contexts
 local inputManager = InputManager.CreateManager({
 	Default = {
-		StartQTE = Trigger.Selector({
-			Trigger.KeyDown("Space"),
-			Trigger.ButtonDown("start")
+		StartQTE = Trigger.Down({
+			{key = "Space"},
+			{button = "start"}
 		})
 	},
 	-- Add QTE stage contexts
@@ -836,9 +837,9 @@ inputManager:pushContext("Default")
 -- Create input manager and add contexts
 local inputManager = InputManager.CreateManager({
 	Default = {
-		StartQTE = Trigger.Selector({
-			Trigger.KeyDown("Space"),
-			Trigger.ButtonDown("start")
+		StartQTE = Trigger.Down({
+			{key = "Space"},
+			{button = "start"}
 		})
 	},
 	-- Add QTE stage contexts
@@ -858,9 +859,9 @@ inputManager:pushContext("Default")
 // Create input manager and add contexts
 const inputManager = CreateManager({
 	Default: {
-		StartQTE: Trigger.Selector([
-			Trigger.KeyDown(KeyName.Space),
-			Trigger.ButtonDown(ButtonName.Start)
+		StartQTE: Trigger.Down([
+			{ key: KeyName.Space },
+			{ button: ButtonName.Start }
 		])
 	},
 	// Add QTE stage contexts
@@ -903,17 +904,12 @@ Here, we:
 
 ### 3.3 Handling Input Events
 
-Next, we need to handle input events, particularly the QTE logic. We will create a node and connect the corresponding global event signals.
+Next, we need to handle input events, particularly the QTE logic. Use `onCompleted` for starting the QTE, and `on` for QTE state changes because the QTE action can be ongoing, canceled, or completed.
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
-local Node <const> = require("Node")
-
--- Create node
-local node = Node()
-
 -- Define the current QTE phase
 local phase = "None"
 local contextCount = 1
@@ -942,27 +938,25 @@ local function nextPhase()
 end
 
 -- Handle input event to start the QTE challenge
-node:gslot("Input.StartQTE", function(state)
-	if state == "Completed" then
-		phase = "Phase1"
-		print("Press key J or button A")
-		inputManager:pushContext(phase)
-		contextCount = contextCount + 1
-	end
+inputManager:onCompleted("StartQTE", function(event)
+	phase = "Phase1"
+	print("Press key J or button A")
+	inputManager:pushContext(phase)
+	contextCount = contextCount + 1
 end)
 
 -- Handle input events for the QTE
-node:gslot("Input.QTE", function(state, progress)
-	if state == "Ongoing" then
+inputManager:on("QTE", function(event)
+	if event.state == "Ongoing" then
 		-- Handle the countdown progress of the QTE; progress is a value increasing from 0 to 1
-		-- print(string.format("Progress: %.2f", progress))
-	elseif state == "Canceled" then
+		-- print(string.format("Progress: %.2f", event.progress))
+	elseif event.state == "Canceled" then
 		if phase ~= "None" then
 			phase = "None"
 			inputManager:popContext(contextCount)
 			print("Challenge failed!")
 		end
-	elseif state == "Completed" then
+	elseif event.state == "Completed" then
 		nextPhase()
 	end
 end)
@@ -974,10 +968,7 @@ print("Press space bar or start button to initiate QTE challenge")
 <TabItem value="tl" label="Teal">
 
 ```tl
-local Node <const> = require("Node")
-
--- Create node
-local node = Node()
+local type InputEvent = InputManager.InputEvent
 
 -- Define the current QTE phase
 local phase = "None"
@@ -1007,27 +998,25 @@ local function nextPhase()
 end
 
 -- Handle input event to start the QTE challenge
-node:gslot("Input.StartQTE", function(state: InputManager.TriggerState)
-	if state == "Completed" then
-		phase = "Phase1"
-		print("Press key J or button A")
-		inputManager:pushContext(phase)
-		contextCount = contextCount + 1
-	end
+inputManager:onCompleted("StartQTE", function(event: InputEvent)
+	phase = "Phase1"
+	print("Press key J or button A")
+	inputManager:pushContext(phase)
+	contextCount = contextCount + 1
 end)
 
 -- Handle input events for the QTE
-node:gslot("Input.QTE", function(state: InputManager.TriggerState, progress: number)
-	if state == "Ongoing" then
+inputManager:on("QTE", function(event: InputEvent)
+	if event.state == "Ongoing" then
 		-- Handle the countdown progress of the QTE; progress is a value increasing from 0 to 1
-		-- print(string.format("Progress: %.2f", progress))
-	elseif state == "Canceled" then
+		-- print(string.format("Progress: %.2f", event.progress))
+	elseif event.state == "Canceled" then
 		if phase ~= "None" then
 			phase = "None"
 			inputManager:popContext(contextCount)
 			print("Challenge failed!")
 		end
-	elseif state == "Completed" then
+	elseif event.state == "Completed" then
 		nextPhase()
 	end
 end)
@@ -1038,12 +1027,7 @@ print("Press space bar or start button to initiate QTE challenge")
 </TabItem>
 <TabItem value="ts" label="TypeScript">
 
-```ts
-import { Node } from "Dora";
 import { TriggerState } from "InputManager";
-
-// Create node
-const node = Node();
 
 // Define the current QTE phase
 let phase = "None";
@@ -1076,27 +1060,25 @@ function nextPhase() {
 }
 
 // Handle input event to start the QTE challenge
-node.gslot("Input.StartQTE", (state: TriggerState) => {
-	if (state === TriggerState.Completed) {
-		phase = "Phase1";
-		print("Press key J or button A");
-		inputManager.pushContext(phase);
-		contextCount++;
-	}
+inputManager.onCompleted("StartQTE", () => {
+	phase = "Phase1";
+	print("Press key J or button A");
+	inputManager.pushContext(phase);
+	contextCount++;
 });
 
 // Handle input events for the QTE
-node.gslot("Input.QTE", (state: TriggerState, progress: number) => {
-	if (state === "Ongoing") {
+inputManager.on("QTE", event => {
+	if (event.state === TriggerState.Ongoing) {
 		// Handle the countdown progress of the QTE; progress is a value increasing from 0 to 1
-		// print(`Progress: ${progress.toFixed(2)}`);
-	} else if (state === "Canceled") {
+		// print(`Progress: ${event.progress.toFixed(2)}`);
+	} else if (event.state === TriggerState.Canceled) {
 		if (phase !== "None") {
 			phase = "None";
 			inputManager.popContext(contextCount);
 			print("Challenge failed!");
 		}
-	} else if (state === "Completed") {
+	} else if (event.state === TriggerState.Completed) {
 		nextPhase();
 	}
 });

@@ -2,23 +2,27 @@
 
 **描述：**
 
-&emsp;&emsp;`InputManager` 是一个用于管理输入上下文和动作的类。可以通过创建输入上下文和动作，然后将它们添加到输入管理器中，来实现输入事件的监听和处理。可以通过调用 `pushContext` 和 `popContext` 方法来激活和停用特定组合的输入上下文。在触发事件时，可以通过注册全局输入事件监听器来处理输入事件。
+&emsp;&emsp;`InputManager` 是一个用于管理输入上下文和动作的类。可以通过创建输入上下文和动作，然后将它们添加到输入管理器中，来实现输入事件的监听和处理。可以通过调用 `pushContext` 和 `popContext` 方法来激活和停用特定组合的输入上下文。当动作状态变化时，可以通过 `on()`、`once()` 或 `onCompleted()` 处理输入事件。
 
 **类对象：**[InputManager Class](/docs/api/Class%20Object/InputManager)。
 
 **用法示例：**
 ```tl
 local InputManager = require("InputManager")
+local Trigger = InputManager.Trigger
 local inputManager = InputManager.CreateManager({
 	context1 = {
-		action1 = Trigger.KeyDown("W"),
+		action1 = Trigger.Down({
+			{key = "Space"},
+			{button = "a"}
+		}),
 	},
 })
 -- 激活上下文 context1
 inputManager:pushContext("context1")
--- 要监听的输入事件名需要加上 `Input.` 前缀
-node:gslot("Input.action1", function()
-	print("action1 triggered")
+-- 监听动作完成状态
+inputManager:onCompleted("action1", function(event)
+	print(event.action .. " triggered")
 end)
 -- 从上下文栈中删除 context1
 inputManager:popContext()
@@ -44,6 +48,111 @@ getNode: function(self: InputManager): Node.Type
 | 返回类型 | 描述 |
 | --- | --- |
 | Node | 输入系统的场景节点。 |
+
+## getEventName
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取动作对应的全局事件名。
+
+**签名：**
+```tl
+getEventName: function(self: InputManager, actionName: string): string
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| actionName | string | 动作名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 全局事件名。 |
+
+## on
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;监听动作的所有状态变化。
+
+**签名：**
+```tl
+on: function(self: InputManager, actionName: string, handler: InputHandler)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| actionName | string | 动作名称。 |
+| handler | InputHandler | 要调用的处理器。 |
+
+## once
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;监听动作的下一次状态变化，然后禁用该监听器。
+
+**签名：**
+```tl
+once: function(self: InputManager, actionName: string, handler: InputHandler)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| actionName | string | 动作名称。 |
+| handler | InputHandler | 要调用的处理器。 |
+
+## off
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;禁用通过 `on()`、`once()` 或 `onCompleted()` 注册的处理器。
+
+**签名：**
+```tl
+off: function(self: InputManager, actionName: string, handler: InputHandler)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| actionName | string | 动作名称。 |
+| handler | InputHandler | 要禁用的处理器。 |
+
+## onCompleted
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;监听动作的完成状态。
+
+**签名：**
+```tl
+onCompleted: function(self: InputManager, actionName: string, handler: InputHandler)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| actionName | string | 动作名称。 |
+| handler | InputHandler | 要调用的处理器。 |
 
 ## pushContext
 

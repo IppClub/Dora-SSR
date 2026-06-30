@@ -128,7 +128,7 @@ graph TD
 	A -->|或长按| C[ButtonHold<br>按钮 A]
 ```
 
-&emsp;&emsp;对应的触发器代码定义：
+&emsp;&emsp;对应的标准组合写法：
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
@@ -173,6 +173,51 @@ Trigger.Selector [
 </TabItem>
 </Tabs>
 
+&emsp;&emsp;对于这种常见的“键盘或手柄二选一”场景，也可以使用更短的绑定写法：
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+Trigger.Hold({
+	{key = "Return"},
+	{button = "a"}
+}, 1)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```lua
+Trigger.Hold({
+	{key = "Return"},
+	{button = "a"}
+}, 1)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+Trigger.Hold([
+	{ key: KeyName.Return },
+	{ button: ButtonName.A },
+], 1)
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+Trigger.Hold [
+	{key: "Return"}
+	{button: "a"}
+], 1
+```
+
+</TabItem>
+</Tabs>
+
 ## 2. 创建输入系统
 
 ### 2.1 简单的输入系统一
@@ -186,7 +231,6 @@ Trigger.Selector [
 -- 引入模块
 local InputManager <const> = require("InputManager")
 local Trigger <const> = InputManager.Trigger
-local Node <const> = require("Node")
 
 -- 创建输入管理器，包含一个上下文和一个动作
 local input = InputManager.CreateManager({
@@ -198,16 +242,11 @@ local input = InputManager.CreateManager({
 	}
 })
 
--- 创建一个节点，用于接收和处理输入事件
-local node = Node()
-
--- 连接全局的事件信号，注意这里的 "Input." 后面的字符串是对应动作的名称
-node:gslot("Input.Ctrl+C", function(state, progress, value)
-	if state == "Completed" then
-		print("Ctrl+C 触发完成")
-		-- 移除当前生效的上下文，按下 Ctrl+C 便不再触发
-		input:popContext()
-	end
+-- 只监听动作完成状态
+input:onCompleted("Ctrl+C", function(event)
+	print("Ctrl+C 触发完成")
+	-- 移除当前生效的上下文，按下 Ctrl+C 便不再触发
+	input:popContext()
 end)
 
 -- 激活上下文 testContext，使得包含的输入触发器生效
@@ -221,8 +260,7 @@ input:pushContext("testContext")
 -- 引入模块
 local InputManager <const> = require("InputManager")
 local Trigger <const> = InputManager.Trigger
-local Node <const> = require("Node")
-local type Vec2 = require("Vec2")
+local type InputEvent = InputManager.InputEvent
 
 -- 创建输入管理器，包含一个上下文和一个动作
 local input = InputManager.CreateManager({
@@ -234,16 +272,11 @@ local input = InputManager.CreateManager({
 	}
 })
 
--- 创建一个节点，用于接收和处理输入事件
-local node = Node()
-
--- 连接全局的事件信号，注意这里的 "Input." 后面的字符串是对应动作的名称
-node:gslot("Input.Ctrl+C", function(state: InputManager.TriggerState, progress: number, value: number | boolean | Vec2.Type)
-	if state == "Completed" then
-		print("Ctrl+C 触发完成")
-		-- 移除当前生效的上下文，按下 Ctrl+C 便不再触发
-		input:popContext()
-	end
+-- 只监听动作完成状态
+input:onCompleted("Ctrl+C", function(event: InputEvent)
+	print("Ctrl+C 触发完成")
+	-- 移除当前生效的上下文，按下 Ctrl+C 便不再触发
+	input:popContext()
 end)
 
 -- 激活上下文 testContext，使得包含的输入触发器生效
@@ -254,8 +287,8 @@ input:pushContext("testContext")
 <TabItem value="ts" label="TypeScript">
 
 ```ts
-import { Node, KeyName, Vec2 } from "Dora";
-import { CreateManager, Trigger, TriggerState } from "InputManager";
+import { KeyName } from "Dora";
+import { CreateManager, Trigger } from "InputManager";
 
 // 创建输入管理器，包含一个上下文和一个动作
 const inputManager = CreateManager({
@@ -267,16 +300,11 @@ const inputManager = CreateManager({
 	}
 });
 
-// 创建一个节点，用于接收和处理输入事件
-const node = Node();
-
-// 连接全局的事件信号，注意这里的 "Input." 后面的字符串是对应动作的名称
-node.gslot("Input.Ctrl+C", (state: TriggerState, progress: number, value: number | boolean | Vec2.Type) => {
-	if (state === TriggerState.Completed) {
-		print("Ctrl+C 触发完成");
-		// 移除当前生效的上下文，按下 Ctrl+C 便不再触发
-		inputManager.popContext();
-	}
+// 只监听动作完成状态
+inputManager.onCompleted("Ctrl+C", () => {
+	print("Ctrl+C 触发完成");
+	// 移除当前生效的上下文，按下 Ctrl+C 便不再触发
+	inputManager.popContext();
 });
 
 // 激活上下文 testContext，使得包含的输入触发器生效
@@ -298,14 +326,11 @@ inputManager = CreateManager
 			Trigger.KeyDown "C"
 		]
 
--- 创建一个节点，用于接收和处理输入事件
-with Node!
-	-- 连接全局的事件信号，注意这里的 "Input." 后面的字符串是对应动作的名称
-	\gslot "Input.Ctrl+C", (state, progress, value) ->
-		if state == "Completed"
-			print "Ctrl+C 触发完成"
-			-- 移除当前生效的上下文，按下 Ctrl+C 便不再触发
-			inputManager\popContext!
+-- 只监听动作完成状态
+inputManager\onCompleted "Ctrl+C", ->
+	print "Ctrl+C 触发完成"
+	-- 移除当前生效的上下文，按下 Ctrl+C 便不再触发
+	inputManager\popContext!
 
 -- 激活上下文 testContext，使得包含的输入触发器生效
 inputManager\pushContext "testContext"
@@ -314,10 +339,10 @@ inputManager\pushContext "testContext"
 </TabItem>
 </Tabs>
 
-&emsp;&emsp;在这个示例中，我们创建了一个输入管理器，定义了一个输入上下文和一个动作。动作 `Ctrl+C` 触发器定义了按下键盘的 `Ctrl` 键和 `C` 键的触发条件。我们将这个上下文推入输入管理器进行激活。然后创建一个场景节点，用于接收和处理输入事件。最后，我们连接了对应的全局的事件信号，当动作 `Ctrl+C` 完成时，打印一条消息并移除当前生效的上下文。
+&emsp;&emsp;在这个示例中，我们创建了一个输入管理器，定义了一个输入上下文和一个动作。动作 `Ctrl+C` 触发器定义了按下键盘的 `Ctrl` 键和 `C` 键的触发条件。我们将这个上下文推入输入管理器进行激活。最后，我们通过 `onCompleted` 注册动作处理函数，当动作 `Ctrl+C` 完成时，打印一条消息并移除当前生效的上下文。
 
 :::tip 提示
-&emsp;&emsp;在注册处理输入事件的全局事件信号时，需要使用 `Input.` 前缀加上动作的名称，例如 `Input.Confirm`。注意在全局事件的回调函数中，我们可以获取到触发器的状态（`state`），以及触发器的进度（`progress`）和值（`value`）。在这个示例中，我们只处理了动作完成的状态。当使用的触发器是和时间相关（Hold 或是 Timed）时，我们可以通过值为 0 到 1 的进度参数（`progress`）来获取触发器的当前进度。当使用的触发器提供变化的输入值（例如 JoyStick 的轴输入）时，我们可以通过值参数（`value`）来获取触发器的当前输入值。
+&emsp;&emsp;需要监听动作所有状态变化时，使用 `inputManager:on(actionName, handler)`；只关心动作完成时，使用 `inputManager:onCompleted(actionName, handler)`。处理函数会收到事件对象，其中包含 `state`、`progress` 和 `value`。当使用 Hold 或 Timed 这类和时间相关的触发器时，`progress` 的范围是 0 到 1。当使用摇杆轴这类会提供变化值的触发器时，可以读取 `value`。
 :::
 
 ### 2.2 简单的输入系统二
@@ -330,51 +355,43 @@ inputManager\pushContext "testContext"
 ```lua
 local InputManager <const> = require("InputManager")
 local Trigger <const> = InputManager.Trigger
-local Node <const> = require("Node")
 
 -- 创建输入管理器，包含两个上下文和包含的动作
 local inputManager = InputManager.CreateManager({
 	UI = {
-		Confirm = Trigger.Selector({
-			Trigger.KeyHold("Return", 1),
-			Trigger.ButtonHold("a", 1)
-		})
+		Confirm = Trigger.Hold({
+			{key = "Return"},
+			{button = "a"}
+		}, 1)
 	},
 	Game = {
-		MoveLeft = Trigger.Selector({
-			Trigger.KeyPressed("Left"),
-			Trigger.ButtonPressed("dpleft")
+		MoveLeft = Trigger.Pressed({
+			{key = "Left"},
+			{button = "dpleft"}
 		}),
-		MoveRight = Trigger.Selector({
-			Trigger.KeyPressed("Right"),
-			Trigger.ButtonPressed("dpright")
+		MoveRight = Trigger.Pressed({
+			{key = "Right"},
+			{button = "dpright"}
 		})
 	}
 })
 
--- 创建一个节点，用于接收和处理输入事件
-local node = Node()
-
--- 连接全局的事件信号，处理 UI 上下文的确认动作
-node:gslot("Input.Confirm", function(state, progress)
-	if state == "Ongoing" then
-		print(string.format("确认中，进度：%d", progress * 100))
-	elseif state == "Completed" then
+-- 监听 UI 上下文中确认动作的状态变化
+inputManager:on("Confirm", function(event)
+	if event.state == "Ongoing" then
+		print(string.format("确认中，进度：%d", event.progress * 100))
+	elseif event.state == "Completed" then
 		print("确认完成")
 	end
 end)
 
--- 连接全局的事件信号，处理 Game 上下文的移动动作
-node:gslot("Input.MoveLeft", function(state)
-	if state == "Completed" then
-		print("向左移动")
-	end
+-- 只监听 Game 上下文中移动动作的完成状态
+inputManager:onCompleted("MoveLeft", function(event)
+	print("向左移动")
 end)
 
-node:gslot("Input.MoveRight", function(state)
-	if state == "Completed" then
-		print("向右移动")
-	end
+inputManager:onCompleted("MoveRight", function(event)
+	print("向右移动")
 end)
 ```
 
@@ -384,51 +401,44 @@ end)
 ```tl
 local InputManager <const> = require("InputManager")
 local Trigger <const> = InputManager.Trigger
-local Node <const> = require("Node")
+local type InputEvent = InputManager.InputEvent
 
 -- 创建输入管理器，包含两个上下文和包含的动作
 local inputManager = InputManager.CreateManager({
 	UI = {
-		Confirm = Trigger.Selector({
-			Trigger.KeyHold("Return", 1),
-			Trigger.ButtonHold("a", 1)
-		})
+		Confirm = Trigger.Hold({
+			{key = "Return"},
+			{button = "a"}
+		}, 1)
 	},
 	Game = {
-		MoveLeft = Trigger.Selector({
-			Trigger.KeyPressed("Left"),
-			Trigger.ButtonPressed("dpleft")
+		MoveLeft = Trigger.Pressed({
+			{key = "Left"},
+			{button = "dpleft"}
 		}),
-		MoveRight = Trigger.Selector({
-			Trigger.KeyPressed("Right"),
-			Trigger.ButtonPressed("dpright")
+		MoveRight = Trigger.Pressed({
+			{key = "Right"},
+			{button = "dpright"}
 		})
 	}
 })
 
--- 创建一个节点，用于接收和处理输入事件
-local node = Node()
-
--- 连接全局的事件信号，处理 UI 上下文的确认动作
-node:gslot("Input.Confirm", function(state: InputManager.TriggerState, progress: number)
-	if state == "Ongoing" then
-		print(string.format("确认中，进度：%d", progress * 100))
-	elseif state == "Completed" then
+-- 监听 UI 上下文中确认动作的状态变化
+inputManager:on("Confirm", function(event: InputEvent)
+	if event.state == "Ongoing" then
+		print(string.format("确认中，进度：%d", event.progress * 100))
+	elseif event.state == "Completed" then
 		print("确认完成")
 	end
 end)
 
--- 连接全局的事件信号，处理 Game 上下文的移动动作
-node:gslot("Input.MoveLeft", function(state: InputManager.TriggerState)
-	if state == "Completed" then
-		print("向左移动")
-	end
+-- 只监听 Game 上下文中移动动作的完成状态
+inputManager:onCompleted("MoveLeft", function(event: InputEvent)
+	print("向左移动")
 end)
 
-node:gslot("Input.MoveRight", function(state: InputManager.TriggerState)
-	if state == "Completed" then
-		print("向右移动")
-	end
+inputManager:onCompleted("MoveRight", function(event: InputEvent)
+	print("向右移动")
 end)
 ```
 
@@ -436,52 +446,45 @@ end)
 <TabItem value="ts" label="TypeScript">
 
 ```ts
-import { Node, KeyName, ButtonName } from "Dora";
+import { KeyName, ButtonName } from "Dora";
 import { CreateManager, Trigger, TriggerState } from "InputManager";
 
 // 创建输入管理器，包含两个上下文和包含的动作
 const inputManager = CreateManager({
 	UI: {
-		Confirm: Trigger.Selector([
-			Trigger.KeyHold(KeyName.Return, 1),
-			Trigger.ButtonHold(ButtonName.A, 1)
-		])
+		Confirm: Trigger.Hold([
+			{ key: KeyName.Return },
+			{ button: ButtonName.A }
+		], 1)
 	},
 	Game: {
-		MoveLeft: Trigger.Selector([
-			Trigger.KeyPressed(KeyName.Left),
-			Trigger.ButtonPressed(ButtonName.Left)
+		MoveLeft: Trigger.Pressed([
+			{ key: KeyName.Left },
+			{ button: ButtonName.Left }
 		]),
-		MoveRight: Trigger.Selector([
-			Trigger.KeyPressed(KeyName.Right),
-			Trigger.ButtonPressed(ButtonName.Right)
+		MoveRight: Trigger.Pressed([
+			{ key: KeyName.Right },
+			{ button: ButtonName.Right }
 		])
 	}
 });
 
-// 创建一个节点，用于接收和处理输入事件
-const node = Node();
-
-// 连接全局的事件信号，处理 UI 上下文的确认动作
-node.gslot("Input.Confirm", (state: TriggerState, progress: number) => {
-	if (state === TriggerState.Ongoing) {
-		print(`确认中，进度：${progress * 100}`);
-	} else if (state === TriggerState.Completed) {
+// 监听 UI 上下文中确认动作的状态变化
+inputManager.on("Confirm", event => {
+	if (event.state === TriggerState.Ongoing) {
+		print(`确认中，进度：${event.progress * 100}`);
+	} else if (event.state === TriggerState.Completed) {
 		print("确认完成");
 	}
 });
 
-// 连接全局的事件信号，处理 Game 上下文的移动动作
-node.gslot("Input.MoveLeft", (state: TriggerState) => {
-	if (state === TriggerState.Completed) {
-		print("向左移动");
-	}
+// 只监听 Game 上下文中移动动作的完成状态
+inputManager.onCompleted("MoveLeft", () => {
+	print("向左移动");
 });
 
-node.gslot("Input.MoveRight", (state: TriggerState) => {
-	if (state === TriggerState.Completed) {
-		print("向右移动");
-	}
+inputManager.onCompleted("MoveRight", () => {
+	print("向右移动");
 });
 ```
 
@@ -532,7 +535,7 @@ with Node!
 </Tabs>
 
 
-&emsp;&emsp;在这个示例中，我们创建了一个输入管理器，包含了两个上下文：`UI` 和 `Game`。`UI` 上下文包含了一个长按确认的动作 `Confirm`，`Game` 上下文包含了两个移动动作 `MoveLeft` 和 `MoveRight`。我们创建了一个节点，用于接收和处理输入事件。然后连接了全局的事件信号，处理 UI 上下文的确认动作和 Game 上下文的移动动作。
+&emsp;&emsp;在这个示例中，我们创建了一个输入管理器，包含了两个上下文：`UI` 和 `Game`。`UI` 上下文包含了一个长按确认的动作 `Confirm`，`Game` 上下文包含了两个移动动作 `MoveLeft` 和 `MoveRight`。我们使用 `on` 处理确认动作的所有状态变化，使用 `onCompleted` 只处理移动动作的完成状态。
 
 &emsp;&emsp;在处理 UI 上下文的确认动作时，我们还可以获取到当前的触发器状态，以及长按的进度。在处理 Game 上下文的移动动作时，我们只需要处理动作完成的状态。
 
@@ -696,7 +699,7 @@ local type Controller = require("Controller")
 local Trigger <const> = InputManager.Trigger
 
 -- 用于定义一个同时支持键盘和游戏手柄按键的 QTE 挑战的输入上下文
-local function QTEContext(keyName: Keyboard.KeyName, buttonName: Controller.ButtonName, timeWindow: number): InputManager.InputContext
+local function QTEContext(keyName: Keyboard.KeyName, buttonName: Controller.ButtonName, timeWindow: number): {string: any}
 	return {
 		QTE = Trigger.Sequence({
 			Trigger.Selector({
@@ -728,10 +731,10 @@ end
 
 ```ts
 import { KeyName, ButtonName } from "Dora";
-import { CreateManager, Trigger, InputContext } from "InputManager";
+import { CreateManager, Trigger } from "InputManager";
 
 // 用于定义一个同时支持键盘和游戏手柄按键的 QTE 挑战的输入上下文
-function QTEContext(keyName: KeyName, buttonName: ButtonName, timeWindow: number): InputContext {
+function QTEContext(keyName: KeyName, buttonName: ButtonName, timeWindow: number) {
 	return {
 		QTE: Trigger.Sequence([
 			Trigger.Selector([
@@ -813,9 +816,9 @@ QTEContext = (keyName, buttonName, timeWindow) -> return
 -- 创建输入管理器并添加上下文
 local inputManager = InputManager.CreateManager({
 	Default = {
-		StartQTE = Trigger.Selector({
-			Trigger.KeyDown("Space"),
-			Trigger.ButtonDown("start")
+		StartQTE = Trigger.Down({
+			{key = "Space"},
+			{button = "start"}
 		})
 	},
 	-- 添加 QTE 阶段的上下文
@@ -835,9 +838,9 @@ inputManager:pushContext("Default")
 -- 创建输入管理器并添加上下文
 local inputManager = InputManager.CreateManager({
 	Default = {
-		StartQTE = Trigger.Selector({
-			Trigger.KeyDown("Space"),
-			Trigger.ButtonDown("start")
+		StartQTE = Trigger.Down({
+			{key = "Space"},
+			{button = "start"}
 		})
 	},
 	-- 添加 QTE 阶段的上下文
@@ -857,9 +860,9 @@ inputManager:pushContext("Default")
 // 创建输入管理器并添加上下文
 const inputManager = CreateManager({
 	Default: {
-		StartQTE: Trigger.Selector([
-			Trigger.KeyDown(KeyName.Space),
-			Trigger.ButtonDown(ButtonName.Start)
+		StartQTE: Trigger.Down([
+			{ key: KeyName.Space },
+			{ button: ButtonName.Start }
 		])
 	},
 	// 添加 QTE 阶段的上下文
@@ -902,17 +905,12 @@ inputManager\pushContext "Default"
 
 ### 3.3 处理输入事件
 
-&emsp;&emsp;接下来，我们需要处理输入事件，特别是 QTE 的逻辑。我们将创建一个节点，并连接相应的全局事件信号。
+&emsp;&emsp;接下来，我们需要处理输入事件，特别是 QTE 的逻辑。启动 QTE 只需要处理完成状态，可以使用 `onCompleted`；QTE 本身会有进行中、取消和完成等状态，所以使用 `on`。
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
-local Node <const> = require("Node")
-
--- 创建节点
-local node = Node()
-
 -- 定义当前的 QTE 阶段
 local phase = "None"
 local contextCount = 1
@@ -941,27 +939,25 @@ local function nextPhase()
 end
 
 -- 处理启动 QTE 挑战的输入事件
-node:gslot("Input.StartQTE", function(state)
-	if state == "Completed" then
-		phase = "Phase1"
-		print("按下键盘 J 或按钮 A")
-		inputManager:pushContext(phase)
-		contextCount = contextCount + 1
-	end
+inputManager:onCompleted("StartQTE", function(event)
+	phase = "Phase1"
+	print("按下键盘 J 或按钮 A")
+	inputManager:pushContext(phase)
+	contextCount = contextCount + 1
 end)
 
 -- 处理 QTE 的输入事件
-node:gslot("Input.QTE", function(state, progress)
-	if state == "Ongoing" then
+inputManager:on("QTE", function(event)
+	if event.state == "Ongoing" then
 		-- 处理 QTE 的倒计时进度，progress 为从 0 递增到 1 的值
-		-- print(string.format("进度：%.2f", progress))
-	elseif state == "Canceled" then
+		-- print(string.format("进度：%.2f", event.progress))
+	elseif event.state == "Canceled" then
 		if phase ~= "None" then
 			phase = "None"
 			inputManager:popContext(contextCount)
 			print("挑战失败！")
 		end
-	elseif state == "Completed" then
+	elseif event.state == "Completed" then
 		nextPhase()
 	end
 end)
@@ -973,10 +969,7 @@ print("按下空格键或开始按钮启动 QTE 挑战")
 <TabItem value="tl" label="Teal">
 
 ```tl
-local Node <const> = require("Node")
-
--- 创建节点
-local node = Node()
+local type InputEvent = InputManager.InputEvent
 
 -- 定义当前的 QTE 阶段
 local phase = "None"
@@ -1006,27 +999,25 @@ local function nextPhase()
 end
 
 -- 处理启动 QTE 挑战的输入事件
-node:gslot("Input.StartQTE", function(state: InputManager.TriggerState)
-	if state == "Completed" then
-		phase = "Phase1"
-		print("按下键盘 J 或按钮 A")
-		inputManager:pushContext(phase)
-		contextCount = contextCount + 1
-	end
+inputManager:onCompleted("StartQTE", function(event: InputEvent)
+	phase = "Phase1"
+	print("按下键盘 J 或按钮 A")
+	inputManager:pushContext(phase)
+	contextCount = contextCount + 1
 end)
 
 -- 处理 QTE 的输入事件
-node:gslot("Input.QTE", function(state: InputManager.TriggerState, progress: number)
-	if state == "Ongoing" then
+inputManager:on("QTE", function(event: InputEvent)
+	if event.state == "Ongoing" then
 		-- 处理 QTE 的倒计时进度，progress 为从 0 递增到 1 的值
-		-- print(string.format("进度：%.2f", progress))
-	elseif state == "Canceled" then
+		-- print(string.format("进度：%.2f", event.progress))
+	elseif event.state == "Canceled" then
 		if phase ~= "None" then
 			phase = "None"
 			inputManager:popContext(contextCount)
 			print("挑战失败！")
 		end
-	elseif state == "Completed" then
+	elseif event.state == "Completed" then
 		nextPhase()
 	end
 end)
@@ -1037,12 +1028,7 @@ print("按下空格键或开始按钮启动 QTE 挑战")
 </TabItem>
 <TabItem value="ts" label="TypeScript">
 
-```ts
-import { Node } from "Dora";
 import { TriggerState } from "InputManager";
-
-// 创建节点
-const node = Node();
 
 // 定义当前的 QTE 阶段
 let phase = "None";
@@ -1075,27 +1061,25 @@ function nextPhase() {
 }
 
 // 处理启动 QTE 挑战的输入事件
-node.gslot("Input.StartQTE", (state: TriggerState) => {
-	if (state === "Completed") {
-		phase = "Phase1";
-		print("按下键盘 J 或按钮 A");
-		inputManager.pushContext(phase);
-		contextCount++;
-	}
+inputManager.onCompleted("StartQTE", () => {
+	phase = "Phase1";
+	print("按下键盘 J 或按钮 A");
+	inputManager.pushContext(phase);
+	contextCount++;
 });
 
 // 处理 QTE 的输入事件
-node.gslot("Input.QTE", (state: TriggerState, progress: number) => {
-	if (state === "Ongoing") {
+inputManager.on("QTE", event => {
+	if (event.state === TriggerState.Ongoing) {
 		// 处理 QTE 的倒计时进度，progress 为从 0 递增到 1 的值
-		// print(`进度：${progress.toFixed(2)}`);
-	} else if (state === "Canceled") {
+		// print(`进度：${event.progress.toFixed(2)}`);
+	} else if (event.state === TriggerState.Canceled) {
 		if (phase !== "None") {
 			phase = "None";
 			inputManager.popContext(contextCount);
 			print("挑战失败！");
 		}
-	} else if (state === "Completed") {
+	} else if (event.state === TriggerState.Completed) {
 		nextPhase();
 	}
 });

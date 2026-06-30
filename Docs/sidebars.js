@@ -123,6 +123,21 @@ const sidebars = {
 						},
 						{
 							type: 'doc',
+							label: 'InputBinding',
+							id: 'api/Class/InputBinding',
+						},
+						{
+							type: 'doc',
+							label: 'InputAction',
+							id: 'api/Class/InputAction',
+						},
+						{
+							type: 'doc',
+							label: 'InputEvent',
+							id: 'api/Class/InputEvent',
+						},
+						{
+							type: 'doc',
 							label: 'InputManager',
 							id: 'api/Class/InputManager',
 						},

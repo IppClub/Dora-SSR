@@ -1,24 +1,71 @@
 local type Keyboard = require("Keyboard")
 local type Controller = require("Controller")
 local type Node = require("Node")
+local Vec2 = require("Vec2").Type
 
 local type KeyName = Keyboard.KeyName;
 local type ButtonName = Controller.ButtonName;
 local type AxisName = Controller.AxisName;
+local type InputValue = number | Vec2 | boolean | {number | Vec2 | boolean}
+local type TriggerListener = function(trigger: any)
 
--- `InputManager` 是一个用于管理输入上下文和动作的类。可以通过创建输入上下文和动作，然后将它们添加到输入管理器中，来实现输入事件的监听和处理。可以通过调用 `pushContext` 和 `popContext` 方法来激活和停用特定组合的输入上下文。在触发事件时，可以通过注册全局输入事件监听器来处理输入事件。
+-- 通用触发器辅助接口使用的键盘或手柄输入绑定。
+local record InputBinding
+	-- 要绑定的单个键盘按键或组合键。[可选]
+	key: KeyName | {KeyName}
+
+	-- 要绑定的单个手柄按钮或组合按钮。[可选]
+	button: ButtonName | {ButtonName}
+
+	-- 游戏手柄控制器的ID。默认为0。[可选]
+	controllerId: number
+end
+
+-- 带名称和触发器的输入动作。
+local record InputAction
+	-- 动作名称。
+	name: string
+	-- 用于计算该动作状态的触发器。
+	trigger: any
+end
+
+-- 输入管理器发出的类型化输入动作事件。
+local record InputEvent
+	-- 动作名称。
+	action: string
+	-- 拥有该动作的上下文名称。
+	context: string
+	-- 触发器状态。
+	state: string
+	-- 触发器进度。
+	progress: number
+	-- 触发器的值。
+	value: InputValue
+	-- 发出事件的触发器。
+	trigger: any
+	-- 发出事件的输入管理器。
+	inputManager: any
+end
+
+local type InputHandler = function(event: InputEvent)
+
+-- `InputManager` 是一个用于管理输入上下文和动作的类。可以通过创建输入上下文和动作，然后将它们添加到输入管理器中，来实现输入事件的监听和处理。可以通过调用 `pushContext` 和 `popContext` 方法来激活和停用特定组合的输入上下文。当动作状态变化时，可以通过 `on()`、`once()` 或 `onCompleted()` 处理输入事件。
 -- @usage
 -- local InputManager = require("InputManager")
+-- local Trigger = InputManager.Trigger
 -- local inputManager = InputManager.CreateManager({
 -- 	context1 = {
--- 		action1 = Trigger.KeyDown("W"),
+-- 		action1 = Trigger.Down({
+-- 			{key = "Space"},
+-- 			{button = "a"}
+-- 		}),
 -- 	},
 -- })
 -- -- 激活上下文 context1
 -- inputManager:pushContext("context1")
--- -- 要监听的输入事件名需要加上 `Input.` 前缀
--- node:gslot("Input.action1", function()
--- 	print("action1 triggered")
+-- -- 监听动作完成状态
+-- inputManager:onCompleted("action1", function(event)
+-- 	print(event.action .. " triggered")
 -- end)
 -- -- 从上下文栈中删除 context1
 -- inputManager:popContext()
@@ -29,6 +76,31 @@ local record InputManager
 	-- 获取当前输入系统使用的场景节点。该节点用于接收输入事件。它在创建后，如果没有被添加到指定的父节点，会在稍后被自动添加到 `Director.entry` 中。
 	-- @return (Node) 输入系统的场景节点。
 	getNode: function(self: InputManager): Node.Type
+
+	-- 获取动作对应的全局事件名。
+	-- @param actionName (string) 动作名称。
+	-- @return (string) 全局事件名。
+	getEventName: function(self: InputManager, actionName: string): string
+
+	-- 监听动作的所有状态变化。
+	-- @param actionName (string) 动作名称。
+	-- @param handler (InputHandler) 要调用的处理器。
+	on: function(self: InputManager, actionName: string, handler: InputHandler)
+
+	-- 监听动作的下一次状态变化，然后禁用该监听器。
+	-- @param actionName (string) 动作名称。
+	-- @param handler (InputHandler) 要调用的处理器。
+	once: function(self: InputManager, actionName: string, handler: InputHandler)
+
+	-- 禁用通过 `on()`、`once()` 或 `onCompleted()` 注册的处理器。
+	-- @param actionName (string) 动作名称。
+	-- @param handler (InputHandler) 要禁用的处理器。
+	off: function(self: InputManager, actionName: string, handler: InputHandler)
+
+	-- 监听动作的完成状态。
+	-- @param actionName (string) 动作名称。
+	-- @param handler (InputHandler) 要调用的处理器。
+	onCompleted: function(self: InputManager, actionName: string, handler: InputHandler)
 
 	-- 将指定名称的上下文添加到上下文栈中。会暂时禁用之前生效的上下文，然后激活新上下文中会触发的动作和事件。
 	-- @param contextNames (string | {string}) 单个上下文的名称或是上下文名称的数组。
@@ -77,8 +149,94 @@ local record InputManagerClass
 		"Right"
 	end
 
+	type InputValue = InputValue
+
+	-- 通用触发器辅助接口使用的键盘或手柄输入绑定类型。
+	type InputBinding = InputBinding
+
+	-- 输入动作类型，包含动作名称和对应的触发器。
+	type InputAction = InputAction
+
+	-- 输入管理器发出的动作事件类型。
+	type InputEvent = InputEvent
+
+	-- 输入事件处理器类型。
+	type InputHandler = InputHandler
+
 	-- 输入触发器的管理类，定义了键盘键、游戏手柄按钮和摇杆的各种输入触发器。
 	record Trigger
+
+		-- 当前触发器状态。
+		state: TriggerState
+
+		-- 当前触发器的值。
+		value: InputValue
+
+		-- 当前触发器进度，适用时取值范围为0到1。
+		progress: number
+
+		-- 旧的单个变化回调。需要多个监听器时优先使用 `addListener()`。
+		onChange: function()
+
+		-- 添加一个监听器，不会替换已有监听器。
+		addListener: function(self: Trigger, listener: TriggerListener)
+
+		-- 移除通过 `addListener()` 添加的监听器。
+		removeListener: function(self: Trigger, listener: TriggerListener)
+
+		-- 创建一个键盘或手柄按下触发器。传入多个绑定时，任一绑定完成都会触发。
+		-- @param input (InputBinding) 输入绑定。
+		-- @return (Trigger) 触发器对象。
+		Down: function(input: InputBinding): Trigger
+
+		-- 创建一个键盘或手柄按下触发器。传入多个绑定时，任一绑定完成都会触发。
+		-- @param input ({InputBinding}) 输入绑定数组。
+		-- @return (Trigger) 触发器对象。
+		Down: function(input: {InputBinding}): Trigger
+
+		-- 创建一个键盘或手柄释放触发器。传入多个绑定时，任一绑定完成都会触发。
+		-- @param input (InputBinding) 输入绑定。
+		-- @return (Trigger) 触发器对象。
+		Up: function(input: InputBinding): Trigger
+
+		-- 创建一个键盘或手柄释放触发器。传入多个绑定时，任一绑定完成都会触发。
+		-- @param input ({InputBinding}) 输入绑定数组。
+		-- @return (Trigger) 触发器对象。
+		Up: function(input: {InputBinding}): Trigger
+
+		-- 创建一个键盘或手柄持续按下触发器。传入多个绑定时，任一绑定完成都会触发。
+		-- @param input (InputBinding) 输入绑定。
+		-- @return (Trigger) 触发器对象。
+		Pressed: function(input: InputBinding): Trigger
+
+		-- 创建一个键盘或手柄持续按下触发器。传入多个绑定时，任一绑定完成都会触发。
+		-- @param input ({InputBinding}) 输入绑定数组。
+		-- @return (Trigger) 触发器对象。
+		Pressed: function(input: {InputBinding}): Trigger
+
+		-- 创建一个键盘或手柄长按触发器。传入多个绑定时，任一绑定完成都会触发。
+		-- @param input (InputBinding) 输入绑定。
+		-- @param holdTime (number) 持续时间，以秒为单位。
+		-- @return (Trigger) 触发器对象。
+		Hold: function(input: InputBinding, holdTime: number): Trigger
+
+		-- 创建一个键盘或手柄长按触发器。传入多个绑定时，任一绑定完成都会触发。
+		-- @param input ({InputBinding}) 输入绑定数组。
+		-- @param holdTime (number) 持续时间，以秒为单位。
+		-- @return (Trigger) 触发器对象。
+		Hold: function(input: {InputBinding}, holdTime: number): Trigger
+
+		-- 创建一个键盘或手柄双击触发器。传入多个绑定时，任一绑定完成都会触发。
+		-- @param input (InputBinding) 输入绑定。
+		-- @param threshold (number) [可选] 两次按下之间的时间阈值，以秒为单位。默认为0.3。
+		-- @return (Trigger) 触发器对象。
+		Double: function(input: InputBinding, threshold?: number): Trigger
+
+		-- 创建一个键盘或手柄双击触发器。传入多个绑定时，任一绑定完成都会触发。
+		-- @param input ({InputBinding}) 输入绑定数组。
+		-- @param threshold (number) [可选] 两次按下之间的时间阈值，以秒为单位。默认为0.3。
+		-- @return (Trigger) 触发器对象。
+		Double: function(input: {InputBinding}, threshold?: number): Trigger
 
 		-- 创建一个触发器，当所有指定的键被按下时触发。
 		-- @param combineKeys (KeyName | {KeyName}) 要检查的单个键或组合键。
@@ -226,7 +384,7 @@ local record InputManagerClass
 	end
 
 	-- 使用指定的输入上下文创建输入管理器。
-	-- @param contexts ({string: {string: Trigger}) 要创建的一组输入上下文。
+	-- @param contexts ({string: {string: Trigger}}) 要创建的一组输入上下文。
 	-- @return (InputManager) 输入管理器。
 	CreateManager: function(contexts: {--[[contextName]] string: {--[[actionName]] string: Trigger}}): InputManager
 

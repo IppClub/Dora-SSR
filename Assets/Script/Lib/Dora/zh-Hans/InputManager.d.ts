@@ -1,7 +1,7 @@
 declare module 'InputManager' {
 
 import { React } from 'DoraX';
-import { AxisName, ButtonName, KeyName, Node } from 'Dora';
+import { AxisName, ButtonName, KeyName, Node, Vec2 } from 'Dora';
 
 /** 触发器状态的枚举。 */
 export const enum TriggerState {
@@ -17,10 +17,33 @@ export const enum TriggerState {
 	Canceled = "Canceled",
 }
 
+/** 输入触发器或输入事件携带的值。 */
+export type InputValue = number | Vec2.Type | boolean | (number | Vec2.Type | boolean)[];
+
+/** 当触发器状态、进度或值发生变化时调用的监听器。 */
+export type TriggerListener = (this: void, trigger: Trigger) => void;
+
 /** 输入触发器类，可以是键盘键、游戏手柄按钮和摇杆各种输入的触发器。 */
 export abstract class Trigger {
 	private constructor();
+	/** 当前触发器状态。 */
+	state: TriggerState;
+	/** 当前触发器的值。 */
+	value: InputValue;
+	/** 当前触发器进度，适用时取值范围为0到1。 */
+	progress: number;
+	/** 旧的单个变化回调。需要多个监听器时优先使用 `addListener()`。 */
+	onChange?(): void;
+	/** 添加一个监听器，不会替换已有监听器。 */
+	addListener(listener: TriggerListener): void;
+	/** 移除通过 `addListener()` 添加的监听器。 */
+	removeListener(listener: TriggerListener): void;
 }
+
+/** 用于通用触发器辅助接口的键盘或手柄绑定。 */
+export type InputBinding =
+	{key: KeyName | KeyName[]} |
+	{button: ButtonName | ButtonName[], controllerId?: number};
 
 /** 摇杆类型的枚举。 */
 export const enum JoyStickType {
@@ -30,6 +53,38 @@ export const enum JoyStickType {
 
 /** 输入触发器的管理模块，用于创建键盘键、游戏手柄按钮和摇杆的各种输入触发器。 */
 export namespace Trigger {
+	/**
+	 * 创建一个键盘或手柄按下触发器。传入多个绑定时，任一绑定完成都会触发。
+	 * @param input 输入绑定或绑定数组。
+	 * @returns 触发器对象。
+	 */
+	export function Down(this: void, input: InputBinding | InputBinding[]): Trigger;
+	/**
+	 * 创建一个键盘或手柄释放触发器。传入多个绑定时，任一绑定完成都会触发。
+	 * @param input 输入绑定或绑定数组。
+	 * @returns 触发器对象。
+	 */
+	export function Up(this: void, input: InputBinding | InputBinding[]): Trigger;
+	/**
+	 * 创建一个键盘或手柄持续按下触发器。传入多个绑定时，任一绑定完成都会触发。
+	 * @param input 输入绑定或绑定数组。
+	 * @returns 触发器对象。
+	 */
+	export function Pressed(this: void, input: InputBinding | InputBinding[]): Trigger;
+	/**
+	 * 创建一个键盘或手柄长按触发器。传入多个绑定时，任一绑定完成都会触发。
+	 * @param input 输入绑定或绑定数组。
+	 * @param holdTime 持续时间，以秒为单位。
+	 * @returns 触发器对象。
+	 */
+	export function Hold(this: void, input: InputBinding | InputBinding[], holdTime: number): Trigger;
+	/**
+	 * 创建一个键盘或手柄双击触发器。传入多个绑定时，任一绑定完成都会触发。
+	 * @param input 输入绑定或绑定数组。
+	 * @param threshold 两次按下之间的时间阈值，以秒为单位。默认为0.3。
+	 * @returns 触发器对象。
+	 */
+	export function Double(this: void, input: InputBinding | InputBinding[], threshold?: number): Trigger;
 	/**
 	 * 创建一个触发器，当所有指定的键被按下时触发。
 	 * @param combineKeys 要检查的单个键或组合键。
@@ -178,20 +233,53 @@ export namespace Trigger {
 	export function Block(this: void, trigger: Trigger): Trigger;
 }
 
+/** 带名称和触发器的输入动作。 */
+export interface InputAction {
+	/** 动作名称。 */
+	name: string;
+	/** 用于计算该动作状态的触发器。 */
+	trigger: Trigger;
+}
+
+/** 输入管理器发出的类型化输入动作事件。 */
+export interface InputEvent {
+	/** 动作名称。 */
+	action: string;
+	/** 拥有该动作的上下文名称。 */
+	context: string;
+	/** 触发器状态。 */
+	state: TriggerState;
+	/** 触发器进度。 */
+	progress: number;
+	/** 触发器的值。 */
+	value: InputValue;
+	/** 发出事件的触发器。 */
+	trigger: Trigger;
+	/** 发出事件的输入管理器。 */
+	inputManager: InputManager;
+}
+
+/** 类型化输入事件处理器。 */
+export type InputHandler = (this: void, event: InputEvent) => void;
+
 /**
- * `InputManager` 是一个用于管理输入上下文和动作的类。可以通过创建输入上下文和动作，然后将它们添加到输入管理器中，来实现输入事件的监听和处理。可以通过调用 `pushContext` 和 `popContext` 方法来激活和停用特定组合的输入上下文。在触发事件时，可以通过注册全局输入事件监听器来处理输入事件。
+ * `InputManager` 是一个用于管理输入上下文和动作的类。可以通过创建输入上下文和动作，然后将它们添加到输入管理器中，来实现输入事件的监听和处理。可以通过调用 `pushContext` 和 `popContext` 方法来激活和停用特定组合的输入上下文。当动作状态变化时，可以通过 `on()`、`once()` 或 `onCompleted()` 处理输入事件。
  * @usage
  * import { CreateManager, Trigger } from "InputManager";
- * const inputManager = CreateManager([
+ * import { ButtonName, KeyName } from "Dora";
+ * const inputManager = CreateManager({
  * 	context1: {
- * 		action1: Trigger.KeyDown(KeyName.W),
+ * 		action1: Trigger.Down([
+ * 			{ key: KeyName.Space },
+ * 			{ button: ButtonName.A },
+ * 		]),
  * 	},
- * ]);
+ * });
  * // 激活上下文 context1
  * inputManager.pushContext("context1");
- * // 要监听的输入事件名需要加上 `Input.` 前缀
- * node.gslot("Input.action1", () => {
- * 	print("action1 triggered");
+ * // 监听动作完成状态
+ * inputManager.onCompleted("action1", event => {
+ * 	print(event.action + " triggered");
  * });
  * // 从上下文栈中删除 context1
  * inputManager.popContext();
@@ -205,6 +293,36 @@ export class InputManager {
 	 * @returns 输入系统的场景节点。
 	 */
 	getNode(): Node.Type;
+	/**
+	 * 获取动作对应的全局事件名。
+	 * @param actionName 动作名称。
+	 * @returns 全局事件名。
+	 */
+	getEventName(actionName: string): string;
+	/**
+	 * 监听动作的所有状态变化。
+	 * @param actionName 动作名称。
+	 * @param handler 要调用的处理器。
+	 */
+	on(actionName: string, handler: InputHandler): void;
+	/**
+	 * 监听动作的下一次状态变化，然后禁用该监听器。
+	 * @param actionName 动作名称。
+	 * @param handler 要调用的处理器。
+	 */
+	once(actionName: string, handler: InputHandler): void;
+	/**
+	 * 禁用通过 `on()`、`once()` 或 `onCompleted()` 注册的处理器。
+	 * @param actionName 动作名称。
+	 * @param handler 要禁用的处理器。
+	 */
+	off(actionName: string, handler: InputHandler): void;
+	/**
+	 * 监听动作的完成状态。
+	 * @param actionName 动作名称。
+	 * @param handler 要调用的处理器。
+	 */
+	onCompleted(actionName: string, handler: InputHandler): void;
 	/**
 	 * 将指定名称的上下文添加到上下文栈中。会暂时禁用之前生效的上下文，然后激活新上下文中会触发的动作和事件。
 	 * @param contextNames 单个上下文的名称或是上下文名称的数组。

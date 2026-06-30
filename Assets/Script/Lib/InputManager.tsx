@@ -9,17 +9,42 @@ export const enum TriggerState {
 	Canceled = "Canceled",
 }
 
+export type InputValue = number | Vec2.Type | boolean | (number | Vec2.Type | boolean)[];
+export type TriggerListener = (this: void, trigger: Trigger) => void;
+type InputGlobalSlot = { enabled: boolean };
+
 export abstract class Trigger {
 	constructor() {
 		this.state = TriggerState.None;
 		this.progress = 0;
 		this.value = false;
+		this.listeners = [];
 	}
 	state: TriggerState;
-	value: number | Vec2.Type | boolean | (number | Vec2.Type | boolean)[];
+	value: InputValue;
 	progress: number;
 	onChange?(): void;
 	onUpdate?(deltaTime: number): void;
+	private listeners: TriggerListener[];
+	addListener(listener: TriggerListener) {
+		this.listeners.push(listener);
+	}
+	removeListener(listener: TriggerListener) {
+		for (let i = this.listeners.length - 1; i >= 0; i--) {
+			if (this.listeners[i] === listener) {
+				this.listeners.splice(i, 1);
+			}
+		}
+	}
+	protected notifyChange() {
+		if (this.onChange) {
+			this.onChange();
+		}
+		const listeners = [...this.listeners];
+		for (let listener of listeners) {
+			listener(this);
+		}
+	}
 	abstract start(manager: Node.Type): void;
 	abstract stop(manager: Node.Type): void;
 }
@@ -50,9 +75,7 @@ class KeyDownTrigger extends Trigger {
 				}
 				if (newState) {
 					this.state = TriggerState.Completed;
-					if (this.onChange) {
-						this.onChange();
-					}
+					this.notifyChange();
 					this.state = TriggerState.None;
 				}
 			}
@@ -107,9 +130,7 @@ class KeyUpTrigger extends Trigger {
 			this.keyStates.set(keyName, false);
 			if (oldState) {
 				this.state = TriggerState.Completed;
-				if (this.onChange) {
-					this.onChange();
-				}
+				this.notifyChange();
 				this.state = TriggerState.None;
 			}
 		};
@@ -169,9 +190,7 @@ class KeyPressedTrigger extends Trigger {
 	}
 	onUpdate(_: number) {
 		if (this.state === TriggerState.Completed) {
-			if (this.onChange) {
-				this.onChange();
-			}
+			this.notifyChange();
 		}
 	}
 	start(manager: Node.Type) {
@@ -207,9 +226,7 @@ class KeyHoldTrigger extends Trigger {
 				this.time = 0;
 				this.state = TriggerState.Started;
 				this.progress = 0;
-				if (this.onChange) {
-					this.onChange();
-				}
+				this.notifyChange();
 			}
 		};
 		this.onKeyUp = (keyName: KeyName) => {
@@ -228,9 +245,7 @@ class KeyHoldTrigger extends Trigger {
 					this.state = TriggerState.Canceled;
 				}
 				this.progress = 0;
-				if (this.onChange) {
-					this.onChange();
-				}
+				this.notifyChange();
 			}
 		}
 	}
@@ -257,9 +272,7 @@ class KeyHoldTrigger extends Trigger {
 			this.state = TriggerState.Ongoing;
 			this.progress = math.min(this.time / this.holdTime, 1);
 		}
-		if (this.onChange) {
-			this.onChange();
-		}
+		this.notifyChange();
 	}
 	stop(manager: Node.Type) {
 		manager.slot(Slot.KeyDown).remove(this.onKeyDown);
@@ -292,9 +305,7 @@ class KeyTimedTrigger extends Trigger {
 			if (this.key === keyName && this.time <= this.timeWindow) {
 				this.state = TriggerState.Completed;
 				this.value = this.time;
-				if (this.onChange) {
-					this.onChange();
-				}
+				this.notifyChange();
 			}
 		};
 	}
@@ -305,9 +316,7 @@ class KeyTimedTrigger extends Trigger {
 		this.time = 0;
 		this.progress = 0;
 		this.value = false;
-		if (this.onChange) {
-			this.onChange();
-		}
+		this.notifyChange();
 	}
 	onUpdate(deltaTime: number) {
 		switch (this.state) {
@@ -331,9 +340,7 @@ class KeyTimedTrigger extends Trigger {
 			this.state = TriggerState.Ongoing;
 			this.progress = math.min(this.time / this.timeWindow, 1);
 		}
-		if (this.onChange) {
-			this.onChange();
-		}
+		this.notifyChange();
 	}
 	stop(manager: Node.Type) {
 		manager.slot(Slot.KeyDown).remove(this.onKeyDown);
@@ -360,14 +367,10 @@ class KeyDoubleDownTrigger extends Trigger {
 					this.time = 0;
 					this.state = TriggerState.Started;
 					this.progress = 0;
-					if (this.onChange) {
-						this.onChange();
-					}
+					this.notifyChange();
 				} else {
 					this.state = TriggerState.Completed;
-					if (this.onChange) {
-						this.onChange();
-					}
+					this.notifyChange();
 					this.state = TriggerState.None;
 				}
 			}
@@ -395,9 +398,7 @@ class KeyDoubleDownTrigger extends Trigger {
 			this.state = TriggerState.Ongoing;
 			this.progress = math.min(this.time / this.threshold, 1);
 		}
-		if (this.onChange) {
-			this.onChange();
-		}
+		this.notifyChange();
 	}
 	stop(manager: Node.Type) {
 		manager.slot(Slot.KeyDown).remove(this.onKeyDown);
@@ -431,9 +432,7 @@ class AnyKeyPressedTrigger extends Trigger {
 	}
 	onUpdate(_: number) {
 		if (this.state === TriggerState.Completed) {
-			if (this.onChange) {
-				this.onChange();
-			}
+			this.notifyChange();
 		}
 	}
 	start(manager: Node.Type) {
@@ -481,9 +480,7 @@ class ButtonDownTrigger extends Trigger {
 				}
 				if (newState) {
 					this.state = TriggerState.Completed;
-					if (this.onChange) {
-						this.onChange();
-					}
+					this.notifyChange();
 					this.state = TriggerState.None;
 				}
 			}
@@ -553,9 +550,7 @@ class ButtonUpTrigger extends Trigger {
 			this.buttonStates.set(buttonName, false);
 			if (oldState) {
 				this.state = TriggerState.Completed;
-				if (this.onChange) {
-					this.onChange();
-				}
+				this.notifyChange();
 				this.state = TriggerState.None;
 			}
 		};
@@ -622,9 +617,7 @@ class ButtonPressedTrigger extends Trigger {
 		}
 		if (allDown) {
 			this.state = TriggerState.Completed;
-			if (this.onChange) {
-				this.onChange();
-			}
+			this.notifyChange();
 			this.state = TriggerState.None;
 		}
 	}
@@ -666,9 +659,7 @@ class ButtonHoldTrigger extends Trigger {
 				this.time = 0;
 				this.state = TriggerState.Started;
 				this.progress = 0;
-				if (this.onChange) {
-					this.onChange();
-				}
+				this.notifyChange();
 			}
 		};
 		this.onButtonUp = (controllerId: number, buttonName: ButtonName) => {
@@ -690,9 +681,7 @@ class ButtonHoldTrigger extends Trigger {
 					this.state = TriggerState.Canceled;
 				}
 				this.progress = 0;
-				if (this.onChange) {
-					this.onChange();
-				}
+				this.notifyChange();
 			}
 		}
 	}
@@ -719,9 +708,7 @@ class ButtonHoldTrigger extends Trigger {
 			this.state = TriggerState.Ongoing;
 			this.progress = math.min(this.time / this.holdTime, 1);
 		}
-		if (this.onChange) {
-			this.onChange();
-		}
+		this.notifyChange();
 	}
 	stop(manager: Node.Type) {
 		manager.slot(Slot.ButtonDown).remove(this.onButtonDown);
@@ -759,9 +746,7 @@ class ButtonTimedTrigger extends Trigger {
 			if (this.button === buttonName && this.time <= this.timeWindow) {
 				this.state = TriggerState.Completed;
 				this.value = this.time;
-				if (this.onChange) {
-					this.onChange();
-				}
+				this.notifyChange();
 			}
 		};
 	}
@@ -772,9 +757,7 @@ class ButtonTimedTrigger extends Trigger {
 		this.progress = 0;
 		this.time = 0;
 		this.value = false;
-		if (this.onChange) {
-			this.onChange();
-		}
+		this.notifyChange();
 	}
 	onUpdate(deltaTime: number) {
 		switch (this.state) {
@@ -798,9 +781,7 @@ class ButtonTimedTrigger extends Trigger {
 			this.state = TriggerState.Ongoing;
 			this.progress = math.min(this.time / this.timeWindow, 1);
 		}
-		if (this.onChange) {
-			this.onChange();
-		}
+		this.notifyChange();
 	}
 	stop(manager: Node.Type) {
 		manager.slot(Slot.ButtonDown).remove(this.onButtonDown);
@@ -831,14 +812,10 @@ class ButtonDoubleDownTrigger extends Trigger {
 					this.time = 0;
 					this.state = TriggerState.Started;
 					this.progress = 0;
-					if (this.onChange) {
-						this.onChange();
-					}
+					this.notifyChange();
 				} else {
 					this.state = TriggerState.Completed;
-					if (this.onChange) {
-						this.onChange();
-					}
+					this.notifyChange();
 					this.state = TriggerState.None;
 				}
 			}
@@ -866,9 +843,7 @@ class ButtonDoubleDownTrigger extends Trigger {
 			this.state = TriggerState.Ongoing;
 			this.progress = math.min(this.time / this.threshold, 1);
 		}
-		if (this.onChange) {
-			this.onChange();
-		}
+		this.notifyChange();
 	}
 	stop(manager: Node.Type) {
 		manager.slot(Slot.ButtonDown).remove(this.onButtonDown);
@@ -910,9 +885,7 @@ class AnyButtonPressedTrigger extends Trigger {
 	}
 	onUpdate(_: number) {
 		if (this.state === TriggerState.Completed) {
-			if (this.onChange) {
-				this.onChange();
-			}
+			this.notifyChange();
 		}
 	}
 	start(manager: Node.Type) {
@@ -979,9 +952,7 @@ class JoyStickTrigger extends Trigger {
 			} else {
 				this.state = TriggerState.None;
 			}
-			if (this.onChange) {
-				this.onChange();
-			}
+			this.notifyChange();
 		};
 	}
 	filterAxis() {
@@ -1048,13 +1019,13 @@ class SequenceTrigger extends Trigger {
 		super();
 		this.triggers = triggers;
 		const self = this;
-		const onStateChanged = () => {
-			self.onStateChanged();
-		};
-		for (let trigger of triggers) {
-			trigger.onChange = onStateChanged;
+			const onStateChanged = () => {
+				self.onStateChanged();
+			};
+			for (let trigger of triggers) {
+				trigger.addListener(onStateChanged);
+			}
 		}
-	}
 	private onStateChanged() {
 		let completed = true;
 		for (let trigger of this.triggers) {
@@ -1078,9 +1049,7 @@ class SequenceTrigger extends Trigger {
 				}
 			}
 			this.value = newValue;
-			if (this.onChange) {
-				this.onChange();
-			}
+			this.notifyChange();
 			return;
 		}
 		let canceled = false;
@@ -1093,9 +1062,7 @@ class SequenceTrigger extends Trigger {
 		}
 		if (canceled) {
 			this.state = TriggerState.Canceled;
-			if (this.onChange) {
-				this.onChange();
-			}
+			this.notifyChange();
 			return;
 		}
 		let onGoing = false;
@@ -1109,25 +1076,19 @@ class SequenceTrigger extends Trigger {
 		if (onGoing) {
 			this.state = TriggerState.Ongoing;
 			this.progress = minProgress;
-			if (this.onChange) {
-				this.onChange();
-			}
+			this.notifyChange();
 			return;
 		}
 		for (let trigger of this.triggers) {
 			if (trigger.state === TriggerState.Started) {
 				this.state = TriggerState.Started;
 				this.progress = 0;
-				if (this.onChange) {
-					this.onChange();
-				}
+				this.notifyChange();
 				return;
 			}
 		}
 		this.state = TriggerState.None;
-		if (this.onChange) {
-			this.onChange();
-		}
+		this.notifyChange();
 	}
 	start(manager: Node.Type) {
 		for (let trigger of this.triggers) {
@@ -1161,22 +1122,20 @@ class SelectorTrigger extends Trigger {
 		super();
 		this.triggers = triggers;
 		const self = this;
-		const onStateChanged = () => {
-			self.onStateChanged();
-		};
-		for (let trigger of triggers) {
-			trigger.onChange = onStateChanged;
+			const onStateChanged = () => {
+				self.onStateChanged();
+			};
+			for (let trigger of triggers) {
+				trigger.addListener(onStateChanged);
+			}
 		}
-	}
 	private onStateChanged() {
 		for (let trigger of this.triggers) {
 			if (trigger.state === TriggerState.Completed) {
 				this.state = TriggerState.Completed;
 				this.progress = trigger.progress;
 				this.value = trigger.value;
-				if (this.onChange) {
-					this.onChange();
-				}
+				this.notifyChange();
 				return;
 			}
 		}
@@ -1191,18 +1150,14 @@ class SelectorTrigger extends Trigger {
 		if (onGoing) {
 			this.state = TriggerState.Ongoing;
 			this.progress = maxProgress;
-			if (this.onChange) {
-				this.onChange();
-			}
+			this.notifyChange();
 			return;
 		}
 		for (let trigger of this.triggers) {
 			if (trigger.state === TriggerState.Started) {
 				this.state = TriggerState.Started;
 				this.progress = 0;
-				if (this.onChange) {
-					this.onChange();
-				}
+				this.notifyChange();
 				return;
 			}
 		}
@@ -1216,9 +1171,7 @@ class SelectorTrigger extends Trigger {
 		}
 		if (canceled) {
 			this.state = TriggerState.Canceled;
-			if (this.onChange) {
-				this.onChange();
-			}
+			this.notifyChange();
 		}
 	}
 	start(manager: Node.Type) {
@@ -1250,23 +1203,20 @@ class BlockTrigger extends Trigger {
 	private trigger: Trigger;
 
 	constructor(trigger: Trigger) {
-		super();
-		this.trigger = trigger;
-		const self = this;
-		trigger.onChange = () => {
-			self.onStateChanged();
-		};
-	}
+			super();
+			this.trigger = trigger;
+			const self = this;
+			trigger.addListener(() => {
+				self.onStateChanged();
+			});
+		}
 	private onStateChanged() {
 		if (this.trigger.state === TriggerState.Completed) {
 			this.state = TriggerState.Canceled;
 		} else {
 			this.state = TriggerState.Completed;
 		}
-		if (this.onChange) {
-			this.onChange();
-		}
-		this.state = TriggerState.Completed;
+		this.notifyChange();
 	}
 	start(manager: Node.Type) {
 		this.state = TriggerState.Completed;
@@ -1283,7 +1233,139 @@ class BlockTrigger extends Trigger {
 	}
 }
 
+export type InputBinding =
+	{ key: KeyName | KeyName[] } |
+	{ button: ButtonName | ButtonName[], controllerId?: number };
+
 export namespace Trigger {
+	function isBindingList(this: void, input: InputBinding | InputBinding[]): input is InputBinding[] {
+		return (input as { key?: KeyName | KeyName[] }).key === undefined &&
+			(input as { button?: ButtonName | ButtonName[] }).button === undefined;
+	}
+	function select(this: void, triggers: Trigger[]) {
+		return triggers.length === 1 ? triggers[0] : new SelectorTrigger(triggers);
+	}
+	function sequence(this: void, triggers: Trigger[]) {
+		return triggers.length === 1 ? triggers[0] : new SequenceTrigger(triggers);
+	}
+	function down(this: void, input: InputBinding) {
+		const key = (input as { key?: KeyName | KeyName[] }).key;
+		if (key !== undefined) {
+			return KeyDown(key);
+		}
+		const buttonInput = input as { button: ButtonName | ButtonName[], controllerId?: number };
+		return ButtonDown(buttonInput.button, buttonInput.controllerId);
+	}
+	function up(this: void, input: InputBinding) {
+		const key = (input as { key?: KeyName | KeyName[] }).key;
+		if (key !== undefined) {
+			return KeyUp(key);
+		}
+		const buttonInput = input as { button: ButtonName | ButtonName[], controllerId?: number };
+		return ButtonUp(buttonInput.button, buttonInput.controllerId);
+	}
+	function pressed(this: void, input: InputBinding) {
+		const key = (input as { key?: KeyName | KeyName[] }).key;
+		if (key !== undefined) {
+			return KeyPressed(key);
+		}
+		const buttonInput = input as { button: ButtonName | ButtonName[], controllerId?: number };
+		return ButtonPressed(buttonInput.button, buttonInput.controllerId);
+	}
+	function hold(this: void, input: InputBinding, holdTime: number) {
+		const key = (input as { key?: KeyName | KeyName[] }).key;
+		if (key !== undefined) {
+			if (typeof key === 'string') {
+				return KeyHold(key, holdTime);
+			}
+			const triggers: Trigger[] = [];
+			for (let keyName of key) {
+				triggers.push(KeyHold(keyName, holdTime));
+			}
+			return sequence(triggers);
+		}
+		const buttonInput = input as { button: ButtonName | ButtonName[], controllerId?: number };
+		if (typeof buttonInput.button === 'string') {
+			return ButtonHold(buttonInput.button, holdTime, buttonInput.controllerId);
+		}
+		const triggers: Trigger[] = [];
+		for (let buttonName of buttonInput.button) {
+			triggers.push(ButtonHold(buttonName, holdTime, buttonInput.controllerId));
+		}
+		return sequence(triggers);
+	}
+	function doubleDown(this: void, input: InputBinding, threshold?: number) {
+		const key = (input as { key?: KeyName | KeyName[] }).key;
+		if (key !== undefined) {
+			if (typeof key === 'string') {
+				return KeyDoubleDown(key, threshold);
+			}
+			const triggers: Trigger[] = [];
+			for (let keyName of key) {
+				triggers.push(KeyDoubleDown(keyName, threshold));
+			}
+			return sequence(triggers);
+		}
+		const buttonInput = input as { button: ButtonName | ButtonName[], controllerId?: number };
+		if (typeof buttonInput.button === 'string') {
+			return ButtonDoubleDown(buttonInput.button, threshold, buttonInput.controllerId);
+		}
+		const triggers: Trigger[] = [];
+		for (let buttonName of buttonInput.button) {
+			triggers.push(ButtonDoubleDown(buttonName, threshold, buttonInput.controllerId));
+		}
+		return sequence(triggers);
+	}
+	export function Down(this: void, input: InputBinding | InputBinding[]) {
+		if (isBindingList(input)) {
+			const triggers: Trigger[] = [];
+			for (let binding of input) {
+				triggers.push(down(binding));
+			}
+			return select(triggers);
+		}
+		return down(input);
+	}
+	export function Up(this: void, input: InputBinding | InputBinding[]) {
+		if (isBindingList(input)) {
+			const triggers: Trigger[] = [];
+			for (let binding of input) {
+				triggers.push(up(binding));
+			}
+			return select(triggers);
+		}
+		return up(input);
+	}
+	export function Pressed(this: void, input: InputBinding | InputBinding[]) {
+		if (isBindingList(input)) {
+			const triggers: Trigger[] = [];
+			for (let binding of input) {
+				triggers.push(pressed(binding));
+			}
+			return select(triggers);
+		}
+		return pressed(input);
+	}
+	export function Hold(this: void, input: InputBinding | InputBinding[], holdTime: number) {
+		if (isBindingList(input)) {
+			const triggers: Trigger[] = [];
+			for (let binding of input) {
+				triggers.push(hold(binding, holdTime));
+			}
+			return select(triggers);
+		}
+		return hold(input, holdTime);
+	}
+	export function Double(this: void, input: InputBinding | InputBinding[], threshold?: number) {
+		if (isBindingList(input)) {
+			const triggers: Trigger[] = [];
+			for (let binding of input) {
+				triggers.push(doubleDown(binding, threshold));
+			}
+			return select(triggers);
+		}
+		return doubleDown(input, threshold);
+	}
 	export function KeyDown(this: void, combineKeys: KeyName | KeyName[]) {
 		if (typeof combineKeys === 'string') {
 			combineKeys = [combineKeys];
@@ -1372,26 +1454,41 @@ export interface InputAction {
 	trigger: Trigger;
 }
 
+export interface InputEvent {
+	action: string;
+	context: string;
+	state: TriggerState;
+	progress: number;
+	value: InputValue;
+	trigger: Trigger;
+	inputManager: InputManager;
+}
+
+export type InputHandler = (this: void, event: InputEvent) => void;
+
 class InputManager {
 	private manager: Node.Type;
 	private contextMap: Map<string, InputAction[]>;
 	private contextStack: string[][];
+	private actionHandlers: Map<string, Map<InputHandler, InputGlobalSlot[]>>;
 
 	constructor(contexts: { [contextName: string]: { [actionName: string]: Trigger } }) {
 		this.manager = Node();
 		this.contextMap = new Map();
+		this.actionHandlers = new Map();
 		for (let [contextName, actionMap] of pairs(contexts)) {
+			const context = contextName as string;
 			let actions: InputAction[] = [];
 			for (let [actionName, trigger] of pairs(actionMap)) {
 				const name = actionName as string;
-				const eventName = `Input.${name}`;
-				trigger.onChange = () => {
+				const eventName = this.getEventName(name);
+				trigger.addListener(() => {
 					const { state, progress, value } = trigger;
-					emit(eventName, state, progress, value);
-				};
+					emit(eventName, state, progress, value, name, context, trigger, this);
+				});
 				actions.push({ name, trigger });
 			}
-			this.contextMap.set(contextName as string, actions);
+			this.contextMap.set(context, actions);
 		}
 		this.contextStack = [];
 		this.manager.schedule((deltaTime) => {
@@ -1415,6 +1512,110 @@ class InputManager {
 
 	getNode(): Node.Type {
 		return this.manager;
+	}
+
+	getEventName(actionName: string): string {
+		return `Input.${actionName}`;
+	}
+
+	private addActionHandler(actionName: string, handler: InputHandler, state?: TriggerState) {
+		const eventName = this.getEventName(actionName);
+		const listener = (
+			stateValue: TriggerState,
+			progress: number,
+			value: InputValue,
+			action?: string,
+			context?: string,
+			trigger?: Trigger,
+			inputManager?: InputManager
+		) => {
+			if (state !== undefined && stateValue !== state) {
+				return;
+			}
+			handler({
+				action: action ?? actionName,
+				context: context ?? "",
+				state: stateValue,
+				progress,
+				value,
+				trigger: trigger as Trigger,
+				inputManager: inputManager ?? this,
+			});
+		};
+		const slot = this.manager.gslot(eventName, listener);
+		let handlerMap = this.actionHandlers.get(actionName);
+		if (handlerMap === undefined) {
+			handlerMap = new Map();
+			this.actionHandlers.set(actionName, handlerMap);
+		}
+		let slots = handlerMap.get(handler);
+		if (slots === undefined) {
+			slots = [];
+			handlerMap.set(handler, slots);
+		}
+		slots.push(slot);
+	}
+
+	on(actionName: string, handler: InputHandler) {
+		this.addActionHandler(actionName, handler);
+	}
+
+	once(actionName: string, handler: InputHandler) {
+		const eventName = this.getEventName(actionName);
+		let slot: InputGlobalSlot | undefined;
+		const listener = (
+			stateValue: TriggerState,
+			progress: number,
+			value: InputValue,
+			action?: string,
+			context?: string,
+			trigger?: Trigger,
+			inputManager?: InputManager
+		) => {
+			if (slot !== undefined) {
+				slot.enabled = false;
+			}
+			handler({
+				action: action ?? actionName,
+				context: context ?? "",
+				state: stateValue,
+				progress,
+				value,
+				trigger: trigger as Trigger,
+				inputManager: inputManager ?? this,
+			});
+		};
+		slot = this.manager.gslot(eventName, listener);
+		let handlerMap = this.actionHandlers.get(actionName);
+		if (handlerMap === undefined) {
+			handlerMap = new Map();
+			this.actionHandlers.set(actionName, handlerMap);
+		}
+		let slots = handlerMap.get(handler);
+		if (slots === undefined) {
+			slots = [];
+			handlerMap.set(handler, slots);
+		}
+		slots.push(slot);
+	}
+
+	off(actionName: string, handler: InputHandler) {
+		const handlerMap = this.actionHandlers.get(actionName);
+		if (handlerMap === undefined) {
+			return;
+		}
+		const slots = handlerMap.get(handler);
+		if (slots === undefined) {
+			return;
+		}
+		for (let slot of slots) {
+			slot.enabled = false;
+		}
+		handlerMap.delete(handler);
+	}
+
+	onCompleted(actionName: string, handler: InputHandler) {
+		this.addActionHandler(actionName, handler, TriggerState.Completed);
 	}
 
 	pushContext(contextNames: string | string[]): boolean {

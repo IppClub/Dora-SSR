@@ -4,6 +4,338 @@
 
 &emsp;&emsp;`Trigger` is a record that defines various input triggers for keyboard keys, gamepad buttons, and joysticks.
 
+## state
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The current trigger state.
+
+**Signature:**
+```tl
+state: TriggerState
+```
+
+## value
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The current trigger value.
+
+**Signature:**
+```tl
+value: InputValue
+```
+
+## progress
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The current trigger progress, from 0 to 1 when applicable.
+
+**Signature:**
+```tl
+progress: number
+```
+
+## onChange
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Legacy single change callback. Prefer `addListener()` for multiple listeners.
+
+**Signature:**
+```tl
+onChange: function()
+```
+
+## addListener
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Adds a listener without replacing existing listeners.
+
+**Signature:**
+```tl
+addListener: function(self: Trigger, listener: TriggerListener)
+```
+
+## removeListener
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Removes a listener added by `addListener()`.
+
+**Signature:**
+```tl
+removeListener: function(self: Trigger, listener: TriggerListener)
+```
+
+## Down
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a key or button down trigger. Pass multiple bindings to trigger when any binding is completed.
+
+**Signature:**
+```tl
+Down: function(input: InputBinding): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| input | InputBinding | The input binding. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
+## Down
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a key or button down trigger. Pass multiple bindings to trigger when any binding is completed.
+
+**Signature:**
+```tl
+Down: function(input: {InputBinding}): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| input | \{InputBinding} | The input bindings. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
+## Up
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a key or button up trigger. Pass multiple bindings to trigger when any binding is completed.
+
+**Signature:**
+```tl
+Up: function(input: InputBinding): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| input | InputBinding | The input binding. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
+## Up
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a key or button up trigger. Pass multiple bindings to trigger when any binding is completed.
+
+**Signature:**
+```tl
+Up: function(input: {InputBinding}): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| input | \{InputBinding} | The input bindings. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
+## Pressed
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a key or button pressed trigger. Pass multiple bindings to trigger when any binding is completed.
+
+**Signature:**
+```tl
+Pressed: function(input: InputBinding): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| input | InputBinding | The input binding. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
+## Pressed
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a key or button pressed trigger. Pass multiple bindings to trigger when any binding is completed.
+
+**Signature:**
+```tl
+Pressed: function(input: {InputBinding}): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| input | \{InputBinding} | The input bindings. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
+## Hold
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a key or button hold trigger. Pass multiple bindings to trigger when any binding is completed.
+
+**Signature:**
+```tl
+Hold: function(input: InputBinding, holdTime: number): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| input | InputBinding | The input binding. |
+| holdTime | number | The duration in seconds. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
+## Hold
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a key or button hold trigger. Pass multiple bindings to trigger when any binding is completed.
+
+**Signature:**
+```tl
+Hold: function(input: {InputBinding}, holdTime: number): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| input | \{InputBinding} | The input bindings. |
+| holdTime | number | The duration in seconds. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
+## Double
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a key or button double-press trigger. Pass multiple bindings to trigger when any binding is completed.
+
+**Signature:**
+```tl
+Double: function(input: InputBinding, threshold?: number): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| input | InputBinding | The input binding. |
+| threshold | number | [optional] The time window in seconds. Default is 0.3. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
+## Double
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a key or button double-press trigger. Pass multiple bindings to trigger when any binding is completed.
+
+**Signature:**
+```tl
+Double: function(input: {InputBinding}, threshold?: number): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| input | \{InputBinding} | The input bindings. |
+| threshold | number | [optional] The time window in seconds. Default is 0.3. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
 ## KeyDown
 
 **Type:** Function.

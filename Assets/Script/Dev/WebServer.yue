@@ -115,11 +115,7 @@ relativeToRoot = (file, root) ->
 
 getProjectSourceRoot = (projectRoot) ->
 	return nil unless projectRoot and projectRoot ~= "" and Content\exist(projectRoot) and Content\isdir(projectRoot)
-	scriptDir = Path projectRoot, "Script"
-	if Content\exist(scriptDir) and Content\isdir(scriptDir)
-		scriptDir
-	else
-		projectRoot
+	projectRoot
 
 isProjectRootDir = (dir) ->
 	return false unless dir and dir ~= "" and Content\exist(dir) and Content\isdir(dir)
@@ -1738,7 +1734,7 @@ HttpServer\get "/read-sync", (req): success: false ->
 compileFileAsync = (inputFile, sourceCodes, projectRoot = nil): nil ->
 	file = inputFile
 	searchPath = if projectRoot and projectRoot ~= "" and Content\exist(projectRoot) and Content\isdir(projectRoot)
-		file = relativeToRoot(inputFile, Content.writablePath) or
+		file = relativeToRoot(inputFile, projectRoot) or
 			relativeToRoot(inputFile, Content.assetPath) or
 			relativeToRoot(inputFile, projectRoot) or
 			inputFile
@@ -1746,9 +1742,9 @@ compileFileAsync = (inputFile, sourceCodes, projectRoot = nil): nil ->
 	elseif not Content\isAbsolutePath inputFile
 		""
 	elseif dir := getProjectDirFromFile inputFile
-		file = relativeToRoot(inputFile, Content.writablePath) or
+		file = relativeToRoot(inputFile, dir) or
+			relativeToRoot(inputFile, Content.writablePath) or
 			relativeToRoot(inputFile, Content.assetPath) or
-			relativeToRoot(inputFile, dir) or
 			inputFile
 		Path(dir, "Script", "?.lua") .. ";" .. Path dir, "?.lua"
 	else

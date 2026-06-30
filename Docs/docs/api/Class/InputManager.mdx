@@ -2,23 +2,27 @@
 
 **Description:**
 
-&emsp;&emsp;`InputManager` is a class for managing input contexts and actions. Input events can be listened for and handled by creating input contexts and actions, and then adding them to the input manager. Specific combinations of input contexts can be activated and deactivated by calling the `pushContext` and `popContext` methods. When an event is triggered, input events can be handled by registering global input event listeners.
+&emsp;&emsp;`InputManager` is a class for managing input contexts and actions. Input events can be listened for and handled by creating input contexts and actions, and then adding them to the input manager. Specific combinations of input contexts can be activated and deactivated by calling the `pushContext` and `popContext` methods. When an action changes state, input events can be handled with `on()`, `once()`, or `onCompleted()`.
 
 **Class Object:** [InputManager Class](/docs/api/Class%20Object/InputManager).
 
 **Usage:**
 ```tl
 local InputManager = require("InputManager")
+local Trigger = InputManager.Trigger
 local inputManager = InputManager.CreateManager({
 	context1 = {
-		action1 = Trigger.KeyDown("W"),
+		action1 = Trigger.Down({
+			{key = "Space"},
+			{button = "a"}
+		}),
 	},
 })
 -- activate context1
 inputManager:pushContext("context1")
--- add prefix "Input." to the listened action name
-node:gslot("Input.action1", function()
-	print("action1 triggered")
+-- listen for the completed action
+inputManager:onCompleted("action1", function(event)
+	print(event.action .. " triggered")
 end)
 -- remove context1 from the context stack
 inputManager:popContext()
@@ -43,6 +47,111 @@ getNode: function(self: InputManager): Node.Type
 | Return Type | Description |
 | --- | --- |
 | Node | The input node. |
+
+## getEventName
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the global event name for an action.
+
+**Signature:**
+```tl
+getEventName: function(self: InputManager, actionName: string): string
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| actionName | string | The action name. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The global event name. |
+
+## on
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Listens for all state changes of an action.
+
+**Signature:**
+```tl
+on: function(self: InputManager, actionName: string, handler: InputHandler)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| actionName | string | The action name. |
+| handler | InputHandler | The handler to call. |
+
+## once
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Listens for the next state change of an action, then disables the listener.
+
+**Signature:**
+```tl
+once: function(self: InputManager, actionName: string, handler: InputHandler)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| actionName | string | The action name. |
+| handler | InputHandler | The handler to call. |
+
+## off
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Disables handlers registered by `on()`, `once()`, or `onCompleted()`.
+
+**Signature:**
+```tl
+off: function(self: InputManager, actionName: string, handler: InputHandler)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| actionName | string | The action name. |
+| handler | InputHandler | The handler to disable. |
+
+## onCompleted
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Listens for the completed state of an action.
+
+**Signature:**
+```tl
+onCompleted: function(self: InputManager, actionName: string, handler: InputHandler)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| actionName | string | The action name. |
+| handler | InputHandler | The handler to call. |
 
 ## pushContext
 

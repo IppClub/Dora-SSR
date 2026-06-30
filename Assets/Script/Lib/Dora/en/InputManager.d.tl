@@ -1,24 +1,71 @@
 local type Keyboard = require("Keyboard")
 local type Controller = require("Controller")
 local type Node = require("Node")
+local Vec2 = require("Vec2").Type
 
 local type KeyName = Keyboard.KeyName;
 local type ButtonName = Controller.ButtonName;
 local type AxisName = Controller.AxisName;
+local type InputValue = number | Vec2 | boolean | {number | Vec2 | boolean}
+local type TriggerListener = function(trigger: any)
 
--- `InputManager` is a class for managing input contexts and actions. Input events can be listened for and handled by creating input contexts and actions, and then adding them to the input manager. Specific combinations of input contexts can be activated and deactivated by calling the `pushContext` and `popContext` methods. When an event is triggered, input events can be handled by registering global input event listeners.
+-- A keyboard or gamepad binding for generic trigger helpers.
+local record InputBinding
+	-- A keyboard key or key combination to bind. [optional]
+	key: KeyName | {KeyName}
+
+	-- A gamepad button or button combination to bind. [optional]
+	button: ButtonName | {ButtonName}
+
+	-- The ID of the gamepad controller. Default is 0. [optional]
+	controllerId: number
+end
+
+-- A named input action with its trigger.
+local record InputAction
+	-- The action name.
+	name: string
+	-- The trigger that evaluates this action.
+	trigger: any
+end
+
+-- A typed input action event emitted by an input manager.
+local record InputEvent
+	-- The action name.
+	action: string
+	-- The context name that owns the action.
+	context: string
+	-- The trigger state.
+	state: string
+	-- The trigger progress.
+	progress: number
+	-- The trigger value.
+	value: InputValue
+	-- The trigger that emitted the event.
+	trigger: any
+	-- The input manager that emitted the event.
+	inputManager: any
+end
+
+local type InputHandler = function(event: InputEvent)
+
+-- `InputManager` is a class for managing input contexts and actions. Input events can be listened for and handled by creating input contexts and actions, and then adding them to the input manager. Specific combinations of input contexts can be activated and deactivated by calling the `pushContext` and `popContext` methods. When an action changes state, input events can be handled with `on()`, `once()`, or `onCompleted()`.
 -- @usage
 -- local InputManager = require("InputManager")
+-- local Trigger = InputManager.Trigger
 -- local inputManager = InputManager.CreateManager({
 -- 	context1 = {
--- 		action1 = Trigger.KeyDown("W"),
+-- 		action1 = Trigger.Down({
+-- 			{key = "Space"},
+-- 			{button = "a"}
+-- 		}),
 -- 	},
 -- })
 -- -- activate context1
 -- inputManager:pushContext("context1")
--- -- add prefix "Input." to the listened action name
--- node:gslot("Input.action1", function()
--- 	print("action1 triggered")
+-- -- listen for the completed action
+-- inputManager:onCompleted("action1", function(event)
+-- 	print(event.action .. " triggered")
 -- end)
 -- -- remove context1 from the context stack
 -- inputManager:popContext()
@@ -28,6 +75,31 @@ local record InputManager
 	-- Gets the current input node. The input node is used to receive input events. It will be added to `Director.entry` automatically.
 	-- @return (Node) The input node.
 	getNode: function(self: InputManager): Node.Type
+
+	-- Gets the global event name for an action.
+	-- @param actionName (string) The action name.
+	-- @return (string) The global event name.
+	getEventName: function(self: InputManager, actionName: string): string
+
+	-- Listens for all state changes of an action.
+	-- @param actionName (string) The action name.
+	-- @param handler (InputHandler) The handler to call.
+	on: function(self: InputManager, actionName: string, handler: InputHandler)
+
+	-- Listens for the next state change of an action, then disables the listener.
+	-- @param actionName (string) The action name.
+	-- @param handler (InputHandler) The handler to call.
+	once: function(self: InputManager, actionName: string, handler: InputHandler)
+
+	-- Disables handlers registered by `on()`, `once()`, or `onCompleted()`.
+	-- @param actionName (string) The action name.
+	-- @param handler (InputHandler) The handler to disable.
+	off: function(self: InputManager, actionName: string, handler: InputHandler)
+
+	-- Listens for the completed state of an action.
+	-- @param actionName (string) The action name.
+	-- @param handler (InputHandler) The handler to call.
+	onCompleted: function(self: InputManager, actionName: string, handler: InputHandler)
 
 	-- Adds an input context to the context stack. Temporarily disables the previous context, then activates the actions in the new context.
 	-- @param contextNames (string | {string}) The name of the context or a list of context names.
@@ -76,8 +148,94 @@ local record InputManagerClass
 		"Right"
 	end
 
+	type InputValue = InputValue
+
+	-- The keyboard or gamepad binding type for generic trigger helpers.
+	type InputBinding = InputBinding
+
+	-- The input action type, containing the action name and trigger.
+	type InputAction = InputAction
+
+	-- The action event type emitted by an input manager.
+	type InputEvent = InputEvent
+
+	-- The input event handler type.
+	type InputHandler = InputHandler
+
 	-- `Trigger` is a record that defines various input triggers for keyboard keys, gamepad buttons, and joysticks.
 	record Trigger
+
+		-- The current trigger state.
+		state: TriggerState
+
+		-- The current trigger value.
+		value: InputValue
+
+		-- The current trigger progress, from 0 to 1 when applicable.
+		progress: number
+
+		-- Legacy single change callback. Prefer `addListener()` for multiple listeners.
+		onChange: function()
+
+		-- Adds a listener without replacing existing listeners.
+		addListener: function(self: Trigger, listener: TriggerListener)
+
+		-- Removes a listener added by `addListener()`.
+		removeListener: function(self: Trigger, listener: TriggerListener)
+
+		-- Create a key or button down trigger. Pass multiple bindings to trigger when any binding is completed.
+		-- @param input (InputBinding) The input binding.
+		-- @return (Trigger) The trigger object.
+		Down: function(input: InputBinding): Trigger
+
+		-- Create a key or button down trigger. Pass multiple bindings to trigger when any binding is completed.
+		-- @param input ({InputBinding}) The input bindings.
+		-- @return (Trigger) The trigger object.
+		Down: function(input: {InputBinding}): Trigger
+
+		-- Create a key or button up trigger. Pass multiple bindings to trigger when any binding is completed.
+		-- @param input (InputBinding) The input binding.
+		-- @return (Trigger) The trigger object.
+		Up: function(input: InputBinding): Trigger
+
+		-- Create a key or button up trigger. Pass multiple bindings to trigger when any binding is completed.
+		-- @param input ({InputBinding}) The input bindings.
+		-- @return (Trigger) The trigger object.
+		Up: function(input: {InputBinding}): Trigger
+
+		-- Create a key or button pressed trigger. Pass multiple bindings to trigger when any binding is completed.
+		-- @param input (InputBinding) The input binding.
+		-- @return (Trigger) The trigger object.
+		Pressed: function(input: InputBinding): Trigger
+
+		-- Create a key or button pressed trigger. Pass multiple bindings to trigger when any binding is completed.
+		-- @param input ({InputBinding}) The input bindings.
+		-- @return (Trigger) The trigger object.
+		Pressed: function(input: {InputBinding}): Trigger
+
+		-- Create a key or button hold trigger. Pass multiple bindings to trigger when any binding is completed.
+		-- @param input (InputBinding) The input binding.
+		-- @param holdTime (number) The duration in seconds.
+		-- @return (Trigger) The trigger object.
+		Hold: function(input: InputBinding, holdTime: number): Trigger
+
+		-- Create a key or button hold trigger. Pass multiple bindings to trigger when any binding is completed.
+		-- @param input ({InputBinding}) The input bindings.
+		-- @param holdTime (number) The duration in seconds.
+		-- @return (Trigger) The trigger object.
+		Hold: function(input: {InputBinding}, holdTime: number): Trigger
+
+		-- Create a key or button double-press trigger. Pass multiple bindings to trigger when any binding is completed.
+		-- @param input (InputBinding) The input binding.
+		-- @param threshold (number) [optional] The time window in seconds. Default is 0.3.
+		-- @return (Trigger) The trigger object.
+		Double: function(input: InputBinding, threshold?: number): Trigger
+
+		-- Create a key or button double-press trigger. Pass multiple bindings to trigger when any binding is completed.
+		-- @param input ({InputBinding}) The input bindings.
+		-- @param threshold (number) [optional] The time window in seconds. Default is 0.3.
+		-- @return (Trigger) The trigger object.
+		Double: function(input: {InputBinding}, threshold?: number): Trigger
 
 		-- Create a trigger that triggers when all of the specified keys are pressed down.
 		-- @param combineKeys (KeyName | {KeyName}) The key or combined keys to be checked.

@@ -1,7 +1,7 @@
 declare module 'InputManager' {
 
 import { React } from 'DoraX';
-import { AxisName, ButtonName, KeyName, Node } from 'Dora';
+import { AxisName, ButtonName, KeyName, Node, Vec2 } from 'Dora';
 
 /** The enumeration defining the trigger states. */
 export const enum TriggerState {
@@ -17,10 +17,33 @@ export const enum TriggerState {
 	Canceled = "Canceled",
 }
 
+/** The value carried by an input trigger or input event. */
+export type InputValue = number | Vec2.Type | boolean | (number | Vec2.Type | boolean)[];
+
+/** A listener called when a trigger changes state, progress, or value. */
+export type TriggerListener = (this: void, trigger: Trigger) => void;
+
 /** A class that defines various input triggers for keyboard keys, gamepad buttons, and joysticks. */
 export abstract class Trigger {
 	private constructor();
+	/** The current trigger state. */
+	state: TriggerState;
+	/** The current trigger value. */
+	value: InputValue;
+	/** The current trigger progress, from 0 to 1 when applicable. */
+	progress: number;
+	/** Legacy single change callback. Prefer `addListener()` for multiple listeners. */
+	onChange?(): void;
+	/** Adds a listener without replacing existing listeners. */
+	addListener(listener: TriggerListener): void;
+	/** Removes a listener added by `addListener()`. */
+	removeListener(listener: TriggerListener): void;
 }
+
+/** A keyboard or gamepad binding for generic trigger helpers. */
+export type InputBinding =
+	{key: KeyName | KeyName[]} |
+	{button: ButtonName | ButtonName[], controllerId?: number};
 
 /** The enumeration defining the joystick types. */
 export const enum JoyStickType {
@@ -30,6 +53,38 @@ export const enum JoyStickType {
 
 /** A module for creating various input triggers for keyboard keys, gamepad buttons, and joysticks. */
 export namespace Trigger {
+	/**
+	 * Create a key or button down trigger. Pass multiple bindings to trigger when any binding is completed.
+	 * @param input The input binding or bindings.
+	 * @returns The trigger object.
+	 */
+	export function Down(this: void, input: InputBinding | InputBinding[]): Trigger;
+	/**
+	 * Create a key or button up trigger. Pass multiple bindings to trigger when any binding is completed.
+	 * @param input The input binding or bindings.
+	 * @returns The trigger object.
+	 */
+	export function Up(this: void, input: InputBinding | InputBinding[]): Trigger;
+	/**
+	 * Create a key or button pressed trigger. Pass multiple bindings to trigger when any binding is completed.
+	 * @param input The input binding or bindings.
+	 * @returns The trigger object.
+	 */
+	export function Pressed(this: void, input: InputBinding | InputBinding[]): Trigger;
+	/**
+	 * Create a key or button hold trigger. Pass multiple bindings to trigger when any binding is completed.
+	 * @param input The input binding or bindings.
+	 * @param holdTime The duration in seconds.
+	 * @returns The trigger object.
+	 */
+	export function Hold(this: void, input: InputBinding | InputBinding[], holdTime: number): Trigger;
+	/**
+	 * Create a key or button double-press trigger. Pass multiple bindings to trigger when any binding is completed.
+	 * @param input The input binding or bindings.
+	 * @param threshold The time window in seconds. Default is 0.3.
+	 * @returns The trigger object.
+	 */
+	export function Double(this: void, input: InputBinding | InputBinding[], threshold?: number): Trigger;
 	/**
 	 * Create a trigger that triggers when all of the specified keys are pressed down.
 	 * @param combineKeys The key or combined keys to be checked.
@@ -178,20 +233,53 @@ export namespace Trigger {
 	export function Block(this: void, trigger: Trigger): Trigger;
 }
 
+/** A named input action with its trigger. */
+export interface InputAction {
+	/** The action name. */
+	name: string;
+	/** The trigger that evaluates this action. */
+	trigger: Trigger;
+}
+
+/** A typed input action event emitted by an input manager. */
+export interface InputEvent {
+	/** The action name. */
+	action: string;
+	/** The context name that owns the action. */
+	context: string;
+	/** The trigger state. */
+	state: TriggerState;
+	/** The trigger progress. */
+	progress: number;
+	/** The trigger value. */
+	value: InputValue;
+	/** The trigger that emitted the event. */
+	trigger: Trigger;
+	/** The input manager that emitted the event. */
+	inputManager: InputManager;
+}
+
+/** A typed input event handler. */
+export type InputHandler = (this: void, event: InputEvent) => void;
+
 /**
- * `InputManager` is a class for managing input contexts and actions. Input events can be listened for and handled by creating input contexts and actions, and then adding them to the input manager. Specific combinations of input contexts can be activated and deactivated by calling the `pushContext` and `popContext` methods. When an event is triggered, input events can be handled by registering global input event listeners.
+ * `InputManager` is a class for managing input contexts and actions. Input events can be listened for and handled by creating input contexts and actions, and then adding them to the input manager. Specific combinations of input contexts can be activated and deactivated by calling the `pushContext` and `popContext` methods. When an action changes state, input events can be handled with `on()`, `once()`, or `onCompleted()`.
  * @usage
  * import { CreateManager, Trigger } from "InputManager";
- * const inputManager = CreateManager([
+ * import { ButtonName, KeyName } from "Dora";
+ * const inputManager = CreateManager({
  * 	context1: {
- * 		action1: Trigger.KeyDown(KeyName.W),
+ * 		action1: Trigger.Down([
+ * 			{ key: KeyName.Space },
+ * 			{ button: ButtonName.A },
+ * 		]),
  * 	},
- * ]);
+ * });
  * // activate context1
  * inputManager.pushContext("context1");
- * // add prefix "Input." to the listened action name
- * node.gslot("Input.action1", () => {
- * 	print("action1 triggered");
+ * // listen for the completed action
+ * inputManager.onCompleted("action1", event => {
+ * 	print(event.action + " triggered");
  * });
  * // remove context1 from the context stack
  * inputManager.popContext();
@@ -206,10 +294,39 @@ export class InputManager {
 	 */
 	getNode(): Node.Type;
 	/**
+	 * Gets the global event name for an action.
+	 * @param actionName The action name.
+	 * @returns The global event name.
+	 */
+	getEventName(actionName: string): string;
+	/**
+	 * Listens for all state changes of an action.
+	 * @param actionName The action name.
+	 * @param handler The handler to call.
+	 */
+	on(actionName: string, handler: InputHandler): void;
+	/**
+	 * Listens for the next state change of an action, then disables the listener.
+	 * @param actionName The action name.
+	 * @param handler The handler to call.
+	 */
+	once(actionName: string, handler: InputHandler): void;
+	/**
+	 * Disables handlers registered by `on()`, `once()`, or `onCompleted()`.
+	 * @param actionName The action name.
+	 * @param handler The handler to disable.
+	 */
+	off(actionName: string, handler: InputHandler): void;
+	/**
+	 * Listens for the completed state of an action.
+	 * @param actionName The action name.
+	 * @param handler The handler to call.
+	 */
+	onCompleted(actionName: string, handler: InputHandler): void;
+	/**
 	 * Adds an input context to the context stack. Temporarily disables the previous context, then activates the actions in the new context.
 	 * @param contextNames The name of the context or a list of context names.
 	 * @returns Whether the context is successfully pushed.
-	 * @returns The input node.
 	 */
 	pushContext(contextNames: string | string[]): boolean;
 	/**
