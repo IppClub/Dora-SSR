@@ -89,37 +89,29 @@ bool Menu::init() {
 	return true;
 }
 
-static Node* getTouchedItem(Node* parentItem, const Vec2& worldLocation) {
+static void getTouchedItem(Node* parentItem, const Vec2& worldLocation, Node*& lastTouchItem) {
 	Array* children = parentItem->getChildren();
 	if (children && !children->isEmpty()) {
 		for (int i = s_cast<int>(children->getCount()) - 1; i >= 0; i--) {
 			Node* childItem = children->get(i)->to<Node>();
-			if (childItem && childItem->isVisible() && childItem->isTouchEnabled()) {
+			if (childItem && childItem->isVisible()) {
 				Vec2 local = childItem->convertToNodeSpace(worldLocation);
 				if (Rect(Vec2::zero, childItem->getSize()).containsPoint(local)) {
-					Node* targetItem = getTouchedItem(childItem, worldLocation);
-					return targetItem ? targetItem : childItem;
+					if (childItem->isTouchEnabled()) {
+						lastTouchItem = childItem;
+					}
+					getTouchedItem(childItem, worldLocation, lastTouchItem);
 				}
 			}
 		}
 	}
-	return parentItem;
 }
 
 Node* Menu::itemForTouch(Touch* touch) {
 	Vec2 worldLocation = this->convertToWorldSpace(touch->getLocation());
-	if (_children && !_children->isEmpty()) {
-		for (int i = s_cast<int>(_children->getCount()) - 1; i >= 0; i--) {
-			Node* childItem = _children->get(i)->to<Node>();
-			if (childItem && childItem->isVisible() && childItem->isTouchEnabled()) {
-				Vec2 local = childItem->convertToNodeSpace(worldLocation);
-				if (Rect(Vec2::zero, childItem->getSize()).containsPoint(local)) {
-					return getTouchedItem(childItem, worldLocation);
-				}
-			}
-		}
-	}
-	return nullptr;
+	Node* lastTouchItem = nullptr;
+	getTouchedItem(this, worldLocation, lastTouchItem);
+	return lastTouchItem;
 }
 
 NS_DORA_END

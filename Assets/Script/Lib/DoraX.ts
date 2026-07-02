@@ -132,7 +132,7 @@ interface HookEntry<T = unknown> {
 }
 
 interface HookFrame {
-	type: unknown;
+	type: FunctionComponentType;
 	key?: string | number;
 	hooks: HookEntry[];
 	hookIndex: number;
@@ -2417,6 +2417,9 @@ export class Root {
 	private renderable?: RenderInput;
 	private signals: Signal<unknown>[] = [];
 	private hookFrames: HookFrame[] = [];
+	private keyedHookFrames: LuaTable<FunctionComponentType, LuaTable<string | number, HookFrame>> = new LuaTable();
+	private nextKeyedHookFrames: LuaTable<FunctionComponentType, LuaTable<string | number, HookFrame>> = new LuaTable();
+	private usedHookFrames: LuaTable<HookFrame, boolean> = new LuaTable();
 	private hookFrameIndex = 0;
 	active = true;
 
@@ -2457,6 +2460,9 @@ export class Root {
 		this.mounted = [];
 		this.renderable = undefined;
 		this.hookFrames = [];
+		this.keyedHookFrames = new LuaTable();
+		this.nextKeyedHookFrames = new LuaTable();
+		this.usedHookFrames = new LuaTable();
 		this.hookFrameIndex = 0;
 		this.unsubscribeSignals();
 		if (this.active) {
@@ -2473,44 +2479,56 @@ export class Root {
 		signal.addRoot(this);
 	}
 
-	beginComponentHooks(this: Root, type: unknown, key?: string | number): HookFrame {
+	beginComponentHooks(this: Root, type: FunctionComponentType, key?: string | number): HookFrame {
 		const index = this.hookFrameIndex;
 		this.hookFrameIndex += 1;
-		let frame: HookFrame | undefined = this.hookFrames[index];
-		if (frame === undefined || frame.type !== type || frame.key !== key) {
-			frame = undefined;
-			if (key !== undefined) {
-				for (let i of $range(index + 2, this.hookFrames.length)) {
-					const candidate = this.hookFrames[i - 1];
-					if (candidate.type === type && candidate.key === key) {
-						table.remove(this.hookFrames, i);
-						table.insert(this.hookFrames, index + 1, candidate);
-						frame = candidate;
-						break;
-					}
+		let frame: HookFrame | undefined;
+		if (key !== undefined) {
+			const framesByKey = this.keyedHookFrames.get(type);
+			if (framesByKey !== undefined) {
+				frame = framesByKey.get(key);
+				if (frame !== undefined && this.usedHookFrames.get(frame) === true) {
+					frame = undefined;
 				}
 			}
 			if (frame === undefined) {
 				frame = { type, key, hooks: [], hookIndex: 0 };
-				if (key !== undefined) {
-					table.insert(this.hookFrames, index + 1, frame);
-				} else {
-					this.hookFrames[index] = frame;
-				}
+			}
+			let nextFramesByKey = this.nextKeyedHookFrames.get(type);
+			if (nextFramesByKey === undefined) {
+				nextFramesByKey = new LuaTable();
+				this.nextKeyedHookFrames.set(type, nextFramesByKey);
+			}
+			nextFramesByKey.set(key, frame);
+			this.hookFrames[index] = frame;
+		} else {
+			frame = this.hookFrames[index];
+			if (
+				frame === undefined ||
+				this.usedHookFrames.get(frame) === true ||
+				frame.type !== type ||
+				frame.key !== undefined
+			) {
+				frame = { type, key, hooks: [], hookIndex: 0 };
+				this.hookFrames[index] = frame;
 			}
 		}
 		frame.hookIndex = 0;
+		this.usedHookFrames.set(frame, true);
 		return frame;
 	}
 
 	private beginHookRender(this: Root): void {
 		this.hookFrameIndex = 0;
+		this.usedHookFrames = new LuaTable();
+		this.nextKeyedHookFrames = new LuaTable();
 	}
 
 	private finishHookRender(this: Root): void {
 		while (this.hookFrames.length > this.hookFrameIndex) {
 			this.hookFrames.pop();
 		}
+		this.keyedHookFrames = this.nextKeyedHookFrames;
 	}
 
 	private unsubscribeSignals(this: Root): void {
