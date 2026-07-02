@@ -129,6 +129,7 @@ type FunctionComponentType = (this: void, props: AnyTable) => React.Element | Re
 interface HookEntry<T = unknown> {
 	value: T;
 	deps?: unknown[];
+	cleanup?: Function;
 }
 
 interface HookFrame {
@@ -136,6 +137,11 @@ interface HookFrame {
 	key?: string | number;
 	hooks: HookEntry[];
 	hookIndex: number;
+}
+
+interface EffectTask {
+	hook: HookEntry;
+	effect: Function;
 }
 
 function renderFunctionComponent(this: void, component: FunctionComponentType, props: AnyTable): React.Element | React.Element[] {
@@ -2420,6 +2426,9 @@ export class Root {
 	private keyedHookFrames: LuaTable<FunctionComponentType, LuaTable<string | number, HookFrame>> = new LuaTable();
 	private nextKeyedHookFrames: LuaTable<FunctionComponentType, LuaTable<string | number, HookFrame>> = new LuaTable();
 	private usedHookFrames: LuaTable<HookFrame, boolean> = new LuaTable();
+	private previousHookFrames: HookFrame[] = [];
+	private pendingEffects: EffectTask[] = [];
+	private pendingCleanups: Function[] = [];
 	private hookFrameIndex = 0;
 	active = true;
 
@@ -2451,18 +2460,25 @@ export class Root {
 			renderingHookRoot = lastRenderingHookRoot;
 		}
 		this.mounted = reconcileChildren(this.parent, this.mounted, toElementList(elements));
+		this.flushEffects();
 	}
 
 	unmount(this: Root): void {
 		for (let i of $range(1, this.mounted.length)) {
 			unmountElement(this.mounted[i - 1]);
 		}
+		for (let i of $range(1, this.hookFrames.length)) {
+			this.queueFrameCleanup(this.hookFrames[i - 1]);
+		}
+		this.pendingEffects = [];
+		this.flushEffects();
 		this.mounted = [];
 		this.renderable = undefined;
 		this.hookFrames = [];
 		this.keyedHookFrames = new LuaTable();
 		this.nextKeyedHookFrames = new LuaTable();
 		this.usedHookFrames = new LuaTable();
+		this.previousHookFrames = [];
 		this.hookFrameIndex = 0;
 		this.unsubscribeSignals();
 		if (this.active) {
@@ -2518,17 +2534,33 @@ export class Root {
 		return frame;
 	}
 
+	queueEffect(this: Root, hook: HookEntry, effect: Function): void {
+		if (hook.cleanup !== undefined) {
+			this.pendingCleanups.push(hook.cleanup);
+			hook.cleanup = undefined;
+		}
+		this.pendingEffects.push({ hook, effect });
+	}
+
 	private beginHookRender(this: Root): void {
+		this.previousHookFrames = [...this.hookFrames];
 		this.hookFrameIndex = 0;
 		this.usedHookFrames = new LuaTable();
 		this.nextKeyedHookFrames = new LuaTable();
 	}
 
 	private finishHookRender(this: Root): void {
+		for (let i of $range(1, this.previousHookFrames.length)) {
+			const frame = this.previousHookFrames[i - 1];
+			if (this.usedHookFrames.get(frame) !== true) {
+				this.queueFrameCleanup(frame);
+			}
+		}
 		while (this.hookFrames.length > this.hookFrameIndex) {
 			this.hookFrames.pop();
 		}
 		this.keyedHookFrames = this.nextKeyedHookFrames;
+		this.previousHookFrames = [];
 	}
 
 	private unsubscribeSignals(this: Root): void {
@@ -2536,6 +2568,33 @@ export class Root {
 			this.signals[i - 1].removeRoot(this);
 		}
 		this.signals = [];
+	}
+
+	private queueFrameCleanup(this: Root, frame: HookFrame): void {
+		for (let i of $range(1, frame.hooks.length)) {
+			const hook = frame.hooks[i - 1];
+			if (hook.cleanup !== undefined) {
+				this.pendingCleanups.push(hook.cleanup);
+				hook.cleanup = undefined;
+			}
+		}
+	}
+
+	private flushEffects(this: Root): void {
+		const cleanups = this.pendingCleanups;
+		this.pendingCleanups = [];
+		for (let i of $range(1, cleanups.length)) {
+			(cleanups[i - 1] as (this: void) => void)();
+		}
+		const effects = this.pendingEffects;
+		this.pendingEffects = [];
+		for (let i of $range(1, effects.length)) {
+			const task = effects[i - 1];
+			const cleanup = (task.effect as (this: void) => unknown)();
+			if (type(cleanup) === "function") {
+				task.hook.cleanup = cleanup as Function;
+			}
+		}
 	}
 }
 
@@ -2637,6 +2696,24 @@ export function useCallback<T extends Function>(this: void, callback: T, deps?: 
 		frame.hooks[index] = hook;
 	}
 	return hook.value;
+}
+
+export function useEffect(this: void, effect: Function, deps?: unknown[]): void {
+	const frame = currentHookFrame;
+	if (frame === undefined || renderingHookRoot === undefined) {
+		error("useEffect() can only be called inside a function component");
+	}
+	const index = frame.hookIndex;
+	frame.hookIndex += 1;
+	let hook = frame.hooks[index] as HookEntry | undefined;
+	if (hook === undefined) {
+		hook = { value: undefined };
+		frame.hooks[index] = hook;
+	}
+	if (!hookDepsEqual(hook.deps, deps)) {
+		hook.deps = copyDeps(deps);
+		renderingHookRoot.queueEffect(hook, effect);
+	}
 }
 
 export function useRef<T>(this: void, item?: T): JSX.Ref<T> {

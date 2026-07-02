@@ -121,6 +121,14 @@ export function useMemo<T>(this: void, factory: (this: void) => T, deps?: unknow
 export function useCallback<T>(this: void, callback: T, deps?: unknown[]): T;
 
 /**
+ * 在当前渲染提交后执行副作用。只能在函数组件内调用。
+ * 返回的清理函数会在依赖变化重新执行 effect 前，或组件被移除时执行。
+ * @param effect 副作用回调，可以返回一个清理函数。
+ * @param deps 按引用比较的依赖列表。不传时每次渲染后都会执行。
+ */
+export function useEffect(this: void, effect: (this: void) => void, deps?: unknown[]): void;
+
+/**
  * 异步地预加载指定的节点使用的资源文件。
  * @param enode 要预加载的节点。
  * @param handler 用于通知进度变化的回调函数。

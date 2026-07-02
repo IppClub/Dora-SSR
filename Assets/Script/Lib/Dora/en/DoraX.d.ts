@@ -121,6 +121,14 @@ export function useMemo<T>(this: void, factory: (this: void) => T, deps?: unknow
 export function useCallback<T>(this: void, callback: T, deps?: unknown[]): T;
 
 /**
+ * Runs a side effect after the current render is committed. Can only be called inside a function component.
+ * The returned cleanup function runs before the effect is re-run with changed dependencies, or when the component is removed.
+ * @param effect The effect callback. It may return a cleanup function.
+ * @param deps The dependency list compared by identity. Omitting it runs the effect after every render.
+ */
+export function useEffect(this: void, effect: (this: void) => void, deps?: unknown[]): void;
+
+/**
  * Asynchronously preloads the resource files used by the specified node.
  * @param enode The node to preload.
  * @param handler The callback function used to notify the progress change.
