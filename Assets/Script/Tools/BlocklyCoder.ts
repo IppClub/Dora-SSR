@@ -162,8 +162,11 @@ interface CompileResult {
 	result: string
 }
 
+let transpileRequestId = 0;
+
 const compileTS = (file: string, content: string) => {
-	const data = { name: "TranspileTS", file, content };
+	const requestId = `blockly-coder-${++transpileRequestId}`;
+	const data = { name: "TranspileTS", id: requestId, file, content };
 	return new Promise<CompileResult>((resolve) => {
 		if (HttpServer.wsConnectionCount == 0) {
 			resolve({ success: false, result: "Web IDE not connected" });
@@ -173,7 +176,7 @@ const compileTS = (file: string, content: string) => {
 		node.gslot(GSlot.AppWS, (event) => {
 			if (event.type === "Receive") {
 				const [res] = json.decode(event.msg);
-				if (res && !Array.isArray(res) && res.name == "TranspileTS" && tostring(res.file) == file) {
+				if (res && !Array.isArray(res) && res.name == "TranspileTS" && res.id == requestId) {
 					node.removeFromParent();
 					if (res.success) {
 						resolve({ success: true, result: res.luaCode });

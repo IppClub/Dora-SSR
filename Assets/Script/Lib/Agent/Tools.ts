@@ -1162,7 +1162,6 @@ export async function runSingleTsTranspile(file: string, content: string): Promi
 		const payload = res as AnyTable;
 		if (payload.name !== "TranspileTS") return;
 		if (payload.id !== requestId) return;
-		if (tostring(payload.file) !== file) return;
 		if (payload.success) {
 			const luaFile = Path.replaceExt(file, "lua");
 			if (Content.save(luaFile, tostring(payload.luaCode))) {
