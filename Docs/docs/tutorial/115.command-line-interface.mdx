@@ -69,6 +69,8 @@ Commands:
   status [-p project]
   doctor [-p project] [--fix]
   log [-n lines]
+  doc search <pattern> [-l zh-Hans|en] [--source api|tutorial] [--lang ts|tsx|lua|yue|tl|wa] [-n limit]
+  doc read <file> [-l zh-Hans|en] [--source api|tutorial] [--start line] [--end line]
   rust build [-p project]
   rust run <target-path> [-p project]
   rust upload <target-path> [-p project] [--run]
@@ -84,7 +86,24 @@ Dora cli wa install -h
 Dora cli rust run --help
 ```
 
-## 3. TypeScript and Script Projects
+## 3. Documentation Search
+
+Search Dora SSR docs through the running Web IDE service:
+
+```sh
+Dora cli doc search Sprite -l en --source tutorial --lang ts
+Dora cli doc search "Sprite|Node" --source api --lang tsx -n 20
+```
+
+Search results print doc file paths and matching lines. Read a returned file with `doc read`:
+
+```sh
+Dora cli doc read ts/using-sprite.md -l en --source tutorial --start 1 --end 80
+```
+
+`--source` can be `api` or `tutorial`. `--lang` selects the API or tutorial language variant. `teal` and `tl` both use the Teal docs.
+
+## 4. TypeScript and Script Projects
 
 Install TypeScript support. On a new project this creates `tsconfig.json` and writes Dora API definitions under `API`. On an existing project it refreshes the API definitions and keeps an existing `tsconfig.json` unchanged.
 
@@ -118,7 +137,7 @@ Dora cli buildrun -f src/main.ts -p /path/to/project
 
 Supported build languages are `all`, `ts`, `yue`, `tl`, `xml`, `wa`, and `yarn`. `all` is the default. Yarn files are checked through the same build command, so a project build can report Yarn syntax errors together with the other source files.
 
-## 4. Wa Projects
+## 5. Wa Projects
 
 Install Wa support. On a new project this writes `wa.mod`, `src/main.wa`, and `vendor/dora` using the Dora engine's current Wa bindings. On an existing Wa project it refreshes `vendor/dora`.
 
@@ -147,7 +166,7 @@ Dora cli run --host 127.0.0.1
 
 Wa projects for Dora SSR should use the Wa compiler integrated in the engine. Do not build Dora Wa projects with a separately installed Wa toolchain.
 
-## 5. Rust WASM Projects
+## 6. Rust WASM Projects
 
 Build a Rust WASM project with the local Rust toolchain:
 

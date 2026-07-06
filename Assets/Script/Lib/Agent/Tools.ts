@@ -1833,6 +1833,56 @@ export async function searchDoraAPI(req: {
 	});
 }
 
+export function searchDoraAPIHttp(req: {
+	pattern: string;
+	docLanguage: DoraAPIDocLanguage;
+	programmingLanguage: DoraAPIProgrammingLanguage;
+	docSource?: DoraAPIDocSource;
+	limit?: number;
+	useRegex?: boolean;
+	caseSensitive?: boolean;
+	includeContent?: boolean;
+	contentWindow?: number;
+}, callback: (result: DoraAPISearchResult) => void) {
+	searchDoraAPI(req).then(result => callback(result));
+}
+
+export function readDoraDoc(req: {
+	docLanguage: DoraAPIDocLanguage;
+	docSource: DoraAPIDocSource;
+	file: string;
+	startLine?: number;
+	endLine?: number;
+}): DoraAPIReadDocResult {
+	const docSource = req.docSource;
+	const file = (req.file ?? "").split("\\").join("/");
+	if (!isValidWorkspacePath(file) || file === ".") {
+		return { success: false, message: "invalid file" };
+	}
+	const root = getDoraDocResultBaseRoot(docSource, req.docLanguage);
+	const fullPath = Path(root, file);
+	const relative = Path.getRelative(fullPath, root);
+	if (relative === ".." || relative.startsWith("../") || relative.startsWith("..\\")) {
+		return { success: false, message: "invalid file" };
+	}
+	const ext = Path.getExt(fullPath);
+	if (docSource === "api") {
+		if (ext !== "ts" && ext !== "tl") return { success: false, message: "unsupported doc file type" };
+	} else if (ext !== "md") {
+		return { success: false, message: "unsupported doc file type" };
+	}
+	const readResult = readFile(root, file, req.startLine ?? 1, req.endLine ?? -1);
+	if (!readResult.success) return readResult;
+	return {
+		success: true,
+		docLanguage: req.docLanguage,
+		file,
+		content: readResult.content,
+		startLine: readResult.startLine,
+		endLine: readResult.endLine,
+	};
+}
+
 export function applyFileChanges(taskId: number, workDir: string, changes: FileChange[], options: ApplyChangesOptions = {}): ApplyChangesResult {
 	if (changes.length === 0) {
 		return { success: false, message: "empty changes" };

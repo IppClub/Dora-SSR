@@ -69,6 +69,8 @@ Commands:
   status [-p project]
   doctor [-p project] [--fix]
   log [-n lines]
+  doc search <pattern> [-l zh-Hans|en] [--source api|tutorial] [--lang ts|tsx|lua|yue|tl|wa] [-n limit]
+  doc read <file> [-l zh-Hans|en] [--source api|tutorial] [--start line] [--end line]
   rust build [-p project]
   rust run <target-path> [-p project]
   rust upload <target-path> [-p project] [--run]
@@ -84,7 +86,24 @@ Dora cli wa install -h
 Dora cli rust run --help
 ```
 
-## 3. TypeScript 和脚本项目
+## 3. 文档搜索
+
+通过正在运行的 Web IDE 服务搜索 Dora SSR 文档：
+
+```sh
+Dora cli doc search Sprite -l zh-Hans --source tutorial --lang ts
+Dora cli doc search "Sprite|Node" --source api --lang tsx -n 20
+```
+
+搜索结果会输出文档文件路径和命中的行。可以用 `doc read` 读取返回的文件：
+
+```sh
+Dora cli doc read ts/using-sprite.md -l zh-Hans --source tutorial --start 1 --end 80
+```
+
+`--source` 可以是 `api` 或 `tutorial`。`--lang` 用来选择 API 或教程的语言版本。`teal` 和 `tl` 都会使用 Teal 文档。
+
+## 4. TypeScript 和脚本项目
 
 安装 TypeScript 支持。新项目会创建 `tsconfig.json`，并把 Dora API 定义写入 `API` 目录。已有项目会刷新 API 定义，并保留已有的 `tsconfig.json`。
 
@@ -118,7 +137,7 @@ Dora cli buildrun -f src/main.ts -p /path/to/project
 
 支持的构建语言包括 `all`、`ts`、`yue`、`tl`、`xml`、`wa` 和 `yarn`。`all` 是默认值。Yarn 文件会通过同一个构建命令执行语法检查，因此项目构建可以和其它源码一起报告 Yarn 语法错误。
 
-## 4. Wa 项目
+## 5. Wa 项目
 
 安装 Wa 支持。新项目会基于当前 Dora 引擎版本写入 `wa.mod`、`src/main.wa` 和 `vendor/dora`。已有 Wa 项目会刷新 `vendor/dora`。
 
@@ -147,7 +166,7 @@ Dora cli run --host 127.0.0.1
 
 Dora SSR 的 Wa 项目应使用引擎内置的 Wa 编译器。不要使用单独安装的 Wa 工具链构建 Dora Wa 项目。
 
-## 5. Rust WASM 项目
+## 6. Rust WASM 项目
 
 使用本地 Rust 工具链构建 Rust WASM 项目：
 

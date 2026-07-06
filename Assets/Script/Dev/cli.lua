@@ -65,6 +65,8 @@ Commands:
 	status [-p project]
 	doctor [-p project] [--fix]
 	log [-n lines]
+	doc search <pattern> [-l zh-Hans|en] [--source api|tutorial] [--lang ts|tsx|lua|yue|tl|wa] [-n limit]
+	doc read <file> [-l zh-Hans|en] [--source api|tutorial] [--start line] [--end line]
 	rust build [-p project]
 	rust run <target-path> [-p project]
 	rust upload <target-path> [-p project] [--run]
@@ -139,6 +141,31 @@ Commands:
 		end
 	else
 		help()
+	end
+end
+
+local function docHelp(action)
+	if action == "search" then
+		print([[
+Usage: dora cli doc search <pattern> [-l zh-Hans|en] [--source api|tutorial] [--lang ts|tsx|lua|yue|tl|wa] [-n limit]
+
+Search Dora SSR API docs or tutorials.
+Use | inside pattern to search alternatives.
+]])
+	elseif action == "read" then
+		print([[
+Usage: dora cli doc read <file> [-l zh-Hans|en] [--source api|tutorial] [--start line] [--end line]
+
+Read a Dora SSR doc file returned by doc search.
+]])
+	else
+		print([[
+Usage: dora cli doc <command> [options]
+
+Commands:
+	search <pattern> [-l zh-Hans|en] [--source api|tutorial] [--lang ts|tsx|lua|yue|tl|wa] [-n limit]
+	read <file> [-l zh-Hans|en] [--source api|tutorial] [--start line] [--end line]
+]])
 	end
 end
 
@@ -246,6 +273,11 @@ local function parseOptions(args, index)
 		entry = "init.lua",
 		lang = "all",
 		langProvided = false,
+		docSource = "tutorial",
+		docCode = nil,
+		json = false,
+		startLine = nil,
+		endLine = nil,
 		files = {},
 		runAfterUpload = false,
 		fix = false,
@@ -297,6 +329,29 @@ local function parseOptions(args, index)
 			if index > #args then fail("--lang expects a value") end
 			options.lang = args[index]
 			options.langProvided = true
+			index = index + 1
+		elseif arg == "--source" or arg == "--doc-source" then
+			index = index + 1
+			if index > #args then fail(arg .. " expects a value") end
+			options.docSource = args[index]
+			index = index + 1
+		elseif arg == "--code" then
+			index = index + 1
+			if index > #args then fail("--code expects a value") end
+			options.docCode = args[index]
+			index = index + 1
+		elseif arg == "--start" or arg == "--start-line" then
+			index = index + 1
+			if index > #args then fail(arg .. " expects a value") end
+			options.startLine = tonumber(args[index]) or fail(arg .. " expects a number")
+			index = index + 1
+		elseif arg == "--end" or arg == "--end-line" then
+			index = index + 1
+			if index > #args then fail(arg .. " expects a value") end
+			options.endLine = tonumber(args[index]) or fail(arg .. " expects a number")
+			index = index + 1
+		elseif arg == "--json" then
+			options.json = true
 			index = index + 1
 		elseif arg == "--run" then
 			options.runAfterUpload = true
@@ -801,6 +856,118 @@ local function runLog(options)
 	io.write(tostring(doc.log or ""))
 end
 
+local function docLanguage(options)
+	if options.language == "zh" then
+		return "zh-Hans"
+	end
+	if options.language == "zh-Hans" or options.language == "en" then
+		return options.language
+	end
+	fail("Unsupported doc language: " .. tostring(options.language))
+end
+
+local function docProgrammingLanguage(options)
+	local language
+	if options.docCode and options.docCode ~= "" then
+		language = options.docCode
+	elseif options.langProvided then
+		language = options.lang
+	else
+		language = "ts"
+	end
+	if language == "teal" then
+		return "tl"
+	end
+	if language == "ts" or language == "tsx" or language == "lua" or language == "yue" or language == "tl" or language == "wa" then
+		return language
+	end
+	fail("Unsupported doc code language: " .. tostring(language))
+end
+
+local function docSource(options)
+	if options.docSource == "api" or options.docSource == "tutorial" then
+		return options.docSource
+	end
+	fail("Unsupported doc source: " .. tostring(options.docSource))
+end
+
+local function printDocSearchResults(doc)
+	local results = doc.results or {}
+	if #results == 0 then
+		print("No doc results found.")
+		return
+	end
+	for i, item in ipairs(results) do
+		local location = tostring(item.file or "")
+		if item.line then
+			location = location .. ":" .. tostring(item.line)
+		end
+		print(("%d. %s"):format(i, location))
+		if item.content and item.content ~= "" then
+			print("   " .. tostring(item.content):gsub("\n", "\n   "))
+		end
+	end
+	if doc.truncated then
+		print("Results truncated.")
+	end
+end
+
+local function runDocCommand(args)
+	local action = args[2]
+	if not action or isHelpArg(action) then
+		docHelp()
+		return
+	end
+	if isHelpArg(args[3]) then
+		docHelp(action)
+		return
+	end
+	if action == "search" then
+		local pattern = args[3] or fail("Missing search pattern.")
+		local options = parseOptionsExact(args, 4)
+		local limit = options.logLines or 10
+		if limit < 1 or limit ~= math.floor(limit) then
+			fail("-n expects a positive integer")
+		end
+		local doc = postJson(options, "/doc/search", {
+			pattern = pattern,
+			docLanguage = docLanguage(options),
+			docSource = docSource(options),
+			programmingLanguage = docProgrammingLanguage(options),
+			limit = limit,
+			includeContent = true,
+			contentWindow = 100,
+		})
+		expectSuccess(doc, "Doc search failed.")
+		if options.json then
+			print(json.encode(doc))
+		else
+			printDocSearchResults(doc)
+		end
+	elseif action == "read" then
+		local file = args[3] or fail("Missing doc file.")
+		local options = parseOptionsExact(args, 4)
+		local doc = postJson(options, "/doc/read", {
+			file = file,
+			docLanguage = docLanguage(options),
+			docSource = docSource(options),
+			startLine = options.startLine or 1,
+			endLine = options.endLine or -1,
+		})
+		expectSuccess(doc, "Doc read failed.")
+		if options.json then
+			print(json.encode(doc))
+		else
+			io.write(tostring(doc.content or ""))
+			if tostring(doc.content or ""):sub(-1) ~= "\n" then
+				io.write("\n")
+			end
+		end
+	else
+		fail("Unsupported doc command: " .. tostring(action) .. ". Run Dora cli doc --help.")
+	end
+end
+
 local function runDoctor(options, diagnose)
 	if diagnose then
 		printDoctorCliContext(options)
@@ -1099,6 +1266,8 @@ local function main()
 	elseif command == "log" then
 		local options = parseOptionsExact(args, 2)
 		runLog(options)
+	elseif command == "doc" then
+		runDocCommand(args)
 	elseif command == "rust" or command == "wa" or command == "ts" then
 		runToolchainCommand(command, args)
 	else

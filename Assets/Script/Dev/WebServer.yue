@@ -1688,6 +1688,56 @@ HttpServer\postSchedule "/read", (req): success: false ->
 				if content := Content\loadAsync path
 					return :content, success: true, fullPath: Content\getFullPath path
 		return result if result := withProjectSearchPaths req.body.projectRoot, req.body.projFile, readFile
+
+agentDocLanguage = (language) ->
+	if language == "zh-Hans" then "zh" else "en"
+
+HttpServer\postSchedule "/doc/search", (req): success: false, message: "invalid call" ->
+	body = req.body or {}
+	language = body.docLanguage
+	return success: false, message: "unsupported doc language" unless language in ["en", "zh-Hans"]
+	source = body.docSource
+	return success: false, message: "unsupported doc source" unless source in ["api", "tutorial"]
+	codeLanguage = body.programmingLanguage
+	return success: false, message: "unsupported programming language" unless codeLanguage in ["ts", "tsx", "lua", "yue", "tl", "wa"]
+	return success: false, message: "missing pattern" unless body.pattern
+	result = nil
+	AgentTools.searchDoraAPIHttp {
+		pattern: body.pattern
+		docLanguage: agentDocLanguage language
+		docSource: source
+		programmingLanguage: codeLanguage
+		limit: body.limit
+		useRegex: body.useRegex
+		caseSensitive: body.caseSensitive
+		includeContent: body.includeContent
+		contentWindow: body.contentWindow
+	}, (res) ->
+		result = res
+	wait -> result ~= nil
+	if result and result.success
+		result.docLanguage = language
+	if result
+		return result
+	else
+		return success: false, message: "doc search failed"
+
+HttpServer\postSchedule "/doc/read", (req) ->
+	body = req.body or {}
+	language = body.docLanguage
+	return success: false, message: "unsupported doc language" unless language in ["en", "zh-Hans"]
+	source = body.docSource
+	return success: false, message: "unsupported doc source" unless source in ["api", "tutorial"]
+	return success: false, message: "missing file" unless body.file
+	result = AgentTools.readDoraDoc
+		docLanguage: agentDocLanguage language
+		docSource: source
+		file: body.file
+		startLine: body.startLine
+		endLine: body.endLine
+	if result and result.success
+		result.docLanguage = language
+	result
 HttpServer\get "/read-sync", (req): success: false ->
 	switch req when :params
 		:path = params
