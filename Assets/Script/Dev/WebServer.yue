@@ -1726,12 +1726,9 @@ HttpServer\postSchedule "/doc/read", (req) ->
 	body = req.body or {}
 	language = body.docLanguage
 	return success: false, message: "unsupported doc language" unless language in ["en", "zh-Hans"]
-	source = body.docSource
-	return success: false, message: "unsupported doc source" unless source in ["api", "tutorial"]
 	return success: false, message: "missing file" unless body.file
 	result = AgentTools.readDoraDoc
 		docLanguage: agentDocLanguage language
-		docSource: source
 		file: body.file
 		startLine: body.startLine
 		endLine: body.endLine

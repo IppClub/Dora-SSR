@@ -1849,27 +1849,24 @@ export function searchDoraAPIHttp(req: {
 
 export function readDoraDoc(req: {
 	docLanguage: DoraAPIDocLanguage;
-	docSource: DoraAPIDocSource;
 	file: string;
 	startLine?: number;
 	endLine?: number;
 }): DoraAPIReadDocResult {
-	const docSource = req.docSource;
 	const file = (req.file ?? "").split("\\").join("/");
 	if (!isValidWorkspacePath(file) || file === ".") {
 		return { success: false, message: "invalid file" };
 	}
+	const lowerFile = file.toLowerCase();
+	const isTutorialDoc = lowerFile.endsWith(".md");
+	const isAPIDoc = lowerFile.endsWith(".ts") || lowerFile.endsWith(".tl");
+	if (!isTutorialDoc && !isAPIDoc) return { success: false, message: "unsupported doc file type" };
+	const docSource: DoraAPIDocSource = isTutorialDoc ? "tutorial" : "api";
 	const root = getDoraDocResultBaseRoot(docSource, req.docLanguage);
 	const fullPath = Path(root, file);
 	const relative = Path.getRelative(fullPath, root);
 	if (relative === ".." || relative.startsWith("../") || relative.startsWith("..\\")) {
 		return { success: false, message: "invalid file" };
-	}
-	const ext = Path.getExt(fullPath);
-	if (docSource === "api") {
-		if (ext !== "ts" && ext !== "tl") return { success: false, message: "unsupported doc file type" };
-	} else if (ext !== "md") {
-		return { success: false, message: "unsupported doc file type" };
 	}
 	const readResult = readFile(root, file, req.startLine ?? 1, req.endLine ?? -1);
 	if (!readResult.success) return readResult;

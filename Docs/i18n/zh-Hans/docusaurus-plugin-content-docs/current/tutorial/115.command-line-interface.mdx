@@ -70,7 +70,7 @@ Commands:
   doctor [-p project] [--fix]
   log [-n lines]
   doc search <pattern> [-l zh-Hans|en] [--source api|tutorial] [--lang ts|tsx|lua|yue|tl|wa] [-n limit]
-  doc read <file> [-l zh-Hans|en] [--source api|tutorial] [--start line] [--end line]
+  doc read <file> [-l zh-Hans|en] [--start line] [--end line]
   rust build [-p project]
   rust run <target-path> [-p project]
   rust upload <target-path> [-p project] [--run]
@@ -91,17 +91,17 @@ Dora cli rust run --help
 通过正在运行的 Web IDE 服务搜索 Dora SSR 文档：
 
 ```sh
-Dora cli doc search Sprite -l zh-Hans --source tutorial --lang ts
+Dora cli doc search Sprite --source tutorial --lang ts
 Dora cli doc search "Sprite|Node" --source api --lang tsx -n 20
 ```
 
 搜索结果会输出文档文件路径和命中的行。可以用 `doc read` 读取返回的文件：
 
 ```sh
-Dora cli doc read ts/using-sprite.md -l zh-Hans --source tutorial --start 1 --end 80
+Dora cli doc read ts/using-sprite.md --start 1 --end 80
 ```
 
-`--source` 可以是 `api` 或 `tutorial`。`--lang` 用来选择 API 或教程的语言版本。`teal` 和 `tl` 都会使用 Teal 文档。
+`doc search` 和 `doc read` 的 `-l` 默认是 `en`。搜索时 `--source` 可以是 `api` 或 `tutorial`。`--lang` 用来选择 API 或教程的语言版本。`teal` 和 `tl` 都会使用 Teal 文档。
 
 ## 4. TypeScript 和脚本项目
 

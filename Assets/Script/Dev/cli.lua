@@ -66,7 +66,7 @@ Commands:
 	doctor [-p project] [--fix]
 	log [-n lines]
 	doc search <pattern> [-l zh-Hans|en] [--source api|tutorial] [--lang ts|tsx|lua|yue|tl|wa] [-n limit]
-	doc read <file> [-l zh-Hans|en] [--source api|tutorial] [--start line] [--end line]
+	doc read <file> [-l zh-Hans|en] [--start line] [--end line]
 	rust build [-p project]
 	rust run <target-path> [-p project]
 	rust upload <target-path> [-p project] [--run]
@@ -154,7 +154,7 @@ Use | inside pattern to search alternatives.
 ]])
 	elseif action == "read" then
 		print([[
-Usage: dora cli doc read <file> [-l zh-Hans|en] [--source api|tutorial] [--start line] [--end line]
+Usage: dora cli doc read <file> [-l zh-Hans|en] [--start line] [--end line]
 
 Read a Dora SSR doc file returned by doc search.
 ]])
@@ -164,7 +164,7 @@ Usage: dora cli doc <command> [options]
 
 Commands:
 	search <pattern> [-l zh-Hans|en] [--source api|tutorial] [--lang ts|tsx|lua|yue|tl|wa] [-n limit]
-	read <file> [-l zh-Hans|en] [--source api|tutorial] [--start line] [--end line]
+	read <file> [-l zh-Hans|en] [--start line] [--end line]
 ]])
 	end
 end
@@ -270,6 +270,7 @@ local function parseOptions(args, index)
 		timeout = parseNumber(CLI.env("DORA_TIMEOUT", tostring(defaultTimeout)), defaultTimeout),
 		project = CLI.absolute(CLI.env("DORA_PROJECT", CLI.cwd())),
 		language = "zh-Hans",
+		languageProvided = false,
 		entry = "init.lua",
 		lang = "all",
 		langProvided = false,
@@ -313,6 +314,7 @@ local function parseOptions(args, index)
 			index = index + 1
 			if index > #args then fail(arg .. " expects a value") end
 			options.language = args[index]
+			options.languageProvided = true
 			index = index + 1
 		elseif arg == "--entry" then
 			index = index + 1
@@ -857,6 +859,9 @@ local function runLog(options)
 end
 
 local function docLanguage(options)
+	if not options.languageProvided then
+		return "en"
+	end
 	if options.language == "zh" then
 		return "zh-Hans"
 	end
@@ -950,7 +955,6 @@ local function runDocCommand(args)
 		local doc = postJson(options, "/doc/read", {
 			file = file,
 			docLanguage = docLanguage(options),
-			docSource = docSource(options),
 			startLine = options.startLine or 1,
 			endLine = options.endLine or -1,
 		})

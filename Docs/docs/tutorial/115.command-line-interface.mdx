@@ -70,7 +70,7 @@ Commands:
   doctor [-p project] [--fix]
   log [-n lines]
   doc search <pattern> [-l zh-Hans|en] [--source api|tutorial] [--lang ts|tsx|lua|yue|tl|wa] [-n limit]
-  doc read <file> [-l zh-Hans|en] [--source api|tutorial] [--start line] [--end line]
+  doc read <file> [-l zh-Hans|en] [--start line] [--end line]
   rust build [-p project]
   rust run <target-path> [-p project]
   rust upload <target-path> [-p project] [--run]
@@ -91,17 +91,17 @@ Dora cli rust run --help
 Search Dora SSR docs through the running Web IDE service:
 
 ```sh
-Dora cli doc search Sprite -l en --source tutorial --lang ts
+Dora cli doc search Sprite --source tutorial --lang ts
 Dora cli doc search "Sprite|Node" --source api --lang tsx -n 20
 ```
 
 Search results print doc file paths and matching lines. Read a returned file with `doc read`:
 
 ```sh
-Dora cli doc read ts/using-sprite.md -l en --source tutorial --start 1 --end 80
+Dora cli doc read ts/using-sprite.md --start 1 --end 80
 ```
 
-`--source` can be `api` or `tutorial`. `--lang` selects the API or tutorial language variant. `teal` and `tl` both use the Teal docs.
+`-l` defaults to `en` for `doc search` and `doc read`. `--source` can be `api` or `tutorial` for search. `--lang` selects the API or tutorial language variant. `teal` and `tl` both use the Teal docs.
 
 ## 4. TypeScript and Script Projects
 

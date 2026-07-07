@@ -4197,13 +4197,6 @@ HttpServer:postSchedule("/doc/read", function(req)
 			message = "unsupported doc language"
 		}
 	end
-	local source = body.docSource
-	if not (("api" == source or "tutorial" == source)) then
-		return {
-			success = false,
-			message = "unsupported doc source"
-		}
-	end
 	if not body.file then
 		return {
 			success = false,
@@ -4212,7 +4205,6 @@ HttpServer:postSchedule("/doc/read", function(req)
 	end
 	local result = AgentTools.readDoraDoc({
 		docLanguage = agentDocLanguage(language),
-		docSource = source,
 		file = body.file,
 		startLine = body.startLine,
 		endLine = body.endLine

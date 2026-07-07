@@ -1940,1056 +1940,1054 @@ function ____exports.searchDoraAPIHttp(req, callback) -- 1836
 	) -- 1847
 end -- 1836
 function ____exports.readDoraDoc(req) -- 1850
-	local docSource = req.docSource -- 1857
-	local file = table.concat( -- 1858
-		__TS__StringSplit(req.file or "", "\\"), -- 1858
-		"/" -- 1858
-	) -- 1858
-	if not isValidWorkspacePath(file) or file == "." then -- 1858
-		return {success = false, message = "invalid file"} -- 1860
-	end -- 1860
-	local root = getDoraDocResultBaseRoot(docSource, req.docLanguage) -- 1862
-	local fullPath = Path(root, file) -- 1863
-	local relative = Path:getRelative(fullPath, root) -- 1864
-	if relative == ".." or __TS__StringStartsWith(relative, "../") or __TS__StringStartsWith(relative, "..\\") then -- 1864
-		return {success = false, message = "invalid file"} -- 1866
-	end -- 1866
-	local ext = Path:getExt(fullPath) -- 1868
-	if docSource == "api" then -- 1868
-		if ext ~= "ts" and ext ~= "tl" then -- 1868
-			return {success = false, message = "unsupported doc file type"} -- 1870
-		end -- 1870
-	elseif ext ~= "md" then -- 1870
-		return {success = false, message = "unsupported doc file type"} -- 1872
+	local file = table.concat( -- 1856
+		__TS__StringSplit(req.file or "", "\\"), -- 1856
+		"/" -- 1856
+	) -- 1856
+	if not isValidWorkspacePath(file) or file == "." then -- 1856
+		return {success = false, message = "invalid file"} -- 1858
+	end -- 1858
+	local lowerFile = string.lower(file) -- 1860
+	local isTutorialDoc = __TS__StringEndsWith(lowerFile, ".md") -- 1861
+	local isAPIDoc = __TS__StringEndsWith(lowerFile, ".ts") or __TS__StringEndsWith(lowerFile, ".tl") -- 1862
+	if not isTutorialDoc and not isAPIDoc then -- 1862
+		return {success = false, message = "unsupported doc file type"} -- 1863
+	end -- 1863
+	local docSource = isTutorialDoc and "tutorial" or "api" -- 1864
+	local root = getDoraDocResultBaseRoot(docSource, req.docLanguage) -- 1865
+	local fullPath = Path(root, file) -- 1866
+	local relative = Path:getRelative(fullPath, root) -- 1867
+	if relative == ".." or __TS__StringStartsWith(relative, "../") or __TS__StringStartsWith(relative, "..\\") then -- 1867
+		return {success = false, message = "invalid file"} -- 1869
+	end -- 1869
+	local readResult = ____exports.readFile(root, file, req.startLine or 1, req.endLine or -1) -- 1871
+	if not readResult.success then -- 1871
+		return readResult -- 1872
 	end -- 1872
-	local readResult = ____exports.readFile(root, file, req.startLine or 1, req.endLine or -1) -- 1874
-	if not readResult.success then -- 1874
-		return readResult -- 1875
-	end -- 1875
-	return { -- 1876
-		success = true, -- 1877
-		docLanguage = req.docLanguage, -- 1878
-		file = file, -- 1879
-		content = readResult.content, -- 1880
-		startLine = readResult.startLine, -- 1881
-		endLine = readResult.endLine -- 1882
-	} -- 1882
+	return { -- 1873
+		success = true, -- 1874
+		docLanguage = req.docLanguage, -- 1875
+		file = file, -- 1876
+		content = readResult.content, -- 1877
+		startLine = readResult.startLine, -- 1878
+		endLine = readResult.endLine -- 1879
+	} -- 1879
 end -- 1850
-function ____exports.applyFileChanges(taskId, workDir, changes, options) -- 1886
-	if options == nil then -- 1886
-		options = {} -- 1886
-	end -- 1886
-	if #changes == 0 then -- 1886
-		return {success = false, message = "empty changes"} -- 1888
+function ____exports.applyFileChanges(taskId, workDir, changes, options) -- 1883
+	if options == nil then -- 1883
+		options = {} -- 1883
+	end -- 1883
+	if #changes == 0 then -- 1883
+		return {success = false, message = "empty changes"} -- 1885
+	end -- 1885
+	if not isValidWorkDir(workDir) then -- 1885
+		return {success = false, message = "invalid workDir"} -- 1888
 	end -- 1888
-	if not isValidWorkDir(workDir) then -- 1888
-		return {success = false, message = "invalid workDir"} -- 1891
+	if not getTaskStatus(taskId) then -- 1888
+		return {success = false, message = "task not found"} -- 1891
 	end -- 1891
-	if not getTaskStatus(taskId) then -- 1891
-		return {success = false, message = "task not found"} -- 1894
-	end -- 1894
-	local expandedChanges = expandLinkedDeleteChanges(workDir, changes) -- 1896
-	local dup = rejectDuplicatePaths(expandedChanges) -- 1897
-	if dup then -- 1897
-		return {success = false, message = "duplicate path in batch: " .. dup} -- 1899
-	end -- 1899
-	for ____, change in ipairs(expandedChanges) do -- 1902
-		if not isValidWorkspacePath(change.path) then -- 1902
-			return {success = false, message = "invalid path: " .. change.path} -- 1904
+	local expandedChanges = expandLinkedDeleteChanges(workDir, changes) -- 1893
+	local dup = rejectDuplicatePaths(expandedChanges) -- 1894
+	if dup then -- 1894
+		return {success = false, message = "duplicate path in batch: " .. dup} -- 1896
+	end -- 1896
+	for ____, change in ipairs(expandedChanges) do -- 1899
+		if not isValidWorkspacePath(change.path) then -- 1899
+			return {success = false, message = "invalid path: " .. change.path} -- 1901
+		end -- 1901
+		if (change.op == "write" or change.op == "create") and change.content == nil then -- 1901
+			return {success = false, message = "missing content for " .. change.path} -- 1904
 		end -- 1904
-		if (change.op == "write" or change.op == "create") and change.content == nil then -- 1904
-			return {success = false, message = "missing content for " .. change.path} -- 1907
-		end -- 1907
-	end -- 1907
-	local headSeq = getTaskHeadSeq(taskId) -- 1911
-	if headSeq == nil then -- 1911
-		return {success = false, message = "task not found"} -- 1912
-	end -- 1912
-	local nextSeq = headSeq + 1 -- 1913
-	local checkpointId = insertCheckpoint( -- 1914
-		taskId, -- 1914
-		nextSeq, -- 1914
-		options.summary or "", -- 1914
-		options.toolName or "", -- 1914
-		"PREPARED" -- 1914
-	) -- 1914
-	if checkpointId <= 0 then -- 1914
-		return {success = false, message = "failed to create checkpoint"} -- 1916
+	end -- 1904
+	local headSeq = getTaskHeadSeq(taskId) -- 1908
+	if headSeq == nil then -- 1908
+		return {success = false, message = "task not found"} -- 1909
+	end -- 1909
+	local nextSeq = headSeq + 1 -- 1910
+	local checkpointId = insertCheckpoint( -- 1911
+		taskId, -- 1911
+		nextSeq, -- 1911
+		options.summary or "", -- 1911
+		options.toolName or "", -- 1911
+		"PREPARED" -- 1911
+	) -- 1911
+	if checkpointId <= 0 then -- 1911
+		return {success = false, message = "failed to create checkpoint"} -- 1913
+	end -- 1913
+	do -- 1913
+		local i = 0 -- 1916
+		while i < #expandedChanges do -- 1916
+			local change = expandedChanges[i + 1] -- 1917
+			local fullPath = resolveWorkspaceFilePath(workDir, change.path) -- 1918
+			if not fullPath then -- 1918
+				DB:exec(("UPDATE " .. TABLE_CP) .. " SET status = ? WHERE id = ?", {"FAILED", checkpointId}) -- 1920
+				return {success = false, message = "invalid path: " .. change.path} -- 1921
+			end -- 1921
+			if change.op == "delete" and Content:exist(fullPath) and Content:isdir(fullPath) then -- 1921
+				DB:exec(("UPDATE " .. TABLE_CP) .. " SET status = ? WHERE id = ?", {"FAILED", checkpointId}) -- 1924
+				return {success = false, message = "delete_file only supports files, not directories: " .. change.path} -- 1925
+			end -- 1925
+			local before = getFileState(fullPath) -- 1927
+			local afterExists = change.op ~= "delete" -- 1928
+			local afterContent = afterExists and (change.content or "") or "" -- 1929
+			local inserted = DB:exec(("INSERT INTO " .. TABLE_ENTRY) .. "(checkpoint_id, ord, path, op, before_exists, before_content, after_exists, after_content, bytes_before, bytes_after)\n\t\t\tVALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", { -- 1930
+				checkpointId, -- 1934
+				i + 1, -- 1935
+				change.path, -- 1936
+				change.op, -- 1937
+				before.exists and 1 or 0, -- 1938
+				before.content, -- 1939
+				afterExists and 1 or 0, -- 1940
+				afterContent, -- 1941
+				before.bytes, -- 1942
+				#afterContent -- 1943
+			}) -- 1943
+			if inserted <= 0 then -- 1943
+				DB:exec(("UPDATE " .. TABLE_CP) .. " SET status = ? WHERE id = ?", {"FAILED", checkpointId}) -- 1947
+				return {success = false, message = "failed to insert checkpoint entry: " .. change.path} -- 1948
+			end -- 1948
+			i = i + 1 -- 1916
+		end -- 1916
 	end -- 1916
-	do -- 1916
-		local i = 0 -- 1919
-		while i < #expandedChanges do -- 1919
-			local change = expandedChanges[i + 1] -- 1920
-			local fullPath = resolveWorkspaceFilePath(workDir, change.path) -- 1921
-			if not fullPath then -- 1921
-				DB:exec(("UPDATE " .. TABLE_CP) .. " SET status = ? WHERE id = ?", {"FAILED", checkpointId}) -- 1923
-				return {success = false, message = "invalid path: " .. change.path} -- 1924
-			end -- 1924
-			if change.op == "delete" and Content:exist(fullPath) and Content:isdir(fullPath) then -- 1924
-				DB:exec(("UPDATE " .. TABLE_CP) .. " SET status = ? WHERE id = ?", {"FAILED", checkpointId}) -- 1927
-				return {success = false, message = "delete_file only supports files, not directories: " .. change.path} -- 1928
-			end -- 1928
-			local before = getFileState(fullPath) -- 1930
-			local afterExists = change.op ~= "delete" -- 1931
-			local afterContent = afterExists and (change.content or "") or "" -- 1932
-			local inserted = DB:exec(("INSERT INTO " .. TABLE_ENTRY) .. "(checkpoint_id, ord, path, op, before_exists, before_content, after_exists, after_content, bytes_before, bytes_after)\n\t\t\tVALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", { -- 1933
-				checkpointId, -- 1937
-				i + 1, -- 1938
-				change.path, -- 1939
-				change.op, -- 1940
-				before.exists and 1 or 0, -- 1941
-				before.content, -- 1942
-				afterExists and 1 or 0, -- 1943
-				afterContent, -- 1944
-				before.bytes, -- 1945
-				#afterContent -- 1946
-			}) -- 1946
-			if inserted <= 0 then -- 1946
-				DB:exec(("UPDATE " .. TABLE_CP) .. " SET status = ? WHERE id = ?", {"FAILED", checkpointId}) -- 1950
-				return {success = false, message = "failed to insert checkpoint entry: " .. change.path} -- 1951
-			end -- 1951
-			i = i + 1 -- 1919
-		end -- 1919
-	end -- 1919
-	for ____, entry in ipairs(getCheckpointEntries(checkpointId, false)) do -- 1955
-		local fullPath = resolveWorkspaceFilePath(workDir, entry.path) -- 1956
-		if not fullPath then -- 1956
-			DB:exec(("UPDATE " .. TABLE_CP) .. " SET status = ? WHERE id = ?", {"FAILED", checkpointId}) -- 1958
-			return {success = false, message = "invalid path: " .. entry.path} -- 1959
-		end -- 1959
-		local ok = applySingleFile(fullPath, entry.afterExists, entry.afterContent) -- 1961
-		if not ok then -- 1961
-			DB:exec(("UPDATE " .. TABLE_CP) .. " SET status = ? WHERE id = ?", {"FAILED", checkpointId}) -- 1963
-			return {success = false, message = "failed to apply file change: " .. entry.path} -- 1964
-		end -- 1964
-		if not ____exports.sendWebIDEFileUpdate(fullPath, entry.afterExists, entry.afterContent) then -- 1964
-			DB:exec(("UPDATE " .. TABLE_CP) .. " SET status = ? WHERE id = ?", {"FAILED", checkpointId}) -- 1967
-			return {success = false, message = "failed to sync file change: " .. entry.path} -- 1968
-		end -- 1968
-	end -- 1968
-	DB:exec( -- 1972
-		("UPDATE " .. TABLE_CP) .. " SET status = ?, applied_at = ? WHERE id = ?", -- 1972
-		{ -- 1974
-			"APPLIED", -- 1974
-			now(), -- 1974
-			checkpointId -- 1974
-		} -- 1974
-	) -- 1974
-	DB:exec( -- 1976
-		("UPDATE " .. TABLE_TASK) .. " SET head_seq = ?, updated_at = ? WHERE id = ?", -- 1976
-		{ -- 1978
-			nextSeq, -- 1978
-			now(), -- 1978
-			taskId -- 1978
-		} -- 1978
-	) -- 1978
-	return {success = true, taskId = taskId, checkpointId = checkpointId, checkpointSeq = nextSeq} -- 1980
-end -- 1886
-function ____exports.rollbackCheckpoint(checkpointId, workDir) -- 1988
-	if not isValidWorkDir(workDir) then -- 1988
-		return {success = false, message = "invalid workDir"} -- 1989
-	end -- 1989
-	if checkpointId <= 0 then -- 1989
-		return {success = false, message = "invalid checkpointId"} -- 1990
+	for ____, entry in ipairs(getCheckpointEntries(checkpointId, false)) do -- 1952
+		local fullPath = resolveWorkspaceFilePath(workDir, entry.path) -- 1953
+		if not fullPath then -- 1953
+			DB:exec(("UPDATE " .. TABLE_CP) .. " SET status = ? WHERE id = ?", {"FAILED", checkpointId}) -- 1955
+			return {success = false, message = "invalid path: " .. entry.path} -- 1956
+		end -- 1956
+		local ok = applySingleFile(fullPath, entry.afterExists, entry.afterContent) -- 1958
+		if not ok then -- 1958
+			DB:exec(("UPDATE " .. TABLE_CP) .. " SET status = ? WHERE id = ?", {"FAILED", checkpointId}) -- 1960
+			return {success = false, message = "failed to apply file change: " .. entry.path} -- 1961
+		end -- 1961
+		if not ____exports.sendWebIDEFileUpdate(fullPath, entry.afterExists, entry.afterContent) then -- 1961
+			DB:exec(("UPDATE " .. TABLE_CP) .. " SET status = ? WHERE id = ?", {"FAILED", checkpointId}) -- 1964
+			return {success = false, message = "failed to sync file change: " .. entry.path} -- 1965
+		end -- 1965
+	end -- 1965
+	DB:exec( -- 1969
+		("UPDATE " .. TABLE_CP) .. " SET status = ?, applied_at = ? WHERE id = ?", -- 1969
+		{ -- 1971
+			"APPLIED", -- 1971
+			now(), -- 1971
+			checkpointId -- 1971
+		} -- 1971
+	) -- 1971
+	DB:exec( -- 1973
+		("UPDATE " .. TABLE_TASK) .. " SET head_seq = ?, updated_at = ? WHERE id = ?", -- 1973
+		{ -- 1975
+			nextSeq, -- 1975
+			now(), -- 1975
+			taskId -- 1975
+		} -- 1975
+	) -- 1975
+	return {success = true, taskId = taskId, checkpointId = checkpointId, checkpointSeq = nextSeq} -- 1977
+end -- 1883
+function ____exports.rollbackCheckpoint(checkpointId, workDir) -- 1985
+	if not isValidWorkDir(workDir) then -- 1985
+		return {success = false, message = "invalid workDir"} -- 1986
+	end -- 1986
+	if checkpointId <= 0 then -- 1986
+		return {success = false, message = "invalid checkpointId"} -- 1987
+	end -- 1987
+	local entries = getCheckpointEntries(checkpointId, true) -- 1988
+	if #entries == 0 then -- 1988
+		return {success = false, message = "checkpoint not found or empty"} -- 1990
 	end -- 1990
-	local entries = getCheckpointEntries(checkpointId, true) -- 1991
-	if #entries == 0 then -- 1991
-		return {success = false, message = "checkpoint not found or empty"} -- 1993
-	end -- 1993
-	for ____, entry in ipairs(entries) do -- 1995
-		local fullPath = resolveWorkspaceFilePath(workDir, entry.path) -- 1996
-		if not fullPath then -- 1996
-			return {success = false, message = "invalid path: " .. entry.path} -- 1998
-		end -- 1998
-		local ok = applySingleFile(fullPath, entry.beforeExists, entry.beforeContent) -- 2000
-		if not ok then -- 2000
-			Log( -- 2002
-				"Error", -- 2002
-				(("Agent rollback failed at checkpoint " .. tostring(checkpointId)) .. ", file ") .. entry.path -- 2002
-			) -- 2002
-			Log( -- 2003
-				"Info", -- 2003
-				(("[rollback] failed checkpoint=" .. tostring(checkpointId)) .. " file=") .. entry.path -- 2003
-			) -- 2003
-			return {success = false, message = "failed to rollback file: " .. entry.path} -- 2004
-		end -- 2004
-		if not ____exports.sendWebIDEFileUpdate(fullPath, entry.beforeExists, entry.beforeContent) then -- 2004
-			Log( -- 2007
-				"Error", -- 2007
-				(("Agent rollback sync failed at checkpoint " .. tostring(checkpointId)) .. ", file ") .. entry.path -- 2007
-			) -- 2007
-			Log( -- 2008
-				"Info", -- 2008
-				(("[rollback] sync_failed checkpoint=" .. tostring(checkpointId)) .. " file=") .. entry.path -- 2008
-			) -- 2008
-			return {success = false, message = "failed to sync rollback file: " .. entry.path} -- 2009
-		end -- 2009
-	end -- 2009
-	DB:exec( -- 2012
-		("UPDATE " .. TABLE_CP) .. " SET status = ?, reverted_at = ? WHERE id = ?", -- 2012
-		{ -- 2012
-			"REVERTED", -- 2012
-			now(), -- 2012
-			checkpointId -- 2012
-		} -- 2012
-	) -- 2012
-	return {success = true, checkpointId = checkpointId} -- 2013
-end -- 1988
-function ____exports.rollbackTaskChangeSet(taskId, workDir) -- 2016
-	if not isValidWorkDir(workDir) then -- 2016
-		return {success = false, message = "invalid workDir"} -- 2017
-	end -- 2017
-	if not getTaskStatus(taskId) then -- 2017
-		return {success = false, message = "task not found"} -- 2018
+	for ____, entry in ipairs(entries) do -- 1992
+		local fullPath = resolveWorkspaceFilePath(workDir, entry.path) -- 1993
+		if not fullPath then -- 1993
+			return {success = false, message = "invalid path: " .. entry.path} -- 1995
+		end -- 1995
+		local ok = applySingleFile(fullPath, entry.beforeExists, entry.beforeContent) -- 1997
+		if not ok then -- 1997
+			Log( -- 1999
+				"Error", -- 1999
+				(("Agent rollback failed at checkpoint " .. tostring(checkpointId)) .. ", file ") .. entry.path -- 1999
+			) -- 1999
+			Log( -- 2000
+				"Info", -- 2000
+				(("[rollback] failed checkpoint=" .. tostring(checkpointId)) .. " file=") .. entry.path -- 2000
+			) -- 2000
+			return {success = false, message = "failed to rollback file: " .. entry.path} -- 2001
+		end -- 2001
+		if not ____exports.sendWebIDEFileUpdate(fullPath, entry.beforeExists, entry.beforeContent) then -- 2001
+			Log( -- 2004
+				"Error", -- 2004
+				(("Agent rollback sync failed at checkpoint " .. tostring(checkpointId)) .. ", file ") .. entry.path -- 2004
+			) -- 2004
+			Log( -- 2005
+				"Info", -- 2005
+				(("[rollback] sync_failed checkpoint=" .. tostring(checkpointId)) .. " file=") .. entry.path -- 2005
+			) -- 2005
+			return {success = false, message = "failed to sync rollback file: " .. entry.path} -- 2006
+		end -- 2006
+	end -- 2006
+	DB:exec( -- 2009
+		("UPDATE " .. TABLE_CP) .. " SET status = ?, reverted_at = ? WHERE id = ?", -- 2009
+		{ -- 2009
+			"REVERTED", -- 2009
+			now(), -- 2009
+			checkpointId -- 2009
+		} -- 2009
+	) -- 2009
+	return {success = true, checkpointId = checkpointId} -- 2010
+end -- 1985
+function ____exports.rollbackTaskChangeSet(taskId, workDir) -- 2013
+	if not isValidWorkDir(workDir) then -- 2013
+		return {success = false, message = "invalid workDir"} -- 2014
+	end -- 2014
+	if not getTaskStatus(taskId) then -- 2014
+		return {success = false, message = "task not found"} -- 2015
+	end -- 2015
+	local checkpoints = listCheckpointIdsForTask(taskId, true) -- 2016
+	if #checkpoints == 0 then -- 2016
+		return {success = false, message = "change set not found or empty"} -- 2018
 	end -- 2018
-	local checkpoints = listCheckpointIdsForTask(taskId, true) -- 2019
-	if #checkpoints == 0 then -- 2019
-		return {success = false, message = "change set not found or empty"} -- 2021
+	local lastCheckpointId = 0 -- 2020
+	do -- 2020
+		local i = 0 -- 2021
+		while i < #checkpoints do -- 2021
+			local result = ____exports.rollbackCheckpoint(checkpoints[i + 1].id, workDir) -- 2022
+			if not result.success then -- 2022
+				return {success = false, message = result.message} -- 2023
+			end -- 2023
+			lastCheckpointId = checkpoints[i + 1].id -- 2024
+			i = i + 1 -- 2021
+		end -- 2021
 	end -- 2021
-	local lastCheckpointId = 0 -- 2023
-	do -- 2023
-		local i = 0 -- 2024
-		while i < #checkpoints do -- 2024
-			local result = ____exports.rollbackCheckpoint(checkpoints[i + 1].id, workDir) -- 2025
-			if not result.success then -- 2025
-				return {success = false, message = result.message} -- 2026
-			end -- 2026
-			lastCheckpointId = checkpoints[i + 1].id -- 2027
-			i = i + 1 -- 2024
-		end -- 2024
-	end -- 2024
-	return {success = true, taskId = taskId, checkpointId = lastCheckpointId, checkpointCount = #checkpoints} -- 2029
-end -- 2016
-function ____exports.getCheckpointEntriesForDebug(checkpointId) -- 2037
-	return getCheckpointEntries(checkpointId, false) -- 2038
-end -- 2037
-function ____exports.getCheckpointDiff(checkpointId) -- 2041
-	if checkpointId <= 0 then -- 2041
-		return {success = false, message = "invalid checkpointId"} -- 2043
-	end -- 2043
-	local entries = getCheckpointEntries(checkpointId, false) -- 2045
-	if #entries == 0 then -- 2045
-		return {success = false, message = "checkpoint not found or empty"} -- 2047
-	end -- 2047
-	return { -- 2049
-		success = true, -- 2050
-		files = __TS__ArrayMap( -- 2051
-			entries, -- 2051
-			function(____, entry) return { -- 2051
-				path = entry.path, -- 2052
-				op = entry.op, -- 2053
-				beforeExists = entry.beforeExists, -- 2054
-				afterExists = entry.afterExists, -- 2055
-				beforeContent = entry.beforeContent, -- 2056
-				afterContent = entry.afterContent -- 2057
-			} end -- 2057
-		) -- 2057
-	} -- 2057
-end -- 2041
-local function finalizeBuildResult(workDir, messages) -- 2062
-	local normalized = __TS__ArrayMap( -- 2063
-		messages, -- 2063
-		function(____, m) return m.success and __TS__ObjectAssign( -- 2063
-			{}, -- 2064
-			m, -- 2064
-			{file = toWorkspaceRelativePath(workDir, m.file)} -- 2064
-		) or __TS__ObjectAssign( -- 2064
-			{}, -- 2065
-			m, -- 2065
-			{file = toWorkspaceRelativePath(workDir, m.file)} -- 2065
-		) end -- 2065
-	) -- 2065
-	local total = #normalized -- 2066
-	local failed = 0 -- 2067
-	do -- 2067
-		local i = 0 -- 2068
-		while i < #normalized do -- 2068
-			if not normalized[i + 1].success then -- 2068
-				failed = failed + 1 -- 2069
-			end -- 2069
-			i = i + 1 -- 2068
-		end -- 2068
-	end -- 2068
-	local passed = total - failed -- 2071
-	if failed > 0 then -- 2071
-		return { -- 2073
-			success = false, -- 2074
-			message = ((("Build failed: " .. tostring(failed)) .. "/") .. tostring(total)) .. " file(s) failed.", -- 2075
-			total = total, -- 2076
-			passed = passed, -- 2077
-			failed = failed, -- 2078
-			messages = normalized -- 2079
-		} -- 2079
-	end -- 2079
-	return { -- 2082
-		success = true, -- 2083
-		message = ((("Build passed: " .. tostring(passed)) .. "/") .. tostring(total)) .. " file(s).", -- 2084
-		total = total, -- 2085
-		passed = passed, -- 2086
-		failed = 0, -- 2087
-		messages = normalized -- 2088
-	} -- 2088
-end -- 2062
-function ____exports.build(req) -- 2092
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2092
-		local targetRel = req.path or "" -- 2093
-		local target = resolveWorkspaceSearchPath(req.workDir, targetRel) -- 2094
-		if not target then -- 2094
-			return ____awaiter_resolve(nil, {success = false, message = "invalid path or workDir"}) -- 2094
-		end -- 2094
-		if not Content:exist(target) then -- 2094
-			return ____awaiter_resolve(nil, {success = false, message = "path not existed"}) -- 2094
-		end -- 2094
-		local messages = {} -- 2101
-		if not Content:isdir(target) then -- 2101
-			local kind = getSupportedBuildKind(target) -- 2103
-			if not kind then -- 2103
-				return ____awaiter_resolve(nil, {success = false, message = "expecting a ts/tsx, tl, lua, yue or yarn file"}) -- 2103
-			end -- 2103
-			if kind == "ts" then -- 2103
-				local content = Content:load(target) -- 2108
-				if content == nil then -- 2108
-					return ____awaiter_resolve(nil, {success = false, message = "failed to read file"}) -- 2108
-				end -- 2108
-				if isTiledEditorContent(content) then -- 2108
-					Log("Info", "[build] skip tiled editor file=" .. target) -- 2113
-					return ____awaiter_resolve( -- 2113
-						nil, -- 2113
-						finalizeBuildResult(req.workDir, messages) -- 2114
-					) -- 2114
-				end -- 2114
-				if not ____exports.sendWebIDEFileUpdate(target, true, content) then -- 2114
-					return ____awaiter_resolve(nil, {success = false, message = "failed to encode UpdateFile request"}) -- 2114
-				end -- 2114
-				if not isDtsFile(target) then -- 2114
-					messages[#messages + 1] = __TS__Await(____exports.runSingleTsTranspile(target, content)) -- 2120
-				end -- 2120
-			else -- 2120
-				messages[#messages + 1] = __TS__Await(runSingleNonTsBuild(target)) -- 2123
-			end -- 2123
-			Log( -- 2125
-				"Info", -- 2125
-				(("[build] file=" .. target) .. " messages=") .. tostring(#messages) -- 2125
-			) -- 2125
-			return ____awaiter_resolve( -- 2125
-				nil, -- 2125
-				finalizeBuildResult(req.workDir, messages) -- 2126
-			) -- 2126
-		end -- 2126
-		local listResult = ____exports.listFiles({ -- 2128
-			workDir = req.workDir, -- 2129
-			path = targetRel, -- 2130
-			globs = __TS__ArrayMap( -- 2131
-				codeExtensions, -- 2131
-				function(____, e) return "**/*" .. e end -- 2131
-			), -- 2131
-			maxEntries = 10000 -- 2132
-		}) -- 2132
-		local relFiles = listResult.success and listResult.files or ({}) -- 2135
-		local tsFileData = {} -- 2136
-		local buildQueue = {} -- 2137
-		for ____, rel in ipairs(relFiles) do -- 2138
-			do -- 2138
-				local file = Content:isAbsolutePath(rel) and rel or Path(target, rel) -- 2139
-				local kind = getSupportedBuildKind(file) -- 2140
-				if not kind then -- 2140
-					goto __continue431 -- 2141
+	return {success = true, taskId = taskId, checkpointId = lastCheckpointId, checkpointCount = #checkpoints} -- 2026
+end -- 2013
+function ____exports.getCheckpointEntriesForDebug(checkpointId) -- 2034
+	return getCheckpointEntries(checkpointId, false) -- 2035
+end -- 2034
+function ____exports.getCheckpointDiff(checkpointId) -- 2038
+	if checkpointId <= 0 then -- 2038
+		return {success = false, message = "invalid checkpointId"} -- 2040
+	end -- 2040
+	local entries = getCheckpointEntries(checkpointId, false) -- 2042
+	if #entries == 0 then -- 2042
+		return {success = false, message = "checkpoint not found or empty"} -- 2044
+	end -- 2044
+	return { -- 2046
+		success = true, -- 2047
+		files = __TS__ArrayMap( -- 2048
+			entries, -- 2048
+			function(____, entry) return { -- 2048
+				path = entry.path, -- 2049
+				op = entry.op, -- 2050
+				beforeExists = entry.beforeExists, -- 2051
+				afterExists = entry.afterExists, -- 2052
+				beforeContent = entry.beforeContent, -- 2053
+				afterContent = entry.afterContent -- 2054
+			} end -- 2054
+		) -- 2054
+	} -- 2054
+end -- 2038
+local function finalizeBuildResult(workDir, messages) -- 2059
+	local normalized = __TS__ArrayMap( -- 2060
+		messages, -- 2060
+		function(____, m) return m.success and __TS__ObjectAssign( -- 2060
+			{}, -- 2061
+			m, -- 2061
+			{file = toWorkspaceRelativePath(workDir, m.file)} -- 2061
+		) or __TS__ObjectAssign( -- 2061
+			{}, -- 2062
+			m, -- 2062
+			{file = toWorkspaceRelativePath(workDir, m.file)} -- 2062
+		) end -- 2062
+	) -- 2062
+	local total = #normalized -- 2063
+	local failed = 0 -- 2064
+	do -- 2064
+		local i = 0 -- 2065
+		while i < #normalized do -- 2065
+			if not normalized[i + 1].success then -- 2065
+				failed = failed + 1 -- 2066
+			end -- 2066
+			i = i + 1 -- 2065
+		end -- 2065
+	end -- 2065
+	local passed = total - failed -- 2068
+	if failed > 0 then -- 2068
+		return { -- 2070
+			success = false, -- 2071
+			message = ((("Build failed: " .. tostring(failed)) .. "/") .. tostring(total)) .. " file(s) failed.", -- 2072
+			total = total, -- 2073
+			passed = passed, -- 2074
+			failed = failed, -- 2075
+			messages = normalized -- 2076
+		} -- 2076
+	end -- 2076
+	return { -- 2079
+		success = true, -- 2080
+		message = ((("Build passed: " .. tostring(passed)) .. "/") .. tostring(total)) .. " file(s).", -- 2081
+		total = total, -- 2082
+		passed = passed, -- 2083
+		failed = 0, -- 2084
+		messages = normalized -- 2085
+	} -- 2085
+end -- 2059
+function ____exports.build(req) -- 2089
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2089
+		local targetRel = req.path or "" -- 2090
+		local target = resolveWorkspaceSearchPath(req.workDir, targetRel) -- 2091
+		if not target then -- 2091
+			return ____awaiter_resolve(nil, {success = false, message = "invalid path or workDir"}) -- 2091
+		end -- 2091
+		if not Content:exist(target) then -- 2091
+			return ____awaiter_resolve(nil, {success = false, message = "path not existed"}) -- 2091
+		end -- 2091
+		local messages = {} -- 2098
+		if not Content:isdir(target) then -- 2098
+			local kind = getSupportedBuildKind(target) -- 2100
+			if not kind then -- 2100
+				return ____awaiter_resolve(nil, {success = false, message = "expecting a ts/tsx, tl, lua, yue or yarn file"}) -- 2100
+			end -- 2100
+			if kind == "ts" then -- 2100
+				local content = Content:load(target) -- 2105
+				if content == nil then -- 2105
+					return ____awaiter_resolve(nil, {success = false, message = "failed to read file"}) -- 2105
+				end -- 2105
+				if isTiledEditorContent(content) then -- 2105
+					Log("Info", "[build] skip tiled editor file=" .. target) -- 2110
+					return ____awaiter_resolve( -- 2110
+						nil, -- 2110
+						finalizeBuildResult(req.workDir, messages) -- 2111
+					) -- 2111
+				end -- 2111
+				if not ____exports.sendWebIDEFileUpdate(target, true, content) then -- 2111
+					return ____awaiter_resolve(nil, {success = false, message = "failed to encode UpdateFile request"}) -- 2111
+				end -- 2111
+				if not isDtsFile(target) then -- 2111
+					messages[#messages + 1] = __TS__Await(____exports.runSingleTsTranspile(target, content)) -- 2117
+				end -- 2117
+			else -- 2117
+				messages[#messages + 1] = __TS__Await(runSingleNonTsBuild(target)) -- 2120
+			end -- 2120
+			Log( -- 2122
+				"Info", -- 2122
+				(("[build] file=" .. target) .. " messages=") .. tostring(#messages) -- 2122
+			) -- 2122
+			return ____awaiter_resolve( -- 2122
+				nil, -- 2122
+				finalizeBuildResult(req.workDir, messages) -- 2123
+			) -- 2123
+		end -- 2123
+		local listResult = ____exports.listFiles({ -- 2125
+			workDir = req.workDir, -- 2126
+			path = targetRel, -- 2127
+			globs = __TS__ArrayMap( -- 2128
+				codeExtensions, -- 2128
+				function(____, e) return "**/*" .. e end -- 2128
+			), -- 2128
+			maxEntries = 10000 -- 2129
+		}) -- 2129
+		local relFiles = listResult.success and listResult.files or ({}) -- 2132
+		local tsFileData = {} -- 2133
+		local buildQueue = {} -- 2134
+		for ____, rel in ipairs(relFiles) do -- 2135
+			do -- 2135
+				local file = Content:isAbsolutePath(rel) and rel or Path(target, rel) -- 2136
+				local kind = getSupportedBuildKind(file) -- 2137
+				if not kind then -- 2137
+					goto __continue429 -- 2138
+				end -- 2138
+				buildQueue[#buildQueue + 1] = {file = file, kind = kind} -- 2139
+				if kind ~= "ts" then -- 2139
+					goto __continue429 -- 2141
 				end -- 2141
-				buildQueue[#buildQueue + 1] = {file = file, kind = kind} -- 2142
-				if kind ~= "ts" then -- 2142
-					goto __continue431 -- 2144
-				end -- 2144
-				local content = Content:load(file) -- 2146
-				if content == nil then -- 2146
-					messages[#messages + 1] = {success = false, file = file, message = "failed to read file"} -- 2148
-					goto __continue431 -- 2149
-				end -- 2149
-				if isTiledEditorContent(content) then -- 2149
-					Log("Info", "[build] skip tiled editor file=" .. file) -- 2152
-					goto __continue431 -- 2153
-				end -- 2153
-				tsFileData[file] = content -- 2155
-			end -- 2155
-			::__continue431:: -- 2155
-		end -- 2155
-		do -- 2155
-			local i = 0 -- 2157
-			while i < #buildQueue do -- 2157
-				do -- 2157
-					local ____buildQueue_index_33 = buildQueue[i + 1] -- 2158
-					local file = ____buildQueue_index_33.file -- 2158
-					local kind = ____buildQueue_index_33.kind -- 2158
-					if kind == "ts" then -- 2158
-						local content = tsFileData[file] -- 2160
-						if content == nil or isDtsFile(file) then -- 2160
-							goto __continue438 -- 2162
-						end -- 2162
-						if not ____exports.sendWebIDEFileUpdate(file, true, content) then -- 2162
-							messages[#messages + 1] = {success = false, file = file, message = "failed to encode UpdateFile request"} -- 2165
-							goto __continue438 -- 2166
-						end -- 2166
-						messages[#messages + 1] = __TS__Await(____exports.runSingleTsTranspile(file, content)) -- 2168
-						goto __continue438 -- 2169
-					end -- 2169
-					messages[#messages + 1] = __TS__Await(runSingleNonTsBuild(file)) -- 2171
-				end -- 2171
-				::__continue438:: -- 2171
-				i = i + 1 -- 2157
-			end -- 2157
-		end -- 2157
-		if #messages == 0 then -- 2157
-			Log("Info", ("[build] dir=" .. target) .. " messages=0 no buildable code files found") -- 2174
-			return ____awaiter_resolve(nil, {success = false, message = "No code files were found to build."}) -- 2174
-		end -- 2174
-		Log( -- 2177
-			"Info", -- 2177
-			(("[build] dir=" .. target) .. " messages=") .. tostring(#messages) -- 2177
-		) -- 2177
-		return ____awaiter_resolve( -- 2177
-			nil, -- 2177
-			finalizeBuildResult(req.workDir, messages) -- 2178
-		) -- 2178
-	end) -- 2178
-end -- 2092
-local EXECUTE_COMMAND_OUTPUT_MAX = 12000 -- 2181
-local function truncateCommandOutput(output) -- 2183
-	if #output <= EXECUTE_COMMAND_OUTPUT_MAX then -- 2183
-		return output -- 2184
-	end -- 2184
-	return __TS__StringSlice(output, 0, EXECUTE_COMMAND_OUTPUT_MAX) .. "\n... output truncated ..." -- 2185
-end -- 2183
-local function executeLuaCommand(req) -- 2188
-	local code = __TS__StringTrim(req.code or "") -- 2189
-	if code == "" then -- 2189
-		return __TS__Promise.resolve({ -- 2191
-			success = false, -- 2191
-			mode = "lua", -- 2191
-			output = "", -- 2191
-			message = "missing code", -- 2191
-			phase = "validate" -- 2191
-		}) -- 2191
-	end -- 2191
-	local output = {} -- 2193
-	local env = setmetatable( -- 2194
-		{ -- 2194
-			projectDir = req.workDir, -- 2195
-			print = function(...) -- 2196
-				local values = {...} -- 2196
-				local parts = {} -- 2197
-				do -- 2197
-					local i = 0 -- 2198
-					while i < #values do -- 2198
-						parts[#parts + 1] = tostring(values[i + 1]) -- 2199
-						i = i + 1 -- 2198
-					end -- 2198
-				end -- 2198
-				output[#output + 1] = table.concat(parts, "\t") -- 2201
-			end, -- 2196
-			refreshTree = function(path) -- 2203
-				if path == nil then -- 2203
-					return refreshProjectTree(req.workDir) -- 2205
+				local content = Content:load(file) -- 2143
+				if content == nil then -- 2143
+					messages[#messages + 1] = {success = false, file = file, message = "failed to read file"} -- 2145
+					goto __continue429 -- 2146
+				end -- 2146
+				if isTiledEditorContent(content) then -- 2146
+					Log("Info", "[build] skip tiled editor file=" .. file) -- 2149
+					goto __continue429 -- 2150
+				end -- 2150
+				tsFileData[file] = content -- 2152
+			end -- 2152
+			::__continue429:: -- 2152
+		end -- 2152
+		do -- 2152
+			local i = 0 -- 2154
+			while i < #buildQueue do -- 2154
+				do -- 2154
+					local ____buildQueue_index_33 = buildQueue[i + 1] -- 2155
+					local file = ____buildQueue_index_33.file -- 2155
+					local kind = ____buildQueue_index_33.kind -- 2155
+					if kind == "ts" then -- 2155
+						local content = tsFileData[file] -- 2157
+						if content == nil or isDtsFile(file) then -- 2157
+							goto __continue436 -- 2159
+						end -- 2159
+						if not ____exports.sendWebIDEFileUpdate(file, true, content) then -- 2159
+							messages[#messages + 1] = {success = false, file = file, message = "failed to encode UpdateFile request"} -- 2162
+							goto __continue436 -- 2163
+						end -- 2163
+						messages[#messages + 1] = __TS__Await(____exports.runSingleTsTranspile(file, content)) -- 2165
+						goto __continue436 -- 2166
+					end -- 2166
+					messages[#messages + 1] = __TS__Await(runSingleNonTsBuild(file)) -- 2168
+				end -- 2168
+				::__continue436:: -- 2168
+				i = i + 1 -- 2154
+			end -- 2154
+		end -- 2154
+		if #messages == 0 then -- 2154
+			Log("Info", ("[build] dir=" .. target) .. " messages=0 no buildable code files found") -- 2171
+			return ____awaiter_resolve(nil, {success = false, message = "No code files were found to build."}) -- 2171
+		end -- 2171
+		Log( -- 2174
+			"Info", -- 2174
+			(("[build] dir=" .. target) .. " messages=") .. tostring(#messages) -- 2174
+		) -- 2174
+		return ____awaiter_resolve( -- 2174
+			nil, -- 2174
+			finalizeBuildResult(req.workDir, messages) -- 2175
+		) -- 2175
+	end) -- 2175
+end -- 2089
+local EXECUTE_COMMAND_OUTPUT_MAX = 12000 -- 2178
+local function truncateCommandOutput(output) -- 2180
+	if #output <= EXECUTE_COMMAND_OUTPUT_MAX then -- 2180
+		return output -- 2181
+	end -- 2181
+	return __TS__StringSlice(output, 0, EXECUTE_COMMAND_OUTPUT_MAX) .. "\n... output truncated ..." -- 2182
+end -- 2180
+local function executeLuaCommand(req) -- 2185
+	local code = __TS__StringTrim(req.code or "") -- 2186
+	if code == "" then -- 2186
+		return __TS__Promise.resolve({ -- 2188
+			success = false, -- 2188
+			mode = "lua", -- 2188
+			output = "", -- 2188
+			message = "missing code", -- 2188
+			phase = "validate" -- 2188
+		}) -- 2188
+	end -- 2188
+	local output = {} -- 2190
+	local env = setmetatable( -- 2191
+		{ -- 2191
+			projectDir = req.workDir, -- 2192
+			print = function(...) -- 2193
+				local values = {...} -- 2193
+				local parts = {} -- 2194
+				do -- 2194
+					local i = 0 -- 2195
+					while i < #values do -- 2195
+						parts[#parts + 1] = tostring(values[i + 1]) -- 2196
+						i = i + 1 -- 2195
+					end -- 2195
+				end -- 2195
+				output[#output + 1] = table.concat(parts, "\t") -- 2198
+			end, -- 2193
+			refreshTree = function(path) -- 2200
+				if path == nil then -- 2200
+					return refreshProjectTree(req.workDir) -- 2202
+				end -- 2202
+				if type(path) ~= "string" then -- 2202
+					error("refreshTree expects a project-relative file path string or no argument") -- 2205
 				end -- 2205
-				if type(path) ~= "string" then -- 2205
-					error("refreshTree expects a project-relative file path string or no argument") -- 2208
-				end -- 2208
-				return refreshProjectTree(req.workDir, path) -- 2210
-			end -- 2203
-		}, -- 2203
-		{__index = Dora} -- 2212
-	) -- 2212
-	local fn, compileErr = load(code, "=(agent_command)", "t", env) -- 2215
-	if not fn then -- 2215
-		return __TS__Promise.resolve({ -- 2217
-			success = false, -- 2218
-			mode = "lua", -- 2219
-			output = truncateCommandOutput(table.concat(output, "\n")), -- 2220
-			message = toStr(compileErr), -- 2221
-			phase = "compile" -- 2222
-		}) -- 2222
-	end -- 2222
-	return __TS__New( -- 2225
-		__TS__Promise, -- 2225
-		function(____, resolve) -- 2225
-			Director.systemScheduler:schedule(once(function() -- 2226
-				local ok, runtimeErr = pcall(fn) -- 2227
-				if not ok then -- 2227
-					resolve( -- 2229
-						nil, -- 2229
-						{ -- 2229
-							success = false, -- 2230
-							mode = "lua", -- 2231
-							output = truncateCommandOutput(table.concat(output, "\n")), -- 2232
-							message = toStr(runtimeErr), -- 2233
-							phase = "execute" -- 2234
-						} -- 2234
-					) -- 2234
-					return -- 2236
-				end -- 2236
-				resolve( -- 2238
-					nil, -- 2238
-					{ -- 2238
-						success = true, -- 2238
-						mode = "lua", -- 2238
-						output = truncateCommandOutput(table.concat(output, "\n")) -- 2238
-					} -- 2238
-				) -- 2238
-			end)) -- 2226
-		end -- 2225
-	) -- 2225
-end -- 2188
-local function formatGitStatusOutput(status) -- 2243
-	if not status then -- 2243
-		return "" -- 2244
-	end -- 2244
-	local lines = {} -- 2245
-	local state = toStr(status.state) -- 2246
-	local kind = toStr(status.kind) -- 2247
-	local message = toStr(status.message) -- 2248
-	local errorMessage = toStr(status.error) -- 2249
-	if kind ~= "" or state ~= "" then -- 2249
-		lines[#lines + 1] = table.concat( -- 2251
-			__TS__ArrayFilter( -- 2251
-				{kind, state}, -- 2251
-				function(____, item) return item ~= "" end -- 2251
-			), -- 2251
-			": " -- 2251
-		) -- 2251
+				return refreshProjectTree(req.workDir, path) -- 2207
+			end -- 2200
+		}, -- 2200
+		{__index = Dora} -- 2209
+	) -- 2209
+	local fn, compileErr = load(code, "=(agent_command)", "t", env) -- 2212
+	if not fn then -- 2212
+		return __TS__Promise.resolve({ -- 2214
+			success = false, -- 2215
+			mode = "lua", -- 2216
+			output = truncateCommandOutput(table.concat(output, "\n")), -- 2217
+			message = toStr(compileErr), -- 2218
+			phase = "compile" -- 2219
+		}) -- 2219
+	end -- 2219
+	return __TS__New( -- 2222
+		__TS__Promise, -- 2222
+		function(____, resolve) -- 2222
+			Director.systemScheduler:schedule(once(function() -- 2223
+				local ok, runtimeErr = pcall(fn) -- 2224
+				if not ok then -- 2224
+					resolve( -- 2226
+						nil, -- 2226
+						{ -- 2226
+							success = false, -- 2227
+							mode = "lua", -- 2228
+							output = truncateCommandOutput(table.concat(output, "\n")), -- 2229
+							message = toStr(runtimeErr), -- 2230
+							phase = "execute" -- 2231
+						} -- 2231
+					) -- 2231
+					return -- 2233
+				end -- 2233
+				resolve( -- 2235
+					nil, -- 2235
+					{ -- 2235
+						success = true, -- 2235
+						mode = "lua", -- 2235
+						output = truncateCommandOutput(table.concat(output, "\n")) -- 2235
+					} -- 2235
+				) -- 2235
+			end)) -- 2223
+		end -- 2222
+	) -- 2222
+end -- 2185
+local function formatGitStatusOutput(status) -- 2240
+	if not status then -- 2240
+		return "" -- 2241
+	end -- 2241
+	local lines = {} -- 2242
+	local state = toStr(status.state) -- 2243
+	local kind = toStr(status.kind) -- 2244
+	local message = toStr(status.message) -- 2245
+	local errorMessage = toStr(status.error) -- 2246
+	if kind ~= "" or state ~= "" then -- 2246
+		lines[#lines + 1] = table.concat( -- 2248
+			__TS__ArrayFilter( -- 2248
+				{kind, state}, -- 2248
+				function(____, item) return item ~= "" end -- 2248
+			), -- 2248
+			": " -- 2248
+		) -- 2248
+	end -- 2248
+	if message ~= "" then -- 2248
+		lines[#lines + 1] = message -- 2250
+	end -- 2250
+	if errorMessage ~= "" then -- 2250
+		lines[#lines + 1] = errorMessage -- 2251
 	end -- 2251
-	if message ~= "" then -- 2251
-		lines[#lines + 1] = message -- 2253
-	end -- 2253
-	if errorMessage ~= "" then -- 2253
-		lines[#lines + 1] = errorMessage -- 2254
-	end -- 2254
-	local data = status.data -- 2255
-	if data ~= nil then -- 2255
-		local dataText = encodeJSON(data) -- 2257
-		lines[#lines + 1] = dataText ~= nil and dataText or tostring(data) -- 2258
-	end -- 2258
-	return truncateCommandOutput(table.concat(lines, "\n")) -- 2260
-end -- 2243
-local function emitGitProgress(mode, operationId, onProgress, status) -- 2263
-	if not onProgress then -- 2263
-		return -- 2269
-	end -- 2269
-	local progress = type(status.progress) == "number" and status.progress or nil -- 2270
-	local kind = toStr(status.kind) -- 2271
-	local message = toStr(status.message) -- 2272
-	local state = toStr(status.state) -- 2273
-	local jobId = type(status.id) == "number" and status.id or nil -- 2274
-	onProgress({ -- 2275
-		state = "running", -- 2276
-		mode = mode, -- 2277
-		operationId = operationId, -- 2278
-		stage = kind ~= "" and kind or "git", -- 2279
-		message = message ~= "" and message or (state ~= "" and state or "running"), -- 2280
-		progress = progress, -- 2281
-		jobId = jobId, -- 2282
-		gitState = state ~= "" and state or nil, -- 2283
-		gitKind = kind ~= "" and kind or nil -- 2284
-	}) -- 2284
-end -- 2263
-local function cloneGitToTarget(req) -- 2288
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2288
-		local parsed = parseGitCloneCommand(req.command) -- 2296
-		if parsed == nil then -- 2296
-			return ____awaiter_resolve(nil, nil) -- 2296
+	local data = status.data -- 2252
+	if data ~= nil then -- 2252
+		local dataText = encodeJSON(data) -- 2254
+		lines[#lines + 1] = dataText ~= nil and dataText or tostring(data) -- 2255
+	end -- 2255
+	return truncateCommandOutput(table.concat(lines, "\n")) -- 2257
+end -- 2240
+local function emitGitProgress(mode, operationId, onProgress, status) -- 2260
+	if not onProgress then -- 2260
+		return -- 2266
+	end -- 2266
+	local progress = type(status.progress) == "number" and status.progress or nil -- 2267
+	local kind = toStr(status.kind) -- 2268
+	local message = toStr(status.message) -- 2269
+	local state = toStr(status.state) -- 2270
+	local jobId = type(status.id) == "number" and status.id or nil -- 2271
+	onProgress({ -- 2272
+		state = "running", -- 2273
+		mode = mode, -- 2274
+		operationId = operationId, -- 2275
+		stage = kind ~= "" and kind or "git", -- 2276
+		message = message ~= "" and message or (state ~= "" and state or "running"), -- 2277
+		progress = progress, -- 2278
+		jobId = jobId, -- 2279
+		gitState = state ~= "" and state or nil, -- 2280
+		gitKind = kind ~= "" and kind or nil -- 2281
+	}) -- 2281
+end -- 2260
+local function cloneGitToTarget(req) -- 2285
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2285
+		local parsed = parseGitCloneCommand(req.command) -- 2293
+		if parsed == nil then -- 2293
+			return ____awaiter_resolve(nil, nil) -- 2293
+		end -- 2293
+		if not parsed.success then -- 2293
+			return ____awaiter_resolve(nil, { -- 2293
+				success = false, -- 2296
+				mode = "git", -- 2296
+				output = "", -- 2296
+				message = parsed.message, -- 2296
+				phase = "validate" -- 2296
+			}) -- 2296
 		end -- 2296
-		if not parsed.success then -- 2296
-			return ____awaiter_resolve(nil, { -- 2296
-				success = false, -- 2299
-				mode = "git", -- 2299
-				output = "", -- 2299
-				message = parsed.message, -- 2299
-				phase = "validate" -- 2299
-			}) -- 2299
-		end -- 2299
-		local target = resolveWorkspaceFilePath(req.workDir, parsed.target) -- 2301
-		if not target then -- 2301
-			return ____awaiter_resolve(nil, { -- 2301
+		local target = resolveWorkspaceFilePath(req.workDir, parsed.target) -- 2298
+		if not target then -- 2298
+			return ____awaiter_resolve(nil, { -- 2298
+				success = false, -- 2300
+				mode = "git", -- 2300
+				output = "", -- 2300
+				message = "invalid clone target path", -- 2300
+				phase = "validate" -- 2300
+			}) -- 2300
+		end -- 2300
+		if Content:exist(target) then -- 2300
+			return ____awaiter_resolve(nil, { -- 2300
 				success = false, -- 2303
 				mode = "git", -- 2303
 				output = "", -- 2303
-				message = "invalid clone target path", -- 2303
+				message = "target already exists", -- 2303
 				phase = "validate" -- 2303
 			}) -- 2303
 		end -- 2303
-		if Content:exist(target) then -- 2303
-			return ____awaiter_resolve(nil, { -- 2303
-				success = false, -- 2306
-				mode = "git", -- 2306
-				output = "", -- 2306
-				message = "target already exists", -- 2306
-				phase = "validate" -- 2306
-			}) -- 2306
-		end -- 2306
-		local targetParent = Path:getPath(target) -- 2308
-		if not ensureDirPath(targetParent) then -- 2308
-			return ____awaiter_resolve(nil, {success = false, mode = "git", output = "", message = "failed to create target parent directory"}) -- 2308
-		end -- 2308
-		local tempRoot = getAgentDownloadTempRoot() -- 2312
-		if not ensureDirPath(tempRoot) then -- 2312
-			return ____awaiter_resolve(nil, {success = false, mode = "git", output = "", message = "failed to create agent download temp directory"}) -- 2312
-		end -- 2312
-		local tempPath = Path(tempRoot, req.operationId .. ".repo") -- 2316
-		Content:remove(tempPath) -- 2317
-		local depth = parsed.depth or "1" -- 2318
-		local ____array_34 = __TS__SparseArrayNew( -- 2318
-			"clone", -- 2320
-			quoteGitArg(parsed.url), -- 2321
-			quoteGitArg(Path:getFilename(tempPath)), -- 2322
-			table.unpack(parsed.ref ~= nil and parsed.ref ~= "" and ({ -- 2323
-				"-b", -- 2323
-				quoteGitArg(parsed.ref) -- 2323
-			}) or ({})) -- 2323
-		) -- 2323
-		__TS__SparseArrayPush( -- 2323
-			____array_34, -- 2323
-			table.unpack(depth ~= "" and ({ -- 2324
+		local targetParent = Path:getPath(target) -- 2305
+		if not ensureDirPath(targetParent) then -- 2305
+			return ____awaiter_resolve(nil, {success = false, mode = "git", output = "", message = "failed to create target parent directory"}) -- 2305
+		end -- 2305
+		local tempRoot = getAgentDownloadTempRoot() -- 2309
+		if not ensureDirPath(tempRoot) then -- 2309
+			return ____awaiter_resolve(nil, {success = false, mode = "git", output = "", message = "failed to create agent download temp directory"}) -- 2309
+		end -- 2309
+		local tempPath = Path(tempRoot, req.operationId .. ".repo") -- 2313
+		Content:remove(tempPath) -- 2314
+		local depth = parsed.depth or "1" -- 2315
+		local ____array_34 = __TS__SparseArrayNew( -- 2315
+			"clone", -- 2317
+			quoteGitArg(parsed.url), -- 2318
+			quoteGitArg(Path:getFilename(tempPath)), -- 2319
+			table.unpack(parsed.ref ~= nil and parsed.ref ~= "" and ({ -- 2320
+				"-b", -- 2320
+				quoteGitArg(parsed.ref) -- 2320
+			}) or ({})) -- 2320
+		) -- 2320
+		__TS__SparseArrayPush( -- 2320
+			____array_34, -- 2320
+			table.unpack(depth ~= "" and ({ -- 2321
 				"--depth",
-				quoteGitArg(depth) -- 2324
-			}) or ({})) -- 2324
-		) -- 2324
-		local command = table.concat( -- 2319
-			{__TS__SparseArraySpread(____array_34)}, -- 2319
-			" " -- 2325
-		) -- 2325
-		local ____this_36 -- 2325
-		____this_36 = req -- 2326
-		local ____opt_35 = ____this_36.onProgress -- 2326
-		if ____opt_35 ~= nil then -- 2326
-			____opt_35(____this_36, { -- 2326
-				state = "pending", -- 2327
-				mode = "git", -- 2328
-				operationId = req.operationId, -- 2329
-				stage = "clone", -- 2330
-				message = "clone pending", -- 2331
-				progress = 0 -- 2332
-			}) -- 2332
-		end -- 2332
-		local gitRes = __TS__Await(runGitAndWait( -- 2334
-			tempRoot, -- 2335
-			command, -- 2336
-			function(status) return emitGitProgress("git", req.operationId, req.onProgress, status) end, -- 2337
-			function() -- 2338
-				local ____this_38 -- 2338
-				____this_38 = req -- 2338
-				local ____opt_37 = ____this_38.isCancelled -- 2338
-				return (____opt_37 and ____opt_37(____this_38)) == true -- 2338
-			end, -- 2338
-			req.timeoutSeconds -- 2339
-		)) -- 2339
-		if not gitRes.success then -- 2339
-			local cleanupError = cleanupPath(tempPath) -- 2342
-			local ____formatGitStatusOutput_result_42 = formatGitStatusOutput(gitRes.status) -- 2346
-			local ____temp_43 = gitRes.message or "git clone failed" -- 2347
-			local ____gitRes_interrupted_41 = gitRes.interrupted -- 2348
-			if not ____gitRes_interrupted_41 then -- 2348
-				local ____this_40 -- 2348
-				____this_40 = req -- 2348
-				local ____opt_39 = ____this_40.isCancelled -- 2348
-				____gitRes_interrupted_41 = (____opt_39 and ____opt_39(____this_40)) == true -- 2348
-			end -- 2348
-			return ____awaiter_resolve(nil, { -- 2348
-				success = false, -- 2344
-				mode = "git", -- 2345
-				output = ____formatGitStatusOutput_result_42, -- 2346
-				message = ____temp_43, -- 2347
-				interrupted = ____gitRes_interrupted_41, -- 2348
-				cleanupError = cleanupError -- 2349
-			}) -- 2349
-		end -- 2349
-		if not Content:move(tempPath, target) then -- 2349
-			local cleanupError = cleanupPath(tempPath) -- 2353
-			return ____awaiter_resolve( -- 2353
-				nil, -- 2353
-				{ -- 2354
-					success = false, -- 2354
-					mode = "git", -- 2354
-					output = formatGitStatusOutput(gitRes.status), -- 2354
-					message = "failed to move cloned repository into target path", -- 2354
-					cleanupError = cleanupError -- 2354
-				} -- 2354
-			) -- 2354
+				quoteGitArg(depth) -- 2321
+			}) or ({})) -- 2321
+		) -- 2321
+		local command = table.concat( -- 2316
+			{__TS__SparseArraySpread(____array_34)}, -- 2316
+			" " -- 2322
+		) -- 2322
+		local ____this_36 -- 2322
+		____this_36 = req -- 2323
+		local ____opt_35 = ____this_36.onProgress -- 2323
+		if ____opt_35 ~= nil then -- 2323
+			____opt_35(____this_36, { -- 2323
+				state = "pending", -- 2324
+				mode = "git", -- 2325
+				operationId = req.operationId, -- 2326
+				stage = "clone", -- 2327
+				message = "clone pending", -- 2328
+				progress = 0 -- 2329
+			}) -- 2329
+		end -- 2329
+		local gitRes = __TS__Await(runGitAndWait( -- 2331
+			tempRoot, -- 2332
+			command, -- 2333
+			function(status) return emitGitProgress("git", req.operationId, req.onProgress, status) end, -- 2334
+			function() -- 2335
+				local ____this_38 -- 2335
+				____this_38 = req -- 2335
+				local ____opt_37 = ____this_38.isCancelled -- 2335
+				return (____opt_37 and ____opt_37(____this_38)) == true -- 2335
+			end, -- 2335
+			req.timeoutSeconds -- 2336
+		)) -- 2336
+		if not gitRes.success then -- 2336
+			local cleanupError = cleanupPath(tempPath) -- 2339
+			local ____formatGitStatusOutput_result_42 = formatGitStatusOutput(gitRes.status) -- 2343
+			local ____temp_43 = gitRes.message or "git clone failed" -- 2344
+			local ____gitRes_interrupted_41 = gitRes.interrupted -- 2345
+			if not ____gitRes_interrupted_41 then -- 2345
+				local ____this_40 -- 2345
+				____this_40 = req -- 2345
+				local ____opt_39 = ____this_40.isCancelled -- 2345
+				____gitRes_interrupted_41 = (____opt_39 and ____opt_39(____this_40)) == true -- 2345
+			end -- 2345
+			return ____awaiter_resolve(nil, { -- 2345
+				success = false, -- 2341
+				mode = "git", -- 2342
+				output = ____formatGitStatusOutput_result_42, -- 2343
+				message = ____temp_43, -- 2344
+				interrupted = ____gitRes_interrupted_41, -- 2345
+				cleanupError = cleanupError -- 2346
+			}) -- 2346
+		end -- 2346
+		if not Content:move(tempPath, target) then -- 2346
+			local cleanupError = cleanupPath(tempPath) -- 2350
+			return ____awaiter_resolve( -- 2350
+				nil, -- 2350
+				{ -- 2351
+					success = false, -- 2351
+					mode = "git", -- 2351
+					output = formatGitStatusOutput(gitRes.status), -- 2351
+					message = "failed to move cloned repository into target path", -- 2351
+					cleanupError = cleanupError -- 2351
+				} -- 2351
+			) -- 2351
+		end -- 2351
+		if not refreshProjectTree(req.workDir) then -- 2351
+			Log("Warn", "[execute_command] failed to refresh Web IDE tree after clone target=" .. target) -- 2354
 		end -- 2354
-		if not refreshProjectTree(req.workDir) then -- 2354
-			Log("Warn", "[execute_command] failed to refresh Web IDE tree after clone target=" .. target) -- 2357
-		end -- 2357
-		local commit = getGitHeadCommit(target) -- 2359
-		local output = table.concat( -- 2360
-			__TS__ArrayFilter( -- 2360
-				{ -- 2360
-					formatGitStatusOutput(gitRes.status), -- 2361
-					(("cloned " .. parsed.url) .. " to ") .. parsed.target, -- 2361
-					commit ~= nil and "commit " .. commit or "" -- 2363
-				}, -- 2363
-				function(____, item) return item ~= "" end -- 2364
-			), -- 2364
-			"\n" -- 2364
-		) -- 2364
-		return ____awaiter_resolve( -- 2364
-			nil, -- 2364
-			{ -- 2365
-				success = true, -- 2365
-				mode = "git", -- 2365
-				output = truncateCommandOutput(output) -- 2365
-			} -- 2365
-		) -- 2365
-	end) -- 2365
-end -- 2288
-local function loadGitProfile() -- 2368
-	local rows -- 2369
-	do -- 2369
-		local function ____catch() -- 2369
-			return true, nil -- 2373
-		end -- 2373
-		local ____try, ____hasReturned, ____returnValue = pcall(function() -- 2373
-			rows = DB:query("select name, email from GitProfile where id = 1 limit 1") -- 2371
-		end) -- 2371
-		if not ____try then -- 2371
-			____hasReturned, ____returnValue = ____catch() -- 2371
-		end -- 2371
-		if ____hasReturned then -- 2371
-			return ____returnValue -- 2370
+		local commit = getGitHeadCommit(target) -- 2356
+		local output = table.concat( -- 2357
+			__TS__ArrayFilter( -- 2357
+				{ -- 2357
+					formatGitStatusOutput(gitRes.status), -- 2358
+					(("cloned " .. parsed.url) .. " to ") .. parsed.target, -- 2358
+					commit ~= nil and "commit " .. commit or "" -- 2360
+				}, -- 2360
+				function(____, item) return item ~= "" end -- 2361
+			), -- 2361
+			"\n" -- 2361
+		) -- 2361
+		return ____awaiter_resolve( -- 2361
+			nil, -- 2361
+			{ -- 2362
+				success = true, -- 2362
+				mode = "git", -- 2362
+				output = truncateCommandOutput(output) -- 2362
+			} -- 2362
+		) -- 2362
+	end) -- 2362
+end -- 2285
+local function loadGitProfile() -- 2365
+	local rows -- 2366
+	do -- 2366
+		local function ____catch() -- 2366
+			return true, nil -- 2370
 		end -- 2370
-	end -- 2370
-	if not rows or not rows[1] then -- 2370
+		local ____try, ____hasReturned, ____returnValue = pcall(function() -- 2370
+			rows = DB:query("select name, email from GitProfile where id = 1 limit 1") -- 2368
+		end) -- 2368
+		if not ____try then -- 2368
+			____hasReturned, ____returnValue = ____catch() -- 2368
+		end -- 2368
+		if ____hasReturned then -- 2368
+			return ____returnValue -- 2367
+		end -- 2367
+	end -- 2367
+	if not rows or not rows[1] then -- 2367
+		return nil -- 2372
+	end -- 2372
+	local name = toStr(rows[1][1]) -- 2373
+	local email = toStr(rows[1][2]) -- 2374
+	if name == "" and email == "" then -- 2374
 		return nil -- 2375
 	end -- 2375
-	local name = toStr(rows[1][1]) -- 2376
-	local email = toStr(rows[1][2]) -- 2377
-	if name == "" and email == "" then -- 2377
-		return nil -- 2378
-	end -- 2378
-	return {name = name, email = email} -- 2379
-end -- 2368
-local function applyGitProfileToCommit(command) -- 2382
-	local args = shellSplit(command) -- 2383
-	if args[1] ~= "commit" then -- 2383
-		return command -- 2384
-	end -- 2384
-	local hasName = false -- 2385
-	local hasEmail = false -- 2386
-	for ____, arg in ipairs(args) do -- 2387
+	return {name = name, email = email} -- 2376
+end -- 2365
+local function applyGitProfileToCommit(command) -- 2379
+	local args = shellSplit(command) -- 2380
+	if args[1] ~= "commit" then -- 2380
+		return command -- 2381
+	end -- 2381
+	local hasName = false -- 2382
+	local hasEmail = false -- 2383
+	for ____, arg in ipairs(args) do -- 2384
 		if arg == "--author-name" then
-			hasName = true -- 2388
-		end -- 2388
+			hasName = true -- 2385
+		end -- 2385
 		if arg == "--author-email" then
-			hasEmail = true -- 2389
-		end -- 2389
-	end -- 2389
-	if hasName and hasEmail then -- 2389
-		return command -- 2391
-	end -- 2391
-	local profile = loadGitProfile() -- 2392
-	if not profile then -- 2392
-		return command -- 2393
+			hasEmail = true -- 2386
+		end -- 2386
+	end -- 2386
+	if hasName and hasEmail then -- 2386
+		return command -- 2388
+	end -- 2388
+	local profile = loadGitProfile() -- 2389
+	if not profile then -- 2389
+		return command -- 2390
+	end -- 2390
+	local additions = {} -- 2391
+	if not hasName and profile.name ~= "" then -- 2391
+		__TS__ArrayPush( -- 2393
+			additions, -- 2393
+			"--author-name",
+			quoteGitArg(profile.name) -- 2393
+		) -- 2393
 	end -- 2393
-	local additions = {} -- 2394
-	if not hasName and profile.name ~= "" then -- 2394
+	if not hasEmail and profile.email ~= "" then -- 2393
 		__TS__ArrayPush( -- 2396
 			additions, -- 2396
-			"--author-name",
-			quoteGitArg(profile.name) -- 2396
+			"--author-email",
+			quoteGitArg(profile.email) -- 2396
 		) -- 2396
 	end -- 2396
-	if not hasEmail and profile.email ~= "" then -- 2396
-		__TS__ArrayPush( -- 2399
-			additions, -- 2399
-			"--author-email",
-			quoteGitArg(profile.email) -- 2399
-		) -- 2399
-	end -- 2399
-	if #additions == 0 then -- 2399
-		return command -- 2401
-	end -- 2401
-	return (command .. " ") .. table.concat(additions, " ") -- 2402
-end -- 2382
-local function executeGitCommand(req) -- 2405
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2405
-		local command = normalizeGitCommand(req.command or "") -- 2414
-		if command == "" then -- 2414
-			return ____awaiter_resolve(nil, { -- 2414
-				success = false, -- 2416
-				mode = "git", -- 2416
-				output = "", -- 2416
-				message = "missing command", -- 2416
-				phase = "validate" -- 2416
-			}) -- 2416
-		end -- 2416
-		local cloneResult = __TS__Await(cloneGitToTarget({ -- 2418
-			workDir = req.workDir, -- 2419
-			command = command, -- 2420
-			operationId = req.operationId, -- 2421
-			timeoutSeconds = req.timeoutSeconds, -- 2422
-			onProgress = req.onProgress, -- 2423
-			isCancelled = req.isCancelled -- 2424
-		})) -- 2424
-		if cloneResult ~= nil then -- 2424
-			return ____awaiter_resolve(nil, cloneResult) -- 2424
-		end -- 2424
-		local cwd = resolveWorkspaceDirectoryPath(req.workDir, req.cwd) -- 2427
-		if not cwd.success then -- 2427
-			return ____awaiter_resolve(nil, { -- 2427
-				success = false, -- 2429
-				mode = "git", -- 2429
-				output = "", -- 2429
-				cwd = req.cwd, -- 2429
-				message = cwd.message, -- 2429
-				phase = "validate" -- 2429
-			}) -- 2429
-		end -- 2429
-		command = applyGitProfileToCommit(command) -- 2431
-		local ____this_45 -- 2431
-		____this_45 = req -- 2432
-		local ____opt_44 = ____this_45.onProgress -- 2432
-		if ____opt_44 ~= nil then -- 2432
-			____opt_44(____this_45, { -- 2432
-				state = "pending", -- 2433
-				mode = "git", -- 2434
-				operationId = req.operationId, -- 2435
-				stage = "git", -- 2436
-				message = "git command pending", -- 2437
-				progress = 0 -- 2438
-			}) -- 2438
-		end -- 2438
-		local gitRes = __TS__Await(runGitAndWait( -- 2440
-			cwd.path, -- 2441
-			command, -- 2442
-			function(status) return emitGitProgress("git", req.operationId, req.onProgress, status) end, -- 2443
-			function() -- 2444
-				local ____this_47 -- 2444
-				____this_47 = req -- 2444
-				local ____opt_46 = ____this_47.isCancelled -- 2444
-				return (____opt_46 and ____opt_46(____this_47)) == true -- 2444
-			end, -- 2444
-			req.timeoutSeconds -- 2445
-		)) -- 2445
-		local output = formatGitStatusOutput(gitRes.status) -- 2447
-		if not gitRes.success then -- 2447
-			local ____output_51 = output -- 2452
-			local ____cwd_relative_52 = cwd.relative -- 2453
-			local ____temp_53 = gitRes.message or "git command failed" -- 2454
-			local ____gitRes_interrupted_50 = gitRes.interrupted -- 2455
-			if not ____gitRes_interrupted_50 then -- 2455
-				local ____this_49 -- 2455
-				____this_49 = req -- 2455
-				local ____opt_48 = ____this_49.isCancelled -- 2455
-				____gitRes_interrupted_50 = (____opt_48 and ____opt_48(____this_49)) == true -- 2455
-			end -- 2455
-			return ____awaiter_resolve(nil, { -- 2455
-				success = false, -- 2450
-				mode = "git", -- 2451
-				output = ____output_51, -- 2452
-				cwd = ____cwd_relative_52, -- 2453
-				message = ____temp_53, -- 2454
-				interrupted = ____gitRes_interrupted_50 -- 2455
-			}) -- 2455
-		end -- 2455
-		return ____awaiter_resolve(nil, {success = true, mode = "git", cwd = cwd.relative, output = output}) -- 2455
-	end) -- 2455
-end -- 2405
-function ____exports.executeCommand(req) -- 2461
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2461
-		local mode = req.mode -- 2471
-		if mode ~= "lua" and mode ~= "git" then -- 2471
-			return ____awaiter_resolve(nil, {success = false, message = "mode must be lua or git", phase = "validate"}) -- 2471
-		end -- 2471
-		if mode == "lua" then -- 2471
-			return ____awaiter_resolve( -- 2471
-				nil, -- 2471
-				executeLuaCommand({workDir = req.workDir, code = req.code or ""}) -- 2476
-			) -- 2476
-		end -- 2476
-		local operationId = createOperationId() -- 2478
-		return ____awaiter_resolve( -- 2478
-			nil, -- 2478
-			executeGitCommand({ -- 2479
-				workDir = req.workDir, -- 2480
-				command = req.command or "", -- 2481
-				cwd = req.cwd, -- 2482
-				timeoutSeconds = math.max( -- 2483
-					1, -- 2483
-					math.floor(__TS__Number(req.timeoutSeconds or 600)) -- 2483
-				), -- 2483
-				operationId = operationId, -- 2484
-				onProgress = req.onProgress, -- 2485
-				isCancelled = req.isCancelled -- 2486
-			}) -- 2486
-		) -- 2486
-	end) -- 2486
-end -- 2461
-function ____exports.fetchUrl(req) -- 2490
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2490
-		local mode = "download" -- 2497
-		local url = __TS__StringTrim(req.url or "") -- 2498
-		local targetRel = __TS__StringTrim(req.target or "") -- 2499
-		if not isHttpUrl(url) then -- 2499
-			return ____awaiter_resolve(nil, { -- 2499
-				success = false, -- 2501
-				state = "failed", -- 2501
-				mode = mode, -- 2501
-				target = targetRel, -- 2501
-				message = "fetch_url only supports http:// and https:// URLs" -- 2501
-			}) -- 2501
-		end -- 2501
-		if targetRel == "" then -- 2501
-			return ____awaiter_resolve(nil, {success = false, state = "failed", mode = mode, message = "missing target"}) -- 2501
-		end -- 2501
-		local target = resolveWorkspaceFilePath(req.workDir, targetRel) -- 2506
-		if not target then -- 2506
-			return ____awaiter_resolve(nil, { -- 2506
+	if #additions == 0 then -- 2396
+		return command -- 2398
+	end -- 2398
+	return (command .. " ") .. table.concat(additions, " ") -- 2399
+end -- 2379
+local function executeGitCommand(req) -- 2402
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2402
+		local command = normalizeGitCommand(req.command or "") -- 2411
+		if command == "" then -- 2411
+			return ____awaiter_resolve(nil, { -- 2411
+				success = false, -- 2413
+				mode = "git", -- 2413
+				output = "", -- 2413
+				message = "missing command", -- 2413
+				phase = "validate" -- 2413
+			}) -- 2413
+		end -- 2413
+		local cloneResult = __TS__Await(cloneGitToTarget({ -- 2415
+			workDir = req.workDir, -- 2416
+			command = command, -- 2417
+			operationId = req.operationId, -- 2418
+			timeoutSeconds = req.timeoutSeconds, -- 2419
+			onProgress = req.onProgress, -- 2420
+			isCancelled = req.isCancelled -- 2421
+		})) -- 2421
+		if cloneResult ~= nil then -- 2421
+			return ____awaiter_resolve(nil, cloneResult) -- 2421
+		end -- 2421
+		local cwd = resolveWorkspaceDirectoryPath(req.workDir, req.cwd) -- 2424
+		if not cwd.success then -- 2424
+			return ____awaiter_resolve(nil, { -- 2424
+				success = false, -- 2426
+				mode = "git", -- 2426
+				output = "", -- 2426
+				cwd = req.cwd, -- 2426
+				message = cwd.message, -- 2426
+				phase = "validate" -- 2426
+			}) -- 2426
+		end -- 2426
+		command = applyGitProfileToCommit(command) -- 2428
+		local ____this_45 -- 2428
+		____this_45 = req -- 2429
+		local ____opt_44 = ____this_45.onProgress -- 2429
+		if ____opt_44 ~= nil then -- 2429
+			____opt_44(____this_45, { -- 2429
+				state = "pending", -- 2430
+				mode = "git", -- 2431
+				operationId = req.operationId, -- 2432
+				stage = "git", -- 2433
+				message = "git command pending", -- 2434
+				progress = 0 -- 2435
+			}) -- 2435
+		end -- 2435
+		local gitRes = __TS__Await(runGitAndWait( -- 2437
+			cwd.path, -- 2438
+			command, -- 2439
+			function(status) return emitGitProgress("git", req.operationId, req.onProgress, status) end, -- 2440
+			function() -- 2441
+				local ____this_47 -- 2441
+				____this_47 = req -- 2441
+				local ____opt_46 = ____this_47.isCancelled -- 2441
+				return (____opt_46 and ____opt_46(____this_47)) == true -- 2441
+			end, -- 2441
+			req.timeoutSeconds -- 2442
+		)) -- 2442
+		local output = formatGitStatusOutput(gitRes.status) -- 2444
+		if not gitRes.success then -- 2444
+			local ____output_51 = output -- 2449
+			local ____cwd_relative_52 = cwd.relative -- 2450
+			local ____temp_53 = gitRes.message or "git command failed" -- 2451
+			local ____gitRes_interrupted_50 = gitRes.interrupted -- 2452
+			if not ____gitRes_interrupted_50 then -- 2452
+				local ____this_49 -- 2452
+				____this_49 = req -- 2452
+				local ____opt_48 = ____this_49.isCancelled -- 2452
+				____gitRes_interrupted_50 = (____opt_48 and ____opt_48(____this_49)) == true -- 2452
+			end -- 2452
+			return ____awaiter_resolve(nil, { -- 2452
+				success = false, -- 2447
+				mode = "git", -- 2448
+				output = ____output_51, -- 2449
+				cwd = ____cwd_relative_52, -- 2450
+				message = ____temp_53, -- 2451
+				interrupted = ____gitRes_interrupted_50 -- 2452
+			}) -- 2452
+		end -- 2452
+		return ____awaiter_resolve(nil, {success = true, mode = "git", cwd = cwd.relative, output = output}) -- 2452
+	end) -- 2452
+end -- 2402
+function ____exports.executeCommand(req) -- 2458
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2458
+		local mode = req.mode -- 2468
+		if mode ~= "lua" and mode ~= "git" then -- 2468
+			return ____awaiter_resolve(nil, {success = false, message = "mode must be lua or git", phase = "validate"}) -- 2468
+		end -- 2468
+		if mode == "lua" then -- 2468
+			return ____awaiter_resolve( -- 2468
+				nil, -- 2468
+				executeLuaCommand({workDir = req.workDir, code = req.code or ""}) -- 2473
+			) -- 2473
+		end -- 2473
+		local operationId = createOperationId() -- 2475
+		return ____awaiter_resolve( -- 2475
+			nil, -- 2475
+			executeGitCommand({ -- 2476
+				workDir = req.workDir, -- 2477
+				command = req.command or "", -- 2478
+				cwd = req.cwd, -- 2479
+				timeoutSeconds = math.max( -- 2480
+					1, -- 2480
+					math.floor(__TS__Number(req.timeoutSeconds or 600)) -- 2480
+				), -- 2480
+				operationId = operationId, -- 2481
+				onProgress = req.onProgress, -- 2482
+				isCancelled = req.isCancelled -- 2483
+			}) -- 2483
+		) -- 2483
+	end) -- 2483
+end -- 2458
+function ____exports.fetchUrl(req) -- 2487
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2487
+		local mode = "download" -- 2494
+		local url = __TS__StringTrim(req.url or "") -- 2495
+		local targetRel = __TS__StringTrim(req.target or "") -- 2496
+		if not isHttpUrl(url) then -- 2496
+			return ____awaiter_resolve(nil, { -- 2496
+				success = false, -- 2498
+				state = "failed", -- 2498
+				mode = mode, -- 2498
+				target = targetRel, -- 2498
+				message = "fetch_url only supports http:// and https:// URLs" -- 2498
+			}) -- 2498
+		end -- 2498
+		if targetRel == "" then -- 2498
+			return ____awaiter_resolve(nil, {success = false, state = "failed", mode = mode, message = "missing target"}) -- 2498
+		end -- 2498
+		local target = resolveWorkspaceFilePath(req.workDir, targetRel) -- 2503
+		if not target then -- 2503
+			return ____awaiter_resolve(nil, { -- 2503
+				success = false, -- 2505
+				state = "failed", -- 2505
+				mode = mode, -- 2505
+				target = targetRel, -- 2505
+				message = "invalid target path" -- 2505
+			}) -- 2505
+		end -- 2505
+		if Content:exist(target) then -- 2505
+			return ____awaiter_resolve(nil, { -- 2505
 				success = false, -- 2508
 				state = "failed", -- 2508
 				mode = mode, -- 2508
 				target = targetRel, -- 2508
-				message = "invalid target path" -- 2508
+				message = "target already exists" -- 2508
 			}) -- 2508
 		end -- 2508
-		if Content:exist(target) then -- 2508
-			return ____awaiter_resolve(nil, { -- 2508
-				success = false, -- 2511
-				state = "failed", -- 2511
-				mode = mode, -- 2511
-				target = targetRel, -- 2511
-				message = "target already exists" -- 2511
-			}) -- 2511
-		end -- 2511
-		local operationId = createOperationId() -- 2513
-		local tempRoot = getAgentDownloadTempRoot() -- 2514
-		if not ensureDirPath(tempRoot) then -- 2514
-			return ____awaiter_resolve(nil, { -- 2514
-				success = false, -- 2516
-				state = "failed", -- 2516
-				mode = mode, -- 2516
-				target = targetRel, -- 2516
-				message = "failed to create agent download temp directory" -- 2516
-			}) -- 2516
-		end -- 2516
-		local tempPath = Path(tempRoot, operationId .. ".download") -- 2518
-		Content:remove(tempPath) -- 2519
-		local function emitProgress(progress) -- 2520
-			if not req.onProgress then -- 2520
-				return -- 2521
-			end -- 2521
-			req:onProgress(__TS__ObjectAssign({ -- 2522
-				state = "running", -- 2523
-				mode = mode, -- 2524
-				operationId = operationId, -- 2525
-				target = targetRel, -- 2526
-				tempPath = tempPath -- 2527
-			}, progress)) -- 2527
-		end -- 2520
-		emitProgress({state = "pending", message = "download pending", stage = "download"}) -- 2531
-		local function interrupted() -- 2536
-			local ____this_55 -- 2536
-			____this_55 = req -- 2536
-			local ____opt_54 = ____this_55.isCancelled -- 2536
-			return (____opt_54 and ____opt_54(____this_55)) == true -- 2536
-		end -- 2536
-		if not ensureDirForFile(tempPath) then -- 2536
-			return ____awaiter_resolve(nil, { -- 2536
-				success = false, -- 2538
-				state = "failed", -- 2538
-				mode = mode, -- 2538
-				target = targetRel, -- 2538
-				message = "failed to create temporary file directory" -- 2538
-			}) -- 2538
-		end -- 2538
-		local downloadRes = __TS__Await(downloadFile({ -- 2540
-			url = url, -- 2541
-			tempPath = tempPath, -- 2542
-			timeout = 600, -- 2543
-			isCancelled = interrupted, -- 2544
-			onProgress = function(____, current, total) -- 2545
-				local totalNumber = type(total) == "number" and total or 0 -- 2546
-				emitProgress({ -- 2547
-					stage = "download", -- 2548
-					message = "downloading", -- 2549
-					current = current, -- 2550
-					total = total, -- 2551
-					progress = totalNumber > 0 and current / totalNumber or nil -- 2552
-				}) -- 2552
-			end -- 2545
-		})) -- 2545
-		if not downloadRes.success then -- 2545
-			local cleanupError = cleanupPath(tempPath) -- 2557
-			return ____awaiter_resolve( -- 2557
-				nil, -- 2557
-				{ -- 2558
-					success = false, -- 2559
-					state = "failed", -- 2560
-					mode = mode, -- 2561
-					target = targetRel, -- 2562
-					message = interrupted() and "download canceled" or (downloadRes.message or "download failed"), -- 2563
-					interrupted = downloadRes.interrupted or interrupted(), -- 2564
-					cleanupError = cleanupError -- 2565
-				} -- 2565
-			) -- 2565
-		end -- 2565
-		if not ensureDirForFile(target) then -- 2565
-			local cleanupError = cleanupPath(tempPath) -- 2569
-			return ____awaiter_resolve(nil, { -- 2569
-				success = false, -- 2570
-				state = "failed", -- 2570
-				mode = mode, -- 2570
-				target = targetRel, -- 2570
-				message = "failed to create target directory", -- 2570
-				cleanupError = cleanupError -- 2570
-			}) -- 2570
-		end -- 2570
-		if not Content:move(tempPath, target) then -- 2570
-			local cleanupError = cleanupPath(tempPath) -- 2573
-			return ____awaiter_resolve(nil, { -- 2573
-				success = false, -- 2574
-				state = "failed", -- 2574
-				mode = mode, -- 2574
-				target = targetRel, -- 2574
-				message = "failed to move downloaded file into target path", -- 2574
-				cleanupError = cleanupError -- 2574
-			}) -- 2574
-		end -- 2574
-		local bytesWritten = downloadRes.bytesWritten -- 2576
-		local ____try = __TS__AsyncAwaiter(function() -- 2576
-			local size = Content:getAttr(target) -- 2578
-			if bytesWritten == nil or bytesWritten <= 0 then -- 2578
-				bytesWritten = type(size) == "number" and size or nil -- 2580
-			end -- 2580
-		end) -- 2580
-		____try = ____try.catch( -- 2580
-			____try, -- 2580
-			function(____, _) -- 2580
-				return __TS__AsyncAwaiter(function() -- 2580
-				end) -- 2580
-			end -- 2580
-		) -- 2580
-		__TS__Await(____try) -- 2577
-		if bytesWritten == nil or bytesWritten <= 0 then -- 2577
-			local ____try = __TS__AsyncAwaiter(function() -- 2577
-				local loaded = Content:load(target) -- 2587
-				if type(loaded) == "string" then -- 2587
-					bytesWritten = #loaded -- 2589
-				end -- 2589
-			end) -- 2589
-			____try = ____try.catch( -- 2589
-				____try, -- 2589
-				function(____, _) -- 2589
-					return __TS__AsyncAwaiter(function() -- 2589
-					end) -- 2589
-				end -- 2589
-			) -- 2589
-			__TS__Await(____try) -- 2586
-		end -- 2586
-		if not syncDownloadedFileToWebIDE(target) then -- 2586
-			Log("Warn", "[fetch_url] failed to sync downloaded file update target=" .. target) -- 2596
-		end -- 2596
-		return ____awaiter_resolve(nil, { -- 2596
-			success = true, -- 2598
-			state = "done", -- 2598
-			mode = mode, -- 2598
-			target = targetRel, -- 2598
-			bytesWritten = bytesWritten -- 2598
-		}) -- 2598
-	end) -- 2598
-end -- 2490
-return ____exports -- 2490
+		local operationId = createOperationId() -- 2510
+		local tempRoot = getAgentDownloadTempRoot() -- 2511
+		if not ensureDirPath(tempRoot) then -- 2511
+			return ____awaiter_resolve(nil, { -- 2511
+				success = false, -- 2513
+				state = "failed", -- 2513
+				mode = mode, -- 2513
+				target = targetRel, -- 2513
+				message = "failed to create agent download temp directory" -- 2513
+			}) -- 2513
+		end -- 2513
+		local tempPath = Path(tempRoot, operationId .. ".download") -- 2515
+		Content:remove(tempPath) -- 2516
+		local function emitProgress(progress) -- 2517
+			if not req.onProgress then -- 2517
+				return -- 2518
+			end -- 2518
+			req:onProgress(__TS__ObjectAssign({ -- 2519
+				state = "running", -- 2520
+				mode = mode, -- 2521
+				operationId = operationId, -- 2522
+				target = targetRel, -- 2523
+				tempPath = tempPath -- 2524
+			}, progress)) -- 2524
+		end -- 2517
+		emitProgress({state = "pending", message = "download pending", stage = "download"}) -- 2528
+		local function interrupted() -- 2533
+			local ____this_55 -- 2533
+			____this_55 = req -- 2533
+			local ____opt_54 = ____this_55.isCancelled -- 2533
+			return (____opt_54 and ____opt_54(____this_55)) == true -- 2533
+		end -- 2533
+		if not ensureDirForFile(tempPath) then -- 2533
+			return ____awaiter_resolve(nil, { -- 2533
+				success = false, -- 2535
+				state = "failed", -- 2535
+				mode = mode, -- 2535
+				target = targetRel, -- 2535
+				message = "failed to create temporary file directory" -- 2535
+			}) -- 2535
+		end -- 2535
+		local downloadRes = __TS__Await(downloadFile({ -- 2537
+			url = url, -- 2538
+			tempPath = tempPath, -- 2539
+			timeout = 600, -- 2540
+			isCancelled = interrupted, -- 2541
+			onProgress = function(____, current, total) -- 2542
+				local totalNumber = type(total) == "number" and total or 0 -- 2543
+				emitProgress({ -- 2544
+					stage = "download", -- 2545
+					message = "downloading", -- 2546
+					current = current, -- 2547
+					total = total, -- 2548
+					progress = totalNumber > 0 and current / totalNumber or nil -- 2549
+				}) -- 2549
+			end -- 2542
+		})) -- 2542
+		if not downloadRes.success then -- 2542
+			local cleanupError = cleanupPath(tempPath) -- 2554
+			return ____awaiter_resolve( -- 2554
+				nil, -- 2554
+				{ -- 2555
+					success = false, -- 2556
+					state = "failed", -- 2557
+					mode = mode, -- 2558
+					target = targetRel, -- 2559
+					message = interrupted() and "download canceled" or (downloadRes.message or "download failed"), -- 2560
+					interrupted = downloadRes.interrupted or interrupted(), -- 2561
+					cleanupError = cleanupError -- 2562
+				} -- 2562
+			) -- 2562
+		end -- 2562
+		if not ensureDirForFile(target) then -- 2562
+			local cleanupError = cleanupPath(tempPath) -- 2566
+			return ____awaiter_resolve(nil, { -- 2566
+				success = false, -- 2567
+				state = "failed", -- 2567
+				mode = mode, -- 2567
+				target = targetRel, -- 2567
+				message = "failed to create target directory", -- 2567
+				cleanupError = cleanupError -- 2567
+			}) -- 2567
+		end -- 2567
+		if not Content:move(tempPath, target) then -- 2567
+			local cleanupError = cleanupPath(tempPath) -- 2570
+			return ____awaiter_resolve(nil, { -- 2570
+				success = false, -- 2571
+				state = "failed", -- 2571
+				mode = mode, -- 2571
+				target = targetRel, -- 2571
+				message = "failed to move downloaded file into target path", -- 2571
+				cleanupError = cleanupError -- 2571
+			}) -- 2571
+		end -- 2571
+		local bytesWritten = downloadRes.bytesWritten -- 2573
+		local ____try = __TS__AsyncAwaiter(function() -- 2573
+			local size = Content:getAttr(target) -- 2575
+			if bytesWritten == nil or bytesWritten <= 0 then -- 2575
+				bytesWritten = type(size) == "number" and size or nil -- 2577
+			end -- 2577
+		end) -- 2577
+		____try = ____try.catch( -- 2577
+			____try, -- 2577
+			function(____, _) -- 2577
+				return __TS__AsyncAwaiter(function() -- 2577
+				end) -- 2577
+			end -- 2577
+		) -- 2577
+		__TS__Await(____try) -- 2574
+		if bytesWritten == nil or bytesWritten <= 0 then -- 2574
+			local ____try = __TS__AsyncAwaiter(function() -- 2574
+				local loaded = Content:load(target) -- 2584
+				if type(loaded) == "string" then -- 2584
+					bytesWritten = #loaded -- 2586
+				end -- 2586
+			end) -- 2586
+			____try = ____try.catch( -- 2586
+				____try, -- 2586
+				function(____, _) -- 2586
+					return __TS__AsyncAwaiter(function() -- 2586
+					end) -- 2586
+				end -- 2586
+			) -- 2586
+			__TS__Await(____try) -- 2583
+		end -- 2583
+		if not syncDownloadedFileToWebIDE(target) then -- 2583
+			Log("Warn", "[fetch_url] failed to sync downloaded file update target=" .. target) -- 2593
+		end -- 2593
+		return ____awaiter_resolve(nil, { -- 2593
+			success = true, -- 2595
+			state = "done", -- 2595
+			mode = mode, -- 2595
+			target = targetRel, -- 2595
+			bytesWritten = bytesWritten -- 2595
+		}) -- 2595
+	end) -- 2595
+end -- 2487
+return ____exports -- 2487
