@@ -19,7 +19,7 @@ local ____Utils = require("Agent.Utils") -- 2
 local safeJsonEncode = ____Utils.safeJsonEncode -- 2
 local Gen = {} -- 2
 do -- 2
-	local vec2Calc -- 2
+	local _ifElseCore, vec2Calc -- 2
 	local IdFactory = __TS__Class() -- 6
 	IdFactory.name = "IdFactory" -- 6
 	function IdFactory.prototype.____constructor(self) -- 6
@@ -112,30 +112,30 @@ do -- 2
 		return {id = name} -- 99
 	end -- 97
 	Gen.Declare = function(name, value) return __TS__New(Gen.Blk, "declare_variable", {fields = {VAR = {id = name, name = name}}, inputs = {VALUE = value}}) end -- 4
-	Gen.If = function(cond, body) return {condition = cond, elseBranch = false, body = body} end -- 4
-	Gen.Else = function(body) return {elseBranch = true, body = body} end -- 4
-	local function _ifElseCore(main, elseIfs, otherwise) -- 111
-		local inputs = {IF0 = main.condition, DO0 = main.body} -- 116
-		__TS__ArrayForEach( -- 120
-			elseIfs, -- 120
-			function(____, br, idx) -- 120
-				inputs["IF" .. tostring(idx + 1)] = br.condition -- 121
-				inputs["DO" .. tostring(idx + 1)] = br.body -- 122
-			end -- 120
-		) -- 120
-		if otherwise then -- 120
-			inputs.ELSE = otherwise -- 124
-		end -- 124
-		return __TS__New(Gen.Blk, "controls_if", {extraState = {elseIfCount = #elseIfs, hasElse = not not otherwise}, inputs = inputs}) -- 125
-	end -- 111
 	Gen.IfElse = function(...) -- 4
 		local ifBranchesOrElse = {...} -- 4
-		local last = ifBranchesOrElse[#ifBranchesOrElse] -- 132
-		local main = ifBranchesOrElse[1] -- 133
-		local elseIfs = last.elseBranch and __TS__ArraySlice(ifBranchesOrElse, 1, -1) or __TS__ArraySlice(ifBranchesOrElse, 1) -- 134
-		local elseBody = last.elseBranch and last.body or nil -- 135
-		return _ifElseCore(main, elseIfs, elseBody) -- 136
-	end -- 131
+		local last = ifBranchesOrElse[#ifBranchesOrElse] -- 109
+		local main = ifBranchesOrElse[1] -- 110
+		local elseIfs = last.elseBranch and __TS__ArraySlice(ifBranchesOrElse, 1, -1) or __TS__ArraySlice(ifBranchesOrElse, 1) -- 111
+		local elseBody = last.elseBranch and last.body or nil -- 112
+		return _ifElseCore(main, elseIfs, elseBody) -- 113
+	end -- 108
+	Gen.If = function(cond, body) return {condition = cond, elseBranch = false, body = body} end -- 4
+	Gen.Else = function(body) return {elseBranch = true, body = body} end -- 4
+	_ifElseCore = function(main, elseIfs, otherwise) -- 119
+		local inputs = {IF0 = main.condition, DO0 = main.body} -- 124
+		__TS__ArrayForEach( -- 128
+			elseIfs, -- 128
+			function(____, br, idx) -- 128
+				inputs["IF" .. tostring(idx + 1)] = br.condition -- 129
+				inputs["DO" .. tostring(idx + 1)] = br.body -- 130
+			end -- 128
+		) -- 128
+		if otherwise then -- 128
+			inputs.ELSE = otherwise -- 132
+		end -- 132
+		return __TS__New(Gen.Blk, "controls_if", {extraState = {elseIfCount = #elseIfs, hasElse = not not otherwise}, inputs = inputs}) -- 133
+	end -- 119
 	Gen.Block = function(...) -- 4
 		local nodes = {...} -- 4
 		__TS__ArrayReduce( -- 140

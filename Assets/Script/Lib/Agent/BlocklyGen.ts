@@ -105,6 +105,14 @@ namespace Gen {
 			inputs: { VALUE: value },
 		});
 
+	export const IfElse = (...ifBranchesOrElse: (ReturnType<typeof If> | ReturnType<typeof Else>)[]) => {
+		const last = ifBranchesOrElse[ifBranchesOrElse.length - 1];
+		const main = ifBranchesOrElse[0] as ReturnType<typeof If>;
+		const elseIfs = (last.elseBranch ? ifBranchesOrElse.slice(1, -1) : ifBranchesOrElse.slice(1)) as ReturnType<typeof If>[];
+		const elseBody = last.elseBranch ? last.body : undefined;
+		return _ifElseCore(main, elseIfs, elseBody);
+	};
+
 	export const If = (cond: Blk, body: Blk) => ({ condition: cond, elseBranch: false, body });
 	export const Else = (body: Blk) => ({ elseBranch: true, body });
 
@@ -126,14 +134,6 @@ namespace Gen {
 			extraState: { elseIfCount: elseIfs.length, hasElse: !!otherwise },
 			inputs,
 		});
-	};
-
-	export const IfElse = (...ifBranchesOrElse: (ReturnType<typeof If> | ReturnType<typeof Else>)[]) => {
-		const last = ifBranchesOrElse[ifBranchesOrElse.length - 1];
-		const main = ifBranchesOrElse[0] as ReturnType<typeof If>;
-		const elseIfs = (last.elseBranch ? ifBranchesOrElse.slice(1, -1) : ifBranchesOrElse.slice(1)) as ReturnType<typeof If>[];
-		const elseBody = last.elseBranch ? last.body : undefined;
-		return _ifElseCore(main, elseIfs, elseBody);
 	};
 
 	export const Block = (...nodes: Blk[]): Blk => {

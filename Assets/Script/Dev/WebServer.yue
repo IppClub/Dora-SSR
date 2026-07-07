@@ -529,16 +529,16 @@ gitSummary = (repoPath) ->
 		success: true
 		isRepo: true
 		clean: status.data and status.data.clean or false
-		currentBranch: currentBranch
-		defaultRemote: defaultRemote
+		:currentBranch
+		:defaultRemote
 		remotes: remoteStatus and remoteStatus.data and remoteStatus.data.remotes or {}
-		branches: branches
-		lastCommit: lastCommit
-		status: status
-		branchStatus: branchStatus
-		remoteStatus: remoteStatus
+		:branches
+		:lastCommit
+		:status
+		:branchStatus
+		:remoteStatus
 		historyStatus: logStatus
-		tagStatus: tagStatus
+		:tagStatus
 
 HttpServer\post "/git/run", (req): invalidArguments ->
 	switch req when {body: body}
@@ -680,9 +680,7 @@ HttpServer\post "/git/auth/list", (req) ->
 		DB\query "select id, host, label, type, username, created_at, updated_at, last_used_at from GitCredential where host = ? order by host asc, label asc, id asc", [tostring(host)\lower!,]
 	else
 		DB\query "select id, host, label, type, username, created_at, updated_at, last_used_at from GitCredential order by host asc, label asc, id asc"
-	items = if rows
-		[gitCredentialToPublic row for row in *rows]
-	else {}
+	items = if rows then [gitCredentialToPublic row for row in *rows] else []
 	return success: true, :items
 
 HttpServer\postSchedule "/git/auth/match", (req): invalidArguments ->
@@ -692,8 +690,6 @@ HttpServer\postSchedule "/git/auth/match", (req): invalidArguments ->
 		return success: false, message: "git host is required" unless host
 		items = gitCredentialsForHost host
 		return success: true, :host, :items, needsSelection: #items > 1, authId: (#items == 1 and items[1].id or nil)
-	else
-		return success: false, message: "invalid arguments"
 
 HttpServer\post "/git/auth/save", (req): invalidArguments ->
 	switch req when {body: body}
@@ -1485,13 +1481,13 @@ HttpServer\post "/llm/list", ->
 			:id, :name, :url, :model, :key, contextWindow: normalizeContextWindow(contextWindow), temperature: normalizeTemperature(temperature), maxTokens: normalizeMaxTokens(maxTokens), reasoningEffort: normalizeReasoningEffort(reasoningEffort), customOptions: normalizeCustomOptions(customOptions), supportsFunctionCalling: supportsFunctionCalling ~= 0, active: active ~= 0
 	return success: true, :items
 
-HttpServer\post "/llm/create", (req): success: false, message: "invalid" ->
+HttpServer\post "/llm/create", (req): invalidArguments ->
 	ensureLLMConfigTable!
 	switch req when {body: body}
 		{:name, :url, :model, :key, :active, :contextWindow, :temperature, :maxTokens, :reasoningEffort, :customOptions, :supportsFunctionCalling} = body
 		now = os.time!
 		if name == nil or url == nil or model == nil or key == nil
-			return success: false, message: "invalid"
+			return invalidArguments
 		contextWindow = normalizeContextWindow contextWindow
 		temperature = normalizeTemperature temperature
 		maxTokens = normalizeMaxTokens maxTokens
@@ -1522,14 +1518,13 @@ HttpServer\post "/llm/create", (req): success: false, message: "invalid" ->
 		]
 		return success: affected >= 0
 
-HttpServer\post "/llm/update", (req): success: false, message: "invalid" ->
+HttpServer\post "/llm/update", (req): invalidArguments ->
 	ensureLLMConfigTable!
 	switch req when {body: body}
 		{:id, :name, :url, :model, :key, :active, :contextWindow, :temperature, :maxTokens, :reasoningEffort, :customOptions, :supportsFunctionCalling} = body
 		now = os.time!
 		id = tonumber id
-		if id == nil
-			return success: false, message: "invalid"
+		return invalidArguments if id == nil
 		contextWindow = normalizeContextWindow contextWindow
 		temperature = normalizeTemperature temperature
 		maxTokens = normalizeMaxTokens maxTokens
@@ -1558,12 +1553,11 @@ HttpServer\post "/llm/update", (req): success: false, message: "invalid" ->
 		]
 		return success: affected >= 0
 
-HttpServer\post "/llm/delete", (req): success: false, message: "invalid" ->
+HttpServer\post "/llm/delete", (req): invalidArguments ->
 	ensureLLMConfigTable!
 	switch req when {body: {:id}}
 		id = tonumber id
-		if id == nil
-			return success: false, message: "invalid"
+		return invalidArguments if id == nil
 		affected = DB\exec "delete from LLMConfig where id = ?", [id,]
 		return success: affected >= 0
 
@@ -1735,6 +1729,7 @@ HttpServer\postSchedule "/doc/read", (req) ->
 	if result and result.success
 		result.docLanguage = language
 	result
+
 HttpServer\get "/read-sync", (req): success: false ->
 	switch req when :params
 		:path = params

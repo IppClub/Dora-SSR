@@ -17,6 +17,7 @@ declare namespace Gen {
 	export const Ternary: (cond: Blk, thenValue: Blk, elseValue: Blk) => Blk;
 	export const List: (...items: Blk[]) => Blk;
 	export const Declare: (name: string, value: Blk) => Blk;
+	export const IfElse: (...ifBranchesOrElse: (ReturnType<typeof If> | ReturnType<typeof Else>)[]) => Blk;
 	export const If: (cond: Blk, body: Blk) => {
 		condition: Blk;
 		elseBranch: boolean;
@@ -26,7 +27,6 @@ declare namespace Gen {
 		elseBranch: boolean;
 		body: Blk;
 	};
-	export const IfElse: (...ifBranchesOrElse: (ReturnType<typeof If> | ReturnType<typeof Else>)[]) => Blk;
 	export const Block: (...nodes: Blk[]) => Blk;
 	export const Num: (n: number) => Blk;
 	export const VarGet: (name: string) => Blk;
