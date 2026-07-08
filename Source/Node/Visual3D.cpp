@@ -22,7 +22,7 @@ Visual3D::Visual3D()
 	, _localBounds{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}
 	, _worldBounds(_localBounds)
 	, _meshHandle(nullptr)
-	, _rustVisual(nullptr) { }
+	, _rustVisual(0) { }
 
 void Visual3D::setFrustumCulling(bool var) {
 	_frustumCulling = var;
@@ -62,11 +62,11 @@ void* Visual3D::getMeshHandle() const noexcept {
 	return _meshHandle;
 }
 
-void Visual3D::setRustVisual(void* var) {
+void Visual3D::setRustVisual(uint64_t var) {
 	_rustVisual = var;
 }
 
-void* Visual3D::getRustVisual() const noexcept {
+uint64_t Visual3D::getRustVisual() const noexcept {
 	return _rustVisual;
 }
 
@@ -84,10 +84,6 @@ void Visual3D::render(RenderPass3D& renderPass, Camera3D* camera) {
 		origin.z - camera->getPosition().z};
 	float distance = bx::sqrt(delta.x * delta.x + delta.y * delta.y + delta.z * delta.z);
 	RenderItem3D item;
-	item.world = getWorldMatrix();
-	Matrix inverse;
-	bx::mtxInverse(inverse.m, item.world.m);
-	Matrix::transpose(item.normal, inverse);
 	item.bounds = bounds;
 	item.meshHandle = _meshHandle;
 	item.materialHandle = _material.get();
@@ -97,6 +93,7 @@ void Visual3D::render(RenderPass3D& renderPass, Camera3D* camera) {
 		| (reinterpret_cast<uintptr_t>(_meshHandle) & 0xffffffffu);
 	item.transparent = _material ? _material->isTransparent() : false;
 	item.visual = this;
+	item.rustVisual = _rustVisual;
 	renderPass.collect(item);
 }
 

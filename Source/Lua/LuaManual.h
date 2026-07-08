@@ -75,6 +75,72 @@ inline View* View_shared() { return &SharedView; }
 /* Log */
 inline void Dora_Log(String level, String msg) { LogThreaded(level.toString(), msg.toString()); }
 
+/* 3D */
+#define Node3D_getPosition(self) \
+	{ \
+		const Vec3& pos = self->getPosition(); \
+		lua_pushnumber(tolua_S, pos.x); \
+		lua_pushnumber(tolua_S, pos.y); \
+		lua_pushnumber(tolua_S, pos.z); \
+		return 3; \
+	}
+#define Node3D_getScale(self) \
+	{ \
+		const Vec3& scale = self->getScale(); \
+		lua_pushnumber(tolua_S, scale.x); \
+		lua_pushnumber(tolua_S, scale.y); \
+		lua_pushnumber(tolua_S, scale.z); \
+		return 3; \
+	}
+#define Node3D_getEulerAngles(self) \
+	{ \
+		const Vec3& eulerAngles = self->getEulerAngles(); \
+		lua_pushnumber(tolua_S, eulerAngles.x); \
+		lua_pushnumber(tolua_S, eulerAngles.y); \
+		lua_pushnumber(tolua_S, eulerAngles.z); \
+		return 3; \
+	}
+#define Node3D_convertToWorldSpace(self, x, y, z) \
+	{ \
+		Vec3 pos = self->convertToWorldSpace({x, y, z}); \
+		lua_pushnumber(tolua_S, pos.x); \
+		lua_pushnumber(tolua_S, pos.y); \
+		lua_pushnumber(tolua_S, pos.z); \
+		return 3; \
+	}
+#define Node3D_convertToNodeSpace(self, x, y, z) \
+	{ \
+		Vec3 pos = self->convertToNodeSpace({x, y, z}); \
+		lua_pushnumber(tolua_S, pos.x); \
+		lua_pushnumber(tolua_S, pos.y); \
+		lua_pushnumber(tolua_S, pos.z); \
+		return 3; \
+	}
+#define Camera3D_getPosition(self) \
+	{ \
+		const Vec3& pos = self->getPosition(); \
+		lua_pushnumber(tolua_S, pos.x); \
+		lua_pushnumber(tolua_S, pos.y); \
+		lua_pushnumber(tolua_S, pos.z); \
+		return 3; \
+	}
+#define Camera3D_getTarget(self) \
+	{ \
+		const Vec3& target = self->getTarget(); \
+		lua_pushnumber(tolua_S, target.x); \
+		lua_pushnumber(tolua_S, target.y); \
+		lua_pushnumber(tolua_S, target.z); \
+		return 3; \
+	}
+#define Camera3D_getUp(self) \
+	{ \
+		const Vec3& up = self->getUp(); \
+		lua_pushnumber(tolua_S, up.x); \
+		lua_pushnumber(tolua_S, up.y); \
+		lua_pushnumber(tolua_S, up.z); \
+		return 3; \
+	}
+
 /* ShaderCompiler */
 inline ShaderStage ShaderCompiler_getStage(String stageName) {
 	switch (Switch::hash(stageName)) {

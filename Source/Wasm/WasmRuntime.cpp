@@ -870,6 +870,10 @@ static inline Texture2D* Texture2D_Create(String name) {
 	return SharedTextureCache.load(name);
 }
 
+static inline uint16_t Texture2D_GetHandle(Texture2D* texture) {
+	return texture->getHandle().idx;
+}
+
 // Sprite
 
 static inline void Sprite_SetEffectNullptr(Sprite* self) {

@@ -272,6 +272,25 @@ class CameraOtho : public Camera
 	CameraOtho* create(String name = nullptr);
 };
 
+class Camera3D : public Camera
+{
+	tolua_property__common float fieldOfView;
+	tolua_property__common float nearClip;
+	tolua_property__common float farClip;
+	tolua_property__common float aspectRatio;
+	tolua_property__bool bool autoAspect;
+	tolua_property__bool bool orthographic;
+	tolua_property__common float orthoHeight;
+	void setPosition(float x, float y, float z);
+	tolua_outside void Camera3D_getPosition @ getPosition();
+	void setTarget(float x, float y, float z);
+	tolua_outside void Camera3D_getTarget @ getTarget();
+	void setUp(float x, float y, float z);
+	tolua_outside void Camera3D_getUp @ getUp();
+	void lookAt(float px, float py, float pz, float tx, float ty, float tz, float ux = 0.0f, float uy = 1.0f, float uz = 0.0f);
+	Camera3D* create(String name = nullptr);
+};
+
 class Director
 {
 	tolua_property__common Color clearColor;
@@ -483,6 +502,61 @@ class SpriteEffect : public Effect
 {
 	static SpriteEffect* create();
 	static SpriteEffect* create(String vertShader, String fragShader);
+};
+
+class Node3D : public Object
+{
+	tolua_property__common int order;
+	tolua_property__common float x;
+	tolua_property__common float y;
+	tolua_property__common float z;
+	tolua_property__common float angleX;
+	tolua_property__common float angleY;
+	tolua_property__common float angleZ;
+	tolua_property__common float scaleX;
+	tolua_property__common float scaleY;
+	tolua_property__common float scaleZ;
+	tolua_property__common string tag;
+	tolua_property__bool bool visible;
+	tolua_readonly tolua_property__common Node3D* parent;
+	void addChild(Node3D* child, int order = 0, String tag = nullptr);
+	void removeChild(Node3D* child, bool cleanup = true);
+	void removeAllChildren(bool cleanup = true);
+	void removeFromParent(bool cleanup = true);
+	void cleanup();
+	void setPosition(float x, float y, float z);
+	tolua_outside void Node3D_getPosition @ getPosition();
+	void setScale(float x, float y, float z);
+	tolua_outside void Node3D_getScale @ getScale();
+	void setEulerAngles(float x, float y, float z);
+	tolua_outside void Node3D_getEulerAngles @ getEulerAngles();
+	tolua_outside void Node3D_convertToWorldSpace @ convertToWorldSpace(float x, float y, float z);
+	tolua_outside void Node3D_convertToNodeSpace @ convertToNodeSpace(float x, float y, float z);
+	static Node3D* create();
+};
+
+class Model3D : public Node3D
+{
+	tolua_property__common float speed;
+	tolua_readonly tolua_property__common float duration;
+	tolua_readonly tolua_property__common float elapsed;
+	tolua_readonly tolua_property__bool bool playing;
+	tolua_readonly tolua_property__bool bool paused;
+	float play(String name = nullptr, bool loop = false);
+	void stop();
+	void pause();
+	void resume();
+	void cleanup();
+	static Model3D* create(String path);
+};
+
+class View3D : public Node
+{
+	tolua_property__common Camera3D* camera;
+	tolua_readonly tolua_property__common Node3D* scene;
+	bool setEnvironmentMap(String path);
+	void setEnvironmentIntensity(float diffuse, float specular, float exposure = 1.0f);
+	static View3D* create();
 };
 
 class Sprite : public Node

@@ -13,7 +13,18 @@ bitflags = "1.2"
 cfixed-string = "1.0"
 clap = { version = "4.5.26", features = ["derive"] }
 glam = "0.30"
-gltf = "1.4"
+image = { version = "0.25", default-features = false, features = ["hdr", "jpeg", "png"] }
+gltf = { version = "1.4", features = [
+  "extensions",
+  "KHR_materials_emissive_strength",
+  "KHR_materials_ior",
+  "KHR_materials_specular",
+  "KHR_materials_transmission",
+  "KHR_materials_unlit",
+  "KHR_materials_volume",
+  "KHR_texture_transform",
+] }
+serde_json = "1.0"
 
 [profile.release]
 debug = false

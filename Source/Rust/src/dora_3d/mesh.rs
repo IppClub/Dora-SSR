@@ -12,6 +12,7 @@ pub struct Vertex {
     pub normal: [f32; 3],
     pub tangent: [f32; 4],
     pub uv0: [f32; 2],
+    pub uv1: [f32; 2],
     pub color: u32,
     pub joint_indices: [u16; 4],
     pub joint_weights: [f32; 4],
@@ -28,7 +29,6 @@ pub struct SubMesh {
 pub struct MeshData {
     pub handle: Dora3DHandle,
     pub vertices: Vec<Vertex>,
-    pub indices: Vec<u32>,
     pub sub_meshes: Vec<SubMesh>,
     pub bounds: Aabb,
     pub vertex_layout: bgfx_sys::bgfx_vertex_layout_t,
@@ -93,6 +93,14 @@ fn create_vertex_layout() -> bgfx_sys::bgfx_vertex_layout_t {
         );
         bgfx_sys::bgfx_vertex_layout_add(
             layout_ptr,
+            bgfx_sys::BGFX_ATTRIB_TEXCOORD1 as _,
+            2,
+            bgfx_sys::BGFX_ATTRIB_TYPE_FLOAT as _,
+            false,
+            false,
+        );
+        bgfx_sys::bgfx_vertex_layout_add(
+            layout_ptr,
             bgfx_sys::BGFX_ATTRIB_COLOR0 as _,
             4,
             bgfx_sys::BGFX_ATTRIB_TYPE_UINT8 as _,
@@ -144,11 +152,17 @@ fn create_index_buffer(indices: &[u32]) -> bgfx_sys::bgfx_index_buffer_handle_t 
 }
 
 fn build_bounds(vertices: &[Vertex]) -> Aabb {
-    let points: Vec<Vec3> = vertices
-        .iter()
-        .map(|vertex| Vec3::from_array(vertex.position))
-        .collect();
-    Aabb::from_points(&points)
+    let Some(first) = vertices.first() else {
+        return Aabb::zero();
+    };
+    let mut min = Vec3::from_array(first.position);
+    let mut max = min;
+    for vertex in &vertices[1..] {
+        let point = Vec3::from_array(vertex.position);
+        min = min.min(point);
+        max = max.max(point);
+    }
+    Aabb { min, max }
 }
 
 pub fn create(
@@ -164,7 +178,6 @@ pub fn create(
     let mesh = MeshData {
         handle,
         vertices,
-        indices: indices.clone(),
         sub_meshes: sub_meshes.unwrap_or_else(|| {
             vec![SubMesh {
                 start_index: 0,

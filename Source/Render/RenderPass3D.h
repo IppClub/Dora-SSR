@@ -21,6 +21,7 @@ struct RenderItem3D {
 	AABB bounds;
 	void* meshHandle = nullptr;
 	Material* materialHandle = nullptr;
+	uint64_t rustVisual = 0;
 	uint32_t submeshIndex = 0;
 	float distanceToCamera = 0.0f;
 	uint64_t sortKey = 0;

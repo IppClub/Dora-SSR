@@ -17,6 +17,9 @@ func texture2d_get_width(slf: i64) => i32
 #wa:import dora texture2d_get_height
 func texture2d_get_height(slf: i64) => i32
 
+#wa:import dora texture2d_get_handle
+func texture2d_get_handle(slf: i64) => i32
+
 #wa:import dora texture2d_with_file
 func texture2d_with_file(filename: i64) => i64
 
@@ -51,6 +54,11 @@ func Texture2D.GetWidth() => i32 {
 /// Gets the height of the texture, in pixels.
 func Texture2D.GetHeight() => i32 {
 	return texture2d_get_height(*this.raw)
+}
+
+/// the bgfx texture handle index.
+func Texture2D.GetHandle() => i32 {
+	return texture2d_get_handle(*this.raw)
 }
 
 /// Creates a texture object from the given file.

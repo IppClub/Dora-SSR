@@ -2031,6 +2031,74 @@ const cameraOthoClass: CameraOthoClass;
 export {cameraOthoClass as CameraOtho};
 
 /**
+ * A class for 3D camera object in the game engine.
+ */
+class Camera3D extends Camera {
+	private constructor();
+
+	/** The vertical field of view in degrees. */
+	fieldOfView: number;
+
+	/** The near clipping plane distance. */
+	nearClip: number;
+
+	/** The far clipping plane distance. */
+	farClip: number;
+
+	/** The projection aspect ratio. */
+	aspectRatio: number;
+
+	/** Whether to update the aspect ratio from the current view size automatically. */
+	autoAspect: boolean;
+
+	/** Whether to use an orthographic projection. */
+	orthographic: boolean;
+
+	/** The orthographic projection height. */
+	orthoHeight: number;
+
+	/** Sets the camera position. */
+	setPosition(x: number, y: number, z: number): void;
+
+	/** Sets the camera target point. */
+	setTarget(x: number, y: number, z: number): void;
+
+	/** Sets the camera up vector. */
+	setUp(x: number, y: number, z: number): void;
+
+	/**
+	 * Sets the camera position, target, and up vector.
+	 * The up vector defaults to (0, 1, 0).
+	 */
+	lookAt(px: number, py: number, pz: number, tx: number, ty: number, tz: number, ux?: number, uy?: number, uz?: number): void;
+
+	/** Gets the current view matrix. */
+	getViewMatrix(): any;
+
+	/** Gets the current projection matrix. */
+	getProjectionMatrix(): any;
+}
+
+export namespace Camera3D {
+	export type Type = Camera3D;
+}
+
+/**
+* A class for creating Camera3D objects.
+*/
+interface Camera3DClass {
+	/**
+	 * Creates a new Camera3D object with the given name.
+	 * @param name The name of the Camera3D object. Defaults to an empty string.
+	 * @returns A new instance of the Camera3D object.
+	 */
+	(this: void, name?: string): Camera3D;
+}
+
+const camera3DClass: Camera3DClass;
+export {camera3DClass as Camera3D};
+
+/**
  * A class representing a shader pass.
  */
 class Pass extends Object {
@@ -3504,6 +3572,216 @@ interface NodeClass {
 
 const nodeClass: NodeClass;
 export {nodeClass as Node};
+
+/**
+ * Class used for building a hierarchical tree of 3D objects.
+ */
+class Node3D extends Object {
+	protected constructor();
+
+	/** The order of the node in the parent's children array. */
+	order: number;
+
+	/** The tag of the node as a string. */
+	tag: string;
+
+	/** Whether the node is visible. */
+	visible: boolean;
+
+	/** The parent 3D node. */
+	readonly parent?: Node3D;
+
+	/** The child 3D nodes. */
+	readonly children: any;
+
+	/** The node position. */
+	position: any;
+
+	/** The node scale. */
+	scale: any;
+
+	/** The node rotation. */
+	rotation: any;
+
+	/** The node Euler rotation in degrees. */
+	eulerAngles: any;
+
+	/** The node world transform matrix. */
+	readonly worldMatrix: any;
+
+	/** The X-axis position of the node. */
+	x: number;
+
+	/** The Y-axis position of the node. */
+	y: number;
+
+	/** The Z-axis position of the node. */
+	z: number;
+
+	/** The X-axis rotation angle of the node in degrees. */
+	angleX: number;
+
+	/** The Y-axis rotation angle of the node in degrees. */
+	angleY: number;
+
+	/** The Z-axis rotation angle of the node in degrees. */
+	angleZ: number;
+
+	/** The X-axis scale factor of the node. */
+	scaleX: number;
+
+	/** The Y-axis scale factor of the node. */
+	scaleY: number;
+
+	/** The Z-axis scale factor of the node. */
+	scaleZ: number;
+
+	/** Sets the node position. */
+	setPosition(x: number, y: number, z: number): void;
+
+	/** Sets the node scale. */
+	setScale(x: number, y: number, z: number): void;
+
+	/** Sets the node Euler rotation in degrees. */
+	setEulerAngles(x: number, y: number, z: number): void;
+
+	/** Adds a child 3D node. */
+	addChild(child: Node3D, order?: number, tag?: string): void;
+
+	/** Removes a child 3D node. */
+	removeChild(child: Node3D, cleanup?: boolean): void;
+
+	/** Removes all child 3D nodes. */
+	removeAllChildren(cleanup?: boolean): void;
+
+	/** Removes this node from its parent. */
+	removeFromParent(cleanup?: boolean): void;
+
+	/** Cleans up the node and releases its 3D resources. */
+	cleanup(): void;
+
+	/** Converts a local point to world space. */
+	convertToWorldSpace(localPoint: any): any;
+
+	/** Converts a world point to this node's local space. */
+	convertToNodeSpace(worldPoint: any): any;
+}
+
+export {Node3D as Node3DType};
+export namespace Node3D {
+	export type Type = Node3D;
+}
+
+/**
+ * A class object for the `Node3D` class.
+ */
+interface Node3DClass {
+	/**
+	 * Creates a new instance of the `Node3D` class.
+	 * @returns A new instance of the `Node3D` class.
+	 */
+	(this: void): Node3D;
+}
+
+const node3DClass: Node3DClass;
+export {node3DClass as Node3D};
+
+/**
+ * Class used for rendering 3D content inside the 2D scene tree.
+ */
+class View3D extends Node {
+	private constructor();
+
+	/** The camera used for rendering the 3D scene. */
+	camera: Camera3D;
+
+	/** The root node of the 3D scene. */
+	readonly scene: Node3D;
+
+	/** Loads an environment map for image based lighting. */
+	setEnvironmentMap(path: string): boolean;
+
+	/** Sets diffuse, specular, and exposure intensity for environment lighting. */
+	setEnvironmentIntensity(diffuse: number, specular: number, exposure?: number): void;
+}
+
+export {View3D as View3DType};
+export namespace View3D {
+	export type Type = View3D;
+}
+
+/**
+ * A class object for the `View3D` class.
+ */
+interface View3DClass {
+	/**
+	 * Creates a new instance of the `View3D` class.
+	 * @returns A new instance of the `View3D` class.
+	 */
+	(this: void): View3D;
+}
+
+const view3DClass: View3DClass;
+export {view3DClass as View3D};
+
+/**
+ * Class used for rendering a glTF 3D model.
+ */
+class Model3D extends Node3D {
+	private constructor();
+
+	/** The playback speed multiplier of the current animation. */
+	speed: number;
+
+	/** The duration of the current animation in seconds. */
+	readonly duration: number;
+
+	/** The elapsed playback time of the current animation in seconds. */
+	readonly elapsed: number;
+
+	/** Whether an animation is currently playing. */
+	readonly playing: boolean;
+
+	/** Whether the current animation is paused. */
+	readonly paused: boolean;
+
+	/**
+	 * Plays an animation by name.
+	 * @param name The animation name. Uses the default animation when omitted.
+	 * @param loop Whether the animation should loop.
+	 * @returns The animation duration in seconds, or 0 when not found.
+	 */
+	play(name?: string, loop?: boolean): number;
+
+	/** Stops the current animation. */
+	stop(): void;
+
+	/** Pauses the current animation. */
+	pause(): void;
+
+	/** Resumes the paused animation. */
+	resume(): void;
+}
+
+export {Model3D as Model3DType};
+export namespace Model3D {
+	export type Type = Model3D;
+}
+
+/**
+ * A class object for the `Model3D` class.
+ */
+interface Model3DClass {
+	/**
+	 * Creates a new instance of the `Model3D` class.
+	 * @param path The model file path.
+	 * @returns A new instance of the `Model3D` class.
+	 */
+	(this: void, path: string): Model3D;
+}
+
+const model3DClass: Model3DClass;
+export {model3DClass as Model3D};
 
 /**
  * A buffer of string for the use of ImGui widget.
@@ -7650,10 +7928,14 @@ export const enum TypeName {
 	Camera = "Camera",
 	Camera2D = "Camera2D",
 	CameraOtho = "CameraOtho",
+	Camera3D = "Camera3D",
 	Pass = "Pass",
 	Effect = "Effect",
 	SpriteEffect = "SpriteEffect",
 	Node = "Node",
+	Node3D = "Node3D",
+	View3D = "View3D",
+	Model3D = "Model3D",
 	RenderTarget = "RenderTarget",
 	Buffer = "Buffer",
 	ClipNode = "ClipNode",
@@ -7703,10 +7985,14 @@ export interface TypeMap {
 	[TypeName.Camera]: Camera;
 	[TypeName.Camera2D]: Camera2D;
 	[TypeName.CameraOtho]: CameraOtho;
+	[TypeName.Camera3D]: Camera3D;
 	[TypeName.Pass]: Pass;
 	[TypeName.Effect]: Effect;
 	[TypeName.SpriteEffect]: SpriteEffect;
 	[TypeName.Node]: Node;
+	[TypeName.Node3D]: Node3D;
+	[TypeName.View3D]: View3D;
+	[TypeName.Model3D]: Model3D;
 	[TypeName.RenderTarget]: RenderTarget;
 	[TypeName.Buffer]: Buffer;
 	[TypeName.ClipNode]: ClipNode;

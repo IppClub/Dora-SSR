@@ -475,46 +475,53 @@ void Director::popViewProjection() {
 }
 
 void Director::cleanup() {
+	auto cleanupNode = [](auto& nodeRef) {
+		Node* node = nodeRef;
+		if (!node) return;
+		if (node->getParent()) {
+			node->removeFromParent(true);
+		} else {
+			node->onExit();
+			node->cleanup();
+		}
+		nodeRef = nullptr;
+	};
 	if (!_unmanagedNodes.empty()) {
 		for (Node* node : _unmanagedNodes) {
-			node->cleanup();
+			if (node->getParent()) {
+				node->removeFromParent(true);
+			} else {
+				node->cleanup();
+			}
 		}
 	}
 	_unmanagedNodes.clear();
 	if (!_waitingList.empty()) {
 		for (Node* node : _waitingList) {
 			if (node) {
-				node->cleanup();
+				if (node->getParent()) {
+					node->removeFromParent(true);
+				} else {
+					node->cleanup();
+				}
 			}
 		}
 	}
 	_waitingList.clear();
 	if (_ui3D) {
-		_ui3D->removeAllChildren();
-		_ui3D->onExit();
-		_ui3D->cleanup();
-		_ui3D = nullptr;
+		cleanupNode(_ui3D);
 		_ui3DCamera = nullptr;
 	}
 	if (_ui) {
-		_ui->removeAllChildren();
-		_ui->onExit();
-		_ui->cleanup();
-		_ui = nullptr;
+		cleanupNode(_ui);
 		_uiCamera = nullptr;
 	}
 	if (_root) {
-		_root->removeAllChildren();
-		_root->onExit();
-		_root->cleanup();
-		_root = nullptr;
+		cleanupNode(_root);
 		_entry = nullptr;
 	}
 	if (_postNode) {
-		_postNode->removeAllChildren();
-		_postNode->onExit();
-		_postNode->cleanup();
-		_postNode = nullptr;
+		cleanupNode(_postNode);
 	}
 	Event::handlePostEvents();
 	if (_nvgContext) {

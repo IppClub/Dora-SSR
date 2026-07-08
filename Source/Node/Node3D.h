@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include "Basic/Object.h"
+#include "Basic/Scheduler.h"
 #include "Support/Common.h"
 #include "Support/Geometry.h"
 
@@ -21,6 +22,7 @@ using Quat = bx::Quaternion;
 
 class Node3D : public Object {
 public:
+	PROPERTY(Scheduler*, Scheduler);
 	PROPERTY(int, Order);
 	PROPERTY_CREF(Vec3, Position);
 	PROPERTY_CREF(Vec3, Scale);
@@ -31,44 +33,59 @@ public:
 	PROPERTY_READONLY(Node3D*, Parent);
 	PROPERTY_READONLY_CREF(Matrix, WorldMatrix);
 	PROPERTY_READONLY_CALL(const std::vector<Ref<Node3D>>&, Children);
+	PROPERTY(float, X);
+	PROPERTY(float, Y);
+	PROPERTY(float, Z);
+	PROPERTY(float, AngleX);
+	PROPERTY(float, AngleY);
+	PROPERTY(float, AngleZ);
+	PROPERTY(float, ScaleX);
+	PROPERTY(float, ScaleY);
+	PROPERTY(float, ScaleZ);
+
+	void setPosition(float x, float y, float z);
+	void setScale(float x, float y, float z);
+	void setEulerAngles(float x, float y, float z);
 
 	virtual void addChild(Node3D* child, int order = 0, String tag = String{});
-	virtual void removeChild(Node3D* child);
-	virtual void removeAllChildren();
-	virtual void removeFromParent();
+	virtual void removeChild(Node3D* child, bool cleanup = true);
+	virtual void removeAllChildren(bool cleanup = true);
+	virtual void removeFromParent(bool cleanup = true);
+	virtual void cleanup() override;
 
 	virtual void visit(RenderPass3D& renderPass, Camera3D* camera);
 	virtual void render(RenderPass3D& renderPass, Camera3D* camera);
+	virtual bool update(double deltaTime);
 
 	Vec3 convertToWorldSpace(const Vec3& localPoint);
 	Vec3 convertToNodeSpace(const Vec3& worldPoint);
 
-	void markDirty() noexcept;
 	void markReorder() noexcept;
+	uint64_t getHandle() const noexcept;
 
 	virtual bool init() override;
 	CREATE_FUNC_NOT_NULL(Node3D);
 
 protected:
 	Node3D();
+	virtual ~Node3D();
 	void sortAllChildren();
-	void updateLocalMatrix();
+	ScheduledItem* getScheduledItem();
 
 protected:
 	int _order;
-	Vec3 _position;
-	Vec3 _scale;
-	Quat _rotation;
 	std::string _tag;
-	bool _visible;
-	mutable bool _transformDirty;
-	mutable bool _worldDirty;
 	bool _reorderDirty;
 	Node3D* _parent;
 	std::vector<Ref<Node3D>> _children;
-	mutable Matrix _localMatrix;
-	mutable Matrix _worldMatrix;
+	Ref<Scheduler> _scheduler;
+	Own<ScheduledItem> _scheduledItem;
+	uint64_t _handle;
+	mutable Vec3 _position;
+	mutable Vec3 _scale;
+	mutable Quat _rotation;
 	mutable Vec3 _eulerAngles;
+	mutable Matrix _worldMatrix;
 	DORA_TYPE_OVERRIDE(Node3D);
 };
 

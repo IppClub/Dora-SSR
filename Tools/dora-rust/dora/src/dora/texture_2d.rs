@@ -10,6 +10,7 @@ extern "C" {
 	fn texture2d_type() -> i32;
 	fn texture2d_get_width(slf: i64) -> i32;
 	fn texture2d_get_height(slf: i64) -> i32;
+	fn texture2d_get_handle(slf: i64) -> i32;
 	fn texture2d_with_file(filename: i64) -> i64;
 }
 use crate::dora::IObject;
@@ -32,6 +33,10 @@ impl Texture2D {
 	/// Gets the height of the texture, in pixels.
 	pub fn get_height(&self) -> i32 {
 		return unsafe { texture2d_get_height(self.raw()) };
+	}
+	/// the bgfx texture handle index.
+	pub fn get_handle(&self) -> i32 {
+		unsafe { return texture2d_get_handle(self.raw()); }
 	}
 	/// Creates a texture object from the given file.
 	///

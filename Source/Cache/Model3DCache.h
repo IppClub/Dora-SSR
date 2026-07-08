@@ -8,35 +8,41 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#include "Node/Node3D.h"
+#include "Basic/Object.h"
+#include "Common/Singleton.h"
 
 NS_DORA_BEGIN
 
-class Material;
-
-class Visual3D : public Node3D {
+class Model3DDef : public Object {
 public:
-	PROPERTY_BOOL(FrustumCulling);
-	PROPERTY_CREF(AABB, LocalBounds);
-	PROPERTY_READONLY_CREF(AABB, WorldBounds);
-	PROPERTY(Material*, Material);
-	PROPERTY(void*, MeshHandle);
-	PROPERTY(uint64_t, RustVisual);
-
-	virtual void render(RenderPass3D& renderPass, Camera3D* camera) override;
-	CREATE_FUNC_NOT_NULL(Visual3D);
+	PROPERTY_READONLY(uint64_t, Handle);
+	virtual ~Model3DDef();
+	CREATE_FUNC_NOT_NULL(Model3DDef);
 
 protected:
-	Visual3D();
+	Model3DDef(uint64_t handle);
 
 private:
-	bool _frustumCulling;
-	AABB _localBounds;
-	mutable AABB _worldBounds;
-	Ref<Material> _material;
-	void* _meshHandle;
-	uint64_t _rustVisual;
-	DORA_TYPE_OVERRIDE(Visual3D);
+	uint64_t _handle;
+	DORA_TYPE_OVERRIDE(Model3DDef);
 };
+
+class Model3DCache : public NonCopyable {
+public:
+	Model3DDef* load(String filename);
+	bool unload(String filename);
+	bool unload();
+	void removeUnused();
+
+protected:
+	Model3DCache() { }
+
+private:
+	StringMap<Ref<Model3DDef>> _models;
+	SINGLETON_REF(Model3DCache, Director);
+};
+
+#define SharedModel3DCache \
+	Dora::Singleton<Dora::Model3DCache>::shared()
 
 NS_DORA_END

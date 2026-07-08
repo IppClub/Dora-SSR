@@ -432,11 +432,13 @@
 		3C5937622CA4FAEF00CAF224 /* compress.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C5937392CA4FAEF00CAF224 /* compress.c */; };
 		3C60DE132A2069CE007D7865 /* Doc in Resources */ = {isa = PBXBuildFile; fileRef = 3C60DE122A2069CE007D7865 /* Doc */; };
 		3C68A8B52F95A8DF00DDC115 /* Node3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C68A8B02F95A8DF00DDC115 /* Node3D.cpp */; };
-		3C68A8B62F95A8DF00DDC115 /* Scene3DIn2D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C68A8B22F95A8DF00DDC115 /* Scene3DIn2D.cpp */; };
+		3C68A8B62F95A8DF00DDC115 /* View3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C68A8B22F95A8DF00DDC115 /* View3D.cpp */; };
 		3C68A8B72F95A8DF00DDC115 /* Visual3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C68A8B42F95A8DF00DDC115 /* Visual3D.cpp */; };
 		3C68A8BC2F95A91200DDC115 /* RenderPass3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C68A8BB2F95A91200DDC115 /* RenderPass3D.cpp */; };
 		3C68A8BD2F95A91200DDC115 /* Camera3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C68A8B92F95A91200DDC115 /* Camera3D.cpp */; };
 		3C68A8C02F95ACF000DDC115 /* Material.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C68A8BF2F95ACF000DDC115 /* Material.cpp */; };
+		3C68A8C12F95A8DF00DDC115 /* Model3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C68A8C32F95A8DF00DDC115 /* Model3D.cpp */; };
+		3C68A8C42F95ADDF00DDC115 /* Model3DCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C68A8C62F95ADDF00DDC115 /* Model3DCache.cpp */; };
 		3C76449F2CFD93D100DEDC0B /* libdora_runtime.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C76449E2CFD93D100DEDC0B /* libdora_runtime.a */; };
 		3C9F00012F3A000000000001 /* XrtHttpClient.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C9F00022F3A000000000001 /* XrtHttpClient.c */; };
 		3CA32CE926FEE8440046C13D /* GameController.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CA32CE826FEE8440046C13D /* GameController.framework */; };
@@ -814,6 +816,8 @@
 		3C5929CF2CA4ED1900CAF224 /* FrameCache.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = FrameCache.cpp; sourceTree = "<group>"; };
 		3C5929D02CA4ED1900CAF224 /* ModelCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ModelCache.h; sourceTree = "<group>"; };
 		3C5929D12CA4ED1900CAF224 /* ModelCache.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ModelCache.cpp; sourceTree = "<group>"; };
+		3C68A8C52F95ADDF00DDC115 /* Model3DCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Model3DCache.h; sourceTree = "<group>"; };
+		3C68A8C62F95ADDF00DDC115 /* Model3DCache.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Model3DCache.cpp; sourceTree = "<group>"; };
 		3C5929D22CA4ED1900CAF224 /* ParticleCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ParticleCache.h; sourceTree = "<group>"; };
 		3C5929D32CA4ED1900CAF224 /* ParticleCache.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ParticleCache.cpp; sourceTree = "<group>"; };
 		3C5929D42CA4ED1900CAF224 /* ShaderCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShaderCache.h; sourceTree = "<group>"; };
@@ -1622,10 +1626,12 @@
 		3C60DE122A2069CE007D7865 /* Doc */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Doc; sourceTree = "<group>"; };
 		3C68A8AF2F95A8DF00DDC115 /* Node3D.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Node3D.h; sourceTree = "<group>"; };
 		3C68A8B02F95A8DF00DDC115 /* Node3D.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Node3D.cpp; sourceTree = "<group>"; };
-		3C68A8B12F95A8DF00DDC115 /* Scene3DIn2D.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Scene3DIn2D.h; sourceTree = "<group>"; };
-		3C68A8B22F95A8DF00DDC115 /* Scene3DIn2D.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Scene3DIn2D.cpp; sourceTree = "<group>"; };
+		3C68A8B12F95A8DF00DDC115 /* View3D.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = View3D.h; sourceTree = "<group>"; };
+		3C68A8B22F95A8DF00DDC115 /* View3D.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = View3D.cpp; sourceTree = "<group>"; };
 		3C68A8B32F95A8DF00DDC115 /* Visual3D.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Visual3D.h; sourceTree = "<group>"; };
 		3C68A8B42F95A8DF00DDC115 /* Visual3D.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Visual3D.cpp; sourceTree = "<group>"; };
+		3C68A8C22F95A8DF00DDC115 /* Model3D.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Model3D.h; sourceTree = "<group>"; };
+		3C68A8C32F95A8DF00DDC115 /* Model3D.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Model3D.cpp; sourceTree = "<group>"; };
 		3C68A8B82F95A91200DDC115 /* Camera3D.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Camera3D.h; sourceTree = "<group>"; };
 		3C68A8B92F95A91200DDC115 /* Camera3D.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Camera3D.cpp; sourceTree = "<group>"; };
 		3C68A8BA2F95A91200DDC115 /* RenderPass3D.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RenderPass3D.h; sourceTree = "<group>"; };
@@ -4109,6 +4115,8 @@
 				3C5929CF2CA4ED1900CAF224 /* FrameCache.cpp */,
 				3C5929D02CA4ED1900CAF224 /* ModelCache.h */,
 				3C5929D12CA4ED1900CAF224 /* ModelCache.cpp */,
+				3C68A8C52F95ADDF00DDC115 /* Model3DCache.h */,
+				3C68A8C62F95ADDF00DDC115 /* Model3DCache.cpp */,
 				3C5929D22CA4ED1900CAF224 /* ParticleCache.h */,
 				3C5929D32CA4ED1900CAF224 /* ParticleCache.cpp */,
 				3C5929D42CA4ED1900CAF224 /* ShaderCache.h */,
@@ -4276,8 +4284,10 @@
 			children = (
 				3C68A8AF2F95A8DF00DDC115 /* Node3D.h */,
 				3C68A8B02F95A8DF00DDC115 /* Node3D.cpp */,
-				3C68A8B12F95A8DF00DDC115 /* Scene3DIn2D.h */,
-				3C68A8B22F95A8DF00DDC115 /* Scene3DIn2D.cpp */,
+				3C68A8C22F95A8DF00DDC115 /* Model3D.h */,
+				3C68A8C32F95A8DF00DDC115 /* Model3D.cpp */,
+				3C68A8B12F95A8DF00DDC115 /* View3D.h */,
+				3C68A8B22F95A8DF00DDC115 /* View3D.cpp */,
 				3C68A8B32F95A8DF00DDC115 /* Visual3D.h */,
 				3C68A8B42F95A8DF00DDC115 /* Visual3D.cpp */,
 				3CAE49BE2F0CA74300FBD51A /* TIC80Node.h */,
@@ -4705,7 +4715,8 @@
 				3C5934692CA4F92600CAF224 /* DeformVertices.cpp in Sources */,
 				3C5936252CA4F9EF00CAF224 /* tinyxml2.cpp in Sources */,
 				3C68A8B52F95A8DF00DDC115 /* Node3D.cpp in Sources */,
-				3C68A8B62F95A8DF00DDC115 /* Scene3DIn2D.cpp in Sources */,
+				3C68A8C12F95A8DF00DDC115 /* Model3D.cpp in Sources */,
+				3C68A8B62F95A8DF00DDC115 /* View3D.cpp in Sources */,
 				3C68A8B72F95A8DF00DDC115 /* Visual3D.cpp in Sources */,
 				3C5936262CA4F9EF00CAF224 /* SAXParser.cpp in Sources */,
 				3C2496AA2E277F290089D513 /* FontCache.cpp in Sources */,
@@ -5179,6 +5190,7 @@
 				3C592A3B2CA4EE4500CAF224 /* HttpServer.cpp in Sources */,
 				3C9F00012F3A000000000001 /* XrtHttpClient.c in Sources */,
 				3C5929E72CA4ED1900CAF224 /* ModelCache.cpp in Sources */,
+				3C68A8C42F95ADDF00DDC115 /* Model3DCache.cpp in Sources */,
 				3C5929E82CA4ED1900CAF224 /* AudioCache.cpp in Sources */,
 				3C5929E92CA4ED1900CAF224 /* FrameCache.cpp in Sources */,
 				3C592A442CA4EE5D00CAF224 /* Keyboard.cpp in Sources */,

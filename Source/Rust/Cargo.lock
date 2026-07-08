@@ -177,6 +177,8 @@ dependencies = [
  "dora-ssr",
  "glam",
  "gltf",
+ "image",
+ "serde_json",
 ]
 
 [[package]]

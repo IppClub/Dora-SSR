@@ -157,6 +157,7 @@ add_executable(dora-ssr
 	../../Source/Cache/TextureCache.cpp
 	../../Source/Cache/SkeletonCache.cpp
 	../../Source/Cache/ModelCache.cpp
+	../../Source/Cache/Model3DCache.cpp
 	../../Source/Cache/DragonBoneCache.cpp
 	../../Source/Cache/AudioCache.cpp
 	../../Source/Cache/FontCache.cpp
@@ -232,6 +233,7 @@ add_executable(dora-ssr
 	../../Source/Node/Label.cpp
 	../../Source/Node/ClipNode.cpp
 	../../Source/Node/Model.cpp
+	../../Source/Node/Model3D.cpp
 	../../Source/Node/Playable.cpp
 	../../Source/Node/DragonBone.cpp
 	../../Source/Node/DrawNode.cpp
@@ -240,7 +242,7 @@ add_executable(dora-ssr
 	../../Source/Node/TileNode.cpp
 	../../Source/Node/AudioSource.cpp
 	../../Source/Node/Visual3D.cpp
-	../../Source/Node/Scene3DIn2D.cpp
+	../../Source/Node/View3D.cpp
 	../../Source/Node/VideoNode.cpp
 	../../Source/Node/TIC80Node.cpp
 	../../Source/Event/EventType.cpp

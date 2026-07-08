@@ -11,13 +11,31 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Render/RenderPass3D.h"
 
 #include "Node/Visual3D.h"
+#include "Shader/Builtin.h"
 
 #ifndef DORA_NO_RUST
 extern "C" {
 int32_t dora_3d_render_with_view(uint16_t view_id);
-int32_t dora_3d_queue_visual(void* visual_handle, const float* world_matrix, uint16_t view_id);
+int32_t dora_3d_queue_visual(uint64_t visual_handle, uint16_t view_id);
 }
 #endif // DORA_NO_RUST
+
+extern "C" uint16_t dora_3d_create_builtin_program(const char* vertexShader, const char* fragmentShader) {
+	bgfx::RendererType::Enum type = bgfx::getRendererType();
+	bgfx::ShaderHandle vs = bgfx::createEmbeddedShader(Dora::DoraShaders, type, vertexShader);
+	bgfx::ShaderHandle fs = bgfx::createEmbeddedShader(Dora::DoraShaders, type, fragmentShader);
+	if (!bgfx::isValid(vs) || !bgfx::isValid(fs)) {
+		if (bgfx::isValid(vs)) {
+			bgfx::destroy(vs);
+		}
+		if (bgfx::isValid(fs)) {
+			bgfx::destroy(fs);
+		}
+		return bgfx::kInvalidHandle;
+	}
+	bgfx::ProgramHandle program = bgfx::createProgram(vs, fs, true);
+	return program.idx;
+}
 
 NS_DORA_BEGIN
 
@@ -48,9 +66,8 @@ void RenderPass3D::submit(bgfx::ViewId viewId) {
 	bgfx::touch(viewId);
 #ifndef DORA_NO_RUST
 	auto queueItem = [viewId](const RenderItem3D& item) {
-		return item.visual
-			&& item.visual->getRustVisual()
-			&& dora_3d_queue_visual(item.visual->getRustVisual(), item.world.m, viewId) != 0;
+		return item.rustVisual != 0
+			&& dora_3d_queue_visual(item.rustVisual, viewId) != 0;
 	};
 	bool queued = false;
 	for (const auto& item : _opaqueItems) {

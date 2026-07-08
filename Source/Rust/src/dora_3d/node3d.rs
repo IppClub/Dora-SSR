@@ -13,6 +13,7 @@ pub struct Node3DData {
     pub visible: bool,
     pub position: Vec3,
     pub scale: Vec3,
+    pub euler_deg: Vec3,
     pub rotation: Quaternion,
     pub local_matrix: Mat4,
     pub world_matrix: Mat4,
@@ -31,6 +32,7 @@ impl Node3DData {
             visible: true,
             position: Vec3::ZERO,
             scale: Vec3::ONE,
+            euler_deg: Vec3::ZERO,
             rotation: Quaternion::IDENTITY,
             local_matrix: Mat4::IDENTITY,
             world_matrix: Mat4::IDENTITY,
@@ -113,7 +115,10 @@ fn destroy_internal(nodes: &mut HashMap<Dora3DHandle, Node3DData>, handle: Dora3
         remove_child_link(nodes, parent_handle, handle);
     }
     for child in children {
-        destroy_internal(nodes, child);
+        if let Some(child_node) = nodes.get_mut(&child) {
+            child_node.parent = None;
+            child_node.world_dirty = true;
+        }
     }
 }
 
@@ -131,6 +136,61 @@ pub fn destroy(handle: Dora3DHandle) -> bool {
     }
     destroy_internal(&mut nodes, handle);
     true
+}
+
+fn clone_subtree_internal(
+    nodes: &mut HashMap<Dora3DHandle, Node3DData>,
+    source: Dora3DHandle,
+    parent: Option<Dora3DHandle>,
+    map: &mut HashMap<Dora3DHandle, Dora3DHandle>,
+    cloned_nodes: &mut Vec<Dora3DHandle>,
+) -> Option<Dora3DHandle> {
+    let source_node = nodes.get(&source)?.clone();
+    let handle = next_handle();
+    let mut cloned = Node3DData::new(handle);
+    cloned.parent = parent;
+    cloned.order = source_node.order;
+    cloned.tag = source_node.tag;
+    cloned.visible = source_node.visible;
+    cloned.position = source_node.position;
+    cloned.scale = source_node.scale;
+    cloned.euler_deg = source_node.euler_deg;
+    cloned.rotation = source_node.rotation;
+    cloned.local_dirty = true;
+    cloned.world_dirty = true;
+    nodes.insert(handle, cloned);
+    map.insert(source, handle);
+    cloned_nodes.push(handle);
+
+    let mut children = Vec::new();
+    for child in source_node.children {
+        if let Some(cloned_child) =
+            clone_subtree_internal(nodes, child, Some(handle), map, cloned_nodes)
+        {
+            children.push(cloned_child);
+        }
+    }
+    if let Some(cloned_node) = nodes.get_mut(&handle) {
+        cloned_node.children = children;
+    }
+    Some(handle)
+}
+
+pub fn clone_subtree(
+    source: Dora3DHandle,
+) -> Option<(
+    Dora3DHandle,
+    HashMap<Dora3DHandle, Dora3DHandle>,
+    Vec<Dora3DHandle>,
+)> {
+    let mut nodes = registry().lock().unwrap();
+    if !nodes.contains_key(&source) {
+        return None;
+    }
+    let mut map = HashMap::new();
+    let mut cloned_nodes = Vec::new();
+    let root = clone_subtree_internal(&mut nodes, source, None, &mut map, &mut cloned_nodes)?;
+    Some((root, map, cloned_nodes))
 }
 
 pub fn exists(handle: Dora3DHandle) -> bool {
@@ -161,6 +221,7 @@ pub fn add_child(parent: Dora3DHandle, child: Dora3DHandle, order: i32, tag: Opt
         .get(&parent)
         .map(|parent_node| parent_node.children.clone())
         .unwrap_or_default();
+    children.retain(|candidate| *candidate != child);
     children.push(child);
     let mut ordered_children: Vec<(Dora3DHandle, i32)> = children
         .into_iter()
@@ -257,13 +318,22 @@ pub fn set_rotation(handle: Dora3DHandle, rotation: Quaternion) -> bool {
         return false;
     };
     node.rotation = rotation;
+    node.euler_deg = euler_deg_from_quaternion(rotation);
     node.local_dirty = true;
     mark_subtree_world_dirty(&mut nodes, handle);
     true
 }
 
 pub fn set_euler_deg(handle: Dora3DHandle, euler_deg: Vec3) -> bool {
-    set_rotation(handle, quaternion_from_euler_deg(euler_deg))
+    let mut nodes = registry().lock().unwrap();
+    let Some(node) = nodes.get_mut(&handle) else {
+        return false;
+    };
+    node.euler_deg = euler_deg;
+    node.rotation = quaternion_from_euler_deg(euler_deg);
+    node.local_dirty = true;
+    mark_subtree_world_dirty(&mut nodes, handle);
+    true
 }
 
 pub fn get_rotation(handle: Dora3DHandle) -> Option<Quaternion> {
@@ -275,7 +345,11 @@ pub fn get_rotation(handle: Dora3DHandle) -> Option<Quaternion> {
 }
 
 pub fn get_euler_deg(handle: Dora3DHandle) -> Option<Vec3> {
-    get_rotation(handle).map(euler_deg_from_quaternion)
+    registry()
+        .lock()
+        .unwrap()
+        .get(&handle)
+        .map(|node| node.euler_deg)
 }
 
 pub fn set_tag(handle: Dora3DHandle, tag: &str) -> bool {

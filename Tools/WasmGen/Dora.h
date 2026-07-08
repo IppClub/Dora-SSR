@@ -1660,6 +1660,8 @@ object class Texture2D
 	readonly common int width;
 	/// the height of the texture, in pixels.
 	readonly common int height;
+	/// the bgfx texture handle index.
+	outside uint16_t Texture2D_GetHandle @ getHandle() const;
 	/// Creates a texture object from the given file.
 	///
 	/// # Arguments

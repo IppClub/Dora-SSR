@@ -34,6 +34,7 @@ fn sample_segment(keyframes: &[Keyframe], time: f32) -> Option<(&Keyframe, &Keyf
 
 pub fn compute_joint_matrices(
     skeleton: &SkeletonData,
+    mesh_world_inverse: Mat4,
     node_world_transforms: &HashMap<Dora3DHandle, Mat4>,
 ) -> Vec<Mat4> {
     skeleton
@@ -50,7 +51,7 @@ pub fn compute_joint_matrices(
                 .get(index)
                 .copied()
                 .unwrap_or(Mat4::IDENTITY);
-            joint_world * inverse_bind
+            mesh_world_inverse * joint_world * inverse_bind
         })
         .collect()
 }

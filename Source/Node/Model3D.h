@@ -12,31 +12,37 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DORA_BEGIN
 
-class Material;
+class Model3DDef;
 
-class Visual3D : public Node3D {
+class Model3D : public Node3D {
 public:
-	PROPERTY_BOOL(FrustumCulling);
-	PROPERTY_CREF(AABB, LocalBounds);
-	PROPERTY_READONLY_CREF(AABB, WorldBounds);
-	PROPERTY(Material*, Material);
-	PROPERTY(void*, MeshHandle);
-	PROPERTY(uint64_t, RustVisual);
-
-	virtual void render(RenderPass3D& renderPass, Camera3D* camera) override;
-	CREATE_FUNC_NOT_NULL(Visual3D);
+	PROPERTY(float, Speed);
+	PROPERTY_READONLY(float, Duration);
+	PROPERTY_READONLY(float, Elapsed);
+	PROPERTY_READONLY_BOOL(Playing);
+	PROPERTY_READONLY_BOOL(Paused);
+	virtual bool init() override;
+	float play(String name = String{}, bool loop = false);
+	void stop();
+	void pause();
+	void resume();
+	virtual void cleanup() override;
+	bool update(double deltaTime) override;
+	CREATE_FUNC_NOT_NULL(Model3D);
 
 protected:
-	Visual3D();
+	Model3D(String path);
+	Model3D();
+	virtual ~Model3D();
 
 private:
-	bool _frustumCulling;
-	AABB _localBounds;
-	mutable AABB _worldBounds;
-	Ref<Material> _material;
-	void* _meshHandle;
-	uint64_t _rustVisual;
-	DORA_TYPE_OVERRIDE(Visual3D);
+	void destroyInstance();
+	std::string _filename;
+	Ref<Model3DDef> _modelDef;
+	uint64_t _instance;
+	bool _playing;
+	bool _paused;
+	DORA_TYPE_OVERRIDE(Model3D);
 };
 
 NS_DORA_END

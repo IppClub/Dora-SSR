@@ -32,9 +32,17 @@ Camera3D::Camera3D(String name)
 	_up = {0.0f, 1.0f, 0.0f};
 }
 
+void Camera3D::setPosition(float x, float y, float z) {
+	setPosition({x, y, z});
+}
+
 void Camera3D::setPosition(const Vec3& position) {
 	_position = position;
 	_transformDirty = true;
+}
+
+void Camera3D::setTarget(float x, float y, float z) {
+	setTarget({x, y, z});
 }
 
 void Camera3D::setTarget(const Vec3& target) {
@@ -42,9 +50,17 @@ void Camera3D::setTarget(const Vec3& target) {
 	_transformDirty = true;
 }
 
+void Camera3D::setUp(float x, float y, float z) {
+	setUp({x, y, z});
+}
+
 void Camera3D::setUp(const Vec3& up) {
 	_up = Vec3::from(bx::normalize(up));
 	_transformDirty = true;
+}
+
+void Camera3D::lookAt(float px, float py, float pz, float tx, float ty, float tz, float ux, float uy, float uz) {
+	lookAt({px, py, pz}, {tx, ty, tz}, {ux, uy, uz});
 }
 
 void Camera3D::lookAt(const Vec3& position, const Vec3& target, const Vec3& up) {

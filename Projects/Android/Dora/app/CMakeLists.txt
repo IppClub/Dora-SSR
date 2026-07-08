@@ -106,6 +106,7 @@ add_library(main SHARED
 	src/main/cpp/Cache/TextureCache.cpp
 	src/main/cpp/Cache/SkeletonCache.cpp
 	src/main/cpp/Cache/ModelCache.cpp
+	src/main/cpp/Cache/Model3DCache.cpp
 	src/main/cpp/Cache/DragonBoneCache.cpp
 	src/main/cpp/Cache/AudioCache.cpp
 	src/main/cpp/Cache/FontCache.cpp
@@ -181,6 +182,7 @@ add_library(main SHARED
 	src/main/cpp/Node/Label.cpp
 	src/main/cpp/Node/ClipNode.cpp
 	src/main/cpp/Node/Model.cpp
+	src/main/cpp/Node/Model3D.cpp
 	src/main/cpp/Node/Playable.cpp
 	src/main/cpp/Node/DragonBone.cpp
 	src/main/cpp/Node/DrawNode.cpp
@@ -189,7 +191,7 @@ add_library(main SHARED
 	src/main/cpp/Node/TileNode.cpp
 	src/main/cpp/Node/AudioSource.cpp
 	src/main/cpp/Node/Visual3D.cpp
-	src/main/cpp/Node/Scene3DIn2D.cpp
+	src/main/cpp/Node/View3D.cpp
 	src/main/cpp/Node/VideoNode.cpp
 	src/main/cpp/Node/TIC80Node.cpp
 	src/main/cpp/Event/EventType.cpp

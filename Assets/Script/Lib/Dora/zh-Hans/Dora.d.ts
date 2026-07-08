@@ -2028,6 +2028,74 @@ const cameraOthoClass: CameraOthoClass;
 export {cameraOthoClass as CameraOtho};
 
 /**
+ * 游戏引擎中的3D摄像机对象的类。
+ */
+class Camera3D extends Camera {
+	private constructor();
+
+	/** 垂直视野角度。 */
+	fieldOfView: number;
+
+	/** 近平面裁剪距离。 */
+	nearClip: number;
+
+	/** 远平面裁剪距离。 */
+	farClip: number;
+
+	/** 投影宽高比。 */
+	aspectRatio: number;
+
+	/** 是否根据当前视图尺寸自动更新宽高比。 */
+	autoAspect: boolean;
+
+	/** 是否使用正交投影。 */
+	orthographic: boolean;
+
+	/** 正交投影高度。 */
+	orthoHeight: number;
+
+	/** 设置摄像机位置。 */
+	setPosition(x: number, y: number, z: number): void;
+
+	/** 设置摄像机目标点。 */
+	setTarget(x: number, y: number, z: number): void;
+
+	/** 设置摄像机向上方向。 */
+	setUp(x: number, y: number, z: number): void;
+
+	/**
+	 * 设置摄像机位置、目标点和向上方向。
+	 * 向上方向默认是 (0, 1, 0)。
+	 */
+	lookAt(px: number, py: number, pz: number, tx: number, ty: number, tz: number, ux?: number, uy?: number, uz?: number): void;
+
+	/** 获取当前视图矩阵。 */
+	getViewMatrix(): any;
+
+	/** 获取当前投影矩阵。 */
+	getProjectionMatrix(): any;
+}
+
+export namespace Camera3D {
+	export type Type = Camera3D;
+}
+
+/**
+* 用于创建3D摄像机对象的类。
+*/
+interface Camera3DClass {
+	/**
+	 * 使用给定的名称创建新的3D摄像机对象。
+	 * @param name 3D摄像机对象的名称。默认为空字符串。
+	 * @returns 3D摄像机对象的新实例。
+	 */
+	(this: void, name?: string): Camera3D;
+}
+
+const camera3DClass: Camera3DClass;
+export {camera3DClass as Camera3D};
+
+/**
  * 代表着色器渲染流程的类。
  */
 class Pass extends Object {
@@ -3502,6 +3570,216 @@ interface NodeClass {
 
 const nodeClass: NodeClass;
 export {nodeClass as Node};
+
+/**
+ * 用于构建3D对象层级树的类。
+ */
+class Node3D extends Object {
+	protected constructor();
+
+	/** 节点在父节点子节点数组中的顺序。 */
+	order: number;
+
+	/** 节点的字符串标签。 */
+	tag: string;
+
+	/** 节点是否可见。 */
+	visible: boolean;
+
+	/** 父3D节点。 */
+	readonly parent?: Node3D;
+
+	/** 子3D节点列表。 */
+	readonly children: any;
+
+	/** 节点位置。 */
+	position: any;
+
+	/** 节点缩放。 */
+	scale: any;
+
+	/** 节点旋转。 */
+	rotation: any;
+
+	/** 节点欧拉角旋转，单位为度。 */
+	eulerAngles: any;
+
+	/** 节点的世界变换矩阵。 */
+	readonly worldMatrix: any;
+
+	/** 节点的X轴位置。 */
+	x: number;
+
+	/** 节点的Y轴位置。 */
+	y: number;
+
+	/** 节点的Z轴位置。 */
+	z: number;
+
+	/** 节点绕X轴的旋转角度，单位为度。 */
+	angleX: number;
+
+	/** 节点绕Y轴的旋转角度，单位为度。 */
+	angleY: number;
+
+	/** 节点绕Z轴的旋转角度，单位为度。 */
+	angleZ: number;
+
+	/** 节点的X轴缩放系数。 */
+	scaleX: number;
+
+	/** 节点的Y轴缩放系数。 */
+	scaleY: number;
+
+	/** 节点的Z轴缩放系数。 */
+	scaleZ: number;
+
+	/** 设置节点位置。 */
+	setPosition(x: number, y: number, z: number): void;
+
+	/** 设置节点缩放。 */
+	setScale(x: number, y: number, z: number): void;
+
+	/** 设置节点欧拉角旋转，单位为度。 */
+	setEulerAngles(x: number, y: number, z: number): void;
+
+	/** 添加子3D节点。 */
+	addChild(child: Node3D, order?: number, tag?: string): void;
+
+	/** 移除子3D节点。 */
+	removeChild(child: Node3D, cleanup?: boolean): void;
+
+	/** 移除所有子3D节点。 */
+	removeAllChildren(cleanup?: boolean): void;
+
+	/** 从父节点中移除此节点。 */
+	removeFromParent(cleanup?: boolean): void;
+
+	/** 清理节点并释放其3D资源。 */
+	cleanup(): void;
+
+	/** 将本地坐标点转换到世界坐标。 */
+	convertToWorldSpace(localPoint: any): any;
+
+	/** 将世界坐标点转换到本节点的本地坐标。 */
+	convertToNodeSpace(worldPoint: any): any;
+}
+
+export {Node3D as Node3DType};
+export namespace Node3D {
+	export type Type = Node3D;
+}
+
+/**
+ * 用于创建`Node3D`类的类对象。
+ */
+interface Node3DClass {
+	/**
+	 * 创建`Node3D`类的新实例。
+	 * @returns `Node3D`类的新实例。
+	 */
+	(this: void): Node3D;
+}
+
+const node3DClass: Node3DClass;
+export {node3DClass as Node3D};
+
+/**
+ * 用于在2D场景树中渲染3D内容的类。
+ */
+class View3D extends Node {
+	private constructor();
+
+	/** 渲染3D场景使用的摄像机。 */
+	camera: Camera3D;
+
+	/** 3D场景根节点。 */
+	readonly scene: Node3D;
+
+	/** 加载用于基于图像照明的环境贴图。 */
+	setEnvironmentMap(path: string): boolean;
+
+	/** 设置环境光漫反射、镜面反射和曝光强度。 */
+	setEnvironmentIntensity(diffuse: number, specular: number, exposure?: number): void;
+}
+
+export {View3D as View3DType};
+export namespace View3D {
+	export type Type = View3D;
+}
+
+/**
+ * 用于创建`View3D`类的类对象。
+ */
+interface View3DClass {
+	/**
+	 * 创建`View3D`类的新实例。
+	 * @returns `View3D`类的新实例。
+	 */
+	(this: void): View3D;
+}
+
+const view3DClass: View3DClass;
+export {view3DClass as View3D};
+
+/**
+ * 用于渲染glTF 3D模型的类。
+ */
+class Model3D extends Node3D {
+	private constructor();
+
+	/** 当前动画的播放速度倍率。 */
+	speed: number;
+
+	/** 当前动画的时长，单位为秒。 */
+	readonly duration: number;
+
+	/** 当前动画已经播放的时间，单位为秒。 */
+	readonly elapsed: number;
+
+	/** 当前是否正在播放动画。 */
+	readonly playing: boolean;
+
+	/** 当前动画是否暂停。 */
+	readonly paused: boolean;
+
+	/**
+	 * 按名称播放动画。
+	 * @param name 动画名称。省略时使用默认动画。
+	 * @param loop 动画是否循环播放。
+	 * @returns 动画时长，单位为秒。未找到时返回0。
+	 */
+	play(name?: string, loop?: boolean): number;
+
+	/** 停止当前动画。 */
+	stop(): void;
+
+	/** 暂停当前动画。 */
+	pause(): void;
+
+	/** 恢复暂停的动画。 */
+	resume(): void;
+}
+
+export {Model3D as Model3DType};
+export namespace Model3D {
+	export type Type = Model3D;
+}
+
+/**
+ * 用于创建`Model3D`类的类对象。
+ */
+interface Model3DClass {
+	/**
+	 * 创建`Model3D`类的新实例。
+	 * @param path 模型文件路径。
+	 * @returns `Model3D`类的新实例。
+	 */
+	(this: void, path: string): Model3D;
+}
+
+const model3DClass: Model3DClass;
+export {model3DClass as Model3D};
 
 /**
  * ImGui控件使用的字符串缓冲区类。
@@ -7648,10 +7926,14 @@ export const enum TypeName {
 	Camera = "Camera",
 	Camera2D = "Camera2D",
 	CameraOtho = "CameraOtho",
+	Camera3D = "Camera3D",
 	Pass = "Pass",
 	Effect = "Effect",
 	SpriteEffect = "SpriteEffect",
 	Node = "Node",
+	Node3D = "Node3D",
+	View3D = "View3D",
+	Model3D = "Model3D",
 	RenderTarget = "RenderTarget",
 	Buffer = "Buffer",
 	ClipNode = "ClipNode",
@@ -7701,10 +7983,14 @@ export interface TypeMap {
 	[TypeName.Camera]: Camera;
 	[TypeName.Camera2D]: Camera2D;
 	[TypeName.CameraOtho]: CameraOtho;
+	[TypeName.Camera3D]: Camera3D;
 	[TypeName.Pass]: Pass;
 	[TypeName.Effect]: Effect;
 	[TypeName.SpriteEffect]: SpriteEffect;
 	[TypeName.Node]: Node;
+	[TypeName.Node3D]: Node3D;
+	[TypeName.View3D]: View3D;
+	[TypeName.Model3D]: Model3D;
 	[TypeName.RenderTarget]: RenderTarget;
 	[TypeName.Buffer]: Buffer;
 	[TypeName.ClipNode]: ClipNode;

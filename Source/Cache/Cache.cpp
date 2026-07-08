@@ -18,6 +18,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Cache/FontCache.h"
 #include "Cache/FrameCache.h"
 #include "Cache/ModelCache.h"
+#include "Cache/Model3DCache.h"
 #include "Cache/ParticleCache.h"
 #include "Cache/SVGCache.h"
 #include "Cache/ShaderCache.h"
@@ -228,6 +229,9 @@ bool Cache::unload(String name) {
 				return SharedFrameCache.unload(name);
 			case "model"_hash:
 				return SharedModelCache.unload(name);
+			case "glb"_hash:
+			case "gltf"_hash:
+				return SharedModel3DCache.unload(name);
 			case "par"_hash:
 				return SharedParticleCache.unload(name);
 			case "jpg"_hash:
@@ -264,6 +268,8 @@ bool Cache::unload(String name) {
 				return SharedFrameCache.unload();
 			case "Model"_hash:
 				return SharedModelCache.unload();
+			case "Model3D"_hash:
+				return SharedModel3DCache.unload();
 			case "Particle"_hash:
 				return SharedParticleCache.unload();
 			case "Shader"_hash:
@@ -288,6 +294,7 @@ bool Cache::unload(String name) {
 void Cache::unload() {
 	SharedShaderCache.unload();
 	SharedModelCache.unload();
+	SharedModel3DCache.unload();
 	SharedFrameCache.unload();
 	SharedParticleCache.unload();
 	SharedClipCache.unload();
@@ -307,6 +314,7 @@ void Cache::removeUnused() {
 	SharedAtlasCache.removeUnused();
 	SharedShaderCache.removeUnused();
 	SharedModelCache.removeUnused();
+	SharedModel3DCache.removeUnused();
 	SharedFrameCache.removeUnused();
 	SharedParticleCache.removeUnused();
 	SharedClipCache.removeUnused();
@@ -340,6 +348,9 @@ void Cache::removeUnused(String name) {
 			break;
 		case "Model"_hash:
 			SharedModelCache.removeUnused();
+			break;
+		case "Model3D"_hash:
+			SharedModel3DCache.removeUnused();
 			break;
 		case "Particle"_hash:
 			SharedParticleCache.removeUnused();

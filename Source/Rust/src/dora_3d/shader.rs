@@ -1,54 +1,142 @@
 use super::material::{self, MaterialType};
 use super::mesh;
+use super::texture;
 use super::types::{mat4_to_bgfx_array, Mat4, Vec3};
 use super::Dora3DHandle;
 use crate::bgfx_rs::bgfx_sys;
+use crate::Content;
+use image::GenericImageView;
+use std::collections::HashMap;
+use std::f32::consts::PI;
 use std::ffi::CString;
-use std::ptr;
+use std::os::raw::c_char;
 use std::sync::{Mutex, OnceLock};
 
 pub const MAX_JOINTS: usize = 64;
-
-#[repr(C)]
-#[derive(Debug, Clone, Copy)]
-struct FrameUniforms {
-    view_proj: [[f32; 4]; 4],
-    view_pos: [f32; 4],
-}
-
-#[repr(C)]
-#[derive(Debug, Clone, Copy)]
-struct DrawUniforms {
-    model: [[f32; 4]; 4],
-    base_color: [f32; 4],
-    normal_metallic: [f32; 4],
-    emissive: [f32; 4],
-}
+const DEFAULT_IRRADIANCE_SIZE: u16 = 8;
+const DEFAULT_PREFILTER_SIZE: u16 = 32;
+const DEFAULT_PREFILTER_MIPS: u8 = 5;
+const DEFAULT_BRDF_LUT_SIZE: u16 = 64;
+const IRRADIANCE_SAMPLE_COUNT: u32 = 64;
+const PREFILTER_SAMPLE_COUNT: u32 = 64;
+const BRDF_SAMPLE_COUNT: u32 = 128;
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy)]
 struct JointUniforms {
-    matrices: [[f32; 4]; 4 * MAX_JOINTS],
+    matrices: [f32; 16 * MAX_JOINTS],
 }
 
 #[derive(Debug, Clone, Copy)]
 pub struct ShaderPrograms {
     pub unlit: bgfx_sys::bgfx_program_handle_t,
     pub lambert: bgfx_sys::bgfx_program_handle_t,
+    pub sheen_roughness: bgfx_sys::bgfx_program_handle_t,
+    pub thickness_sheen: bgfx_sys::bgfx_program_handle_t,
 }
 
 #[derive(Debug)]
 struct ShaderState {
     programs: ShaderPrograms,
-    u_frame: bgfx_sys::bgfx_uniform_handle_t,
-    u_draw: bgfx_sys::bgfx_uniform_handle_t,
+    u_camera_proj: bgfx_sys::bgfx_uniform_handle_t,
+    u_model_inst: bgfx_sys::bgfx_uniform_handle_t,
+    u_normal_model: bgfx_sys::bgfx_uniform_handle_t,
+    u_uv: bgfx_sys::bgfx_uniform_handle_t,
+    u_model_color: bgfx_sys::bgfx_uniform_handle_t,
+    u_uv_inversed: bgfx_sys::bgfx_uniform_handle_t,
+    u_view_pos: bgfx_sys::bgfx_uniform_handle_t,
+    u_env_diffuse: bgfx_sys::bgfx_uniform_handle_t,
+    u_env_specular: bgfx_sys::bgfx_uniform_handle_t,
+    u_pbr_params: bgfx_sys::bgfx_uniform_handle_t,
+    u_emissive_scaling: bgfx_sys::bgfx_uniform_handle_t,
+    u_soft_particle_param: bgfx_sys::bgfx_uniform_handle_t,
+    u_reconstruction_param1: bgfx_sys::bgfx_uniform_handle_t,
+    u_reconstruction_param2: bgfx_sys::bgfx_uniform_handle_t,
+    u_uv_inversed_back: bgfx_sys::bgfx_uniform_handle_t,
+    u_misc_flags: bgfx_sys::bgfx_uniform_handle_t,
+    s_base_color: bgfx_sys::bgfx_uniform_handle_t,
+    s_metallic_roughness: bgfx_sys::bgfx_uniform_handle_t,
+    s_normal: bgfx_sys::bgfx_uniform_handle_t,
+    s_emissive: bgfx_sys::bgfx_uniform_handle_t,
+    s_occlusion: bgfx_sys::bgfx_uniform_handle_t,
+    s_clearcoat: bgfx_sys::bgfx_uniform_handle_t,
+    s_clearcoat_roughness: bgfx_sys::bgfx_uniform_handle_t,
+    s_clearcoat_normal: bgfx_sys::bgfx_uniform_handle_t,
+    s_irradiance: bgfx_sys::bgfx_uniform_handle_t,
+    s_prefilter: bgfx_sys::bgfx_uniform_handle_t,
+    s_brdf_lut: bgfx_sys::bgfx_uniform_handle_t,
+    s_specular: bgfx_sys::bgfx_uniform_handle_t,
+    s_specular_color: bgfx_sys::bgfx_uniform_handle_t,
+    s_transmission: bgfx_sys::bgfx_uniform_handle_t,
+    s_thickness: bgfx_sys::bgfx_uniform_handle_t,
+    s_thickness_sheen: bgfx_sys::bgfx_uniform_handle_t,
+    s_sheen_color: bgfx_sys::bgfx_uniform_handle_t,
+    s_sheen_roughness: bgfx_sys::bgfx_uniform_handle_t,
     u_joints: bgfx_sys::bgfx_uniform_handle_t,
+    _white_texture: Dora3DHandle,
+    white_texture_bgfx: bgfx_sys::bgfx_texture_handle_t,
+    _black_texture: Dora3DHandle,
+    black_texture_bgfx: bgfx_sys::bgfx_texture_handle_t,
+    _flat_normal_texture: Dora3DHandle,
+    flat_normal_texture_bgfx: bgfx_sys::bgfx_texture_handle_t,
+    irradiance_texture: Dora3DHandle,
+    irradiance_texture_bgfx: bgfx_sys::bgfx_texture_handle_t,
+    prefilter_texture: Dora3DHandle,
+    prefilter_texture_bgfx: bgfx_sys::bgfx_texture_handle_t,
+    _brdf_lut_texture: Dora3DHandle,
+    brdf_lut_texture_bgfx: bgfx_sys::bgfx_texture_handle_t,
 }
 
 #[derive(Debug, Clone, Copy)]
 struct ViewState {
     view_id: bgfx_sys::bgfx_view_id_t,
-    frame: FrameUniforms,
+}
+
+#[derive(Debug)]
+struct EquirectEnvironment {
+    width: u32,
+    height: u32,
+    pixels: Vec<Vec3>,
+}
+
+#[derive(Debug, Clone)]
+struct CubeFaceMip {
+    side: u8,
+    mip: u8,
+    size: u16,
+    pixels: Vec<[f32; 4]>,
+}
+
+#[derive(Debug, Clone)]
+struct GeneratedEnvironment {
+    irradiance: Vec<CubeFaceMip>,
+    prefilter: Vec<CubeFaceMip>,
+}
+
+#[derive(Debug, Clone)]
+struct EnvironmentSettings {
+    equirect_path: Option<String>,
+    diffuse_intensity: f32,
+    specular_intensity: f32,
+    exposure: f32,
+}
+
+impl Default for EnvironmentSettings {
+    fn default() -> Self {
+        Self {
+            equirect_path: None,
+            diffuse_intensity: 1.0,
+            specular_intensity: 1.0,
+            exposure: 1.0,
+        }
+    }
+}
+
+extern "C" {
+    fn dora_3d_create_builtin_program(
+        vertex_shader: *const c_char,
+        fragment_shader: *const c_char,
+    ) -> u16;
 }
 
 fn invalid_program() -> bgfx_sys::bgfx_program_handle_t {
@@ -70,70 +158,702 @@ fn create_uniform(
     unsafe { bgfx_sys::bgfx_create_uniform(name.as_ptr(), uniform_type, count) }
 }
 
+fn create_builtin_program(
+    vertex_shader: &str,
+    fragment_shader: &str,
+) -> bgfx_sys::bgfx_program_handle_t {
+    let (Ok(vertex_shader), Ok(fragment_shader)) =
+        (CString::new(vertex_shader), CString::new(fragment_shader))
+    else {
+        return invalid_program();
+    };
+    let idx =
+        unsafe { dora_3d_create_builtin_program(vertex_shader.as_ptr(), fragment_shader.as_ptr()) };
+    bgfx_sys::bgfx_program_handle_t { idx }
+}
+
+fn create_white_texture() -> Dora3DHandle {
+    texture::create_rgba8(
+        1,
+        1,
+        &[255, 255, 255, 255],
+        bgfx_sys::BGFX_SAMPLER_NONE as u64,
+        Some("Dora3D White"),
+    )
+    .unwrap_or(0)
+}
+
+fn create_solid_texture(rgba: [u8; 4], name: &str) -> Dora3DHandle {
+    texture::create_rgba8(1, 1, &rgba, bgfx_sys::BGFX_SAMPLER_NONE as u64, Some(name)).unwrap_or(0)
+}
+
+fn cube_direction(side: u8, x: u16, y: u16, size: u16) -> Vec3 {
+    let s = (2.0 * (x as f32 + 0.5) / size as f32) - 1.0;
+    let t = (2.0 * (y as f32 + 0.5) / size as f32) - 1.0;
+    match side {
+        0 => Vec3::new(1.0, -t, -s),
+        1 => Vec3::new(-1.0, -t, s),
+        2 => Vec3::new(s, 1.0, t),
+        3 => Vec3::new(s, -1.0, -t),
+        4 => Vec3::new(s, -t, 1.0),
+        _ => Vec3::new(-s, -t, -1.0),
+    }
+    .normalize_or_zero()
+}
+
+fn linear_to_byte(value: f32) -> u8 {
+    (value.clamp(0.0, 1.0) * 255.0).round() as u8
+}
+
+fn srgb_to_linear_component(value: f32) -> f32 {
+    if value <= 0.04045 {
+        value / 12.92
+    } else {
+        ((value + 0.055) / 1.055).powf(2.4)
+    }
+}
+
+fn soft_box(direction: Vec3, center: Vec3, half_width: f32, half_height: f32) -> f32 {
+    let forward = center.normalize();
+    let up_hint = if forward.y.abs() > 0.95 {
+        Vec3::Z
+    } else {
+        Vec3::Y
+    };
+    let right = up_hint.cross(forward).normalize_or_zero();
+    let up = forward.cross(right).normalize_or_zero();
+    let projected = direction / direction.dot(forward).max(0.000_001);
+    let x = projected.dot(right);
+    let y = projected.dot(up);
+    let edge_x = (1.0 - (x.abs() / half_width).powf(4.0)).clamp(0.0, 1.0);
+    let edge_y = (1.0 - (y.abs() / half_height).powf(4.0)).clamp(0.0, 1.0);
+    edge_x * edge_y
+}
+
+fn environment_color(direction: Vec3, roughness: f32) -> Vec3 {
+    let sky = Vec3::new(0.55, 0.62, 0.72);
+    let horizon = Vec3::new(0.78, 0.74, 0.68);
+    let ground = Vec3::new(0.06, 0.055, 0.05);
+    let y = direction.y.clamp(-1.0, 1.0);
+    let mut color = if y >= 0.0 {
+        sky.lerp(horizon, (1.0 - y).powf(2.0) * 0.35)
+    } else {
+        ground.lerp(horizon * 0.18, (1.0 + y).powf(2.0) * 0.25)
+    };
+    let sharpness = 1.0 - roughness * 0.65;
+    color += Vec3::new(1.0, 0.96, 0.88)
+        * soft_box(direction, Vec3::new(0.0, 0.02, 1.0), 0.72, 0.42)
+        * 7.5
+        * sharpness;
+    color += Vec3::new(1.0, 0.92, 0.78)
+        * soft_box(direction, Vec3::new(-0.45, 0.35, 0.88), 0.18, 0.42)
+        * 7.0
+        * sharpness;
+    color += Vec3::new(0.55, 0.72, 1.0)
+        * soft_box(direction, Vec3::new(0.62, 0.2, 0.76), 0.12, 0.32)
+        * 5.0
+        * sharpness;
+    color += Vec3::new(1.0, 0.96, 0.88)
+        * soft_box(direction, Vec3::new(0.0, 0.9, 0.25), 0.55, 0.16)
+        * 3.0
+        * sharpness;
+    let sun_dir = Vec3::new(0.28, 0.68, 0.68).normalize();
+    let sun = direction
+        .dot(sun_dir)
+        .max(0.0)
+        .powf(256.0 / (1.0 + roughness * 48.0));
+    color += Vec3::new(1.0, 0.86, 0.58) * sun * 8.0 * sharpness;
+    let gray = Vec3::splat(color.dot(Vec3::new(0.2126, 0.7152, 0.0722)));
+    color.lerp(gray, roughness * 0.45)
+}
+
+fn sample_environment(direction: Vec3) -> Vec3 {
+    environment_color(direction.normalize_or_zero(), 0.0)
+}
+
+fn equirect_uv(direction: Vec3) -> (f32, f32) {
+    let direction = direction.normalize_or_zero();
+    let u = 0.5 + direction.z.atan2(direction.x) / (2.0 * PI);
+    let v = 0.5 - direction.y.asin() / PI;
+    (u.fract(), v.clamp(0.0, 1.0))
+}
+
+fn sample_equirect_environment(environment: &EquirectEnvironment, direction: Vec3) -> Vec3 {
+    if environment.width == 0 || environment.height == 0 || environment.pixels.is_empty() {
+        return sample_environment(direction);
+    }
+    let (u, v) = equirect_uv(direction);
+    let x = u * environment.width as f32 - 0.5;
+    let y = v * environment.height as f32 - 0.5;
+    let x0 = x.floor() as i32;
+    let y0 = y.floor() as i32;
+    let tx = x - x0 as f32;
+    let ty = y - y0 as f32;
+    let fetch = |x: i32, y: i32| {
+        let width = environment.width as i32;
+        let height = environment.height as i32;
+        let x = x.rem_euclid(width) as u32;
+        let y = y.clamp(0, height - 1) as u32;
+        environment.pixels[(y * environment.width + x) as usize]
+    };
+    let c00 = fetch(x0, y0);
+    let c10 = fetch(x0 + 1, y0);
+    let c01 = fetch(x0, y0 + 1);
+    let c11 = fetch(x0 + 1, y0 + 1);
+    c00.lerp(c10, tx).lerp(c01.lerp(c11, tx), ty)
+}
+
+fn environment_settings() -> &'static Mutex<EnvironmentSettings> {
+    static SETTINGS: OnceLock<Mutex<EnvironmentSettings>> = OnceLock::new();
+    SETTINGS.get_or_init(|| Mutex::new(EnvironmentSettings::default()))
+}
+
+fn environment_cache() -> &'static Mutex<HashMap<String, GeneratedEnvironment>> {
+    static CACHE: OnceLock<Mutex<HashMap<String, GeneratedEnvironment>>> = OnceLock::new();
+    CACHE.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+fn resolve_content_path(path: &str) -> String {
+    let full_path = Content::get_full_path(path);
+    if full_path.is_empty() {
+        path.to_owned()
+    } else {
+        full_path
+    }
+}
+
+fn load_equirect_environment(path: &str) -> Option<EquirectEnvironment> {
+    let image = image::open(path).ok()?;
+    let (width, height) = image.dimensions();
+    if width == 0 || height == 0 {
+        return None;
+    }
+    let rgba = image.to_rgba32f();
+    let mut pixels = Vec::with_capacity(width as usize * height as usize);
+    for pixel in rgba.pixels() {
+        pixels.push(Vec3::new(
+            srgb_to_linear_component(pixel[0]),
+            srgb_to_linear_component(pixel[1]),
+            srgb_to_linear_component(pixel[2]),
+        ));
+    }
+    Some(EquirectEnvironment {
+        width,
+        height,
+        pixels,
+    })
+}
+
+fn generate_default_environment() -> GeneratedEnvironment {
+    GeneratedEnvironment {
+        irradiance: generate_cube_faces(
+            DEFAULT_IRRADIANCE_SIZE,
+            1,
+            |side, x, y, mip_size, _roughness| {
+                convolve_irradiance(cube_direction(side, x, y, mip_size))
+            },
+        ),
+        prefilter: generate_cube_faces(
+            DEFAULT_PREFILTER_SIZE,
+            DEFAULT_PREFILTER_MIPS,
+            |side, x, y, mip_size, roughness| {
+                prefilter_environment(cube_direction(side, x, y, mip_size), roughness)
+            },
+        ),
+    }
+}
+
+pub fn set_environment_equirect(path: &str) -> bool {
+    if path.trim().is_empty() {
+        if environment_settings()
+            .lock()
+            .unwrap()
+            .equirect_path
+            .is_none()
+        {
+            return true;
+        }
+        let state = shader_state();
+        let generated = generate_default_environment();
+        if apply_generated_environment(state, &generated) {
+            environment_settings().lock().unwrap().equirect_path = None;
+            return true;
+        }
+        return false;
+    }
+
+    let resolved_path = resolve_content_path(path);
+    if environment_settings()
+        .lock()
+        .unwrap()
+        .equirect_path
+        .as_deref()
+        == Some(resolved_path.as_str())
+    {
+        return true;
+    }
+
+    let state = shader_state();
+    if let Some(environment) = environment_cache()
+        .lock()
+        .unwrap()
+        .get(&resolved_path)
+        .cloned()
+    {
+        if apply_generated_environment(state, &environment) {
+            environment_settings().lock().unwrap().equirect_path = Some(resolved_path);
+            return true;
+        }
+    }
+
+    let Some(environment) = load_equirect_environment(&resolved_path) else {
+        return false;
+    };
+    let generated = GeneratedEnvironment {
+        irradiance: generate_cube_faces(
+            DEFAULT_IRRADIANCE_SIZE,
+            1,
+            |side, x, y, mip_size, _roughness| {
+                let direction = cube_direction(side, x, y, mip_size);
+                convolve_irradiance_with(direction, |sample_direction| {
+                    sample_equirect_environment(&environment, sample_direction)
+                })
+            },
+        ),
+        prefilter: generate_cube_faces(
+            DEFAULT_PREFILTER_SIZE,
+            DEFAULT_PREFILTER_MIPS,
+            |side, x, y, mip_size, roughness| {
+                let direction = cube_direction(side, x, y, mip_size);
+                prefilter_environment_with(direction, roughness, |sample_direction| {
+                    sample_equirect_environment(&environment, sample_direction)
+                })
+            },
+        ),
+    };
+    if apply_generated_environment(state, &generated) {
+        environment_cache()
+            .lock()
+            .unwrap()
+            .insert(resolved_path.clone(), generated);
+        environment_settings().lock().unwrap().equirect_path = Some(resolved_path);
+        return true;
+    }
+    false
+}
+
+pub fn set_environment_intensity(diffuse: f32, specular: f32, exposure: f32) {
+    let mut settings = environment_settings().lock().unwrap();
+    settings.diffuse_intensity = diffuse.max(0.0);
+    settings.specular_intensity = specular.max(0.0);
+    settings.exposure = exposure.max(0.0);
+}
+
+fn current_environment_settings() -> EnvironmentSettings {
+    environment_settings().lock().unwrap().clone()
+}
+
+fn tangent_basis(normal: Vec3) -> (Vec3, Vec3) {
+    let up = if normal.z.abs() < 0.999 {
+        Vec3::Z
+    } else {
+        Vec3::X
+    };
+    let tangent = up.cross(normal).normalize_or_zero();
+    let bitangent = normal.cross(tangent).normalize_or_zero();
+    (tangent, bitangent)
+}
+
+fn sample_hemisphere(normal: Vec3, xi: [f32; 2]) -> Vec3 {
+    let phi = 2.0 * PI * xi[0];
+    let cos_theta = xi[1];
+    let sin_theta = (1.0 - cos_theta * cos_theta).max(0.0).sqrt();
+    let local = Vec3::new(phi.cos() * sin_theta, phi.sin() * sin_theta, cos_theta);
+    let (tangent, bitangent) = tangent_basis(normal);
+    (tangent * local.x + bitangent * local.y + normal * local.z).normalize_or_zero()
+}
+
+fn convolve_irradiance(normal: Vec3) -> Vec3 {
+    convolve_irradiance_with(normal, sample_environment)
+}
+
+fn convolve_irradiance_with(normal: Vec3, mut sample: impl FnMut(Vec3) -> Vec3) -> Vec3 {
+    let mut irradiance = Vec3::ZERO;
+    for index in 0..IRRADIANCE_SAMPLE_COUNT {
+        let light = sample_hemisphere(normal, hammersley(index, IRRADIANCE_SAMPLE_COUNT));
+        let n_dot_l = normal.dot(light).max(0.0);
+        irradiance += sample(light) * n_dot_l;
+    }
+    irradiance * (2.0 * PI / IRRADIANCE_SAMPLE_COUNT as f32)
+}
+
+fn prefilter_environment(reflection: Vec3, roughness: f32) -> Vec3 {
+    prefilter_environment_with(reflection, roughness, sample_environment)
+}
+
+fn prefilter_environment_with(
+    reflection: Vec3,
+    roughness: f32,
+    mut sample: impl FnMut(Vec3) -> Vec3,
+) -> Vec3 {
+    let normal = reflection.normalize_or_zero();
+    let view = normal;
+    let mut color = Vec3::ZERO;
+    let mut total_weight = 0.0;
+    for index in 0..PREFILTER_SAMPLE_COUNT {
+        let half =
+            importance_sample_ggx(hammersley(index, PREFILTER_SAMPLE_COUNT), roughness, normal);
+        let light = (half * (2.0 * view.dot(half)) - view).normalize_or_zero();
+        let n_dot_l = normal.dot(light).max(0.0);
+        if n_dot_l > 0.0 {
+            color += sample(light) * n_dot_l;
+            total_weight += n_dot_l;
+        }
+    }
+    color / total_weight.max(0.000_001)
+}
+
+fn update_generated_cube(
+    handle: Dora3DHandle,
+    size: u16,
+    mip_count: u8,
+    mut sample: impl FnMut(u8, u16, u16, u16, f32) -> Vec3,
+) -> bool {
+    let faces = generate_cube_faces(size, mip_count, |side, x, y, mip_size, roughness| {
+        sample(side, x, y, mip_size, roughness)
+    });
+    update_cube_faces(handle, &faces)
+}
+
+fn generate_cube_faces(
+    size: u16,
+    mip_count: u8,
+    mut sample: impl FnMut(u8, u16, u16, u16, f32) -> Vec3,
+) -> Vec<CubeFaceMip> {
+    let mut faces = Vec::new();
+    for mip in 0..mip_count {
+        let mip_size = (size >> mip).max(1);
+        let roughness = if mip_count <= 1 {
+            0.85
+        } else {
+            mip as f32 / (mip_count - 1) as f32
+        };
+        for side in 0..6 {
+            let mut pixels = Vec::with_capacity(mip_size as usize * mip_size as usize);
+            for y in 0..mip_size {
+                for x in 0..mip_size {
+                    let color = sample(side, x, y, mip_size, roughness);
+                    pixels.push([color.x, color.y, color.z, 1.0]);
+                }
+            }
+            faces.push(CubeFaceMip {
+                side,
+                mip,
+                size: mip_size,
+                pixels,
+            });
+        }
+    }
+    faces
+}
+
+fn update_cube_faces(handle: Dora3DHandle, faces: &[CubeFaceMip]) -> bool {
+    for face in faces {
+        if !texture::update_cube_rgba16f(handle, face.side, face.mip, face.size, &face.pixels) {
+            return false;
+        }
+    }
+    true
+}
+
+fn apply_generated_environment(state: &ShaderState, environment: &GeneratedEnvironment) -> bool {
+    update_cube_faces(state.irradiance_texture, &environment.irradiance)
+        && update_cube_faces(state.prefilter_texture, &environment.prefilter)
+}
+
+fn create_generated_cube(
+    size: u16,
+    mip_count: u8,
+    name: &str,
+    mut sample: impl FnMut(u8, u16, u16, u16, f32) -> Vec3,
+) -> Dora3DHandle {
+    let flags = bgfx_sys::BGFX_SAMPLER_U_CLAMP as u64
+        | bgfx_sys::BGFX_SAMPLER_V_CLAMP as u64
+        | bgfx_sys::BGFX_SAMPLER_W_CLAMP as u64;
+    if let Some(handle) = texture::create_cube_rgba16f(size, mip_count > 1, flags, Some(name)) {
+        let _ = update_generated_cube(handle, size, mip_count, sample);
+        return handle;
+    }
+    let Some(handle) = texture::create_cube_rgba8(size, mip_count > 1, flags, Some(name)) else {
+        return 0;
+    };
+    for mip in 0..mip_count {
+        let mip_size = (size >> mip).max(1);
+        let roughness = if mip_count <= 1 {
+            0.85
+        } else {
+            mip as f32 / (mip_count - 1) as f32
+        };
+        for side in 0..6 {
+            let mut pixels = Vec::with_capacity(mip_size as usize * mip_size as usize * 4);
+            for y in 0..mip_size {
+                for x in 0..mip_size {
+                    let color = sample(side, x, y, mip_size, roughness);
+                    pixels.extend_from_slice(&[
+                        linear_to_byte(color.x),
+                        linear_to_byte(color.y),
+                        linear_to_byte(color.z),
+                        255,
+                    ]);
+                }
+            }
+            let _ = texture::update_cube_rgba8(handle, side, mip, mip_size, &pixels);
+        }
+    }
+    handle
+}
+
+fn create_irradiance_cube(size: u16, name: &str) -> Dora3DHandle {
+    create_generated_cube(size, 1, name, |side, x, y, mip_size, _roughness| {
+        convolve_irradiance(cube_direction(side, x, y, mip_size))
+    })
+}
+
+fn create_prefilter_cube(size: u16, mip_count: u8, name: &str) -> Dora3DHandle {
+    create_generated_cube(size, mip_count, name, |side, x, y, mip_size, roughness| {
+        prefilter_environment(cube_direction(side, x, y, mip_size), roughness)
+    })
+}
+
+fn radical_inverse_vdc(mut bits: u32) -> f32 {
+    bits = (bits << 16) | (bits >> 16);
+    bits = ((bits & 0x5555_5555) << 1) | ((bits & 0xaaaa_aaaa) >> 1);
+    bits = ((bits & 0x3333_3333) << 2) | ((bits & 0xcccc_cccc) >> 2);
+    bits = ((bits & 0x0f0f_0f0f) << 4) | ((bits & 0xf0f0_f0f0) >> 4);
+    bits = ((bits & 0x00ff_00ff) << 8) | ((bits & 0xff00_ff00) >> 8);
+    bits as f32 * 2.328_306_4e-10
+}
+
+fn hammersley(index: u32, count: u32) -> [f32; 2] {
+    [index as f32 / count as f32, radical_inverse_vdc(index)]
+}
+
+fn importance_sample_ggx(xi: [f32; 2], roughness: f32, normal: Vec3) -> Vec3 {
+    let alpha = roughness * roughness;
+    let phi = 2.0 * PI * xi[0];
+    let cos_theta = ((1.0 - xi[1]) / (1.0 + (alpha * alpha - 1.0) * xi[1])).sqrt();
+    let sin_theta = (1.0 - cos_theta * cos_theta).max(0.0).sqrt();
+    let half = Vec3::new(phi.cos() * sin_theta, phi.sin() * sin_theta, cos_theta);
+    let up = if normal.z.abs() < 0.999 {
+        Vec3::Z
+    } else {
+        Vec3::X
+    };
+    let tangent = up.cross(normal).normalize_or_zero();
+    let bitangent = normal.cross(tangent);
+    (tangent * half.x + bitangent * half.y + normal * half.z).normalize_or_zero()
+}
+
+fn geometry_schlick_ggx_ibl(n_dot_v: f32, roughness: f32) -> f32 {
+    let alpha = roughness * roughness;
+    let k = (alpha * alpha) / 2.0;
+    n_dot_v / (n_dot_v * (1.0 - k) + k).max(0.000_001)
+}
+
+fn geometry_smith_ibl(n_dot_v: f32, n_dot_l: f32, roughness: f32) -> f32 {
+    geometry_schlick_ggx_ibl(n_dot_v, roughness) * geometry_schlick_ggx_ibl(n_dot_l, roughness)
+}
+
+fn integrate_brdf(roughness: f32, n_dot_v: f32) -> [f32; 2] {
+    let view = Vec3::new((1.0 - n_dot_v * n_dot_v).max(0.0).sqrt(), 0.0, n_dot_v);
+    let normal = Vec3::Z;
+    let mut scale = 0.0;
+    let mut bias = 0.0;
+    for index in 0..BRDF_SAMPLE_COUNT {
+        let half = importance_sample_ggx(hammersley(index, BRDF_SAMPLE_COUNT), roughness, normal);
+        let light = (half * (2.0 * view.dot(half)) - view).normalize_or_zero();
+        let n_dot_l = light.z.max(0.0);
+        let n_dot_h = half.z.max(0.0);
+        let v_dot_h = view.dot(half).max(0.0);
+        if n_dot_l > 0.0 {
+            let geometry = geometry_smith_ibl(n_dot_v, n_dot_l, roughness);
+            let visibility = (geometry * v_dot_h) / (n_dot_h * n_dot_v).max(0.000_001);
+            let fresnel = (1.0 - v_dot_h).powi(5);
+            scale += (1.0 - fresnel) * visibility;
+            bias += fresnel * visibility;
+        }
+    }
+    [
+        scale / BRDF_SAMPLE_COUNT as f32,
+        bias / BRDF_SAMPLE_COUNT as f32,
+    ]
+}
+
+fn create_brdf_lut(size: u16) -> Dora3DHandle {
+    let sampler_flags =
+        bgfx_sys::BGFX_SAMPLER_U_CLAMP as u64 | bgfx_sys::BGFX_SAMPLER_V_CLAMP as u64;
+    let mut pixels = Vec::with_capacity(size as usize * size as usize);
+    for y in 0..size {
+        let roughness = (y as f32 + 0.5) / size as f32;
+        for x in 0..size {
+            let n_dot_v = (x as f32 + 0.5) / size as f32;
+            let brdf = integrate_brdf(roughness, n_dot_v);
+            pixels.push([brdf[0], brdf[1], 0.0, 1.0]);
+        }
+    }
+    if let Some(handle) =
+        texture::create_rgba16f(size, size, &pixels, sampler_flags, Some("Dora3D BRDF LUT"))
+    {
+        return handle;
+    }
+    let mut rgba8 = Vec::with_capacity(size as usize * size as usize * 4);
+    for pixel in pixels {
+        rgba8.extend_from_slice(&[
+            linear_to_byte(pixel[0]),
+            linear_to_byte(pixel[1]),
+            linear_to_byte(pixel[2]),
+            linear_to_byte(pixel[3]),
+        ]);
+    }
+    texture::create_rgba8(size, size, &rgba8, sampler_flags, Some("Dora3D BRDF LUT")).unwrap_or(0)
+}
+
 fn shader_state() -> &'static ShaderState {
     static SHADER_STATE: OnceLock<ShaderState> = OnceLock::new();
-    SHADER_STATE.get_or_init(|| ShaderState {
-        programs: ShaderPrograms {
-            // TODO: embed compiled shader binaries.
-            unlit: invalid_program(),
-            // TODO: embed compiled shader binaries.
-            lambert: invalid_program(),
-        },
-        u_frame: create_uniform("u_frame", bgfx_sys::BGFX_UNIFORM_TYPE_VEC4, 5),
-        u_draw: create_uniform("u_draw", bgfx_sys::BGFX_UNIFORM_TYPE_VEC4, 7),
-        u_joints: create_uniform(
-            "u_joints",
-            bgfx_sys::BGFX_UNIFORM_TYPE_MAT4,
-            MAX_JOINTS as u16,
-        ),
+    SHADER_STATE.get_or_init(|| {
+        let unlit = create_builtin_program("vs_model3d", "fs_model3d");
+        let sheen_roughness = create_builtin_program("vs_model3d", "fs_model3d_sheen");
+        let thickness_sheen = create_builtin_program("vs_model3d", "fs_model3d_thickness_sheen");
+        let white_texture = create_white_texture();
+        let black_texture = create_solid_texture([0, 0, 0, 255], "Dora3D Black");
+        let flat_normal_texture = create_solid_texture([128, 128, 255, 255], "Dora3D Flat Normal");
+        let irradiance_texture =
+            create_irradiance_cube(DEFAULT_IRRADIANCE_SIZE, "Dora3D Irradiance");
+        let prefilter_texture = create_prefilter_cube(
+            DEFAULT_PREFILTER_SIZE,
+            DEFAULT_PREFILTER_MIPS,
+            "Dora3D Prefilter",
+        );
+        let brdf_lut_texture = create_brdf_lut(DEFAULT_BRDF_LUT_SIZE);
+        ShaderState {
+            programs: ShaderPrograms {
+                unlit,
+                lambert: unlit,
+                sheen_roughness,
+                thickness_sheen,
+            },
+            u_camera_proj: create_uniform("u_mCameraProj", bgfx_sys::BGFX_UNIFORM_TYPE_MAT4, 1),
+            u_model_inst: create_uniform("u_mModel_Inst", bgfx_sys::BGFX_UNIFORM_TYPE_MAT4, 40),
+            u_normal_model: create_uniform("u_mNormal", bgfx_sys::BGFX_UNIFORM_TYPE_MAT4, 40),
+            u_uv: create_uniform("u_fUV", bgfx_sys::BGFX_UNIFORM_TYPE_VEC4, 40),
+            u_model_color: create_uniform("u_fModelColor", bgfx_sys::BGFX_UNIFORM_TYPE_VEC4, 40),
+            u_uv_inversed: create_uniform("u_mUVInversed", bgfx_sys::BGFX_UNIFORM_TYPE_VEC4, 1),
+            u_view_pos: create_uniform("u_viewPos", bgfx_sys::BGFX_UNIFORM_TYPE_VEC4, 1),
+            u_env_diffuse: create_uniform("u_envDiffuse", bgfx_sys::BGFX_UNIFORM_TYPE_VEC4, 1),
+            u_env_specular: create_uniform("u_envSpecular", bgfx_sys::BGFX_UNIFORM_TYPE_VEC4, 1),
+            u_pbr_params: create_uniform("u_pbrParams", bgfx_sys::BGFX_UNIFORM_TYPE_VEC4, 1),
+            u_emissive_scaling: create_uniform(
+                "u_fsfEmissiveScaling",
+                bgfx_sys::BGFX_UNIFORM_TYPE_VEC4,
+                1,
+            ),
+            u_soft_particle_param: create_uniform(
+                "u_fssoftParticleParam",
+                bgfx_sys::BGFX_UNIFORM_TYPE_VEC4,
+                1,
+            ),
+            u_reconstruction_param1: create_uniform(
+                "u_fsreconstructionParam1",
+                bgfx_sys::BGFX_UNIFORM_TYPE_VEC4,
+                1,
+            ),
+            u_reconstruction_param2: create_uniform(
+                "u_fsreconstructionParam2",
+                bgfx_sys::BGFX_UNIFORM_TYPE_VEC4,
+                1,
+            ),
+            u_uv_inversed_back: create_uniform(
+                "u_fsmUVInversedBack",
+                bgfx_sys::BGFX_UNIFORM_TYPE_VEC4,
+                1,
+            ),
+            u_misc_flags: create_uniform("u_fsmiscFlags", bgfx_sys::BGFX_UNIFORM_TYPE_VEC4, 1),
+            s_base_color: create_uniform("s_baseColor", bgfx_sys::BGFX_UNIFORM_TYPE_SAMPLER, 1),
+            s_metallic_roughness: create_uniform(
+                "s_metallicRoughness",
+                bgfx_sys::BGFX_UNIFORM_TYPE_SAMPLER,
+                1,
+            ),
+            s_normal: create_uniform("s_normal", bgfx_sys::BGFX_UNIFORM_TYPE_SAMPLER, 1),
+            s_emissive: create_uniform("s_emissive", bgfx_sys::BGFX_UNIFORM_TYPE_SAMPLER, 1),
+            s_occlusion: create_uniform("s_occlusion", bgfx_sys::BGFX_UNIFORM_TYPE_SAMPLER, 1),
+            s_clearcoat: create_uniform("s_clearcoat", bgfx_sys::BGFX_UNIFORM_TYPE_SAMPLER, 1),
+            s_clearcoat_roughness: create_uniform(
+                "s_clearcoatRoughness",
+                bgfx_sys::BGFX_UNIFORM_TYPE_SAMPLER,
+                1,
+            ),
+            s_clearcoat_normal: create_uniform(
+                "s_clearcoatNormal",
+                bgfx_sys::BGFX_UNIFORM_TYPE_SAMPLER,
+                1,
+            ),
+            s_irradiance: create_uniform("s_irradiance", bgfx_sys::BGFX_UNIFORM_TYPE_SAMPLER, 1),
+            s_prefilter: create_uniform("s_prefilter", bgfx_sys::BGFX_UNIFORM_TYPE_SAMPLER, 1),
+            s_brdf_lut: create_uniform("s_brdfLut", bgfx_sys::BGFX_UNIFORM_TYPE_SAMPLER, 1),
+            s_specular: create_uniform("s_specular", bgfx_sys::BGFX_UNIFORM_TYPE_SAMPLER, 1),
+            s_specular_color: create_uniform(
+                "s_specularColor",
+                bgfx_sys::BGFX_UNIFORM_TYPE_SAMPLER,
+                1,
+            ),
+            s_transmission: create_uniform(
+                "s_transmission",
+                bgfx_sys::BGFX_UNIFORM_TYPE_SAMPLER,
+                1,
+            ),
+            s_thickness: create_uniform("s_thickness", bgfx_sys::BGFX_UNIFORM_TYPE_SAMPLER, 1),
+            s_thickness_sheen: create_uniform(
+                "s_thicknessSheen",
+                bgfx_sys::BGFX_UNIFORM_TYPE_SAMPLER,
+                1,
+            ),
+            s_sheen_color: create_uniform("s_sheenColor", bgfx_sys::BGFX_UNIFORM_TYPE_SAMPLER, 1),
+            s_sheen_roughness: create_uniform(
+                "s_sheenRoughness",
+                bgfx_sys::BGFX_UNIFORM_TYPE_SAMPLER,
+                1,
+            ),
+            u_joints: create_uniform(
+                "u_joints",
+                bgfx_sys::BGFX_UNIFORM_TYPE_MAT4,
+                MAX_JOINTS as u16,
+            ),
+            _white_texture: white_texture,
+            white_texture_bgfx: texture::texture_handle(white_texture)
+                .unwrap_or_else(texture::invalid_handle),
+            _black_texture: black_texture,
+            black_texture_bgfx: texture::texture_handle(black_texture)
+                .unwrap_or_else(texture::invalid_handle),
+            _flat_normal_texture: flat_normal_texture,
+            flat_normal_texture_bgfx: texture::texture_handle(flat_normal_texture)
+                .unwrap_or_else(texture::invalid_handle),
+            irradiance_texture,
+            irradiance_texture_bgfx: texture::texture_handle(irradiance_texture)
+                .unwrap_or_else(texture::invalid_handle),
+            prefilter_texture,
+            prefilter_texture_bgfx: texture::texture_handle(prefilter_texture)
+                .unwrap_or_else(texture::invalid_handle),
+            _brdf_lut_texture: brdf_lut_texture,
+            brdf_lut_texture_bgfx: texture::texture_handle(brdf_lut_texture)
+                .unwrap_or_else(texture::invalid_handle),
+        }
     })
 }
 
 fn current_view_state() -> &'static Mutex<Option<ViewState>> {
     static CURRENT_VIEW: OnceLock<Mutex<Option<ViewState>>> = OnceLock::new();
     CURRENT_VIEW.get_or_init(|| Mutex::new(None))
-}
-
-unsafe fn upload_uniform_bytes(
-    uniform: bgfx_sys::bgfx_uniform_handle_t,
-    bytes: *const u8,
-    size: usize,
-    num: u16,
-) {
-    if uniform.idx == u16::MAX || bytes.is_null() || size == 0 {
-        return;
-    }
-    let memory = bgfx_sys::bgfx_alloc(size as u32);
-    if memory.is_null() {
-        return;
-    }
-    ptr::copy_nonoverlapping(bytes, (*memory).data, size);
-    bgfx_sys::bgfx_set_uniform(uniform, (*memory).data as *const _, num);
-}
-
-fn build_draw_uniforms(material_handle: Dora3DHandle, model_matrix: &Mat4) -> DrawUniforms {
-    material::with_material(material_handle, |material| DrawUniforms {
-        model: model_matrix.to_cols_array_2d(),
-        base_color: material.base_color.to_array(),
-        normal_metallic: [
-            material.normal_scale,
-            material.metallic,
-            material.roughness,
-            material.occlusion_strength,
-        ],
-        emissive: [
-            material.emissive_factor.x,
-            material.emissive_factor.y,
-            material.emissive_factor.z,
-            1.0,
-        ],
-    })
-    .unwrap_or(DrawUniforms {
-        model: model_matrix.to_cols_array_2d(),
-        base_color: [1.0, 1.0, 1.0, 1.0],
-        normal_metallic: [1.0, 1.0, 1.0, 1.0],
-        emissive: [0.0, 0.0, 0.0, 1.0],
-    })
 }
 
 fn choose_program(
@@ -148,12 +868,93 @@ fn choose_program(
         }
         match material.material_type {
             MaterialType::Unlit => state.programs.unlit,
-            MaterialType::Lambert
-            | MaterialType::PbrMetallicRoughness
-            | MaterialType::Custom => state.programs.lambert,
+            MaterialType::PbrMetallicRoughness
+                if matches!(
+                    material
+                        .shader_params
+                        .get(material::default_thickness_sheen_slot()),
+                    Some(material::ShaderParam::Texture(_))
+                ) =>
+            {
+                state.programs.thickness_sheen
+            }
+            MaterialType::PbrMetallicRoughness
+                if matches!(
+                    material
+                        .shader_params
+                        .get(material::default_sheen_roughness_slot()),
+                    Some(material::ShaderParam::Texture(_))
+                ) =>
+            {
+                state.programs.sheen_roughness
+            }
+            MaterialType::Lambert | MaterialType::PbrMetallicRoughness | MaterialType::Custom => {
+                state.programs.lambert
+            }
         }
     })
     .unwrap_or(state.programs.lambert)
+}
+
+fn material_base_color(material_handle: Dora3DHandle) -> [f32; 4] {
+    material::with_material(material_handle, |material| material.base_color.to_array())
+        .unwrap_or([1.0, 1.0, 1.0, 1.0])
+}
+
+fn apply_material_or_default(material_handle: Dora3DHandle) {
+    if material::apply(material_handle) {
+        return;
+    }
+    let state = bgfx_sys::BGFX_STATE_WRITE_RGB as u64
+        | bgfx_sys::BGFX_STATE_WRITE_A as u64
+        | bgfx_sys::BGFX_STATE_WRITE_Z as u64
+        | bgfx_sys::BGFX_STATE_DEPTH_TEST_LESS as u64
+        | bgfx_sys::BGFX_STATE_MSAA as u64;
+    unsafe {
+        bgfx_sys::bgfx_set_state(state, 0);
+    }
+}
+
+unsafe fn bind_texture_or_skip(
+    stage: u8,
+    uniform: bgfx_sys::bgfx_uniform_handle_t,
+    texture: bgfx_sys::bgfx_texture_handle_t,
+) {
+    if uniform.idx == u16::MAX {
+        return;
+    }
+    if texture.idx == u16::MAX {
+        return;
+    }
+    bgfx_sys::bgfx_set_texture(stage, uniform, texture, u32::MAX);
+}
+
+unsafe fn set_default_textures(state: &ShaderState) {
+    bind_texture_or_skip(0, state.s_base_color, state.white_texture_bgfx);
+    bind_texture_or_skip(1, state.s_metallic_roughness, state.white_texture_bgfx);
+    bind_texture_or_skip(2, state.s_normal, state.flat_normal_texture_bgfx);
+    bind_texture_or_skip(3, state.s_emissive, state.black_texture_bgfx);
+    bind_texture_or_skip(4, state.s_occlusion, state.white_texture_bgfx);
+    bind_texture_or_skip(5, state.s_clearcoat, state.white_texture_bgfx);
+    bind_texture_or_skip(6, state.s_clearcoat_roughness, state.white_texture_bgfx);
+    bind_texture_or_skip(7, state.s_clearcoat_normal, state.flat_normal_texture_bgfx);
+    bind_texture_or_skip(8, state.s_irradiance, state.irradiance_texture_bgfx);
+    bind_texture_or_skip(9, state.s_prefilter, state.prefilter_texture_bgfx);
+    bind_texture_or_skip(10, state.s_brdf_lut, state.brdf_lut_texture_bgfx);
+    bind_texture_or_skip(11, state.s_specular, state.white_texture_bgfx);
+    bind_texture_or_skip(12, state.s_specular_color, state.white_texture_bgfx);
+    bind_texture_or_skip(13, state.s_transmission, state.white_texture_bgfx);
+    bind_texture_or_skip(14, state.s_thickness, state.white_texture_bgfx);
+    bind_texture_or_skip(14, state.s_thickness_sheen, state.white_texture_bgfx);
+    bind_texture_or_skip(15, state.s_sheen_color, state.white_texture_bgfx);
+    bind_texture_or_skip(14, state.s_sheen_roughness, state.white_texture_bgfx);
+}
+
+unsafe fn set_uniform<T>(uniform: bgfx_sys::bgfx_uniform_handle_t, value: &T, num: u16) {
+    if uniform.idx == u16::MAX {
+        return;
+    }
+    bgfx_sys::bgfx_set_uniform(uniform, value as *const T as *const _, num);
 }
 
 pub fn ensure_shaders() -> ShaderPrograms {
@@ -161,18 +962,19 @@ pub fn ensure_shaders() -> ShaderPrograms {
 }
 
 pub fn set_view_transforms(view_id: bgfx_sys::bgfx_view_id_t, view_proj: &Mat4, view_pos: Vec3) {
-    let frame = FrameUniforms {
-        view_proj: view_proj.to_cols_array_2d(),
-        view_pos: [view_pos.x, view_pos.y, view_pos.z, 0.0],
-    };
+    let _ = view_pos;
     let identity = Mat4::IDENTITY.to_cols_array();
     let combined = mat4_to_bgfx_array(view_proj);
     unsafe {
-        // bgfx needs separate view/proj matrices; for now we provide identity view
-        // and use the combined matrix in the projection slot while shaders read u_frame.
-        bgfx_sys::bgfx_set_view_transform(view_id, identity.as_ptr() as *const _, combined.as_ptr() as *const _);
+        // bgfx still needs a view/proj pair for internal view state; model shaders
+        // consume the combined matrix through u_mCameraProj.
+        bgfx_sys::bgfx_set_view_transform(
+            view_id,
+            identity.as_ptr() as *const _,
+            combined.as_ptr() as *const _,
+        );
     }
-    *current_view_state().lock().unwrap() = Some(ViewState { view_id, frame });
+    *current_view_state().lock().unwrap() = Some(ViewState { view_id });
 }
 
 pub fn submit_mesh(
@@ -180,7 +982,7 @@ pub fn submit_mesh(
     material_handle: Dora3DHandle,
     model_matrix: &Mat4,
     view_proj: &Mat4,
-    view_pos: Vec3,
+    _view_pos: Vec3,
     joint_matrices: Option<&[Mat4]>,
 ) -> bool {
     let _ = ensure_shaders();
@@ -190,48 +992,67 @@ pub fn submit_mesh(
         .unwrap()
         .as_ref()
         .copied()
-        .unwrap_or(ViewState {
-            view_id: 0,
-            frame: FrameUniforms {
-                view_proj: view_proj.to_cols_array_2d(),
-                view_pos: [view_pos.x, view_pos.y, view_pos.z, 0.0],
-            },
-        });
-    let draw = build_draw_uniforms(material_handle, model_matrix);
+        .unwrap_or(ViewState { view_id: 0 });
     let program = choose_program(state, material_handle);
     if program.idx == u16::MAX {
         return false;
     }
+
+    let base_color = material_base_color(material_handle);
+    let camera_proj = mat4_to_bgfx_array(view_proj);
+    let model = mat4_to_bgfx_array(model_matrix);
+    let normal_model = mat4_to_bgfx_array(&model_matrix.inverse().transpose());
+    let uv = [0.0f32, 0.0, 1.0, 1.0];
+    let uv_inversed = [0.0f32, 1.0, 0.0, 0.0];
+    let view_pos = [_view_pos.x, _view_pos.y, _view_pos.z, 0.0];
+    let environment = current_environment_settings();
+    let env_diffuse = [1.0f32, 1.0, 1.0, environment.diffuse_intensity];
+    let env_specular = [
+        1.0f32,
+        (DEFAULT_PREFILTER_MIPS - 1) as f32,
+        0.0,
+        environment.specular_intensity,
+    ];
+    let pbr_params = [environment.exposure, 0.0, 0.0, 0.0];
+    let emissive_scaling = [1.0f32, 0.0, 0.0, 0.0];
+    let zero = [0.0f32, 0.0, 0.0, 0.0];
+
     mesh::with_mesh(mesh_handle, |mesh_data| unsafe {
         let transform = mat4_to_bgfx_array(model_matrix);
         bgfx_sys::bgfx_set_transform(transform.as_ptr() as *const _, 1);
-        upload_uniform_bytes(
-            state.u_frame,
-            &view_state.frame as *const FrameUniforms as *const u8,
-            std::mem::size_of::<FrameUniforms>(),
-            5,
-        );
-        upload_uniform_bytes(
-            state.u_draw,
-            &draw as *const DrawUniforms as *const u8,
-            std::mem::size_of::<DrawUniforms>(),
-            7,
-        );
+        set_uniform(state.u_camera_proj, &camera_proj, 1);
+        set_uniform(state.u_model_inst, &model, 1);
+        set_uniform(state.u_normal_model, &normal_model, 1);
+        set_uniform(state.u_uv, &uv, 1);
+        set_uniform(state.u_model_color, &base_color, 1);
+        set_uniform(state.u_uv_inversed, &uv_inversed, 1);
+        set_uniform(state.u_view_pos, &view_pos, 1);
+        set_uniform(state.u_env_diffuse, &env_diffuse, 1);
+        set_uniform(state.u_env_specular, &env_specular, 1);
+        set_uniform(state.u_pbr_params, &pbr_params, 1);
+        set_uniform(state.u_emissive_scaling, &emissive_scaling, 1);
+        set_uniform(state.u_soft_particle_param, &zero, 1);
+        set_uniform(state.u_reconstruction_param1, &zero, 1);
+        set_uniform(state.u_reconstruction_param2, &zero, 1);
+        set_uniform(state.u_uv_inversed_back, &uv_inversed, 1);
+        set_uniform(state.u_misc_flags, &zero, 1);
         if let Some(joint_matrices) = joint_matrices {
             let mut joints = JointUniforms {
-                matrices: [[0.0; 4]; 4 * MAX_JOINTS],
+                matrices: [0.0; 16 * MAX_JOINTS],
             };
-            for (joint_index, matrix) in joint_matrices.iter().take(MAX_JOINTS).enumerate() {
-                let rows = matrix.to_cols_array_2d();
-                let base = joint_index * 4;
-                joints.matrices[base..base + 4].copy_from_slice(&rows);
+            for joint_index in 0..MAX_JOINTS {
+                let base = joint_index * 16;
+                joints.matrices[base] = 1.0;
+                joints.matrices[base + 5] = 1.0;
+                joints.matrices[base + 10] = 1.0;
+                joints.matrices[base + 15] = 1.0;
             }
-            upload_uniform_bytes(
-                state.u_joints,
-                &joints as *const JointUniforms as *const u8,
-                std::mem::size_of::<JointUniforms>(),
-                MAX_JOINTS as u16,
-            );
+            for (joint_index, matrix) in joint_matrices.iter().take(MAX_JOINTS).enumerate() {
+                let packed = mat4_to_bgfx_array(matrix);
+                let base = joint_index * 16;
+                joints.matrices[base..base + 16].copy_from_slice(&packed);
+            }
+            set_uniform(state.u_joints, &joints.matrices, MAX_JOINTS as u16);
         }
         bgfx_sys::bgfx_set_vertex_buffer(
             0,
@@ -240,7 +1061,8 @@ pub fn submit_mesh(
             mesh_data.vertices.len() as u32,
         );
         for sub_mesh in &mesh_data.sub_meshes {
-            let _ = material::apply(material_handle);
+            set_default_textures(state);
+            apply_material_or_default(material_handle);
             bgfx_sys::bgfx_set_index_buffer(
                 mesh_data.index_buffer,
                 sub_mesh.start_index,

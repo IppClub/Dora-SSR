@@ -549,13 +549,13 @@ void Node::removeChild(Node* child, bool cleanup) {
 		if (_flags.isOn(Node::Running)) {
 			child->onExit();
 		}
+		child->_parent = nullptr;
 		if (cleanup) {
 			child->cleanup();
 		} else {
 			child->_flags.setOn(Node::InWaitingList);
 			SharedDirector.addToWaitingList(child);
 		}
-		child->_parent = nullptr;
 		child->autorelease();
 	}
 }
@@ -569,13 +569,13 @@ void Node::removeAllChildren(bool cleanup) {
 		if (_flags.isOn(Node::Running)) {
 			child->onExit();
 		}
+		child->_parent = nullptr;
 		if (cleanup) {
 			child->cleanup();
 		} else {
 			child->_flags.setOn(Node::InWaitingList);
 			SharedDirector.addToWaitingList(child);
 		}
-		child->_parent = nullptr;
 	}
 	ARRAY_END
 	if (_children) {
@@ -620,10 +620,12 @@ void Node::moveToParent(Node* parent) {
 
 void Node::cleanup() {
 	if (_flags.isOff(Node::Cleanup)) {
+		AssertIf(_parent, "can not cleanup node with a parent. Call removeFromParent(true) instead.");
 		_flags.setOn(Node::Cleanup);
 		post("Cleanup"_slice);
 		_signal = nullptr;
 		ARRAY_START(Node, child, _children) {
+			child->_parent = nullptr;
 			child->cleanup();
 		}
 		ARRAY_END

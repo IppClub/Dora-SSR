@@ -22,9 +22,13 @@ public:
 	PROPERTY_BOOL(Orthographic);
 	PROPERTY(float, OrthoHeight);
 
+	void setPosition(float x, float y, float z);
 	void setPosition(const Vec3& position);
+	void setTarget(float x, float y, float z);
 	void setTarget(const Vec3& target);
+	void setUp(float x, float y, float z);
 	void setUp(const Vec3& up);
+	void lookAt(float px, float py, float pz, float tx, float ty, float tz, float ux = 0.0f, float uy = 1.0f, float uz = 0.0f);
 	void lookAt(const Vec3& position, const Vec3& target, const Vec3& up = Vec3{0.0f, 1.0f, 0.0f});
 
 	virtual const Vec3& getPosition() override;
