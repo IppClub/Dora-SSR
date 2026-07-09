@@ -324,10 +324,10 @@ void Node3D::removeChild(Node3D* child, bool cleanup) {
 #ifndef DORA_NO_RUST
 		dora_3d_node_remove_child(_handle, child->_handle);
 #endif // DORA_NO_RUST
-		(*it)->_parent = nullptr;
 		if (cleanup) {
 			(*it)->cleanup();
 		}
+		(*it)->_parent = nullptr;
 		_children.erase(it);
 	}
 }
@@ -337,10 +337,10 @@ void Node3D::removeAllChildren(bool cleanup) {
 #ifndef DORA_NO_RUST
 		dora_3d_node_remove_child(_handle, child->_handle);
 #endif // DORA_NO_RUST
-		child->_parent = nullptr;
 		if (cleanup) {
 			child->cleanup();
 		}
+		child->_parent = nullptr;
 	}
 	_children.clear();
 }
@@ -435,7 +435,6 @@ ScheduledItem* Node3D::getScheduledItem() {
 }
 
 void Node3D::cleanup() {
-	AssertIf(_parent, "can not cleanup 3D node with a parent. Call removeFromParent(true) instead.");
 	if (_scheduledItem && _scheduledItem->iter) {
 		_scheduler->unschedule(_scheduledItem.get());
 	}

@@ -583,11 +583,7 @@ export allClear = ->
 	teal.clear!
 	yue.clear!
 	for _, item in pairs ubox!
-		if node := tolua.cast item, "Node"
-			if node.parent
-				node\removeFromParent true
-			else
-				node\cleanup!
+		node\cleanup! if node := tolua.cast item, "Node"
 	collectgarbage!
 	collectgarbage!
 	Wasm\clear!

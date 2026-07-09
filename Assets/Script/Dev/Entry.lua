@@ -1052,16 +1052,12 @@ allClear = function() -- 564
 	for _, item in pairs(ubox()) do -- 585
 		local node = tolua.cast(item, "Node") -- 586
 		if node then -- 586
-			if node.parent then -- 587
-				node:removeFromParent(true) -- 587
-			else -- 589
-				node:cleanup() -- 590
-			end -- 587
+			node:cleanup() -- 586
 		end -- 586
 	end -- 585
-	collectgarbage() -- 591
-	collectgarbage() -- 592
-	Wasm:clear() -- 593
+	collectgarbage() -- 587
+	collectgarbage() -- 588
+	Wasm:clear() -- 589
 	thread(function() -- 590
 		sleep() -- 591
 		return Cache:removeUnused() -- 592

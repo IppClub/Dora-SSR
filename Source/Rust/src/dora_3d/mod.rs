@@ -20,5 +20,5 @@ pub const INVALID_HANDLE: Dora3DHandle = 0;
 static NEXT_HANDLE: AtomicU64 = AtomicU64::new(1);
 
 pub(crate) fn next_handle() -> Dora3DHandle {
-    NEXT_HANDLE.fetch_add(1, Ordering::Relaxed)
+	NEXT_HANDLE.fetch_add(1, Ordering::Relaxed)
 }
