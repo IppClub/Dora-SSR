@@ -274,13 +274,6 @@ class CameraOtho : public Camera
 
 class Camera3D : public Camera
 {
-	tolua_property__common float fieldOfView;
-	tolua_property__common float nearClip;
-	tolua_property__common float farClip;
-	tolua_property__common float aspectRatio;
-	tolua_property__bool bool autoAspect;
-	tolua_property__bool bool orthographic;
-	tolua_property__common float orthoHeight;
 	void setPosition(float x, float y, float z);
 	tolua_outside void Camera3D_getPosition @ getPosition();
 	void setTarget(float x, float y, float z);
@@ -297,7 +290,7 @@ class Director
 	tolua_property__common Scheduler* scheduler;
 	tolua_readonly tolua_property__common Node* uI @ ui;
 	tolua_readonly tolua_property__common Node* uI3D @ ui3D;
-	tolua_readonly tolua_property__common Node* entry;
+	tolua_readonly tolua_property__common View3D* entry;
 	tolua_readonly tolua_property__common Node* postNode;
 	tolua_readonly tolua_property__common Scheduler* systemScheduler;
 	tolua_readonly tolua_property__common Scheduler* postScheduler;
@@ -519,7 +512,9 @@ class Node3D : public Object
 	tolua_property__common string tag;
 	tolua_property__bool bool visible;
 	tolua_readonly tolua_property__common Node3D* parent;
-	void addChild(Node3D* child, int order = 0, String tag = nullptr);
+	void addChild(Node3D* child, int order, String tag);
+	void addChild(Node3D* child, int order);
+	void addChild(Node3D* child);
 	void removeChild(Node3D* child, bool cleanup = true);
 	void removeAllChildren(bool cleanup = true);
 	void removeFromParent(bool cleanup = true);
@@ -546,13 +541,18 @@ class Model3D : public Node3D
 	void stop();
 	void pause();
 	void resume();
-	void cleanup();
 	static Model3D* create(String path);
 };
 
 class View3D : public Node
 {
 	tolua_readonly tolua_property__common Node3D* scene;
+	void addChild(Node* child, int order, String tag);
+	void addChild(Node* child, int order);
+	void addChild(Node* child);
+	void addChild(Node3D* child, int order, String tag);
+	void addChild(Node3D* child, int order);
+	void addChild(Node3D* child);
 	bool setEnvironmentMap(String path);
 	void setEnvironmentIntensity(float diffuse, float specular, float exposure = 1.0f);
 	static View3D* create();

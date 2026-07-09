@@ -1976,11 +1976,13 @@ DORA_EXPORT float math_tan(float v) { return std::tan(v); }
 #include "Dora/LabelWasm.hpp"
 #include "Dora/LineWasm.hpp"
 #include "Dora/MLQLearnerWasm.hpp"
+#include "Dora/Model3DWasm.hpp"
 #include "Dora/ModelWasm.hpp"
 #include "Dora/MotorJointWasm.hpp"
 #include "Dora/MouseWasm.hpp"
 #include "Dora/MoveJointWasm.hpp"
 #include "Dora/NVGpaintWasm.hpp"
+#include "Dora/Node3DWasm.hpp"
 #include "Dora/NodeWasm.hpp"
 #include "Dora/ParticleNodeWasm.hpp"
 #include "Dora/PassWasm.hpp"
@@ -2018,6 +2020,7 @@ DORA_EXPORT float math_tan(float v) { return std::tan(v); }
 #include "Dora/VGNodeWasm.hpp"
 #include "Dora/VertexColorWasm.hpp"
 #include "Dora/VideoNodeWasm.hpp"
+#include "Dora/View3DWasm.hpp"
 #include "Dora/ViewWasm.hpp"
 #include "Dora/WorkBookWasm.hpp"
 #include "Dora/WorkSheetWasm.hpp"
@@ -2046,6 +2049,9 @@ static void linkAutoModule(wasm3::module3& mod) {
 	linkEffect(mod);
 	linkSpriteEffect(mod);
 	linkView(mod);
+	linkNode3D(mod);
+	linkModel3D(mod);
+	linkView3D(mod);
 	linkActionDef(mod);
 	linkAction(mod);
 	linkGrabber(mod);

@@ -14,14 +14,6 @@ NS_DORA_BEGIN
 
 class Camera3D : public Camera {
 public:
-	PROPERTY(float, FieldOfView);
-	PROPERTY(float, NearClip);
-	PROPERTY(float, FarClip);
-	PROPERTY(float, AspectRatio);
-	PROPERTY_BOOL(AutoAspect);
-	PROPERTY_BOOL(Orthographic);
-	PROPERTY(float, OrthoHeight);
-
 	void setPosition(float x, float y, float z);
 	void setPosition(const Vec3& position);
 	void setTarget(float x, float y, float z);
@@ -38,7 +30,6 @@ public:
 	virtual bool hasProjection() const override;
 
 	const Matrix& getViewMatrix();
-	const Matrix& getProjectionMatrix();
 	CREATE_FUNC_NOT_NULL(Camera3D);
 
 protected:
@@ -46,17 +37,8 @@ protected:
 	void updateMatrices();
 
 private:
-	float _fieldOfView;
-	float _nearClip;
-	float _farClip;
-	float _aspectRatio;
-	float _orthoHeight;
-	bool _autoAspect;
-	bool _orthographic;
 	bool _transformDirty;
-	bool _projectionDirty;
 	Matrix _viewMatrix;
-	Matrix _projectionMatrix;
 	DORA_TYPE_OVERRIDE(Camera3D);
 };
 

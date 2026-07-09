@@ -45,6 +45,12 @@ mod sprite_effect;
 pub use sprite_effect::SpriteEffect;
 mod view;
 pub use view::View;
+mod node_3d;
+pub use node_3d::{INode3D, Node3D};
+mod model_3d;
+pub use model_3d::Model3D;
+mod view_3d;
+pub use view_3d::{IView3D, View3D};
 mod action_def;
 pub use action_def::ActionDef;
 mod action;
@@ -181,6 +187,9 @@ thread_local! {
 			Grabber::type_info(),
 			Action::type_info(),
 			Node::type_info(),
+			Node3D::type_info(),
+			Model3D::type_info(),
+			View3D::type_info(),
 			Texture2D::type_info(),
 			Sprite::type_info(),
 			Grid::type_info(),

@@ -80,6 +80,7 @@ interfaces =
 	Playable: true
 	PhysicsWorld: true
 	Body: true
+	Node3D: true
 
 inheritances =
 	IPlayable: {"INode"}

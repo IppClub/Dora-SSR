@@ -2033,47 +2033,29 @@ export {cameraOthoClass as CameraOtho};
 class Camera3D extends Camera {
 	private constructor();
 
-	/** 垂直视野角度。 */
-	fieldOfView: number;
-
-	/** 近平面裁剪距离。 */
-	nearClip: number;
-
-	/** 远平面裁剪距离。 */
-	farClip: number;
-
-	/** 投影宽高比。 */
-	aspectRatio: number;
-
-	/** 是否根据当前视图尺寸自动更新宽高比。 */
-	autoAspect: boolean;
-
-	/** 是否使用正交投影。 */
-	orthographic: boolean;
-
-	/** 正交投影高度。 */
-	orthoHeight: number;
-
 	/** 设置摄像机位置。 */
 	setPosition(x: number, y: number, z: number): void;
+
+	/** 获取摄像机位置。 */
+	getPosition(): LuaMultiReturn<[number, number, number]>;
 
 	/** 设置摄像机目标点。 */
 	setTarget(x: number, y: number, z: number): void;
 
+	/** 获取摄像机目标点。 */
+	getTarget(): LuaMultiReturn<[number, number, number]>;
+
 	/** 设置摄像机向上方向。 */
 	setUp(x: number, y: number, z: number): void;
+
+	/** 获取摄像机向上方向。 */
+	getUp(): LuaMultiReturn<[number, number, number]>;
 
 	/**
 	 * 设置摄像机位置、目标点和向上方向。
 	 * 向上方向默认是 (0, 1, 0)。
 	 */
 	lookAt(px: number, py: number, pz: number, tx: number, ty: number, tz: number, ux?: number, uy?: number, uz?: number): void;
-
-	/** 获取当前视图矩阵。 */
-	getViewMatrix(): any;
-
-	/** 获取当前投影矩阵。 */
-	getProjectionMatrix(): any;
 }
 
 export namespace Camera3D {
@@ -3637,11 +3619,26 @@ class Node3D extends Object {
 	/** 设置节点位置。 */
 	setPosition(x: number, y: number, z: number): void;
 
+	/** 获取节点位置。 */
+	getPosition(): LuaMultiReturn<[number, number, number]>;
+
 	/** 设置节点缩放。 */
 	setScale(x: number, y: number, z: number): void;
 
+	/** 获取节点缩放。 */
+	getScale(): LuaMultiReturn<[number, number, number]>;
+
 	/** 设置节点欧拉角旋转，单位为度。 */
 	setEulerAngles(x: number, y: number, z: number): void;
+
+	/** 获取节点欧拉角旋转，单位为度。 */
+	getEulerAngles(): LuaMultiReturn<[number, number, number]>;
+
+	/** 将本地坐标点转换到世界坐标空间。 */
+	convertToWorldSpace(x: number, y: number, z: number): LuaMultiReturn<[number, number, number]>;
+
+	/** 将世界坐标点转换到本地坐标空间。 */
+	convertToNodeSpace(x: number, y: number, z: number): LuaMultiReturn<[number, number, number]>;
 
 	/** 添加子3D节点。 */
 	addChild(child: Node3D, order?: number, tag?: string): void;
@@ -3657,12 +3654,6 @@ class Node3D extends Object {
 
 	/** 清理节点并释放其3D资源。 */
 	cleanup(): void;
-
-	/** 将本地坐标点转换到世界坐标。 */
-	convertToWorldSpace(localPoint: any): any;
-
-	/** 将世界坐标点转换到本节点的本地坐标。 */
-	convertToNodeSpace(worldPoint: any): any;
 }
 
 export {Node3D as Node3DType};
@@ -3692,6 +3683,10 @@ class View3D extends Node {
 
 	/** 3D场景根节点。 */
 	readonly scene: Node3D;
+
+	/** 添加3D子节点到场景根节点。 */
+	addChild(child: Node3D): void;
+	addChild(child: Node, order?: number, tag?: string): void;
 
 	/** 加载用于基于图像照明的环境贴图。 */
 	setEnvironmentMap(path: string): boolean;
@@ -4378,7 +4373,7 @@ class Director {
 	/**
 	 * 游戏起点的根节点。
 	 */
-	readonly entry: Node;
+	readonly entry: View3D;
 
 	/**
 	 * 后渲染场景树的根节点。

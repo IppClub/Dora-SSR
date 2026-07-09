@@ -1,6 +1,7 @@
 local Color = require("Color").Type
 local Scheduler = require("Scheduler").Type
 local Node = require("Node").Type
+local View3D = require("View3D").Type
 local Camera = require("Camera").Type
 
 -- 游戏导演类，是用于管理游戏场景树，并提供多种用途的游戏场景根节点的单例类。
@@ -23,7 +24,7 @@ local record Director
 	const ui3D: Node
 
 	-- 用于挂载主要游戏内容场景树的根节点。
-	const entry: Node
+	const entry: View3D
 
 	-- 用于挂载在后期做渲染的物件的场景树的根节点。
 	const postNode: Node

@@ -44,7 +44,9 @@ public:
 	void setScale(float x, float y, float z);
 	void setEulerAngles(float x, float y, float z);
 
-	virtual void addChild(Node3D* child, int order = 0, String tag = String{});
+	virtual void addChild(Node3D* child, int order, String tag);
+	void addChild(Node3D* child, int order);
+	void addChild(Node3D* child);
 	virtual void removeChild(Node3D* child, bool cleanup = true);
 	virtual void removeAllChildren(bool cleanup = true);
 	virtual void removeFromParent(bool cleanup = true);
@@ -57,6 +59,7 @@ public:
 
 	void markReorder() noexcept;
 	uint64_t getHandle() const noexcept;
+	bool hasChildren() const noexcept;
 
 	virtual bool init() override;
 	CREATE_FUNC_NOT_NULL(Node3D);

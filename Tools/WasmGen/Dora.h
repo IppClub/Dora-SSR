@@ -910,7 +910,7 @@ singleton class Director
 	/// the root node for 3D user interface elements with 3D projection effect.
 	readonly common Node* uI3D @ ui_3d;
 	/// the root node for the starting point of a game.
-	readonly common Node* entry;
+	readonly common View3D* entry;
 	/// the root node for post-rendering scene tree.
 	readonly common Node* postNode;
 	/// the current active camera in Director's camera stack.
@@ -976,6 +976,73 @@ singleton class View
 	boolean bool frustumCulling;
 	/// whether or not vertical sync is enabled.
 	boolean bool vSync @ vsync;
+};
+
+/// A 3D scene node with transform and hierarchy support.
+interface object class Node3D
+{
+	/// whether the node is visible.
+	boolean bool visible;
+	/// the parent 3D node.
+	optional readonly common Node3D* parent;
+	/// Adds a child node to this node.
+	void addChild(Node3D* child);
+	/// Removes a child node from this node.
+	void removeChild(Node3D* child, bool cleanup);
+	/// Removes all child nodes from this node.
+	void removeAllChildren(bool cleanup);
+	/// Removes this node from its parent.
+	void removeFromParent(bool cleanup);
+	/// Cleans up this node and its children.
+	void cleanup();
+	/// Sets the node position in 3D space.
+	void setPosition(float x, float y, float z);
+	/// Sets the node scale in 3D space.
+	void setScale(float x, float y, float z);
+	/// Sets the node Euler angles in degrees.
+	void setEulerAngles(float x, float y, float z);
+	/// Creates a new 3D node.
+	static Node3D* create();
+};
+
+/// A 3D model node loaded from a glTF/GLB file.
+object class Model3D : public INode3D
+{
+	/// the animation playback speed.
+	common float speed;
+	/// the current animation duration.
+	readonly common float duration;
+	/// the elapsed playback time.
+	readonly common float elapsed;
+	/// whether an animation is playing.
+	readonly boolean bool playing;
+	/// whether animation playback is paused.
+	readonly boolean bool paused;
+	/// Plays an animation by name.
+	float play(string name, bool looped);
+	/// Stops animation playback.
+	void stop();
+	/// Pauses animation playback.
+	void pause();
+	/// Resumes animation playback.
+	void resume();
+	/// Creates a model from a glTF/GLB file.
+	static optional Model3D* create(string path);
+};
+
+/// A 2D scene node that owns a 3D scene tree.
+interface object class View3D : public INode
+{
+	/// the root 3D scene node.
+	readonly common Node3D* scene;
+	/// Adds a 3D child node to the scene root.
+	void addChild @ add_child_3d(Node3D* child);
+	/// Sets the environment map used by this 3D view.
+	bool setEnvironmentMap(string path);
+	/// Sets the environment lighting intensity used by this 3D view.
+	void setEnvironmentIntensity(float diffuse, float specular, float exposure);
+	/// Creates a new 3D view node.
+	static View3D* create();
 };
 
 value class ActionDef {

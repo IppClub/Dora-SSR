@@ -19,6 +19,10 @@ class Node3D;
 class View3D : public Node {
 public:
 	PROPERTY_READONLY_CALL(Node3D*, Scene);
+	using Node::addChild;
+	void addChild(Node3D* child, int order, String tag);
+	void addChild(Node3D* child, int order);
+	void addChild(Node3D* child);
 	bool setEnvironmentMap(String path);
 	void setEnvironmentIntensity(float diffuse, float specular, float exposure = 1.0f);
 	virtual bool init() override;
@@ -31,6 +35,7 @@ protected:
 	~View3D();
 
 private:
+	void render3D(bgfx::ViewId viewId);
 	std::string _environmentMap;
 	float _environmentDiffuse;
 	float _environmentSpecular;

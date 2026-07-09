@@ -73,8 +73,8 @@ func _Director.GetUI3D() => Node {
 }
 
 /// Gets the root node for the starting point of a game.
-func _Director.GetEntry() => Node {
-	return *NodeFrom(director_get_entry())
+func _Director.GetEntry() => View3D {
+	return *View3DFrom(director_get_entry())
 }
 
 /// Gets the root node for post-rendering scene tree.

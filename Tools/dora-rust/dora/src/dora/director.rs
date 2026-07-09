@@ -42,8 +42,8 @@ impl Director {
 		return unsafe { crate::dora::Node::from(director_get_ui_3d()).unwrap() };
 	}
 	/// Gets the root node for the starting point of a game.
-	pub fn get_entry() -> crate::dora::Node {
-		return unsafe { crate::dora::Node::from(director_get_entry()).unwrap() };
+	pub fn get_entry() -> crate::dora::View3D {
+		return unsafe { crate::dora::View3D::from(director_get_entry()).unwrap() };
 	}
 	/// Gets the root node for post-rendering scene tree.
 	pub fn get_post_node() -> crate::dora::Node {

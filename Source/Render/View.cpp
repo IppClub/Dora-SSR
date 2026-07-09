@@ -85,8 +85,9 @@ void View::pushFront(String viewName) {
 	auto& mode = _insertionModes.top();
 	if (mode.inserting && !_orders.empty()) {
 		mode.front = ++_orders.insert(mode.front, id);
-	} else
+	} else {
 		_orders.push_front(id);
+	}
 	pushInsertionMode(false);
 }
 
@@ -96,8 +97,9 @@ void View::pushBack(String viewName) {
 	auto& mode = _insertionModes.top();
 	if (mode.inserting && !_orders.empty()) {
 		mode.back = _orders.insert(mode.back, id);
-	} else
+	} else {
 		_orders.push_back(id);
+	}
 	pushInsertionMode(false);
 }
 

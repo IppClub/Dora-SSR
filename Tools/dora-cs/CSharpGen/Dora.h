@@ -901,7 +901,7 @@ singleton class Director
 	/// <summary>
 	/// The root node for the starting point of a game.
 	/// </summary>
-	readonly common Node* entry;
+	readonly common View3D* entry;
 	/// <summary>
 	/// The root node for post-rendering scene tree.
 	/// </summary>
@@ -990,6 +990,131 @@ singleton class View
 	/// Whether or not frustum culling is enabled for the view.
 	/// </summary>
 	boolean bool frustumCulling;
+};
+
+/// <summary>
+/// A 3D scene node with transform and hierarchy support.
+/// </summary>
+object class Node3D
+{
+	/// <summary>
+	/// Whether the node is visible.
+	/// </summary>
+	boolean bool visible;
+	/// <summary>
+	/// The parent 3D node.
+	/// </summary>
+	optional readonly common Node3D* parent;
+	/// <summary>
+	/// Adds a child node to this node.
+	/// </summary>
+	void addChild(Node3D* child);
+	/// <summary>
+	/// Removes a child node from this node.
+	/// </summary>
+	void removeChild(Node3D* child, bool cleanup = true);
+	/// <summary>
+	/// Removes all child nodes from this node.
+	/// </summary>
+	void removeAllChildren(bool cleanup = true);
+	/// <summary>
+	/// Removes this node from its parent.
+	/// </summary>
+	void removeFromParent(bool cleanup = true);
+	/// <summary>
+	/// Cleans up this node and its children.
+	/// </summary>
+	void cleanup();
+	/// <summary>
+	/// Sets the node position in 3D space.
+	/// </summary>
+	void setPosition(float x, float y, float z);
+	/// <summary>
+	/// Sets the node scale in 3D space.
+	/// </summary>
+	void setScale(float x, float y, float z);
+	/// <summary>
+	/// Sets the node Euler angles in degrees.
+	/// </summary>
+	void setEulerAngles(float x, float y, float z);
+	/// <summary>
+	/// Creates a new 3D node.
+	/// </summary>
+	static Node3D* create();
+};
+
+/// <summary>
+/// A 3D model node loaded from a glTF/GLB file.
+/// </summary>
+object class Model3D : public Node3D
+{
+	/// <summary>
+	/// The animation playback speed.
+	/// </summary>
+	common float speed;
+	/// <summary>
+	/// The current animation duration.
+	/// </summary>
+	readonly common float duration;
+	/// <summary>
+	/// The elapsed playback time.
+	/// </summary>
+	readonly common float elapsed;
+	/// <summary>
+	/// Whether an animation is playing.
+	/// </summary>
+	readonly boolean bool playing;
+	/// <summary>
+	/// Whether animation playback is paused.
+	/// </summary>
+	readonly boolean bool paused;
+	/// <summary>
+	/// Plays an animation by name.
+	/// </summary>
+	float play(string name = "", bool looped = false);
+	/// <summary>
+	/// Stops animation playback.
+	/// </summary>
+	void stop();
+	/// <summary>
+	/// Pauses animation playback.
+	/// </summary>
+	void pause();
+	/// <summary>
+	/// Resumes animation playback.
+	/// </summary>
+	void resume();
+	/// <summary>
+	/// Creates a model from a glTF/GLB file.
+	/// </summary>
+	static optional Model3D* create(string path);
+};
+
+/// <summary>
+/// A 2D scene node that owns a 3D scene tree.
+/// </summary>
+object class View3D : public Node
+{
+	/// <summary>
+	/// The root 3D scene node.
+	/// </summary>
+	readonly common Node3D* scene;
+	/// <summary>
+	/// Adds a 3D child node to the scene root.
+	/// </summary>
+	void addChild @ add_child_3d(Node3D* child);
+	/// <summary>
+	/// Sets the environment map used by this 3D view.
+	/// </summary>
+	bool setEnvironmentMap(string path);
+	/// <summary>
+	/// Sets the environment lighting intensity used by this 3D view.
+	/// </summary>
+	void setEnvironmentIntensity(float diffuse, float specular, float exposure = 1.0f);
+	/// <summary>
+	/// Creates a new 3D view node.
+	/// </summary>
+	static View3D* create();
 };
 
 value class ActionDef {

@@ -78,9 +78,9 @@ namespace Dora
 		/// <summary>
 		/// The root node for the starting point of a game.
 		/// </summary>
-		public static Node Entry
+		public static View3D Entry
 		{
-			get => Node.From(Native.director_get_entry());
+			get => View3D.From(Native.director_get_entry());
 		}
 		/// <summary>
 		/// The root node for post-rendering scene tree.

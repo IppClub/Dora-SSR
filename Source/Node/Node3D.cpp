@@ -292,6 +292,10 @@ Node3D* Node3D::getParent() const noexcept {
 	return _parent;
 }
 
+bool Node3D::hasChildren() const noexcept {
+	return !_children.empty();
+}
+
 const std::vector<Ref<Node3D>>& Node3D::getChildren() {
 	return _children;
 }
@@ -312,6 +316,16 @@ void Node3D::addChild(Node3D* child, int order, String tag) {
 	dora_3d_node_add_child(_handle, child->_handle, order, child->_tag.c_str());
 #endif // DORA_NO_RUST
 	markReorder();
+}
+
+void Node3D::addChild(Node3D* child, int order) {
+	if (!child) return;
+	addChild(child, order, child->getTag());
+}
+
+void Node3D::addChild(Node3D* child) {
+	if (!child) return;
+	addChild(child, child->getOrder(), child->getTag());
 }
 
 void Node3D::removeChild(Node3D* child, bool cleanup) {

@@ -2036,47 +2036,29 @@ export {cameraOthoClass as CameraOtho};
 class Camera3D extends Camera {
 	private constructor();
 
-	/** The vertical field of view in degrees. */
-	fieldOfView: number;
-
-	/** The near clipping plane distance. */
-	nearClip: number;
-
-	/** The far clipping plane distance. */
-	farClip: number;
-
-	/** The projection aspect ratio. */
-	aspectRatio: number;
-
-	/** Whether to update the aspect ratio from the current view size automatically. */
-	autoAspect: boolean;
-
-	/** Whether to use an orthographic projection. */
-	orthographic: boolean;
-
-	/** The orthographic projection height. */
-	orthoHeight: number;
-
 	/** Sets the camera position. */
 	setPosition(x: number, y: number, z: number): void;
+
+	/** Gets the camera position. */
+	getPosition(): LuaMultiReturn<[number, number, number]>;
 
 	/** Sets the camera target point. */
 	setTarget(x: number, y: number, z: number): void;
 
+	/** Gets the camera target point. */
+	getTarget(): LuaMultiReturn<[number, number, number]>;
+
 	/** Sets the camera up vector. */
 	setUp(x: number, y: number, z: number): void;
+
+	/** Gets the camera up vector. */
+	getUp(): LuaMultiReturn<[number, number, number]>;
 
 	/**
 	 * Sets the camera position, target, and up vector.
 	 * The up vector defaults to (0, 1, 0).
 	 */
 	lookAt(px: number, py: number, pz: number, tx: number, ty: number, tz: number, ux?: number, uy?: number, uz?: number): void;
-
-	/** Gets the current view matrix. */
-	getViewMatrix(): any;
-
-	/** Gets the current projection matrix. */
-	getProjectionMatrix(): any;
 }
 
 export namespace Camera3D {
@@ -3639,11 +3621,26 @@ class Node3D extends Object {
 	/** Sets the node position. */
 	setPosition(x: number, y: number, z: number): void;
 
+	/** Gets the node position. */
+	getPosition(): LuaMultiReturn<[number, number, number]>;
+
 	/** Sets the node scale. */
 	setScale(x: number, y: number, z: number): void;
 
+	/** Gets the node scale. */
+	getScale(): LuaMultiReturn<[number, number, number]>;
+
 	/** Sets the node Euler rotation in degrees. */
 	setEulerAngles(x: number, y: number, z: number): void;
+
+	/** Gets the node Euler rotation in degrees. */
+	getEulerAngles(): LuaMultiReturn<[number, number, number]>;
+
+	/** Converts a local point to world space. */
+	convertToWorldSpace(x: number, y: number, z: number): LuaMultiReturn<[number, number, number]>;
+
+	/** Converts a world point to local space. */
+	convertToNodeSpace(x: number, y: number, z: number): LuaMultiReturn<[number, number, number]>;
 
 	/** Adds a child 3D node. */
 	addChild(child: Node3D, order?: number, tag?: string): void;
@@ -3659,12 +3656,6 @@ class Node3D extends Object {
 
 	/** Cleans up the node and releases its 3D resources. */
 	cleanup(): void;
-
-	/** Converts a local point to world space. */
-	convertToWorldSpace(localPoint: any): any;
-
-	/** Converts a world point to this node's local space. */
-	convertToNodeSpace(worldPoint: any): any;
 }
 
 export {Node3D as Node3DType};
@@ -3694,6 +3685,10 @@ class View3D extends Node {
 
 	/** The root node of the 3D scene. */
 	readonly scene: Node3D;
+
+	/** Adds a 3D child node to the scene root. */
+	addChild(child: Node3D): void;
+	addChild(child: Node, order?: number, tag?: string): void;
 
 	/** Loads an environment map for image based lighting. */
 	setEnvironmentMap(path: string): boolean;
@@ -4380,7 +4375,7 @@ class Director {
 	/**
 	 * The root node for the starting point of a game.
 	 */
-	readonly entry: Node;
+	readonly entry: View3D;
 
 	/**
 	 * The root node for post-rendering scene tree.

@@ -36,23 +36,41 @@ View3D::View3D()
 View3D::~View3D() { }
 
 bool View3D::init() {
-	if (!Node::init()) return false;
-	_scene = Node3D::create();
-	return _scene != nullptr;
+	return Node::init();
 }
 
 Node3D* View3D::getScene() {
+	if (!_scene) {
+		_scene = Node3D::create();
+	}
 	return _scene;
+}
+
+void View3D::addChild(Node3D* child, int order, String tag) {
+	if (!child) return;
+	if (Node3D* scene = getScene()) {
+		scene->addChild(child, order, tag);
+	}
+}
+
+void View3D::addChild(Node3D* child, int order) {
+	if (!child) return;
+	addChild(child, order, child->getTag());
+}
+
+void View3D::addChild(Node3D* child) {
+	if (!child) return;
+	addChild(child, child->getOrder(), child->getTag());
 }
 
 void View3D::cleanup() {
 	if (_flags.isOff(Node::Cleanup)) {
+		Node::cleanup();
 		if (_scene) {
 			_scene->removeAllChildren(true);
 			_scene->cleanup();
 			_scene = nullptr;
 		}
-		Node::cleanup();
 	}
 }
 
@@ -75,25 +93,35 @@ void View3D::setEnvironmentIntensity(float diffuse, float specular, float exposu
 	_environmentExposure = std::max(exposure, 0.0f);
 }
 
-void View3D::render() {
-	Node::render();
-	if (!_scene) return;
+void View3D::render3D(bgfx::ViewId viewId) {
+	if (!_scene || !_scene->hasChildren()) return;
 	Camera* camera = SharedDirector.getCurrentCamera();
 	const Matrix& directorViewProj = SharedDirector.getViewProjection();
 	const Vec3& eye = camera->getPosition();
+#ifndef DORA_NO_RUST
+	Matrix viewProj = directorViewProj;
+	Matrix flipX = Matrix::Indentity;
+	flipX.m[0] = -1.0f;
+	Matrix::mulMtx(viewProj, flipX, viewProj);
+	dora_3d_set_view_state(viewId, viewProj.m, eye.x, eye.y, eye.z);
+	dora_3d_set_view_frustum_culling(viewId, SharedView.isFrustumCulling() ? 1 : 0);
+	dora_3d_set_view_environment(viewId, _environmentMap.c_str(), _environmentDiffuse, _environmentSpecular, _environmentExposure);
+	dora_3d_render_node(viewId, _scene->getHandle());
+#endif // DORA_NO_RUST
+}
+
+void View3D::render() {
+	bool has2DChildren = hasChildren();
+	Node::render();
+	if (!_scene || !_scene->hasChildren()) return;
+	if (this == SharedDirector.getEntry() && !has2DChildren) {
+		render3D(SharedView.getId());
+		return;
+	}
 	SharedView.pushBack("View3D"_slice, [&]() {
 		bgfx::ViewId viewId = SharedView.getId();
-		bgfx::setViewClear(viewId, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL, 0x00000000, 1.0f, 0);
-#ifndef DORA_NO_RUST
-		Matrix viewProj = directorViewProj;
-		Matrix flipX = Matrix::Indentity;
-		flipX.m[0] = -1.0f;
-		Matrix::mulMtx(viewProj, flipX, viewProj);
-		dora_3d_set_view_state(viewId, viewProj.m, eye.x, eye.y, eye.z);
-		dora_3d_set_view_frustum_culling(viewId, SharedView.isFrustumCulling() ? 1 : 0);
-		dora_3d_set_view_environment(viewId, _environmentMap.c_str(), _environmentDiffuse, _environmentSpecular, _environmentExposure);
-		dora_3d_render_node(viewId, _scene->getHandle());
-#endif // DORA_NO_RUST
+		bgfx::setViewClear(viewId, BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL, 0x00000000, 1.0f, 0);
+		render3D(viewId);
 	});
 }
 

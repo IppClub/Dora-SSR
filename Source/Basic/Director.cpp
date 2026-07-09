@@ -25,6 +25,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Input/Keyboard.h"
 #include "Input/TouchDispather.h"
 #include "Node/Node.h"
+#include "Node/View3D.h"
 #include "Render/Camera.h"
 #include "Render/Renderer.h"
 #include "Render/VGRender.h"
@@ -93,12 +94,12 @@ Node* Director::getUI3D() {
 	return _ui3D;
 }
 
-Node* Director::getEntry() {
+View3D* Director::getEntry() {
 	if (!_entry) {
 		_root = Node::create(false);
 		_root->setAnchor(Vec2::zero);
 		_root->onEnter();
-		_entry = Node::create(false);
+		_entry = View3D::create();
 		_root->addChild(_entry);
 		markDirty();
 	}

@@ -1513,6 +1513,9 @@ else
 							castFrom = (name)-> name
 						prefix = if cppType == "void" then "" else "return "
 						cppFuncName = "#{namespace}#{clsNameL}_#{funcNewName}"
+						csFuncName = snakeToPascal funcNewName
+						if clsNewName == "View3D" and funcNewName == "add_child_3d"
+							csFuncName = "AddChild"
 						rustFuncName = funcNewName
 						if isSingleton
 							csNative[] = "\t\t[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
@@ -1550,7 +1553,7 @@ else
 							item = "Native.#{cppFuncName}(#{argRtPass})"
 							rtOut = rtTypeOut or rt
 							csBinding[] = "\t\t#{table.concat docs, '\n\t\t'}" if #docs > 0
-							csBinding[] = "\t\tpublic #{(isStatic or isSingleton) and 'static ' or ''}#{rtOut and rtOut or "void"} #{snakeToPascal funcNewName}(#{argRtInDefs})
+							csBinding[] = "\t\tpublic #{(isStatic or isSingleton) and 'static ' or ''}#{rtOut and rtOut or "void"} #{csFuncName}(#{argRtInDefs})
 		{\n#{argRtPrepare}\t\t\t#{prefix}#{rtCastFrom and rtCastFrom(item, isOptional) or item};\n\t\t}"
 						prepareArgs = []
 						funcArgCount = -1

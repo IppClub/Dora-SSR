@@ -19,6 +19,7 @@ NS_DORA_BEGIN
 
 class Scheduler;
 class Node;
+class View3D;
 class Sprite;
 class Camera;
 class RenderTarget;
@@ -33,7 +34,7 @@ public:
 	PROPERTY(Color, ClearColor);
 	PROPERTY_READONLY_CALL(Node*, UI);
 	PROPERTY_READONLY_CALL(Node*, UI3D);
-	PROPERTY_READONLY_CALL(Node*, Entry);
+	PROPERTY_READONLY_CALL(View3D*, Entry);
 	PROPERTY_READONLY_CALL(Node*, PostNode);
 	PROPERTY_READONLY_CALL(UITouchHandler*, UITouchHandler);
 	PROPERTY_READONLY_CALL(Camera*, CurrentCamera);
@@ -157,7 +158,7 @@ private:
 	Ref<Camera> _uiCamera;
 	Ref<Camera> _ui3DCamera;
 	Ref<Node> _postNode;
-	Ref<Node> _entry;
+	Ref<View3D> _entry;
 	Ref<Node> _root;
 	Ref<Array> _camStack;
 	Ref<Scheduler> _systemScheduler;

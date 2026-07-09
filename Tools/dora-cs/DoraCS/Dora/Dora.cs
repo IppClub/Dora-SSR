@@ -3918,6 +3918,33 @@ namespace Dora
         }
     }
 
+    public partial class View3D
+    {
+        /// <summary>
+        /// Adds a 2D child node to this view.
+        /// </summary>
+        public new void AddChild(Node child, int order, string tag)
+        {
+            base.AddChild(child, order, tag);
+        }
+
+        /// <summary>
+        /// Adds a 2D child node to this view.
+        /// </summary>
+        public new void AddChild(Node child, int order)
+        {
+            base.AddChild(child, order);
+        }
+
+        /// <summary>
+        /// Adds a 2D child node to this view.
+        /// </summary>
+        public new void AddChild(Node child)
+        {
+            base.AddChild(child);
+        }
+    }
+
     public static partial class App
     {
         [DllImport("kernel32.dll", SetLastError = false)]
