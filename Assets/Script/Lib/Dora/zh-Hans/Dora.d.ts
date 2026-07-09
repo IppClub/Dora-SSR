@@ -277,6 +277,44 @@ const vec2: Vec2Class;
 export {vec2 as Vec2};
 
 /**
+ * 表示具有x、y和z分量的3D向量的类。
+ */
+class Vec3 extends ContainerItem {
+	private constructor();
+
+	/** 向量的x分量。 */
+	x: number;
+
+	/** 向量的y分量。 */
+	y: number;
+
+	/** 向量的z分量。 */
+	z: number;
+}
+
+export namespace Vec3 {
+	export type Type = Vec3;
+}
+
+/**
+ * 用于创建Vec3对象的类。
+ */
+interface Vec3Class {
+	/**
+	 * 使用给定的x、y和z分量创建新的Vec3对象。
+	 *
+	 * @param x 新向量的x分量。
+	 * @param y 新向量的y分量。
+	 * @param z 新向量的z分量。
+	 * @returns 新的Vec3对象。
+	 */
+	(this: void, x: number, y: number, z: number): Vec3;
+}
+
+const vec3: Vec3Class;
+export {vec3 as Vec3};
+
+/**
  * 矩形对象，具有左下角原点位置和大小。
  * 继承自 `ContainerItem`。
  */
@@ -2033,29 +2071,20 @@ export {cameraOthoClass as CameraOtho};
 class Camera3D extends Camera {
 	private constructor();
 
-	/** 设置摄像机位置。 */
-	setPosition(x: number, y: number, z: number): void;
+	/** 摄像机位置。 */
+	position: Vec3;
 
-	/** 获取摄像机位置。 */
-	getPosition(): LuaMultiReturn<[number, number, number]>;
+	/** 摄像机目标点。 */
+	target: Vec3;
 
-	/** 设置摄像机目标点。 */
-	setTarget(x: number, y: number, z: number): void;
-
-	/** 获取摄像机目标点。 */
-	getTarget(): LuaMultiReturn<[number, number, number]>;
-
-	/** 设置摄像机向上方向。 */
-	setUp(x: number, y: number, z: number): void;
-
-	/** 获取摄像机向上方向。 */
-	getUp(): LuaMultiReturn<[number, number, number]>;
+	/** 摄像机向上方向。 */
+	up: Vec3;
 
 	/**
 	 * 设置摄像机位置、目标点和向上方向。
 	 * 向上方向默认是 (0, 1, 0)。
 	 */
-	lookAt(px: number, py: number, pz: number, tx: number, ty: number, tz: number, ux?: number, uy?: number, uz?: number): void;
+	lookAt(position: Vec3, target: Vec3, up?: Vec3): void;
 }
 
 export namespace Camera3D {
@@ -3575,16 +3604,16 @@ class Node3D extends Object {
 	readonly children: any;
 
 	/** 节点位置。 */
-	position: any;
+	position: Vec3;
 
 	/** 节点缩放。 */
-	scale: any;
+	scale: Vec3;
 
 	/** 节点旋转。 */
 	rotation: any;
 
 	/** 节点欧拉角旋转，单位为度。 */
-	eulerAngles: any;
+	eulerAngles: Vec3;
 
 	/** 节点的世界变换矩阵。 */
 	readonly worldMatrix: any;
@@ -3616,29 +3645,11 @@ class Node3D extends Object {
 	/** 节点的Z轴缩放系数。 */
 	scaleZ: number;
 
-	/** 设置节点位置。 */
-	setPosition(x: number, y: number, z: number): void;
-
-	/** 获取节点位置。 */
-	getPosition(): LuaMultiReturn<[number, number, number]>;
-
-	/** 设置节点缩放。 */
-	setScale(x: number, y: number, z: number): void;
-
-	/** 获取节点缩放。 */
-	getScale(): LuaMultiReturn<[number, number, number]>;
-
-	/** 设置节点欧拉角旋转，单位为度。 */
-	setEulerAngles(x: number, y: number, z: number): void;
-
-	/** 获取节点欧拉角旋转，单位为度。 */
-	getEulerAngles(): LuaMultiReturn<[number, number, number]>;
-
 	/** 将本地坐标点转换到世界坐标空间。 */
-	convertToWorldSpace(x: number, y: number, z: number): LuaMultiReturn<[number, number, number]>;
+	convertToWorldSpace(localPoint: Vec3): Vec3;
 
 	/** 将世界坐标点转换到本地坐标空间。 */
-	convertToNodeSpace(x: number, y: number, z: number): LuaMultiReturn<[number, number, number]>;
+	convertToNodeSpace(worldPoint: Vec3): Vec3;
 
 	/** 添加子3D节点。 */
 	addChild(child: Node3D, order?: number, tag?: string): void;
@@ -7904,6 +7915,7 @@ export {tic80NodeClass as TIC80Node};
 export const enum TypeName {
 	Size = "Size",
 	Vec2 = "Vec2",
+	Vec3 = "Vec3",
 	Rect = "Rect",
 	Color3 = "Color3",
 	Color = "Color",
@@ -7961,6 +7973,7 @@ export const enum TypeName {
 export interface TypeMap {
 	[TypeName.Size]: Size;
 	[TypeName.Vec2]: Vec2;
+	[TypeName.Vec3]: Vec3;
 	[TypeName.Rect]: Rect;
 	[TypeName.Color3]: Color3;
 	[TypeName.Color]: Color;

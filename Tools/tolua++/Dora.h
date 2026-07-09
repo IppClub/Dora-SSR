@@ -57,6 +57,14 @@ struct Vec2
 	static tolua_readonly Vec2 zero;
 };
 
+struct Vec3
+{
+	float x;
+	float y;
+	float z;
+	static tolua_outside Vec3* Vec3_create @ create(float x, float y, float z);
+};
+
 struct Size
 {
 	float width;
@@ -274,13 +282,11 @@ class CameraOtho : public Camera
 
 class Camera3D : public Camera
 {
-	void setPosition(float x, float y, float z);
-	tolua_outside void Camera3D_getPosition @ getPosition();
-	void setTarget(float x, float y, float z);
-	tolua_outside void Camera3D_getTarget @ getTarget();
-	void setUp(float x, float y, float z);
-	tolua_outside void Camera3D_getUp @ getUp();
-	void lookAt(float px, float py, float pz, float tx, float ty, float tz, float ux = 0.0f, float uy = 1.0f, float uz = 0.0f);
+	tolua_property__common Vec3 position;
+	tolua_property__common Vec3 target;
+	tolua_property__common Vec3 up;
+	void lookAt(Vec3 position, Vec3 target);
+	void lookAt(Vec3 position, Vec3 target, Vec3 up);
 	Camera3D* create(String name = nullptr);
 };
 
@@ -519,14 +525,11 @@ class Node3D : public Object
 	void removeAllChildren(bool cleanup = true);
 	void removeFromParent(bool cleanup = true);
 	void cleanup();
-	void setPosition(float x, float y, float z);
-	tolua_outside void Node3D_getPosition @ getPosition();
-	void setScale(float x, float y, float z);
-	tolua_outside void Node3D_getScale @ getScale();
-	void setEulerAngles(float x, float y, float z);
-	tolua_outside void Node3D_getEulerAngles @ getEulerAngles();
-	tolua_outside void Node3D_convertToWorldSpace @ convertToWorldSpace(float x, float y, float z);
-	tolua_outside void Node3D_convertToNodeSpace @ convertToNodeSpace(float x, float y, float z);
+	tolua_property__common Vec3 position;
+	tolua_property__common Vec3 scale;
+	tolua_property__common Vec3 eulerAngles;
+	Vec3 convertToWorldSpace(Vec3 localPoint);
+	Vec3 convertToNodeSpace(Vec3 worldPoint);
 	static Node3D* create();
 };
 

@@ -1,7 +1,6 @@
 local Color = require("Color").Type
 local Scheduler = require("Scheduler").Type
 local Node = require("Node").Type
-local View3D = require("View3D").Type
 local Camera = require("Camera").Type
 
 -- A singleton class manages the game scene trees and provides access to root scene nodes for different game uses.
@@ -23,8 +22,8 @@ local record Director
 	-- The root node for 3D user interface elements with 3D projection effect.
 	const ui3D: Node
 
-	-- The root node for the starting point of a game.
-	const entry: View3D
+	-- The root node for the starting point of a game. Runtime type is View3D.
+	const entry: any
 
 	-- The root node for post-rendering scene tree.
 	const postNode: Node

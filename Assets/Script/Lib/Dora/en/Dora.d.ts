@@ -277,6 +277,44 @@ const vec2: Vec2Class;
 export {vec2 as Vec2};
 
 /**
+ * A class representing a 3D vector with x, y, and z components.
+ */
+class Vec3 extends ContainerItem {
+	private constructor();
+
+	/** The x-component of the vector. */
+	x: number;
+
+	/** The y-component of the vector. */
+	y: number;
+
+	/** The z-component of the vector. */
+	z: number;
+}
+
+export namespace Vec3 {
+	export type Type = Vec3;
+}
+
+/**
+ * A class for creating Vec3 objects.
+ */
+interface Vec3Class {
+	/**
+	 * Creates a new Vec3 object with the given x, y, and z components.
+	 *
+	 * @param x The x-component of the new vector.
+	 * @param y The y-component of the new vector.
+	 * @param z The z-component of the new vector.
+	 * @returns The new Vec3 object.
+	 */
+	(this: void, x: number, y: number, z: number): Vec3;
+}
+
+const vec3: Vec3Class;
+export {vec3 as Vec3};
+
+/**
  * A rectangle object with a left-bottom origin position and a size.
  * Inherits from `ContainerItem`.
  */
@@ -2036,29 +2074,20 @@ export {cameraOthoClass as CameraOtho};
 class Camera3D extends Camera {
 	private constructor();
 
-	/** Sets the camera position. */
-	setPosition(x: number, y: number, z: number): void;
+	/** The camera position. */
+	position: Vec3;
 
-	/** Gets the camera position. */
-	getPosition(): LuaMultiReturn<[number, number, number]>;
+	/** The camera target point. */
+	target: Vec3;
 
-	/** Sets the camera target point. */
-	setTarget(x: number, y: number, z: number): void;
-
-	/** Gets the camera target point. */
-	getTarget(): LuaMultiReturn<[number, number, number]>;
-
-	/** Sets the camera up vector. */
-	setUp(x: number, y: number, z: number): void;
-
-	/** Gets the camera up vector. */
-	getUp(): LuaMultiReturn<[number, number, number]>;
+	/** The camera up vector. */
+	up: Vec3;
 
 	/**
 	 * Sets the camera position, target, and up vector.
 	 * The up vector defaults to (0, 1, 0).
 	 */
-	lookAt(px: number, py: number, pz: number, tx: number, ty: number, tz: number, ux?: number, uy?: number, uz?: number): void;
+	lookAt(position: Vec3, target: Vec3, up?: Vec3): void;
 }
 
 export namespace Camera3D {
@@ -3577,16 +3606,16 @@ class Node3D extends Object {
 	readonly children: any;
 
 	/** The node position. */
-	position: any;
+	position: Vec3;
 
 	/** The node scale. */
-	scale: any;
+	scale: Vec3;
 
 	/** The node rotation. */
 	rotation: any;
 
 	/** The node Euler rotation in degrees. */
-	eulerAngles: any;
+	eulerAngles: Vec3;
 
 	/** The node world transform matrix. */
 	readonly worldMatrix: any;
@@ -3618,29 +3647,11 @@ class Node3D extends Object {
 	/** The Z-axis scale factor of the node. */
 	scaleZ: number;
 
-	/** Sets the node position. */
-	setPosition(x: number, y: number, z: number): void;
-
-	/** Gets the node position. */
-	getPosition(): LuaMultiReturn<[number, number, number]>;
-
-	/** Sets the node scale. */
-	setScale(x: number, y: number, z: number): void;
-
-	/** Gets the node scale. */
-	getScale(): LuaMultiReturn<[number, number, number]>;
-
-	/** Sets the node Euler rotation in degrees. */
-	setEulerAngles(x: number, y: number, z: number): void;
-
-	/** Gets the node Euler rotation in degrees. */
-	getEulerAngles(): LuaMultiReturn<[number, number, number]>;
-
 	/** Converts a local point to world space. */
-	convertToWorldSpace(x: number, y: number, z: number): LuaMultiReturn<[number, number, number]>;
+	convertToWorldSpace(localPoint: Vec3): Vec3;
 
 	/** Converts a world point to local space. */
-	convertToNodeSpace(x: number, y: number, z: number): LuaMultiReturn<[number, number, number]>;
+	convertToNodeSpace(worldPoint: Vec3): Vec3;
 
 	/** Adds a child 3D node. */
 	addChild(child: Node3D, order?: number, tag?: string): void;
@@ -7906,6 +7917,7 @@ export {tic80NodeClass as TIC80Node};
 export const enum TypeName {
 	Size = "Size",
 	Vec2 = "Vec2",
+	Vec3 = "Vec3",
 	Rect = "Rect",
 	Color3 = "Color3",
 	Color = "Color",
@@ -7963,6 +7975,7 @@ export const enum TypeName {
 export interface TypeMap {
 	[TypeName.Size]: Size;
 	[TypeName.Vec2]: Vec2;
+	[TypeName.Vec3]: Vec3;
 	[TypeName.Rect]: Rect;
 	[TypeName.Color3]: Color3;
 	[TypeName.Color]: Color;
