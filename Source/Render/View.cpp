@@ -20,6 +20,7 @@ NS_DORA_BEGIN
 
 View::View()
 	: _id(-1)
+	, _frustumCulling(true)
 	, _nearPlaneDistance(0.1f)
 	, _farPlaneDistance(10000.0f)
 	, _fieldOfView(45.0f)
@@ -142,6 +143,14 @@ void View::setVSync(bool var) {
 
 bool View::isVSync() const noexcept {
 	return (_flag & BGFX_RESET_VSYNC) != 0;
+}
+
+bool View::isFrustumCulling() const noexcept {
+	return _frustumCulling;
+}
+
+void View::setFrustumCulling(bool var) {
+	_frustumCulling = var;
 }
 
 bool View::isPostProcessNeeded() const noexcept {

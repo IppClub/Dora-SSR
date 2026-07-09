@@ -195,7 +195,7 @@ void EffekNode::render() {
 		auto handle = effek->handle;
 		if (manager->Exists(handle)) {
 			auto pos = effek->position;
-			if (!SharedDirector.isFrustumCulling() || !manager->GetIsCulled(handle, drawParameter)) {
+			if (!SharedView.isFrustumCulling() || !manager->GetIsCulled(handle, drawParameter)) {
 				manager->SetMatrix(handle, mat43);
 				manager->AddLocation(handle, {pos.x, pos.y, pos.z});
 				manager->DrawHandle(handle, drawParameter);

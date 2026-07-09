@@ -23,7 +23,6 @@ public:
 	PROPERTY(void*, MeshHandle);
 	PROPERTY(uint64_t, RustVisual);
 
-	virtual void render(RenderPass3D& renderPass, Camera3D* camera) override;
 	CREATE_FUNC_NOT_NULL(Visual3D);
 
 protected:

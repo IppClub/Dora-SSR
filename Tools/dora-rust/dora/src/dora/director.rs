@@ -14,8 +14,6 @@ extern "C" {
 	fn director_get_entry() -> i64;
 	fn director_get_post_node() -> i64;
 	fn director_get_current_camera() -> i64;
-	fn director_set_frustum_culling(val: i32);
-	fn director_is_frustum_culling() -> i32;
 	fn director_schedule(func0: i32, stack0: i64);
 	fn director_schedule_posted(func0: i32, stack0: i64);
 	fn director_push_camera(camera: i64);
@@ -54,14 +52,6 @@ impl Director {
 	/// Gets the current active camera in Director's camera stack.
 	pub fn get_current_camera() -> crate::dora::Camera {
 		return unsafe { crate::dora::Camera::from(director_get_current_camera()).unwrap() };
-	}
-	/// Sets whether or not to enable frustum culling.
-	pub fn set_frustum_culling(val: bool) {
-		unsafe { director_set_frustum_culling(if val { 1 } else { 0 }) };
-	}
-	/// Gets whether or not to enable frustum culling.
-	pub fn is_frustum_culling() -> bool {
-		return unsafe { director_is_frustum_culling() != 0 };
 	}
 	/// Schedule a function to be called every frame.
 	///

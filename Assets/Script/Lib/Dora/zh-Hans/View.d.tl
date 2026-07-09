@@ -29,6 +29,9 @@ local record View
 	-- 要应用到视图的后处理着色器特效。
 	postEffect: SpriteEffect
 
+	-- 是否启用视锥剔除。
+	frustumCulling: boolean
+
 	-- 是否启用垂直同步。
 	vsync: boolean
 end

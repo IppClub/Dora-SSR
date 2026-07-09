@@ -47,6 +47,10 @@ namespace Dora
 		public static extern void view_set_vsync(int32_t val);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int32_t view_is_vsync();
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void view_set_frustum_culling(int32_t val);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int32_t view_is_frustum_culling();
 	}
 } // namespace Dora
 
@@ -129,6 +133,14 @@ namespace Dora
 		{
 			set => Native.view_set_vsync(value ? 1 : 0);
 			get => Native.view_is_vsync() != 0;
+		}
+		/// <summary>
+		/// Whether or not frustum culling is enabled for the view.
+		/// </summary>
+		public static bool IsFrustumCulling
+		{
+			set => Native.view_set_frustum_culling(value ? 1 : 0);
+			get => Native.view_is_frustum_culling() != 0;
 		}
 	}
 } // namespace Dora

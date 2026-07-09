@@ -15,9 +15,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DORA_BEGIN
 
-class Camera3D;
-class RenderPass3D;
-
 using Quat = bx::Quaternion;
 
 class Node3D : public Object {
@@ -53,8 +50,6 @@ public:
 	virtual void removeFromParent(bool cleanup = true);
 	virtual void cleanup() override;
 
-	virtual void visit(RenderPass3D& renderPass, Camera3D* camera);
-	virtual void render(RenderPass3D& renderPass, Camera3D* camera);
 	virtual bool update(double deltaTime);
 
 	Vec3 convertToWorldSpace(const Vec3& localPoint);

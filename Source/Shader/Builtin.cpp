@@ -100,3 +100,14 @@ static const bgfx::EmbeddedShader doraShaders[] = {
 const bgfx::EmbeddedShader* DoraShaders = doraShaders;
 
 NS_DORA_END
+
+extern "C" uint16_t dora_create_builtin_shader(const char* name, uint32_t rendererType) {
+	if (!name || rendererType >= bgfx::RendererType::Count) {
+		return bgfx::kInvalidHandle;
+	}
+	auto handle = bgfx::createEmbeddedShader(
+		Dora::DoraShaders,
+		static_cast<bgfx::RendererType::Enum>(rendererType),
+		name);
+	return handle.idx;
+}

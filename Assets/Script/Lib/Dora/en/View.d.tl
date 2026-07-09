@@ -29,6 +29,9 @@ local record View
 	-- The post effect applied to the view.
 	postEffect: SpriteEffect
 
+	-- Whether or not frustum culling is enabled.
+	frustumCulling: boolean
+
 	-- Whether or not vertical sync is enabled.
 	vsync: boolean
 end

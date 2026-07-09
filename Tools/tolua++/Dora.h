@@ -302,7 +302,6 @@ class Director
 	tolua_readonly tolua_property__common Scheduler* systemScheduler;
 	tolua_readonly tolua_property__common Scheduler* postScheduler;
 	tolua_readonly tolua_property__common Camera* currentCamera;
-	tolua_property__bool bool frustumCulling;
 	tolua_property__bool bool profilerSending;
 	void pushCamera(Camera* camera);
 	void popCamera();
@@ -322,6 +321,7 @@ class View
 	tolua_property__common float fieldOfView;
 	tolua_property__common float scale;
 	tolua_property__common SpriteEffect* postEffect;
+	tolua_property__bool bool frustumCulling;
 	tolua_property__bool bool vSync @ vsync;
 	static tolua_outside View* View_shared @ create();
 }
@@ -552,7 +552,6 @@ class Model3D : public Node3D
 
 class View3D : public Node
 {
-	tolua_property__common Camera3D* camera;
 	tolua_readonly tolua_property__common Node3D* scene;
 	bool setEnvironmentMap(String path);
 	void setEnvironmentIntensity(float diffuse, float specular, float exposure = 1.0f);

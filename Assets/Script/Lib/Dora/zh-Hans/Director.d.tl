@@ -37,9 +37,6 @@ local record Director
 	-- 当前在应用的相机。
 	const currentCamera: Camera
 
-	-- 是否启用视锥体裁剪。
-	frustumCulling: boolean
-
 	-- 是否通过内置的 Web Socket 服务器发送收集的性能统计信息。只对 Web IDE 有用.
 	profilerSending: boolean
 

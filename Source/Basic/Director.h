@@ -42,7 +42,6 @@ public:
 	PROPERTY_READONLY(Scheduler*, SystemScheduler);
 	PROPERTY_READONLY(Scheduler*, PostScheduler);
 	PROPERTY_READONLY_CALL(const Matrix&, ViewProjection);
-	PROPERTY_BOOL(FrustumCulling);
 	PROPERTY_BOOL(ProfilerSending);
 	bool init();
 	void doLogic();
@@ -152,7 +151,6 @@ private:
 	bool _nvgDirty;
 	bool _paused;
 	bool _stoped;
-	bool _frustumCulling;
 	Color _clearColor;
 	Ref<Node> _ui;
 	Ref<Node> _ui3D;

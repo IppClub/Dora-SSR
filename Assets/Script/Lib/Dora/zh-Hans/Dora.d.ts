@@ -3690,9 +3690,6 @@ export {node3DClass as Node3D};
 class View3D extends Node {
 	private constructor();
 
-	/** 渲染3D场景使用的摄像机。 */
-	camera: Camera3D;
-
 	/** 3D场景根节点。 */
 	readonly scene: Node3D;
 
@@ -4402,11 +4399,6 @@ class Director {
 	 * Director的摄像机堆栈中当前活动的摄像机。
 	 */
 	readonly currentCamera: Camera;
-
-	/**
-	 * 是否启用视锥体裁剪。
-	 */
-	frustumCulling: boolean;
 
 	/**
 	 * 是否通过内置的 Web Socket 服务器发送收集的性能统计信息。只对 Web IDE 有用.
@@ -7468,6 +7460,9 @@ class View {
 
 	/** 应用于视图的后期着色器特效。 */
 	postEffect: SpriteEffect;
+
+	/** 是否启用视锥剔除。 */
+	frustumCulling: boolean;
 
 	/** 是否启用垂直同步。 */
 	vsync: boolean;

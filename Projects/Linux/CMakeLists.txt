@@ -209,7 +209,6 @@ add_executable(dora-ssr
 	../../Source/Render/Camera.cpp
 	../../Source/Render/Camera3D.cpp
 	../../Source/Render/RenderTarget.cpp
-	../../Source/Render/RenderPass3D.cpp
 	../../Source/Render/Renderer.cpp
 	../../Source/Render/VGRender.cpp
 	../../Source/Render/View.cpp

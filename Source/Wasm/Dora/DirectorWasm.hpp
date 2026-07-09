@@ -29,12 +29,6 @@ DORA_EXPORT int64_t director_get_post_node() {
 DORA_EXPORT int64_t director_get_current_camera() {
 	return Object_From(SharedDirector.getCurrentCamera());
 }
-DORA_EXPORT void director_set_frustum_culling(int32_t val) {
-	SharedDirector.setFrustumCulling(val != 0);
-}
-DORA_EXPORT int32_t director_is_frustum_culling() {
-	return SharedDirector.isFrustumCulling() ? 1 : 0;
-}
 DORA_EXPORT void director_schedule(int32_t func0, int64_t stack0) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
@@ -84,8 +78,6 @@ static void linkDirector(wasm3::module3& mod) {
 	mod.link_optional("*", "director_get_entry", director_get_entry);
 	mod.link_optional("*", "director_get_post_node", director_get_post_node);
 	mod.link_optional("*", "director_get_current_camera", director_get_current_camera);
-	mod.link_optional("*", "director_set_frustum_culling", director_set_frustum_culling);
-	mod.link_optional("*", "director_is_frustum_culling", director_is_frustum_culling);
 	mod.link_optional("*", "director_schedule", director_schedule);
 	mod.link_optional("*", "director_schedule_posted", director_schedule_posted);
 	mod.link_optional("*", "director_push_camera", director_push_camera);

@@ -17,6 +17,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Cache/TextureCache.h"
 #include "Const/XmlTag.h"
 #include "Effect/Effect.h"
+#include "Render/View.h"
 
 NS_DORA_BEGIN
 
@@ -535,7 +536,7 @@ void ParticleNode::render() {
 		return;
 	}
 
-	if (SharedDirector.isFrustumCulling()) {
+	if (SharedView.isFrustumCulling()) {
 		const auto& firstQuad = _quads[0];
 		auto [minX, maxX] = std::minmax({firstQuad.lt.x, firstQuad.lb.x, firstQuad.rt.x, firstQuad.rb.x});
 		auto [minY, maxY] = std::minmax({firstQuad.lt.y, firstQuad.lb.y, firstQuad.rt.y, firstQuad.rb.y});

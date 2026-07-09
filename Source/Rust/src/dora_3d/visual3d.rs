@@ -120,6 +120,15 @@ pub fn set_enabled(handle: Dora3DHandle, enabled: bool) -> bool {
 	true
 }
 
+pub fn set_frustum_culling(handle: Dora3DHandle, enabled: bool) -> bool {
+	let mut visuals = registry().lock().unwrap();
+	let Some(visual) = visuals.visuals.get_mut(&handle) else {
+		return false;
+	};
+	visual.frustum_culling = enabled;
+	true
+}
+
 pub fn visuals_for_node(node_handle: Dora3DHandle) -> Vec<Visual3DData> {
 	let registry = registry().lock().unwrap();
 	let mut visuals: Vec<_> = registry

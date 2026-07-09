@@ -20,7 +20,6 @@ const DEFAULT_BRDF_LUT_SIZE: u16 = 64;
 const IRRADIANCE_SAMPLE_COUNT: u32 = 64;
 const PREFILTER_SAMPLE_COUNT: u32 = 64;
 const BRDF_SAMPLE_COUNT: u32 = 128;
-
 #[repr(C)]
 #[derive(Debug, Clone, Copy)]
 struct JointUniforms {
@@ -79,9 +78,9 @@ struct ShaderState {
 	black_texture_bgfx: bgfx_sys::bgfx_texture_handle_t,
 	_flat_normal_texture: Dora3DHandle,
 	flat_normal_texture_bgfx: bgfx_sys::bgfx_texture_handle_t,
-	irradiance_texture: Dora3DHandle,
+	_irradiance_texture: Dora3DHandle,
 	irradiance_texture_bgfx: bgfx_sys::bgfx_texture_handle_t,
-	prefilter_texture: Dora3DHandle,
+	_prefilter_texture: Dora3DHandle,
 	prefilter_texture_bgfx: bgfx_sys::bgfx_texture_handle_t,
 	_brdf_lut_texture: Dora3DHandle,
 	brdf_lut_texture_bgfx: bgfx_sys::bgfx_texture_handle_t,
@@ -113,9 +112,14 @@ struct GeneratedEnvironment {
 	prefilter: Vec<CubeFaceMip>,
 }
 
+#[derive(Debug, Clone, Copy)]
+struct EnvironmentTextures {
+	irradiance_texture: bgfx_sys::bgfx_texture_handle_t,
+	prefilter_texture: bgfx_sys::bgfx_texture_handle_t,
+}
+
 #[derive(Debug, Clone)]
 struct EnvironmentSettings {
-	equirect_path: Option<String>,
 	diffuse_intensity: f32,
 	specular_intensity: f32,
 	exposure: f32,
@@ -124,7 +128,6 @@ struct EnvironmentSettings {
 impl Default for EnvironmentSettings {
 	fn default() -> Self {
 		Self {
-			equirect_path: None,
 			diffuse_intensity: 1.0,
 			specular_intensity: 1.0,
 			exposure: 1.0,
@@ -132,11 +135,10 @@ impl Default for EnvironmentSettings {
 	}
 }
 
-extern "C" {
-	fn dora_3d_create_builtin_program(
-		vertex_shader: *const c_char,
-		fragment_shader: *const c_char,
-	) -> u16;
+#[derive(Debug, Clone)]
+struct ViewEnvironment {
+	settings: EnvironmentSettings,
+	textures: EnvironmentTextures,
 }
 
 fn invalid_program() -> bgfx_sys::bgfx_program_handle_t {
@@ -158,18 +160,35 @@ fn create_uniform(
 	unsafe { bgfx_sys::bgfx_create_uniform(name.as_ptr(), uniform_type, count) }
 }
 
+extern "C" {
+	fn dora_create_builtin_shader(name: *const c_char, renderer_type: u32) -> u16;
+}
+
+fn create_builtin_shader(name: &str) -> bgfx_sys::bgfx_shader_handle_t {
+	let Ok(name) = CString::new(name) else {
+		return bgfx_sys::bgfx_shader_handle_t { idx: u16::MAX };
+	};
+	let renderer = unsafe { bgfx_sys::bgfx_get_renderer_type() };
+	let idx = unsafe { dora_create_builtin_shader(name.as_ptr(), renderer as u32) };
+	bgfx_sys::bgfx_shader_handle_t { idx }
+}
+
 fn create_builtin_program(
 	vertex_shader: &str,
 	fragment_shader: &str,
 ) -> bgfx_sys::bgfx_program_handle_t {
-	let (Ok(vertex_shader), Ok(fragment_shader)) =
-		(CString::new(vertex_shader), CString::new(fragment_shader))
-	else {
+	let vertex_shader = create_builtin_shader(vertex_shader);
+	if vertex_shader.idx == u16::MAX {
 		return invalid_program();
-	};
-	let idx =
-		unsafe { dora_3d_create_builtin_program(vertex_shader.as_ptr(), fragment_shader.as_ptr()) };
-	bgfx_sys::bgfx_program_handle_t { idx }
+	}
+	let fragment_shader = create_builtin_shader(fragment_shader);
+	if fragment_shader.idx == u16::MAX {
+		unsafe {
+			bgfx_sys::bgfx_destroy_shader(vertex_shader);
+		}
+		return invalid_program();
+	}
+	unsafe { bgfx_sys::bgfx_create_program(vertex_shader, fragment_shader, true) }
 }
 
 fn create_white_texture() -> Dora3DHandle {
@@ -299,14 +318,15 @@ fn sample_equirect_environment(environment: &EquirectEnvironment, direction: Vec
 	c00.lerp(c10, tx).lerp(c01.lerp(c11, tx), ty)
 }
 
-fn environment_settings() -> &'static Mutex<EnvironmentSettings> {
-	static SETTINGS: OnceLock<Mutex<EnvironmentSettings>> = OnceLock::new();
-	SETTINGS.get_or_init(|| Mutex::new(EnvironmentSettings::default()))
+fn environment_cache() -> &'static Mutex<HashMap<String, EnvironmentTextures>> {
+	static CACHE: OnceLock<Mutex<HashMap<String, EnvironmentTextures>>> = OnceLock::new();
+	CACHE.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
-fn environment_cache() -> &'static Mutex<HashMap<String, GeneratedEnvironment>> {
-	static CACHE: OnceLock<Mutex<HashMap<String, GeneratedEnvironment>>> = OnceLock::new();
-	CACHE.get_or_init(|| Mutex::new(HashMap::new()))
+fn view_environments() -> &'static Mutex<HashMap<bgfx_sys::bgfx_view_id_t, ViewEnvironment>> {
+	static ENVIRONMENTS: OnceLock<Mutex<HashMap<bgfx_sys::bgfx_view_id_t, ViewEnvironment>>> =
+		OnceLock::new();
+	ENVIRONMENTS.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
 fn resolve_content_path(path: &str) -> String {
@@ -340,71 +360,30 @@ fn load_equirect_environment(path: &str) -> Option<EquirectEnvironment> {
 	})
 }
 
-fn generate_default_environment() -> GeneratedEnvironment {
-	GeneratedEnvironment {
-		irradiance: generate_cube_faces(
-			DEFAULT_IRRADIANCE_SIZE,
-			1,
-			|side, x, y, mip_size, _roughness| {
-				convolve_irradiance(cube_direction(side, x, y, mip_size))
-			},
-		),
-		prefilter: generate_cube_faces(
-			DEFAULT_PREFILTER_SIZE,
-			DEFAULT_PREFILTER_MIPS,
-			|side, x, y, mip_size, roughness| {
-				prefilter_environment(cube_direction(side, x, y, mip_size), roughness)
-			},
-		),
-	}
+pub fn prepare_environment_equirect(path: &str) -> bool {
+	environment_textures_for_path(path).is_some()
 }
 
-pub fn set_environment_equirect(path: &str) -> bool {
-	if path.trim().is_empty() {
-		if environment_settings()
-			.lock()
-			.unwrap()
-			.equirect_path
-			.is_none()
-		{
-			return true;
-		}
+fn environment_textures_for_path(path: &str) -> Option<EnvironmentTextures> {
+	let trimmed = path.trim();
+	if trimmed.is_empty() {
 		let state = shader_state();
-		let generated = generate_default_environment();
-		if apply_generated_environment(state, &generated) {
-			environment_settings().lock().unwrap().equirect_path = None;
-			return true;
-		}
-		return false;
+		return Some(EnvironmentTextures {
+			irradiance_texture: state.irradiance_texture_bgfx,
+			prefilter_texture: state.prefilter_texture_bgfx,
+		});
 	}
-
 	let resolved_path = resolve_content_path(path);
-	if environment_settings()
-		.lock()
-		.unwrap()
-		.equirect_path
-		.as_deref()
-		== Some(resolved_path.as_str())
-	{
-		return true;
-	}
-
-	let state = shader_state();
 	if let Some(environment) = environment_cache()
 		.lock()
 		.unwrap()
 		.get(&resolved_path)
-		.cloned()
+		.copied()
 	{
-		if apply_generated_environment(state, &environment) {
-			environment_settings().lock().unwrap().equirect_path = Some(resolved_path);
-			return true;
-		}
+		return Some(environment);
 	}
 
-	let Some(environment) = load_equirect_environment(&resolved_path) else {
-		return false;
-	};
+	let environment = load_equirect_environment(&resolved_path)?;
 	let generated = GeneratedEnvironment {
 		irradiance: generate_cube_faces(
 			DEFAULT_IRRADIANCE_SIZE,
@@ -427,26 +406,52 @@ pub fn set_environment_equirect(path: &str) -> bool {
 			},
 		),
 	};
-	if apply_generated_environment(state, &generated) {
-		environment_cache()
-			.lock()
-			.unwrap()
-			.insert(resolved_path.clone(), generated);
-		environment_settings().lock().unwrap().equirect_path = Some(resolved_path);
-		return true;
-	}
-	false
+	let textures = create_environment_textures(&resolved_path, &generated)?;
+	environment_cache()
+		.lock()
+		.unwrap()
+		.insert(resolved_path, textures);
+	Some(textures)
 }
 
-pub fn set_environment_intensity(diffuse: f32, specular: f32, exposure: f32) {
-	let mut settings = environment_settings().lock().unwrap();
-	settings.diffuse_intensity = diffuse.max(0.0);
-	settings.specular_intensity = specular.max(0.0);
-	settings.exposure = exposure.max(0.0);
+pub fn set_view_environment(
+	view_id: bgfx_sys::bgfx_view_id_t,
+	path: &str,
+	diffuse: f32,
+	specular: f32,
+	exposure: f32,
+) -> bool {
+	let Some(textures) = environment_textures_for_path(path) else {
+		return false;
+	};
+	view_environments().lock().unwrap().insert(
+		view_id,
+		ViewEnvironment {
+			settings: EnvironmentSettings {
+				diffuse_intensity: diffuse.max(0.0),
+				specular_intensity: specular.max(0.0),
+				exposure: exposure.max(0.0),
+			},
+			textures,
+		},
+	);
+	true
 }
 
-fn current_environment_settings() -> EnvironmentSettings {
-	environment_settings().lock().unwrap().clone()
+fn environment_for_view(view_id: bgfx_sys::bgfx_view_id_t) -> ViewEnvironment {
+	let state = shader_state();
+	view_environments()
+		.lock()
+		.unwrap()
+		.get(&view_id)
+		.cloned()
+		.unwrap_or(ViewEnvironment {
+			settings: EnvironmentSettings::default(),
+			textures: EnvironmentTextures {
+				irradiance_texture: state.irradiance_texture_bgfx,
+				prefilter_texture: state.prefilter_texture_bgfx,
+			},
+		})
 }
 
 fn tangent_basis(normal: Vec3) -> (Vec3, Vec3) {
@@ -562,9 +567,78 @@ fn update_cube_faces(handle: Dora3DHandle, faces: &[CubeFaceMip]) -> bool {
 	true
 }
 
-fn apply_generated_environment(state: &ShaderState, environment: &GeneratedEnvironment) -> bool {
-	update_cube_faces(state.irradiance_texture, &environment.irradiance)
-		&& update_cube_faces(state.prefilter_texture, &environment.prefilter)
+fn update_cube_faces_rgba8(handle: Dora3DHandle, faces: &[CubeFaceMip]) -> bool {
+	for face in faces {
+		let mut pixels = Vec::with_capacity(face.pixels.len() * 4);
+		for pixel in &face.pixels {
+			pixels.extend_from_slice(&[
+				linear_to_byte(pixel[0]),
+				linear_to_byte(pixel[1]),
+				linear_to_byte(pixel[2]),
+				linear_to_byte(pixel[3]),
+			]);
+		}
+		if !texture::update_cube_rgba8(handle, face.side, face.mip, face.size, &pixels) {
+			return false;
+		}
+	}
+	true
+}
+
+fn create_environment_cube(
+	size: u16,
+	mip_count: u8,
+	faces: &[CubeFaceMip],
+	name: &str,
+) -> Option<Dora3DHandle> {
+	let flags = bgfx_sys::BGFX_SAMPLER_U_CLAMP as u64
+		| bgfx_sys::BGFX_SAMPLER_V_CLAMP as u64
+		| bgfx_sys::BGFX_SAMPLER_W_CLAMP as u64;
+	if let Some(handle) = texture::create_cube_rgba16f(size, mip_count > 1, flags, Some(name)) {
+		if update_cube_faces(handle, faces) {
+			return Some(handle);
+		}
+		let _ = texture::destroy(handle);
+	}
+	let handle = texture::create_cube_rgba8(size, mip_count > 1, flags, Some(name))?;
+	if update_cube_faces_rgba8(handle, faces) {
+		Some(handle)
+	} else {
+		let _ = texture::destroy(handle);
+		None
+	}
+}
+
+fn create_environment_textures(
+	label: &str,
+	environment: &GeneratedEnvironment,
+) -> Option<EnvironmentTextures> {
+	let irradiance = create_environment_cube(
+		DEFAULT_IRRADIANCE_SIZE,
+		1,
+		&environment.irradiance,
+		&format!("Dora3D Irradiance {label}"),
+	)?;
+	let Some(prefilter) = create_environment_cube(
+		DEFAULT_PREFILTER_SIZE,
+		DEFAULT_PREFILTER_MIPS,
+		&environment.prefilter,
+		&format!("Dora3D Prefilter {label}"),
+	) else {
+		let _ = texture::destroy(irradiance);
+		return None;
+	};
+	Some(EnvironmentTextures {
+		irradiance_texture: texture::texture_handle(irradiance)
+			.unwrap_or_else(texture::invalid_handle),
+		prefilter_texture: texture::texture_handle(prefilter)
+			.unwrap_or_else(texture::invalid_handle),
+	})
+}
+
+pub fn clear_environment_cache() {
+	environment_cache().lock().unwrap().clear();
+	view_environments().lock().unwrap().clear();
 }
 
 fn create_generated_cube(
@@ -834,10 +908,10 @@ fn shader_state() -> &'static ShaderState {
 			_flat_normal_texture: flat_normal_texture,
 			flat_normal_texture_bgfx: texture::texture_handle(flat_normal_texture)
 				.unwrap_or_else(texture::invalid_handle),
-			irradiance_texture,
+			_irradiance_texture: irradiance_texture,
 			irradiance_texture_bgfx: texture::texture_handle(irradiance_texture)
 				.unwrap_or_else(texture::invalid_handle),
-			prefilter_texture,
+			_prefilter_texture: prefilter_texture,
 			prefilter_texture_bgfx: texture::texture_handle(prefilter_texture)
 				.unwrap_or_else(texture::invalid_handle),
 			_brdf_lut_texture: brdf_lut_texture,
@@ -920,7 +994,7 @@ unsafe fn bind_texture_or_skip(
 	bgfx_sys::bgfx_set_texture(stage, uniform, texture, u32::MAX);
 }
 
-unsafe fn set_default_textures(state: &ShaderState) {
+unsafe fn set_default_textures(state: &ShaderState, environment: &EnvironmentTextures) {
 	bind_texture_or_skip(0, state.s_base_color, state.white_texture_bgfx);
 	bind_texture_or_skip(1, state.s_metallic_roughness, state.white_texture_bgfx);
 	bind_texture_or_skip(2, state.s_normal, state.flat_normal_texture_bgfx);
@@ -929,8 +1003,8 @@ unsafe fn set_default_textures(state: &ShaderState) {
 	bind_texture_or_skip(5, state.s_clearcoat, state.white_texture_bgfx);
 	bind_texture_or_skip(6, state.s_clearcoat_roughness, state.white_texture_bgfx);
 	bind_texture_or_skip(7, state.s_clearcoat_normal, state.flat_normal_texture_bgfx);
-	bind_texture_or_skip(8, state.s_irradiance, state.irradiance_texture_bgfx);
-	bind_texture_or_skip(9, state.s_prefilter, state.prefilter_texture_bgfx);
+	bind_texture_or_skip(8, state.s_irradiance, environment.irradiance_texture);
+	bind_texture_or_skip(9, state.s_prefilter, environment.prefilter_texture);
 	bind_texture_or_skip(10, state.s_brdf_lut, state.brdf_lut_texture_bgfx);
 	bind_texture_or_skip(11, state.s_specular, state.white_texture_bgfx);
 	bind_texture_or_skip(12, state.s_specular_color, state.white_texture_bgfx);
@@ -957,15 +1031,15 @@ pub fn set_view_transforms(view_id: bgfx_sys::bgfx_view_id_t, view_proj: &Mat4, 
 	let identity = Mat4::IDENTITY.to_cols_array();
 	let combined = mat4_to_bgfx_array(view_proj);
 	let view_pos_uniform = [view_pos.x, view_pos.y, view_pos.z, 0.0];
-	let environment = current_environment_settings();
-	let env_diffuse = [1.0f32, 1.0, 1.0, environment.diffuse_intensity];
+	let environment = environment_for_view(view_id);
+	let env_diffuse = [1.0f32, 1.0, 1.0, environment.settings.diffuse_intensity];
 	let env_specular = [
 		1.0f32,
 		(DEFAULT_PREFILTER_MIPS - 1) as f32,
 		0.0,
-		environment.specular_intensity,
+		environment.settings.specular_intensity,
 	];
-	let pbr_params = [environment.exposure, 0.0, 0.0, 0.0];
+	let pbr_params = [environment.settings.exposure, 0.0, 0.0, 0.0];
 	let emissive_scaling = [1.0f32, 0.0, 0.0, 0.0];
 	let uv_inversed = [0.0f32, 1.0, 0.0, 0.0];
 	let zero = [0.0f32, 0.0, 0.0, 0.0];
@@ -1056,7 +1130,8 @@ pub fn submit_mesh(
 			mesh_data.vertices.len() as u32,
 		);
 		for sub_mesh in &mesh_data.sub_meshes {
-			set_default_textures(state);
+			let environment = environment_for_view(view_state.view_id);
+			set_default_textures(state, &environment.textures);
 			apply_material_or_default(material_handle);
 			bgfx_sys::bgfx_set_index_buffer(
 				mesh_data.index_buffer,

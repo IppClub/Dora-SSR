@@ -911,10 +911,6 @@ singleton class Director
 	/// </summary>
 	readonly common Camera* currentCamera;
 	/// <summary>
-	/// Whether or not to enable frustum culling.
-	/// </summary>
-	boolean bool frustumCulling;
-	/// <summary>
 	/// Schedule a function to be called every frame.
 	/// </summary>
 	/// <param name="updateFunc">The function to call every frame.</param>
@@ -990,6 +986,10 @@ singleton class View
 	/// Whether or not vertical sync is enabled.
 	/// </summary>
 	boolean bool vSync @ vsync;
+	/// <summary>
+	/// Whether or not frustum culling is enabled for the view.
+	/// </summary>
+	boolean bool frustumCulling;
 };
 
 value class ActionDef {

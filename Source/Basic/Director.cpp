@@ -61,7 +61,6 @@ Director::Director()
 	, _nvgDirty(false)
 	, _paused(false)
 	, _stoped(false)
-	, _frustumCulling(true)
 	, _nvgContext(nullptr) { }
 
 Director::~Director() {
@@ -543,14 +542,6 @@ void Director::removeFromWaitingList(Node* node) {
 bool Director::isInFrustum(const AABB& aabb) const {
 	if (_viewProjs.empty()) return false;
 	return _viewProjs.top()->frustum.intersect(aabb);
-}
-
-bool Director::isFrustumCulling() const noexcept {
-	return _frustumCulling;
-}
-
-void Director::setFrustumCulling(bool var) {
-	_frustumCulling = var;
 }
 
 void Director::markDirty() {

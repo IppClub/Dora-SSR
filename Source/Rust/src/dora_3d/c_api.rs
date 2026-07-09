@@ -67,6 +67,7 @@ pub extern "C" fn dora_3d_cleanup() {
 	model_loader::clear_registry();
 	visual3d::clear_registry();
 	super::material::clear_registry();
+	shader::clear_environment_cache();
 	super::mesh::clear_registry();
 	super::texture::clear_registry();
 	camera3d::clear_registry();
@@ -88,6 +89,11 @@ pub extern "C" fn dora_3d_set_view_state(
 }
 
 #[no_mangle]
+pub extern "C" fn dora_3d_set_view_frustum_culling(view_id: u16, enabled: i32) {
+	renderer3d::set_view_frustum_culling(view_id, enabled != 0);
+}
+
+#[no_mangle]
 pub extern "C" fn dora_3d_render_node(view_id: u16, node: Dora3DHandle) -> i32 {
 	renderer3d::render_node(view_id, node) as i32
 }
@@ -102,12 +108,34 @@ pub extern "C" fn dora_3d_set_environment_equirect(path: *const c_char) -> i32 {
 	let Some(path) = opt_str(path) else {
 		return 0;
 	};
-	shader::set_environment_equirect(path) as i32
+	shader::prepare_environment_equirect(path) as i32
 }
 
 #[no_mangle]
 pub extern "C" fn dora_3d_set_environment_intensity(diffuse: f32, specular: f32, exposure: f32) {
-	shader::set_environment_intensity(diffuse, specular, exposure);
+	let _ = shader::set_view_environment(0, "", diffuse, specular, exposure);
+}
+
+#[no_mangle]
+pub extern "C" fn dora_3d_prepare_environment_equirect(path: *const c_char) -> i32 {
+	let Some(path) = opt_str(path) else {
+		return 0;
+	};
+	shader::prepare_environment_equirect(path) as i32
+}
+
+#[no_mangle]
+pub extern "C" fn dora_3d_set_view_environment(
+	view_id: u16,
+	path: *const c_char,
+	diffuse: f32,
+	specular: f32,
+	exposure: f32,
+) -> i32 {
+	let Some(path) = opt_str(path) else {
+		return 0;
+	};
+	shader::set_view_environment(view_id, path, diffuse, specular, exposure) as i32
 }
 
 #[no_mangle]
@@ -388,4 +416,9 @@ pub extern "C" fn dora_3d_model_update(instance: Dora3DHandle, delta_time: f32) 
 #[no_mangle]
 pub extern "C" fn dora_3d_visual_add_to_node(visual: Dora3DHandle, node: Dora3DHandle) {
 	let _ = visual3d::set_node(visual, node);
+}
+
+#[no_mangle]
+pub extern "C" fn dora_3d_visual_set_frustum_culling(visual: Dora3DHandle, enabled: i32) {
+	let _ = visual3d::set_frustum_culling(visual, enabled != 0);
 }

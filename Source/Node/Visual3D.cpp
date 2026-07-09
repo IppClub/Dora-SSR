@@ -10,10 +10,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Node/Visual3D.h"
 
-#include "Basic/Director.h"
 #include "Effect/Material.h"
-#include "Render/Camera3D.h"
-#include "Render/RenderPass3D.h"
+
+#ifndef DORA_NO_RUST
+extern "C" {
+void dora_3d_visual_set_frustum_culling(uint64_t visual, int32_t enabled);
+}
+#endif // DORA_NO_RUST
 
 NS_DORA_BEGIN
 
@@ -26,6 +29,11 @@ Visual3D::Visual3D()
 
 void Visual3D::setFrustumCulling(bool var) {
 	_frustumCulling = var;
+#ifndef DORA_NO_RUST
+	if (_rustVisual != 0) {
+		dora_3d_visual_set_frustum_culling(_rustVisual, var ? 1 : 0);
+	}
+#endif // DORA_NO_RUST
 }
 
 bool Visual3D::isFrustumCulling() const noexcept {
@@ -64,37 +72,15 @@ void* Visual3D::getMeshHandle() const noexcept {
 
 void Visual3D::setRustVisual(uint64_t var) {
 	_rustVisual = var;
+#ifndef DORA_NO_RUST
+	if (_rustVisual != 0) {
+		dora_3d_visual_set_frustum_culling(_rustVisual, _frustumCulling ? 1 : 0);
+	}
+#endif // DORA_NO_RUST
 }
 
 uint64_t Visual3D::getRustVisual() const noexcept {
 	return _rustVisual;
-}
-
-void Visual3D::render(RenderPass3D& renderPass, Camera3D* camera) {
-	if (!_rustVisual || !camera) return;
-	const AABB& bounds = getWorldBounds();
-	if (_frustumCulling && SharedDirector.isFrustumCulling() && !SharedDirector.isInFrustum(bounds)) {
-		return;
-	}
-	Vec4 origin;
-	Matrix::mulVec4(origin, getWorldMatrix(), Vec4{0.0f, 0.0f, 0.0f, 1.0f});
-	Vec3 delta{
-		origin.x - camera->getPosition().x,
-		origin.y - camera->getPosition().y,
-		origin.z - camera->getPosition().z};
-	float distance = bx::sqrt(delta.x * delta.x + delta.y * delta.y + delta.z * delta.z);
-	RenderItem3D item;
-	item.bounds = bounds;
-	item.meshHandle = _meshHandle;
-	item.materialHandle = _material.get();
-	item.submeshIndex = 0;
-	item.distanceToCamera = distance;
-	item.sortKey = (_material ? s_cast<uint64_t>(_material->getId()) : 0u) << 32
-		| (reinterpret_cast<uintptr_t>(_meshHandle) & 0xffffffffu);
-	item.transparent = _material ? _material->isTransparent() : false;
-	item.visual = this;
-	item.rustVisual = _rustVisual;
-	renderPass.collect(item);
 }
 
 NS_DORA_END

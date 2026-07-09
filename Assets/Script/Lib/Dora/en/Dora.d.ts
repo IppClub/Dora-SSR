@@ -3692,9 +3692,6 @@ export {node3DClass as Node3D};
 class View3D extends Node {
 	private constructor();
 
-	/** The camera used for rendering the 3D scene. */
-	camera: Camera3D;
-
 	/** The root node of the 3D scene. */
 	readonly scene: Node3D;
 
@@ -4404,11 +4401,6 @@ class Director {
 	 * The current active camera in Director's camera stack.
 	 */
 	readonly currentCamera: Camera;
-
-	/**
-	 * Whether to enable frustum culling.
-	 */
-	frustumCulling: boolean;
 
 	/**
 	 * The flag to enable or disable sending collected statistics via built-in Web Socket server. For Web IDE use only.
@@ -7468,6 +7460,9 @@ class View {
 
 	/** The post effect applied to the view. */
 	postEffect: SpriteEffect;
+
+	/** Whether or not frustum culling is enabled. */
+	frustumCulling: boolean;
 
 	/** Whether or not vertical sync is enabled. */
 	vsync: boolean;

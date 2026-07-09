@@ -9,16 +9,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include "Node/Node.h"
-#include "Render/RenderPass3D.h"
 
 NS_DORA_BEGIN
 
 class Camera3D;
+class Camera;
 class Node3D;
 
 class View3D : public Node {
 public:
-	PROPERTY(Camera3D*, Camera);
 	PROPERTY_READONLY_CALL(Node3D*, Scene);
 	bool setEnvironmentMap(String path);
 	void setEnvironmentIntensity(float diffuse, float specular, float exposure = 1.0f);
@@ -32,9 +31,11 @@ protected:
 	~View3D();
 
 private:
-	Ref<Camera3D> _camera;
+	std::string _environmentMap;
+	float _environmentDiffuse;
+	float _environmentSpecular;
+	float _environmentExposure;
 	Ref<Node3D> _scene;
-	RenderPass3D _renderPass;
 	DORA_TYPE_OVERRIDE(View3D);
 };
 

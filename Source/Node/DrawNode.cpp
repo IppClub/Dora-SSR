@@ -78,7 +78,7 @@ void DrawNode::render() {
 		return;
 	}
 
-	if (SharedDirector.isFrustumCulling()) {
+	if (SharedView.isFrustumCulling()) {
 		auto [minX, maxX] = std::minmax_element(_posColors.begin(), _posColors.end(), [](const auto& a, const auto& b) {
 			return a.pos.x < b.pos.x;
 		});
@@ -561,7 +561,7 @@ void Line::render() {
 		return;
 	}
 
-	if (SharedDirector.isFrustumCulling()) {
+	if (SharedView.isFrustumCulling()) {
 		auto [minX, maxX] = std::minmax_element(_posColors.begin(), _posColors.end(), [](const auto& a, const auto& b) {
 			return a.pos.x < b.pos.x;
 		});

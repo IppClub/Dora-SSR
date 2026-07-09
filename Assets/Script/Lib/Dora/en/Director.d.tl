@@ -37,9 +37,6 @@ local record Director
 	-- The current active camera in Director's camera stack.
 	const currentCamera: Camera
 
-	-- The flag to enable or disable frustum culling.
-	frustumCulling: boolean
-
 	-- The flag to enable or disable sending collected statistics via built-in Web Socket server. For Web IDE use only.
 	profilerSending: boolean
 

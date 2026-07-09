@@ -50,6 +50,12 @@ DORA_EXPORT int64_t view_get_post_effect() {
 DORA_EXPORT void view_set_post_effect_null() {
 	View_SetPostEffectNullptr();
 }
+DORA_EXPORT void view_set_frustum_culling(int32_t val) {
+	SharedView.setFrustumCulling(val != 0);
+}
+DORA_EXPORT int32_t view_is_frustum_culling() {
+	return SharedView.isFrustumCulling() ? 1 : 0;
+}
 DORA_EXPORT void view_set_vsync(int32_t val) {
 	SharedView.setVSync(val != 0);
 }
@@ -73,6 +79,8 @@ static void linkView(wasm3::module3& mod) {
 	mod.link_optional("*", "view_set_post_effect", view_set_post_effect);
 	mod.link_optional("*", "view_get_post_effect", view_get_post_effect);
 	mod.link_optional("*", "view_set_post_effect_null", view_set_post_effect_null);
+	mod.link_optional("*", "view_set_frustum_culling", view_set_frustum_culling);
+	mod.link_optional("*", "view_is_frustum_culling", view_is_frustum_culling);
 	mod.link_optional("*", "view_set_vsync", view_set_vsync);
 	mod.link_optional("*", "view_is_vsync", view_is_vsync);
 }

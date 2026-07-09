@@ -11,7 +11,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Node/Node3D.h"
 
 #include "Basic/Director.h"
-#include "Render/RenderPass3D.h"
 
 #ifndef DORA_NO_RUST
 extern "C" {
@@ -373,27 +372,6 @@ const Matrix& Node3D::getWorldMatrix() const noexcept {
 #endif // DORA_NO_RUST
 	return _worldMatrix;
 }
-
-void Node3D::visit(RenderPass3D& renderPass, Camera3D* camera) {
-	if (!isVisible()) return;
-	if (!_children.empty()) {
-		sortAllChildren();
-		size_t index = 0;
-		for (; index < _children.size(); index++) {
-			Node3D* child = _children[index].get();
-			if (child->getOrder() >= 0) break;
-			child->visit(renderPass, camera);
-		}
-		render(renderPass, camera);
-		for (; index < _children.size(); index++) {
-			_children[index]->visit(renderPass, camera);
-		}
-	} else {
-		render(renderPass, camera);
-	}
-}
-
-void Node3D::render(RenderPass3D&, Camera3D*) { }
 
 bool Node3D::update(double) {
 	return true;

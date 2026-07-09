@@ -28,6 +28,7 @@ public:
 	PROPERTY(float, FieldOfView);
 	PROPERTY(float, Scale);
 	PROPERTY(SpriteEffect*, PostEffect);
+	PROPERTY_BOOL(FrustumCulling);
 	PROPERTY_BOOL(VSync);
 	PROPERTY_READONLY_BOOL(PostProcessNeeded);
 	PROPERTY_READONLY_EXCEPT(bgfx::ViewId, Id);
@@ -70,6 +71,7 @@ private:
 	int _id;
 	std::stack<std::pair<bgfx::ViewId, std::string>> _views;
 	uint32_t _flag;
+	bool _frustumCulling;
 	float _nearPlaneDistance;
 	float _farPlaneDistance;
 	float _fieldOfView;

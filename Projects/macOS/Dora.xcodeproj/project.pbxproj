@@ -434,7 +434,6 @@
 		3C68A8B52F95A8DF00DDC115 /* Node3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C68A8B02F95A8DF00DDC115 /* Node3D.cpp */; };
 		3C68A8B62F95A8DF00DDC115 /* View3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C68A8B22F95A8DF00DDC115 /* View3D.cpp */; };
 		3C68A8B72F95A8DF00DDC115 /* Visual3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C68A8B42F95A8DF00DDC115 /* Visual3D.cpp */; };
-		3C68A8BC2F95A91200DDC115 /* RenderPass3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C68A8BB2F95A91200DDC115 /* RenderPass3D.cpp */; };
 		3C68A8BD2F95A91200DDC115 /* Camera3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C68A8B92F95A91200DDC115 /* Camera3D.cpp */; };
 		3C68A8C02F95ACF000DDC115 /* Material.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C68A8BF2F95ACF000DDC115 /* Material.cpp */; };
 		3C68A8C12F95A8DF00DDC115 /* Model3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C68A8C32F95A8DF00DDC115 /* Model3D.cpp */; };
@@ -1634,8 +1633,6 @@
 		3C68A8C32F95A8DF00DDC115 /* Model3D.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Model3D.cpp; sourceTree = "<group>"; };
 		3C68A8B82F95A91200DDC115 /* Camera3D.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Camera3D.h; sourceTree = "<group>"; };
 		3C68A8B92F95A91200DDC115 /* Camera3D.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Camera3D.cpp; sourceTree = "<group>"; };
-		3C68A8BA2F95A91200DDC115 /* RenderPass3D.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RenderPass3D.h; sourceTree = "<group>"; };
-		3C68A8BB2F95A91200DDC115 /* RenderPass3D.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RenderPass3D.cpp; sourceTree = "<group>"; };
 		3C68A8BE2F95ACF000DDC115 /* Material.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Material.h; sourceTree = "<group>"; };
 		3C68A8BF2F95ACF000DDC115 /* Material.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Material.cpp; sourceTree = "<group>"; };
 		3C76449E2CFD93D100DEDC0B /* libdora_runtime.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libdora_runtime.a; path = ../../Source/Rust/lib/macOS/libdora_runtime.a; sourceTree = "<group>"; };
@@ -3788,8 +3785,6 @@
 			children = (
 				3C68A8B82F95A91200DDC115 /* Camera3D.h */,
 				3C68A8B92F95A91200DDC115 /* Camera3D.cpp */,
-				3C68A8BA2F95A91200DDC115 /* RenderPass3D.h */,
-				3C68A8BB2F95A91200DDC115 /* RenderPass3D.cpp */,
 				3C592AE22CA4EFF100CAF224 /* Camera.h */,
 				3C592AE32CA4EFF100CAF224 /* Camera.cpp */,
 				3C592AE42CA4EFF100CAF224 /* Renderer.h */,
@@ -4863,7 +4858,6 @@
 				3C5936C72CA4FA0400CAF224 /* soloud_core_3d.cpp in Sources */,
 				3C5936C82CA4FA0400CAF224 /* soloud_audiosource.cpp in Sources */,
 				3C5936C92CA4FA0400CAF224 /* soloud_flangerfilter.cpp in Sources */,
-				3C68A8BC2F95A91200DDC115 /* RenderPass3D.cpp in Sources */,
 				3C68A8BD2F95A91200DDC115 /* Camera3D.cpp in Sources */,
 				3C5936CB2CA4FA0400CAF224 /* soloud_bassboostfilter.cpp in Sources */,
 				3C5936CC2CA4FA0400CAF224 /* soloud_waveshaperfilter.cpp in Sources */,

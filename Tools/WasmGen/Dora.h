@@ -915,8 +915,6 @@ singleton class Director
 	readonly common Node* postNode;
 	/// the current active camera in Director's camera stack.
 	readonly common Camera* currentCamera;
-	/// whether or not to enable frustum culling.
-	boolean bool frustumCulling;
 	/// Schedule a function to be called every frame.
 	///
 	/// # Arguments
@@ -974,6 +972,8 @@ singleton class View
 	optional common SpriteEffect* postEffect;
 	/// Removes the post effect applied to the view.
 	outside void View_SetPostEffectNullptr @ set_post_effect_null();
+	/// whether or not frustum culling is enabled.
+	boolean bool frustumCulling;
 	/// whether or not vertical sync is enabled.
 	boolean bool vSync @ vsync;
 };
