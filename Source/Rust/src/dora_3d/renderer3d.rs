@@ -15,6 +15,7 @@ use std::sync::{Mutex, OnceLock};
 pub struct QueuedRenderItem3D {
     pub visual: Dora3DHandle,
     pub view_id: bgfx_sys::bgfx_view_id_t,
+    pub sort_key: u64,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -31,6 +32,7 @@ struct RenderVisualItem {
     node: Dora3DHandle,
     transparent: bool,
     distance_to_camera_sq: f32,
+    sort_key: u64,
 }
 
 fn queue() -> &'static Mutex<VecDeque<QueuedRenderItem3D>> {
@@ -44,14 +46,19 @@ fn view_states() -> &'static Mutex<HashMap<bgfx_sys::bgfx_view_id_t, ViewRenderS
     VIEW_STATES.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
-pub fn queue_visual(visual: Dora3DHandle, view_id: bgfx_sys::bgfx_view_id_t) -> bool {
+pub fn queue_visual(
+    visual: Dora3DHandle,
+    view_id: bgfx_sys::bgfx_view_id_t,
+    sort_key: u64,
+) -> bool {
     if visual3d::with_visual(visual, |_| ()).is_none() {
         return false;
     }
-    queue()
-        .lock()
-        .unwrap()
-        .push_back(QueuedRenderItem3D { visual, view_id });
+    queue().lock().unwrap().push_back(QueuedRenderItem3D {
+        visual,
+        view_id,
+        sort_key,
+    });
     true
 }
 
@@ -83,9 +90,9 @@ pub fn render_view(view_id: bgfx_sys::bgfx_view_id_t) -> bool {
     let view_state = view_state(view_id);
     let render_items: Vec<_> = queued_items
         .into_iter()
-        .filter_map(|item| collect_visual_item(item.visual, &view_state))
+        .filter_map(|item| collect_visual_item(item.visual, item.sort_key, &view_state))
         .collect();
-    render_items_sorted(view_id, render_items)
+    render_items_in_order(view_id, render_items)
 }
 
 pub fn render_node(view_id: bgfx_sys::bgfx_view_id_t, root: Dora3DHandle) -> bool {
@@ -103,6 +110,7 @@ pub fn render_node(view_id: bgfx_sys::bgfx_view_id_t, root: Dora3DHandle) -> boo
                     visual.mesh,
                     visual.material,
                     visual.node,
+                    default_sort_key(visual.material, visual.mesh),
                     &view_state,
                 ) {
                     render_items.push(item);
@@ -127,6 +135,7 @@ fn view_state(view_id: bgfx_sys::bgfx_view_id_t) -> ViewRenderState {
 
 fn collect_visual_item(
     visual_handle: Dora3DHandle,
+    sort_key: u64,
     view_state: &ViewRenderState,
 ) -> Option<RenderVisualItem> {
     let (mesh_handle, material_handle, node_handle, enabled) =
@@ -141,6 +150,7 @@ fn collect_visual_item(
         mesh_handle,
         material_handle,
         node_handle,
+        sort_key,
         view_state,
     )
 }
@@ -150,6 +160,7 @@ fn collect_visual_item_from_parts(
     mesh_handle: Dora3DHandle,
     material_handle: Dora3DHandle,
     node_handle: Dora3DHandle,
+    sort_key: u64,
     view_state: &ViewRenderState,
 ) -> Option<RenderVisualItem> {
     let world = node3d::world_matrix(node_handle)?;
@@ -162,7 +173,12 @@ fn collect_visual_item_from_parts(
         node: node_handle,
         transparent: material::is_transparent(material_handle),
         distance_to_camera_sq,
+        sort_key,
     })
+}
+
+fn default_sort_key(material: Dora3DHandle, mesh: Dora3DHandle) -> u64 {
+    ((material & 0xffff_ffff) << 32) | (mesh & 0xffff_ffff)
 }
 
 fn render_items_sorted(
@@ -178,8 +194,7 @@ fn render_items_sorted(
             opaque_items.push(item);
         }
     }
-    opaque_items
-        .sort_by_key(|item| ((item.material & 0xffff_ffff) << 32) | (item.mesh & 0xffff_ffff));
+    opaque_items.sort_by_key(|item| item.sort_key);
     transparent_items.sort_by(|a, b| {
         b.distance_to_camera_sq
             .total_cmp(&a.distance_to_camera_sq)
@@ -187,42 +202,42 @@ fn render_items_sorted(
     });
 
     let view_state = view_state(view_id);
+    shader::set_view_transforms(view_id, &view_state.view_proj, view_state.view_pos);
+    render_items_in_order_with_state(opaque_items.iter().chain(transparent_items.iter()).copied())
+}
+
+fn render_items_in_order(
+    view_id: bgfx_sys::bgfx_view_id_t,
+    render_items: Vec<RenderVisualItem>,
+) -> bool {
+    let view_state = view_state(view_id);
+    shader::set_view_transforms(view_id, &view_state.view_proj, view_state.view_pos);
+    render_items_in_order_with_state(render_items.iter().copied())
+}
+
+fn render_items_in_order_with_state(items: impl Iterator<Item = RenderVisualItem>) -> bool {
     let mut submitted = false;
-    for item in opaque_items.iter().chain(transparent_items.iter()) {
-        if render_visual_item(view_id, &view_state, *item) {
+    for item in items {
+        if render_visual_item(item) {
             submitted = true;
         }
     }
     submitted
 }
 
-fn render_visual_item(
-    view_id: bgfx_sys::bgfx_view_id_t,
-    view_state: &ViewRenderState,
-    item: RenderVisualItem,
-) -> bool {
-    shader::set_view_transforms(view_id, &view_state.view_proj, view_state.view_pos);
-
+fn render_visual_item(item: RenderVisualItem) -> bool {
     let world_matrix = node3d::world_matrix(item.node).unwrap_or(Mat4::IDENTITY);
     let mesh_world_inverse = world_matrix.inverse();
     let joint_matrices =
         model_loader::skeleton_for_visual(item.visual).and_then(|skeleton_handle| {
             animation::with_skeleton(skeleton_handle, |skeleton| {
-                let mut world_transforms = HashMap::new();
-                for joint_handle in &skeleton.joints {
-                    if let Some(world) = node3d::world_matrix(*joint_handle) {
-                        world_transforms.insert(*joint_handle, world);
-                    }
-                }
-                skinning::compute_joint_matrices(skeleton, mesh_world_inverse, &world_transforms)
+                skinning::compute_joint_matrices(skeleton, mesh_world_inverse)
             })
         });
     shader::submit_mesh(
         item.mesh,
         item.material,
         &world_matrix,
-        &view_state.view_proj,
-        view_state.view_pos,
         joint_matrices.as_deref(),
     )
 }

@@ -111,8 +111,8 @@ pub extern "C" fn dora_3d_set_environment_intensity(diffuse: f32, specular: f32,
 }
 
 #[no_mangle]
-pub extern "C" fn dora_3d_queue_visual(visual: Dora3DHandle, view_id: u16) -> i32 {
-    renderer3d::queue_visual(visual, view_id) as i32
+pub extern "C" fn dora_3d_queue_visual(visual: Dora3DHandle, view_id: u16, sort_key: u64) -> i32 {
+    renderer3d::queue_visual(visual, view_id, sort_key) as i32
 }
 
 #[no_mangle]

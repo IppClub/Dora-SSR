@@ -1,7 +1,7 @@
 use super::animation::{AnimationClipData, ChannelProperty, Keyframe, KeyframeValue, SkeletonData};
+use super::node3d;
 use super::types::{Mat4, Quaternion, Vec3};
 use super::Dora3DHandle;
-use std::collections::HashMap;
 
 fn normalized_time(clip: &AnimationClipData, time: f32) -> f32 {
     if clip.duration > 0.0 {
@@ -32,20 +32,13 @@ fn sample_segment(keyframes: &[Keyframe], time: f32) -> Option<(&Keyframe, &Keyf
     Some((last, last, 0.0))
 }
 
-pub fn compute_joint_matrices(
-    skeleton: &SkeletonData,
-    mesh_world_inverse: Mat4,
-    node_world_transforms: &HashMap<Dora3DHandle, Mat4>,
-) -> Vec<Mat4> {
+pub fn compute_joint_matrices(skeleton: &SkeletonData, mesh_world_inverse: Mat4) -> Vec<Mat4> {
     skeleton
         .joints
         .iter()
         .enumerate()
         .map(|(index, joint_handle)| {
-            let joint_world = node_world_transforms
-                .get(joint_handle)
-                .copied()
-                .unwrap_or(Mat4::IDENTITY);
+            let joint_world = node3d::world_matrix(*joint_handle).unwrap_or(Mat4::IDENTITY);
             let inverse_bind = skeleton
                 .inverse_bind_matrices
                 .get(index)
@@ -61,8 +54,20 @@ pub fn evaluate_animation(
     time: f32,
     node_handles: &[Dora3DHandle],
     skeleton: &SkeletonData,
-) -> HashMap<Dora3DHandle, (Option<Vec3>, Option<Quaternion>, Option<Vec3>)> {
-    let mut result = HashMap::new();
+) -> Vec<(Dora3DHandle, Option<Vec3>, Option<Quaternion>, Option<Vec3>)> {
+    let mut result = Vec::new();
+    evaluate_animation_into(clip, time, node_handles, skeleton, &mut result);
+    result
+}
+
+pub fn evaluate_animation_into(
+    clip: &AnimationClipData,
+    time: f32,
+    node_handles: &[Dora3DHandle],
+    skeleton: &SkeletonData,
+    result: &mut Vec<(Dora3DHandle, Option<Vec3>, Option<Quaternion>, Option<Vec3>)>,
+) {
+    result.clear();
     let sample_time = normalized_time(clip, time);
     for channel in &clip.channels {
         let joint_handle = skeleton
@@ -76,7 +81,14 @@ pub fn evaluate_animation(
         let Some((current, next, factor)) = sample_segment(&channel.keyframes, sample_time) else {
             continue;
         };
-        let entry = result.entry(node_handle).or_insert((None, None, None));
+        let entry_index =
+            if let Some(index) = result.iter().position(|entry| entry.0 == node_handle) {
+                index
+            } else {
+                result.push((node_handle, None, None, None));
+                result.len() - 1
+            };
+        let entry = &mut result[entry_index];
         match channel.property {
             ChannelProperty::Translation => {
                 let current = match &current.value {
@@ -87,7 +99,7 @@ pub fn evaluate_animation(
                     KeyframeValue::Translation(value) => *value,
                     _ => continue,
                 };
-                entry.0 = Some(current.lerp(next, factor));
+                entry.1 = Some(current.lerp(next, factor));
             }
             ChannelProperty::Rotation => {
                 let current = match &current.value {
@@ -98,7 +110,7 @@ pub fn evaluate_animation(
                     KeyframeValue::Rotation(value) => *value,
                     _ => continue,
                 };
-                entry.1 = Some(current.slerp(next, factor));
+                entry.2 = Some(current.slerp(next, factor));
             }
             ChannelProperty::Scale => {
                 let current = match &current.value {
@@ -109,9 +121,8 @@ pub fn evaluate_animation(
                     KeyframeValue::Scale(value) => *value,
                     _ => continue,
                 };
-                entry.2 = Some(current.lerp(next, factor));
+                entry.3 = Some(current.lerp(next, factor));
             }
         }
     }
-    result
 }

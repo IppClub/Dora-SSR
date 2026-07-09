@@ -896,11 +896,6 @@ fn choose_program(
     .unwrap_or(state.programs.lambert)
 }
 
-fn material_base_color(material_handle: Dora3DHandle) -> [f32; 4] {
-    material::with_material(material_handle, |material| material.base_color.to_array())
-        .unwrap_or([1.0, 1.0, 1.0, 1.0])
-}
-
 fn apply_material_or_default(material_handle: Dora3DHandle) {
     if material::apply(material_handle) {
         return;
@@ -962,9 +957,22 @@ pub fn ensure_shaders() -> ShaderPrograms {
 }
 
 pub fn set_view_transforms(view_id: bgfx_sys::bgfx_view_id_t, view_proj: &Mat4, view_pos: Vec3) {
-    let _ = view_pos;
+    let state = shader_state();
     let identity = Mat4::IDENTITY.to_cols_array();
     let combined = mat4_to_bgfx_array(view_proj);
+    let view_pos_uniform = [view_pos.x, view_pos.y, view_pos.z, 0.0];
+    let environment = current_environment_settings();
+    let env_diffuse = [1.0f32, 1.0, 1.0, environment.diffuse_intensity];
+    let env_specular = [
+        1.0f32,
+        (DEFAULT_PREFILTER_MIPS - 1) as f32,
+        0.0,
+        environment.specular_intensity,
+    ];
+    let pbr_params = [environment.exposure, 0.0, 0.0, 0.0];
+    let emissive_scaling = [1.0f32, 0.0, 0.0, 0.0];
+    let uv_inversed = [0.0f32, 1.0, 0.0, 0.0];
+    let zero = [0.0f32, 0.0, 0.0, 0.0];
     unsafe {
         // bgfx still needs a view/proj pair for internal view state; model shaders
         // consume the combined matrix through u_mCameraProj.
@@ -973,16 +981,59 @@ pub fn set_view_transforms(view_id: bgfx_sys::bgfx_view_id_t, view_proj: &Mat4, 
             identity.as_ptr() as *const _,
             combined.as_ptr() as *const _,
         );
+        set_uniform(state.u_camera_proj, &combined, 1);
+        set_uniform(state.u_uv_inversed, &uv_inversed, 1);
+        set_uniform(state.u_view_pos, &view_pos_uniform, 1);
+        set_uniform(state.u_env_diffuse, &env_diffuse, 1);
+        set_uniform(state.u_env_specular, &env_specular, 1);
+        set_uniform(state.u_pbr_params, &pbr_params, 1);
+        set_uniform(state.u_emissive_scaling, &emissive_scaling, 1);
+        set_uniform(state.u_soft_particle_param, &zero, 1);
+        set_uniform(state.u_reconstruction_param1, &zero, 1);
+        set_uniform(state.u_reconstruction_param2, &zero, 1);
+        set_uniform(state.u_uv_inversed_back, &uv_inversed, 1);
+        set_uniform(state.u_misc_flags, &zero, 1);
     }
     *current_view_state().lock().unwrap() = Some(ViewState { view_id });
+}
+
+unsafe fn apply_draw_uniforms(
+    state: &ShaderState,
+    model_matrix: &Mat4,
+    joint_matrices: Option<&[Mat4]>,
+) {
+    let model = mat4_to_bgfx_array(model_matrix);
+    let normal_model = mat4_to_bgfx_array(&model_matrix.inverse().transpose());
+    let uv = [0.0f32, 0.0, 1.0, 1.0];
+    let model_color = [1.0f32, 1.0, 1.0, 1.0];
+    set_uniform(state.u_model_inst, &model, 1);
+    set_uniform(state.u_normal_model, &normal_model, 1);
+    set_uniform(state.u_uv, &uv, 1);
+    set_uniform(state.u_model_color, &model_color, 1);
+    if let Some(joint_matrices) = joint_matrices {
+        let mut joints = JointUniforms {
+            matrices: [0.0; 16 * MAX_JOINTS],
+        };
+        for joint_index in 0..MAX_JOINTS {
+            let base = joint_index * 16;
+            joints.matrices[base] = 1.0;
+            joints.matrices[base + 5] = 1.0;
+            joints.matrices[base + 10] = 1.0;
+            joints.matrices[base + 15] = 1.0;
+        }
+        for (joint_index, matrix) in joint_matrices.iter().take(MAX_JOINTS).enumerate() {
+            let packed = mat4_to_bgfx_array(matrix);
+            let base = joint_index * 16;
+            joints.matrices[base..base + 16].copy_from_slice(&packed);
+        }
+        set_uniform(state.u_joints, &joints.matrices, MAX_JOINTS as u16);
+    }
 }
 
 pub fn submit_mesh(
     mesh_handle: Dora3DHandle,
     material_handle: Dora3DHandle,
     model_matrix: &Mat4,
-    view_proj: &Mat4,
-    _view_pos: Vec3,
     joint_matrices: Option<&[Mat4]>,
 ) -> bool {
     let _ = ensure_shaders();
@@ -998,62 +1049,10 @@ pub fn submit_mesh(
         return false;
     }
 
-    let base_color = material_base_color(material_handle);
-    let camera_proj = mat4_to_bgfx_array(view_proj);
-    let model = mat4_to_bgfx_array(model_matrix);
-    let normal_model = mat4_to_bgfx_array(&model_matrix.inverse().transpose());
-    let uv = [0.0f32, 0.0, 1.0, 1.0];
-    let uv_inversed = [0.0f32, 1.0, 0.0, 0.0];
-    let view_pos = [_view_pos.x, _view_pos.y, _view_pos.z, 0.0];
-    let environment = current_environment_settings();
-    let env_diffuse = [1.0f32, 1.0, 1.0, environment.diffuse_intensity];
-    let env_specular = [
-        1.0f32,
-        (DEFAULT_PREFILTER_MIPS - 1) as f32,
-        0.0,
-        environment.specular_intensity,
-    ];
-    let pbr_params = [environment.exposure, 0.0, 0.0, 0.0];
-    let emissive_scaling = [1.0f32, 0.0, 0.0, 0.0];
-    let zero = [0.0f32, 0.0, 0.0, 0.0];
-
     mesh::with_mesh(mesh_handle, |mesh_data| unsafe {
         let transform = mat4_to_bgfx_array(model_matrix);
         bgfx_sys::bgfx_set_transform(transform.as_ptr() as *const _, 1);
-        set_uniform(state.u_camera_proj, &camera_proj, 1);
-        set_uniform(state.u_model_inst, &model, 1);
-        set_uniform(state.u_normal_model, &normal_model, 1);
-        set_uniform(state.u_uv, &uv, 1);
-        set_uniform(state.u_model_color, &base_color, 1);
-        set_uniform(state.u_uv_inversed, &uv_inversed, 1);
-        set_uniform(state.u_view_pos, &view_pos, 1);
-        set_uniform(state.u_env_diffuse, &env_diffuse, 1);
-        set_uniform(state.u_env_specular, &env_specular, 1);
-        set_uniform(state.u_pbr_params, &pbr_params, 1);
-        set_uniform(state.u_emissive_scaling, &emissive_scaling, 1);
-        set_uniform(state.u_soft_particle_param, &zero, 1);
-        set_uniform(state.u_reconstruction_param1, &zero, 1);
-        set_uniform(state.u_reconstruction_param2, &zero, 1);
-        set_uniform(state.u_uv_inversed_back, &uv_inversed, 1);
-        set_uniform(state.u_misc_flags, &zero, 1);
-        if let Some(joint_matrices) = joint_matrices {
-            let mut joints = JointUniforms {
-                matrices: [0.0; 16 * MAX_JOINTS],
-            };
-            for joint_index in 0..MAX_JOINTS {
-                let base = joint_index * 16;
-                joints.matrices[base] = 1.0;
-                joints.matrices[base + 5] = 1.0;
-                joints.matrices[base + 10] = 1.0;
-                joints.matrices[base + 15] = 1.0;
-            }
-            for (joint_index, matrix) in joint_matrices.iter().take(MAX_JOINTS).enumerate() {
-                let packed = mat4_to_bgfx_array(matrix);
-                let base = joint_index * 16;
-                joints.matrices[base..base + 16].copy_from_slice(&packed);
-            }
-            set_uniform(state.u_joints, &joints.matrices, MAX_JOINTS as u16);
-        }
+        apply_draw_uniforms(state, model_matrix, joint_matrices);
         bgfx_sys::bgfx_set_vertex_buffer(
             0,
             mesh_data.vertex_buffer,
@@ -1072,7 +1071,7 @@ pub fn submit_mesh(
                 view_state.view_id,
                 program,
                 0,
-                bgfx_sys::BGFX_DISCARD_ALL as u8,
+                bgfx_sys::BGFX_DISCARD_NONE as u8,
             );
         }
     })

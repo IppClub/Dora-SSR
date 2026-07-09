@@ -16,7 +16,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #ifndef DORA_NO_RUST
 extern "C" {
 int32_t dora_3d_render_with_view(uint16_t view_id);
-int32_t dora_3d_queue_visual(uint64_t visual_handle, uint16_t view_id);
+int32_t dora_3d_queue_visual(uint64_t visual_handle, uint16_t view_id, uint64_t sort_key);
 }
 #endif // DORA_NO_RUST
 
@@ -67,7 +67,7 @@ void RenderPass3D::submit(bgfx::ViewId viewId) {
 #ifndef DORA_NO_RUST
 	auto queueItem = [viewId](const RenderItem3D& item) {
 		return item.rustVisual != 0
-			&& dora_3d_queue_visual(item.rustVisual, viewId) != 0;
+			&& dora_3d_queue_visual(item.rustVisual, viewId, item.sortKey) != 0;
 	};
 	bool queued = false;
 	for (const auto& item : _opaqueItems) {

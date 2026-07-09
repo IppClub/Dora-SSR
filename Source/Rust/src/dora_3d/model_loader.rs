@@ -57,11 +57,40 @@ pub struct ModelInstance {
     pub elapsed: f32,
     pub speed: f32,
     pub current_clip: Option<Dora3DHandle>,
+    pub sample_buffer: Vec<(Dora3DHandle, Option<Vec3>, Option<Quaternion>, Option<Vec3>)>,
 }
 
 fn instance_registry() -> &'static Mutex<HashMap<Dora3DHandle, ModelInstance>> {
     static REGISTRY: OnceLock<Mutex<HashMap<Dora3DHandle, ModelInstance>>> = OnceLock::new();
     REGISTRY.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+#[derive(Debug, Clone, Copy)]
+struct VisualSkeletonBinding {
+    skeleton: Dora3DHandle,
+}
+
+fn visual_skeletons() -> &'static Mutex<HashMap<Dora3DHandle, VisualSkeletonBinding>> {
+    static REGISTRY: OnceLock<Mutex<HashMap<Dora3DHandle, VisualSkeletonBinding>>> =
+        OnceLock::new();
+    REGISTRY.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+fn register_visual_skeletons(visuals: &[Dora3DHandle], skeleton: Option<Dora3DHandle>) {
+    let Some(skeleton) = skeleton else {
+        return;
+    };
+    let mut bindings = visual_skeletons().lock().unwrap();
+    for visual in visuals {
+        bindings.insert(*visual, VisualSkeletonBinding { skeleton });
+    }
+}
+
+fn unregister_visual_skeletons(visuals: &[Dora3DHandle]) {
+    let mut bindings = visual_skeletons().lock().unwrap();
+    for visual in visuals {
+        bindings.remove(visual);
+    }
 }
 
 fn image_to_rgba8(image: &ImageData) -> Option<(u16, u16, Vec<u8>)> {
@@ -1688,6 +1717,7 @@ pub fn load_gltf(path: &str) -> Option<Dora3DHandle> {
         &joint_lookup,
         &mut loaded,
     );
+    register_visual_skeletons(&loaded.visuals, loaded.skeleton);
     registry().lock().unwrap().insert(handle, loaded);
     Some(handle)
 }
@@ -1696,6 +1726,7 @@ pub fn destroy(handle: Dora3DHandle) -> bool {
     let Some(model) = registry().lock().unwrap().remove(&handle) else {
         return false;
     };
+    unregister_visual_skeletons(&model.visuals);
     for visual in model.visuals {
         let _ = visual3d::destroy(visual);
     }
@@ -1764,6 +1795,7 @@ pub fn instantiate(handle: Dora3DHandle, parent: Dora3DHandle) -> Option<Dora3DH
         animations = model.animations.clone();
     }
     let instance = next_handle();
+    register_visual_skeletons(&visuals, skeleton);
     instance_registry().lock().unwrap().insert(
         instance,
         ModelInstance {
@@ -1780,6 +1812,7 @@ pub fn instantiate(handle: Dora3DHandle, parent: Dora3DHandle) -> Option<Dora3DH
             elapsed: 0.0,
             speed: 1.0,
             current_clip: None,
+            sample_buffer: Vec::new(),
         },
     );
     Some(instance)
@@ -1789,6 +1822,7 @@ pub fn destroy_instance(handle: Dora3DHandle) -> bool {
     let Some(instance) = instance_registry().lock().unwrap().remove(&handle) else {
         return false;
     };
+    unregister_visual_skeletons(&instance.visuals);
     for visual in instance.visuals {
         let _ = visual3d::destroy(visual);
     }
@@ -1897,7 +1931,7 @@ pub fn get_duration_instance(handle: Dora3DHandle) -> f32 {
 }
 
 pub fn update_instance(handle: Dora3DHandle, delta_time: f32) -> bool {
-    let (clip_handle, skeleton_handle, nodes, sample_time, still_playing) = {
+    let (clip_handle, skeleton_handle, nodes, sample_time, still_playing, mut sample_buffer) = {
         let mut instances = instance_registry().lock().unwrap();
         let Some(instance) = instances.get_mut(&handle) else {
             return false;
@@ -1939,25 +1973,35 @@ pub fn update_instance(handle: Dora3DHandle, delta_time: f32) -> bool {
             instance.nodes.clone(),
             sample_time,
             still_playing,
+            std::mem::take(&mut instance.sample_buffer),
         )
     };
     let Some(clip) = animation::with_clip(clip_handle, Clone::clone) else {
+        if let Some(instance) = instance_registry().lock().unwrap().get_mut(&handle) {
+            instance.sample_buffer = sample_buffer;
+        }
         return still_playing;
     };
     let Some(skeleton) = animation::with_skeleton(skeleton_handle, Clone::clone) else {
+        if let Some(instance) = instance_registry().lock().unwrap().get_mut(&handle) {
+            instance.sample_buffer = sample_buffer;
+        }
         return still_playing;
     };
-    let samples = skinning::evaluate_animation(&clip, sample_time, &nodes, &skeleton);
-    for (node, (position, rotation, scale)) in samples {
+    skinning::evaluate_animation_into(&clip, sample_time, &nodes, &skeleton, &mut sample_buffer);
+    for (node, position, rotation, scale) in &sample_buffer {
         if let Some(position) = position {
-            let _ = node3d::set_position(node, position);
+            let _ = node3d::set_position(*node, *position);
         }
         if let Some(rotation) = rotation {
-            let _ = node3d::set_rotation(node, rotation);
+            let _ = node3d::set_rotation(*node, *rotation);
         }
         if let Some(scale) = scale {
-            let _ = node3d::set_scale(node, scale);
+            let _ = node3d::set_scale(*node, *scale);
         }
+    }
+    if let Some(instance) = instance_registry().lock().unwrap().get_mut(&handle) {
+        instance.sample_buffer = sample_buffer;
     }
     still_playing
 }
@@ -1968,31 +2012,11 @@ pub fn with_model<R>(handle: Dora3DHandle, f: impl FnOnce(&LoadedModel) -> R) ->
 }
 
 pub fn skeleton_for_visual(visual: Dora3DHandle) -> Option<Dora3DHandle> {
-    {
-        let models = registry().lock().unwrap();
-        if let Some(skeleton) = models
-            .values()
-            .find(|model| model.visuals.contains(&visual))
-            .and_then(|model| model.skeleton)
-        {
-            return Some(skeleton);
-        }
-    }
-    let model_handle = {
-        let instances = instance_registry().lock().unwrap();
-        if let Some(instance) = instances
-            .values()
-            .find(|instance| instance.visuals.contains(&visual))
-        {
-            if instance.skeleton.is_some() {
-                return instance.skeleton;
-            }
-            Some(instance.model)
-        } else {
-            None
-        }
-    }?;
-    with_model(model_handle, |model| model.skeleton).flatten()
+    visual_skeletons()
+        .lock()
+        .unwrap()
+        .get(&visual)
+        .map(|binding| binding.skeleton)
 }
 
 pub fn get_visual(handle: Dora3DHandle, index: u32) -> Option<Dora3DHandle> {
