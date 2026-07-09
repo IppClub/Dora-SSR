@@ -68,6 +68,21 @@ object class Dictionary
 	static Dictionary* create();
 };
 
+/// A 3D vector object with x, y and z components.
+value struct Vec3
+{
+	/// the x component.
+	float x;
+	/// the y component.
+	float y;
+	/// the z component.
+	float z;
+	/// Creates a new 3D vector.
+	static outside Vec3 Vec3_create @ create(float x, float y, float z);
+	/// Gets a zero 3D vector.
+	static outside Vec3 Vec3_GetZero @ zero();
+};
+
 /// A rectangle object with a left-bottom origin position and a size.
 value struct Rect
 {
@@ -985,6 +1000,30 @@ interface object class Node3D
 	boolean bool visible;
 	/// the parent 3D node.
 	optional readonly common Node3D* parent;
+	/// the node position in 3D space.
+	common Vec3 position;
+	/// the node scale in 3D space.
+	common Vec3 scale;
+	/// the node Euler angles in degrees.
+	common Vec3 eulerAngles;
+	/// the x-axis position of the node.
+	common float x;
+	/// the y-axis position of the node.
+	common float y;
+	/// the z-axis position of the node.
+	common float z;
+	/// the x-axis Euler angle of the node in degrees.
+	common float angleX;
+	/// the y-axis Euler angle of the node in degrees.
+	common float angleY;
+	/// the z-axis Euler angle of the node in degrees.
+	common float angleZ;
+	/// the x-axis scale factor of the node.
+	common float scaleX;
+	/// the y-axis scale factor of the node.
+	common float scaleY;
+	/// the z-axis scale factor of the node.
+	common float scaleZ;
 	/// Adds a child node to this node.
 	void addChild(Node3D* child);
 	/// Removes a child node from this node.
@@ -995,12 +1034,10 @@ interface object class Node3D
 	void removeFromParent(bool cleanup);
 	/// Cleans up this node and its children.
 	void cleanup();
-	/// Sets the node position in 3D space.
-	void setPosition(float x, float y, float z);
-	/// Sets the node scale in 3D space.
-	void setScale(float x, float y, float z);
-	/// Sets the node Euler angles in degrees.
-	void setEulerAngles(float x, float y, float z);
+	/// Converts a local point to world space.
+	Vec3 convertToWorldSpace(Vec3 localPoint);
+	/// Converts a world point to local space.
+	Vec3 convertToNodeSpace(Vec3 worldPoint);
 	/// Creates a new 3D node.
 	static Node3D* create();
 };

@@ -11,6 +11,8 @@ use std::{any::Any, ffi::c_void};
 
 mod rect;
 pub use rect::Rect;
+mod vec_3;
+pub use vec_3::Vec3;
 mod array;
 pub use array::Array;
 mod dictionary;

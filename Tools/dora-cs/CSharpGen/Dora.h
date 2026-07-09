@@ -82,6 +82,33 @@ object class Dictionary
 };
 
 /// <summary>
+/// A 3D vector object with x, y and z components.
+/// </summary>
+value struct Vec3
+{
+	/// <summary>
+	/// The x component.
+	/// </summary>
+	float x;
+	/// <summary>
+	/// The y component.
+	/// </summary>
+	float y;
+	/// <summary>
+	/// The z component.
+	/// </summary>
+	float z;
+	/// <summary>
+	/// Creates a new 3D vector.
+	/// </summary>
+	static outside Vec3 Vec3_create @ create(float x, float y, float z);
+	/// <summary>
+	/// Gets a zero 3D vector.
+	/// </summary>
+	static outside Vec3 Vec3_GetZero @ zero();
+};
+
+/// <summary>
 /// A rectangle object with a left-bottom origin position and a size.
 /// </summary>
 value struct Rect
@@ -1006,6 +1033,54 @@ object class Node3D
 	/// </summary>
 	optional readonly common Node3D* parent;
 	/// <summary>
+	/// The node position in 3D space.
+	/// </summary>
+	common Vec3 position;
+	/// <summary>
+	/// The node scale in 3D space.
+	/// </summary>
+	common Vec3 scale;
+	/// <summary>
+	/// The node Euler angles in degrees.
+	/// </summary>
+	common Vec3 eulerAngles;
+	/// <summary>
+	/// The x-axis position of the node.
+	/// </summary>
+	common float x;
+	/// <summary>
+	/// The y-axis position of the node.
+	/// </summary>
+	common float y;
+	/// <summary>
+	/// The z-axis position of the node.
+	/// </summary>
+	common float z;
+	/// <summary>
+	/// The x-axis Euler angle of the node in degrees.
+	/// </summary>
+	common float angleX;
+	/// <summary>
+	/// The y-axis Euler angle of the node in degrees.
+	/// </summary>
+	common float angleY;
+	/// <summary>
+	/// The z-axis Euler angle of the node in degrees.
+	/// </summary>
+	common float angleZ;
+	/// <summary>
+	/// The x-axis scale factor of the node.
+	/// </summary>
+	common float scaleX;
+	/// <summary>
+	/// The y-axis scale factor of the node.
+	/// </summary>
+	common float scaleY;
+	/// <summary>
+	/// The z-axis scale factor of the node.
+	/// </summary>
+	common float scaleZ;
+	/// <summary>
 	/// Adds a child node to this node.
 	/// </summary>
 	void addChild(Node3D* child);
@@ -1025,18 +1100,13 @@ object class Node3D
 	/// Cleans up this node and its children.
 	/// </summary>
 	void cleanup();
-	/// <summary>
-	/// Sets the node position in 3D space.
+	/// Converts a local point to world space.
 	/// </summary>
-	void setPosition(float x, float y, float z);
+	Vec3 convertToWorldSpace(Vec3 localPoint);
 	/// <summary>
-	/// Sets the node scale in 3D space.
+	/// Converts a world point to local space.
 	/// </summary>
-	void setScale(float x, float y, float z);
-	/// <summary>
-	/// Sets the node Euler angles in degrees.
-	/// </summary>
-	void setEulerAngles(float x, float y, float z);
+	Vec3 convertToNodeSpace(Vec3 worldPoint);
 	/// <summary>
 	/// Creates a new 3D node.
 	/// </summary>

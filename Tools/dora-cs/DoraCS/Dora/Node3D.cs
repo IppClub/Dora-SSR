@@ -24,6 +24,54 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t node3d_get_parent(int64_t self);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void node3d_set_position(int64_t self, int64_t val);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t node3d_get_position(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void node3d_set_scale(int64_t self, int64_t val);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t node3d_get_scale(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void node3d_set_euler_angles(int64_t self, int64_t val);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t node3d_get_euler_angles(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void node3d_set_x(int64_t self, float val);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern float node3d_get_x(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void node3d_set_y(int64_t self, float val);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern float node3d_get_y(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void node3d_set_z(int64_t self, float val);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern float node3d_get_z(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void node3d_set_angle_x(int64_t self, float val);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern float node3d_get_angle_x(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void node3d_set_angle_y(int64_t self, float val);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern float node3d_get_angle_y(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void node3d_set_angle_z(int64_t self, float val);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern float node3d_get_angle_z(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void node3d_set_scale_x(int64_t self, float val);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern float node3d_get_scale_x(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void node3d_set_scale_y(int64_t self, float val);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern float node3d_get_scale_y(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void node3d_set_scale_z(int64_t self, float val);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern float node3d_get_scale_z(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void node3d_add_child(int64_t self, int64_t child);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void node3d_remove_child(int64_t self, int64_t child, int32_t cleanup);
@@ -34,11 +82,9 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void node3d_cleanup(int64_t self);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void node3d_set_position(int64_t self, float x, float y, float z);
+		public static extern int64_t node3d_convert_to_world_space(int64_t self, int64_t localPoint);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void node3d_set_scale(int64_t self, float x, float y, float z);
-		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void node3d_set_euler_angles(int64_t self, float x, float y, float z);
+		public static extern int64_t node3d_convert_to_node_space(int64_t self, int64_t worldPoint);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t node3d_new();
 	}
@@ -80,6 +126,102 @@ namespace Dora
 			get => Node3D.FromOpt(Native.node3d_get_parent(Raw));
 		}
 		/// <summary>
+		/// The node position in 3D space.
+		/// </summary>
+		public Vec3 Position
+		{
+			set => Native.node3d_set_position(Raw, value.Raw);
+			get => Vec3.From(Native.node3d_get_position(Raw));
+		}
+		/// <summary>
+		/// The node scale in 3D space.
+		/// </summary>
+		public Vec3 Scale
+		{
+			set => Native.node3d_set_scale(Raw, value.Raw);
+			get => Vec3.From(Native.node3d_get_scale(Raw));
+		}
+		/// <summary>
+		/// The node Euler angles in degrees.
+		/// </summary>
+		public Vec3 EulerAngles
+		{
+			set => Native.node3d_set_euler_angles(Raw, value.Raw);
+			get => Vec3.From(Native.node3d_get_euler_angles(Raw));
+		}
+		/// <summary>
+		/// The x-axis position of the node.
+		/// </summary>
+		public float X
+		{
+			set => Native.node3d_set_x(Raw, value);
+			get => Native.node3d_get_x(Raw);
+		}
+		/// <summary>
+		/// The y-axis position of the node.
+		/// </summary>
+		public float Y
+		{
+			set => Native.node3d_set_y(Raw, value);
+			get => Native.node3d_get_y(Raw);
+		}
+		/// <summary>
+		/// The z-axis position of the node.
+		/// </summary>
+		public float Z
+		{
+			set => Native.node3d_set_z(Raw, value);
+			get => Native.node3d_get_z(Raw);
+		}
+		/// <summary>
+		/// The x-axis Euler angle of the node in degrees.
+		/// </summary>
+		public float AngleX
+		{
+			set => Native.node3d_set_angle_x(Raw, value);
+			get => Native.node3d_get_angle_x(Raw);
+		}
+		/// <summary>
+		/// The y-axis Euler angle of the node in degrees.
+		/// </summary>
+		public float AngleY
+		{
+			set => Native.node3d_set_angle_y(Raw, value);
+			get => Native.node3d_get_angle_y(Raw);
+		}
+		/// <summary>
+		/// The z-axis Euler angle of the node in degrees.
+		/// </summary>
+		public float AngleZ
+		{
+			set => Native.node3d_set_angle_z(Raw, value);
+			get => Native.node3d_get_angle_z(Raw);
+		}
+		/// <summary>
+		/// The x-axis scale factor of the node.
+		/// </summary>
+		public float ScaleX
+		{
+			set => Native.node3d_set_scale_x(Raw, value);
+			get => Native.node3d_get_scale_x(Raw);
+		}
+		/// <summary>
+		/// The y-axis scale factor of the node.
+		/// </summary>
+		public float ScaleY
+		{
+			set => Native.node3d_set_scale_y(Raw, value);
+			get => Native.node3d_get_scale_y(Raw);
+		}
+		/// <summary>
+		/// The z-axis scale factor of the node.
+		/// </summary>
+		public float ScaleZ
+		{
+			set => Native.node3d_set_scale_z(Raw, value);
+			get => Native.node3d_get_scale_z(Raw);
+		}
+		/// <summary>
 		/// Adds a child node to this node.
 		/// </summary>
 		public void AddChild(Node3D child)
@@ -114,26 +256,18 @@ namespace Dora
 		{
 			Native.node3d_cleanup(Raw);
 		}
-		/// <summary>
-		/// Sets the node position in 3D space.
+		/// Converts a local point to world space.
 		/// </summary>
-		public void SetPosition(float x, float y, float z)
+		public Vec3 ConvertToWorldSpace(Vec3 localPoint)
 		{
-			Native.node3d_set_position(Raw, x, y, z);
+			return Vec3.From(Native.node3d_convert_to_world_space(Raw, localPoint.Raw));
 		}
 		/// <summary>
-		/// Sets the node scale in 3D space.
+		/// Converts a world point to local space.
 		/// </summary>
-		public void SetScale(float x, float y, float z)
+		public Vec3 ConvertToNodeSpace(Vec3 worldPoint)
 		{
-			Native.node3d_set_scale(Raw, x, y, z);
-		}
-		/// <summary>
-		/// Sets the node Euler angles in degrees.
-		/// </summary>
-		public void SetEulerAngles(float x, float y, float z)
-		{
-			Native.node3d_set_euler_angles(Raw, x, y, z);
+			return Vec3.From(Native.node3d_convert_to_node_space(Raw, worldPoint.Raw));
 		}
 		/// <summary>
 		/// Creates a new 3D node.

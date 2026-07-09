@@ -11,14 +11,37 @@ extern "C" {
 	fn node3d_set_visible(slf: i64, val: i32);
 	fn node3d_is_visible(slf: i64) -> i32;
 	fn node3d_get_parent(slf: i64) -> i64;
+	fn node3d_set_position(slf: i64, val: i64);
+	fn node3d_get_position(slf: i64) -> i64;
+	fn node3d_set_scale(slf: i64, val: i64);
+	fn node3d_get_scale(slf: i64) -> i64;
+	fn node3d_set_euler_angles(slf: i64, val: i64);
+	fn node3d_get_euler_angles(slf: i64) -> i64;
+	fn node3d_set_x(slf: i64, val: f32);
+	fn node3d_get_x(slf: i64) -> f32;
+	fn node3d_set_y(slf: i64, val: f32);
+	fn node3d_get_y(slf: i64) -> f32;
+	fn node3d_set_z(slf: i64, val: f32);
+	fn node3d_get_z(slf: i64) -> f32;
+	fn node3d_set_angle_x(slf: i64, val: f32);
+	fn node3d_get_angle_x(slf: i64) -> f32;
+	fn node3d_set_angle_y(slf: i64, val: f32);
+	fn node3d_get_angle_y(slf: i64) -> f32;
+	fn node3d_set_angle_z(slf: i64, val: f32);
+	fn node3d_get_angle_z(slf: i64) -> f32;
+	fn node3d_set_scale_x(slf: i64, val: f32);
+	fn node3d_get_scale_x(slf: i64) -> f32;
+	fn node3d_set_scale_y(slf: i64, val: f32);
+	fn node3d_get_scale_y(slf: i64) -> f32;
+	fn node3d_set_scale_z(slf: i64, val: f32);
+	fn node3d_get_scale_z(slf: i64) -> f32;
 	fn node3d_add_child(slf: i64, child: i64);
 	fn node3d_remove_child(slf: i64, child: i64, cleanup: i32);
 	fn node3d_remove_all_children(slf: i64, cleanup: i32);
 	fn node3d_remove_from_parent(slf: i64, cleanup: i32);
 	fn node3d_cleanup(slf: i64);
-	fn node3d_set_position(slf: i64, x: f32, y: f32, z: f32);
-	fn node3d_set_scale(slf: i64, x: f32, y: f32, z: f32);
-	fn node3d_set_euler_angles(slf: i64, x: f32, y: f32, z: f32);
+	fn node3d_convert_to_world_space(slf: i64, local_point: i64) -> i64;
+	fn node3d_convert_to_node_space(slf: i64, world_point: i64) -> i64;
 	fn node3d_new() -> i64;
 }
 use crate::dora::IObject;
@@ -38,6 +61,102 @@ pub trait INode3D: IObject {
 	/// Gets the parent 3D node.
 	fn get_parent(&self) -> Option<crate::dora::Node3D> {
 		return unsafe { crate::dora::Node3D::from(node3d_get_parent(self.raw())) };
+	}
+	/// Sets the node position in 3D space.
+	fn set_position(&mut self, val: &crate::dora::Vec3) {
+		unsafe { node3d_set_position(self.raw(), val.raw()) };
+	}
+	/// Gets the node position in 3D space.
+	fn get_position(&self) -> crate::dora::Vec3 {
+		return unsafe { crate::dora::Vec3::from(node3d_get_position(self.raw())) };
+	}
+	/// Sets the node scale in 3D space.
+	fn set_scale(&mut self, val: &crate::dora::Vec3) {
+		unsafe { node3d_set_scale(self.raw(), val.raw()) };
+	}
+	/// Gets the node scale in 3D space.
+	fn get_scale(&self) -> crate::dora::Vec3 {
+		return unsafe { crate::dora::Vec3::from(node3d_get_scale(self.raw())) };
+	}
+	/// Sets the node Euler angles in degrees.
+	fn set_euler_angles(&mut self, val: &crate::dora::Vec3) {
+		unsafe { node3d_set_euler_angles(self.raw(), val.raw()) };
+	}
+	/// Gets the node Euler angles in degrees.
+	fn get_euler_angles(&self) -> crate::dora::Vec3 {
+		return unsafe { crate::dora::Vec3::from(node3d_get_euler_angles(self.raw())) };
+	}
+	/// Sets the x-axis position of the node.
+	fn set_x(&mut self, val: f32) {
+		unsafe { node3d_set_x(self.raw(), val) };
+	}
+	/// Gets the x-axis position of the node.
+	fn get_x(&self) -> f32 {
+		return unsafe { node3d_get_x(self.raw()) };
+	}
+	/// Sets the y-axis position of the node.
+	fn set_y(&mut self, val: f32) {
+		unsafe { node3d_set_y(self.raw(), val) };
+	}
+	/// Gets the y-axis position of the node.
+	fn get_y(&self) -> f32 {
+		return unsafe { node3d_get_y(self.raw()) };
+	}
+	/// Sets the z-axis position of the node.
+	fn set_z(&mut self, val: f32) {
+		unsafe { node3d_set_z(self.raw(), val) };
+	}
+	/// Gets the z-axis position of the node.
+	fn get_z(&self) -> f32 {
+		return unsafe { node3d_get_z(self.raw()) };
+	}
+	/// Sets the x-axis Euler angle of the node in degrees.
+	fn set_angle_x(&mut self, val: f32) {
+		unsafe { node3d_set_angle_x(self.raw(), val) };
+	}
+	/// Gets the x-axis Euler angle of the node in degrees.
+	fn get_angle_x(&self) -> f32 {
+		return unsafe { node3d_get_angle_x(self.raw()) };
+	}
+	/// Sets the y-axis Euler angle of the node in degrees.
+	fn set_angle_y(&mut self, val: f32) {
+		unsafe { node3d_set_angle_y(self.raw(), val) };
+	}
+	/// Gets the y-axis Euler angle of the node in degrees.
+	fn get_angle_y(&self) -> f32 {
+		return unsafe { node3d_get_angle_y(self.raw()) };
+	}
+	/// Sets the z-axis Euler angle of the node in degrees.
+	fn set_angle_z(&mut self, val: f32) {
+		unsafe { node3d_set_angle_z(self.raw(), val) };
+	}
+	/// Gets the z-axis Euler angle of the node in degrees.
+	fn get_angle_z(&self) -> f32 {
+		return unsafe { node3d_get_angle_z(self.raw()) };
+	}
+	/// Sets the x-axis scale factor of the node.
+	fn set_scale_x(&mut self, val: f32) {
+		unsafe { node3d_set_scale_x(self.raw(), val) };
+	}
+	/// Gets the x-axis scale factor of the node.
+	fn get_scale_x(&self) -> f32 {
+		return unsafe { node3d_get_scale_x(self.raw()) };
+	}
+	/// Sets the y-axis scale factor of the node.
+	fn set_scale_y(&mut self, val: f32) {
+		unsafe { node3d_set_scale_y(self.raw(), val) };
+	}
+	/// Gets the y-axis scale factor of the node.
+	fn get_scale_y(&self) -> f32 {
+		return unsafe { node3d_get_scale_y(self.raw()) };
+	}
+	/// Sets the z-axis scale factor of the node.
+	fn set_scale_z(&mut self, val: f32) {
+		unsafe { node3d_set_scale_z(self.raw(), val) };
+	}
+	/// Gets the z-axis scale factor of the node.
+	fn get_scale_z(&self) -> f32 {
+		return unsafe { node3d_get_scale_z(self.raw()) };
 	}
 	/// Adds a child node to this node.
 	fn add_child(&mut self, child: &dyn crate::dora::INode3D) {
@@ -59,17 +178,13 @@ pub trait INode3D: IObject {
 	fn cleanup(&mut self) {
 		unsafe { node3d_cleanup(self.raw()); }
 	}
-	/// Sets the node position in 3D space.
-	fn set_position(&mut self, x: f32, y: f32, z: f32) {
-		unsafe { node3d_set_position(self.raw(), x, y, z); }
+	/// Converts a local point to world space.
+	fn convert_to_world_space(&mut self, local_point: &crate::dora::Vec3) -> crate::dora::Vec3 {
+		unsafe { return crate::dora::Vec3::from(node3d_convert_to_world_space(self.raw(), local_point.raw())); }
 	}
-	/// Sets the node scale in 3D space.
-	fn set_scale(&mut self, x: f32, y: f32, z: f32) {
-		unsafe { node3d_set_scale(self.raw(), x, y, z); }
-	}
-	/// Sets the node Euler angles in degrees.
-	fn set_euler_angles(&mut self, x: f32, y: f32, z: f32) {
-		unsafe { node3d_set_euler_angles(self.raw(), x, y, z); }
+	/// Converts a world point to local space.
+	fn convert_to_node_space(&mut self, world_point: &crate::dora::Vec3) -> crate::dora::Vec3 {
+		unsafe { return crate::dora::Vec3::from(node3d_convert_to_node_space(self.raw(), world_point.raw())); }
 	}
 }
 impl Node3D {

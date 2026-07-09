@@ -20,6 +20,78 @@ func node3d_is_visible(slf: i64) => i32
 #wa:import dora node3d_get_parent
 func node3d_get_parent(slf: i64) => i64
 
+#wa:import dora node3d_set_position
+func node3d_set_position(slf: i64, val: i64)
+
+#wa:import dora node3d_get_position
+func node3d_get_position(slf: i64) => i64
+
+#wa:import dora node3d_set_scale
+func node3d_set_scale(slf: i64, val: i64)
+
+#wa:import dora node3d_get_scale
+func node3d_get_scale(slf: i64) => i64
+
+#wa:import dora node3d_set_euler_angles
+func node3d_set_euler_angles(slf: i64, val: i64)
+
+#wa:import dora node3d_get_euler_angles
+func node3d_get_euler_angles(slf: i64) => i64
+
+#wa:import dora node3d_set_x
+func node3d_set_x(slf: i64, val: f32)
+
+#wa:import dora node3d_get_x
+func node3d_get_x(slf: i64) => f32
+
+#wa:import dora node3d_set_y
+func node3d_set_y(slf: i64, val: f32)
+
+#wa:import dora node3d_get_y
+func node3d_get_y(slf: i64) => f32
+
+#wa:import dora node3d_set_z
+func node3d_set_z(slf: i64, val: f32)
+
+#wa:import dora node3d_get_z
+func node3d_get_z(slf: i64) => f32
+
+#wa:import dora node3d_set_angle_x
+func node3d_set_angle_x(slf: i64, val: f32)
+
+#wa:import dora node3d_get_angle_x
+func node3d_get_angle_x(slf: i64) => f32
+
+#wa:import dora node3d_set_angle_y
+func node3d_set_angle_y(slf: i64, val: f32)
+
+#wa:import dora node3d_get_angle_y
+func node3d_get_angle_y(slf: i64) => f32
+
+#wa:import dora node3d_set_angle_z
+func node3d_set_angle_z(slf: i64, val: f32)
+
+#wa:import dora node3d_get_angle_z
+func node3d_get_angle_z(slf: i64) => f32
+
+#wa:import dora node3d_set_scale_x
+func node3d_set_scale_x(slf: i64, val: f32)
+
+#wa:import dora node3d_get_scale_x
+func node3d_get_scale_x(slf: i64) => f32
+
+#wa:import dora node3d_set_scale_y
+func node3d_set_scale_y(slf: i64, val: f32)
+
+#wa:import dora node3d_get_scale_y
+func node3d_get_scale_y(slf: i64) => f32
+
+#wa:import dora node3d_set_scale_z
+func node3d_set_scale_z(slf: i64, val: f32)
+
+#wa:import dora node3d_get_scale_z
+func node3d_get_scale_z(slf: i64) => f32
+
 #wa:import dora node3d_add_child
 func node3d_add_child(slf: i64, child: i64)
 
@@ -35,14 +107,11 @@ func node3d_remove_from_parent(slf: i64, cleanup: i32)
 #wa:import dora node3d_cleanup
 func node3d_cleanup(slf: i64)
 
-#wa:import dora node3d_set_position
-func node3d_set_position(slf: i64, x: f32, y: f32, z: f32)
+#wa:import dora node3d_convert_to_world_space
+func node3d_convert_to_world_space(slf: i64, local_point: i64) => i64
 
-#wa:import dora node3d_set_scale
-func node3d_set_scale(slf: i64, x: f32, y: f32, z: f32)
-
-#wa:import dora node3d_set_euler_angles
-func node3d_set_euler_angles(slf: i64, x: f32, y: f32, z: f32)
+#wa:import dora node3d_convert_to_node_space
+func node3d_convert_to_node_space(slf: i64, world_point: i64) => i64
 
 #wa:import dora node3d_new
 func node3d_new() => i64
@@ -90,6 +159,126 @@ func Node3D.GetParent() => *Node3D {
 	return &obj_
 }
 
+/// Sets the node position in 3D space.
+func Node3D.SetPosition(val: Vec3) {
+	node3d_set_position(*this.raw, val.GetRaw())
+}
+
+/// Gets the node position in 3D space.
+func Node3D.GetPosition() => Vec3 {
+	return *Vec3From(node3d_get_position(*this.raw))
+}
+
+/// Sets the node scale in 3D space.
+func Node3D.SetScale(val: Vec3) {
+	node3d_set_scale(*this.raw, val.GetRaw())
+}
+
+/// Gets the node scale in 3D space.
+func Node3D.GetScale() => Vec3 {
+	return *Vec3From(node3d_get_scale(*this.raw))
+}
+
+/// Sets the node Euler angles in degrees.
+func Node3D.SetEulerAngles(val: Vec3) {
+	node3d_set_euler_angles(*this.raw, val.GetRaw())
+}
+
+/// Gets the node Euler angles in degrees.
+func Node3D.GetEulerAngles() => Vec3 {
+	return *Vec3From(node3d_get_euler_angles(*this.raw))
+}
+
+/// Sets the x-axis position of the node.
+func Node3D.SetX(val: f32) {
+	node3d_set_x(*this.raw, val)
+}
+
+/// Gets the x-axis position of the node.
+func Node3D.GetX() => f32 {
+	return node3d_get_x(*this.raw)
+}
+
+/// Sets the y-axis position of the node.
+func Node3D.SetY(val: f32) {
+	node3d_set_y(*this.raw, val)
+}
+
+/// Gets the y-axis position of the node.
+func Node3D.GetY() => f32 {
+	return node3d_get_y(*this.raw)
+}
+
+/// Sets the z-axis position of the node.
+func Node3D.SetZ(val: f32) {
+	node3d_set_z(*this.raw, val)
+}
+
+/// Gets the z-axis position of the node.
+func Node3D.GetZ() => f32 {
+	return node3d_get_z(*this.raw)
+}
+
+/// Sets the x-axis Euler angle of the node in degrees.
+func Node3D.SetAngleX(val: f32) {
+	node3d_set_angle_x(*this.raw, val)
+}
+
+/// Gets the x-axis Euler angle of the node in degrees.
+func Node3D.GetAngleX() => f32 {
+	return node3d_get_angle_x(*this.raw)
+}
+
+/// Sets the y-axis Euler angle of the node in degrees.
+func Node3D.SetAngleY(val: f32) {
+	node3d_set_angle_y(*this.raw, val)
+}
+
+/// Gets the y-axis Euler angle of the node in degrees.
+func Node3D.GetAngleY() => f32 {
+	return node3d_get_angle_y(*this.raw)
+}
+
+/// Sets the z-axis Euler angle of the node in degrees.
+func Node3D.SetAngleZ(val: f32) {
+	node3d_set_angle_z(*this.raw, val)
+}
+
+/// Gets the z-axis Euler angle of the node in degrees.
+func Node3D.GetAngleZ() => f32 {
+	return node3d_get_angle_z(*this.raw)
+}
+
+/// Sets the x-axis scale factor of the node.
+func Node3D.SetScaleX(val: f32) {
+	node3d_set_scale_x(*this.raw, val)
+}
+
+/// Gets the x-axis scale factor of the node.
+func Node3D.GetScaleX() => f32 {
+	return node3d_get_scale_x(*this.raw)
+}
+
+/// Sets the y-axis scale factor of the node.
+func Node3D.SetScaleY(val: f32) {
+	node3d_set_scale_y(*this.raw, val)
+}
+
+/// Gets the y-axis scale factor of the node.
+func Node3D.GetScaleY() => f32 {
+	return node3d_get_scale_y(*this.raw)
+}
+
+/// Sets the z-axis scale factor of the node.
+func Node3D.SetScaleZ(val: f32) {
+	node3d_set_scale_z(*this.raw, val)
+}
+
+/// Gets the z-axis scale factor of the node.
+func Node3D.GetScaleZ() => f32 {
+	return node3d_get_scale_z(*this.raw)
+}
+
 /// Adds a child node to this node.
 func Node3D.AddChild(child: Node3D) {
 	node3d_add_child(*this.raw, child.GetRaw())
@@ -115,19 +304,14 @@ func Node3D.Cleanup() {
 	node3d_cleanup(*this.raw)
 }
 
-/// Sets the node position in 3D space.
-func Node3D.SetPosition(x: f32, y: f32, z: f32) {
-	node3d_set_position(*this.raw, x, y, z)
+/// Converts a local point to world space.
+func Node3D.ConvertToWorldSpace(local_point: Vec3) => Vec3 {
+	return *Vec3From(node3d_convert_to_world_space(*this.raw, local_point.GetRaw()))
 }
 
-/// Sets the node scale in 3D space.
-func Node3D.SetScale(x: f32, y: f32, z: f32) {
-	node3d_set_scale(*this.raw, x, y, z)
-}
-
-/// Sets the node Euler angles in degrees.
-func Node3D.SetEulerAngles(x: f32, y: f32, z: f32) {
-	node3d_set_euler_angles(*this.raw, x, y, z)
+/// Converts a world point to local space.
+func Node3D.ConvertToNodeSpace(world_point: Vec3) => Vec3 {
+	return *Vec3From(node3d_convert_to_node_space(*this.raw, world_point.GetRaw()))
 }
 
 /// Creates a new 3D node.

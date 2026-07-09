@@ -258,6 +258,24 @@ basicTypes =
 			creturn: (name, fnArgId)-> "#{name}, _ := stack#{fnArgId}.PopVec2()"
 			cpass: (name, fnArgId)-> "stack#{fnArgId}.Push(#{name})"
 		}
+	Vec3:
+		* "long"
+		* (name)-> "Vec3_From(#{name})"
+		* (name)-> "Vec3_Retain(#{name})"
+		* "Vec3"
+		* "Vec3"
+		* (name)-> "#{name}.Raw"
+		* (name)-> "Vec3.From(#{name})"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "*Vec3From(#{name})"
+			convertTo: (name)-> "#{name}.GetRaw()"
+			argType: "Vec3"
+			returnType: "Vec3"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
 	Size:
 		* "long"
 		* (name)-> "Size_From(#{name})"

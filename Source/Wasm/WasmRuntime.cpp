@@ -415,6 +415,18 @@ static inline Size Size_From(int64_t value) {
 	return LightWasmValue{value}.size;
 }
 
+/* Vec3 */
+
+static inline int64_t Vec3_Retain(const Vec3& vec3) {
+	return r_cast<int64_t>(new Vec3{vec3});
+}
+static inline int64_t Vec3_Retain(float x, float y, float z) {
+	return r_cast<int64_t>(new Vec3{x, y, z});
+}
+static inline Vec3 Vec3_From(int64_t value) {
+	return *r_cast<Vec3*>(value);
+}
+
 /* String */
 
 static int64_t Str_Retain(String str) {
@@ -810,6 +822,7 @@ void Content_SearchFilesAsync(String path, std::vector<std::string>&& exts, Dict
 
 /* Rect */
 
+static inline Vec3 Vec3_GetZero() { return Vec3{0.0f, 0.0f, 0.0f}; }
 static inline const Rect& Rect_GetZero() { return Rect::zero; }
 
 // Director
@@ -2018,6 +2031,7 @@ DORA_EXPORT float math_tan(float v) { return std::tan(v); }
 #include "Dora/TileNodeWasm.hpp"
 #include "Dora/TouchWasm.hpp"
 #include "Dora/VGNodeWasm.hpp"
+#include "Dora/Vec3Wasm.hpp"
 #include "Dora/VertexColorWasm.hpp"
 #include "Dora/VideoNodeWasm.hpp"
 #include "Dora/View3DWasm.hpp"
@@ -2031,6 +2045,7 @@ NS_DORA_BEGIN
 static void linkAutoModule(wasm3::module3& mod) {
 	linkArray(mod);
 	linkDictionary(mod);
+	linkVec3(mod);
 	linkRect(mod);
 	linkApplication(mod);
 	linkDirector(mod);
