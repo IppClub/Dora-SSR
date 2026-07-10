@@ -1,4 +1,5 @@
 use super::camera3d;
+use super::light3d;
 use super::model_loader;
 use super::node3d;
 use super::renderer3d;
@@ -64,6 +65,7 @@ fn read_mat4(ptr: *const f32) -> Option<super::types::Mat4> {
 #[no_mangle]
 pub extern "C" fn dora_3d_cleanup() {
 	renderer3d::clear_queue();
+	light3d::clear_registry();
 	model_loader::clear_registry();
 	visual3d::clear_registry();
 	super::material::clear_registry();
@@ -72,6 +74,7 @@ pub extern "C" fn dora_3d_cleanup() {
 	super::texture::clear_registry();
 	camera3d::clear_registry();
 	node3d::clear_registry();
+	super::profile3d::clear();
 }
 
 #[no_mangle]
@@ -104,6 +107,18 @@ pub extern "C" fn dora_3d_render_with_view(view_id: u16) -> i32 {
 }
 
 #[no_mangle]
+pub extern "C" fn dora_3d_get_render_stats(view_id: u16, out: *mut u64, count: u32) -> i32 {
+	if out.is_null() || count < renderer3d::RENDER_STATS_VALUE_COUNT as u32 {
+		return 0;
+	}
+	let values = renderer3d::get_render_stats(view_id).to_values();
+	unsafe {
+		std::ptr::copy_nonoverlapping(values.as_ptr(), out, values.len());
+	}
+	1
+}
+
+#[no_mangle]
 pub extern "C" fn dora_3d_set_environment_equirect(path: *const c_char) -> i32 {
 	let Some(path) = opt_str(path) else {
 		return 0;
@@ -122,6 +137,41 @@ pub extern "C" fn dora_3d_prepare_environment_equirect(path: *const c_char) -> i
 		return 0;
 	};
 	shader::prepare_environment_equirect(path) as i32
+}
+
+#[no_mangle]
+pub extern "C" fn dora_3d_environment_is_cached(path: *const c_char) -> i32 {
+	let Some(path) = opt_str(path) else {
+		return 0;
+	};
+	shader::is_environment_cached(path) as i32
+}
+
+#[no_mangle]
+pub extern "C" fn dora_3d_prepare_environment_equirect_cpu(path: *const c_char) -> Dora3DHandle {
+	let Some(path) = opt_str(path) else {
+		return 0;
+	};
+	shader::prepare_environment_equirect_cpu(path).unwrap_or(0)
+}
+
+#[no_mangle]
+pub extern "C" fn dora_3d_begin_environment_upload(prepared: Dora3DHandle) -> Dora3DHandle {
+	shader::begin_environment_upload(prepared).unwrap_or(0)
+}
+
+#[no_mangle]
+pub extern "C" fn dora_3d_step_environment_upload(job: Dora3DHandle) -> i32 {
+	match shader::step_environment_upload(job) {
+		shader::EnvironmentUploadStep::Pending => 0,
+		shader::EnvironmentUploadStep::Complete => 1,
+		shader::EnvironmentUploadStep::Failed => -1,
+	}
+}
+
+#[no_mangle]
+pub extern "C" fn dora_3d_cancel_environment_upload(job: Dora3DHandle) {
+	let _ = shader::cancel_environment_upload(job);
 }
 
 #[no_mangle]
@@ -150,7 +200,72 @@ pub extern "C" fn dora_3d_node_create() -> Dora3DHandle {
 
 #[no_mangle]
 pub extern "C" fn dora_3d_node_destroy(node: Dora3DHandle) {
+	light3d::destroy_node(node);
 	let _ = node3d::destroy(node);
+}
+
+#[no_mangle]
+pub extern "C" fn dora_3d_directional_light_create(node: Dora3DHandle) -> i32 {
+	light3d::create_directional(node) as i32
+}
+
+#[no_mangle]
+pub extern "C" fn dora_3d_directional_light_set_color(node: Dora3DHandle, r: f32, g: f32, b: f32) {
+	let _ = light3d::set_directional_color(node, Vec3::new(r, g, b));
+}
+
+#[no_mangle]
+pub extern "C" fn dora_3d_directional_light_get_color(node: Dora3DHandle, out: *mut f32) {
+	if let Some(color) = light3d::directional_color(node) {
+		let _ = write_vec3(out, color);
+	}
+}
+
+#[no_mangle]
+pub extern "C" fn dora_3d_directional_light_set_intensity(node: Dora3DHandle, intensity: f32) {
+	let _ = light3d::set_directional_intensity(node, intensity);
+}
+
+#[no_mangle]
+pub extern "C" fn dora_3d_directional_light_get_intensity(node: Dora3DHandle) -> f32 {
+	light3d::directional_intensity(node).unwrap_or(0.0)
+}
+
+#[no_mangle]
+pub extern "C" fn dora_3d_point_light_create(node: Dora3DHandle) -> i32 {
+	light3d::create_point(node) as i32
+}
+
+#[no_mangle]
+pub extern "C" fn dora_3d_point_light_set_color(node: Dora3DHandle, r: f32, g: f32, b: f32) {
+	let _ = light3d::set_point_color(node, Vec3::new(r, g, b));
+}
+
+#[no_mangle]
+pub extern "C" fn dora_3d_point_light_get_color(node: Dora3DHandle, out: *mut f32) {
+	if let Some(color) = light3d::point_color(node) {
+		let _ = write_vec3(out, color);
+	}
+}
+
+#[no_mangle]
+pub extern "C" fn dora_3d_point_light_set_intensity(node: Dora3DHandle, intensity: f32) {
+	let _ = light3d::set_point_intensity(node, intensity);
+}
+
+#[no_mangle]
+pub extern "C" fn dora_3d_point_light_get_intensity(node: Dora3DHandle) -> f32 {
+	light3d::point_intensity(node).unwrap_or(0.0)
+}
+
+#[no_mangle]
+pub extern "C" fn dora_3d_point_light_set_range(node: Dora3DHandle, range: f32) {
+	let _ = light3d::set_point_range(node, range);
+}
+
+#[no_mangle]
+pub extern "C" fn dora_3d_point_light_get_range(node: Dora3DHandle) -> f32 {
+	light3d::point_range(node).unwrap_or(0.0)
 }
 
 #[no_mangle]
@@ -329,6 +444,43 @@ pub extern "C" fn dora_3d_load_gltf(path: *const c_char) -> Dora3DHandle {
 		return INVALID_HANDLE;
 	};
 	model_loader::load_gltf(path).unwrap_or(INVALID_HANDLE)
+}
+
+#[no_mangle]
+pub extern "C" fn dora_3d_parse_gltf(path: *const c_char) -> Dora3DHandle {
+	let Some(path) = opt_str(path) else {
+		return INVALID_HANDLE;
+	};
+	model_loader::parse_gltf(path).unwrap_or(INVALID_HANDLE)
+}
+
+#[no_mangle]
+pub extern "C" fn dora_3d_upload_gltf(prepared: Dora3DHandle) -> Dora3DHandle {
+	model_loader::upload_gltf(prepared).unwrap_or(INVALID_HANDLE)
+}
+
+#[no_mangle]
+pub extern "C" fn dora_3d_begin_upload_gltf(prepared: Dora3DHandle) -> Dora3DHandle {
+	model_loader::begin_upload_gltf(prepared).unwrap_or(INVALID_HANDLE)
+}
+
+#[no_mangle]
+pub extern "C" fn dora_3d_step_upload_gltf(job: Dora3DHandle, model_out: *mut Dora3DHandle) -> i32 {
+	match model_loader::step_upload_gltf(job) {
+		model_loader::UploadStep::Pending => 0,
+		model_loader::UploadStep::Complete(model) => {
+			if !model_out.is_null() {
+				unsafe { *model_out = model };
+			}
+			1
+		}
+		model_loader::UploadStep::Failed => -1,
+	}
+}
+
+#[no_mangle]
+pub extern "C" fn dora_3d_cancel_upload_gltf(job: Dora3DHandle) {
+	let _ = model_loader::cancel_upload_gltf(job);
 }
 
 #[no_mangle]

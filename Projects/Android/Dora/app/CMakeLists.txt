@@ -178,6 +178,7 @@ add_library(main SHARED
 	src/main/cpp/Node/Grid.cpp
 	src/main/cpp/Node/Node.cpp
 	src/main/cpp/Node/Node3D.cpp
+	src/main/cpp/Node/Light3D.cpp
 	src/main/cpp/Node/Label.cpp
 	src/main/cpp/Node/ClipNode.cpp
 	src/main/cpp/Node/Model.cpp

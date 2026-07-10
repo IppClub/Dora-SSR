@@ -348,6 +348,24 @@ basicTypes =
 			creturn: -> error "unsupported"
 			cpass: -> error "unsupported"
 		}
+	RenderStats3D:
+		* "long"
+		* (name)-> "*r_cast<RenderStats3D*>(#{name})"
+		* (name)-> "r_cast<int64_t>(new RenderStats3D{#{name}})"
+		* "RenderStats3D"
+		* "RenderStats3D"
+		* (name)-> "#{name}.Raw"
+		* (name)-> "Dora.RenderStats3D.From(#{name})"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "*RenderStats3DFrom(#{name})"
+			convertTo: (name)-> "#{name}.GetRaw()"
+			argType: "RenderStats3D"
+			returnType: "RenderStats3D"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
 	OptString:
 		* "long"
 		* -> error "unsupported"

@@ -1,10 +1,12 @@
 pub mod animation;
 pub mod c_api;
 pub mod camera3d;
+pub mod light3d;
 pub mod material;
 pub mod mesh;
 pub mod model_loader;
 pub mod node3d;
+pub mod profile3d;
 pub mod renderer3d;
 pub mod shader;
 pub mod skinning;

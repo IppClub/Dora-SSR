@@ -314,6 +314,43 @@ interface Vec3Class {
 const vec3: Vec3Class;
 export {vec3 as Vec3};
 
+/** View3D最近一次3D渲染所记录的统计信息。 */
+class RenderStats3D extends ContainerItem {
+	private constructor();
+	readonly sceneNodes: number;
+	readonly visibleVisuals: number;
+	readonly culledVisuals: number;
+	readonly opaqueItems: number;
+	readonly transparentItems: number;
+	readonly drawCalls: number;
+	readonly triangles: number;
+	readonly programSwitches: number;
+	readonly materialSwitches: number;
+	readonly textureSwitches: number;
+	readonly meshSwitches: number;
+	readonly nodeCount: number;
+	readonly visualCount: number;
+	readonly modelCount: number;
+	readonly modelInstanceCount: number;
+	readonly meshCount: number;
+	readonly materialCount: number;
+	readonly textureCount: number;
+	readonly animationCount: number;
+	readonly environmentCount: number;
+	readonly modelResidentBytes: number;
+	readonly meshResidentBytes: number;
+	readonly textureResidentBytes: number;
+	readonly collectMicros: number;
+	readonly sortMicros: number;
+	readonly submitMicros: number;
+	readonly uploadCommands: number;
+	readonly uploadBytes: number;
+	readonly uploadMicros: number;
+	readonly uploadMaxCommandMicros: number;
+}
+
+export {RenderStats3D};
+
 /**
  * 矩形对象，具有左下角原点位置和大小。
  * 继承自 `ContainerItem`。
@@ -737,6 +774,9 @@ interface App {
 	 * @returns 日志文件是否保存成功。
 	 */
 	saveLog(path: string): boolean;
+
+	/** 请求保存主backbuffer截图，并返回实际输出的TGA路径。 */
+	saveScreenshot(filename: string): string;
 
 	/**
 	 * 打开一个文件对话框。仅在Windows、macOS和Linux平台上有效。
@@ -3695,6 +3735,9 @@ class View3D extends Node {
 	/** 3D场景根节点。 */
 	readonly scene: Node3D;
 
+	/** 最近一次3D渲染与当前3D资源注册表的统计信息。 */
+	readonly stats: RenderStats3D;
+
 	/** 添加3D子节点到场景根节点。 */
 	addChild(child: Node3D): void;
 	addChild(child: Node, order?: number, tag?: string): void;
@@ -3783,6 +3826,57 @@ interface Model3DClass {
 
 const model3DClass: Model3DClass;
 export {model3DClass as Model3D};
+
+/** 方向由世界旋转决定的方向光。 */
+class DirectionalLight3D extends Node3D {
+	private constructor();
+
+	/** sRGB空间中的灯光颜色。 */
+	color: Color3;
+
+	/** 灯光强度。 */
+	intensity: number;
+}
+
+export {DirectionalLight3D as DirectionalLight3DType};
+export namespace DirectionalLight3D {
+	export type Type = DirectionalLight3D;
+}
+
+interface DirectionalLight3DClass {
+	/** 创建方向光。 */
+	(this: void): DirectionalLight3D;
+}
+
+const directionalLight3DClass: DirectionalLight3DClass;
+export {directionalLight3DClass as DirectionalLight3D};
+
+/** 位置由世界变换决定的点光源。 */
+class PointLight3D extends Node3D {
+	private constructor();
+
+	/** sRGB空间中的灯光颜色。 */
+	color: Color3;
+
+	/** 灯光强度。 */
+	intensity: number;
+
+	/** 灯光的最大有效范围。 */
+	range: number;
+}
+
+export {PointLight3D as PointLight3DType};
+export namespace PointLight3D {
+	export type Type = PointLight3D;
+}
+
+interface PointLight3DClass {
+	/** 创建点光源。 */
+	(this: void): PointLight3D;
+}
+
+const pointLight3DClass: PointLight3DClass;
+export {pointLight3DClass as PointLight3D};
 
 /**
  * ImGui控件使用的字符串缓冲区类。
@@ -7916,6 +8010,7 @@ export const enum TypeName {
 	Size = "Size",
 	Vec2 = "Vec2",
 	Vec3 = "Vec3",
+	RenderStats3D = "RenderStats3D",
 	Rect = "Rect",
 	Color3 = "Color3",
 	Color = "Color",
@@ -7974,6 +8069,7 @@ export interface TypeMap {
 	[TypeName.Size]: Size;
 	[TypeName.Vec2]: Vec2;
 	[TypeName.Vec3]: Vec3;
+	[TypeName.RenderStats3D]: RenderStats3D;
 	[TypeName.Rect]: Rect;
 	[TypeName.Color3]: Color3;
 	[TypeName.Color]: Color;

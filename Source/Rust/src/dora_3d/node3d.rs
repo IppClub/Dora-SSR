@@ -197,6 +197,17 @@ pub fn exists(handle: Dora3DHandle) -> bool {
 	registry().lock().unwrap().contains_key(&handle)
 }
 
+pub fn world_matrices(handles: &[Dora3DHandle]) -> HashMap<Dora3DHandle, Mat4> {
+	let mut nodes = registry().lock().unwrap();
+	let mut matrices = HashMap::with_capacity(handles.len());
+	for handle in handles {
+		if let Some(world) = update_world_internal(&mut nodes, *handle) {
+			matrices.insert(*handle, world);
+		}
+	}
+	matrices
+}
+
 pub fn add_child(parent: Dora3DHandle, child: Dora3DHandle, order: i32, tag: Option<&str>) -> bool {
 	if parent == INVALID_HANDLE || child == INVALID_HANDLE || parent == child {
 		return false;
@@ -421,6 +432,9 @@ fn traverse_internal(
 	handle: Dora3DHandle,
 	ordered: &mut Vec<Dora3DHandle>,
 ) {
+	if !nodes.get(&handle).map(|node| node.visible).unwrap_or(false) {
+		return;
+	}
 	if update_world_internal(nodes, handle).is_none() {
 		return;
 	}
@@ -451,6 +465,31 @@ pub fn parent(handle: Dora3DHandle) -> Option<Dora3DHandle> {
 		.and_then(|node| node.parent)
 }
 
+pub fn count() -> usize {
+	registry().lock().unwrap().len()
+}
+
 pub fn clear_registry() {
 	registry().lock().unwrap().clear();
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn traverse_skips_invisible_subtrees() {
+		let root = create();
+		let child = create();
+		let grandchild = create();
+		assert!(add_child(root, child, 0, None));
+		assert!(add_child(child, grandchild, 0, None));
+		assert!(set_visible(child, false));
+		assert_eq!(traverse(root), vec![root]);
+		assert!(set_visible(child, true));
+		assert_eq!(traverse(root), vec![root, child, grandchild]);
+		assert!(destroy(grandchild));
+		assert!(destroy(child));
+		assert!(destroy(root));
+	}
 }

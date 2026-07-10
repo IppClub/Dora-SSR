@@ -109,6 +109,43 @@ value struct Vec3
 };
 
 /// <summary>
+/// Statistics captured from the most recent 3D render for a View3D.
+/// </summary>
+value struct RenderStats3D
+{
+	readonly common uint32_t sceneNodes;
+	readonly common uint32_t visibleVisuals;
+	readonly common uint32_t culledVisuals;
+	readonly common uint32_t opaqueItems;
+	readonly common uint32_t transparentItems;
+	readonly common uint32_t drawCalls;
+	readonly common uint64_t triangles;
+	readonly common uint32_t programSwitches;
+	readonly common uint32_t materialSwitches;
+	readonly common uint32_t textureSwitches;
+	readonly common uint32_t meshSwitches;
+	readonly common uint32_t nodeCount;
+	readonly common uint32_t visualCount;
+	readonly common uint32_t modelCount;
+	readonly common uint32_t modelInstanceCount;
+	readonly common uint32_t meshCount;
+	readonly common uint32_t materialCount;
+	readonly common uint32_t textureCount;
+	readonly common uint32_t animationCount;
+	readonly common uint32_t environmentCount;
+	readonly common uint64_t modelResidentBytes;
+	readonly common uint64_t meshResidentBytes;
+	readonly common uint64_t textureResidentBytes;
+	readonly common uint64_t collectMicros;
+	readonly common uint64_t sortMicros;
+	readonly common uint64_t submitMicros;
+	readonly common uint64_t uploadCommands;
+	readonly common uint64_t uploadBytes;
+	readonly common uint64_t uploadMicros;
+	readonly common uint64_t uploadMaxCommandMicros;
+};
+
+/// <summary>
 /// A rectangle object with a left-bottom origin position and a size.
 /// </summary>
 value struct Rect
@@ -326,6 +363,10 @@ singleton class Application @ App
 	/// It is not available to set this property on platform Android and iOS.
 	/// </summary>
 	boolean bool alwaysOnTop;
+	/// <summary>
+	/// Requests a screenshot of the main backbuffer and returns the output TGA path.
+	/// </summary>
+	string saveScreenshot(string filename);
 	/// <summary>
 	/// Shuts down and exits the game engine.
 	/// When in `devMode`, the `shutdown` function will only emit a "AppEvent" global event with type "Shutdown", instead of shutting down the game engine.
@@ -1161,6 +1202,48 @@ object class Model3D : public Node3D
 };
 
 /// <summary>
+/// A directional light whose direction follows the node world rotation.
+/// </summary>
+object class DirectionalLight3D : public Node3D
+{
+	/// <summary>
+	/// The light color in sRGB space.
+	/// </summary>
+	common Color3 color;
+	/// <summary>
+	/// The light intensity.
+	/// </summary>
+	common float intensity;
+	/// <summary>
+	/// Creates a directional light.
+	/// </summary>
+	static DirectionalLight3D* create();
+};
+
+/// <summary>
+/// A point light whose position follows the node world transform.
+/// </summary>
+object class PointLight3D : public Node3D
+{
+	/// <summary>
+	/// The light color in sRGB space.
+	/// </summary>
+	common Color3 color;
+	/// <summary>
+	/// The light intensity.
+	/// </summary>
+	common float intensity;
+	/// <summary>
+	/// The maximum effective range of the light.
+	/// </summary>
+	common float range;
+	/// <summary>
+	/// Creates a point light.
+	/// </summary>
+	static PointLight3D* create();
+};
+
+/// <summary>
 /// A 2D scene node that owns a 3D scene tree.
 /// </summary>
 object class View3D : public Node
@@ -1169,6 +1252,10 @@ object class View3D : public Node
 	/// The root 3D scene node.
 	/// </summary>
 	readonly common Node3D* scene;
+	/// <summary>
+	/// Statistics from the most recent 3D render and current 3D registries.
+	/// </summary>
+	readonly common RenderStats3D stats;
 	/// <summary>
 	/// Adds a 3D child node to the scene root.
 	/// </summary>

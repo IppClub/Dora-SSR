@@ -13,6 +13,8 @@ mod rect;
 pub use rect::Rect;
 mod vec_3;
 pub use vec_3::Vec3;
+mod render_stats_3d;
+pub use render_stats_3d::RenderStats3D;
 mod array;
 pub use array::Array;
 mod dictionary;

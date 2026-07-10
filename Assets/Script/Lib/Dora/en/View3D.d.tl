@@ -1,5 +1,6 @@
 local Node3D = require("Node3D").Type
 local Node = require("Node").Type
+local RenderStats3D = require("RenderStats3DType")
 
 -- Class used for rendering 3D content inside the 2D scene tree.
 local record View3D
@@ -9,6 +10,9 @@ local record View3D
 
 	-- The root node of the 3D scene.
 	const scene: Node3D
+
+	-- Statistics from the most recent 3D render and current 3D registries.
+	const stats: RenderStats3D
 
 	-- Loads an environment map for image based lighting.
 	-- @param path (string) The environment texture path. Empty string clears the environment map.

@@ -84,6 +84,8 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int32_t application_is_always_on_top();
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t application_save_screenshot(int64_t filename);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void application_shutdown();
 	}
 } // namespace Dora
@@ -289,6 +291,13 @@ namespace Dora
 		{
 			set => Native.application_set_always_on_top(value ? 1 : 0);
 			get => Native.application_is_always_on_top() != 0;
+		}
+		/// <summary>
+		/// Requests a screenshot of the main backbuffer and returns the output TGA path.
+		/// </summary>
+		public static string SaveScreenshot(string filename)
+		{
+			return Bridge.ToString(Native.application_save_screenshot(Bridge.FromString(filename)));
 		}
 		/// <summary>
 		/// Shuts down and exits the game engine.

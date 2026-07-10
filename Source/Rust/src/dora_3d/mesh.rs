@@ -1,4 +1,4 @@
-use super::types::{Aabb, Vec3};
+use super::types::{transform_aabb, Aabb, Mat4, Vec3};
 use super::{next_handle, Dora3DHandle};
 use crate::bgfx_rs::bgfx_sys;
 use std::collections::HashMap;
@@ -26,9 +26,18 @@ pub struct SubMesh {
 }
 
 #[derive(Debug)]
+pub struct JointBounds {
+	pub joint_index: usize,
+	pub bounds: Aabb,
+}
+
+#[derive(Debug)]
 pub struct MeshData {
 	pub handle: Dora3DHandle,
-	pub vertices: Vec<Vertex>,
+	pub vertex_count: u32,
+	pub index_count: u32,
+	pub resident_bytes: u64,
+	pub joint_bounds: Vec<JointBounds>,
 	pub sub_meshes: Vec<SubMesh>,
 	pub bounds: Aabb,
 	pub vertex_layout: bgfx_sys::bgfx_vertex_layout_t,
@@ -165,6 +174,31 @@ fn build_bounds(vertices: &[Vertex]) -> Aabb {
 	Aabb { min, max }
 }
 
+fn build_joint_bounds(vertices: &[Vertex]) -> Vec<JointBounds> {
+	let mut bounds = HashMap::<usize, Aabb>::new();
+	for vertex in vertices {
+		let position = Vec3::from_array(vertex.position);
+		for influence in 0..4 {
+			if vertex.joint_weights[influence] <= f32::EPSILON {
+				continue;
+			}
+			bounds
+				.entry(vertex.joint_indices[influence] as usize)
+				.or_insert_with(Aabb::empty)
+				.include(position);
+		}
+	}
+	let mut result: Vec<_> = bounds
+		.into_iter()
+		.map(|(joint_index, bounds)| JointBounds {
+			joint_index,
+			bounds,
+		})
+		.collect();
+	result.sort_by_key(|bounds| bounds.joint_index);
+	result
+}
+
 pub fn create(
 	vertices: Vec<Vertex>,
 	indices: Vec<u32>,
@@ -175,9 +209,17 @@ pub fn create(
 	let vertex_buffer = create_vertex_buffer(&vertices, &layout);
 	let index_buffer = create_index_buffer(&indices);
 	let bounds = build_bounds(&vertices);
+	let joint_bounds = build_joint_bounds(&vertices);
+	let vertex_count = vertices.len() as u32;
+	let index_count = indices.len() as u32;
+	let resident_bytes = std::mem::size_of_val(vertices.as_slice()) as u64
+		+ std::mem::size_of_val(indices.as_slice()) as u64;
 	let mesh = MeshData {
 		handle,
-		vertices,
+		vertex_count,
+		index_count,
+		resident_bytes,
+		joint_bounds,
 		sub_meshes: sub_meshes.unwrap_or_else(|| {
 			vec![SubMesh {
 				start_index: 0,
@@ -207,6 +249,78 @@ pub fn bounds(handle: Dora3DHandle) -> Option<Aabb> {
 	with_mesh(handle, |mesh| mesh.bounds)
 }
 
+pub fn skinned_bounds(handle: Dora3DHandle, joint_matrices: &[Mat4]) -> Option<Aabb> {
+	with_mesh(handle, |mesh| {
+		let mut bounds =
+			transform_joint_bounds(&mesh.joint_bounds, joint_matrices).unwrap_or(mesh.bounds);
+		bounds.include(mesh.bounds.min);
+		bounds.include(mesh.bounds.max);
+		bounds
+	})
+}
+
+fn transform_joint_bounds(joint_bounds: &[JointBounds], joint_matrices: &[Mat4]) -> Option<Aabb> {
+	let mut bounds = Aabb::empty();
+	for joint in joint_bounds {
+		let Some(matrix) = joint_matrices.get(joint.joint_index) else {
+			continue;
+		};
+		let transformed = transform_aabb(matrix, &joint.bounds);
+		bounds.include(transformed.min);
+		bounds.include(transformed.max);
+	}
+	bounds.is_valid().then_some(bounds)
+}
+
+pub fn submission_counts(handle: Dora3DHandle) -> Option<(u32, u64)> {
+	with_mesh(handle, |mesh| {
+		let draw_calls = mesh.sub_meshes.len() as u32;
+		let triangles = mesh
+			.sub_meshes
+			.iter()
+			.map(|sub_mesh| (sub_mesh.index_count / 3) as u64)
+			.sum();
+		(draw_calls, triangles)
+	})
+}
+
+pub fn count() -> usize {
+	registry().lock().unwrap().len()
+}
+
+pub fn resident_bytes(handle: Dora3DHandle) -> u64 {
+	with_mesh(handle, |mesh| mesh.resident_bytes).unwrap_or(0)
+}
+
+pub fn total_resident_bytes() -> u64 {
+	registry()
+		.lock()
+		.unwrap()
+		.values()
+		.map(|mesh| mesh.resident_bytes)
+		.sum()
+}
+
 pub fn clear_registry() {
 	registry().lock().unwrap().clear();
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn skinned_bounds_follow_joint_motion() {
+		let joint_bounds = vec![JointBounds {
+			joint_index: 0,
+			bounds: Aabb {
+				min: Vec3::new(-1.0, -1.0, -1.0),
+				max: Vec3::new(1.0, 1.0, 1.0),
+			},
+		}];
+		let matrices = vec![Mat4::from_translation(Vec3::new(10.0, 0.0, 0.0))];
+		let bounds = transform_joint_bounds(&joint_bounds, &matrices).unwrap();
+		assert_eq!(bounds.min, Vec3::new(9.0, -1.0, -1.0));
+		assert_eq!(bounds.max, Vec3::new(11.0, 1.0, 1.0));
+	}
 }

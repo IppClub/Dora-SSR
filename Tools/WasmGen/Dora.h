@@ -83,6 +83,41 @@ value struct Vec3
 	static outside Vec3 Vec3_GetZero @ zero();
 };
 
+/// Statistics captured from the most recent 3D render for a View3D.
+value struct RenderStats3D
+{
+	readonly common uint32_t sceneNodes;
+	readonly common uint32_t visibleVisuals;
+	readonly common uint32_t culledVisuals;
+	readonly common uint32_t opaqueItems;
+	readonly common uint32_t transparentItems;
+	readonly common uint32_t drawCalls;
+	readonly common uint64_t triangles;
+	readonly common uint32_t programSwitches;
+	readonly common uint32_t materialSwitches;
+	readonly common uint32_t textureSwitches;
+	readonly common uint32_t meshSwitches;
+	readonly common uint32_t nodeCount;
+	readonly common uint32_t visualCount;
+	readonly common uint32_t modelCount;
+	readonly common uint32_t modelInstanceCount;
+	readonly common uint32_t meshCount;
+	readonly common uint32_t materialCount;
+	readonly common uint32_t textureCount;
+	readonly common uint32_t animationCount;
+	readonly common uint32_t environmentCount;
+	readonly common uint64_t modelResidentBytes;
+	readonly common uint64_t meshResidentBytes;
+	readonly common uint64_t textureResidentBytes;
+	readonly common uint64_t collectMicros;
+	readonly common uint64_t sortMicros;
+	readonly common uint64_t submitMicros;
+	readonly common uint64_t uploadCommands;
+	readonly common uint64_t uploadBytes;
+	readonly common uint64_t uploadMicros;
+	readonly common uint64_t uploadMaxCommandMicros;
+};
+
 /// A rectangle object with a left-bottom origin position and a size.
 value struct Rect
 {
@@ -236,6 +271,8 @@ singleton class Application @ App
 	/// whether the game engine window is always on top. Default is true.
 	/// It is not available to set this property on platform Android and iOS.
 	boolean bool alwaysOnTop;
+	/// Requests a screenshot of the main backbuffer and returns the output TGA path.
+	string saveScreenshot(string filename);
 	/// Shuts down and exits the game engine.
 	/// When in `devMode`, the `shutdown` function will only emit a "AppEvent" global event with type "Shutdown", instead of shutting down the game engine.
 	/// It is not working and acts as a dummy function for platform Android and iOS to follow the specification of how mobile platform applications should operate.
@@ -1067,11 +1104,37 @@ object class Model3D : public INode3D
 	static optional Model3D* create(string path);
 };
 
+/// A directional light whose direction follows the node world rotation.
+object class DirectionalLight3D : public INode3D
+{
+	/// the light color in sRGB space.
+	common Color3 color;
+	/// the light intensity.
+	common float intensity;
+	/// Creates a directional light.
+	static DirectionalLight3D* create();
+};
+
+/// A point light whose position follows the node world transform.
+object class PointLight3D : public INode3D
+{
+	/// the light color in sRGB space.
+	common Color3 color;
+	/// the light intensity.
+	common float intensity;
+	/// the maximum effective range of the light.
+	common float range;
+	/// Creates a point light.
+	static PointLight3D* create();
+};
+
 /// A 2D scene node that owns a 3D scene tree.
 interface object class View3D : public INode
 {
 	/// the root 3D scene node.
 	readonly common Node3D* scene;
+	/// statistics from the most recent 3D render and current 3D registries.
+	readonly common RenderStats3D stats;
 	/// Adds a 3D child node to the scene root.
 	void addChild @ add_child_3d(Node3D* child);
 	/// Sets the environment map used by this 3D view.

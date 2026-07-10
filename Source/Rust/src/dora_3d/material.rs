@@ -1034,6 +1034,26 @@ pub fn is_transparent(handle: Dora3DHandle) -> bool {
 	with_material(handle, |material| material.transparent).unwrap_or(false)
 }
 
+pub fn texture_bindings(handle: Dora3DHandle) -> Vec<(u8, u16)> {
+	with_material(handle, |material| {
+		let mut bindings: Vec<_> = material
+			.applied_params
+			.iter()
+			.filter_map(|applied| match applied.param {
+				ShaderParam::Texture(binding) => Some((binding.stage, binding.bgfx_texture.idx)),
+				_ => None,
+			})
+			.collect();
+		bindings.sort_unstable();
+		bindings
+	})
+	.unwrap_or_default()
+}
+
+pub fn count() -> usize {
+	registry().lock().unwrap().len()
+}
+
 pub fn clear_registry() {
 	registry().lock().unwrap().clear();
 }

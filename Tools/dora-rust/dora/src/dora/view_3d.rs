@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 extern "C" {
 	fn view3d_type() -> i32;
 	fn view3d_get_scene(slf: i64) -> i64;
+	fn view3d_get_stats(slf: i64) -> i64;
 	fn view3d_add_child_3d(slf: i64, child: i64);
 	fn view3d_set_environment_map(slf: i64, path: i64) -> i32;
 	fn view3d_set_environment_intensity(slf: i64, diffuse: f32, specular: f32, exposure: f32);
@@ -25,6 +26,10 @@ pub trait IView3D: INode {
 	/// Gets the root 3D scene node.
 	fn get_scene(&self) -> crate::dora::Node3D {
 		return unsafe { crate::dora::Node3D::from(view3d_get_scene(self.raw())).unwrap() };
+	}
+	/// Gets statistics from the most recent 3D render and current 3D registries.
+	fn get_stats(&self) -> crate::dora::RenderStats3D {
+		return unsafe { crate::dora::RenderStats3D::from(view3d_get_stats(self.raw())) };
 	}
 	/// Adds a 3D child node to the scene root.
 	fn add_child_3d(&mut self, child: &dyn crate::dora::INode3D) {

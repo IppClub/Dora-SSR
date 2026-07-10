@@ -1,10 +1,11 @@
 use super::animation::{
-	self, AnimationChannel, AnimationClipData, AnimationData, ChannelProperty, Keyframe,
-	KeyframeValue, SkeletonData,
+	self, AnimationChannel, AnimationClipData, AnimationData, ChannelProperty, Interpolation,
+	Keyframe, KeyframeValue, SkeletonData,
 };
 use super::material::{self, AlphaMode, MaterialType};
 use super::mesh::{self, SubMesh, Vertex};
 use super::node3d;
+use super::profile3d;
 use super::skinning;
 use super::texture;
 use super::types::{Mat4, Quaternion, Vec3, Vec4};
@@ -15,13 +16,17 @@ use crate::Texture2D;
 use gltf::buffer::Data as BufferData;
 use gltf::image::{Data as ImageData, Format as ImageFormat, Source as ImageSource};
 use gltf::mesh::util::{ReadJoints, ReadWeights};
-use gltf::{animation::util::ReadOutputs, animation::Property as GltfProperty};
+use gltf::{
+	animation::util::ReadOutputs, animation::Interpolation as GltfInterpolation,
+	animation::Property as GltfProperty,
+};
 use gltf::{Document, Node};
 use serde_json::Value;
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::{Mutex, OnceLock};
+use std::time::Instant;
 
 #[derive(Debug, Clone)]
 pub struct LoadedModel {
@@ -35,10 +40,170 @@ pub struct LoadedModel {
 	pub skeleton: Option<Dora3DHandle>,
 	pub skeletons: Vec<Dora3DHandle>,
 	pub animations: Vec<Dora3DHandle>,
+	pub visual_skins: HashMap<Dora3DHandle, usize>,
+	pub skin_skeletons: HashMap<usize, Dora3DHandle>,
 }
 
 fn registry() -> &'static Mutex<HashMap<Dora3DHandle, LoadedModel>> {
 	static REGISTRY: OnceLock<Mutex<HashMap<Dora3DHandle, LoadedModel>>> = OnceLock::new();
+	REGISTRY.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+#[derive(Debug)]
+struct PreparedModel {
+	path: PathBuf,
+	document: Document,
+	images: Vec<ImageData>,
+	textures: Vec<PreparedTexture>,
+	nodes: Vec<PreparedNode>,
+	primitives: Vec<PreparedPrimitive>,
+	skeletons: Vec<PreparedSkeleton>,
+	animations: Vec<PreparedAnimation>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+enum TextureCacheKey {
+	Source {
+		image_index: usize,
+		sampler_flags: u64,
+		mipmapped: bool,
+	},
+	ThicknessSheen {
+		thickness_image: usize,
+		sheen_roughness_image: usize,
+		sampler_flags: u64,
+	},
+	MetallicRoughnessAnisotropy {
+		metallic_roughness_image: Option<usize>,
+		anisotropy_image: usize,
+		sampler_flags: u64,
+	},
+}
+
+#[derive(Debug)]
+struct PreparedTexture {
+	key: TextureCacheKey,
+	width: u16,
+	height: u16,
+	pixels: Vec<u8>,
+	sampler_flags: u64,
+	has_mips: bool,
+	label: String,
+}
+
+#[derive(Debug)]
+struct PreparedNode {
+	source_index: usize,
+	parent_source_index: Option<usize>,
+	name: Option<String>,
+	position: Vec3,
+	rotation: Quaternion,
+	scale: Vec3,
+}
+
+#[derive(Debug)]
+struct PreparedMesh {
+	vertices: Vec<Vertex>,
+	indices: Vec<u32>,
+	sub_meshes: Vec<SubMesh>,
+}
+
+#[derive(Debug)]
+struct PreparedPrimitive {
+	source_node_index: usize,
+	primitive_index: usize,
+	skin_index: Option<usize>,
+	mesh: Option<PreparedMesh>,
+}
+
+#[derive(Debug)]
+struct PreparedSkeleton {
+	skin_index: usize,
+	joint_source_indices: Vec<usize>,
+	inverse_bind_matrices: Vec<Mat4>,
+}
+
+#[derive(Debug)]
+struct PreparedAnimationChannel {
+	target_source_index: usize,
+	property: ChannelProperty,
+	interpolation: Interpolation,
+	keyframes: Vec<Keyframe>,
+}
+
+#[derive(Debug)]
+struct PreparedAnimation {
+	name: String,
+	duration: f32,
+	channels: Vec<PreparedAnimationChannel>,
+}
+
+#[repr(u8)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum UploadPhase {
+	Textures,
+	Initialize,
+	Nodes,
+	Meshes,
+	Materials,
+	Visuals,
+	Skeletons,
+	Animations,
+	Finalize,
+}
+
+fn upload_command_bytes(job: &UploadJob) -> u64 {
+	match job.phase {
+		UploadPhase::Textures => job
+			.textures
+			.front()
+			.map(|texture| texture.pixels.len() as u64)
+			.unwrap_or(0),
+		UploadPhase::Meshes => job
+			.prepared
+			.as_ref()
+			.and_then(|prepared| prepared.primitives.get(job.primitive_cursor))
+			.and_then(|primitive| primitive.mesh.as_ref())
+			.map(|mesh| {
+				std::mem::size_of_val(mesh.vertices.as_slice()) as u64
+					+ std::mem::size_of_val(mesh.indices.as_slice()) as u64
+			})
+			.unwrap_or(0),
+		_ => 0,
+	}
+}
+
+#[derive(Debug)]
+struct UploadJob {
+	prepared: Option<PreparedModel>,
+	textures: VecDeque<PreparedTexture>,
+	texture_cache: HashMap<TextureCacheKey, Dora3DHandle>,
+	uploaded_textures: Vec<Dora3DHandle>,
+	phase: UploadPhase,
+	loaded: Option<LoadedModel>,
+	node_handles: HashMap<usize, Dora3DHandle>,
+	node_cursor: usize,
+	primitive_cursor: usize,
+	skin_cursor: usize,
+	animation_cursor: usize,
+	pending_mesh: Option<Dora3DHandle>,
+	pending_material: Option<Dora3DHandle>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum UploadStep {
+	Pending,
+	Complete(Dora3DHandle),
+	Failed,
+}
+
+fn prepared_registry() -> &'static Mutex<HashMap<Dora3DHandle, PreparedModel>> {
+	static REGISTRY: OnceLock<Mutex<HashMap<Dora3DHandle, PreparedModel>>> = OnceLock::new();
+	REGISTRY.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+fn upload_job_registry() -> &'static Mutex<HashMap<Dora3DHandle, UploadJob>> {
+	static REGISTRY: OnceLock<Mutex<HashMap<Dora3DHandle, UploadJob>>> = OnceLock::new();
 	REGISTRY.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
@@ -49,8 +214,9 @@ pub struct ModelInstance {
 	pub root: Dora3DHandle,
 	pub nodes: Vec<Dora3DHandle>,
 	pub visuals: Vec<Dora3DHandle>,
-	pub skeleton: Option<Dora3DHandle>,
+	pub skeletons: Vec<Dora3DHandle>,
 	pub animations: Vec<Dora3DHandle>,
+	pub node_map: HashMap<Dora3DHandle, Dora3DHandle>,
 	pub playing: bool,
 	pub paused: bool,
 	pub looping: bool,
@@ -76,14 +242,11 @@ fn visual_skeletons() -> &'static Mutex<HashMap<Dora3DHandle, VisualSkeletonBind
 	REGISTRY.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
-fn register_visual_skeletons(visuals: &[Dora3DHandle], skeleton: Option<Dora3DHandle>) {
-	let Some(skeleton) = skeleton else {
-		return;
-	};
-	let mut bindings = visual_skeletons().lock().unwrap();
-	for visual in visuals {
-		bindings.insert(*visual, VisualSkeletonBinding { skeleton });
-	}
+fn register_visual_skeleton(visual: Dora3DHandle, skeleton: Dora3DHandle) {
+	visual_skeletons()
+		.lock()
+		.unwrap()
+		.insert(visual, VisualSkeletonBinding { skeleton });
 }
 
 fn unregister_visual_skeletons(visuals: &[Dora3DHandle]) {
@@ -156,6 +319,50 @@ fn sampler_uses_mips(texture_ref: &gltf::Texture<'_>) -> bool {
 	)
 }
 
+fn prepare_textures(document: &Document, images: &[ImageData]) -> Vec<PreparedTexture> {
+	let mut prepared = HashMap::new();
+	for texture_ref in document.textures() {
+		let image_index = texture_ref.source().index();
+		let sampler_flags = sampler_flags(&texture_ref);
+		let has_mips = sampler_uses_mips(&texture_ref);
+		let key = TextureCacheKey::Source {
+			image_index,
+			sampler_flags,
+			mipmapped: has_mips,
+		};
+		if prepared.contains_key(&key) {
+			continue;
+		}
+		let Some((width, height, rgba)) = images.get(image_index).and_then(image_to_rgba8) else {
+			continue;
+		};
+		let pixels = if has_mips && (width > 1 || height > 1) {
+			match texture::prepare_rgba8_mip_chain(width, height, &rgba) {
+				Some(pixels) => pixels,
+				None => continue,
+			}
+		} else {
+			rgba
+		};
+		prepared.insert(
+			key,
+			PreparedTexture {
+				key,
+				width,
+				height,
+				pixels,
+				sampler_flags,
+				has_mips: has_mips && (width > 1 || height > 1),
+				label: format!("gltf-image-{image_index}"),
+			},
+		);
+	}
+	prepare_packed_textures(document, images, &mut prepared);
+	let mut prepared: Vec<_> = prepared.into_values().collect();
+	prepared.sort_by_key(|texture| texture.key);
+	prepared
+}
+
 fn bgfx_wrap_flags(mode: gltf::texture::WrappingMode, u_axis: bool) -> u64 {
 	use crate::bgfx_rs::bgfx_sys::{
 		BGFX_SAMPLER_U_CLAMP, BGFX_SAMPLER_U_MIRROR, BGFX_SAMPLER_V_CLAMP, BGFX_SAMPLER_V_MIRROR,
@@ -170,7 +377,7 @@ fn bgfx_wrap_flags(mode: gltf::texture::WrappingMode, u_axis: bool) -> u64 {
 }
 
 fn load_texture(
-	textures: &mut HashMap<(usize, u64, bool), Dora3DHandle>,
+	textures: &mut HashMap<TextureCacheKey, Dora3DHandle>,
 	document: &Document,
 	base_path: &Path,
 	image_index: usize,
@@ -180,7 +387,11 @@ fn load_texture(
 	label: &str,
 	loaded: &mut LoadedModel,
 ) -> Option<Dora3DHandle> {
-	let cache_key = (image_index, sampler_flags, mipmapped);
+	let cache_key = TextureCacheKey::Source {
+		image_index,
+		sampler_flags,
+		mipmapped,
+	};
 	if let Some(handle) = textures.get(&cache_key) {
 		return Some(*handle);
 	}
@@ -429,7 +640,7 @@ fn load_texture_by_gltf_index(
 	document: &Document,
 	base_path: &Path,
 	images: &[ImageData],
-	texture_cache: &mut HashMap<(usize, u64, bool), Dora3DHandle>,
+	texture_cache: &mut HashMap<TextureCacheKey, Dora3DHandle>,
 	texture_index: usize,
 	label: &str,
 	loaded: &mut LoadedModel,
@@ -452,13 +663,11 @@ fn load_texture_by_gltf_index(
 	Some((texture_handle, flags))
 }
 
-fn create_packed_thickness_sheen_texture(
+fn pack_thickness_sheen_texture(
 	images: &[ImageData],
 	thickness_image: usize,
 	sheen_roughness_image: usize,
-	sampler_flags: u64,
-	loaded: &mut LoadedModel,
-) -> Option<Dora3DHandle> {
+) -> Option<(u16, u16, Vec<u8>)> {
 	let (thickness_width, thickness_height, thickness_pixels) =
 		image_to_rgba8(images.get(thickness_image)?)?;
 	let (sheen_width, sheen_height, sheen_pixels) =
@@ -485,24 +694,14 @@ fn create_packed_thickness_sheen_texture(
 			]);
 		}
 	}
-	let texture_handle = texture::create_rgba8(
-		width,
-		height,
-		&pixels,
-		sampler_flags,
-		Some("gltf-thickness-sheen"),
-	)?;
-	loaded.textures.push(texture_handle);
-	Some(texture_handle)
+	Some((width, height, pixels))
 }
 
-fn create_packed_metallic_roughness_anisotropy_texture(
+fn pack_metallic_roughness_anisotropy_texture(
 	images: &[ImageData],
 	metallic_roughness_image: Option<usize>,
 	anisotropy_image: usize,
-	sampler_flags: u64,
-	loaded: &mut LoadedModel,
-) -> Option<Dora3DHandle> {
+) -> Option<(u16, u16, Vec<u8>)> {
 	let metallic_roughness_pixels =
 		metallic_roughness_image.and_then(|image| image_to_rgba8(images.get(image)?));
 	let (anisotropy_width, anisotropy_height, anisotropy_pixels) =
@@ -576,15 +775,97 @@ fn create_packed_metallic_roughness_anisotropy_texture(
 			]);
 		}
 	}
-	let texture_handle = texture::create_rgba8(
-		width,
-		height,
-		&pixels,
-		sampler_flags,
-		Some("gltf-metallic-roughness-anisotropy"),
-	)?;
-	loaded.textures.push(texture_handle);
-	Some(texture_handle)
+	Some((width, height, pixels))
+}
+
+fn prepare_packed_textures(
+	document: &Document,
+	images: &[ImageData],
+	prepared: &mut HashMap<TextureCacheKey, PreparedTexture>,
+) {
+	for source_material in document.materials() {
+		let thickness_source = source_material.volume().and_then(|volume| {
+			let texture = volume.thickness_texture()?.texture();
+			Some((texture.source().index(), sampler_flags(&texture)))
+		});
+		let sheen_source = source_material
+			.extension_value("KHR_materials_sheen")
+			.and_then(|sheen| json_texture_index(sheen, "sheenRoughnessTexture"))
+			.and_then(|texture_index| document.textures().nth(texture_index))
+			.map(|texture| (texture.source().index(), sampler_flags(&texture)));
+		if let (Some((thickness_image, thickness_flags)), Some((sheen_image, sheen_flags))) =
+			(thickness_source, sheen_source)
+		{
+			let sampler_flags = thickness_flags | sheen_flags;
+			let key = TextureCacheKey::ThicknessSheen {
+				thickness_image,
+				sheen_roughness_image: sheen_image,
+				sampler_flags,
+			};
+			if !prepared.contains_key(&key) {
+				if let Some((width, height, pixels)) =
+					pack_thickness_sheen_texture(images, thickness_image, sheen_image)
+				{
+					prepared.insert(
+						key,
+						PreparedTexture {
+							key,
+							width,
+							height,
+							pixels,
+							sampler_flags,
+							has_mips: false,
+							label: "gltf-thickness-sheen".to_owned(),
+						},
+					);
+				}
+			}
+		}
+
+		let anisotropy_texture = source_material
+			.extension_value("KHR_materials_anisotropy")
+			.and_then(|anisotropy| json_texture_index(anisotropy, "anisotropyTexture"))
+			.and_then(|texture_index| document.textures().nth(texture_index));
+		if let Some(anisotropy_texture) = anisotropy_texture {
+			let anisotropy_image = anisotropy_texture.source().index();
+			let metallic_roughness = source_material
+				.pbr_metallic_roughness()
+				.metallic_roughness_texture();
+			let metallic_roughness_image = metallic_roughness
+				.as_ref()
+				.map(|info| info.texture().source().index());
+			let sampler_flags = metallic_roughness
+				.as_ref()
+				.map(|info| sampler_flags(&info.texture()))
+				.unwrap_or(0)
+				| sampler_flags(&anisotropy_texture);
+			let key = TextureCacheKey::MetallicRoughnessAnisotropy {
+				metallic_roughness_image,
+				anisotropy_image,
+				sampler_flags,
+			};
+			if !prepared.contains_key(&key) {
+				if let Some((width, height, pixels)) = pack_metallic_roughness_anisotropy_texture(
+					images,
+					metallic_roughness_image,
+					anisotropy_image,
+				) {
+					prepared.insert(
+						key,
+						PreparedTexture {
+							key,
+							width,
+							height,
+							pixels,
+							sampler_flags,
+							has_mips: false,
+							label: "gltf-metallic-roughness-anisotropy".to_owned(),
+						},
+					);
+				}
+			}
+		}
+	}
 }
 
 fn create_material(
@@ -592,7 +873,7 @@ fn create_material(
 	base_path: &Path,
 	primitive: &gltf::Primitive<'_>,
 	images: &[ImageData],
-	texture_cache: &mut HashMap<(usize, u64, bool), Dora3DHandle>,
+	texture_cache: &mut HashMap<TextureCacheKey, Dora3DHandle>,
 	loaded: &mut LoadedModel,
 ) -> Dora3DHandle {
 	let material_handle = material::create();
@@ -790,13 +1071,12 @@ fn create_material(
 		(thickness_pack_source, sheen_roughness_pack_source)
 	{
 		let flags = thickness_flags | sheen_flags;
-		if let Some(texture_handle) = create_packed_thickness_sheen_texture(
-			images,
+		let key = TextureCacheKey::ThicknessSheen {
 			thickness_image,
-			sheen_image,
-			flags,
-			loaded,
-		) {
+			sheen_roughness_image: sheen_image,
+			sampler_flags: flags,
+		};
+		if let Some(texture_handle) = texture_cache.get(&key).copied() {
 			let _ = material::set_texture_with_flags(
 				material_handle,
 				material::default_thickness_sheen_slot(),
@@ -923,13 +1203,12 @@ fn create_material(
 					anisotropy.get("anisotropyTexture"),
 				);
 			}
-			if let Some(texture_handle) = create_packed_metallic_roughness_anisotropy_texture(
-				images,
+			let key = TextureCacheKey::MetallicRoughnessAnisotropy {
 				metallic_roughness_image,
 				anisotropy_image,
-				flags,
-				loaded,
-			) {
+				sampler_flags: flags,
+			};
+			if let Some(texture_handle) = texture_cache.get(&key).copied() {
 				let _ = material::set_texture_with_flags(
 					material_handle,
 					material::default_metallic_roughness_slot(),
@@ -1270,10 +1549,10 @@ fn primitive_tangent_tex_coord(primitive: &gltf::Primitive<'_>) -> u32 {
 		.unwrap_or(0)
 }
 
-fn primitive_to_mesh(
+fn prepare_primitive_mesh(
 	primitive: &gltf::Primitive<'_>,
 	buffers: &[BufferData],
-) -> Option<Dora3DHandle> {
+) -> Option<PreparedMesh> {
 	let reader = primitive.reader(|buffer| Some(&buffers[buffer.index()]));
 	let positions: Vec<[f32; 3]> = reader.read_positions()?.collect();
 	let uvs: Option<Vec<[f32; 2]>> = reader
@@ -1406,60 +1685,45 @@ fn primitive_to_mesh(
 		index_count: indices.len() as u32,
 		material_slot: primitive.material().index().unwrap_or(0) as u32,
 	}];
-	Some(mesh::create(vertices, indices, Some(sub_meshes)))
+	Some(PreparedMesh {
+		vertices,
+		indices,
+		sub_meshes,
+	})
 }
 
-fn import_node(
+fn prepare_node(
 	node: Node<'_>,
-	parent: Dora3DHandle,
-	document: &Document,
-	base_path: &Path,
+	parent_source_index: Option<usize>,
 	buffers: &[BufferData],
-	images: &[ImageData],
-	texture_cache: &mut HashMap<(usize, u64, bool), Dora3DHandle>,
-	node_handles: &mut HashMap<usize, Dora3DHandle>,
-	loaded: &mut LoadedModel,
+	nodes: &mut Vec<PreparedNode>,
+	primitives: &mut Vec<PreparedPrimitive>,
 ) {
-	let current = node3d::create();
-	node_handles.insert(node.index(), current);
-	loaded.nodes.push(current);
-	let _ = node3d::add_child(parent, current, 0, node.name());
 	let (translation, rotation, scale) = node.transform().decomposed();
-	let _ = node3d::set_position(current, Vec3::from_array(translation));
-	let _ = node3d::set_rotation(current, Quaternion::from_array(rotation));
-	let _ = node3d::set_scale(current, Vec3::from_array(scale));
-
+	let source_index = node.index();
+	let skin_index = node.skin().map(|skin| skin.index());
 	if let Some(mesh_ref) = node.mesh() {
-		for primitive in mesh_ref.primitives() {
-			if let Some(mesh_handle) = primitive_to_mesh(&primitive, buffers) {
-				let material_handle = create_material(
-					document,
-					base_path,
-					&primitive,
-					images,
-					texture_cache,
-					loaded,
-				);
-				let visual_handle = visual3d::create(current, mesh_handle, material_handle);
-				loaded.meshes.push(mesh_handle);
-				loaded.materials.push(material_handle);
-				loaded.visuals.push(visual_handle);
+		for (primitive_index, primitive) in mesh_ref.primitives().enumerate() {
+			if let Some(mesh) = prepare_primitive_mesh(&primitive, buffers) {
+				primitives.push(PreparedPrimitive {
+					source_node_index: source_index,
+					primitive_index,
+					skin_index,
+					mesh: Some(mesh),
+				});
 			}
 		}
 	}
-
+	nodes.push(PreparedNode {
+		source_index,
+		parent_source_index,
+		name: node.name().map(str::to_owned),
+		position: Vec3::from_array(translation),
+		rotation: Quaternion::from_array(rotation),
+		scale: Vec3::from_array(scale),
+	});
 	for child in node.children() {
-		import_node(
-			child,
-			current,
-			document,
-			base_path,
-			buffers,
-			images,
-			texture_cache,
-			node_handles,
-			loaded,
-		);
+		prepare_node(child, Some(source_index), buffers, nodes, primitives);
 	}
 }
 
@@ -1469,19 +1733,25 @@ fn scene_root(document: &Document) -> Option<gltf::Scene<'_>> {
 		.or_else(|| document.scenes().next())
 }
 
-fn load_skeletons(
+fn prepare_scene(
 	document: &Document,
 	buffers: &[BufferData],
-	node_handles: &HashMap<usize, Dora3DHandle>,
-	loaded: &mut LoadedModel,
-) -> HashMap<Dora3DHandle, usize> {
-	let mut primary_joint_lookup = HashMap::new();
+) -> (Vec<PreparedNode>, Vec<PreparedPrimitive>) {
+	let mut nodes = Vec::new();
+	let mut primitives = Vec::new();
+	if let Some(scene) = scene_root(document) {
+		for node in scene.nodes() {
+			prepare_node(node, None, buffers, &mut nodes, &mut primitives);
+		}
+	}
+	(nodes, primitives)
+}
+
+fn prepare_skeletons(document: &Document, buffers: &[BufferData]) -> Vec<PreparedSkeleton> {
+	let mut skeletons = Vec::new();
 	for skin in document.skins() {
-		let joints: Vec<Dora3DHandle> = skin
-			.joints()
-			.filter_map(|joint| node_handles.get(&joint.index()).copied())
-			.collect();
-		if joints.is_empty() {
+		let joint_source_indices: Vec<usize> = skin.joints().map(|joint| joint.index()).collect();
+		if joint_source_indices.is_empty() {
 			continue;
 		}
 		let mut inverse_bind_matrices: Vec<Mat4> = skin
@@ -1492,37 +1762,91 @@ fn load_skeletons(
 					.map(|matrix| Mat4::from_cols_array_2d(&matrix))
 					.collect()
 			})
-			.unwrap_or_else(|| vec![Mat4::IDENTITY; joints.len()]);
-		if inverse_bind_matrices.len() < joints.len() {
-			inverse_bind_matrices.resize(joints.len(), Mat4::IDENTITY);
-		} else if inverse_bind_matrices.len() > joints.len() {
-			inverse_bind_matrices.truncate(joints.len());
+			.unwrap_or_else(|| vec![Mat4::IDENTITY; joint_source_indices.len()]);
+		if inverse_bind_matrices.len() < joint_source_indices.len() {
+			inverse_bind_matrices.resize(joint_source_indices.len(), Mat4::IDENTITY);
+		} else if inverse_bind_matrices.len() > joint_source_indices.len() {
+			inverse_bind_matrices.truncate(joint_source_indices.len());
 		}
-		let skeleton_handle = animation::create(AnimationData::Skeleton(SkeletonData {
-			handle: 0,
-			joints: joints.clone(),
+		skeletons.push(PreparedSkeleton {
+			skin_index: skin.index(),
+			joint_source_indices,
 			inverse_bind_matrices,
-		}));
-		if loaded.skeleton.is_none() {
-			loaded.skeleton = Some(skeleton_handle);
-			primary_joint_lookup = joints
-				.iter()
-				.enumerate()
-				.map(|(index, handle)| (*handle, index))
-				.collect();
-		}
-		loaded.skeletons.push(skeleton_handle);
+		});
 	}
-	primary_joint_lookup
+	skeletons
 }
 
-fn load_animation_clips(
-	document: &Document,
-	buffers: &[BufferData],
-	node_handles: &HashMap<usize, Dora3DHandle>,
-	joint_lookup: &HashMap<Dora3DHandle, usize>,
-	loaded: &mut LoadedModel,
-) {
+fn build_vec3_keyframes(
+	times: &[f32],
+	values: Vec<Vec3>,
+	property: ChannelProperty,
+	interpolation: Interpolation,
+) -> Vec<Keyframe> {
+	let make_value = |value| match property {
+		ChannelProperty::Translation => KeyframeValue::Translation(value),
+		ChannelProperty::Scale => KeyframeValue::Scale(value),
+		ChannelProperty::Rotation => unreachable!(),
+	};
+	if interpolation == Interpolation::CubicSpline {
+		return times
+			.iter()
+			.copied()
+			.zip(values.chunks_exact(3))
+			.map(|(time, values)| Keyframe {
+				time,
+				value: make_value(values[1]),
+				in_tangent: Some(values[0].extend(0.0)),
+				out_tangent: Some(values[2].extend(0.0)),
+			})
+			.collect();
+	}
+	times
+		.iter()
+		.copied()
+		.zip(values)
+		.map(|(time, value)| Keyframe {
+			time,
+			value: make_value(value),
+			in_tangent: None,
+			out_tangent: None,
+		})
+		.collect()
+}
+
+fn build_rotation_keyframes(
+	times: &[f32],
+	values: Vec<[f32; 4]>,
+	interpolation: Interpolation,
+) -> Vec<Keyframe> {
+	if interpolation == Interpolation::CubicSpline {
+		return times
+			.iter()
+			.copied()
+			.zip(values.chunks_exact(3))
+			.map(|(time, values)| Keyframe {
+				time,
+				value: KeyframeValue::Rotation(Quaternion::from_array(values[1]).normalize()),
+				in_tangent: Some(Vec4::from_array(values[0])),
+				out_tangent: Some(Vec4::from_array(values[2])),
+			})
+			.collect();
+	}
+	times
+		.iter()
+		.copied()
+		.zip(values)
+		.map(|(time, value)| Keyframe {
+			time,
+			value: KeyframeValue::Rotation(Quaternion::from_array(value).normalize()),
+			in_tangent: None,
+			out_tangent: None,
+		})
+		.collect()
+}
+
+fn prepare_animation_clips(document: &Document, buffers: &[BufferData]) -> Vec<PreparedAnimation> {
+	let mut animations = Vec::new();
 	for animation_ref in document.animations() {
 		let mut duration = 0.0f32;
 		let mut channels = Vec::new();
@@ -1534,12 +1858,7 @@ fn load_animation_clips(
 				GltfProperty::Scale => ChannelProperty::Scale,
 				GltfProperty::MorphTargetWeights => continue,
 			};
-			let Some(target_handle) = node_handles.get(&target.node().index()).copied() else {
-				continue;
-			};
-			let Some(joint_index) = joint_lookup.get(&target_handle).copied() else {
-				continue;
-			};
+			let target_source_index = target.node().index();
 			let reader = channel.reader(|buffer| Some(&buffers[buffer.index()]));
 			let Some(inputs) = reader.read_inputs() else {
 				continue;
@@ -1554,39 +1873,38 @@ fn load_animation_clips(
 			let Some(outputs) = reader.read_outputs() else {
 				continue;
 			};
+			let interpolation = match channel.sampler().interpolation() {
+				GltfInterpolation::Step => Interpolation::Step,
+				GltfInterpolation::Linear => Interpolation::Linear,
+				GltfInterpolation::CubicSpline => Interpolation::CubicSpline,
+			};
 			let keyframes: Vec<Keyframe> = match (property, outputs) {
-				(ChannelProperty::Translation, ReadOutputs::Translations(values)) => times
-					.into_iter()
-					.zip(values)
-					.map(|(time, value)| Keyframe {
-						time,
-						value: KeyframeValue::Translation(Vec3::from_array(value)),
-					})
-					.collect(),
-				(ChannelProperty::Rotation, ReadOutputs::Rotations(values)) => times
-					.into_iter()
-					.zip(values.into_f32())
-					.map(|(time, value)| Keyframe {
-						time,
-						value: KeyframeValue::Rotation(Quaternion::from_array(value)),
-					})
-					.collect(),
-				(ChannelProperty::Scale, ReadOutputs::Scales(values)) => times
-					.into_iter()
-					.zip(values)
-					.map(|(time, value)| Keyframe {
-						time,
-						value: KeyframeValue::Scale(Vec3::from_array(value)),
-					})
-					.collect(),
+				(ChannelProperty::Translation, ReadOutputs::Translations(values)) => {
+					build_vec3_keyframes(
+						&times,
+						values.map(Vec3::from_array).collect(),
+						property,
+						interpolation,
+					)
+				}
+				(ChannelProperty::Rotation, ReadOutputs::Rotations(values)) => {
+					build_rotation_keyframes(&times, values.into_f32().collect(), interpolation)
+				}
+				(ChannelProperty::Scale, ReadOutputs::Scales(values)) => build_vec3_keyframes(
+					&times,
+					values.map(Vec3::from_array).collect(),
+					property,
+					interpolation,
+				),
 				_ => continue,
 			};
 			if keyframes.is_empty() {
 				continue;
 			}
-			channels.push(AnimationChannel {
-				joint_index,
+			channels.push(PreparedAnimationChannel {
+				target_source_index,
 				property,
+				interpolation,
 				keyframes,
 			});
 		}
@@ -1597,14 +1915,13 @@ fn load_animation_clips(
 			.name()
 			.map(str::to_owned)
 			.unwrap_or_else(|| format!("animation_{}", animation_ref.index()));
-		let clip_handle = animation::create(AnimationData::Clip(AnimationClipData {
-			handle: 0,
+		animations.push(PreparedAnimation {
 			name,
 			duration,
 			channels,
-		}));
-		loaded.animations.push(clip_handle);
+		});
 	}
+	animations
 }
 
 fn import_gltf(path: &Path) -> Option<(Document, Vec<BufferData>, Vec<ImageData>)> {
@@ -1668,64 +1985,387 @@ fn import_gltf(path: &Path) -> Option<(Document, Vec<BufferData>, Vec<ImageData>
 	Some((document, buffers, images))
 }
 
-pub fn load_gltf(path: &str) -> Option<Dora3DHandle> {
-	let path_buf = PathBuf::from(path);
-	let base_path = path_buf.parent().unwrap_or_else(|| Path::new("./"));
-	let (document, buffers, images) = import_gltf(&path_buf)?;
-	let synthetic_root = node3d::create();
+pub fn parse_gltf(path: &str) -> Option<Dora3DHandle> {
+	let path = PathBuf::from(path);
+	let (document, buffers, images) = import_gltf(&path)?;
+	let textures = prepare_textures(&document, &images);
+	let (nodes, primitives) = prepare_scene(&document, &buffers);
+	let skeletons = prepare_skeletons(&document, &buffers);
+	let animations = prepare_animation_clips(&document, &buffers);
 	let handle = next_handle();
-	let mut loaded = LoadedModel {
+	prepared_registry().lock().unwrap().insert(
 		handle,
-		root: synthetic_root,
-		nodes: vec![synthetic_root],
-		visuals: Vec::new(),
-		meshes: Vec::new(),
-		materials: Vec::new(),
-		textures: Vec::new(),
-		skeleton: None,
-		skeletons: Vec::new(),
-		animations: Vec::new(),
-	};
-	let scene = match scene_root(&document) {
-		Some(scene) => scene,
-		None => {
-			print_error(&format!("glTF '{}' does not contain a scene.", path));
-			registry().lock().unwrap().insert(handle, loaded);
-			return Some(handle);
-		}
-	};
-	let mut texture_cache = HashMap::new();
-	let mut node_handles = HashMap::new();
-	for root_node in scene.nodes() {
-		import_node(
-			root_node,
-			synthetic_root,
-			&document,
-			base_path,
-			&buffers,
-			&images,
-			&mut texture_cache,
-			&mut node_handles,
-			&mut loaded,
-		);
-	}
-	let joint_lookup = load_skeletons(&document, &buffers, &node_handles, &mut loaded);
-	load_animation_clips(
-		&document,
-		&buffers,
-		&node_handles,
-		&joint_lookup,
-		&mut loaded,
+		PreparedModel {
+			path,
+			document,
+			images,
+			textures,
+			nodes,
+			primitives,
+			skeletons,
+			animations,
+		},
 	);
-	register_visual_skeletons(&loaded.visuals, loaded.skeleton);
-	registry().lock().unwrap().insert(handle, loaded);
 	Some(handle)
 }
 
-pub fn destroy(handle: Dora3DHandle) -> bool {
-	let Some(model) = registry().lock().unwrap().remove(&handle) else {
+pub fn upload_gltf(prepared: Dora3DHandle) -> Option<Dora3DHandle> {
+	let job = begin_upload_gltf(prepared)?;
+	loop {
+		match step_upload_gltf(job) {
+			UploadStep::Pending => continue,
+			UploadStep::Complete(model) => return Some(model),
+			UploadStep::Failed => return None,
+		}
+	}
+}
+
+pub fn begin_upload_gltf(prepared: Dora3DHandle) -> Option<Dora3DHandle> {
+	let mut prepared = prepared_registry().lock().unwrap().remove(&prepared)?;
+	let textures = std::mem::take(&mut prepared.textures).into();
+	let handle = next_handle();
+	upload_job_registry().lock().unwrap().insert(
+		handle,
+		UploadJob {
+			prepared: Some(prepared),
+			textures,
+			texture_cache: HashMap::new(),
+			uploaded_textures: Vec::new(),
+			phase: UploadPhase::Textures,
+			loaded: None,
+			node_handles: HashMap::new(),
+			node_cursor: 0,
+			primitive_cursor: 0,
+			skin_cursor: 0,
+			animation_cursor: 0,
+			pending_mesh: None,
+			pending_material: None,
+		},
+	);
+	Some(handle)
+}
+
+pub fn step_upload_gltf(job: Dora3DHandle) -> UploadStep {
+	let Some(mut upload) = upload_job_registry().lock().unwrap().remove(&job) else {
+		return UploadStep::Failed;
+	};
+	let phase = upload.phase as u8;
+	let bytes = upload_command_bytes(&upload);
+	let started = Instant::now();
+	let result = step_upload_job(&mut upload);
+	profile3d::record_upload(0, phase, started.elapsed().as_micros() as u64, bytes);
+	match result {
+		UploadStep::Pending => {
+			upload_job_registry().lock().unwrap().insert(job, upload);
+			UploadStep::Pending
+		}
+		UploadStep::Complete(model) => UploadStep::Complete(model),
+		UploadStep::Failed => {
+			cleanup_upload_job(upload);
+			UploadStep::Failed
+		}
+	}
+}
+
+pub fn cancel_upload_gltf(job: Dora3DHandle) -> bool {
+	let Some(job) = upload_job_registry().lock().unwrap().remove(&job) else {
 		return false;
 	};
+	cleanup_upload_job(job);
+	true
+}
+
+fn step_upload_job(job: &mut UploadJob) -> UploadStep {
+	match job.phase {
+		UploadPhase::Textures => step_upload_texture(job),
+		UploadPhase::Initialize => initialize_upload(job),
+		UploadPhase::Nodes => step_upload_node(job),
+		UploadPhase::Meshes => step_upload_mesh(job),
+		UploadPhase::Materials => step_upload_material(job),
+		UploadPhase::Visuals => step_upload_visual(job),
+		UploadPhase::Skeletons => step_upload_skeleton(job),
+		UploadPhase::Animations => step_upload_animation(job),
+		UploadPhase::Finalize => finalize_upload(job),
+	}
+}
+
+fn step_upload_texture(job: &mut UploadJob) -> UploadStep {
+	let Some(prepared_texture) = job.textures.pop_front() else {
+		job.phase = UploadPhase::Initialize;
+		return UploadStep::Pending;
+	};
+	let Some(texture_handle) = texture::create_prepared_rgba8(
+		prepared_texture.width,
+		prepared_texture.height,
+		&prepared_texture.pixels,
+		prepared_texture.sampler_flags,
+		prepared_texture.has_mips,
+		Some(&prepared_texture.label),
+	) else {
+		return UploadStep::Failed;
+	};
+	job.texture_cache
+		.insert(prepared_texture.key, texture_handle);
+	job.uploaded_textures.push(texture_handle);
+	UploadStep::Pending
+}
+
+fn initialize_upload(job: &mut UploadJob) -> UploadStep {
+	if job.prepared.is_none() || job.loaded.is_some() {
+		return UploadStep::Failed;
+	}
+	let root = node3d::create();
+	let handle = next_handle();
+	job.loaded = Some(LoadedModel {
+		handle,
+		root,
+		nodes: vec![root],
+		visuals: Vec::new(),
+		meshes: Vec::new(),
+		materials: Vec::new(),
+		textures: std::mem::take(&mut job.uploaded_textures),
+		skeleton: None,
+		skeletons: Vec::new(),
+		animations: Vec::new(),
+		visual_skins: HashMap::new(),
+		skin_skeletons: HashMap::new(),
+	});
+	job.phase = UploadPhase::Nodes;
+	UploadStep::Pending
+}
+
+fn step_upload_node(job: &mut UploadJob) -> UploadStep {
+	let Some(prepared) = job.prepared.as_ref() else {
+		return UploadStep::Failed;
+	};
+	let Some(node) = prepared.nodes.get(job.node_cursor) else {
+		job.phase = UploadPhase::Meshes;
+		return UploadStep::Pending;
+	};
+	let Some(loaded) = job.loaded.as_mut() else {
+		return UploadStep::Failed;
+	};
+	let parent = match node.parent_source_index {
+		Some(parent) => match job.node_handles.get(&parent).copied() {
+			Some(parent) => parent,
+			None => return UploadStep::Failed,
+		},
+		None => loaded.root,
+	};
+	let handle = node3d::create();
+	if !node3d::add_child(parent, handle, 0, node.name.as_deref()) {
+		let _ = node3d::destroy(handle);
+		return UploadStep::Failed;
+	}
+	let _ = node3d::set_position(handle, node.position);
+	let _ = node3d::set_rotation(handle, node.rotation);
+	let _ = node3d::set_scale(handle, node.scale);
+	job.node_handles.insert(node.source_index, handle);
+	loaded.nodes.push(handle);
+	job.node_cursor += 1;
+	UploadStep::Pending
+}
+
+fn step_upload_mesh(job: &mut UploadJob) -> UploadStep {
+	let Some(prepared) = job.prepared.as_mut() else {
+		return UploadStep::Failed;
+	};
+	let Some(primitive) = prepared.primitives.get_mut(job.primitive_cursor) else {
+		job.phase = UploadPhase::Skeletons;
+		return UploadStep::Pending;
+	};
+	let Some(prepared_mesh) = primitive.mesh.take() else {
+		return UploadStep::Failed;
+	};
+	let mesh_handle = mesh::create(
+		prepared_mesh.vertices,
+		prepared_mesh.indices,
+		Some(prepared_mesh.sub_meshes),
+	);
+	let Some(loaded) = job.loaded.as_mut() else {
+		let _ = mesh::destroy(mesh_handle);
+		return UploadStep::Failed;
+	};
+	loaded.meshes.push(mesh_handle);
+	job.pending_mesh = Some(mesh_handle);
+	job.phase = UploadPhase::Materials;
+	UploadStep::Pending
+}
+
+fn step_upload_material(job: &mut UploadJob) -> UploadStep {
+	let Some(prepared) = job.prepared.as_ref() else {
+		return UploadStep::Failed;
+	};
+	let Some(prepared_primitive) = prepared.primitives.get(job.primitive_cursor) else {
+		return UploadStep::Failed;
+	};
+	let Some(source_node) = prepared
+		.document
+		.nodes()
+		.find(|node| node.index() == prepared_primitive.source_node_index)
+	else {
+		return UploadStep::Failed;
+	};
+	let Some(source_mesh) = source_node.mesh() else {
+		return UploadStep::Failed;
+	};
+	let Some(source_primitive) = source_mesh
+		.primitives()
+		.nth(prepared_primitive.primitive_index)
+	else {
+		return UploadStep::Failed;
+	};
+	let Some(loaded) = job.loaded.as_mut() else {
+		return UploadStep::Failed;
+	};
+	let base_path = prepared.path.parent().unwrap_or_else(|| Path::new("./"));
+	let material_handle = create_material(
+		&prepared.document,
+		base_path,
+		&source_primitive,
+		&prepared.images,
+		&mut job.texture_cache,
+		loaded,
+	);
+	loaded.materials.push(material_handle);
+	job.pending_material = Some(material_handle);
+	job.phase = UploadPhase::Visuals;
+	UploadStep::Pending
+}
+
+fn step_upload_visual(job: &mut UploadJob) -> UploadStep {
+	let Some(prepared) = job.prepared.as_ref() else {
+		return UploadStep::Failed;
+	};
+	let Some(primitive) = prepared.primitives.get(job.primitive_cursor) else {
+		return UploadStep::Failed;
+	};
+	let Some(node) = job.node_handles.get(&primitive.source_node_index).copied() else {
+		return UploadStep::Failed;
+	};
+	let (Some(mesh), Some(material)) = (job.pending_mesh.take(), job.pending_material.take())
+	else {
+		return UploadStep::Failed;
+	};
+	let visual = visual3d::create(node, mesh, material);
+	let Some(loaded) = job.loaded.as_mut() else {
+		let _ = visual3d::destroy(visual);
+		return UploadStep::Failed;
+	};
+	loaded.visuals.push(visual);
+	if let Some(skin_index) = primitive.skin_index {
+		loaded.visual_skins.insert(visual, skin_index);
+	}
+	job.primitive_cursor += 1;
+	job.phase = UploadPhase::Meshes;
+	UploadStep::Pending
+}
+
+fn step_upload_skeleton(job: &mut UploadJob) -> UploadStep {
+	let Some(prepared) = job.prepared.as_mut() else {
+		return UploadStep::Failed;
+	};
+	let Some(skeleton) = prepared.skeletons.get_mut(job.skin_cursor) else {
+		job.phase = UploadPhase::Animations;
+		return UploadStep::Pending;
+	};
+	let joints: Vec<_> = skeleton
+		.joint_source_indices
+		.iter()
+		.filter_map(|joint| job.node_handles.get(joint).copied())
+		.collect();
+	if !joints.is_empty() {
+		let skeleton_handle = animation::create(AnimationData::Skeleton(SkeletonData {
+			handle: 0,
+			joints,
+			inverse_bind_matrices: std::mem::take(&mut skeleton.inverse_bind_matrices),
+		}));
+		let Some(loaded) = job.loaded.as_mut() else {
+			let _ = animation::destroy(skeleton_handle);
+			return UploadStep::Failed;
+		};
+		if loaded.skeleton.is_none() {
+			loaded.skeleton = Some(skeleton_handle);
+		}
+		loaded
+			.skin_skeletons
+			.insert(skeleton.skin_index, skeleton_handle);
+		loaded.skeletons.push(skeleton_handle);
+	}
+	job.skin_cursor += 1;
+	UploadStep::Pending
+}
+
+fn step_upload_animation(job: &mut UploadJob) -> UploadStep {
+	let Some(prepared) = job.prepared.as_mut() else {
+		return UploadStep::Failed;
+	};
+	let Some(animation) = prepared.animations.get_mut(job.animation_cursor) else {
+		job.phase = UploadPhase::Finalize;
+		return UploadStep::Pending;
+	};
+	let channels: Vec<_> = std::mem::take(&mut animation.channels)
+		.into_iter()
+		.filter_map(|channel| {
+			let target_node = job
+				.node_handles
+				.get(&channel.target_source_index)
+				.copied()?;
+			Some(AnimationChannel {
+				target_node,
+				property: channel.property,
+				interpolation: channel.interpolation,
+				keyframes: channel.keyframes,
+			})
+		})
+		.collect();
+	if !channels.is_empty() {
+		let clip = animation::create(AnimationData::Clip(AnimationClipData {
+			handle: 0,
+			name: std::mem::take(&mut animation.name),
+			duration: animation.duration,
+			channels,
+		}));
+		let Some(loaded) = job.loaded.as_mut() else {
+			let _ = animation::destroy(clip);
+			return UploadStep::Failed;
+		};
+		loaded.animations.push(clip);
+	}
+	job.animation_cursor += 1;
+	UploadStep::Pending
+}
+
+fn finalize_upload(job: &mut UploadJob) -> UploadStep {
+	let Some(loaded) = job.loaded.take() else {
+		return UploadStep::Failed;
+	};
+	for (visual, skin_index) in &loaded.visual_skins {
+		if let Some(skeleton) = loaded.skin_skeletons.get(skin_index) {
+			register_visual_skeleton(*visual, *skeleton);
+		}
+	}
+	let handle = loaded.handle;
+	registry().lock().unwrap().insert(handle, loaded);
+	UploadStep::Complete(handle)
+}
+
+fn cleanup_upload_job(mut job: UploadJob) {
+	if let Some(loaded) = job.loaded.take() {
+		destroy_loaded_model(loaded);
+	} else {
+		for texture in job.uploaded_textures {
+			let _ = texture::destroy(texture);
+		}
+	}
+}
+
+pub fn load_gltf(path: &str) -> Option<Dora3DHandle> {
+	let prepared = parse_gltf(path)?;
+	upload_gltf(prepared)
+}
+
+fn destroy_loaded_model(model: LoadedModel) {
 	unregister_visual_skeletons(&model.visuals);
 	for visual in model.visuals {
 		let _ = visual3d::destroy(visual);
@@ -1748,6 +2388,13 @@ pub fn destroy(handle: Dora3DHandle) -> bool {
 	for node_handle in model.nodes {
 		let _ = node3d::destroy(node_handle);
 	}
+}
+
+pub fn destroy(handle: Dora3DHandle) -> bool {
+	let Some(model) = registry().lock().unwrap().remove(&handle) else {
+		return false;
+	};
+	destroy_loaded_model(model);
 	true
 }
 
@@ -1761,6 +2408,7 @@ pub fn instantiate(handle: Dora3DHandle, parent: Dora3DHandle) -> Option<Dora3DH
 		return None;
 	}
 	let mut visuals = Vec::new();
+	let mut cloned_visual_sources = Vec::new();
 	for visual_handle in model.visuals {
 		if let Some((node, mesh, material, enabled)) =
 			visual3d::with_visual(visual_handle, |visual| {
@@ -1770,31 +2418,39 @@ pub fn instantiate(handle: Dora3DHandle, parent: Dora3DHandle) -> Option<Dora3DH
 				let cloned_visual = visual3d::create(cloned_node, mesh, material);
 				visual3d::set_enabled(cloned_visual, enabled);
 				visuals.push(cloned_visual);
+				cloned_visual_sources.push((cloned_visual, visual_handle));
 			}
 		}
 	}
-	let mut skeleton = None;
-	let mut animations = Vec::new();
-	if let Some(source_skeleton) = model.skeleton {
-		skeleton = animation::with_skeleton(source_skeleton, Clone::clone).and_then(|source| {
-			let joints: Vec<Dora3DHandle> = source
+	let mut skeletons = Vec::new();
+	let mut cloned_skeletons = HashMap::new();
+	for source_skeleton in model.skeletons {
+		let cloned = animation::with_skeleton(source_skeleton, Clone::clone).and_then(|source| {
+			let joints: Option<Vec<Dora3DHandle>> = source
 				.joints
 				.iter()
-				.filter_map(|joint| node_map.get(joint).copied())
+				.map(|joint| node_map.get(joint).copied())
 				.collect();
-			if joints.is_empty() {
-				return None;
-			}
+			let joints = joints?;
 			Some(animation::create(AnimationData::Skeleton(SkeletonData {
 				handle: 0,
 				joints,
 				inverse_bind_matrices: source.inverse_bind_matrices.clone(),
 			})))
 		});
-		animations = model.animations.clone();
+		if let Some(cloned) = cloned {
+			cloned_skeletons.insert(source_skeleton, cloned);
+			skeletons.push(cloned);
+		}
+	}
+	for (cloned_visual, source_visual) in cloned_visual_sources {
+		if let Some(source_skeleton) = skeleton_for_visual(source_visual) {
+			if let Some(cloned_skeleton) = cloned_skeletons.get(&source_skeleton) {
+				register_visual_skeleton(cloned_visual, *cloned_skeleton);
+			}
+		}
 	}
 	let instance = next_handle();
-	register_visual_skeletons(&visuals, skeleton);
 	instance_registry().lock().unwrap().insert(
 		instance,
 		ModelInstance {
@@ -1803,8 +2459,9 @@ pub fn instantiate(handle: Dora3DHandle, parent: Dora3DHandle) -> Option<Dora3DH
 			root,
 			nodes,
 			visuals,
-			skeleton,
-			animations,
+			skeletons,
+			animations: model.animations.clone(),
+			node_map,
 			playing: false,
 			paused: false,
 			looping: false,
@@ -1825,7 +2482,7 @@ pub fn destroy_instance(handle: Dora3DHandle) -> bool {
 	for visual in instance.visuals {
 		let _ = visual3d::destroy(visual);
 	}
-	if let Some(skeleton) = instance.skeleton {
+	for skeleton in instance.skeletons {
 		let _ = animation::destroy(skeleton);
 	}
 	for node in instance.nodes {
@@ -1930,7 +2587,7 @@ pub fn get_duration_instance(handle: Dora3DHandle) -> f32 {
 }
 
 pub fn update_instance(handle: Dora3DHandle, delta_time: f32) -> bool {
-	let (clip_handle, skeleton_handle, nodes, sample_time, still_playing, mut sample_buffer) = {
+	let (clip_handle, node_map, sample_time, still_playing, mut sample_buffer) = {
 		let mut instances = instance_registry().lock().unwrap();
 		let Some(instance) = instances.get_mut(&handle) else {
 			return false;
@@ -1945,15 +2602,15 @@ pub fn update_instance(handle: Dora3DHandle, delta_time: f32) -> bool {
 			instance.playing = false;
 			return false;
 		};
-		let Some(skeleton_handle) = instance.skeleton else {
-			instance.playing = false;
-			return false;
-		};
 		instance.elapsed += delta_time.max(0.0) * instance.speed;
 		let duration = animation::with_clip(clip_handle, |clip| clip.duration).unwrap_or(0.0);
 		let mut still_playing = true;
 		let sample_time = if instance.looping {
-			instance.elapsed
+			if duration > 0.0 {
+				instance.elapsed.rem_euclid(duration)
+			} else {
+				instance.elapsed
+			}
 		} else {
 			let clamped = if duration > 0.0 {
 				instance.elapsed.min(duration)
@@ -1968,8 +2625,7 @@ pub fn update_instance(handle: Dora3DHandle, delta_time: f32) -> bool {
 		};
 		(
 			clip_handle,
-			skeleton_handle,
-			instance.nodes.clone(),
+			instance.node_map.clone(),
 			sample_time,
 			still_playing,
 			std::mem::take(&mut instance.sample_buffer),
@@ -1981,13 +2637,7 @@ pub fn update_instance(handle: Dora3DHandle, delta_time: f32) -> bool {
 		}
 		return still_playing;
 	};
-	let Some(skeleton) = animation::with_skeleton(skeleton_handle, Clone::clone) else {
-		if let Some(instance) = instance_registry().lock().unwrap().get_mut(&handle) {
-			instance.sample_buffer = sample_buffer;
-		}
-		return still_playing;
-	};
-	skinning::evaluate_animation_into(&clip, sample_time, &nodes, &skeleton, &mut sample_buffer);
+	skinning::evaluate_animation_into(&clip, sample_time, &node_map, &mut sample_buffer);
 	for (node, position, rotation, scale) in &sample_buffer {
 		if let Some(position) = position {
 			let _ = node3d::set_position(*node, *position);
@@ -2018,6 +2668,18 @@ pub fn skeleton_for_visual(visual: Dora3DHandle) -> Option<Dora3DHandle> {
 		.map(|binding| binding.skeleton)
 }
 
+pub fn skeletons_for_visuals(visuals: &[Dora3DHandle]) -> HashMap<Dora3DHandle, Dora3DHandle> {
+	let bindings = visual_skeletons().lock().unwrap();
+	visuals
+		.iter()
+		.filter_map(|visual| {
+			bindings
+				.get(visual)
+				.map(|binding| (*visual, binding.skeleton))
+		})
+		.collect()
+}
+
 pub fn get_visual(handle: Dora3DHandle, index: u32) -> Option<Dora3DHandle> {
 	with_model(handle, |model| model.visuals.get(index as usize).copied()).flatten()
 }
@@ -2026,7 +2688,45 @@ pub fn attach_to_node(handle: Dora3DHandle, parent: Dora3DHandle) -> bool {
 	instantiate(handle, parent).is_some()
 }
 
+pub fn model_count() -> usize {
+	registry().lock().unwrap().len()
+}
+
+pub fn instance_count() -> usize {
+	instance_registry().lock().unwrap().len()
+}
+
+pub fn total_resident_bytes() -> u64 {
+	registry()
+		.lock()
+		.unwrap()
+		.values()
+		.map(|model| {
+			model
+				.meshes
+				.iter()
+				.map(|handle| mesh::resident_bytes(*handle))
+				.sum::<u64>()
+				+ model
+					.textures
+					.iter()
+					.map(|handle| texture::resident_bytes(*handle))
+					.sum::<u64>()
+		})
+		.sum()
+}
+
 pub fn clear_registry() {
+	prepared_registry().lock().unwrap().clear();
+	let upload_jobs: Vec<Dora3DHandle> = upload_job_registry()
+		.lock()
+		.unwrap()
+		.keys()
+		.copied()
+		.collect();
+	for handle in upload_jobs {
+		let _ = cancel_upload_gltf(handle);
+	}
 	let instance_handles: Vec<Dora3DHandle> = instance_registry()
 		.lock()
 		.unwrap()
@@ -2039,5 +2739,35 @@ pub fn clear_registry() {
 	let model_handles: Vec<Dora3DHandle> = registry().lock().unwrap().keys().copied().collect();
 	for handle in model_handles {
 		let _ = destroy(handle);
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	fn rgba_image(pixel: [u8; 4]) -> ImageData {
+		ImageData {
+			pixels: pixel.to_vec(),
+			format: ImageFormat::R8G8B8A8,
+			width: 1,
+			height: 1,
+		}
+	}
+
+	#[test]
+	fn packs_thickness_and_sheen_channels() {
+		let images = [rgba_image([1, 37, 3, 4]), rgba_image([5, 6, 7, 91])];
+		let (_, _, pixels) = pack_thickness_sheen_texture(&images, 0, 1).unwrap();
+		assert_eq!(pixels, [u8::MAX, 37, u8::MAX, 91]);
+	}
+
+	#[test]
+	fn packs_metallic_roughness_and_anisotropy_channels() {
+		let images = [rgba_image([1, 53, 79, 4]), rgba_image([255, 128, 113, 9])];
+		let (_, _, pixels) =
+			pack_metallic_roughness_anisotropy_texture(&images, Some(0), 1).unwrap();
+		assert_eq!(pixels[0], 128);
+		assert_eq!(&pixels[1..], &[53, 79, 113]);
 	}
 }

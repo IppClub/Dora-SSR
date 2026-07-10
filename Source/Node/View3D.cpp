@@ -10,7 +10,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Node/View3D.h"
 
+#include "Basic/Content.h"
 #include "Basic/Director.h"
+#include "Cache/Model3DCache.h"
+#include "Common/WRef.h"
 #include "Node/Node3D.h"
 #include "Render/Camera.h"
 #include "Render/View.h"
@@ -20,7 +23,7 @@ extern "C" {
 void dora_3d_set_view_state(uint16_t view_id, const float* view_proj, float eye_x, float eye_y, float eye_z);
 void dora_3d_set_view_frustum_culling(uint16_t view_id, int32_t enabled);
 int32_t dora_3d_render_node(uint16_t view_id, uint64_t node);
-int32_t dora_3d_prepare_environment_equirect(const char* path);
+int32_t dora_3d_get_render_stats(uint16_t view_id, uint64_t* out, uint32_t count);
 int32_t dora_3d_set_view_environment(uint16_t view_id, const char* path, float diffuse, float specular, float exposure);
 }
 #endif // DORA_NO_RUST
@@ -31,7 +34,8 @@ View3D::View3D()
 	: Node(false)
 	, _environmentDiffuse(1.0f)
 	, _environmentSpecular(1.0f)
-	, _environmentExposure(1.0f) { }
+	, _environmentExposure(1.0f)
+	, _lastViewId(std::numeric_limits<uint16_t>::max()) { }
 
 View3D::~View3D() { }
 
@@ -44,6 +48,45 @@ Node3D* View3D::getScene() {
 		_scene = Node3D::create();
 	}
 	return _scene;
+}
+
+const RenderStats3D& View3D::getStats() const noexcept {
+#ifndef DORA_NO_RUST
+	uint64_t values[30] = {};
+	if (dora_3d_get_render_stats(_lastViewId, values, 30) != 0) {
+		_stats.sceneNodes = s_cast<uint32_t>(values[0]);
+		_stats.visibleVisuals = s_cast<uint32_t>(values[1]);
+		_stats.culledVisuals = s_cast<uint32_t>(values[2]);
+		_stats.opaqueItems = s_cast<uint32_t>(values[3]);
+		_stats.transparentItems = s_cast<uint32_t>(values[4]);
+		_stats.drawCalls = s_cast<uint32_t>(values[5]);
+		_stats.triangles = values[6];
+		_stats.programSwitches = s_cast<uint32_t>(values[7]);
+		_stats.materialSwitches = s_cast<uint32_t>(values[8]);
+		_stats.textureSwitches = s_cast<uint32_t>(values[9]);
+		_stats.meshSwitches = s_cast<uint32_t>(values[10]);
+		_stats.nodeCount = s_cast<uint32_t>(values[11]);
+		_stats.visualCount = s_cast<uint32_t>(values[12]);
+		_stats.modelCount = s_cast<uint32_t>(values[13]);
+		_stats.modelInstanceCount = s_cast<uint32_t>(values[14]);
+		_stats.meshCount = s_cast<uint32_t>(values[15]);
+		_stats.materialCount = s_cast<uint32_t>(values[16]);
+		_stats.textureCount = s_cast<uint32_t>(values[17]);
+		_stats.animationCount = s_cast<uint32_t>(values[18]);
+		_stats.environmentCount = s_cast<uint32_t>(values[19]);
+		_stats.modelResidentBytes = values[20];
+		_stats.meshResidentBytes = values[21];
+		_stats.textureResidentBytes = values[22];
+		_stats.collectMicros = values[23];
+		_stats.sortMicros = values[24];
+		_stats.submitMicros = values[25];
+		_stats.uploadCommands = values[26];
+		_stats.uploadBytes = values[27];
+		_stats.uploadMicros = values[28];
+		_stats.uploadMaxCommandMicros = values[29];
+	}
+#endif // DORA_NO_RUST
+	return _stats;
 }
 
 void View3D::addChild(Node3D* child, int order, String tag) {
@@ -71,6 +114,10 @@ void View3D::cleanup() {
 			_scene->cleanup();
 			_scene = nullptr;
 		}
+		_lastViewId = std::numeric_limits<uint16_t>::max();
+		_stats = {};
+		++_environmentGeneration;
+		_environmentMap.clear();
 	}
 }
 
@@ -79,10 +126,22 @@ bool View3D::setEnvironmentMap(String path) {
 	return false;
 #else
 	std::string nextPath = path.toString();
-	if (dora_3d_prepare_environment_equirect(nextPath.c_str()) == 0) {
-		return false;
+	++_environmentGeneration;
+	if (nextPath.empty()) {
+		_environmentMap.clear();
+		return true;
 	}
-	_environmentMap = std::move(nextPath);
+	std::string file = SharedContent.getFullPath(nextPath);
+	if (file.empty()) return false;
+	uint64_t generation = _environmentGeneration;
+	WRef<View3D> self(this);
+	SharedModel3DCache.loadEnvironmentAsync(file, [self, generation, file](bool success) {
+		View3D* view = self.get();
+		if (!view || view->_environmentGeneration != generation) return;
+		if (success) {
+			view->_environmentMap = file;
+		}
+	});
 	return true;
 #endif // DORA_NO_RUST
 }
@@ -107,13 +166,17 @@ void View3D::render3D(bgfx::ViewId viewId) {
 	dora_3d_set_view_frustum_culling(viewId, SharedView.isFrustumCulling() ? 1 : 0);
 	dora_3d_set_view_environment(viewId, _environmentMap.c_str(), _environmentDiffuse, _environmentSpecular, _environmentExposure);
 	dora_3d_render_node(viewId, _scene->getHandle());
+	_lastViewId = viewId;
 #endif // DORA_NO_RUST
 }
 
 void View3D::render() {
 	bool has2DChildren = hasChildren();
 	Node::render();
-	if (!_scene || !_scene->hasChildren()) return;
+	if (!_scene || !_scene->hasChildren()) {
+		_lastViewId = std::numeric_limits<uint16_t>::max();
+		return;
+	}
 	if (this == SharedDirector.getEntry() && !has2DChildren) {
 		render3D(SharedView.getId());
 		return;

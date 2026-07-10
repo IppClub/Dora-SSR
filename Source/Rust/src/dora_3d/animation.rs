@@ -1,4 +1,4 @@
-use super::types::{Mat4, Quaternion, Vec3};
+use super::types::{Mat4, Quaternion, Vec3, Vec4};
 use super::{next_handle, Dora3DHandle};
 use std::collections::HashMap;
 use std::sync::{Mutex, OnceLock};
@@ -20,9 +20,17 @@ pub struct AnimationClipData {
 
 #[derive(Debug, Clone)]
 pub struct AnimationChannel {
-	pub joint_index: usize,
+	pub target_node: Dora3DHandle,
 	pub property: ChannelProperty,
+	pub interpolation: Interpolation,
 	pub keyframes: Vec<Keyframe>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Interpolation {
+	Step,
+	Linear,
+	CubicSpline,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -36,6 +44,8 @@ pub enum ChannelProperty {
 pub struct Keyframe {
 	pub time: f32,
 	pub value: KeyframeValue,
+	pub in_tangent: Option<Vec4>,
+	pub out_tangent: Option<Vec4>,
 }
 
 #[derive(Debug, Clone)]
@@ -78,6 +88,17 @@ pub fn with_skeleton<R>(handle: Dora3DHandle, f: impl FnOnce(&SkeletonData) -> R
 	}
 }
 
+pub fn skeletons(handles: &[Dora3DHandle]) -> HashMap<Dora3DHandle, SkeletonData> {
+	let animations = registry().lock().unwrap();
+	handles
+		.iter()
+		.filter_map(|handle| match animations.get(handle) {
+			Some(AnimationData::Skeleton(skeleton)) => Some((*handle, skeleton.clone())),
+			_ => None,
+		})
+		.collect()
+}
+
 pub fn with_clip<R>(handle: Dora3DHandle, f: impl FnOnce(&AnimationClipData) -> R) -> Option<R> {
 	let animations = registry().lock().unwrap();
 	match animations.get(&handle) {
@@ -88,4 +109,8 @@ pub fn with_clip<R>(handle: Dora3DHandle, f: impl FnOnce(&AnimationClipData) -> 
 
 pub fn clear_registry() {
 	registry().lock().unwrap().clear();
+}
+
+pub fn count() -> usize {
+	registry().lock().unwrap().len()
 }

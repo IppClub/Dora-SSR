@@ -57,6 +57,9 @@ bool Cache::load(String filename) {
 				return SharedFrameCache.load(filename) != nullptr;
 			case "model"_hash:
 				return SharedModelCache.load(filename) != nullptr;
+			case "glb"_hash:
+			case "gltf"_hash:
+				return SharedModel3DCache.load(filename) != nullptr;
 			case "par"_hash:
 				return SharedParticleCache.load(filename) != nullptr;
 			case "jpg"_hash:
@@ -132,6 +135,12 @@ void Cache::loadAsync(String filename, const std::function<void(bool)>& callback
 				break;
 			case "model"_hash:
 				SharedModelCache.loadAsync(filename, [callback](ModelDef* res) {
+					callback(res != nullptr);
+				});
+				break;
+			case "glb"_hash:
+			case "gltf"_hash:
+				SharedModel3DCache.loadAsync(filename, [callback](Model3DDef* res) {
 					callback(res != nullptr);
 				});
 				break;

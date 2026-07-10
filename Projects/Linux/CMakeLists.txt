@@ -229,6 +229,7 @@ add_executable(dora-ssr
 	../../Source/Node/Grid.cpp
 	../../Source/Node/Node.cpp
 	../../Source/Node/Node3D.cpp
+	../../Source/Node/Light3D.cpp
 	../../Source/Node/Label.cpp
 	../../Source/Node/ClipNode.cpp
 	../../Source/Node/Model.cpp

@@ -9,6 +9,7 @@ pub struct TextureData {
 	pub handle: Dora3DHandle,
 	pub width: u16,
 	pub height: u16,
+	pub resident_bytes: u64,
 	pub texture: bgfx_sys::bgfx_texture_handle_t,
 	owner: TextureOwner,
 }
@@ -40,6 +41,19 @@ fn invalid_texture() -> bgfx_sys::bgfx_texture_handle_t {
 	bgfx_sys::bgfx_texture_handle_t { idx: u16::MAX }
 }
 
+fn cube_resident_bytes(size: u16, has_mips: bool, bytes_per_pixel: u64) -> u64 {
+	let mut mip_size = size as u64;
+	let mut texels = 0u64;
+	loop {
+		texels += mip_size * mip_size;
+		if !has_mips || mip_size == 1 {
+			break;
+		}
+		mip_size = (mip_size / 2).max(1);
+	}
+	texels * 6 * bytes_per_pixel
+}
+
 pub fn create_rgba8(
 	width: u16,
 	height: u16,
@@ -60,6 +74,17 @@ pub fn create_rgba8_mipmapped(
 	create_rgba8_internal(width, height, pixels, sampler_flags, true, debug_name)
 }
 
+pub fn create_prepared_rgba8(
+	width: u16,
+	height: u16,
+	pixels: &[u8],
+	sampler_flags: u64,
+	has_mips: bool,
+	debug_name: Option<&str>,
+) -> Option<Dora3DHandle> {
+	create_rgba8_data(width, height, pixels, sampler_flags, has_mips, debug_name)
+}
+
 fn create_rgba8_internal(
 	width: u16,
 	height: u16,
@@ -78,8 +103,22 @@ fn create_rgba8_internal(
 	} else {
 		(pixels, false)
 	};
+	create_rgba8_data(width, height, source, sampler_flags, has_mips, debug_name)
+}
+
+fn create_rgba8_data(
+	width: u16,
+	height: u16,
+	pixels: &[u8],
+	sampler_flags: u64,
+	has_mips: bool,
+	debug_name: Option<&str>,
+) -> Option<Dora3DHandle> {
+	if width == 0 || height == 0 || pixels.is_empty() {
+		return None;
+	}
 	let texture = unsafe {
-		let memory = bgfx_sys::bgfx_copy(source.as_ptr() as *const _, source.len() as u32);
+		let memory = bgfx_sys::bgfx_copy(pixels.as_ptr() as *const _, pixels.len() as u32);
 		bgfx_sys::bgfx_create_texture_2d(
 			width,
 			height,
@@ -105,6 +144,7 @@ fn create_rgba8_internal(
 			handle,
 			width,
 			height,
+			resident_bytes: pixels.len() as u64,
 			texture,
 			owner: TextureOwner::Bgfx,
 		},
@@ -155,6 +195,10 @@ fn build_rgba8_mip_chain(width: usize, height: usize, pixels: &[u8]) -> Option<V
 	Some(chain)
 }
 
+pub(crate) fn prepare_rgba8_mip_chain(width: u16, height: u16, pixels: &[u8]) -> Option<Vec<u8>> {
+	build_rgba8_mip_chain(width as usize, height as usize, pixels)
+}
+
 pub fn from_dora_texture(texture: Texture2D) -> Option<Dora3DHandle> {
 	let width = u16::try_from(texture.get_width()).ok()?;
 	let height = u16::try_from(texture.get_height()).ok()?;
@@ -174,6 +218,7 @@ pub fn from_dora_texture(texture: Texture2D) -> Option<Dora3DHandle> {
 			handle,
 			width,
 			height,
+			resident_bytes: width as u64 * height as u64 * 4,
 			texture: texture_handle,
 			owner: TextureOwner::Dora { _texture: texture },
 		},
@@ -208,6 +253,16 @@ fn float_to_half_bits(value: f32) -> u16 {
 	half
 }
 
+pub(crate) fn prepare_rgba16f(pixels: &[[f32; 4]]) -> Vec<u8> {
+	let mut bytes = Vec::with_capacity(pixels.len() * 8);
+	for pixel in pixels {
+		for component in pixel {
+			bytes.extend_from_slice(&float_to_half_bits(*component).to_le_bytes());
+		}
+	}
+	bytes
+}
+
 pub fn create_rgba16f(
 	width: u16,
 	height: u16,
@@ -218,12 +273,7 @@ pub fn create_rgba16f(
 	if width == 0 || height == 0 || pixels.len() != width as usize * height as usize {
 		return None;
 	}
-	let mut bytes = Vec::with_capacity(pixels.len() * 8);
-	for pixel in pixels {
-		for component in pixel {
-			bytes.extend_from_slice(&float_to_half_bits(*component).to_le_bytes());
-		}
-	}
+	let bytes = prepare_rgba16f(pixels);
 	let texture = unsafe {
 		let memory = bgfx_sys::bgfx_copy(bytes.as_ptr() as *const _, bytes.len() as u32);
 		bgfx_sys::bgfx_create_texture_2d(
@@ -251,6 +301,7 @@ pub fn create_rgba16f(
 			handle,
 			width,
 			height,
+			resident_bytes: pixels.len() as u64 * 8,
 			texture,
 			owner: TextureOwner::Bgfx,
 		},
@@ -292,6 +343,7 @@ pub fn create_cube_rgba8(
 			handle,
 			width: size,
 			height: size,
+			resident_bytes: cube_resident_bytes(size, has_mips, 4),
 			texture,
 			owner: TextureOwner::Bgfx,
 		},
@@ -333,6 +385,7 @@ pub fn create_cube_rgba16f(
 			handle,
 			width: size,
 			height: size,
+			resident_bytes: cube_resident_bytes(size, has_mips, 8),
 			texture,
 			owner: TextureOwner::Bgfx,
 		},
@@ -390,11 +443,25 @@ pub fn update_cube_rgba16f(
 	if texture.idx == u16::MAX {
 		return false;
 	}
-	let mut bytes = Vec::with_capacity(pixels.len() * 8);
-	for pixel in pixels {
-		for component in pixel {
-			bytes.extend_from_slice(&float_to_half_bits(*component).to_le_bytes());
-		}
+	let bytes = prepare_rgba16f(pixels);
+	update_cube_rgba16f_bytes(handle, side, mip, size, &bytes)
+}
+
+pub fn update_cube_rgba16f_bytes(
+	handle: Dora3DHandle,
+	side: u8,
+	mip: u8,
+	size: u16,
+	bytes: &[u8],
+) -> bool {
+	if size == 0 || bytes.len() != size as usize * size as usize * 8 {
+		return false;
+	}
+	let Some(texture) = texture_handle(handle) else {
+		return false;
+	};
+	if texture.idx == u16::MAX {
+		return false;
 	}
 	unsafe {
 		let memory = bgfx_sys::bgfx_copy(bytes.as_ptr() as *const _, bytes.len() as u32);
@@ -427,8 +494,25 @@ pub fn texture_handle(handle: Dora3DHandle) -> Option<bgfx_sys::bgfx_texture_han
 	with_texture(handle, |texture| texture.texture)
 }
 
+pub fn resident_bytes(handle: Dora3DHandle) -> u64 {
+	with_texture(handle, |texture| texture.resident_bytes).unwrap_or(0)
+}
+
+pub fn total_resident_bytes() -> u64 {
+	registry()
+		.lock()
+		.unwrap()
+		.values()
+		.map(|texture| texture.resident_bytes)
+		.sum()
+}
+
 pub fn clear_registry() {
 	registry().lock().unwrap().clear();
+}
+
+pub fn count() -> usize {
+	registry().lock().unwrap().len()
 }
 
 pub fn invalid_handle() -> bgfx_sys::bgfx_texture_handle_t {

@@ -1,5 +1,6 @@
 local Node3D = require("Node3D").Type
 local Node = require("Node").Type
+local RenderStats3D = require("RenderStats3DType")
 
 -- 用于在 2D 场景树中渲染 3D 内容的类。
 local record View3D
@@ -9,6 +10,9 @@ local record View3D
 
 	-- 3D 场景根节点。
 	const scene: Node3D
+
+	-- 最近一次3D渲染与当前3D资源注册表的统计信息。
+	const stats: RenderStats3D
 
 	-- 加载用于基于图像照明的环境贴图。
 	-- @param path (string) 环境贴图路径。空字符串会清除环境贴图。

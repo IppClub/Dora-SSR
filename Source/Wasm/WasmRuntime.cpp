@@ -2018,6 +2018,7 @@ DORA_EXPORT float math_tan(float v) { return std::tan(v); }
 #include "Dora/Platformer/WasmActionUpdateWasm.hpp"
 #include "Dora/PlayableWasm.hpp"
 #include "Dora/RectWasm.hpp"
+#include "Dora/RenderStats3DWasm.hpp"
 #include "Dora/RenderTargetWasm.hpp"
 #include "Dora/SVGDefWasm.hpp"
 #include "Dora/SchedulerWasm.hpp"
@@ -2047,6 +2048,7 @@ static void linkAutoModule(wasm3::module3& mod) {
 	linkDictionary(mod);
 	linkVec3(mod);
 	linkRect(mod);
+	linkRenderStats3D(mod);
 	linkApplication(mod);
 	linkDirector(mod);
 	linkEntity(mod);

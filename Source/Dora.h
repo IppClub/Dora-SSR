@@ -60,6 +60,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Node/Model3D.h"
 #include "Node/Node.h"
 #include "Node/Node3D.h"
+#include "Node/Light3D.h"
 #include "Node/Particle.h"
 #include "Node/View3D.h"
 #include "Node/Spine.h"

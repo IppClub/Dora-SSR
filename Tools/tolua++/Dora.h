@@ -65,6 +65,40 @@ struct Vec3
 	static tolua_outside Vec3* Vec3_create @ create(float x, float y, float z);
 };
 
+struct RenderStats3D
+{
+	tolua_readonly tolua_property__common uint32_t sceneNodes;
+	tolua_readonly tolua_property__common uint32_t visibleVisuals;
+	tolua_readonly tolua_property__common uint32_t culledVisuals;
+	tolua_readonly tolua_property__common uint32_t opaqueItems;
+	tolua_readonly tolua_property__common uint32_t transparentItems;
+	tolua_readonly tolua_property__common uint32_t drawCalls;
+	tolua_readonly tolua_property__common uint64_t triangles;
+	tolua_readonly tolua_property__common uint32_t programSwitches;
+	tolua_readonly tolua_property__common uint32_t materialSwitches;
+	tolua_readonly tolua_property__common uint32_t textureSwitches;
+	tolua_readonly tolua_property__common uint32_t meshSwitches;
+	tolua_readonly tolua_property__common uint32_t nodeCount;
+	tolua_readonly tolua_property__common uint32_t visualCount;
+	tolua_readonly tolua_property__common uint32_t modelCount;
+	tolua_readonly tolua_property__common uint32_t modelInstanceCount;
+	tolua_readonly tolua_property__common uint32_t meshCount;
+	tolua_readonly tolua_property__common uint32_t materialCount;
+	tolua_readonly tolua_property__common uint32_t textureCount;
+	tolua_readonly tolua_property__common uint32_t animationCount;
+	tolua_readonly tolua_property__common uint32_t environmentCount;
+	tolua_readonly tolua_property__common uint64_t modelResidentBytes;
+	tolua_readonly tolua_property__common uint64_t meshResidentBytes;
+	tolua_readonly tolua_property__common uint64_t textureResidentBytes;
+	tolua_readonly tolua_property__common uint64_t collectMicros;
+	tolua_readonly tolua_property__common uint64_t sortMicros;
+	tolua_readonly tolua_property__common uint64_t submitMicros;
+	tolua_readonly tolua_property__common uint64_t uploadCommands;
+	tolua_readonly tolua_property__common uint64_t uploadBytes;
+	tolua_readonly tolua_property__common uint64_t uploadMicros;
+	tolua_readonly tolua_property__common uint64_t uploadMaxCommandMicros;
+};
+
 struct Size
 {
 	float width;
@@ -137,6 +171,7 @@ class Application
 	void openURL(String url);
 	void install(String path);
 	bool saveLog(String filename);
+	string saveScreenshot(String filename);
 	void openFileDialog(bool folderOnly, tolua_function_void callback);
 	void shutdown();
 	tolua_outside int Application_estimateTokens @ estimateTokens(String text, double asciiTokensPerChar = 0.4, double nonAsciiTokensPerChar = 2.0);
@@ -547,9 +582,25 @@ class Model3D : public Node3D
 	static Model3D* create(String path);
 };
 
+class DirectionalLight3D : public Node3D
+{
+	tolua_property__common Color3 color;
+	tolua_property__common float intensity;
+	static DirectionalLight3D* create();
+};
+
+class PointLight3D : public Node3D
+{
+	tolua_property__common Color3 color;
+	tolua_property__common float intensity;
+	tolua_property__common float range;
+	static PointLight3D* create();
+};
+
 class View3D : public Node
 {
 	tolua_readonly tolua_property__common Node3D* scene;
+	tolua_readonly tolua_property__common RenderStats3D stats;
 	void addChild(Node* child, int order, String tag);
 	void addChild(Node* child, int order);
 	void addChild(Node* child);

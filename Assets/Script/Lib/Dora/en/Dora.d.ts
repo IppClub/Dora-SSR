@@ -314,6 +314,43 @@ interface Vec3Class {
 const vec3: Vec3Class;
 export {vec3 as Vec3};
 
+/** Statistics captured from the most recent 3D render for a View3D. */
+class RenderStats3D extends ContainerItem {
+	private constructor();
+	readonly sceneNodes: number;
+	readonly visibleVisuals: number;
+	readonly culledVisuals: number;
+	readonly opaqueItems: number;
+	readonly transparentItems: number;
+	readonly drawCalls: number;
+	readonly triangles: number;
+	readonly programSwitches: number;
+	readonly materialSwitches: number;
+	readonly textureSwitches: number;
+	readonly meshSwitches: number;
+	readonly nodeCount: number;
+	readonly visualCount: number;
+	readonly modelCount: number;
+	readonly modelInstanceCount: number;
+	readonly meshCount: number;
+	readonly materialCount: number;
+	readonly textureCount: number;
+	readonly animationCount: number;
+	readonly environmentCount: number;
+	readonly modelResidentBytes: number;
+	readonly meshResidentBytes: number;
+	readonly textureResidentBytes: number;
+	readonly collectMicros: number;
+	readonly sortMicros: number;
+	readonly submitMicros: number;
+	readonly uploadCommands: number;
+	readonly uploadBytes: number;
+	readonly uploadMicros: number;
+	readonly uploadMaxCommandMicros: number;
+}
+
+export {RenderStats3D};
+
 /**
  * A rectangle object with a left-bottom origin position and a size.
  * Inherits from `ContainerItem`.
@@ -733,6 +770,9 @@ interface App {
 	 * @returns Whether the log was saved successfully.
 	 */
 	saveLog(path: string): boolean;
+
+	/** Requests a screenshot of the main backbuffer and returns the output TGA path. */
+	saveScreenshot(filename: string): string;
 
 	/**
 	 * A function that opens a file dialog. Only works on Windows, macOS and Linux.
@@ -3697,6 +3737,9 @@ class View3D extends Node {
 	/** The root node of the 3D scene. */
 	readonly scene: Node3D;
 
+	/** Statistics from the most recent 3D render and current 3D registries. */
+	readonly stats: RenderStats3D;
+
 	/** Adds a 3D child node to the scene root. */
 	addChild(child: Node3D): void;
 	addChild(child: Node, order?: number, tag?: string): void;
@@ -3785,6 +3828,57 @@ interface Model3DClass {
 
 const model3DClass: Model3DClass;
 export {model3DClass as Model3D};
+
+/** A directional light whose direction follows its world rotation. */
+class DirectionalLight3D extends Node3D {
+	private constructor();
+
+	/** The light color in sRGB space. */
+	color: Color3;
+
+	/** The light intensity. */
+	intensity: number;
+}
+
+export {DirectionalLight3D as DirectionalLight3DType};
+export namespace DirectionalLight3D {
+	export type Type = DirectionalLight3D;
+}
+
+interface DirectionalLight3DClass {
+	/** Creates a directional light. */
+	(this: void): DirectionalLight3D;
+}
+
+const directionalLight3DClass: DirectionalLight3DClass;
+export {directionalLight3DClass as DirectionalLight3D};
+
+/** A point light whose position follows its world transform. */
+class PointLight3D extends Node3D {
+	private constructor();
+
+	/** The light color in sRGB space. */
+	color: Color3;
+
+	/** The light intensity. */
+	intensity: number;
+
+	/** The maximum effective range of the light. */
+	range: number;
+}
+
+export {PointLight3D as PointLight3DType};
+export namespace PointLight3D {
+	export type Type = PointLight3D;
+}
+
+interface PointLight3DClass {
+	/** Creates a point light. */
+	(this: void): PointLight3D;
+}
+
+const pointLight3DClass: PointLight3DClass;
+export {pointLight3DClass as PointLight3D};
 
 /**
  * A buffer of string for the use of ImGui widget.
@@ -7918,6 +8012,7 @@ export const enum TypeName {
 	Size = "Size",
 	Vec2 = "Vec2",
 	Vec3 = "Vec3",
+	RenderStats3D = "RenderStats3D",
 	Rect = "Rect",
 	Color3 = "Color3",
 	Color = "Color",
@@ -7976,6 +8071,7 @@ export interface TypeMap {
 	[TypeName.Size]: Size;
 	[TypeName.Vec2]: Vec2;
 	[TypeName.Vec3]: Vec3;
+	[TypeName.RenderStats3D]: RenderStats3D;
 	[TypeName.Rect]: Rect;
 	[TypeName.Color3]: Color3;
 	[TypeName.Color]: Color;

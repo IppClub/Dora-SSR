@@ -20,6 +20,8 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t view3d_get_scene(int64_t self);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t view3d_get_stats(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void view3d_add_child_3d(int64_t self, int64_t child);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int32_t view3d_set_environment_map(int64_t self, int64_t path);
@@ -56,6 +58,13 @@ namespace Dora
 		public Node3D Scene
 		{
 			get => Node3D.From(Native.view3d_get_scene(Raw));
+		}
+		/// <summary>
+		/// Statistics from the most recent 3D render and current 3D registries.
+		/// </summary>
+		public RenderStats3D Stats
+		{
+			get => Dora.RenderStats3D.From(Native.view3d_get_stats(Raw));
 		}
 		/// <summary>
 		/// Adds a 3D child node to the scene root.

@@ -1408,6 +1408,25 @@ bool Application::saveLog(String filename) {
 	return LogSaveAs(filename.toView());
 }
 
+std::string Application::saveScreenshot(String filename) {
+	std::string path = filename.toString();
+	if (path.empty()) return {};
+	if (!SharedContent.isAbsolutePath(path)) {
+		path = Path::concat({SharedContent.getWritablePath(), path});
+	}
+	if (Path::getExt(path) == "tga"sv) {
+		path = Path::replaceExt(path, Slice::Empty);
+	}
+	std::error_code error;
+	fs::create_directories(Path::getPath(path), error);
+	if (error) {
+		Error("failed to create screenshot folder for '{}': {}", path, error.message());
+		return {};
+	}
+	bgfx::requestScreenShot(BGFX_INVALID_HANDLE, path.c_str());
+	return path + ".tga";
+}
+
 void Application::openFileDialog(bool folderOnly, const std::function<void(std::string)>& callback) {
 #if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_LINUX
 	invokeInRender([this, folderOnly, callback]() {

@@ -29,6 +29,11 @@ uniform vec4 u_viewPos;
 uniform vec4 u_envDiffuse;
 uniform vec4 u_envSpecular;
 uniform vec4 u_pbrParams;
+uniform vec4 u_directionalLightDirection;
+uniform vec4 u_directionalLightColor;
+uniform vec4 u_pointLightPositionRange[4];
+uniform vec4 u_pointLightColorIntensity[4];
+uniform vec4 u_overflowLightSH[4];
 uniform vec4 u_baseColor;
 uniform vec4 u_emissiveFactor;
 uniform vec4 u_metallicRoughness;
@@ -202,6 +207,67 @@ vec3 pbrNeutralToneMap(vec3 color)
 	return mix(color, vec3_splat(compressedPeak), grayMix);
 }
 
+vec3 evaluateDirectLight(
+	vec3 n,
+	vec3 clearcoatNormal,
+	vec3 v,
+	vec3 anisotropyTangent,
+	vec3 anisotropyBitangent,
+	vec3 l,
+	vec3 lightColor,
+	vec3 baseColor,
+	vec3 dielectricF0Color,
+	vec3 dielectricF90Color,
+	float metallic,
+	float roughness,
+	float clearcoatRoughness,
+	float clearcoatFactor,
+	vec3 sheenColor,
+	float sheenRoughness,
+	float anisotropyStrength,
+	float transmissionFactor)
+{
+	vec3 h = normalize(v + l);
+	float nDotL = saturateFloat(dot(n, l));
+	float nDotV = max(saturateFloat(dot(n, v)), 0.000001);
+	float nDotH = saturateFloat(dot(n, h));
+	float hDotV = saturateFloat(dot(h, v));
+	vec3 dielectricF = fresnelSchlickF90(hDotV, dielectricF0Color, dielectricF90Color);
+	vec3 metalF = fresnelSchlickF90(hDotV, baseColor, vec3_splat(1.0));
+	vec3 f = mix(dielectricF, metalF, metallic);
+	float d = distributionGGX(nDotH, roughness);
+	float g = geometrySchlickGGX(nDotV, roughness) * geometrySchlickGGX(nDotL, roughness);
+	vec3 specular = (d * g * f) / max(4.0 * nDotV * nDotL, 0.000001);
+	if (anisotropyStrength > 0.0001)
+	{
+		float alpha = max(roughness * roughness, 0.001);
+		float ax = max(alpha * (1.0 + anisotropyStrength), 0.001);
+		float ay = max(alpha * (1.0 - anisotropyStrength), 0.001);
+		float tDotH = dot(anisotropyTangent, h);
+		float bDotH = dot(anisotropyBitangent, h);
+		float tDotL = dot(anisotropyTangent, l);
+		float bDotL = dot(anisotropyBitangent, l);
+		float tDotV = dot(anisotropyTangent, v);
+		float bDotV = dot(anisotropyBitangent, v);
+		float dAniso = distributionGGXAnisotropic(nDotH, tDotH, bDotH, ax, ay);
+		float vAniso = visibilityGGXAnisotropic(nDotL, nDotV, tDotL, bDotL, tDotV, bDotV, ax, ay);
+		specular = dAniso * vAniso * f;
+	}
+	vec3 diffuse = vec3_splat(1.0 - maxValue(dielectricF)) * (1.0 - metallic) * baseColor / PI;
+	float ccNDotL = saturateFloat(dot(clearcoatNormal, l));
+	float ccNDotV = max(saturateFloat(dot(clearcoatNormal, v)), 0.000001);
+	float ccNDotH = saturateFloat(dot(clearcoatNormal, h));
+	float ccHDotV = saturateFloat(dot(h, v));
+	float ccD = distributionGGX(ccNDotH, clearcoatRoughness);
+	float ccG = geometrySchlickGGX(ccNDotV, clearcoatRoughness) * geometrySchlickGGX(ccNDotL, clearcoatRoughness);
+	float ccF = fresnelSchlick(ccHDotV, vec3_splat(0.04)).x;
+	vec3 clearcoatSpecular = vec3_splat((ccD * ccG * ccF) / max(4.0 * ccNDotV * ccNDotL, 0.000001) * ccNDotL * clearcoatFactor);
+	float sheenPower = mix(8.0, 2.0, sheenRoughness);
+	float sheenLobe = pow(max(1.0 - hDotV, 0.0), sheenPower) * (0.5 + 0.5 * sheenRoughness);
+	vec3 sheenDirect = sheenColor * sheenLobe * nDotL * (1.0 - metallic);
+	return (((diffuse * (1.0 - transmissionFactor)) + specular) * nDotL * (1.0 - 0.25 * clearcoatFactor) + clearcoatSpecular + sheenDirect) * lightColor;
+}
+
 void main()
 {
 	vec2 baseColorUv = transformUv(selectUv(v_texcoord01, u_uvBaseColorOffset.z), u_uvBaseColor, u_uvBaseColorOffset);
@@ -262,12 +328,7 @@ void main()
 		texture2D(s_clearcoatNormal, clearcoatNormalUv).xyz,
 		u_clearcoat.z);
 	vec3 v = normalize(u_viewPos.xyz - v_worldPos.xyz);
-	vec3 l = normalize(vec3(0.18, 0.35, 1.0));
-	vec3 h = normalize(v + l);
-	float nDotL = saturateFloat(dot(n, l));
 	float nDotV = max(saturateFloat(dot(n, v)), 0.000001);
-	float nDotH = saturateFloat(dot(n, h));
-	float hDotV = saturateFloat(dot(h, v));
 	vec3 tangent = normalize(v_worldTangent.xyz - n * dot(n, v_worldTangent.xyz));
 	vec3 bitangent = normalize(cross(n, tangent) * v_worldTangent.w);
 	float anisotropyDirectionX = u_anisotropy.y;
@@ -290,47 +351,32 @@ void main()
 	vec3 specularColorFactor = u_specularColor.rgb * srgbToLinear(texture2D(s_specularColor, specularColorUv).rgb);
 	vec3 dielectricF0Color = min(vec3_splat(dielectricF0) * specularColorFactor, vec3_splat(1.0)) * specularStrength;
 	vec3 dielectricF90Color = vec3_splat(specularStrength);
-	vec3 dielectricF = fresnelSchlickF90(hDotV, dielectricF0Color, dielectricF90Color);
-	vec3 metalF = fresnelSchlickF90(hDotV, baseColor.rgb, vec3_splat(1.0));
-	vec3 f = mix(dielectricF, metalF, metallic);
-	float directRoughness = roughness;
-	float d = distributionGGX(nDotH, directRoughness);
-	float g = geometrySchlickGGX(nDotV, directRoughness) * geometrySchlickGGX(nDotL, directRoughness);
-	vec3 specular = (d * g * f) / max(4.0 * nDotV * nDotL, 0.000001);
-	if (anisotropyStrength > 0.0001)
-	{
-		float alpha = max(roughness * roughness, 0.001);
-		float ax = max(alpha * (1.0 + anisotropyStrength), 0.001);
-		float ay = max(alpha * (1.0 - anisotropyStrength), 0.001);
-		float tDotH = dot(anisotropyTangent, h);
-		float bDotH = dot(anisotropyBitangent, h);
-		float tDotL = dot(anisotropyTangent, l);
-		float bDotL = dot(anisotropyBitangent, l);
-		float tDotV = dot(anisotropyTangent, v);
-		float bDotV = dot(anisotropyBitangent, v);
-		float dAniso = distributionGGXAnisotropic(nDotH, tDotH, bDotH, ax, ay);
-		float vAniso = visibilityGGXAnisotropic(nDotL, nDotV, tDotL, bDotL, tDotV, bDotV, ax, ay);
-		specular = dAniso * vAniso * f;
-	}
-	vec3 diffuse = vec3_splat(1.0 - maxValue(dielectricF)) * (1.0 - metallic) * baseColor.rgb / PI;
-	float ccNDotL = saturateFloat(dot(clearcoatNormal, l));
 	float ccNDotV = max(saturateFloat(dot(clearcoatNormal, v)), 0.000001);
-	float ccNDotH = saturateFloat(dot(clearcoatNormal, h));
-	float ccHDotV = saturateFloat(dot(h, v));
-	float ccD = distributionGGX(ccNDotH, clearcoatRoughness);
-	float ccG = geometrySchlickGGX(ccNDotV, clearcoatRoughness) * geometrySchlickGGX(ccNDotL, clearcoatRoughness);
-	float ccF = fresnelSchlick(ccHDotV, vec3_splat(0.04)).x;
-	vec3 clearcoatSpecular = vec3_splat((ccD * ccG * ccF) / max(4.0 * ccNDotV * ccNDotL, 0.000001) * ccNDotL * clearcoatFactor);
 	float sheenStrength = maxValue(sheenColor);
-	float sheenPower = mix(8.0, 2.0, sheenRoughness);
-	float sheenLobe = pow(max(1.0 - hDotV, 0.0), sheenPower) * (0.5 + 0.5 * sheenRoughness);
-	vec3 sheenDirect = sheenColor * sheenLobe * nDotL * (1.0 - metallic);
-
-	vec3 lightColor = vec3(6.0, 5.6, 5.0) * u_pbrParams.y;
-	vec3 direct = (((diffuse * (1.0 - transmissionFactor)) + specular) * nDotL * (1.0 - 0.25 * clearcoatFactor) + clearcoatSpecular + sheenDirect) * lightColor;
+	vec3 direct = vec3_splat(0.0);
+	if (u_directionalLightDirection.w > 0.5)
+	{
+		direct += evaluateDirectLight(n, clearcoatNormal, v, anisotropyTangent, anisotropyBitangent, normalize(u_directionalLightDirection.xyz), u_directionalLightColor.rgb, baseColor.rgb, dielectricF0Color, dielectricF90Color, metallic, roughness, clearcoatRoughness, clearcoatFactor, sheenColor, sheenRoughness, anisotropyStrength, transmissionFactor);
+	}
+	for (int lightIndex = 0; lightIndex < 4; ++lightIndex)
+	{
+		float range = u_pointLightPositionRange[lightIndex].w;
+		vec3 offset = u_pointLightPositionRange[lightIndex].xyz - v_worldPos.xyz;
+		float distanceToLight = length(offset);
+		if (range > 0.0 && distanceToLight < range)
+		{
+			float normalizedDistance = distanceToLight / range;
+			float cutoff = saturateFloat(1.0 - pow(normalizedDistance, 4.0));
+			float lightAttenuation = cutoff * cutoff / max(distanceToLight * distanceToLight, 0.01);
+			vec3 pointColor = u_pointLightColorIntensity[lightIndex].rgb * u_pointLightColorIntensity[lightIndex].w * lightAttenuation;
+			direct += evaluateDirectLight(n, clearcoatNormal, v, anisotropyTangent, anisotropyBitangent, normalize(offset), pointColor, baseColor.rgb, dielectricF0Color, dielectricF90Color, metallic, roughness, clearcoatRoughness, clearcoatFactor, sheenColor, sheenRoughness, anisotropyStrength, transmissionFactor);
+		}
+	}
 	vec3 dielectricFAmbient = fresnelSchlickRoughnessF90(nDotV, dielectricF0Color, dielectricF90Color, roughness);
 	vec3 metalFAmbient = fresnelSchlickRoughnessF90(nDotV, baseColor.rgb, vec3_splat(1.0), roughness);
 	vec3 kD = vec3_splat(1.0 - maxValue(dielectricFAmbient)) * (1.0 - metallic);
+	vec3 overflowIrradiance = max(u_overflowLightSH[0].rgb + u_overflowLightSH[1].rgb * n.x + u_overflowLightSH[2].rgb * n.y + u_overflowLightSH[3].rgb * n.z, vec3_splat(0.0));
+	direct += kD * baseColor.rgb * overflowIrradiance * occlusion * (1.0 - transmissionFactor) / PI;
 	vec3 diffuseIrradiance = textureCube(s_irradiance, n).rgb * u_envDiffuse.a;
 	vec3 diffuseAmbient = kD * baseColor.rgb * diffuseIrradiance * occlusion * (1.0 - transmissionFactor) / PI;
 	vec3 r = reflect(-v, n);

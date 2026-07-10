@@ -413,6 +413,24 @@ basicTypes =
 			creturn: -> error "unsupported"
 			cpass: -> error "unsupported"
 		}
+	RenderStats3D:
+		* "i64"
+		* (name)-> "*r_cast<RenderStats3D*>(#{name})"
+		* (name)-> "r_cast<int64_t>(new RenderStats3D{#{name}})"
+		* "&crate::dora::RenderStats3D"
+		* "crate::dora::RenderStats3D"
+		* (name)-> "#{name}.raw()"
+		* (name)-> "crate::dora::RenderStats3D::from(#{name})"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "*RenderStats3DFrom(#{name})"
+			convertTo: (name)-> "#{name}.GetRaw()"
+			argType: "RenderStats3D"
+			returnType: "RenderStats3D"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
 	OptString:
 		* "i64"
 		* -> error "unsupported"

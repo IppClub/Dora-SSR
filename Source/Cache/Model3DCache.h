@@ -11,6 +11,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Object.h"
 #include "Common/Singleton.h"
 
+#include <deque>
+
 NS_DORA_BEGIN
 
 class Model3DDef : public Object {
@@ -30,6 +32,8 @@ private:
 class Model3DCache : public NonCopyable {
 public:
 	Model3DDef* load(String filename);
+	void loadAsync(String filename, const std::function<void(Model3DDef*)>& handler);
+	void loadEnvironmentAsync(String filename, const std::function<void(bool)>& handler);
 	bool unload(String filename);
 	bool unload();
 	void removeUnused();
@@ -38,7 +42,24 @@ protected:
 	Model3DCache() { }
 
 private:
+	struct UploadTask {
+		enum class Type {
+			Model,
+			Environment,
+		};
+		Type type;
+		std::string file;
+		uint64_t job;
+	};
+	void enqueueUpload(UploadTask::Type type, const std::string& file, uint64_t job);
+	bool updateUploads();
+	void completeAsync(const std::string& file, uint64_t model);
+	void completeEnvironmentAsync(const std::string& file, bool success);
 	StringMap<Ref<Model3DDef>> _models;
+	StringMap<std::vector<std::function<void(Model3DDef*)>>> _pending;
+	StringMap<std::vector<std::function<void(bool)>>> _pendingEnvironments;
+	std::deque<UploadTask> _uploads;
+	bool _uploadScheduled = false;
 	SINGLETON_REF(Model3DCache, Director);
 };
 
