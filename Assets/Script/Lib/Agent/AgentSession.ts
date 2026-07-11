@@ -5,7 +5,7 @@ import * as AgentToolRegistry from 'Agent/AgentToolRegistry';
 import * as Tools from 'Agent/Tools';
 import { DualLayerStorage } from 'Agent/Memory';
 import { Log, callLLM, clipTextToTokenBudget, estimateTextTokens, getActiveLLMConfig, safeJsonDecode, safeJsonEncode, sanitizeUTF8 } from 'Agent/Utils';
-import type { LLMConfig, Message, StopToken, ToolCallFunction } from 'Agent/Utils';
+import type { LLMConfig, Message, StopToken } from 'Agent/Utils';
 import type { AgentToolName } from 'Agent/AgentToolRegistry';
 
 export type AgentSessionStatus = "IDLE" | "RUNNING" | "DONE" | "FAILED" | "STOPPED";
@@ -213,6 +213,11 @@ const SUB_AGENT_MEMORY_RESULT_MAX_TOKENS = 2000;
 const SUB_AGENT_MEMORY_TAIL_MAX_MESSAGES = 20;
 const SUB_AGENT_MEMORY_TAIL_MAX_TOKENS = 4000;
 const SUB_AGENT_MEMORY_TAIL_MESSAGE_MAX_TOKENS = 600;
+const SUB_AGENT_MEMORY_ENTRY_BATCH_MAX_ITEMS = 8;
+const SUB_AGENT_MEMORY_ENTRY_BATCH_PER_ITEM_CONTEXT_TOKENS = 800;
+const SUB_AGENT_MEMORY_ENTRY_BATCH_PER_ITEM_RESULT_TOKENS = 600;
+const SUB_AGENT_MEMORY_ENTRY_BATCH_PER_ITEM_TAIL_TOKENS = 400;
+const SUB_AGENT_MEMORY_ENTRY_BATCH_MAX_TOKENS = 4096;
 
 interface SubAgentResultRecord {
 	sessionId: number;
@@ -731,44 +736,6 @@ function buildSubAgentMemoryEntryLLMOptions(llmConfig: LLMConfig): Record<string
 	return options;
 }
 
-function buildSubAgentMemoryEntryToolSchema() {
-	return [{
-		type: "function" as const,
-		function: {
-			name: "save_sub_agent_memory_entry",
-			description: "Save one durable memory paragraph extracted from a completed sub-agent session.",
-			parameters: {
-				type: "object",
-				properties: {
-					content: {
-						type: "string",
-						description: "A concise paragraph of key information worth carrying into future main-agent context. Use an empty string when nothing durable should be saved.",
-					},
-					evidence: {
-						type: "array",
-						items: { type: "string" },
-						description: "Optional short file paths, artifact paths, or concrete anchors that support the memory paragraph.",
-					},
-				},
-				required: ["content"],
-			},
-		},
-	}];
-}
-
-function buildSubAgentMemoryEntrySystemPrompt(): string {
-	return `You generate a durable memory entry for the parent Dora agent.
-Prefer calling save_sub_agent_memory_entry when tool calling is available.
-If you cannot call tools, output exactly one JSON object with this shape: {"content":"...","evidence":["..."]}.
-
-Use the completed sub-agent conversation and final result to decide whether anything should be remembered.
-Return a single compact paragraph in content, similar to a history entry.
-Focus on durable facts: implemented behavior, important design decisions, constraints, discovered project conventions, or follow-up risks.
-Do not include generic progress narration, praise, or temporary execution details.
-If there is no information likely to help future work, set content to an empty string.
-Keep evidence short and concrete, such as touched file paths or result artifact paths.`;
-}
-
 function formatSubAgentMemoryTailMessage(message: Message): string {
 	const lines: string[] = [`role: ${sanitizeUTF8(toStr(message.role))}`];
 	if (typeof message.name === "string" && message.name !== "") {
@@ -812,78 +779,6 @@ function buildSubAgentRecentMessageTail(messages: Message[]): string {
 	return parts.length > 0 ? parts.join("\n\n---\n\n") : "(empty)";
 }
 
-function buildSubAgentMemoryEntryPrompt(record: SubAgentResultRecord, resultText: string, memoryContext: string, recentMessageTail: string): string {
-	const files = record.changeSet?.files ?? [];
-	const changedFiles = files.map(file => `- ${file.path} (${file.op})`).join("\n");
-	const boundedMemoryContext = clipTextToTokenBudget(memoryContext !== "" ? memoryContext : "(empty)", SUB_AGENT_MEMORY_CONTEXT_MAX_TOKENS);
-	const boundedResultText = clipTextToTokenBudget(resultText !== "" ? resultText : "(empty)", SUB_AGENT_MEMORY_RESULT_MAX_TOKENS);
-	return `Sub-agent memory context:
-${boundedMemoryContext}
-
-Sub-agent task metadata:
-- sessionId: ${tostring(record.sessionId)}
-- taskId: ${tostring(record.sourceTaskId)}
-- title: ${record.title}
-- goal: ${record.goal}
-- prompt: ${record.prompt}
-- expectedOutput: ${record.expectedOutput ?? ""}
-- resultFilePath: ${record.resultFilePath}
-- finishedAt: ${record.finishedAt}
-
-Changed files:
-${changedFiles !== "" ? changedFiles : "- none"}
-
-Final sub-agent result:
-${boundedResultText}
-
-Recent conversation tail:
-${recentMessageTail}
-
-Generate the memory entry now.`;
-}
-
-function buildSubAgentMemoryEntryRetryPrompt(lastError: string): string {
-	return `Previous memory entry response was invalid: ${lastError}
-
-Retry with exactly one JSON object and no Markdown fences, no prose, no tool call.
-Schema:
-{"content":"one concise durable memory paragraph, or empty string if nothing should be saved","evidence":["optional short file path or artifact path"]}
-
-Rules:
-- content must be a string.
-- evidence must be an array of strings.
-- Use {"content":"","evidence":[]} when there is no durable memory to save.`;
-}
-
-function normalizeGeneratedSubAgentMemoryEntry(value: unknown, record: SubAgentResultRecord): AgentSubAgentMemoryEntryItem | undefined {
-	if (!value || Array.isArray(value) || type(value) !== "table") return undefined;
-	const row = value as Record<string, unknown>;
-	const content = takeUtf8Head(sanitizeUTF8(toStr(row.content)).trim(), SUB_AGENT_MEMORY_ENTRY_MAX_CHARS);
-	if (content === "") return undefined;
-	return {
-		sourceSessionId: record.sessionId,
-		sourceTaskId: record.sourceTaskId,
-		content,
-		evidence: normalizeMemoryEntryEvidence(row.evidence),
-		createdAt: record.finishedAt,
-	};
-}
-
-function getMemoryEntryToolFunction(response: unknown): ToolCallFunction | undefined {
-	if (!response || Array.isArray(response) || type(response) !== "table") return undefined;
-	const row = response as Record<string, unknown>;
-	const choices = row.choices;
-	if (!Array.isArray(choices) || choices.length === 0) return undefined;
-	const message = choices[0]?.message;
-	const toolCalls = message?.tool_calls;
-	if (!Array.isArray(toolCalls)) return undefined;
-	for (let i = 0; i < toolCalls.length; i++) {
-		const fn = toolCalls[i]?.function as ToolCallFunction | undefined;
-		if (fn?.name === "save_sub_agent_memory_entry") return fn;
-	}
-	return undefined;
-}
-
 function getMemoryEntryPlainContent(response: unknown): string {
 	if (!response || Array.isArray(response) || type(response) !== "table") return "";
 	const row = response as Record<string, unknown>;
@@ -915,71 +810,246 @@ function hasEmptyMemoryEntryContent(value: unknown): boolean {
 	return typeof row.content === "string" && sanitizeUTF8(row.content).trim() === "";
 }
 
-async function generateSubAgentMemoryEntry(session: AgentSessionItem, record: SubAgentResultRecord, resultText: string): Promise<{ entry?: AgentSubAgentMemoryEntryItem; error?: string }> {
-	if (!record.success) return {};
+// ===== subagent 记忆批量总结:攒多个,主 agent task_finished 时统一一次 LLM =====
+
+interface SubAgentMemoryBatchItem {
+	item: PendingSubAgentHandoffItem;
+	memoryContext: string;
+	recentMessageTail: string;
+	resultText: string;
+}
+
+interface BatchMemoryEntryResult {
+	entries: Record<number, AgentSubAgentMemoryEntryItem>;
+	errors: Record<number, string>;
+	fatal?: string;
+}
+
+function buildSubAgentMemoryEntriesBatchSystemPrompt(): string {
+	return `You generate durable memory entries for the parent Dora agent, one per completed sub-agent listed below.
+Return exactly one JSON array (no Markdown fences, no prose). Each element must be:
+{"sourceSessionId": <number>, "content": "<one compact paragraph or empty string>", "evidence": ["<short file/artifact path>", ...]}
+
+Rules:
+- Output one object per sub-agent, matching its sourceSessionId exactly.
+- content is a concise paragraph of durable facts worth carrying into future main-agent context: implemented behavior, design decisions, constraints, discovered project conventions, follow-up risks.
+- Use an empty string content when a sub-agent produced nothing worth remembering.
+- No generic progress narration, praise, or temporary execution details.
+- Keep evidence short and concrete (touched file paths, result artifact paths).`;
+}
+
+function buildSubAgentMemoryEntryBatchItem(rootSession: AgentSessionItem, item: PendingSubAgentHandoffItem): SubAgentMemoryBatchItem {
+	const subScope = Path("subagents", tostring(item.sourceSessionId));
+	const storage = new DualLayerStorage(rootSession.projectRoot, subScope);
+	const memoryContext = storage.readMemory();
+	const persisted = storage.readSessionState();
+	const tailRaw = buildSubAgentRecentMessageTail(persisted.messages);
+	const resultText = readSubAgentResultSummary(rootSession.projectRoot, item.resultFilePath ?? "");
+	return {
+		item,
+		memoryContext: clipTextToTokenBudget(memoryContext !== "" ? memoryContext : "(empty)", SUB_AGENT_MEMORY_ENTRY_BATCH_PER_ITEM_CONTEXT_TOKENS),
+		recentMessageTail: clipTextToTokenBudget(tailRaw !== "" ? tailRaw : "(empty)", SUB_AGENT_MEMORY_ENTRY_BATCH_PER_ITEM_TAIL_TOKENS),
+		resultText: clipTextToTokenBudget(resultText !== "" ? resultText : "(empty)", SUB_AGENT_MEMORY_ENTRY_BATCH_PER_ITEM_RESULT_TOKENS),
+	};
+}
+
+function buildSubAgentMemoryEntriesBatchPrompt(batchItems: SubAgentMemoryBatchItem[]): string {
+	const rootContext = batchItems.length > 0 ? batchItems[0].memoryContext : "(empty)";
+	const blocks: string[] = [];
+	for (let i = 0; i < batchItems.length; i++) {
+		const bi = batchItems[i];
+		const item = bi.item;
+		const files = item.changeSet?.files ?? [];
+		const changedFiles = files.map(f => `- ${f.path} (${f.op})`).join("\n");
+		blocks.push(`=== sourceSessionId: ${tostring(item.sourceSessionId)} (taskId ${tostring(item.sourceTaskId)}) ===
+title: ${item.sourceTitle}
+goal: ${item.goal}
+prompt: ${item.prompt}
+expectedOutput: ${item.expectedOutput ?? ""}
+changed files:
+${changedFiles !== "" ? changedFiles : "- none"}
+result summary:
+${bi.resultText}
+recent tail:
+${bi.recentMessageTail}`);
+	}
+	return `Shared existing memory (truncated):
+${rootContext}
+
+Sub-agents to summarize:
+${blocks.join("\n\n")}
+
+Return the JSON array now.`;
+}
+
+function buildSubAgentMemoryEntriesBatchRetryPrompt(lastError: string): string {
+	return `Previous batch response was invalid: ${lastError}
+
+Retry with exactly one JSON array of objects, no Markdown fences, no prose.
+Each object: {"sourceSessionId": <number>, "content": "<paragraph or empty string>", "evidence": ["..."]}`;
+}
+
+function findBatchMemoryElement(parsed: unknown[], sourceSessionId: number): unknown {
+	for (let i = 0; i < parsed.length; i++) {
+		const el = parsed[i];
+		if (!el || Array.isArray(el) || type(el) !== "table") continue;
+		const row = el as Record<string, unknown>;
+		const rawId = row.sourceSessionId;
+		const sid = typeof rawId === "number" ? rawId : (typeof rawId === "string" ? tonumber(rawId) : undefined);
+		if (sid === sourceSessionId) return el;
+	}
+	return undefined;
+}
+
+// 返回 {entry} 成功 / {skipped} 显式空内容(无记忆,静默)/ {} 形状无效
+function normalizeGeneratedBatchMemoryEntry(element: unknown, item: PendingSubAgentHandoffItem): { entry?: AgentSubAgentMemoryEntryItem; skipped?: boolean } {
+	if (!element || Array.isArray(element) || type(element) !== "table") return {};
+	const row = element as Record<string, unknown>;
+	const rawId = row.sourceSessionId;
+	const sid = typeof rawId === "number" ? rawId : (typeof rawId === "string" ? tonumber(rawId) : undefined);
+	if (sid !== item.sourceSessionId) return {};
+	if (typeof row.content !== "string") return {};
+	const content = takeUtf8Head(sanitizeUTF8(row.content).trim(), SUB_AGENT_MEMORY_ENTRY_MAX_CHARS);
+	if (content === "") return { skipped: true };
+	return {
+		entry: {
+			sourceSessionId: item.sourceSessionId,
+			sourceTaskId: item.sourceTaskId,
+			content,
+			evidence: normalizeMemoryEntryEvidence(row.evidence),
+			createdAt: item.finishedAt ?? "",
+		},
+	};
+}
+
+async function generateSubAgentMemoryEntries(
+	rootSession: AgentSessionItem,
+	items: PendingSubAgentHandoffItem[],
+): Promise<BatchMemoryEntryResult> {
+	const entries: Record<number, AgentSubAgentMemoryEntryItem> = {};
+	const errors: Record<number, string> = {};
+	if (items.length === 0) return { entries, errors };
 	const configRes = getActiveLLMConfig();
 	if (!configRes.success) {
-		return { error: configRes.message };
+		return { entries, errors, fatal: configRes.message };
 	}
-	const storage = new DualLayerStorage(session.projectRoot, session.memoryScope);
-	const persisted = storage.readSessionState();
-	const memoryContext = storage.readMemory();
-	const recentMessageTail = buildSubAgentRecentMessageTail(persisted.messages);
-	const prompt = buildSubAgentMemoryEntryPrompt(record, resultText, memoryContext, recentMessageTail);
-	const tools = configRes.config.supportsFunctionCalling ? buildSubAgentMemoryEntryToolSchema() : undefined;
-	let lastError = "missing memory entry";
-	for (let attempt = 0; attempt < SUB_AGENT_MEMORY_ENTRY_LLM_MAX_TRY; attempt++) {
-		const useTools = attempt === 0 && tools !== undefined;
-		const messages: Message[] = [
-			{ role: "system", content: buildSubAgentMemoryEntrySystemPrompt() },
-			{
-				role: "user",
-				content: attempt === 0
-					? prompt
-					: `${prompt}\n\n${buildSubAgentMemoryEntryRetryPrompt(lastError)}`,
-			},
-		];
-		const response = await callLLM(
-			messages,
-			{
-				...buildSubAgentMemoryEntryLLMOptions(configRes.config),
-				...(useTools ? { tools } : {}),
-			},
-			configRes.config,
-		);
-		if (!response.success) {
-			lastError = response.message;
-			if (useTools) {
-				Log("Warn", `[AgentSession] sub session memory entry tool request failed, retrying without tools: ${response.message}`);
-			}
-			continue;
+	const config = configRes.config;
+	for (let start = 0; start < items.length; start += SUB_AGENT_MEMORY_ENTRY_BATCH_MAX_ITEMS) {
+		const slice: PendingSubAgentHandoffItem[] = [];
+		for (let i = start; i < items.length && slice.length < SUB_AGENT_MEMORY_ENTRY_BATCH_MAX_ITEMS; i++) {
+			slice.push(items[i]);
 		}
-		const fn = getMemoryEntryToolFunction(response.response);
-		const argsText = fn && typeof fn.arguments === "string" ? fn.arguments : "";
-		if (fn !== undefined && argsText !== "") {
-			const [args, err] = safeJsonDecode(argsText);
-			if (err !== undefined || args === undefined) {
-				lastError = `invalid memory entry tool arguments: ${tostring(err)}`;
+		const batchItems: SubAgentMemoryBatchItem[] = slice.map(it => buildSubAgentMemoryEntryBatchItem(rootSession, it));
+		const prompt = buildSubAgentMemoryEntriesBatchPrompt(batchItems);
+		let lastError = "missing batch memory entries";
+		let settled = false;
+		for (let attempt = 0; attempt < SUB_AGENT_MEMORY_ENTRY_LLM_MAX_TRY && !settled; attempt++) {
+			const messages: Message[] = [
+				{ role: "system", content: buildSubAgentMemoryEntriesBatchSystemPrompt() },
+				{
+					role: "user",
+					content: attempt === 0
+						? prompt
+						: `${prompt}\n\n${buildSubAgentMemoryEntriesBatchRetryPrompt(lastError)}`,
+				},
+			];
+			const options = buildSubAgentMemoryEntryLLMOptions(config);
+			options.max_tokens = SUB_AGENT_MEMORY_ENTRY_BATCH_MAX_TOKENS;
+			const response = await callLLM(messages, options, config);
+			if (!response.success) {
+				lastError = response.message;
 				continue;
 			}
-			if (hasEmptyMemoryEntryContent(args)) return {};
-			const entry = normalizeGeneratedSubAgentMemoryEntry(args, record);
-			if (entry !== undefined) return { entry };
-			lastError = "invalid memory entry tool arguments shape";
-			continue;
+			const plainContent = getMemoryEntryPlainContent(response.response);
+			if (plainContent === "") {
+				lastError = "LLM returned no content";
+				continue;
+			}
+			const [parsed, parseErr] = safeJsonDecode(plainContent);
+			if (parseErr !== undefined || !Array.isArray(parsed)) {
+				lastError = `invalid batch JSON: ${tostring(parseErr ?? "not an array")}`;
+				continue;
+			}
+			for (let i = 0; i < slice.length; i++) {
+				const it = slice[i];
+				if (entries[it.sourceSessionId] !== undefined) continue;
+				const matched = findBatchMemoryElement(parsed, it.sourceSessionId);
+				const norm = normalizeGeneratedBatchMemoryEntry(matched, it);
+				if (norm.entry !== undefined) {
+					entries[it.sourceSessionId] = norm.entry;
+				} else if (norm.skipped === true) {
+					// 显式空 content:无记忆,静默跳过
+				} else if (matched === undefined) {
+					if (errors[it.sourceSessionId] === undefined) errors[it.sourceSessionId] = "no entry for sourceSessionId in batch response";
+				} else if (errors[it.sourceSessionId] === undefined) {
+					errors[it.sourceSessionId] = "invalid entry shape";
+				}
+			}
+			settled = true;
 		}
-		const plainContent = getMemoryEntryPlainContent(response.response);
-		const plainArgs = decodeMemoryEntryFromPlainContent(plainContent);
-		if (plainArgs !== undefined) {
-			if (hasEmptyMemoryEntryContent(plainArgs)) return {};
-			const entry = normalizeGeneratedSubAgentMemoryEntry(plainArgs, record);
-			if (entry !== undefined) return { entry };
-			lastError = "invalid memory entry JSON shape";
-			continue;
+		if (!settled) {
+			for (let i = 0; i < slice.length; i++) {
+				const sid = slice[i].sourceSessionId;
+				if (entries[sid] === undefined && errors[sid] === undefined) {
+					errors[sid] = lastError;
+				}
+			}
+			Log("Warn", `[AgentSession] batch memory entry failed root=${rootSession.id} start=${start} error=${lastError}`);
 		}
-		lastError = "LLM did not return memory entry tool call or JSON content";
 	}
-	return { error: lastError };
+	return { entries, errors };
+}
+
+function backfillPendingHandoffMemoryEntry(rootSession: AgentSessionItem, item: PendingSubAgentHandoffItem, entry: AgentSubAgentMemoryEntryItem | undefined): boolean {
+	const dir = getPendingHandoffDir(rootSession.projectRoot, rootSession.memoryScope);
+	const path = Path(dir, `${item.id}.json`);
+	const text = Content.load(path);
+	if (!text) return false;
+	const [obj] = safeJsonDecode(text);
+	if (!obj || Array.isArray(obj) || type(obj) !== "table") return false;
+	const value = obj as Record<string, unknown>;
+	if (entry !== undefined) {
+		value.memoryEntry = entry;
+	} else {
+		delete value.memoryEntry;
+	}
+	return writePendingHandoff(rootSession.projectRoot, rootSession.memoryScope, value as unknown as PendingSubAgentHandoffItem);
+}
+
+function backfillSpawnInfoMemoryEntry(rootSession: AgentSessionItem, item: PendingSubAgentHandoffItem, entry: AgentSubAgentMemoryEntryItem | undefined, errorMessage: string | undefined): boolean {
+	const subScope = Path("subagents", tostring(item.sourceSessionId));
+	const info = readSpawnInfo(rootSession.projectRoot, subScope);
+	if (!info) return false;
+	if (entry !== undefined) {
+		info.memoryEntry = entry;
+	} else {
+		delete info.memoryEntry;
+	}
+	if (errorMessage !== undefined && errorMessage !== "") {
+		info.memoryEntryError = errorMessage;
+	}
+	return writeSpawnInfo(rootSession.projectRoot, subScope, info);
+}
+
+async function finalizeMainAgentPendingHandoffs(rootSession: AgentSessionItem): Promise<void> {
+	if (rootSession.kind !== "main") return;
+	const items = listPendingHandoffs(rootSession.projectRoot, rootSession.memoryScope);
+	if (items.length === 0) return;
+	const successItems = items.filter(it => it.success !== false);
+	if (successItems.length > 0) {
+		const result = await generateSubAgentMemoryEntries(rootSession, successItems);
+		if (result.fatal) {
+			Log("Warn", `[AgentSession] batch memory entry fatal root=${rootSession.id} error=${result.fatal}`);
+		}
+		for (let i = 0; i < successItems.length; i++) {
+			const it = successItems[i];
+			const entry = result.entries[it.sourceSessionId];
+			const err = result.errors[it.sourceSessionId] ?? result.fatal;
+			backfillPendingHandoffMemoryEntry(rootSession, it, entry);
+			backfillSpawnInfoMemoryEntry(rootSession, it, entry, err);
+		}
+	}
+	flushPendingSubAgentHandoffs(rootSession);
 }
 
 function containsNormalizedText(text: string, query: string): boolean {
@@ -1782,9 +1852,6 @@ function applyEvent(sessionId: number, event: AgentRuntimeEvent) {
 					removedStepIds,
 				});
 			}
-			if (session && session.kind === "main") {
-				flushPendingSubAgentHandoffs(session);
-			}
 			break;
 		}
 	}
@@ -2159,9 +2226,6 @@ function appendSubAgentHandoffStep(session: AgentSessionItem, taskId: number, re
 		Log("Warn", `[AgentSession] failed to queue sub-agent handoff root=${rootSession.id} source=${session.id}`);
 		return;
 	}
-	if (!(rootSession.currentTaskStatus === "RUNNING" && rootSession.currentTaskId && activeStopTokens[rootSession.currentTaskId])) {
-		flushPendingSubAgentHandoffs(rootSession);
-	}
 }
 
 async function finalizeSubSession(session: AgentSessionItem, taskId: number, success: boolean, message: string): Promise<{ success: true } | { success: false; message: string }> {
@@ -2195,14 +2259,7 @@ async function finalizeSubSession(session: AgentSessionItem, taskId: number, suc
 		finishedAtTs,
 		changeSet,
 	};
-	if (record.success) {
-		const memoryEntryResult = await generateSubAgentMemoryEntry(session, record, resultText);
-		record.memoryEntry = memoryEntryResult.entry;
-		if (memoryEntryResult.error && memoryEntryResult.error !== "") {
-			record.memoryEntryError = memoryEntryResult.error;
-			Log("Warn", `[AgentSession] sub session memory entry failed session=${session.id} error=${memoryEntryResult.error}`);
-		}
-	}
+	// memoryEntry 留空占位,改由主 agent task_finished 时批量生成(finalizeMainAgentPendingHandoffs)。
 	if (!writeSubAgentResultFile(session, record, resultText)) {
 		return { success: false, message: "failed to persist sub session result file" };
 	}
@@ -2370,15 +2427,21 @@ function startPromptTask(session: AgentSessionItem, normalizedPrompt: string, ex
 			delete activeStopTokens[taskId];
 			delete finalizingSubSessionTaskIds[taskId];
 		}
-		if (!result.success && (!nextSession || nextSession.kind !== "sub")) {
-			applyEvent(session.id, {
-				type: "task_finished",
-				sessionId: session.id,
-				taskId: result.taskId,
-				success: false,
-				message: result.message,
-				steps: result.steps,
-			});
+		if (!nextSession || nextSession.kind !== "sub") {
+			const rootSession = getRootSessionItem(session.id);
+			if (rootSession && rootSession.kind === "main") {
+				await finalizeMainAgentPendingHandoffs(rootSession);
+			}
+			if (!result.success) {
+				applyEvent(session.id, {
+					type: "task_finished",
+					sessionId: session.id,
+					taskId: result.taskId,
+					success: false,
+					message: result.message,
+					steps: result.steps,
+				});
+			}
 		}
 	});
 	return { success: true, sessionId: session.id, taskId };
