@@ -99,6 +99,34 @@ export interface CodingAgentRunOptions {
 		}
 		| { success: false; message: string }
 	>;
+	waitSubAgents?: (this: void, request: {
+		parentSessionId: number;
+		projectRoot?: string;
+		timeoutSeconds: number;
+		sessionIds?: number[];
+		stopToken?: { stopped: boolean };
+	}) => Promise<
+		| {
+			success: true;
+			rootSessionId: number;
+			consumed: {
+				sourceSessionId: number;
+				sourceTitle: string;
+				sourceTaskId: number;
+				goal: string;
+				message: string;
+				success?: boolean;
+				resultFilePath?: string;
+				artifactDir?: string;
+				finishedAt?: string;
+				memoryEntry?: { content: string; evidence?: string[] };
+			}[];
+			remainingRunning: number;
+			timedOut: boolean;
+			timedOutSessionIds: number[];
+		}
+		| { success: false; message: string }
+	>;
 	onEvent?: (event: CodingAgentEvent) => void;
 }
 
@@ -336,6 +364,7 @@ interface AgentShared {
 	};
 	spawnSubAgent?: CodingAgentRunOptions["spawnSubAgent"];
 	listSubAgents?: CodingAgentRunOptions["listSubAgents"];
+	waitSubAgents?: CodingAgentRunOptions["waitSubAgents"];
 	disabledAgentTools: AgentToolName[];
 }
 
@@ -3158,7 +3187,95 @@ class SpawnSubAgentAction extends Node<AgentShared> {
 			sessionId: result.sessionId,
 			taskId: result.taskId,
 			title: result.title,
-			hint: "If the necessary sub-agents have already been dispatched, end this turn directly and do not immediately check their results.",
+			hint: "Sub-agent dispatched asynchronously. Dispatch more if needed, or call wait_sub_agents to block until at least one sub-agent finishes and return its result in this same turn.",
+		};
+	}
+
+	async post(shared: AgentShared, _prepRes: unknown, execRes: unknown): Promise<string | undefined> {
+		const last = shared.history[shared.history.length - 1];
+		if (last !== undefined) {
+			last.result = execRes as Record<string, unknown>;
+			appendToolResultMessage(shared, last);
+			emitAgentFinishEvent(shared, last);
+		}
+		persistHistoryState(shared);
+		await maybeCompressHistory(shared);
+		persistHistoryState(shared);
+		return "main";
+	}
+}
+
+class WaitSubAgentsAction extends Node<AgentShared> {
+	async prep(shared: AgentShared): Promise<{
+		sessionId?: number;
+		projectRoot: string;
+		timeoutSeconds: number;
+		sessionIds?: number[];
+		waitSubAgents?: CodingAgentRunOptions["waitSubAgents"];
+		stopToken: StopToken;
+	}> {
+		const last = shared.history[shared.history.length - 1];
+		if (!last) throw new Error("no history");
+		emitAgentStartEvent(shared, last);
+		const sessionIds = isArray(last.params.sessionIds)
+			? (last.params.sessionIds as unknown[]).filter(item => typeof item === "number") as number[]
+			: undefined;
+		return {
+			sessionId: shared.sessionId,
+			projectRoot: shared.workingDir,
+			timeoutSeconds: typeof last.params.timeout === "number" ? math.max(1, math.floor(last.params.timeout)) : 120,
+			sessionIds,
+			waitSubAgents: shared.waitSubAgents,
+			stopToken: shared.stopToken,
+		};
+	}
+
+	async exec(input: {
+		sessionId?: number;
+		projectRoot: string;
+		timeoutSeconds: number;
+		sessionIds?: number[];
+		waitSubAgents?: CodingAgentRunOptions["waitSubAgents"];
+		stopToken: StopToken;
+	}): Promise<Record<string, unknown>> {
+		if (!input.waitSubAgents) {
+			return { success: false, message: "wait_sub_agents is not available in this runtime" };
+		}
+		if (input.sessionId === undefined || input.sessionId <= 0) {
+			return { success: false, message: "wait_sub_agents requires a parent session" };
+		}
+		Log("Info", `[CodingAgent] wait_sub_agents exec timeout=${input.timeoutSeconds}`);
+		const result = await input.waitSubAgents({
+			parentSessionId: input.sessionId,
+			projectRoot: input.projectRoot,
+			timeoutSeconds: input.timeoutSeconds,
+			sessionIds: input.sessionIds,
+			stopToken: input.stopToken,
+		});
+		if (!result.success) {
+			return result as unknown as Record<string, unknown>;
+		}
+		return {
+			success: true,
+			consumed: result.consumed.map(item => ({
+				sessionId: item.sourceSessionId,
+				title: item.sourceTitle,
+				goal: item.goal,
+				success: item.success,
+				summary: item.message,
+				resultFilePath: item.resultFilePath ?? "",
+				artifactDir: item.artifactDir ?? "",
+				finishedAt: item.finishedAt ?? "",
+				memoryEntry: item.memoryEntry?.content ?? "",
+			})),
+			remainingRunning: result.remainingRunning,
+			remainingRunningSessionIds: result.timedOutSessionIds,
+			timedOut: result.timedOut,
+			hint: result.timedOut
+				? "Some sub-agents are still running. Call wait_sub_agents again, or finish and handle them later."
+				: (result.consumed.length > 0
+					? "Sub-agent results above are now available in this turn."
+					: "No pending sub-agent results (sub-agents may have failed — use list_sub_agents to inspect)."),
 		};
 	}
 
@@ -3594,7 +3711,7 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 			sessionId: result.sessionId,
 			taskId: result.taskId,
 			title: result.title,
-			hint: "If the necessary sub-agents have already been dispatched, end this turn directly and do not immediately check their results.",
+			hint: "Sub-agent dispatched asynchronously. Dispatch more if needed, or call wait_sub_agents to block until at least one sub-agent finishes and return its result in this same turn.",
 		};
 	}
 	if (action.tool === "list_sub_agents") {
@@ -3905,6 +4022,7 @@ class CodingAgentFlow extends Flow<AgentShared> {
 		const del = new DeleteFileAction(1, 0);
 		const build = new BuildAction(1, 0);
 		const spawn = new SpawnSubAgentAction(1, 0);
+		const wait = new WaitSubAgentsAction(1, 0);
 		const edit = new EditFileAction(1, 0);
 		const fetch = new FetchUrlAction(1, 0);
 		const exec = new FetchUrlAction(1, 0);
@@ -3924,6 +4042,7 @@ class CodingAgentFlow extends Flow<AgentShared> {
 			main.on("edit_file", edit);
 			main.on("list_sub_agents", listSub);
 			main.on("spawn_sub_agent", spawn);
+			main.on("wait_sub_agents", wait);
 		} else {
 			main.on("read_file", read);
 			main.on("delete_file", del);
@@ -3937,6 +4056,7 @@ class CodingAgentFlow extends Flow<AgentShared> {
 		list.on("main", main);
 		listSub.on("main", main);
 		spawn.on("main", main);
+		wait.on("main", main);
 		batch.on("main", main);
 		read.on("main", main);
 		del.on("main", main);
@@ -4035,6 +4155,7 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 		},
 		spawnSubAgent: options.spawnSubAgent,
 		listSubAgents: options.listSubAgents,
+		waitSubAgents: options.waitSubAgents,
 		disabledAgentTools: options.disabledAgentTools ?? [],
 	};
 

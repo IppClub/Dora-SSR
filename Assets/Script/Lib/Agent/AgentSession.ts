@@ -1,5 +1,5 @@
 // @preview-file off clear
-import { App, Content, DB, Path, HttpServer, emit } from 'Dora';
+import { App, Content, DB, Path, HttpServer, emit, Director, once } from 'Dora';
 import { runCodingAgent, CodingAgentEvent, CodingAgentRunResult, truncateAgentUserPrompt } from 'Agent/CodingAgent';
 import * as AgentToolRegistry from 'Agent/AgentToolRegistry';
 import * as Tools from 'Agent/Tools';
@@ -2389,6 +2389,9 @@ function startPromptTask(session: AgentSessionItem, normalizedPrompt: string, ex
 		listSubAgents: session.kind === "main"
 			? listRunningSubAgents
 			: undefined,
+		waitSubAgents: session.kind === "main"
+			? waitSubAgents
+			: undefined,
 		stopToken,
 		onEvent: event => applyEvent(session.id, event),
 	}, async (result: CodingAgentRunResult) => {
@@ -2663,5 +2666,117 @@ export async function listRunningSubAgents(request: {
 		offset,
 		hasMore: offset + limit < merged.length,
 		sessions: paged,
+	};
+}
+
+function collectWaitTargetIds(rootSessionId: number, sessionIds?: number[]): number[] {
+	if (sessionIds && sessionIds.length > 0) {
+		const filtered: number[] = [];
+		for (let i = 0; i < sessionIds.length; i++) {
+			const id = sessionIds[i];
+			if (typeof id === "number" && id > 0 && filtered.indexOf(id) < 0) filtered.push(id);
+		}
+		return filtered;
+	}
+	// 默认等当前所有还在跑的子 agent(子完成后 DB 记录会被 deleteSessionRecords 删,所以查到的是 running 中)
+	const rows = queryRows(`SELECT id FROM ${TABLE_SESSION} WHERE root_session_id = ? AND kind = 'sub'`, [rootSessionId]) ?? [];
+	const ids: number[] = [];
+	for (let i = 0; i < rows.length; i++) {
+		const id = rows[i]?.[0];
+		if (typeof id === "number" && id > 0) ids.push(id);
+	}
+	return ids;
+}
+
+function filterPendingByTargets(items: PendingSubAgentHandoffItem[], targetIds: number[]): PendingSubAgentHandoffItem[] {
+	if (targetIds.length === 0) return items;
+	const result: PendingSubAgentHandoffItem[] = [];
+	for (let i = 0; i < items.length; i++) {
+		if (targetIds.indexOf(items[i].sourceSessionId) >= 0) result.push(items[i]);
+	}
+	return result;
+}
+
+function countRunningByIds(targetIds: number[]): number {
+	let count = 0;
+	for (let i = 0; i < targetIds.length; i++) {
+		const session = getSessionItem(targetIds[i]);
+		if (session && session.kind === "sub") {
+			const normalized = normalizeSessionRuntimeState(session);
+			if (normalized.currentTaskStatus === "RUNNING") count++;
+		}
+	}
+	return count;
+}
+
+function runningIdsOf(targetIds: number[]): number[] {
+	const ids: number[] = [];
+	for (let i = 0; i < targetIds.length; i++) {
+		const session = getSessionItem(targetIds[i]);
+		if (session && session.kind === "sub") {
+			const normalized = normalizeSessionRuntimeState(session);
+			if (normalized.currentTaskStatus === "RUNNING") ids.push(targetIds[i]);
+		}
+	}
+	return ids;
+}
+
+// 主 agent 主动挂起等子 agent 完成(codex wait_agent 模型):轮询 pending-handoff(有子完成)+
+// running-count(兜底全失败,因失败子不写 pending),有结果则消费(批量总结+回填+flush)同轮交回主 agent。
+type SubAgentWaitSignal =
+	| { kind: "ready"; items: PendingSubAgentHandoffItem[] }
+	| { kind: "timeout" }
+	| { kind: "stopped" }
+	| { kind: "allDoneNoHandoff" };
+
+export async function waitSubAgents(request: {
+	parentSessionId: number;
+	projectRoot?: string;
+	timeoutSeconds: number;
+	sessionIds?: number[];
+	stopToken?: { stopped: boolean };
+}): Promise<
+	| { success: true; rootSessionId: number; consumed: PendingSubAgentHandoffItem[]; remainingRunning: number; timedOut: boolean; timedOutSessionIds: number[] }
+	| { success: false; message: string }
+> {
+	const parentSession = getSessionItem(request.parentSessionId);
+	if (!parentSession) return { success: false, message: "parent session not found" };
+	const rootSession = getRootSessionItem(request.parentSessionId);
+	if (!rootSession || rootSession.kind !== "main") return { success: false, message: "root session not found or not main" };
+	const rootId = rootSession.id;
+	const targetIds = collectWaitTargetIds(rootId, request.sessionIds);
+	const timeout = math.max(1, math.floor(Number(request.timeoutSeconds ?? 120)));
+	const signal = await new Promise<SubAgentWaitSignal>(resolve => {
+		const deadline = now() + timeout;
+		const tick = () => {
+			Director.systemScheduler.schedule(once(() => {
+				if (request.stopToken?.stopped === true) { resolve({ kind: "stopped" }); return; }
+				// wait_all:等 targetIds 全部完成(running=0)再一次性收集所有 pending
+				if (targetIds.length === 0 || countRunningByIds(targetIds) === 0) {
+					const items = listPendingHandoffs(rootSession.projectRoot, rootSession.memoryScope);
+					const matching = filterPendingByTargets(items, targetIds);
+					if (matching.length > 0) { resolve({ kind: "ready", items: matching }); return; }
+					resolve({ kind: "allDoneNoHandoff" }); return;
+				}
+				if (now() > deadline) { resolve({ kind: "timeout" }); return; }
+				tick();
+			}));
+		};
+		tick();
+	});
+	let consumed: PendingSubAgentHandoffItem[] = [];
+	if (signal.kind === "ready") {
+		// 全量消费(批量总结 + 回填 SPAWN + flush 注入主 agent);Phase 2 再拆 subset 精确消费 target。
+		await finalizeMainAgentPendingHandoffs(rootSession);
+		consumed = signal.items;
+	}
+	const remainingRunningIds = runningIdsOf(targetIds);
+	return {
+		success: true,
+		rootSessionId: rootId,
+		consumed,
+		remainingRunning: remainingRunningIds.length,
+		timedOut: signal.kind === "timeout",
+		timedOutSessionIds: signal.kind === "timeout" ? remainingRunningIds : [],
 	};
 }

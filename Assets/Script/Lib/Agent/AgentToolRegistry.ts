@@ -15,6 +15,7 @@ export type AgentToolName =
 	| "execute_command"
 	| "list_sub_agents"
 	| "spawn_sub_agent"
+	| "wait_sub_agents"
 	| "finish";
 
 const BUILT_IN_AGENT_TOOL_NAMES: AgentToolName[] = [
@@ -29,6 +30,7 @@ const BUILT_IN_AGENT_TOOL_NAMES: AgentToolName[] = [
 	"execute_command",
 	"list_sub_agents",
 	"spawn_sub_agent",
+	"wait_sub_agents",
 	"finish",
 ];
 
@@ -294,7 +296,7 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 			"status defaults to active_or_recent and may also be running, done, failed, or all.",
 			"limit defaults to a small recent window. Use offset to page older items.",
 			"query filters by title, goal, or summary text.",
-			"Do not use this after a successful spawn_sub_agent in the same turn.",
+			"Do not use this to poll for results — prefer wait_sub_agents. Use list_sub_agents only to inspect overall sub-agent status when needed.",
 		],
 		preExecutable: true,
 		parallelSafe: true,
@@ -315,11 +317,29 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 			"The spawned sub agent inherits the current session tool capabilities, including fetch_url and execute_command when enabled.",
 			"title should be short and specific.",
 			"prompt should be self-contained and actionable, and should clearly describe the concrete work to execute, constraints, desired output, and any relevant files.",
-			"If spawn succeeds, immediately finish the current turn and state that the work has been delegated.",
-			"Do not call list_sub_agents or any other tool after a successful spawn_sub_agent in the same turn.",
-			"Treat the actual implementation result as an asynchronous handoff that will be handled in later conversation turns.",
+			"spawn_sub_agent is fire-and-forget: it returns immediately with a session id and does NOT wait for the sub agent to finish.",
+			"You may dispatch multiple sub agents before waiting. After spawning, call wait_sub_agents to block until at least one finishes and return its result in the same turn.",
+			"You can also keep doing other work in the same turn after spawning; sub-agent results are collected when you call wait_sub_agents.",
 			"filesHint is an optional list of likely files or directories.",
 		],
+	},
+	{
+		name: "wait_sub_agents",
+		roles: ["main"],
+		description: "Block until at least one spawned sub agent finishes, then return its result in the same turn. This is how you collect sub-agent results without ending the turn.",
+		parameters: [
+			{ name: "timeout", type: "number", description: "Max seconds to wait. Defaults to 120." },
+			{ name: "sessionIds", type: "array", items: { type: "number" }, description: "Optional list of sub-agent session ids to wait on. If omitted, waits on all running sub agents of the current main session." },
+		],
+		rules: [
+			"Call this after one or more spawn_sub_agent calls to block until at least one sub agent completes, then read its result in the same turn.",
+			"Returns finished sub-agent results (summary + memoryEntry) plus remainingRunning and timedOut.",
+			"If timedOut is true and sub agents are still running, call wait_sub_agents again, or finish and handle them later.",
+			"If consumed is empty, the sub agents may have failed — use list_sub_agents to inspect their status.",
+			"Prefer this over list_sub_agents for collecting results.",
+		],
+		preExecutable: false,
+		parallelSafe: false,
 	},
 ];
 
@@ -406,7 +426,7 @@ export function buildToolDefinitionsDetailed(tools: ToolPrompt[], options?: {
 	if (options?.includeXmlRules === true) {
 		sections.push(`XML mode object fields:
 - Use a single root tag: <tool_call>.
-- For read_file, edit_file, delete_file, grep_files, search_dora_api, glob_files, build, fetch_url, and execute_command, include <tool>, <reason>, and <params>.
+- For read_file, edit_file, delete_file, grep_files, search_dora_api, glob_files, build, fetch_url, execute_command, include <tool>, <reason>, and <params>.
 - For finish, do not include <reason>. Use only <tool> and <params><message>...</message></params>.
 - Inside <params>, use one child tag per parameter and preserve each tag content as raw text.`);
 	}
