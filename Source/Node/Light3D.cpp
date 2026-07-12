@@ -17,6 +17,12 @@ void dora_3d_directional_light_set_color(uint64_t node, float r, float g, float 
 void dora_3d_directional_light_get_color(uint64_t node, float* out);
 void dora_3d_directional_light_set_intensity(uint64_t node, float intensity);
 float dora_3d_directional_light_get_intensity(uint64_t node);
+void dora_3d_directional_light_set_cast_shadow(uint64_t node, int32_t enabled);
+int32_t dora_3d_directional_light_get_cast_shadow(uint64_t node);
+void dora_3d_directional_light_set_shadow_bias(uint64_t node, float bias);
+float dora_3d_directional_light_get_shadow_bias(uint64_t node);
+void dora_3d_directional_light_set_shadow_normal_bias(uint64_t node, float bias);
+float dora_3d_directional_light_get_shadow_normal_bias(uint64_t node);
 int32_t dora_3d_point_light_create(uint64_t node);
 void dora_3d_point_light_set_color(uint64_t node, float r, float g, float b);
 void dora_3d_point_light_get_color(uint64_t node, float* out);
@@ -64,6 +70,48 @@ void DirectionalLight3D::setIntensity(float intensity) {
 float DirectionalLight3D::getIntensity() const noexcept {
 #ifndef DORA_NO_RUST
 	return dora_3d_directional_light_get_intensity(getHandle());
+#else
+	return 0.0f;
+#endif
+}
+
+void DirectionalLight3D::setCastShadow(bool enabled) {
+#ifndef DORA_NO_RUST
+	dora_3d_directional_light_set_cast_shadow(getHandle(), enabled ? 1 : 0);
+#endif
+}
+
+bool DirectionalLight3D::isCastShadow() const noexcept {
+#ifndef DORA_NO_RUST
+	return dora_3d_directional_light_get_cast_shadow(getHandle()) != 0;
+#else
+	return false;
+#endif
+}
+
+void DirectionalLight3D::setShadowBias(float bias) {
+#ifndef DORA_NO_RUST
+	dora_3d_directional_light_set_shadow_bias(getHandle(), bias);
+#endif
+}
+
+float DirectionalLight3D::getShadowBias() const noexcept {
+#ifndef DORA_NO_RUST
+	return dora_3d_directional_light_get_shadow_bias(getHandle());
+#else
+	return 0.0f;
+#endif
+}
+
+void DirectionalLight3D::setShadowNormalBias(float bias) {
+#ifndef DORA_NO_RUST
+	dora_3d_directional_light_set_shadow_normal_bias(getHandle(), bias);
+#endif
+}
+
+float DirectionalLight3D::getShadowNormalBias() const noexcept {
+#ifndef DORA_NO_RUST
+	return dora_3d_directional_light_get_shadow_normal_bias(getHandle());
 #else
 	return 0.0f;
 #endif

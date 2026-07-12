@@ -11,7 +11,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Physics/PhysicsWorld.h"
 
 #include "Basic/Application.h"
+#include "Basic/Content.h"
+#include "Basic/Director.h"
+#include "Common/Async.h"
 #include "Node/DrawNode.h"
+#include "Node/Node3D.h"
+#include "Node/View3D.h"
 #include "Physics/Body.h"
 #include "Physics/DebugDraw.h"
 #include "Physics/Joint.h"
@@ -21,6 +26,984 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "playrho/d2/Manifold.hpp"
 
 NS_DORA_BEGIN
+
+extern "C" {
+uint64_t dora_3d_physics_world_create(uint32_t maxBodies);
+void dora_3d_physics_world_destroy(uint64_t world);
+void dora_3d_physics_world_set_gravity(uint64_t world, float x, float y, float z);
+int32_t dora_3d_physics_world_step(uint64_t world, float deltaTime);
+uint64_t dora_3d_physics_body_create_box(uint64_t world, uint64_t node, float halfX, float halfY, float halfZ, uint8_t motion);
+uint64_t dora_3d_physics_body_create_sphere(uint64_t world, uint64_t node, float radius, uint8_t motion);
+uint64_t dora_3d_physics_body_create_capsule(uint64_t world, uint64_t node, float halfHeight, float radius, uint8_t motion);
+int32_t dora_3d_physics_body_destroy(uint64_t world, uint64_t body);
+int32_t dora_3d_physics_body_get_bounds(uint64_t world, uint64_t body, float* out);
+void dora_3d_queue_physics_debug_bounds(uint64_t root, float minX, float minY, float minZ, float maxX, float maxY, float maxZ, float red, float green, float blue);
+void dora_3d_queue_physics_debug_shape(uint64_t root, uint8_t type, float x, float y, float z, const float* transform, float red, float green, float blue);
+int32_t dora_3d_physics_body_set_linear_velocity(uint64_t world, uint64_t body, float x, float y, float z);
+int32_t dora_3d_physics_body_get_linear_velocity(uint64_t world, uint64_t body, float* out);
+int32_t dora_3d_physics_body_set_angular_velocity(uint64_t world, uint64_t body, float x, float y, float z);
+int32_t dora_3d_physics_body_get_angular_velocity(uint64_t world, uint64_t body, float* out);
+int32_t dora_3d_physics_body_apply_force(uint64_t world, uint64_t body, float x, float y, float z);
+int32_t dora_3d_physics_body_apply_impulse(uint64_t world, uint64_t body, float x, float y, float z);
+int32_t dora_3d_physics_body_set_filter(uint64_t world, uint64_t body, uint8_t layer, uint32_t mask);
+int32_t dora_3d_physics_body_get_filter(uint64_t world, uint64_t body, uint8_t* layer, uint32_t* mask);
+int32_t dora_3d_physics_body_set_sensor(uint64_t world, uint64_t body, int32_t sensor);
+int32_t dora_3d_physics_body_is_sensor(uint64_t world, uint64_t body);
+uint64_t dora_3d_physics_character_create_capsule(uint64_t world, uint64_t node, float halfHeight, float radius, float maxSlopeAngle, float stepHeight);
+int32_t dora_3d_physics_character_destroy(uint64_t world, uint64_t character);
+int32_t dora_3d_physics_character_set_velocity(uint64_t world, uint64_t character, float x, float y, float z);
+int32_t dora_3d_physics_character_jump(uint64_t world, uint64_t character, float speed);
+int32_t dora_3d_physics_character_set_filter(uint64_t world, uint64_t character, uint8_t layer, uint32_t mask);
+int32_t dora_3d_physics_character_get_state(uint64_t world, uint64_t character, float* velocity, uint8_t* groundState, float* groundNormal);
+uint64_t dora_3d_physics_shape_create_box(float x, float y, float z);
+uint64_t dora_3d_physics_shape_create_sphere(float radius);
+uint64_t dora_3d_physics_shape_create_capsule(float halfHeight, float radius);
+uint64_t dora_3d_physics_shape_create_compound();
+uint64_t dora_3d_physics_shape_create_mesh_data(const char* path, const uint8_t* data, size_t size, int32_t (*loader)(const char*, const uint8_t**, size_t*, void*), void* userData);
+uint64_t dora_3d_physics_shape_create_convex_hull_data(const char* path, const uint8_t* data, size_t size, int32_t (*loader)(const char*, const uint8_t**, size_t*, void*), void* userData);
+int32_t dora_3d_physics_shape_add_child(uint64_t compound, uint64_t shape, float positionX, float positionY, float positionZ, float angleX, float angleY, float angleZ);
+int32_t dora_3d_physics_shape_build(uint64_t shape);
+int32_t dora_3d_physics_shape_is_built(uint64_t shape);
+void dora_3d_physics_shape_destroy(uint64_t shape);
+uint64_t dora_3d_physics_body_create_shape(uint64_t world, uint64_t node, uint64_t shape, uint8_t motion);
+uint64_t dora_3d_physics_constraint_create_fixed(uint64_t world, uint64_t firstBody, uint64_t secondBody, float x, float y, float z);
+uint64_t dora_3d_physics_constraint_create_distance(uint64_t world, uint64_t firstBody, uint64_t secondBody, float firstX, float firstY, float firstZ, float secondX, float secondY, float secondZ, float minDistance, float maxDistance);
+uint64_t dora_3d_physics_constraint_create_hinge(uint64_t world, uint64_t firstBody, uint64_t secondBody, float anchorX, float anchorY, float anchorZ, float axisX, float axisY, float axisZ, float minAngle, float maxAngle);
+int32_t dora_3d_physics_constraint_destroy(uint64_t world, uint64_t constraint);
+int32_t dora_3d_collect_gltf_buffer_dependencies(const char* path, const uint8_t* data, size_t size, void (*visitor)(const char*, void*), void* userData);
+uint32_t dora_3d_physics_world_event_count(uint64_t world);
+int32_t dora_3d_physics_world_event_get(uint64_t world, uint32_t index, uint8_t* eventType, uint64_t* body, uint64_t* other, float* point, float* normal);
+void dora_3d_physics_world_event_clear(uint64_t world);
+int32_t dora_3d_physics_world_raycast(uint64_t world, float originX, float originY, float originZ, float directionX, float directionY, float directionZ, float distance, uint64_t* body, float* point, float* normal, float* hitDistance);
+uint32_t dora_3d_physics_world_overlap_sphere(uint64_t world, float x, float y, float z, float radius, uint64_t* bodies, uint32_t capacity);
+}
+
+struct PhysicsShape3DImportResource {
+	OwnArray<uint8_t> data;
+	size_t size = 0;
+};
+
+enum class PhysicsShape3DLoadKind : uint8_t {
+	Mesh,
+	ConvexHull,
+};
+
+struct PhysicsShape3DLoadTask {
+	std::string key;
+	std::string file;
+	PhysicsShape3DLoadKind kind = PhysicsShape3DLoadKind::Mesh;
+	OwnArray<uint8_t> data;
+	size_t size = 0;
+	std::vector<std::string> dependencies;
+	std::unordered_map<std::string, PhysicsShape3DImportResource> resources;
+	size_t remaining = 0;
+	bool failed = false;
+	bool cancelled = false;
+	std::vector<std::function<void(PhysicsShape3D*)>> handlers;
+};
+
+static void collectPhysicsShape3DDependency(const char* path, void* userData) {
+	auto task = r_cast<PhysicsShape3DLoadTask*>(userData);
+	task->dependencies.emplace_back(path);
+}
+
+static int32_t loadPhysicsShape3DResource(const char* path, const uint8_t** data, size_t* size, void* userData) {
+	auto task = r_cast<PhysicsShape3DLoadTask*>(userData);
+	auto it = task->resources.find(path);
+	if (it == task->resources.end()) return 0;
+	*data = it->second.data.get();
+	*size = it->second.size;
+	return 1;
+}
+
+class PhysicsShape3DCache : public NonCopyable {
+public:
+	virtual ~PhysicsShape3DCache() {
+		for (auto& [_, task] : _tasks) task->cancelled = true;
+		_tasks.clear();
+		_shapes.clear();
+	}
+
+	void loadAsync(String filename, PhysicsShape3DLoadKind kind, const std::function<void(PhysicsShape3D*)>& handler) {
+		auto file = SharedContent.getFullPath(filename);
+		if (file.empty()) {
+			handler(nullptr);
+			return;
+		}
+		auto key = std::string(kind == PhysicsShape3DLoadKind::Mesh ? "mesh:" : "hull:") + file;
+		if (auto it = _shapes.find(key); it != _shapes.end()) {
+			if (it->second->isBuilt()) {
+				handler(it->second);
+				return;
+			}
+			_shapes.erase(it);
+		}
+		if (auto it = _tasks.find(key); it != _tasks.end()) {
+			it->second->handlers.push_back(handler);
+			return;
+		}
+		auto task = std::make_shared<PhysicsShape3DLoadTask>();
+		task->key = key;
+		task->file = file;
+		task->kind = kind;
+		task->handlers.push_back(handler);
+		_tasks[key] = task;
+		SharedContent.loadAsyncData(file, [this, task](OwnArray<uint8_t>&& data, size_t size) {
+			if (!isCurrent(task)) return;
+			if (!data || size == 0) {
+				complete(task, 0);
+				return;
+			}
+			task->data = std::move(data);
+			task->size = size;
+			collectDependencies(task);
+		});
+	}
+
+protected:
+	PhysicsShape3DCache() { }
+
+private:
+	bool isCurrent(const std::shared_ptr<PhysicsShape3DLoadTask>& task) const {
+		auto it = _tasks.find(task->key);
+		return !task->cancelled && it != _tasks.end() && it->second == task;
+	}
+
+	void collectDependencies(const std::shared_ptr<PhysicsShape3DLoadTask>& task) {
+		SharedAsyncThread.run(
+			[task]() {
+				auto success = dora_3d_collect_gltf_buffer_dependencies(
+					task->file.c_str(), task->data.get(), task->size,
+					collectPhysicsShape3DDependency, task.get()) != 0;
+				return Values::alloc(success);
+			},
+			[this, task](Own<Values> result) {
+				if (!isCurrent(task)) return;
+				bool success = false;
+				result->get(success);
+				if (!success) {
+					complete(task, 0);
+					return;
+				}
+				loadDependencies(task);
+			});
+	}
+
+	void loadDependencies(const std::shared_ptr<PhysicsShape3DLoadTask>& task) {
+		if (task->dependencies.empty()) {
+			cook(task);
+			return;
+		}
+		task->remaining = task->dependencies.size();
+		for (const auto& dependency : task->dependencies) {
+			SharedContent.loadAsyncData(dependency, [this, task, dependency](OwnArray<uint8_t>&& data, size_t size) {
+				if (!isCurrent(task)) return;
+				if (!data || size == 0) {
+					task->failed = true;
+				} else {
+					task->resources.emplace(dependency, PhysicsShape3DImportResource {std::move(data), size});
+				}
+				if (--task->remaining == 0) {
+					if (task->failed) {
+						complete(task, 0);
+					} else {
+						cook(task);
+					}
+				}
+			});
+		}
+	}
+
+	void cook(const std::shared_ptr<PhysicsShape3DLoadTask>& task) {
+		SharedAsyncThread.run(
+			[task]() {
+				auto createShape = task->kind == PhysicsShape3DLoadKind::Mesh
+					? dora_3d_physics_shape_create_mesh_data
+					: dora_3d_physics_shape_create_convex_hull_data;
+				return Values::alloc(createShape(task->file.c_str(), task->data.get(), task->size,
+					loadPhysicsShape3DResource, task.get()));
+			},
+			[this, task](Own<Values> result) {
+				uint64_t handle = 0;
+				result->get(handle);
+				if (!isCurrent(task)) {
+					if (handle != 0) dora_3d_physics_shape_destroy(handle);
+					return;
+				}
+				complete(task, handle);
+			});
+	}
+
+	void complete(const std::shared_ptr<PhysicsShape3DLoadTask>& task, uint64_t handle) {
+		Ref<PhysicsShape3D> shape(Object::create<PhysicsShape3D>(handle, handle != 0));
+		if (handle != 0 && shape) {
+			_shapes[task->key] = shape;
+		} else if (handle != 0) {
+			dora_3d_physics_shape_destroy(handle);
+		}
+		auto handlers = std::move(task->handlers);
+		_tasks.erase(task->key);
+		for (const auto& handler : handlers) handler(shape);
+	}
+
+	StringMap<Ref<PhysicsShape3D>> _shapes;
+	StringMap<std::shared_ptr<PhysicsShape3DLoadTask>> _tasks;
+	SINGLETON_REF(PhysicsShape3DCache, Director);
+};
+
+#define SharedPhysicsShape3DCache \
+	Dora::Singleton<Dora::PhysicsShape3DCache>::shared()
+
+PhysicsShape3D::PhysicsShape3D(uint64_t handle, bool built)
+	: _handle(handle)
+	, _built(built) { }
+
+PhysicsShape3D::~PhysicsShape3D() {
+	clearPhysics();
+}
+
+bool PhysicsShape3D::isBuilt() const noexcept {
+	return _handle != 0 && _built && dora_3d_physics_shape_is_built(_handle) != 0;
+}
+
+bool PhysicsShape3D::addChild(NotNull<PhysicsShape3D, 1> shape, const Vec3& position, const Vec3& eulerAngles) {
+	if (_handle == 0 || _built || !shape->isBuilt()) return false;
+	if (dora_3d_physics_shape_add_child(
+			_handle,
+			shape->_handle,
+			position.x, position.y, position.z,
+			eulerAngles.x, eulerAngles.y, eulerAngles.z)
+		== 0) {
+		return false;
+	}
+	_children.emplace_back(shape.get());
+	return true;
+}
+
+bool PhysicsShape3D::addChild(NotNull<PhysicsShape3D, 1> shape, const Vec3& position) {
+	return addChild(shape, position, Vec3{});
+}
+
+bool PhysicsShape3D::build() {
+	if (_handle == 0 || _built) return false;
+	if (dora_3d_physics_shape_build(_handle) == 0) return false;
+	_built = true;
+	_children.clear();
+	return true;
+}
+
+void PhysicsShape3D::clearPhysics() {
+	_children.clear();
+	if (_handle != 0) {
+		dora_3d_physics_shape_destroy(_handle);
+		_handle = 0;
+	}
+	_built = false;
+}
+
+void PhysicsShape3D::cleanup() {
+	clearPhysics();
+	Object::cleanup();
+}
+
+PhysicsShape3D* PhysicsShape3D::createBox(const Vec3& halfExtent) {
+	auto handle = dora_3d_physics_shape_create_box(halfExtent.x, halfExtent.y, halfExtent.z);
+	return handle == 0 ? nullptr : Object::create<PhysicsShape3D>(handle, true);
+}
+
+PhysicsShape3D* PhysicsShape3D::createSphere(float radius) {
+	auto handle = dora_3d_physics_shape_create_sphere(radius);
+	return handle == 0 ? nullptr : Object::create<PhysicsShape3D>(handle, true);
+}
+
+PhysicsShape3D* PhysicsShape3D::createCapsule(float halfHeight, float radius) {
+	auto handle = dora_3d_physics_shape_create_capsule(halfHeight, radius);
+	return handle == 0 ? nullptr : Object::create<PhysicsShape3D>(handle, true);
+}
+
+PhysicsShape3D* PhysicsShape3D::createCompound() {
+	auto handle = dora_3d_physics_shape_create_compound();
+	return handle == 0 ? nullptr : Object::create<PhysicsShape3D>(handle, false);
+}
+
+void PhysicsShape3D::loadMeshAsync(String filename, const std::function<void(PhysicsShape3D*)>& handler) {
+	SharedPhysicsShape3DCache.loadAsync(filename, PhysicsShape3DLoadKind::Mesh, handler);
+}
+
+void PhysicsShape3D::loadConvexHullAsync(String filename, const std::function<void(PhysicsShape3D*)>& handler) {
+	SharedPhysicsShape3DCache.loadAsync(filename, PhysicsShape3DLoadKind::ConvexHull, handler);
+}
+
+Constraint3D::Constraint3D(NotNull<PhysicsWorld3D, 1> world, NotNull<Body3D, 2> firstBody, NotNull<Body3D, 3> secondBody, uint64_t handle)
+	: _world(world)
+	, _firstBody(firstBody)
+	, _secondBody(secondBody)
+	, _handle(handle) { }
+
+Constraint3D::~Constraint3D() {
+	clearPhysics();
+}
+
+PhysicsWorld3D* Constraint3D::getPhysicsWorld() const noexcept {
+	return _world.get();
+}
+
+Body3D* Constraint3D::getFirstBody() const noexcept {
+	return _firstBody.get();
+}
+
+Body3D* Constraint3D::getSecondBody() const noexcept {
+	return _secondBody.get();
+}
+
+bool Constraint3D::references(Body3D* body) const {
+	return _firstBody.get() == body || _secondBody.get() == body;
+}
+
+void Constraint3D::clearPhysics() {
+	if (_handle != 0) {
+		if (_world) dora_3d_physics_constraint_destroy(_world->_handle, _handle);
+		_handle = 0;
+	}
+	_firstBody = nullptr;
+	_secondBody = nullptr;
+	_world = nullptr;
+}
+
+void Constraint3D::destroy() {
+	if (_world) {
+		_world->destroyConstraint(this);
+	} else {
+		clearPhysics();
+	}
+}
+
+void Constraint3D::cleanup() {
+	clearPhysics();
+	Object::cleanup();
+}
+
+CharacterController3D::CharacterController3D(NotNull<PhysicsWorld3D, 1> world, NotNull<Node3D, 2> node, uint64_t handle)
+	: _world(world)
+	, _node(node)
+	, _handle(handle)
+	, _desiredVelocity{}
+	, _velocity{}
+	, _groundNormal{}
+	, _groundState(3)
+	, _collisionLayer(0)
+	, _collisionMask(0xffffffffu) { }
+
+CharacterController3D::~CharacterController3D() {
+	clearPhysics();
+}
+
+Node3D* CharacterController3D::getNode() const noexcept {
+	return _node.get();
+}
+
+PhysicsWorld3D* CharacterController3D::getPhysicsWorld() const noexcept {
+	return _world.get();
+}
+
+void CharacterController3D::setDesiredVelocity(const Vec3& velocity) {
+	_desiredVelocity = velocity;
+	if (_world && _handle != 0) {
+		dora_3d_physics_character_set_velocity(_world->_handle, _handle, velocity.x, velocity.y, velocity.z);
+	}
+}
+
+const Vec3& CharacterController3D::getDesiredVelocity() const noexcept {
+	return _desiredVelocity;
+}
+
+void CharacterController3D::refreshState() const {
+	_velocity = {};
+	_groundNormal = {};
+	_groundState = 3;
+	if (_world && _handle != 0) {
+		dora_3d_physics_character_get_state(_world->_handle, _handle, &_velocity.x, &_groundState, &_groundNormal.x);
+	}
+}
+
+const Vec3& CharacterController3D::getVelocity() const noexcept {
+	refreshState();
+	return _velocity;
+}
+
+const Vec3& CharacterController3D::getGroundNormal() const noexcept {
+	refreshState();
+	return _groundNormal;
+}
+
+bool CharacterController3D::isGrounded() const noexcept {
+	refreshState();
+	return _groundState == 0;
+}
+
+void CharacterController3D::setCollisionLayer(uint8_t layer) {
+	AssertIf(layer >= 32, "CharacterController3D collision layer should be less than 32.");
+	_collisionLayer = layer;
+	if (_world && _handle != 0) {
+		dora_3d_physics_character_set_filter(_world->_handle, _handle, _collisionLayer, _collisionMask);
+	}
+}
+
+uint8_t CharacterController3D::getCollisionLayer() const noexcept {
+	return _collisionLayer;
+}
+
+void CharacterController3D::setCollisionMask(uint32_t mask) {
+	_collisionMask = mask;
+	if (_world && _handle != 0) {
+		dora_3d_physics_character_set_filter(_world->_handle, _handle, _collisionLayer, _collisionMask);
+	}
+}
+
+uint32_t CharacterController3D::getCollisionMask() const noexcept {
+	return _collisionMask;
+}
+
+void CharacterController3D::jump(float speed) {
+	if (_world && _handle != 0 && speed > 0.0f) {
+		dora_3d_physics_character_jump(_world->_handle, _handle, speed);
+	}
+}
+
+void CharacterController3D::clearPhysics() {
+	if (_handle != 0) {
+		if (_world) dora_3d_physics_character_destroy(_world->_handle, _handle);
+		_handle = 0;
+	}
+	_node = nullptr;
+	_world = nullptr;
+}
+
+void CharacterController3D::destroy() {
+	if (_world) {
+		_world->destroyCharacter(this);
+	} else {
+		clearPhysics();
+	}
+}
+
+void CharacterController3D::cleanup() {
+	clearPhysics();
+	Object::cleanup();
+}
+
+Body3D::Body3D(NotNull<PhysicsWorld3D, 1> world, NotNull<Node3D, 2> node, BodyType3D type, uint64_t handle)
+	: _world(world)
+	, _node(node)
+	, _type(type)
+	, _handle(handle)
+	, _linearVelocity{}
+	, _angularVelocity{}
+	, _collisionLayer(0)
+	, _collisionMask(0xffffffffu)
+	, _sensor(false)
+	, _debugShape(DebugShape::Bounds)
+	, _debugSize{} { }
+
+Body3D::~Body3D() {
+	clearPhysics();
+}
+
+Node3D* Body3D::getNode() const noexcept {
+	return _node.get();
+}
+
+PhysicsWorld3D* Body3D::getPhysicsWorld() const noexcept {
+	return _world.get();
+}
+
+BodyType3D Body3D::getType() const noexcept {
+	return _type;
+}
+
+uint8_t Body3D::getTypeValue() const noexcept {
+	return s_cast<uint8_t>(_type);
+}
+
+void Body3D::setLinearVelocity(const Vec3& velocity) {
+	if (_world && _handle != 0) {
+		dora_3d_physics_body_set_linear_velocity(_world->_handle, _handle, velocity.x, velocity.y, velocity.z);
+	}
+}
+
+const Vec3& Body3D::getLinearVelocity() const noexcept {
+	_linearVelocity = {};
+	if (_world && _handle != 0) {
+		dora_3d_physics_body_get_linear_velocity(_world->_handle, _handle, &_linearVelocity.x);
+	}
+	return _linearVelocity;
+}
+
+void Body3D::setAngularVelocity(const Vec3& velocity) {
+	if (_world && _handle != 0) {
+		dora_3d_physics_body_set_angular_velocity(_world->_handle, _handle, velocity.x, velocity.y, velocity.z);
+	}
+}
+
+const Vec3& Body3D::getAngularVelocity() const noexcept {
+	_angularVelocity = {};
+	if (_world && _handle != 0) {
+		dora_3d_physics_body_get_angular_velocity(_world->_handle, _handle, &_angularVelocity.x);
+	}
+	return _angularVelocity;
+}
+
+void Body3D::setCollisionLayer(uint8_t layer) {
+	AssertIf(layer >= 32, "Body3D collision layer should be less than 32.");
+	_collisionLayer = layer;
+	if (_world && _handle != 0) {
+		dora_3d_physics_body_set_filter(_world->_handle, _handle, _collisionLayer, _collisionMask);
+	}
+}
+
+uint8_t Body3D::getCollisionLayer() const noexcept {
+	return _collisionLayer;
+}
+
+void Body3D::setCollisionMask(uint32_t mask) {
+	_collisionMask = mask;
+	if (_world && _handle != 0) {
+		dora_3d_physics_body_set_filter(_world->_handle, _handle, _collisionLayer, _collisionMask);
+	}
+}
+
+uint32_t Body3D::getCollisionMask() const noexcept {
+	return _collisionMask;
+}
+
+void Body3D::setSensor(bool sensor) {
+	_sensor = sensor;
+	if (_world && _handle != 0) {
+		dora_3d_physics_body_set_sensor(_world->_handle, _handle, sensor ? 1 : 0);
+	}
+}
+
+bool Body3D::isSensor() const noexcept {
+	return _sensor;
+}
+
+void Body3D::applyForce(const Vec3& force) {
+	if (_world && _handle != 0) {
+		dora_3d_physics_body_apply_force(_world->_handle, _handle, force.x, force.y, force.z);
+	}
+}
+
+void Body3D::applyImpulse(const Vec3& impulse) {
+	if (_world && _handle != 0) {
+		dora_3d_physics_body_apply_impulse(_world->_handle, _handle, impulse.x, impulse.y, impulse.z);
+	}
+}
+
+void Body3D::onContactEnter(const Contact3DHandler& handler) {
+	_contactEnter = handler;
+}
+
+void Body3D::onContactStay(const Contact3DHandler& handler) {
+	_contactStay = handler;
+}
+
+void Body3D::onContactExit(const Contact3DHandler& handler) {
+	_contactExit = handler;
+}
+
+void Body3D::dispatchContact(uint8_t eventType, Body3D* other, const Vec3& point, const Vec3& normal) {
+	auto* handler = eventType == 0 ? &_contactEnter : eventType == 1 ? &_contactStay : &_contactExit;
+	if (*handler) (*handler)(other, point, normal);
+}
+
+void Body3D::clearPhysics() {
+	if (_handle != 0) {
+		if (_world) {
+			dora_3d_physics_body_destroy(_world->_handle, _handle);
+		}
+		_handle = 0;
+	}
+	_node = nullptr;
+	_world = nullptr;
+	_contactEnter = nullptr;
+	_contactStay = nullptr;
+	_contactExit = nullptr;
+}
+
+void Body3D::destroy() {
+	if (_world) {
+		_world->destroyBody(this);
+	} else {
+		clearPhysics();
+	}
+}
+
+void Body3D::cleanup() {
+	clearPhysics();
+	Object::cleanup();
+}
+
+PhysicsWorld3D::PhysicsWorld3D()
+	: _handle(0)
+	, _gravity(0.0f, -9.81f, 0.0f) { }
+
+PhysicsWorld3D::~PhysicsWorld3D() {
+	clearPhysics();
+}
+
+bool PhysicsWorld3D::init() {
+	if (!Node::init()) return false;
+	_handle = dora_3d_physics_world_create(65536);
+	if (_handle == 0) return false;
+	dora_3d_physics_world_set_gravity(_handle, _gravity.x, _gravity.y, _gravity.z);
+	Node::scheduleFixedUpdate();
+	return true;
+}
+
+void PhysicsWorld3D::setGravity(const Vec3& gravity) {
+	_gravity = gravity;
+	if (_handle != 0) {
+		dora_3d_physics_world_set_gravity(_handle, gravity.x, gravity.y, gravity.z);
+	}
+}
+
+const Vec3& PhysicsWorld3D::getGravity() const noexcept {
+	return _gravity;
+}
+
+Body3D* PhysicsWorld3D::addBody(Node3D* node, BodyType3D type, uint64_t handle) {
+	if (handle == 0) return nullptr;
+	auto body = Object::create<Body3D>(this, node, type, handle);
+	if (body) {
+		_bodies.emplace_back(body);
+		_bodyMap.emplace(handle, body);
+	}
+	return body;
+}
+
+Body3D* PhysicsWorld3D::createBox(NotNull<Node3D, 1> node, const Vec3& halfExtent, BodyType3D type) {
+	if (_handle == 0) return nullptr;
+	auto handle = dora_3d_physics_body_create_box(
+		_handle, node->getHandle(), halfExtent.x, halfExtent.y, halfExtent.z, s_cast<uint8_t>(type));
+	auto* body = addBody(node, type, handle);
+	if (body) {
+		body->_debugShape = Body3D::DebugShape::Box;
+		body->_debugSize = halfExtent;
+	}
+	return body;
+}
+
+Body3D* PhysicsWorld3D::createBox(NotNull<Node3D, 1> node, const Vec3& halfExtent, uint8_t type) {
+	AssertIf(type > s_cast<uint8_t>(BodyType3D::Dynamic), "Invalid BodyType3D value {}.", type);
+	return createBox(node, halfExtent, s_cast<BodyType3D>(type));
+}
+
+Body3D* PhysicsWorld3D::createSphere(NotNull<Node3D, 1> node, float radius, BodyType3D type) {
+	if (_handle == 0) return nullptr;
+	auto handle = dora_3d_physics_body_create_sphere(
+		_handle, node->getHandle(), radius, s_cast<uint8_t>(type));
+	auto* body = addBody(node, type, handle);
+	if (body) {
+		body->_debugShape = Body3D::DebugShape::Sphere;
+		body->_debugSize = Vec3{radius, 0.0f, 0.0f};
+	}
+	return body;
+}
+
+Body3D* PhysicsWorld3D::createSphere(NotNull<Node3D, 1> node, float radius, uint8_t type) {
+	AssertIf(type > s_cast<uint8_t>(BodyType3D::Dynamic), "Invalid BodyType3D value {}.", type);
+	return createSphere(node, radius, s_cast<BodyType3D>(type));
+}
+
+Body3D* PhysicsWorld3D::createCapsule(NotNull<Node3D, 1> node, float halfHeight, float radius, BodyType3D type) {
+	if (_handle == 0) return nullptr;
+	auto handle = dora_3d_physics_body_create_capsule(
+		_handle, node->getHandle(), halfHeight, radius, s_cast<uint8_t>(type));
+	auto* body = addBody(node, type, handle);
+	if (body) {
+		body->_debugShape = Body3D::DebugShape::Capsule;
+		body->_debugSize = Vec3{halfHeight, radius, 0.0f};
+	}
+	return body;
+}
+
+Body3D* PhysicsWorld3D::createCapsule(NotNull<Node3D, 1> node, float halfHeight, float radius, uint8_t type) {
+	AssertIf(type > s_cast<uint8_t>(BodyType3D::Dynamic), "Invalid BodyType3D value {}.", type);
+	return createCapsule(node, halfHeight, radius, s_cast<BodyType3D>(type));
+}
+
+Body3D* PhysicsWorld3D::makeBox(NotNull<Node3D, 1> node, const Vec3& halfExtent, uint8_t type) {
+	return createBox(node, halfExtent, type);
+}
+
+Body3D* PhysicsWorld3D::makeSphere(NotNull<Node3D, 1> node, float radius, uint8_t type) {
+	return createSphere(node, radius, type);
+}
+
+Body3D* PhysicsWorld3D::makeCapsule(NotNull<Node3D, 1> node, float halfHeight, float radius, uint8_t type) {
+	return createCapsule(node, halfHeight, radius, type);
+}
+
+Body3D* PhysicsWorld3D::createBody(NotNull<Node3D, 1> node, NotNull<PhysicsShape3D, 2> shape, BodyType3D type) {
+	if (_handle == 0 || !shape->isBuilt()) return nullptr;
+	auto handle = dora_3d_physics_body_create_shape(
+		_handle, node->getHandle(), shape->_handle, s_cast<uint8_t>(type));
+	return addBody(node, type, handle);
+}
+
+Body3D* PhysicsWorld3D::createBody(NotNull<Node3D, 1> node, NotNull<PhysicsShape3D, 2> shape, uint8_t type) {
+	AssertIf(type > s_cast<uint8_t>(BodyType3D::Dynamic), "Invalid BodyType3D value {}.", type);
+	return createBody(node, shape, s_cast<BodyType3D>(type));
+}
+
+Body3D* PhysicsWorld3D::makeBody(NotNull<Node3D, 1> node, NotNull<PhysicsShape3D, 2> shape, uint8_t type) {
+	return createBody(node, shape, type);
+}
+
+CharacterController3D* PhysicsWorld3D::createCharacter(NotNull<Node3D, 1> node, float halfHeight, float radius, float maxSlopeAngle, float stepHeight) {
+	if (_handle == 0) return nullptr;
+	auto handle = dora_3d_physics_character_create_capsule(
+		_handle, node->getHandle(), halfHeight, radius, maxSlopeAngle, stepHeight);
+	if (handle == 0) return nullptr;
+	auto character = Object::create<CharacterController3D>(this, node.get(), handle);
+	if (character) _characters.emplace_back(character);
+	return character;
+}
+
+CharacterController3D* PhysicsWorld3D::makeCharacter(NotNull<Node3D, 1> node, float halfHeight, float radius, float maxSlopeAngle, float stepHeight) {
+	return createCharacter(node, halfHeight, radius, maxSlopeAngle, stepHeight);
+}
+
+Constraint3D* PhysicsWorld3D::addConstraint(Body3D* firstBody, Body3D* secondBody, uint64_t handle) {
+	if (handle == 0) return nullptr;
+	auto constraint = Object::create<Constraint3D>(this, firstBody, secondBody, handle);
+	if (constraint) _constraints.emplace_back(constraint);
+	return constraint;
+}
+
+Constraint3D* PhysicsWorld3D::createFixedConstraint(NotNull<Body3D, 1> firstBody, NotNull<Body3D, 2> secondBody, const Vec3& anchor) {
+	if (_handle == 0 || firstBody->_world.get() != this || secondBody->_world.get() != this) return nullptr;
+	auto handle = dora_3d_physics_constraint_create_fixed(
+		_handle, firstBody->_handle, secondBody->_handle, anchor.x, anchor.y, anchor.z);
+	return addConstraint(firstBody, secondBody, handle);
+}
+
+Constraint3D* PhysicsWorld3D::createDistanceConstraint(NotNull<Body3D, 1> firstBody, NotNull<Body3D, 2> secondBody, const Vec3& firstAnchor, const Vec3& secondAnchor, float minDistance, float maxDistance) {
+	if (_handle == 0 || firstBody->_world.get() != this || secondBody->_world.get() != this) return nullptr;
+	auto handle = dora_3d_physics_constraint_create_distance(
+		_handle, firstBody->_handle, secondBody->_handle,
+		firstAnchor.x, firstAnchor.y, firstAnchor.z,
+		secondAnchor.x, secondAnchor.y, secondAnchor.z,
+		minDistance, maxDistance);
+	return addConstraint(firstBody, secondBody, handle);
+}
+
+Constraint3D* PhysicsWorld3D::createHingeConstraint(NotNull<Body3D, 1> firstBody, NotNull<Body3D, 2> secondBody, const Vec3& anchor, const Vec3& axis, float minAngle, float maxAngle) {
+	if (_handle == 0 || firstBody->_world.get() != this || secondBody->_world.get() != this) return nullptr;
+	auto handle = dora_3d_physics_constraint_create_hinge(
+		_handle, firstBody->_handle, secondBody->_handle,
+		anchor.x, anchor.y, anchor.z, axis.x, axis.y, axis.z, minAngle, maxAngle);
+	return addConstraint(firstBody, secondBody, handle);
+}
+
+Constraint3D* PhysicsWorld3D::makeFixedConstraint(NotNull<Body3D, 1> firstBody, NotNull<Body3D, 2> secondBody, const Vec3& anchor) {
+	return createFixedConstraint(firstBody, secondBody, anchor);
+}
+
+Constraint3D* PhysicsWorld3D::makeDistanceConstraint(NotNull<Body3D, 1> firstBody, NotNull<Body3D, 2> secondBody, const Vec3& firstAnchor, const Vec3& secondAnchor, float minDistance, float maxDistance) {
+	return createDistanceConstraint(firstBody, secondBody, firstAnchor, secondAnchor, minDistance, maxDistance);
+}
+
+Constraint3D* PhysicsWorld3D::makeHingeConstraint(NotNull<Body3D, 1> firstBody, NotNull<Body3D, 2> secondBody, const Vec3& anchor, const Vec3& axis, float minAngle, float maxAngle) {
+	return createHingeConstraint(firstBody, secondBody, anchor, axis, minAngle, maxAngle);
+}
+
+void PhysicsWorld3D::destroyConstraint(NotNull<Constraint3D, 1> constraint) {
+	auto it = std::find_if(_constraints.begin(), _constraints.end(), [constraint](const Ref<Constraint3D>& candidate) {
+		return candidate.get() == constraint;
+	});
+	if (it == _constraints.end()) return;
+	Ref<Constraint3D> retained(*it);
+	_constraints.erase(it);
+	retained->clearPhysics();
+}
+
+void PhysicsWorld3D::destroyConstraintsFor(Body3D* body) {
+	for (size_t i = _constraints.size(); i > 0; --i) {
+		if (_constraints[i - 1]->references(body)) destroyConstraint(_constraints[i - 1].get());
+	}
+}
+
+void PhysicsWorld3D::destroyBody(NotNull<Body3D, 1> body) {
+	auto it = std::find_if(_bodies.begin(), _bodies.end(), [body](const Ref<Body3D>& candidate) {
+		return candidate.get() == body;
+	});
+	if (it == _bodies.end()) return;
+	Ref<Body3D> retained(*it);
+	destroyConstraintsFor(retained);
+	_bodies.erase(it);
+	_bodyMap.erase(retained->_handle);
+	retained->clearPhysics();
+}
+
+void PhysicsWorld3D::destroyCharacter(NotNull<CharacterController3D, 1> character) {
+	auto it = std::find_if(_characters.begin(), _characters.end(), [character](const Ref<CharacterController3D>& candidate) {
+		return candidate.get() == character;
+	});
+	if (it == _characters.end()) return;
+	Ref<CharacterController3D> retained(*it);
+	_characters.erase(it);
+	retained->clearPhysics();
+}
+
+Body3D* PhysicsWorld3D::getBody(uint64_t handle) const {
+	auto it = _bodyMap.find(handle);
+	return it == _bodyMap.end() ? nullptr : it->second;
+}
+
+bool PhysicsWorld3D::raycast(const Vec3& origin, const Vec3& direction, float distance, const std::function<bool(Body3D*, const Vec3&, const Vec3&, float)>& callback) {
+	if (_handle == 0 || distance <= 0.0f) return false;
+	uint64_t bodyHandle = 0;
+	Vec3 point;
+	Vec3 normal;
+	float hitDistance = 0.0f;
+	if (!dora_3d_physics_world_raycast(
+			_handle,
+			origin.x, origin.y, origin.z,
+			direction.x, direction.y, direction.z,
+			distance, &bodyHandle, &point.x, &normal.x, &hitDistance)) {
+		return false;
+	}
+	auto body = getBody(bodyHandle);
+	return body ? callback(body, point, normal, hitDistance) : false;
+}
+
+bool PhysicsWorld3D::overlapSphere(const Vec3& center, float radius, const std::function<bool(Body3D*)>& callback) {
+	if (_handle == 0 || radius <= 0.0f) return false;
+	auto count = dora_3d_physics_world_overlap_sphere(_handle, center.x, center.y, center.z, radius, nullptr, 0);
+	if (count == 0) return false;
+	std::vector<uint64_t> handles(count);
+	count = dora_3d_physics_world_overlap_sphere(_handle, center.x, center.y, center.z, radius, handles.data(), count);
+	for (uint32_t i = 0; i < count && i < handles.size(); ++i) {
+		if (auto body = getBody(handles[i]); body && callback(body)) return true;
+	}
+	return false;
+}
+
+void PhysicsWorld3D::dispatchContacts() {
+	struct Contact {
+		Ref<Body3D> body;
+		Ref<Body3D> other;
+		Vec3 point;
+		Vec3 normal;
+		uint8_t eventType;
+	};
+	std::vector<Contact> contacts;
+	auto count = dora_3d_physics_world_event_count(_handle);
+	contacts.reserve(count);
+	for (uint32_t i = 0; i < count; ++i) {
+		uint8_t eventType = 0;
+		uint64_t bodyHandle = 0;
+		uint64_t otherHandle = 0;
+		Vec3 point;
+		Vec3 normal;
+		if (!dora_3d_physics_world_event_get(_handle, i, &eventType, &bodyHandle, &otherHandle, &point.x, &normal.x)) continue;
+		auto body = getBody(bodyHandle);
+		auto other = getBody(otherHandle);
+		if (body && other) {
+			contacts.push_back({Ref<Body3D>(body), Ref<Body3D>(other), point, normal, eventType});
+		}
+	}
+	dora_3d_physics_world_event_clear(_handle);
+	for (auto& contact : contacts) {
+		contact.body->dispatchContact(contact.eventType, contact.other, contact.point, contact.normal);
+	}
+}
+
+bool PhysicsWorld3D::fixedUpdate(double deltaTime) {
+	if (_handle != 0 && isFixedUpdating()) {
+		dora_3d_physics_world_step(_handle, s_cast<float>(deltaTime));
+		dispatchContacts();
+	}
+	return Node::fixedUpdate(deltaTime);
+}
+
+void PhysicsWorld3D::queueDebugBounds() {
+	if (_handle == 0 || !isShowDebug()) return;
+	auto* parent = getParent();
+	while (parent && !dynamic_cast<View3D*>(parent)) parent = parent->getParent();
+	auto* view = dynamic_cast<View3D*>(parent);
+	if (!view || !view->getScene()) return;
+	for (const auto& body : _bodies) {
+		if (body->_handle == 0) continue;
+		float red = 0.1f;
+		float green = 0.85f;
+		float blue = 1.0f;
+		if (body->_sensor) {
+			red = 1.0f;
+			green = 0.15f;
+			blue = 0.85f;
+		} else if (body->_type == BodyType3D::Static) {
+			red = 0.35f;
+			green = 1.0f;
+			blue = 0.35f;
+		} else if (body->_type == BodyType3D::Kinematic) {
+			red = 1.0f;
+			green = 0.85f;
+			blue = 0.1f;
+		}
+		auto* node = body->_node.get();
+		if (node && body->_debugShape != Body3D::DebugShape::Bounds) {
+			dora_3d_queue_physics_debug_shape(
+				view->getScene()->getHandle(), s_cast<uint8_t>(body->_debugShape),
+				body->_debugSize.x, body->_debugSize.y, body->_debugSize.z,
+				node->getWorldMatrix().m, red, green, blue);
+			continue;
+		}
+		float bounds[6];
+		if (dora_3d_physics_body_get_bounds(_handle, body->_handle, bounds) == 0) continue;
+		dora_3d_queue_physics_debug_bounds(
+			view->getScene()->getHandle(),
+			bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5],
+			red, green, blue);
+	}
+}
+
+void PhysicsWorld3D::render() {
+	queueDebugBounds();
+	Node::render();
+}
+
+void PhysicsWorld3D::setShowDebug(bool var) {
+	Node::setShowDebug(var);
+}
+
+void PhysicsWorld3D::clearPhysics() {
+	if (_handle == 0) return;
+	auto constraints = std::move(_constraints);
+	_constraints.clear();
+	for (auto& constraint : constraints) {
+		constraint->clearPhysics();
+	}
+	auto characters = std::move(_characters);
+	_characters.clear();
+	for (auto& character : characters) {
+		character->clearPhysics();
+	}
+	auto bodies = std::move(_bodies);
+	_bodies.clear();
+	_bodyMap.clear();
+	for (auto& body : bodies) {
+		body->clearPhysics();
+	}
+	dora_3d_physics_world_destroy(_handle);
+	_handle = 0;
+}
+
+void PhysicsWorld3D::cleanup() {
+	clearPhysics();
+	Node::cleanup();
+}
 
 float PhysicsWorld::scaleFactor = 100.0f;
 

@@ -29,6 +29,36 @@ func model3d_is_playing(slf: i64) => i32
 #wa:import dora model3d_is_paused
 func model3d_is_paused(slf: i64) => i32
 
+#wa:import dora model3d_get_animation_count
+func model3d_get_animation_count(slf: i64) => i32
+
+#wa:import dora model3d_get_material_count
+func model3d_get_material_count(slf: i64) => i32
+
+#wa:import dora model3d_get_animation_name
+func model3d_get_animation_name(slf: i64, index: i32) => i64
+
+#wa:import dora model3d_has_node
+func model3d_has_node(slf: i64, name: i64) => i32
+
+#wa:import dora model3d_attach_to_node
+func model3d_attach_to_node(slf: i64, name: i64, child: i64) => i32
+
+#wa:import dora model3d_get_local_bounds_min
+func model3d_get_local_bounds_min(slf: i64) => i64
+
+#wa:import dora model3d_get_local_bounds_max
+func model3d_get_local_bounds_max(slf: i64) => i64
+
+#wa:import dora model3d_get_world_bounds_min
+func model3d_get_world_bounds_min(slf: i64) => i64
+
+#wa:import dora model3d_get_world_bounds_max
+func model3d_get_world_bounds_max(slf: i64) => i64
+
+#wa:import dora model3d_get_material
+func model3d_get_material(slf: i64, index: i32) => i64
+
 #wa:import dora model3d_play
 func model3d_play(slf: i64, name: i64, looped: i32) => f32
 
@@ -95,6 +125,61 @@ func Model3D.IsPlaying() => bool {
 /// Gets whether animation playback is paused.
 func Model3D.IsPaused() => bool {
 	return model3d_is_paused(*this.raw) != 0
+}
+
+/// Gets the number of animation clips in this model.
+func Model3D.GetAnimationCount() => i32 {
+	return model3d_get_animation_count(*this.raw)
+}
+
+/// Gets the number of material slots in this model instance.
+func Model3D.GetMaterialCount() => i32 {
+	return model3d_get_material_count(*this.raw)
+}
+
+/// Gets an animation clip name by index.
+func Model3D.GetAnimationName(index: i32) => string {
+	return FromDoraString(model3d_get_animation_name(*this.raw, index))
+}
+
+/// Checks whether an imported node with the given name exists.
+func Model3D.HasNode(name: string) => bool {
+	return model3d_has_node(*this.raw, ToDoraString(name)) != 0
+}
+
+/// Attaches a user-owned Node3D below an imported node without exposing the internal node wrapper.
+func Model3D.AttachToNode(name: string, child: Node3D) => bool {
+	return model3d_attach_to_node(*this.raw, ToDoraString(name), child.GetRaw()) != 0
+}
+
+/// Gets the current model-space bounds minimum.
+func Model3D.GetLocalBoundsMin() => Vec3 {
+	return *Vec3From(model3d_get_local_bounds_min(*this.raw))
+}
+
+/// Gets the current model-space bounds maximum.
+func Model3D.GetLocalBoundsMax() => Vec3 {
+	return *Vec3From(model3d_get_local_bounds_max(*this.raw))
+}
+
+/// Gets the current world-space bounds minimum.
+func Model3D.GetWorldBoundsMin() => Vec3 {
+	return *Vec3From(model3d_get_world_bounds_min(*this.raw))
+}
+
+/// Gets the current world-space bounds maximum.
+func Model3D.GetWorldBoundsMax() => Vec3 {
+	return *Vec3From(model3d_get_world_bounds_max(*this.raw))
+}
+
+/// Gets a per-instance material slot by zero-based index.
+func Model3D.GetMaterial(index: i32) => *Material3D {
+	ptr_ := model3d_get_material(*this.raw, index)
+	if ptr_ == 0 {
+		return nil
+	}
+	obj_ := *Material3DFrom(ptr_)
+	return &obj_
 }
 
 /// Plays an animation by name.

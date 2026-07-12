@@ -266,15 +266,15 @@ basicTypes =
 		* "Vec3"
 		* (name)-> "#{name}.Raw"
 		* (name)-> "Vec3.From(#{name})"
-		* -> error "unsupported"
-		* -> error "unsupported"
+		* (fnArgId)-> "stack#{fnArgId}.PopVec3()"
+		* (name, fnArgId)-> "stack#{fnArgId}.Push(#{name});"
 		* --[[10: wa type]] {
 			convertFrom: (name)-> "*Vec3From(#{name})"
 			convertTo: (name)-> "#{name}.GetRaw()"
 			argType: "Vec3"
 			returnType: "Vec3"
-			creturn: -> error "unsupported"
-			cpass: -> error "unsupported"
+			creturn: (name, fnArgId)-> "#{name}, _ := stack#{fnArgId}.PopVec3()"
+			cpass: (name, fnArgId)-> "stack#{fnArgId}.Push(#{name})"
 		}
 	Size:
 		* "long"
@@ -852,6 +852,42 @@ basicTypes =
 			creturn: -> error "unsupported"
 			cpass: -> error "unsupported"
 		}
+	BodyType3D:
+		* "int"
+		* (name)-> "s_cast<BodyType3D>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+		* "BodyType3D"
+		* "BodyType3D"
+		* (name)-> "(int)#{name}"
+		* (name)-> "(BodyType3D)#{name}"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "BodyType3D{value: #{name}}"
+			convertTo: (name)-> "#{name}.ToValue()"
+			argType: "BodyType3D"
+			returnType: "BodyType3D"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+	MaterialAlphaMode3D:
+		* "int"
+		* (name)-> "s_cast<MaterialAlphaMode3D>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+		* "MaterialAlphaMode3D"
+		* "MaterialAlphaMode3D"
+		* (name)-> "(int)#{name}"
+		* (name)-> "(MaterialAlphaMode3D)#{name}"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "MaterialAlphaMode3D{value: #{name}}"
+			convertTo: (name)-> "#{name}.ToValue()"
+			argType: "MaterialAlphaMode3D"
+			returnType: "MaterialAlphaMode3D"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
 	ShaderStage:
 		* "int"
 		* (name)-> "s_cast<ShaderStage>(#{name})"
@@ -1349,7 +1385,7 @@ else
 					funcName = name\sub(1, 1)\lower! .. name\sub 2
 					funcName = table.concat [sub\lower! for sub in funcName\gsub("%u", "_%1")\gmatch "[^_]*"], "_"
 					isCreate = false
-					if "create" == funcNewName\sub 1, 6
+					if "static" in labels and "create" == funcNewName\sub 1, 6
 						isCreate = true
 						funcNewName = if #funcNewName > 6
 							"with" .. funcNewName\sub 7

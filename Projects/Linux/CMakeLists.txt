@@ -55,6 +55,7 @@ include_directories(
 	${DORA_SOURCE_ROOT}/3rdParty/bx/include/compat/linux
 	${DORA_SOURCE_ROOT}
 	${DORA_SOURCE_ROOT}/3rdParty
+	${DORA_SOURCE_ROOT}/3rdParty/JoltPhysics
 	${DORA_SOURCE_ROOT}/3rdParty/Lua
 	${DORA_SOURCE_ROOT}/3rdParty/Zip
 	${DORA_SOURCE_ROOT}/3rdParty/soloud
@@ -130,7 +131,7 @@ set_target_properties(
 	${DORA_RUNTIME_BUILD_DIR}/libdora_runtime.a
 )
 
-add_definitions(-DWITH_SDL2 -DBX_CONFIG_DEBUG=${DORA_BX_CONFIG_DEBUG} -Dd_m3HasWASI -DLUA_USE_LINUX -DSPDLOG_FMT_EXTERNAL)
+add_definitions(-DWITH_SDL2 -DBX_CONFIG_DEBUG=${DORA_BX_CONFIG_DEBUG} -Dd_m3HasWASI -DLUA_USE_LINUX -DSPDLOG_FMT_EXTERNAL -DJPH_NO_FORCE_INLINE)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     add_definitions(-Wno-psabi)
@@ -220,6 +221,8 @@ add_executable(dora-ssr
 	../../Source/Physics/Body.cpp
 	../../Source/Physics/Sensor.cpp
 	../../Source/Physics/PhysicsWorld.cpp
+	../../Source/Physics/JoltBridge.cpp
+	../../Source/Physics/JoltSources.cpp
 	../../Source/Physics/DebugDraw.cpp
 	../../Source/Node/Particle.cpp
 	../../Source/Node/VGNode.cpp

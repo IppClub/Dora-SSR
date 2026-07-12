@@ -23,6 +23,24 @@ DORA_EXPORT void directionallight3d_set_intensity(int64_t self, float val) {
 DORA_EXPORT float directionallight3d_get_intensity(int64_t self) {
 	return r_cast<DirectionalLight3D*>(self)->getIntensity();
 }
+DORA_EXPORT void directionallight3d_set_cast_shadow(int64_t self, int32_t val) {
+	r_cast<DirectionalLight3D*>(self)->setCastShadow(val != 0);
+}
+DORA_EXPORT int32_t directionallight3d_is_cast_shadow(int64_t self) {
+	return r_cast<DirectionalLight3D*>(self)->isCastShadow() ? 1 : 0;
+}
+DORA_EXPORT void directionallight3d_set_shadow_bias(int64_t self, float val) {
+	r_cast<DirectionalLight3D*>(self)->setShadowBias(val);
+}
+DORA_EXPORT float directionallight3d_get_shadow_bias(int64_t self) {
+	return r_cast<DirectionalLight3D*>(self)->getShadowBias();
+}
+DORA_EXPORT void directionallight3d_set_shadow_normal_bias(int64_t self, float val) {
+	r_cast<DirectionalLight3D*>(self)->setShadowNormalBias(val);
+}
+DORA_EXPORT float directionallight3d_get_shadow_normal_bias(int64_t self) {
+	return r_cast<DirectionalLight3D*>(self)->getShadowNormalBias();
+}
 DORA_EXPORT int64_t directionallight3d_new() {
 	return Object_From(DirectionalLight3D::create());
 }
@@ -34,5 +52,11 @@ static void linkDirectionalLight3D(wasm3::module3& mod) {
 	mod.link_optional("*", "directionallight3d_get_color", directionallight3d_get_color);
 	mod.link_optional("*", "directionallight3d_set_intensity", directionallight3d_set_intensity);
 	mod.link_optional("*", "directionallight3d_get_intensity", directionallight3d_get_intensity);
+	mod.link_optional("*", "directionallight3d_set_cast_shadow", directionallight3d_set_cast_shadow);
+	mod.link_optional("*", "directionallight3d_is_cast_shadow", directionallight3d_is_cast_shadow);
+	mod.link_optional("*", "directionallight3d_set_shadow_bias", directionallight3d_set_shadow_bias);
+	mod.link_optional("*", "directionallight3d_get_shadow_bias", directionallight3d_get_shadow_bias);
+	mod.link_optional("*", "directionallight3d_set_shadow_normal_bias", directionallight3d_set_shadow_normal_bias);
+	mod.link_optional("*", "directionallight3d_get_shadow_normal_bias", directionallight3d_get_shadow_normal_bias);
 	mod.link_optional("*", "directionallight3d_new", directionallight3d_new);
 }

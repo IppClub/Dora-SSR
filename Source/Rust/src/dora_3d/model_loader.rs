@@ -8,12 +8,13 @@ use super::node3d;
 use super::profile3d;
 use super::skinning;
 use super::texture;
-use super::types::{Mat4, Quaternion, Vec3, Vec4};
+use super::types::{transform_aabb, Aabb, Mat4, Quaternion, Vec3, Vec4};
 use super::visual3d;
 use super::{next_handle, Dora3DHandle};
-use crate::print_error;
 use crate::Texture2D;
+use crate::{print_error, Content};
 use gltf::buffer::Data as BufferData;
+use gltf::buffer::Source as BufferSource;
 use gltf::image::{Data as ImageData, Format as ImageFormat, Source as ImageSource};
 use gltf::mesh::util::{ReadJoints, ReadWeights};
 use gltf::{
@@ -22,10 +23,9 @@ use gltf::{
 };
 use gltf::{Document, Node};
 use serde_json::Value;
-use std::collections::{HashMap, VecDeque};
-use std::fs;
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::path::{Path, PathBuf};
-use std::sync::{Mutex, OnceLock};
+use std::sync::{Arc, Mutex, OnceLock};
 use std::time::Instant;
 
 #[derive(Debug, Clone)]
@@ -42,6 +42,7 @@ pub struct LoadedModel {
 	pub animations: Vec<Dora3DHandle>,
 	pub visual_skins: HashMap<Dora3DHandle, usize>,
 	pub skin_skeletons: HashMap<usize, Dora3DHandle>,
+	pub morph_meshes: HashMap<Dora3DHandle, Arc<MorphMeshData>>,
 }
 
 fn registry() -> &'static Mutex<HashMap<Dora3DHandle, LoadedModel>> {
@@ -92,6 +93,16 @@ struct PreparedTexture {
 }
 
 #[derive(Debug)]
+struct TextureUploadState {
+	prepared: PreparedTexture,
+	handle: Dora3DHandle,
+	mip: u8,
+	x: u16,
+	y: u16,
+	offset: usize,
+}
+
+#[derive(Debug)]
 struct PreparedNode {
 	source_index: usize,
 	parent_source_index: Option<usize>,
@@ -106,6 +117,82 @@ struct PreparedMesh {
 	vertices: Vec<Vertex>,
 	indices: Vec<u32>,
 	sub_meshes: Vec<SubMesh>,
+	morph_targets: Vec<MorphTargetData>,
+	default_weights: Vec<f32>,
+}
+
+#[derive(Debug, Clone)]
+pub struct MorphTargetData {
+	position_deltas: Vec<[f32; 3]>,
+	normal_deltas: Vec<[f32; 3]>,
+	tangent_deltas: Vec<[f32; 3]>,
+}
+
+#[derive(Debug, Clone)]
+pub struct MorphMeshData {
+	base_vertices: Arc<Vec<Vertex>>,
+	indices: Arc<Vec<u32>>,
+	sub_meshes: Arc<Vec<SubMesh>>,
+	targets: Arc<Vec<MorphTargetData>>,
+	default_weights: Vec<f32>,
+}
+
+impl MorphMeshData {
+	fn resident_bytes(&self) -> u64 {
+		std::mem::size_of_val(self.base_vertices.as_slice()) as u64
+			+ std::mem::size_of_val(self.indices.as_slice()) as u64
+			+ std::mem::size_of_val(self.sub_meshes.as_slice()) as u64
+			+ std::mem::size_of_val(self.default_weights.as_slice()) as u64
+			+ self
+				.targets
+				.iter()
+				.map(|target| {
+					(std::mem::size_of_val(target.position_deltas.as_slice())
+						+ std::mem::size_of_val(target.normal_deltas.as_slice())
+						+ std::mem::size_of_val(target.tangent_deltas.as_slice())) as u64
+				})
+				.sum::<u64>()
+	}
+}
+
+fn apply_morph_targets(
+	base_vertices: &[Vertex],
+	targets: &[MorphTargetData],
+	weights: &[f32],
+	output: &mut Vec<Vertex>,
+) {
+	output.clear();
+	output.extend_from_slice(base_vertices);
+	for (vertex_index, vertex) in output.iter_mut().enumerate() {
+		let mut position = Vec3::from_array(vertex.position);
+		let mut normal = Vec3::from_array(vertex.normal);
+		let mut tangent = Vec3::new(vertex.tangent[0], vertex.tangent[1], vertex.tangent[2]);
+		for (target_index, target) in targets.iter().enumerate() {
+			let weight = weights.get(target_index).copied().unwrap_or(0.0);
+			if weight.abs() <= f32::EPSILON {
+				continue;
+			}
+			position += Vec3::from_array(target.position_deltas[vertex_index]) * weight;
+			normal += Vec3::from_array(target.normal_deltas[vertex_index]) * weight;
+			tangent += Vec3::from_array(target.tangent_deltas[vertex_index]) * weight;
+		}
+		vertex.position = position.to_array();
+		vertex.normal = normal.normalize_or_zero().to_array();
+		let tangent = tangent.normalize_or_zero();
+		vertex.tangent[0] = tangent.x;
+		vertex.tangent[1] = tangent.y;
+		vertex.tangent[2] = tangent.z;
+	}
+}
+
+#[derive(Debug)]
+struct MeshUploadState {
+	handle: Dora3DHandle,
+	vertices: Vec<Vertex>,
+	indices: Vec<u32>,
+	vertex_cursor: usize,
+	index_cursor: usize,
+	morph_data: Option<Arc<MorphMeshData>>,
 }
 
 #[derive(Debug)]
@@ -152,27 +239,6 @@ enum UploadPhase {
 	Finalize,
 }
 
-fn upload_command_bytes(job: &UploadJob) -> u64 {
-	match job.phase {
-		UploadPhase::Textures => job
-			.textures
-			.front()
-			.map(|texture| texture.pixels.len() as u64)
-			.unwrap_or(0),
-		UploadPhase::Meshes => job
-			.prepared
-			.as_ref()
-			.and_then(|prepared| prepared.primitives.get(job.primitive_cursor))
-			.and_then(|primitive| primitive.mesh.as_ref())
-			.map(|mesh| {
-				std::mem::size_of_val(mesh.vertices.as_slice()) as u64
-					+ std::mem::size_of_val(mesh.indices.as_slice()) as u64
-			})
-			.unwrap_or(0),
-		_ => 0,
-	}
-}
-
 #[derive(Debug)]
 struct UploadJob {
 	prepared: Option<PreparedModel>,
@@ -180,12 +246,15 @@ struct UploadJob {
 	texture_cache: HashMap<TextureCacheKey, Dora3DHandle>,
 	uploaded_textures: Vec<Dora3DHandle>,
 	phase: UploadPhase,
+	streaming: bool,
 	loaded: Option<LoadedModel>,
 	node_handles: HashMap<usize, Dora3DHandle>,
 	node_cursor: usize,
 	primitive_cursor: usize,
 	skin_cursor: usize,
 	animation_cursor: usize,
+	active_texture: Option<TextureUploadState>,
+	active_mesh: Option<MeshUploadState>,
 	pending_mesh: Option<Dora3DHandle>,
 	pending_material: Option<Dora3DHandle>,
 }
@@ -208,6 +277,13 @@ fn upload_job_registry() -> &'static Mutex<HashMap<Dora3DHandle, UploadJob>> {
 }
 
 #[derive(Debug, Clone)]
+pub struct InstanceMaterialSlot {
+	pub material: Dora3DHandle,
+	pub owned: bool,
+	pub visuals: Vec<Dora3DHandle>,
+}
+
+#[derive(Debug, Clone)]
 pub struct ModelInstance {
 	pub handle: Dora3DHandle,
 	pub model: Dora3DHandle,
@@ -216,6 +292,7 @@ pub struct ModelInstance {
 	pub visuals: Vec<Dora3DHandle>,
 	pub skeletons: Vec<Dora3DHandle>,
 	pub animations: Vec<Dora3DHandle>,
+	pub material_slots: Vec<InstanceMaterialSlot>,
 	pub node_map: HashMap<Dora3DHandle, Dora3DHandle>,
 	pub playing: bool,
 	pub paused: bool,
@@ -224,6 +301,18 @@ pub struct ModelInstance {
 	pub speed: f32,
 	pub current_clip: Option<Dora3DHandle>,
 	pub sample_buffer: Vec<(Dora3DHandle, Option<Vec3>, Option<Quaternion>, Option<Vec3>)>,
+	pub morph_sample_buffer: Vec<(Dora3DHandle, Vec<f32>)>,
+	pub owned_meshes: Vec<Dora3DHandle>,
+	morph_instances: Vec<MorphInstanceData>,
+	morphs_by_node: HashMap<Dora3DHandle, Vec<usize>>,
+}
+
+#[derive(Debug, Clone)]
+struct MorphInstanceData {
+	mesh: Dora3DHandle,
+	data: Arc<MorphMeshData>,
+	weights: Vec<f32>,
+	vertices: Vec<Vertex>,
 }
 
 fn instance_registry() -> &'static Mutex<HashMap<Dora3DHandle, ModelInstance>> {
@@ -1552,6 +1641,7 @@ fn primitive_tangent_tex_coord(primitive: &gltf::Primitive<'_>) -> u32 {
 fn prepare_primitive_mesh(
 	primitive: &gltf::Primitive<'_>,
 	buffers: &[BufferData],
+	default_weights: &[f32],
 ) -> Option<PreparedMesh> {
 	let reader = primitive.reader(|buffer| Some(&buffers[buffer.index()]));
 	let positions: Vec<[f32; 3]> = reader.read_positions()?.collect();
@@ -1637,6 +1727,29 @@ fn prepare_primitive_mesh(
 			.collect(),
 		ReadWeights::F32(values) => values.collect(),
 	});
+	let morph_targets: Vec<_> = reader
+		.read_morph_targets()
+		.map(
+			|(morph_positions, morph_normals, morph_tangents)| MorphTargetData {
+				position_deltas: morph_positions
+					.map(Iterator::collect)
+					.unwrap_or_else(|| vec![[0.0; 3]; positions.len()]),
+				normal_deltas: morph_normals
+					.map(Iterator::collect)
+					.unwrap_or_else(|| vec![[0.0; 3]; positions.len()]),
+				tangent_deltas: morph_tangents
+					.map(Iterator::collect)
+					.unwrap_or_else(|| vec![[0.0; 3]; positions.len()]),
+			},
+		)
+		.collect();
+	if morph_targets.iter().any(|target| {
+		target.position_deltas.len() != positions.len()
+			|| target.normal_deltas.len() != positions.len()
+			|| target.tangent_deltas.len() != positions.len()
+	}) {
+		return None;
+	}
 	let vertices = positions
 		.iter()
 		.enumerate()
@@ -1689,6 +1802,10 @@ fn prepare_primitive_mesh(
 		vertices,
 		indices,
 		sub_meshes,
+		default_weights: (0..morph_targets.len())
+			.map(|index| default_weights.get(index).copied().unwrap_or(0.0))
+			.collect(),
+		morph_targets,
 	})
 }
 
@@ -1703,8 +1820,9 @@ fn prepare_node(
 	let source_index = node.index();
 	let skin_index = node.skin().map(|skin| skin.index());
 	if let Some(mesh_ref) = node.mesh() {
+		let default_weights = node.weights().or_else(|| mesh_ref.weights()).unwrap_or(&[]);
 		for (primitive_index, primitive) in mesh_ref.primitives().enumerate() {
-			if let Some(mesh) = prepare_primitive_mesh(&primitive, buffers) {
+			if let Some(mesh) = prepare_primitive_mesh(&primitive, buffers, default_weights) {
 				primitives.push(PreparedPrimitive {
 					source_node_index: source_index,
 					primitive_index,
@@ -1786,7 +1904,7 @@ fn build_vec3_keyframes(
 	let make_value = |value| match property {
 		ChannelProperty::Translation => KeyframeValue::Translation(value),
 		ChannelProperty::Scale => KeyframeValue::Scale(value),
-		ChannelProperty::Rotation => unreachable!(),
+		ChannelProperty::Rotation | ChannelProperty::MorphWeights => unreachable!(),
 	};
 	if interpolation == Interpolation::CubicSpline {
 		return times
@@ -1798,6 +1916,8 @@ fn build_vec3_keyframes(
 				value: make_value(values[1]),
 				in_tangent: Some(values[0].extend(0.0)),
 				out_tangent: Some(values[2].extend(0.0)),
+				in_weights_tangent: None,
+				out_weights_tangent: None,
 			})
 			.collect();
 	}
@@ -1810,6 +1930,8 @@ fn build_vec3_keyframes(
 			value: make_value(value),
 			in_tangent: None,
 			out_tangent: None,
+			in_weights_tangent: None,
+			out_weights_tangent: None,
 		})
 		.collect()
 }
@@ -1829,6 +1951,8 @@ fn build_rotation_keyframes(
 				value: KeyframeValue::Rotation(Quaternion::from_array(values[1]).normalize()),
 				in_tangent: Some(Vec4::from_array(values[0])),
 				out_tangent: Some(Vec4::from_array(values[2])),
+				in_weights_tangent: None,
+				out_weights_tangent: None,
 			})
 			.collect();
 	}
@@ -1841,6 +1965,53 @@ fn build_rotation_keyframes(
 			value: KeyframeValue::Rotation(Quaternion::from_array(value).normalize()),
 			in_tangent: None,
 			out_tangent: None,
+			in_weights_tangent: None,
+			out_weights_tangent: None,
+		})
+		.collect()
+}
+
+fn build_weight_keyframes(
+	times: &[f32],
+	values: Vec<f32>,
+	target_count: usize,
+	interpolation: Interpolation,
+) -> Vec<Keyframe> {
+	if target_count == 0 {
+		return Vec::new();
+	}
+	if interpolation == Interpolation::CubicSpline {
+		if values.len() != times.len() * target_count * 3 {
+			return Vec::new();
+		}
+		return times
+			.iter()
+			.copied()
+			.zip(values.chunks_exact(target_count * 3))
+			.map(|(time, values)| Keyframe {
+				time,
+				value: KeyframeValue::Weights(values[target_count..target_count * 2].to_vec()),
+				in_tangent: None,
+				out_tangent: None,
+				in_weights_tangent: Some(values[..target_count].to_vec()),
+				out_weights_tangent: Some(values[target_count * 2..].to_vec()),
+			})
+			.collect();
+	}
+	if values.len() != times.len() * target_count {
+		return Vec::new();
+	}
+	times
+		.iter()
+		.copied()
+		.zip(values.chunks_exact(target_count))
+		.map(|(time, values)| Keyframe {
+			time,
+			value: KeyframeValue::Weights(values.to_vec()),
+			in_tangent: None,
+			out_tangent: None,
+			in_weights_tangent: None,
+			out_weights_tangent: None,
 		})
 		.collect()
 }
@@ -1856,8 +2027,14 @@ fn prepare_animation_clips(document: &Document, buffers: &[BufferData]) -> Vec<P
 				GltfProperty::Translation => ChannelProperty::Translation,
 				GltfProperty::Rotation => ChannelProperty::Rotation,
 				GltfProperty::Scale => ChannelProperty::Scale,
-				GltfProperty::MorphTargetWeights => continue,
+				GltfProperty::MorphTargetWeights => ChannelProperty::MorphWeights,
 			};
+			let morph_target_count = target
+				.node()
+				.mesh()
+				.and_then(|mesh| mesh.primitives().next())
+				.map(|primitive| primitive.morph_targets().count())
+				.unwrap_or(0);
 			let target_source_index = target.node().index();
 			let reader = channel.reader(|buffer| Some(&buffers[buffer.index()]));
 			let Some(inputs) = reader.read_inputs() else {
@@ -1896,6 +2073,14 @@ fn prepare_animation_clips(document: &Document, buffers: &[BufferData]) -> Vec<P
 					property,
 					interpolation,
 				),
+				(ChannelProperty::MorphWeights, ReadOutputs::MorphTargetWeights(values)) => {
+					build_weight_keyframes(
+						&times,
+						values.into_f32().collect(),
+						morph_target_count,
+						interpolation,
+					)
+				}
 				_ => continue,
 			};
 			if keyframes.is_empty() {
@@ -1924,70 +2109,320 @@ fn prepare_animation_clips(document: &Document, buffers: &[BufferData]) -> Vec<P
 	animations
 }
 
-fn import_gltf(path: &Path) -> Option<(Document, Vec<BufferData>, Vec<ImageData>)> {
-	match gltf::import(path) {
-		Ok(imported) => return Some(imported),
+enum ResourceUri {
+	Data(Vec<u8>),
+	Path(PathBuf),
+}
+
+fn resolve_resource_uri(model_path: &Path, uri: &str) -> Option<ResourceUri> {
+	if let Some(data) = uri.strip_prefix("data:") {
+		let (_, encoded) = data.split_once(',')?;
+		return base64::decode(encoded).ok().map(ResourceUri::Data);
+	}
+	let decoded = if let Some(path) = uri.strip_prefix("file://") {
+		urlencoding::decode(path).ok()?
+	} else if let Some(path) = uri.strip_prefix("file:") {
+		urlencoding::decode(path).ok()?
+	} else {
+		if uri.contains(':') {
+			return None;
+		}
+		urlencoding::decode(uri).ok()?
+	};
+	let resource_path = if Path::new(decoded.as_ref()).is_absolute() {
+		PathBuf::from(decoded.as_ref())
+	} else {
+		model_path
+			.parent()
+			.unwrap_or_else(|| Path::new(""))
+			.join(decoded.as_ref())
+	};
+	Some(ResourceUri::Path(resource_path))
+}
+
+fn load_resource_uri<F>(model_path: &Path, uri: &str, loader: &mut F) -> Option<Vec<u8>>
+where
+	F: FnMut(&Path) -> Option<Vec<u8>>,
+{
+	match resolve_resource_uri(model_path, uri)? {
+		ResourceUri::Data(bytes) => Some(bytes),
+		ResourceUri::Path(path) => loader(&path),
+	}
+}
+
+fn import_buffers_with<F>(
+	document: &Document,
+	model_path: &Path,
+	mut blob: Option<Vec<u8>>,
+	loader: &mut F,
+) -> Option<Vec<BufferData>>
+where
+	F: FnMut(&Path) -> Option<Vec<u8>>,
+{
+	let mut buffers = Vec::with_capacity(document.buffers().len());
+	for buffer in document.buffers() {
+		let mut bytes = match buffer.source() {
+			BufferSource::Bin => blob.take()?,
+			BufferSource::Uri(uri) => load_resource_uri(model_path, uri, loader)?,
+		};
+		if bytes.len() < buffer.length() {
+			print_error(&format!(
+				"glTF buffer {} in '{}' is shorter than declared: {} < {}",
+				buffer.index(),
+				model_path.display(),
+				bytes.len(),
+				buffer.length()
+			));
+			return None;
+		}
+		while bytes.len() % 4 != 0 {
+			bytes.push(0);
+		}
+		buffers.push(BufferData(bytes));
+	}
+	Some(buffers)
+}
+
+fn decode_image(bytes: &[u8]) -> Option<ImageData> {
+	let image = image::load_from_memory(bytes).ok()?.into_rgba8();
+	let (width, height) = image.dimensions();
+	Some(ImageData {
+		pixels: image.into_raw(),
+		format: ImageFormat::R8G8B8A8,
+		width,
+		height,
+	})
+}
+
+fn import_images_with<F>(
+	document: &Document,
+	model_path: &Path,
+	buffers: &[BufferData],
+	loader: &mut F,
+) -> Option<Vec<ImageData>>
+where
+	F: FnMut(&Path) -> Option<Vec<u8>>,
+{
+	let mut images = Vec::with_capacity(document.images().len());
+	for image in document.images() {
+		let encoded = match image.source() {
+			ImageSource::Uri { uri, .. } => load_resource_uri(model_path, uri, loader)?,
+			ImageSource::View { view, .. } => {
+				let buffer = buffers.get(view.buffer().index())?;
+				let begin = view.offset();
+				let end = begin.checked_add(view.length())?;
+				buffer.get(begin..end)?.to_vec()
+			}
+		};
+		images.push(decode_image(&encoded)?);
+	}
+	Some(images)
+}
+
+fn parse_gltf_bytes(path: &Path, bytes: &[u8]) -> Option<gltf::Gltf> {
+	let gltf = match gltf::Gltf::from_slice(&bytes) {
+		Ok(gltf) => gltf,
 		Err(error) => {
 			print_error(&format!(
 				"Failed to import glTF '{}': {}. Retrying without extension validation.",
 				path.display(),
 				error
 			));
+			gltf::Gltf::from_slice_without_validation(&bytes).ok()?
+		}
+	};
+	Some(gltf)
+}
+
+fn import_gltf_bytes<F>(
+	path: &Path,
+	bytes: &[u8],
+	mut loader: F,
+) -> Option<(Document, Vec<BufferData>, Vec<ImageData>)>
+where
+	F: FnMut(&Path) -> Option<Vec<u8>>,
+{
+	let gltf = parse_gltf_bytes(path, bytes)?;
+	let gltf::Gltf { document, blob } = gltf;
+	let buffers = import_buffers_with(&document, path, blob, &mut loader)?;
+	let images = import_images_with(&document, path, &buffers, &mut loader)?;
+	Some((document, buffers, images))
+}
+
+fn import_gltf(path: &Path) -> Option<(Document, Vec<BufferData>, Vec<ImageData>)> {
+	let path_string = path.to_str()?;
+	let bytes = Content::load_bytes(path_string).or_else(|| {
+		print_error(&format!(
+			"Failed to read glTF '{}' through Content",
+			path.display()
+		));
+		None
+	})?;
+	import_gltf_bytes(path, &bytes, |resource| {
+		Content::load_bytes(resource.to_str()?)
+	})
+}
+
+pub fn collect_gltf_dependencies(path: &str, bytes: &[u8]) -> Option<Vec<String>> {
+	let model_path = Path::new(path);
+	let gltf = parse_gltf_bytes(model_path, bytes)?;
+	let mut dependencies = HashSet::new();
+	for buffer in gltf.document.buffers() {
+		if let BufferSource::Uri(uri) = buffer.source() {
+			if let ResourceUri::Path(resource_path) = resolve_resource_uri(model_path, uri)? {
+				dependencies.insert(resource_path.to_str()?.to_owned());
+			}
 		}
 	}
+	for image in gltf.document.images() {
+		if let ImageSource::Uri { uri, .. } = image.source() {
+			if let ResourceUri::Path(resource_path) = resolve_resource_uri(model_path, uri)? {
+				dependencies.insert(resource_path.to_str()?.to_owned());
+			}
+		}
+	}
+	let mut dependencies: Vec<_> = dependencies.into_iter().collect();
+	dependencies.sort();
+	Some(dependencies)
+}
 
-	let bytes = match fs::read(path) {
-		Ok(bytes) => bytes,
-		Err(error) => {
-			print_error(&format!(
-				"Failed to read glTF '{}': {}",
-				path.display(),
-				error
-			));
-			return None;
+pub fn collect_gltf_buffer_dependencies(path: &str, bytes: &[u8]) -> Option<Vec<String>> {
+	let model_path = Path::new(path);
+	let gltf = parse_gltf_bytes(model_path, bytes)?;
+	let mut dependencies = HashSet::new();
+	for buffer in gltf.document.buffers() {
+		if let BufferSource::Uri(uri) = buffer.source() {
+			if let ResourceUri::Path(resource_path) = resolve_resource_uri(model_path, uri)? {
+				dependencies.insert(resource_path.to_str()?.to_owned());
+			}
 		}
-	};
-	let gltf = match gltf::Gltf::from_slice_without_validation(&bytes) {
-		Ok(gltf) => gltf,
-		Err(error) => {
-			print_error(&format!(
-				"Failed to parse glTF '{}' without validation: {}",
-				path.display(),
-				error
-			));
-			return None;
+	}
+	let mut dependencies: Vec<_> = dependencies.into_iter().collect();
+	dependencies.sort();
+	Some(dependencies)
+}
+
+fn collect_mesh_triangles(
+	node: Node<'_>,
+	parent_transform: Mat4,
+	buffers: &[BufferData],
+	vertices: &mut Vec<[f32; 3]>,
+	indices: &mut Vec<u32>,
+) -> Option<()> {
+	let local_transform = Mat4::from_cols_array_2d(&node.transform().matrix());
+	let world_transform = parent_transform * local_transform;
+	if let Some(mesh) = node.mesh() {
+		for primitive in mesh.primitives() {
+			if primitive.mode() != gltf::mesh::Mode::Triangles {
+				continue;
+			}
+			let reader = primitive.reader(|buffer| Some(&buffers[buffer.index()]));
+			let primitive_vertices: Vec<_> = reader
+				.read_positions()?
+				.map(|position| {
+					world_transform
+						.transform_point3(Vec3::from_array(position))
+						.to_array()
+				})
+				.collect();
+			if primitive_vertices.len() > u32::MAX as usize {
+				return None;
+			}
+			let base = u32::try_from(vertices.len()).ok()?;
+			let mut primitive_indices: Vec<u32> = reader
+				.read_indices()
+				.map(|values| values.into_u32().collect())
+				.unwrap_or_else(|| (0..primitive_vertices.len() as u32).collect());
+			if primitive_indices.len() < 3 || !primitive_indices.len().is_multiple_of(3) {
+				continue;
+			}
+			if primitive_indices
+				.iter()
+				.any(|index| *index >= primitive_vertices.len() as u32)
+			{
+				return None;
+			}
+			if world_transform.determinant() < 0.0 {
+				for triangle in primitive_indices.chunks_exact_mut(3) {
+					triangle.swap(1, 2);
+				}
+			}
+			if vertices
+				.len()
+				.checked_add(primitive_vertices.len())
+				.is_none_or(|count| count > u32::MAX as usize)
+			{
+				return None;
+			}
+			vertices.extend(primitive_vertices);
+			indices.extend(primitive_indices.into_iter().map(|index| base + index));
 		}
-	};
+	}
+	for child in node.children() {
+		collect_mesh_triangles(child, world_transform, buffers, vertices, indices)?;
+	}
+	Some(())
+}
+
+pub fn parse_mesh_collider_data<F>(
+	path: &str,
+	bytes: &[u8],
+	mut loader: F,
+) -> Option<(Vec<[f32; 3]>, Vec<u32>)>
+where
+	F: FnMut(&Path) -> Option<Vec<u8>>,
+{
+	let model_path = Path::new(path);
+	let gltf = parse_gltf_bytes(model_path, bytes)?;
 	let gltf::Gltf { document, blob } = gltf;
-	let base = path.parent().unwrap_or_else(|| Path::new("./"));
-	let buffers = match gltf::import_buffers(&document, Some(base), blob) {
-		Ok(buffers) => buffers,
-		Err(error) => {
-			print_error(&format!(
-				"Failed to import glTF buffers '{}': {}",
-				path.display(),
-				error
-			));
-			return None;
+	let buffers = import_buffers_with(&document, model_path, blob, &mut loader)?;
+	let scene = scene_root(&document)?;
+	let mut vertices = Vec::new();
+	let mut indices = Vec::new();
+	for node in scene.nodes() {
+		collect_mesh_triangles(node, Mat4::IDENTITY, &buffers, &mut vertices, &mut indices)?;
+	}
+	(!vertices.is_empty() && !indices.is_empty()).then_some((vertices, indices))
+}
+
+pub fn parse_convex_hull_data<F>(path: &str, bytes: &[u8], loader: F) -> Option<Vec<[f32; 3]>>
+where
+	F: FnMut(&Path) -> Option<Vec<u8>>,
+{
+	let (vertices, indices) = parse_mesh_collider_data(path, bytes, loader)?;
+	let mut unique = HashSet::new();
+	let mut points = Vec::new();
+	for index in indices {
+		let point = *vertices.get(index as usize)?;
+		let key = point.map(|value| if value == 0.0 { 0 } else { value.to_bits() });
+		if unique.insert(key) {
+			points.push(point);
 		}
-	};
-	let images = match gltf::import_images(&document, Some(base), &buffers) {
-		Ok(images) => images,
-		Err(error) => {
-			print_error(&format!(
-				"Failed to import glTF images '{}': {}",
-				path.display(),
-				error
-			));
-			return None;
-		}
-	};
-	Some((document, buffers, images))
+	}
+	(points.len() >= 4).then_some(points)
+}
+
+pub fn parse_gltf_data<F>(path: &str, bytes: &[u8], loader: F) -> Option<Dora3DHandle>
+where
+	F: FnMut(&Path) -> Option<Vec<u8>>,
+{
+	let path = PathBuf::from(path);
+	let (document, buffers, images) = import_gltf_bytes(&path, bytes, loader)?;
+	prepare_gltf(path, document, buffers, images)
 }
 
 pub fn parse_gltf(path: &str) -> Option<Dora3DHandle> {
 	let path = PathBuf::from(path);
 	let (document, buffers, images) = import_gltf(&path)?;
+	prepare_gltf(path, document, buffers, images)
+}
+
+fn prepare_gltf(
+	path: PathBuf,
+	document: Document,
+	buffers: Vec<BufferData>,
+	images: Vec<ImageData>,
+) -> Option<Dora3DHandle> {
 	let textures = prepare_textures(&document, &images);
 	let (nodes, primitives) = prepare_scene(&document, &buffers);
 	let skeletons = prepare_skeletons(&document, &buffers);
@@ -2010,9 +2445,9 @@ pub fn parse_gltf(path: &str) -> Option<Dora3DHandle> {
 }
 
 pub fn upload_gltf(prepared: Dora3DHandle) -> Option<Dora3DHandle> {
-	let job = begin_upload_gltf(prepared)?;
+	let job = begin_upload_gltf_with_mode(prepared, false)?;
 	loop {
-		match step_upload_gltf(job) {
+		match step_upload_gltf(job, u64::MAX).0 {
 			UploadStep::Pending => continue,
 			UploadStep::Complete(model) => return Some(model),
 			UploadStep::Failed => return None,
@@ -2021,6 +2456,10 @@ pub fn upload_gltf(prepared: Dora3DHandle) -> Option<Dora3DHandle> {
 }
 
 pub fn begin_upload_gltf(prepared: Dora3DHandle) -> Option<Dora3DHandle> {
+	begin_upload_gltf_with_mode(prepared, true)
+}
+
+fn begin_upload_gltf_with_mode(prepared: Dora3DHandle, streaming: bool) -> Option<Dora3DHandle> {
 	let mut prepared = prepared_registry().lock().unwrap().remove(&prepared)?;
 	let textures = std::mem::take(&mut prepared.textures).into();
 	let handle = next_handle();
@@ -2032,12 +2471,15 @@ pub fn begin_upload_gltf(prepared: Dora3DHandle) -> Option<Dora3DHandle> {
 			texture_cache: HashMap::new(),
 			uploaded_textures: Vec::new(),
 			phase: UploadPhase::Textures,
+			streaming,
 			loaded: None,
 			node_handles: HashMap::new(),
 			node_cursor: 0,
 			primitive_cursor: 0,
 			skin_cursor: 0,
 			animation_cursor: 0,
+			active_texture: None,
+			active_mesh: None,
 			pending_mesh: None,
 			pending_material: None,
 		},
@@ -2045,24 +2487,23 @@ pub fn begin_upload_gltf(prepared: Dora3DHandle) -> Option<Dora3DHandle> {
 	Some(handle)
 }
 
-pub fn step_upload_gltf(job: Dora3DHandle) -> UploadStep {
+pub fn step_upload_gltf(job: Dora3DHandle, max_bytes: u64) -> (UploadStep, u64) {
 	let Some(mut upload) = upload_job_registry().lock().unwrap().remove(&job) else {
-		return UploadStep::Failed;
+		return (UploadStep::Failed, 0);
 	};
 	let phase = upload.phase as u8;
-	let bytes = upload_command_bytes(&upload);
 	let started = Instant::now();
-	let result = step_upload_job(&mut upload);
+	let (result, bytes) = step_upload_job(&mut upload, max_bytes);
 	profile3d::record_upload(0, phase, started.elapsed().as_micros() as u64, bytes);
 	match result {
 		UploadStep::Pending => {
 			upload_job_registry().lock().unwrap().insert(job, upload);
-			UploadStep::Pending
+			(UploadStep::Pending, bytes)
 		}
-		UploadStep::Complete(model) => UploadStep::Complete(model),
+		UploadStep::Complete(model) => (UploadStep::Complete(model), bytes),
 		UploadStep::Failed => {
 			cleanup_upload_job(upload);
-			UploadStep::Failed
+			(UploadStep::Failed, bytes)
 		}
 	}
 }
@@ -2075,39 +2516,121 @@ pub fn cancel_upload_gltf(job: Dora3DHandle) -> bool {
 	true
 }
 
-fn step_upload_job(job: &mut UploadJob) -> UploadStep {
+pub fn discard_prepared_gltf(prepared: Dora3DHandle) -> bool {
+	prepared_registry()
+		.lock()
+		.unwrap()
+		.remove(&prepared)
+		.is_some()
+}
+
+fn step_upload_job(job: &mut UploadJob, max_bytes: u64) -> (UploadStep, u64) {
 	match job.phase {
-		UploadPhase::Textures => step_upload_texture(job),
-		UploadPhase::Initialize => initialize_upload(job),
-		UploadPhase::Nodes => step_upload_node(job),
-		UploadPhase::Meshes => step_upload_mesh(job),
-		UploadPhase::Materials => step_upload_material(job),
-		UploadPhase::Visuals => step_upload_visual(job),
-		UploadPhase::Skeletons => step_upload_skeleton(job),
-		UploadPhase::Animations => step_upload_animation(job),
-		UploadPhase::Finalize => finalize_upload(job),
+		UploadPhase::Textures => step_upload_texture(job, max_bytes),
+		UploadPhase::Initialize => (initialize_upload(job), 0),
+		UploadPhase::Nodes => (step_upload_node(job), 0),
+		UploadPhase::Meshes => step_upload_mesh(job, max_bytes),
+		UploadPhase::Materials => (step_upload_material(job), 0),
+		UploadPhase::Visuals => (step_upload_visual(job), 0),
+		UploadPhase::Skeletons => (step_upload_skeleton(job), 0),
+		UploadPhase::Animations => (step_upload_animation(job), 0),
+		UploadPhase::Finalize => (finalize_upload(job), 0),
 	}
 }
 
-fn step_upload_texture(job: &mut UploadJob) -> UploadStep {
-	let Some(prepared_texture) = job.textures.pop_front() else {
-		job.phase = UploadPhase::Initialize;
-		return UploadStep::Pending;
+fn rgba8_upload_size(width: u16, height: u16, has_mips: bool) -> Option<usize> {
+	let mut width = width as usize;
+	let mut height = height as usize;
+	let mut bytes = 0usize;
+	loop {
+		bytes = bytes.checked_add(width.checked_mul(height)?.checked_mul(4)?)?;
+		if !has_mips || (width == 1 && height == 1) {
+			return Some(bytes);
+		}
+		width = (width / 2).max(1);
+		height = (height / 2).max(1);
+	}
+}
+
+fn step_upload_texture(job: &mut UploadJob, max_bytes: u64) -> (UploadStep, u64) {
+	if job.active_texture.is_none() {
+		let Some(prepared) = job.textures.pop_front() else {
+			job.phase = UploadPhase::Initialize;
+			return (UploadStep::Pending, 0);
+		};
+		if rgba8_upload_size(prepared.width, prepared.height, prepared.has_mips)
+			!= Some(prepared.pixels.len())
+		{
+			return (UploadStep::Failed, 0);
+		}
+		let Some(handle) = texture::create_empty_rgba8(
+			prepared.width,
+			prepared.height,
+			prepared.sampler_flags,
+			prepared.has_mips,
+			prepared.pixels.len() as u64,
+			Some(&prepared.label),
+		) else {
+			return (UploadStep::Failed, 0);
+		};
+		job.active_texture = Some(TextureUploadState {
+			prepared,
+			handle,
+			mip: 0,
+			x: 0,
+			y: 0,
+			offset: 0,
+		});
+		return (UploadStep::Pending, 0);
+	}
+	if max_bytes < 4 {
+		return (UploadStep::Pending, 0);
+	}
+	let state = job.active_texture.as_mut().unwrap();
+	let mip_width = (state.prepared.width >> state.mip).max(1);
+	let mip_height = (state.prepared.height >> state.mip).max(1);
+	let max_pixels = (max_bytes / 4).min(u32::MAX as u64) as usize;
+	let Some((upload_width, upload_height)) =
+		texture::upload_region_size(mip_width, mip_height, state.x, state.y, max_pixels)
+	else {
+		return (UploadStep::Failed, 0);
 	};
-	let Some(texture_handle) = texture::create_prepared_rgba8(
-		prepared_texture.width,
-		prepared_texture.height,
-		&prepared_texture.pixels,
-		prepared_texture.sampler_flags,
-		prepared_texture.has_mips,
-		Some(&prepared_texture.label),
-	) else {
-		return UploadStep::Failed;
+	let bytes = upload_width as usize * upload_height as usize * 4;
+	let Some(pixels) = state
+		.prepared
+		.pixels
+		.get(state.offset..state.offset.saturating_add(bytes))
+	else {
+		return (UploadStep::Failed, 0);
 	};
-	job.texture_cache
-		.insert(prepared_texture.key, texture_handle);
-	job.uploaded_textures.push(texture_handle);
-	UploadStep::Pending
+	if !texture::update_rgba8_region(
+		state.handle,
+		state.mip,
+		state.x,
+		state.y,
+		upload_width,
+		upload_height,
+		pixels,
+	) {
+		return (UploadStep::Failed, 0);
+	}
+	state.offset += bytes;
+	if upload_height > 1 || upload_width == mip_width - state.x {
+		state.x = 0;
+		state.y += upload_height;
+	} else {
+		state.x += upload_width;
+	}
+	if state.y == mip_height {
+		state.mip += 1;
+		state.y = 0;
+	}
+	if state.offset == state.prepared.pixels.len() {
+		let state = job.active_texture.take().unwrap();
+		job.texture_cache.insert(state.prepared.key, state.handle);
+		job.uploaded_textures.push(state.handle);
+	}
+	(UploadStep::Pending, bytes as u64)
 }
 
 fn initialize_upload(job: &mut UploadJob) -> UploadStep {
@@ -2129,6 +2652,7 @@ fn initialize_upload(job: &mut UploadJob) -> UploadStep {
 		animations: Vec::new(),
 		visual_skins: HashMap::new(),
 		skin_skeletons: HashMap::new(),
+		morph_meshes: HashMap::new(),
 	});
 	job.phase = UploadPhase::Nodes;
 	UploadStep::Pending
@@ -2166,30 +2690,127 @@ fn step_upload_node(job: &mut UploadJob) -> UploadStep {
 	UploadStep::Pending
 }
 
-fn step_upload_mesh(job: &mut UploadJob) -> UploadStep {
-	let Some(prepared) = job.prepared.as_mut() else {
-		return UploadStep::Failed;
-	};
-	let Some(primitive) = prepared.primitives.get_mut(job.primitive_cursor) else {
-		job.phase = UploadPhase::Skeletons;
-		return UploadStep::Pending;
-	};
-	let Some(prepared_mesh) = primitive.mesh.take() else {
-		return UploadStep::Failed;
-	};
-	let mesh_handle = mesh::create(
-		prepared_mesh.vertices,
-		prepared_mesh.indices,
-		Some(prepared_mesh.sub_meshes),
-	);
+fn step_upload_mesh(job: &mut UploadJob, max_bytes: u64) -> (UploadStep, u64) {
+	if job.active_mesh.is_none() {
+		let Some(prepared) = job.prepared.as_mut() else {
+			return (UploadStep::Failed, 0);
+		};
+		let Some(primitive) = prepared.primitives.get_mut(job.primitive_cursor) else {
+			job.phase = UploadPhase::Skeletons;
+			return (UploadStep::Pending, 0);
+		};
+		let Some(prepared_mesh) = primitive.mesh.take() else {
+			return (UploadStep::Failed, 0);
+		};
+		let morph_data = (!prepared_mesh.morph_targets.is_empty()).then(|| {
+			Arc::new(MorphMeshData {
+				base_vertices: Arc::new(prepared_mesh.vertices.clone()),
+				indices: Arc::new(prepared_mesh.indices.clone()),
+				sub_meshes: Arc::new(prepared_mesh.sub_meshes.clone()),
+				targets: Arc::new(prepared_mesh.morph_targets),
+				default_weights: prepared_mesh.default_weights,
+			})
+		});
+		let vertices = if let Some(data) = &morph_data {
+			let mut vertices = Vec::with_capacity(data.base_vertices.len());
+			apply_morph_targets(
+				&data.base_vertices,
+				&data.targets,
+				&data.default_weights,
+				&mut vertices,
+			);
+			vertices
+		} else {
+			prepared_mesh.vertices
+		};
+		if !job.streaming {
+			let bytes = std::mem::size_of_val(vertices.as_slice()) as u64
+				+ std::mem::size_of_val(prepared_mesh.indices.as_slice()) as u64;
+			let handle = mesh::create(
+				vertices,
+				prepared_mesh.indices,
+				Some(prepared_mesh.sub_meshes),
+			);
+			let Some(loaded) = job.loaded.as_mut() else {
+				let _ = mesh::destroy(handle);
+				return (UploadStep::Failed, 0);
+			};
+			loaded.meshes.push(handle);
+			if let Some(data) = morph_data {
+				loaded.morph_meshes.insert(handle, data);
+			}
+			job.pending_mesh = Some(handle);
+			job.phase = UploadPhase::Materials;
+			return (UploadStep::Pending, bytes);
+		}
+		let Some(handle) = mesh::create_streaming(
+			&vertices,
+			&prepared_mesh.indices,
+			Some(prepared_mesh.sub_meshes),
+		) else {
+			return (UploadStep::Failed, 0);
+		};
+		job.active_mesh = Some(MeshUploadState {
+			handle,
+			vertices,
+			indices: prepared_mesh.indices,
+			vertex_cursor: 0,
+			index_cursor: 0,
+			morph_data,
+		});
+		return (UploadStep::Pending, 0);
+	}
+
+	let state = job.active_mesh.as_mut().unwrap();
+	if state.vertex_cursor < state.vertices.len() {
+		let element_size = std::mem::size_of::<Vertex>();
+		let count =
+			(max_bytes as usize / element_size).min(state.vertices.len() - state.vertex_cursor);
+		if count == 0 {
+			return (UploadStep::Pending, 0);
+		}
+		let end = state.vertex_cursor + count;
+		if !mesh::update_streaming_vertices(
+			state.handle,
+			state.vertex_cursor as u32,
+			&state.vertices[state.vertex_cursor..end],
+		) {
+			return (UploadStep::Failed, 0);
+		}
+		state.vertex_cursor = end;
+		return (UploadStep::Pending, (count * element_size) as u64);
+	}
+	if state.index_cursor < state.indices.len() {
+		let element_size = std::mem::size_of::<u32>();
+		let count =
+			(max_bytes as usize / element_size).min(state.indices.len() - state.index_cursor);
+		if count == 0 {
+			return (UploadStep::Pending, 0);
+		}
+		let end = state.index_cursor + count;
+		if !mesh::update_streaming_indices(
+			state.handle,
+			state.index_cursor as u32,
+			&state.indices[state.index_cursor..end],
+		) {
+			return (UploadStep::Failed, 0);
+		}
+		state.index_cursor = end;
+		return (UploadStep::Pending, (count * element_size) as u64);
+	}
+
+	let state = job.active_mesh.take().unwrap();
 	let Some(loaded) = job.loaded.as_mut() else {
-		let _ = mesh::destroy(mesh_handle);
-		return UploadStep::Failed;
+		let _ = mesh::destroy(state.handle);
+		return (UploadStep::Failed, 0);
 	};
-	loaded.meshes.push(mesh_handle);
-	job.pending_mesh = Some(mesh_handle);
+	loaded.meshes.push(state.handle);
+	if let Some(data) = state.morph_data {
+		loaded.morph_meshes.insert(state.handle, data);
+	}
+	job.pending_mesh = Some(state.handle);
 	job.phase = UploadPhase::Materials;
-	UploadStep::Pending
+	(UploadStep::Pending, 0)
 }
 
 fn step_upload_material(job: &mut UploadJob) -> UploadStep {
@@ -2351,6 +2972,12 @@ fn finalize_upload(job: &mut UploadJob) -> UploadStep {
 }
 
 fn cleanup_upload_job(mut job: UploadJob) {
+	if let Some(texture) = job.active_texture.take() {
+		let _ = texture::destroy(texture.handle);
+	}
+	if let Some(mesh) = job.active_mesh.take() {
+		let _ = mesh::destroy(mesh.handle);
+	}
 	if let Some(loaded) = job.loaded.take() {
 		destroy_loaded_model(loaded);
 	} else {
@@ -2409,16 +3036,77 @@ pub fn instantiate(handle: Dora3DHandle, parent: Dora3DHandle) -> Option<Dora3DH
 	}
 	let mut visuals = Vec::new();
 	let mut cloned_visual_sources = Vec::new();
+	let mut owned_meshes = Vec::new();
+	let mut morph_instances = Vec::new();
+	let mut morphs_by_node = HashMap::<Dora3DHandle, Vec<usize>>::new();
+	let mut material_slots: Vec<_> = model
+		.materials
+		.iter()
+		.map(|material| InstanceMaterialSlot {
+			material: *material,
+			owned: false,
+			visuals: Vec::new(),
+		})
+		.collect();
+	let material_indices: HashMap<_, _> = model
+		.materials
+		.iter()
+		.enumerate()
+		.map(|(index, material)| (*material, index))
+		.collect();
 	for visual_handle in model.visuals {
 		if let Some((node, mesh, material, enabled)) =
 			visual3d::with_visual(visual_handle, |visual| {
 				(visual.node, visual.mesh, visual.material, visual.enabled)
 			}) {
 			if let Some(cloned_node) = node_map.get(&node).copied() {
-				let cloned_visual = visual3d::create(cloned_node, mesh, material);
+				let cloned_mesh = if let Some(data) = model.morph_meshes.get(&mesh).cloned() {
+					let mut vertices = Vec::with_capacity(data.base_vertices.len());
+					apply_morph_targets(
+						&data.base_vertices,
+						&data.targets,
+						&data.default_weights,
+						&mut vertices,
+					);
+					let Some(dynamic_mesh) = mesh::create_dynamic(
+						&vertices,
+						&data.indices,
+						Some(data.sub_meshes.as_ref().clone()),
+					) else {
+						for visual in visuals {
+							let _ = visual3d::destroy(visual);
+						}
+						for mesh in owned_meshes {
+							let _ = mesh::destroy(mesh);
+						}
+						for node in nodes {
+							let _ = node3d::destroy(node);
+						}
+						return None;
+					};
+					let morph_index = morph_instances.len();
+					morph_instances.push(MorphInstanceData {
+						mesh: dynamic_mesh,
+						weights: data.default_weights.clone(),
+						data,
+						vertices,
+					});
+					morphs_by_node
+						.entry(cloned_node)
+						.or_default()
+						.push(morph_index);
+					owned_meshes.push(dynamic_mesh);
+					dynamic_mesh
+				} else {
+					mesh
+				};
+				let cloned_visual = visual3d::create(cloned_node, cloned_mesh, material);
 				visual3d::set_enabled(cloned_visual, enabled);
 				visuals.push(cloned_visual);
 				cloned_visual_sources.push((cloned_visual, visual_handle));
+				if let Some(index) = material_indices.get(&material) {
+					material_slots[*index].visuals.push(cloned_visual);
+				}
 			}
 		}
 	}
@@ -2461,6 +3149,7 @@ pub fn instantiate(handle: Dora3DHandle, parent: Dora3DHandle) -> Option<Dora3DH
 			visuals,
 			skeletons,
 			animations: model.animations.clone(),
+			material_slots,
 			node_map,
 			playing: false,
 			paused: false,
@@ -2469,6 +3158,10 @@ pub fn instantiate(handle: Dora3DHandle, parent: Dora3DHandle) -> Option<Dora3DH
 			speed: 1.0,
 			current_clip: None,
 			sample_buffer: Vec::new(),
+			morph_sample_buffer: Vec::new(),
+			owned_meshes,
+			morph_instances,
+			morphs_by_node,
 		},
 	);
 	Some(instance)
@@ -2481,6 +3174,14 @@ pub fn destroy_instance(handle: Dora3DHandle) -> bool {
 	unregister_visual_skeletons(&instance.visuals);
 	for visual in instance.visuals {
 		let _ = visual3d::destroy(visual);
+	}
+	for slot in instance.material_slots {
+		if slot.owned {
+			let _ = material::destroy(slot.material);
+		}
+	}
+	for mesh in instance.owned_meshes {
+		let _ = mesh::destroy(mesh);
 	}
 	for skeleton in instance.skeletons {
 		let _ = animation::destroy(skeleton);
@@ -2587,7 +3288,7 @@ pub fn get_duration_instance(handle: Dora3DHandle) -> f32 {
 }
 
 pub fn update_instance(handle: Dora3DHandle, delta_time: f32) -> bool {
-	let (clip_handle, node_map, sample_time, still_playing, mut sample_buffer) = {
+	let (still_playing, sample_buffer, morph_sample_buffer) = {
 		let mut instances = instance_registry().lock().unwrap();
 		let Some(instance) = instances.get_mut(&handle) else {
 			return false;
@@ -2623,21 +3324,30 @@ pub fn update_instance(handle: Dora3DHandle, delta_time: f32) -> bool {
 			}
 			clamped
 		};
-		(
-			clip_handle,
-			instance.node_map.clone(),
-			sample_time,
-			still_playing,
-			std::mem::take(&mut instance.sample_buffer),
-		)
-	};
-	let Some(clip) = animation::with_clip(clip_handle, Clone::clone) else {
-		if let Some(instance) = instance_registry().lock().unwrap().get_mut(&handle) {
+		let mut sample_buffer = std::mem::take(&mut instance.sample_buffer);
+		let mut morph_sample_buffer = std::mem::take(&mut instance.morph_sample_buffer);
+		let sampled = animation::with_clip(clip_handle, |clip| {
+			skinning::evaluate_animation_into(
+				clip,
+				sample_time,
+				&instance.node_map,
+				&mut sample_buffer,
+			);
+			skinning::evaluate_morph_weights_into(
+				clip,
+				sample_time,
+				&instance.node_map,
+				&mut morph_sample_buffer,
+			);
+		})
+		.is_some();
+		if !sampled {
 			instance.sample_buffer = sample_buffer;
+			instance.morph_sample_buffer = morph_sample_buffer;
+			return still_playing;
 		}
-		return still_playing;
+		(still_playing, sample_buffer, morph_sample_buffer)
 	};
-	skinning::evaluate_animation_into(&clip, sample_time, &node_map, &mut sample_buffer);
 	for (node, position, rotation, scale) in &sample_buffer {
 		if let Some(position) = position {
 			let _ = node3d::set_position(*node, *position);
@@ -2650,7 +3360,27 @@ pub fn update_instance(handle: Dora3DHandle, delta_time: f32) -> bool {
 		}
 	}
 	if let Some(instance) = instance_registry().lock().unwrap().get_mut(&handle) {
+		for (node, weights) in &morph_sample_buffer {
+			let Some(indices) = instance.morphs_by_node.get(node) else {
+				continue;
+			};
+			for index in indices {
+				let Some(morph) = instance.morph_instances.get_mut(*index) else {
+					continue;
+				};
+				morph.weights.clear();
+				morph.weights.extend_from_slice(weights);
+				apply_morph_targets(
+					&morph.data.base_vertices,
+					&morph.data.targets,
+					&morph.weights,
+					&mut morph.vertices,
+				);
+				let _ = mesh::update_dynamic_vertices(morph.mesh, &morph.vertices);
+			}
+		}
 		instance.sample_buffer = sample_buffer;
+		instance.morph_sample_buffer = morph_sample_buffer;
 	}
 	still_playing
 }
@@ -2669,15 +3399,22 @@ pub fn skeleton_for_visual(visual: Dora3DHandle) -> Option<Dora3DHandle> {
 }
 
 pub fn skeletons_for_visuals(visuals: &[Dora3DHandle]) -> HashMap<Dora3DHandle, Dora3DHandle> {
+	let mut result = HashMap::with_capacity(visuals.len());
+	skeletons_for_visuals_into(visuals, &mut result);
+	result
+}
+
+pub fn skeletons_for_visuals_into(
+	visuals: &[Dora3DHandle],
+	result: &mut HashMap<Dora3DHandle, Dora3DHandle>,
+) {
+	result.clear();
 	let bindings = visual_skeletons().lock().unwrap();
-	visuals
-		.iter()
-		.filter_map(|visual| {
-			bindings
-				.get(visual)
-				.map(|binding| (*visual, binding.skeleton))
-		})
-		.collect()
+	for visual in visuals {
+		if let Some(binding) = bindings.get(visual) {
+			result.insert(*visual, binding.skeleton);
+		}
+	}
 }
 
 pub fn get_visual(handle: Dora3DHandle, index: u32) -> Option<Dora3DHandle> {
@@ -2696,6 +3433,212 @@ pub fn instance_count() -> usize {
 	instance_registry().lock().unwrap().len()
 }
 
+pub fn animation_count_instance(handle: Dora3DHandle) -> usize {
+	instance_registry()
+		.lock()
+		.unwrap()
+		.get(&handle)
+		.map(|instance| instance.animations.len())
+		.unwrap_or(0)
+}
+
+pub fn animation_name_instance(handle: Dora3DHandle, index: usize) -> Option<String> {
+	let clip = instance_registry()
+		.lock()
+		.unwrap()
+		.get(&handle)?
+		.animations
+		.get(index)
+		.copied()?;
+	animation::with_clip(clip, |clip| clip.name.clone())
+}
+
+pub fn find_node_instance(handle: Dora3DHandle, name: &str) -> Option<Dora3DHandle> {
+	let nodes = instance_registry()
+		.lock()
+		.unwrap()
+		.get(&handle)?
+		.nodes
+		.clone();
+	nodes
+		.into_iter()
+		.find(|node| node3d::get_tag(*node).as_deref() == Some(name))
+}
+
+pub fn attach_to_node_instance(handle: Dora3DHandle, name: &str, child: Dora3DHandle) -> bool {
+	let Some(parent) = find_node_instance(handle, name) else {
+		return false;
+	};
+	node3d::add_child(parent, child, 0, None)
+}
+
+fn visual_bounds(visual_handle: Dora3DHandle) -> Option<(Aabb, Mat4)> {
+	let (node_handle, mesh_handle, enabled) = visual3d::with_visual(visual_handle, |visual| {
+		(visual.node, visual.mesh, visual.enabled)
+	})?;
+	if !enabled || !node3d::is_visible(node_handle) {
+		return None;
+	}
+	let world = node3d::world_matrix(node_handle)?;
+	let local_bounds = skeleton_for_visual(visual_handle)
+		.and_then(|skeleton_handle| {
+			animation::with_skeleton(skeleton_handle, |skeleton| {
+				skinning::compute_joint_matrices(skeleton, world.inverse())
+			})
+		})
+		.and_then(|joints| mesh::skinned_bounds(mesh_handle, &joints))
+		.or_else(|| mesh::bounds(mesh_handle))?;
+	Some((local_bounds, world))
+}
+
+pub fn bounds_instance(handle: Dora3DHandle, world_space: bool) -> Option<Aabb> {
+	let (root, visuals) = instance_registry()
+		.lock()
+		.unwrap()
+		.get(&handle)
+		.map(|instance| (instance.root, instance.visuals.clone()))?;
+	let model_world_inverse = if world_space {
+		Mat4::IDENTITY
+	} else {
+		let parent = node3d::parent(root)?;
+		node3d::world_matrix(parent)?.inverse()
+	};
+	let mut result = Aabb::empty();
+	for visual in visuals {
+		let Some((local_bounds, visual_world)) = visual_bounds(visual) else {
+			continue;
+		};
+		let bounds = transform_aabb(&(model_world_inverse * visual_world), &local_bounds);
+		result.include(bounds.min);
+		result.include(bounds.max);
+	}
+	result.is_valid().then_some(result)
+}
+
+pub fn material_count_instance(handle: Dora3DHandle) -> usize {
+	instance_registry()
+		.lock()
+		.unwrap()
+		.get(&handle)
+		.map(|instance| instance.material_slots.len())
+		.unwrap_or(0)
+}
+
+fn material_handle_instance(
+	handle: Dora3DHandle,
+	index: usize,
+	writable: bool,
+) -> Option<Dora3DHandle> {
+	let mut instances = instance_registry().lock().unwrap();
+	let slot = instances.get_mut(&handle)?.material_slots.get_mut(index)?;
+	if writable && !slot.owned {
+		let cloned = material::clone_material(slot.material)?;
+		for visual in &slot.visuals {
+			let _ = visual3d::set_material(*visual, cloned);
+		}
+		slot.material = cloned;
+		slot.owned = true;
+	}
+	Some(slot.material)
+}
+
+pub fn material_base_color_instance(handle: Dora3DHandle, index: usize) -> Option<Vec4> {
+	let material = material_handle_instance(handle, index, false)?;
+	material::with_material(material, |material| material.base_color)
+}
+
+pub fn set_material_base_color_instance(handle: Dora3DHandle, index: usize, color: Vec4) -> bool {
+	material_handle_instance(handle, index, true)
+		.map(|material| material::set_base_color(material, color))
+		.unwrap_or(false)
+}
+
+pub fn material_emissive_instance(handle: Dora3DHandle, index: usize) -> Option<Vec3> {
+	let material = material_handle_instance(handle, index, false)?;
+	material::with_material(material, |material| material.emissive_factor)
+}
+
+pub fn set_material_emissive_instance(handle: Dora3DHandle, index: usize, color: Vec3) -> bool {
+	material_handle_instance(handle, index, true)
+		.map(|material| material::set_emissive_factor(material, color))
+		.unwrap_or(false)
+}
+
+pub fn material_pbr_instance(handle: Dora3DHandle, index: usize) -> Option<(f32, f32)> {
+	let material = material_handle_instance(handle, index, false)?;
+	material::with_material(material, |material| (material.metallic, material.roughness))
+}
+
+pub fn set_material_pbr_instance(
+	handle: Dora3DHandle,
+	index: usize,
+	metallic: f32,
+	roughness: f32,
+) -> bool {
+	let Some(material_handle) = material_handle_instance(handle, index, true) else {
+		return false;
+	};
+	let alpha_cutoff =
+		material::with_material(material_handle, |material| material.alpha_cutoff).unwrap_or(0.5);
+	material::set_pbr(material_handle, metallic, roughness, alpha_cutoff)
+}
+
+pub fn material_alpha_instance(handle: Dora3DHandle, index: usize) -> Option<(AlphaMode, f32)> {
+	let material = material_handle_instance(handle, index, false)?;
+	material::with_material(material, |material| {
+		(material.alpha_mode, material.alpha_cutoff)
+	})
+}
+
+pub fn set_material_alpha_instance(
+	handle: Dora3DHandle,
+	index: usize,
+	alpha_mode: AlphaMode,
+	alpha_cutoff: f32,
+) -> bool {
+	material_handle_instance(handle, index, true)
+		.map(|material| material::set_alpha_mode(material, alpha_mode, alpha_cutoff))
+		.unwrap_or(false)
+}
+
+pub fn set_material_texture_instance(
+	handle: Dora3DHandle,
+	index: usize,
+	slot: u8,
+	bgfx_texture: u16,
+) -> bool {
+	let (name, stage) = match slot {
+		0 => (material::default_base_color_slot(), 0),
+		1 => (material::default_metallic_roughness_slot(), 1),
+		2 => (material::default_normal_slot(), 2),
+		3 => (material::default_emissive_slot(), 3),
+		4 => (material::default_occlusion_slot(), 4),
+		_ => return false,
+	};
+	material_handle_instance(handle, index, true)
+		.map(|material| material::set_external_texture(material, name, bgfx_texture, stage))
+		.unwrap_or(false)
+}
+
+pub fn ray_cast_instance(handle: Dora3DHandle, origin: Vec3, direction: Vec3) -> Option<f32> {
+	let visuals = instance_registry()
+		.lock()
+		.unwrap()
+		.get(&handle)
+		.map(|instance| instance.visuals.clone())?;
+	let mut nearest = f32::INFINITY;
+	for visual_handle in visuals {
+		let Some((local_bounds, world)) = visual_bounds(visual_handle) else {
+			continue;
+		};
+		let world_bounds = transform_aabb(&world, &local_bounds);
+		if let Some(distance) = world_bounds.ray_intersection(origin, direction) {
+			nearest = nearest.min(distance);
+		}
+	}
+	nearest.is_finite().then_some(nearest)
+}
+
 pub fn total_resident_bytes() -> u64 {
 	registry()
 		.lock()
@@ -2712,8 +3655,34 @@ pub fn total_resident_bytes() -> u64 {
 					.iter()
 					.map(|handle| texture::resident_bytes(*handle))
 					.sum::<u64>()
+				+ model
+					.morph_meshes
+					.values()
+					.map(|data| data.resident_bytes())
+					.sum::<u64>()
 		})
 		.sum()
+}
+
+pub fn resident_bytes(handle: Dora3DHandle) -> u64 {
+	with_model(handle, |model| {
+		model
+			.meshes
+			.iter()
+			.map(|handle| mesh::resident_bytes(*handle))
+			.sum::<u64>()
+			+ model
+				.textures
+				.iter()
+				.map(|handle| texture::resident_bytes(*handle))
+				.sum::<u64>()
+			+ model
+				.morph_meshes
+				.values()
+				.map(|data| data.resident_bytes())
+				.sum::<u64>()
+	})
+	.unwrap_or(0)
 }
 
 pub fn clear_registry() {
@@ -2756,6 +3725,80 @@ mod tests {
 	}
 
 	#[test]
+	fn mesh_collider_extracts_scene_transform_and_triangle_indices() {
+		let mut buffer = Vec::new();
+		for value in [0.0_f32, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0] {
+			buffer.extend_from_slice(&value.to_le_bytes());
+		}
+		for index in [0_u16, 1, 2] {
+			buffer.extend_from_slice(&index.to_le_bytes());
+		}
+		buffer.extend_from_slice(&[0, 0]);
+		let encoded = base64::encode(&buffer);
+		let gltf = format!(
+			r#"{{
+				"asset": {{"version": "2.0"}},
+				"buffers": [{{"byteLength": 44, "uri": "data:application/octet-stream;base64,{encoded}"}}],
+				"bufferViews": [
+					{{"buffer": 0, "byteOffset": 0, "byteLength": 36}},
+					{{"buffer": 0, "byteOffset": 36, "byteLength": 6}}
+				],
+				"accessors": [
+					{{"bufferView": 0, "componentType": 5126, "count": 3, "type": "VEC3", "min": [0,0,0], "max": [1,1,0]}},
+					{{"bufferView": 1, "componentType": 5123, "count": 3, "type": "SCALAR"}}
+				],
+				"meshes": [{{"primitives": [{{"attributes": {{"POSITION": 0}}, "indices": 1}}]}}],
+				"nodes": [{{"mesh": 0, "translation": [2, 3, 4]}}],
+				"scenes": [{{"nodes": [0]}}],
+				"scene": 0
+			}}"#
+		);
+		let (vertices, indices) =
+			parse_mesh_collider_data("triangle.gltf", gltf.as_bytes(), |_| None).unwrap();
+		assert_eq!(indices, [0, 1, 2]);
+		assert_eq!(
+			vertices,
+			[[2.0, 3.0, 4.0], [3.0, 3.0, 4.0], [2.0, 4.0, 4.0]]
+		);
+	}
+
+	#[test]
+	fn convex_hull_extracts_scene_transformed_points() {
+		let mut buffer = Vec::new();
+		for value in [
+			0.0_f32, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0,
+		] {
+			buffer.extend_from_slice(&value.to_le_bytes());
+		}
+		for index in [0_u16, 1, 2, 0, 2, 3] {
+			buffer.extend_from_slice(&index.to_le_bytes());
+		}
+		let encoded = base64::encode(&buffer);
+		let gltf = format!(
+			r#"{{
+				"asset": {{"version": "2.0"}},
+				"buffers": [{{"byteLength": 60, "uri": "data:application/octet-stream;base64,{encoded}"}}],
+				"bufferViews": [
+					{{"buffer": 0, "byteOffset": 0, "byteLength": 48}},
+					{{"buffer": 0, "byteOffset": 48, "byteLength": 12}}
+				],
+				"accessors": [
+					{{"bufferView": 0, "componentType": 5126, "count": 4, "type": "VEC3", "min": [0,0,0], "max": [1,1,1]}},
+					{{"bufferView": 1, "componentType": 5123, "count": 6, "type": "SCALAR"}}
+				],
+				"meshes": [{{"primitives": [{{"attributes": {{"POSITION": 0}}, "indices": 1}}]}}],
+				"nodes": [{{"mesh": 0, "translation": [2, 3, 4]}}],
+				"scenes": [{{"nodes": [0]}}],
+				"scene": 0
+			}}"#
+		);
+		let points = parse_convex_hull_data("hull.gltf", gltf.as_bytes(), |_| None).unwrap();
+		assert_eq!(points.len(), 4);
+		assert!(points.contains(&[2.0, 3.0, 4.0]));
+		assert!(points.contains(&[2.0, 3.0, 5.0]));
+	}
+
+	#[test]
 	fn packs_thickness_and_sheen_channels() {
 		let images = [rgba_image([1, 37, 3, 4]), rgba_image([5, 6, 7, 91])];
 		let (_, _, pixels) = pack_thickness_sheen_texture(&images, 0, 1).unwrap();
@@ -2769,5 +3812,13 @@ mod tests {
 			pack_metallic_roughness_anisotropy_texture(&images, Some(0), 1).unwrap();
 		assert_eq!(pixels[0], 128);
 		assert_eq!(&pixels[1..], &[53, 79, 113]);
+	}
+
+	#[test]
+	fn calculates_complete_rgba8_mip_chain_size() {
+		assert_eq!(rgba8_upload_size(1, 1, false), Some(4));
+		assert_eq!(rgba8_upload_size(4, 2, false), Some(32));
+		assert_eq!(rgba8_upload_size(4, 2, true), Some(44));
+		assert_eq!(rgba8_upload_size(256, 256, true), Some(349_524));
 	}
 }

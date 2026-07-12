@@ -302,6 +302,9 @@ const std::vector<Ref<Node3D>>& Node3D::getChildren() {
 
 void Node3D::addChild(Node3D* child, int order, String tag) {
 	if (!child || child == this) return;
+	for (auto ancestor = this; ancestor; ancestor = ancestor->_parent) {
+		if (ancestor == child) return;
+	}
 	if (child->_parent == this) {
 		child->setOrder(order);
 		child->setTag(tag);
@@ -334,28 +337,30 @@ void Node3D::removeChild(Node3D* child, bool cleanup) {
 		return item.get() == child;
 	});
 	if (it != _children.end()) {
+		Ref<Node3D> removed(*it);
 #ifndef DORA_NO_RUST
-		dora_3d_node_remove_child(_handle, child->_handle);
+		dora_3d_node_remove_child(_handle, removed->_handle);
 #endif // DORA_NO_RUST
-		if (cleanup) {
-			(*it)->cleanup();
-		}
-		(*it)->_parent = nullptr;
+		removed->_parent = nullptr;
 		_children.erase(it);
+		if (cleanup) {
+			removed->cleanup();
+		}
 	}
 }
 
 void Node3D::removeAllChildren(bool cleanup) {
-	for (auto& child : _children) {
+	auto children = std::move(_children);
+	_children.clear();
+	for (auto& child : children) {
 #ifndef DORA_NO_RUST
 		dora_3d_node_remove_child(_handle, child->_handle);
 #endif // DORA_NO_RUST
+		child->_parent = nullptr;
 		if (cleanup) {
 			child->cleanup();
 		}
-		child->_parent = nullptr;
 	}
-	_children.clear();
 }
 
 void Node3D::removeFromParent(bool cleanup) {
@@ -427,11 +432,14 @@ ScheduledItem* Node3D::getScheduledItem() {
 }
 
 void Node3D::cleanup() {
+	Ref<Node3D> self(this);
+	if (_parent) {
+		_parent->removeChild(this, false);
+	}
 	if (_scheduledItem && _scheduledItem->iter) {
 		_scheduler->unschedule(_scheduledItem.get());
 	}
 	removeAllChildren(true);
-	_parent = nullptr;
 #ifndef DORA_NO_RUST
 	if (_handle != 0) {
 		dora_3d_node_destroy(_handle);

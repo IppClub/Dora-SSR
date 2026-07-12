@@ -59,6 +59,12 @@ func renderstats3d_get_model_instance_count(slf: i64) => i32
 #wa:import dora renderstats3d_get_mesh_count
 func renderstats3d_get_mesh_count(slf: i64) => i32
 
+#wa:import dora renderstats3d_get_static_mesh_count
+func renderstats3d_get_static_mesh_count(slf: i64) => i32
+
+#wa:import dora renderstats3d_get_dynamic_mesh_count
+func renderstats3d_get_dynamic_mesh_count(slf: i64) => i32
+
 #wa:import dora renderstats3d_get_material_count
 func renderstats3d_get_material_count(slf: i64) => i32
 
@@ -166,6 +172,12 @@ func RenderStats3D.GetModelInstanceCount() => i32 {
 }
 func RenderStats3D.GetMeshCount() => i32 {
 	return renderstats3d_get_mesh_count(*this.raw)
+}
+func RenderStats3D.GetStaticMeshCount() => i32 {
+	return renderstats3d_get_static_mesh_count(*this.raw)
+}
+func RenderStats3D.GetDynamicMeshCount() => i32 {
+	return renderstats3d_get_dynamic_mesh_count(*this.raw)
 }
 func RenderStats3D.GetMaterialCount() => i32 {
 	return renderstats3d_get_material_count(*this.raw)

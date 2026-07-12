@@ -22,7 +22,17 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t view3d_get_stats(int64_t self);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void view3d_set_show_a_a_b_b(int64_t self, int32_t val);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int32_t view3d_is_show_a_a_b_b(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void view3d_add_child_3d(int64_t self, int64_t child);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t view3d_get_ray_origin(int64_t self, int64_t viewPoint);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t view3d_get_ray_direction(int64_t self, int64_t viewPoint);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t view3d_pick(int64_t self, int64_t viewPoint);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int32_t view3d_set_environment_map(int64_t self, int64_t path);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
@@ -67,11 +77,34 @@ namespace Dora
 			get => Dora.RenderStats3D.From(Native.view3d_get_stats(Raw));
 		}
 		/// <summary>
+		/// Whether current world AABBs are drawn for debugging.
+		/// </summary>
+		public bool IsShowAABB
+		{
+			set => Native.view3d_set_show_a_a_b_b(Raw, value ? 1 : 0);
+			get => Native.view3d_is_show_a_a_b_b(Raw) != 0;
+		}
+		/// <summary>
 		/// Adds a 3D child node to the scene root.
 		/// </summary>
 		public void AddChild(Node3D child)
 		{
 			Native.view3d_add_child_3d(Raw, child.Raw);
+		}
+		/// <summary>Gets the world-space origin of the screen ray for a SharedView logical coordinate.</summary>
+		public Vec3 GetRayOrigin(Vec2 viewPoint)
+		{
+			return Vec3.From(Native.view3d_get_ray_origin(Raw, viewPoint.Raw));
+		}
+		/// <summary>Gets the normalized world-space direction of the screen ray.</summary>
+		public Vec3 GetRayDirection(Vec2 viewPoint)
+		{
+			return Vec3.From(Native.view3d_get_ray_direction(Raw, viewPoint.Raw));
+		}
+		/// <summary>Returns the nearest Model3D whose current world AABB intersects the screen ray.</summary>
+		public Model3D? Pick(Vec2 viewPoint)
+		{
+			return Model3D.FromOpt(Native.view3d_pick(Raw, viewPoint.Raw));
 		}
 		/// <summary>
 		/// Sets the environment map used by this 3D view.

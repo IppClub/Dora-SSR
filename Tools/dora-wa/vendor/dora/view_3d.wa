@@ -17,8 +17,23 @@ func view3d_get_scene(slf: i64) => i64
 #wa:import dora view3d_get_stats
 func view3d_get_stats(slf: i64) => i64
 
+#wa:import dora view3d_set_show_a_a_b_b
+func view3d_set_show_a_a_b_b(slf: i64, val: i32)
+
+#wa:import dora view3d_is_show_a_a_b_b
+func view3d_is_show_a_a_b_b(slf: i64) => i32
+
 #wa:import dora view3d_add_child_3d
 func view3d_add_child_3d(slf: i64, child: i64)
+
+#wa:import dora view3d_get_ray_origin
+func view3d_get_ray_origin(slf: i64, view_point: i64) => i64
+
+#wa:import dora view3d_get_ray_direction
+func view3d_get_ray_direction(slf: i64, view_point: i64) => i64
+
+#wa:import dora view3d_pick
+func view3d_pick(slf: i64, view_point: i64) => i64
 
 #wa:import dora view3d_set_environment_map
 func view3d_set_environment_map(slf: i64, path: i64) => i32
@@ -62,9 +77,39 @@ func View3D.GetStats() => RenderStats3D {
 	return *RenderStats3DFrom(view3d_get_stats(*this.raw))
 }
 
+/// Sets whether current world AABBs are drawn for debugging.
+func View3D.SetShowAABB(val: bool) {
+	view3d_set_show_a_a_b_b(*this.raw, ToDoraBool(val))
+}
+
+/// Gets whether current world AABBs are drawn for debugging.
+func View3D.IsShowAABB() => bool {
+	return view3d_is_show_a_a_b_b(*this.raw) != 0
+}
+
 /// Adds a 3D child node to the scene root.
 func View3D.AddChild3D(child: Node3D) {
 	view3d_add_child_3d(*this.raw, child.GetRaw())
+}
+
+/// Gets the world-space origin of the screen ray for a SharedView logical coordinate.
+func View3D.GetRayOrigin(view_point: Vec2) => Vec3 {
+	return *Vec3From(view3d_get_ray_origin(*this.raw, view_point.ToValue()))
+}
+
+/// Gets the normalized world-space direction of the screen ray.
+func View3D.GetRayDirection(view_point: Vec2) => Vec3 {
+	return *Vec3From(view3d_get_ray_direction(*this.raw, view_point.ToValue()))
+}
+
+/// Returns the nearest Model3D whose current world AABB intersects the screen ray.
+func View3D.Pick(view_point: Vec2) => *Model3D {
+	ptr_ := view3d_pick(*this.raw, view_point.ToValue())
+	if ptr_ == 0 {
+		return nil
+	}
+	obj_ := *Model3DFrom(ptr_)
+	return &obj_
 }
 
 /// Sets the environment map used by this 3D view.

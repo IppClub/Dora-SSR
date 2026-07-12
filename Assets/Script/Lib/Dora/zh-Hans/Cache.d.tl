@@ -3,6 +3,17 @@ local Texture2D = require("Texture2D").Type
 -- 用于管理各种游戏资源缓存的单例类。
 local record Cache
 	userdata
+	model3DBudget: number
+	model3DUsage: number
+	model3DCount: integer
+
+	enum LoadState
+		"none"
+		"loading"
+		"ready"
+		"failed"
+		"cancelled"
+	end
 
 	-- 可以被缓存的各种资源类型。
 	enum ResourceType
@@ -50,6 +61,15 @@ local record Cache
 	-- @param handler (function) [可选] 加载进度回调函数。progress 参数是一个介于0和1之间的数字，表示加载进度的百分比。
 	-- @return (boolean) 如果资源文件成功加载，则返回 true，否则返回 false。
 	loadAsync: function(self: Cache, filename: string | {string}, handler?: function(progress: number)): boolean
+
+	-- 获取 Model3D 或环境资源的加载状态。
+	getLoadState: function(self: Cache, filename: string): LoadState
+
+	-- 获取最近一次 Model3D 或环境资源加载错误。
+	getLoadError: function(self: Cache, filename: string): string
+
+	-- 取消进行中的 Model3D 或环境资源加载。
+	cancelLoad: function(self: Cache, filename: string): boolean
 
 	-- 更新缓存中已加载资源文件的内容。
 	-- 如果资源文件名称对应的项不存在于缓存中，则会将新资源内容添加到缓存中。

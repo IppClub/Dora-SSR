@@ -6,11 +6,32 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
+#wa:import dora cache_set_model3_d_budget
+func cache_set_model3_d_budget(val: i64)
+
+#wa:import dora cache_get_model3_d_budget
+func cache_get_model3_d_budget() => i64
+
+#wa:import dora cache_get_model3_d_usage
+func cache_get_model3_d_usage() => i64
+
+#wa:import dora cache_get_model3_d_count
+func cache_get_model3_d_count() => i32
+
 #wa:import dora cache_load
 func cache_load(filename: i64) => i32
 
 #wa:import dora cache_load_async
 func cache_load_async(filename: i64, func0: i32, stack0: i64)
+
+#wa:import dora cache_get_load_state
+func cache_get_load_state(filename: i64) => i64
+
+#wa:import dora cache_get_load_error
+func cache_get_load_error(filename: i64) => i64
+
+#wa:import dora cache_cancel_load
+func cache_cancel_load(filename: i64) => i32
 
 #wa:import dora cache_update_item
 func cache_update_item(filename: i64, content: i64)
@@ -34,6 +55,25 @@ type _Cache :struct{}
 
 global Cache = _Cache{}
 
+/// Sets The soft memory budget for cached Model3D resources in bytes. Zero means unlimited.
+func _Cache.SetModel3DBudget(val: i64) {
+	cache_set_model3_d_budget(val)
+}
+
+/// Gets The soft memory budget for cached Model3D resources in bytes. Zero means unlimited.
+func _Cache.GetModel3DBudget() => i64 {
+	return cache_get_model3_d_budget()
+}
+
+/// Gets The estimated resident bytes held by cached Model3D resources.
+func _Cache.GetModel3DUsage() => i64 {
+	return cache_get_model3_d_usage()
+}
+
+/// Gets The number of Model3D definitions currently retained by the cache.
+func _Cache.GetModel3DCount() => i32 {
+	return cache_get_model3_d_count()
+}
 func _Cache.Load(filename: string) => bool {
 	return cache_load(ToDoraString(filename)) != 0
 }
@@ -44,6 +84,15 @@ func _Cache.LoadAsync(filename: string, handler: func(success: bool)) {
 		handler(success)
 	})
 	cache_load_async(ToDoraString(filename), func_id0, *stack0.raw)
+}
+func _Cache.GetLoadState(filename: string) => string {
+	return FromDoraString(cache_get_load_state(ToDoraString(filename)))
+}
+func _Cache.GetLoadError(filename: string) => string {
+	return FromDoraString(cache_get_load_error(ToDoraString(filename)))
+}
+func _Cache.CancelLoad(filename: string) => bool {
+	return cache_cancel_load(ToDoraString(filename)) != 0
 }
 func _Cache.UpdateItem(filename: string, content: string) {
 	cache_update_item(ToDoraString(filename), ToDoraString(content))

@@ -19,8 +19,8 @@ local record Node3D
 	-- The parent 3D node.
 	const parent: Node3D | nil
 
-	-- The child 3D nodes.
-	const children: any
+	-- Whether the node has child 3D nodes.
+	const hasChildren: boolean
 
 	-- The node position.
 	position: Vec3

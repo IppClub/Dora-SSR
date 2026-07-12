@@ -14,6 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Director.h"
 #include "Cache/Model3DCache.h"
 #include "Common/WRef.h"
+#include "Node/Model3D.h"
 #include "Node/Node3D.h"
 #include "Render/Camera.h"
 #include "Render/View.h"
@@ -22,7 +23,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 extern "C" {
 void dora_3d_set_view_state(uint16_t view_id, const float* view_proj, float eye_x, float eye_y, float eye_z);
 void dora_3d_set_view_frustum_culling(uint16_t view_id, int32_t enabled);
+void dora_3d_set_view_show_aabb(uint16_t view_id, int32_t enabled);
 int32_t dora_3d_render_node(uint16_t view_id, uint64_t node);
+int32_t dora_3d_render_node_with_shadow(uint16_t view_id, uint16_t shadow_view_id, uint64_t node);
+int32_t dora_3d_scene_has_shadow_light(uint64_t node);
 int32_t dora_3d_get_render_stats(uint16_t view_id, uint64_t* out, uint32_t count);
 int32_t dora_3d_set_view_environment(uint16_t view_id, const char* path, float diffuse, float specular, float exposure);
 }
@@ -35,6 +39,7 @@ View3D::View3D()
 	, _environmentDiffuse(1.0f)
 	, _environmentSpecular(1.0f)
 	, _environmentExposure(1.0f)
+	, _showAABB(false)
 	, _lastViewId(std::numeric_limits<uint16_t>::max()) { }
 
 View3D::~View3D() { }
@@ -52,8 +57,8 @@ Node3D* View3D::getScene() {
 
 const RenderStats3D& View3D::getStats() const noexcept {
 #ifndef DORA_NO_RUST
-	uint64_t values[30] = {};
-	if (dora_3d_get_render_stats(_lastViewId, values, 30) != 0) {
+	uint64_t values[32] = {};
+	if (dora_3d_get_render_stats(_lastViewId, values, 32) != 0) {
 		_stats.sceneNodes = s_cast<uint32_t>(values[0]);
 		_stats.visibleVisuals = s_cast<uint32_t>(values[1]);
 		_stats.culledVisuals = s_cast<uint32_t>(values[2]);
@@ -70,23 +75,33 @@ const RenderStats3D& View3D::getStats() const noexcept {
 		_stats.modelCount = s_cast<uint32_t>(values[13]);
 		_stats.modelInstanceCount = s_cast<uint32_t>(values[14]);
 		_stats.meshCount = s_cast<uint32_t>(values[15]);
-		_stats.materialCount = s_cast<uint32_t>(values[16]);
-		_stats.textureCount = s_cast<uint32_t>(values[17]);
-		_stats.animationCount = s_cast<uint32_t>(values[18]);
-		_stats.environmentCount = s_cast<uint32_t>(values[19]);
-		_stats.modelResidentBytes = values[20];
-		_stats.meshResidentBytes = values[21];
-		_stats.textureResidentBytes = values[22];
-		_stats.collectMicros = values[23];
-		_stats.sortMicros = values[24];
-		_stats.submitMicros = values[25];
-		_stats.uploadCommands = values[26];
-		_stats.uploadBytes = values[27];
-		_stats.uploadMicros = values[28];
-		_stats.uploadMaxCommandMicros = values[29];
+		_stats.staticMeshCount = s_cast<uint32_t>(values[16]);
+		_stats.dynamicMeshCount = s_cast<uint32_t>(values[17]);
+		_stats.materialCount = s_cast<uint32_t>(values[18]);
+		_stats.textureCount = s_cast<uint32_t>(values[19]);
+		_stats.animationCount = s_cast<uint32_t>(values[20]);
+		_stats.environmentCount = s_cast<uint32_t>(values[21]);
+		_stats.modelResidentBytes = values[22];
+		_stats.meshResidentBytes = values[23];
+		_stats.textureResidentBytes = values[24];
+		_stats.collectMicros = values[25];
+		_stats.sortMicros = values[26];
+		_stats.submitMicros = values[27];
+		_stats.uploadCommands = values[28];
+		_stats.uploadBytes = values[29];
+		_stats.uploadMicros = values[30];
+		_stats.uploadMaxCommandMicros = values[31];
 	}
 #endif // DORA_NO_RUST
 	return _stats;
+}
+
+bool View3D::isShowAABB() const noexcept {
+	return _showAABB;
+}
+
+void View3D::setShowAABB(bool var) {
+	_showAABB = var;
 }
 
 void View3D::addChild(Node3D* child, int order, String tag) {
@@ -104,6 +119,71 @@ void View3D::addChild(Node3D* child, int order) {
 void View3D::addChild(Node3D* child) {
 	if (!child) return;
 	addChild(child, child->getOrder(), child->getTag());
+}
+
+bool View3D::getScreenRay(const Vec2& viewPoint, Vec3& origin, Vec3& direction) const {
+	Size viewSize = SharedView.getSize();
+	if (viewSize.width <= 0.0f || viewSize.height <= 0.0f) return false;
+	Matrix viewProj = SharedDirector.getViewProjection();
+	Matrix flipX = Matrix::Indentity;
+	flipX.m[0] = -1.0f;
+	Matrix::mulMtx(viewProj, flipX, viewProj);
+	Matrix inverse;
+	bx::mtxInverse(inverse.m, viewProj.m);
+	float ndcX = viewPoint.x / viewSize.width * 2.0f - 1.0f;
+	float ndcY = viewPoint.y / viewSize.height * 2.0f - 1.0f;
+	float nearZ = bgfx::getCaps()->homogeneousDepth ? -1.0f : 0.0f;
+	auto unproject = [&inverse, ndcX, ndcY](float z, Vec3& result) {
+		Vec4 world;
+		Matrix::mulVec4(world, inverse, {ndcX, ndcY, z, 1.0f});
+		if (std::abs(world.w) <= FLT_EPSILON) return false;
+		float inverseW = 1.0f / world.w;
+		result = {world.x * inverseW, world.y * inverseW, world.z * inverseW};
+		return true;
+	};
+	Vec3 farPoint;
+	if (!unproject(nearZ, origin) || !unproject(1.0f, farPoint)) return false;
+	bx::Vec3 ray = bx::sub(farPoint, origin);
+	float length = bx::length(ray);
+	if (length <= FLT_EPSILON) return false;
+	direction = Vec3::from(bx::mul(ray, 1.0f / length));
+	return true;
+}
+
+Vec3 View3D::getRayOrigin(const Vec2& viewPoint) const {
+	Vec3 origin{0.0f, 0.0f, 0.0f};
+	Vec3 direction{0.0f, 0.0f, 0.0f};
+	getScreenRay(viewPoint, origin, direction);
+	return origin;
+}
+
+Vec3 View3D::getRayDirection(const Vec2& viewPoint) const {
+	Vec3 origin{0.0f, 0.0f, 0.0f};
+	Vec3 direction{0.0f, 0.0f, 0.0f};
+	getScreenRay(viewPoint, origin, direction);
+	return direction;
+}
+
+Model3D* View3D::pick(const Vec2& viewPoint) const {
+	if (!_scene) return nullptr;
+	Vec3 origin;
+	Vec3 direction;
+	if (!getScreenRay(viewPoint, origin, direction)) return nullptr;
+	Model3D* result = nullptr;
+	float nearest = std::numeric_limits<float>::infinity();
+	std::function<void(Node3D*)> visit = [&](Node3D* node) {
+		if (!node || !node->isVisible()) return;
+		if (Model3D* model = DoraAs<Model3D>(node)) {
+			float distance = model->rayCast(origin, direction);
+			if (distance >= 0.0f && distance < nearest) {
+				nearest = distance;
+				result = model;
+			}
+		}
+		for (const auto& child : node->getChildren()) visit(child.get());
+	};
+	visit(_scene);
+	return result;
 }
 
 void View3D::cleanup() {
@@ -164,8 +244,19 @@ void View3D::render3D(bgfx::ViewId viewId) {
 	Matrix::mulMtx(viewProj, flipX, viewProj);
 	dora_3d_set_view_state(viewId, viewProj.m, eye.x, eye.y, eye.z);
 	dora_3d_set_view_frustum_culling(viewId, SharedView.isFrustumCulling() ? 1 : 0);
+	dora_3d_set_view_show_aabb(viewId, _showAABB ? 1 : 0);
 	dora_3d_set_view_environment(viewId, _environmentMap.c_str(), _environmentDiffuse, _environmentSpecular, _environmentExposure);
-	dora_3d_render_node(viewId, _scene->getHandle());
+	if (dora_3d_scene_has_shadow_light(_scene->getHandle()) != 0) {
+		bgfx::ViewId shadowViewId = 0;
+		SharedView.pushInsertionMode(true, [&]() {
+			SharedView.pushFront("Shadow3D"_slice, [&]() {
+				shadowViewId = SharedView.getId();
+			});
+		});
+		dora_3d_render_node_with_shadow(viewId, shadowViewId, _scene->getHandle());
+	} else {
+		dora_3d_render_node(viewId, _scene->getHandle());
+	}
 	_lastViewId = viewId;
 #endif // DORA_NO_RUST
 }

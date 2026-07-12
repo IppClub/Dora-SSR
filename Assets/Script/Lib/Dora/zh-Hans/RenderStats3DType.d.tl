@@ -16,6 +16,8 @@ local record RenderStats3D
 	const modelCount: integer
 	const modelInstanceCount: integer
 	const meshCount: integer
+	const staticMeshCount: integer
+	const dynamicMeshCount: integer
 	const materialCount: integer
 	const textureCount: integer
 	const animationCount: integer

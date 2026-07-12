@@ -129,6 +129,35 @@ impl Aabb {
 			Vec3::new(max.x, max.y, max.z),
 		]
 	}
+
+	pub fn ray_intersection(&self, origin: Vec3, direction: Vec3) -> Option<f32> {
+		let mut near = 0.0_f32;
+		let mut far = f32::INFINITY;
+		for axis in 0..3 {
+			let origin_axis = origin[axis];
+			let direction_axis = direction[axis];
+			let min_axis = self.min[axis];
+			let max_axis = self.max[axis];
+			if direction_axis.abs() <= f32::EPSILON {
+				if origin_axis < min_axis || origin_axis > max_axis {
+					return None;
+				}
+				continue;
+			}
+			let inverse = direction_axis.recip();
+			let mut axis_near = (min_axis - origin_axis) * inverse;
+			let mut axis_far = (max_axis - origin_axis) * inverse;
+			if axis_near > axis_far {
+				std::mem::swap(&mut axis_near, &mut axis_far);
+			}
+			near = near.max(axis_near);
+			far = far.min(axis_far);
+			if far < near {
+				return None;
+			}
+		}
+		Some(near)
+	}
 }
 
 pub fn mat4_to_bgfx_array(matrix: &Mat4) -> BgfxMat4 {
@@ -191,5 +220,21 @@ mod tests {
 			max: Vec3::new(101.0, 0.5, 0.5),
 		};
 		assert!(!frustum.intersects_aabb(&outside));
+	}
+
+	#[test]
+	fn ray_intersection_returns_nearest_forward_distance() {
+		let bounds = Aabb {
+			min: Vec3::new(-1.0, -1.0, -1.0),
+			max: Vec3::new(1.0, 1.0, 1.0),
+		};
+		assert_eq!(
+			bounds.ray_intersection(Vec3::new(0.0, 0.0, 5.0), Vec3::new(0.0, 0.0, -1.0)),
+			Some(4.0)
+		);
+		assert_eq!(
+			bounds.ray_intersection(Vec3::new(2.0, 0.0, 5.0), Vec3::new(0.0, 0.0, -1.0)),
+			None
+		);
 	}
 }

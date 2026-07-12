@@ -59,6 +59,12 @@ DORA_EXPORT int32_t renderstats3d_get_model_instance_count(int64_t self) {
 DORA_EXPORT int32_t renderstats3d_get_mesh_count(int64_t self) {
 	return s_cast<int32_t>(r_cast<RenderStats3D*>(self)->getMeshCount());
 }
+DORA_EXPORT int32_t renderstats3d_get_static_mesh_count(int64_t self) {
+	return s_cast<int32_t>(r_cast<RenderStats3D*>(self)->getStaticMeshCount());
+}
+DORA_EXPORT int32_t renderstats3d_get_dynamic_mesh_count(int64_t self) {
+	return s_cast<int32_t>(r_cast<RenderStats3D*>(self)->getDynamicMeshCount());
+}
 DORA_EXPORT int32_t renderstats3d_get_material_count(int64_t self) {
 	return s_cast<int32_t>(r_cast<RenderStats3D*>(self)->getMaterialCount());
 }
@@ -121,6 +127,8 @@ static void linkRenderStats3D(wasm3::module3& mod) {
 	mod.link_optional("*", "renderstats3d_get_model_count", renderstats3d_get_model_count);
 	mod.link_optional("*", "renderstats3d_get_model_instance_count", renderstats3d_get_model_instance_count);
 	mod.link_optional("*", "renderstats3d_get_mesh_count", renderstats3d_get_mesh_count);
+	mod.link_optional("*", "renderstats3d_get_static_mesh_count", renderstats3d_get_static_mesh_count);
+	mod.link_optional("*", "renderstats3d_get_dynamic_mesh_count", renderstats3d_get_dynamic_mesh_count);
 	mod.link_optional("*", "renderstats3d_get_material_count", renderstats3d_get_material_count);
 	mod.link_optional("*", "renderstats3d_get_texture_count", renderstats3d_get_texture_count);
 	mod.link_optional("*", "renderstats3d_get_animation_count", renderstats3d_get_animation_count);

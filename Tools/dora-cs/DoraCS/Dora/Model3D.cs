@@ -30,6 +30,26 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int32_t model3d_is_paused(int64_t self);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int32_t model3d_get_animation_count(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int32_t model3d_get_material_count(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t model3d_get_animation_name(int64_t self, int32_t index);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int32_t model3d_has_node(int64_t self, int64_t name);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int32_t model3d_attach_to_node(int64_t self, int64_t name, int64_t child);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t model3d_get_local_bounds_min(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t model3d_get_local_bounds_max(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t model3d_get_world_bounds_min(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t model3d_get_world_bounds_max(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t model3d_get_material(int64_t self, int32_t index);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern float model3d_play(int64_t self, int64_t name, int32_t looped);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void model3d_stop(int64_t self);
@@ -97,6 +117,58 @@ namespace Dora
 		public bool IsPaused
 		{
 			get => Native.model3d_is_paused(Raw) != 0;
+		}
+		/// <summary>
+		/// The number of animation clips in this model.
+		/// </summary>
+		public int AnimationCount
+		{
+			get => Native.model3d_get_animation_count(Raw);
+		}
+		/// <summary>The number of material slots in this model instance.</summary>
+		public int MaterialCount
+		{
+			get => Native.model3d_get_material_count(Raw);
+		}
+		/// <summary>Gets an animation clip name by index.</summary>
+		public string GetAnimationName(int index)
+		{
+			return Bridge.ToString(Native.model3d_get_animation_name(Raw, index));
+		}
+		/// <summary>Checks whether an imported node with the given name exists.</summary>
+		public bool HasNode(string name)
+		{
+			return Native.model3d_has_node(Raw, Bridge.FromString(name)) != 0;
+		}
+		/// <summary>Attaches a user-owned Node3D below an imported node.</summary>
+		public bool AttachToNode(string name, Node3D child)
+		{
+			return Native.model3d_attach_to_node(Raw, Bridge.FromString(name), child.Raw) != 0;
+		}
+		/// <summary>Gets the current model-space bounds minimum.</summary>
+		public Vec3 GetLocalBoundsMin()
+		{
+			return Vec3.From(Native.model3d_get_local_bounds_min(Raw));
+		}
+		/// <summary>Gets the current model-space bounds maximum.</summary>
+		public Vec3 GetLocalBoundsMax()
+		{
+			return Vec3.From(Native.model3d_get_local_bounds_max(Raw));
+		}
+		/// <summary>Gets the current world-space bounds minimum.</summary>
+		public Vec3 GetWorldBoundsMin()
+		{
+			return Vec3.From(Native.model3d_get_world_bounds_min(Raw));
+		}
+		/// <summary>Gets the current world-space bounds maximum.</summary>
+		public Vec3 GetWorldBoundsMax()
+		{
+			return Vec3.From(Native.model3d_get_world_bounds_max(Raw));
+		}
+		/// <summary>Gets a per-instance material slot by zero-based index.</summary>
+		public Material3D? GetMaterial(int index)
+		{
+			return Material3D.FromOpt(Native.model3d_get_material(Raw, index));
 		}
 		/// <summary>
 		/// Plays an animation by name.

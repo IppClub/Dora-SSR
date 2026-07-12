@@ -1,4 +1,6 @@
 local Node3D = require("Node3D").Type
+local Vec3 = require("Vec3").Type
+local type Material3D = require("Material3DType")
 
 -- 用于渲染 glTF 3D 模型的类。
 local record Model3D
@@ -20,6 +22,36 @@ local record Model3D
 
 	-- 当前动画是否暂停。
 	const paused: boolean
+
+	-- 此模型中的动画片段数量。
+	const animationCount: integer
+
+	-- 当前实例中的材质槽数量。
+	const materialCount: integer
+
+	-- 按从零开始的索引获取动画名称。
+	getAnimationName: function(self: Model3D, index: integer): string
+
+	-- 检查是否存在指定名称的导入 glTF 节点。
+	hasNode: function(self: Model3D, name: string): boolean
+
+	-- 将用户持有的 Node3D 挂到指定导入节点下。
+	attachToNode: function(self: Model3D, name: string, child: Node3D): boolean
+
+	-- 获取当前模型空间包围盒的最小点。
+	getLocalBoundsMin: function(self: Model3D): Vec3
+
+	-- 获取当前模型空间包围盒的最大点。
+	getLocalBoundsMax: function(self: Model3D): Vec3
+
+	-- 获取当前世界空间包围盒的最小点。
+	getWorldBoundsMin: function(self: Model3D): Vec3
+
+	-- 获取当前世界空间包围盒的最大点。
+	getWorldBoundsMax: function(self: Model3D): Vec3
+
+	-- 按从零开始的索引获取逐实例材质槽。
+	getMaterial: function(self: Model3D, index: integer): Material3D | nil
 
 	-- 按名称播放动画。
 	-- @param name (string) [可选] 动画名称。省略时使用默认动画。

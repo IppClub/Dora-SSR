@@ -574,6 +574,8 @@
 		3C5931502CA4F67300CAF224 /* DragonBoneCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FBF2CA4F67300CAF224 /* DragonBoneCache.cpp */; };
 		3C5931512CA4F67300CAF224 /* SVGCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FCD2CA4F67300CAF224 /* SVGCache.cpp */; };
 		3C5931522CA4F67300CAF224 /* PhysicsWorld.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C59305A2CA4F67300CAF224 /* PhysicsWorld.cpp */; };
+		A1B2C3D4E5F60708090A0C01 /* JoltBridge.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60708090A0C03 /* JoltBridge.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty/JoltPhysics -fno-rtti -fno-exceptions -ffp-contract=off"; }; };
+		A1B2C3D4E5F60708090A0C02 /* JoltSources.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60708090A0C04 /* JoltSources.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty/JoltPhysics -fno-rtti -fno-exceptions -ffp-contract=off"; }; };
 		3C5931532CA4F67300CAF224 /* Sprite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930492CA4F67300CAF224 /* Sprite.cpp */; };
 		3C5931542CA4F67300CAF224 /* TextureCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FCF2CA4F67300CAF224 /* TextureCache.cpp */; };
 		3C5931552CA4F67300CAF224 /* Body.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930502CA4F67300CAF224 /* Body.cpp */; };
@@ -684,6 +686,8 @@
 		3C59322D2CA4F67300CAF224 /* DragonBoneCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FBF2CA4F67300CAF224 /* DragonBoneCache.cpp */; };
 		3C59322E2CA4F67300CAF224 /* SVGCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FCD2CA4F67300CAF224 /* SVGCache.cpp */; };
 		3C59322F2CA4F67300CAF224 /* PhysicsWorld.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C59305A2CA4F67300CAF224 /* PhysicsWorld.cpp */; };
+		A1B2C3D4E5F60708090A0C05 /* JoltBridge.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60708090A0C03 /* JoltBridge.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty/JoltPhysics -fno-rtti -fno-exceptions -ffp-contract=off"; }; };
+		A1B2C3D4E5F60708090A0C06 /* JoltSources.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60708090A0C04 /* JoltSources.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty/JoltPhysics -fno-rtti -fno-exceptions -ffp-contract=off"; }; };
 		3C5932302CA4F67300CAF224 /* Sprite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930492CA4F67300CAF224 /* Sprite.cpp */; };
 		3C5932312CA4F67300CAF224 /* TextureCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FCF2CA4F67300CAF224 /* TextureCache.cpp */; };
 		3C5932322CA4F67300CAF224 /* Body.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930502CA4F67300CAF224 /* Body.cpp */; };
@@ -2123,6 +2127,8 @@
 		3C5930582CA4F67300CAF224 /* JointDef.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JointDef.cpp; sourceTree = "<group>"; };
 		3C5930592CA4F67300CAF224 /* PhysicsWorld.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PhysicsWorld.h; sourceTree = "<group>"; };
 		3C59305A2CA4F67300CAF224 /* PhysicsWorld.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PhysicsWorld.cpp; sourceTree = "<group>"; };
+		A1B2C3D4E5F60708090A0C03 /* JoltBridge.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JoltBridge.cpp; sourceTree = "<group>"; };
+		A1B2C3D4E5F60708090A0C04 /* JoltSources.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JoltSources.cpp; sourceTree = "<group>"; };
 		3C59305B2CA4F67300CAF224 /* Sensor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Sensor.h; sourceTree = "<group>"; };
 		3C59305C2CA4F67300CAF224 /* Sensor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Sensor.cpp; sourceTree = "<group>"; };
 		3C59305E2CA4F67300CAF224 /* AI.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AI.h; sourceTree = "<group>"; };
@@ -4473,6 +4479,8 @@
 				3C5930582CA4F67300CAF224 /* JointDef.cpp */,
 				3C5930592CA4F67300CAF224 /* PhysicsWorld.h */,
 				3C59305A2CA4F67300CAF224 /* PhysicsWorld.cpp */,
+				A1B2C3D4E5F60708090A0C03 /* JoltBridge.cpp */,
+				A1B2C3D4E5F60708090A0C04 /* JoltSources.cpp */,
 				3C59305B2CA4F67300CAF224 /* Sensor.h */,
 				3C59305C2CA4F67300CAF224 /* Sensor.cpp */,
 			);
@@ -5704,6 +5712,8 @@
 				3C59322D2CA4F67300CAF224 /* DragonBoneCache.cpp in Sources */,
 				3C59322E2CA4F67300CAF224 /* SVGCache.cpp in Sources */,
 				3C59322F2CA4F67300CAF224 /* PhysicsWorld.cpp in Sources */,
+				A1B2C3D4E5F60708090A0C05 /* JoltBridge.cpp in Sources */,
+				A1B2C3D4E5F60708090A0C06 /* JoltSources.cpp in Sources */,
 				3C5932302CA4F67300CAF224 /* Sprite.cpp in Sources */,
 				3C5932312CA4F67300CAF224 /* TextureCache.cpp in Sources */,
 				3C5932322CA4F67300CAF224 /* Body.cpp in Sources */,
@@ -6301,6 +6311,8 @@
 				3C5931502CA4F67300CAF224 /* DragonBoneCache.cpp in Sources */,
 				3C5931512CA4F67300CAF224 /* SVGCache.cpp in Sources */,
 				3C5931522CA4F67300CAF224 /* PhysicsWorld.cpp in Sources */,
+				A1B2C3D4E5F60708090A0C01 /* JoltBridge.cpp in Sources */,
+				A1B2C3D4E5F60708090A0C02 /* JoltSources.cpp in Sources */,
 				3C5931532CA4F67300CAF224 /* Sprite.cpp in Sources */,
 				3C5931542CA4F67300CAF224 /* TextureCache.cpp in Sources */,
 				3C5931552CA4F67300CAF224 /* Body.cpp in Sources */,

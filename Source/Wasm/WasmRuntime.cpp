@@ -575,6 +575,7 @@ void CallStack::push(bool value) { _stack.push_back(value); }
 void CallStack::push(String value) { _stack.push_back(value.toString()); }
 void CallStack::push(Object* value) { _stack.push_back(value); }
 void CallStack::push(const Vec2& value) { _stack.push_back(value); }
+void CallStack::push(const Vec3& value) { _stack.push_back(value); }
 void CallStack::push(const Size& value) { _stack.push_back(value); }
 void CallStack::push_v(dora_val_t value) { _stack.push_back(value); }
 
@@ -1628,6 +1629,9 @@ DORA_EXPORT void call_stack_push_object(int64_t stack, int64_t value) {
 DORA_EXPORT void call_stack_push_vec2(int64_t stack, int64_t value) {
 	r_cast<CallStack*>(stack)->push(Vec2_From(value));
 }
+DORA_EXPORT void call_stack_push_vec3(int64_t stack, int64_t value) {
+	r_cast<CallStack*>(stack)->push(Vec3_From(value));
+}
 DORA_EXPORT void call_stack_push_size(int64_t stack, int64_t value) {
 	r_cast<CallStack*>(stack)->push(Size_From(value));
 }
@@ -1652,6 +1656,9 @@ DORA_EXPORT int64_t call_stack_pop_object(int64_t stack) {
 }
 DORA_EXPORT int64_t call_stack_pop_vec2(int64_t stack) {
 	return Vec2_Retain(std::get<Vec2>(r_cast<CallStack*>(stack)->pop()));
+}
+DORA_EXPORT int64_t call_stack_pop_vec3(int64_t stack) {
+	return Vec3_Retain(std::get<Vec3>(r_cast<CallStack*>(stack)->pop()));
 }
 DORA_EXPORT int64_t call_stack_pop_size(int64_t stack) {
 	return Size_Retain(std::get<Size>(r_cast<CallStack*>(stack)->pop()));
@@ -1680,6 +1687,9 @@ DORA_EXPORT int32_t call_stack_front_object(int64_t stack) {
 }
 DORA_EXPORT int32_t call_stack_front_vec2(int64_t stack) {
 	return std::holds_alternative<Vec2>(r_cast<CallStack*>(stack)->front()) ? 1 : 0;
+}
+DORA_EXPORT int32_t call_stack_front_vec3(int64_t stack) {
+	return std::holds_alternative<Vec3>(r_cast<CallStack*>(stack)->front()) ? 1 : 0;
 }
 DORA_EXPORT int32_t call_stack_front_size(int64_t stack) {
 	return std::holds_alternative<Size>(r_cast<CallStack*>(stack)->front()) ? 1 : 0;
@@ -1954,6 +1964,10 @@ DORA_EXPORT float math_tan(float v) { return std::tan(v); }
 #include "Dora/AudioSourceWasm.hpp"
 #include "Dora/AudioWasm.hpp"
 #include "Dora/BodyDefWasm.hpp"
+#include "Dora/Body3DWasm.hpp"
+#include "Dora/CharacterController3DWasm.hpp"
+#include "Dora/PhysicsShape3DWasm.hpp"
+#include "Dora/Constraint3DWasm.hpp"
 #include "Dora/BodyWasm.hpp"
 #include "Dora/BufferWasm.hpp"
 #include "Dora/C45Wasm.hpp"
@@ -1970,6 +1984,7 @@ DORA_EXPORT float math_tan(float v) { return std::tan(v); }
 #include "Dora/DBWasm.hpp"
 #include "Dora/DictionaryWasm.hpp"
 #include "Dora/DirectorWasm.hpp"
+#include "Dora/DirectionalLight3DWasm.hpp"
 #include "Dora/DragonBoneWasm.hpp"
 #include "Dora/DrawNodeWasm.hpp"
 #include "Dora/EaseWasm.hpp"
@@ -1989,6 +2004,7 @@ DORA_EXPORT float math_tan(float v) { return std::tan(v); }
 #include "Dora/LabelWasm.hpp"
 #include "Dora/LineWasm.hpp"
 #include "Dora/MLQLearnerWasm.hpp"
+#include "Dora/Material3DWasm.hpp"
 #include "Dora/Model3DWasm.hpp"
 #include "Dora/ModelWasm.hpp"
 #include "Dora/MotorJointWasm.hpp"
@@ -2001,6 +2017,8 @@ DORA_EXPORT float math_tan(float v) { return std::tan(v); }
 #include "Dora/PassWasm.hpp"
 #include "Dora/PathWasm.hpp"
 #include "Dora/PhysicsWorldWasm.hpp"
+#include "Dora/PhysicsWorld3DWasm.hpp"
+#include "Dora/PointLight3DWasm.hpp"
 #include "Dora/Platformer/Behavior/BlackboardWasm.hpp"
 #include "Dora/Platformer/Behavior/LeafWasm.hpp"
 #include "Dora/Platformer/BulletDefWasm.hpp"
@@ -2067,8 +2085,16 @@ static void linkAutoModule(wasm3::module3& mod) {
 	linkSpriteEffect(mod);
 	linkView(mod);
 	linkNode3D(mod);
+	linkMaterial3D(mod);
 	linkModel3D(mod);
+	linkDirectionalLight3D(mod);
+	linkPointLight3D(mod);
 	linkView3D(mod);
+	linkBody3D(mod);
+	linkCharacterController3D(mod);
+	linkPhysicsShape3D(mod);
+	linkConstraint3D(mod);
+	linkPhysicsWorld3D(mod);
 	linkActionDef(mod);
 	linkAction(mod);
 	linkGrabber(mod);
@@ -2206,6 +2232,7 @@ static void linkDoraModule(wasm3::module3& mod) {
 	mod.link_optional("*", "call_stack_push_bool", call_stack_push_bool);
 	mod.link_optional("*", "call_stack_push_object", call_stack_push_object);
 	mod.link_optional("*", "call_stack_push_vec2", call_stack_push_vec2);
+	mod.link_optional("*", "call_stack_push_vec3", call_stack_push_vec3);
 	mod.link_optional("*", "call_stack_push_size", call_stack_push_size);
 	mod.link_optional("*", "call_stack_pop_i64", call_stack_pop_i64);
 	mod.link_optional("*", "call_stack_pop_f64", call_stack_pop_f64);
@@ -2213,6 +2240,7 @@ static void linkDoraModule(wasm3::module3& mod) {
 	mod.link_optional("*", "call_stack_pop_bool", call_stack_pop_bool);
 	mod.link_optional("*", "call_stack_pop_object", call_stack_pop_object);
 	mod.link_optional("*", "call_stack_pop_vec2", call_stack_pop_vec2);
+	mod.link_optional("*", "call_stack_pop_vec3", call_stack_pop_vec3);
 	mod.link_optional("*", "call_stack_pop_size", call_stack_pop_size);
 	mod.link_optional("*", "call_stack_pop", call_stack_pop);
 	mod.link_optional("*", "call_stack_front_i64", call_stack_front_i64);
@@ -2221,6 +2249,7 @@ static void linkDoraModule(wasm3::module3& mod) {
 	mod.link_optional("*", "call_stack_front_bool", call_stack_front_bool);
 	mod.link_optional("*", "call_stack_front_object", call_stack_front_object);
 	mod.link_optional("*", "call_stack_front_vec2", call_stack_front_vec2);
+	mod.link_optional("*", "call_stack_front_vec3", call_stack_front_vec3);
 	mod.link_optional("*", "call_stack_front_size", call_stack_front_size);
 
 	mod.link_optional("*", "dora_print", dora_print);

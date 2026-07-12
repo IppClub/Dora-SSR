@@ -24,6 +24,7 @@ include_directories(
 	src/main/cpp/3rdParty/Zip/zlib
 	src/main/cpp/3rdParty/Effekseer
 	src/main/cpp/3rdParty/h264bsd
+	src/main/cpp/3rdParty/JoltPhysics
 )
 
 add_library(SDL2-lib SHARED IMPORTED)
@@ -169,6 +170,8 @@ add_library(main SHARED
 	src/main/cpp/Physics/Body.cpp
 	src/main/cpp/Physics/Sensor.cpp
 	src/main/cpp/Physics/PhysicsWorld.cpp
+	src/main/cpp/Physics/JoltBridge.cpp
+	src/main/cpp/Physics/JoltSources.cpp
 	src/main/cpp/Physics/DebugDraw.cpp
 	src/main/cpp/Node/Particle.cpp
 	src/main/cpp/Node/VGNode.cpp

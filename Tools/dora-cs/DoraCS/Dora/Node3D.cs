@@ -24,6 +24,8 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t node3d_get_parent(int64_t self);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int32_t node3d_has_children(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void node3d_set_position(int64_t self, int64_t val);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t node3d_get_position(int64_t self);
@@ -124,6 +126,13 @@ namespace Dora
 		public Node3D? Parent
 		{
 			get => Node3D.FromOpt(Native.node3d_get_parent(Raw));
+		}
+		/// <summary>
+		/// Returns whether the node has child 3D nodes.
+		/// </summary>
+		public bool HasChildren()
+		{
+			return Native.node3d_has_children(Raw) != 0;
 		}
 		/// <summary>
 		/// The node position in 3D space.

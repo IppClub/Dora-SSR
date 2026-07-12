@@ -20,6 +20,9 @@ DORA_EXPORT int32_t node3d_is_visible(int64_t self) {
 DORA_EXPORT int64_t node3d_get_parent(int64_t self) {
 	return Object_From(r_cast<Node3D*>(self)->getParent());
 }
+DORA_EXPORT int32_t node3d_has_children(int64_t self) {
+	return r_cast<Node3D*>(self)->hasChildren() ? 1 : 0;
+}
 DORA_EXPORT void node3d_set_position(int64_t self, int64_t val) {
 	r_cast<Node3D*>(self)->setPosition(Vec3_From(val));
 }
@@ -123,6 +126,7 @@ static void linkNode3D(wasm3::module3& mod) {
 	mod.link_optional("*", "node3d_set_visible", node3d_set_visible);
 	mod.link_optional("*", "node3d_is_visible", node3d_is_visible);
 	mod.link_optional("*", "node3d_get_parent", node3d_get_parent);
+	mod.link_optional("*", "node3d_has_children", node3d_has_children);
 	mod.link_optional("*", "node3d_set_position", node3d_set_position);
 	mod.link_optional("*", "node3d_get_position", node3d_get_position);
 	mod.link_optional("*", "node3d_set_scale", node3d_set_scale);

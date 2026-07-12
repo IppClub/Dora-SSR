@@ -20,6 +20,9 @@ func node3d_is_visible(slf: i64) => i32
 #wa:import dora node3d_get_parent
 func node3d_get_parent(slf: i64) => i64
 
+#wa:import dora node3d_has_children
+func node3d_has_children(slf: i64) => i32
+
 #wa:import dora node3d_set_position
 func node3d_set_position(slf: i64, val: i64)
 
@@ -157,6 +160,11 @@ func Node3D.GetParent() => *Node3D {
 	}
 	obj_ := *Node3DFrom(ptr_)
 	return &obj_
+}
+
+/// Returns whether the node has child 3D nodes.
+func Node3D.HasChildren() => bool {
+	return node3d_has_children(*this.raw) != 0
 }
 
 /// Sets the node position in 3D space.

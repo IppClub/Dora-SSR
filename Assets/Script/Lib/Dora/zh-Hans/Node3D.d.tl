@@ -19,8 +19,8 @@ local record Node3D
 	-- 父 3D 节点。
 	const parent: Node3D | nil
 
-	-- 子 3D 节点列表。
-	const children: any
+	-- 节点是否拥有 3D 子节点。
+	const hasChildren: boolean
 
 	-- 节点位置。
 	position: Vec3

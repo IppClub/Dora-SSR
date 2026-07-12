@@ -148,15 +148,23 @@ pub fn visuals_for_node(node_handle: Dora3DHandle) -> Vec<Visual3DData> {
 }
 
 pub fn visuals_for_nodes(node_handles: &[Dora3DHandle]) -> Vec<Visual3DData> {
+	let mut visuals = Vec::new();
+	visuals_for_nodes_into(node_handles, &mut visuals);
+	visuals
+}
+
+pub fn visuals_for_nodes_into(node_handles: &[Dora3DHandle], visuals: &mut Vec<Visual3DData>) {
+	visuals.clear();
 	let registry = registry().lock().unwrap();
-	let mut visuals: Vec<_> = node_handles
+	for handle in node_handles
 		.iter()
 		.flat_map(|node| registry.by_node.get(node).into_iter().flatten())
-		.filter_map(|handle| registry.visuals.get(handle))
-		.cloned()
-		.collect();
+	{
+		if let Some(visual) = registry.visuals.get(handle) {
+			visuals.push(visual.clone());
+		}
+	}
 	visuals.sort_by_key(|visual| visual.handle);
-	visuals
 }
 
 pub fn with_visual<R>(handle: Dora3DHandle, f: impl FnOnce(&Visual3DData) -> R) -> Option<R> {

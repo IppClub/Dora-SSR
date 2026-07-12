@@ -12,6 +12,9 @@ struct DirectionalLightData {
 	node: Dora3DHandle,
 	color: Vec3,
 	intensity: f32,
+	cast_shadow: bool,
+	shadow_bias: f32,
+	shadow_normal_bias: f32,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -27,6 +30,9 @@ pub struct DirectionalLight {
 	pub handle: Dora3DHandle,
 	pub direction: Vec3,
 	pub radiance: Vec3,
+	pub cast_shadow: bool,
+	pub shadow_bias: f32,
+	pub shadow_normal_bias: f32,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -107,6 +113,9 @@ pub fn create_directional(node: Dora3DHandle) -> bool {
 			node,
 			color: Vec3::ONE,
 			intensity: 1.0,
+			cast_shadow: false,
+			shadow_bias: 0.004,
+			shadow_normal_bias: 0.02,
 		},
 	);
 	true
@@ -176,6 +185,77 @@ pub fn directional_intensity(node: Dora3DHandle) -> Option<f32> {
 		.directional
 		.get(&node)
 		.map(|light| light.intensity)
+}
+
+pub fn set_directional_cast_shadow(node: Dora3DHandle, enabled: bool) -> bool {
+	let mut lights = registry().lock().unwrap();
+	let Some(light) = lights.directional.get_mut(&node) else {
+		return false;
+	};
+	light.cast_shadow = enabled;
+	true
+}
+
+pub fn directional_cast_shadow(node: Dora3DHandle) -> Option<bool> {
+	registry()
+		.lock()
+		.unwrap()
+		.directional
+		.get(&node)
+		.map(|light| light.cast_shadow)
+}
+
+pub fn set_directional_shadow_bias(node: Dora3DHandle, bias: f32) -> bool {
+	let mut lights = registry().lock().unwrap();
+	let Some(light) = lights.directional.get_mut(&node) else {
+		return false;
+	};
+	light.shadow_bias = bias.max(0.0);
+	true
+}
+
+pub fn directional_shadow_bias(node: Dora3DHandle) -> Option<f32> {
+	registry()
+		.lock()
+		.unwrap()
+		.directional
+		.get(&node)
+		.map(|light| light.shadow_bias)
+}
+
+pub fn set_directional_shadow_normal_bias(node: Dora3DHandle, bias: f32) -> bool {
+	let mut lights = registry().lock().unwrap();
+	let Some(light) = lights.directional.get_mut(&node) else {
+		return false;
+	};
+	light.shadow_normal_bias = bias.max(0.0);
+	true
+}
+
+pub fn directional_shadow_normal_bias(node: Dora3DHandle) -> Option<f32> {
+	registry()
+		.lock()
+		.unwrap()
+		.directional
+		.get(&node)
+		.map(|light| light.shadow_normal_bias)
+}
+
+pub fn scene_has_shadow_light(root: Dora3DHandle) -> bool {
+	let lights = registry().lock().unwrap();
+	for light in lights.directional.values() {
+		if !light.cast_shadow || light.intensity <= 0.0 {
+			continue;
+		}
+		let mut node = Some(light.node);
+		while let Some(handle) = node {
+			if handle == root {
+				return true;
+			}
+			node = node3d::parent(handle);
+		}
+	}
+	false
 }
 
 pub fn set_point_color(node: Dora3DHandle, color: Vec3) -> bool {
@@ -249,6 +329,9 @@ pub fn collect_scene(nodes: &[Dora3DHandle]) -> SceneLights {
 			handle: light.node,
 			direction,
 			radiance,
+			cast_shadow: light.cast_shadow,
+			shadow_bias: light.shadow_bias,
+			shadow_normal_bias: light.shadow_normal_bias,
 		});
 	}
 	directionals.sort_by(|a, b| {
@@ -391,6 +474,28 @@ mod tests {
 		};
 		assert_eq!(distance_to_aabb(Vec3::ZERO, &bounds), 0.0);
 		assert_eq!(distance_to_aabb(Vec3::new(3.0, 0.0, 0.0), &bounds), 2.0);
+	}
+
+	#[test]
+	fn shadow_light_is_scoped_to_its_scene_root() {
+		clear_registry();
+		let root = node3d::create();
+		let other_root = node3d::create();
+		let light = node3d::create();
+		assert!(node3d::add_child(root, light, 0, None));
+		assert!(create_directional(light));
+		assert!(!scene_has_shadow_light(root));
+		assert!(set_directional_cast_shadow(light, true));
+		assert!(scene_has_shadow_light(root));
+		assert!(!scene_has_shadow_light(other_root));
+		assert!(set_directional_shadow_bias(light, 0.006));
+		assert!(set_directional_shadow_normal_bias(light, 0.03));
+		assert_eq!(directional_shadow_bias(light), Some(0.006));
+		assert_eq!(directional_shadow_normal_bias(light), Some(0.03));
+		clear_registry();
+		assert!(node3d::destroy(root));
+		assert!(node3d::destroy(other_root));
+		assert!(node3d::destroy(light));
 	}
 
 	#[test]

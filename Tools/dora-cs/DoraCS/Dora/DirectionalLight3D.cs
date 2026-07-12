@@ -26,6 +26,18 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern float directionallight3d_get_intensity(int64_t self);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void directionallight3d_set_cast_shadow(int64_t self, int32_t val);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int32_t directionallight3d_is_cast_shadow(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void directionallight3d_set_shadow_bias(int64_t self, float val);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern float directionallight3d_get_shadow_bias(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void directionallight3d_set_shadow_normal_bias(int64_t self, float val);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern float directionallight3d_get_shadow_normal_bias(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t directionallight3d_new();
 	}
 } // namespace Dora
@@ -65,6 +77,30 @@ namespace Dora
 		{
 			set => Native.directionallight3d_set_intensity(Raw, value);
 			get => Native.directionallight3d_get_intensity(Raw);
+		}
+		/// <summary>
+		/// Whether the light casts a shadow.
+		/// </summary>
+		public bool IsCastShadow
+		{
+			set => Native.directionallight3d_set_cast_shadow(Raw, value ? 1 : 0);
+			get => Native.directionallight3d_is_cast_shadow(Raw) != 0;
+		}
+		/// <summary>
+		/// The constant shadow depth bias.
+		/// </summary>
+		public float ShadowBias
+		{
+			set => Native.directionallight3d_set_shadow_bias(Raw, value);
+			get => Native.directionallight3d_get_shadow_bias(Raw);
+		}
+		/// <summary>
+		/// The slope-dependent shadow normal bias.
+		/// </summary>
+		public float ShadowNormalBias
+		{
+			set => Native.directionallight3d_set_shadow_normal_bias(Raw, value);
+			get => Native.directionallight3d_get_shadow_normal_bias(Raw);
 		}
 		/// <summary>
 		/// Creates a directional light.

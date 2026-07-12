@@ -10,7 +10,12 @@ extern "C" {
 	fn view3d_type() -> i32;
 	fn view3d_get_scene(slf: i64) -> i64;
 	fn view3d_get_stats(slf: i64) -> i64;
+	fn view3d_set_show_a_a_b_b(slf: i64, val: i32);
+	fn view3d_is_show_a_a_b_b(slf: i64) -> i32;
 	fn view3d_add_child_3d(slf: i64, child: i64);
+	fn view3d_get_ray_origin(slf: i64, view_point: i64) -> i64;
+	fn view3d_get_ray_direction(slf: i64, view_point: i64) -> i64;
+	fn view3d_pick(slf: i64, view_point: i64) -> i64;
 	fn view3d_set_environment_map(slf: i64, path: i64) -> i32;
 	fn view3d_set_environment_intensity(slf: i64, diffuse: f32, specular: f32, exposure: f32);
 	fn view3d_new() -> i64;
@@ -31,9 +36,29 @@ pub trait IView3D: INode {
 	fn get_stats(&self) -> crate::dora::RenderStats3D {
 		return unsafe { crate::dora::RenderStats3D::from(view3d_get_stats(self.raw())) };
 	}
+	/// Sets whether current world AABBs are drawn for debugging.
+	fn set_show_a_a_b_b(&mut self, val: bool) {
+		unsafe { view3d_set_show_a_a_b_b(self.raw(), if val { 1 } else { 0 }) };
+	}
+	/// Gets whether current world AABBs are drawn for debugging.
+	fn is_show_a_a_b_b(&self) -> bool {
+		return unsafe { view3d_is_show_a_a_b_b(self.raw()) != 0 };
+	}
 	/// Adds a 3D child node to the scene root.
 	fn add_child_3d(&mut self, child: &dyn crate::dora::INode3D) {
 		unsafe { view3d_add_child_3d(self.raw(), child.raw()); }
+	}
+	/// Gets the world-space origin of the screen ray for a SharedView logical coordinate.
+	fn get_ray_origin(&mut self, view_point: &crate::dora::Vec2) -> crate::dora::Vec3 {
+		unsafe { return crate::dora::Vec3::from(view3d_get_ray_origin(self.raw(), view_point.into_i64())); }
+	}
+	/// Gets the normalized world-space direction of the screen ray.
+	fn get_ray_direction(&mut self, view_point: &crate::dora::Vec2) -> crate::dora::Vec3 {
+		unsafe { return crate::dora::Vec3::from(view3d_get_ray_direction(self.raw(), view_point.into_i64())); }
+	}
+	/// Returns the nearest Model3D whose current world AABB intersects the screen ray.
+	fn pick(&mut self, view_point: &crate::dora::Vec2) -> Option<crate::dora::Model3D> {
+		unsafe { return crate::dora::Model3D::from(view3d_pick(self.raw(), view_point.into_i64())); }
 	}
 	/// Sets the environment map used by this 3D view.
 	fn set_environment_map(&mut self, path: &str) -> bool {

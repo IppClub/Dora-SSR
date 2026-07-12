@@ -102,6 +102,8 @@ value struct RenderStats3D
 	readonly common uint32_t modelCount;
 	readonly common uint32_t modelInstanceCount;
 	readonly common uint32_t meshCount;
+	readonly common uint32_t staticMeshCount;
+	readonly common uint32_t dynamicMeshCount;
 	readonly common uint32_t materialCount;
 	readonly common uint32_t textureCount;
 	readonly common uint32_t animationCount;
@@ -1037,6 +1039,8 @@ interface object class Node3D
 	boolean bool visible;
 	/// the parent 3D node.
 	optional readonly common Node3D* parent;
+	/// Returns whether the node has child 3D nodes.
+	bool hasChildren();
 	/// the node position in 3D space.
 	common Vec3 position;
 	/// the node scale in 3D space.
@@ -1079,6 +1083,43 @@ interface object class Node3D
 	static Node3D* create();
 };
 
+/// A per-instance material slot owned by a Model3D instance.
+object class Material3D
+{
+	/// the base color tint.
+	common Color baseColor;
+	/// the emissive color factor.
+	common Color3 emissive;
+	/// the metallic factor.
+	common float metallic;
+	/// the roughness factor.
+	common float roughness;
+	/// the alpha rendering mode.
+	common MaterialAlphaMode3D alphaMode;
+	/// the alpha mask cutoff.
+	common float alphaCutoff;
+	/// Replaces or clears the base color texture.
+	void setBaseColorTexture(Texture2D* texture);
+	/// Clears the base color texture override.
+	void clearBaseColorTexture();
+	/// Replaces or clears the metallic-roughness texture.
+	void setMetallicRoughnessTexture(Texture2D* texture);
+	/// Clears the metallic-roughness texture override.
+	void clearMetallicRoughnessTexture();
+	/// Replaces or clears the normal texture.
+	void setNormalTexture(Texture2D* texture);
+	/// Clears the normal texture override.
+	void clearNormalTexture();
+	/// Replaces or clears the emissive texture.
+	void setEmissiveTexture(Texture2D* texture);
+	/// Clears the emissive texture override.
+	void clearEmissiveTexture();
+	/// Replaces or clears the occlusion texture.
+	void setOcclusionTexture(Texture2D* texture);
+	/// Clears the occlusion texture override.
+	void clearOcclusionTexture();
+};
+
 /// A 3D model node loaded from a glTF/GLB file.
 object class Model3D : public INode3D
 {
@@ -1092,6 +1133,26 @@ object class Model3D : public INode3D
 	readonly boolean bool playing;
 	/// whether animation playback is paused.
 	readonly boolean bool paused;
+	/// the number of animation clips in this model.
+	readonly common uint32_t animationCount;
+	/// the number of material slots in this model instance.
+	readonly common uint32_t materialCount;
+	/// Gets an animation clip name by index.
+	string getAnimationName(uint32_t index);
+	/// Checks whether an imported node with the given name exists.
+	bool hasNode(string name);
+	/// Attaches a user-owned Node3D below an imported node without exposing the internal node wrapper.
+	bool attachToNode(string name, Node3D* child);
+	/// Gets the current model-space bounds minimum.
+	Vec3 getLocalBoundsMin();
+	/// Gets the current model-space bounds maximum.
+	Vec3 getLocalBoundsMax();
+	/// Gets the current world-space bounds minimum.
+	Vec3 getWorldBoundsMin();
+	/// Gets the current world-space bounds maximum.
+	Vec3 getWorldBoundsMax();
+	/// Gets a per-instance material slot by zero-based index.
+	optional Material3D* getMaterial(uint32_t index);
 	/// Plays an animation by name.
 	float play(string name, bool looped);
 	/// Stops animation playback.
@@ -1111,6 +1172,12 @@ object class DirectionalLight3D : public INode3D
 	common Color3 color;
 	/// the light intensity.
 	common float intensity;
+	/// whether the light casts a shadow.
+	boolean bool castShadow;
+	/// the constant shadow depth bias.
+	common float shadowBias;
+	/// the slope-dependent shadow normal bias.
+	common float shadowNormalBias;
 	/// Creates a directional light.
 	static DirectionalLight3D* create();
 };
@@ -1135,8 +1202,16 @@ interface object class View3D : public INode
 	readonly common Node3D* scene;
 	/// statistics from the most recent 3D render and current 3D registries.
 	readonly common RenderStats3D stats;
+	/// whether current world AABBs are drawn for debugging.
+	boolean bool showAABB;
 	/// Adds a 3D child node to the scene root.
 	void addChild @ add_child_3d(Node3D* child);
+	/// Gets the world-space origin of the screen ray for a SharedView logical coordinate.
+	Vec3 getRayOrigin(Vec2 viewPoint);
+	/// Gets the normalized world-space direction of the screen ray.
+	Vec3 getRayDirection(Vec2 viewPoint);
+	/// Returns the nearest Model3D whose current world AABB intersects the screen ray.
+	optional Model3D* pick(Vec2 viewPoint);
 	/// Sets the environment map used by this 3D view.
 	bool setEnvironmentMap(string path);
 	/// Sets the environment lighting intensity used by this 3D view.
@@ -1144,6 +1219,136 @@ interface object class View3D : public INode
 	/// Creates a new 3D view node.
 	static View3D* create();
 };
+
+/// A 3D rigid body component owned by a PhysicsWorld3D.
+object class Body3D
+{
+	/// the Node3D synchronized with this body.
+	optional readonly common Node3D* node;
+	/// the physics world that owns this body.
+	optional readonly common PhysicsWorld3D* physicsWorld @ world;
+	/// the body's motion type.
+	readonly common BodyType3D type;
+	/// the world-space linear velocity.
+	common Vec3 linearVelocity;
+	/// the world-space angular velocity in radians per second.
+	common Vec3 angularVelocity;
+	/// the collision layer in the range 0 through 31.
+	common uint8_t collisionLayer;
+	/// the bit mask of collision layers accepted by this body.
+	common uint32_t collisionMask;
+	/// whether this body reports contacts without collision response.
+	boolean bool sensor;
+	/// Applies a continuous force at the center of mass.
+	void applyForce(Vec3 force);
+	/// Applies an instantaneous impulse at the center of mass.
+	void applyImpulse(Vec3 impulse);
+	/// Sets the persistent contact-enter callback.
+	void onContactEnter(function<void(Body3D* other, Vec3 point, Vec3 normal)> handler);
+	/// Sets the persistent contact-stay callback.
+	void onContactStay(function<void(Body3D* other, Vec3 point, Vec3 normal)> handler);
+	/// Sets the persistent contact-exit callback.
+	void onContactExit(function<void(Body3D* other, Vec3 point, Vec3 normal)> handler);
+	/// Removes this body from its physics world.
+	void destroy();
+};
+
+/// A virtual capsule character controller owned by a PhysicsWorld3D.
+object class CharacterController3D
+{
+	/// the Node3D synchronized with this character.
+	optional readonly common Node3D* node;
+	/// the physics world that owns this character.
+	optional readonly common PhysicsWorld3D* physicsWorld @ world;
+	/// the desired horizontal movement velocity.
+	common Vec3 desiredVelocity;
+	/// the current world-space velocity including gravity and jumping.
+	readonly common Vec3 velocity;
+	/// the current supporting surface normal.
+	readonly common Vec3 groundNormal;
+	/// whether the character is standing on walkable ground.
+	readonly boolean bool grounded;
+	/// the collision layer in the range 0 through 31.
+	common uint8_t collisionLayer;
+	/// the bit mask of collision layers accepted by this character.
+	common uint32_t collisionMask;
+	/// Requests a jump with the given upward speed.
+	void jump(float speed);
+	/// Removes this character from its physics world.
+	void destroy();
+};
+
+/// A reusable immutable Jolt collision shape or a compound shape builder.
+object class PhysicsShape3D
+{
+	/// whether this shape can be used to create bodies.
+	readonly boolean bool built;
+	/// Adds a child to an unbuilt compound shape using local position and XYZ Euler angles in degrees.
+	bool addChild(PhysicsShape3D* shape, Vec3 position, Vec3 eulerAngles);
+	/// Freezes a compound shape. A built shape cannot be modified.
+	bool build();
+	/// Creates a box shape using half extents.
+	static PhysicsShape3D* createBox(Vec3 halfExtent);
+	/// Creates a sphere shape.
+	static PhysicsShape3D* createSphere(float radius);
+	/// Creates a capsule shape.
+	static PhysicsShape3D* createCapsule(float halfHeight, float radius);
+	/// Creates an empty compound shape builder.
+	static PhysicsShape3D* createCompound();
+	/// Loads and cooks a static triangle mesh shape through Content asynchronously.
+	static void loadMeshAsync(string filename, function<void(PhysicsShape3D* shape)> handler);
+	/// Loads model vertices through Content asynchronously and cooks a convex hull suitable for dynamic bodies.
+	static void loadConvexHullAsync(string filename, function<void(PhysicsShape3D* shape)> handler);
+};
+
+/// A two-body constraint owned by a PhysicsWorld3D.
+object class Constraint3D
+{
+	/// the physics world that owns this constraint.
+	optional readonly common PhysicsWorld3D* physicsWorld @ world;
+	/// the first constrained body.
+	optional readonly common Body3D* firstBody;
+	/// the second constrained body.
+	optional readonly common Body3D* secondBody;
+	/// Removes this constraint from its physics world.
+	void destroy();
+};
+
+/// A fixed-step 3D physics world backed by Jolt Physics.
+interface object class PhysicsWorld3D : public INode
+{
+	/// the world gravity in units per second squared.
+	common Vec3 gravity;
+	/// Creates a box body using half extents.
+	Body3D* createBox(Node3D* node, Vec3 halfExtent, BodyType3D bodyType);
+	/// Creates a sphere body.
+	Body3D* createSphere(Node3D* node, float radius, BodyType3D bodyType);
+	/// Creates a capsule body.
+	Body3D* createCapsule(Node3D* node, float halfHeight, float radius, BodyType3D bodyType);
+	/// Creates a body using a reusable built collision shape.
+	Body3D* createBody(Node3D* node, PhysicsShape3D* shape, BodyType3D bodyType);
+	/// Creates a virtual capsule character whose node position represents its feet.
+	CharacterController3D* createCharacter(Node3D* node, float halfHeight, float radius, float maxSlopeAngle, float stepHeight);
+	/// Creates a fixed constraint at a world-space anchor.
+	Constraint3D* createFixedConstraint(Body3D* firstBody, Body3D* secondBody, Vec3 anchor);
+	/// Creates a distance constraint between two world-space anchors.
+	Constraint3D* createDistanceConstraint(Body3D* firstBody, Body3D* secondBody, Vec3 firstAnchor, Vec3 secondAnchor, float minDistance, float maxDistance);
+	/// Creates a hinge around a world-space axis with limits in degrees.
+	Constraint3D* createHingeConstraint(Body3D* firstBody, Body3D* secondBody, Vec3 anchor, Vec3 axis, float minAngle, float maxAngle);
+	/// Removes a body from this world.
+	void destroyBody(Body3D* body);
+	/// Removes a character from this world.
+	void destroyCharacter(CharacterController3D* character);
+	/// Removes a constraint from this world.
+	void destroyConstraint(Constraint3D* constraint);
+	/// Casts a ray and invokes the handler for the nearest hit.
+	bool raycast(Vec3 origin, Vec3 direction, float distance, function<def_false bool(Body3D* body, Vec3 point, Vec3 normal, float hitDistance)> handler);
+	/// Visits bodies overlapping a sphere until the handler returns true.
+	bool overlapSphere(Vec3 center, float radius, function<def_false bool(Body3D* body)> handler);
+	/// Creates a 3D physics world.
+	static PhysicsWorld3D* create();
+};
+
 
 value class ActionDef {
 	/// Creates a new action definition object to change a property of a node.
@@ -2034,6 +2239,8 @@ object class Touch
 	readonly common Vec2 delta;
 	/// the location of the touch event in the node's local coordinate system.
 	readonly common Vec2 location;
+	/// the touch location in SharedView logical coordinates with a left-bottom origin.
+	readonly common Vec2 viewLocation;
 	/// the location of the touch event in the world coordinate system.
 	readonly common Vec2 worldLocation;
 };
@@ -3823,6 +4030,12 @@ object class MotorJoint : public IJoint
 /// A interface for managing various game resources.
 singleton struct Cache
 {
+	/// The soft memory budget for cached Model3D resources in bytes. Zero means unlimited.
+	static common uint64_t model3DBudget;
+	/// The estimated resident bytes held by cached Model3D resources.
+	static readonly common uint64_t model3DUsage;
+	/// The number of Model3D definitions currently retained by the cache.
+	static readonly common uint32_t model3DCount;
 	/// Loads a file into the cache with a blocking operation.
 	///
 	/// # Arguments
@@ -3840,6 +4053,12 @@ singleton struct Cache
 	/// * `filenames` - The name of the file(s) to load. This can be a single string or a vector of strings.
 	/// * `handler` - A callback function that is invoked when the file is loaded.
 	static void loadAsync(string filename, function<void(bool success)> handler);
+	/// Gets the Model3D or environment load state: "none", "loading", "ready", "failed", or "cancelled".
+	static string getLoadState(string filename);
+	/// Gets the latest load error for a Model3D or environment resource.
+	static string getLoadError(string filename);
+	/// Cancels an active Model3D or environment load.
+	static bool cancelLoad(string filename);
 	/// Updates the content of a file loaded in the cache.
 	/// If the item of filename does not exist in the cache, a new file content will be added into the cache.
 	///

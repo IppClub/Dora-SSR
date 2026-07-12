@@ -10,6 +10,9 @@ local record DirectionalLight3D
 
 	-- The light intensity.
 	intensity: number
+	castShadow: boolean
+	shadowBias: number
+	shadowNormalBias: number
 end
 
 local record DirectionalLight3DClass

@@ -1,6 +1,7 @@
 pub mod animation;
 pub mod c_api;
 pub mod camera3d;
+pub mod jolt;
 pub mod light3d;
 pub mod material;
 pub mod mesh;

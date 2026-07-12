@@ -12,6 +12,12 @@ extern "C" {
 	fn directionallight3d_get_color(slf: i64) -> i32;
 	fn directionallight3d_set_intensity(slf: i64, val: f32);
 	fn directionallight3d_get_intensity(slf: i64) -> f32;
+	fn directionallight3d_set_cast_shadow(slf: i64, val: i32);
+	fn directionallight3d_is_cast_shadow(slf: i64) -> i32;
+	fn directionallight3d_set_shadow_bias(slf: i64, val: f32);
+	fn directionallight3d_get_shadow_bias(slf: i64) -> f32;
+	fn directionallight3d_set_shadow_normal_bias(slf: i64, val: f32);
+	fn directionallight3d_get_shadow_normal_bias(slf: i64) -> f32;
 	fn directionallight3d_new() -> i64;
 }
 use crate::dora::IObject;
@@ -44,6 +50,30 @@ impl DirectionalLight3D {
 	/// Gets the light intensity.
 	pub fn get_intensity(&self) -> f32 {
 		return unsafe { directionallight3d_get_intensity(self.raw()) };
+	}
+	/// Sets whether the light casts a shadow.
+	pub fn set_cast_shadow(&mut self, val: bool) {
+		unsafe { directionallight3d_set_cast_shadow(self.raw(), if val { 1 } else { 0 }) };
+	}
+	/// Gets whether the light casts a shadow.
+	pub fn is_cast_shadow(&self) -> bool {
+		return unsafe { directionallight3d_is_cast_shadow(self.raw()) != 0 };
+	}
+	/// Sets the constant shadow depth bias.
+	pub fn set_shadow_bias(&mut self, val: f32) {
+		unsafe { directionallight3d_set_shadow_bias(self.raw(), val) };
+	}
+	/// Gets the constant shadow depth bias.
+	pub fn get_shadow_bias(&self) -> f32 {
+		return unsafe { directionallight3d_get_shadow_bias(self.raw()) };
+	}
+	/// Sets the slope-dependent shadow normal bias.
+	pub fn set_shadow_normal_bias(&mut self, val: f32) {
+		unsafe { directionallight3d_set_shadow_normal_bias(self.raw(), val) };
+	}
+	/// Gets the slope-dependent shadow normal bias.
+	pub fn get_shadow_normal_bias(&self) -> f32 {
+		return unsafe { directionallight3d_get_shadow_normal_bias(self.raw()) };
 	}
 	/// Creates a directional light.
 	pub fn new() -> DirectionalLight3D {

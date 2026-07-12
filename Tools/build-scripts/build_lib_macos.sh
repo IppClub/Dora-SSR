@@ -30,6 +30,8 @@ esac
 
 cd "$SCRIPT_DIR/../../Source/Rust"
 
+export MACOSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET:-11.3}"
+
 rustup target add aarch64-apple-darwin
 rustup target add x86_64-apple-darwin
 cargo build "${CARGO_ARGS[@]}" --target aarch64-apple-darwin

@@ -12,12 +12,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Common/Singleton.h"
 
 #include <deque>
+#include <memory>
 
 NS_DORA_BEGIN
 
 class Model3DDef : public Object {
 public:
 	PROPERTY_READONLY(uint64_t, Handle);
+	PROPERTY_READONLY(uint64_t, ResidentBytes);
 	virtual ~Model3DDef();
 	CREATE_FUNC_NOT_NULL(Model3DDef);
 
@@ -26,14 +28,33 @@ protected:
 
 private:
 	uint64_t _handle;
+	uint64_t _residentBytes;
 	DORA_TYPE_OVERRIDE(Model3DDef);
 };
+
+enum class Model3DLoadState {
+	None,
+	Loading,
+	Ready,
+	Failed,
+	Cancelled,
+};
+
+struct Model3DLoadTask;
+struct Model3DEnvironmentTask;
 
 class Model3DCache : public NonCopyable {
 public:
 	Model3DDef* load(String filename);
 	void loadAsync(String filename, const std::function<void(Model3DDef*)>& handler);
 	void loadEnvironmentAsync(String filename, const std::function<void(bool)>& handler);
+	Model3DLoadState getLoadState(String filename) const;
+	String getLoadError(String filename) const;
+	bool cancelLoad(String filename);
+	void setBudget(uint64_t bytes);
+	uint64_t getBudget() const noexcept;
+	uint64_t getUsage() const noexcept;
+	uint32_t getCount() const noexcept;
 	bool unload(String filename);
 	bool unload();
 	void removeUnused();
@@ -48,17 +69,40 @@ private:
 			Environment,
 		};
 		Type type;
-		std::string file;
 		uint64_t job;
+		std::shared_ptr<Model3DLoadTask> modelTask;
+		std::shared_ptr<Model3DEnvironmentTask> environmentTask;
 	};
-	void enqueueUpload(UploadTask::Type type, const std::string& file, uint64_t job);
+	struct CacheEntry {
+		Ref<Model3DDef> model;
+		uint64_t residentBytes = 0;
+		uint64_t lastAccess = 0;
+	};
+	struct LoadInfo {
+		Model3DLoadState state = Model3DLoadState::None;
+		std::string error;
+	};
+	std::string resolveKey(String filename) const;
+	bool isCurrent(const std::shared_ptr<Model3DLoadTask>& task) const;
+	bool isCurrent(const std::shared_ptr<Model3DEnvironmentTask>& task) const;
+	void enqueueUpload(const std::shared_ptr<Model3DLoadTask>& task, uint64_t job);
+	void enqueueUpload(const std::shared_ptr<Model3DEnvironmentTask>& task, uint64_t job);
+	void collectDependenciesAsync(const std::shared_ptr<Model3DLoadTask>& task);
+	void loadDependenciesAsync(const std::shared_ptr<Model3DLoadTask>& task);
+	void parseDataAsync(const std::shared_ptr<Model3DLoadTask>& task);
 	bool updateUploads();
-	void completeAsync(const std::string& file, uint64_t model);
-	void completeEnvironmentAsync(const std::string& file, bool success);
-	StringMap<Ref<Model3DDef>> _models;
-	StringMap<std::vector<std::function<void(Model3DDef*)>>> _pending;
-	StringMap<std::vector<std::function<void(bool)>>> _pendingEnvironments;
+	void completeAsync(const std::shared_ptr<Model3DLoadTask>& task, uint64_t model, std::string error = {});
+	void completeEnvironmentAsync(const std::shared_ptr<Model3DEnvironmentTask>& task, bool success, std::string error = {});
+	void trimToBudget(bool retryNextFrame = true);
+	StringMap<CacheEntry> _models;
+	StringMap<LoadInfo> _loadInfo;
+	StringMap<std::shared_ptr<Model3DLoadTask>> _modelTasks;
+	StringMap<std::shared_ptr<Model3DEnvironmentTask>> _environmentTasks;
 	std::deque<UploadTask> _uploads;
+	uint64_t _budget = 0;
+	uint64_t _accessSequence = 0;
+	bool _overBudget = false;
+	bool _trimScheduled = false;
 	bool _uploadScheduled = false;
 	SINGLETON_REF(Model3DCache, Director);
 };

@@ -14,6 +14,16 @@ extern "C" {
 	fn model3d_get_elapsed(slf: i64) -> f32;
 	fn model3d_is_playing(slf: i64) -> i32;
 	fn model3d_is_paused(slf: i64) -> i32;
+	fn model3d_get_animation_count(slf: i64) -> i32;
+	fn model3d_get_material_count(slf: i64) -> i32;
+	fn model3d_get_animation_name(slf: i64, index: i32) -> i64;
+	fn model3d_has_node(slf: i64, name: i64) -> i32;
+	fn model3d_attach_to_node(slf: i64, name: i64, child: i64) -> i32;
+	fn model3d_get_local_bounds_min(slf: i64) -> i64;
+	fn model3d_get_local_bounds_max(slf: i64) -> i64;
+	fn model3d_get_world_bounds_min(slf: i64) -> i64;
+	fn model3d_get_world_bounds_max(slf: i64) -> i64;
+	fn model3d_get_material(slf: i64, index: i32) -> i64;
 	fn model3d_play(slf: i64, name: i64, looped: i32) -> f32;
 	fn model3d_stop(slf: i64);
 	fn model3d_pause(slf: i64);
@@ -58,6 +68,46 @@ impl Model3D {
 	/// Gets whether animation playback is paused.
 	pub fn is_paused(&self) -> bool {
 		return unsafe { model3d_is_paused(self.raw()) != 0 };
+	}
+	/// Gets the number of animation clips in this model.
+	pub fn get_animation_count(&self) -> i32 {
+		return unsafe { model3d_get_animation_count(self.raw()) };
+	}
+	/// Gets the number of material slots in this model instance.
+	pub fn get_material_count(&self) -> i32 {
+		return unsafe { model3d_get_material_count(self.raw()) };
+	}
+	/// Gets an animation clip name by index.
+	pub fn get_animation_name(&mut self, index: i32) -> String {
+		unsafe { return crate::dora::to_string(model3d_get_animation_name(self.raw(), index)); }
+	}
+	/// Checks whether an imported node with the given name exists.
+	pub fn has_node(&mut self, name: &str) -> bool {
+		unsafe { return model3d_has_node(self.raw(), crate::dora::from_string(name)) != 0; }
+	}
+	/// Attaches a user-owned Node3D below an imported node without exposing the internal node wrapper.
+	pub fn attach_to_node(&mut self, name: &str, child: &dyn crate::dora::INode3D) -> bool {
+		unsafe { return model3d_attach_to_node(self.raw(), crate::dora::from_string(name), child.raw()) != 0; }
+	}
+	/// Gets the current model-space bounds minimum.
+	pub fn get_local_bounds_min(&mut self) -> crate::dora::Vec3 {
+		unsafe { return crate::dora::Vec3::from(model3d_get_local_bounds_min(self.raw())); }
+	}
+	/// Gets the current model-space bounds maximum.
+	pub fn get_local_bounds_max(&mut self) -> crate::dora::Vec3 {
+		unsafe { return crate::dora::Vec3::from(model3d_get_local_bounds_max(self.raw())); }
+	}
+	/// Gets the current world-space bounds minimum.
+	pub fn get_world_bounds_min(&mut self) -> crate::dora::Vec3 {
+		unsafe { return crate::dora::Vec3::from(model3d_get_world_bounds_min(self.raw())); }
+	}
+	/// Gets the current world-space bounds maximum.
+	pub fn get_world_bounds_max(&mut self) -> crate::dora::Vec3 {
+		unsafe { return crate::dora::Vec3::from(model3d_get_world_bounds_max(self.raw())); }
+	}
+	/// Gets a per-instance material slot by zero-based index.
+	pub fn get_material(&mut self, index: i32) -> Option<crate::dora::Material3D> {
+		unsafe { return crate::dora::Material3D::from(model3d_get_material(self.raw(), index)); }
 	}
 	/// Plays an animation by name.
 	pub fn play(&mut self, name: &str, looped: bool) -> f32 {

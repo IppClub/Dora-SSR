@@ -24,6 +24,8 @@ extern "C" {
 	fn renderstats3d_get_model_count(slf: i64) -> i32;
 	fn renderstats3d_get_model_instance_count(slf: i64) -> i32;
 	fn renderstats3d_get_mesh_count(slf: i64) -> i32;
+	fn renderstats3d_get_static_mesh_count(slf: i64) -> i32;
+	fn renderstats3d_get_dynamic_mesh_count(slf: i64) -> i32;
 	fn renderstats3d_get_material_count(slf: i64) -> i32;
 	fn renderstats3d_get_texture_count(slf: i64) -> i32;
 	fn renderstats3d_get_animation_count(slf: i64) -> i32;
@@ -98,6 +100,12 @@ impl RenderStats3D {
 	}
 	pub fn get_mesh_count(&self) -> i32 {
 		return unsafe { renderstats3d_get_mesh_count(self.raw()) };
+	}
+	pub fn get_static_mesh_count(&self) -> i32 {
+		return unsafe { renderstats3d_get_static_mesh_count(self.raw()) };
+	}
+	pub fn get_dynamic_mesh_count(&self) -> i32 {
+		return unsafe { renderstats3d_get_dynamic_mesh_count(self.raw()) };
 	}
 	pub fn get_material_count(&self) -> i32 {
 		return unsafe { renderstats3d_get_material_count(self.raw()) };

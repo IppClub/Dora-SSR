@@ -5,12 +5,12 @@ use super::model_loader;
 use super::node3d;
 use super::shader;
 use super::skinning;
-use super::types::{transform_aabb, Aabb, Frustum, Mat4, Vec3};
+use super::types::{transform_aabb, Aabb, Frustum, Mat4, Vec3, Vec4};
 use super::visual3d;
 use super::Dora3DHandle;
 use crate::bgfx_rs::bgfx_sys;
 use std::collections::{HashMap, HashSet, VecDeque};
-use std::sync::{Mutex, OnceLock};
+use std::sync::{Arc, Mutex, OnceLock};
 use std::time::Instant;
 
 #[derive(Debug, Clone)]
@@ -26,6 +26,79 @@ pub struct ViewRenderState {
 	pub view_pos: Vec3,
 	pub frustum: Frustum,
 	pub frustum_culling: bool,
+	pub show_aabb: bool,
+}
+
+#[derive(Debug, Clone, Copy)]
+enum PhysicsDebugShape {
+	Bounds(Aabb),
+	Primitive {
+		kind: u8,
+		size: Vec3,
+		transform: Mat4,
+	},
+}
+
+#[derive(Debug, Clone, Copy)]
+struct PhysicsDebugItem {
+	root: Dora3DHandle,
+	shape: PhysicsDebugShape,
+	color: Vec4,
+}
+
+fn physics_debug_items() -> &'static Mutex<Vec<PhysicsDebugItem>> {
+	static BOUNDS: OnceLock<Mutex<Vec<PhysicsDebugItem>>> = OnceLock::new();
+	BOUNDS.get_or_init(|| Mutex::new(Vec::new()))
+}
+
+pub fn queue_physics_debug_bounds(root: Dora3DHandle, bounds: Aabb, color: Vec4) {
+	if bounds.is_valid() {
+		physics_debug_items()
+			.lock()
+			.unwrap()
+			.push(PhysicsDebugItem {
+				root,
+				shape: PhysicsDebugShape::Bounds(bounds),
+				color,
+			});
+	}
+}
+
+pub fn queue_physics_debug_shape(
+	root: Dora3DHandle,
+	kind: u8,
+	size: Vec3,
+	transform: Mat4,
+	color: Vec4,
+) {
+	if kind <= 3 && size.is_finite() && transform.is_finite() {
+		physics_debug_items()
+			.lock()
+			.unwrap()
+			.push(PhysicsDebugItem {
+				root,
+				shape: PhysicsDebugShape::Primitive {
+					kind,
+					size,
+					transform,
+				},
+				color,
+			});
+	}
+}
+
+fn take_physics_debug_items(root: Dora3DHandle) -> Vec<PhysicsDebugItem> {
+	let mut queued = physics_debug_items().lock().unwrap();
+	let mut selected = Vec::new();
+	let mut index = 0;
+	while index < queued.len() {
+		if queued[index].root == root {
+			selected.push(queued.swap_remove(index));
+		} else {
+			index += 1;
+		}
+	}
+	selected
 }
 
 #[derive(Debug, Clone)]
@@ -41,7 +114,20 @@ struct RenderVisualItem {
 	joint_matrices: Option<Vec<Mat4>>,
 }
 
-pub const RENDER_STATS_VALUE_COUNT: usize = 30;
+#[derive(Debug, Default)]
+struct RenderWorkspace {
+	nodes: Vec<Dora3DHandle>,
+	traversal_stack: Vec<Dora3DHandle>,
+	visuals: Vec<visual3d::Visual3DData>,
+	visual_handles: Vec<Dora3DHandle>,
+	seen_visuals: HashSet<Dora3DHandle>,
+	skeletons: HashMap<Dora3DHandle, Dora3DHandle>,
+	skeleton_handles: Vec<Dora3DHandle>,
+	skeleton_data: HashMap<Dora3DHandle, Arc<animation::SkeletonData>>,
+	world_matrices: HashMap<Dora3DHandle, Mat4>,
+}
+
+pub const RENDER_STATS_VALUE_COUNT: usize = 32;
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct RenderStats3D {
@@ -61,6 +147,8 @@ pub struct RenderStats3D {
 	pub model_count: u32,
 	pub model_instance_count: u32,
 	pub mesh_count: u32,
+	pub static_mesh_count: u32,
+	pub dynamic_mesh_count: u32,
 	pub material_count: u32,
 	pub texture_count: u32,
 	pub animation_count: u32,
@@ -96,6 +184,8 @@ impl RenderStats3D {
 			self.model_count as u64,
 			self.model_instance_count as u64,
 			self.mesh_count as u64,
+			self.static_mesh_count as u64,
+			self.dynamic_mesh_count as u64,
 			self.material_count as u64,
 			self.texture_count as u64,
 			self.animation_count as u64,
@@ -125,6 +215,12 @@ fn view_states() -> &'static Mutex<HashMap<bgfx_sys::bgfx_view_id_t, ViewRenderS
 	VIEW_STATES.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
+fn render_workspaces() -> &'static Mutex<HashMap<bgfx_sys::bgfx_view_id_t, RenderWorkspace>> {
+	static WORKSPACES: OnceLock<Mutex<HashMap<bgfx_sys::bgfx_view_id_t, RenderWorkspace>>> =
+		OnceLock::new();
+	WORKSPACES.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
 fn render_stats() -> &'static Mutex<HashMap<bgfx_sys::bgfx_view_id_t, RenderStats3D>> {
 	static STATS: OnceLock<Mutex<HashMap<bgfx_sys::bgfx_view_id_t, RenderStats3D>>> =
 		OnceLock::new();
@@ -137,6 +233,9 @@ fn with_registry_counts(mut stats: RenderStats3D) -> RenderStats3D {
 	stats.model_count = model_loader::model_count() as u32;
 	stats.model_instance_count = model_loader::instance_count() as u32;
 	stats.mesh_count = super::mesh::count() as u32;
+	let (static_meshes, dynamic_meshes) = super::mesh::buffer_counts();
+	stats.static_mesh_count = static_meshes as u32;
+	stats.dynamic_mesh_count = dynamic_meshes as u32;
 	stats.material_count = material::count() as u32;
 	stats.texture_count = super::texture::count() as u32;
 	stats.animation_count = animation::count() as u32;
@@ -185,6 +284,10 @@ pub fn set_view_state(view_id: bgfx_sys::bgfx_view_id_t, view_proj: Mat4, view_p
 		.get(&view_id)
 		.map(|state| state.frustum_culling)
 		.unwrap_or(true);
+	let show_aabb = states
+		.get(&view_id)
+		.map(|state| state.show_aabb)
+		.unwrap_or(false);
 	states.insert(
 		view_id,
 		ViewRenderState {
@@ -192,6 +295,7 @@ pub fn set_view_state(view_id: bgfx_sys::bgfx_view_id_t, view_proj: Mat4, view_p
 			view_pos,
 			frustum,
 			frustum_culling,
+			show_aabb,
 		},
 	);
 }
@@ -208,6 +312,25 @@ pub fn set_view_frustum_culling(view_id: bgfx_sys::bgfx_view_id_t, enabled: bool
 				view_pos: Vec3::ZERO,
 				frustum: Frustum::from_view_projection(&Mat4::IDENTITY),
 				frustum_culling: enabled,
+				show_aabb: false,
+			},
+		);
+	}
+}
+
+pub fn set_view_show_aabb(view_id: bgfx_sys::bgfx_view_id_t, enabled: bool) {
+	let mut states = view_states().lock().unwrap();
+	if let Some(state) = states.get_mut(&view_id) {
+		state.show_aabb = enabled;
+	} else {
+		states.insert(
+			view_id,
+			ViewRenderState {
+				view_proj: Mat4::IDENTITY,
+				view_pos: Vec3::ZERO,
+				frustum: Frustum::from_view_projection(&Mat4::IDENTITY),
+				frustum_culling: true,
+				show_aabb: enabled,
 			},
 		);
 	}
@@ -240,48 +363,82 @@ pub fn render_view(view_id: bgfx_sys::bgfx_view_id_t) -> bool {
 		render_items,
 		&view_state,
 		&SceneLights::default(),
+		None,
 		stats,
 		collect_start.elapsed().as_micros() as u64,
 	)
 }
 
 pub fn render_node(view_id: bgfx_sys::bgfx_view_id_t, root: Dora3DHandle) -> bool {
+	render_node_internal(view_id, None, root)
+}
+
+pub fn render_node_with_shadow(
+	view_id: bgfx_sys::bgfx_view_id_t,
+	shadow_view_id: bgfx_sys::bgfx_view_id_t,
+	root: Dora3DHandle,
+) -> bool {
+	render_node_internal(view_id, Some(shadow_view_id), root)
+}
+
+fn render_node_internal(
+	view_id: bgfx_sys::bgfx_view_id_t,
+	shadow_view_id: Option<bgfx_sys::bgfx_view_id_t>,
+	root: Dora3DHandle,
+) -> bool {
 	let collect_start = Instant::now();
 	if !node3d::exists(root) {
+		shader::remove_shadow_map(root);
 		return false;
+	}
+	if shadow_view_id.is_none() {
+		shader::remove_shadow_map(root);
 	}
 	let view_state = view_state(view_id);
 	let mut render_items = Vec::new();
 	let mut stats = RenderStats3D::default();
-	let mut seen_visuals = HashSet::new();
-	let nodes = node3d::traverse(root);
-	stats.scene_nodes = nodes.len() as u32;
-	let scene_lights = light3d::collect_scene(&nodes);
-	let visuals = visual3d::visuals_for_nodes(&nodes);
-	let visual_handles: Vec<_> = visuals.iter().map(|visual| visual.handle).collect();
-	let skeletons = model_loader::skeletons_for_visuals(&visual_handles);
-	let skeleton_handles: Vec<_> = skeletons.values().copied().collect();
-	let skeleton_data = animation::skeletons(&skeleton_handles);
-	let mut matrix_nodes = nodes.clone();
-	for skeleton in skeleton_data.values() {
-		matrix_nodes.extend(skeleton.joints.iter().copied());
+	let mut workspace = render_workspaces()
+		.lock()
+		.unwrap()
+		.remove(&view_id)
+		.unwrap_or_default();
+	node3d::traverse_into(root, &mut workspace.nodes, &mut workspace.traversal_stack);
+	stats.scene_nodes = workspace.nodes.len() as u32;
+	let scene_lights = light3d::collect_scene(&workspace.nodes);
+	visual3d::visuals_for_nodes_into(&workspace.nodes, &mut workspace.visuals);
+	workspace.visual_handles.clear();
+	workspace
+		.visual_handles
+		.extend(workspace.visuals.iter().map(|visual| visual.handle));
+	model_loader::skeletons_for_visuals_into(&workspace.visual_handles, &mut workspace.skeletons);
+	workspace.skeleton_handles.clear();
+	workspace
+		.skeleton_handles
+		.extend(workspace.skeletons.values().copied());
+	workspace.skeleton_handles.sort_unstable();
+	workspace.skeleton_handles.dedup();
+	animation::skeletons_into(&workspace.skeleton_handles, &mut workspace.skeleton_data);
+	for skeleton in workspace.skeleton_data.values() {
+		workspace.nodes.extend(skeleton.joints.iter().copied());
 	}
-	matrix_nodes.sort_unstable();
-	matrix_nodes.dedup();
-	let world_matrices = node3d::world_matrices(&matrix_nodes);
-	for visual in visuals {
-		if visual.enabled && seen_visuals.insert(visual.handle) {
-			let Some(world) = world_matrices.get(&visual.node).copied() else {
+	workspace.nodes.sort_unstable();
+	workspace.nodes.dedup();
+	node3d::world_matrices_into(&workspace.nodes, &mut workspace.world_matrices);
+	workspace.seen_visuals.clear();
+	for visual in &workspace.visuals {
+		if visual.enabled && workspace.seen_visuals.insert(visual.handle) {
+			let Some(world) = workspace.world_matrices.get(&visual.node).copied() else {
 				continue;
 			};
-			let joint_matrices = skeletons
+			let joint_matrices = workspace
+				.skeletons
 				.get(&visual.handle)
-				.and_then(|handle| skeleton_data.get(handle))
+				.and_then(|handle| workspace.skeleton_data.get(handle))
 				.map(|skeleton| {
 					skinning::compute_joint_matrices_from_world(
 						skeleton,
 						world.inverse(),
-						&world_matrices,
+						&workspace.world_matrices,
 					)
 				});
 			if let Some(item) = collect_prepared_visual_item(
@@ -299,14 +456,129 @@ pub fn render_node(view_id: bgfx_sys::bgfx_view_id_t, root: Dora3DHandle) -> boo
 			}
 		}
 	}
-	render_items_sorted(
+	let shadow = shadow_view_id.and_then(|shadow_view_id| {
+		prepare_shadow_pass(root, shadow_view_id, &render_items, &scene_lights)
+	});
+	let mut result = render_items_sorted(
 		view_id,
 		render_items,
 		&view_state,
 		&scene_lights,
+		shadow.as_ref(),
 		stats,
 		collect_start.elapsed().as_micros() as u64,
-	)
+	);
+	let debug_items = take_physics_debug_items(root);
+	if !debug_items.is_empty() {
+		let debug_material = debug_bounds_material();
+		for debug in debug_items {
+			result |= match debug.shape {
+				PhysicsDebugShape::Bounds(bounds) => shader::submit_debug_bounds_colored(
+					view_id,
+					&bounds,
+					debug.color,
+					debug_material,
+				),
+				PhysicsDebugShape::Primitive {
+					kind,
+					size,
+					transform,
+				} => shader::submit_debug_shape_colored(
+					view_id,
+					kind,
+					size,
+					transform,
+					debug.color,
+					debug_material,
+				),
+			};
+		}
+	}
+	render_workspaces()
+		.lock()
+		.unwrap()
+		.insert(view_id, workspace);
+	result
+}
+
+fn prepare_shadow_pass(
+	root: Dora3DHandle,
+	view_id: bgfx_sys::bgfx_view_id_t,
+	items: &[RenderVisualItem],
+	scene_lights: &SceneLights,
+) -> Option<shader::ShadowDrawState> {
+	let light = scene_lights.directional.filter(|light| light.cast_shadow)?;
+	let mut world_bounds = Aabb::empty();
+	for item in items {
+		for corner in item.world_bounds.corners() {
+			world_bounds.include(corner);
+		}
+	}
+	if !world_bounds.is_valid() {
+		return None;
+	}
+	const SHADOW_SIZE: u16 = 1024;
+	let texture = shader::prepare_shadow_map(root, view_id, SHADOW_SIZE)?;
+	let center = (world_bounds.min + world_bounds.max) * 0.5;
+	let radius = (world_bounds.max - world_bounds.min).length() * 0.5;
+	let direction = light.direction.normalize_or_zero();
+	if direction.length_squared() <= f32::EPSILON {
+		return None;
+	}
+	let up = if direction.dot(Vec3::Y).abs() > 0.95 {
+		Vec3::X
+	} else {
+		Vec3::Y
+	};
+	let eye = center + direction * (radius + 1.0);
+	let light_view = Mat4::look_at_rh(eye, center, up);
+	let mut light_bounds = Aabb::empty();
+	for corner in world_bounds.corners() {
+		light_bounds.include(light_view.transform_point3(corner));
+	}
+	let padding = ((light_bounds.max.x - light_bounds.min.x)
+		.max(light_bounds.max.y - light_bounds.min.y)
+		* 0.05)
+		.max(0.1);
+	let left = light_bounds.min.x - padding;
+	let right = light_bounds.max.x + padding;
+	let bottom = light_bounds.min.y - padding;
+	let top = light_bounds.max.y + padding;
+	let near = (-light_bounds.max.z - padding).max(0.01);
+	let far = (-light_bounds.min.z + padding).max(near + 0.1);
+	let caps = unsafe { &*bgfx_sys::bgfx_get_caps() };
+	let light_projection = if caps.homogeneousDepth {
+		Mat4::orthographic_rh_gl(left, right, bottom, top, near, far)
+	} else {
+		Mat4::orthographic_rh(left, right, bottom, top, near, far)
+	};
+	let light_view_proj = light_projection * light_view;
+	let sy = if caps.originBottomLeft { 0.5 } else { -0.5 };
+	let depth_scale = if caps.homogeneousDepth { 0.5 } else { 1.0 };
+	let depth_offset = if caps.homogeneousDepth { 0.5 } else { 0.0 };
+	let texture_bias = Mat4::from_cols(
+		Vec4::new(-0.5, 0.0, 0.0, 0.0),
+		Vec4::new(0.0, sy, 0.0, 0.0),
+		Vec4::new(0.0, 0.0, depth_scale, 0.0),
+		Vec4::new(0.5, 0.5, depth_offset, 1.0),
+	);
+	shader::set_shadow_view(view_id, &light_view_proj);
+	for item in items {
+		let _ = shader::submit_shadow_mesh(
+			view_id,
+			item.mesh,
+			item.material,
+			&item.world_matrix,
+			item.joint_matrices.as_deref(),
+		);
+	}
+	Some(shader::ShadowDrawState {
+		matrix: texture_bias * light_view_proj,
+		texture,
+		bias: light.shadow_bias,
+		normal_bias: light.shadow_normal_bias,
+		inv_size: 1.0 / SHADOW_SIZE as f32,
+	})
 }
 
 fn view_state(view_id: bgfx_sys::bgfx_view_id_t) -> ViewRenderState {
@@ -320,6 +592,7 @@ fn view_state(view_id: bgfx_sys::bgfx_view_id_t) -> ViewRenderState {
 			view_pos: Vec3::ZERO,
 			frustum: Frustum::from_view_projection(&Mat4::IDENTITY),
 			frustum_culling: true,
+			show_aabb: false,
 		})
 }
 
@@ -444,9 +717,18 @@ fn render_items_sorted(
 	render_items: Vec<RenderVisualItem>,
 	view_state: &ViewRenderState,
 	scene_lights: &SceneLights,
+	shadow: Option<&shader::ShadowDrawState>,
 	mut stats: RenderStats3D,
 	collect_micros: u64,
 ) -> bool {
+	let debug_bounds = if view_state.show_aabb {
+		render_items
+			.iter()
+			.map(|item| (item.world_bounds, item.mesh))
+			.collect::<Vec<_>>()
+	} else {
+		Vec::new()
+	};
 	stats.collect_micros = collect_micros;
 	let sort_start = Instant::now();
 	let (opaque_items, transparent_items) = sort_render_items(render_items);
@@ -455,15 +737,38 @@ fn render_items_sorted(
 	stats.transparent_items = transparent_items.len() as u32;
 	shader::set_view_transforms(view_id, &view_state.view_proj, view_state.view_pos);
 	let submit_start = Instant::now();
-	let submitted = render_items_in_order_with_state(
+	let mut submitted = render_items_in_order_with_state(
 		view_id,
 		opaque_items.into_iter().chain(transparent_items),
 		scene_lights,
+		shadow,
 		&mut stats,
 	);
+	if view_state.show_aabb && !debug_bounds.is_empty() {
+		let debug_material = debug_bounds_material();
+		for (bounds, mesh) in debug_bounds {
+			submitted |= shader::submit_debug_bounds(view_id, &bounds, mesh, debug_material);
+		}
+	}
 	stats.submit_micros = submit_start.elapsed().as_micros() as u64;
 	render_stats().lock().unwrap().insert(view_id, stats);
 	submitted
+}
+
+fn debug_bounds_material() -> Dora3DHandle {
+	static MATERIAL: OnceLock<Mutex<Option<Dora3DHandle>>> = OnceLock::new();
+	let mut cached = MATERIAL.get_or_init(|| Mutex::new(None)).lock().unwrap();
+	if let Some(handle) = *cached {
+		if material::with_material(handle, |_| ()).is_some() {
+			material::set_base_color(handle, Vec4::new(1.0, 0.75, 0.05, 1.0));
+			return handle;
+		}
+	}
+	let handle = material::create();
+	material::set_type(handle, material::MaterialType::Unlit);
+	material::set_base_color(handle, Vec4::new(1.0, 0.75, 0.05, 1.0));
+	*cached = Some(handle);
+	handle
 }
 
 fn sort_render_items(
@@ -491,6 +796,7 @@ fn render_items_in_order_with_state(
 	view_id: bgfx_sys::bgfx_view_id_t,
 	items: impl Iterator<Item = RenderVisualItem>,
 	scene_lights: &SceneLights,
+	shadow: Option<&shader::ShadowDrawState>,
 	stats: &mut RenderStats3D,
 ) -> bool {
 	let mut submitted = false;
@@ -500,7 +806,7 @@ fn render_items_in_order_with_state(
 	let mut previous_textures: Option<Vec<(u8, u16)>> = None;
 	for item in items {
 		let material_changed = previous_material != Some(item.material);
-		if render_visual_item(view_id, &item, scene_lights, material_changed) {
+		if render_visual_item(view_id, &item, scene_lights, shadow, material_changed) {
 			submitted = true;
 			let program = shader::program_index(item.material);
 			if previous_program != Some(program) {
@@ -533,6 +839,7 @@ fn render_visual_item(
 	view_id: bgfx_sys::bgfx_view_id_t,
 	item: &RenderVisualItem,
 	scene_lights: &SceneLights,
+	shadow: Option<&shader::ShadowDrawState>,
 	apply_material: bool,
 ) -> bool {
 	let draw_lights = light3d::prepare_draw(item.visual, &item.world_bounds, scene_lights);
@@ -543,6 +850,7 @@ fn render_visual_item(
 		&item.world_matrix,
 		item.joint_matrices.as_deref(),
 		&draw_lights,
+		shadow,
 		apply_material,
 	)
 }
@@ -550,7 +858,9 @@ fn render_visual_item(
 pub fn clear_queue() {
 	queue().lock().unwrap().clear();
 	view_states().lock().unwrap().clear();
+	render_workspaces().lock().unwrap().clear();
 	render_stats().lock().unwrap().clear();
+	shader::clear_shadow_maps();
 }
 
 #[cfg(test)]
@@ -585,6 +895,7 @@ mod tests {
 			view_pos: Vec3::new(0.0, 0.0, 5.0),
 			frustum: Frustum::from_view_projection(&view_proj),
 			frustum_culling: true,
+			show_aabb: false,
 		}
 	}
 
@@ -669,26 +980,28 @@ mod tests {
 			model_count: 14,
 			model_instance_count: 15,
 			mesh_count: 16,
-			material_count: 17,
-			texture_count: 18,
-			animation_count: 19,
-			environment_count: 20,
-			model_resident_bytes: 21,
-			mesh_resident_bytes: 22,
-			texture_resident_bytes: 23,
-			collect_micros: 24,
-			sort_micros: 25,
-			submit_micros: 26,
-			upload_commands: 27,
-			upload_bytes: 28,
-			upload_micros: 29,
-			upload_max_command_micros: 30,
+			static_mesh_count: 17,
+			dynamic_mesh_count: 18,
+			material_count: 19,
+			texture_count: 20,
+			animation_count: 21,
+			environment_count: 22,
+			model_resident_bytes: 23,
+			mesh_resident_bytes: 24,
+			texture_resident_bytes: 25,
+			collect_micros: 26,
+			sort_micros: 27,
+			submit_micros: 28,
+			upload_commands: 29,
+			upload_bytes: 30,
+			upload_micros: 31,
+			upload_max_command_micros: 32,
 		};
 		assert_eq!(
 			stats.to_values(),
 			[
 				1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
-				24, 25, 26, 27, 28, 29, 30,
+				24, 25, 26, 27, 28, 29, 30, 31, 32,
 			]
 		);
 	}

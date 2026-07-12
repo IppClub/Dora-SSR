@@ -3,7 +3,7 @@ use super::material::{self, MaterialType};
 use super::mesh;
 use super::profile3d;
 use super::texture;
-use super::types::{mat4_to_bgfx_array, Mat4, Vec3};
+use super::types::{mat4_to_bgfx_array, Aabb, Mat4, Vec3, Vec4};
 use super::{next_handle, Dora3DHandle};
 use crate::bgfx_rs::bgfx_sys;
 use crate::Content;
@@ -14,15 +14,14 @@ use std::ffi::CString;
 use std::os::raw::c_char;
 use std::sync::{Mutex, OnceLock};
 use std::time::Instant;
+use std::{mem::MaybeUninit, ptr};
 
 pub const MAX_JOINTS: usize = 64;
 const DEFAULT_IRRADIANCE_SIZE: u16 = 8;
 const DEFAULT_PREFILTER_SIZE: u16 = 32;
 const DEFAULT_PREFILTER_MIPS: u8 = 5;
-const DEFAULT_BRDF_LUT_SIZE: u16 = 64;
 const IRRADIANCE_SAMPLE_COUNT: u32 = 64;
 const PREFILTER_SAMPLE_COUNT: u32 = 64;
-const BRDF_SAMPLE_COUNT: u32 = 128;
 #[repr(C)]
 #[derive(Debug, Clone, Copy)]
 struct JointUniforms {
@@ -35,6 +34,7 @@ pub struct ShaderPrograms {
 	pub lambert: bgfx_sys::bgfx_program_handle_t,
 	pub sheen_roughness: bgfx_sys::bgfx_program_handle_t,
 	pub thickness_sheen: bgfx_sys::bgfx_program_handle_t,
+	pub shadow: bgfx_sys::bgfx_program_handle_t,
 }
 
 #[derive(Debug)]
@@ -55,6 +55,8 @@ struct ShaderState {
 	u_point_light_position_range: bgfx_sys::bgfx_uniform_handle_t,
 	u_point_light_color_intensity: bgfx_sys::bgfx_uniform_handle_t,
 	u_overflow_light_sh: bgfx_sys::bgfx_uniform_handle_t,
+	u_shadow_matrix: bgfx_sys::bgfx_uniform_handle_t,
+	u_shadow_params: bgfx_sys::bgfx_uniform_handle_t,
 	u_emissive_scaling: bgfx_sys::bgfx_uniform_handle_t,
 	u_soft_particle_param: bgfx_sys::bgfx_uniform_handle_t,
 	u_reconstruction_param1: bgfx_sys::bgfx_uniform_handle_t,
@@ -71,7 +73,7 @@ struct ShaderState {
 	s_clearcoat_normal: bgfx_sys::bgfx_uniform_handle_t,
 	s_irradiance: bgfx_sys::bgfx_uniform_handle_t,
 	s_prefilter: bgfx_sys::bgfx_uniform_handle_t,
-	s_brdf_lut: bgfx_sys::bgfx_uniform_handle_t,
+	s_shadow_map: bgfx_sys::bgfx_uniform_handle_t,
 	s_specular: bgfx_sys::bgfx_uniform_handle_t,
 	s_specular_color: bgfx_sys::bgfx_uniform_handle_t,
 	s_transmission: bgfx_sys::bgfx_uniform_handle_t,
@@ -90,8 +92,6 @@ struct ShaderState {
 	irradiance_texture_bgfx: bgfx_sys::bgfx_texture_handle_t,
 	_prefilter_texture: Dora3DHandle,
 	prefilter_texture_bgfx: bgfx_sys::bgfx_texture_handle_t,
-	_brdf_lut_texture: Dora3DHandle,
-	brdf_lut_texture_bgfx: bgfx_sys::bgfx_texture_handle_t,
 }
 
 #[derive(Debug)]
@@ -139,6 +139,130 @@ struct EnvironmentTextures {
 	prefilter_texture: bgfx_sys::bgfx_texture_handle_t,
 }
 
+#[derive(Debug)]
+pub struct ShadowMap {
+	pub frame_buffer: bgfx_sys::bgfx_frame_buffer_handle_t,
+	pub texture: bgfx_sys::bgfx_texture_handle_t,
+	pub size: u16,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct ShadowDrawState {
+	pub matrix: Mat4,
+	pub texture: bgfx_sys::bgfx_texture_handle_t,
+	pub bias: f32,
+	pub normal_bias: f32,
+	pub inv_size: f32,
+}
+
+impl Drop for ShadowMap {
+	fn drop(&mut self) {
+		if self.frame_buffer.idx != u16::MAX {
+			unsafe { bgfx_sys::bgfx_destroy_frame_buffer(self.frame_buffer) };
+		}
+	}
+}
+
+fn shadow_maps() -> &'static Mutex<HashMap<Dora3DHandle, ShadowMap>> {
+	static MAPS: OnceLock<Mutex<HashMap<Dora3DHandle, ShadowMap>>> = OnceLock::new();
+	MAPS.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+pub fn prepare_shadow_map(
+	root: Dora3DHandle,
+	view_id: bgfx_sys::bgfx_view_id_t,
+	size: u16,
+) -> Option<bgfx_sys::bgfx_texture_handle_t> {
+	let mut maps = shadow_maps().lock().unwrap();
+	let recreate = maps.get(&root).map(|map| map.size != size).unwrap_or(true);
+	if recreate {
+		maps.remove(&root);
+		let flags = bgfx_sys::BGFX_TEXTURE_RT as u64
+			| bgfx_sys::BGFX_SAMPLER_U_CLAMP as u64
+			| bgfx_sys::BGFX_SAMPLER_V_CLAMP as u64
+			| bgfx_sys::BGFX_SAMPLER_MIN_POINT as u64
+			| bgfx_sys::BGFX_SAMPLER_MAG_POINT as u64;
+		let color = unsafe {
+			bgfx_sys::bgfx_create_texture_2d(
+				size,
+				size,
+				false,
+				1,
+				bgfx_sys::BGFX_TEXTURE_FORMAT_RGBA8,
+				flags,
+				std::ptr::null(),
+			)
+		};
+		let depth = unsafe {
+			bgfx_sys::bgfx_create_texture_2d(
+				size,
+				size,
+				false,
+				1,
+				bgfx_sys::BGFX_TEXTURE_FORMAT_D24S8,
+				bgfx_sys::BGFX_TEXTURE_RT as u64,
+				std::ptr::null(),
+			)
+		};
+		if color.idx == u16::MAX || depth.idx == u16::MAX {
+			unsafe {
+				if color.idx != u16::MAX {
+					bgfx_sys::bgfx_destroy_texture(color);
+				}
+				if depth.idx != u16::MAX {
+					bgfx_sys::bgfx_destroy_texture(depth);
+				}
+			}
+			return None;
+		}
+		let attachments = [color, depth];
+		let frame_buffer = unsafe {
+			bgfx_sys::bgfx_create_frame_buffer_from_handles(
+				attachments.len() as u8,
+				attachments.as_ptr(),
+				true,
+			)
+		};
+		if frame_buffer.idx == u16::MAX {
+			unsafe {
+				bgfx_sys::bgfx_destroy_texture(color);
+				bgfx_sys::bgfx_destroy_texture(depth);
+			}
+			return None;
+		}
+		maps.insert(
+			root,
+			ShadowMap {
+				frame_buffer,
+				texture: color,
+				size,
+			},
+		);
+	}
+	let map = maps.get(&root)?;
+	unsafe {
+		bgfx_sys::bgfx_set_view_rect(view_id, 0, 0, map.size, map.size);
+		bgfx_sys::bgfx_set_view_frame_buffer(view_id, map.frame_buffer);
+		bgfx_sys::bgfx_set_view_clear(
+			view_id,
+			(bgfx_sys::BGFX_CLEAR_COLOR | bgfx_sys::BGFX_CLEAR_DEPTH | bgfx_sys::BGFX_CLEAR_STENCIL)
+				as u16,
+			0xffff_ffff,
+			1.0,
+			0,
+		);
+	}
+	Some(map.texture)
+}
+
+pub fn remove_shadow_map(root: Dora3DHandle) {
+	shadow_maps().lock().unwrap().remove(&root);
+}
+
+pub fn clear_shadow_maps() {
+	shadow_maps().lock().unwrap().clear();
+}
+
 #[repr(u8)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum EnvironmentUploadPhase {
@@ -155,6 +279,8 @@ struct EnvironmentUploadJob {
 	phase: EnvironmentUploadPhase,
 	irradiance: Option<(Dora3DHandle, bool)>,
 	prefilter: Option<(Dora3DHandle, bool)>,
+	face_x: u16,
+	face_y: u16,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -429,7 +555,7 @@ pub fn prepare_environment_equirect(path: &str) -> bool {
 		return false;
 	};
 	loop {
-		match step_environment_upload(job) {
+		match step_environment_upload(job, u64::MAX).0 {
 			EnvironmentUploadStep::Pending => continue,
 			EnvironmentUploadStep::Complete => return true,
 			EnvironmentUploadStep::Failed => return false,
@@ -493,23 +619,32 @@ pub fn begin_environment_upload(prepared: Dora3DHandle) -> Option<Dora3DHandle> 
 			phase: EnvironmentUploadPhase::CreateIrradiance,
 			irradiance: None,
 			prefilter: None,
+			face_x: 0,
+			face_y: 0,
 		},
 	);
 	Some(handle)
 }
 
-pub fn step_environment_upload(job: Dora3DHandle) -> EnvironmentUploadStep {
+pub fn discard_prepared_environment(prepared: Dora3DHandle) -> bool {
+	prepared_environment_registry()
+		.lock()
+		.unwrap()
+		.remove(&prepared)
+		.is_some()
+}
+
+pub fn step_environment_upload(job: Dora3DHandle, max_bytes: u64) -> (EnvironmentUploadStep, u64) {
 	let Some(mut upload) = environment_upload_job_registry()
 		.lock()
 		.unwrap()
 		.remove(&job)
 	else {
-		return EnvironmentUploadStep::Failed;
+		return (EnvironmentUploadStep::Failed, 0);
 	};
 	let phase = upload.phase as u8;
-	let bytes = environment_upload_command_bytes(&upload);
 	let started = Instant::now();
-	let result = step_environment_upload_job(&mut upload);
+	let (result, bytes) = step_environment_upload_job(&mut upload, max_bytes);
 	profile3d::record_upload(1, phase, started.elapsed().as_micros() as u64, bytes);
 	match result {
 		EnvironmentUploadStep::Pending => {
@@ -517,43 +652,13 @@ pub fn step_environment_upload(job: Dora3DHandle) -> EnvironmentUploadStep {
 				.lock()
 				.unwrap()
 				.insert(job, upload);
-			EnvironmentUploadStep::Pending
+			(EnvironmentUploadStep::Pending, bytes)
 		}
-		EnvironmentUploadStep::Complete => EnvironmentUploadStep::Complete,
+		EnvironmentUploadStep::Complete => (EnvironmentUploadStep::Complete, bytes),
 		EnvironmentUploadStep::Failed => {
 			cleanup_environment_upload_job(upload);
-			EnvironmentUploadStep::Failed
+			(EnvironmentUploadStep::Failed, 0)
 		}
-	}
-}
-
-fn environment_upload_command_bytes(job: &EnvironmentUploadJob) -> u64 {
-	match job.phase {
-		EnvironmentUploadPhase::UploadIrradiance => job
-			.prepared
-			.irradiance
-			.front()
-			.map(|face| {
-				if job.irradiance.map(|texture| texture.1).unwrap_or(true) {
-					face.rgba16f.len() as u64
-				} else {
-					face.rgba8.len() as u64
-				}
-			})
-			.unwrap_or(0),
-		EnvironmentUploadPhase::UploadPrefilter => job
-			.prepared
-			.prefilter
-			.front()
-			.map(|face| {
-				if job.prefilter.map(|texture| texture.1).unwrap_or(true) {
-					face.rgba16f.len() as u64
-				} else {
-					face.rgba8.len() as u64
-				}
-			})
-			.unwrap_or(0),
-		_ => 0,
 	}
 }
 
@@ -776,15 +881,48 @@ fn create_empty_environment_cube(
 fn upload_prepared_environment_face(
 	texture: (Dora3DHandle, bool),
 	face: &PreparedCubeFaceMip,
-) -> bool {
-	if texture.1 {
-		texture::update_cube_rgba16f_bytes(texture.0, face.side, face.mip, face.size, &face.rgba16f)
+	x: u16,
+	y: u16,
+	max_bytes: u64,
+) -> Option<(u64, u16, u16, bool)> {
+	let (pixels, bytes_per_pixel) = if texture.1 {
+		(face.rgba16f.as_slice(), 8usize)
 	} else {
-		texture::update_cube_rgba8(texture.0, face.side, face.mip, face.size, &face.rgba8)
+		(face.rgba8.as_slice(), 4usize)
+	};
+	let max_pixels = (max_bytes / bytes_per_pixel as u64).min(u32::MAX as u64) as usize;
+	if max_pixels == 0 {
+		return Some((0, x, y, false));
 	}
+	let (width, height) = texture::upload_region_size(face.size, face.size, x, y, max_pixels)?;
+	let offset = (y as usize * face.size as usize + x as usize) * bytes_per_pixel;
+	let bytes = width as usize * height as usize * bytes_per_pixel;
+	let source = pixels.get(offset..offset.checked_add(bytes)?)?;
+	if !texture::update_cube_bytes_region(
+		texture.0,
+		face.side,
+		face.mip,
+		x,
+		y,
+		width,
+		height,
+		source,
+		bytes_per_pixel,
+	) {
+		return None;
+	}
+	let (next_x, next_y) = if height > 1 || width == face.size - x {
+		(0, y + height)
+	} else {
+		(x + width, y)
+	};
+	Some((bytes as u64, next_x, next_y, next_y == face.size))
 }
 
-fn step_environment_upload_job(job: &mut EnvironmentUploadJob) -> EnvironmentUploadStep {
+fn step_environment_upload_job(
+	job: &mut EnvironmentUploadJob,
+	max_bytes: u64,
+) -> (EnvironmentUploadStep, u64) {
 	match job.phase {
 		EnvironmentUploadPhase::CreateIrradiance => {
 			job.irradiance = create_empty_environment_cube(
@@ -793,18 +931,32 @@ fn step_environment_upload_job(job: &mut EnvironmentUploadJob) -> EnvironmentUpl
 				&format!("Dora3D Irradiance {}", job.prepared.path),
 			);
 			if job.irradiance.is_none() {
-				return EnvironmentUploadStep::Failed;
+				return (EnvironmentUploadStep::Failed, 0);
 			}
 			job.phase = EnvironmentUploadPhase::UploadIrradiance;
 		}
 		EnvironmentUploadPhase::UploadIrradiance => {
-			let Some(face) = job.prepared.irradiance.pop_front() else {
+			let Some(face) = job.prepared.irradiance.front() else {
 				job.phase = EnvironmentUploadPhase::CreatePrefilter;
-				return EnvironmentUploadStep::Pending;
+				return (EnvironmentUploadStep::Pending, 0);
 			};
-			if !upload_prepared_environment_face(job.irradiance.unwrap(), &face) {
-				return EnvironmentUploadStep::Failed;
+			let Some((bytes, x, y, complete)) = upload_prepared_environment_face(
+				job.irradiance.unwrap(),
+				face,
+				job.face_x,
+				job.face_y,
+				max_bytes,
+			) else {
+				return (EnvironmentUploadStep::Failed, 0);
+			};
+			job.face_x = x;
+			job.face_y = y;
+			if complete {
+				job.prepared.irradiance.pop_front();
+				job.face_x = 0;
+				job.face_y = 0;
 			}
+			return (EnvironmentUploadStep::Pending, bytes);
 		}
 		EnvironmentUploadPhase::CreatePrefilter => {
 			job.prefilter = create_empty_environment_cube(
@@ -813,36 +965,50 @@ fn step_environment_upload_job(job: &mut EnvironmentUploadJob) -> EnvironmentUpl
 				&format!("Dora3D Prefilter {}", job.prepared.path),
 			);
 			if job.prefilter.is_none() {
-				return EnvironmentUploadStep::Failed;
+				return (EnvironmentUploadStep::Failed, 0);
 			}
 			job.phase = EnvironmentUploadPhase::UploadPrefilter;
 		}
 		EnvironmentUploadPhase::UploadPrefilter => {
-			let Some(face) = job.prepared.prefilter.pop_front() else {
+			let Some(face) = job.prepared.prefilter.front() else {
 				job.phase = EnvironmentUploadPhase::Finalize;
-				return EnvironmentUploadStep::Pending;
+				return (EnvironmentUploadStep::Pending, 0);
 			};
-			if !upload_prepared_environment_face(job.prefilter.unwrap(), &face) {
-				return EnvironmentUploadStep::Failed;
+			let Some((bytes, x, y, complete)) = upload_prepared_environment_face(
+				job.prefilter.unwrap(),
+				face,
+				job.face_x,
+				job.face_y,
+				max_bytes,
+			) else {
+				return (EnvironmentUploadStep::Failed, 0);
+			};
+			job.face_x = x;
+			job.face_y = y;
+			if complete {
+				job.prepared.prefilter.pop_front();
+				job.face_x = 0;
+				job.face_y = 0;
 			}
+			return (EnvironmentUploadStep::Pending, bytes);
 		}
 		EnvironmentUploadPhase::Finalize => {
 			let Some((irradiance, _)) = job.irradiance.take() else {
-				return EnvironmentUploadStep::Failed;
+				return (EnvironmentUploadStep::Failed, 0);
 			};
 			let Some((prefilter, _)) = job.prefilter.take() else {
 				let _ = texture::destroy(irradiance);
-				return EnvironmentUploadStep::Failed;
+				return (EnvironmentUploadStep::Failed, 0);
 			};
 			let Some(irradiance_texture) = texture::texture_handle(irradiance) else {
 				let _ = texture::destroy(irradiance);
 				let _ = texture::destroy(prefilter);
-				return EnvironmentUploadStep::Failed;
+				return (EnvironmentUploadStep::Failed, 0);
 			};
 			let Some(prefilter_texture) = texture::texture_handle(prefilter) else {
 				let _ = texture::destroy(irradiance);
 				let _ = texture::destroy(prefilter);
-				return EnvironmentUploadStep::Failed;
+				return (EnvironmentUploadStep::Failed, 0);
 			};
 			environment_cache().lock().unwrap().insert(
 				job.prepared.path.clone(),
@@ -853,10 +1019,10 @@ fn step_environment_upload_job(job: &mut EnvironmentUploadJob) -> EnvironmentUpl
 					prefilter_texture,
 				},
 			);
-			return EnvironmentUploadStep::Complete;
+			return (EnvironmentUploadStep::Complete, 0);
 		}
 	}
-	EnvironmentUploadStep::Pending
+	(EnvironmentUploadStep::Pending, 0)
 }
 
 fn cleanup_environment_upload_job(mut job: EnvironmentUploadJob) {
@@ -992,76 +1158,13 @@ fn importance_sample_ggx(xi: [f32; 2], roughness: f32, normal: Vec3) -> Vec3 {
 	(tangent * half.x + bitangent * half.y + normal * half.z).normalize_or_zero()
 }
 
-fn geometry_schlick_ggx_ibl(n_dot_v: f32, roughness: f32) -> f32 {
-	let alpha = roughness * roughness;
-	let k = (alpha * alpha) / 2.0;
-	n_dot_v / (n_dot_v * (1.0 - k) + k).max(0.000_001)
-}
-
-fn geometry_smith_ibl(n_dot_v: f32, n_dot_l: f32, roughness: f32) -> f32 {
-	geometry_schlick_ggx_ibl(n_dot_v, roughness) * geometry_schlick_ggx_ibl(n_dot_l, roughness)
-}
-
-fn integrate_brdf(roughness: f32, n_dot_v: f32) -> [f32; 2] {
-	let view = Vec3::new((1.0 - n_dot_v * n_dot_v).max(0.0).sqrt(), 0.0, n_dot_v);
-	let normal = Vec3::Z;
-	let mut scale = 0.0;
-	let mut bias = 0.0;
-	for index in 0..BRDF_SAMPLE_COUNT {
-		let half = importance_sample_ggx(hammersley(index, BRDF_SAMPLE_COUNT), roughness, normal);
-		let light = (half * (2.0 * view.dot(half)) - view).normalize_or_zero();
-		let n_dot_l = light.z.max(0.0);
-		let n_dot_h = half.z.max(0.0);
-		let v_dot_h = view.dot(half).max(0.0);
-		if n_dot_l > 0.0 {
-			let geometry = geometry_smith_ibl(n_dot_v, n_dot_l, roughness);
-			let visibility = (geometry * v_dot_h) / (n_dot_h * n_dot_v).max(0.000_001);
-			let fresnel = (1.0 - v_dot_h).powi(5);
-			scale += (1.0 - fresnel) * visibility;
-			bias += fresnel * visibility;
-		}
-	}
-	[
-		scale / BRDF_SAMPLE_COUNT as f32,
-		bias / BRDF_SAMPLE_COUNT as f32,
-	]
-}
-
-fn create_brdf_lut(size: u16) -> Dora3DHandle {
-	let sampler_flags =
-		bgfx_sys::BGFX_SAMPLER_U_CLAMP as u64 | bgfx_sys::BGFX_SAMPLER_V_CLAMP as u64;
-	let mut pixels = Vec::with_capacity(size as usize * size as usize);
-	for y in 0..size {
-		let roughness = (y as f32 + 0.5) / size as f32;
-		for x in 0..size {
-			let n_dot_v = (x as f32 + 0.5) / size as f32;
-			let brdf = integrate_brdf(roughness, n_dot_v);
-			pixels.push([brdf[0], brdf[1], 0.0, 1.0]);
-		}
-	}
-	if let Some(handle) =
-		texture::create_rgba16f(size, size, &pixels, sampler_flags, Some("Dora3D BRDF LUT"))
-	{
-		return handle;
-	}
-	let mut rgba8 = Vec::with_capacity(size as usize * size as usize * 4);
-	for pixel in pixels {
-		rgba8.extend_from_slice(&[
-			linear_to_byte(pixel[0]),
-			linear_to_byte(pixel[1]),
-			linear_to_byte(pixel[2]),
-			linear_to_byte(pixel[3]),
-		]);
-	}
-	texture::create_rgba8(size, size, &rgba8, sampler_flags, Some("Dora3D BRDF LUT")).unwrap_or(0)
-}
-
 fn shader_state() -> &'static ShaderState {
 	static SHADER_STATE: OnceLock<ShaderState> = OnceLock::new();
 	SHADER_STATE.get_or_init(|| {
 		let unlit = create_builtin_program("vs_model3d", "fs_model3d");
 		let sheen_roughness = create_builtin_program("vs_model3d", "fs_model3d_sheen");
 		let thickness_sheen = create_builtin_program("vs_model3d", "fs_model3d_thickness_sheen");
+		let shadow = create_builtin_program("vs_shadow_model3d", "fs_shadow_model3d");
 		let white_texture = create_white_texture();
 		let black_texture = create_solid_texture([0, 0, 0, 255], "Dora3D Black");
 		let flat_normal_texture = create_solid_texture([128, 128, 255, 255], "Dora3D Flat Normal");
@@ -1072,13 +1175,13 @@ fn shader_state() -> &'static ShaderState {
 			DEFAULT_PREFILTER_MIPS,
 			"Dora3D Prefilter",
 		);
-		let brdf_lut_texture = create_brdf_lut(DEFAULT_BRDF_LUT_SIZE);
 		ShaderState {
 			programs: ShaderPrograms {
 				unlit,
 				lambert: unlit,
 				sheen_roughness,
 				thickness_sheen,
+				shadow,
 			},
 			u_camera_proj: create_uniform("u_mCameraProj", bgfx_sys::BGFX_UNIFORM_TYPE_MAT4, 1),
 			u_model_inst: create_uniform("u_mModel_Inst", bgfx_sys::BGFX_UNIFORM_TYPE_MAT4, 40),
@@ -1115,6 +1218,8 @@ fn shader_state() -> &'static ShaderState {
 				bgfx_sys::BGFX_UNIFORM_TYPE_VEC4,
 				4,
 			),
+			u_shadow_matrix: create_uniform("u_shadowMatrix", bgfx_sys::BGFX_UNIFORM_TYPE_MAT4, 1),
+			u_shadow_params: create_uniform("u_shadowParams", bgfx_sys::BGFX_UNIFORM_TYPE_VEC4, 1),
 			u_emissive_scaling: create_uniform(
 				"u_fsfEmissiveScaling",
 				bgfx_sys::BGFX_UNIFORM_TYPE_VEC4,
@@ -1163,7 +1268,7 @@ fn shader_state() -> &'static ShaderState {
 			),
 			s_irradiance: create_uniform("s_irradiance", bgfx_sys::BGFX_UNIFORM_TYPE_SAMPLER, 1),
 			s_prefilter: create_uniform("s_prefilter", bgfx_sys::BGFX_UNIFORM_TYPE_SAMPLER, 1),
-			s_brdf_lut: create_uniform("s_brdfLut", bgfx_sys::BGFX_UNIFORM_TYPE_SAMPLER, 1),
+			s_shadow_map: create_uniform("s_shadowMap", bgfx_sys::BGFX_UNIFORM_TYPE_SAMPLER, 1),
 			s_specular: create_uniform("s_specular", bgfx_sys::BGFX_UNIFORM_TYPE_SAMPLER, 1),
 			s_specular_color: create_uniform(
 				"s_specularColor",
@@ -1206,9 +1311,6 @@ fn shader_state() -> &'static ShaderState {
 				.unwrap_or_else(texture::invalid_handle),
 			_prefilter_texture: prefilter_texture,
 			prefilter_texture_bgfx: texture::texture_handle(prefilter_texture)
-				.unwrap_or_else(texture::invalid_handle),
-			_brdf_lut_texture: brdf_lut_texture,
-			brdf_lut_texture_bgfx: texture::texture_handle(brdf_lut_texture)
 				.unwrap_or_else(texture::invalid_handle),
 		}
 	})
@@ -1293,7 +1395,7 @@ unsafe fn set_default_textures(state: &ShaderState, environment: &EnvironmentTex
 	bind_texture_or_skip(7, state.s_clearcoat_normal, state.flat_normal_texture_bgfx);
 	bind_texture_or_skip(8, state.s_irradiance, environment.irradiance_texture);
 	bind_texture_or_skip(9, state.s_prefilter, environment.prefilter_texture);
-	bind_texture_or_skip(10, state.s_brdf_lut, state.brdf_lut_texture_bgfx);
+	bind_texture_or_skip(10, state.s_shadow_map, state.white_texture_bgfx);
 	bind_texture_or_skip(11, state.s_specular, state.white_texture_bgfx);
 	bind_texture_or_skip(12, state.s_specular_color, state.white_texture_bgfx);
 	bind_texture_or_skip(13, state.s_transmission, state.white_texture_bgfx);
@@ -1363,6 +1465,7 @@ unsafe fn apply_draw_uniforms(
 	model_matrix: &Mat4,
 	joint_matrices: Option<&[Mat4]>,
 	lights: &DrawLights,
+	shadow: Option<&ShadowDrawState>,
 ) {
 	let model = mat4_to_bgfx_array(model_matrix);
 	let normal_model = mat4_to_bgfx_array(&model_matrix.inverse().transpose());
@@ -1393,6 +1496,22 @@ unsafe fn apply_draw_uniforms(
 		4,
 	);
 	set_uniform(state.u_overflow_light_sh, &lights.overflow_sh, 4);
+	let (shadow_matrix, shadow_params, shadow_texture) = if let Some(shadow) = shadow {
+		(
+			mat4_to_bgfx_array(&shadow.matrix),
+			[shadow.bias, shadow.normal_bias, shadow.inv_size, 1.0],
+			shadow.texture,
+		)
+	} else {
+		(
+			mat4_to_bgfx_array(&Mat4::IDENTITY),
+			[0.0, 0.0, 0.0, 0.0],
+			state.white_texture_bgfx,
+		)
+	};
+	set_uniform(state.u_shadow_matrix, &shadow_matrix, 1);
+	set_uniform(state.u_shadow_params, &shadow_params, 1);
+	bind_texture_or_skip(10, state.s_shadow_map, shadow_texture);
 	if let Some(joint_matrices) = joint_matrices {
 		let mut joints = JointUniforms {
 			matrices: [0.0; 16 * MAX_JOINTS],
@@ -1420,6 +1539,7 @@ pub fn submit_mesh(
 	model_matrix: &Mat4,
 	joint_matrices: Option<&[Mat4]>,
 	lights: &DrawLights,
+	shadow: Option<&ShadowDrawState>,
 	apply_material: bool,
 ) -> bool {
 	let _ = ensure_shaders();
@@ -1432,21 +1552,360 @@ pub fn submit_mesh(
 	mesh::with_mesh(mesh_handle, |mesh_data| unsafe {
 		let transform = mat4_to_bgfx_array(model_matrix);
 		bgfx_sys::bgfx_set_transform(transform.as_ptr() as *const _, 1);
-		apply_draw_uniforms(state, model_matrix, joint_matrices, lights);
-		bgfx_sys::bgfx_set_vertex_buffer(0, mesh_data.vertex_buffer, 0, mesh_data.vertex_count);
+		apply_draw_uniforms(state, model_matrix, joint_matrices, lights, shadow);
+		mesh_data.bind_vertex_buffer();
 		if apply_material {
 			let environment = environment_for_view(view_id);
 			set_default_textures(state, &environment.textures);
 			apply_material_or_default(material_handle);
 		}
+		if let Some(shadow) = shadow {
+			bind_texture_or_skip(10, state.s_shadow_map, shadow.texture);
+		}
 		for sub_mesh in &mesh_data.sub_meshes {
-			bgfx_sys::bgfx_set_index_buffer(
-				mesh_data.index_buffer,
-				sub_mesh.start_index,
-				sub_mesh.index_count,
-			);
+			mesh_data.bind_index_buffer(sub_mesh.start_index, sub_mesh.index_count);
 			bgfx_sys::bgfx_submit(view_id, program, 0, bgfx_sys::BGFX_DISCARD_NONE as u8);
 		}
 	})
 	.is_some()
+}
+
+pub fn set_shadow_view(view_id: bgfx_sys::bgfx_view_id_t, light_view_proj: &Mat4) {
+	let state = shader_state();
+	let identity = Mat4::IDENTITY.to_cols_array();
+	let packed = mat4_to_bgfx_array(light_view_proj);
+	unsafe {
+		bgfx_sys::bgfx_set_view_transform(
+			view_id,
+			identity.as_ptr() as *const _,
+			packed.as_ptr() as *const _,
+		);
+		set_uniform(state.u_camera_proj, &packed, 1);
+	}
+}
+
+pub fn submit_shadow_mesh(
+	view_id: bgfx_sys::bgfx_view_id_t,
+	mesh_handle: Dora3DHandle,
+	material_handle: Dora3DHandle,
+	model_matrix: &Mat4,
+	joint_matrices: Option<&[Mat4]>,
+) -> bool {
+	if !material::is_shadow_caster(material_handle) {
+		return false;
+	}
+	let state = shader_state();
+	let program = state.programs.shadow;
+	if program.idx == u16::MAX {
+		return false;
+	}
+	mesh::with_mesh(mesh_handle, |mesh_data| unsafe {
+		let transform = mat4_to_bgfx_array(model_matrix);
+		bgfx_sys::bgfx_set_transform(transform.as_ptr() as *const _, 1);
+		apply_draw_uniforms(
+			state,
+			model_matrix,
+			joint_matrices,
+			&DrawLights::default(),
+			None,
+		);
+		let caps = &*bgfx_sys::bgfx_get_caps();
+		let depth_params = if caps.homogeneousDepth {
+			[0.5f32, 0.5, 0.0, 0.0]
+		} else {
+			[1.0f32, 0.0, 0.0, 0.0]
+		};
+		set_uniform(state.u_shadow_params, &depth_params, 1);
+		mesh_data.bind_vertex_buffer();
+		let environment = environment_for_view(view_id);
+		set_default_textures(state, &environment.textures);
+		material::apply(material_handle);
+		material::apply_shadow_state(material_handle);
+		for sub_mesh in &mesh_data.sub_meshes {
+			mesh_data.bind_index_buffer(sub_mesh.start_index, sub_mesh.index_count);
+			bgfx_sys::bgfx_submit(view_id, program, 0, bgfx_sys::BGFX_DISCARD_NONE as u8);
+		}
+	})
+	.is_some()
+}
+
+pub fn submit_debug_bounds(
+	view_id: bgfx_sys::bgfx_view_id_t,
+	bounds: &Aabb,
+	mesh_handle: Dora3DHandle,
+	material_handle: Dora3DHandle,
+) -> bool {
+	let Some(layout) = mesh::with_mesh(mesh_handle, |mesh| mesh.vertex_layout) else {
+		return false;
+	};
+	submit_debug_bounds_with_layout(view_id, bounds, &layout, material_handle)
+}
+
+pub fn submit_debug_bounds_colored(
+	view_id: bgfx_sys::bgfx_view_id_t,
+	bounds: &Aabb,
+	color: Vec4,
+	material_handle: Dora3DHandle,
+) -> bool {
+	material::set_base_color(material_handle, color);
+	let layout = mesh::create_vertex_layout();
+	submit_debug_bounds_with_layout(view_id, bounds, &layout, material_handle)
+}
+
+pub fn submit_debug_shape_colored(
+	view_id: bgfx_sys::bgfx_view_id_t,
+	kind: u8,
+	size: Vec3,
+	transform: Mat4,
+	color: Vec4,
+	material_handle: Dora3DHandle,
+) -> bool {
+	material::set_base_color(material_handle, color);
+	let mut positions = Vec::new();
+	let mut segment = |start: Vec3, end: Vec3| {
+		positions.push(transform.transform_point3(start));
+		positions.push(transform.transform_point3(end));
+	};
+	match kind {
+		1 => {
+			let half = size;
+			let corners = [
+				Vec3::new(-half.x, -half.y, -half.z),
+				Vec3::new(half.x, -half.y, -half.z),
+				Vec3::new(half.x, half.y, -half.z),
+				Vec3::new(-half.x, half.y, -half.z),
+				Vec3::new(-half.x, -half.y, half.z),
+				Vec3::new(half.x, -half.y, half.z),
+				Vec3::new(half.x, half.y, half.z),
+				Vec3::new(-half.x, half.y, half.z),
+			];
+			for (start, end) in [
+				(0, 1),
+				(1, 2),
+				(2, 3),
+				(3, 0),
+				(4, 5),
+				(5, 6),
+				(6, 7),
+				(7, 4),
+				(0, 4),
+				(1, 5),
+				(2, 6),
+				(3, 7),
+			] {
+				segment(corners[start], corners[end]);
+			}
+		}
+		2 => append_sphere_debug_lines(&mut segment, size.x.max(0.0)),
+		3 => append_capsule_debug_lines(&mut segment, size.x.max(0.0), size.y.max(0.0)),
+		_ => return false,
+	}
+	let layout = mesh::create_vertex_layout();
+	submit_debug_line_positions(view_id, &positions, &layout, material_handle)
+}
+
+fn append_sphere_debug_lines(segment: &mut impl FnMut(Vec3, Vec3), radius: f32) {
+	const SEGMENTS: usize = 16;
+	if radius <= 0.0 {
+		return;
+	}
+	for plane in 0..3 {
+		for index in 0..SEGMENTS {
+			let angle = index as f32 * 2.0 * PI / SEGMENTS as f32;
+			let next_angle = (index + 1) as f32 * 2.0 * PI / SEGMENTS as f32;
+			let point = |angle: f32| match plane {
+				0 => Vec3::new(angle.cos() * radius, angle.sin() * radius, 0.0),
+				1 => Vec3::new(angle.cos() * radius, 0.0, angle.sin() * radius),
+				_ => Vec3::new(0.0, angle.cos() * radius, angle.sin() * radius),
+			};
+			segment(point(angle), point(next_angle));
+		}
+	}
+}
+
+fn append_capsule_debug_lines(segment: &mut impl FnMut(Vec3, Vec3), half_height: f32, radius: f32) {
+	const SEGMENTS: usize = 16;
+	if radius <= 0.0 {
+		return;
+	}
+	for y in [-half_height, half_height] {
+		for index in 0..SEGMENTS {
+			let angle = index as f32 * 2.0 * PI / SEGMENTS as f32;
+			let next_angle = (index + 1) as f32 * 2.0 * PI / SEGMENTS as f32;
+			segment(
+				Vec3::new(angle.cos() * radius, y, angle.sin() * radius),
+				Vec3::new(next_angle.cos() * radius, y, next_angle.sin() * radius),
+			);
+		}
+	}
+	for direction_angle in [0.0, PI * 0.5, PI, PI * 1.5] {
+		let direction = Vec3::new(direction_angle.cos(), 0.0, direction_angle.sin());
+		segment(
+			direction * radius + Vec3::Y * half_height,
+			direction * radius - Vec3::Y * half_height,
+		);
+		let mut top = Vec3::Y * (half_height + radius);
+		let mut bottom = -Vec3::Y * (half_height + radius);
+		for index in 1..=SEGMENTS / 2 {
+			let angle = index as f32 * PI * 0.5 / (SEGMENTS / 2) as f32;
+			let next_top =
+				direction * (radius * angle.sin()) + Vec3::Y * (half_height + radius * angle.cos());
+			let next_bottom =
+				direction * (radius * angle.sin()) - Vec3::Y * (half_height + radius * angle.cos());
+			segment(top, next_top);
+			segment(bottom, next_bottom);
+			top = next_top;
+			bottom = next_bottom;
+		}
+	}
+}
+
+fn submit_debug_line_positions(
+	view_id: bgfx_sys::bgfx_view_id_t,
+	positions: &[Vec3],
+	layout: &bgfx_sys::bgfx_vertex_layout_t,
+	material_handle: Dora3DHandle,
+) -> bool {
+	if positions.is_empty() {
+		return false;
+	}
+	let _ = ensure_shaders();
+	let state = shader_state();
+	let program = choose_program(state, material_handle);
+	if program.idx == u16::MAX {
+		return false;
+	}
+	let vertices: Vec<_> = positions
+		.iter()
+		.map(|position| mesh::Vertex {
+			position: position.to_array(),
+			normal: [0.0, 1.0, 0.0],
+			tangent: [1.0, 0.0, 0.0, 1.0],
+			color: u32::MAX,
+			..Default::default()
+		})
+		.collect();
+	unsafe {
+		let mut buffer = MaybeUninit::<bgfx_sys::bgfx_transient_vertex_buffer_t>::zeroed();
+		bgfx_sys::bgfx_alloc_transient_vertex_buffer(
+			buffer.as_mut_ptr(),
+			vertices.len() as u32,
+			layout,
+		);
+		let buffer = buffer.assume_init();
+		if buffer.data.is_null() {
+			return false;
+		}
+		ptr::copy_nonoverlapping(
+			vertices.as_ptr(),
+			buffer.data.cast::<mesh::Vertex>(),
+			vertices.len(),
+		);
+		bgfx_sys::bgfx_discard(bgfx_sys::BGFX_DISCARD_ALL as u8);
+		let identity = Mat4::IDENTITY;
+		let transform = mat4_to_bgfx_array(&identity);
+		bgfx_sys::bgfx_set_transform(transform.as_ptr() as *const _, 1);
+		apply_draw_uniforms(state, &identity, None, &DrawLights::default(), None);
+		let environment = environment_for_view(view_id);
+		set_default_textures(state, &environment.textures);
+		material::apply(material_handle);
+		let draw_state = bgfx_sys::BGFX_STATE_WRITE_RGB as u64
+			| bgfx_sys::BGFX_STATE_WRITE_A as u64
+			| bgfx_sys::BGFX_STATE_DEPTH_TEST_ALWAYS as u64
+			| bgfx_sys::BGFX_STATE_PT_LINES as u64
+			| bgfx_sys::BGFX_STATE_MSAA as u64;
+		bgfx_sys::bgfx_set_state(draw_state, 0);
+		bgfx_sys::bgfx_set_transient_vertex_buffer(0, &buffer, 0, vertices.len() as u32);
+		bgfx_sys::bgfx_submit(view_id, program, 0, bgfx_sys::BGFX_DISCARD_ALL as u8);
+	}
+	true
+}
+
+fn submit_debug_bounds_with_layout(
+	view_id: bgfx_sys::bgfx_view_id_t,
+	bounds: &Aabb,
+	layout: &bgfx_sys::bgfx_vertex_layout_t,
+	material_handle: Dora3DHandle,
+) -> bool {
+	let _ = ensure_shaders();
+	let state = shader_state();
+	let program = choose_program(state, material_handle);
+	if program.idx == u16::MAX {
+		return false;
+	}
+	let min = bounds.min;
+	let max = bounds.max;
+	let corners = [
+		[min.x, min.y, min.z],
+		[max.x, min.y, min.z],
+		[max.x, max.y, min.z],
+		[min.x, max.y, min.z],
+		[min.x, min.y, max.z],
+		[max.x, min.y, max.z],
+		[max.x, max.y, max.z],
+		[min.x, max.y, max.z],
+	];
+	let edges = [
+		(0, 1),
+		(1, 2),
+		(2, 3),
+		(3, 0),
+		(4, 5),
+		(5, 6),
+		(6, 7),
+		(7, 4),
+		(0, 4),
+		(1, 5),
+		(2, 6),
+		(3, 7),
+	];
+	let mut vertices = Vec::with_capacity(edges.len() * 2);
+	for (start, end) in edges {
+		for position in [corners[start], corners[end]] {
+			vertices.push(mesh::Vertex {
+				position,
+				normal: [0.0, 1.0, 0.0],
+				tangent: [1.0, 0.0, 0.0, 1.0],
+				color: u32::MAX,
+				..Default::default()
+			});
+		}
+	}
+
+	unsafe {
+		let mut buffer = MaybeUninit::<bgfx_sys::bgfx_transient_vertex_buffer_t>::zeroed();
+		bgfx_sys::bgfx_alloc_transient_vertex_buffer(
+			buffer.as_mut_ptr(),
+			vertices.len() as u32,
+			layout,
+		);
+		let buffer = buffer.assume_init();
+		if buffer.data.is_null() {
+			return false;
+		}
+		ptr::copy_nonoverlapping(
+			vertices.as_ptr(),
+			buffer.data.cast::<mesh::Vertex>(),
+			vertices.len(),
+		);
+		// Mesh submissions preserve their index buffer for batching. Debug bounds
+		// are non-indexed line pairs, so clear inherited bindings before drawing.
+		bgfx_sys::bgfx_discard(bgfx_sys::BGFX_DISCARD_ALL as u8);
+		let identity = Mat4::IDENTITY;
+		let transform = mat4_to_bgfx_array(&identity);
+		bgfx_sys::bgfx_set_transform(transform.as_ptr() as *const _, 1);
+		apply_draw_uniforms(state, &identity, None, &DrawLights::default(), None);
+		let environment = environment_for_view(view_id);
+		set_default_textures(state, &environment.textures);
+		material::apply(material_handle);
+		let draw_state = bgfx_sys::BGFX_STATE_WRITE_RGB as u64
+			| bgfx_sys::BGFX_STATE_WRITE_A as u64
+			| bgfx_sys::BGFX_STATE_DEPTH_TEST_ALWAYS as u64
+			| bgfx_sys::BGFX_STATE_PT_LINES as u64
+			| bgfx_sys::BGFX_STATE_MSAA as u64;
+		bgfx_sys::bgfx_set_state(draw_state, 0);
+		bgfx_sys::bgfx_set_transient_vertex_buffer(0, &buffer, 0, vertices.len() as u32);
+		bgfx_sys::bgfx_submit(view_id, program, 0, bgfx_sys::BGFX_DISCARD_ALL as u8);
+	}
+	true
 }

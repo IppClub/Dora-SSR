@@ -1,5 +1,5 @@
 $input a_position, a_normal, a_tangent, a_texcoord0, a_texcoord1, a_color0, a_indices, a_weight
-$output v_color0, v_texcoord01, v_worldPos, v_worldNormal, v_worldTangent
+$output v_color0, v_texcoord01, v_worldPos, v_worldNormal, v_worldTangent, v_shadowCoord
 
 #include <bgfx_shader.sh>
 
@@ -12,6 +12,7 @@ uniform mat4 u_joints[MAX_JOINTS];
 uniform vec4 u_fUV[40];
 uniform vec4 u_fModelColor[40];
 uniform vec4 u_mUVInversed;
+uniform mat4 u_shadowMatrix;
 
 void main()
 {
@@ -46,4 +47,5 @@ void main()
 	v_worldPos = worldPos;
 	v_worldNormal = vec4(normalize(mul(normalModel, localNormal).xyz), 0.0);
 	v_worldTangent = vec4(normalize(mul(normalModel, localTangent).xyz), a_tangent.w);
+	v_shadowCoord = mul(u_shadowMatrix, worldPos);
 }

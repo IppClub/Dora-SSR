@@ -29,6 +29,9 @@ func touch_get_delta(slf: i64) => i64
 #wa:import dora touch_get_location
 func touch_get_location(slf: i64) => i64
 
+#wa:import dora touch_get_view_location
+func touch_get_view_location(slf: i64) => i64
+
 #wa:import dora touch_get_world_location
 func touch_get_world_location(slf: i64) => i64
 
@@ -83,6 +86,11 @@ func Touch.GetDelta() => Vec2 {
 /// Gets the location of the touch event in the node's local coordinate system.
 func Touch.GetLocation() => Vec2 {
 	return Vec2FromValue(touch_get_location(*this.raw))
+}
+
+/// Gets the touch location in SharedView logical coordinates with a left-bottom origin.
+func Touch.GetViewLocation() => Vec2 {
+	return Vec2FromValue(touch_get_view_location(*this.raw))
 }
 
 /// Gets the location of the touch event in the world coordinate system.

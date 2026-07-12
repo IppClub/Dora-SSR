@@ -23,6 +23,24 @@ func directionallight3d_set_intensity(slf: i64, val: f32)
 #wa:import dora directionallight3d_get_intensity
 func directionallight3d_get_intensity(slf: i64) => f32
 
+#wa:import dora directionallight3d_set_cast_shadow
+func directionallight3d_set_cast_shadow(slf: i64, val: i32)
+
+#wa:import dora directionallight3d_is_cast_shadow
+func directionallight3d_is_cast_shadow(slf: i64) => i32
+
+#wa:import dora directionallight3d_set_shadow_bias
+func directionallight3d_set_shadow_bias(slf: i64, val: f32)
+
+#wa:import dora directionallight3d_get_shadow_bias
+func directionallight3d_get_shadow_bias(slf: i64) => f32
+
+#wa:import dora directionallight3d_set_shadow_normal_bias
+func directionallight3d_set_shadow_normal_bias(slf: i64, val: f32)
+
+#wa:import dora directionallight3d_get_shadow_normal_bias
+func directionallight3d_get_shadow_normal_bias(slf: i64) => f32
+
 #wa:import dora directionallight3d_new
 func directionallight3d_new() => i64
 
@@ -67,6 +85,36 @@ func DirectionalLight3D.SetIntensity(val: f32) {
 /// Gets the light intensity.
 func DirectionalLight3D.GetIntensity() => f32 {
 	return directionallight3d_get_intensity(*this.raw)
+}
+
+/// Sets whether the light casts a shadow.
+func DirectionalLight3D.SetCastShadow(val: bool) {
+	directionallight3d_set_cast_shadow(*this.raw, ToDoraBool(val))
+}
+
+/// Gets whether the light casts a shadow.
+func DirectionalLight3D.IsCastShadow() => bool {
+	return directionallight3d_is_cast_shadow(*this.raw) != 0
+}
+
+/// Sets the constant shadow depth bias.
+func DirectionalLight3D.SetShadowBias(val: f32) {
+	directionallight3d_set_shadow_bias(*this.raw, val)
+}
+
+/// Gets the constant shadow depth bias.
+func DirectionalLight3D.GetShadowBias() => f32 {
+	return directionallight3d_get_shadow_bias(*this.raw)
+}
+
+/// Sets the slope-dependent shadow normal bias.
+func DirectionalLight3D.SetShadowNormalBias(val: f32) {
+	directionallight3d_set_shadow_normal_bias(*this.raw, val)
+}
+
+/// Gets the slope-dependent shadow normal bias.
+func DirectionalLight3D.GetShadowNormalBias() => f32 {
+	return directionallight3d_get_shadow_normal_bias(*this.raw)
 }
 
 /// Creates a directional light.

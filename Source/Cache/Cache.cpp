@@ -189,6 +189,46 @@ void Cache::loadAsync(String filename, const std::function<void(bool)>& callback
 	}
 }
 
+String Cache::getLoadState(String filename) {
+	switch (SharedModel3DCache.getLoadState(filename)) {
+		case Model3DLoadState::Loading:
+			return "loading";
+		case Model3DLoadState::Ready:
+			return "ready";
+		case Model3DLoadState::Failed:
+			return "failed";
+		case Model3DLoadState::Cancelled:
+			return "cancelled";
+		case Model3DLoadState::None:
+		default:
+			return "none";
+	}
+}
+
+String Cache::getLoadError(String filename) {
+	return SharedModel3DCache.getLoadError(filename);
+}
+
+bool Cache::cancelLoad(String filename) {
+	return SharedModel3DCache.cancelLoad(filename);
+}
+
+void Cache::setModel3DBudget(uint64_t bytes) {
+	SharedModel3DCache.setBudget(bytes);
+}
+
+uint64_t Cache::getModel3DBudget() {
+	return SharedModel3DCache.getBudget();
+}
+
+uint64_t Cache::getModel3DUsage() {
+	return SharedModel3DCache.getUsage();
+}
+
+uint32_t Cache::getModel3DCount() {
+	return SharedModel3DCache.getCount();
+}
+
 void Cache::update(String filename, String content) {
 	std::string ext = Path::getExt(filename);
 	if (!ext.empty()) {

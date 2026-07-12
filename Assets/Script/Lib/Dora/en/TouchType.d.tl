@@ -22,6 +22,9 @@ local record Touch
 	-- The location of the touch event in the node's local coordinate system.
 	const location: Vec2
 
+	-- The location of the touch event in the current view's logical coordinate system.
+	const viewLocation: Vec2
+
 	-- The location of the touch event in the world coordinate system.
 	const worldLocation: Vec2
 end

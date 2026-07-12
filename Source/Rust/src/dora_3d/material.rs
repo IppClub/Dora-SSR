@@ -418,6 +418,83 @@ pub fn create() -> Dora3DHandle {
 	handle
 }
 
+pub fn clone_material(source: Dora3DHandle) -> Option<Dora3DHandle> {
+	let snapshot = with_material(source, |material| {
+		(
+			material.material_type,
+			material.alpha_mode,
+			material.transparent,
+			material.double_sided,
+			material.depth_test,
+			material.depth_write,
+			material.base_color,
+			material.emissive_factor,
+			material.metallic,
+			material.roughness,
+			material.normal_scale,
+			material.occlusion_strength,
+			material.alpha_cutoff,
+			material.specular_factor,
+			material.specular_color,
+			material.ior,
+			material.clearcoat_factor,
+			material.clearcoat_roughness,
+			material.clearcoat_normal_scale,
+			material.transmission_factor,
+			material.thickness_factor,
+			material.attenuation_distance,
+			material.attenuation_color,
+			material.sheen_color,
+			material.sheen_roughness,
+			material.anisotropy_strength,
+			material.anisotropy_rotation,
+			material.anisotropy_texture,
+			material.shader_params.clone(),
+		)
+	})?;
+	let handle = create();
+	let mut materials = registry().lock().unwrap();
+	let material = materials.get_mut(&handle)?;
+	material.material_type = snapshot.0;
+	material.alpha_mode = snapshot.1;
+	material.transparent = snapshot.2;
+	material.double_sided = snapshot.3;
+	material.depth_test = snapshot.4;
+	material.depth_write = snapshot.5;
+	material.base_color = snapshot.6;
+	material.emissive_factor = snapshot.7;
+	material.metallic = snapshot.8;
+	material.roughness = snapshot.9;
+	material.normal_scale = snapshot.10;
+	material.occlusion_strength = snapshot.11;
+	material.alpha_cutoff = snapshot.12;
+	material.specular_factor = snapshot.13;
+	material.specular_color = snapshot.14;
+	material.ior = snapshot.15;
+	material.clearcoat_factor = snapshot.16;
+	material.clearcoat_roughness = snapshot.17;
+	material.clearcoat_normal_scale = snapshot.18;
+	material.transmission_factor = snapshot.19;
+	material.thickness_factor = snapshot.20;
+	material.attenuation_distance = snapshot.21;
+	material.attenuation_color = snapshot.22;
+	material.sheen_color = snapshot.23;
+	material.sheen_roughness = snapshot.24;
+	material.anisotropy_strength = snapshot.25;
+	material.anisotropy_rotation = snapshot.26;
+	material.anisotropy_texture = snapshot.27;
+	for (name, param) in snapshot.28 {
+		let uniform_type = match &param {
+			ShaderParam::Float(_) => bgfx_sys::BGFX_UNIFORM_TYPE_VEC4,
+			ShaderParam::Vec3(_) | ShaderParam::Vec4(_) => bgfx_sys::BGFX_UNIFORM_TYPE_VEC4,
+			ShaderParam::Mat4(_) => bgfx_sys::BGFX_UNIFORM_TYPE_MAT4,
+			ShaderParam::Texture(_) => bgfx_sys::BGFX_UNIFORM_TYPE_SAMPLER,
+		};
+		let _ = set_shader_param(material, &name, uniform_type, param);
+	}
+	Some(handle)
+}
+
 pub fn destroy(handle: Dora3DHandle) -> bool {
 	registry().lock().unwrap().remove(&handle).is_some()
 }
@@ -857,6 +934,38 @@ pub fn set_texture_with_flags(
 	)
 }
 
+pub fn set_external_texture(
+	handle: Dora3DHandle,
+	name: &str,
+	bgfx_texture: u16,
+	stage: u8,
+) -> bool {
+	let mut materials = registry().lock().unwrap();
+	let Some(material) = materials.get_mut(&handle) else {
+		return false;
+	};
+	if bgfx_texture == u16::MAX {
+		material.shader_params.remove(name);
+		if let Some(uniform) = material.uniforms.get(name).copied() {
+			material
+				.applied_params
+				.retain(|param| param.uniform.idx != uniform.idx);
+		}
+		return true;
+	}
+	set_shader_param(
+		material,
+		name,
+		bgfx_sys::BGFX_UNIFORM_TYPE_SAMPLER,
+		ShaderParam::Texture(TextureParam {
+			texture: u64::MAX - bgfx_texture as u64,
+			bgfx_texture: bgfx_sys::bgfx_texture_handle_t { idx: bgfx_texture },
+			stage,
+			flags: u32::MAX,
+		}),
+	)
+}
+
 pub fn set_uv_transform(
 	handle: Dora3DHandle,
 	transform_name: &str,
@@ -1022,6 +1131,28 @@ pub fn apply(handle: Dora3DHandle) -> bool {
 				}
 			}
 		}
+	}
+	true
+}
+
+pub fn is_shadow_caster(handle: Dora3DHandle) -> bool {
+	with_material(handle, |material| material.alpha_mode != AlphaMode::Blend).unwrap_or(false)
+}
+
+pub fn apply_shadow_state(handle: Dora3DHandle) -> bool {
+	let materials = registry().lock().unwrap();
+	let Some(material) = materials.get(&handle) else {
+		return false;
+	};
+	let mut state = bgfx_sys::BGFX_STATE_WRITE_RGB as u64
+		| bgfx_sys::BGFX_STATE_WRITE_A as u64
+		| bgfx_sys::BGFX_STATE_WRITE_Z as u64
+		| bgfx_sys::BGFX_STATE_DEPTH_TEST_LESS as u64;
+	if !material.double_sided {
+		state |= bgfx_sys::BGFX_STATE_CULL_CW as u64;
+	}
+	unsafe {
+		bgfx_sys::bgfx_set_state(state, 0);
 	}
 	true
 }

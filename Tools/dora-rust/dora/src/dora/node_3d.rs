@@ -11,6 +11,7 @@ extern "C" {
 	fn node3d_set_visible(slf: i64, val: i32);
 	fn node3d_is_visible(slf: i64) -> i32;
 	fn node3d_get_parent(slf: i64) -> i64;
+	fn node3d_has_children(slf: i64) -> i32;
 	fn node3d_set_position(slf: i64, val: i64);
 	fn node3d_get_position(slf: i64) -> i64;
 	fn node3d_set_scale(slf: i64, val: i64);
@@ -61,6 +62,10 @@ pub trait INode3D: IObject {
 	/// Gets the parent 3D node.
 	fn get_parent(&self) -> Option<crate::dora::Node3D> {
 		return unsafe { crate::dora::Node3D::from(node3d_get_parent(self.raw())) };
+	}
+	/// Returns whether the node has child 3D nodes.
+	fn has_children(&mut self) -> bool {
+		unsafe { return node3d_has_children(self.raw()) != 0; }
 	}
 	/// Sets the node position in 3D space.
 	fn set_position(&mut self, val: &crate::dora::Vec3) {

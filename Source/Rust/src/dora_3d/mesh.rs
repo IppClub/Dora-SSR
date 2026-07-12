@@ -41,18 +41,42 @@ pub struct MeshData {
 	pub sub_meshes: Vec<SubMesh>,
 	pub bounds: Aabb,
 	pub vertex_layout: bgfx_sys::bgfx_vertex_layout_t,
-	pub vertex_buffer: bgfx_sys::bgfx_vertex_buffer_handle_t,
-	pub index_buffer: bgfx_sys::bgfx_index_buffer_handle_t,
+	vertex_buffer: VertexBuffer,
+	index_buffer: IndexBuffer,
+}
+
+#[derive(Debug, Clone, Copy)]
+enum VertexBuffer {
+	Static(bgfx_sys::bgfx_vertex_buffer_handle_t),
+	Dynamic(bgfx_sys::bgfx_dynamic_vertex_buffer_handle_t),
+}
+
+#[derive(Debug, Clone, Copy)]
+enum IndexBuffer {
+	Static(bgfx_sys::bgfx_index_buffer_handle_t),
+	Dynamic(bgfx_sys::bgfx_dynamic_index_buffer_handle_t),
 }
 
 impl Drop for MeshData {
 	fn drop(&mut self) {
 		unsafe {
-			if self.vertex_buffer.idx != u16::MAX {
-				bgfx_sys::bgfx_destroy_vertex_buffer(self.vertex_buffer);
+			match self.vertex_buffer {
+				VertexBuffer::Static(handle) if handle.idx != u16::MAX => {
+					bgfx_sys::bgfx_destroy_vertex_buffer(handle);
+				}
+				VertexBuffer::Dynamic(handle) if handle.idx != u16::MAX => {
+					bgfx_sys::bgfx_destroy_dynamic_vertex_buffer(handle);
+				}
+				_ => {}
 			}
-			if self.index_buffer.idx != u16::MAX {
-				bgfx_sys::bgfx_destroy_index_buffer(self.index_buffer);
+			match self.index_buffer {
+				IndexBuffer::Static(handle) if handle.idx != u16::MAX => {
+					bgfx_sys::bgfx_destroy_index_buffer(handle);
+				}
+				IndexBuffer::Dynamic(handle) if handle.idx != u16::MAX => {
+					bgfx_sys::bgfx_destroy_dynamic_index_buffer(handle);
+				}
+				_ => {}
 			}
 		}
 	}
@@ -63,7 +87,7 @@ fn registry() -> &'static Mutex<HashMap<Dora3DHandle, MeshData>> {
 	REGISTRY.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
-fn create_vertex_layout() -> bgfx_sys::bgfx_vertex_layout_t {
+pub fn create_vertex_layout() -> bgfx_sys::bgfx_vertex_layout_t {
 	let mut layout = MaybeUninit::<bgfx_sys::bgfx_vertex_layout_t>::zeroed();
 	unsafe {
 		let layout_ptr = layout.as_mut_ptr();
@@ -229,11 +253,171 @@ pub fn create(
 		}),
 		bounds,
 		vertex_layout: layout,
-		vertex_buffer,
-		index_buffer,
+		vertex_buffer: VertexBuffer::Static(vertex_buffer),
+		index_buffer: IndexBuffer::Static(index_buffer),
 	};
 	registry().lock().unwrap().insert(handle, mesh);
 	handle
+}
+
+pub fn create_streaming(
+	vertices: &[Vertex],
+	indices: &[u32],
+	sub_meshes: Option<Vec<SubMesh>>,
+) -> Option<Dora3DHandle> {
+	if vertices.is_empty() || indices.is_empty() {
+		return None;
+	}
+	let layout = create_vertex_layout();
+	let vertex_buffer = unsafe {
+		bgfx_sys::bgfx_create_dynamic_vertex_buffer(
+			vertices.len() as u32,
+			&layout,
+			bgfx_sys::BGFX_BUFFER_NONE as u16,
+		)
+	};
+	if vertex_buffer.idx == u16::MAX {
+		return None;
+	}
+	let index_buffer = unsafe {
+		bgfx_sys::bgfx_create_dynamic_index_buffer(
+			indices.len() as u32,
+			bgfx_sys::BGFX_BUFFER_INDEX32 as u16,
+		)
+	};
+	if index_buffer.idx == u16::MAX {
+		unsafe { bgfx_sys::bgfx_destroy_dynamic_vertex_buffer(vertex_buffer) };
+		return None;
+	}
+	let handle = next_handle();
+	registry().lock().unwrap().insert(
+		handle,
+		MeshData {
+			handle,
+			vertex_count: vertices.len() as u32,
+			index_count: indices.len() as u32,
+			resident_bytes: std::mem::size_of_val(vertices) as u64
+				+ std::mem::size_of_val(indices) as u64,
+			joint_bounds: build_joint_bounds(vertices),
+			sub_meshes: sub_meshes.unwrap_or_else(|| {
+				vec![SubMesh {
+					start_index: 0,
+					index_count: indices.len() as u32,
+					material_slot: 0,
+				}]
+			}),
+			bounds: build_bounds(vertices),
+			vertex_layout: layout,
+			vertex_buffer: VertexBuffer::Dynamic(vertex_buffer),
+			index_buffer: IndexBuffer::Dynamic(index_buffer),
+		},
+	);
+	Some(handle)
+}
+
+pub fn update_streaming_vertices(handle: Dora3DHandle, start: u32, vertices: &[Vertex]) -> bool {
+	if vertices.is_empty() {
+		return true;
+	}
+	with_mesh(handle, |mesh| {
+		let VertexBuffer::Dynamic(buffer) = mesh.vertex_buffer else {
+			return false;
+		};
+		let memory = unsafe {
+			bgfx_sys::bgfx_copy(
+				vertices.as_ptr() as *const _,
+				std::mem::size_of_val(vertices) as u32,
+			)
+		};
+		unsafe { bgfx_sys::bgfx_update_dynamic_vertex_buffer(buffer, start, memory) };
+		true
+	})
+	.unwrap_or(false)
+}
+
+pub fn update_streaming_indices(handle: Dora3DHandle, start: u32, indices: &[u32]) -> bool {
+	if indices.is_empty() {
+		return true;
+	}
+	with_mesh(handle, |mesh| {
+		let IndexBuffer::Dynamic(buffer) = mesh.index_buffer else {
+			return false;
+		};
+		let memory = unsafe {
+			bgfx_sys::bgfx_copy(
+				indices.as_ptr() as *const _,
+				std::mem::size_of_val(indices) as u32,
+			)
+		};
+		unsafe { bgfx_sys::bgfx_update_dynamic_index_buffer(buffer, start, memory) };
+		true
+	})
+	.unwrap_or(false)
+}
+
+pub fn create_dynamic(
+	vertices: &[Vertex],
+	indices: &[u32],
+	sub_meshes: Option<Vec<SubMesh>>,
+) -> Option<Dora3DHandle> {
+	let handle = create_streaming(vertices, indices, sub_meshes)?;
+	if update_dynamic_vertices(handle, vertices) && update_streaming_indices(handle, 0, indices) {
+		Some(handle)
+	} else {
+		let _ = destroy(handle);
+		None
+	}
+}
+
+pub fn update_dynamic_vertices(handle: Dora3DHandle, vertices: &[Vertex]) -> bool {
+	let mut meshes = registry().lock().unwrap();
+	let Some(mesh) = meshes.get_mut(&handle) else {
+		return false;
+	};
+	if vertices.len() != mesh.vertex_count as usize {
+		return false;
+	}
+	let VertexBuffer::Dynamic(buffer) = mesh.vertex_buffer else {
+		return false;
+	};
+	let memory = unsafe {
+		bgfx_sys::bgfx_copy(
+			vertices.as_ptr() as *const _,
+			std::mem::size_of_val(vertices) as u32,
+		)
+	};
+	unsafe { bgfx_sys::bgfx_update_dynamic_vertex_buffer(buffer, 0, memory) };
+	mesh.bounds = build_bounds(vertices);
+	mesh.joint_bounds = build_joint_bounds(vertices);
+	true
+}
+
+impl MeshData {
+	pub fn bind_vertex_buffer(&self) {
+		unsafe {
+			match self.vertex_buffer {
+				VertexBuffer::Static(handle) => {
+					bgfx_sys::bgfx_set_vertex_buffer(0, handle, 0, self.vertex_count)
+				}
+				VertexBuffer::Dynamic(handle) => {
+					bgfx_sys::bgfx_set_dynamic_vertex_buffer(0, handle, 0, self.vertex_count)
+				}
+			}
+		}
+	}
+
+	pub fn bind_index_buffer(&self, start: u32, count: u32) {
+		unsafe {
+			match self.index_buffer {
+				IndexBuffer::Static(handle) => {
+					bgfx_sys::bgfx_set_index_buffer(handle, start, count)
+				}
+				IndexBuffer::Dynamic(handle) => {
+					bgfx_sys::bgfx_set_dynamic_index_buffer(handle, start, count)
+				}
+			}
+		}
+	}
 }
 
 pub fn destroy(handle: Dora3DHandle) -> bool {
@@ -251,12 +435,19 @@ pub fn bounds(handle: Dora3DHandle) -> Option<Aabb> {
 
 pub fn skinned_bounds(handle: Dora3DHandle, joint_matrices: &[Mat4]) -> Option<Aabb> {
 	with_mesh(handle, |mesh| {
-		let mut bounds =
-			transform_joint_bounds(&mesh.joint_bounds, joint_matrices).unwrap_or(mesh.bounds);
-		bounds.include(mesh.bounds.min);
-		bounds.include(mesh.bounds.max);
-		bounds
+		merge_skinned_bounds(mesh.bounds, &mesh.joint_bounds, joint_matrices)
 	})
+}
+
+fn merge_skinned_bounds(
+	base_bounds: Aabb,
+	joint_bounds: &[JointBounds],
+	joint_matrices: &[Mat4],
+) -> Aabb {
+	let mut bounds = transform_joint_bounds(joint_bounds, joint_matrices).unwrap_or(base_bounds);
+	bounds.include(base_bounds.min);
+	bounds.include(base_bounds.max);
+	bounds
 }
 
 fn transform_joint_bounds(joint_bounds: &[JointBounds], joint_matrices: &[Mat4]) -> Option<Aabb> {
@@ -286,6 +477,19 @@ pub fn submission_counts(handle: Dora3DHandle) -> Option<(u32, u64)> {
 
 pub fn count() -> usize {
 	registry().lock().unwrap().len()
+}
+
+pub fn buffer_counts() -> (usize, usize) {
+	registry()
+		.lock()
+		.unwrap()
+		.values()
+		.fold((0, 0), |(static_count, dynamic_count), mesh| {
+			match mesh.vertex_buffer {
+				VertexBuffer::Static(_) => (static_count + 1, dynamic_count),
+				VertexBuffer::Dynamic(_) => (static_count, dynamic_count + 1),
+			}
+		})
 }
 
 pub fn resident_bytes(handle: Dora3DHandle) -> u64 {
@@ -322,5 +526,38 @@ mod tests {
 		let bounds = transform_joint_bounds(&joint_bounds, &matrices).unwrap();
 		assert_eq!(bounds.min, Vec3::new(9.0, -1.0, -1.0));
 		assert_eq!(bounds.max, Vec3::new(11.0, 1.0, 1.0));
+	}
+
+	#[test]
+	fn skinned_bounds_cover_base_and_extreme_pose() {
+		let base_bounds = Aabb {
+			min: Vec3::new(-2.0, -1.0, -0.5),
+			max: Vec3::new(2.0, 1.0, 0.5),
+		};
+		let joint_bounds = vec![
+			JointBounds {
+				joint_index: 0,
+				bounds: Aabb {
+					min: Vec3::new(-0.5, -0.25, -0.25),
+					max: Vec3::new(0.5, 0.25, 0.25),
+				},
+			},
+			JointBounds {
+				joint_index: 1,
+				bounds: Aabb {
+					min: Vec3::new(-0.25, -1.0, -0.25),
+					max: Vec3::new(0.25, 1.0, 0.25),
+				},
+			},
+		];
+		let matrices = vec![
+			Mat4::from_translation(Vec3::new(100.0, 40.0, -20.0)),
+			Mat4::from_translation(Vec3::new(-80.0, -30.0, 10.0))
+				* Mat4::from_rotation_z(std::f32::consts::FRAC_PI_2),
+		];
+
+		let bounds = merge_skinned_bounds(base_bounds, &joint_bounds, &matrices);
+		assert_eq!(bounds.min, Vec3::new(-81.0, -30.25, -20.25));
+		assert_eq!(bounds.max, Vec3::new(100.5, 40.25, 10.25));
 	}
 }

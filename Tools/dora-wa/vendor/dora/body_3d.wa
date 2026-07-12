@@ -1,0 +1,224 @@
+/* Copyright (c) 2016-2026 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+import "runtime"
+
+#wa:import dora body3d_type
+func body3d_type() => i32
+
+#wa:import dora body3d_get_node
+func body3d_get_node(slf: i64) => i64
+
+#wa:import dora body3d_get_world
+func body3d_get_world(slf: i64) => i64
+
+#wa:import dora body3d_get_type
+func body3d_get_type(slf: i64) => i32
+
+#wa:import dora body3d_set_linear_velocity
+func body3d_set_linear_velocity(slf: i64, val: i64)
+
+#wa:import dora body3d_get_linear_velocity
+func body3d_get_linear_velocity(slf: i64) => i64
+
+#wa:import dora body3d_set_angular_velocity
+func body3d_set_angular_velocity(slf: i64, val: i64)
+
+#wa:import dora body3d_get_angular_velocity
+func body3d_get_angular_velocity(slf: i64) => i64
+
+#wa:import dora body3d_set_collision_layer
+func body3d_set_collision_layer(slf: i64, val: i32)
+
+#wa:import dora body3d_get_collision_layer
+func body3d_get_collision_layer(slf: i64) => i32
+
+#wa:import dora body3d_set_collision_mask
+func body3d_set_collision_mask(slf: i64, val: i32)
+
+#wa:import dora body3d_get_collision_mask
+func body3d_get_collision_mask(slf: i64) => i32
+
+#wa:import dora body3d_set_sensor
+func body3d_set_sensor(slf: i64, val: i32)
+
+#wa:import dora body3d_is_sensor
+func body3d_is_sensor(slf: i64) => i32
+
+#wa:import dora body3d_apply_force
+func body3d_apply_force(slf: i64, force: i64)
+
+#wa:import dora body3d_apply_impulse
+func body3d_apply_impulse(slf: i64, impulse: i64)
+
+#wa:import dora body3d_on_contact_enter
+func body3d_on_contact_enter(slf: i64, func0: i32, stack0: i64)
+
+#wa:import dora body3d_on_contact_stay
+func body3d_on_contact_stay(slf: i64, func0: i32, stack0: i64)
+
+#wa:import dora body3d_on_contact_exit
+func body3d_on_contact_exit(slf: i64, func0: i32, stack0: i64)
+
+#wa:import dora body3d_destroy
+func body3d_destroy(slf: i64)
+
+type Body3D :struct{ Object }
+
+func Body3DFrom(raw: i64) => *Body3D {
+	if raw == 0 {
+		return nil
+	}
+	object := Body3D{}
+	object.raw = &raw
+	runtime.SetFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func Body3D.GetTypeId() => i32 {
+	return body3d_type()
+}
+func ObjectAsBody3D(object: Object) => *Body3D {
+	if object.GetTypeId() == body3d_type() {
+		ObjectRetain(object.GetRaw())
+		return Body3DFrom(object.GetRaw())
+	}
+	return nil
+}
+
+/// Gets the Node3D synchronized with this body.
+func Body3D.GetNode() => *Node3D {
+	ptr_ := body3d_get_node(*this.raw)
+	if ptr_ == 0 {
+		return nil
+	}
+	obj_ := *Node3DFrom(ptr_)
+	return &obj_
+}
+
+/// Gets the physics world that owns this body.
+func Body3D.GetWorld() => *PhysicsWorld3D {
+	ptr_ := body3d_get_world(*this.raw)
+	if ptr_ == 0 {
+		return nil
+	}
+	obj_ := *PhysicsWorld3DFrom(ptr_)
+	return &obj_
+}
+
+/// Gets the body's motion type.
+func Body3D.GetType() => BodyType3D {
+	return BodyType3D{value: body3d_get_type(*this.raw)}
+}
+
+/// Sets the world-space linear velocity.
+func Body3D.SetLinearVelocity(val: Vec3) {
+	body3d_set_linear_velocity(*this.raw, val.GetRaw())
+}
+
+/// Gets the world-space linear velocity.
+func Body3D.GetLinearVelocity() => Vec3 {
+	return *Vec3From(body3d_get_linear_velocity(*this.raw))
+}
+
+/// Sets the world-space angular velocity in radians per second.
+func Body3D.SetAngularVelocity(val: Vec3) {
+	body3d_set_angular_velocity(*this.raw, val.GetRaw())
+}
+
+/// Gets the world-space angular velocity in radians per second.
+func Body3D.GetAngularVelocity() => Vec3 {
+	return *Vec3From(body3d_get_angular_velocity(*this.raw))
+}
+
+/// Sets the collision layer in the range 0 through 31.
+func Body3D.SetCollisionLayer(val: i32) {
+	body3d_set_collision_layer(*this.raw, val)
+}
+
+/// Gets the collision layer in the range 0 through 31.
+func Body3D.GetCollisionLayer() => i32 {
+	return body3d_get_collision_layer(*this.raw)
+}
+
+/// Sets the bit mask of collision layers accepted by this body.
+func Body3D.SetCollisionMask(val: i32) {
+	body3d_set_collision_mask(*this.raw, val)
+}
+
+/// Gets the bit mask of collision layers accepted by this body.
+func Body3D.GetCollisionMask() => i32 {
+	return body3d_get_collision_mask(*this.raw)
+}
+
+/// Sets whether this body reports contacts without collision response.
+func Body3D.SetSensor(val: bool) {
+	body3d_set_sensor(*this.raw, ToDoraBool(val))
+}
+
+/// Gets whether this body reports contacts without collision response.
+func Body3D.IsSensor() => bool {
+	return body3d_is_sensor(*this.raw) != 0
+}
+
+/// Applies a continuous force at the center of mass.
+func Body3D.ApplyForce(force: Vec3) {
+	body3d_apply_force(*this.raw, force.GetRaw())
+}
+
+/// Applies an instantaneous impulse at the center of mass.
+func Body3D.ApplyImpulse(impulse: Vec3) {
+	body3d_apply_impulse(*this.raw, impulse.GetRaw())
+}
+
+/// Sets the persistent contact-enter callback.
+func Body3D.OnContactEnter(handler: func(other: Body3D, point: Vec3, normal: Vec3)) {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		other_obj := stack0.PopObject()
+		ObjectRetain(other_obj.GetRaw())
+		other := *Body3DFrom(other_obj.GetRaw())
+		point, _ := stack0.PopVec3()
+		normal, _ := stack0.PopVec3()
+		handler(other, point, normal)
+	})
+	body3d_on_contact_enter(*this.raw, func_id0, *stack0.raw)
+}
+
+/// Sets the persistent contact-stay callback.
+func Body3D.OnContactStay(handler: func(other: Body3D, point: Vec3, normal: Vec3)) {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		other_obj := stack0.PopObject()
+		ObjectRetain(other_obj.GetRaw())
+		other := *Body3DFrom(other_obj.GetRaw())
+		point, _ := stack0.PopVec3()
+		normal, _ := stack0.PopVec3()
+		handler(other, point, normal)
+	})
+	body3d_on_contact_stay(*this.raw, func_id0, *stack0.raw)
+}
+
+/// Sets the persistent contact-exit callback.
+func Body3D.OnContactExit(handler: func(other: Body3D, point: Vec3, normal: Vec3)) {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		other_obj := stack0.PopObject()
+		ObjectRetain(other_obj.GetRaw())
+		other := *Body3DFrom(other_obj.GetRaw())
+		point, _ := stack0.PopVec3()
+		normal, _ := stack0.PopVec3()
+		handler(other, point, normal)
+	})
+	body3d_on_contact_exit(*this.raw, func_id0, *stack0.raw)
+}
+
+/// Removes this body from its physics world.
+func Body3D.Destroy() {
+	body3d_destroy(*this.raw)
+}

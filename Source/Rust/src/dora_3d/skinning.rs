@@ -119,8 +119,45 @@ pub fn evaluate_animation_into(
 			ChannelProperty::Scale => {
 				entry.3 = sample_vec3(current, next, factor, channel.interpolation, false);
 			}
+			ChannelProperty::MorphWeights => {}
 		}
 	}
+}
+
+pub fn evaluate_morph_weights_into(
+	clip: &AnimationClipData,
+	time: f32,
+	node_map: &HashMap<Dora3DHandle, Dora3DHandle>,
+	result: &mut Vec<(Dora3DHandle, Vec<f32>)>,
+) {
+	let sample_time = normalized_time(clip, time);
+	let mut output_index = 0;
+	for channel in &clip.channels {
+		if channel.property != ChannelProperty::MorphWeights {
+			continue;
+		}
+		let Some(node_handle) = node_map.get(&channel.target_node).copied() else {
+			continue;
+		};
+		let Some((current, next, factor)) = sample_segment(&channel.keyframes, sample_time) else {
+			continue;
+		};
+		if output_index == result.len() {
+			result.push((node_handle, Vec::new()));
+		} else {
+			result[output_index].0 = node_handle;
+		}
+		if sample_weights_into(
+			current,
+			next,
+			factor,
+			channel.interpolation,
+			&mut result[output_index].1,
+		) {
+			output_index += 1;
+		}
+	}
+	result.truncate(output_index);
 }
 
 fn hermite(current: Vec4, current_tangent: Vec4, next: Vec4, next_tangent: Vec4, t: f32) -> Vec4 {
@@ -199,6 +236,65 @@ fn sample_rotation(
 	}
 }
 
+fn sample_weights_into(
+	current: &Keyframe,
+	next: &Keyframe,
+	factor: f32,
+	interpolation: Interpolation,
+	output: &mut Vec<f32>,
+) -> bool {
+	let KeyframeValue::Weights(current_values) = &current.value else {
+		return false;
+	};
+	let KeyframeValue::Weights(next_values) = &next.value else {
+		return false;
+	};
+	if current_values.len() != next_values.len() {
+		return false;
+	}
+	output.clear();
+	output.reserve(current_values.len());
+	match interpolation {
+		Interpolation::Step => output.extend_from_slice(current_values),
+		Interpolation::Linear => output.extend(
+			current_values
+				.iter()
+				.zip(next_values)
+				.map(|(current, next)| current + (next - current) * factor),
+		),
+		Interpolation::CubicSpline => {
+			let span = (next.time - current.time).max(0.0);
+			let Some(current_tangents) = current.out_weights_tangent.as_deref() else {
+				return false;
+			};
+			let Some(next_tangents) = next.in_weights_tangent.as_deref() else {
+				return false;
+			};
+			if current_tangents.len() != current_values.len()
+				|| next_tangents.len() != current_values.len()
+			{
+				return false;
+			}
+			let t = factor;
+			let t2 = t * t;
+			let t3 = t2 * t;
+			output.extend(
+				current_values
+					.iter()
+					.zip(current_tangents)
+					.zip(next_values.iter().zip(next_tangents))
+					.map(|((current, current_tangent), (next, next_tangent))| {
+						current * (2.0 * t3 - 3.0 * t2 + 1.0)
+							+ current_tangent * span * (t3 - 2.0 * t2 + t)
+							+ next * (-2.0 * t3 + 3.0 * t2)
+							+ next_tangent * span * (t3 - t2)
+					}),
+			)
+		}
+	}
+	true
+}
+
 #[cfg(test)]
 mod tests {
 	use super::*;
@@ -215,6 +311,8 @@ mod tests {
 			value: KeyframeValue::Translation(Vec3::new(value, 0.0, 0.0)),
 			in_tangent: in_tangent.map(|value| Vec4::new(value, 0.0, 0.0, 0.0)),
 			out_tangent: out_tangent.map(|value| Vec4::new(value, 0.0, 0.0, 0.0)),
+			in_weights_tangent: None,
+			out_weights_tangent: None,
 		}
 	}
 
@@ -280,5 +378,72 @@ mod tests {
 			],
 		);
 		assert!((sampled_x(&clip, 0.5) - 1.0).abs() < 0.0001);
+	}
+
+	#[test]
+	fn repeated_sampling_reuses_output_storage() {
+		let clip = translation_clip(
+			Interpolation::Linear,
+			vec![
+				translation_keyframe(0.0, 0.0, None, None),
+				translation_keyframe(1.0, 1.0, None, None),
+			],
+		);
+		let node_map = HashMap::from([(10, 20)]);
+		let mut result = Vec::with_capacity(clip.channels.len());
+
+		evaluate_animation_into(&clip, 0.25, &node_map, &mut result);
+		let pointer = result.as_ptr();
+		let capacity = result.capacity();
+		evaluate_animation_into(&clip, 0.75, &node_map, &mut result);
+
+		assert_eq!(result.as_ptr(), pointer);
+		assert_eq!(result.capacity(), capacity);
+		assert_eq!(result[0].1, Some(Vec3::new(0.75, 0.0, 0.0)));
+	}
+
+	#[test]
+	fn morph_weights_sample_linear_and_cubic_spline() {
+		let node_map = HashMap::from([(10, 20)]);
+		let linear = AnimationClipData {
+			handle: 0,
+			name: "morph-linear".to_owned(),
+			duration: 1.0,
+			channels: vec![AnimationChannel {
+				target_node: 10,
+				property: ChannelProperty::MorphWeights,
+				interpolation: Interpolation::Linear,
+				keyframes: vec![
+					Keyframe {
+						time: 0.0,
+						value: KeyframeValue::Weights(vec![0.0, 1.0]),
+						in_tangent: None,
+						out_tangent: None,
+						in_weights_tangent: None,
+						out_weights_tangent: None,
+					},
+					Keyframe {
+						time: 1.0,
+						value: KeyframeValue::Weights(vec![1.0, 0.0]),
+						in_tangent: None,
+						out_tangent: None,
+						in_weights_tangent: None,
+						out_weights_tangent: None,
+					},
+				],
+			}],
+		};
+		let mut result = Vec::new();
+		evaluate_morph_weights_into(&linear, 0.25, &node_map, &mut result);
+		assert_eq!(result, [(20, vec![0.25, 0.75])]);
+
+		let mut cubic = linear.clone();
+		cubic.channels[0].interpolation = Interpolation::CubicSpline;
+		cubic.channels[0].keyframes[0].out_weights_tangent = Some(vec![2.0, -2.0]);
+		cubic.channels[0].keyframes[1].in_weights_tangent = Some(vec![0.0, 0.0]);
+		evaluate_morph_weights_into(&cubic, 0.5, &node_map, &mut result);
+		assert_eq!(result[0].0, 20);
+		assert!((result[0].1[0] - 0.75).abs() < 0.0001);
+		assert!((result[0].1[1] - 0.25).abs() < 0.0001);
 	}
 }

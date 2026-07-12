@@ -198,14 +198,20 @@ pub fn exists(handle: Dora3DHandle) -> bool {
 }
 
 pub fn world_matrices(handles: &[Dora3DHandle]) -> HashMap<Dora3DHandle, Mat4> {
-	let mut nodes = registry().lock().unwrap();
 	let mut matrices = HashMap::with_capacity(handles.len());
+	world_matrices_into(handles, &mut matrices);
+	matrices
+}
+
+pub fn world_matrices_into(handles: &[Dora3DHandle], matrices: &mut HashMap<Dora3DHandle, Mat4>) {
+	matrices.clear();
+	matrices.reserve(handles.len());
+	let mut nodes = registry().lock().unwrap();
 	for handle in handles {
 		if let Some(world) = update_world_internal(&mut nodes, *handle) {
 			matrices.insert(*handle, world);
 		}
 	}
-	matrices
 }
 
 pub fn add_child(parent: Dora3DHandle, child: Dora3DHandle, order: i32, tag: Option<&str>) -> bool {
@@ -215,6 +221,13 @@ pub fn add_child(parent: Dora3DHandle, child: Dora3DHandle, order: i32, tag: Opt
 	let mut nodes = registry().lock().unwrap();
 	if !nodes.contains_key(&parent) || !nodes.contains_key(&child) {
 		return false;
+	}
+	let mut ancestor = Some(parent);
+	while let Some(handle) = ancestor {
+		if handle == child {
+			return false;
+		}
+		ancestor = nodes.get(&handle).and_then(|node| node.parent);
 	}
 	let old_parent = nodes.get(&child).and_then(|node| node.parent);
 	if let Some(old_parent_handle) = old_parent {
@@ -328,6 +341,11 @@ pub fn set_rotation(handle: Dora3DHandle, rotation: Quaternion) -> bool {
 	let Some(node) = nodes.get_mut(&handle) else {
 		return false;
 	};
+	let rotation = if rotation.is_finite() && rotation.length_squared() > f32::EPSILON {
+		rotation.normalize()
+	} else {
+		Quaternion::IDENTITY
+	};
 	node.rotation = rotation;
 	node.euler_deg = euler_deg_from_quaternion(rotation);
 	node.local_dirty = true;
@@ -403,6 +421,50 @@ pub fn world_matrix(handle: Dora3DHandle) -> Option<Mat4> {
 	update_world_internal(&mut nodes, handle)
 }
 
+pub fn world_position_rotation(handle: Dora3DHandle) -> Option<(Vec3, Quaternion)> {
+	let mut nodes = registry().lock().unwrap();
+	let world = update_world_internal(&mut nodes, handle)?;
+	let (_, rotation, position) = world.to_scale_rotation_translation();
+	Some((position, rotation.normalize()))
+}
+
+pub fn set_world_position_rotation(
+	handle: Dora3DHandle,
+	position: Vec3,
+	rotation: Quaternion,
+) -> bool {
+	let mut nodes = registry().lock().unwrap();
+	let Some(node) = nodes.get(&handle) else {
+		return false;
+	};
+	let scale = node.scale;
+	let parent = node.parent;
+	let parent_world = match parent {
+		Some(parent_handle) => match update_world_internal(&mut nodes, parent_handle) {
+			Some(world) => world,
+			None => return false,
+		},
+		None => Mat4::IDENTITY,
+	};
+	let (parent_scale, _, _) = parent_world.to_scale_rotation_translation();
+	if (parent_scale - Vec3::ONE).abs().max_element() > 0.0001 {
+		return false;
+	}
+	let world = Mat4::from_rotation_translation(rotation.normalize(), position);
+	let local = parent_world.inverse() * world;
+	let (_, local_rotation, local_position) = local.to_scale_rotation_translation();
+	let Some(node) = nodes.get_mut(&handle) else {
+		return false;
+	};
+	node.position = local_position;
+	node.rotation = local_rotation.normalize();
+	node.euler_deg = euler_deg_from_quaternion(node.rotation);
+	node.scale = scale;
+	node.local_dirty = true;
+	mark_subtree_world_dirty(&mut nodes, handle);
+	true
+}
+
 pub fn local_matrix(handle: Dora3DHandle) -> Option<Mat4> {
 	let mut nodes = registry().lock().unwrap();
 	let node = nodes.get_mut(&handle)?;
@@ -421,30 +483,32 @@ pub fn convert_to_node_space(handle: Dora3DHandle, point: Vec3) -> Option<Vec3> 
 }
 
 pub fn traverse(root: Dora3DHandle) -> Vec<Dora3DHandle> {
-	let mut nodes = registry().lock().unwrap();
 	let mut ordered = Vec::new();
-	traverse_internal(&mut nodes, root, &mut ordered);
+	let mut stack = Vec::new();
+	traverse_into(root, &mut ordered, &mut stack);
 	ordered
 }
 
-fn traverse_internal(
-	nodes: &mut HashMap<Dora3DHandle, Node3DData>,
-	handle: Dora3DHandle,
+pub fn traverse_into(
+	root: Dora3DHandle,
 	ordered: &mut Vec<Dora3DHandle>,
+	stack: &mut Vec<Dora3DHandle>,
 ) {
-	if !nodes.get(&handle).map(|node| node.visible).unwrap_or(false) {
-		return;
-	}
-	if update_world_internal(nodes, handle).is_none() {
-		return;
-	}
-	ordered.push(handle);
-	let children = nodes
-		.get(&handle)
-		.map(|node| node.children.clone())
-		.unwrap_or_default();
-	for child in children {
-		traverse_internal(nodes, child, ordered);
+	ordered.clear();
+	stack.clear();
+	stack.push(root);
+	let mut nodes = registry().lock().unwrap();
+	while let Some(handle) = stack.pop() {
+		if !nodes.get(&handle).map(|node| node.visible).unwrap_or(false) {
+			continue;
+		}
+		if update_world_internal(&mut nodes, handle).is_none() {
+			continue;
+		}
+		ordered.push(handle);
+		if let Some(children) = nodes.get(&handle).map(|node| node.children.as_slice()) {
+			stack.extend(children.iter().rev().copied());
+		}
 	}
 }
 
@@ -486,10 +550,94 @@ mod tests {
 		assert!(add_child(child, grandchild, 0, None));
 		assert!(set_visible(child, false));
 		assert_eq!(traverse(root), vec![root]);
+		let mut ordered = Vec::with_capacity(3);
+		let mut stack = Vec::with_capacity(3);
+		traverse_into(root, &mut ordered, &mut stack);
+		assert_eq!(ordered, [root]);
 		assert!(set_visible(child, true));
 		assert_eq!(traverse(root), vec![root, child, grandchild]);
+		traverse_into(root, &mut ordered, &mut stack);
+		assert_eq!(ordered, [root, child, grandchild]);
 		assert!(destroy(grandchild));
 		assert!(destroy(child));
 		assert!(destroy(root));
+	}
+
+	#[test]
+	fn reparent_preserves_local_transform_and_rebuilds_world_transform() {
+		let first_parent = create();
+		let second_parent = create();
+		let child = create();
+		assert!(set_position(first_parent, Vec3::new(10.0, 0.0, 0.0)));
+		assert!(set_position(second_parent, Vec3::new(-4.0, 0.0, 0.0)));
+		assert!(set_position(child, Vec3::new(2.0, 3.0, 0.0)));
+		assert!(add_child(first_parent, child, 0, None));
+		assert_eq!(
+			world_matrix(child).unwrap().transform_point3(Vec3::ZERO),
+			Vec3::new(12.0, 3.0, 0.0)
+		);
+
+		assert!(add_child(second_parent, child, 0, None));
+		assert_eq!(get_position(child), Some(Vec3::new(2.0, 3.0, 0.0)));
+		assert_eq!(
+			world_matrix(child).unwrap().transform_point3(Vec3::ZERO),
+			Vec3::new(-2.0, 3.0, 0.0)
+		);
+		assert_eq!(parent(child), Some(second_parent));
+		assert!(remove_from_parent(child));
+		assert_eq!(
+			world_matrix(child).unwrap().transform_point3(Vec3::ZERO),
+			Vec3::new(2.0, 3.0, 0.0)
+		);
+
+		assert!(destroy(child));
+		assert!(destroy(second_parent));
+		assert!(destroy(first_parent));
+	}
+
+	#[test]
+	fn rejects_cycles_and_normalizes_rotation() {
+		let root = create();
+		let child = create();
+		assert!(add_child(root, child, 0, None));
+		assert!(!add_child(child, root, 0, None));
+		assert_eq!(parent(root), None);
+		assert_eq!(parent(child), Some(root));
+
+		assert!(set_rotation(
+			child,
+			Quaternion::from_xyzw(0.0, 2.0, 0.0, 2.0)
+		));
+		let rotation = get_rotation(child).unwrap();
+		assert!((rotation.length() - 1.0).abs() < 0.0001);
+		assert!(set_rotation(
+			child,
+			Quaternion::from_xyzw(0.0, 0.0, 0.0, 0.0)
+		));
+		assert_eq!(get_rotation(child), Some(Quaternion::IDENTITY));
+
+		assert!(destroy(child));
+		assert!(destroy(root));
+	}
+
+	#[test]
+	fn destroy_detaches_both_sides_without_destroying_children() {
+		let parent_node = create();
+		let first_child = create();
+		let second_child = create();
+		assert!(add_child(parent_node, first_child, 0, None));
+		assert!(add_child(parent_node, second_child, 1, None));
+
+		assert!(destroy(first_child));
+		assert!(!exists(first_child));
+		assert_eq!(children(parent_node), [second_child]);
+		assert_eq!(parent(second_child), Some(parent_node));
+
+		assert!(destroy(parent_node));
+		assert!(!exists(parent_node));
+		assert!(exists(second_child));
+		assert_eq!(parent(second_child), None);
+		assert_eq!(world_matrix(second_child), Some(Mat4::IDENTITY));
+		assert!(destroy(second_child));
 	}
 }

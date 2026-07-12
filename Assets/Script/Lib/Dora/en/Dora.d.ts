@@ -333,6 +333,8 @@ class RenderStats3D extends ContainerItem {
 	readonly modelCount: number;
 	readonly modelInstanceCount: number;
 	readonly meshCount: number;
+	readonly staticMeshCount: number;
+	readonly dynamicMeshCount: number;
 	readonly materialCount: number;
 	readonly textureCount: number;
 	readonly animationCount: number;
@@ -2010,6 +2012,11 @@ class Touch extends Object {
 	readonly location: Vec2;
 
 	/**
+	 * The location of the touch event in the current view's logical coordinate system.
+	 */
+	readonly viewLocation: Vec2;
+
+	/**
 	 * The location of the touch event in the world coordinate system.
 	 */
 	readonly worldLocation: Vec2;
@@ -3642,8 +3649,8 @@ class Node3D extends Object {
 	/** The parent 3D node. */
 	readonly parent?: Node3D;
 
-	/** The child 3D nodes. */
-	readonly children: any;
+	/** Whether the node has child 3D nodes. */
+	readonly hasChildren: boolean;
 
 	/** The node position. */
 	position: Vec3;
@@ -3740,9 +3747,21 @@ class View3D extends Node {
 	/** Statistics from the most recent 3D render and current 3D registries. */
 	readonly stats: RenderStats3D;
 
+	/** Whether current world AABBs are drawn for debugging. */
+	showAABB: boolean;
+
 	/** Adds a 3D child node to the scene root. */
 	addChild(child: Node3D): void;
 	addChild(child: Node, order?: number, tag?: string): void;
+
+	/** Returns the world-space origin of the picking ray through a view point. */
+	getRayOrigin(viewPoint: Vec2): Vec3;
+
+	/** Returns the world-space direction of the picking ray through a view point. */
+	getRayDirection(viewPoint: Vec2): Vec3;
+
+	/** Returns the nearest visible model intersected by a view point. */
+	pick(viewPoint: Vec2): Model3D | undefined;
 
 	/** Loads an environment map for image based lighting. */
 	setEnvironmentMap(path: string): boolean;
@@ -3770,6 +3789,208 @@ interface View3DClass {
 const view3DClass: View3DClass;
 export {view3DClass as View3D};
 
+/** Motion type used by a 3D rigid body. */
+export const enum BodyType3D {
+	Static = 0,
+	Kinematic = 1,
+	Dynamic = 2,
+}
+
+/** A 3D rigid body component owned by a PhysicsWorld3D. */
+class Body3D extends Object {
+	private constructor();
+
+	/** The synchronized node, or undefined after this body is destroyed. */
+	readonly node?: Node3D;
+
+	/** The owning world, or undefined after this body is destroyed. */
+	readonly world?: PhysicsWorld3D;
+
+	/** The body's motion type. */
+	readonly type: BodyType3D;
+
+	/** World-space linear velocity. */
+	linearVelocity: Vec3;
+
+	/** World-space angular velocity in radians per second. */
+	angularVelocity: Vec3;
+
+	/** Collision layer in the range 0 through 31. */
+	collisionLayer: number;
+
+	/** Bit mask of collision layers accepted by this body. */
+	collisionMask: number;
+
+	/** Whether contacts generate events without collision response. */
+	sensor: boolean;
+
+	applyForce(force: Vec3): void;
+	applyImpulse(impulse: Vec3): void;
+	onContactEnter(handler: (this: void, other: Body3D, point: Vec3, normal: Vec3) => void): void;
+	onContactStay(handler: (this: void, other: Body3D, point: Vec3, normal: Vec3) => void): void;
+	onContactExit(handler: (this: void, other: Body3D, point: Vec3, normal: Vec3) => void): void;
+
+	/** Removes the body from its world and turns this into an empty object. */
+	destroy(): void;
+}
+
+export {Body3D as Body3DType};
+export namespace Body3D {
+	export type Type = Body3D;
+}
+
+/** A virtual capsule character controller owned by a PhysicsWorld3D. */
+class CharacterController3D extends Object {
+	private constructor();
+	readonly node?: Node3D;
+	readonly world?: PhysicsWorld3D;
+	/** Desired horizontal movement velocity; the vertical component is ignored. */
+	desiredVelocity: Vec3;
+	/** Current velocity including gravity and jumping. */
+	readonly velocity: Vec3;
+	readonly groundNormal: Vec3;
+	readonly grounded: boolean;
+	collisionLayer: number;
+	collisionMask: number;
+	jump(speed: number): void;
+	destroy(): void;
+}
+
+export {CharacterController3D as CharacterController3DType};
+export namespace CharacterController3D {
+	export type Type = CharacterController3D;
+}
+
+/** A reusable immutable Jolt collision shape or an unfrozen compound builder. */
+class PhysicsShape3D extends Object {
+	private constructor();
+	/** Whether this shape is frozen and can be used to create bodies. */
+	readonly built: boolean;
+	/** Adds a child shape in compound-local space before build(). */
+	addChild(shape: PhysicsShape3D, position: Vec3, eulerAngles?: Vec3): boolean;
+	/** Freezes a non-empty compound shape. */
+	build(): boolean;
+}
+
+export {PhysicsShape3D as PhysicsShape3DType};
+export namespace PhysicsShape3D {
+	export type Type = PhysicsShape3D;
+}
+
+interface PhysicsShape3DClass {
+	box(halfExtent: Vec3): PhysicsShape3D;
+	sphere(radius: number): PhysicsShape3D;
+	capsule(halfHeight: number, radius: number): PhysicsShape3D;
+	compound(): PhysicsShape3D;
+	/** Reads through Content and cooks a cached static triangle mesh off the main thread. */
+	loadMeshAsync(filename: string, handler: (this: void, shape: PhysicsShape3D) => void): void;
+	/** Reads model vertices through Content and cooks a cached convex hull suitable for dynamic bodies. */
+	loadConvexHullAsync(filename: string, handler: (this: void, shape: PhysicsShape3D) => void): void;
+}
+
+const physicsShape3DClass: PhysicsShape3DClass;
+export {physicsShape3DClass as PhysicsShape3D};
+
+/** A two-body constraint owned by a PhysicsWorld3D. */
+class Constraint3D extends Object {
+	private constructor();
+	/** The owning world, or undefined after this constraint is destroyed. */
+	readonly world?: PhysicsWorld3D;
+	/** The first constrained body, or undefined after destruction. */
+	readonly firstBody?: Body3D;
+	/** The second constrained body, or undefined after destruction. */
+	readonly secondBody?: Body3D;
+	/** Removes the constraint from its world and turns this into an empty object. */
+	destroy(): void;
+}
+
+export {Constraint3D as Constraint3DType};
+export namespace Constraint3D {
+	export type Type = Constraint3D;
+}
+
+/** A fixed-step 3D physics world backed by Jolt Physics. */
+class PhysicsWorld3D extends Node {
+	private constructor();
+
+	gravity: Vec3;
+	createBox(node: Node3D, halfExtent: Vec3, bodyType?: BodyType3D): Body3D;
+	createSphere(node: Node3D, radius: number, bodyType?: BodyType3D): Body3D;
+	createCapsule(node: Node3D, halfHeight: number, radius: number, bodyType?: BodyType3D): Body3D;
+	createBody(node: Node3D, shape: PhysicsShape3D, bodyType?: BodyType3D): Body3D;
+	createCharacter(node: Node3D, halfHeight: number, radius: number, maxSlopeAngle?: number, stepHeight?: number): CharacterController3D;
+	createFixedConstraint(firstBody: Body3D, secondBody: Body3D, anchor: Vec3): Constraint3D;
+	createDistanceConstraint(firstBody: Body3D, secondBody: Body3D, firstAnchor: Vec3, secondAnchor: Vec3, minDistance: number, maxDistance: number): Constraint3D;
+	createHingeConstraint(firstBody: Body3D, secondBody: Body3D, anchor: Vec3, axis: Vec3, minAngle: number, maxAngle: number): Constraint3D;
+	destroyBody(body: Body3D): void;
+	destroyCharacter(character: CharacterController3D): void;
+	destroyConstraint(constraint: Constraint3D): void;
+
+	/** Casts a ray and invokes the handler for the nearest hit. */
+	raycast(
+		origin: Vec3,
+		direction: Vec3,
+		distance: number,
+		handler: (this: void, body: Body3D, point: Vec3, normal: Vec3, hitDistance: number) => boolean
+	): boolean;
+
+	/** Visits overlapping bodies until the handler returns true. */
+	overlapSphere(
+		center: Vec3,
+		radius: number,
+		handler: (this: void, body: Body3D) => boolean
+	): boolean;
+}
+
+export {PhysicsWorld3D as PhysicsWorld3DType};
+export namespace PhysicsWorld3D {
+	export type Type = PhysicsWorld3D;
+}
+
+interface PhysicsWorld3DClass {
+	(this: void): PhysicsWorld3D;
+	readonly Static: BodyType3D.Static;
+	readonly Kinematic: BodyType3D.Kinematic;
+	readonly Dynamic: BodyType3D.Dynamic;
+}
+
+const physicsWorld3DClass: PhysicsWorld3DClass;
+export {physicsWorld3DClass as PhysicsWorld3D};
+
+/** Alpha rendering modes supported by Material3D. */
+export const enum MaterialAlphaMode3D {
+	Opaque = 0,
+	Mask = 1,
+	Blend = 2,
+}
+
+/** A per-instance material slot owned by a Model3D instance. */
+class Material3D extends Object {
+	private constructor();
+	baseColor: Color;
+	emissive: Color3;
+	metallic: number;
+	roughness: number;
+	alphaMode: MaterialAlphaMode3D;
+	alphaCutoff: number;
+	setBaseColorTexture(texture: Texture2D): void;
+	clearBaseColorTexture(): void;
+	setMetallicRoughnessTexture(texture: Texture2D): void;
+	clearMetallicRoughnessTexture(): void;
+	setNormalTexture(texture: Texture2D): void;
+	clearNormalTexture(): void;
+	setEmissiveTexture(texture: Texture2D): void;
+	clearEmissiveTexture(): void;
+	setOcclusionTexture(texture: Texture2D): void;
+	clearOcclusionTexture(): void;
+}
+
+export {Material3D as Material3DType};
+export namespace Material3D {
+	export type Type = Material3D;
+}
+
+
 /**
  * Class used for rendering a glTF 3D model.
  */
@@ -3790,6 +4011,36 @@ class Model3D extends Node3D {
 
 	/** Whether the current animation is paused. */
 	readonly paused: boolean;
+
+	/** The number of animation clips in this model. */
+	readonly animationCount: number;
+
+	/** The number of per-instance material slots. */
+	readonly materialCount: number;
+
+	/** Gets an animation clip name by zero-based index, or an empty string when out of range. */
+	getAnimationName(index: number): string;
+
+	/** Checks whether an imported glTF node with the given name exists. */
+	hasNode(name: string): boolean;
+
+	/** Attaches a user-owned Node3D below an imported node without exposing an internal node wrapper. */
+	attachToNode(name: string, child: Node3D): boolean;
+
+	/** Gets the minimum corner of the current model-space bounds. */
+	getLocalBoundsMin(): Vec3;
+
+	/** Gets the maximum corner of the current model-space bounds. */
+	getLocalBoundsMax(): Vec3;
+
+	/** Gets the minimum corner of the current world-space bounds. */
+	getWorldBoundsMin(): Vec3;
+
+	/** Gets the maximum corner of the current world-space bounds. */
+	getWorldBoundsMax(): Vec3;
+
+	/** Gets a per-instance material slot by zero-based index. */
+	getMaterial(index: number): Material3D | undefined;
 
 	/**
 	 * Plays an animation by name.
@@ -3838,6 +4089,15 @@ class DirectionalLight3D extends Node3D {
 
 	/** The light intensity. */
 	intensity: number;
+
+	/** Whether this light casts a shadow. */
+	castShadow: boolean;
+
+	/** Constant depth bias used by the shadow comparison. */
+	shadowBias: number;
+
+	/** Slope-dependent normal bias used by the shadow comparison. */
+	shadowNormalBias: number;
 }
 
 export {DirectionalLight3D as DirectionalLight3DType};
@@ -5564,6 +5824,15 @@ export const enum CacheResourceTypeSafeUnload {
 class Cache {
 	private constructor();
 
+	/** The soft memory budget for cached Model3D resources in bytes. Zero means unlimited. */
+	model3DBudget: number;
+
+	/** The estimated resident bytes held by cached Model3D resources. */
+	readonly model3DUsage: number;
+
+	/** The number of Model3D definitions currently retained by the cache. */
+	readonly model3DCount: number;
+
 	/**
 	 * Loads a file into the cache with a blocking operation.
 	 * @param filename The name of the file to load.
@@ -5585,6 +5854,15 @@ class Cache {
 	 * });
 	 */
 	loadAsync(filename: string | string[], handler?: (this: void, progress: number) => void): boolean;
+
+	/** Gets the Model3D or environment load state. */
+	getLoadState(filename: string): "none" | "loading" | "ready" | "failed" | "cancelled";
+
+	/** Gets the latest Model3D or environment load error. */
+	getLoadError(filename: string): string;
+
+	/** Cancels an active Model3D or environment load. */
+	cancelLoad(filename: string): boolean;
 
 	/**
 	 * Updates the content of a file loaded in the cache.

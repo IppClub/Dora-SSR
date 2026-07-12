@@ -50,6 +50,10 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int32_t renderstats3d_get_mesh_count(int64_t self);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int32_t renderstats3d_get_static_mesh_count(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int32_t renderstats3d_get_dynamic_mesh_count(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int32_t renderstats3d_get_material_count(int64_t self);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int32_t renderstats3d_get_texture_count(int64_t self);
@@ -164,6 +168,14 @@ namespace Dora
 		public int MeshCount
 		{
 			get => Native.renderstats3d_get_mesh_count(Raw);
+		}
+		public int StaticMeshCount
+		{
+			get => Native.renderstats3d_get_static_mesh_count(Raw);
+		}
+		public int DynamicMeshCount
+		{
+			get => Native.renderstats3d_get_dynamic_mesh_count(Raw);
 		}
 		public int MaterialCount
 		{

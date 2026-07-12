@@ -576,6 +576,12 @@
     <ClCompile Include="..\..\..\Source\Physics\PhysicsWorld.cpp">
       <Filter>Physics</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\Physics\JoltBridge.cpp">
+      <Filter>Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Physics\JoltSources.cpp">
+      <Filter>Physics</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\nanovg\nanovg.cpp">
       <Filter>3rdParty\nanovg</Filter>
     </ClCompile>

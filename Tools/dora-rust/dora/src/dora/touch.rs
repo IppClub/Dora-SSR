@@ -14,6 +14,7 @@ extern "C" {
 	fn touch_get_id(slf: i64) -> i32;
 	fn touch_get_delta(slf: i64) -> i64;
 	fn touch_get_location(slf: i64) -> i64;
+	fn touch_get_view_location(slf: i64) -> i64;
 	fn touch_get_world_location(slf: i64) -> i64;
 }
 use crate::dora::IObject;
@@ -52,6 +53,10 @@ impl Touch {
 	/// Gets the location of the touch event in the node's local coordinate system.
 	pub fn get_location(&self) -> crate::dora::Vec2 {
 		return unsafe { crate::dora::Vec2::from(touch_get_location(self.raw())) };
+	}
+	/// Gets the touch location in SharedView logical coordinates with a left-bottom origin.
+	pub fn get_view_location(&self) -> crate::dora::Vec2 {
+		return unsafe { crate::dora::Vec2::from(touch_get_view_location(self.raw())) };
 	}
 	/// Gets the location of the touch event in the world coordinate system.
 	pub fn get_world_location(&self) -> crate::dora::Vec2 {

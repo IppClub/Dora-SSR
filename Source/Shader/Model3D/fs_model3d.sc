@@ -1,4 +1,4 @@
-$input v_color0, v_texcoord01, v_worldPos, v_worldNormal, v_worldTangent
+$input v_color0, v_texcoord01, v_worldPos, v_worldNormal, v_worldTangent, v_shadowCoord
 
 #include <bgfx_shader.sh>
 
@@ -12,7 +12,7 @@ SAMPLER2D(s_clearcoatRoughness, 6);
 SAMPLER2D(s_clearcoatNormal, 7);
 SAMPLERCUBE(s_irradiance, 8);
 SAMPLERCUBE(s_prefilter, 9);
-SAMPLER2D(s_brdfLut, 10);
+SAMPLER2D(s_shadowMap, 10);
 SAMPLER2D(s_specular, 11);
 SAMPLER2D(s_specularColor, 12);
 SAMPLER2D(s_transmission, 13);
@@ -34,6 +34,7 @@ uniform vec4 u_directionalLightColor;
 uniform vec4 u_pointLightPositionRange[4];
 uniform vec4 u_pointLightColorIntensity[4];
 uniform vec4 u_overflowLightSH[4];
+uniform vec4 u_shadowParams;
 uniform vec4 u_baseColor;
 uniform vec4 u_emissiveFactor;
 uniform vec4 u_metallicRoughness;
@@ -181,6 +182,41 @@ vec3 fresnelSchlickRoughnessF90(float cosTheta, vec3 f0, vec3 f90, float roughne
 {
 	vec3 roughF90 = max(f90 * (1.0 - roughness), f0);
 	return f0 + (roughF90 - f0) * pow(1.0 - cosTheta, 5.0);
+}
+
+vec2 environmentBRDF(float nDotV, float roughness)
+{
+	vec4 c0 = vec4(-1.0, -0.0275, -0.572, 0.022);
+	vec4 c1 = vec4(1.0, 0.0425, 1.04, -0.04);
+	vec4 r = roughness * c0 + c1;
+	float a004 = min(r.x * r.x, exp2(-9.28 * nDotV)) * r.x + r.y;
+	return vec2(-1.04, 1.04) * a004 + r.zw;
+}
+
+float directionalShadow(vec3 normal, vec3 lightDirection, vec4 shadowCoord)
+{
+	if (u_shadowParams.w < 0.5)
+	{
+		return 1.0;
+	}
+	vec3 coord = shadowCoord.xyz / max(shadowCoord.w, 0.000001);
+	if (coord.x <= 0.0 || coord.x >= 1.0 || coord.y <= 0.0 || coord.y >= 1.0 || coord.z <= 0.0 || coord.z >= 1.0)
+	{
+		return 1.0;
+	}
+	float normalOffset = u_shadowParams.y * (1.0 - saturateFloat(dot(normal, lightDirection)));
+	float receiverDepth = coord.z - u_shadowParams.x - normalOffset;
+	float visibility = 0.0;
+	for (int y = -1; y <= 1; ++y)
+	{
+		for (int x = -1; x <= 1; ++x)
+		{
+			vec4 packedDepth = texture2D(s_shadowMap, coord.xy + vec2(float(x), float(y)) * u_shadowParams.z);
+			float casterDepth = dot(packedDepth, vec4(0.000000059604645, 0.000015258789, 0.00390625, 1.0));
+			visibility += receiverDepth <= casterDepth ? 1.0 : 0.0;
+		}
+	}
+	return visibility / 9.0;
 }
 
 float maxValue(vec3 value)
@@ -356,7 +392,8 @@ void main()
 	vec3 direct = vec3_splat(0.0);
 	if (u_directionalLightDirection.w > 0.5)
 	{
-		direct += evaluateDirectLight(n, clearcoatNormal, v, anisotropyTangent, anisotropyBitangent, normalize(u_directionalLightDirection.xyz), u_directionalLightColor.rgb, baseColor.rgb, dielectricF0Color, dielectricF90Color, metallic, roughness, clearcoatRoughness, clearcoatFactor, sheenColor, sheenRoughness, anisotropyStrength, transmissionFactor);
+		vec3 directionalLight = normalize(u_directionalLightDirection.xyz);
+		direct += evaluateDirectLight(n, clearcoatNormal, v, anisotropyTangent, anisotropyBitangent, directionalLight, u_directionalLightColor.rgb, baseColor.rgb, dielectricF0Color, dielectricF90Color, metallic, roughness, clearcoatRoughness, clearcoatFactor, sheenColor, sheenRoughness, anisotropyStrength, transmissionFactor) * directionalShadow(n, directionalLight, v_shadowCoord);
 	}
 	for (int lightIndex = 0; lightIndex < 4; ++lightIndex)
 	{
@@ -406,12 +443,12 @@ void main()
 		transmissionColor *= attenuation;
 	}
 	vec3 specularIrradiance = textureCubeLod(s_prefilter, r, roughness * u_envSpecular.y).rgb * u_envSpecular.a;
-	vec2 envBRDF = texture2D(s_brdfLut, vec2(nDotV, roughness)).rg;
+	vec2 envBRDF = environmentBRDF(nDotV, roughness);
 	vec3 dielectricSpecularAmbient = specularIrradiance * (dielectricF0Color * envBRDF.x + dielectricF90Color * envBRDF.y);
 	vec3 metalSpecularAmbient = specularIrradiance * (baseColor.rgb * envBRDF.x + vec3_splat(envBRDF.y));
 	vec3 specularAmbient = mix(dielectricSpecularAmbient, metalSpecularAmbient, metallic) * occlusion;
 	vec3 clearcoatR = reflect(-v, clearcoatNormal);
-	vec2 clearcoatBRDF = texture2D(s_brdfLut, vec2(ccNDotV, clearcoatRoughness)).rg;
+	vec2 clearcoatBRDF = environmentBRDF(ccNDotV, clearcoatRoughness);
 	vec3 clearcoatAmbient = textureCubeLod(s_prefilter, clearcoatR, clearcoatRoughness * u_envSpecular.y).rgb * (0.04 * clearcoatBRDF.x + clearcoatBRDF.y) * clearcoatFactor * u_envSpecular.a * occlusion;
 	vec3 sheenAmbient = diffuseIrradiance * sheenColor * sheenStrength * (0.25 + 0.5 * sheenRoughness) * occlusion;
 	vec3 color = (diffuseAmbient * (1.0 - 0.25 * clearcoatFactor) + transmissionColor + specularAmbient + clearcoatAmbient + sheenAmbient + direct + emissive) * u_pbrParams.x;

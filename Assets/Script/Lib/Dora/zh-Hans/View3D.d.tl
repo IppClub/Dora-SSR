@@ -1,5 +1,8 @@
 local Node3D = require("Node3D").Type
 local Node = require("Node").Type
+local Vec2 = require("Vec2").Type
+local Vec3 = require("Vec3").Type
+local Model3D = require("Model3D").Type
 local RenderStats3D = require("RenderStats3DType")
 
 -- 用于在 2D 场景树中渲染 3D 内容的类。
@@ -13,6 +16,18 @@ local record View3D
 
 	-- 最近一次3D渲染与当前3D资源注册表的统计信息。
 	const stats: RenderStats3D
+
+	-- 是否绘制当前世界坐标 AABB 调试线框。
+	showAABB: boolean
+
+	-- 返回穿过视图坐标点的拾取射线世界坐标起点。
+	getRayOrigin: function(self: View3D, viewPoint: Vec2): Vec3
+
+	-- 返回穿过视图坐标点的拾取射线世界坐标方向。
+	getRayDirection: function(self: View3D, viewPoint: Vec2): Vec3
+
+	-- 返回与视图坐标点相交的最近可见模型。
+	pick: function(self: View3D, viewPoint: Vec2): Model3D | nil
 
 	-- 加载用于基于图像照明的环境贴图。
 	-- @param path (string) 环境贴图路径。空字符串会清除环境贴图。

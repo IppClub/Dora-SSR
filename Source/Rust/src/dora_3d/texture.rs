@@ -54,6 +54,24 @@ fn cube_resident_bytes(size: u16, has_mips: bool, bytes_per_pixel: u64) -> u64 {
 	texels * 6 * bytes_per_pixel
 }
 
+pub(crate) fn upload_region_size(
+	width: u16,
+	height: u16,
+	x: u16,
+	y: u16,
+	max_pixels: usize,
+) -> Option<(u16, u16)> {
+	if width == 0 || height == 0 || x >= width || y >= height || max_pixels == 0 {
+		return None;
+	}
+	if x == 0 && max_pixels >= width as usize {
+		let rows = (max_pixels / width as usize).min((height - y) as usize);
+		Some((width, rows as u16))
+	} else {
+		Some((((width - x) as usize).min(max_pixels) as u16, 1))
+	}
+}
+
 pub fn create_rgba8(
 	width: u16,
 	height: u16,
@@ -83,6 +101,75 @@ pub fn create_prepared_rgba8(
 	debug_name: Option<&str>,
 ) -> Option<Dora3DHandle> {
 	create_rgba8_data(width, height, pixels, sampler_flags, has_mips, debug_name)
+}
+
+pub fn create_empty_rgba8(
+	width: u16,
+	height: u16,
+	sampler_flags: u64,
+	has_mips: bool,
+	resident_bytes: u64,
+	debug_name: Option<&str>,
+) -> Option<Dora3DHandle> {
+	if width == 0 || height == 0 {
+		return None;
+	}
+	let texture = unsafe {
+		bgfx_sys::bgfx_create_texture_2d(
+			width,
+			height,
+			has_mips,
+			1,
+			bgfx_sys::BGFX_TEXTURE_FORMAT_RGBA8,
+			sampler_flags,
+			std::ptr::null(),
+		)
+	};
+	if texture.idx == u16::MAX {
+		return None;
+	}
+	if let Some(name) = debug_name.and_then(|value| CString::new(value).ok()) {
+		unsafe { bgfx_sys::bgfx_set_texture_name(texture, name.as_ptr(), i32::MAX) };
+	}
+	let handle = next_handle();
+	registry().lock().unwrap().insert(
+		handle,
+		TextureData {
+			handle,
+			width,
+			height,
+			resident_bytes,
+			texture,
+			owner: TextureOwner::Bgfx,
+		},
+	);
+	Some(handle)
+}
+
+pub fn update_rgba8_region(
+	handle: Dora3DHandle,
+	mip: u8,
+	x: u16,
+	y: u16,
+	width: u16,
+	height: u16,
+	pixels: &[u8],
+) -> bool {
+	if width == 0 || height == 0 || pixels.len() != width as usize * height as usize * 4 {
+		return false;
+	}
+	let texture = {
+		let textures = registry().lock().unwrap();
+		let Some(texture) = textures.get(&handle) else {
+			return false;
+		};
+		texture.texture
+	};
+	let memory = unsafe { bgfx_sys::bgfx_copy(pixels.as_ptr() as *const _, pixels.len() as u32) };
+	unsafe {
+		bgfx_sys::bgfx_update_texture_2d(texture, 0, mip, x, y, width, height, memory, u16::MAX)
+	};
+	true
 }
 
 fn create_rgba8_internal(
@@ -403,28 +490,7 @@ pub fn update_cube_rgba8(
 	if size == 0 || pixels.len() != size as usize * size as usize * 4 {
 		return false;
 	}
-	let Some(texture) = texture_handle(handle) else {
-		return false;
-	};
-	if texture.idx == u16::MAX {
-		return false;
-	}
-	unsafe {
-		let memory = bgfx_sys::bgfx_copy(pixels.as_ptr() as *const _, pixels.len() as u32);
-		bgfx_sys::bgfx_update_texture_cube(
-			texture,
-			0,
-			side,
-			mip,
-			0,
-			0,
-			size,
-			size,
-			memory,
-			u16::MAX,
-		);
-	}
-	true
+	update_cube_bytes_region(handle, side, mip, 0, 0, size, size, pixels, 4)
 }
 
 pub fn update_cube_rgba16f(
@@ -457,6 +523,27 @@ pub fn update_cube_rgba16f_bytes(
 	if size == 0 || bytes.len() != size as usize * size as usize * 8 {
 		return false;
 	}
+	update_cube_bytes_region(handle, side, mip, 0, 0, size, size, bytes, 8)
+}
+
+pub fn update_cube_bytes_region(
+	handle: Dora3DHandle,
+	side: u8,
+	mip: u8,
+	x: u16,
+	y: u16,
+	width: u16,
+	height: u16,
+	bytes: &[u8],
+	bytes_per_pixel: usize,
+) -> bool {
+	if width == 0
+		|| height == 0
+		|| bytes_per_pixel == 0
+		|| bytes.len() != width as usize * height as usize * bytes_per_pixel
+	{
+		return false;
+	}
 	let Some(texture) = texture_handle(handle) else {
 		return false;
 	};
@@ -470,10 +557,10 @@ pub fn update_cube_rgba16f_bytes(
 			0,
 			side,
 			mip,
-			0,
-			0,
-			size,
-			size,
+			x,
+			y,
+			width,
+			height,
 			memory,
 			u16::MAX,
 		);
@@ -483,6 +570,20 @@ pub fn update_cube_rgba16f_bytes(
 
 pub fn destroy(handle: Dora3DHandle) -> bool {
 	registry().lock().unwrap().remove(&handle).is_some()
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn upload_region_never_exceeds_pixel_budget() {
+		assert_eq!(upload_region_size(1024, 1024, 0, 0, 64), Some((64, 1)));
+		assert_eq!(upload_region_size(1024, 1024, 64, 0, 64), Some((64, 1)));
+		assert_eq!(upload_region_size(256, 256, 0, 3, 1024), Some((256, 4)));
+		assert_eq!(upload_region_size(256, 256, 0, 255, 1024), Some((256, 1)));
+		assert_eq!(upload_region_size(256, 256, 0, 0, 0), None);
+	}
 }
 
 pub fn with_texture<R>(handle: Dora3DHandle, f: impl FnOnce(&TextureData) -> R) -> Option<R> {

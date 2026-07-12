@@ -29,6 +29,36 @@ DORA_EXPORT int32_t model3d_is_playing(int64_t self) {
 DORA_EXPORT int32_t model3d_is_paused(int64_t self) {
 	return r_cast<Model3D*>(self)->isPaused() ? 1 : 0;
 }
+DORA_EXPORT int32_t model3d_get_animation_count(int64_t self) {
+	return s_cast<int32_t>(r_cast<Model3D*>(self)->getAnimationCount());
+}
+DORA_EXPORT int32_t model3d_get_material_count(int64_t self) {
+	return s_cast<int32_t>(r_cast<Model3D*>(self)->getMaterialCount());
+}
+DORA_EXPORT int64_t model3d_get_animation_name(int64_t self, int32_t index) {
+	return Str_Retain(r_cast<Model3D*>(self)->getAnimationName(s_cast<uint32_t>(index)));
+}
+DORA_EXPORT int32_t model3d_has_node(int64_t self, int64_t name) {
+	return r_cast<Model3D*>(self)->hasNode(*Str_From(name)) ? 1 : 0;
+}
+DORA_EXPORT int32_t model3d_attach_to_node(int64_t self, int64_t name, int64_t child) {
+	return r_cast<Model3D*>(self)->attachToNode(*Str_From(name), r_cast<Node3D*>(child)) ? 1 : 0;
+}
+DORA_EXPORT int64_t model3d_get_local_bounds_min(int64_t self) {
+	return Vec3_Retain(r_cast<Model3D*>(self)->getLocalBoundsMin());
+}
+DORA_EXPORT int64_t model3d_get_local_bounds_max(int64_t self) {
+	return Vec3_Retain(r_cast<Model3D*>(self)->getLocalBoundsMax());
+}
+DORA_EXPORT int64_t model3d_get_world_bounds_min(int64_t self) {
+	return Vec3_Retain(r_cast<Model3D*>(self)->getWorldBoundsMin());
+}
+DORA_EXPORT int64_t model3d_get_world_bounds_max(int64_t self) {
+	return Vec3_Retain(r_cast<Model3D*>(self)->getWorldBoundsMax());
+}
+DORA_EXPORT int64_t model3d_get_material(int64_t self, int32_t index) {
+	return Object_From(r_cast<Model3D*>(self)->getMaterial(s_cast<uint32_t>(index)));
+}
 DORA_EXPORT float model3d_play(int64_t self, int64_t name, int32_t looped) {
 	return r_cast<Model3D*>(self)->play(*Str_From(name), looped != 0);
 }
@@ -54,6 +84,16 @@ static void linkModel3D(wasm3::module3& mod) {
 	mod.link_optional("*", "model3d_get_elapsed", model3d_get_elapsed);
 	mod.link_optional("*", "model3d_is_playing", model3d_is_playing);
 	mod.link_optional("*", "model3d_is_paused", model3d_is_paused);
+	mod.link_optional("*", "model3d_get_animation_count", model3d_get_animation_count);
+	mod.link_optional("*", "model3d_get_material_count", model3d_get_material_count);
+	mod.link_optional("*", "model3d_get_animation_name", model3d_get_animation_name);
+	mod.link_optional("*", "model3d_has_node", model3d_has_node);
+	mod.link_optional("*", "model3d_attach_to_node", model3d_attach_to_node);
+	mod.link_optional("*", "model3d_get_local_bounds_min", model3d_get_local_bounds_min);
+	mod.link_optional("*", "model3d_get_local_bounds_max", model3d_get_local_bounds_max);
+	mod.link_optional("*", "model3d_get_world_bounds_min", model3d_get_world_bounds_min);
+	mod.link_optional("*", "model3d_get_world_bounds_max", model3d_get_world_bounds_max);
+	mod.link_optional("*", "model3d_get_material", model3d_get_material);
 	mod.link_optional("*", "model3d_play", model3d_play);
 	mod.link_optional("*", "model3d_stop", model3d_stop);
 	mod.link_optional("*", "model3d_pause", model3d_pause);

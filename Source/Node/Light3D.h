@@ -16,6 +16,9 @@ class DirectionalLight3D : public Node3D {
 public:
 	PROPERTY(Color3, Color);
 	PROPERTY(float, Intensity);
+	PROPERTY_BOOL(CastShadow);
+	PROPERTY(float, ShadowBias);
+	PROPERTY(float, ShadowNormalBias);
 	virtual bool init() override;
 	CREATE_FUNC_NOT_NULL(DirectionalLight3D);
 

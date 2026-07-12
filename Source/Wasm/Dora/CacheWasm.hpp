@@ -8,6 +8,18 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
+DORA_EXPORT void cache_set_model3_d_budget(int64_t val) {
+	Cache::setModel3DBudget(s_cast<uint64_t>(val));
+}
+DORA_EXPORT int64_t cache_get_model3_d_budget() {
+	return s_cast<int64_t>(Cache::getModel3DBudget());
+}
+DORA_EXPORT int64_t cache_get_model3_d_usage() {
+	return s_cast<int64_t>(Cache::getModel3DUsage());
+}
+DORA_EXPORT int32_t cache_get_model3_d_count() {
+	return s_cast<int32_t>(Cache::getModel3DCount());
+}
 DORA_EXPORT int32_t cache_load(int64_t filename) {
 	return Cache::load(*Str_From(filename)) ? 1 : 0;
 }
@@ -21,6 +33,15 @@ DORA_EXPORT void cache_load_async(int64_t filename, int32_t func0, int64_t stack
 		args0->push(success);
 		SharedWasmRuntime.invoke(func0);
 	});
+}
+DORA_EXPORT int64_t cache_get_load_state(int64_t filename) {
+	return Str_Retain(Cache::getLoadState(*Str_From(filename)));
+}
+DORA_EXPORT int64_t cache_get_load_error(int64_t filename) {
+	return Str_Retain(Cache::getLoadError(*Str_From(filename)));
+}
+DORA_EXPORT int32_t cache_cancel_load(int64_t filename) {
+	return Cache::cancelLoad(*Str_From(filename)) ? 1 : 0;
 }
 DORA_EXPORT void cache_update_item(int64_t filename, int64_t content) {
 	Cache::update(*Str_From(filename), *Str_From(content));
@@ -43,8 +64,15 @@ DORA_EXPORT void cache_remove_unused_by_type(int64_t type_name) {
 } // extern "C"
 
 static void linkCache(wasm3::module3& mod) {
+	mod.link_optional("*", "cache_set_model3_d_budget", cache_set_model3_d_budget);
+	mod.link_optional("*", "cache_get_model3_d_budget", cache_get_model3_d_budget);
+	mod.link_optional("*", "cache_get_model3_d_usage", cache_get_model3_d_usage);
+	mod.link_optional("*", "cache_get_model3_d_count", cache_get_model3_d_count);
 	mod.link_optional("*", "cache_load", cache_load);
 	mod.link_optional("*", "cache_load_async", cache_load_async);
+	mod.link_optional("*", "cache_get_load_state", cache_get_load_state);
+	mod.link_optional("*", "cache_get_load_error", cache_get_load_error);
+	mod.link_optional("*", "cache_cancel_load", cache_cancel_load);
 	mod.link_optional("*", "cache_update_item", cache_update_item);
 	mod.link_optional("*", "cache_update_texture", cache_update_texture);
 	mod.link_optional("*", "cache_unload_item_or_type", cache_unload_item_or_type);

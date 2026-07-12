@@ -1384,7 +1384,11 @@ bool Content::exist(String filename) {
 	if (filename.trimSpace().empty()) {
 		return true;
 	}
-	return Content::isFileExist(Content::getFullPath(filename));
+	auto res = getFullPathAndPackage(filename);
+	if (res.zipFile) {
+		return true;
+	}
+	return Content::isFileExist(res.fullPath.empty() ? filename.toString() : res.fullPath);
 }
 
 bool Content::isFolder(String path) {

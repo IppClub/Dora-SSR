@@ -29,7 +29,11 @@ uint32_t Touch::_source =
 #endif
 
 Touch::Touch(int id)
-	: _worldLocation{Vec2::zero}
+	: _location{Vec2::zero}
+	, _preLocation{Vec2::zero}
+	, _viewLocation{Vec2::zero}
+	, _viewPreLocation{Vec2::zero}
+	, _worldLocation{Vec2::zero}
 	, _worldPreLocation{Vec2::zero}
 	, _flags(Touch::Enabled)
 	, _id(id) { }
@@ -60,6 +64,14 @@ const Vec2& Touch::getLocation() const noexcept {
 
 const Vec2& Touch::getPreLocation() const noexcept {
 	return _preLocation;
+}
+
+const Vec2& Touch::getViewLocation() const noexcept {
+	return _viewLocation;
+}
+
+const Vec2& Touch::getViewPreLocation() const noexcept {
+	return _viewPreLocation;
 }
 
 const Vec2& Touch::getWorldLocation() const noexcept {
@@ -216,22 +228,22 @@ Vec2 NodeTouchHandler::getPos(const Vec3& winPos) {
 	return Vec2{-1.0f, -1.0f};
 }
 
-Vec2 NodeTouchHandler::getPos(const SDL_Event& event) {
-	Vec3 pos{-1.0f, -1.0f, 0.0f};
+Vec2 NodeTouchHandler::getViewPos(const SDL_Event& event) {
+	Vec2 pos{-1.0f, -1.0f};
 	switch (event.type) {
 		case SDL_MOUSEBUTTONUP:
 		case SDL_MOUSEBUTTONDOWN: {
 			Size size = SharedApplication.getWinSize();
 			Vec2 ratio = {s_cast<float>(event.button.x) / size.width, 1.0f - s_cast<float>(event.button.y) / size.height};
 			Vec2 winPos = ratio * SharedView.getSize();
-			pos = {winPos.x, winPos.y, 0.0f};
+			pos = winPos;
 			break;
 		}
 		case SDL_MOUSEMOTION: {
 			Size size = SharedApplication.getWinSize();
 			Vec2 ratio = {s_cast<float>(event.motion.x) / size.width, 1.0f - s_cast<float>(event.motion.y) / size.height};
 			Vec2 winPos = ratio * SharedView.getSize();
-			pos = {winPos.x, winPos.y, 0.0f};
+			pos = winPos;
 			break;
 		}
 		case SDL_FINGERUP:
@@ -239,11 +251,16 @@ Vec2 NodeTouchHandler::getPos(const SDL_Event& event) {
 		case SDL_FINGERMOTION: {
 			Size size = SharedView.getSize();
 			Vec2 ratio{event.tfinger.x, 1.0f - event.tfinger.y};
-			pos = {ratio.x * size.width, ratio.y * size.height, 0.0f};
+			pos = {ratio.x * size.width, ratio.y * size.height};
 			break;
 		}
 	}
-	return getPos(pos);
+	return pos;
+}
+
+Vec2 NodeTouchHandler::getPos(const SDL_Event& event) {
+	Vec2 pos = getViewPos(event);
+	return getPos({pos.x, pos.y, 0.0f});
 }
 
 bool NodeTouchHandler::down(const SDL_Event& event) {
@@ -262,10 +279,12 @@ bool NodeTouchHandler::down(const SDL_Event& event) {
 		default:
 			return false;
 	}
-	Vec2 pos = getPos(event);
+	Vec2 viewPos = getViewPos(event);
+	Vec2 pos = getPos({viewPos.x, viewPos.y, 0.0f});
 	Touch* touch = alloc(id);
 	if (_target->getSize() == Size::zero || Rect(Vec2::zero, _target->getSize()).containsPoint(pos)) {
 		touch->_preLocation = touch->_location = pos;
+		touch->_viewPreLocation = touch->_viewLocation = viewPos;
 		touch->_worldPreLocation = touch->_worldLocation = _target->convertToWorldSpace(pos);
 		touch->_flags.setOn(Touch::Selected);
 		_target->emit("TapFilter"_slice, touch);
@@ -298,9 +317,12 @@ bool NodeTouchHandler::up(const SDL_Event& event) {
 	Touch* touch = get(id);
 	if (touch) {
 		if (touch->isEnabled()) {
-			Vec2 pos = getPos(event);
+			Vec2 viewPos = getViewPos(event);
+			Vec2 pos = getPos({viewPos.x, viewPos.y, 0.0f});
 			touch->_preLocation = touch->_location;
 			touch->_location = pos;
+			touch->_viewPreLocation = touch->_viewLocation;
+			touch->_viewLocation = viewPos;
 			touch->_worldPreLocation = touch->_worldLocation;
 			touch->_worldLocation = _target->convertToWorldSpace(pos);
 			if (touch->_flags.isOn(Touch::Selected)) {
@@ -332,9 +354,12 @@ bool NodeTouchHandler::move(const SDL_Event& event) {
 			return false;
 	}
 	if (touch && touch->isEnabled()) {
-		Vec2 pos = getPos(event);
+		Vec2 viewPos = getViewPos(event);
+		Vec2 pos = getPos({viewPos.x, viewPos.y, 0.0f});
 		touch->_preLocation = touch->_location;
 		touch->_location = pos;
+		touch->_viewPreLocation = touch->_viewLocation;
+		touch->_viewLocation = viewPos;
 		touch->_worldPreLocation = touch->_worldLocation;
 		touch->_worldLocation = _target->convertToWorldSpace(pos);
 		_target->emit("TapMoved"_slice, touch);

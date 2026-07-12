@@ -150,6 +150,8 @@
 		3C592AB72CA4EFD100CAF224 /* BodyDef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592AAC2CA4EFD100CAF224 /* BodyDef.cpp */; };
 		3C592AB82CA4EFD100CAF224 /* DebugDraw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592AAE2CA4EFD100CAF224 /* DebugDraw.cpp */; };
 		3C592AB92CA4EFD100CAF224 /* PhysicsWorld.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592AB42CA4EFD100CAF224 /* PhysicsWorld.cpp */; };
+		A1B2C3D4E5F60708090A0B01 /* JoltBridge.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60708090A0B02 /* JoltBridge.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty/JoltPhysics -DJPH_NO_FORCE_INLINE -fno-rtti -fno-exceptions -ffp-contract=off"; }; };
+		A1B2C3D4E5F60708090A0B03 /* JoltSources.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60708090A0B04 /* JoltSources.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty/JoltPhysics -DJPH_NO_FORCE_INLINE -fno-rtti -fno-exceptions -ffp-contract=off"; }; };
 		3C592ABA2CA4EFD100CAF224 /* Body.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592AAA2CA4EFD100CAF224 /* Body.cpp */; };
 		3C592ABB2CA4EFD100CAF224 /* Joint.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592AB02CA4EFD100CAF224 /* Joint.cpp */; };
 		3C592ABC2CA4EFD100CAF224 /* JointDef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592AB22CA4EFD100CAF224 /* JointDef.cpp */; };
@@ -967,6 +969,7 @@
 		3C592AB22CA4EFD100CAF224 /* JointDef.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JointDef.cpp; sourceTree = "<group>"; };
 		3C592AB32CA4EFD100CAF224 /* PhysicsWorld.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PhysicsWorld.h; sourceTree = "<group>"; };
 		3C592AB42CA4EFD100CAF224 /* PhysicsWorld.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PhysicsWorld.cpp; sourceTree = "<group>"; };
+		A1B2C3D4E5F60708090A0B02 /* JoltBridge.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JoltBridge.cpp; sourceTree = "<group>"; };
 		3C592AB52CA4EFD100CAF224 /* Sensor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Sensor.h; sourceTree = "<group>"; };
 		3C592AB62CA4EFD100CAF224 /* Sensor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Sensor.cpp; sourceTree = "<group>"; };
 		3C592ABE2CA4EFE200CAF224 /* AI.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AI.h; sourceTree = "<group>"; };
@@ -1639,6 +1642,7 @@
 		3C68A8BE2F95ACF000DDC115 /* Material.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Material.h; sourceTree = "<group>"; };
 		3C68A8BF2F95ACF000DDC115 /* Material.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Material.cpp; sourceTree = "<group>"; };
 		3C76449E2CFD93D100DEDC0B /* libdora_runtime.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libdora_runtime.a; path = ../../Source/Rust/lib/macOS/libdora_runtime.a; sourceTree = "<group>"; };
+		A1B2C3D4E5F60708090A0B04 /* JoltSources.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JoltSources.cpp; sourceTree = "<group>"; };
 		3C87085F2B5E0F56002E9658 /* ContactImpulsesFunction.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ContactImpulsesFunction.hpp; sourceTree = "<group>"; };
 		3C8708602B5E0F56002E9658 /* ContactManifoldFunction.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ContactManifoldFunction.hpp; sourceTree = "<group>"; };
 		3C8708612B5E0FAC002E9658 /* ShapeFunction.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ShapeFunction.hpp; sourceTree = "<group>"; };
@@ -4404,6 +4408,8 @@
 				3C592AB22CA4EFD100CAF224 /* JointDef.cpp */,
 				3C592AB32CA4EFD100CAF224 /* PhysicsWorld.h */,
 				3C592AB42CA4EFD100CAF224 /* PhysicsWorld.cpp */,
+				A1B2C3D4E5F60708090A0B02 /* JoltBridge.cpp */,
+				A1B2C3D4E5F60708090A0B04 /* JoltSources.cpp */,
 				3C592AB52CA4EFD100CAF224 /* Sensor.h */,
 				3C592AB62CA4EFD100CAF224 /* Sensor.cpp */,
 			);
@@ -5226,6 +5232,8 @@
 				3C592AB72CA4EFD100CAF224 /* BodyDef.cpp in Sources */,
 				3C592AB82CA4EFD100CAF224 /* DebugDraw.cpp in Sources */,
 				3C592AB92CA4EFD100CAF224 /* PhysicsWorld.cpp in Sources */,
+				A1B2C3D4E5F60708090A0B01 /* JoltBridge.cpp in Sources */,
+				A1B2C3D4E5F60708090A0B03 /* JoltSources.cpp in Sources */,
 				3C592ABA2CA4EFD100CAF224 /* Body.cpp in Sources */,
 				3C592ABB2CA4EFD100CAF224 /* Joint.cpp in Sources */,
 				3C592ABC2CA4EFD100CAF224 /* JointDef.cpp in Sources */,

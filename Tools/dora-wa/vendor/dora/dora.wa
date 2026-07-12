@@ -618,6 +618,9 @@ func call_stack_push_object(stack: i64, value: i64)
 #wa:import dora call_stack_push_vec2
 func call_stack_push_vec2(stack: i64, value: i64)
 
+#wa:import dora call_stack_push_vec3
+func call_stack_push_vec3(stack: i64, value: i64)
+
 #wa:import dora call_stack_push_size
 func call_stack_push_size(stack: i64, value: i64)
 
@@ -638,6 +641,9 @@ func call_stack_pop_object(stack: i64) => i64
 
 #wa:import dora call_stack_pop_vec2
 func call_stack_pop_vec2(stack: i64) => i64
+
+#wa:import dora call_stack_pop_vec3
+func call_stack_pop_vec3(stack: i64) => i64
 
 #wa:import dora call_stack_pop_size
 func call_stack_pop_size(stack: i64) => i64
@@ -663,6 +669,9 @@ func call_stack_front_object(stack: i64) => i32
 #wa:import dora call_stack_front_vec2
 func call_stack_front_vec2(stack: i64) => i32
 
+#wa:import dora call_stack_front_vec3
+func call_stack_front_vec3(stack: i64) => i32
+
 #wa:import dora call_stack_front_size
 func call_stack_front_size(stack: i64) => i32
 
@@ -685,7 +694,7 @@ func NewCallStack() => CallStack {
 	return callStack
 }
 
-#wa:generic PushI64 PushF32 PushF64 PushStr PushBool PushObject PushVec2 PushSize
+#wa:generic PushI64 PushF32 PushF64 PushStr PushBool PushObject PushVec2 PushVec3 PushSize
 func CallStack.Push(value: i32) {
 	call_stack_push_i64(*this.raw, i64(value))
 }
@@ -716,6 +725,10 @@ func CallStack.PushObject(value: Object) {
 
 func CallStack.PushVec2(value: Vec2) {
 	call_stack_push_vec2(*this.raw, value.ToValue())
+}
+
+func CallStack.PushVec3(value: Vec3) {
+	call_stack_push_vec3(*this.raw, value.GetRaw())
 }
 
 func CallStack.PushSize(value: Size) {
@@ -781,6 +794,13 @@ func CallStack.PopVec2() => (Vec2, bool) {
 		return Vec2Zero, false
 	}
 	return Vec2FromValue(call_stack_pop_vec2(*this.raw)), true
+}
+
+func CallStack.PopVec3() => (Vec3, bool) {
+	if call_stack_front_vec3(*this.raw) == 0 {
+		return NewVec3(0.0, 0.0, 0.0), false
+	}
+	return *Vec3From(call_stack_pop_vec3(*this.raw)), true
 }
 
 func CallStack.PopSize() => (Size, bool) {
@@ -2224,6 +2244,34 @@ func BodyType.ToValue() => i32 {
 global BodyTypeDynamic = BodyType{value: 0}
 global BodyTypeStatic = BodyType{value: 1}
 global BodyTypeKinematic = BodyType{value: 2}
+
+/* BodyType3D */
+
+type BodyType3D :struct {
+	value: i32
+}
+
+func BodyType3D.ToValue() => i32 {
+	return this.value
+}
+
+global BodyType3DStatic = BodyType3D{value: 0}
+global BodyType3DKinematic = BodyType3D{value: 1}
+global BodyType3DDynamic = BodyType3D{value: 2}
+
+/* MaterialAlphaMode3D */
+
+type MaterialAlphaMode3D :struct {
+	value: i32
+}
+
+func MaterialAlphaMode3D.ToValue() => i32 {
+	return self.value
+}
+
+global MaterialAlphaMode3DOpaque = MaterialAlphaMode3D{value: 0}
+global MaterialAlphaMode3DMask = MaterialAlphaMode3D{value: 1}
+global MaterialAlphaMode3DBlend = MaterialAlphaMode3D{value: 2}
 
 /* ShaderStage */
 

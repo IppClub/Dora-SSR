@@ -17,8 +17,23 @@ DORA_EXPORT int64_t view3d_get_scene(int64_t self) {
 DORA_EXPORT int64_t view3d_get_stats(int64_t self) {
 	return r_cast<int64_t>(new RenderStats3D{r_cast<View3D*>(self)->getStats()});
 }
+DORA_EXPORT void view3d_set_show_a_a_b_b(int64_t self, int32_t val) {
+	r_cast<View3D*>(self)->setShowAABB(val != 0);
+}
+DORA_EXPORT int32_t view3d_is_show_a_a_b_b(int64_t self) {
+	return r_cast<View3D*>(self)->isShowAABB() ? 1 : 0;
+}
 DORA_EXPORT void view3d_add_child_3d(int64_t self, int64_t child) {
 	r_cast<View3D*>(self)->addChild(r_cast<Node3D*>(child));
+}
+DORA_EXPORT int64_t view3d_get_ray_origin(int64_t self, int64_t view_point) {
+	return Vec3_Retain(r_cast<View3D*>(self)->getRayOrigin(Vec2_From(view_point)));
+}
+DORA_EXPORT int64_t view3d_get_ray_direction(int64_t self, int64_t view_point) {
+	return Vec3_Retain(r_cast<View3D*>(self)->getRayDirection(Vec2_From(view_point)));
+}
+DORA_EXPORT int64_t view3d_pick(int64_t self, int64_t view_point) {
+	return Object_From(r_cast<View3D*>(self)->pick(Vec2_From(view_point)));
 }
 DORA_EXPORT int32_t view3d_set_environment_map(int64_t self, int64_t path) {
 	return r_cast<View3D*>(self)->setEnvironmentMap(*Str_From(path)) ? 1 : 0;
@@ -35,7 +50,12 @@ static void linkView3D(wasm3::module3& mod) {
 	mod.link_optional("*", "view3d_type", view3d_type);
 	mod.link_optional("*", "view3d_get_scene", view3d_get_scene);
 	mod.link_optional("*", "view3d_get_stats", view3d_get_stats);
+	mod.link_optional("*", "view3d_set_show_a_a_b_b", view3d_set_show_a_a_b_b);
+	mod.link_optional("*", "view3d_is_show_a_a_b_b", view3d_is_show_a_a_b_b);
 	mod.link_optional("*", "view3d_add_child_3d", view3d_add_child_3d);
+	mod.link_optional("*", "view3d_get_ray_origin", view3d_get_ray_origin);
+	mod.link_optional("*", "view3d_get_ray_direction", view3d_get_ray_direction);
+	mod.link_optional("*", "view3d_pick", view3d_pick);
 	mod.link_optional("*", "view3d_set_environment_map", view3d_set_environment_map);
 	mod.link_optional("*", "view3d_set_environment_intensity", view3d_set_environment_intensity);
 	mod.link_optional("*", "view3d_new", view3d_new);

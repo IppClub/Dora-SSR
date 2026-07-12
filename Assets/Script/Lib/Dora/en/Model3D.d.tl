@@ -1,4 +1,6 @@
 local Node3D = require("Node3D").Type
+local Vec3 = require("Vec3").Type
+local type Material3D = require("Material3DType")
 
 -- Class used for rendering a glTF 3D model.
 local record Model3D
@@ -20,6 +22,36 @@ local record Model3D
 
 	-- Whether the current animation is paused.
 	const paused: boolean
+
+	-- The number of animation clips in this model.
+	const animationCount: integer
+
+	-- The number of per-instance material slots.
+	const materialCount: integer
+
+	-- Gets an animation clip name by zero-based index.
+	getAnimationName: function(self: Model3D, index: integer): string
+
+	-- Checks whether an imported glTF node with the given name exists.
+	hasNode: function(self: Model3D, name: string): boolean
+
+	-- Attaches a user-owned Node3D below an imported node.
+	attachToNode: function(self: Model3D, name: string, child: Node3D): boolean
+
+	-- Gets the current model-space bounds minimum.
+	getLocalBoundsMin: function(self: Model3D): Vec3
+
+	-- Gets the current model-space bounds maximum.
+	getLocalBoundsMax: function(self: Model3D): Vec3
+
+	-- Gets the current world-space bounds minimum.
+	getWorldBoundsMin: function(self: Model3D): Vec3
+
+	-- Gets the current world-space bounds maximum.
+	getWorldBoundsMax: function(self: Model3D): Vec3
+
+	-- Gets a per-instance material slot by zero-based index.
+	getMaterial: function(self: Model3D, index: integer): Material3D | nil
 
 	-- Plays an animation by name.
 	-- @param name (string) [optional] The animation name. Uses the default animation when omitted.

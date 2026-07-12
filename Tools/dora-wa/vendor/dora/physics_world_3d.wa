@@ -1,0 +1,186 @@
+/* Copyright (c) 2016-2026 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+import "runtime"
+
+#wa:import dora physicsworld3d_type
+func physicsworld3d_type() => i32
+
+#wa:import dora physicsworld3d_set_gravity
+func physicsworld3d_set_gravity(slf: i64, val: i64)
+
+#wa:import dora physicsworld3d_get_gravity
+func physicsworld3d_get_gravity(slf: i64) => i64
+
+#wa:import dora physicsworld3d_create_box
+func physicsworld3d_create_box(slf: i64, node: i64, half_extent: i64, body_type: i32) => i64
+
+#wa:import dora physicsworld3d_create_sphere
+func physicsworld3d_create_sphere(slf: i64, node: i64, radius: f32, body_type: i32) => i64
+
+#wa:import dora physicsworld3d_create_capsule
+func physicsworld3d_create_capsule(slf: i64, node: i64, half_height: f32, radius: f32, body_type: i32) => i64
+
+#wa:import dora physicsworld3d_create_body
+func physicsworld3d_create_body(slf: i64, node: i64, shape: i64, body_type: i32) => i64
+
+#wa:import dora physicsworld3d_create_character
+func physicsworld3d_create_character(slf: i64, node: i64, half_height: f32, radius: f32, max_slope_angle: f32, step_height: f32) => i64
+
+#wa:import dora physicsworld3d_create_fixed_constraint
+func physicsworld3d_create_fixed_constraint(slf: i64, first_body: i64, second_body: i64, anchor: i64) => i64
+
+#wa:import dora physicsworld3d_create_distance_constraint
+func physicsworld3d_create_distance_constraint(slf: i64, first_body: i64, second_body: i64, first_anchor: i64, second_anchor: i64, min_distance: f32, max_distance: f32) => i64
+
+#wa:import dora physicsworld3d_create_hinge_constraint
+func physicsworld3d_create_hinge_constraint(slf: i64, first_body: i64, second_body: i64, anchor: i64, axis: i64, min_angle: f32, max_angle: f32) => i64
+
+#wa:import dora physicsworld3d_destroy_body
+func physicsworld3d_destroy_body(slf: i64, body: i64)
+
+#wa:import dora physicsworld3d_destroy_character
+func physicsworld3d_destroy_character(slf: i64, character: i64)
+
+#wa:import dora physicsworld3d_destroy_constraint
+func physicsworld3d_destroy_constraint(slf: i64, constraint: i64)
+
+#wa:import dora physicsworld3d_raycast
+func physicsworld3d_raycast(slf: i64, origin: i64, direction: i64, distance: f32, func0: i32, stack0: i64) => i32
+
+#wa:import dora physicsworld3d_overlap_sphere
+func physicsworld3d_overlap_sphere(slf: i64, center: i64, radius: f32, func0: i32, stack0: i64) => i32
+
+#wa:import dora physicsworld3d_new
+func physicsworld3d_new() => i64
+
+type PhysicsWorld3D :struct{ Node }
+
+func PhysicsWorld3DFrom(raw: i64) => *PhysicsWorld3D {
+	if raw == 0 {
+		return nil
+	}
+	object := PhysicsWorld3D{}
+	object.raw = &raw
+	runtime.SetFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func PhysicsWorld3D.GetTypeId() => i32 {
+	return physicsworld3d_type()
+}
+func ObjectAsPhysicsWorld3D(object: Object) => *PhysicsWorld3D {
+	if object.GetTypeId() == physicsworld3d_type() {
+		ObjectRetain(object.GetRaw())
+		return PhysicsWorld3DFrom(object.GetRaw())
+	}
+	return nil
+}
+
+/// Sets the world gravity in units per second squared.
+func PhysicsWorld3D.SetGravity(val: Vec3) {
+	physicsworld3d_set_gravity(*this.raw, val.GetRaw())
+}
+
+/// Gets the world gravity in units per second squared.
+func PhysicsWorld3D.GetGravity() => Vec3 {
+	return *Vec3From(physicsworld3d_get_gravity(*this.raw))
+}
+
+/// Creates a box body using half extents.
+func PhysicsWorld3D.CreateBox(node: Node3D, half_extent: Vec3, body_type: BodyType3D) => Body3D {
+	return *Body3DFrom(physicsworld3d_create_box(*this.raw, node.GetRaw(), half_extent.GetRaw(), body_type.ToValue()))
+}
+
+/// Creates a sphere body.
+func PhysicsWorld3D.CreateSphere(node: Node3D, radius: f32, body_type: BodyType3D) => Body3D {
+	return *Body3DFrom(physicsworld3d_create_sphere(*this.raw, node.GetRaw(), radius, body_type.ToValue()))
+}
+
+/// Creates a capsule body.
+func PhysicsWorld3D.CreateCapsule(node: Node3D, half_height: f32, radius: f32, body_type: BodyType3D) => Body3D {
+	return *Body3DFrom(physicsworld3d_create_capsule(*this.raw, node.GetRaw(), half_height, radius, body_type.ToValue()))
+}
+
+/// Creates a body using a reusable built collision shape.
+func PhysicsWorld3D.CreateBody(node: Node3D, shape: PhysicsShape3D, body_type: BodyType3D) => Body3D {
+	return *Body3DFrom(physicsworld3d_create_body(*this.raw, node.GetRaw(), shape.GetRaw(), body_type.ToValue()))
+}
+
+/// Creates a virtual capsule character whose node position represents its feet.
+func PhysicsWorld3D.CreateCharacter(node: Node3D, half_height: f32, radius: f32, max_slope_angle: f32, step_height: f32) => CharacterController3D {
+	return *CharacterController3DFrom(physicsworld3d_create_character(*this.raw, node.GetRaw(), half_height, radius, max_slope_angle, step_height))
+}
+
+/// Creates a fixed constraint at a world-space anchor.
+func PhysicsWorld3D.CreateFixedConstraint(first_body: Body3D, second_body: Body3D, anchor: Vec3) => Constraint3D {
+	return *Constraint3DFrom(physicsworld3d_create_fixed_constraint(*this.raw, first_body.GetRaw(), second_body.GetRaw(), anchor.GetRaw()))
+}
+
+/// Creates a distance constraint between two world-space anchors.
+func PhysicsWorld3D.CreateDistanceConstraint(first_body: Body3D, second_body: Body3D, first_anchor: Vec3, second_anchor: Vec3, min_distance: f32, max_distance: f32) => Constraint3D {
+	return *Constraint3DFrom(physicsworld3d_create_distance_constraint(*this.raw, first_body.GetRaw(), second_body.GetRaw(), first_anchor.GetRaw(), second_anchor.GetRaw(), min_distance, max_distance))
+}
+
+/// Creates a hinge around a world-space axis with limits in degrees.
+func PhysicsWorld3D.CreateHingeConstraint(first_body: Body3D, second_body: Body3D, anchor: Vec3, axis: Vec3, min_angle: f32, max_angle: f32) => Constraint3D {
+	return *Constraint3DFrom(physicsworld3d_create_hinge_constraint(*this.raw, first_body.GetRaw(), second_body.GetRaw(), anchor.GetRaw(), axis.GetRaw(), min_angle, max_angle))
+}
+
+/// Removes a body from this world.
+func PhysicsWorld3D.DestroyBody(body: Body3D) {
+	physicsworld3d_destroy_body(*this.raw, body.GetRaw())
+}
+
+/// Removes a character from this world.
+func PhysicsWorld3D.DestroyCharacter(character: CharacterController3D) {
+	physicsworld3d_destroy_character(*this.raw, character.GetRaw())
+}
+
+/// Removes a constraint from this world.
+func PhysicsWorld3D.DestroyConstraint(constraint: Constraint3D) {
+	physicsworld3d_destroy_constraint(*this.raw, constraint.GetRaw())
+}
+
+/// Casts a ray and invokes the handler for the nearest hit.
+func PhysicsWorld3D.Raycast(origin: Vec3, direction: Vec3, distance: f32, handler: func(body: Body3D, point: Vec3, normal: Vec3, hit_distance: f32) => bool) => bool {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		body_obj := stack0.PopObject()
+		ObjectRetain(body_obj.GetRaw())
+		body := *Body3DFrom(body_obj.GetRaw())
+		point, _ := stack0.PopVec3()
+		normal, _ := stack0.PopVec3()
+		hitDistance, _ := stack0.PopF32()
+		result_ := handler(body, point, normal, hitDistance)
+		stack0.Push(result_)
+	})
+	return physicsworld3d_raycast(*this.raw, origin.GetRaw(), direction.GetRaw(), distance, func_id0, *stack0.raw) != 0
+}
+
+/// Visits bodies overlapping a sphere until the handler returns true.
+func PhysicsWorld3D.OverlapSphere(center: Vec3, radius: f32, handler: func(body: Body3D) => bool) => bool {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		body_obj := stack0.PopObject()
+		ObjectRetain(body_obj.GetRaw())
+		body := *Body3DFrom(body_obj.GetRaw())
+		result_ := handler(body)
+		stack0.Push(result_)
+	})
+	return physicsworld3d_overlap_sphere(*this.raw, center.GetRaw(), radius, func_id0, *stack0.raw) != 0
+}
+
+/// Creates a 3D physics world.
+func NewPhysicsWorld3D() => PhysicsWorld3D {
+	raw := physicsworld3d_new()
+	object := PhysicsWorld3D{}
+	object.raw = &raw
+	runtime.SetFinalizer(object.raw, ObjectFinalizer)
+	return object
+}

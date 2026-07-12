@@ -15,6 +15,7 @@ NS_DORA_BEGIN
 class Camera3D;
 class Camera;
 class Node3D;
+class Model3D;
 
 struct RenderStats3D {
 	uint32_t sceneNodes = 0;
@@ -33,6 +34,8 @@ struct RenderStats3D {
 	uint32_t modelCount = 0;
 	uint32_t modelInstanceCount = 0;
 	uint32_t meshCount = 0;
+	uint32_t staticMeshCount = 0;
+	uint32_t dynamicMeshCount = 0;
 	uint32_t materialCount = 0;
 	uint32_t textureCount = 0;
 	uint32_t animationCount = 0;
@@ -64,6 +67,8 @@ struct RenderStats3D {
 	uint32_t getModelCount() const noexcept { return modelCount; }
 	uint32_t getModelInstanceCount() const noexcept { return modelInstanceCount; }
 	uint32_t getMeshCount() const noexcept { return meshCount; }
+	uint32_t getStaticMeshCount() const noexcept { return staticMeshCount; }
+	uint32_t getDynamicMeshCount() const noexcept { return dynamicMeshCount; }
 	uint32_t getMaterialCount() const noexcept { return materialCount; }
 	uint32_t getTextureCount() const noexcept { return textureCount; }
 	uint32_t getAnimationCount() const noexcept { return animationCount; }
@@ -84,10 +89,14 @@ class View3D : public Node {
 public:
 	PROPERTY_READONLY_CALL(Node3D*, Scene);
 	PROPERTY_READONLY_CREF(RenderStats3D, Stats);
+	PROPERTY_BOOL(ShowAABB);
 	using Node::addChild;
 	void addChild(Node3D* child, int order, String tag);
 	void addChild(Node3D* child, int order);
 	void addChild(Node3D* child);
+	Vec3 getRayOrigin(const Vec2& viewPoint) const;
+	Vec3 getRayDirection(const Vec2& viewPoint) const;
+	Model3D* pick(const Vec2& viewPoint) const;
 	bool setEnvironmentMap(String path);
 	void setEnvironmentIntensity(float diffuse, float specular, float exposure = 1.0f);
 	virtual bool init() override;
@@ -100,12 +109,14 @@ protected:
 	~View3D();
 
 private:
+	bool getScreenRay(const Vec2& viewPoint, Vec3& origin, Vec3& direction) const;
 	void render3D(bgfx::ViewId viewId);
 	std::string _environmentMap;
 	uint64_t _environmentGeneration = 0;
 	float _environmentDiffuse;
 	float _environmentSpecular;
 	float _environmentExposure;
+	bool _showAABB;
 	mutable RenderStats3D _stats;
 	mutable uint16_t _lastViewId;
 	Ref<Node3D> _scene;

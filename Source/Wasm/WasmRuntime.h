@@ -46,6 +46,7 @@ using dora_val_t = std::variant<
 	std::string,
 	Object*,
 	Vec2,
+	Vec3,
 	Size>;
 
 using OptString = std::optional<Slice>;
@@ -59,6 +60,7 @@ public:
 	void push(String value);
 	void push(Object* value);
 	void push(const Vec2& value);
+	void push(const Vec3& value);
 	void push(const Size& value);
 	void push_v(dora_val_t value);
 	template <typename T>

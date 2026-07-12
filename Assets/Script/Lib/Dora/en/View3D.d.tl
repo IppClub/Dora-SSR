@@ -1,5 +1,8 @@
 local Node3D = require("Node3D").Type
 local Node = require("Node").Type
+local Vec2 = require("Vec2").Type
+local Vec3 = require("Vec3").Type
+local Model3D = require("Model3D").Type
 local RenderStats3D = require("RenderStats3DType")
 
 -- Class used for rendering 3D content inside the 2D scene tree.
@@ -13,6 +16,18 @@ local record View3D
 
 	-- Statistics from the most recent 3D render and current 3D registries.
 	const stats: RenderStats3D
+
+	-- Whether current world AABBs are drawn for debugging.
+	showAABB: boolean
+
+	-- Returns the world-space origin of the picking ray through a view point.
+	getRayOrigin: function(self: View3D, viewPoint: Vec2): Vec3
+
+	-- Returns the world-space direction of the picking ray through a view point.
+	getRayDirection: function(self: View3D, viewPoint: Vec2): Vec3
+
+	-- Returns the nearest visible model intersected by a view point.
+	pick: function(self: View3D, viewPoint: Vec2): Model3D | nil
 
 	-- Loads an environment map for image based lighting.
 	-- @param path (string) The environment texture path. Empty string clears the environment map.
