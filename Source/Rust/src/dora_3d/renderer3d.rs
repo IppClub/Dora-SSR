@@ -553,15 +553,7 @@ fn prepare_shadow_pass(
 		Mat4::orthographic_rh(left, right, bottom, top, near, far)
 	};
 	let light_view_proj = light_projection * light_view;
-	let sy = if caps.originBottomLeft { 0.5 } else { -0.5 };
-	let depth_scale = if caps.homogeneousDepth { 0.5 } else { 1.0 };
-	let depth_offset = if caps.homogeneousDepth { 0.5 } else { 0.0 };
-	let texture_bias = Mat4::from_cols(
-		Vec4::new(-0.5, 0.0, 0.0, 0.0),
-		Vec4::new(0.0, sy, 0.0, 0.0),
-		Vec4::new(0.0, 0.0, depth_scale, 0.0),
-		Vec4::new(0.5, 0.5, depth_offset, 1.0),
-	);
+	let texture_bias = shadow_texture_bias(caps.originBottomLeft, caps.homogeneousDepth);
 	shader::set_shadow_view(view_id, &light_view_proj);
 	for item in items {
 		let _ = shader::submit_shadow_mesh(
@@ -579,6 +571,19 @@ fn prepare_shadow_pass(
 		normal_bias: light.shadow_normal_bias,
 		inv_size: 1.0 / SHADOW_SIZE as f32,
 	})
+}
+
+fn shadow_texture_bias(origin_bottom_left: bool, homogeneous_depth: bool) -> Mat4 {
+	// NDC X always maps from [-1, 1] to [0, 1]. Only texture Y depends on the backend origin.
+	let sy = if origin_bottom_left { 0.5 } else { -0.5 };
+	let depth_scale = if homogeneous_depth { 0.5 } else { 1.0 };
+	let depth_offset = if homogeneous_depth { 0.5 } else { 0.0 };
+	Mat4::from_cols(
+		Vec4::new(0.5, 0.0, 0.0, 0.0),
+		Vec4::new(0.0, sy, 0.0, 0.0),
+		Vec4::new(0.0, 0.0, depth_scale, 0.0),
+		Vec4::new(0.5, 0.5, depth_offset, 1.0),
+	)
 }
 
 fn view_state(view_id: bgfx_sys::bgfx_view_id_t) -> ViewRenderState {
@@ -897,6 +902,29 @@ mod tests {
 			frustum_culling: true,
 			show_aabb: false,
 		}
+	}
+
+	#[test]
+	fn shadow_texture_bias_maps_ndc_without_mirroring_x() {
+		let bottom_left = shadow_texture_bias(true, true);
+		let min = bottom_left * Vec4::new(-1.0, -1.0, -1.0, 1.0);
+		let max = bottom_left * Vec4::new(1.0, 1.0, 1.0, 1.0);
+		assert!((min.x - 0.0).abs() < 1.0e-6);
+		assert!((max.x - 1.0).abs() < 1.0e-6);
+		assert!((min.y - 0.0).abs() < 1.0e-6);
+		assert!((max.y - 1.0).abs() < 1.0e-6);
+		assert!((min.z - 0.0).abs() < 1.0e-6);
+		assert!((max.z - 1.0).abs() < 1.0e-6);
+
+		let top_left = shadow_texture_bias(false, false);
+		let min = top_left * Vec4::new(-1.0, -1.0, 0.0, 1.0);
+		let max = top_left * Vec4::new(1.0, 1.0, 1.0, 1.0);
+		assert!((min.x - 0.0).abs() < 1.0e-6);
+		assert!((max.x - 1.0).abs() < 1.0e-6);
+		assert!((min.y - 1.0).abs() < 1.0e-6);
+		assert!((max.y - 0.0).abs() < 1.0e-6);
+		assert!((min.z - 0.0).abs() < 1.0e-6);
+		assert!((max.z - 1.0).abs() < 1.0e-6);
 	}
 
 	#[test]
