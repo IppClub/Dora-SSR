@@ -574,13 +574,13 @@ fn prepare_shadow_pass(
 }
 
 fn shadow_texture_bias(origin_bottom_left: bool, homogeneous_depth: bool) -> Mat4 {
-	// Shadow render targets are sampled in framebuffer texture orientation. Y also
+	// Match bgfx's shadow-map crop matrix: X is never mirrored, while texture Y
 	// depends on the backend origin reported by bgfx.
 	let sy = if origin_bottom_left { 0.5 } else { -0.5 };
 	let depth_scale = if homogeneous_depth { 0.5 } else { 1.0 };
 	let depth_offset = if homogeneous_depth { 0.5 } else { 0.0 };
 	Mat4::from_cols(
-		Vec4::new(-0.5, 0.0, 0.0, 0.0),
+		Vec4::new(0.5, 0.0, 0.0, 0.0),
 		Vec4::new(0.0, sy, 0.0, 0.0),
 		Vec4::new(0.0, 0.0, depth_scale, 0.0),
 		Vec4::new(0.5, 0.5, depth_offset, 1.0),
@@ -906,12 +906,12 @@ mod tests {
 	}
 
 	#[test]
-	fn shadow_texture_bias_matches_framebuffer_texture_orientation() {
+	fn shadow_texture_bias_maps_ndc_without_mirroring_x() {
 		let bottom_left = shadow_texture_bias(true, true);
 		let min = bottom_left * Vec4::new(-1.0, -1.0, -1.0, 1.0);
 		let max = bottom_left * Vec4::new(1.0, 1.0, 1.0, 1.0);
-		assert!((min.x - 1.0).abs() < 1.0e-6);
-		assert!((max.x - 0.0).abs() < 1.0e-6);
+		assert!((min.x - 0.0).abs() < 1.0e-6);
+		assert!((max.x - 1.0).abs() < 1.0e-6);
 		assert!((min.y - 0.0).abs() < 1.0e-6);
 		assert!((max.y - 1.0).abs() < 1.0e-6);
 		assert!((min.z - 0.0).abs() < 1.0e-6);
@@ -920,8 +920,8 @@ mod tests {
 		let top_left = shadow_texture_bias(false, false);
 		let min = top_left * Vec4::new(-1.0, -1.0, 0.0, 1.0);
 		let max = top_left * Vec4::new(1.0, 1.0, 1.0, 1.0);
-		assert!((min.x - 1.0).abs() < 1.0e-6);
-		assert!((max.x - 0.0).abs() < 1.0e-6);
+		assert!((min.x - 0.0).abs() < 1.0e-6);
+		assert!((max.x - 1.0).abs() < 1.0e-6);
 		assert!((min.y - 1.0).abs() < 1.0e-6);
 		assert!((max.y - 0.0).abs() < 1.0e-6);
 		assert!((min.z - 0.0).abs() < 1.0e-6);
