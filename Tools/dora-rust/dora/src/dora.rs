@@ -63,10 +63,12 @@ mod view_3d;
 pub use view_3d::{IView3D, View3D};
 mod body_3d;
 pub use body_3d::Body3D;
+mod body_def_3d;
+pub use body_def_3d::BodyDef3D;
 mod character_controller_3d;
 pub use character_controller_3d::CharacterController3D;
-mod physics_shape_3d;
-pub use physics_shape_3d::PhysicsShape3D;
+mod fixture_def_3d;
+pub use fixture_def_3d::FixtureDef3D;
 mod constraint_3d;
 pub use constraint_3d::Constraint3D;
 mod physics_world_3d;
@@ -213,9 +215,10 @@ thread_local! {
             DirectionalLight3D::type_info(),
             PointLight3D::type_info(),
             View3D::type_info(),
-            Body3D::type_info(),
-            CharacterController3D::type_info(),
-            PhysicsShape3D::type_info(),
+			Body3D::type_info(),
+			BodyDef3D::type_info(),
+			CharacterController3D::type_info(),
+			FixtureDef3D::type_info(),
             Constraint3D::type_info(),
             PhysicsWorld3D::type_info(),
             Texture2D::type_info(),

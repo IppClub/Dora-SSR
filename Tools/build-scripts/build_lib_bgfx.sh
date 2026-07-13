@@ -1,6 +1,6 @@
 #!/bin/bash
 # bgfx/bimg/bx/shaderc 多架构构建脚本
-# 用法: ./build_lib_bgfx.sh [macos|ios|android|all] [--debug]
+# 用法: ./build_lib_bgfx.sh [macos|ios|android|all] [--debug] [arm64|x86_64|universal]
 
 set -e
 
@@ -8,6 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR/../../Source/3rdParty/bgfx"
 
 BUILD_MODE="release"
+MACOS_ARCH="universal"
 
 get_libs_for_platform() {
     local platform=$1
@@ -101,23 +102,33 @@ build_arch() {
 }
 
 build_macos() {
-    log_info "=== Building macOS (Universal) ==="
     local libs
     libs=$(get_libs_for_platform "macosx")
 
-    clean_build
-    build_arch macosx arm64 "$BUILD_MODE"
-    xmake f -c -y
-    build_arch macosx x86_64 "$BUILD_MODE"
-
-    log_info "Creating fat libraries..."
     mkdir -p build/macosx/universal
-    for lib in $libs; do
-        lipo -create \
-            build/macosx/arm64/${BUILD_MODE}/lib${lib}.a \
-            build/macosx/x86_64/${BUILD_MODE}/lib${lib}.a \
-            -output build/macosx/universal/lib${lib}.a
-    done
+    if [ "$MACOS_ARCH" = "universal" ]; then
+        log_info "=== Building macOS (Universal) ==="
+        clean_build
+        build_arch macosx arm64 "$BUILD_MODE"
+        xmake f -c -y
+        build_arch macosx x86_64 "$BUILD_MODE"
+
+        log_info "Creating fat libraries..."
+        for lib in $libs; do
+            lipo -create \
+                build/macosx/arm64/${BUILD_MODE}/lib${lib}.a \
+                build/macosx/x86_64/${BUILD_MODE}/lib${lib}.a \
+                -output build/macosx/universal/lib${lib}.a
+        done
+    else
+        log_info "=== Building macOS ($MACOS_ARCH) ==="
+        clean_build
+        build_arch macosx "$MACOS_ARCH" "$BUILD_MODE"
+        for lib in $libs; do
+            cp "build/macosx/$MACOS_ARCH/${BUILD_MODE}/lib${lib}.a" \
+                "build/macosx/universal/lib${lib}.a"
+        done
+    fi
 
     log_info "macOS universal libraries created at: build/macosx/universal/"
     ls -lh build/macosx/universal/*.a
@@ -246,10 +257,10 @@ build_linux() {
 }
 
 show_help() {
-    echo "Usage: $0 [command] [--debug]"
+    echo "Usage: $0 [command] [--debug] [arm64|x86_64|universal]"
     echo ""
     echo "Commands:"
-    echo "  macos    Build macOS universal libraries (x86_64 + arm64)"
+    echo "  macos    Build macOS libraries (universal by default)"
     echo "  ios      Build iOS libraries (device + simulator)"
     echo "  android  Build Android libraries (arm64-v8a + armeabi-v7a + x86_64)"
     echo "  linux    Build Linux libraries for the host architecture"
@@ -259,6 +270,7 @@ show_help() {
     echo ""
     echo "Options:"
     echo "  --debug, -d   Build debug libraries (default: release)"
+    echo "  arm64, x86_64, universal  Select macOS architecture"
     echo ""
     echo "Output directories:"
     echo "  macOS:"
@@ -284,6 +296,12 @@ for arg in "$@"; do
             ;;
         --release|-r)
             BUILD_MODE="release"
+            ;;
+        arm64|aarch64)
+            MACOS_ARCH="arm64"
+            ;;
+        x86_64|universal)
+            MACOS_ARCH="$arg"
             ;;
         macos|ios|android|linux|all|clean|help|--help|-h)
             if [ -n "$COMMAND" ]; then

@@ -23,6 +23,15 @@ DORA_EXPORT int64_t constraint3d_get_second_body(int64_t self) {
 DORA_EXPORT void constraint3d_destroy(int64_t self) {
 	r_cast<Constraint3D*>(self)->destroy();
 }
+DORA_EXPORT int64_t constraint3d_fixed(int64_t first_body, int64_t second_body, int64_t anchor) {
+	return Object_From(Constraint3D::createFixed(r_cast<Body3D*>(first_body), r_cast<Body3D*>(second_body), Vec3_From(anchor)));
+}
+DORA_EXPORT int64_t constraint3d_distance(int64_t first_body, int64_t second_body, int64_t first_anchor, int64_t second_anchor, float min_distance, float max_distance) {
+	return Object_From(Constraint3D::createDistance(r_cast<Body3D*>(first_body), r_cast<Body3D*>(second_body), Vec3_From(first_anchor), Vec3_From(second_anchor), min_distance, max_distance));
+}
+DORA_EXPORT int64_t constraint3d_hinge(int64_t first_body, int64_t second_body, int64_t anchor, int64_t axis, float min_angle, float max_angle) {
+	return Object_From(Constraint3D::createHinge(r_cast<Body3D*>(first_body), r_cast<Body3D*>(second_body), Vec3_From(anchor), Vec3_From(axis), min_angle, max_angle));
+}
 } // extern "C"
 
 static void linkConstraint3D(wasm3::module3& mod) {
@@ -31,4 +40,7 @@ static void linkConstraint3D(wasm3::module3& mod) {
 	mod.link_optional("*", "constraint3d_get_first_body", constraint3d_get_first_body);
 	mod.link_optional("*", "constraint3d_get_second_body", constraint3d_get_second_body);
 	mod.link_optional("*", "constraint3d_destroy", constraint3d_destroy);
+	mod.link_optional("*", "constraint3d_fixed", constraint3d_fixed);
+	mod.link_optional("*", "constraint3d_distance", constraint3d_distance);
+	mod.link_optional("*", "constraint3d_hinge", constraint3d_hinge);
 }

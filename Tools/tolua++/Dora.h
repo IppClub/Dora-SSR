@@ -565,7 +565,7 @@ class Node3D : public Object
 	void cleanup();
 	tolua_property__common Vec3 position;
 	tolua_property__common Vec3 scale;
-	tolua_property__common Vec3 eulerAngles;
+	tolua_property__common Vec3 angles;
 	Vec3 convertToWorldSpace(Vec3 localPoint);
 	Vec3 convertToNodeSpace(Vec3 worldPoint);
 	static Node3D* create();
@@ -655,10 +655,12 @@ class View3D : public Node
 	static View3D* create();
 };
 
-class Body3D : public Object
+class BodyDef3D;
+
+class Body3D : public Node3D
 {
-	tolua_readonly tolua_property__common Node3D* node;
 	tolua_readonly tolua_property__common PhysicsWorld3D* physicsWorld @ world;
+	tolua_readonly tolua_property__common BodyDef3D* bodyDef;
 	tolua_readonly tolua_property__common uint8_t typeValue @ type;
 	tolua_property__common Vec3 linearVelocity;
 	tolua_property__common Vec3 angularVelocity;
@@ -666,11 +668,13 @@ class Body3D : public Object
 	tolua_property__common uint32_t collisionMask;
 	tolua_property__bool bool sensor;
 	void applyForce(Vec3 force);
-	void applyImpulse(Vec3 impulse);
+	void applyLinearImpulse(Vec3 impulse);
 	void onContactEnter(tolua_function_void handler);
 	void onContactStay(tolua_function_void handler);
 	void onContactExit(tolua_function_void handler);
-	void destroy();
+	static Body3D* create(BodyDef3D* bodyDef, PhysicsWorld3D* world, Vec3 position, Vec3 angles);
+	static Body3D* create(BodyDef3D* bodyDef, PhysicsWorld3D* world, Vec3 position);
+	static Body3D* create(BodyDef3D* bodyDef, PhysicsWorld3D* world);
 };
 
 class CharacterController3D : public Object
@@ -687,18 +691,30 @@ class CharacterController3D : public Object
 	void destroy();
 };
 
-class PhysicsShape3D : public Object
+class FixtureDef3D : public Object
 {
 	tolua_readonly tolua_property__bool bool built;
-	bool addChild(PhysicsShape3D* shape, Vec3 position, Vec3 eulerAngles);
-	bool addChild(PhysicsShape3D* shape, Vec3 position);
+	bool addChild(FixtureDef3D* shape, Vec3 position, Vec3 angles);
+	bool addChild(FixtureDef3D* shape, Vec3 position);
 	bool build();
-	static PhysicsShape3D* createBox @ box(Vec3 halfExtent);
-	static PhysicsShape3D* createSphere @ sphere(float radius);
-	static PhysicsShape3D* createCapsule @ capsule(float halfHeight, float radius);
-	static PhysicsShape3D* createCompound @ compound();
+	static FixtureDef3D* createBox @ box(Vec3 halfExtent);
+	static FixtureDef3D* createSphere @ sphere(float radius);
+	static FixtureDef3D* createCapsule @ capsule(float halfHeight, float radius);
+	static FixtureDef3D* createCompound @ compound();
 	static void loadMeshAsync(String filename, tolua_function_void handler);
 	static void loadConvexHullAsync(String filename, tolua_function_void handler);
+};
+
+class BodyDef3D : public Object
+{
+	tolua_property__common uint8_t typeValue @ type;
+	tolua_property__common uint8_t collisionLayer;
+	tolua_property__common uint32_t collisionMask;
+	tolua_property__bool bool sensor;
+	bool attach(FixtureDef3D* fixture, Vec3 position, Vec3 angles);
+	bool attach(FixtureDef3D* fixture, Vec3 position);
+	bool attach(FixtureDef3D* fixture);
+	static BodyDef3D* create();
 };
 
 class Constraint3D : public Object
@@ -707,6 +723,9 @@ class Constraint3D : public Object
 	tolua_readonly tolua_property__common Body3D* firstBody;
 	tolua_readonly tolua_property__common Body3D* secondBody;
 	void destroy();
+	static Constraint3D* createFixed @ fixed(Body3D* firstBody, Body3D* secondBody, Vec3 anchor);
+	static Constraint3D* createDistance @ distance(Body3D* firstBody, Body3D* secondBody, Vec3 firstAnchor, Vec3 secondAnchor, float minDistance, float maxDistance);
+	static Constraint3D* createHinge @ hinge(Body3D* firstBody, Body3D* secondBody, Vec3 anchor, Vec3 axis, float minAngle = -180.0f, float maxAngle = 180.0f);
 };
 
 class PhysicsWorld3D : public Node
@@ -715,19 +734,10 @@ class PhysicsWorld3D : public Node
 	static tolua_readonly uint8_t Kinematic;
 	static tolua_readonly uint8_t Dynamic;
 	tolua_property__common Vec3 gravity;
-	Body3D* makeBox @ addBox(Node3D* node, Vec3 halfExtent, uint8_t bodyType = 2);
-	Body3D* makeSphere @ addSphere(Node3D* node, float radius, uint8_t bodyType = 2);
-	Body3D* makeCapsule @ addCapsule(Node3D* node, float halfHeight, float radius, uint8_t bodyType = 2);
-	Body3D* makeBody @ addBody(Node3D* node, PhysicsShape3D* shape, uint8_t bodyType = 2);
 	CharacterController3D* makeCharacter @ addCharacter(Node3D* node, float halfHeight, float radius, float maxSlopeAngle = 50.0f, float stepHeight = 0.4f);
-	Constraint3D* makeFixedConstraint @ addFixedConstraint(Body3D* firstBody, Body3D* secondBody, Vec3 anchor);
-	Constraint3D* makeDistanceConstraint @ addDistanceConstraint(Body3D* firstBody, Body3D* secondBody, Vec3 firstAnchor, Vec3 secondAnchor, float minDistance, float maxDistance);
-	Constraint3D* makeHingeConstraint @ addHingeConstraint(Body3D* firstBody, Body3D* secondBody, Vec3 anchor, Vec3 axis, float minAngle, float maxAngle);
-	void destroyBody(Body3D* body);
 	void destroyCharacter(CharacterController3D* character);
-	void destroyConstraint(Constraint3D* constraint);
-	bool raycast(Vec3 origin, Vec3 direction, float distance, tolua_function_bool handler);
-	bool overlapSphere(Vec3 center, float radius, tolua_function_bool handler);
+	bool raycast(Vec3 start, Vec3 stop, tolua_function_bool handler);
+	bool querySphere(Vec3 center, float radius, tolua_function_bool handler);
 	static PhysicsWorld3D* create();
 };
 

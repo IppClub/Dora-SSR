@@ -32,7 +32,7 @@ local record Node3D
 	rotation: any
 
 	-- The node Euler rotation in degrees.
-	eulerAngles: Vec3
+	angles: Vec3
 
 	-- The node world transform matrix.
 	const worldMatrix: any

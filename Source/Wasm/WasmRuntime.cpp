@@ -1965,8 +1965,9 @@ DORA_EXPORT float math_tan(float v) { return std::tan(v); }
 #include "Dora/AudioWasm.hpp"
 #include "Dora/BodyDefWasm.hpp"
 #include "Dora/Body3DWasm.hpp"
+#include "Dora/BodyDef3DWasm.hpp"
 #include "Dora/CharacterController3DWasm.hpp"
-#include "Dora/PhysicsShape3DWasm.hpp"
+#include "Dora/FixtureDef3DWasm.hpp"
 #include "Dora/Constraint3DWasm.hpp"
 #include "Dora/BodyWasm.hpp"
 #include "Dora/BufferWasm.hpp"
@@ -2091,8 +2092,9 @@ static void linkAutoModule(wasm3::module3& mod) {
 	linkPointLight3D(mod);
 	linkView3D(mod);
 	linkBody3D(mod);
+	linkBodyDef3D(mod);
 	linkCharacterController3D(mod);
-	linkPhysicsShape3D(mod);
+	linkFixtureDef3D(mod);
 	linkConstraint3D(mod);
 	linkPhysicsWorld3D(mod);
 	linkActionDef(mod);

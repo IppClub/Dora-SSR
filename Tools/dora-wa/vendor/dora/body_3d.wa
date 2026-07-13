@@ -11,11 +11,11 @@ import "runtime"
 #wa:import dora body3d_type
 func body3d_type() => i32
 
-#wa:import dora body3d_get_node
-func body3d_get_node(slf: i64) => i64
-
 #wa:import dora body3d_get_world
 func body3d_get_world(slf: i64) => i64
+
+#wa:import dora body3d_get_body_def
+func body3d_get_body_def(slf: i64) => i64
 
 #wa:import dora body3d_get_type
 func body3d_get_type(slf: i64) => i32
@@ -53,8 +53,8 @@ func body3d_is_sensor(slf: i64) => i32
 #wa:import dora body3d_apply_force
 func body3d_apply_force(slf: i64, force: i64)
 
-#wa:import dora body3d_apply_impulse
-func body3d_apply_impulse(slf: i64, impulse: i64)
+#wa:import dora body3d_apply_linear_impulse
+func body3d_apply_linear_impulse(slf: i64, impulse: i64)
 
 #wa:import dora body3d_on_contact_enter
 func body3d_on_contact_enter(slf: i64, func0: i32, stack0: i64)
@@ -65,10 +65,10 @@ func body3d_on_contact_stay(slf: i64, func0: i32, stack0: i64)
 #wa:import dora body3d_on_contact_exit
 func body3d_on_contact_exit(slf: i64, func0: i32, stack0: i64)
 
-#wa:import dora body3d_destroy
-func body3d_destroy(slf: i64)
+#wa:import dora body3d_new
+func body3d_new(body_def: i64, world: i64, position: i64, angles: i64) => i64
 
-type Body3D :struct{ Object }
+type Body3D :struct{ Node3D }
 
 func Body3DFrom(raw: i64) => *Body3D {
 	if raw == 0 {
@@ -91,16 +91,6 @@ func ObjectAsBody3D(object: Object) => *Body3D {
 	return nil
 }
 
-/// Gets the Node3D synchronized with this body.
-func Body3D.GetNode() => *Node3D {
-	ptr_ := body3d_get_node(*this.raw)
-	if ptr_ == 0 {
-		return nil
-	}
-	obj_ := *Node3DFrom(ptr_)
-	return &obj_
-}
-
 /// Gets the physics world that owns this body.
 func Body3D.GetWorld() => *PhysicsWorld3D {
 	ptr_ := body3d_get_world(*this.raw)
@@ -109,6 +99,11 @@ func Body3D.GetWorld() => *PhysicsWorld3D {
 	}
 	obj_ := *PhysicsWorld3DFrom(ptr_)
 	return &obj_
+}
+
+/// Gets the immutable definition used to create this body.
+func Body3D.GetBodyDef() => BodyDef3D {
+	return *BodyDef3DFrom(body3d_get_body_def(*this.raw))
 }
 
 /// Gets the body's motion type.
@@ -172,8 +167,8 @@ func Body3D.ApplyForce(force: Vec3) {
 }
 
 /// Applies an instantaneous impulse at the center of mass.
-func Body3D.ApplyImpulse(impulse: Vec3) {
-	body3d_apply_impulse(*this.raw, impulse.GetRaw())
+func Body3D.ApplyLinearImpulse(impulse: Vec3) {
+	body3d_apply_linear_impulse(*this.raw, impulse.GetRaw())
 }
 
 /// Sets the persistent contact-enter callback.
@@ -218,7 +213,11 @@ func Body3D.OnContactExit(handler: func(other: Body3D, point: Vec3, normal: Vec3
 	body3d_on_contact_exit(*this.raw, func_id0, *stack0.raw)
 }
 
-/// Removes this body from its physics world.
-func Body3D.Destroy() {
-	body3d_destroy(*this.raw)
+/// Creates a body node from a body definition.
+func NewBody3D(body_def: BodyDef3D, world: PhysicsWorld3D, position: Vec3, angles: Vec3) => Body3D {
+	raw := body3d_new(body_def.GetRaw(), world.GetRaw(), position.GetRaw(), angles.GetRaw())
+	object := Body3D{}
+	object.raw = &raw
+	runtime.SetFinalizer(object.raw, ObjectFinalizer)
+	return object
 }

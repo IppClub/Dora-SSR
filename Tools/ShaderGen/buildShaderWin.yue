@@ -117,4 +117,29 @@ for stage in *{"v", "f"}
 			with io.popen "del #{dir}\\tmp"
 				\close!
 
-
+-- Model3D has two material-layout variants compiled from the same fragment source.
+dir = "#{path}\\Model3D"
+for {sname, define} in *{
+	{"fs_model3d_sheen", "DORA_SHEEN_ROUGHNESS_TEXTURE=1"}
+	{"fs_model3d_thickness_sheen", "DORA_THICKNESS_SHEEN_TEXTURE=1"}
+}
+	target = "#{dir}\\#{sname}.bin.h"
+	cmd = "#{tool} -i #{bgfx}\\src --type f --platform windows -f #{dir}\\fs_model3d.sc -o #{dir}\\tmp -p s_4_0 -O 3 --define #{define} --bin2c #{sname}_dx11 --varyingdef #{dir}\\varying.def.sc"
+	print "#{dir}\\fs_model3d.sc #{sname} DirectX11 Building."
+	with io.popen cmd
+		result = \read "a"
+		\close!
+		if result == ""
+			print "#{dir}\\fs_model3d.sc #{sname} DirectX11 Built."
+		else
+			print result
+			print "#{dir}\\fs_model3d.sc #{sname} DirectX11 Failed."
+			return
+	with io.popen "type #{dir}\\tmp >> #{target}"
+		result = \read "a"
+		\close!
+		if result ~= ""
+			print result
+			return
+	with io.popen "del #{dir}\\tmp"
+		\close!

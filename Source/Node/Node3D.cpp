@@ -56,7 +56,7 @@ Node3D::Node3D()
 	, _position{0.0f, 0.0f, 0.0f}
 	, _scale{1.0f, 1.0f, 1.0f}
 	, _rotation(bx::InitIdentity)
-	, _eulerAngles{0.0f, 0.0f, 0.0f}
+	, _angles{0.0f, 0.0f, 0.0f}
 	, _worldMatrix(Matrix::Indentity) { }
 
 bool Node3D::init() {
@@ -128,33 +128,33 @@ float Node3D::getZ() const noexcept {
 }
 
 void Node3D::setAngleX(float var) {
-	Vec3 eulerAngles = getEulerAngles();
-	eulerAngles.x = var;
-	setEulerAngles(eulerAngles);
+	Vec3 angles = getAngles();
+	angles.x = var;
+	setAngles(angles);
 }
 
 float Node3D::getAngleX() const noexcept {
-	return getEulerAngles().x;
+	return getAngles().x;
 }
 
 void Node3D::setAngleY(float var) {
-	Vec3 eulerAngles = getEulerAngles();
-	eulerAngles.y = var;
-	setEulerAngles(eulerAngles);
+	Vec3 angles = getAngles();
+	angles.y = var;
+	setAngles(angles);
 }
 
 float Node3D::getAngleY() const noexcept {
-	return getEulerAngles().y;
+	return getAngles().y;
 }
 
 void Node3D::setAngleZ(float var) {
-	Vec3 eulerAngles = getEulerAngles();
-	eulerAngles.z = var;
-	setEulerAngles(eulerAngles);
+	Vec3 angles = getAngles();
+	angles.z = var;
+	setAngles(angles);
 }
 
 float Node3D::getAngleZ() const noexcept {
-	return getEulerAngles().z;
+	return getAngles().z;
 }
 
 void Node3D::setScaleX(float var) {
@@ -241,23 +241,23 @@ const Quat& Node3D::getRotation() const noexcept {
 	return _rotation;
 }
 
-void Node3D::setEulerAngles(float x, float y, float z) {
-	setEulerAngles({x, y, z});
+void Node3D::setAngles(float x, float y, float z) {
+	setAngles({x, y, z});
 }
 
-void Node3D::setEulerAngles(const Vec3& var) {
+void Node3D::setAngles(const Vec3& var) {
 #ifndef DORA_NO_RUST
 	dora_3d_node_set_euler(_handle, var.x, var.y, var.z);
 #endif // DORA_NO_RUST
 }
 
-const Vec3& Node3D::getEulerAngles() const noexcept {
+const Vec3& Node3D::getAngles() const noexcept {
 #ifndef DORA_NO_RUST
 	float data[3] = {};
 	dora_3d_node_get_euler(_handle, data);
-	copyVec3(_eulerAngles, data);
+	copyVec3(_angles, data);
 #endif // DORA_NO_RUST
-	return _eulerAngles;
+	return _angles;
 }
 
 void Node3D::setTag(String var) {

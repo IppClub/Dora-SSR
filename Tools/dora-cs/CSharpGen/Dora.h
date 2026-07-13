@@ -1090,7 +1090,7 @@ object class Node3D
 	/// <summary>
 	/// The node Euler angles in degrees.
 	/// </summary>
-	common Vec3 eulerAngles;
+	common Vec3 angles;
 	/// <summary>
 	/// The x-axis position of the node.
 	/// </summary>
@@ -1361,15 +1361,40 @@ object class View3D : public Node
 	static View3D* create();
 };
 
-/// <summary>
-/// A 3D rigid body component owned by a PhysicsWorld3D.
-/// </summary>
-object class Body3D
+/// <summary>A reusable Jolt collision fixture definition or compound fixture builder.</summary>
+object class FixtureDef3D
 {
-	/// <summary>The Node3D synchronized with this body.</summary>
-	optional readonly common Node3D* node;
+	readonly boolean bool built;
+	bool addChild(FixtureDef3D* fixture, Vec3 position, Vec3 angles);
+	bool build();
+	static FixtureDef3D* createBox(Vec3 halfExtent);
+	static FixtureDef3D* createSphere(float radius);
+	static FixtureDef3D* createCapsule(float halfHeight, float radius);
+	static FixtureDef3D* createCompound();
+	static void loadMeshAsync(string filename, function<void(FixtureDef3D* fixture)> handler);
+	static void loadConvexHullAsync(string filename, function<void(FixtureDef3D* fixture)> handler);
+};
+
+/// <summary>Reusable physical properties and fixtures used to create Body3D nodes.</summary>
+object class BodyDef3D
+{
+	common uint8_t typeValue @ type;
+	common uint8_t collisionLayer;
+	common uint32_t collisionMask;
+	boolean bool sensor;
+	bool attach(FixtureDef3D* fixture, Vec3 position, Vec3 angles);
+	static BodyDef3D* create();
+};
+
+/// <summary>
+/// A 3D rigid body node owned by a PhysicsWorld3D.
+/// </summary>
+object class Body3D : public Node3D
+{
 	/// <summary>The physics world that owns this body.</summary>
 	optional readonly common PhysicsWorld3D* physicsWorld @ world;
+	/// <summary>The definition used to create this body.</summary>
+	readonly common BodyDef3D* bodyDef;
 	/// <summary>The body's motion type.</summary>
 	readonly common BodyType3D type;
 	/// <summary>The world-space linear velocity.</summary>
@@ -1385,15 +1410,15 @@ object class Body3D
 	/// <summary>Applies a continuous force at the center of mass.</summary>
 	void applyForce(Vec3 force);
 	/// <summary>Applies an instantaneous impulse at the center of mass.</summary>
-	void applyImpulse(Vec3 impulse);
+	void applyLinearImpulse(Vec3 impulse);
 	/// <summary>Sets the persistent contact-enter callback.</summary>
 	void onContactEnter(function<void(Body3D* other, Vec3 point, Vec3 normal)> handler);
 	/// <summary>Sets the persistent contact-stay callback.</summary>
 	void onContactStay(function<void(Body3D* other, Vec3 point, Vec3 normal)> handler);
 	/// <summary>Sets the persistent contact-exit callback.</summary>
 	void onContactExit(function<void(Body3D* other, Vec3 point, Vec3 normal)> handler);
-	/// <summary>Removes this body from its physics world.</summary>
-	void destroy();
+	/// <summary>Creates a body at the given transform.</summary>
+	static Body3D* create(BodyDef3D* bodyDef, PhysicsWorld3D* world, Vec3 position, Vec3 angles);
 };
 
 /// <summary>A virtual capsule character controller owned by a PhysicsWorld3D.</summary>
@@ -1421,29 +1446,6 @@ object class CharacterController3D
 	void destroy();
 };
 
-/// <summary>A reusable immutable Jolt collision shape or a compound shape builder.</summary>
-object class PhysicsShape3D
-{
-	/// <summary>Whether this shape can be used to create bodies.</summary>
-	readonly boolean bool built;
-	/// <summary>Adds a child to an unbuilt compound shape using local position and XYZ Euler angles in degrees.</summary>
-	bool addChild(PhysicsShape3D* shape, Vec3 position, Vec3 eulerAngles);
-	/// <summary>Freezes a compound shape. A built shape cannot be modified.</summary>
-	bool build();
-	/// <summary>Creates a box shape using half extents.</summary>
-	static PhysicsShape3D* createBox(Vec3 halfExtent);
-	/// <summary>Creates a sphere shape.</summary>
-	static PhysicsShape3D* createSphere(float radius);
-	/// <summary>Creates a capsule shape.</summary>
-	static PhysicsShape3D* createCapsule(float halfHeight, float radius);
-	/// <summary>Creates an empty compound shape builder.</summary>
-	static PhysicsShape3D* createCompound();
-	/// <summary>Loads and cooks a static triangle mesh shape through Content asynchronously.</summary>
-	static void loadMeshAsync(string filename, function<void(PhysicsShape3D* shape)> handler);
-	/// <summary>Loads model vertices through Content asynchronously and cooks a convex hull suitable for dynamic bodies.</summary>
-	static void loadConvexHullAsync(string filename, function<void(PhysicsShape3D* shape)> handler);
-};
-
 /// <summary>A two-body constraint owned by a PhysicsWorld3D.</summary>
 object class Constraint3D
 {
@@ -1455,6 +1457,9 @@ object class Constraint3D
 	optional readonly common Body3D* secondBody;
 	/// <summary>Removes this constraint from its physics world.</summary>
 	void destroy();
+	static Constraint3D* createFixed(Body3D* firstBody, Body3D* secondBody, Vec3 anchor);
+	static Constraint3D* createDistance(Body3D* firstBody, Body3D* secondBody, Vec3 firstAnchor, Vec3 secondAnchor, float minDistance, float maxDistance);
+	static Constraint3D* createHinge(Body3D* firstBody, Body3D* secondBody, Vec3 anchor, Vec3 axis, float minAngle, float maxAngle);
 };
 
 /// <summary>
@@ -1464,32 +1469,14 @@ object class PhysicsWorld3D : public Node
 {
 	/// <summary>The world gravity in units per second squared.</summary>
 	common Vec3 gravity;
-	/// <summary>Creates a box body using half extents.</summary>
-	Body3D* createBox(Node3D* node, Vec3 halfExtent, BodyType3D bodyType = BodyType3D.Dynamic);
-	/// <summary>Creates a sphere body.</summary>
-	Body3D* createSphere(Node3D* node, float radius, BodyType3D bodyType = BodyType3D.Dynamic);
-	/// <summary>Creates a capsule body.</summary>
-	Body3D* createCapsule(Node3D* node, float halfHeight, float radius, BodyType3D bodyType = BodyType3D.Dynamic);
-	/// <summary>Creates a body using a reusable built collision shape.</summary>
-	Body3D* createBody(Node3D* node, PhysicsShape3D* shape, BodyType3D bodyType = BodyType3D.Dynamic);
 	/// <summary>Creates a virtual capsule character whose node position represents its feet.</summary>
 	CharacterController3D* createCharacter(Node3D* node, float halfHeight, float radius, float maxSlopeAngle = 50.0f, float stepHeight = 0.4f);
-	/// <summary>Creates a fixed constraint at a world-space anchor.</summary>
-	Constraint3D* createFixedConstraint(Body3D* firstBody, Body3D* secondBody, Vec3 anchor);
-	/// <summary>Creates a distance constraint between two world-space anchors.</summary>
-	Constraint3D* createDistanceConstraint(Body3D* firstBody, Body3D* secondBody, Vec3 firstAnchor, Vec3 secondAnchor, float minDistance, float maxDistance);
-	/// <summary>Creates a hinge around a world-space axis with limits in degrees.</summary>
-	Constraint3D* createHingeConstraint(Body3D* firstBody, Body3D* secondBody, Vec3 anchor, Vec3 axis, float minAngle, float maxAngle);
-	/// <summary>Removes a body from this world.</summary>
-	void destroyBody(Body3D* body);
 	/// <summary>Removes a character from this world.</summary>
 	void destroyCharacter(CharacterController3D* character);
-	/// <summary>Removes a constraint from this world.</summary>
-	void destroyConstraint(Constraint3D* constraint);
 	/// <summary>Casts a ray and invokes the handler for the nearest hit.</summary>
-	bool raycast(Vec3 origin, Vec3 direction, float distance, function<def_false bool(Body3D* body, Vec3 point, Vec3 normal, float hitDistance)> handler);
+	bool raycast(Vec3 start, Vec3 stop, function<def_false bool(Body3D* body, Vec3 point, Vec3 normal)> handler);
 	/// <summary>Visits bodies overlapping a sphere until the handler returns true.</summary>
-	bool overlapSphere(Vec3 center, float radius, function<def_false bool(Body3D* body)> handler);
+	bool querySphere(Vec3 center, float radius, function<def_false bool(Body3D* body)> handler);
 	/// <summary>Creates a 3D physics world.</summary>
 	static PhysicsWorld3D* create();
 };

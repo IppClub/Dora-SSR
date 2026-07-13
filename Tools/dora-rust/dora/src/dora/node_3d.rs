@@ -16,8 +16,8 @@ extern "C" {
 	fn node3d_get_position(slf: i64) -> i64;
 	fn node3d_set_scale(slf: i64, val: i64);
 	fn node3d_get_scale(slf: i64) -> i64;
-	fn node3d_set_euler_angles(slf: i64, val: i64);
-	fn node3d_get_euler_angles(slf: i64) -> i64;
+	fn node3d_set_angles(slf: i64, val: i64);
+	fn node3d_get_angles(slf: i64) -> i64;
 	fn node3d_set_x(slf: i64, val: f32);
 	fn node3d_get_x(slf: i64) -> f32;
 	fn node3d_set_y(slf: i64, val: f32);
@@ -84,12 +84,12 @@ pub trait INode3D: IObject {
 		return unsafe { crate::dora::Vec3::from(node3d_get_scale(self.raw())) };
 	}
 	/// Sets the node Euler angles in degrees.
-	fn set_euler_angles(&mut self, val: &crate::dora::Vec3) {
-		unsafe { node3d_set_euler_angles(self.raw(), val.raw()) };
+	fn set_angles(&mut self, val: &crate::dora::Vec3) {
+		unsafe { node3d_set_angles(self.raw(), val.raw()) };
 	}
 	/// Gets the node Euler angles in degrees.
-	fn get_euler_angles(&self) -> crate::dora::Vec3 {
-		return unsafe { crate::dora::Vec3::from(node3d_get_euler_angles(self.raw())) };
+	fn get_angles(&self) -> crate::dora::Vec3 {
+		return unsafe { crate::dora::Vec3::from(node3d_get_angles(self.raw())) };
 	}
 	/// Sets the x-axis position of the node.
 	fn set_x(&mut self, val: f32) {

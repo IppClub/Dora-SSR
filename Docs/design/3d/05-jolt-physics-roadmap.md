@@ -67,8 +67,8 @@ JOLT 接入的中期目标：
 - `PhysicsWorld3D`
 - `BodyDef3D`
 - `Body3D`
-- `Shape3D`
-- `Joint3D`
+- `FixtureDef3D`
+- `Constraint3D`
 - `PhysicsDebugDraw3D`
 
 而不是在现有 `PhysicsWorld` 上硬扩 3D。
@@ -80,10 +80,12 @@ JOLT 接入的中期目标：
 
 ## 5. 与 `Node3D` 的关系
 
-推荐组件关系：
+最终采用与 2D 物理一致的节点关系：
 
-- `Body3D` 不是 `Node3D` 子类
-- `Body3D` 挂接到 `Node3D` 或由 `Node3D` 持有引用
+- `Body3D : Node3D`，刚体本身就是场景树节点。
+- `BodyDef3D` 保存 motion type、layer/mask、sensor 和一组 fixture。
+- `FixtureDef3D` 是可复用的不可变碰撞定义；box/sphere/capsule、compound、mesh 和 convex hull 使用同一入口。
+- 可视 `Node3D`/`Model3D` 作为 `Body3D` 子节点，不再由 `Body3D.node` 间接访问。
 
 同步模式建议：
 
@@ -116,23 +118,28 @@ JOLT 接入的中期目标：
 class PhysicsWorld3D : public Node {
 public:
 	bool raycast(
-		const Vec3& origin,
-		const Vec3& direction,
-		float distance,
+		const Vec3& start,
+		const Vec3& stop,
 		const std::function<bool(Body3D*, const Vec3&, const Vec3&)>& callback);
+	bool querySphere(const Vec3& center, float radius,
+		const std::function<bool(Body3D*)>& callback);
 };
 
-class Body3D : public Object {
+class Body3D : public Node3D {
 public:
-	PROPERTY(Node3D*, Node);
+	PROPERTY_READONLY(BodyDef3D*, BodyDef);
 	PROPERTY(BodyType3D, Type);
-	PROPERTY(float, Mass);
-	PROPERTY_BOOL(UseGravity);
 
 	void applyForce(const Vec3& force);
-	void applyImpulse(const Vec3& impulse);
+	void applyLinearImpulse(const Vec3& impulse);
+	static Body3D* create(BodyDef3D* def, PhysicsWorld3D* world,
+		const Vec3& position = {}, const Vec3& angles = {});
 };
 ```
+
+body 和 constraint 不再由 `PhysicsWorld3D.create*` 创建。约束统一使用
+`Constraint3D.fixed/distance/hinge`；销毁 body 使用继承自 `Node3D` 的
+`removeFromParent(true)`/`cleanup()`，约束和角色控制器保留显式 `destroy()`。
 
 ## 7. 形状系统
 
@@ -201,7 +208,7 @@ JOLT 不需要等待 Material3D、shadow、triangle picking、morph target 或 L
   - world、character 或关联 Node3D 任一路径销毁都会释放 native instance
   - Lua、TS、Wasm、Rust、Wa 和 C# 绑定已生成
 - [x] reusable primitive shape 与 immutable compound shape
-  - Rust 持有引擎 C ABI 返回的 opaque shape handle，native Jolt shape instance 由 C++ bridge 管理；C++ `PhysicsShape3D` wrapper 只持 Rust runtime handle
+  - Rust 持有引擎 C ABI 返回的 opaque shape handle，native Jolt shape instance 由 C++ bridge 管理；C++ `FixtureDef3D` wrapper 只持 Rust runtime handle
   - compound 先 `addChild`，再以 `build()` 一次性冻结，冻结后拒绝修改
   - shape wrapper 可在 body 创建后释放，body 继续通过 Jolt 引用计数持有 native shape
   - Lua、TS、Wasm、Rust、Wa 和 C# 绑定已生成
@@ -219,13 +226,13 @@ JOLT 不需要等待 Material3D、shadow、triangle picking、morph target 或 L
   - 记录 frame P50/P95、Jolt collect/submit P95、RSS 区间以及阶段清理后的 3D registry
   - 首轮结果用于识别增长趋势和调试绘制成本，不替代原生 arm64 Release profile
 - [x] 动态 convex hull shape
-  - `PhysicsShape3D.loadConvexHullAsync()` 复用 Content 异步读取和 glTF buffer dependency 链路
+  - `FixtureDef3D.loadConvexHullAsync()` 复用 Content 异步读取和 glTF buffer dependency 链路
   - Rust worker 应用 scene node transform，仅保留 triangle indices 实际引用的唯一 POSITION
   - Jolt `ConvexHullShapeSettings` 在引擎 C++ 边界创建 native shape，可直接用于 dynamic body
   - mesh/hull cache 使用类型化 key，同路径重复 hull 请求复用、不同 shape kind 不串缓存
   - Lua、TS、Teal、Wasm、Rust、Wa 和 C# 绑定已补齐
 
-复杂形状采用独立的 Rust-owned `PhysicsShape3D` 公开句柄层，native Jolt shape instance 由引擎 C++ bridge 创建和释放；脚本/C++ wrapper 不持有 Jolt 类型，也不让 `PhysicsWorld3D` 增加按形状类型扩张的创建接口。基础 box/sphere/capsule shape 可组合为 immutable compound，并由多个 body 共享。现有 convenience body API 保留并在内部创建临时基础 shape。
+复杂形状采用独立的 Rust-owned `FixtureDef3D` 公开句柄层，native Jolt shape instance 由引擎 C++ bridge 创建和释放；脚本/C++ wrapper 不持有 Jolt 类型，也不让 `PhysicsWorld3D` 增加按形状类型扩张的创建接口。基础 box/sphere/capsule shape 可组合为 immutable compound，并由多个 body 共享。现有 convenience body API 保留并在内部创建临时基础 shape。
 
 mesh collider 不直接读取渲染 `MeshData`。当前渲染 mesh 上传后只保留 GPU buffer、AABB 和 joint bounds，CPU 顶点/索引会释放；为 physics 永久保留一份会无条件增加模型内存。正确路径是通过 Dora `Content` 从模型源按需异步重新读取静态 primitive，后台 cook 为 Jolt `MeshShape`，最终产物进入独立 shape cache。首版只允许 static/kinematic mesh collider；dynamic concave mesh 明确拒绝，动态复杂物体使用 compound convex shape。
 
@@ -274,7 +281,7 @@ Jolt 的自动集成验证统一由 `Dora-Example/Test/Model3D/run-jolt-integrat
 
 2026-07-11 macOS Metal Debug 运行记录：`Physics3D.ts` 在 3 秒稳定态得到 `enter=6, stay=155, exit=6, sensor=3, rayDistance=5.75, overlap=5`，三个动态刚体均稳定在 `y=0.63`。Jolt fixed temp allocator 使用 4 MiB 预分配并在容量不足时回退到 allocator，避免 world 最大容量导致 `TempAllocatorImpl::Allocate` 触发断言崩溃。
 
-2026-07-11 compound 运行记录：`CompoundShape3D.ts` 创建偏置 box+sphere 复合动态刚体，冻结后修改被拒绝，落地后两条射线均命中同一 body；`COMPOUND3D_SUMMARY status=PASS built=true frozen=true left=true right=true y=0.530`。同时补齐 tolua++ Object 注册列表，避免新加的 `Material3D`、`Body3D`、`CharacterController3D`、`PhysicsShape3D` 和 `PhysicsWorld3D` 在 Lua 仍持有 userdata 时被 autorelease 清空。
+2026-07-11 compound 运行记录：`CompoundShape3D.ts` 创建偏置 box+sphere 复合动态刚体，冻结后修改被拒绝，落地后两条射线均命中同一 body；`COMPOUND3D_SUMMARY status=PASS built=true frozen=true left=true right=true y=0.530`。同时补齐 tolua++ Object 注册列表，避免新加的 `Material3D`、`Body3D`、`CharacterController3D`、`FixtureDef3D` 和 `PhysicsWorld3D` 在 Lua 仍持有 userdata 时被 autorelease 清空。
 
 2026-07-11 mesh collider 运行记录：`MeshCollider3D.ts` 通过异步 Content 路径 cook Duck glTF triangle mesh，第二次请求命中 shape cache，静态 body 射线命中；`MESH_COLLIDER3D_SUMMARY status=PASS built=true cache=true ray=true y=0.480 load=0.862`。
 

@@ -70,7 +70,7 @@
 
 - Lua/tolua++ 已导出 `Vec3`、`Camera3D`、`Node3D`、`View3D` 和 `Model3D`。
 - TypeScript、Teal、Wasm、Rust SDK、Wa 与 C# 已生成或补充对应声明。
-- `Node3D` 的 position、scale、eulerAngles 和坐标转换统一使用 `Vec3`。
+- `Node3D` 的 position、scale、angles 和坐标转换统一使用 `Vec3`。
 - 绑定层对 `Node.addChild(Node)` 与 `View3D.addChild(Node3D)` 的同名问题采用目标语言适合的重命名或覆盖策略。
 
 ### 2.6 Jolt 3D 物理
@@ -78,7 +78,7 @@
 - Jolt Physics 5.5.0 以 C++17 源码直接编入各平台引擎目标，和现有 playrho 2D 物理保持独立；Rust crate 不调用 C++ 编译器，也不链接独立 Jolt 静态库。
 - `Source/Physics/JoltBridge.cpp` 是引擎侧 Jolt C ABI 实现，Rust 只通过 `extern "C"` 声明访问；反向的 3D runtime 能力继续通过 Rust 导出的 C ABI 供 C++ wrapper 调用，Jolt C++ 类型不会跨越边界。
 - `PhysicsWorld3D : Node` 复用主 Scheduler fixed accumulator；static/kinematic 在 step 前读取 `Node3D` world transform，dynamic 在 step 后写回 local position/rotation并保留 scale。
-- `Body3D : Object` 由 world 持有，提供 box/sphere/capsule、linear/angular velocity、force/impulse、layer/mask 与 sensor。
+- `Body3D : Node3D` 由 world 保持物理引用并直接参与 3D 场景树；`BodyDef3D` + `FixtureDef3D` 负责可复用定义，body 提供 linear/angular velocity、force/linear impulse、layer/mask 与 sensor。
 - contact listener 在 Jolt step 内只收集 POD 事件，C++ 在 step 返回后快照 `Body3D` 引用并分发 Enter/Stay/Exit，允许回调中安全销毁 body。
 - raycast 返回最近命中及 point/normal/distance；sphere overlap 返回当前重叠 body。
 - Jolt world 使用 4 MiB 预分配临时 allocator，并在容量不足时回退分配，避免大 world capacity 在约束缓冲准备阶段触发断言。
@@ -87,7 +87,7 @@
 
 - macOS 引擎通过 `Tools/build-scripts/build_macos.sh` 构建。
 - Rust 3D 单元测试覆盖 frustum/AABB、opaque/transparent 排序、统计 ABI 字段顺序、invisible subtree、灯光选择、动画插值和特殊材质通道打包。
-- `cargo test --lib` 当前通过 32 个纯 Rust 测试；覆盖 ray/AABB 相交、极端蒙皮姿态 bounds 合并、TRS/morph 动画采样、skeleton snapshot 共享存储、Node3D 层级/生命周期不变量、材质通道打包和上传预算。Jolt 集成不再由 Rust 测试进程直接链接 C++，统一改由真实 Dora 引擎进程回归。
+- `cargo test --lib` 当前通过 34 个纯 Rust 测试；覆盖 ray/AABB 相交、极端蒙皮姿态 bounds 合并、TRS/morph 动画采样、多 morph target 组合与切线 handedness、skeleton snapshot 共享存储、Node3D 层级/生命周期不变量、材质通道打包和上传预算。Jolt 集成不再由 Rust 测试进程直接链接 C++，统一改由真实 Dora 引擎进程回归。
 - `Dora-Example/Test/Model3D` 提供 TS 编写的 ImGui 测试程序，覆盖 core PBR、多个材质扩展、环境切换、Fox 动画、视锥剔除和 cleanup 压力案例。
 - `App.saveScreenshot()` 提供与场景节点解耦的 backbuffer 截图能力；相对路径写入 writable path，接口返回最终 `.tga` 路径。
 - `View3D.stats` 提供 scene/visible/cull/item/draw/triangle/switch 统计以及全局 3D registry 数量。
@@ -171,18 +171,35 @@
 
 ## 5. 状态结论
 
+2026-07-13 完成 3D 物理 API 风格统一的破坏性迁移：`Body3D` 改为
+`Node3D` 子类，新增 `BodyDef3D`/`FixtureDef3D`，移除公开的
+`PhysicsWorld3D.createBox/createSphere/createCapsule/createBody` 和 body destroy
+入口；约束改为 `Constraint3D.fixed/distance/hinge`，查询统一为 start/stop
+`raycast` 与 `querySphere`，冲量统一为 `applyLinearImpulse`。tolua++、Wasm、
+Rust、Wa、C#、TypeScript 和 Teal 声明已同步；Dora-Example 的 13 个相关 TS
+案例全部通过 CLI 编译，`Physics3D` 运行回归为 PASS，Jolt 生命周期 1000 次
+循环与四组异步 shape 回归为 PASS。
+
 当前实现已经完成 3D 场景树、glTF、PBR/IBL、动画、剔除、缓存和多语言绑定的端到端闭环。它适合继续作为轻量 3D 功能基础，但还不应通过继续增加高级材质扩展来扩大范围。
 
 P0 自动回归、实时灯光、glTF 动画、异步资源链路、缓存预算、首轮规模化 renderer/animation profile、动态 skinned bounds 和 ray/AABB picking 均已完成。动画稳态已移除每帧 clip/node-map/skeleton topology/scene-node 深拷贝，Node3D transform/lifecycle/fixed-step authority 也已冻结；剩余优化应由 profile 数据驱动。
 
-JOLT-A/B、Model3D 查询、最小 Material3D、glTF morph target 和单方向光阴影已形成端到端闭环：Rust core、C++ wrapper、全部目标语言绑定、macOS 完整构建、P0 回归和独立真实场景均已通过。JOLT-C 的 `CharacterVirtual` 胶囊角色控制器、immutable compound shape、异步 glTF mesh/convex hull cooking、fixed/distance/hinge constraint、基础 physics debug draw 和首轮规模化性能/诊断基线也已完成。复杂 shape 的公开 ownership 保持在 Rust handle 层，Jolt native instance 由引擎 C++ C ABI 实现管理；mesh 数据通过 Content 异步读取并后台 preparation。当前通过 32 项纯 Rust 测试和六项真实引擎 Jolt 集成回归。动态上传预算、CSM、point-light shadow 和高数量 GPU morph 继续延期。详细计划见 `08-production-readiness-roadmap.md`。
+JOLT-A/B、Model3D 查询、最小 Material3D、glTF morph target 和单方向光阴影已形成端到端闭环：Rust core、C++ wrapper、全部目标语言绑定、macOS 完整构建、P0 回归和独立真实场景均已通过。JOLT-C 的 `CharacterVirtual` 胶囊角色控制器、immutable compound shape、异步 glTF mesh/convex hull cooking、fixed/distance/hinge constraint、基础 physics debug draw 和首轮规模化性能/诊断基线也已完成。复杂 shape 的公开 ownership 保持在 Rust handle 层，Jolt native instance 由引擎 C++ C ABI 实现管理；mesh 数据通过 Content 异步读取并后台 preparation。当前通过 34 项纯 Rust 测试和七项真实引擎 Jolt 集成回归。动态上传预算、CSM、point-light shadow 和高数量 GPU morph 继续延期。详细计划见 `08-production-readiness-roadmap.md`。
 
 2026-07-12 Jolt 边界收口回归：`cargo test --lib` 为 30/30，`Tools/build-scripts/build_macos.sh` 成功；引擎侧 Physics3D、CharacterController3D、CompoundShape3D、MeshCollider3D 和 Constraint3D 五项均为 `PASS`。其中 physics 稳定态为 `enter=6, stay=155, exit=6, sensor=3, ray=5.75, overlap=5`，constraint 为 `fixed=1.400, distance=2.000, hingeMove=1.377`。
 
 2026-07-12 Jolt-C 性能基线：`JoltScaleProfile.ts` 的 `100/250/500` body、debug off/on 六个阶段均为 `PASS`。关闭调试绘制时 frame P95 均为 `16.667ms`，collect P95 分别为 `0.480/1.140/2.329ms`；500 body 开启调试绘制时 frame P50/P95 为 `24.072/26.186ms`，collect P95 为 `2.404ms`。RSS 采样为 `165220 -> 199784 KB`、峰值 `212996 KB`；该 Debug/x86_64 数据用于后续回归和增长趋势判断，不作为 arm64 Release 性能承诺。
 
-2026-07-12 动态 Convex Hull：`PhysicsShape3D.loadConvexHullAsync()` 复用 Content 主线程异步读取与 worker preparation，只提取场景变换后、被 triangle indices 实际引用的唯一 POSITION；C++ Jolt bridge 通过 `ConvexHullShapeSettings` 创建可用于 dynamic body 的 native shape。cache key 区分 triangle mesh 与 convex hull。`ConvexHull3D.ts` 验证 cook、同类型 cache 命中、跨类型 cache 隔离、动态下落/旋转和 raycast，结果为 `CONVEX_HULL3D_SUMMARY status=PASS`。
+2026-07-12 动态 Convex Hull：`FixtureDef3D.loadConvexHullAsync()` 复用 Content 主线程异步读取与 worker preparation，只提取场景变换后、被 triangle indices 实际引用的唯一 POSITION；C++ Jolt bridge 通过 `ConvexHullShapeSettings` 创建可用于 dynamic body 的 native shape。cache key 区分 triangle mesh 与 convex hull。`ConvexHull3D.ts` 验证 cook、同类型 cache 命中、跨类型 cache 隔离、动态下落/旋转和 raycast，结果为 `CONVEX_HULL3D_SUMMARY status=PASS`。
 
 2026-07-12 glTF Morph Target：首版在 worker 导入所有 target delta 和默认 weights，每个模型实例为 morph primitive 创建独立 dynamic mesh；动画支持 STEP/LINEAR/CUBICSPLINE weights，稳态复用采样与顶点缓冲，更新后同步 mesh/joint bounds。CPU morph 数据计入 model resident bytes。Khronos `SimpleMorph` 回归为 `MORPH_TARGET3D_SUMMARY status=PASS animations=1 duration=4.000 width=1.000..1.498 height=0.502..2.498`。
 
 同轮最终验证：`cargo test --lib` 为 32/32，macOS universal Debug 构建成功，六项 Jolt 总回归、P0 七图/RMSE 与 300 次 cleanup stress 均为 `PASS`。同时修复 physics debug 队列为空时仍创建 debug material 的问题，post-cache registry 恢复为 `nodes=1, visuals=0, models=0, meshes=0, materials=0, animations=0, instances=0`。
+
+### 5.1 首版发布收口（2026-07-12）
+
+- 跨平台构建：macOS 原生 arm64 Debug/Release、iOS arm64 Simulator、Android `arm64-v8a`/`armeabi-v7a`/`x86_64` 已完成构建；Linux CI `29197501430` 与 Windows CI `29198316711` 使用同一完整变更集并通过。Model3D 的 DX11 shader bytecode 已在 Windows 11/Visual Studio 环境生成并补入六个 embedded shader header，Windows 生成脚本也覆盖 sheen 与 thickness+sheen 变体。
+- Jolt 生命周期：真实引擎新增 1000 次 world/body/constraint/character cleanup，以及 Duck/Fox 的 convex-hull/mesh 四组首次异步并发加载；结果为 `JOLT_LIFECYCLE_SUMMARY status=PASS worldCycles=1000/1000 asyncCycles=4/4 handlers=8`。Jolt 总入口现覆盖七项确定性回归。
+- Morph Target：纯 Rust 回归精确验证多 target additive POSITION、缺省 weight、NORMAL/TANGENT 归一化、tangent handedness 及 LINEAR/CUBICSPLINE 多 target keyframe 顺序；Khronos `SimpleMorph` 真实引擎回归继续为 `PASS`。
+- 原生 Release 基线：MacBook Pro `MacBookPro18,3`、Apple M1 Pro 10-core、16 GB、macOS 26.5.1、Metal、arm64 Release。500 个 Duck 的 renderer static/dynamic frame P95 为 `16.682/16.742ms`，submit P95 为 `232/265us`；50 个同时播放 Fox 的 frame P95 为 `16.667ms`，collect/submit P95 为 `441/38us`；500 个 Jolt body 在 debug off/on 下 frame P95 均为 `16.667ms`，collect P95 为 `108/108us`。这些数据是同机回归基线，不是跨设备性能承诺。
+- API 冻结：首版公开兼容面以 `Tools/tolua++/Dora.h` 与 `Tools/WasmGen/Dora.h` 为权威，冻结 `Vec3`、`Camera3D`、`Node3D`、`Material3D`、`Model3D`、`DirectionalLight3D`、`PointLight3D`、`View3D`、`Body3D`、`CharacterController3D`、`FixtureDef3D`、`Constraint3D` 与 `PhysicsWorld3D`。引擎内部 C ABI、renderer/material 数据布局与 Jolt native handle 不属于公开兼容承诺。

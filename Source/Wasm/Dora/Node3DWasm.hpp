@@ -35,11 +35,11 @@ DORA_EXPORT void node3d_set_scale(int64_t self, int64_t val) {
 DORA_EXPORT int64_t node3d_get_scale(int64_t self) {
 	return Vec3_Retain(r_cast<Node3D*>(self)->getScale());
 }
-DORA_EXPORT void node3d_set_euler_angles(int64_t self, int64_t val) {
-	r_cast<Node3D*>(self)->setEulerAngles(Vec3_From(val));
+DORA_EXPORT void node3d_set_angles(int64_t self, int64_t val) {
+	r_cast<Node3D*>(self)->setAngles(Vec3_From(val));
 }
-DORA_EXPORT int64_t node3d_get_euler_angles(int64_t self) {
-	return Vec3_Retain(r_cast<Node3D*>(self)->getEulerAngles());
+DORA_EXPORT int64_t node3d_get_angles(int64_t self) {
+	return Vec3_Retain(r_cast<Node3D*>(self)->getAngles());
 }
 DORA_EXPORT void node3d_set_x(int64_t self, float val) {
 	r_cast<Node3D*>(self)->setX(val);
@@ -131,8 +131,8 @@ static void linkNode3D(wasm3::module3& mod) {
 	mod.link_optional("*", "node3d_get_position", node3d_get_position);
 	mod.link_optional("*", "node3d_set_scale", node3d_set_scale);
 	mod.link_optional("*", "node3d_get_scale", node3d_get_scale);
-	mod.link_optional("*", "node3d_set_euler_angles", node3d_set_euler_angles);
-	mod.link_optional("*", "node3d_get_euler_angles", node3d_get_euler_angles);
+	mod.link_optional("*", "node3d_set_angles", node3d_set_angles);
+	mod.link_optional("*", "node3d_get_angles", node3d_get_angles);
 	mod.link_optional("*", "node3d_set_x", node3d_set_x);
 	mod.link_optional("*", "node3d_get_x", node3d_get_x);
 	mod.link_optional("*", "node3d_set_y", node3d_set_y);

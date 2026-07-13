@@ -35,11 +35,11 @@ func node3d_set_scale(slf: i64, val: i64)
 #wa:import dora node3d_get_scale
 func node3d_get_scale(slf: i64) => i64
 
-#wa:import dora node3d_set_euler_angles
-func node3d_set_euler_angles(slf: i64, val: i64)
+#wa:import dora node3d_set_angles
+func node3d_set_angles(slf: i64, val: i64)
 
-#wa:import dora node3d_get_euler_angles
-func node3d_get_euler_angles(slf: i64) => i64
+#wa:import dora node3d_get_angles
+func node3d_get_angles(slf: i64) => i64
 
 #wa:import dora node3d_set_x
 func node3d_set_x(slf: i64, val: f32)
@@ -188,13 +188,13 @@ func Node3D.GetScale() => Vec3 {
 }
 
 /// Sets the node Euler angles in degrees.
-func Node3D.SetEulerAngles(val: Vec3) {
-	node3d_set_euler_angles(*this.raw, val.GetRaw())
+func Node3D.SetAngles(val: Vec3) {
+	node3d_set_angles(*this.raw, val.GetRaw())
 }
 
 /// Gets the node Euler angles in degrees.
-func Node3D.GetEulerAngles() => Vec3 {
-	return *Vec3From(node3d_get_euler_angles(*this.raw))
+func Node3D.GetAngles() => Vec3 {
+	return *Vec3From(node3d_get_angles(*this.raw))
 }
 
 /// Sets the x-axis position of the node.

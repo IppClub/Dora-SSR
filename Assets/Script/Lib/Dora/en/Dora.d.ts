@@ -3662,7 +3662,7 @@ class Node3D extends Object {
 	rotation: any;
 
 	/** The node Euler rotation in degrees. */
-	eulerAngles: Vec3;
+	angles: Vec3;
 
 	/** The node world transform matrix. */
 	readonly worldMatrix: any;
@@ -3797,14 +3797,13 @@ export const enum BodyType3D {
 }
 
 /** A 3D rigid body component owned by a PhysicsWorld3D. */
-class Body3D extends Object {
+class Body3D extends Node3D {
 	private constructor();
 
 	/** The synchronized node, or undefined after this body is destroyed. */
-	readonly node?: Node3D;
-
 	/** The owning world, or undefined after this body is destroyed. */
 	readonly world?: PhysicsWorld3D;
+	readonly bodyDef: BodyDef3D;
 
 	/** The body's motion type. */
 	readonly type: BodyType3D;
@@ -3825,19 +3824,25 @@ class Body3D extends Object {
 	sensor: boolean;
 
 	applyForce(force: Vec3): void;
-	applyImpulse(impulse: Vec3): void;
+	applyLinearImpulse(impulse: Vec3): void;
 	onContactEnter(handler: (this: void, other: Body3D, point: Vec3, normal: Vec3) => void): void;
 	onContactStay(handler: (this: void, other: Body3D, point: Vec3, normal: Vec3) => void): void;
 	onContactExit(handler: (this: void, other: Body3D, point: Vec3, normal: Vec3) => void): void;
 
 	/** Removes the body from its world and turns this into an empty object. */
-	destroy(): void;
 }
 
 export {Body3D as Body3DType};
 export namespace Body3D {
 	export type Type = Body3D;
 }
+
+interface Body3DClass {
+	(this: void, bodyDef: BodyDef3D, world: PhysicsWorld3D, position?: Vec3, angles?: Vec3): Body3D;
+}
+
+const body3DClass: Body3DClass;
+export {body3DClass as Body3D};
 
 /** A virtual capsule character controller owned by a PhysicsWorld3D. */
 class CharacterController3D extends Object {
@@ -3862,34 +3867,55 @@ export namespace CharacterController3D {
 }
 
 /** A reusable immutable Jolt collision shape or an unfrozen compound builder. */
-class PhysicsShape3D extends Object {
+class FixtureDef3D extends Object {
 	private constructor();
 	/** Whether this shape is frozen and can be used to create bodies. */
 	readonly built: boolean;
 	/** Adds a child shape in compound-local space before build(). */
-	addChild(shape: PhysicsShape3D, position: Vec3, eulerAngles?: Vec3): boolean;
+	addChild(shape: FixtureDef3D, position: Vec3, angles?: Vec3): boolean;
 	/** Freezes a non-empty compound shape. */
 	build(): boolean;
 }
 
-export {PhysicsShape3D as PhysicsShape3DType};
-export namespace PhysicsShape3D {
-	export type Type = PhysicsShape3D;
+export {FixtureDef3D as FixtureDef3DType};
+export namespace FixtureDef3D {
+	export type Type = FixtureDef3D;
 }
 
-interface PhysicsShape3DClass {
-	box(halfExtent: Vec3): PhysicsShape3D;
-	sphere(radius: number): PhysicsShape3D;
-	capsule(halfHeight: number, radius: number): PhysicsShape3D;
-	compound(): PhysicsShape3D;
+interface FixtureDef3DClass {
+	box(halfExtent: Vec3): FixtureDef3D;
+	sphere(radius: number): FixtureDef3D;
+	capsule(halfHeight: number, radius: number): FixtureDef3D;
+	compound(): FixtureDef3D;
 	/** Reads through Content and cooks a cached static triangle mesh off the main thread. */
-	loadMeshAsync(filename: string, handler: (this: void, shape: PhysicsShape3D) => void): void;
+	loadMeshAsync(filename: string, handler: (this: void, shape: FixtureDef3D) => void): void;
 	/** Reads model vertices through Content and cooks a cached convex hull suitable for dynamic bodies. */
-	loadConvexHullAsync(filename: string, handler: (this: void, shape: PhysicsShape3D) => void): void;
+	loadConvexHullAsync(filename: string, handler: (this: void, shape: FixtureDef3D) => void): void;
 }
 
-const physicsShape3DClass: PhysicsShape3DClass;
-export {physicsShape3DClass as PhysicsShape3D};
+const fixtureDef3DClass: FixtureDef3DClass;
+export {fixtureDef3DClass as FixtureDef3D};
+
+class BodyDef3D extends Object {
+	private constructor();
+	type: BodyType3D;
+	collisionLayer: number;
+	collisionMask: number;
+	sensor: boolean;
+	attach(fixture: FixtureDef3D, position?: Vec3, angles?: Vec3): boolean;
+}
+
+export {BodyDef3D as BodyDef3DType};
+export namespace BodyDef3D {
+	export type Type = BodyDef3D;
+}
+
+interface BodyDef3DClass {
+	(this: void): BodyDef3D;
+}
+
+const bodyDef3DClass: BodyDef3DClass;
+export {bodyDef3DClass as BodyDef3D};
 
 /** A two-body constraint owned by a PhysicsWorld3D. */
 class Constraint3D extends Object {
@@ -3909,33 +3935,32 @@ export namespace Constraint3D {
 	export type Type = Constraint3D;
 }
 
+interface Constraint3DClass {
+	fixed(firstBody: Body3D, secondBody: Body3D, anchor: Vec3): Constraint3D;
+	distance(firstBody: Body3D, secondBody: Body3D, firstAnchor: Vec3, secondAnchor: Vec3, minDistance: number, maxDistance: number): Constraint3D;
+	hinge(firstBody: Body3D, secondBody: Body3D, anchor: Vec3, axis: Vec3, minAngle?: number, maxAngle?: number): Constraint3D;
+}
+
+const constraint3DClass: Constraint3DClass;
+export {constraint3DClass as Constraint3D};
+
 /** A fixed-step 3D physics world backed by Jolt Physics. */
 class PhysicsWorld3D extends Node {
 	private constructor();
 
 	gravity: Vec3;
-	createBox(node: Node3D, halfExtent: Vec3, bodyType?: BodyType3D): Body3D;
-	createSphere(node: Node3D, radius: number, bodyType?: BodyType3D): Body3D;
-	createCapsule(node: Node3D, halfHeight: number, radius: number, bodyType?: BodyType3D): Body3D;
-	createBody(node: Node3D, shape: PhysicsShape3D, bodyType?: BodyType3D): Body3D;
 	createCharacter(node: Node3D, halfHeight: number, radius: number, maxSlopeAngle?: number, stepHeight?: number): CharacterController3D;
-	createFixedConstraint(firstBody: Body3D, secondBody: Body3D, anchor: Vec3): Constraint3D;
-	createDistanceConstraint(firstBody: Body3D, secondBody: Body3D, firstAnchor: Vec3, secondAnchor: Vec3, minDistance: number, maxDistance: number): Constraint3D;
-	createHingeConstraint(firstBody: Body3D, secondBody: Body3D, anchor: Vec3, axis: Vec3, minAngle: number, maxAngle: number): Constraint3D;
-	destroyBody(body: Body3D): void;
 	destroyCharacter(character: CharacterController3D): void;
-	destroyConstraint(constraint: Constraint3D): void;
 
 	/** Casts a ray and invokes the handler for the nearest hit. */
 	raycast(
-		origin: Vec3,
-		direction: Vec3,
-		distance: number,
-		handler: (this: void, body: Body3D, point: Vec3, normal: Vec3, hitDistance: number) => boolean
+		start: Vec3,
+		stop: Vec3,
+		handler: (this: void, body: Body3D, point: Vec3, normal: Vec3) => boolean
 	): boolean;
 
 	/** Visits overlapping bodies until the handler returns true. */
-	overlapSphere(
+	querySphere(
 		center: Vec3,
 		radius: number,
 		handler: (this: void, body: Body3D) => boolean

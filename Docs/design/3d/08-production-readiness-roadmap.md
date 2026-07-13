@@ -444,7 +444,7 @@ logic/render thread
 2. [x] **动画稳态 profile 与复制清理**：`1/10/25/50` 个 Fox profile 已记录 frame、collect、sort 和 submit；clip/node-map clone、采样缓冲重分配和 skeleton topology 深拷贝已消除，renderer 的 traversal/visual/skeleton/world-matrix 主要临时容器改为 per-view workspace 复用。独立 animation update/dynamic bounds 计时仅在后续 profile 证明 collect 分解不足时再增加。
 3. [x] **Node3D 语义冻结**：reparent 保留 local TRS 并重算 world，层级修改拒绝 cycle，rotation 在 core 归一化；Rust destroy 与 C++ cleanup 的双向断链规则已有单元/脚本回归。JOLT 复用主 Scheduler fixed accumulator，并采用 kinematic pre-step pull、dynamic post-step write-back 的单向 authority。
 4. [x] **JOLT-A 基础接入**：Jolt 5.5.0 已直接编入引擎 C++ 目标，Rust 仅调用引擎导出的 C ABI；已建立 `PhysicsWorld3D` 生命周期、fixed timestep、box/sphere/capsule、静态/动态/运动学刚体，以及 `Body3D` 与 `Node3D` 的单向 authority 变换同步。
-5. [x] **JOLT-B 最小游戏 API**：raycast/overlap、collision enter/stay/exit、layer/mask、sensor、force/impulse/velocity、physics debug draw 与 Lua、TS、Teal、Wasm、Rust、Wa、C# 绑定已经完成。集成测试统一在真实 Dora 引擎进程运行。
+5. [x] **JOLT-B 最小游戏 API**：start/stop raycast、sphere query、collision enter/stay/exit、layer/mask、sensor、force/linear impulse/velocity、physics debug draw 与 Lua、TS、Teal、Wasm、Rust、Wa、C# 绑定已经完成。`Body3D : Node3D`，构造风格与 2D 的 `Body(def, world, ...)` 对齐。集成测试统一在真实 Dora 引擎进程运行。
 6. [x] **Model3D 查询与 Material3D**：已补 animation names、动态 local/world bounds、`hasNode/attachToNode` 挂点接口和 clone-on-write 的 per-instance Material3D；内部 glTF Node3D wrapper 未向脚本暴露。独立查询/COW 截图与合入后的 P0 七图、300 次 stress 均通过。
 7. **单方向光阴影（已完成）**：单级 directional shadow map 已覆盖 static、skinned 和 alpha-mask；每个 View3D 按需创建独立 attachment，使用 3x3 PCF 和可调 bias。首版不做 CSM 或 point-light shadow。
 
@@ -464,3 +464,11 @@ logic/render thread
 OpenGL、OpenGLES 和 Vulkan 的硬件视觉基线已延期，待具备真实 GPU self-hosted runner 或设备农场后再恢复，不占用近期开发顺序。
 
 上述核心正确性、加载体验、基础交互、JOLT 最小游戏 API、JOLT-C 角色/复杂形状/最小约束、Model3D 查询、最小 Material3D、glTF morph target 和单方向光阴影已完成，Dora 3D 已从“模型查看器可用”进入“轻量游戏场景可用”。本轮 Jolt C ABI 收口、JOLT-C 规模化性能/诊断基线、动态 convex hull 和 glTF morph target 均已完成。动态上传预算、CSM、point-light shadow、高数量 GPU morph 和更复杂 renderer 能力继续保持独立里程碑。
+
+## 11. 首版 API 与发布冻结
+
+首版公开 3D API 以 `Tools/tolua++/Dora.h` 和 `Tools/WasmGen/Dora.h` 为权威定义。发布前冻结 `Vec3`、`Camera3D`、`Node3D`、`Material3D`、`Model3D`、`DirectionalLight3D`、`PointLight3D`、`View3D`、`Body3D`、`CharacterController3D`、`FixtureDef3D`、`Constraint3D` 和 `PhysicsWorld3D` 的名称、继承关系、ownership 与已导出方法语义。Lua、TypeScript、Teal、Wasm/Rust/Wa 和 C# 声明必须由这两份 IDL 同步或显式适配，不允许单独扩展某个平台的公开能力。
+
+以下内容不属于首版兼容承诺，可在不影响脚本 API 的前提下继续整理：Rust/C++ 内部 C ABI、registry handle、renderer command/material 布局、Jolt native 对象和 shader binary 装载细节。自定义 Effect/program、高级 Material3D 扩展、GPU morph、LOD、triangle BVH、CSM 与 point-light shadow 仍保持延期；新增公开 API 必须带真实案例、生命周期规则、全部目标语言声明和自动回归后再解除冻结。
+
+发布收口验收包括：原生 macOS arm64 Debug/Release、iOS Simulator、Android 三 ABI、Linux/Windows 构建；34 项 Rust 单测；七项 Jolt 真实引擎回归；Khronos SimpleMorph；P0 七图与 300 次 cleanup；以及同机 arm64 Release renderer/animation/Jolt 性能基线。跨 backend 视觉基线仍等待真实 GPU runner，不阻塞首版构建发布。

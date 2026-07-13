@@ -947,24 +947,6 @@ do
 	registerBodyEvent(Dora.Body, "ContactStart")
 	registerBodyEvent(Dora.Body, "ContactEnd")
 
-	local PhysicsWorld3D = Dora.PhysicsWorld3D
-	PhysicsWorld3D.createBox = PhysicsWorld3D.addBox
-	PhysicsWorld3D.createSphere = PhysicsWorld3D.addSphere
-	PhysicsWorld3D.createCapsule = PhysicsWorld3D.addCapsule
-	PhysicsWorld3D.createCharacter = PhysicsWorld3D.addCharacter
-	PhysicsWorld3D.createBody = PhysicsWorld3D.addBody
-	PhysicsWorld3D.createFixedConstraint = PhysicsWorld3D.addFixedConstraint
-	PhysicsWorld3D.createDistanceConstraint = PhysicsWorld3D.addDistanceConstraint
-	PhysicsWorld3D.createHingeConstraint = PhysicsWorld3D.addHingeConstraint
-	PhysicsWorld3D.addBox = nil
-	PhysicsWorld3D.addSphere = nil
-	PhysicsWorld3D.addCapsule = nil
-	PhysicsWorld3D.addCharacter = nil
-	PhysicsWorld3D.addFixedConstraint = nil
-	PhysicsWorld3D.addDistanceConstraint = nil
-	PhysicsWorld3D.addHingeConstraint = nil
-	PhysicsWorld3D.addBody = nil
-
 	registerCommonEvent(Dora.AlignNode, "AlignLayout")
 
 	registerCommonEvent(Dora.EffekNode, "EffekEnd")

@@ -23,6 +23,15 @@ func constraint3d_get_second_body(slf: i64) => i64
 #wa:import dora constraint3d_destroy
 func constraint3d_destroy(slf: i64)
 
+#wa:import dora constraint3d_fixed
+func constraint3d_fixed(first_body: i64, second_body: i64, anchor: i64) => i64
+
+#wa:import dora constraint3d_distance
+func constraint3d_distance(first_body: i64, second_body: i64, first_anchor: i64, second_anchor: i64, min_distance: f32, max_distance: f32) => i64
+
+#wa:import dora constraint3d_hinge
+func constraint3d_hinge(first_body: i64, second_body: i64, anchor: i64, axis: i64, min_angle: f32, max_angle: f32) => i64
+
 type Constraint3D :struct{ Object }
 
 func Constraint3DFrom(raw: i64) => *Constraint3D {
@@ -79,4 +88,19 @@ func Constraint3D.GetSecondBody() => *Body3D {
 /// Removes this constraint from its physics world.
 func Constraint3D.Destroy() {
 	constraint3d_destroy(*this.raw)
+}
+
+/// Creates a fixed constraint at a world-space anchor.
+func Constraint3DFixed(first_body: Body3D, second_body: Body3D, anchor: Vec3) => Constraint3D {
+	return *Constraint3DFrom(constraint3d_fixed(first_body.GetRaw(), second_body.GetRaw(), anchor.GetRaw()))
+}
+
+/// Creates a distance constraint between two world-space anchors.
+func Constraint3DDistance(first_body: Body3D, second_body: Body3D, first_anchor: Vec3, second_anchor: Vec3, min_distance: f32, max_distance: f32) => Constraint3D {
+	return *Constraint3DFrom(constraint3d_distance(first_body.GetRaw(), second_body.GetRaw(), first_anchor.GetRaw(), second_anchor.GetRaw(), min_distance, max_distance))
+}
+
+/// Creates a hinge around a world-space axis with limits in degrees.
+func Constraint3DHinge(first_body: Body3D, second_body: Body3D, anchor: Vec3, axis: Vec3, min_angle: f32, max_angle: f32) => Constraint3D {
+	return *Constraint3DFrom(constraint3d_hinge(first_body.GetRaw(), second_body.GetRaw(), anchor.GetRaw(), axis.GetRaw(), min_angle, max_angle))
 }

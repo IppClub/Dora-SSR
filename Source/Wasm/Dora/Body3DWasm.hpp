@@ -11,11 +11,11 @@ using namespace Dora;
 DORA_EXPORT int32_t body3d_type() {
 	return DoraType<Body3D>();
 }
-DORA_EXPORT int64_t body3d_get_node(int64_t self) {
-	return Object_From(r_cast<Body3D*>(self)->getNode());
-}
 DORA_EXPORT int64_t body3d_get_world(int64_t self) {
 	return Object_From(r_cast<Body3D*>(self)->getPhysicsWorld());
+}
+DORA_EXPORT int64_t body3d_get_body_def(int64_t self) {
+	return Object_From(r_cast<Body3D*>(self)->getBodyDef());
 }
 DORA_EXPORT int32_t body3d_get_type(int64_t self) {
 	return s_cast<int32_t>(r_cast<Body3D*>(self)->getType());
@@ -53,8 +53,8 @@ DORA_EXPORT int32_t body3d_is_sensor(int64_t self) {
 DORA_EXPORT void body3d_apply_force(int64_t self, int64_t force) {
 	r_cast<Body3D*>(self)->applyForce(Vec3_From(force));
 }
-DORA_EXPORT void body3d_apply_impulse(int64_t self, int64_t impulse) {
-	r_cast<Body3D*>(self)->applyImpulse(Vec3_From(impulse));
+DORA_EXPORT void body3d_apply_linear_impulse(int64_t self, int64_t impulse) {
+	r_cast<Body3D*>(self)->applyLinearImpulse(Vec3_From(impulse));
 }
 DORA_EXPORT void body3d_on_contact_enter(int64_t self, int32_t func0, int64_t stack0) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
@@ -95,15 +95,15 @@ DORA_EXPORT void body3d_on_contact_exit(int64_t self, int32_t func0, int64_t sta
 		SharedWasmRuntime.invoke(func0);
 	});
 }
-DORA_EXPORT void body3d_destroy(int64_t self) {
-	r_cast<Body3D*>(self)->destroy();
+DORA_EXPORT int64_t body3d_new(int64_t body_def, int64_t world, int64_t position, int64_t angles) {
+	return Object_From(Body3D::create(r_cast<BodyDef3D*>(body_def), r_cast<PhysicsWorld3D*>(world), Vec3_From(position), Vec3_From(angles)));
 }
 } // extern "C"
 
 static void linkBody3D(wasm3::module3& mod) {
 	mod.link_optional("*", "body3d_type", body3d_type);
-	mod.link_optional("*", "body3d_get_node", body3d_get_node);
 	mod.link_optional("*", "body3d_get_world", body3d_get_world);
+	mod.link_optional("*", "body3d_get_body_def", body3d_get_body_def);
 	mod.link_optional("*", "body3d_get_type", body3d_get_type);
 	mod.link_optional("*", "body3d_set_linear_velocity", body3d_set_linear_velocity);
 	mod.link_optional("*", "body3d_get_linear_velocity", body3d_get_linear_velocity);
@@ -116,9 +116,9 @@ static void linkBody3D(wasm3::module3& mod) {
 	mod.link_optional("*", "body3d_set_sensor", body3d_set_sensor);
 	mod.link_optional("*", "body3d_is_sensor", body3d_is_sensor);
 	mod.link_optional("*", "body3d_apply_force", body3d_apply_force);
-	mod.link_optional("*", "body3d_apply_impulse", body3d_apply_impulse);
+	mod.link_optional("*", "body3d_apply_linear_impulse", body3d_apply_linear_impulse);
 	mod.link_optional("*", "body3d_on_contact_enter", body3d_on_contact_enter);
 	mod.link_optional("*", "body3d_on_contact_stay", body3d_on_contact_stay);
 	mod.link_optional("*", "body3d_on_contact_exit", body3d_on_contact_exit);
-	mod.link_optional("*", "body3d_destroy", body3d_destroy);
+	mod.link_optional("*", "body3d_new", body3d_new);
 }

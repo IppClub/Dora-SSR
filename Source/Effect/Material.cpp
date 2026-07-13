@@ -108,7 +108,7 @@ void Material::add(Pass* pass) {
 }
 
 Pass* Material::getPass(uint32_t index) const {
-	return index < _passes.size() ? _passes[index] : nullptr;
+	return index < _passes.size() ? _passes[index].get() : nullptr;
 }
 
 void Material::clear() {

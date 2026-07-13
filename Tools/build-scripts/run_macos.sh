@@ -56,7 +56,7 @@ ensure_dependencies() {
 
 	if [ "$missing" -ne 0 ]; then
 		echo "Building macOS native dependencies..."
-		"$SCRIPT_DIR/build_lib_macos.sh" debug
+		"$SCRIPT_DIR/build_lib_macos.sh" debug "$XCODE_ARCH"
 	fi
 }
 

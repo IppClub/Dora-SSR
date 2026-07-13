@@ -1,6 +1,6 @@
 #!/bin/bash
 # SDL2 multi-platform build script.
-# Usage: ./build_lib_sdl2.sh [macos|ios|android|linux|all] [--debug]
+# Usage: ./build_lib_sdl2.sh [macos|ios|android|linux|all] [--debug] [arm64|x86_64|universal]
 
 set -e
 
@@ -9,6 +9,7 @@ SDL_DIR="$SCRIPT_DIR/../../Source/3rdParty/SDL2"
 cd "$SDL_DIR"
 
 BUILD_MODE="release"
+MACOS_ARCH="universal"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -54,17 +55,23 @@ build_arch() {
 }
 
 build_macos() {
-	log_info "=== Building SDL2 macOS (Universal) ==="
-	clean_build macosx
-	build_arch macosx arm64 "$BUILD_MODE"
-	clean_build macosx
-	build_arch macosx x86_64 "$BUILD_MODE"
-
 	mkdir -p Lib/macOS
-	lipo -create \
-		build/macosx/arm64/${BUILD_MODE}/libSDL2.a \
-		build/macosx/x86_64/${BUILD_MODE}/libSDL2.a \
-		-output Lib/macOS/libSDL2.a
+	if [ "$MACOS_ARCH" = "universal" ]; then
+		log_info "=== Building SDL2 macOS (Universal) ==="
+		clean_build macosx
+		build_arch macosx arm64 "$BUILD_MODE"
+		clean_build macosx
+		build_arch macosx x86_64 "$BUILD_MODE"
+		lipo -create \
+			build/macosx/arm64/${BUILD_MODE}/libSDL2.a \
+			build/macosx/x86_64/${BUILD_MODE}/libSDL2.a \
+			-output Lib/macOS/libSDL2.a
+	else
+		log_info "=== Building SDL2 macOS ($MACOS_ARCH) ==="
+		clean_build macosx
+		build_arch macosx "$MACOS_ARCH" "$BUILD_MODE"
+		cp "build/macosx/$MACOS_ARCH/${BUILD_MODE}/libSDL2.a" Lib/macOS/libSDL2.a
+	fi
 
 	log_info "Created Lib/macOS/libSDL2.a"
 	file Lib/macOS/libSDL2.a
@@ -163,10 +170,10 @@ build_linux() {
 }
 
 show_help() {
-	echo "Usage: $0 [command] [--debug]"
+	echo "Usage: $0 [command] [--debug] [arm64|x86_64|universal]"
 	echo ""
 	echo "Commands:"
-	echo "  macos    Build macOS universal SDL2 library"
+	echo "  macos    Build macOS SDL2 library (universal by default)"
 	echo "  ios      Build iOS device and simulator SDL2 libraries"
 	echo "  android  Build Android SDL2 shared libraries"
 	echo "  linux    Build Linux SDL2 library for the host architecture"
@@ -177,6 +184,7 @@ show_help() {
 	echo "Options:"
 	echo "  --debug, -d     Build debug libraries"
 	echo "  --release, -r   Build release libraries"
+	echo "  arm64, x86_64, universal  Select macOS architecture"
 }
 
 COMMAND=""
@@ -187,6 +195,12 @@ for arg in "$@"; do
 			;;
 		--release|-r)
 			BUILD_MODE="release"
+			;;
+		arm64|aarch64)
+			MACOS_ARCH="arm64"
+			;;
+		x86_64|universal)
+			MACOS_ARCH="$arg"
 			;;
 		macos|ios|android|linux|all|clean|help|--help|-h)
 			if [ -n "$COMMAND" ]; then

@@ -78,37 +78,37 @@ int32_t dora_3d_physics_world_raycast(uint64_t world, float originX, float origi
 uint32_t dora_3d_physics_world_overlap_sphere(uint64_t world, float x, float y, float z, float radius, uint64_t* bodies, uint32_t capacity);
 }
 
-struct PhysicsShape3DImportResource {
+struct FixtureDef3DImportResource {
 	OwnArray<uint8_t> data;
 	size_t size = 0;
 };
 
-enum class PhysicsShape3DLoadKind : uint8_t {
+enum class FixtureDef3DLoadKind : uint8_t {
 	Mesh,
 	ConvexHull,
 };
 
-struct PhysicsShape3DLoadTask {
+struct FixtureDef3DLoadTask {
 	std::string key;
 	std::string file;
-	PhysicsShape3DLoadKind kind = PhysicsShape3DLoadKind::Mesh;
+	FixtureDef3DLoadKind kind = FixtureDef3DLoadKind::Mesh;
 	OwnArray<uint8_t> data;
 	size_t size = 0;
 	std::vector<std::string> dependencies;
-	std::unordered_map<std::string, PhysicsShape3DImportResource> resources;
+	std::unordered_map<std::string, FixtureDef3DImportResource> resources;
 	size_t remaining = 0;
 	bool failed = false;
 	bool cancelled = false;
-	std::vector<std::function<void(PhysicsShape3D*)>> handlers;
+	std::vector<std::function<void(FixtureDef3D*)>> handlers;
 };
 
-static void collectPhysicsShape3DDependency(const char* path, void* userData) {
-	auto task = r_cast<PhysicsShape3DLoadTask*>(userData);
+static void collectFixtureDef3DDependency(const char* path, void* userData) {
+	auto task = r_cast<FixtureDef3DLoadTask*>(userData);
 	task->dependencies.emplace_back(path);
 }
 
-static int32_t loadPhysicsShape3DResource(const char* path, const uint8_t** data, size_t* size, void* userData) {
-	auto task = r_cast<PhysicsShape3DLoadTask*>(userData);
+static int32_t loadFixtureDef3DResource(const char* path, const uint8_t** data, size_t* size, void* userData) {
+	auto task = r_cast<FixtureDef3DLoadTask*>(userData);
 	auto it = task->resources.find(path);
 	if (it == task->resources.end()) return 0;
 	*data = it->second.data.get();
@@ -116,21 +116,21 @@ static int32_t loadPhysicsShape3DResource(const char* path, const uint8_t** data
 	return 1;
 }
 
-class PhysicsShape3DCache : public NonCopyable {
+class FixtureDef3DCache : public NonCopyable {
 public:
-	virtual ~PhysicsShape3DCache() {
+	virtual ~FixtureDef3DCache() {
 		for (auto& [_, task] : _tasks) task->cancelled = true;
 		_tasks.clear();
 		_shapes.clear();
 	}
 
-	void loadAsync(String filename, PhysicsShape3DLoadKind kind, const std::function<void(PhysicsShape3D*)>& handler) {
+	void loadAsync(String filename, FixtureDef3DLoadKind kind, const std::function<void(FixtureDef3D*)>& handler) {
 		auto file = SharedContent.getFullPath(filename);
 		if (file.empty()) {
 			handler(nullptr);
 			return;
 		}
-		auto key = std::string(kind == PhysicsShape3DLoadKind::Mesh ? "mesh:" : "hull:") + file;
+		auto key = std::string(kind == FixtureDef3DLoadKind::Mesh ? "mesh:" : "hull:") + file;
 		if (auto it = _shapes.find(key); it != _shapes.end()) {
 			if (it->second->isBuilt()) {
 				handler(it->second);
@@ -142,7 +142,7 @@ public:
 			it->second->handlers.push_back(handler);
 			return;
 		}
-		auto task = std::make_shared<PhysicsShape3DLoadTask>();
+		auto task = std::make_shared<FixtureDef3DLoadTask>();
 		task->key = key;
 		task->file = file;
 		task->kind = kind;
@@ -161,20 +161,20 @@ public:
 	}
 
 protected:
-	PhysicsShape3DCache() { }
+	FixtureDef3DCache() { }
 
 private:
-	bool isCurrent(const std::shared_ptr<PhysicsShape3DLoadTask>& task) const {
+	bool isCurrent(const std::shared_ptr<FixtureDef3DLoadTask>& task) const {
 		auto it = _tasks.find(task->key);
 		return !task->cancelled && it != _tasks.end() && it->second == task;
 	}
 
-	void collectDependencies(const std::shared_ptr<PhysicsShape3DLoadTask>& task) {
+	void collectDependencies(const std::shared_ptr<FixtureDef3DLoadTask>& task) {
 		SharedAsyncThread.run(
 			[task]() {
 				auto success = dora_3d_collect_gltf_buffer_dependencies(
 					task->file.c_str(), task->data.get(), task->size,
-					collectPhysicsShape3DDependency, task.get()) != 0;
+					collectFixtureDef3DDependency, task.get()) != 0;
 				return Values::alloc(success);
 			},
 			[this, task](Own<Values> result) {
@@ -189,7 +189,7 @@ private:
 			});
 	}
 
-	void loadDependencies(const std::shared_ptr<PhysicsShape3DLoadTask>& task) {
+	void loadDependencies(const std::shared_ptr<FixtureDef3DLoadTask>& task) {
 		if (task->dependencies.empty()) {
 			cook(task);
 			return;
@@ -201,7 +201,7 @@ private:
 				if (!data || size == 0) {
 					task->failed = true;
 				} else {
-					task->resources.emplace(dependency, PhysicsShape3DImportResource {std::move(data), size});
+					task->resources.emplace(dependency, FixtureDef3DImportResource {std::move(data), size});
 				}
 				if (--task->remaining == 0) {
 					if (task->failed) {
@@ -214,14 +214,14 @@ private:
 		}
 	}
 
-	void cook(const std::shared_ptr<PhysicsShape3DLoadTask>& task) {
+	void cook(const std::shared_ptr<FixtureDef3DLoadTask>& task) {
 		SharedAsyncThread.run(
 			[task]() {
-				auto createShape = task->kind == PhysicsShape3DLoadKind::Mesh
+				auto createShape = task->kind == FixtureDef3DLoadKind::Mesh
 					? dora_3d_physics_shape_create_mesh_data
 					: dora_3d_physics_shape_create_convex_hull_data;
 				return Values::alloc(createShape(task->file.c_str(), task->data.get(), task->size,
-					loadPhysicsShape3DResource, task.get()));
+					loadFixtureDef3DResource, task.get()));
 			},
 			[this, task](Own<Values> result) {
 				uint64_t handle = 0;
@@ -234,8 +234,8 @@ private:
 			});
 	}
 
-	void complete(const std::shared_ptr<PhysicsShape3DLoadTask>& task, uint64_t handle) {
-		Ref<PhysicsShape3D> shape(Object::create<PhysicsShape3D>(handle, handle != 0));
+	void complete(const std::shared_ptr<FixtureDef3DLoadTask>& task, uint64_t handle) {
+		Ref<FixtureDef3D> shape(Object::create<FixtureDef3D>(handle, handle != 0));
 		if (handle != 0 && shape) {
 			_shapes[task->key] = shape;
 		} else if (handle != 0) {
@@ -246,33 +246,33 @@ private:
 		for (const auto& handler : handlers) handler(shape);
 	}
 
-	StringMap<Ref<PhysicsShape3D>> _shapes;
-	StringMap<std::shared_ptr<PhysicsShape3DLoadTask>> _tasks;
-	SINGLETON_REF(PhysicsShape3DCache, Director);
+	StringMap<Ref<FixtureDef3D>> _shapes;
+	StringMap<std::shared_ptr<FixtureDef3DLoadTask>> _tasks;
+	SINGLETON_REF(FixtureDef3DCache, Director);
 };
 
-#define SharedPhysicsShape3DCache \
-	Dora::Singleton<Dora::PhysicsShape3DCache>::shared()
+#define SharedFixtureDef3DCache \
+	Dora::Singleton<Dora::FixtureDef3DCache>::shared()
 
-PhysicsShape3D::PhysicsShape3D(uint64_t handle, bool built)
+FixtureDef3D::FixtureDef3D(uint64_t handle, bool built)
 	: _handle(handle)
 	, _built(built) { }
 
-PhysicsShape3D::~PhysicsShape3D() {
+FixtureDef3D::~FixtureDef3D() {
 	clearPhysics();
 }
 
-bool PhysicsShape3D::isBuilt() const noexcept {
+bool FixtureDef3D::isBuilt() const noexcept {
 	return _handle != 0 && _built && dora_3d_physics_shape_is_built(_handle) != 0;
 }
 
-bool PhysicsShape3D::addChild(NotNull<PhysicsShape3D, 1> shape, const Vec3& position, const Vec3& eulerAngles) {
+bool FixtureDef3D::addChild(NotNull<FixtureDef3D, 1> shape, const Vec3& position, const Vec3& angles) {
 	if (_handle == 0 || _built || !shape->isBuilt()) return false;
 	if (dora_3d_physics_shape_add_child(
 			_handle,
 			shape->_handle,
 			position.x, position.y, position.z,
-			eulerAngles.x, eulerAngles.y, eulerAngles.z)
+			angles.x, angles.y, angles.z)
 		== 0) {
 		return false;
 	}
@@ -280,11 +280,11 @@ bool PhysicsShape3D::addChild(NotNull<PhysicsShape3D, 1> shape, const Vec3& posi
 	return true;
 }
 
-bool PhysicsShape3D::addChild(NotNull<PhysicsShape3D, 1> shape, const Vec3& position) {
+bool FixtureDef3D::addChild(NotNull<FixtureDef3D, 1> shape, const Vec3& position) {
 	return addChild(shape, position, Vec3{});
 }
 
-bool PhysicsShape3D::build() {
+bool FixtureDef3D::build() {
 	if (_handle == 0 || _built) return false;
 	if (dora_3d_physics_shape_build(_handle) == 0) return false;
 	_built = true;
@@ -292,7 +292,7 @@ bool PhysicsShape3D::build() {
 	return true;
 }
 
-void PhysicsShape3D::clearPhysics() {
+void FixtureDef3D::clearPhysics() {
 	_children.clear();
 	if (_handle != 0) {
 		dora_3d_physics_shape_destroy(_handle);
@@ -301,37 +301,109 @@ void PhysicsShape3D::clearPhysics() {
 	_built = false;
 }
 
-void PhysicsShape3D::cleanup() {
+void FixtureDef3D::cleanup() {
 	clearPhysics();
 	Object::cleanup();
 }
 
-PhysicsShape3D* PhysicsShape3D::createBox(const Vec3& halfExtent) {
+FixtureDef3D* FixtureDef3D::createBox(const Vec3& halfExtent) {
 	auto handle = dora_3d_physics_shape_create_box(halfExtent.x, halfExtent.y, halfExtent.z);
-	return handle == 0 ? nullptr : Object::create<PhysicsShape3D>(handle, true);
+	return handle == 0 ? nullptr : Object::create<FixtureDef3D>(handle, true);
 }
 
-PhysicsShape3D* PhysicsShape3D::createSphere(float radius) {
+FixtureDef3D* FixtureDef3D::createSphere(float radius) {
 	auto handle = dora_3d_physics_shape_create_sphere(radius);
-	return handle == 0 ? nullptr : Object::create<PhysicsShape3D>(handle, true);
+	return handle == 0 ? nullptr : Object::create<FixtureDef3D>(handle, true);
 }
 
-PhysicsShape3D* PhysicsShape3D::createCapsule(float halfHeight, float radius) {
+FixtureDef3D* FixtureDef3D::createCapsule(float halfHeight, float radius) {
 	auto handle = dora_3d_physics_shape_create_capsule(halfHeight, radius);
-	return handle == 0 ? nullptr : Object::create<PhysicsShape3D>(handle, true);
+	return handle == 0 ? nullptr : Object::create<FixtureDef3D>(handle, true);
 }
 
-PhysicsShape3D* PhysicsShape3D::createCompound() {
+FixtureDef3D* FixtureDef3D::createCompound() {
 	auto handle = dora_3d_physics_shape_create_compound();
-	return handle == 0 ? nullptr : Object::create<PhysicsShape3D>(handle, false);
+	return handle == 0 ? nullptr : Object::create<FixtureDef3D>(handle, false);
 }
 
-void PhysicsShape3D::loadMeshAsync(String filename, const std::function<void(PhysicsShape3D*)>& handler) {
-	SharedPhysicsShape3DCache.loadAsync(filename, PhysicsShape3DLoadKind::Mesh, handler);
+void FixtureDef3D::loadMeshAsync(String filename, const std::function<void(FixtureDef3D*)>& handler) {
+	SharedFixtureDef3DCache.loadAsync(filename, FixtureDef3DLoadKind::Mesh, handler);
 }
 
-void PhysicsShape3D::loadConvexHullAsync(String filename, const std::function<void(PhysicsShape3D*)>& handler) {
-	SharedPhysicsShape3DCache.loadAsync(filename, PhysicsShape3DLoadKind::ConvexHull, handler);
+void FixtureDef3D::loadConvexHullAsync(String filename, const std::function<void(FixtureDef3D*)>& handler) {
+	SharedFixtureDef3DCache.loadAsync(filename, FixtureDef3DLoadKind::ConvexHull, handler);
+}
+
+BodyDef3D::BodyDef3D()
+	: _type(BodyType3D::Dynamic)
+	, _collisionLayer(0)
+	, _collisionMask(0xffffffffu)
+	, _sensor(false) { }
+
+uint8_t BodyDef3D::getTypeValue() const noexcept {
+	return s_cast<uint8_t>(_type);
+}
+
+void BodyDef3D::setTypeValue(uint8_t type) {
+	AssertIf(type > s_cast<uint8_t>(BodyType3D::Dynamic), "Invalid BodyType3D value {}.", type);
+	_type = s_cast<BodyType3D>(type);
+}
+
+void BodyDef3D::setType(BodyType3D type) {
+	_type = type;
+}
+
+BodyType3D BodyDef3D::getType() const noexcept {
+	return _type;
+}
+
+void BodyDef3D::setCollisionLayer(uint8_t layer) {
+	AssertIf(layer >= 32, "BodyDef3D collision layer should be less than 32.");
+	_collisionLayer = layer;
+}
+
+uint8_t BodyDef3D::getCollisionLayer() const noexcept {
+	return _collisionLayer;
+}
+
+void BodyDef3D::setCollisionMask(uint32_t mask) {
+	_collisionMask = mask;
+}
+
+uint32_t BodyDef3D::getCollisionMask() const noexcept {
+	return _collisionMask;
+}
+
+void BodyDef3D::setSensor(bool sensor) {
+	_sensor = sensor;
+}
+
+bool BodyDef3D::isSensor() const noexcept {
+	return _sensor;
+}
+
+bool BodyDef3D::attach(NotNull<FixtureDef3D, 1> fixture, const Vec3& position, const Vec3& angles) {
+	if (!fixture->isBuilt()) return false;
+	if (!_fixture) _fixture = FixtureDef3D::createCompound();
+	return _fixture && _fixture->addChild(fixture, position, angles);
+}
+
+bool BodyDef3D::attach(NotNull<FixtureDef3D, 1> fixture, const Vec3& position) {
+	return attach(fixture, position, Vec3{});
+}
+
+bool BodyDef3D::attach(NotNull<FixtureDef3D, 1> fixture) {
+	return attach(fixture, Vec3{}, Vec3{});
+}
+
+FixtureDef3D* BodyDef3D::getFixture() {
+	if (!_fixture) return nullptr;
+	if (!_fixture->isBuilt() && !_fixture->build()) return nullptr;
+	return _fixture;
+}
+
+BodyDef3D* BodyDef3D::create() {
+	return Object::create<BodyDef3D>();
 }
 
 Constraint3D::Constraint3D(NotNull<PhysicsWorld3D, 1> world, NotNull<Body3D, 2> firstBody, NotNull<Body3D, 3> secondBody, uint64_t handle)
@@ -381,6 +453,24 @@ void Constraint3D::destroy() {
 void Constraint3D::cleanup() {
 	clearPhysics();
 	Object::cleanup();
+}
+
+Constraint3D* Constraint3D::createFixed(Body3D* firstBody, Body3D* secondBody, const Vec3& anchor) {
+	if (!firstBody || !secondBody) return nullptr;
+	auto world = firstBody->getPhysicsWorld();
+	return world && world == secondBody->getPhysicsWorld() ? world->createFixedConstraint(firstBody, secondBody, anchor) : nullptr;
+}
+
+Constraint3D* Constraint3D::createDistance(Body3D* firstBody, Body3D* secondBody, const Vec3& firstAnchor, const Vec3& secondAnchor, float minDistance, float maxDistance) {
+	if (!firstBody || !secondBody) return nullptr;
+	auto world = firstBody->getPhysicsWorld();
+	return world && world == secondBody->getPhysicsWorld() ? world->createDistanceConstraint(firstBody, secondBody, firstAnchor, secondAnchor, minDistance, maxDistance) : nullptr;
+}
+
+Constraint3D* Constraint3D::createHinge(Body3D* firstBody, Body3D* secondBody, const Vec3& anchor, const Vec3& axis, float minAngle, float maxAngle) {
+	if (!firstBody || !secondBody) return nullptr;
+	auto world = firstBody->getPhysicsWorld();
+	return world && world == secondBody->getPhysicsWorld() ? world->createHingeConstraint(firstBody, secondBody, anchor, axis, minAngle, maxAngle) : nullptr;
 }
 
 CharacterController3D::CharacterController3D(NotNull<PhysicsWorld3D, 1> world, NotNull<Node3D, 2> node, uint64_t handle)
@@ -492,16 +582,18 @@ void CharacterController3D::cleanup() {
 	Object::cleanup();
 }
 
-Body3D::Body3D(NotNull<PhysicsWorld3D, 1> world, NotNull<Node3D, 2> node, BodyType3D type, uint64_t handle)
+Body3D::Body3D(NotNull<BodyDef3D, 1> bodyDef, NotNull<PhysicsWorld3D, 2> world, const Vec3& position, const Vec3& angles)
 	: _world(world)
-	, _node(node)
-	, _type(type)
-	, _handle(handle)
+	, _bodyDef(bodyDef)
+	, _type(bodyDef->getType())
+	, _bodyHandle(0)
+	, _initialPosition(position)
+	, _initialAngles(angles)
 	, _linearVelocity{}
 	, _angularVelocity{}
-	, _collisionLayer(0)
-	, _collisionMask(0xffffffffu)
-	, _sensor(false)
+	, _collisionLayer(bodyDef->getCollisionLayer())
+	, _collisionMask(bodyDef->getCollisionMask())
+	, _sensor(bodyDef->isSensor())
 	, _debugShape(DebugShape::Bounds)
 	, _debugSize{} { }
 
@@ -509,12 +601,12 @@ Body3D::~Body3D() {
 	clearPhysics();
 }
 
-Node3D* Body3D::getNode() const noexcept {
-	return _node.get();
-}
-
 PhysicsWorld3D* Body3D::getPhysicsWorld() const noexcept {
 	return _world.get();
+}
+
+BodyDef3D* Body3D::getBodyDef() const noexcept {
+	return _bodyDef;
 }
 
 BodyType3D Body3D::getType() const noexcept {
@@ -526,29 +618,29 @@ uint8_t Body3D::getTypeValue() const noexcept {
 }
 
 void Body3D::setLinearVelocity(const Vec3& velocity) {
-	if (_world && _handle != 0) {
-		dora_3d_physics_body_set_linear_velocity(_world->_handle, _handle, velocity.x, velocity.y, velocity.z);
+	if (_world && _bodyHandle != 0) {
+		dora_3d_physics_body_set_linear_velocity(_world->_handle, _bodyHandle, velocity.x, velocity.y, velocity.z);
 	}
 }
 
 const Vec3& Body3D::getLinearVelocity() const noexcept {
 	_linearVelocity = {};
-	if (_world && _handle != 0) {
-		dora_3d_physics_body_get_linear_velocity(_world->_handle, _handle, &_linearVelocity.x);
+	if (_world && _bodyHandle != 0) {
+		dora_3d_physics_body_get_linear_velocity(_world->_handle, _bodyHandle, &_linearVelocity.x);
 	}
 	return _linearVelocity;
 }
 
 void Body3D::setAngularVelocity(const Vec3& velocity) {
-	if (_world && _handle != 0) {
-		dora_3d_physics_body_set_angular_velocity(_world->_handle, _handle, velocity.x, velocity.y, velocity.z);
+	if (_world && _bodyHandle != 0) {
+		dora_3d_physics_body_set_angular_velocity(_world->_handle, _bodyHandle, velocity.x, velocity.y, velocity.z);
 	}
 }
 
 const Vec3& Body3D::getAngularVelocity() const noexcept {
 	_angularVelocity = {};
-	if (_world && _handle != 0) {
-		dora_3d_physics_body_get_angular_velocity(_world->_handle, _handle, &_angularVelocity.x);
+	if (_world && _bodyHandle != 0) {
+		dora_3d_physics_body_get_angular_velocity(_world->_handle, _bodyHandle, &_angularVelocity.x);
 	}
 	return _angularVelocity;
 }
@@ -556,8 +648,8 @@ const Vec3& Body3D::getAngularVelocity() const noexcept {
 void Body3D::setCollisionLayer(uint8_t layer) {
 	AssertIf(layer >= 32, "Body3D collision layer should be less than 32.");
 	_collisionLayer = layer;
-	if (_world && _handle != 0) {
-		dora_3d_physics_body_set_filter(_world->_handle, _handle, _collisionLayer, _collisionMask);
+	if (_world && _bodyHandle != 0) {
+		dora_3d_physics_body_set_filter(_world->_handle, _bodyHandle, _collisionLayer, _collisionMask);
 	}
 }
 
@@ -567,8 +659,8 @@ uint8_t Body3D::getCollisionLayer() const noexcept {
 
 void Body3D::setCollisionMask(uint32_t mask) {
 	_collisionMask = mask;
-	if (_world && _handle != 0) {
-		dora_3d_physics_body_set_filter(_world->_handle, _handle, _collisionLayer, _collisionMask);
+	if (_world && _bodyHandle != 0) {
+		dora_3d_physics_body_set_filter(_world->_handle, _bodyHandle, _collisionLayer, _collisionMask);
 	}
 }
 
@@ -578,8 +670,8 @@ uint32_t Body3D::getCollisionMask() const noexcept {
 
 void Body3D::setSensor(bool sensor) {
 	_sensor = sensor;
-	if (_world && _handle != 0) {
-		dora_3d_physics_body_set_sensor(_world->_handle, _handle, sensor ? 1 : 0);
+	if (_world && _bodyHandle != 0) {
+		dora_3d_physics_body_set_sensor(_world->_handle, _bodyHandle, sensor ? 1 : 0);
 	}
 }
 
@@ -588,14 +680,14 @@ bool Body3D::isSensor() const noexcept {
 }
 
 void Body3D::applyForce(const Vec3& force) {
-	if (_world && _handle != 0) {
-		dora_3d_physics_body_apply_force(_world->_handle, _handle, force.x, force.y, force.z);
+	if (_world && _bodyHandle != 0) {
+		dora_3d_physics_body_apply_force(_world->_handle, _bodyHandle, force.x, force.y, force.z);
 	}
 }
 
-void Body3D::applyImpulse(const Vec3& impulse) {
-	if (_world && _handle != 0) {
-		dora_3d_physics_body_apply_impulse(_world->_handle, _handle, impulse.x, impulse.y, impulse.z);
+void Body3D::applyLinearImpulse(const Vec3& impulse) {
+	if (_world && _bodyHandle != 0) {
+		dora_3d_physics_body_apply_impulse(_world->_handle, _bodyHandle, impulse.x, impulse.y, impulse.z);
 	}
 }
 
@@ -617,30 +709,44 @@ void Body3D::dispatchContact(uint8_t eventType, Body3D* other, const Vec3& point
 }
 
 void Body3D::clearPhysics() {
-	if (_handle != 0) {
+	if (_bodyHandle != 0) {
 		if (_world) {
-			dora_3d_physics_body_destroy(_world->_handle, _handle);
+			dora_3d_physics_body_destroy(_world->_handle, _bodyHandle);
 		}
-		_handle = 0;
+		_bodyHandle = 0;
 	}
-	_node = nullptr;
 	_world = nullptr;
 	_contactEnter = nullptr;
 	_contactStay = nullptr;
 	_contactExit = nullptr;
 }
 
-void Body3D::destroy() {
+bool Body3D::init() {
+	if (!Node3D::init()) return false;
+	setPosition(_initialPosition);
+	setAngles(_initialAngles);
+	auto fixture = _bodyDef->getFixture();
+	if (!fixture || !_world || _world->_handle == 0) return false;
+	_bodyHandle = dora_3d_physics_body_create_shape(
+		_world->_handle, getHandle(), fixture->_handle, s_cast<uint8_t>(_type));
+	if (_bodyHandle == 0 || !_world->addBody(this, _bodyHandle)) return false;
+	dora_3d_physics_body_set_filter(_world->_handle, _bodyHandle, _collisionLayer, _collisionMask);
+	dora_3d_physics_body_set_sensor(_world->_handle, _bodyHandle, _sensor ? 1 : 0);
+	return true;
+}
+
+void Body3D::cleanup() {
 	if (_world) {
 		_world->destroyBody(this);
 	} else {
 		clearPhysics();
 	}
+	Node3D::cleanup();
 }
 
-void Body3D::cleanup() {
-	clearPhysics();
-	Object::cleanup();
+Body3D* Body3D::create(BodyDef3D* bodyDef, PhysicsWorld3D* world, const Vec3& position, const Vec3& angles) {
+	if (!bodyDef || !world) return nullptr;
+	return Object::create<Body3D>(bodyDef, world, position, angles);
 }
 
 PhysicsWorld3D::PhysicsWorld3D()
@@ -671,93 +777,11 @@ const Vec3& PhysicsWorld3D::getGravity() const noexcept {
 	return _gravity;
 }
 
-Body3D* PhysicsWorld3D::addBody(Node3D* node, BodyType3D type, uint64_t handle) {
-	if (handle == 0) return nullptr;
-	auto body = Object::create<Body3D>(this, node, type, handle);
-	if (body) {
-		_bodies.emplace_back(body);
-		_bodyMap.emplace(handle, body);
-	}
-	return body;
-}
-
-Body3D* PhysicsWorld3D::createBox(NotNull<Node3D, 1> node, const Vec3& halfExtent, BodyType3D type) {
-	if (_handle == 0) return nullptr;
-	auto handle = dora_3d_physics_body_create_box(
-		_handle, node->getHandle(), halfExtent.x, halfExtent.y, halfExtent.z, s_cast<uint8_t>(type));
-	auto* body = addBody(node, type, handle);
-	if (body) {
-		body->_debugShape = Body3D::DebugShape::Box;
-		body->_debugSize = halfExtent;
-	}
-	return body;
-}
-
-Body3D* PhysicsWorld3D::createBox(NotNull<Node3D, 1> node, const Vec3& halfExtent, uint8_t type) {
-	AssertIf(type > s_cast<uint8_t>(BodyType3D::Dynamic), "Invalid BodyType3D value {}.", type);
-	return createBox(node, halfExtent, s_cast<BodyType3D>(type));
-}
-
-Body3D* PhysicsWorld3D::createSphere(NotNull<Node3D, 1> node, float radius, BodyType3D type) {
-	if (_handle == 0) return nullptr;
-	auto handle = dora_3d_physics_body_create_sphere(
-		_handle, node->getHandle(), radius, s_cast<uint8_t>(type));
-	auto* body = addBody(node, type, handle);
-	if (body) {
-		body->_debugShape = Body3D::DebugShape::Sphere;
-		body->_debugSize = Vec3{radius, 0.0f, 0.0f};
-	}
-	return body;
-}
-
-Body3D* PhysicsWorld3D::createSphere(NotNull<Node3D, 1> node, float radius, uint8_t type) {
-	AssertIf(type > s_cast<uint8_t>(BodyType3D::Dynamic), "Invalid BodyType3D value {}.", type);
-	return createSphere(node, radius, s_cast<BodyType3D>(type));
-}
-
-Body3D* PhysicsWorld3D::createCapsule(NotNull<Node3D, 1> node, float halfHeight, float radius, BodyType3D type) {
-	if (_handle == 0) return nullptr;
-	auto handle = dora_3d_physics_body_create_capsule(
-		_handle, node->getHandle(), halfHeight, radius, s_cast<uint8_t>(type));
-	auto* body = addBody(node, type, handle);
-	if (body) {
-		body->_debugShape = Body3D::DebugShape::Capsule;
-		body->_debugSize = Vec3{halfHeight, radius, 0.0f};
-	}
-	return body;
-}
-
-Body3D* PhysicsWorld3D::createCapsule(NotNull<Node3D, 1> node, float halfHeight, float radius, uint8_t type) {
-	AssertIf(type > s_cast<uint8_t>(BodyType3D::Dynamic), "Invalid BodyType3D value {}.", type);
-	return createCapsule(node, halfHeight, radius, s_cast<BodyType3D>(type));
-}
-
-Body3D* PhysicsWorld3D::makeBox(NotNull<Node3D, 1> node, const Vec3& halfExtent, uint8_t type) {
-	return createBox(node, halfExtent, type);
-}
-
-Body3D* PhysicsWorld3D::makeSphere(NotNull<Node3D, 1> node, float radius, uint8_t type) {
-	return createSphere(node, radius, type);
-}
-
-Body3D* PhysicsWorld3D::makeCapsule(NotNull<Node3D, 1> node, float halfHeight, float radius, uint8_t type) {
-	return createCapsule(node, halfHeight, radius, type);
-}
-
-Body3D* PhysicsWorld3D::createBody(NotNull<Node3D, 1> node, NotNull<PhysicsShape3D, 2> shape, BodyType3D type) {
-	if (_handle == 0 || !shape->isBuilt()) return nullptr;
-	auto handle = dora_3d_physics_body_create_shape(
-		_handle, node->getHandle(), shape->_handle, s_cast<uint8_t>(type));
-	return addBody(node, type, handle);
-}
-
-Body3D* PhysicsWorld3D::createBody(NotNull<Node3D, 1> node, NotNull<PhysicsShape3D, 2> shape, uint8_t type) {
-	AssertIf(type > s_cast<uint8_t>(BodyType3D::Dynamic), "Invalid BodyType3D value {}.", type);
-	return createBody(node, shape, s_cast<BodyType3D>(type));
-}
-
-Body3D* PhysicsWorld3D::makeBody(NotNull<Node3D, 1> node, NotNull<PhysicsShape3D, 2> shape, uint8_t type) {
-	return createBody(node, shape, type);
+bool PhysicsWorld3D::addBody(Body3D* body, uint64_t handle) {
+	if (!body || handle == 0) return false;
+	_bodies.emplace_back(body);
+	_bodyMap.emplace(handle, body);
+	return true;
 }
 
 CharacterController3D* PhysicsWorld3D::createCharacter(NotNull<Node3D, 1> node, float halfHeight, float radius, float maxSlopeAngle, float stepHeight) {
@@ -784,14 +808,14 @@ Constraint3D* PhysicsWorld3D::addConstraint(Body3D* firstBody, Body3D* secondBod
 Constraint3D* PhysicsWorld3D::createFixedConstraint(NotNull<Body3D, 1> firstBody, NotNull<Body3D, 2> secondBody, const Vec3& anchor) {
 	if (_handle == 0 || firstBody->_world.get() != this || secondBody->_world.get() != this) return nullptr;
 	auto handle = dora_3d_physics_constraint_create_fixed(
-		_handle, firstBody->_handle, secondBody->_handle, anchor.x, anchor.y, anchor.z);
+		_handle, firstBody->_bodyHandle, secondBody->_bodyHandle, anchor.x, anchor.y, anchor.z);
 	return addConstraint(firstBody, secondBody, handle);
 }
 
 Constraint3D* PhysicsWorld3D::createDistanceConstraint(NotNull<Body3D, 1> firstBody, NotNull<Body3D, 2> secondBody, const Vec3& firstAnchor, const Vec3& secondAnchor, float minDistance, float maxDistance) {
 	if (_handle == 0 || firstBody->_world.get() != this || secondBody->_world.get() != this) return nullptr;
 	auto handle = dora_3d_physics_constraint_create_distance(
-		_handle, firstBody->_handle, secondBody->_handle,
+		_handle, firstBody->_bodyHandle, secondBody->_bodyHandle,
 		firstAnchor.x, firstAnchor.y, firstAnchor.z,
 		secondAnchor.x, secondAnchor.y, secondAnchor.z,
 		minDistance, maxDistance);
@@ -801,7 +825,7 @@ Constraint3D* PhysicsWorld3D::createDistanceConstraint(NotNull<Body3D, 1> firstB
 Constraint3D* PhysicsWorld3D::createHingeConstraint(NotNull<Body3D, 1> firstBody, NotNull<Body3D, 2> secondBody, const Vec3& anchor, const Vec3& axis, float minAngle, float maxAngle) {
 	if (_handle == 0 || firstBody->_world.get() != this || secondBody->_world.get() != this) return nullptr;
 	auto handle = dora_3d_physics_constraint_create_hinge(
-		_handle, firstBody->_handle, secondBody->_handle,
+		_handle, firstBody->_bodyHandle, secondBody->_bodyHandle,
 		anchor.x, anchor.y, anchor.z, axis.x, axis.y, axis.z, minAngle, maxAngle);
 	return addConstraint(firstBody, secondBody, handle);
 }
@@ -842,7 +866,7 @@ void PhysicsWorld3D::destroyBody(NotNull<Body3D, 1> body) {
 	Ref<Body3D> retained(*it);
 	destroyConstraintsFor(retained);
 	_bodies.erase(it);
-	_bodyMap.erase(retained->_handle);
+	_bodyMap.erase(retained->_bodyHandle);
 	retained->clearPhysics();
 }
 
@@ -861,24 +885,27 @@ Body3D* PhysicsWorld3D::getBody(uint64_t handle) const {
 	return it == _bodyMap.end() ? nullptr : it->second;
 }
 
-bool PhysicsWorld3D::raycast(const Vec3& origin, const Vec3& direction, float distance, const std::function<bool(Body3D*, const Vec3&, const Vec3&, float)>& callback) {
+bool PhysicsWorld3D::raycast(const Vec3& start, const Vec3& stop, const std::function<bool(Body3D*, const Vec3&, const Vec3&)>& callback) {
+	auto delta = bx::sub(stop, start);
+	auto distance = bx::length(delta);
 	if (_handle == 0 || distance <= 0.0f) return false;
+	auto direction = Vec3::from(bx::mul(delta, 1.0f / distance));
 	uint64_t bodyHandle = 0;
 	Vec3 point;
 	Vec3 normal;
 	float hitDistance = 0.0f;
 	if (!dora_3d_physics_world_raycast(
 			_handle,
-			origin.x, origin.y, origin.z,
+			start.x, start.y, start.z,
 			direction.x, direction.y, direction.z,
 			distance, &bodyHandle, &point.x, &normal.x, &hitDistance)) {
 		return false;
 	}
 	auto body = getBody(bodyHandle);
-	return body ? callback(body, point, normal, hitDistance) : false;
+	return body ? callback(body, point, normal) : false;
 }
 
-bool PhysicsWorld3D::overlapSphere(const Vec3& center, float radius, const std::function<bool(Body3D*)>& callback) {
+bool PhysicsWorld3D::querySphere(const Vec3& center, float radius, const std::function<bool(Body3D*)>& callback) {
 	if (_handle == 0 || radius <= 0.0f) return false;
 	auto count = dora_3d_physics_world_overlap_sphere(_handle, center.x, center.y, center.z, radius, nullptr, 0);
 	if (count == 0) return false;
@@ -935,7 +962,7 @@ void PhysicsWorld3D::queueDebugBounds() {
 	auto* view = dynamic_cast<View3D*>(parent);
 	if (!view || !view->getScene()) return;
 	for (const auto& body : _bodies) {
-		if (body->_handle == 0) continue;
+		if (body->_bodyHandle == 0) continue;
 		float red = 0.1f;
 		float green = 0.85f;
 		float blue = 1.0f;
@@ -952,16 +979,15 @@ void PhysicsWorld3D::queueDebugBounds() {
 			green = 0.85f;
 			blue = 0.1f;
 		}
-		auto* node = body->_node.get();
-		if (node && body->_debugShape != Body3D::DebugShape::Bounds) {
+		if (body->_debugShape != Body3D::DebugShape::Bounds) {
 			dora_3d_queue_physics_debug_shape(
 				view->getScene()->getHandle(), s_cast<uint8_t>(body->_debugShape),
 				body->_debugSize.x, body->_debugSize.y, body->_debugSize.z,
-				node->getWorldMatrix().m, red, green, blue);
+				body->getWorldMatrix().m, red, green, blue);
 			continue;
 		}
 		float bounds[6];
-		if (dora_3d_physics_body_get_bounds(_handle, body->_handle, bounds) == 0) continue;
+		if (dora_3d_physics_body_get_bounds(_handle, body->_bodyHandle, bounds) == 0) continue;
 		dora_3d_queue_physics_debug_bounds(
 			view->getScene()->getHandle(),
 			bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5],

@@ -1909,6 +1909,7 @@
     <ClCompile Include="..\..\..\Source\Cache\FontCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\FrameCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\ModelCache.cpp" />
+    <ClCompile Include="..\..\..\Source\Cache\Model3DCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\ParticleCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\ShaderCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\SkeletonCache.cpp" />
@@ -1925,6 +1926,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Effect\Effect.cpp" />
+    <ClCompile Include="..\..\..\Source\Effect\Material.cpp" />
     <ClCompile Include="..\..\..\Source\Entity\Entity.cpp" />
     <ClCompile Include="..\..\..\Source\Event\Event.cpp" />
     <ClCompile Include="..\..\..\Source\Event\EventQueue.cpp" />
@@ -1961,7 +1963,10 @@
     <ClCompile Include="..\..\..\Source\Node\Label.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Menu.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Model.cpp" />
+    <ClCompile Include="..\..\..\Source\Node\Model3D.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Node.cpp" />
+    <ClCompile Include="..\..\..\Source\Node\Node3D.cpp" />
+    <ClCompile Include="..\..\..\Source\Node\Light3D.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Particle.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Playable.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Spine.cpp" />
@@ -1970,6 +1975,8 @@
     <ClCompile Include="..\..\..\Source\Node\TileNode.cpp" />
     <ClCompile Include="..\..\..\Source\Node\VGNode.cpp" />
     <ClCompile Include="..\..\..\Source\Node\VideoNode.cpp" />
+    <ClCompile Include="..\..\..\Source\Node\View3D.cpp" />
+    <ClCompile Include="..\..\..\Source\Node\Visual3D.cpp" />
     <ClCompile Include="..\..\..\Source\Physics\Body.cpp" />
     <ClCompile Include="..\..\..\Source\Physics\BodyDef.cpp" />
     <ClCompile Include="..\..\..\Source\Physics\DebugDraw.cpp" />
@@ -1998,6 +2005,7 @@
     <ClCompile Include="..\..\..\Source\Platformer\UnitAction.cpp" />
     <ClCompile Include="..\..\..\Source\Platformer\VisualCache.cpp" />
     <ClCompile Include="..\..\..\Source\Render\Camera.cpp" />
+    <ClCompile Include="..\..\..\Source\Render\Camera3D.cpp" />
     <ClCompile Include="..\..\..\Source\Render\Renderer.cpp" />
     <ClCompile Include="..\..\..\Source\Render\RenderTarget.cpp" />
     <ClCompile Include="..\..\..\Source\Render\VGRender.cpp" />

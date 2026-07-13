@@ -1,9 +1,23 @@
 #!/bin/bash
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BUILD_MODE="${1:-debug}"
+MACHINE_ARCH="$(uname -m)"
+
+case "$MACHINE_ARCH" in
+	arm64|aarch64)
+		XCODE_ARCH="arm64"
+		;;
+	x86_64)
+		XCODE_ARCH="x86_64"
+		;;
+	*)
+		echo "Unsupported macOS architecture: $MACHINE_ARCH" >&2
+		exit 1
+		;;
+esac
 
 case "$BUILD_MODE" in
 	debug|--debug|-d)
@@ -20,15 +34,15 @@ case "$BUILD_MODE" in
 		;;
 esac
 
-"$SCRIPT_DIR/build_lib_macos.sh" "$BUILD_MODE"
+"$SCRIPT_DIR/build_lib_macos.sh" "$BUILD_MODE" "$XCODE_ARCH"
 
 cd "$SCRIPT_DIR/../.."
 if [ "$BUILD_MODE" = "release" ]; then
-	xcodebuild archive -project Projects/macOS/Dora.xcodeproj -scheme Dora -configuration Release -archivePath Projects/macOS/build/Release/dora.xcarchive -arch arm64 -arch x86_64 ONLY_ACTIVE_ARCH=NO
+	xcodebuild archive -project Projects/macOS/Dora.xcodeproj -scheme Dora -configuration Release -archivePath Projects/macOS/build/Release/dora.xcarchive -arch "$XCODE_ARCH" ONLY_ACTIVE_ARCH=NO
 
 	echo "Built APP in 'Projects/macOS/build/Release/dora.xcarchive/Products/Applications'"
 else
-	xcodebuild ARCHS=x86_64 ONLY_ACTIVE_ARCH=NO -project Projects/macOS/Dora.xcodeproj -target Dora -configuration "$XCODE_CONFIGURATION"
+	xcodebuild ARCHS="$XCODE_ARCH" ONLY_ACTIVE_ARCH=NO -project Projects/macOS/Dora.xcodeproj -target Dora -configuration "$XCODE_CONFIGURATION"
 
 	echo "Built APP in 'Projects/macOS/build/Debug'"
 fi

@@ -34,9 +34,9 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t node3d_get_scale(int64_t self);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void node3d_set_euler_angles(int64_t self, int64_t val);
+		public static extern void node3d_set_angles(int64_t self, int64_t val);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int64_t node3d_get_euler_angles(int64_t self);
+		public static extern int64_t node3d_get_angles(int64_t self);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void node3d_set_x(int64_t self, float val);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
@@ -153,10 +153,10 @@ namespace Dora
 		/// <summary>
 		/// The node Euler angles in degrees.
 		/// </summary>
-		public Vec3 EulerAngles
+		public Vec3 Angles
 		{
-			set => Native.node3d_set_euler_angles(Raw, value.Raw);
-			get => Vec3.From(Native.node3d_get_euler_angles(Raw));
+			set => Native.node3d_set_angles(Raw, value.Raw);
+			get => Vec3.From(Native.node3d_get_angles(Raw));
 		}
 		/// <summary>
 		/// The x-axis position of the node.

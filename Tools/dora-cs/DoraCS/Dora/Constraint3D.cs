@@ -25,6 +25,12 @@ namespace Dora
 		public static extern int64_t constraint3d_get_second_body(int64_t self);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void constraint3d_destroy(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t constraint3d_with_fixed(int64_t firstBody, int64_t secondBody, int64_t anchor);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t constraint3d_with_distance(int64_t firstBody, int64_t secondBody, int64_t firstAnchor, int64_t secondAnchor, float minDistance, float maxDistance);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t constraint3d_with_hinge(int64_t firstBody, int64_t secondBody, int64_t anchor, int64_t axis, float minAngle, float maxAngle);
 	}
 } // namespace Dora
 
@@ -66,5 +72,8 @@ namespace Dora
 		{
 			Native.constraint3d_destroy(Raw);
 		}
+		public Constraint3D(Body3D firstBody, Body3D secondBody, Vec3 anchor) : this(Native.constraint3d_with_fixed(firstBody.Raw, secondBody.Raw, anchor.Raw)) { }
+		public Constraint3D(Body3D firstBody, Body3D secondBody, Vec3 firstAnchor, Vec3 secondAnchor, float minDistance, float maxDistance) : this(Native.constraint3d_with_distance(firstBody.Raw, secondBody.Raw, firstAnchor.Raw, secondAnchor.Raw, minDistance, maxDistance)) { }
+		public Constraint3D(Body3D firstBody, Body3D secondBody, Vec3 anchor, Vec3 axis, float minAngle, float maxAngle) : this(Native.constraint3d_with_hinge(firstBody.Raw, secondBody.Raw, anchor.Raw, axis.Raw, minAngle, maxAngle)) { }
 	}
 } // namespace Dora

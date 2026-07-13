@@ -32,7 +32,7 @@ local record Node3D
 	rotation: any
 
 	-- 节点欧拉角旋转，单位为度。
-	eulerAngles: Vec3
+	angles: Vec3
 
 	-- 节点的世界变换矩阵。
 	const worldMatrix: any

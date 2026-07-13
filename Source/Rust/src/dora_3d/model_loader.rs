@@ -3724,6 +3724,29 @@ mod tests {
 		}
 	}
 
+	fn morph_target(position: [f32; 3], normal: [f32; 3], tangent: [f32; 3]) -> MorphTargetData {
+		MorphTargetData {
+			position_deltas: vec![position],
+			normal_deltas: vec![normal],
+			tangent_deltas: vec![tangent],
+		}
+	}
+
+	fn assert_vec3_near(actual: [f32; 3], expected: Vec3) {
+		let actual = Vec3::from_array(actual);
+		assert!(
+			(actual - expected).length() < 0.0001,
+			"{actual:?} != {expected:?}"
+		);
+	}
+
+	fn weights(value: &KeyframeValue) -> &[f32] {
+		let KeyframeValue::Weights(weights) = value else {
+			panic!("expected morph weights")
+		};
+		weights
+	}
+
 	#[test]
 	fn mesh_collider_extracts_scene_transform_and_triangle_indices() {
 		let mut buffer = Vec::new();
@@ -3820,5 +3843,61 @@ mod tests {
 		assert_eq!(rgba8_upload_size(4, 2, false), Some(32));
 		assert_eq!(rgba8_upload_size(4, 2, true), Some(44));
 		assert_eq!(rgba8_upload_size(256, 256, true), Some(349_524));
+	}
+
+	#[test]
+	fn combines_multiple_morph_targets_and_preserves_tangent_handedness() {
+		let base = Vertex {
+			position: [1.0, 2.0, 3.0],
+			normal: [1.0, 0.0, 0.0],
+			tangent: [0.0, 1.0, 0.0, -1.0],
+			..Default::default()
+		};
+		let targets = [
+			morph_target([2.0, 0.0, 0.0], [0.0, 1.0, 0.0], [1.0, 0.0, 0.0]),
+			morph_target([0.0, 4.0, 0.0], [0.0, 0.0, 2.0], [0.0, 0.0, 2.0]),
+		];
+		let mut output = Vec::new();
+
+		apply_morph_targets(&[base], &targets, &[0.25, 0.5], &mut output);
+
+		assert_vec3_near(output[0].position, Vec3::new(1.5, 4.0, 3.0));
+		assert_vec3_near(output[0].normal, Vec3::new(1.0, 0.25, 1.0).normalize());
+		assert_vec3_near(
+			[
+				output[0].tangent[0],
+				output[0].tangent[1],
+				output[0].tangent[2],
+			],
+			Vec3::new(0.25, 1.0, 1.0).normalize(),
+		);
+		assert_eq!(output[0].tangent[3], -1.0);
+
+		apply_morph_targets(&[base], &targets, &[0.25], &mut output);
+		assert_vec3_near(output[0].position, Vec3::new(1.5, 2.0, 3.0));
+	}
+
+	#[test]
+	fn groups_multi_target_weight_keyframes_in_gltf_order() {
+		let linear = build_weight_keyframes(
+			&[0.0, 1.0],
+			vec![0.0, 1.0, 0.25, 0.75],
+			2,
+			Interpolation::Linear,
+		);
+		assert_eq!(linear.len(), 2);
+		assert_eq!(weights(&linear[0].value), [0.0, 1.0]);
+		assert_eq!(weights(&linear[1].value), [0.25, 0.75]);
+
+		let cubic = build_weight_keyframes(
+			&[0.0],
+			vec![1.0, 2.0, 0.25, 0.75, 3.0, 4.0],
+			2,
+			Interpolation::CubicSpline,
+		);
+		assert_eq!(cubic.len(), 1);
+		assert_eq!(weights(&cubic[0].value), [0.25, 0.75]);
+		assert_eq!(cubic[0].in_weights_tangent, Some(vec![1.0, 2.0]));
+		assert_eq!(cubic[0].out_weights_tangent, Some(vec![3.0, 4.0]));
 	}
 }

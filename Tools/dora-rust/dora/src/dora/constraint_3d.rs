@@ -12,6 +12,9 @@ extern "C" {
 	fn constraint3d_get_first_body(slf: i64) -> i64;
 	fn constraint3d_get_second_body(slf: i64) -> i64;
 	fn constraint3d_destroy(slf: i64);
+	fn constraint3d_fixed(first_body: i64, second_body: i64, anchor: i64) -> i64;
+	fn constraint3d_distance(first_body: i64, second_body: i64, first_anchor: i64, second_anchor: i64, min_distance: f32, max_distance: f32) -> i64;
+	fn constraint3d_hinge(first_body: i64, second_body: i64, anchor: i64, axis: i64, min_angle: f32, max_angle: f32) -> i64;
 }
 use crate::dora::IObject;
 /// A two-body constraint owned by a PhysicsWorld3D.
@@ -41,5 +44,17 @@ impl Constraint3D {
 	/// Removes this constraint from its physics world.
 	pub fn destroy(&mut self) {
 		unsafe { constraint3d_destroy(self.raw()); }
+	}
+	/// Creates a fixed constraint at a world-space anchor.
+	pub fn fixed(first_body: &crate::dora::Body3D, second_body: &crate::dora::Body3D, anchor: &crate::dora::Vec3) -> crate::dora::Constraint3D {
+		unsafe { return crate::dora::Constraint3D::from(constraint3d_fixed(first_body.raw(), second_body.raw(), anchor.raw())).unwrap(); }
+	}
+	/// Creates a distance constraint between two world-space anchors.
+	pub fn distance(first_body: &crate::dora::Body3D, second_body: &crate::dora::Body3D, first_anchor: &crate::dora::Vec3, second_anchor: &crate::dora::Vec3, min_distance: f32, max_distance: f32) -> crate::dora::Constraint3D {
+		unsafe { return crate::dora::Constraint3D::from(constraint3d_distance(first_body.raw(), second_body.raw(), first_anchor.raw(), second_anchor.raw(), min_distance, max_distance)).unwrap(); }
+	}
+	/// Creates a hinge around a world-space axis with limits in degrees.
+	pub fn hinge(first_body: &crate::dora::Body3D, second_body: &crate::dora::Body3D, anchor: &crate::dora::Vec3, axis: &crate::dora::Vec3, min_angle: f32, max_angle: f32) -> crate::dora::Constraint3D {
+		unsafe { return crate::dora::Constraint3D::from(constraint3d_hinge(first_body.raw(), second_body.raw(), anchor.raw(), axis.raw(), min_angle, max_angle)).unwrap(); }
 	}
 }

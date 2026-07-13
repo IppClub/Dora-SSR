@@ -24,7 +24,7 @@ public:
 	PROPERTY_CREF(Vec3, Position);
 	PROPERTY_CREF(Vec3, Scale);
 	PROPERTY_CREF(Quat, Rotation);
-	PROPERTY_CREF(Vec3, EulerAngles);
+	PROPERTY_CREF(Vec3, Angles);
 	PROPERTY_STRING(Tag);
 	PROPERTY_BOOL(Visible);
 	PROPERTY_READONLY(Node3D*, Parent);
@@ -42,7 +42,7 @@ public:
 
 	void setPosition(float x, float y, float z);
 	void setScale(float x, float y, float z);
-	void setEulerAngles(float x, float y, float z);
+	void setAngles(float x, float y, float z);
 
 	virtual void addChild(Node3D* child, int order, String tag);
 	void addChild(Node3D* child, int order);
@@ -82,7 +82,7 @@ protected:
 	mutable Vec3 _position;
 	mutable Vec3 _scale;
 	mutable Quat _rotation;
-	mutable Vec3 _eulerAngles;
+	mutable Vec3 _angles;
 	mutable Matrix _worldMatrix;
 	DORA_TYPE_OVERRIDE(Node3D);
 };
