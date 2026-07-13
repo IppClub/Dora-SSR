@@ -2499,6 +2499,10 @@ interface Mouse {
 	 * ```
 	 */
 	readonly position: Vec2
+	/** The accumulated mouse movement since the previous frame. */
+	readonly delta: Vec2
+	/** Whether relative mouse mode is enabled. Relative mode hides and captures the cursor. */
+	relativeMode: boolean
 	/**
 	 * Whether the left mouse button is being pressed down.
 	 */

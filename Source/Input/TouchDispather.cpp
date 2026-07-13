@@ -413,6 +413,7 @@ bool NodeTouchHandler::gesture(const SDL_Event& event) {
 UITouchHandler::UITouchHandler()
 	: _mousePos{-1.0f, -1.0f}
 	, _mouseWheel{Vec2::zero}
+	, _mouseDelta{Vec2::zero}
 	, _touchSwallowed(false)
 	, _wheelSwallowed(false)
 	, _leftButtonPressed(false)
@@ -446,6 +447,10 @@ const Vec2& UITouchHandler::getMousePos() const noexcept {
 	return _mousePos;
 }
 
+const Vec2& UITouchHandler::getMouseDelta() const noexcept {
+	return _mouseDelta;
+}
+
 Vec2 UITouchHandler::getMouseWheel() const noexcept {
 	return _mouseWheel;
 }
@@ -464,6 +469,7 @@ bool UITouchHandler::isMiddleButtonPressed() const noexcept {
 
 void UITouchHandler::clear() {
 	_mouseWheel = Vec2::zero;
+	_mouseDelta = Vec2::zero;
 	_touchSwallowed = false;
 	_wheelSwallowed = false;
 }
@@ -500,6 +506,9 @@ void UITouchHandler::handleEvent(const SDL_Event& event) {
 		case SDL_MOUSEMOTION: {
 			Size visualSize = SharedApplication.getVisualSize();
 			Size winSize = SharedApplication.getWinSize();
+			_mouseDelta += Vec2{
+				s_cast<float>(event.motion.xrel) * visualSize.width / winSize.width,
+				s_cast<float>(event.motion.yrel) * visualSize.height / winSize.height};
 			_mousePos = {
 				s_cast<float>(event.motion.x) * visualSize.width / winSize.width,
 				s_cast<float>(event.motion.y) * visualSize.height / winSize.height};

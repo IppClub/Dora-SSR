@@ -105,6 +105,7 @@ public:
 	PROPERTY_BOOL(WheelSwallowed);
 	PROPERTY_READONLY(Vec2, MouseWheel);
 	PROPERTY_READONLY_CREF(Vec2, MousePos);
+	PROPERTY_READONLY_CREF(Vec2, MouseDelta);
 	PROPERTY_READONLY_BOOL(LeftButtonPressed);
 	PROPERTY_READONLY_BOOL(RightButtonPressed);
 	PROPERTY_READONLY_BOOL(MiddleButtonPressed);
@@ -122,6 +123,7 @@ private:
 	bool _rightButtonPressed;
 	Vec2 _mouseWheel;
 	Vec2 _mousePos;
+	Vec2 _mouseDelta;
 };
 
 class TouchDispatcher : public NonCopyable {

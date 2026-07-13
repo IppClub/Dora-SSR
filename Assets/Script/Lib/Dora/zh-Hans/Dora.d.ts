@@ -2496,6 +2496,10 @@ interface Mouse {
 	 * ```
 	 */
 	readonly position: Vec2
+	/** 从上一帧开始累计的鼠标移动量。 */
+	readonly delta: Vec2
+	/** 是否启用相对鼠标模式。相对模式会隐藏并捕获鼠标光标。 */
+	relativeMode: boolean
 	/**
 	 * 鼠标左键是否正在被按下。
 	 */

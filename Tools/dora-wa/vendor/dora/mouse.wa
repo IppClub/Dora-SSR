@@ -9,6 +9,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #wa:import dora mouse_get_position
 func mouse_get_position() => i64
 
+#wa:import dora mouse_get_delta
+func mouse_get_delta() => i64
+
+#wa:import dora mouse_is_relative_mode
+func mouse_is_relative_mode() => i32
+
+#wa:import dora mouse_set_relative_mode
+func mouse_set_relative_mode(enabled: i32)
+
 #wa:import dora mouse_is_left_button_pressed
 func mouse_is_left_button_pressed() => i32
 
@@ -27,6 +36,15 @@ global Mouse = _Mouse{}
 
 func _Mouse.GetPosition() => Vec2 {
 	return Vec2FromValue(mouse_get_position())
+}
+func _Mouse.GetDelta() => Vec2 {
+	return Vec2FromValue(mouse_get_delta())
+}
+func _Mouse.IsRelativeMode() => bool {
+	return mouse_is_relative_mode() != 0
+}
+func _Mouse.SetRelativeMode(enabled: bool) {
+	mouse_set_relative_mode(ToDoraBool(enabled))
 }
 func _Mouse.IsLeftButtonPressed() => bool {
 	return mouse_is_left_button_pressed() != 0

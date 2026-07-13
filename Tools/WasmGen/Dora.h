@@ -4605,6 +4605,11 @@ singleton class Mouse {
 	/// let nodePos = node.convert_to_node_space(&worldPos);
 	/// ```
 	static Vec2 getPosition();
+	/// The accumulated mouse movement since the previous frame.
+	static Vec2 getDelta();
+	/// Whether relative mouse mode is enabled. Relative mode hides and captures the cursor.
+	static bool isRelativeMode();
+	static void setRelativeMode(bool enabled);
 	/// Whether the left mouse button is currently being pressed.
 	static bool isLeftButtonPressed();
 	/// Whether the right mouse button is currently being pressed.

@@ -15,6 +15,9 @@ NS_DORA_BEGIN
 class Mouse {
 public:
 	static Vec2 getPosition();
+	static Vec2 getDelta();
+	static bool isRelativeMode();
+	static void setRelativeMode(bool enabled);
 	static bool isLeftButtonPressed();
 	static bool isRightButtonPressed();
 	static bool isMiddleButtonPressed();

@@ -4443,6 +4443,11 @@ singleton class Mouse {
 	/// ```
 	/// </summary>
 	static Vec2 getPosition();
+	/// <summary>The accumulated mouse movement since the previous frame.</summary>
+	static Vec2 getDelta();
+	/// <summary>Whether relative mouse mode is enabled. Relative mode hides and captures the cursor.</summary>
+	static bool isRelativeMode();
+	static void setRelativeMode(bool enabled);
 	/// <summary>
 	/// Whether the left mouse button is currently being pressed.
 	/// </summary>
