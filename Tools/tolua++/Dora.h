@@ -639,7 +639,7 @@ class PointLight3D : public Node3D
 class View3D : public Node
 {
 	tolua_readonly tolua_property__common Node3D* scene;
-	tolua_readonly tolua_property__common RenderStats3D stats;
+	tolua_readonly tolua_property__common RenderStats3D& stats;
 	tolua_property__bool bool showAABB;
 	void addChild(Node* child, int order, String tag);
 	void addChild(Node* child, int order);

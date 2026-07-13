@@ -71,6 +71,21 @@ function classVariable:isvariable()
 	return true
 end
 
+-- Value properties pushed as userdata allocate a copy with Mtolua_new. Ensure
+-- their metatype owns a collector even when no exported function returns the
+-- same type by value.
+function classVariable:requirecollection(t)
+	if
+		not isbasic(self.type) and self.ptr == "" and self:check_public_access() and
+		get_push_function(self.type) == "tolua_pushusertype"
+	 then
+		local type = gsub(self.type, "%s*const%s+", "")
+		t[type] = "tolua_collect_" .. clean_template(type)
+		return true
+	end
+	return classDeclaration.requirecollection(self, t)
+end
+
 -- get variable value
 function classVariable:getvalue(class, static, prop_get)
 	local name
@@ -395,4 +410,3 @@ end
 function Variable(s)
 	return _Variable(Declaration(s, "var"))
 end
-
