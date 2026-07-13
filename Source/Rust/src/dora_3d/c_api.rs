@@ -533,6 +533,14 @@ pub extern "C" fn dora_3d_physics_body_destroy(world: Dora3DHandle, body: Dora3D
 }
 
 #[no_mangle]
+pub extern "C" fn dora_3d_physics_body_sync_transform(
+	world: Dora3DHandle,
+	body: Dora3DHandle,
+) -> i32 {
+	jolt::sync_body_transform(world, body) as i32
+}
+
+#[no_mangle]
 pub extern "C" fn dora_3d_physics_character_create_capsule(
 	world: Dora3DHandle,
 	node: Dora3DHandle,

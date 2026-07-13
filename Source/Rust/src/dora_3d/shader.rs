@@ -12,6 +12,7 @@ use std::collections::{HashMap, VecDeque};
 use std::f32::consts::PI;
 use std::ffi::CString;
 use std::os::raw::c_char;
+use std::path::Path;
 use std::sync::{Mutex, OnceLock};
 use std::time::Instant;
 use std::{mem::MaybeUninit, ptr};
@@ -513,6 +514,9 @@ fn view_environments() -> &'static Mutex<HashMap<bgfx_sys::bgfx_view_id_t, ViewE
 }
 
 fn resolve_content_path(path: &str) -> String {
+	if Path::new(path).is_absolute() {
+		return path.to_owned();
+	}
 	let full_path = Content::get_full_path(path);
 	if full_path.is_empty() {
 		path.to_owned()

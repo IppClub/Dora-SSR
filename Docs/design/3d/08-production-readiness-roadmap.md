@@ -472,3 +472,7 @@ OpenGL、OpenGLES 和 Vulkan 的硬件视觉基线已延期，待具备真实 GP
 以下内容不属于首版兼容承诺，可在不影响脚本 API 的前提下继续整理：Rust/C++ 内部 C ABI、registry handle、renderer command/material 布局、Jolt native 对象和 shader binary 装载细节。自定义 Effect/program、高级 Material3D 扩展、GPU morph、LOD、triangle BVH、CSM 与 point-light shadow 仍保持延期；新增公开 API 必须带真实案例、生命周期规则、全部目标语言声明和自动回归后再解除冻结。
 
 发布收口验收包括：原生 macOS arm64 Debug/Release、iOS Simulator、Android 三 ABI、Linux/Windows 构建；34 项 Rust 单测；七项 Jolt 真实引擎回归；Khronos SimpleMorph；P0 七图与 300 次 cleanup；以及同机 arm64 Release renderer/animation/Jolt 性能基线。跨 backend 视觉基线仍等待真实 GPU runner，不阻塞首版构建发布。
+
+## 12. 下一阶段：完整可玩 Demo
+
+生产化基础能力收口后，通过一段完整游戏流程验证各系统组合使用时的稳定性、性能和开发体验。游戏设计、素材治理、里程碑、验收矩阵与问题闭环统一记录在 [完整可玩 Demo 设计与开发跟踪计划](09-playable-demo-plan.md) 中，后续开发直接更新该工作文档。

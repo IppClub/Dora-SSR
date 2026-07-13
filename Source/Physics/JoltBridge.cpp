@@ -499,6 +499,24 @@ bool dora_jolt_character_get_transform(DoraJoltCharacter* wrapper, float* positi
 	return true;
 }
 
+bool dora_jolt_character_set_position(DoraJoltWorld* world, DoraJoltCharacter* wrapper, const float* position) {
+	if (world == nullptr || wrapper == nullptr || position == nullptr) return false;
+	auto* character = wrapper->character.GetPtr();
+	character->SetPosition(RVec3(position[0], position[1], position[2]));
+	character->SetLinearVelocity(Vec3::sZero());
+	const DefaultBroadPhaseLayerFilter broadPhaseFilter = world->physics.GetDefaultBroadPhaseLayerFilter(Layers::Moving);
+	const DefaultObjectLayerFilter objectLayerFilter = world->physics.GetDefaultLayerFilter(Layers::Moving);
+	const CharacterBodyFilter bodyFilter(wrapper->collisionLayer, wrapper->collisionMask);
+	const ShapeFilter shapeFilter;
+	character->RefreshContacts(
+		broadPhaseFilter,
+		objectLayerFilter,
+		bodyFilter,
+		shapeFilter,
+		world->tempAllocator);
+	return true;
+}
+
 void dora_jolt_character_get_velocity(DoraJoltCharacter* wrapper, float* velocity) {
 	if (wrapper == nullptr || velocity == nullptr) return;
 	const Vec3 value = wrapper->character->GetLinearVelocity();
@@ -673,7 +691,7 @@ void dora_jolt_body_destroy(DoraJoltWorld* world, uint32_t body) {
 	bodies.DestroyBody(id);
 }
 
-void dora_jolt_body_set_transform(DoraJoltWorld* world, uint32_t body, const float* position, const float* rotation, bool kinematic, float deltaTime) {
+void dora_jolt_body_set_transform(DoraJoltWorld* world, uint32_t body, const float* position, const float* rotation, bool kinematic, bool activate, float deltaTime) {
 	if (world == nullptr || position == nullptr || rotation == nullptr) return;
 	auto& bodies = world->physics.GetBodyInterface();
 	const RVec3 bodyPosition(position[0], position[1], position[2]);
@@ -681,7 +699,8 @@ void dora_jolt_body_set_transform(DoraJoltWorld* world, uint32_t body, const flo
 	if (kinematic && deltaTime > 0.0f) {
 		bodies.MoveKinematic(bodyId(body), bodyPosition, bodyRotation, deltaTime);
 	} else {
-		bodies.SetPositionAndRotation(bodyId(body), bodyPosition, bodyRotation, EActivation::DontActivate);
+		bodies.SetPositionAndRotation(
+			bodyId(body), bodyPosition, bodyRotation, activate ? EActivation::Activate : EActivation::DontActivate);
 	}
 }
 

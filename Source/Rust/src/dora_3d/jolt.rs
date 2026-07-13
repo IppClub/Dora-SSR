@@ -225,6 +225,7 @@ unsafe extern "C" {
 		position: *const f32,
 		rotation: *const f32,
 		kinematic: bool,
+		activate: bool,
 		delta_time: f32,
 	);
 	fn dora_jolt_body_get_transform(
@@ -282,6 +283,11 @@ unsafe extern "C" {
 		character: *mut c_void,
 		position: *mut f32,
 		rotation: *mut f32,
+	) -> bool;
+	fn dora_jolt_character_set_position(
+		world: *mut c_void,
+		character: *mut c_void,
+		position: *const f32,
 	) -> bool;
 	fn dora_jolt_character_get_velocity(character: *mut c_void, velocity: *mut f32);
 	fn dora_jolt_character_get_ground_state(character: *mut c_void) -> u8;
@@ -397,6 +403,27 @@ impl PhysicsWorld3D {
 			return false;
 		};
 		unsafe { dora_jolt_body_destroy(self.native, binding.native_body) };
+		true
+	}
+
+	pub fn sync_body_transform(&mut self, handle: Dora3DHandle) -> bool {
+		let Some(binding) = self.bodies.get(&handle) else {
+			return false;
+		};
+		let Some((position, rotation)) = node3d::world_position_rotation(binding.node) else {
+			return false;
+		};
+		unsafe {
+			dora_jolt_body_set_transform(
+				self.native,
+				binding.native_body,
+				position.to_array().as_ptr(),
+				rotation.to_array().as_ptr(),
+				false,
+				binding.motion == MotionType::Dynamic,
+				0.0,
+			)
+		};
 		true
 	}
 
@@ -689,12 +716,35 @@ impl PhysicsWorld3D {
 					position.to_array().as_ptr(),
 					rotation.to_array().as_ptr(),
 					binding.motion == MotionType::Kinematic,
+					false,
 					delta_time,
 				)
 			};
 		}
 
 		for binding in self.characters.values_mut() {
+			if let Some((node_position, _)) = node3d::world_position_rotation(binding.node) {
+				let mut character_position = [0.0; 3];
+				let mut character_rotation = [0.0; 4];
+				if unsafe {
+					dora_jolt_character_get_transform(
+						binding.native,
+						character_position.as_mut_ptr(),
+						character_rotation.as_mut_ptr(),
+					)
+				} && node_position.distance_squared(Vec3::from_array(character_position))
+					> 1.0e-8
+				{
+					unsafe {
+						dora_jolt_character_set_position(
+							self.native,
+							binding.native,
+							node_position.to_array().as_ptr(),
+						)
+					};
+					binding.pending_jump = 0.0;
+				}
+			}
 			unsafe {
 				dora_jolt_character_update(
 					self.native,
@@ -1264,6 +1314,15 @@ pub fn destroy_body(world: Dora3DHandle, body: Dora3DHandle) -> bool {
 		.unwrap()
 		.get_mut(&world)
 		.map(|world| world.destroy_body(body))
+		.unwrap_or(false)
+}
+
+pub fn sync_body_transform(world: Dora3DHandle, body: Dora3DHandle) -> bool {
+	worlds()
+		.lock()
+		.unwrap()
+		.get_mut(&world)
+		.map(|world| world.sync_body_transform(body))
 		.unwrap_or(false)
 }
 

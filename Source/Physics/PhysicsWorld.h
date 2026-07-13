@@ -51,6 +51,7 @@ public:
 	PROPERTY(uint8_t, CollisionLayer);
 	PROPERTY(uint32_t, CollisionMask);
 	PROPERTY_BOOL(Sensor);
+	virtual void setPosition(const Vec3& position) override;
 	void applyForce(const Vec3& force);
 	void applyLinearImpulse(const Vec3& impulse);
 	void onContactEnter(const Contact3DHandler& handler);

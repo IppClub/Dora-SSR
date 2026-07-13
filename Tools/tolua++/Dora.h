@@ -734,7 +734,7 @@ class PhysicsWorld3D : public Node
 	static tolua_readonly uint8_t Kinematic;
 	static tolua_readonly uint8_t Dynamic;
 	tolua_property__common Vec3 gravity;
-	CharacterController3D* makeCharacter @ addCharacter(Node3D* node, float halfHeight, float radius, float maxSlopeAngle = 50.0f, float stepHeight = 0.4f);
+	CharacterController3D* makeCharacter @ createCharacter(Node3D* node, float halfHeight, float radius, float maxSlopeAngle = 50.0f, float stepHeight = 0.4f);
 	void destroyCharacter(CharacterController3D* character);
 	bool raycast(Vec3 start, Vec3 stop, tolua_function_bool handler);
 	bool querySphere(Vec3 center, float radius, tolua_function_bool handler);

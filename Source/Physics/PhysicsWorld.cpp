@@ -36,6 +36,7 @@ uint64_t dora_3d_physics_body_create_box(uint64_t world, uint64_t node, float ha
 uint64_t dora_3d_physics_body_create_sphere(uint64_t world, uint64_t node, float radius, uint8_t motion);
 uint64_t dora_3d_physics_body_create_capsule(uint64_t world, uint64_t node, float halfHeight, float radius, uint8_t motion);
 int32_t dora_3d_physics_body_destroy(uint64_t world, uint64_t body);
+int32_t dora_3d_physics_body_sync_transform(uint64_t world, uint64_t body);
 int32_t dora_3d_physics_body_get_bounds(uint64_t world, uint64_t body, float* out);
 void dora_3d_queue_physics_debug_bounds(uint64_t root, float minX, float minY, float minZ, float maxX, float maxY, float maxZ, float red, float green, float blue);
 void dora_3d_queue_physics_debug_shape(uint64_t root, uint8_t type, float x, float y, float z, const float* transform, float red, float green, float blue);
@@ -706,6 +707,14 @@ void Body3D::onContactExit(const Contact3DHandler& handler) {
 void Body3D::dispatchContact(uint8_t eventType, Body3D* other, const Vec3& point, const Vec3& normal) {
 	auto* handler = eventType == 0 ? &_contactEnter : eventType == 1 ? &_contactStay : &_contactExit;
 	if (*handler) (*handler)(other, point, normal);
+}
+
+void Body3D::setPosition(const Vec3& position) {
+	if (position == Node3D::getPosition()) return;
+	Node3D::setPosition(position);
+	if (_type != BodyType3D::Kinematic && _world && _bodyHandle != 0) {
+		dora_3d_physics_body_sync_transform(_world->_handle, _bodyHandle);
+	}
 }
 
 void Body3D::clearPhysics() {

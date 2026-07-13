@@ -294,6 +294,7 @@ pub struct ModelInstance {
 	pub animations: Vec<Dora3DHandle>,
 	pub material_slots: Vec<InstanceMaterialSlot>,
 	pub node_map: HashMap<Dora3DHandle, Dora3DHandle>,
+	pub initial_node_transforms: Vec<(Dora3DHandle, Vec3, Quaternion, Vec3)>,
 	pub playing: bool,
 	pub paused: bool,
 	pub looping: bool,
@@ -3139,6 +3140,17 @@ pub fn instantiate(handle: Dora3DHandle, parent: Dora3DHandle) -> Option<Dora3DH
 		}
 	}
 	let instance = next_handle();
+	let initial_node_transforms = nodes
+		.iter()
+		.filter_map(|node| {
+			Some((
+				*node,
+				node3d::get_position(*node)?,
+				node3d::get_rotation(*node)?,
+				node3d::get_scale(*node)?,
+			))
+		})
+		.collect();
 	instance_registry().lock().unwrap().insert(
 		instance,
 		ModelInstance {
@@ -3151,6 +3163,7 @@ pub fn instantiate(handle: Dora3DHandle, parent: Dora3DHandle) -> Option<Dora3DH
 			animations: model.animations.clone(),
 			material_slots,
 			node_map,
+			initial_node_transforms,
 			playing: false,
 			paused: false,
 			looping: false,
@@ -3193,21 +3206,29 @@ pub fn destroy_instance(handle: Dora3DHandle) -> bool {
 }
 
 pub fn play_instance(handle: Dora3DHandle, name: Option<&str>, looping: bool) -> Option<f32> {
-	let mut instances = instance_registry().lock().unwrap();
-	let instance = instances.get_mut(&handle)?;
-	let clip = instance.animations.iter().copied().find(|clip_handle| {
-		animation::with_clip(*clip_handle, |clip| {
-			name.map(|name| name.is_empty() || clip.name == name)
-				.unwrap_or(true)
-		})
-		.unwrap_or(false)
-	})?;
-	let duration = animation::with_clip(clip, |clip| clip.duration).unwrap_or(0.0);
-	instance.current_clip = Some(clip);
-	instance.elapsed = 0.0;
-	instance.looping = looping;
-	instance.playing = true;
-	instance.paused = false;
+	let (duration, initial_node_transforms) = {
+		let mut instances = instance_registry().lock().unwrap();
+		let instance = instances.get_mut(&handle)?;
+		let clip = instance.animations.iter().copied().find(|clip_handle| {
+			animation::with_clip(*clip_handle, |clip| {
+				name.map(|name| name.is_empty() || clip.name == name)
+					.unwrap_or(true)
+			})
+			.unwrap_or(false)
+		})?;
+		let duration = animation::with_clip(clip, |clip| clip.duration).unwrap_or(0.0);
+		instance.current_clip = Some(clip);
+		instance.elapsed = 0.0;
+		instance.looping = looping;
+		instance.playing = true;
+		instance.paused = false;
+		(duration, instance.initial_node_transforms.clone())
+	};
+	for (node, position, rotation, scale) in initial_node_transforms {
+		let _ = node3d::set_position(node, position);
+		let _ = node3d::set_rotation(node, rotation);
+		let _ = node3d::set_scale(node, scale);
+	}
 	Some(duration)
 }
 

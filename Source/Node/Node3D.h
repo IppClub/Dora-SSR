@@ -21,7 +21,7 @@ class Node3D : public Object {
 public:
 	PROPERTY(Scheduler*, Scheduler);
 	PROPERTY(int, Order);
-	PROPERTY_CREF(Vec3, Position);
+	PROPERTY_VIRTUAL_CREF(Vec3, Position);
 	PROPERTY_CREF(Vec3, Scale);
 	PROPERTY_CREF(Quat, Rotation);
 	PROPERTY_CREF(Vec3, Angles);
