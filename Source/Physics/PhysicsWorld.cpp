@@ -712,7 +712,7 @@ void Body3D::dispatchContact(uint8_t eventType, Body3D* other, const Vec3& point
 void Body3D::setPosition(const Vec3& position) {
 	if (position == Node3D::getPosition()) return;
 	Node3D::setPosition(position);
-	if (_type != BodyType3D::Kinematic && _world && _bodyHandle != 0) {
+	if (_world && _bodyHandle != 0) {
 		dora_3d_physics_body_sync_transform(_world->_handle, _bodyHandle);
 	}
 }
