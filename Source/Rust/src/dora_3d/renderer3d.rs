@@ -574,12 +574,13 @@ fn prepare_shadow_pass(
 }
 
 fn shadow_texture_bias(origin_bottom_left: bool, homogeneous_depth: bool) -> Mat4 {
-	// NDC X always maps from [-1, 1] to [0, 1]. Only texture Y depends on the backend origin.
+	// Shadow render targets are sampled in framebuffer texture orientation. Y also
+	// depends on the backend origin reported by bgfx.
 	let sy = if origin_bottom_left { 0.5 } else { -0.5 };
 	let depth_scale = if homogeneous_depth { 0.5 } else { 1.0 };
 	let depth_offset = if homogeneous_depth { 0.5 } else { 0.0 };
 	Mat4::from_cols(
-		Vec4::new(0.5, 0.0, 0.0, 0.0),
+		Vec4::new(-0.5, 0.0, 0.0, 0.0),
 		Vec4::new(0.0, sy, 0.0, 0.0),
 		Vec4::new(0.0, 0.0, depth_scale, 0.0),
 		Vec4::new(0.5, 0.5, depth_offset, 1.0),
@@ -905,12 +906,12 @@ mod tests {
 	}
 
 	#[test]
-	fn shadow_texture_bias_maps_ndc_without_mirroring_x() {
+	fn shadow_texture_bias_matches_framebuffer_texture_orientation() {
 		let bottom_left = shadow_texture_bias(true, true);
 		let min = bottom_left * Vec4::new(-1.0, -1.0, -1.0, 1.0);
 		let max = bottom_left * Vec4::new(1.0, 1.0, 1.0, 1.0);
-		assert!((min.x - 0.0).abs() < 1.0e-6);
-		assert!((max.x - 1.0).abs() < 1.0e-6);
+		assert!((min.x - 1.0).abs() < 1.0e-6);
+		assert!((max.x - 0.0).abs() < 1.0e-6);
 		assert!((min.y - 0.0).abs() < 1.0e-6);
 		assert!((max.y - 1.0).abs() < 1.0e-6);
 		assert!((min.z - 0.0).abs() < 1.0e-6);
@@ -919,12 +920,28 @@ mod tests {
 		let top_left = shadow_texture_bias(false, false);
 		let min = top_left * Vec4::new(-1.0, -1.0, 0.0, 1.0);
 		let max = top_left * Vec4::new(1.0, 1.0, 1.0, 1.0);
-		assert!((min.x - 0.0).abs() < 1.0e-6);
-		assert!((max.x - 1.0).abs() < 1.0e-6);
+		assert!((min.x - 1.0).abs() < 1.0e-6);
+		assert!((max.x - 0.0).abs() < 1.0e-6);
 		assert!((min.y - 1.0).abs() < 1.0e-6);
 		assert!((max.y - 0.0).abs() < 1.0e-6);
 		assert!((min.z - 0.0).abs() < 1.0e-6);
 		assert!((max.z - 1.0).abs() < 1.0e-6);
+	}
+
+	#[test]
+	fn shadow_projection_keeps_points_on_a_light_ray_at_the_same_uv() {
+		let direction = Vec3::new(-0.4, 0.75, 0.52).normalize();
+		let view = Mat4::look_at_rh(direction * 10.0, Vec3::ZERO, Vec3::Y);
+		let projection = Mat4::orthographic_rh_gl(-8.0, 8.0, -8.0, 8.0, 0.1, 24.0);
+		let shadow = shadow_texture_bias(false, true) * projection * view;
+		let receiver = Vec3::new(1.5, 0.0, -2.0);
+		let caster = receiver + direction * 3.0;
+		let receiver_coord = shadow * receiver.extend(1.0);
+		let caster_coord = shadow * caster.extend(1.0);
+		let receiver_uv = receiver_coord.truncate() / receiver_coord.w;
+		let caster_uv = caster_coord.truncate() / caster_coord.w;
+		assert!((receiver_uv.x - caster_uv.x).abs() < 1.0e-6);
+		assert!((receiver_uv.y - caster_uv.y).abs() < 1.0e-6);
 	}
 
 	#[test]
