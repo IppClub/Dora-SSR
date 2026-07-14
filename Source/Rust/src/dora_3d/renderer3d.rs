@@ -457,7 +457,13 @@ fn render_node_internal(
 		}
 	}
 	let shadow = shadow_view_id.and_then(|shadow_view_id| {
-		prepare_shadow_pass(root, shadow_view_id, &render_items, &scene_lights)
+		prepare_shadow_pass(
+			root,
+			shadow_view_id,
+			&render_items,
+			&view_state,
+			&scene_lights,
+		)
 	});
 	let mut result = render_items_sorted(
 		view_id,
@@ -505,22 +511,23 @@ fn prepare_shadow_pass(
 	root: Dora3DHandle,
 	view_id: bgfx_sys::bgfx_view_id_t,
 	items: &[RenderVisualItem],
+	view_state: &ViewRenderState,
 	scene_lights: &SceneLights,
 ) -> Option<shader::ShadowDrawState> {
 	let light = scene_lights.directional.filter(|light| light.cast_shadow)?;
-	let mut world_bounds = Aabb::empty();
-	for item in items {
-		for corner in item.world_bounds.corners() {
-			world_bounds.include(corner);
-		}
-	}
-	if !world_bounds.is_valid() {
+	if items.is_empty() {
 		return None;
 	}
 	const SHADOW_SIZE: u16 = 1024;
+	// A single 1024 map cannot preserve useful texel density over the camera's
+	// entire far plane. Keep the first-person gameplay region sharp; larger
+	// worlds should move to cascades instead of stretching this projection.
+	const SHADOW_DISTANCE: f32 = 20.0;
 	let texture = shader::prepare_shadow_map(root, view_id, SHADOW_SIZE)?;
-	let center = (world_bounds.min + world_bounds.max) * 0.5;
-	let radius = (world_bounds.max - world_bounds.min).length() * 0.5;
+	let caps = unsafe { &*bgfx_sys::bgfx_get_caps() };
+	let frustum_corners =
+		shadow_frustum_corners(view_state.view_proj, caps.homogeneousDepth, SHADOW_DISTANCE)?;
+	let center = frustum_corners.iter().copied().sum::<Vec3>() / frustum_corners.len() as f32;
 	let direction = light.direction.normalize_or_zero();
 	if direction.length_squared() <= f32::EPSILON {
 		return None;
@@ -530,23 +537,42 @@ fn prepare_shadow_pass(
 	} else {
 		Vec3::Y
 	};
-	let eye = center + direction * (radius + 1.0);
+	let eye = center + direction * (SHADOW_DISTANCE + 1.0);
 	let light_view = Mat4::look_at_rh(eye, center, up);
-	let mut light_bounds = Aabb::empty();
-	for corner in world_bounds.corners() {
-		light_bounds.include(light_view.transform_point3(corner));
+	let mut receiver_bounds = Aabb::empty();
+	for corner in frustum_corners {
+		receiver_bounds.include(light_view.transform_point3(corner));
 	}
-	let padding = ((light_bounds.max.x - light_bounds.min.x)
-		.max(light_bounds.max.y - light_bounds.min.y)
+	let mut caster_bounds = Aabb::empty();
+	for item in items {
+		for corner in item.world_bounds.corners() {
+			caster_bounds.include(light_view.transform_point3(corner));
+		}
+	}
+	if !receiver_bounds.is_valid() || !caster_bounds.is_valid() {
+		return None;
+	}
+	let padding = ((receiver_bounds.max.x - receiver_bounds.min.x)
+		.max(receiver_bounds.max.y - receiver_bounds.min.y)
 		* 0.05)
 		.max(0.1);
-	let left = light_bounds.min.x - padding;
-	let right = light_bounds.max.x + padding;
-	let bottom = light_bounds.min.y - padding;
-	let top = light_bounds.max.y + padding;
-	let near = (-light_bounds.max.z - padding).max(0.01);
-	let far = (-light_bounds.min.z + padding).max(near + 0.1);
-	let caps = unsafe { &*bgfx_sys::bgfx_get_caps() };
+	let half_extent = ((receiver_bounds.max.x - receiver_bounds.min.x)
+		.max(receiver_bounds.max.y - receiver_bounds.min.y)
+		* 0.5 + padding)
+		.max(0.1);
+	let world_units_per_texel = half_extent * 2.0 / SHADOW_SIZE as f32;
+	let center_x = ((receiver_bounds.min.x + receiver_bounds.max.x) * 0.5 / world_units_per_texel)
+		.round()
+		* world_units_per_texel;
+	let center_y = ((receiver_bounds.min.y + receiver_bounds.max.y) * 0.5 / world_units_per_texel)
+		.round()
+		* world_units_per_texel;
+	let left = center_x - half_extent;
+	let right = center_x + half_extent;
+	let bottom = center_y - half_extent;
+	let top = center_y + half_extent;
+	let near = (-caster_bounds.max.z - padding).max(0.01);
+	let far = (-caster_bounds.min.z + padding).max(near + 0.1);
 	let light_projection = if caps.homogeneousDepth {
 		Mat4::orthographic_rh_gl(left, right, bottom, top, near, far)
 	} else {
@@ -571,6 +597,39 @@ fn prepare_shadow_pass(
 		normal_bias: light.shadow_normal_bias,
 		inv_size: 1.0 / SHADOW_SIZE as f32,
 	})
+}
+
+fn shadow_frustum_corners(
+	view_projection: Mat4,
+	homogeneous_depth: bool,
+	max_distance: f32,
+) -> Option<[Vec3; 8]> {
+	let inverse = view_projection.inverse();
+	if !inverse.is_finite() || max_distance <= 0.0 {
+		return None;
+	}
+	let near_z = if homogeneous_depth { -1.0 } else { 0.0 };
+	let mut corners = [Vec3::ZERO; 8];
+	for (index, (x, y)) in [(-1.0, -1.0), (1.0, -1.0), (1.0, 1.0), (-1.0, 1.0)]
+		.into_iter()
+		.enumerate()
+	{
+		let near_clip = inverse * Vec4::new(x, y, near_z, 1.0);
+		let far_clip = inverse * Vec4::new(x, y, 1.0, 1.0);
+		if near_clip.w.abs() <= f32::EPSILON || far_clip.w.abs() <= f32::EPSILON {
+			return None;
+		}
+		let near = near_clip.truncate() / near_clip.w;
+		let far = far_clip.truncate() / far_clip.w;
+		let ray = far - near;
+		let distance = ray.length();
+		if !near.is_finite() || !far.is_finite() || distance <= f32::EPSILON {
+			return None;
+		}
+		corners[index] = near;
+		corners[index + 4] = near + ray * (max_distance.min(distance) / distance);
+	}
+	Some(corners)
 }
 
 fn shadow_texture_bias(origin_bottom_left: bool, homogeneous_depth: bool) -> Mat4 {
@@ -942,6 +1001,26 @@ mod tests {
 		let caster_uv = caster_coord.truncate() / caster_coord.w;
 		assert!((receiver_uv.x - caster_uv.x).abs() < 1.0e-6);
 		assert!((receiver_uv.y - caster_uv.y).abs() < 1.0e-6);
+	}
+
+	#[test]
+	fn shadow_frustum_corners_limit_gl_depth_range() {
+		let view = Mat4::look_at_rh(Vec3::new(0.0, 0.0, 5.0), Vec3::ZERO, Vec3::Y);
+		let projection = Mat4::perspective_rh_gl(60.0_f32.to_radians(), 1.0, 0.1, 100.0);
+		let corners = shadow_frustum_corners(projection * view, true, 25.0).unwrap();
+		for index in 0..4 {
+			assert!(((corners[index + 4] - corners[index]).length() - 25.0).abs() < 1.0e-3);
+		}
+	}
+
+	#[test]
+	fn shadow_frustum_corners_limit_zero_to_one_depth_range() {
+		let view = Mat4::look_at_rh(Vec3::new(0.0, 0.0, 5.0), Vec3::ZERO, Vec3::Y);
+		let projection = Mat4::perspective_rh(60.0_f32.to_radians(), 1.0, 0.1, 100.0);
+		let corners = shadow_frustum_corners(projection * view, false, 25.0).unwrap();
+		for index in 0..4 {
+			assert!(((corners[index + 4] - corners[index]).length() - 25.0).abs() < 1.0e-3);
+		}
 	}
 
 	#[test]
