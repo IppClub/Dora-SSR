@@ -20,7 +20,7 @@ enum class ShaderStage {
 
 class ShaderCompiler : public NonCopyable {
 public:
-	std::string compile(String source, ShaderStage stage, bool fromFile, std::string& err);
+	std::string compile(String source, ShaderStage stage, bool fromFile, std::string& err, String sourcePath = "");
 	void compileAsync(String source, ShaderStage stage, bool fromFile, const std::function<void(std::string, std::string)>& callback);
 	std::string compile(String sourceFile, String targetFile, ShaderStage stage);
 	void compileAsync(String sourceFile, String targetFile, ShaderStage stage, const std::function<void(std::string)>& callback);

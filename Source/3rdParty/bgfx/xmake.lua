@@ -734,7 +734,8 @@ target("fcpp")
         "NINCLUDE=64",
         "NWORK=65536",
         "NBUFF=65536",
-        "OLD_PREPROCESSOR=0"
+        "OLD_PREPROCESSOR=0",
+        "_GNU_SOURCE"
     )
     
     -- C 编译器警告抑制 (GCC/Clang only)

@@ -140,10 +140,11 @@ bool AudioSource::playBackground() {
 		return false;
 	}
 	_is3D = false;
+	auto soloud = SharedAudio.getSoLoud();
+	if (!soloud) return false;
 	if (auto audioFile = SharedAudioCache.load(_filename)) {
 		uint32_t busHandle = _bus ? _bus->getHandle() : 0;
 		_pan = 0.0f;
-		auto soloud = SharedAudio.getSoLoud();
 		_handle = soloud->playBackground(*audioFile->getSource(), _volume, false, busHandle);
 		soloud->setProtectVoice(_handle, true);
 		if (_playSpeed != 1.0f) {
@@ -174,9 +175,10 @@ bool AudioSource::play(double delayTime) {
 		return false;
 	}
 	_is3D = false;
+	auto soloud = SharedAudio.getSoLoud();
+	if (!soloud) return false;
 	if (auto audioFile = SharedAudioCache.load(_filename)) {
 		uint32_t busHandle = _bus ? _bus->getHandle() : 0;
-		auto soloud = SharedAudio.getSoLoud();
 		if (delayTime <= 0) {
 			_handle = soloud->play(*audioFile->getSource(), _volume, _pan, false, busHandle);
 		} else {

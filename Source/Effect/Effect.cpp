@@ -36,6 +36,13 @@ Value* Pass::Uniform::getValue() const noexcept {
 	return _value.get();
 }
 
+void Pass::Uniform::resetHandle(bgfx::UniformHandle handle) {
+	if (bgfx::isValid(_handle)) {
+		bgfx::destroy(_handle);
+	}
+	_handle = handle;
+}
+
 void Pass::Uniform::setSlot(uint8_t var) {
 	_slot = var;
 }
@@ -58,6 +65,11 @@ void Pass::Uniform::apply() {
 }
 
 bgfx::ProgramHandle Pass::apply() {
+	if (!bgfx::isValid(_program)) {
+		if (_vertShader && _fragShader) {
+			_program = bgfx::createProgram(_vertShader->getHandle(), _fragShader->getHandle());
+		}
+	}
 	for (const auto& pair : _uniforms) {
 		pair.second->apply();
 	}
@@ -84,11 +96,7 @@ Pass::~Pass() {
 
 bool Pass::init() {
 	if (!Object::init()) return false;
-	if (_vertShader && _fragShader) {
-		_program = bgfx::createProgram(_vertShader->getHandle(), _fragShader->getHandle());
-		return bgfx::isValid(_program);
-	}
-	return false;
+	return _vertShader != nullptr && _fragShader != nullptr;
 }
 
 void Pass::setGrabPass(bool var) {

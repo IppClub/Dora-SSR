@@ -153,7 +153,7 @@ static long shaderGetFileSizeCallback(const char* path, void* userData) {
 	return s_cast<long>(fileData.size());
 }
 
-static std::string compileShaderSource(String source, ShaderStage stage, bool fromFile, std::string& err) {
+static std::string compileShaderSource(String source, ShaderStage stage, bool fromFile, std::string& err, String sourcePath = "") {
 	std::string result;
 
 	int doraRenderer = toDoraRenderer(bgfx::getRendererType());
@@ -178,6 +178,16 @@ static std::string compileShaderSource(String source, ShaderStage stage, bool fr
 	options.optimize = 1;
 	options.debug = 0;
 	options.fileOps = &fileOps;
+	// Explicitly set varyingDefPath so DoraShaderc can find varying.def.sc
+	std::string varyingDefPathStr;
+	if (!sourcePath.empty()) {
+		auto dir = Path::getPath(sourcePath);
+		auto filename = Path::getFilename(sourcePath);
+		if (!dir.empty() && !filename.empty()) {
+			varyingDefPathStr = dir + "/varying.def.sc";
+			options.varyingDefPath = varyingDefPathStr.c_str();
+		}
+	}
 
 #if DORA_HAS_EMBEDDED_BGFX_SHADERS
 	const char* includeDirs[] = { "" };
@@ -207,10 +217,10 @@ static std::string compileShaderSource(String source, ShaderStage stage, bool fr
 ShaderCompiler::ShaderCompiler()
 	: _thread(SharedAsyncThread.newThread()) { }
 
-std::string ShaderCompiler::compile(String source, ShaderStage stage, bool fromFile, std::string& err) {
+std::string ShaderCompiler::compile(String source, ShaderStage stage, bool fromFile, std::string& err, String sourcePath) {
 	std::string result;
 	_thread->runInMainSync([&]() {
-		result = compileShaderSource(source, stage, fromFile, err);
+		result = compileShaderSource(source, stage, fromFile, err, sourcePath);
 	});
 	return result;
 }

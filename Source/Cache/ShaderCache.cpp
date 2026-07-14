@@ -129,7 +129,7 @@ Shader* ShaderCache::load(String filename, ShaderStage stage) {
 		}
 		auto source = SharedContent.loadStr(fullPath);
 		std::string err;
-		auto compiled = SharedShaderCompiler.compile(source, stage, false, err);
+		auto compiled = SharedShaderCompiler.compile(source, stage, false, err, fullPath);
 		if (!err.empty()) {
 			Error("failed to compile shader \"{}\", due to: {}.", filename.toString(), err);
 			return nullptr;
