@@ -25,6 +25,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Input/Keyboard.h"
 #include "Input/TouchDispather.h"
 #include "Node/Node.h"
+#include "Node/Node3D.h"
 #include "Node/View3D.h"
 #include "Render/Camera.h"
 #include "Render/Renderer.h"
@@ -294,6 +295,18 @@ void Director::handleUnmanagedNodes() {
 			getEntry()->addChild(node);
 		}
 	}
+	if (!_unmanagedNodes3D.empty()) {
+		RefVector<Node3D> nodes;
+		for (Node3D* node : _unmanagedNodes3D) {
+			if (node->isUnManaged()) {
+				nodes.push_back(node);
+			}
+		}
+		_unmanagedNodes3D.clear();
+		for (Node3D* node : nodes) {
+			getEntry()->addChild(node);
+		}
+	}
 }
 
 void Director::doLogic() {
@@ -481,6 +494,12 @@ void Director::cleanup() {
 		}
 	}
 	_unmanagedNodes.clear();
+	if (!_unmanagedNodes3D.empty()) {
+		for (Node3D* node : _unmanagedNodes3D) {
+			node->cleanup();
+		}
+	}
+	_unmanagedNodes3D.clear();
 	if (!_waitingList.empty()) {
 		for (Node* node : _waitingList) {
 			if (node) {
@@ -526,6 +545,10 @@ void Director::cleanup() {
 
 void Director::addUnManagedNode(Node* node) {
 	_unmanagedNodes.push_back(node);
+}
+
+void Director::addUnManagedNode(Node3D* node) {
+	_unmanagedNodes3D.push_back(node);
 }
 
 void Director::addToWaitingList(Node* node) {

@@ -40,9 +40,14 @@ NS_DORA_BEGIN
 bool DirectionalLight3D::init() {
 	if (!Node3D::init()) return false;
 #ifdef DORA_NO_RUST
+	setAsManaged();
 	return false;
 #else
-	return dora_3d_directional_light_create(getHandle()) != 0;
+	if (dora_3d_directional_light_create(getHandle()) == 0) {
+		setAsManaged();
+		return false;
+	}
+	return true;
 #endif
 }
 
@@ -136,9 +141,14 @@ float DirectionalLight3D::getShadowSoftness() const noexcept {
 bool PointLight3D::init() {
 	if (!Node3D::init()) return false;
 #ifdef DORA_NO_RUST
+	setAsManaged();
 	return false;
 #else
-	return dora_3d_point_light_create(getHandle()) != 0;
+	if (dora_3d_point_light_create(getHandle()) == 0) {
+		setAsManaged();
+		return false;
+	}
+	return true;
 #endif
 }
 

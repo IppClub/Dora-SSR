@@ -446,7 +446,7 @@ logic/render thread
 4. [x] **JOLT-A 基础接入**：Jolt 5.5.0 已直接编入引擎 C++ 目标，Rust 仅调用引擎导出的 C ABI；已建立 `PhysicsWorld3D` 生命周期、fixed timestep、box/sphere/capsule、静态/动态/运动学刚体，以及 `Body3D` 与 `Node3D` 的单向 authority 变换同步。
 5. [x] **JOLT-B 最小游戏 API**：start/stop raycast、sphere query、collision enter/stay/exit、layer/mask、sensor、force/linear impulse/velocity、physics debug draw 与 Lua、TS、Teal、Wasm、Rust、Wa、C# 绑定已经完成。`Body3D : Node3D`，构造风格与 2D 的 `Body(def, world, ...)` 对齐。集成测试统一在真实 Dora 引擎进程运行。
 6. [x] **Model3D 查询与 Material3D**：已补 animation names、动态 local/world bounds、`hasNode/attachToNode` 挂点接口和 clone-on-write 的 per-instance Material3D；内部 glTF Node3D wrapper 未向脚本暴露。独立查询/COW 截图与合入后的 P0 七图、300 次 stress 均通过。
-7. **单方向光阴影（已完成）**：单级 directional shadow map 已覆盖 static、skinned 和 alpha-mask；每个 View3D 按需创建独立 attachment，使用 3x3 PCF 和可调 bias。首版不做 CSM 或 point-light shadow。
+7. **单方向光阴影（已完成）**：单级 directional shadow map 已覆盖 static、skinned 和 alpha-mask；每个 View3D 按需创建独立 attachment，支持 256 至 4096 的离散 shadow map 尺寸、16-tap 加权 Tent PCF、可调 softness 和 bias。首版不做 CSM 或 point-light shadow。
 
 方向评估：
 
@@ -456,7 +456,7 @@ logic/render thread
 | Node3D 语义冻结 | 高：物理同步和脚本 wrapper 都依赖稳定 transform/lifecycle authority | 中：错误语义会导致双向覆盖或悬空 wrapper | JOLT 开始前必须完成 |
 | JOLT-A/B | 已完成游戏 API 闭环：world/body、fixed step、同步、事件、查询、debug draw 和多语言绑定通过真实场景回归 | 中：后续仍需其他 native 平台实机构建与规模化 profile | 保持 API 稳定，以引擎侧集成套件作为回归入口 |
 | Model3D 查询与 Material3D | 已完成：动画名、动态 bounds、挂点和实例材质 COW 通过运行回归 | 低到中：后续主要是更多材质参数与错误诊断 | 保持最小 API，暂不暴露内部 node wrapper 或任意 shader uniform |
-| 单方向光阴影 | 已完成：Duck static 与 Fox skinned 截图通过 | 已增加按需 render pass、skinned/alpha-mask caster 和固定 1024 attachment | 保持单级方向光边界，CSM/点光阴影延期 |
+| 单方向光阴影 | 已完成：Duck static 与 Fox skinned 截图通过 | 已增加按需 render pass、skinned/alpha-mask caster、可配置 attachment 和 16-tap Tent PCF | 保持单级方向光边界，CSM/点光阴影延期 |
 | 动态上传预算 | 当前不确定：固定 `512 KiB` 已满足现有案例 | 高：跨 backend 反馈延迟、振荡和调参成本 | `deferred`，等待跨设备证据 |
 
 动态上传预算、triangle BVH、LOD、cooked model format 和 Forward+/clustered lighting 不进入本轮基础任务。动态预算等待跨设备固定预算失效的证据；triangle BVH 需要先决定 CPU geometry/BVH 的额外内存预算。JOLT-C 的 character controller、compound/mesh/convex hull shape、fixed/distance/hinge constraint、physics debug draw 和首轮规模化 profile 已完成，glTF morph target 也已完成 CPU 首版。
@@ -471,7 +471,7 @@ OpenGL、OpenGLES 和 Vulkan 的硬件视觉基线已延期，待具备真实 GP
 
 以下内容不属于首版兼容承诺，可在不影响脚本 API 的前提下继续整理：Rust/C++ 内部 C ABI、registry handle、renderer command/material 布局、Jolt native 对象和 shader binary 装载细节。自定义 Effect/program、高级 Material3D 扩展、GPU morph、LOD、triangle BVH、CSM 与 point-light shadow 仍保持延期；新增公开 API 必须带真实案例、生命周期规则、全部目标语言声明和自动回归后再解除冻结。
 
-发布收口验收包括：原生 macOS arm64 Debug/Release、iOS Simulator、Android 三 ABI、Linux/Windows 构建；34 项 Rust 单测；七项 Jolt 真实引擎回归；Khronos SimpleMorph；P0 七图与 300 次 cleanup；以及同机 arm64 Release renderer/animation/Jolt 性能基线。跨 backend 视觉基线仍等待真实 GPU runner，不阻塞首版构建发布。
+发布收口验收包括：原生 macOS arm64 Debug/Release、iOS Simulator、Android 三 ABI、Linux/Windows 构建；40 项 Rust 单测；七项 Jolt 真实引擎回归；Khronos SimpleMorph；P0 七图与 300 次 cleanup；以及同机 arm64 Release renderer/animation/Jolt 性能基线。跨 backend 视觉基线仍等待真实 GPU runner，不阻塞首版构建发布。
 
 ## 12. 下一阶段：完整可玩 Demo
 

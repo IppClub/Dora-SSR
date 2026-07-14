@@ -46,10 +46,11 @@ static void copyQuat(Quat& out, const float* data) {
 	out = {data[0], data[1], data[2], data[3]};
 }
 
-Node3D::Node3D()
+Node3D::Node3D(bool unManaged)
 	: _order(0)
 	, _tag()
 	, _reorderDirty(false)
+	, _unManaged(unManaged)
 	, _parent(nullptr)
 	, _scheduler(SharedDirector.getScheduler())
 	, _handle(0)
@@ -57,14 +58,22 @@ Node3D::Node3D()
 	, _scale{1.0f, 1.0f, 1.0f}
 	, _rotation(bx::InitIdentity)
 	, _angles{0.0f, 0.0f, 0.0f}
-	, _worldMatrix(Matrix::Indentity) { }
+	, _worldMatrix(Matrix::Indentity) {
+	if (_unManaged) {
+		SharedDirector.addUnManagedNode(this);
+	}
+}
 
 bool Node3D::init() {
 	if (!Object::init()) return false;
 #ifndef DORA_NO_RUST
 	_handle = dora_3d_node_create();
 #endif // DORA_NO_RUST
-	return _handle != 0;
+	if (_handle == 0) {
+		setAsManaged();
+		return false;
+	}
+	return true;
 }
 
 void Node3D::setOrder(int var) {
@@ -296,6 +305,14 @@ bool Node3D::hasChildren() const noexcept {
 	return !_children.empty();
 }
 
+bool Node3D::isUnManaged() const noexcept {
+	return _unManaged;
+}
+
+void Node3D::setAsManaged() {
+	_unManaged = false;
+}
+
 const std::vector<Ref<Node3D>>& Node3D::getChildren() {
 	return _children;
 }
@@ -310,6 +327,7 @@ void Node3D::addChild(Node3D* child, int order, String tag) {
 		child->setTag(tag);
 		return;
 	}
+	child->setAsManaged();
 	child->removeFromParent(false);
 	child->_parent = this;
 	child->_order = order;
@@ -433,6 +451,7 @@ ScheduledItem* Node3D::getScheduledItem() {
 
 void Node3D::cleanup() {
 	Ref<Node3D> self(this);
+	setAsManaged();
 	if (_parent) {
 		_parent->removeChild(this, false);
 	}
@@ -450,6 +469,7 @@ void Node3D::cleanup() {
 }
 
 Node3D::~Node3D() {
+	setAsManaged();
 	if (_scheduledItem && _scheduledItem->iter) {
 		_scheduler->unschedule(_scheduledItem.get());
 	}

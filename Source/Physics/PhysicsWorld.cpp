@@ -735,10 +735,16 @@ bool Body3D::init() {
 	setPosition(_initialPosition);
 	setAngles(_initialAngles);
 	auto fixture = _bodyDef->getFixture();
-	if (!fixture || !_world || _world->_handle == 0) return false;
+	if (!fixture || !_world || _world->_handle == 0) {
+		setAsManaged();
+		return false;
+	}
 	_bodyHandle = dora_3d_physics_body_create_shape(
 		_world->_handle, getHandle(), fixture->_handle, s_cast<uint8_t>(_type));
-	if (_bodyHandle == 0 || !_world->addBody(this, _bodyHandle)) return false;
+	if (_bodyHandle == 0 || !_world->addBody(this, _bodyHandle)) {
+		setAsManaged();
+		return false;
+	}
 	dora_3d_physics_body_set_filter(_world->_handle, _bodyHandle, _collisionLayer, _collisionMask);
 	dora_3d_physics_body_set_sensor(_world->_handle, _bodyHandle, _sensor ? 1 : 0);
 	return true;

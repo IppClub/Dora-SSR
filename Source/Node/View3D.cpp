@@ -52,7 +52,7 @@ bool View3D::init() {
 
 Node3D* View3D::getScene() {
 	if (!_scene) {
-		_scene = Node3D::create();
+		_scene = Node3D::create(false);
 	}
 	return _scene;
 }

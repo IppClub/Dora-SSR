@@ -28,6 +28,7 @@ public:
 	PROPERTY_STRING(Tag);
 	PROPERTY_BOOL(Visible);
 	PROPERTY_READONLY(Node3D*, Parent);
+	PROPERTY_READONLY_BOOL(UnManaged);
 	PROPERTY_READONLY_CREF(Matrix, WorldMatrix);
 	PROPERTY_READONLY_CALL(const std::vector<Ref<Node3D>>&, Children);
 	PROPERTY(float, X);
@@ -60,12 +61,13 @@ public:
 	void markReorder() noexcept;
 	uint64_t getHandle() const noexcept;
 	bool hasChildren() const noexcept;
+	void setAsManaged();
 
 	virtual bool init() override;
 	CREATE_FUNC_NOT_NULL(Node3D);
 
 protected:
-	Node3D();
+	Node3D(bool unManaged = true);
 	virtual ~Node3D();
 	void sortAllChildren();
 	ScheduledItem* getScheduledItem();
@@ -74,6 +76,7 @@ protected:
 	int _order;
 	std::string _tag;
 	bool _reorderDirty;
+	bool _unManaged;
 	Node3D* _parent;
 	std::vector<Ref<Node3D>> _children;
 	Ref<Scheduler> _scheduler;

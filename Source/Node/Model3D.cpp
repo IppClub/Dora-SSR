@@ -320,12 +320,20 @@ float Model3D::rayCast(const Vec3& origin, const Vec3& direction) const {
 bool Model3D::init() {
 	if (!Node3D::init()) return false;
 #ifdef DORA_NO_RUST
+	setAsManaged();
 	return false;
 #else
 	_modelDef = SharedModel3DCache.load(_filename);
-	if (!_modelDef) return false;
+	if (!_modelDef) {
+		setAsManaged();
+		return false;
+	}
 	_instance = dora_3d_model_instantiate(_modelDef->getHandle(), getHandle());
-	return _instance != 0;
+	if (_instance == 0) {
+		setAsManaged();
+		return false;
+	}
+	return true;
 #endif // DORA_NO_RUST
 }
 

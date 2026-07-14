@@ -19,6 +19,7 @@ NS_DORA_BEGIN
 
 class Scheduler;
 class Node;
+class Node3D;
 class View3D;
 class Sprite;
 class Camera;
@@ -69,6 +70,7 @@ public:
 	bool isInFrustum(const AABB& aabb) const;
 
 	void addUnManagedNode(Node* node);
+	void addUnManagedNode(Node3D* node);
 
 	void addToWaitingList(Node* node);
 	void removeFromWaitingList(Node* node);
@@ -165,6 +167,7 @@ private:
 	Ref<Scheduler> _scheduler;
 	Ref<Scheduler> _postScheduler;
 	RefVector<Node> _unmanagedNodes;
+	RefVector<Node3D> _unmanagedNodes3D;
 	ProfilerInfo _profilerInfo;
 	std::vector<WRef<Node>> _waitingList;
 	Own<UITouchHandler> _uiTouchHandler;
