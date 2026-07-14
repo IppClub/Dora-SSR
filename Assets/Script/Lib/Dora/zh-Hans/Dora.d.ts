@@ -277,6 +277,83 @@ const vec2: Vec2Class;
 export {vec2 as Vec2};
 
 /**
+ * 表示具有x、y和z分量的3D向量的类。
+ */
+class Vec3 extends ContainerItem {
+	private constructor();
+
+	/** 向量的x分量。 */
+	x: number;
+
+	/** 向量的y分量。 */
+	y: number;
+
+	/** 向量的z分量。 */
+	z: number;
+}
+
+export namespace Vec3 {
+	export type Type = Vec3;
+}
+
+/**
+ * 用于创建Vec3对象的类。
+ */
+interface Vec3Class {
+	/**
+	 * 使用给定的x、y和z分量创建新的Vec3对象。
+	 *
+	 * @param x 新向量的x分量。
+	 * @param y 新向量的y分量。
+	 * @param z 新向量的z分量。
+	 * @returns 新的Vec3对象。
+	 */
+	(this: void, x: number, y: number, z: number): Vec3;
+}
+
+const vec3: Vec3Class;
+export {vec3 as Vec3};
+
+/** View3D最近一次3D渲染所记录的统计信息。 */
+class RenderStats3D extends ContainerItem {
+	private constructor();
+	readonly sceneNodes: number;
+	readonly visibleVisuals: number;
+	readonly culledVisuals: number;
+	readonly opaqueItems: number;
+	readonly transparentItems: number;
+	readonly drawCalls: number;
+	readonly triangles: number;
+	readonly programSwitches: number;
+	readonly materialSwitches: number;
+	readonly textureSwitches: number;
+	readonly meshSwitches: number;
+	readonly nodeCount: number;
+	readonly visualCount: number;
+	readonly modelCount: number;
+	readonly modelInstanceCount: number;
+	readonly meshCount: number;
+	readonly staticMeshCount: number;
+	readonly dynamicMeshCount: number;
+	readonly materialCount: number;
+	readonly textureCount: number;
+	readonly animationCount: number;
+	readonly environmentCount: number;
+	readonly modelResidentBytes: number;
+	readonly meshResidentBytes: number;
+	readonly textureResidentBytes: number;
+	readonly collectMicros: number;
+	readonly sortMicros: number;
+	readonly submitMicros: number;
+	readonly uploadCommands: number;
+	readonly uploadBytes: number;
+	readonly uploadMicros: number;
+	readonly uploadMaxCommandMicros: number;
+}
+
+export {RenderStats3D};
+
+/**
  * 矩形对象，具有左下角原点位置和大小。
  * 继承自 `ContainerItem`。
  */
@@ -699,6 +776,9 @@ interface App {
 	 * @returns 日志文件是否保存成功。
 	 */
 	saveLog(path: string): boolean;
+
+	/** 请求保存主backbuffer截图，并返回实际输出的TGA路径。 */
+	saveScreenshot(filename: string): string;
 
 	/**
 	 * 打开一个文件对话框。仅在Windows、macOS和Linux平台上有效。
@@ -1929,6 +2009,11 @@ class Touch extends Object {
 	readonly location: Vec2;
 
 	/**
+	 * 触摸事件在当前视图逻辑坐标系中的位置。
+	 */
+	readonly viewLocation: Vec2;
+
+	/**
 	 * 触摸事件在世界坐标系中的位置。
 	 */
 	readonly worldLocation: Vec2;
@@ -2026,6 +2111,47 @@ interface CameraOthoClass {
 
 const cameraOthoClass: CameraOthoClass;
 export {cameraOthoClass as CameraOtho};
+
+/**
+ * 游戏引擎中的3D摄像机对象的类。
+ */
+class Camera3D extends Camera {
+	private constructor();
+
+	/** 摄像机位置。 */
+	position: Vec3;
+
+	/** 摄像机目标点。 */
+	target: Vec3;
+
+	/** 摄像机向上方向。 */
+	up: Vec3;
+
+	/**
+	 * 设置摄像机位置、目标点和向上方向。
+	 * 向上方向默认是 (0, 1, 0)。
+	 */
+	lookAt(position: Vec3, target: Vec3, up?: Vec3): void;
+}
+
+export namespace Camera3D {
+	export type Type = Camera3D;
+}
+
+/**
+* 用于创建3D摄像机对象的类。
+*/
+interface Camera3DClass {
+	/**
+	 * 使用给定的名称创建新的3D摄像机对象。
+	 * @param name 3D摄像机对象的名称。默认为空字符串。
+	 * @returns 3D摄像机对象的新实例。
+	 */
+	(this: void, name?: string): Camera3D;
+}
+
+const camera3DClass: Camera3DClass;
+export {camera3DClass as Camera3D};
 
 /**
  * 代表着色器渲染流程的类。
@@ -2370,6 +2496,10 @@ interface Mouse {
 	 * ```
 	 */
 	readonly position: Vec2
+	/** 从上一帧开始累计的鼠标移动量。 */
+	readonly delta: Vec2
+	/** 是否启用相对鼠标模式。相对模式会隐藏并捕获鼠标光标。 */
+	relativeMode: boolean
 	/**
 	 * 鼠标左键是否正在被按下。
 	 */
@@ -3504,6 +3634,544 @@ const nodeClass: NodeClass;
 export {nodeClass as Node};
 
 /**
+ * 用于构建3D对象层级树的类。
+ */
+class Node3D extends Object {
+	protected constructor();
+
+	/** 节点在父节点子节点数组中的顺序。 */
+	order: number;
+
+	/** 节点的字符串标签。 */
+	tag: string;
+
+	/** 节点是否可见。 */
+	visible: boolean;
+
+	/** 父3D节点。 */
+	readonly parent?: Node3D;
+
+	/** 节点是否拥有3D子节点。 */
+	readonly hasChildren: boolean;
+
+	/** 节点位置。 */
+	position: Vec3;
+
+	/** 节点缩放。 */
+	scale: Vec3;
+
+	/** 节点旋转。 */
+	rotation: any;
+
+	/** 节点欧拉角旋转，单位为度。 */
+	angles: Vec3;
+
+	/** 节点的世界变换矩阵。 */
+	readonly worldMatrix: any;
+
+	/** 节点的X轴位置。 */
+	x: number;
+
+	/** 节点的Y轴位置。 */
+	y: number;
+
+	/** 节点的Z轴位置。 */
+	z: number;
+
+	/** 节点绕X轴的旋转角度，单位为度。 */
+	angleX: number;
+
+	/** 节点绕Y轴的旋转角度，单位为度。 */
+	angleY: number;
+
+	/** 节点绕Z轴的旋转角度，单位为度。 */
+	angleZ: number;
+
+	/** 节点的X轴缩放系数。 */
+	scaleX: number;
+
+	/** 节点的Y轴缩放系数。 */
+	scaleY: number;
+
+	/** 节点的Z轴缩放系数。 */
+	scaleZ: number;
+
+	/** 将本地坐标点转换到世界坐标空间。 */
+	convertToWorldSpace(localPoint: Vec3): Vec3;
+
+	/** 将世界坐标点转换到本地坐标空间。 */
+	convertToNodeSpace(worldPoint: Vec3): Vec3;
+
+	/** 添加子3D节点。 */
+	addChild(child: Node3D, order?: number, tag?: string): void;
+
+	/** 移除子3D节点。 */
+	removeChild(child: Node3D, cleanup?: boolean): void;
+
+	/** 移除所有子3D节点。 */
+	removeAllChildren(cleanup?: boolean): void;
+
+	/** 从父节点中移除此节点。 */
+	removeFromParent(cleanup?: boolean): void;
+
+	/** 清理节点并释放其3D资源。 */
+	cleanup(): void;
+}
+
+export {Node3D as Node3DType};
+export namespace Node3D {
+	export type Type = Node3D;
+}
+
+/**
+ * 用于创建`Node3D`类的类对象。
+ */
+interface Node3DClass {
+	/**
+	 * 创建`Node3D`类的新实例。
+	 * @returns `Node3D`类的新实例。
+	 */
+	(this: void): Node3D;
+}
+
+const node3DClass: Node3DClass;
+export {node3DClass as Node3D};
+
+/**
+ * 用于在2D场景树中渲染3D内容的类。
+ */
+class View3D extends Node {
+	private constructor();
+
+	/** 3D场景根节点。 */
+	readonly scene: Node3D;
+
+	/** 最近一次3D渲染与当前3D资源注册表的统计信息。 */
+	readonly stats: RenderStats3D;
+
+	/** 是否绘制当前世界坐标 AABB 调试线框。 */
+	showAABB: boolean;
+
+	/** 阴影贴图边长。该值会归一化为 256、512、1024、2048 或 4096。 */
+	shadowMapSize: number;
+
+	/** 添加3D子节点到场景根节点。 */
+	addChild(child: Node3D): void;
+	addChild(child: Node, order?: number, tag?: string): void;
+
+	/** 返回穿过视图坐标点的拾取射线世界坐标起点。 */
+	getRayOrigin(viewPoint: Vec2): Vec3;
+
+	/** 返回穿过视图坐标点的拾取射线世界坐标方向。 */
+	getRayDirection(viewPoint: Vec2): Vec3;
+
+	/** 返回与视图坐标点相交的最近可见模型。 */
+	pick(viewPoint: Vec2): Model3D | undefined;
+
+	/** 加载用于基于图像照明的环境贴图。 */
+	setEnvironmentMap(path: string): boolean;
+
+	/** 设置环境光漫反射、镜面反射和曝光强度。 */
+	setEnvironmentIntensity(diffuse: number, specular: number, exposure?: number): void;
+}
+
+export {View3D as View3DType};
+export namespace View3D {
+	export type Type = View3D;
+}
+
+/**
+ * 用于创建`View3D`类的类对象。
+ */
+interface View3DClass {
+	/**
+	 * 创建`View3D`类的新实例。
+	 * @returns `View3D`类的新实例。
+	 */
+	(this: void): View3D;
+}
+
+const view3DClass: View3DClass;
+export {view3DClass as View3D};
+
+/** Motion type used by a 3D rigid body. */
+export const enum BodyType3D {
+	Static = 0,
+	Kinematic = 1,
+	Dynamic = 2,
+}
+
+/** A 3D rigid body node owned by a PhysicsWorld3D. */
+class Body3D extends Node3D {
+	private constructor();
+
+	/** The owning world, or undefined after this body is destroyed. */
+	readonly world?: PhysicsWorld3D;
+	readonly bodyDef: BodyDef3D;
+
+	/** The body's motion type. */
+	readonly type: BodyType3D;
+
+	/** World-space linear velocity. */
+	linearVelocity: Vec3;
+
+	/** World-space angular velocity in radians per second. */
+	angularVelocity: Vec3;
+
+	/** Collision layer in the range 0 through 31. */
+	collisionLayer: number;
+
+	/** Bit mask of collision layers accepted by this body. */
+	collisionMask: number;
+
+	/** Whether contacts generate events without collision response. */
+	sensor: boolean;
+
+	applyForce(force: Vec3): void;
+	applyLinearImpulse(impulse: Vec3): void;
+	onContactEnter(handler: (this: void, other: Body3D, point: Vec3, normal: Vec3) => void): void;
+	onContactStay(handler: (this: void, other: Body3D, point: Vec3, normal: Vec3) => void): void;
+	onContactExit(handler: (this: void, other: Body3D, point: Vec3, normal: Vec3) => void): void;
+}
+
+export {Body3D as Body3DType};
+export namespace Body3D {
+	export type Type = Body3D;
+}
+
+interface Body3DClass {
+	(this: void, bodyDef: BodyDef3D, world: PhysicsWorld3D, position?: Vec3, angles?: Vec3): Body3D;
+}
+
+const body3DClass: Body3DClass;
+export {body3DClass as Body3D};
+
+/** 由 PhysicsWorld3D 持有的虚拟胶囊角色控制器。 */
+class CharacterController3D extends Object {
+	private constructor();
+	readonly node?: Node3D;
+	readonly world?: PhysicsWorld3D;
+	/** 期望的水平移动速度；垂直分量会被忽略。 */
+	desiredVelocity: Vec3;
+	/** 包含重力和跳跃的当前速度。 */
+	readonly velocity: Vec3;
+	readonly groundNormal: Vec3;
+	readonly grounded: boolean;
+	collisionLayer: number;
+	collisionMask: number;
+	jump(speed: number): void;
+	destroy(): void;
+}
+
+export {CharacterController3D as CharacterController3DType};
+export namespace CharacterController3D {
+	export type Type = CharacterController3D;
+}
+
+/** 可复用的不可变 Jolt 碰撞形状，或尚未冻结的复合形状构建器。 */
+class FixtureDef3D extends Object {
+	private constructor();
+	/** 形状是否已冻结并可用于创建刚体。 */
+	readonly built: boolean;
+	/** 在 build() 前添加位于复合形状局部空间中的子形状。 */
+	addChild(shape: FixtureDef3D, position: Vec3, angles?: Vec3): boolean;
+	/** 冻结一个非空复合形状。 */
+	build(): boolean;
+}
+
+export {FixtureDef3D as FixtureDef3DType};
+export namespace FixtureDef3D {
+	export type Type = FixtureDef3D;
+}
+
+interface FixtureDef3DClass {
+	box(halfExtent: Vec3): FixtureDef3D;
+	sphere(radius: number): FixtureDef3D;
+	capsule(halfHeight: number, radius: number): FixtureDef3D;
+	compound(): FixtureDef3D;
+	/** 通过 Content 读取并在主线程外烘焙缓存的静态三角网格。 */
+	loadMeshAsync(filename: string, handler: (this: void, shape: FixtureDef3D) => void): void;
+	/** 通过 Content 读取模型顶点，并烘焙可用于动态刚体的缓存凸包。 */
+	loadConvexHullAsync(filename: string, handler: (this: void, shape: FixtureDef3D) => void): void;
+}
+
+const fixtureDef3DClass: FixtureDef3DClass;
+export {fixtureDef3DClass as FixtureDef3D};
+
+/** 可复用的 3D 刚体定义。 */
+class BodyDef3D extends Object {
+	private constructor();
+	type: BodyType3D;
+	collisionLayer: number;
+	collisionMask: number;
+	sensor: boolean;
+	attach(fixture: FixtureDef3D, position?: Vec3, angles?: Vec3): boolean;
+}
+
+export {BodyDef3D as BodyDef3DType};
+export namespace BodyDef3D {
+	export type Type = BodyDef3D;
+}
+
+interface BodyDef3DClass {
+	(this: void): BodyDef3D;
+}
+
+const bodyDef3DClass: BodyDef3DClass;
+export {bodyDef3DClass as BodyDef3D};
+
+/** 由 PhysicsWorld3D 持有的双刚体约束。 */
+class Constraint3D extends Object {
+	private constructor();
+	/** 所属物理世界；约束销毁后为 undefined。 */
+	readonly world?: PhysicsWorld3D;
+	/** 第一端刚体；约束销毁后为 undefined。 */
+	readonly firstBody?: Body3D;
+	/** 第二端刚体；约束销毁后为 undefined。 */
+	readonly secondBody?: Body3D;
+	/** 从物理世界移除约束并将对象置空。 */
+	destroy(): void;
+}
+
+export {Constraint3D as Constraint3DType};
+export namespace Constraint3D {
+	export type Type = Constraint3D;
+}
+
+interface Constraint3DClass {
+	fixed(firstBody: Body3D, secondBody: Body3D, anchor: Vec3): Constraint3D;
+	distance(firstBody: Body3D, secondBody: Body3D, firstAnchor: Vec3, secondAnchor: Vec3, minDistance: number, maxDistance: number): Constraint3D;
+	hinge(firstBody: Body3D, secondBody: Body3D, anchor: Vec3, axis: Vec3, minAngle?: number, maxAngle?: number): Constraint3D;
+}
+
+const constraint3DClass: Constraint3DClass;
+export {constraint3DClass as Constraint3D};
+
+/** A fixed-step 3D physics world backed by Jolt Physics. */
+class PhysicsWorld3D extends Node {
+	private constructor();
+
+	gravity: Vec3;
+	createCharacter(node: Node3D, halfHeight: number, radius: number, maxSlopeAngle?: number, stepHeight?: number): CharacterController3D;
+	destroyCharacter(character: CharacterController3D): void;
+
+	/** Casts a ray and invokes the handler for the nearest hit. */
+	raycast(
+		start: Vec3,
+		stop: Vec3,
+		handler: (this: void, body: Body3D, point: Vec3, normal: Vec3) => boolean
+	): boolean;
+
+	/** Visits overlapping bodies until the handler returns true. */
+	querySphere(
+		center: Vec3,
+		radius: number,
+		handler: (this: void, body: Body3D) => boolean
+	): boolean;
+}
+
+export {PhysicsWorld3D as PhysicsWorld3DType};
+export namespace PhysicsWorld3D {
+	export type Type = PhysicsWorld3D;
+}
+
+interface PhysicsWorld3DClass {
+	(this: void): PhysicsWorld3D;
+	readonly Static: BodyType3D.Static;
+	readonly Kinematic: BodyType3D.Kinematic;
+	readonly Dynamic: BodyType3D.Dynamic;
+}
+
+const physicsWorld3DClass: PhysicsWorld3DClass;
+export {physicsWorld3DClass as PhysicsWorld3D};
+
+/** Material3D 支持的透明渲染模式。 */
+export const enum MaterialAlphaMode3D {
+	Opaque = 0,
+	Mask = 1,
+	Blend = 2,
+}
+
+/** 由 Model3D 实例持有的逐实例材质槽。 */
+class Material3D extends Object {
+	private constructor();
+	baseColor: Color;
+	emissive: Color3;
+	metallic: number;
+	roughness: number;
+	alphaMode: MaterialAlphaMode3D;
+	alphaCutoff: number;
+	setBaseColorTexture(texture: Texture2D): void;
+	clearBaseColorTexture(): void;
+	setMetallicRoughnessTexture(texture: Texture2D): void;
+	clearMetallicRoughnessTexture(): void;
+	setNormalTexture(texture: Texture2D): void;
+	clearNormalTexture(): void;
+	setEmissiveTexture(texture: Texture2D): void;
+	clearEmissiveTexture(): void;
+	setOcclusionTexture(texture: Texture2D): void;
+	clearOcclusionTexture(): void;
+}
+
+export {Material3D as Material3DType};
+export namespace Material3D {
+	export type Type = Material3D;
+}
+
+
+/**
+ * 用于渲染glTF 3D模型的类。
+ */
+class Model3D extends Node3D {
+	private constructor();
+
+	/** 当前动画的播放速度倍率。 */
+	speed: number;
+
+	/** 当前动画的时长，单位为秒。 */
+	readonly duration: number;
+
+	/** 当前动画已经播放的时间，单位为秒。 */
+	readonly elapsed: number;
+
+	/** 当前是否正在播放动画。 */
+	readonly playing: boolean;
+
+	/** 当前动画是否暂停。 */
+	readonly paused: boolean;
+
+	/** 此模型中的动画片段数量。 */
+	readonly animationCount: number;
+
+	/** 当前实例中的材质槽数量。 */
+	readonly materialCount: number;
+
+	/** 按从零开始的索引获取动画名称，越界时返回空字符串。 */
+	getAnimationName(index: number): string;
+
+	/** 检查是否存在指定名称的导入 glTF 节点。 */
+	hasNode(name: string): boolean;
+
+	/** 将用户持有的 Node3D 挂到指定导入节点下，不暴露内部节点包装对象。 */
+	attachToNode(name: string, child: Node3D): boolean;
+
+	/** 获取当前模型空间包围盒的最小点。 */
+	getLocalBoundsMin(): Vec3;
+
+	/** 获取当前模型空间包围盒的最大点。 */
+	getLocalBoundsMax(): Vec3;
+
+	/** 获取当前世界空间包围盒的最小点。 */
+	getWorldBoundsMin(): Vec3;
+
+	/** 获取当前世界空间包围盒的最大点。 */
+	getWorldBoundsMax(): Vec3;
+
+	/** 按从零开始的索引获取逐实例材质槽。 */
+	getMaterial(index: number): Material3D | undefined;
+
+	/**
+	 * 按名称播放动画。
+	 * @param name 动画名称。省略时使用默认动画。
+	 * @param loop 动画是否循环播放。
+	 * @returns 动画时长，单位为秒。未找到时返回0。
+	 */
+	play(name?: string, loop?: boolean): number;
+
+	/** 停止当前动画。 */
+	stop(): void;
+
+	/** 暂停当前动画。 */
+	pause(): void;
+
+	/** 恢复暂停的动画。 */
+	resume(): void;
+}
+
+export {Model3D as Model3DType};
+export namespace Model3D {
+	export type Type = Model3D;
+}
+
+/**
+ * 用于创建`Model3D`类的类对象。
+ */
+interface Model3DClass {
+	/**
+	 * 创建`Model3D`类的新实例。
+	 * @param path 模型文件路径。
+	 * @returns `Model3D`类的新实例。
+	 */
+	(this: void, path: string): Model3D;
+}
+
+const model3DClass: Model3DClass;
+export {model3DClass as Model3D};
+
+/** 方向由世界旋转决定的方向光。 */
+class DirectionalLight3D extends Node3D {
+	private constructor();
+
+	/** sRGB空间中的灯光颜色。 */
+	color: Color3;
+
+	/** 灯光强度。 */
+	intensity: number;
+
+	/** 是否让该方向光投射阴影。 */
+	castShadow: boolean;
+
+	/** 阴影深度比较使用的固定偏移。 */
+	shadowBias: number;
+
+	/** 阴影深度比较使用的斜率相关法线偏移。 */
+	shadowNormalBias: number;
+
+	/** 以阴影贴图 texel 为单位的阴影过滤半径。设为零会关闭过滤。 */
+	shadowSoftness: number;
+}
+
+export {DirectionalLight3D as DirectionalLight3DType};
+export namespace DirectionalLight3D {
+	export type Type = DirectionalLight3D;
+}
+
+interface DirectionalLight3DClass {
+	/** 创建方向光。 */
+	(this: void): DirectionalLight3D;
+}
+
+const directionalLight3DClass: DirectionalLight3DClass;
+export {directionalLight3DClass as DirectionalLight3D};
+
+/** 位置由世界变换决定的点光源。 */
+class PointLight3D extends Node3D {
+	private constructor();
+
+	/** sRGB空间中的灯光颜色。 */
+	color: Color3;
+
+	/** 灯光强度。 */
+	intensity: number;
+
+	/** 灯光的最大有效范围。 */
+	range: number;
+}
+
+export {PointLight3D as PointLight3DType};
+export namespace PointLight3D {
+	export type Type = PointLight3D;
+}
+
+interface PointLight3DClass {
+	/** 创建点光源。 */
+	(this: void): PointLight3D;
+}
+
+const pointLight3DClass: PointLight3DClass;
+export {pointLight3DClass as PointLight3D};
+
+/**
  * ImGui控件使用的字符串缓冲区类。
  */
 class Buffer extends Object {
@@ -4103,7 +4771,7 @@ class Director {
 	/**
 	 * 游戏起点的根节点。
 	 */
-	readonly entry: Node;
+	readonly entry: View3D;
 
 	/**
 	 * 后渲染场景树的根节点。
@@ -4124,11 +4792,6 @@ class Director {
 	 * Director的摄像机堆栈中当前活动的摄像机。
 	 */
 	readonly currentCamera: Camera;
-
-	/**
-	 * 是否启用视锥体裁剪。
-	 */
-	frustumCulling: boolean;
 
 	/**
 	 * 是否通过内置的 Web Socket 服务器发送收集的性能统计信息。只对 Web IDE 有用.
@@ -5194,6 +5857,15 @@ export const enum CacheResourceTypeSafeUnload {
 class Cache {
 	private constructor();
 
+	/** Model3D 缓存的软内存预算（字节）。零表示不限制。 */
+	model3DBudget: number;
+
+	/** Model3D 缓存当前估算的驻留字节数。 */
+	readonly model3DUsage: number;
+
+	/** Model3D 缓存当前保留的模型定义数量。 */
+	readonly model3DCount: number;
+
 	/**
 	 * 通过阻塞操作将文件加载到缓存中。
 	 * @param filename 要加载的文件的名称。
@@ -5215,6 +5887,15 @@ class Cache {
 	 * });
 	 */
 	loadAsync(filename: string | string[], handler?: (this: void, progress: number) => void): boolean;
+
+	/** 获取 Model3D 或环境资源的加载状态。 */
+	getLoadState(filename: string): "none" | "loading" | "ready" | "failed" | "cancelled";
+
+	/** 获取最近一次 Model3D 或环境资源加载错误。 */
+	getLoadError(filename: string): string;
+
+	/** 取消进行中的 Model3D 或环境资源加载。 */
+	cancelLoad(filename: string): boolean;
 
 	/**
 	 * 更新缓存中已加载文件的内容。
@@ -7191,6 +7872,9 @@ class View {
 	/** 应用于视图的后期着色器特效。 */
 	postEffect: SpriteEffect;
 
+	/** 是否启用视锥剔除。 */
+	frustumCulling: boolean;
+
 	/** 是否启用垂直同步。 */
 	vsync: boolean;
 }
@@ -7636,6 +8320,8 @@ export {tic80NodeClass as TIC80Node};
 export const enum TypeName {
 	Size = "Size",
 	Vec2 = "Vec2",
+	Vec3 = "Vec3",
+	RenderStats3D = "RenderStats3D",
 	Rect = "Rect",
 	Color3 = "Color3",
 	Color = "Color",
@@ -7648,10 +8334,14 @@ export const enum TypeName {
 	Camera = "Camera",
 	Camera2D = "Camera2D",
 	CameraOtho = "CameraOtho",
+	Camera3D = "Camera3D",
 	Pass = "Pass",
 	Effect = "Effect",
 	SpriteEffect = "SpriteEffect",
 	Node = "Node",
+	Node3D = "Node3D",
+	View3D = "View3D",
+	Model3D = "Model3D",
 	RenderTarget = "RenderTarget",
 	Buffer = "Buffer",
 	ClipNode = "ClipNode",
@@ -7689,6 +8379,8 @@ export const enum TypeName {
 export interface TypeMap {
 	[TypeName.Size]: Size;
 	[TypeName.Vec2]: Vec2;
+	[TypeName.Vec3]: Vec3;
+	[TypeName.RenderStats3D]: RenderStats3D;
 	[TypeName.Rect]: Rect;
 	[TypeName.Color3]: Color3;
 	[TypeName.Color]: Color;
@@ -7701,10 +8393,14 @@ export interface TypeMap {
 	[TypeName.Camera]: Camera;
 	[TypeName.Camera2D]: Camera2D;
 	[TypeName.CameraOtho]: CameraOtho;
+	[TypeName.Camera3D]: Camera3D;
 	[TypeName.Pass]: Pass;
 	[TypeName.Effect]: Effect;
 	[TypeName.SpriteEffect]: SpriteEffect;
 	[TypeName.Node]: Node;
+	[TypeName.Node3D]: Node3D;
+	[TypeName.View3D]: View3D;
+	[TypeName.Model3D]: Model3D;
 	[TypeName.RenderTarget]: RenderTarget;
 	[TypeName.Buffer]: Buffer;
 	[TypeName.ClipNode]: ClipNode;

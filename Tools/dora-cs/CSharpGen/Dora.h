@@ -82,6 +82,72 @@ object class Dictionary
 };
 
 /// <summary>
+/// A 3D vector object with x, y and z components.
+/// </summary>
+value struct Vec3
+{
+	/// <summary>
+	/// The x component.
+	/// </summary>
+	float x;
+	/// <summary>
+	/// The y component.
+	/// </summary>
+	float y;
+	/// <summary>
+	/// The z component.
+	/// </summary>
+	float z;
+	/// <summary>
+	/// Creates a new 3D vector.
+	/// </summary>
+	static outside Vec3 Vec3_create @ create(float x, float y, float z);
+	/// <summary>
+	/// Gets a zero 3D vector.
+	/// </summary>
+	static outside Vec3 Vec3_GetZero @ zero();
+};
+
+/// <summary>
+/// Statistics captured from the most recent 3D render for a View3D.
+/// </summary>
+value struct RenderStats3D
+{
+	readonly common uint32_t sceneNodes;
+	readonly common uint32_t visibleVisuals;
+	readonly common uint32_t culledVisuals;
+	readonly common uint32_t opaqueItems;
+	readonly common uint32_t transparentItems;
+	readonly common uint32_t drawCalls;
+	readonly common uint64_t triangles;
+	readonly common uint32_t programSwitches;
+	readonly common uint32_t materialSwitches;
+	readonly common uint32_t textureSwitches;
+	readonly common uint32_t meshSwitches;
+	readonly common uint32_t nodeCount;
+	readonly common uint32_t visualCount;
+	readonly common uint32_t modelCount;
+	readonly common uint32_t modelInstanceCount;
+	readonly common uint32_t meshCount;
+	readonly common uint32_t staticMeshCount;
+	readonly common uint32_t dynamicMeshCount;
+	readonly common uint32_t materialCount;
+	readonly common uint32_t textureCount;
+	readonly common uint32_t animationCount;
+	readonly common uint32_t environmentCount;
+	readonly common uint64_t modelResidentBytes;
+	readonly common uint64_t meshResidentBytes;
+	readonly common uint64_t textureResidentBytes;
+	readonly common uint64_t collectMicros;
+	readonly common uint64_t sortMicros;
+	readonly common uint64_t submitMicros;
+	readonly common uint64_t uploadCommands;
+	readonly common uint64_t uploadBytes;
+	readonly common uint64_t uploadMicros;
+	readonly common uint64_t uploadMaxCommandMicros;
+};
+
+/// <summary>
 /// A rectangle object with a left-bottom origin position and a size.
 /// </summary>
 value struct Rect
@@ -299,6 +365,10 @@ singleton class Application @ App
 	/// It is not available to set this property on platform Android and iOS.
 	/// </summary>
 	boolean bool alwaysOnTop;
+	/// <summary>
+	/// Requests a screenshot of the main backbuffer and returns the output TGA path.
+	/// </summary>
+	string saveScreenshot(string filename);
 	/// <summary>
 	/// Shuts down and exits the game engine.
 	/// When in `devMode`, the `shutdown` function will only emit a "AppEvent" global event with type "Shutdown", instead of shutting down the game engine.
@@ -901,7 +971,7 @@ singleton class Director
 	/// <summary>
 	/// The root node for the starting point of a game.
 	/// </summary>
-	readonly common Node* entry;
+	readonly common View3D* entry;
 	/// <summary>
 	/// The root node for post-rendering scene tree.
 	/// </summary>
@@ -910,10 +980,6 @@ singleton class Director
 	/// The current active camera in Director's camera stack.
 	/// </summary>
 	readonly common Camera* currentCamera;
-	/// <summary>
-	/// Whether or not to enable frustum culling.
-	/// </summary>
-	boolean bool frustumCulling;
 	/// <summary>
 	/// Schedule a function to be called every frame.
 	/// </summary>
@@ -990,7 +1056,439 @@ singleton class View
 	/// Whether or not vertical sync is enabled.
 	/// </summary>
 	boolean bool vSync @ vsync;
+	/// <summary>
+	/// Whether or not frustum culling is enabled for the view.
+	/// </summary>
+	boolean bool frustumCulling;
 };
+
+/// <summary>
+/// A 3D scene node with transform and hierarchy support.
+/// </summary>
+object class Node3D
+{
+	/// <summary>
+	/// Whether the node is visible.
+	/// </summary>
+	boolean bool visible;
+	/// <summary>
+	/// The parent 3D node.
+	/// </summary>
+	optional readonly common Node3D* parent;
+	/// <summary>
+	/// Returns whether the node has child 3D nodes.
+	/// </summary>
+	bool hasChildren();
+	/// <summary>
+	/// The node position in 3D space.
+	/// </summary>
+	common Vec3 position;
+	/// <summary>
+	/// The node scale in 3D space.
+	/// </summary>
+	common Vec3 scale;
+	/// <summary>
+	/// The node Euler angles in degrees.
+	/// </summary>
+	common Vec3 angles;
+	/// <summary>
+	/// The x-axis position of the node.
+	/// </summary>
+	common float x;
+	/// <summary>
+	/// The y-axis position of the node.
+	/// </summary>
+	common float y;
+	/// <summary>
+	/// The z-axis position of the node.
+	/// </summary>
+	common float z;
+	/// <summary>
+	/// The x-axis Euler angle of the node in degrees.
+	/// </summary>
+	common float angleX;
+	/// <summary>
+	/// The y-axis Euler angle of the node in degrees.
+	/// </summary>
+	common float angleY;
+	/// <summary>
+	/// The z-axis Euler angle of the node in degrees.
+	/// </summary>
+	common float angleZ;
+	/// <summary>
+	/// The x-axis scale factor of the node.
+	/// </summary>
+	common float scaleX;
+	/// <summary>
+	/// The y-axis scale factor of the node.
+	/// </summary>
+	common float scaleY;
+	/// <summary>
+	/// The z-axis scale factor of the node.
+	/// </summary>
+	common float scaleZ;
+	/// <summary>
+	/// Adds a child node to this node.
+	/// </summary>
+	void addChild(Node3D* child);
+	/// <summary>
+	/// Removes a child node from this node.
+	/// </summary>
+	void removeChild(Node3D* child, bool cleanup = true);
+	/// <summary>
+	/// Removes all child nodes from this node.
+	/// </summary>
+	void removeAllChildren(bool cleanup = true);
+	/// <summary>
+	/// Removes this node from its parent.
+	/// </summary>
+	void removeFromParent(bool cleanup = true);
+	/// <summary>
+	/// Cleans up this node and its children.
+	/// </summary>
+	void cleanup();
+	/// Converts a local point to world space.
+	/// </summary>
+	Vec3 convertToWorldSpace(Vec3 localPoint);
+	/// <summary>
+	/// Converts a world point to local space.
+	/// </summary>
+	Vec3 convertToNodeSpace(Vec3 worldPoint);
+	/// <summary>
+	/// Creates a new 3D node.
+	/// </summary>
+	static Node3D* create();
+};
+
+/// <summary>A per-instance material slot owned by a Model3D instance.</summary>
+object class Material3D
+{
+	/// <summary>The base color tint.</summary>
+	common Color baseColor;
+	/// <summary>The emissive color factor.</summary>
+	common Color3 emissive;
+	/// <summary>The metallic factor.</summary>
+	common float metallic;
+	/// <summary>The roughness factor.</summary>
+	common float roughness;
+	/// <summary>The alpha rendering mode.</summary>
+	common MaterialAlphaMode3D alphaMode;
+	/// <summary>The alpha mask cutoff.</summary>
+	common float alphaCutoff;
+	/// <summary>Replaces or clears the base color texture.</summary>
+	void setBaseColorTexture(Texture2D* texture);
+	/// <summary>Clears the base color texture override.</summary>
+	void clearBaseColorTexture();
+	/// <summary>Replaces or clears the metallic-roughness texture.</summary>
+	void setMetallicRoughnessTexture(Texture2D* texture);
+	/// <summary>Clears the metallic-roughness texture override.</summary>
+	void clearMetallicRoughnessTexture();
+	/// <summary>Replaces or clears the normal texture.</summary>
+	void setNormalTexture(Texture2D* texture);
+	/// <summary>Clears the normal texture override.</summary>
+	void clearNormalTexture();
+	/// <summary>Replaces or clears the emissive texture.</summary>
+	void setEmissiveTexture(Texture2D* texture);
+	/// <summary>Clears the emissive texture override.</summary>
+	void clearEmissiveTexture();
+	/// <summary>Replaces or clears the occlusion texture.</summary>
+	void setOcclusionTexture(Texture2D* texture);
+	/// <summary>Clears the occlusion texture override.</summary>
+	void clearOcclusionTexture();
+};
+
+/// <summary>
+/// A 3D model node loaded from a glTF/GLB file.
+/// </summary>
+object class Model3D : public Node3D
+{
+	/// <summary>
+	/// The animation playback speed.
+	/// </summary>
+	common float speed;
+	/// <summary>
+	/// The current animation duration.
+	/// </summary>
+	readonly common float duration;
+	/// <summary>
+	/// The elapsed playback time.
+	/// </summary>
+	readonly common float elapsed;
+	/// <summary>
+	/// Whether an animation is playing.
+	/// </summary>
+	readonly boolean bool playing;
+	/// <summary>
+	/// Whether animation playback is paused.
+	/// </summary>
+	readonly boolean bool paused;
+	/// <summary>
+	/// The number of animation clips in this model.
+	/// </summary>
+	readonly common uint32_t animationCount;
+	/// <summary>The number of material slots in this model instance.</summary>
+	readonly common uint32_t materialCount;
+	/// <summary>Gets an animation clip name by index.</summary>
+	string getAnimationName(uint32_t index);
+	/// <summary>Checks whether an imported node with the given name exists.</summary>
+	bool hasNode(string name);
+	/// <summary>Attaches a user-owned Node3D below an imported node.</summary>
+	bool attachToNode(string name, Node3D* child);
+	/// <summary>Gets the current model-space bounds minimum.</summary>
+	Vec3 getLocalBoundsMin();
+	/// <summary>Gets the current model-space bounds maximum.</summary>
+	Vec3 getLocalBoundsMax();
+	/// <summary>Gets the current world-space bounds minimum.</summary>
+	Vec3 getWorldBoundsMin();
+	/// <summary>Gets the current world-space bounds maximum.</summary>
+	Vec3 getWorldBoundsMax();
+	/// <summary>Gets a per-instance material slot by zero-based index.</summary>
+	optional Material3D* getMaterial(uint32_t index);
+	/// <summary>
+	/// Plays an animation by name.
+	/// </summary>
+	float play(string name = "", bool looped = false);
+	/// <summary>
+	/// Stops animation playback.
+	/// </summary>
+	void stop();
+	/// <summary>
+	/// Pauses animation playback.
+	/// </summary>
+	void pause();
+	/// <summary>
+	/// Resumes animation playback.
+	/// </summary>
+	void resume();
+	/// <summary>
+	/// Creates a model from a glTF/GLB file.
+	/// </summary>
+	static optional Model3D* create(string path);
+};
+
+/// <summary>
+/// A directional light whose direction follows the node world rotation.
+/// </summary>
+object class DirectionalLight3D : public Node3D
+{
+	/// <summary>
+	/// The light color in sRGB space.
+	/// </summary>
+	common Color3 color;
+	/// <summary>
+	/// The light intensity.
+	/// </summary>
+	common float intensity;
+	/// <summary>
+	/// Whether the light casts a shadow.
+	/// </summary>
+	boolean bool castShadow;
+	/// <summary>
+	/// The constant shadow depth bias.
+	/// </summary>
+	common float shadowBias;
+	/// <summary>
+	/// The slope-dependent shadow normal bias.
+	/// </summary>
+	common float shadowNormalBias;
+	/// <summary>
+	/// The shadow filter radius in shadow-map texels.
+	/// </summary>
+	common float shadowSoftness;
+	/// <summary>
+	/// Creates a directional light.
+	/// </summary>
+	static DirectionalLight3D* create();
+};
+
+/// <summary>
+/// A point light whose position follows the node world transform.
+/// </summary>
+object class PointLight3D : public Node3D
+{
+	/// <summary>
+	/// The light color in sRGB space.
+	/// </summary>
+	common Color3 color;
+	/// <summary>
+	/// The light intensity.
+	/// </summary>
+	common float intensity;
+	/// <summary>
+	/// The maximum effective range of the light.
+	/// </summary>
+	common float range;
+	/// <summary>
+	/// Creates a point light.
+	/// </summary>
+	static PointLight3D* create();
+};
+
+/// <summary>
+/// A 2D scene node that owns a 3D scene tree.
+/// </summary>
+object class View3D : public Node
+{
+	/// <summary>
+	/// The root 3D scene node.
+	/// </summary>
+	readonly common Node3D* scene;
+	/// <summary>
+	/// Statistics from the most recent 3D render and current 3D registries.
+	/// </summary>
+	readonly common RenderStats3D stats;
+	/// <summary>
+	/// Whether current world AABBs are drawn for debugging.
+	/// </summary>
+	boolean bool showAABB;
+	/// <summary>
+	/// The directional shadow-map resolution for this view.
+	/// </summary>
+	common uint16_t shadowMapSize;
+	/// <summary>
+	/// Adds a 3D child node to the scene root.
+	/// </summary>
+	void addChild @ add_child_3d(Node3D* child);
+	/// <summary>Gets the world-space origin of the screen ray for a SharedView logical coordinate.</summary>
+	Vec3 getRayOrigin(Vec2 viewPoint);
+	/// <summary>Gets the normalized world-space direction of the screen ray.</summary>
+	Vec3 getRayDirection(Vec2 viewPoint);
+	/// <summary>Returns the nearest Model3D whose current world AABB intersects the screen ray.</summary>
+	optional Model3D* pick(Vec2 viewPoint);
+	/// <summary>
+	/// Sets the environment map used by this 3D view.
+	/// </summary>
+	bool setEnvironmentMap(string path);
+	/// <summary>
+	/// Sets the environment lighting intensity used by this 3D view.
+	/// </summary>
+	void setEnvironmentIntensity(float diffuse, float specular, float exposure = 1.0f);
+	/// <summary>
+	/// Creates a new 3D view node.
+	/// </summary>
+	static View3D* create();
+};
+
+/// <summary>A reusable Jolt collision fixture definition or compound fixture builder.</summary>
+object class FixtureDef3D
+{
+	readonly boolean bool built;
+	bool addChild(FixtureDef3D* fixture, Vec3 position, Vec3 angles);
+	bool build();
+	static FixtureDef3D* createBox(Vec3 halfExtent);
+	static FixtureDef3D* createSphere(float radius);
+	static FixtureDef3D* createCapsule(float halfHeight, float radius);
+	static FixtureDef3D* createCompound();
+	static void loadMeshAsync(string filename, function<void(FixtureDef3D* fixture)> handler);
+	static void loadConvexHullAsync(string filename, function<void(FixtureDef3D* fixture)> handler);
+};
+
+/// <summary>Reusable physical properties and fixtures used to create Body3D nodes.</summary>
+object class BodyDef3D
+{
+	common uint8_t typeValue @ type;
+	common uint8_t collisionLayer;
+	common uint32_t collisionMask;
+	boolean bool sensor;
+	bool attach(FixtureDef3D* fixture, Vec3 position, Vec3 angles);
+	static BodyDef3D* create();
+};
+
+/// <summary>
+/// A 3D rigid body node owned by a PhysicsWorld3D.
+/// </summary>
+object class Body3D : public Node3D
+{
+	/// <summary>The physics world that owns this body.</summary>
+	optional readonly common PhysicsWorld3D* physicsWorld @ world;
+	/// <summary>The definition used to create this body.</summary>
+	readonly common BodyDef3D* bodyDef;
+	/// <summary>The body's motion type.</summary>
+	readonly common BodyType3D type;
+	/// <summary>The world-space linear velocity.</summary>
+	common Vec3 linearVelocity;
+	/// <summary>The world-space angular velocity in radians per second.</summary>
+	common Vec3 angularVelocity;
+	/// <summary>The collision layer in the range 0 through 31.</summary>
+	common uint8_t collisionLayer;
+	/// <summary>The bit mask of collision layers accepted by this body.</summary>
+	common uint32_t collisionMask;
+	/// <summary>Whether this body reports contacts without collision response.</summary>
+	boolean bool sensor;
+	/// <summary>Applies a continuous force at the center of mass.</summary>
+	void applyForce(Vec3 force);
+	/// <summary>Applies an instantaneous impulse at the center of mass.</summary>
+	void applyLinearImpulse(Vec3 impulse);
+	/// <summary>Sets the persistent contact-enter callback.</summary>
+	void onContactEnter(function<void(Body3D* other, Vec3 point, Vec3 normal)> handler);
+	/// <summary>Sets the persistent contact-stay callback.</summary>
+	void onContactStay(function<void(Body3D* other, Vec3 point, Vec3 normal)> handler);
+	/// <summary>Sets the persistent contact-exit callback.</summary>
+	void onContactExit(function<void(Body3D* other, Vec3 point, Vec3 normal)> handler);
+	/// <summary>Creates a body at the given transform.</summary>
+	static Body3D* create(BodyDef3D* bodyDef, PhysicsWorld3D* world, Vec3 position, Vec3 angles);
+};
+
+/// <summary>A virtual capsule character controller owned by a PhysicsWorld3D.</summary>
+object class CharacterController3D
+{
+	/// <summary>The Node3D synchronized with this character.</summary>
+	optional readonly common Node3D* node;
+	/// <summary>The physics world that owns this character.</summary>
+	optional readonly common PhysicsWorld3D* physicsWorld @ world;
+	/// <summary>The desired horizontal movement velocity.</summary>
+	common Vec3 desiredVelocity;
+	/// <summary>The current world-space velocity including gravity and jumping.</summary>
+	readonly common Vec3 velocity;
+	/// <summary>The current supporting surface normal.</summary>
+	readonly common Vec3 groundNormal;
+	/// <summary>Whether the character is standing on walkable ground.</summary>
+	readonly boolean bool grounded;
+	/// <summary>The collision layer in the range 0 through 31.</summary>
+	common uint8_t collisionLayer;
+	/// <summary>The bit mask of collision layers accepted by this character.</summary>
+	common uint32_t collisionMask;
+	/// <summary>Requests a jump with the given upward speed.</summary>
+	void jump(float speed);
+	/// <summary>Removes this character from its physics world.</summary>
+	void destroy();
+};
+
+/// <summary>A two-body constraint owned by a PhysicsWorld3D.</summary>
+object class Constraint3D
+{
+	/// <summary>The physics world that owns this constraint.</summary>
+	optional readonly common PhysicsWorld3D* physicsWorld @ world;
+	/// <summary>The first constrained body.</summary>
+	optional readonly common Body3D* firstBody;
+	/// <summary>The second constrained body.</summary>
+	optional readonly common Body3D* secondBody;
+	/// <summary>Removes this constraint from its physics world.</summary>
+	void destroy();
+	static Constraint3D* createFixed(Body3D* firstBody, Body3D* secondBody, Vec3 anchor);
+	static Constraint3D* createDistance(Body3D* firstBody, Body3D* secondBody, Vec3 firstAnchor, Vec3 secondAnchor, float minDistance, float maxDistance);
+	static Constraint3D* createHinge(Body3D* firstBody, Body3D* secondBody, Vec3 anchor, Vec3 axis, float minAngle, float maxAngle);
+};
+
+/// <summary>
+/// A fixed-step 3D physics world backed by Jolt Physics.
+/// </summary>
+object class PhysicsWorld3D : public Node
+{
+	/// <summary>The world gravity in units per second squared.</summary>
+	common Vec3 gravity;
+	/// <summary>Creates a virtual capsule character whose node position represents its feet.</summary>
+	CharacterController3D* createCharacter(Node3D* node, float halfHeight, float radius, float maxSlopeAngle = 50.0f, float stepHeight = 0.4f);
+	/// <summary>Removes a character from this world.</summary>
+	void destroyCharacter(CharacterController3D* character);
+	/// <summary>Casts a ray and invokes the handler for the nearest hit.</summary>
+	bool raycast(Vec3 start, Vec3 stop, function<def_false bool(Body3D* body, Vec3 point, Vec3 normal)> handler);
+	/// <summary>Visits bodies overlapping a sphere until the handler returns true.</summary>
+	bool querySphere(Vec3 center, float radius, function<def_false bool(Body3D* body)> handler);
+	/// <summary>Creates a 3D physics world.</summary>
+	static PhysicsWorld3D* create();
+};
+
 
 value class ActionDef {
 	/// <summary>
@@ -1855,6 +2353,8 @@ object class Touch
 	/// The location of the touch event in the node's local coordinate system.
 	/// </summary>
 	readonly common Vec2 location;
+	/// <summary>The touch location in SharedView logical coordinates with a left-bottom origin.</summary>
+	readonly common Vec2 viewLocation;
 	/// <summary>
 	/// The location of the touch event in the world coordinate system.
 	/// </summary>
@@ -3475,6 +3975,12 @@ object class MotorJoint : public Joint
 /// </summary>
 singleton struct Cache
 {
+	/// <summary>The soft memory budget for cached Model3D resources in bytes. Zero means unlimited.</summary>
+	static common uint64_t model3DBudget;
+	/// <summary>The estimated resident bytes held by cached Model3D resources.</summary>
+	static readonly common uint64_t model3DUsage;
+	/// <summary>The number of Model3D definitions currently retained by the cache.</summary>
+	static readonly common uint32_t model3DCount;
 	/// <summary>
 	/// Loads a file into the cache with a blocking operation.
 	/// </summary>
@@ -3487,6 +3993,12 @@ singleton struct Cache
 	/// <param name="filename">The name of the file to load.</param>
 	/// <param name="handler">A callback function that is invoked when the file is loaded.</param>
 	static void loadAsync(string filename, function<void(bool success)> handler);
+	/// <summary>Gets the Model3D or environment load state.</summary>
+	static string getLoadState(string filename);
+	/// <summary>Gets the latest load error for a Model3D or environment resource.</summary>
+	static string getLoadError(string filename);
+	/// <summary>Cancels an active Model3D or environment load.</summary>
+	static bool cancelLoad(string filename);
 	/// <summary>
 	/// Updates the content of a file loaded in the cache.
 	/// If the item of filename does not exist in the cache, a new file content will be added into the cache.
@@ -3939,6 +4451,11 @@ singleton class Mouse {
 	/// ```
 	/// </summary>
 	static Vec2 getPosition();
+	/// <summary>The accumulated mouse movement since the previous frame.</summary>
+	static Vec2 getDelta();
+	/// <summary>Whether relative mouse mode is enabled. Relative mode hides and captures the cursor.</summary>
+	static bool isRelativeMode();
+	static void setRelativeMode(bool enabled);
 	/// <summary>
 	/// Whether the left mouse button is currently being pressed.
 	/// </summary>

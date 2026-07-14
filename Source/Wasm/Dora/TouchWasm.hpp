@@ -29,6 +29,9 @@ DORA_EXPORT int64_t touch_get_delta(int64_t self) {
 DORA_EXPORT int64_t touch_get_location(int64_t self) {
 	return Vec2_Retain(r_cast<Touch*>(self)->getLocation());
 }
+DORA_EXPORT int64_t touch_get_view_location(int64_t self) {
+	return Vec2_Retain(r_cast<Touch*>(self)->getViewLocation());
+}
 DORA_EXPORT int64_t touch_get_world_location(int64_t self) {
 	return Vec2_Retain(r_cast<Touch*>(self)->getWorldLocation());
 }
@@ -42,5 +45,6 @@ static void linkTouch(wasm3::module3& mod) {
 	mod.link_optional("*", "touch_get_id", touch_get_id);
 	mod.link_optional("*", "touch_get_delta", touch_get_delta);
 	mod.link_optional("*", "touch_get_location", touch_get_location);
+	mod.link_optional("*", "touch_get_view_location", touch_get_view_location);
 	mod.link_optional("*", "touch_get_world_location", touch_get_world_location);
 }

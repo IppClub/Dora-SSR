@@ -25,6 +25,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Input/Keyboard.h"
 #include "Input/TouchDispather.h"
 #include "Node/Node.h"
+#include "Node/Node3D.h"
+#include "Node/View3D.h"
 #include "Render/Camera.h"
 #include "Render/Renderer.h"
 #include "Render/VGRender.h"
@@ -61,7 +63,6 @@ Director::Director()
 	, _nvgDirty(false)
 	, _paused(false)
 	, _stoped(false)
-	, _frustumCulling(true)
 	, _nvgContext(nullptr) { }
 
 Director::~Director() {
@@ -94,12 +95,12 @@ Node* Director::getUI3D() {
 	return _ui3D;
 }
 
-Node* Director::getEntry() {
+View3D* Director::getEntry() {
 	if (!_entry) {
 		_root = Node::create(false);
 		_root->setAnchor(Vec2::zero);
 		_root->onEnter();
-		_entry = Node::create(false);
+		_entry = View3D::create();
 		_root->addChild(_entry);
 		markDirty();
 	}
@@ -294,6 +295,18 @@ void Director::handleUnmanagedNodes() {
 			getEntry()->addChild(node);
 		}
 	}
+	if (!_unmanagedNodes3D.empty()) {
+		RefVector<Node3D> nodes;
+		for (Node3D* node : _unmanagedNodes3D) {
+			if (node->isUnManaged()) {
+				nodes.push_back(node);
+			}
+		}
+		_unmanagedNodes3D.clear();
+		for (Node3D* node : nodes) {
+			getEntry()->addChild(node);
+		}
+	}
 }
 
 void Director::doLogic() {
@@ -481,6 +494,12 @@ void Director::cleanup() {
 		}
 	}
 	_unmanagedNodes.clear();
+	if (!_unmanagedNodes3D.empty()) {
+		for (Node3D* node : _unmanagedNodes3D) {
+			node->cleanup();
+		}
+	}
+	_unmanagedNodes3D.clear();
 	if (!_waitingList.empty()) {
 		for (Node* node : _waitingList) {
 			if (node) {
@@ -528,6 +547,10 @@ void Director::addUnManagedNode(Node* node) {
 	_unmanagedNodes.push_back(node);
 }
 
+void Director::addUnManagedNode(Node3D* node) {
+	_unmanagedNodes3D.push_back(node);
+}
+
 void Director::addToWaitingList(Node* node) {
 	WRef<Node> wref(node);
 	_waitingList.push_back(wref);
@@ -543,14 +566,6 @@ void Director::removeFromWaitingList(Node* node) {
 bool Director::isInFrustum(const AABB& aabb) const {
 	if (_viewProjs.empty()) return false;
 	return _viewProjs.top()->frustum.intersect(aabb);
-}
-
-bool Director::isFrustumCulling() const noexcept {
-	return _frustumCulling;
-}
-
-void Director::setFrustumCulling(bool var) {
-	_frustumCulling = var;
 }
 
 void Director::markDirty() {

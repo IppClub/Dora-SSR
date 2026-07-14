@@ -14,6 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Cache/TMXCache.h"
 #include "Cache/TextureCache.h"
 #include "Effect/Effect.h"
+#include "Render/View.h"
 #include "Support/Array.h"
 #include "Support/Dictionary.h"
 
@@ -377,7 +378,7 @@ void TileNode::render() {
 
 	std::vector<TileQuad*> tileQuads;
 	tileQuads.reserve(_tileQuads.size());
-	if (SharedDirector.isFrustumCulling()) {
+	if (SharedView.isFrustumCulling()) {
 		for (auto& tileQuad : _tileQuads) {
 			float minX = tileQuad.positions[0].lb.x;
 			float minY = tileQuad.positions[0].lb.y;

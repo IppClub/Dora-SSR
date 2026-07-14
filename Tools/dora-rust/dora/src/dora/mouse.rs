@@ -8,6 +8,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 	fn mouse_get_position() -> i64;
+	fn mouse_get_delta() -> i64;
+	fn mouse_is_relative_mode() -> i32;
+	fn mouse_set_relative_mode(enabled: i32);
 	fn mouse_is_left_button_pressed() -> i32;
 	fn mouse_is_right_button_pressed() -> i32;
 	fn mouse_is_middle_button_pressed() -> i32;
@@ -28,6 +31,17 @@ impl Mouse {
 	/// ```
 	pub fn get_position() -> crate::dora::Vec2 {
 		unsafe { return crate::dora::Vec2::from(mouse_get_position()); }
+	}
+	/// The accumulated mouse movement since the previous frame.
+	pub fn get_delta() -> crate::dora::Vec2 {
+		unsafe { return crate::dora::Vec2::from(mouse_get_delta()); }
+	}
+	/// Whether relative mouse mode is enabled. Relative mode hides and captures the cursor.
+	pub fn is_relative_mode() -> bool {
+		unsafe { return mouse_is_relative_mode() != 0; }
+	}
+	pub fn set_relative_mode(enabled: bool) {
+		unsafe { mouse_set_relative_mode(if enabled { 1 } else { 0 }); }
 	}
 	/// Whether the left mouse button is currently being pressed.
 	pub fn is_left_button_pressed() -> bool {

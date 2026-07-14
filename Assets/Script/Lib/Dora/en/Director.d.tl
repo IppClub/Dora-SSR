@@ -22,8 +22,8 @@ local record Director
 	-- The root node for 3D user interface elements with 3D projection effect.
 	const ui3D: Node
 
-	-- The root node for the starting point of a game.
-	const entry: Node
+	-- The root node for the starting point of a game. Runtime type is View3D.
+	const entry: any
 
 	-- The root node for post-rendering scene tree.
 	const postNode: Node
@@ -36,9 +36,6 @@ local record Director
 
 	-- The current active camera in Director's camera stack.
 	const currentCamera: Camera
-
-	-- The flag to enable or disable frustum culling.
-	frustumCulling: boolean
 
 	-- The flag to enable or disable sending collected statistics via built-in Web Socket server. For Web IDE use only.
 	profilerSending: boolean

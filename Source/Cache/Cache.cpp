@@ -18,6 +18,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Cache/FontCache.h"
 #include "Cache/FrameCache.h"
 #include "Cache/ModelCache.h"
+#include "Cache/Model3DCache.h"
 #include "Cache/ParticleCache.h"
 #include "Cache/SVGCache.h"
 #include "Cache/ShaderCache.h"
@@ -56,6 +57,9 @@ bool Cache::load(String filename) {
 				return SharedFrameCache.load(filename) != nullptr;
 			case "model"_hash:
 				return SharedModelCache.load(filename) != nullptr;
+			case "glb"_hash:
+			case "gltf"_hash:
+				return SharedModel3DCache.load(filename) != nullptr;
 			case "par"_hash:
 				return SharedParticleCache.load(filename) != nullptr;
 			case "jpg"_hash:
@@ -134,6 +138,12 @@ void Cache::loadAsync(String filename, const std::function<void(bool)>& callback
 					callback(res != nullptr);
 				});
 				break;
+			case "glb"_hash:
+			case "gltf"_hash:
+				SharedModel3DCache.loadAsync(filename, [callback](Model3DDef* res) {
+					callback(res != nullptr);
+				});
+				break;
 			case "par"_hash:
 				SharedParticleCache.loadAsync(filename, [callback](ParticleDef* res) {
 					callback(res != nullptr);
@@ -177,6 +187,46 @@ void Cache::loadAsync(String filename, const std::function<void(bool)>& callback
 				break;
 		}
 	}
+}
+
+String Cache::getLoadState(String filename) {
+	switch (SharedModel3DCache.getLoadState(filename)) {
+		case Model3DLoadState::Loading:
+			return "loading";
+		case Model3DLoadState::Ready:
+			return "ready";
+		case Model3DLoadState::Failed:
+			return "failed";
+		case Model3DLoadState::Cancelled:
+			return "cancelled";
+		case Model3DLoadState::None:
+		default:
+			return "none";
+	}
+}
+
+String Cache::getLoadError(String filename) {
+	return SharedModel3DCache.getLoadError(filename);
+}
+
+bool Cache::cancelLoad(String filename) {
+	return SharedModel3DCache.cancelLoad(filename);
+}
+
+void Cache::setModel3DBudget(uint64_t bytes) {
+	SharedModel3DCache.setBudget(bytes);
+}
+
+uint64_t Cache::getModel3DBudget() {
+	return SharedModel3DCache.getBudget();
+}
+
+uint64_t Cache::getModel3DUsage() {
+	return SharedModel3DCache.getUsage();
+}
+
+uint32_t Cache::getModel3DCount() {
+	return SharedModel3DCache.getCount();
 }
 
 void Cache::update(String filename, String content) {
@@ -228,6 +278,9 @@ bool Cache::unload(String name) {
 				return SharedFrameCache.unload(name);
 			case "model"_hash:
 				return SharedModelCache.unload(name);
+			case "glb"_hash:
+			case "gltf"_hash:
+				return SharedModel3DCache.unload(name);
 			case "par"_hash:
 				return SharedParticleCache.unload(name);
 			case "jpg"_hash:
@@ -264,6 +317,8 @@ bool Cache::unload(String name) {
 				return SharedFrameCache.unload();
 			case "Model"_hash:
 				return SharedModelCache.unload();
+			case "Model3D"_hash:
+				return SharedModel3DCache.unload();
 			case "Particle"_hash:
 				return SharedParticleCache.unload();
 			case "Shader"_hash:
@@ -288,6 +343,7 @@ bool Cache::unload(String name) {
 void Cache::unload() {
 	SharedShaderCache.unload();
 	SharedModelCache.unload();
+	SharedModel3DCache.unload();
 	SharedFrameCache.unload();
 	SharedParticleCache.unload();
 	SharedClipCache.unload();
@@ -307,6 +363,7 @@ void Cache::removeUnused() {
 	SharedAtlasCache.removeUnused();
 	SharedShaderCache.removeUnused();
 	SharedModelCache.removeUnused();
+	SharedModel3DCache.removeUnused();
 	SharedFrameCache.removeUnused();
 	SharedParticleCache.removeUnused();
 	SharedClipCache.removeUnused();
@@ -340,6 +397,9 @@ void Cache::removeUnused(String name) {
 			break;
 		case "Model"_hash:
 			SharedModelCache.removeUnused();
+			break;
+		case "Model3D"_hash:
+			SharedModel3DCache.removeUnused();
 			break;
 		case "Particle"_hash:
 			SharedParticleCache.removeUnused();

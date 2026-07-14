@@ -529,7 +529,7 @@ function _Function(t)
 	append(t)
 	if t:inclass() then
 		--print ('t.name is '..t.name..', parent.name is '..t.parent.name)
-		local isCreate = t.lname:sub(1, 6) == "create"
+		local isCreate = t.lname:sub(1, 6) == "create" and t.name:sub(1, 4) ~= "make"
 		if
 			string.gsub(t.name, "%b<>", "") == string.gsub(t.parent.original_name or t.parent.name, "%b<>", "") or
 				isCreate
@@ -646,4 +646,3 @@ function strip_defaults(s)
 
 	return "(" .. ret .. ")"
 end
-

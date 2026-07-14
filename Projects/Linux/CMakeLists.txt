@@ -55,6 +55,7 @@ include_directories(
 	${DORA_SOURCE_ROOT}/3rdParty/bx/include/compat/linux
 	${DORA_SOURCE_ROOT}
 	${DORA_SOURCE_ROOT}/3rdParty
+	${DORA_SOURCE_ROOT}/3rdParty/JoltPhysics
 	${DORA_SOURCE_ROOT}/3rdParty/Lua
 	${DORA_SOURCE_ROOT}/3rdParty/Zip
 	${DORA_SOURCE_ROOT}/3rdParty/soloud
@@ -130,7 +131,7 @@ set_target_properties(
 	${DORA_RUNTIME_BUILD_DIR}/libdora_runtime.a
 )
 
-add_definitions(-DWITH_SDL2 -DBX_CONFIG_DEBUG=${DORA_BX_CONFIG_DEBUG} -Dd_m3HasWASI -DLUA_USE_LINUX -DSPDLOG_FMT_EXTERNAL)
+add_definitions(-DWITH_SDL2 -DBX_CONFIG_DEBUG=${DORA_BX_CONFIG_DEBUG} -Dd_m3HasWASI -DLUA_USE_LINUX -DSPDLOG_FMT_EXTERNAL -DJPH_NO_FORCE_INLINE)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     add_definitions(-Wno-psabi)
@@ -157,6 +158,7 @@ add_executable(dora-ssr
 	../../Source/Cache/TextureCache.cpp
 	../../Source/Cache/SkeletonCache.cpp
 	../../Source/Cache/ModelCache.cpp
+	../../Source/Cache/Model3DCache.cpp
 	../../Source/Cache/DragonBoneCache.cpp
 	../../Source/Cache/AudioCache.cpp
 	../../Source/Cache/FontCache.cpp
@@ -176,6 +178,7 @@ add_executable(dora-ssr
 	../../Source/Basic/Content.cpp
 	../../Source/Basic/Application.cpp
 	../../Source/Effect/Effect.cpp
+	../../Source/Effect/Material.cpp
 	../../Source/Animation/ModelDef.cpp
 	../../Source/Animation/Animation.cpp
 	../../Source/Animation/Action.cpp
@@ -205,6 +208,7 @@ add_executable(dora-ssr
 	../../Source/GUI/ImGuiDora.cpp
 	../../Source/GUI/ImGuiBinding.cpp
 	../../Source/Render/Camera.cpp
+	../../Source/Render/Camera3D.cpp
 	../../Source/Render/RenderTarget.cpp
 	../../Source/Render/Renderer.cpp
 	../../Source/Render/VGRender.cpp
@@ -217,6 +221,8 @@ add_executable(dora-ssr
 	../../Source/Physics/Body.cpp
 	../../Source/Physics/Sensor.cpp
 	../../Source/Physics/PhysicsWorld.cpp
+	../../Source/Physics/JoltBridge.cpp
+	../../Source/Physics/JoltSources.cpp
 	../../Source/Physics/DebugDraw.cpp
 	../../Source/Node/Particle.cpp
 	../../Source/Node/VGNode.cpp
@@ -225,9 +231,12 @@ add_executable(dora-ssr
 	../../Source/Node/Sprite.cpp
 	../../Source/Node/Grid.cpp
 	../../Source/Node/Node.cpp
+	../../Source/Node/Node3D.cpp
+	../../Source/Node/Light3D.cpp
 	../../Source/Node/Label.cpp
 	../../Source/Node/ClipNode.cpp
 	../../Source/Node/Model.cpp
+	../../Source/Node/Model3D.cpp
 	../../Source/Node/Playable.cpp
 	../../Source/Node/DragonBone.cpp
 	../../Source/Node/DrawNode.cpp
@@ -235,6 +244,8 @@ add_executable(dora-ssr
 	../../Source/Node/EffekNode.cpp
 	../../Source/Node/TileNode.cpp
 	../../Source/Node/AudioSource.cpp
+	../../Source/Node/Visual3D.cpp
+	../../Source/Node/View3D.cpp
 	../../Source/Node/VideoNode.cpp
 	../../Source/Node/TIC80Node.cpp
 	../../Source/Event/EventType.cpp

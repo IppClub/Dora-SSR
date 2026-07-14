@@ -110,6 +110,9 @@ DORA_EXPORT void application_set_always_on_top(int32_t val) {
 DORA_EXPORT int32_t application_is_always_on_top() {
 	return SharedApplication.isAlwaysOnTop() ? 1 : 0;
 }
+DORA_EXPORT int64_t application_save_screenshot(int64_t filename) {
+	return Str_Retain(SharedApplication.saveScreenshot(*Str_From(filename)));
+}
 DORA_EXPORT void application_shutdown() {
 	SharedApplication.shutdown();
 }
@@ -150,5 +153,6 @@ static void linkApplication(wasm3::module3& mod) {
 	mod.link_optional("*", "application_is_full_screen", application_is_full_screen);
 	mod.link_optional("*", "application_set_always_on_top", application_set_always_on_top);
 	mod.link_optional("*", "application_is_always_on_top", application_is_always_on_top);
+	mod.link_optional("*", "application_save_screenshot", application_save_screenshot);
 	mod.link_optional("*", "application_shutdown", application_shutdown);
 }

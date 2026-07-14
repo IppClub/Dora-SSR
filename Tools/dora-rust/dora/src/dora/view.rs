@@ -21,6 +21,8 @@ extern "C" {
 	fn view_set_post_effect(val: i64);
 	fn view_get_post_effect() -> i64;
 	fn view_set_post_effect_null();
+	fn view_set_frustum_culling(val: i32);
+	fn view_is_frustum_culling() -> i32;
 	fn view_set_vsync(val: i32);
 	fn view_is_vsync() -> i32;
 }
@@ -83,6 +85,14 @@ impl View {
 	/// Removes the post effect applied to the view.
 	pub fn set_post_effect_null() {
 		unsafe { view_set_post_effect_null(); }
+	}
+	/// Sets whether or not frustum culling is enabled.
+	pub fn set_frustum_culling(val: bool) {
+		unsafe { view_set_frustum_culling(if val { 1 } else { 0 }) };
+	}
+	/// Gets whether or not frustum culling is enabled.
+	pub fn is_frustum_culling() -> bool {
+		return unsafe { view_is_frustum_culling() != 0 };
 	}
 	/// Sets whether or not vertical sync is enabled.
 	pub fn set_vsync(val: bool) {

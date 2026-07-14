@@ -24,6 +24,7 @@ include_directories(
 	src/main/cpp/3rdParty/Zip/zlib
 	src/main/cpp/3rdParty/Effekseer
 	src/main/cpp/3rdParty/h264bsd
+	src/main/cpp/3rdParty/JoltPhysics
 )
 
 add_library(SDL2-lib SHARED IMPORTED)
@@ -106,6 +107,7 @@ add_library(main SHARED
 	src/main/cpp/Cache/TextureCache.cpp
 	src/main/cpp/Cache/SkeletonCache.cpp
 	src/main/cpp/Cache/ModelCache.cpp
+	src/main/cpp/Cache/Model3DCache.cpp
 	src/main/cpp/Cache/DragonBoneCache.cpp
 	src/main/cpp/Cache/AudioCache.cpp
 	src/main/cpp/Cache/FontCache.cpp
@@ -125,6 +127,7 @@ add_library(main SHARED
 	src/main/cpp/Basic/Content.cpp
 	src/main/cpp/Basic/Application.cpp
 	src/main/cpp/Effect/Effect.cpp
+	src/main/cpp/Effect/Material.cpp
 	src/main/cpp/Animation/ModelDef.cpp
 	src/main/cpp/Animation/Animation.cpp
 	src/main/cpp/Animation/Action.cpp
@@ -154,6 +157,7 @@ add_library(main SHARED
 	src/main/cpp/GUI/ImGuiDora.cpp
 	src/main/cpp/GUI/ImGuiBinding.cpp
 	src/main/cpp/Render/Camera.cpp
+	src/main/cpp/Render/Camera3D.cpp
 	src/main/cpp/Render/RenderTarget.cpp
 	src/main/cpp/Render/Renderer.cpp
 	src/main/cpp/Render/VGRender.cpp
@@ -166,6 +170,8 @@ add_library(main SHARED
 	src/main/cpp/Physics/Body.cpp
 	src/main/cpp/Physics/Sensor.cpp
 	src/main/cpp/Physics/PhysicsWorld.cpp
+	src/main/cpp/Physics/JoltBridge.cpp
+	src/main/cpp/Physics/JoltSources.cpp
 	src/main/cpp/Physics/DebugDraw.cpp
 	src/main/cpp/Node/Particle.cpp
 	src/main/cpp/Node/VGNode.cpp
@@ -174,9 +180,12 @@ add_library(main SHARED
 	src/main/cpp/Node/Sprite.cpp
 	src/main/cpp/Node/Grid.cpp
 	src/main/cpp/Node/Node.cpp
+	src/main/cpp/Node/Node3D.cpp
+	src/main/cpp/Node/Light3D.cpp
 	src/main/cpp/Node/Label.cpp
 	src/main/cpp/Node/ClipNode.cpp
 	src/main/cpp/Node/Model.cpp
+	src/main/cpp/Node/Model3D.cpp
 	src/main/cpp/Node/Playable.cpp
 	src/main/cpp/Node/DragonBone.cpp
 	src/main/cpp/Node/DrawNode.cpp
@@ -184,6 +193,8 @@ add_library(main SHARED
 	src/main/cpp/Node/EffekNode.cpp
 	src/main/cpp/Node/TileNode.cpp
 	src/main/cpp/Node/AudioSource.cpp
+	src/main/cpp/Node/Visual3D.cpp
+	src/main/cpp/Node/View3D.cpp
 	src/main/cpp/Node/VideoNode.cpp
 	src/main/cpp/Node/TIC80Node.cpp
 	src/main/cpp/Event/EventType.cpp

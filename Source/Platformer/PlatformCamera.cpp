@@ -27,10 +27,18 @@ PlatformCamera::PlatformCamera(String name)
 	, _offset{Vec2::zero}
 	, _viewSize() { }
 
+Vec2 PlatformCamera::getPosition2D() const {
+	return _position.toVec2();
+}
+
+void PlatformCamera::setPosition2D(const Vec2& position) {
+	setPosition(position);
+}
+
 void PlatformCamera::setPosition(const Vec2& position) {
 	_camPos = position;
 	Vec2 newPos = position;
-	Vec2 pos = _position;
+	Vec2 pos = _position.toVec2();
 	if (_boundary != Rect::zero) {
 		Size viewSize = Size{_viewSize.width / _zoom, _viewSize.height / _zoom};
 		float xOffset = viewSize.width / 2.0f;
@@ -119,7 +127,7 @@ bool PlatformCamera::init() {
 
 void PlatformCamera::setBoundary(const Rect& var) {
 	_boundary = var;
-	PlatformCamera::setPosition(_position);
+	PlatformCamera::setPosition(_position.toVec2());
 }
 
 const Rect& PlatformCamera::getBoundary() const noexcept {

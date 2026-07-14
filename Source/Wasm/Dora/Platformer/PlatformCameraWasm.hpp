@@ -12,10 +12,10 @@ DORA_EXPORT int32_t platformer_platformcamera_type() {
 	return DoraType<Platformer::PlatformCamera>();
 }
 DORA_EXPORT void platformer_platformcamera_set_position(int64_t self, int64_t val) {
-	r_cast<Platformer::PlatformCamera*>(self)->setPosition(Vec2_From(val));
+	r_cast<Platformer::PlatformCamera*>(self)->setPosition2D(Vec2_From(val));
 }
 DORA_EXPORT int64_t platformer_platformcamera_get_position(int64_t self) {
-	return Vec2_Retain(r_cast<Platformer::PlatformCamera*>(self)->getPosition());
+	return Vec2_Retain(r_cast<Platformer::PlatformCamera*>(self)->getPosition2D());
 }
 DORA_EXPORT void platformer_platformcamera_set_rotation(int64_t self, float val) {
 	r_cast<Platformer::PlatformCamera*>(self)->setRotation(val);

@@ -158,6 +158,8 @@ namespace Dora
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
         internal static extern void call_stack_push_vec2(long stack, long vec2Bits);
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern void call_stack_push_vec3(long stack, long vec3Handle);
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
         internal static extern void call_stack_push_size(long stack, long sizeBits);
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
         internal static extern long call_stack_pop_i64(long stack);
@@ -171,6 +173,8 @@ namespace Dora
         internal static extern long call_stack_pop_object(long stack);
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
         internal static extern long call_stack_pop_vec2(long stack);
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern long call_stack_pop_vec3(long stack);
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
         internal static extern long call_stack_pop_size(long stack);
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
@@ -187,6 +191,8 @@ namespace Dora
         internal static extern int call_stack_front_object(long stack);
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
         internal static extern int call_stack_front_vec2(long stack);
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern int call_stack_front_vec3(long stack);
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
         internal static extern int call_stack_front_size(long stack);
 
@@ -967,6 +973,7 @@ namespace Dora
         public void Push(string s) => Native.call_stack_push_str(Raw, Bridge.FromString(s));
         public void Push(Object o) => Native.call_stack_push_object(Raw, o.Raw);
         public void Push(in Vec2 v) => Native.call_stack_push_vec2(Raw, v.Raw);
+        public void Push(Vec3 v) => Native.call_stack_push_vec3(Raw, v.Raw);
         public void Push(in Size s) => Native.call_stack_push_size(Raw, s.Raw);
 
         public int? PopOptI32() => Native.call_stack_front_i64(Raw) != 0 ? (int?)Native.call_stack_pop_i64(Raw) : null;
@@ -985,6 +992,11 @@ namespace Dora
             if (Native.call_stack_front_vec2(Raw) == 0) return null;
             long bits = Native.call_stack_pop_vec2(Raw);
             return Vec2.From(bits);
+        }
+        public Vec3? PopOptVec3()
+        {
+            if (Native.call_stack_front_vec3(Raw) == 0) return null;
+            return Vec3.From(Native.call_stack_pop_vec3(Raw));
         }
         public Size? PopOptSize()
         {
@@ -1056,6 +1068,14 @@ namespace Dora
             }
             long bits = Native.call_stack_pop_vec2(Raw);
             return Vec2.From(bits);
+        }
+        public Vec3 PopVec3()
+        {
+            if (Native.call_stack_front_vec3(Raw) == 0)
+            {
+                throw new ArithmeticException("failed to pop Vec3 from stack");
+            }
+            return Vec3.From(Native.call_stack_pop_vec3(Raw));
         }
         public Size PopSize()
         {
@@ -1170,6 +1190,20 @@ namespace Dora
         Dynamic = 0,
         Static = 1,
         Kinematic = 2,
+    }
+
+    public enum BodyType3D
+    {
+        Static = 0,
+        Kinematic = 1,
+        Dynamic = 2,
+    }
+
+    public enum MaterialAlphaMode3D
+    {
+        Opaque = 0,
+        Mask = 1,
+        Blend = 2,
     }
 
     public enum ShaderStage
@@ -3915,6 +3949,33 @@ namespace Dora
         public Co.Op.CallbackAwait<bool> SaveAsync(string filename)
         {
             return new Co.Op.CallbackAwait<bool>(cb => this.SaveAsync(filename, cb));
+        }
+    }
+
+    public partial class View3D
+    {
+        /// <summary>
+        /// Adds a 2D child node to this view.
+        /// </summary>
+        public new void AddChild(Node child, int order, string tag)
+        {
+            base.AddChild(child, order, tag);
+        }
+
+        /// <summary>
+        /// Adds a 2D child node to this view.
+        /// </summary>
+        public new void AddChild(Node child, int order)
+        {
+            base.AddChild(child, order);
+        }
+
+        /// <summary>
+        /// Adds a 2D child node to this view.
+        /// </summary>
+        public new void AddChild(Node child)
+        {
+            base.AddChild(child);
         }
     }
 

@@ -19,6 +19,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Effect/Effect.h"
 #include "Node/DrawNode.h"
 #include "Node/Sprite.h"
+#include "Render/View.h"
 #include "Support/Common.h"
 #include "Support/Dictionary.h"
 
@@ -432,7 +433,7 @@ void Spine::render() {
 				auto& verts = _clipper->getClippedVertices();
 				auto vertSize = verts.size() / 2;
 				bool isCulled = verts.size() == 0;
-				if (!isCulled && SharedDirector.isFrustumCulling()) {
+				if (!isCulled && SharedView.isFrustumCulling()) {
 					float minX = verts[0];
 					float minY = verts[1];
 					float maxX = verts[0];
@@ -467,7 +468,7 @@ void Spine::render() {
 				}
 			} else {
 				bool isCulled = vertices.empty();
-				if (!isCulled && SharedDirector.isFrustumCulling()) {
+				if (!isCulled && SharedView.isFrustumCulling()) {
 					auto [minX, maxX] = std::minmax_element(vertices.begin(), vertices.end(), [](const auto& a, const auto& b) {
 						return a.x < b.x;
 					});
@@ -514,7 +515,7 @@ void Spine::render() {
 				auto& verts = _clipper->getClippedVertices();
 				auto vertSize = _clipper->getClippedVertices().size() / 2;
 				bool isCulled = verts.size() == 0;
-				if (!isCulled && SharedDirector.isFrustumCulling()) {
+				if (!isCulled && SharedView.isFrustumCulling()) {
 					float minX = verts[0];
 					float minY = verts[1];
 					float maxX = verts[0];
@@ -549,7 +550,7 @@ void Spine::render() {
 				}
 			} else {
 				bool isCulled = false;
-				if (SharedDirector.isFrustumCulling()) {
+				if (SharedView.isFrustumCulling()) {
 					auto [minX, maxX] = std::minmax_element(vertices.begin(), vertices.end(), [](const auto& a, const auto& b) {
 						return a.x < b.x;
 					});

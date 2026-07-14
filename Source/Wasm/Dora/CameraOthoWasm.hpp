@@ -12,10 +12,10 @@ DORA_EXPORT int32_t cameraotho_type() {
 	return DoraType<CameraOtho>();
 }
 DORA_EXPORT void cameraotho_set_position(int64_t self, int64_t val) {
-	r_cast<CameraOtho*>(self)->setPosition(Vec2_From(val));
+	r_cast<CameraOtho*>(self)->setPosition2D(Vec2_From(val));
 }
 DORA_EXPORT int64_t cameraotho_get_position(int64_t self) {
-	return Vec2_Retain(r_cast<CameraOtho*>(self)->getPosition());
+	return Vec2_Retain(r_cast<CameraOtho*>(self)->getPosition2D());
 }
 DORA_EXPORT int64_t cameraotho_new(int64_t name) {
 	return Object_From(CameraOtho::create(*Str_From(name)));

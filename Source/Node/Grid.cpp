@@ -13,6 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Director.h"
 #include "Cache/ClipCache.h"
 #include "Effect/Effect.h"
+#include "Render/View.h"
 
 NS_DORA_BEGIN
 
@@ -210,7 +211,7 @@ void Grid::render() {
 		return;
 	}
 
-	if (SharedDirector.isFrustumCulling()) {
+	if (SharedView.isFrustumCulling()) {
 		auto [minX, maxX] = std::minmax_element(_points.begin(), _points.end(), [](const auto& a, const auto& b) {
 			return a.position.x < b.position.x;
 		});

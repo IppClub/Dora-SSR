@@ -17,6 +17,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Shader/ImGui/fs_ocornut_imgui_image.bin.h"
 #include "Shader/ImGui/vs_ocornut_imgui.bin.h"
 
+#include "Shader/Model3D/fs_model3d.bin.h"
+#include "Shader/Model3D/fs_model3d_sheen.bin.h"
+#include "Shader/Model3D/fs_model3d_thickness_sheen.bin.h"
+#include "Shader/Model3D/fs_shadow_model3d.bin.h"
+#include "Shader/Model3D/vs_model3d.bin.h"
+#include "Shader/Model3D/vs_shadow_model3d.bin.h"
+
 #include "Shader/Simple/fs_poscolor.bin.h"
 #include "Shader/Simple/vs_poscolor.bin.h"
 
@@ -57,6 +64,12 @@ static const bgfx::EmbeddedShader doraShaders[] = {
 	BGFX_EMBEDDED_SHADER(vs_ocornut_imgui),
 	BGFX_EMBEDDED_SHADER(fs_ocornut_imgui),
 	BGFX_EMBEDDED_SHADER(fs_ocornut_imgui_image),
+	BGFX_EMBEDDED_SHADER(vs_model3d),
+	BGFX_EMBEDDED_SHADER(fs_model3d),
+	BGFX_EMBEDDED_SHADER(fs_model3d_sheen),
+	BGFX_EMBEDDED_SHADER(fs_model3d_thickness_sheen),
+	BGFX_EMBEDDED_SHADER(vs_shadow_model3d),
+	BGFX_EMBEDDED_SHADER(fs_shadow_model3d),
 	BGFX_EMBEDDED_SHADER(vs_poscolor),
 	BGFX_EMBEDDED_SHADER(fs_poscolor),
 	BGFX_EMBEDDED_SHADER(vs_sprite),
@@ -91,3 +104,14 @@ static const bgfx::EmbeddedShader doraShaders[] = {
 const bgfx::EmbeddedShader* DoraShaders = doraShaders;
 
 NS_DORA_END
+
+extern "C" uint16_t dora_create_builtin_shader(const char* name, uint32_t rendererType) {
+	if (!name || rendererType >= bgfx::RendererType::Count) {
+		return bgfx::kInvalidHandle;
+	}
+	auto handle = bgfx::createEmbeddedShader(
+		Dora::DoraShaders,
+		static_cast<bgfx::RendererType::Enum>(rendererType),
+		name);
+	return handle.idx;
+}

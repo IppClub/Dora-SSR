@@ -3,9 +3,24 @@ extern crate bitflags;
 
 pub use dora_ssr::*;
 mod bgfx_rs;
+pub mod dora_3d;
 pub use bgfx_rs::*;
 
 use clap::Parser;
+
+#[cfg(test)]
+#[no_mangle]
+extern "C" fn str_new(_len: i32) -> i64 {
+	0
+}
+
+#[cfg(test)]
+#[no_mangle]
+extern "C" fn str_write(_string: i64, _data: *const u8) {}
+
+#[cfg(test)]
+#[no_mangle]
+extern "C" fn dora_print_error(_message: i64) {}
 
 #[derive(Parser)]
 #[command(

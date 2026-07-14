@@ -108,6 +108,9 @@ func application_set_always_on_top(val: i32)
 #wa:import dora application_is_always_on_top
 func application_is_always_on_top() => i32
 
+#wa:import dora application_save_screenshot
+func application_save_screenshot(filename: i64) => i64
+
 #wa:import dora application_shutdown
 func application_shutdown()
 
@@ -309,6 +312,9 @@ func _App.SetAlwaysOnTop(val: bool) {
 /// It is not available to set this property on platform Android and iOS.
 func _App.IsAlwaysOnTop() => bool {
 	return application_is_always_on_top() != 0
+}
+func _App.SaveScreenshot(filename: string) => string {
+	return FromDoraString(application_save_screenshot(ToDoraString(filename)))
 }
 func _App.Shutdown() {
 	application_shutdown()

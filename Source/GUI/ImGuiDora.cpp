@@ -22,6 +22,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Event/Event.h"
 #include "Event/Listener.h"
 #include "Input/Keyboard.h"
+#include "Input/Mouse.h"
 #include "Lua/LuaEngine.h"
 #include "Render/View.h"
 #include "Wasm/WasmRuntime.h"
@@ -368,6 +369,7 @@ ImGuiDora::ImGuiDora()
 	: _useChinese(false)
 	, _textInputing(false)
 	, _mouseVisible(true)
+	, _relativeModeSetNoMouse(false)
 	, _lastCursor(0)
 	, _backSpaceIgnore(false)
 	, _mousePressed{false, false, false}
@@ -1296,6 +1298,20 @@ static ImGuiErrorRecoveryState& getImGuiErrorRecoveryState() {
 
 void ImGuiDora::begin() {
 	ImGuiIO& io = ImGui::GetIO();
+	const bool relativeMouseMode = Mouse::isRelativeMode();
+	if (relativeMouseMode) {
+		if ((io.ConfigFlags & ImGuiConfigFlags_NoMouse) == 0) {
+			io.ConfigFlags |= ImGuiConfigFlags_NoMouse;
+			_relativeModeSetNoMouse = true;
+		}
+		_mousePressed[0] = false;
+		_mousePressed[1] = false;
+		_mousePressed[2] = false;
+		_mouseWheel = Vec2::zero;
+	} else if (_relativeModeSetNoMouse) {
+		io.ConfigFlags &= ~ImGuiConfigFlags_NoMouse;
+		_relativeModeSetNoMouse = false;
+	}
 	Size visualSize = SharedApplication.getVisualSize();
 	io.DisplaySize.x = visualSize.width;
 	io.DisplaySize.y = visualSize.height;
@@ -1765,6 +1781,9 @@ void ImGuiDora::handleEvent(const SDL_Event& event) {
 }
 
 bool ImGuiDora::ImGuiTouchHandler::handle(const SDL_Event& event) {
+	if ((ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_NoMouse) != 0) {
+		return false;
+	}
 	switch (event.type) {
 		case SDL_MOUSEBUTTONDOWN:
 		case SDL_FINGERDOWN:

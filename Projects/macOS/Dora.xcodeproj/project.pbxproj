@@ -150,6 +150,8 @@
 		3C592AB72CA4EFD100CAF224 /* BodyDef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592AAC2CA4EFD100CAF224 /* BodyDef.cpp */; };
 		3C592AB82CA4EFD100CAF224 /* DebugDraw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592AAE2CA4EFD100CAF224 /* DebugDraw.cpp */; };
 		3C592AB92CA4EFD100CAF224 /* PhysicsWorld.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592AB42CA4EFD100CAF224 /* PhysicsWorld.cpp */; };
+		A1B2C3D4E5F60708090A0B01 /* JoltBridge.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60708090A0B02 /* JoltBridge.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty/JoltPhysics -DJPH_NO_FORCE_INLINE -fno-rtti -fno-exceptions -ffp-contract=off"; }; };
+		A1B2C3D4E5F60708090A0B03 /* JoltSources.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60708090A0B04 /* JoltSources.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty/JoltPhysics -DJPH_NO_FORCE_INLINE -fno-rtti -fno-exceptions -ffp-contract=off"; }; };
 		3C592ABA2CA4EFD100CAF224 /* Body.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592AAA2CA4EFD100CAF224 /* Body.cpp */; };
 		3C592ABB2CA4EFD100CAF224 /* Joint.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592AB02CA4EFD100CAF224 /* Joint.cpp */; };
 		3C592ABC2CA4EFD100CAF224 /* JointDef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592AB22CA4EFD100CAF224 /* JointDef.cpp */; };
@@ -431,6 +433,14 @@
 		3C5937612CA4FAEF00CAF224 /* miniz.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C5937352CA4FAEF00CAF224 /* miniz.c */; };
 		3C5937622CA4FAEF00CAF224 /* compress.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C5937392CA4FAEF00CAF224 /* compress.c */; };
 		3C60DE132A2069CE007D7865 /* Doc in Resources */ = {isa = PBXBuildFile; fileRef = 3C60DE122A2069CE007D7865 /* Doc */; };
+		3C68A8B52F95A8DF00DDC115 /* Node3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C68A8B02F95A8DF00DDC115 /* Node3D.cpp */; };
+		3C68A8D12F95A8DF00DDC115 /* Light3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C68A8D02F95A8DF00DDC115 /* Light3D.cpp */; };
+		3C68A8B62F95A8DF00DDC115 /* View3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C68A8B22F95A8DF00DDC115 /* View3D.cpp */; };
+		3C68A8B72F95A8DF00DDC115 /* Visual3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C68A8B42F95A8DF00DDC115 /* Visual3D.cpp */; };
+		3C68A8BD2F95A91200DDC115 /* Camera3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C68A8B92F95A91200DDC115 /* Camera3D.cpp */; };
+		3C68A8C02F95ACF000DDC115 /* Material.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C68A8BF2F95ACF000DDC115 /* Material.cpp */; };
+		3C68A8C12F95A8DF00DDC115 /* Model3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C68A8C32F95A8DF00DDC115 /* Model3D.cpp */; };
+		3C68A8C42F95ADDF00DDC115 /* Model3DCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C68A8C62F95ADDF00DDC115 /* Model3DCache.cpp */; };
 		3C76449F2CFD93D100DEDC0B /* libdora_runtime.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C76449E2CFD93D100DEDC0B /* libdora_runtime.a */; };
 		3C9F00012F3A000000000001 /* XrtHttpClient.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C9F00022F3A000000000001 /* XrtHttpClient.c */; };
 		3CA32CE926FEE8440046C13D /* GameController.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CA32CE826FEE8440046C13D /* GameController.framework */; };
@@ -808,6 +818,8 @@
 		3C5929CF2CA4ED1900CAF224 /* FrameCache.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = FrameCache.cpp; sourceTree = "<group>"; };
 		3C5929D02CA4ED1900CAF224 /* ModelCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ModelCache.h; sourceTree = "<group>"; };
 		3C5929D12CA4ED1900CAF224 /* ModelCache.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ModelCache.cpp; sourceTree = "<group>"; };
+		3C68A8C52F95ADDF00DDC115 /* Model3DCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Model3DCache.h; sourceTree = "<group>"; };
+		3C68A8C62F95ADDF00DDC115 /* Model3DCache.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Model3DCache.cpp; sourceTree = "<group>"; };
 		3C5929D22CA4ED1900CAF224 /* ParticleCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ParticleCache.h; sourceTree = "<group>"; };
 		3C5929D32CA4ED1900CAF224 /* ParticleCache.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ParticleCache.cpp; sourceTree = "<group>"; };
 		3C5929D42CA4ED1900CAF224 /* ShaderCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShaderCache.h; sourceTree = "<group>"; };
@@ -957,6 +969,7 @@
 		3C592AB22CA4EFD100CAF224 /* JointDef.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JointDef.cpp; sourceTree = "<group>"; };
 		3C592AB32CA4EFD100CAF224 /* PhysicsWorld.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PhysicsWorld.h; sourceTree = "<group>"; };
 		3C592AB42CA4EFD100CAF224 /* PhysicsWorld.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PhysicsWorld.cpp; sourceTree = "<group>"; };
+		A1B2C3D4E5F60708090A0B02 /* JoltBridge.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JoltBridge.cpp; sourceTree = "<group>"; };
 		3C592AB52CA4EFD100CAF224 /* Sensor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Sensor.h; sourceTree = "<group>"; };
 		3C592AB62CA4EFD100CAF224 /* Sensor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Sensor.cpp; sourceTree = "<group>"; };
 		3C592ABE2CA4EFE200CAF224 /* AI.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AI.h; sourceTree = "<group>"; };
@@ -1614,7 +1627,22 @@
 		3C5937502CA4FAEF00CAF224 /* zutil.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = zutil.h; sourceTree = "<group>"; };
 		3C5937512CA4FAEF00CAF224 /* zutil.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = zutil.c; sourceTree = "<group>"; };
 		3C60DE122A2069CE007D7865 /* Doc */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Doc; sourceTree = "<group>"; };
+		3C68A8AF2F95A8DF00DDC115 /* Node3D.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Node3D.h; sourceTree = "<group>"; };
+		3C68A8B02F95A8DF00DDC115 /* Node3D.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Node3D.cpp; sourceTree = "<group>"; };
+		3C68A8CF2F95A8DF00DDC115 /* Light3D.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Light3D.h; sourceTree = "<group>"; };
+		3C68A8D02F95A8DF00DDC115 /* Light3D.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Light3D.cpp; sourceTree = "<group>"; };
+		3C68A8B12F95A8DF00DDC115 /* View3D.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = View3D.h; sourceTree = "<group>"; };
+		3C68A8B22F95A8DF00DDC115 /* View3D.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = View3D.cpp; sourceTree = "<group>"; };
+		3C68A8B32F95A8DF00DDC115 /* Visual3D.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Visual3D.h; sourceTree = "<group>"; };
+		3C68A8B42F95A8DF00DDC115 /* Visual3D.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Visual3D.cpp; sourceTree = "<group>"; };
+		3C68A8C22F95A8DF00DDC115 /* Model3D.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Model3D.h; sourceTree = "<group>"; };
+		3C68A8C32F95A8DF00DDC115 /* Model3D.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Model3D.cpp; sourceTree = "<group>"; };
+		3C68A8B82F95A91200DDC115 /* Camera3D.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Camera3D.h; sourceTree = "<group>"; };
+		3C68A8B92F95A91200DDC115 /* Camera3D.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Camera3D.cpp; sourceTree = "<group>"; };
+		3C68A8BE2F95ACF000DDC115 /* Material.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Material.h; sourceTree = "<group>"; };
+		3C68A8BF2F95ACF000DDC115 /* Material.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Material.cpp; sourceTree = "<group>"; };
 		3C76449E2CFD93D100DEDC0B /* libdora_runtime.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libdora_runtime.a; path = ../../Source/Rust/lib/macOS/libdora_runtime.a; sourceTree = "<group>"; };
+		A1B2C3D4E5F60708090A0B04 /* JoltSources.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JoltSources.cpp; sourceTree = "<group>"; };
 		3C87085F2B5E0F56002E9658 /* ContactImpulsesFunction.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ContactImpulsesFunction.hpp; sourceTree = "<group>"; };
 		3C8708602B5E0F56002E9658 /* ContactManifoldFunction.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ContactManifoldFunction.hpp; sourceTree = "<group>"; };
 		3C8708612B5E0FAC002E9658 /* ShapeFunction.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ShapeFunction.hpp; sourceTree = "<group>"; };
@@ -3638,6 +3666,8 @@
 		3C69296F1E2C60890097AC49 /* Effect */ = {
 			isa = PBXGroup;
 			children = (
+				3C68A8BE2F95ACF000DDC115 /* Material.h */,
+				3C68A8BF2F95ACF000DDC115 /* Material.cpp */,
 				3C592A212CA4EE0800CAF224 /* Effect.h */,
 				3C592A222CA4EE0800CAF224 /* Effect.cpp */,
 			);
@@ -3760,6 +3790,8 @@
 		3CA3E4EC2C37A4BC00CDEC2D /* Render */ = {
 			isa = PBXGroup;
 			children = (
+				3C68A8B82F95A91200DDC115 /* Camera3D.h */,
+				3C68A8B92F95A91200DDC115 /* Camera3D.cpp */,
 				3C592AE22CA4EFF100CAF224 /* Camera.h */,
 				3C592AE32CA4EFF100CAF224 /* Camera.cpp */,
 				3C592AE42CA4EFF100CAF224 /* Renderer.h */,
@@ -4085,6 +4117,8 @@
 				3C5929CF2CA4ED1900CAF224 /* FrameCache.cpp */,
 				3C5929D02CA4ED1900CAF224 /* ModelCache.h */,
 				3C5929D12CA4ED1900CAF224 /* ModelCache.cpp */,
+				3C68A8C52F95ADDF00DDC115 /* Model3DCache.h */,
+				3C68A8C62F95ADDF00DDC115 /* Model3DCache.cpp */,
 				3C5929D22CA4ED1900CAF224 /* ParticleCache.h */,
 				3C5929D32CA4ED1900CAF224 /* ParticleCache.cpp */,
 				3C5929D42CA4ED1900CAF224 /* ShaderCache.h */,
@@ -4250,6 +4284,16 @@
 		3CCBBA381E14B50B00C0416B /* Node */ = {
 			isa = PBXGroup;
 			children = (
+				3C68A8AF2F95A8DF00DDC115 /* Node3D.h */,
+				3C68A8B02F95A8DF00DDC115 /* Node3D.cpp */,
+				3C68A8CF2F95A8DF00DDC115 /* Light3D.h */,
+				3C68A8D02F95A8DF00DDC115 /* Light3D.cpp */,
+				3C68A8C22F95A8DF00DDC115 /* Model3D.h */,
+				3C68A8C32F95A8DF00DDC115 /* Model3D.cpp */,
+				3C68A8B12F95A8DF00DDC115 /* View3D.h */,
+				3C68A8B22F95A8DF00DDC115 /* View3D.cpp */,
+				3C68A8B32F95A8DF00DDC115 /* Visual3D.h */,
+				3C68A8B42F95A8DF00DDC115 /* Visual3D.cpp */,
 				3CAE49BE2F0CA74300FBD51A /* TIC80Node.h */,
 				3CAE49BF2F0CA74300FBD51A /* TIC80Node.cpp */,
 				3C03A9FF2EF2522E00B706C8 /* VideoNode.h */,
@@ -4364,6 +4408,8 @@
 				3C592AB22CA4EFD100CAF224 /* JointDef.cpp */,
 				3C592AB32CA4EFD100CAF224 /* PhysicsWorld.h */,
 				3C592AB42CA4EFD100CAF224 /* PhysicsWorld.cpp */,
+				A1B2C3D4E5F60708090A0B02 /* JoltBridge.cpp */,
+				A1B2C3D4E5F60708090A0B04 /* JoltSources.cpp */,
 				3C592AB52CA4EFD100CAF224 /* Sensor.h */,
 				3C592AB62CA4EFD100CAF224 /* Sensor.cpp */,
 			);
@@ -4674,6 +4720,11 @@
 				3C5934682CA4F92600CAF224 /* CanvasData.cpp in Sources */,
 				3C5934692CA4F92600CAF224 /* DeformVertices.cpp in Sources */,
 				3C5936252CA4F9EF00CAF224 /* tinyxml2.cpp in Sources */,
+				3C68A8B52F95A8DF00DDC115 /* Node3D.cpp in Sources */,
+				3C68A8D12F95A8DF00DDC115 /* Light3D.cpp in Sources */,
+				3C68A8C12F95A8DF00DDC115 /* Model3D.cpp in Sources */,
+				3C68A8B62F95A8DF00DDC115 /* View3D.cpp in Sources */,
+				3C68A8B72F95A8DF00DDC115 /* Visual3D.cpp in Sources */,
 				3C5936262CA4F9EF00CAF224 /* SAXParser.cpp in Sources */,
 				3C2496AA2E277F290089D513 /* FontCache.cpp in Sources */,
 				3C59346A2CA4F92600CAF224 /* AnimationConfig.cpp in Sources */,
@@ -4819,6 +4870,7 @@
 				3C5936C72CA4FA0400CAF224 /* soloud_core_3d.cpp in Sources */,
 				3C5936C82CA4FA0400CAF224 /* soloud_audiosource.cpp in Sources */,
 				3C5936C92CA4FA0400CAF224 /* soloud_flangerfilter.cpp in Sources */,
+				3C68A8BD2F95A91200DDC115 /* Camera3D.cpp in Sources */,
 				3C5936CB2CA4FA0400CAF224 /* soloud_bassboostfilter.cpp in Sources */,
 				3C5936CC2CA4FA0400CAF224 /* soloud_waveshaperfilter.cpp in Sources */,
 				3C5936CD2CA4FA0400CAF224 /* soloud_queue.cpp in Sources */,
@@ -5035,6 +5087,7 @@
 				3CB86C6D2F0BAFB80035A077 /* tools.c in Sources */,
 				3C5933E22CA4F8C700CAF224 /* GraphicsDeviceCPU.cpp in Sources */,
 				3C5933E32CA4F8C700CAF224 /* Effekseer.CustomAllocator.cpp in Sources */,
+				3C68A8C02F95ACF000DDC115 /* Material.cpp in Sources */,
 				3C5933E42CA4F8C700CAF224 /* EffekseerRenderer.TrackRendererBase.cpp in Sources */,
 				3C5933E52CA4F8C700CAF224 /* ForceFields.cpp in Sources */,
 				3C5933E62CA4F8C700CAF224 /* ModelLoader.cpp in Sources */,
@@ -5143,6 +5196,7 @@
 				3C592A3B2CA4EE4500CAF224 /* HttpServer.cpp in Sources */,
 				3C9F00012F3A000000000001 /* XrtHttpClient.c in Sources */,
 				3C5929E72CA4ED1900CAF224 /* ModelCache.cpp in Sources */,
+				3C68A8C42F95ADDF00DDC115 /* Model3DCache.cpp in Sources */,
 				3C5929E82CA4ED1900CAF224 /* AudioCache.cpp in Sources */,
 				3C5929E92CA4ED1900CAF224 /* FrameCache.cpp in Sources */,
 				3C592A442CA4EE5D00CAF224 /* Keyboard.cpp in Sources */,
@@ -5178,6 +5232,8 @@
 				3C592AB72CA4EFD100CAF224 /* BodyDef.cpp in Sources */,
 				3C592AB82CA4EFD100CAF224 /* DebugDraw.cpp in Sources */,
 				3C592AB92CA4EFD100CAF224 /* PhysicsWorld.cpp in Sources */,
+				A1B2C3D4E5F60708090A0B01 /* JoltBridge.cpp in Sources */,
+				A1B2C3D4E5F60708090A0B03 /* JoltSources.cpp in Sources */,
 				3C592ABA2CA4EFD100CAF224 /* Body.cpp in Sources */,
 				3C592ABB2CA4EFD100CAF224 /* Joint.cpp in Sources */,
 				3C592ABC2CA4EFD100CAF224 /* JointDef.cpp in Sources */,

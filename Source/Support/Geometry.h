@@ -126,9 +126,6 @@ struct alignas(16) Vec3 {
 	inline Vec2 toVec2() const {
 		return Vec2{x, y};
 	}
-	inline operator Vec2() const {
-		return Vec2{x, y};
-	}
 	static inline Vec3 from(const bx::Vec3& vec3) {
 		return {vec3.x, vec3.y, vec3.z};
 	}

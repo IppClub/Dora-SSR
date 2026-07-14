@@ -130,6 +130,11 @@ local record App
 	-- @return (boolean) Whether the log file was saved successfully.
 	saveLog: function(self: App, path: string): boolean
 
+	-- Requests a screenshot of the main backbuffer.
+	-- @param filename (string) The output path, with an optional .tga extension.
+	-- @return (string) The actual TGA output path, or an empty string on failure.
+	saveScreenshot: function(self: App, filename: string): string
+
 	-- A function that opens a file dialog. Only works on Windows, macOS and Linux.
 	-- @param folderOnly (boolean) Whether the file dialog is only for selecting folders.
 	-- @param callback (function) The callback function to be called when the file dialog is closed. The callback function should accept a string parameter which is the path of the selected file or folder. Get empty string if the user canceled the dialog.

@@ -146,6 +146,11 @@ int DrawNode_drawVertices(lua_State* L);
 inline Vec2 Vec2_create(float x, float y) { return {x, y}; }
 inline Vec2 Vec2_create(const Size& size) { return {size.width, size.height}; }
 
+/* Vec3 */
+inline Vec3* Vec3_create(float x, float y, float z) {
+	return Mtolua_new((Vec3)({x, y, z}));
+}
+
 /* Size */
 inline Size* Size_create(float width, float height) {
 	return Mtolua_new((Size)({width, height}));

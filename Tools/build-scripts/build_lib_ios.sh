@@ -30,6 +30,8 @@ esac
 
 cd "$SCRIPT_DIR/../../Source/Rust"
 
+export IPHONEOS_DEPLOYMENT_TARGET="${IPHONEOS_DEPLOYMENT_TARGET:-13.0}"
+
 rustup target add aarch64-apple-ios
 rustup target add aarch64-apple-ios-sim
 rustup target add x86_64-apple-ios

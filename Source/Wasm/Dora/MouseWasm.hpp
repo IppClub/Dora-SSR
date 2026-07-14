@@ -11,6 +11,15 @@ using namespace Dora;
 DORA_EXPORT int64_t mouse_get_position() {
 	return Vec2_Retain(Mouse::getPosition());
 }
+DORA_EXPORT int64_t mouse_get_delta() {
+	return Vec2_Retain(Mouse::getDelta());
+}
+DORA_EXPORT int32_t mouse_is_relative_mode() {
+	return Mouse::isRelativeMode() ? 1 : 0;
+}
+DORA_EXPORT void mouse_set_relative_mode(int32_t enabled) {
+	Mouse::setRelativeMode(enabled != 0);
+}
 DORA_EXPORT int32_t mouse_is_left_button_pressed() {
 	return Mouse::isLeftButtonPressed() ? 1 : 0;
 }
@@ -27,6 +36,9 @@ DORA_EXPORT int64_t mouse_get_wheel() {
 
 static void linkMouse(wasm3::module3& mod) {
 	mod.link_optional("*", "mouse_get_position", mouse_get_position);
+	mod.link_optional("*", "mouse_get_delta", mouse_get_delta);
+	mod.link_optional("*", "mouse_is_relative_mode", mouse_is_relative_mode);
+	mod.link_optional("*", "mouse_set_relative_mode", mouse_set_relative_mode);
 	mod.link_optional("*", "mouse_is_left_button_pressed", mouse_is_left_button_pressed);
 	mod.link_optional("*", "mouse_is_right_button_pressed", mouse_is_right_button_pressed);
 	mod.link_optional("*", "mouse_is_middle_button_pressed", mouse_is_middle_button_pressed);

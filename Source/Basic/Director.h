@@ -19,6 +19,8 @@ NS_DORA_BEGIN
 
 class Scheduler;
 class Node;
+class Node3D;
+class View3D;
 class Sprite;
 class Camera;
 class RenderTarget;
@@ -33,7 +35,7 @@ public:
 	PROPERTY(Color, ClearColor);
 	PROPERTY_READONLY_CALL(Node*, UI);
 	PROPERTY_READONLY_CALL(Node*, UI3D);
-	PROPERTY_READONLY_CALL(Node*, Entry);
+	PROPERTY_READONLY_CALL(View3D*, Entry);
 	PROPERTY_READONLY_CALL(Node*, PostNode);
 	PROPERTY_READONLY_CALL(UITouchHandler*, UITouchHandler);
 	PROPERTY_READONLY_CALL(Camera*, CurrentCamera);
@@ -42,7 +44,6 @@ public:
 	PROPERTY_READONLY(Scheduler*, SystemScheduler);
 	PROPERTY_READONLY(Scheduler*, PostScheduler);
 	PROPERTY_READONLY_CALL(const Matrix&, ViewProjection);
-	PROPERTY_BOOL(FrustumCulling);
 	PROPERTY_BOOL(ProfilerSending);
 	bool init();
 	void doLogic();
@@ -69,6 +70,7 @@ public:
 	bool isInFrustum(const AABB& aabb) const;
 
 	void addUnManagedNode(Node* node);
+	void addUnManagedNode(Node3D* node);
 
 	void addToWaitingList(Node* node);
 	void removeFromWaitingList(Node* node);
@@ -152,20 +154,20 @@ private:
 	bool _nvgDirty;
 	bool _paused;
 	bool _stoped;
-	bool _frustumCulling;
 	Color _clearColor;
 	Ref<Node> _ui;
 	Ref<Node> _ui3D;
 	Ref<Camera> _uiCamera;
 	Ref<Camera> _ui3DCamera;
 	Ref<Node> _postNode;
-	Ref<Node> _entry;
+	Ref<View3D> _entry;
 	Ref<Node> _root;
 	Ref<Array> _camStack;
 	Ref<Scheduler> _systemScheduler;
 	Ref<Scheduler> _scheduler;
 	Ref<Scheduler> _postScheduler;
 	RefVector<Node> _unmanagedNodes;
+	RefVector<Node3D> _unmanagedNodes3D;
 	ProfilerInfo _profilerInfo;
 	std::vector<WRef<Node>> _waitingList;
 	Own<UITouchHandler> _uiTouchHandler;

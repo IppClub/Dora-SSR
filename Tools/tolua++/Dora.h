@@ -57,6 +57,50 @@ struct Vec2
 	static tolua_readonly Vec2 zero;
 };
 
+struct Vec3
+{
+	float x;
+	float y;
+	float z;
+	static tolua_outside Vec3* Vec3_create @ create(float x, float y, float z);
+};
+
+struct RenderStats3D
+{
+	tolua_readonly tolua_property__common uint32_t sceneNodes;
+	tolua_readonly tolua_property__common uint32_t visibleVisuals;
+	tolua_readonly tolua_property__common uint32_t culledVisuals;
+	tolua_readonly tolua_property__common uint32_t opaqueItems;
+	tolua_readonly tolua_property__common uint32_t transparentItems;
+	tolua_readonly tolua_property__common uint32_t drawCalls;
+	tolua_readonly tolua_property__common uint64_t triangles;
+	tolua_readonly tolua_property__common uint32_t programSwitches;
+	tolua_readonly tolua_property__common uint32_t materialSwitches;
+	tolua_readonly tolua_property__common uint32_t textureSwitches;
+	tolua_readonly tolua_property__common uint32_t meshSwitches;
+	tolua_readonly tolua_property__common uint32_t nodeCount;
+	tolua_readonly tolua_property__common uint32_t visualCount;
+	tolua_readonly tolua_property__common uint32_t modelCount;
+	tolua_readonly tolua_property__common uint32_t modelInstanceCount;
+	tolua_readonly tolua_property__common uint32_t meshCount;
+	tolua_readonly tolua_property__common uint32_t staticMeshCount;
+	tolua_readonly tolua_property__common uint32_t dynamicMeshCount;
+	tolua_readonly tolua_property__common uint32_t materialCount;
+	tolua_readonly tolua_property__common uint32_t textureCount;
+	tolua_readonly tolua_property__common uint32_t animationCount;
+	tolua_readonly tolua_property__common uint32_t environmentCount;
+	tolua_readonly tolua_property__common uint64_t modelResidentBytes;
+	tolua_readonly tolua_property__common uint64_t meshResidentBytes;
+	tolua_readonly tolua_property__common uint64_t textureResidentBytes;
+	tolua_readonly tolua_property__common uint64_t collectMicros;
+	tolua_readonly tolua_property__common uint64_t sortMicros;
+	tolua_readonly tolua_property__common uint64_t submitMicros;
+	tolua_readonly tolua_property__common uint64_t uploadCommands;
+	tolua_readonly tolua_property__common uint64_t uploadBytes;
+	tolua_readonly tolua_property__common uint64_t uploadMicros;
+	tolua_readonly tolua_property__common uint64_t uploadMaxCommandMicros;
+};
+
 struct Size
 {
 	float width;
@@ -129,6 +173,7 @@ class Application
 	void openURL(String url);
 	void install(String path);
 	bool saveLog(String filename);
+	string saveScreenshot(String filename);
 	void openFileDialog(bool folderOnly, tolua_function_void callback);
 	void shutdown();
 	tolua_outside int Application_estimateTokens @ estimateTokens(String text, double asciiTokensPerChar = 0.4, double nonAsciiTokensPerChar = 2.0);
@@ -262,14 +307,24 @@ class Camera2D : public Camera
 {
 	tolua_property__common float rotation;
 	tolua_property__common float zoom;
-	tolua_property__common Vec2 position;
+	tolua_property__common Vec2 position2D @ position;
 	Camera2D* create(String name = nullptr);
 };
 
 class CameraOtho : public Camera
 {
-	tolua_property__common Vec2 position;
+	tolua_property__common Vec2 position2D @ position;
 	CameraOtho* create(String name = nullptr);
+};
+
+class Camera3D : public Camera
+{
+	tolua_property__common Vec3 position;
+	tolua_property__common Vec3 target;
+	tolua_property__common Vec3 up;
+	void lookAt(Vec3 position, Vec3 target);
+	void lookAt(Vec3 position, Vec3 target, Vec3 up);
+	Camera3D* create(String name = nullptr);
 };
 
 class Director
@@ -278,12 +333,11 @@ class Director
 	tolua_property__common Scheduler* scheduler;
 	tolua_readonly tolua_property__common Node* uI @ ui;
 	tolua_readonly tolua_property__common Node* uI3D @ ui3D;
-	tolua_readonly tolua_property__common Node* entry;
+	tolua_readonly tolua_property__common View3D* entry;
 	tolua_readonly tolua_property__common Node* postNode;
 	tolua_readonly tolua_property__common Scheduler* systemScheduler;
 	tolua_readonly tolua_property__common Scheduler* postScheduler;
 	tolua_readonly tolua_property__common Camera* currentCamera;
-	tolua_property__bool bool frustumCulling;
 	tolua_property__bool bool profilerSending;
 	void pushCamera(Camera* camera);
 	void popCamera();
@@ -303,6 +357,7 @@ class View
 	tolua_property__common float fieldOfView;
 	tolua_property__common float scale;
 	tolua_property__common SpriteEffect* postEffect;
+	tolua_property__bool bool frustumCulling;
 	tolua_property__bool bool vSync @ vsync;
 	static tolua_outside View* View_shared @ create();
 }
@@ -485,6 +540,209 @@ class SpriteEffect : public Effect
 	static SpriteEffect* create(String vertShader, String fragShader);
 };
 
+class Node3D : public Object
+{
+	tolua_property__common int order;
+	tolua_property__common float x;
+	tolua_property__common float y;
+	tolua_property__common float z;
+	tolua_property__common float angleX;
+	tolua_property__common float angleY;
+	tolua_property__common float angleZ;
+	tolua_property__common float scaleX;
+	tolua_property__common float scaleY;
+	tolua_property__common float scaleZ;
+	tolua_property__common string tag;
+	tolua_property__bool bool visible;
+	tolua_readonly tolua_property__common Node3D* parent;
+	tolua_readonly tolua_property__qt bool hasChildren;
+	void addChild(Node3D* child, int order, String tag);
+	void addChild(Node3D* child, int order);
+	void addChild(Node3D* child);
+	void removeChild(Node3D* child, bool cleanup = true);
+	void removeAllChildren(bool cleanup = true);
+	void removeFromParent(bool cleanup = true);
+	void cleanup();
+	tolua_property__common Vec3 position;
+	tolua_property__common Vec3 scale;
+	tolua_property__common Vec3 angles;
+	Vec3 convertToWorldSpace(Vec3 localPoint);
+	Vec3 convertToNodeSpace(Vec3 worldPoint);
+	static Node3D* create();
+};
+
+class Material3D : public Object
+{
+	static tolua_readonly uint8_t Opaque;
+	static tolua_readonly uint8_t Mask;
+	static tolua_readonly uint8_t Blend;
+	tolua_property__common Color baseColor;
+	tolua_property__common Color3 emissive;
+	tolua_property__common float metallic;
+	tolua_property__common float roughness;
+	tolua_property__common uint8_t alphaModeValue @ alphaMode;
+	tolua_property__common float alphaCutoff;
+	void setBaseColorTexture(Texture2D* texture);
+	void clearBaseColorTexture();
+	void setMetallicRoughnessTexture(Texture2D* texture);
+	void clearMetallicRoughnessTexture();
+	void setNormalTexture(Texture2D* texture);
+	void clearNormalTexture();
+	void setEmissiveTexture(Texture2D* texture);
+	void clearEmissiveTexture();
+	void setOcclusionTexture(Texture2D* texture);
+	void clearOcclusionTexture();
+};
+
+class Model3D : public Node3D
+{
+	tolua_property__common float speed;
+	tolua_readonly tolua_property__common float duration;
+	tolua_readonly tolua_property__common float elapsed;
+	tolua_readonly tolua_property__bool bool playing;
+	tolua_readonly tolua_property__bool bool paused;
+	tolua_readonly tolua_property__common uint32_t animationCount;
+	tolua_readonly tolua_property__common uint32_t materialCount;
+	string getAnimationName(uint32_t index);
+	bool hasNode(String name);
+	bool attachToNode(String name, Node3D* child);
+	Vec3 getLocalBoundsMin();
+	Vec3 getLocalBoundsMax();
+	Vec3 getWorldBoundsMin();
+	Vec3 getWorldBoundsMax();
+	Material3D* getMaterial(uint32_t index);
+	float play(String name = nullptr, bool loop = false);
+	void stop();
+	void pause();
+	void resume();
+	static Model3D* create(String path);
+};
+
+class DirectionalLight3D : public Node3D
+{
+	tolua_property__common Color3 color;
+	tolua_property__common float intensity;
+	tolua_property__bool bool castShadow;
+	tolua_property__common float shadowBias;
+	tolua_property__common float shadowNormalBias;
+	tolua_property__common float shadowSoftness;
+	static DirectionalLight3D* create();
+};
+
+class PointLight3D : public Node3D
+{
+	tolua_property__common Color3 color;
+	tolua_property__common float intensity;
+	tolua_property__common float range;
+	static PointLight3D* create();
+};
+
+class View3D : public Node
+{
+	tolua_readonly tolua_property__common Node3D* scene;
+	tolua_readonly tolua_property__common RenderStats3D& stats;
+	tolua_property__bool bool showAABB;
+	tolua_property__common uint16_t shadowMapSize;
+	void addChild(Node* child, int order, String tag);
+	void addChild(Node* child, int order);
+	void addChild(Node* child);
+	void addChild(Node3D* child, int order, String tag);
+	void addChild(Node3D* child, int order);
+	void addChild(Node3D* child);
+	Vec3 getRayOrigin(Vec2 viewPoint);
+	Vec3 getRayDirection(Vec2 viewPoint);
+	Model3D* pick(Vec2 viewPoint);
+	bool setEnvironmentMap(String path);
+	void setEnvironmentIntensity(float diffuse, float specular, float exposure = 1.0f);
+	static View3D* create();
+};
+
+class BodyDef3D;
+
+class Body3D : public Node3D
+{
+	tolua_readonly tolua_property__common PhysicsWorld3D* physicsWorld @ world;
+	tolua_readonly tolua_property__common BodyDef3D* bodyDef;
+	tolua_readonly tolua_property__common uint8_t typeValue @ type;
+	tolua_property__common Vec3 linearVelocity;
+	tolua_property__common Vec3 angularVelocity;
+	tolua_property__common uint8_t collisionLayer;
+	tolua_property__common uint32_t collisionMask;
+	tolua_property__bool bool sensor;
+	void applyForce(Vec3 force);
+	void applyLinearImpulse(Vec3 impulse);
+	void onContactEnter(tolua_function_void handler);
+	void onContactStay(tolua_function_void handler);
+	void onContactExit(tolua_function_void handler);
+	static Body3D* create(BodyDef3D* bodyDef, PhysicsWorld3D* world, Vec3 position, Vec3 angles);
+	static Body3D* create(BodyDef3D* bodyDef, PhysicsWorld3D* world, Vec3 position);
+	static Body3D* create(BodyDef3D* bodyDef, PhysicsWorld3D* world);
+};
+
+class CharacterController3D : public Object
+{
+	tolua_readonly tolua_property__common Node3D* node;
+	tolua_readonly tolua_property__common PhysicsWorld3D* physicsWorld @ world;
+	tolua_property__common Vec3 desiredVelocity;
+	tolua_readonly tolua_property__common Vec3 velocity;
+	tolua_readonly tolua_property__common Vec3 groundNormal;
+	tolua_readonly tolua_property__bool bool grounded;
+	tolua_property__common uint8_t collisionLayer;
+	tolua_property__common uint32_t collisionMask;
+	void jump(float speed);
+	void destroy();
+};
+
+class FixtureDef3D : public Object
+{
+	tolua_readonly tolua_property__bool bool built;
+	bool addChild(FixtureDef3D* shape, Vec3 position, Vec3 angles);
+	bool addChild(FixtureDef3D* shape, Vec3 position);
+	bool build();
+	static FixtureDef3D* createBox @ box(Vec3 halfExtent);
+	static FixtureDef3D* createSphere @ sphere(float radius);
+	static FixtureDef3D* createCapsule @ capsule(float halfHeight, float radius);
+	static FixtureDef3D* createCompound @ compound();
+	static void loadMeshAsync(String filename, tolua_function_void handler);
+	static void loadConvexHullAsync(String filename, tolua_function_void handler);
+};
+
+class BodyDef3D : public Object
+{
+	tolua_property__common uint8_t typeValue @ type;
+	tolua_property__common uint8_t collisionLayer;
+	tolua_property__common uint32_t collisionMask;
+	tolua_property__bool bool sensor;
+	bool attach(FixtureDef3D* fixture, Vec3 position, Vec3 angles);
+	bool attach(FixtureDef3D* fixture, Vec3 position);
+	bool attach(FixtureDef3D* fixture);
+	static BodyDef3D* create();
+};
+
+class Constraint3D : public Object
+{
+	tolua_readonly tolua_property__common PhysicsWorld3D* physicsWorld @ world;
+	tolua_readonly tolua_property__common Body3D* firstBody;
+	tolua_readonly tolua_property__common Body3D* secondBody;
+	void destroy();
+	static Constraint3D* createFixed @ fixed(Body3D* firstBody, Body3D* secondBody, Vec3 anchor);
+	static Constraint3D* createDistance @ distance(Body3D* firstBody, Body3D* secondBody, Vec3 firstAnchor, Vec3 secondAnchor, float minDistance, float maxDistance);
+	static Constraint3D* createHinge @ hinge(Body3D* firstBody, Body3D* secondBody, Vec3 anchor, Vec3 axis, float minAngle = -180.0f, float maxAngle = 180.0f);
+};
+
+class PhysicsWorld3D : public Node
+{
+	static tolua_readonly uint8_t Static;
+	static tolua_readonly uint8_t Kinematic;
+	static tolua_readonly uint8_t Dynamic;
+	tolua_property__common Vec3 gravity;
+	CharacterController3D* makeCharacter @ createCharacter(Node3D* node, float halfHeight, float radius, float maxSlopeAngle = 50.0f, float stepHeight = 0.4f);
+	void destroyCharacter(CharacterController3D* character);
+	bool raycast(Vec3 start, Vec3 stop, tolua_function_bool handler);
+	bool querySphere(Vec3 center, float radius, tolua_function_bool handler);
+	static PhysicsWorld3D* create();
+};
+
 class Sprite : public Node
 {
 	tolua_property__bool bool depthWrite;
@@ -526,6 +784,7 @@ class Touch : public Object
 	tolua_readonly tolua_property__common int id;
 	tolua_readonly tolua_property__common Vec2 delta;
 	tolua_readonly tolua_property__common Vec2 location;
+	tolua_readonly tolua_property__common Vec2 viewLocation;
 	tolua_readonly tolua_property__common Vec2 worldLocation;
 };
 
@@ -1089,8 +1348,14 @@ class MotorJoint : public Joint
 
 struct Cache
 {
+	static tolua_property__common uint64_t model3DBudget;
+	static tolua_readonly tolua_property__common uint64_t model3DUsage;
+	static tolua_readonly tolua_property__common uint32_t model3DCount;
 	static bool load(String filename);
 	static void loadAsync(String filename, tolua_function_void callback);
+	static String getLoadState(String filename);
+	static String getLoadError(String filename);
+	static bool cancelLoad(String filename);
 	static void update(String filename, String content);
 	static void update(String filename, Texture2D* texture);
 	static void unload();
@@ -1187,6 +1452,8 @@ class Keyboard
 class Mouse
 {
 	static tolua_readonly tolua_property__common Vec2 position;
+	static tolua_readonly tolua_property__common Vec2 delta;
+	static tolua_property__bool bool relativeMode;
 	static tolua_readonly tolua_property__bool bool leftButtonPressed;
 	static tolua_readonly tolua_property__bool bool rightButtonPressed;
 	static tolua_readonly tolua_property__bool bool middleButtonPressed;
@@ -1447,7 +1714,7 @@ class Unit : public Body
 
 class PlatformCamera : public Camera
 {
-	tolua_property__common Vec2 position;
+	tolua_property__common Vec2 position2D @ position;
 	tolua_property__common float rotation;
 	tolua_property__common float zoom;
 	tolua_property__common Rect boundary;

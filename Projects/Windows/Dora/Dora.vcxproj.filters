@@ -399,6 +399,21 @@
     <ClCompile Include="..\..\..\Source\Node\Node.cpp">
       <Filter>Node</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\Node3D.cpp">
+      <Filter>Node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\Light3D.cpp">
+      <Filter>Node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\Model3D.cpp">
+      <Filter>Node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\View3D.cpp">
+      <Filter>Node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\Visual3D.cpp">
+      <Filter>Node</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\Source\Lua\LuaHandler.cpp">
       <Filter>Lua</Filter>
     </ClCompile>
@@ -479,6 +494,12 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Cache\ModelCache.cpp">
       <Filter>Cache</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Cache\Model3DCache.cpp">
+      <Filter>Cache</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Effect\Material.cpp">
+      <Filter>Effect</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Physics\Body.cpp">
       <Filter>Physics</Filter>
@@ -574,6 +595,12 @@
       <Filter>Platformer</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Physics\PhysicsWorld.cpp">
+      <Filter>Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Physics\JoltBridge.cpp">
+      <Filter>Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Physics\JoltSources.cpp">
       <Filter>Physics</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\nanovg\nanovg.cpp">
@@ -1921,6 +1948,9 @@
       <Filter>Node</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Render\Camera.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Render\Camera3D.cpp">
       <Filter>Render</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Render\Renderer.cpp">

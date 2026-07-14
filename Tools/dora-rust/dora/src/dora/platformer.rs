@@ -25,9 +25,9 @@ pub use data::Data;
 
 #[repr(i32)]
 pub enum Relation {
-	Unknown = 0,
-	Friend = 1 << 0,
-	Neutral = 1 << 1,
-	Enemy = 1 << 2,
-	Any = (Relation::Friend as u32 | Relation::Neutral as u32 | Relation::Enemy as u32) as i32,
+    Unknown = 0,
+    Friend = 1 << 0,
+    Neutral = 1 << 1,
+    Enemy = 1 << 2,
+    Any = (Relation::Friend as u32 | Relation::Neutral as u32 | Relation::Enemy as u32) as i32,
 }

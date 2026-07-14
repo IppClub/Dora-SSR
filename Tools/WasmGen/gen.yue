@@ -80,6 +80,7 @@ interfaces =
 	Playable: true
 	PhysicsWorld: true
 	Body: true
+	Node3D: true
 
 inheritances =
 	IPlayable: {"INode"}
@@ -322,6 +323,24 @@ basicTypes =
 			creturn: (name, fnArgId)-> "#{name}, _ := stack#{fnArgId}.PopVec2()"
 			cpass: (name, fnArgId)-> "stack#{fnArgId}.Push(#{name})"
 		}
+	Vec3:
+		* "i64"
+		* (name)-> "Vec3_From(#{name})"
+		* (name)-> "Vec3_Retain(#{name})"
+		* "&crate::dora::Vec3"
+		* "crate::dora::Vec3"
+		* (name)-> "#{name}.raw()"
+		* (name)-> "crate::dora::Vec3::from(#{name})"
+		* (fnArgId)-> "&stack#{fnArgId}.pop_vec3().unwrap()"
+		* (name, fnArgId)-> "stack#{fnArgId}.push_vec3(#{name});"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "*Vec3From(#{name})"
+			convertTo: (name)-> "#{name}.GetRaw()"
+			argType: "Vec3"
+			returnType: "Vec3"
+			creturn: (name, fnArgId)-> "#{name}, _ := stack#{fnArgId}.PopVec3()"
+			cpass: (name, fnArgId)-> "stack#{fnArgId}.Push(#{name})"
+		}
 	Size:
 		* "i64"
 		* (name)-> "Size_From(#{name})"
@@ -391,6 +410,24 @@ basicTypes =
 			convertTo: (name)-> "#{name}.GetRaw()"
 			argType: "Rect"
 			returnType: "Rect"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+	RenderStats3D:
+		* "i64"
+		* (name)-> "*r_cast<RenderStats3D*>(#{name})"
+		* (name)-> "r_cast<int64_t>(new RenderStats3D{#{name}})"
+		* "&crate::dora::RenderStats3D"
+		* "crate::dora::RenderStats3D"
+		* (name)-> "#{name}.raw()"
+		* (name)-> "crate::dora::RenderStats3D::from(#{name})"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "*RenderStats3DFrom(#{name})"
+			convertTo: (name)-> "#{name}.GetRaw()"
+			argType: "RenderStats3D"
+			returnType: "RenderStats3D"
 			creturn: -> error "unsupported"
 			cpass: -> error "unsupported"
 		}
@@ -877,6 +914,42 @@ basicTypes =
 			convertTo: (name)-> "#{name}.ToValue()"
 			argType: "BodyType"
 			returnType: "BodyType"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+	BodyType3D:
+		* "i32"
+		* (name)-> "s_cast<BodyType3D>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+		* "crate::dora::BodyType3D"
+		* "crate::dora::BodyType3D"
+		* (name)-> "#{name} as i32"
+		* (name)-> "core::mem::transmute(#{name})"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "BodyType3D{value: #{name}}"
+			convertTo: (name)-> "#{name}.ToValue()"
+			argType: "BodyType3D"
+			returnType: "BodyType3D"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+	MaterialAlphaMode3D:
+		* "i32"
+		* (name)-> "s_cast<MaterialAlphaMode3D>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+		* "crate::dora::MaterialAlphaMode3D"
+		* "crate::dora::MaterialAlphaMode3D"
+		* (name)-> "#{name} as i32"
+		* (name)-> "core::mem::transmute(#{name})"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "MaterialAlphaMode3D{value: #{name}}"
+			convertTo: (name)-> "#{name}.ToValue()"
+			argType: "MaterialAlphaMode3D"
+			returnType: "MaterialAlphaMode3D"
 			creturn: -> error "unsupported"
 			cpass: -> error "unsupported"
 		}
@@ -1513,7 +1586,7 @@ func #{waNewName}.GetRaw() => i64 {
 					funcName = name\sub(1, 1)\lower! .. name\sub 2
 					funcName = table.concat [sub\lower! for sub in funcName\gsub("%u", "_%1")\gmatch "[^_]*"], "_"
 					isCreate = false
-					if "create" == funcNewName\sub 1, 6
+					if "static" in labels and "create" == funcNewName\sub 1, 6
 						isCreate = true
 						funcNewName = if #funcNewName > 6
 							"with" .. funcNewName\sub 7

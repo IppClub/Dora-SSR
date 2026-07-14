@@ -18,6 +18,12 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t mouse_get_position();
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t mouse_get_delta();
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int32_t mouse_is_relative_mode();
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void mouse_set_relative_mode(int32_t enabled);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int32_t mouse_is_left_button_pressed();
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int32_t mouse_is_right_button_pressed();
@@ -48,6 +54,20 @@ namespace Dora
 		public static Vec2 GetPosition()
 		{
 			return Vec2.From(Native.mouse_get_position());
+		}
+		/// <summary>The accumulated mouse movement since the previous frame.</summary>
+		public static Vec2 GetDelta()
+		{
+			return Vec2.From(Native.mouse_get_delta());
+		}
+		/// <summary>Whether relative mouse mode is enabled. Relative mode hides and captures the cursor.</summary>
+		public static bool IsRelativeMode()
+		{
+			return Native.mouse_is_relative_mode() != 0;
+		}
+		public static void SetRelativeMode(bool enabled)
+		{
+			Native.mouse_set_relative_mode(enabled ? 1 : 0);
 		}
 		/// <summary>
 		/// Whether the left mouse button is currently being pressed.

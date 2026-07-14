@@ -41,6 +41,7 @@ extern "C" {
 	fn application_is_full_screen() -> i32;
 	fn application_set_always_on_top(val: i32);
 	fn application_is_always_on_top() -> i32;
+	fn application_save_screenshot(filename: i64) -> i64;
 	fn application_shutdown();
 }
 /// A struct representing an application.
@@ -207,6 +208,10 @@ impl App {
 	/// It is not available to set this property on platform Android and iOS.
 	pub fn is_always_on_top() -> bool {
 		return unsafe { application_is_always_on_top() != 0 };
+	}
+	/// Requests a screenshot of the main backbuffer and returns the output TGA path.
+	pub fn save_screenshot(filename: &str) -> String {
+		unsafe { return crate::dora::to_string(application_save_screenshot(crate::dora::from_string(filename))); }
 	}
 	/// Shuts down and exits the game engine.
 	/// When in `devMode`, the `shutdown` function will only emit a "AppEvent" global event with type "Shutdown", instead of shutting down the game engine.

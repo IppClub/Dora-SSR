@@ -289,6 +289,9 @@ int cliLuaListDir(lua_State* L) {
 	int i = 1;
 	for (const auto& entry : fs::directory_iterator(path, err)) {
 		if (err) break;
+		std::error_code statusErr;
+		auto status = entry.symlink_status(statusErr);
+		if (statusErr) continue;
 		lua_newtable(L);
 		auto name = entry.path().filename().string();
 		auto fullPath = entry.path().string();
@@ -296,10 +299,12 @@ int cliLuaListDir(lua_State* L) {
 		lua_setfield(L, -2, "name");
 		lua_pushlstring(L, fullPath.c_str(), fullPath.size());
 		lua_setfield(L, -2, "path");
-		lua_pushboolean(L, entry.is_directory());
+		lua_pushboolean(L, fs::is_directory(status));
 		lua_setfield(L, -2, "isDir");
-		lua_pushboolean(L, entry.is_regular_file());
+		lua_pushboolean(L, fs::is_regular_file(status));
 		lua_setfield(L, -2, "isFile");
+		lua_pushboolean(L, fs::is_symlink(status));
+		lua_setfield(L, -2, "isLink");
 		lua_rawseti(L, -2, i++);
 	}
 	return 1;
@@ -1406,6 +1411,25 @@ void Application::install(String path) {
 
 bool Application::saveLog(String filename) {
 	return LogSaveAs(filename.toView());
+}
+
+std::string Application::saveScreenshot(String filename) {
+	std::string path = filename.toString();
+	if (path.empty()) return {};
+	if (!SharedContent.isAbsolutePath(path)) {
+		path = Path::concat({SharedContent.getWritablePath(), path});
+	}
+	if (Path::getExt(path) == "tga"sv) {
+		path = Path::replaceExt(path, Slice::Empty);
+	}
+	std::error_code error;
+	fs::create_directories(Path::getPath(path), error);
+	if (error) {
+		Error("failed to create screenshot folder for '{}': {}", path, error.message());
+		return {};
+	}
+	bgfx::requestScreenShot(BGFX_INVALID_HANDLE, path.c_str());
+	return path + ".tga";
 }
 
 void Application::openFileDialog(bool folderOnly, const std::function<void(std::string)>& callback) {

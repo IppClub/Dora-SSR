@@ -3,6 +3,17 @@ local Texture2D = require("Texture2D").Type
 -- A singleton cache instance for various game resources.
 local record Cache
 	userdata
+	model3DBudget: number
+	model3DUsage: number
+	model3DCount: integer
+
+	enum LoadState
+		"none"
+		"loading"
+		"ready"
+		"failed"
+		"cancelled"
+	end
 
 	-- An enum that defines the various types of resources that can be loaded into the cache.
 	enum ResourceType
@@ -50,6 +61,15 @@ local record Cache
 	-- @param handler (function) [optional] A callback function that is invoked when the file is loaded. The progress parameter is a number between 0 and 1.
 	-- @return (boolean) True if the files were loaded successfully, false otherwise.
 	loadAsync: function(self: Cache, filename: string | {string}, handler?: function(progress: number)): boolean
+
+	-- Gets the Model3D or environment load state.
+	getLoadState: function(self: Cache, filename: string): LoadState
+
+	-- Gets the latest Model3D or environment load error.
+	getLoadError: function(self: Cache, filename: string): string
+
+	-- Cancels an active Model3D or environment load.
+	cancelLoad: function(self: Cache, filename: string): boolean
 
 	-- Updates the content of a file loaded in the cache.
 	-- If the item of filename does not exist in the cache, a new file content will be added into the cache.

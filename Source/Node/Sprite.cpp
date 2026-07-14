@@ -270,7 +270,7 @@ void Sprite::render() {
 		updateVertPosition();
 	}
 
-	if (SharedDirector.isFrustumCulling()) {
+	if (SharedView.isFrustumCulling()) {
 		AABB aabb;
 		Matrix::mulAABB(aabb, getWorld(), getWidth(), getHeight());
 		if (!SharedDirector.isInFrustum(aabb)) {

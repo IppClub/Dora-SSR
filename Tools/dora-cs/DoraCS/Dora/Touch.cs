@@ -30,6 +30,8 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t touch_get_location(int64_t self);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t touch_get_view_location(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t touch_get_world_location(int64_t self);
 	}
 } // namespace Dora
@@ -89,6 +91,11 @@ namespace Dora
 		public Vec2 Location
 		{
 			get => Vec2.From(Native.touch_get_location(Raw));
+		}
+		/// <summary>The touch location in SharedView logical coordinates with a left-bottom origin.</summary>
+		public Vec2 ViewLocation
+		{
+			get => Vec2.From(Native.touch_get_view_location(Raw));
 		}
 		/// <summary>
 		/// The location of the touch event in the world coordinate system.

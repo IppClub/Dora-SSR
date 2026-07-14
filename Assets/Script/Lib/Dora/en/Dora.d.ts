@@ -277,6 +277,83 @@ const vec2: Vec2Class;
 export {vec2 as Vec2};
 
 /**
+ * A class representing a 3D vector with x, y, and z components.
+ */
+class Vec3 extends ContainerItem {
+	private constructor();
+
+	/** The x-component of the vector. */
+	x: number;
+
+	/** The y-component of the vector. */
+	y: number;
+
+	/** The z-component of the vector. */
+	z: number;
+}
+
+export namespace Vec3 {
+	export type Type = Vec3;
+}
+
+/**
+ * A class for creating Vec3 objects.
+ */
+interface Vec3Class {
+	/**
+	 * Creates a new Vec3 object with the given x, y, and z components.
+	 *
+	 * @param x The x-component of the new vector.
+	 * @param y The y-component of the new vector.
+	 * @param z The z-component of the new vector.
+	 * @returns The new Vec3 object.
+	 */
+	(this: void, x: number, y: number, z: number): Vec3;
+}
+
+const vec3: Vec3Class;
+export {vec3 as Vec3};
+
+/** Statistics captured from the most recent 3D render for a View3D. */
+class RenderStats3D extends ContainerItem {
+	private constructor();
+	readonly sceneNodes: number;
+	readonly visibleVisuals: number;
+	readonly culledVisuals: number;
+	readonly opaqueItems: number;
+	readonly transparentItems: number;
+	readonly drawCalls: number;
+	readonly triangles: number;
+	readonly programSwitches: number;
+	readonly materialSwitches: number;
+	readonly textureSwitches: number;
+	readonly meshSwitches: number;
+	readonly nodeCount: number;
+	readonly visualCount: number;
+	readonly modelCount: number;
+	readonly modelInstanceCount: number;
+	readonly meshCount: number;
+	readonly staticMeshCount: number;
+	readonly dynamicMeshCount: number;
+	readonly materialCount: number;
+	readonly textureCount: number;
+	readonly animationCount: number;
+	readonly environmentCount: number;
+	readonly modelResidentBytes: number;
+	readonly meshResidentBytes: number;
+	readonly textureResidentBytes: number;
+	readonly collectMicros: number;
+	readonly sortMicros: number;
+	readonly submitMicros: number;
+	readonly uploadCommands: number;
+	readonly uploadBytes: number;
+	readonly uploadMicros: number;
+	readonly uploadMaxCommandMicros: number;
+}
+
+export {RenderStats3D};
+
+/**
  * A rectangle object with a left-bottom origin position and a size.
  * Inherits from `ContainerItem`.
  */
@@ -695,6 +772,9 @@ interface App {
 	 * @returns Whether the log was saved successfully.
 	 */
 	saveLog(path: string): boolean;
+
+	/** Requests a screenshot of the main backbuffer and returns the output TGA path. */
+	saveScreenshot(filename: string): string;
 
 	/**
 	 * A function that opens a file dialog. Only works on Windows, macOS and Linux.
@@ -1932,6 +2012,11 @@ class Touch extends Object {
 	readonly location: Vec2;
 
 	/**
+	 * The location of the touch event in the current view's logical coordinate system.
+	 */
+	readonly viewLocation: Vec2;
+
+	/**
 	 * The location of the touch event in the world coordinate system.
 	 */
 	readonly worldLocation: Vec2;
@@ -2029,6 +2114,47 @@ interface CameraOthoClass {
 
 const cameraOthoClass: CameraOthoClass;
 export {cameraOthoClass as CameraOtho};
+
+/**
+ * A class for 3D camera object in the game engine.
+ */
+class Camera3D extends Camera {
+	private constructor();
+
+	/** The camera position. */
+	position: Vec3;
+
+	/** The camera target point. */
+	target: Vec3;
+
+	/** The camera up vector. */
+	up: Vec3;
+
+	/**
+	 * Sets the camera position, target, and up vector.
+	 * The up vector defaults to (0, 1, 0).
+	 */
+	lookAt(position: Vec3, target: Vec3, up?: Vec3): void;
+}
+
+export namespace Camera3D {
+	export type Type = Camera3D;
+}
+
+/**
+* A class for creating Camera3D objects.
+*/
+interface Camera3DClass {
+	/**
+	 * Creates a new Camera3D object with the given name.
+	 * @param name The name of the Camera3D object. Defaults to an empty string.
+	 * @returns A new instance of the Camera3D object.
+	 */
+	(this: void, name?: string): Camera3D;
+}
+
+const camera3DClass: Camera3DClass;
+export {camera3DClass as Camera3D};
 
 /**
  * A class representing a shader pass.
@@ -2373,6 +2499,10 @@ interface Mouse {
 	 * ```
 	 */
 	readonly position: Vec2
+	/** The accumulated mouse movement since the previous frame. */
+	readonly delta: Vec2
+	/** Whether relative mouse mode is enabled. Relative mode hides and captures the cursor. */
+	relativeMode: boolean
 	/**
 	 * Whether the left mouse button is being pressed down.
 	 */
@@ -3506,6 +3636,546 @@ const nodeClass: NodeClass;
 export {nodeClass as Node};
 
 /**
+ * Class used for building a hierarchical tree of 3D objects.
+ */
+class Node3D extends Object {
+	protected constructor();
+
+	/** The order of the node in the parent's children array. */
+	order: number;
+
+	/** The tag of the node as a string. */
+	tag: string;
+
+	/** Whether the node is visible. */
+	visible: boolean;
+
+	/** The parent 3D node. */
+	readonly parent?: Node3D;
+
+	/** Whether the node has child 3D nodes. */
+	readonly hasChildren: boolean;
+
+	/** The node position. */
+	position: Vec3;
+
+	/** The node scale. */
+	scale: Vec3;
+
+	/** The node rotation. */
+	rotation: any;
+
+	/** The node Euler rotation in degrees. */
+	angles: Vec3;
+
+	/** The node world transform matrix. */
+	readonly worldMatrix: any;
+
+	/** The X-axis position of the node. */
+	x: number;
+
+	/** The Y-axis position of the node. */
+	y: number;
+
+	/** The Z-axis position of the node. */
+	z: number;
+
+	/** The X-axis rotation angle of the node in degrees. */
+	angleX: number;
+
+	/** The Y-axis rotation angle of the node in degrees. */
+	angleY: number;
+
+	/** The Z-axis rotation angle of the node in degrees. */
+	angleZ: number;
+
+	/** The X-axis scale factor of the node. */
+	scaleX: number;
+
+	/** The Y-axis scale factor of the node. */
+	scaleY: number;
+
+	/** The Z-axis scale factor of the node. */
+	scaleZ: number;
+
+	/** Converts a local point to world space. */
+	convertToWorldSpace(localPoint: Vec3): Vec3;
+
+	/** Converts a world point to local space. */
+	convertToNodeSpace(worldPoint: Vec3): Vec3;
+
+	/** Adds a child 3D node. */
+	addChild(child: Node3D, order?: number, tag?: string): void;
+
+	/** Removes a child 3D node. */
+	removeChild(child: Node3D, cleanup?: boolean): void;
+
+	/** Removes all child 3D nodes. */
+	removeAllChildren(cleanup?: boolean): void;
+
+	/** Removes this node from its parent. */
+	removeFromParent(cleanup?: boolean): void;
+
+	/** Cleans up the node and releases its 3D resources. */
+	cleanup(): void;
+}
+
+export {Node3D as Node3DType};
+export namespace Node3D {
+	export type Type = Node3D;
+}
+
+/**
+ * A class object for the `Node3D` class.
+ */
+interface Node3DClass {
+	/**
+	 * Creates a new instance of the `Node3D` class.
+	 * @returns A new instance of the `Node3D` class.
+	 */
+	(this: void): Node3D;
+}
+
+const node3DClass: Node3DClass;
+export {node3DClass as Node3D};
+
+/**
+ * Class used for rendering 3D content inside the 2D scene tree.
+ */
+class View3D extends Node {
+	private constructor();
+
+	/** The root node of the 3D scene. */
+	readonly scene: Node3D;
+
+	/** Statistics from the most recent 3D render and current 3D registries. */
+	readonly stats: RenderStats3D;
+
+	/** Whether current world AABBs are drawn for debugging. */
+	showAABB: boolean;
+
+	/** The shadow map side length. The value is normalized to 256, 512, 1024, 2048, or 4096. */
+	shadowMapSize: number;
+
+	/** Adds a 3D child node to the scene root. */
+	addChild(child: Node3D): void;
+	addChild(child: Node, order?: number, tag?: string): void;
+
+	/** Returns the world-space origin of the picking ray through a view point. */
+	getRayOrigin(viewPoint: Vec2): Vec3;
+
+	/** Returns the world-space direction of the picking ray through a view point. */
+	getRayDirection(viewPoint: Vec2): Vec3;
+
+	/** Returns the nearest visible model intersected by a view point. */
+	pick(viewPoint: Vec2): Model3D | undefined;
+
+	/** Loads an environment map for image based lighting. */
+	setEnvironmentMap(path: string): boolean;
+
+	/** Sets diffuse, specular, and exposure intensity for environment lighting. */
+	setEnvironmentIntensity(diffuse: number, specular: number, exposure?: number): void;
+}
+
+export {View3D as View3DType};
+export namespace View3D {
+	export type Type = View3D;
+}
+
+/**
+ * A class object for the `View3D` class.
+ */
+interface View3DClass {
+	/**
+	 * Creates a new instance of the `View3D` class.
+	 * @returns A new instance of the `View3D` class.
+	 */
+	(this: void): View3D;
+}
+
+const view3DClass: View3DClass;
+export {view3DClass as View3D};
+
+/** Motion type used by a 3D rigid body. */
+export const enum BodyType3D {
+	Static = 0,
+	Kinematic = 1,
+	Dynamic = 2,
+}
+
+/** A 3D rigid body component owned by a PhysicsWorld3D. */
+class Body3D extends Node3D {
+	private constructor();
+
+	/** The synchronized node, or undefined after this body is destroyed. */
+	/** The owning world, or undefined after this body is destroyed. */
+	readonly world?: PhysicsWorld3D;
+	readonly bodyDef: BodyDef3D;
+
+	/** The body's motion type. */
+	readonly type: BodyType3D;
+
+	/** World-space linear velocity. */
+	linearVelocity: Vec3;
+
+	/** World-space angular velocity in radians per second. */
+	angularVelocity: Vec3;
+
+	/** Collision layer in the range 0 through 31. */
+	collisionLayer: number;
+
+	/** Bit mask of collision layers accepted by this body. */
+	collisionMask: number;
+
+	/** Whether contacts generate events without collision response. */
+	sensor: boolean;
+
+	applyForce(force: Vec3): void;
+	applyLinearImpulse(impulse: Vec3): void;
+	onContactEnter(handler: (this: void, other: Body3D, point: Vec3, normal: Vec3) => void): void;
+	onContactStay(handler: (this: void, other: Body3D, point: Vec3, normal: Vec3) => void): void;
+	onContactExit(handler: (this: void, other: Body3D, point: Vec3, normal: Vec3) => void): void;
+
+	/** Removes the body from its world and turns this into an empty object. */
+}
+
+export {Body3D as Body3DType};
+export namespace Body3D {
+	export type Type = Body3D;
+}
+
+interface Body3DClass {
+	(this: void, bodyDef: BodyDef3D, world: PhysicsWorld3D, position?: Vec3, angles?: Vec3): Body3D;
+}
+
+const body3DClass: Body3DClass;
+export {body3DClass as Body3D};
+
+/** A virtual capsule character controller owned by a PhysicsWorld3D. */
+class CharacterController3D extends Object {
+	private constructor();
+	readonly node?: Node3D;
+	readonly world?: PhysicsWorld3D;
+	/** Desired horizontal movement velocity; the vertical component is ignored. */
+	desiredVelocity: Vec3;
+	/** Current velocity including gravity and jumping. */
+	readonly velocity: Vec3;
+	readonly groundNormal: Vec3;
+	readonly grounded: boolean;
+	collisionLayer: number;
+	collisionMask: number;
+	jump(speed: number): void;
+	destroy(): void;
+}
+
+export {CharacterController3D as CharacterController3DType};
+export namespace CharacterController3D {
+	export type Type = CharacterController3D;
+}
+
+/** A reusable immutable Jolt collision shape or an unfrozen compound builder. */
+class FixtureDef3D extends Object {
+	private constructor();
+	/** Whether this shape is frozen and can be used to create bodies. */
+	readonly built: boolean;
+	/** Adds a child shape in compound-local space before build(). */
+	addChild(shape: FixtureDef3D, position: Vec3, angles?: Vec3): boolean;
+	/** Freezes a non-empty compound shape. */
+	build(): boolean;
+}
+
+export {FixtureDef3D as FixtureDef3DType};
+export namespace FixtureDef3D {
+	export type Type = FixtureDef3D;
+}
+
+interface FixtureDef3DClass {
+	box(halfExtent: Vec3): FixtureDef3D;
+	sphere(radius: number): FixtureDef3D;
+	capsule(halfHeight: number, radius: number): FixtureDef3D;
+	compound(): FixtureDef3D;
+	/** Reads through Content and cooks a cached static triangle mesh off the main thread. */
+	loadMeshAsync(filename: string, handler: (this: void, shape: FixtureDef3D) => void): void;
+	/** Reads model vertices through Content and cooks a cached convex hull suitable for dynamic bodies. */
+	loadConvexHullAsync(filename: string, handler: (this: void, shape: FixtureDef3D) => void): void;
+}
+
+const fixtureDef3DClass: FixtureDef3DClass;
+export {fixtureDef3DClass as FixtureDef3D};
+
+class BodyDef3D extends Object {
+	private constructor();
+	type: BodyType3D;
+	collisionLayer: number;
+	collisionMask: number;
+	sensor: boolean;
+	attach(fixture: FixtureDef3D, position?: Vec3, angles?: Vec3): boolean;
+}
+
+export {BodyDef3D as BodyDef3DType};
+export namespace BodyDef3D {
+	export type Type = BodyDef3D;
+}
+
+interface BodyDef3DClass {
+	(this: void): BodyDef3D;
+}
+
+const bodyDef3DClass: BodyDef3DClass;
+export {bodyDef3DClass as BodyDef3D};
+
+/** A two-body constraint owned by a PhysicsWorld3D. */
+class Constraint3D extends Object {
+	private constructor();
+	/** The owning world, or undefined after this constraint is destroyed. */
+	readonly world?: PhysicsWorld3D;
+	/** The first constrained body, or undefined after destruction. */
+	readonly firstBody?: Body3D;
+	/** The second constrained body, or undefined after destruction. */
+	readonly secondBody?: Body3D;
+	/** Removes the constraint from its world and turns this into an empty object. */
+	destroy(): void;
+}
+
+export {Constraint3D as Constraint3DType};
+export namespace Constraint3D {
+	export type Type = Constraint3D;
+}
+
+interface Constraint3DClass {
+	fixed(firstBody: Body3D, secondBody: Body3D, anchor: Vec3): Constraint3D;
+	distance(firstBody: Body3D, secondBody: Body3D, firstAnchor: Vec3, secondAnchor: Vec3, minDistance: number, maxDistance: number): Constraint3D;
+	hinge(firstBody: Body3D, secondBody: Body3D, anchor: Vec3, axis: Vec3, minAngle?: number, maxAngle?: number): Constraint3D;
+}
+
+const constraint3DClass: Constraint3DClass;
+export {constraint3DClass as Constraint3D};
+
+/** A fixed-step 3D physics world backed by Jolt Physics. */
+class PhysicsWorld3D extends Node {
+	private constructor();
+
+	gravity: Vec3;
+	createCharacter(node: Node3D, halfHeight: number, radius: number, maxSlopeAngle?: number, stepHeight?: number): CharacterController3D;
+	destroyCharacter(character: CharacterController3D): void;
+
+	/** Casts a ray and invokes the handler for the nearest hit. */
+	raycast(
+		start: Vec3,
+		stop: Vec3,
+		handler: (this: void, body: Body3D, point: Vec3, normal: Vec3) => boolean
+	): boolean;
+
+	/** Visits overlapping bodies until the handler returns true. */
+	querySphere(
+		center: Vec3,
+		radius: number,
+		handler: (this: void, body: Body3D) => boolean
+	): boolean;
+}
+
+export {PhysicsWorld3D as PhysicsWorld3DType};
+export namespace PhysicsWorld3D {
+	export type Type = PhysicsWorld3D;
+}
+
+interface PhysicsWorld3DClass {
+	(this: void): PhysicsWorld3D;
+	readonly Static: BodyType3D.Static;
+	readonly Kinematic: BodyType3D.Kinematic;
+	readonly Dynamic: BodyType3D.Dynamic;
+}
+
+const physicsWorld3DClass: PhysicsWorld3DClass;
+export {physicsWorld3DClass as PhysicsWorld3D};
+
+/** Alpha rendering modes supported by Material3D. */
+export const enum MaterialAlphaMode3D {
+	Opaque = 0,
+	Mask = 1,
+	Blend = 2,
+}
+
+/** A per-instance material slot owned by a Model3D instance. */
+class Material3D extends Object {
+	private constructor();
+	baseColor: Color;
+	emissive: Color3;
+	metallic: number;
+	roughness: number;
+	alphaMode: MaterialAlphaMode3D;
+	alphaCutoff: number;
+	setBaseColorTexture(texture: Texture2D): void;
+	clearBaseColorTexture(): void;
+	setMetallicRoughnessTexture(texture: Texture2D): void;
+	clearMetallicRoughnessTexture(): void;
+	setNormalTexture(texture: Texture2D): void;
+	clearNormalTexture(): void;
+	setEmissiveTexture(texture: Texture2D): void;
+	clearEmissiveTexture(): void;
+	setOcclusionTexture(texture: Texture2D): void;
+	clearOcclusionTexture(): void;
+}
+
+export {Material3D as Material3DType};
+export namespace Material3D {
+	export type Type = Material3D;
+}
+
+
+/**
+ * Class used for rendering a glTF 3D model.
+ */
+class Model3D extends Node3D {
+	private constructor();
+
+	/** The playback speed multiplier of the current animation. */
+	speed: number;
+
+	/** The duration of the current animation in seconds. */
+	readonly duration: number;
+
+	/** The elapsed playback time of the current animation in seconds. */
+	readonly elapsed: number;
+
+	/** Whether an animation is currently playing. */
+	readonly playing: boolean;
+
+	/** Whether the current animation is paused. */
+	readonly paused: boolean;
+
+	/** The number of animation clips in this model. */
+	readonly animationCount: number;
+
+	/** The number of per-instance material slots. */
+	readonly materialCount: number;
+
+	/** Gets an animation clip name by zero-based index, or an empty string when out of range. */
+	getAnimationName(index: number): string;
+
+	/** Checks whether an imported glTF node with the given name exists. */
+	hasNode(name: string): boolean;
+
+	/** Attaches a user-owned Node3D below an imported node without exposing an internal node wrapper. */
+	attachToNode(name: string, child: Node3D): boolean;
+
+	/** Gets the minimum corner of the current model-space bounds. */
+	getLocalBoundsMin(): Vec3;
+
+	/** Gets the maximum corner of the current model-space bounds. */
+	getLocalBoundsMax(): Vec3;
+
+	/** Gets the minimum corner of the current world-space bounds. */
+	getWorldBoundsMin(): Vec3;
+
+	/** Gets the maximum corner of the current world-space bounds. */
+	getWorldBoundsMax(): Vec3;
+
+	/** Gets a per-instance material slot by zero-based index. */
+	getMaterial(index: number): Material3D | undefined;
+
+	/**
+	 * Plays an animation by name.
+	 * @param name The animation name. Uses the default animation when omitted.
+	 * @param loop Whether the animation should loop.
+	 * @returns The animation duration in seconds, or 0 when not found.
+	 */
+	play(name?: string, loop?: boolean): number;
+
+	/** Stops the current animation. */
+	stop(): void;
+
+	/** Pauses the current animation. */
+	pause(): void;
+
+	/** Resumes the paused animation. */
+	resume(): void;
+}
+
+export {Model3D as Model3DType};
+export namespace Model3D {
+	export type Type = Model3D;
+}
+
+/**
+ * A class object for the `Model3D` class.
+ */
+interface Model3DClass {
+	/**
+	 * Creates a new instance of the `Model3D` class.
+	 * @param path The model file path.
+	 * @returns A new instance of the `Model3D` class.
+	 */
+	(this: void, path: string): Model3D;
+}
+
+const model3DClass: Model3DClass;
+export {model3DClass as Model3D};
+
+/** A directional light whose direction follows its world rotation. */
+class DirectionalLight3D extends Node3D {
+	private constructor();
+
+	/** The light color in sRGB space. */
+	color: Color3;
+
+	/** The light intensity. */
+	intensity: number;
+
+	/** Whether this light casts a shadow. */
+	castShadow: boolean;
+
+	/** Constant depth bias used by the shadow comparison. */
+	shadowBias: number;
+
+	/** Slope-dependent normal bias used by the shadow comparison. */
+	shadowNormalBias: number;
+
+	/** Shadow filter radius measured in shadow-map texels. Zero disables filtering. */
+	shadowSoftness: number;
+}
+
+export {DirectionalLight3D as DirectionalLight3DType};
+export namespace DirectionalLight3D {
+	export type Type = DirectionalLight3D;
+}
+
+interface DirectionalLight3DClass {
+	/** Creates a directional light. */
+	(this: void): DirectionalLight3D;
+}
+
+const directionalLight3DClass: DirectionalLight3DClass;
+export {directionalLight3DClass as DirectionalLight3D};
+
+/** A point light whose position follows its world transform. */
+class PointLight3D extends Node3D {
+	private constructor();
+
+	/** The light color in sRGB space. */
+	color: Color3;
+
+	/** The light intensity. */
+	intensity: number;
+
+	/** The maximum effective range of the light. */
+	range: number;
+}
+
+export {PointLight3D as PointLight3DType};
+export namespace PointLight3D {
+	export type Type = PointLight3D;
+}
+
+interface PointLight3DClass {
+	/** Creates a point light. */
+	(this: void): PointLight3D;
+}
+
+const pointLight3DClass: PointLight3DClass;
+export {pointLight3DClass as PointLight3D};
+
+/**
  * A buffer of string for the use of ImGui widget.
  */
 class Buffer extends Object {
@@ -4105,7 +4775,7 @@ class Director {
 	/**
 	 * The root node for the starting point of a game.
 	 */
-	readonly entry: Node;
+	readonly entry: View3D;
 
 	/**
 	 * The root node for post-rendering scene tree.
@@ -4126,11 +4796,6 @@ class Director {
 	 * The current active camera in Director's camera stack.
 	 */
 	readonly currentCamera: Camera;
-
-	/**
-	 * Whether to enable frustum culling.
-	 */
-	frustumCulling: boolean;
 
 	/**
 	 * The flag to enable or disable sending collected statistics via built-in Web Socket server. For Web IDE use only.
@@ -5194,6 +5859,15 @@ export const enum CacheResourceTypeSafeUnload {
 class Cache {
 	private constructor();
 
+	/** The soft memory budget for cached Model3D resources in bytes. Zero means unlimited. */
+	model3DBudget: number;
+
+	/** The estimated resident bytes held by cached Model3D resources. */
+	readonly model3DUsage: number;
+
+	/** The number of Model3D definitions currently retained by the cache. */
+	readonly model3DCount: number;
+
 	/**
 	 * Loads a file into the cache with a blocking operation.
 	 * @param filename The name of the file to load.
@@ -5215,6 +5889,15 @@ class Cache {
 	 * });
 	 */
 	loadAsync(filename: string | string[], handler?: (this: void, progress: number) => void): boolean;
+
+	/** Gets the Model3D or environment load state. */
+	getLoadState(filename: string): "none" | "loading" | "ready" | "failed" | "cancelled";
+
+	/** Gets the latest Model3D or environment load error. */
+	getLoadError(filename: string): string;
+
+	/** Cancels an active Model3D or environment load. */
+	cancelLoad(filename: string): boolean;
 
 	/**
 	 * Updates the content of a file loaded in the cache.
@@ -7191,6 +7874,9 @@ class View {
 	/** The post effect applied to the view. */
 	postEffect: SpriteEffect;
 
+	/** Whether or not frustum culling is enabled. */
+	frustumCulling: boolean;
+
 	/** Whether or not vertical sync is enabled. */
 	vsync: boolean;
 }
@@ -7638,6 +8324,8 @@ export {tic80NodeClass as TIC80Node};
 export const enum TypeName {
 	Size = "Size",
 	Vec2 = "Vec2",
+	Vec3 = "Vec3",
+	RenderStats3D = "RenderStats3D",
 	Rect = "Rect",
 	Color3 = "Color3",
 	Color = "Color",
@@ -7650,10 +8338,14 @@ export const enum TypeName {
 	Camera = "Camera",
 	Camera2D = "Camera2D",
 	CameraOtho = "CameraOtho",
+	Camera3D = "Camera3D",
 	Pass = "Pass",
 	Effect = "Effect",
 	SpriteEffect = "SpriteEffect",
 	Node = "Node",
+	Node3D = "Node3D",
+	View3D = "View3D",
+	Model3D = "Model3D",
 	RenderTarget = "RenderTarget",
 	Buffer = "Buffer",
 	ClipNode = "ClipNode",
@@ -7691,6 +8383,8 @@ export const enum TypeName {
 export interface TypeMap {
 	[TypeName.Size]: Size;
 	[TypeName.Vec2]: Vec2;
+	[TypeName.Vec3]: Vec3;
+	[TypeName.RenderStats3D]: RenderStats3D;
 	[TypeName.Rect]: Rect;
 	[TypeName.Color3]: Color3;
 	[TypeName.Color]: Color;
@@ -7703,10 +8397,14 @@ export interface TypeMap {
 	[TypeName.Camera]: Camera;
 	[TypeName.Camera2D]: Camera2D;
 	[TypeName.CameraOtho]: CameraOtho;
+	[TypeName.Camera3D]: Camera3D;
 	[TypeName.Pass]: Pass;
 	[TypeName.Effect]: Effect;
 	[TypeName.SpriteEffect]: SpriteEffect;
 	[TypeName.Node]: Node;
+	[TypeName.Node3D]: Node3D;
+	[TypeName.View3D]: View3D;
+	[TypeName.Model3D]: Model3D;
 	[TypeName.RenderTarget]: RenderTarget;
 	[TypeName.Buffer]: Buffer;
 	[TypeName.ClipNode]: ClipNode;

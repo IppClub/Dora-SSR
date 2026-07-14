@@ -15,3 +15,5 @@ NS_DORA_BEGIN
 extern const bgfx::EmbeddedShader* DoraShaders;
 
 NS_DORA_END
+
+extern "C" uint16_t dora_create_builtin_shader(const char* name, uint32_t rendererType);

@@ -22,8 +22,8 @@ local record Director
 	-- 用于挂载带有 3D 投影视觉效果的 3D 用户界面元素的根节点。
 	const ui3D: Node
 
-	-- 用于挂载主要游戏内容场景树的根节点。
-	const entry: Node
+	-- 用于挂载主要游戏内容场景树的根节点。运行时类型是 View3D。
+	const entry: any
 
 	-- 用于挂载在后期做渲染的物件的场景树的根节点。
 	const postNode: Node
@@ -36,9 +36,6 @@ local record Director
 
 	-- 当前在应用的相机。
 	const currentCamera: Camera
-
-	-- 是否启用视锥体裁剪。
-	frustumCulling: boolean
 
 	-- 是否通过内置的 Web Socket 服务器发送收集的性能统计信息。只对 Web IDE 有用.
 	profilerSending: boolean

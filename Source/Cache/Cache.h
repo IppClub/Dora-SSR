@@ -15,6 +15,13 @@ class Texture2D;
 struct Cache {
 	static bool load(String filename);
 	static void loadAsync(String filename, const std::function<void(bool)>& callback);
+	static String getLoadState(String filename);
+	static String getLoadError(String filename);
+	static bool cancelLoad(String filename);
+	static void setModel3DBudget(uint64_t bytes);
+	static uint64_t getModel3DBudget();
+	static uint64_t getModel3DUsage();
+	static uint32_t getModel3DCount();
 	static void update(String filename, String content);
 	static void update(String filename, Texture2D* texture);
 	static void unload();

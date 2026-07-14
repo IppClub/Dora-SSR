@@ -7,8 +7,15 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 extern "C" {
+	fn cache_set_model3_d_budget(val: i64);
+	fn cache_get_model3_d_budget() -> i64;
+	fn cache_get_model3_d_usage() -> i64;
+	fn cache_get_model3_d_count() -> i32;
 	fn cache_load(filename: i64) -> i32;
 	fn cache_load_async(filename: i64, func0: i32, stack0: i64);
+	fn cache_get_load_state(filename: i64) -> i64;
+	fn cache_get_load_error(filename: i64) -> i64;
+	fn cache_cancel_load(filename: i64) -> i32;
 	fn cache_update_item(filename: i64, content: i64);
 	fn cache_update_texture(filename: i64, texture: i64);
 	fn cache_unload_item_or_type(name: i64) -> i32;
@@ -20,6 +27,22 @@ use crate::dora::IObject;
 /// A interface for managing various game resources.
 pub struct Cache { }
 impl Cache {
+	/// Sets The soft memory budget for cached Model3D resources in bytes. Zero means unlimited.
+	pub fn set_model3_d_budget(val: i64) {
+		unsafe { cache_set_model3_d_budget(val) };
+	}
+	/// Gets The soft memory budget for cached Model3D resources in bytes. Zero means unlimited.
+	pub fn get_model3_d_budget() -> i64 {
+		return unsafe { cache_get_model3_d_budget() };
+	}
+	/// Gets The estimated resident bytes held by cached Model3D resources.
+	pub fn get_model3_d_usage() -> i64 {
+		return unsafe { cache_get_model3_d_usage() };
+	}
+	/// Gets The number of Model3D definitions currently retained by the cache.
+	pub fn get_model3_d_count() -> i32 {
+		return unsafe { cache_get_model3_d_count() };
+	}
 	/// Loads a file into the cache with a blocking operation.
 	///
 	/// # Arguments
@@ -45,6 +68,18 @@ impl Cache {
 			handler(stack0.pop_bool().unwrap())
 		}));
 		unsafe { cache_load_async(crate::dora::from_string(filename), func_id0, stack_raw0); }
+	}
+	/// Gets the Model3D or environment load state: "none", "loading", "ready", "failed", or "cancelled".
+	pub fn get_load_state(filename: &str) -> String {
+		unsafe { return crate::dora::to_string(cache_get_load_state(crate::dora::from_string(filename))); }
+	}
+	/// Gets the latest load error for a Model3D or environment resource.
+	pub fn get_load_error(filename: &str) -> String {
+		unsafe { return crate::dora::to_string(cache_get_load_error(crate::dora::from_string(filename))); }
+	}
+	/// Cancels an active Model3D or environment load.
+	pub fn cancel_load(filename: &str) -> bool {
+		unsafe { return cache_cancel_load(crate::dora::from_string(filename)) != 0; }
 	}
 	/// Updates the content of a file loaded in the cache.
 	/// If the item of filename does not exist in the cache, a new file content will be added into the cache.

@@ -18,6 +18,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Effect/Effect.h"
 #include "Node/DrawNode.h"
 #include "Node/Sprite.h"
+#include "Render/View.h"
 #include "Support/Common.h"
 
 NS_DORA_BEGIN
@@ -36,7 +37,7 @@ void DBSlotNode::render() {
 		return;
 	}
 
-	if (SharedDirector.isFrustumCulling()) {
+	if (SharedView.isFrustumCulling()) {
 		auto [minX, maxX] = std::minmax_element(_points.begin(), _points.end(), [](const auto& a, const auto& b) {
 			return a.x < b.x;
 		});

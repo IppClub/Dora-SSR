@@ -132,6 +132,11 @@ local record App
 	-- @return (boolean) 日志文件是否保存成功。
 	saveLog: function(self: App, path: string): boolean
 
+	-- 请求保存主backbuffer截图。
+	-- @param filename (string) 输出路径，可带.tga扩展名。
+	-- @return (string) 实际TGA输出路径，失败时返回空字符串。
+	saveScreenshot: function(self: App, filename: string): string
+
 	-- 打开一个文件对话框。仅在Windows、macOS和Linux平台上有效。
 	-- @param folderOnly (boolean) 是否仅允许选择文件夹。
 	-- @param callback (function) 当文件对话框关闭时调用的回调函数。回调函数应接受一个字符串参数，该参数为选中的文件或文件夹的路径。如果用户取消对话框，则返回空字符串。

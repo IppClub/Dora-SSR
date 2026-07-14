@@ -109,6 +109,7 @@ public:
 	template <typename T>
 	typename std::enable_if_t<
 		std::is_same_v<T, Size>
+		|| std::is_same_v<T, Vec3>
 		|| std::is_same_v<T, Vec4>
 		|| std::is_same_v<T, Rect>
 		|| std::is_same_v<T, Matrix>>
@@ -160,6 +161,7 @@ public:
 	template <typename T>
 	static typename std::enable_if_t<
 		std::is_same_v<T, Size>
+		|| std::is_same_v<T, Vec3>
 		|| std::is_same_v<T, Vec4>
 		|| std::is_same_v<T, Rect>
 		|| std::is_same_v<T, Matrix>>

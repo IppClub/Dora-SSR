@@ -81,6 +81,7 @@ private:
 	bool _textInputing;
 	bool _backSpaceIgnore;
 	bool _mouseVisible;
+	bool _relativeModeSetNoMouse;
 	bool _mousePressed[3];
 	Vec2 _mouseWheel;
 	int _lastCursor;

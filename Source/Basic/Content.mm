@@ -60,9 +60,4 @@ std::string Content::getFullPathForDirectoryAndFilename(String directory, String
 	return Slice::Empty;
 }
 
-bool Content::isAbsolutePath(String strPath) {
-	NSString* path = [NSString stringWithUTF8String:strPath.c_str()];
-	return [path isAbsolutePath] ? true : false;
-}
-
 NS_DORA_END

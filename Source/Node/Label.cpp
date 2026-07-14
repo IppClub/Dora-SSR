@@ -17,6 +17,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Node/Sprite.h"
 #include "Other/sdf_gen2d.h"
 #include "Other/utf8.h"
+#include "Render/View.h"
 
 NS_DORA_BEGIN
 
@@ -748,7 +749,7 @@ void Label::render() {
 		updateVertColor();
 	}
 
-	if (SharedDirector.isFrustumCulling() && !_quadPos.empty()) {
+	if (SharedView.isFrustumCulling() && !_quadPos.empty()) {
 		float minX = _quadPos[0].lb.x;
 		float minY = _quadPos[0].lb.y;
 		float maxX = _quadPos[0].rt.x;

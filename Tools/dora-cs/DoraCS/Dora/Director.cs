@@ -30,10 +30,6 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t director_get_current_camera();
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void director_set_frustum_culling(int32_t val);
-		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t director_is_frustum_culling();
-		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void director_schedule(int32_t func0, int64_t stack0);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void director_schedule_posted(int32_t func0, int64_t stack0);
@@ -82,9 +78,9 @@ namespace Dora
 		/// <summary>
 		/// The root node for the starting point of a game.
 		/// </summary>
-		public static Node Entry
+		public static View3D Entry
 		{
-			get => Node.From(Native.director_get_entry());
+			get => View3D.From(Native.director_get_entry());
 		}
 		/// <summary>
 		/// The root node for post-rendering scene tree.
@@ -99,14 +95,6 @@ namespace Dora
 		public static Camera CurrentCamera
 		{
 			get => Camera.From(Native.director_get_current_camera());
-		}
-		/// <summary>
-		/// Whether or not to enable frustum culling.
-		/// </summary>
-		public static bool IsFrustumCulling
-		{
-			set => Native.director_set_frustum_culling(value ? 1 : 0);
-			get => Native.director_is_frustum_culling() != 0;
 		}
 		/// <summary>
 		/// Schedule a function to be called every frame.

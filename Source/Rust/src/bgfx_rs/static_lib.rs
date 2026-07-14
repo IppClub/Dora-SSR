@@ -2325,7 +2325,10 @@ impl FrameBuffer {
 	/// Will be passed to `bgfx::CallbackI::screenShot` callback.
 	pub fn request_screen_shot(&self, file_path: &i8) {
 		unsafe {
-			bgfx_sys::bgfx_request_screen_shot(self.handle, file_path as *const i8 as *const ::std::os::raw::c_char);
+			bgfx_sys::bgfx_request_screen_shot(
+				self.handle,
+				file_path as *const i8 as *const ::std::os::raw::c_char,
+			);
 		}
 	}
 }
@@ -2551,8 +2554,7 @@ impl Texture {
 	/// When non-`NULL` is specified it returns parsed texture information.
 	pub fn create_texture(mem: &Memory, flags: u64, skip: u8, info: &mut TextureInfo) -> Texture {
 		unsafe {
-			let _ret =
-				bgfx_sys::bgfx_create_texture(mem.handle, flags, skip, info);
+			let _ret = bgfx_sys::bgfx_create_texture(mem.handle, flags, skip, info);
 			Texture { handle: _ret }
 		}
 	}
@@ -2922,7 +2924,11 @@ impl Uniform {
 	/// Number of elements in array.
 	pub fn create_uniform(name: &i8, type_r: UniformType, num: u16) -> Uniform {
 		unsafe {
-			let _ret = bgfx_sys::bgfx_create_uniform(name as *const i8 as *const ::std::os::raw::c_char, type_r as _, num);
+			let _ret = bgfx_sys::bgfx_create_uniform(
+				name as *const i8 as *const ::std::os::raw::c_char,
+				type_r as _,
+				num,
+			);
 			Uniform { handle: _ret }
 		}
 	}
@@ -3345,7 +3351,11 @@ impl Encoder {
 	pub fn set_marker(&self, name: &i8, len: i32) {
 		unsafe {
 			let _self = std::mem::transmute(self);
-			bgfx_sys::bgfx_encoder_set_marker(_self, name as *const i8 as *const ::std::os::raw::c_char, len);
+			bgfx_sys::bgfx_encoder_set_marker(
+				_self,
+				name as *const i8 as *const ::std::os::raw::c_char,
+				len,
+			);
 		}
 	}
 	/// * `state`:
@@ -4675,8 +4685,7 @@ pub fn calc_texture_size(
 /// When non-`NULL` is specified it returns parsed texture information.
 pub fn create_texture(mem: &Memory, flags: u64, skip: u8, info: &mut TextureInfo) -> Texture {
 	unsafe {
-		let _ret =
-			bgfx_sys::bgfx_create_texture(mem.handle, flags, skip, info);
+		let _ret = bgfx_sys::bgfx_create_texture(mem.handle, flags, skip, info);
 		Texture { handle: _ret }
 	}
 }
@@ -5134,7 +5143,11 @@ pub fn get_texture(handle: &FrameBuffer, attachment: u8) -> Texture {
 /// Number of elements in array.
 pub fn create_uniform(name: &i8, type_r: UniformType, num: u16) -> Uniform {
 	unsafe {
-		let _ret = bgfx_sys::bgfx_create_uniform(name as *const i8 as *const ::std::os::raw::c_char, type_r as _, num);
+		let _ret = bgfx_sys::bgfx_create_uniform(
+			name as *const i8 as *const ::std::os::raw::c_char,
+			type_r as _,
+			num,
+		);
 		Uniform { handle: _ret }
 	}
 }
@@ -5313,7 +5326,10 @@ pub fn encoder_end(encoder: &Encoder) {
 /// Will be passed to `bgfx::CallbackI::screenShot` callback.
 pub fn request_screen_shot(handle: &FrameBuffer, file_path: &i8) {
 	unsafe {
-		bgfx_sys::bgfx_request_screen_shot(handle.handle, file_path as *const i8 as *const ::std::os::raw::c_char);
+		bgfx_sys::bgfx_request_screen_shot(
+			handle.handle,
+			file_path as *const i8 as *const ::std::os::raw::c_char,
+		);
 	}
 }
 /// * `msecs`:

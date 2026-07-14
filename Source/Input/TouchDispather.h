@@ -46,6 +46,8 @@ public:
 	PROPERTY_READONLY(Vec2, Delta);
 	PROPERTY_READONLY_CREF(Vec2, Location);
 	PROPERTY_READONLY_CREF(Vec2, PreLocation);
+	PROPERTY_READONLY_CREF(Vec2, ViewLocation);
+	PROPERTY_READONLY_CREF(Vec2, ViewPreLocation);
 	PROPERTY_READONLY_CREF(Vec2, WorldLocation);
 	PROPERTY_READONLY_CREF(Vec2, WorldPreLocation);
 	PROPERTY_READONLY_CLASS(uint32_t, Source);
@@ -59,6 +61,8 @@ private:
 	int _id;
 	Vec2 _location;
 	Vec2 _preLocation;
+	Vec2 _viewLocation;
+	Vec2 _viewPreLocation;
 	Vec2 _worldLocation;
 	Vec2 _worldPreLocation;
 	enum {
@@ -80,6 +84,7 @@ protected:
 	Touch* alloc(int64_t fingerId);
 	Touch* get(int64_t fingerId);
 	void collect(int64_t fingerId);
+	Vec2 getViewPos(const SDL_Event& event);
 	Vec2 getPos(const SDL_Event& event);
 	Vec2 getPos(const Vec3& winPos);
 	bool up(const SDL_Event& event);
@@ -100,6 +105,7 @@ public:
 	PROPERTY_BOOL(WheelSwallowed);
 	PROPERTY_READONLY(Vec2, MouseWheel);
 	PROPERTY_READONLY_CREF(Vec2, MousePos);
+	PROPERTY_READONLY_CREF(Vec2, MouseDelta);
 	PROPERTY_READONLY_BOOL(LeftButtonPressed);
 	PROPERTY_READONLY_BOOL(RightButtonPressed);
 	PROPERTY_READONLY_BOOL(MiddleButtonPressed);
@@ -117,6 +123,7 @@ private:
 	bool _rightButtonPressed;
 	Vec2 _mouseWheel;
 	Vec2 _mousePos;
+	Vec2 _mouseDelta;
 };
 
 class TouchDispatcher : public NonCopyable {

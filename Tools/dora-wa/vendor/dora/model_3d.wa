@@ -1,0 +1,215 @@
+/* Copyright (c) 2016-2026 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+import "runtime"
+
+#wa:import dora model3d_type
+func model3d_type() => i32
+
+#wa:import dora model3d_set_speed
+func model3d_set_speed(slf: i64, val: f32)
+
+#wa:import dora model3d_get_speed
+func model3d_get_speed(slf: i64) => f32
+
+#wa:import dora model3d_get_duration
+func model3d_get_duration(slf: i64) => f32
+
+#wa:import dora model3d_get_elapsed
+func model3d_get_elapsed(slf: i64) => f32
+
+#wa:import dora model3d_is_playing
+func model3d_is_playing(slf: i64) => i32
+
+#wa:import dora model3d_is_paused
+func model3d_is_paused(slf: i64) => i32
+
+#wa:import dora model3d_get_animation_count
+func model3d_get_animation_count(slf: i64) => i32
+
+#wa:import dora model3d_get_material_count
+func model3d_get_material_count(slf: i64) => i32
+
+#wa:import dora model3d_get_animation_name
+func model3d_get_animation_name(slf: i64, index: i32) => i64
+
+#wa:import dora model3d_has_node
+func model3d_has_node(slf: i64, name: i64) => i32
+
+#wa:import dora model3d_attach_to_node
+func model3d_attach_to_node(slf: i64, name: i64, child: i64) => i32
+
+#wa:import dora model3d_get_local_bounds_min
+func model3d_get_local_bounds_min(slf: i64) => i64
+
+#wa:import dora model3d_get_local_bounds_max
+func model3d_get_local_bounds_max(slf: i64) => i64
+
+#wa:import dora model3d_get_world_bounds_min
+func model3d_get_world_bounds_min(slf: i64) => i64
+
+#wa:import dora model3d_get_world_bounds_max
+func model3d_get_world_bounds_max(slf: i64) => i64
+
+#wa:import dora model3d_get_material
+func model3d_get_material(slf: i64, index: i32) => i64
+
+#wa:import dora model3d_play
+func model3d_play(slf: i64, name: i64, looped: i32) => f32
+
+#wa:import dora model3d_stop
+func model3d_stop(slf: i64)
+
+#wa:import dora model3d_pause
+func model3d_pause(slf: i64)
+
+#wa:import dora model3d_resume
+func model3d_resume(slf: i64)
+
+#wa:import dora model3d_new
+func model3d_new(path: i64) => i64
+
+type Model3D :struct{ Node3D }
+
+func Model3DFrom(raw: i64) => *Model3D {
+	if raw == 0 {
+		return nil
+	}
+	object := Model3D{}
+	object.raw = &raw
+	runtime.SetFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func Model3D.GetTypeId() => i32 {
+	return model3d_type()
+}
+func ObjectAsModel3D(object: Object) => *Model3D {
+	if object.GetTypeId() == model3d_type() {
+		ObjectRetain(object.GetRaw())
+		return Model3DFrom(object.GetRaw())
+	}
+	return nil
+}
+
+/// Sets the animation playback speed.
+func Model3D.SetSpeed(val: f32) {
+	model3d_set_speed(*this.raw, val)
+}
+
+/// Gets the animation playback speed.
+func Model3D.GetSpeed() => f32 {
+	return model3d_get_speed(*this.raw)
+}
+
+/// Gets the current animation duration.
+func Model3D.GetDuration() => f32 {
+	return model3d_get_duration(*this.raw)
+}
+
+/// Gets the elapsed playback time.
+func Model3D.GetElapsed() => f32 {
+	return model3d_get_elapsed(*this.raw)
+}
+
+/// Gets whether an animation is playing.
+func Model3D.IsPlaying() => bool {
+	return model3d_is_playing(*this.raw) != 0
+}
+
+/// Gets whether animation playback is paused.
+func Model3D.IsPaused() => bool {
+	return model3d_is_paused(*this.raw) != 0
+}
+
+/// Gets the number of animation clips in this model.
+func Model3D.GetAnimationCount() => i32 {
+	return model3d_get_animation_count(*this.raw)
+}
+
+/// Gets the number of material slots in this model instance.
+func Model3D.GetMaterialCount() => i32 {
+	return model3d_get_material_count(*this.raw)
+}
+
+/// Gets an animation clip name by index.
+func Model3D.GetAnimationName(index: i32) => string {
+	return FromDoraString(model3d_get_animation_name(*this.raw, index))
+}
+
+/// Checks whether an imported node with the given name exists.
+func Model3D.HasNode(name: string) => bool {
+	return model3d_has_node(*this.raw, ToDoraString(name)) != 0
+}
+
+/// Attaches a user-owned Node3D below an imported node without exposing the internal node wrapper.
+func Model3D.AttachToNode(name: string, child: Node3D) => bool {
+	return model3d_attach_to_node(*this.raw, ToDoraString(name), child.GetRaw()) != 0
+}
+
+/// Gets the current model-space bounds minimum.
+func Model3D.GetLocalBoundsMin() => Vec3 {
+	return *Vec3From(model3d_get_local_bounds_min(*this.raw))
+}
+
+/// Gets the current model-space bounds maximum.
+func Model3D.GetLocalBoundsMax() => Vec3 {
+	return *Vec3From(model3d_get_local_bounds_max(*this.raw))
+}
+
+/// Gets the current world-space bounds minimum.
+func Model3D.GetWorldBoundsMin() => Vec3 {
+	return *Vec3From(model3d_get_world_bounds_min(*this.raw))
+}
+
+/// Gets the current world-space bounds maximum.
+func Model3D.GetWorldBoundsMax() => Vec3 {
+	return *Vec3From(model3d_get_world_bounds_max(*this.raw))
+}
+
+/// Gets a per-instance material slot by zero-based index.
+func Model3D.GetMaterial(index: i32) => *Material3D {
+	ptr_ := model3d_get_material(*this.raw, index)
+	if ptr_ == 0 {
+		return nil
+	}
+	obj_ := *Material3DFrom(ptr_)
+	return &obj_
+}
+
+/// Plays an animation by name.
+func Model3D.Play(name: string, looped: bool) => f32 {
+	return model3d_play(*this.raw, ToDoraString(name), ToDoraBool(looped))
+}
+
+/// Stops animation playback.
+func Model3D.Stop() {
+	model3d_stop(*this.raw)
+}
+
+/// Pauses animation playback.
+func Model3D.Pause() {
+	model3d_pause(*this.raw)
+}
+
+/// Resumes animation playback.
+func Model3D.Resume() {
+	model3d_resume(*this.raw)
+}
+
+/// Creates a model from a glTF/GLB file.
+func NewModel3D(path: string) => *Model3D {
+	raw := model3d_new(ToDoraString(path))
+	if raw == 0 {
+		return nil
+	}
+	object := Model3D{}
+	object.raw = &raw
+	runtime.SetFinalizer(object.raw, ObjectFinalizer)
+	return &object
+}

@@ -1909,6 +1909,7 @@
     <ClCompile Include="..\..\..\Source\Cache\FontCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\FrameCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\ModelCache.cpp" />
+    <ClCompile Include="..\..\..\Source\Cache\Model3DCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\ParticleCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\ShaderCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\SkeletonCache.cpp" />
@@ -1925,6 +1926,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Effect\Effect.cpp" />
+    <ClCompile Include="..\..\..\Source\Effect\Material.cpp" />
     <ClCompile Include="..\..\..\Source\Entity\Entity.cpp" />
     <ClCompile Include="..\..\..\Source\Event\Event.cpp" />
     <ClCompile Include="..\..\..\Source\Event\EventQueue.cpp" />
@@ -1961,7 +1963,10 @@
     <ClCompile Include="..\..\..\Source\Node\Label.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Menu.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Model.cpp" />
+    <ClCompile Include="..\..\..\Source\Node\Model3D.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Node.cpp" />
+    <ClCompile Include="..\..\..\Source\Node\Node3D.cpp" />
+    <ClCompile Include="..\..\..\Source\Node\Light3D.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Particle.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Playable.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Spine.cpp" />
@@ -1970,11 +1975,21 @@
     <ClCompile Include="..\..\..\Source\Node\TileNode.cpp" />
     <ClCompile Include="..\..\..\Source\Node\VGNode.cpp" />
     <ClCompile Include="..\..\..\Source\Node\VideoNode.cpp" />
+    <ClCompile Include="..\..\..\Source\Node\View3D.cpp" />
+    <ClCompile Include="..\..\..\Source\Node\Visual3D.cpp" />
     <ClCompile Include="..\..\..\Source\Physics\Body.cpp" />
     <ClCompile Include="..\..\..\Source\Physics\BodyDef.cpp" />
     <ClCompile Include="..\..\..\Source\Physics\DebugDraw.cpp" />
     <ClCompile Include="..\..\..\Source\Physics\Joint.cpp" />
     <ClCompile Include="..\..\..\Source\Physics\JointDef.cpp" />
+    <ClCompile Include="..\..\..\Source\Physics\JoltBridge.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Physics\JoltSources.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="..\..\..\Source\Physics\PhysicsWorld.cpp" />
     <ClCompile Include="..\..\..\Source\Physics\Sensor.cpp" />
     <ClCompile Include="..\..\..\Source\Platformer\AI.cpp" />
@@ -1990,6 +2005,7 @@
     <ClCompile Include="..\..\..\Source\Platformer\UnitAction.cpp" />
     <ClCompile Include="..\..\..\Source\Platformer\VisualCache.cpp" />
     <ClCompile Include="..\..\..\Source\Render\Camera.cpp" />
+    <ClCompile Include="..\..\..\Source\Render\Camera3D.cpp" />
     <ClCompile Include="..\..\..\Source\Render\Renderer.cpp" />
     <ClCompile Include="..\..\..\Source\Render\RenderTarget.cpp" />
     <ClCompile Include="..\..\..\Source\Render\VGRender.cpp" />
@@ -2926,7 +2942,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;_ITERATOR_DEBUG_LEVEL=0;WITH_SDL2_STATIC;SDL_MAIN_HANDLED;BX_CONFIG_DEBUG=1;d_m3HasWASI;LUA_USE_WINDOWS;SPDLOG_FMT_EXTERNAL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../../../Source;../../../Source/3rdParty;../../../Source/3rdParty/bx/include/bx/compat/msvc;../../../Source/3rdParty/bgfx/include;../../../Source/3rdParty/bx/include;../../../Source/3rdParty/bimg/include;../../../Source/3rdParty/SDL2/include;../../../Source/3rdParty/Lua;../../../Source/3rdParty/Zip;../../../Source/3rdParty/soloud;../../../Source/3rdParty/lodepng;../../../Source/3rdParty/imgui;../../../Source/3rdParty/implot;../../../Source/3rdParty/sqlite;../../../Source/3rdParty/dragonBones;../../../Source/3rdParty/wasm3;../../../Source/3rdParty/Zip/zlib;../../../Source/3rdParty/Effekseer;../../../Source/3rdParty/h264bsd;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../Source;../../../Source/3rdParty;../../../Source/3rdParty/JoltPhysics;../../../Source/3rdParty/bx/include/bx/compat/msvc;../../../Source/3rdParty/bgfx/include;../../../Source/3rdParty/bx/include;../../../Source/3rdParty/bimg/include;../../../Source/3rdParty/SDL2/include;../../../Source/3rdParty/Lua;../../../Source/3rdParty/Zip;../../../Source/3rdParty/soloud;../../../Source/3rdParty/lodepng;../../../Source/3rdParty/imgui;../../../Source/3rdParty/implot;../../../Source/3rdParty/sqlite;../../../Source/3rdParty/dragonBones;../../../Source/3rdParty/wasm3;../../../Source/3rdParty/Zip/zlib;../../../Source/3rdParty/Effekseer;../../../Source/3rdParty/h264bsd;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeaderFile>Const/Header.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -2969,7 +2985,7 @@ xcopy /Y /D "$(ProjectDir)..\..\..\Source\3rdParty\Wa\Lib\Windows\wa.dll" "$(Out
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;WITH_SDL2_STATIC;SDL_MAIN_HANDLED;BX_CONFIG_DEBUG=0;d_m3HasWASI;LUA_USE_WINDOWS;SPDLOG_FMT_EXTERNAL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../../../Source;../../../Source/3rdParty;../../../Source/3rdParty/bx/include/bx/compat/msvc;../../../Source/3rdParty/bgfx/include;../../../Source/3rdParty/bx/include;../../../Source/3rdParty/bimg/include;../../../Source/3rdParty/SDL2/include;../../../Source/3rdParty/Lua;../../../Source/3rdParty/Zip;../../../Source/3rdParty/soloud;../../../Source/3rdParty/lodepng;../../../Source/3rdParty/imgui;../../../Source/3rdParty/implot;../../../Source/3rdParty/sqlite;../../../Source/3rdParty/dragonBones;../../../Source/3rdParty/wasm3;../../../Source/3rdParty/Zip/zlib;../../../Source/3rdParty/Effekseer;../../../Source/3rdParty/h264bsd;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../Source;../../../Source/3rdParty;../../../Source/3rdParty/JoltPhysics;../../../Source/3rdParty/bx/include/bx/compat/msvc;../../../Source/3rdParty/bgfx/include;../../../Source/3rdParty/bx/include;../../../Source/3rdParty/bimg/include;../../../Source/3rdParty/SDL2/include;../../../Source/3rdParty/Lua;../../../Source/3rdParty/Zip;../../../Source/3rdParty/soloud;../../../Source/3rdParty/lodepng;../../../Source/3rdParty/imgui;../../../Source/3rdParty/implot;../../../Source/3rdParty/sqlite;../../../Source/3rdParty/dragonBones;../../../Source/3rdParty/wasm3;../../../Source/3rdParty/Zip/zlib;../../../Source/3rdParty/Effekseer;../../../Source/3rdParty/h264bsd;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <StringPooling>true</StringPooling>

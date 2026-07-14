@@ -1,0 +1,148 @@
+/* Copyright (c) 2016-2026 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+import "runtime"
+
+#wa:import dora view3d_type
+func view3d_type() => i32
+
+#wa:import dora view3d_get_scene
+func view3d_get_scene(slf: i64) => i64
+
+#wa:import dora view3d_get_stats
+func view3d_get_stats(slf: i64) => i64
+
+#wa:import dora view3d_set_show_a_a_b_b
+func view3d_set_show_a_a_b_b(slf: i64, val: i32)
+
+#wa:import dora view3d_is_show_a_a_b_b
+func view3d_is_show_a_a_b_b(slf: i64) => i32
+
+#wa:import dora view3d_set_shadow_map_size
+func view3d_set_shadow_map_size(slf: i64, val: i32)
+
+#wa:import dora view3d_get_shadow_map_size
+func view3d_get_shadow_map_size(slf: i64) => i32
+
+#wa:import dora view3d_add_child_3d
+func view3d_add_child_3d(slf: i64, child: i64)
+
+#wa:import dora view3d_get_ray_origin
+func view3d_get_ray_origin(slf: i64, view_point: i64) => i64
+
+#wa:import dora view3d_get_ray_direction
+func view3d_get_ray_direction(slf: i64, view_point: i64) => i64
+
+#wa:import dora view3d_pick
+func view3d_pick(slf: i64, view_point: i64) => i64
+
+#wa:import dora view3d_set_environment_map
+func view3d_set_environment_map(slf: i64, path: i64) => i32
+
+#wa:import dora view3d_set_environment_intensity
+func view3d_set_environment_intensity(slf: i64, diffuse: f32, specular: f32, exposure: f32)
+
+#wa:import dora view3d_new
+func view3d_new() => i64
+
+type View3D :struct{ Node }
+
+func View3DFrom(raw: i64) => *View3D {
+	if raw == 0 {
+		return nil
+	}
+	object := View3D{}
+	object.raw = &raw
+	runtime.SetFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func View3D.GetTypeId() => i32 {
+	return view3d_type()
+}
+func ObjectAsView3D(object: Object) => *View3D {
+	if object.GetTypeId() == view3d_type() {
+		ObjectRetain(object.GetRaw())
+		return View3DFrom(object.GetRaw())
+	}
+	return nil
+}
+
+/// Gets the root 3D scene node.
+func View3D.GetScene() => Node3D {
+	return *Node3DFrom(view3d_get_scene(*this.raw))
+}
+
+/// Gets statistics from the most recent 3D render and current 3D registries.
+func View3D.GetStats() => RenderStats3D {
+	return *RenderStats3DFrom(view3d_get_stats(*this.raw))
+}
+
+/// Sets whether current world AABBs are drawn for debugging.
+func View3D.SetShowAABB(val: bool) {
+	view3d_set_show_a_a_b_b(*this.raw, ToDoraBool(val))
+}
+
+/// Gets whether current world AABBs are drawn for debugging.
+func View3D.IsShowAABB() => bool {
+	return view3d_is_show_a_a_b_b(*this.raw) != 0
+}
+
+/// Sets the directional shadow-map resolution for this view.
+func View3D.SetShadowMapSize(val: i32) {
+	view3d_set_shadow_map_size(*this.raw, val)
+}
+
+/// Gets the directional shadow-map resolution for this view.
+func View3D.GetShadowMapSize() => i32 {
+	return view3d_get_shadow_map_size(*this.raw)
+}
+
+/// Adds a 3D child node to the scene root.
+func View3D.AddChild3D(child: Node3D) {
+	view3d_add_child_3d(*this.raw, child.GetRaw())
+}
+
+/// Gets the world-space origin of the screen ray for a SharedView logical coordinate.
+func View3D.GetRayOrigin(view_point: Vec2) => Vec3 {
+	return *Vec3From(view3d_get_ray_origin(*this.raw, view_point.ToValue()))
+}
+
+/// Gets the normalized world-space direction of the screen ray.
+func View3D.GetRayDirection(view_point: Vec2) => Vec3 {
+	return *Vec3From(view3d_get_ray_direction(*this.raw, view_point.ToValue()))
+}
+
+/// Returns the nearest Model3D whose current world AABB intersects the screen ray.
+func View3D.Pick(view_point: Vec2) => *Model3D {
+	ptr_ := view3d_pick(*this.raw, view_point.ToValue())
+	if ptr_ == 0 {
+		return nil
+	}
+	obj_ := *Model3DFrom(ptr_)
+	return &obj_
+}
+
+/// Sets the environment map used by this 3D view.
+func View3D.SetEnvironmentMap(path: string) => bool {
+	return view3d_set_environment_map(*this.raw, ToDoraString(path)) != 0
+}
+
+/// Sets the environment lighting intensity used by this 3D view.
+func View3D.SetEnvironmentIntensity(diffuse: f32, specular: f32, exposure: f32) {
+	view3d_set_environment_intensity(*this.raw, diffuse, specular, exposure)
+}
+
+/// Creates a new 3D view node.
+func NewView3D() => View3D {
+	raw := view3d_new()
+	object := View3D{}
+	object.raw = &raw
+	runtime.SetFinalizer(object.raw, ObjectFinalizer)
+	return object
+}

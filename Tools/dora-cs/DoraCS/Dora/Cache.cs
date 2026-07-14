@@ -16,9 +16,23 @@ namespace Dora
 	internal static partial class Native
 	{
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void cache_set_model3_d_budget(int64_t val);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t cache_get_model3_d_budget();
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t cache_get_model3_d_usage();
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int32_t cache_get_model3_d_count();
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int32_t cache_load(int64_t filename);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void cache_load_async(int64_t filename, int32_t func0, int64_t stack0);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t cache_get_load_state(int64_t filename);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t cache_get_load_error(int64_t filename);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int32_t cache_cancel_load(int64_t filename);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void cache_update_item(int64_t filename, int64_t content);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
@@ -41,6 +55,22 @@ namespace Dora
 	/// </summary>
 	public static partial class Cache
 	{
+		/// <summary>The soft memory budget for cached Model3D resources in bytes. Zero means unlimited.</summary>
+		public static long Model3DBudget
+		{
+			set => Native.cache_set_model3_d_budget(value);
+			get => Native.cache_get_model3_d_budget();
+		}
+		/// <summary>The estimated resident bytes held by cached Model3D resources.</summary>
+		public static long Model3DUsage
+		{
+			get => Native.cache_get_model3_d_usage();
+		}
+		/// <summary>The number of Model3D definitions currently retained by the cache.</summary>
+		public static int Model3DCount
+		{
+			get => Native.cache_get_model3_d_count();
+		}
 		/// <summary>
 		/// Loads a file into the cache with a blocking operation.
 		/// </summary>
@@ -64,6 +94,21 @@ namespace Dora
 				handler(stack0.PopBool());
 			});
 			Native.cache_load_async(Bridge.FromString(filename), func_id0, stack_raw0);
+		}
+		/// <summary>Gets the Model3D or environment load state.</summary>
+		public static string GetLoadState(string filename)
+		{
+			return Bridge.ToString(Native.cache_get_load_state(Bridge.FromString(filename)));
+		}
+		/// <summary>Gets the latest load error for a Model3D or environment resource.</summary>
+		public static string GetLoadError(string filename)
+		{
+			return Bridge.ToString(Native.cache_get_load_error(Bridge.FromString(filename)));
+		}
+		/// <summary>Cancels an active Model3D or environment load.</summary>
+		public static bool CancelLoad(string filename)
+		{
+			return Native.cache_cancel_load(Bridge.FromString(filename)) != 0;
 		}
 		/// <summary>
 		/// Updates the content of a file loaded in the cache.

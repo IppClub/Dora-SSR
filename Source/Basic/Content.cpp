@@ -1384,7 +1384,11 @@ bool Content::exist(String filename) {
 	if (filename.trimSpace().empty()) {
 		return true;
 	}
-	return Content::isFileExist(Content::getFullPath(filename));
+	auto res = getFullPathAndPackage(filename);
+	if (res.zipFile) {
+		return true;
+	}
+	return Content::isFileExist(res.fullPath.empty() ? filename.toString() : res.fullPath);
 }
 
 bool Content::isFolder(String path) {
@@ -1662,14 +1666,12 @@ bool Content::isPathFolder(String path) {
 }
 #endif // BX_PLATFORM_ANDROID
 
-#if BX_PLATFORM_ANDROID || BX_PLATFORM_LINUX
+#if BX_PLATFORM_ANDROID || BX_PLATFORM_LINUX || BX_PLATFORM_OSX || BX_PLATFORM_IOS
 bool Content::isAbsolutePath(String strPath) {
-	if (strPath[0] == '/') {
-		return true;
-	}
-	return false;
+	if (strPath.empty()) return false;
+	return strPath.front() == '/';
 }
-#endif // BX_PLATFORM_ANDROID || BX_PLATFORM_LINUX
+#endif // BX_PLATFORM_ANDROID || BX_PLATFORM_LINUX || BX_PLATFORM_OSX || BX_PLATFORM_IOS
 
 #if BX_PLATFORM_WINDOWS
 bool Content::isAbsolutePath(String strPath) {

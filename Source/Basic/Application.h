@@ -76,6 +76,7 @@ public:
 	void openFileDialog(bool folderOnly, const std::function<void(std::string)>& callback);
 	void install(String path);
 	bool saveLog(String filename);
+	std::string saveScreenshot(String filename);
 	static int mainLogic(bx::Thread* thread, void* userData);
 	static int mainLogic(Application* app);
 #if BX_PLATFORM_WINDOWS

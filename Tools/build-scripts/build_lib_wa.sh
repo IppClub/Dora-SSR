@@ -8,10 +8,11 @@ WA_DIR="$PROJECT_DIR/Source/3rdParty/Wa/Source"
 OUTPUT_DIR="$PROJECT_DIR/Source/3rdParty/Wa/Lib"
 PLATFORM="${1:-}"
 BUILD_MODE="${2:-debug}"
+TARGET_ARCH="${3:-universal}"
 GOMOBILE_VERSION="v0.0.0-20250606033058-a2a15c67f36f"
 
 usage() {
-	echo "Usage: $0 <macos|ios|linux|android|all> [debug|release]" >&2
+	echo "Usage: $0 <macos|ios|linux|android|all> [debug|release] [arm64|x86_64|universal]" >&2
 	exit 1
 }
 
@@ -31,6 +32,17 @@ case "$BUILD_MODE" in
 	release|--release|-r)
 		BUILD_MODE="release"
 		GO_LDFLAGS="-ldflags=-s -w"
+		;;
+	*)
+		usage
+		;;
+esac
+
+case "$TARGET_ARCH" in
+	arm64|aarch64)
+		TARGET_ARCH="arm64"
+		;;
+	x86_64|universal)
 		;;
 	*)
 		usage
@@ -62,12 +74,19 @@ build_archive() {
 }
 
 build_macos() {
-	CGO_CFLAGS="-mmacosx-version-min=11.3" CGO_LDFLAGS="-mmacosx-version-min=11.3" \
-		build_archive darwin arm64 "$WA_DIR/.build/darwin-arm64/libwa.a"
-	CGO_CFLAGS="-mmacosx-version-min=11.3" CGO_LDFLAGS="-mmacosx-version-min=11.3" \
-		build_archive darwin amd64 "$WA_DIR/.build/darwin-amd64/libwa.a"
 	mkdir -p "$OUTPUT_DIR/macOS"
-	lipo -create "$WA_DIR/.build/darwin-arm64/libwa.a" "$WA_DIR/.build/darwin-amd64/libwa.a" -output "$OUTPUT_DIR/macOS/libwa.a"
+	if [ "$TARGET_ARCH" = "universal" ]; then
+		CGO_CFLAGS="-mmacosx-version-min=11.3" CGO_LDFLAGS="-mmacosx-version-min=11.3" \
+			build_archive darwin arm64 "$WA_DIR/.build/darwin-arm64/libwa.a"
+		CGO_CFLAGS="-mmacosx-version-min=11.3" CGO_LDFLAGS="-mmacosx-version-min=11.3" \
+			build_archive darwin amd64 "$WA_DIR/.build/darwin-amd64/libwa.a"
+		lipo -create "$WA_DIR/.build/darwin-arm64/libwa.a" "$WA_DIR/.build/darwin-amd64/libwa.a" -output "$OUTPUT_DIR/macOS/libwa.a"
+	else
+		local goarch="$TARGET_ARCH"
+		if [ "$goarch" = "x86_64" ]; then goarch="amd64"; fi
+		CGO_CFLAGS="-mmacosx-version-min=11.3" CGO_LDFLAGS="-mmacosx-version-min=11.3" \
+			build_archive darwin "$goarch" "$OUTPUT_DIR/macOS/libwa.a"
+	fi
 }
 
 build_ios() {

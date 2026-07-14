@@ -12,6 +12,12 @@ local record Mouse
 	-- local nodePos = node:convertToNodeSpace(worldPos)
 	const position: Vec2
 
+	-- 从上一帧开始累计的鼠标移动量。
+	const delta: Vec2
+
+	-- 是否启用相对鼠标模式。相对模式会隐藏并捕获鼠标光标。
+	relativeMode: boolean
+
 	-- 鼠标左键是否正在被按下。
 	const leftButtonPressed: boolean
 

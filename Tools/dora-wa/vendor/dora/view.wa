@@ -48,6 +48,12 @@ func view_get_post_effect() => i64
 #wa:import dora view_set_post_effect_null
 func view_set_post_effect_null()
 
+#wa:import dora view_set_frustum_culling
+func view_set_frustum_culling(val: i32)
+
+#wa:import dora view_is_frustum_culling
+func view_is_frustum_culling() => i32
+
 #wa:import dora view_set_vsync
 func view_set_vsync(val: i32)
 
@@ -129,6 +135,16 @@ func _View.GetPostEffect() => *SpriteEffect {
 }
 func _View.SetPostEffectNull() {
 	view_set_post_effect_null()
+}
+
+/// Sets whether or not frustum culling is enabled.
+func _View.SetFrustumCulling(val: bool) {
+	view_set_frustum_culling(ToDoraBool(val))
+}
+
+/// Gets whether or not frustum culling is enabled.
+func _View.IsFrustumCulling() => bool {
+	return view_is_frustum_culling() != 0
 }
 
 /// Sets whether or not vertical sync is enabled.

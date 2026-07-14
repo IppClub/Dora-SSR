@@ -96,6 +96,17 @@ local objects = {
 	"MoveJoint",
 	"ClipNode",
 	"Texture2D",
+	"Camera3D",
+	"Material3D",
+	"Model3D",
+	"Node3D",
+	"View3D",
+	"Body3D",
+	"CharacterController3D",
+	"FixtureDef3D",
+	"BodyDef3D",
+	"Constraint3D",
+	"PhysicsWorld3D",
 	"JointDef",
 	"Node",
 	"Node::Grabber",
@@ -214,4 +225,3 @@ function get_property_methods_hook(ptype, name)
 	end
 	-- etc
 end
-

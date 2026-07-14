@@ -625,8 +625,10 @@ void Node::cleanup() {
 		_signal = nullptr;
 		ARRAY_START(Node, child, _children) {
 			child->cleanup();
+			child->_parent = nullptr;
 		}
 		ARRAY_END
+		_children = nullptr;
 		unschedule();
 		unscheduleUpdate();
 		stopActionInList(_action);

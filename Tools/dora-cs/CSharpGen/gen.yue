@@ -258,6 +258,24 @@ basicTypes =
 			creturn: (name, fnArgId)-> "#{name}, _ := stack#{fnArgId}.PopVec2()"
 			cpass: (name, fnArgId)-> "stack#{fnArgId}.Push(#{name})"
 		}
+	Vec3:
+		* "long"
+		* (name)-> "Vec3_From(#{name})"
+		* (name)-> "Vec3_Retain(#{name})"
+		* "Vec3"
+		* "Vec3"
+		* (name)-> "#{name}.Raw"
+		* (name)-> "Vec3.From(#{name})"
+		* (fnArgId)-> "stack#{fnArgId}.PopVec3()"
+		* (name, fnArgId)-> "stack#{fnArgId}.Push(#{name});"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "*Vec3From(#{name})"
+			convertTo: (name)-> "#{name}.GetRaw()"
+			argType: "Vec3"
+			returnType: "Vec3"
+			creturn: (name, fnArgId)-> "#{name}, _ := stack#{fnArgId}.PopVec3()"
+			cpass: (name, fnArgId)-> "stack#{fnArgId}.Push(#{name})"
+		}
 	Size:
 		* "long"
 		* (name)-> "Size_From(#{name})"
@@ -327,6 +345,24 @@ basicTypes =
 			convertTo: (name)-> "#{name}.GetRaw()"
 			argType: "Rect"
 			returnType: "Rect"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+	RenderStats3D:
+		* "long"
+		* (name)-> "*r_cast<RenderStats3D*>(#{name})"
+		* (name)-> "r_cast<int64_t>(new RenderStats3D{#{name}})"
+		* "RenderStats3D"
+		* "RenderStats3D"
+		* (name)-> "#{name}.Raw"
+		* (name)-> "Dora.RenderStats3D.From(#{name})"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "*RenderStats3DFrom(#{name})"
+			convertTo: (name)-> "#{name}.GetRaw()"
+			argType: "RenderStats3D"
+			returnType: "RenderStats3D"
 			creturn: -> error "unsupported"
 			cpass: -> error "unsupported"
 		}
@@ -813,6 +849,42 @@ basicTypes =
 			convertTo: (name)-> "#{name}.ToValue()"
 			argType: "BodyType"
 			returnType: "BodyType"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+	BodyType3D:
+		* "int"
+		* (name)-> "s_cast<BodyType3D>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+		* "BodyType3D"
+		* "BodyType3D"
+		* (name)-> "(int)#{name}"
+		* (name)-> "(BodyType3D)#{name}"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "BodyType3D{value: #{name}}"
+			convertTo: (name)-> "#{name}.ToValue()"
+			argType: "BodyType3D"
+			returnType: "BodyType3D"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+	MaterialAlphaMode3D:
+		* "int"
+		* (name)-> "s_cast<MaterialAlphaMode3D>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+		* "MaterialAlphaMode3D"
+		* "MaterialAlphaMode3D"
+		* (name)-> "(int)#{name}"
+		* (name)-> "(MaterialAlphaMode3D)#{name}"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "MaterialAlphaMode3D{value: #{name}}"
+			convertTo: (name)-> "#{name}.ToValue()"
+			argType: "MaterialAlphaMode3D"
+			returnType: "MaterialAlphaMode3D"
 			creturn: -> error "unsupported"
 			cpass: -> error "unsupported"
 		}
@@ -1313,7 +1385,7 @@ else
 					funcName = name\sub(1, 1)\lower! .. name\sub 2
 					funcName = table.concat [sub\lower! for sub in funcName\gsub("%u", "_%1")\gmatch "[^_]*"], "_"
 					isCreate = false
-					if "create" == funcNewName\sub 1, 6
+					if "static" in labels and "create" == funcNewName\sub 1, 6
 						isCreate = true
 						funcNewName = if #funcNewName > 6
 							"with" .. funcNewName\sub 7
@@ -1513,6 +1585,9 @@ else
 							castFrom = (name)-> name
 						prefix = if cppType == "void" then "" else "return "
 						cppFuncName = "#{namespace}#{clsNameL}_#{funcNewName}"
+						csFuncName = snakeToPascal funcNewName
+						if clsNewName == "View3D" and funcNewName == "add_child_3d"
+							csFuncName = "AddChild"
 						rustFuncName = funcNewName
 						if isSingleton
 							csNative[] = "\t\t[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
@@ -1550,7 +1625,7 @@ else
 							item = "Native.#{cppFuncName}(#{argRtPass})"
 							rtOut = rtTypeOut or rt
 							csBinding[] = "\t\t#{table.concat docs, '\n\t\t'}" if #docs > 0
-							csBinding[] = "\t\tpublic #{(isStatic or isSingleton) and 'static ' or ''}#{rtOut and rtOut or "void"} #{snakeToPascal funcNewName}(#{argRtInDefs})
+							csBinding[] = "\t\tpublic #{(isStatic or isSingleton) and 'static ' or ''}#{rtOut and rtOut or "void"} #{csFuncName}(#{argRtInDefs})
 		{\n#{argRtPrepare}\t\t\t#{prefix}#{rtCastFrom and rtCastFrom(item, isOptional) or item};\n\t\t}"
 						prepareArgs = []
 						funcArgCount = -1
