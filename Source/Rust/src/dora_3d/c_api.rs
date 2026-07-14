@@ -108,6 +108,11 @@ pub extern "C" fn dora_3d_set_view_show_aabb(view_id: u16, enabled: i32) {
 }
 
 #[no_mangle]
+pub extern "C" fn dora_3d_set_view_shadow_map_size(view_id: u16, size: u16) {
+	renderer3d::set_view_shadow_map_size(view_id, size);
+}
+
+#[no_mangle]
 pub extern "C" fn dora_3d_queue_physics_debug_bounds(
 	root: Dora3DHandle,
 	min_x: f32,
@@ -881,6 +886,16 @@ pub extern "C" fn dora_3d_directional_light_set_shadow_normal_bias(node: Dora3DH
 #[no_mangle]
 pub extern "C" fn dora_3d_directional_light_get_shadow_normal_bias(node: Dora3DHandle) -> f32 {
 	light3d::directional_shadow_normal_bias(node).unwrap_or(0.0)
+}
+
+#[no_mangle]
+pub extern "C" fn dora_3d_directional_light_set_shadow_softness(node: Dora3DHandle, softness: f32) {
+	let _ = light3d::set_directional_shadow_softness(node, softness);
+}
+
+#[no_mangle]
+pub extern "C" fn dora_3d_directional_light_get_shadow_softness(node: Dora3DHandle) -> f32 {
+	light3d::directional_shadow_softness(node).unwrap_or(0.0)
 }
 
 #[no_mangle]

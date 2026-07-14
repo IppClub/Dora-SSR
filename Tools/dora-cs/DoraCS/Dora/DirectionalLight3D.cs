@@ -38,6 +38,10 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern float directionallight3d_get_shadow_normal_bias(int64_t self);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void directionallight3d_set_shadow_softness(int64_t self, float val);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern float directionallight3d_get_shadow_softness(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t directionallight3d_new();
 	}
 } // namespace Dora
@@ -101,6 +105,14 @@ namespace Dora
 		{
 			set => Native.directionallight3d_set_shadow_normal_bias(Raw, value);
 			get => Native.directionallight3d_get_shadow_normal_bias(Raw);
+		}
+		/// <summary>
+		/// The shadow filter radius in shadow-map texels.
+		/// </summary>
+		public float ShadowSoftness
+		{
+			set => Native.directionallight3d_set_shadow_softness(Raw, value);
+			get => Native.directionallight3d_get_shadow_softness(Raw);
 		}
 		/// <summary>
 		/// Creates a directional light.

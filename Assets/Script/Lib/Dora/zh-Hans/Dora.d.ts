@@ -3752,6 +3752,9 @@ class View3D extends Node {
 	/** 是否绘制当前世界坐标 AABB 调试线框。 */
 	showAABB: boolean;
 
+	/** 阴影贴图边长。该值会归一化为 256、512、1024、2048 或 4096。 */
+	shadowMapSize: number;
+
 	/** 添加3D子节点到场景根节点。 */
 	addChild(child: Node3D): void;
 	addChild(child: Node, order?: number, tag?: string): void;
@@ -4123,6 +4126,9 @@ class DirectionalLight3D extends Node3D {
 
 	/** 阴影深度比较使用的斜率相关法线偏移。 */
 	shadowNormalBias: number;
+
+	/** 以阴影贴图 texel 为单位的阴影过滤半径。设为零会关闭过滤。 */
+	shadowSoftness: number;
 }
 
 export {DirectionalLight3D as DirectionalLight3DType};

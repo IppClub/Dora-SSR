@@ -464,7 +464,7 @@ void ParticleNode::visit() {
 					radial = Vec2::zero;
 
 					if (p.pos.x || p.pos.y) {
-						radial = p.pos;
+						radial = p.pos.toVec2();
 						radial.normalize();
 					}
 					tangential = radial;

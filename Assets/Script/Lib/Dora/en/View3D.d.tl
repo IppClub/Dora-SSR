@@ -20,6 +20,9 @@ local record View3D
 	-- Whether current world AABBs are drawn for debugging.
 	showAABB: boolean
 
+	-- The shadow map side length. The value is normalized to 256, 512, 1024, 2048, or 4096.
+	shadowMapSize: number
+
 	-- Returns the world-space origin of the picking ray through a view point.
 	getRayOrigin: function(self: View3D, viewPoint: Vec2): Vec3
 

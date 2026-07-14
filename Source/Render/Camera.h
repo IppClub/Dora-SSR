@@ -57,6 +57,8 @@ class Camera2D : public Camera {
 public:
 	PROPERTY(float, Rotation);
 	PROPERTY(float, Zoom);
+	Vec2 getPosition2D() const;
+	void setPosition2D(const Vec2& position);
 	void setPosition(const Vec2& position);
 	virtual const Vec3& getUp() override;
 	virtual const Matrix& getView() override;
@@ -75,6 +77,8 @@ private:
 
 class CameraOtho : public Camera {
 public:
+	Vec2 getPosition2D() const;
+	void setPosition2D(const Vec2& position);
 	void setPosition(const Vec2& position);
 	virtual const Matrix& getView() override;
 	virtual bool hasProjection() const override;

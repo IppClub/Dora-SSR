@@ -24,6 +24,7 @@ extern "C" {
 void dora_3d_set_view_state(uint16_t view_id, const float* view_proj, float eye_x, float eye_y, float eye_z);
 void dora_3d_set_view_frustum_culling(uint16_t view_id, int32_t enabled);
 void dora_3d_set_view_show_aabb(uint16_t view_id, int32_t enabled);
+void dora_3d_set_view_shadow_map_size(uint16_t view_id, uint16_t size);
 int32_t dora_3d_render_node(uint16_t view_id, uint64_t node);
 int32_t dora_3d_render_node_with_shadow(uint16_t view_id, uint16_t shadow_view_id, uint64_t node);
 int32_t dora_3d_scene_has_shadow_light(uint64_t node);
@@ -40,6 +41,7 @@ View3D::View3D()
 	, _environmentSpecular(1.0f)
 	, _environmentExposure(1.0f)
 	, _showAABB(false)
+	, _shadowMapSize(1024)
 	, _lastViewId(std::numeric_limits<uint16_t>::max()) { }
 
 View3D::~View3D() { }
@@ -102,6 +104,24 @@ bool View3D::isShowAABB() const noexcept {
 
 void View3D::setShowAABB(bool var) {
 	_showAABB = var;
+}
+
+uint16_t View3D::getShadowMapSize() const noexcept {
+	return _shadowMapSize;
+}
+
+void View3D::setShadowMapSize(uint16_t size) {
+	static constexpr uint16_t sizes[] = {256, 512, 1024, 2048, 4096};
+	uint16_t nearest = sizes[0];
+	uint32_t nearestDistance = std::abs(s_cast<int32_t>(size) - s_cast<int32_t>(nearest));
+	for (uint16_t candidate : sizes) {
+		uint32_t distance = std::abs(s_cast<int32_t>(size) - s_cast<int32_t>(candidate));
+		if (distance < nearestDistance) {
+			nearest = candidate;
+			nearestDistance = distance;
+		}
+	}
+	_shadowMapSize = nearest;
 }
 
 void View3D::addChild(Node3D* child, int order, String tag) {
@@ -245,6 +265,7 @@ void View3D::render3D(bgfx::ViewId viewId) {
 	dora_3d_set_view_state(viewId, viewProj.m, eye.x, eye.y, eye.z);
 	dora_3d_set_view_frustum_culling(viewId, SharedView.isFrustumCulling() ? 1 : 0);
 	dora_3d_set_view_show_aabb(viewId, _showAABB ? 1 : 0);
+	dora_3d_set_view_shadow_map_size(viewId, _shadowMapSize);
 	dora_3d_set_view_environment(viewId, _environmentMap.c_str(), _environmentDiffuse, _environmentSpecular, _environmentExposure);
 	if (dora_3d_scene_has_shadow_light(_scene->getHandle()) != 0) {
 		bgfx::ViewId shadowViewId = 0;

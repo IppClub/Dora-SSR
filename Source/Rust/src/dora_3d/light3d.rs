@@ -15,6 +15,7 @@ struct DirectionalLightData {
 	cast_shadow: bool,
 	shadow_bias: f32,
 	shadow_normal_bias: f32,
+	shadow_softness: f32,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -33,6 +34,7 @@ pub struct DirectionalLight {
 	pub cast_shadow: bool,
 	pub shadow_bias: f32,
 	pub shadow_normal_bias: f32,
+	pub shadow_softness: f32,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -116,6 +118,7 @@ pub fn create_directional(node: Dora3DHandle) -> bool {
 			cast_shadow: false,
 			shadow_bias: 0.004,
 			shadow_normal_bias: 0.02,
+			shadow_softness: 1.5,
 		},
 	);
 	true
@@ -241,6 +244,24 @@ pub fn directional_shadow_normal_bias(node: Dora3DHandle) -> Option<f32> {
 		.map(|light| light.shadow_normal_bias)
 }
 
+pub fn set_directional_shadow_softness(node: Dora3DHandle, softness: f32) -> bool {
+	let mut lights = registry().lock().unwrap();
+	let Some(light) = lights.directional.get_mut(&node) else {
+		return false;
+	};
+	light.shadow_softness = softness.max(0.0);
+	true
+}
+
+pub fn directional_shadow_softness(node: Dora3DHandle) -> Option<f32> {
+	registry()
+		.lock()
+		.unwrap()
+		.directional
+		.get(&node)
+		.map(|light| light.shadow_softness)
+}
+
 pub fn scene_has_shadow_light(root: Dora3DHandle) -> bool {
 	let lights = registry().lock().unwrap();
 	for light in lights.directional.values() {
@@ -332,6 +353,7 @@ pub fn collect_scene(nodes: &[Dora3DHandle]) -> SceneLights {
 			cast_shadow: light.cast_shadow,
 			shadow_bias: light.shadow_bias,
 			shadow_normal_bias: light.shadow_normal_bias,
+			shadow_softness: light.shadow_softness,
 		});
 	}
 	directionals.sort_by(|a, b| {

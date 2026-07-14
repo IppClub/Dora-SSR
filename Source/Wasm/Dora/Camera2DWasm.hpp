@@ -24,10 +24,10 @@ DORA_EXPORT float camera2d_get_zoom(int64_t self) {
 	return r_cast<Camera2D*>(self)->getZoom();
 }
 DORA_EXPORT void camera2d_set_position(int64_t self, int64_t val) {
-	r_cast<Camera2D*>(self)->setPosition(Vec2_From(val));
+	r_cast<Camera2D*>(self)->setPosition2D(Vec2_From(val));
 }
 DORA_EXPORT int64_t camera2d_get_position(int64_t self) {
-	return Vec2_Retain(r_cast<Camera2D*>(self)->getPosition());
+	return Vec2_Retain(r_cast<Camera2D*>(self)->getPosition2D());
 }
 DORA_EXPORT int64_t camera2d_new(int64_t name) {
 	return Object_From(Camera2D::create(*Str_From(name)));

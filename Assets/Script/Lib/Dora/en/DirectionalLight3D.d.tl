@@ -13,6 +13,8 @@ local record DirectionalLight3D
 	castShadow: boolean
 	shadowBias: number
 	shadowNormalBias: number
+	-- Shadow filter radius measured in shadow-map texels. Zero disables filtering.
+	shadowSoftness: number
 end
 
 local record DirectionalLight3DClass

@@ -3754,6 +3754,9 @@ class View3D extends Node {
 	/** Whether current world AABBs are drawn for debugging. */
 	showAABB: boolean;
 
+	/** The shadow map side length. The value is normalized to 256, 512, 1024, 2048, or 4096. */
+	shadowMapSize: number;
+
 	/** Adds a 3D child node to the scene root. */
 	addChild(child: Node3D): void;
 	addChild(child: Node, order?: number, tag?: string): void;
@@ -4127,6 +4130,9 @@ class DirectionalLight3D extends Node3D {
 
 	/** Slope-dependent normal bias used by the shadow comparison. */
 	shadowNormalBias: number;
+
+	/** Shadow filter radius measured in shadow-map texels. Zero disables filtering. */
+	shadowSoftness: number;
 }
 
 export {DirectionalLight3D as DirectionalLight3DType};

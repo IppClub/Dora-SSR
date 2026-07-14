@@ -23,6 +23,12 @@ func view3d_set_show_a_a_b_b(slf: i64, val: i32)
 #wa:import dora view3d_is_show_a_a_b_b
 func view3d_is_show_a_a_b_b(slf: i64) => i32
 
+#wa:import dora view3d_set_shadow_map_size
+func view3d_set_shadow_map_size(slf: i64, val: i32)
+
+#wa:import dora view3d_get_shadow_map_size
+func view3d_get_shadow_map_size(slf: i64) => i32
+
 #wa:import dora view3d_add_child_3d
 func view3d_add_child_3d(slf: i64, child: i64)
 
@@ -85,6 +91,16 @@ func View3D.SetShowAABB(val: bool) {
 /// Gets whether current world AABBs are drawn for debugging.
 func View3D.IsShowAABB() => bool {
 	return view3d_is_show_a_a_b_b(*this.raw) != 0
+}
+
+/// Sets the directional shadow-map resolution for this view.
+func View3D.SetShadowMapSize(val: i32) {
+	view3d_set_shadow_map_size(*this.raw, val)
+}
+
+/// Gets the directional shadow-map resolution for this view.
+func View3D.GetShadowMapSize() => i32 {
+	return view3d_get_shadow_map_size(*this.raw)
 }
 
 /// Adds a 3D child node to the scene root.

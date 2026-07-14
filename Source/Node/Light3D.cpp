@@ -23,6 +23,8 @@ void dora_3d_directional_light_set_shadow_bias(uint64_t node, float bias);
 float dora_3d_directional_light_get_shadow_bias(uint64_t node);
 void dora_3d_directional_light_set_shadow_normal_bias(uint64_t node, float bias);
 float dora_3d_directional_light_get_shadow_normal_bias(uint64_t node);
+void dora_3d_directional_light_set_shadow_softness(uint64_t node, float softness);
+float dora_3d_directional_light_get_shadow_softness(uint64_t node);
 int32_t dora_3d_point_light_create(uint64_t node);
 void dora_3d_point_light_set_color(uint64_t node, float r, float g, float b);
 void dora_3d_point_light_get_color(uint64_t node, float* out);
@@ -112,6 +114,20 @@ void DirectionalLight3D::setShadowNormalBias(float bias) {
 float DirectionalLight3D::getShadowNormalBias() const noexcept {
 #ifndef DORA_NO_RUST
 	return dora_3d_directional_light_get_shadow_normal_bias(getHandle());
+#else
+	return 0.0f;
+#endif
+}
+
+void DirectionalLight3D::setShadowSoftness(float softness) {
+#ifndef DORA_NO_RUST
+	dora_3d_directional_light_set_shadow_softness(getHandle(), softness);
+#endif
+}
+
+float DirectionalLight3D::getShadowSoftness() const noexcept {
+#ifndef DORA_NO_RUST
+	return dora_3d_directional_light_get_shadow_softness(getHandle());
 #else
 	return 0.0f;
 #endif

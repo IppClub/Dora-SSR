@@ -41,6 +41,12 @@ DORA_EXPORT void directionallight3d_set_shadow_normal_bias(int64_t self, float v
 DORA_EXPORT float directionallight3d_get_shadow_normal_bias(int64_t self) {
 	return r_cast<DirectionalLight3D*>(self)->getShadowNormalBias();
 }
+DORA_EXPORT void directionallight3d_set_shadow_softness(int64_t self, float val) {
+	r_cast<DirectionalLight3D*>(self)->setShadowSoftness(val);
+}
+DORA_EXPORT float directionallight3d_get_shadow_softness(int64_t self) {
+	return r_cast<DirectionalLight3D*>(self)->getShadowSoftness();
+}
 DORA_EXPORT int64_t directionallight3d_new() {
 	return Object_From(DirectionalLight3D::create());
 }
@@ -58,5 +64,7 @@ static void linkDirectionalLight3D(wasm3::module3& mod) {
 	mod.link_optional("*", "directionallight3d_get_shadow_bias", directionallight3d_get_shadow_bias);
 	mod.link_optional("*", "directionallight3d_set_shadow_normal_bias", directionallight3d_set_shadow_normal_bias);
 	mod.link_optional("*", "directionallight3d_get_shadow_normal_bias", directionallight3d_get_shadow_normal_bias);
+	mod.link_optional("*", "directionallight3d_set_shadow_softness", directionallight3d_set_shadow_softness);
+	mod.link_optional("*", "directionallight3d_get_shadow_softness", directionallight3d_get_shadow_softness);
 	mod.link_optional("*", "directionallight3d_new", directionallight3d_new);
 }

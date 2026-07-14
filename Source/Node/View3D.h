@@ -90,6 +90,7 @@ public:
 	PROPERTY_READONLY_CALL(Node3D*, Scene);
 	PROPERTY_READONLY_CREF(RenderStats3D, Stats);
 	PROPERTY_BOOL(ShowAABB);
+	PROPERTY(uint16_t, ShadowMapSize);
 	using Node::addChild;
 	void addChild(Node3D* child, int order, String tag);
 	void addChild(Node3D* child, int order);
@@ -117,6 +118,7 @@ private:
 	float _environmentSpecular;
 	float _environmentExposure;
 	bool _showAABB;
+	uint16_t _shadowMapSize;
 	mutable RenderStats3D _stats;
 	mutable uint16_t _lastViewId;
 	Ref<Node3D> _scene;

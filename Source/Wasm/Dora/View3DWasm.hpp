@@ -23,6 +23,12 @@ DORA_EXPORT void view3d_set_show_a_a_b_b(int64_t self, int32_t val) {
 DORA_EXPORT int32_t view3d_is_show_a_a_b_b(int64_t self) {
 	return r_cast<View3D*>(self)->isShowAABB() ? 1 : 0;
 }
+DORA_EXPORT void view3d_set_shadow_map_size(int64_t self, int32_t val) {
+	r_cast<View3D*>(self)->setShadowMapSize(s_cast<uint16_t>(val));
+}
+DORA_EXPORT int32_t view3d_get_shadow_map_size(int64_t self) {
+	return s_cast<int32_t>(r_cast<View3D*>(self)->getShadowMapSize());
+}
 DORA_EXPORT void view3d_add_child_3d(int64_t self, int64_t child) {
 	r_cast<View3D*>(self)->addChild(r_cast<Node3D*>(child));
 }
@@ -52,6 +58,8 @@ static void linkView3D(wasm3::module3& mod) {
 	mod.link_optional("*", "view3d_get_stats", view3d_get_stats);
 	mod.link_optional("*", "view3d_set_show_a_a_b_b", view3d_set_show_a_a_b_b);
 	mod.link_optional("*", "view3d_is_show_a_a_b_b", view3d_is_show_a_a_b_b);
+	mod.link_optional("*", "view3d_set_shadow_map_size", view3d_set_shadow_map_size);
+	mod.link_optional("*", "view3d_get_shadow_map_size", view3d_get_shadow_map_size);
 	mod.link_optional("*", "view3d_add_child_3d", view3d_add_child_3d);
 	mod.link_optional("*", "view3d_get_ray_origin", view3d_get_ray_origin);
 	mod.link_optional("*", "view3d_get_ray_direction", view3d_get_ray_direction);

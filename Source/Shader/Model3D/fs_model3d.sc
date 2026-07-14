@@ -208,30 +208,30 @@ float directionalShadow(vec3 normal, vec3 lightDirection, vec4 shadowCoord)
 	float receiverDepth = coord.z - u_shadowParams.x - normalOffset;
 	float visibility = 0.0;
 	vec2 texel = vec2_splat(u_shadowParams.z);
-#define DORA_SHADOW_SAMPLE(_x, _y) \
+#define DORA_SHADOW_SAMPLE(_x, _y, _weight) \
 	{ \
 		vec4 packedDepth = texture2D(s_shadowMap, coord.xy + vec2(_x, _y) * texel); \
 		float casterDepth = dot(packedDepth, vec4(0.000000059604645, 0.000015258789, 0.00390625, 1.0)); \
-		visibility += receiverDepth <= casterDepth ? 1.0 : 0.0; \
+		visibility += (receiverDepth <= casterDepth ? 1.0 : 0.0) * _weight; \
 	}
-	DORA_SHADOW_SAMPLE(-1.5, -1.5)
-	DORA_SHADOW_SAMPLE(-1.5, -0.5)
-	DORA_SHADOW_SAMPLE(-1.5,  0.5)
-	DORA_SHADOW_SAMPLE(-1.5,  1.5)
-	DORA_SHADOW_SAMPLE(-0.5, -1.5)
-	DORA_SHADOW_SAMPLE(-0.5, -0.5)
-	DORA_SHADOW_SAMPLE(-0.5,  0.5)
-	DORA_SHADOW_SAMPLE(-0.5,  1.5)
-	DORA_SHADOW_SAMPLE( 0.5, -1.5)
-	DORA_SHADOW_SAMPLE( 0.5, -0.5)
-	DORA_SHADOW_SAMPLE( 0.5,  0.5)
-	DORA_SHADOW_SAMPLE( 0.5,  1.5)
-	DORA_SHADOW_SAMPLE( 1.5, -1.5)
-	DORA_SHADOW_SAMPLE( 1.5, -0.5)
-	DORA_SHADOW_SAMPLE( 1.5,  0.5)
-	DORA_SHADOW_SAMPLE( 1.5,  1.5)
+	DORA_SHADOW_SAMPLE(-1.5, -1.5, 1.0)
+	DORA_SHADOW_SAMPLE(-1.5, -0.5, 3.0)
+	DORA_SHADOW_SAMPLE(-1.5,  0.5, 3.0)
+	DORA_SHADOW_SAMPLE(-1.5,  1.5, 1.0)
+	DORA_SHADOW_SAMPLE(-0.5, -1.5, 3.0)
+	DORA_SHADOW_SAMPLE(-0.5, -0.5, 9.0)
+	DORA_SHADOW_SAMPLE(-0.5,  0.5, 9.0)
+	DORA_SHADOW_SAMPLE(-0.5,  1.5, 3.0)
+	DORA_SHADOW_SAMPLE( 0.5, -1.5, 3.0)
+	DORA_SHADOW_SAMPLE( 0.5, -0.5, 9.0)
+	DORA_SHADOW_SAMPLE( 0.5,  0.5, 9.0)
+	DORA_SHADOW_SAMPLE( 0.5,  1.5, 3.0)
+	DORA_SHADOW_SAMPLE( 1.5, -1.5, 1.0)
+	DORA_SHADOW_SAMPLE( 1.5, -0.5, 3.0)
+	DORA_SHADOW_SAMPLE( 1.5,  0.5, 3.0)
+	DORA_SHADOW_SAMPLE( 1.5,  1.5, 1.0)
 #undef DORA_SHADOW_SAMPLE
-	return visibility / 16.0;
+	return visibility / 64.0;
 }
 
 float maxValue(vec3 value)

@@ -20,6 +20,9 @@ local record View3D
 	-- 是否绘制当前世界坐标 AABB 调试线框。
 	showAABB: boolean
 
+	-- 阴影贴图边长。该值会归一化为 256、512、1024、2048 或 4096。
+	shadowMapSize: number
+
 	-- 返回穿过视图坐标点的拾取射线世界坐标起点。
 	getRayOrigin: function(self: View3D, viewPoint: Vec2): Vec3
 

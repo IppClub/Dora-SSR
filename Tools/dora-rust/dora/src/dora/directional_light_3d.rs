@@ -18,6 +18,8 @@ extern "C" {
 	fn directionallight3d_get_shadow_bias(slf: i64) -> f32;
 	fn directionallight3d_set_shadow_normal_bias(slf: i64, val: f32);
 	fn directionallight3d_get_shadow_normal_bias(slf: i64) -> f32;
+	fn directionallight3d_set_shadow_softness(slf: i64, val: f32);
+	fn directionallight3d_get_shadow_softness(slf: i64) -> f32;
 	fn directionallight3d_new() -> i64;
 }
 use crate::dora::IObject;
@@ -74,6 +76,14 @@ impl DirectionalLight3D {
 	/// Gets the slope-dependent shadow normal bias.
 	pub fn get_shadow_normal_bias(&self) -> f32 {
 		return unsafe { directionallight3d_get_shadow_normal_bias(self.raw()) };
+	}
+	/// Sets the shadow filter radius in shadow-map texels.
+	pub fn set_shadow_softness(&mut self, val: f32) {
+		unsafe { directionallight3d_set_shadow_softness(self.raw(), val) };
+	}
+	/// Gets the shadow filter radius in shadow-map texels.
+	pub fn get_shadow_softness(&self) -> f32 {
+		return unsafe { directionallight3d_get_shadow_softness(self.raw()) };
 	}
 	/// Creates a directional light.
 	pub fn new() -> DirectionalLight3D {

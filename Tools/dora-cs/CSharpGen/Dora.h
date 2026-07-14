@@ -1292,6 +1292,10 @@ object class DirectionalLight3D : public Node3D
 	/// </summary>
 	common float shadowNormalBias;
 	/// <summary>
+	/// The shadow filter radius in shadow-map texels.
+	/// </summary>
+	common float shadowSoftness;
+	/// <summary>
 	/// Creates a directional light.
 	/// </summary>
 	static DirectionalLight3D* create();
@@ -1337,6 +1341,10 @@ object class View3D : public Node
 	/// Whether current world AABBs are drawn for debugging.
 	/// </summary>
 	boolean bool showAABB;
+	/// <summary>
+	/// The directional shadow-map resolution for this view.
+	/// </summary>
+	common uint16_t shadowMapSize;
 	/// <summary>
 	/// Adds a 3D child node to the scene root.
 	/// </summary>

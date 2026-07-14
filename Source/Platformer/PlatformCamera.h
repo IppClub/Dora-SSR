@@ -28,6 +28,8 @@ public:
 	PROPERTY(Node*, FollowTarget);
 	PROPERTY(float, Rotation);
 	PROPERTY(float, Zoom);
+	Vec2 getPosition2D() const;
+	void setPosition2D(const Vec2& position);
 	void setPosition(const Vec2& position);
 	virtual bool init() override;
 	virtual const Vec3& getUp() override;

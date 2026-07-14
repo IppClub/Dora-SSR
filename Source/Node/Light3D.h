@@ -19,6 +19,7 @@ public:
 	PROPERTY_BOOL(CastShadow);
 	PROPERTY(float, ShadowBias);
 	PROPERTY(float, ShadowNormalBias);
+	PROPERTY(float, ShadowSoftness);
 	virtual bool init() override;
 	CREATE_FUNC_NOT_NULL(DirectionalLight3D);
 

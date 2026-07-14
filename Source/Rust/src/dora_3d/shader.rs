@@ -153,7 +153,7 @@ pub struct ShadowDrawState {
 	pub texture: bgfx_sys::bgfx_texture_handle_t,
 	pub bias: f32,
 	pub normal_bias: f32,
-	pub inv_size: f32,
+	pub filter_step: f32,
 }
 
 impl Drop for ShadowMap {
@@ -1503,7 +1503,7 @@ unsafe fn apply_draw_uniforms(
 	let (shadow_matrix, shadow_params, shadow_texture) = if let Some(shadow) = shadow {
 		(
 			mat4_to_bgfx_array(&shadow.matrix),
-			[shadow.bias, shadow.normal_bias, shadow.inv_size, 1.0],
+			[shadow.bias, shadow.normal_bias, shadow.filter_step, 1.0],
 			shadow.texture,
 		)
 	} else {

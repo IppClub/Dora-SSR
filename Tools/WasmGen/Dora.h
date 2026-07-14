@@ -776,7 +776,7 @@ object class Camera2D : public ICamera
 	/// the factor by which to zoom the camera. If set to 1.0, the view is normal sized. If set to 2.0, items will appear double in size.
 	common float zoom;
 	/// the position of the camera in the game world.
-	common Vec2 position;
+	common Vec2 position2D @ position;
 	/// Creates a new Camera2D object with the given name.
 	///
 	/// # Arguments
@@ -793,7 +793,7 @@ object class Camera2D : public ICamera
 object class CameraOtho : public ICamera
 {
 	/// the position of the camera in the game world.
-	common Vec2 position;
+	common Vec2 position2D @ position;
 	/// Creates a new CameraOtho object with the given name.
 	///
 	/// # Arguments
@@ -1178,6 +1178,8 @@ object class DirectionalLight3D : public INode3D
 	common float shadowBias;
 	/// the slope-dependent shadow normal bias.
 	common float shadowNormalBias;
+	/// the shadow filter radius in shadow-map texels.
+	common float shadowSoftness;
 	/// Creates a directional light.
 	static DirectionalLight3D* create();
 };
@@ -1204,6 +1206,8 @@ interface object class View3D : public INode
 	readonly common RenderStats3D stats;
 	/// whether current world AABBs are drawn for debugging.
 	boolean bool showAABB;
+	/// the directional shadow-map resolution for this view.
+	common uint16_t shadowMapSize;
 	/// Adds a 3D child node to the scene root.
 	void addChild @ add_child_3d(Node3D* child);
 	/// Gets the world-space origin of the screen ray for a SharedView logical coordinate.
@@ -5695,7 +5699,7 @@ object class Unit : public IBody
 object class PlatformCamera : public ICamera
 {
 	/// The camera's position.
-	common Vec2 position;
+	common Vec2 position2D @ position;
 	/// The camera's rotation in degrees.
 	common float rotation;
 	/// The camera's zoom factor, 1.0 means the normal size, 2.0 mean zoom to doubled size.

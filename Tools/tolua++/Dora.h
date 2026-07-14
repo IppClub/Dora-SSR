@@ -307,13 +307,13 @@ class Camera2D : public Camera
 {
 	tolua_property__common float rotation;
 	tolua_property__common float zoom;
-	tolua_property__common Vec2 position;
+	tolua_property__common Vec2 position2D @ position;
 	Camera2D* create(String name = nullptr);
 };
 
 class CameraOtho : public Camera
 {
-	tolua_property__common Vec2 position;
+	tolua_property__common Vec2 position2D @ position;
 	CameraOtho* create(String name = nullptr);
 };
 
@@ -625,6 +625,7 @@ class DirectionalLight3D : public Node3D
 	tolua_property__bool bool castShadow;
 	tolua_property__common float shadowBias;
 	tolua_property__common float shadowNormalBias;
+	tolua_property__common float shadowSoftness;
 	static DirectionalLight3D* create();
 };
 
@@ -641,6 +642,7 @@ class View3D : public Node
 	tolua_readonly tolua_property__common Node3D* scene;
 	tolua_readonly tolua_property__common RenderStats3D& stats;
 	tolua_property__bool bool showAABB;
+	tolua_property__common uint16_t shadowMapSize;
 	void addChild(Node* child, int order, String tag);
 	void addChild(Node* child, int order);
 	void addChild(Node* child);
@@ -1712,7 +1714,7 @@ class Unit : public Body
 
 class PlatformCamera : public Camera
 {
-	tolua_property__common Vec2 position;
+	tolua_property__common Vec2 position2D @ position;
 	tolua_property__common float rotation;
 	tolua_property__common float zoom;
 	tolua_property__common Rect boundary;

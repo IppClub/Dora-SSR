@@ -27,7 +27,10 @@ pub struct ViewRenderState {
 	pub frustum: Frustum,
 	pub frustum_culling: bool,
 	pub show_aabb: bool,
+	pub shadow_map_size: u16,
 }
+
+const DEFAULT_SHADOW_MAP_SIZE: u16 = 1024;
 
 #[derive(Debug, Clone, Copy)]
 enum PhysicsDebugShape {
@@ -106,6 +109,7 @@ struct RenderVisualItem {
 	visual: Dora3DHandle,
 	mesh: Dora3DHandle,
 	material: Dora3DHandle,
+	frustum_culling: bool,
 	transparent: bool,
 	distance_to_camera_sq: f32,
 	sort_key: u64,
@@ -288,6 +292,10 @@ pub fn set_view_state(view_id: bgfx_sys::bgfx_view_id_t, view_proj: Mat4, view_p
 		.get(&view_id)
 		.map(|state| state.show_aabb)
 		.unwrap_or(false);
+	let shadow_map_size = states
+		.get(&view_id)
+		.map(|state| state.shadow_map_size)
+		.unwrap_or(DEFAULT_SHADOW_MAP_SIZE);
 	states.insert(
 		view_id,
 		ViewRenderState {
@@ -296,6 +304,7 @@ pub fn set_view_state(view_id: bgfx_sys::bgfx_view_id_t, view_proj: Mat4, view_p
 			frustum,
 			frustum_culling,
 			show_aabb,
+			shadow_map_size,
 		},
 	);
 }
@@ -313,6 +322,7 @@ pub fn set_view_frustum_culling(view_id: bgfx_sys::bgfx_view_id_t, enabled: bool
 				frustum: Frustum::from_view_projection(&Mat4::IDENTITY),
 				frustum_culling: enabled,
 				show_aabb: false,
+				shadow_map_size: DEFAULT_SHADOW_MAP_SIZE,
 			},
 		);
 	}
@@ -331,6 +341,26 @@ pub fn set_view_show_aabb(view_id: bgfx_sys::bgfx_view_id_t, enabled: bool) {
 				frustum: Frustum::from_view_projection(&Mat4::IDENTITY),
 				frustum_culling: true,
 				show_aabb: enabled,
+				shadow_map_size: DEFAULT_SHADOW_MAP_SIZE,
+			},
+		);
+	}
+}
+
+pub fn set_view_shadow_map_size(view_id: bgfx_sys::bgfx_view_id_t, size: u16) {
+	let mut states = view_states().lock().unwrap();
+	if let Some(state) = states.get_mut(&view_id) {
+		state.shadow_map_size = size;
+	} else {
+		states.insert(
+			view_id,
+			ViewRenderState {
+				view_proj: Mat4::IDENTITY,
+				view_pos: Vec3::ZERO,
+				frustum: Frustum::from_view_projection(&Mat4::IDENTITY),
+				frustum_culling: true,
+				show_aabb: false,
+				shadow_map_size: size,
 			},
 		);
 	}
@@ -395,7 +425,7 @@ fn render_node_internal(
 		shader::remove_shadow_map(root);
 	}
 	let view_state = view_state(view_id);
-	let mut render_items = Vec::new();
+	let mut scene_items = Vec::new();
 	let mut stats = RenderStats3D::default();
 	let mut workspace = render_workspaces()
 		.lock()
@@ -441,7 +471,7 @@ fn render_node_internal(
 						&workspace.world_matrices,
 					)
 				});
-			if let Some(item) = collect_prepared_visual_item(
+			if let Some(item) = prepare_visual_item(
 				visual.handle,
 				visual.mesh,
 				visual.material,
@@ -450,9 +480,8 @@ fn render_node_internal(
 				world,
 				joint_matrices,
 				&view_state,
-				&mut stats,
 			) {
-				render_items.push(item);
+				scene_items.push(item);
 			}
 		}
 	}
@@ -460,11 +489,23 @@ fn render_node_internal(
 		prepare_shadow_pass(
 			root,
 			shadow_view_id,
-			&render_items,
+			&scene_items,
 			&view_state,
 			&scene_lights,
 		)
 	});
+	let render_items = scene_items
+		.into_iter()
+		.filter(|item| {
+			if should_render_bounds(&view_state, item.frustum_culling, &item.world_bounds) {
+				stats.visible_visuals += 1;
+				true
+			} else {
+				stats.culled_visuals += 1;
+				false
+			}
+		})
+		.collect();
 	let mut result = render_items_sorted(
 		view_id,
 		render_items,
@@ -518,12 +559,12 @@ fn prepare_shadow_pass(
 	if items.is_empty() {
 		return None;
 	}
-	const SHADOW_SIZE: u16 = 1024;
-	// A single 1024 map cannot preserve useful texel density over the camera's
+	// A single shadow map cannot preserve useful texel density over the camera's
 	// entire far plane. Keep the first-person gameplay region sharp; larger
 	// worlds should move to cascades instead of stretching this projection.
 	const SHADOW_DISTANCE: f32 = 20.0;
-	let texture = shader::prepare_shadow_map(root, view_id, SHADOW_SIZE)?;
+	let shadow_size = view_state.shadow_map_size;
+	let texture = shader::prepare_shadow_map(root, view_id, shadow_size)?;
 	let caps = unsafe { &*bgfx_sys::bgfx_get_caps() };
 	let frustum_corners =
 		shadow_frustum_corners(view_state.view_proj, caps.homogeneousDepth, SHADOW_DISTANCE)?;
@@ -543,24 +584,35 @@ fn prepare_shadow_pass(
 	for corner in frustum_corners {
 		receiver_bounds.include(light_view.transform_point3(corner));
 	}
-	let mut caster_bounds = Aabb::empty();
-	for item in items {
-		for corner in item.world_bounds.corners() {
-			caster_bounds.include(light_view.transform_point3(corner));
-		}
-	}
-	if !receiver_bounds.is_valid() || !caster_bounds.is_valid() {
+	if !receiver_bounds.is_valid() {
 		return None;
 	}
+	let mut caster_bounds = Aabb::empty();
 	let padding = ((receiver_bounds.max.x - receiver_bounds.min.x)
 		.max(receiver_bounds.max.y - receiver_bounds.min.y)
 		* 0.05)
 		.max(0.1);
+	let mut shadow_items = Vec::new();
+	for item in items {
+		let mut light_bounds = Aabb::empty();
+		for corner in item.world_bounds.corners() {
+			light_bounds.include(light_view.transform_point3(corner));
+		}
+		if shadow_caster_overlaps_receiver(&light_bounds, &receiver_bounds, padding) {
+			for corner in light_bounds.corners() {
+				caster_bounds.include(corner);
+			}
+			shadow_items.push(item);
+		}
+	}
+	if !caster_bounds.is_valid() || shadow_items.is_empty() {
+		return None;
+	}
 	let half_extent = ((receiver_bounds.max.x - receiver_bounds.min.x)
 		.max(receiver_bounds.max.y - receiver_bounds.min.y)
 		* 0.5 + padding)
 		.max(0.1);
-	let world_units_per_texel = half_extent * 2.0 / SHADOW_SIZE as f32;
+	let world_units_per_texel = half_extent * 2.0 / shadow_size as f32;
 	let center_x = ((receiver_bounds.min.x + receiver_bounds.max.x) * 0.5 / world_units_per_texel)
 		.round()
 		* world_units_per_texel;
@@ -581,7 +633,7 @@ fn prepare_shadow_pass(
 	let light_view_proj = light_projection * light_view;
 	let texture_bias = shadow_texture_bias(caps.originBottomLeft, caps.homogeneousDepth);
 	shader::set_shadow_view(view_id, &light_view_proj);
-	for item in items {
+	for item in shadow_items {
 		let _ = shader::submit_shadow_mesh(
 			view_id,
 			item.mesh,
@@ -595,8 +647,24 @@ fn prepare_shadow_pass(
 		texture,
 		bias: light.shadow_bias,
 		normal_bias: light.shadow_normal_bias,
-		inv_size: 1.0 / SHADOW_SIZE as f32,
+		filter_step: shadow_filter_step(shadow_size, light.shadow_softness),
 	})
+}
+
+fn shadow_filter_step(shadow_size: u16, softness: f32) -> f32 {
+	if shadow_size == 0 {
+		return 0.0;
+	}
+	softness.max(0.0) / 1.5 / shadow_size as f32
+}
+
+fn shadow_caster_overlaps_receiver(caster: &Aabb, receiver: &Aabb, padding: f32) -> bool {
+	caster.is_valid()
+		&& receiver.is_valid()
+		&& caster.max.x >= receiver.min.x - padding
+		&& caster.min.x <= receiver.max.x + padding
+		&& caster.max.y >= receiver.min.y - padding
+		&& caster.min.y <= receiver.max.y + padding
 }
 
 fn shadow_frustum_corners(
@@ -658,6 +726,7 @@ fn view_state(view_id: bgfx_sys::bgfx_view_id_t) -> ViewRenderState {
 			frustum: Frustum::from_view_projection(&Mat4::IDENTITY),
 			frustum_culling: true,
 			show_aabb: false,
+			shadow_map_size: DEFAULT_SHADOW_MAP_SIZE,
 		})
 }
 
@@ -735,25 +804,47 @@ fn collect_prepared_visual_item(
 	view_state: &ViewRenderState,
 	stats: &mut RenderStats3D,
 ) -> Option<RenderVisualItem> {
+	let item = prepare_visual_item(
+		visual_handle,
+		mesh_handle,
+		material_handle,
+		frustum_culling,
+		sort_key,
+		world,
+		joint_matrices,
+		view_state,
+	)?;
+	if !should_render_bounds(view_state, item.frustum_culling, &item.world_bounds) {
+		stats.culled_visuals += 1;
+		return None;
+	}
+	stats.visible_visuals += 1;
+	Some(item)
+}
+
+fn prepare_visual_item(
+	visual_handle: Dora3DHandle,
+	mesh_handle: Dora3DHandle,
+	material_handle: Dora3DHandle,
+	frustum_culling: bool,
+	sort_key: u64,
+	world: Mat4,
+	joint_matrices: Option<Vec<Mat4>>,
+	view_state: &ViewRenderState,
+) -> Option<RenderVisualItem> {
 	let local_bounds = if let Some(joints) = joint_matrices.as_deref() {
 		super::mesh::skinned_bounds(mesh_handle, joints)?
 	} else {
 		super::mesh::bounds(mesh_handle)?
 	};
 	let bounds = transform_aabb(&world, &local_bounds);
-	if view_state.frustum_culling && frustum_culling {
-		if !should_render_bounds(view_state, frustum_culling, &bounds) {
-			stats.culled_visuals += 1;
-			return None;
-		}
-	}
-	stats.visible_visuals += 1;
 	let origin = world.transform_point3(Vec3::ZERO);
 	let distance_to_camera_sq = origin.distance_squared(view_state.view_pos);
 	Some(RenderVisualItem {
 		visual: visual_handle,
 		mesh: mesh_handle,
 		material: material_handle,
+		frustum_culling,
 		transparent: material::is_transparent(material_handle),
 		distance_to_camera_sq,
 		sort_key,
@@ -942,6 +1033,7 @@ mod tests {
 			visual,
 			mesh: 0,
 			material: 0,
+			frustum_culling: true,
 			transparent,
 			distance_to_camera_sq,
 			sort_key,
@@ -961,6 +1053,7 @@ mod tests {
 			frustum: Frustum::from_view_projection(&view_proj),
 			frustum_culling: true,
 			show_aabb: false,
+			shadow_map_size: DEFAULT_SHADOW_MAP_SIZE,
 		}
 	}
 
@@ -1021,6 +1114,41 @@ mod tests {
 		for index in 0..4 {
 			assert!(((corners[index + 4] - corners[index]).length() - 25.0).abs() < 1.0e-3);
 		}
+	}
+
+	#[test]
+	fn shadow_caster_selection_uses_light_space_overlap() {
+		let receiver = Aabb {
+			min: Vec3::new(-2.0, -1.0, -10.0),
+			max: Vec3::new(2.0, 1.0, -2.0),
+		};
+		let off_camera_caster = Aabb {
+			min: Vec3::new(1.5, -0.5, -1.0),
+			max: Vec3::new(2.5, 0.5, 0.0),
+		};
+		let unrelated_caster = Aabb {
+			min: Vec3::new(4.0, 3.0, -1.0),
+			max: Vec3::new(5.0, 4.0, 0.0),
+		};
+
+		assert!(shadow_caster_overlaps_receiver(
+			&off_camera_caster,
+			&receiver,
+			0.1
+		));
+		assert!(!shadow_caster_overlaps_receiver(
+			&unrelated_caster,
+			&receiver,
+			0.1
+		));
+	}
+
+	#[test]
+	fn shadow_filter_radius_is_measured_in_shadow_texels() {
+		assert!((shadow_filter_step(1024, 1.5) - 1.0 / 1024.0).abs() < f32::EPSILON);
+		assert!((shadow_filter_step(2048, 3.0) - 1.0 / 1024.0).abs() < f32::EPSILON);
+		assert_eq!(shadow_filter_step(1024, 0.0), 0.0);
+		assert_eq!(shadow_filter_step(0, 1.5), 0.0);
 	}
 
 	#[test]

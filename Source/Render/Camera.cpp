@@ -117,6 +117,14 @@ Camera2D::Camera2D(String name)
 	, _rotation(0.0f)
 	, _zoom(1.0f) { }
 
+Vec2 Camera2D::getPosition2D() const {
+	return _position.toVec2();
+}
+
+void Camera2D::setPosition2D(const Vec2& position) {
+	setPosition(position);
+}
+
 void Camera2D::setPosition(const Vec2& position) {
 	_position.x = _target.x = position.x;
 	_position.y = _target.y = position.y;
@@ -172,6 +180,14 @@ void Camera2D::updateView() {
 CameraOtho::CameraOtho(String name)
 	: Camera(name)
 	, _transformDirty(true) { }
+
+Vec2 CameraOtho::getPosition2D() const {
+	return _position.toVec2();
+}
+
+void CameraOtho::setPosition2D(const Vec2& position) {
+	setPosition(position);
+}
 
 void CameraOtho::setPosition(const Vec2& position) {
 	_position.x = _target.x = position.x;

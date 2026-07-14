@@ -13,6 +13,8 @@ local record DirectionalLight3D
 	castShadow: boolean
 	shadowBias: number
 	shadowNormalBias: number
+	-- 以阴影贴图 texel 为单位的阴影过滤半径。设为零会关闭过滤。
+	shadowSoftness: number
 end
 
 local record DirectionalLight3DClass

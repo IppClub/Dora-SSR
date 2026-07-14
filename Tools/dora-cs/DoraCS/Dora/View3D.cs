@@ -26,6 +26,10 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int32_t view3d_is_show_a_a_b_b(int64_t self);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void view3d_set_shadow_map_size(int64_t self, int32_t val);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int32_t view3d_get_shadow_map_size(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void view3d_add_child_3d(int64_t self, int64_t child);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t view3d_get_ray_origin(int64_t self, int64_t viewPoint);
@@ -83,6 +87,14 @@ namespace Dora
 		{
 			set => Native.view3d_set_show_a_a_b_b(Raw, value ? 1 : 0);
 			get => Native.view3d_is_show_a_a_b_b(Raw) != 0;
+		}
+		/// <summary>
+		/// The directional shadow-map resolution for this view.
+		/// </summary>
+		public int ShadowMapSize
+		{
+			set => Native.view3d_set_shadow_map_size(Raw, value);
+			get => Native.view3d_get_shadow_map_size(Raw);
 		}
 		/// <summary>
 		/// Adds a 3D child node to the scene root.

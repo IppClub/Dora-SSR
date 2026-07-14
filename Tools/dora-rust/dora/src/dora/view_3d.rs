@@ -12,6 +12,8 @@ extern "C" {
 	fn view3d_get_stats(slf: i64) -> i64;
 	fn view3d_set_show_a_a_b_b(slf: i64, val: i32);
 	fn view3d_is_show_a_a_b_b(slf: i64) -> i32;
+	fn view3d_set_shadow_map_size(slf: i64, val: i32);
+	fn view3d_get_shadow_map_size(slf: i64) -> i32;
 	fn view3d_add_child_3d(slf: i64, child: i64);
 	fn view3d_get_ray_origin(slf: i64, view_point: i64) -> i64;
 	fn view3d_get_ray_direction(slf: i64, view_point: i64) -> i64;
@@ -43,6 +45,14 @@ pub trait IView3D: INode {
 	/// Gets whether current world AABBs are drawn for debugging.
 	fn is_show_a_a_b_b(&self) -> bool {
 		return unsafe { view3d_is_show_a_a_b_b(self.raw()) != 0 };
+	}
+	/// Sets the directional shadow-map resolution for this view.
+	fn set_shadow_map_size(&mut self, val: i32) {
+		unsafe { view3d_set_shadow_map_size(self.raw(), val) };
+	}
+	/// Gets the directional shadow-map resolution for this view.
+	fn get_shadow_map_size(&self) -> i32 {
+		return unsafe { view3d_get_shadow_map_size(self.raw()) };
 	}
 	/// Adds a 3D child node to the scene root.
 	fn add_child_3d(&mut self, child: &dyn crate::dora::INode3D) {
