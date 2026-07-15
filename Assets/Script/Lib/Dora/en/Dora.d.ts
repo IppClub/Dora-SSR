@@ -3739,6 +3739,30 @@ interface Node3DClass {
 const node3DClass: Node3DClass;
 export {node3DClass as Node3D};
 
+/** Billboard modes used by Surface3D. */
+export const enum Billboard {
+	None = "None",
+	Screen = "Screen",
+	YAxis = "YAxis",
+}
+
+/** Displays a 2D Node subtree in a View3D scene. The renderer automatically chooses a shared-depth path or an isolated render target. */
+class Surface3D extends Node3D {
+	private constructor();
+	content: Node;
+	size: Size;
+	pixelSize: Size;
+	billboard: Billboard;
+	readonly usingTexture: boolean;
+}
+export {Surface3D as Surface3DType};
+export namespace Surface3D { export type Type = Surface3D; }
+interface Surface3DClass {
+	(this: void, content: Node, size: Size, pixelSize?: Size): Surface3D | undefined;
+}
+const surface3DClass: Surface3DClass;
+export {surface3DClass as Surface3D};
+
 /**
  * Class used for rendering 3D content inside the 2D scene tree.
  */

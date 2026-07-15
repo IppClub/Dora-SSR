@@ -104,6 +104,10 @@ int Node_slot(lua_State* L);
 int Node_gslot(lua_State* L);
 bool Node_eachChild(Node* self, const LuaFunction<bool>& func);
 
+/* Surface3D */
+int Surface3D_GetBillboard(lua_State* L);
+int Surface3D_SetBillboard(lua_State* L);
+
 /* Node.Grabber */
 inline void Grabber_setPos(Node::Grabber* self, uint32_t x, uint32_t y, Vec2 pos, float z) { self->setPos(x - 1, y - 1, pos, z); }
 inline Vec2 Grabber_getPos(Node::Grabber* self, uint32_t x, uint32_t y) { return self->getPos(x - 1, y - 1); }

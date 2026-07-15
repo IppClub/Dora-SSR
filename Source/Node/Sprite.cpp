@@ -376,7 +376,7 @@ void SpriteRenderer::render() {
 void SpriteRenderer::push(Sprite* sprite) {
 	SpriteEffect* effect = sprite->getEffect();
 	Texture2D* texture = sprite->getTexture();
-	uint64_t state = sprite->getRenderState();
+	uint64_t state = SharedRendererManager.applyState(sprite->getRenderState());
 	uint32_t flags = sprite->getSamplerFlags();
 
 	if (!texture || !effect) return;

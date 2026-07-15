@@ -1160,6 +1160,19 @@ object class Node3D
 	static Node3D* create();
 };
 
+/// <summary>A 2D node subtree displayed in a 3D scene.</summary>
+object class Surface3D : public Node3D
+{
+	common Node* content;
+	/// <summary>Physical width and height in world units.</summary>
+	common Size size;
+	/// <summary>Raster size used by the automatic render-target fallback.</summary>
+	common Size pixelSize;
+	common Billboard billboard;
+	readonly boolean bool usingTexture;
+	static Surface3D* create(Node* content, Size size, Size pixelSize);
+};
+
 /// <summary>A per-instance material slot owned by a Model3D instance.</summary>
 object class Material3D
 {

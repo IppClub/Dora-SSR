@@ -16,6 +16,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Common/WRef.h"
 #include "Node/Model3D.h"
 #include "Node/Node3D.h"
+#include "Node/Surface3D.h"
 #include "Render/Camera.h"
 #include "Render/View.h"
 
@@ -277,6 +278,30 @@ void View3D::render3D(bgfx::ViewId viewId) {
 		dora_3d_render_node_with_shadow(viewId, shadowViewId, _scene->getHandle());
 	} else {
 		dora_3d_render_node(viewId, _scene->getHandle());
+	}
+	// Surface3D has two adaptive paths. Isolated 2D render-target views must be
+	// recorded before the final Surface3D view. The final view uses the same
+	// framebuffer without clearing, so it preserves the 3D depth buffer while
+	// keeping C++ 2D submissions ordered after the Rust 3D renderer.
+	std::vector<Surface3D*> surfaces;
+	std::function<void(Node3D*)> collectSurfaces = [&](Node3D* node) {
+		if (!node || !node->isVisible()) return;
+		if (auto surface = DoraAs<Surface3D>(node)) surfaces.push_back(surface);
+		for (const auto& child : node->getChildren()) collectSurfaces(child.get());
+	};
+	collectSurfaces(_scene);
+	std::stable_sort(surfaces.begin(), surfaces.end(), [camera](Surface3D* a, Surface3D* b) {
+		Vec3 ap{a->getWorldMatrix().m[12], a->getWorldMatrix().m[13], a->getWorldMatrix().m[14]};
+		Vec3 bp{b->getWorldMatrix().m[12], b->getWorldMatrix().m[13], b->getWorldMatrix().m[14]};
+		auto ad = bx::sub(camera->getPosition(), ap);
+		auto bd = bx::sub(camera->getPosition(), bp);
+		return bx::dot(ad, ad) > bx::dot(bd, bd);
+	});
+	if (!surfaces.empty()) {
+		for (auto surface : surfaces) surface->prepare(*camera);
+		SharedView.pushBack("Surface3D"_slice, [&]() {
+			for (auto surface : surfaces) surface->renderPrepared();
+		});
 	}
 	_lastViewId = viewId;
 #endif // DORA_NO_RUST

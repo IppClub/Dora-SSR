@@ -571,6 +571,15 @@ class Node3D : public Object
 	static Node3D* create();
 };
 
+class Surface3D : public Node3D
+{
+	tolua_property__common Node* content;
+	tolua_property__common Size size;
+	tolua_property__common Size pixelSize;
+	tolua_readonly tolua_property__bool bool usingTexture;
+	static Surface3D* create(Node* content, Size size, Size pixelSize = Size::zero);
+};
+
 class Material3D : public Object
 {
 	static tolua_readonly uint8_t Opaque;

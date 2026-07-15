@@ -1021,6 +1021,12 @@ LuaEngine::LuaEngine()
 		}
 		tolua_endmodule(L);
 
+		tolua_beginmodule(L, "Surface3D");
+		{
+			tolua_variable(L, "billboard", Surface3D_GetBillboard, Surface3D_SetBillboard);
+		}
+		tolua_endmodule(L);
+
 		tolua_beginmodule(L, "TileNode");
 		{
 			tolua_variable(L, "filter", TileNode_GetTextureFilter, TileNode_SetTextureFilter);

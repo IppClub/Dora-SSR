@@ -289,6 +289,8 @@ public:
 	};
 	Grabber* grab(bool enabled = true);
 	Grabber* grab(uint32_t gridX, uint32_t gridY);
+	/** Returns whether this node renders through an offscreen grabber. */
+	bool hasGrabber() const noexcept { return _grabber != nullptr; }
 
 protected:
 	Node(bool unManaged = true);

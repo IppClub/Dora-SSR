@@ -14,6 +14,7 @@
 		D03D00010000000000000005 /* Model3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D03D00100000000000000005 /* Model3D.cpp */; };
 		D03D00010000000000000006 /* Visual3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D03D00100000000000000006 /* Visual3D.cpp */; };
 		D03D00010000000000000007 /* View3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D03D00100000000000000007 /* View3D.cpp */; };
+		D03D00010000000000000008 /* Surface3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D03D00100000000000000008 /* Surface3D.cpp */; };
 		D03D00020000000000000001 /* Model3DCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D03D00100000000000000001 /* Model3DCache.cpp */; };
 		D03D00020000000000000002 /* Camera3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D03D00100000000000000002 /* Camera3D.cpp */; };
 		D03D00020000000000000003 /* Node3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D03D00100000000000000003 /* Node3D.cpp */; };
@@ -21,6 +22,7 @@
 		D03D00020000000000000005 /* Model3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D03D00100000000000000005 /* Model3D.cpp */; };
 		D03D00020000000000000006 /* Visual3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D03D00100000000000000006 /* Visual3D.cpp */; };
 		D03D00020000000000000007 /* View3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D03D00100000000000000007 /* View3D.cpp */; };
+		D03D00020000000000000008 /* Surface3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D03D00100000000000000008 /* Surface3D.cpp */; };
 		3C030CF824CAE6580074786E /* Script in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CF024CAE6570074786E /* Script */; };
 		3C030CFB24CAE6580074786E /* Font in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CF324CAE6570074786E /* Font */; };
 		3C0C7751275742990030BDCD /* miniz.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C0C774D275742990030BDCD /* miniz.c */; };
@@ -1285,6 +1287,7 @@
 		D03D00100000000000000005 /* Model3D.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ../../Source/Node/Model3D.cpp; sourceTree = SOURCE_ROOT; };
 		D03D00100000000000000006 /* Visual3D.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ../../Source/Node/Visual3D.cpp; sourceTree = SOURCE_ROOT; };
 		D03D00100000000000000007 /* View3D.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ../../Source/Node/View3D.cpp; sourceTree = SOURCE_ROOT; };
+		D03D00100000000000000008 /* Surface3D.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ../../Source/Node/Surface3D.cpp; sourceTree = SOURCE_ROOT; };
 		3C030CF024CAE6570074786E /* Script */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Script; sourceTree = "<group>"; };
 		3C030CF324CAE6570074786E /* Font */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Font; sourceTree = "<group>"; };
 		3C0C774D275742990030BDCD /* miniz.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = miniz.c; sourceTree = "<group>"; };
@@ -5410,6 +5413,7 @@
 				D03D00010000000000000005 /* Model3D.cpp in Sources */,
 				D03D00010000000000000006 /* Visual3D.cpp in Sources */,
 				D03D00010000000000000007 /* View3D.cpp in Sources */,
+				D03D00010000000000000008 /* Surface3D.cpp in Sources */,
 				3CC15DC22C17E3F8004763E7 /* gzlib.c in Sources */,
 				3C0C77552757437E0030BDCD /* miniz.c in Sources */,
 				3C0FB6FC2BF1970C0098E88D /* EffekseerRenderer.DDSTextureLoader.cpp in Sources */,
@@ -6016,6 +6020,7 @@
 				D03D00020000000000000005 /* Model3D.cpp in Sources */,
 				D03D00020000000000000006 /* Visual3D.cpp in Sources */,
 				D03D00020000000000000007 /* View3D.cpp in Sources */,
+				D03D00020000000000000008 /* Surface3D.cpp in Sources */,
 				3CC15DC12C17E3F8004763E7 /* gzlib.c in Sources */,
 				3C0FB6FB2BF1970C0098E88D /* EffekseerRenderer.DDSTextureLoader.cpp in Sources */,
 				3CA780122AE66FB000B7BADA /* WorldJoint.cpp in Sources */,

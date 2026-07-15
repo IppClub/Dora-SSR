@@ -402,6 +402,9 @@
     <ClCompile Include="..\..\..\Source\Node\Node3D.cpp">
       <Filter>Node</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\Surface3D.cpp">
+      <Filter>Node</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\Source\Node\Light3D.cpp">
       <Filter>Node</Filter>
     </ClCompile>

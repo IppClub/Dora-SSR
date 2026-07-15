@@ -1277,6 +1277,13 @@ namespace Dora
         Opacity = 14,
     }
 
+    public enum Billboard
+    {
+        None = 0,
+        Screen = 1,
+        YAxis = 2,
+    }
+
     public enum TextureWrap
     {
         None = 0,

@@ -3737,6 +3737,30 @@ interface Node3DClass {
 const node3DClass: Node3DClass;
 export {node3DClass as Node3D};
 
+/** Surface3D 使用的 Billboard 模式。 */
+export const enum Billboard {
+	None = "None",
+	Screen = "Screen",
+	YAxis = "YAxis",
+}
+
+/** 在 View3D 场景中显示 2D Node 子树。渲染器会自动选择共享深度路径或独立渲染目标。 */
+class Surface3D extends Node3D {
+	private constructor();
+	content: Node;
+	size: Size;
+	pixelSize: Size;
+	billboard: Billboard;
+	readonly usingTexture: boolean;
+}
+export {Surface3D as Surface3DType};
+export namespace Surface3D { export type Type = Surface3D; }
+interface Surface3DClass {
+	(this: void, content: Node, size: Size, pixelSize?: Size): Surface3D | undefined;
+}
+const surface3DClass: Surface3DClass;
+export {surface3DClass as Surface3D};
+
 /**
  * 用于在2D场景树中渲染3D内容的类。
  */
