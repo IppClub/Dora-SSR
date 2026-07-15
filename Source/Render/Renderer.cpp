@@ -46,6 +46,12 @@ void RendererManager::flush() {
 	}
 }
 
+uint64_t RendererManager::applyState(uint64_t state) const noexcept {
+	if (_stateOverrides.empty()) return state;
+	constexpr uint64_t depthState = BGFX_STATE_DEPTH_TEST_MASK | BGFX_STATE_WRITE_Z;
+	return (state & ~depthState) | _stateOverrides.top();
+}
+
 void RendererManager::pushStencilState(uint32_t stencilState) {
 	_stencilStates.push(stencilState);
 }
@@ -77,6 +83,15 @@ void RendererManager::popGroup() {
 		node->render();
 	}
 	_renderGroups.pop();
+}
+
+void RendererManager::pushState(uint64_t state) {
+	_stateOverrides.push(state);
+}
+
+void RendererManager::popState() {
+	AssertIf(_stateOverrides.empty(), "pop invalid renderer state scope.");
+	_stateOverrides.pop();
 }
 
 NS_DORA_END

@@ -14,6 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Cache/ShaderCache.h"
 #include "Effect/Effect.h"
 #include "Node/Sprite.h"
+#include "Render/RenderTarget.h"
 #include "Render/Renderer.h"
 #include "Render/View.h"
 
@@ -109,6 +110,9 @@ void ClipNode::drawFullScreenStencil(uint8_t maskLayer, bool value) {
 	bgfx::TransientIndexBuffer indexBuffer;
 	if (bgfx::allocTransientBuffers(&vertexBuffer, PosColorVertex::ms_layout, 4, &indexBuffer, 6)) {
 		Size viewSize = SharedView.getSize();
+		if (auto target = RenderTarget::getCurrent()) {
+			viewSize = {s_cast<float>(target->getWidth()), s_cast<float>(target->getHeight())};
+		}
 		float width = viewSize.width;
 		float height = viewSize.height;
 		Vec4 pos[4] = {

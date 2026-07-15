@@ -434,6 +434,7 @@
 		3C5937622CA4FAEF00CAF224 /* compress.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C5937392CA4FAEF00CAF224 /* compress.c */; };
 		3C60DE132A2069CE007D7865 /* Doc in Resources */ = {isa = PBXBuildFile; fileRef = 3C60DE122A2069CE007D7865 /* Doc */; };
 		3C68A8B52F95A8DF00DDC115 /* Node3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C68A8B02F95A8DF00DDC115 /* Node3D.cpp */; };
+		A10E3D000000000000000001 /* Surface3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10E3D000000000000000003 /* Surface3D.cpp */; };
 		3C68A8D12F95A8DF00DDC115 /* Light3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C68A8D02F95A8DF00DDC115 /* Light3D.cpp */; };
 		3C68A8B62F95A8DF00DDC115 /* View3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C68A8B22F95A8DF00DDC115 /* View3D.cpp */; };
 		3C68A8B72F95A8DF00DDC115 /* Visual3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C68A8B42F95A8DF00DDC115 /* Visual3D.cpp */; };
@@ -1629,6 +1630,8 @@
 		3C60DE122A2069CE007D7865 /* Doc */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Doc; sourceTree = "<group>"; };
 		3C68A8AF2F95A8DF00DDC115 /* Node3D.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Node3D.h; sourceTree = "<group>"; };
 		3C68A8B02F95A8DF00DDC115 /* Node3D.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Node3D.cpp; sourceTree = "<group>"; };
+		A10E3D000000000000000002 /* Surface3D.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Surface3D.h; sourceTree = "<group>"; };
+		A10E3D000000000000000003 /* Surface3D.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Surface3D.cpp; sourceTree = "<group>"; };
 		3C68A8CF2F95A8DF00DDC115 /* Light3D.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Light3D.h; sourceTree = "<group>"; };
 		3C68A8D02F95A8DF00DDC115 /* Light3D.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Light3D.cpp; sourceTree = "<group>"; };
 		3C68A8B12F95A8DF00DDC115 /* View3D.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = View3D.h; sourceTree = "<group>"; };
@@ -4286,6 +4289,8 @@
 			children = (
 				3C68A8AF2F95A8DF00DDC115 /* Node3D.h */,
 				3C68A8B02F95A8DF00DDC115 /* Node3D.cpp */,
+				A10E3D000000000000000002 /* Surface3D.h */,
+				A10E3D000000000000000003 /* Surface3D.cpp */,
 				3C68A8CF2F95A8DF00DDC115 /* Light3D.h */,
 				3C68A8D02F95A8DF00DDC115 /* Light3D.cpp */,
 				3C68A8C22F95A8DF00DDC115 /* Model3D.h */,
@@ -4721,6 +4726,7 @@
 				3C5934692CA4F92600CAF224 /* DeformVertices.cpp in Sources */,
 				3C5936252CA4F9EF00CAF224 /* tinyxml2.cpp in Sources */,
 				3C68A8B52F95A8DF00DDC115 /* Node3D.cpp in Sources */,
+				A10E3D000000000000000001 /* Surface3D.cpp in Sources */,
 				3C68A8D12F95A8DF00DDC115 /* Light3D.cpp in Sources */,
 				3C68A8C12F95A8DF00DDC115 /* Model3D.cpp in Sources */,
 				3C68A8B62F95A8DF00DDC115 /* View3D.cpp in Sources */,

@@ -383,7 +383,7 @@ Pass* DrawRenderer::getDefaultPass() const noexcept {
 }
 
 void DrawRenderer::push(DrawNode* node) {
-	uint64_t state = node->getRenderState();
+	uint64_t state = SharedRendererManager.applyState(node->getRenderState());
 	if (state != _lastState) {
 		render();
 	}

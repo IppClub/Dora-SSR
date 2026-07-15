@@ -2124,6 +2124,20 @@ func NewBlendFuncSeperate(src_rgb: BFunc, dst_rgb: BFunc, src_alpha: BFunc, dst_
 	return BlendFunc{value: (src_rgb.ToValue()<<8 | dst_rgb.ToValue()<<4 | src_alpha.ToValue()<<4 | dst_alpha.ToValue()<<4) << 8}
 }
 
+/* Billboard */
+
+type Billboard :struct {
+	value: i32
+}
+
+func Billboard.ToValue() => i32 {
+	return this.value
+}
+
+global BillboardNone = Billboard{value: 0}
+global BillboardScreen = Billboard{value: 1}
+global BillboardYAxis = Billboard{value: 2}
+
 /* TextureWrap */
 
 type TextureWrap :struct {

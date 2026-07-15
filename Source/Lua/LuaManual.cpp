@@ -669,6 +669,38 @@ bool Node_eachChild(Node* self, const LuaFunction<bool>& func) {
 	});
 }
 
+/* Surface3D */
+
+int Surface3D_GetBillboard(lua_State* L) {
+	Surface3D* self = r_cast<Surface3D*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+	if (!self) tolua_error(L, "invalid 'self' in accessing variable 'Surface3D_GetBillboard'", nullptr);
+#endif
+	switch (self->getBillboard()) {
+		case Billboard::None: tolua_pushslice(L, "None"_slice); break;
+		case Billboard::Screen: tolua_pushslice(L, "Screen"_slice); break;
+		case Billboard::YAxis: tolua_pushslice(L, "YAxis"_slice); break;
+	}
+	return 1;
+}
+
+int Surface3D_SetBillboard(lua_State* L) {
+	Surface3D* self = r_cast<Surface3D*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+	if (!self) tolua_error(L, "invalid 'self' in accessing variable 'Surface3D_SetBillboard'", nullptr);
+#endif
+	auto value = GetString(L, 2);
+	switch (Switch::hash(value)) {
+		case "None"_hash: self->setBillboard(Billboard::None); break;
+		case "Screen"_hash: self->setBillboard(Billboard::Screen); break;
+		case "YAxis"_hash: self->setBillboard(Billboard::YAxis); break;
+		default:
+			luaL_error(L, fmt::format("Surface3D billboard \"{}\" is invalid, only \"None\", \"Screen\", \"YAxis\" are allowed.", value.toString()).c_str());
+			break;
+	}
+	return 0;
+}
+
 static TextureWrap toTextureWrap(lua_State* L, String value) {
 	switch (Switch::hash(value)) {
 		case "None"_hash: return TextureWrap::None;

@@ -1083,6 +1083,19 @@ interface object class Node3D
 	static Node3D* create();
 };
 
+/// A 2D node subtree displayed in a 3D scene.
+object class Surface3D : public INode3D
+{
+	common Node* content;
+	/// Physical width and height in world units.
+	common Size size;
+	/// Raster size used by the automatic render-target fallback.
+	common Size pixelSize;
+	common Billboard billboard;
+	readonly boolean bool usingTexture;
+	static Surface3D* create(Node* content, Size size, Size pixelSize);
+};
+
 /// A per-instance material slot owned by a Model3D instance.
 object class Material3D
 {

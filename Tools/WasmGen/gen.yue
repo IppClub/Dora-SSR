@@ -809,6 +809,24 @@ basicTypes =
 			creturn: -> error "unsupported"
 			cpass: -> error "unsupported"
 		}
+	Billboard:
+		* "i32"
+		* (name)-> "s_cast<Billboard>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+		* "crate::dora::Billboard"
+		* "crate::dora::Billboard"
+		* (name)-> "#{name} as i32"
+		* (name)-> "core::mem::transmute(#{name})"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "Billboard{value: #{name}}"
+			convertTo: (name)-> "#{name}.ToValue()"
+			argType: "Billboard"
+			returnType: "Billboard"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
 	TextureWrap:
 		* "i32"
 		* (name)-> "s_cast<TextureWrap>(#{name})"

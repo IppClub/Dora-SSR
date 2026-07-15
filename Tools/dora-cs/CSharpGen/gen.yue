@@ -744,6 +744,24 @@ basicTypes =
 			creturn: -> error "unsupported"
 			cpass: -> error "unsupported"
 		}
+	Billboard:
+		* "int"
+		* (name)-> "s_cast<Billboard>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+		* "Billboard"
+		* "Billboard"
+		* (name)-> "(int)#{name}"
+		* (name)-> "(Billboard)#{name}"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "Billboard{value: #{name}}"
+			convertTo: (name)-> "#{name}.ToValue()"
+			argType: "Billboard"
+			returnType: "Billboard"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
 	TextureWrap:
 		* "int"
 		* (name)-> "s_cast<TextureWrap>(#{name})"

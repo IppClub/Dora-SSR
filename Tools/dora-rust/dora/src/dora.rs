@@ -51,6 +51,8 @@ mod view;
 pub use view::View;
 mod node_3d;
 pub use node_3d::{INode3D, Node3D};
+mod surface_3d;
+pub use surface_3d::Surface3D;
 mod model_3d;
 pub use model_3d::Model3D;
 mod material_3d;
@@ -3407,6 +3409,15 @@ impl Node {
         }
         node
     }
+}
+
+// Surface3D
+#[repr(i32)]
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum Billboard {
+    None = 0,
+    Screen = 1,
+    YAxis = 2,
 }
 
 // Sprite

@@ -159,7 +159,14 @@ void EffekNode::render() {
 	EffekseerRendererBGFX::SetViewId(instance->efkRenderer, SharedView.getId());
 
 	Effekseer::Matrix44 matrix;
-	if (SharedDirector.getCurrentCamera()->hasProjection()) {
+	bool renderingToTarget = RenderTarget::getCurrent() != nullptr;
+	if (renderingToTarget) {
+		// RenderTarget has already installed its pass-local view-projection.
+		// Keep the outer scene camera out of this screen-space render pass.
+		MtoM44(SharedDirector.getViewProjection(), matrix);
+		renderer->SetProjectionMatrix(matrix);
+		renderer->SetCameraMatrix(matrix.Indentity());
+	} else if (SharedDirector.getCurrentCamera()->hasProjection()) {
 		renderer->SetProjectionMatrix(matrix.Indentity());
 	} else {
 		switch (bgfx::getCaps()->rendererType) {
@@ -178,8 +185,10 @@ void EffekNode::render() {
 		}
 		renderer->SetProjectionMatrix(matrix);
 	}
-	MtoM44(SharedDirector.getCurrentCamera()->getView(), matrix);
-	renderer->SetCameraMatrix(matrix);
+	if (!renderingToTarget) {
+		MtoM44(SharedDirector.getCurrentCamera()->getView(), matrix);
+		renderer->SetCameraMatrix(matrix);
+	}
 
 	Effekseer::Matrix43 mat43;
 	MtoM43(getWorld(), mat43);

@@ -2013,6 +2013,7 @@ DORA_EXPORT float math_tan(float v) { return std::tan(v); }
 #include "Dora/MoveJointWasm.hpp"
 #include "Dora/NVGpaintWasm.hpp"
 #include "Dora/Node3DWasm.hpp"
+#include "Dora/Surface3DWasm.hpp"
 #include "Dora/NodeWasm.hpp"
 #include "Dora/ParticleNodeWasm.hpp"
 #include "Dora/PassWasm.hpp"
@@ -2086,6 +2087,7 @@ static void linkAutoModule(wasm3::module3& mod) {
 	linkSpriteEffect(mod);
 	linkView(mod);
 	linkNode3D(mod);
+	linkSurface3D(mod);
 	linkMaterial3D(mod);
 	linkModel3D(mod);
 	linkDirectionalLight3D(mod);
