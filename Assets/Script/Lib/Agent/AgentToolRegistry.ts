@@ -69,6 +69,54 @@ export interface ToolPrompt {
 	parallelSafe?: boolean;
 }
 
+export function findUnsupportedDoraTsEdit(path: string, newStr: string): string | undefined {
+	const normalized = path.toLowerCase();
+	if (!(normalized.endsWith(".ts") || normalized.endsWith(".tsx")) || normalized.endsWith(".d.ts")) return undefined;
+	const isTestFile = normalized.endsWith("test.ts") || normalized.endsWith("test.tsx");
+	const checks: Array<[string, string]> = [
+		["Math.random", "inject a deterministic RNG or use supported bounded arithmetic"],
+		["Math.hypot", "use Math.sqrt(x * x + y * y)"],
+		["Math.imul", "use ordinary bounded multiplication"],
+		["KeyName.Enter", "use a declared Dora KeyName such as Space, Up, A, D, Left, or Right"],
+		["ReturnType<typeof", "annotate Dora factory instances with X.Type"],
+	];
+	const lines = newStr.split("\n");
+	for (let i = 0; i < lines.length; i++) {
+		const trimmed = lines[i].trim();
+		if (trimmed.startsWith("//") || trimmed.startsWith("/*") || trimmed.startsWith("*")) continue;
+		const uncommented = lines[i].split("//")[0] ?? "";
+		let code = "";
+		let quote = "";
+		let escaped = false;
+		for (let j = 0; j < uncommented.length; j++) {
+			const char = uncommented[j];
+			if (quote !== "") {
+				if (escaped) escaped = false;
+				else if (char === "\\") escaped = true;
+				else if (char === quote) quote = "";
+				code += " ";
+			} else if (char === "\"" || char === "'" || char === "`") {
+				quote = char;
+				code += " ";
+			} else {
+				code += char;
+			}
+		}
+		for (const [token, replacement] of checks) {
+			if (code.indexOf(token) >= 0) {
+				return `${token} is unsupported in Dora TypeScript; ${replacement}. The edit was not applied. Correct this replacement before continuing.`;
+			}
+		}
+		if (isTestFile) {
+			const compactCode = code.split(" ").join("").split("\t").join("");
+			if (compactCode.indexOf("||true") >= 0 || compactCode.indexOf("check(true") >= 0 || compactCode.indexOf("assert(true") >= 0) {
+				return "Vacuous always-true assertions are not allowed in authored test files. Replace the tautology with a deterministic observable condition that can fail. The edit was not applied.";
+			}
+		}
+	}
+	return undefined;
+}
+
 function resolveText(value: string | ((context: AgentToolSchemaContext) => string), context: AgentToolSchemaContext): string {
 	return typeof value === "string" ? value : value(context);
 }
@@ -151,6 +199,8 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 			"old_str and new_str MUST be different.",
 			"old_str must match existing text exactly when it is non-empty.",
 			"If old_str is empty, create the file when it doesn't exist, or clear and rewrite the whole file with new_str when it already exists.",
+			"Files under .agent/main are writable persistent memory for deliberate proactive updates. Record only durable project knowledge, user decisions, or a precise active checkpoint; these memory-only edits do not require a project build.",
+			"For Dora .ts/.tsx source, the engine rejects known unsupported constructs before writing: Math.random, Math.hypot, Math.imul, KeyName.Enter, and ReturnType<typeof DoraFactory>. Inject or implement a bounded RNG, use supported arithmetic/key names, and annotate Dora instances with X.Type.",
 		],
 	},
 	{
@@ -258,14 +308,17 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 			{ name: "code", type: "string", description: "Raw Lua code to execute when mode is lua. YueScript is not supported. Use print(...) for output that should appear in the tool result." },
 			{ name: "command", type: "string", description: "Git command to execute when mode is git. The command may start with git, but shell syntax, pipes, redirects, and git -C are not supported." },
 			{ name: "cwd", type: "string", description: "Optional project-relative directory for non-clone git commands. Defaults to the project root. Use this for Git operations inside a cloned sub-repository instead of git -C." },
-			{ name: "timeoutSeconds", type: "number", description: "Optional timeout for git mode. Defaults to 600 seconds. Lua mode should be short-running and cannot forcibly interrupt pure CPU infinite loops." },
+			{ name: "timeoutSeconds", type: "number", description: "Optional timeout. Defaults to 30 seconds for Lua and 600 seconds for Git. Lua mode can stop cooperative engine work but cannot interrupt a pure CPU loop that never yields." },
 		],
 		rules: [
 			"This tool is available only when the user enables command execution for the current Agent task.",
 			"Lua mode accepts raw Lua code only; do not send YueScript syntax.",
 			"Lua mode runs with a temporary environment whose global lookups fall back to Dora APIs; global writes stay in that one command and are not shared with later commands.",
-			"Lua mode exposes projectDir and refreshTree(path?). Call refreshTree(\"relative/file\") after single-file changes, or refreshTree() after directory or bulk changes.",
+			"Lua mode exposes projectDir, refreshTree(path?), getEntryStatus(), enterEntryAsync(entry), and stopEntry(). getEntryStatus() returns a table containing success and running booleans.",
+			"enterEntryAsync runs a built project-relative Lua entry as an isolated Agent test. The tool automatically stops an entry it started when the command succeeds, fails, is canceled, or times out.",
+			"Call refreshTree(\"relative/file\") after single-file changes, or refreshTree() after directory or bulk changes.",
 			"Lua mode returns only text printed with print(...). It does not return arbitrary Lua return values.",
+			"Only one Agent command may own the Dora entry runtime at a time. If it is busy, retry later instead of waiting inside the command.",
 			"Git mode uses the engine Git client, not a system shell. Supported commands follow Dora Git API support.",
 			"Git mode accepts cwd for non-clone commands. cwd must be a project-relative existing directory. Do not use git -C.",
 			"Git clone uses a temporary directory first, then moves into the project only after clone succeeds; existing targets are not overwritten.",
@@ -274,9 +327,36 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 	{
 		name: "finish",
 		roles: ["main", "sub"],
-		description: "End the task and reply directly to the user.",
+		description: "End the task and provide a structured completion handoff.",
 		parameters: [
 			{ name: "message", type: "string", required: true, description: "Final user-facing answer." },
+			{ name: "outcome", type: "string", enum: ["completed", "partial", "blocked"], description: "Work outcome. Sub agents must provide this; defaults to completed for compatibility." },
+			{ name: "validation", type: "array", items: {
+				type: "object",
+				properties: {
+					kind: { type: "string", enum: ["build", "runtime", "manual"] },
+					result: { type: "string", enum: ["passed", "failed", "not_run"] },
+					evidence: { type: "array", items: { type: "string" } },
+				},
+				required: ["kind", "result"],
+			}, description: "Validation performed. Sub agents must provide an array, using not_run when a relevant check was not run." },
+			{ name: "knownIssues", type: "array", items: { type: "string" }, description: "Known remaining issues or blockers. Sub agents must provide an array, which may be empty." },
+			{ name: "assumptions", type: "array", items: { type: "string" }, description: "Material assumptions made during the work. Sub agents must provide an array, which may be empty." },
+			{ name: "learningCandidates", type: "array", items: {
+				type: "object",
+				properties: {
+					claim: { type: "string" },
+					scope: { type: "string", enum: ["file", "project", "engine"] },
+					evidence: { type: "array", items: { type: "string" } },
+					confidence: { type: "string", enum: ["observed", "inferred"] },
+				},
+				required: ["claim", "scope", "confidence"],
+			}, description: "Durable, evidence-backed facts worth sharing with later agents. Sub agents must provide an array, which may be empty." },
+		],
+		rules: [
+			"Sub agents must explicitly report outcome, validation, knownIssues, assumptions, and learningCandidates.",
+			"Do not claim validation passed without concrete evidence from the corresponding tool result.",
+			"Use learningCandidates only for durable facts, constraints, or project conventions; omit generic progress narration.",
 		],
 	},
 	{
@@ -294,7 +374,7 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 			"status defaults to active_or_recent and may also be running, done, failed, or all.",
 			"limit defaults to a small recent window. Use offset to page older items.",
 			"query filters by title, goal, or summary text.",
-			"Do not use this after a successful spawn_sub_agent in the same turn.",
+			"Do not poll immediately after spawning. Use this later only when the current status is unknown and affects the next decision.",
 		],
 		preExecutable: true,
 		parallelSafe: true,
@@ -315,9 +395,10 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 			"The spawned sub agent inherits the current session tool capabilities, including fetch_url and execute_command when enabled.",
 			"title should be short and specific.",
 			"prompt should be self-contained and actionable, and should clearly describe the concrete work to execute, constraints, desired output, and any relevant files.",
-			"If spawn succeeds, immediately finish the current turn and state that the work has been delegated.",
-			"Do not call list_sub_agents or any other tool after a successful spawn_sub_agent in the same turn.",
-			"Treat the actual implementation result as an asynchronous handoff that will be handled in later conversation turns.",
+			"Spawn is asynchronous and nonblocking. You may dispatch multiple independent sub agents in one response, subject to the concurrency limit.",
+			"After dispatching, continue useful foreground work or finish the turn when there is nothing else useful to do.",
+			"Do not poll a newly spawned sub agent in the same turn. Its completion is delivered asynchronously as a later handoff.",
+			"Avoid assigning overlapping files or dependent steps to concurrent sub agents unless the coordination boundary is explicit.",
 			"filesHint is an optional list of likely files or directories.",
 		],
 	},
@@ -395,6 +476,30 @@ export function getToolPromptsForRole(role: AgentRole, options?: {
 	);
 }
 
+const SUB_AGENT_REQUIRED_FINISH_PARAMS = [
+	"message",
+	"outcome",
+	"validation",
+	"knownIssues",
+	"assumptions",
+	"learningCandidates",
+];
+
+function getDecisionToolPromptsForRole(role: AgentRole, options?: {
+	includeFinish?: boolean;
+	disabledAgentTools?: AgentToolName[];
+}): ToolPrompt[] {
+	const tools = getToolPromptsForRole(role, options);
+	if (role !== "sub") return tools;
+	return tools.map(tool => tool.name !== "finish" ? tool : {
+		...tool,
+		parameters: (tool.parameters ?? []).map(parameter => ({
+			...parameter,
+			required: SUB_AGENT_REQUIRED_FINISH_PARAMS.indexOf(parameter.name) >= 0,
+		})),
+	});
+}
+
 export function buildToolDefinitionsDetailed(tools: ToolPrompt[], options?: {
 	title?: string;
 	includeXmlRules?: boolean;
@@ -407,7 +512,7 @@ export function buildToolDefinitionsDetailed(tools: ToolPrompt[], options?: {
 		sections.push(`XML mode object fields:
 - Use a single root tag: <tool_call>.
 - For read_file, edit_file, delete_file, grep_files, search_dora_api, glob_files, build, fetch_url, and execute_command, include <tool>, <reason>, and <params>.
-- For finish, do not include <reason>. Use only <tool> and <params><message>...</message></params>.
+- For finish, omit <reason> and include <message> plus every other required parameter shown above inside <params>.
 - Inside <params>, use one child tag per parameter and preserve each tag content as raw text.`);
 	}
 	const body = sections.join("\n\n");
@@ -422,7 +527,7 @@ export function buildRoleToolDefinitionsDetailed(role: AgentRole, options?: {
 	disabledAgentTools?: AgentToolName[];
 }): string {
 	return buildToolDefinitionsDetailed(
-		getToolPromptsForRole(role, {
+		getDecisionToolPromptsForRole(role, {
 			includeFinish: options?.includeFinish,
 			disabledAgentTools: options?.disabledAgentTools,
 		}),
@@ -443,7 +548,7 @@ export function buildXMLRepairToolReference(role: AgentRole, options?: AgentTool
 		"XML shape:",
 		"- Wrap the decision in exactly one <tool_call> root.",
 		"- For tools except finish: include <tool>, <reason>, and <params>.",
-		"- For finish: include <tool> and <params><message>...</message></params>; omit <reason>.",
+		"- For finish: include <tool>, omit <reason>, and include <message> plus every other required parameter shown above inside <params>.",
 		"- Inside <params>, use one child tag per parameter name above.",
 	];
 	return lines.join("\n");
@@ -477,13 +582,13 @@ export function canRunToolInParallel(tool: AgentToolName): boolean {
 
 export function buildDecisionToolSchema(role: AgentRole, searchDoraApiLimitMax: number, options?: AgentToolCapabilityOptions) {
 	const context = { searchDoraApiLimitMax };
-	return buildDecisionToolSchemaForTools(getToolPromptsForRole(role, {
+	return buildDecisionToolSchemaForTools(getDecisionToolPromptsForRole(role, {
+		includeFinish: true,
 		disabledAgentTools: options?.disabledAgentTools,
 	}), context);
 }
 
 export function buildDecisionToolSchemaForTools(tools: ToolPrompt[], context: AgentToolSchemaContext) {
 	return tools
-		.filter(tool => tool.name !== "finish")
 		.map(tool => tool.schema ? tool.schema(context) : createFunctionToolSchemaFromPrompt(tool, context));
 }

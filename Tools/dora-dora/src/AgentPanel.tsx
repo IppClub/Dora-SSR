@@ -94,7 +94,10 @@ export default function AgentPanel(props: AgentPanelProps) {
 	const [visibleHistoryRounds, setVisibleHistoryRounds] = useState(HISTORY_VISIBLE_ROUNDS);
 	const [isNearBottom, setIsNearBottom] = useState(true);
 	const [llmConfigMissing, setLLMConfigMissing] = useState(false);
-	const [disabledAgentTools, setDisabledAgentTools] = useState<string[]>([FETCH_URL_TOOL, EXECUTE_COMMAND_TOOL]);
+	// Engine-side Lua/Git commands are bounded by the Agent command sandbox and
+	// are required for real build/runtime validation. Keep network fetch opt-in,
+	// but make local validation available in every new main session.
+	const [disabledAgentTools, setDisabledAgentTools] = useState<string[]>([FETCH_URL_TOOL]);
 	const scrollRef = React.useRef<HTMLElement | null>(null);
 	const contentRef = React.useRef<HTMLDivElement | null>(null);
 	const isNearBottomRef = React.useRef(true);

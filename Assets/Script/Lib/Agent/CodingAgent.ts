@@ -25,13 +25,40 @@ export type CodingAgentRunResult =
 		taskId: number;
 		message: string;
 		steps: number;
+		completion: AgentCompletionReport;
 	}
 	| {
 		success: false;
 		taskId?: number;
 		message: string;
 		steps?: number;
+		completion?: AgentCompletionReport;
 	};
+
+export type AgentCompletionOutcome = "completed" | "partial" | "blocked";
+export type AgentValidationKind = "build" | "runtime" | "manual";
+export type AgentValidationResult = "passed" | "failed" | "not_run";
+
+export interface AgentValidationReportItem {
+	kind: AgentValidationKind;
+	result: AgentValidationResult;
+	evidence: string[];
+}
+
+export interface AgentLearningCandidateItem {
+	claim: string;
+	scope: "file" | "project" | "engine";
+	evidence: string[];
+	confidence: "observed" | "inferred";
+}
+
+export interface AgentCompletionReport {
+	outcome: AgentCompletionOutcome;
+	validation: AgentValidationReportItem[];
+	knownIssues: string[];
+	assumptions: string[];
+	learningCandidates: AgentLearningCandidateItem[];
+}
 
 export interface CodingAgentRunOptions {
 	prompt: string;
@@ -225,6 +252,7 @@ export type CodingAgentEvent =
 		success: boolean;
 		message: string;
 		steps?: number;
+		completion?: AgentCompletionReport;
 	};
 
 const HISTORY_READ_FILE_MAX_CHARS = 12000;
@@ -261,6 +289,10 @@ function buildLLMOptions(llmConfig: LLMConfig, overrides?: Record<string, unknow
 	} else {
 		merged.reasoning_effort = merged.reasoning_effort.trim();
 	}
+	// Some OpenAI-compatible providers support tools but reject an explicit
+	// tool_choice. Agent decisions already validate tool calls and can repair or
+	// fall back to XML, so never inherit a provider-specific forced choice here.
+	delete merged.tool_choice;
 	return merged;
 }
 
@@ -309,6 +341,7 @@ interface AgentShared {
 	stopToken: StopToken;
 	error?: string;
 	response?: string;
+	completion?: AgentCompletionReport;
 	userQuery: string;
 	workingDir: string;
 	useChineseResponse: boolean;
@@ -324,6 +357,34 @@ interface AgentShared {
 	messages: AgentConversationMessage[];
 	lastConsolidatedIndex: number;
 	carryMessageIndex?: number;
+	/** The next decision must resume from the checkpoint produced by compression. */
+	resumeCheckpointPending?: boolean;
+	/** Machine-readable next tool extracted from the compressed Active Checkpoint. */
+	resumeRequiredTool?: AgentToolName;
+	/** After compression, prevent broad rereads until the agent resumes real work. */
+	resumeNarrowReadMode?: boolean;
+	/** Successful source edits have not yet been checked by the project build. */
+	unbuiltEdits?: boolean;
+	/** Successful edit/delete actions since the most recent build attempt. */
+	editsSinceBuild?: number;
+	/** Distinct authored source paths edited since the most recent build attempt. */
+	editedPathsSinceBuild?: string[];
+	/** Whether this task has attempted at least one project build. */
+	hasBuilt?: boolean;
+	/** Bound speculative API lookup to one call between builds. */
+	apiSearchesSinceBuild?: number;
+	/** A deterministic test reported `failed`; another command requires a successful source build first. */
+	failedTestNeedsBuild?: boolean;
+	/** An authored source/test file changed after the latest deterministic test failure. */
+	failedTestHasSourceEdit?: boolean;
+	/** A build returned concrete authored-file diagnostics that should be repaired before discovery. */
+	buildRepairPending?: boolean;
+	/** Consecutive deterministic test reports whose first-line result was failed. */
+	deterministicTestFailureCount?: number;
+	/** A project with zero buildable code files, or one buildable code file of at most 3 lines, should implement before discovery. */
+	freshProjectBuildPending?: boolean;
+	/** The only short code file found when freshProjectBuildPending was detected. */
+	freshProjectCodeFile?: string;
 	// Memory 相关字段
 	memory: {
 		/** Memory 压缩器实例 */
@@ -535,6 +596,55 @@ function ensureDirRecursive(dir: string): boolean {
 function encodeDebugJSON(value: unknown): string {
 	const [text, err] = safeJsonEncode(value as object);
 	return text ?? `{ "error": "json_encode_failed", "message": "${tostring(err)}" }`;
+}
+
+export function normalizePolicyPath(path: string): string {
+	let normalized = path.trim().split("\\").join("/");
+	while (normalized.startsWith("./")) normalized = normalized.slice(2);
+	return normalized;
+}
+
+/**
+ * Main-session memory is an Agent-authored workspace area. Keep this check
+ * rooted so similarly named nested project directories do not accidentally
+ * bypass authored-source validation and build cadence.
+ */
+export function isMainAgentMemoryPath(path: string): boolean {
+	const normalized = normalizePolicyPath(path);
+	return normalized === ".agent/main" || normalized.startsWith(".agent/main/");
+}
+
+const FRESH_PROJECT_CODE_GLOBS = [
+	"**/*.ts",
+	"**/*.tsx",
+	"**/*.lua",
+	"**/*.yue",
+	"**/*.tl",
+	"**/*.yarn",
+	"**/*.xml",
+	"!**/*.d.ts",
+];
+
+function inspectFreshProject(workDir: string): { fresh: boolean; codeFile?: string } {
+	const result = Tools.listFiles({
+		workDir,
+		path: "",
+		globs: FRESH_PROJECT_CODE_GLOBS,
+		maxEntries: 2,
+	});
+	if (!result.success) return { fresh: false };
+	const totalEntries = result.totalEntries ?? result.files.length;
+	if (totalEntries > 1) return { fresh: false };
+	if (totalEntries === 0) return { fresh: true };
+	if (result.files.length !== 1) return { fresh: false };
+	const path = result.files[0];
+	const loaded = Tools.readFileRaw(workDir, path);
+	if (!loaded.success || loaded.content === undefined) return { fresh: false };
+	const content = loaded.content.endsWith("\n")
+		? loaded.content.slice(0, -1)
+		: loaded.content;
+	const lineCount = content === "" ? 0 : content.split("\n").length;
+	return lineCount <= 3 ? { fresh: true, codeFile: path } : { fresh: false };
 }
 
 function getStepLLMDebugDir(shared: AgentShared): string {
@@ -843,6 +953,63 @@ function sanitizeActionParamsForHistory(tool: AgentToolName, params: Record<stri
 	return clone;
 }
 
+export function getDecisionDisabledAgentTools(shared: AgentShared): AgentToolName[] {
+	const disabled = shared.disabledAgentTools.slice();
+	// A newly-created Web IDE TypeScript project already has all context needed
+	// for a baseline implementation in its tiny init.ts. Hide discovery and
+	// command probes until the first successful build so the main agent cannot
+	// spend its opening loop enumerating the workspace or hunting type files.
+	if (shared.freshProjectBuildPending === true) {
+		const freshProjectDisabled: AgentToolName[] = [
+			"read_file",
+			"glob_files",
+			"grep_files",
+			"search_dora_api",
+			"execute_command",
+		];
+		for (let i = 0; i < freshProjectDisabled.length; i++) {
+			if (disabled.indexOf(freshProjectDisabled[i]) < 0) disabled.push(freshProjectDisabled[i]);
+		}
+	}
+	// The engine permits one Dora API lookup between builds. Once consumed, do
+	// not keep advertising a tool whose preflight must reject every call; hiding
+	// it makes providers without forced tool_choice select a useful next action.
+	if (
+		(
+			(shared.apiSearchesSinceBuild ?? 0) >= 1
+			|| shared.unbuiltEdits === true
+		)
+		&& disabled.indexOf("search_dora_api") < 0
+	) {
+		disabled.push("search_dora_api");
+	}
+	// When the compiler already identified authored files and exact diagnostics,
+	// discovery and command probes add latency without reducing uncertainty.
+	// Keep read/edit/build available so providers without forced tool_choice are
+	// naturally routed into the smallest repair loop.
+	if (shared.buildRepairPending === true) {
+		const repairDisabled: AgentToolName[] = [
+			"grep_files",
+			"glob_files",
+			"search_dora_api",
+			"execute_command",
+		];
+		for (let i = 0; i < repairDisabled.length; i++) {
+			if (disabled.indexOf(repairDisabled[i]) < 0) disabled.push(repairDisabled[i]);
+		}
+	}
+	// Authored changes should be verified in small batches after either compiler
+	// or deterministic-test feedback. Otherwise models can spend a long turn
+	// speculating through tiny replacements against stale evidence.
+	if (shared.unbuiltEdits === true && (shared.editsSinceBuild ?? 0) >= 3) {
+		const changesMustBuild: AgentToolName[] = ["edit_file", "delete_file"];
+		for (let i = 0; i < changesMustBuild.length; i++) {
+			if (disabled.indexOf(changesMustBuild[i]) < 0) disabled.push(changesMustBuild[i]);
+		}
+	}
+	return disabled;
+}
+
 function getDecisionToolDefinitions(shared: AgentShared): string {
 	const params = { SEARCH_DORA_API_LIMIT_MAX: tostring(SEARCH_DORA_API_LIMIT_MAX) };
 	const usesDefaultToolPrompts = shared.promptPack.toolDefinitionsDetailed === AgentToolRegistry.AGENT_TOOL_DEFINITIONS_DETAILED
@@ -851,21 +1018,27 @@ function getDecisionToolDefinitions(shared: AgentShared): string {
 	const base = shared.promptPack.toolDefinitionsDetailed;
 	const mainAgentTools = shared.role === "main" ?
 		shared.promptPack.mainAgentToolDefinitionsDetailed : "";
+	const decisionDisabledTools = getDecisionDisabledAgentTools(shared);
 	const availableTools = AgentToolRegistry.getAllowedToolsForRole(shared.role, {
-		disabledAgentTools: shared.disabledAgentTools,
-	})
-		.filter(tool => shared.decisionMode === "xml" || tool !== "finish");
+		disabledAgentTools: decisionDisabledTools,
+	});
+	const freshProjectGuidance = shared.freshProjectBuildPending !== true
+		? ""
+		: shared.freshProjectCodeFile !== undefined
+			? `\n- fresh small project: the only buildable code file is \`${shared.freshProjectCodeFile}\` and it has at most 3 lines; implement by coherently rewriting that file, then build before any discovery or command validation`
+			: "\n- fresh empty project: there are no buildable code files; create the requested entry directly (default to `init.ts` for a Dora TypeScript task), then build before any discovery or command validation";
 	const availability = `
 
 Tool availability for this runtime:
 - role: ${shared.role}
-- allowed tools: ${availableTools.join(", ")}`;
+- allowed tools: ${availableTools.join(", ")}
+- If the user requests a tool that is not in this allowed list, report that it is unavailable. Do not simulate it with repeated reads or unrelated discovery.${freshProjectGuidance}`;
 	if (usesDefaultToolPrompts) {
 		const definitions = AgentToolRegistry.buildRoleToolDefinitionsDetailed(shared.role, {
 			includeFinish: true,
 			includeXmlRules: true,
 			context: { searchDoraApiLimitMax: SEARCH_DORA_API_LIMIT_MAX },
-			disabledAgentTools: shared.disabledAgentTools,
+			disabledAgentTools: decisionDisabledTools,
 		});
 		return replacePromptVars(`${definitions}${availability}`, params);
 	}
@@ -885,14 +1058,14 @@ Tool availability for this runtime:
 
 function getDecisionToolSchemaText(shared: AgentShared): string {
 	const [toolsText] = safeJsonEncode(AgentToolRegistry.buildDecisionToolSchema(shared.role, SEARCH_DORA_API_LIMIT_MAX, {
-		disabledAgentTools: shared.disabledAgentTools,
+		disabledAgentTools: getDecisionDisabledAgentTools(shared),
 	}) as object);
 	return toolsText ?? "";
 }
 
 function isToolAllowedForRole(shared: AgentShared, tool: AgentToolName): boolean {
 	return AgentToolRegistry.getAllowedToolsForRole(shared.role, {
-		disabledAgentTools: shared.disabledAgentTools,
+		disabledAgentTools: getDecisionDisabledAgentTools(shared),
 	}).indexOf(tool) >= 0;
 }
 
@@ -977,7 +1150,7 @@ async function executeToolActionWithPreExecution(shared: AgentShared, action: Ag
 	return executeToolAction(shared, action);
 }
 
-async function maybeCompressHistory(shared: AgentShared): Promise<void> {
+async function maybeCompressHistory(shared: AgentShared, forceAtTurnBoundary = false): Promise<void> {
 	const { memory } = shared;
 	const maxRounds = memory.compressor.getMaxCompressionRounds();
 	let changed = false;
@@ -989,11 +1162,30 @@ async function maybeCompressHistory(shared: AgentShared): Promise<void> {
 		const toolDefinitions = shared.decisionMode === "tool_calling"
 			? getDecisionToolSchemaText(shared)
 			: "";
-		if (!memory.compressor.shouldCompress(
+		const thresholdReached = memory.compressor.shouldCompress(
 			activeMessages,
 			systemPrompt,
 			toolDefinitions
-		)) {
+		);
+		let activeTokens = 0;
+		if (forceAtTurnBoundary && shared.role === "main") {
+			for (let i = 0; i < activeMessages.length; i++) {
+				const message = activeMessages[i];
+				activeTokens += 8;
+				activeTokens += estimateTextTokens(message.role ?? "");
+				activeTokens += estimateTextTokens(message.content ?? "");
+				activeTokens += estimateTextTokens(message.name ?? "");
+				activeTokens += estimateTextTokens(message.tool_call_id ?? "");
+				activeTokens += estimateTextTokens(message.reasoning_content ?? "");
+				const [toolCallsText] = safeJsonEncode((message.tool_calls ?? []) as object);
+				activeTokens += estimateTextTokens(toolCallsText ?? "");
+			}
+		}
+		const activeRealMessages = getActiveRealMessageCount(shared);
+		const turnBoundaryReached = forceAtTurnBoundary
+			&& shared.role === "main"
+			&& (activeTokens >= 72000 || (activeRealMessages >= 64 && activeTokens >= 48000));
+		if (!thresholdReached && !turnBoundaryReached) {
 			if (changed) {
 				persistHistoryState(shared);
 			}
@@ -1080,7 +1272,7 @@ async function maybeCompressHistory(shared: AgentShared): Promise<void> {
 				historyEntryPreview: summarizeHistoryEntryPreview(result.summary ?? ""),
 			},
 		});
-		applyCompressedSessionState(shared, result.compressedCount, result.carryMessageIndex);
+		applyCompressedSessionState(shared, result.compressedCount, result.carryMessageIndex, result.sessionSummaryUpdate);
 		changed = true;
 		Log("Info", `[Memory] Compressed ${effectiveCompressedCount} messages (round ${compressionRound})`);
 	}
@@ -1183,7 +1375,7 @@ async function compactAllHistory(shared: AgentShared): Promise<CodingAgentRunRes
 				fullCompaction: true,
 			},
 		});
-		applyCompressedSessionState(shared, result.compressedCount, result.carryMessageIndex);
+		applyCompressedSessionState(shared, result.compressedCount, result.carryMessageIndex, result.sessionSummaryUpdate);
 		totalCompressed += effectiveCompressedCount;
 		persistHistoryState(shared);
 		Log("Info", `[Memory] Full compaction compressed ${effectiveCompressedCount} messages (round ${rounds})`);
@@ -1226,6 +1418,73 @@ function getFinishMessage(params: Record<string, unknown>, fallback = ""): strin
 	return fallback.trim();
 }
 
+const COMPLETION_TEXT_MAX_CHARS = 800;
+const COMPLETION_LIST_MAX_ITEMS = 12;
+const COMPLETION_EVIDENCE_MAX_ITEMS = 8;
+
+function normalizeCompletionText(value: unknown): string {
+	if (typeof value !== "string") return "";
+	return sanitizeUTF8(value).trim().slice(0, COMPLETION_TEXT_MAX_CHARS);
+}
+
+function normalizeCompletionTextList(value: unknown, maxItems = COMPLETION_LIST_MAX_ITEMS): string[] {
+	if (!isArray(value)) return [];
+	const items: string[] = [];
+	for (let i = 0; i < value.length && items.length < maxItems; i++) {
+		const item = normalizeCompletionText(value[i]);
+		if (item !== "" && items.indexOf(item) < 0) items.push(item);
+	}
+	return items;
+}
+
+export function normalizeAgentCompletionReport(value: unknown): AgentCompletionReport {
+	const row = value && !isArray(value) && isRecord(value) ? value : {};
+	const outcome: AgentCompletionOutcome = row.outcome === "partial" || row.outcome === "blocked"
+		? row.outcome
+		: "completed";
+	const validation: AgentValidationReportItem[] = [];
+	if (isArray(row.validation)) {
+		for (let i = 0; i < row.validation.length && validation.length < COMPLETION_LIST_MAX_ITEMS; i++) {
+			const raw = row.validation[i];
+			if (!raw || isArray(raw) || !isRecord(raw)) continue;
+			const kind = raw.kind === "runtime" || raw.kind === "manual" ? raw.kind : (raw.kind === "build" ? "build" : undefined);
+			const result = raw.result === "passed" || raw.result === "failed" || raw.result === "not_run" ? raw.result : undefined;
+			if (kind === undefined || result === undefined) continue;
+			validation.push({
+				kind,
+				result,
+				evidence: normalizeCompletionTextList(raw.evidence, COMPLETION_EVIDENCE_MAX_ITEMS),
+			});
+		}
+	}
+	const learningCandidates: AgentLearningCandidateItem[] = [];
+	if (isArray(row.learningCandidates)) {
+		for (let i = 0; i < row.learningCandidates.length && learningCandidates.length < COMPLETION_LIST_MAX_ITEMS; i++) {
+			const raw = row.learningCandidates[i];
+			if (!raw || isArray(raw) || !isRecord(raw)) continue;
+			const claim = normalizeCompletionText(raw.claim);
+			if (claim === "") continue;
+			learningCandidates.push({
+				claim,
+				scope: raw.scope === "file" || raw.scope === "engine" ? raw.scope : "project",
+				evidence: normalizeCompletionTextList(raw.evidence, COMPLETION_EVIDENCE_MAX_ITEMS),
+				confidence: raw.confidence === "inferred" ? "inferred" : "observed",
+			});
+		}
+	}
+	return {
+		outcome,
+		validation,
+		knownIssues: normalizeCompletionTextList(row.knownIssues),
+		assumptions: normalizeCompletionTextList(row.assumptions),
+		learningCandidates,
+	};
+}
+
+function getCompletionReport(params: Record<string, unknown>): AgentCompletionReport {
+	return normalizeAgentCompletionReport(params);
+}
+
 function persistHistoryState(shared: AgentShared): void {
 	shared.memory.compressor.getStorage().writeSessionState(
 		shared.messages,
@@ -1259,7 +1518,8 @@ function getActiveRealMessageCount(shared: AgentShared): number {
 function applyCompressedSessionState(
 	shared: AgentShared,
 	compressedCount: number,
-	carryMessageIndex?: number
+	carryMessageIndex?: number,
+	sessionSummary?: string
 ): void {
 	const syntheticPrefixCount = typeof shared.carryMessageIndex === "number" ? 1 : 0;
 	const previousActiveStart = shared.lastConsolidatedIndex;
@@ -1291,6 +1551,61 @@ function applyCompressedSessionState(
 		)
 	) {
 		shared.carryMessageIndex = undefined;
+	}
+	// Always mark the first post-compression decision as a resume. A partial
+	// compression can leave bookkeeping/tool messages in the active tail; treating
+	// any tail as a new user override made the model ignore an accurate checkpoint
+	// and start regenerating files that already existed. A genuine newer user message
+	// is still present in the decision messages and can refine the checkpoint, but it
+	// must not silently turn resume into restart.
+	const hasUncompressedTail = shared.lastConsolidatedIndex < shared.messages.length;
+	shared.resumeCheckpointPending = true;
+	shared.resumeRequiredTool = undefined;
+	shared.resumeNarrowReadMode = true;
+	// Runtime state is more authoritative than an LLM-written checkpoint. If
+	// authored edits are still unbuilt, every compression path must resume at
+	// the build boundary. A compression can leave bookkeeping messages in the
+	// active tail even when there is no newer user instruction; gating this on
+	// `hasUncompressedTail` allowed a stale checkpoint to overwrite authored
+	// source before the pending build.
+	if (shared.unbuiltEdits === true) {
+		shared.resumeRequiredTool = "build";
+	}
+	// A carry created before the current task has taken a decision is the newly
+	// submitted user instruction. The compressor deliberately leaves that message
+	// outside the old session summary, so an old `Next tool: finish` must not bind
+	// it. Once this task has executed at least one step, a carry belongs to the
+	// in-progress task that was just summarized and should obey its checkpoint.
+	// Messages that arrive during compression remain an uncompressed tail and are
+	// likewise newer than the checkpoint.
+	const carryStartsNewTask = typeof shared.carryMessageIndex === "number"
+		// The compression operation itself is recorded as step 1 before this
+		// state is applied. With no earlier task action, that carried user
+		// message is still the new instruction and must outrank the old summary.
+		&& shared.step <= 1;
+	if (
+		!hasUncompressedTail
+		&& !carryStartsNewTask
+		&& shared.resumeRequiredTool === undefined
+		&& typeof sessionSummary === "string"
+	) {
+		const marker = "**Next tool**:";
+		const markerIndex = sessionSummary.indexOf(marker);
+		if (markerIndex >= 0) {
+			const nextToolLine = sessionSummary.slice(markerIndex, markerIndex + 120);
+			const toolNames: AgentToolName[] = [
+				"read_file", "edit_file", "delete_file", "grep_files", "search_dora_api",
+				"glob_files", "build", "fetch_url", "execute_command", "list_sub_agents",
+				"spawn_sub_agent", "finish",
+			];
+			for (let i = 0; i < toolNames.length; i++) {
+				const tool = toolNames[i];
+				if (nextToolLine.indexOf(`\`${tool}\``) >= 0) {
+					shared.resumeRequiredTool = tool;
+					break;
+				}
+			}
+		}
 	}
 }
 
@@ -1550,7 +1865,7 @@ async function llm(
 			? sanitizeUTF8(message.reasoning_content)
 			: undefined;
 		if (text) {
-			const parsed = tryParseAndValidateDecision(text);
+			const parsed = tryParseAndValidateDecision(text, shared.role);
 			if (parsed.success) {
 				const reason = parsed.reason ?? "";
 				emitAssistantMessageUpdated(shared, "", reason !== "" ? reason : undefined);
@@ -1672,6 +1987,14 @@ function parseAndValidateToolCallDecision(
 			raw: argsText,
 		};
 	}
+	const completionValidation = validateCompletionForRole(shared.role, decision.tool, decision.params);
+	if (!completionValidation.success) {
+		return {
+			success: false,
+			message: completionValidation.message,
+			raw: argsText,
+		};
+	}
 	const validation = validateDecision(decision.tool, decision.params);
 	if (!validation.success) {
 		return {
@@ -1753,6 +2076,12 @@ function validateDecision(
 		const message = getFinishMessage(params);
 		if (message === "") return { success: false, message: "finish requires params.message" };
 		params.message = message;
+		const completion = getCompletionReport(params);
+		params.outcome = completion.outcome;
+		params.validation = completion.validation;
+		params.knownIssues = completion.knownIssues;
+		params.assumptions = completion.assumptions;
+		params.learningCandidates = completion.learningCandidates;
 		return { success: true, params };
 	}
 
@@ -1852,6 +2181,25 @@ function validateDecision(
 	return { success: true, params };
 }
 
+function validateCompletionForRole(
+	role: AgentRole,
+	tool: AgentToolName,
+	params: Record<string, unknown>
+): { success: true } | { success: false; message: string } {
+	if (role !== "sub" || tool !== "finish") return { success: true };
+	if (params.outcome !== "completed" && params.outcome !== "partial" && params.outcome !== "blocked") {
+		return { success: false, message: "sub-agent finish requires params.outcome" };
+	}
+	const requiredArrays = ["validation", "knownIssues", "assumptions", "learningCandidates"];
+	for (let i = 0; i < requiredArrays.length; i++) {
+		const name = requiredArrays[i];
+		if (!isArray(params[name])) {
+			return { success: false, message: `sub-agent finish requires params.${name} as an array` };
+		}
+	}
+	return { success: true };
+}
+
 function buildAgentSystemPrompt(shared: AgentShared, includeToolDefinitions = false): string {
 	const rolePrompt = shared.role === "main"
 		? shared.promptPack.mainAgentRolePrompt
@@ -1872,6 +2220,27 @@ function buildAgentSystemPrompt(shared: AgentShared, includeToolDefinitions = fa
 	const skillsSection = buildSkillsSection(shared);
 	if (skillsSection !== "") {
 		sections.push(skillsSection);
+	}
+	if (shared.resumeCheckpointPending === true) {
+		const requiredTool = shared.resumeRequiredTool !== undefined
+			? ` The engine will accept only \`${shared.resumeRequiredTool}\` as the next tool.`
+			: "";
+		const activeUserInstruction = typeof shared.carryMessageIndex === "number"
+			? " The active carried user instruction is newer than the compressed checkpoint and takes precedence over any prior completion state. Execute that instruction now."
+			: "";
+		sections.push(`### Resume After Compression
+
+Context was just compressed. Continue the in-progress work; do not restart it.${activeUserInstruction} Treat the Session Summary's Active Checkpoint as authoritative for completed work and execute its next unfinished action now.${requiredTool} If its next tool is \`finish\`, call \`finish\` immediately: edits only under \`.agent/main\` do not invalidate completed build, test, or lifecycle evidence. Files listed as authored or changed already exist: do not regenerate, restate, or overwrite their complete contents. Use a narrow read or targeted replacement only when the checkpoint or active user instruction requires a source fix. Do not restart discovery, glob, rerun validation, or reread files already listed as read or changed unless required for that fix. Do not expand scope.`);
+	}
+	if (shared.buildRepairPending === true) {
+		sections.push(`### Compiler Repair Mode
+
+The latest build already returned concrete authored-file diagnostics. Repair those diagnostics directly with a narrow read or targeted edit, then build again. Search, glob, Dora API lookup, and execute_command are temporarily unavailable because they cannot clarify an exact compiler error.`);
+	}
+	if ((shared.deterministicTestFailureCount ?? 0) >= 2) {
+		sections.push(`### Repeated Deterministic Test Failure
+
+The same deterministic validation path has failed repeatedly. Do not simulate a longer history, derive a traversal/path, or keep tuning the same fixture architecture. Construct the smallest legal state immediately before the failing transition, perform one action, and assert the result. Read only the failing authored test/function, make one coherent edit, build, and rerun once.`);
 	}
 	if (includeToolDefinitions) {
 		sections.push("### Available Tools\n\n" + getDecisionToolDefinitions(shared));
@@ -1981,8 +2350,10 @@ function buildDecisionMessages(
 	lastRaw?: string,
 	decisionMode: AgentDecisionMode = shared.decisionMode
 ): Message[] {
+	const systemPrompt = buildAgentSystemPrompt(shared, decisionMode === "xml");
+	shared.resumeCheckpointPending = false;
 	let messages: Message[] = [
-		{ role: "system", content: buildAgentSystemPrompt(shared, decisionMode === "xml") },
+		{ role: "system", content: systemPrompt },
 		...getUnconsolidatedMessages(shared),
 	];
 	if (shared.step + 1 >= shared.maxSteps) {
@@ -2057,7 +2428,7 @@ ${candidateReasoningSection}`
 		includeFinish: true,
 		includeXmlRules: true,
 		context: { searchDoraApiLimitMax: SEARCH_DORA_API_LIMIT_MAX },
-		disabledAgentTools: shared.disabledAgentTools,
+		disabledAgentTools: getDecisionDisabledAgentTools(shared),
 	});
 	const systemPrompt = replacePromptVars(shared.promptPack.xmlDecisionSystemRepairPrompt, {
 		TOOL_REPAIR_REFERENCE: toolRepairReference,
@@ -2081,7 +2452,7 @@ ${candidateReasoningSection}`
 	];
 }
 
-function tryParseAndValidateDecision(rawText: string): DecisionSuccess | DecisionFailure {
+function tryParseAndValidateDecision(rawText: string, role: AgentRole = "main"): DecisionSuccess | DecisionFailure {
 	const parsed = parseXMLToolCallObjectFromText(rawText);
 	if (!parsed.success) {
 		return { success: false, message: parsed.message, raw: rawText };
@@ -2089,6 +2460,10 @@ function tryParseAndValidateDecision(rawText: string): DecisionSuccess | Decisio
 	const decision = parseDecisionObject(parsed.obj);
 	if (!decision.success) {
 		return { success: false, message: decision.message, raw: rawText };
+	}
+	const completionValidation = validateCompletionForRole(role, decision.tool, decision.params);
+	if (!completionValidation.success) {
+		return { success: false, message: completionValidation.message, raw: rawText };
 	}
 	const validation = validateDecision(decision.tool, decision.params);
 	if (!validation.success) {
@@ -2335,13 +2710,24 @@ class MainDecisionAgent extends Node<AgentShared> {
 			return { success: false, message: getCancelledReason(shared) };
 		}
 		Log("Info", `[CodingAgent] tool-calling decision start step=${shared.step + 1}${lastError ? ` retry_error=${lastError}` : ""}`);
-		const tools = AgentToolRegistry.buildDecisionToolSchema(shared.role, SEARCH_DORA_API_LIMIT_MAX, {
-			disabledAgentTools: shared.disabledAgentTools,
+		const availableTools = AgentToolRegistry.buildDecisionToolSchema(shared.role, SEARCH_DORA_API_LIMIT_MAX, {
+			disabledAgentTools: getDecisionDisabledAgentTools(shared),
 		});
+		const checkpointTools = shared.resumeRequiredTool === undefined
+			? availableTools
+			: availableTools.filter(tool => tool.function.name === shared.resumeRequiredTool);
+		const tools = checkpointTools.length > 0 ? checkpointTools : availableTools;
+		if (shared.resumeRequiredTool !== undefined && checkpointTools.length === 0) {
+			Log("Warn", `[CodingAgent] checkpoint tool is unavailable tool=${shared.resumeRequiredTool}`);
+		}
 		const messages = buildDecisionMessages(shared, lastError, attempt, lastRaw);
 		const stepId = shared.step + 1;
+		const useFastGlmToolDecision = shared.llmConfig.model.toLowerCase().includes("glm-5.2")
+			&& (typeof shared.llmOptions.reasoning_effort !== "string"
+				|| shared.llmOptions.reasoning_effort.trim() === "");
 		const llmOptions = {
 			...shared.llmOptions,
+			...(useFastGlmToolDecision ? { reasoning_effort: "minimal" } : {}),
 			tools,
 		};
 		emitLLMContextMetrics(shared, stepId, "decision_tool_calling", messages, llmOptions);
@@ -2386,62 +2772,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 			saveStepLLMDebugOutput(shared, stepId, "decision_tool_calling", res.raw ?? res.message, { success: false });
 			Log("Error", `[CodingAgent] tool-calling request failed: ${res.message}`);
 			if (res.message.indexOf("stream incomplete:") >= 0) {
-				const partialChoice = res.response?.choices && res.response.choices[0];
-				const partialMessage = partialChoice && partialChoice.message;
-				const partialToolCalls = partialMessage && partialMessage.tool_calls;
-				if (partialToolCalls && partialToolCalls.length > 0) {
-					const partialReasoningContent = partialMessage !== undefined && typeof partialMessage.reasoning_content === "string"
-						? partialMessage.reasoning_content
-						: undefined;
-					const partialMessageContent = partialMessage !== undefined && typeof partialMessage.content === "string"
-						? partialMessage.content.trim()
-						: undefined;
-					const partialDecisions: DecisionSuccess[] = [];
-					let partialFailure: DecisionFailure | undefined;
-					for (let i = 0; i < partialToolCalls.length; i++) {
-						const toolCall = partialToolCalls[i];
-						const fn = toolCall !== undefined && toolCall.function;
-						if (!fn || typeof fn.name !== "string" || fn.name === "") {
-							partialFailure = {
-								success: false,
-								message: `missing function name for partial tool call ${i + 1}`,
-								raw: partialMessageContent,
-							};
-							break;
-						}
-						const decision = parseAndValidateToolCallDecision(
-							shared,
-							fn.name,
-							typeof fn.arguments === "string" ? fn.arguments : "",
-							toolCall !== undefined && typeof toolCall.id === "string" ? toolCall.id : undefined,
-							partialMessageContent,
-							partialReasoningContent
-						);
-						if (!decision.success) {
-							partialFailure = decision;
-							break;
-						}
-						partialDecisions.push(decision);
-					}
-					if (!partialFailure && partialDecisions.length > 0) {
-						Log("Warn", `[CodingAgent] committing partial tool calls after incomplete stream tools=${partialDecisions.map(decision => decision.tool).join(",")}`);
-						if (partialDecisions.length === 1) {
-							return partialDecisions[0];
-						}
-						return {
-							success: true,
-							kind: "batch",
-							decisions: partialDecisions,
-							content: partialMessageContent,
-							reasoningContent: partialReasoningContent,
-						};
-					}
-					Log("Warn", `[CodingAgent] partial tool calls not commit-ready after incomplete stream: ${partialFailure ? partialFailure.message : "empty decisions"}`);
-				}
-				const committedDecision = this.commitPreExecutedDecision(shared);
-				if (committedDecision) {
-					return committedDecision;
-				}
+				Log("Warn", `[CodingAgent] discarding all partial tool calls after incomplete stream`);
 			}
 			clearPreExecutedResults(shared);
 			return { success: false, message: res.message, raw: res.raw };
@@ -2460,17 +2791,26 @@ class MainDecisionAgent extends Node<AgentShared> {
 			? message.content.trim()
 			: undefined;
 		Log("Info", `[CodingAgent] tool-calling response finish_reason=${finishReason !== "" ? finishReason : "unknown"} tool_calls=${toolCalls ? toolCalls.length : 0} content_len=${messageContent ? messageContent.length : 0} reasoning_len=${reasoningContent ? reasoningContent.length : 0}`);
+		if (finishReason === "length") {
+			Log("Error", `[CodingAgent] discarding truncated tool-calling output tool_calls=${toolCalls ? toolCalls.length : 0} reasoning_len=${reasoningContent ? reasoningContent.length : 0}`);
+			clearPreExecutedResults(shared);
+			return {
+				success: false,
+				message: "tool-calling output was truncated by max tokens. Do not continue the explanation. Retry immediately with one complete tool call and minimal reasoning.",
+				raw: reasoningContent ?? messageContent ?? "",
+			};
+		}
 		if (!toolCalls || toolCalls.length === 0) {
-			if (finishReason === "length") {
-				Log("Error", `[CodingAgent] tool-calling output truncated before tool call reasoning_len=${reasoningContent ? reasoningContent.length : 0}`);
-				clearPreExecutedResults(shared);
-				return {
-					success: false,
-					message: "tool-calling output was truncated by max tokens before producing a tool call. Retry immediately with a valid tool call and keep reasoning minimal.",
-					raw: reasoningContent ?? messageContent ?? "",
-				};
-			}
 			if (messageContent && messageContent !== "") {
+				if (shared.role === "sub") {
+					Log("Warn", `[CodingAgent] sub-agent returned plain text instead of structured finish`);
+					clearPreExecutedResults(shared);
+					return {
+						success: false,
+						message: "sub agents must call finish with outcome, validation, knownIssues, assumptions, and learningCandidates; plain-text completion is not accepted",
+						raw: messageContent,
+					};
+				}
 				Log("Info", `[CodingAgent] tool-calling fallback direct_finish_len=${messageContent.length}`);
 				clearPreExecutedResults(shared);
 				return {
@@ -2580,7 +2920,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 			}
 			candidateRaw = llmRes.text;
 			candidateReasoning = llmRes.reasoningContent;
-			const decision = tryParseAndValidateDecision(candidateRaw);
+			const decision = tryParseAndValidateDecision(candidateRaw, shared.role);
 			if (decision.success) {
 				decision.reasoningContent = llmRes.reasoningContent;
 				Log("Info", `[CodingAgent] xml repair succeeded tool=${decision.tool}`);
@@ -2621,7 +2961,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 				raw: llmRes.text ?? "",
 			};
 		}
-		const decision = tryParseAndValidateDecision(llmRes.text);
+		const decision = tryParseAndValidateDecision(llmRes.text, shared.role);
 		if (decision.success) {
 			decision.reasoningContent = llmRes.reasoningContent;
 			if (!isToolAllowedForRole(shared, decision.tool)) {
@@ -2639,6 +2979,21 @@ class MainDecisionAgent extends Node<AgentShared> {
 
 	async exec(input: { shared: AgentShared }): Promise<DecisionResult | DecisionFailure> {
 		const shared = input.shared;
+		const acceptResumeDecision = (decision: DecisionSuccess | DecisionBatchSuccess): boolean => {
+			if (shared.resumeRequiredTool === undefined) return true;
+			let selectedTool: AgentToolName | undefined;
+			if (isDecisionBatchSuccess(decision)) {
+				selectedTool = decision.decisions.length > 0 ? decision.decisions[0].tool : undefined;
+			} else if (decision.directSummary && decision.directSummary !== "") {
+				selectedTool = "finish";
+			} else {
+				selectedTool = decision.tool;
+			}
+			if (selectedTool !== shared.resumeRequiredTool) return false;
+			shared.resumeRequiredTool = undefined;
+			shared.resumeCheckpointPending = false;
+			return true;
+		};
 		if (shared.stopToken.stopped) {
 			return { success: false, message: getCancelledReason(shared) };
 		}
@@ -2664,7 +3019,10 @@ class MainDecisionAgent extends Node<AgentShared> {
 					return { success: false, message: getCancelledReason(shared) };
 				}
 				if (decision.success) {
-					return decision;
+					if (acceptResumeDecision(decision)) return decision;
+					lastError = `Compression checkpoint requires ${shared.resumeRequiredTool} as the next tool.`;
+					lastRaw = "";
+					continue;
 				}
 				lastError = decision.message;
 				lastRaw = decision.raw ?? "";
@@ -2689,7 +3047,10 @@ class MainDecisionAgent extends Node<AgentShared> {
 						return { success: false, message: getCancelledReason(shared) };
 					}
 					if (decision.success) {
-						return decision;
+						if (acceptResumeDecision(decision)) return decision;
+						lastError = `Compression checkpoint requires ${shared.resumeRequiredTool} as the next tool.`;
+						lastRaw = "";
+						continue;
 					}
 					lastError = decision.message;
 					lastRaw = decision.raw ?? "";
@@ -2717,7 +3078,10 @@ class MainDecisionAgent extends Node<AgentShared> {
 				return { success: false, message: getCancelledReason(shared) };
 			}
 			if (decision.success) {
-				return decision;
+				if (acceptResumeDecision(decision)) return decision;
+				lastError = `Compression checkpoint requires ${shared.resumeRequiredTool} as the next tool.`;
+				lastRaw = "";
+				continue;
 			}
 			lastError = decision.message;
 			lastRaw = decision.raw ?? "";
@@ -2787,6 +3151,10 @@ class MainDecisionAgent extends Node<AgentShared> {
 		}
 		if (result.directSummary && result.directSummary !== "") {
 			shared.response = result.directSummary;
+			shared.completion = normalizeAgentCompletionReport(shared.role === "sub" ? {
+				outcome: "partial",
+				knownIssues: ["Sub agent returned a plain-text finish without structured completion metadata."],
+			} : {});
 			shared.done = true;
 			appendConversationMessage(shared, {
 				role: "assistant",
@@ -2799,6 +3167,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 		if (result.tool === "finish") {
 			const finalMessage = getFinishMessage(result.params, result.reason ?? "");
 			shared.response = finalMessage;
+			shared.completion = getCompletionReport(result.params);
 			shared.done = true;
 			appendConversationMessage(shared, {
 				role: "assistant",
@@ -2832,14 +3201,11 @@ class MainDecisionAgent extends Node<AgentShared> {
 		});
 		const action = shared.history[shared.history.length - 1];
 		appendAssistantToolCallsMessage(shared, [action], result.reason ?? "", result.reasoningContent);
-		if (AgentToolRegistry.canPreExecuteTool(action.tool)) {
-			shared.pendingToolActions = [action];
-			persistHistoryState(shared);
-			return "batch_tools";
-		}
-		clearPreExecutedResults(shared);
+		// Route every tool through the shared executor, even for a single call.
+		// The legacy per-tool flow nodes bypass runtime guards and accounting.
+		shared.pendingToolActions = [action];
 		persistHistoryState(shared);
-		return result.tool;
+		return "batch_tools";
 	}
 }
 
@@ -3158,7 +3524,7 @@ class SpawnSubAgentAction extends Node<AgentShared> {
 			sessionId: result.sessionId,
 			taskId: result.taskId,
 			title: result.title,
-			hint: "If the necessary sub-agents have already been dispatched, end this turn directly and do not immediately check their results.",
+			hint: "Continue useful foreground work after dispatching, but do not immediately poll newly spawned sub-agents. Their results arrive as asynchronous handoffs.",
 		};
 	}
 
@@ -3432,24 +3798,96 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 	if (shared.stopToken.stopped) {
 		return { success: false, message: getCancelledReason(shared) };
 	}
+	if (shared.resumeRequiredTool !== undefined) {
+		if (action.tool !== shared.resumeRequiredTool) {
+			return {
+				success: false,
+				message: `Compression checkpoint requires ${shared.resumeRequiredTool} next. Do not restart discovery or use ${action.tool}.`,
+			};
+		}
+		shared.resumeRequiredTool = undefined;
+		shared.resumeCheckpointPending = false;
+	}
 	const params = action.params;
 	if (action.tool === "read_file") {
+		const startLine = Number(params.startLine ?? 1);
+		let endLine = Number(params.endLine ?? READ_FILE_DEFAULT_LIMIT);
+		let clippedAfterCompression = false;
+		if (
+			shared.resumeNarrowReadMode === true
+			&& startLine > 0
+			&& endLine >= startLine
+			&& endLine - startLine + 1 > 160
+		) {
+			endLine = startLine + 159;
+			clippedAfterCompression = true;
+		}
 		const path = typeof params.path === "string"
 			? params.path
 			: (typeof params.target_file === "string" ? params.target_file : "");
 		if (path.trim() === "") return { success: false, message: "missing path" };
-		return Tools.readFile(
+		if (shared.failedTestNeedsBuild === true && string.sub(path.toLowerCase(), -4) === ".lua") {
+			return {
+				success: false,
+				message: "The deterministic test report failed. Inspect and fix the authored source/test instead of reading generated Lua, then build successfully before testing again.",
+			};
+		}
+		const result = Tools.readFile(
 			shared.workingDir,
 			path,
-			Number(params.startLine ?? 1),
-			Number(params.endLine ?? READ_FILE_DEFAULT_LIMIT),
+			startLine,
+			endLine,
 			shared.useChineseResponse ? "zh" : "en"
 		) as unknown as Record<string, unknown>;
+		if (clippedAfterCompression && result.success === true) {
+			result.clipped = true;
+			result.message = shared.useChineseResponse
+				? `压缩恢复阶段已自动截取为第 ${startLine}-${endLine} 行（最多 160 行）。如仍需后续内容，请从第 ${endLine + 1} 行继续窄读。`
+				: `The post-compression read was clipped to lines ${startLine}-${endLine} (160 lines maximum). Continue narrowly from line ${endLine + 1} only if needed.`;
+		}
+		return result;
 	}
+	if (action.tool === "edit_file" && shared.resumeNarrowReadMode === true) {
+		const path = typeof params.path === "string"
+			? params.path
+			: (typeof params.target_file === "string" ? params.target_file : "");
+		const oldStr = typeof params.old_str === "string" ? params.old_str : "";
+		if (path.trim() !== "" && oldStr === "") {
+			const existing = Tools.readFileRaw(shared.workingDir, path);
+			if (existing.success) {
+				return {
+					success: false,
+					message: "After compression, do not overwrite a complete existing file. Continue from the checkpoint with build, a narrow read, or a targeted old_str replacement.",
+				};
+			}
+		}
+	}
+	// A forced post-compression build validates the checkpoint but does not
+	// justify rereading whole authored files. Keep narrow-read mode across that
+	// build; a later edit/command/search represents real resumed work and may
+	// clear it normally.
+	if (action.tool !== "build") shared.resumeNarrowReadMode = false;
 	if (action.tool === "grep_files") {
+		const searchPath = (params.path as string) ?? "";
+		const searchGlobs = params.globs as string[] | undefined;
+		let searchesGeneratedLua = string.sub(searchPath.toLowerCase(), -4) === ".lua";
+		if (!searchesGeneratedLua && searchGlobs !== undefined) {
+			for (let i = 0; i < searchGlobs.length; i++) {
+				if (searchGlobs[i].toLowerCase().indexOf(".lua") >= 0) {
+					searchesGeneratedLua = true;
+					break;
+				}
+			}
+		}
+		if (shared.failedTestNeedsBuild === true && searchesGeneratedLua) {
+			return {
+				success: false,
+				message: "The deterministic test report failed. Search the authored source/test, not generated Lua, make the smallest source fix, and build successfully before testing again.",
+			};
+		}
 		const result = await Tools.searchFiles({
 			workDir: shared.workingDir,
-			path: (params.path as string) ?? "",
+			path: searchPath,
 			pattern: (params.pattern as string) ?? "",
 			globs: params.globs as string[] | undefined,
 			useRegex: params.useRegex as boolean | undefined,
@@ -3463,6 +3901,19 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 		return result as unknown as Record<string, unknown>;
 	}
 	if (action.tool === "search_dora_api") {
+		if (shared.unbuiltEdits === true) {
+			return {
+				success: false,
+				message: "Build the authored changes before another Dora API search. Search again only if the compiler or runtime diagnostics require an unfamiliar API.",
+			};
+		}
+		if ((shared.apiSearchesSinceBuild ?? 0) >= 1) {
+			return {
+				success: false,
+				message: "Only one Dora API lookup is allowed between builds. Apply the returned signature and build before searching again.",
+			};
+		}
+		shared.apiSearchesSinceBuild = (shared.apiSearchesSinceBuild ?? 0) + 1;
 		const result = await Tools.searchDoraAPI({
 			pattern: (params.pattern as string) ?? "",
 			docSource: ((params.docSource as string) ?? "api") as Tools.DoraAPIDocSource,
@@ -3486,10 +3937,22 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 		return result as unknown as Record<string, unknown>;
 	}
 	if (action.tool === "delete_file") {
+		const editLimit = 3;
 		const targetFile = typeof params.target_file === "string"
 			? params.target_file
 			: (typeof params.path === "string" ? params.path : "");
 		if (targetFile.trim() === "") return { success: false, message: "missing target_file" };
+		const normalizedTargetFile = normalizePolicyPath(targetFile);
+		const editedPaths = shared.editedPathsSinceBuild ?? [];
+		if (editedPaths.indexOf(normalizedTargetFile) < 0 && editedPaths.length >= editLimit) {
+			return {
+				success: false,
+				message: "Build the current authored changes now before editing a fourth source file. Multiple related replacements in the same source file count as one build-cycle edit.",
+			};
+		}
+		if (isMainAgentMemoryPath(normalizedTargetFile)) {
+			return { success: false, message: "This .agent/main file is managed automatically and cannot be deleted with delete_file." };
+		}
 		const result = Tools.applyFileChanges(shared.taskId, shared.workingDir, [{ path: targetFile, op: "delete" }], {
 			summary: `delete_file: ${targetFile}`,
 			toolName: "delete_file",
@@ -3497,6 +3960,11 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 		if (!result.success) {
 			return result as unknown as Record<string, unknown>;
 		}
+		shared.unbuiltEdits = true;
+		if (shared.failedTestNeedsBuild === true) shared.failedTestHasSourceEdit = true;
+		if (editedPaths.indexOf(normalizedTargetFile) < 0) editedPaths.push(normalizedTargetFile);
+		shared.editedPathsSinceBuild = editedPaths;
+		shared.editsSinceBuild = (shared.editsSinceBuild ?? 0) + 1;
 		return {
 			success: true,
 			changed: true,
@@ -3507,10 +3975,32 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 		};
 	}
 	if (action.tool === "build") {
+		const buildPath = (params.path as string) ?? "";
 		const result = await Tools.build({
 			workDir: shared.workingDir,
-			path: (params.path as string) ?? ""
+			path: buildPath
 		});
+		shared.unbuiltEdits = false;
+		shared.editsSinceBuild = 0;
+		shared.editedPathsSinceBuild = [];
+		shared.hasBuilt = true;
+		const normalizedBuildPath = normalizePolicyPath(buildPath);
+		const builtWholeProject = normalizedBuildPath === "" || normalizedBuildPath === ".";
+		if (result.success && builtWholeProject) shared.freshProjectBuildPending = false;
+		shared.apiSearchesSinceBuild = 0;
+		shared.buildRepairPending = false;
+		if (!result.success && result.messages !== undefined) {
+			for (let i = 0; i < result.messages.length; i++) {
+				if (result.messages[i].success === false && result.messages[i].file !== "") {
+					shared.buildRepairPending = true;
+					break;
+				}
+			}
+		}
+		if (result.success && shared.failedTestNeedsBuild === true && shared.failedTestHasSourceEdit === true) {
+			shared.failedTestNeedsBuild = false;
+			shared.failedTestHasSourceEdit = false;
+		}
 		return result as unknown as Record<string, unknown>;
 	}
 	if (action.tool === "fetch_url") {
@@ -3542,6 +4032,12 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 		if (shared.disabledAgentTools.indexOf("execute_command") >= 0) {
 			return { success: false, message: "execute_command is not enabled for this session" };
 		}
+		if (shared.failedTestNeedsBuild === true) {
+			return {
+				success: false,
+				message: "The deterministic test report failed. Read the authored source/test, make the smallest source fix, and build successfully before running another command. Do not probe generated Lua or instantiate compiled TypeScript classes from Lua.",
+			};
+		}
 		const mode = typeof params.mode === "string" ? params.mode : "";
 		const result = await Tools.executeCommand({
 			workDir: shared.workingDir,
@@ -3565,6 +4061,66 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 				});
 			},
 		});
+		if (result.success && mode === "lua") {
+			let deterministicFailure = false;
+			let deterministicPass = false;
+			const outputLines = result.output.split("\n");
+			for (let i = 0; i < outputLines.length && !deterministicFailure; i++) {
+				const line = outputLines[i].trim().toLowerCase();
+				if (line === "passed") deterministicPass = true;
+				if (line === "failed") {
+					deterministicFailure = true;
+					break;
+				}
+				let searchFrom = 0;
+				while (searchFrom < line.length) {
+					const failedIndex = line.indexOf("failed", searchFrom);
+					if (failedIndex < 0) break;
+					let after = failedIndex + "failed".length;
+					while (after < line.length) {
+						const ch = line.slice(after, after + 1);
+						if (ch !== " " && ch !== "\t" && ch !== ":" && ch !== "=") break;
+						after++;
+					}
+					let afterEnd = after;
+					while (afterEnd < line.length) {
+						const ch = line.slice(afterEnd, afterEnd + 1);
+						if (ch < "0" || ch > "9") break;
+						afterEnd++;
+					}
+					let count: number | undefined;
+					if (afterEnd > after) {
+						count = Number(line.slice(after, afterEnd));
+					} else {
+						let before = failedIndex - 1;
+						while (before >= 0) {
+							const ch = line.slice(before, before + 1);
+							if (ch !== " " && ch !== "\t" && ch !== ":" && ch !== "=") break;
+							before--;
+						}
+						const beforeEnd = before + 1;
+						while (before >= 0) {
+							const ch = line.slice(before, before + 1);
+							if (ch < "0" || ch > "9") break;
+							before--;
+						}
+						if (beforeEnd > before + 1) count = Number(line.slice(before + 1, beforeEnd));
+					}
+					if ((count !== undefined && count > 0) || (count === undefined && failedIndex === 0)) {
+						deterministicFailure = true;
+						break;
+					}
+					searchFrom = failedIndex + "failed".length;
+				}
+			}
+			if (deterministicFailure) {
+				shared.failedTestNeedsBuild = true;
+				shared.failedTestHasSourceEdit = false;
+				shared.deterministicTestFailureCount = (shared.deterministicTestFailureCount ?? 0) + 1;
+			} else if (deterministicPass) {
+				shared.deterministicTestFailureCount = 0;
+			}
+		}
 		return result as unknown as Record<string, unknown>;
 	}
 	if (action.tool === "spawn_sub_agent") {
@@ -3594,7 +4150,7 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 			sessionId: result.sessionId,
 			taskId: result.taskId,
 			title: result.title,
-			hint: "If the necessary sub-agents have already been dispatched, end this turn directly and do not immediately check their results.",
+			hint: "Continue useful foreground work after dispatching, but do not immediately poll newly spawned sub-agents. Their results arrive as asynchronous handoffs.",
 		};
 	}
 	if (action.tool === "list_sub_agents") {
@@ -3621,14 +4177,45 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 		const oldStr = typeof params.old_str === "string" ? params.old_str : "";
 		const newStr = typeof params.new_str === "string" ? params.new_str : "";
 		if (path.trim() === "") return { success: false, message: "missing path" };
+		const normalizedPath = normalizePolicyPath(path);
+		const isMemoryEdit = isMainAgentMemoryPath(normalizedPath);
+		if (!isMemoryEdit) {
+			const preflightIssue = AgentToolRegistry.findUnsupportedDoraTsEdit(normalizedPath, newStr);
+			if (preflightIssue !== undefined) {
+				const targetExists = Content.exist(Path(shared.workingDir, normalizedPath));
+				const recovery = oldStr === "" && !targetExists
+					? " This was a rejected new-file create, so the file does not exist. Reissue the complete file content with the unsupported construct replaced; do not attempt a partial patch."
+					: " Reissue the corrected coherent replacement; do not patch text that was never written.";
+				return { success: false, message: preflightIssue + recovery };
+			}
+		}
+		if (!isMemoryEdit) {
+			const editLimit = 3;
+			const editedPaths = shared.editedPathsSinceBuild ?? [];
+			if (editedPaths.indexOf(normalizedPath) < 0 && editedPaths.length >= editLimit) {
+				return {
+					success: false,
+					message: "Build the current authored changes now before editing a fourth source file. Multiple related replacements in the same source file count as one build-cycle edit.",
+				};
+			}
+		}
 		const actionNode = new EditFileAction(1, 0);
-		return actionNode.exec({
+		const result = await actionNode.exec({
 			path,
 			oldStr,
 			newStr,
 			taskId: shared.taskId,
 			workDir: shared.workingDir,
 		});
+		if (!isMemoryEdit && result.success === true && result.changed !== false) {
+			shared.unbuiltEdits = true;
+			if (shared.failedTestNeedsBuild === true) shared.failedTestHasSourceEdit = true;
+			const editedPaths = shared.editedPathsSinceBuild ?? [];
+			if (editedPaths.indexOf(normalizedPath) < 0) editedPaths.push(normalizedPath);
+			shared.editedPathsSinceBuild = editedPaths;
+			shared.editsSinceBuild = (shared.editsSinceBuild ?? 0) + 1;
+		}
+		return result;
 	}
 	return { success: false, message: `${action.tool} cannot be executed as a batched tool` };
 }
@@ -3950,12 +4537,25 @@ class CodingAgentFlow extends Flow<AgentShared> {
 }
 
 function emitAgentTaskFinishEvent(shared: AgentShared, success: boolean, message: string): CodingAgentRunResult {
-	const result = {
-		success,
-		taskId: shared.taskId,
-		message,
-		steps: shared.step
-	};
+	const completion = shared.completion ?? normalizeAgentCompletionReport({
+		outcome: success ? "completed" : "blocked",
+		knownIssues: success ? [] : [message],
+	});
+	const result: CodingAgentRunResult = success
+		? {
+			success: true,
+			taskId: shared.taskId,
+			message,
+			steps: shared.step,
+			completion,
+		}
+		: {
+			success: false,
+			taskId: shared.taskId,
+			message,
+			steps: shared.step,
+			completion,
+		};
 	emitAgentEvent(shared, {
 		type: "task_finished",
 		sessionId: shared.sessionId,
@@ -3963,6 +4563,7 @@ function emitAgentTaskFinishEvent(shared: AgentShared, success: boolean, message
 		success: result.success,
 		message: result.message,
 		steps: result.steps,
+		completion: result.completion,
 	});
 	return result;
 }
@@ -3997,6 +4598,9 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 	});
 	const persistedSession = compressor.getStorage().readSessionState();
 	const promptPack = compressor.getPromptPack();
+	const freshProject = inspectFreshProject(options.workDir);
+	const freshProjectBuildPending = freshProject.fresh;
+	const freshProjectCodeFile = freshProject.codeFile;
 
 	const shared: AgentShared = {
 		sessionId: options.sessionId,
@@ -4036,6 +4640,8 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 		spawnSubAgent: options.spawnSubAgent,
 		listSubAgents: options.listSubAgents,
 		disabledAgentTools: options.disabledAgentTools ?? [],
+		freshProjectBuildPending,
+		freshProjectCodeFile,
 	};
 
 	try {
@@ -4068,6 +4674,11 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 				);
 			}
 			return await compactAllHistory(shared);
+		}
+		await maybeCompressHistory(shared, true);
+		if (shared.stopToken.stopped) {
+			Tools.setTaskStatus(shared.taskId, "STOPPED");
+			return emitAgentTaskFinishEvent(shared, false, getCancelledReason(shared));
 		}
 		appendConversationMessage(shared, {
 			role: "user",

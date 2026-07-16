@@ -28,6 +28,77 @@ Lua command code runs in a temporary environment:
 - Dora async APIs such as `Content:copyAsync(...)`, `Content:zipAsync(...)`, and `Content:unzipAsync(...)` may be called directly.
 - The tool call waits until the Lua command finishes, including yielding async calls made inside the command.
 - Keep commands short. Do not run infinite loops or long CPU-bound work.
+- Lua commands default to a 30 second timeout. `timeoutSeconds` may be set explicitly for a bounded engine test.
+- `getEntryStatus()` returns the current Dora entry status.
+- `enterEntryAsync({ entryName?, fileName? })` starts a built Lua entry from the current project. `fileName` is project-relative, defaults to `init`, and may include its source or Lua extension.
+- `stopEntry()` stops an entry started by this command. The tool also stops it automatically when the command succeeds, fails, is canceled, or times out.
+- The Dora entry runtime is shared. If another Agent command owns it, do not wait in a loop; report the contention or retry in a later Agent turn.
+
+## In-Engine Game Script Validation
+
+Use an in-engine test for gameplay state, scheduling, DoraX updates, input handling, actions, physics, or other runtime behavior. A successful build alone is not runtime validation.
+
+Follow this short path before searching APIs or probing paths:
+
+1. Write a focused test entry in the project's authored language. For TS/TSX, build it first and run the generated Lua entry.
+2. Write the result to a unique marker under the **project root** `.agent/test-results`, not under `Content.writablePath`. The command-side absolute marker is `Path(projectDir, ".agent", "test-results", name)`.
+3. In an Agent-started entry, the project root is `Content.searchPaths[0]`. Attach scheduled nodes to `Director.entry`; an unattached node is not driven by the scene scheduler.
+4. Remove a stale marker, start the built entry with `enterEntryAsync`, and poll with short `sleep(...)` yields plus an `App.runningTime` deadline.
+5. Read the marker, explicitly call `stopEntry()`, then verify `getEntryStatus().success` and `getEntryStatus().running == false` before asserting the result.
+6. Treat only `passed` as success. Raise an error for failure text, a missing marker, timeout, or a still-running entry.
+7. Report build and runtime validation separately with the printed command evidence. Do not search Dora APIs first when the template below applies; investigate only a concrete build or runtime error.
+
+Canonical root-level TypeScript test entry (`init.ts`):
+
+```ts
+import { Content, Director, Node, Path } from "Dora";
+
+const resultDir = Path(Content.searchPaths[0], ".agent", "test-results");
+if (!Content.exist(resultDir)) Content.mkdir(resultDir);
+
+const node = Node();
+node.addTo(Director.entry);
+node.schedule(() => {
+  Content.save(Path(resultDir, "engine-case.txt"), "passed");
+  return true;
+});
+```
+
+Canonical command after building the entry:
+
+```lua
+local resultDir = Path(projectDir, ".agent", "test-results")
+if not Content:exist(resultDir) then
+  assert(Content:mkdir(resultDir), "failed to create test result directory")
+end
+local marker = Path(resultDir, "engine-case.txt")
+Content:remove(marker)
+
+local success, loadError = enterEntryAsync({
+  fileName = "init.ts"
+})
+assert(success, loadError)
+
+local deadline = App.runningTime + 10
+while not Content:exist(marker) and App.runningTime < deadline do
+  sleep(0.05)
+end
+
+local result = Content:exist(marker) and Content:load(marker) or nil
+stopEntry()
+local status = getEntryStatus()
+
+assert(status.success, "entry status failed")
+assert(not status.running, "entry still running after stopEntry")
+assert(result ~= nil, "runtime test timed out")
+assert(result == "passed", result)
+print("build entry: init.ts")
+print("marker: " .. marker .. " = " .. result)
+print("after stop: success=" .. tostring(status.success) .. " running=" .. tostring(status.running))
+print("runtime test passed")
+```
+
+Keep the marker until its evidence has been reported or read, then remove test artifacts. The test entry must yield back to the engine scheduler. A pure CPU loop that never yields blocks the Dora runtime and cannot be interrupted by the command timeout.
 
 After file changes, refresh the Web IDE resource tree:
 

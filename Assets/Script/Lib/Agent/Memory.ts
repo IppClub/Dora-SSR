@@ -77,8 +77,10 @@ interface SubAgentLearningEntry {
 	sourceTaskId: number;
 	content: string;
 	evidence: string[];
+	verification: "runtime" | "build" | "manual" | "legacy";
 	createdAt: string;
 	sortTs: number;
+	score?: number;
 }
 
 function clampSessionIndex(messages: AgentConversationMessage[], index?: number): number {
@@ -223,9 +225,10 @@ Rules:
 - Use list_sub_agents only when you do not already know the current sub-agent status and need to inspect running delegated work or recent completed results before deciding whether another delegation is necessary or whether to read a result file.
 - Keep sub-agent titles short and specific.
 - The sub-agent prompt should be self-contained and executable, and should explain the exact task, constraints, expected output, and relevant files when known.
-- After spawn_sub_agent succeeds, immediately finish the current turn and tell the user the work has been delegated.
-- After a successful spawn_sub_agent, do not call list_sub_agents or any other tool in the same turn.
-- Treat the sub-agent completion result as an asynchronous handoff that should be continued in later conversation turns.`,
+- spawn_sub_agent is asynchronous and nonblocking. You may dispatch multiple independent sub agents in one response, subject to the concurrency limit.
+- After dispatching, continue useful foreground work or finish the turn when there is nothing else useful to do.
+- Do not poll a newly spawned sub agent in the same turn. Its completion is delivered asynchronously as a later handoff.
+- Avoid assigning overlapping files or dependent steps to concurrent sub agents unless the coordination boundary is explicit.`,
 	subAgentRolePrompt: `# Agent Role
 
 You are a sub agent. Your job is to execute concrete implementation, editing, and build work delegated by the main agent.
@@ -234,6 +237,8 @@ Rules:
 - Focus on completing the delegated task end-to-end.
 - Use the available implementation tools directly when needed, including edit_file, delete_file, and build.
 - Documentation writing tasks are also part of your execution scope when delegated by the main agent.
+- Finish with a structured handoff: outcome, validation evidence, known issues, material assumptions, and durable learning candidates.
+- Do not claim build or runtime validation passed without concrete evidence from the corresponding tool result.
 - Summaries should stay concise and execution-oriented.`,
 	functionCallingPrompt: `# Function Calling
 
@@ -326,6 +331,7 @@ Analyze the actions and update the memory. Follow these guidelines:
 	- Key decisions and their rationale
 	- Important technical details
 	- Project-specific context
+	- Valid notes written proactively by the Agent under .agent/main; merge them with newer evidence instead of discarding them merely because they were not produced by consolidation
 
 2. Consolidate Redundant Information
 	- Merge related entries
@@ -342,6 +348,19 @@ Analyze the actions and update the memory. Follow these guidelines:
 	- Create a summary paragraph
 	- Include key topics
 	- Make it grep-searchable
+
+5. Preserve the Active Execution Checkpoint
+	- Process Actions to Process in chronological order. The newest concrete tool result overrides older Session Summary claims and earlier plans
+	- Never report a file as missing when a later successful edit/create result shows it exists, and never report validation as not run when a later build or command result records it
+	- Copy the latest concrete failure or validation result exactly enough to resume from it; do not replace evidence with a speculative diagnosis
+	- End the Session Summary with an \`Active Checkpoint\` section whenever work is unfinished
+	- Record the current objective, work already completed, latest concrete failure or validation result, files already read or changed, and the exact next tool action
+	- End that section with exactly \`**Next tool**: \`tool_name\`\`, using one available Agent tool name such as \`edit_file\`, \`build\`, \`execute_command\`, or \`finish\`
+	- The next agent turn must be able to continue from this checkpoint without restarting discovery or rereading unchanged files
+	- Do not turn a completed validation into new work; if the requested validation already passed, record that the next action is to finish and report
+	- If authored project/source edits succeeded after the latest build attempt, the next tool is \`build\`. Edits only under \`.agent/main\` are memory updates: they never invalidate a completed build, test, or lifecycle result and must not create new validation work
+	- If the requested build/test/lifecycle validation already passed and only \`.agent/main\` was edited afterward, preserve the evidence and set the next tool to \`finish\`; do not repeat build, tests, lifecycle commands, discovery, or source reads
+	- If a build failed, the next tool is normally \`edit_file\` for its concrete diagnostics, not search or glob
 
 Call the save_memory tool with your consolidated memory and history entry.`,
 	memoryCompressionBodyPrompt: `# Current Core Memory
@@ -569,6 +588,28 @@ function parsePromptPackMarkdown(text: string): {
 	return { value, missing, unknown, removed };
 }
 
+function migrateLegacyAgentRolePrompts(value: Record<string, unknown>): boolean {
+	let changed = false;
+	const main = typeof value.mainAgentRolePrompt === "string" ? value.mainAgentRolePrompt : "";
+	if (main !== "") {
+		let migrated = main;
+		migrated = migrated.replace(
+			"- After spawn_sub_agent succeeds, immediately finish the current turn and tell the user the work has been delegated.\n- After a successful spawn_sub_agent, do not call list_sub_agents or any other tool in the same turn.\n- Treat the sub-agent completion result as an asynchronous handoff that should be continued in later conversation turns.",
+			"- spawn_sub_agent is asynchronous and nonblocking. You may dispatch multiple independent sub agents in one response, subject to the concurrency limit.\n- After dispatching, continue useful foreground work or finish the turn when there is nothing else useful to do.\n- Do not poll a newly spawned sub agent in the same turn. Its completion is delivered asynchronously as a later handoff.\n- Avoid assigning overlapping files or dependent steps to concurrent sub agents unless the coordination boundary is explicit."
+		);
+		if (migrated !== main) {
+			value.mainAgentRolePrompt = migrated;
+			changed = true;
+		}
+	}
+	const sub = typeof value.subAgentRolePrompt === "string" ? value.subAgentRolePrompt : "";
+	if (sub !== "" && sub.indexOf("structured handoff") < 0) {
+		value.subAgentRolePrompt = `${sub.trim()}\n- Finish with a structured handoff: outcome, validation evidence, known issues, material assumptions, and durable learning candidates.\n- Do not claim build or runtime validation passed without concrete evidence from the corresponding tool result.`;
+		changed = true;
+	}
+	return changed;
+}
+
 export function loadAgentPromptPack(projectRoot: string): { pack: AgentPromptPack; warnings: string[]; path: string } {
 	const path = getPromptPackConfigPath(projectRoot);
 	const warnings: string[] = [];
@@ -625,12 +666,15 @@ export function loadAgentPromptPack(projectRoot: string): { pack: AgentPromptPac
 	if (parsed.missing.length > 0) {
 		warnings.push(`Agent prompt config at ${path} is missing sections: ${parsed.missing.join(", ")}. Built-in defaults were used for those sections.`);
 	}
-	if (parsed.removed.length > 0) {
+	const migratedRolePrompts = migrateLegacyAgentRolePrompts(parsed.value);
+	if (parsed.removed.length > 0 || migratedRolePrompts) {
 		const rewriteWarning = rewriteDefaultPromptPackConfig(path, parsed.value);
 		if (rewriteWarning) {
 			warnings.push(rewriteWarning);
-		} else {
+		} else if (parsed.removed.length > 0) {
 			warnings.push(`Agent prompt config at ${path} contained internal tool/system prompt sections and was rewritten without them: ${parsed.removed.join(", ")}.`);
+		} else {
+			warnings.push(`Agent prompt config at ${path} used legacy agent role rules and was migrated to asynchronous spawn and structured sub-agent handoff semantics.`);
 		}
 	}
 	return {
@@ -1104,13 +1148,55 @@ export class DualLayerStorage {
 			sourceTaskId,
 			content,
 			evidence: this.normalizeEvidence(value.evidence),
+			verification: "legacy",
 			createdAt: typeof value.createdAt === "string" ? sanitizeUTF8(value.createdAt).trim() : "",
 			sortTs: fallbackSortTs,
 		};
 	}
 
+	private decodeStructuredSubAgentLearnings(info: Record<string, unknown>, fallbackSortTs: number): SubAgentLearningEntry[] {
+		const completion = info.completion;
+		if (!completion || isArray(completion) || !isRecord(completion)) return [];
+		let verification: "runtime" | "build" | "manual" | undefined;
+		if (isArray(completion.validation)) {
+			for (let i = 0; i < completion.validation.length; i++) {
+				const item = completion.validation[i];
+				if (!item || isArray(item) || !isRecord(item) || item.result !== "passed") continue;
+				if (item.kind === "runtime") {
+					verification = "runtime";
+					break;
+				}
+				if (item.kind === "build" && verification !== "runtime") verification = "build";
+				if (item.kind === "manual" && verification === undefined) verification = "manual";
+			}
+		}
+		if (verification === undefined || !isArray(completion.learningCandidates)) return [];
+		const sourceSessionId = typeof info.sessionId === "number" ? math.floor(info.sessionId) : 0;
+		const sourceTaskId = typeof info.sourceTaskId === "number" ? math.floor(info.sourceTaskId) : 0;
+		if (sourceSessionId <= 0 || sourceTaskId <= 0) return [];
+		const entries: SubAgentLearningEntry[] = [];
+		for (let i = 0; i < completion.learningCandidates.length; i++) {
+			const candidate = completion.learningCandidates[i];
+			if (!candidate || isArray(candidate) || !isRecord(candidate) || candidate.confidence !== "observed") continue;
+			const content = typeof candidate.claim === "string"
+				? utf8TakeHead(sanitizeUTF8(candidate.claim).trim(), SUB_AGENT_MEMORY_ENTRY_MAX_CHARS)
+				: "";
+			const evidence = this.normalizeEvidence(candidate.evidence);
+			if (content === "" || evidence.length === 0) continue;
+			entries.push({
+				sourceSessionId,
+				sourceTaskId,
+				content,
+				evidence,
+				verification,
+				createdAt: typeof info.finishedAt === "string" ? sanitizeUTF8(info.finishedAt).trim() : "",
+				sortTs: fallbackSortTs,
+			});
+		}
+		return entries;
+	}
+
 	private readSubAgentLearningEntries(): SubAgentLearningEntry[] {
-		if (this.scope !== "" && this.scope !== "main") return [];
 		const subAgentsDir = Path(this.agentRootDir, "subagents");
 		if (!Content.exist(subAgentsDir) || !Content.isdir(subAgentsDir)) return [];
 		const entries: SubAgentLearningEntry[] = [];
@@ -1121,9 +1207,21 @@ export class DualLayerStorage {
 			const info = this.readSpawnInfo(Path(dir, SUB_AGENT_SPAWN_INFO_FILE));
 			if (info === undefined || info.success !== true) continue;
 			const fallbackSortTs = typeof info.finishedAtTs === "number" ? info.finishedAtTs : 0;
+			const hasStructuredCompletion = info.completion && !isArray(info.completion) && isRecord(info.completion);
+			const structured = this.decodeStructuredSubAgentLearnings(info, fallbackSortTs);
+			if (hasStructuredCompletion) {
+				for (let i = 0; i < structured.length; i++) {
+					const entry = structured[i];
+					const key = `${entry.sourceSessionId}:${entry.sourceTaskId}:${entry.content}`;
+					if (seen[key]) continue;
+					seen[key] = true;
+					entries.push(entry);
+				}
+				continue;
+			}
 			const entry = this.decodeSubAgentLearning(info.memoryEntry, fallbackSortTs);
 			if (entry === undefined) continue;
-			const key = `${entry.sourceSessionId}:${entry.sourceTaskId}`;
+			const key = `${entry.sourceSessionId}:${entry.sourceTaskId}:${entry.content}`;
 			if (seen[key]) continue;
 			seen[key] = true;
 			entries.push(entry);
@@ -1132,16 +1230,28 @@ export class DualLayerStorage {
 		return entries;
 	}
 
-	private buildSubAgentLearningsContext(): string {
+	private buildSubAgentLearningsContext(query = ""): string {
 		const entries = this.readSubAgentLearningEntries();
 		if (entries.length === 0) return "";
+		const terms = collectQueryTerms(query);
+		for (let i = 0; i < entries.length; i++) {
+			const text = `${entries[i].content}\n${entries[i].evidence.join(" ")}`.toLowerCase();
+			let score = 0;
+			for (let j = 0; j < terms.length; j++) score += countOccurrences(text, terms[j]);
+			entries[i].score = score;
+		}
+		entries.sort((a, b) => {
+			if ((a.score ?? 0) !== (b.score ?? 0)) return (b.score ?? 0) - (a.score ?? 0);
+			return b.sortTs - a.sortTs;
+		});
 		const lines: string[] = ["## Sub-Agent Learnings", ""];
 		let totalChars = 0;
 		let count = 0;
 		for (let i = 0; i < entries.length && count < SUB_AGENT_LEARNINGS_MAX_ITEMS; i++) {
 			const entry = entries[i];
+			if (terms.length > 0 && (entry.score ?? 0) <= 0) continue;
 			const evidence = entry.evidence.length > 0 ? `\n  Evidence: ${entry.evidence.join(", ")}` : "";
-			const line = `- [sub-agent:${tostring(entry.sourceSessionId)}/task:${tostring(entry.sourceTaskId)}] ${entry.content}${evidence}`;
+			const line = `- [${entry.verification}; sub-agent:${tostring(entry.sourceSessionId)}/task:${tostring(entry.sourceTaskId)}] ${entry.content}${evidence}`;
 			if (totalChars + line.length > SUB_AGENT_LEARNINGS_MAX_CHARS) break;
 			lines.push(line);
 			totalChars += line.length;
@@ -1255,7 +1365,7 @@ export class DualLayerStorage {
 		if (project !== "") sections.push(project);
 		const session = formatMemoryLayer("Session Summary", selectRelevantMemoryText(this.readSessionSummary(), query, sessionBudget));
 		if (session !== "") sections.push(session);
-		const subAgentLearnings = this.buildSubAgentLearningsContext();
+		const subAgentLearnings = this.buildSubAgentLearningsContext(query);
 		if (subAgentLearnings !== "") {
 			sections.push(formatMemoryLayer("Sub-Agent Learnings", clipTextToTokenBudget(subAgentLearnings, subAgentBudget > 0 ? subAgentBudget : MEMORY_LAYER_MIN_TOKENS)));
 		}
@@ -1824,7 +1934,7 @@ export class MemoryCompressor {
 						},
 						session_summary_update: {
 							type: "string",
-							description: "Full updated SESSION_SUMMARY.md as markdown. Current goal, recent progress, and open issues for this session."
+						description: "Full updated SESSION_SUMMARY.md as markdown. Current goal, recent progress, open issues, and an Active Checkpoint with the exact next tool action when work is unfinished."
 						},
 					},
 					required: ["history_entry", "memory_update"],
