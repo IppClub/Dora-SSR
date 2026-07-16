@@ -2,13 +2,14 @@
 import { App, Path, Content } from 'Dora';
 import { Flow, Node } from 'Agent/flow';
 import { callLLMStreamAggregated, Message, StopToken, Log, getActiveLLMConfig, createLocalToolCallId, parseSimpleXMLChildren, parseXMLObjectFromText, safeJsonDecode, safeJsonEncode, sanitizeUTF8, estimateTextTokens } from 'Agent/Utils';
-import type { LLMConfig, ToolCall } from 'Agent/Utils';
+import type { LLMConfig, LLMTokenUsage, ToolCall } from 'Agent/Utils';
 import * as Tools from 'Agent/Tools';
 import { MemoryCompressor } from 'Agent/Memory';
 import type { AgentPromptPack, AgentConversationMessage } from 'Agent/Memory';
 import * as AgentToolRegistry from 'Agent/AgentToolRegistry';
 import type { AgentDecisionMode, AgentRole, AgentToolName } from 'Agent/AgentToolRegistry';
 import * as AgentSkills from 'Agent/AgentSkills';
+import * as AgentConfig from 'Agent/AgentConfig';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === "object";
@@ -154,6 +155,22 @@ export interface AgentContextMetric {
 
 export interface AgentMetrics {
 	context?: AgentContextMetric;
+	usage?: AgentTokenUsageMetric;
+}
+
+export interface AgentTokenUsageMetric {
+	inputTokens: number;
+	outputTokens: number;
+	totalTokens?: number;
+	cachedInputTokens?: number;
+	cacheMissInputTokens?: number;
+	reasoningOutputTokens?: number;
+	requestCount: number;
+	cacheReportedRequestCount?: number;
+	model: string;
+	phase: string;
+	step: number;
+	updatedAt: number;
 }
 
 export type CodingAgentEvent =
@@ -267,15 +284,11 @@ const SEARCH_DORA_API_LIMIT_MAX = 20;
 const SEARCH_FILES_LIMIT_DEFAULT = 20;
 const LIST_FILES_MAX_ENTRIES_DEFAULT = 200;
 const SEARCH_PREVIEW_CONTEXT = 80;
-const AGENT_DEFAULT_MAX_STEPS = 100;
-const AGENT_DEFAULT_LLM_MAX_TRY = 5;
-const AGENT_DEFAULT_LLM_TEMPERATURE = 0.1;
-const AGENT_DEFAULT_LLM_MAX_TOKENS = 8192;
 
 function buildLLMOptions(llmConfig: LLMConfig, overrides?: Record<string, unknown>): Record<string, unknown> {
 	const options: Record<string, unknown> = {
-		temperature: llmConfig.temperature ?? AGENT_DEFAULT_LLM_TEMPERATURE,
-		max_tokens: llmConfig.maxTokens ?? AGENT_DEFAULT_LLM_MAX_TOKENS,
+		temperature: llmConfig.temperature ?? AgentConfig.AGENT_DEFAULTS.llmTemperature,
+		max_tokens: llmConfig.maxTokens ?? AgentConfig.AGENT_DEFAULTS.llmMaxTokens,
 	};
 	if (llmConfig.reasoningEffort) {
 		options.reasoning_effort = llmConfig.reasoningEffort;
@@ -385,6 +398,12 @@ interface AgentShared {
 	freshProjectBuildPending?: boolean;
 	/** The only short code file found when freshProjectBuildPending was detected. */
 	freshProjectCodeFile?: string;
+	/** A successful spawn in this task makes list_sub_agents a forbidden polling path. */
+	hasSpawnedSubAgentThisTask?: boolean;
+	/** Number of bounded foreground tool batches completed after the first successful spawn. */
+	delegatedForegroundBatches?: number;
+	/** Provider-reported token usage accumulated for this task. */
+	tokenUsage?: AgentTokenUsageMetric;
 	// Memory 相关字段
 	memory: {
 		/** Memory 压缩器实例 */
@@ -475,6 +494,44 @@ function emitLLMContextMetrics(
 				step,
 			},
 		},
+	});
+}
+
+function recordLLMTokenUsage(shared: AgentShared, step: number, phase: string, usage?: LLMTokenUsage): void {
+	if (!usage) return;
+	const current = shared.tokenUsage;
+	const cachedReported = usage.cachedInputTokens !== undefined;
+	const cacheMissReported = usage.cacheMissInputTokens !== undefined;
+	const reasoningReported = usage.reasoningOutputTokens !== undefined;
+	const next: AgentTokenUsageMetric = {
+		inputTokens: (current?.inputTokens ?? 0) + usage.inputTokens,
+		outputTokens: (current?.outputTokens ?? 0) + usage.outputTokens,
+		totalTokens: (current?.totalTokens ?? 0) + (usage.totalTokens ?? (usage.inputTokens + usage.outputTokens)),
+		cachedInputTokens: cachedReported || current?.cachedInputTokens !== undefined
+			? (current?.cachedInputTokens ?? 0) + (usage.cachedInputTokens ?? 0)
+			: undefined,
+		cacheMissInputTokens: cacheMissReported || current?.cacheMissInputTokens !== undefined
+			? (current?.cacheMissInputTokens ?? 0) + (usage.cacheMissInputTokens ?? 0)
+			: undefined,
+		reasoningOutputTokens: reasoningReported || current?.reasoningOutputTokens !== undefined
+			? (current?.reasoningOutputTokens ?? 0) + (usage.reasoningOutputTokens ?? 0)
+			: undefined,
+		requestCount: (current?.requestCount ?? 0) + 1,
+		cacheReportedRequestCount: cachedReported || current?.cacheReportedRequestCount !== undefined
+			? (current?.cacheReportedRequestCount ?? 0) + (cachedReported ? 1 : 0)
+			: undefined,
+		model: shared.llmConfig.model,
+		phase,
+		step,
+		updatedAt: os.time(),
+	};
+	shared.tokenUsage = next;
+	emitAgentEvent(shared, {
+		type: "metrics_updated",
+		sessionId: shared.sessionId,
+		taskId: shared.taskId,
+		step,
+		metrics: { usage: next },
 	});
 }
 
@@ -998,6 +1055,20 @@ export function getDecisionDisabledAgentTools(shared: AgentShared): AgentToolNam
 			if (disabled.indexOf(repairDisabled[i]) < 0) disabled.push(repairDisabled[i]);
 		}
 	}
+	// A task that just delegated work must release the main turn instead of
+	// converting asynchronous spawn back into a join loop through status polling.
+	// A later user task gets a fresh AgentShared and may list historical results.
+	if (shared.hasSpawnedSubAgentThisTask === true && disabled.indexOf("list_sub_agents") < 0) {
+		disabled.push("list_sub_agents");
+	}
+	if ((shared.delegatedForegroundBatches ?? 0) >= AgentConfig.AGENT_DEFAULTS.delegatedForegroundBatchLimit) {
+		const foregroundDisabled = AgentToolRegistry.getAllowedToolsForRole(shared.role);
+		for (let i = 0; i < foregroundDisabled.length; i++) {
+			const tool = foregroundDisabled[i];
+			if (tool === "spawn_sub_agent" || tool === "finish") continue;
+			if (disabled.indexOf(tool) < 0) disabled.push(tool);
+		}
+	}
 	// Authored changes should be verified in small batches after either compiler
 	// or deterministic-test feedback. Otherwise models can spend a long turn
 	// speculating through tiny replacements against stale evidence.
@@ -1018,32 +1089,17 @@ function getDecisionToolDefinitions(shared: AgentShared): string {
 	const base = shared.promptPack.toolDefinitionsDetailed;
 	const mainAgentTools = shared.role === "main" ?
 		shared.promptPack.mainAgentToolDefinitionsDetailed : "";
-	const decisionDisabledTools = getDecisionDisabledAgentTools(shared);
-	const availableTools = AgentToolRegistry.getAllowedToolsForRole(shared.role, {
-		disabledAgentTools: decisionDisabledTools,
-	});
-	const freshProjectGuidance = shared.freshProjectBuildPending !== true
-		? ""
-		: shared.freshProjectCodeFile !== undefined
-			? `\n- fresh small project: the only buildable code file is \`${shared.freshProjectCodeFile}\` and it has at most 3 lines; implement by coherently rewriting that file, then build before any discovery or command validation`
-			: "\n- fresh empty project: there are no buildable code files; create the requested entry directly (default to `init.ts` for a Dora TypeScript task), then build before any discovery or command validation";
-	const availability = `
-
-Tool availability for this runtime:
-- role: ${shared.role}
-- allowed tools: ${availableTools.join(", ")}
-- If the user requests a tool that is not in this allowed list, report that it is unavailable. Do not simulate it with repeated reads or unrelated discovery.${freshProjectGuidance}`;
 	if (usesDefaultToolPrompts) {
 		const definitions = AgentToolRegistry.buildRoleToolDefinitionsDetailed(shared.role, {
 			includeFinish: true,
 			includeXmlRules: true,
 			context: { searchDoraApiLimitMax: SEARCH_DORA_API_LIMIT_MAX },
-			disabledAgentTools: decisionDisabledTools,
+			disabledAgentTools: shared.disabledAgentTools,
 		});
-		return replacePromptVars(`${definitions}${availability}`, params);
+		return replacePromptVars(definitions, params);
 	}
 	const withRole = replacePromptVars(
-		`${base}${mainAgentTools}${availability}`,
+		`${base}${mainAgentTools}`,
 		params
 	);
 	if (shared?.decisionMode !== "xml") {
@@ -1058,7 +1114,7 @@ Tool availability for this runtime:
 
 function getDecisionToolSchemaText(shared: AgentShared): string {
 	const [toolsText] = safeJsonEncode(AgentToolRegistry.buildDecisionToolSchema(shared.role, SEARCH_DORA_API_LIMIT_MAX, {
-		disabledAgentTools: getDecisionDisabledAgentTools(shared),
+		disabledAgentTools: shared.disabledAgentTools,
 	}) as object);
 	return toolsText ?? "";
 }
@@ -1220,7 +1276,10 @@ async function maybeCompressHistory(shared: AgentShared, forceAtTurnBoundary = f
 				onOutput: (phase, text, meta) => {
 					saveStepLLMDebugOutput(shared, stepId, phase, text, meta);
 				},
-			},
+				onUsage: (phase, usage) => {
+					recordLLMTokenUsage(shared, stepId, phase, usage);
+				},
+				},
 			"default",
 			systemPrompt,
 			toolDefinitions
@@ -1320,6 +1379,9 @@ async function compactAllHistory(shared: AgentShared): Promise<CodingAgentRunRes
 				},
 				onOutput: (phase, text, meta) => {
 					saveStepLLMDebugOutput(shared, stepId, phase, text, meta);
+				},
+				onUsage: (phase, usage) => {
+					recordLLMTokenUsage(shared, stepId, phase, usage);
 				},
 			},
 			"budget_max"
@@ -1607,6 +1669,9 @@ function applyCompressedSessionState(
 			}
 		}
 	}
+	if (shared.hasSpawnedSubAgentThisTask === true && shared.resumeRequiredTool === "list_sub_agents") {
+		shared.resumeRequiredTool = undefined;
+	}
 }
 
 function appendConversationMessage(shared: AgentShared, message: AgentConversationMessage): void {
@@ -1859,6 +1924,8 @@ async function llm(
 		}
 	);
 	if (res.success) {
+		const usage = res.tokenUsage;
+		recordLLMTokenUsage(shared, stepId, phase, usage);
 		const message = res.response.choices?.[0]?.message;
 		const text = message?.content;
 		const reasoningContent = typeof message?.reasoning_content === "string"
@@ -1870,14 +1937,16 @@ async function llm(
 				const reason = parsed.reason ?? "";
 				emitAssistantMessageUpdated(shared, "", reason !== "" ? reason : undefined);
 			}
-			saveStepLLMDebugOutput(shared, stepId, phase, text, { success: true });
+			saveStepLLMDebugOutput(shared, stepId, phase, text, { success: true, usage });
 			return { success: true, text, reasoningContent };
 		} else {
-			saveStepLLMDebugOutput(shared, stepId, phase, "empty LLM response", { success: false });
+			saveStepLLMDebugOutput(shared, stepId, phase, "empty LLM response", { success: false, usage });
 			return { success: false, message: "empty LLM response" };
 		}
 	} else {
-		saveStepLLMDebugOutput(shared, stepId, phase, res.raw ?? res.message, { success: false });
+		const usage = res.tokenUsage;
+		recordLLMTokenUsage(shared, stepId, phase, usage);
+		saveStepLLMDebugOutput(shared, stepId, phase, res.raw ?? res.message, { success: false, usage });
 		return { success: false, message: res.message };
 	}
 }
@@ -2221,27 +2290,6 @@ function buildAgentSystemPrompt(shared: AgentShared, includeToolDefinitions = fa
 	if (skillsSection !== "") {
 		sections.push(skillsSection);
 	}
-	if (shared.resumeCheckpointPending === true) {
-		const requiredTool = shared.resumeRequiredTool !== undefined
-			? ` The engine will accept only \`${shared.resumeRequiredTool}\` as the next tool.`
-			: "";
-		const activeUserInstruction = typeof shared.carryMessageIndex === "number"
-			? " The active carried user instruction is newer than the compressed checkpoint and takes precedence over any prior completion state. Execute that instruction now."
-			: "";
-		sections.push(`### Resume After Compression
-
-Context was just compressed. Continue the in-progress work; do not restart it.${activeUserInstruction} Treat the Session Summary's Active Checkpoint as authoritative for completed work and execute its next unfinished action now.${requiredTool} If its next tool is \`finish\`, call \`finish\` immediately: edits only under \`.agent/main\` do not invalidate completed build, test, or lifecycle evidence. Files listed as authored or changed already exist: do not regenerate, restate, or overwrite their complete contents. Use a narrow read or targeted replacement only when the checkpoint or active user instruction requires a source fix. Do not restart discovery, glob, rerun validation, or reread files already listed as read or changed unless required for that fix. Do not expand scope.`);
-	}
-	if (shared.buildRepairPending === true) {
-		sections.push(`### Compiler Repair Mode
-
-The latest build already returned concrete authored-file diagnostics. Repair those diagnostics directly with a narrow read or targeted edit, then build again. Search, glob, Dora API lookup, and execute_command are temporarily unavailable because they cannot clarify an exact compiler error.`);
-	}
-	if ((shared.deterministicTestFailureCount ?? 0) >= 2) {
-		sections.push(`### Repeated Deterministic Test Failure
-
-The same deterministic validation path has failed repeatedly. Do not simulate a longer history, derive a traversal/path, or keep tuning the same fixture architecture. Construct the smallest legal state immediately before the failing transition, perform one action, and assert the result. Read only the failing authored test/function, make one coherent edit, build, and rerun once.`);
-	}
 	if (includeToolDefinitions) {
 		sections.push("### Available Tools\n\n" + getDecisionToolDefinitions(shared));
 		if (shared.decisionMode === "xml") {
@@ -2327,22 +2375,6 @@ function getFinalDecisionTurnPrompt(shared: AgentShared): string {
 		: "You have reached the maximum processing round. In this turn, provide a direct work summary instead of planning further rounds.";
 }
 
-function appendPromptToLatestDecisionMessage(messages: Message[], prompt: string): Message[] {
-	if (messages.length === 0 || prompt.trim() === "") return messages;
-	const next = messages.map(message => ({ ...message }));
-	for (let i = next.length - 1; i >= 0; i--) {
-		const message = next[i];
-		if (message.role !== "assistant" && message.role !== "user") continue;
-		const content = typeof message.content === "string" ? message.content.trim() : "";
-		message.content = content !== ""
-			? `${content}\n\n${prompt}`
-			: prompt;
-		return next;
-	}
-	next.push({ role: "user", content: prompt });
-	return next;
-}
-
 function buildDecisionMessages(
 	shared: AgentShared,
 	lastError?: string,
@@ -2351,13 +2383,20 @@ function buildDecisionMessages(
 	decisionMode: AgentDecisionMode = shared.decisionMode
 ): Message[] {
 	const systemPrompt = buildAgentSystemPrompt(shared, decisionMode === "xml");
+	const tailSections: string[] = [];
+	if (shared.resumeCheckpointPending === true) {
+		const activeUserInstruction = typeof shared.carryMessageIndex === "number"
+			? " The active carried user instruction is newer than the compressed checkpoint and takes precedence."
+			: "";
+		tailSections.push(`Resume after compression: continue from the Session Summary's Active Checkpoint without restarting discovery.${activeUserInstruction}`);
+	}
 	shared.resumeCheckpointPending = false;
 	let messages: Message[] = [
 		{ role: "system", content: systemPrompt },
 		...getUnconsolidatedMessages(shared),
 	];
 	if (shared.step + 1 >= shared.maxSteps) {
-		messages = appendPromptToLatestDecisionMessage(messages, getFinalDecisionTurnPrompt(shared));
+		tailSections.push(getFinalDecisionTurnPrompt(shared));
 	}
 	if (lastError && lastError !== "") {
 		let retryHeader = decisionMode === "xml"
@@ -2381,6 +2420,23 @@ function buildDecisionMessages(
 	${lastRaw && lastRaw !== "" ? `Last rejected output summary: ${truncateText(lastRaw, 300)}` : ""}`,
 		});
 	}
+	tailSections.push(AgentToolRegistry.buildCurrentToolAvailabilityPrompt({
+		role: shared.role,
+		taskDisabledAgentTools: shared.disabledAgentTools,
+		currentDisabledAgentTools: getDecisionDisabledAgentTools(shared),
+		resumeRequiredTool: shared.resumeRequiredTool,
+		hasSpawnedSubAgentThisTask: shared.hasSpawnedSubAgentThisTask,
+		delegatedForegroundBudgetExhausted: (shared.delegatedForegroundBatches ?? 0) >= AgentConfig.AGENT_DEFAULTS.delegatedForegroundBatchLimit,
+		freshProjectBuildPending: shared.freshProjectBuildPending,
+		freshProjectCodeFile: shared.freshProjectCodeFile,
+		buildRepairPending: shared.buildRepairPending,
+		editBudgetExhausted: shared.unbuiltEdits === true && (shared.editsSinceBuild ?? 0) >= 3,
+		repeatedDeterministicTestFailure: (shared.deterministicTestFailureCount ?? 0) >= 2,
+	}));
+	messages.push({
+		role: "user",
+		content: tailSections.join("\n\n"),
+	});
 	return messages;
 }
 
@@ -2428,7 +2484,7 @@ ${candidateReasoningSection}`
 		includeFinish: true,
 		includeXmlRules: true,
 		context: { searchDoraApiLimitMax: SEARCH_DORA_API_LIMIT_MAX },
-		disabledAgentTools: getDecisionDisabledAgentTools(shared),
+		disabledAgentTools: shared.disabledAgentTools,
 	});
 	const systemPrompt = replacePromptVars(shared.promptPack.xmlDecisionSystemRepairPrompt, {
 		TOOL_REPAIR_REFERENCE: toolRepairReference,
@@ -2440,6 +2496,19 @@ ${candidateReasoningSection}`
 		LAST_ERROR: lastError,
 		ATTEMPT: tostring(attempt),
 	});
+	const availabilityPrompt = AgentToolRegistry.buildCurrentToolAvailabilityPrompt({
+		role: shared.role,
+		taskDisabledAgentTools: shared.disabledAgentTools,
+		currentDisabledAgentTools: getDecisionDisabledAgentTools(shared),
+		resumeRequiredTool: shared.resumeRequiredTool,
+		hasSpawnedSubAgentThisTask: shared.hasSpawnedSubAgentThisTask,
+		delegatedForegroundBudgetExhausted: (shared.delegatedForegroundBatches ?? 0) >= AgentConfig.AGENT_DEFAULTS.delegatedForegroundBatchLimit,
+		freshProjectBuildPending: shared.freshProjectBuildPending,
+		freshProjectCodeFile: shared.freshProjectCodeFile,
+		buildRepairPending: shared.buildRepairPending,
+		editBudgetExhausted: shared.unbuiltEdits === true && (shared.editsSinceBuild ?? 0) >= 3,
+		repeatedDeterministicTestFailure: (shared.deterministicTestFailureCount ?? 0) >= 2,
+	});
 	return [
 		{
 			role: "system",
@@ -2447,7 +2516,7 @@ ${candidateReasoningSection}`
 		},
 		{
 			role: "user",
-			content: repairPrompt,
+			content: `${repairPrompt}\n\n${availabilityPrompt}`,
 		},
 	];
 }
@@ -2710,16 +2779,9 @@ class MainDecisionAgent extends Node<AgentShared> {
 			return { success: false, message: getCancelledReason(shared) };
 		}
 		Log("Info", `[CodingAgent] tool-calling decision start step=${shared.step + 1}${lastError ? ` retry_error=${lastError}` : ""}`);
-		const availableTools = AgentToolRegistry.buildDecisionToolSchema(shared.role, SEARCH_DORA_API_LIMIT_MAX, {
-			disabledAgentTools: getDecisionDisabledAgentTools(shared),
+		const tools = AgentToolRegistry.buildDecisionToolSchema(shared.role, SEARCH_DORA_API_LIMIT_MAX, {
+			disabledAgentTools: shared.disabledAgentTools,
 		});
-		const checkpointTools = shared.resumeRequiredTool === undefined
-			? availableTools
-			: availableTools.filter(tool => tool.function.name === shared.resumeRequiredTool);
-		const tools = checkpointTools.length > 0 ? checkpointTools : availableTools;
-		if (shared.resumeRequiredTool !== undefined && checkpointTools.length === 0) {
-			Log("Warn", `[CodingAgent] checkpoint tool is unavailable tool=${shared.resumeRequiredTool}`);
-		}
 		const messages = buildDecisionMessages(shared, lastError, attempt, lastRaw);
 		const stepId = shared.step + 1;
 		const useFastGlmToolDecision = shared.llmConfig.model.toLowerCase().includes("glm-5.2")
@@ -2769,7 +2831,9 @@ class MainDecisionAgent extends Node<AgentShared> {
 			return { success: false, message: getCancelledReason(shared) };
 		}
 		if (!res.success) {
-			saveStepLLMDebugOutput(shared, stepId, "decision_tool_calling", res.raw ?? res.message, { success: false });
+			const usage = res.tokenUsage;
+			recordLLMTokenUsage(shared, stepId, "decision_tool_calling", usage);
+			saveStepLLMDebugOutput(shared, stepId, "decision_tool_calling", res.raw ?? res.message, { success: false, usage });
 			Log("Error", `[CodingAgent] tool-calling request failed: ${res.message}`);
 			if (res.message.indexOf("stream incomplete:") >= 0) {
 				Log("Warn", `[CodingAgent] discarding all partial tool calls after incomplete stream`);
@@ -2777,7 +2841,9 @@ class MainDecisionAgent extends Node<AgentShared> {
 			clearPreExecutedResults(shared);
 			return { success: false, message: res.message, raw: res.raw };
 		}
-		saveStepLLMDebugOutput(shared, stepId, "decision_tool_calling", encodeDebugJSON(res.response), { success: true });
+		const usage = res.tokenUsage;
+		recordLLMTokenUsage(shared, stepId, "decision_tool_calling", usage);
+		saveStepLLMDebugOutput(shared, stepId, "decision_tool_calling", encodeDebugJSON(res.response), { success: true, usage });
 		const choice = res.response.choices && res.response.choices[0];
 		const message = choice && choice.message;
 		const toolCalls = message && message.tool_calls;
@@ -3524,7 +3590,7 @@ class SpawnSubAgentAction extends Node<AgentShared> {
 			sessionId: result.sessionId,
 			taskId: result.taskId,
 			title: result.title,
-			hint: "Continue useful foreground work after dispatching, but do not immediately poll newly spawned sub-agents. Their results arrive as asynchronous handoffs.",
+			hint: "Dispatch any other intended independent sub-agents, do only bounded foreground work that does not depend on them, then finish this turn. Do not call list_sub_agents; results arrive as asynchronous handoffs.",
 		};
 	}
 
@@ -3532,6 +3598,9 @@ class SpawnSubAgentAction extends Node<AgentShared> {
 		const last = shared.history[shared.history.length - 1];
 		if (last !== undefined) {
 			last.result = execRes as Record<string, unknown>;
+			if ((execRes as Record<string, unknown>).success === true) {
+				shared.hasSpawnedSubAgentThisTask = true;
+			}
 			appendToolResultMessage(shared, last);
 			emitAgentFinishEvent(shared, last);
 		}
@@ -3551,6 +3620,7 @@ class ListSubAgentsAction extends Node<AgentShared> {
 		offset?: number;
 		query?: string;
 		listSubAgents?: CodingAgentRunOptions["listSubAgents"];
+		blockedByCurrentTaskSpawn: boolean;
 	}> {
 		const last = shared.history[shared.history.length - 1];
 		if (!last) throw new Error("no history");
@@ -3563,6 +3633,7 @@ class ListSubAgentsAction extends Node<AgentShared> {
 			offset: typeof last.params.offset === "number" ? last.params.offset : undefined,
 			query: typeof last.params.query === "string" ? last.params.query : undefined,
 			listSubAgents: shared.listSubAgents,
+			blockedByCurrentTaskSpawn: shared.hasSpawnedSubAgentThisTask === true,
 		};
 	}
 
@@ -3574,7 +3645,14 @@ class ListSubAgentsAction extends Node<AgentShared> {
 		offset?: number;
 		query?: string;
 		listSubAgents?: CodingAgentRunOptions["listSubAgents"];
+		blockedByCurrentTaskSpawn: boolean;
 	}): Promise<Record<string, unknown>> {
+		if (input.blockedByCurrentTaskSpawn) {
+			return {
+				success: false,
+				message: "list_sub_agents is unavailable after spawn_sub_agent in the current task. Finish this turn and let results arrive as asynchronous handoffs.",
+			};
+		}
 		if (!input.listSubAgents) {
 			return { success: false, message: "list_sub_agents is not available in this runtime" };
 		}
@@ -3797,6 +3875,16 @@ function emitCheckpointEventForAction(shared: AgentShared, action: AgentActionRe
 async function executeToolAction(shared: AgentShared, action: AgentActionRecord): Promise<Record<string, unknown>> {
 	if (shared.stopToken.stopped) {
 		return { success: false, message: getCancelledReason(shared) };
+	}
+	if (
+		(shared.delegatedForegroundBatches ?? 0) >= AgentConfig.AGENT_DEFAULTS.delegatedForegroundBatchLimit
+		&& action.tool !== "spawn_sub_agent"
+		&& action.tool !== "finish"
+	) {
+		return {
+			success: false,
+			message: "The bounded foreground work after delegation is complete. Dispatch another independent sub-agent if needed, or finish this turn now so the user can continue interacting.",
+		};
 	}
 	if (shared.resumeRequiredTool !== undefined) {
 		if (action.tool !== shared.resumeRequiredTool) {
@@ -4145,15 +4233,22 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 		if (!result.success) {
 			return result as unknown as Record<string, unknown>;
 		}
+		shared.hasSpawnedSubAgentThisTask = true;
 		return {
 			success: true,
 			sessionId: result.sessionId,
 			taskId: result.taskId,
 			title: result.title,
-			hint: "Continue useful foreground work after dispatching, but do not immediately poll newly spawned sub-agents. Their results arrive as asynchronous handoffs.",
+			hint: "Dispatch any other intended independent sub-agents, do only bounded foreground work that does not depend on them, then finish this turn. Do not call list_sub_agents; results arrive as asynchronous handoffs.",
 		};
 	}
 	if (action.tool === "list_sub_agents") {
+		if (shared.hasSpawnedSubAgentThisTask === true) {
+			return {
+				success: false,
+				message: "list_sub_agents is unavailable after spawn_sub_agent in the current task. Finish this turn and let results arrive as asynchronous handoffs.",
+			};
+		}
 		if (!shared.listSubAgents) {
 			return { success: false, message: "list_sub_agents is not available in this runtime" };
 		}
@@ -4401,6 +4496,7 @@ class BatchToolAction extends Node<AgentShared> {
 
 	async exec(input: { shared: AgentShared; actions: AgentActionRecord[] }): Promise<AgentActionRecord[]> {
 		const shared = input.shared;
+		const spawnedBeforeBatch = shared.hasSpawnedSubAgentThisTask === true;
 		const preExecuted = shared.preExecutedResults;
 		const batches = partitionToolCalls(input.actions);
 		const parallelBatchCount = batches.filter(b => b.isConcurrencySafe).length;
@@ -4460,6 +4556,21 @@ class BatchToolAction extends Node<AgentShared> {
 					}
 				}
 			}
+		}
+		let spawnSeen = spawnedBeforeBatch;
+		let didDelegatedForegroundWork = false;
+		for (let i = 0; i < input.actions.length; i++) {
+			const action = input.actions[i];
+			if (action.tool === "spawn_sub_agent") {
+				if (action.result?.success === true) spawnSeen = true;
+				continue;
+			}
+			if (spawnSeen && action.tool !== "finish") {
+				didDelegatedForegroundWork = true;
+			}
+		}
+		if (didDelegatedForegroundWork) {
+			shared.delegatedForegroundBatches = (shared.delegatedForegroundBatches ?? 0) + 1;
 		}
 		persistHistoryState(shared);
 		return input.actions;
@@ -4606,8 +4717,8 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 		sessionId: options.sessionId,
 		taskId: taskRes.taskId,
 		role: options.role ?? "main",
-		maxSteps: math.max(1, math.floor(options.maxSteps ?? AGENT_DEFAULT_MAX_STEPS)),
-		llmMaxTry: math.max(1, math.floor(options.llmMaxTry ?? AGENT_DEFAULT_LLM_MAX_TRY)),
+		maxSteps: math.max(1, math.floor(options.maxSteps ?? AgentConfig.AGENT_DEFAULTS.maxSteps)),
+		llmMaxTry: math.max(1, math.floor(options.llmMaxTry ?? AgentConfig.AGENT_DEFAULTS.llmMaxTry)),
 		step: 0,
 		done: false,
 		stopToken: options.stopToken ?? { stopped: false },
@@ -4642,6 +4753,8 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 		disabledAgentTools: options.disabledAgentTools ?? [],
 		freshProjectBuildPending,
 		freshProjectCodeFile,
+		hasSpawnedSubAgentThisTask: false,
+		delegatedForegroundBatches: 0,
 	};
 
 	try {

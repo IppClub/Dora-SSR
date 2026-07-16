@@ -530,6 +530,17 @@ export default function AgentPanel(props: AgentPanelProps) {
 
 	const contextStats = useMemo(() => {
 		const backendContext = session?.metrics?.context;
+		const backendUsage = session?.metrics?.usage;
+		const actualUsage = backendUsage
+			&& getFiniteNumber(backendUsage.inputTokens) !== undefined
+			&& getFiniteNumber(backendUsage.outputTokens) !== undefined
+			? {
+				inputTokens: getFiniteNumber(backendUsage.inputTokens) as number,
+				outputTokens: getFiniteNumber(backendUsage.outputTokens) as number,
+				cachedInputTokens: getFiniteNumber(backendUsage.cachedInputTokens),
+				requestCount: getFiniteNumber(backendUsage.requestCount),
+			}
+			: undefined;
 		const backendUsedTokens = getFiniteNumber(backendContext?.usedTokens);
 		const backendMaxTokens = getFiniteNumber(backendContext?.maxTokens);
 		if (backendUsedTokens !== undefined && backendMaxTokens !== undefined && backendMaxTokens > 0) {
@@ -537,6 +548,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 				usedTokens: backendUsedTokens,
 				maxTokens: backendMaxTokens,
 				contextRatio: Math.max(0, Math.min(1, getFiniteNumber(backendContext?.ratio) ?? (backendUsedTokens / backendMaxTokens))),
+				actualUsage,
 			};
 		}
 		const totalChars = messages.reduce((sum, message) => sum + (message.content?.length ?? 0), 0)
@@ -549,6 +561,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 			usedTokens,
 			maxTokens,
 			contextRatio,
+			actualUsage,
 		};
 	}, [latestSteps, messages, session?.metrics]);
 
@@ -1086,6 +1099,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 				contextRatio={contextStats.contextRatio}
 				usedTokens={contextStats.usedTokens}
 				maxTokens={contextStats.maxTokens}
+				actualUsage={contextStats.actualUsage}
 				fetchUrlEnabled={fetchUrlEnabled}
 				executeCommandEnabled={executeCommandEnabled}
 				onPromptChange={setPrompt}

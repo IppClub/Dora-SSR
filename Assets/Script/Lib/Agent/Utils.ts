@@ -723,10 +723,72 @@ export interface LLMResponseData {
 	object?: string;
 	model?: string;
 	choices?: NonStreamChoice[];
+	usage?: LLMResponseUsage;
 	error?: {
 		message?: string;
 		type?: string;
 		code?: string | number;
+	};
+}
+
+export interface LLMResponseUsage {
+	prompt_tokens?: number;
+	completion_tokens?: number;
+	total_tokens?: number;
+	prompt_cache_hit_tokens?: number;
+	prompt_cache_miss_tokens?: number;
+	input_tokens?: number;
+	output_tokens?: number;
+	cache_read_input_tokens?: number;
+	cache_creation_input_tokens?: number;
+	prompt_tokens_details?: {
+		cached_tokens?: number;
+	};
+	input_tokens_details?: {
+		cached_tokens?: number;
+	};
+	completion_tokens_details?: {
+		reasoning_tokens?: number;
+	};
+}
+
+export interface LLMTokenUsage {
+	inputTokens: number;
+	outputTokens: number;
+	totalTokens?: number;
+	cachedInputTokens?: number;
+	cacheMissInputTokens?: number;
+	reasoningOutputTokens?: number;
+}
+
+export function extractLLMTokenUsage(response?: LLMResponseData): LLMTokenUsage | undefined {
+	const usage = response?.usage;
+	if (!usage || type(usage) !== "table") return undefined;
+	const inputTokens = typeof usage.prompt_tokens === "number"
+		? usage.prompt_tokens
+		: usage.input_tokens;
+	const outputTokens = typeof usage.completion_tokens === "number"
+		? usage.completion_tokens
+		: usage.output_tokens;
+	if (typeof inputTokens !== "number" || typeof outputTokens !== "number") return undefined;
+	const cachedInputTokens = typeof usage.prompt_cache_hit_tokens === "number"
+		? usage.prompt_cache_hit_tokens
+		: (typeof usage.prompt_tokens_details?.cached_tokens === "number"
+			? usage.prompt_tokens_details.cached_tokens
+			: (typeof usage.input_tokens_details?.cached_tokens === "number"
+				? usage.input_tokens_details.cached_tokens
+				: usage.cache_read_input_tokens));
+	return {
+		inputTokens,
+		outputTokens,
+		totalTokens: typeof usage.total_tokens === "number" ? usage.total_tokens : undefined,
+		cachedInputTokens: typeof cachedInputTokens === "number" ? cachedInputTokens : undefined,
+		cacheMissInputTokens: typeof usage.prompt_cache_miss_tokens === "number"
+			? usage.prompt_cache_miss_tokens
+			: undefined,
+		reasoningOutputTokens: typeof usage.completion_tokens_details?.reasoning_tokens === "number"
+			? usage.completion_tokens_details.reasoning_tokens
+			: undefined,
 	};
 }
 
@@ -1015,7 +1077,8 @@ function buildStreamResponse(
 	id?: string,
 	created?: number,
 	object?: string,
-	providerError?: LLMProviderError
+	providerError?: LLMProviderError,
+	usage?: LLMResponseUsage
 ): LLMResponseData {
 	const indexes = Object.keys(states)
 		.map(key => Number(key))
@@ -1039,6 +1102,7 @@ function buildStreamResponse(
 				finish_reason: state.finish_reason,
 			};
 		}),
+		usage,
 		error: providerError,
 	};
 }
@@ -1050,7 +1114,10 @@ export async function callLLMStreamAggregated(
 	llmConfig?: LLMConfig,
 	onChunk?: (response: LLMResponseData, chunk: LLMStreamData) => void,
 	onToolCallReady?: (toolCall: ToolCall) => void
-): Promise<{ success: true; response: LLMResponseData } | { success: false; message: string; raw?: string; response?: LLMResponseData }> {
+): Promise<
+	| { success: true; response: LLMResponseData; tokenUsage?: LLMTokenUsage }
+	| { success: false; message: string; raw?: string; response?: LLMResponseData; tokenUsage?: LLMTokenUsage }
+> {
 	const stopToken = stopTokenOrConfig && "stopped" in stopTokenOrConfig ? stopTokenOrConfig : undefined;
 	const config = stopTokenOrConfig && "url" in stopTokenOrConfig
 		? stopTokenOrConfig
@@ -1085,6 +1152,7 @@ export async function callLLMStreamAggregated(
 		let responseCreated: number | undefined = undefined;
 		let responseObject: string | undefined = undefined;
 		let providerError: LLMProviderError | undefined;
+		let responseUsage: LLMResponseUsage | undefined;
 		let httpChunkCount = 0;
 		let rawStreamBytes = 0;
 		let rawStreamPreview = "";
@@ -1111,6 +1179,9 @@ export async function callLLMStreamAggregated(
 				responseId = typeof chunk.id === "string" ? chunk.id : responseId;
 				responseCreated = typeof chunk.created === "number" ? chunk.created : responseCreated;
 				responseObject = typeof chunk.object === "string" ? chunk.object : responseObject;
+				if (chunk.usage && type(chunk.usage) === "table") {
+					responseUsage = chunk.usage;
+				}
 				const choices = Array.isArray(chunk.choices) ? chunk.choices : [];
 				if (!Array.isArray(chunk.choices)) {
 					missingChoicesChunkCount++;
@@ -1135,7 +1206,7 @@ export async function callLLMStreamAggregated(
 					mergeStreamChoice(states[index], choice, onToolCallReady, emittedToolCallIds);
 				}
 				onChunk?.(
-					buildStreamResponse(states, model, responseId, responseCreated, responseObject, providerError),
+					buildStreamResponse(states, model, responseId, responseCreated, responseObject, providerError, responseUsage),
 					{
 						id: chunk.id ?? "",
 						created: chunk.created ?? 0,
@@ -1173,9 +1244,13 @@ export async function callLLMStreamAggregated(
 					lastJSONPreview = previewText(normalizeLLMJSONResponse(rawStreamPreview), 500);
 					Log("Warn", `[Agent.Utils] callLLMStreamAggregated non-SSE provider error raw=${previewText(rawStreamPreview, 500)}`);
 				}
+				if (rawResponseObj.usage && type(rawResponseObj.usage) === "table") {
+					responseUsage = rawResponseObj.usage;
+				}
 			}
 		}
-		const response = buildStreamResponse(states, model, responseId, responseCreated, responseObject, providerError);
+		const response = buildStreamResponse(states, model, responseId, responseCreated, responseObject, providerError, responseUsage);
+		const tokenUsage = extractLLMTokenUsage(response);
 		const choiceCount = response.choices ? response.choices.length : 0;
 		const streamStats = `http_chunks=${httpChunkCount} raw_bytes=${rawStreamBytes} sse_json_chunks=${sseJSONChunkCount} choice_chunks=${choiceJSONChunkCount} empty_choice_chunks=${emptyChoicesChunkCount} missing_choice_chunks=${missingChoicesChunkCount} parse_errors=${parseErrorCount} done=${doneChunkSeen ? "true" : "false"}`;
 		Log("Info", `[Agent.Utils] callLLMStreamAggregated decoded response choices=${choiceCount} ${streamStats}`);
@@ -1189,6 +1264,7 @@ export async function callLLMStreamAggregated(
 				message,
 				raw: rawStreamPreview,
 				response,
+				tokenUsage,
 			};
 		}
 		if (!response.choices || response.choices.length === 0) {
@@ -1208,11 +1284,13 @@ export async function callLLMStreamAggregated(
 				success: false,
 				message,
 				raw: rawStreamPreview,
+				tokenUsage,
 			};
 		}
 		return {
 			success: true,
 			response,
+			tokenUsage,
 		};
 	} catch (e) {
 		if (stopToken?.stopped) {

@@ -23,6 +23,12 @@ interface AgentComposerProps {
 	contextRatio?: number;
 	usedTokens?: number;
 	maxTokens?: number;
+	actualUsage?: {
+		inputTokens: number;
+		outputTokens: number;
+		cachedInputTokens?: number;
+		requestCount?: number;
+	};
 	fetchUrlEnabled?: boolean;
 	executeCommandEnabled?: boolean;
 	onPromptChange: (value: string) => void;
@@ -39,7 +45,12 @@ function formatCompactNumber(value: number): string {
 	return String(Math.max(0, Math.round(value)));
 }
 
-function ContextUsageRing(props: { ratio?: number; usedTokens?: number; maxTokens?: number }) {
+function ContextUsageRing(props: {
+	ratio?: number;
+	usedTokens?: number;
+	maxTokens?: number;
+	actualUsage?: AgentComposerProps["actualUsage"];
+}) {
 	const { t } = useTranslation();
 	const usedTokens = props.usedTokens ?? 0;
 	const maxTokens = props.maxTokens ?? 64000;
@@ -48,13 +59,27 @@ function ContextUsageRing(props: { ratio?: number; usedTokens?: number; maxToken
 	const hasUsage = usedTokens > 0 || props.ratio !== undefined;
 	const color = hasUsage ? Color.Theme + "cc" : CONTEXT_USAGE_LOW_COLOR;
 	const trackColor = hasUsage ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.08)";
-	const title = t("agent.contextEstimateTitle", {
+	const contextTitle = t("agent.contextEstimateTitle", {
 		used: formatCompactNumber(usedTokens),
 		max: formatCompactNumber(maxTokens),
 		percent,
 	});
+	const actualTitle = props.actualUsage
+		? t(props.actualUsage.cachedInputTokens !== undefined
+			? "agent.actualUsageWithCacheTitle"
+			: "agent.actualUsageTitle", {
+			input: formatCompactNumber(props.actualUsage.inputTokens),
+			output: formatCompactNumber(props.actualUsage.outputTokens),
+			cached: formatCompactNumber(props.actualUsage.cachedInputTokens ?? 0),
+			cachePercent: props.actualUsage.inputTokens > 0
+				? Math.round(((props.actualUsage.cachedInputTokens ?? 0) / props.actualUsage.inputTokens) * 100)
+				: 0,
+			requests: formatCompactNumber(props.actualUsage.requestCount ?? 0),
+		})
+		: "";
+	const title = actualTitle !== "" ? `${contextTitle}\n${actualTitle}` : contextTitle;
 	return (
-		<Tooltip title={title}>
+		<Tooltip title={<span style={{ whiteSpace: "pre-line" }}>{title}</span>}>
 			<Box
 				aria-label={title}
 				sx={{
@@ -104,6 +129,7 @@ export default function AgentComposer(props: AgentComposerProps) {
 		contextRatio,
 		usedTokens,
 		maxTokens,
+		actualUsage,
 		fetchUrlEnabled = false,
 		executeCommandEnabled = false,
 		onPromptChange,
@@ -248,7 +274,7 @@ export default function AgentComposer(props: AgentComposerProps) {
 						{tabButtons}
 					</Stack>
 					<Box sx={{ flex: "0 0 auto", pointerEvents: "auto" }}>
-						<ContextUsageRing ratio={contextRatio} usedTokens={usedTokens} maxTokens={maxTokens} />
+				<ContextUsageRing ratio={contextRatio} usedTokens={usedTokens} maxTokens={maxTokens} actualUsage={actualUsage} />
 					</Box>
 				</Stack>
 			) : null}

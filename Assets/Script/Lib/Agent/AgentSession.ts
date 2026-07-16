@@ -127,6 +127,22 @@ export interface AgentContextMetricItem {
 
 export interface AgentMetricsItem {
 	context?: AgentContextMetricItem;
+	usage?: AgentTokenUsageMetricItem;
+}
+
+export interface AgentTokenUsageMetricItem {
+	inputTokens?: number;
+	outputTokens?: number;
+	totalTokens?: number;
+	cachedInputTokens?: number;
+	cacheMissInputTokens?: number;
+	reasoningOutputTokens?: number;
+	requestCount?: number;
+	cacheReportedRequestCount?: number;
+	model?: string;
+	phase?: string;
+	step?: number;
+	updatedAt?: number;
 }
 
 export type AgentSessionDetailResult = {
@@ -719,9 +735,14 @@ function readSubAgentResultSummary(projectRoot: string, resultFilePath: string):
 function buildStructuredSubAgentMemoryEntry(record: SubAgentResultRecord): AgentSubAgentMemoryEntryItem | undefined {
 	let hasPassedValidation = false;
 	for (let i = 0; i < record.completion.validation.length; i++) {
-		if (record.completion.validation[i].result === "passed") {
+		const result = record.completion.validation[i].result;
+		// A passing manual observation must not launder learning candidates from
+		// the same completion when an authoritative build or runtime check failed.
+		// Until candidates reference individual tool evidence, keep promotion
+		// conservative and require the completion's validations to be failure-free.
+		if (result === "failed") return undefined;
+		if (result === "passed") {
 			hasPassedValidation = true;
-			break;
 		}
 	}
 	if (!hasPassedValidation) return undefined;
@@ -1048,6 +1069,24 @@ function updateSessionMetrics(sessionId: number, metrics: AgentMetricsItem): Age
 		],
 	);
 	return merged;
+}
+
+function clearSessionTokenUsage(sessionId: number): AgentMetricsItem | undefined {
+	const session = getSessionItem(sessionId);
+	if (!session) return undefined;
+	const metrics = { ...(session.metrics ?? {}) };
+	delete metrics.usage;
+	DB.exec(
+		`UPDATE ${TABLE_SESSION}
+		SET metrics_json = ?, updated_at = ?
+		WHERE id = ?`,
+		[
+			encodeJson(metrics),
+			now(),
+			sessionId,
+		],
+	);
+	return metrics;
 }
 
 function setSessionStateForTaskEvent(sessionId: number, taskId: number | undefined, status: AgentSessionStatus, currentTaskStatus?: AgentSessionStatus) {
@@ -1438,8 +1477,10 @@ function applyEvent(sessionId: number, event: AgentRuntimeEvent) {
 	switch (event.type) {
 		case "task_started":
 			setSessionStateForTaskEvent(sessionId, event.taskId, "RUNNING", "RUNNING");
+			const metrics = clearSessionTokenUsage(sessionId);
 			emitAgentSessionPatch(sessionId, {
 				session: getSessionItem(sessionId),
+				metrics,
 			});
 			break;
 		case "decision_made":

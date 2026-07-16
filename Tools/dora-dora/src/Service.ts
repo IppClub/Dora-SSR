@@ -1314,6 +1314,22 @@ export interface AgentContextMetric {
 
 export interface AgentMetrics {
 	context?: AgentContextMetric;
+	usage?: AgentTokenUsageMetric;
+}
+
+export interface AgentTokenUsageMetric {
+	inputTokens: number;
+	outputTokens: number;
+	totalTokens?: number;
+	cachedInputTokens?: number;
+	cacheMissInputTokens?: number;
+	reasoningOutputTokens?: number;
+	requestCount: number;
+	cacheReportedRequestCount?: number;
+	model?: string;
+	phase?: string;
+	step?: number;
+	updatedAt?: number;
 };
 
 export interface AgentSessionMessage {

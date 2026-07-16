@@ -1,8 +1,8 @@
 // @preview-file off clear
 import { App, Content, Path } from 'Dora';
-import { Message, callLLM, Log, clipTextToTokenBudget, parseXMLObjectFromText, safeJsonDecode, safeJsonEncode, sanitizeUTF8 } from 'Agent/Utils';
+import { Message, callLLM, Log, clipTextToTokenBudget, extractLLMTokenUsage, parseXMLObjectFromText, safeJsonDecode, safeJsonEncode, sanitizeUTF8 } from 'Agent/Utils';
 import { getActiveLLMConfig } from 'Agent/Utils';
-import type { LLMConfig, ToolCall } from 'Agent/Utils';
+import type { LLMConfig, LLMTokenUsage, ToolCall } from 'Agent/Utils';
 import { sendWebIDEFileUpdate } from 'Agent/Tools';
 import { AGENT_TOOL_DEFINITIONS_DETAILED, MAIN_AGENT_TOOL_DEFINITIONS_DETAILED, XML_TOOL_DEFINITIONS_DETAILED } from 'Agent/AgentToolRegistry';
 
@@ -226,8 +226,8 @@ Rules:
 - Keep sub-agent titles short and specific.
 - The sub-agent prompt should be self-contained and executable, and should explain the exact task, constraints, expected output, and relevant files when known.
 - spawn_sub_agent is asynchronous and nonblocking. You may dispatch multiple independent sub agents in one response, subject to the concurrency limit.
-- After dispatching, continue useful foreground work or finish the turn when there is nothing else useful to do.
-- Do not poll a newly spawned sub agent in the same turn. Its completion is delivered asynchronously as a later handoff.
+- After dispatching all intended independent sub agents, complete at most three bounded foreground tool batches that do not depend on their results. Then finish the current turn and return control to the user while the sub agents keep running.
+- After any successful spawn_sub_agent in the current task, do not call list_sub_agents in that task. Do not wait, join, or poll. Completion is delivered asynchronously as a later handoff.
 - Avoid assigning overlapping files or dependent steps to concurrent sub agents unless the coordination boundary is explicit.`,
 	subAgentRolePrompt: `# Agent Role
 
@@ -595,7 +595,19 @@ function migrateLegacyAgentRolePrompts(value: Record<string, unknown>): boolean 
 		let migrated = main;
 		migrated = migrated.replace(
 			"- After spawn_sub_agent succeeds, immediately finish the current turn and tell the user the work has been delegated.\n- After a successful spawn_sub_agent, do not call list_sub_agents or any other tool in the same turn.\n- Treat the sub-agent completion result as an asynchronous handoff that should be continued in later conversation turns.",
-			"- spawn_sub_agent is asynchronous and nonblocking. You may dispatch multiple independent sub agents in one response, subject to the concurrency limit.\n- After dispatching, continue useful foreground work or finish the turn when there is nothing else useful to do.\n- Do not poll a newly spawned sub agent in the same turn. Its completion is delivered asynchronously as a later handoff.\n- Avoid assigning overlapping files or dependent steps to concurrent sub agents unless the coordination boundary is explicit."
+			"- spawn_sub_agent is asynchronous and nonblocking. You may dispatch multiple independent sub agents in one response, subject to the concurrency limit.\n- After dispatching all intended independent sub agents, complete at most three bounded foreground tool batches that do not depend on their results. Then finish the current turn and return control to the user while the sub agents keep running.\n- After any successful spawn_sub_agent in the current task, do not call list_sub_agents in that task. Do not wait, join, or poll. Completion is delivered asynchronously as a later handoff.\n- Avoid assigning overlapping files or dependent steps to concurrent sub agents unless the coordination boundary is explicit."
+		);
+		migrated = migrated.replace(
+			"- After dispatching, continue useful foreground work or finish the turn when there is nothing else useful to do.\n- Do not poll a newly spawned sub agent in the same turn. Its completion is delivered asynchronously as a later handoff.",
+			"- After dispatching all intended independent sub agents, complete at most three bounded foreground tool batches that do not depend on their results. Then finish the current turn and return control to the user while the sub agents keep running.\n- After any successful spawn_sub_agent in the current task, do not call list_sub_agents in that task. Do not wait, join, or poll. Completion is delivered asynchronously as a later handoff."
+		);
+		migrated = migrated.replace(
+			"- After dispatching all intended independent sub agents, continue only bounded foreground work that does not depend on their results. Then finish the current turn and return control to the user while the sub agents keep running.",
+			"- After dispatching all intended independent sub agents, complete at most three bounded foreground tool batches that do not depend on their results. Then finish the current turn and return control to the user while the sub agents keep running."
+		);
+		migrated = migrated.replace(
+			"- After dispatching all intended independent sub agents, complete at most one bounded foreground tool batch that does not depend on their results. Then finish the current turn and return control to the user while the sub agents keep running.",
+			"- After dispatching all intended independent sub agents, complete at most three bounded foreground tool batches that do not depend on their results. Then finish the current turn and return control to the user while the sub agents keep running."
 		);
 		if (migrated !== main) {
 			value.mainAgentRolePrompt = migrated;
@@ -745,6 +757,7 @@ export interface CompressionResult {
 export interface MemoryCompressionDebugContext {
 	onInput?: (phase: string, messages: Message[], options: Record<string, unknown>) => void;
 	onOutput?: (phase: string, text: string, meta?: Record<string, unknown>) => void;
+	onUsage?: (phase: string, usage: LLMTokenUsage) => void;
 }
 
 export type MemoryCompressionDecisionMode = "tool_calling" | "xml";
@@ -1161,10 +1174,14 @@ export class DualLayerStorage {
 		if (isArray(completion.validation)) {
 			for (let i = 0; i < completion.validation.length; i++) {
 				const item = completion.validation[i];
-				if (!item || isArray(item) || !isRecord(item) || item.result !== "passed") continue;
+				if (!item || isArray(item) || !isRecord(item)) continue;
+				// Scan every validation before accepting learnings. A later failed build
+				// or runtime result must not be hidden by an earlier manual/runtime pass.
+				if (item.result === "failed") return [];
+				if (item.result !== "passed") continue;
 				if (item.kind === "runtime") {
 					verification = "runtime";
-					break;
+					continue;
 				}
 				if (item.kind === "build" && verification !== "runtime") verification = "build";
 				if (item.kind === "manual" && verification === undefined) verification = "manual";
@@ -1978,6 +1995,8 @@ export class MemoryCompressor {
 				Log("Warn", `[Memory] compression tool-calling attempt ${i + 1}/${maxLLMTry} failed: ${response.message}`);
 				continue;
 			}
+			const tokenUsage = extractLLMTokenUsage(response.response);
+			if (tokenUsage) debugContext?.onUsage?.("memory_compression_tool_calling", tokenUsage);
 			debugContext?.onOutput?.("memory_compression_tool_calling", encodeCompressionDebugJSON(response.response), { success: true, attempt: i + 1 });
 
 			const choice = response.response.choices && response.response.choices[0];
@@ -2068,6 +2087,8 @@ export class MemoryCompressor {
 					error: response.message,
 				};
 			}
+			const tokenUsage = extractLLMTokenUsage(response.response);
+			if (tokenUsage) debugContext?.onUsage?.("memory_compression_xml", tokenUsage);
 
 			const choice = response.response.choices && response.response.choices[0];
 			const message = choice && choice.message;

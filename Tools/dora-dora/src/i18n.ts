@@ -926,6 +926,8 @@ i18n
 						fileNotInProject: "Current file does not belong to a project",
 						promptPlaceholder: "Describe what you want Dora to do in the current project",
 						contextEstimateTitle: "Context estimate: {{used}} / {{max}} tokens ({{percent}}%)",
+						actualUsageTitle: "Provider usage: input {{input}}, output {{output}}, requests {{requests}}",
+						actualUsageWithCacheTitle: "Provider usage: input {{input}}, output {{output}}, cached input {{cached}} ({{cachePercent}}%), requests {{requests}}",
 						taskStatus: {
 							idle: "IDLE",
 							running: "RUNNING",
@@ -1978,6 +1980,8 @@ i18n
 						fileNotInProject: "当前文件未归属到一个项目中",
 						promptPlaceholder: "输入你想让 Dora 在当前项目里做什么",
 						contextEstimateTitle: "上下文估算：{{used}} / {{max}} tokens（{{percent}}%）",
+						actualUsageTitle: "供应商用量：输入 {{input}}，输出 {{output}}，请求 {{requests}} 次",
+						actualUsageWithCacheTitle: "供应商用量：输入 {{input}}，输出 {{output}}，缓存输入 {{cached}}（{{cachePercent}}%），请求 {{requests}} 次",
 						taskStatus: {
 							idle: "空闲",
 							running: "运行中",

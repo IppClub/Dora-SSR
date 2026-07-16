@@ -49,6 +49,20 @@ export interface AgentToolCapabilityOptions {
 	disabledAgentTools?: AgentToolName[];
 }
 
+export interface AgentToolAvailabilityContext {
+	role: AgentRole;
+	taskDisabledAgentTools: AgentToolName[];
+	currentDisabledAgentTools: AgentToolName[];
+	resumeRequiredTool?: AgentToolName;
+	hasSpawnedSubAgentThisTask?: boolean;
+	delegatedForegroundBudgetExhausted?: boolean;
+	freshProjectBuildPending?: boolean;
+	freshProjectCodeFile?: string;
+	buildRepairPending?: boolean;
+	editBudgetExhausted?: boolean;
+	repeatedDeterministicTestFailure?: boolean;
+}
+
 export interface ToolParameterPrompt {
 	name: string;
 	type: string;
@@ -180,10 +194,9 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 			{ name: "startLine", type: "number", description: "Starting line number. Positive values are 1-based; negative values count from the end. Defaults to 1. 0 is invalid." },
 			{ name: "endLine", type: "number", description: "Ending line number. Positive values are 1-based; negative values count from the end. If omitted, defaults to 300 for positive startLine, or -1 for negative startLine. 0 is invalid." },
 		],
-		rules: [
+			rules: [
 			"startLine defaults to 1. If endLine is omitted, it defaults to 300 when startLine is positive, or -1 when startLine is negative.",
 		],
-		preExecutable: true,
 		parallelSafe: true,
 	},
 	{
@@ -374,9 +387,8 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 			"status defaults to active_or_recent and may also be running, done, failed, or all.",
 			"limit defaults to a small recent window. Use offset to page older items.",
 			"query filters by title, goal, or summary text.",
-			"Do not poll immediately after spawning. Use this later only when the current status is unknown and affects the next decision.",
+			"After any successful spawn_sub_agent in the current task, this tool is unavailable for the rest of that task. Finish the turn instead; completion arrives through an asynchronous handoff.",
 		],
-		preExecutable: true,
 		parallelSafe: true,
 	},
 	{
@@ -396,8 +408,8 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 			"title should be short and specific.",
 			"prompt should be self-contained and actionable, and should clearly describe the concrete work to execute, constraints, desired output, and any relevant files.",
 			"Spawn is asynchronous and nonblocking. You may dispatch multiple independent sub agents in one response, subject to the concurrency limit.",
-			"After dispatching, continue useful foreground work or finish the turn when there is nothing else useful to do.",
-			"Do not poll a newly spawned sub agent in the same turn. Its completion is delivered asynchronously as a later handoff.",
+			"After dispatching all intended independent sub agents, complete at most three bounded foreground tool batches that do not depend on their results. Then finish the current turn and return control to the user while the sub agents keep running.",
+			"After a successful spawn in the current task, do not call list_sub_agents, wait, join, or poll. Completion is delivered asynchronously as a later handoff.",
 			"Avoid assigning overlapping files or dependent steps to concurrent sub agents unless the coordination boundary is explicit.",
 			"filesHint is an optional list of likely files or directories.",
 		],
@@ -463,6 +475,44 @@ export function getAllowedToolsForRole(role: AgentRole, options?: AgentToolCapab
 	return AGENT_TOOL_PROMPTS
 		.filter(tool => hasRole(tool, role) && isKnownToolName(tool.name) && isToolCapabilityEnabled(tool, options))
 		.map(tool => tool.name as AgentToolName);
+}
+
+export function buildCurrentToolAvailabilityPrompt(context: AgentToolAvailabilityContext): string {
+	const taskTools = getAllowedToolsForRole(context.role, {
+		disabledAgentTools: context.taskDisabledAgentTools,
+	});
+	const currentTools = getAllowedToolsForRole(context.role, {
+		disabledAgentTools: context.currentDisabledAgentTools,
+	});
+	const unavailable = taskTools.filter(tool => currentTools.indexOf(tool) < 0);
+	const lines = [
+		"Current tool availability:",
+		`- unavailable: ${unavailable.length > 0 ? unavailable.join(", ") : "none"}`,
+	];
+	if (context.resumeRequiredTool !== undefined) {
+		lines.push(`- next required tool: ${context.resumeRequiredTool}; the execution layer will reject every other tool`);
+	}
+	if (context.hasSpawnedSubAgentThisTask === true) {
+		lines.push("- after delegation: do not poll or wait; dispatch other independent sub-agents if needed, do only bounded independent foreground work, then finish this turn");
+	}
+	if (context.delegatedForegroundBudgetExhausted === true) {
+		lines.push("- foreground budget exhausted: use only spawn_sub_agent or finish");
+	}
+	if (context.freshProjectBuildPending === true) {
+		lines.push(context.freshProjectCodeFile !== undefined
+			? `- fresh small project: coherently rewrite ${context.freshProjectCodeFile}, then build before discovery or command validation`
+			: "- fresh empty project: create the requested entry directly, then build before discovery or command validation");
+	}
+	if (context.buildRepairPending === true) {
+		lines.push("- compiler repair: fix the reported authored-file diagnostics directly, then build again");
+	}
+	if (context.editBudgetExhausted === true) {
+		lines.push("- edit budget exhausted: build before making more source edits");
+	}
+	if (context.repeatedDeterministicTestFailure === true) {
+		lines.push("- repeated deterministic failure: make one narrow source fix, build, and rerun once without broad discovery");
+	}
+	return lines.join("\n");
 }
 
 export function getToolPromptsForRole(role: AgentRole, options?: {
