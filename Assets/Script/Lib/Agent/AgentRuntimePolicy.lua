@@ -85,10 +85,10 @@ function ____exports.successfulEditResult(workDir, path, base) -- 67
 		{ -- 74
 			actualSaved = current.success, -- 76
 			actualSavedCharacters = currentCharacters, -- 77
-			currentFileExists = current.success, -- 77
-			currentCharacters = currentCharacters, -- 78
-			currentState = current.success and (("saved " .. tostring(currentCharacters)) .. " characters to ") .. path or "file state unavailable after edit: " .. sanitizeUTF8(current.message) -- 79
-		} -- 79
-	) -- 79
+			currentFileExists = current.success, -- 78
+			currentCharacters = currentCharacters, -- 79
+			currentState = current.success and (("saved " .. tostring(currentCharacters)) .. " characters to ") .. path or "file state unavailable after edit: " .. sanitizeUTF8(current.message) -- 80
+		} -- 80
+	) -- 80
 end -- 67
 return ____exports -- 67
