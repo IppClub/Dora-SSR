@@ -1523,6 +1523,17 @@ export const agentSessionSend = (req: { sessionId: number; prompt: string; disab
 	}>("/agent/session/send", req);
 };
 
+export const agentSessionFinishHandoff = (req: { sessionId: number }) => {
+	return post<{
+		success: true;
+		sessionId: number;
+		taskId: number;
+	} | {
+		success: false;
+		message: string;
+	}>("/agent/session/finish-handoff", req);
+};
+
 export const agentSessionResend = (req: { sessionId: number; messageId: number; prompt: string; disabledAgentTools?: string[] }) => {
 	return post<{
 		success: true;

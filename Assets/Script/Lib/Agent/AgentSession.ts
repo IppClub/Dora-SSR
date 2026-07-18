@@ -76,6 +76,27 @@ export interface AgentChangeSetSummaryItem {
 	latestCheckpointSeq?: number;
 }
 
+export interface AgentHandoffEvidenceItem {
+	modifiedFiles: string[];
+	lastBuild?: {
+		result: "passed" | "failed";
+		path: string;
+		evidence: string;
+	};
+	commands: {
+		mode: string;
+		command: string;
+		result: "passed" | "failed";
+		evidence: string;
+	}[];
+	authoritativeSources: {
+		tool: "search_dora_api";
+		query: string;
+		source: string;
+		result: "passed" | "failed";
+	}[];
+}
+
 export interface AgentSubAgentMemoryEntryItem {
 	sourceSessionId: number;
 	sourceTaskId: number;
@@ -100,6 +121,7 @@ export interface AgentSessionSpawnInfo {
 	artifactDir?: string;
 	sourceTaskId?: number;
 	changeSet?: AgentChangeSetSummaryItem;
+	handoffEvidence?: AgentHandoffEvidenceItem;
 	memoryEntry?: AgentSubAgentMemoryEntryItem;
 	memoryEntryError?: string;
 	completion?: AgentCompletionReport;
@@ -245,6 +267,7 @@ interface SubAgentResultRecord {
 	createdAtTs: number;
 	finishedAtTs: number;
 	changeSet?: AgentChangeSetSummaryItem;
+	handoffEvidence?: AgentHandoffEvidenceItem;
 	memoryEntry?: AgentSubAgentMemoryEntryItem;
 	memoryEntryError?: string;
 	completion: AgentCompletionReport;
@@ -265,6 +288,7 @@ interface PendingSubAgentHandoffItem {
 	artifactDir?: string;
 	finishedAt?: string;
 	changeSet?: AgentChangeSetSummaryItem;
+	handoffEvidence?: AgentHandoffEvidenceItem;
 	memoryEntry?: AgentSubAgentMemoryEntryItem;
 	completion?: AgentCompletionReport;
 	createdAt: string;
@@ -355,6 +379,52 @@ function decodeChangeSetSummary(value: unknown): AgentChangeSetSummaryItem | und
 	};
 }
 
+function decodeHandoffEvidence(value: unknown): AgentHandoffEvidenceItem | undefined {
+	if (!value || Array.isArray(value) || type(value) !== "table") return undefined;
+	const row = value as Record<string, unknown>;
+	const modifiedFiles = Array.isArray(row.modifiedFiles)
+		? row.modifiedFiles.filter(item => typeof item === "string").map(item => sanitizeUTF8(item as string))
+		: [];
+	let lastBuild: AgentHandoffEvidenceItem["lastBuild"] = undefined;
+	if (row.lastBuild && !Array.isArray(row.lastBuild) && type(row.lastBuild) === "table") {
+		const build = row.lastBuild as Record<string, unknown>;
+		lastBuild = {
+			result: build.result === "passed" ? "passed" : "failed",
+			path: sanitizeUTF8(toStr(build.path)),
+			evidence: takeUtf8Head(sanitizeUTF8(toStr(build.evidence)), 600),
+		};
+	}
+	const commands: AgentHandoffEvidenceItem["commands"] = [];
+	if (Array.isArray(row.commands)) {
+		for (let i = 0; i < row.commands.length && commands.length < 8; i++) {
+			const raw = row.commands[i];
+			if (!raw || Array.isArray(raw) || type(raw) !== "table") continue;
+			const item = raw as Record<string, unknown>;
+			commands.push({
+				mode: sanitizeUTF8(toStr(item.mode)),
+				command: takeUtf8Head(sanitizeUTF8(toStr(item.command)), 600),
+				result: item.result === "passed" ? "passed" : "failed",
+				evidence: takeUtf8Head(sanitizeUTF8(toStr(item.evidence)), 600),
+			});
+		}
+	}
+	const authoritativeSources: AgentHandoffEvidenceItem["authoritativeSources"] = [];
+	if (Array.isArray(row.authoritativeSources)) {
+		for (let i = 0; i < row.authoritativeSources.length && authoritativeSources.length < 8; i++) {
+			const raw = row.authoritativeSources[i];
+			if (!raw || Array.isArray(raw) || type(raw) !== "table") continue;
+			const item = raw as Record<string, unknown>;
+			authoritativeSources.push({
+				tool: "search_dora_api",
+				query: takeUtf8Head(sanitizeUTF8(toStr(item.query)), 300),
+				source: sanitizeUTF8(toStr(item.source)),
+				result: item.result === "passed" ? "passed" : "failed",
+			});
+		}
+	}
+	return { modifiedFiles, lastBuild, commands, authoritativeSources };
+}
+
 function takeUtf8Head(text: string, maxChars: number): string {
 	if (maxChars <= 0 || text === "") return "";
 	const nextPos = utf8.offset(text, maxChars + 1);
@@ -404,6 +474,102 @@ function queryOne(sql: string, args?: (string | number | boolean)[]) {
 	const rows = queryRows(sql, args);
 	if (!rows || rows.length === 0) return undefined;
 	return rows[0];
+}
+
+function summarizeHandoffResult(result: Record<string, unknown>): string {
+	const candidates = [result.output, result.message, result.state, result.phase];
+	for (let i = 0; i < candidates.length; i++) {
+		const text = sanitizeUTF8(toStr(candidates[i])).trim();
+		if (text !== "") return takeUtf8Head(text, 600);
+	}
+	const messages = result.messages;
+	if (Array.isArray(messages) && messages.length > 0) {
+		const parts: string[] = [];
+		for (let i = 0; i < messages.length && parts.length < 4; i++) {
+			const row = messages[i];
+			if (!row || typeof row !== "object") continue;
+			const item = row as Record<string, unknown>;
+			const text = sanitizeUTF8(toStr(item.message ?? item.error ?? item.file)).trim();
+			if (text !== "") parts.push(text);
+		}
+		if (parts.length > 0) return takeUtf8Head(parts.join("; "), 600);
+	}
+	return result.success === true ? "tool result success=true" : "tool result success=false";
+}
+
+function getTaskHandoffEvidence(taskId: number, changeSet?: AgentChangeSetSummaryItem): AgentHandoffEvidenceItem {
+	const evidence: AgentHandoffEvidenceItem = {
+		modifiedFiles: changeSet?.files.map(item => item.path) ?? [],
+		commands: [],
+		authoritativeSources: [],
+	};
+	const rows = queryRows(
+		`SELECT tool, status, params_json, result_json FROM ${TABLE_STEP}
+		WHERE task_id = ? AND tool IN (?, ?, ?) ORDER BY step ASC`,
+		[taskId, "build", "execute_command", "search_dora_api"],
+	) ?? [];
+	for (let i = 0; i < rows.length; i++) {
+		const tool = toStr(rows[i][0]);
+		const status = toStr(rows[i][1]);
+		const params = decodeJsonObject(toStr(rows[i][2])) ?? {};
+		const result = decodeJsonObject(toStr(rows[i][3])) ?? {};
+		const passed = status === "DONE" && result.success === true;
+		if (tool === "build") {
+			evidence.lastBuild = {
+				result: passed ? "passed" : "failed",
+				path: sanitizeUTF8(toStr(params.path)).trim(),
+				evidence: summarizeHandoffResult(result),
+			};
+		} else if (tool === "execute_command" && evidence.commands.length < 8) {
+			const mode = sanitizeUTF8(toStr(params.mode)).trim();
+			const command = mode === "git" ? toStr(params.command) : toStr(params.code);
+			evidence.commands.push({
+				mode,
+				command: takeUtf8Head(sanitizeUTF8(command).trim(), 600),
+				result: passed ? "passed" : "failed",
+				evidence: summarizeHandoffResult(result),
+			});
+		} else if (tool === "search_dora_api" && evidence.authoritativeSources.length < 8) {
+			evidence.authoritativeSources.push({
+				tool: "search_dora_api",
+				query: takeUtf8Head(sanitizeUTF8(toStr(params.pattern)).trim(), 300),
+				source: sanitizeUTF8(toStr(params.docSource || "api")).trim(),
+				result: passed ? "passed" : "failed",
+			});
+		}
+	}
+	return evidence;
+}
+
+function reconcileCompletionWithHandoffEvidence(
+	completion: AgentCompletionReport,
+	evidence: AgentHandoffEvidenceItem
+): AgentCompletionReport {
+	const lastBuild = evidence.lastBuild;
+	if (!lastBuild || lastBuild.result !== "failed") return completion;
+	const validation = completion.validation.slice();
+	let foundBuild = false;
+	for (let i = 0; i < validation.length; i++) {
+		if (validation[i].kind !== "build") continue;
+		foundBuild = true;
+		validation[i] = {
+			kind: "build",
+			result: "failed",
+			evidence: [lastBuild.evidence],
+		};
+	}
+	if (!foundBuild) {
+		validation.push({ kind: "build", result: "failed", evidence: [lastBuild.evidence] });
+	}
+	const knownIssues = completion.knownIssues.slice();
+	const issue = `Latest recorded build failed${lastBuild.path !== "" ? ` for ${lastBuild.path}` : ""}: ${lastBuild.evidence}`;
+	if (knownIssues.indexOf(issue) < 0) knownIssues.push(issue);
+	return {
+		...completion,
+		outcome: completion.outcome === "completed" ? "partial" : completion.outcome,
+		validation,
+		knownIssues,
+	};
 }
 
 function getLastInsertRowId(): number {
@@ -637,6 +803,7 @@ function getSessionSpawnInfo(session: AgentSessionItem): AgentSessionSpawnInfo |
 		artifactDir: typeof info.artifactDir === "string" ? sanitizeUTF8(info.artifactDir) : undefined,
 		sourceTaskId: typeof info.sourceTaskId === "number" ? info.sourceTaskId : undefined,
 		changeSet: decodeChangeSetSummary(info.changeSet),
+		handoffEvidence: decodeHandoffEvidence(info.handoffEvidence),
 		memoryEntry: decodeSubAgentMemoryEntry(info.memoryEntry),
 		memoryEntryError: typeof info.memoryEntryError === "string" ? sanitizeUTF8(info.memoryEntryError) : undefined,
 		completion: info.completion && !Array.isArray(info.completion) && type(info.completion) === "table"
@@ -810,6 +977,16 @@ function writeSubAgentResultFile(session: AgentSessionItem, record: SubAgentResu
 			? record.completion.validation.map(item => `- ${item.kind}: ${item.result}${item.evidence.length > 0 ? ` (${item.evidence.join("; ")})` : ""}`)
 			: ["- Not reported"]),
 		"",
+		"## Recorded Evidence",
+		...(record.handoffEvidence?.modifiedFiles.length
+			? record.handoffEvidence.modifiedFiles.map(item => `- modified: ${item}`)
+			: ["- modified: none recorded"]),
+		...(record.handoffEvidence?.lastBuild
+			? [`- last build: ${record.handoffEvidence.lastBuild.result} path=${record.handoffEvidence.lastBuild.path !== "" ? record.handoffEvidence.lastBuild.path : "."} (${record.handoffEvidence.lastBuild.evidence})`]
+			: ["- last build: not run"]),
+		...(record.handoffEvidence?.commands ?? []).map(item => `- command: ${item.result} mode=${item.mode} ${item.command} (${item.evidence})`),
+		...(record.handoffEvidence?.authoritativeSources ?? []).map(item => `- authoritative source: ${item.result} ${item.source} query=${item.query}`),
+		"",
 		"## Known Issues",
 		...(record.completion.knownIssues.length > 0 ? record.completion.knownIssues.map(item => `- ${item}`) : ["- None reported"]),
 		"",
@@ -862,6 +1039,7 @@ function listSubAgentResultRecords(projectRoot: string, rootSessionId: number): 
 			artifactDir: artifactDir !== "" ? artifactDir : getArtifactRelativeDir(Path("subagents", Path.getFilename(path))),
 			sourceTaskId: sourceTaskId || 0,
 			changeSet: decodeChangeSetSummary(info.changeSet),
+			handoffEvidence: decodeHandoffEvidence(info.handoffEvidence),
 			memoryEntry: decodeSubAgentMemoryEntry(info.memoryEntry),
 			memoryEntryError: sanitizeUTF8(toStr(info.memoryEntryError)),
 			completion: normalizeAgentCompletionReport(info.completion),
@@ -930,6 +1108,7 @@ function listPendingHandoffs(projectRoot: string, memoryScope: string): PendingS
 			artifactDir: sanitizeUTF8(toStr(value.artifactDir)),
 			finishedAt: sanitizeUTF8(toStr(value.finishedAt)),
 			changeSet: decodeChangeSetSummary(value.changeSet),
+			handoffEvidence: decodeHandoffEvidence(value.handoffEvidence),
 			memoryEntry: decodeSubAgentMemoryEntry(value.memoryEntry),
 			completion: value.completion && !Array.isArray(value.completion) && type(value.completion) === "table"
 				? normalizeAgentCompletionReport(value.completion)
@@ -1439,6 +1618,7 @@ function flushPendingSubAgentHandoffs(rootSession: AgentSessionItem): void {
 				artifactDir: item.artifactDir ?? "",
 				finishedAt: item.finishedAt ?? "",
 				changeSet: item.changeSet,
+				handoffEvidence: item.handoffEvidence,
 				memoryEntry: item.memoryEntry,
 				completion: item.completion,
 			},
@@ -1453,6 +1633,7 @@ function flushPendingSubAgentHandoffs(rootSession: AgentSessionItem): void {
 				resultFilePath: item.resultFilePath ?? "",
 				artifactDir: item.artifactDir ?? "",
 				changeSet: item.changeSet,
+				handoffEvidence: item.handoffEvidence,
 				memoryEntry: item.memoryEntry,
 				completion: item.completion,
 			},
@@ -1577,11 +1758,12 @@ function applyEvent(sessionId: number, event: AgentRuntimeEvent) {
 			break;
 		}
 		case "task_finished": {
-			const stopped = activeStopTokens[event.taskId ?? -1]?.stopped === true;
+			const session = getSessionItem(sessionId);
+			const stopped = activeStopTokens[event.taskId ?? -1]?.stopped === true
+				|| (session !== undefined && session.currentTaskId === event.taskId && session.currentTaskStatus === "STOPPED");
 			const finalStatus: AgentSessionStatus = event.success
 				? "DONE"
 				: (stopped ? "STOPPED" : "FAILED");
-			const session = getSessionItem(sessionId);
 			const isSubSession = session?.kind === "sub";
 			const sessionStatus: AgentSessionStatus = isSubSession ? "RUNNING" : finalStatus;
 			if (isSubSession && event.taskId !== undefined) {
@@ -1977,6 +2159,7 @@ function appendSubAgentHandoffStep(session: AgentSessionItem, taskId: number, re
 		artifactDir: result.artifactDir,
 		finishedAt: result.finishedAt,
 		changeSet,
+		handoffEvidence: result.handoffEvidence,
 		memoryEntry: result.memoryEntry,
 		completion: result.completion,
 		createdAt,
@@ -1990,7 +2173,14 @@ function appendSubAgentHandoffStep(session: AgentSessionItem, taskId: number, re
 	}
 }
 
-async function finalizeSubSession(session: AgentSessionItem, taskId: number, success: boolean, message: string, completion?: AgentCompletionReport): Promise<{ success: true } | { success: false; message: string }> {
+async function finalizeSubSession(
+	session: AgentSessionItem,
+	taskId: number,
+	success: boolean,
+	message: string,
+	completion?: AgentCompletionReport,
+	forceHandoff = false
+): Promise<{ success: true } | { success: false; message: string }> {
 	const rootSessionId = getSessionRootId(session);
 	const rootSession = getRootSessionItem(session.id);
 	if (!rootSession) {
@@ -2001,6 +2191,25 @@ async function finalizeSubSession(session: AgentSessionItem, taskId: number, suc
 	const finishedAtTs = now();
 	const resultText = sanitizeUTF8(message);
 	const changeSet = getTaskChangeSetSummary(taskId);
+	const handoffEvidence = getTaskHandoffEvidence(taskId, changeSet);
+	let completionReport = completion ?? normalizeAgentCompletionReport({
+		outcome: success ? "completed" : (forceHandoff ? "partial" : "blocked"),
+		knownIssues: success ? [] : [resultText !== "" ? resultText : "The sub-agent handoff summary could not be completed."],
+	});
+	completionReport = reconcileCompletionWithHandoffEvidence(completionReport, handoffEvidence);
+	if (forceHandoff && !success && completionReport.outcome !== "partial") {
+		completionReport = normalizeAgentCompletionReport({
+			...completionReport,
+			outcome: "partial",
+			knownIssues: completionReport.knownIssues.length > 0
+				? completionReport.knownIssues
+				: [resultText !== "" ? resultText : "The sub-agent handoff summary could not be completed."],
+		});
+	}
+	const completed = success && completionReport.outcome === "completed";
+	const recordStatus: SubAgentResultRecord["status"] = completed
+		? "DONE"
+		: (completionReport.outcome === "partial" ? "STOPPED" : "FAILED");
 	const record: SubAgentResultRecord = {
 		sessionId: session.id,
 		rootSessionId,
@@ -2010,8 +2219,8 @@ async function finalizeSubSession(session: AgentSessionItem, taskId: number, suc
 		goal: spawnInfo?.goal ?? session.title,
 		expectedOutput: spawnInfo?.expectedOutput ?? "",
 		filesHint: spawnInfo?.filesHint ?? [],
-		status: success ? "DONE" : "FAILED",
-		success,
+		status: recordStatus,
+		success: completed,
 		resultFilePath: getResultRelativePath(session.memoryScope),
 		artifactDir: getArtifactRelativeDir(session.memoryScope),
 		sourceTaskId: taskId,
@@ -2020,10 +2229,8 @@ async function finalizeSubSession(session: AgentSessionItem, taskId: number, suc
 		createdAtTs: session.createdAt,
 		finishedAtTs,
 		changeSet,
-		completion: completion ?? normalizeAgentCompletionReport({
-			outcome: success ? "completed" : "blocked",
-			knownIssues: success ? [] : [resultText],
-		}),
+		handoffEvidence,
+		completion: completionReport,
 	};
 	record.memoryEntry = record.success ? buildStructuredSubAgentMemoryEntry(record) : undefined;
 	if (!writeSubAgentResultFile(session, record, resultText)) {
@@ -2048,13 +2255,14 @@ async function finalizeSubSession(session: AgentSessionItem, taskId: number, suc
 		createdAtTs: record.createdAtTs,
 		finishedAtTs: record.finishedAtTs,
 		changeSet: record.changeSet,
+		handoffEvidence: record.handoffEvidence,
 		memoryEntry: record.memoryEntry,
 		memoryEntryError: record.memoryEntryError,
 		completion: record.completion,
 	})) {
 		return { success: false, message: "failed to persist sub session spawn info" };
 	}
-	if (success) {
+	if (success || forceHandoff) {
 		appendSubAgentHandoffStep(session, taskId, record, resultText);
 		deleteSessionRecords(session.id, true);
 		emitSessionDeletedPatch(session.id, rootSessionId, rootSession.projectRoot);
@@ -2126,7 +2334,18 @@ export function sendPrompt(sessionId: number, prompt: string, allowSubSessionSta
 	return startPromptTask(session, normalizedPrompt, undefined, normalizeDisabledAgentTools(disabledAgentTools));
 }
 
-function startPromptTask(session: AgentSessionItem, normalizedPrompt: string, existingUserMessageId?: number, disabledAgentTools: AgentToolName[] = []): AgentSessionSendResult {
+interface PromptTaskOptions {
+	maxSteps?: number;
+	forceSubAgentHandoff?: boolean;
+}
+
+function startPromptTask(
+	session: AgentSessionItem,
+	normalizedPrompt: string,
+	existingUserMessageId?: number,
+	disabledAgentTools: AgentToolName[] = [],
+	options?: PromptTaskOptions
+): AgentSessionSendResult {
 	const taskRes = Tools.createTask(normalizedPrompt);
 	if (!taskRes.success) {
 		return { success: false, message: taskRes.message };
@@ -2149,6 +2368,7 @@ function startPromptTask(session: AgentSessionItem, normalizedPrompt: string, ex
 		sessionId: session.id,
 		memoryScope: session.memoryScope,
 		role: session.kind,
+		maxSteps: options?.maxSteps,
 		disabledAgentTools,
 		spawnSubAgent: session.kind === "main"
 			? spawnSubAgentSession
@@ -2176,7 +2396,14 @@ function startPromptTask(session: AgentSessionItem, normalizedPrompt: string, ex
 			emitAgentSessionPatch(session.id, {
 				session: getSessionItem(session.id),
 			});
-			const finalized = await finalizeSubSession(nextSession, taskId, result.success, result.message, result.completion);
+			const finalized = await finalizeSubSession(
+				nextSession,
+				taskId,
+				result.success,
+				result.message,
+				result.completion,
+				options?.forceSubAgentHandoff === true
+			);
 			if (!finalized.success) {
 				Log("Warn", `[AgentSession] sub session finalize failed session=${nextSession.id} error=${finalized.message}`);
 			}
@@ -2206,6 +2433,38 @@ function startPromptTask(session: AgentSessionItem, normalizedPrompt: string, ex
 		}
 	});
 	return { success: true, sessionId: session.id, taskId };
+}
+
+export function finishSubSessionHandoff(sessionId: number): AgentSessionSendResult {
+	const session = getSessionItem(sessionId);
+	if (!session) {
+		return { success: false, message: "session not found" };
+	}
+	if (session.kind !== "sub") {
+		return { success: false, message: "only sub-agent sessions can be ended with handoff" };
+	}
+	if (session.currentTaskFinalizing === true || (session.currentTaskId !== undefined && finalizingSubSessionTaskIds[session.currentTaskId] === true)) {
+		return { success: false, message: "session task is finalizing" };
+	}
+	const normalizedSession = normalizeSessionRuntimeState(session);
+	if (
+		normalizedSession.currentTaskStatus === "RUNNING"
+		|| (session.currentTaskId !== undefined && activeStopTokens[session.currentTaskId] !== undefined)
+	) {
+		return { success: false, message: "stop the running sub-agent task before ending it with handoff" };
+	}
+	if (normalizedSession.currentTaskStatus !== "STOPPED" && normalizedSession.currentTaskStatus !== "FAILED") {
+		return { success: false, message: "only stopped or failed sub-agent sessions can be ended with handoff" };
+	}
+	const disabledAgentTools = AgentToolRegistry.getAllowedToolsForRole("sub")
+		.filter(tool => tool !== "finish");
+	const prompt = getDefaultUseChineseResponse()
+		? "请结束当前子任务并立即交接已有工作。不要继续实现、读取、搜索、构建或验证。请只调用 finish：根据当前会话中已有的真实证据，总结已完成内容、文件变更、验证状态和剩余问题；未完成时将 outcome 设为 partial，不要把未验证内容写成已完成。"
+		: "End this sub task now and hand off the work already completed. Do not continue implementation, reading, searching, building, or validation. Call finish only: summarize completed work, file changes, validation status, and remaining issues from evidence already present in this session. Use outcome partial when unfinished, and do not claim unverified work as complete.";
+	return startPromptTask(session, prompt, undefined, disabledAgentTools, {
+		maxSteps: 1,
+		forceSubAgentHandoff: true,
+	});
 }
 
 export function resendPrompt(sessionId: number, messageId: number, prompt: string, disabledAgentTools?: unknown): AgentSessionResendResult {
@@ -2264,6 +2523,11 @@ export function stopSessionTask(sessionId: number) {
 	}
 	stopToken.stopped = true;
 	stopToken.reason = getDefaultUseChineseResponse() ? "用户已中断" : "stopped by user";
+	// The runner observes the token asynchronously.  Persist the terminal task
+	// state immediately so stale in-flight tool rows cannot make a later prompt
+	// appear blocked or running after the user has stopped this task.
+	Tools.setTaskStatus(session.currentTaskId, "STOPPED");
+	finalizeTaskSteps(session.id, session.currentTaskId, undefined, "STOPPED");
 	setSessionState(session.id, "STOPPED", session.currentTaskId, "STOPPED");
 	return { success: true as const };
 }

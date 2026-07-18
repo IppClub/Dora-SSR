@@ -10,6 +10,7 @@ import * as AgentToolRegistry from 'Agent/AgentToolRegistry';
 import type { AgentDecisionMode, AgentRole, AgentToolName } from 'Agent/AgentToolRegistry';
 import * as AgentSkills from 'Agent/AgentSkills';
 import * as AgentConfig from 'Agent/AgentConfig';
+import * as AgentRuntimePolicy from 'Agent/AgentRuntimePolicy';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === "object";
@@ -129,8 +130,6 @@ export interface CodingAgentRunOptions {
 	>;
 	onEvent?: (event: CodingAgentEvent) => void;
 }
-
-export const AGENT_USER_PROMPT_MAX_CHARS = 12000;
 
 type AgentPromptCommand = "compact" | "clear";
 export type { AgentDecisionMode, AgentRole, AgentToolName };
@@ -272,19 +271,6 @@ export type CodingAgentEvent =
 		completion?: AgentCompletionReport;
 	};
 
-const HISTORY_READ_FILE_MAX_CHARS = 12000;
-const HISTORY_READ_FILE_MAX_LINES = 300;
-const READ_FILE_DEFAULT_LIMIT = 300;
-const HISTORY_SEARCH_FILES_MAX_MATCHES = 20;
-const HISTORY_SEARCH_DORA_API_MAX_MATCHES = 12;
-const HISTORY_LIST_FILES_MAX_ENTRIES = 200;
-const HISTORY_BUILD_MAX_MESSAGES = 50;
-const HISTORY_BUILD_MESSAGE_MAX_CHARS = 1200;
-const SEARCH_DORA_API_LIMIT_MAX = 20;
-const SEARCH_FILES_LIMIT_DEFAULT = 20;
-const LIST_FILES_MAX_ENTRIES_DEFAULT = 200;
-const SEARCH_PREVIEW_CONTEXT = 80;
-
 function buildLLMOptions(llmConfig: LLMConfig, overrides?: Record<string, unknown>): Record<string, unknown> {
 	const options: Record<string, unknown> = {
 		temperature: llmConfig.temperature ?? AgentConfig.AGENT_DEFAULTS.llmTemperature,
@@ -370,9 +356,9 @@ interface AgentShared {
 	messages: AgentConversationMessage[];
 	lastConsolidatedIndex: number;
 	carryMessageIndex?: number;
-	/** The next decision must resume from the checkpoint produced by compression. */
+	/** Compression produced a checkpoint that should guide the next decision. */
 	resumeCheckpointPending?: boolean;
-	/** Machine-readable next tool extracted from the compressed Active Checkpoint. */
+	/** Recommended next tool extracted from the compressed Active Checkpoint. */
 	resumeRequiredTool?: AgentToolName;
 	/** After compression, prevent broad rereads until the agent resumes real work. */
 	resumeNarrowReadMode?: boolean;
@@ -384,23 +370,27 @@ interface AgentShared {
 	editedPathsSinceBuild?: string[];
 	/** Whether this task has attempted at least one project build. */
 	hasBuilt?: boolean;
-	/** Bound speculative API lookup to one call between builds. */
+	/** Whether the latest build passed and no authored edits have happened since it. */
+	lastBuildSucceeded?: boolean;
+	/** Track API lookups so later tool results can recommend an early build. */
 	apiSearchesSinceBuild?: number;
-	/** A deterministic test reported `failed`; another command requires a successful source build first. */
+	/** A deterministic test reported `failed`; later results should recommend fixing and building. */
 	failedTestNeedsBuild?: boolean;
 	/** An authored source/test file changed after the latest deterministic test failure. */
 	failedTestHasSourceEdit?: boolean;
-	/** A build returned concrete authored-file diagnostics that should be repaired before discovery. */
+	/** A build returned concrete authored-file diagnostics that should guide the next repair. */
 	buildRepairPending?: boolean;
 	/** Consecutive deterministic test reports whose first-line result was failed. */
 	deterministicTestFailureCount?: number;
-	/** A project with zero buildable code files, or one buildable code file of at most 3 lines, should implement before discovery. */
+	/** A project with zero buildable code files, or one buildable code file of at most 3 lines, should prefer an early implementation and build. */
 	freshProjectBuildPending?: boolean;
 	/** The only short code file found when freshProjectBuildPending was detected. */
 	freshProjectCodeFile?: string;
-	/** A successful spawn in this task makes list_sub_agents a forbidden polling path. */
+	/** Target that received a valid decoded prefix from a truncated whole-file overwrite. */
+	truncatedToolOverwritePath?: string;
+	/** A successful spawn in this task makes list_sub_agents a discouraged polling path. */
 	hasSpawnedSubAgentThisTask?: boolean;
-	/** Number of bounded foreground tool batches completed after the first successful spawn. */
+	/** Number of foreground tool batches completed after the first successful spawn. */
 	delegatedForegroundBatches?: number;
 	/** Provider-reported token usage accumulated for this task. */
 	tokenUsage?: AgentTokenUsageMetric;
@@ -459,7 +449,9 @@ function emitLLMContextMetrics(
 	delete optionsWithoutTools.tools;
 	const [optionsText] = safeJsonEncode(optionsWithoutTools as object);
 	const optionsTokens = optionsText ? estimateTextTokens(optionsText) : 0;
-	const contextWindow = math.max(64000, shared.llmConfig.contextWindow);
+	const contextWindow = shared.llmConfig.contextWindow > 0
+		? math.floor(shared.llmConfig.contextWindow)
+		: 64000;
 	const explicitMax = typeof options.max_tokens === "number"
 		? math.floor(options.max_tokens)
 		: (typeof options.max_completion_tokens === "number"
@@ -626,8 +618,8 @@ function getPromptCommand(prompt: string): AgentPromptCommand | undefined {
 
 export function truncateAgentUserPrompt(prompt: string): string {
 	if (!prompt) return "";
-	if (prompt.length <= AGENT_USER_PROMPT_MAX_CHARS) return prompt;
-	const offset = utf8.offset(prompt, AGENT_USER_PROMPT_MAX_CHARS + 1);
+	if (prompt.length <= AgentConfig.AGENT_LIMITS.userPromptMaxChars) return prompt;
+	const offset = utf8.offset(prompt, AgentConfig.AGENT_LIMITS.userPromptMaxChars + 1);
 	if (offset === undefined) return prompt;
 	return string.sub(prompt, 1, offset - 1);
 }
@@ -858,19 +850,19 @@ function replacePromptVars(template: string, vars: Record<string, string>): stri
 
 function limitReadContentForHistory(content: string, tool: "read_file"): string {
 	const lines = content.split("\n");
-	const overLineLimit = lines.length > HISTORY_READ_FILE_MAX_LINES;
+	const overLineLimit = lines.length > AgentConfig.AGENT_LIMITS.historyReadFileMaxLines;
 	const limitedByLines = overLineLimit
-		? lines.slice(0, HISTORY_READ_FILE_MAX_LINES).join("\n")
+		? lines.slice(0, AgentConfig.AGENT_LIMITS.historyReadFileMaxLines).join("\n")
 		: content;
-	if (limitedByLines.length <= HISTORY_READ_FILE_MAX_CHARS && !overLineLimit) {
+	if (limitedByLines.length <= AgentConfig.AGENT_LIMITS.historyReadFileMaxChars && !overLineLimit) {
 		return content;
 	}
-	const limited = limitedByLines.length > HISTORY_READ_FILE_MAX_CHARS
-		? utf8TakeHead(limitedByLines, HISTORY_READ_FILE_MAX_CHARS)
+	const limited = limitedByLines.length > AgentConfig.AGENT_LIMITS.historyReadFileMaxChars
+		? utf8TakeHead(limitedByLines, AgentConfig.AGENT_LIMITS.historyReadFileMaxChars)
 		: limitedByLines;
 	const reasons: string[] = [];
-	if (content.length > HISTORY_READ_FILE_MAX_CHARS) reasons.push(`${content.length} chars`);
-	if (lines.length > HISTORY_READ_FILE_MAX_LINES) reasons.push(`${lines.length} lines`);
+	if (content.length > AgentConfig.AGENT_LIMITS.historyReadFileMaxChars) reasons.push(`${content.length} chars`);
+	if (lines.length > AgentConfig.AGENT_LIMITS.historyReadFileMaxLines) reasons.push(`${lines.length} lines`);
 	const hint = "Narrow the requested line range.";
 	return `[${tool} content truncated for history (${reasons.join(", ")}). ${hint}]\n${limited}`;
 }
@@ -928,14 +920,14 @@ function sanitizeSearchResultForHistory(
 	for (const key in result) {
 		clone[key] = result[key];
 	}
-	const maxItems = tool === "grep_files" ? HISTORY_SEARCH_FILES_MAX_MATCHES : HISTORY_SEARCH_DORA_API_MAX_MATCHES;
+	const maxItems = tool === "grep_files" ? AgentConfig.AGENT_LIMITS.historySearchFilesMaxMatches : AgentConfig.AGENT_LIMITS.historySearchDoraApiMaxMatches;
 	clone.results = sanitizeSearchMatchesForHistory(
 		result.results as Record<string, unknown>[],
 		maxItems
 	);
 	if (tool === "grep_files" && isArray(result.groupedResults)) {
 		const grouped = result.groupedResults;
-		const shown = math.min(grouped.length, HISTORY_SEARCH_FILES_MAX_MATCHES);
+		const shown = math.min(grouped.length, AgentConfig.AGENT_LIMITS.historySearchFilesMaxMatches);
 		const sanitizedGroups: Record<string, unknown>[] = [];
 		for (let i = 0; i < shown; i++) {
 			const row = grouped[i] as AnyTable;
@@ -958,7 +950,7 @@ function sanitizeListFilesResultForHistory(result: Record<string, unknown>): Rec
 	for (const key in result) {
 		clone[key] = result[key];
 	}
-	clone.files = result.files.slice(0, HISTORY_LIST_FILES_MAX_ENTRIES);
+	clone.files = result.files.slice(0, AgentConfig.AGENT_LIMITS.historyListFilesMaxEntries);
 	return clone;
 }
 
@@ -975,7 +967,7 @@ function sanitizeBuildResultForHistory(result: Record<string, unknown>): Record<
 		if (aFailed === bFailed) return 0;
 		return aFailed ? -1 : 1;
 	});
-	const shown = math.min(ordered.length, HISTORY_BUILD_MAX_MESSAGES);
+	const shown = math.min(ordered.length, AgentConfig.AGENT_LIMITS.historyBuildMaxMessages);
 	const sanitized: Record<string, unknown>[] = [];
 	for (let i = 0; i < shown; i++) {
 		const item = ordered[i];
@@ -983,7 +975,7 @@ function sanitizeBuildResultForHistory(result: Record<string, unknown>): Record<
 		for (const key in item) {
 			const value = item[key];
 			next[key] = key === "message" && typeof value === "string"
-				? truncateText(value, HISTORY_BUILD_MESSAGE_MAX_CHARS)
+				? truncateText(value, AgentConfig.AGENT_LIMITS.historyBuildMessageMaxChars)
 				: value;
 		}
 		sanitized.push(next);
@@ -1011,78 +1003,14 @@ function sanitizeActionParamsForHistory(tool: AgentToolName, params: Record<stri
 }
 
 export function getDecisionDisabledAgentTools(shared: AgentShared): AgentToolName[] {
-	const disabled = shared.disabledAgentTools.slice();
-	// A newly-created Web IDE TypeScript project already has all context needed
-	// for a baseline implementation in its tiny init.ts. Hide discovery and
-	// command probes until the first successful build so the main agent cannot
-	// spend its opening loop enumerating the workspace or hunting type files.
-	if (shared.freshProjectBuildPending === true) {
-		const freshProjectDisabled: AgentToolName[] = [
-			"read_file",
-			"glob_files",
-			"grep_files",
-			"search_dora_api",
-			"execute_command",
-		];
-		for (let i = 0; i < freshProjectDisabled.length; i++) {
-			if (disabled.indexOf(freshProjectDisabled[i]) < 0) disabled.push(freshProjectDisabled[i]);
-		}
-	}
-	// The engine permits one Dora API lookup between builds. Once consumed, do
-	// not keep advertising a tool whose preflight must reject every call; hiding
-	// it makes providers without forced tool_choice select a useful next action.
-	if (
-		(
-			(shared.apiSearchesSinceBuild ?? 0) >= 1
-			|| shared.unbuiltEdits === true
-		)
-		&& disabled.indexOf("search_dora_api") < 0
-	) {
-		disabled.push("search_dora_api");
-	}
-	// When the compiler already identified authored files and exact diagnostics,
-	// discovery and command probes add latency without reducing uncertainty.
-	// Keep read/edit/build available so providers without forced tool_choice are
-	// naturally routed into the smallest repair loop.
-	if (shared.buildRepairPending === true) {
-		const repairDisabled: AgentToolName[] = [
-			"grep_files",
-			"glob_files",
-			"search_dora_api",
-			"execute_command",
-		];
-		for (let i = 0; i < repairDisabled.length; i++) {
-			if (disabled.indexOf(repairDisabled[i]) < 0) disabled.push(repairDisabled[i]);
-		}
-	}
-	// A task that just delegated work must release the main turn instead of
-	// converting asynchronous spawn back into a join loop through status polling.
-	// A later user task gets a fresh AgentShared and may list historical results.
-	if (shared.hasSpawnedSubAgentThisTask === true && disabled.indexOf("list_sub_agents") < 0) {
-		disabled.push("list_sub_agents");
-	}
-	if ((shared.delegatedForegroundBatches ?? 0) >= AgentConfig.AGENT_DEFAULTS.delegatedForegroundBatchLimit) {
-		const foregroundDisabled = AgentToolRegistry.getAllowedToolsForRole(shared.role);
-		for (let i = 0; i < foregroundDisabled.length; i++) {
-			const tool = foregroundDisabled[i];
-			if (tool === "spawn_sub_agent" || tool === "finish") continue;
-			if (disabled.indexOf(tool) < 0) disabled.push(tool);
-		}
-	}
-	// Authored changes should be verified in small batches after either compiler
-	// or deterministic-test feedback. Otherwise models can spend a long turn
-	// speculating through tiny replacements against stale evidence.
-	if (shared.unbuiltEdits === true && (shared.editsSinceBuild ?? 0) >= 3) {
-		const changesMustBuild: AgentToolName[] = ["edit_file", "delete_file"];
-		for (let i = 0; i < changesMustBuild.length; i++) {
-			if (disabled.indexOf(changesMustBuild[i]) < 0) disabled.push(changesMustBuild[i]);
-		}
-	}
-	return disabled;
+	// Capability is stable for the whole task. Runtime workflow state may add
+	// guidance to a tool result, but must not hide or reject a tool that the
+	// model can see in this task's schema/prompt.
+	return shared.disabledAgentTools.slice();
 }
 
 function getDecisionToolDefinitions(shared: AgentShared): string {
-	const params = { SEARCH_DORA_API_LIMIT_MAX: tostring(SEARCH_DORA_API_LIMIT_MAX) };
+	const params = { SEARCH_DORA_API_LIMIT_MAX: tostring(AgentConfig.AGENT_LIMITS.searchDoraApiLimitMax) };
 	const usesDefaultToolPrompts = shared.promptPack.toolDefinitionsDetailed === AgentToolRegistry.AGENT_TOOL_DEFINITIONS_DETAILED
 		&& shared.promptPack.mainAgentToolDefinitionsDetailed === AgentToolRegistry.MAIN_AGENT_TOOL_DEFINITIONS_DETAILED
 		&& shared.promptPack.xmlToolDefinitionsDetailed === AgentToolRegistry.XML_TOOL_DEFINITIONS_DETAILED;
@@ -1093,8 +1021,8 @@ function getDecisionToolDefinitions(shared: AgentShared): string {
 		const definitions = AgentToolRegistry.buildRoleToolDefinitionsDetailed(shared.role, {
 			includeFinish: true,
 			includeXmlRules: true,
-			context: { searchDoraApiLimitMax: SEARCH_DORA_API_LIMIT_MAX },
-			disabledAgentTools: shared.disabledAgentTools,
+			context: { searchDoraApiLimitMax: AgentConfig.AGENT_LIMITS.searchDoraApiLimitMax },
+			disabledAgentTools: getDecisionDisabledAgentTools(shared),
 		});
 		return replacePromptVars(definitions, params);
 	}
@@ -1113,8 +1041,8 @@ function getDecisionToolDefinitions(shared: AgentShared): string {
 }
 
 function getDecisionToolSchemaText(shared: AgentShared): string {
-	const [toolsText] = safeJsonEncode(AgentToolRegistry.buildDecisionToolSchema(shared.role, SEARCH_DORA_API_LIMIT_MAX, {
-		disabledAgentTools: shared.disabledAgentTools,
+	const [toolsText] = safeJsonEncode(AgentToolRegistry.buildDecisionToolSchema(shared.role, AgentConfig.AGENT_LIMITS.searchDoraApiLimitMax, {
+		disabledAgentTools: getDecisionDisabledAgentTools(shared),
 	}) as object);
 	return toolsText ?? "";
 }
@@ -1195,52 +1123,120 @@ function createPreExecutedToolResult(shared: AgentShared, action: AgentActionRec
 
 async function executeToolActionWithPreExecution(shared: AgentShared, action: AgentActionRecord): Promise<Record<string, unknown>> {
 	const preResult = shared.preExecutedResults?.get(action.toolCallId);
+	let result: Record<string, unknown>;
 	if (preResult) {
 		shared.preExecutedResults?.delete(action.toolCallId);
 		if (preResult.matches(action)) {
 			Log("Info", `[CodingAgent] using streaming pre-exec result tool=${action.tool} id=${action.toolCallId}`);
-			return await preResult.promise;
+			result = await preResult.promise;
+		} else {
+			Log("Warn", `[CodingAgent] discard stale streaming pre-exec result tool=${action.tool} id=${action.toolCallId}`);
+			result = await executeToolAction(shared, action);
 		}
-		Log("Warn", `[CodingAgent] discard stale streaming pre-exec result tool=${action.tool} id=${action.toolCallId}`);
+	} else {
+		result = await executeToolAction(shared, action);
 	}
-	return executeToolAction(shared, action);
+	const guidance: string[] = [];
+	if (
+		(shared.delegatedForegroundBatches ?? 0) >= AgentConfig.AGENT_DEFAULTS.delegatedForegroundBatchLimit
+		&& action.tool !== "spawn_sub_agent"
+		&& action.tool !== "finish"
+	) {
+		guidance.push("Foreground work after delegation has reached the recommended bound. Prefer dispatching another independent sub-agent or finishing this turn so the user can continue interacting.");
+	}
+	if (shared.resumeRequiredTool !== undefined && action.tool !== shared.resumeRequiredTool) {
+		guidance.push(`The compression checkpoint recommends ${shared.resumeRequiredTool} next. Avoid restarting broad discovery unless this result shows it is necessary.`);
+	}
+	if (shared.failedTestNeedsBuild === true && action.tool !== "build" && action.tool !== "edit_file") {
+		guidance.push("A deterministic test previously failed. Prefer a narrow authored-source fix and a successful build before further testing or generated-output investigation.");
+	}
+	if (action.tool === "search_dora_api") {
+		if (shared.unbuiltEdits === true) {
+			guidance.push("There are unbuilt authored changes. Apply only relevant API evidence from this result, then prefer building before more discovery.");
+		}
+		if ((shared.apiSearchesSinceBuild ?? 0) >= 2) {
+			guidance.push("Dora API documentation has already been searched since the last build. Prefer applying the evidence and building before another lookup.");
+		}
+	}
+	if ((action.tool === "edit_file" || action.tool === "delete_file") && AgentRuntimePolicy.isEditBudgetExhausted(shared)) {
+		guidance.push("Several source files have changed since the last build. Prefer compiling now to obtain concrete diagnostics before broadening the edit set.");
+	}
+	if (action.tool === "edit_file" && shared.resumeNarrowReadMode === true) {
+		const oldStr = typeof action.params.old_str === "string" ? action.params.old_str : "";
+		if (oldStr === "") {
+			guidance.push("After compression, prefer a targeted old_str replacement or an early build over rewriting a complete existing file.");
+		}
+	}
+	if (action.tool === "list_sub_agents" && shared.hasSpawnedSubAgentThisTask === true) {
+		guidance.push("Sub-agent results arrive asynchronously. Avoid polling repeatedly; finish the current turn when no independent foreground work remains.");
+	}
+	if (shared.freshProjectBuildPending === true && action.tool !== "build") {
+		guidance.push(shared.unbuiltEdits === true
+			? "A fresh project now has an authored implementation. Prefer an early build so later work uses compiler feedback."
+			: "This is a fresh project. Prefer creating a compilable first implementation, then build early.");
+	}
+	if (shared.buildRepairPending === true && action.tool !== "build" && action.tool !== "edit_file") {
+		guidance.push("The last build reported authored-file diagnostics. Prefer a narrow source repair, then build again.");
+	}
+	if (shared.lastBuildSucceeded === true && shared.unbuiltEdits !== true) {
+		guidance.push("The latest build passed with no pending source edits. If the user's acceptance criteria are satisfied, prefer finishing instead of inventing extra probes.");
+	}
+	if (guidance.length > 0) {
+		result.guidance = guidance.join("\n");
+	}
+	return result;
 }
 
-async function maybeCompressHistory(shared: AgentShared, forceAtTurnBoundary = false): Promise<void> {
+async function maybeCompressHistory(
+	shared: AgentShared,
+	forceAtTurnBoundary = false,
+	pendingUserPrompt = ""
+): Promise<void> {
 	const { memory } = shared;
 	const maxRounds = memory.compressor.getMaxCompressionRounds();
 	let changed = false;
 	for (let round = 0; round < maxRounds; round++) {
 		const systemPrompt = buildAgentSystemPrompt(shared, shared.decisionMode === "xml");
 		const activeMessages = getActiveConversationMessages(shared);
+		// A carried instruction remains visible after compression, but its history is
+		// already covered by Session Summary. Only the uncovered tail may trigger a
+		// new compression round; otherwise small follow-up tasks repeatedly summarize
+		// the same carried prompt.
+		const uncoveredMessages = AgentRuntimePolicy.getUncoveredConversationMessages(
+			shared.messages,
+			shared.lastConsolidatedIndex
+		);
 		// In tool_calling mode, tool descriptions come from the tools API schema, not from
 		// the XML-only detailed prompt. Pass the schema text only for token accounting.
 		const toolDefinitions = shared.decisionMode === "tool_calling"
 			? getDecisionToolSchemaText(shared)
 			: "";
 		const thresholdReached = memory.compressor.shouldCompress(
-			activeMessages,
+			uncoveredMessages,
 			systemPrompt,
 			toolDefinitions
 		);
 		let activeTokens = 0;
 		if (forceAtTurnBoundary && shared.role === "main") {
-			for (let i = 0; i < activeMessages.length; i++) {
-				const message = activeMessages[i];
-				activeTokens += 8;
-				activeTokens += estimateTextTokens(message.role ?? "");
-				activeTokens += estimateTextTokens(message.content ?? "");
-				activeTokens += estimateTextTokens(message.name ?? "");
-				activeTokens += estimateTextTokens(message.tool_call_id ?? "");
-				activeTokens += estimateTextTokens(message.reasoning_content ?? "");
-				const [toolCallsText] = safeJsonEncode((message.tool_calls ?? []) as object);
-				activeTokens += estimateTextTokens(toolCallsText ?? "");
-			}
+			activeTokens = estimateTextTokens(systemPrompt)
+				+ estimateTextTokens(toolDefinitions)
+				+ AgentRuntimePolicy.estimateConversationTokens(uncoveredMessages)
+				+ estimateTextTokens(pendingUserPrompt)
+				+ math.max(0, math.floor(Number(shared.llmOptions.max_tokens ?? AgentConfig.AGENT_DEFAULTS.llmMaxTokens)));
 		}
 		const activeRealMessages = getActiveRealMessageCount(shared);
+		const boundaryThresholds = AgentConfig.getTurnBoundaryCompressionThresholds(
+			shared.llmConfig.contextWindow
+		);
 		const turnBoundaryReached = forceAtTurnBoundary
 			&& shared.role === "main"
-			&& (activeTokens >= 72000 || (activeRealMessages >= 64 && activeTokens >= 48000));
+			&& (
+				activeTokens >= boundaryThresholds.defaultTokens
+				|| (
+					activeRealMessages >= AgentConfig.AGENT_DEFAULTS.turnBoundaryHighMessageCount
+					&& activeTokens >= boundaryThresholds.highMessageTokens
+				)
+			);
 		if (!thresholdReached && !turnBoundaryReached) {
 			if (changed) {
 				persistHistoryState(shared);
@@ -1262,6 +1258,8 @@ async function maybeCompressHistory(shared: AgentShared, forceAtTurnBoundary = f
 				round: compressionRound,
 				maxRounds,
 				pendingMessages,
+				coveredThroughIndex: shared.lastConsolidatedIndex,
+				uncoveredMessages: uncoveredMessages.length,
 			},
 		});
 		const result = await memory.compressor.compress(
@@ -1328,6 +1326,7 @@ async function maybeCompressHistory(shared: AgentShared, forceAtTurnBoundary = f
 				success: true,
 				round: compressionRound,
 				compressedCount: effectiveCompressedCount,
+				coveredThroughIndex: math.min(shared.messages.length, shared.lastConsolidatedIndex + effectiveCompressedCount),
 				historyEntryPreview: summarizeHistoryEntryPreview(result.summary ?? ""),
 			},
 		});
@@ -2160,7 +2159,7 @@ function validateDecision(
 		params.path = path;
 		const startLineRes = parseReadLineParam(params.startLine, 1, "startLine");
 		if (!startLineRes.success) return startLineRes;
-		const endLineDefault = startLineRes.value < 0 ? -1 : READ_FILE_DEFAULT_LIMIT;
+		const endLineDefault = startLineRes.value < 0 ? -1 : AgentConfig.AGENT_LIMITS.readFileDefaultLimit;
 		const endLineRes = parseReadLineParam(params.endLine, endLineDefault, "endLine");
 		if (!endLineRes.success) return endLineRes;
 		params.startLine = startLineRes.value;
@@ -2190,7 +2189,7 @@ function validateDecision(
 		const pattern = typeof params.pattern === "string" ? params.pattern.trim() : "";
 		if (pattern === "") return { success: false, message: "grep_files requires pattern" };
 		params.pattern = pattern;
-		params.limit = clampIntegerParam(params.limit, SEARCH_FILES_LIMIT_DEFAULT, 1);
+		params.limit = clampIntegerParam(params.limit, AgentConfig.AGENT_LIMITS.searchFilesLimitDefault, 1);
 		params.offset = clampIntegerParam(params.offset, 0, 0);
 		return { success: true, params };
 	}
@@ -2199,12 +2198,12 @@ function validateDecision(
 		const pattern = typeof params.pattern === "string" ? params.pattern.trim() : "";
 		if (pattern === "") return { success: false, message: "search_dora_api requires pattern" };
 		params.pattern = pattern;
-		params.limit = clampIntegerParam(params.limit, 8, 1, SEARCH_DORA_API_LIMIT_MAX);
+		params.limit = clampIntegerParam(params.limit, 8, 1, AgentConfig.AGENT_LIMITS.searchDoraApiLimitMax);
 		return { success: true, params };
 	}
 
 	if (tool === "glob_files") {
-		params.maxEntries = clampIntegerParam(params.maxEntries, LIST_FILES_MAX_ENTRIES_DEFAULT, 1);
+		params.maxEntries = clampIntegerParam(params.maxEntries, AgentConfig.AGENT_LIMITS.listFilesMaxEntriesDefault, 1);
 		return { success: true, params };
 	}
 
@@ -2390,6 +2389,9 @@ function buildDecisionMessages(
 			: "";
 		tailSections.push(`Resume after compression: continue from the Session Summary's Active Checkpoint without restarting discovery.${activeUserInstruction}`);
 	}
+	if (shared.truncatedToolOverwritePath !== undefined) {
+		tailSections.push(`Truncated response result: the fully decoded prefix from an empty-old_str whole-file overwrite was saved directly to ${shared.truncatedToolOverwritePath}. Inspect that file next and decide whether it already suffices or needs a bounded continuation. Do not regenerate the preserved prefix.`);
+	}
 	shared.resumeCheckpointPending = false;
 	let messages: Message[] = [
 		{ role: "system", content: systemPrompt },
@@ -2409,7 +2411,7 @@ function buildDecisionMessages(
 			retryHeader += "\nIf the rejected output said you would inspect, read, search, build, edit, or continue working, convert that intent into the corresponding XML tool call. Do not use finish for intended future work.";
 		}
 		if (decisionMode === "tool_calling" && lastError.indexOf("truncated by max tokens") >= 0) {
-			retryHeader += "\nYour previous response spent the token budget on reasoning and ended before any tool call. Do not continue that reasoning. Immediately emit one valid function tool call with compact arguments.";
+			retryHeader += "\nThe previous response exceeded the output limit and no recoverable edit result was available. Do not repeat the same payload. Immediately emit one complete tool call with bounded arguments and minimal reasoning.";
 		}
 		messages.push({
 			role: "user",
@@ -2429,8 +2431,10 @@ function buildDecisionMessages(
 		delegatedForegroundBudgetExhausted: (shared.delegatedForegroundBatches ?? 0) >= AgentConfig.AGENT_DEFAULTS.delegatedForegroundBatchLimit,
 		freshProjectBuildPending: shared.freshProjectBuildPending,
 		freshProjectCodeFile: shared.freshProjectCodeFile,
+		freshProjectHasAuthoredEdit: shared.freshProjectBuildPending === true && shared.unbuiltEdits === true,
 		buildRepairPending: shared.buildRepairPending,
-		editBudgetExhausted: shared.unbuiltEdits === true && (shared.editsSinceBuild ?? 0) >= 3,
+		lastBuildSucceeded: shared.lastBuildSucceeded === true && shared.unbuiltEdits !== true,
+		editBudgetExhausted: AgentRuntimePolicy.isEditBudgetExhausted(shared),
 		repeatedDeterministicTestFailure: (shared.deterministicTestFailureCount ?? 0) >= 2,
 	}));
 	messages.push({
@@ -2483,8 +2487,8 @@ ${candidateReasoningSection}`
 	const toolRepairReference = AgentToolRegistry.buildRoleToolDefinitionsDetailed(shared.role, {
 		includeFinish: true,
 		includeXmlRules: true,
-		context: { searchDoraApiLimitMax: SEARCH_DORA_API_LIMIT_MAX },
-		disabledAgentTools: shared.disabledAgentTools,
+		context: { searchDoraApiLimitMax: AgentConfig.AGENT_LIMITS.searchDoraApiLimitMax },
+		disabledAgentTools: getDecisionDisabledAgentTools(shared),
 	});
 	const systemPrompt = replacePromptVars(shared.promptPack.xmlDecisionSystemRepairPrompt, {
 		TOOL_REPAIR_REFERENCE: toolRepairReference,
@@ -2505,8 +2509,10 @@ ${candidateReasoningSection}`
 		delegatedForegroundBudgetExhausted: (shared.delegatedForegroundBatches ?? 0) >= AgentConfig.AGENT_DEFAULTS.delegatedForegroundBatchLimit,
 		freshProjectBuildPending: shared.freshProjectBuildPending,
 		freshProjectCodeFile: shared.freshProjectCodeFile,
+		freshProjectHasAuthoredEdit: shared.freshProjectBuildPending === true && shared.unbuiltEdits === true,
 		buildRepairPending: shared.buildRepairPending,
-		editBudgetExhausted: shared.unbuiltEdits === true && (shared.editsSinceBuild ?? 0) >= 3,
+		lastBuildSucceeded: shared.lastBuildSucceeded === true && shared.unbuiltEdits !== true,
+		editBudgetExhausted: AgentRuntimePolicy.isEditBudgetExhausted(shared),
 		repeatedDeterministicTestFailure: (shared.deterministicTestFailureCount ?? 0) >= 2,
 	});
 	return [
@@ -2541,25 +2547,6 @@ function tryParseAndValidateDecision(rawText: string, role: AgentRole = "main"):
 	decision.params = validation.params;
 	decision.toolCallId = ensureToolCallId(decision.toolCallId);
 	return decision;
-}
-
-function normalizeLineEndings(text: string): string {
-	let [res] = string.gsub(text, "\r\n", "\n");
-	[res] = string.gsub(res, "\r", "\n");
-	return res;
-}
-
-function countOccurrences(text: string, searchStr: string): number {
-	if (searchStr === "") return 0;
-	let count = 0;
-	let pos = 0;
-	while (true) {
-		const idx = text.indexOf(searchStr, pos);
-		if (idx < 0) break;
-		count += 1;
-		pos = idx + searchStr.length;
-	}
-	return count;
 }
 
 function replaceFirst(text: string, oldStr: string, newStr: string): string {
@@ -2769,6 +2756,30 @@ class MainDecisionAgent extends Node<AgentShared> {
 		};
 	}
 
+	private preserveTruncatedEditDecision(
+		shared: AgentShared,
+	toolCalls: ToolCall[] | undefined,
+	reasoningContent?: string
+): DecisionSuccess | undefined {
+		const recovery = Tools.planTruncatedEditRecovery(toolCalls);
+		if (!recovery) return undefined;
+		shared.truncatedToolOverwritePath = recovery.target;
+		Log("Warn", `[CodingAgent] preserving truncated whole-file overwrite target=${recovery.target}`);
+		return {
+			success: true,
+			tool: "edit_file",
+			params: {
+				path: recovery.target,
+				old_str: "",
+				new_str: recovery.receivedText,
+				partialStreamRecovery: true,
+			},
+			toolCallId: createLocalToolCallId(),
+			reason: recovery.reason,
+			reasoningContent,
+		};
+	}
+
 	private async callDecisionByToolCalling(
 		shared: AgentShared,
 		lastError?: string,
@@ -2779,8 +2790,8 @@ class MainDecisionAgent extends Node<AgentShared> {
 			return { success: false, message: getCancelledReason(shared) };
 		}
 		Log("Info", `[CodingAgent] tool-calling decision start step=${shared.step + 1}${lastError ? ` retry_error=${lastError}` : ""}`);
-		const tools = AgentToolRegistry.buildDecisionToolSchema(shared.role, SEARCH_DORA_API_LIMIT_MAX, {
-			disabledAgentTools: shared.disabledAgentTools,
+		const tools = AgentToolRegistry.buildDecisionToolSchema(shared.role, AgentConfig.AGENT_LIMITS.searchDoraApiLimitMax, {
+			disabledAgentTools: getDecisionDisabledAgentTools(shared),
 		});
 		const messages = buildDecisionMessages(shared, lastError, attempt, lastRaw);
 		const stepId = shared.step + 1;
@@ -2835,9 +2846,15 @@ class MainDecisionAgent extends Node<AgentShared> {
 			recordLLMTokenUsage(shared, stepId, "decision_tool_calling", usage);
 			saveStepLLMDebugOutput(shared, stepId, "decision_tool_calling", res.raw ?? res.message, { success: false, usage });
 			Log("Error", `[CodingAgent] tool-calling request failed: ${res.message}`);
-			if (res.message.indexOf("stream incomplete:") >= 0) {
-				Log("Warn", `[CodingAgent] discarding all partial tool calls after incomplete stream`);
-			}
+			const committed = this.commitPreExecutedDecision(shared);
+			if (committed) return committed;
+			const partialChoice = res.response?.choices?.[0];
+			const partialDraft = this.preserveTruncatedEditDecision(
+				shared,
+				partialChoice?.message?.tool_calls,
+				partialChoice?.message?.reasoning_content
+			);
+			if (partialDraft) return partialDraft;
 			clearPreExecutedResults(shared);
 			return { success: false, message: res.message, raw: res.raw };
 		}
@@ -2858,11 +2875,15 @@ class MainDecisionAgent extends Node<AgentShared> {
 			: undefined;
 		Log("Info", `[CodingAgent] tool-calling response finish_reason=${finishReason !== "" ? finishReason : "unknown"} tool_calls=${toolCalls ? toolCalls.length : 0} content_len=${messageContent ? messageContent.length : 0} reasoning_len=${reasoningContent ? reasoningContent.length : 0}`);
 		if (finishReason === "length") {
-			Log("Error", `[CodingAgent] discarding truncated tool-calling output tool_calls=${toolCalls ? toolCalls.length : 0} reasoning_len=${reasoningContent ? reasoningContent.length : 0}`);
+			const committed = this.commitPreExecutedDecision(shared);
+			if (committed) return committed;
+			const partialDraft = this.preserveTruncatedEditDecision(shared, toolCalls, reasoningContent);
+			if (partialDraft) return partialDraft;
+			Log("Error", `[CodingAgent] no complete or recoverable tool call in truncated output tool_calls=${toolCalls ? toolCalls.length : 0} reasoning_len=${reasoningContent ? reasoningContent.length : 0}`);
 			clearPreExecutedResults(shared);
 			return {
 				success: false,
-				message: "tool-calling output was truncated by max tokens. Do not continue the explanation. Retry immediately with one complete tool call and minimal reasoning.",
+				message: "tool-calling output was truncated by max tokens and no safe recovery was available. A truncated edit with non-empty old_str is rejected and its target is unchanged. Do not repeat the same payload. Retry immediately with one complete tool call using bounded arguments and minimal reasoning.",
 				raw: reasoningContent ?? messageContent ?? "",
 			};
 		}
@@ -3045,21 +3066,6 @@ class MainDecisionAgent extends Node<AgentShared> {
 
 	async exec(input: { shared: AgentShared }): Promise<DecisionResult | DecisionFailure> {
 		const shared = input.shared;
-		const acceptResumeDecision = (decision: DecisionSuccess | DecisionBatchSuccess): boolean => {
-			if (shared.resumeRequiredTool === undefined) return true;
-			let selectedTool: AgentToolName | undefined;
-			if (isDecisionBatchSuccess(decision)) {
-				selectedTool = decision.decisions.length > 0 ? decision.decisions[0].tool : undefined;
-			} else if (decision.directSummary && decision.directSummary !== "") {
-				selectedTool = "finish";
-			} else {
-				selectedTool = decision.tool;
-			}
-			if (selectedTool !== shared.resumeRequiredTool) return false;
-			shared.resumeRequiredTool = undefined;
-			shared.resumeCheckpointPending = false;
-			return true;
-		};
 		if (shared.stopToken.stopped) {
 			return { success: false, message: getCancelledReason(shared) };
 		}
@@ -3085,10 +3091,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 					return { success: false, message: getCancelledReason(shared) };
 				}
 				if (decision.success) {
-					if (acceptResumeDecision(decision)) return decision;
-					lastError = `Compression checkpoint requires ${shared.resumeRequiredTool} as the next tool.`;
-					lastRaw = "";
-					continue;
+					return decision;
 				}
 				lastError = decision.message;
 				lastRaw = decision.raw ?? "";
@@ -3113,10 +3116,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 						return { success: false, message: getCancelledReason(shared) };
 					}
 					if (decision.success) {
-						if (acceptResumeDecision(decision)) return decision;
-						lastError = `Compression checkpoint requires ${shared.resumeRequiredTool} as the next tool.`;
-						lastRaw = "";
-						continue;
+						return decision;
 					}
 					lastError = decision.message;
 					lastRaw = decision.raw ?? "";
@@ -3144,10 +3144,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 				return { success: false, message: getCancelledReason(shared) };
 			}
 			if (decision.success) {
-				if (acceptResumeDecision(decision)) return decision;
-				lastError = `Compression checkpoint requires ${shared.resumeRequiredTool} as the next tool.`;
-				lastRaw = "";
-				continue;
+				return decision;
 			}
 			lastError = decision.message;
 			lastRaw = decision.raw ?? "";
@@ -3290,7 +3287,7 @@ class ReadFileAction extends Node<AgentShared> {
 			workDir: shared.workingDir,
 			docLanguage: shared.useChineseResponse ? "zh" : "en",
 			startLine: Number(last.params.startLine ?? 1),
-			endLine: Number(last.params.endLine ?? READ_FILE_DEFAULT_LIMIT),
+			endLine: Number(last.params.endLine ?? AgentConfig.AGENT_LIMITS.readFileDefaultLimit),
 		};
 	}
 
@@ -3299,7 +3296,7 @@ class ReadFileAction extends Node<AgentShared> {
 			input.workDir,
 			input.path,
 			Number(input.startLine ?? 1),
-			Number(input.endLine ?? READ_FILE_DEFAULT_LIMIT),
+			Number(input.endLine ?? AgentConfig.AGENT_LIMITS.readFileDefaultLimit),
 			input.docLanguage
 		) as unknown as Record<string, unknown>;
 	}
@@ -3337,8 +3334,8 @@ class SearchFilesAction extends Node<AgentShared> {
 			useRegex: params.useRegex as boolean | undefined,
 			caseSensitive: params.caseSensitive as boolean | undefined,
 			includeContent: true,
-			contentWindow: SEARCH_PREVIEW_CONTEXT,
-			limit: math.max(1, math.floor(Number(params.limit ?? SEARCH_FILES_LIMIT_DEFAULT))),
+			contentWindow: AgentConfig.AGENT_LIMITS.searchPreviewContext,
+			limit: math.max(1, math.floor(Number(params.limit ?? AgentConfig.AGENT_LIMITS.searchFilesLimitDefault))),
 			offset: math.max(0, math.floor(Number(params.offset ?? 0))),
 			groupByFile: params.groupByFile === true,
 		});
@@ -3375,11 +3372,11 @@ class SearchDoraAPIAction extends Node<AgentShared> {
 			docSource: ((params.docSource as string) ?? "api") as Tools.DoraAPIDocSource,
 			docLanguage: (input.useChineseResponse ? "zh" : "en") as Tools.DoraAPIDocLanguage,
 			programmingLanguage: ((params.programmingLanguage as string) ?? "ts") as Tools.DoraAPIProgrammingLanguage,
-			limit: math.min(SEARCH_DORA_API_LIMIT_MAX, math.max(1, Number(params.limit ?? 8))),
+			limit: math.min(AgentConfig.AGENT_LIMITS.searchDoraApiLimitMax, math.max(1, Number(params.limit ?? 8))),
 			useRegex: params.useRegex as boolean | undefined,
 			caseSensitive: false,
 			includeContent: true,
-			contentWindow: SEARCH_PREVIEW_CONTEXT,
+			contentWindow: AgentConfig.AGENT_LIMITS.searchPreviewContext,
 		});
 		return result as unknown as Record<string, unknown>;
 	}
@@ -3413,7 +3410,7 @@ class ListFilesAction extends Node<AgentShared> {
 			workDir: input.workDir,
 			path: (params.path as string) ?? "",
 			globs: params.globs as string[] | undefined,
-			maxEntries: math.max(1, math.floor(Number(params.maxEntries ?? LIST_FILES_MAX_ENTRIES_DEFAULT))),
+			maxEntries: math.max(1, math.floor(Number(params.maxEntries ?? AgentConfig.AGENT_LIMITS.listFilesMaxEntriesDefault))),
 		});
 		return result as unknown as Record<string, unknown>;
 	}
@@ -3620,7 +3617,7 @@ class ListSubAgentsAction extends Node<AgentShared> {
 		offset?: number;
 		query?: string;
 		listSubAgents?: CodingAgentRunOptions["listSubAgents"];
-		blockedByCurrentTaskSpawn: boolean;
+		shouldDiscouragePolling: boolean;
 	}> {
 		const last = shared.history[shared.history.length - 1];
 		if (!last) throw new Error("no history");
@@ -3633,7 +3630,7 @@ class ListSubAgentsAction extends Node<AgentShared> {
 			offset: typeof last.params.offset === "number" ? last.params.offset : undefined,
 			query: typeof last.params.query === "string" ? last.params.query : undefined,
 			listSubAgents: shared.listSubAgents,
-			blockedByCurrentTaskSpawn: shared.hasSpawnedSubAgentThisTask === true,
+			shouldDiscouragePolling: shared.hasSpawnedSubAgentThisTask === true,
 		};
 	}
 
@@ -3645,14 +3642,8 @@ class ListSubAgentsAction extends Node<AgentShared> {
 		offset?: number;
 		query?: string;
 		listSubAgents?: CodingAgentRunOptions["listSubAgents"];
-		blockedByCurrentTaskSpawn: boolean;
+		shouldDiscouragePolling: boolean;
 	}): Promise<Record<string, unknown>> {
-		if (input.blockedByCurrentTaskSpawn) {
-			return {
-				success: false,
-				message: "list_sub_agents is unavailable after spawn_sub_agent in the current task. Finish this turn and let results arrive as asynchronous handoffs.",
-			};
-		}
 		if (!input.listSubAgents) {
 			return { success: false, message: "list_sub_agents is not available in this runtime" };
 		}
@@ -3667,7 +3658,12 @@ class ListSubAgentsAction extends Node<AgentShared> {
 			offset: input.offset,
 			query: input.query,
 		});
-		return result as unknown as Record<string, unknown>;
+		return {
+			...(result as unknown as Record<string, unknown>),
+			...(input.shouldDiscouragePolling
+				? { guidance: "Sub-agent results arrive asynchronously. Avoid polling repeatedly; finish the current turn when no independent foreground work remains." }
+				: {}),
+		};
 	}
 
 	async post(shared: AgentShared, _prepRes: unknown, execRes: unknown): Promise<string | undefined> {
@@ -3711,16 +3707,27 @@ class EditFileAction extends Node<AgentShared> {
 			if (!createRes.success) {
 				return { success: false, message: `create file failed: ${createRes.message}` };
 			}
-			return {
+			return AgentRuntimePolicy.successfulEditResult(input.workDir, input.path, {
 				success: true,
 				changed: true,
 				mode: "create",
 				checkpointId: createRes.checkpointId,
 				checkpointSeq: createRes.checkpointSeq,
 				files: [{ path: input.path, op: "create" as const }],
-			};
+			});
 		}
 		if (input.oldStr === "") {
+			if (AgentRuntimePolicy.containsWholeFileDuplicate(readRes.content, input.newStr)) {
+				return {
+					success: false,
+					message: `rewrite rejected: the complete current file appears more than once in the replacement for ${input.path}. The existing file is unchanged; submit one coherent full-file replacement.`,
+					actualSaved: false,
+					actualSavedCharacters: 0,
+					currentFileExists: true,
+					currentCharacters: readRes.content.length,
+					currentState: `unchanged ${input.path} (${readRes.content.length} characters)`,
+				};
+			}
 			const overwriteRes = Tools.applyFileChanges(input.taskId, input.workDir, [{ path: input.path, op: "write", content: input.newStr }], {
 				summary: `overwrite file ${input.path} via edit_file`,
 				toolName: "edit_file",
@@ -3728,23 +3735,23 @@ class EditFileAction extends Node<AgentShared> {
 			if (!overwriteRes.success) {
 				return { success: false, message: `write file failed: ${overwriteRes.message}` };
 			}
-			return {
+			return AgentRuntimePolicy.successfulEditResult(input.workDir, input.path, {
 				success: true,
 				changed: true,
 				mode: "overwrite",
 				checkpointId: overwriteRes.checkpointId,
 				checkpointSeq: overwriteRes.checkpointSeq,
 				files: [{ path: input.path, op: "write" as const }],
-			};
+			});
 		}
 
 		// Normalize line endings for consistent matching
-		const normalizedContent = normalizeLineEndings(readRes.content);
-		const normalizedOldStr = normalizeLineEndings(input.oldStr);
-		const normalizedNewStr = normalizeLineEndings(input.newStr);
+		const normalizedContent = AgentRuntimePolicy.normalizeLineEndings(readRes.content);
+		const normalizedOldStr = AgentRuntimePolicy.normalizeLineEndings(input.oldStr);
+		const normalizedNewStr = AgentRuntimePolicy.normalizeLineEndings(input.newStr);
 
 		// Check how many times old_str appears
-		const occurrences = countOccurrences(normalizedContent, normalizedOldStr);
+		const occurrences = AgentRuntimePolicy.countOccurrences(normalizedContent, normalizedOldStr);
 		if (occurrences === 0) {
 			const indentTolerant = findIndentTolerantReplacement(normalizedContent, normalizedOldStr, normalizedNewStr);
 			if (!indentTolerant.success) {
@@ -3757,14 +3764,14 @@ class EditFileAction extends Node<AgentShared> {
 			if (!applyRes.success) {
 				return { success: false, message: `write file failed: ${applyRes.message}` };
 			}
-			return {
+			return AgentRuntimePolicy.successfulEditResult(input.workDir, input.path, {
 				success: true,
 				changed: true,
 				mode: "replace_indent_tolerant",
 				checkpointId: applyRes.checkpointId,
 				checkpointSeq: applyRes.checkpointSeq,
 				files: [{ path: input.path, op: "write" as const }],
-			};
+			});
 		}
 		if (occurrences > 1) {
 			return { success: false, message: `old_str appears ${occurrences} times in file. Please provide more context to uniquely identify the target location.` };
@@ -3779,14 +3786,14 @@ class EditFileAction extends Node<AgentShared> {
 		if (!applyRes.success) {
 			return { success: false, message: `write file failed: ${applyRes.message}` };
 		}
-		return {
+		return AgentRuntimePolicy.successfulEditResult(input.workDir, input.path, {
 			success: true,
 			changed: true,
 			mode: "replace",
 			checkpointId: applyRes.checkpointId,
 			checkpointSeq: applyRes.checkpointSeq,
 			files: [{ path: input.path, op: "write" as const }],
-		};
+		});
 	}
 
 	async post(shared: AgentShared, _prepRes: unknown, execRes: unknown): Promise<string | undefined> {
@@ -3876,30 +3883,14 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 	if (shared.stopToken.stopped) {
 		return { success: false, message: getCancelledReason(shared) };
 	}
-	if (
-		(shared.delegatedForegroundBatches ?? 0) >= AgentConfig.AGENT_DEFAULTS.delegatedForegroundBatchLimit
-		&& action.tool !== "spawn_sub_agent"
-		&& action.tool !== "finish"
-	) {
-		return {
-			success: false,
-			message: "The bounded foreground work after delegation is complete. Dispatch another independent sub-agent if needed, or finish this turn now so the user can continue interacting.",
-		};
-	}
-	if (shared.resumeRequiredTool !== undefined) {
-		if (action.tool !== shared.resumeRequiredTool) {
-			return {
-				success: false,
-				message: `Compression checkpoint requires ${shared.resumeRequiredTool} next. Do not restart discovery or use ${action.tool}.`,
-			};
-		}
+	if (shared.resumeRequiredTool !== undefined && action.tool === shared.resumeRequiredTool) {
 		shared.resumeRequiredTool = undefined;
 		shared.resumeCheckpointPending = false;
 	}
 	const params = action.params;
 	if (action.tool === "read_file") {
 		const startLine = Number(params.startLine ?? 1);
-		let endLine = Number(params.endLine ?? READ_FILE_DEFAULT_LIMIT);
+		let endLine = Number(params.endLine ?? AgentConfig.AGENT_LIMITS.readFileDefaultLimit);
 		let clippedAfterCompression = false;
 		if (
 			shared.resumeNarrowReadMode === true
@@ -3914,12 +3905,6 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 			? params.path
 			: (typeof params.target_file === "string" ? params.target_file : "");
 		if (path.trim() === "") return { success: false, message: "missing path" };
-		if (shared.failedTestNeedsBuild === true && string.sub(path.toLowerCase(), -4) === ".lua") {
-			return {
-				success: false,
-				message: "The deterministic test report failed. Inspect and fix the authored source/test instead of reading generated Lua, then build successfully before testing again.",
-			};
-		}
 		const result = Tools.readFile(
 			shared.workingDir,
 			path,
@@ -3935,21 +3920,6 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 		}
 		return result;
 	}
-	if (action.tool === "edit_file" && shared.resumeNarrowReadMode === true) {
-		const path = typeof params.path === "string"
-			? params.path
-			: (typeof params.target_file === "string" ? params.target_file : "");
-		const oldStr = typeof params.old_str === "string" ? params.old_str : "";
-		if (path.trim() !== "" && oldStr === "") {
-			const existing = Tools.readFileRaw(shared.workingDir, path);
-			if (existing.success) {
-				return {
-					success: false,
-					message: "After compression, do not overwrite a complete existing file. Continue from the checkpoint with build, a narrow read, or a targeted old_str replacement.",
-				};
-			}
-		}
-	}
 	// A forced post-compression build validates the checkpoint but does not
 	// justify rereading whole authored files. Keep narrow-read mode across that
 	// build; a later edit/command/search represents real resumed work and may
@@ -3958,21 +3928,6 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 	if (action.tool === "grep_files") {
 		const searchPath = (params.path as string) ?? "";
 		const searchGlobs = params.globs as string[] | undefined;
-		let searchesGeneratedLua = string.sub(searchPath.toLowerCase(), -4) === ".lua";
-		if (!searchesGeneratedLua && searchGlobs !== undefined) {
-			for (let i = 0; i < searchGlobs.length; i++) {
-				if (searchGlobs[i].toLowerCase().indexOf(".lua") >= 0) {
-					searchesGeneratedLua = true;
-					break;
-				}
-			}
-		}
-		if (shared.failedTestNeedsBuild === true && searchesGeneratedLua) {
-			return {
-				success: false,
-				message: "The deterministic test report failed. Search the authored source/test, not generated Lua, make the smallest source fix, and build successfully before testing again.",
-			};
-		}
 		const result = await Tools.searchFiles({
 			workDir: shared.workingDir,
 			path: searchPath,
@@ -3981,37 +3936,25 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 			useRegex: params.useRegex as boolean | undefined,
 			caseSensitive: params.caseSensitive as boolean | undefined,
 			includeContent: true,
-			contentWindow: SEARCH_PREVIEW_CONTEXT,
-			limit: math.max(1, math.floor(Number(params.limit ?? SEARCH_FILES_LIMIT_DEFAULT))),
+			contentWindow: AgentConfig.AGENT_LIMITS.searchPreviewContext,
+			limit: math.max(1, math.floor(Number(params.limit ?? AgentConfig.AGENT_LIMITS.searchFilesLimitDefault))),
 			offset: math.max(0, math.floor(Number(params.offset ?? 0))),
 			groupByFile: params.groupByFile === true,
 		});
 		return result as unknown as Record<string, unknown>;
 	}
 	if (action.tool === "search_dora_api") {
-		if (shared.unbuiltEdits === true) {
-			return {
-				success: false,
-				message: "Build the authored changes before another Dora API search. Search again only if the compiler or runtime diagnostics require an unfamiliar API.",
-			};
-		}
-		if ((shared.apiSearchesSinceBuild ?? 0) >= 1) {
-			return {
-				success: false,
-				message: "Only one Dora API lookup is allowed between builds. Apply the returned signature and build before searching again.",
-			};
-		}
 		shared.apiSearchesSinceBuild = (shared.apiSearchesSinceBuild ?? 0) + 1;
 		const result = await Tools.searchDoraAPI({
 			pattern: (params.pattern as string) ?? "",
 			docSource: ((params.docSource as string) ?? "api") as Tools.DoraAPIDocSource,
 			docLanguage: (shared.useChineseResponse ? "zh" : "en") as Tools.DoraAPIDocLanguage,
 			programmingLanguage: ((params.programmingLanguage as string) ?? "ts") as Tools.DoraAPIProgrammingLanguage,
-			limit: math.min(SEARCH_DORA_API_LIMIT_MAX, math.max(1, Number(params.limit ?? 8))),
+			limit: math.min(AgentConfig.AGENT_LIMITS.searchDoraApiLimitMax, math.max(1, Number(params.limit ?? 8))),
 			useRegex: params.useRegex as boolean | undefined,
 			caseSensitive: false,
 			includeContent: true,
-			contentWindow: SEARCH_PREVIEW_CONTEXT,
+			contentWindow: AgentConfig.AGENT_LIMITS.searchPreviewContext,
 		});
 		return result as unknown as Record<string, unknown>;
 	}
@@ -4020,24 +3963,17 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 			workDir: shared.workingDir,
 			path: (params.path as string) ?? "",
 			globs: params.globs as string[] | undefined,
-			maxEntries: math.max(1, math.floor(Number(params.maxEntries ?? LIST_FILES_MAX_ENTRIES_DEFAULT))),
+			maxEntries: math.max(1, math.floor(Number(params.maxEntries ?? AgentConfig.AGENT_LIMITS.listFilesMaxEntriesDefault))),
 		});
 		return result as unknown as Record<string, unknown>;
 	}
 	if (action.tool === "delete_file") {
-		const editLimit = 3;
 		const targetFile = typeof params.target_file === "string"
 			? params.target_file
 			: (typeof params.path === "string" ? params.path : "");
 		if (targetFile.trim() === "") return { success: false, message: "missing target_file" };
 		const normalizedTargetFile = normalizePolicyPath(targetFile);
 		const editedPaths = shared.editedPathsSinceBuild ?? [];
-		if (editedPaths.indexOf(normalizedTargetFile) < 0 && editedPaths.length >= editLimit) {
-			return {
-				success: false,
-				message: "Build the current authored changes now before editing a fourth source file. Multiple related replacements in the same source file count as one build-cycle edit.",
-			};
-		}
 		if (isMainAgentMemoryPath(normalizedTargetFile)) {
 			return { success: false, message: "This .agent/main file is managed automatically and cannot be deleted with delete_file." };
 		}
@@ -4049,6 +3985,7 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 			return result as unknown as Record<string, unknown>;
 		}
 		shared.unbuiltEdits = true;
+		shared.lastBuildSucceeded = false;
 		if (shared.failedTestNeedsBuild === true) shared.failedTestHasSourceEdit = true;
 		if (editedPaths.indexOf(normalizedTargetFile) < 0) editedPaths.push(normalizedTargetFile);
 		shared.editedPathsSinceBuild = editedPaths;
@@ -4072,9 +4009,14 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 		shared.editsSinceBuild = 0;
 		shared.editedPathsSinceBuild = [];
 		shared.hasBuilt = true;
-		const normalizedBuildPath = normalizePolicyPath(buildPath);
-		const builtWholeProject = normalizedBuildPath === "" || normalizedBuildPath === ".";
-		if (result.success && builtWholeProject) shared.freshProjectBuildPending = false;
+		shared.lastBuildSucceeded = result.success;
+		// The fresh-project gate promises to last only until the first successful
+		// build. A normal coding turn usually builds init.ts directly, so requiring
+		// an empty path here left read/discovery tools hidden for the entire task
+		// even though the authored entry had already compiled successfully.
+		if (result.success && shared.freshProjectBuildPending === true) {
+			shared.freshProjectBuildPending = false;
+		}
 		shared.apiSearchesSinceBuild = 0;
 		shared.buildRepairPending = false;
 		if (!result.success && result.messages !== undefined) {
@@ -4092,9 +4034,6 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 		return result as unknown as Record<string, unknown>;
 	}
 	if (action.tool === "fetch_url") {
-		if (shared.disabledAgentTools.indexOf("fetch_url") >= 0) {
-			return { success: false, state: "failed", message: "fetch_url is not enabled for this session" };
-		}
 		const result = await Tools.fetchUrl({
 			workDir: shared.workingDir,
 			url: typeof params.url === "string" ? params.url : "",
@@ -4117,15 +4056,6 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 		return result as unknown as Record<string, unknown>;
 	}
 	if (action.tool === "execute_command") {
-		if (shared.disabledAgentTools.indexOf("execute_command") >= 0) {
-			return { success: false, message: "execute_command is not enabled for this session" };
-		}
-		if (shared.failedTestNeedsBuild === true) {
-			return {
-				success: false,
-				message: "The deterministic test report failed. Read the authored source/test, make the smallest source fix, and build successfully before running another command. Do not probe generated Lua or instantiate compiled TypeScript classes from Lua.",
-			};
-		}
 		const mode = typeof params.mode === "string" ? params.mode : "";
 		const result = await Tools.executeCommand({
 			workDir: shared.workingDir,
@@ -4243,12 +4173,6 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 		};
 	}
 	if (action.tool === "list_sub_agents") {
-		if (shared.hasSpawnedSubAgentThisTask === true) {
-			return {
-				success: false,
-				message: "list_sub_agents is unavailable after spawn_sub_agent in the current task. Finish this turn and let results arrive as asynchronous handoffs.",
-			};
-		}
 		if (!shared.listSubAgents) {
 			return { success: false, message: "list_sub_agents is not available in this runtime" };
 		}
@@ -4284,16 +4208,6 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 				return { success: false, message: preflightIssue + recovery };
 			}
 		}
-		if (!isMemoryEdit) {
-			const editLimit = 3;
-			const editedPaths = shared.editedPathsSinceBuild ?? [];
-			if (editedPaths.indexOf(normalizedPath) < 0 && editedPaths.length >= editLimit) {
-				return {
-					success: false,
-					message: "Build the current authored changes now before editing a fourth source file. Multiple related replacements in the same source file count as one build-cycle edit.",
-				};
-			}
-		}
 		const actionNode = new EditFileAction(1, 0);
 		const result = await actionNode.exec({
 			path,
@@ -4303,7 +4217,11 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 			workDir: shared.workingDir,
 		});
 		if (!isMemoryEdit && result.success === true && result.changed !== false) {
+			if (params.partialStreamRecovery !== true) {
+				shared.truncatedToolOverwritePath = undefined;
+			}
 			shared.unbuiltEdits = true;
+			shared.lastBuildSucceeded = false;
 			if (shared.failedTestNeedsBuild === true) shared.failedTestHasSourceEdit = true;
 			const editedPaths = shared.editedPathsSinceBuild ?? [];
 			if (editedPaths.indexOf(normalizedPath) < 0) editedPaths.push(normalizedPath);
@@ -4788,7 +4706,7 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 			}
 			return await compactAllHistory(shared);
 		}
-		await maybeCompressHistory(shared, true);
+		await maybeCompressHistory(shared, true, normalizedPrompt);
 		if (shared.stopToken.stopped) {
 			Tools.setTaskStatus(shared.taskId, "STOPPED");
 			return emitAgentTaskFinishEvent(shared, false, getCancelledReason(shared));

@@ -58,7 +58,9 @@ export interface AgentToolAvailabilityContext {
 	delegatedForegroundBudgetExhausted?: boolean;
 	freshProjectBuildPending?: boolean;
 	freshProjectCodeFile?: string;
+	freshProjectHasAuthoredEdit?: boolean;
 	buildRepairPending?: boolean;
+	lastBuildSucceeded?: boolean;
 	editBudgetExhausted?: boolean;
 	repeatedDeterministicTestFailure?: boolean;
 }
@@ -190,12 +192,13 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 		roles: ["main", "sub"],
 		description: "Read a specific line range from a file.",
 		parameters: [
-			{ name: "path", type: "string", required: true, description: "Workspace-relative file path to read." },
+			{ name: "path", type: "string", required: true, description: "Workspace-relative file path to read, or an exact @dora-doc/... path returned by search_dora_api." },
 			{ name: "startLine", type: "number", description: "Starting line number. Positive values are 1-based; negative values count from the end. Defaults to 1. 0 is invalid." },
 			{ name: "endLine", type: "number", description: "Ending line number. Positive values are 1-based; negative values count from the end. If omitted, defaults to 300 for positive startLine, or -1 for negative startLine. 0 is invalid." },
 		],
-			rules: [
+		rules: [
 			"startLine defaults to 1. If endLine is omitted, it defaults to 300 when startLine is positive, or -1 when startLine is negative.",
+			"Paths returned by search_dora_api are authoritative built-in documentation paths and can be read directly without modifying them.",
 		],
 		parallelSafe: true,
 	},
@@ -279,6 +282,7 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 		],
 		rules: [
 			"`docSource` defaults to `api`. Use `tutorial` to search teaching docs.",
+			"Every result file uses the @dora-doc/api/... or @dora-doc/tutorial/... namespace and is readable with read_file.",
 			"Use `|` inside pattern to separate alternative queries; results are merged by union (OR), not AND.",
 			"`useRegex` defaults to false whenever supported by a search tool.",
 			context => `\`limit\` restricts each individual pattern search and must be <= ${context.searchDoraApiLimitMax}.`,
@@ -309,7 +313,6 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 			"This tool is available only when the user enables fetch_url for the current Agent task.",
 			"Targets must stay inside the current project and existing files or directories are not overwritten.",
 			"This tool writes to a temporary file first, then moves it into place only after the GET succeeds.",
-			"Use execute_command with mode=git for Git operations such as clone, status, diff, add, commit, pull, fetch, and push.",
 		],
 	},
 	{
@@ -404,7 +407,7 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 		rules: [
 			"Use this for large multi-file work, parallel exploration, long-running verification, or isolated execution tasks.",
 			"For small focused edits, use edit_file/delete_file/build directly in the current main-agent run.",
-			"The spawned sub agent inherits the current session tool capabilities, including fetch_url and execute_command when enabled.",
+			"The spawned sub agent inherits the current session tool capabilities.",
 			"title should be short and specific.",
 			"prompt should be self-contained and actionable, and should clearly describe the concrete work to execute, constraints, desired output, and any relevant files.",
 			"Spawn is asynchronous and nonblocking. You may dispatch multiple independent sub agents in one response, subject to the concurrency limit.",
@@ -477,42 +480,12 @@ export function getAllowedToolsForRole(role: AgentRole, options?: AgentToolCapab
 		.map(tool => tool.name as AgentToolName);
 }
 
-export function buildCurrentToolAvailabilityPrompt(context: AgentToolAvailabilityContext): string {
-	const taskTools = getAllowedToolsForRole(context.role, {
-		disabledAgentTools: context.taskDisabledAgentTools,
-	});
-	const currentTools = getAllowedToolsForRole(context.role, {
-		disabledAgentTools: context.currentDisabledAgentTools,
-	});
-	const unavailable = taskTools.filter(tool => currentTools.indexOf(tool) < 0);
-	const lines = [
+export function buildCurrentToolAvailabilityPrompt(_context: AgentToolAvailabilityContext): string {
+	return [
 		"Current tool availability:",
-		`- unavailable: ${unavailable.length > 0 ? unavailable.join(", ") : "none"}`,
-	];
-	if (context.resumeRequiredTool !== undefined) {
-		lines.push(`- next required tool: ${context.resumeRequiredTool}; the execution layer will reject every other tool`);
-	}
-	if (context.hasSpawnedSubAgentThisTask === true) {
-		lines.push("- after delegation: do not poll or wait; dispatch other independent sub-agents if needed, do only bounded independent foreground work, then finish this turn");
-	}
-	if (context.delegatedForegroundBudgetExhausted === true) {
-		lines.push("- foreground budget exhausted: use only spawn_sub_agent or finish");
-	}
-	if (context.freshProjectBuildPending === true) {
-		lines.push(context.freshProjectCodeFile !== undefined
-			? `- fresh small project: coherently rewrite ${context.freshProjectCodeFile}, then build before discovery or command validation`
-			: "- fresh empty project: create the requested entry directly, then build before discovery or command validation");
-	}
-	if (context.buildRepairPending === true) {
-		lines.push("- compiler repair: fix the reported authored-file diagnostics directly, then build again");
-	}
-	if (context.editBudgetExhausted === true) {
-		lines.push("- edit budget exhausted: build before making more source edits");
-	}
-	if (context.repeatedDeterministicTestFailure === true) {
-		lines.push("- repeated deterministic failure: make one narrow source fix, build, and rerun once without broad discovery");
-	}
-	return lines.join("\n");
+		"- every tool defined below or exposed in the current tool schema is executable",
+		"- capabilities disabled for this task are omitted from both the definitions and schema",
+	].join("\n");
 }
 
 export function getToolPromptsForRole(role: AgentRole, options?: {
@@ -559,9 +532,13 @@ export function buildToolDefinitionsDetailed(tools: ToolPrompt[], options?: {
 	const context = options?.context ?? DEFAULT_SCHEMA_CONTEXT;
 	const sections: string[] = tools.map((tool, index) => formatToolPrompt(tool, index, context));
 	if (options?.includeXmlRules === true) {
+		const reasonTools = tools
+			.filter(tool => tool.name !== "finish")
+			.map(tool => tool.name)
+			.join(", ");
 		sections.push(`XML mode object fields:
 - Use a single root tag: <tool_call>.
-- For read_file, edit_file, delete_file, grep_files, search_dora_api, glob_files, build, fetch_url, and execute_command, include <tool>, <reason>, and <params>.
+- For ${reasonTools !== "" ? reasonTools : "tools other than finish"}, include <tool>, <reason>, and <params>.
 - For finish, omit <reason> and include <message> plus every other required parameter shown above inside <params>.
 - Inside <params>, use one child tag per parameter and preserve each tag content as raw text.`);
 	}

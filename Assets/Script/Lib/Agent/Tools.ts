@@ -2,6 +2,81 @@
 import * as Dora from 'Dora';
 import { Content, DB, Path, Director, once, SearchFilesResult, Node, emit, wait, App, HttpServer, HttpClient, Git } from 'Dora';
 import { Log, safeJsonDecode, safeJsonEncode } from 'Agent/Utils';
+import type { ToolCall } from 'Agent/Utils';
+
+export interface TruncatedEditRecovery {
+	target: string;
+	receivedText: string;
+	reason: string;
+}
+
+function recoverJsonStringProperty(text: string, key: string): { value: string; complete: boolean } | undefined {
+	const marker = `"${key}"`;
+	const markerIndex = text.indexOf(marker);
+	if (markerIndex < 0) return undefined;
+	const colonIndex = text.indexOf(":", markerIndex + marker.length);
+	if (colonIndex < 0) return undefined;
+	let quoteIndex = colonIndex + 1;
+	while (quoteIndex < text.length) {
+		const code = text.charCodeAt(quoteIndex);
+		if (code !== 32 && code !== 9 && code !== 10 && code !== 13) break;
+		quoteIndex++;
+	}
+	if (quoteIndex >= text.length || text.charCodeAt(quoteIndex) !== 34) return undefined;
+	let escaped = false;
+	for (let i = quoteIndex + 1; i < text.length; i++) {
+		const code = text.charCodeAt(i);
+		if (escaped) {
+			escaped = false;
+			continue;
+		}
+		if (code === 92) {
+			escaped = true;
+			continue;
+		}
+		if (code === 34) {
+			const [decoded] = safeJsonDecode(`{"value":${text.slice(quoteIndex, i + 1)}}`);
+			if (decoded && type(decoded) === "table" && typeof (decoded as Record<string, unknown>).value === "string") {
+				return { value: (decoded as Record<string, unknown>).value as string, complete: true };
+			}
+			return undefined;
+		}
+	}
+	const fragment = text.slice(quoteIndex);
+	for (let trim = 0; trim <= 6 && trim <= fragment.length - 1; trim++) {
+		const [decoded] = safeJsonDecode(`{"value":${fragment.slice(0, fragment.length - trim)}"}`);
+		if (decoded && type(decoded) === "table" && typeof (decoded as Record<string, unknown>).value === "string") {
+			return { value: (decoded as Record<string, unknown>).value as string, complete: false };
+		}
+	}
+	return undefined;
+}
+
+/**
+ * Recover only a truncated whole-file overwrite. A truncated replacement with
+ * non-empty old_str is unsafe and deliberately returns undefined.
+ */
+export function planTruncatedEditRecovery(
+	toolCalls: ToolCall[] | undefined
+): TruncatedEditRecovery | undefined {
+	if (!toolCalls || toolCalls.length === 0) return undefined;
+	for (let i = toolCalls.length - 1; i >= 0; i--) {
+		const fn = toolCalls[i]?.function;
+		if (!fn || fn.name !== "edit_file" || typeof fn.arguments !== "string") continue;
+		const recovered = recoverJsonStringProperty(fn.arguments, "new_str");
+		if (!recovered || recovered.complete || recovered.value.length === 0) continue;
+		const target = recoverJsonStringProperty(fn.arguments, "path")
+			?? recoverJsonStringProperty(fn.arguments, "target_file");
+		const oldStr = recoverJsonStringProperty(fn.arguments, "old_str");
+		if (!target || !target.complete || !oldStr || !oldStr.complete || oldStr.value !== "") continue;
+		return {
+			target: target.value,
+			receivedText: recovered.value,
+			reason: `The response ended while overwriting ${target.value}. Write the ${recovered.value.length} fully decoded characters directly to that file. This is the complete recoverable prefix; inspect the actual file next and decide whether it already suffices or needs a bounded continuation.`,
+		};
+	}
+	return undefined;
+}
 
 export type AgentTaskStatus = "RUNNING" | "DONE" | "FAILED" | "STOPPED";
 export type CheckpointStatus = "PREPARED" | "APPLIED" | "REVERTED" | "FAILED";
@@ -467,16 +542,34 @@ function getDoraDocResultBaseRoot(docSource: DoraAPIDocSource, docLanguage: Dora
 	return getDoraAPIDocRoot(docLanguage);
 }
 
-function toDocRelativePath(baseRoot: string, path: string): string {
+const AGENT_DORA_DOC_PREFIX = "@dora-doc/";
+
+function toDocRelativePath(baseRoot: string, path: string, docSource: DoraAPIDocSource): string {
 	if (!path || path.length === 0) return path;
-	if (!Content.isAbsolutePath(path)) return path;
-	return Path.getRelative(path, baseRoot);
+	const relative = Content.isAbsolutePath(path) ? Path.getRelative(path, baseRoot) : path;
+	return `${AGENT_DORA_DOC_PREFIX}${docSource}/${relative}`;
 }
 
-function resolveAgentTutorialDocFilePath(path: string, docLanguage?: DoraAPIDocLanguage): string | undefined {
+function resolveAgentDoraDocFilePath(path: string, docLanguage?: DoraAPIDocLanguage): string | undefined {
 	if (!docLanguage) return undefined;
-	if (!isValidWorkspacePath(path)) return undefined;
-	const candidate = Path(getDoraTutorialDocRoot(docLanguage), path);
+	let relative = path;
+	let source: DoraAPIDocSource = "tutorial";
+	if (path.startsWith(AGENT_DORA_DOC_PREFIX)) {
+		const namespaced = path.slice(AGENT_DORA_DOC_PREFIX.length);
+		if (namespaced.startsWith("api/")) {
+			source = "api";
+			relative = namespaced.slice(4);
+		} else if (namespaced.startsWith("tutorial/")) {
+			relative = namespaced.slice(9);
+		} else {
+			return undefined;
+		}
+	}
+	if (!isValidWorkspacePath(relative)) return undefined;
+	const candidate = Path(getDoraDocResultBaseRoot(source, docLanguage), relative);
+	const root = getDoraDocResultBaseRoot(source, docLanguage);
+	const checked = Path.getRelative(candidate, root);
+	if (checked === ".." || checked.startsWith("../") || checked.startsWith("..\\")) return undefined;
 	if (Content.exist(candidate) && !Content.isdir(candidate)) {
 		return candidate;
 	}
@@ -1083,6 +1176,28 @@ function applySingleFile(path: string, exists: boolean, content: string): boolea
 	return true;
 }
 
+function rollbackPreparedFileChanges(
+	checkpointId: number,
+	workDir: string,
+	appliedCount: number
+): string | undefined {
+	const entries = getCheckpointEntries(checkpointId, true);
+	let remaining = appliedCount;
+	const failures: string[] = [];
+	for (let i = 0; i < entries.length && remaining > 0; i++) {
+		const entry = entries[i];
+		if (entry.ord > appliedCount) continue;
+		const fullPath = resolveWorkspaceFilePath(workDir, entry.path);
+		if (!fullPath || !applySingleFile(fullPath, entry.beforeExists, entry.beforeContent)) {
+			failures.push(entry.path);
+		} else {
+			sendWebIDEFileUpdate(fullPath, entry.beforeExists, entry.beforeContent);
+		}
+		remaining--;
+	}
+	return failures.length > 0 ? `rollback failed for: ${failures.join(", ")}` : undefined;
+}
+
 function encodeJSON(obj: object): string | undefined {
 	const [text] = safeJsonEncode(obj);
 	return text;
@@ -1169,7 +1284,7 @@ async function runSingleNonTsBuild(file: string): Promise<BuildMessage> {
 
 let transpileRequestSeq = 0;
 
-export async function runSingleTsTranspile(file: string, content: string): Promise<BuildMessage> {
+export async function runSingleTsTranspile(file: string, content: string, projectRoot?: string): Promise<BuildMessage> {
 	let done = false;
 	transpileRequestSeq += 1;
 	const requestId = `agent-build-${transpileRequestSeq}`;
@@ -1206,6 +1321,7 @@ export async function runSingleTsTranspile(file: string, content: string): Promi
 		id: requestId,
 		file,
 		content,
+		projectRoot,
 	});
 	if (!payload) {
 		listener.removeFromParent();
@@ -1405,7 +1521,7 @@ function readWorkspaceFile(workDir: string, path: string, docLanguage?: DoraAPID
 		if (!attr.success) return attr;
 		return { success: true, content: Content.load(fullPath), size: attr.size };
 	}
-	const docPath = resolveAgentTutorialDocFilePath(path, docLanguage);
+	const docPath = resolveAgentDoraDocFilePath(path, docLanguage);
 	if (docPath) {
 		const attr = inspectReadableFile(docPath);
 		if (!attr.success) return attr;
@@ -1844,7 +1960,7 @@ export async function searchDoraAPI(req: {
 					const hits: DoraAPISearchHit[] = [];
 					for (let i = 0; i < raw.length; i++) {
 						const row = raw[i];
-						const file = toDocRelativePath(resultBaseRoot, row.file);
+						const file = toDocRelativePath(resultBaseRoot, row.file, docSource);
 						if (file === "") continue;
 						hits.push({
 							file,
@@ -1879,7 +1995,7 @@ export async function searchDoraAPI(req: {
 							const termHits: DoraAPISearchHit[] = [];
 							for (let i = 0; i < raw.length; i++) {
 								const row = raw[i];
-								const file = toDocRelativePath(resultBaseRoot, row.file);
+								const file = toDocRelativePath(resultBaseRoot, row.file, docSource);
 								if (file === "") continue;
 								termHits.push({
 									file,
@@ -1899,7 +2015,7 @@ export async function searchDoraAPI(req: {
 					programmingLanguage: req.programmingLanguage,
 					exts,
 					results: hits,
-					hint: "Use read_file directly with the file value from a search result to view the complete document. Do not add any prefixes.",
+					hint: "Use read_file directly with the namespaced file value from a search result to view the complete authoritative document.",
 					totalResults: hits.length,
 					truncated: false,
 					limit,
@@ -1932,7 +2048,21 @@ export function readDoraDoc(req: {
 	startLine?: number;
 	endLine?: number;
 }): DoraAPIReadDocResult {
-	const file = (req.file ?? "").split("\\").join("/");
+	const requestedFile = (req.file ?? "").split("\\").join("/");
+	let file = requestedFile;
+	let namespacedSource: DoraAPIDocSource | undefined = undefined;
+	if (requestedFile.startsWith(AGENT_DORA_DOC_PREFIX)) {
+		const namespaced = requestedFile.slice(AGENT_DORA_DOC_PREFIX.length);
+		if (namespaced.startsWith("api/")) {
+			namespacedSource = "api";
+			file = namespaced.slice(4);
+		} else if (namespaced.startsWith("tutorial/")) {
+			namespacedSource = "tutorial";
+			file = namespaced.slice(9);
+		} else {
+			return { success: false, message: "invalid Dora doc namespace" };
+		}
+	}
 	if (!isValidWorkspacePath(file) || file === ".") {
 		return { success: false, message: "invalid file" };
 	}
@@ -1940,7 +2070,7 @@ export function readDoraDoc(req: {
 	const isTutorialDoc = lowerFile.endsWith(".md");
 	const isAPIDoc = lowerFile.endsWith(".ts") || lowerFile.endsWith(".tl");
 	if (!isTutorialDoc && !isAPIDoc) return { success: false, message: "unsupported doc file type" };
-	const docSource: DoraAPIDocSource = isTutorialDoc ? "tutorial" : "api";
+	const docSource: DoraAPIDocSource = namespacedSource ?? (isTutorialDoc ? "tutorial" : "api");
 	const root = getDoraDocResultBaseRoot(docSource, req.docLanguage);
 	const fullPath = Path(root, file);
 	const relative = Path.getRelative(fullPath, root);
@@ -2028,20 +2158,25 @@ export function applyFileChanges(taskId: number, workDir: string, changes: FileC
 		}
 	}
 
+	let appliedCount = 0;
 	for (const entry of getCheckpointEntries(checkpointId, false)) {
 		const fullPath = resolveWorkspaceFilePath(workDir, entry.path);
 		if (!fullPath) {
 			DB.exec(`UPDATE ${TABLE_CP} SET status = ? WHERE id = ?`, ["FAILED", checkpointId]);
-			return { success: false, message: `invalid path: ${entry.path}` };
+			const rollbackError = rollbackPreparedFileChanges(checkpointId, workDir, appliedCount);
+			return { success: false, message: `invalid path: ${entry.path}${rollbackError !== undefined ? `; ${rollbackError}` : "; previously applied files restored"}` };
 		}
 		const ok = applySingleFile(fullPath, entry.afterExists, entry.afterContent);
 		if (!ok) {
 			DB.exec(`UPDATE ${TABLE_CP} SET status = ? WHERE id = ?`, ["FAILED", checkpointId]);
-			return { success: false, message: `failed to apply file change: ${entry.path}` };
+			const rollbackError = rollbackPreparedFileChanges(checkpointId, workDir, appliedCount + 1);
+			return { success: false, message: `failed to apply file change: ${entry.path}${rollbackError !== undefined ? `; ${rollbackError}` : "; previously applied files restored"}` };
 		}
+		appliedCount++;
 		if (!sendWebIDEFileUpdate(fullPath, entry.afterExists, entry.afterContent)) {
 			DB.exec(`UPDATE ${TABLE_CP} SET status = ? WHERE id = ?`, ["FAILED", checkpointId]);
-			return { success: false, message: `failed to sync file change: ${entry.path}` };
+			const rollbackError = rollbackPreparedFileChanges(checkpointId, workDir, appliedCount);
+			return { success: false, message: `failed to sync file change: ${entry.path}${rollbackError !== undefined ? `; ${rollbackError}` : "; all applied files restored"}` };
 		}
 	}
 
@@ -2193,7 +2328,7 @@ export async function build(req: { workDir: string; path: string }): Promise<Bui
 				return { success: false, message: "failed to encode UpdateFile request" };
 			}
 			if (!isDtsFile(target)) {
-				messages.push(await runSingleTsTranspile(target, content));
+				messages.push(await runSingleTsTranspile(target, content, req.workDir));
 			}
 		} else {
 			messages.push(await runSingleNonTsBuild(target));
@@ -2241,7 +2376,7 @@ export async function build(req: { workDir: string; path: string }): Promise<Bui
 				messages.push({ success: false, file, message: "failed to encode UpdateFile request" });
 				continue;
 			}
-			messages.push(await runSingleTsTranspile(file, content));
+			messages.push(await runSingleTsTranspile(file, content, req.workDir));
 			continue;
 		}
 		messages.push(await runSingleNonTsBuild(file));

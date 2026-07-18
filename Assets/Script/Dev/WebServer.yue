@@ -747,6 +747,10 @@ HttpServer\post "/agent/session/send", (req): invalidArguments ->
 	switch req when {body: {:sessionId, :prompt}}
 		return AgentSession.sendPrompt sessionId, prompt, false, req.body.disabledAgentTools
 
+HttpServer\post "/agent/session/finish-handoff", (req): invalidArguments ->
+	switch req when {body: {:sessionId}}
+		return AgentSession.finishSubSessionHandoff sessionId
+
 HttpServer\post "/agent/session/resend", (req): invalidArguments ->
 	switch req when {body: {:sessionId, :messageId, :prompt}}
 		return AgentSession.resendPrompt sessionId, messageId, prompt, req.body.disabledAgentTools

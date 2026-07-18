@@ -77,6 +77,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 	const [prompt, setPrompt] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [continueLoadingTaskId, setContinueLoadingTaskId] = useState<number | null>(null);
+	const [finishHandoffLoadingTaskId, setFinishHandoffLoadingTaskId] = useState<number | null>(null);
 	const [continuedTaskIds, setContinuedTaskIds] = useState<Set<number>>(() => new Set());
 	const [rollingBack, setRollingBack] = useState<number | null>(null);
 	const [session, setSession] = useState<Service.AgentSession | null>(null);
@@ -722,6 +723,33 @@ export default function AgentPanel(props: AgentPanelProps) {
 		}
 	};
 
+	const onFinishHandoff = async () => {
+		const taskId = continuableTaskId;
+		if (!taskId || session?.kind !== "sub" || loading || continueLoadingTaskId !== null || finishHandoffLoadingTaskId !== null || session.currentTaskStatus === "RUNNING") return;
+		setFinishHandoffLoadingTaskId(taskId);
+		try {
+			const llmReady = await checkLLMConfigReady();
+			if (!llmReady) {
+				addAlert?.(t("agent.noLLMConfigAlert"), "error");
+				return;
+			}
+			const res = await Service.agentSessionFinishHandoff({ sessionId: selectedSessionId });
+			if (!res.success) {
+				if (res.message === "no active LLM config") {
+					setLLMConfigMissing(true);
+					addAlert?.(t("agent.noLLMConfigAlert"), "error");
+					return;
+				}
+				addAlert?.(res.message, "error");
+				return;
+			}
+			setLLMConfigMissing(false);
+			await refresh(true, selectedSessionId);
+		} finally {
+			setFinishHandoffLoadingTaskId(null);
+		}
+	};
+
 	const onStop = async () => {
 		const res = await Service.agentTaskStop({ sessionId: selectedSessionId });
 		if (!res.success) {
@@ -984,7 +1012,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 									<AgentMessageList
 										messages={visibleSummaryMessages}
 										editableMessageId={latestUserMessageId}
-										editDisabled={loading || continueLoadingTaskId !== null || session?.currentTaskStatus === "RUNNING"}
+										editDisabled={loading || continueLoadingTaskId !== null || finishHandoffLoadingTaskId !== null || session?.currentTaskStatus === "RUNNING"}
 										onResendPrompt={resendPromptText}
 									/>
 								) : null}
@@ -1008,7 +1036,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 											size="small"
 											variant="outlined"
 											onClick={() => void onContinueTask()}
-											disabled={loading || session?.currentTaskStatus === "RUNNING" || continueLoadingTaskId !== null}
+											disabled={loading || session?.currentTaskStatus === "RUNNING" || continueLoadingTaskId !== null || finishHandoffLoadingTaskId !== null}
 											sx={{
 												color: Color.TextSecondary,
 												borderColor: Color.Line,
@@ -1026,6 +1054,30 @@ export default function AgentPanel(props: AgentPanelProps) {
 											{t("agent.continueTask")}
 										</Button>
 										{continueLoadingTaskId === continuableTaskId ? <CircularProgress size={16} /> : null}
+										{session?.kind === "sub" ? (
+											<Button
+												size="small"
+												variant="outlined"
+												onClick={() => void onFinishHandoff()}
+												disabled={loading || session.currentTaskStatus === "RUNNING" || continueLoadingTaskId !== null || finishHandoffLoadingTaskId !== null}
+												sx={{
+													color: Color.Warning,
+													borderColor: `${Color.Warning}66`,
+													borderRadius: 999,
+													"&.Mui-disabled": {
+														color: Color.TextSecondary,
+														borderColor: Color.Line,
+													},
+													"&:hover": {
+														borderColor: Color.Warning,
+														backgroundColor: `${Color.Warning}12`,
+													},
+												}}
+											>
+												{t("agent.finishAndHandoff")}
+											</Button>
+										) : null}
+										{finishHandoffLoadingTaskId === continuableTaskId ? <CircularProgress size={16} /> : null}
 									</Stack>
 								) : null}
 								{showSummaryShimmer ? (
@@ -1092,7 +1144,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 			</MacScrollbar>
 			<AgentComposer
 				prompt={prompt}
-				loading={loading || continueLoadingTaskId !== null}
+				loading={loading || continueLoadingTaskId !== null || finishHandoffLoadingTaskId !== null}
 				running={session?.currentTaskStatus === "RUNNING"}
 				canStop={session?.currentTaskStatus === "RUNNING" && session?.currentTaskFinalizing !== true}
 				tabButtons={tabButtons}

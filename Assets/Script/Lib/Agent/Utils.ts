@@ -190,7 +190,9 @@ function getReservedOutputTokens(options: Record<string, unknown>, contextWindow
 }
 
 function getInputTokenBudget(messages: Message[], options: Record<string, unknown>, config: LLMConfig): number {
-	const contextWindow = math.max(64000, config.contextWindow);
+	const contextWindow = config.contextWindow > 0
+		? math.floor(config.contextWindow)
+		: 64000;
 	const reservedOutputTokens = getReservedOutputTokens(options, contextWindow);
 	const optionTokens = estimateOptionsTokens(options);
 	const structuralOverhead = math.max(256, messages.length * 16);
@@ -826,8 +828,8 @@ export type LLMConfig = {
 };
 
 function normalizeContextWindow(value: unknown): number {
-	if (typeof value === "number") {
-		return math.max(64000, math.floor(value));
+	if (typeof value === "number" && value > 0) {
+		return math.floor(value);
 	}
 	return 64000;
 }

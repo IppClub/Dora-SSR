@@ -43,11 +43,11 @@ Call `search_dora_api` before using any Dora API that is not shown in the baseli
 
 For implementation tasks, keep lookup bounded so it does not replace implementation:
 
-- When the runtime reports a fresh project, do not probe for `tsconfig.json` or enumerate the workspace. If it reports one buildable code file of at most 3 lines, coherently rewrite the disclosed path; if it reports no buildable code files, create the requested entry directly (default to `init.ts` for a Dora TypeScript task). Then build before discovery.
+- When the runtime reports a fresh project, start from the disclosed short code file or create the requested entry directly (default to `init.ts` for a Dora TypeScript task). Consult relevant tutorials or APIs when they help, and prefer an early build so subsequent work can use compiler feedback.
 - If the requested game fits the baseline APIs below, do not search first. Inspect the entry, implement the smallest complete playable loop, then build.
 - Before the first edit, use at most one batched `search_dora_api` call for all genuinely unfamiliar APIs. Do not issue separate searches for APIs already covered by the baseline.
 - After that lookup, edit and build. Search again only for a concrete compiler or runtime error that cannot be resolved from the returned signature.
-- Do not use `execute_command` for project discovery, file inspection, or API/type-definition lookup. Use the corresponding file/search tools.
+- Do not use runtime command tools for project discovery, file inspection, or API/type-definition lookup. Use the corresponding file/search tools.
 - Prefer build diagnostics over speculative design research. Do not spend repeated Agent steps comparing optional architectures before a playable baseline exists.
 - After editing source, build before another `search_dora_api` call. A later search is justified only by a concrete build/runtime diagnostic that requires an unfamiliar API.
 
@@ -118,6 +118,17 @@ Use Dora runtime modules, not browser packages:
 - `Director.entry`, `Director.ui`, and similar root nodes use screen-center origin: `(0, 0)` is the screen center.
 - Do not use browser-style top-left coordinates unless explicitly converting from that space.
 - For game screen adaptation, read `ts/adapting-to-screen.md` directly before designing responsive layout behavior.
+
+### Input coordinate and enum baseline
+
+These names come directly from the built-in `Dora.d.ts`; do not spend a search step rediscovering them:
+
+- `touch.location`: position in the receiving node's local coordinate system.
+- `touch.viewLocation`: position in the current view's logical coordinate system.
+- `touch.worldLocation`: position in world coordinates. Prefer node-local handlers with `touchEnabled = true` and the node's real `size` over global manual hit testing.
+- The return key is `KeyName.Return`, not `KeyName.Enter`. Number keys are `KeyName.Num0` through `KeyName.Num9`; letters and arrows use names such as `KeyName.W`, `KeyName.Left`, and `KeyName.Up`.
+- Controller buttons use `ButtonName.A/B/X/Y`, `Back`, `Start`, `Up/Down/Left/Right`, `LeftShoulder/RightShoulder`, and `LeftStick/RightStick`. Axes use `AxisName.LeftX/LeftY/RightX/RightY/LeftTrigger/RightTrigger`.
+- Controller calls are `Controller.isButtonDown/Up/Pressed(controllerId, ButtonName.X)` and `Controller.getAxis(controllerId, AxisName.LeftX)`.
 - For a centered playfield of width `w` and height `h`, every model-space object and configured region must initially lie within `[-w/2,w/2] × [-h/2,h/2]`. With Dora's positive-Y-up convention, a bottom paddle has negative Y, bricks near the top have positive Y below `h/2`, launch-up velocity is positive Y, and falling velocity is negative Y. Check these signs and bounds before the first build.
 
 ## Scheduling Semantics
@@ -209,11 +220,11 @@ Use this as a decision map. It is not a full API reference; exact signatures com
 9. Run `build` on the changed file/project when available.
 10. Build success is not just the top-level `success` field. Inspect per-file `messages`; if any message reports failure or diagnostics, fix them before finishing.
 11. If TS build says the Web IDE/transpile service is not connected, tell the user to open the Web IDE/keep Dora running, or use the existing project build path if available.
-12. When runtime validation needs `execute_command`, remember that it is not a shell: use `mode: "lua"` for engine-side Lua and `mode: "git"` for supported Git operations. Do not send Python, shell pipelines, redirects, or command chaining to it.
+12. When a runtime validation tool is available, follow its active skill and tool description exactly; do not assume it is a general-purpose shell.
 13. When several related fixes are in one authored file, combine them into one coherent edit when practical, then build immediately. Do not repeatedly edit one assertion at a time without rerunning the smallest relevant test.
 14. Diagnose authored game logic and test fixtures before inspecting generated Lua. Check fixture preconditions, automatic state transitions, time-step clamping, and terminal-state resets first.
 15. Files under `.agent/main` are the main Agent's persistent memory. You may edit them deliberately to record durable project knowledge, user decisions, or a precise active checkpoint. Keep the existing structure, avoid duplicating transient progress, and let later consolidation merge the update with newer evidence. Memory-only edits do not require a project build. When proactively updating one memory file, read it once and apply one coherent edit that updates every affected section; do not spend separate decisions editing its status, architecture, decisions, and known issues one section at a time.
-16. The engine enforces an edit/build cadence for authored project files: touch at most three distinct source paths in one cycle, and after three successful `edit_file`/`delete_file` actions it hides further edits until a build. Combine related replacements in one coherent edit when practical, then build the affected project or files. Treat a rejected edit as a signal to build, not as a reason to read or search more files.
+16. The engine dynamically exposes tools according to the current coding phase. For authored project files, make at most three coherent `edit_file`/`delete_file` actions in one cycle, then build the affected project or files before expanding the change. If an edit tool is temporarily absent, follow the visible build action instead of restarting discovery; a successful build restores the next phase's applicable tools.
 17. When a deterministic `runTests()` report starts with `failed`, read only the failing authored function and its fixture, make one minimal source/test batch, build, and rerun the same test. Do not instantiate compiled TypeScript classes from Lua, inspect generated Lua, or issue exploratory command probes. If more observability is necessary, add a bounded assertion or exported diagnostic to the authored TypeScript test, then build it.
 18. If the model clamps each `step(dt)` to a maximum frame delta, never use one oversized `step(totalTime)` in a fixture to advance timers or trigger spawning unless the test is specifically checking the clamp. Use a bounded fixed-step helper that accumulates time, assert the expected state exists, then inspect it.
 19. For terminal conditions such as filling a board, exhausting lives, reaching a score threshold, or consuming the last target, construct the smallest legal state immediately before the terminal transition and execute one action. Do not simulate the full gameplay history, derive a Hamiltonian route, or retry a long traversal fixture when a direct near-terminal state proves the same rule.
@@ -222,10 +233,10 @@ Use this as a decision map. It is not a full API reference; exact signatures com
 
 For a playable game, `build` success and `running=true` are necessary but not sufficient.
 
-1. Prefer a pure TypeScript test module that exports a function returning a report whose first line is `passed` or `failed`. Load it from `execute_command(mode="lua")` with `requireProjectModule("test_module", {"dependent.module"})`, then call the export. The helper adds the project module path and clears the named module caches. Do not create a test entry, schedule, or marker file unless the test specifically needs a running scene.
+1. When a runtime validation tool is available, prefer a pure TypeScript test module that exports a function returning a report whose first line is `passed` or `failed`. Follow the active runtime-tool skill for loading it. Do not create a test entry, schedule, or marker file unless the test specifically needs a running scene.
 2. Treat a report whose first line is `failed` as a failed command even if the Lua call itself completed. Fix the smallest authored logic/fixture issue, rebuild, and call `requireProjectModule` again.
 3. Keep failure reports bounded and useful: report at most 12 unique failures, never append the same assertion once per retry-loop iteration, and stop a fixture loop immediately when an iteration makes no progress.
-4. Start the real `init` entry with `enterEntryAsync`, verify it remains running across at least two observations, exercise at least one meaningful input/state transition when the command harness can do so, then call `stop` and verify `running=false`.
+4. When an active runtime tool provides entry lifecycle helpers, start the real `init` entry, verify it remains running across at least two observations, exercise at least one meaningful input/state transition when the harness can do so, then stop it and verify it is no longer running.
 5. Treat runtime state checks as headless validation only. They do not prove that game objects are visible, correctly layered, legible, or pleasant to play.
 6. Before claiming a game is complete, explicitly report visual/manual play status. If no visual inspection tool is available, mark visual validation as `not_run` and ask the caller to launch the game for visual acceptance; never silently equate `running=true` with a visually correct game.
 7. When a visual inspection path is available, launch the real project, inspect the initial frame, trigger the primary input, inspect the changed frame, and stop cleanly. Confirm that the playfield, player-controlled object, hazards/targets, HUD, and overlays are visible in the intended z-order.

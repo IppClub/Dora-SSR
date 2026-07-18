@@ -353,9 +353,11 @@ Analyze the actions and update the memory. Follow these guidelines:
 	- Process Actions to Process in chronological order. The newest concrete tool result overrides older Session Summary claims and earlier plans
 	- Never report a file as missing when a later successful edit/create result shows it exists, and never report validation as not run when a later build or command result records it
 	- Copy the latest concrete failure or validation result exactly enough to resume from it; do not replace evidence with a speculative diagnosis
+	- When the task has multiple independently validated items, preserve a compact per-item ledger in the Session Summary: item identity, the player/action path exercised, PASS/FAIL/PARTIAL, and the concrete command/build evidence. Do not collapse completed items into a generic statement such as "hooks exist" or "tests passed"
+	- Treat a ledger item with PASS evidence as closed unless a later source edit or failure explicitly invalidates it. After resuming from compression, continue at the first open item; never rediscover, rebuild, or re-run closed items merely because their detailed history was compacted
 	- End the Session Summary with an \`Active Checkpoint\` section whenever work is unfinished
 	- Record the current objective, work already completed, latest concrete failure or validation result, files already read or changed, and the exact next tool action
-	- End that section with exactly \`**Next tool**: \`tool_name\`\`, using one available Agent tool name such as \`edit_file\`, \`build\`, \`execute_command\`, or \`finish\`
+	- End that section with exactly \`**Next tool**: \`tool_name\`\`, using a tool that is available to the active Agent task; never name a task-disabled tool. Stable examples are \`edit_file\`, \`build\`, or \`finish\`
 	- The next agent turn must be able to continue from this checkpoint without restarting discovery or rereading unchanged files
 	- Do not turn a completed validation into new work; if the requested validation already passed, record that the next action is to finish and report
 	- If authored project/source edits succeeded after the latest build attempt, the next tool is \`build\`. Edits only under \`.agent/main\` are memory updates: they never invalidate a completed build, test, or lifecycle result and must not create new validation work
@@ -1719,10 +1721,10 @@ export class MemoryCompressor {
 		}
 
 		if (lastSafeBoundaryWithinBudget > 0) {
-			return { chunkEnd: lastSafeBoundaryWithinBudget, compressedCount: lastSafeBoundaryWithinBudget };
+			return this.buildSafeBoundary(messages, lastSafeBoundaryWithinBudget);
 		}
 		if (lastSafeBoundary > 0) {
-			return { chunkEnd: lastSafeBoundary, compressedCount: lastSafeBoundary };
+			return this.buildSafeBoundary(messages, lastSafeBoundary);
 		}
 		if (lastClosedBoundaryWithinBudget > 0) {
 			return this.buildCarryBoundary(messages, lastClosedBoundaryWithinBudget);
@@ -1731,7 +1733,7 @@ export class MemoryCompressor {
 			return this.buildCarryBoundary(messages, lastClosedBoundary);
 		}
 		const fallback = math.min(messages.length, 1);
-		return { chunkEnd: fallback, compressedCount: fallback };
+		return this.buildSafeBoundary(messages, fallback);
 	}
 
 	private buildCarryBoundary(messages: AgentConversationMessage[], chunkEnd: number): CompressionBoundarySelection {
@@ -1749,6 +1751,17 @@ export class MemoryCompressor {
 			compressedCount: chunkEnd,
 			carryMessageIndex: carryUserIndex,
 		};
+	}
+
+	private buildSafeBoundary(messages: AgentConversationMessage[], chunkEnd: number): CompressionBoundarySelection {
+		// A trailing user message is an open instruction, not completed history.
+		// Keep it verbatim outside the summary so an older Active Checkpoint (for
+		// example `Next tool: finish`) cannot bind a newly submitted task after
+		// compression.
+		if (chunkEnd > 0 && messages[chunkEnd - 1].role === "user") {
+			return this.buildCarryBoundary(messages, chunkEnd);
+		}
+		return { chunkEnd, compressedCount: chunkEnd };
 	}
 
 	private estimateCompressionMessageTokens(message: AgentConversationMessage, index: number): number {
@@ -1834,11 +1847,12 @@ export class MemoryCompressor {
 	}
 
 	private getContextWindow(): number {
-		return Math.max(MEMORY_DEFAULT_CONTEXT_WINDOW, this.config.llmConfig.contextWindow);
+		const configured = math.floor(this.config.llmConfig.contextWindow);
+		return configured > 0 ? configured : MEMORY_DEFAULT_CONTEXT_WINDOW;
 	}
 
 	getMemoryContextBudget(): number {
-		const contextWindow = math.max(MEMORY_DEFAULT_CONTEXT_WINDOW, this.config.llmConfig.contextWindow);
+		const contextWindow = this.getContextWindow();
 		return math.max(
 			AGENT_MEMORY_CONTEXT_MIN_TOKENS,
 			math.floor(contextWindow * AGENT_MEMORY_CONTEXT_WINDOW_RATIO)

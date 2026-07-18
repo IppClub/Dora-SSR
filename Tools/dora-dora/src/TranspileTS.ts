@@ -296,7 +296,14 @@ function createCompilerHost(
 					baseName = Info.path.extname(baseName) === ".d" ? Info.path.basename(baseName, ".d") : baseName;
 					const targetFile = baseName;
 					const dirName = Info.path.dirname(relativePath);
-					const path = Info.path.join(dirName, targetFile);
+					const relativeTargetPath = Info.path.join(dirName, targetFile);
+					// TSTL's Classic resolver can ask for a project-relative module while
+					// the Web IDE is focused on a tab from another project. Resolve that
+					// URI from the transpile request's project root, not the active tab's
+					// project, so a valid model from the focused tab cannot win lookup.
+					const path = projectRoot && projectRoot !== ""
+						? Info.path.join(currentDirectory, relativeTargetPath)
+						: relativeTargetPath;
 					for (const ext of [".d.ts", ".ts", ".tsx"]) {
 						const uri = monaco.Uri.file(path + ext);
 						const model = monaco.editor.getModel(uri);
@@ -321,8 +328,11 @@ function createCompilerHost(
 			const currentExt = Info.path.extname(fileName);
 			let currentBaseName = Info.path.basename(fileName, currentExt);
 			currentBaseName = Info.path.extname(currentBaseName) === ".d" ? Info.path.basename(currentBaseName, ".d") : currentBaseName;
+			const modelLookupFileName = projectRoot && projectRoot !== "" && !Info.path.isAbsolute(fileName)
+				? Info.path.join(currentDirectory, fileName)
+				: fileName;
 			for (const ext of [".d.ts", ".ts", ".tsx"]) {
-				const uri = monaco.Uri.file(Info.path.join(Info.path.dirname(fileName), currentBaseName + ext));
+				const uri = monaco.Uri.file(Info.path.join(Info.path.dirname(modelLookupFileName), currentBaseName + ext));
 				const model = monaco.editor.getModel(uri);
 				if (model !== null) {
 					pathMap.set(fileName, uri);
@@ -400,7 +410,9 @@ function createTypescriptProgram(
 	projectRoot?: string
 ): Program {
 	const [compilerHost] = createCompilerHost(ts, rootFileName, content, projectRoot);
-	tstlOptions.baseUrl = projectRoot && projectRoot !== "" ? projectRoot : Info.path.dirname(rootFileName);
+	const sourceRoot = projectRoot && projectRoot !== "" ? projectRoot : Info.path.dirname(rootFileName);
+	tstlOptions.baseUrl = sourceRoot;
+	tstlOptions.rootDir = sourceRoot;
 	return ts.createProgram([rootFileName], tstlOptions, compilerHost);
 }
 
