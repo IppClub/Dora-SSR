@@ -25,6 +25,32 @@ local worldPos = Mouse.position * App.devicePixelRatio
 local nodePos = node:convertToNodeSpace(worldPos)
 ```
 
+## delta
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;从上一帧开始累计的鼠标移动量。
+
+**签名：**
+```tl
+const delta: Vec2
+```
+
+## relativeMode
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;是否启用相对鼠标模式。相对模式会隐藏并捕获鼠标光标。
+
+**签名：**
+```tl
+relativeMode: boolean
+```
+
 ## leftButtonPressed
 
 **类型：** 只读成员变量。

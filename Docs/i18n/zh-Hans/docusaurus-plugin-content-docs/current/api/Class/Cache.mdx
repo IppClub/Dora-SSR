@@ -114,6 +114,45 @@ end)
 | --- | --- |
 | boolean | 如果资源文件成功加载，则返回 true，否则返回 false。 |
 
+## getLoadState
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取 Model3D 或环境资源的加载状态。
+
+**签名：**
+```tl
+getLoadState: function(self: Cache, filename: string): LoadState
+```
+
+## getLoadError
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取最近一次 Model3D 或环境资源加载错误。
+
+**签名：**
+```tl
+getLoadError: function(self: Cache, filename: string): string
+```
+
+## cancelLoad
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;取消进行中的 Model3D 或环境资源加载。
+
+**签名：**
+```tl
+cancelLoad: function(self: Cache, filename: string): boolean
+```
+
 ## update
 
 **类型：** 函数。

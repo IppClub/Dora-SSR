@@ -1,0 +1,97 @@
+# 为场景加入物理与角色形体
+
+这一课会把静态场景变成小型物理空间：先加入地面与会下落的箱子，再理解刚体模拟和玩家控制各自解决的问题。
+
+:::tip 本课目标
+创建一个无需手动推进物理的重力箱子，并能为可控玩家选择正确的组件。
+:::
+
+## 先理解一个关键模型：两棵树，共用一个变换
+
+`PhysicsWorld3D` 与 Dora 的 2D 物理世界相互独立，它持有 `Body3D`；可见的 `Node3D` 仍是渲染内容。下面的辅助函数会把可见节点重新挂到 `Body3D` 下，因此物理变换会自然成为可见变换。
+
+`PhysicsWorld3D()` 会自行注册固定更新，默认使用 `Director.scheduler`，而 `Director` 会每帧推进该调度器。因此基础物理世界不需要 `scheduler.update(App.deltaTime)` 循环。
+
+## 第一步：创建带地面和箱子的物理世界
+
+```ts title="init.ts"
+import {Director, Node3D, PhysicsWorld3D, Vec3} from "Dora";
+import {makeBoxBody3D} from "Game/PhysicsBody3D";
+
+const view = Director.entry;
+Director.scheduler.fixedFPS = 60;
+
+const world = PhysicsWorld3D();
+world.gravity = Vec3(0, -9.81, 0);
+view.addChild(world);
+
+const floor = Node3D();
+floor.position = Vec3(0, -0.5, 0);
+view.addChild(floor);
+makeBoxBody3D(world, floor, Vec3(8, 0.5, 4), PhysicsWorld3D.Static);
+
+const crate = Node3D();
+crate.position = Vec3(0, 2, 0);
+view.addChild(crate);
+makeBoxBody3D(world, crate, Vec3(0.5, 0.5, 0.5), PhysicsWorld3D.Dynamic);
+```
+
+### 检查点
+
+将可见模型挂到两个节点下后，箱子应会下落、与地面碰撞并停住。已验证的教程测试没有调用自定义 scheduler 更新，箱子仍会从 `y=2` 自动下落。
+
+若箱子持续穿过地面，先确认地面 fixture 已创建且类型为 `PhysicsWorld3D.Static`。若所有物体都不动，确认物理世界已加入 `view`，且箱子类型是 `Dynamic`。
+
+## 第二步：让刚体辅助函数保持小而明确
+
+```ts title="Game/PhysicsBody3D.ts"
+import {Body3D, BodyDef3D, FixtureDef3D, Node3D, PhysicsWorld3D, Vec3} from "Dora";
+
+export function makeBoxBody3D(world: PhysicsWorld3D.Type, node: Node3D.Type,
+	halfExtent: Vec3.Type, type = PhysicsWorld3D.Dynamic) {
+	const parent = node.parent;
+	const position = node.position;
+	const angles = node.angles;
+	node.removeFromParent(false);
+	node.position = Vec3(0, 0, 0);
+	node.angles = Vec3(0, 0, 0);
+
+	const def = BodyDef3D();
+	def.type = type;
+	if (!def.attach(FixtureDef3D.box(halfExtent))) throw new Error("failed to attach fixture");
+	const body = Body3D(def, world, position, angles);
+	if (!body) throw new Error("failed to create body");
+	body.addChild(node);
+	parent?.addChild(body);
+	return body;
+}
+```
+
+半尺寸就是盒子完整尺寸的一半：`Vec3(0.5, 0.5, 0.5)` 对应边长为 1 的立方体。请让可见模型与 fixture 的尺寸概念一致，后期调试隐形碰撞体会非常困难。
+
+## 第三步：用角色控制器表达“主动移动”
+
+刚体适合箱子和道具；玩家通常需要更可预测的斜坡、台阶和期望速度控制。
+
+```ts title="init.ts"
+const playerNode = Node3D();
+playerNode.position = Vec3(0, 1.2, 0);
+view.addChild(playerNode);
+
+const player = world.createCharacter(playerNode, 0.55, 0.32, 50, 0.35);
+player.desiredVelocity = Vec3(2, 0, 0);
+```
+
+在普通玩法更新中根据输入设置 `desiredVelocity`，再由物理世界的固定更新写回最终变换。动态刚体的可视子节点挂到 `Body3D` 后，不要再手动移动它。
+
+## 什么时候才需要自定义 scheduler？
+
+只有物理确实需要独立暂停、回放或时间缩放域时，才为 `world.scheduler` 指定单独的 `Scheduler`。这种进阶设置下，必须显式推进该自定义 scheduler；`Director` 自动推进的是它自身持有的调度器。
+
+## 动手练习
+
+给动态 crate 节点挂上一个箱子模型。先让碰撞盒与可见模型匹配，再故意把 fixture 做大。这个对照能直观理解碰撞尺寸也是关卡设计的一部分。
+
+## 下一课
+
+继续阅读[在 3D 场景中使用 2D 内容](./put-2d-ui-in-3d)，在这个物理世界里放入可读的标签和面板。

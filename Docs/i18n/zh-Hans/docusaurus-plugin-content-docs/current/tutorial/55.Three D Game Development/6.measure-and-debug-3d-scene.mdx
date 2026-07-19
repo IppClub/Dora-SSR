@@ -1,0 +1,73 @@
+# 测量、调试并守护你的 3D 场景
+
+现在场景已经有模型、光照、物理和世界空间 UI。在继续添加内容前，先在目标设备上建立基线。有价值的 3D 优化不只是数字下降，也必须保留正确可见的画面。
+
+:::tip 本课目标
+保存可重复比较的截图和渲染统计标记，在物体消失时检查包围盒，并按能避免猜测的顺序优化。
+:::
+
+## 第一步：建立可对比的基线
+
+下面采用已验证的 `Dora-Platformer3D-Demo/Test/Smoke.ts` 模式：先让场景完成渲染，再记录统计值和截图。
+
+```ts title="Test/Smoke.ts"
+import {App, Content, Director, threadLoop} from "Dora";
+
+const view = Director.entry;
+let elapsed = 0;
+let checked = false;
+
+threadLoop(() => {
+	elapsed += App.deltaTime;
+	if (!checked && elapsed > 1.5) {
+		checked = true;
+		const stats = view.stats;
+		const passed = stats.drawCalls > 0 && stats.visibleVisuals > 0;
+		const screenshot = App.saveScreenshot("/tmp/my-3d-scene/baseline");
+		Content.save(
+			"/tmp/my-3d-scene/baseline.txt",
+			`status=${passed ? "PASS" : "FAIL"} draws=${stats.drawCalls} visible=${stats.visibleVisuals} screenshot=${screenshot}`,
+		);
+	}
+	return false;
+});
+```
+
+### 检查点
+
+在较大改动前后运行完全相同的场景，并保留两张截图。若第二次运行的 draw call 更少但少了一个模型，这是回归，不是优化。
+
+## 第二步：让每组数字回答一个问题
+
+| 统计项 | 回答的问题 |
+| --- | --- |
+| `drawCalls`、`triangles`、`visibleVisuals` | 这一帧实际提交了什么？ |
+| `culledVisuals` | 有多少内容未进入最终渲染？ |
+| `materialSwitches`、`textureSwitches`、`meshSwitches` | 状态切换是否妨碍了高效提交？ |
+| `collectMicros`、`sortMicros`、`submitMicros` | CPU 时间花在收集、排序还是提交场景工作？ |
+| 上传相关字段 | 游戏运行中是否发生了资源上传？ |
+
+先记录基线，再尝试改善任意一行。每次只比较一个改动，并使用相同目标设备和相机视角。
+
+## 第三步：让空间问题可见
+
+```ts title="init.ts"
+import {Director} from "Dora";
+
+const view = Director.entry;
+view.showAABB = true; // 检查包围盒时临时开启。
+```
+
+对象意外消失时，先检查包围盒和相机范围，再去改材质或着色器。放错的父节点变换、过大的 `Surface3D` 或不正确的模型尺寸，都可能看起来像渲染问题。发布前记得关闭 `showAABB`。
+
+## 一套实用的优化循环
+
+1. 复用 `Model3D` 路径，不要每帧重建模型或材质。
+2. 优先减少可避免的纹理与材质切换，再激进地减少几何量。
+3. 为目标设备设置阴影贴图分辨率，然后再次测量。
+4. 在观察者无法看出额外细节的地方，降低 `Surface3D` 底图分辨率。
+5. 重新运行基线，同时查看标记与截图。
+
+## 完成本学习路径
+
+至此你已拥有一个完整且可测试的 3D 工作循环：创建场景、布光、导入与播放动画资产、模拟物体、嵌入 2D 内容，并验证最终结果。需要完整 API 时请查阅[3D 渲染与物理 API 参考](/docs/api/intro#3d-渲染与物理)；每当新系统改变场景时，都可以回到这些检查点重新验证。

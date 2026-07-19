@@ -114,6 +114,45 @@ end)
 | --- | --- |
 | boolean | True if the files were loaded successfully, false otherwise. |
 
+## getLoadState
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the Model3D or environment load state.
+
+**Signature:**
+```tl
+getLoadState: function(self: Cache, filename: string): LoadState
+```
+
+## getLoadError
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the latest Model3D or environment load error.
+
+**Signature:**
+```tl
+getLoadError: function(self: Cache, filename: string): string
+```
+
+## cancelLoad
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Cancels an active Model3D or environment load.
+
+**Signature:**
+```tl
+cancelLoad: function(self: Cache, filename: string): boolean
+```
+
 ## update
 
 **Type:** Function.

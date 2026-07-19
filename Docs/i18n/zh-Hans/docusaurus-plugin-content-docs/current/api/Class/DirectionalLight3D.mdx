@@ -1,0 +1,36 @@
+# DirectionalLight3D
+
+**描述：**
+
+&emsp;&emsp;方向由世界旋转决定的方向光。
+
+## color
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;sRGB 空间中的灯光颜色。
+
+**签名：**
+```tl
+color: Color3
+```
+
+## intensity
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;灯光强度。
+
+**签名：**
+```tl
+intensity: number
+	castShadow: boolean
+	shadowBias: number
+	shadowNormalBias: number
+	-- 以阴影贴图 texel 为单位的阴影过滤半径。设为零会关闭过滤。
+	shadowSoftness: number
+```

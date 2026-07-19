@@ -25,6 +25,32 @@ local worldPos = Mouse.position * App.devicePixelRatio
 local nodePos = node:convertToNodeSpace(worldPos)
 ```
 
+## delta
+
+**Type:** Readonly Field.
+
+**Description:**
+
+&emsp;&emsp;The accumulated mouse movement since the previous frame.
+
+**Signature:**
+```tl
+const delta: Vec2
+```
+
+## relativeMode
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether relative mouse mode is enabled. Relative mode hides and captures the cursor.
+
+**Signature:**
+```tl
+relativeMode: boolean
+```
+
 ## leftButtonPressed
 
 **Type:** Readonly Field.

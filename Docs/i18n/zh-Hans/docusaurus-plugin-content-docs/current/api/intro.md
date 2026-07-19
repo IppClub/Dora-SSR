@@ -192,6 +192,27 @@ sidebar_position: 0
 * [MoveJoint](/docs/api/Class/MoveJoint)
 * [MotorJoint](/docs/api/Class/MotorJoint)
 
+## 3D 渲染与物理
+
+&emsp;&emsp;这个类别提供 3D 场景、渲染、光照和物理相关的 API。
+
+* [Node3D](/docs/api/Class/Node3D)
+* [Model3D](/docs/api/Class/Model3D)
+* [Camera3D](/docs/api/Class/Camera3D)
+* [PhysicsWorld3D](/docs/api/Class/PhysicsWorld3D)
+* [Body3D](/docs/api/Class/Body3D)
+* [BodyDef3D](/docs/api/Class/BodyDef3D)
+* [FixtureDef3D](/docs/api/Class/FixtureDef3D)
+* [Constraint3D](/docs/api/Class/Constraint3D)
+* [CharacterController3D](/docs/api/Class/CharacterController3D)
+* [Material3D](/docs/api/Class/Material3D)
+* [DirectionalLight3D](/docs/api/Class/DirectionalLight3D)
+* [PointLight3D](/docs/api/Class/PointLight3D)
+* [Surface3D](/docs/api/Class/Surface3D)
+* [RenderStats3D](/docs/api/Class/RenderStats3D)
+* [View3D](/docs/api/Class/View3D)
+* [Vec3](/docs/api/Class/Vec3)
+
 ## ECS 系统
 
 &emsp;&emsp;这个类别负责提供实体组件系统（ECS）的功能。

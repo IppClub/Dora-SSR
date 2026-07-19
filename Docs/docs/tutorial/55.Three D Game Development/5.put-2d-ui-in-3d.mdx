@@ -1,0 +1,71 @@
+# Put Readable 2D UI into a 3D World
+
+Not every game interface belongs in a screen-space HUD. A world label, terminal, sign, or health panel should move with the game world and stay readable from the camera. `Surface3D` lets an ordinary 2D node tree do exactly that.
+
+:::tip Lesson goal
+Attach a 2D label to the 3D scene, make it face the camera on the vertical axis, and choose an appropriate backing resolution.
+:::
+
+## Choose the right kind of UI first
+
+Use a normal 2D node tree for UI that must remain fixed to the screen. Use `Surface3D` when the content has a world position and should obey 3D depth, perspective, and camera movement.
+
+| UI example | Best home |
+| --- | --- |
+| Pause menu or permanent HUD | Normal 2D scene tree |
+| NPC nameplate or floating prompt | `Surface3D` with `Billboard.YAxis` or `Billboard.Screen` |
+| In-world terminal or sign | `Surface3D` with `Billboard.None` |
+
+## Step 1: Build the 2D content as usual
+
+The content is an ordinary `Node`. Start with a label so you can focus on the 3D placement.
+
+```ts title="init.ts"
+import {Billboard, Director, Label, Size, Surface3D, Vec3} from "Dora";
+
+const view = Director.entry;
+const label = Label("sarasa-mono-sc-regular", 24)!;
+label.text = "Hello from 2D";
+```
+
+If `Label()` returns no node, check that the font is available in the project before debugging `Surface3D`.
+
+## Step 2: Give the 2D node a world-space surface
+
+```ts title="init.ts"
+const surface = Surface3D(label, Size(3, 1), Size(512, 128));
+if (!surface) throw new Error("failed to create Surface3D");
+
+surface.position = Vec3(0, 1.5, 0);
+surface.billboard = Billboard.YAxis;
+view.addChild(surface);
+```
+
+The second argument, `Size(3, 1)`, is the physical size in the 3D world. The optional `Size(512, 128)` is the backing pixel resolution when the surface needs an isolated render target. These are deliberately different concepts: world size controls how large the panel looks in the scene, while pixel size controls its detail and cost.
+
+### Checkpoint
+
+Move the camera around the label. With `Billboard.YAxis`, the label should turn left and right toward the camera but should not tilt up and down. If it is too small, adjust world size first; if text is blurry, adjust pixel size second.
+
+## Step 3: Pick billboard behavior intentionally
+
+- `Billboard.None`: preserve the surface's 3D rotation. Use this for fixed signs and terminals.
+- `Billboard.YAxis`: face the camera around the vertical axis. Use this for nameplates.
+- `Billboard.Screen`: face the camera fully. Use this for prompts that must stay readable.
+
+`Surface3D` automatically selects a shared-depth or isolated-texture path. `surface.usingTexture` is useful when diagnosing resolution or ordering behavior, but it is not a setting you normally need to force.
+
+## Avoid the two common costs
+
+1. Do not create a new `Surface3D` every frame. Keep one surface and update its label or child nodes.
+2. Do not default every panel to a huge backing texture. Start at the smallest size that keeps text legible at its intended camera distance.
+
+When a scene contains many panels, compare `view.stats` before and after changing their backing resolutions.
+
+## Try it yourself
+
+Replace the label with a small 2D `Node` subtree containing a title and a status line. Attach it above the falling crate from the physics lesson. Then toggle between `Billboard.YAxis` and `Billboard.None` to feel the difference between an information label and a physical sign.
+
+## Next lesson
+
+Continue with [3D performance and debugging](./measure-and-debug-3d-scene) to make this scene measurable before you add more content.

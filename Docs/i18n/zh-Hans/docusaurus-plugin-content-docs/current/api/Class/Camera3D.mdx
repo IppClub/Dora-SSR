@@ -1,0 +1,67 @@
+# Camera3D
+
+**描述：**
+
+&emsp;&emsp;游戏引擎中的 3D 相机对象类。
+
+**继承自：**[Camera](/docs/api/Class/Camera)。
+
+## position
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;相机位置。
+
+**签名：**
+```tl
+position: Vec3
+```
+
+## target
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;相机目标点。
+
+**签名：**
+```tl
+target: Vec3
+```
+
+## up
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;相机向上方向。
+
+**签名：**
+```tl
+up: Vec3
+```
+
+## lookAt
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置相机位置、目标点和向上方向。
+
+**签名：**
+```tl
+lookAt: function(self: Camera3D, position: Vec3, target: Vec3, up?: Vec3)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| position | Vec3 | 相机位置。 |
+| target | Vec3 | 相机目标点。 |
+| up | Vec3 | [可选] 相机向上方向。默认是 Vec3(0, 1, 0)。 |

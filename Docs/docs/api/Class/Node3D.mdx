@@ -1,0 +1,401 @@
+# Node3D
+
+**Description:**
+
+&emsp;&emsp;Class used for building a hierarchical tree of 3D objects.
+
+**Inherits from:** [Object](/docs/api/Class/Object).
+
+## order
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The order of the node in the parent's children array.
+
+**Signature:**
+```tl
+order: integer
+```
+
+## tag
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The tag of the node as a string.
+
+**Signature:**
+```tl
+tag: string
+```
+
+## visible
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the node is visible.
+
+**Signature:**
+```tl
+visible: boolean
+```
+
+## parent
+
+**Type:** Readonly Field.
+
+**Description:**
+
+&emsp;&emsp;The parent 3D node.
+
+**Signature:**
+```tl
+const parent: Node3D | nil
+```
+
+## hasChildren
+
+**Type:** Readonly Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the node has child 3D nodes.
+
+**Signature:**
+```tl
+const hasChildren: boolean
+```
+
+## position
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The node position.
+
+**Signature:**
+```tl
+position: Vec3
+```
+
+## scale
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The node scale.
+
+**Signature:**
+```tl
+scale: Vec3
+```
+
+## rotation
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The node rotation quaternion.
+
+**Signature:**
+```tl
+rotation: any
+```
+
+## angles
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The node Euler rotation in degrees.
+
+**Signature:**
+```tl
+angles: Vec3
+```
+
+## worldMatrix
+
+**Type:** Readonly Field.
+
+**Description:**
+
+&emsp;&emsp;The node world transform matrix.
+
+**Signature:**
+```tl
+const worldMatrix: any
+```
+
+## x
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The X-axis position of the node.
+
+**Signature:**
+```tl
+x: number
+```
+
+## y
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The Y-axis position of the node.
+
+**Signature:**
+```tl
+y: number
+```
+
+## z
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The Z-axis position of the node.
+
+**Signature:**
+```tl
+z: number
+```
+
+## angleX
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The X-axis rotation angle of the node in degrees.
+
+**Signature:**
+```tl
+angleX: number
+```
+
+## angleY
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The Y-axis rotation angle of the node in degrees.
+
+**Signature:**
+```tl
+angleY: number
+```
+
+## angleZ
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The Z-axis rotation angle of the node in degrees.
+
+**Signature:**
+```tl
+angleZ: number
+```
+
+## scaleX
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The X-axis scale factor of the node.
+
+**Signature:**
+```tl
+scaleX: number
+```
+
+## scaleY
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The Y-axis scale factor of the node.
+
+**Signature:**
+```tl
+scaleY: number
+```
+
+## scaleZ
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The Z-axis scale factor of the node.
+
+**Signature:**
+```tl
+scaleZ: number
+```
+
+## addChild
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Adds a child 3D node to the current node.
+
+**Signature:**
+```tl
+addChild: function(
+		self: Node3D,
+		child: Node3D,
+		order?: integer --[[0]],
+		tag?: string --[[""]]
+	)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| child | Node3D | The child node to add. |
+| order | integer | [optional] The drawing order of the child node. Default is 0. |
+| tag | string | [optional] The tag of the child node. Default is an empty string. |
+
+## removeChild
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Removes a child 3D node from the current node.
+
+**Signature:**
+```tl
+removeChild: function(self: Node3D, child: Node3D, cleanup?: boolean --[[true]])
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| child | Node3D | The child node to remove. |
+| cleanup | boolean | [optional] Whether to cleanup the child node. Default is true. |
+
+## removeAllChildren
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Removes all child 3D nodes from the current node.
+
+**Signature:**
+```tl
+removeAllChildren: function(self: Node3D, cleanup?: boolean --[[true]])
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| cleanup | boolean | [optional] Whether to cleanup the child nodes. Default is true. |
+
+## removeFromParent
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Removes the current node from its parent node.
+
+**Signature:**
+```tl
+removeFromParent: function(self: Node3D, cleanup?: boolean --[[true]])
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| cleanup | boolean | [optional] Whether to cleanup the current node. Default is true. |
+
+## cleanup
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Cleans up the current node and releases its 3D resources.
+
+**Signature:**
+```tl
+cleanup: function(self: Node3D)
+```
+
+## convertToWorldSpace
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Converts a point from node space to world space.
+
+**Signature:**
+```tl
+convertToWorldSpace: function(self: Node3D, localPoint: Vec3): Vec3
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| localPoint | Vec3 | The point in node space. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Vec3 | The converted point in world space. |
+
+## convertToNodeSpace
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Converts a point in world space to node space.
+
+**Signature:**
+```tl
+convertToNodeSpace: function(self: Node3D, worldPoint: Vec3): Vec3
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| worldPoint | Vec3 | The point in world space. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Vec3 | The converted point in node space. |

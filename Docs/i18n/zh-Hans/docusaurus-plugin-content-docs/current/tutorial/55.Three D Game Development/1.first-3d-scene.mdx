@@ -1,0 +1,102 @@
+# 创建第一个 3D 场景
+
+这一课会完成一个小型 3D 观察场景的第一版：放入模型、设置相机和主光源，并用数据确认 Dora 确实渲染了它。后续课程将在同一个场景上逐步加入阴影、动画、物理和世界内 UI。
+
+:::tip 本课目标
+完成后你应能看到一个缓慢旋转的模型，并能通过 `view.stats` 证明它已经被渲染。
+:::
+
+## 开始前的准备
+
+- 新建一个 Dora TypeScript 项目，并在 Web IDE 中打开。
+- 在 `Assets/Model/Duck.glb` 放入一个 glTF 2.0 模型。初学时建议使用 `.glb`，因为几何和纹理都封装在单一文件中。
+- 本课使用默认的 3D 入口视图：`Director.entry`。
+
+如果使用自己的资产，第一步只改 `Model3D` 的路径。不要同时修改相机、光源与模型代码，否则出现问题时很难定位原因。
+
+## 第一步：放置相机和光源
+
+3D 物体在相机未激活时不可见。先添加相机，再添加一个方向光，让模型的轮廓和明暗能够被读出来。
+
+```ts title="init.ts"
+import {
+	App, Camera3D, Color3, Content, DirectionalLight3D,
+	Director, Model3D, Vec3, threadLoop,
+} from "Dora";
+
+const view = Director.entry;
+view.setEnvironmentMap("");
+view.setEnvironmentIntensity(0, 0, 1);
+
+const camera = Camera3D();
+camera.lookAt(Vec3(4, 3, 6), Vec3(0, 0.7, 0));
+Director.pushCamera(camera);
+
+const light = DirectionalLight3D();
+light.color = Color3(0xffffff);
+light.intensity = 4;
+light.angleX = -45;
+light.angleY = 25;
+view.addChild(light);
+```
+
+`lookAt(eye, target)` 的第一个向量是相机位置，第二个向量是注视目标。起步阶段让目标靠近模型的预期中心即可。
+
+## 第二步：加入模型，让场景“动起来”
+
+把下面代码追加到初始化后。轻微旋转比静态截图更容易判断场景是否真的在运行。
+
+```ts title="init.ts"
+const model = Model3D("Assets/Model/Duck.glb");
+view.addChild(model);
+
+threadLoop(() => {
+	model.angleY += App.deltaTime * 30;
+	return false;
+});
+```
+
+`Model3D` 是 `Node3D`，可像普通场景节点一样使用 `position`、`scale`、`angles`、子节点与父节点变换。
+
+## 检查点：验证渲染，而不只是验证编译
+
+在模型代码后加入一次性检查。它会同时记录可供程序读取的结果和排查所需的数据。
+
+```ts title="init.ts"
+let elapsed = 0;
+let checked = false;
+
+threadLoop(() => {
+	elapsed += App.deltaTime;
+	if (!checked && elapsed > 1.5) {
+		checked = true;
+		const stats = view.stats;
+		const passed = stats.drawCalls > 0 && stats.visibleVisuals > 0;
+		Content.save(
+			"first-3d-scene.result",
+			`status=${passed ? "PASS" : "FAIL"} draws=${stats.drawCalls} visible=${stats.visibleVisuals}`,
+		);
+	}
+	return false;
+});
+```
+
+运行项目后，应看到模型旋转，`first-3d-scene.result` 中应出现 `status=PASS`。
+
+| 现象 | 优先检查 |
+| --- | --- |
+| 画面为空 | 确认执行了 `Director.pushCamera(camera)`，且相机朝向模型。 |
+| 模型可见但全黑 | 确认方向光已添加到 `view`。 |
+| `draws=0` | 检查资产路径，以及模型文件是否位于项目中。 |
+
+## 本课理解
+
+`View3D` 持有 3D 场景，`Camera3D` 决定观察位置，光源决定表面如何呈现。`view.stats` 则提供一个可复用的渲染检查点。
+
+## 动手练习
+
+将模型移动到 `Vec3(1, 0, 0)`，再把相机目标改为 `Vec3(1, 0.7, 0)`。这个小实验能帮助你区分“移动物体”和“改变相机焦点”。
+
+## 下一课
+
+继续阅读[材质、光照与阴影](./light-scene-and-materials)，把基础观察场景变成更有层次的受光场景。

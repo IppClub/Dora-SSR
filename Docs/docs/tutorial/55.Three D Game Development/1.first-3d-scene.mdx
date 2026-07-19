@@ -1,0 +1,102 @@
+# Build Your First 3D Scene
+
+In this lesson you will build the first version of a tiny 3D inspection scene: a model, a camera, a key light, and a visible confirmation that Dora rendered it. The later lessons improve this same scene with shadows, animation, physics, and in-world UI.
+
+:::tip Lesson goal
+By the end, you should see a slowly rotating model and be able to prove that it was rendered with `view.stats`.
+:::
+
+## Before you start
+
+- Create a Dora TypeScript project and open it in the Web IDE.
+- Put a glTF 2.0 model at `Assets/Model/Duck.glb`. A `.glb` file is the easiest starting point because it packages its geometry and textures together.
+- This lesson uses the default 3D entry view: `Director.entry`.
+
+If you use another asset, change only the `Model3D` path first. Do not change camera, light, and model code all at once; that makes failures harder to isolate.
+
+## Step 1: Place a camera and a light
+
+3D objects are not visible until a camera is active. Add the camera before adding the model, then add one directional light so the model has a readable shape.
+
+```ts title="init.ts"
+import {
+	App, Camera3D, Color3, Content, DirectionalLight3D,
+	Director, Model3D, Vec3, threadLoop,
+} from "Dora";
+
+const view = Director.entry;
+view.setEnvironmentMap("");
+view.setEnvironmentIntensity(0, 0, 1);
+
+const camera = Camera3D();
+camera.lookAt(Vec3(4, 3, 6), Vec3(0, 0.7, 0));
+Director.pushCamera(camera);
+
+const light = DirectionalLight3D();
+light.color = Color3(0xffffff);
+light.intensity = 4;
+light.angleX = -45;
+light.angleY = 25;
+view.addChild(light);
+```
+
+`lookAt(eye, target)` is a useful first-camera tool: the first vector is where the camera stands, and the second is the point it looks toward. Keep the target close to the model's expected center.
+
+## Step 2: Add a model and make motion obvious
+
+Append this code below the setup. A small rotation makes it easier to tell whether the scene is alive than a static screenshot does.
+
+```ts title="init.ts"
+const model = Model3D("Assets/Model/Duck.glb");
+view.addChild(model);
+
+threadLoop(() => {
+	model.angleY += App.deltaTime * 30;
+	return false;
+});
+```
+
+`Model3D` is a `Node3D`. Its `position`, `scale`, `angles`, children, and parent transform behave like the rest of Dora's scene graph.
+
+## Checkpoint: verify rendering, not just compilation
+
+Add a one-shot check after the model code. It records both a machine-readable result and the reason for a failure.
+
+```ts title="init.ts"
+let elapsed = 0;
+let checked = false;
+
+threadLoop(() => {
+	elapsed += App.deltaTime;
+	if (!checked && elapsed > 1.5) {
+		checked = true;
+		const stats = view.stats;
+		const passed = stats.drawCalls > 0 && stats.visibleVisuals > 0;
+		Content.save(
+			"first-3d-scene.result",
+			`status=${passed ? "PASS" : "FAIL"} draws=${stats.drawCalls} visible=${stats.visibleVisuals}`,
+		);
+	}
+	return false;
+});
+```
+
+Run the project. You should see the model turn, and `first-3d-scene.result` should include `status=PASS`.
+
+| What you see | First thing to check |
+| --- | --- |
+| A blank view | Make sure `Director.pushCamera(camera)` ran and the camera looks at the model. |
+| A visible but black model | Confirm that the directional light was added to `view`. |
+| `draws=0` | Check the asset path and whether the model file is inside the project. |
+
+## What you learned
+
+`View3D` owns the 3D scene, `Camera3D` decides what is observed, and lights determine how surfaces read. `view.stats` gives a concrete rendering checkpoint that you can reuse in later lessons.
+
+## Try it yourself
+
+Move the model to `Vec3(1, 0, 0)`, then update the camera target to `Vec3(1, 0.7, 0)`. This small experiment teaches the difference between moving an object and changing the camera's focus.
+
+## Next lesson
+
+Continue with [materials, lights, and shadows](./light-scene-and-materials) to turn the basic inspection scene into a readable lit scene.

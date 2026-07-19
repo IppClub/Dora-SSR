@@ -1,0 +1,73 @@
+# Measure, Debug, and Protect Your 3D Scene
+
+The scene now has models, lights, physics, and world-space UI. Before adding more, establish a baseline on the target device. A useful 3D optimization result is not only a lower number: it must preserve the expected visible scene.
+
+:::tip Lesson goal
+Capture a repeatable screenshot and render-stat marker, inspect bounds when something disappears, then optimize in an order that avoids guesswork.
+:::
+
+## Step 1: Capture a baseline you can compare later
+
+This is the pattern used by the verified `Dora-Platformer3D-Demo/Test/Smoke.ts`: let the scene render, record statistics, and save a screenshot with the result.
+
+```ts title="Test/Smoke.ts"
+import {App, Content, Director, threadLoop} from "Dora";
+
+const view = Director.entry;
+let elapsed = 0;
+let checked = false;
+
+threadLoop(() => {
+	elapsed += App.deltaTime;
+	if (!checked && elapsed > 1.5) {
+		checked = true;
+		const stats = view.stats;
+		const passed = stats.drawCalls > 0 && stats.visibleVisuals > 0;
+		const screenshot = App.saveScreenshot("/tmp/my-3d-scene/baseline");
+		Content.save(
+			"/tmp/my-3d-scene/baseline.txt",
+			`status=${passed ? "PASS" : "FAIL"} draws=${stats.drawCalls} visible=${stats.visibleVisuals} screenshot=${screenshot}`,
+		);
+	}
+	return false;
+});
+```
+
+### Checkpoint
+
+Run the exact same scene before and after a substantial change. Keep both screenshots. If the second run reports fewer draw calls but a model is missing, that is a regression rather than an optimization.
+
+## Step 2: Ask one question per group of numbers
+
+| Statistic | Question it answers |
+| --- | --- |
+| `drawCalls`, `triangles`, `visibleVisuals` | What did this frame actually submit? |
+| `culledVisuals` | How much content was excluded from the final render? |
+| `materialSwitches`, `textureSwitches`, `meshSwitches` | Is state churn preventing efficient submission? |
+| `collectMicros`, `sortMicros`, `submitMicros` | Is CPU time spent collecting, ordering, or submitting scene work? |
+| Upload fields | Is a resource upload happening during gameplay? |
+
+Record a baseline before trying to improve any row. Compare one change at a time, on the same target device and camera view.
+
+## Step 3: Make spatial problems visible
+
+```ts title="init.ts"
+import {Director} from "Dora";
+
+const view = Director.entry;
+view.showAABB = true; // Turn on temporarily while inspecting bounds.
+```
+
+If an object unexpectedly disappears, inspect its bounds and camera range before changing materials or shaders. A misplaced parent transform, an oversized `Surface3D`, or a wrong model scale can look like a rendering bug. Turn `showAABB` off again before shipping.
+
+## A practical optimization loop
+
+1. Reuse `Model3D` paths; do not recreate models or materials every frame.
+2. Reduce avoidable texture and material switches before aggressively reducing geometry.
+3. Set shadow-map resolution for the target device, then measure again.
+4. Reduce `Surface3D` backing resolutions where the viewer cannot see the extra detail.
+5. Re-run the baseline and inspect both its marker and screenshot.
+
+## Finish the learning path
+
+You now have a complete, testable 3D loop: construct a scene, light it, import and animate assets, simulate objects, embed 2D content, and verify the final result. Use the [3D Rendering and Physics API reference](/docs/api/intro#3d-rendering-and-physics) when you need the full API surface, and return to these checkpoints whenever a new system changes the scene.

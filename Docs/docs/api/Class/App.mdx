@@ -467,6 +467,31 @@ saveLog: function(self: App, path: string): boolean
 | --- | --- |
 | boolean | Whether the log file was saved successfully. |
 
+## saveScreenshot
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Requests a screenshot of the main backbuffer.
+
+**Signature:**
+```tl
+saveScreenshot: function(self: App, filename: string): string
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The output path, with an optional .tga extension. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The actual TGA output path, or an empty string on failure. |
+
 ## openFileDialog
 
 **Type:** Function.

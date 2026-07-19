@@ -966,5 +966,9 @@
   "sidebar.apiSidebar.doc.Q-learning Class": {
     "message": "Q-learning Class",
     "description": "The label for the doc item Q-learning Class in sidebar apiSidebar, linking to the doc api/Class Object/QLearner"
+  },
+  "sidebar.tutorialSidebar.category.3D Game Development": {
+    "message": "3D 游戏开发",
+    "description": "The label for category 3D Game Development in sidebar tutorialSidebar"
   }
 }

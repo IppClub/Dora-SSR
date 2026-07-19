@@ -1,0 +1,94 @@
+# Light the Scene and Read Its Materials
+
+The first scene proved that the renderer works. This lesson makes it legible: you will give the model a ground reference, choose a light direction, enable a shadow, then tune one material without duplicating its source asset.
+
+:::tip Lesson goal
+Finish with a duck over a ground plane, a directional shadow, and a deliberately tinted material slot.
+:::
+
+## Before you start
+
+Start from [your first 3D scene](./first-3d-scene). The verified demo assets used below are `Assets/Model/Ground.gltf` and `Assets/Model/Duck.glb`. If you use different models, keep a receiving surface in the scene; a shadow cannot be judged without one.
+
+## Step 1: Establish neutral ambient light
+
+Environment light prevents completely black surfaces, while the directional light will provide the readable direction and shadow.
+
+```ts title="init.ts"
+import {Camera3D, Color, Color3, DirectionalLight3D, Director, Model3D, Vec3} from "Dora";
+
+const view = Director.entry;
+view.setEnvironmentMap("");
+view.setEnvironmentIntensity(0.22, 0.18, 1.0);
+
+const camera = Camera3D();
+camera.lookAt(Vec3(4.8, 3.7, 6.5), Vec3(0, 0.25, 0));
+Director.pushCamera(camera);
+```
+
+The three environment intensity values control diffuse, specular, and ambient contribution. Start with modest values: high ambient light makes shadows hard to read.
+
+## Step 2: Add a receiver, subject, and shadow-casting light
+
+```ts title="init.ts"
+const ground = Model3D("Assets/Model/Ground.gltf");
+ground.position = Vec3(0, -0.72, 0);
+view.addChild(ground);
+
+const duck = Model3D("Assets/Model/Duck.glb");
+duck.position = Vec3(0, -0.7, 0);
+duck.scale = Vec3(0.8, 0.8, 0.8);
+view.addChild(duck);
+
+const light = DirectionalLight3D();
+light.color = Color3(0xfff0d8);
+light.intensity = 4.5;
+light.angleX = -48;
+light.angleY = -35;
+light.castShadow = true;
+light.shadowBias = 0.004;
+light.shadowNormalBias = 0.02;
+light.shadowSoftness = 1;
+view.shadowMapSize = 1024;
+view.addChild(light);
+```
+
+### Checkpoint
+
+You should be able to answer two visual questions: is there a shadow under or beside the duck, and does rotating `light.angleY` move that shadow? If the answer to either is no, do not start tuning material values yet.
+
+## Step 3: Personalize one instance's material
+
+Imported assets are shared efficiently. Ask the model for the material slot you want to customize instead of creating a second copy of the model resource.
+
+```ts title="init.ts"
+const material = duck.getMaterial(0);
+if (material) {
+	material.baseColor = Color(0xff9bd7ff);
+	material.metallic = 0.15;
+	material.roughness = 0.42;
+}
+```
+
+Change one value at a time and observe the result:
+
+| Control | Visual question |
+| --- | --- |
+| `baseColor` | Does the object keep its readable light and dark sides? |
+| `metallic` | Does the reflection feel like metal rather than painted plastic? |
+| `roughness` | Is the highlight appropriately broad or sharp? |
+
+## Common mistakes
+
+- **No shadow:** `castShadow` must be `true` on the selected directional light; the subject and receiving surface must both be visible to the light.
+- **Shadow acne or detachment:** adjust `shadowBias` and `shadowNormalBias` in very small increments.
+- **Everything looks flat:** reduce environment intensity before increasing direct-light intensity.
+- **Performance drops after increasing shadow resolution:** return to 1024 and measure on the target device before trying 2048 or 4096.
+
+## Try it yourself
+
+Duplicate the duck with a second `Model3D` using the same path, place it at `Vec3(2, -0.7, 0)`, and tint only the second instance. This demonstrates shared source data with instance-local material edits.
+
+## Next lesson
+
+Continue with [model assets and animation](./add-models-and-animation) to turn a static scene object into a reusable animated character.

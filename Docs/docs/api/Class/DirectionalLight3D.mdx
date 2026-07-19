@@ -1,0 +1,36 @@
+# DirectionalLight3D
+
+**Description:**
+
+&emsp;&emsp;A directional light whose direction follows its world rotation.
+
+## color
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The light color in sRGB space.
+
+**Signature:**
+```tl
+color: Color3
+```
+
+## intensity
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The light intensity.
+
+**Signature:**
+```tl
+intensity: number
+	castShadow: boolean
+	shadowBias: number
+	shadowNormalBias: number
+	-- Shadow filter radius measured in shadow-map texels. Zero disables filtering.
+	shadowSoftness: number
+```

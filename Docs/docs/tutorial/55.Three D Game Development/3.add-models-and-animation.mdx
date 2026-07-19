@@ -1,0 +1,87 @@
+# Add Models and Animation Deliberately
+
+3D projects become difficult to maintain when every model is treated as a special case. This lesson gives you a repeatable asset workflow: keep imports self-contained, discover the animation names an asset actually provides, and reuse loaded data across scene instances.
+
+:::tip Lesson goal
+Load an animated character into the lit scene, play one confirmed clip, and add repeated props without duplicating their imported resources.
+:::
+
+## Before you start
+
+Continue from [lighting and materials](./light-scene-and-materials). The verified sample uses `Assets/Model/Kenney/character-oopi.glb` and `Assets/Model/Kenney/crate.glb` from `Dora-Platformer3D-Demo`.
+
+For your own assets:
+
+- Use glTF 2.0: `.glb` or `.gltf`.
+- Keep `.gltf`, buffers, and textures in their original relative layout.
+- Prefer `.glb` while learning; it has fewer paths to break when moved between projects.
+
+## Step 1: Put an animated character in frame
+
+```ts title="init.ts"
+import {Camera3D, Color3, DirectionalLight3D, Director, Model3D, Vec3} from "Dora";
+
+const view = Director.entry;
+const camera = Camera3D();
+camera.lookAt(Vec3(3.5, 2.5, 5.5), Vec3(0, 0.8, 0));
+Director.pushCamera(camera);
+
+const character = Model3D("Assets/Model/Kenney/character-oopi.glb");
+character.scale = Vec3(0.8, 0.8, 0.8);
+character.play("idle", true);
+view.addChild(character);
+
+const light = DirectionalLight3D();
+light.color = Color3(0xfff3da);
+light.intensity = 3.2;
+light.angleX = -48;
+light.angleY = 28;
+view.addChild(light);
+```
+
+### Checkpoint
+
+The character should be visible, scaled sensibly, and repeat its idle motion. If it is visible but still, verify the clip name before changing camera or light settings.
+
+`play(name, loop)` plays an animation clip embedded in the glTF. Names are asset data, not a Dora convention: another model might use `Idle`, `stand`, or no animation at all. Inspect the asset in your DCC tool or an asset viewer and copy the clip name exactly.
+
+## Step 2: Reuse an asset for repeated props
+
+```ts title="init.ts"
+const firstCrate = Model3D("Assets/Model/Kenney/crate.glb");
+firstCrate.position = Vec3(-1.2, 0, 0);
+view.addChild(firstCrate);
+
+const secondCrate = Model3D("Assets/Model/Kenney/crate.glb");
+secondCrate.position = Vec3(1.2, 0, 0);
+view.addChild(secondCrate);
+```
+
+These two nodes reuse cached meshes, textures, materials, and animation data from the same source path. Treat `Model3D` as a scene instance: give each instance its own transform and only customize materials where the visual difference is needed.
+
+## Build a reliable import habit
+
+1. Add one model to an empty test scene.
+2. Confirm it renders with a camera and light.
+3. Confirm its scale and origin are practical.
+4. Test one animation by its exact name.
+5. Only then move the asset into gameplay and add materials, physics, or UI.
+
+This order saves time because an animation-name or asset-path failure stays separate from scene-logic failures.
+
+## Common mistakes
+
+| Symptom | Likely cause | Fix |
+| --- | --- | --- |
+| Model is missing | Broken `.gltf` companion paths | Preserve the model folder layout or use `.glb`. |
+| Model is tiny or huge | Authoring units differ | Adjust `scale` on the instance, then document the convention. |
+| `play()` does nothing | Wrong or absent clip name | Inspect the source asset and use its exact clip name. |
+| Many identical props cost too much | Each has unique material work | Share the source path and customize only exceptions. |
+
+## Try it yourself
+
+Add a third crate, rotate it with `angles = Vec3(0, 25, 0)`, and keep the other two unchanged. You should see three distinct placements while still loading one source asset.
+
+## Next lesson
+
+Continue with [3D physics and character movement](./add-physics-and-characters) to make scene objects respond to gravity and gameplay movement.

@@ -192,6 +192,27 @@ This category provides functionality for creating and managing physical object s
 * [MoveJoint](/docs/api/Class/MoveJoint)
 * [MotorJoint](/docs/api/Class/MotorJoint)
 
+## 3D Rendering and Physics
+
+This category provides 3D scene, rendering, lighting, and physics APIs.
+
+* [Node3D](/docs/api/Class/Node3D)
+* [Model3D](/docs/api/Class/Model3D)
+* [Camera3D](/docs/api/Class/Camera3D)
+* [PhysicsWorld3D](/docs/api/Class/PhysicsWorld3D)
+* [Body3D](/docs/api/Class/Body3D)
+* [BodyDef3D](/docs/api/Class/BodyDef3D)
+* [FixtureDef3D](/docs/api/Class/FixtureDef3D)
+* [Constraint3D](/docs/api/Class/Constraint3D)
+* [CharacterController3D](/docs/api/Class/CharacterController3D)
+* [Material3D](/docs/api/Class/Material3D)
+* [DirectionalLight3D](/docs/api/Class/DirectionalLight3D)
+* [PointLight3D](/docs/api/Class/PointLight3D)
+* [Surface3D](/docs/api/Class/Surface3D)
+* [RenderStats3D](/docs/api/Class/RenderStats3D)
+* [View3D](/docs/api/Class/View3D)
+* [Vec3](/docs/api/Class/Vec3)
+
 ## ECS Framework
 
 This category provides the functionality of the Entity Component System (ECS).

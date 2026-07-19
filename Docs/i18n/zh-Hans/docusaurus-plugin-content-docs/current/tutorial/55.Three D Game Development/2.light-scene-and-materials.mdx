@@ -1,0 +1,94 @@
+# 用光照读懂材质
+
+第一课证明了渲染器正常工作；这一课让画面变得可读。你会加入地面参照物、选择主光方向、开启阴影，并在不复制源资产的情况下调整一个材质实例。
+
+:::tip 本课目标
+完成后应看到地面上的 Duck、清晰的方向阴影，以及一个主动调色的材质槽位。
+:::
+
+## 开始前的准备
+
+请从[第一个 3D 场景](./first-3d-scene)继续。下面使用的已验证示例资产为 `Assets/Model/Ground.gltf` 与 `Assets/Model/Duck.glb`。如果换成自己的模型，请确保场景中有能接收阴影的表面；没有接收面就无法判断阴影是否正确。
+
+## 第一步：建立中性的环境光
+
+环境光避免表面完全发黑，方向光则提供清晰的方向感与阴影。
+
+```ts title="init.ts"
+import {Camera3D, Color, Color3, DirectionalLight3D, Director, Model3D, Vec3} from "Dora";
+
+const view = Director.entry;
+view.setEnvironmentMap("");
+view.setEnvironmentIntensity(0.22, 0.18, 1.0);
+
+const camera = Camera3D();
+camera.lookAt(Vec3(4.8, 3.7, 6.5), Vec3(0, 0.25, 0));
+Director.pushCamera(camera);
+```
+
+三个环境光强度分别控制漫反射、镜面与环境贡献。先从较低数值开始：环境光过强会让阴影难以辨认。
+
+## 第二步：加入接收面、主体与投影光
+
+```ts title="init.ts"
+const ground = Model3D("Assets/Model/Ground.gltf");
+ground.position = Vec3(0, -0.72, 0);
+view.addChild(ground);
+
+const duck = Model3D("Assets/Model/Duck.glb");
+duck.position = Vec3(0, -0.7, 0);
+duck.scale = Vec3(0.8, 0.8, 0.8);
+view.addChild(duck);
+
+const light = DirectionalLight3D();
+light.color = Color3(0xfff0d8);
+light.intensity = 4.5;
+light.angleX = -48;
+light.angleY = -35;
+light.castShadow = true;
+light.shadowBias = 0.004;
+light.shadowNormalBias = 0.02;
+light.shadowSoftness = 1;
+view.shadowMapSize = 1024;
+view.addChild(light);
+```
+
+### 检查点
+
+请确认两件事：Duck 下方或侧面是否有阴影？调整 `light.angleY` 后阴影是否随之移动？任意一个答案是否定时，都不要急着调材质参数。
+
+## 第三步：只修改一个实例的材质
+
+导入资产会高效共享。需要定制时，取出要修改的材质槽位即可，无需为此再创建一份模型源资产。
+
+```ts title="init.ts"
+const material = duck.getMaterial(0);
+if (material) {
+	material.baseColor = Color(0xff9bd7ff);
+	material.metallic = 0.15;
+	material.roughness = 0.42;
+}
+```
+
+每次只修改一个参数，并观察结果：
+
+| 参数 | 要观察的问题 |
+| --- | --- |
+| `baseColor` | 调色后是否仍保留清晰的亮面与暗面？ |
+| `metallic` | 反射是否更像金属，而不是涂漆塑料？ |
+| `roughness` | 高光的宽窄是否符合预期？ |
+
+## 常见问题
+
+- **没有阴影：** 选中的方向光必须设置 `castShadow = true`，主体和接收面也必须处于该光的可见范围。
+- **阴影痤疮或脱离：** 以很小的幅度调整 `shadowBias` 和 `shadowNormalBias`。
+- **画面没有层次：** 先降低环境光强度，再提高直接光强度。
+- **提高阴影分辨率后变慢：** 先回到 1024，再在目标设备上测量后决定是否使用 2048 或 4096。
+
+## 动手练习
+
+用同一模型路径创建第二只 Duck，放在 `Vec3(2, -0.7, 0)`，只给第二个实例调色。你会看到源资产仍被共享，而材质修改只作用于该实例。
+
+## 下一课
+
+继续阅读[模型资产与动画](./add-models-and-animation)，让静态场景物体成为可复用的动画角色。

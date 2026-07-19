@@ -932,6 +932,28 @@ const sidebars = {
 		},
 		{
 			type: 'category',
+			label: '3D Rendering and Physics',
+			items: [
+				'api/Class/Node3D',
+				'api/Class/Model3D',
+				'api/Class/Camera3D',
+				'api/Class/PhysicsWorld3D',
+				'api/Class/Body3D',
+				'api/Class/BodyDef3D',
+				'api/Class/FixtureDef3D',
+				'api/Class/Constraint3D',
+				'api/Class/CharacterController3D',
+				'api/Class/Material3D',
+				'api/Class/DirectionalLight3D',
+				'api/Class/PointLight3D',
+				'api/Class/Surface3D',
+				'api/Class/RenderStats3D',
+				'api/Class/View3D',
+				'api/Class/Vec3',
+			]
+		},
+		{
+			type: 'category',
 			label: 'ECS Framework',
 			items: [
 				{

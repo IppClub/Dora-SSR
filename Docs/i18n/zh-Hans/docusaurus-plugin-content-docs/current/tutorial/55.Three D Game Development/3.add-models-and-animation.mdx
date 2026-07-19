@@ -1,0 +1,87 @@
+# 有节奏地管理模型与动画
+
+当每个模型都被当成特殊情况处理时，3D 项目会很快变得难以维护。本课建立一套可重复的资产流程：保持导入资产自包含、确认模型真正提供的动画名称，并让多个场景实例复用加载结果。
+
+:::tip 本课目标
+在受光场景中加载动画角色、播放一个已确认的动画片段，并添加重复道具而不复制导入资源。
+:::
+
+## 开始前的准备
+
+请从[材质、光照与阴影](./light-scene-and-materials)继续。已验证示例使用 `Dora-Platformer3D-Demo` 中的 `Assets/Model/Kenney/character-oopi.glb` 和 `Assets/Model/Kenney/crate.glb`。
+
+使用自己的资产时：
+
+- 使用 glTF 2.0：`.glb` 或 `.gltf`。
+- `.gltf`、buffer 和纹理必须保持原有相对目录结构。
+- 学习阶段优先使用 `.glb`，移动项目时更不容易发生路径问题。
+
+## 第一步：让动画角色进入画面
+
+```ts title="init.ts"
+import {Camera3D, Color3, DirectionalLight3D, Director, Model3D, Vec3} from "Dora";
+
+const view = Director.entry;
+const camera = Camera3D();
+camera.lookAt(Vec3(3.5, 2.5, 5.5), Vec3(0, 0.8, 0));
+Director.pushCamera(camera);
+
+const character = Model3D("Assets/Model/Kenney/character-oopi.glb");
+character.scale = Vec3(0.8, 0.8, 0.8);
+character.play("idle", true);
+view.addChild(character);
+
+const light = DirectionalLight3D();
+light.color = Color3(0xfff3da);
+light.intensity = 3.2;
+light.angleX = -48;
+light.angleY = 28;
+view.addChild(light);
+```
+
+### 检查点
+
+角色应当可见、尺寸合理，并持续播放 idle 动画。若角色可见但不动，应先检查动画片段名，而不是先改相机或光照。
+
+`play(name, loop)` 播放 glTF 内嵌的动画片段。片段名属于资产数据，不是 Dora 的固定约定：其他模型可能叫 `Idle`、`stand`，或者完全不带动画。请在 DCC 工具或资产查看器中确认并原样使用名称。
+
+## 第二步：复用源资产创建重复道具
+
+```ts title="init.ts"
+const firstCrate = Model3D("Assets/Model/Kenney/crate.glb");
+firstCrate.position = Vec3(-1.2, 0, 0);
+view.addChild(firstCrate);
+
+const secondCrate = Model3D("Assets/Model/Kenney/crate.glb");
+secondCrate.position = Vec3(1.2, 0, 0);
+view.addChild(secondCrate);
+```
+
+两个节点会复用相同来源路径的缓存网格、纹理、材质和动画数据。应把 `Model3D` 当成场景实例：每个实例都有自己的变换，只有确有视觉差异时才调整材质。
+
+## 建立可靠的导入习惯
+
+1. 先在空测试场景中加入一个模型。
+2. 用相机和光源确认它能被渲染。
+3. 确认尺度与原点是否合理。
+4. 使用精确名称测试一个动画。
+5. 最后才放入玩法，并添加材质、物理或 UI。
+
+这个顺序能把动画名、资产路径的问题与场景逻辑问题隔离开来。
+
+## 常见问题
+
+| 现象 | 可能原因 | 处理方式 |
+| --- | --- | --- |
+| 模型缺失 | `.gltf` 的附属路径损坏 | 保持模型目录结构，或改用 `.glb`。 |
+| 模型过大或过小 | 导出单位不同 | 在实例上调整 `scale`，并记录项目尺度约定。 |
+| `play()` 没有效果 | 片段名错误或资产没有动画 | 查看源资产并使用精确名称。 |
+| 大量相同道具成本过高 | 每个实例都有独立材质修改 | 共享源路径，只定制少数例外。 |
+
+## 动手练习
+
+再加入第三个 crate，设置 `angles = Vec3(0, 25, 0)`，保持前两个不变。你会看到三个不同的摆放，同时只加载一份源资产。
+
+## 下一课
+
+继续阅读[3D 物理与角色控制](./add-physics-and-characters)，让场景物体响应重力与玩法移动。

@@ -1,0 +1,149 @@
+# View3D
+
+**描述：**
+
+&emsp;&emsp;用于在 2D 场景树中渲染 3D 内容的类。
+
+**继承自：**[Node](/docs/api/Class/Node)。
+
+## scene
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;3D 场景根节点。
+
+**签名：**
+```tl
+const scene: Node3D
+```
+
+## stats
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;最近一次3D渲染与当前3D资源注册表的统计信息。
+
+**签名：**
+```tl
+const stats: RenderStats3D
+```
+
+## showAABB
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;是否绘制当前世界坐标 AABB 调试线框。
+
+**签名：**
+```tl
+showAABB: boolean
+```
+
+## shadowMapSize
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;阴影贴图边长。该值会归一化为 256、512、1024、2048 或 4096。
+
+**签名：**
+```tl
+shadowMapSize: number
+```
+
+## getRayOrigin
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回穿过视图坐标点的拾取射线世界坐标起点。
+
+**签名：**
+```tl
+getRayOrigin: function(self: View3D, viewPoint: Vec2): Vec3
+```
+
+## getRayDirection
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回穿过视图坐标点的拾取射线世界坐标方向。
+
+**签名：**
+```tl
+getRayDirection: function(self: View3D, viewPoint: Vec2): Vec3
+```
+
+## pick
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回与视图坐标点相交的最近可见模型。
+
+**签名：**
+```tl
+pick: function(self: View3D, viewPoint: Vec2): Model3D | nil
+```
+
+## setEnvironmentMap
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;加载用于基于图像照明的环境贴图。
+
+**签名：**
+```tl
+setEnvironmentMap: function(self: View3D, path: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| path | string | 环境贴图路径。空字符串会清除环境贴图。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 成功加载或清除时返回 true。 |
+
+## setEnvironmentIntensity
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置环境光漫反射、镜面反射和曝光强度。
+
+**签名：**
+```tl
+setEnvironmentIntensity: function(
+		self: View3D,
+		diffuse: number,
+		specular: number,
+		exposure?: number --[[1.0]]
+	)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| diffuse | number | 漫反射光照强度。 |
+| specular | number | 镜面反射光照强度。 |
+| exposure | number | [可选] 曝光值。默认为 1.0。 |

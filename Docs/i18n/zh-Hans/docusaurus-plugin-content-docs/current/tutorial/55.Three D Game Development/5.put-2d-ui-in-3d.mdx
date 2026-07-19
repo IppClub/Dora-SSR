@@ -1,0 +1,71 @@
+# 在 3D 世界中放入可读的 2D UI
+
+并非所有游戏界面都应放在屏幕空间。世界标签、终端、标牌和状态面板应跟随游戏世界，并从相机角度保持可读。`Surface3D` 可以让普通的 2D 节点树完成这件事。
+
+:::tip 本课目标
+把一个 2D 标签放到 3D 场景中，使其绕垂直轴朝向相机，并为它选择合适的底图分辨率。
+:::
+
+## 先选择正确的 UI 类型
+
+需要始终固定在屏幕上的界面使用普通 2D 节点树；需要拥有世界坐标、服从深度和透视、随相机移动的内容使用 `Surface3D`。
+
+| UI 示例 | 合适的位置 |
+| --- | --- |
+| 暂停菜单或常驻 HUD | 普通 2D 场景树 |
+| NPC 名字标签或悬浮提示 | 带 `Billboard.YAxis` 或 `Billboard.Screen` 的 `Surface3D` |
+| 世界内终端或标牌 | 带 `Billboard.None` 的 `Surface3D` |
+
+## 第一步：像平常一样创建 2D 内容
+
+内容本身仍是普通 `Node`。先从标签开始，把注意力放在 3D 放置上。
+
+```ts title="init.ts"
+import {Billboard, Director, Label, Size, Surface3D, Vec3} from "Dora";
+
+const view = Director.entry;
+const label = Label("sarasa-mono-sc-regular", 24)!;
+label.text = "Hello from 2D";
+```
+
+若 `Label()` 未返回节点，应先确认项目中有对应字体，再排查 `Surface3D`。
+
+## 第二步：让 2D 节点拥有世界空间表面
+
+```ts title="init.ts"
+const surface = Surface3D(label, Size(3, 1), Size(512, 128));
+if (!surface) throw new Error("failed to create Surface3D");
+
+surface.position = Vec3(0, 1.5, 0);
+surface.billboard = Billboard.YAxis;
+view.addChild(surface);
+```
+
+第二个参数 `Size(3, 1)` 是 3D 世界中的物理尺寸。可选的 `Size(512, 128)` 是 surface 需要独立渲染目标时使用的底图像素分辨率。两者是不同概念：世界尺寸决定面板在场景中看起来多大，像素尺寸决定细节和成本。
+
+### 检查点
+
+绕着标签移动相机。使用 `Billboard.YAxis` 时，标签应左右朝向相机，但不会上下倾斜。若标签过小，先调世界尺寸；若文字模糊，再调像素尺寸。
+
+## 第三步：有意识地选择 billboard 行为
+
+- `Billboard.None`：保持表面的 3D 旋转，适合固定标牌与终端。
+- `Billboard.YAxis`：绕垂直轴朝向相机，适合名字标签。
+- `Billboard.Screen`：始终完整朝向相机，适合必须可读的悬浮提示。
+
+`Surface3D` 会自动选择共享深度或独立纹理路径。`surface.usingTexture` 对排查分辨率和排序问题有帮助，但通常不需要强制设置它。
+
+## 避开两类常见成本
+
+1. 不要每帧创建新的 `Surface3D`；保留一个 surface，只更新其标签或子节点。
+2. 不要默认给每个面板使用巨大底图；从能在预期相机距离下读清文字的最小尺寸开始。
+
+场景中有大量面板时，在改变底图分辨率前后对比 `view.stats`。
+
+## 动手练习
+
+将标签替换为一个包含标题和状态行的小型 2D `Node` 子树，并把它挂在物理课中的下落箱子上方。然后在 `Billboard.YAxis` 与 `Billboard.None` 间切换，感受信息标签与物理标牌的差异。
+
+## 下一课
+
+继续阅读[3D 性能分析与调试](./measure-and-debug-3d-scene)，在添加更多内容前让场景变得可度量。

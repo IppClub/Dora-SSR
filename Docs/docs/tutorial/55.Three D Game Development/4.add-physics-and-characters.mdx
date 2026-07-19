@@ -1,0 +1,97 @@
+# Give the Scene Physics and a Player Shape
+
+This lesson turns the static scene into a small physical space. You will add a floor and a falling crate, then learn where rigid-body simulation ends and character movement begins.
+
+:::tip Lesson goal
+Create a gravity-driven crate without manually ticking physics, then choose the right tool for a controllable player.
+:::
+
+## The important model: two trees, one transform
+
+`PhysicsWorld3D` is separate from Dora's 2D physics world. It owns `Body3D` objects, while your visible `Node3D` remains the thing you render. The helper below reparents the visible node under its `Body3D`, so the physics transform becomes the visible transform.
+
+`PhysicsWorld3D()` registers its own fixed update. It uses `Director.scheduler` by default, which `Director` advances every frame. A basic world therefore needs no `scheduler.update(App.deltaTime)` loop.
+
+## Step 1: Create a world with a floor and crate
+
+```ts title="init.ts"
+import {Director, Node3D, PhysicsWorld3D, Vec3} from "Dora";
+import {makeBoxBody3D} from "Game/PhysicsBody3D";
+
+const view = Director.entry;
+Director.scheduler.fixedFPS = 60;
+
+const world = PhysicsWorld3D();
+world.gravity = Vec3(0, -9.81, 0);
+view.addChild(world);
+
+const floor = Node3D();
+floor.position = Vec3(0, -0.5, 0);
+view.addChild(floor);
+makeBoxBody3D(world, floor, Vec3(8, 0.5, 4), PhysicsWorld3D.Static);
+
+const crate = Node3D();
+crate.position = Vec3(0, 2, 0);
+view.addChild(crate);
+makeBoxBody3D(world, crate, Vec3(0.5, 0.5, 0.5), PhysicsWorld3D.Dynamic);
+```
+
+### Checkpoint
+
+With a visible model attached to each node, the crate should fall, collide with the floor, and settle. The verified tutorial test runs this setup with no custom scheduler update; its crate falls from `y=2` automatically.
+
+If the crate falls forever, first confirm the floor fixture exists and is `PhysicsWorld3D.Static`. If nothing moves, confirm that the world was added to `view` and that the crate body is `Dynamic`.
+
+## Step 2: Keep the body helper small and explicit
+
+```ts title="Game/PhysicsBody3D.ts"
+import {Body3D, BodyDef3D, FixtureDef3D, Node3D, PhysicsWorld3D, Vec3} from "Dora";
+
+export function makeBoxBody3D(world: PhysicsWorld3D.Type, node: Node3D.Type,
+	halfExtent: Vec3.Type, type = PhysicsWorld3D.Dynamic) {
+	const parent = node.parent;
+	const position = node.position;
+	const angles = node.angles;
+	node.removeFromParent(false);
+	node.position = Vec3(0, 0, 0);
+	node.angles = Vec3(0, 0, 0);
+
+	const def = BodyDef3D();
+	def.type = type;
+	if (!def.attach(FixtureDef3D.box(halfExtent))) throw new Error("failed to attach fixture");
+	const body = Body3D(def, world, position, angles);
+	if (!body) throw new Error("failed to create body");
+	body.addChild(node);
+	parent?.addChild(body);
+	return body;
+}
+```
+
+The half extent is half the box size: `Vec3(0.5, 0.5, 0.5)` makes a one-unit cube. Keep the visual and fixture dimensions conceptually aligned; invisible collision shapes are difficult to debug later.
+
+## Step 3: Use a character controller for intentional movement
+
+Rigid bodies are excellent for crates and props. A player normally needs predictable slope, step, and desired-velocity behavior instead.
+
+```ts title="init.ts"
+const playerNode = Node3D();
+playerNode.position = Vec3(0, 1.2, 0);
+view.addChild(playerNode);
+
+const player = world.createCharacter(playerNode, 0.55, 0.32, 50, 0.35);
+player.desiredVelocity = Vec3(2, 0, 0);
+```
+
+Set `desiredVelocity` from input during ordinary gameplay updates. Let the physics world's fixed update resolve the final transform; do not move a dynamic body's visual child by hand afterwards.
+
+## When should a custom scheduler be used?
+
+Give `world.scheduler` a separate `Scheduler` only when physics needs its own pause, replay, or time-scale domain. In that advanced case, you must explicitly advance the custom scheduler; `Director` automatically advances only its own schedulers.
+
+## Try it yourself
+
+Attach a crate model under the dynamic crate node. First match its collision box to the visible model, then intentionally make the fixture too large. The mismatch is a useful way to learn why collision dimensions should be treated as part of level design.
+
+## Next lesson
+
+Continue with [2D content in a 3D scene](./put-2d-ui-in-3d) to place readable labels and panels into this physical world.

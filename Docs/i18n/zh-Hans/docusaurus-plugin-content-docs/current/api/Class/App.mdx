@@ -469,6 +469,31 @@ saveLog: function(self: App, path: string): boolean
 | --- | --- |
 | boolean | 日志文件是否保存成功。 |
 
+## saveScreenshot
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;请求保存主backbuffer截图。
+
+**签名：**
+```tl
+saveScreenshot: function(self: App, filename: string): string
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 输出路径，可带.tga扩展名。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 实际TGA输出路径，失败时返回空字符串。 |
+
 ## openFileDialog
 
 **类型：** 函数。

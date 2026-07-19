@@ -68,11 +68,11 @@ const ui3D: Node
 
 **描述：**
 
-&emsp;&emsp;用于挂载主要游戏内容场景树的根节点。
+&emsp;&emsp;用于挂载主要游戏内容场景树的根节点。运行时类型是 View3D。
 
 **签名：**
 ```tl
-const entry: Node
+const entry: any
 ```
 
 ## postNode
@@ -125,19 +125,6 @@ const postScheduler: Scheduler
 **签名：**
 ```tl
 const currentCamera: Camera
-```
-
-## frustumCulling
-
-**类型：** 成员变量。
-
-**描述：**
-
-&emsp;&emsp;是否启用视锥体裁剪。
-
-**签名：**
-```tl
-frustumCulling: boolean
 ```
 
 ## profilerSending
