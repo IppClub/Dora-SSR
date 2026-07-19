@@ -41,7 +41,7 @@ static float GetFontScale(String fontStr) {
 static Vec2 GetSDFSmoothing(float fontScale) {
 	constexpr float edge = 0.69f;
 	constexpr float baseSoftness = 0.012f;
-	float softness = Math::clamp(baseSoftness / std::max(fontScale, 0.01f), 0.001f, 0.08f);
+	float softness = Math::clamp(baseSoftness / std::max(fontScale, 0.01f), 0.006f, 0.08f);
 	return {edge - softness, edge + softness};
 }
 
