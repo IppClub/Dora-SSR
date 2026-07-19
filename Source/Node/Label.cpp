@@ -15,7 +15,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Cache/FontCache.h"
 #include "Effect/Effect.h"
 #include "Node/Sprite.h"
-#include "Other/sdf_gen2d.h"
 #include "Other/utf8.h"
 #include "Render/View.h"
 
@@ -39,6 +38,13 @@ static float GetFontScale(String fontStr) {
 	return 1.0f;
 }
 
+static Vec2 GetSDFSmoothing(float fontScale) {
+	constexpr float edge = 0.69f;
+	constexpr float baseSoftness = 0.012f;
+	float softness = Math::clamp(baseSoftness / std::max(fontScale, 0.01f), 0.001f, 0.08f);
+	return {edge - softness, edge + softness};
+}
+
 Label::Label(String fontName, uint32_t fontSize, bool sdf)
 	: _alphaRef(0)
 	, _spacing(0)
@@ -48,7 +54,7 @@ Label::Label(String fontName, uint32_t fontSize, bool sdf)
 	, _alignment(TextAlign::Center)
 	, _outlineColor(0x0)
 	, _outlineWidth(0.0f)
-	, _smooth{sdf::sdf_gen2d::suggested_edge_x, sdf::sdf_gen2d::suggested_edge_y}
+	, _smooth(sdf ? GetSDFSmoothing(_fontScale) : Vec2::zero)
 	, _font(SharedFontCache.load(fontName, fontSize, sdf))
 	, _blendFunc(BlendFunc::Default)
 	, _effect(sdf ? SharedFontCache.getSDFEffect() : SharedFontCache.getDefaultEffect()) {
@@ -56,6 +62,7 @@ Label::Label(String fontName, uint32_t fontSize, bool sdf)
 		_lineGap = _font->getInfo().lineGap * _fontScale;
 		_flags.setOff(Node::TraverseEnabled);
 		_flags.setOn(Label::TextBatched);
+		if (sdf) _flags.setOn(Label::SDFSmoothingAuto);
 	}
 }
 
@@ -66,6 +73,9 @@ Label::Label(String fontStr)
 	, _lineGap(0.0f)
 	, _fontScale(GetFontScale(fontStr))
 	, _alignment(TextAlign::Center)
+	, _outlineColor(0x0)
+	, _outlineWidth(0.0f)
+	, _smooth(GetSDFSmoothing(_fontScale))
 	, _font(SharedFontCache.load(fontStr))
 	, _blendFunc(BlendFunc::Default) {
 	if (_font) {
@@ -73,6 +83,7 @@ Label::Label(String fontStr)
 		_lineGap = _font->getInfo().lineGap * _fontScale;
 		_flags.setOff(Node::TraverseEnabled);
 		_flags.setOn(Label::TextBatched);
+		if (_font->getInfo().sdf) _flags.setOn(Label::SDFSmoothingAuto);
 	}
 }
 
@@ -234,6 +245,7 @@ float Label::getOutlineWidth() const noexcept {
 
 void Label::setSmooth(Vec2 var) {
 	_smooth = var;
+	_flags.setOff(Label::SDFSmoothingAuto);
 }
 
 Vec2 Label::getSmooth() const noexcept {
@@ -726,7 +738,13 @@ void Label::render() {
 	if (_font && _font->getInfo().sdf && _effect) {
 		const auto& passes = _effect->getPasses();
 		if (!passes.empty()) {
-			passes.front()->set("u_smooth"sv, _smooth.x, _smooth.y, _outlineWidth, 0.0f);
+			Vec2 smoothing = _smooth;
+			if (_flags.isOn(Label::SDFSmoothingAuto)) {
+				const Matrix& world = getWorld();
+				float worldScale = std::sqrt(std::abs(world.m[0] * world.m[5] - world.m[1] * world.m[4]));
+				smoothing = GetSDFSmoothing(_fontScale * worldScale);
+			}
+			passes.front()->set("u_smooth"sv, smoothing.x, smoothing.y, _outlineWidth, 0.0f);
 			passes.front()->set("u_outlineColor"sv, _outlineColor);
 		}
 	}

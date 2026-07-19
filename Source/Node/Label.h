@@ -101,6 +101,7 @@ private:
 		QuadDirty = Node::UserFlag << 2,
 		VertexColorDirty = Node::UserFlag << 3,
 		VertexPosDirty = Node::UserFlag << 4,
+		SDFSmoothingAuto = Node::UserFlag << 5,
 	};
 	DORA_TYPE_OVERRIDE(Label);
 };

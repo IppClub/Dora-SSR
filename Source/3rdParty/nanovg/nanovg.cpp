@@ -2635,7 +2635,7 @@ static void nvg__renderTextImage(NVGcontext* ctx, NVGvertex* verts, int nverts, 
 	// Render triangles.
 	paint.image = image;
 	float fontScale = nvg__maxf(state->fontSize / (float)DORA_SDF_FONT_BASE_SIZE, 0.01f);
-	float baseSoftness = nvg__clampf(NVG_DORA_SDF_BASE_SOFTNESS / fontScale, 0.006f, 0.08f);
+	float baseSoftness = nvg__clampf(NVG_DORA_SDF_BASE_SOFTNESS / fontScale, 0.001f, 0.08f);
 	float blurSoftness = nvg__clampf(state->fontBlur / nvg__maxf(state->fontSize, 1.0f), 0.0f, 0.25f);
 	paint.feather = baseSoftness + blurSoftness;
 	paint.radius = NVG_DORA_SDF_TEXT_EDGE;
