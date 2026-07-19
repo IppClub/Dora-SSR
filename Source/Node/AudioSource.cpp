@@ -20,7 +20,9 @@ NS_DORA_BEGIN
 void AudioSource::setPan(float var) {
 	_pan = var;
 	if (_handle != 0) {
-		SharedAudio.getSoLoud()->setPan(_handle, var);
+		if (auto soloud = SharedAudio.getSoLoud()) {
+			soloud->setPan(_handle, var);
+		}
 	}
 }
 
@@ -31,7 +33,9 @@ float AudioSource::getPan() const noexcept {
 void AudioSource::setVolume(float var) {
 	_volume = var;
 	if (_handle != 0) {
-		SharedAudio.getSoLoud()->setVolume(_handle, var);
+		if (auto soloud = SharedAudio.getSoLoud()) {
+			soloud->setVolume(_handle, var);
+		}
 	}
 }
 
@@ -42,7 +46,9 @@ float AudioSource::getVolume() const noexcept {
 void AudioSource::setPlaySpeed(float var) {
 	_playSpeed = var;
 	if (_handle != 0) {
-		SharedAudio.getSoLoud()->setRelativePlaySpeed(_handle, var);
+		if (auto soloud = SharedAudio.getSoLoud()) {
+			soloud->setRelativePlaySpeed(_handle, var);
+		}
 	}
 }
 
@@ -53,7 +59,9 @@ float AudioSource::getPlaySpeed() const noexcept {
 void AudioSource::setLooping(bool var) {
 	_loop = var;
 	if (_handle != 0) {
-		SharedAudio.getSoLoud()->setLooping(_handle, var);
+		if (auto soloud = SharedAudio.getSoLoud()) {
+			soloud->setLooping(_handle, var);
+		}
 	}
 }
 
@@ -70,19 +78,24 @@ bool AudioSource::isPlaying() const noexcept {
 
 void AudioSource::seek(double startTime) {
 	if (_handle != 0) {
-		SharedAudio.getSoLoud()->seek(_handle, startTime);
+		if (auto soloud = SharedAudio.getSoLoud()) {
+			soloud->seek(_handle, startTime);
+		}
 	}
 }
 
 void AudioSource::scheduleStop(double timeToStop) {
 	if (_handle != 0) {
-		SharedAudio.getSoLoud()->scheduleStop(_handle, timeToStop);
+		if (auto soloud = SharedAudio.getSoLoud()) {
+			soloud->scheduleStop(_handle, timeToStop);
+		}
 	}
 }
 
 void AudioSource::stop(double fadeTime) {
 	if (_handle != 0) {
 		auto soloud = SharedAudio.getSoLoud();
+		if (!soloud) return;
 		if (fadeTime > 0.0) {
 			soloud->fadeVolume(_handle, 0, fadeTime);
 			soloud->scheduleStop(_handle, fadeTime);
@@ -117,10 +130,10 @@ void AudioSource::visit() {
 		return;
 	}
 	if (_handle != 0) {
-		if (SharedAudio.isVoicePlaying(_handle)) {
+		if (auto soloud = SharedAudio.getSoLoud(); soloud && SharedAudio.isVoicePlaying(_handle)) {
 			Vec4 point;
 			Matrix::mulVec4(point, getWorld(), {0.0f, 0.0f, 0.0f, 1.0f});
-			SharedAudio.getSoLoud()->set3dSourcePosition(_handle, point.x, point.y, point.z);
+			soloud->set3dSourcePosition(_handle, point.x, point.y, point.z);
 		}
 	}
 	Node::visit();
@@ -140,10 +153,11 @@ bool AudioSource::playBackground() {
 		return false;
 	}
 	_is3D = false;
+	auto soloud = SharedAudio.getSoLoud();
+	if (!soloud) return false;
 	if (auto audioFile = SharedAudioCache.load(_filename)) {
 		uint32_t busHandle = _bus ? _bus->getHandle() : 0;
 		_pan = 0.0f;
-		auto soloud = SharedAudio.getSoLoud();
 		_handle = soloud->playBackground(*audioFile->getSource(), _volume, false, busHandle);
 		soloud->setProtectVoice(_handle, true);
 		if (_playSpeed != 1.0f) {
@@ -174,9 +188,10 @@ bool AudioSource::play(double delayTime) {
 		return false;
 	}
 	_is3D = false;
+	auto soloud = SharedAudio.getSoLoud();
+	if (!soloud) return false;
 	if (auto audioFile = SharedAudioCache.load(_filename)) {
 		uint32_t busHandle = _bus ? _bus->getHandle() : 0;
-		auto soloud = SharedAudio.getSoLoud();
 		if (delayTime <= 0) {
 			_handle = soloud->play(*audioFile->getSource(), _volume, _pan, false, busHandle);
 		} else {
@@ -212,11 +227,12 @@ bool AudioSource::play3D(double delayTime) {
 		return false;
 	}
 	_is3D = true;
+	auto soloud = SharedAudio.getSoLoud();
+	if (!soloud) return false;
 	if (auto audioFile = SharedAudioCache.load(_filename)) {
 		uint32_t busHandle = _bus ? _bus->getHandle() : 0;
 		Vec4 point;
 		Matrix::mulVec4(point, getWorld(), {0.0f, 0.0f, 0.0f, 1.0f});
-		auto soloud = SharedAudio.getSoLoud();
 		if (delayTime < 0) {
 			_handle = soloud->play3d(*audioFile->getSource(), point.x, point.y, point.z, 0.0f, 0.0f, 0.0f, _volume, false, busHandle);
 		} else {
@@ -254,21 +270,27 @@ bool AudioSource::play3D(double delayTime) {
 void AudioSource::setLoopPoint(double loopStartTime) {
 	_loopStartTime = loopStartTime;
 	if (_handle != 0 && _loopStartTime > 0) {
-		SharedAudio.getSoLoud()->setLoopPoint(_handle, loopStartTime);
+		if (auto soloud = SharedAudio.getSoLoud()) {
+			soloud->setLoopPoint(_handle, loopStartTime);
+		}
 	}
 }
 
 void AudioSource::setProtected(bool var) {
 	_protected = var;
 	if (_handle != 0) {
-		SharedAudio.getSoLoud()->setProtectVoice(_handle, var);
+		if (auto soloud = SharedAudio.getSoLoud()) {
+			soloud->setProtectVoice(_handle, var);
+		}
 	}
 }
 
 void AudioSource::setVelocity(float vx, float vy, float vz) {
 	_velocity = {vx, vy, vz};
 	if (_handle != 0) {
-		SharedAudio.getSoLoud()->set3dSourceVelocity(_handle, vx, vy, vz);
+		if (auto soloud = SharedAudio.getSoLoud()) {
+			soloud->set3dSourceVelocity(_handle, vx, vy, vz);
+		}
 	}
 }
 
@@ -276,7 +298,9 @@ void AudioSource::setMinMaxDistance(float min, float max) {
 	_minDistance = min;
 	_maxDistance = max;
 	if (_handle != 0) {
-		SharedAudio.getSoLoud()->set3dSourceMinMaxDistance(_handle, min, max);
+		if (auto soloud = SharedAudio.getSoLoud()) {
+			soloud->set3dSourceMinMaxDistance(_handle, min, max);
+		}
 	}
 }
 
@@ -299,7 +323,9 @@ void AudioSource::setAttenuation(AudioSource::AttenuationModel model, float fact
 	_attenuation = modelType;
 	_attenuationFactor = factor;
 	if (_handle != 0) {
-		SharedAudio.getSoLoud()->set3dSourceAttenuation(_handle, modelType, factor);
+		if (auto soloud = SharedAudio.getSoLoud()) {
+			soloud->set3dSourceAttenuation(_handle, modelType, factor);
+		}
 	}
 }
 
@@ -325,14 +351,18 @@ void AudioSource::setAttenuation(String model, float factor) {
 	_attenuation = modelType;
 	_attenuationFactor = factor;
 	if (_handle != 0) {
-		SharedAudio.getSoLoud()->set3dSourceAttenuation(_handle, modelType, factor);
+		if (auto soloud = SharedAudio.getSoLoud()) {
+			soloud->set3dSourceAttenuation(_handle, modelType, factor);
+		}
 	}
 }
 
 void AudioSource::setDopplerFactor(float factor) {
 	_dopplerFactor = factor;
 	if (_handle != 0) {
-		SharedAudio.getSoLoud()->set3dSourceDopplerFactor(_handle, factor);
+		if (auto soloud = SharedAudio.getSoLoud()) {
+			soloud->set3dSourceDopplerFactor(_handle, factor);
+		}
 	}
 }
 
