@@ -354,7 +354,7 @@
     "description": "The engine feature description Intuitive Yarn Spinner Script Editor in front page"
   },
   "engine_feature_description_yarn_spinner_editor": {
-    "message": "集成的 Yarn Spinner 剧本编辑器提供了直观的故事编写工具，通过可视化节点图和简单标签实现复杂的剧情设计和管理。",
+    "message": "通过集成的可视化节点编辑器设计分支对话和游戏叙事，并直接接入可运行的 Yarn 工作流。",
     "description": "The engine feature description Intuitive Yarn Spinner Script Editor"
   },
   "engine_feature_title_visual_script_editor": {
@@ -365,12 +365,20 @@
     "message": "提供简单易上手的可视化脚本编辑器，通过图形化编程方式降低编程门槛，帮助培养逻辑思维和问题解决能力。",
     "description": "The engine feature description Visual Script Editor in front page"
   },
+  "engine_feature_title_tsx_reactive_ui": {
+    "message": "声明式 TSX 场景与响应式 UI",
+    "description": "The engine feature title Declarative TSX Scenes and Reactive UI in front page"
+  },
+  "engine_feature_description_tsx_reactive_ui": {
+    "message": "使用 TypeScript 与 TSX 组件构建游戏场景和界面，引擎内置支持 ReactJS 风格的 API，把现代前端开发体验带入原生游戏运行时。",
+    "description": "The engine feature description Declarative TSX Scenes and Reactive UI in front page"
+  },
   "engine_feature_title_skeletal_animation": {
     "message": "对骨骼动画的支持",
     "description": "The engine feature title Skeletal Animation Support in front page"
   },
   "engine_feature_description_skeletal_animation": {
-    "message": "内置 2D 骨骼动画的支持包括 Spine2D、DragonBones 以及一套自己实现的2D骨骼动画系统。集成了 Spine2D 预览功能，可以切换预览皮肤和进行动画播放。",
+    "message": "使用 Spine2D、DragonBones 和 Dora 内置骨骼动画格式，并通过集成预览完成换肤和动画播放。",
     "description": "The engine feature description Skeletal Animation Support in front page"
   },
   "engine_feature_title_tiled_map": {
@@ -378,7 +386,7 @@
     "description": "The engine feature title Tiled Map Rendering Support in front page"
   },
   "engine_feature_description_tiled_map": {
-    "message": "Dora SSR 支持由 Tiled Map Editor 制作的瓦片地图。通过简单的配置和加载，开发者可以在引擎中轻松渲染复杂的瓦片地图，实现丰富的游戏场景设计和精确的地形展示。",
+    "message": "通过紧凑的引擎 API 加载和渲染 Tiled 地图，快速搭建具有多个图层的 2D 世界。",
     "description": "The engine feature description Tiled Map Rendering Support in front page"
   },
   "engine_feature_platformer_game_support": {
@@ -462,11 +470,11 @@
     "description": "The feature section title in front page"
   },
   "engine_feature_title_cross_platform_game_dev_support": {
-    "message": "跨平台游戏开发支持",
+    "message": "在最终设备上直接开发",
     "description": "The engine feature title Cross-Platform Game Dev Support in front page"
   },
   "engine_feature_description_cross_platform_game_dev_support": {
-    "message": "Dora SSR 支持在手机、开源掌机等设备上直接进行游戏开发，兼容 Windows、Linux、iOS、macOS 和 Android 等多平台，使开发者能够随时随地进行创作。",
+    "message": "让 Dora SSR 直接运行在手机、开源掌机、桌面或平板上，再从本机或局域网中的浏览器接入，形成快速而直接的开发闭环。",
     "description": "The engine feature description Cross-Platform Game Dev Support in front page"
   },
   "engine_feature_profiling_and_debugging_tools": {
@@ -474,7 +482,7 @@
     "description": "The engine feature title Profiling and Debugging Tools in front page"
   },
   "engine_feature_description_profiling_and_debugging_tools": {
-    "message": "Dora SSR Web IDE 提供了实用的性能分析和调试工具，允许开发者实时监控 CPU 和 GPU 的使用情况，分析内存占用，并细致地跟踪脚本执行时间和各个模块的性能瓶颈，帮助优化游戏性能。",
+    "message": "在真实场景运行时检查帧耗时、渲染负载、常驻资源、物理状态、灯光、视锥和包围盒。",
     "description": "The engine feature description Profiling and Debugging Tools in front page"
   },
   "theme.blog.author.pageTitle": {
@@ -530,7 +538,7 @@
     "description": "The engine feature title Blockly Scripting in front page"
   },
   "engine_feature_description_blockly": {
-    "message": "积木脚本系统通过可视化、拼图式的代码块，让用户可以轻松创建复杂的游戏行为，无需通过文本输入编写代码。",
+    "message": "通过易于理解的拼图式积木创建游戏行为，适用于教学、原型制作和初次接触游戏开发的创作者。",
     "description": "The engine feature description Blockly Scripting for Beginners in front page"
   },
   "engine_feature_title_dora_animation_editor": {
@@ -538,16 +546,67 @@
     "description": "The engine feature title Animation Editor in front page"
   },
   "engine_feature_description_dora_animation_editor": {
-    "message": "Web IDE 内置动画编辑器，可用于创建和编辑 2D 模型动画资源，并在同一工作流中完成树形结构、关键帧、动画片段、播放预览和变换工具操作。",
+    "message": "在同一工作流中使用可视化树、关键帧、动画片段、播放预览和变换工具创建与编辑 2D 模型动画。",
     "description": "The engine feature description Animation Editor in front page"
+  },
+  "engine_feature_title_physics_editor": {
+    "message": "物理编辑器"
+  },
+  "engine_feature_description_physics_editor": {
+    "message": "在 Web IDE 中可视化创建 2D 刚体与关节，编辑碰撞形状和物理参数、预览运动效果，并保存为可复用的 .b.lua 定义。"
+  },
+  "engine_feature_title_particle_editor": {
+    "message": "粒子编辑器"
+  },
+  "engine_feature_description_particle_editor": {
+    "message": "通过实时预览调整发射、生命周期、颜色、尺寸、旋转、纹理、混合模式和重力等参数，使用丰富预设快速起步，并保存为可直接运行的 .par 效果。"
+  },
+  "engine_feature_title_git_client": {
+    "message": "内置 Git 客户端"
+  },
+  "engine_feature_description_git_client": {
+    "message": "直接在项目中查看本地变更、提交历史和逐行差异，管理分支、远端与标签，并完成获取、拉取和推送操作。"
+  },
+  "engine_feature_title_tic80": {
+    "message": "内置 TIC-80 运行时与编辑器"
+  },
+  "engine_feature_description_tic80": {
+    "message": "直接在 Web IDE 中打开、运行和编辑 TIC-80 幻想主机卡带，使用内置运行时以及代码、精灵、地图、音效和音乐创作工具。在你的现代 2D/3D 游戏作品中嵌入一个复古游戏终端吧！"
   },
   "engine_feature_title_dora_agent": {
     "message": "编码智能体",
     "description": "The engine feature title Coding Agent in front page"
   },
   "engine_feature_description_dora_agent": {
-    "message": "编码智能体把基于 LLM 的 AI 辅助编码智能体直接集成进游戏引擎，结合项目技能、持久记忆、文件搜索、Dora API 查询、安全文件编辑、构建检查和子智能体派发，完成多步骤开发任务。",
+    "message": "编码智能体把基于 LLM 的 AI 辅助开发直接集成进引擎，结合项目技能、持久记忆、安全编辑、构建检查、运行验证和子智能体派发完成多步骤任务。",
     "description": "The engine feature description Coding Agent in front page"
+  },
+  "core_feature_section_title": {
+    "message": "完整的游戏制作闭环"
+  },
+  "core_feature_section_description": {
+    "message": "编写代码、向智能体求助、在目标设备上运行、检查结果并继续迭代——全部在一套相互连接的工作流中完成。"
+  },
+  "core_feature_title_web_ide": {
+    "message": "与运行时直连的 Web IDE"
+  },
+  "core_feature_description_web_ide": {
+    "message": "无需离开浏览器，即可编辑带类型的游戏代码、浏览项目资源、查看日志、构建并运行。引擎始终运行在目标设备上，每次迭代都面对真实运行时。"
+  },
+  "core_feature_title_3d": {
+    "message": "面向实际玩法的轻量 3D"
+  },
+  "core_feature_description_3d": {
+    "message": "使用 glTF、PBR 与 IBL、骨骼与 Morph 动画、实时灯光阴影、Jolt 物理和拾取功能构建可玩的 3D 场景，并将 2D 界面直接放进 3D 世界。"
+  },
+  "tool_feature_section_title": {
+    "message": "为真实项目准备的内置工具"
+  },
+  "language_feature_section_title": {
+    "message": "选择适合项目的语言"
+  },
+  "language_feature_section_description": {
+    "message": "无论是轻量的 Lua 语言家族、带类型的 TypeScript 与 TSX、WebAssembly 语言，还是接近原生体验的 C# 绑定，都可以留在同一个 Dora 生态中。"
   },
   "theme.colorToggle.ariaLabel.mode.system": {
     "message": "系统模式",
