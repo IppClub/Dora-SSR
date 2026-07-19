@@ -45,7 +45,6 @@ private:
 		PROPERTY(uint8_t, Slot);
 		virtual ~Uniform();
 		void apply();
-		void resetHandle(bgfx::UniformHandle handle);
 		CREATE_FUNC_NOT_NULL(Uniform);
 
 	protected:

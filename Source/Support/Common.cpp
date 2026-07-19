@@ -76,10 +76,10 @@ Color::Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 	, a(a) { }
 
 Color::Color(float r, float g, float b, float a)
-	: r(s_cast<uint8_t>(std::round(r * 255.0f)))
-	, g(s_cast<uint8_t>(std::round(g * 255.0f)))
-	, b(s_cast<uint8_t>(std::round(b * 255.0f)))
-	, a(s_cast<uint8_t>(std::round(a * 255.0f))) { }
+	: r(s_cast<uint8_t>(r))
+	, g(s_cast<uint8_t>(g))
+	, b(s_cast<uint8_t>(b))
+	, a(s_cast<uint8_t>(a)) { }
 
 Color::Color(const Vec4& vec)
 	: r(s_cast<uint8_t>(std::round(vec.x * 255.0f)))
