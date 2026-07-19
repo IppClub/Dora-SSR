@@ -240,8 +240,8 @@ namespace Dora
 		/// <param name="fontSize">The size of the font to use for the label.</param>
 		/// <param name="sdf">Whether to use SDF rendering or not. With SDF rendering, the outline feature will be enabled.</param>
 		/// <returns>The new Label object.</returns>
-		public Label(string fontName, int fontSize, bool sdf = false) : this(Native.label_new(Bridge.FromString(fontName), fontSize, sdf ? 1 : 0)) { }
-		public static Label? TryCreate(string fontName, int fontSize, bool sdf = false)
+		public Label(string fontName, int fontSize, bool sdf = true) : this(Native.label_new(Bridge.FromString(fontName), fontSize, sdf ? 1 : 0)) { }
+		public static Label? TryCreate(string fontName, int fontSize, bool sdf = true)
 		{
 			var raw = Native.label_new(Bridge.FromString(fontName), fontSize, sdf ? 1 : 0);
 			return raw == 0 ? null : new Label(raw);

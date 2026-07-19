@@ -51,7 +51,7 @@ public:
 
 protected:
 	Label(String fontStr);
-	Label(String fontName, uint32_t fontSize, bool sdf = false);
+	Label(String fontName, uint32_t fontSize, bool sdf = true);
 	void updateCharacters(const std::vector<uint32_t>& chars);
 	void updateLabel();
 	struct CharItem {

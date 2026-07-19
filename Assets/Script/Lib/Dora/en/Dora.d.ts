@@ -7330,7 +7330,7 @@ interface LabelClass {
 
 	/**
 	 * Creates a new Label object with the specified font string.
-	 * @param fontStr The font string to use for the label. Should be in the format "fontName;fontSize;sdf", where `sdf` should be "true" or "false" and can be omitted as default is false.
+	 * @param fontStr The font string to use for the label. Should be in the format "fontName;fontSize;sdf", where `sdf` should be "true" or "false" and can be omitted as default is true.
 	 * @returns The new Label object. Returns `undefined` if the font could not be loaded.
 	 */
 	(this: void, fontStr: string): Label | undefined;
@@ -7339,7 +7339,7 @@ interface LabelClass {
 	 * Creates a new Label object with the specified font name and font size.
 	 * @param fontName The name of the font to use for the label. Can be a font file path with or without a file extension.
 	 * @param fontSize The size of the font to use for the label.
-	 * @param sdf [optional] Whether to use SDF rendering or not. With SDF rendering, the outline feature will be enabled. (Default is false)
+	 * @param sdf [optional] Whether to use SDF rendering or not. With SDF rendering, the outline feature will be enabled. (Default is true)
 	 * @returns The new Label object. Returns `undefined` if the font could not be loaded.
 	 */
 	(this: void, fontName: string, fontSize: number, sdf?: boolean): Label | undefined;

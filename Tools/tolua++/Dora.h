@@ -864,7 +864,7 @@ class Label : public Node
 	tolua_outside Sprite* Label_getCharacter @ getCharacter(int index);
 	static const float AutomaticWidth;
 	static Label* create(String fontStr);
-	static Label* create(String fontName, uint32_t fontSize, bool sdf = false);
+	static Label* create(String fontName, uint32_t fontSize, bool sdf = true);
 };
 
 class RenderTarget : public Object

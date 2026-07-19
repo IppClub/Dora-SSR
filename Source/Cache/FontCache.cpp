@@ -107,9 +107,9 @@ std::tuple<std::string, int, bool> FontCache::getArgsFromStr(String fontStr) {
 		auto it = tokens.begin();
 		Slice fontName = *it;
 		int fontSize = (++it)->toInt();
-		bool sdf = false;
-		if (tokens.size() == 3 && *(++it) == "true"_slice) {
-			sdf = true;
+		bool sdf = true;
+		if (tokens.size() == 3) {
+			sdf = *(++it) == "true"_slice;
 		}
 		return {fontName.toString(), fontSize, sdf};
 	} else {

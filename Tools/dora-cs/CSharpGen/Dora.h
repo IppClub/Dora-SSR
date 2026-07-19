@@ -2470,7 +2470,7 @@ object class Label : public Node
 	/// <param name="fontSize">The size of the font to use for the label.</param>
 	/// <param name="sdf">Whether to use SDF rendering or not. With SDF rendering, the outline feature will be enabled.</param>
 	/// <returns>The new Label object.</returns>
-	static optional Label* create(string fontName, uint32_t fontSize, bool sdf = false);
+	static optional Label* create(string fontName, uint32_t fontSize, bool sdf = true);
 	/// <summary>
 	/// Creates a new Label object with the specified font string.
 	/// </summary>
