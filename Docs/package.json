@@ -17,10 +17,11 @@
     "update-version": "node scripts/update-version.js"
   },
   "dependencies": {
-    "@docusaurus/core": "3.10.1",
-    "@docusaurus/preset-classic": "3.10.1",
-    "@docusaurus/theme-mermaid": "3.10.1",
-    "@easyops-cn/docusaurus-search-local": "^0.55.1",
+    "@docusaurus/core": "3.10.2",
+    "@docusaurus/plugin-content-docs": "3.10.2",
+    "@docusaurus/preset-classic": "3.10.2",
+    "@docusaurus/theme-mermaid": "3.10.2",
+    "@easyops-cn/docusaurus-search-local": "^0.55.2",
     "@mdx-js/react": "^3.1.1",
     "clsx": "^2.1.1",
     "prism-react-renderer": "^2.4.1",
@@ -29,8 +30,8 @@
     "react-dom": "^19.2.6"
   },
   "devDependencies": {
-    "@docusaurus/faster": "3.10.1",
-    "@docusaurus/module-type-aliases": "3.10.1",
+    "@docusaurus/faster": "3.10.2",
+    "@docusaurus/module-type-aliases": "3.10.2",
     "@tsconfig/docusaurus": "^2.0.9",
     "typescript": "^6.0.3"
   },
