@@ -4685,6 +4685,9 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
+				"$(SRCROOT)/../../Source/Lua/LuaBinding.cpp",
+				"$(SRCROOT)/../../Source/Lua/LuaCode.cpp",
+				"$(SRCROOT)/../../Source/Lua/TealCompiler.cpp",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
