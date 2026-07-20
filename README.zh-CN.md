@@ -107,7 +107,7 @@
 
 - [示例项目 - Zombie Escape](https://github.com/IppClub/Dora-Demo/tree/main/Zombie%20Escape)
 
-<div align='center'><img src='Docs/static/img/showcase/ZombieEscape.png' alt='Zombie Escape' width='800px'/></div>
+<div align='center'><img src='Docs/static/img/showcase/ZombieEscape.jpg' alt='Zombie Escape' width='800px'/></div>
 
 <br>
 
@@ -119,7 +119,7 @@
 
 - [示例项目 - Luv Sense Digital](https://github.com/IppClub/LSD)
 
-<div align='center'><img src='Docs/static/img/showcase/LuvSenseDigital.png' alt='Luv Sense Digital' width='800px'/></div>
+<div align='center'><img src='Docs/static/img/showcase/LuvSenseDigital.jpg' alt='Luv Sense Digital' width='800px'/></div>
 
 <br>
 
