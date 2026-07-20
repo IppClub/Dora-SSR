@@ -235,7 +235,7 @@ int tolua_isobject(lua_State* L, int lo, String type, int def, tolua_Error* err)
 }
 
 int tolua_isusertype(lua_State* L, int lo, String type, int def, tolua_Error* err) {
-	if (def && lua_gettop(L) < abs(lo)) return 1;
+	if (def && (lua_gettop(L) < abs(lo) || lua_isnil(L, lo))) return 1;
 	if (tolua_istype(L, lo, type)) return 1;
 	err->index = lo;
 	err->array = 0;

@@ -1,8 +1,13 @@
-# 有节奏地管理模型与动画
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
 
-当每个模型都被当成特殊情况处理时，3D 项目会很快变得难以维护。本课建立一套可重复的资产流程：保持导入资产自包含、确认模型真正提供的动画名称，并让多个场景实例复用加载结果。
+# 加载模型与播放动画
 
-:::tip 本课目标
+带动画的 glTF 模型不会自动播放。动画片段以作者数据的形式存储在文件中，每个片段的名字由艺术家在建模软件（Blender、Maya 等）中决定，而不是引擎约定。你需要知道要播放的片段的精确名称并显式调用 `play`。另一方面，加载几何体、纹理和材质的开销很大。当场景中需要重复使用同一个道具时，你希望引擎只加载一次数据，然后在所有实例中复用。
+
+本教程会在受光场景中加载一个动画角色，按名称播放其中一个动画片段，并通过从单个源文件创建多个木箱实例来演示资产复用。学完后，你会理解动画名称的工作原理、如何播放它们，以及 Dora 的缓存系统如何在复用资产时保持内存使用效率。
+
+:::tip 本教程目标
 在受光场景中加载动画角色、播放一个已确认的动画片段，并添加重复道具而不复制导入资源。
 :::
 
@@ -16,7 +21,12 @@
 - `.gltf`、buffer 和纹理必须保持原有相对目录结构。
 - 学习阶段优先使用 `.glb`，移动项目时更不容易发生路径问题。
 
-## 第一步：让动画角色进入画面
+## 1. 加载动画角色
+
+角色模型带有嵌入在 glTF 文件中的动画片段。每个片段都有一个由艺术家在他们的 DCC 工具中分配的名称。要播放片段，你需要先加载模型，然后调用 `play`，传入精确的片段名称和一个用于循环的布尔标志。
+
+<Tabs groupId="language-select">
+<TabItem value="ts" label="TypeScript">
 
 ```ts title="init.ts"
 import {Camera3D, Color3, DirectionalLight3D, Director, Model3D, Vec3} from "Dora";
@@ -39,13 +49,109 @@ light.angleY = 28;
 view.addChild(light);
 ```
 
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua title="init.lua"
+local _ENV = Dora
+
+local view = Director.entry
+local camera = Camera3D()
+camera:lookAt(Vec3(3.5, 2.5, 5.5), Vec3(0, 0.8, 0))
+Director:pushCamera(camera)
+
+local character = Model3D("Assets/Model/Kenney/character-oopi.glb")
+character.scale = Vec3(0.8, 0.8, 0.8)
+character:play("idle", true)
+view:addChild(character)
+
+local light = DirectionalLight3D()
+light.color = Color3(0xfff3da)
+light.intensity = 3.2
+light.angleX = -48
+light.angleY = 28
+view:addChild(light)
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+_ENV = Dora
+
+view = Director.entry
+camera = Camera3D!
+camera\lookAt Vec3(3.5, 2.5, 5.5), Vec3(0, 0.8, 0)
+Director\pushCamera camera
+
+character = Model3D "Assets/Model/Kenney/character-oopi.glb"
+character.scale = Vec3 0.8, 0.8, 0.8
+character\play "idle", true
+view\addChild character
+
+light = DirectionalLight3D!
+light.color = Color3 0xfff3da
+light.intensity = 3.2
+light.angleX = -48
+light.angleY = 28
+view\addChild light
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal title="init.tl"
+local Camera3D <const> = require("Camera3D")
+local Color3 <const> = require("Color3")
+local DirectionalLight3D <const> = require("DirectionalLight3D")
+local Director <const> = require("Director")
+local Model3D <const> = require("Model3D")
+local Model3DType = require("Model3D").Type
+local Vec3 <const> = require("Vec3")
+
+local view = Director.entry
+local camera = Camera3D()
+camera:lookAt(Vec3(3.5, 2.5, 5.5), Vec3(0, 0.8, 0))
+Director:pushCamera(camera)
+
+local character = Model3D("Assets/Model/Kenney/character-oopi.glb") as Model3DType
+character.scale = Vec3(0.8, 0.8, 0.8)
+character:play("idle", true)
+view:addChild(character)
+
+local light = DirectionalLight3D()
+light.color = Color3(0xfff3da)
+light.intensity = 3.2
+light.angleX = -48
+light.angleY = 28
+view:addChild(light)
+```
+
+</TabItem>
+</Tabs>
+
+这里发生了四件事：
+
+- `Director.entry` 获取默认的 3D 视图根节点。这是你添加所有 3D 节点的地方。
+- `camera.lookAt(Vec3(3.5, 2.5, 5.5), Vec3(0, 0.8, 0))` 将相机放置在 `(3.5, 2.5, 5.5)` 并瞄准 `(0, 0.8, 0)` —— 大约是我们缩小角色后它胸部所在的位置。
+- `character.scale = Vec3(0.8, 0.8, 0.8)` 将角色缩小到其原始尺寸的 80%。在实例层面缩放让你可以在不修改源资产的情况下调整视觉适配度。
+- `character.play("idle", true)` 播放名为 `"idle"` 的动画片段，因为第二个参数是 `true`，所以会永远循环播放。
+- `DirectionalLight3D` 的设置添加了一个暖色调、略微带橙色的光（`Color3(0xfff3da)`），强度为 `3.2`，绕 X 轴旋转 `-48` 度、绕 Y 轴旋转 `28` 度。
+
 ### 检查点
 
-角色应当可见、尺寸合理，并持续播放 idle 动画。若角色可见但不动，应先检查动画片段名，而不是先改相机或光照。
+角色应当可见、尺寸合理，并持续播放 idle 动画。若角色可见但不动，应先在资产查看器中确认片段名，而不是先改相机或光照设置。动画名是艺术家选择的数据，不是引擎约定。
 
-`play(name, loop)` 播放 glTF 内嵌的动画片段。片段名属于资产数据，不是 Dora 的固定约定：其他模型可能叫 `Idle`、`stand`，或者完全不带动画。请在 DCC 工具或资产查看器中确认并原样使用名称。
+`play(name, loop)` 播放 glTF 内嵌的动画片段，使用精确的名称。片段名属于资产数据，不是 Dora 的固定约定：其他模型可能叫 `Idle`、`stand`，或者完全不带动画。请在 DCC 工具或资产查看器中确认并原样使用名称。如果传入一个不存在的名称，调用会静默地什么都不做。
 
-## 第二步：复用源资产创建重复道具
+当你想要播放一次就停止的动画（比如近战攻击或开门）时使用 `play(name, false)`。对于持续循环的状态（如 idle 或 run）使用 `play(name, true)`。
+
+## 2. 复用同一资产创建多个道具
+
+加载 3D 模型意味着解析几何体、解码纹理、编译材质并将数据缓存到内存中。这很昂贵。当场景中需要重复使用同一个道具 —— 木箱、树木、岩石 —— 你不想为此付费两次。Dora 通过按文件路径缓存加载的数据来解决这个问题：从同一路径创建多个 `Model3D` 实例，它们会共享底层的网格、纹理和材质，而每个实例保持自己独立的变换。
+
+<Tabs groupId="language-select">
+<TabItem value="ts" label="TypeScript">
 
 ```ts title="init.ts"
 const firstCrate = Model3D("Assets/Model/Kenney/crate.glb");
@@ -57,17 +163,66 @@ secondCrate.position = Vec3(1.2, 0, 0);
 view.addChild(secondCrate);
 ```
 
-两个节点会复用相同来源路径的缓存网格、纹理、材质和动画数据。应把 `Model3D` 当成场景实例：每个实例都有自己的变换，只有确有视觉差异时才调整材质。
+</TabItem>
+<TabItem value="lua" label="Lua">
 
-## 建立可靠的导入习惯
+```lua title="init.lua"
+local firstCrate = Model3D("Assets/Model/Kenney/crate.glb")
+firstCrate.position = Vec3(-1.2, 0, 0)
+view:addChild(firstCrate)
 
-1. 先在空测试场景中加入一个模型。
-2. 用相机和光源确认它能被渲染。
-3. 确认尺度与原点是否合理。
-4. 使用精确名称测试一个动画。
-5. 最后才放入玩法，并添加材质、物理或 UI。
+local secondCrate = Model3D("Assets/Model/Kenney/crate.glb")
+secondCrate.position = Vec3(1.2, 0, 0)
+view:addChild(secondCrate)
+```
 
-这个顺序能把动画名、资产路径的问题与场景逻辑问题隔离开来。
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+firstCrate = Model3D "Assets/Model/Kenney/crate.glb"
+firstCrate.position = Vec3(-1.2, 0, 0)
+view\addChild firstCrate
+
+secondCrate = Model3D "Assets/Model/Kenney/crate.glb"
+secondCrate.position = Vec3(1.2, 0, 0)
+view\addChild secondCrate
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal title="init.tl"
+local firstCrate = Model3D("Assets/Model/Kenney/crate.glb") as Model3DType
+firstCrate.position = Vec3(-1.2, 0, 0)
+view:addChild(firstCrate)
+
+local secondCrate = Model3D("Assets/Model/Kenney/crate.glb") as Model3DType
+secondCrate.position = Vec3(1.2, 0, 0)
+view:addChild(secondCrate)
+```
+
+</TabItem>
+</Tabs>
+
+这里发生了两件事：
+
+- `Model3D("Assets/Model/Kenney/crate.glb")` 被调用了两次，但文件只加载了一次。Dora 在第一次调用时缓存数据，第二次调用时返回共享该缓存的新实例。
+- 每个木箱都有自己的 `position` —— 一个在 `(-1.2, 0, 0)`，另一个在 `(1.2, 0, 0)`。变换（位置、旋转、缩放）是每个实例独有的，所以你可以把同一个模型放在场景的任何位置，而不会影响其他实例。
+
+应把 `Model3D` 当成场景实例工厂：给每个实例自己的变换，只在确实有视觉差异时才调整材质。如果需要为特定实例使用唯一材质，可以在加载后克隆或替换材质。但对于重复道具的常见情况，共享缓存正是你想要的。
+
+当你多次调用 `Model3D("path")` 时，Dora 只加载一次文件并在所有实例之间共享数据。这很高效：你得到了多个不同位置、旋转和缩放的独立对象，但内存中只保存一份模型数据。当场景包含数百个相同的树木、木箱或岩石时，这种节省会成倍增长。
+
+## 导入自有模型的几点建议
+
+1. **先在空测试场景中加入一个模型。** 从零开始，这样你可以将任何问题隔离到模型本身，而不是与其他场景元素的交互。
+2. **用相机和光源确认它能被渲染。** 模型不出现可能是因为在相机视野之外或没有光照 —— 在增加复杂性之前验证基础功能。
+3. **确认尺度与原点是否合理。** 以厘米为单位制作的模型如果游戏使用米，看起来会非常小。检查相对于其他资产的缩放比例，必要时调整实例缩放。
+4. **使用精确名称测试一个动画。** 在 DCC 工具中打开资产，逐字符复制片段名称，然后用那个精确的字符串调用 `play`。在测试其他动画之前先让一个工作起来。
+5. **最后才放入玩法，并添加材质、物理或 UI。** 一旦你知道模型能加载、缩放正确、动画按预期工作，就可以将其集成到实际的游戏逻辑中。
+
+这个顺序能把动画名、资产路径的问题与场景逻辑问题隔离开来，从而节省时间。你无需猜测就能知道问题是"文件无法加载"还是"碰撞代码有问题"。
 
 ## 常见问题
 
@@ -78,10 +233,183 @@ view.addChild(secondCrate);
 | `play()` 没有效果 | 片段名错误或资产没有动画 | 查看源资产并使用精确名称。 |
 | 大量相同道具成本过高 | 每个实例都有独立材质修改 | 共享源路径，只定制少数例外。 |
 
+## 完整示例
+
+下面的完整脚本与本教程步骤对应，均已通过 Dora 引擎构建验证。
+
+<Tabs groupId="language-select">
+<TabItem value="ts" label="TypeScript">
+
+```ts title="init.ts"
+import {Camera3D, Color3, DirectionalLight3D, Director, Model3D, Vec3} from "Dora";
+
+const view = Director.entry;
+
+const camera = Camera3D();
+camera.lookAt(Vec3(3.5, 2.5, 5.5), Vec3(0, 0.8, 0));
+Director.pushCamera(camera);
+
+// Animated character. The animation name comes from the glTF asset itself.
+const character = Model3D("Assets/Model/Kenney/character-oopi.glb");
+if (!character) throw new Error("failed to load character-oopi.glb");
+character.scale = Vec3(0.8, 0.8, 0.8);
+character.play("idle", true);
+view.addChild(character);
+
+const light = DirectionalLight3D();
+light.color = Color3(0xfff3da);
+light.intensity = 3.2;
+light.angleX = -48;
+light.angleY = 28;
+view.addChild(light);
+
+// Two crates that share the same cached source data.
+const firstCrate = Model3D("Assets/Model/Kenney/crate.glb");
+if (!firstCrate) throw new Error("failed to load crate.glb");
+firstCrate.position = Vec3(-1.2, 0, 0);
+view.addChild(firstCrate);
+
+const secondCrate = Model3D("Assets/Model/Kenney/crate.glb");
+if (!secondCrate) throw new Error("failed to load crate.glb");
+secondCrate.position = Vec3(1.2, 0, 0);
+view.addChild(secondCrate);
+```
+
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua title="init.lua"
+local _ENV = Dora
+
+local view = Director.entry
+
+local camera = Camera3D()
+camera:lookAt(Vec3(3.5, 2.5, 5.5), Vec3(0, 0.8, 0))
+Director:pushCamera(camera)
+
+-- Animated character. The animation name comes from the glTF asset itself.
+local character = Model3D("Assets/Model/Kenney/character-oopi.glb")
+if not character then
+	error("failed to load character-oopi.glb")
+end
+character.scale = Vec3(0.8, 0.8, 0.8)
+character:play("idle", true)
+view:addChild(character)
+
+local light = DirectionalLight3D()
+light.color = Color3(0xfff3da)
+light.intensity = 3.2
+light.angleX = -48
+light.angleY = 28
+view:addChild(light)
+
+-- Two crates that share the same cached source data.
+local firstCrate = Model3D("Assets/Model/Kenney/crate.glb")
+if not firstCrate then
+	error("failed to load crate.glb")
+end
+firstCrate.position = Vec3(-1.2, 0, 0)
+view:addChild(firstCrate)
+
+local secondCrate = Model3D("Assets/Model/Kenney/crate.glb")
+if not secondCrate then
+	error("failed to load crate.glb")
+end
+secondCrate.position = Vec3(1.2, 0, 0)
+view:addChild(secondCrate)
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+_ENV = Dora
+
+view = Director.entry
+camera = Camera3D!
+camera\lookAt Vec3(3.5, 2.5, 5.5), Vec3(0, 0.8, 0)
+Director\pushCamera camera
+
+character = Model3D "Assets/Model/Kenney/character-oopi.glb"
+error "failed to load character-oopi.glb" unless character
+character.scale = Vec3 0.8, 0.8, 0.8
+character\play "idle", true
+view\addChild character
+
+light = DirectionalLight3D!
+light.color = Color3 0xfff3da
+light.intensity = 3.2
+light.angleX = -48
+light.angleY = 28
+view\addChild light
+
+firstCrate = Model3D "Assets/Model/Kenney/crate.glb"
+error "failed to load crate.glb" unless firstCrate
+firstCrate.position = Vec3 -1.2, 0, 0
+view\addChild firstCrate
+
+secondCrate = Model3D "Assets/Model/Kenney/crate.glb"
+error "failed to load crate.glb" unless secondCrate
+secondCrate.position = Vec3 1.2, 0, 0
+view\addChild secondCrate
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal title="init.tl"
+local Camera3D = require("Camera3D")
+local Color3 = require("Color3")
+local DirectionalLight3D = require("DirectionalLight3D")
+local Director = require("Director")
+local Model3D = require("Model3D")
+local Model3DType = require("Model3D").Type
+local Vec3 = require("Vec3")
+
+local view = Director.entry
+local camera = Camera3D()
+camera:lookAt(Vec3(3.5, 2.5, 5.5), Vec3(0, 0.8, 0))
+Director:pushCamera(camera)
+
+local character = Model3D("Assets/Model/Kenney/character-oopi.glb") as Model3DType
+character.scale = Vec3(0.8, 0.8, 0.8)
+character:play("idle", true)
+view.scene:addChild(character)
+
+local light = DirectionalLight3D()
+light.color = Color3(0xfff3da)
+light.intensity = 3.2
+light.angleX = -48
+light.angleY = 28
+view.scene:addChild(light)
+
+local firstCrate = Model3D("Assets/Model/Kenney/crate.glb") as Model3DType
+firstCrate.position = Vec3(-1.2, 0, 0)
+view.scene:addChild(firstCrate)
+
+local secondCrate = Model3D("Assets/Model/Kenney/crate.glb") as Model3DType
+secondCrate.position = Vec3(1.2, 0, 0)
+view.scene:addChild(secondCrate)
+```
+
+</TabItem>
+</Tabs>
+
 ## 动手练习
 
 再加入第三个 crate，设置 `angles = Vec3(0, 25, 0)`，保持前两个不变。你会看到三个不同的摆放，同时只加载一份源资产。
 
-## 下一课
+## 小结
+
+你现在了解了如何使用带动画的 3D 模型并高效复用资产：
+
+- **动画片段**：glTF 模型存储了作为作者数据的命名动画片段。使用 `play(name, loop)` 播放它们，其中 `name` 是来自 DCC 工具的精确片段名称，`loop` 为 `true` 时持续播放，为 `false` 时播放一次。
+- **实例缩放**：在模型实例上使用 `scale` 属性调整大小，而不修改源资产。这让你可以将导入模型的视觉适配度调整到游戏的世界尺度。
+- **资产缓存**：当你从同一路径创建多个 `Model3D` 实例时，Dora 只加载数据一次并在所有实例之间共享。每个实例有自己独立的变换（位置、旋转、缩放），但共享底层的几何体、纹理、材质和动画。
+- **导入工作流**：遵循五步流程（测试场景、相机/光照检查、缩放检查、动画测试，然后集成）可以将资产问题与逻辑问题隔离开来，节省调试时间。
+
+动画名不是引擎约定 —— 它们是艺术家在建模工具中命名的任何内容。在调用 `play` 之前，务必在资产查看器中确认精确的名称。缓存系统使得第一次加载后重复道具如木箱、树木和岩石的开销几乎为零，所以你可以自信地构建场景，同时保持内存使用效率。
+
+## 下一篇教程
 
 继续阅读[3D 物理与角色控制](./add-physics-and-characters)，让场景物体响应重力与玩法移动。

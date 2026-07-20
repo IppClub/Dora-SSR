@@ -1,12 +1,17 @@
-# Put Readable 2D UI into a 3D World
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
 
-Not every game interface belongs in a screen-space HUD. A world label, terminal, sign, or health panel should move with the game world and stay readable from the camera. `Surface3D` lets an ordinary 2D node tree do exactly that.
+# 2D UI in a 3D Scene
 
-:::tip Lesson goal
+Not every game interface belongs in a screen-space HUD. Sometimes you want a nameplate floating above a character, a terminal screen on a spaceship wall, or a health bar that moves with the player. These elements should exist in the 3D world and stay readable from the camera's perspective. `Surface3D` lets an ordinary 2D node tree do exactly that.
+
+This tutorial builds a 2D label, gives it a world position via `Surface3D`, and chooses a billboard mode that controls how it faces the camera. By the end you'll understand the two distinct sizes that control a surface's appearance, and you'll know which billboard mode fits each use case.
+
+:::tip Tutorial goal
 Attach a 2D label to the 3D scene, make it face the camera on the vertical axis, and choose an appropriate backing resolution.
 :::
 
-## Choose the right kind of UI first
+## Picking the right UI type
 
 Use a normal 2D node tree for UI that must remain fixed to the screen. Use `Surface3D` when the content has a world position and should obey 3D depth, perspective, and camera movement.
 
@@ -16,9 +21,12 @@ Use a normal 2D node tree for UI that must remain fixed to the screen. Use `Surf
 | NPC nameplate or floating prompt | `Surface3D` with `Billboard.YAxis` or `Billboard.Screen` |
 | In-world terminal or sign | `Surface3D` with `Billboard.None` |
 
-## Step 1: Build the 2D content as usual
+## 1. Build the 2D content
 
-The content is an ordinary `Node`. Start with a label so you can focus on the 3D placement.
+The content is an ordinary `Node`. The 2D content is still a normal Node tree; `Surface3D` doesn't change how you write labels or build your UI. Start with a label so you can focus on the 3D placement.
+
+<Tabs groupId="language-select">
+<TabItem value="ts" label="TypeScript">
 
 ```ts title="init.ts"
 import {Billboard, Director, Label, Size, Surface3D, Vec3} from "Dora";
@@ -28,9 +36,53 @@ const label = Label("sarasa-mono-sc-regular", 24)!;
 label.text = "Hello from 2D";
 ```
 
-If `Label()` returns no node, check that the font is available in the project before debugging `Surface3D`.
+</TabItem>
+<TabItem value="lua" label="Lua">
 
-## Step 2: Give the 2D node a world-space surface
+```lua title="init.lua"
+local _ENV = Dora
+
+local view = Director.entry
+local label = Label("sarasa-mono-sc-regular", 24)
+label.text = "Hello from 2D"
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+_ENV = Dora
+
+view = Director.entry
+label = Label "sarasa-mono-sc-regular", 24
+label.text = "Hello from 2D"
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal title="init.tl"
+local Director <const> = require("Director")
+local Label <const> = require("Label")
+
+local view = Director.entry
+local label = Label("sarasa-mono-sc-regular", 24)
+label.text = "Hello from 2D"
+```
+
+</TabItem>
+</Tabs>
+
+- `Label(fontName, fontSize)` creates a text node with the specified font and size.
+- The `!` operator in TypeScript asserts that the result is not null. In Lua and YueScript, the constructor may return nothing if the font is missing, so real projects should check for nil.
+- `label.text = ...` sets the displayed text. All four languages use the same dot syntax for this property assignment.
+
+## 2. Give the 2D node a world-space surface
+
+`Surface3D` bridges 2D content into the 3D world. It has two distinct sizes: the world size controls how large the panel appears in the scene, while the pixel size controls the resolution of the backing texture for detail. The two sizes are deliberately different concepts, so you can tune appearance and performance independently.
+
+<Tabs groupId="language-select">
+<TabItem value="ts" label="TypeScript">
 
 ```ts title="init.ts"
 const surface = Surface3D(label, Size(3, 1), Size(512, 128));
@@ -41,31 +93,205 @@ surface.billboard = Billboard.YAxis;
 view.addChild(surface);
 ```
 
-The second argument, `Size(3, 1)`, is the physical size in the 3D world. The optional `Size(512, 128)` is the backing pixel resolution when the surface needs an isolated render target. These are deliberately different concepts: world size controls how large the panel looks in the scene, while pixel size controls its detail and cost.
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua title="init.lua"
+local surface = Surface3D(label, Size(3, 1), Size(512, 128))
+if not surface then error("failed to create Surface3D") end
+
+surface.position = Vec3(0, 1.5, 0)
+surface.billboard = "YAxis"
+view:addChild(surface)
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+surface = Surface3D label, Size(3, 1), Size(512, 128)
+error "failed to create Surface3D" unless surface
+
+surface.position = Vec3 0, 1.5, 0
+surface.billboard = "YAxis"
+view\addChild surface
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal title="init.tl"
+local Size <const> = require("Size")
+local Surface3D <const> = require("Surface3D")
+local Surface3DType = require("Surface3D").Type
+local Vec3 <const> = require("Vec3")
+
+local surface = Surface3D(label, Size(3, 1), Size(512, 128)) as Surface3DType
+surface.position = Vec3(0, 1.5, 0)
+surface.billboard = "YAxis"
+view.scene:addChild(surface)
+```
+
+</TabItem>
+</Tabs>
+
+- `Surface3D(label, Size(3, 1), Size(512, 128))` creates the surface. The first argument is the 2D node to wrap. The second argument, `Size(3, 1)`, is the physical size in the 3D world: 3 metres wide and 1 metre tall. The third argument, `Size(512, 128)`, is the pixel size of the backing texture: 512 pixels wide by 128 pixels tall.
+- The error check handles the case where surface creation fails. In TypeScript, a null check throws an error; in Lua, an explicit check with `if not surface then error(...) end`; in YueScript, the `error ... unless surface` pattern; in Teal, the type assertion ensures type safety.
+- `surface.position = Vec3(0, 1.5, 0)` places the surface in world space. Here it sits at the origin horizontally, 1.5 metres up, and zero depth.
+- `surface.billboard = Billboard.YAxis` (or `"YAxis"` in Lua/Yue/Teal) sets the billboard mode. The YAxis mode makes the surface rotate around the vertical axis to face the camera, but it doesn't tilt up or down.
+- `view.addChild(surface)` (or `view.scene:addChild(surface)` in Teal) attaches the surface to the scene. Like any unattached node, it would be mounted automatically under `Director.entry`, but attaching explicitly makes the hierarchy clear.
 
 ### Checkpoint
 
 Move the camera around the label. With `Billboard.YAxis`, the label should turn left and right toward the camera but should not tilt up and down. If it is too small, adjust world size first; if text is blurry, adjust pixel size second.
 
-## Step 3: Pick billboard behavior intentionally
+## 3. Choose a billboard mode
 
-- `Billboard.None`: preserve the surface's 3D rotation. Use this for fixed signs and terminals.
-- `Billboard.YAxis`: face the camera around the vertical axis. Use this for nameplates.
-- `Billboard.Screen`: face the camera fully. Use this for prompts that must stay readable.
+`Surface3D` automatically selects a shared-depth or isolated-texture path. The `usingTexture` property can help you diagnose rendering behavior, but it's read-only and you normally don't need to set it directly. The important choice is the billboard mode, which controls how the surface orients itself relative to the camera.
 
-`Surface3D` automatically selects a shared-depth or isolated-texture path. `surface.usingTexture` is useful when diagnosing resolution or ordering behavior, but it is not a setting you normally need to force.
+- `Billboard.None`: preserve the surface's 3D rotation. Use this for fixed signs and terminals that are physically anchored in the world.
+- `Billboard.YAxis`: face the camera around the vertical axis. Use this for nameplates and labels that should stay upright but track the player horizontally.
+- `Billboard.Screen`: face the camera fully. Use this for prompts that must stay readable from any angle, such as interactive markers or floating instructions.
 
-## Avoid the two common costs
+## Performance tips
 
-1. Do not create a new `Surface3D` every frame. Keep one surface and update its label or child nodes.
-2. Do not default every panel to a huge backing texture. Start at the smallest size that keeps text legible at its intended camera distance.
+When working with many surfaces in a scene, keep these guidelines in mind:
 
-When a scene contains many panels, compare `view.stats` before and after changing their backing resolutions.
+1. Don't create a new `Surface3D` every frame. Reuse one surface and update its label or child nodes instead. Creating surfaces repeatedly can cause performance issues due to texture allocation.
+2. Don't default every panel to a huge backing texture. Start with the smallest size that keeps text legible at its intended camera distance. Large textures cost memory and GPU time.
+
+When a scene contains many panels, compare `view.stats` before and after changing their backing resolutions to see the performance impact. Draw calls and texture memory are good metrics to watch.
+
+## Complete examples
+
+The complete scripts below follow this tutorial and have been verified by the Dora engine.
+
+<Tabs groupId="language-select">
+<TabItem value="ts" label="TypeScript">
+
+```ts title="init.ts"
+import {Billboard, Camera3D, Director, Label, Size, Surface3D, Vec3} from "Dora";
+
+const view = Director.entry;
+
+const camera = Camera3D();
+camera.lookAt(Vec3(0, 1.5, 5), Vec3(0, 1.5, 0));
+Director.pushCamera(camera);
+
+// Ordinary 2D content: just a Label.
+const label = Label("sarasa-mono-sc-regular", 24);
+if (!label) throw new Error("failed to create label");
+label.text = "Hello from 2D";
+
+// Surface3D places that 2D content into the 3D world.
+// Size(3, 1)     -> world size: 3 metres wide, 1 metre tall.
+// Size(512, 128) -> backing texture resolution in pixels.
+const surface = Surface3D(label, Size(3, 1), Size(512, 128));
+if (!surface) throw new Error("failed to create Surface3D");
+surface.position = Vec3(0, 1.5, 0);
+surface.billboard = Billboard.YAxis;
+view.addChild(surface);
+```
+
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua title="init.lua"
+local _ENV = Dora
+
+local view = Director.entry
+
+local camera = Camera3D()
+camera:lookAt(Vec3(0, 1.5, 5), Vec3(0, 1.5, 0))
+Director:pushCamera(camera)
+
+-- Ordinary 2D content: just a Label.
+local label = Label("sarasa-mono-sc-regular", 24)
+if not label then
+	error("failed to create label")
+end
+label.text = "Hello from 2D"
+
+-- Surface3D places that 2D content into the 3D world.
+-- Size(3, 1)     -> world size: 3 metres wide, 1 metre tall.
+-- Size(512, 128) -> backing texture resolution in pixels.
+local surface = Surface3D(label, Size(3, 1), Size(512, 128))
+if not surface then
+	error("failed to create Surface3D")
+end
+surface.position = Vec3(0, 1.5, 0)
+surface.billboard = "YAxis"
+view:addChild(surface)
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+_ENV = Dora
+
+view = Director.entry
+camera = Camera3D!
+camera\lookAt Vec3(0, 1.5, 5), Vec3(0, 1.5, 0)
+Director\pushCamera camera
+
+label = Label "sarasa-mono-sc-regular", 24
+error "failed to create label" unless label
+label.text = "Hello from 2D"
+
+surface = Surface3D label, Size(3, 1), Size(512, 128)
+error "failed to create Surface3D" unless surface
+surface.position = Vec3 0, 1.5, 0
+surface.billboard = "YAxis"
+view\addChild surface
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal title="init.tl"
+local Camera3D = require("Camera3D")
+local Director = require("Director")
+local Label = require("Label")
+local LabelType = require("Label").Type
+local Size = require("Size")
+local Surface3D = require("Surface3D")
+local Surface3DType = require("Surface3D").Type
+local Vec3 = require("Vec3")
+
+local view = Director.entry
+local camera = Camera3D()
+camera:lookAt(Vec3(0, 1.5, 5), Vec3(0, 1.5, 0))
+Director:pushCamera(camera)
+
+local label = Label("sarasa-mono-sc-regular", 24) as LabelType
+label.text = "Hello from 2D"
+
+local surface = Surface3D(label, Size(3, 1), Size(512, 128)) as Surface3DType
+surface.position = Vec3(0, 1.5, 0)
+surface.billboard = "YAxis"
+view.scene:addChild(surface)
+```
+
+</TabItem>
+</Tabs>
 
 ## Try it yourself
 
-Replace the label with a small 2D `Node` subtree containing a title and a status line. Attach it above the falling crate from the physics lesson. Then toggle between `Billboard.YAxis` and `Billboard.None` to feel the difference between an information label and a physical sign.
+Replace the label with a small 2D `Node` subtree containing a title and a status line. Attach it above the falling crate from the physics tutorial. Then toggle between `Billboard.YAxis` and `Billboard.None` to feel the difference between an information label and a physical sign.
 
-## Next lesson
+## Summary
+
+You now know how to place 2D UI elements in a 3D scene:
+
+- **Choice of UI type**: Use normal 2D nodes for screen-space HUDs and `Surface3D` for world-space elements like nameplates, terminals, and signs.
+- **Creating a surface**: `Surface3D(label, worldSize, pixelSize)` wraps a 2D node and gives it a position in 3D world space.
+- **Two sizes**: World size controls how large the panel appears in the scene; pixel size controls the backing texture resolution for detail.
+- **Billboard modes**: `Billboard.None` for fixed signs, `Billboard.YAxis` for nameplates that track horizontally, and `Billboard.Screen` for prompts that always face the camera.
+- **Performance**: Reuse surfaces and use reasonable pixel sizes. Compare `view.stats` to measure the impact of texture choices.
+
+With these tools, you can create nameplates that follow characters, terminals on spaceship walls, and any other UI that needs to exist in your 3D world.
+
+## Next tutorial
 
 Continue with [3D performance and debugging](./measure-and-debug-3d-scene) to make this scene measurable before you add more content.

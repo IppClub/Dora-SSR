@@ -468,6 +468,10 @@ export default function AgentStepList(props: AgentStepListProps) {
 					? step.result.historyEntryPreview
 					: "";
 				const isSystemStep = step.tool === "compress_memory" || step.tool === "merge_memory" || step.tool === "sub_agent_handoff";
+				const hasCompletedToolOutcome = step.status === "FAILED"
+					&& !isSystemStep
+					&& step.result?.success === false
+					&& step.result?.interrupted !== true;
 				return (
 					<Box key={step.id} sx={{
 						borderLeft: `2px solid ${isSystemStep ? "rgba(255,196,110,0.32)" : Color.Line}`,
@@ -488,7 +492,7 @@ export default function AgentStepList(props: AgentStepListProps) {
 									color: isSystemStep ? "rgb(255,214,153)" : Color.TextPrimary,
 								}}
 							/>
-							{step.status !== "DONE" ? (
+							{step.status !== "DONE" && !hasCompletedToolOutcome ? (
 								<Chip size="small" label={step.status} variant="outlined" sx={{ borderColor: Color.Line, color: Color.TextSecondary }} />
 							) : null}
 						</Stack>

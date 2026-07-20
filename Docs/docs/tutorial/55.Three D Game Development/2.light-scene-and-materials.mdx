@@ -1,18 +1,27 @@
-# Light the Scene and Read Its Materials
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
 
-The first scene proved that the renderer works. This lesson makes it legible: you will give the model a ground reference, choose a light direction, enable a shadow, then tune one material without duplicating its source asset.
+# Lighting and Materials
 
-:::tip Lesson goal
-Finish with a duck over a ground plane, a directional shadow, and a deliberately tinted material slot.
+In a 3D scene, shadows don't just appear - they need something to fall on. A floating model looks flat because there's no reference for depth, and shadows provide that visual grounding. Shadows also tell you where light is coming from, which helps your brain understand the shape and position of objects. Without a shadow receiver, even a well-lit scene can feel like objects are pasted onto a background.
+
+This tutorial builds on the model-camera-light setup from tutorial 1 by adding a ground plane to receive shadows, configuring a directional light to cast those shadows, and customizing the material on one model instance. You'll learn how environment lighting complements direct light, how shadow quality is tuned, and how to modify a single instance's appearance without duplicating assets.
+
+:::tip Tutorial goal
+By the end of this tutorial, you'll have a duck on a ground plane with a directional shadow, and you'll know how to customize materials on individual instances.
+
 :::
 
 ## Before you start
 
-Start from [your first 3D scene](./first-3d-scene). The verified demo assets used below are `Assets/Model/Ground.gltf` and `Assets/Model/Duck.glb`. If you use different models, keep a receiving surface in the scene; a shadow cannot be judged without one.
+Continue from [your first 3D scene](./first-3d-scene). The example assets used here are `Assets/Model/Ground.gltf` and `Assets/Model/Duck.glb`. If you're using different models, make sure your scene has something to catch the shadow - you won't be able to tell if shadows are working without a ground or floor.
 
-## Step 1: Establish neutral ambient light
+## 1. Add ambient light
 
-Environment light prevents completely black surfaces, while the directional light will provide the readable direction and shadow.
+Direct light from a directional light creates clear highlights and shadows, but surfaces facing away from that light would be pitch black without some additional illumination. Environment lighting provides that fill. It's a soft, omnidirectional light that simulates light bouncing around in the world. Setting it up means configuring an environment map and its intensity components.
+
+<Tabs groupId="language-select">
+<TabItem value="ts" label="TypeScript">
 
 ```ts title="init.ts"
 import {Camera3D, Color, Color3, DirectionalLight3D, Director, Model3D, Vec3} from "Dora";
@@ -26,9 +35,71 @@ camera.lookAt(Vec3(4.8, 3.7, 6.5), Vec3(0, 0.25, 0));
 Director.pushCamera(camera);
 ```
 
-The three environment intensity values control diffuse, specular, and ambient contribution. Start with modest values: high ambient light makes shadows hard to read.
+</TabItem>
+<TabItem value="lua" label="Lua">
 
-## Step 2: Add a receiver, subject, and shadow-casting light
+```lua title="init.lua"
+local _ENV = Dora
+
+local view = Director.entry
+view:setEnvironmentMap("")
+view:setEnvironmentIntensity(0.22, 0.18, 1.0)
+
+local camera = Camera3D()
+camera:lookAt(Vec3(4.8, 3.7, 6.5), Vec3(0, 0.25, 0))
+Director:pushCamera(camera)
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+_ENV = Dora
+
+view = Director.entry
+view\setEnvironmentMap ""
+view\setEnvironmentIntensity 0.22, 0.18, 1.0
+
+camera = Camera3D!
+camera\lookAt Vec3(4.8, 3.7, 6.5), Vec3(0, 0.25, 0)
+Director\pushCamera camera
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal title="init.tl"
+local Camera3D <const> = require("Camera3D")
+local Director <const> = require("Director")
+local Vec3 <const> = require("Vec3")
+
+local view = Director.entry
+view:setEnvironmentMap("")
+view:setEnvironmentIntensity(0.22, 0.18, 1.0)
+
+local camera = Camera3D()
+camera:lookAt(Vec3(4.8, 3.7, 6.5), Vec3(0, 0.25, 0))
+Director:pushCamera(camera)
+```
+
+</TabItem>
+</Tabs>
+
+What's happening here:
+
+- `Director.entry` is the 3D scene root view. We store a reference to configure environment settings.
+- `setEnvironmentMap("")` clears any existing environment texture. Passing an empty string means no environment map is loaded, so we rely on the intensity components only.
+- `setEnvironmentIntensity(0.22, 0.18, 1.0)` controls three components in order: diffuse, specular, and ambient. Diffuse light brightens surfaces evenly, specular adds subtle reflections, and ambient ensures nothing is completely black. The values here are deliberately low so shadows remain visible.
+- The camera setup uses the same `lookAt` pattern from tutorial 1, but with a slightly adjusted position to frame the scene with the ground plane included.
+
+Environment lighting is subtle but important. If you set these values too high, shadows wash out and the scene loses depth. If they're too low, shadowed areas become unreadably dark. The values here strike a balance that preserves shadow contrast while keeping dark surfaces from looking flat black.
+
+## 2. Add a ground, the duck, and a shadow-casting light
+
+Now let's add the objects to our scene and set up a directional light that casts shadows. A shadow only appears if there's something to block light and something for that shadow to fall on. The ground plane serves as the receiver, while the duck blocks light and casts a shadow. The directional light provides both the main illumination and the shadow-casting capability.
+
+<Tabs groupId="language-select">
+<TabItem value="ts" label="TypeScript">
 
 ```ts title="init.ts"
 const ground = Model3D("Assets/Model/Ground.gltf");
@@ -53,13 +124,120 @@ view.shadowMapSize = 1024;
 view.addChild(light);
 ```
 
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua title="init.lua"
+local _ENV = Dora
+
+local ground = Model3D("Assets/Model/Ground.gltf")
+ground.position = Vec3(0, -0.72, 0)
+view:addChild(ground)
+
+local duck = Model3D("Assets/Model/Duck.glb")
+duck.position = Vec3(0, -0.7, 0)
+duck.scale = Vec3(0.8, 0.8, 0.8)
+view:addChild(duck)
+
+local light = DirectionalLight3D()
+light.color = Color3(0xfff0d8)
+light.intensity = 4.5
+light.angleX = -48
+light.angleY = -35
+light.castShadow = true
+light.shadowBias = 0.004
+light.shadowNormalBias = 0.02
+light.shadowSoftness = 1
+view.shadowMapSize = 1024
+view:addChild(light)
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+_ENV = Dora
+
+ground = Model3D "Assets/Model/Ground.gltf"
+ground.position = Vec3 0, -0.72, 0
+view\addChild ground
+
+duck = Model3D "Assets/Model/Duck.glb"
+duck.position = Vec3 0, -0.7, 0
+duck.scale = Vec3 0.8, 0.8, 0.8
+view\addChild duck
+
+light = DirectionalLight3D!
+light.color = Color3 0xfff0d8
+light.intensity = 4.5
+light.angleX = -48
+light.angleY = -35
+light.castShadow = true
+light.shadowBias = 0.004
+light.shadowNormalBias = 0.02
+light.shadowSoftness = 1
+view.shadowMapSize = 1024
+view\addChild light
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal title="init.tl"
+local Color3 <const> = require("Color3")
+local DirectionalLight3D <const> = require("DirectionalLight3D")
+local Model3D <const> = require("Model3D")
+local Vec3 <const> = require("Vec3")
+
+local ground = Model3D("Assets/Model/Ground.gltf")
+ground.position = Vec3(0, -0.72, 0)
+view:addChild(ground)
+
+local duck = Model3D("Assets/Model/Duck.glb")
+duck.position = Vec3(0, -0.7, 0)
+duck.scale = Vec3(0.8, 0.8, 0.8)
+view:addChild(duck)
+
+local light = DirectionalLight3D()
+light.color = Color3(0xfff0d8)
+light.intensity = 4.5
+light.angleX = -48
+light.angleY = -35
+light.castShadow = true
+light.shadowBias = 0.004
+light.shadowNormalBias = 0.02
+light.shadowSoftness = 1
+view.shadowMapSize = 1024
+view:addChild(light)
+```
+
+</TabItem>
+</Tabs>
+
+Breaking this down:
+
+- `Model3D("Assets/Model/Ground.gltf")` loads the ground plane geometry and textures. The ground is positioned slightly below the origin at Y = -0.72 so the duck appears to rest on top of it.
+- `Model3D("Assets/Model/Duck.glb")` loads the duck model. We scale it to 80% of its original size with `scale = Vec3(0.8, 0.8, 0.8)` to make it fit nicely with the ground plane. Its Y position is -0.7, just above the ground.
+- `DirectionalLight3D()` creates a light that casts parallel rays like sunlight. Its direction is set by `angleX = -48` and `angleY = -35`, which tilts it downward and to the side so shadows extend convincingly.
+- `light.color = Color3(0xfff0d8)` gives the light a warm tint (slightly yellow-orange) instead of pure white, which makes the scene feel more natural and less clinical.
+- `light.intensity = 4.5` makes the light bright enough to clearly illuminate the scene. Higher values are more dramatic but can wash out details if set too high.
+- `light.castShadow = true` enables shadow rendering for this light. Without this, the light would illuminate but not cast shadows.
+- `light.shadowBias = 0.004` and `light.shadowNormalBias = 0.02` are subtle tuning values that prevent shadow artifacts like self-shadowing acne (strange patterns on surfaces). These biases shift the shadow test slightly to avoid precision issues.
+- `light.shadowSoftness = 1` makes shadow edges softer. A value of 1 is a good middle ground; higher values blur shadows more, lower values make them sharper.
+- `view.shadowMapSize = 1024` sets the resolution of the shadow map. Larger values (2048, 4096) produce sharper shadows but cost more performance. 1024 is a practical default for most cases.
+
+The shadow map size is a quality tradeoff. Doubling it quadruples the memory and computation cost, so test on your target hardware before committing to higher resolutions.
+
 ### Checkpoint
 
-You should be able to answer two visual questions: is there a shadow under or beside the duck, and does rotating `light.angleY` move that shadow? If the answer to either is no, do not start tuning material values yet.
+Before moving on, take a moment to verify that shadows are working. Do you see a shadow under or beside the duck? When you change `light.angleY`, does the shadow move in the expected direction? Shadows can be finicky - if the light angle is too steep, the shadow might be pushed off the ground plane entirely. If you don't see a shadow, tweak the angles first before proceeding. Once shadows are visible, the material changes in the next section will be much easier to evaluate.
 
-## Step 3: Personalize one instance's material
+## 3. Customize a material on one instance
 
-Imported assets are shared efficiently. Ask the model for the material slot you want to customize instead of creating a second copy of the model resource.
+When you load the same model multiple times, Dora shares the underlying mesh and textures to save memory. The geometry and base materials are shared, but each instance can have its own material overrides. This is efficient: one copy of the asset data, but each instance can look different. To customize just one instance's appearance, you grab its material slot and modify properties on that instance only.
+
+<Tabs groupId="language-select">
+<TabItem value="ts" label="TypeScript">
 
 ```ts title="init.ts"
 const material = duck.getMaterial(0);
@@ -70,25 +248,289 @@ if (material) {
 }
 ```
 
-Change one value at a time and observe the result:
+</TabItem>
+<TabItem value="lua" label="Lua">
 
-| Control | Visual question |
+```lua title="init.lua"
+local _ENV = Dora
+
+local material = duck:getMaterial(0)
+if material then
+	material.baseColor = Color(0xff9bd7ff)
+	material.metallic = 0.15
+	material.roughness = 0.42
+end
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+_ENV = Dora
+
+if material := duck\getMaterial 0
+	material.baseColor = Color 0xff9bd7ff
+	material.metallic = 0.15
+	material.roughness = 0.42
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal title="init.tl"
+local Color <const> = require("Color")
+
+local material = duck:getMaterial(0) as any
+if material then
+	material.baseColor = Color(0xff9bd7ff)
+	material.metallic = 0.15
+	material.roughness = 0.42
+end
+```
+
+</TabItem>
+</Tabs>
+
+Here's what each line does:
+
+- `duck.getMaterial(0)` retrieves the first material slot from the duck model. A model can have multiple materials for different mesh parts, indexed starting from 0.
+- The `if (material)` check is important because `getMaterial` returns nothing if the slot doesn't exist. Handling this case prevents errors if the model has no materials or the index is wrong.
+- `material.baseColor = Color(0xff9bd7ff)` changes the surface tint. The `Color` format uses 8 hex digits: the first two are alpha (opacity), then red, green, and blue. `0xff9bd7ff` means fully opaque (`ff` alpha) with a pinkish hue (`9b` red, `d7` green, `ff` blue).
+- `material.metallic = 0.15` controls how metallic the surface appears. The range is 0 to 1, where 0 is dielectric (plastic, wood, cloth) and 1 is fully metallic (gold, steel). A value of 0.15 is slightly metallic, like painted metal or ceramic.
+- `material.roughness = 0.42` controls surface texture. The range is 0 to 1, where 0 is perfectly smooth (mirror-like reflections) and 1 is completely matte (no sharp reflections). A value of 0.42 is moderately rough, like polished plastic or smooth stone.
+
+Material properties are physical parameters that affect how light interacts with surfaces. The combination of base color, metallic, and roughness defines the material type. Try adjusting each one and observing the result:
+
+| Control | What to look for |
 | --- | --- |
-| `baseColor` | Does the object keep its readable light and dark sides? |
-| `metallic` | Does the reflection feel like metal rather than painted plastic? |
-| `roughness` | Is the highlight appropriately broad or sharp? |
+| `baseColor` | Does the object still show clear light and dark sides? The color should tint evenly without washing out lighting. |
+| `metallic` | Does the reflection look more like metal than painted plastic? Higher values make reflections sharper and more distinct. |
+| `roughness` | Is the highlight appropriately broad or sharp? Lower values produce sharp, mirror-like highlights; higher values spread them out. |
+
+Use the one-line `Model3D` form when you just want a default appearance. Use `getMaterial` when you need to customize a specific instance without duplicating the asset file.
 
 ## Common mistakes
 
-- **No shadow:** `castShadow` must be `true` on the selected directional light; the subject and receiving surface must both be visible to the light.
-- **Shadow acne or detachment:** adjust `shadowBias` and `shadowNormalBias` in very small increments.
-- **Everything looks flat:** reduce environment intensity before increasing direct-light intensity.
-- **Performance drops after increasing shadow resolution:** return to 1024 and measure on the target device before trying 2048 or 4096.
+- **No shadow:** Make sure `castShadow` is `true` on your directional light, and both the duck and the ground are within the light's view. Shadows only appear on objects that can receive them.
+- **Shadow artifacts or gaps:** Adjust `shadowBias` and `shadowNormalBias` in very small increments (try 0.001 at a time). These values depend on your scene scale - larger scenes may need higher biases.
+- **Scene looks flat:** Lower the environment intensity first, then increase the direct light intensity. Too much ambient light washes out shadows and depth.
+- **Slow performance after increasing shadow resolution:** Go back to 1024 and test on your target device before trying 2048 or 4096. Shadow rendering is expensive, especially on mobile hardware.
+
+## Complete examples
+
+The complete scripts below pull everything in this tutorial together. They've been verified by the Dora engine.
+
+<Tabs groupId="language-select">
+<TabItem value="ts" label="TypeScript">
+
+```ts title="init.ts"
+import {Camera3D, Color, Color3, DirectionalLight3D, Director, Model3D, Vec3} from "Dora";
+
+const view = Director.entry;
+view.setEnvironmentMap("");
+view.setEnvironmentIntensity(0.22, 0.18, 1.0);
+
+const camera = Camera3D();
+camera.lookAt(Vec3(4.8, 3.7, 6.5), Vec3(0, 0.25, 0));
+Director.pushCamera(camera);
+
+// Receiver: a ground plane that shadows can fall on.
+const ground = Model3D("Assets/Model/Ground.gltf");
+if (!ground) throw new Error("failed to load Ground.gltf");
+ground.position = Vec3(0, -0.72, 0);
+view.addChild(ground);
+
+// Subject: the duck, scaled down to fit the scene.
+const duck = Model3D("Assets/Model/Duck.glb");
+if (!duck) throw new Error("failed to load Duck.glb");
+duck.position = Vec3(0, -0.7, 0);
+duck.scale = Vec3(0.8, 0.8, 0.8);
+view.addChild(duck);
+
+// Shadow-casting directional light.
+const light = DirectionalLight3D();
+light.color = Color3(0xfff0d8);
+light.intensity = 4.5;
+light.angleX = -48;
+light.angleY = -35;
+light.castShadow = true;
+light.shadowBias = 0.004;
+light.shadowNormalBias = 0.02;
+light.shadowSoftness = 1;
+view.shadowMapSize = 1024;
+view.addChild(light);
+
+// Customize only this instance's first material slot.
+const material = duck.getMaterial(0);
+if (material) {
+	material.baseColor = Color(0xff9bd7ff);
+	material.metallic = 0.15;
+	material.roughness = 0.42;
+}
+```
+
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua title="init.lua"
+local _ENV = Dora
+
+local view = Director.entry
+view:setEnvironmentMap("")
+view:setEnvironmentIntensity(0.22, 0.18, 1.0)
+
+local camera = Camera3D()
+camera:lookAt(Vec3(4.8, 3.7, 6.5), Vec3(0, 0.25, 0))
+Director:pushCamera(camera)
+
+-- Receiver: a ground plane that shadows can fall on.
+local ground = Model3D("Assets/Model/Ground.gltf")
+if not ground then
+	error("failed to load Ground.gltf")
+end
+ground.position = Vec3(0, -0.72, 0)
+view:addChild(ground)
+
+-- Subject: the duck, scaled down to fit the scene.
+local duck = Model3D("Assets/Model/Duck.glb")
+if not duck then
+	error("failed to load Duck.glb")
+end
+duck.position = Vec3(0, -0.7, 0)
+duck.scale = Vec3(0.8, 0.8, 0.8)
+view:addChild(duck)
+
+-- Shadow-casting directional light.
+local light = DirectionalLight3D()
+light.color = Color3(0xfff0d8)
+light.intensity = 4.5
+light.angleX = -48
+light.angleY = -35
+light.castShadow = true
+light.shadowBias = 0.004
+light.shadowNormalBias = 0.02
+light.shadowSoftness = 1
+view.shadowMapSize = 1024
+view:addChild(light)
+
+-- Customize only this instance's first material slot.
+local material = duck:getMaterial(0)
+if material then
+	material.baseColor = Color(0xff9bd7ff)
+	material.metallic = 0.15
+	material.roughness = 0.42
+end
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+_ENV = Dora
+
+view = Director.entry
+view\setEnvironmentMap ""
+view\setEnvironmentIntensity 0.22, 0.18, 1.0
+
+camera = Camera3D!
+camera\lookAt Vec3(4.8, 3.7, 6.5), Vec3(0, 0.25, 0)
+Director\pushCamera camera
+
+ground = Model3D "Assets/Model/Ground.gltf"
+error "failed to load Ground.gltf" unless ground
+ground.position = Vec3 0, -0.72, 0
+view\addChild ground
+
+duck = Model3D "Assets/Model/Duck.glb"
+error "failed to load Duck.glb" unless duck
+duck.position = Vec3 0, -0.7, 0
+duck.scale = Vec3 0.8, 0.8, 0.8
+view\addChild duck
+
+light = DirectionalLight3D!
+light.color = Color3 0xfff0d8
+light.intensity = 4.5
+light.angleX = -48
+light.angleY = -35
+light.castShadow = true
+light.shadowBias = 0.004
+light.shadowNormalBias = 0.02
+light.shadowSoftness = 1
+view.shadowMapSize = 1024
+view\addChild light
+
+if material := duck\getMaterial 0
+	material.baseColor = Color 0xff9bd7ff
+	material.metallic = 0.15
+	material.roughness = 0.42
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal title="init.tl"
+local Camera3D = require("Camera3D")
+local Color = require("Color")
+local Color3 = require("Color3")
+local DirectionalLight3D = require("DirectionalLight3D")
+local Director = require("Director")
+local Model3D = require("Model3D")
+local Model3DType = require("Model3D").Type
+local Material3DType = require("Material3DType")
+local Vec3 = require("Vec3")
+
+local view = Director.entry
+view:setEnvironmentMap("")
+view:setEnvironmentIntensity(0.22, 0.18, 1.0)
+
+local camera = Camera3D()
+camera:lookAt(Vec3(4.8, 3.7, 6.5), Vec3(0, 0.25, 0))
+Director:pushCamera(camera)
+
+local ground = Model3D("Assets/Model/Ground.gltf") as Model3DType
+ground.position = Vec3(0, -0.72, 0)
+view.scene:addChild(ground)
+
+local duck = Model3D("Assets/Model/Duck.glb") as Model3DType
+duck.position = Vec3(0, -0.7, 0)
+duck.scale = Vec3(0.8, 0.8, 0.8)
+view.scene:addChild(duck)
+
+local light = DirectionalLight3D()
+light.color = Color3(0xfff0d8)
+light.intensity = 4.5
+light.angleX = -48
+light.angleY = -35
+light.castShadow = true
+light.shadowBias = 0.004
+light.shadowNormalBias = 0.02
+light.shadowSoftness = 1
+view.shadowMapSize = 1024
+view.scene:addChild(light)
+
+local material = duck:getMaterial(0) as Material3DType
+material.baseColor = Color(0xff9bd7ff)
+material.metallic = 0.15
+material.roughness = 0.42
+```
+
+</TabItem>
+</Tabs>
 
 ## Try it yourself
 
-Duplicate the duck with a second `Model3D` using the same path, place it at `Vec3(2, -0.7, 0)`, and tint only the second instance. This demonstrates shared source data with instance-local material edits.
+Create a second duck using the same `Model3D("Assets/Model/Duck.glb")` path, place it at `Vec3(2, -0.7, 0)`, and tint only the second instance with a different `baseColor`. You'll see that the source asset is still shared between both ducks, but the material change only affects that one instance. This is how you efficiently create variety without loading duplicate meshes or textures.
 
-## Next lesson
+## Summary
+
+You now have a 3D scene with proper lighting, shadows, and material customization:
+
+- **Environment lighting**: `setEnvironmentMap` and `setEnvironmentIntensity` provide soft fill light so shadowed areas remain readable. The three components (diffuse, specular, ambient) control how light wraps around objects.
+- **Shadows**: A directional light with `castShadow = true` creates shadows that fall on a ground plane. Shadow quality is tuned with `shadowMapSize`, `shadowBias`, and `shadowNormalBias`.
+- **Material instances**: `getMaterial(index)` retrieves a material slot on a model instance. Modifying properties like `baseColor`, `metallic`, and `roughness` changes only that instance without duplicating assets.
+
+Each piece serves a purpose. Environment lighting prevents black shadows. A shadow receiver grounds the scene. Material customization lets you create visual variety efficiently. Together, they form a foundation for more complex 3D content.
+
+## Next tutorial
 
 Continue with [model assets and animation](./add-models-and-animation) to turn a static scene object into a reusable animated character.

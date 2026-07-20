@@ -19,7 +19,7 @@
 
 [![IppClub](https://img.shields.io/badge/IppClub-Certified-11A7E2?logo=data%3Aimage%2Fsvg%2Bxml%3Bcharset%3Dutf-8%3Bbase64%2CPHN2ZyB2aWV3Qm94PSIwIDAgMjg4IDI3NCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWw6c3BhY2U9InByZXNlcnZlIiBzdHlsZT0iZmlsbC1ydWxlOmV2ZW5vZGQ7Y2xpcC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlLWxpbmVqb2luOnJvdW5kO3N0cm9rZS1taXRlcmxpbWl0OjIiPjxwYXRoIGQ9Im0xNDYgMzEgNzIgNTVWMzFoLTcyWiIgc3R5bGU9ImZpbGw6I2Y2YTgwNjtmaWxsLXJ1bGU6bm9uemVybyIvPjxwYXRoIGQ9Im0xNjkgODYtMjMtNTUgNzIgNTVoLTQ5WiIgc3R5bGU9ImZpbGw6I2VmN2EwMDtmaWxsLXJ1bGU6bm9uemVybyIvPjxwYXRoIGQ9Ik0yNiAzMXY1NWg4MEw4MSAzMUgyNloiIHN0eWxlPSJmaWxsOiMwN2ExN2M7ZmlsbC1ydWxlOm5vbnplcm8iLz48cGF0aCBkPSJNMTA4IDkydjExMmwzMS00OC0zMS02NFoiIHN0eWxlPSJmaWxsOiNkZTAwNWQ7ZmlsbC1ydWxlOm5vbnplcm8iLz48cGF0aCBkPSJNMCAyNzR2LTUyaDk3bC0zMyA1MkgwWiIgc3R5bGU9ImZpbGw6I2Y2YTgwNjtmaWxsLXJ1bGU6bm9uemVybyIvPjxwYXRoIGQ9Im03NyAyNzQgNjctMTA3djEwN0g3N1oiIHN0eWxlPSJmaWxsOiNkZjI0MzM7ZmlsbC1ydWxlOm5vbnplcm8iLz48cGF0aCBkPSJNMTUyIDI3NGgyOWwtMjktNTN2NTNaIiBzdHlsZT0iZmlsbDojMzM0ODVkO2ZpbGwtcnVsZTpub256ZXJvIi8%2BPHBhdGggZD0iTTE5MSAyNzRoNzl2LTUySDE2N2wyNCA1MloiIHN0eWxlPSJmaWxsOiM0ZTI3NWE7ZmlsbC1ydWxlOm5vbnplcm8iLz48cGF0aCBkPSJNMjg4IDEwMGgtMTdWODVoLTEzdjE1aC0xN3YxM2gxN3YxNmgxM3YtMTZoMTd2LTEzWiIgc3R5bGU9ImZpbGw6I2M1MTgxZjtmaWxsLXJ1bGU6bm9uemVybyIvPjxwYXRoIGQ9Im0yNiA4NiA1Ni01NUgyNnY1NVoiIHN0eWxlPSJmaWxsOiMzMzQ4NWQ7ZmlsbC1ydWxlOm5vbnplcm8iLz48cGF0aCBkPSJNOTMgMzFoNDJsLTMwIDI5LTEyLTI5WiIgc3R5bGU9ImZpbGw6IzExYTdlMjtmaWxsLXJ1bGU6bm9uemVybyIvPjxwYXRoIGQ9Ik0xNTggMTc2Vjg2bC0zNCAxNCAzNCA3NloiIHN0eWxlPSJmaWxsOiMwMDU5OGU7ZmlsbC1ydWxlOm5vbnplcm8iLz48cGF0aCBkPSJtMTA2IDU5IDQxLTEtMTItMjgtMjkgMjlaIiBzdHlsZT0iZmlsbDojMDU3Y2I3O2ZpbGwtcnVsZTpub256ZXJvIi8%2BPHBhdGggZD0ibTEyNCAxMDAgMjItNDEgMTIgMjctMzQgMTRaIiBzdHlsZT0iZmlsbDojNGUyNzVhO2ZpbGwtcnVsZTpub256ZXJvIi8%2BPHBhdGggZD0ibTEwNiA2MCA0MS0xLTIzIDQxLTE4LTQwWiIgc3R5bGU9ImZpbGw6IzdiMTI4NTtmaWxsLXJ1bGU6bm9uemVybyIvPjxwYXRoIGQ9Im0xMDggMjA0IDMxLTQ4aC0zMXY0OFoiIHN0eWxlPSJmaWxsOiNiYTAwNzc7ZmlsbC1ydWxlOm5vbnplcm8iLz48cGF0aCBkPSJtNjUgMjc0IDMzLTUySDBsNjUgNTJaIiBzdHlsZT0iZmlsbDojZWY3YTAwO2ZpbGwtcnVsZTpub256ZXJvIi8%2BPHBhdGggZD0iTTc3IDI3NGg2N2wtNDAtNDUtMjcgNDVaIiBzdHlsZT0iZmlsbDojYTgxZTI0O2ZpbGwtcnVsZTpub256ZXJvIi8%2BPHBhdGggZD0iTTE2NyAyMjJoNThsLTM0IDUyLTI0LTUyWiIgc3R5bGU9ImZpbGw6IzExYTdlMjtmaWxsLXJ1bGU6bm9uemVybyIvPjxwYXRoIGQ9Im0yNzAgMjc0LTQ0LTUyLTM1IDUyaDc5WiIgc3R5bGU9ImZpbGw6IzA1N2NiNztmaWxsLXJ1bGU6bm9uemVybyIvPjxwYXRoIGQ9Ik0yNzUgNTVoLTU3VjBoMjV2MzFoMzJ2MjRaIiBzdHlsZT0iZmlsbDojZGUwMDVkO2ZpbGwtcnVsZTpub256ZXJvIi8%2BPHBhdGggZD0iTTE4NSAzMWg1N3Y1NWgtMjVWNTVoLTMyVjMxWiIgc3R5bGU9ImZpbGw6I2M1MTgxZjtmaWxsLXJ1bGU6bm9uemVybyIvPjwvc3ZnPg%3D%3D&labelColor=fff)](https://ippclub.org) [![Static Badge](https://img.shields.io/badge/Open_Atom_Foundation-Incubation-blue)](https://openatom.org/project/RJHufNnSKtDZ) [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/IppClub/Dora-SSR) [![QQ Group](https://img.shields.io/badge/QQ_Group-512620381-blue?style=flat&logo=qq&logoColor=white)](https://qm.qq.com/q/VnzYhvCDgy) [![Discord Badge](https://img.shields.io/discord/1105021755426353152?color=5865F2&label=Discord&logo=discord&logoColor=white&style=flat-square)](https://discord.gg/ZfNBSKXnf9)
 
-Dora SSR is a game engine for rapid development of games on various devices. It has a built-in easy-to-use Web IDE development tool chain that supports direct game development on mobile phones, open source handhelds and other devices.
+Dora SSR is a cross-platform game engine for building games directly on the device that runs them. Keep the engine on a phone, handheld, desktop, or another target device; then use its built-in Web IDE from a browser to code, inspect, run, and iterate against the real runtime.
 
 <br/>
 
@@ -34,8 +34,9 @@ Dora SSR is a game engine for rapid development of games on various devices. It 
 
 |Area|Contents|
 |-|-|
-|Development Flow|`Web IDE` + `Coding Agent` + browser-connected live game development on the target device|
+|Development Flow|Target-device engine + `Web IDE` + `Coding Agent` for a connected edit, run, inspect, and iterate loop|
 |Language Ecosystem|`Lua` / `TypeScript` / `TSX` / `Teal` / `YueScript` / `Wa` / `Rust` / `C#`|
+|Runtime|2D and 3D scenes, physics, animation, audio, video, UI, and asynchronous asset workflows|
 |Target Platforms|`Android` / `Windows` / `Linux` / `macOS` / `iOS` / [HarmonyOS](https://github.com/IppClub/ohos_dora_ssr)|
 
 <div align='center'>
@@ -54,39 +55,36 @@ Dora SSR is a game engine for rapid development of games on various devices. It 
 
 ### Developer Experience
 
-- Web IDE: built-in browser-based workflow with file management, code inspection, completion, highlighting, and jump-to-definition.
-- Coding Agent: built-in [coding agent](Assets/Script/Lib/Agent/CodingAgent.ts) that brings LLM AI assisted development into the game engine, using project skills, persistent memory, file search, Dora API lookup, safe file edits, build checks, and sub-agent delegation.
-- Live device workflow: run the engine on the target phone or handheld, then connect to the Web IDE from a browser for live development and debugging.
+- Web IDE: a browser-based workspace with project files, typed code editing, completion, diagnostics, and jump-to-definition—connected directly to the running engine.
+- Coding Agent: the built-in [coding agent](Assets/Script/Lib/Agent/CodingAgent.ts) brings LLM-assisted development into the engine with project skills, persistent memory, API lookup, safe edits, build checks, runtime validation, and sub-agent delegation.
+- Live device workflow: keep the engine on the target phone, handheld, or desktop and iterate in a browser against the real runtime, not a detached preview.
 
 <div align='center'><img src='Docs/static/img/article/dora-on-android.jpg' alt='dora on android' width='500px'/></div>
 
 ### Languages and Extensibility
 
-- Lua: upgraded Lua bindings with support for inheriting and extending low-level C++ objects.
-- TypeScript / TSX: supports typed scripting and declarative scene construction through [TSTL](https://typescripttolua.github.io).
-- Teal / YueScript: offers alternative Lua-friendly language styles within the same ecosystem.
-- Wa / Rust: supports engine extension through the built-in WASM runtime.
-- C#: supports native-style development by calling the engine as a dynamic library.
-- Blockly: supports Scratch-like visual scripting, ideal for teaching and onboarding beginners.
+- Lua: upgraded bindings that can inherit from and extend low-level C++ objects.
+- TypeScript / TSX: typed game code and declarative scenes or responsive UI with supported ReactJS-style APIs, compiled with [TSTL](https://typescripttolua.github.io).
+- Teal / YueScript: Lua-friendly language choices for teams with different coding styles.
+- Wa / Rust / C#: extend or integrate the engine through its WASM runtime and native dynamic-library interfaces.
+- Blockly: Scratch-like visual scripting for teaching, prototypes, and beginner-friendly onboarding.
 
 <div align='center'><img src='Docs/static/img/showcase/blockly.jpg' alt='Blockly' width='500px'/></div>
 
 ### Runtime and Presentation
 
 - Cross-platform runtime: runs natively on `Android`, `Windows`, `Linux`, `iOS`, `macOS`, and `HarmonyOS`.
-- Scene system: manages game objects with a tree-based node model and an easy-to-use [ECS](https://dora-ssr.net/docs/tutorial/using-ecs) module.
-- Async processing: supports asynchronous file IO, asset loading, and related tasks.
-- 2D animation and physics: supports Spine2D, DragonBones, built-in skeletal animation, and [PlayRho](https://github.com/louis-langholtz/PlayRho) 2D physics.
-- Video and audio: supports H.264 playback plus multi-format audio, 3D spatial sound, attenuation, and Doppler effects.
-- Graphics runtime: supports cross-platform shader runtime compilation, plus Effekseer effects, NanoVG vector graphics, ImGui tooling UI, and TrueType font rendering.
-- Game patterns: includes core logic and AI support for [2D platformer](https://dora-ssr.net/docs/example/Platformer%20Tutorial/start) development.
+- Scene system: tree-based 2D and 3D scenes, an approachable [ECS](https://dora-ssr.net/docs/tutorial/using-ecs) module, cameras, materials, lighting, models, animation, and 3D physics.
+- 2D production: supports Spine2D, DragonBones, built-in skeletal animation, [PlayRho](https://github.com/louis-langholtz/PlayRho) physics, tile maps, particles, and retro TIC-80 content.
+- Media and graphics: asynchronous asset loading, H.264 playback, multi-format audio with spatial effects, runtime shader compilation, Effekseer, NanoVG, ImGui, and TrueType rendering.
+- Game patterns: includes reusable logic and AI support for [2D platformer](https://dora-ssr.net/docs/example/Platformer%20Tutorial/start) development.
 
 ### Content and Tooling
 
-- Data and configuration: supports asynchronous [SQLite](https://www.sqlite.org) access and Excel-to-database workflows.
-- Animation Editor: built-in Web IDE tool for creating and editing 2D model animation resources with visual tree editing, key frames, clips, playback, and transform tools.
-- Scene and narrative tools: supports CSS Flex layout, Tiled TMX maps, and [Yarn Spinner](https://www.yarnspinner.dev) story scripting.
-- Creative extensions: includes a machine learning gameplay framework and open art resources plus the ["Luv Sense Digital"](https://luv-sense-digital.readthedocs.io) IP.
+- Data and configuration: asynchronous [SQLite](https://www.sqlite.org) access plus Excel-to-database workflows.
+- Built-in tools: animation, particle, physics, visual-script, Yarn, Spine, tile-map, Git, profiler, and TIC-80 editors keep common game-production tasks in the Web IDE.
+- Scene and narrative: CSS Flex layout, Tiled TMX maps, [Yarn Spinner](https://www.yarnspinner.dev) story scripting, and responsive TSX UI.
+- Creative extensions: a machine-learning gameplay framework, open art resources, and the ["Luv Sense Digital"](https://luv-sense-digital.readthedocs.io) IP.
 
 <div align='center'><img src='Docs/static/img/showcase/LSD.jpg' alt='Luv Sense Digital' width='300px'/></div>
 

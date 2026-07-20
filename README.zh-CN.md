@@ -19,7 +19,7 @@
 
 [![IppClub](https://img.shields.io/badge/I%2B%2B%E4%BF%B1%E4%B9%90%E9%83%A8-%E8%AE%A4%E8%AF%81-11A7E2?logo=data%3Aimage%2Fsvg%2Bxml%3Bcharset%3Dutf-8%3Bbase64%2CPHN2ZyB2aWV3Qm94PSIwIDAgMjg4IDI3NCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWw6c3BhY2U9InByZXNlcnZlIiBzdHlsZT0iZmlsbC1ydWxlOmV2ZW5vZGQ7Y2xpcC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlLWxpbmVqb2luOnJvdW5kO3N0cm9rZS1taXRlcmxpbWl0OjIiPjxwYXRoIGQ9Im0xNDYgMzEgNzIgNTVWMzFoLTcyWiIgc3R5bGU9ImZpbGw6I2Y2YTgwNjtmaWxsLXJ1bGU6bm9uemVybyIvPjxwYXRoIGQ9Im0xNjkgODYtMjMtNTUgNzIgNTVoLTQ5WiIgc3R5bGU9ImZpbGw6I2VmN2EwMDtmaWxsLXJ1bGU6bm9uemVybyIvPjxwYXRoIGQ9Ik0yNiAzMXY1NWg4MEw4MSAzMUgyNloiIHN0eWxlPSJmaWxsOiMwN2ExN2M7ZmlsbC1ydWxlOm5vbnplcm8iLz48cGF0aCBkPSJNMTA4IDkydjExMmwzMS00OC0zMS02NFoiIHN0eWxlPSJmaWxsOiNkZTAwNWQ7ZmlsbC1ydWxlOm5vbnplcm8iLz48cGF0aCBkPSJNMCAyNzR2LTUyaDk3bC0zMyA1MkgwWiIgc3R5bGU9ImZpbGw6I2Y2YTgwNjtmaWxsLXJ1bGU6bm9uemVybyIvPjxwYXRoIGQ9Im03NyAyNzQgNjctMTA3djEwN0g3N1oiIHN0eWxlPSJmaWxsOiNkZjI0MzM7ZmlsbC1ydWxlOm5vbnplcm8iLz48cGF0aCBkPSJNMTUyIDI3NGgyOWwtMjktNTN2NTNaIiBzdHlsZT0iZmlsbDojMzM0ODVkO2ZpbGwtcnVsZTpub256ZXJvIi8%2BPHBhdGggZD0iTTE5MSAyNzRoNzl2LTUySDE2N2wyNCA1MloiIHN0eWxlPSJmaWxsOiM0ZTI3NWE7ZmlsbC1ydWxlOm5vbnplcm8iLz48cGF0aCBkPSJNMjg4IDEwMGgtMTdWODVoLTEzdjE1aC0xN3YxM2gxN3YxNmgxM3YtMTZoMTd2LTEzWiIgc3R5bGU9ImZpbGw6I2M1MTgxZjtmaWxsLXJ1bGU6bm9uemVybyIvPjxwYXRoIGQ9Im0yNiA4NiA1Ni01NUgyNnY1NVoiIHN0eWxlPSJmaWxsOiMzMzQ4NWQ7ZmlsbC1ydWxlOm5vbnplcm8iLz48cGF0aCBkPSJNOTMgMzFoNDJsLTMwIDI5LTEyLTI5WiIgc3R5bGU9ImZpbGw6IzExYTdlMjtmaWxsLXJ1bGU6bm9uemVybyIvPjxwYXRoIGQ9Ik0xNTggMTc2Vjg2bC0zNCAxNCAzNCA3NloiIHN0eWxlPSJmaWxsOiMwMDU5OGU7ZmlsbC1ydWxlOm5vbnplcm8iLz48cGF0aCBkPSJtMTA2IDU5IDQxLTEtMTItMjgtMjkgMjlaIiBzdHlsZT0iZmlsbDojMDU3Y2I3O2ZpbGwtcnVsZTpub256ZXJvIi8%2BPHBhdGggZD0ibTEyNCAxMDAgMjItNDEgMTIgMjctMzQgMTRaIiBzdHlsZT0iZmlsbDojNGUyNzVhO2ZpbGwtcnVsZTpub256ZXJvIi8%2BPHBhdGggZD0ibTEwNiA2MCA0MS0xLTIzIDQxLTE4LTQwWiIgc3R5bGU9ImZpbGw6IzdiMTI4NTtmaWxsLXJ1bGU6bm9uemVybyIvPjxwYXRoIGQ9Im0xMDggMjA0IDMxLTQ4aC0zMXY0OFoiIHN0eWxlPSJmaWxsOiNiYTAwNzc7ZmlsbC1ydWxlOm5vbnplcm8iLz48cGF0aCBkPSJtNjUgMjc0IDMzLTUySDBsNjUgNTJaIiBzdHlsZT0iZmlsbDojZWY3YTAwO2ZpbGwtcnVsZTpub256ZXJvIi8%2BPHBhdGggZD0iTTc3IDI3NGg2N2wtNDAtNDUtMjcgNDVaIiBzdHlsZT0iZmlsbDojYTgxZTI0O2ZpbGwtcnVsZTpub256ZXJvIi8%2BPHBhdGggZD0iTTE2NyAyMjJoNThsLTM0IDUyLTI0LTUyWiIgc3R5bGU9ImZpbGw6IzExYTdlMjtmaWxsLXJ1bGU6bm9uemVybyIvPjxwYXRoIGQ9Im0yNzAgMjc0LTQ0LTUyLTM1IDUyaDc5WiIgc3R5bGU9ImZpbGw6IzA1N2NiNztmaWxsLXJ1bGU6bm9uemVybyIvPjxwYXRoIGQ9Ik0yNzUgNTVoLTU3VjBoMjV2MzFoMzJ2MjRaIiBzdHlsZT0iZmlsbDojZGUwMDVkO2ZpbGwtcnVsZTpub256ZXJvIi8%2BPHBhdGggZD0iTTE4NSAzMWg1N3Y1NWgtMjVWNTVoLTMyVjMxWiIgc3R5bGU9ImZpbGw6I2M1MTgxZjtmaWxsLXJ1bGU6bm9uemVybyIvPjwvc3ZnPg%3D%3D&labelColor=fff)](https://ippclub.org) [![OpenAtom](https://img.shields.io/badge/%E5%BC%80%E6%94%BE%E5%8E%9F%E5%AD%90%E5%BC%80%E6%BA%90%E5%9F%BA%E9%87%91%E4%BC%9A-%E5%AD%B5%E5%8C%96%E4%B8%AD-blue)](https://openatom.org/project/RJHufNnSKtDZ) [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/IppClub/Dora-SSR) [![QQ Group](https://img.shields.io/badge/QQ群-512620381-blue?style=flat&logo=qq&logoColor=white)](https://qm.qq.com/q/VnzYhvCDgy) [![Discord Badge](https://img.shields.io/discord/1105021755426353152?color=5865F2&label=Discord&logo=discord&logoColor=white&style=flat-square)](https://discord.gg/ZfNBSKXnf9)
 
-&emsp;&emsp;Dora SSR 是一个用于多种设备上快速开发游戏的游戏引擎。它内置易用的 Web IDE 开发工具链，支持在手机、开源掌机等设备上直接进行游戏开发。
+&emsp;&emsp;Dora SSR 是一款跨平台游戏引擎，让你直接在运行游戏的目标设备上创作。引擎运行在手机、掌机、桌面端或其他设备上；再通过内置 Web IDE 从浏览器接入，在真实运行时中完成编写、检查、运行与迭代。
 
 <br/>
 
@@ -34,8 +34,9 @@
 
 |方向|内容|
 |-|-|
-|开发方式|`Web IDE` + `Coding Agent` + 在目标设备运行引擎、通过浏览器接入的实时游戏开发流程|
+|开发方式|目标设备运行引擎 + `Web IDE` + `Coding Agent`，形成编写、运行、检查与迭代的连贯闭环|
 |语言生态|`Lua` / `TypeScript` / `TSX` / `Teal` / `YueScript` / `Wa` / `Rust` / `C#`|
+|运行时能力|2D / 3D 场景、物理、动画、音频、视频、UI 与异步资源工作流|
 |运行平台|`Android` / `Windows` / `Linux` / `macOS` / `iOS` / [鸿蒙](https://github.com/IppClub/ohos_dora_ssr/blob/main/README.zh-CN.md)|
 
 <div align='center'>
@@ -54,39 +55,36 @@
 
 ### 开发体验
 
-- Web IDE：内置开箱即用的网页开发环境，提供文件管理、代码检查、补全、高亮与定义跳转。
-- Coding Agent：内置 [coding agent](Assets/Script/Lib/Agent/CodingAgent.ts)，把基于 LLM 的 AI 辅助开发集成进游戏引擎，结合项目技能、持久记忆、文件搜索、Dora API 查询、安全文件编辑、构建检查和子智能体派发完成开发任务。
-- 真机实时开发：支持在手机、掌机等目标设备上运行引擎，并通过浏览器接入 Web IDE 进行实时开发与调试。
+- Web IDE：内置浏览器开发环境，提供项目文件、类型化代码编辑、补全、诊断与定义跳转，并与正在运行的引擎直接相连。
+- Coding Agent：内置 [编程智能体](Assets/Script/Lib/Agent/CodingAgent.ts)，将基于 LLM 的 AI 辅助开发带入引擎；可结合项目技能、持久记忆、API 查询、安全编辑、构建检查、运行时验证与子智能体派发完成任务。
+- 真机实时开发：引擎始终运行在手机、掌机或桌面端目标设备上，通过浏览器接入并针对真实运行时迭代，而非脱离设备的预览。
 
 <div align='center'><img src='Docs/static/img/article/dora-on-android.jpg' alt='dora on android' width='500px'/></div>
 
 ### 语言与扩展
 
-- Lua：升级的 Lua 绑定，支持继承和扩展底层 C++ 对象。
-- TypeScript / TSX：通过 [TSTL](https://typescripttolua.github.io) 支持静态类型脚本开发与声明式场景构建。
-- Teal / YueScript：兼容 Lua 生态的不同风格语言选择。
-- Wa / Rust：支持通过内置 WASM 运行时扩展引擎能力。
-- C#：支持通过动态库方式调用引擎进行原生开发。
-- Blockly：支持类似 Scratch 的可视化编程，适合教学与初学者入门。
+- Lua：升级的绑定，支持继承和扩展底层 C++ 对象。
+- TypeScript / TSX：引擎已支持通过 [TSTL](https://typescripttolua.github.io) 编写类型化游戏代码，并以 ReactJS 风格 API 构建声明式场景与响应式 UI。
+- Teal / YueScript：面向不同代码风格的 Lua 生态语言选择。
+- Wa / Rust / C#：通过内置 WASM 运行时或原生动态库接口扩展、集成引擎。
+- Blockly：类似 Scratch 的可视化编程，适合教学、原型和初学者入门。
 
 <div align='center'><img src='Docs/static/img/showcase/blockly-zh.jpg' alt='Blockly' width='500px'/></div>
 
 ### 运行与表现
 
 - 跨平台支持：原生运行于 `Android`、`Windows`、`Linux`、`iOS`、`macOS` 与 `鸿蒙`。
-- 场景系统：基于树形节点结构管理游戏对象，并提供易用的 [ECS](https://dora-ssr.net/zh-Hans/docs/tutorial/using-ecs) 模块。
-- 异步处理：支持文件读写、资源加载等异步任务。
-- 2D 动画与物理：支持 Spine2D、DragonBones、内置骨骼动画与 [PlayRho](https://github.com/louis-langholtz/PlayRho) 2D 物理。
-- 视频与音频：支持 H.264 视频播放，以及多格式音频播放、3D 空间音效、距离衰减与多普勒效果。
-- 图形运行时：支持跨平台图形 shader 运行时编译，以及 Effekseer 特效、NanoVG 矢量图形、ImGui 调试界面与 True Type 字体渲染。
-- 游戏类型支持：提供 [2D 平台游戏](https://dora-ssr.net/zh-Hans/docs/example/Platformer%20Tutorial/start) 的基本逻辑与 AI 开发框架。
+- 场景系统：树形 2D / 3D 场景、易用的 [ECS](https://dora-ssr.net/zh-Hans/docs/tutorial/using-ecs)、相机、材质、光照、模型、动画与 3D 物理。
+- 2D 制作能力：支持 Spine2D、DragonBones、内置骨骼动画、[PlayRho](https://github.com/louis-langholtz/PlayRho) 物理、瓦片地图、粒子与复古 TIC-80 内容。
+- 媒体与图形：异步资源加载、H.264 视频、多格式音频及空间音效、运行时 shader 编译、Effekseer、NanoVG、ImGui 与 TrueType 字体渲染。
+- 游戏类型支持：提供 [2D 平台游戏](https://dora-ssr.net/zh-Hans/docs/example/Platformer%20Tutorial/start) 的可复用逻辑与 AI 开发框架。
 
 ### 内容与工具链
 
-- 数据与配置：支持异步操作 [SQLite](https://www.sqlite.org) 与 Excel 数据同步。
-- Animation Editor：Web IDE 内置动画编辑器，可用于创建和编辑 2D 模型动画资源，并提供树形结构、关键帧、动画片段、播放预览和变换工具。
-- 场景与叙事：支持 CSS Flex 布局、Tiled TMX 地图与 [Yarn Spinner](https://www.yarnspinner.dev) 故事系统。
-- 创作扩展：内置机器学习玩法框架，并提供开放美术素材与游戏 IP —— [《灵数奇缘》](https://luv-sense-digital.readthedocs.io)。
+- 数据与配置：异步访问 [SQLite](https://www.sqlite.org)，并支持 Excel 到数据库的工作流。
+- 内置工具：动画、粒子、物理、可视化脚本、Yarn、Spine、瓦片地图、Git、性能分析与 TIC-80 编辑器，将常见制作任务留在 Web IDE 中完成。
+- 场景与叙事：CSS Flex 布局、Tiled TMX 地图、[Yarn Spinner](https://www.yarnspinner.dev) 故事系统与响应式 TSX UI。
+- 创作扩展：机器学习玩法框架、开放美术资源，以及游戏 IP —— [《灵数奇缘》](https://luv-sense-digital.readthedocs.io)。
 
 <div align='center'><img src='Docs/static/img/showcase/LSD.jpg' alt='LSD' width='400px'/></div>
 

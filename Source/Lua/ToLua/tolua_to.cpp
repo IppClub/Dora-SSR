@@ -42,7 +42,7 @@ void* tolua_touserdata(lua_State* L, int narg, void* def) {
 }
 
 void* tolua_tousertype(lua_State* L, int narg, void* def) {
-	if (lua_gettop(L) < abs(narg)) {
+	if (lua_gettop(L) < abs(narg) || lua_isnil(L, narg)) {
 		return def;
 	} else {
 		void* u = lua_touserdata(L, narg);

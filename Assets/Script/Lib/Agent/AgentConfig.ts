@@ -6,9 +6,7 @@ export const AGENT_DEFAULTS = {
 	llmTemperature: 0.1,
 	llmMaxTokens: 8192,
 	delegatedForegroundBatchLimit: 3,
-	turnBoundaryCompressionRatio: 0.6,
-	turnBoundaryHighMessageCompressionRatio: 0.4,
-	turnBoundaryHighMessageCount: 64,
+	turnBoundaryCompressionRatio: 0.85,
 };
 
 export const AGENT_LIMITS = {
@@ -27,13 +25,7 @@ export const AGENT_LIMITS = {
 	searchPreviewContext: 80,
 };
 
-export function getTurnBoundaryCompressionThresholds(contextWindow: number): {
-	defaultTokens: number;
-	highMessageTokens: number;
-} {
+export function getTurnBoundaryCompressionThreshold(contextWindow: number): number {
 	const normalizedContextWindow = math.max(1, math.floor(contextWindow));
-	return {
-		defaultTokens: math.floor(normalizedContextWindow * AGENT_DEFAULTS.turnBoundaryCompressionRatio),
-		highMessageTokens: math.floor(normalizedContextWindow * AGENT_DEFAULTS.turnBoundaryHighMessageCompressionRatio),
-	};
+	return math.floor(normalizedContextWindow * AGENT_DEFAULTS.turnBoundaryCompressionRatio);
 }

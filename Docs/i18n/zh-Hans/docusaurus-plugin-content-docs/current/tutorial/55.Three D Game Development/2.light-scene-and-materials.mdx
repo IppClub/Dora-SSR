@@ -1,18 +1,27 @@
-# 用光照读懂材质
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
 
-第一课证明了渲染器正常工作；这一课让画面变得可读。你会加入地面参照物、选择主光方向、开启阴影，并在不复制源资产的情况下调整一个材质实例。
+# 光照与材质
 
-:::tip 本课目标
-完成后应看到地面上的 Duck、清晰的方向阴影，以及一个主动调色的材质槽位。
+在 3D 场景中，阴影不会凭空出现，它们需要落在某个表面上。悬浮的模型看起来扁平，因为没有深度的视觉参考，而阴影提供了这种视觉上的"接地感"。阴影还告诉你光从哪里来，这有助于你的大脑理解物体的形状和位置。如果没有阴影接收面，即使光照良好的场景也会感觉像是物体被贴在背景上。
+
+本教程在第 1 篇教程的模型-相机-光照基础上，添加地面平面来接收阴影，配置方向光来投射阴影，并自定义一个模型实例的材质。你会学到环境光如何补充直接光，如何调优阴影质量，以及如何在不复制资产的情况下修改单个实例的外观。
+
+:::tip 本教程目标
+学完这篇教程，你将得到地面上的 Duck、清晰的方向阴影，还会知道如何自定义单个实例的材质。
+
 :::
 
 ## 开始前的准备
 
-请从[第一个 3D 场景](./first-3d-scene)继续。下面使用的已验证示例资产为 `Assets/Model/Ground.gltf` 与 `Assets/Model/Duck.glb`。如果换成自己的模型，请确保场景中有能接收阴影的表面；没有接收面就无法判断阴影是否正确。
+请从[第一个 3D 场景](./first-3d-scene)继续。这里使用的示例资产是 `Assets/Model/Ground.gltf` 和 `Assets/Model/Duck.glb`。如果你用自己的模型，确保场景中有能接收阴影的表面 - 没有地面就看不到阴影效果。
 
-## 第一步：建立中性的环境光
+## 1. 加入环境光
 
-环境光避免表面完全发黑，方向光则提供清晰的方向感与阴影。
+方向光产生清晰的高光和阴影，但背光面的表面会因为没有任何额外照明而变得漆黑。环境光提供这种填充照明。它是一种柔和的全向光，模拟光线在世界中四处反弹的效果。设置它意味着配置环境贴图和它的强度分量。
+
+<Tabs groupId="language-select">
+<TabItem value="ts" label="TypeScript">
 
 ```ts title="init.ts"
 import {Camera3D, Color, Color3, DirectionalLight3D, Director, Model3D, Vec3} from "Dora";
@@ -26,9 +35,71 @@ camera.lookAt(Vec3(4.8, 3.7, 6.5), Vec3(0, 0.25, 0));
 Director.pushCamera(camera);
 ```
 
-三个环境光强度分别控制漫反射、镜面与环境贡献。先从较低数值开始：环境光过强会让阴影难以辨认。
+</TabItem>
+<TabItem value="lua" label="Lua">
 
-## 第二步：加入接收面、主体与投影光
+```lua title="init.lua"
+local _ENV = Dora
+
+local view = Director.entry
+view:setEnvironmentMap("")
+view:setEnvironmentIntensity(0.22, 0.18, 1.0)
+
+local camera = Camera3D()
+camera:lookAt(Vec3(4.8, 3.7, 6.5), Vec3(0, 0.25, 0))
+Director:pushCamera(camera)
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+_ENV = Dora
+
+view = Director.entry
+view\setEnvironmentMap ""
+view\setEnvironmentIntensity 0.22, 0.18, 1.0
+
+camera = Camera3D!
+camera\lookAt Vec3(4.8, 3.7, 6.5), Vec3(0, 0.25, 0)
+Director\pushCamera camera
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal title="init.tl"
+local Camera3D <const> = require("Camera3D")
+local Director <const> = require("Director")
+local Vec3 <const> = require("Vec3")
+
+local view = Director.entry
+view:setEnvironmentMap("")
+view:setEnvironmentIntensity(0.22, 0.18, 1.0)
+
+local camera = Camera3D()
+camera:lookAt(Vec3(4.8, 3.7, 6.5), Vec3(0, 0.25, 0))
+Director:pushCamera(camera)
+```
+
+</TabItem>
+</Tabs>
+
+这里的代码在做什么：
+
+- `Director.entry` 是 3D 场景的根视图。我们保存引用来配置环境设置。
+- `setEnvironmentMap("")` 清除任何现有的环境贴图。传入空字符串意味着没有加载环境贴图，所以我们只依赖强度分量。
+- `setEnvironmentIntensity(0.22, 0.18, 1.0)` 按顺序控制三个分量：漫反射、镜面反射和环境光。漫反射光均匀地照亮表面，镜面反射添加微妙的反射，环境光确保没有任何东西是完全黑色的。这里的值故意设置得很低，这样阴影仍然可见。
+- 相机设置使用了第 1 篇教程中同样的 `lookAt` 模式，但位置略微调整，以包含地面平面在内的场景。
+
+环境光很微妙但很重要。如果你把这些值设置得太高，阴影会被冲淡，场景失去深度。如果太低，阴影区域会变得难以辨认。这里的值在保持阴影对比度的同时，防止暗色表面看起来像纯黑。
+
+## 2. 加入地面、主体与投影光
+
+现在给场景添加物体，并设置一个会投射阴影的方向光。阴影只有在有东西阻挡光线、有东西让阴影落在上面时才会出现。地面平面充当接收者，而 Duck 阻挡光线并投射阴影。方向光既提供主要照明，又提供阴影投射能力。
+
+<Tabs groupId="language-select">
+<TabItem value="ts" label="TypeScript">
 
 ```ts title="init.ts"
 const ground = Model3D("Assets/Model/Ground.gltf");
@@ -53,13 +124,120 @@ view.shadowMapSize = 1024;
 view.addChild(light);
 ```
 
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua title="init.lua"
+local _ENV = Dora
+
+local ground = Model3D("Assets/Model/Ground.gltf")
+ground.position = Vec3(0, -0.72, 0)
+view:addChild(ground)
+
+local duck = Model3D("Assets/Model/Duck.glb")
+duck.position = Vec3(0, -0.7, 0)
+duck.scale = Vec3(0.8, 0.8, 0.8)
+view:addChild(duck)
+
+local light = DirectionalLight3D()
+light.color = Color3(0xfff0d8)
+light.intensity = 4.5
+light.angleX = -48
+light.angleY = -35
+light.castShadow = true
+light.shadowBias = 0.004
+light.shadowNormalBias = 0.02
+light.shadowSoftness = 1
+view.shadowMapSize = 1024
+view:addChild(light)
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+_ENV = Dora
+
+ground = Model3D "Assets/Model/Ground.gltf"
+ground.position = Vec3 0, -0.72, 0
+view\addChild ground
+
+duck = Model3D "Assets/Model/Duck.glb"
+duck.position = Vec3 0, -0.7, 0
+duck.scale = Vec3 0.8, 0.8, 0.8
+view\addChild duck
+
+light = DirectionalLight3D!
+light.color = Color3 0xfff0d8
+light.intensity = 4.5
+light.angleX = -48
+light.angleY = -35
+light.castShadow = true
+light.shadowBias = 0.004
+light.shadowNormalBias = 0.02
+light.shadowSoftness = 1
+view.shadowMapSize = 1024
+view\addChild light
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal title="init.tl"
+local Color3 <const> = require("Color3")
+local DirectionalLight3D <const> = require("DirectionalLight3D")
+local Model3D <const> = require("Model3D")
+local Vec3 <const> = require("Vec3")
+
+local ground = Model3D("Assets/Model/Ground.gltf")
+ground.position = Vec3(0, -0.72, 0)
+view:addChild(ground)
+
+local duck = Model3D("Assets/Model/Duck.glb")
+duck.position = Vec3(0, -0.7, 0)
+duck.scale = Vec3(0.8, 0.8, 0.8)
+view:addChild(duck)
+
+local light = DirectionalLight3D()
+light.color = Color3(0xfff0d8)
+light.intensity = 4.5
+light.angleX = -48
+light.angleY = -35
+light.castShadow = true
+light.shadowBias = 0.004
+light.shadowNormalBias = 0.02
+light.shadowSoftness = 1
+view.shadowMapSize = 1024
+view:addChild(light)
+```
+
+</TabItem>
+</Tabs>
+
+分解说明：
+
+- `Model3D("Assets/Model/Ground.gltf")` 加载地面平面的几何和纹理。地面被放置在原点下方 Y = -0.72 的位置，这样 Duck 看起来就像停在它的上面。
+- `Model3D("Assets/Model/Duck.glb")` 加载 Duck 模型。我们用 `scale = Vec3(0.8, 0.8, 0.8)` 将它缩小到原来的 80%，让它与地面平面很好地匹配。它的 Y 位置是 -0.7，刚好在地面之上。
+- `DirectionalLight3D()` 创建一个发出平行光线像阳光一样的光。它的方向由 `angleX = -48` 和 `angleY = -35` 设置，这使它向下和向侧面倾斜，所以阴影会延伸得令人信服。
+- `light.color = Color3(0xfff0d8)` 给光一个暖色调（略带黄橙色）而不是纯白，这让场景感觉更自然，不那么临床化。
+- `light.intensity = 4.5` 让光足够亮，可以清楚地照亮场景。更高的值更具戏剧性，但如果设置得太高可能会冲淡细节。
+- `light.castShadow = true` 为这个光启用阴影渲染。没有这个，光会照亮但不投射阴影。
+- `light.shadowBias = 0.004` 和 `light.shadowNormalBias = 0.02` 是微妙的调优值，可以防止阴影伪影如自阴影痤疮（表面上的奇怪图案）。这些偏移会稍微移动阴影测试，以避免精度问题。
+- `light.shadowSoftness = 1` 使阴影边缘更柔和。值为 1 是一个很好的中间值；更高的值会更多地模糊阴影，更低的值使它们更锐利。
+- `view.shadowMapSize = 1024` 设置阴影贴图的分辨率。更大的值（2048、4096）产生更锐利的阴影，但会消耗更多性能。1024 是大多数情况的实用默认值。
+
+阴影贴图大小是一个质量权衡。将其加倍会使内存和计算成本增加四倍，所以在致力于更高分辨率之前，先在目标硬件上测试。
+
 ### 检查点
 
-请确认两件事：Duck 下方或侧面是否有阴影？调整 `light.angleY` 后阴影是否随之移动？任意一个答案是否定时，都不要急着调材质参数。
+继续之前，花点时间验证阴影是否在工作。你在 Duck 下方或侧面看到阴影了吗？当你改变 `light.angleY` 时，阴影是否按预期方向移动？阴影可能很挑剔 - 如果光线角度太陡，阴影可能会完全被推离地面平面。如果你没有看到阴影，先调整角度，然后再继续。一旦阴影可见，下一节的材质更改将更容易评估。
 
-## 第三步：只修改一个实例的材质
+## 3. 修改单个实例的材质
 
-导入资产会高效共享。需要定制时，取出要修改的材质槽位即可，无需为此再创建一份模型源资产。
+当你多次加载同一个模型时，Dora 会共享底层的网格和纹理来节省内存。几何和基础材质是共享的，但每个实例可以有自己的材质覆盖。这很高效：资产数据的一个副本，但每个实例可以看起来不同。要自定义单个实例的外观，你只需要获取它的材质槽并在该实例上修改属性。
+
+<Tabs groupId="language-select">
+<TabItem value="ts" label="TypeScript">
 
 ```ts title="init.ts"
 const material = duck.getMaterial(0);
@@ -70,25 +248,289 @@ if (material) {
 }
 ```
 
-每次只修改一个参数，并观察结果：
+</TabItem>
+<TabItem value="lua" label="Lua">
 
-| 参数 | 要观察的问题 |
+```lua title="init.lua"
+local _ENV = Dora
+
+local material = duck:getMaterial(0)
+if material then
+	material.baseColor = Color(0xff9bd7ff)
+	material.metallic = 0.15
+	material.roughness = 0.42
+end
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+_ENV = Dora
+
+if material := duck\getMaterial 0
+	material.baseColor = Color 0xff9bd7ff
+	material.metallic = 0.15
+	material.roughness = 0.42
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal title="init.tl"
+local Color <const> = require("Color")
+
+local material = duck:getMaterial(0) as any
+if material then
+	material.baseColor = Color(0xff9bd7ff)
+	material.metallic = 0.15
+	material.roughness = 0.42
+end
+```
+
+</TabItem>
+</Tabs>
+
+每行代码在做什么：
+
+- `duck.getMaterial(0)` 从 Duck 模型检索第一个材质槽。一个模型可以有多个材质用于不同的网格部分，索引从 0 开始。
+- `if (material)` 检查很重要，因为 `getMaterial` 在槽不存在时返回空值。处理这种情况可以防止模型没有材质或索引错误时的错误。
+- `material.baseColor = Color(0xff9bd7ff)` 改变表面色调。`Color` 格式使用 8 个十六进制数字：前两个是 alpha（不透明度），然后是红、绿和蓝。`0xff9bd7ff` 表示完全不透明（`ff` alpha）带有粉红色调（`9b` 红，`d7` 绿，`ff` 蓝）。
+- `material.metallic = 0.15` 控制表面看起来有多金属化。范围是 0 到 1，其中 0 是电介质（塑料、木材、布料），1 是完全金属（金、钢）。值为 0.15 是略带金属感，像涂漆的金属或陶瓷。
+- `material.roughness = 0.42` 控制表面纹理。范围是 0 到 1，其中 0 是完全光滑（像镜子一样的反射），1 是完全哑光（没有锐利的反射）。值为 0.42 是中等粗糙，像抛光的塑料或光滑的石头。
+
+材质属性是物理参数，影响光线如何与表面相互作用。基础颜色、金属感和粗糙度的组合定义了材质类型。尝试调整每一个并观察结果：
+
+| 参数 | 要观察什么 |
 | --- | --- |
-| `baseColor` | 调色后是否仍保留清晰的亮面与暗面？ |
-| `metallic` | 反射是否更像金属，而不是涂漆塑料？ |
-| `roughness` | 高光的宽窄是否符合预期？ |
+| `baseColor` | 物体是否仍然有清晰的亮面和暗面？颜色应该均匀着色，而不会冲淡光照。 |
+| `metallic` | 反光是否更像金属，而不是涂漆塑料？更高的值使反射更锐利、更独特。 |
+| `roughness` | 高光的宽窄是否合适？较低的值产生锐利的、像镜子一样的高光；较高的值将它们分散开来。 |
+
+当你只是想要默认外观时，使用单行 `Model3D` 形式。当你需要自定义特定实例而不复制资产文件时，使用 `getMaterial`。
 
 ## 常见问题
 
-- **没有阴影：** 选中的方向光必须设置 `castShadow = true`，主体和接收面也必须处于该光的可见范围。
-- **阴影痤疮或脱离：** 以很小的幅度调整 `shadowBias` 和 `shadowNormalBias`。
-- **画面没有层次：** 先降低环境光强度，再提高直接光强度。
-- **提高阴影分辨率后变慢：** 先回到 1024，再在目标设备上测量后决定是否使用 2048 或 4096。
+- **没有阴影：** 确保方向光的 `castShadow` 是 `true`，并且 Duck 和地面都在光的视野内。阴影只会出现在可以接收它们的物体上。
+- **阴影瑕疵或间隙：** 用很小的幅度调整 `shadowBias` 和 `shadowNormalBias`（每次改 0.001）。这些值取决于你的场景比例 - 更大的场景可能需要更高的偏移值。
+- **画面看起来很平：** 先降低环境光强度，再提高直接光强度。太多的环境光会冲淡阴影和深度。
+- **提高阴影分辨率后变卡：** 先回到 1024，在目标设备上测试后再尝试 2048 或 4096。阴影渲染很昂贵，特别是在移动硬件上。
+
+## 完整示例
+
+以下是本教程的完整脚本，均已通过 Dora 引擎验证。
+
+<Tabs groupId="language-select">
+<TabItem value="ts" label="TypeScript">
+
+```ts title="init.ts"
+import {Camera3D, Color, Color3, DirectionalLight3D, Director, Model3D, Vec3} from "Dora";
+
+const view = Director.entry;
+view.setEnvironmentMap("");
+view.setEnvironmentIntensity(0.22, 0.18, 1.0);
+
+const camera = Camera3D();
+camera.lookAt(Vec3(4.8, 3.7, 6.5), Vec3(0, 0.25, 0));
+Director.pushCamera(camera);
+
+// Receiver: a ground plane that shadows can fall on.
+const ground = Model3D("Assets/Model/Ground.gltf");
+if (!ground) throw new Error("failed to load Ground.gltf");
+ground.position = Vec3(0, -0.72, 0);
+view.addChild(ground);
+
+// Subject: the duck, scaled down to fit the scene.
+const duck = Model3D("Assets/Model/Duck.glb");
+if (!duck) throw new Error("failed to load Duck.glb");
+duck.position = Vec3(0, -0.7, 0);
+duck.scale = Vec3(0.8, 0.8, 0.8);
+view.addChild(duck);
+
+// Shadow-casting directional light.
+const light = DirectionalLight3D();
+light.color = Color3(0xfff0d8);
+light.intensity = 4.5;
+light.angleX = -48;
+light.angleY = -35;
+light.castShadow = true;
+light.shadowBias = 0.004;
+light.shadowNormalBias = 0.02;
+light.shadowSoftness = 1;
+view.shadowMapSize = 1024;
+view.addChild(light);
+
+// Customize only this instance's first material slot.
+const material = duck.getMaterial(0);
+if (material) {
+	material.baseColor = Color(0xff9bd7ff);
+	material.metallic = 0.15;
+	material.roughness = 0.42;
+}
+```
+
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua title="init.lua"
+local _ENV = Dora
+
+local view = Director.entry
+view:setEnvironmentMap("")
+view:setEnvironmentIntensity(0.22, 0.18, 1.0)
+
+local camera = Camera3D()
+camera:lookAt(Vec3(4.8, 3.7, 6.5), Vec3(0, 0.25, 0))
+Director:pushCamera(camera)
+
+-- Receiver: a ground plane that shadows can fall on.
+local ground = Model3D("Assets/Model/Ground.gltf")
+if not ground then
+	error("failed to load Ground.gltf")
+end
+ground.position = Vec3(0, -0.72, 0)
+view:addChild(ground)
+
+-- Subject: the duck, scaled down to fit the scene.
+local duck = Model3D("Assets/Model/Duck.glb")
+if not duck then
+	error("failed to load Duck.glb")
+end
+duck.position = Vec3(0, -0.7, 0)
+duck.scale = Vec3(0.8, 0.8, 0.8)
+view:addChild(duck)
+
+-- Shadow-casting directional light.
+local light = DirectionalLight3D()
+light.color = Color3(0xfff0d8)
+light.intensity = 4.5
+light.angleX = -48
+light.angleY = -35
+light.castShadow = true
+light.shadowBias = 0.004
+light.shadowNormalBias = 0.02
+light.shadowSoftness = 1
+view.shadowMapSize = 1024
+view:addChild(light)
+
+-- Customize only this instance's first material slot.
+local material = duck:getMaterial(0)
+if material then
+	material.baseColor = Color(0xff9bd7ff)
+	material.metallic = 0.15
+	material.roughness = 0.42
+end
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+_ENV = Dora
+
+view = Director.entry
+view\setEnvironmentMap ""
+view\setEnvironmentIntensity 0.22, 0.18, 1.0
+
+camera = Camera3D!
+camera\lookAt Vec3(4.8, 3.7, 6.5), Vec3(0, 0.25, 0)
+Director\pushCamera camera
+
+ground = Model3D "Assets/Model/Ground.gltf"
+error "failed to load Ground.gltf" unless ground
+ground.position = Vec3 0, -0.72, 0
+view\addChild ground
+
+duck = Model3D "Assets/Model/Duck.glb"
+error "failed to load Duck.glb" unless duck
+duck.position = Vec3 0, -0.7, 0
+duck.scale = Vec3 0.8, 0.8, 0.8
+view\addChild duck
+
+light = DirectionalLight3D!
+light.color = Color3 0xfff0d8
+light.intensity = 4.5
+light.angleX = -48
+light.angleY = -35
+light.castShadow = true
+light.shadowBias = 0.004
+light.shadowNormalBias = 0.02
+light.shadowSoftness = 1
+view.shadowMapSize = 1024
+view\addChild light
+
+if material := duck\getMaterial 0
+	material.baseColor = Color 0xff9bd7ff
+	material.metallic = 0.15
+	material.roughness = 0.42
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal title="init.tl"
+local Camera3D = require("Camera3D")
+local Color = require("Color")
+local Color3 = require("Color3")
+local DirectionalLight3D = require("DirectionalLight3D")
+local Director = require("Director")
+local Model3D = require("Model3D")
+local Model3DType = require("Model3D").Type
+local Material3DType = require("Material3DType")
+local Vec3 = require("Vec3")
+
+local view = Director.entry
+view:setEnvironmentMap("")
+view:setEnvironmentIntensity(0.22, 0.18, 1.0)
+
+local camera = Camera3D()
+camera:lookAt(Vec3(4.8, 3.7, 6.5), Vec3(0, 0.25, 0))
+Director:pushCamera(camera)
+
+local ground = Model3D("Assets/Model/Ground.gltf") as Model3DType
+ground.position = Vec3(0, -0.72, 0)
+view.scene:addChild(ground)
+
+local duck = Model3D("Assets/Model/Duck.glb") as Model3DType
+duck.position = Vec3(0, -0.7, 0)
+duck.scale = Vec3(0.8, 0.8, 0.8)
+view.scene:addChild(duck)
+
+local light = DirectionalLight3D()
+light.color = Color3(0xfff0d8)
+light.intensity = 4.5
+light.angleX = -48
+light.angleY = -35
+light.castShadow = true
+light.shadowBias = 0.004
+light.shadowNormalBias = 0.02
+light.shadowSoftness = 1
+view.shadowMapSize = 1024
+view.scene:addChild(light)
+
+local material = duck:getMaterial(0) as Material3DType
+material.baseColor = Color(0xff9bd7ff)
+material.metallic = 0.15
+material.roughness = 0.42
+```
+
+</TabItem>
+</Tabs>
 
 ## 动手练习
 
-用同一模型路径创建第二只 Duck，放在 `Vec3(2, -0.7, 0)`，只给第二个实例调色。你会看到源资产仍被共享，而材质修改只作用于该实例。
+用同一个 `Model3D("Assets/Model/Duck.glb")` 路径创建第二只 Duck，放在 `Vec3(2, -0.7, 0)`，只给第二个实例调不同的 `baseColor`。你会看到源资产仍然在两只 Duck 之间共享，但材质更改只作用于该实例。这就是你如何在不加载重复网格或纹理的情况下高效地创建视觉变化。
 
-## 下一课
+## 小结
+
+现在你有了一个具有适当光照、阴影和材质自定义的 3D 场景：
+
+- **环境光照：** `setEnvironmentMap` 和 `setEnvironmentIntensity` 提供柔和的填充光，使阴影区域保持可读。三个分量（漫反射、镜面反射、环境光）控制光线如何包裹物体。
+- **阴影：** 带有 `castShadow = true` 的方向光会在地面平面上投射阴影。阴影质量通过 `shadowMapSize`、`shadowBias` 和 `shadowNormalBias` 进行调优。
+- **材质实例：** `getMaterial(index)` 从模型实例检索材质槽。修改 `baseColor`、`metallic` 和 `roughness` 等属性只会更改该实例，而不会复制资产。
+
+每个部分都有其用途。环境照明防止黑色阴影。阴影接收器让场景接地。材质自定义让你高效地创建视觉变化。它们共同构成了更复杂 3D 内容的基础。
+
+## 下一篇教程
 
 继续阅读[模型资产与动画](./add-models-and-animation)，让静态场景物体成为可复用的动画角色。

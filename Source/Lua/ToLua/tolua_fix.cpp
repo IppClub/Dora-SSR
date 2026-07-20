@@ -233,7 +233,7 @@ void tolua_setlightmetatable(lua_State* L) {
 }
 
 LightValue tolua_tolight(lua_State* L, int narg, LightValue def) {
-	if (lua_gettop(L) < abs(narg)) {
+	if (lua_gettop(L) < abs(narg) || lua_isnil(L, narg)) {
 		return def;
 	} else {
 		return LightValue(lua_tolightuserinteger(L, narg));

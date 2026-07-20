@@ -1,28 +1,255 @@
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
 # 创建第一个 3D 场景
 
-这一课会完成一个小型 3D 观察场景的第一版：放入模型、设置相机和主光源，并用数据确认 Dora 确实渲染了它。后续课程将在同一个场景上逐步加入阴影、动画、物理和世界内 UI。
+在 Dora 引擎中，创建一个 3D 模型节点和创建一个 2D 精灵一样简单：一行代码就能拿到一个可渲染、可交互的游戏对象。光有一个模型就足以把东西放到屏幕上，但要把"放到屏幕上"变成"看起来有质感的场景"，通常还需要再加两件东西：一个**相机**，从世界空间里合适的位置去观察模型；一束**光**，让模型表面不至于又暗又平。这些都不是让 Dora 渲染出画面所必需的，而是用来提升渲染质量的。
 
-:::tip 本课目标
-完成后你应能看到一个缓慢旋转的模型，并能通过 `view.stats` 证明它已经被渲染。
+本教程会一步步把这几件东西加进来，让你能看清每一步改变了什么。到最后你会看到一只受光的小鸭，并且清楚知道每一行代码对应画面上的哪一部分。
+
+:::tip 本教程目标
+完成后，你将通过 `Camera3D` 和方向光看到一个清晰可读的 3D 模型。
 :::
 
 ## 开始前的准备
 
-- 新建一个 Dora TypeScript 项目，并在 Web IDE 中打开。
-- 在 `Assets/Model/Duck.glb` 放入一个 glTF 2.0 模型。初学时建议使用 `.glb`，因为几何和纹理都封装在单一文件中。
-- 本课使用默认的 3D 入口视图：`Director.entry`。
+- 新建一个 Dora 项目（推荐选择 TypeScript），并在 Web IDE 中打开。
+- 在 `Assets/Model/Duck.glb` 放入一个 glTF 2.0 模型。初学时建议使用 `.glb`，因为它把几何、纹理以及内嵌动画都封装在同一个文件里。
+- 本教程使用默认的 3D 入口视图：`Director.entry`。
 
-如果使用自己的资产，第一步只改 `Model3D` 的路径。不要同时修改相机、光源与模型代码，否则出现问题时很难定位原因。
+如果你使用自己的模型，第一步只改 `Model3D` 的路径即可。完成前三步之前，先让模型保持在它制作时的原点附近。
 
-## 第一步：放置相机和光源
+## 1. 创建模型
 
-3D 物体在相机未激活时不可见。先添加相机，再添加一个方向光，让模型的轮廓和明暗能够被读出来。
+Dora 里最小的 3D 场景只需要一行代码。`Model3D` 会读取 glTF 文件并返回一个 `Node3D`，你可以把它放进场景里。几何、纹理、动画等数据都会被自动加载。
+
+<Tabs groupId="language-select">
+<TabItem value="ts" label="TypeScript">
 
 ```ts title="init.ts"
-import {
-	App, Camera3D, Color3, Content, DirectionalLight3D,
-	Director, Model3D, Vec3, threadLoop,
-} from "Dora";
+import {Model3D} from "Dora";
+
+Model3D("Assets/Model/Duck.glb");
+```
+
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua title="init.lua"
+local _ENV = Dora
+
+Model3D("Assets/Model/Duck.glb")
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+_ENV = Dora
+
+Model3D "Assets/Model/Duck.glb"
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal title="init.tl"
+local Model3D <const> = require("Model3D")
+
+Model3D("Assets/Model/Duck.glb")
+```
+
+</TabItem>
+</Tabs>
+
+运行后你可能会立刻看到小鸭，也可能会看到它但非常小、位置也不对。这是正常的。此时 Dora 仍在使用默认的 2D 相机，它把坐标当作屏幕像素来处理，所以一个以"米"为单位导出的 3D 模型看起来就会很小。这一步只是为了确认模型已经成功加载并进入了场景，下一步我们再来修正观察方式。
+
+`Model3D` 返回的是一个 `Node3D`。任何 `Node3D` 只要没有显式挂到某个父节点下，就会被自动加入到 3D 场景的根节点 `Director.entry`。自动挂载做小实验时很方便，但当你真的关心层级关系时，最好自己显式挂载，让代码一眼就能看出父子结构：
+
+<Tabs groupId="language-select">
+<TabItem value="ts" label="TypeScript">
+
+```ts title="init.ts"
+import {Director, Model3D} from "Dora";
+
+const model = Model3D("Assets/Model/Duck.glb");
+if (model) {
+	Director.entry.addChild(model);
+}
+```
+
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua title="init.lua"
+local _ENV = Dora
+
+local model = Model3D("Assets/Model/Duck.glb")
+if model then
+	Director.entry:addChild(model)
+end
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+_ENV = Dora
+
+if model := Model3D "Assets/Model/Duck.glb"
+	Director.entry\addChild model
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal title="init.tl"
+local Director <const> = require("Director")
+local Model3D <const> = require("Model3D")
+local Model3DType = require("Model3D").Type
+
+local model = Model3D("Assets/Model/Duck.glb") as Model3DType
+Director.entry:addChild(model)
+```
+
+</TabItem>
+</Tabs>
+
+`if (model)` 这一层判断在真实项目里很重要，因为当文件加载失败时（路径错误、文件损坏、格式不支持等）`Model3D` 不会返回节点。显式处理这种情况，比让剩下的代码在后面以奇怪的方式崩溃要好得多。
+
+只想快速把东西放到屏幕上时用单行写法；当模型需要挂到另一个 `Node3D` 下（比如一把武器要挂在角色手掌下），或者希望层级关系一眼可读时，就用 `addChild` 这种显式写法。
+
+## 2. 切换到 3D 相机
+
+现在模型已经在场景里了，但你仍然在用 2D 相机观察它。要正确看到它，需要切换到 `Camera3D`。3D 相机在世界空间里有一个位置、注视着一个目标点，并且会考虑深度——离它越远的东西看起来越小，这正是 3D 场景"立体"的来源。
+
+<Tabs groupId="language-select">
+<TabItem value="ts" label="TypeScript">
+
+```ts title="init.ts"
+import {Camera3D, Director, Vec3} from "Dora";
+
+const camera = Camera3D();
+camera.lookAt(Vec3(3, 2, 5), Vec3(0, 0, 0));
+Director.pushCamera(camera);
+```
+
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua title="init.lua"
+local _ENV = Dora
+
+local camera = Camera3D()
+camera:lookAt(Vec3(3, 2, 5), Vec3(0, 0, 0))
+Director:pushCamera(camera)
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+_ENV = Dora
+
+camera = with Camera3D!
+camera\lookAt Vec3(3, 2, 5), Vec3(0, 0, 0)
+Director\pushCamera camera
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal title="init.tl"
+local Camera3D <const> = require("Camera3D")
+local Director <const> = require("Director")
+local Vec3 <const> = require("Vec3")
+
+local camera = Camera3D()
+camera:lookAt(Vec3(3, 2, 5), Vec3(0, 0, 0))
+Director:pushCamera(camera)
+```
+
+</TabItem>
+</Tabs>
+
+这里发生了三件事：
+
+- `Camera3D()` 创建了一个新的 3D 相机节点。它本身也是一个 `Node3D`，所以可以像任何节点一样被移动、旋转和挂载。
+- `lookAt(eye, target)` 用来指向相机。第一个参数是相机在世界空间里的位置，第二个参数是它要注视的目标点。这里相机位于 `(3, 2, 5)`，看向原点 `(0, 0, 0)`，也就是小鸭所在的位置。
+- `Director.pushCamera(camera)` 把这个相机设为当前活动相机。在这一步之前，引擎一直在用之前活动的相机（默认是 2D 相机）。
+
+传给 `Vec3` 的数字是世界单位，可以理解为"米"。所以 `Vec3(3, 2, 5)` 的意思是"相对原点向右 3 米、向上 2 米、向前 5 米"。这是 3D 和 2D 最大的不同之一：2D 的坐标是相对屏幕中心点的像素偏移，3D 的坐标是世界空间里的真实位置。
+
+## 3. 加入方向光
+
+现在模型的取景已经正确，但它看起来可能还是暗的或者扁平的。这是因为 3D 渲染会根据到达每一个像素的光来决定它的颜色，而目前为止场景里还没有任何光。我们加一盏 `DirectionalLight3D`，它模拟像太阳那样的远距离光源：所有的光线都是平行的、来自同一个方向，所以整个场景里所有的表面被照亮的方式都一样，与它们自身所在的位置无关。
+
+<Tabs groupId="language-select">
+<TabItem value="ts" label="TypeScript">
+
+```ts title="init.ts"
+import {DirectionalLight3D} from "Dora";
+
+const light = DirectionalLight3D();
+light.intensity = 3;
+```
+
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua title="init.lua"
+local _ENV = Dora
+
+local light = DirectionalLight3D()
+light.intensity = 3
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+_ENV = Dora
+
+light = DirectionalLight3D!
+light.intensity = 3
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal title="init.tl"
+local DirectionalLight3D <const> = require("DirectionalLight3D")
+
+local light = DirectionalLight3D()
+light.intensity = 3
+```
+
+</TabItem>
+</Tabs>
+
+方向光没有位置，可以把它想象成无穷远的物体，就像太阳一样。它只有方向（通过对节点自身旋转来设置）和亮度两个属性。`intensity = 3` 让它比默认值亮三倍，足以让模型清晰可读。和模型一样，未挂载的方向光会被自动加入到 `Director.entry` 下。
+
+你还可以用 `light.angleX` 和 `light.angleY` 控制光照射的方向，用 `light.color` 给光染色。这些会在下一篇教程里讲，阴影也放到下一篇教程处理。
+
+运行项目，现在你应该能看到一只取景清晰、受光明确的小鸭。
+
+### 排查常见现象
+
+| 现象 | 检查方向 |
+| --- | --- |
+| 第 1 步里模型很小或者完全看不到 | 继续做第 2 步；默认相机是 2D 相机，3D 模型在它眼里通常都不正常。 |
+| 第 2 步之后画面是空的 | 确认 `Director.pushCamera(camera)` 执行了，并且相机看向了模型所在的原点。 |
+| 第 3 步之后模型仍然很暗 | 确认方向光已经创建，然后到下一篇教程继续配置材质和环境光。 |
+
+## 完整示例
+
+下面的完整脚本把本教程的内容整合到了一起，并额外加入了一个缓慢旋转，方便你从各个角度看小鸭，以及一个 `view.stats` 检查点，让你能确认场景真的渲染出了东西。这些代码都已通过 Dora 引擎验证。
+
+<Tabs groupId="language-select">
+<TabItem value="ts" label="TypeScript">
+
+```ts title="init.ts"
+import {App, Camera3D, Color3, Content, DirectionalLight3D, Director, Model3D, Vec3, threadLoop} from "Dora";
 
 const view = Director.entry;
 view.setEnvironmentMap("");
@@ -38,65 +265,183 @@ light.intensity = 4;
 light.angleX = -45;
 light.angleY = 25;
 view.addChild(light);
-```
 
-`lookAt(eye, target)` 的第一个向量是相机位置，第二个向量是注视目标。起步阶段让目标靠近模型的预期中心即可。
-
-## 第二步：加入模型，让场景“动起来”
-
-把下面代码追加到初始化后。轻微旋转比静态截图更容易判断场景是否真的在运行。
-
-```ts title="init.ts"
 const model = Model3D("Assets/Model/Duck.glb");
+if (!model) throw new Error("failed to load Duck.glb");
 view.addChild(model);
 
-threadLoop(() => {
-	model.angleY += App.deltaTime * 30;
-	return false;
-});
-```
-
-`Model3D` 是 `Node3D`，可像普通场景节点一样使用 `position`、`scale`、`angles`、子节点与父节点变换。
-
-## 检查点：验证渲染，而不只是验证编译
-
-在模型代码后加入一次性检查。它会同时记录可供程序读取的结果和排查所需的数据。
-
-```ts title="init.ts"
+// Spin slowly so you can see the model from every angle,
+// and after 1.5s write a small pass/fail marker you can check externally.
 let elapsed = 0;
 let checked = false;
-
 threadLoop(() => {
+	model.angleY += App.deltaTime * 30;
 	elapsed += App.deltaTime;
 	if (!checked && elapsed > 1.5) {
 		checked = true;
 		const stats = view.stats;
 		const passed = stats.drawCalls > 0 && stats.visibleVisuals > 0;
-		Content.save(
-			"first-3d-scene.result",
-			`status=${passed ? "PASS" : "FAIL"} draws=${stats.drawCalls} visible=${stats.visibleVisuals}`,
-		);
+		const status = passed ? "PASS" : "FAIL";
+		Content.save("first-3d-scene.result", `status=${status} draws=${stats.drawCalls} visible=${stats.visibleVisuals}`);
 	}
 	return false;
 });
 ```
 
-运行项目后，应看到模型旋转，`first-3d-scene.result` 中应出现 `status=PASS`。
+</TabItem>
+<TabItem value="lua" label="Lua">
 
-| 现象 | 优先检查 |
-| --- | --- |
-| 画面为空 | 确认执行了 `Director.pushCamera(camera)`，且相机朝向模型。 |
-| 模型可见但全黑 | 确认方向光已添加到 `view`。 |
-| `draws=0` | 检查资产路径，以及模型文件是否位于项目中。 |
+```lua title="init.lua"
+local _ENV = Dora
 
-## 本课理解
+local view = Director.entry
+view:setEnvironmentMap("")
+view:setEnvironmentIntensity(0, 0, 1)
 
-`View3D` 持有 3D 场景，`Camera3D` 决定观察位置，光源决定表面如何呈现。`view.stats` 则提供一个可复用的渲染检查点。
+local camera = Camera3D()
+camera:lookAt(Vec3(4, 3, 6), Vec3(0, 0.7, 0))
+Director:pushCamera(camera)
+
+local light = DirectionalLight3D()
+light.color = Color3(0xffffff)
+light.intensity = 4
+light.angleX = -45
+light.angleY = 25
+view:addChild(light)
+
+local model = Model3D("Assets/Model/Duck.glb")
+if not model then
+	error("failed to load Duck.glb")
+end
+view:addChild(model)
+
+-- Spin slowly so you can see the model from every angle,
+-- and after 1.5s write a small pass/fail marker you can check externally.
+local elapsed = 0
+local checked = false
+threadLoop(function()
+	model.angleY = model.angleY + App.deltaTime * 30
+	elapsed = elapsed + App.deltaTime
+	if not checked and elapsed > 1.5 then
+		checked = true
+		local stats = view.stats
+		local passed = stats.drawCalls > 0 and stats.visibleVisuals > 0
+		local status = passed and "PASS" or "FAIL"
+		Content:save("first-3d-scene.result", string.format(
+			"status=%s draws=%d visible=%d",
+			status, stats.drawCalls, stats.visibleVisuals))
+	end
+	return false
+end)
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+_ENV = Dora
+
+view = Director.entry
+view\setEnvironmentMap ""
+view\setEnvironmentIntensity 0, 0, 1
+
+camera = Camera3D!
+camera\lookAt Vec3(4, 3, 6), Vec3(0, 0.7, 0)
+Director\pushCamera camera
+
+light = DirectionalLight3D!
+light.color = Color3 0xffffff
+light.intensity = 4
+light.angleX = -45
+light.angleY = 25
+view\addChild light
+
+model = Model3D "Assets/Model/Duck.glb"
+error "failed to load Duck.glb" unless model
+view\addChild model
+
+elapsed = 0
+checked = false
+threadLoop ->
+	model.angleY += App.deltaTime * 30
+	elapsed += App.deltaTime
+	if not checked and elapsed > 1.5
+		checked = true
+		stats = view.stats
+		passed = stats.drawCalls > 0 and stats.visibleVisuals > 0
+		Content\save "first-3d-scene.result", string.format(
+			"status=%s draws=%d visible=%d",
+			if passed then "PASS" else "FAIL", stats.drawCalls, stats.visibleVisuals)
+	false
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal title="init.tl"
+local App = require("App")
+local Camera3D = require("Camera3D")
+local Color3 = require("Color3")
+local Content = require("Content")
+local DirectionalLight3D = require("DirectionalLight3D")
+local Director = require("Director")
+local Model3D = require("Model3D")
+local Model3DType = require("Model3D").Type
+local Vec3 = require("Vec3")
+local threadLoop = require("threadLoop")
+
+local view = Director.entry
+view:setEnvironmentMap("")
+view:setEnvironmentIntensity(0, 0, 1)
+
+local camera = Camera3D()
+camera:lookAt(Vec3(4, 3, 6), Vec3(0, 0.7, 0))
+Director:pushCamera(camera)
+
+local light = DirectionalLight3D()
+light.color = Color3(0xffffff)
+light.intensity = 4
+light.angleX = -45
+light.angleY = 25
+view.scene:addChild(light)
+
+local model = Model3D("Assets/Model/Duck.glb") as Model3DType
+view.scene:addChild(model)
+
+local elapsed: number = 0
+local checked = false
+threadLoop(function(): boolean
+	model.angleY = model.angleY + App.deltaTime * 30
+	elapsed = elapsed + App.deltaTime
+	if not checked and elapsed > 1.5 then
+		checked = true
+		local stats = view.stats
+		local passed = stats.drawCalls > 0 and stats.visibleVisuals > 0
+		Content:save("first-3d-scene.result", string.format(
+			"status=%s draws=%d visible=%d",
+			passed and "PASS" or "FAIL", stats.drawCalls, stats.visibleVisuals))
+	end
+	return false
+end)
+```
+
+</TabItem>
+</Tabs>
+
+## 小结
+
+现在你已经把任何一个 3D 场景都需要的三个核心部分跑通了：
+
+- **模型**：`Model3D` 加载 glTF 文件并返回一个 `Node3D`，可以移动、旋转、挂载。未挂载的节点会自动加入 `Director.entry`。
+- **相机**：`Camera3D` 从世界空间里的某个位置观察场景。`lookAt(eye, target)` 指向它，`Director.pushCamera` 把它设为活动相机。
+- **光**：`DirectionalLight3D` 模拟太阳光，照亮模型表面使其不至于全黑。`intensity` 控制亮度。
+
+单独拿一个出来都不够：只有模型没有相机什么都看不见，只有相机没有光画面还是黑的。把三者都搭起来，你就有了继续往下做的地基，本系列剩下的教程正是建立在这个地基之上。
 
 ## 动手练习
 
-将模型移动到 `Vec3(1, 0, 0)`，再把相机目标改为 `Vec3(1, 0.7, 0)`。这个小实验能帮助你区分“移动物体”和“改变相机焦点”。
+保留对模型的引用，把它移动到 `Vec3(1, 0, 0)`，然后把相机的 `lookAt` 目标也改成 `Vec3(1, 0, 0)`，运行一次。然后把相机目标改回原点 `(0, 0, 0)` 再运行一次。两次结果的差异就是"移动物体"和"移动相机焦点"的差异——这个区别会贯穿后续每一篇教程。
 
-## 下一课
+## 下一篇教程
 
-继续阅读[材质、光照与阴影](./light-scene-and-materials)，把基础观察场景变成更有层次的受光场景。
+继续阅读[材质、光照与阴影](./light-scene-and-materials)，给小鸭加一个可以接收阴影的地面，并定制模型表面的外观。

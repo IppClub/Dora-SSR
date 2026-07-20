@@ -1,5 +1,5 @@
 local Node3D = require("Node3D").Type
-local Color3 = require("Color3")
+local Color3 = require("Color3").Type
 
 -- A directional light whose direction follows its world rotation.
 local record DirectionalLight3D

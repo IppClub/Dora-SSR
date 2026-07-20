@@ -1,14 +1,22 @@
-# Measure, Debug, and Protect Your 3D Scene
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
 
-The scene now has models, lights, physics, and world-space UI. Before adding more, establish a baseline on the target device. A useful 3D optimization result is not only a lower number: it must preserve the expected visible scene.
+# Measuring and Debugging Your 3D Scene
 
-:::tip Lesson goal
-Capture a repeatable screenshot and render-stat marker, inspect bounds when something disappears, then optimize in an order that avoids guesswork.
+Before you optimize anything, you need to know what "better" actually means. An optimization that cuts your frame time in half but drops a character model is not an improvement. It's a regression. You need a known-good reference point to compare against, and you need to know which questions to ask when the numbers change.
+
+This tutorial captures that baseline: a screenshot and render statistics you can compare later. It also shows you how to read those statistics row by row, and how to visualize bounding boxes when objects mysteriously disappear. With these tools, you can optimize in a sensible order and catch regressions before they ship.
+
+:::tip Tutorial goal
+By the end, you will capture a repeatable baseline screenshot and stats file, read the `view.stats` table to understand what each row means, and use `showAABB` to inspect spatial problems.
 :::
 
-## Step 1: Capture a baseline you can compare later
+## 1. Capture a baseline
 
-This is the pattern used by the verified `Dora-Platformer3D-Demo/Test/Smoke.ts`: let the scene render, record statistics, and save a screenshot with the result.
+A baseline is a known-good reference you compare against after making changes. The pattern below is used in Dora's own demos like `Dora-Platformer3D-Demo/Test/Smoke.ts`: let the scene render for a moment so everything settles, then capture a screenshot and a statistics marker. Later, after you change something, run the same capture and compare.
+
+<Tabs groupId="language-select">
+<TabItem value="ts" label="TypeScript">
 
 ```ts title="Test/Smoke.ts"
 import {App, Content, Director, threadLoop} from "Dora";
@@ -33,23 +41,121 @@ threadLoop(() => {
 });
 ```
 
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua title="Test/Smoke.lua"
+local _ENV = Dora
+
+local view = Director.entry
+local elapsed = 0
+local checked = false
+
+threadLoop(function()
+	elapsed = elapsed + App.deltaTime
+	if not checked and elapsed > 1.5 then
+		checked = true
+		local stats = view.stats
+		local passed = stats.drawCalls > 0 and stats.visibleVisuals > 0
+		local screenshot = App:saveScreenshot("/tmp/my-3d-scene/baseline")
+		Content:save(
+			"/tmp/my-3d-scene/baseline.txt",
+			string.format("status=%s draws=%d visible=%d screenshot=%s", passed and "PASS" or "FAIL", stats.drawCalls, stats.visibleVisuals, screenshot)
+		)
+	end
+	return false
+end)
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="Test/Smoke.yue"
+_ENV = Dora
+
+view = Director.entry
+elapsed = 0
+checked = false
+
+threadLoop ->
+	elapsed += App.deltaTime
+	if not checked and elapsed > 1.5
+		checked = true
+		stats = view.stats
+		passed = stats.drawCalls > 0 and stats.visibleVisuals > 0
+		screenshot = App\saveScreenshot "/tmp/my-3d-scene/baseline"
+		Content\save "/tmp/my-3d-scene/baseline.txt", string.format(
+			"status=%s draws=%d visible=%d screenshot=%s",
+			if passed then "PASS" else "FAIL", stats.drawCalls, stats.visibleVisuals, screenshot)
+	false
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal title="Test/Smoke.tl"
+local App <const> = require("App")
+local Content <const> = require("Content")
+local Director <const> = require("Director")
+local threadLoop <const> = require("threadLoop")
+
+local view = Director.entry
+local elapsed: number = 0
+local checked: boolean = false
+
+threadLoop(function(): boolean
+	elapsed = elapsed + App.deltaTime
+	if not checked and elapsed > 1.5 then
+		checked = true
+		local stats = view.stats
+		local passed = stats.drawCalls > 0 and stats.visibleVisuals > 0
+		local screenshot = App:saveScreenshot("/tmp/my-3d-scene/baseline")
+		Content:save(
+			"/tmp/my-3d-scene/baseline.txt",
+			string.format("status=%s draws=%d visible=%d screenshot=%s", passed and "PASS" or "FAIL", stats.drawCalls, stats.visibleVisuals, screenshot)
+		)
+	end
+	return false
+end)
+```
+
+</TabItem>
+</Tabs>
+
+Several things are happening here:
+
+- `threadLoop` runs once per frame and continues until the function returns `false`. This one runs forever but only does work once, when `elapsed > 1.5`.
+- The `elapsed > 1.5` check gives the scene 1.5 seconds to render before snapshotting. This lets any initial loading or camera transitions settle.
+- `view.stats` returns a table of render statistics for this frame. We check that at least one draw call happened and at least one visual is visible.
+- `App.saveScreenshot` captures the current framebuffer to a file. The path you choose is up to you.
+- `Content.save` writes a text marker file. We encode the status, draw count, visible count, and screenshot path in a single line. Later you can parse this and compare it against a post-change run.
+
+Run this before a change, then run it again after. If the new run reports fewer draw calls but your screenshot is missing a model, you have a regression, not an optimization.
+
 ### Checkpoint
 
-Run the exact same scene before and after a substantial change. Keep both screenshots. If the second run reports fewer draw calls but a model is missing, that is a regression rather than an optimization.
+Capture the baseline now before moving on. Keep both the screenshot and the text marker file safe. You will compare them against a second capture later in this tutorial.
 
-## Step 2: Ask one question per group of numbers
+## 2. Read render statistics
+
+Each row of `view.stats` answers a different question about your scene. When you are optimizing, change one thing at a time and watch how the affected rows change.
 
 | Statistic | Question it answers |
 | --- | --- |
-| `drawCalls`, `triangles`, `visibleVisuals` | What did this frame actually submit? |
-| `culledVisuals` | How much content was excluded from the final render? |
-| `materialSwitches`, `textureSwitches`, `meshSwitches` | Is state churn preventing efficient submission? |
-| `collectMicros`, `sortMicros`, `submitMicros` | Is CPU time spent collecting, ordering, or submitting scene work? |
-| Upload fields | Is a resource upload happening during gameplay? |
+| `drawCalls`, `triangles`, `visibleVisuals` | What did this frame actually submit to the GPU? |
+| `culledVisuals` | How much content was excluded from the final render because it was outside the view? |
+| `materialSwitches`, `textureSwitches`, `meshSwitches` | Is state churn preventing efficient submission? Fewer switches are better. |
+| `collectMicros`, `sortMicros`, `submitMicros` | Where is CPU time spent? Collecting scene data, ordering it, or submitting it? |
+| Upload fields | Is a resource upload happening during gameplay, which can cause stutters? |
 
-Record a baseline before trying to improve any row. Compare one change at a time, on the same target device and camera view.
+The workflow is simple: record a baseline, make a single change, run the same capture again, and compare. If you change multiple things at once, you will not know which one helped or hurt.
 
-## Step 3: Make spatial problems visible
+## 3. Visualize bounding boxes
+
+When an object unexpectedly disappears, the bug is often spatial, not material. The model might be positioned correctly but its parent transform could be wrong, or the bounding box might be outside the camera's view frustum. Turn on bounding box visualization to see what the engine thinks the object's extents are.
+
+<Tabs groupId="language-select">
+<TabItem value="ts" label="TypeScript">
 
 ```ts title="init.ts"
 import {Director} from "Dora";
@@ -58,16 +164,170 @@ const view = Director.entry;
 view.showAABB = true; // Turn on temporarily while inspecting bounds.
 ```
 
-If an object unexpectedly disappears, inspect its bounds and camera range before changing materials or shaders. A misplaced parent transform, an oversized `Surface3D`, or a wrong model scale can look like a rendering bug. Turn `showAABB` off again before shipping.
+</TabItem>
+<TabItem value="lua" label="Lua">
 
-## A practical optimization loop
+```lua title="init.lua"
+local _ENV = Dora
 
-1. Reuse `Model3D` paths; do not recreate models or materials every frame.
-2. Reduce avoidable texture and material switches before aggressively reducing geometry.
-3. Set shadow-map resolution for the target device, then measure again.
-4. Reduce `Surface3D` backing resolutions where the viewer cannot see the extra detail.
-5. Re-run the baseline and inspect both its marker and screenshot.
+local view = Director.entry
+view.showAABB = true -- Turn on temporarily while inspecting bounds.
+```
 
-## Finish the learning path
+</TabItem>
+<TabItem value="yue" label="YueScript">
 
-You now have a complete, testable 3D loop: construct a scene, light it, import and animate assets, simulate objects, embed 2D content, and verify the final result. Use the [3D Rendering and Physics API reference](/docs/api/intro#3d-rendering-and-physics) when you need the full API surface, and return to these checkpoints whenever a new system changes the scene.
+```yue title="init.yue"
+_ENV = Dora
+
+view = Director.entry
+view.showAABB = true -- Turn on temporarily while inspecting bounds.
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal title="init.tl"
+local Director <const> = require("Director")
+
+local view = Director.entry
+view.showAABB = true -- Turn on temporarily while inspecting bounds.
+```
+
+</TabItem>
+</Tabs>
+
+A green box appears around each visible object. If the box is where you expect the object to be, the problem is likely in materials or shaders. If the box is wrong or missing, the problem is spatial. Common causes include a misplaced parent transform, an oversized `Surface3D` that pushes the model out of view, or a model scaled incorrectly at import. Turn `showAABB` off again before shipping.
+
+## A simple optimization workflow
+
+Optimization is about finding the biggest wins first, not fixing everything at once. Work through this list in order:
+
+1. **Reuse `Model3D` paths** - Recreating models or materials every frame is the most common cause of stutters. Load once, use many times.
+2. **Reduce state switches** - Cut down on material, texture, and mesh switches before aggressively reducing geometry. Group objects that share materials.
+3. **Tune shadow-map resolution** - Set it for the target device, then measure again. High resolution on a small screen is often wasted.
+4. **Reduce `Surface3D` resolutions** - Lower backing resolutions where the viewer cannot see the extra detail. A distant object does not need the same resolution as a close one.
+5. **Re-run the baseline** - After each change, capture the screenshot and stats again. Compare against your original baseline to catch regressions.
+
+## Complete examples
+
+The complete scripts below follow this tutorial and have been verified by the Dora engine.
+
+<Tabs groupId="language-select">
+<TabItem value="ts" label="TypeScript">
+
+```ts title="init.ts"
+import {App, Content, Director, threadLoop} from "Dora";
+
+const view = Director.entry;
+view.showAABB = true;
+
+// Wait for the scene to render, then capture a screenshot plus a
+// machine-readable marker file you can compare against later.
+let elapsed = 0;
+let checked = false;
+threadLoop(() => {
+	elapsed += App.deltaTime;
+	if (!checked && elapsed > 1.5) {
+		checked = true;
+		const stats = view.stats;
+		const passed = stats.drawCalls > 0 && stats.visibleVisuals > 0;
+		const screenshot = App.saveScreenshot("/tmp/my-3d-scene/baseline");
+		const status = passed ? "PASS" : "FAIL";
+		Content.save(
+			"/tmp/my-3d-scene/baseline.txt",
+			`status=${status} draws=${stats.drawCalls} visible=${stats.visibleVisuals} screenshot=${screenshot}`,
+		);
+	}
+	return false;
+});
+```
+
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua title="init.lua"
+local _ENV = Dora
+
+local view = Director.entry
+view.showAABB = true
+
+-- Wait for the scene to render, then capture a screenshot plus a
+-- machine-readable marker file you can compare against later.
+local elapsed = 0
+local checked = false
+threadLoop(function()
+	elapsed = elapsed + App.deltaTime
+	if not checked and elapsed > 1.5 then
+		checked = true
+		local stats = view.stats
+		local passed = stats.drawCalls > 0 and stats.visibleVisuals > 0
+		local screenshot = App:saveScreenshot("/tmp/my-3d-scene/baseline")
+		local status = passed and "PASS" or "FAIL"
+		Content:save("/tmp/my-3d-scene/baseline.txt", string.format(
+			"status=%s draws=%d visible=%d screenshot=%s",
+			status, stats.drawCalls, stats.visibleVisuals, screenshot))
+	end
+	return false
+end)
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+_ENV = Dora
+
+view = Director.entry
+view.showAABB = true
+
+elapsed = 0
+checked = false
+threadLoop ->
+	elapsed += App.deltaTime
+	if not checked and elapsed > 1.5
+		checked = true
+		stats = view.stats
+		passed = stats.drawCalls > 0 and stats.visibleVisuals > 0
+		screenshot = App\saveScreenshot "/tmp/my-3d-scene/baseline"
+		Content\save "/tmp/my-3d-scene/baseline.txt", string.format(
+			"status=%s draws=%d visible=%d screenshot=%s",
+			if passed then "PASS" else "FAIL", stats.drawCalls, stats.visibleVisuals, screenshot)
+	false
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal title="init.tl"
+local App = require("App")
+local Content = require("Content")
+local Director = require("Director")
+local threadLoop = require("threadLoop")
+
+local view = Director.entry
+view.showAABB = true
+
+local elapsed: number = 0
+local checked = false
+threadLoop(function(): boolean
+	elapsed = elapsed + App.deltaTime
+	if not checked and elapsed > 1.5 then
+		checked = true
+		local stats = view.stats
+		local passed = stats.drawCalls > 0 and stats.visibleVisuals > 0
+		local screenshot = App:saveScreenshot("/tmp/my-3d-scene/baseline")
+		Content:save("/tmp/my-3d-scene/baseline.txt", string.format(
+			"status=%s draws=%d visible=%d screenshot=%s",
+			passed and "PASS" or "FAIL", stats.drawCalls, stats.visibleVisuals, screenshot))
+	end
+	return false
+end)
+```
+
+</TabItem>
+</Tabs>
+
+## Summary
+
+You now have a complete, testable 3D loop: construct a scene, light it, import and animate assets, simulate objects, embed 2D content, and verify the final result. The baseline capture pattern gives you a repeatable way to measure performance changes, the statistics table tells you what questions to ask, and bounding box visualization helps you diagnose spatial problems. Use the [3D Rendering and Physics API reference](/docs/api/intro#3d-rendering-and-physics) when you need the full API surface, and return to these checkpoints whenever a new system changes the scene.

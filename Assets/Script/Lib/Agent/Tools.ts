@@ -78,7 +78,8 @@ export function planTruncatedEditRecovery(
 	return undefined;
 }
 
-export type AgentTaskStatus = "RUNNING" | "DONE" | "FAILED" | "STOPPED";
+export type AgentTaskStatus = "RUNNING" | "WAITING_USER" | "DONE" | "FAILED" | "STOPPED";
+export type AgentTaskWorkMode = "code" | "plan";
 export type CheckpointStatus = "PREPARED" | "APPLIED" | "REVERTED" | "FAILED";
 export type FileOp = "write" | "create" | "delete";
 
@@ -1009,9 +1010,21 @@ function queryOne(sql: string, args?: (number | string | boolean)[]) {
 		status TEXT NOT NULL,
 		prompt TEXT NOT NULL DEFAULT '',
 		head_seq INTEGER NOT NULL DEFAULT 0,
+		work_mode TEXT NOT NULL DEFAULT 'code',
 		created_at INTEGER NOT NULL,
 		updated_at INTEGER NOT NULL
 	);`);
+	const taskColumns = DB.query(`PRAGMA table_info(${TABLE_TASK})`) ?? [];
+	let hasTaskWorkMode = false;
+	for (let i = 0; i < taskColumns.length; i++) {
+		if (tostring(taskColumns[i][1]) === "work_mode") {
+			hasTaskWorkMode = true;
+			break;
+		}
+	}
+	if (!hasTaskWorkMode) {
+		DB.exec(`ALTER TABLE ${TABLE_TASK} ADD COLUMN work_mode TEXT NOT NULL DEFAULT 'code';`);
+	}
 	DB.exec(`CREATE TABLE IF NOT EXISTS ${TABLE_CP}(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		task_id INTEGER NOT NULL,
@@ -1340,11 +1353,11 @@ export async function runSingleTsTranspile(file: string, content: string, projec
 	return result;
 }
 
-export function createTask(prompt = ""): CreateTaskResult {
+export function createTask(prompt = "", workMode: AgentTaskWorkMode = "code"): CreateTaskResult {
 	const t = now();
 	const affected = DB.exec(
-		`INSERT INTO ${TABLE_TASK}(status, prompt, head_seq, created_at, updated_at) VALUES(?, ?, 0, ?, ?)`,
-		["RUNNING", prompt, t, t],
+		`INSERT INTO ${TABLE_TASK}(status, prompt, head_seq, work_mode, created_at, updated_at) VALUES(?, ?, 0, ?, ?, ?)`,
+		["RUNNING", prompt, workMode, t, t],
 	);
 	if (affected <= 0) {
 		return { success: false, message: "failed to create task" };

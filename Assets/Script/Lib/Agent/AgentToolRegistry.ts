@@ -2,6 +2,7 @@
 
 export type AgentDecisionMode = "tool_calling" | "xml";
 export type AgentRole = "main" | "sub";
+export type AgentWorkMode = "code" | "plan";
 
 export type AgentToolName =
 	| "read_file"
@@ -15,6 +16,7 @@ export type AgentToolName =
 	| "execute_command"
 	| "list_sub_agents"
 	| "spawn_sub_agent"
+	| "ask_user"
 	| "finish";
 
 const BUILT_IN_AGENT_TOOL_NAMES: AgentToolName[] = [
@@ -29,6 +31,7 @@ const BUILT_IN_AGENT_TOOL_NAMES: AgentToolName[] = [
 	"execute_command",
 	"list_sub_agents",
 	"spawn_sub_agent",
+	"ask_user",
 	"finish",
 ];
 
@@ -47,10 +50,12 @@ export interface AgentToolSchemaContext {
 
 export interface AgentToolCapabilityOptions {
 	disabledAgentTools?: AgentToolName[];
+	workMode?: AgentWorkMode;
 }
 
 export interface AgentToolAvailabilityContext {
 	role: AgentRole;
+	workMode: AgentWorkMode;
 	taskDisabledAgentTools: AgentToolName[];
 	currentDisabledAgentTools: AgentToolName[];
 	resumeRequiredTool?: AgentToolName;
@@ -77,6 +82,7 @@ export interface ToolParameterPrompt {
 export interface ToolPrompt {
 	name: string;
 	roles: AgentRole[];
+	workModes: AgentWorkMode[];
 	description: string | ((context: AgentToolSchemaContext) => string);
 	parameters?: ToolParameterPrompt[];
 	rules?: (string | ((context: AgentToolSchemaContext) => string))[];
@@ -190,6 +196,7 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 	{
 		name: "read_file",
 		roles: ["main", "sub"],
+		workModes: ["code", "plan"],
 		description: "Read a specific line range from a file.",
 		parameters: [
 			{ name: "path", type: "string", required: true, description: "Workspace-relative file path to read, or an exact @dora-doc/... path returned by search_dora_api." },
@@ -205,6 +212,7 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 	{
 		name: "edit_file",
 		roles: ["main", "sub"],
+		workModes: ["code", "plan"],
 		description: "Make changes to a file.",
 		parameters: [
 			{ name: "path", type: "string", required: true, description: "Workspace-relative file path to edit." },
@@ -222,6 +230,7 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 	{
 		name: "delete_file",
 		roles: ["main", "sub"],
+		workModes: ["code", "plan"],
 		description: "Remove a file.",
 		parameters: [
 			{ name: "target_file", type: "string", required: true, description: "Workspace-relative file path to delete." },
@@ -230,6 +239,7 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 	{
 		name: "grep_files",
 		roles: ["main", "sub"],
+		workModes: ["code", "plan"],
 		description: "Search text patterns inside files.",
 		parameters: [
 			{ name: "path", type: "string", description: "Base directory or file path to search within." },
@@ -256,6 +266,7 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 	{
 		name: "glob_files",
 		roles: ["main", "sub"],
+		workModes: ["code", "plan"],
 		description: "Enumerate files under a directory.",
 		parameters: [
 			{ name: "path", type: "string", description: "Base directory to enumerate. Defaults to the workspace root when omitted." },
@@ -272,6 +283,7 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 	{
 		name: "search_dora_api",
 		roles: ["main", "sub"],
+		workModes: ["code", "plan"],
 		description: "Search Dora SSR game engine docs and tutorials.",
 		parameters: [
 			{ name: "pattern", type: "string", required: true, description: "Query string to search for. Use | to express OR alternatives." },
@@ -293,6 +305,7 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 	{
 		name: "build",
 		roles: ["main", "sub"],
+		workModes: ["code"],
 		description: "Do compiling and static checks for ts/tsx, teal, lua, yue, yarn.",
 		parameters: [
 			{ name: "path", type: "string", description: "Optional workspace-relative file or directory to build." },
@@ -304,6 +317,7 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 	{
 		name: "fetch_url",
 		roles: ["main", "sub"],
+		workModes: ["code"],
 		description: "Download a single HTTP or HTTPS resource into the project.",
 		parameters: [
 			{ name: "url", type: "string", required: true, description: "HTTP or HTTPS URL to download. Other schemes are rejected." },
@@ -318,6 +332,7 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 	{
 		name: "execute_command",
 		roles: ["main", "sub"],
+		workModes: ["code"],
 		description: "Execute a controlled engine command.",
 		parameters: [
 			{ name: "mode", type: "string", required: true, enum: ["lua", "git"], description: "Use lua for a short Lua snippet inside the Dora engine, or git for a supported Git command handled by the engine Git client." },
@@ -343,6 +358,7 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 	{
 		name: "finish",
 		roles: ["main", "sub"],
+		workModes: ["code", "plan"],
 		description: "End the task and provide a structured completion handoff.",
 		parameters: [
 			{ name: "message", type: "string", required: true, description: "Final user-facing answer." },
@@ -378,6 +394,7 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 	{
 		name: "list_sub_agents",
 		roles: ["main"],
+		workModes: ["code"],
 		description: "Query sub-agent state under the current main session.",
 		parameters: [
 			{ name: "status", type: "string", enum: ["active_or_recent", "running", "done", "failed", "all"], description: "Optional status filter. Defaults to active_or_recent." },
@@ -397,6 +414,7 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 	{
 		name: "spawn_sub_agent",
 		roles: ["main"],
+		workModes: ["code"],
 		description: "Create and start a sub agent session for delegated implementation work.",
 		parameters: [
 			{ name: "title", type: "string", required: true, description: "Short tab title for the sub agent." },
@@ -417,6 +435,57 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 			"filesHint is an optional list of likely files or directories.",
 		],
 	},
+	{
+		name: "ask_user",
+		roles: ["main"],
+		workModes: ["plan"],
+		description: "Present a structured questionnaire and pause the Plan task until the user submits every required answer.",
+		parameters: [
+			{ name: "title", type: "string", required: true, description: "Short questionnaire title." },
+			{ name: "description", type: "string", description: "Optional context shown above the questions." },
+			{
+				name: "questions",
+				type: "array",
+				required: true,
+				description: "One to eight questions. Use single_choice, multiple_choice, or text. A single-choice question may recommend at most one option. A multiple-choice question may recommend a set no larger than maxSelections.",
+				items: {
+					type: "object",
+					properties: {
+						id: { type: "string" },
+						prompt: { type: "string" },
+						description: { type: "string" },
+						type: { type: "string", enum: ["single_choice", "multiple_choice", "text"] },
+						required: { type: "boolean" },
+						options: {
+							type: "array",
+							items: {
+								type: "object",
+								properties: {
+									id: { type: "string" },
+									label: { type: "string" },
+									description: { type: "string" },
+									recommended: { type: "boolean", description: "Mark an option as recommended. Use at most one for single_choice; multiple_choice may mark a recommended set no larger than maxSelections." },
+								},
+								required: ["id", "label"],
+							},
+						},
+						allowOther: { type: "boolean" },
+						placeholder: { type: "string" },
+						minSelections: { type: "number" },
+						maxSelections: { type: "number" },
+					},
+					required: ["id", "prompt", "type"],
+				},
+			},
+		],
+		rules: [
+			"Inspect the project before asking; do not ask for facts available through read_file, grep_files, glob_files, or search_dora_api.",
+			"ask_user has no document-update prerequisite. Incorporate the answers into .agent/plan/PLAN.md and .agent/plan/PROGRESS.md before finish.",
+			"For single_choice, mark at most one option recommended. For multiple_choice, recommended options form a suggested set and must not exceed maxSelections.",
+			"ask_user must be the only tool call in the response.",
+			"The task pauses after the questionnaire is published and continues only after the user submits valid feedback.",
+		],
+	},
 ];
 
 const DEFAULT_SCHEMA_CONTEXT: AgentToolSchemaContext = {
@@ -425,6 +494,10 @@ const DEFAULT_SCHEMA_CONTEXT: AgentToolSchemaContext = {
 
 function hasRole(tool: ToolPrompt, role: AgentRole): boolean {
 	return tool.roles.indexOf(role) >= 0;
+}
+
+function hasWorkMode(tool: ToolPrompt, workMode: AgentWorkMode): boolean {
+	return tool.workModes.indexOf(workMode) >= 0;
 }
 
 function getToolPrompt(name: string): ToolPrompt | undefined {
@@ -436,7 +509,8 @@ function getToolPrompt(name: string): ToolPrompt | undefined {
 
 function isToolCapabilityEnabled(tool: ToolPrompt, options?: AgentToolCapabilityOptions): boolean {
 	if (!isKnownToolName(tool.name)) return false;
-	return (options?.disabledAgentTools ?? []).indexOf(tool.name as AgentToolName) < 0;
+	return hasWorkMode(tool, options?.workMode ?? "code")
+		&& (options?.disabledAgentTools ?? []).indexOf(tool.name as AgentToolName) < 0;
 }
 
 function formatParameterList(tool: ToolPrompt): string {
@@ -491,6 +565,7 @@ export function buildCurrentToolAvailabilityPrompt(_context: AgentToolAvailabili
 export function getToolPromptsForRole(role: AgentRole, options?: {
 	includeFinish?: boolean;
 	disabledAgentTools?: AgentToolName[];
+	workMode?: AgentWorkMode;
 }): ToolPrompt[] {
 	return AGENT_TOOL_PROMPTS.filter(tool =>
 		hasRole(tool, role)
@@ -511,6 +586,7 @@ const SUB_AGENT_REQUIRED_FINISH_PARAMS = [
 function getDecisionToolPromptsForRole(role: AgentRole, options?: {
 	includeFinish?: boolean;
 	disabledAgentTools?: AgentToolName[];
+	workMode?: AgentWorkMode;
 }): ToolPrompt[] {
 	const tools = getToolPromptsForRole(role, options);
 	if (role !== "sub") return tools;
@@ -552,11 +628,13 @@ export function buildRoleToolDefinitionsDetailed(role: AgentRole, options?: {
 	title?: string;
 	context?: AgentToolSchemaContext;
 	disabledAgentTools?: AgentToolName[];
+	workMode?: AgentWorkMode;
 }): string {
 	return buildToolDefinitionsDetailed(
 		getDecisionToolPromptsForRole(role, {
 			includeFinish: options?.includeFinish,
 			disabledAgentTools: options?.disabledAgentTools,
+			workMode: options?.workMode,
 		}),
 		{
 			title: options?.title,
@@ -567,7 +645,11 @@ export function buildRoleToolDefinitionsDetailed(role: AgentRole, options?: {
 }
 
 export function buildXMLRepairToolReference(role: AgentRole, options?: AgentToolCapabilityOptions): string {
-	const tools = getToolPromptsForRole(role, { includeFinish: true, disabledAgentTools: options?.disabledAgentTools });
+	const tools = getToolPromptsForRole(role, {
+		includeFinish: true,
+		disabledAgentTools: options?.disabledAgentTools,
+		workMode: options?.workMode,
+	});
 	const lines = [
 		"Allowed tools and XML params:",
 		...tools.map(tool => formatXMLRepairToolReference(tool)),
@@ -612,6 +694,7 @@ export function buildDecisionToolSchema(role: AgentRole, searchDoraApiLimitMax: 
 	return buildDecisionToolSchemaForTools(getDecisionToolPromptsForRole(role, {
 		includeFinish: true,
 		disabledAgentTools: options?.disabledAgentTools,
+		workMode: options?.workMode,
 	}), context);
 }
 

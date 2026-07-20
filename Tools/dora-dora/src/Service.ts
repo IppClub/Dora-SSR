@@ -1287,14 +1287,57 @@ export interface AgentSession {
 	rootSessionId: number;
 	parentSessionId?: number;
 	memoryScope: string;
-	status: "IDLE" | "RUNNING" | "DONE" | "FAILED" | "STOPPED";
+	workMode: "code" | "plan";
+	status: "IDLE" | "RUNNING" | "WAITING_USER" | "DONE" | "FAILED" | "STOPPED";
 	currentTaskId?: number;
-	currentTaskStatus?: "IDLE" | "RUNNING" | "DONE" | "FAILED" | "STOPPED";
+	currentTaskStatus?: "IDLE" | "RUNNING" | "WAITING_USER" | "DONE" | "FAILED" | "STOPPED";
 	currentTaskFinalizing?: boolean;
 	createdAt: number;
 	updatedAt: number;
 	metrics?: AgentMetrics;
 };
+
+export interface AgentQuestionOption {
+	id: string;
+	label: string;
+	description?: string;
+	recommended?: boolean;
+}
+
+export interface AgentQuestion {
+	id: string;
+	prompt: string;
+	description?: string;
+	type: "single_choice" | "multiple_choice" | "text";
+	required: boolean;
+	options?: AgentQuestionOption[];
+	allowOther?: boolean;
+	placeholder?: string;
+	minSelections?: number;
+	maxSelections?: number;
+}
+
+export interface AgentQuestionnaire {
+	id: number;
+	sessionId: number;
+	taskId: number;
+	step: number;
+	status: "PENDING";
+	schema: {
+		title: string;
+		description?: string;
+		questions: AgentQuestion[];
+	};
+	createdAt: number;
+}
+
+export interface AgentQuestionnaireAnswer {
+	questionId: string;
+	status: "answered" | "skipped";
+	selectedOptionIds?: string[];
+	otherText?: string;
+	text?: string;
+}
 
 export interface AgentContextMetric {
 	usedTokens: number;
@@ -1338,6 +1381,7 @@ export interface AgentSessionMessage {
 	taskId?: number;
 	role: "user" | "assistant";
 	content: string;
+	displayContent?: string;
 	createdAt: number;
 	updatedAt: number;
 };
@@ -1442,6 +1486,8 @@ export interface AgentSessionPatch {
 	pendingMergeCount?: number;
 	pendingMergeJobs?: AgentPendingMergeJob[];
 	spawnInfo?: AgentSessionSpawnInfo;
+	pendingQuestionnaire?: AgentQuestionnaire | false;
+	hasActivePlan?: boolean;
 };
 
 export type AgentSessionDetailResponse = {
@@ -1454,6 +1500,8 @@ export type AgentSessionDetailResponse = {
 	messages: AgentSessionMessage[];
 	steps: AgentSessionStep[];
 	checkpoints?: AgentCheckpointItem[];
+	pendingQuestionnaire?: AgentQuestionnaire;
+	hasActivePlan: boolean;
 } | {
 	success: false;
 	message: string;
@@ -1477,6 +1525,8 @@ export type AgentTaskStatusResponse = {
 	messages: AgentSessionMessage[];
 	steps: AgentSessionStep[];
 	checkpoints: AgentCheckpointItem[];
+	pendingQuestionnaire?: AgentQuestionnaire;
+	hasActivePlan: boolean;
 } | {
 	success: false;
 	message: string;
@@ -1512,7 +1562,17 @@ export const agentSessionGet = (req: { sessionId: number; }) => {
 	return post<AgentSessionDetailResponse>("/agent/session/get", req);
 };
 
-export const agentSessionSend = (req: { sessionId: number; prompt: string; disabledAgentTools?: string[] }) => {
+export const agentSessionSetMode = (req: { sessionId: number; workMode: "code" | "plan"; }) => {
+	return post<{
+		success: true;
+		session: AgentSession;
+	} | {
+		success: false;
+		message: string;
+	}>("/agent/session/mode", req);
+};
+
+export const agentSessionSend = (req: { sessionId: number; prompt: string; disabledAgentTools?: string[]; workMode?: "code" | "plan" }) => {
 	return post<{
 		success: true;
 		sessionId: number;
@@ -1521,6 +1581,17 @@ export const agentSessionSend = (req: { sessionId: number; prompt: string; disab
 		success: false;
 		message: string;
 	}>("/agent/session/send", req);
+};
+
+export const agentSessionContinue = (req: { sessionId: number; disabledAgentTools?: string[] }) => {
+	return post<{
+		success: true;
+		sessionId: number;
+		taskId: number;
+	} | {
+		success: false;
+		message: string;
+	}>("/agent/session/continue", req);
 };
 
 export const agentSessionFinishHandoff = (req: { sessionId: number }) => {
@@ -1534,7 +1605,7 @@ export const agentSessionFinishHandoff = (req: { sessionId: number }) => {
 	}>("/agent/session/finish-handoff", req);
 };
 
-export const agentSessionResend = (req: { sessionId: number; messageId: number; prompt: string; disabledAgentTools?: string[] }) => {
+export const agentSessionResend = (req: { sessionId: number; messageId: number; prompt: string; disabledAgentTools?: string[]; workMode?: "code" | "plan" }) => {
 	return post<{
 		success: true;
 		sessionId: number;
@@ -1543,6 +1614,34 @@ export const agentSessionResend = (req: { sessionId: number; messageId: number; 
 		success: false;
 		message: string;
 	}>("/agent/session/resend", req);
+};
+
+export const agentQuestionnaireRespond = (req: {
+	sessionId: number;
+	questionnaireId: number;
+	answers: AgentQuestionnaireAnswer[];
+}) => {
+	return post<{
+		success: true;
+		sessionId: number;
+		taskId: number;
+	} | {
+		success: false;
+		message: string;
+	}>("/agent/session/questionnaire/respond", req);
+};
+
+export const agentQuestionnaireCancel = (req: {
+	sessionId: number;
+	questionnaireId: number;
+}) => {
+	return post<{
+		success: true;
+		session?: AgentSession;
+	} | {
+		success: false;
+		message: string;
+	}>("/agent/session/questionnaire/cancel", req);
 };
 
 export const agentTaskStatus = (req: { sessionId: number; }) => {

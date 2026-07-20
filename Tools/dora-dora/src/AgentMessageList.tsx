@@ -82,8 +82,9 @@ export default function AgentMessageList(props: AgentMessageListProps) {
 	return (
 		<Stack spacing={2}>
 			{messages.map(message => {
-				const editable = message.role === "user" && message.id === props.editableMessageId && !props.editDisabled && props.onResendPrompt !== undefined;
+				const editable = message.role === "user" && message.displayContent === undefined && message.id === props.editableMessageId && !props.editDisabled && props.onResendPrompt !== undefined;
 				const editing = editingMessageId === message.id;
+				const visibleContent = message.displayContent ?? message.content;
 				return (
 					<Box key={message.id} sx={{
 						display: "flex",
@@ -213,7 +214,7 @@ export default function AgentMessageList(props: AgentMessageListProps) {
 									</Box>
 								) : (
 									<Typography variant="body1" sx={{ color: Color.TextPrimary, whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
-										{message.content}
+										{visibleContent}
 									</Typography>
 								)}
 							</Box>

@@ -7,10 +7,12 @@ import * as Tools from 'Agent/Tools';
 import { MemoryCompressor } from 'Agent/Memory';
 import type { AgentPromptPack, AgentConversationMessage } from 'Agent/Memory';
 import * as AgentToolRegistry from 'Agent/AgentToolRegistry';
-import type { AgentDecisionMode, AgentRole, AgentToolName } from 'Agent/AgentToolRegistry';
+import type { AgentDecisionMode, AgentRole, AgentToolName, AgentWorkMode } from 'Agent/AgentToolRegistry';
 import * as AgentSkills from 'Agent/AgentSkills';
 import * as AgentConfig from 'Agent/AgentConfig';
 import * as AgentRuntimePolicy from 'Agent/AgentRuntimePolicy';
+import { normalizeQuestionnaire } from 'Agent/AgentQuestionnaire';
+import type { AgentQuestionnaireSchema } from 'Agent/AgentQuestionnaire';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === "object";
@@ -28,6 +30,16 @@ export type CodingAgentRunResult =
 		message: string;
 		steps: number;
 		completion: AgentCompletionReport;
+		waitingForUser?: false;
+	}
+	| {
+		success: true;
+		taskId: number;
+		message: string;
+		steps: number;
+		waitingForUser: true;
+		questionnaireId: number;
+		completion?: undefined;
 	}
 	| {
 		success: false;
@@ -64,11 +76,13 @@ export interface AgentCompletionReport {
 
 export interface CodingAgentRunOptions {
 	prompt: string;
+	resumeConversation?: boolean;
 	workDir: string;
 	useChineseResponse?: boolean;
 	taskId?: number;
 	maxSteps?: number;
 	decisionMode?: "tool_calling" | "xml";
+	workMode?: AgentWorkMode;
 	llmMaxTry?: number;
 	llmOptions?: Record<string, unknown>;
 	llmConfig?: LLMConfig;
@@ -128,11 +142,20 @@ export interface CodingAgentRunOptions {
 		}
 		| { success: false; message: string }
 	>;
+	publishQuestionnaire?: (this: void, request: {
+		sessionId: number;
+		taskId: number;
+		step: number;
+		schema: AgentQuestionnaireSchema;
+	}) => Promise<
+		| { success: true; questionnaireId: number }
+		| { success: false; message: string }
+	>;
 	onEvent?: (event: CodingAgentEvent) => void;
 }
 
 type AgentPromptCommand = "compact" | "clear";
-export type { AgentDecisionMode, AgentRole, AgentToolName };
+export type { AgentDecisionMode, AgentRole, AgentToolName, AgentWorkMode };
 
 export type AgentStepToolName = AgentToolName | "compress_memory";
 
@@ -262,6 +285,13 @@ export type CodingAgentEvent =
 		reasoningContent?: string;
 	}
 	| {
+		type: "task_waiting_for_user";
+		sessionId?: number;
+		taskId: number;
+		step: number;
+		questionnaireId: number;
+	}
+	| {
 		type: "task_finished";
 		sessionId?: number;
 		taskId?: number;
@@ -345,6 +375,7 @@ interface AgentShared {
 	workingDir: string;
 	useChineseResponse: boolean;
 	decisionMode: AgentDecisionMode;
+	workMode: AgentWorkMode;
 	llmOptions: Record<string, unknown>;
 	llmConfig: LLMConfig;
 	llmMaxTry: number;
@@ -406,6 +437,8 @@ interface AgentShared {
 	};
 	spawnSubAgent?: CodingAgentRunOptions["spawnSubAgent"];
 	listSubAgents?: CodingAgentRunOptions["listSubAgents"];
+	publishQuestionnaire?: CodingAgentRunOptions["publishQuestionnaire"];
+	waitingQuestionnaireId?: number;
 	disabledAgentTools: AgentToolName[];
 }
 
@@ -648,9 +681,7 @@ function encodeDebugJSON(value: unknown): string {
 }
 
 export function normalizePolicyPath(path: string): string {
-	let normalized = path.trim().split("\\").join("/");
-	while (normalized.startsWith("./")) normalized = normalized.slice(2);
-	return normalized;
+	return AgentRuntimePolicy.normalizeAgentPath(path);
 }
 
 /**
@@ -659,8 +690,11 @@ export function normalizePolicyPath(path: string): string {
  * bypass authored-source validation and build cadence.
  */
 export function isMainAgentMemoryPath(path: string): boolean {
-	const normalized = normalizePolicyPath(path);
-	return normalized === ".agent/main" || normalized.startsWith(".agent/main/");
+	return AgentRuntimePolicy.isMainAgentMemoryPath(path);
+}
+
+export function isAgentPlanPath(path: string): boolean {
+	return AgentRuntimePolicy.isAgentPlanPath(path);
 }
 
 const FRESH_PROJECT_CODE_GLOBS = [
@@ -1023,6 +1057,7 @@ function getDecisionToolDefinitions(shared: AgentShared): string {
 			includeXmlRules: true,
 			context: { searchDoraApiLimitMax: AgentConfig.AGENT_LIMITS.searchDoraApiLimitMax },
 			disabledAgentTools: getDecisionDisabledAgentTools(shared),
+			workMode: shared.workMode,
 		});
 		return replacePromptVars(definitions, params);
 	}
@@ -1043,6 +1078,7 @@ function getDecisionToolDefinitions(shared: AgentShared): string {
 function getDecisionToolSchemaText(shared: AgentShared): string {
 	const [toolsText] = safeJsonEncode(AgentToolRegistry.buildDecisionToolSchema(shared.role, AgentConfig.AGENT_LIMITS.searchDoraApiLimitMax, {
 		disabledAgentTools: getDecisionDisabledAgentTools(shared),
+		workMode: shared.workMode,
 	}) as object);
 	return toolsText ?? "";
 }
@@ -1050,6 +1086,7 @@ function getDecisionToolSchemaText(shared: AgentShared): string {
 function isToolAllowedForRole(shared: AgentShared, tool: AgentToolName): boolean {
 	return AgentToolRegistry.getAllowedToolsForRole(shared.role, {
 		disabledAgentTools: getDecisionDisabledAgentTools(shared),
+		workMode: shared.workMode,
 	}).indexOf(tool) >= 0;
 }
 
@@ -1158,7 +1195,11 @@ async function executeToolActionWithPreExecution(shared: AgentShared, action: Ag
 			guidance.push("Dora API documentation has already been searched since the last build. Prefer applying the evidence and building before another lookup.");
 		}
 	}
-	if ((action.tool === "edit_file" || action.tool === "delete_file") && AgentRuntimePolicy.isEditBudgetExhausted(shared)) {
+	if (
+		(action.tool === "edit_file" || action.tool === "delete_file")
+		&& !AgentRuntimePolicy.isAgentInternalDocumentPath(getDecisionPath(action.params))
+		&& AgentRuntimePolicy.isEditBudgetExhausted(shared)
+	) {
 		guidance.push("Several source files have changed since the last build. Prefer compiling now to obtain concrete diagnostics before broadening the edit set.");
 	}
 	if (action.tool === "edit_file" && shared.resumeNarrowReadMode === true) {
@@ -1224,19 +1265,13 @@ async function maybeCompressHistory(
 				+ estimateTextTokens(pendingUserPrompt)
 				+ math.max(0, math.floor(Number(shared.llmOptions.max_tokens ?? AgentConfig.AGENT_DEFAULTS.llmMaxTokens)));
 		}
-		const activeRealMessages = getActiveRealMessageCount(shared);
-		const boundaryThresholds = AgentConfig.getTurnBoundaryCompressionThresholds(
+		const turnBoundaryThreshold = AgentConfig.getTurnBoundaryCompressionThreshold(
 			shared.llmConfig.contextWindow
 		);
 		const turnBoundaryReached = forceAtTurnBoundary
 			&& shared.role === "main"
-			&& (
-				activeTokens >= boundaryThresholds.defaultTokens
-				|| (
-					activeRealMessages >= AgentConfig.AGENT_DEFAULTS.turnBoundaryHighMessageCount
-					&& activeTokens >= boundaryThresholds.highMessageTokens
-				)
-			);
+			&& uncoveredMessages.length > 0
+			&& activeTokens >= turnBoundaryThreshold;
 		if (!thresholdReached && !turnBoundaryReached) {
 			if (changed) {
 				persistHistoryState(shared);
@@ -1671,6 +1706,9 @@ function applyCompressedSessionState(
 	if (shared.hasSpawnedSubAgentThisTask === true && shared.resumeRequiredTool === "list_sub_agents") {
 		shared.resumeRequiredTool = undefined;
 	}
+	if (shared.resumeRequiredTool !== undefined && !isToolAllowedForRole(shared, shared.resumeRequiredTool)) {
+		shared.resumeRequiredTool = undefined;
+	}
 }
 
 function appendConversationMessage(shared: AgentShared, message: AgentConversationMessage): void {
@@ -1931,7 +1969,7 @@ async function llm(
 			? sanitizeUTF8(message.reasoning_content)
 			: undefined;
 		if (text) {
-			const parsed = tryParseAndValidateDecision(text, shared.role);
+			const parsed = tryParseAndValidateDecision(text, shared);
 			if (parsed.success) {
 				const reason = parsed.reason ?? "";
 				emitAssistantMessageUpdated(shared, "", reason !== "" ? reason : undefined);
@@ -2071,10 +2109,11 @@ function parseAndValidateToolCallDecision(
 			raw: argsText,
 		};
 	}
-	if (!isToolAllowedForRole(shared, decision.tool)) {
+	const sharedValidation = validateDecisionForShared(shared, decision.tool, validation.params);
+	if (!sharedValidation.success) {
 		return {
 			success: false,
-			message: `${decision.tool} is not allowed for role ${shared.role}`,
+			message: sharedValidation.message,
 			raw: argsText,
 		};
 	}
@@ -2096,7 +2135,7 @@ function createPreExecutableActionFromStream(shared: AgentShared, toolCall: Tool
 	if (!decision.success || !AgentToolRegistry.canPreExecuteTool(decision.tool)) return undefined;
 	const validation = validateDecision(decision.tool, decision.params);
 	if (!validation.success) return undefined;
-	if (!isToolAllowedForRole(shared, decision.tool)) return undefined;
+	if (!validateDecisionForShared(shared, decision.tool, validation.params).success) return undefined;
 	return {
 		step: shared.step + 1,
 		toolCallId,
@@ -2111,6 +2150,29 @@ function getDecisionPath(params: Record<string, unknown>): string {
 	if (typeof params.path === "string") return params.path.trim();
 	if (typeof params.target_file === "string") return params.target_file.trim();
 	return "";
+}
+
+function validateDecisionForShared(
+	shared: AgentShared,
+	tool: AgentToolName,
+	params: Record<string, unknown>
+): { success: true } | { success: false; message: string } {
+	if (!isToolAllowedForRole(shared, tool)) {
+		return { success: false, message: `${tool} is not allowed in ${shared.workMode} mode for role ${shared.role}` };
+	}
+	if (shared.workMode === "plan" && (tool === "edit_file" || tool === "delete_file")) {
+		const path = getDecisionPath(params);
+		if (!AgentRuntimePolicy.isAgentPlanPath(path)) {
+			return { success: false, message: `${tool} in Plan mode may only write under ${AgentRuntimePolicy.AGENT_PLAN_DIR}` };
+		}
+	}
+	if (tool === "delete_file") {
+		const path = AgentRuntimePolicy.normalizeAgentPath(getDecisionPath(params));
+		if (path === AgentRuntimePolicy.AGENT_PLAN_FILE || path === AgentRuntimePolicy.AGENT_PROGRESS_FILE) {
+			return { success: false, message: `${path} is a fixed living document and cannot be deleted` };
+		}
+	}
+	return { success: true };
 }
 
 function clampIntegerParam(value: unknown, fallback: number, minValue: number, maxValue?: number): number {
@@ -2151,6 +2213,12 @@ function validateDecision(
 		params.assumptions = completion.assumptions;
 		params.learningCandidates = completion.learningCandidates;
 		return { success: true, params };
+	}
+
+	if (tool === "ask_user") {
+		const normalized = normalizeQuestionnaire(params);
+		if (!normalized.success) return normalized;
+		return { success: true, params: normalized.schema as unknown as Record<string, unknown> };
 	}
 
 	if (tool === "read_file") {
@@ -2269,14 +2337,26 @@ function validateCompletionForRole(
 }
 
 function buildAgentSystemPrompt(shared: AgentShared, includeToolDefinitions = false): string {
-	const rolePrompt = shared.role === "main"
-		? shared.promptPack.mainAgentRolePrompt
-		: shared.promptPack.subAgentRolePrompt;
+	const rolePrompt = shared.workMode === "plan"
+		? shared.promptPack.planAgentRolePrompt
+		: (shared.role === "main" ? shared.promptPack.mainAgentRolePrompt : shared.promptPack.subAgentRolePrompt);
 	const sections: string[] = [
 		shared.promptPack.agentIdentityPrompt,
 		rolePrompt,
 		getReplyLanguageDirective(shared),
 	];
+	if (shared.role === "main") {
+		const planPath = Path(shared.workingDir, AgentRuntimePolicy.AGENT_PLAN_FILE);
+		const progressPath = Path(shared.workingDir, AgentRuntimePolicy.AGENT_PROGRESS_FILE);
+		if (Content.exist(planPath) && Content.exist(progressPath)) {
+			sections.push([
+				"# Current Living Development Plan",
+				"These files were reloaded from disk for this decision. Treat them as authoritative over older conversation summaries.",
+				`## ${AgentRuntimePolicy.AGENT_PLAN_FILE}\n\n${truncateText(sanitizeUTF8(Content.load(planPath) as string), 12000)}`,
+				`## ${AgentRuntimePolicy.AGENT_PROGRESS_FILE}\n\n${truncateText(sanitizeUTF8(Content.load(progressPath) as string), 12000)}`,
+			].join("\n\n"));
+		}
+	}
 	if (shared.decisionMode === "tool_calling") {
 		sections.push(shared.promptPack.functionCallingPrompt);
 	}
@@ -2424,6 +2504,7 @@ function buildDecisionMessages(
 	}
 	tailSections.push(AgentToolRegistry.buildCurrentToolAvailabilityPrompt({
 		role: shared.role,
+		workMode: shared.workMode,
 		taskDisabledAgentTools: shared.disabledAgentTools,
 		currentDisabledAgentTools: getDecisionDisabledAgentTools(shared),
 		resumeRequiredTool: shared.resumeRequiredTool,
@@ -2489,6 +2570,7 @@ ${candidateReasoningSection}`
 		includeXmlRules: true,
 		context: { searchDoraApiLimitMax: AgentConfig.AGENT_LIMITS.searchDoraApiLimitMax },
 		disabledAgentTools: getDecisionDisabledAgentTools(shared),
+		workMode: shared.workMode,
 	});
 	const systemPrompt = replacePromptVars(shared.promptPack.xmlDecisionSystemRepairPrompt, {
 		TOOL_REPAIR_REFERENCE: toolRepairReference,
@@ -2502,6 +2584,7 @@ ${candidateReasoningSection}`
 	});
 	const availabilityPrompt = AgentToolRegistry.buildCurrentToolAvailabilityPrompt({
 		role: shared.role,
+		workMode: shared.workMode,
 		taskDisabledAgentTools: shared.disabledAgentTools,
 		currentDisabledAgentTools: getDecisionDisabledAgentTools(shared),
 		resumeRequiredTool: shared.resumeRequiredTool,
@@ -2527,7 +2610,7 @@ ${candidateReasoningSection}`
 	];
 }
 
-function tryParseAndValidateDecision(rawText: string, role: AgentRole = "main"): DecisionSuccess | DecisionFailure {
+function tryParseAndValidateDecision(rawText: string, shared: AgentShared): DecisionSuccess | DecisionFailure {
 	const parsed = parseXMLToolCallObjectFromText(rawText);
 	if (!parsed.success) {
 		return { success: false, message: parsed.message, raw: rawText };
@@ -2536,13 +2619,17 @@ function tryParseAndValidateDecision(rawText: string, role: AgentRole = "main"):
 	if (!decision.success) {
 		return { success: false, message: decision.message, raw: rawText };
 	}
-	const completionValidation = validateCompletionForRole(role, decision.tool, decision.params);
+	const completionValidation = validateCompletionForRole(shared.role, decision.tool, decision.params);
 	if (!completionValidation.success) {
 		return { success: false, message: completionValidation.message, raw: rawText };
 	}
 	const validation = validateDecision(decision.tool, decision.params);
 	if (!validation.success) {
 		return { success: false, message: validation.message, raw: rawText };
+	}
+	const sharedValidation = validateDecisionForShared(shared, decision.tool, validation.params);
+	if (!sharedValidation.success) {
+		return { success: false, message: sharedValidation.message, raw: rawText };
 	}
 	decision.params = validation.params;
 	decision.toolCallId = ensureToolCallId(decision.toolCallId);
@@ -2792,6 +2879,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 		Log("Info", `[CodingAgent] tool-calling decision start step=${shared.step + 1}${lastError ? ` retry_error=${lastError}` : ""}`);
 		const tools = AgentToolRegistry.buildDecisionToolSchema(shared.role, AgentConfig.AGENT_LIMITS.searchDoraApiLimitMax, {
 			disabledAgentTools: getDecisionDisabledAgentTools(shared),
+			workMode: shared.workMode,
 		});
 		const messages = buildDecisionMessages(shared, lastError, attempt, lastRaw);
 		const stepId = shared.step + 1;
@@ -2956,11 +3044,11 @@ class MainDecisionAgent extends Node<AgentShared> {
 			return decisions[0];
 		}
 		for (let i = 0; i < decisions.length; i++) {
-			if (decisions[i].tool === "finish") {
+			if (decisions[i].tool === "finish" || decisions[i].tool === "ask_user") {
 				clearPreExecutedResults(shared);
 				return {
 					success: false,
-					message: "finish cannot be mixed with other tool calls",
+					message: `${decisions[i].tool} cannot be mixed with other tool calls`,
 					raw: messageContent,
 				};
 			}
@@ -3007,7 +3095,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 			}
 			candidateRaw = llmRes.text;
 			candidateReasoning = llmRes.reasoningContent;
-			const decision = tryParseAndValidateDecision(candidateRaw, shared.role);
+			const decision = tryParseAndValidateDecision(candidateRaw, shared);
 			if (decision.success) {
 				decision.reasoningContent = llmRes.reasoningContent;
 				Log("Info", `[CodingAgent] xml repair succeeded tool=${decision.tool}`);
@@ -3048,17 +3136,9 @@ class MainDecisionAgent extends Node<AgentShared> {
 				raw: llmRes.text ?? "",
 			};
 		}
-		const decision = tryParseAndValidateDecision(llmRes.text, shared.role);
+		const decision = tryParseAndValidateDecision(llmRes.text, shared);
 		if (decision.success) {
 			decision.reasoningContent = llmRes.reasoningContent;
-			if (!isToolAllowedForRole(shared, decision.tool)) {
-				return this.repairDecisionXml(
-					shared,
-					llmRes.text,
-					llmRes.reasoningContent,
-					`${decision.tool} is not allowed for role ${shared.role}`
-				);
-			}
 			return decision;
 		}
 		return this.repairDecisionXml(shared, llmRes.text, llmRes.reasoningContent, decision.message);
@@ -3888,6 +3968,8 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 		shared.resumeCheckpointPending = false;
 	}
 	const params = action.params;
+	const sharedValidation = validateDecisionForShared(shared, action.tool, params);
+	if (!sharedValidation.success) return sharedValidation;
 	if (action.tool === "read_file") {
 		const startLine = Number(params.startLine ?? 1);
 		let endLine = Number(params.endLine ?? AgentConfig.AGENT_LIMITS.readFileDefaultLimit);
@@ -3967,6 +4049,21 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 		});
 		return result as unknown as Record<string, unknown>;
 	}
+	if (action.tool === "ask_user") {
+		if (!shared.publishQuestionnaire) return { success: false, message: "ask_user is not available in this runtime" };
+		if (shared.sessionId === undefined || shared.sessionId <= 0) return { success: false, message: "ask_user requires a session" };
+		const normalized = normalizeQuestionnaire(params);
+		if (!normalized.success) return normalized;
+		const result = await shared.publishQuestionnaire({
+			sessionId: shared.sessionId,
+			taskId: shared.taskId,
+			step: action.step,
+			schema: normalized.schema,
+		});
+		if (!result.success) return result;
+		shared.waitingQuestionnaireId = result.questionnaireId;
+		return { success: true, waitingForUser: true, questionnaireId: result.questionnaireId };
+	}
 	if (action.tool === "delete_file") {
 		const targetFile = typeof params.target_file === "string"
 			? params.target_file
@@ -3977,6 +4074,7 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 		if (isMainAgentMemoryPath(normalizedTargetFile)) {
 			return { success: false, message: "This .agent/main file is managed automatically and cannot be deleted with delete_file." };
 		}
+		const isInternalDocumentEdit = AgentRuntimePolicy.isAgentInternalDocumentPath(normalizedTargetFile);
 		const result = Tools.applyFileChanges(shared.taskId, shared.workingDir, [{ path: targetFile, op: "delete" }], {
 			summary: `delete_file: ${targetFile}`,
 			toolName: "delete_file",
@@ -3984,12 +4082,14 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 		if (!result.success) {
 			return result as unknown as Record<string, unknown>;
 		}
-		shared.unbuiltEdits = true;
-		shared.lastBuildSucceeded = false;
-		if (shared.failedTestNeedsBuild === true) shared.failedTestHasSourceEdit = true;
-		if (editedPaths.indexOf(normalizedTargetFile) < 0) editedPaths.push(normalizedTargetFile);
-		shared.editedPathsSinceBuild = editedPaths;
-		shared.editsSinceBuild = (shared.editsSinceBuild ?? 0) + 1;
+		if (!isInternalDocumentEdit) {
+			shared.unbuiltEdits = true;
+			shared.lastBuildSucceeded = false;
+			if (shared.failedTestNeedsBuild === true) shared.failedTestHasSourceEdit = true;
+			if (editedPaths.indexOf(normalizedTargetFile) < 0) editedPaths.push(normalizedTargetFile);
+			shared.editedPathsSinceBuild = editedPaths;
+			shared.editsSinceBuild = (shared.editsSinceBuild ?? 0) + 1;
+		}
 		return {
 			success: true,
 			changed: true,
@@ -4197,8 +4297,8 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 		const newStr = typeof params.new_str === "string" ? params.new_str : "";
 		if (path.trim() === "") return { success: false, message: "missing path" };
 		const normalizedPath = normalizePolicyPath(path);
-		const isMemoryEdit = isMainAgentMemoryPath(normalizedPath);
-		if (!isMemoryEdit) {
+		const isInternalDocumentEdit = AgentRuntimePolicy.isAgentInternalDocumentPath(normalizedPath);
+		if (!isInternalDocumentEdit) {
 			const preflightIssue = AgentToolRegistry.findUnsupportedDoraTsEdit(normalizedPath, newStr);
 			if (preflightIssue !== undefined) {
 				const targetExists = Content.exist(Path(shared.workingDir, normalizedPath));
@@ -4216,7 +4316,7 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 			taskId: shared.taskId,
 			workDir: shared.workingDir,
 		});
-		if (!isMemoryEdit && result.success === true && result.changed !== false) {
+		if (!isInternalDocumentEdit && result.success === true && result.changed !== false) {
 			if (params.partialStreamRecovery !== true) {
 				shared.truncatedToolOverwritePath = undefined;
 			}
@@ -4407,6 +4507,16 @@ function partitionToolCalls(actions: AgentActionRecord[]): ToolBatch[] {
 	return batches;
 }
 
+function completeStoppedToolAction(shared: AgentShared, action: AgentActionRecord): void {
+	action.params = sanitizeActionParamsForHistory(action.tool, action.params);
+	if (!action.result) {
+		action.result = { success: false, message: getCancelledReason(shared) };
+	}
+	appendToolResultMessage(shared, action);
+	emitAgentFinishEvent(shared, action);
+	emitCheckpointEventForAction(shared, action);
+}
+
 class BatchToolAction extends Node<AgentShared> {
 	async prep(shared: AgentShared): Promise<{ shared: AgentShared; actions: AgentActionRecord[] }> {
 		return { shared, actions: shared.pendingToolActions ?? [] };
@@ -4425,9 +4535,7 @@ class BatchToolAction extends Node<AgentShared> {
 			const batch = batches[batchIdx];
 			if (shared.stopToken.stopped) {
 				for (const action of batch.actions) {
-					if (!action.result) {
-						action.result = { success: false, message: getCancelledReason(shared) };
-					}
+					completeStoppedToolAction(shared, action);
 				}
 				continue;
 			}
@@ -4470,6 +4578,9 @@ class BatchToolAction extends Node<AgentShared> {
 					emitCheckpointEventForAction(shared, action);
 					persistHistoryState(shared);
 					if (shared.stopToken.stopped) {
+						for (let j = i + 1; j < batch.actions.length; j++) {
+							completeStoppedToolAction(shared, batch.actions[j]);
+						}
 						break;
 					}
 				}
@@ -4500,7 +4611,7 @@ class BatchToolAction extends Node<AgentShared> {
 		persistHistoryState(shared);
 		await maybeCompressHistory(shared);
 		persistHistoryState(shared);
-		return "main";
+		return shared.waitingQuestionnaireId !== undefined ? "done" : "main";
 	}
 }
 
@@ -4554,6 +4665,7 @@ class CodingAgentFlow extends Flow<AgentShared> {
 		listSub.on("main", main);
 		spawn.on("main", main);
 		batch.on("main", main);
+		batch.on("done", done);
 		read.on("main", main);
 		del.on("main", main);
 		build.on("main", main);
@@ -4611,7 +4723,7 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 	const llmConfig = llmConfigRes.config;
 	const taskRes = options.taskId !== undefined
 		? { success: true as const, taskId: options.taskId }
-		: Tools.createTask(normalizedPrompt);
+		: Tools.createTask(normalizedPrompt, options.workMode ?? "code");
 	if (!taskRes.success) {
 		return { success: false, message: taskRes.message };
 	}
@@ -4626,6 +4738,16 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 		scope: options.memoryScope,
 	});
 	const persistedSession = compressor.getStorage().readSessionState();
+	let effectiveUserQuery = normalizedPrompt;
+	if (options.resumeConversation === true) {
+		for (let i = persistedSession.messages.length - 1; i >= 0; i--) {
+			const message = persistedSession.messages[i];
+			if (message.role === "user" && typeof message.content === "string" && message.content.trim() !== "") {
+				effectiveUserQuery = message.content;
+				break;
+			}
+		}
+	}
 	const promptPack = compressor.getPromptPack();
 	const freshProject = inspectFreshProject(options.workDir);
 	const freshProjectBuildPending = freshProject.fresh;
@@ -4641,9 +4763,10 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 		done: false,
 		stopToken: options.stopToken ?? { stopped: false },
 		response: "",
-		userQuery: normalizedPrompt,
+		userQuery: effectiveUserQuery,
 		workingDir: options.workDir,
 		useChineseResponse: options.useChineseResponse === true,
+		workMode: options.workMode ?? "code",
 		decisionMode: options.decisionMode
 			? options.decisionMode
 			: (llmConfig.supportsFunctionCalling ? "tool_calling" : "xml"),
@@ -4664,10 +4787,15 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 			loader: AgentSkills.createSkillsLoader({
 				projectDir: options.workDir,
 				disabledAgentTools: options.disabledAgentTools ?? [],
+				allowedAgentTools: AgentToolRegistry.getAllowedToolsForRole(options.role ?? "main", {
+					workMode: options.workMode ?? "code",
+					disabledAgentTools: options.disabledAgentTools ?? [],
+				}),
 			}),
 		},
 		spawnSubAgent: options.spawnSubAgent,
 		listSubAgents: options.listSubAgents,
+		publishQuestionnaire: options.publishQuestionnaire,
 		disabledAgentTools: options.disabledAgentTools ?? [],
 		freshProjectBuildPending,
 		freshProjectCodeFile,
@@ -4676,6 +4804,13 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 	};
 
 	try {
+		if (shared.workMode === "plan") {
+			const planDocuments = AgentRuntimePolicy.ensureAgentPlanDocuments(shared.workingDir);
+			if (!planDocuments.success) {
+				Tools.setTaskStatus(shared.taskId, "FAILED");
+				return { success: false, taskId: shared.taskId, message: planDocuments.message };
+			}
+		}
 		emitAgentEvent(shared, {
 			type: "task_started",
 			sessionId: shared.sessionId,
@@ -4689,7 +4824,7 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 			return emitAgentTaskFinishEvent(shared, false, getCancelledReason(shared));
 		}
 		Tools.setTaskStatus(shared.taskId, "RUNNING");
-		const promptCommand = getPromptCommand(shared.userQuery);
+		const promptCommand = options.resumeConversation === true ? undefined : getPromptCommand(shared.userQuery);
 		if (promptCommand === "clear") {
 			return clearSessionHistory(shared);
 		}
@@ -4706,16 +4841,18 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 			}
 			return await compactAllHistory(shared);
 		}
-		await maybeCompressHistory(shared, true, normalizedPrompt);
+		await maybeCompressHistory(shared, true, options.resumeConversation === true ? "" : normalizedPrompt);
 		if (shared.stopToken.stopped) {
 			Tools.setTaskStatus(shared.taskId, "STOPPED");
 			return emitAgentTaskFinishEvent(shared, false, getCancelledReason(shared));
 		}
-		appendConversationMessage(shared, {
-			role: "user",
-			content: normalizedPrompt,
-		});
-		persistHistoryState(shared);
+		if (options.resumeConversation !== true) {
+			appendConversationMessage(shared, {
+				role: "user",
+				content: normalizedPrompt,
+			});
+			persistHistoryState(shared);
+		}
 		const flow = new CodingAgentFlow(shared.role);
 		await flow.run(shared);
 		if (shared.stopToken.stopped) {
@@ -4725,6 +4862,24 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 		if (shared.error) {
 			return finalizeAgentFailure(shared,
 				shared.response && shared.response !== "" ? shared.response : shared.error);
+		}
+		if (shared.waitingQuestionnaireId !== undefined) {
+			Tools.setTaskStatus(shared.taskId, "WAITING_USER");
+			emitAgentEvent(shared, {
+				type: "task_waiting_for_user",
+				sessionId: shared.sessionId,
+				taskId: shared.taskId,
+				step: shared.step,
+				questionnaireId: shared.waitingQuestionnaireId,
+			});
+			return {
+				success: true,
+				taskId: shared.taskId,
+				message: shared.useChineseResponse ? "等待用户填写调查问卷。" : "Waiting for questionnaire feedback.",
+				steps: shared.step,
+				waitingForUser: true,
+				questionnaireId: shared.waitingQuestionnaireId,
+			};
 		}
 		Tools.setTaskStatus(shared.taskId, "DONE");
 		return emitAgentTaskFinishEvent(shared, true,

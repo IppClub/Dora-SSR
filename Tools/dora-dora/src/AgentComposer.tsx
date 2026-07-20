@@ -5,6 +5,7 @@ import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import DownloadIcon from '@mui/icons-material/Download';
 import TerminalIcon from '@mui/icons-material/Terminal';
+import ChecklistIcon from '@mui/icons-material/Checklist';
 import { MacScrollbar } from 'mac-scrollbar';
 import { useTranslation } from 'react-i18next';
 import { BsFillSendFill, BsStopFill } from 'react-icons/bs';
@@ -31,11 +32,13 @@ interface AgentComposerProps {
 	};
 	fetchUrlEnabled?: boolean;
 	executeCommandEnabled?: boolean;
+	planMode?: boolean;
 	onPromptChange: (value: string) => void;
 	onSend: () => void;
 	onStop: () => void;
 	onFetchUrlEnabledChange?: (value: boolean) => void;
 	onExecuteCommandEnabledChange?: (value: boolean) => void;
+	onPlanModeChange?: (value: boolean) => void;
 }
 
 function formatCompactNumber(value: number): string {
@@ -132,11 +135,13 @@ export default function AgentComposer(props: AgentComposerProps) {
 		actualUsage,
 		fetchUrlEnabled = false,
 		executeCommandEnabled = false,
+		planMode = false,
 		onPromptChange,
 		onSend,
 		onStop,
 		onFetchUrlEnabledChange,
 		onExecuteCommandEnabledChange,
+		onPlanModeChange,
 	} = props;
 	const disabledInput = loading || running;
 	const actionDisabled = running ? !canStop : loading || prompt.trim() === "";
@@ -144,9 +149,10 @@ export default function AgentComposer(props: AgentComposerProps) {
 	const toolToggleDisabled = loading || running;
 	const fetchUrlToggleDisabled = toolToggleDisabled || onFetchUrlEnabledChange === undefined;
 	const executeCommandToggleDisabled = toolToggleDisabled || onExecuteCommandEnabledChange === undefined;
-	const showTopControls = tabButtons !== undefined || onFetchUrlEnabledChange !== undefined || onExecuteCommandEnabledChange !== undefined;
-	const showFetchUrlButton = onFetchUrlEnabledChange !== undefined;
-	const showExecuteCommandButton = onExecuteCommandEnabledChange !== undefined;
+	const showTopControls = tabButtons !== undefined || onFetchUrlEnabledChange !== undefined || onExecuteCommandEnabledChange !== undefined || onPlanModeChange !== undefined;
+	const showFetchUrlButton = onFetchUrlEnabledChange !== undefined && !planMode;
+	const showExecuteCommandButton = onExecuteCommandEnabledChange !== undefined && !planMode;
+	const showPlanModeButton = onPlanModeChange !== undefined;
 	const textAreaRef = React.useRef<HTMLTextAreaElement | null>(null);
 	const scrollRef = React.useRef<HTMLElement | null>(null);
 	const isComposingRef = React.useRef(false);
@@ -240,6 +246,39 @@ export default function AgentComposer(props: AgentComposerProps) {
 			</span>
 		</Tooltip>
 	);
+	const planModeButton = (
+		<Tooltip title={t("agent.planModeToggle")}>
+			<span>
+				<IconButton
+					onClick={() => onPlanModeChange?.(!planMode)}
+					disabled={toolToggleDisabled}
+					aria-pressed={planMode}
+					aria-label={t("agent.planMode")}
+					sx={{
+						width: 30,
+						height: 30,
+						borderRadius: 999,
+						border: `1px solid ${planMode ? `${Color.Theme}7d` : 'rgba(255, 255, 255, 0.14)'}`,
+						backgroundColor: planMode ? `${Color.Theme}14` : 'rgba(24, 24, 24, 0.46)',
+						color: planMode ? `${Color.Theme}d6` : Color.TextSecondary,
+						boxShadow: planMode ? `0 0 0 1px ${Color.Theme}1a inset` : "none",
+						'&:hover': {
+							borderColor: planMode ? `${Color.Theme}b3` : 'rgba(255, 255, 255, 0.22)',
+							backgroundColor: planMode ? `${Color.Theme}1c` : 'rgba(255, 255, 255, 0.08)',
+						},
+						"&.Mui-disabled": {
+							borderColor: planMode ? `${Color.Theme}7d` : 'rgba(255, 255, 255, 0.1)',
+							backgroundColor: planMode ? `${Color.Theme}14` : 'rgba(24, 24, 24, 0.38)',
+							color: planMode ? `${Color.Theme}d6` : "rgba(255, 255, 255, 0.34)",
+							opacity: 1,
+						},
+					}}
+				>
+					<ChecklistIcon sx={{ fontSize: 18 }} />
+				</IconButton>
+			</span>
+		</Tooltip>
+	);
 
 	return (
 		<Box sx={{ px: 2, pt: 0, pb: 2, backgroundColor: Color.Background, position: "relative", flexShrink: 0, overflow: "visible" }}>
@@ -269,6 +308,7 @@ export default function AgentComposer(props: AgentComposerProps) {
 							pointerEvents: "auto",
 						}}
 					>
+						{showPlanModeButton ? planModeButton : null}
 						{showFetchUrlButton ? fetchUrlButton : null}
 						{showExecuteCommandButton ? executeCommandButton : null}
 						{tabButtons}
@@ -309,7 +349,7 @@ export default function AgentComposer(props: AgentComposerProps) {
 									}
 								}
 							}}
-							placeholder={t("agent.promptPlaceholder")}
+							placeholder={t(planMode ? "agent.planPromptPlaceholder" : "agent.promptPlaceholder")}
 							style={{
 								display: "block",
 								width: "100%",

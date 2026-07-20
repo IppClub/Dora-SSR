@@ -743,9 +743,17 @@ HttpServer\post "/agent/session/get", (req): invalidArguments ->
 	switch req when {body: {:sessionId}}
 		return AgentSession.getSession sessionId
 
+HttpServer\post "/agent/session/mode", (req): invalidArguments ->
+	switch req when {body: {:sessionId, :workMode}}
+		return AgentSession.setWorkMode sessionId, workMode
+
 HttpServer\post "/agent/session/send", (req): invalidArguments ->
 	switch req when {body: {:sessionId, :prompt}}
-		return AgentSession.sendPrompt sessionId, prompt, false, req.body.disabledAgentTools
+		return AgentSession.sendPrompt sessionId, prompt, false, req.body.disabledAgentTools, req.body.workMode
+
+HttpServer\post "/agent/session/continue", (req): invalidArguments ->
+	switch req when {body: {:sessionId}}
+		return AgentSession.continuePrompt sessionId, req.body.disabledAgentTools
 
 HttpServer\post "/agent/session/finish-handoff", (req): invalidArguments ->
 	switch req when {body: {:sessionId}}
@@ -753,7 +761,15 @@ HttpServer\post "/agent/session/finish-handoff", (req): invalidArguments ->
 
 HttpServer\post "/agent/session/resend", (req): invalidArguments ->
 	switch req when {body: {:sessionId, :messageId, :prompt}}
-		return AgentSession.resendPrompt sessionId, messageId, prompt, req.body.disabledAgentTools
+		return AgentSession.resendPrompt sessionId, messageId, prompt, req.body.disabledAgentTools, req.body.workMode
+
+HttpServer\post "/agent/session/questionnaire/respond", (req): invalidArguments ->
+	switch req when {body: {:sessionId, :questionnaireId, :answers}}
+		return AgentSession.respondQuestionnaire sessionId, questionnaireId, answers
+
+HttpServer\post "/agent/session/questionnaire/cancel", (req): invalidArguments ->
+	switch req when {body: {:sessionId, :questionnaireId}}
+		return AgentSession.cancelQuestionnaire sessionId, questionnaireId
 
 HttpServer\post "/agent/task/status", (req): invalidArguments ->
 	switch req when {body: {:sessionId}}
@@ -769,6 +785,8 @@ HttpServer\post "/agent/task/status", (req): invalidArguments ->
 			messages: res.messages
 			steps: res.steps
 			checkpoints: checkpoints
+			pendingQuestionnaire: res.pendingQuestionnaire
+			hasActivePlan: res.hasActivePlan
 
 HttpServer\post "/agent/task/running", ->
 	res = AgentSession.listRunningSessions!

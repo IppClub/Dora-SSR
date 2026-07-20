@@ -1,0 +1,4 @@
+interface:
+  display_name: "Dora Agent Development Validation"
+  short_description: "Test and iterate Dora Agent with reproducible evidence"
+  default_prompt: "Use $dora-agent-development-validation to evaluate a Dora Agent change with controlled runtime trials and evidence-backed acceptance."

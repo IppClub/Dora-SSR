@@ -1,9 +1,14 @@
-# Add Models and Animation Deliberately
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
 
-3D projects become difficult to maintain when every model is treated as a special case. This lesson gives you a repeatable asset workflow: keep imports self-contained, discover the animation names an asset actually provides, and reuse loaded data across scene instances.
+# Loading Models and Playing Animations
 
-:::tip Lesson goal
-Load an animated character into the lit scene, play one confirmed clip, and add repeated props without duplicating their imported resources.
+Animated glTF models don't play themselves. The file stores named animation clips as authoring data, not engine conventions, so you need to know the exact name of the clip you want and call `play` explicitly. Meanwhile, loading geometry, textures, and materials is expensive. When you need the same prop repeated across a scene, you want the engine to load the data once and reuse it for every instance.
+
+This tutorial loads an animated character into your lit scene, plays one of its animation clips by name, and demonstrates asset reuse by creating multiple crate instances from a single source file. By the end you'll understand how animation names work, how to play them, and how Dora's caching system keeps memory usage efficient when you reuse assets.
+
+:::tip Tutorial goal
+Load an animated character into your lit scene, play one confirmed animation clip, and add repeated props without duplicating their imported resources.
 :::
 
 ## Before you start
@@ -16,7 +21,12 @@ For your own assets:
 - Keep `.gltf`, buffers, and textures in their original relative layout.
 - Prefer `.glb` while learning; it has fewer paths to break when moved between projects.
 
-## Step 1: Put an animated character in frame
+## 1. Load an animated character
+
+Character models come with embedded animation clips stored in the glTF file. Each clip has a name assigned by the artist in their DCC tool (Blender, Maya, etc.). To play a clip, you need to load the model first, then call `play` with the exact clip name and a boolean flag for looping.
+
+<Tabs groupId="language-select">
+<TabItem value="ts" label="TypeScript">
 
 ```ts title="init.ts"
 import {Camera3D, Color3, DirectionalLight3D, Director, Model3D, Vec3} from "Dora";
@@ -39,13 +49,109 @@ light.angleY = 28;
 view.addChild(light);
 ```
 
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua title="init.lua"
+local _ENV = Dora
+
+local view = Director.entry
+local camera = Camera3D()
+camera:lookAt(Vec3(3.5, 2.5, 5.5), Vec3(0, 0.8, 0))
+Director:pushCamera(camera)
+
+local character = Model3D("Assets/Model/Kenney/character-oopi.glb")
+character.scale = Vec3(0.8, 0.8, 0.8)
+character:play("idle", true)
+view:addChild(character)
+
+local light = DirectionalLight3D()
+light.color = Color3(0xfff3da)
+light.intensity = 3.2
+light.angleX = -48
+light.angleY = 28
+view:addChild(light)
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+_ENV = Dora
+
+view = Director.entry
+camera = Camera3D!
+camera\lookAt Vec3(3.5, 2.5, 5.5), Vec3(0, 0.8, 0)
+Director\pushCamera camera
+
+character = Model3D "Assets/Model/Kenney/character-oopi.glb"
+character.scale = Vec3 0.8, 0.8, 0.8
+character\play "idle", true
+view\addChild character
+
+light = DirectionalLight3D!
+light.color = Color3 0xfff3da
+light.intensity = 3.2
+light.angleX = -48
+light.angleY = 28
+view\addChild light
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal title="init.tl"
+local Camera3D <const> = require("Camera3D")
+local Color3 <const> = require("Color3")
+local DirectionalLight3D <const> = require("DirectionalLight3D")
+local Director <const> = require("Director")
+local Model3D <const> = require("Model3D")
+local Model3DType = require("Model3D").Type
+local Vec3 <const> = require("Vec3")
+
+local view = Director.entry
+local camera = Camera3D()
+camera:lookAt(Vec3(3.5, 2.5, 5.5), Vec3(0, 0.8, 0))
+Director:pushCamera(camera)
+
+local character = Model3D("Assets/Model/Kenney/character-oopi.glb") as Model3DType
+character.scale = Vec3(0.8, 0.8, 0.8)
+character:play("idle", true)
+view:addChild(character)
+
+local light = DirectionalLight3D()
+light.color = Color3(0xfff3da)
+light.intensity = 3.2
+light.angleX = -48
+light.angleY = 28
+view:addChild(light)
+```
+
+</TabItem>
+</Tabs>
+
+Four things are happening here:
+
+- `Director.entry` gets the default 3D view root. This is where you add all your 3D nodes.
+- `camera.lookAt(Vec3(3.5, 2.5, 5.5), Vec3(0, 0.8, 0))` positions the camera at `(3.5, 2.5, 5.5)` and aims it at `(0, 0.8, 0)` — roughly where the character's chest will be after we scale it down.
+- `character.scale = Vec3(0.8, 0.8, 0.8)` scales the character to 80% of its authored size. Scaling at the instance level lets you tune the visual fit without modifying the source asset.
+- `character.play("idle", true)` plays the animation clip named `"idle"` and loops it forever because the second argument is `true`.
+- The `DirectionalLight3D` setup adds a warm, slightly orange-tinted light (`Color3(0xfff3da)`) at intensity `3.2`, rotated to `-48` degrees around the X-axis and `28` degrees around the Y-axis.
+
 ### Checkpoint
 
-The character should be visible, scaled sensibly, and repeat its idle motion. If it is visible but still, verify the clip name before changing camera or light settings.
+The character should be visible, scaled sensibly, and repeating its idle motion. If it's visible but not moving, confirm the clip name in your asset viewer before changing camera or light settings. Animation names are artist-chosen data, not engine conventions.
 
-`play(name, loop)` plays an animation clip embedded in the glTF. Names are asset data, not a Dora convention: another model might use `Idle`, `stand`, or no animation at all. Inspect the asset in your DCC tool or an asset viewer and copy the clip name exactly.
+`play(name, loop)` plays an animation clip embedded in the glTF by its exact name. Names are asset data, not a Dora convention: another model might use `Idle`, `stand`, or no animation at all. Inspect the asset in your DCC tool or an asset viewer and copy the clip name exactly. If you pass a name that doesn't exist, the call silently does nothing.
 
-## Step 2: Reuse an asset for repeated props
+Use `play(name, false)` when you want a one-shot animation that stops when it finishes, such as a melee attack or a door opening. Use `play(name, true)` for continuous loops like idle or run states.
+
+## 2. Reuse the same asset for multiple props
+
+Loading a 3D model means parsing geometry, decoding textures, compiling materials, and caching the data in memory. That's expensive. When you need the same prop repeated across a scene — crates, trees, rocks — you don't want to pay that cost twice. Dora solves this by caching loaded data keyed to the file path: create multiple `Model3D` instances from the same path and they all share the underlying meshes, textures, and materials, while each instance keeps its own independent transform.
+
+<Tabs groupId="language-select">
+<TabItem value="ts" label="TypeScript">
 
 ```ts title="init.ts"
 const firstCrate = Model3D("Assets/Model/Kenney/crate.glb");
@@ -57,17 +163,66 @@ secondCrate.position = Vec3(1.2, 0, 0);
 view.addChild(secondCrate);
 ```
 
-These two nodes reuse cached meshes, textures, materials, and animation data from the same source path. Treat `Model3D` as a scene instance: give each instance its own transform and only customize materials where the visual difference is needed.
+</TabItem>
+<TabItem value="lua" label="Lua">
 
-## Build a reliable import habit
+```lua title="init.lua"
+local firstCrate = Model3D("Assets/Model/Kenney/crate.glb")
+firstCrate.position = Vec3(-1.2, 0, 0)
+view:addChild(firstCrate)
 
-1. Add one model to an empty test scene.
-2. Confirm it renders with a camera and light.
-3. Confirm its scale and origin are practical.
-4. Test one animation by its exact name.
-5. Only then move the asset into gameplay and add materials, physics, or UI.
+local secondCrate = Model3D("Assets/Model/Kenney/crate.glb")
+secondCrate.position = Vec3(1.2, 0, 0)
+view:addChild(secondCrate)
+```
 
-This order saves time because an animation-name or asset-path failure stays separate from scene-logic failures.
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+firstCrate = Model3D "Assets/Model/Kenney/crate.glb"
+firstCrate.position = Vec3(-1.2, 0, 0)
+view\addChild firstCrate
+
+secondCrate = Model3D "Assets/Model/Kenney/crate.glb"
+secondCrate.position = Vec3(1.2, 0, 0)
+view\addChild secondCrate
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal title="init.tl"
+local firstCrate = Model3D("Assets/Model/Kenney/crate.glb") as Model3DType
+firstCrate.position = Vec3(-1.2, 0, 0)
+view:addChild(firstCrate)
+
+local secondCrate = Model3D("Assets/Model/Kenney/crate.glb") as Model3DType
+secondCrate.position = Vec3(1.2, 0, 0)
+view:addChild(secondCrate)
+```
+
+</TabItem>
+</Tabs>
+
+Two things are happening here:
+
+- `Model3D("Assets/Model/Kenney/crate.glb")` is called twice, but the file is loaded only once. Dora caches the data on the first call and returns a new instance sharing that cache on the second call.
+- Each crate gets its own `position` — one at `(-1.2, 0, 0)` and one at `(1.2, 0, 0)`. Transforms (position, rotation, scale) are per-instance, so you can place the same model anywhere in the scene without affecting other instances.
+
+Treat `Model3D` as a scene instance factory: give each instance its own transform and only customize materials where the visual difference is needed. If you need unique materials for specific instances, clone or replace the material after loading. But for the common case of repeated props, sharing the cache is exactly what you want.
+
+When you call `Model3D("path")` multiple times, Dora loads the file once and shares the data between all instances. This is efficient: you get multiple distinct objects at different positions, rotations, and scales, but only one copy of the model data in memory. The savings compound with large scenes containing hundreds of identical trees, crates, or rocks.
+
+## Tips for importing your own models
+
+1. **Add one model to an empty test scene.** Start fresh so you can isolate any problems to the model itself, not interactions with other scene elements.
+2. **Confirm it renders with a camera and light.** A model that doesn't appear might be outside the camera view or unlit — verify the basics before adding complexity.
+3. **Confirm its scale and origin are practical.** A model authored in centimeters will look tiny if your game uses meters. Check the scale relative to your other assets and adjust the instance scale if needed.
+4. **Test one animation by its exact name.** Open the asset in your DCC tool, copy the clip name character-for-character, and call `play` with that exact string. Get one working before testing others.
+5. **Only then move the asset into gameplay and add materials, physics, or UI.** Once you know the model loads, scales correctly, and animates as expected, integrate it into your actual game logic.
+
+This order saves time because asset-path failures, scale mismatches, and wrong animation names stay separate from scene-logic failures. You'll know whether a problem is "the file won't load" or "my collision code is broken" without guessing.
 
 ## Common mistakes
 
@@ -78,10 +233,183 @@ This order saves time because an animation-name or asset-path failure stays sepa
 | `play()` does nothing | Wrong or absent clip name | Inspect the source asset and use its exact clip name. |
 | Many identical props cost too much | Each has unique material work | Share the source path and customize only exceptions. |
 
+## Complete examples
+
+The complete scripts below follow this tutorial and have been verified by the Dora engine.
+
+<Tabs groupId="language-select">
+<TabItem value="ts" label="TypeScript">
+
+```ts title="init.ts"
+import {Camera3D, Color3, DirectionalLight3D, Director, Model3D, Vec3} from "Dora";
+
+const view = Director.entry;
+
+const camera = Camera3D();
+camera.lookAt(Vec3(3.5, 2.5, 5.5), Vec3(0, 0.8, 0));
+Director.pushCamera(camera);
+
+// Animated character. The animation name comes from the glTF asset itself.
+const character = Model3D("Assets/Model/Kenney/character-oopi.glb");
+if (!character) throw new Error("failed to load character-oopi.glb");
+character.scale = Vec3(0.8, 0.8, 0.8);
+character.play("idle", true);
+view.addChild(character);
+
+const light = DirectionalLight3D();
+light.color = Color3(0xfff3da);
+light.intensity = 3.2;
+light.angleX = -48;
+light.angleY = 28;
+view.addChild(light);
+
+// Two crates that share the same cached source data.
+const firstCrate = Model3D("Assets/Model/Kenney/crate.glb");
+if (!firstCrate) throw new Error("failed to load crate.glb");
+firstCrate.position = Vec3(-1.2, 0, 0);
+view.addChild(firstCrate);
+
+const secondCrate = Model3D("Assets/Model/Kenney/crate.glb");
+if (!secondCrate) throw new Error("failed to load crate.glb");
+secondCrate.position = Vec3(1.2, 0, 0);
+view.addChild(secondCrate);
+```
+
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua title="init.lua"
+local _ENV = Dora
+
+local view = Director.entry
+
+local camera = Camera3D()
+camera:lookAt(Vec3(3.5, 2.5, 5.5), Vec3(0, 0.8, 0))
+Director:pushCamera(camera)
+
+-- Animated character. The animation name comes from the glTF asset itself.
+local character = Model3D("Assets/Model/Kenney/character-oopi.glb")
+if not character then
+	error("failed to load character-oopi.glb")
+end
+character.scale = Vec3(0.8, 0.8, 0.8)
+character:play("idle", true)
+view:addChild(character)
+
+local light = DirectionalLight3D()
+light.color = Color3(0xfff3da)
+light.intensity = 3.2
+light.angleX = -48
+light.angleY = 28
+view:addChild(light)
+
+-- Two crates that share the same cached source data.
+local firstCrate = Model3D("Assets/Model/Kenney/crate.glb")
+if not firstCrate then
+	error("failed to load crate.glb")
+end
+firstCrate.position = Vec3(-1.2, 0, 0)
+view:addChild(firstCrate)
+
+local secondCrate = Model3D("Assets/Model/Kenney/crate.glb")
+if not secondCrate then
+	error("failed to load crate.glb")
+end
+secondCrate.position = Vec3(1.2, 0, 0)
+view:addChild(secondCrate)
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+_ENV = Dora
+
+view = Director.entry
+camera = Camera3D!
+camera\lookAt Vec3(3.5, 2.5, 5.5), Vec3(0, 0.8, 0)
+Director\pushCamera camera
+
+character = Model3D "Assets/Model/Kenney/character-oopi.glb"
+error "failed to load character-oopi.glb" unless character
+character.scale = Vec3 0.8, 0.8, 0.8
+character\play "idle", true
+view\addChild character
+
+light = DirectionalLight3D!
+light.color = Color3 0xfff3da
+light.intensity = 3.2
+light.angleX = -48
+light.angleY = 28
+view\addChild light
+
+firstCrate = Model3D "Assets/Model/Kenney/crate.glb"
+error "failed to load crate.glb" unless firstCrate
+firstCrate.position = Vec3 -1.2, 0, 0
+view\addChild firstCrate
+
+secondCrate = Model3D "Assets/Model/Kenney/crate.glb"
+error "failed to load crate.glb" unless secondCrate
+secondCrate.position = Vec3 1.2, 0, 0
+view\addChild secondCrate
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal title="init.tl"
+local Camera3D = require("Camera3D")
+local Color3 = require("Color3")
+local DirectionalLight3D = require("DirectionalLight3D")
+local Director = require("Director")
+local Model3D = require("Model3D")
+local Model3DType = require("Model3D").Type
+local Vec3 = require("Vec3")
+
+local view = Director.entry
+local camera = Camera3D()
+camera:lookAt(Vec3(3.5, 2.5, 5.5), Vec3(0, 0.8, 0))
+Director:pushCamera(camera)
+
+local character = Model3D("Assets/Model/Kenney/character-oopi.glb") as Model3DType
+character.scale = Vec3(0.8, 0.8, 0.8)
+character:play("idle", true)
+view.scene:addChild(character)
+
+local light = DirectionalLight3D()
+light.color = Color3(0xfff3da)
+light.intensity = 3.2
+light.angleX = -48
+light.angleY = 28
+view.scene:addChild(light)
+
+local firstCrate = Model3D("Assets/Model/Kenney/crate.glb") as Model3DType
+firstCrate.position = Vec3(-1.2, 0, 0)
+view.scene:addChild(firstCrate)
+
+local secondCrate = Model3D("Assets/Model/Kenney/crate.glb") as Model3DType
+secondCrate.position = Vec3(1.2, 0, 0)
+view.scene:addChild(secondCrate)
+```
+
+</TabItem>
+</Tabs>
+
 ## Try it yourself
 
 Add a third crate, rotate it with `angles = Vec3(0, 25, 0)`, and keep the other two unchanged. You should see three distinct placements while still loading one source asset.
 
-## Next lesson
+## Summary
+
+You now know how to work with animated 3D models and reuse assets efficiently:
+
+- **Animation clips**: glTF models store named animation clips as authoring data. Play them with `play(name, loop)` where `name` is the exact clip name from your DCC tool and `loop` is `true` for continuous playback or `false` for one-shot animations.
+- **Instance scaling**: Use the `scale` property on a model instance to adjust its size without modifying the source asset. This lets you tune the visual fit of imported models to your game's world scale.
+- **Asset caching**: When you create multiple `Model3D` instances from the same file path, Dora loads the data once and shares it between all instances. Each instance has its own independent transform (position, rotation, scale) but shares the underlying geometry, textures, materials, and animations.
+- **Import workflow**: Follow the five-step process (test scene, camera/light check, scale check, animation test, then integration) to isolate asset problems from logic problems and save debugging time.
+
+Animation names are not engine conventions — they're whatever the artist named them in their modeling tool. Always verify the exact name in your asset viewer before calling `play`. The caching system makes repeated props like crates, trees, and rocks essentially free after the first load, so build your scenes with confidence that memory usage stays efficient.
+
+## Next tutorial
 
 Continue with [3D physics and character movement](./add-physics-and-characters) to make scene objects respond to gravity and gameplay movement.

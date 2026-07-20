@@ -1,12 +1,17 @@
-# 在 3D 世界中放入可读的 2D UI
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
 
-并非所有游戏界面都应放在屏幕空间。世界标签、终端、标牌和状态面板应跟随游戏世界，并从相机角度保持可读。`Surface3D` 可以让普通的 2D 节点树完成这件事。
+# 在 3D 场景中使用 2D 界面
 
-:::tip 本课目标
+并非所有游戏界面都应放在屏幕空间。有时候你想让 NPC 名字标签悬浮在角色头顶，在飞船墙壁上放一个终端屏幕，或者让血条跟随玩家移动。这些元素应该存在于 3D 世界中，并从相机角度保持可读。`Surface3D` 可以让普通的 2D 节点树完成这件事。
+
+本教程将构建一个 2D 标签，通过 `Surface3D` 赋予它世界坐标，并选择一个公告板模式来控制它如何朝向相机。教程结束时，你会理解控制表面外观的两个不同尺寸参数，并知道每个用例适合哪种公告板模式。
+
+:::tip 本教程目标
 把一个 2D 标签放到 3D 场景中，使其绕垂直轴朝向相机，并为它选择合适的底图分辨率。
 :::
 
-## 先选择正确的 UI 类型
+## 选择合适的 UI 类型
 
 需要始终固定在屏幕上的界面使用普通 2D 节点树；需要拥有世界坐标、服从深度和透视、随相机移动的内容使用 `Surface3D`。
 
@@ -16,9 +21,12 @@
 | NPC 名字标签或悬浮提示 | 带 `Billboard.YAxis` 或 `Billboard.Screen` 的 `Surface3D` |
 | 世界内终端或标牌 | 带 `Billboard.None` 的 `Surface3D` |
 
-## 第一步：像平常一样创建 2D 内容
+## 1. 创建 2D 内容
 
-内容本身仍是普通 `Node`。先从标签开始，把注意力放在 3D 放置上。
+内容本身仍是普通 `Node`。2D 内容仍然是正常的节点树，`Surface3D` 不会改变你编写标签或构建 UI 的方式。先从标签开始，把注意力放在 3D 放置上。
+
+<Tabs groupId="language-select">
+<TabItem value="ts" label="TypeScript">
 
 ```ts title="init.ts"
 import {Billboard, Director, Label, Size, Surface3D, Vec3} from "Dora";
@@ -28,9 +36,53 @@ const label = Label("sarasa-mono-sc-regular", 24)!;
 label.text = "Hello from 2D";
 ```
 
-若 `Label()` 未返回节点，应先确认项目中有对应字体，再排查 `Surface3D`。
+</TabItem>
+<TabItem value="lua" label="Lua">
 
-## 第二步：让 2D 节点拥有世界空间表面
+```lua title="init.lua"
+local _ENV = Dora
+
+local view = Director.entry
+local label = Label("sarasa-mono-sc-regular", 24)
+label.text = "Hello from 2D"
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+_ENV = Dora
+
+view = Director.entry
+label = Label "sarasa-mono-sc-regular", 24
+label.text = "Hello from 2D"
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal title="init.tl"
+local Director <const> = require("Director")
+local Label <const> = require("Label")
+
+local view = Director.entry
+local label = Label("sarasa-mono-sc-regular", 24)
+label.text = "Hello from 2D"
+```
+
+</TabItem>
+</Tabs>
+
+- `Label(fontName, fontSize)` 使用指定字体和字号创建文本节点。
+- TypeScript 中的 `!` 运算符断言结果非空。在 Lua 和 YueScript 中，如果字体缺失则构造函数可能返回空值，因此实际项目应该检查 nil。
+- `label.text = ...` 设置显示的文本。四种语言都使用相同的点语法进行属性赋值。
+
+## 2. 让 2D 节点拥有世界空间表面
+
+`Surface3D` 将 2D 内容桥接到 3D 世界。它有两个不同的尺寸：世界尺寸控制面板在场景中显示多大，而像素尺寸控制底层纹理的分辨率以决定细节度。这两个尺寸是刻意分开的概念，因此你可以独立调优外观和性能。
+
+<Tabs groupId="language-select">
+<TabItem value="ts" label="TypeScript">
 
 ```ts title="init.ts"
 const surface = Surface3D(label, Size(3, 1), Size(512, 128));
@@ -41,31 +93,205 @@ surface.billboard = Billboard.YAxis;
 view.addChild(surface);
 ```
 
-第二个参数 `Size(3, 1)` 是 3D 世界中的物理尺寸。可选的 `Size(512, 128)` 是 surface 需要独立渲染目标时使用的底图像素分辨率。两者是不同概念：世界尺寸决定面板在场景中看起来多大，像素尺寸决定细节和成本。
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua title="init.lua"
+local surface = Surface3D(label, Size(3, 1), Size(512, 128))
+if not surface then error("failed to create Surface3D") end
+
+surface.position = Vec3(0, 1.5, 0)
+surface.billboard = "YAxis"
+view:addChild(surface)
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+surface = Surface3D label, Size(3, 1), Size(512, 128)
+error "failed to create Surface3D" unless surface
+
+surface.position = Vec3 0, 1.5, 0
+surface.billboard = "YAxis"
+view\addChild surface
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal title="init.tl"
+local Size <const> = require("Size")
+local Surface3D <const> = require("Surface3D")
+local Surface3DType = require("Surface3D").Type
+local Vec3 <const> = require("Vec3")
+
+local surface = Surface3D(label, Size(3, 1), Size(512, 128)) as Surface3DType
+surface.position = Vec3(0, 1.5, 0)
+surface.billboard = "YAxis"
+view.scene:addChild(surface)
+```
+
+</TabItem>
+</Tabs>
+
+- `Surface3D(label, Size(3, 1), Size(512, 128))` 创建表面。第一个参数是要包装的 2D 节点。第二个参数 `Size(3, 1)` 是 3D 世界中的物理尺寸：3 米宽、1 米高。第三个参数 `Size(512, 128)` 是底层纹理的像素尺寸：512 像素宽、128 像素高。
+- 错误检查处理表面创建失败的情况。TypeScript 中空检查会抛出错误；Lua 中使用显式检查 `if not surface then error(...) end`；YueScript 中使用 `error ... unless surface` 模式；Teal 中类型断言确保类型安全。
+- `surface.position = Vec3(0, 1.5, 0)` 将表面放置在世界空间中。这里它位于水平原点，高度 1.5 米，深度为零。
+- `surface.billboard = Billboard.YAxis`（或 Lua/Yue/Teal 中的 `"YAxis"`）设置公告板模式。YAxis 模式使表面绕垂直轴旋转以朝向相机，但不会上下倾斜。
+- `view.addChild(surface)`（或 Teal 中的 `view.scene:addChild(surface)`）将表面附加到场景。像任何未附加的节点一样，它会自动挂载到 `Director.entry` 下，但显式附加使层级更清晰。
 
 ### 检查点
 
 绕着标签移动相机。使用 `Billboard.YAxis` 时，标签应左右朝向相机，但不会上下倾斜。若标签过小，先调世界尺寸；若文字模糊，再调像素尺寸。
 
-## 第三步：有意识地选择 billboard 行为
+## 3. 选择公告板模式
 
-- `Billboard.None`：保持表面的 3D 旋转，适合固定标牌与终端。
-- `Billboard.YAxis`：绕垂直轴朝向相机，适合名字标签。
-- `Billboard.Screen`：始终完整朝向相机，适合必须可读的悬浮提示。
+`Surface3D` 会自动选择共享深度或独立纹理路径。`usingTexture` 属性可以帮你诊断渲染行为，但它是只读的，通常不需要手动设置。重要的选择是公告板模式，它控制表面相对于相机的朝向方式。
 
-`Surface3D` 会自动选择共享深度或独立纹理路径。`surface.usingTexture` 对排查分辨率和排序问题有帮助，但通常不需要强制设置它。
+- `Billboard.None`：保持表面的 3D 旋转。适合固定标牌和终端等在物理上锚定于世界的物体。
+- `Billboard.YAxis`：绕垂直轴朝向相机。适合名字标签和应保持直立但水平追踪玩家的标签。
+- `Billboard.Screen`：完整朝向相机。适合必须从任何角度都可读的提示，如交互标记或悬浮说明。
 
-## 避开两类常见成本
+## 性能建议
 
-1. 不要每帧创建新的 `Surface3D`；保留一个 surface，只更新其标签或子节点。
-2. 不要默认给每个面板使用巨大底图；从能在预期相机距离下读清文字的最小尺寸开始。
+在场景中使用多个 surface 时，请注意以下建议：
 
-场景中有大量面板时，在改变底图分辨率前后对比 `view.stats`。
+1. 不要每帧创建新的 `Surface3D`。保留一个 surface，只更新其标签或子节点。重复创建表面可能因纹理分配导致性能问题。
+2. 不要默认给每个面板使用巨大底图。从能在预期相机距离下读清文字的最小尺寸开始。大纹理消耗内存和 GPU 时间。
+
+场景中有大量面板时，在改变底图分辨率前后对比 `view.stats`，看看性能影响有多大。绘制调用和纹理内存是值得关注的指标。
+
+## 完整示例
+
+下面的完整脚本与本教程步骤对应，均已通过 Dora 引擎验证。
+
+<Tabs groupId="language-select">
+<TabItem value="ts" label="TypeScript">
+
+```ts title="init.ts"
+import {Billboard, Camera3D, Director, Label, Size, Surface3D, Vec3} from "Dora";
+
+const view = Director.entry;
+
+const camera = Camera3D();
+camera.lookAt(Vec3(0, 1.5, 5), Vec3(0, 1.5, 0));
+Director.pushCamera(camera);
+
+// Ordinary 2D content: just a Label.
+const label = Label("sarasa-mono-sc-regular", 24);
+if (!label) throw new Error("failed to create label");
+label.text = "Hello from 2D";
+
+// Surface3D places that 2D content into the 3D world.
+// Size(3, 1)     -> world size: 3 metres wide, 1 metre tall.
+// Size(512, 128) -> backing texture resolution in pixels.
+const surface = Surface3D(label, Size(3, 1), Size(512, 128));
+if (!surface) throw new Error("failed to create Surface3D");
+surface.position = Vec3(0, 1.5, 0);
+surface.billboard = Billboard.YAxis;
+view.addChild(surface);
+```
+
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua title="init.lua"
+local _ENV = Dora
+
+local view = Director.entry
+
+local camera = Camera3D()
+camera:lookAt(Vec3(0, 1.5, 5), Vec3(0, 1.5, 0))
+Director:pushCamera(camera)
+
+-- Ordinary 2D content: just a Label.
+local label = Label("sarasa-mono-sc-regular", 24)
+if not label then
+	error("failed to create label")
+end
+label.text = "Hello from 2D"
+
+-- Surface3D places that 2D content into the 3D world.
+-- Size(3, 1)     -> world size: 3 metres wide, 1 metre tall.
+-- Size(512, 128) -> backing texture resolution in pixels.
+local surface = Surface3D(label, Size(3, 1), Size(512, 128))
+if not surface then
+	error("failed to create Surface3D")
+end
+surface.position = Vec3(0, 1.5, 0)
+surface.billboard = "YAxis"
+view:addChild(surface)
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+_ENV = Dora
+
+view = Director.entry
+camera = Camera3D!
+camera\lookAt Vec3(0, 1.5, 5), Vec3(0, 1.5, 0)
+Director\pushCamera camera
+
+label = Label "sarasa-mono-sc-regular", 24
+error "failed to create label" unless label
+label.text = "Hello from 2D"
+
+surface = Surface3D label, Size(3, 1), Size(512, 128)
+error "failed to create Surface3D" unless surface
+surface.position = Vec3 0, 1.5, 0
+surface.billboard = "YAxis"
+view\addChild surface
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal title="init.tl"
+local Camera3D = require("Camera3D")
+local Director = require("Director")
+local Label = require("Label")
+local LabelType = require("Label").Type
+local Size = require("Size")
+local Surface3D = require("Surface3D")
+local Surface3DType = require("Surface3D").Type
+local Vec3 = require("Vec3")
+
+local view = Director.entry
+local camera = Camera3D()
+camera:lookAt(Vec3(0, 1.5, 5), Vec3(0, 1.5, 0))
+Director:pushCamera(camera)
+
+local label = Label("sarasa-mono-sc-regular", 24) as LabelType
+label.text = "Hello from 2D"
+
+local surface = Surface3D(label, Size(3, 1), Size(512, 128)) as Surface3DType
+surface.position = Vec3(0, 1.5, 0)
+surface.billboard = "YAxis"
+view.scene:addChild(surface)
+```
+
+</TabItem>
+</Tabs>
 
 ## 动手练习
 
-将标签替换为一个包含标题和状态行的小型 2D `Node` 子树，并把它挂在物理课中的下落箱子上方。然后在 `Billboard.YAxis` 与 `Billboard.None` 间切换，感受信息标签与物理标牌的差异。
+将标签替换为一个包含标题和状态行的小型 2D `Node` 子树，并把它挂在物理教程中的下落箱子上方。然后在 `Billboard.YAxis` 与 `Billboard.None` 间切换，感受信息标签与物理标牌的差异。
 
-## 下一课
+## 小结
+
+你现在知道如何将 2D UI 元素放置到 3D 场景中：
+
+- **UI 类型选择**：屏幕空间 HUD 使用普通 2D 节点，世界空间元素（如名字标签、终端、标牌）使用 `Surface3D`。
+- **创建表面**：`Surface3D(label, worldSize, pixelSize)` 包装一个 2D 节点并赋予它 3D 世界空间中的位置。
+- **两个尺寸**：世界尺寸控制面板在场景中的显示大小；像素尺寸控制底层纹理分辨率以决定细节度。
+- **公告板模式**：`Billboard.None` 用于固定标牌，`Billboard.YAxis` 用于水平追踪的名字标签，`Billboard.Screen` 用于始终朝向相机的提示。
+- **性能考虑**：复用表面并使用合理的像素尺寸。对比 `view.stats` 来衡量纹理选择的影响。
+
+有了这些工具，你可以创建跟随角色的名字标签、飞船墙壁上的终端，以及任何其他需要存在于 3D 世界中的 UI。
+
+## 下一篇教程
 
 继续阅读[3D 性能分析与调试](./measure-and-debug-3d-scene)，在添加更多内容前让场景变得可度量。

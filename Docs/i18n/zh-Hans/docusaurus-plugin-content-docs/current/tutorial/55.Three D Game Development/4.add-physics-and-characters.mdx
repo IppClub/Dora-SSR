@@ -1,22 +1,51 @@
-# 为场景加入物理与角色形体
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
 
-这一课会把静态场景变成小型物理空间：先加入地面与会下落的箱子，再理解刚体模拟和玩家控制各自解决的问题。
+# 3D 物理与角色控制
 
-:::tip 本课目标
-创建一个无需手动推进物理的重力箱子，并能为可控玩家选择正确的组件。
+在 3D 渲染中，你看到的是位于场景层次结构中的 `Node3D` 对象，它们按照你设定的位置移动。物理模拟是一个独立的世界，在重力和碰撞力的作用下向前推进。Dora 通过将 `Body3D` 和 `Node3D` 设为父子对来保持这两棵树的同步：物理刚体根据模拟移动，可见节点作为其子节点跟随移动。
+
+这一篇教程从一个永不移动的地面和一个在重力作用下下落的箱子开始。你会看到辅助函数如何连接这两棵树，然后为玩家添加角色控制器，让玩家的移动可预测，而不是像物理物体那样翻滚。
+
+:::tip 本教程目标
+完成后，你将拥有一个带有重力的物理世界、一个静态地面、一个会下落的动态箱子，以及一个用于玩家移动的角色控制器。
 :::
 
-## 先理解一个关键模型：两棵树，共用一个变换
+## 3D 物理的组织方式
 
-`PhysicsWorld3D` 与 Dora 的 2D 物理世界相互独立，它持有 `Body3D`；可见的 `Node3D` 仍是渲染内容。下面的辅助函数会把可见节点重新挂到 `Body3D` 下，因此物理变换会自然成为可见变换。
+Dora 的 3D 物理 API 和 2D 物理 API 是镜像设计——同样的概念、同样的工作流，只是多了一个维度。如果你用过 2D 的 `PhysicsWorld`、`Body`、`BodyDef`，那么 3D 这边的 `PhysicsWorld3D`、`Body3D`、`BodyDef3D` 你会很自然地上手。
 
-`PhysicsWorld3D()` 会自行注册固定更新，默认使用 `Director.scheduler`，而 `Director` 会每帧推进该调度器。因此基础物理世界不需要 `scheduler.update(App.deltaTime)` 循环。
+写代码之前，有一件事需要先理解：物理刚体和可见节点的关系。`Body3D` 本身也是一个 `Node3D`，所以你想让哪个可见节点跟随物理模拟，就把那个节点挂到对应的 `Body3D` 下面。刚体在物理作用下移动时，挂在它下面的可见子节点会跟着一起移动。本教程后面的辅助函数会帮你完成这个重挂载。
 
-## 第一步：创建带地面和箱子的物理世界
+`PhysicsWorld3D` 会自动推进物理模拟，你不需要自己写更新循环。只要创建好世界、把刚体加进去，每帧读取它们的位置即可。
+
+## 1. 创建带地面和箱子的物理世界
+
+重力决定了物体如何下落。带有向下重力的 `PhysicsWorld3D` 使其中的一切都向负 Y 方向加速。静态刚体从不移动，因此地面保持在原地，而像箱子这样的动态刚体会响应力并停在地面上。
+
+<Tabs groupId="language-select">
+<TabItem value="ts" label="TypeScript">
 
 ```ts title="init.ts"
-import {Director, Node3D, PhysicsWorld3D, Vec3} from "Dora";
-import {makeBoxBody3D} from "Game/PhysicsBody3D";
+import {Body3D, BodyDef3D, Director, FixtureDef3D, Node3D, PhysicsWorld3D, Vec3} from "Dora";
+
+function makeBoxBody3D(
+	world: PhysicsWorld3D.Type, node: Node3D.Type,
+	halfExtent: Vec3.Type, type = PhysicsWorld3D.Dynamic,
+) {
+	const position = node.position;
+	const angles = node.angles;
+	node.position = Vec3(0, 0, 0);
+	node.angles = Vec3(0, 0, 0);
+
+	const def = BodyDef3D();
+	def.type = type;
+	if (!def.attach(FixtureDef3D.box(halfExtent))) throw new Error("failed to attach fixture");
+	const body = Body3D(def, world, position, angles);
+	if (!body) throw new Error("failed to create body");
+	body.addChild(node);
+	return body;
+}
 
 const view = Director.entry;
 Director.scheduler.fixedFPS = 60;
@@ -27,24 +56,165 @@ view.addChild(world);
 
 const floor = Node3D();
 floor.position = Vec3(0, -0.5, 0);
-view.addChild(floor);
-makeBoxBody3D(world, floor, Vec3(8, 0.5, 4), PhysicsWorld3D.Static);
+view.addChild(makeBoxBody3D(world, floor, Vec3(8, 0.5, 4), PhysicsWorld3D.Static));
 
 const crate = Node3D();
 crate.position = Vec3(0, 2, 0);
-view.addChild(crate);
-makeBoxBody3D(world, crate, Vec3(0.5, 0.5, 0.5), PhysicsWorld3D.Dynamic);
+view.addChild(makeBoxBody3D(world, crate, Vec3(0.5, 0.5, 0.5), PhysicsWorld3D.Dynamic));
 ```
+
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua title="init.lua"
+local _ENV = Dora
+
+local function makeBoxBody3D(world, node, halfExtent, bodyType)
+	bodyType = bodyType or PhysicsWorld3D.Dynamic
+	local position = node.position
+	local angles = node.angles
+	node.position = Vec3(0, 0, 0)
+	node.angles = Vec3(0, 0, 0)
+
+	local def = BodyDef3D()
+	def.type = bodyType
+	if not def:attach(FixtureDef3D.box(halfExtent)) then error("failed to attach fixture") end
+	local body = Body3D(def, world, position, angles)
+	if not body then error("failed to create body") end
+	body:addChild(node)
+	return body
+end
+
+local view = Director.entry
+Director.scheduler.fixedFPS = 60
+
+local world = PhysicsWorld3D()
+world.gravity = Vec3(0, -9.81, 0)
+view:addChild(world)
+
+local floor = Node3D()
+floor.position = Vec3(0, -0.5, 0)
+view:addChild(makeBoxBody3D(world, floor, Vec3(8, 0.5, 4), PhysicsWorld3D.Static))
+
+local crate = Node3D()
+crate.position = Vec3(0, 2, 0)
+view:addChild(makeBoxBody3D(world, crate, Vec3(0.5, 0.5, 0.5), PhysicsWorld3D.Dynamic))
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+_ENV = Dora
+
+makeBoxBody3D = (world, node, halfExtent, bodyType = PhysicsWorld3D.Dynamic) ->
+	position = node.position
+	angles = node.angles
+	node.position = Vec3 0, 0, 0
+	node.angles = Vec3 0, 0, 0
+
+	def = BodyDef3D!
+	def.type = bodyType
+	error "failed to attach fixture" unless def\attach FixtureDef3D.box halfExtent
+	body = Body3D def, world, position, angles
+	error "failed to create body" unless body
+	body\addChild node
+	body
+
+view = Director.entry
+Director.scheduler.fixedFPS = 60
+
+world = PhysicsWorld3D!
+world.gravity = Vec3 0, -9.81, 0
+view\addChild world
+
+floor = Node3D!
+floor.position = Vec3 0, -0.5, 0
+view\addChild makeBoxBody3D(world, floor, Vec3(8, 0.5, 4), PhysicsWorld3D.Static)
+
+crate = Node3D!
+crate.position = Vec3 0, 2, 0
+view\addChild makeBoxBody3D(world, crate, Vec3(0.5, 0.5, 0.5), PhysicsWorld3D.Dynamic)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal title="init.tl"
+local Body3D <const> = require("Body3D")
+local BodyDef3D <const> = require("BodyDef3D")
+local Director <const> = require("Director")
+local FixtureDef3D <const> = require("FixtureDef3D")
+local Node3D <const> = require("Node3D")
+local PhysicsWorld3D <const> = require("PhysicsWorld3D")
+local Vec3 <const> = require("Vec3")
+local Body3DType = require("Body3D").Type
+local Node3DType = require("Node3D").Type
+local PhysicsWorld3DType = require("PhysicsWorld3D").Type
+local Vec3Type = require("Vec3").Type
+
+local function makeBoxBody3D(
+	world: PhysicsWorld3DType,
+	node: Node3DType,
+	halfExtent: Vec3Type,
+	bodyType: integer
+): Body3DType
+	local position = node.position
+	local angles = node.angles
+	node.position = Vec3(0, 0, 0)
+	node.angles = Vec3(0, 0, 0)
+
+	local def = BodyDef3D()
+	def.type = bodyType
+	if not def:attach(FixtureDef3D:box(halfExtent)) then error("failed to attach fixture") end
+	local body = Body3D(def, world, position, angles)
+	if not body then error("failed to create body") end
+	body:addChild(node)
+	return body
+end
+
+local view = Director.entry
+Director.scheduler.fixedFPS = 60
+
+local world = PhysicsWorld3D()
+world.gravity = Vec3(0, -9.81, 0)
+view:addChild(world)
+
+local floor = Node3D()
+floor.position = Vec3(0, -0.5, 0)
+view.scene:addChild(makeBoxBody3D(world, floor, Vec3(8, 0.5, 4), PhysicsWorld3D.Static))
+
+local crate = Node3D()
+crate.position = Vec3(0, 2, 0)
+view.scene:addChild(makeBoxBody3D(world, crate, Vec3(0.5, 0.5, 0.5), PhysicsWorld3D.Dynamic))
+```
+
+</TabItem>
+</Tabs>
+
+这段代码的作用：
+
+- `Director.scheduler.fixedFPS = 60` 将固定更新速率设置为 60 Hz，这能让物理模拟以一致的时间步长保持稳定。
+- `PhysicsWorld3D()` 创建物理世界。它本身也是一个 `Node3D`，可以像其他节点一样添加到场景中。
+- `world.gravity = Vec3(0, -9.81, 0)` 设置地球重力：沿 Y 轴向下 9.81 m/s²。
+- `view.addChild(world)` 将物理世界添加到场景中。该世界中的所有刚体都会被模拟。
+- 地面是一个位于 y=-0.5 的 `Node3D`，在原点下方，因此其上表面位于 y=0。`makeBoxBody3D(world, floor, Vec3(8, 0.5, 4), PhysicsWorld3D.Static)` 创建一个永不移动的静态刚体。半尺寸 `Vec3(8, 0.5, 4)` 定义了盒子的尺寸为 16×1×8 单位。
+- 箱子从 y=2 开始，位置足够高会下落。`makeBoxBody3D(world, crate, Vec3(0.5, 0.5, 0.5), PhysicsWorld3D.Dynamic)` 创建一个响应力的动态刚体。半尺寸 `Vec3(0.5, 0.5, 0.5)` 产生一个 1×1×1 单位的立方体。
+
+运行这段代码时，箱子会在重力作用下下落，碰到地面后停下来。你不需要任何更新循环，物理世界会自动推进。
 
 ### 检查点
 
-将可见模型挂到两个节点下后，箱子应会下落、与地面碰撞并停住。已验证的教程测试没有调用自定义 scheduler 更新，箱子仍会从 `y=2` 自动下落。
+你应该看到箱子下落并停在地面上。如果它一直下落，请检查地面 fixture 是否存在且使用的是 `PhysicsWorld3D.Static`。如果什么都没动，请确认物理世界已添加到 view 中，且箱子刚体类型是 `PhysicsWorld3D.Dynamic`。
 
-若箱子持续穿过地面，先确认地面 fixture 已创建且类型为 `PhysicsWorld3D.Static`。若所有物体都不动，确认物理世界已加入 `view`，且箱子类型是 `Dynamic`。
+## 2. 一个箱子刚体的辅助函数
 
-## 第二步：让刚体辅助函数保持小而明确
+辅助函数 `makeBoxBody3D` 做了一些簿记工作来连接这两棵树。它保存节点的原始位置和旋转，将其从当前父节点移除，在该保存的位置创建物理刚体，然后将可见节点重新挂到刚体下。结果是物理刚体成为场景层次结构中的新父节点，因此可见变换跟随物理变换。
 
-```ts title="Game/PhysicsBody3D.ts"
+<Tabs groupId="language-select">
+<TabItem value="ts" label="TypeScript">
+
+```ts title="init.ts (helper)"
 import {Body3D, BodyDef3D, FixtureDef3D, Node3D, PhysicsWorld3D, Vec3} from "Dora";
 
 export function makeBoxBody3D(world: PhysicsWorld3D.Type, node: Node3D.Type,
@@ -67,11 +237,123 @@ export function makeBoxBody3D(world: PhysicsWorld3D.Type, node: Node3D.Type,
 }
 ```
 
-半尺寸就是盒子完整尺寸的一半：`Vec3(0.5, 0.5, 0.5)` 对应边长为 1 的立方体。请让可见模型与 fixture 的尺寸概念一致，后期调试隐形碰撞体会非常困难。
+</TabItem>
+<TabItem value="lua" label="Lua">
 
-## 第三步：用角色控制器表达“主动移动”
+```lua title="init.lua"
+local makeBoxBody3D
 
-刚体适合箱子和道具；玩家通常需要更可预测的斜坡、台阶和期望速度控制。
+makeBoxBody3D = function(world, node, halfExtent, bodyType)
+	if bodyType == nil then
+		bodyType = PhysicsWorld3D.Dynamic
+	end
+	local parent = node.parent
+	local position = node.position
+	local angles = node.angles
+	node:removeFromParent(false)
+	node.position = Vec3(0, 0, 0)
+	node.angles = Vec3(0, 0, 0)
+
+	local def = BodyDef3D()
+	def.type = bodyType
+	if not def:attach(FixtureDef3D.box(halfExtent)) then
+		error("failed to attach fixture")
+	end
+	local body = Body3D(def, world, position, angles)
+	if not body then
+		error("failed to create body")
+	end
+	body:addChild(node)
+	if parent then
+		parent:addChild(body)
+	end
+	return body
+end
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+makeBoxBody3D = (world, node, halfExtent, bodyType = PhysicsWorld3D.Dynamic) ->
+	parent = node.parent
+	position = node.position
+	angles = node.angles
+	node\removeFromParent false
+	node.position = Vec3 0, 0, 0
+	node.angles = Vec3 0, 0, 0
+
+	def = BodyDef3D!
+	def.type = bodyType
+	error "failed to attach fixture" unless def\attach FixtureDef3D.box halfExtent
+	body = Body3D def, world, position, angles
+	error "failed to create body" unless body
+	body\addChild node
+	parent\addChild body if parent
+	body
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal title="init.tl"
+local Body3D = require("Body3D")
+local BodyDef3D = require("BodyDef3D")
+local FixtureDef3D = require("FixtureDef3D")
+local Node3D = require("Node3D")
+local PhysicsWorld3D = require("PhysicsWorld3D")
+local Vec3 = require("Vec3")
+local Body3DType = require("Body3D").Type
+local Node3DType = require("Node3D").Type
+local PhysicsWorld3DType = require("PhysicsWorld3D").Type
+local Vec3Type = require("Vec3").Type
+
+local function makeBoxBody3D(
+	world: PhysicsWorld3DType,
+	node: Node3DType,
+	halfExtent: Vec3Type,
+	bodyType: integer
+): Body3DType
+	local parent = node.parent as Node3DType
+	local position = node.position
+	local angles = node.angles
+	node:removeFromParent(false)
+	node.position = Vec3(0, 0, 0)
+	node.angles = Vec3(0, 0, 0)
+
+	local def = BodyDef3D()
+	def.type = bodyType
+	if not def:attach(FixtureDef3D:box(halfExtent)) then error("failed to attach fixture") end
+	local body = Body3D(def, world, position, angles)
+	if not body then error("failed to create body") end
+	body:addChild(node)
+	parent:addChild(body)
+	return body
+end
+```
+
+</TabItem>
+</Tabs>
+
+这个辅助函数的工作原理：
+
+- 它保存 `node.parent`、`node.position` 和 `node.angles` 来记住可见节点在哪里。
+- `node.removeFromParent(false)` 从当前父节点移除节点而不销毁它。
+- `node.position = Vec3(0, 0, 0)` 和 `node.angles = Vec3(0, 0, 0)` 将节点重置到原点。这很重要，因为刚体将在原始世界位置，所以子节点应该在局部坐标 (0, 0, 0)。
+- `BodyDef3D()` 创建刚体定义。`def.type = type` 将其设置为静态或动态。
+- `def.attach(FixtureDef3D.box(halfExtent))` 附加一个盒子 fixture。半尺寸定义碰撞形状：`Vec3(0.5, 0.5, 0.5)` 从中心向每个方向延伸 0.5 单位，使其成为 1×1×1 的立方体。
+- `Body3D(def, world, position, angles)` 在保存的位置和角度创建刚体。
+- `body.addChild(node)` 将可见节点重新挂到刚体下。现在刚体的变换驱动可见变换。
+- `parent?.addChild(body)` 将刚体重新挂到节点的原始父节点，保留场景层次结构。
+
+半尺寸是盒子尺寸的一半。`Vec3(0.5, 0.5, 0.5)` 产生一个单位立方体，`Vec3(1, 1, 1)` 产生一个两单位立方体，依此类推。保持视觉尺寸与 fixture 尺寸一致；你看到的和碰撞之间的不匹配会让调试变得困难。
+
+## 3. 为玩家加入角色控制器
+
+像箱子这样的刚体非常适合应该翻滚、反弹和自然响应力的物体。玩家角色不同：你想要对去向的可预测控制、沿斜坡平滑移动，以及能够跨越小障碍物。这就是角色控制器提供的功能。
+
+<Tabs groupId="language-select">
+<TabItem value="ts" label="TypeScript">
 
 ```ts title="init.ts"
 const playerNode = Node3D();
@@ -82,16 +364,321 @@ const player = world.createCharacter(playerNode, 0.55, 0.32, 50, 0.35);
 player.desiredVelocity = Vec3(2, 0, 0);
 ```
 
-在普通玩法更新中根据输入设置 `desiredVelocity`，再由物理世界的固定更新写回最终变换。动态刚体的可视子节点挂到 `Body3D` 后，不要再手动移动它。
+</TabItem>
+<TabItem value="lua" label="Lua">
 
-## 什么时候才需要自定义 scheduler？
+```lua title="init.lua"
+local playerNode = Node3D()
+playerNode.position = Vec3(0, 1.2, 0)
+view:addChild(playerNode)
 
-只有物理确实需要独立暂停、回放或时间缩放域时，才为 `world.scheduler` 指定单独的 `Scheduler`。这种进阶设置下，必须显式推进该自定义 scheduler；`Director` 自动推进的是它自身持有的调度器。
+local player = world:createCharacter(playerNode, 0.55, 0.32, 50, 0.35)
+player.desiredVelocity = Vec3(2, 0, 0)
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+playerNode = Node3D!
+playerNode.position = Vec3 0, 1.2, 0
+view\addChild playerNode
+
+player = world\createCharacter playerNode, 0.55, 0.32, 50, 0.35
+player.desiredVelocity = Vec3 2, 0, 0
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal title="init.tl"
+local playerNode = Node3D()
+playerNode.position = Vec3(0, 1.2, 0)
+view:addChild(playerNode)
+
+local player = world:createCharacter(playerNode, 0.55, 0.32, 50, 0.35)
+player.desiredVelocity = Vec3(2, 0, 0)
+```
+
+</TabItem>
+</Tabs>
+
+这段代码的作用：
+
+- `playerNode` 是一个保存玩家模型的可见节点。它从 y=1.2 开始，站在 y=0 的地面上。
+- `world.createCharacter(playerNode, 0.55, 0.32, 50, 0.35)` 创建附加到该节点的角色控制器。参数为：半径（0.55 单位）、高度（0.32 单位）、质量（50）和步进偏移（0.35 单位，决定角色能攀爬的最大台阶高度）。
+- `player.desiredVelocity = Vec3(2, 0, 0)` 设置你希望玩家移动的方向和速度。在实际游戏中，你会从每帧输入中设置它。物理世界解析实际移动，自动处理碰撞、斜坡和台阶。
+
+创建角色控制器后不要手动移动其可见节点。控制器会作为物理步骤的一部分更新它。如果每帧从输入设置 `desiredVelocity`，角色将平滑移动并响应障碍物，而无需你自己编写碰撞逻辑。
+
+## 何时需要自定义调度器
+
+默认调度器对大多数游戏来说就足够了。只有当物理确实需要独立暂停、回放或时间缩放域时，才为 `world.scheduler` 指定单独的 `Scheduler`。在这种高级设置下，你必须自己显式推进自定义调度器，因为 `Director` 只推进它拥有的调度器。
+
+## 完整示例
+
+下面的完整脚本与本教程步骤对应，均已通过 Dora 引擎构建验证。
+
+<Tabs groupId="language-select">
+<TabItem value="ts" label="TypeScript">
+
+```ts title="init.ts"
+import {Body3D, BodyDef3D, Director, FixtureDef3D, Node3D, PhysicsWorld3D, Vec3} from "Dora";
+
+// Helper: wrap a visible Node3D in a box-shaped Body3D at the node's
+// current transform, then reparent the visible node under the body.
+// halfExtent is HALF of the box's full size on each axis.
+function makeBoxBody3D(
+	world: PhysicsWorld3D.Type, node: Node3D.Type,
+	halfExtent: Vec3.Type, type = PhysicsWorld3D.Dynamic,
+) {
+	const parent = node.parent;
+	const position = node.position;
+	const angles = node.angles;
+
+	// Reset the visible node to the origin; the body now owns the transform.
+	node.removeFromParent(false);
+	node.position = Vec3(0, 0, 0);
+	node.angles = Vec3(0, 0, 0);
+
+	const def = BodyDef3D();
+	def.type = type;
+	if (!def.attach(FixtureDef3D.box(halfExtent))) throw new Error("failed to attach fixture");
+
+	const body = Body3D(def, world, position, angles);
+	if (!body) throw new Error("failed to create body");
+	body.addChild(node);
+
+	parent?.addChild(body);
+	return body;
+}
+
+const view = Director.entry;
+Director.scheduler.fixedFPS = 60;
+
+const world = PhysicsWorld3D();
+world.gravity = Vec3(0, -9.81, 0);
+view.addChild(world);
+
+// Static floor: never moves, but other bodies can rest on it.
+const floor = Node3D();
+floor.position = Vec3(0, -0.5, 0);
+view.addChild(floor);
+makeBoxBody3D(world, floor, Vec3(8, 0.5, 4), PhysicsWorld3D.Static);
+
+// Dynamic crate: responds to gravity and collides with the floor.
+const crate = Node3D();
+crate.position = Vec3(0, 2, 0);
+view.addChild(crate);
+makeBoxBody3D(world, crate, Vec3(0.5, 0.5, 0.5), PhysicsWorld3D.Dynamic);
+
+// Player: a character controller gives you slope, step, and
+// desired-velocity handling that a raw rigid body can't.
+const playerNode = Node3D();
+playerNode.position = Vec3(0, 1.2, 0);
+view.addChild(playerNode);
+
+const player = world.createCharacter(playerNode, 0.55, 0.32, 50, 0.35);
+player.desiredVelocity = Vec3(2, 0, 0);
+```
+
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua title="init.lua"
+local _ENV = Dora
+
+-- Helper: wrap a visible Node3D in a box-shaped Body3D at the node's
+-- current transform, then reparent the visible node under the body.
+-- halfExtent is HALF of the box's full size on each axis.
+local function makeBoxBody3D(world, node, halfExtent, bodyType)
+	if bodyType == nil then
+		bodyType = PhysicsWorld3D.Dynamic
+	end
+
+	local parent = node.parent
+	local position = node.position
+	local angles = node.angles
+
+	-- Reset the visible node to the origin; the body now owns the transform.
+	node:removeFromParent(false)
+	node.position = Vec3(0, 0, 0)
+	node.angles = Vec3(0, 0, 0)
+
+	local def = BodyDef3D()
+	def.type = bodyType
+	if not def:attach(FixtureDef3D.box(halfExtent)) then
+		error("failed to attach fixture")
+	end
+
+	local body = Body3D(def, world, position, angles)
+	if not body then
+		error("failed to create body")
+	end
+	body:addChild(node)
+
+	if parent then
+		parent:addChild(body)
+	end
+	return body
+end
+
+local view = Director.entry
+Director.scheduler.fixedFPS = 60
+
+local world = PhysicsWorld3D()
+world.gravity = Vec3(0, -9.81, 0)
+view:addChild(world)
+
+-- Static floor: never moves, but other bodies can rest on it.
+local floor = Node3D()
+floor.position = Vec3(0, -0.5, 0)
+view:addChild(floor)
+makeBoxBody3D(world, floor, Vec3(8, 0.5, 4), PhysicsWorld3D.Static)
+
+-- Dynamic crate: responds to gravity and collides with the floor.
+local crate = Node3D()
+crate.position = Vec3(0, 2, 0)
+view:addChild(crate)
+makeBoxBody3D(world, crate, Vec3(0.5, 0.5, 0.5), PhysicsWorld3D.Dynamic)
+
+-- Player: a character controller gives you slope, step, and
+-- desired-velocity handling that a raw rigid body can't.
+local playerNode = Node3D()
+playerNode.position = Vec3(0, 1.2, 0)
+view:addChild(playerNode)
+
+local player = world:createCharacter(playerNode, 0.55, 0.32, 50, 0.35)
+player.desiredVelocity = Vec3(2, 0, 0)
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+_ENV = Dora
+
+makeBoxBody3D = (world, node, halfExtent, bodyType = PhysicsWorld3D.Dynamic) ->
+	parent = node.parent
+	position = node.position
+	angles = node.angles
+	node\removeFromParent false
+	node.position = Vec3 0, 0, 0
+	node.angles = Vec3 0, 0, 0
+
+	def = BodyDef3D!
+	def.type = bodyType
+	error "failed to attach fixture" unless def\attach FixtureDef3D.box halfExtent
+	body = Body3D def, world, position, angles
+	error "failed to create body" unless body
+	body\addChild node
+	parent\addChild body if parent
+	body
+
+view = Director.entry
+Director.scheduler.fixedFPS = 60
+
+world = PhysicsWorld3D!
+world.gravity = Vec3 0, -9.81, 0
+view\addChild world
+
+floor = Node3D!
+floor.position = Vec3 0, -0.5, 0
+view\addChild floor
+makeBoxBody3D world, floor, Vec3(8, 0.5, 4), PhysicsWorld3D.Static
+
+crate = Node3D!
+crate.position = Vec3 0, 2, 0
+view\addChild crate
+makeBoxBody3D world, crate, Vec3(0.5, 0.5, 0.5), PhysicsWorld3D.Dynamic
+
+playerNode = Node3D!
+playerNode.position = Vec3 0, 1.2, 0
+view\addChild playerNode
+player = world\createCharacter playerNode, 0.55, 0.32, 50, 0.35
+player.desiredVelocity = Vec3 2, 0, 0
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal title="init.tl"
+local Body3D = require("Body3D")
+local BodyDef3D = require("BodyDef3D")
+local Director = require("Director")
+local FixtureDef3D = require("FixtureDef3D")
+local Node3D = require("Node3D")
+local PhysicsWorld3D = require("PhysicsWorld3D")
+local Vec3 = require("Vec3")
+local Body3DType = require("Body3D").Type
+local Node3DType = require("Node3D").Type
+local PhysicsWorld3DType = require("PhysicsWorld3D").Type
+local Vec3Type = require("Vec3").Type
+
+local function makeBoxBody3D(
+	world: PhysicsWorld3DType,
+	node: Node3DType,
+	halfExtent: Vec3Type,
+	bodyType: integer
+): Body3DType
+	local parent = node.parent as Node3DType
+	local position = node.position
+	local angles = node.angles
+	node:removeFromParent(false)
+	node.position = Vec3(0, 0, 0)
+	node.angles = Vec3(0, 0, 0)
+
+	local def = BodyDef3D()
+	def.type = bodyType
+	if not def:attach(FixtureDef3D:box(halfExtent)) then error("failed to attach fixture") end
+	local body = Body3D(def, world, position, angles)
+	if not body then error("failed to create body") end
+	body:addChild(node)
+	parent:addChild(body)
+	return body
+end
+
+local view = Director.entry
+Director.scheduler.fixedFPS = 60
+
+local world = PhysicsWorld3D()
+world.gravity = Vec3(0, -9.81, 0)
+view:addChild(world)
+
+local floor = Node3D()
+floor.position = Vec3(0, -0.5, 0)
+view.scene:addChild(floor)
+makeBoxBody3D(world, floor, Vec3(8, 0.5, 4), PhysicsWorld3D.Static)
+
+local crate = Node3D()
+crate.position = Vec3(0, 2, 0)
+view.scene:addChild(crate)
+makeBoxBody3D(world, crate, Vec3(0.5, 0.5, 0.5), PhysicsWorld3D.Dynamic)
+
+local playerNode = Node3D()
+playerNode.position = Vec3(0, 1.2, 0)
+view.scene:addChild(playerNode)
+local player = world:createCharacter(playerNode, 0.55, 0.32, 50, 0.35)
+player.desiredVelocity = Vec3(2, 0, 0)
+```
+
+</TabItem>
+</Tabs>
 
 ## 动手练习
 
-给动态 crate 节点挂上一个箱子模型。先让碰撞盒与可见模型匹配，再故意把 fixture 做大。这个对照能直观理解碰撞尺寸也是关卡设计的一部分。
+给动态箱子节点挂上一个箱子模型。先让碰撞盒与可见模型匹配，再故意把 fixture 做大。这个对照能直观理解碰撞尺寸也是关卡设计的一部分。
 
-## 下一课
+## 小结
+
+你现在掌握了 Dora 中 3D 物理的三个主要工具：
+
+- **PhysicsWorld3D**：带有重力的模拟空间。它以固定帧率自动推进，因此你不需要手动更新循环。
+- **Body3D**：模拟力和碰撞的刚体。静态刚体从不移动，动态刚体会响应重力并从障碍物反弹。
+- **CharacterController**：用于玩家移动的可预测控制。从输入设置 `desiredVelocity`，让物理世界处理斜坡、台阶和碰撞。
+
+辅助函数 `makeBoxBody3D` 通过将节点重新挂到刚体下来连接物理刚体树和可见节点树。这种分离让物理做它擅长的事情，同时保持渲染代码简单。
+
+## 下一篇教程
 
 继续阅读[在 3D 场景中使用 2D 内容](./put-2d-ui-in-3d)，在这个物理世界里放入可读的标签和面板。

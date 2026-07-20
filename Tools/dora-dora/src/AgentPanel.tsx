@@ -16,6 +16,7 @@ import AgentMessageList from './AgentMessageList';
 import AgentComposer from './AgentComposer';
 import AgentStepList from './AgentStepList';
 import AgentChangeSetSummaryCard from './AgentChangeSetSummary';
+import AgentQuestionnaire from './AgentQuestionnaire';
 
 interface AgentPanelProps {
 	sessionId: number;
@@ -71,8 +72,8 @@ export default function AgentPanel(props: AgentPanelProps) {
 	const HISTORY_VISIBLE_ROUNDS = 10;
 	const FETCH_URL_TOOL = "fetch_url";
 	const EXECUTE_COMMAND_TOOL = "execute_command";
-	const { t, i18n } = useTranslation();
-	const { sessionId, projectRoot, title, height, showHeader = true, initialPrompt, addAlert, onInitialPromptConsumed, onRollbackComplete, onOpenFile, onRepositoryFilesChanged, onOpenLLMConfig } = props;
+	const { t } = useTranslation();
+	const { sessionId, projectRoot, title, height, showHeader = true, initialPrompt, addAlert, onInitialPromptConsumed, onRollbackComplete, onOpenFile, onOpenLLMConfig } = props;
 	const [selectedSessionId, setSelectedSessionId] = useState(sessionId);
 	const [prompt, setPrompt] = useState("");
 	const [loading, setLoading] = useState(false);
@@ -86,6 +87,10 @@ export default function AgentPanel(props: AgentPanelProps) {
 	const [messages, setMessages] = useState<Service.AgentSessionMessage[]>([]);
 	const [steps, setSteps] = useState<Service.AgentSessionStep[]>([]);
 	const [checkpoints, setCheckpoints] = useState<Service.AgentCheckpointItem[]>([]);
+	const [pendingQuestionnaire, setPendingQuestionnaire] = useState<Service.AgentQuestionnaire | null>(null);
+	const [questionnaireSubmitting, setQuestionnaireSubmitting] = useState(false);
+	const [workMode, setWorkMode] = useState<"code" | "plan">("code");
+	const [hasActivePlan, setHasActivePlan] = useState(false);
 	const [diffs, setDiffs] = useState<Record<number, Service.AgentCheckpointDiffFile[]>>({});
 	const [taskDiffs, setTaskDiffs] = useState<Record<number, Service.AgentCheckpointDiffFile[]>>({});
 	const [diffLoadingId, setDiffLoadingId] = useState<number | null>(null);
@@ -225,11 +230,14 @@ export default function AgentPanel(props: AgentPanelProps) {
 			const res = await Service.agentTaskStatus({ sessionId: targetSessionId });
 			if (res.success) {
 				setSession(res.session);
+				setWorkMode(res.session.kind === "main" ? res.session.workMode : "code");
 				setRelatedSessions(normalizeList<Service.AgentSession>(res.relatedSessions));
 				setSpawnInfo(res.spawnInfo ?? null);
 				setMessages(normalizeList<Service.AgentSessionMessage>(res.messages));
 				setSteps(normalizeList<Service.AgentSessionStep>(res.steps));
 				setCheckpoints(normalizeList<Service.AgentCheckpointItem>(res.checkpoints));
+				setPendingQuestionnaire(res.pendingQuestionnaire ?? null);
+				setHasActivePlan(res.hasActivePlan);
 				return;
 			}
 			if (res.message === "session not found" && targetSessionId !== sessionId) {
@@ -243,11 +251,14 @@ export default function AgentPanel(props: AgentPanelProps) {
 		const res = await Service.agentSessionGet({ sessionId: targetSessionId });
 		if (res.success) {
 			setSession(res.session);
+			setWorkMode(res.session.kind === "main" ? res.session.workMode : "code");
 			setRelatedSessions(normalizeList<Service.AgentSession>(res.relatedSessions));
 			setSpawnInfo(res.spawnInfo ?? null);
 			setMessages(normalizeList<Service.AgentSessionMessage>(res.messages));
 			setSteps(normalizeList<Service.AgentSessionStep>(res.steps));
 			setCheckpoints(normalizeList<Service.AgentCheckpointItem>(res.checkpoints));
+			setPendingQuestionnaire(res.pendingQuestionnaire ?? null);
+			setHasActivePlan(res.hasActivePlan);
 			return;
 		}
 		if (res.message === "session not found" && targetSessionId !== sessionId) {
@@ -282,6 +293,13 @@ export default function AgentPanel(props: AgentPanelProps) {
 			}
 			if (patch.session) {
 				setSession(patch.session);
+				setWorkMode(patch.session.kind === "main" ? patch.session.workMode : "code");
+			}
+			if ("pendingQuestionnaire" in patch) {
+				setPendingQuestionnaire(patch.pendingQuestionnaire || null);
+			}
+			if (typeof patch.hasActivePlan === "boolean") {
+				setHasActivePlan(patch.hasActivePlan);
 			}
 			if (patch.metrics) {
 				setSession(prev => prev ? {
@@ -588,7 +606,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 		return true;
 	}, [addAlert, projectRoot, t]);
 
-	const sendPromptText = React.useCallback(async (text: string, targetSessionId = selectedSessionId) => {
+	const sendPromptText = React.useCallback(async (text: string, targetSessionId = selectedSessionId, requestedWorkMode = workMode) => {
 		if (text === "" || loading || continueLoadingTaskId !== null) return;
 		setLoading(true);
 		try {
@@ -597,7 +615,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 				addAlert?.(t("agent.noLLMConfigAlert"), "error");
 				return;
 			}
-			const canStartAgent = await stopProjectRunBeforeAgent();
+			const canStartAgent = requestedWorkMode === "plan" ? true : await stopProjectRunBeforeAgent();
 			if (!canStartAgent) {
 				return;
 			}
@@ -605,6 +623,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 				sessionId: targetSessionId,
 				prompt: text,
 				disabledAgentTools,
+				workMode: requestedWorkMode,
 			});
 			if (!res.success) {
 				if (res.message === "no active LLM config") {
@@ -622,7 +641,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 		} finally {
 			setLoading(false);
 		}
-	}, [addAlert, checkLLMConfigReady, continueLoadingTaskId, loading, disabledAgentTools, refresh, selectedSessionId, stopProjectRunBeforeAgent, t]);
+	}, [addAlert, checkLLMConfigReady, continueLoadingTaskId, loading, disabledAgentTools, refresh, selectedSessionId, stopProjectRunBeforeAgent, t, workMode]);
 
 	const resendPromptText = React.useCallback(async (message: Service.AgentSessionMessage, text: string) => {
 		if (text === "" || loading || continueLoadingTaskId !== null || session?.currentTaskStatus === "RUNNING") return false;
@@ -633,7 +652,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 				addAlert?.(t("agent.noLLMConfigAlert"), "error");
 				return false;
 			}
-			const canStartAgent = await stopProjectRunBeforeAgent();
+			const canStartAgent = workMode === "plan" ? true : await stopProjectRunBeforeAgent();
 			if (!canStartAgent) {
 				return false;
 			}
@@ -642,6 +661,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 				messageId: message.id,
 				prompt: text,
 				disabledAgentTools,
+				workMode,
 			});
 			if (!res.success) {
 				if (res.message === "no active LLM config") {
@@ -658,7 +678,84 @@ export default function AgentPanel(props: AgentPanelProps) {
 		} finally {
 			setLoading(false);
 		}
-	}, [addAlert, checkLLMConfigReady, continueLoadingTaskId, loading, disabledAgentTools, refresh, selectedSessionId, session?.currentTaskStatus, stopProjectRunBeforeAgent, t]);
+	}, [addAlert, checkLLMConfigReady, continueLoadingTaskId, loading, disabledAgentTools, refresh, selectedSessionId, session?.currentTaskStatus, stopProjectRunBeforeAgent, t, workMode]);
+
+	const submitQuestionnaire = React.useCallback(async (answers: Service.AgentQuestionnaireAnswer[]) => {
+		if (!pendingQuestionnaire || questionnaireSubmitting) return;
+		setQuestionnaireSubmitting(true);
+		try {
+			const llmReady = await checkLLMConfigReady();
+			if (!llmReady) {
+				addAlert?.(t("agent.noLLMConfigAlert"), "error");
+				return;
+			}
+			const res = await Service.agentQuestionnaireRespond({
+				sessionId: selectedSessionId,
+				questionnaireId: pendingQuestionnaire.id,
+				answers,
+			});
+			if (!res.success) {
+				addAlert?.(res.message, "error");
+				return;
+			}
+			window.sessionStorage.removeItem(`agent-questionnaire:${pendingQuestionnaire.id}`);
+			setPendingQuestionnaire(null);
+			setWorkMode("plan");
+			await refresh(true, selectedSessionId);
+		} finally {
+			setQuestionnaireSubmitting(false);
+		}
+	}, [addAlert, checkLLMConfigReady, pendingQuestionnaire, questionnaireSubmitting, refresh, selectedSessionId, t]);
+
+	const cancelQuestionnaire = React.useCallback(async () => {
+		if (!pendingQuestionnaire || questionnaireSubmitting) return;
+		if (!window.confirm(t("agent.questionnaire.cancelConfirm"))) return;
+		setQuestionnaireSubmitting(true);
+		try {
+			const res = await Service.agentQuestionnaireCancel({
+				sessionId: selectedSessionId,
+				questionnaireId: pendingQuestionnaire.id,
+			});
+			if (!res.success) {
+				addAlert?.(res.message, "error");
+				return;
+			}
+			window.sessionStorage.removeItem(`agent-questionnaire:${pendingQuestionnaire.id}`);
+			setPendingQuestionnaire(null);
+			await refresh(true, selectedSessionId);
+		} finally {
+			setQuestionnaireSubmitting(false);
+		}
+	}, [addAlert, pendingQuestionnaire, questionnaireSubmitting, refresh, selectedSessionId, t]);
+
+	const changeWorkMode = React.useCallback(async (planMode: boolean) => {
+		if (loading || session?.currentTaskStatus === "RUNNING" || session?.currentTaskStatus === "WAITING_USER") return;
+		const nextMode = planMode ? "plan" : "code";
+		setLoading(true);
+		try {
+			const res = await Service.agentSessionSetMode({ sessionId: selectedSessionId, workMode: nextMode });
+			if (!res.success) {
+				addAlert?.(res.message, "error");
+				return;
+			}
+			setSession(res.session);
+			setWorkMode(res.session.workMode);
+		} finally {
+			setLoading(false);
+		}
+	}, [addAlert, loading, selectedSessionId, session?.currentTaskStatus]);
+
+	const startDevelopment = React.useCallback(async () => {
+		if (loading || session?.currentTaskStatus === "RUNNING" || session?.currentTaskStatus === "WAITING_USER") return;
+		const modeResult = await Service.agentSessionSetMode({ sessionId: selectedSessionId, workMode: "code" });
+		if (!modeResult.success) {
+			addAlert?.(modeResult.message, "error");
+			return;
+		}
+		setSession(modeResult.session);
+		setWorkMode("code");
+		await sendPromptText(t("agent.plan.startPrompt"), selectedSessionId, "code");
+	}, [addAlert, loading, selectedSessionId, sendPromptText, session?.currentTaskStatus, t]);
 
 	const onSend = async () => {
 		const text = prompt.trim();
@@ -678,11 +775,6 @@ export default function AgentPanel(props: AgentPanelProps) {
 		})();
 	}, [initialPrompt, onInitialPromptConsumed, sendPromptText, sessionId]);
 
-	const getContinuePrompt = React.useCallback(() => {
-		const language = `${i18n.resolvedLanguage ?? i18n.language ?? ""}`.toLowerCase();
-		return language.startsWith("zh") ? "继续" : "continue";
-	}, [i18n.language, i18n.resolvedLanguage]);
-
 	const onContinueTask = async () => {
 		const taskId = continuableTaskId;
 		if (!taskId || loading || continueLoadingTaskId !== null || session?.currentTaskStatus === "RUNNING") return;
@@ -693,13 +785,12 @@ export default function AgentPanel(props: AgentPanelProps) {
 				addAlert?.(t("agent.noLLMConfigAlert"), "error");
 				return;
 			}
-			const canStartAgent = await stopProjectRunBeforeAgent();
+			const canStartAgent = workMode === "plan" ? true : await stopProjectRunBeforeAgent();
 			if (!canStartAgent) {
 				return;
 			}
-			const res = await Service.agentSessionSend({
+			const res = await Service.agentSessionContinue({
 				sessionId: selectedSessionId,
-				prompt: getContinuePrompt(),
 				disabledAgentTools,
 			});
 			if (!res.success) {
@@ -1078,6 +1169,29 @@ export default function AgentPanel(props: AgentPanelProps) {
 											</Button>
 										) : null}
 										{finishHandoffLoadingTaskId === continuableTaskId ? <CircularProgress size={16} /> : null}
+										{workMode === "plan" && hasActivePlan && session?.kind === "main" && visibleSummaryMessages.length > 0 && !showSummaryShimmer ? (
+											<Button
+												size="small"
+												variant="outlined"
+												disabled={loading || session.currentTaskStatus === "RUNNING" || session.currentTaskStatus === "WAITING_USER"}
+												onClick={() => void startDevelopment()}
+												sx={{
+													color: Color.TextSecondary,
+													borderColor: Color.Line,
+													borderRadius: 999,
+													"&.Mui-disabled": {
+														color: Color.TextSecondary,
+														borderColor: Color.Line,
+													},
+													"&:hover": {
+														borderColor: Color.Line,
+														backgroundColor: "rgba(255,255,255,0.03)",
+													},
+												}}
+											>
+												{t("agent.plan.start")}
+											</Button>
+										) : null}
 									</Stack>
 								) : null}
 								{showSummaryShimmer ? (
@@ -1102,6 +1216,31 @@ export default function AgentPanel(props: AgentPanelProps) {
 									>
 										{t("agent.thinking")}
 									</Typography>
+								) : null}
+								{workMode === "plan" && hasActivePlan && session?.kind === "main" && visibleSummaryMessages.length > 0 && !showSummaryShimmer && !continuableTaskId ? (
+									<Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1.5 }}>
+										<Button
+											size="small"
+											variant="outlined"
+											disabled={loading || session.currentTaskStatus === "RUNNING" || session.currentTaskStatus === "WAITING_USER"}
+											onClick={() => void startDevelopment()}
+											sx={{
+												color: Color.TextSecondary,
+												borderColor: Color.Line,
+												borderRadius: 999,
+												"&.Mui-disabled": {
+													color: Color.TextSecondary,
+													borderColor: Color.Line,
+												},
+												"&:hover": {
+													borderColor: Color.Line,
+													backgroundColor: "rgba(255,255,255,0.03)",
+												},
+											}}
+										>
+											{t("agent.plan.start")}
+										</Button>
+									</Stack>
 								) : null}
 							</Box>
 						) : null}
@@ -1142,7 +1281,10 @@ export default function AgentPanel(props: AgentPanelProps) {
 					</Stack>
 				</Box>
 			</MacScrollbar>
-			<AgentComposer
+			{pendingQuestionnaire ? (
+				<AgentQuestionnaire questionnaire={pendingQuestionnaire} submitting={questionnaireSubmitting} onSubmit={answers => void submitQuestionnaire(answers)} onCancel={() => void cancelQuestionnaire()} />
+			) : <>
+				<AgentComposer
 				prompt={prompt}
 				loading={loading || continueLoadingTaskId !== null || finishHandoffLoadingTaskId !== null}
 				running={session?.currentTaskStatus === "RUNNING"}
@@ -1154,12 +1296,15 @@ export default function AgentPanel(props: AgentPanelProps) {
 				actualUsage={contextStats.actualUsage}
 				fetchUrlEnabled={fetchUrlEnabled}
 				executeCommandEnabled={executeCommandEnabled}
+				planMode={workMode === "plan"}
 				onPromptChange={setPrompt}
 				onSend={() => void onSend()}
 				onStop={() => void onStop()}
 				onFetchUrlEnabledChange={session?.kind === "main" ? setFetchUrlEnabled : undefined}
 				onExecuteCommandEnabledChange={session?.kind === "main" ? setExecuteCommandEnabled : undefined}
-			/>
+				onPlanModeChange={session?.kind === "main" ? value => void changeWorkMode(value) : undefined}
+				/>
+			</>}
 			{!isNearBottom ? (
 				<Tooltip title={t("agent.scrollToBottom")}>
 					<IconButton

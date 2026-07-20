@@ -1,14 +1,22 @@
-# 测量、调试并守护你的 3D 场景
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
 
-现在场景已经有模型、光照、物理和世界空间 UI。在继续添加内容前，先在目标设备上建立基线。有价值的 3D 优化不只是数字下降，也必须保留正确可见的画面。
+# 测量与调试 3D 场景
 
-:::tip 本课目标
-保存可重复比较的截图和渲染统计标记，在物体消失时检查包围盒，并按能避免猜测的顺序优化。
+在优化任何东西之前，你需要知道"更好"到底意味着什么。如果优化让帧时间减半但丢掉了一个角色模型，那不是改进，而是回归。你需要一个已知的良好参考点来对比，也需要知道当数字变化时该问哪些问题。
+
+这篇教程会捕获那个参考点：一张可以对比的截图和渲染统计数据。它还会展示如何逐行阅读这些统计信息，以及当物体神秘消失时如何可视化包围盒。有了这些工具，你可以按合理的顺序优化，并在问题发布前发现回归。
+
+:::tip 本教程目标
+学完之后，你将能够捕获可重复的基线截图和统计文件，阅读 `view.stats` 表来理解每一行的含义，并使用 `showAABB` 检查空间问题。
 :::
 
-## 第一步：建立可对比的基线
+## 1. 建立可对比的基线
 
-下面采用已验证的 `Dora-Platformer3D-Demo/Test/Smoke.ts` 模式：先让场景完成渲染，再记录统计值和截图。
+基线是一个已知的良好参考点，你会在做改动后与其对比。下面的模式用于 Dora 自己的演示，比如 `Dora-Platformer3D-Demo/Test/Smoke.ts`：让场景渲染片刻让一切稳定下来，然后捕获截图和统计标记。之后，当你做出改动后，运行同样的捕获并进行对比。
+
+<Tabs groupId="language-select">
+<TabItem value="ts" label="TypeScript">
 
 ```ts title="Test/Smoke.ts"
 import {App, Content, Director, threadLoop} from "Dora";
@@ -33,23 +41,121 @@ threadLoop(() => {
 });
 ```
 
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua title="Test/Smoke.lua"
+local _ENV = Dora
+
+local view = Director.entry
+local elapsed = 0
+local checked = false
+
+threadLoop(function()
+	elapsed = elapsed + App.deltaTime
+	if not checked and elapsed > 1.5 then
+		checked = true
+		local stats = view.stats
+		local passed = stats.drawCalls > 0 and stats.visibleVisuals > 0
+		local screenshot = App:saveScreenshot("/tmp/my-3d-scene/baseline")
+		Content:save(
+			"/tmp/my-3d-scene/baseline.txt",
+			string.format("status=%s draws=%d visible=%d screenshot=%s", passed and "PASS" or "FAIL", stats.drawCalls, stats.visibleVisuals, screenshot)
+		)
+	end
+	return false
+end)
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="Test/Smoke.yue"
+_ENV = Dora
+
+view = Director.entry
+elapsed = 0
+checked = false
+
+threadLoop ->
+	elapsed += App.deltaTime
+	if not checked and elapsed > 1.5
+		checked = true
+		stats = view.stats
+		passed = stats.drawCalls > 0 and stats.visibleVisuals > 0
+		screenshot = App\saveScreenshot "/tmp/my-3d-scene/baseline"
+		Content\save "/tmp/my-3d-scene/baseline.txt", string.format(
+			"status=%s draws=%d visible=%d screenshot=%s",
+			if passed then "PASS" else "FAIL", stats.drawCalls, stats.visibleVisuals, screenshot)
+	false
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal title="Test/Smoke.tl"
+local App <const> = require("App")
+local Content <const> = require("Content")
+local Director <const> = require("Director")
+local threadLoop <const> = require("threadLoop")
+
+local view = Director.entry
+local elapsed: number = 0
+local checked: boolean = false
+
+threadLoop(function(): boolean
+	elapsed = elapsed + App.deltaTime
+	if not checked and elapsed > 1.5 then
+		checked = true
+		local stats = view.stats
+		local passed = stats.drawCalls > 0 and stats.visibleVisuals > 0
+		local screenshot = App:saveScreenshot("/tmp/my-3d-scene/baseline")
+		Content:save(
+			"/tmp/my-3d-scene/baseline.txt",
+			string.format("status=%s draws=%d visible=%d screenshot=%s", passed and "PASS" or "FAIL", stats.drawCalls, stats.visibleVisuals, screenshot)
+		)
+	end
+	return false
+end)
+```
+
+</TabItem>
+</Tabs>
+
+这里有几件事在发生：
+
+- `threadLoop` 每帧运行一次，直到函数返回 `false` 为止。这个会一直运行但只做一次工作，当 `elapsed > 1.5` 时。
+- `elapsed > 1.5` 的检查让场景有 1.5 秒的时间来渲染，然后再截图。这让任何初始加载或相机过渡都能稳定下来。
+- `view.stats` 返回这一帧的渲染统计表。我们检查是否至少发生了一次 draw call，并且至少有一个可视物体。
+- `App.saveScreenshot` 把当前帧缓冲捕获到文件中。路径由你决定。
+- `Content.save` 写入一个文本标记文件。我们把状态、绘制计数、可视计数和截图路径编码在一行里。之后你可以解析它并与改动后的运行进行对比。
+
+在改动之前运行这个，之后再运行一次。如果新的运行报告了更少的 draw call 但你的截图里少了一个模型，那就是回归，不是优化。
+
 ### 检查点
 
-在较大改动前后运行完全相同的场景，并保留两张截图。若第二次运行的 draw call 更少但少了一个模型，这是回归，不是优化。
+现在就捕获基线，然后再继续。把截图和文本标记文件都保存好。稍后在本教程中，你会把它们与第二次捕获进行对比。
 
-## 第二步：让每组数字回答一个问题
+## 2. 阅读渲染统计信息
+
+`view.stats` 的每一行都回答了一个关于场景的不同问题。当你优化时，一次只改一样东西，并观察受影响的行如何变化。
 
 | 统计项 | 回答的问题 |
 | --- | --- |
-| `drawCalls`、`triangles`、`visibleVisuals` | 这一帧实际提交了什么？ |
-| `culledVisuals` | 有多少内容未进入最终渲染？ |
-| `materialSwitches`、`textureSwitches`、`meshSwitches` | 状态切换是否妨碍了高效提交？ |
-| `collectMicros`、`sortMicros`、`submitMicros` | CPU 时间花在收集、排序还是提交场景工作？ |
-| 上传相关字段 | 游戏运行中是否发生了资源上传？ |
+| `drawCalls`、`triangles`、`visibleVisuals` | 这一帧实际提交给 GPU 的是什么？ |
+| `culledVisuals` | 有多少内容因为在视图外而被排除在最终渲染之外？ |
+| `materialSwitches`、`textureSwitches`、`meshSwitches` | 状态切换是否妨碍了高效提交？越少越好。 |
+| `collectMicros`、`sortMicros`、`submitMicros` | CPU 时间花在哪里？收集场景数据、排序，还是提交？ |
+| 上传相关字段 | 游戏运行中是否发生了资源上传，这可能导致卡顿？ |
 
-先记录基线，再尝试改善任意一行。每次只比较一个改动，并使用相同目标设备和相机视角。
+工作流程很简单：记录基线，做一次单个改动，再次运行同样的捕获，然后对比。如果你一次改多个东西，你就不知道哪个有帮助、哪个有害。
 
-## 第三步：让空间问题可见
+## 3. 显示包围盒
+
+当一个物体意外消失时，问题通常是空间性的，而不是材质性的。模型可能位置正确，但它的父节点变换可能错了，或者包围盒可能在相机的视锥体外。开启包围盒可视化，看看引擎认为物体的边界在哪里。
+
+<Tabs groupId="language-select">
+<TabItem value="ts" label="TypeScript">
 
 ```ts title="init.ts"
 import {Director} from "Dora";
@@ -58,16 +164,170 @@ const view = Director.entry;
 view.showAABB = true; // 检查包围盒时临时开启。
 ```
 
-对象意外消失时，先检查包围盒和相机范围，再去改材质或着色器。放错的父节点变换、过大的 `Surface3D` 或不正确的模型尺寸，都可能看起来像渲染问题。发布前记得关闭 `showAABB`。
+</TabItem>
+<TabItem value="lua" label="Lua">
 
-## 一套实用的优化循环
+```lua title="init.lua"
+local _ENV = Dora
 
-1. 复用 `Model3D` 路径，不要每帧重建模型或材质。
-2. 优先减少可避免的纹理与材质切换，再激进地减少几何量。
-3. 为目标设备设置阴影贴图分辨率，然后再次测量。
-4. 在观察者无法看出额外细节的地方，降低 `Surface3D` 底图分辨率。
-5. 重新运行基线，同时查看标记与截图。
+local view = Director.entry
+view.showAABB = true -- 检查包围盒时临时开启。
+```
 
-## 完成本学习路径
+</TabItem>
+<TabItem value="yue" label="YueScript">
 
-至此你已拥有一个完整且可测试的 3D 工作循环：创建场景、布光、导入与播放动画资产、模拟物体、嵌入 2D 内容，并验证最终结果。需要完整 API 时请查阅[3D 渲染与物理 API 参考](/docs/api/intro#3d-渲染与物理)；每当新系统改变场景时，都可以回到这些检查点重新验证。
+```yue title="init.yue"
+_ENV = Dora
+
+view = Director.entry
+view.showAABB = true -- 检查包围盒时临时开启。
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal title="init.tl"
+local Director <const> = require("Director")
+
+local view = Director.entry
+view.showAABB = true -- 检查包围盒时临时开启。
+```
+
+</TabItem>
+</Tabs>
+
+每个可见物体周围会出现一个绿色框。如果框在你期望物体出现的地方，问题可能在材质或着色器。如果框错了或缺失，问题就是空间性的。常见原因包括一个放错的父节点变换、一个过大的 `Surface3D` 把模型推出了视图，或者模型在导入时缩放不正确。发布前记得关闭 `showAABB`。
+
+## 一套简单的优化流程
+
+优化是关于先找到最大的收益，而不是一次性修复所有东西。按顺序完成这个列表：
+
+1. **复用 `Model3D` 路径** - 每帧重建模型或材质是导致卡顿的最常见原因。加载一次，使用多次。
+2. **减少状态切换** - 在激进减少几何量之前，先减少材质、纹理和网格的切换。把共享材质的对象分组。
+3. **调整阴影贴图分辨率** - 为目标设备设置它，然后再次测量。小屏幕上的高分辨率往往浪费。
+4. **降低 `Surface3D` 分辨率** - 在观察者看不出额外细节的地方，降低底图分辨率。远处的对象不需要和近处一样的分辨率。
+5. **重新运行基线** - 每次改动后，再次捕获截图和统计。与原始基线对比来发现回归。
+
+## 完整示例
+
+下面的完整脚本与本教程步骤对应，均已通过 Dora 引擎构建验证。
+
+<Tabs groupId="language-select">
+<TabItem value="ts" label="TypeScript">
+
+```ts title="init.ts"
+import {App, Content, Director, threadLoop} from "Dora";
+
+const view = Director.entry;
+view.showAABB = true;
+
+// Wait for the scene to render, then capture a screenshot plus a
+// machine-readable marker file you can compare against later.
+let elapsed = 0;
+let checked = false;
+threadLoop(() => {
+	elapsed += App.deltaTime;
+	if (!checked && elapsed > 1.5) {
+		checked = true;
+		const stats = view.stats;
+		const passed = stats.drawCalls > 0 && stats.visibleVisuals > 0;
+		const screenshot = App.saveScreenshot("/tmp/my-3d-scene/baseline");
+		const status = passed ? "PASS" : "FAIL";
+		Content.save(
+			"/tmp/my-3d-scene/baseline.txt",
+			`status=${status} draws=${stats.drawCalls} visible=${stats.visibleVisuals} screenshot=${screenshot}`,
+		);
+	}
+	return false;
+});
+```
+
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua title="init.lua"
+local _ENV = Dora
+
+local view = Director.entry
+view.showAABB = true
+
+-- Wait for the scene to render, then capture a screenshot plus a
+-- machine-readable marker file you can compare against later.
+local elapsed = 0
+local checked = false
+threadLoop(function()
+	elapsed = elapsed + App.deltaTime
+	if not checked and elapsed > 1.5 then
+		checked = true
+		local stats = view.stats
+		local passed = stats.drawCalls > 0 and stats.visibleVisuals > 0
+		local screenshot = App:saveScreenshot("/tmp/my-3d-scene/baseline")
+		local status = passed and "PASS" or "FAIL"
+		Content:save("/tmp/my-3d-scene/baseline.txt", string.format(
+			"status=%s draws=%d visible=%d screenshot=%s",
+			status, stats.drawCalls, stats.visibleVisuals, screenshot))
+	end
+	return false
+end)
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+_ENV = Dora
+
+view = Director.entry
+view.showAABB = true
+
+elapsed = 0
+checked = false
+threadLoop ->
+	elapsed += App.deltaTime
+	if not checked and elapsed > 1.5
+		checked = true
+		stats = view.stats
+		passed = stats.drawCalls > 0 and stats.visibleVisuals > 0
+		screenshot = App\saveScreenshot "/tmp/my-3d-scene/baseline"
+		Content\save "/tmp/my-3d-scene/baseline.txt", string.format(
+			"status=%s draws=%d visible=%d screenshot=%s",
+			if passed then "PASS" else "FAIL", stats.drawCalls, stats.visibleVisuals, screenshot)
+	false
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal title="init.tl"
+local App = require("App")
+local Content = require("Content")
+local Director = require("Director")
+local threadLoop = require("threadLoop")
+
+local view = Director.entry
+view.showAABB = true
+
+local elapsed: number = 0
+local checked = false
+threadLoop(function(): boolean
+	elapsed = elapsed + App.deltaTime
+	if not checked and elapsed > 1.5 then
+		checked = true
+		local stats = view.stats
+		local passed = stats.drawCalls > 0 and stats.visibleVisuals > 0
+		local screenshot = App:saveScreenshot("/tmp/my-3d-scene/baseline")
+		Content:save("/tmp/my-3d-scene/baseline.txt", string.format(
+			"status=%s draws=%d visible=%d screenshot=%s",
+			passed and "PASS" or "FAIL", stats.drawCalls, stats.visibleVisuals, screenshot))
+	end
+	return false
+end)
+```
+
+</TabItem>
+</Tabs>
+
+## 小结
+
+至此你已拥有一个完整且可测试的 3D 工作循环：创建场景、布光、导入与播放动画资产、模拟物体、嵌入 2D 内容，并验证最终结果。基线捕获模式让你有一种可重复的方式来测量性能变化，统计表告诉你该问哪些问题，包围盒可视化帮你诊断空间问题。需要完整 API 时请查阅[3D 渲染与物理 API 参考](/docs/api/intro#3d-渲染与物理)；每当新系统改变场景时，都可以回到这些检查点重新验证。

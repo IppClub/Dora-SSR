@@ -3,13 +3,17 @@ import { App, Content, DB, Path, HttpServer, emit } from 'Dora';
 import { runCodingAgent, CodingAgentEvent, CodingAgentRunResult, normalizeAgentCompletionReport, truncateAgentUserPrompt } from 'Agent/CodingAgent';
 import type { AgentCompletionReport } from 'Agent/CodingAgent';
 import * as AgentToolRegistry from 'Agent/AgentToolRegistry';
+import * as AgentRuntimePolicy from 'Agent/AgentRuntimePolicy';
 import * as Tools from 'Agent/Tools';
 import { DualLayerStorage } from 'Agent/Memory';
 import { Log, safeJsonDecode, safeJsonEncode, sanitizeUTF8 } from 'Agent/Utils';
 import type { StopToken } from 'Agent/Utils';
 import type { AgentToolName } from 'Agent/AgentToolRegistry';
+import type { AgentWorkMode } from 'Agent/AgentToolRegistry';
+import { validateQuestionnaireAnswers } from 'Agent/AgentQuestionnaire';
+import type { AgentQuestionnaireAnswers, AgentQuestionnaireSchema } from 'Agent/AgentQuestionnaire';
 
-export type AgentSessionStatus = "IDLE" | "RUNNING" | "DONE" | "FAILED" | "STOPPED";
+export type AgentSessionStatus = "IDLE" | "RUNNING" | "WAITING_USER" | "DONE" | "FAILED" | "STOPPED";
 export type AgentSessionKind = "main" | "sub";
 export type AgentMessageRole = "user" | "assistant";
 export type AgentStepStatus = "PENDING" | "RUNNING" | "DONE" | "FAILED" | "STOPPED";
@@ -22,6 +26,7 @@ export interface AgentSessionItem {
 	rootSessionId: number;
 	parentSessionId?: number;
 	memoryScope: string;
+	workMode: AgentWorkMode;
 	status: AgentSessionStatus;
 	currentTaskId?: number;
 	currentTaskStatus?: AgentSessionStatus;
@@ -31,12 +36,23 @@ export interface AgentSessionItem {
 	metrics?: AgentMetricsItem;
 }
 
+export interface AgentQuestionnaireItem {
+	id: number;
+	sessionId: number;
+	taskId: number;
+	step: number;
+	status: "PENDING";
+	schema: AgentQuestionnaireSchema;
+	createdAt: number;
+}
+
 export interface AgentSessionMessageItem {
 	id: number;
 	sessionId: number;
 	taskId?: number;
 	role: AgentMessageRole;
 	content: string;
+	displayContent?: string;
 	createdAt: number;
 	updatedAt: number;
 }
@@ -175,6 +191,8 @@ export type AgentSessionDetailResult = {
 	messages: AgentSessionMessageItem[];
 	steps: AgentSessionStepItem[];
 	checkpoints: Tools.CheckpointItem[];
+	pendingQuestionnaire?: AgentQuestionnaireItem;
+	hasActivePlan: boolean;
 } | {
 	success: false;
 	message: string;
@@ -239,6 +257,8 @@ const TABLE_MESSAGE = "AgentSessionMessage";
 const TABLE_STEP = "AgentSessionStep";
 const TABLE_TASK = "AgentTask";
 const AGENT_SESSION_SCHEMA_VERSION = 2;
+const QUESTIONNAIRE_DIR = ".agent/questionnaire";
+const PENDING_QUESTIONNAIRE_FILE = "pending.json";
 const SPAWN_INFO_FILE = "SPAWN.json";
 const RESULT_FILE = "RESULT.md";
 const PENDING_HANDOFF_DIR = "pending-handoffs";
@@ -597,19 +617,23 @@ function rowToSession(row: unknown[]): AgentSessionItem {
 		createdAt: row[10] as number,
 		updatedAt: row[11] as number,
 		metrics: decodeJsonObject(toStr(row[12])) as AgentMetricsItem | undefined,
+		workMode: toStr(row[13]) === "plan" ? "plan" : "code",
 	};
 }
 
 function rowToMessage(row: unknown[]): AgentSessionMessageItem {
-	return {
+	const message: AgentSessionMessageItem = {
 		id: row[0] as number,
 		sessionId: row[1] as number,
 		taskId: typeof row[2] === "number" && row[2] > 0 ? row[2] : undefined,
 		role: toStr(row[3]) as AgentMessageRole,
 		content: toStr(row[4]),
-		createdAt: row[5] as number,
-		updatedAt: row[6] as number,
+		createdAt: row[6] as number,
+		updatedAt: row[7] as number,
 	};
+	const displayContent = toStr(row[5]);
+	if (displayContent !== "") message.displayContent = displayContent;
+	return message;
 }
 
 function rowToStep(row: unknown[]): AgentSessionStepItem {
@@ -632,9 +656,106 @@ function rowToStep(row: unknown[]): AgentSessionStepItem {
 	};
 }
 
+function getQuestionnairePath(projectRoot: string): string {
+	return Path(projectRoot, QUESTIONNAIRE_DIR, PENDING_QUESTIONNAIRE_FILE);
+}
+
+function decodeQuestionnaireFile(text: string): AgentQuestionnaireItem | undefined {
+	const value = decodeJsonObject(text);
+	if (!value) return undefined;
+	const schema = value.schema as AgentQuestionnaireSchema | undefined;
+	const id = typeof value.id === "number" ? value.id : 0;
+	const sessionId = typeof value.sessionId === "number" ? value.sessionId : 0;
+	const taskId = typeof value.taskId === "number" ? value.taskId : 0;
+	const step = typeof value.step === "number" ? value.step : 0;
+	const createdAt = typeof value.createdAt === "number" ? value.createdAt : 0;
+	if (id <= 0 || sessionId <= 0 || taskId <= 0 || step <= 0 || createdAt <= 0 || !schema || !Array.isArray(schema.questions)) {
+		return undefined;
+	}
+	return { id, sessionId, taskId, step, status: "PENDING", schema, createdAt };
+}
+
+function getPendingQuestionnaire(sessionId: number): AgentQuestionnaireItem | undefined {
+	const session = getSessionItem(sessionId);
+	if (!session || session.kind !== "main") return undefined;
+	const path = getQuestionnairePath(session.projectRoot);
+	if (!Content.exist(path)) return undefined;
+	const questionnaire = decodeQuestionnaireFile(sanitizeUTF8(Content.load(path) as string));
+	return questionnaire?.sessionId === sessionId ? questionnaire : undefined;
+}
+
+function restorePendingQuestionnaireState(session: AgentSessionItem): { session: AgentSessionItem; questionnaire?: AgentQuestionnaireItem } {
+	const questionnaire = getPendingQuestionnaire(session.id);
+	if (!questionnaire) return { session };
+	if (
+		session.workMode !== "plan"
+		|| session.status !== "WAITING_USER"
+		|| session.currentTaskId !== questionnaire.taskId
+		|| session.currentTaskStatus !== "WAITING_USER"
+	) {
+		const t = now();
+		DB.exec(
+			`UPDATE ${TABLE_SESSION}
+			SET work_mode = 'plan', status = 'WAITING_USER', current_task_id = ?, current_task_status = 'WAITING_USER', updated_at = ?
+			WHERE id = ?`,
+			[questionnaire.taskId, t, session.id],
+		);
+		Tools.setTaskStatus(questionnaire.taskId, "WAITING_USER");
+		const restored = getSessionItem(session.id);
+		if (restored) session = restored;
+	}
+	return { session, questionnaire };
+}
+
+function savePendingQuestionnaire(projectRoot: string, questionnaire: AgentQuestionnaireItem): boolean {
+	const dir = Path(projectRoot, QUESTIONNAIRE_DIR);
+	if (!Content.exist(dir) && !Content.mkdir(dir)) return false;
+	const path = getQuestionnairePath(projectRoot);
+	const tempPath = `${path}.tmp`;
+	Content.remove(tempPath);
+	if (!Content.save(tempPath, encodeJson(questionnaire))) return false;
+	if (Content.exist(path)) Content.remove(path);
+	if (Content.move(tempPath, path)) return true;
+	Content.remove(tempPath);
+	return false;
+}
+
+function removePendingQuestionnaire(session: AgentSessionItem): boolean {
+	const path = getQuestionnairePath(session.projectRoot);
+	if (!Content.exist(path)) return true;
+	const questionnaire = decodeQuestionnaireFile(sanitizeUTF8(Content.load(path) as string));
+	if (questionnaire && questionnaire.sessionId !== session.id) return false;
+	return Content.remove(path);
+}
+
+async function publishQuestionnaire(request: {
+	sessionId: number;
+	taskId: number;
+	step: number;
+	schema: AgentQuestionnaireSchema;
+}): Promise<{ success: true; questionnaireId: number } | { success: false; message: string }> {
+	const session = getSessionItem(request.sessionId);
+	if (!session || session.kind !== "main") return { success: false, message: "main session not found" };
+	const pendingPath = getQuestionnairePath(session.projectRoot);
+	if (Content.exist(pendingPath)) return { success: false, message: "project already has a pending questionnaire" };
+	const questionnaire: AgentQuestionnaireItem = {
+		id: request.taskId,
+		sessionId: request.sessionId,
+		taskId: request.taskId,
+		step: request.step,
+		status: "PENDING",
+		schema: request.schema,
+		createdAt: now(),
+	};
+	if (!savePendingQuestionnaire(session.projectRoot, questionnaire)) {
+		return { success: false, message: "failed to publish questionnaire file" };
+	}
+	return { success: true, questionnaireId: questionnaire.id };
+}
+
 function getMessageItem(messageId: number): AgentSessionMessageItem | undefined {
 	const row = queryOne(
-		`SELECT id, session_id, task_id, role, content, created_at, updated_at
+		`SELECT id, session_id, task_id, role, content, display_content, created_at, updated_at
 		FROM ${TABLE_MESSAGE}
 		WHERE id = ?`,
 		[messageId],
@@ -686,9 +807,13 @@ function normalizeDisabledAgentTools(value: unknown): AgentToolName[] {
 	return tools;
 }
 
+function normalizeWorkMode(value: unknown, fallback: AgentWorkMode = "code"): AgentWorkMode {
+	return value === "plan" ? "plan" : (value === "code" ? "code" : fallback);
+}
+
 function getSessionRow(sessionId: number) {
 	return queryOne(
-		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at, metrics_json
+		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at, metrics_json, work_mode
 		FROM ${TABLE_SESSION}
 		WHERE id = ?`,
 		[sessionId],
@@ -709,7 +834,7 @@ function getTaskPrompt(taskId: number): string | undefined {
 function getLatestMainSessionByProjectRoot(projectRoot: string): AgentSessionItem | undefined {
 	if (!isValidProjectRoot(projectRoot)) return undefined;
 	const row = queryOne(
-		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at, metrics_json
+		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at, metrics_json, work_mode
 		FROM ${TABLE_SESSION}
 		WHERE project_root = ? AND kind = 'main'
 		ORDER BY updated_at DESC, id DESC
@@ -721,7 +846,7 @@ function getLatestMainSessionByProjectRoot(projectRoot: string): AgentSessionIte
 
 function countRunningSubSessions(rootSessionId: number): number {
 	const rows = queryRows(
-		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at, metrics_json
+		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at, metrics_json, work_mode
 		FROM ${TABLE_SESSION}
 		WHERE root_session_id = ? AND kind = 'sub'
 		ORDER BY id ASC`,
@@ -750,6 +875,9 @@ function deleteSessionRecords(sessionId: number, preserveArtifacts = false) {
 	DB.exec(`DELETE FROM ${TABLE_STEP} WHERE session_id = ?`, [sessionId]);
 	DB.exec(`DELETE FROM ${TABLE_MESSAGE} WHERE session_id = ?`, [sessionId]);
 	DB.exec(`DELETE FROM ${TABLE_SESSION} WHERE id = ?`, [sessionId]);
+	if (session && session.kind === "main") {
+		removePendingQuestionnaire(session);
+	}
 	if (!preserveArtifacts && session && session.kind === "sub" && session.memoryScope !== "") {
 		Content.remove(Path(session.projectRoot, ".agent", session.memoryScope));
 	}
@@ -769,7 +897,7 @@ function listRelatedSessions(sessionId: number): AgentSessionItem[] {
 	const root = getRootSessionItem(sessionId);
 	if (!root) return [];
 	const rows = queryRows(
-		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at, metrics_json
+		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at, metrics_json, work_mode
 		FROM ${TABLE_SESSION}
 		WHERE id = ? OR root_session_id = ?
 		ORDER BY
@@ -1283,16 +1411,17 @@ function setSessionStateForTaskEvent(sessionId: number, taskId: number | undefin
 	setSessionState(sessionId, status, taskId, currentTaskStatus);
 }
 
-function insertMessage(sessionId: number, role: AgentMessageRole, content: string, taskId?: number): number {
+function insertMessage(sessionId: number, role: AgentMessageRole, content: string, taskId?: number, displayContent?: string): number {
 	const t = now();
 	DB.exec(
-		`INSERT INTO ${TABLE_MESSAGE}(session_id, task_id, role, content, created_at, updated_at)
-		VALUES(?, ?, ?, ?, ?, ?)`,
+		`INSERT INTO ${TABLE_MESSAGE}(session_id, task_id, role, content, display_content, created_at, updated_at)
+		VALUES(?, ?, ?, ?, ?, ?, ?)`,
 		[
 			sessionId,
 			taskId ?? 0,
 			role,
 			sanitizeUTF8(content),
+			displayContent ? sanitizeUTF8(displayContent) : "",
 			t,
 			t,
 		],
@@ -1367,6 +1496,15 @@ function truncatePersistedSessionBeforeLatestUserPrompt(session: AgentSessionIte
 		? persisted.carryMessageIndex
 		: undefined;
 	storage.writeSessionState(messages, lastConsolidatedIndex, carryMessageIndex);
+}
+
+function removeStoppedTaskSummary(session: AgentSessionItem): void {
+	const taskId = session.currentTaskId;
+	if (taskId === undefined) return;
+	DB.exec(
+		`DELETE FROM ${TABLE_MESSAGE} WHERE session_id = ? AND task_id = ? AND role = ?`,
+		[session.id, taskId, "assistant"],
+	);
 }
 
 function upsertAssistantMessage(sessionId: number, taskId: number, content: string): number {
@@ -1588,7 +1726,7 @@ function flushPendingSubAgentHandoffs(rootSession: AgentSessionItem): void {
 	) {
 		handoffTaskId = rootSession.currentTaskId;
 	} else {
-		const taskRes = Tools.createTask(`[sub_agent_handoff] ${tostring(items.length)} item(s)`);
+		const taskRes = Tools.createTask(`[sub_agent_handoff] ${tostring(items.length)} item(s)`, "code");
 		if (!taskRes.success) {
 			Log("Warn", `[AgentSession] failed to create sub-agent handoff task for root=${rootSession.id}: ${taskRes.message}`);
 			return;
@@ -1659,9 +1797,13 @@ function applyEvent(sessionId: number, event: AgentRuntimeEvent) {
 		case "task_started":
 			setSessionStateForTaskEvent(sessionId, event.taskId, "RUNNING", "RUNNING");
 			const metrics = clearSessionTokenUsage(sessionId);
+			const startedSession = getSessionItem(sessionId);
 			emitAgentSessionPatch(sessionId, {
-				session: getSessionItem(sessionId),
+				session: startedSession,
 				metrics,
+				hasActivePlan: startedSession !== undefined
+					&& Content.exist(Path(startedSession.projectRoot, AgentRuntimePolicy.AGENT_PLAN_FILE))
+					&& Content.exist(Path(startedSession.projectRoot, AgentRuntimePolicy.AGENT_PROGRESS_FILE)),
 			});
 			break;
 		case "decision_made":
@@ -1669,7 +1811,9 @@ function applyEvent(sessionId: number, event: AgentRuntimeEvent) {
 				status: "PENDING",
 				reason: event.reason,
 				reasoningContent: event.reasoningContent,
-				params: event.params,
+				// The full ask_user schema lives only in the temporary questionnaire
+				// file and the agent's active context, not in the session database.
+				params: event.tool === "ask_user" ? { storage: PENDING_QUESTIONNAIRE_FILE } : event.params,
 			});
 			emitAgentSessionPatch(sessionId, {
 				step: getStepItem(sessionId, event.taskId, event.step),
@@ -1683,9 +1827,14 @@ function applyEvent(sessionId: number, event: AgentRuntimeEvent) {
 				step: getStepItem(sessionId, event.taskId, event.step),
 			});
 			break;
-		case "tool_finished":
+		case "tool_finished": {
+			const stopped = event.result.success !== true
+				&& activeStopTokens[event.taskId]?.stopped === true;
 			upsertStep(sessionId, event.taskId, event.step, event.tool, {
-				status: event.result.success === true ? "DONE" : "FAILED",
+				// A tool returning success=false is still a completed observation for the
+				// agent (for example, a compiler diagnostic it can act on). Reserve the
+				// step status for lifecycle state; keep the outcome in result.success.
+				status: stopped ? "STOPPED" : "DONE",
 				reason: event.reason,
 				result: event.result,
 			});
@@ -1693,6 +1842,7 @@ function applyEvent(sessionId: number, event: AgentRuntimeEvent) {
 				step: getStepItem(sessionId, event.taskId, event.step),
 			});
 			break;
+		}
 		case "tool_progress":
 			{
 				const currentStep = getStepItem(sessionId, event.taskId, event.step);
@@ -1757,8 +1907,22 @@ function applyEvent(sessionId: number, event: AgentRuntimeEvent) {
 			});
 			break;
 		}
+		case "task_waiting_for_user": {
+			setSessionStateForTaskEvent(sessionId, event.taskId, "WAITING_USER", "WAITING_USER");
+			delete activeStopTokens[event.taskId];
+			emitAgentSessionPatch(sessionId, {
+				session: getSessionItem(sessionId),
+				pendingQuestionnaire: getPendingQuestionnaire(sessionId),
+			});
+			break;
+		}
 		case "task_finished": {
 			const session = getSessionItem(sessionId);
+			if (session && event.taskId !== undefined && session.currentTaskId !== event.taskId) {
+				delete activeStopTokens[event.taskId];
+				Log("Info", `[AgentSession] ignore stale task finish session=${sessionId} eventTask=${event.taskId} currentTask=${tostring(session.currentTaskId)}`);
+				break;
+			}
 			const stopped = activeStopTokens[event.taskId ?? -1]?.stopped === true
 				|| (session !== undefined && session.currentTaskId === event.taskId && session.currentTaskStatus === "STOPPED");
 			const finalStatus: AgentSessionStatus = event.success
@@ -1823,9 +1987,22 @@ function ensureSessionMetricsColumn() {
 	}
 }
 
+function ensureSessionWorkModeColumn() {
+	if (!hasTableColumn(TABLE_SESSION, "work_mode")) {
+		DB.exec(`ALTER TABLE ${TABLE_SESSION} ADD COLUMN work_mode TEXT NOT NULL DEFAULT 'code';`);
+	}
+}
+
+function ensureMessageDisplayContentColumn() {
+	if (!hasTableColumn(TABLE_MESSAGE, "display_content")) {
+		DB.exec(`ALTER TABLE ${TABLE_MESSAGE} ADD COLUMN display_content TEXT NOT NULL DEFAULT '';`);
+	}
+}
+
 function recreateSchema() {
 	DB.exec(`DROP TABLE IF EXISTS ${TABLE_STEP};`);
 	DB.exec(`DROP TABLE IF EXISTS ${TABLE_MESSAGE};`);
+	DB.exec(`DROP TABLE IF EXISTS AgentQuestionnaire;`);
 	DB.exec(`DROP TABLE IF EXISTS ${TABLE_SESSION};`);
 	DB.exec(`CREATE TABLE IF NOT EXISTS ${TABLE_SESSION}(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -1840,7 +2017,8 @@ function recreateSchema() {
 			current_task_status TEXT NOT NULL DEFAULT 'IDLE',
 			created_at INTEGER NOT NULL,
 			updated_at INTEGER NOT NULL,
-			metrics_json TEXT NOT NULL DEFAULT ''
+			metrics_json TEXT NOT NULL DEFAULT '',
+			work_mode TEXT NOT NULL DEFAULT 'code'
 		);`);
 	DB.exec(`CREATE INDEX IF NOT EXISTS idx_agent_session_project_root ON ${TABLE_SESSION}(project_root, updated_at DESC);`);
 	DB.exec(`CREATE TABLE IF NOT EXISTS ${TABLE_MESSAGE}(
@@ -1849,6 +2027,7 @@ function recreateSchema() {
 		task_id INTEGER,
 		role TEXT NOT NULL,
 		content TEXT NOT NULL DEFAULT '',
+		display_content TEXT NOT NULL DEFAULT '',
 		created_at INTEGER NOT NULL,
 		updated_at INTEGER NOT NULL
 	);`);
@@ -1893,9 +2072,11 @@ function recreateSchema() {
 			current_task_status TEXT NOT NULL DEFAULT 'IDLE',
 			created_at INTEGER NOT NULL,
 			updated_at INTEGER NOT NULL,
-			metrics_json TEXT NOT NULL DEFAULT ''
+			metrics_json TEXT NOT NULL DEFAULT '',
+			work_mode TEXT NOT NULL DEFAULT 'code'
 		);`);
 		ensureSessionMetricsColumn();
+		ensureSessionWorkModeColumn();
 		DB.exec(`CREATE INDEX IF NOT EXISTS idx_agent_session_project_root ON ${TABLE_SESSION}(project_root, updated_at DESC);`);
 		DB.exec(`CREATE TABLE IF NOT EXISTS ${TABLE_MESSAGE}(
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -1903,9 +2084,11 @@ function recreateSchema() {
 			task_id INTEGER,
 			role TEXT NOT NULL,
 			content TEXT NOT NULL DEFAULT '',
+			display_content TEXT NOT NULL DEFAULT '',
 			created_at INTEGER NOT NULL,
 			updated_at INTEGER NOT NULL
 		);`);
+		ensureMessageDisplayContentColumn();
 		DB.exec(`CREATE INDEX IF NOT EXISTS idx_agent_session_message_sid_id ON ${TABLE_MESSAGE}(session_id, id);`);
 		DB.exec(`CREATE TABLE IF NOT EXISTS ${TABLE_STEP}(
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -1927,6 +2110,9 @@ function recreateSchema() {
 		DB.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_agent_session_step_unique ON ${TABLE_STEP}(session_id, task_id, step);`);
 		DB.exec(`CREATE INDEX IF NOT EXISTS idx_agent_session_step_sid_task_step ON ${TABLE_STEP}(session_id, task_id, step);`);
 	}
+	// Questionnaire state is intentionally ephemeral and file-backed. Remove the
+	// legacy table after upgrading from builds that briefly persisted it in DB.
+	DB.exec(`DROP TABLE IF EXISTS AgentQuestionnaire;`);
 }
 
 export function createSession(projectRoot: string, title = "") {
@@ -1934,7 +2120,7 @@ export function createSession(projectRoot: string, title = "") {
 		return { success: false as const, message: "invalid projectRoot" };
 	}
 	const row = queryOne(
-		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at, metrics_json
+		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at, metrics_json, work_mode
 		FROM ${TABLE_SESSION}
 		WHERE project_root = ? AND kind = 'main'
 		ORDER BY updated_at DESC, id DESC
@@ -1942,7 +2128,7 @@ export function createSession(projectRoot: string, title = "") {
 		[projectRoot],
 	);
 	if (row) {
-		return { success: true as const, session: rowToSession(row) };
+		return { success: true as const, session: restorePendingQuestionnaireState(rowToSession(row)).session };
 	}
 	const t = now();
 	DB.exec(
@@ -2108,11 +2294,12 @@ export function getSession(sessionId: number): AgentSessionDetailResult {
 	if (!session) {
 		return { success: false, message: "session not found" };
 	}
-	const normalizedSession = normalizeSessionRuntimeState(session);
+	const restored = restorePendingQuestionnaireState(session);
+	const normalizedSession = normalizeSessionRuntimeState(restored.session);
 	const relatedSessions = listRelatedSessions(sessionId);
 	sanitizeStoredSteps(sessionId);
 	const messages = queryRows(
-		`SELECT id, session_id, task_id, role, content, created_at, updated_at
+		`SELECT id, session_id, task_id, role, content, display_content, created_at, updated_at
 		FROM ${TABLE_MESSAGE}
 		WHERE session_id = ?
 		ORDER BY id ASC`,
@@ -2134,7 +2321,30 @@ export function getSession(sessionId: number): AgentSessionDetailResult {
 		messages: messages.map(row => rowToMessage(row)),
 		steps: steps.map(row => rowToStep(row)),
 		checkpoints: normalizedSession.currentTaskId ? Tools.listCheckpoints(normalizedSession.currentTaskId) : [],
+		pendingQuestionnaire: restored.questionnaire,
+		hasActivePlan: Content.exist(Path(normalizedSession.projectRoot, AgentRuntimePolicy.AGENT_PLAN_FILE))
+			&& Content.exist(Path(normalizedSession.projectRoot, AgentRuntimePolicy.AGENT_PROGRESS_FILE)),
 	};
+}
+
+export function setWorkMode(sessionId: number, workMode: unknown) {
+	const session = getSessionItem(sessionId);
+	if (!session) return { success: false as const, message: "session not found" };
+	if (session.kind !== "main") return { success: false as const, message: "Plan mode is only available for main sessions" };
+	if (workMode !== "code" && workMode !== "plan") return { success: false as const, message: "invalid work mode" };
+	const normalizedSession = normalizeSessionRuntimeState(session);
+	if (normalizedSession.currentTaskStatus === "RUNNING" || normalizedSession.currentTaskStatus === "WAITING_USER") {
+		return { success: false as const, message: "work mode cannot change while the session is running or waiting for user feedback" };
+	}
+	if (getPendingQuestionnaire(sessionId)) {
+		return { success: false as const, message: "complete the pending questionnaire before changing work mode" };
+	}
+	if (normalizedSession.workMode !== workMode) {
+		DB.exec(`UPDATE ${TABLE_SESSION} SET work_mode = ?, updated_at = ? WHERE id = ?`, [workMode, now(), sessionId]);
+	}
+	const updated = getSessionItem(sessionId);
+	emitAgentSessionPatch(sessionId, { session: updated });
+	return { success: true as const, session: updated ?? { ...normalizedSession, workMode } };
 }
 
 function appendSubAgentHandoffStep(session: AgentSessionItem, taskId: number, result: SubAgentResultRecord, summary: string): void {
@@ -2303,11 +2513,12 @@ function stopClearedSubSession(session: AgentSessionItem, taskId: number): { suc
 	return { success: true };
 }
 
-export function sendPrompt(sessionId: number, prompt: string, allowSubSessionStart = false, disabledAgentTools?: unknown): AgentSessionSendResult {
+export function sendPrompt(sessionId: number, prompt: string, allowSubSessionStart = false, disabledAgentTools?: unknown, workMode?: unknown): AgentSessionSendResult {
 	const session = getSessionItem(sessionId);
 	if (!session) {
 		return { success: false, message: "session not found" };
 	}
+	if (getPendingQuestionnaire(sessionId)) return { success: false, message: "complete the pending questionnaire before sending another prompt" };
 	if (session.currentTaskFinalizing === true || (session.currentTaskId !== undefined && finalizingSubSessionTaskIds[session.currentTaskId] === true)) {
 		return { success: false, message: "session task is finalizing" };
 	}
@@ -2331,12 +2542,42 @@ export function sendPrompt(sessionId: number, prompt: string, allowSubSessionSta
 	if (normalizedPrompt === "") {
 		return { success: false, message: "prompt is empty" };
 	}
-	return startPromptTask(session, normalizedPrompt, undefined, normalizeDisabledAgentTools(disabledAgentTools));
+	const nextWorkMode = session.kind === "main" ? normalizeWorkMode(workMode, session.workMode) : "code";
+	if (session.workMode !== nextWorkMode) {
+		DB.exec(`UPDATE ${TABLE_SESSION} SET work_mode = ?, updated_at = ? WHERE id = ?`, [nextWorkMode, now(), session.id]);
+		session.workMode = nextWorkMode;
+	}
+	return startPromptTask(session, normalizedPrompt, undefined, normalizeDisabledAgentTools(disabledAgentTools), { workMode: nextWorkMode });
+}
+
+export function continuePrompt(sessionId: number, disabledAgentTools?: unknown): AgentSessionSendResult {
+	const session = getSessionItem(sessionId);
+	if (!session) {
+		return { success: false, message: "session not found" };
+	}
+	if (getPendingQuestionnaire(sessionId)) return { success: false, message: "complete the pending questionnaire before continuing" };
+	if (session.currentTaskFinalizing === true || (session.currentTaskId !== undefined && finalizingSubSessionTaskIds[session.currentTaskId] === true)) {
+		return { success: false, message: "session task is finalizing" };
+	}
+	if (session.currentTaskStatus !== "FAILED" && session.currentTaskStatus !== "STOPPED") {
+		return { success: false, message: "session task is not continuable" };
+	}
+	return startPromptTask(
+		session,
+		"",
+		undefined,
+		normalizeDisabledAgentTools(disabledAgentTools),
+		{ workMode: session.workMode, persistUserMessage: false, resumeConversation: true },
+	);
 }
 
 interface PromptTaskOptions {
 	maxSteps?: number;
 	forceSubAgentHandoff?: boolean;
+	workMode?: AgentWorkMode;
+	displayContent?: string;
+	persistUserMessage?: boolean;
+	resumeConversation?: boolean;
 }
 
 function startPromptTask(
@@ -2346,22 +2587,27 @@ function startPromptTask(
 	disabledAgentTools: AgentToolName[] = [],
 	options?: PromptTaskOptions
 ): AgentSessionSendResult {
-	const taskRes = Tools.createTask(normalizedPrompt);
+	const taskWorkMode = session.kind === "main" ? (options?.workMode ?? session.workMode) : "code";
+	const taskRes = Tools.createTask(normalizedPrompt, taskWorkMode);
 	if (!taskRes.success) {
 		return { success: false, message: taskRes.message };
+	}
+	if (session.currentTaskStatus === "STOPPED") {
+		removeStoppedTaskSummary(session);
 	}
 	const taskId = taskRes.taskId;
 	const useChineseResponse = getDefaultUseChineseResponse();
 	if (existingUserMessageId !== undefined) {
 		updateUserMessageForTask(existingUserMessageId, normalizedPrompt, taskId);
-	} else {
-		insertMessage(session.id, "user", normalizedPrompt, taskId);
+	} else if (options?.persistUserMessage !== false) {
+		insertMessage(session.id, "user", normalizedPrompt, taskId, options?.displayContent);
 	}
 	const stopToken: StopToken = { stopped: false };
 	activeStopTokens[taskId] = stopToken;
 	setSessionState(session.id, "RUNNING", taskId, "RUNNING");
 	runCodingAgent({
 		prompt: normalizedPrompt,
+		resumeConversation: options?.resumeConversation,
 		workDir: session.projectRoot,
 		useChineseResponse,
 		taskId,
@@ -2370,12 +2616,14 @@ function startPromptTask(
 		role: session.kind,
 		maxSteps: options?.maxSteps,
 		disabledAgentTools,
+		workMode: session.kind === "main" ? (options?.workMode ?? session.workMode) : "code",
 		spawnSubAgent: session.kind === "main"
 			? spawnSubAgentSession
 			: undefined,
 		listSubAgents: session.kind === "main"
 			? listRunningSubAgents
 			: undefined,
+		publishQuestionnaire: session.kind === "main" ? publishQuestionnaire : undefined,
 		stopToken,
 		onEvent: event => applyEvent(session.id, event),
 	}, async (result: CodingAgentRunResult) => {
@@ -2421,7 +2669,12 @@ function startPromptTask(
 			delete activeStopTokens[taskId];
 			delete finalizingSubSessionTaskIds[taskId];
 		}
-		if (!result.success && (!nextSession || nextSession.kind !== "sub")) {
+		const fallbackSession = getSessionItem(session.id);
+		if (!result.success
+			&& (!nextSession || nextSession.kind !== "sub")
+			&& fallbackSession !== undefined
+			&& fallbackSession.currentTaskId === result.taskId
+			&& fallbackSession.currentTaskStatus === "RUNNING") {
 			applyEvent(session.id, {
 				type: "task_finished",
 				sessionId: session.id,
@@ -2467,11 +2720,12 @@ export function finishSubSessionHandoff(sessionId: number): AgentSessionSendResu
 	});
 }
 
-export function resendPrompt(sessionId: number, messageId: number, prompt: string, disabledAgentTools?: unknown): AgentSessionResendResult {
+export function resendPrompt(sessionId: number, messageId: number, prompt: string, disabledAgentTools?: unknown, workMode?: unknown): AgentSessionResendResult {
 	const session = getSessionItem(sessionId);
 	if (!session) {
 		return { success: false, message: "session not found" };
 	}
+	if (getPendingQuestionnaire(sessionId)) return { success: false, message: "complete the pending questionnaire before resending a prompt" };
 	if (session.currentTaskFinalizing === true || (session.currentTaskId !== undefined && finalizingSubSessionTaskIds[session.currentTaskId] === true)) {
 		return { success: false, message: "session task is finalizing" };
 	}
@@ -2496,12 +2750,117 @@ export function resendPrompt(sessionId: number, messageId: number, prompt: strin
 	if (normalizedPrompt === "") {
 		return { success: false, message: "prompt is empty" };
 	}
+	const nextWorkMode = session.kind === "main" ? normalizeWorkMode(workMode, session.workMode) : "code";
+	if (session.workMode !== nextWorkMode) {
+		DB.exec(`UPDATE ${TABLE_SESSION} SET work_mode = ?, updated_at = ? WHERE id = ?`, [nextWorkMode, now(), session.id]);
+		session.workMode = nextWorkMode;
+	}
 	const removedStepIds = clearSessionAfterMessage(sessionId, message);
 	truncatePersistedSessionBeforeLatestUserPrompt(session);
-	const result = startPromptTask(session, normalizedPrompt, messageId, normalizeDisabledAgentTools(disabledAgentTools));
+	const result = startPromptTask(session, normalizedPrompt, messageId, normalizeDisabledAgentTools(disabledAgentTools), { workMode: nextWorkMode });
 	if (result.success && removedStepIds.length > 0) {
 		emitAgentSessionPatch(sessionId, { removedStepIds });
 	}
+	return result;
+}
+
+function buildQuestionnaireFeedbackPrompt(questionnaire: AgentQuestionnaireItem, answers: AgentQuestionnaireAnswers): string {
+	const lines = [
+		"用户已完成 Plan 模式调查问卷。请把反馈合并到固定的 .agent/plan/PLAN.md 与 .agent/plan/PROGRESS.md，继续细化方案；如仍有必要，可再次使用 ask_user。",
+		"",
+		`问卷：${questionnaire.schema.title}`,
+	];
+	for (let i = 0; i < questionnaire.schema.questions.length; i++) {
+		const question = questionnaire.schema.questions[i];
+		const answer = answers.find(item => item.questionId === question.id);
+		if (!answer || answer.status === "skipped") {
+			lines.push(`- ${question.prompt}\n  状态：已跳过`);
+			continue;
+		}
+		const parts = [
+			...(answer.selectedOptionIds ?? []),
+			...(answer.otherText ? [answer.otherText] : []),
+			...(answer.text ? [answer.text] : []),
+		];
+		lines.push(`- ${question.prompt}\n  回答：${parts.join(", ")}`);
+	}
+	lines.push("", "<questionnaire_answers>", encodeJson({ questionnaireId: questionnaire.id, answers }), "</questionnaire_answers>");
+	return lines.join("\n");
+}
+
+function buildQuestionnaireFeedbackDisplay(questionnaire: AgentQuestionnaireItem, answers: AgentQuestionnaireAnswers): string {
+	const lines: string[] = [];
+	for (let i = 0; i < questionnaire.schema.questions.length; i++) {
+		const question = questionnaire.schema.questions[i];
+		const answer = answers.find(item => item.questionId === question.id);
+		let answerText = "已跳过";
+		if (answer && answer.status === "answered") {
+			const parts: string[] = [];
+			for (let j = 0; j < (answer.selectedOptionIds ?? []).length; j++) {
+				const optionId = (answer.selectedOptionIds ?? [])[j];
+				const option = (question.options ?? []).find(item => item.id === optionId);
+				if (option) parts.push(option.label);
+			}
+			if (answer.otherText) parts.push(answer.otherText);
+			if (answer.text) parts.push(answer.text);
+			answerText = parts.length > 0 ? parts.join("、") : "未填写";
+		}
+		lines.push(`${question.prompt}\n${answerText}`);
+	}
+	return lines.join("\n\n");
+}
+
+export function cancelQuestionnaire(sessionId: number, questionnaireId: number) {
+	const session = getSessionItem(sessionId);
+	if (!session) return { success: false as const, message: "session not found" };
+	if (session.kind !== "main") return { success: false as const, message: "questionnaires are only available for main sessions" };
+	const questionnaire = getPendingQuestionnaire(sessionId);
+	if (!questionnaire || questionnaire.id !== questionnaireId) {
+		return { success: false as const, message: "pending questionnaire not found or already handled" };
+	}
+	if (!removePendingQuestionnaire(session)) return { success: false as const, message: "failed to remove questionnaire file" };
+	Tools.setTaskStatus(questionnaire.taskId, "STOPPED");
+	finalizeTaskSteps(session.id, questionnaire.taskId, undefined, "STOPPED");
+	setSessionState(session.id, "STOPPED", questionnaire.taskId, "STOPPED");
+	const updated = getSessionItem(session.id);
+	emitAgentSessionPatch(session.id, {
+		session: updated,
+		pendingQuestionnaire: false,
+	});
+	return { success: true as const, session: updated };
+}
+
+export function respondQuestionnaire(sessionId: number, questionnaireId: number, answers: unknown): AgentSessionSendResult {
+	const session = getSessionItem(sessionId);
+	if (!session) return { success: false, message: "session not found" };
+	if (session.kind !== "main") return { success: false, message: "questionnaires are only available for main sessions" };
+	const questionnaire = getPendingQuestionnaire(sessionId);
+	if (!questionnaire || questionnaire.id !== questionnaireId) return { success: false, message: "pending questionnaire not found" };
+	const validated = validateQuestionnaireAnswers(questionnaire.schema, answers);
+	if (!validated.success) return validated;
+	const t = now();
+	if (!removePendingQuestionnaire(session)) return { success: false, message: "failed to consume questionnaire file" };
+	Tools.setTaskStatus(questionnaire.taskId, "DONE");
+	DB.exec(`UPDATE ${TABLE_SESSION} SET work_mode = 'plan', updated_at = ? WHERE id = ?`, [t, sessionId]);
+	session.workMode = "plan";
+	const result = startPromptTask(session, buildQuestionnaireFeedbackPrompt(questionnaire, validated.answers), undefined, [], {
+		workMode: "plan",
+		displayContent: buildQuestionnaireFeedbackDisplay(questionnaire, validated.answers),
+	});
+	if (!result.success) {
+		savePendingQuestionnaire(session.projectRoot, questionnaire);
+		Tools.setTaskStatus(questionnaire.taskId, "WAITING_USER");
+		setSessionState(session.id, "WAITING_USER", questionnaire.taskId, "WAITING_USER");
+		emitAgentSessionPatch(session.id, {
+			session: getSessionItem(session.id),
+			pendingQuestionnaire: questionnaire,
+		});
+		return result;
+	}
+	emitAgentSessionPatch(sessionId, {
+		session: getSessionItem(sessionId),
+		pendingQuestionnaire: false,
+	});
 	return result;
 }
 
@@ -2538,7 +2897,7 @@ export function getCurrentTaskId(sessionId: number): number | undefined {
 
 export function listRunningSessions(): AgentRunningSessionListResult {
 	const rows = queryRows(
-		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at, metrics_json
+		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at, metrics_json, work_mode
 		FROM ${TABLE_SESSION}
 		WHERE current_task_status = ?
 		ORDER BY updated_at DESC, id DESC`,
@@ -2582,7 +2941,7 @@ export async function listRunningSubAgents(request: {
 	const offset = math.max(0, math.floor(tonumber(request.offset) || 0));
 	const query = sanitizeUTF8(toStr(request.query)).trim();
 	const rows = queryRows(
-		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at, metrics_json
+		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at, metrics_json, work_mode
 		FROM ${TABLE_SESSION}
 		WHERE root_session_id = ? AND kind = 'sub'
 		ORDER BY id ASC`,

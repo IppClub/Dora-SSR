@@ -17,6 +17,7 @@ interface Skill extends SkillMetadata {
 export interface SkillsLoaderConfig {
 	projectDir: string;
 	disabledAgentTools?: string[];
+	allowedAgentTools?: string[];
 }
 
 enum SkillPriority {
@@ -463,10 +464,12 @@ export class SkillsLoader {
 			return true;
 		}
 		const disabledTools = this.config.disabledAgentTools ?? [];
+		const allowedTools = this.config.allowedAgentTools;
 		for (const tool of requiredTools) {
 			if (disabledTools.indexOf(tool) >= 0) {
 				return false;
 			}
+			if (allowedTools !== undefined && allowedTools.indexOf(tool) < 0) return false;
 		}
 		return true;
 	}
