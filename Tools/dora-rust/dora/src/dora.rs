@@ -64,7 +64,7 @@ pub use point_light_3d::PointLight3D;
 mod view_3d;
 pub use view_3d::{IView3D, View3D};
 mod body_3d;
-pub use body_3d::Body3D;
+pub use body_3d::{Body3D, IBody3D};
 mod body_def_3d;
 pub use body_def_3d::BodyDef3D;
 mod character_controller_3d;
@@ -212,6 +212,7 @@ thread_local! {
             Action::type_info(),
             Node::type_info(),
             Node3D::type_info(),
+            Surface3D::type_info(),
             Model3D::type_info(),
             Material3D::type_info(),
             DirectionalLight3D::type_info(),
