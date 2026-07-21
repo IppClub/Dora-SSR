@@ -119,6 +119,13 @@ Use Dora runtime modules, not browser packages:
 - Do not use browser-style top-left coordinates unless explicitly converting from that space.
 - For game screen adaptation, read `ts/adapting-to-screen.md` directly before designing responsive layout behavior.
 
+### Parent and child local coordinates
+
+- For a parent node with nonzero `width` and `height`, `anchor` selects which point of the parent's own rectangle is placed at the parent's `position`. It does not move the local origin used by the parent's children.
+- A child is positioned in the parent's rectangular local space, whose `(0, 0)` is the rectangle's bottom-left corner. Even with the default `anchor = Vec2(0.5, 0.5)`, a child at `Vec2.zero` is at that bottom-left corner, not at the parent's center.
+- To center a child in the parent rectangle, place it at `Vec2(parent.width / 2, parent.height / 2)`.
+- To align a child with the parent's anchor point, place it at `Vec2(parent.width * parent.anchor.x, parent.height * parent.anchor.y)`.
+
 ### Input coordinate and enum baseline
 
 These names come directly from the built-in `Dora.d.ts`; do not spend a search step rediscovering them:
@@ -253,6 +260,7 @@ For a playable game, `build` success and `running=true` are necessary but not su
 - Each node has at most one intended scheduled callback; validation probes do not replace the game loop.
 - Rendering nodes are attached to `Director.entry` or an existing Dora node.
 - Direct `Director.entry`/`Director.ui` coordinates use screen-center origin with positive X right and positive Y up.
+- Children of sized parent nodes use the parent rectangle's bottom-left local origin; the parent's `anchor` is not the children's coordinate origin.
 - Input uses Dora input APIs and correct `KeyName` enums.
 - Build/transpile was run when possible and per-file messages were checked.
 - The actual game entry was launched; initial and post-input frames were visually checked, or visual validation was explicitly reported as not run.

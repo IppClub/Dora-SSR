@@ -868,6 +868,25 @@ function utf8TakeHead(text: string, maxChars: number): string {
 	return string.sub(text, 1, nextPos - 1);
 }
 
+function utf8TakeTail(text: string, maxChars: number): string {
+	if (maxChars <= 0 || text === "") return "";
+	const [charLength] = utf8.len(text);
+	if (charLength === undefined || charLength <= maxChars) return text;
+	const startPos = utf8.offset(text, math.max(1, charLength - maxChars + 1));
+	if (startPos === undefined) return text;
+	return string.sub(text, startPos);
+}
+
+function truncateHistoryText(text: string, maxChars: number, label: string): string {
+	if (maxChars <= 0 || text === "") return "";
+	if (text.length <= maxChars) return text;
+	const marker = `\n...[${label} truncated; ${text.length} chars total]...\n`;
+	const remaining = math.max(0, maxChars - marker.length);
+	const headChars = math.floor(remaining * 0.6);
+	const tailChars = remaining - headChars;
+	return `${utf8TakeHead(text, headChars)}${marker}${utf8TakeTail(text, tailChars)}`;
+}
+
 function getReplyLanguageDirective(shared: AgentShared): string {
 	return shared.useChineseResponse
 		? shared.promptPack.replyLanguageDirectiveZh
@@ -882,23 +901,75 @@ function replacePromptVars(template: string, vars: Record<string, string>): stri
 	return output;
 }
 
-function limitReadContentForHistory(content: string, tool: "read_file"): string {
-	const lines = content.split("\n");
-	const overLineLimit = lines.length > AgentConfig.AGENT_LIMITS.historyReadFileMaxLines;
-	const limitedByLines = overLineLimit
-		? lines.slice(0, AgentConfig.AGENT_LIMITS.historyReadFileMaxLines).join("\n")
-		: content;
-	if (limitedByLines.length <= AgentConfig.AGENT_LIMITS.historyReadFileMaxChars && !overLineLimit) {
-		return content;
+function limitReadContentForHistory(
+	content: string,
+	startLine: number,
+	endLine: number,
+	totalLines: number,
+	maxChars: number,
+	maxLines: number,
+	label: string
+): {
+	content: string;
+	truncated: boolean;
+	retainedStartLine: number;
+	retainedEndLine: number;
+	nextStartLine?: number;
+	partialLine?: number;
+} {
+	const sourceLineCount = endLine >= startLine ? endLine - startLine + 1 : 0;
+	const contentLines = content.split("\n");
+	const availableSourceLines = math.min(sourceLineCount, contentLines.length);
+	if (content.length <= maxChars && availableSourceLines <= maxLines) {
+		return {
+			content,
+			truncated: false,
+			retainedStartLine: startLine,
+			retainedEndLine: endLine,
+		};
 	}
-	const limited = limitedByLines.length > AgentConfig.AGENT_LIMITS.historyReadFileMaxChars
-		? utf8TakeHead(limitedByLines, AgentConfig.AGENT_LIMITS.historyReadFileMaxChars)
-		: limitedByLines;
-	const reasons: string[] = [];
-	if (content.length > AgentConfig.AGENT_LIMITS.historyReadFileMaxChars) reasons.push(`${content.length} chars`);
-	if (lines.length > AgentConfig.AGENT_LIMITS.historyReadFileMaxLines) reasons.push(`${lines.length} lines`);
-	const hint = "Narrow the requested line range.";
-	return `[${tool} content truncated for history (${reasons.join(", ")}). ${hint}]\n${limited}`;
+
+	// Reserve room for an explicit continuation marker, then retain only whole
+	// source lines. The read_file footer is intentionally excluded from the
+	// source-line count and replaced with an accurate history marker.
+	const contentBudget = math.max(0, maxChars - 240);
+	const candidateLines = math.min(availableSourceLines, maxLines);
+	const retainedLines: string[] = [];
+	let retainedChars = 0;
+	for (let i = 0; i < candidateLines; i++) {
+		const line = contentLines[i];
+		const nextChars = retainedChars + line.length + (retainedLines.length > 0 ? 1 : 0);
+		if (nextChars > contentBudget) break;
+		retainedLines.push(line);
+		retainedChars = nextChars;
+	}
+
+	let retainedEndLine = startLine + retainedLines.length - 1;
+	let partialLine: number | undefined;
+	let retainedContent = retainedLines.join("\n");
+	if (retainedLines.length === 0 && candidateLines > 0) {
+		partialLine = startLine;
+		retainedEndLine = startLine - 1;
+		retainedContent = utf8TakeHead(contentLines[0], contentBudget);
+	}
+	const nextStartLine = retainedEndLine < endLine ? retainedEndLine + 1 : undefined;
+	const retainedRange = retainedLines.length > 0
+		? `complete lines ${startLine}-${retainedEndLine}`
+		: partialLine !== undefined
+			? `a partial preview of overlong line ${partialLine}`
+			: "no source lines";
+	const continuation = nextStartLine !== undefined
+		? ` Use read_file with startLine=${nextStartLine} and a narrower endLine to continue.`
+		: "";
+	const marker = `[${label} retained ${retainedRange} of requested lines ${startLine}-${endLine} (${totalLines} lines total).${continuation}]`;
+	return {
+		content: retainedContent === "" ? marker : `${retainedContent}\n\n${marker}`,
+		truncated: true,
+		retainedStartLine: startLine,
+		retainedEndLine,
+		nextStartLine,
+		partialLine,
+	};
 }
 
 function summarizeEditTextParamForHistory(value: unknown, key: "old_str" | "new_str"): Record<string, unknown> | undefined {
@@ -921,7 +992,26 @@ function sanitizeReadResultForHistory(tool: AgentToolName, result: Record<string
 	for (const key in result) {
 		clone[key] = result[key];
 	}
-	clone.content = limitReadContentForHistory(result.content, tool);
+	const startLine = typeof result.startLine === "number" ? result.startLine : 1;
+	const endLine = typeof result.endLine === "number" ? result.endLine : startLine;
+	const totalLines = typeof result.totalLines === "number" ? result.totalLines : endLine;
+	const limited = limitReadContentForHistory(
+		result.content,
+		startLine,
+		endLine,
+		totalLines,
+		AgentConfig.AGENT_LIMITS.historyReadFileMaxChars,
+		AgentConfig.AGENT_LIMITS.historyReadFileMaxLines,
+		"read_file history"
+	);
+	clone.content = limited.content;
+	if (limited.truncated) {
+		clone.historyContentTruncated = true;
+		clone.historyRetainedStartLine = limited.retainedStartLine;
+		clone.historyRetainedEndLine = limited.retainedEndLine;
+		if (limited.nextStartLine !== undefined) clone.historyNextStartLine = limited.nextStartLine;
+		if (limited.partialLine !== undefined) clone.historyPartialLine = limited.partialLine;
+	}
 	return clone;
 }
 
@@ -1034,6 +1124,180 @@ function sanitizeActionParamsForHistory(tool: AgentToolName, params: Record<stri
 		}
 	}
 	return clone;
+}
+
+function projectEditResultForLLM(result: Record<string, unknown>): Record<string, unknown> {
+	if (result.success !== true) {
+		const failed: Record<string, unknown> = {};
+		for (const key in result) {
+			const value = result[key];
+			failed[key] = typeof value === "string"
+				? truncateHistoryText(value, AgentConfig.AGENT_LIMITS.llmHistoryEditResultMessageMaxChars, key)
+				: value;
+		}
+		return failed;
+	}
+	const projected: Record<string, unknown> = {};
+	const scalarKeys = [
+		"success", "changed", "mode", "checkpointId", "checkpointSeq",
+		"actualSaved", "actualSavedCharacters", "currentFileExists", "currentCharacters", "currentState",
+	];
+	for (let i = 0; i < scalarKeys.length; i++) {
+		const key = scalarKeys[i];
+		if (result[key] !== undefined) projected[key] = result[key];
+	}
+	if (isArray(result.files)) projected.files = result.files;
+	if (typeof result.message === "string") {
+		projected.message = truncateHistoryText(
+			result.message,
+			AgentConfig.AGENT_LIMITS.llmHistoryEditResultMessageMaxChars,
+			"message"
+		);
+	}
+	if (typeof result.guidance === "string") {
+		projected.guidance = truncateHistoryText(
+			result.guidance,
+			AgentConfig.AGENT_LIMITS.llmHistoryEditResultMessageMaxChars,
+			"guidance"
+		);
+	}
+	if (isArray(result.fileContext)) {
+		const summaries: Record<string, unknown>[] = [];
+		for (let i = 0; i < result.fileContext.length; i++) {
+			const item = result.fileContext[i];
+			if (!isRecord(item) || isArray(item)) continue;
+			const summary: Record<string, unknown> = {};
+			const keys = [
+				"path", "op", "beforeExists", "afterExists", "beforeBytes", "afterBytes",
+				"lineCount", "contentTruncated", "fileListTruncated",
+			];
+			for (let j = 0; j < keys.length; j++) {
+				const key = keys[j];
+				if (item[key] !== undefined) summary[key] = item[key];
+			}
+			summaries.push(summary);
+		}
+		if (summaries.length > 0) projected.fileSummary = summaries;
+	}
+	if (typeof result.truncatedFileContextItems === "number") {
+		projected.truncatedFileContextItems = result.truncatedFileContextItems;
+	}
+	projected.contextNote = "Full file content and diff are omitted from LLM history. Use read_file when exact current content is needed.";
+	return projected;
+}
+
+function projectBuildResultForLLM(result: Record<string, unknown>): Record<string, unknown> {
+	if (!isArray(result.messages)) return result;
+	const projected: Record<string, unknown> = {};
+	for (const key in result) {
+		if (key !== "messages") projected[key] = result[key];
+	}
+	const maxMessages = AgentConfig.AGENT_LIMITS.llmHistoryBuildMaxMessages;
+	const shown = math.min(result.messages.length, maxMessages);
+	projected.messages = result.messages.slice(0, shown);
+	if (result.messages.length > shown) {
+		projected.llmHistoryTruncatedMessages = result.messages.length - shown;
+	}
+	return projected;
+}
+
+function projectCommandResultForLLM(result: Record<string, unknown>): Record<string, unknown> {
+	const projected: Record<string, unknown> = {};
+	for (const key in result) {
+		const value = result[key];
+		if (key === "output" && typeof value === "string") {
+			projected[key] = truncateHistoryText(
+				value,
+				AgentConfig.AGENT_LIMITS.llmHistoryCommandOutputMaxChars,
+				"command output"
+			);
+		} else if (key === "message" && typeof value === "string") {
+			projected[key] = truncateHistoryText(
+				value,
+				AgentConfig.AGENT_LIMITS.llmHistoryCommandOutputMaxChars,
+				"command message"
+			);
+		} else {
+			projected[key] = value;
+		}
+	}
+	return projected;
+}
+
+function projectToolResultContentForLLM(tool: string, content: string): string {
+	const [decoded] = safeJsonDecode(content);
+	if (!isRecord(decoded) || isArray(decoded)) {
+		return truncateHistoryText(
+			content,
+			AgentConfig.AGENT_LIMITS.llmHistoryToolResultMaxChars,
+			`${tool} result`
+		);
+	}
+	let projected = decoded;
+	if (tool === "edit_file" || tool === "delete_file") {
+		projected = projectEditResultForLLM(decoded);
+	} else if (tool === "build") {
+		projected = projectBuildResultForLLM(decoded);
+	} else if (tool === "execute_command") {
+		projected = projectCommandResultForLLM(decoded);
+	}
+	const encoded = toJson(projected, false);
+	// read_file is already normalized once, before it enters session history.
+	// Keep that representation stable across later requests for prompt caching.
+	if (tool === "read_file") return encoded;
+	if (encoded.length <= AgentConfig.AGENT_LIMITS.llmHistoryToolResultMaxChars) return encoded;
+	const fallback: Record<string, unknown> = {
+		success: projected.success,
+		llmHistoryTruncated: true,
+		originalChars: encoded.length,
+		preview: truncateHistoryText(
+			encoded,
+			math.floor(AgentConfig.AGENT_LIMITS.llmHistoryToolResultMaxChars * 0.45),
+			`${tool} result`
+		),
+	};
+	return toJson(fallback, false);
+}
+
+function projectMessagesForLLMContext(messages: Message[]): Message[] {
+	// Session history remains the source of truth for persistence and UI events.
+	// Tool-call arguments remain byte-for-byte unchanged so the normal Agent loop
+	// sees the exact calls that were originally stored and preserves cache prefixes.
+	const projected: Message[] = [];
+	for (let i = 0; i < messages.length; i++) {
+		const message = messages[i];
+		const next: Message = { ...message };
+		if (message.role === "tool" && typeof message.content === "string") {
+			next.content = projectToolResultContentForLLM(message.name ?? "tool", message.content);
+		}
+		projected.push(next);
+	}
+	return projected;
+}
+
+function projectMessagesForCompression(messages: Message[]): Message[] {
+	const projected = projectMessagesForLLMContext(messages);
+	for (let i = 0; i < projected.length; i++) {
+		const message = projected[i];
+		if (message.role !== "assistant" || !message.tool_calls || message.tool_calls.length === 0) continue;
+		let changed = false;
+		const toolCalls = message.tool_calls.map(toolCall => {
+			const fn = toolCall.function;
+			if (fn?.name !== "edit_file" || typeof fn.arguments !== "string") return toolCall;
+			const [decoded] = safeJsonDecode(fn.arguments);
+			if (!isRecord(decoded) || isArray(decoded)) return toolCall;
+			changed = true;
+			return {
+				...toolCall,
+				function: {
+					...fn,
+					arguments: toJson(sanitizeActionParamsForHistory("edit_file", decoded), false),
+				},
+			};
+		});
+		if (changed) projected[i] = { ...message, tool_calls: toolCalls };
+	}
+	return projected;
 }
 
 export function getDecisionDisabledAgentTools(shared: AgentShared): AgentToolName[] {
@@ -1238,14 +1502,16 @@ async function maybeCompressHistory(
 	let changed = false;
 	for (let round = 0; round < maxRounds; round++) {
 		const systemPrompt = buildAgentSystemPrompt(shared, shared.decisionMode === "xml");
-		const activeMessages = getActiveConversationMessages(shared);
+		const activeMessages = projectMessagesForCompression(getActiveConversationMessages(shared));
 		// A carried instruction remains visible after compression, but its history is
 		// already covered by Session Summary. Only the uncovered tail may trigger a
 		// new compression round; otherwise small follow-up tasks repeatedly summarize
 		// the same carried prompt.
-		const uncoveredMessages = AgentRuntimePolicy.getUncoveredConversationMessages(
-			shared.messages,
-			shared.lastConsolidatedIndex
+		const uncoveredMessages = projectMessagesForCompression(
+			AgentRuntimePolicy.getUncoveredConversationMessages(
+				shared.messages,
+				shared.lastConsolidatedIndex
+			)
 		);
 		// In tool_calling mode, tool descriptions come from the tools API schema, not from
 		// the XML-only detailed prompt. Pass the schema text only for token accounting.
@@ -1386,7 +1652,7 @@ async function compactAllHistory(shared: AgentShared): Promise<CodingAgentRunRes
 		rounds += 1;
 		shared.step += 1;
 		const stepId = shared.step;
-		const activeMessages = getActiveConversationMessages(shared);
+		const activeMessages = projectMessagesForCompression(getActiveConversationMessages(shared));
 		const pendingMessages = activeMessages.length;
 		emitAgentEvent(shared, {
 			type: "memory_compression_started",
@@ -2449,7 +2715,9 @@ function sanitizeMessagesForLLMInput(messages: Message[]): Message[] {
 }
 
 function getUnconsolidatedMessages(shared: AgentShared): Message[] {
-	return sanitizeMessagesForLLMInput(getActiveConversationMessages(shared));
+	return projectMessagesForLLMContext(
+		sanitizeMessagesForLLMInput(getActiveConversationMessages(shared))
+	);
 }
 
 function isFinalDecisionTurn(shared: AgentShared): boolean {

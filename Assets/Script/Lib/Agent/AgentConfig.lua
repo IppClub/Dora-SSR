@@ -18,16 +18,20 @@ ____exports.AGENT_LIMITS = { -- 12
 	historyListFilesMaxEntries = 200, -- 19
 	historyBuildMaxMessages = 50, -- 20
 	historyBuildMessageMaxChars = 1200, -- 21
-	searchDoraApiLimitMax = 20, -- 22
-	searchFilesLimitDefault = 20, -- 23
-	listFilesMaxEntriesDefault = 200, -- 24
-	searchPreviewContext = 80 -- 25
-} -- 25
-function ____exports.getTurnBoundaryCompressionThreshold(contextWindow) -- 28
-	local normalizedContextWindow = math.max( -- 29
-		1, -- 29
-		math.floor(contextWindow) -- 29
-	) -- 29
-	return math.floor(normalizedContextWindow * ____exports.AGENT_DEFAULTS.turnBoundaryCompressionRatio) -- 30
-end -- 28
-return ____exports -- 28
+	llmHistoryEditResultMessageMaxChars = 4000, -- 22
+	llmHistoryBuildMaxMessages = 12, -- 23
+	llmHistoryCommandOutputMaxChars = 8000, -- 24
+	llmHistoryToolResultMaxChars = 12000, -- 25
+	searchDoraApiLimitMax = 20, -- 26
+	searchFilesLimitDefault = 20, -- 27
+	listFilesMaxEntriesDefault = 200, -- 28
+	searchPreviewContext = 80 -- 29
+} -- 29
+function ____exports.getTurnBoundaryCompressionThreshold(contextWindow) -- 32
+	local normalizedContextWindow = math.max( -- 33
+		1, -- 33
+		math.floor(contextWindow) -- 33
+	) -- 33
+	return math.floor(normalizedContextWindow * ____exports.AGENT_DEFAULTS.turnBoundaryCompressionRatio) -- 34
+end -- 32
+return ____exports -- 32

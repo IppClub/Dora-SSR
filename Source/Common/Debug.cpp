@@ -81,6 +81,9 @@ public:
 #endif
 		auto fileSink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(logFilename, getMaxFileSize(), getMaxFiles());
 		_logger = std::make_shared<spdlog::logger>(std::string(), spdlog::sinks_init_list{consoleSink, doraSink, fileSink});
+		// Fatal paths call LogError immediately before std::abort(). Flush every
+		// error synchronously so the diagnostic reaches log.txt before termination.
+		_logger->flush_on(spdlog::level::err);
 	}
 
 	int getMaxFiles() const {
