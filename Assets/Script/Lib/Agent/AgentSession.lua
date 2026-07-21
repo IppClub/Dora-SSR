@@ -2310,7 +2310,7 @@ function startPromptTask(session, normalizedPrompt, existingUserMessageId, disab
 	local useChineseResponse = getDefaultUseChineseResponse() -- 2599
 	if existingUserMessageId ~= nil then -- 2599
 		updateUserMessageForTask(existingUserMessageId, normalizedPrompt, taskId) -- 2601
-	elseif (options and options.persistUserMessage) ~= false then -- 2601
+	elseif (options and options.resumeConversation) ~= true and (options and options.persistUserMessage) ~= false then -- 2601
 		insertMessage( -- 2603
 			session.id, -- 2603
 			"user", -- 2603
@@ -2948,16 +2948,16 @@ local function buildQuestionnaireFeedbackPrompt(questionnaire, answers) -- 2767
 					lines[#lines + 1] = ("- " .. question.prompt) .. "\n  状态：已跳过" -- 2777
 					goto __continue429 -- 2778
 				end -- 2778
-				local ____array_88 = __TS__SparseArrayNew(table.unpack(answer.selectedOptionIds or ({}))) -- 2778
+				local ____array_90 = __TS__SparseArrayNew(table.unpack(answer.selectedOptionIds or ({}))) -- 2778
 				__TS__SparseArrayPush( -- 2778
-					____array_88, -- 2778
+					____array_90, -- 2778
 					table.unpack(answer.otherText and ({answer.otherText}) or ({})) -- 2782
 				) -- 2782
 				__TS__SparseArrayPush( -- 2782
-					____array_88, -- 2782
+					____array_90, -- 2782
 					table.unpack(answer.text and ({answer.text}) or ({})) -- 2783
 				) -- 2783
-				local parts = {__TS__SparseArraySpread(____array_88)} -- 2780
+				local parts = {__TS__SparseArraySpread(____array_90)} -- 2780
 				lines[#lines + 1] = (("- " .. question.prompt) .. "\n  回答：") .. table.concat(parts, ", ") -- 2785
 			end -- 2785
 			::__continue429:: -- 2785
@@ -3115,8 +3115,8 @@ function ____exports.stopSessionTask(sessionId) -- 2867
 	return {success = true} -- 2891
 end -- 2867
 function ____exports.getCurrentTaskId(sessionId) -- 2894
-	local ____opt_89 = getSessionItem(sessionId) -- 2894
-	return ____opt_89 and ____opt_89.currentTaskId -- 2895
+	local ____opt_91 = getSessionItem(sessionId) -- 2894
+	return ____opt_91 and ____opt_91.currentTaskId -- 2895
 end -- 2894
 function ____exports.listRunningSessions() -- 2898
 	local rows = queryRows(("SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at, metrics_json, work_mode\n\t\tFROM " .. TABLE_SESSION) .. "\n\t\tWHERE current_task_status = ?\n\t\tORDER BY updated_at DESC, id DESC", {"RUNNING"}) or ({}) -- 2899

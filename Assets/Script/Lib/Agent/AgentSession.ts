@@ -2599,7 +2599,7 @@ function startPromptTask(
 	const useChineseResponse = getDefaultUseChineseResponse();
 	if (existingUserMessageId !== undefined) {
 		updateUserMessageForTask(existingUserMessageId, normalizedPrompt, taskId);
-	} else if (options?.persistUserMessage !== false) {
+	} else if (options?.resumeConversation !== true && options?.persistUserMessage !== false) {
 		insertMessage(session.id, "user", normalizedPrompt, taskId, options?.displayContent);
 	}
 	const stopToken: StopToken = { stopped: false };

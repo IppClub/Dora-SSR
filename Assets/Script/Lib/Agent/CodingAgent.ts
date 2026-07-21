@@ -2109,7 +2109,7 @@ function parseAndValidateToolCallDecision(
 			raw: argsText,
 		};
 	}
-	const sharedValidation = validateDecisionForShared(shared, decision.tool, validation.params);
+	const sharedValidation = validateDecisionForShared(shared, decision.tool, validation.params, true);
 	if (!sharedValidation.success) {
 		return {
 			success: false,
@@ -2155,8 +2155,12 @@ function getDecisionPath(params: Record<string, unknown>): string {
 function validateDecisionForShared(
 	shared: AgentShared,
 	tool: AgentToolName,
-	params: Record<string, unknown>
+	params: Record<string, unknown>,
+	enforceFinalTurn = false
 ): { success: true } | { success: false; message: string } {
+	if (enforceFinalTurn && isFinalDecisionTurn(shared) && tool !== "finish") {
+		return { success: false, message: "the final task turn must call finish; use completed only when all acceptance criteria have evidence, otherwise use partial with unverified items and the next action" };
+	}
 	if (!isToolAllowedForRole(shared, tool)) {
 		return { success: false, message: `${tool} is not allowed in ${shared.workMode} mode for role ${shared.role}` };
 	}
@@ -2448,10 +2452,14 @@ function getUnconsolidatedMessages(shared: AgentShared): Message[] {
 	return sanitizeMessagesForLLMInput(getActiveConversationMessages(shared));
 }
 
+function isFinalDecisionTurn(shared: AgentShared): boolean {
+	return shared.step + 1 >= shared.maxSteps;
+}
+
 function getFinalDecisionTurnPrompt(shared: AgentShared): string {
 	return shared.useChineseResponse
-		? "当前已达到最大的处理轮次，请在本次处理中直接进行工作总结，不要再继续规划后续轮次。"
-		: "You have reached the maximum processing round. In this turn, provide a direct work summary instead of planning further rounds.";
+		? "当前已到达本 task 的最后处理轮次。不要再调用其它工具，请调用 finish 收束本轮。只有实施和验收条件确实全部完成时才将 outcome 设为 completed；否则设为 partial，且 message 必须明确分为：已有直接证据的已完成内容、尚未验证或未完成的项目、继续执行时的下一步。validation 对未执行的相关检查使用 not_run，knownIssues 记录剩余问题。不要把部分结果描述为全部完成。"
+		: "This is the final processing turn for the current task. Do not call another work tool; call finish to close the turn. Set outcome to completed only when implementation and every acceptance criterion are actually complete. Otherwise use partial, and clearly separate work completed with direct evidence, unverified or unfinished items, and the next action for continuation in message. Use not_run for relevant validation that was not performed and record remaining issues in knownIssues. Do not describe partial work as fully completed.";
 }
 
 function buildDecisionMessages(
@@ -2477,7 +2485,7 @@ function buildDecisionMessages(
 		{ role: "system", content: systemPrompt },
 		...getUnconsolidatedMessages(shared),
 	];
-	if (shared.step + 1 >= shared.maxSteps) {
+	if (isFinalDecisionTurn(shared)) {
 		tailSections.push(getFinalDecisionTurnPrompt(shared));
 	}
 	if (lastError && lastError !== "") {
@@ -2627,7 +2635,7 @@ function tryParseAndValidateDecision(rawText: string, shared: AgentShared): Deci
 	if (!validation.success) {
 		return { success: false, message: validation.message, raw: rawText };
 	}
-	const sharedValidation = validateDecisionForShared(shared, decision.tool, validation.params);
+	const sharedValidation = validateDecisionForShared(shared, decision.tool, validation.params, true);
 	if (!sharedValidation.success) {
 		return { success: false, message: sharedValidation.message, raw: rawText };
 	}
@@ -2977,6 +2985,14 @@ class MainDecisionAgent extends Node<AgentShared> {
 		}
 		if (!toolCalls || toolCalls.length === 0) {
 			if (messageContent && messageContent !== "") {
+				if (isFinalDecisionTurn(shared)) {
+					clearPreExecutedResults(shared);
+					return {
+						success: false,
+						message: "the final task turn requires a structured finish call; use completed only with full evidence, otherwise use partial with validation, knownIssues, and a next action in message",
+						raw: messageContent,
+					};
+				}
 				if (shared.role === "sub") {
 					Log("Warn", `[CodingAgent] sub-agent returned plain text instead of structured finish`);
 					clearPreExecutedResults(shared);
@@ -4880,6 +4896,11 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 				waitingForUser: true,
 				questionnaireId: shared.waitingQuestionnaireId,
 			};
+		}
+		if (isFinalDecisionTurn(shared) && shared.completion?.outcome === "partial") {
+			Tools.setTaskStatus(shared.taskId, "FAILED");
+			return emitAgentTaskFinishEvent(shared, false,
+				shared.response || (shared.useChineseResponse ? "本轮达到处理上限，工作尚未完成。" : "This task reached its processing limit with work remaining."));
 		}
 		Tools.setTaskStatus(shared.taskId, "DONE");
 		return emitAgentTaskFinishEvent(shared, true,
