@@ -1766,6 +1766,26 @@ onTapMoved: function(self: Node, callback: function(touch: Touch))
 | --- | --- | --- |
 | callback | function | 点击事件移动的回调函数。 |
 
+## onMouseMove
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;注册鼠标移动时触发的回调函数，无需按下鼠标按键。
+同时会设置节点的`touchEnabled`属性为 true。
+
+**签名：**
+```tl
+onMouseMove: function(self: Node, callback: function(touch: Touch))
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| callback | function | 鼠标移动的回调函数。 |
+
 ## onMouseWheel
 
 **类型：** 函数。

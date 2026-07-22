@@ -974,7 +974,7 @@ In the above code, we create an input box. When the input box is clicked, the in
 
 ### 4.1 Event Callback Method
 
-Use the `onMouseWheel` method to listen for mouse wheel events. Mouse button events generally overlap with touch events, and mouse clicks can be handled using touch event methods.
+Use `onMouseMove` to receive pointer positions automatically converted through the current camera and the node's transform, and use `onMouseWheel` to listen for mouse wheel events. Mouse button events generally overlap with touch events, and mouse clicks can be handled using touch event methods.
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
@@ -983,6 +983,10 @@ Use the `onMouseWheel` method to listen for mouse wheel events. Mouse button eve
 local Node <const> = require("Node")
 
 local node = Node()
+
+node:onMouseMove(function(touch)
+	print("Mouse position in node space:", touch.location)
+end)
 
 node:onMouseWheel(function(delta)
 	print("Mouse wheel scrolled:", delta.x, delta.y)
@@ -998,6 +1002,10 @@ local type Vec2 = require("Vec2")
 
 local node = Node()
 
+node:onMouseMove(function(touch)
+	print("Mouse position in node space:", touch.location)
+end)
+
 node:onMouseWheel(function(delta: Vec2.Type)
 	print("Mouse wheel scrolled:", delta.x, delta.y)
 end)
@@ -1011,6 +1019,10 @@ import { Node } from "Dora";
 
 const node = Node();
 
+node.onMouseMove(touch => {
+	print("Mouse position in node space:", touch.location);
+});
+
 node.onMouseWheel(delta => {
 	print("Mouse wheel scrolled:", delta.x, delta.y);
 });
@@ -1023,6 +1035,9 @@ node.onMouseWheel(delta => {
 _ENV = Dora
 
 with Node!
+	\onMouseMove (touch) ->
+		print "Mouse position in node space:", touch.location
+
 	\onMouseWheel (delta) ->
 		print "Mouse wheel scrolled:", delta.x, delta.y
 ```
@@ -1032,11 +1047,12 @@ with Node!
 
 **Note:**
 
+- `onMouseMove`: Triggered when the mouse moves, even when no button is pressed. `touch.location` is the pointer position in the node's local space. The conversion automatically accounts for the current camera's position, rotation, zoom and projection, as well as the node's 2D or 3D transform. Use `touch.viewLocation` when the position in the current view's logical coordinate system is needed.
 - `onMouseWheel`: Triggered when the mouse wheel is scrolled. The `delta` contains the scrolling distance information, including values for both the `x` and `y` directions.
 
-#### Mouse Wheel Event Toggle
+#### Mouse Event Toggle
 
-Mouse wheel events are also controlled by the `node.touchEnabled` property. When `node.touchEnabled` is set to `false`, mouse wheel events will be disabled.
+Mouse move and wheel events are controlled by the `node.touchEnabled` property. Calling `onMouseMove` or `onMouseWheel` enables it automatically. Setting `node.touchEnabled` to `false` disables both events.
 
 ### 4.2 Per-Frame Polling Method
 
@@ -1046,22 +1062,34 @@ Use properties of the `Mouse` class to get the mouse status.
 <TabItem value="lua" label="Lua">
 
 ```lua
+local App <const> = require("App")
+local Director <const> = require("Director")
 local Mouse <const> = require("Mouse")
 local Node <const> = require("Node")
+local Vec2 <const> = require("Vec2")
+local View <const> = require("View")
 
 local node = Node()
 
-node:onUpdate(function()
-	-- Convert mouse screen coordinates to game world coordinates
-	local bs = App.bufferSize
-	local bw = bs.width
-	local bh = bs.height
-	local pos = Mouse.position * (bw / App.visualSize.width)
-	local worldPos = Vec2(pos.x - bw / 2, bh / 2 - pos.y)
+local function getMousePositionInNode(target)
+	local camera = Director.currentCamera
+	local mouse = Mouse.position
+	local visualSize = App.visualSize
+	local viewSize = View.size
+	local viewPos = Vec2(
+		mouse.x * viewSize.width / visualSize.width - viewSize.width / 2,
+		viewSize.height / 2 - mouse.y * viewSize.height / visualSize.height
+	) / camera.zoom
+	local angle = math.rad(camera.rotation)
+	local worldPos = Vec2(
+		viewPos.x * math.cos(angle) - viewPos.y * math.sin(angle),
+		viewPos.x * math.sin(angle) + viewPos.y * math.cos(angle)
+	) + camera.position
+	return target:convertToNodeSpace(worldPos)
+end
 
-	-- Convert world coordinates to node coordinates
-	local nodePos = node:convertToNodeSpace(worldPos)
-	print("Mouse position:", nodePos)
+node:onUpdate(function()
+	print("Mouse position in node space:", getMousePositionInNode(node))
 
 	if Mouse.leftButtonPressed then
 		print("Mouse left button pressed")
@@ -1085,22 +1113,35 @@ end)
 <TabItem value="tl" label="Teal">
 
 ```tl
+local App <const> = require("App")
+local Director <const> = require("Director")
 local Mouse <const> = require("Mouse")
 local Node <const> = require("Node")
+local Vec2 <const> = require("Vec2")
+local View <const> = require("View")
+local type Camera2D = require("Camera2D")
 
 local node = Node()
 
-node:onUpdate(function(): boolean
-	-- Convert mouse screen coordinates to game world coordinates
-	local bs = App.bufferSize
-	local bw = bs.width
-	local bh = bs.height
-	local pos = Mouse.position * (bw / App.visualSize.width)
-	local worldPos = Vec2(pos.x - bw / 2, bh / 2 - pos.y)
+local function getMousePositionInNode(target: Node.Type): Vec2.Type
+	local camera = Director.currentCamera as Camera2D.Type
+	local mouse = Mouse.position
+	local visualSize = App.visualSize
+	local viewSize = View.size
+	local viewPos = Vec2(
+		mouse.x * viewSize.width / visualSize.width - viewSize.width / 2,
+		viewSize.height / 2 - mouse.y * viewSize.height / visualSize.height
+	) / camera.zoom
+	local angle = math.rad(camera.rotation)
+	local worldPos = Vec2(
+		viewPos.x * math.cos(angle) - viewPos.y * math.sin(angle),
+		viewPos.x * math.sin(angle) + viewPos.y * math.cos(angle)
+	) + camera.position
+	return target:convertToNodeSpace(worldPos)
+end
 
-	-- Convert world coordinates to node coordinates
-	local nodePos = node:convertToNodeSpace(worldPos)
-	print("Mouse position:", nodePos)
+node:onUpdate(function(): boolean
+	print("Mouse position in node space:", getMousePositionInNode(node))
 
 	if Mouse.leftButtonPressed then
 		print("Mouse left button pressed")
@@ -1125,21 +1166,30 @@ end)
 <TabItem value="ts" label="TypeScript">
 
 ```ts
-import { Mouse, Node, App, Vec2 } from "Dora";
+import { App, Director, Mouse, Node, TypeName, Vec2, View, tolua } from "Dora";
 
 const node = Node();
 
-node.onUpdate(() => {
-	// Convert mouse screen coordinates to game world coordinates
-	const bs = App.bufferSize;
-	const bw = bs.width;
-	const bh = bs.height;
-	const pos = Mouse.position.mul(bw / App.visualSize.width);
-	const worldPos = Vec2(pos.x - bw / 2, bh / 2 - pos.y);
+const getMousePositionInNode = (target: Node.Type) => {
+	const camera = tolua.cast(Director.currentCamera, TypeName.Camera2D);
+	if (!camera) return Vec2.zero;
+	const mouse = Mouse.position;
+	const visualSize = App.visualSize;
+	const viewSize = View.size;
+	const viewPos = Vec2(
+		mouse.x * viewSize.width / visualSize.width - viewSize.width / 2,
+		viewSize.height / 2 - mouse.y * viewSize.height / visualSize.height
+	).div(camera.zoom);
+	const angle = math.rad(camera.rotation);
+	const worldPos = Vec2(
+		viewPos.x * math.cos(angle) - viewPos.y * math.sin(angle),
+		viewPos.x * math.sin(angle) + viewPos.y * math.cos(angle)
+	).add(camera.position);
+	return target.convertToNodeSpace(worldPos);
+};
 
-	// Convert world coordinates to node coordinates
-	const nodePos = node.convertToNodeSpace(worldPos);
-	print("Mouse position:", nodePos);
+node.onUpdate(() => {
+	print("Mouse position in node space:", getMousePositionInNode(node));
 
 	if (Mouse.leftButtonPressed) {
 		print("Mouse left button pressed");
@@ -1166,28 +1216,37 @@ node.onUpdate(() => {
 ```yue
 _ENV = Dora
 
-with Node!
-	\onUpdate ->
-		-- Convert mouse screen coordinates to game world coordinates
-		width: bw, height: bh = App.bufferSize
-		pos = Mouse.position * (bw / App.visualSize.width)
-		worldPos = Vec2 pos.x - bw / 2, bh / 2 - pos.y
+getMousePositionInNode = (target) ->
+	camera = Director.currentCamera
+	mouse = Mouse.position
+	visualSize = App.visualSize
+	viewSize = View.size
+	viewPos = Vec2(
+		mouse.x * viewSize.width / visualSize.width - viewSize.width / 2
+		viewSize.height / 2 - mouse.y * viewSize.height / visualSize.height
+	) / camera.zoom
+	angle = math.rad camera.rotation
+	worldPos = Vec2(
+		viewPos.x * math.cos(angle) - viewPos.y * math.sin(angle)
+		viewPos.x * math.sin(angle) + viewPos.y * math.cos(angle)
+	) + camera.position
+	target\convertToNodeSpace worldPos
 
-		-- Convert world coordinates to node coordinates
-		nodePos = \convertToNodeSpace worldPos
-		print "Mouse position:", nodePos
+node = Node!
+node\onUpdate ->
+	print "Mouse position in node space:", getMousePositionInNode node
 
-		if Mouse.leftButtonPressed
-			print "Mouse left button pressed"
+	if Mouse.leftButtonPressed
+		print "Mouse left button pressed"
 
-		if Mouse.rightButtonPressed
-			print "Mouse right button pressed"
+	if Mouse.rightButtonPressed
+		print "Mouse right button pressed"
 
-		if Mouse.middleButtonPressed
-			print "Mouse middle button pressed"
+	if Mouse.middleButtonPressed
+		print "Mouse middle button pressed"
 
-		if Mouse.wheel != Vec2.zero
-			print "Mouse wheel value:", Mouse.wheel
+	if Mouse.wheel != Vec2.zero
+		print "Mouse wheel value:", Mouse.wheel
 ```
 
 </TabItem>
@@ -1195,7 +1254,9 @@ with Node!
 
 **Note:**
 
-- `Mouse.position`: Retrieves the mouse's position within the window.
+- `Mouse.position`: Retrieves the mouse position in the visible window's logical coordinate system, with the origin at the top-left.
+- `getMousePositionInNode`: Converts `Mouse.position` to node-local coordinates for a Camera2D scene. Zoom is divided rather than multiplied; camera rotation and position are also applied before converting from world space to node space.
+- For 3D node transforms or custom camera projections, prefer `node.onMouseMove()` and `touch.location`, which use inverse view-projection calculation and ray-plane intersection.
 - `leftButtonPressed` and similar properties: Check the pressed state of mouse buttons.
 - `Mouse.wheel`: Gets the scrolling value of the mouse wheel.
 

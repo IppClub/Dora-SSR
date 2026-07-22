@@ -975,7 +975,7 @@ with Label "sarasa-mono-sc-regular", 40
 
 ### 4.1 事件回调方式
 
-&emsp;&emsp;使用 `onMouseWheel` 方法来监听鼠标滚轮事件。鼠标按键事件通常与触摸事件重叠，可以使用触摸事件的方法来处理鼠标点击。
+&emsp;&emsp;使用 `onMouseMove` 获取经过当前摄像机和节点变换自动转换后的鼠标位置，使用 `onMouseWheel` 监听鼠标滚轮事件。鼠标按键事件通常与触摸事件重叠，可以使用触摸事件的方法来处理鼠标点击。
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
@@ -984,6 +984,10 @@ with Label "sarasa-mono-sc-regular", 40
 local Node <const> = require("Node")
 
 local node = Node()
+
+node:onMouseMove(function(touch)
+	print("鼠标在节点局部空间中的位置：", touch.location)
+end)
 
 node:onMouseWheel(function(delta)
 	print("鼠标滚轮滚动：", delta.x, delta.y)
@@ -999,6 +1003,10 @@ local type Vec2 = require("Vec2")
 
 local node = Node()
 
+node:onMouseMove(function(touch)
+	print("鼠标在节点局部空间中的位置：", touch.location)
+end)
+
 node:onMouseWheel(function(delta: Vec2.Type)
 	print("鼠标滚轮滚动：", delta.x, delta.y)
 end)
@@ -1012,6 +1020,10 @@ import { Node } from "Dora";
 
 const node = Node();
 
+node.onMouseMove(touch => {
+	print("鼠标在节点局部空间中的位置：", touch.location);
+});
+
 node.onMouseWheel(delta => {
 	print("鼠标滚轮滚动：", delta.x, delta.y);
 });
@@ -1024,6 +1036,9 @@ node.onMouseWheel(delta => {
 _ENV = Dora
 
 with Node!
+	\onMouseMove (touch) ->
+		print "鼠标在节点局部空间中的位置：", touch.location
+
 	\onMouseWheel (delta) ->
 		print "鼠标滚轮滚动：", delta.x, delta.y
 ```
@@ -1033,11 +1048,12 @@ with Node!
 
 &emsp;&emsp;**说明：**
 
+- `onMouseMove`：鼠标移动时触发，无需按下鼠标按键。`touch.location` 是鼠标在节点局部空间中的位置，转换过程会自动处理当前摄像机的位置、旋转、缩放和投影，以及节点的 2D 或 3D 变换。如需当前视区逻辑坐标系中的位置，可使用 `touch.viewLocation`。
 - `onMouseWheel`：当鼠标滚轮滚动时触发，`delta` 包含滚动的距离信息，包含 `x` 和 `y` 两个方向的滚动值。
 
-#### 鼠标滚动事件的开关
+#### 鼠标事件的开关
 
-&emsp;&emsp;鼠标滚动事件也受到 `node.touchEnabled` 属性的控制。当 `node.touchEnabled` 被设置为 `false` 时，鼠标滚动事件也会被禁用。
+&emsp;&emsp;鼠标移动和滚轮事件都受到 `node.touchEnabled` 属性的控制。调用 `onMouseMove` 或 `onMouseWheel` 时会自动启用该属性；将 `node.touchEnabled` 设置为 `false` 会禁用这两类事件。
 
 ### 4.2 每帧轮询方式
 
@@ -1047,22 +1063,34 @@ with Node!
 <TabItem value="lua" label="Lua">
 
 ```lua
+local App <const> = require("App")
+local Director <const> = require("Director")
 local Mouse <const> = require("Mouse")
 local Node <const> = require("Node")
+local Vec2 <const> = require("Vec2")
+local View <const> = require("View")
 
 local node = Node()
 
-node:onUpdate(function()
-	-- 将鼠标屏幕坐标转换为游戏世界坐标
-	local bs = App.bufferSize
-	local bw = bs.width
-	local bh = bs.height
-	local pos = Mouse.position * (bw / App.visualSize.width)
-	local worldPos = Vec2(pos.x - bw / 2, bh / 2 - pos.y)
+local function getMousePositionInNode(target)
+	local camera = Director.currentCamera
+	local mouse = Mouse.position
+	local visualSize = App.visualSize
+	local viewSize = View.size
+	local viewPos = Vec2(
+		mouse.x * viewSize.width / visualSize.width - viewSize.width / 2,
+		viewSize.height / 2 - mouse.y * viewSize.height / visualSize.height
+	) / camera.zoom
+	local angle = math.rad(camera.rotation)
+	local worldPos = Vec2(
+		viewPos.x * math.cos(angle) - viewPos.y * math.sin(angle),
+		viewPos.x * math.sin(angle) + viewPos.y * math.cos(angle)
+	) + camera.position
+	return target:convertToNodeSpace(worldPos)
+end
 
-	-- 将世界坐标转换为节点坐标
-	local nodePos = node:convertToNodeSpace(worldPos)
-	print("鼠标位置：", nodePos)
+node:onUpdate(function()
+	print("鼠标在节点局部空间中的位置：", getMousePositionInNode(node))
 
 	if Mouse.leftButtonPressed then
 		print("鼠标左键被按下")
@@ -1086,22 +1114,35 @@ end)
 <TabItem value="tl" label="Teal">
 
 ```tl
+local App <const> = require("App")
+local Director <const> = require("Director")
 local Mouse <const> = require("Mouse")
 local Node <const> = require("Node")
+local Vec2 <const> = require("Vec2")
+local View <const> = require("View")
+local type Camera2D = require("Camera2D")
 
 local node = Node()
 
-node:onUpdate(function(): boolean
-	-- 将鼠标屏幕坐标转换为游戏世界坐标
-	local bs = App.bufferSize
-	local bw = bs.width
-	local bh = bs.height
-	local pos = Mouse.position * (bw / App.visualSize.width)
-	local worldPos = Vec2(pos.x - bw / 2, bh / 2 - pos.y)
+local function getMousePositionInNode(target: Node.Type): Vec2.Type
+	local camera = Director.currentCamera as Camera2D.Type
+	local mouse = Mouse.position
+	local visualSize = App.visualSize
+	local viewSize = View.size
+	local viewPos = Vec2(
+		mouse.x * viewSize.width / visualSize.width - viewSize.width / 2,
+		viewSize.height / 2 - mouse.y * viewSize.height / visualSize.height
+	) / camera.zoom
+	local angle = math.rad(camera.rotation)
+	local worldPos = Vec2(
+		viewPos.x * math.cos(angle) - viewPos.y * math.sin(angle),
+		viewPos.x * math.sin(angle) + viewPos.y * math.cos(angle)
+	) + camera.position
+	return target:convertToNodeSpace(worldPos)
+end
 
-	-- 将世界坐标转换为节点坐标
-	local nodePos = node:convertToNodeSpace(worldPos)
-	print("鼠标位置：", nodePos)
+node:onUpdate(function(): boolean
+	print("鼠标在节点局部空间中的位置：", getMousePositionInNode(node))
 
 	if Mouse.leftButtonPressed then
 		print("鼠标左键被按下")
@@ -1126,21 +1167,30 @@ end)
 <TabItem value="ts" label="TypeScript">
 
 ```ts
-import { Mouse, Node, App, Vec2 } from "Dora";
+import { App, Director, Mouse, Node, TypeName, Vec2, View, tolua } from "Dora";
 
 const node = Node();
 
-node.onUpdate(() => {
-	// 将鼠标屏幕坐标转换为游戏世界坐标
-	const bs = App.bufferSize;
-	const bw = bs.width;
-	const bh = bs.height;
-	const pos = Mouse.position.mul(bw / App.visualSize.width);
-	const worldPos = Vec2(pos.x - bw / 2, bh / 2 - pos.y);
+const getMousePositionInNode = (target: Node.Type) => {
+	const camera = tolua.cast(Director.currentCamera, TypeName.Camera2D);
+	if (!camera) return Vec2.zero;
+	const mouse = Mouse.position;
+	const visualSize = App.visualSize;
+	const viewSize = View.size;
+	const viewPos = Vec2(
+		mouse.x * viewSize.width / visualSize.width - viewSize.width / 2,
+		viewSize.height / 2 - mouse.y * viewSize.height / visualSize.height
+	).div(camera.zoom);
+	const angle = math.rad(camera.rotation);
+	const worldPos = Vec2(
+		viewPos.x * math.cos(angle) - viewPos.y * math.sin(angle),
+		viewPos.x * math.sin(angle) + viewPos.y * math.cos(angle)
+	).add(camera.position);
+	return target.convertToNodeSpace(worldPos);
+};
 
-	// 将世界坐标转换为节点坐标
-	const nodePos = node.convertToNodeSpace(worldPos);
-	print("鼠标位置：", nodePos);
+node.onUpdate(() => {
+	print("鼠标在节点局部空间中的位置：", getMousePositionInNode(node));
 
 	if (Mouse.leftButtonPressed) {
 		print("鼠标左键被按下");
@@ -1167,28 +1217,37 @@ node.onUpdate(() => {
 ```yue
 _ENV = Dora
 
-with Node!
-	\onUpdate ->
-		-- 将鼠标屏幕坐标转换为游戏世界坐标
-		width: bw, height: bh = App.bufferSize
-		pos = Mouse.position * (bw / App.visualSize.width)
-		worldPos = Vec2 pos.x - bw / 2, bh / 2 - pos.y
+getMousePositionInNode = (target) ->
+	camera = Director.currentCamera
+	mouse = Mouse.position
+	visualSize = App.visualSize
+	viewSize = View.size
+	viewPos = Vec2(
+		mouse.x * viewSize.width / visualSize.width - viewSize.width / 2
+		viewSize.height / 2 - mouse.y * viewSize.height / visualSize.height
+	) / camera.zoom
+	angle = math.rad camera.rotation
+	worldPos = Vec2(
+		viewPos.x * math.cos(angle) - viewPos.y * math.sin(angle)
+		viewPos.x * math.sin(angle) + viewPos.y * math.cos(angle)
+	) + camera.position
+	target\convertToNodeSpace worldPos
 
-		-- 将世界坐标转换为节点坐标
-		nodePos = \convertToNodeSpace worldPos
-		print "鼠标位置：", nodePos
+node = Node!
+node\onUpdate ->
+	print "鼠标在节点局部空间中的位置：", getMousePositionInNode node
 
-		if Mouse.leftButtonPressed
-			print "鼠标左键被按下"
+	if Mouse.leftButtonPressed
+		print "鼠标左键被按下"
 
-		if Mouse.rightButtonPressed
-			print "鼠标右键被按下"
+	if Mouse.rightButtonPressed
+		print "鼠标右键被按下"
 
-		if Mouse.middleButtonPressed
-			print "鼠标中键被按下"
+	if Mouse.middleButtonPressed
+		print "鼠标中键被按下"
 
-		if Mouse.wheel != Vec2.zero
-			print "鼠标滚轮值：", Mouse.wheel
+	if Mouse.wheel != Vec2.zero
+		print "鼠标滚轮值：", Mouse.wheel
 ```
 
 </TabItem>
@@ -1196,7 +1255,9 @@ with Node!
 
 &emsp;&emsp;**说明：**
 
-- `Mouse.position`：获取鼠标在窗口中的位置。
+- `Mouse.position`：获取鼠标在可视窗口逻辑坐标系中的位置，原点位于左上角。
+- `getMousePositionInNode`：在 Camera2D 场景中将 `Mouse.position` 转换为节点局部坐标。摄像机缩放需要做除法而不是乘法，并在从世界坐标转换到节点坐标前处理摄像机旋转和位置。
+- 对于节点 3D 变换或自定义摄像机投影，建议使用 `node.onMouseMove()` 和 `touch.location`，由内部完成逆视图投影和射线平面求交计算。
 - `leftButtonPressed` 等属性：判断鼠标按键的按下状态。
 - `Mouse.wheel`：获取鼠标滚轮的滚动值。
 

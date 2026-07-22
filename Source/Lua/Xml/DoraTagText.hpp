@@ -15,7 +15,7 @@ Boolean:True,False
 
 LayerParent:Menu
 
-BuiltInSlots:AnimationEnd,ActionEnd,TapFilter,TapBegan,TapEnded,Tapped,TapMoved,MouseWheel,Gesture,Enter,Exit,Cleanup,KeyDown,KeyUp,KeyPressed,AttachIME,DetachIME,TextInput,TextEditing,ButtonDown,ButtonUp,Axis
+BuiltInSlots:AnimationEnd,ActionEnd,TapFilter,TapBegan,TapEnded,Tapped,TapMoved,MouseMove,MouseWheel,Gesture,Enter,Exit,Cleanup,KeyDown,KeyUp,KeyPressed,AttachIME,DetachIME,TextInput,TextEditing,ButtonDown,ButtonUp,Axis
 
 Import
 	Base:No

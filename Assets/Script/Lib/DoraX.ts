@@ -168,6 +168,7 @@ function applyAutoEnableProps(this: void, node: Dora.Node.Type, props: AnyTable)
 		jnode.onTapMoved ||
 		jnode.onTapEnded ||
 		jnode.onTapped ||
+		jnode.onMouseMove ||
 		jnode.onMouseWheel ||
 		jnode.onGesture
 	)) {
@@ -219,6 +220,7 @@ function getNode(this: void, enode: React.Element, cnode?: Dora.Node.Type, attri
 			case 'onTapEnded': cnode.slot(Dora.Slot.TapEnded, v); break;
 			case 'onTapped': cnode.slot(Dora.Slot.Tapped, v); break;
 			case 'onTapMoved': cnode.slot(Dora.Slot.TapMoved, v); break;
+			case 'onMouseMove': cnode.slot(Dora.Slot.MouseMove, v); break;
 			case 'onMouseWheel': cnode.slot(Dora.Slot.MouseWheel, v); break;
 			case 'onGesture': cnode.slot(Dora.Slot.Gesture, v); break;
 			case 'onEnter': cnode.slot(Dora.Slot.Enter, v); break;
@@ -1992,6 +1994,7 @@ function getEventSlot(this: void, key: unknown): string | undefined {
 		case "onTapEnded": return Dora.Slot.TapEnded;
 		case "onTapped": return Dora.Slot.Tapped;
 		case "onTapMoved": return Dora.Slot.TapMoved;
+		case "onMouseMove": return Dora.Slot.MouseMove;
 		case "onMouseWheel": return Dora.Slot.MouseWheel;
 		case "onGesture": return Dora.Slot.Gesture;
 		case "onEnter": return Dora.Slot.Enter;

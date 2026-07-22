@@ -476,10 +476,11 @@ function emitLLMContextMetrics(
 		? math.max(256, explicitMax)
 		: math.max(1024, math.floor(contextWindow * 0.2));
 	const structuralOverhead = math.max(256, messages.length * 16);
-	// Match the request fitter exactly: options, output reservation, and structural
-	// overhead reduce the input budget instead of inflating the displayed usage.
-	const usedTokens = messagesTokens;
-	const maxTokens = fitted.budgetTokens;
+	// Present usage against the configured context window while preserving the
+	// exact request-fit boundary: input plus all reserved overhead reaches 100%
+	// at the same point where originalTokens reaches the effective input budget.
+	const usedTokens = messagesTokens + math.max(0, contextWindow - fitted.budgetTokens);
+	const maxTokens = contextWindow;
 	emitAgentEvent(shared, {
 		type: "metrics_updated",
 		sessionId: shared.sessionId,

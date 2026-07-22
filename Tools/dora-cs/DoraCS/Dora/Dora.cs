@@ -1858,6 +1858,17 @@ namespace Dora
             });
         }
 
+        public delegate void MouseMoveHandler(Touch touch);
+        public void OnMouseMove(MouseMoveHandler func)
+        {
+            this.IsTouchEnabled = true;
+            this.Slot("MouseMove", (stack) =>
+            {
+                var touch = (Touch)stack.PopObject();
+                func(touch);
+            });
+        }
+
         public delegate void MouseWheelHandler(Vec2 delta);
         public void OnMouseWheel(MouseWheelHandler func)
         {

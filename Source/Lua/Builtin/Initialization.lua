@@ -893,6 +893,7 @@ do
 	registerTouchEvent(Node, "TapEnded")
 	registerTouchEvent(Node, "Tapped")
 	registerTouchEvent(Node, "TapMoved")
+	registerTouchEvent(Node, "MouseMove")
 	registerTouchEvent(Node, "MouseWheel")
 	registerTouchEvent(Node, "Gesture")
 

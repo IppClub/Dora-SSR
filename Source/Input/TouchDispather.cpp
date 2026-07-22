@@ -124,6 +124,8 @@ bool NodeTouchHandler::handle(const SDL_Event& event) {
 		case SDL_FINGERDOWN:
 			return down(event) && isSwallowTouches();
 		case SDL_MOUSEMOTION:
+			mouseMove(event);
+			return move(event) && isSwallowTouches();
 		case SDL_FINGERMOTION:
 			return move(event) && isSwallowTouches();
 		case SDL_MOUSEWHEEL:
@@ -379,6 +381,31 @@ bool NodeTouchHandler::move(const SDL_Event& event) {
 		return true;
 	}
 	return false;
+}
+
+void NodeTouchHandler::mouseMove(const SDL_Event& event) {
+	if (!_target->isTouchEnabled() || event.motion.which == SDL_TOUCH_MOUSEID) return;
+	if (!_target->_signal) return;
+	auto slot = _target->_signal->getSlot("MouseMove"_slice);
+	if (!slot || !slot->getHandler()) return;
+
+	Vec2 viewPos = getViewPos(event);
+	Vec2 pos = getPos({viewPos.x, viewPos.y, 0.0f});
+	if (!_mouseMoveTouch) {
+		_mouseMoveTouch = Touch::create(0);
+		_mouseMoveTouch->_flags.setOn(Touch::IsFirst);
+		_mouseMoveTouch->_preLocation = _mouseMoveTouch->_location = pos;
+		_mouseMoveTouch->_viewPreLocation = _mouseMoveTouch->_viewLocation = viewPos;
+		_mouseMoveTouch->_worldPreLocation = _mouseMoveTouch->_worldLocation = _target->convertToWorldSpace(pos);
+	} else {
+		_mouseMoveTouch->_preLocation = _mouseMoveTouch->_location;
+		_mouseMoveTouch->_location = pos;
+		_mouseMoveTouch->_viewPreLocation = _mouseMoveTouch->_viewLocation;
+		_mouseMoveTouch->_viewLocation = viewPos;
+		_mouseMoveTouch->_worldPreLocation = _mouseMoveTouch->_worldLocation;
+		_mouseMoveTouch->_worldLocation = _target->convertToWorldSpace(pos);
+	}
+	_target->emit("MouseMove"_slice, _mouseMoveTouch.get());
 }
 
 bool NodeTouchHandler::wheel(const SDL_Event& event) {

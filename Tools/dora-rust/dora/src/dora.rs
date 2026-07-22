@@ -1665,6 +1665,25 @@ impl Slot {
     /// }));
     /// ```
     pub const TAP_MOVED: &'static str = "TapMoved";
+    /// The MouseMove slot is triggered when the mouse moves, even when no mouse button is pressed.
+    /// Triggers after setting `node.set_touch_enabled(true)`.
+    ///
+    /// # Callback Arguments
+    ///
+    /// * touch: Touch - The mouse pointer data converted to the node's local space.
+    ///
+    /// # Callback Example
+    ///
+    /// ```
+    /// node.set_touch_enabled(true);
+    /// node.slot(Slot::MOUSE_MOVE, Box::new(|stack| {
+    /// 	let touch = match stack.pop_cast::<Touch>() {
+    /// 		Some(touch) => touch,
+    /// 		None => return,
+    /// 	};
+    /// }));
+    /// ```
+    pub const MOUSE_MOVE: &'static str = "MouseMove";
     /// The MouseWheel slot is triggered when the mouse wheel is scrolled.
     /// Triggers after setting `node.set_touch_enabled(true)`.
     ///

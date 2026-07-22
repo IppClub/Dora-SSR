@@ -528,6 +528,12 @@ local record Node
 	-- 	@param touch (Touch) 点击事件的触摸消息对象。
 	onTapMoved: function(self: Node, callback: function(touch: Touch))
 
+	-- 注册鼠标移动时触发的回调函数，无需按下鼠标按键。
+	-- 同时会设置节点的`touchEnabled`属性为 true。
+	-- @param callback (function) 鼠标移动的回调函数。
+	-- 	@param touch (Touch) 已转换到节点局部空间的鼠标指针数据。
+	onMouseMove: function(self: Node, callback: function(touch: Touch))
+
 	-- 注册节点滚动鼠标滚轮时触发的回调函数。
 	-- 同时会设置节点的`touchEnabled`属性为 true。
 	-- @param callback (function) 鼠标滚轮滚动的回调函数。
@@ -733,6 +739,11 @@ local record __SLOT__
 	-- 在设置`node.touchEnabled = true`之后才会触发。
 	-- @param touch (Touch) 点击事件的消息对象。
 	["TapMoved"]: function(touch: Touch)
+
+	-- MouseMove事件在鼠标移动时触发，无需按下鼠标按键。
+	-- 在设置`node.touchEnabled = true`之后才会触发。
+	-- @param touch (Touch) 已转换到节点局部空间的鼠标指针数据。
+	["MouseMove"]: function(touch: Touch)
 
 	-- MouseWheel事件在滚动鼠标滚轮时触发。
 	-- 在设置`node.touchEnabled = true`之后才会触发。

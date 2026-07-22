@@ -525,6 +525,12 @@ local record Node
 	-- 	@param touch (Touch) The touch object that triggered the tap.
 	onTapMoved: function(self: Node, callback: function(touch: Touch))
 
+	-- Registers a callback for mouse movement, even when no mouse button is pressed.
+	-- This function also sets `node.touchEnabled = true`.
+	-- @param callback (function) The callback function to register.
+	-- 	@param touch (Touch) The mouse pointer data converted to the node's local space.
+	onMouseMove: function(self: Node, callback: function(touch: Touch))
+
 	-- Registers callback for event triggered when the mouse wheel is scrolled.
 	-- This function also sets `node.touchEnabled = true`.
 	-- @param callback (function) The callback function to register.
@@ -731,6 +737,11 @@ local record __SLOT__
 	-- Triggers after setting `node.touchEnabled = true`.
 	-- @param touch (Touch) The touch that triggered the tap.
 	["TapMoved"]: function(touch: Touch)
+
+	-- The MouseMove slot is triggered when the mouse moves, even when no mouse button is pressed.
+	-- Triggers after setting `node.touchEnabled = true`.
+	-- @param touch (Touch) The mouse pointer data converted to the node's local space.
+	["MouseMove"]: function(touch: Touch)
 
 	-- The MouseWheel slot is triggered when the mouse wheel is scrolled.
 	-- Triggers after setting `node.touchEnabled = true`.

@@ -2489,13 +2489,28 @@ export {keyboard as Keyboard};
  */
 interface Mouse {
 	/**
-	 * The position of the mouse in the visible window.
-	 * You can use `Mouse.position.mul(App.devicePixelRatio)` to get the coordinate in the game world.
-	 * Then use `node.convertToNodeSpace()` to convert the world coordinate to the local coordinate of the node.
+	 * The position of the mouse in the visible window's logical coordinate system, with the origin at the top-left.
+	 * For a 2D scene, map it to `View.size`, apply the inverse Camera2D transform, and then call `node.convertToNodeSpace()`.
+	 * Camera zoom must be divided rather than multiplied. For 3D node transforms or custom projections, use `node.onMouseMove()` and read `touch.location` instead.
 	 * @example
 	 * ```
-	 * const worldPos = Mouse.position.mul(App.devicePixelRatio);
-	 * const nodePos = node.convertToNodeSpace(worldPos);
+	 * const node = Node();
+	 * const camera = tolua.cast(Director.currentCamera, TypeName.Camera2D);
+	 * if (camera) {
+	 * 	const mouse = Mouse.position;
+	 * 	const visualSize = App.visualSize;
+	 * 	const viewSize = View.size;
+	 * 	const viewPos = Vec2(
+	 * 		mouse.x * viewSize.width / visualSize.width - viewSize.width / 2,
+	 * 		viewSize.height / 2 - mouse.y * viewSize.height / visualSize.height
+	 * 	).div(camera.zoom);
+	 * 	const angle = math.rad(camera.rotation);
+	 * 	const worldPos = Vec2(
+	 * 		viewPos.x * math.cos(angle) - viewPos.y * math.sin(angle),
+	 * 		viewPos.x * math.sin(angle) + viewPos.y * math.cos(angle)
+	 * 	).add(camera.position);
+	 * 	const nodePos = node.convertToNodeSpace(worldPos);
+	 * }
 	 * ```
 	 */
 	readonly position: Vec2
@@ -2668,6 +2683,7 @@ const enum NodeEvent {
 	TapEnded = "TapEnded",
 	Tapped = "Tapped",
 	TapMoved = "TapMoved",
+	MouseMove = "MouseMove",
 	MouseWheel = "MouseWheel",
 	Gesture = "Gesture",
 	Enter = "Enter",
@@ -2739,6 +2755,13 @@ interface NodeEventHandlerMap {
 	 * @param touch The touch that triggered the tap.
 	*/
 	TapMoved(this: void, touch: Touch): void;
+
+	/**
+	 * The MouseMove slot is triggered when the mouse moves, even when no mouse button is pressed.
+	 * Triggers after setting `node.touchEnabled = true`.
+	 * @param touch The mouse pointer data converted to the node's local space.
+	*/
+	MouseMove(this: void, touch: Touch): void;
 
 	/**
 	 * The MouseWheel slot is triggered when the mouse wheel is scrolled.
@@ -3485,6 +3508,13 @@ class Node extends Object {
 	 * @param callback The callback function to register.
 	 */
 	onTapMoved(callback: (this: void, touch: Touch) => void): void;
+
+	/**
+	 * Registers a callback for mouse movement, even when no mouse button is pressed.
+	 * This function also sets `node.touchEnabled = true`.
+	 * @param callback The callback receiving mouse pointer data converted to the node's local space.
+	 */
+	onMouseMove(callback: (this: void, touch: Touch) => void): void;
 
 	/**
 	 * Registers a callback for the event triggered when the mouse wheel is scrolled.

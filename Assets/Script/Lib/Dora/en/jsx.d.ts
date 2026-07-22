@@ -167,6 +167,13 @@ class Node {
 	onTapMoved?(this: void, touch: Dora.Touch.Type): void;
 
 	/**
+	 * The MouseMove slot is triggered when the mouse moves, even when no mouse button is pressed.
+	 * Triggers after setting `node.touchEnabled = true`.
+	 * @param touch The mouse pointer data converted to the node's local space.
+	*/
+	onMouseMove?(this: void, touch: Dora.Touch.Type): void;
+
+	/**
 	 * The MouseWheel slot is triggered when the mouse wheel is scrolled.
 	 * Triggers after setting `node.touchEnabled = true`.
 	 * @param delta The amount of scrolling that occurred.

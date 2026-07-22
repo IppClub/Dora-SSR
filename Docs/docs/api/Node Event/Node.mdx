@@ -134,6 +134,26 @@ Triggers after setting `node.touchEnabled = true`.
 | --- | --- | --- |
 | touch | Touch | The touch that triggered the tap. |
 
+## MouseMove
+
+**Type:** Node Event.
+
+**Description:**
+
+&emsp;&emsp;The MouseMove slot is triggered when the mouse moves, even when no mouse button is pressed.
+Triggers after setting `node.touchEnabled = true`.
+
+**Signature:**
+```tl
+["MouseMove"]: function(touch: Touch)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| touch | Touch | The mouse pointer data converted to the node's local space. |
+
 ## MouseWheel
 
 **Type:** Node Event.

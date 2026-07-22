@@ -2486,13 +2486,28 @@ export {keyboard as Keyboard};
  */
 interface Mouse {
 	/**
-	 * 鼠标在可视窗口中的位置。
-	 * 可以通过使用 `Mouse.position.mul(App.devicePixelRatio)` 来获取游戏世界中的坐标。
-	 * 然后再使用 `node.convertToNodeSpace()` 来将世界坐标转换为节点的本地坐标。
+	 * 鼠标在可视窗口逻辑坐标系中的位置，原点位于左上角。
+	 * 在 2D 场景中，应先将其映射到 `View.size`，应用 Camera2D 的逆变换，再调用 `node.convertToNodeSpace()`。
+	 * 摄像机缩放需要做除法而不是乘法。对于节点 3D 变换或自定义投影，请改用 `node.onMouseMove()` 并读取 `touch.location`。
 	 * @example
 	 * ```
-	 * const worldPos = Mouse.position.mul(App.devicePixelRatio);
-	 * const nodePos = node.convertToNodeSpace(worldPos);
+	 * const node = Node();
+	 * const camera = tolua.cast(Director.currentCamera, TypeName.Camera2D);
+	 * if (camera) {
+	 * 	const mouse = Mouse.position;
+	 * 	const visualSize = App.visualSize;
+	 * 	const viewSize = View.size;
+	 * 	const viewPos = Vec2(
+	 * 		mouse.x * viewSize.width / visualSize.width - viewSize.width / 2,
+	 * 		viewSize.height / 2 - mouse.y * viewSize.height / visualSize.height
+	 * 	).div(camera.zoom);
+	 * 	const angle = math.rad(camera.rotation);
+	 * 	const worldPos = Vec2(
+	 * 		viewPos.x * math.cos(angle) - viewPos.y * math.sin(angle),
+	 * 		viewPos.x * math.sin(angle) + viewPos.y * math.cos(angle)
+	 * 	).add(camera.position);
+	 * 	const nodePos = node.convertToNodeSpace(worldPos);
+	 * }
 	 * ```
 	 */
 	readonly position: Vec2
@@ -2665,6 +2680,7 @@ const enum NodeEvent {
 	TapEnded = "TapEnded",
 	Tapped = "Tapped",
 	TapMoved = "TapMoved",
+	MouseMove = "MouseMove",
 	MouseWheel = "MouseWheel",
 	Gesture = "Gesture",
 	Enter = "Enter",
@@ -2736,6 +2752,13 @@ interface NodeEventHandlerMap {
 	 * @param touch 点击事件的消息对象。
 	*/
 	TapMoved(this: void, touch: Touch): void;
+
+	/**
+	 * MouseMove 插槽在鼠标移动时触发，无需按下鼠标按键。
+	 * 在设置`node.touchEnabled = true`之后才会触发。
+	 * @param touch 已转换到节点局部空间的鼠标指针数据。
+	*/
+	MouseMove(this: void, touch: Touch): void;
 
 	/**
 	 * MouseWheel事件在滚动鼠标滚轮时触发。
@@ -3483,6 +3506,13 @@ class Node extends Object {
 	 * @param callback 要注册的回调函数。
 	 */
 	onTapMoved(callback: (this: void, touch: Touch) => void): void;
+
+	/**
+	 * 注册鼠标移动时触发的回调函数，无需按下鼠标按键。
+	 * 该函数还会设置`node.touchEnabled = true`。
+	 * @param callback 接收已转换到节点局部空间的鼠标指针数据的回调函数。
+	 */
+	onMouseMove(callback: (this: void, touch: Touch) => void): void;
 
 	/**
 	 * 注册一个回调函数，当检测到鼠标滚轮滚动时触发。

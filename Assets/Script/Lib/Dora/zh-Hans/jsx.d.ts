@@ -167,6 +167,13 @@ class Node {
 	onTapMoved?(this: void, touch: Dora.Touch.Type): void;
 
 	/**
+	 * MouseMove 插槽在鼠标移动时触发，无需按下鼠标按键。
+	 * 在设置`node.touchEnabled = true`之后才会触发。
+	 * @param touch 已转换到节点局部空间的鼠标指针数据。
+	*/
+	onMouseMove?(this: void, touch: Dora.Touch.Type): void;
+
+	/**
 	 * MouseWheel事件在滚动鼠标滚轮时触发。
 	 * 在设置`node.touchEnabled = true`之后才会触发。
 	 * @param delta 滚动的向量。

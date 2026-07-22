@@ -4,11 +4,24 @@ local type Vec2 = require("Vec2Type")
 local record Mouse
 	userdata
 
-	-- The position of the mouse in the visible window.
-	-- You can use `Mouse.position * App.devicePixelRatio` to get the coordinate in the game world.
-	-- Then use `node:convertToNodeSpace()` to convert the world coordinate to the local coordinate of the node.
+	-- The position of the mouse in the visible window's logical coordinate system, with the origin at the top-left.
+	-- For a 2D scene, map it to `View.size`, apply the inverse Camera2D transform, and then call `node:convertToNodeSpace()`.
+	-- Camera zoom must be divided rather than multiplied. For 3D node transforms or custom projections, use `node:onMouseMove()` and read `touch.location` instead.
 	-- @usage
-	-- local worldPos = Mouse.position * App.devicePixelRatio
+	-- local node = Node()
+	-- local camera = Director.currentCamera as Camera2D.Type
+	-- local mouse = Mouse.position
+	-- local visualSize = App.visualSize
+	-- local viewSize = View.size
+	-- local viewPos = Vec2(
+	-- 	mouse.x * viewSize.width / visualSize.width - viewSize.width / 2,
+	-- 	viewSize.height / 2 - mouse.y * viewSize.height / visualSize.height
+	-- ) / camera.zoom
+	-- local angle = math.rad(camera.rotation)
+	-- local worldPos = Vec2(
+	-- 	viewPos.x * math.cos(angle) - viewPos.y * math.sin(angle),
+	-- 	viewPos.x * math.sin(angle) + viewPos.y * math.cos(angle)
+	-- ) + camera.position
 	-- local nodePos = node:convertToNodeSpace(worldPos)
 	const position: Vec2
 

@@ -1762,6 +1762,14 @@ func Node.OnTapMoved(callback: func(touch: Touch)) {
 	})
 }
 
+func Node.OnMouseMove(callback: func(touch: Touch)) {
+	this.SetTouchEnabled(true)
+	this.Slot("MouseMove", func(stack: CallStack) {
+		touch := *ObjectAsTouch(*stack.PopObject())
+		callback(touch)
+	})
+}
+
 func Node.OnMouseWheel(callback: func(delta: Vec2)) {
 	this.SetTouchEnabled(true)
 	this.Slot("MouseWheel", func(stack: CallStack) {

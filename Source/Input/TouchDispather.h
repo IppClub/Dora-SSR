@@ -90,11 +90,13 @@ protected:
 	bool up(const SDL_Event& event);
 	bool down(const SDL_Event& event);
 	bool move(const SDL_Event& event);
+	void mouseMove(const SDL_Event& event);
 	bool wheel(const SDL_Event& event);
 	bool gesture(const SDL_Event& event);
 
 private:
 	Node* _target;
+	Ref<Touch> _mouseMoveTouch;
 	std::stack<int> _availableTouchIds;
 	std::unordered_map<int64_t, Ref<Touch>> _touchMap;
 };

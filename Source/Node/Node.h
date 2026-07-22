@@ -386,6 +386,7 @@ protected:
 		UserFlag = 1 << 23,
 	};
 	DORA_TYPE_OVERRIDE(Node);
+	friend class NodeTouchHandler;
 };
 
 class Slot {

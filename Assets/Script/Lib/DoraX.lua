@@ -38,7 +38,7 @@ function renderFunctionComponent(component, props) -- 147
 end -- 154
 function applyAutoEnableProps(node, props) -- 163
 	local jnode = props -- 164
-	if jnode.touchEnabled ~= false and (jnode.onTapFilter or jnode.onTapBegan or jnode.onTapMoved or jnode.onTapEnded or jnode.onTapped or jnode.onMouseWheel or jnode.onGesture) then -- 164
+	if jnode.touchEnabled ~= false and (jnode.onTapFilter or jnode.onTapBegan or jnode.onTapMoved or jnode.onTapEnded or jnode.onTapped or jnode.onMouseMove or jnode.onMouseWheel or jnode.onGesture) then -- 164
 		node.touchEnabled = true -- 174
 	end -- 174
 	if jnode.keyboardEnabled ~= false and (jnode.onKeyDown or jnode.onKeyUp or jnode.onKeyPressed) then -- 174
@@ -647,6 +647,10 @@ function getEventSlot(key) -- 1987
 		if ____cond458 then -- 1993
 			return "TapMoved" -- 1994
 		end -- 1994
+		____cond458 = ____cond458 or ____switch458 == "onMouseMove" -- 1994
+		if ____cond458 then -- 1994
+			return "MouseMove" -- 1995
+		end -- 1995
 		____cond458 = ____cond458 or ____switch458 == "onMouseWheel" -- 1994
 		if ____cond458 then -- 1994
 			return "MouseWheel" -- 1995
@@ -1358,6 +1362,11 @@ local function getNode(enode, cnode, attribHandler) -- 202
 				cnode:slot("TapMoved", v) -- 221
 				break -- 221
 			end -- 221
+			____cond42 = ____cond42 or ____switch42 == "onMouseMove" -- 221
+			if ____cond42 then -- 221
+				cnode:slot("MouseMove", v) -- 222
+				break -- 222
+			end -- 222
 			____cond42 = ____cond42 or ____switch42 == "onMouseWheel" -- 221
 			if ____cond42 then -- 221
 				cnode:slot("MouseWheel", v) -- 222
