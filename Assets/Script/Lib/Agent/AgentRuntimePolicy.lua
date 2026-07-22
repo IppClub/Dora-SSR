@@ -9,8 +9,6 @@ local ____Dora = require("Dora") -- 2
 local Content = ____Dora.Content -- 2
 local Path = ____Dora.Path -- 2
 local ____Utils = require("Agent.Utils") -- 4
-local estimateTextTokens = ____Utils.estimateTextTokens -- 4
-local safeJsonEncode = ____Utils.safeJsonEncode -- 4
 local sanitizeUTF8 = ____Utils.sanitizeUTF8 -- 4
 local Tools = require("Agent.Tools") -- 5
 ____exports.AGENT_PLAN_DIR = ".agent/plan" -- 7
@@ -91,79 +89,60 @@ end -- 120
 function ____exports.getUncoveredConversationMessages(messages, lastConsolidatedIndex) -- 129
 	return __TS__ArraySlice(messages, lastConsolidatedIndex) -- 130
 end -- 129
-function ____exports.estimateConversationTokens(messages) -- 133
-	local tokens = 0 -- 134
-	do -- 134
-		local i = 0 -- 135
-		while i < #messages do -- 135
-			local message = messages[i + 1] -- 136
-			tokens = tokens + 8 -- 137
-			tokens = tokens + estimateTextTokens(message.role or "") -- 138
-			tokens = tokens + estimateTextTokens(message.content or "") -- 139
-			tokens = tokens + estimateTextTokens(message.name or "") -- 140
-			tokens = tokens + estimateTextTokens(message.tool_call_id or "") -- 141
-			tokens = tokens + estimateTextTokens(message.reasoning_content or "") -- 142
-			local toolCallsText = safeJsonEncode(message.tool_calls or ({})) -- 143
-			tokens = tokens + estimateTextTokens(toolCallsText or "") -- 144
-			i = i + 1 -- 135
-		end -- 135
-	end -- 135
-	return tokens -- 146
+function ____exports.normalizeLineEndings(text) -- 133
+	return table.concat( -- 134
+		__TS__StringSplit( -- 134
+			table.concat( -- 134
+				__TS__StringSplit(text, "\r\n"), -- 134
+				"\n" -- 134
+			), -- 134
+			"\r" -- 134
+		), -- 134
+		"\n" -- 134
+	) -- 134
 end -- 133
-function ____exports.normalizeLineEndings(text) -- 149
-	return table.concat( -- 150
-		__TS__StringSplit( -- 150
-			table.concat( -- 150
-				__TS__StringSplit(text, "\r\n"), -- 150
-				"\n" -- 150
-			), -- 150
-			"\r" -- 150
-		), -- 150
-		"\n" -- 150
-	) -- 150
-end -- 149
-function ____exports.countOccurrences(text, needle) -- 153
-	if needle == "" then -- 153
-		return 0 -- 154
-	end -- 154
-	local count = 0 -- 155
-	local start = 0 -- 156
-	while start <= #text - #needle do -- 156
-		local index = (string.find( -- 158
-			text, -- 158
-			needle, -- 158
-			math.max(start + 1, 1), -- 158
-			true -- 158
-		) or 0) - 1 -- 158
-		if index < 0 then -- 158
-			break -- 159
-		end -- 159
-		count = count + 1 -- 160
-		start = index + #needle -- 161
-	end -- 161
-	return count -- 163
-end -- 153
-function ____exports.containsWholeFileDuplicate(existing, replacement) -- 166
-	local normalizedExisting = ____exports.normalizeLineEndings(existing) -- 167
-	local normalizedReplacement = ____exports.normalizeLineEndings(replacement) -- 168
-	if #normalizedExisting < 16 or #normalizedReplacement <= #normalizedExisting then -- 168
-		return false -- 169
-	end -- 169
-	return ____exports.countOccurrences(normalizedReplacement, normalizedExisting) > 1 -- 170
-end -- 166
-function ____exports.successfulEditResult(workDir, path, base) -- 173
-	local current = Tools.readFileRaw(workDir, path) -- 178
-	local currentCharacters = current.success and type(current.content) == "string" and #current.content or 0 -- 179
-	return __TS__ObjectAssign( -- 180
-		{}, -- 180
-		base, -- 181
-		{ -- 180
-			actualSaved = current.success, -- 182
-			actualSavedCharacters = currentCharacters, -- 183
-			currentFileExists = current.success, -- 184
-			currentCharacters = currentCharacters, -- 185
-			currentState = current.success and (("saved " .. tostring(currentCharacters)) .. " characters to ") .. path or "file state unavailable after edit: " .. sanitizeUTF8(current.message) -- 186
-		} -- 186
-	) -- 186
-end -- 173
-return ____exports -- 173
+function ____exports.countOccurrences(text, needle) -- 137
+	if needle == "" then -- 137
+		return 0 -- 138
+	end -- 138
+	local count = 0 -- 139
+	local start = 0 -- 140
+	while start <= #text - #needle do -- 140
+		local index = (string.find( -- 142
+			text, -- 142
+			needle, -- 142
+			math.max(start + 1, 1), -- 142
+			true -- 142
+		) or 0) - 1 -- 142
+		if index < 0 then -- 142
+			break -- 143
+		end -- 143
+		count = count + 1 -- 144
+		start = index + #needle -- 145
+	end -- 145
+	return count -- 147
+end -- 137
+function ____exports.containsWholeFileDuplicate(existing, replacement) -- 150
+	local normalizedExisting = ____exports.normalizeLineEndings(existing) -- 151
+	local normalizedReplacement = ____exports.normalizeLineEndings(replacement) -- 152
+	if #normalizedExisting < 16 or #normalizedReplacement <= #normalizedExisting then -- 152
+		return false -- 153
+	end -- 153
+	return ____exports.countOccurrences(normalizedReplacement, normalizedExisting) > 1 -- 154
+end -- 150
+function ____exports.successfulEditResult(workDir, path, base) -- 157
+	local current = Tools.readFileRaw(workDir, path) -- 162
+	local currentCharacters = current.success and type(current.content) == "string" and #current.content or 0 -- 163
+	return __TS__ObjectAssign( -- 164
+		{}, -- 164
+		base, -- 165
+		{ -- 164
+			actualSaved = current.success, -- 166
+			actualSavedCharacters = currentCharacters, -- 167
+			currentFileExists = current.success, -- 168
+			currentCharacters = currentCharacters, -- 169
+			currentState = current.success and (("saved " .. tostring(currentCharacters)) .. " characters to ") .. path or "file state unavailable after edit: " .. sanitizeUTF8(current.message) -- 170
+		} -- 170
+	) -- 170
+end -- 157
+return ____exports -- 157

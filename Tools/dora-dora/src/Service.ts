@@ -613,7 +613,6 @@ export interface LLMConfigItem {
 	reasoningEffort?: string;
 	customOptions?: string;
 	supportsFunctionCalling: boolean;
-	active: boolean;
 };
 
 export interface LLMConfigListResponse {
@@ -1572,7 +1571,7 @@ export const agentSessionSetMode = (req: { sessionId: number; workMode: "code" |
 	}>("/agent/session/mode", req);
 };
 
-export const agentSessionSend = (req: { sessionId: number; prompt: string; disabledAgentTools?: string[]; workMode?: "code" | "plan" }) => {
+export const agentSessionSend = (req: { sessionId: number; prompt: string; llmConfigId: number; disabledAgentTools?: string[]; workMode?: "code" | "plan" }) => {
 	return post<{
 		success: true;
 		sessionId: number;
@@ -1583,7 +1582,7 @@ export const agentSessionSend = (req: { sessionId: number; prompt: string; disab
 	}>("/agent/session/send", req);
 };
 
-export const agentSessionContinue = (req: { sessionId: number; disabledAgentTools?: string[] }) => {
+export const agentSessionContinue = (req: { sessionId: number; llmConfigId: number; disabledAgentTools?: string[] }) => {
 	return post<{
 		success: true;
 		sessionId: number;
@@ -1594,7 +1593,7 @@ export const agentSessionContinue = (req: { sessionId: number; disabledAgentTool
 	}>("/agent/session/continue", req);
 };
 
-export const agentSessionFinishHandoff = (req: { sessionId: number }) => {
+export const agentSessionFinishHandoff = (req: { sessionId: number; llmConfigId: number }) => {
 	return post<{
 		success: true;
 		sessionId: number;
@@ -1605,7 +1604,7 @@ export const agentSessionFinishHandoff = (req: { sessionId: number }) => {
 	}>("/agent/session/finish-handoff", req);
 };
 
-export const agentSessionResend = (req: { sessionId: number; messageId: number; prompt: string; disabledAgentTools?: string[]; workMode?: "code" | "plan" }) => {
+export const agentSessionResend = (req: { sessionId: number; messageId: number; prompt: string; llmConfigId: number; disabledAgentTools?: string[]; workMode?: "code" | "plan" }) => {
 	return post<{
 		success: true;
 		sessionId: number;
@@ -1620,6 +1619,7 @@ export const agentQuestionnaireRespond = (req: {
 	sessionId: number;
 	questionnaireId: number;
 	answers: AgentQuestionnaireAnswer[];
+	llmConfigId: number;
 }) => {
 	return post<{
 		success: true;

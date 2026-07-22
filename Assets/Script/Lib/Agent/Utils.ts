@@ -1,5 +1,6 @@
 // @preview-file off clear
 import { json, HttpClient, DB, emit, Log as DoraLog, Director, once, App } from 'Dora';
+import * as AgentConfig from 'Agent/AgentConfig';
 
 let LOG_LEVEL = App.debugging ? 3 : 2;
 export function setLogLevel(level: number) {
@@ -67,6 +68,267 @@ export function createLocalToolCallId(): string {
 export interface StopToken {
 	stopped: boolean;
 	reason?: string;
+}
+
+export type AgentCompletionOutcome = "completed" | "partial" | "blocked";
+export type AgentValidationKind = "build" | "runtime" | "manual";
+export type AgentValidationResult = "passed" | "failed" | "not_run";
+
+export interface AgentValidationReportItem {
+	kind: AgentValidationKind;
+	result: AgentValidationResult;
+	evidence: string[];
+}
+
+export interface AgentLearningCandidateItem {
+	claim: string;
+	scope: "file" | "project" | "engine";
+	evidence: string[];
+	confidence: "observed" | "inferred";
+}
+
+export interface AgentCompletionReport {
+	outcome: AgentCompletionOutcome;
+	validation: AgentValidationReportItem[];
+	knownIssues: string[];
+	assumptions: string[];
+	learningCandidates: AgentLearningCandidateItem[];
+}
+
+function normalizeCompletionText(value: unknown): string {
+	if (typeof value !== "string") return "";
+	return sanitizeUTF8(value).trim().slice(0, AgentConfig.AGENT_LIMITS.completionTextMaxChars);
+}
+
+function normalizeCompletionTextList(
+	value: unknown,
+	maxItems = AgentConfig.AGENT_LIMITS.completionListMaxItems
+): string[] {
+	if (!Array.isArray(value)) return [];
+	const items: string[] = [];
+	for (let i = 0; i < value.length && items.length < maxItems; i++) {
+		const item = normalizeCompletionText(value[i]);
+		if (item !== "" && items.indexOf(item) < 0) items.push(item);
+	}
+	return items;
+}
+
+export function normalizeAgentCompletionReport(value: unknown): AgentCompletionReport {
+	const row = value && !Array.isArray(value) && typeof value === "object"
+		? value as Record<string, unknown>
+		: {};
+	const outcome: AgentCompletionOutcome = row.outcome === "partial" || row.outcome === "blocked"
+		? row.outcome
+		: "completed";
+	const validation: AgentValidationReportItem[] = [];
+	if (Array.isArray(row.validation)) {
+		for (let i = 0; i < row.validation.length && validation.length < AgentConfig.AGENT_LIMITS.completionListMaxItems; i++) {
+			const raw = row.validation[i];
+			if (!raw || Array.isArray(raw) || typeof raw !== "object") continue;
+			const item = raw as Record<string, unknown>;
+			const kind = item.kind === "runtime" || item.kind === "manual" ? item.kind : (item.kind === "build" ? "build" : undefined);
+			const result = item.result === "passed" || item.result === "failed" || item.result === "not_run" ? item.result : undefined;
+			if (kind === undefined || result === undefined) continue;
+			validation.push({
+				kind,
+				result,
+				evidence: normalizeCompletionTextList(item.evidence, AgentConfig.AGENT_LIMITS.completionEvidenceMaxItems),
+			});
+		}
+	}
+	const learningCandidates: AgentLearningCandidateItem[] = [];
+	if (Array.isArray(row.learningCandidates)) {
+		for (let i = 0; i < row.learningCandidates.length && learningCandidates.length < AgentConfig.AGENT_LIMITS.completionListMaxItems; i++) {
+			const raw = row.learningCandidates[i];
+			if (!raw || Array.isArray(raw) || typeof raw !== "object") continue;
+			const item = raw as Record<string, unknown>;
+			const claim = normalizeCompletionText(item.claim);
+			if (claim === "") continue;
+			learningCandidates.push({
+				claim,
+				scope: item.scope === "file" || item.scope === "engine" ? item.scope : "project",
+				evidence: normalizeCompletionTextList(item.evidence, AgentConfig.AGENT_LIMITS.completionEvidenceMaxItems),
+				confidence: item.confidence === "inferred" ? "inferred" : "observed",
+			});
+		}
+	}
+	return {
+		outcome,
+		validation,
+		knownIssues: normalizeCompletionTextList(row.knownIssues),
+		assumptions: normalizeCompletionTextList(row.assumptions),
+		learningCandidates,
+	};
+}
+
+export type TextReplacementResult =
+	| { success: true; content: string }
+	| { success: false; message: string };
+
+export function replaceFirst(text: string, oldStr: string, newStr: string): string {
+	if (oldStr === "") return text;
+	const idx = text.indexOf(oldStr);
+	if (idx < 0) return text;
+	return text.substring(0, idx) + newStr + text.substring(idx + oldStr.length);
+}
+
+function getLeadingWhitespace(text: string): string {
+	let i = 0;
+	while (i < text.length) {
+		const ch = text[i];
+		if (ch !== " " && ch !== "\t") break;
+		i += 1;
+	}
+	return text.substring(0, i);
+}
+
+function getCommonIndentPrefix(lines: string[]): string {
+	let common: string | undefined;
+	for (let i = 0; i < lines.length; i++) {
+		const line = lines[i];
+		if (line.trim() === "") continue;
+		const indent = getLeadingWhitespace(line);
+		if (common === undefined) {
+			common = indent;
+			continue;
+		}
+		let j = 0;
+		const maxLen = math.min(common.length, indent.length);
+		while (j < maxLen && common[j] === indent[j]) {
+			j += 1;
+		}
+		common = common.substring(0, j);
+		if (common === "") break;
+	}
+	return common ?? "";
+}
+
+function removeIndentPrefix(line: string, indent: string): string {
+	if (indent !== "" && line.startsWith(indent)) {
+		return line.substring(indent.length);
+	}
+	const lineIndent = getLeadingWhitespace(line);
+	let j = 0;
+	const maxLen = math.min(lineIndent.length, indent.length);
+	while (j < maxLen && lineIndent[j] === indent[j]) {
+		j += 1;
+	}
+	return line.substring(j);
+}
+
+function dedentLines(lines: string[]): { indent: string; lines: string[] } {
+	const indent = getCommonIndentPrefix(lines);
+	return {
+		indent,
+		lines: lines.map(line => removeIndentPrefix(line, indent)),
+	};
+}
+
+function findWhitespaceTolerantReplacement(
+	content: string,
+	oldStr: string,
+	newStr: string
+): TextReplacementResult {
+	type FoldedWhitespaceChar = { char: string; start: number; end: number };
+	const foldWhitespace = (text: string, withMap: boolean): { text: string; map: FoldedWhitespaceChar[] } => {
+		const parts: string[] = [];
+		const map: FoldedWhitespaceChar[] = [];
+		let i = 0;
+		while (i < text.length) {
+			const ch = text[i];
+			if (ch === " " || ch === "\t" || ch === "\n" || ch === "\r") {
+				const start = i;
+				while (i < text.length) {
+					const next = text[i];
+					if (next !== " " && next !== "\t" && next !== "\n" && next !== "\r") break;
+					i += 1;
+				}
+				parts.push(" ");
+				if (withMap) map.push({ char: " ", start, end: i });
+			} else {
+				parts.push(ch);
+				if (withMap) map.push({ char: ch, start: i, end: i + 1 });
+				i += 1;
+			}
+		}
+		return { text: parts.join(""), map };
+	};
+	const foldedContent = foldWhitespace(content, true);
+	const foldedOld = foldWhitespace(oldStr, false).text.trim();
+	if (foldedOld === "") {
+		return { success: false, message: "old_str not found in file" };
+	}
+	const matches: { start: number; end: number }[] = [];
+	let pos = 0;
+	while (true) {
+		const idx = foldedContent.text.indexOf(foldedOld, pos);
+		if (idx < 0) break;
+		const lastIdx = idx + foldedOld.length - 1;
+		const startMap = foldedContent.map[idx];
+		const endMap = foldedContent.map[lastIdx];
+		if (startMap !== undefined && endMap !== undefined) {
+			matches.push({ start: startMap.start, end: endMap.end });
+		}
+		pos = idx + foldedOld.length;
+	}
+	if (matches.length === 0) {
+		return { success: false, message: "old_str not found in file" };
+	}
+	if (matches.length > 1) {
+		return {
+			success: false,
+			message: `old_str appears ${matches.length} times in file after whitespace normalization. Please provide more context to uniquely identify the target location.`,
+		};
+	}
+	const match = matches[0];
+	return {
+		success: true,
+		content: content.substring(0, match.start) + newStr + content.substring(match.end),
+	};
+}
+
+export function findIndentTolerantReplacement(
+	content: string,
+	oldStr: string,
+	newStr: string
+): TextReplacementResult {
+	const contentLines = content.split("\n");
+	const oldLines = oldStr.split("\n");
+	if (oldLines.length === 0) {
+		return { success: false, message: "old_str not found in file" };
+	}
+	const dedentedOld = dedentLines(oldLines);
+	const dedentedOldText = dedentedOld.lines.join("\n");
+	const dedentedNew = dedentLines(newStr.split("\n"));
+	const matches: { start: number; end: number; indent: string }[] = [];
+	for (let start = 0; start <= contentLines.length - oldLines.length; start++) {
+		const candidateLines = contentLines.slice(start, start + oldLines.length);
+		const dedentedCandidate = dedentLines(candidateLines);
+		if (dedentedCandidate.lines.join("\n") === dedentedOldText) {
+			matches.push({
+				start,
+				end: start + oldLines.length,
+				indent: dedentedCandidate.indent,
+			});
+		}
+	}
+	if (matches.length === 0) {
+		return findWhitespaceTolerantReplacement(content, oldStr, newStr);
+	}
+	if (matches.length > 1) {
+		return {
+			success: false,
+			message: `old_str appears ${matches.length} times in file after indentation normalization. Please provide more context to uniquely identify the target location.`,
+		};
+	}
+	const match = matches[0];
+	const rebuiltNewLines = dedentedNew.lines.map(line => line === "" ? "" : match.indent + line);
+	const nextLines = [
+		...contentLines.slice(0, match.start),
+		...rebuiltNewLines,
+		...contentLines.slice(match.end),
+	];
+	return { success: true, content: nextLines.join("\n") };
 }
 
 function previewText(text: string, maxLen = 200): string {
@@ -883,7 +1145,7 @@ export function applyCustomLLMOptions(
 	return merged;
 }
 
-export function getActiveLLMConfig(): { success: true; config: LLMConfig } | { success: false; message: string } {
+function getLLMConfigRecords(): Record<string, unknown>[] {
 	const rows = DB.query("select * from LLMConfig", true);
 	const records: Record<string, unknown>[] = [];
 	if (rows && rows.length > 1) {
@@ -895,13 +1157,16 @@ export function getActiveLLMConfig(): { success: true; config: LLMConfig } | { s
 			records.push(record);
 		}
 	}
-	const config = records.find(r => r["active"] !== 0);
+	return records;
+}
+
+function parseLLMConfig(config: Record<string, unknown> | undefined): { success: true; config: LLMConfig } | { success: false; message: string } {
 	if (!config) {
-		return { success: false, message: "no active LLM config" };
+		return { success: false, message: "LLM config not found" };
 	}
-	const { url, model, api_key } = config;
-	if ("string" !== typeof url || "string" !== typeof model || "string" !== typeof api_key) {
-		return { success: false, message: "got invalude LLM config" };
+	const { id, url, model, api_key } = config;
+	if (typeof id !== "number" || "string" !== typeof url || "string" !== typeof model || "string" !== typeof api_key) {
+		return { success: false, message: "got invalid LLM config" };
 	}
 	return {
 		success: true,
@@ -917,6 +1182,23 @@ export function getActiveLLMConfig(): { success: true; config: LLMConfig } | { s
 			supportsFunctionCalling: normalizeSupportsFunctionCalling(config["supports_function_calling"]),
 		},
 	};
+}
+
+export function getLLMConfig(configId: unknown): { success: true; config: LLMConfig } | { success: false; message: string } {
+	const normalizedId = typeof configId === "number" ? math.floor(configId) : tonumber(configId);
+	if (normalizedId === undefined || normalizedId <= 0) {
+		return { success: false, message: "LLM config is not selected" };
+	}
+	return parseLLMConfig(getLLMConfigRecords().find(record => record["id"] === normalizedId));
+}
+
+export function getActiveLLMConfig(): { success: true; config: LLMConfig } | { success: false; message: string } {
+	const records = getLLMConfigRecords();
+	const config = records.find(r => r["active"] !== 0);
+	if (!config) {
+		return { success: false, message: "no active LLM config" };
+	}
+	return parseLLMConfig(config);
 }
 
 export const callLLMStream = (

@@ -1,7 +1,7 @@
 // @preview-file off clear
 import { Content, Path } from "Dora";
 import type { Message } from "Agent/Utils";
-import { estimateTextTokens, safeJsonEncode, sanitizeUTF8 } from "Agent/Utils";
+import { sanitizeUTF8 } from "Agent/Utils";
 import * as Tools from "Agent/Tools";
 
 export const AGENT_PLAN_DIR = ".agent/plan";
@@ -128,22 +128,6 @@ export function isEditBudgetExhausted(state: EditBudgetState): boolean {
 
 export function getUncoveredConversationMessages(messages: Message[], lastConsolidatedIndex: number): Message[] {
 	return messages.slice(lastConsolidatedIndex);
-}
-
-export function estimateConversationTokens(messages: Message[]): number {
-	let tokens = 0;
-	for (let i = 0; i < messages.length; i++) {
-		const message = messages[i];
-		tokens += 8;
-		tokens += estimateTextTokens(message.role ?? "");
-		tokens += estimateTextTokens(message.content ?? "");
-		tokens += estimateTextTokens(message.name ?? "");
-		tokens += estimateTextTokens(message.tool_call_id ?? "");
-		tokens += estimateTextTokens(message.reasoning_content ?? "");
-		const [toolCallsText] = safeJsonEncode((message.tool_calls ?? []) as object);
-		tokens += estimateTextTokens(toolCallsText ?? "");
-	}
-	return tokens;
 }
 
 export function normalizeLineEndings(text: string): string {

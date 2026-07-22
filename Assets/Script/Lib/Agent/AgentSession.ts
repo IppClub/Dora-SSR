@@ -1,13 +1,13 @@
 // @preview-file off clear
 import { App, Content, DB, Path, HttpServer, emit } from 'Dora';
-import { runCodingAgent, CodingAgentEvent, CodingAgentRunResult, normalizeAgentCompletionReport, truncateAgentUserPrompt } from 'Agent/CodingAgent';
+import { runCodingAgent, CodingAgentEvent, CodingAgentRunResult, truncateAgentUserPrompt } from 'Agent/CodingAgent';
 import type { AgentCompletionReport } from 'Agent/CodingAgent';
 import * as AgentToolRegistry from 'Agent/AgentToolRegistry';
 import * as AgentRuntimePolicy from 'Agent/AgentRuntimePolicy';
 import * as Tools from 'Agent/Tools';
 import { DualLayerStorage } from 'Agent/Memory';
-import { Log, safeJsonDecode, safeJsonEncode, sanitizeUTF8 } from 'Agent/Utils';
-import type { StopToken } from 'Agent/Utils';
+import { Log, getLLMConfig, normalizeAgentCompletionReport, safeJsonDecode, safeJsonEncode, sanitizeUTF8 } from 'Agent/Utils';
+import type { LLMConfig, StopToken } from 'Agent/Utils';
 import type { AgentToolName } from 'Agent/AgentToolRegistry';
 import type { AgentWorkMode } from 'Agent/AgentToolRegistry';
 import { validateQuestionnaireAnswers } from 'Agent/AgentQuestionnaire';
@@ -2178,6 +2178,7 @@ async function spawnSubAgentSession(request: {
 	expectedOutput?: string;
 	filesHint?: string[];
 	disabledAgentTools?: AgentToolName[];
+	llmConfig?: LLMConfig;
 }): Promise<
 	| { success: true; sessionId: number; taskId: number; title: string }
 	| { success: false; message: string }
@@ -2242,7 +2243,7 @@ async function spawnSubAgentSession(request: {
 		finishedAt: "",
 		finishedAtTs: 0,
 	});
-	const sent = sendPrompt(created.session.id, normalizedPrompt, true, request.disabledAgentTools);
+	const sent = sendPrompt(created.session.id, normalizedPrompt, true, request.disabledAgentTools, undefined, undefined, request.llmConfig);
 	if (!sent.success) {
 		return { success: false, message: sent.message };
 	}
@@ -2513,7 +2514,7 @@ function stopClearedSubSession(session: AgentSessionItem, taskId: number): { suc
 	return { success: true };
 }
 
-export function sendPrompt(sessionId: number, prompt: string, allowSubSessionStart = false, disabledAgentTools?: unknown, workMode?: unknown): AgentSessionSendResult {
+export function sendPrompt(sessionId: number, prompt: string, allowSubSessionStart = false, disabledAgentTools?: unknown, workMode?: unknown, llmConfigId?: unknown, llmConfig?: LLMConfig): AgentSessionSendResult {
 	const session = getSessionItem(sessionId);
 	if (!session) {
 		return { success: false, message: "session not found" };
@@ -2547,10 +2548,10 @@ export function sendPrompt(sessionId: number, prompt: string, allowSubSessionSta
 		DB.exec(`UPDATE ${TABLE_SESSION} SET work_mode = ?, updated_at = ? WHERE id = ?`, [nextWorkMode, now(), session.id]);
 		session.workMode = nextWorkMode;
 	}
-	return startPromptTask(session, normalizedPrompt, undefined, normalizeDisabledAgentTools(disabledAgentTools), { workMode: nextWorkMode });
+	return startPromptTask(session, normalizedPrompt, undefined, normalizeDisabledAgentTools(disabledAgentTools), { workMode: nextWorkMode, llmConfigId, llmConfig });
 }
 
-export function continuePrompt(sessionId: number, disabledAgentTools?: unknown): AgentSessionSendResult {
+export function continuePrompt(sessionId: number, disabledAgentTools?: unknown, llmConfigId?: unknown): AgentSessionSendResult {
 	const session = getSessionItem(sessionId);
 	if (!session) {
 		return { success: false, message: "session not found" };
@@ -2567,7 +2568,7 @@ export function continuePrompt(sessionId: number, disabledAgentTools?: unknown):
 		"",
 		undefined,
 		normalizeDisabledAgentTools(disabledAgentTools),
-		{ workMode: session.workMode, persistUserMessage: false, resumeConversation: true },
+		{ workMode: session.workMode, persistUserMessage: false, resumeConversation: true, llmConfigId },
 	);
 }
 
@@ -2578,6 +2579,8 @@ interface PromptTaskOptions {
 	displayContent?: string;
 	persistUserMessage?: boolean;
 	resumeConversation?: boolean;
+	llmConfigId?: unknown;
+	llmConfig?: LLMConfig;
 }
 
 function startPromptTask(
@@ -2588,6 +2591,13 @@ function startPromptTask(
 	options?: PromptTaskOptions
 ): AgentSessionSendResult {
 	const taskWorkMode = session.kind === "main" ? (options?.workMode ?? session.workMode) : "code";
+	const llmConfigRes = options?.llmConfig
+		? { success: true as const, config: options.llmConfig }
+		: getLLMConfig(options?.llmConfigId);
+	if (!llmConfigRes.success) {
+		return { success: false, message: llmConfigRes.message };
+	}
+	const llmConfig = llmConfigRes.config;
 	const taskRes = Tools.createTask(normalizedPrompt, taskWorkMode);
 	if (!taskRes.success) {
 		return { success: false, message: taskRes.message };
@@ -2617,8 +2627,9 @@ function startPromptTask(
 		maxSteps: options?.maxSteps,
 		disabledAgentTools,
 		workMode: session.kind === "main" ? (options?.workMode ?? session.workMode) : "code",
+		llmConfig,
 		spawnSubAgent: session.kind === "main"
-			? spawnSubAgentSession
+			? request => spawnSubAgentSession({ ...request, llmConfig })
 			: undefined,
 		listSubAgents: session.kind === "main"
 			? listRunningSubAgents
@@ -2688,7 +2699,7 @@ function startPromptTask(
 	return { success: true, sessionId: session.id, taskId };
 }
 
-export function finishSubSessionHandoff(sessionId: number): AgentSessionSendResult {
+export function finishSubSessionHandoff(sessionId: number, llmConfigId?: unknown): AgentSessionSendResult {
 	const session = getSessionItem(sessionId);
 	if (!session) {
 		return { success: false, message: "session not found" };
@@ -2717,10 +2728,11 @@ export function finishSubSessionHandoff(sessionId: number): AgentSessionSendResu
 	return startPromptTask(session, prompt, undefined, disabledAgentTools, {
 		maxSteps: 1,
 		forceSubAgentHandoff: true,
+		llmConfigId,
 	});
 }
 
-export function resendPrompt(sessionId: number, messageId: number, prompt: string, disabledAgentTools?: unknown, workMode?: unknown): AgentSessionResendResult {
+export function resendPrompt(sessionId: number, messageId: number, prompt: string, disabledAgentTools?: unknown, workMode?: unknown, llmConfigId?: unknown): AgentSessionResendResult {
 	const session = getSessionItem(sessionId);
 	if (!session) {
 		return { success: false, message: "session not found" };
@@ -2757,7 +2769,7 @@ export function resendPrompt(sessionId: number, messageId: number, prompt: strin
 	}
 	const removedStepIds = clearSessionAfterMessage(sessionId, message);
 	truncatePersistedSessionBeforeLatestUserPrompt(session);
-	const result = startPromptTask(session, normalizedPrompt, messageId, normalizeDisabledAgentTools(disabledAgentTools), { workMode: nextWorkMode });
+	const result = startPromptTask(session, normalizedPrompt, messageId, normalizeDisabledAgentTools(disabledAgentTools), { workMode: nextWorkMode, llmConfigId });
 	if (result.success && removedStepIds.length > 0) {
 		emitAgentSessionPatch(sessionId, { removedStepIds });
 	}
@@ -2830,7 +2842,7 @@ export function cancelQuestionnaire(sessionId: number, questionnaireId: number) 
 	return { success: true as const, session: updated };
 }
 
-export function respondQuestionnaire(sessionId: number, questionnaireId: number, answers: unknown): AgentSessionSendResult {
+export function respondQuestionnaire(sessionId: number, questionnaireId: number, answers: unknown, llmConfigId?: unknown): AgentSessionSendResult {
 	const session = getSessionItem(sessionId);
 	if (!session) return { success: false, message: "session not found" };
 	if (session.kind !== "main") return { success: false, message: "questionnaires are only available for main sessions" };
@@ -2846,6 +2858,7 @@ export function respondQuestionnaire(sessionId: number, questionnaireId: number,
 	const result = startPromptTask(session, buildQuestionnaireFeedbackPrompt(questionnaire, validated.answers), undefined, [], {
 		workMode: "plan",
 		displayContent: buildQuestionnaireFeedbackDisplay(questionnaire, validated.answers),
+		llmConfigId,
 	});
 	if (!result.success) {
 		savePendingQuestionnaire(session.projectRoot, questionnaire);

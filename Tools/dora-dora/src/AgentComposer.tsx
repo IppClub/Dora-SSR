@@ -3,6 +3,8 @@ import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
 import DownloadIcon from '@mui/icons-material/Download';
 import TerminalIcon from '@mui/icons-material/Terminal';
 import ChecklistIcon from '@mui/icons-material/Checklist';
@@ -33,12 +35,15 @@ interface AgentComposerProps {
 	fetchUrlEnabled?: boolean;
 	executeCommandEnabled?: boolean;
 	planMode?: boolean;
+	llmConfigs?: Array<{ id: number; name: string }>;
+	llmConfigId?: number;
 	onPromptChange: (value: string) => void;
 	onSend: () => void;
 	onStop: () => void;
 	onFetchUrlEnabledChange?: (value: boolean) => void;
 	onExecuteCommandEnabledChange?: (value: boolean) => void;
 	onPlanModeChange?: (value: boolean) => void;
+	onLLMConfigChange?: (value: number) => void;
 }
 
 function formatCompactNumber(value: number): string {
@@ -136,12 +141,15 @@ export default function AgentComposer(props: AgentComposerProps) {
 		fetchUrlEnabled = false,
 		executeCommandEnabled = false,
 		planMode = false,
+		llmConfigs = [],
+		llmConfigId,
 		onPromptChange,
 		onSend,
 		onStop,
 		onFetchUrlEnabledChange,
 		onExecuteCommandEnabledChange,
 		onPlanModeChange,
+		onLLMConfigChange,
 	} = props;
 	const disabledInput = loading || running;
 	const actionDisabled = running ? !canStop : loading || prompt.trim() === "";
@@ -156,6 +164,7 @@ export default function AgentComposer(props: AgentComposerProps) {
 	const textAreaRef = React.useRef<HTMLTextAreaElement | null>(null);
 	const scrollRef = React.useRef<HTMLElement | null>(null);
 	const isComposingRef = React.useRef(false);
+	const selectedLLMConfigName = llmConfigs.find(item => item.id === llmConfigId)?.name ?? t("agent.selectModel");
 
 	React.useLayoutEffect(() => {
 		const textarea = textAreaRef.current;
@@ -391,6 +400,33 @@ export default function AgentComposer(props: AgentComposerProps) {
 						</span>
 					</Tooltip>
 				) : null}
+				<Tooltip title={t("agent.modelForNextRun")}>
+					<Select
+						value={llmConfigId ?? ""}
+						displayEmpty
+						disabled={loading || llmConfigs.length === 0 || onLLMConfigChange === undefined}
+						onChange={event => onLLMConfigChange?.(Number(event.target.value))}
+						renderValue={() => selectedLLMConfigName}
+						variant="standard"
+						disableUnderline
+						size="small"
+						inputProps={{ "aria-label": t("agent.modelForNextRun") }}
+						sx={{
+							position: "absolute",
+							right: 16,
+							bottom: 11,
+							zIndex: 1,
+							maxWidth: "60%",
+							minWidth: 120,
+							fontSize: 12,
+							color: Color.TextSecondary,
+							"& .MuiSelect-select": { py: 0.25, pr: "22px !important", textAlign: "right" },
+							"& .MuiSelect-icon": { color: Color.TextSecondary },
+						}}
+					>
+						{llmConfigs.map(item => <MenuItem key={item.id} value={item.id}>{item.name}</MenuItem>)}
+					</Select>
+				</Tooltip>
 			</Box>
 		</Box>
 	);

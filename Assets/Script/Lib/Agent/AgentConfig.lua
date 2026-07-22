@@ -5,33 +5,38 @@ ____exports.AGENT_DEFAULTS = { -- 3
 	llmMaxTry = 5, -- 5
 	llmTemperature = 0.1, -- 6
 	llmMaxTokens = 8192, -- 7
-	delegatedForegroundBatchLimit = 3, -- 8
-	turnBoundaryCompressionRatio = 0.85 -- 9
-} -- 9
-____exports.AGENT_LIMITS = { -- 12
-	userPromptMaxChars = 12000, -- 13
-	historyReadFileMaxChars = 12000, -- 14
-	historyReadFileMaxLines = 300, -- 15
-	readFileDefaultLimit = 300, -- 16
-	historySearchFilesMaxMatches = 20, -- 17
-	historySearchDoraApiMaxMatches = 12, -- 18
-	historyListFilesMaxEntries = 200, -- 19
-	historyBuildMaxMessages = 50, -- 20
-	historyBuildMessageMaxChars = 1200, -- 21
-	llmHistoryEditResultMessageMaxChars = 4000, -- 22
-	llmHistoryBuildMaxMessages = 12, -- 23
-	llmHistoryCommandOutputMaxChars = 8000, -- 24
-	llmHistoryToolResultMaxChars = 12000, -- 25
-	searchDoraApiLimitMax = 20, -- 26
-	searchFilesLimitDefault = 20, -- 27
-	listFilesMaxEntriesDefault = 200, -- 28
-	searchPreviewContext = 80 -- 29
-} -- 29
-function ____exports.getTurnBoundaryCompressionThreshold(contextWindow) -- 32
-	local normalizedContextWindow = math.max( -- 33
-		1, -- 33
-		math.floor(contextWindow) -- 33
-	) -- 33
-	return math.floor(normalizedContextWindow * ____exports.AGENT_DEFAULTS.turnBoundaryCompressionRatio) -- 34
-end -- 32
-return ____exports -- 32
+	delegatedForegroundBatchLimit = 3 -- 8
+} -- 8
+____exports.AGENT_LIMITS = { -- 11
+	userPromptMaxChars = 12000, -- 12
+	historyReadFileMaxChars = 12000, -- 13
+	historyReadFileMaxLines = 300, -- 14
+	readFileDefaultLimit = 300, -- 15
+	historySearchFilesMaxMatches = 20, -- 16
+	historySearchDoraApiMaxMatches = 12, -- 17
+	historyListFilesMaxEntries = 200, -- 18
+	historyBuildMaxMessages = 50, -- 19
+	historyBuildMessageMaxChars = 1200, -- 20
+	llmHistoryEditResultMessageMaxChars = 4000, -- 21
+	llmHistoryBuildMaxMessages = 12, -- 22
+	llmHistoryCommandOutputMaxChars = 8000, -- 23
+	llmHistoryToolResultMaxChars = 12000, -- 24
+	searchDoraApiLimitMax = 20, -- 25
+	searchFilesLimitDefault = 20, -- 26
+	listFilesMaxEntriesDefault = 200, -- 27
+	searchPreviewContext = 80, -- 28
+	completionTextMaxChars = 800, -- 29
+	completionListMaxItems = 12, -- 30
+	completionEvidenceMaxItems = 8 -- 31
+} -- 31
+____exports.AGENT_FILE_PATTERNS = {freshProjectCodeGlobs = { -- 34
+	"**/*.ts", -- 36
+	"**/*.tsx", -- 37
+	"**/*.lua", -- 38
+	"**/*.yue", -- 39
+	"**/*.tl", -- 40
+	"**/*.yarn", -- 41
+	"**/*.xml", -- 42
+	"!**/*.d.ts" -- 43
+}} -- 43
+return ____exports -- 43

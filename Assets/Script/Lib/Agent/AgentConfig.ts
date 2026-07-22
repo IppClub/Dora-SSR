@@ -6,7 +6,6 @@ export const AGENT_DEFAULTS = {
 	llmTemperature: 0.1,
 	llmMaxTokens: 8192,
 	delegatedForegroundBatchLimit: 3,
-	turnBoundaryCompressionRatio: 0.85,
 };
 
 export const AGENT_LIMITS = {
@@ -27,9 +26,20 @@ export const AGENT_LIMITS = {
 	searchFilesLimitDefault: 20,
 	listFilesMaxEntriesDefault: 200,
 	searchPreviewContext: 80,
+	completionTextMaxChars: 800,
+	completionListMaxItems: 12,
+	completionEvidenceMaxItems: 8,
 };
 
-export function getTurnBoundaryCompressionThreshold(contextWindow: number): number {
-	const normalizedContextWindow = math.max(1, math.floor(contextWindow));
-	return math.floor(normalizedContextWindow * AGENT_DEFAULTS.turnBoundaryCompressionRatio);
-}
+export const AGENT_FILE_PATTERNS = {
+	freshProjectCodeGlobs: [
+		"**/*.ts",
+		"**/*.tsx",
+		"**/*.lua",
+		"**/*.yue",
+		"**/*.tl",
+		"**/*.yarn",
+		"**/*.xml",
+		"!**/*.d.ts",
+	] as string[],
+};

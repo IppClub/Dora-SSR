@@ -1,8 +1,8 @@
 // @preview-file off clear
 import { App, Path, Content } from 'Dora';
 import { Flow, Node } from 'Agent/flow';
-import { callLLMStreamAggregated, Message, StopToken, Log, getActiveLLMConfig, createLocalToolCallId, parseSimpleXMLChildren, parseXMLObjectFromText, safeJsonDecode, safeJsonEncode, sanitizeUTF8, estimateTextTokens } from 'Agent/Utils';
-import type { LLMConfig, LLMTokenUsage, ToolCall } from 'Agent/Utils';
+import * as AgentUtils from 'Agent/Utils';
+import type { LLMConfig, LLMTokenUsage, Message, StopToken, ToolCall } from 'Agent/Utils';
 import * as Tools from 'Agent/Tools';
 import { MemoryCompressor } from 'Agent/Memory';
 import type { AgentPromptPack, AgentConversationMessage } from 'Agent/Memory';
@@ -11,6 +11,14 @@ import type { AgentDecisionMode, AgentRole, AgentToolName, AgentWorkMode } from 
 import * as AgentSkills from 'Agent/AgentSkills';
 import * as AgentConfig from 'Agent/AgentConfig';
 import * as AgentRuntimePolicy from 'Agent/AgentRuntimePolicy';
+import type {
+	AgentCompletionOutcome,
+	AgentValidationKind,
+	AgentValidationResult,
+	AgentValidationReportItem,
+	AgentLearningCandidateItem,
+	AgentCompletionReport,
+} from 'Agent/Utils';
 import { normalizeQuestionnaire } from 'Agent/AgentQuestionnaire';
 import type { AgentQuestionnaireSchema } from 'Agent/AgentQuestionnaire';
 
@@ -49,30 +57,14 @@ export type CodingAgentRunResult =
 		completion?: AgentCompletionReport;
 	};
 
-export type AgentCompletionOutcome = "completed" | "partial" | "blocked";
-export type AgentValidationKind = "build" | "runtime" | "manual";
-export type AgentValidationResult = "passed" | "failed" | "not_run";
-
-export interface AgentValidationReportItem {
-	kind: AgentValidationKind;
-	result: AgentValidationResult;
-	evidence: string[];
-}
-
-export interface AgentLearningCandidateItem {
-	claim: string;
-	scope: "file" | "project" | "engine";
-	evidence: string[];
-	confidence: "observed" | "inferred";
-}
-
-export interface AgentCompletionReport {
-	outcome: AgentCompletionOutcome;
-	validation: AgentValidationReportItem[];
-	knownIssues: string[];
-	assumptions: string[];
-	learningCandidates: AgentLearningCandidateItem[];
-}
+export type {
+	AgentCompletionOutcome,
+	AgentValidationKind,
+	AgentValidationResult,
+	AgentValidationReportItem,
+	AgentLearningCandidateItem,
+	AgentCompletionReport,
+} from 'Agent/Utils';
 
 export interface CodingAgentRunOptions {
 	prompt: string;
@@ -447,7 +439,7 @@ function emitAgentEvent(shared: AgentShared, event: CodingAgentEvent) {
 		try {
 			shared.onEvent(event);
 		} catch (error) {
-			Log("Error", `[CodingAgent] onEvent handler failed: ${tostring(error)}`);
+			AgentUtils.Log("Error", `[CodingAgent] onEvent handler failed: ${tostring(error)}`);
 		}
 	}
 }
@@ -459,29 +451,19 @@ function emitLLMContextMetrics(
 	messages: Message[],
 	options: Record<string, unknown>
 ) {
-	let messagesTokens = 0;
-	for (let i = 0; i < messages.length; i++) {
-		const message = messages[i];
-		messagesTokens += 8;
-		messagesTokens += estimateTextTokens(message.role ?? "");
-		messagesTokens += estimateTextTokens(message.content ?? "");
-		messagesTokens += estimateTextTokens(message.name ?? "");
-		messagesTokens += estimateTextTokens(message.tool_call_id ?? "");
-		messagesTokens += estimateTextTokens(message.reasoning_content ?? "");
-		const [toolCallsText] = safeJsonEncode((message.tool_calls ?? []) as object);
-		messagesTokens += estimateTextTokens(toolCallsText ?? "");
-	}
+	const fitted = AgentUtils.fitMessagesToContext(messages, options, shared.llmConfig);
+	const messagesTokens = fitted.originalTokens;
 	// Calculate tool definitions separately - they are fixed overhead, not conversation usage
 	let toolDefinitionsTokens = 0;
 	if (options.tools && Array.isArray(options.tools)) {
-		const [toolsText] = safeJsonEncode(options.tools as object);
-		toolDefinitionsTokens = toolsText ? estimateTextTokens(toolsText) : 0;
+		const [toolsText] = AgentUtils.safeJsonEncode(options.tools as object);
+		toolDefinitionsTokens = toolsText ? AgentUtils.estimateTextTokens(toolsText) : 0;
 	}
 	// Exclude tools from optionsTokens since we track them separately
 	const optionsWithoutTools = { ...options };
 	delete optionsWithoutTools.tools;
-	const [optionsText] = safeJsonEncode(optionsWithoutTools as object);
-	const optionsTokens = optionsText ? estimateTextTokens(optionsText) : 0;
+	const [optionsText] = AgentUtils.safeJsonEncode(optionsWithoutTools as object);
+	const optionsTokens = optionsText ? AgentUtils.estimateTextTokens(optionsText) : 0;
 	const contextWindow = shared.llmConfig.contextWindow > 0
 		? math.floor(shared.llmConfig.contextWindow)
 		: 64000;
@@ -494,9 +476,10 @@ function emitLLMContextMetrics(
 		? math.max(256, explicitMax)
 		: math.max(1024, math.floor(contextWindow * 0.2));
 	const structuralOverhead = math.max(256, messages.length * 16);
-	// usedTokens represents actual conversation content, not fixed overhead like tool definitions
-	const usedTokens = messagesTokens + optionsTokens + structuralOverhead;
-	const maxTokens = contextWindow;
+	// Match the request fitter exactly: options, output reservation, and structural
+	// overhead reduce the input budget instead of inflating the displayed usage.
+	const usedTokens = messagesTokens;
+	const maxTokens = fitted.budgetTokens;
 	emitAgentEvent(shared, {
 		type: "metrics_updated",
 		sessionId: shared.sessionId,
@@ -676,7 +659,7 @@ function ensureDirRecursive(dir: string): boolean {
 }
 
 function encodeDebugJSON(value: unknown): string {
-	const [text, err] = safeJsonEncode(value as object);
+	const [text, err] = AgentUtils.safeJsonEncode(value as object);
 	return text ?? `{ "error": "json_encode_failed", "message": "${tostring(err)}" }`;
 }
 
@@ -697,22 +680,11 @@ export function isAgentPlanPath(path: string): boolean {
 	return AgentRuntimePolicy.isAgentPlanPath(path);
 }
 
-const FRESH_PROJECT_CODE_GLOBS = [
-	"**/*.ts",
-	"**/*.tsx",
-	"**/*.lua",
-	"**/*.yue",
-	"**/*.tl",
-	"**/*.yarn",
-	"**/*.xml",
-	"!**/*.d.ts",
-];
-
 function inspectFreshProject(workDir: string): { fresh: boolean; codeFile?: string } {
 	const result = Tools.listFiles({
 		workDir,
 		path: "",
-		globs: FRESH_PROJECT_CODE_GLOBS,
+		globs: AgentConfig.AGENT_FILE_PATTERNS.freshProjectCodeGlobs,
 		maxEntries: 2,
 	});
 	if (!result.success) return { fresh: false };
@@ -765,7 +737,7 @@ function getLatestStepLLMDebugSeq(shared: AgentShared, stepId: number): number {
 
 function writeStepLLMDebugFile(path: string, content: string): boolean {
 	if (!Content.save(path, content)) {
-		Log("Warn", `[CodingAgent] failed to save LLM debug file: ${path}`);
+		AgentUtils.Log("Warn", `[CodingAgent] failed to save LLM debug file: ${path}`);
 		return false;
 	}
 	return true;
@@ -775,7 +747,7 @@ function createStepLLMDebugPair(shared: AgentShared, stepId: number, inContent: 
 	if (!canWriteStepLLMDebug(shared, stepId)) return 0;
 	const dir = getStepLLMDebugDir(shared);
 	if (!ensureDirRecursive(dir)) {
-		Log("Warn", `[CodingAgent] failed to create LLM debug dir: ${dir}`);
+		AgentUtils.Log("Warn", `[CodingAgent] failed to create LLM debug dir: ${dir}`);
 		return 0;
 	}
 	const seq = getLatestStepLLMDebugSeq(shared, stepId) + 1;
@@ -792,7 +764,7 @@ function updateLatestStepLLMDebugOutput(shared: AgentShared, stepId: number, con
 	if (!canWriteStepLLMDebug(shared, stepId)) return;
 	const dir = getStepLLMDebugDir(shared);
 	if (!ensureDirRecursive(dir)) {
-		Log("Warn", `[CodingAgent] failed to create LLM debug dir: ${dir}`);
+		AgentUtils.Log("Warn", `[CodingAgent] failed to create LLM debug dir: ${dir}`);
 		return;
 	}
 	const latestSeq = getLatestStepLLMDebugSeq(shared, stepId);
@@ -849,7 +821,7 @@ function saveStepLLMDebugOutput(shared: AgentShared, stepId: number, phase: stri
 }
 
 function toJson(value: unknown, emptyAsArray: boolean): string {
-	const [text, err] = safeJsonEncode(value as object, false, emptyAsArray);
+	const [text, err] = AgentUtils.safeJsonEncode(value as object, false, emptyAsArray);
 	if (text !== undefined) return text;
 	return `{ "error": "json_encode_failed", "message": "${tostring(err)}" }`;
 }
@@ -1225,7 +1197,7 @@ function projectCommandResultForLLM(result: Record<string, unknown>): Record<str
 }
 
 function projectToolResultContentForLLM(tool: string, content: string): string {
-	const [decoded] = safeJsonDecode(content);
+	const [decoded] = AgentUtils.safeJsonDecode(content);
 	if (!isRecord(decoded) || isArray(decoded)) {
 		return truncateHistoryText(
 			content,
@@ -1284,7 +1256,7 @@ function projectMessagesForCompression(messages: Message[]): Message[] {
 		const toolCalls = message.tool_calls.map(toolCall => {
 			const fn = toolCall.function;
 			if (fn?.name !== "edit_file" || typeof fn.arguments !== "string") return toolCall;
-			const [decoded] = safeJsonDecode(fn.arguments);
+			const [decoded] = AgentUtils.safeJsonDecode(fn.arguments);
 			if (!isRecord(decoded) || isArray(decoded)) return toolCall;
 			changed = true;
 			return {
@@ -1340,7 +1312,7 @@ function getDecisionToolDefinitions(shared: AgentShared): string {
 }
 
 function getDecisionToolSchemaText(shared: AgentShared): string {
-	const [toolsText] = safeJsonEncode(AgentToolRegistry.buildDecisionToolSchema(shared.role, AgentConfig.AGENT_LIMITS.searchDoraApiLimitMax, {
+	const [toolsText] = AgentUtils.safeJsonEncode(AgentToolRegistry.buildDecisionToolSchema(shared.role, AgentConfig.AGENT_LIMITS.searchDoraApiLimitMax, {
 		disabledAgentTools: getDecisionDisabledAgentTools(shared),
 		workMode: shared.workMode,
 	}) as object);
@@ -1363,7 +1335,7 @@ async function startPreExecutedToolAction(shared: AgentShared, action: AgentActi
 		return await executeToolAction(shared, action);
 	} catch (err) {
 		const message = tostring(err);
-		Log("Error", `[CodingAgent] streaming pre-exec failed tool=${action.tool} id=${action.toolCallId}: ${message}`);
+		AgentUtils.Log("Error", `[CodingAgent] streaming pre-exec failed tool=${action.tool} id=${action.toolCallId}: ${message}`);
 		return { success: false, message };
 	}
 }
@@ -1428,10 +1400,10 @@ async function executeToolActionWithPreExecution(shared: AgentShared, action: Ag
 	if (preResult) {
 		shared.preExecutedResults?.delete(action.toolCallId);
 		if (preResult.matches(action)) {
-			Log("Info", `[CodingAgent] using streaming pre-exec result tool=${action.tool} id=${action.toolCallId}`);
+			AgentUtils.Log("Info", `[CodingAgent] using streaming pre-exec result tool=${action.tool} id=${action.toolCallId}`);
 			result = await preResult.promise;
 		} else {
-			Log("Warn", `[CodingAgent] discard stale streaming pre-exec result tool=${action.tool} id=${action.toolCallId}`);
+			AgentUtils.Log("Warn", `[CodingAgent] discard stale streaming pre-exec result tool=${action.tool} id=${action.toolCallId}`);
 			result = await executeToolAction(shared, action);
 		}
 	} else {
@@ -1494,7 +1466,7 @@ async function executeToolActionWithPreExecution(shared: AgentShared, action: Ag
 
 async function maybeCompressHistory(
 	shared: AgentShared,
-	forceAtTurnBoundary = false,
+	includePendingUserPrompt = false,
 	pendingUserPrompt = ""
 ): Promise<void> {
 	const { memory } = shared;
@@ -1502,11 +1474,11 @@ async function maybeCompressHistory(
 	let changed = false;
 	for (let round = 0; round < maxRounds; round++) {
 		const systemPrompt = buildAgentSystemPrompt(shared, shared.decisionMode === "xml");
-		const activeMessages = projectMessagesForCompression(getActiveConversationMessages(shared));
-		// A carried instruction remains visible after compression, but its history is
-		// already covered by Session Summary. Only the uncovered tail may trigger a
-		// new compression round; otherwise small follow-up tasks repeatedly summarize
-		// the same carried prompt.
+		const normalizedActiveMessages = sanitizeMessagesForLLMInput(getActiveConversationMessages(shared));
+		const decisionActiveMessages = projectMessagesForLLMContext(normalizedActiveMessages);
+		const activeMessages = projectMessagesForCompression(normalizedActiveMessages);
+		// Keep the projected uncovered count for diagnostics. The trigger itself is
+		// based on the exact next decision request below, including any carried prompt.
 		const uncoveredMessages = projectMessagesForCompression(
 			AgentRuntimePolicy.getUncoveredConversationMessages(
 				shared.messages,
@@ -1518,33 +1490,42 @@ async function maybeCompressHistory(
 		const toolDefinitions = shared.decisionMode === "tool_calling"
 			? getDecisionToolSchemaText(shared)
 			: "";
-		const thresholdReached = memory.compressor.shouldCompress(
-			uncoveredMessages,
-			systemPrompt,
-			toolDefinitions
+		const triggerMessages = buildDecisionMessages(
+			shared,
+			undefined,
+			1,
+			undefined,
+			shared.decisionMode,
+			false,
+			includePendingUserPrompt ? pendingUserPrompt : ""
 		);
-		let activeTokens = 0;
-		if (forceAtTurnBoundary && shared.role === "main") {
-			activeTokens = estimateTextTokens(systemPrompt)
-				+ estimateTextTokens(toolDefinitions)
-				+ AgentRuntimePolicy.estimateConversationTokens(uncoveredMessages)
-				+ estimateTextTokens(pendingUserPrompt)
-				+ math.max(0, math.floor(Number(shared.llmOptions.max_tokens ?? AgentConfig.AGENT_DEFAULTS.llmMaxTokens)));
-		}
-		const turnBoundaryThreshold = AgentConfig.getTurnBoundaryCompressionThreshold(
-			shared.llmConfig.contextWindow
-		);
-		const turnBoundaryReached = forceAtTurnBoundary
-			&& shared.role === "main"
-			&& uncoveredMessages.length > 0
-			&& activeTokens >= turnBoundaryThreshold;
-		if (!thresholdReached && !turnBoundaryReached) {
+		const triggerOptions = shared.decisionMode === "tool_calling"
+			? {
+				...shared.llmOptions,
+				...(shared.llmConfig.model.toLowerCase().includes("glm-5.2")
+					&& (typeof shared.llmOptions.reasoning_effort !== "string"
+						|| shared.llmOptions.reasoning_effort.trim() === "")
+					? { reasoning_effort: "minimal" }
+					: {}),
+				tools: AgentToolRegistry.buildDecisionToolSchema(shared.role, AgentConfig.AGENT_LIMITS.searchDoraApiLimitMax, {
+					disabledAgentTools: getDecisionDisabledAgentTools(shared),
+					workMode: shared.workMode,
+				}),
+			}
+			: shared.llmOptions;
+		const fitted = AgentUtils.fitMessagesToContext(triggerMessages, triggerOptions, shared.llmConfig);
+		// Trigger at 100% of the exact effective input budget used by the normal
+		// request path. The compression payload below remains independently projected.
+		const thresholdReached = getActiveRealMessageCount(shared) > 0
+			&& fitted.originalTokens >= fitted.budgetTokens;
+		if (!thresholdReached) {
 			if (changed) {
 				persistHistoryState(shared);
 			}
 			return;
 		}
 		const compressionRound = round + 1;
+		AgentUtils.Log("Info", `[Memory] Effective input budget reached tokens=${fitted.originalTokens} budget=${fitted.budgetTokens} round=${compressionRound}`);
 		shared.step += 1;
 		const stepId = shared.step;
 		const pendingMessages = activeMessages.length;
@@ -1561,6 +1542,8 @@ async function maybeCompressHistory(
 				pendingMessages,
 				coveredThroughIndex: shared.lastConsolidatedIndex,
 				uncoveredMessages: uncoveredMessages.length,
+				inputTokens: fitted.originalTokens,
+				inputBudgetTokens: fitted.budgetTokens,
 			},
 		});
 		const result = await memory.compressor.compress(
@@ -1581,7 +1564,8 @@ async function maybeCompressHistory(
 				},
 			"default",
 			systemPrompt,
-			toolDefinitions
+			toolDefinitions,
+			decisionActiveMessages
 		);
 		if (!(result && result.success && result.compressedCount > 0)) {
 			emitAgentEvent(shared, {
@@ -1633,7 +1617,7 @@ async function maybeCompressHistory(
 		});
 		applyCompressedSessionState(shared, result.compressedCount, result.carryMessageIndex, result.sessionSummaryUpdate);
 		changed = true;
-		Log("Info", `[Memory] Compressed ${effectiveCompressedCount} messages (round ${compressionRound})`);
+		AgentUtils.Log("Info", `[Memory] Compressed ${effectiveCompressedCount} messages (round ${compressionRound})`);
 	}
 	if (changed) {
 		persistHistoryState(shared);
@@ -1740,7 +1724,7 @@ async function compactAllHistory(shared: AgentShared): Promise<CodingAgentRunRes
 		applyCompressedSessionState(shared, result.compressedCount, result.carryMessageIndex, result.sessionSummaryUpdate);
 		totalCompressed += effectiveCompressedCount;
 		persistHistoryState(shared);
-		Log("Info", `[Memory] Full compaction compressed ${effectiveCompressedCount} messages (round ${rounds})`);
+		AgentUtils.Log("Info", `[Memory] Full compaction compressed ${effectiveCompressedCount} messages (round ${rounds})`);
 	}
 	Tools.setTaskStatus(shared.taskId, "DONE");
 	return emitAgentTaskFinishEvent(
@@ -1780,71 +1764,8 @@ function getFinishMessage(params: Record<string, unknown>, fallback = ""): strin
 	return fallback.trim();
 }
 
-const COMPLETION_TEXT_MAX_CHARS = 800;
-const COMPLETION_LIST_MAX_ITEMS = 12;
-const COMPLETION_EVIDENCE_MAX_ITEMS = 8;
-
-function normalizeCompletionText(value: unknown): string {
-	if (typeof value !== "string") return "";
-	return sanitizeUTF8(value).trim().slice(0, COMPLETION_TEXT_MAX_CHARS);
-}
-
-function normalizeCompletionTextList(value: unknown, maxItems = COMPLETION_LIST_MAX_ITEMS): string[] {
-	if (!isArray(value)) return [];
-	const items: string[] = [];
-	for (let i = 0; i < value.length && items.length < maxItems; i++) {
-		const item = normalizeCompletionText(value[i]);
-		if (item !== "" && items.indexOf(item) < 0) items.push(item);
-	}
-	return items;
-}
-
-export function normalizeAgentCompletionReport(value: unknown): AgentCompletionReport {
-	const row = value && !isArray(value) && isRecord(value) ? value : {};
-	const outcome: AgentCompletionOutcome = row.outcome === "partial" || row.outcome === "blocked"
-		? row.outcome
-		: "completed";
-	const validation: AgentValidationReportItem[] = [];
-	if (isArray(row.validation)) {
-		for (let i = 0; i < row.validation.length && validation.length < COMPLETION_LIST_MAX_ITEMS; i++) {
-			const raw = row.validation[i];
-			if (!raw || isArray(raw) || !isRecord(raw)) continue;
-			const kind = raw.kind === "runtime" || raw.kind === "manual" ? raw.kind : (raw.kind === "build" ? "build" : undefined);
-			const result = raw.result === "passed" || raw.result === "failed" || raw.result === "not_run" ? raw.result : undefined;
-			if (kind === undefined || result === undefined) continue;
-			validation.push({
-				kind,
-				result,
-				evidence: normalizeCompletionTextList(raw.evidence, COMPLETION_EVIDENCE_MAX_ITEMS),
-			});
-		}
-	}
-	const learningCandidates: AgentLearningCandidateItem[] = [];
-	if (isArray(row.learningCandidates)) {
-		for (let i = 0; i < row.learningCandidates.length && learningCandidates.length < COMPLETION_LIST_MAX_ITEMS; i++) {
-			const raw = row.learningCandidates[i];
-			if (!raw || isArray(raw) || !isRecord(raw)) continue;
-			const claim = normalizeCompletionText(raw.claim);
-			if (claim === "") continue;
-			learningCandidates.push({
-				claim,
-				scope: raw.scope === "file" || raw.scope === "engine" ? raw.scope : "project",
-				evidence: normalizeCompletionTextList(raw.evidence, COMPLETION_EVIDENCE_MAX_ITEMS),
-				confidence: raw.confidence === "inferred" ? "inferred" : "observed",
-			});
-		}
-	}
-	return {
-		outcome,
-		validation,
-		knownIssues: normalizeCompletionTextList(row.knownIssues),
-		assumptions: normalizeCompletionTextList(row.assumptions),
-		learningCandidates,
-	};
-}
-
 function getCompletionReport(params: Record<string, unknown>): AgentCompletionReport {
-	return normalizeAgentCompletionReport(params);
+	return AgentUtils.normalizeAgentCompletionReport(params);
 }
 
 function persistHistoryState(shared: AgentShared): void {
@@ -1980,17 +1901,17 @@ function applyCompressedSessionState(
 function appendConversationMessage(shared: AgentShared, message: AgentConversationMessage): void {
 	shared.messages.push({
 		...message,
-		content: message.content ? sanitizeUTF8(message.content) : message.content,
-		name: message.name ? sanitizeUTF8(message.name) : message.name,
-		tool_call_id: message.tool_call_id ? sanitizeUTF8(message.tool_call_id) : message.tool_call_id,
-		reasoning_content: message.reasoning_content ? sanitizeUTF8(message.reasoning_content) : message.reasoning_content,
+		content: message.content ? AgentUtils.sanitizeUTF8(message.content) : message.content,
+		name: message.name ? AgentUtils.sanitizeUTF8(message.name) : message.name,
+		tool_call_id: message.tool_call_id ? AgentUtils.sanitizeUTF8(message.tool_call_id) : message.tool_call_id,
+		reasoning_content: message.reasoning_content ? AgentUtils.sanitizeUTF8(message.reasoning_content) : message.reasoning_content,
 		timestamp: message.timestamp ?? os.date("!%Y-%m-%dT%H:%M:%SZ"),
 	});
 }
 
 function ensureToolCallId(toolCallId?: string): string {
 	if (toolCallId && toolCallId !== "") return toolCallId;
-	return createLocalToolCallId();
+	return AgentUtils.createLocalToolCallId();
 }
 
 function appendToolResultMessage(shared: AgentShared, action: AgentActionRecord): void {
@@ -2134,7 +2055,7 @@ function parseDSMLToolCallObjectFromText(text: string): { success: true; obj: Re
 }
 
 function parseXMLToolCallObjectFromText(text: string): { success: true; obj: Record<string, unknown> } | { success: false; message: string } {
-	const children = parseXMLObjectFromText(text, "tool_call");
+	const children = AgentUtils.parseXMLObjectFromText(text, "tool_call");
 	let rawObj: Record<string, unknown> | undefined;
 	if (children.success) {
 		rawObj = children.obj;
@@ -2147,7 +2068,7 @@ function parseXMLToolCallObjectFromText(text: string): { success: true; obj: Rec
 			const paramsClose = text.indexOf(paramsCloseToken, toolStart);
 			if (paramsClose >= toolStart) {
 				const bareCandidate = text.slice(toolStart, paramsClose + paramsCloseToken.length).trim();
-				const bare = parseSimpleXMLChildren(bareCandidate);
+				const bare = AgentUtils.parseSimpleXMLChildren(bareCandidate);
 				if (bare.success && typeof bare.obj.tool === "string" && typeof bare.obj.params === "string") {
 					rawObj = bare.obj;
 				}
@@ -2159,7 +2080,7 @@ function parseXMLToolCallObjectFromText(text: string): { success: true; obj: Rec
 			const paramsCloseOnly = text.indexOf(paramsCloseToken, paramsOpen);
 			if (paramsCloseOnly < paramsOpen) return children;
 			const paramsTextOnly = text.slice(paramsOpen + "<params>".length, paramsCloseOnly);
-			const paramsOnly = parseSimpleXMLChildren(paramsTextOnly);
+			const paramsOnly = AgentUtils.parseSimpleXMLChildren(paramsTextOnly);
 			if (!paramsOnly.success) return children;
 			const inferredTool = inferToolNameFromXMLParams(paramsOnly.obj);
 			if (inferredTool === undefined) return children;
@@ -2176,7 +2097,7 @@ function parseXMLToolCallObjectFromText(text: string): { success: true; obj: Rec
 	if (rawObj === undefined) return children;
 	const paramsText = typeof rawObj.params === "string" ? rawObj.params as string : "";
 	const params = paramsText !== ""
-		? parseSimpleXMLChildren(paramsText)
+		? AgentUtils.parseSimpleXMLChildren(paramsText)
 		: { success: true as const, obj: {} as Record<string, unknown> };
 	if (!params.success) {
 		return { success: false, message: params.message };
@@ -2210,7 +2131,7 @@ async function llm(
 	emitLLMContextMetrics(shared, stepId, phase, messages, shared.llmOptions);
 	saveStepLLMDebugInput(shared, stepId, phase, messages, shared.llmOptions);
 	let lastStreamReasoning = "";
-	const res = await callLLMStreamAggregated(
+	const res = await AgentUtils.callLLMStreamAggregated(
 		messages,
 		shared.llmOptions,
 		shared.stopToken,
@@ -2218,7 +2139,7 @@ async function llm(
 		(response) => {
 			const streamMessage = response.choices?.[0]?.message;
 			const nextContent = typeof streamMessage?.content === "string"
-				? sanitizeUTF8(streamMessage.content)
+				? AgentUtils.sanitizeUTF8(streamMessage.content)
 				: "";
 			if (nextContent === "") return;
 			if (nextContent === lastStreamReasoning) return;
@@ -2232,7 +2153,7 @@ async function llm(
 		const message = res.response.choices?.[0]?.message;
 		const text = message?.content;
 		const reasoningContent = typeof message?.reasoning_content === "string"
-			? sanitizeUTF8(message.reasoning_content)
+			? AgentUtils.sanitizeUTF8(message.reasoning_content)
 			: undefined;
 		if (text) {
 			const parsed = tryParseAndValidateDecision(text, shared);
@@ -2320,7 +2241,7 @@ function parseToolCallArguments(functionName: string, argsText: string): Record<
 	if (trimmedArgs === "") {
 		return {};
 	}
-	const [rawObj, err] = safeJsonDecode(trimmedArgs);
+	const [rawObj, err] = AgentUtils.safeJsonDecode(trimmedArgs);
 	if (err !== undefined || rawObj === undefined) {
 		return {
 			success: false,
@@ -2328,7 +2249,7 @@ function parseToolCallArguments(functionName: string, argsText: string): Record<
 			raw: argsText,
 		};
 	}
-	const [encodedRaw] = safeJsonEncode(rawObj as object);
+	const [encodedRaw] = AgentUtils.safeJsonEncode(rawObj as object);
 	if (encodedRaw === "null" || !isRecord(rawObj) || trimmedArgs[0] === "[") {
 		return {
 			success: false,
@@ -2579,7 +2500,7 @@ function validateDecision(
 		if (isArray(params.filesHint)) {
 			params.filesHint = params.filesHint
 				.filter(item => typeof item === "string")
-				.map(item => sanitizeUTF8(item));
+				.map(item => AgentUtils.sanitizeUTF8(item));
 		}
 		return { success: true, params };
 	}
@@ -2622,8 +2543,8 @@ function buildAgentSystemPrompt(shared: AgentShared, includeToolDefinitions = fa
 			sections.push([
 				"# Current Living Development Plan",
 				"These files were reloaded from disk for this decision. Treat them as authoritative over older conversation summaries.",
-				`## ${AgentRuntimePolicy.AGENT_PLAN_FILE}\n\n${truncateText(sanitizeUTF8(Content.load(planPath) as string), 12000)}`,
-				`## ${AgentRuntimePolicy.AGENT_PROGRESS_FILE}\n\n${truncateText(sanitizeUTF8(Content.load(progressPath) as string), 12000)}`,
+				`## ${AgentRuntimePolicy.AGENT_PLAN_FILE}\n\n${truncateText(AgentUtils.sanitizeUTF8(Content.load(planPath) as string), 12000)}`,
+				`## ${AgentRuntimePolicy.AGENT_PROGRESS_FILE}\n\n${truncateText(AgentUtils.sanitizeUTF8(Content.load(progressPath) as string), 12000)}`,
 			].join("\n\n"));
 		}
 	}
@@ -2735,7 +2656,9 @@ function buildDecisionMessages(
 	lastError?: string,
 	attempt = 1,
 	lastRaw?: string,
-	decisionMode: AgentDecisionMode = shared.decisionMode
+	decisionMode: AgentDecisionMode = shared.decisionMode,
+	consumeResumeCheckpoint = true,
+	pendingUserPrompt = ""
 ): Message[] {
 	const systemPrompt = buildAgentSystemPrompt(shared, decisionMode === "xml");
 	const tailSections: string[] = [];
@@ -2748,11 +2671,14 @@ function buildDecisionMessages(
 	if (shared.truncatedToolOverwritePath !== undefined) {
 		tailSections.push(`Truncated response result: the fully decoded prefix from an empty-old_str whole-file overwrite was saved directly to ${shared.truncatedToolOverwritePath}. Inspect that file next and decide whether it already suffices or needs a bounded continuation. Do not regenerate the preserved prefix.`);
 	}
-	shared.resumeCheckpointPending = false;
+	if (consumeResumeCheckpoint) shared.resumeCheckpointPending = false;
 	let messages: Message[] = [
 		{ role: "system", content: systemPrompt },
 		...getUnconsolidatedMessages(shared),
 	];
+	if (pendingUserPrompt !== "") {
+		messages.push({ role: "user", content: pendingUserPrompt });
+	}
 	if (isFinalDecisionTurn(shared)) {
 		tailSections.push(getFinalDecisionTurnPrompt(shared));
 	}
@@ -2912,175 +2838,6 @@ function tryParseAndValidateDecision(rawText: string, shared: AgentShared): Deci
 	return decision;
 }
 
-function replaceFirst(text: string, oldStr: string, newStr: string): string {
-	if (oldStr === "") return text;
-	const idx = text.indexOf(oldStr);
-	if (idx < 0) return text;
-	return text.substring(0, idx) + newStr + text.substring(idx + oldStr.length);
-}
-
-function splitLines(text: string): string[] {
-	return text.split("\n");
-}
-
-function getLeadingWhitespace(text: string): string {
-	let i = 0;
-	while (i < text.length) {
-		const ch = text[i];
-		if (ch !== " " && ch !== "\t") break;
-		i += 1;
-	}
-	return text.substring(0, i);
-}
-
-function getCommonIndentPrefix(lines: string[]): string {
-	let common: string | undefined;
-	for (let i = 0; i < lines.length; i++) {
-		const line = lines[i];
-		if (line.trim() === "") continue;
-		const indent = getLeadingWhitespace(line);
-		if (common === undefined) {
-			common = indent;
-			continue;
-		}
-		let j = 0;
-		const maxLen = math.min(common.length, indent.length);
-		while (j < maxLen && common[j] === indent[j]) {
-			j += 1;
-		}
-		common = common.substring(0, j);
-		if (common === "") break;
-	}
-	return common ?? "";
-}
-
-function removeIndentPrefix(line: string, indent: string): string {
-	if (indent !== "" && line.startsWith(indent)) {
-		return line.substring(indent.length);
-	}
-	const lineIndent = getLeadingWhitespace(line);
-	let j = 0;
-	const maxLen = math.min(lineIndent.length, indent.length);
-	while (j < maxLen && lineIndent[j] === indent[j]) {
-		j += 1;
-	}
-	return line.substring(j);
-}
-
-function dedentLines(lines: string[]): { indent: string; lines: string[] } {
-	const indent = getCommonIndentPrefix(lines);
-	return {
-		indent,
-		lines: lines.map(line => removeIndentPrefix(line, indent)),
-	};
-}
-
-function joinLines(lines: string[]): string {
-	return lines.join("\n");
-}
-
-function findIndentTolerantReplacement(
-	content: string,
-	oldStr: string,
-	newStr: string
-): { success: true; content: string } | { success: false; message: string } {
-	const findWhitespaceTolerantReplacement = (): { success: true; content: string } | { success: false; message: string } => {
-		type FoldedWhitespaceChar = { char: string; start: number; end: number };
-		const foldWhitespace = (text: string, withMap: boolean): { text: string; map: FoldedWhitespaceChar[] } => {
-			const parts: string[] = [];
-			const map: FoldedWhitespaceChar[] = [];
-			let i = 0;
-			while (i < text.length) {
-				const ch = text[i];
-				if (ch === " " || ch === "\t" || ch === "\n" || ch === "\r") {
-					const start = i;
-					while (i < text.length) {
-						const next = text[i];
-						if (next !== " " && next !== "\t" && next !== "\n" && next !== "\r") break;
-						i += 1;
-					}
-					parts.push(" ");
-					if (withMap) map.push({ char: " ", start, end: i });
-				} else {
-					parts.push(ch);
-					if (withMap) map.push({ char: ch, start: i, end: i + 1 });
-					i += 1;
-				}
-			}
-			return { text: parts.join(""), map };
-		};
-		const foldedContent = foldWhitespace(content, true);
-		const foldedOld = foldWhitespace(oldStr, false).text.trim();
-		if (foldedOld === "") {
-			return { success: false, message: "old_str not found in file" };
-		}
-		const matches: { start: number; end: number }[] = [];
-		let pos = 0;
-		while (true) {
-			const idx = foldedContent.text.indexOf(foldedOld, pos);
-			if (idx < 0) break;
-			const lastIdx = idx + foldedOld.length - 1;
-			const startMap = foldedContent.map[idx];
-			const endMap = foldedContent.map[lastIdx];
-			if (startMap !== undefined && endMap !== undefined) {
-				matches.push({ start: startMap.start, end: endMap.end });
-			}
-			pos = idx + foldedOld.length;
-		}
-		if (matches.length === 0) {
-			return { success: false, message: "old_str not found in file" };
-		}
-		if (matches.length > 1) {
-			return {
-				success: false,
-				message: `old_str appears ${matches.length} times in file after whitespace normalization. Please provide more context to uniquely identify the target location.`,
-			};
-		}
-		const match = matches[0];
-		return {
-			success: true,
-			content: content.substring(0, match.start) + newStr + content.substring(match.end),
-		};
-	};
-	const contentLines = splitLines(content);
-	const oldLines = splitLines(oldStr);
-	if (oldLines.length === 0) {
-		return { success: false, message: "old_str not found in file" };
-	}
-	const dedentedOld = dedentLines(oldLines);
-	const dedentedOldText = joinLines(dedentedOld.lines);
-	const dedentedNew = dedentLines(splitLines(newStr));
-	const matches: { start: number; end: number; indent: string }[] = [];
-	for (let start = 0; start <= contentLines.length - oldLines.length; start++) {
-		const candidateLines = contentLines.slice(start, start + oldLines.length);
-		const dedentedCandidate = dedentLines(candidateLines);
-		if (joinLines(dedentedCandidate.lines) === dedentedOldText) {
-			matches.push({
-				start,
-				end: start + oldLines.length,
-				indent: dedentedCandidate.indent,
-			});
-		}
-	}
-	if (matches.length === 0) {
-		return findWhitespaceTolerantReplacement();
-	}
-	if (matches.length > 1) {
-		return {
-			success: false,
-			message: `old_str appears ${matches.length} times in file after indentation normalization. Please provide more context to uniquely identify the target location.`,
-		};
-	}
-	const match = matches[0];
-	const rebuiltNewLines = dedentedNew.lines.map(line => line === "" ? "" : match.indent + line);
-	const nextLines = [
-		...contentLines.slice(0, match.start),
-		...rebuiltNewLines,
-		...contentLines.slice(match.end),
-	];
-	return { success: true, content: joinLines(nextLines) };
-}
-
 class MainDecisionAgent extends Node<AgentShared> {
 	async prep(shared: AgentShared): Promise<{ shared: AgentShared }> {
 		if (shared.stopToken.stopped || shared.step >= shared.maxSteps) {
@@ -3108,7 +2865,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 			});
 		});
 		if (decisions.length === 0) return undefined;
-		Log("Warn", `[CodingAgent] committing pre-executed tools after incomplete stream tools=${decisions.map(decision => decision.tool).join(",")}`);
+		AgentUtils.Log("Warn", `[CodingAgent] committing pre-executed tools after incomplete stream tools=${decisions.map(decision => decision.tool).join(",")}`);
 		if (decisions.length === 1) {
 			return decisions[0];
 		}
@@ -3127,7 +2884,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 		const recovery = Tools.planTruncatedEditRecovery(toolCalls);
 		if (!recovery) return undefined;
 		shared.truncatedToolOverwritePath = recovery.target;
-		Log("Warn", `[CodingAgent] preserving truncated whole-file overwrite target=${recovery.target}`);
+		AgentUtils.Log("Warn", `[CodingAgent] preserving truncated whole-file overwrite target=${recovery.target}`);
 		return {
 			success: true,
 			tool: "edit_file",
@@ -3137,7 +2894,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 				new_str: recovery.receivedText,
 				partialStreamRecovery: true,
 			},
-			toolCallId: createLocalToolCallId(),
+			toolCallId: AgentUtils.createLocalToolCallId(),
 			reason: recovery.reason,
 			reasoningContent,
 		};
@@ -3152,7 +2909,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 		if (shared.stopToken.stopped) {
 			return { success: false, message: getCancelledReason(shared) };
 		}
-		Log("Info", `[CodingAgent] tool-calling decision start step=${shared.step + 1}${lastError ? ` retry_error=${lastError}` : ""}`);
+		AgentUtils.Log("Info", `[CodingAgent] tool-calling decision start step=${shared.step + 1}${lastError ? ` retry_error=${lastError}` : ""}`);
 		const tools = AgentToolRegistry.buildDecisionToolSchema(shared.role, AgentConfig.AGENT_LIMITS.searchDoraApiLimitMax, {
 			disabledAgentTools: getDecisionDisabledAgentTools(shared),
 			workMode: shared.workMode,
@@ -3173,7 +2930,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 		let lastStreamReasoning = "";
 		const preExecutedResults = new Map<string, PreExecutedToolResult>();
 		shared.preExecutedResults = preExecutedResults;
-		const res = await callLLMStreamAggregated(
+		const res = await AgentUtils.callLLMStreamAggregated(
 			messages,
 			llmOptions,
 			shared.stopToken,
@@ -3181,10 +2938,10 @@ class MainDecisionAgent extends Node<AgentShared> {
 			(response) => {
 				const streamMessage = response.choices?.[0]?.message;
 				const nextContent = typeof streamMessage?.content === "string"
-					? sanitizeUTF8(streamMessage.content)
+					? AgentUtils.sanitizeUTF8(streamMessage.content)
 					: "";
 				const nextReasoning = typeof streamMessage?.reasoning_content === "string"
-					? sanitizeUTF8(streamMessage.reasoning_content)
+					? AgentUtils.sanitizeUTF8(streamMessage.reasoning_content)
 					: "";
 				if (nextContent === lastStreamContent && nextReasoning === lastStreamReasoning) {
 					return;
@@ -3197,7 +2954,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 				if (shared.stopToken.stopped) return;
 				const action = createPreExecutableActionFromStream(shared, tc);
 				if (!action || preExecutedResults.has(action.toolCallId)) return;
-				Log("Info", `[CodingAgent] streaming pre-exec tool=${action.tool} id=${action.toolCallId}`);
+				AgentUtils.Log("Info", `[CodingAgent] streaming pre-exec tool=${action.tool} id=${action.toolCallId}`);
 				preExecutedResults.set(action.toolCallId, createPreExecutedToolResult(shared, action));
 			}
 		);
@@ -3209,7 +2966,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 			const usage = res.tokenUsage;
 			recordLLMTokenUsage(shared, stepId, "decision_tool_calling", usage);
 			saveStepLLMDebugOutput(shared, stepId, "decision_tool_calling", res.raw ?? res.message, { success: false, usage });
-			Log("Error", `[CodingAgent] tool-calling request failed: ${res.message}`);
+			AgentUtils.Log("Error", `[CodingAgent] tool-calling request failed: ${res.message}`);
 			const committed = this.commitPreExecutedDecision(shared);
 			if (committed) return committed;
 			const partialChoice = res.response?.choices?.[0];
@@ -3237,13 +2994,13 @@ class MainDecisionAgent extends Node<AgentShared> {
 		const messageContent = message && typeof message.content === "string"
 			? message.content.trim()
 			: undefined;
-		Log("Info", `[CodingAgent] tool-calling response finish_reason=${finishReason !== "" ? finishReason : "unknown"} tool_calls=${toolCalls ? toolCalls.length : 0} content_len=${messageContent ? messageContent.length : 0} reasoning_len=${reasoningContent ? reasoningContent.length : 0}`);
+		AgentUtils.Log("Info", `[CodingAgent] tool-calling response finish_reason=${finishReason !== "" ? finishReason : "unknown"} tool_calls=${toolCalls ? toolCalls.length : 0} content_len=${messageContent ? messageContent.length : 0} reasoning_len=${reasoningContent ? reasoningContent.length : 0}`);
 		if (finishReason === "length") {
 			const committed = this.commitPreExecutedDecision(shared);
 			if (committed) return committed;
 			const partialDraft = this.preserveTruncatedEditDecision(shared, toolCalls, reasoningContent);
 			if (partialDraft) return partialDraft;
-			Log("Error", `[CodingAgent] no complete or recoverable tool call in truncated output tool_calls=${toolCalls ? toolCalls.length : 0} reasoning_len=${reasoningContent ? reasoningContent.length : 0}`);
+			AgentUtils.Log("Error", `[CodingAgent] no complete or recoverable tool call in truncated output tool_calls=${toolCalls ? toolCalls.length : 0} reasoning_len=${reasoningContent ? reasoningContent.length : 0}`);
 			clearPreExecutedResults(shared);
 			return {
 				success: false,
@@ -3262,7 +3019,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 					};
 				}
 				if (shared.role === "sub") {
-					Log("Warn", `[CodingAgent] sub-agent returned plain text instead of structured finish`);
+					AgentUtils.Log("Warn", `[CodingAgent] sub-agent returned plain text instead of structured finish`);
 					clearPreExecutedResults(shared);
 					return {
 						success: false,
@@ -3270,7 +3027,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 						raw: messageContent,
 					};
 				}
-				Log("Info", `[CodingAgent] tool-calling fallback direct_finish_len=${messageContent.length}`);
+				AgentUtils.Log("Info", `[CodingAgent] tool-calling fallback direct_finish_len=${messageContent.length}`);
 				clearPreExecutedResults(shared);
 				return {
 					success: true,
@@ -3281,7 +3038,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 					directSummary: messageContent,
 				};
 			}
-			Log("Error", `[CodingAgent] missing tool call and plain-text fallback`);
+			AgentUtils.Log("Error", `[CodingAgent] missing tool call and plain-text fallback`);
 			clearPreExecutedResults(shared);
 			return {
 				success: false,
@@ -3294,7 +3051,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 			const toolCall = toolCalls[i];
 			const fn = toolCall != undefined && toolCall.function;
 			if (!fn || typeof fn.name !== "string" || fn.name === "") {
-				Log("Error", `[CodingAgent] missing function name for tool call index=${i + 1}`);
+				AgentUtils.Log("Error", `[CodingAgent] missing function name for tool call index=${i + 1}`);
 				clearPreExecutedResults(shared);
 				return {
 					success: false,
@@ -3307,7 +3064,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 			const toolCallId = toolCall != undefined && typeof toolCall.id === "string"
 				? toolCall.id
 				: undefined;
-			Log("Info", `[CodingAgent] tool-calling function=${functionName} index=${i + 1}/${toolCalls.length} args_len=${argsText.length}`);
+			AgentUtils.Log("Info", `[CodingAgent] tool-calling function=${functionName} index=${i + 1}/${toolCalls.length} args_len=${argsText.length}`);
 			const decision = parseAndValidateToolCallDecision(
 				shared,
 				functionName,
@@ -3317,14 +3074,14 @@ class MainDecisionAgent extends Node<AgentShared> {
 				reasoningContent
 			);
 			if (!decision.success) {
-				Log("Error", `[CodingAgent] invalid tool call index=${i + 1}: ${decision.message}`);
+				AgentUtils.Log("Error", `[CodingAgent] invalid tool call index=${i + 1}: ${decision.message}`);
 				clearPreExecutedResults(shared);
 				return decision;
 			}
 			decisions.push(decision);
 		}
 		if (decisions.length === 1) {
-			Log("Info", `[CodingAgent] tool-calling selected tool=${decisions[0].tool}`);
+			AgentUtils.Log("Info", `[CodingAgent] tool-calling selected tool=${decisions[0].tool}`);
 			return decisions[0];
 		}
 		for (let i = 0; i < decisions.length; i++) {
@@ -3337,7 +3094,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 				};
 			}
 		}
-		Log("Info", `[CodingAgent] tool-calling selected batch tools=${decisions.map(decision => decision.tool).join(",")}`);
+		AgentUtils.Log("Info", `[CodingAgent] tool-calling selected batch tools=${decisions.map(decision => decision.tool).join(",")}`);
 		return {
 			success: true,
 			kind: "batch",
@@ -3353,12 +3110,12 @@ class MainDecisionAgent extends Node<AgentShared> {
 		originalReasoning: string | undefined,
 		initialError: string
 	): Promise<DecisionResult | DecisionFailure> {
-		Log("Info", `[CodingAgent] xml repair flow start step=${shared.step + 1} error=${initialError}`);
+		AgentUtils.Log("Info", `[CodingAgent] xml repair flow start step=${shared.step + 1} error=${initialError}`);
 		let lastError = initialError;
 		let candidateRaw = "";
 		let candidateReasoning: string | undefined = undefined;
 		for (let attempt = 0; attempt < shared.llmMaxTry; attempt++) {
-			Log("Info", `[CodingAgent] xml repair attempt=${attempt + 1}`);
+			AgentUtils.Log("Info", `[CodingAgent] xml repair attempt=${attempt + 1}`);
 			const messages = buildXmlRepairMessages(
 				shared,
 				originalRaw,
@@ -3374,7 +3131,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 			}
 			if (!llmRes.success) {
 				lastError = llmRes.message;
-				Log("Error", `[CodingAgent] xml repair attempt failed: ${lastError}`);
+				AgentUtils.Log("Error", `[CodingAgent] xml repair attempt failed: ${lastError}`);
 				continue;
 			}
 			candidateRaw = llmRes.text;
@@ -3382,13 +3139,13 @@ class MainDecisionAgent extends Node<AgentShared> {
 			const decision = tryParseAndValidateDecision(candidateRaw, shared);
 			if (decision.success) {
 				decision.reasoningContent = llmRes.reasoningContent;
-				Log("Info", `[CodingAgent] xml repair succeeded tool=${decision.tool}`);
+				AgentUtils.Log("Info", `[CodingAgent] xml repair succeeded tool=${decision.tool}`);
 				return decision;
 			}
 			lastError = decision.message;
-			Log("Error", `[CodingAgent] xml repair candidate invalid: ${lastError}`);
+			AgentUtils.Log("Error", `[CodingAgent] xml repair candidate invalid: ${lastError}`);
 		}
-		Log("Error", `[CodingAgent] xml repair exhausted retries: ${lastError}`);
+		AgentUtils.Log("Error", `[CodingAgent] xml repair exhausted retries: ${lastError}`);
 		return {
 			success: false,
 			message: `cannot repair invalid decision xml: ${lastError}`,
@@ -3434,17 +3191,17 @@ class MainDecisionAgent extends Node<AgentShared> {
 			return { success: false, message: getCancelledReason(shared) };
 		}
 		if (shared.step >= shared.maxSteps) {
-			Log("Warn", `[CodingAgent] maximum step limit reached step=${shared.step} max=${shared.maxSteps}`);
+			AgentUtils.Log("Warn", `[CodingAgent] maximum step limit reached step=${shared.step} max=${shared.maxSteps}`);
 			return { success: false, message: getMaxStepsReachedReason(shared) };
 		}
 
 		if (shared.decisionMode === "tool_calling") {
-			Log("Info", `[CodingAgent] decision mode=tool_calling step=${shared.step + 1} messages=${getUnconsolidatedMessages(shared).length}`);
+			AgentUtils.Log("Info", `[CodingAgent] decision mode=tool_calling step=${shared.step + 1} messages=${getUnconsolidatedMessages(shared).length}`);
 			let lastError = "tool calling validation failed";
 			let lastRaw = "";
 			let shouldFallbackToXml = false;
 			for (let attempt = 0; attempt < shared.llmMaxTry; attempt++) {
-				Log("Info", `[CodingAgent] tool-calling attempt=${attempt + 1}`);
+				AgentUtils.Log("Info", `[CodingAgent] tool-calling attempt=${attempt + 1}`);
 				const decision = await this.callDecisionByToolCalling(
 					shared,
 					attempt > 0 ? lastError : undefined,
@@ -3459,17 +3216,17 @@ class MainDecisionAgent extends Node<AgentShared> {
 				}
 				lastError = decision.message;
 				lastRaw = decision.raw ?? "";
-				Log("Error", `[CodingAgent] tool-calling attempt failed: ${lastError}`);
+				AgentUtils.Log("Error", `[CodingAgent] tool-calling attempt failed: ${lastError}`);
 				if (lastError === "missing tool call") {
 					shouldFallbackToXml = true;
 					break;
 				}
 			}
 			if (shouldFallbackToXml) {
-				Log("Warn", `[CodingAgent] tool-calling returned no tool calls; falling back to XML decision format`);
+				AgentUtils.Log("Warn", `[CodingAgent] tool-calling returned no tool calls; falling back to XML decision format`);
 				lastError = "tool-calling returned no tool calls. Return exactly one valid XML tool_call block.";
 				for (let attempt = 0; attempt < shared.llmMaxTry; attempt++) {
-					Log("Info", `[CodingAgent] xml fallback attempt=${attempt + 1}`);
+					AgentUtils.Log("Info", `[CodingAgent] xml fallback attempt=${attempt + 1}`);
 					const decision = await this.callDecisionByXml(
 						shared,
 						attempt > 0 ? lastError : "tool-calling returned no tool calls. Use XML decision format instead.",
@@ -3484,12 +3241,12 @@ class MainDecisionAgent extends Node<AgentShared> {
 					}
 					lastError = decision.message;
 					lastRaw = decision.raw ?? "";
-					Log("Error", `[CodingAgent] xml fallback attempt failed: ${lastError}`);
+					AgentUtils.Log("Error", `[CodingAgent] xml fallback attempt failed: ${lastError}`);
 				}
-				Log("Error", `[CodingAgent] xml fallback exhausted retries: ${lastError}`);
+				AgentUtils.Log("Error", `[CodingAgent] xml fallback exhausted retries: ${lastError}`);
 				return { success: false, message: `cannot produce valid XML decision after tool-calling fallback: ${lastError}; last_output=${truncateText(lastRaw, 400)}` };
 			}
-			Log("Error", `[CodingAgent] tool-calling exhausted retries: ${lastError}`);
+			AgentUtils.Log("Error", `[CodingAgent] tool-calling exhausted retries: ${lastError}`);
 			return { success: false, message: `cannot produce valid tool call: ${lastError}; last_output=${truncateText(lastRaw, 400)}` };
 		}
 
@@ -3578,7 +3335,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 		}
 		if (result.directSummary && result.directSummary !== "") {
 			shared.response = result.directSummary;
-			shared.completion = normalizeAgentCompletionReport(shared.role === "sub" ? {
+			shared.completion = AgentUtils.normalizeAgentCompletionReport(shared.role === "sub" ? {
 				outcome: "partial",
 				knownIssues: ["Sub agent returned a plain-text finish without structured completion metadata."],
 			} : {});
@@ -3933,7 +3690,7 @@ class SpawnSubAgentAction extends Node<AgentShared> {
 		if (input.sessionId === undefined || input.sessionId <= 0) {
 			return { success: false, message: "spawn_sub_agent requires a parent session" };
 		}
-		Log("Info", `[CodingAgent] spawn_sub_agent exec title_len=${input.title.length} prompt_len=${input.prompt.length} expected_len=${typeof input.expectedOutput === "string" ? input.expectedOutput.length : 0} files_hint_count=${input.filesHint?.length ?? 0}`);
+		AgentUtils.Log("Info", `[CodingAgent] spawn_sub_agent exec title_len=${input.title.length} prompt_len=${input.prompt.length} expected_len=${typeof input.expectedOutput === "string" ? input.expectedOutput.length : 0} files_hint_count=${input.filesHint?.length ?? 0}`);
 		const result = await input.spawnSubAgent({
 			parentSessionId: input.sessionId,
 			projectRoot: input.projectRoot,
@@ -4117,7 +3874,7 @@ class EditFileAction extends Node<AgentShared> {
 		// Check how many times old_str appears
 		const occurrences = AgentRuntimePolicy.countOccurrences(normalizedContent, normalizedOldStr);
 		if (occurrences === 0) {
-			const indentTolerant = findIndentTolerantReplacement(normalizedContent, normalizedOldStr, normalizedNewStr);
+			const indentTolerant = AgentUtils.findIndentTolerantReplacement(normalizedContent, normalizedOldStr, normalizedNewStr);
 			if (!indentTolerant.success) {
 				return { success: false, message: indentTolerant.message };
 			}
@@ -4142,7 +3899,7 @@ class EditFileAction extends Node<AgentShared> {
 		}
 
 		// Perform the replacement (we know it appears exactly once)
-		const newContent = replaceFirst(normalizedContent, normalizedOldStr, normalizedNewStr);
+		const newContent = AgentUtils.replaceFirst(normalizedContent, normalizedOldStr, normalizedNewStr);
 		const applyRes = Tools.applyFileChanges(input.taskId, input.workDir, [{ path: input.path, op: "write", content: newContent }], {
 			summary: `replace text in ${input.path} via edit_file`,
 			toolName: "edit_file",
@@ -4813,7 +4570,7 @@ class BatchToolAction extends Node<AgentShared> {
 		const batches = partitionToolCalls(input.actions);
 		const parallelBatchCount = batches.filter(b => b.isConcurrencySafe).length;
 		const serialBatchCount = batches.filter(b => !b.isConcurrencySafe).length;
-		Log("Info", `[CodingAgent] smart batch partition total=${input.actions.length} parallel_batches=${parallelBatchCount} serial_batches=${serialBatchCount}`);
+		AgentUtils.Log("Info", `[CodingAgent] smart batch partition total=${input.actions.length} parallel_batches=${parallelBatchCount} serial_batches=${serialBatchCount}`);
 
 		for (let batchIdx = 0; batchIdx < batches.length; batchIdx++) {
 			const batch = batches[batchIdx];
@@ -4826,7 +4583,7 @@ class BatchToolAction extends Node<AgentShared> {
 
 			if (batch.isConcurrencySafe && batch.actions.length > 1) {
 				const preExecCount = batch.actions.filter(a => preExecuted?.has(a.toolCallId)).length;
-				Log("Info", `[CodingAgent] batch ${batchIdx + 1}/${batches.length} parallel count=${batch.actions.length} pre_executed=${preExecCount}`);
+				AgentUtils.Log("Info", `[CodingAgent] batch ${batchIdx + 1}/${batches.length} parallel count=${batch.actions.length} pre_executed=${preExecCount}`);
 				for (let i = 0; i < batch.actions.length; i++) {
 					emitAgentStartEvent(shared, batch.actions[i]);
 				}
@@ -4850,7 +4607,7 @@ class BatchToolAction extends Node<AgentShared> {
 					emitCheckpointEventForAction(shared, action);
 				}
 			} else {
-				Log("Info", `[CodingAgent] batch ${batchIdx + 1}/${batches.length} serial count=${batch.actions.length}`);
+				AgentUtils.Log("Info", `[CodingAgent] batch ${batchIdx + 1}/${batches.length} serial count=${batch.actions.length}`);
 				for (let i = 0; i < batch.actions.length; i++) {
 					const action = batch.actions[i];
 					emitAgentStartEvent(shared, action);
@@ -4962,7 +4719,7 @@ class CodingAgentFlow extends Flow<AgentShared> {
 }
 
 function emitAgentTaskFinishEvent(shared: AgentShared, success: boolean, message: string): CodingAgentRunResult {
-	const completion = shared.completion ?? normalizeAgentCompletionReport({
+	const completion = shared.completion ?? AgentUtils.normalizeAgentCompletionReport({
 		outcome: success ? "completed" : "blocked",
 		knownIssues: success ? [] : [message],
 	});
@@ -5000,7 +4757,7 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 	const normalizedPrompt = truncateAgentUserPrompt(options.prompt);
 	const llmConfigRes = options.llmConfig
 		? { success: true as const, config: options.llmConfig }
-		: getActiveLLMConfig();
+		: AgentUtils.getActiveLLMConfig();
 	if (!llmConfigRes.success) {
 		return { success: false, message: llmConfigRes.message };
 	}
@@ -5013,7 +4770,6 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 	}
 	// 创建 Memory 压缩器
 	const compressor = new MemoryCompressor({
-		compressionThreshold: 0.8,
 		compressionTargetThreshold: 0.5,
 		maxCompressionRounds: 3,
 		projectDir: options.workDir,

@@ -728,9 +728,6 @@ export function loadAgentPromptPack(projectRoot: string): { pack: AgentPromptPac
  * Memory 配置
  */
 export interface MemoryConfig {
-	/** 压缩触发阈值 (0-1) */
-	compressionThreshold: number;
-
 	/** 普通压缩目标阈值 (0-1)，触发后压到该比例以下 */
 	compressionTargetThreshold: number;
 
@@ -1552,36 +1549,12 @@ export class MemoryCompressor {
 				...(overridePack ?? {}),
 			}),
 		};
-		this.config.compressionThreshold = math.min(1, math.max(0.05, this.config.compressionThreshold));
-		this.config.compressionTargetThreshold = math.min(
-			this.config.compressionThreshold,
-			math.max(0.05, this.config.compressionTargetThreshold)
-		);
+		this.config.compressionTargetThreshold = math.min(1, math.max(0.05, this.config.compressionTargetThreshold));
 		this.storage = new DualLayerStorage(this.config.projectDir, this.config.scope ?? "");
 	}
 
 	getPromptPack(): AgentPromptPack {
 		return this.config.promptPack;
-	}
-
-	/**
-	 * 检查是否需要压缩
-	 */
-	shouldCompress(
-		messages: Message[],
-		systemPrompt: string,
-		toolDefinitions: string
-	): boolean {
-		if (messages.length === 0) return false;
-		const messageTokens = TokenEstimator.estimatePromptMessages(
-			messages,
-			systemPrompt,
-			toolDefinitions
-		);
-
-		const threshold = this.getContextWindow() * this.config.compressionThreshold;
-
-		return messageTokens > threshold;
 	}
 
 	/**
@@ -1595,14 +1568,18 @@ export class MemoryCompressor {
 		debugContext?: MemoryCompressionDebugContext,
 		boundaryMode: MemoryCompressionBoundaryMode = "default",
 		systemPrompt = "",
-		toolDefinitions = ""
+		toolDefinitions = "",
+		boundaryMessages?: AgentConversationMessage[]
 	): Promise<CompressionResult | undefined> {
 		const toCompress = messages;
 		if (toCompress.length === 0) return undefined;
 		const currentMemory = this.storage.readMemory();
+		const messagesForBoundary = boundaryMessages && boundaryMessages.length === toCompress.length
+			? boundaryMessages
+			: toCompress;
 
 		const boundary = this.findCompressionBoundary(
-			toCompress,
+			messagesForBoundary,
 			currentMemory,
 			boundaryMode,
 			systemPrompt,
@@ -2320,7 +2297,6 @@ export async function compactSessionMemoryScope(options: {
 		return { success: false, message: llmConfigRes.message };
 	}
 	const compressor = new MemoryCompressor({
-		compressionThreshold: 0.8,
 		compressionTargetThreshold: 0.5,
 		maxCompressionRounds: 3,
 		projectDir: options.projectDir,

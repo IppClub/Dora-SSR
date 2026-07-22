@@ -9,6 +9,8 @@ Treat Dora Agent as an interactive product, not only a code path. Validate the i
 
 For exact engine build and game-run commands, also follow the project skills `dora-engine-development` and `dora-cli-game-development`. Use this skill for experiment design, evidence standards, and the iteration loop around those commands.
 
+For end-to-end game creation through Dora Agent, read [references/game-iteration-playbook.md](references/game-iteration-playbook.md) before starting. It defines how to turn a user-level brief into a plan, conduct multiple development sessions, play the result as a user, and convert observations into the next bounded prompt.
+
 ## 1. Establish The Real Baseline
 
 1. Inspect the current checkout. Record the branch, commit, working-tree state, Agent configuration, model configuration, and Web IDE build.
@@ -127,6 +129,13 @@ Exercise:
 - A user interruption, cancellation, resume, and handoff.
 - A long conversation that crosses memory compression thresholds.
 - A game task requiring deterministic and visual acceptance.
+
+Keep session roles distinct during game work:
+
+- Use Plan mode to settle the player fantasy, core loop, controls, progression, visual direction, scope, and acceptance criteria. Do not prescribe source files or engine APIs unless the user did.
+- Use implementation sessions to deliver one playable milestone at a time. Preserve the proven core instead of repeatedly rewriting the whole game.
+- Use acceptance sessions only after personally exercising the current build. Report player-observable problems and desired outcomes; do not leak evaluator instrumentation or dictate a patch.
+- Start a repair session when a visible or playable defect remains. Do not accept an Agent's own completion statement as the final verdict.
 
 ## 4. Run Controlled Baseline/Improved Comparisons
 

@@ -18,6 +18,8 @@ import AgentStepList from './AgentStepList';
 import AgentChangeSetSummaryCard from './AgentChangeSetSummary';
 import AgentQuestionnaire from './AgentQuestionnaire';
 
+const AGENT_LLM_CONFIG_STORAGE_KEY = "dora.agent.llmConfigId";
+
 interface AgentPanelProps {
 	sessionId: number;
 	projectRoot: string;
@@ -100,6 +102,11 @@ export default function AgentPanel(props: AgentPanelProps) {
 	const [visibleHistoryRounds, setVisibleHistoryRounds] = useState(HISTORY_VISIBLE_ROUNDS);
 	const [isNearBottom, setIsNearBottom] = useState(true);
 	const [llmConfigMissing, setLLMConfigMissing] = useState(false);
+	const [llmConfigs, setLLMConfigs] = useState<Service.LLMConfigItem[]>([]);
+	const [selectedLLMConfigId, setSelectedLLMConfigId] = useState<number | undefined>(() => {
+		const value = Number(window.localStorage.getItem(AGENT_LLM_CONFIG_STORAGE_KEY));
+		return Number.isFinite(value) && value > 0 ? value : undefined;
+	});
 	// Engine-side Lua/Git commands are bounded by the Agent command sandbox and
 	// are required for real build/runtime validation. Keep network fetch opt-in,
 	// but make local validation available in every new main session.
@@ -150,18 +157,38 @@ export default function AgentPanel(props: AgentPanelProps) {
 		return map;
 	}, [orderedRelatedSessions]);
 
-	const checkLLMConfigReady = React.useCallback(async () => {
+	const resolveLLMConfigId = React.useCallback(async () => {
 		try {
 			const res = await Service.listLLMConfigs();
 			if (!res.success) {
-				return true;
+				return selectedLLMConfigId;
 			}
-			const hasActiveConfig = (res.items ?? []).some(item => Boolean(item.active));
-			setLLMConfigMissing(!hasActiveConfig);
-			return hasActiveConfig;
+			const items = res.items ?? [];
+			setLLMConfigs(items);
+			const storedId = Number(window.localStorage.getItem(AGENT_LLM_CONFIG_STORAGE_KEY));
+			const nextId = items.some(item => item.id === selectedLLMConfigId)
+				? selectedLLMConfigId
+				: (items.some(item => item.id === storedId) ? storedId : items[0]?.id);
+			setSelectedLLMConfigId(nextId);
+			setLLMConfigMissing(nextId === undefined);
+			if (nextId !== undefined) window.localStorage.setItem(AGENT_LLM_CONFIG_STORAGE_KEY, String(nextId));
+			return nextId;
 		} catch {
-			return true;
+			return selectedLLMConfigId;
 		}
+	}, [selectedLLMConfigId]);
+
+	useEffect(() => {
+		const refreshConfigs = () => void resolveLLMConfigId();
+		refreshConfigs();
+		window.addEventListener('llm-configs-changed', refreshConfigs);
+		return () => window.removeEventListener('llm-configs-changed', refreshConfigs);
+	}, [resolveLLMConfigId]);
+
+	const selectLLMConfig = React.useCallback((configId: number) => {
+		setSelectedLLMConfigId(configId);
+		setLLMConfigMissing(false);
+		window.localStorage.setItem(AGENT_LLM_CONFIG_STORAGE_KEY, String(configId));
 	}, []);
 
 	const scrollToBottom = React.useCallback((behavior: ScrollBehavior = "auto") => {
@@ -332,10 +359,6 @@ export default function AgentPanel(props: AgentPanelProps) {
 			Service.removeAgentSessionPatchListener(onPatch);
 		};
 	}, [refresh, selectedSessionId, sessionId]);
-
-	useEffect(() => {
-		void checkLLMConfigReady();
-	}, [checkLLMConfigReady]);
 
 	useEffect(() => {
 		setVisibleHistoryRounds(HISTORY_VISIBLE_ROUNDS);
@@ -610,8 +633,8 @@ export default function AgentPanel(props: AgentPanelProps) {
 		if (text === "" || loading || continueLoadingTaskId !== null) return;
 		setLoading(true);
 		try {
-			const llmReady = await checkLLMConfigReady();
-			if (!llmReady) {
+			const llmConfigId = await resolveLLMConfigId();
+			if (llmConfigId === undefined) {
 				addAlert?.(t("agent.noLLMConfigAlert"), "error");
 				return;
 			}
@@ -622,11 +645,12 @@ export default function AgentPanel(props: AgentPanelProps) {
 			const res = await Service.agentSessionSend({
 				sessionId: targetSessionId,
 				prompt: text,
+				llmConfigId,
 				disabledAgentTools,
 				workMode: requestedWorkMode,
 			});
 			if (!res.success) {
-				if (res.message === "no active LLM config") {
+				if (res.message.includes("LLM config")) {
 					setLLMConfigMissing(true);
 					addAlert?.(t("agent.noLLMConfigAlert"), "error");
 					return;
@@ -641,14 +665,14 @@ export default function AgentPanel(props: AgentPanelProps) {
 		} finally {
 			setLoading(false);
 		}
-	}, [addAlert, checkLLMConfigReady, continueLoadingTaskId, loading, disabledAgentTools, refresh, selectedSessionId, stopProjectRunBeforeAgent, t, workMode]);
+	}, [addAlert, resolveLLMConfigId, continueLoadingTaskId, loading, disabledAgentTools, refresh, selectedSessionId, stopProjectRunBeforeAgent, t, workMode]);
 
 	const resendPromptText = React.useCallback(async (message: Service.AgentSessionMessage, text: string) => {
 		if (text === "" || loading || continueLoadingTaskId !== null || session?.currentTaskStatus === "RUNNING") return false;
 		setLoading(true);
 		try {
-			const llmReady = await checkLLMConfigReady();
-			if (!llmReady) {
+			const llmConfigId = await resolveLLMConfigId();
+			if (llmConfigId === undefined) {
 				addAlert?.(t("agent.noLLMConfigAlert"), "error");
 				return false;
 			}
@@ -660,11 +684,12 @@ export default function AgentPanel(props: AgentPanelProps) {
 				sessionId: selectedSessionId,
 				messageId: message.id,
 				prompt: text,
+				llmConfigId,
 				disabledAgentTools,
 				workMode,
 			});
 			if (!res.success) {
-				if (res.message === "no active LLM config") {
+				if (res.message.includes("LLM config")) {
 					setLLMConfigMissing(true);
 					addAlert?.(t("agent.noLLMConfigAlert"), "error");
 					return false;
@@ -678,14 +703,14 @@ export default function AgentPanel(props: AgentPanelProps) {
 		} finally {
 			setLoading(false);
 		}
-	}, [addAlert, checkLLMConfigReady, continueLoadingTaskId, loading, disabledAgentTools, refresh, selectedSessionId, session?.currentTaskStatus, stopProjectRunBeforeAgent, t, workMode]);
+	}, [addAlert, resolveLLMConfigId, continueLoadingTaskId, loading, disabledAgentTools, refresh, selectedSessionId, session?.currentTaskStatus, stopProjectRunBeforeAgent, t, workMode]);
 
 	const submitQuestionnaire = React.useCallback(async (answers: Service.AgentQuestionnaireAnswer[]) => {
 		if (!pendingQuestionnaire || questionnaireSubmitting) return;
 		setQuestionnaireSubmitting(true);
 		try {
-			const llmReady = await checkLLMConfigReady();
-			if (!llmReady) {
+			const llmConfigId = await resolveLLMConfigId();
+			if (llmConfigId === undefined) {
 				addAlert?.(t("agent.noLLMConfigAlert"), "error");
 				return;
 			}
@@ -693,6 +718,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 				sessionId: selectedSessionId,
 				questionnaireId: pendingQuestionnaire.id,
 				answers,
+				llmConfigId,
 			});
 			if (!res.success) {
 				addAlert?.(res.message, "error");
@@ -705,7 +731,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 		} finally {
 			setQuestionnaireSubmitting(false);
 		}
-	}, [addAlert, checkLLMConfigReady, pendingQuestionnaire, questionnaireSubmitting, refresh, selectedSessionId, t]);
+	}, [addAlert, resolveLLMConfigId, pendingQuestionnaire, questionnaireSubmitting, refresh, selectedSessionId, t]);
 
 	const cancelQuestionnaire = React.useCallback(async () => {
 		if (!pendingQuestionnaire || questionnaireSubmitting) return;
@@ -780,8 +806,8 @@ export default function AgentPanel(props: AgentPanelProps) {
 		if (!taskId || loading || continueLoadingTaskId !== null || session?.currentTaskStatus === "RUNNING") return;
 		setContinueLoadingTaskId(taskId);
 		try {
-			const llmReady = await checkLLMConfigReady();
-			if (!llmReady) {
+			const llmConfigId = await resolveLLMConfigId();
+			if (llmConfigId === undefined) {
 				addAlert?.(t("agent.noLLMConfigAlert"), "error");
 				return;
 			}
@@ -791,10 +817,11 @@ export default function AgentPanel(props: AgentPanelProps) {
 			}
 			const res = await Service.agentSessionContinue({
 				sessionId: selectedSessionId,
+				llmConfigId,
 				disabledAgentTools,
 			});
 			if (!res.success) {
-				if (res.message === "no active LLM config") {
+				if (res.message.includes("LLM config")) {
 					setLLMConfigMissing(true);
 					addAlert?.(t("agent.noLLMConfigAlert"), "error");
 					return;
@@ -819,14 +846,14 @@ export default function AgentPanel(props: AgentPanelProps) {
 		if (!taskId || session?.kind !== "sub" || loading || continueLoadingTaskId !== null || finishHandoffLoadingTaskId !== null || session.currentTaskStatus === "RUNNING") return;
 		setFinishHandoffLoadingTaskId(taskId);
 		try {
-			const llmReady = await checkLLMConfigReady();
-			if (!llmReady) {
+			const llmConfigId = await resolveLLMConfigId();
+			if (llmConfigId === undefined) {
 				addAlert?.(t("agent.noLLMConfigAlert"), "error");
 				return;
 			}
-			const res = await Service.agentSessionFinishHandoff({ sessionId: selectedSessionId });
+			const res = await Service.agentSessionFinishHandoff({ sessionId: selectedSessionId, llmConfigId });
 			if (!res.success) {
-				if (res.message === "no active LLM config") {
+				if (res.message.includes("LLM config")) {
 					setLLMConfigMissing(true);
 					addAlert?.(t("agent.noLLMConfigAlert"), "error");
 					return;
@@ -1297,12 +1324,15 @@ export default function AgentPanel(props: AgentPanelProps) {
 				fetchUrlEnabled={fetchUrlEnabled}
 				executeCommandEnabled={executeCommandEnabled}
 				planMode={workMode === "plan"}
+				llmConfigs={llmConfigs}
+				llmConfigId={selectedLLMConfigId}
 				onPromptChange={setPrompt}
 				onSend={() => void onSend()}
 				onStop={() => void onStop()}
 				onFetchUrlEnabledChange={session?.kind === "main" ? setFetchUrlEnabled : undefined}
 				onExecuteCommandEnabledChange={session?.kind === "main" ? setExecuteCommandEnabled : undefined}
 				onPlanModeChange={session?.kind === "main" ? value => void changeWorkMode(value) : undefined}
+				onLLMConfigChange={selectLLMConfig}
 				/>
 			</>}
 			{!isNearBottom ? (

@@ -749,23 +749,23 @@ HttpServer\post "/agent/session/mode", (req): invalidArguments ->
 
 HttpServer\post "/agent/session/send", (req): invalidArguments ->
 	switch req when {body: {:sessionId, :prompt}}
-		return AgentSession.sendPrompt sessionId, prompt, false, req.body.disabledAgentTools, req.body.workMode
+		return AgentSession.sendPrompt sessionId, prompt, false, req.body.disabledAgentTools, req.body.workMode, req.body.llmConfigId
 
 HttpServer\post "/agent/session/continue", (req): invalidArguments ->
 	switch req when {body: {:sessionId}}
-		return AgentSession.continuePrompt sessionId, req.body.disabledAgentTools
+		return AgentSession.continuePrompt sessionId, req.body.disabledAgentTools, req.body.llmConfigId
 
 HttpServer\post "/agent/session/finish-handoff", (req): invalidArguments ->
 	switch req when {body: {:sessionId}}
-		return AgentSession.finishSubSessionHandoff sessionId
+		return AgentSession.finishSubSessionHandoff sessionId, req.body.llmConfigId
 
 HttpServer\post "/agent/session/resend", (req): invalidArguments ->
 	switch req when {body: {:sessionId, :messageId, :prompt}}
-		return AgentSession.resendPrompt sessionId, messageId, prompt, req.body.disabledAgentTools, req.body.workMode
+		return AgentSession.resendPrompt sessionId, messageId, prompt, req.body.disabledAgentTools, req.body.workMode, req.body.llmConfigId
 
 HttpServer\post "/agent/session/questionnaire/respond", (req): invalidArguments ->
 	switch req when {body: {:sessionId, :questionnaireId, :answers}}
-		return AgentSession.respondQuestionnaire sessionId, questionnaireId, answers
+		return AgentSession.respondQuestionnaire sessionId, questionnaireId, answers, req.body.llmConfigId
 
 HttpServer\post "/agent/session/questionnaire/cancel", (req): invalidArguments ->
 	switch req when {body: {:sessionId, :questionnaireId}}
@@ -1495,18 +1495,18 @@ validateCustomOptions = (value) ->
 HttpServer\post "/llm/list", ->
 	ensureLLMConfigTable!
 	rows = DB\query "
-		select id, name, url, model, api_key, context_window, temperature, max_tokens, reasoning_effort, custom_options, supports_function_calling, active
+		select id, name, url, model, api_key, context_window, temperature, max_tokens, reasoning_effort, custom_options, supports_function_calling
 		from LLMConfig
 		order by id asc"
 	items = if rows and #rows > 0
-		for [id, name, url, model, key, contextWindow, temperature, maxTokens, reasoningEffort, customOptions, supportsFunctionCalling, active] in *rows
-			:id, :name, :url, :model, :key, contextWindow: normalizeContextWindow(contextWindow), temperature: normalizeTemperature(temperature), maxTokens: normalizeMaxTokens(maxTokens), reasoningEffort: normalizeReasoningEffort(reasoningEffort), customOptions: normalizeCustomOptions(customOptions), supportsFunctionCalling: supportsFunctionCalling ~= 0, active: active ~= 0
+		for [id, name, url, model, key, contextWindow, temperature, maxTokens, reasoningEffort, customOptions, supportsFunctionCalling] in *rows
+			:id, :name, :url, :model, :key, contextWindow: normalizeContextWindow(contextWindow), temperature: normalizeTemperature(temperature), maxTokens: normalizeMaxTokens(maxTokens), reasoningEffort: normalizeReasoningEffort(reasoningEffort), customOptions: normalizeCustomOptions(customOptions), supportsFunctionCalling: supportsFunctionCalling ~= 0
 	return success: true, :items
 
 HttpServer\post "/llm/create", (req): invalidArguments ->
 	ensureLLMConfigTable!
 	switch req when {body: body}
-		{:name, :url, :model, :key, :active, :contextWindow, :temperature, :maxTokens, :reasoningEffort, :customOptions, :supportsFunctionCalling} = body
+		{:name, :url, :model, :key, :contextWindow, :temperature, :maxTokens, :reasoningEffort, :customOptions, :supportsFunctionCalling} = body
 		now = os.time!
 		if name == nil or url == nil or model == nil or key == nil
 			return invalidArguments
@@ -1517,7 +1517,6 @@ HttpServer\post "/llm/create", (req): invalidArguments ->
 		customOptions = normalizeCustomOptions customOptions
 		return success: false, message: "customOptions must be a JSON object" unless validateCustomOptions customOptions
 		supportsFunctionCalling = if supportsFunctionCalling == false then 0 else 1
-		active = if active then 1 else 0
 		affected = DB\exec "
 			insert into LLMConfig (
 				name, url, model, api_key, context_window, temperature, max_tokens, reasoning_effort, custom_options, supports_function_calling, active, created_at, updated_at
@@ -1534,7 +1533,7 @@ HttpServer\post "/llm/create", (req): invalidArguments ->
 			reasoningEffort
 			customOptions
 			supportsFunctionCalling
-			active
+			1
 			now
 			now
 		]
@@ -1543,7 +1542,7 @@ HttpServer\post "/llm/create", (req): invalidArguments ->
 HttpServer\post "/llm/update", (req): invalidArguments ->
 	ensureLLMConfigTable!
 	switch req when {body: body}
-		{:id, :name, :url, :model, :key, :active, :contextWindow, :temperature, :maxTokens, :reasoningEffort, :customOptions, :supportsFunctionCalling} = body
+		{:id, :name, :url, :model, :key, :contextWindow, :temperature, :maxTokens, :reasoningEffort, :customOptions, :supportsFunctionCalling} = body
 		now = os.time!
 		id = tonumber id
 		return invalidArguments if id == nil
@@ -1554,10 +1553,9 @@ HttpServer\post "/llm/update", (req): invalidArguments ->
 		customOptions = normalizeCustomOptions customOptions
 		return success: false, message: "customOptions must be a JSON object" unless validateCustomOptions customOptions
 		supportsFunctionCalling = if supportsFunctionCalling == false then 0 else 1
-		active = if active then 1 else 0
 		affected = DB\exec "
 			update LLMConfig
-			set name = ?, url = ?, model = ?, api_key = ?, context_window = ?, temperature = ?, max_tokens = ?, reasoning_effort = ?, custom_options = ?, supports_function_calling = ?, active = ?, updated_at = ?
+			set name = ?, url = ?, model = ?, api_key = ?, context_window = ?, temperature = ?, max_tokens = ?, reasoning_effort = ?, custom_options = ?, supports_function_calling = ?, updated_at = ?
 			where id = ?", [
 			tostring name
 			tostring url
@@ -1569,7 +1567,6 @@ HttpServer\post "/llm/update", (req): invalidArguments ->
 			reasoningEffort
 			customOptions
 			supportsFunctionCalling
-			active
 			now
 			id
 		]

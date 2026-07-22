@@ -9,7 +9,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import * as Service from './Service';
 import { Color } from './Theme';
-import { Checkbox as AntdCheckbox, Table, ConfigProvider, theme } from 'antd';
+import { Table, ConfigProvider, theme } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { MacScrollbar } from 'mac-scrollbar';
 import 'mac-scrollbar/dist/mac-scrollbar.css';
@@ -51,7 +51,6 @@ const emptyForm: LLMConfigFormState = {
 	reasoningEffort: '',
 	customOptions: '',
 	supportsFunctionCalling: true,
-	active: true,
 };
 
 const inputStyle = {
@@ -207,7 +206,6 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 	const [mode, setMode] = useState<Mode>('create');
 	const [form, setForm] = useState<LLMConfigFormState>(emptyForm);
 	const [templateId, setTemplateId] = useState('deepseek');
-	const [savingActiveId, setSavingActiveId] = useState<number | null>(null);
 	const [showApiKey, setShowApiKey] = useState(false);
 	const [pendingDelete, setPendingDelete] = useState<Service.LLMConfigItem | null>(null);
 
@@ -235,7 +233,6 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 					reasoningEffort: typeof item.reasoningEffort === 'string' ? item.reasoningEffort : '',
 					customOptions: normalizeCustomOptions(item.customOptions),
 					supportsFunctionCalling: item.supportsFunctionCalling === undefined ? true : Boolean(item.supportsFunctionCalling),
-					active: item.active === undefined ? true : Boolean(item.active),
 				}));
 				setItems(normalized);
 			} else {
@@ -259,7 +256,6 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 			model: template.model,
 			key: '',
 			supportsFunctionCalling: true,
-			active: true,
 			contextWindow: DEFAULT_CONTEXT_WINDOW,
 			temperature: DEFAULT_TEMPERATURE,
 			maxTokens: DEFAULT_MAX_TOKENS,
@@ -302,7 +298,6 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 			reasoningEffort: typeof item.reasoningEffort === 'string' ? item.reasoningEffort : '',
 			customOptions: normalizeCustomOptions(item.customOptions),
 			supportsFunctionCalling: item.supportsFunctionCalling === undefined ? true : Boolean(item.supportsFunctionCalling),
-			active: item.active === undefined ? true : Boolean(item.active),
 		});
 		setShowApiKey(false);
 		setFormOpen(true);
@@ -314,6 +309,7 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 			setError(res.message ?? t('llm.saveFailed'));
 			return;
 		}
+		window.dispatchEvent(new Event('llm-configs-changed'));
 		loadItems();
 	};
 
@@ -329,7 +325,6 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 			reasoningEffort: (form.reasoningEffort ?? '').trim(),
 			customOptions: normalizeCustomOptions(form.customOptions).trim(),
 			supportsFunctionCalling: form.supportsFunctionCalling !== false,
-			active: form.active,
 		};
 		if (!payload.name || !payload.url || !payload.model || !payload.key) {
 			setError(t('llm.validationFailed'));
@@ -346,31 +341,11 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 			setError(res.message ?? t('llm.saveFailed'));
 			return;
 		}
+		window.dispatchEvent(new Event('llm-configs-changed'));
 		await loadItems();
 		setFormOpen(false);
 		setMode('create');
 		applyTemplate('deepseek');
-	};
-
-	const onToggleActive = async (record: Service.LLMConfigItem, nextActive: boolean) => {
-		if (savingActiveId !== null) return;
-		setSavingActiveId(record.id);
-		setError(null);
-		try {
-			const res = await Service.updateLLMConfig({
-				...record,
-				active: nextActive,
-			});
-			if (!res.success) {
-				setError(res.message ?? t('llm.saveFailed'));
-			} else {
-				setItems((prev) => prev.map((item) => (item.id === record.id ? { ...item, active: nextActive } : item)));
-			}
-		} catch {
-			setError(t('llm.saveFailed'));
-		} finally {
-			setSavingActiveId(null);
-		}
 	};
 
 	const columns: ColumnsType<Service.LLMConfigItem> = [
@@ -394,16 +369,6 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 					alignItems="center"
 					justifyContent="flex-end"
 				>
-					<Tooltip title={t('llm.active')}>
-						<span>
-							<AntdCheckbox
-								checked={Boolean(record.active)}
-								disabled={savingActiveId === record.id}
-								onChange={(event) => void onToggleActive(record, event.target.checked)}
-								style={{ paddingRight: 10 }}
-							/>
-						</span>
-					</Tooltip>
 					<Tooltip title={t('llm.edit')}>
 						<IconButton
 							size="small"
