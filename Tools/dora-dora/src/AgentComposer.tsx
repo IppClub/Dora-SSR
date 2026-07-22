@@ -164,6 +164,8 @@ export default function AgentComposer(props: AgentComposerProps) {
 	const textAreaRef = React.useRef<HTMLTextAreaElement | null>(null);
 	const scrollRef = React.useRef<HTMLElement | null>(null);
 	const isComposingRef = React.useRef(false);
+	const [modelMenuOpen, setModelMenuOpen] = React.useState(false);
+	const [modelTooltipOpen, setModelTooltipOpen] = React.useState(false);
 	const selectedLLMConfigName = llmConfigs.find(item => item.id === llmConfigId)?.name ?? t("agent.selectModel");
 
 	React.useLayoutEffect(() => {
@@ -400,16 +402,63 @@ export default function AgentComposer(props: AgentComposerProps) {
 						</span>
 					</Tooltip>
 				) : null}
-				<Tooltip title={t("agent.modelForNextRun")}>
+				<Tooltip
+					title={t("agent.modelForNextRun")}
+					disableFocusListener
+					open={modelTooltipOpen && !modelMenuOpen}
+					onOpen={() => {
+						if (!modelMenuOpen) setModelTooltipOpen(true);
+					}}
+					onClose={() => setModelTooltipOpen(false)}
+				>
 					<Select
 						value={llmConfigId ?? ""}
 						displayEmpty
-						disabled={loading || llmConfigs.length === 0 || onLLMConfigChange === undefined}
+						disabled={llmConfigs.length === 0 || onLLMConfigChange === undefined}
+						onOpen={() => {
+							setModelTooltipOpen(false);
+							setModelMenuOpen(true);
+						}}
+						onClose={() => setModelMenuOpen(false)}
 						onChange={event => onLLMConfigChange?.(Number(event.target.value))}
 						renderValue={() => selectedLLMConfigName}
 						variant="standard"
 						disableUnderline
 						size="small"
+						MenuProps={{
+							PaperProps: {
+								sx: {
+									minWidth: 120,
+									borderRadius: "6px",
+									backgroundColor: Color.Background,
+									backgroundImage: "none",
+									border: `1px solid ${Color.Line}`,
+									boxShadow: "0 10px 28px rgba(0, 0, 0, 0.42)",
+								},
+							},
+							MenuListProps: {
+								sx: {
+									padding: "4px 0",
+									"& .MuiMenuItem-root": {
+										minHeight: 32,
+										padding: "5px 14px",
+										fontSize: 13,
+										lineHeight: 1.35,
+										color: Color.TextPrimary,
+										"&:hover": {
+											backgroundColor: `${Color.Theme}22`,
+										},
+										"&.Mui-selected": {
+											backgroundColor: `${Color.Theme}18`,
+											color: Color.Theme,
+										},
+										"&.Mui-selected:hover": {
+											backgroundColor: `${Color.Theme}2e`,
+										},
+									},
+								},
+							},
+						}}
 						inputProps={{ "aria-label": t("agent.modelForNextRun") }}
 						sx={{
 							position: "absolute",
