@@ -1925,7 +1925,7 @@ HttpServer:post("/agent/session/questionnaire/cancel", function(req) -- 770
 				end -- 771
 			end -- 771
 			if sessionId ~= nil and questionnaireId ~= nil then -- 771
-				return AgentSession.cancelQuestionnaire(sessionId, questionnaireId) -- 772
+				return AgentSession.cancelQuestionnaire(sessionId, questionnaireId, req.body.llmConfigId) -- 772
 			end -- 771
 		end -- 771
 	end -- 771

@@ -53,23 +53,6 @@ export interface AgentToolCapabilityOptions {
 	workMode?: AgentWorkMode;
 }
 
-export interface AgentToolAvailabilityContext {
-	role: AgentRole;
-	workMode: AgentWorkMode;
-	taskDisabledAgentTools: AgentToolName[];
-	currentDisabledAgentTools: AgentToolName[];
-	resumeRequiredTool?: AgentToolName;
-	hasSpawnedSubAgentThisTask?: boolean;
-	delegatedForegroundBudgetExhausted?: boolean;
-	freshProjectBuildPending?: boolean;
-	freshProjectCodeFile?: string;
-	freshProjectHasAuthoredEdit?: boolean;
-	buildRepairPending?: boolean;
-	lastBuildSucceeded?: boolean;
-	editBudgetExhausted?: boolean;
-	repeatedDeterministicTestFailure?: boolean;
-}
-
 export interface ToolParameterPrompt {
 	name: string;
 	type: string;
@@ -339,14 +322,16 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 			{ name: "code", type: "string", description: "Raw Lua code to execute when mode is lua. YueScript is not supported. Use print(...) for output that should appear in the tool result." },
 			{ name: "command", type: "string", description: "Git command to execute when mode is git. The command may start with git, but shell syntax, pipes, redirects, and git -C are not supported." },
 			{ name: "cwd", type: "string", description: "Optional project-relative directory for non-clone git commands. Defaults to the project root. Use this for Git operations inside a cloned sub-repository instead of git -C." },
-			{ name: "timeoutSeconds", type: "number", description: "Optional timeout. Defaults to 30 seconds for Lua and 600 seconds for Git. Lua mode can stop cooperative engine work but cannot interrupt a pure CPU loop that never yields." },
+			{ name: "timeoutSeconds", type: "number", description: "Optional timeout. Defaults to 30 seconds for Lua and 600 seconds for Git. Lua mode uses an instruction hook to interrupt pure Lua loops that do not yield, but cannot interrupt a blocking native call." },
 		],
 		rules: [
 			"This tool is available only when the user enables command execution for the current Agent task.",
 			"Lua mode accepts raw Lua code only; do not send YueScript syntax.",
 			"Lua mode runs with a temporary environment whose global lookups fall back to Dora APIs; global writes stay in that one command and are not shared with later commands.",
+			"Lua command code is checked every 10,000 VM instructions against App.runningTime. A pure Lua loop is interrupted at the timeout; blocking native calls remain non-interruptible.",
 			"Lua mode exposes projectDir, refreshTree(path?), getEntryStatus(), enterEntryAsync(entry), and stopEntry(). getEntryStatus() returns a table containing success and running booleans.",
 			"enterEntryAsync runs a built project-relative Lua entry as an isolated Agent test. The tool automatically stops an entry it started when the command succeeds, fails, is canceled, or times out.",
+			"An Entry watchdog checks live Dora object and Lua-reference growth every frame. Growth of 50,000 C++ objects or 10,000 Lua references stops the test, runs Entry cleanup, and returns the measured growth; replace such tests with bounded entities and fixed simulation steps.",
 			"Call refreshTree(\"relative/file\") after single-file changes, or refreshTree() after directory or bulk changes.",
 			"Lua mode returns only text printed with print(...). It does not return arbitrary Lua return values.",
 			"Only one Agent command may own the Dora entry runtime at a time. If it is busy, retry later instead of waiting inside the command.",
@@ -483,7 +468,8 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 			"ask_user has no document-update prerequisite. Incorporate the answers into .agent/plan/PLAN.md and .agent/plan/PROGRESS.md before finish.",
 			"For single_choice, mark at most one option recommended. For multiple_choice, recommended options form a suggested set and must not exceed maxSelections.",
 			"ask_user must be the only tool call in the response.",
-			"The task pauses after the questionnaire is published and continues only after the user submits valid feedback.",
+			"The task pauses after the questionnaire is published and continues after the user submits answers or dismisses it.",
+			"An answered or dismissed ask_user tool result contains authoritative user feedback. Apply answers when present; when dismissed, continue with reasonable assumptions and do not mechanically repeat the same questionnaire.",
 		],
 	},
 ];
@@ -554,10 +540,10 @@ export function getAllowedToolsForRole(role: AgentRole, options?: AgentToolCapab
 		.map(tool => tool.name as AgentToolName);
 }
 
-export function buildCurrentToolAvailabilityPrompt(_context: AgentToolAvailabilityContext): string {
+export function buildCurrentToolAvailabilityGuidance(): string {
 	return [
 		"Current tool availability:",
-		"- every tool defined below or exposed in the current tool schema is executable",
+		"- every tool defined in the current system prompt or exposed in the current tool schema is executable",
 		"- capabilities disabled for this task are omitted from both the definitions and schema",
 	].join("\n");
 }

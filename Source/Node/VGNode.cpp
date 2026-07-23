@@ -29,6 +29,7 @@ Sprite* VGNode::getSurface() const noexcept {
 
 bool VGNode::init() {
 	if (!Node::init()) return false;
+	AssertIf(_frameWidth <= 0 || _frameHeight <= 0 || _frameScale <= 0, "VGNode: invalid framebuffer size {} x {} with scale {}", _frameWidth, _frameHeight, _frameScale);
 	NVGcontext* context = nvgCreate(_edgeAA, 0);
 	NVGLUframebuffer* framebuffer = nvgluCreateFramebuffer(context,
 		s_cast<int>(_frameWidth * _frameScale),

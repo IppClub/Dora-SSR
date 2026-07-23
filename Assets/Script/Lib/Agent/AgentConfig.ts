@@ -10,6 +10,9 @@ export const AGENT_DEFAULTS = {
 
 export const AGENT_LIMITS = {
 	userPromptMaxChars: 12000,
+	executeCommandHookInstructionCount: 10000,
+	executeCommandMaxObjectGrowth: 50000,
+	executeCommandMaxLuaRefGrowth: 10000,
 	historyReadFileMaxChars: 12000,
 	historyReadFileMaxLines: 300,
 	readFileDefaultLimit: 300,

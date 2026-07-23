@@ -126,6 +126,43 @@ Use Dora runtime modules, not browser packages:
 - To center a child in the parent rectangle, place it at `Vec2(parent.width / 2, parent.height / 2)`.
 - To align a child with the parent's anchor point, place it at `Vec2(parent.width * parent.anchor.x, parent.height * parent.anchor.y)`.
 
+Keep a full-screen drawing root unsized when its children should use screen-center coordinates:
+
+```ts
+const screen = Node();
+screen.addTo(Director.entry); // unsized: child (0, 0) remains the screen center
+
+const background = DrawNode();
+const {width, height} = View.size;
+background.drawPolygon([
+	Vec2(-width / 2, -height / 2),
+	Vec2(width / 2, -height / 2),
+	Vec2(width / 2, height / 2),
+	Vec2(-width / 2, height / 2),
+], Color(20, 30, 50, 255));
+background.addTo(screen);
+```
+
+For a sized parent, position children in its bottom-left-based local rectangle:
+
+```ts
+panel.size = Size(320, 180);
+panel.position = Vec2.zero; // the panel's anchor point is at screen center
+label.position = Vec2(panel.width / 2, panel.height / 2); // center inside panel
+```
+
+Inside that sized node's touch handler, `touch.location` uses the same bottom-left-based local space. Convert it before comparing against centered model coordinates:
+
+```ts
+const local = touch.location;
+const centered = Vec2(
+	local.x - panel.width * panel.anchor.x,
+	local.y - panel.height * panel.anchor.y
+);
+```
+
+Do not give a full-screen drawing root a `size` merely for adaptation. Add a separate sized input node when a real hit area is required, and deliberately use or convert its local coordinates as shown above.
+
 ### Input coordinate and enum baseline
 
 These names come directly from the built-in `Dora.d.ts`; do not spend a search step rediscovering them:

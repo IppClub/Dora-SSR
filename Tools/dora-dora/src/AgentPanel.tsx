@@ -3,6 +3,11 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
 import IconButton from '@mui/material/IconButton';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
@@ -91,6 +96,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 	const [checkpoints, setCheckpoints] = useState<Service.AgentCheckpointItem[]>([]);
 	const [pendingQuestionnaire, setPendingQuestionnaire] = useState<Service.AgentQuestionnaire | null>(null);
 	const [questionnaireSubmitting, setQuestionnaireSubmitting] = useState(false);
+	const [questionnaireCancelId, setQuestionnaireCancelId] = useState<number | null>(null);
 	const [workMode, setWorkMode] = useState<"code" | "plan">("code");
 	const [hasActivePlan, setHasActivePlan] = useState(false);
 	const [diffs, setDiffs] = useState<Record<number, Service.AgentCheckpointDiffFile[]>>({});
@@ -117,6 +123,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 	const autoScrollTimerRef = React.useRef<number | null>(null);
 	const autoScrollRafRef = React.useRef<number | null>(null);
 	const consumedInitialPromptRef = React.useRef("");
+	const sessionPatchRevisionRef = React.useRef(0);
 
 	const orderedRelatedSessions = useMemo(() => {
 		return [...relatedSessions].sort((a, b) => {
@@ -252,9 +259,11 @@ export default function AgentPanel(props: AgentPanelProps) {
 		return nextIsNearBottom;
 	}, []);
 
-	const refresh = React.useCallback(async (statusOnly = false, targetSessionId = selectedSessionId) => {
+	const refresh = React.useCallback(async (statusOnly = false, targetSessionId = selectedSessionId, ignoreIfPatched = false) => {
+		const patchRevision = sessionPatchRevisionRef.current;
 		if (statusOnly) {
 			const res = await Service.agentTaskStatus({ sessionId: targetSessionId });
+			if (ignoreIfPatched && sessionPatchRevisionRef.current !== patchRevision) return;
 			if (res.success) {
 				setSession(res.session);
 				setWorkMode(res.session.kind === "main" ? res.session.workMode : "code");
@@ -276,6 +285,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 			return;
 		}
 		const res = await Service.agentSessionGet({ sessionId: targetSessionId });
+		if (ignoreIfPatched && sessionPatchRevisionRef.current !== patchRevision) return;
 		if (res.success) {
 			setSession(res.session);
 			setWorkMode(res.session.kind === "main" ? res.session.workMode : "code");
@@ -307,6 +317,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 	useEffect(() => {
 		const onPatch = (patch: Service.AgentSessionPatch) => {
 			if (patch.sessionId !== selectedSessionId) return;
+			sessionPatchRevisionRef.current += 1;
 			if (patch.relatedSessions) {
 				setRelatedSessions(normalizeList<Service.AgentSession>(patch.relatedSessions));
 			}
@@ -372,7 +383,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 	useEffect(() => {
 		if (!hasAnyRunningSession) return;
 		const timer = window.setInterval(() => {
-			void refresh(true, selectedSessionId);
+			void refresh(true, selectedSessionId, true);
 		}, 3000);
 		return () => window.clearInterval(timer);
 	}, [hasAnyRunningSession, refresh, selectedSessionId]);
@@ -513,8 +524,45 @@ export default function AgentPanel(props: AgentPanelProps) {
 			}
 		}
 		if (currentGroup.length > 0) groups.push(currentGroup);
-		return groups;
-	}, [messageGroups.historyMessages]);
+		const questionnaireMessagesByTask = new Map<number, Service.AgentSessionMessage[]>();
+		for (const step of steps) {
+			if (
+				step.taskId === activeTaskId
+				|| step.tool !== "questionnaire_answer"
+				|| (step.result?.status !== "answered" && step.result?.status !== "dismissed")
+				|| typeof step.result.displayText !== "string"
+				|| step.result.displayText.trim() === ""
+			) {
+				continue;
+			}
+			const messagesForTask = questionnaireMessagesByTask.get(step.taskId) ?? [];
+			messagesForTask.push({
+				id: -step.id,
+				sessionId: step.sessionId,
+				taskId: step.taskId,
+				role: "user",
+				content: step.result.displayText,
+				createdAt: step.createdAt,
+				updatedAt: step.updatedAt,
+			});
+			questionnaireMessagesByTask.set(step.taskId, messagesForTask);
+		}
+		for (const messagesForTask of questionnaireMessagesByTask.values()) {
+			messagesForTask.sort((a, b) => a.createdAt - b.createdAt || a.id - b.id);
+		}
+		return groups.map(group => {
+			const taskId = group[0]?.taskId;
+			const questionnaireMessages = taskId ? questionnaireMessagesByTask.get(taskId) : undefined;
+			if (!questionnaireMessages || questionnaireMessages.length === 0) return group;
+			const firstAssistantIndex = group.findIndex(message => message.role === "assistant");
+			if (firstAssistantIndex < 0) return [...group, ...questionnaireMessages];
+			return [
+				...group.slice(0, firstAssistantIndex),
+				...questionnaireMessages,
+				...group.slice(firstAssistantIndex),
+			];
+		});
+	}, [activeTaskId, messageGroups.historyMessages, steps]);
 
 	const hiddenHistoryGroupCount = useMemo(() => {
 		return Math.max(0, historyGroups.length - visibleHistoryRounds);
@@ -735,24 +783,31 @@ export default function AgentPanel(props: AgentPanelProps) {
 
 	const cancelQuestionnaire = React.useCallback(async () => {
 		if (!pendingQuestionnaire || questionnaireSubmitting) return;
-		if (!window.confirm(t("agent.questionnaire.cancelConfirm"))) return;
 		setQuestionnaireSubmitting(true);
 		try {
+			const llmConfigId = await resolveLLMConfigId();
+			if (llmConfigId === undefined) {
+				addAlert?.(t("agent.noLLMConfigAlert"), "error");
+				return;
+			}
 			const res = await Service.agentQuestionnaireCancel({
 				sessionId: selectedSessionId,
 				questionnaireId: pendingQuestionnaire.id,
+				llmConfigId,
 			});
 			if (!res.success) {
 				addAlert?.(res.message, "error");
 				return;
 			}
 			window.sessionStorage.removeItem(`agent-questionnaire:${pendingQuestionnaire.id}`);
+			setQuestionnaireCancelId(null);
 			setPendingQuestionnaire(null);
+			setWorkMode("plan");
 			await refresh(true, selectedSessionId);
 		} finally {
 			setQuestionnaireSubmitting(false);
 		}
-	}, [addAlert, pendingQuestionnaire, questionnaireSubmitting, refresh, selectedSessionId, t]);
+	}, [addAlert, resolveLLMConfigId, pendingQuestionnaire, questionnaireSubmitting, refresh, selectedSessionId, t]);
 
 	const changeWorkMode = React.useCallback(async (planMode: boolean) => {
 		if (loading || session?.currentTaskStatus === "RUNNING" || session?.currentTaskStatus === "WAITING_USER") return;
@@ -1309,7 +1364,12 @@ export default function AgentPanel(props: AgentPanelProps) {
 				</Box>
 			</MacScrollbar>
 			{pendingQuestionnaire ? (
-				<AgentQuestionnaire questionnaire={pendingQuestionnaire} submitting={questionnaireSubmitting} onSubmit={answers => void submitQuestionnaire(answers)} onCancel={() => void cancelQuestionnaire()} />
+				<AgentQuestionnaire
+					questionnaire={pendingQuestionnaire}
+					submitting={questionnaireSubmitting}
+					onSubmit={answers => void submitQuestionnaire(answers)}
+					onCancel={() => setQuestionnaireCancelId(pendingQuestionnaire.id)}
+				/>
 			) : <>
 				<AgentComposer
 				prompt={prompt}
@@ -1335,6 +1395,34 @@ export default function AgentPanel(props: AgentPanelProps) {
 				onLLMConfigChange={selectLLMConfig}
 				/>
 			</>}
+			<Dialog
+				open={questionnaireCancelId !== null && questionnaireCancelId === pendingQuestionnaire?.id}
+				onClose={() => {
+					if (!questionnaireSubmitting) setQuestionnaireCancelId(null);
+				}}
+				fullWidth
+				maxWidth="xs"
+			>
+				<DialogTitle>{t("agent.questionnaire.cancelTitle")}</DialogTitle>
+				<DialogContent>
+					<DialogContentText color={Color.TextPrimary}>
+						{t("agent.questionnaire.cancelConfirm")}
+					</DialogContentText>
+				</DialogContent>
+				<DialogActions>
+					<Button disabled={questionnaireSubmitting} onClick={() => setQuestionnaireCancelId(null)}>
+						{t("agent.questionnaire.keepAnswering")}
+					</Button>
+					<Button
+						color="error"
+						variant="contained"
+						disabled={questionnaireSubmitting}
+						onClick={() => void cancelQuestionnaire()}
+					>
+						{questionnaireSubmitting ? <CircularProgress size={16} color="inherit" /> : t("agent.questionnaire.confirmClose")}
+					</Button>
+				</DialogActions>
+			</Dialog>
 			{!isNearBottom ? (
 				<Tooltip title={t("agent.scrollToBottom")}>
 					<IconButton

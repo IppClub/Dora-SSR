@@ -168,6 +168,7 @@ class Node {
 
 	/**
 	 * The MouseMove slot is triggered when the mouse moves, even when no mouse button is pressed.
+	 * This slot only responds to mouse movement. To handle both touch and mouse input, use `onTapBegan`, `onTapMoved`, and `onTapEnded` instead.
 	 * Triggers after setting `node.touchEnabled = true`.
 	 * @param touch The mouse pointer data converted to the node's local space.
 	*/

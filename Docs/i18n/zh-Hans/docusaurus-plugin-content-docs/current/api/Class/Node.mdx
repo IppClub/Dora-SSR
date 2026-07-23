@@ -1773,6 +1773,7 @@ onTapMoved: function(self: Node, callback: function(touch: Touch))
 **描述：**
 
 &emsp;&emsp;注册鼠标移动时触发的回调函数，无需按下鼠标按键。
+该回调仅响应鼠标移动。如需同时处理触摸和鼠标输入，请改用`onTapBegan()`、`onTapMoved()`和`onTapEnded()`。
 同时会设置节点的`touchEnabled`属性为 true。
 
 **签名：**

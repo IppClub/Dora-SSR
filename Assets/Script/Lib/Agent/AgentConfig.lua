@@ -9,34 +9,37 @@ ____exports.AGENT_DEFAULTS = { -- 3
 } -- 8
 ____exports.AGENT_LIMITS = { -- 11
 	userPromptMaxChars = 12000, -- 12
-	historyReadFileMaxChars = 12000, -- 13
-	historyReadFileMaxLines = 300, -- 14
-	readFileDefaultLimit = 300, -- 15
-	historySearchFilesMaxMatches = 20, -- 16
-	historySearchDoraApiMaxMatches = 12, -- 17
-	historyListFilesMaxEntries = 200, -- 18
-	historyBuildMaxMessages = 50, -- 19
-	historyBuildMessageMaxChars = 1200, -- 20
-	llmHistoryEditResultMessageMaxChars = 4000, -- 21
-	llmHistoryBuildMaxMessages = 12, -- 22
-	llmHistoryCommandOutputMaxChars = 8000, -- 23
-	llmHistoryToolResultMaxChars = 12000, -- 24
-	searchDoraApiLimitMax = 20, -- 25
-	searchFilesLimitDefault = 20, -- 26
-	listFilesMaxEntriesDefault = 200, -- 27
-	searchPreviewContext = 80, -- 28
-	completionTextMaxChars = 800, -- 29
-	completionListMaxItems = 12, -- 30
-	completionEvidenceMaxItems = 8 -- 31
-} -- 31
-____exports.AGENT_FILE_PATTERNS = {freshProjectCodeGlobs = { -- 34
-	"**/*.ts", -- 36
-	"**/*.tsx", -- 37
-	"**/*.lua", -- 38
-	"**/*.yue", -- 39
-	"**/*.tl", -- 40
-	"**/*.yarn", -- 41
-	"**/*.xml", -- 42
-	"!**/*.d.ts" -- 43
-}} -- 43
-return ____exports -- 43
+	executeCommandHookInstructionCount = 10000, -- 13
+	executeCommandMaxObjectGrowth = 50000, -- 14
+	executeCommandMaxLuaRefGrowth = 10000, -- 15
+	historyReadFileMaxChars = 12000, -- 16
+	historyReadFileMaxLines = 300, -- 17
+	readFileDefaultLimit = 300, -- 18
+	historySearchFilesMaxMatches = 20, -- 19
+	historySearchDoraApiMaxMatches = 12, -- 20
+	historyListFilesMaxEntries = 200, -- 21
+	historyBuildMaxMessages = 50, -- 22
+	historyBuildMessageMaxChars = 1200, -- 23
+	llmHistoryEditResultMessageMaxChars = 4000, -- 24
+	llmHistoryBuildMaxMessages = 12, -- 25
+	llmHistoryCommandOutputMaxChars = 8000, -- 26
+	llmHistoryToolResultMaxChars = 12000, -- 27
+	searchDoraApiLimitMax = 20, -- 28
+	searchFilesLimitDefault = 20, -- 29
+	listFilesMaxEntriesDefault = 200, -- 30
+	searchPreviewContext = 80, -- 31
+	completionTextMaxChars = 800, -- 32
+	completionListMaxItems = 12, -- 33
+	completionEvidenceMaxItems = 8 -- 34
+} -- 34
+____exports.AGENT_FILE_PATTERNS = {freshProjectCodeGlobs = { -- 37
+	"**/*.ts", -- 39
+	"**/*.tsx", -- 40
+	"**/*.lua", -- 41
+	"**/*.yue", -- 42
+	"**/*.tl", -- 43
+	"**/*.yarn", -- 44
+	"**/*.xml", -- 45
+	"!**/*.d.ts" -- 46
+}} -- 46
+return ____exports -- 46

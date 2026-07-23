@@ -2758,6 +2758,7 @@ interface NodeEventHandlerMap {
 
 	/**
 	 * The MouseMove slot is triggered when the mouse moves, even when no mouse button is pressed.
+	 * This slot only responds to mouse movement. To handle both touch and mouse input, use `TapBegan`, `TapMoved`, and `TapEnded` instead.
 	 * Triggers after setting `node.touchEnabled = true`.
 	 * @param touch The mouse pointer data converted to the node's local space.
 	*/
@@ -3511,6 +3512,7 @@ class Node extends Object {
 
 	/**
 	 * Registers a callback for mouse movement, even when no mouse button is pressed.
+	 * This callback only responds to mouse movement. To handle both touch and mouse input, use `onTapBegan()`, `onTapMoved()`, and `onTapEnded()` instead.
 	 * This function also sets `node.touchEnabled = true`.
 	 * @param callback The callback receiving mouse pointer data converted to the node's local space.
 	 */

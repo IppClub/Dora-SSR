@@ -769,7 +769,7 @@ HttpServer\post "/agent/session/questionnaire/respond", (req): invalidArguments 
 
 HttpServer\post "/agent/session/questionnaire/cancel", (req): invalidArguments ->
 	switch req when {body: {:sessionId, :questionnaireId}}
-		return AgentSession.cancelQuestionnaire sessionId, questionnaireId
+		return AgentSession.cancelQuestionnaire sessionId, questionnaireId, req.body.llmConfigId
 
 HttpServer\post "/agent/task/status", (req): invalidArguments ->
 	switch req when {body: {:sessionId}}

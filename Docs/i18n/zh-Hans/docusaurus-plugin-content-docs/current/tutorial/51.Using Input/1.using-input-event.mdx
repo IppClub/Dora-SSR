@@ -975,7 +975,7 @@ with Label "sarasa-mono-sc-regular", 40
 
 ### 4.1 事件回调方式
 
-&emsp;&emsp;使用 `onMouseMove` 获取经过当前摄像机和节点变换自动转换后的鼠标位置，使用 `onMouseWheel` 监听鼠标滚轮事件。鼠标按键事件通常与触摸事件重叠，可以使用触摸事件的方法来处理鼠标点击。
+&emsp;&emsp;使用 `onMouseMove` 获取经过当前摄像机和节点变换自动转换后的鼠标位置，使用 `onMouseWheel` 监听鼠标滚轮事件。`onMouseMove` 仅响应鼠标移动；如需同时处理触摸和鼠标输入，请使用 `onTapBegan`、`onTapMoved` 和 `onTapEnded`。鼠标按键事件通常与触摸事件重叠，可以使用触摸事件的方法来处理鼠标点击。
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
@@ -1048,7 +1048,7 @@ with Node!
 
 &emsp;&emsp;**说明：**
 
-- `onMouseMove`：鼠标移动时触发，无需按下鼠标按键。`touch.location` 是鼠标在节点局部空间中的位置，转换过程会自动处理当前摄像机的位置、旋转、缩放和投影，以及节点的 2D 或 3D 变换。如需当前视区逻辑坐标系中的位置，可使用 `touch.viewLocation`。
+- `onMouseMove`：鼠标移动时触发，无需按下鼠标按键。该事件不会响应触摸输入；如需同时兼容触摸和鼠标，请使用 `onTapBegan`、`onTapMoved` 和 `onTapEnded`。`touch.location` 是鼠标在节点局部空间中的位置，转换过程会自动处理当前摄像机的位置、旋转、缩放和投影，以及节点的 2D 或 3D 变换。如需当前视区逻辑坐标系中的位置，可使用 `touch.viewLocation`。
 - `onMouseWheel`：当鼠标滚轮滚动时触发，`delta` 包含滚动的距离信息，包含 `x` 和 `y` 两个方向的滚动值。
 
 #### 鼠标事件的开关

@@ -168,6 +168,7 @@ class Node {
 
 	/**
 	 * MouseMove 插槽在鼠标移动时触发，无需按下鼠标按键。
+	 * 该插槽仅响应鼠标移动。如需同时处理触摸和鼠标输入，请改用`onTapBegan`、`onTapMoved`和`onTapEnded`。
 	 * 在设置`node.touchEnabled = true`之后才会触发。
 	 * @param touch 已转换到节点局部空间的鼠标指针数据。
 	*/

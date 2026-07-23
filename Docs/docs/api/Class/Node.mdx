@@ -1771,6 +1771,7 @@ onTapMoved: function(self: Node, callback: function(touch: Touch))
 **Description:**
 
 &emsp;&emsp;Registers a callback for mouse movement, even when no mouse button is pressed.
+This callback only responds to mouse movement. To handle both touch and mouse input, use `onTapBegan()`, `onTapMoved()`, and `onTapEnded()` instead.
 This function also sets `node.touchEnabled = true`.
 
 **Signature:**

@@ -1666,6 +1666,8 @@ impl Slot {
     /// ```
     pub const TAP_MOVED: &'static str = "TapMoved";
     /// The MouseMove slot is triggered when the mouse moves, even when no mouse button is pressed.
+    /// This slot only responds to mouse movement. To handle both touch and mouse input, use
+    /// `Slot::TAP_BEGAN`, `Slot::TAP_MOVED`, and `Slot::TAP_ENDED` instead.
     /// Triggers after setting `node.set_touch_enabled(true)`.
     ///
     /// # Callback Arguments

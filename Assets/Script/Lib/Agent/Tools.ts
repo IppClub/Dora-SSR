@@ -1,6 +1,7 @@
 // @preview-file off clear
 import * as Dora from 'Dora';
 import { Content, DB, Path, Director, once, SearchFilesResult, Node, emit, wait, App, HttpServer, HttpClient, Git } from 'Dora';
+import * as AgentConfig from 'Agent/AgentConfig';
 import { Log, safeJsonDecode, safeJsonEncode } from 'Agent/Utils';
 import type { ToolCall } from 'Agent/Utils';
 
@@ -2432,6 +2433,8 @@ function executeLuaCommand(req: {
 	const output: string[] = [];
 	const entry = require("Script.Dev.Entry") as DevEntryModule;
 	let ownsEntryRuntime = false;
+	let entryObjectBaseline = 0;
+	let entryLuaRefBaseline = 0;
 	const acquireEntryRuntime = () => {
 		if (agentEntryRuntimeOwner !== "" && agentEntryRuntimeOwner !== req.operationId) {
 			error("Dora entry runtime is busy with another Agent command");
@@ -2452,6 +2455,24 @@ function executeLuaCommand(req: {
 			agentEntryRuntimeOwner = "";
 		}
 		return cleanupError;
+	};
+	const startEntryWatchdog = () => {
+		entryObjectBaseline = Dora.Object.count;
+		entryLuaRefBaseline = Dora.Object.luaRefCount;
+	};
+	const checkEntryWatchdog = (): string | undefined => {
+		if (!ownsEntryRuntime) return undefined;
+		const objectCount = Dora.Object.count;
+		const luaRefCount = Dora.Object.luaRefCount;
+		const objectGrowth = math.max(0, objectCount - entryObjectBaseline);
+		const luaRefGrowth = math.max(0, luaRefCount - entryLuaRefBaseline);
+		const exceededTotal =
+			objectGrowth >= AgentConfig.AGENT_LIMITS.executeCommandMaxObjectGrowth ||
+			luaRefGrowth >= AgentConfig.AGENT_LIMITS.executeCommandMaxLuaRefGrowth;
+		if (!exceededTotal) return undefined;
+		return `Entry watchdog stopped the test and cleaned up after abnormal object growth: ` +
+			`live objects +${tostring(objectGrowth)}, Lua references +${tostring(luaRefGrowth)}. ` +
+			`Use a bounded test with a strict entity limit and only a few fixed simulation steps.`;
 	};
 	const normalizeEntryFile = (value: unknown): { fileName: string; entryName: string } => {
 		if (!value || type(value) !== "table") {
@@ -2548,6 +2569,7 @@ function executeLuaCommand(req: {
 			const normalized = normalizeEntryFile(value);
 			acquireEntryRuntime();
 			entry.allClear();
+			startEntryWatchdog();
 			const [success, message] = entry.enterEntryAsync({
 				entryName: normalized.entryName,
 				fileName: normalized.fileName,
@@ -2609,6 +2631,18 @@ function executeLuaCommand(req: {
 		}
 		Director.systemScheduler.schedule(() => {
 			if (settled) return true;
+			const watchdogMessage = checkEntryWatchdog();
+			if (watchdogMessage !== undefined) {
+				finish({
+					success: false,
+					mode: "lua",
+					output: truncateCommandOutput(output.join("\n")),
+					message: watchdogMessage,
+					phase: "execute",
+					interrupted: true,
+				});
+				return true;
+			}
 			if (isCancelled && isCancelled()) {
 				finish({
 					success: false,
@@ -2644,16 +2678,36 @@ function executeLuaCommand(req: {
 				});
 			}
 			const previousGlobalPrint = _G["print"];
+			const [previousHook, previousHookMask, previousHookCount] = debug.gethook();
+			let hookTimedOut = false;
 			_G["print"] = capturePrint;
+			debug.sethook(() => {
+				if (App.runningTime - startedAt >= req.timeoutSeconds) {
+					hookTimedOut = true;
+					error(`Lua command timed out after ${tostring(req.timeoutSeconds)} seconds`);
+				}
+			}, "", AgentConfig.AGENT_LIMITS.executeCommandHookInstructionCount);
 			const [ok, runtimeErr] = pcall(fn);
+			if (previousHook !== undefined && previousHookMask !== undefined && previousHookCount !== undefined) {
+				debug.sethook(
+					previousHook as (event: "call" | "tail call" | "return" | "line" | "count", line?: number) => unknown,
+					previousHookMask,
+					previousHookCount,
+				);
+			} else {
+				debug.sethook();
+			}
 			_G["print"] = previousGlobalPrint;
 			if (!ok) {
 				finish({
 					success: false,
 					mode: "lua",
 					output: truncateCommandOutput(output.join("\n")),
-					message: truncateCommandError(toStr(runtimeErr)),
-					phase: "execute",
+					message: hookTimedOut
+						? `Lua command timed out after ${tostring(req.timeoutSeconds)} seconds`
+						: truncateCommandError(toStr(runtimeErr)),
+					phase: hookTimedOut ? "timeout" : "execute",
+					interrupted: hookTimedOut ? true : undefined,
 				});
 				return;
 			}

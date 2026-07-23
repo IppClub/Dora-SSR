@@ -974,7 +974,7 @@ In the above code, we create an input box. When the input box is clicked, the in
 
 ### 4.1 Event Callback Method
 
-Use `onMouseMove` to receive pointer positions automatically converted through the current camera and the node's transform, and use `onMouseWheel` to listen for mouse wheel events. Mouse button events generally overlap with touch events, and mouse clicks can be handled using touch event methods.
+Use `onMouseMove` to receive mouse pointer positions automatically converted through the current camera and the node's transform, and use `onMouseWheel` to listen for mouse wheel events. `onMouseMove` only responds to mouse movement; to handle both touch and mouse input, use `onTapBegan`, `onTapMoved`, and `onTapEnded`. Mouse button events generally overlap with touch events, and mouse clicks can be handled using touch event methods.
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
@@ -1047,7 +1047,7 @@ with Node!
 
 **Note:**
 
-- `onMouseMove`: Triggered when the mouse moves, even when no button is pressed. `touch.location` is the pointer position in the node's local space. The conversion automatically accounts for the current camera's position, rotation, zoom and projection, as well as the node's 2D or 3D transform. Use `touch.viewLocation` when the position in the current view's logical coordinate system is needed.
+- `onMouseMove`: Triggered when the mouse moves, even when no button is pressed. It does not respond to touch input; use `onTapBegan`, `onTapMoved`, and `onTapEnded` when both touch and mouse must be supported. `touch.location` is the pointer position in the node's local space. The conversion automatically accounts for the current camera's position, rotation, zoom and projection, as well as the node's 2D or 3D transform. Use `touch.viewLocation` when the position in the current view's logical coordinate system is needed.
 - `onMouseWheel`: Triggered when the mouse wheel is scrolled. The `delta` contains the scrolling distance information, including values for both the `x` and `y` directions.
 
 #### Mouse Event Toggle

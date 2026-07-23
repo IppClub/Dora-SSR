@@ -1634,10 +1634,12 @@ export const agentQuestionnaireRespond = (req: {
 export const agentQuestionnaireCancel = (req: {
 	sessionId: number;
 	questionnaireId: number;
+	llmConfigId: number;
 }) => {
 	return post<{
 		success: true;
-		session?: AgentSession;
+		sessionId: number;
+		taskId: number;
 	} | {
 		success: false;
 		message: string;

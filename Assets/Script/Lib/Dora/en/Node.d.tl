@@ -526,6 +526,7 @@ local record Node
 	onTapMoved: function(self: Node, callback: function(touch: Touch))
 
 	-- Registers a callback for mouse movement, even when no mouse button is pressed.
+	-- This callback only responds to mouse movement. To handle both touch and mouse input, use `onTapBegan()`, `onTapMoved()`, and `onTapEnded()` instead.
 	-- This function also sets `node.touchEnabled = true`.
 	-- @param callback (function) The callback function to register.
 	-- 	@param touch (Touch) The mouse pointer data converted to the node's local space.
@@ -739,6 +740,7 @@ local record __SLOT__
 	["TapMoved"]: function(touch: Touch)
 
 	-- The MouseMove slot is triggered when the mouse moves, even when no mouse button is pressed.
+	-- This slot only responds to mouse movement. To handle both touch and mouse input, use `TapBegan`, `TapMoved`, and `TapEnded` instead.
 	-- Triggers after setting `node.touchEnabled = true`.
 	-- @param touch (Touch) The mouse pointer data converted to the node's local space.
 	["MouseMove"]: function(touch: Touch)

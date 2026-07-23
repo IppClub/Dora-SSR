@@ -529,6 +529,7 @@ local record Node
 	onTapMoved: function(self: Node, callback: function(touch: Touch))
 
 	-- 注册鼠标移动时触发的回调函数，无需按下鼠标按键。
+	-- 该回调仅响应鼠标移动。如需同时处理触摸和鼠标输入，请改用`onTapBegan()`、`onTapMoved()`和`onTapEnded()`。
 	-- 同时会设置节点的`touchEnabled`属性为 true。
 	-- @param callback (function) 鼠标移动的回调函数。
 	-- 	@param touch (Touch) 已转换到节点局部空间的鼠标指针数据。
@@ -741,6 +742,7 @@ local record __SLOT__
 	["TapMoved"]: function(touch: Touch)
 
 	-- MouseMove事件在鼠标移动时触发，无需按下鼠标按键。
+	-- 该事件仅响应鼠标移动。如需同时处理触摸和鼠标输入，请改用`TapBegan`、`TapMoved`和`TapEnded`事件。
 	-- 在设置`node.touchEnabled = true`之后才会触发。
 	-- @param touch (Touch) 已转换到节点局部空间的鼠标指针数据。
 	["MouseMove"]: function(touch: Touch)

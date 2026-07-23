@@ -450,6 +450,40 @@ export default function AgentStepList(props: AgentStepListProps) {
 	return (
 		<Stack spacing={2}>
 			{steps.map(step => {
+				const questionnaireAnswer = step.tool === "questionnaire_answer"
+					&& (step.result?.status === "answered" || step.result?.status === "dismissed")
+					&& typeof step.result.displayText === "string"
+					? step.result.displayText
+					: undefined;
+				if (questionnaireAnswer !== undefined) {
+					return (
+						<Box key={step.id} sx={{ display: "flex", justifyContent: "flex-end", minWidth: 0 }}>
+							<Box sx={{
+								maxWidth: "78%",
+								width: "auto",
+								minWidth: 0,
+								borderRadius: 3,
+								px: 2,
+								py: 1.5,
+								backgroundColor: "rgba(255,255,255,0.06)",
+								boxShadow: "inset 0 1px 0 rgba(255,255,255,0.02)",
+							}}>
+								<Typography sx={{ color: Color.TextPrimary, whiteSpace: "pre-wrap", fontSize: 16, lineHeight: 1.75 }}>
+									{questionnaireAnswer}
+								</Typography>
+							</Box>
+						</Box>
+					);
+				}
+				const questionnaireSummary = step.tool === "ask_user"
+					&& (step.result?.status === "answered" || step.result?.status === "dismissed")
+					? {
+						title: typeof step.result.title === "string" && step.result.title.trim() !== ""
+							? step.result.title
+							: t("agent.questionnaire.titleFallback"),
+						dismissed: step.result.status === "dismissed",
+					}
+					: undefined;
 				const paramItems = summarizeToolParams(step, t);
 				const canViewDiff = step.tool !== "delete_file";
 				const buildItems = step.tool === "build" ? getBuildItems(step) : [];
@@ -496,6 +530,11 @@ export default function AgentStepList(props: AgentStepListProps) {
 								<Chip size="small" label={step.status} variant="outlined" sx={{ borderColor: Color.Line, color: Color.TextSecondary }} />
 							) : null}
 						</Stack>
+						{questionnaireSummary ? (
+							<Typography sx={{ color: Color.TextPrimary, fontSize: 16, lineHeight: 1.65, mt: 1 }}>
+								{questionnaireSummary.title}
+							</Typography>
+						) : null}
 						{visiblePrimaryContent !== "" ? (
 							<Box
 								sx={{
@@ -655,6 +694,14 @@ export default function AgentStepList(props: AgentStepListProps) {
 										{item.value !== undefined ? `${item.label}: ${item.value}` : item.label}
 									</React.Fragment>
 								))}
+							</Typography>
+						) : null}
+						{questionnaireSummary ? (
+							<Typography variant="caption" sx={{ color: Color.TextSecondary, display: "block", mt: 0.75, lineHeight: 1.6 }}>
+								{t("agent.paramLabels.status")}:{" "}
+								{t(questionnaireSummary.dismissed
+									? "agent.questionnaire.dismissedStatus"
+									: "agent.questionnaire.answeredStatus")}
 							</Typography>
 						) : null}
 						{executeCommandDetails ? (

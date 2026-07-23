@@ -69,6 +69,10 @@ export type {
 export interface CodingAgentRunOptions {
 	prompt: string;
 	resumeConversation?: boolean;
+	resumeTask?: boolean;
+	initialStep?: number;
+	initialAgentStepCount?: number;
+	initialTokenUsage?: AgentTokenUsageMetric;
 	workDir: string;
 	useChineseResponse?: boolean;
 	taskId?: number;
@@ -195,6 +199,7 @@ export type CodingAgentEvent =
 		prompt: string;
 		workDir: string;
 		maxSteps: number;
+		resumed: boolean;
 	}
 	| {
 		type: "decision_made";
@@ -357,7 +362,10 @@ interface AgentShared {
 	taskId: number;
 	role: AgentRole;
 	maxSteps: number;
+	/** Timeline sequence, including compression and questionnaire-answer steps. */
 	step: number;
+	/** Agent tool decisions only. User answers and internal system steps do not consume this budget. */
+	agentStepCount: number;
 	done: boolean;
 	stopToken: StopToken;
 	error?: string;
@@ -403,8 +411,6 @@ interface AgentShared {
 	failedTestHasSourceEdit?: boolean;
 	/** A build returned concrete authored-file diagnostics that should guide the next repair. */
 	buildRepairPending?: boolean;
-	/** Consecutive deterministic test reports whose first-line result was failed. */
-	deterministicTestFailureCount?: number;
 	/** A project with zero buildable code files, or one buildable code file of at most 3 lines, should prefer an early implementation and build. */
 	freshProjectBuildPending?: boolean;
 	/** The only short code file found when freshProjectBuildPending was detected. */
@@ -1396,6 +1402,7 @@ function createPreExecutedToolResult(shared: AgentShared, action: AgentActionRec
 }
 
 async function executeToolActionWithPreExecution(shared: AgentShared, action: AgentActionRecord): Promise<Record<string, unknown>> {
+	const wasResumeNarrowReadMode = shared.resumeNarrowReadMode === true;
 	const preResult = shared.preExecutedResults?.get(action.toolCallId);
 	let result: Record<string, unknown>;
 	if (preResult) {
@@ -1411,8 +1418,13 @@ async function executeToolActionWithPreExecution(shared: AgentShared, action: Ag
 		result = await executeToolAction(shared, action);
 	}
 	const guidance: string[] = [];
+	if (typeof result.guidance === "string" && result.guidance.trim() !== "") {
+		guidance.push(result.guidance);
+	}
+	guidance.push(AgentToolRegistry.buildCurrentToolAvailabilityGuidance());
 	if (
-		(shared.delegatedForegroundBatches ?? 0) >= AgentConfig.AGENT_DEFAULTS.delegatedForegroundBatchLimit
+		shared.hasSpawnedSubAgentThisTask === true
+		&& (shared.delegatedForegroundBatches ?? 0) + 1 >= AgentConfig.AGENT_DEFAULTS.delegatedForegroundBatchLimit
 		&& action.tool !== "spawn_sub_agent"
 		&& action.tool !== "finish"
 	) {
@@ -1421,8 +1433,18 @@ async function executeToolActionWithPreExecution(shared: AgentShared, action: Ag
 	if (shared.resumeRequiredTool !== undefined && action.tool !== shared.resumeRequiredTool) {
 		guidance.push(`The compression checkpoint recommends ${shared.resumeRequiredTool} next. Avoid restarting broad discovery unless this result shows it is necessary.`);
 	}
-	if (shared.failedTestNeedsBuild === true && action.tool !== "build" && action.tool !== "edit_file") {
-		guidance.push("A deterministic test previously failed. Prefer a narrow authored-source fix and a successful build before further testing or generated-output investigation.");
+	if (shared.failedTestNeedsBuild === true) {
+		if (action.tool === "build" && result.success === true && shared.failedTestHasSourceEdit !== true) {
+			guidance.push("The build passed, but no authored source change has addressed the deterministic test failure. Make a narrow source fix before rebuilding or retesting.");
+		} else if (
+			(action.tool === "edit_file" || action.tool === "delete_file")
+			&& result.success === true
+			&& result.changed !== false
+		) {
+			guidance.push("Source changed after a deterministic test failure. Build the authored changes before running more tests.");
+		} else if (action.tool !== "build") {
+			guidance.push("A deterministic test failure remains unresolved. Prefer a narrow authored-source fix and a successful build before further testing or generated-output investigation.");
+		}
 	}
 	if (action.tool === "search_dora_api") {
 		if (shared.unbuiltEdits === true) {
@@ -1439,7 +1461,7 @@ async function executeToolActionWithPreExecution(shared: AgentShared, action: Ag
 	) {
 		guidance.push("Several source files have changed since the last build. Prefer compiling now to obtain concrete diagnostics before broadening the edit set.");
 	}
-	if (action.tool === "edit_file" && shared.resumeNarrowReadMode === true) {
+	if (action.tool === "edit_file" && wasResumeNarrowReadMode) {
 		const oldStr = typeof action.params.old_str === "string" ? action.params.old_str : "";
 		if (oldStr === "") {
 			guidance.push("After compression, prefer a targeted old_str replacement or an early build over rewriting a complete existing file.");
@@ -1453,14 +1475,33 @@ async function executeToolActionWithPreExecution(shared: AgentShared, action: Ag
 			? "A fresh project now has an authored implementation. Prefer an early build so later work uses compiler feedback."
 			: "This is a fresh project. Prefer creating a compilable first implementation, then build early.");
 	}
-	if (shared.buildRepairPending === true && action.tool !== "build" && action.tool !== "edit_file") {
-		guidance.push("The last build reported authored-file diagnostics. Prefer a narrow source repair, then build again.");
+	if (shared.buildRepairPending === true) {
+		if (action.tool === "build") {
+			guidance.push("This build reported authored-file diagnostics. Make a narrow source repair before building again.");
+		} else if (
+			(action.tool === "edit_file" || action.tool === "delete_file")
+			&& result.success === true
+			&& result.changed !== false
+		) {
+			guidance.push("A source repair was applied after build diagnostics. Build again before broadening the investigation.");
+		} else {
+			guidance.push("The last build reported authored-file diagnostics. Prefer a narrow source repair, then build again.");
+		}
 	}
-	if (shared.lastBuildSucceeded === true && shared.unbuiltEdits !== true) {
+	if (
+		action.tool === "build"
+		&& shared.lastBuildSucceeded === true
+		&& shared.unbuiltEdits !== true
+		&& shared.failedTestNeedsBuild !== true
+	) {
 		guidance.push("The latest build passed with no pending source edits. If the user's acceptance criteria are satisfied, prefer finishing instead of inventing extra probes.");
 	}
-	if (guidance.length > 0) {
-		result.guidance = guidance.join("\n");
+	result.guidance = guidance.join("\n");
+	// A build or a bounded read can still be part of resuming directly from the
+	// compression checkpoint. Any other real action ends the narrow-resume phase,
+	// but only after its result has received the relevant recovery guidance.
+	if (action.tool !== "build" && action.tool !== "read_file") {
+		shared.resumeNarrowReadMode = false;
 	}
 	return result;
 }
@@ -1866,7 +1907,7 @@ function applyCompressedSessionState(
 		// The compression operation itself is recorded as step 1 before this
 		// state is applied. With no earlier task action, that carried user
 		// message is still the new instruction and must outrank the old summary.
-		&& shared.step <= 1;
+		&& shared.agentStepCount === 0;
 	if (
 		!hasUncompressedTail
 		&& !carryStartsNewTask
@@ -2643,7 +2684,7 @@ function getUnconsolidatedMessages(shared: AgentShared): Message[] {
 }
 
 function isFinalDecisionTurn(shared: AgentShared): boolean {
-	return shared.step + 1 >= shared.maxSteps;
+	return shared.agentStepCount + 1 >= shared.maxSteps;
 }
 
 function getFinalDecisionTurnPrompt(shared: AgentShared): string {
@@ -2705,26 +2746,12 @@ function buildDecisionMessages(
 	${lastRaw && lastRaw !== "" ? `Last rejected output summary: ${truncateText(lastRaw, 300)}` : ""}`,
 		});
 	}
-	tailSections.push(AgentToolRegistry.buildCurrentToolAvailabilityPrompt({
-		role: shared.role,
-		workMode: shared.workMode,
-		taskDisabledAgentTools: shared.disabledAgentTools,
-		currentDisabledAgentTools: getDecisionDisabledAgentTools(shared),
-		resumeRequiredTool: shared.resumeRequiredTool,
-		hasSpawnedSubAgentThisTask: shared.hasSpawnedSubAgentThisTask,
-		delegatedForegroundBudgetExhausted: (shared.delegatedForegroundBatches ?? 0) >= AgentConfig.AGENT_DEFAULTS.delegatedForegroundBatchLimit,
-		freshProjectBuildPending: shared.freshProjectBuildPending,
-		freshProjectCodeFile: shared.freshProjectCodeFile,
-		freshProjectHasAuthoredEdit: shared.freshProjectBuildPending === true && shared.unbuiltEdits === true,
-		buildRepairPending: shared.buildRepairPending,
-		lastBuildSucceeded: shared.lastBuildSucceeded === true && shared.unbuiltEdits !== true,
-		editBudgetExhausted: AgentRuntimePolicy.isEditBudgetExhausted(shared),
-		repeatedDeterministicTestFailure: (shared.deterministicTestFailureCount ?? 0) >= 2,
-	}));
-	messages.push({
-		role: "user",
-		content: tailSections.join("\n\n"),
-	});
+	if (tailSections.length > 0) {
+		messages.push({
+			role: "user",
+			content: tailSections.join("\n\n"),
+		});
+	}
 	return messages;
 }
 
@@ -2785,22 +2812,6 @@ ${candidateReasoningSection}`
 		LAST_ERROR: lastError,
 		ATTEMPT: tostring(attempt),
 	});
-	const availabilityPrompt = AgentToolRegistry.buildCurrentToolAvailabilityPrompt({
-		role: shared.role,
-		workMode: shared.workMode,
-		taskDisabledAgentTools: shared.disabledAgentTools,
-		currentDisabledAgentTools: getDecisionDisabledAgentTools(shared),
-		resumeRequiredTool: shared.resumeRequiredTool,
-		hasSpawnedSubAgentThisTask: shared.hasSpawnedSubAgentThisTask,
-		delegatedForegroundBudgetExhausted: (shared.delegatedForegroundBatches ?? 0) >= AgentConfig.AGENT_DEFAULTS.delegatedForegroundBatchLimit,
-		freshProjectBuildPending: shared.freshProjectBuildPending,
-		freshProjectCodeFile: shared.freshProjectCodeFile,
-		freshProjectHasAuthoredEdit: shared.freshProjectBuildPending === true && shared.unbuiltEdits === true,
-		buildRepairPending: shared.buildRepairPending,
-		lastBuildSucceeded: shared.lastBuildSucceeded === true && shared.unbuiltEdits !== true,
-		editBudgetExhausted: AgentRuntimePolicy.isEditBudgetExhausted(shared),
-		repeatedDeterministicTestFailure: (shared.deterministicTestFailureCount ?? 0) >= 2,
-	});
 	return [
 		{
 			role: "system",
@@ -2808,7 +2819,7 @@ ${candidateReasoningSection}`
 		},
 		{
 			role: "user",
-			content: `${repairPrompt}\n\n${availabilityPrompt}`,
+			content: repairPrompt,
 		},
 	];
 }
@@ -2841,7 +2852,7 @@ function tryParseAndValidateDecision(rawText: string, shared: AgentShared): Deci
 
 class MainDecisionAgent extends Node<AgentShared> {
 	async prep(shared: AgentShared): Promise<{ shared: AgentShared }> {
-		if (shared.stopToken.stopped || shared.step >= shared.maxSteps) {
+		if (shared.stopToken.stopped || shared.agentStepCount >= shared.maxSteps) {
 			return { shared };
 		}
 
@@ -3191,8 +3202,8 @@ class MainDecisionAgent extends Node<AgentShared> {
 		if (shared.stopToken.stopped) {
 			return { success: false, message: getCancelledReason(shared) };
 		}
-		if (shared.step >= shared.maxSteps) {
-			AgentUtils.Log("Warn", `[CodingAgent] maximum step limit reached step=${shared.step} max=${shared.maxSteps}`);
+		if (shared.agentStepCount >= shared.maxSteps) {
+			AgentUtils.Log("Warn", `[CodingAgent] maximum step limit reached agent_steps=${shared.agentStepCount} timeline_step=${shared.step} max=${shared.maxSteps}`);
 			return { success: false, message: getMaxStepsReachedReason(shared) };
 		}
 
@@ -3324,6 +3335,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 				actions.push(action);
 			}
 			shared.step = startStep + actions.length;
+			shared.agentStepCount += actions.length;
 			shared.pendingToolActions = actions;
 			appendAssistantToolCallsMessage(
 				shared,
@@ -3364,6 +3376,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 		}
 		const toolCallId = ensureToolCallId(result.toolCallId);
 		shared.step += 1;
+		shared.agentStepCount += 1;
 		const step = shared.step;
 		emitAgentEvent(shared, {
 			type: "decision_made",
@@ -4044,11 +4057,6 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 		}
 		return result;
 	}
-	// A forced post-compression build validates the checkpoint but does not
-	// justify rereading whole authored files. Keep narrow-read mode across that
-	// build; a later edit/command/search represents real resumed work and may
-	// clear it normally.
-	if (action.tool !== "build") shared.resumeNarrowReadMode = false;
 	if (action.tool === "grep_files") {
 		const searchPath = (params.path as string) ?? "";
 		const searchGlobs = params.globs as string[] | undefined;
@@ -4276,9 +4284,9 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 			if (deterministicFailure) {
 				shared.failedTestNeedsBuild = true;
 				shared.failedTestHasSourceEdit = false;
-				shared.deterministicTestFailureCount = (shared.deterministicTestFailureCount ?? 0) + 1;
 			} else if (deterministicPass) {
-				shared.deterministicTestFailureCount = 0;
+				shared.failedTestNeedsBuild = false;
+				shared.failedTestHasSourceEdit = false;
 			}
 		}
 		return result as unknown as Record<string, unknown>;
@@ -4651,8 +4659,12 @@ class BatchToolAction extends Node<AgentShared> {
 		shared.pendingToolActions = undefined;
 		shared.preExecutedResults = undefined;
 		persistHistoryState(shared);
-		await maybeCompressHistory(shared);
-		persistHistoryState(shared);
+		// Keep the ask_user call/result pair active so the submitted answer can
+		// replace the waiting result before any memory summary covers it.
+		if (shared.waitingQuestionnaireId === undefined) {
+			await maybeCompressHistory(shared);
+			persistHistoryState(shared);
+		}
 		return shared.waitingQuestionnaireId !== undefined ? "done" : "main";
 	}
 }
@@ -4780,7 +4792,7 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 	});
 	const persistedSession = compressor.getStorage().readSessionState();
 	let effectiveUserQuery = normalizedPrompt;
-	if (options.resumeConversation === true) {
+	if (options.resumeConversation === true && normalizedPrompt.trim() === "") {
 		for (let i = persistedSession.messages.length - 1; i >= 0; i--) {
 			const message = persistedSession.messages[i];
 			if (message.role === "user" && typeof message.content === "string" && message.content.trim() !== "") {
@@ -4800,7 +4812,8 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 		role: options.role ?? "main",
 		maxSteps: math.max(1, math.floor(options.maxSteps ?? AgentConfig.AGENT_DEFAULTS.maxSteps)),
 		llmMaxTry: math.max(1, math.floor(options.llmMaxTry ?? AgentConfig.AGENT_DEFAULTS.llmMaxTry)),
-		step: 0,
+		step: math.max(0, math.floor(options.initialStep ?? 0)),
+		agentStepCount: math.max(0, math.floor(options.initialAgentStepCount ?? 0)),
 		done: false,
 		stopToken: options.stopToken ?? { stopped: false },
 		response: "",
@@ -4842,6 +4855,7 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 		freshProjectCodeFile,
 		hasSpawnedSubAgentThisTask: false,
 		delegatedForegroundBatches: 0,
+		tokenUsage: options.initialTokenUsage,
 	};
 
 	try {
@@ -4859,6 +4873,7 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 			prompt: shared.userQuery,
 			workDir: shared.workingDir,
 			maxSteps: shared.maxSteps,
+			resumed: options.resumeTask === true,
 		});
 		if (shared.stopToken.stopped) {
 			Tools.setTaskStatus(shared.taskId, "STOPPED");

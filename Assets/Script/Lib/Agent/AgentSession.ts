@@ -1,7 +1,7 @@
 // @preview-file off clear
 import { App, Content, DB, Path, HttpServer, emit } from 'Dora';
 import { runCodingAgent, CodingAgentEvent, CodingAgentRunResult, truncateAgentUserPrompt } from 'Agent/CodingAgent';
-import type { AgentCompletionReport } from 'Agent/CodingAgent';
+import type { AgentCompletionReport, AgentTokenUsageMetric } from 'Agent/CodingAgent';
 import * as AgentToolRegistry from 'Agent/AgentToolRegistry';
 import * as AgentRuntimePolicy from 'Agent/AgentRuntimePolicy';
 import * as Tools from 'Agent/Tools';
@@ -1396,6 +1396,25 @@ function clearSessionTokenUsage(sessionId: number): AgentMetricsItem | undefined
 	return metrics;
 }
 
+function getInitialTokenUsage(session: AgentSessionItem): AgentTokenUsageMetric | undefined {
+	const usage = session.metrics?.usage;
+	if (!usage || (usage.requestCount ?? 0) <= 0) return undefined;
+	return {
+		inputTokens: usage.inputTokens ?? 0,
+		outputTokens: usage.outputTokens ?? 0,
+		totalTokens: usage.totalTokens,
+		cachedInputTokens: usage.cachedInputTokens,
+		cacheMissInputTokens: usage.cacheMissInputTokens,
+		reasoningOutputTokens: usage.reasoningOutputTokens,
+		requestCount: usage.requestCount ?? 0,
+		cacheReportedRequestCount: usage.cacheReportedRequestCount,
+		model: usage.model ?? "",
+		phase: usage.phase ?? "",
+		step: usage.step ?? 0,
+		updatedAt: usage.updatedAt ?? now(),
+	};
+}
+
 function setSessionStateForTaskEvent(sessionId: number, taskId: number | undefined, status: AgentSessionStatus, currentTaskStatus?: AgentSessionStatus) {
 	if (taskId === undefined || taskId <= 0) {
 		setSessionState(sessionId, status, taskId, currentTaskStatus);
@@ -1611,6 +1630,24 @@ function getNextStepNumber(sessionId: number, taskId: number): number {
 	return math.max(0, current) + 1;
 }
 
+function getAgentStepCount(sessionId: number, taskId: number): number {
+	const row = queryOne(
+		`SELECT COUNT(*) FROM ${TABLE_STEP}
+		WHERE session_id = ? AND task_id = ?
+			AND tool NOT IN (?, ?, ?, ?, ?)`,
+		[
+			sessionId,
+			taskId,
+			"compress_memory",
+			"merge_memory",
+			"sub_agent_handoff",
+			"questionnaire_answer",
+			"message",
+		],
+	);
+	return row && typeof row[0] === "number" ? math.max(0, row[0] as number) : 0;
+}
+
 function appendSystemStep(
 	sessionId: number,
 	taskId: number,
@@ -1796,7 +1833,9 @@ function applyEvent(sessionId: number, event: AgentRuntimeEvent) {
 	switch (event.type) {
 		case "task_started":
 			setSessionStateForTaskEvent(sessionId, event.taskId, "RUNNING", "RUNNING");
-			const metrics = clearSessionTokenUsage(sessionId);
+			const metrics = event.resumed
+				? getSessionItem(sessionId)?.metrics
+				: clearSessionTokenUsage(sessionId);
 			const startedSession = getSessionItem(sessionId);
 			emitAgentSessionPatch(sessionId, {
 				session: startedSession,
@@ -2579,6 +2618,9 @@ interface PromptTaskOptions {
 	displayContent?: string;
 	persistUserMessage?: boolean;
 	resumeConversation?: boolean;
+	existingTaskId?: number;
+	initialStep?: number;
+	initialAgentStepCount?: number;
 	llmConfigId?: unknown;
 	llmConfig?: LLMConfig;
 }
@@ -2598,10 +2640,10 @@ function startPromptTask(
 		return { success: false, message: llmConfigRes.message };
 	}
 	const llmConfig = llmConfigRes.config;
-	const taskRes = Tools.createTask(normalizedPrompt, taskWorkMode);
-	if (!taskRes.success) {
-		return { success: false, message: taskRes.message };
-	}
+	const taskRes = options?.existingTaskId !== undefined
+		? { success: true as const, taskId: options.existingTaskId }
+		: Tools.createTask(normalizedPrompt, taskWorkMode);
+	if (!taskRes.success) return { success: false, message: taskRes.message };
 	if (session.currentTaskStatus === "STOPPED") {
 		removeStoppedTaskSummary(session);
 	}
@@ -2618,6 +2660,10 @@ function startPromptTask(
 	runCodingAgent({
 		prompt: normalizedPrompt,
 		resumeConversation: options?.resumeConversation,
+		resumeTask: options?.existingTaskId !== undefined,
+		initialStep: options?.initialStep,
+		initialAgentStepCount: options?.initialAgentStepCount,
+		initialTokenUsage: options?.existingTaskId !== undefined ? getInitialTokenUsage(session) : undefined,
 		workDir: session.projectRoot,
 		useChineseResponse,
 		taskId,
@@ -2776,28 +2822,76 @@ export function resendPrompt(sessionId: number, messageId: number, prompt: strin
 	return result;
 }
 
-function buildQuestionnaireFeedbackPrompt(questionnaire: AgentQuestionnaireItem, answers: AgentQuestionnaireAnswers): string {
-	const lines = [
-		"用户已完成 Plan 模式调查问卷。请把反馈合并到固定的 .agent/plan/PLAN.md 与 .agent/plan/PROGRESS.md，继续细化方案；如仍有必要，可再次使用 ask_user。",
-		"",
-		`问卷：${questionnaire.schema.title}`,
-	];
+type QuestionnaireResponseStatus = "answered" | "dismissed";
+
+function buildQuestionnaireResumeQuery(
+	questionnaire: AgentQuestionnaireItem,
+	answers: AgentQuestionnaireAnswers,
+	status: QuestionnaireResponseStatus,
+): string {
+	if (status === "dismissed") {
+		return `用户关闭了 Plan 模式调查问卷“${questionnaire.schema.title}”，没有作答。请把未作答视为用户反馈并继续当前任务；不要机械地重复同一份问卷。`;
+	}
+	return `用户提交了 Plan 模式调查问卷“${questionnaire.schema.title}”的回答。\n\n${buildQuestionnaireFeedbackDisplay(questionnaire, answers)}`;
+}
+
+function buildQuestionnaireAnswerResult(
+	questionnaire: AgentQuestionnaireItem,
+	answers: AgentQuestionnaireAnswers,
+	status: QuestionnaireResponseStatus,
+): Record<string, unknown> {
+	if (status === "dismissed") {
+		return {
+			success: true,
+			status: "dismissed",
+			source: "user",
+			questionnaireId: questionnaire.id,
+			title: questionnaire.schema.title,
+			answers: [],
+			responses: [],
+			displayText: "用户关闭了调查问卷，未作答。",
+			guidance: "The user dismissed this questionnaire without answering. Treat that as authoritative feedback and continue with reasonable assumptions where possible. Do not repeat the same questionnaire mechanically; ask again only when a materially different unresolved decision prevents useful progress.",
+		};
+	}
+	const responses: Record<string, unknown>[] = [];
 	for (let i = 0; i < questionnaire.schema.questions.length; i++) {
 		const question = questionnaire.schema.questions[i];
 		const answer = answers.find(item => item.questionId === question.id);
 		if (!answer || answer.status === "skipped") {
-			lines.push(`- ${question.prompt}\n  状态：已跳过`);
+			responses.push({
+				questionId: question.id,
+				prompt: question.prompt,
+				status: "skipped",
+			});
 			continue;
 		}
-		const parts = [
-			...(answer.selectedOptionIds ?? []),
-			...(answer.otherText ? [answer.otherText] : []),
-			...(answer.text ? [answer.text] : []),
-		];
-		lines.push(`- ${question.prompt}\n  回答：${parts.join(", ")}`);
+		const selectedOptionLabels: string[] = [];
+		for (let j = 0; j < (answer.selectedOptionIds ?? []).length; j++) {
+			const optionId = (answer.selectedOptionIds ?? [])[j];
+			const option = (question.options ?? []).find(item => item.id === optionId);
+			if (option) selectedOptionLabels.push(option.label);
+		}
+		responses.push({
+			questionId: question.id,
+			prompt: question.prompt,
+			status: "answered",
+			selectedOptionIds: answer.selectedOptionIds ?? [],
+			selectedOptionLabels,
+			otherText: answer.otherText,
+			text: answer.text,
+		});
 	}
-	lines.push("", "<questionnaire_answers>", encodeJson({ questionnaireId: questionnaire.id, answers }), "</questionnaire_answers>");
-	return lines.join("\n");
+	return {
+		success: true,
+		status: "answered",
+		source: "user",
+		questionnaireId: questionnaire.id,
+		title: questionnaire.schema.title,
+		answers,
+		responses,
+		displayText: buildQuestionnaireFeedbackDisplay(questionnaire, answers),
+		guidance: "These questionnaire answers were submitted by the user and are authoritative. Incorporate them into .agent/plan/PLAN.md and .agent/plan/PROGRESS.md before finish; use ask_user again only if a material product decision remains unresolved.",
+	};
 }
 
 function buildQuestionnaireFeedbackDisplay(questionnaire: AgentQuestionnaireItem, answers: AgentQuestionnaireAnswers): string {
@@ -2822,24 +2916,121 @@ function buildQuestionnaireFeedbackDisplay(questionnaire: AgentQuestionnaireItem
 	return lines.join("\n\n");
 }
 
-export function cancelQuestionnaire(sessionId: number, questionnaireId: number) {
+function replaceQuestionnaireToolResult(
+	session: AgentSessionItem,
+	questionnaire: AgentQuestionnaireItem,
+	answers: AgentQuestionnaireAnswers,
+	status: QuestionnaireResponseStatus,
+): { success: true; answerStep: number; result: Record<string, unknown> } | { success: false; message: string } {
+	const storage = new DualLayerStorage(session.projectRoot, session.memoryScope);
+	const persisted = storage.readSessionState();
+	const messages = persisted.messages.slice();
+	let toolResultIndex = -1;
+	let existingResult: Record<string, unknown> | undefined;
+	for (let i = messages.length - 1; i >= 0; i--) {
+		const message = messages[i];
+		if (message.role !== "tool" || message.name !== "ask_user" || typeof message.content !== "string") continue;
+		const [decoded] = safeJsonDecode(message.content);
+		if (!decoded || Array.isArray(decoded) || typeof decoded !== "object") continue;
+		const row = decoded as Record<string, unknown>;
+		if (row.questionnaireId !== questionnaire.id) continue;
+		toolResultIndex = i;
+		existingResult = row;
+		break;
+	}
+	if (toolResultIndex < 0) {
+		return { success: false, message: "matching ask_user tool result not found" };
+	}
+	const result = buildQuestionnaireAnswerResult(questionnaire, answers, status);
+	const guidance: string[] = [];
+	if (typeof existingResult?.guidance === "string" && existingResult.guidance.trim() !== "") {
+		guidance.push(existingResult.guidance);
+	}
+	if (typeof result.guidance === "string" && guidance.indexOf(result.guidance) < 0) {
+		guidance.push(result.guidance);
+	}
+	result.guidance = guidance.join("\n");
+	messages[toolResultIndex] = {
+		...messages[toolResultIndex],
+		content: encodeJson(result),
+	};
+
+	let pairStartIndex = toolResultIndex;
+	const toolCallId = messages[toolResultIndex].tool_call_id;
+	if (toolCallId && toolCallId !== "") {
+		for (let i = toolResultIndex - 1; i >= 0; i--) {
+			const message = messages[i];
+			if (message.role !== "assistant" || !message.tool_calls) continue;
+			if (message.tool_calls.some(call => call.id === toolCallId)) {
+				pairStartIndex = i;
+				break;
+			}
+		}
+	}
+	const lastConsolidatedIndex = toolResultIndex < persisted.lastConsolidatedIndex
+		? math.min(persisted.lastConsolidatedIndex, pairStartIndex)
+		: persisted.lastConsolidatedIndex;
+	const carryMessageIndex = typeof persisted.carryMessageIndex === "number"
+		&& persisted.carryMessageIndex < lastConsolidatedIndex
+		? persisted.carryMessageIndex
+		: undefined;
+	storage.writeSessionState(messages, lastConsolidatedIndex, carryMessageIndex);
+
+	upsertStep(session.id, questionnaire.taskId, questionnaire.step, "ask_user", {
+		status: "DONE",
+		result,
+	});
+	const answerStep = getNextStepNumber(session.id, questionnaire.taskId);
+	upsertStep(session.id, questionnaire.taskId, answerStep, "questionnaire_answer", {
+		status: "DONE",
+		result,
+	});
+	return { success: true, answerStep, result };
+}
+
+export function cancelQuestionnaire(sessionId: number, questionnaireId: number, llmConfigId?: unknown): AgentSessionSendResult {
 	const session = getSessionItem(sessionId);
-	if (!session) return { success: false as const, message: "session not found" };
-	if (session.kind !== "main") return { success: false as const, message: "questionnaires are only available for main sessions" };
+	if (!session) return { success: false, message: "session not found" };
+	if (session.kind !== "main") return { success: false, message: "questionnaires are only available for main sessions" };
 	const questionnaire = getPendingQuestionnaire(sessionId);
 	if (!questionnaire || questionnaire.id !== questionnaireId) {
-		return { success: false as const, message: "pending questionnaire not found or already handled" };
+		return { success: false, message: "pending questionnaire not found or already handled" };
 	}
-	if (!removePendingQuestionnaire(session)) return { success: false as const, message: "failed to remove questionnaire file" };
-	Tools.setTaskStatus(questionnaire.taskId, "STOPPED");
-	finalizeTaskSteps(session.id, questionnaire.taskId, undefined, "STOPPED");
-	setSessionState(session.id, "STOPPED", questionnaire.taskId, "STOPPED");
-	const updated = getSessionItem(session.id);
-	emitAgentSessionPatch(session.id, {
-		session: updated,
+	const llmConfigRes = getLLMConfig(llmConfigId);
+	if (!llmConfigRes.success) return { success: false, message: llmConfigRes.message };
+	if (!removePendingQuestionnaire(session)) return { success: false, message: "failed to consume questionnaire file" };
+	const replaced = replaceQuestionnaireToolResult(session, questionnaire, [], "dismissed");
+	if (!replaced.success) {
+		savePendingQuestionnaire(session.projectRoot, questionnaire);
+		return replaced;
+	}
+	const t = now();
+	DB.exec(`UPDATE ${TABLE_SESSION} SET work_mode = 'plan', updated_at = ? WHERE id = ?`, [t, sessionId]);
+	session.workMode = "plan";
+	const result = startPromptTask(session, buildQuestionnaireResumeQuery(questionnaire, [], "dismissed"), undefined, [], {
+		workMode: "plan",
+		persistUserMessage: false,
+		resumeConversation: true,
+		existingTaskId: questionnaire.taskId,
+		initialStep: replaced.answerStep,
+		initialAgentStepCount: getAgentStepCount(session.id, questionnaire.taskId),
+		llmConfig: llmConfigRes.config,
+	});
+	if (!result.success) {
+		savePendingQuestionnaire(session.projectRoot, questionnaire);
+		Tools.setTaskStatus(questionnaire.taskId, "WAITING_USER");
+		setSessionState(session.id, "WAITING_USER", questionnaire.taskId, "WAITING_USER");
+		emitAgentSessionPatch(session.id, {
+			session: getSessionItem(session.id),
+			pendingQuestionnaire: questionnaire,
+		});
+		return result;
+	}
+	emitAgentSessionPatch(sessionId, {
+		session: getSessionItem(sessionId),
 		pendingQuestionnaire: false,
 	});
-	return { success: true as const, session: updated };
+	return result;
 }
 
 export function respondQuestionnaire(sessionId: number, questionnaireId: number, answers: unknown, llmConfigId?: unknown): AgentSessionSendResult {
@@ -2850,15 +3041,25 @@ export function respondQuestionnaire(sessionId: number, questionnaireId: number,
 	if (!questionnaire || questionnaire.id !== questionnaireId) return { success: false, message: "pending questionnaire not found" };
 	const validated = validateQuestionnaireAnswers(questionnaire.schema, answers);
 	if (!validated.success) return validated;
+	const llmConfigRes = getLLMConfig(llmConfigId);
+	if (!llmConfigRes.success) return { success: false, message: llmConfigRes.message };
 	const t = now();
 	if (!removePendingQuestionnaire(session)) return { success: false, message: "failed to consume questionnaire file" };
-	Tools.setTaskStatus(questionnaire.taskId, "DONE");
+	const replaced = replaceQuestionnaireToolResult(session, questionnaire, validated.answers, "answered");
+	if (!replaced.success) {
+		savePendingQuestionnaire(session.projectRoot, questionnaire);
+		return replaced;
+	}
 	DB.exec(`UPDATE ${TABLE_SESSION} SET work_mode = 'plan', updated_at = ? WHERE id = ?`, [t, sessionId]);
 	session.workMode = "plan";
-	const result = startPromptTask(session, buildQuestionnaireFeedbackPrompt(questionnaire, validated.answers), undefined, [], {
+	const result = startPromptTask(session, buildQuestionnaireResumeQuery(questionnaire, validated.answers, "answered"), undefined, [], {
 		workMode: "plan",
-		displayContent: buildQuestionnaireFeedbackDisplay(questionnaire, validated.answers),
-		llmConfigId,
+		persistUserMessage: false,
+		resumeConversation: true,
+		existingTaskId: questionnaire.taskId,
+		initialStep: replaced.answerStep,
+		initialAgentStepCount: getAgentStepCount(session.id, questionnaire.taskId),
+		llmConfig: llmConfigRes.config,
 	});
 	if (!result.success) {
 		savePendingQuestionnaire(session.projectRoot, questionnaire);
