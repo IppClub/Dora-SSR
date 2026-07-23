@@ -2957,42 +2957,49 @@ local function executeLuaCommand(req) -- 2421
 				end -- 2677
 				local previousGlobalPrint = _G.print -- 2680
 				local previousHook, previousHookMask, previousHookCount = debug.gethook() -- 2681
-				local hookTimedOut = false -- 2682
+				local frameTimedOut = false -- 2682
+				local watchdogMessage -- 2682
 				_G.print = capturePrint -- 2683
 				debug.sethook( -- 2684
 					function() -- 2684
-						if App.runningTime - startedAt >= req.timeoutSeconds then -- 2684
-							hookTimedOut = true -- 2686
-							error(("Lua command timed out after " .. tostring(req.timeoutSeconds)) .. " seconds") -- 2687
-						end -- 2687
+						if watchdogMessage == nil then -- 2684
+							watchdogMessage = checkEntryWatchdog() -- 2685
+						end -- 2685
+						if watchdogMessage ~= nil then -- 2685
+							error(watchdogMessage) -- 2686
+						end -- 2686
+						if App.elapsedTime >= AgentConfig.AGENT_LIMITS.executeCommandFrameTimeoutSeconds then -- 2686
+							frameTimedOut = true -- 2688
+							error(("Lua command exceeded " .. tostring(AgentConfig.AGENT_LIMITS.executeCommandFrameTimeoutSeconds)) .. " seconds in one game frame") -- 2689
+						end -- 2689
 					end, -- 2684
-					"", -- 2689
-					AgentConfig.AGENT_LIMITS.executeCommandHookInstructionCount -- 2689
-				) -- 2689
-				local ok, runtimeErr = pcall(fn) -- 2690
-				if previousHook ~= nil and previousHookMask ~= nil and previousHookCount ~= nil then -- 2690
-					debug.sethook(previousHook, previousHookMask, previousHookCount) -- 2692
-				else -- 2692
-					debug.sethook() -- 2698
-				end -- 2698
-				_G.print = previousGlobalPrint -- 2700
-				if not ok then -- 2700
-					local ____truncateCommandOutput_result_42 = truncateCommandOutput(table.concat(output, "\n")) -- 2705
-					local ____temp_43 = hookTimedOut and ("Lua command timed out after " .. tostring(req.timeoutSeconds)) .. " seconds" or truncateCommandError(toStr(runtimeErr)) -- 2706
-					local ____temp_44 = hookTimedOut and "timeout" or "execute" -- 2709
-					local ____hookTimedOut_41 -- 2710
-					if hookTimedOut then -- 2710
-						____hookTimedOut_41 = true -- 2710
+					"", -- 2691
+					AgentConfig.AGENT_LIMITS.executeCommandHookInstructionCount -- 2691
+				) -- 2691
+				local ok, runtimeErr = pcall(fn) -- 2692
+				if previousHook ~= nil and previousHookMask ~= nil and previousHookCount ~= nil then -- 2692
+					debug.sethook(previousHook, previousHookMask, previousHookCount) -- 2694
+				else -- 2694
+					debug.sethook() -- 2700
+				end -- 2700
+				_G.print = previousGlobalPrint -- 2702
+				if not ok then -- 2702
+					local ____truncateCommandOutput_result_42 = truncateCommandOutput(table.concat(output, "\n")) -- 2707
+					local ____temp_43 = watchdogMessage or (frameTimedOut and ("Lua command exceeded " .. tostring(AgentConfig.AGENT_LIMITS.executeCommandFrameTimeoutSeconds)) .. " seconds in one game frame" or truncateCommandError(toStr(runtimeErr))) -- 2708
+					local ____temp_44 = frameTimedOut and "timeout" or "execute" -- 2709
+					local ____temp_41 -- 2710
+					if watchdogMessage ~= nil or frameTimedOut then -- 2710
+						____temp_41 = true -- 2710
 					else -- 2710
-						____hookTimedOut_41 = nil -- 2710
+						____temp_41 = nil -- 2710
 					end -- 2710
-					finish({ -- 2702
-						success = false, -- 2703
-						mode = "lua", -- 2704
-						output = ____truncateCommandOutput_result_42, -- 2705
-						message = ____temp_43, -- 2706
+					finish({ -- 2704
+						success = false, -- 2705
+						mode = "lua", -- 2706
+						output = ____truncateCommandOutput_result_42, -- 2707
+						message = ____temp_43, -- 2708
 						phase = ____temp_44, -- 2709
-						interrupted = ____hookTimedOut_41 -- 2710
+						interrupted = ____temp_41 -- 2710
 					}) -- 2710
 					return -- 2712
 				end -- 2712

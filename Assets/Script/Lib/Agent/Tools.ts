@@ -2679,12 +2679,14 @@ function executeLuaCommand(req: {
 			}
 			const previousGlobalPrint = _G["print"];
 			const [previousHook, previousHookMask, previousHookCount] = debug.gethook();
-			let hookTimedOut = false;
+			let frameTimedOut = false, watchdogMessage: string | undefined;
 			_G["print"] = capturePrint;
 			debug.sethook(() => {
-				if (App.runningTime - startedAt >= req.timeoutSeconds) {
-					hookTimedOut = true;
-					error(`Lua command timed out after ${tostring(req.timeoutSeconds)} seconds`);
+				watchdogMessage ??= checkEntryWatchdog();
+				if (watchdogMessage !== undefined) error(watchdogMessage);
+				if (App.elapsedTime >= AgentConfig.AGENT_LIMITS.executeCommandFrameTimeoutSeconds) {
+					frameTimedOut = true;
+					error(`Lua command exceeded ${tostring(AgentConfig.AGENT_LIMITS.executeCommandFrameTimeoutSeconds)} seconds in one game frame`);
 				}
 			}, "", AgentConfig.AGENT_LIMITS.executeCommandHookInstructionCount);
 			const [ok, runtimeErr] = pcall(fn);
@@ -2703,11 +2705,9 @@ function executeLuaCommand(req: {
 					success: false,
 					mode: "lua",
 					output: truncateCommandOutput(output.join("\n")),
-					message: hookTimedOut
-						? `Lua command timed out after ${tostring(req.timeoutSeconds)} seconds`
-						: truncateCommandError(toStr(runtimeErr)),
-					phase: hookTimedOut ? "timeout" : "execute",
-					interrupted: hookTimedOut ? true : undefined,
+					message: watchdogMessage ?? (frameTimedOut ? `Lua command exceeded ${tostring(AgentConfig.AGENT_LIMITS.executeCommandFrameTimeoutSeconds)} seconds in one game frame` : truncateCommandError(toStr(runtimeErr))),
+					phase: frameTimedOut ? "timeout" : "execute",
+					interrupted: watchdogMessage !== undefined || frameTimedOut ? true : undefined,
 				});
 				return;
 			}
