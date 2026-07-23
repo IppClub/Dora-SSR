@@ -450,6 +450,7 @@ export default function AgentStepList(props: AgentStepListProps) {
 	return (
 		<Stack spacing={2}>
 			{steps.map(step => {
+				const checkpoint = step.checkpointId ? checkpointMap.get(step.checkpointId) : undefined;
 				const questionnaireAnswer = step.tool === "questionnaire_answer"
 					&& (step.result?.status === "answered" || step.result?.status === "dismissed")
 					&& typeof step.result.displayText === "string"
@@ -877,10 +878,10 @@ export default function AgentStepList(props: AgentStepListProps) {
 									>
 										{t("agent.rollback")}
 									</Button>
-									{checkpointMap.get(step.checkpointSeq)?.status ? (
+									{checkpoint?.status ? (
 										<Chip
 											size="small"
-											label={t(`agent.checkpointStatus.${checkpointMap.get(step.checkpointSeq)?.status?.toLowerCase()}`)}
+											label={t(`agent.checkpointStatus.${checkpoint.status.toLowerCase()}`)}
 											variant="outlined"
 										/>
 									) : null}

@@ -1644,7 +1644,9 @@ export class MemoryCompressor {
 	/**
 	 * 找到压缩边界
 	 *
-	 * 策略：在用户相关操作处切分，保持对话完整性
+	 * 策略：优先在完整闭合的 agent 操作后切分。一个 user turn 可能包含
+	 * 很多独立工具步骤；若只认下一个 user 或消息末尾为安全边界，会把刚
+	 * 完成的 spawn/build/edit 一并压缩，丢失恢复时最重要的近期状态。
 	 */
 	private findCompressionBoundary(
 		messages: AgentConversationMessage[],
@@ -1700,14 +1702,20 @@ export class MemoryCompressor {
 			const nextRole = !isAtEnd ? messages[i + 1].role : "";
 			const isUserTurnBoundary = !isAtEnd && nextRole === "user";
 			const isSafeBoundary = pendingToolCallCount === 0 && (isAtEnd || isUserTurnBoundary);
-			const isClosedToolBoundary = pendingToolCallCount === 0 && i > 0;
+			const isClosedAgentBoundary = pendingToolCallCount === 0 && (
+				message.role === "tool"
+				|| (
+					message.role === "assistant"
+					&& (!message.tool_calls || message.tool_calls.length === 0)
+				)
+			);
 			if (isSafeBoundary) {
 				lastSafeBoundary = i + 1;
 				if (accumulatedTokens <= targetTokens) {
 					lastSafeBoundaryWithinBudget = i + 1;
 				}
 			}
-			if (isClosedToolBoundary) {
+			if (isClosedAgentBoundary) {
 				lastClosedBoundary = i + 1;
 				if (accumulatedTokens <= targetTokens) {
 					lastClosedBoundaryWithinBudget = i + 1;
@@ -1718,7 +1726,13 @@ export class MemoryCompressor {
 				exceededBudget = true;
 			}
 
-			// When budget exceeded, continue scanning until we find a usable boundary
+			// Stop at the first complete agent action after reaching the target.
+			// Preserve the triggering user instruction through buildCarryBoundary,
+			// while leaving newer completed actions verbatim for the next decision.
+			if (exceededBudget && isClosedAgentBoundary) {
+				return this.buildCarryBoundary(messages, i + 1);
+			}
+			// A user-only or otherwise unusual history may have no agent boundary.
 			if (exceededBudget && isSafeBoundary) {
 				return this.buildCarryBoundary(messages, i + 1);
 			}

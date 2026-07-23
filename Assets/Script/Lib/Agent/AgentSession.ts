@@ -1526,6 +1526,12 @@ function removeStoppedTaskSummary(session: AgentSessionItem): void {
 	);
 }
 
+function listCurrentTaskCheckpoints(sessionId: number): Tools.CheckpointItem[] {
+	const session = getSessionItem(sessionId);
+	const taskId = session?.currentTaskId;
+	return taskId !== undefined ? Tools.listCheckpoints(taskId) : [];
+}
+
 function upsertAssistantMessage(sessionId: number, taskId: number, content: string): number {
 	const row = queryOne(
 		`SELECT id FROM ${TABLE_MESSAGE}
@@ -1905,7 +1911,7 @@ function applyEvent(sessionId: number, event: AgentRuntimeEvent) {
 			});
 			emitAgentSessionPatch(sessionId, {
 				step: getStepItem(sessionId, event.taskId, event.step),
-				checkpoints: Tools.listCheckpoints(event.taskId),
+				checkpoint: Tools.getCheckpoint(event.checkpointId),
 			});
 			break;
 		case "memory_compression_started":
@@ -1988,7 +1994,6 @@ function applyEvent(sessionId: number, event: AgentRuntimeEvent) {
 				emitAgentSessionPatch(sessionId, {
 					session: getSessionItem(sessionId),
 					message: getMessageItem(messageId),
-					checkpoints: Tools.listCheckpoints(event.taskId),
 					removedStepIds,
 				});
 			}
@@ -2360,7 +2365,7 @@ export function getSession(sessionId: number): AgentSessionDetailResult {
 		spawnInfo: normalizedSession.kind === "sub" ? getSessionSpawnInfo(normalizedSession) : undefined,
 		messages: messages.map(row => rowToMessage(row)),
 		steps: steps.map(row => rowToStep(row)),
-		checkpoints: normalizedSession.currentTaskId ? Tools.listCheckpoints(normalizedSession.currentTaskId) : [],
+		checkpoints: listCurrentTaskCheckpoints(sessionId),
 		pendingQuestionnaire: restored.questionnaire,
 		hasActivePlan: Content.exist(Path(normalizedSession.projectRoot, AgentRuntimePolicy.AGENT_PLAN_FILE))
 			&& Content.exist(Path(normalizedSession.projectRoot, AgentRuntimePolicy.AGENT_PROGRESS_FILE)),
@@ -2599,15 +2604,30 @@ export function continuePrompt(sessionId: number, disabledAgentTools?: unknown, 
 	if (session.currentTaskFinalizing === true || (session.currentTaskId !== undefined && finalizingSubSessionTaskIds[session.currentTaskId] === true)) {
 		return { success: false, message: "session task is finalizing" };
 	}
+	if (session.currentTaskId !== undefined && activeStopTokens[session.currentTaskId] !== undefined) {
+		return { success: false, message: "session task is still stopping" };
+	}
 	if (session.currentTaskStatus !== "FAILED" && session.currentTaskStatus !== "STOPPED") {
 		return { success: false, message: "session task is not continuable" };
 	}
+	if (session.currentTaskId === undefined) {
+		return { success: false, message: "session task not found" };
+	}
+	const taskId = session.currentTaskId;
 	return startPromptTask(
 		session,
 		"",
 		undefined,
 		normalizeDisabledAgentTools(disabledAgentTools),
-		{ workMode: session.workMode, persistUserMessage: false, resumeConversation: true, llmConfigId },
+		{
+			workMode: session.workMode,
+			persistUserMessage: false,
+			resumeConversation: true,
+			existingTaskId: taskId,
+			initialStep: math.max(0, getNextStepNumber(session.id, taskId) - 1),
+			initialAgentStepCount: 0,
+			llmConfigId,
+		},
 	);
 }
 
@@ -3094,15 +3114,15 @@ export function stopSessionTask(sessionId: number) {
 		}
 		return { success: false as const, message: "task is not running" };
 	}
+	if (stopToken.stopped) {
+		return { success: true as const, stopping: true };
+	}
 	stopToken.stopped = true;
 	stopToken.reason = getDefaultUseChineseResponse() ? "用户已中断" : "stopped by user";
-	// The runner observes the token asynchronously.  Persist the terminal task
-	// state immediately so stale in-flight tool rows cannot make a later prompt
-	// appear blocked or running after the user has stopped this task.
-	Tools.setTaskStatus(session.currentTaskId, "STOPPED");
-	finalizeTaskSteps(session.id, session.currentTaskId, undefined, "STOPPED");
-	setSessionState(session.id, "STOPPED", session.currentTaskId, "STOPPED");
-	return { success: true as const };
+	// Cancellation is cooperative. Keep the session RUNNING until the runner
+	// emits task_finished; that event finalizes steps, removes the old stop
+	// token, persists STOPPED, and only then makes the composer continuable.
+	return { success: true as const, stopping: true };
 }
 
 export function getCurrentTaskId(sessionId: number): number | undefined {

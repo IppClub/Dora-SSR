@@ -2705,7 +2705,12 @@ function buildDecisionMessages(
 	const systemPrompt = buildAgentSystemPrompt(shared, decisionMode === "xml");
 	const tailSections: string[] = [];
 	if (shared.resumeCheckpointPending === true) {
+		// A carried user message from an in-progress task is the original
+		// instruction kept verbatim across a partial compression, not a newer
+		// override. Only a carry created before this task takes its first agent
+		// step can supersede an older checkpoint.
 		const activeUserInstruction = typeof shared.carryMessageIndex === "number"
+			&& shared.agentStepCount === 0
 			? " The active carried user instruction is newer than the compressed checkpoint and takes precedence."
 			: "";
 		tailSections.push(`Resume after compression: continue from the Session Summary's Active Checkpoint without restarting discovery.${activeUserInstruction}`);

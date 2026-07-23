@@ -1479,6 +1479,7 @@ export interface AgentSessionPatch {
 	sessionDeleted?: boolean;
 	message?: AgentSessionMessage;
 	step?: AgentSessionStep;
+	checkpoint?: AgentCheckpointItem;
 	checkpoints?: AgentCheckpointItem[];
 	removedStepIds?: number[];
 	relatedSessions?: AgentSession[];

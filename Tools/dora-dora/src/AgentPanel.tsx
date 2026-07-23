@@ -84,9 +84,9 @@ export default function AgentPanel(props: AgentPanelProps) {
 	const [selectedSessionId, setSelectedSessionId] = useState(sessionId);
 	const [prompt, setPrompt] = useState("");
 	const [loading, setLoading] = useState(false);
+	const [stoppingTaskId, setStoppingTaskId] = useState<number | null>(null);
 	const [continueLoadingTaskId, setContinueLoadingTaskId] = useState<number | null>(null);
 	const [finishHandoffLoadingTaskId, setFinishHandoffLoadingTaskId] = useState<number | null>(null);
-	const [continuedTaskIds, setContinuedTaskIds] = useState<Set<number>>(() => new Set());
 	const [rollingBack, setRollingBack] = useState<number | null>(null);
 	const [session, setSession] = useState<Service.AgentSession | null>(null);
 	const [relatedSessions, setRelatedSessions] = useState<Service.AgentSession[]>([]);
@@ -311,6 +311,18 @@ export default function AgentPanel(props: AgentPanelProps) {
 	}, [sessionId]);
 
 	useEffect(() => {
+		if (
+			stoppingTaskId !== null
+			&& (
+				session?.currentTaskId !== stoppingTaskId
+				|| session.currentTaskStatus !== "RUNNING"
+			)
+		) {
+			setStoppingTaskId(null);
+		}
+	}, [session?.currentTaskId, session?.currentTaskStatus, stoppingTaskId]);
+
+	useEffect(() => {
 		void refresh(false, selectedSessionId);
 	}, [refresh, selectedSessionId]);
 
@@ -364,6 +376,13 @@ export default function AgentPanel(props: AgentPanelProps) {
 			if (patch.checkpoints) {
 				setCheckpoints(normalizeList<Service.AgentCheckpointItem>(patch.checkpoints));
 			}
+			if (patch.checkpoint) {
+				setCheckpoints(prev => upsertById(prev, patch.checkpoint!).sort((a, b) => {
+					const taskDelta = b.taskId - a.taskId;
+					if (taskDelta !== 0) return taskDelta;
+					return b.seq - a.seq;
+				}));
+			}
 		};
 		Service.addAgentSessionPatchListener(onPatch);
 		return () => {
@@ -373,7 +392,6 @@ export default function AgentPanel(props: AgentPanelProps) {
 
 	useEffect(() => {
 		setVisibleHistoryRounds(HISTORY_VISIBLE_ROUNDS);
-		setContinuedTaskIds(new Set());
 	}, [selectedSessionId]);
 
 	const hasAnyRunningSession = useMemo(() => {
@@ -468,7 +486,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 		const taskId = session?.currentTaskId;
 		if (!taskId) return steps;
 		return steps.filter(step => step.taskId === taskId);
-	}, [steps, session?.currentTaskId]);
+	}, [session?.currentTaskId, steps]);
 
 	const continuableTaskId = useMemo(() => {
 		if (session?.currentTaskStatus !== "FAILED" && session?.currentTaskStatus !== "STOPPED") {
@@ -478,8 +496,8 @@ export default function AgentPanel(props: AgentPanelProps) {
 		if (!taskId) {
 			return null;
 		}
-		return continuedTaskIds.has(taskId) ? null : taskId;
-	}, [continuedTaskIds, session?.currentTaskId, session?.currentTaskStatus]);
+		return taskId;
+	}, [session?.currentTaskId, session?.currentTaskStatus]);
 
 	const activeTaskId = useMemo(() => {
 		if (session?.currentTaskId) return session.currentTaskId;
@@ -656,7 +674,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 	}, [latestSteps, messages, session?.metrics]);
 
 	const checkpointMap = useMemo(() => {
-		return new Map(checkpoints.map(checkpoint => [checkpoint.seq, checkpoint]));
+		return new Map(checkpoints.map(checkpoint => [checkpoint.id, checkpoint]));
 	}, [checkpoints]);
 
 	const stopProjectRunBeforeAgent = React.useCallback(async () => {
@@ -885,11 +903,6 @@ export default function AgentPanel(props: AgentPanelProps) {
 				return;
 			}
 			setLLMConfigMissing(false);
-			setContinuedTaskIds(prev => {
-				const next = new Set(prev);
-				next.add(taskId);
-				return next;
-			});
 			await refresh(true, selectedSessionId);
 		} finally {
 			setContinueLoadingTaskId(null);
@@ -924,12 +937,15 @@ export default function AgentPanel(props: AgentPanelProps) {
 	};
 
 	const onStop = async () => {
+		const taskId = session?.currentTaskId;
+		if (!taskId || stoppingTaskId !== null) return;
+		setStoppingTaskId(taskId);
 		const res = await Service.agentTaskStop({ sessionId: selectedSessionId });
 		if (!res.success) {
+			setStoppingTaskId(null);
 			addAlert?.(res.message ?? t("agent.stopFailed"), "error");
 			return;
 		}
-		await refresh(true, selectedSessionId);
 	};
 
 	const onToggleDiff = async (step: Service.AgentSessionStep) => {
@@ -1372,27 +1388,28 @@ export default function AgentPanel(props: AgentPanelProps) {
 				/>
 			) : <>
 				<AgentComposer
-				prompt={prompt}
-				loading={loading || continueLoadingTaskId !== null || finishHandoffLoadingTaskId !== null}
-				running={session?.currentTaskStatus === "RUNNING"}
-				canStop={session?.currentTaskStatus === "RUNNING" && session?.currentTaskFinalizing !== true}
-				tabButtons={tabButtons}
-				contextRatio={contextStats.contextRatio}
-				usedTokens={contextStats.usedTokens}
-				maxTokens={contextStats.maxTokens}
-				actualUsage={contextStats.actualUsage}
-				fetchUrlEnabled={fetchUrlEnabled}
-				executeCommandEnabled={executeCommandEnabled}
-				planMode={workMode === "plan"}
-				llmConfigs={llmConfigs}
-				llmConfigId={selectedLLMConfigId}
-				onPromptChange={setPrompt}
-				onSend={() => void onSend()}
-				onStop={() => void onStop()}
-				onFetchUrlEnabledChange={session?.kind === "main" ? setFetchUrlEnabled : undefined}
-				onExecuteCommandEnabledChange={session?.kind === "main" ? setExecuteCommandEnabled : undefined}
-				onPlanModeChange={session?.kind === "main" ? value => void changeWorkMode(value) : undefined}
-				onLLMConfigChange={selectLLMConfig}
+					prompt={prompt}
+					loading={loading || continueLoadingTaskId !== null || finishHandoffLoadingTaskId !== null || stoppingTaskId !== null}
+					running={session?.currentTaskStatus === "RUNNING"}
+					stopping={stoppingTaskId !== null}
+					canStop={session?.currentTaskStatus === "RUNNING" && session?.currentTaskFinalizing !== true && stoppingTaskId === null}
+					tabButtons={tabButtons}
+					contextRatio={contextStats.contextRatio}
+					usedTokens={contextStats.usedTokens}
+					maxTokens={contextStats.maxTokens}
+					actualUsage={contextStats.actualUsage}
+					fetchUrlEnabled={fetchUrlEnabled}
+					executeCommandEnabled={executeCommandEnabled}
+					planMode={workMode === "plan"}
+					llmConfigs={llmConfigs}
+					llmConfigId={selectedLLMConfigId}
+					onPromptChange={setPrompt}
+					onSend={() => void onSend()}
+					onStop={() => void onStop()}
+					onFetchUrlEnabledChange={session?.kind === "main" ? setFetchUrlEnabled : undefined}
+					onExecuteCommandEnabledChange={session?.kind === "main" ? setExecuteCommandEnabled : undefined}
+					onPlanModeChange={session?.kind === "main" ? value => void changeWorkMode(value) : undefined}
+					onLLMConfigChange={selectLLMConfig}
 				/>
 			</>}
 			<Dialog

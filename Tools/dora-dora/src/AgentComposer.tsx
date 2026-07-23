@@ -1,5 +1,6 @@
 import React from 'react';
 import Box from '@mui/material/Box';
+import CircularProgress from '@mui/material/CircularProgress';
 import IconButton from '@mui/material/IconButton';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
@@ -21,6 +22,7 @@ interface AgentComposerProps {
 	prompt: string;
 	loading: boolean;
 	running: boolean;
+	stopping?: boolean;
 	canStop?: boolean;
 	tabButtons?: React.ReactNode;
 	contextRatio?: number;
@@ -132,6 +134,7 @@ export default function AgentComposer(props: AgentComposerProps) {
 		prompt,
 		loading,
 		running,
+		stopping = false,
 		canStop = true,
 		tabButtons,
 		contextRatio,
@@ -380,9 +383,10 @@ export default function AgentComposer(props: AgentComposerProps) {
 					</MacScrollbar>
 				</Box>
 				{showActionButton ? (
-					<Tooltip title={running ? t("menu.stop") : t("agent.send")}>
+					<Tooltip title={stopping ? t("agent.stopping") : running ? t("menu.stop") : t("agent.send")}>
 						<span style={{ position: "absolute", left: 16, bottom: 10, zIndex: 1 }}>
 							<IconButton
+								aria-label={stopping ? t("agent.stopping") : running ? t("menu.stop") : t("agent.send")}
 								onClick={running ? (canStop ? onStop : undefined) : onSend}
 								disabled={actionDisabled}
 								sx={{
@@ -392,12 +396,16 @@ export default function AgentComposer(props: AgentComposerProps) {
 										backgroundColor: 'rgba(255, 255, 255, 0.08)',
 									},
 									"&.Mui-disabled": {
-										backgroundColor: "transparent",
-										color: Color.TextSecondary,
+										backgroundColor: stopping ? `${Color.Theme}14` : "transparent",
+										color: stopping ? Color.Theme : Color.TextSecondary,
 									},
 								}}
 							>
-								{running ? <BsStopFill size={20} /> : <BsFillSendFill size={18} />}
+								{stopping
+									? <CircularProgress color="inherit" size={18} thickness={5} />
+									: running
+										? <BsStopFill size={20} />
+										: <BsFillSendFill size={18} />}
 							</IconButton>
 						</span>
 					</Tooltip>

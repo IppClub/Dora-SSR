@@ -1371,13 +1371,23 @@ export function setTaskStatus(taskId: number, status: AgentTaskStatus) {
 	Log("Info", `[task:${taskId}] status=${status}`);
 }
 
-export function listCheckpoints(taskId: number): CheckpointItem[] {
+export function listCheckpointsForTasks(taskIds: number[]): CheckpointItem[] {
+	const normalizedTaskIds: number[] = [];
+	const seenTaskIds: Record<number, boolean> = {};
+	for (let i = 0; i < taskIds.length; i++) {
+		const taskId = math.floor(taskIds[i]);
+		if (taskId <= 0 || seenTaskIds[taskId]) continue;
+		seenTaskIds[taskId] = true;
+		normalizedTaskIds.push(taskId);
+	}
+	if (normalizedTaskIds.length === 0) return [];
+	const placeholders = normalizedTaskIds.map(() => "?").join(", ");
 	const rows = DB.query(
 		`SELECT id, task_id, seq, status, summary, tool_name, created_at
 		FROM ${TABLE_CP}
-		WHERE task_id = ?
-		ORDER BY seq DESC`,
-		[taskId],
+		WHERE task_id IN (${placeholders})
+		ORDER BY task_id DESC, seq DESC`,
+		normalizedTaskIds,
 	);
 	if (!rows) return [];
 	const items: CheckpointItem[] = [];
@@ -1394,6 +1404,32 @@ export function listCheckpoints(taskId: number): CheckpointItem[] {
 		});
 	}
 	return items;
+}
+
+export function listCheckpoints(taskId: number): CheckpointItem[] {
+	return listCheckpointsForTasks([taskId]);
+}
+
+export function getCheckpoint(checkpointId: number): CheckpointItem | undefined {
+	if (checkpointId <= 0) return undefined;
+	const rows = DB.query(
+		`SELECT id, task_id, seq, status, summary, tool_name, created_at
+		FROM ${TABLE_CP}
+		WHERE id = ?
+		LIMIT 1`,
+		[checkpointId],
+	);
+	if (!rows || rows.length === 0) return undefined;
+	const row = rows[0];
+	return {
+		id: row[0] as number,
+		taskId: row[1] as number,
+		seq: row[2] as number,
+		status: toStr(row[3]),
+		summary: toStr(row[4]),
+		toolName: toStr(row[5]),
+		createdAt: row[6] as number,
+	};
 }
 
 function listCheckpointIdsForTask(taskId: number, desc = false): { id: number; seq: number }[] {
