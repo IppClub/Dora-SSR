@@ -26,13 +26,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          package_json_file: 'Docs/package.json'
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: 'pnpm'
+          cache-dependency-path: 'Docs/pnpm-lock.yaml'
       - name: Build docs
         run: |
-          corepack enable
           cd Docs
           pnpm install --frozen-lockfile
           pnpm build

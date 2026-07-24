@@ -30,6 +30,13 @@ jobs:
     if: "startsWith(github.ref, 'refs/tags/') || (!contains(github.event.head_commit.message, '[skip CI]') && !contains(github.event.head_commit.message, '[skip Windows]'))"
     steps:
       - uses: actions/checkout@v4
+      - name: Setup pnpm
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: pnpm/action-setup@v6
+        with:
+          package_json_file: 'Tools/dora-dora/package.json'
+          cache: true
+          cache_dependency_path: 'Tools/dora-dora/pnpm-lock.yaml'
       - uses: xmake-io/github-action-setup-xmake@v1
         with:
           xmake-version: latest
@@ -69,7 +76,6 @@ jobs:
       - name: Pack
         if: startsWith(github.ref, 'refs/tags/')
         run: |
-          corepack enable
           cd Tools\dora-dora
           pnpm install
           pnpm build
