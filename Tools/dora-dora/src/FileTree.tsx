@@ -235,7 +235,10 @@ export default memo(function FileTree(props: FileTreeProps) {
 	const enableBuild = (isRoot || !isBuiltin) || Info.engineDev;
 	const enableObfuscate = (isRoot || !isBuiltin) || Info.engineDev;
 	const enableViewCompiled = (!isRoot && !isBuiltin) || Info.engineDev;
-	const enableDeclaration = (!isRoot && !isBuiltin && (ext === ".ts" || ext === ".tsx")) || Info.engineDev;
+	const enableDeclaration =
+		anchorItem?.data.dir !== true &&
+		(ext === ".ts" || ext === ".tsx") &&
+		((!isRoot && !isBuiltin) || Info.engineDev);
 	const enableUpdateDora = ext === ".mod" && (((!isRoot && !isBuiltin) || Info.engineDev));
 
 	return (

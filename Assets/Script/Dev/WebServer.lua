@@ -291,7 +291,7 @@ getProjectRootFromPath = function(target, isDir) -- 127
 		return nil, "invalid path" -- 128
 	end -- 128
 	if isDir then -- 129
-		if isProjectRootDir(target) then -- 130
+		if target == Content.writablePath or isProjectRootDir(target) then -- 130
 			return target -- 130
 		end -- 130
 		return getProjectDirFromFile(Path(target, "__dora_project_root_search__.lua"), "current directory does not belong to any project") -- 131

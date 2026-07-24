@@ -127,7 +127,7 @@ isProjectRootDir = (dir) ->
 getProjectRootFromPath = (target, isDir = false) ->
 	return nil, "invalid path" unless target and target ~= "" and Content\isAbsolutePath(target)
 	if isDir
-		return target if isProjectRootDir target
+		return target if target == Content.writablePath or isProjectRootDir target
 		return getProjectDirFromFile Path(target, "__dora_project_root_search__.lua"), "current directory does not belong to any project"
 	return getProjectDirFromFile target, "current file does not belong to any project"
 

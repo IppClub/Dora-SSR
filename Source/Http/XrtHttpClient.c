@@ -918,6 +918,7 @@ static xhttpresponse* DoraXrtHttpExecuteOnce(
 	xnetfuture* future = NULL;
 	xhttpresponse* response = NULL;
 	xnet_result status = XRT_NET_ERROR;
+	double startTime = xrtTimer();
 
 	if (netStatus) {
 		*netStatus = XRT_NET_ERROR;
@@ -963,6 +964,11 @@ static xhttpresponse* DoraXrtHttpExecuteOnce(
 			if (status == XRT_NET_TIMEOUT) {
 				status = XRT_NET_CANCELLED;
 			}
+			break;
+		}
+		if (timeoutMs > 0u && (unsigned int)((xrtTimer() - startTime) * 1000.0) >= timeoutMs) {
+			(void)xFutureRequestCancel(future);
+			status = XRT_NET_TIMEOUT;
 			break;
 		}
 		status = xrtNetFutureWait(future, DORA_XRT_HTTP_POLL_MS);

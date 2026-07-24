@@ -356,9 +356,8 @@ int cliLuaHttp(lua_State* L) {
 	headerValues.reserve(values.size());
 	for (const auto& name : names) headerNames.push_back(name.c_str());
 	for (const auto& value : values) headerValues.push_back(value.c_str());
-	std::string responseBody;
-	int statusCode = 0;
-	auto status = DoraXrtHttpExecuteStream(
+	DoraXrtHttpResponse response{};
+	auto status = DoraXrtHttpExecute(
 		method.c_str(),
 		url.c_str(),
 		headerNames.data(),
@@ -370,22 +369,17 @@ int cliLuaHttp(lua_State* L) {
 		0,
 		nullptr,
 		nullptr,
-		[](const char* data, size_t dataLen, size_t, size_t, void* userData) {
-			auto body = s_cast<std::string*>(userData);
-			body->append(data, dataLen);
-			return 0;
-		},
-		&responseBody,
-		&statusCode);
+		&response);
 	lua_newtable(L);
 	lua_pushinteger(L, status);
 	lua_setfield(L, -2, "netStatus");
 	lua_pushstring(L, DoraXrtHttpStatusName(status));
 	lua_setfield(L, -2, "netStatusName");
-	lua_pushinteger(L, statusCode);
+	lua_pushinteger(L, response.statusCode);
 	lua_setfield(L, -2, "statusCode");
-	lua_pushlstring(L, responseBody.data(), responseBody.size());
+	lua_pushlstring(L, response.body ? response.body : "", response.bodyLen);
 	lua_setfield(L, -2, "body");
+	DoraXrtHttpResponseFree(&response);
 	return 1;
 }
 

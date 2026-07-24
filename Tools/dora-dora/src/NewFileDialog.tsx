@@ -43,6 +43,13 @@ interface FileType {
 
 const fileTypes: FileType[] = [
 	{
+		icon: <AiFillFolderAdd size={50} style={{ marginLeft: '0px' }} />,
+		name: "Folder",
+		label: "file.typeFolder",
+		desc: "file.folder",
+		padding: '20px'
+	},
+	{
 		icon: <img src={luaLogo} alt="Lua" width="55px" height="55px" style={{ marginLeft: '-2.5px' }} />,
 		name: "Lua",
 		desc: "file.lua",
@@ -51,6 +58,7 @@ const fileTypes: FileType[] = [
 	{
 		icon: <img src={yueLogo} alt="YueScript" width="60px" height="60px" style={{ marginLeft: '-5px' }} />,
 		name: "YueScript",
+		label: "file.typeYueScript",
 		desc: "file.yuescript",
 		padding: '10px'
 	},
@@ -127,12 +135,6 @@ const fileTypes: FileType[] = [
 		icon: <img src={tic80Logo} alt="TIC80" width="45px" height="45px" style={{ marginLeft: '5px' }} />,
 		name: "TIC80",
 		desc: "file.tic",
-		padding: '20px'
-	},
-	{
-		icon: <AiFillFolderAdd size={50} style={{ marginLeft: '0px' }} />,
-		name: "Folder",
-		desc: "file.folder",
 		padding: '20px'
 	},
 ];

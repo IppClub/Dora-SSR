@@ -89,6 +89,8 @@ private:
 	std::string _authSessionSecret;
 	bool _authRequired;
 	bool _authTokenHasExpiry;
+	std::atomic_bool _stopping{true};
+	std::atomic_uint64_t _generation{0};
 	std::chrono::steady_clock::time_point _authTokenExpiry;
 	static constexpr int AuthTokenTTLSeconds = 12 * 60 * 60;
 	static constexpr int AuthSignatureTTLSeconds = 60;

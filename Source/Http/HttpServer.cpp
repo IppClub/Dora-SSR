@@ -49,7 +49,9 @@ namespace fs = std::filesystem;
 #include <chrono>
 #include <condition_variable>
 #include <cstdlib>
+#include <memory>
 #include <mutex>
+#include <optional>
 #include <set>
 #include <string_view>
 #include <unordered_map>
@@ -426,6 +428,42 @@ static void set_unauthorized(httplib::Response& res) {
 	res.set_content(R"({"success":false,"message":"unauthorized"})"s, "application/json"s);
 }
 
+static void set_service_unavailable(httplib::Response& res) {
+	res.status = 503;
+	res.set_content(R"({"success":false,"message":"server shutting down"})"s, "application/json"s);
+}
+
+template <class T>
+class PendingLogicResult {
+public:
+	bool isCancelled() const noexcept {
+		return _cancelled.load(std::memory_order_acquire);
+	}
+
+	void complete(T result) {
+		if (isCancelled()) return;
+		_result.emplace(std::move(result));
+		_ready.post();
+	}
+
+	std::optional<T> wait(const std::atomic_bool& stopping, const std::atomic_uint64_t& generation, uint64_t requestGeneration) {
+		while (!_ready.wait(50)) {
+			if (stopping.load(std::memory_order_acquire)
+				|| generation.load(std::memory_order_acquire) != requestGeneration
+				|| !SharedApplication.isLogicRunning()) {
+				_cancelled.store(true, std::memory_order_release);
+				return std::nullopt;
+			}
+		}
+		return std::move(_result);
+	}
+
+private:
+	std::atomic_bool _cancelled{false};
+	bx::Semaphore _ready;
+	std::optional<T> _result;
+};
+
 HttpServer::HttpServer()
 	: _authRequired(false)
 	, _authTokenHasExpiry(false)
@@ -703,6 +741,7 @@ bool HttpServer::start(int port) {
 	server.set_default_headers({{"Access-Control-Allow-Origin"s, "*"s},
 		{"Access-Control-Allow-Headers"s, "*"s}});
 	server.set_file_request_handler([this](const httplib::Request& req, httplib::Response& res) {
+		const auto requestGeneration = _generation.load(std::memory_order_acquire);
 		std::string path = req.path;
 		if (!httplib::detail::is_valid_path(path)) {
 			return false;
@@ -734,16 +773,19 @@ bool HttpServer::start(int port) {
 			}
 		}
 		auto content_type = httplib::detail::find_content_type(path, {}, "application/octet-stream"s);
-		bx::Semaphore waitForLoaded;
-		std::string result;
-		SharedContent.getThread()->run([&]() {
-			result = SharedContent.loadUnsafe(path);
-			waitForLoaded.post();
+		auto pending = std::make_shared<PendingLogicResult<std::string>>();
+		SharedContent.getThread()->run([pending, path = std::move(path)]() {
+			if (pending->isCancelled()) return;
+			pending->complete(SharedContent.loadUnsafe(path));
 		});
-		waitForLoaded.wait();
-		if (!result.empty()) {
+		auto result = pending->wait(_stopping, _generation, requestGeneration);
+		if (!result) {
+			set_service_unavailable(res);
+			return true;
+		}
+		if (!result->empty()) {
 			res.set_header("Content-Type", content_type);
-			res.body = std::move(result);
+			res.body = std::move(*result);
 			return true;
 		}
 		return false;
@@ -751,8 +793,10 @@ bool HttpServer::start(int port) {
 	server.Options(".*", [](const httplib::Request& req, httplib::Response& res) { });
 	bool success = server.bind_to_port("0.0.0.0", port);
 	if (success) {
+		_stopping.store(false, std::memory_order_release);
 		for (const auto& get : _gets) {
-			server.Get(get.pattern, [&get](const httplib::Request& req, httplib::Response& res) {
+			server.Get(get.pattern, [this, handler = get.handler](const httplib::Request& req, httplib::Response& res) {
+				const auto requestGeneration = _generation.load(std::memory_order_acquire);
 				HttpServer::Request request;
 				request.headers.reserve(req.headers.size() * 2);
 				for (const auto& header : req.headers) {
@@ -768,19 +812,23 @@ bool HttpServer::start(int port) {
 					it != req.headers.end()) {
 					request.contentType = it->second;
 				}
-				HttpServer::Response response;
-				bx::Semaphore waitForResponse;
-				SharedApplication.invokeInLogic([&]() {
-					response = get.handler(request);
-					waitForResponse.post();
+				auto pending = std::make_shared<PendingLogicResult<HttpServer::Response>>();
+				SharedApplication.invokeInLogic([pending, handler, request = std::move(request)]() {
+					if (pending->isCancelled()) return;
+					pending->complete(handler(request));
 				});
-				waitForResponse.wait();
-				res.set_content(response.content, response.contentType);
-				res.status = response.status;
+				auto response = pending->wait(_stopping, _generation, requestGeneration);
+				if (!response) {
+					set_service_unavailable(res);
+					return;
+				}
+				res.set_content(response->content, response->contentType);
+				res.status = response->status;
 			});
 		}
 		for (const auto& post : _posts) {
-			server.Post(post.pattern, [this, &post](const httplib::Request& req, httplib::Response& res) {
+			server.Post(post.pattern, [this, handler = post.handler](const httplib::Request& req, httplib::Response& res) {
+				const auto requestGeneration = _generation.load(std::memory_order_acquire);
 				if (req.path != "/auth"sv && req.path != "/auth/confirm"sv && !isAuthorized(req)) {
 					set_unauthorized(res);
 					return;
@@ -801,19 +849,23 @@ bool HttpServer::start(int port) {
 					request.contentType = it->second;
 				}
 				request.body = req.body;
-				HttpServer::Response response;
-				bx::Semaphore waitForResponse;
-				SharedApplication.invokeInLogic([&]() {
-					response = post.handler(request);
-					waitForResponse.post();
+				auto pending = std::make_shared<PendingLogicResult<HttpServer::Response>>();
+				SharedApplication.invokeInLogic([pending, handler, request = std::move(request)]() {
+					if (pending->isCancelled()) return;
+					pending->complete(handler(request));
 				});
-				waitForResponse.wait();
-				res.set_content(response.content, response.contentType);
-				res.status = response.status;
+				auto response = pending->wait(_stopping, _generation, requestGeneration);
+				if (!response) {
+					set_service_unavailable(res);
+					return;
+				}
+				res.set_content(response->content, response->contentType);
+				res.status = response->status;
 			});
 		}
 		for (const auto& post : _postScheduled) {
-			server.Post(post.pattern, [this, &post](const httplib::Request& req, httplib::Response& res) {
+			server.Post(post.pattern, [this, handler = post.handler](const httplib::Request& req, httplib::Response& res) {
+				const auto requestGeneration = _generation.load(std::memory_order_acquire);
 				if (req.path != "/auth"sv && req.path != "/auth/confirm"sv && !isAuthorized(req)) {
 					set_unauthorized(res);
 					return;
@@ -834,28 +886,33 @@ bool HttpServer::start(int port) {
 					request.contentType = it->second;
 				}
 				request.body = req.body;
-				HttpServer::Response response;
-				bx::Semaphore waitForResponse;
-				SharedApplication.invokeInLogic([&]() {
-					auto scheduleFunc = post.handler(request);
-					SharedDirector.getSystemScheduler()->schedule([scheduleFunc, &response, &waitForResponse](double) {
+				auto pending = std::make_shared<PendingLogicResult<HttpServer::Response>>();
+				SharedApplication.invokeInLogic([pending, handler, request = std::move(request)]() {
+					if (pending->isCancelled()) return;
+					auto scheduleFunc = handler(request);
+					SharedDirector.getSystemScheduler()->schedule([pending, scheduleFunc = std::move(scheduleFunc)](double) {
+						if (pending->isCancelled()) return true;
 						auto fRes = scheduleFunc();
 						if (fRes) {
-							response = std::move(fRes.value());
-							waitForResponse.post();
+							pending->complete(std::move(fRes.value()));
 							return true;
 						}
 						return false;
 					});
 				});
-				waitForResponse.wait();
-				res.set_content(response.content, response.contentType);
-				res.status = response.status;
+				auto response = pending->wait(_stopping, _generation, requestGeneration);
+				if (!response) {
+					set_service_unavailable(res);
+					return;
+				}
+				res.set_content(response->content, response->contentType);
+				res.status = response->status;
 			});
 		}
 		for (const auto& postFile : _files) {
 			server.Post(postFile.pattern,
-				[&](const httplib::Request& req, httplib::Response& res, const httplib::ContentReader& content_reader) {
+				[this, acceptHandler = postFile.acceptHandler, doneHandler = postFile.doneHandler](const httplib::Request& req, httplib::Response& res, const httplib::ContentReader& content_reader) {
+					const auto requestGeneration = _generation.load(std::memory_order_acquire);
 					if (req.path != "/auth"sv && req.path != "/auth/confirm"sv && !isAuthorized(req)) {
 						set_unauthorized(res);
 						return;
@@ -881,26 +938,28 @@ bool HttpServer::start(int port) {
 					}
 					std::list<std::string> acceptedFiles;
 					std::list<std::shared_ptr<SDL_RWops>> streams;
+					bool serverStopping = false;
 					content_reader(
 						[&](const httplib::FormData& file) {
-							bool accepted = false;
-							bx::Semaphore waitForResponse;
-							SharedApplication.invokeInLogic([&]() {
-								if (auto newFile = postFile.acceptHandler(request, file.filename)) {
-									auto fullPath = newFile.value();
-									SDL_RWops* stream = SDL_RWFromFile(fullPath.c_str(), "wb+");
-									if (stream) {
-										streams.push_back({stream, [](SDL_RWops* io) {
-															   SDL_RWclose(io);
-														   }});
-										accepted = true;
-										acceptedFiles.emplace_back(newFile.value());
-									}
-								}
-								waitForResponse.post();
+							auto pending = std::make_shared<PendingLogicResult<std::optional<std::string>>>();
+							SharedApplication.invokeInLogic([pending, acceptHandler, request, filename = file.filename]() {
+								if (pending->isCancelled()) return;
+								pending->complete(acceptHandler(request, filename));
 							});
-							waitForResponse.wait();
-							return accepted;
+							auto acceptedPath = pending->wait(_stopping, _generation, requestGeneration);
+							if (!acceptedPath) {
+								serverStopping = true;
+								return false;
+							}
+							if (!acceptedPath->has_value()) return false;
+							auto fullPath = std::move(acceptedPath->value());
+							SDL_RWops* stream = SDL_RWFromFile(fullPath.c_str(), "wb+");
+							if (!stream) return false;
+							streams.push_back({stream, [](SDL_RWops* io) {
+												   SDL_RWclose(io);
+											   }});
+							acceptedFiles.emplace_back(std::move(fullPath));
+							return true;
 						},
 						[&](const char* data, size_t data_length) {
 							if (!streams.empty()) {
@@ -913,20 +972,29 @@ bool HttpServer::start(int port) {
 							return false;
 						});
 					streams.clear();
-					bool done = true;
-					bx::Semaphore waitForResponse;
-					SharedApplication.invokeInLogic([&]() {
+					if (serverStopping) {
+						set_service_unavailable(res);
+						return;
+					}
+					auto pending = std::make_shared<PendingLogicResult<bool>>();
+					SharedApplication.invokeInLogic([pending, doneHandler, request, acceptedFiles]() {
+						if (pending->isCancelled()) return;
+						bool done = true;
 						for (const auto& file : acceptedFiles) {
-							if (!postFile.doneHandler(request, file)) {
+							if (!doneHandler(request, file)) {
 								SharedContent.remove(file);
 								done = false;
 								break;
 							}
 						}
-						waitForResponse.post();
+						pending->complete(done);
 					});
-					waitForResponse.wait();
+					auto done = pending->wait(_stopping, _generation, requestGeneration);
 					if (!done) {
+						set_service_unavailable(res);
+						return;
+					}
+					if (!*done) {
 						res.status = 500;
 					}
 				});
@@ -980,6 +1048,8 @@ bool HttpServer::startWS(int port) {
 }
 
 void HttpServer::stop() {
+	_stopping.store(true, std::memory_order_release);
+	_generation.fetch_add(1, std::memory_order_acq_rel);
 	getServer().stop();
 	getServer().clear_posts();
 	_posts.clear();
