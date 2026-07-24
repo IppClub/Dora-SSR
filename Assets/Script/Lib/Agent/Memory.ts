@@ -1983,7 +1983,7 @@ export class MemoryCompressor {
 						},
 						session_summary_update: {
 							type: "string",
-						description: "Full updated SESSION_SUMMARY.md as markdown. Current goal, recent progress, open issues, and an Active Checkpoint with the exact next tool action when work is unfinished."
+							description: "Full updated SESSION_SUMMARY.md as markdown. Current goal, recent progress, open issues, and an Active Checkpoint with the exact next tool action when work is unfinished."
 						},
 					},
 					required: ["history_entry", "memory_update"],

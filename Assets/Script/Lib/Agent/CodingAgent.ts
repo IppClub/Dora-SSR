@@ -1603,7 +1603,7 @@ async function maybeCompressHistory(
 				onUsage: (phase, usage) => {
 					recordLLMTokenUsage(shared, stepId, phase, usage);
 				},
-				},
+			},
 			"default",
 			systemPrompt,
 			toolDefinitions,
@@ -2895,9 +2895,9 @@ class MainDecisionAgent extends Node<AgentShared> {
 
 	private preserveTruncatedEditDecision(
 		shared: AgentShared,
-	toolCalls: ToolCall[] | undefined,
-	reasoningContent?: string
-): DecisionSuccess | undefined {
+		toolCalls: ToolCall[] | undefined,
+		reasoningContent?: string
+	): DecisionSuccess | undefined {
 		const recovery = Tools.planTruncatedEditRecovery(toolCalls);
 		if (!recovery) return undefined;
 		shared.truncatedToolOverwritePath = recovery.target;

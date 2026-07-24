@@ -348,27 +348,31 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 		parameters: [
 			{ name: "message", type: "string", required: true, description: "Final user-facing answer." },
 			{ name: "outcome", type: "string", enum: ["completed", "partial", "blocked"], description: "Work outcome. Sub agents must provide this; defaults to completed for compatibility." },
-			{ name: "validation", type: "array", items: {
-				type: "object",
-				properties: {
-					kind: { type: "string", enum: ["build", "runtime", "manual"] },
-					result: { type: "string", enum: ["passed", "failed", "not_run"] },
-					evidence: { type: "array", items: { type: "string" } },
-				},
-				required: ["kind", "result"],
-			}, description: "Validation performed. Sub agents must provide an array, using not_run when a relevant check was not run." },
+			{
+				name: "validation", type: "array", items: {
+					type: "object",
+					properties: {
+						kind: { type: "string", enum: ["build", "runtime", "manual"] },
+						result: { type: "string", enum: ["passed", "failed", "not_run"] },
+						evidence: { type: "array", items: { type: "string" } },
+					},
+					required: ["kind", "result"],
+				}, description: "Validation performed. Sub agents must provide an array, using not_run when a relevant check was not run."
+			},
 			{ name: "knownIssues", type: "array", items: { type: "string" }, description: "Known remaining issues or blockers. Sub agents must provide an array, which may be empty." },
 			{ name: "assumptions", type: "array", items: { type: "string" }, description: "Material assumptions made during the work. Sub agents must provide an array, which may be empty." },
-			{ name: "learningCandidates", type: "array", items: {
-				type: "object",
-				properties: {
-					claim: { type: "string" },
-					scope: { type: "string", enum: ["file", "project", "engine"] },
-					evidence: { type: "array", items: { type: "string" } },
-					confidence: { type: "string", enum: ["observed", "inferred"] },
-				},
-				required: ["claim", "scope", "confidence"],
-			}, description: "Durable, evidence-backed facts worth sharing with later agents. Sub agents must provide an array, which may be empty." },
+			{
+				name: "learningCandidates", type: "array", items: {
+					type: "object",
+					properties: {
+						claim: { type: "string" },
+						scope: { type: "string", enum: ["file", "project", "engine"] },
+						evidence: { type: "array", items: { type: "string" } },
+						confidence: { type: "string", enum: ["observed", "inferred"] },
+					},
+					required: ["claim", "scope", "confidence"],
+				}, description: "Durable, evidence-backed facts worth sharing with later agents. Sub agents must provide an array, which may be empty."
+			},
 		],
 		rules: [
 			"Sub agents must explicitly report outcome, validation, knownIssues, assumptions, and learningCandidates.",

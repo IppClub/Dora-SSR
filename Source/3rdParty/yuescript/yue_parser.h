@@ -323,6 +323,7 @@ private:
 	NONE_AST_RULE(shebang);
 	NONE_AST_RULE(is_lax);
 	NONE_AST_RULE(lax_line);
+	NONE_AST_RULE(simple_value_fallback);
 
 	AST_RULE(Num);
 	AST_RULE(Name);
