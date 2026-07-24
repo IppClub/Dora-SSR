@@ -803,27 +803,33 @@ HttpServer\post "/agent/checkpoint/list", (req): invalidArguments ->
 		if not taskId and sessionId
 			taskId = AgentSession.getCurrentTaskId sessionId
 		return success: false, message: "task not found" unless taskId
+		access = AgentSession.validateTaskAccess sessionId, taskId
+		return access unless access.success
 		return
 			success: true
 			taskId: taskId
 			checkpoints: AgentTools.listCheckpoints taskId
 
 HttpServer\post "/agent/checkpoint/diff", (req): invalidArguments ->
-	switch req when {body: {:checkpointId}}
+	switch req when {body: {:sessionId, :checkpointId}}
 		return success: false, message: "invalid checkpointId" unless checkpointId > 0
+		access = AgentSession.validateCheckpointAccess sessionId, checkpointId
+		return access unless access.success
 		return AgentTools.getCheckpointDiff checkpointId
 
 HttpServer\post "/agent/task/diff", (req): invalidArguments ->
-	switch req when {body: {:taskId}}
+	switch req when {body: {:sessionId, :taskId}}
 		return success: false, message: "invalid taskId" unless taskId > 0
+		access = AgentSession.validateTaskAccess sessionId, taskId
+		return access unless access.success
 		return AgentTools.getTaskChangeSetDiff taskId
 
 HttpServer\post "/agent/checkpoint/rollback", (req): invalidArguments ->
 	switch req when {body: {:sessionId, :checkpointId}}
 		return success: false, message: "invalid checkpointId" unless checkpointId > 0
-		res = AgentSession.getSession sessionId
-		return res unless res.success
-		rollbackRes = AgentTools.rollbackCheckpoint checkpointId, res.session.projectRoot
+		access = AgentSession.validateCheckpointAccess sessionId, checkpointId
+		return access unless access.success
+		rollbackRes = AgentTools.rollbackCheckpoint checkpointId, access.session.projectRoot
 		return rollbackRes unless rollbackRes.success
 		return
 			success: true
@@ -832,9 +838,9 @@ HttpServer\post "/agent/checkpoint/rollback", (req): invalidArguments ->
 HttpServer\post "/agent/task/rollback", (req): invalidArguments ->
 	switch req when {body: {:sessionId, :taskId}}
 		return success: false, message: "invalid taskId" unless taskId > 0
-		res = AgentSession.getSession sessionId
-		return res unless res.success
-		rollbackRes = AgentTools.rollbackTaskChangeSet taskId, res.session.projectRoot
+		access = AgentSession.validateTaskAccess sessionId, taskId
+		return access unless access.success
+		rollbackRes = AgentTools.rollbackTaskChangeSet taskId, access.session.projectRoot
 		return rollbackRes unless rollbackRes.success
 		return
 			success: true

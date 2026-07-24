@@ -1,7 +1,14 @@
 // @preview-file off clear
 import * as Dora from 'Dora';
 import { Content, DB, Path, Director, once, SearchFilesResult, Node, emit, wait, App, HttpServer, HttpClient, Git } from 'Dora';
+import type { SQL } from 'Dora';
 import * as AgentConfig from 'Agent/AgentConfig';
+import {
+	TABLE_TASK,
+	TABLE_CHECKPOINT as TABLE_CP,
+	TABLE_CHECKPOINT_ENTRY as TABLE_ENTRY,
+	requireAgentStorage,
+} from 'Agent/AgentStorage';
 import { Log, safeJsonDecode, safeJsonEncode } from 'Agent/Utils';
 import type { ToolCall } from 'Agent/Utils';
 
@@ -398,9 +405,16 @@ interface CheckpointEntryRow {
 	afterContent: string;
 }
 
-const TABLE_TASK = "AgentTask";
-const TABLE_CP = "AgentCheckpoint";
-const TABLE_ENTRY = "AgentCheckpointEntry";
+interface CheckpointEntryMetadataRow {
+	id: number;
+	ord: number;
+	path: string;
+	op: FileOp;
+	beforeExists: boolean;
+	afterExists: boolean;
+	bytesBefore: number;
+	bytesAfter: number;
+}
 const ENGINE_LOG_DOWNLOAD_DIR = ".download";
 const ENGINE_LOG_FILE = "dora_full_logs.txt";
 const AGENT_DOWNLOAD_TEMP_DIR = "agent";
@@ -1004,56 +1018,6 @@ function queryOne(sql: string, args?: (number | string | boolean)[]) {
 	return rows[0];
 }
 
-// initialize tables once when module is loaded
-{
-	DB.exec(`CREATE TABLE IF NOT EXISTS ${TABLE_TASK}(
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		status TEXT NOT NULL,
-		prompt TEXT NOT NULL DEFAULT '',
-		head_seq INTEGER NOT NULL DEFAULT 0,
-		work_mode TEXT NOT NULL DEFAULT 'code',
-		created_at INTEGER NOT NULL,
-		updated_at INTEGER NOT NULL
-	);`);
-	const taskColumns = DB.query(`PRAGMA table_info(${TABLE_TASK})`) ?? [];
-	let hasTaskWorkMode = false;
-	for (let i = 0; i < taskColumns.length; i++) {
-		if (tostring(taskColumns[i][1]) === "work_mode") {
-			hasTaskWorkMode = true;
-			break;
-		}
-	}
-	if (!hasTaskWorkMode) {
-		DB.exec(`ALTER TABLE ${TABLE_TASK} ADD COLUMN work_mode TEXT NOT NULL DEFAULT 'code';`);
-	}
-	DB.exec(`CREATE TABLE IF NOT EXISTS ${TABLE_CP}(
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		task_id INTEGER NOT NULL,
-		seq INTEGER NOT NULL,
-		status TEXT NOT NULL,
-		summary TEXT NOT NULL DEFAULT '',
-		tool_name TEXT NOT NULL DEFAULT '',
-		created_at INTEGER NOT NULL,
-		applied_at INTEGER,
-		reverted_at INTEGER
-	);`);
-	DB.exec(`CREATE INDEX IF NOT EXISTS idx_agent_cp_task_seq ON ${TABLE_CP}(task_id, seq);`);
-	DB.exec(`CREATE TABLE IF NOT EXISTS ${TABLE_ENTRY}(
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		checkpoint_id INTEGER NOT NULL,
-		ord INTEGER NOT NULL,
-		path TEXT NOT NULL,
-		op TEXT NOT NULL,
-		before_exists INTEGER NOT NULL,
-		before_content TEXT,
-		after_exists INTEGER NOT NULL,
-		after_content TEXT,
-		bytes_before INTEGER NOT NULL DEFAULT 0,
-		bytes_after INTEGER NOT NULL DEFAULT 0
-	);`);
-	DB.exec(`CREATE INDEX IF NOT EXISTS idx_agent_entry_cp_ord ON ${TABLE_ENTRY}(checkpoint_id, ord);`);
-}
-
 function isDtsFile(path: string): boolean {
 	return Path.getExt(Path.getName(path)) === "d";
 }
@@ -1103,7 +1067,10 @@ function insertCheckpoint(taskId: number, seq: number, summary: string, toolName
 
 function getCheckpointEntries(checkpointId: number, desc = false): CheckpointEntryRow[] {
 	const rows = DB.query(
-		`SELECT id, ord, path, op, before_exists, before_content, after_exists, after_content
+		`SELECT id, ord, path, op, before_exists,
+			dora_decompress_text(before_data),
+			after_exists,
+			dora_decompress_text(after_data)
 		FROM ${TABLE_ENTRY}
 		WHERE checkpoint_id = ?
 		ORDER BY ord ${desc ? "DESC" : "ASC"}`,
@@ -1122,6 +1089,32 @@ function getCheckpointEntries(checkpointId: number, desc = false): CheckpointEnt
 			beforeContent: toStr(row[5]),
 			afterExists: toBool(row[6]),
 			afterContent: toStr(row[7]),
+		});
+	}
+	return result;
+}
+
+function getCheckpointEntryMetadata(checkpointId: number, desc = false): CheckpointEntryMetadataRow[] {
+	const rows = DB.query(
+		`SELECT id, ord, path, op, before_exists, after_exists, bytes_before, bytes_after
+		FROM ${TABLE_ENTRY}
+		WHERE checkpoint_id = ?
+		ORDER BY ord ${desc ? "DESC" : "ASC"}`,
+		[checkpointId],
+	);
+	if (!rows) return [];
+	const result: CheckpointEntryMetadataRow[] = [];
+	for (let i = 0; i < rows.length; i++) {
+		const row = rows[i];
+		result.push({
+			id: row[0] as number,
+			ord: row[1] as number,
+			path: toStr(row[2]),
+			op: toStr(row[3]) as FileOp,
+			beforeExists: toBool(row[4]),
+			afterExists: toBool(row[5]),
+			bytesBefore: (row[6] as number | undefined) ?? 0,
+			bytesAfter: (row[7] as number | undefined) ?? 0,
 		});
 	}
 	return result;
@@ -1355,6 +1348,8 @@ export async function runSingleTsTranspile(file: string, content: string, projec
 }
 
 export function createTask(prompt = "", workMode: AgentTaskWorkMode = "code"): CreateTaskResult {
+	const storage = requireAgentStorage();
+	if (!storage.success) return storage;
 	const t = now();
 	const affected = DB.exec(
 		`INSERT INTO ${TABLE_TASK}(status, prompt, head_seq, work_mode, created_at, updated_at) VALUES(?, ?, 0, ?, ?, ?)`,
@@ -1475,7 +1470,7 @@ export function summarizeTaskChangeSet(taskId: number): TaskChangeSetSummary {
 		const checkpoint = checkpoints[i];
 		latestCheckpointId = checkpoint.id;
 		latestCheckpointSeq = checkpoint.seq;
-		const entries = getCheckpointEntries(checkpoint.id, false);
+		const entries = getCheckpointEntryMetadata(checkpoint.id, false);
 		for (let j = 0; j < entries.length; j++) {
 			const entry = entries[j];
 			let item = filesByPath[entry.path];
@@ -1517,45 +1512,60 @@ export function getTaskChangeSetDiff(taskId: number): CheckpointDiffResult {
 	if (!getTaskStatus(taskId)) {
 		return { success: false, message: "task not found" };
 	}
-	const checkpoints = listCheckpointIdsForTask(taskId, false);
-	if (checkpoints.length === 0) {
+	const entryRows = DB.query(
+		`SELECT e.id, e.path, e.before_exists, e.after_exists
+		FROM ${TABLE_ENTRY} e
+		JOIN ${TABLE_CP} c ON c.id = e.checkpoint_id
+		WHERE c.task_id = ? AND c.status IN ('APPLIED', 'REVERTED')
+		ORDER BY c.seq ASC, e.ord ASC`,
+		[taskId],
+	);
+	if (!entryRows || entryRows.length === 0) {
 		return { success: false, message: "change set not found or empty" };
 	}
 	const filesByPath: Record<string, {
 		path: string;
+		firstEntryId: number;
+		lastEntryId: number;
 		beforeExists: boolean;
-		beforeContent: string;
 		afterExists: boolean;
-		afterContent: string;
 	}> = {};
-	for (let i = 0; i < checkpoints.length; i++) {
-		const entries = getCheckpointEntries(checkpoints[i].id, false);
-		for (let j = 0; j < entries.length; j++) {
-			const entry = entries[j];
-			let item = filesByPath[entry.path];
-			if (!item) {
-				item = {
-					path: entry.path,
-					beforeExists: entry.beforeExists,
-					beforeContent: entry.beforeContent,
-					afterExists: entry.afterExists,
-					afterContent: entry.afterContent,
-				};
-				filesByPath[entry.path] = item;
-			}
-			item.afterExists = entry.afterExists;
-			item.afterContent = entry.afterContent;
+	for (let i = 0; i < entryRows.length; i++) {
+		const row = entryRows[i];
+		const entryId = row[0] as number;
+		const path = toStr(row[1]);
+		let item = filesByPath[path];
+		if (!item) {
+			item = {
+				path,
+				firstEntryId: entryId,
+				lastEntryId: entryId,
+				beforeExists: toBool(row[2]),
+				afterExists: toBool(row[3]),
+			};
+			filesByPath[path] = item;
 		}
+		item.lastEntryId = entryId;
+		item.afterExists = toBool(row[3]);
 	}
 	const files: CheckpointDiffFile[] = [];
 	for (const [, item] of pairs(filesByPath)) {
+		const contentRows = DB.query(
+			`SELECT
+				(SELECT dora_decompress_text(before_data) FROM ${TABLE_ENTRY} WHERE id = ?),
+				(SELECT dora_decompress_text(after_data) FROM ${TABLE_ENTRY} WHERE id = ?)`,
+			[item.firstEntryId, item.lastEntryId],
+		);
+		if (!contentRows || contentRows.length === 0) {
+			return { success: false, message: `failed to read checkpoint data for ${item.path}` };
+		}
 		files.push({
 			path: item.path,
 			op: deriveFileOp(item.beforeExists, item.afterExists),
 			beforeExists: item.beforeExists,
 			afterExists: item.afterExists,
-			beforeContent: item.beforeContent,
-			afterContent: item.afterContent,
+			beforeContent: toStr(contentRows[0][0]),
+			afterContent: toStr(contentRows[0][1]),
 		});
 	}
 	files.sort((a, b) => a.path < b.path ? -1 : (a.path > b.path ? 1 : 0));
@@ -2140,6 +2150,8 @@ export function readDoraDoc(req: {
 }
 
 export function applyFileChanges(taskId: number, workDir: string, changes: FileChange[], options: ApplyChangesOptions = {}): ApplyChangesResult {
+	const storage = requireAgentStorage();
+	if (!storage.success) return storage;
 	if (changes.length === 0) {
 		return { success: false, message: "empty changes" };
 	}
@@ -2167,49 +2179,64 @@ export function applyFileChanges(taskId: number, workDir: string, changes: FileC
 	const headSeq = getTaskHeadSeq(taskId);
 	if (headSeq === undefined) return { success: false, message: "task not found" };
 	const nextSeq = headSeq + 1;
-	const checkpointId = insertCheckpoint(taskId, nextSeq, options.summary ?? "", options.toolName ?? "", "PREPARED");
-	if (checkpointId <= 0) {
-		return { success: false, message: "failed to create checkpoint" };
-	}
 
+	const preparedEntries: CheckpointEntryRow[] = [];
 	for (let i = 0; i < expandedChanges.length; i++) {
 		const change = expandedChanges[i];
 		const fullPath = resolveWorkspaceFilePath(workDir, change.path);
 		if (!fullPath) {
-			DB.exec(`UPDATE ${TABLE_CP} SET status = ? WHERE id = ?`, ["FAILED", checkpointId]);
 			return { success: false, message: `invalid path: ${change.path}` };
 		}
 		if (change.op === "delete" && Content.exist(fullPath) && Content.isdir(fullPath)) {
-			DB.exec(`UPDATE ${TABLE_CP} SET status = ? WHERE id = ?`, ["FAILED", checkpointId]);
 			return { success: false, message: `delete_file only supports files, not directories: ${change.path}` };
 		}
 		const before = getFileState(fullPath);
 		const afterExists = change.op !== "delete";
 		const afterContent = afterExists ? (change.content ?? "") : "";
-		const inserted = DB.exec(
-			`INSERT INTO ${TABLE_ENTRY}(checkpoint_id, ord, path, op, before_exists, before_content, after_exists, after_content, bytes_before, bytes_after)
-			VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-			[
-				checkpointId,
-				i + 1,
-				change.path,
-				change.op,
-				before.exists ? 1 : 0,
-				before.content,
-				afterExists ? 1 : 0,
-				afterContent,
-				before.bytes,
-				afterContent.length,
-			],
-		);
-		if (inserted <= 0) {
-			DB.exec(`UPDATE ${TABLE_CP} SET status = ? WHERE id = ?`, ["FAILED", checkpointId]);
-			return { success: false, message: `failed to insert checkpoint entry: ${change.path}` };
-		}
+		preparedEntries.push({
+			id: 0,
+			ord: i + 1,
+			path: change.path,
+			op: change.op,
+			beforeExists: before.exists,
+			beforeContent: before.content,
+			afterExists,
+			afterContent,
+		});
+	}
+
+	const checkpointId = insertCheckpoint(taskId, nextSeq, options.summary ?? "", options.toolName ?? "", "PREPARED");
+	if (checkpointId <= 0) {
+		return { success: false, message: "failed to create checkpoint" };
+	}
+	const entryRows: (number | string | boolean)[][] = [];
+	for (let i = 0; i < preparedEntries.length; i++) {
+		const entry = preparedEntries[i];
+		entryRows.push([
+			checkpointId,
+			entry.ord,
+			entry.path,
+			entry.op,
+			entry.beforeExists ? 1 : 0,
+			entry.beforeContent,
+			entry.afterExists ? 1 : 0,
+			entry.afterContent,
+			entry.beforeContent.length,
+			entry.afterContent.length,
+		]);
+	}
+	const entryInsert: SQL = [
+		`INSERT INTO ${TABLE_ENTRY}(checkpoint_id, ord, path, op, before_exists, before_data, after_exists, after_data, bytes_before, bytes_after)
+		VALUES(?, ?, ?, ?, ?, dora_compress_text(?), ?, dora_compress_text(?), ?, ?)`,
+		entryRows,
+	];
+	if (!DB.transaction([entryInsert])) {
+		DB.exec(`UPDATE ${TABLE_CP} SET status = ? WHERE id = ?`, ["FAILED", checkpointId]);
+		return { success: false, message: "failed to insert checkpoint entries" };
 	}
 
 	let appliedCount = 0;
-	for (const entry of getCheckpointEntries(checkpointId, false)) {
+	for (const entry of preparedEntries) {
 		const fullPath = resolveWorkspaceFilePath(workDir, entry.path);
 		if (!fullPath) {
 			DB.exec(`UPDATE ${TABLE_CP} SET status = ? WHERE id = ?`, ["FAILED", checkpointId]);

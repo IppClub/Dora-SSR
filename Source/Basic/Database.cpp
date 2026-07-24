@@ -16,6 +16,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Support/Value.h"
 
 #include "SQLiteCpp/SQLiteCpp.h"
+#include "miniz.h"
+#include "sqlite3.h"
+
+#include <array>
 
 #ifdef SQLITECPP_ENABLE_ASSERT_HANDLER
 namespace SQLite {
@@ -29,6 +33,143 @@ void assertion_failed(const char* apFile, const int apLine, const char* apFunc, 
 #endif // SQLITECPP_ENABLE_ASSERT_HANDLER
 
 NS_DORA_BEGIN
+
+namespace {
+
+constexpr size_t TextCompressThreshold = 512;
+constexpr size_t TextInflateChunkSize = 64 * 1024;
+constexpr uint64_t TextMaxRawSize = 256ull * 1024ull * 1024ull;
+
+void compressText(sqlite3_context* context, int argc, sqlite3_value** argv) {
+	if (argc != 1 || sqlite3_value_type(argv[0]) == SQLITE_NULL) {
+		sqlite3_result_null(context);
+		return;
+	}
+	if (sqlite3_value_type(argv[0]) != SQLITE_TEXT) {
+		sqlite3_result_error(context, "dora_compress_text expects TEXT", -1);
+		return;
+	}
+	const auto* source = static_cast<const uint8_t*>(sqlite3_value_text(argv[0]));
+	const int sourceSizeValue = sqlite3_value_bytes(argv[0]);
+	if (sourceSizeValue < 0) {
+		sqlite3_result_error(context, "invalid text length", -1);
+		return;
+	}
+	const size_t sourceSize = static_cast<size_t>(sourceSizeValue);
+	if (sourceSize > TextMaxRawSize) {
+		sqlite3_result_error(context, "text exceeds compression limit", -1);
+		return;
+	}
+
+	if (sourceSize < TextCompressThreshold) {
+		sqlite3_result_text64(
+			context,
+			reinterpret_cast<const char*>(source),
+			sourceSize,
+			SQLITE_TRANSIENT,
+			SQLITE_UTF8);
+		return;
+	}
+
+	mz_ulong compressedSize = mz_compressBound(static_cast<mz_ulong>(sourceSize));
+	std::vector<uint8_t> compressed(static_cast<size_t>(compressedSize));
+	const int result = mz_compress2(
+		compressed.data(),
+		&compressedSize,
+		source,
+		static_cast<mz_ulong>(sourceSize),
+		MZ_BEST_SPEED);
+	if (result != MZ_OK) {
+		sqlite3_result_error(context, "failed to compress text", -1);
+		return;
+	}
+	compressed.resize(static_cast<size_t>(compressedSize));
+	if (compressed.size() >= sourceSize) {
+		sqlite3_result_text64(
+			context,
+			reinterpret_cast<const char*>(source),
+			sourceSize,
+			SQLITE_TRANSIENT,
+			SQLITE_UTF8);
+		return;
+	}
+	sqlite3_result_blob64(context, compressed.data(), compressed.size(), SQLITE_TRANSIENT);
+}
+
+void decompressText(sqlite3_context* context, int argc, sqlite3_value** argv) {
+	if (argc != 1 || sqlite3_value_type(argv[0]) == SQLITE_NULL) {
+		sqlite3_result_null(context);
+		return;
+	}
+	const int valueType = sqlite3_value_type(argv[0]);
+	if (valueType == SQLITE_TEXT) {
+		sqlite3_result_value(context, argv[0]);
+		return;
+	}
+	if (valueType != SQLITE_BLOB) {
+		sqlite3_result_error(context, "dora_decompress_text expects TEXT or BLOB", -1);
+		return;
+	}
+
+	const auto* source = static_cast<const uint8_t*>(sqlite3_value_blob(argv[0]));
+	const int sourceSizeValue = sqlite3_value_bytes(argv[0]);
+	if (!source || sourceSizeValue <= 0) {
+		sqlite3_result_error(context, "invalid compressed text", -1);
+		return;
+	}
+	const size_t sourceSize = static_cast<size_t>(sourceSizeValue);
+
+	mz_stream stream{};
+	stream.next_in = source;
+	stream.avail_in = static_cast<unsigned int>(sourceSize);
+	if (mz_inflateInit(&stream) != MZ_OK) {
+		sqlite3_result_error(context, "failed to initialize text decompression", -1);
+		return;
+	}
+
+	std::vector<uint8_t> output;
+	std::array<uint8_t, TextInflateChunkSize> chunk;
+	for (;;) {
+		stream.next_out = chunk.data();
+		stream.avail_out = static_cast<unsigned int>(chunk.size());
+		const int result = mz_inflate(&stream, stream.avail_in == 0 ? MZ_FINISH : MZ_NO_FLUSH);
+		const size_t produced = chunk.size() - stream.avail_out;
+		if (produced > TextMaxRawSize - output.size()) {
+			mz_inflateEnd(&stream);
+			sqlite3_result_error(context, "text exceeds decompression limit", -1);
+			return;
+		}
+		output.insert(output.end(), chunk.begin(), chunk.begin() + produced);
+		if (result == MZ_STREAM_END) {
+			const bool fullyConsumed = stream.avail_in == 0;
+			mz_inflateEnd(&stream);
+			if (!fullyConsumed) {
+				sqlite3_result_error(context, "compressed text contains trailing data", -1);
+				return;
+			}
+			break;
+		}
+		if (result != MZ_OK || (produced == 0 && stream.avail_in == 0)) {
+			mz_inflateEnd(&stream);
+			sqlite3_result_error(context, "corrupt compressed text", -1);
+			return;
+		}
+	}
+
+	sqlite3_result_text64(
+		context,
+		output.empty() ? "" : reinterpret_cast<const char*>(output.data()),
+		output.size(),
+		SQLITE_TRANSIENT,
+		SQLITE_UTF8);
+}
+
+void registerTextCodecs(SQLite::Database& database) {
+	database.createFunction("dora_compress_text", 1, true, nullptr, compressText);
+	database.createFunction("dora_decompress_text", 1, true, nullptr, decompressText);
+}
+
+} // namespace
 
 DB::DB()
 	: _thread(SharedAsyncThread.newThread()) {
@@ -49,6 +190,7 @@ DB::DB()
 			std::abort();
 		}
 	}
+	registerTextCodecs(*_database);
 }
 
 DB::~DB() { }
@@ -242,7 +384,7 @@ DB::Rows DB::queryUnsafe(SQLite::Database* db, String sql, const std::vector<Own
 			} else if (col.isFloat()) {
 				values[i] = col.getDouble();
 			} else if (col.isText() || col.isBlob()) {
-				values[i] = std::string(col.getText());
+				values[i] = col.getString();
 			} else if (col.isNull()) {
 				values[i] = false;
 			}

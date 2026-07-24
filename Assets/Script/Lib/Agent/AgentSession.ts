@@ -1,10 +1,23 @@
 // @preview-file off clear
 import { App, Content, DB, Path, HttpServer, emit } from 'Dora';
+import type { SQL } from 'Dora';
 import { runCodingAgent, CodingAgentEvent, CodingAgentRunResult, truncateAgentUserPrompt } from 'Agent/CodingAgent';
 import type { AgentCompletionReport, AgentTokenUsageMetric } from 'Agent/CodingAgent';
 import * as AgentToolRegistry from 'Agent/AgentToolRegistry';
 import * as AgentRuntimePolicy from 'Agent/AgentRuntimePolicy';
 import * as Tools from 'Agent/Tools';
+import {
+	TABLE_SESSION,
+	TABLE_MESSAGE,
+	TABLE_STEP,
+	TABLE_TASK,
+	TABLE_TASK_REFERENCE,
+	addTaskReference,
+	cleanupOrphanHeavyDataBatch,
+	cleanupTaskHeavyData,
+	getSessionOperableTaskIds,
+	requireAgentStorage,
+} from 'Agent/AgentStorage';
 import { DualLayerStorage } from 'Agent/Memory';
 import { Log, getLLMConfig, normalizeAgentCompletionReport, safeJsonDecode, safeJsonEncode, sanitizeUTF8 } from 'Agent/Utils';
 import type { LLMConfig, StopToken } from 'Agent/Utils';
@@ -252,11 +265,6 @@ export type AgentRunningSubAgentListResult = {
 	message: string;
 };
 
-const TABLE_SESSION = "AgentSession";
-const TABLE_MESSAGE = "AgentSessionMessage";
-const TABLE_STEP = "AgentSessionStep";
-const TABLE_TASK = "AgentTask";
-const AGENT_SESSION_SCHEMA_VERSION = 2;
 const QUESTIONNAIRE_DIR = ".agent/questionnaire";
 const PENDING_QUESTIONNAIRE_FILE = "pending.json";
 const SPAWN_INFO_FILE = "SPAWN.json";
@@ -864,6 +872,19 @@ function countRunningSubSessions(rootSessionId: number): number {
 
 function deleteSessionRecords(sessionId: number, preserveArtifacts = false) {
 	const session = getSessionItem(sessionId);
+	const taskRows = queryRows(
+		`SELECT current_task_id FROM ${TABLE_SESSION} WHERE id = ? AND current_task_id > 0
+		UNION
+		SELECT task_id FROM ${TABLE_STEP} WHERE session_id = ? AND task_id > 0
+		UNION
+		SELECT task_id FROM ${TABLE_MESSAGE} WHERE session_id = ? AND task_id > 0`,
+		[sessionId, sessionId, sessionId],
+	) ?? [];
+	const taskIds: number[] = [];
+	for (let i = 0; i < taskRows.length; i++) {
+		const taskId = typeof taskRows[i][0] === "number" ? taskRows[i][0] as number : 0;
+		if (taskId > 0 && taskIds.indexOf(taskId) < 0) taskIds.push(taskId);
+	}
 	const children = queryRows(`SELECT id FROM ${TABLE_SESSION} WHERE parent_session_id = ?`, [sessionId]) ?? [];
 	for (let i = 0; i < children.length; i++) {
 		const row = children[i];
@@ -880,6 +901,9 @@ function deleteSessionRecords(sessionId: number, preserveArtifacts = false) {
 	}
 	if (!preserveArtifacts && session && session.kind === "sub" && session.memoryScope !== "") {
 		Content.remove(Path(session.projectRoot, ".agent", session.memoryScope));
+	}
+	for (let i = 0; i < taskIds.length; i++) {
+		cleanupTaskHeavyData(taskIds[i]);
 	}
 }
 
@@ -1674,6 +1698,43 @@ function appendSystemStep(
 	return getStepItem(sessionId, taskId, step);
 }
 
+function appendHandoffSystemStep(
+	sessionId: number,
+	ownerTaskId: number,
+	targetTaskId: number,
+	reason: string,
+	result: Record<string, unknown>,
+	params: Record<string, unknown>,
+): AgentSessionStepItem | undefined {
+	const step = getNextStepNumber(sessionId, ownerTaskId);
+	const t = now();
+	const sqls: SQL[] = [
+		[
+			`INSERT INTO ${TABLE_STEP}(session_id, task_id, step, tool, status, reason, reasoning_content, params_json, result_json, checkpoint_id, checkpoint_seq, files_json, created_at, updated_at)
+			VALUES(?, ?, ?, ?, ?, ?, '', ?, ?, 0, 0, '', ?, ?)`,
+			[[
+				sessionId,
+				ownerTaskId,
+				step,
+				"sub_agent_handoff",
+				"DONE",
+				sanitizeUTF8(reason),
+				encodeJson(params),
+				encodeJson(result),
+				t,
+				t,
+			]],
+		],
+		[
+			`INSERT OR IGNORE INTO ${TABLE_TASK_REFERENCE}(owner_task_id, target_task_id, kind, created_at)
+			VALUES(?, ?, 'sub_agent_handoff', ?)`,
+			[[ownerTaskId, targetTaskId, t]],
+		],
+	];
+	if (!DB.transaction(sqls)) return undefined;
+	return getStepItem(sessionId, ownerTaskId, step);
+}
+
 function finalizeTaskSteps(sessionId: number, taskId: number, finalSteps?: number, finalStatus?: AgentStepStatus) {
 	if (taskId <= 0) return;
 	if (finalSteps !== undefined && finalSteps >= 0) {
@@ -1759,6 +1820,7 @@ function flushPendingSubAgentHandoffs(rootSession: AgentSessionItem): void {
 	const items = listPendingHandoffs(rootSession.projectRoot, rootSession.memoryScope);
 	if (items.length === 0) return;
 	let handoffTaskId = 0;
+	const previousTaskId = rootSession.currentTaskId;
 	const currentTaskPrompt = rootSession.currentTaskId ? getTaskPrompt(rootSession.currentTaskId) : undefined;
 	if (
 		rootSession.currentTaskId
@@ -1783,11 +1845,10 @@ function flushPendingSubAgentHandoffs(rootSession: AgentSessionItem): void {
 	}
 	for (let i = 0; i < items.length; i++) {
 		const item = items[i];
-		const step = appendSystemStep(
+		const step = appendHandoffSystemStep(
 			rootSession.id,
 			handoffTaskId,
-			"sub_agent_handoff",
-			"sub_agent_handoff",
+			item.sourceTaskId,
 			item.message,
 			{
 				sourceSessionId: item.sourceSessionId,
@@ -1818,12 +1879,16 @@ function flushPendingSubAgentHandoffs(rootSession: AgentSessionItem): void {
 				memoryEntry: item.memoryEntry,
 				completion: item.completion,
 			},
-			"DONE",
 		);
 		if (step) {
 			emitAgentSessionPatch(rootSession.id, { step });
+			deletePendingHandoff(rootSession.projectRoot, rootSession.memoryScope, item.id);
+		} else {
+			Log("Warn", `[AgentSession] failed to persist sub-agent handoff reference owner=${handoffTaskId} target=${item.sourceTaskId}`);
 		}
-		deletePendingHandoff(rootSession.projectRoot, rootSession.memoryScope, item.id);
+	}
+	if (previousTaskId && previousTaskId !== handoffTaskId) {
+		cleanupTaskHeavyData(previousTaskId);
 	}
 }
 
@@ -2005,161 +2070,9 @@ function applyEvent(sessionId: number, event: AgentRuntimeEvent) {
 	}
 }
 
-function getSchemaVersion(): number {
-	const row = queryOne("PRAGMA user_version");
-	return row && typeof row[0] === "number" ? row[0] : 0;
-}
-
-function setSchemaVersion(version: number) {
-	DB.exec(`PRAGMA user_version = ${math.max(0, math.floor(version))}`);
-}
-
-function hasTableColumn(tableName: string, columnName: string): boolean {
-	const rows = queryRows(`PRAGMA table_info(${tableName})`) ?? [];
-	for (let i = 0; i < rows.length; i++) {
-		const row = rows[i];
-		if (toStr(row[1]) === columnName) {
-			return true;
-		}
-	}
-	return false;
-}
-
-function ensureSessionMetricsColumn() {
-	if (!hasTableColumn(TABLE_SESSION, "metrics_json")) {
-		DB.exec(`ALTER TABLE ${TABLE_SESSION} ADD COLUMN metrics_json TEXT NOT NULL DEFAULT '';`);
-	}
-}
-
-function ensureSessionWorkModeColumn() {
-	if (!hasTableColumn(TABLE_SESSION, "work_mode")) {
-		DB.exec(`ALTER TABLE ${TABLE_SESSION} ADD COLUMN work_mode TEXT NOT NULL DEFAULT 'code';`);
-	}
-}
-
-function ensureMessageDisplayContentColumn() {
-	if (!hasTableColumn(TABLE_MESSAGE, "display_content")) {
-		DB.exec(`ALTER TABLE ${TABLE_MESSAGE} ADD COLUMN display_content TEXT NOT NULL DEFAULT '';`);
-	}
-}
-
-function recreateSchema() {
-	DB.exec(`DROP TABLE IF EXISTS ${TABLE_STEP};`);
-	DB.exec(`DROP TABLE IF EXISTS ${TABLE_MESSAGE};`);
-	DB.exec(`DROP TABLE IF EXISTS AgentQuestionnaire;`);
-	DB.exec(`DROP TABLE IF EXISTS ${TABLE_SESSION};`);
-	DB.exec(`CREATE TABLE IF NOT EXISTS ${TABLE_SESSION}(
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		project_root TEXT NOT NULL,
-		title TEXT NOT NULL DEFAULT '',
-		kind TEXT NOT NULL DEFAULT 'main',
-		root_session_id INTEGER NOT NULL DEFAULT 0,
-		parent_session_id INTEGER,
-		memory_scope TEXT NOT NULL DEFAULT 'main',
-		status TEXT NOT NULL DEFAULT 'IDLE',
-			current_task_id INTEGER,
-			current_task_status TEXT NOT NULL DEFAULT 'IDLE',
-			created_at INTEGER NOT NULL,
-			updated_at INTEGER NOT NULL,
-			metrics_json TEXT NOT NULL DEFAULT '',
-			work_mode TEXT NOT NULL DEFAULT 'code'
-		);`);
-	DB.exec(`CREATE INDEX IF NOT EXISTS idx_agent_session_project_root ON ${TABLE_SESSION}(project_root, updated_at DESC);`);
-	DB.exec(`CREATE TABLE IF NOT EXISTS ${TABLE_MESSAGE}(
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		session_id INTEGER NOT NULL,
-		task_id INTEGER,
-		role TEXT NOT NULL,
-		content TEXT NOT NULL DEFAULT '',
-		display_content TEXT NOT NULL DEFAULT '',
-		created_at INTEGER NOT NULL,
-		updated_at INTEGER NOT NULL
-	);`);
-	DB.exec(`CREATE INDEX IF NOT EXISTS idx_agent_session_message_sid_id ON ${TABLE_MESSAGE}(session_id, id);`);
-	DB.exec(`CREATE TABLE IF NOT EXISTS ${TABLE_STEP}(
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		session_id INTEGER NOT NULL,
-		task_id INTEGER NOT NULL,
-		step INTEGER NOT NULL,
-		tool TEXT NOT NULL DEFAULT '',
-		status TEXT NOT NULL DEFAULT 'PENDING',
-		reason TEXT NOT NULL DEFAULT '',
-		reasoning_content TEXT NOT NULL DEFAULT '',
-		params_json TEXT NOT NULL DEFAULT '',
-		result_json TEXT NOT NULL DEFAULT '',
-		checkpoint_id INTEGER,
-		checkpoint_seq INTEGER,
-		files_json TEXT NOT NULL DEFAULT '',
-		created_at INTEGER NOT NULL,
-		updated_at INTEGER NOT NULL
-	);`);
-	DB.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_agent_session_step_unique ON ${TABLE_STEP}(session_id, task_id, step);`);
-	DB.exec(`CREATE INDEX IF NOT EXISTS idx_agent_session_step_sid_task_step ON ${TABLE_STEP}(session_id, task_id, step);`);
-	setSchemaVersion(AGENT_SESSION_SCHEMA_VERSION);
-}
-
-// initialize tables
-{
-	if (getSchemaVersion() !== AGENT_SESSION_SCHEMA_VERSION) {
-		recreateSchema();
-	} else {
-		DB.exec(`CREATE TABLE IF NOT EXISTS ${TABLE_SESSION}(
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			project_root TEXT NOT NULL,
-			title TEXT NOT NULL DEFAULT '',
-			kind TEXT NOT NULL DEFAULT 'main',
-			root_session_id INTEGER NOT NULL DEFAULT 0,
-			parent_session_id INTEGER,
-			memory_scope TEXT NOT NULL DEFAULT 'main',
-			status TEXT NOT NULL DEFAULT 'IDLE',
-			current_task_id INTEGER,
-			current_task_status TEXT NOT NULL DEFAULT 'IDLE',
-			created_at INTEGER NOT NULL,
-			updated_at INTEGER NOT NULL,
-			metrics_json TEXT NOT NULL DEFAULT '',
-			work_mode TEXT NOT NULL DEFAULT 'code'
-		);`);
-		ensureSessionMetricsColumn();
-		ensureSessionWorkModeColumn();
-		DB.exec(`CREATE INDEX IF NOT EXISTS idx_agent_session_project_root ON ${TABLE_SESSION}(project_root, updated_at DESC);`);
-		DB.exec(`CREATE TABLE IF NOT EXISTS ${TABLE_MESSAGE}(
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			session_id INTEGER NOT NULL,
-			task_id INTEGER,
-			role TEXT NOT NULL,
-			content TEXT NOT NULL DEFAULT '',
-			display_content TEXT NOT NULL DEFAULT '',
-			created_at INTEGER NOT NULL,
-			updated_at INTEGER NOT NULL
-		);`);
-		ensureMessageDisplayContentColumn();
-		DB.exec(`CREATE INDEX IF NOT EXISTS idx_agent_session_message_sid_id ON ${TABLE_MESSAGE}(session_id, id);`);
-		DB.exec(`CREATE TABLE IF NOT EXISTS ${TABLE_STEP}(
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			session_id INTEGER NOT NULL,
-			task_id INTEGER NOT NULL,
-			step INTEGER NOT NULL,
-			tool TEXT NOT NULL DEFAULT '',
-			status TEXT NOT NULL DEFAULT 'PENDING',
-			reason TEXT NOT NULL DEFAULT '',
-			reasoning_content TEXT NOT NULL DEFAULT '',
-			params_json TEXT NOT NULL DEFAULT '',
-			result_json TEXT NOT NULL DEFAULT '',
-			checkpoint_id INTEGER,
-			checkpoint_seq INTEGER,
-			files_json TEXT NOT NULL DEFAULT '',
-			created_at INTEGER NOT NULL,
-			updated_at INTEGER NOT NULL
-		);`);
-		DB.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_agent_session_step_unique ON ${TABLE_STEP}(session_id, task_id, step);`);
-		DB.exec(`CREATE INDEX IF NOT EXISTS idx_agent_session_step_sid_task_step ON ${TABLE_STEP}(session_id, task_id, step);`);
-	}
-	// Questionnaire state is intentionally ephemeral and file-backed. Remove the
-	// legacy table after upgrading from builds that briefly persisted it in DB.
-	DB.exec(`DROP TABLE IF EXISTS AgentQuestionnaire;`);
-}
-
 export function createSession(projectRoot: string, title = "") {
+	const storage = requireAgentStorage();
+	if (!storage.success) return storage;
 	if (!isValidProjectRoot(projectRoot)) {
 		return { success: false as const, message: "invalid projectRoot" };
 	}
@@ -2190,6 +2103,8 @@ export function createSession(projectRoot: string, title = "") {
 }
 
 export function createSubSession(parentSessionId: number, title = "") {
+	const storage = requireAgentStorage();
+	if (!storage.success) return storage;
 	const parent = getSessionItem(parentSessionId);
 	if (!parent) {
 		return { success: false as const, message: "parent session not found" };
@@ -2341,6 +2256,7 @@ export function getSession(sessionId: number): AgentSessionDetailResult {
 	}
 	const restored = restorePendingQuestionnaireState(session);
 	const normalizedSession = normalizeSessionRuntimeState(restored.session);
+	cleanupOrphanHeavyDataBatch();
 	const relatedSessions = listRelatedSessions(sessionId);
 	sanitizeStoredSteps(sessionId);
 	const messages = queryRows(
@@ -2422,6 +2338,9 @@ function appendSubAgentHandoffStep(session: AgentSessionItem, taskId: number, re
 	if (!queueResult) {
 		Log("Warn", `[AgentSession] failed to queue sub-agent handoff root=${rootSession.id} source=${session.id}`);
 		return;
+	}
+	if (rootSession.currentTaskId && rootSession.currentTaskId > 0) {
+		addTaskReference(rootSession.currentTaskId, taskId);
 	}
 	if (!(rootSession.currentTaskStatus === "RUNNING" && rootSession.currentTaskId && activeStopTokens[rootSession.currentTaskId])) {
 		flushPendingSubAgentHandoffs(rootSession);
@@ -2668,6 +2587,7 @@ function startPromptTask(
 		removeStoppedTaskSummary(session);
 	}
 	const taskId = taskRes.taskId;
+	const previousTaskId = options?.existingTaskId === undefined ? session.currentTaskId : undefined;
 	const useChineseResponse = getDefaultUseChineseResponse();
 	if (existingUserMessageId !== undefined) {
 		updateUserMessageForTask(existingUserMessageId, normalizedPrompt, taskId);
@@ -2677,6 +2597,9 @@ function startPromptTask(
 	const stopToken: StopToken = { stopped: false };
 	activeStopTokens[taskId] = stopToken;
 	setSessionState(session.id, "RUNNING", taskId, "RUNNING");
+	if (previousTaskId && previousTaskId !== taskId) {
+		cleanupTaskHeavyData(previousTaskId);
+	}
 	runCodingAgent({
 		prompt: normalizedPrompt,
 		resumeConversation: options?.resumeConversation,
@@ -3127,6 +3050,28 @@ export function stopSessionTask(sessionId: number) {
 
 export function getCurrentTaskId(sessionId: number): number | undefined {
 	return getSessionItem(sessionId)?.currentTaskId;
+}
+
+export function validateTaskAccess(sessionId: number, taskId: number) {
+	const session = getSessionItem(sessionId);
+	if (!session) return { success: false as const, message: "session not found" };
+	if (taskId <= 0 || getSessionOperableTaskIds(sessionId).indexOf(taskId) < 0) {
+		return { success: false as const, message: "task is not operable for this session" };
+	}
+	return { success: true as const, session };
+}
+
+export function validateCheckpointAccess(sessionId: number, checkpointId: number) {
+	if (checkpointId <= 0) {
+		return { success: false as const, message: "invalid checkpointId" };
+	}
+	const checkpoint = Tools.getCheckpoint(checkpointId);
+	if (!checkpoint) {
+		return { success: false as const, message: "checkpoint not found" };
+	}
+	const taskAccess = validateTaskAccess(sessionId, checkpoint.taskId);
+	if (!taskAccess.success) return taskAccess;
+	return { success: true as const, session: taskAccess.session, checkpoint };
 }
 
 export function listRunningSessions(): AgentRunningSessionListResult {

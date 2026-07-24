@@ -1659,7 +1659,7 @@ export const agentTaskStop = (req: { sessionId: number; }) => {
 	return post<{ success: boolean; message?: string; }>("/agent/task/stop", req);
 };
 
-export const agentCheckpointList = (req: { sessionId?: number; taskId?: number; }) => {
+export const agentCheckpointList = (req: { sessionId: number; taskId?: number; }) => {
 	return post<{
 		success: true;
 		taskId: number;
@@ -1670,7 +1670,7 @@ export const agentCheckpointList = (req: { sessionId?: number; taskId?: number; 
 	}>("/agent/checkpoint/list", req);
 };
 
-export const agentCheckpointDiff = (req: { checkpointId: number; }) => {
+export const agentCheckpointDiff = (req: { sessionId: number; checkpointId: number; }) => {
 	return post<{
 		success: true;
 		files: AgentCheckpointDiffFile[];
@@ -1680,7 +1680,7 @@ export const agentCheckpointDiff = (req: { checkpointId: number; }) => {
 	}>("/agent/checkpoint/diff", req);
 };
 
-export const agentTaskDiff = (req: { taskId: number; }) => {
+export const agentTaskDiff = (req: { sessionId: number; taskId: number; }) => {
 	return post<{
 		success: true;
 		files: AgentCheckpointDiffFile[];

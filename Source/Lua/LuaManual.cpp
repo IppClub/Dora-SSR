@@ -2636,6 +2636,11 @@ int DB_exec(lua_State* L) {
 #endif
 		auto sql = tolua_toslice(L, 2, nullptr);
 		std::deque<std::vector<Own<Value>>> rows;
+		if (lua_gettop(L) == 2) {
+			int rowChanged = self->exec(sql);
+			lua_pushinteger(L, rowChanged);
+			return 1;
+		}
 		if (lua_istable(L, 3) != 0) {
 			int rowCount = s_cast<int>(lua_rawlen(L, 3));
 			if (rowCount == 0) {

@@ -958,7 +958,10 @@ export default function AgentPanel(props: AgentPanelProps) {
 		if (diffs[step.checkpointId]) return;
 		setDiffLoadingId(step.checkpointId);
 		try {
-			const res = await Service.agentCheckpointDiff({ checkpointId: step.checkpointId });
+			const res = await Service.agentCheckpointDiff({
+				sessionId: selectedSessionId,
+				checkpointId: step.checkpointId,
+			});
 			if (!res.success) {
 				addAlert?.(res.message, "error");
 				return;
@@ -1000,7 +1003,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 		if (taskDiffs[taskId]) return;
 		setTaskDiffLoadingId(taskId);
 		try {
-			const res = await Service.agentTaskDiff({ taskId });
+			const res = await Service.agentTaskDiff({ sessionId: selectedSessionId, taskId });
 			if (!res.success) {
 				addAlert?.(res.message, "error");
 				return;
