@@ -44,7 +44,6 @@
 		"postcss-normalize": "^13.0.1",
 		"postcss-preset-env": "^10.6.1",
 		"prompts": "^2.4.2",
-		"rc-tree": "^5.13.1",
 		"react": "^19.2.6",
 		"react-dom": "^19.2.6",
 		"react-i18next": "^17.0.8",

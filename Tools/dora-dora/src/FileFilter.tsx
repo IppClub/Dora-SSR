@@ -25,13 +25,15 @@ export interface FileFilterProps {
 const FileFilter = (props: FileFilterProps) => {
 	const { t } = useTranslation();
 	const filterOptions = (options: FilterOption[], state: { inputValue: string }) => {
+		const input = state.inputValue.trim();
+		if (input === "") return options.slice(0, 100);
 		return matchSorter(
 			options,
-			state.inputValue,
+			input,
 			{
 				keys: ['title'],
 			}
-		);
+		).slice(0, 200);
 	};
 	return <Autocomplete
 		forcePopupIcon={false}

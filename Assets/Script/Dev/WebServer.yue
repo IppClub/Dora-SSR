@@ -1367,7 +1367,7 @@ HttpServer\post "/list", (req): success: false ->
 			visitAssets = (path, folder) ->
 				dirs = Content\getDirs path
 				for dir in *dirs
-					continue if dir\match "^%."
+					continue if dir\match("^%.") or dir == "node_modules"
 					current = if folder == ""
 						dir
 					else
@@ -1917,70 +1917,129 @@ extentionLevels =
 	xml: 1
 	lua: 0
 
+visitAssets = (path, workspace, builtin, recursive = true) ->
+	children = nil
+	dirs = Content\getDirs path
+	for dir in *dirs
+		if workspace
+			if dir in [".upload", ".download", ".www", ".build", ".git", ".cache", "node_modules"]
+				continue
+		elseif dir == ".git"
+			continue
+		children = [] unless children
+		dirPath = Path path, dir
+		if recursive
+			children[] = visitAssets dirPath, workspace, builtin
+		else
+			children[] = {
+				key: dirPath
+				dir: true
+				title: dir
+				:builtin
+				isLeaf: false
+			}
+	files = Content\getFiles path
+	names = {}
+	for file in *files
+		if file in [".DS_Store",]
+			continue
+		name = Path\getName file
+		if ext := names[name]
+			lv1 = extentionLevels[ext] ?? -1
+			ext = Path\getExt file
+			lv2 = extentionLevels[ext] ?? -1
+			if lv2 > lv1
+				names[name] = ext
+			elseif lv2 == lv1
+				names[name .. '.' .. ext] = ""
+		else
+			ext = Path\getExt file
+			if not extentionLevels[ext]
+				names[file] = ""
+			else
+				names[name] = ext
+	files = [ext == '' and name or name .. '.' .. ext for name, ext in pairs names]
+	for file in *files
+		children = [] unless children
+		children[] = {
+			key: Path path, file
+			dir: false
+			title: file
+			:builtin
+		}
+	if children
+		table.sort children, (a, b) ->
+			if a.dir == b.dir
+				a.title < b.title
+			else
+				a.dir
+	{
+		key: path
+		dir: true
+		title: Path\getFilename path
+		:builtin
+		isLeaf: not children
+		:children
+	}
+
+HttpServer\post "/assets/children", (req): success: false ->
+	switch req when {body: {:path}}
+		return success: false unless relativeToRoot(path, Content.writablePath) ~= nil
+		return success: false unless Content\exist(path) and Content\isdir(path)
+		node = visitAssets path, true, nil, false
+		return success: true, children: node.children or {}
+
+HttpServer\post "/assets/files", (req): success: false ->
+	switch req when {body: {:path}}
+		workspace = relativeToRoot(path, Content.writablePath) ~= nil
+		builtin = relativeToRoot(path, Content.assetPath) ~= nil
+		return success: false unless workspace or builtin
+		return success: false unless Content\exist(path) and Content\isdir(path)
+		node = visitAssets path, workspace, builtin, true
+		files = {}
+		visit = (item) ->
+			if item.dir
+				if item.children
+					for child in *item.children
+						visit child
+			else
+				files[] = item.key
+		visit node
+		return success: true, :files
+
 HttpServer\post "/assets", ->
-	import "Enum" as :$Enum
-	macro Tag = $Enum Workspace, Builtin
 	import "Script.Dev.Entry"
 	engineDev = Entry.getEngineDev!
-	visitAssets = (path, tag) ->
-		isWorkspace = tag == $Tag Workspace
-		builtin = if tag == $Tag Builtin then true else nil
-		children = nil
-		dirs = Content\getDirs path
-		for dir in *dirs
-			if isWorkspace
-				if dir in [".upload", ".download", ".www", ".build", ".git", ".cache"]
-					continue
-			elseif dir == ".git"
-				continue
-			children = [] unless children
-			children[] = visitAssets Path path, dir
-		files = Content\getFiles path
-		names = {}
-		for file in *files
-			if file in [".DS_Store",]
-				continue
-			name = Path\getName file
-			if ext := names[name]
-				lv1 = extentionLevels[ext] ?? -1
-				ext = Path\getExt file
-				lv2 = extentionLevels[ext] ?? -1
-				if lv2 > lv1
-					names[name] = ext
-				elseif lv2 == lv1
-					names[name .. '.' .. ext] = ""
-			else
-				ext = Path\getExt file
-				if not extentionLevels[ext]
-					names[file] = ""
-				else
-					names[name] = ext
-		files = [ext == '' and name or name .. '.' .. ext for name, ext in pairs names]
-		for file in *files
-			children = [] unless children
-			children[] = {
-				key: Path path, file
-				dir: false
-				title: file
-				:builtin
-			}
-		if children
-			table.sort children, (a, b) ->
-				if a.dir == b.dir
-					a.title < b.title
-				else
-					a.dir
-		if isWorkspace and children
-			children
-		else
-			{
-				key: path
-				dir: true
-				title: Path\getFilename path
-				:builtin
-				:children
-			}
+	workspace = visitAssets Content.writablePath, true, nil, false
 	zh = App.locale\match("^zh")?
+	readme = visitAssets (Path Content.assetPath, "Doc", zh and "zh-Hans" or "en"), false, true
+	readme.title = zh and "说明文档" or "Readme"
+	apiDoc = visitAssets (Path Content.assetPath, "Script", "Lib", "Dora", zh and "zh-Hans" or "en"), false, true
+	apiDoc.title = zh and "接口文档" or "API Doc"
+	tools = visitAssets (Path Content.assetPath, "Script", "Tools"), false, true
+	tools.title = zh and "开发工具" or "Tools"
+	font = visitAssets (Path Content.assetPath, "Font"), false, true
+	font.title = zh and "字体" or "Font"
+	lib = visitAssets (Path Content.assetPath, "Script", "Lib"), false, true
+	lib.title = zh and "程序库" or "Lib"
+	if engineDev
+		for child in *lib.children
+			continue unless child.title == "Dora"
+			title = zh and "zh-Hans" or "en"
+			child.children = [c for c in *child.children when c.title ~= title]
+			break
+	else
+		lib.children = [child for child in *lib.children when child.title ~= "Dora"]
+	builtinChildren = [readme, apiDoc, tools, font, lib]
+	if engineDev
+		dev = visitAssets (Path Content.assetPath, "Script", "Dev"), false, true
+		dev.children[] = {
+			key: Path Content.assetPath, "Script", "init.yue"
+			dir: false
+			builtin: true
+			title: "init.yue"
+		}
+		builtinChildren[] = dev
 	{
 		key: Content.writablePath
 		dir: true
@@ -1992,36 +2051,9 @@ HttpServer\post "/assets", ->
 				dir: true
 				builtin: true
 				title: zh and "内置资源" or "Built-in"
-				children: [
-					with visitAssets (Path Content.assetPath, "Doc", zh and "zh-Hans" or "en"), $Tag Builtin
-						.title = zh and "说明文档" or "Readme"
-					with visitAssets (Path Content.assetPath, "Script", "Lib", "Dora", zh and "zh-Hans" or "en"), $Tag Builtin
-						.title = zh and "接口文档" or "API Doc"
-					with visitAssets (Path Content.assetPath, "Script", "Tools"), $Tag Builtin
-						.title = zh and "开发工具" or "Tools"
-					with visitAssets (Path Content.assetPath, "Font"), $Tag Builtin
-						.title = zh and "字体" or "Font"
-					with visitAssets (Path Content.assetPath, "Script", "Lib"), $Tag Builtin
-						.title = zh and "程序库" or "Lib"
-						if engineDev
-							for child in *.children
-								continue unless child.title == "Dora"
-								title = zh and "zh-Hans" or "en"
-								child.children = [c for c in *child.children when c.title ~= title]
-								break
-						else
-							.children = [child for child in *.children when child.title ~= "Dora"]
-					if engineDev
-						with visitAssets (Path Content.assetPath, "Script", "Dev"), $Tag Builtin
-							.children[] = {
-								key: Path Content.assetPath, "Script", "init.yue"
-								dir: false
-								builtin: true
-								title: "init.yue"
-							}
-				]
+				children: builtinChildren
 			}
-			...visitAssets Content.writablePath, $Tag Workspace
+			...workspace.children or {}
 		]
 	}
 

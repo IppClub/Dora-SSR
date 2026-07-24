@@ -100,13 +100,20 @@ export const StyledTab = styled((props: StyledTabProps) => {
 							component="span"
 							aria-label="Close tab"
 							onClick={(event) => {
+								event.preventDefault();
 								event.stopPropagation();
 								if (onTabClose) {
 									onTabClose(tooltip);
 								}
 							}}
-							onMouseDown={(event) => event.stopPropagation()}
-							onPointerDown={(event) => event.stopPropagation()}
+							onMouseDown={(event) => {
+								event.preventDefault();
+								event.stopPropagation();
+							}}
+							onPointerDown={(event) => {
+								event.preventDefault();
+								event.stopPropagation();
+							}}
 							sx={{
 								display: 'inline-flex',
 								alignItems: 'center',

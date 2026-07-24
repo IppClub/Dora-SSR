@@ -6,15 +6,13 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-import React, { memo, useState } from 'react';
+import React, { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { StyledMenu, StyledMenuItem } from './Menu';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import Refresh from '@mui/icons-material/Refresh';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import {
-	AiFillCaretRight,
-	AiFillCaretDown,
 	AiOutlineFolder,
 	AiOutlineFolderOpen,
 	AiOutlineFile,
@@ -33,11 +31,9 @@ import { GoFileCode, GoChecklist } from "react-icons/go";
 import { FcImageFile } from 'react-icons/fc';
 import { SiWebassembly } from 'react-icons/si';
 import { BsGrid3X3Gap } from 'react-icons/bs';
-import Tree from 'rc-tree';
-import "./rctree.css";
-import { TreeNodeProps } from "rc-tree/lib/TreeNode";
-import { DataNode, EventDataNode, Key } from "rc-tree/lib/interface";
-import { NodeDragEventParams } from 'rc-tree/lib/contextTypes';
+import { CaretDownFilled } from '@ant-design/icons';
+import { ConfigProvider, Tree, theme as antdTheme } from 'antd';
+import type { TreeDataNode, TreeNodeProps, TreeProps } from 'antd';
 import luaLogo from './lua.png';
 import yueLogo from './yuescript.png';
 import tealLogo from './teal.png';
@@ -58,7 +54,7 @@ import { useTranslation } from 'react-i18next';
 import Info from './Info';
 import { Color } from './Theme';
 
-export interface TreeDataType extends DataNode {
+export interface TreeDataType extends TreeDataNode {
 	key: string;
 	dir: boolean;
 	root?: boolean;
@@ -67,25 +63,46 @@ export interface TreeDataType extends DataNode {
 	children?: TreeDataType[];
 };
 
+const buildVisibleTreeData = (
+	nodes: TreeDataType[],
+	expandedKeys: ReadonlySet<string>
+): TreeDataType[] => nodes.map((node) => {
+	if (!node.dir) {
+		return node.isLeaf ? node : { ...node, isLeaf: true };
+	}
+	if (node.children === undefined || node.children.length === 0) {
+		return node;
+	}
+	return {
+		...node,
+		isLeaf: false,
+		children: expandedKeys.has(node.key)
+			? buildVisibleTreeData(node.children, expandedKeys)
+			: undefined,
+	};
+});
+
+const collectLoadedKeys = (nodes: TreeDataType[], loadedKeys: string[]) => {
+	for (const node of nodes) {
+		if (node.dir && node.children !== undefined) {
+			loadedKeys.push(node.key);
+			collectLoadedKeys(node.children, loadedKeys);
+		}
+	}
+};
+
 const switcherIcon = (props: TreeNodeProps) => {
-	if (props.data !== undefined) {
-		const data = props.data as TreeDataType;
-		if (data.root) {
-			return <Refresh sx={{
-				width: 14,
-				height: 14,
-			}} />;
-		}
-		if (!data.dir) {
-			return null;
-		} else if (data.children === undefined || data.children.length == 0) {
-			return null;
-		}
+	if (props.isLeaf) return null;
+	if ((props.data as TreeDataType | undefined)?.root) {
+		return <Refresh sx={{ fontSize: 14 }} />;
 	}
-	if (props.expanded) {
-		return <AiFillCaretDown />;
-	}
-	return <AiFillCaretRight />;
+	return (
+		<CaretDownFilled style={{
+			fontSize: 10,
+			transform: `rotate(${props.expanded ? 0 : -90}deg)`,
+			transition: 'transform 0.3s',
+		}} />
+	);
 };
 
 const fileIcon = (props: TreeNodeProps) => {
@@ -150,75 +167,77 @@ const fileIcon = (props: TreeNodeProps) => {
 	return <AiOutlineFile />;
 };
 
-const treeStyle = `
-	.rc-tree-child-tree {
-		display: block;
-	}
-	.rc-node-motion {
-		transition: all .3s;
-		overflow-y: hidden;
-		overflow-x: hidden;
-	}
-`;
-
-const motion = {
-	motionName: 'rc-node-motion',
-	motionAppear: false,
-	onAppearStart: () => ({ height: 0 }),
-	onAppearActive: (node: HTMLElement) => ({ height: node.scrollHeight - 25 }),
-	onLeaveStart: (node: HTMLElement) => ({ height: node.offsetHeight }),
-	onLeaveActive: () => ({ height: 0 }),
-};
-
 export type TreeMenuEvent = "New" | "Rename" | "Delete" | "Upload" | "Download" | "Cancel" | "Unzip" | "Pack Atlas" | "View Compiled" | "Copy Path" | "Build" | "Obfuscate" | "Declaration" | "Update Dora" | "Dora";
 
 export interface FileTreeProps {
 	selectedKeys: string[];
 	expandedKeys: string[];
 	treeData: TreeDataType[];
+	scrollRequest: number;
 	onSelect: (selectedNodes: TreeDataType[]) => void;
 	onMenuClick: (event: TreeMenuEvent, data?: TreeDataType) => void;
 	onExpand: (key: string[], info?: { node: TreeDataType; expanded: boolean }) => void;
+	loadData: (node: TreeDataType) => Promise<void>;
 	onDrop: (self: TreeDataType, target: TreeDataType) => void;
 };
 
 export default memo(function FileTree(props: FileTreeProps) {
-	const { treeData, expandedKeys, selectedKeys } = props;
+	const { treeData, expandedKeys, selectedKeys, scrollRequest } = props;
+	const visibleTreeData = useMemo(
+		() => buildVisibleTreeData(treeData, new Set(expandedKeys)),
+		[treeData, expandedKeys]
+	);
+	const loadedKeys = useMemo(() => {
+		const keys: string[] = [];
+		collectLoadedKeys(treeData, keys);
+		return keys;
+	}, [treeData]);
+	const scrollContainerRef = useRef<HTMLElement>(null);
 	const [anchorItem, setAnchorItem] = useState<null | { target: Element, data: TreeDataType }>(null);
 	const [menuOpen, setMenuOpen] = useState(false);
 	const { t } = useTranslation();
 
-	function onRightClick(info: {
-		event: React.MouseEvent;
-		node: EventDataNode<TreeDataType>;
-	}) {
+	useEffect(() => {
+		if (scrollRequest === 0) return;
+		const frame = window.requestAnimationFrame(() => {
+			const selectedItem = scrollContainerRef.current?.querySelector<HTMLElement>(
+				'[role="treeitem"][aria-selected="true"]'
+			);
+			selectedItem?.scrollIntoView({
+				block: "nearest",
+				inline: "nearest",
+			});
+		});
+		return () => window.cancelAnimationFrame(frame);
+	}, [scrollRequest]);
+
+	const onRightClick: NonNullable<TreeProps<TreeDataType>["onRightClick"]> = (info) => {
 		setAnchorItem({ target: info.event.currentTarget, data: info.node });
 		setMenuOpen(true);
-	}
+	};
 
 	const handleClose = (event: TreeMenuEvent, data?: TreeDataType) => {
 		props.onMenuClick(event, data);
 		setMenuOpen(false);
 	};
 
-	const onSelect = (_keys: Key[], info: { selectedNodes: TreeDataType[] }) => {
+	const onSelect: NonNullable<TreeProps<TreeDataType>["onSelect"]> = (_keys, info) => {
 		props.onSelect(info.selectedNodes);
 	};
 
-	const onExpand = (keys: Key[], info: { node: EventDataNode<TreeDataType>; expanded: boolean }) => {
+	const onExpand: NonNullable<TreeProps<TreeDataType>["onExpand"]> = (keys, info) => {
 		props.onExpand(
 			keys.map(k => k.toString()),
 			{ node: info.node, expanded: info.expanded }
 		);
 	};
 
-	const onDrop = (info: NodeDragEventParams<TreeDataType> & {
-		dragNode: EventDataNode<TreeDataType>;
-		dragNodesKeys: Key[];
-		dropPosition: number;
-		dropToGap: boolean;
-	}) => {
+	const onDrop: NonNullable<TreeProps<TreeDataType>["onDrop"]> = (info) => {
 		props.onDrop(info.dragNode, info.node);
+	};
+
+	const loadData: NonNullable<TreeProps<TreeDataType>["loadData"]> = (node) => {
+		return props.loadData(node);
 	};
 
 	const ext = anchorItem ? Info.path.extname(anchorItem.data.key).toLowerCase() : "";
@@ -243,6 +262,7 @@ export default memo(function FileTree(props: FileTreeProps) {
 
 	return (
 		<MacScrollbar
+			ref={scrollContainerRef}
 			skin='dark'
 			style={{
 				color: Color.Primary,
@@ -251,7 +271,6 @@ export default memo(function FileTree(props: FileTreeProps) {
 				height: '100%',
 			}}
 		>
-			<style dangerouslySetInnerHTML={{ __html: treeStyle }} />
 			<StyledMenu
 				id="dora-menu"
 				anchorEl={anchorItem?.target}
@@ -402,49 +421,98 @@ export default memo(function FileTree(props: FileTreeProps) {
 					</StyledMenuItem> : null
 				}
 			</StyledMenu>
-			<Tree
-				onRightClick={onRightClick}
-				showIcon
-				showLine
-				virtual
-				icon={fileIcon}
-				switcherIcon={switcherIcon}
-				motion={motion}
-				draggable
-				onDrop={onDrop}
-				expandedKeys={expandedKeys}
-				treeData={treeData}
-				onSelect={onSelect}
-				onExpand={onExpand}
-				selectedKeys={selectedKeys}
-				dropIndicatorRender={() => <div />}
-			/>
+			<ConfigProvider
+				theme={{
+					algorithm: antdTheme.darkAlgorithm,
+					token: {
+						colorPrimary: Color.Theme,
+						colorBgContainer: "transparent",
+						colorText: Color.Primary,
+						paddingXS: 4,
+					},
+					components: {
+						Tree: {
+							titleHeight: 24,
+							indentSize: 18,
+							nodeHoverBg: Color.Theme + "22",
+							nodeHoverColor: Color.TextPrimary,
+							nodeSelectedBg: Color.Theme + "66",
+							nodeSelectedColor: Color.TextPrimary,
+						},
+					},
+				}}
+			>
+				<Tree<TreeDataType>
+					onRightClick={onRightClick}
+					showIcon
+					showLine
+					virtual
+					motion={false}
+					icon={fileIcon}
+					switcherIcon={switcherIcon}
+					switcherLoadingIcon={<CaretDownFilled style={{ fontSize: 10 }} />}
+					draggable={{ icon: false }}
+					onDrop={onDrop}
+					expandedKeys={expandedKeys}
+					treeData={visibleTreeData}
+					onSelect={onSelect}
+					onExpand={onExpand}
+					loadData={loadData}
+					loadedKeys={loadedKeys}
+					onLoad={() => { }}
+					selectedKeys={selectedKeys}
+					dropIndicatorRender={() => <div />}
+					styles={{
+						item: {
+							whiteSpace: "nowrap",
+						},
+						itemIcon: {
+							display: "inline-flex",
+							alignItems: "center",
+							justifyContent: "center",
+							width: 14,
+							flexShrink: 0,
+							marginInlineEnd: 4,
+							verticalAlign: "top",
+						},
+						itemTitle: {
+							whiteSpace: "nowrap",
+						},
+					}}
+					style={{
+						background: "transparent",
+						padding: 10,
+					}}
+				/>
+			</ConfigProvider>
 		</MacScrollbar>
 	);
 }, (prev, next) => {
 	if (prev.selectedKeys.length !== next.selectedKeys.length) {
 		return false;
 	}
-	prev.selectedKeys.sort();
-	next.selectedKeys.sort();
-	for (let i = 0; i < prev.selectedKeys.length; i++) {
-		if (prev.selectedKeys[i] !== next.selectedKeys[i]) {
+	const prevSelectedKeys = [...prev.selectedKeys].sort();
+	const nextSelectedKeys = [...next.selectedKeys].sort();
+	for (let i = 0; i < prevSelectedKeys.length; i++) {
+		if (prevSelectedKeys[i] !== nextSelectedKeys[i]) {
 			return false;
 		}
 	}
 	if (prev.expandedKeys.length !== next.expandedKeys.length) {
 		return false;
 	}
-	prev.expandedKeys.sort();
-	next.expandedKeys.sort();
-	for (let i = 0; i < prev.expandedKeys.length; i++) {
-		if (prev.expandedKeys[i] !== next.expandedKeys[i]) {
+	const prevExpandedKeys = [...prev.expandedKeys].sort();
+	const nextExpandedKeys = [...next.expandedKeys].sort();
+	for (let i = 0; i < prevExpandedKeys.length; i++) {
+		if (prevExpandedKeys[i] !== nextExpandedKeys[i]) {
 			return false;
 		}
 	}
 	return prev.treeData === next.treeData &&
+		prev.scrollRequest === next.scrollRequest &&
 		prev.onSelect === next.onSelect &&
 		prev.onMenuClick === next.onMenuClick &&
 		prev.onExpand === next.onExpand &&
+		prev.loadData === next.loadData &&
 		prev.onDrop === next.onDrop;
 });

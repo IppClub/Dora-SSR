@@ -568,6 +568,26 @@ export const assets = () => {
 	return post<TreeDataType>('/assets');
 };
 
+export type AssetChildrenResponse = {
+	success: true;
+	children: TreeDataType[];
+} | {
+	success: false;
+};
+export const assetChildren = (path: string) => {
+	return post<AssetChildrenResponse>('/assets/children', { path });
+};
+
+export type AssetFilesResponse = {
+	success: true;
+	files: string[];
+} | {
+	success: false;
+};
+export const assetFiles = (path: string) => {
+	return post<AssetFilesResponse>('/assets/files', { path });
+};
+
 // Entries
 
 export interface EntryLaunchInfo {
