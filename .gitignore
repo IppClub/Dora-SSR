@@ -90,11 +90,6 @@ Tools/tolua++/**/*.so
 # Ignore generated docs in assets
 Assets/Doc/zh-Hans
 Assets/Doc/en
-Docs/design
-!Docs/design/
-Docs/design/*
-!Docs/design/agent-database/
-!Docs/design/agent-database/*.md
 
 # xmake build cache
 .xmake/
