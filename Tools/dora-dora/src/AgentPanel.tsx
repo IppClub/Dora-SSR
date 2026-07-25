@@ -22,6 +22,7 @@ import AgentComposer from './AgentComposer';
 import AgentStepList from './AgentStepList';
 import AgentChangeSetSummaryCard from './AgentChangeSetSummary';
 import AgentQuestionnaire from './AgentQuestionnaire';
+import doraAgent from './dora-agent.png';
 
 const AGENT_LLM_CONFIG_STORAGE_KEY = "dora.agent.llmConfigId";
 
@@ -1048,15 +1049,13 @@ export default function AgentPanel(props: AgentPanelProps) {
 						minWidth: 38,
 						height: 28,
 						px: 1.1,
-						borderRadius: 999,
-						borderColor: selected ? "rgba(250,192,61,0.45)" : "rgba(255,255,255,0.14)",
-						backgroundColor: selected ? "rgba(250,192,61,0.22)" : "rgba(24,24,24,0.46)",
-						backdropFilter: "blur(10px)",
-						color: selected ? Color.TextPrimary : Color.TextSecondary,
-						boxShadow: selected ? "0 0 0 1px rgba(250,192,61,0.1) inset" : "none",
+						borderRadius: 1.5,
+						borderColor: selected ? `${Color.Theme}66` : Color.Line,
+						backgroundColor: selected ? Color.ThemeMuted : "transparent",
+						color: selected ? Color.Theme : Color.TextSecondary,
 						"&:hover": {
-							borderColor: selected ? "rgba(250,192,61,0.58)" : "rgba(255,255,255,0.22)",
-							backgroundColor: selected ? "rgba(250,192,61,0.28)" : "rgba(255,255,255,0.08)",
+							borderColor: selected ? `${Color.Theme}88` : Color.LineStrong,
+							backgroundColor: selected ? `${Color.Theme}2a` : Color.SurfaceHover,
 						},
 					}}
 				>
@@ -1066,6 +1065,11 @@ export default function AgentPanel(props: AgentPanelProps) {
 			);
 		});
 	}, [orderedRelatedSessions, selectedSessionId, tabLabelMap]);
+	const showEmptyState = messages.length === 0
+		&& steps.length === 0
+		&& !showSummaryShimmer
+		&& pendingQuestionnaire === null;
+	const emptyStateMinHeight = Math.max(260, height - 390);
 
 	return (
 		<Box sx={{ display: "flex", flexDirection: "column", height, position: "relative" }}>
@@ -1099,11 +1103,92 @@ export default function AgentPanel(props: AgentPanelProps) {
 							/>
 						) : null}
 					</Stack>
-				</Box>
+					</Box>
+				) : null}
+			{orderedRelatedSessions.length > 1 ? (
+				<Stack
+					direction="row"
+					spacing={0.75}
+					alignItems="center"
+					sx={{
+						px: 3,
+						py: 1,
+						borderBottom: `1px solid ${Color.Line}`,
+						backgroundColor: Color.Background,
+						flexShrink: 0,
+					}}
+				>
+					<Typography variant="caption" sx={{ color: Color.TextSecondary, mr: 0.5 }}>
+						{t("agent.sessions")}
+					</Typography>
+					{tabButtons}
+				</Stack>
 			) : null}
 			<MacScrollbar ref={scrollRef} skin="dark" style={{ flex: 1, minHeight: 0 }}>
-				<Box ref={contentRef} sx={{ px: 3, py: 3 }}>
+				<Box ref={contentRef} sx={{ px: 3, py: 3, width: "100%", maxWidth: 1040, mx: "auto", boxSizing: "border-box" }}>
 					<Stack spacing={4}>
+						{showEmptyState ? (
+							<Box
+								sx={{
+									minHeight: emptyStateMinHeight,
+									display: "flex",
+									alignItems: "center",
+									justifyContent: "center",
+									textAlign: "center",
+								}}
+							>
+								<Stack spacing={2.25} alignItems="center" sx={{ maxWidth: 620 }}>
+									<Box
+										component="img"
+										src={doraAgent}
+										alt=""
+										aria-hidden
+										sx={{
+											width: 68,
+											height: 68,
+											objectFit: "contain",
+											imageRendering: "pixelated",
+											filter: `drop-shadow(0 8px 16px ${Color.Theme}20)`,
+										}}
+									/>
+									<Box>
+										<Typography variant="h5" sx={{ color: Color.TextPrimary, fontWeight: 650, letterSpacing: "-0.02em", mb: 0.75 }}>
+											{t("agent.emptyTitle")}
+										</Typography>
+										<Typography variant="body2" sx={{ color: Color.TextSecondary, lineHeight: 1.7 }}>
+											{t("agent.emptyDescription")}
+										</Typography>
+									</Box>
+									<Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" justifyContent="center">
+										{[
+											t("agent.suggestionUnderstand"),
+											t("agent.suggestionRun"),
+											t("agent.suggestionFeature"),
+										].map(suggestion => (
+											<Button
+												key={suggestion}
+												size="small"
+												variant="outlined"
+												onClick={() => setPrompt(suggestion)}
+												sx={{
+													color: Color.TextSecondary,
+													borderColor: Color.Line,
+													backgroundColor: Color.BackgroundDark,
+													px: 1.5,
+													"&:hover": {
+														color: Color.TextPrimary,
+														borderColor: Color.LineStrong,
+														backgroundColor: Color.SurfaceHover,
+													},
+												}}
+											>
+												{suggestion}
+											</Button>
+										))}
+									</Stack>
+								</Stack>
+							</Box>
+						) : null}
 						{session?.kind === "sub" && spawnInfo ? (
 							<Box
 								sx={{
@@ -1393,11 +1478,10 @@ export default function AgentPanel(props: AgentPanelProps) {
 				<AgentComposer
 					prompt={prompt}
 					loading={loading || continueLoadingTaskId !== null || finishHandoffLoadingTaskId !== null || stoppingTaskId !== null}
-					running={session?.currentTaskStatus === "RUNNING"}
-					stopping={stoppingTaskId !== null}
-					canStop={session?.currentTaskStatus === "RUNNING" && session?.currentTaskFinalizing !== true && stoppingTaskId === null}
-					tabButtons={tabButtons}
-					contextRatio={contextStats.contextRatio}
+						running={session?.currentTaskStatus === "RUNNING"}
+						stopping={stoppingTaskId !== null}
+						canStop={session?.currentTaskStatus === "RUNNING" && session?.currentTaskFinalizing !== true && stoppingTaskId === null}
+						contextRatio={contextStats.contextRatio}
 					usedTokens={contextStats.usedTokens}
 					maxTokens={contextStats.maxTokens}
 					actualUsage={contextStats.actualUsage}

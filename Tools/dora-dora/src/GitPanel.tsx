@@ -144,13 +144,12 @@ interface GitDiffPreviewState {
 
 const terminalStates = new Set<Service.GitJobState>(["done", "error", "canceled"]);
 
-const panelBorder = "#2b2b2b";
-const panelBg = "#1a1a1a";
-const surfaceBg = "#181818";
-const buttonBg = "#303030";
-const mutedText = "#8f9aa6";
-const primaryText = "#d7d7d7";
-const accent = "#fac03d";
+const panelBorder = Color.Line;
+const panelBg = Color.BackgroundDark;
+const buttonBg = Color.SurfaceRaised;
+const mutedText = Color.TextSecondary;
+const primaryText = Color.TextPrimary;
+const accent = Color.Theme;
 const accentSoft = "rgba(250, 192, 61, 0.16)";
 
 const disabledButtonSx = {
@@ -173,7 +172,7 @@ const toolButtonSx = {
 	height: 30,
 	minWidth: 30,
 	border: `1px solid ${panelBorder}`,
-	borderRadius: 0,
+	borderRadius: 1.25,
 	backgroundColor: buttonBg,
 	color: primaryText,
 	px: 1,
@@ -185,7 +184,7 @@ const toolButtonSx = {
 const commitButtonSx = {
 	height: 32,
 	minWidth: 112,
-	borderRadius: 0,
+	borderRadius: 1.25,
 	border: `1px solid ${accent}`,
 	color: "#171717",
 	backgroundColor: accent,
@@ -216,7 +215,7 @@ const iconButtonSx = {
 	width: 30,
 	height: 30,
 	border: `1px solid ${panelBorder}`,
-	borderRadius: 0,
+	borderRadius: 1.25,
 	backgroundColor: buttonBg,
 	color: primaryText,
 	"&:hover": { backgroundColor: "#383838", borderColor: "#444" },
@@ -226,6 +225,7 @@ const iconButtonSx = {
 const panelSx = {
 	border: `1px solid ${panelBorder}`,
 	backgroundColor: panelBg,
+	borderRadius: 2,
 	minHeight: 0,
 };
 
@@ -233,7 +233,6 @@ const dialogContentSx = {
 	display: "flex",
 	flexDirection: "column",
 	gap: 1.25,
-	background: surfaceBg,
 	pt: "20px !important",
 };
 
@@ -2139,85 +2138,155 @@ export default function GitPanel(props: GitPanelProps) {
 
 	const setupView = (
 		<MacScrollbar skin="dark" style={{ width: "100%", height: "100%" }}>
-			<Stack spacing={1.25} sx={{ ...panelSx, maxWidth: 760, p: 1.25 }}>
-				<Stack direction="row" alignItems="center" justifyContent="space-between">
-					<Box>
-						<Typography variant="subtitle2" sx={{ color: primaryText }}>{t("git.repositorySetup")}</Typography>
-						<Typography variant="caption" noWrap sx={{ display: "block", color: mutedText, maxWidth: 560 }}>{displayPath ?? projectRoot}</Typography>
+			<Box sx={{ minHeight: "100%", py: 3, px: 2 }}>
+				<Box sx={{ width: "100%", maxWidth: 900, mx: "auto" }}>
+					<Box sx={{ mb: 2.5 }}>
+						<Typography variant="h6" sx={{ color: primaryText, fontWeight: 600, lineHeight: 1.35 }}>
+							{t("git.repositorySetup")}
+						</Typography>
+						<Typography variant="body2" sx={{ color: mutedText, mt: 0.4 }}>
+							{t("git.setupDescription")}
+						</Typography>
 					</Box>
-					{isWorkspaceRoot ? null : (
-						<Button variant="contained" onClick={initRepo} disabled={jobRunning || cloneStarting || initStarting} sx={{ height: 32, borderRadius: 0, color: "#171717", backgroundColor: accent, "&:hover": { backgroundColor: "#ffd05a" } }}>{t("git.init")}</Button>
-					)}
-				</Stack>
-				<Divider sx={{ borderColor: panelBorder }} />
-				<Stack spacing={1.25}>
-					{cloneStarting && !cloneJobRunning ? (
-						<Box sx={{ border: `1px solid ${panelBorder}`, backgroundColor: "#202020", p: 1 }}>
-							<Typography variant="body2" noWrap sx={{ color: primaryText, mb: 0.75 }}>{t("git.cloneRepository")}</Typography>
-							<LinearProgress sx={{ height: 3, "& .MuiLinearProgress-bar": { backgroundColor: accent } }} />
-						</Box>
-					) : cloneJob ? (
-						<Box sx={{ border: `1px solid ${panelBorder}`, backgroundColor: "#202020", p: 1 }}>
-							<Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.75 }}>
-								<Box sx={{ minWidth: 0, flex: 1 }}>
-									<Typography variant="body2" noWrap sx={{ color: primaryText, fontFamily: "monospace", fontSize: 12 }}>{cloneJob.command}</Typography>
-									<Typography variant="caption" noWrap sx={{ display: "block", color: cloneJob.status?.state === "error" ? Color.Error : mutedText }}>
-										{cloneJob.status?.error ?? cloneJob.status?.message ?? cloneJob.status?.state ?? t("git.queued")}
-									</Typography>
+					<Stack sx={{ ...panelSx, borderRadius: 2.5, overflow: "hidden" }}>
+						{isWorkspaceRoot ? null : (
+							<>
+								<Stack
+									direction={{ xs: "column", sm: "row" }}
+									spacing={2}
+									alignItems={{ xs: "stretch", sm: "center" }}
+									justifyContent="space-between"
+									sx={{ px: 2.5, py: 2.25 }}
+								>
+									<Box sx={{ minWidth: 0 }}>
+										<Typography variant="subtitle1" sx={{ color: primaryText, fontWeight: 600 }}>
+											{t("git.initializeRepository")}
+										</Typography>
+										<Typography variant="body2" sx={{ color: mutedText, mt: 0.25 }}>
+											{t("git.initializeDescription")}
+										</Typography>
+										<Typography variant="caption" noWrap title={displayPath ?? projectRoot} sx={{ display: "block", color: mutedText, mt: 0.75 }}>
+											{displayPath ?? projectRoot}
+										</Typography>
+									</Box>
+									<Button
+										variant="contained"
+										onClick={initRepo}
+										disabled={jobRunning || cloneStarting || initStarting}
+										sx={{
+											height: 38,
+											flexShrink: 0,
+											px: 2,
+											color: "#171717",
+											backgroundColor: accent,
+											fontWeight: 600,
+											"&:hover": { backgroundColor: "#ffd05a" },
+										}}
+									>
+										{t("git.init")}
+									</Button>
+								</Stack>
+								<Divider sx={{ borderColor: panelBorder }} />
+							</>
+						)}
+						<Stack spacing={1.5} sx={{ px: 2.5, py: 2.25 }}>
+							<Box>
+								<Typography variant="subtitle1" sx={{ color: primaryText, fontWeight: 600 }}>
+									{t("git.cloneRepository")}
+								</Typography>
+								<Typography variant="body2" sx={{ color: mutedText, mt: 0.25 }}>
+									{t("git.cloneDescription")}
+								</Typography>
+							</Box>
+							{cloneStarting && !cloneJobRunning ? (
+								<Box sx={{ border: `1px solid ${panelBorder}`, borderRadius: 1.5, backgroundColor: Color.Background, p: 1.25 }}>
+									<Typography variant="body2" noWrap sx={{ color: primaryText, mb: 0.75 }}>{t("git.cloneRepository")}</Typography>
+									<LinearProgress sx={{ height: 3, "& .MuiLinearProgress-bar": { backgroundColor: accent } }} />
 								</Box>
-								{cloneJobRunning ? (
-									<Button size="small" onClick={cancelJob} sx={{ minWidth: 0, color: mutedText }}>{t("git.cancel")}</Button>
-								) : null}
-							</Stack>
-							<LinearProgress
-								variant={cloneJob.status?.progress !== undefined ? "determinate" : "indeterminate"}
-								value={cloneJob.status?.progress !== undefined ? Math.max(0, Math.min(100, cloneJob.status.progress * 100)) : undefined}
-								sx={{ height: 3, backgroundColor: "#2b2b2b", "& .MuiLinearProgress-bar": { backgroundColor: cloneJob.status?.state === "error" ? Color.Error : accent } }}
-							/>
-						</Box>
-					) : null}
-					<TextField disabled={cloneBusy} size="small" label={t("git.cloneUrl")} value={cloneUrl} onChange={(event) => setCloneUrl(event.target.value)} />
-					<Stack direction="row" spacing={1}>
-						<TextField disabled={cloneBusy} size="small" label={t("git.targetFolder")} value={cloneDir} onChange={(event) => setCloneDir(event.target.value)} sx={{ flex: 1 }} />
-						<TextField disabled={cloneBusy} size="small" label={t("git.branch")} value={cloneBranch} onChange={(event) => setCloneBranch(event.target.value)} sx={{ flex: 1 }} />
-						<TextField
-							disabled={cloneBusy}
-							size="small"
-							label={t("git.depth")}
-							value={cloneDepth}
-							onChange={(event) => setCloneDepth(event.target.value.replace(/[^\d]/g, ""))}
-							placeholder={t("git.full")}
-							sx={{ width: 112 }}
-						/>
+							) : cloneJob ? (
+								<Box sx={{ border: `1px solid ${panelBorder}`, borderRadius: 1.5, backgroundColor: Color.Background, p: 1.25 }}>
+									<Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.75 }}>
+										<Box sx={{ minWidth: 0, flex: 1 }}>
+											<Typography variant="body2" noWrap sx={{ color: primaryText, fontFamily: "monospace", fontSize: 12 }}>{cloneJob.command}</Typography>
+											<Typography variant="caption" noWrap sx={{ display: "block", color: cloneJob.status?.state === "error" ? Color.Error : mutedText }}>
+												{cloneJob.status?.error ?? cloneJob.status?.message ?? cloneJob.status?.state ?? t("git.queued")}
+											</Typography>
+										</Box>
+										{cloneJobRunning ? (
+											<Button size="small" onClick={cancelJob} sx={{ minWidth: 0, color: mutedText }}>{t("git.cancel")}</Button>
+										) : null}
+									</Stack>
+									<LinearProgress
+										variant={cloneJob.status?.progress !== undefined ? "determinate" : "indeterminate"}
+										value={cloneJob.status?.progress !== undefined ? Math.max(0, Math.min(100, cloneJob.status.progress * 100)) : undefined}
+										sx={{ height: 3, backgroundColor: Color.SurfaceRaised, "& .MuiLinearProgress-bar": { backgroundColor: cloneJob.status?.state === "error" ? Color.Error : accent } }}
+									/>
+								</Box>
+							) : null}
+							<TextField disabled={cloneBusy} size="small" label={t("git.cloneUrl")} value={cloneUrl} onChange={(event) => setCloneUrl(event.target.value)} />
+							<Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "minmax(0, 1fr) minmax(0, 1fr) 112px" }, gap: 1 }}>
+								<TextField disabled={cloneBusy} size="small" label={t("git.targetFolder")} value={cloneDir} onChange={(event) => setCloneDir(event.target.value)} />
+								<TextField disabled={cloneBusy} size="small" label={t("git.branch")} value={cloneBranch} onChange={(event) => setCloneBranch(event.target.value)} />
+								<TextField
+									disabled={cloneBusy}
+									size="small"
+									label={t("git.depth")}
+									value={cloneDepth}
+									onChange={(event) => setCloneDepth(event.target.value.replace(/[^\d]/g, ""))}
+									placeholder={t("git.full")}
+								/>
+							</Box>
+							<Box>
+								<Button
+									startIcon={<DownloadIcon />}
+									variant="contained"
+									onClick={cloneRepo}
+									disabled={cloneUrl.trim() === "" || cloneBusy}
+									sx={{
+										height: 38,
+										px: 2,
+										color: "#171717",
+										backgroundColor: accent,
+										fontWeight: 600,
+										"&:hover": { backgroundColor: "#ffd05a" },
+									}}
+								>
+									{t("git.cloneRepository")}
+								</Button>
+							</Box>
+						</Stack>
 					</Stack>
-					<Button startIcon={<DownloadIcon />} variant="outlined" sx={toolButtonSx} onClick={cloneRepo} disabled={cloneUrl.trim() === "" || cloneBusy}>{t("git.cloneRepository")}</Button>
-				</Stack>
-			</Stack>
+				</Box>
+			</Box>
 		</MacScrollbar>
 	);
 
 	const detectingView = (
-		<Stack spacing={1.25} sx={{ ...panelSx, maxWidth: 520, p: 1.5 }}>
-			<Typography variant="subtitle2" sx={{ color: primaryText }}>{t("git.checkingRepository")}</Typography>
-			<Typography variant="body2" sx={{ color: mutedText }}>{displayPath ?? projectRoot}</Typography>
-		</Stack>
+		<Box sx={{ py: 3, px: 2 }}>
+			<Stack spacing={1.25} sx={{ ...panelSx, maxWidth: 900, mx: "auto", p: 2.5 }}>
+				<Typography variant="subtitle1" sx={{ color: primaryText, fontWeight: 600 }}>{t("git.checkingRepository")}</Typography>
+				<Typography variant="body2" sx={{ color: mutedText }}>{displayPath ?? projectRoot}</Typography>
+			</Stack>
+		</Box>
 	);
 
 	const errorView = (
-		<Stack spacing={1.25} sx={{ ...panelSx, maxWidth: 640, p: 1.5 }}>
-			<Typography variant="subtitle2" sx={{ color: Color.Error }}>{t("git.failedDetectRepository")}</Typography>
-			<Typography variant="body2" sx={{ color: mutedText, overflowWrap: "anywhere" }}>{summary && !summary.success ? summary.message ?? t("git.failedRefresh") : t("git.failedRefresh")}</Typography>
-			<Typography variant="caption" sx={{ color: mutedText, overflowWrap: "anywhere" }}>{displayPath ?? projectRoot}</Typography>
-			<Box>
-				<Button startIcon={<RefreshIcon />} variant="outlined" sx={toolButtonSx} onClick={refresh} disabled={loading}>{t("git.refreshRepository")}</Button>
-			</Box>
-		</Stack>
+		<Box sx={{ py: 3, px: 2 }}>
+			<Stack spacing={1.25} sx={{ ...panelSx, maxWidth: 900, mx: "auto", p: 2.5 }}>
+				<Typography variant="subtitle1" sx={{ color: Color.Error, fontWeight: 600 }}>{t("git.failedDetectRepository")}</Typography>
+				<Typography variant="body2" sx={{ color: mutedText, overflowWrap: "anywhere" }}>{summary && !summary.success ? summary.message ?? t("git.failedRefresh") : t("git.failedRefresh")}</Typography>
+				<Typography variant="caption" sx={{ color: mutedText, overflowWrap: "anywhere" }}>{displayPath ?? projectRoot}</Typography>
+				<Box>
+					<Button startIcon={<RefreshIcon />} variant="outlined" sx={toolButtonSx} onClick={refresh} disabled={loading}>{t("git.refreshRepository")}</Button>
+				</Box>
+			</Stack>
+		</Box>
 	);
 
 	return (
-		<Box sx={{ height, pb: 1, display: "flex", flexDirection: "column", backgroundColor: "#141414", color: Color.TextPrimary }}>
+		<Box sx={{ height, display: "flex", flexDirection: "column", backgroundColor: Color.Background, color: Color.TextPrimary }}>
 			{loading ? <LinearProgress sx={{ height: 2 }} /> : <Box sx={{ height: 2 }} />}
-			<Box sx={{ flex: 1, minHeight: 0, p: 1, display: "flex", flexDirection: "column" }}>
+			<Box sx={{ flex: 1, minHeight: 0, p: isRepo ? 1 : 0, display: "flex", flexDirection: "column" }}>
 				{summary === null || (loading && summary.success && !summary.isRepo) ? detectingView : isRepo ? normalView : summary.success === false ? errorView : setupView}
 			</Box>
 			<Menu open={!!moreAnchor} anchorEl={moreAnchor?.anchor ?? null} onClose={() => setMoreAnchor(null)}>

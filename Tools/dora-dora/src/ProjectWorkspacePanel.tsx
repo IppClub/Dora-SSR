@@ -1,7 +1,6 @@
 import React from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { MacScrollbar } from 'mac-scrollbar';
@@ -61,6 +60,13 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 	});
 
 	const currentView = view ?? internalView;
+	const headerHeight = 52;
+	const fullDisplayPath = displayPath ?? uploadPath;
+	const normalizedDisplayPath = fullDisplayPath.replace(/\/+$/, "");
+	const parentSeparatorIndex = normalizedDisplayPath.lastIndexOf("/");
+	const contextualDisplayPath = parentSeparatorIndex > 0
+		? normalizedDisplayPath.slice(0, parentSeparatorIndex)
+		: normalizedDisplayPath;
 
 	React.useEffect(() => {
 		if (view) {
@@ -70,117 +76,97 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 		setInternalView(hasAgent ? "agent" : "upload");
 	}, [view, hasAgent, agentSessionId, uploadPath]);
 
-	const contentHeight = Math.max(height - 48, 0);
+	const contentHeight = Math.max(height - headerHeight, 0);
 	const handleViewChange = (nextView: WorkspaceView) => {
 		setInternalView(nextView);
 		onViewChange?.(nextView);
 	};
+	const workspaceTabs: Array<{ value: WorkspaceView; label: string }> = [
+		...(hasAgent ? [{ value: "agent" as const, label: t("agent.workspaceAgent") }] : []),
+		{ value: "upload", label: t("agent.workspaceFiles") },
+		{ value: "git", label: "Git" },
+	];
 
 	return (
 		<Box sx={{ display: "flex", flexDirection: "column", height }}>
-			<Box sx={{ px: 2, py: 1.5, borderBottom: `0.5px solid ${Color.Line}`, background: `linear-gradient(180deg, ${Color.BackgroundDark} 0%, ${Color.Background} 100%)` }}>
-				<Stack direction="row" spacing={1.5} alignItems="center" justifyContent="space-between" sx={{ minWidth: 0 }}>
+			<Box sx={{
+				height: headerHeight,
+				px: 2,
+				borderBottom: `1px solid ${Color.Line}`,
+				backgroundColor: Color.BackgroundDark,
+				display: "flex",
+				alignItems: "center",
+				flexShrink: 0,
+			}}>
+				<Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between" sx={{ minWidth: 0, width: "100%" }}>
 					<Box sx={{ minWidth: 0, flex: 1 }}>
-						<Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0 }}>
-							<Typography variant="h5" noWrap sx={{ color: Color.TextPrimary, fontWeight: 600, letterSpacing: "-0.02em", minWidth: 0, flexShrink: 1 }}>
+						<Stack direction="row" spacing={1.25} alignItems="baseline" sx={{ minWidth: 0 }}>
+							<Typography variant="subtitle1" noWrap sx={{ color: Color.TextPrimary, fontWeight: 650, letterSpacing: "-0.01em", minWidth: 0, flexShrink: 1 }}>
 								{title}
 							</Typography>
-							{hasAgent ? (
-								<Chip
-									size="small"
-									label={t("agent.project")}
-									variant="outlined"
-									sx={{ color: Color.TextSecondary, borderColor: Color.Line, height: 28, borderRadius: 999, flexShrink: 0 }}
-								/>
-							) : null}
-							<Typography variant="body2" noWrap sx={{ color: Color.TextSecondary, minWidth: 0, flex: 1 }}>
-								{displayPath ?? uploadPath}
+							<Typography variant="caption" noWrap title={fullDisplayPath} sx={{ color: Color.TextSecondary, minWidth: 0, flex: 1 }}>
+								{contextualDisplayPath}
 							</Typography>
 						</Stack>
 					</Box>
-					<Stack direction="row" spacing={1} sx={{ flexShrink: 0 }}>
-						{hasAgent ? (
+					<Stack
+						direction="row"
+						spacing={0.5}
+						sx={{
+							flexShrink: 0,
+							p: 0.5,
+							border: `1px solid ${Color.Line}`,
+							borderRadius: 2,
+							backgroundColor: Color.Background,
+						}}
+					>
+						{workspaceTabs.map(tab => (
 							<Button
+								key={tab.value}
 								size="small"
-								variant={currentView === "agent" ? "contained" : "outlined"}
-								onClick={() => handleViewChange("agent")}
+								variant="text"
+								onClick={() => handleViewChange(tab.value)}
+								aria-pressed={currentView === tab.value}
 								sx={{
-									color: currentView === "agent" ? Color.BackgroundDark : Color.TextPrimary,
-									borderColor: Color.Line,
-									backgroundColor: currentView === "agent" ? Color.Theme : "transparent",
-									borderRadius: 3,
-									px: 1.5,
-									minWidth: 0,
+									height: 30,
+									color: currentView === tab.value ? Color.Theme : Color.TextSecondary,
+									backgroundColor: currentView === tab.value ? Color.ThemeMuted : "transparent",
+									borderRadius: 1.25,
+									px: 1.4,
+									minWidth: 52,
 									whiteSpace: "nowrap",
 									"&:hover": {
-										borderColor: Color.Line,
-										backgroundColor: currentView === "agent" ? Color.Theme : "transparent",
+										color: currentView === tab.value ? Color.Theme : Color.TextPrimary,
+										backgroundColor: currentView === tab.value ? Color.ThemeMuted : Color.SurfaceHover,
 									},
 								}}
 							>
-								{t("agent.dora")}
+								{tab.label}
 							</Button>
-						) : null}
-						<Button
-							size="small"
-							variant={currentView === "upload" ? "contained" : "outlined"}
-							onClick={() => handleViewChange("upload")}
-							sx={{
-								color: currentView === "upload" ? Color.BackgroundDark : Color.TextPrimary,
-								borderColor: Color.Line,
-								backgroundColor: currentView === "upload" ? Color.Theme : "transparent",
-								borderRadius: 3,
-								px: 1.5,
-								minWidth: 0,
-								whiteSpace: "nowrap",
-								"&:hover": {
-									borderColor: Color.Line,
-									backgroundColor: currentView === "upload" ? Color.Theme : "transparent",
-								},
-							}}
-						>
-							{t("menu.upload")}
-						</Button>
-						<Button
-							size="small"
-							variant={currentView === "git" ? "contained" : "outlined"}
-							onClick={() => handleViewChange("git")}
-							sx={{
-								color: currentView === "git" ? Color.BackgroundDark : Color.TextPrimary,
-								borderColor: Color.Line,
-								backgroundColor: currentView === "git" ? Color.Theme : "transparent",
-								borderRadius: 3,
-								px: 1.5,
-								minWidth: 0,
-								whiteSpace: "nowrap",
-								"&:hover": {
-									borderColor: Color.Line,
-									backgroundColor: currentView === "git" ? Color.Theme : "transparent",
-								},
-							}}
-						>
-							Git
-						</Button>
+						))}
 					</Stack>
 				</Stack>
 			</Box>
 			<Box sx={{ flex: 1, minHeight: 0 }}>
-				{currentView === "agent" && hasAgent ? (
-					<AgentPanel
-						sessionId={agentSessionId}
-						projectRoot={uploadPath}
-						title={title}
-						height={contentHeight}
-						showHeader={false}
-						initialPrompt={agentInitialPrompt}
-						addAlert={addAlert}
-						onInitialPromptConsumed={onAgentInitialPromptConsumed}
-						onRollbackComplete={onRollbackComplete}
-						onOpenFile={onOpenFile}
-						onRepositoryFilesChanged={onRepositoryFilesChanged}
-						onOpenLLMConfig={onOpenLLMConfig}
-					/>
-				) : currentView === "git" ? (
+				{hasAgent ? (
+					<Box sx={{ display: currentView === "agent" ? "block" : "none", height: "100%" }}>
+						<AgentPanel
+							sessionId={agentSessionId}
+							projectRoot={uploadPath}
+							title={title}
+							height={contentHeight}
+							showHeader={false}
+							initialPrompt={agentInitialPrompt}
+							addAlert={addAlert}
+							onInitialPromptConsumed={onAgentInitialPromptConsumed}
+							onRollbackComplete={onRollbackComplete}
+							onOpenFile={onOpenFile}
+							onRepositoryFilesChanged={onRepositoryFilesChanged}
+							onOpenLLMConfig={onOpenLLMConfig}
+						/>
+					</Box>
+				) : null}
+				{currentView === "git" ? (
 					<GitPanel
 						projectRoot={uploadPath}
 						displayPath={displayPath}
@@ -191,7 +177,7 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 						onOpenProject={onOpenProject}
 						onRepositoryFilesChanged={onRepositoryFilesChanged}
 					/>
-				) : (
+				) : currentView === "upload" ? (
 					<MacScrollbar skin="dark" style={{ width: "100%", height: "100%" }}>
 						<Box sx={{ minHeight: "100%", py: 3, }}>
 							<DoraUpload
@@ -202,7 +188,7 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 							/>
 						</Box>
 					</MacScrollbar>
-				)}
+				) : null}
 			</Box>
 		</Box>
 	);

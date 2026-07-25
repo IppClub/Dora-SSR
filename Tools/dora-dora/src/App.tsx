@@ -8,7 +8,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 import React, { ChangeEvent, Suspense, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Box from '@mui/material/Box';
-import Drawer from '@mui/material/Drawer';
 import Toolbar from '@mui/material/Toolbar';
 import CssBaseline from '@mui/material/CssBaseline';
 import IconButton from '@mui/material/IconButton';
@@ -33,7 +32,7 @@ import 'mac-scrollbar/dist/mac-scrollbar.css';
 import FileFilter, { FilterOption } from './FileFilter';
 import FileSearchPanel from './FileSearch';
 import { useTranslation } from 'react-i18next';
-import { Image } from 'antd';
+import { Image, Splitter } from 'antd';
 import type { YarnEditorData } from './YarnEditor';
 import * as Yarn from './YarnConvert';
 import type { CodeWireData } from './CodeWire';
@@ -567,11 +566,6 @@ const Editor = memo((props: {
 });
 Editor.displayName = 'Editor';
 
-interface UseResizeProps {
-	minWidth: number;
-	defaultWidth?: number;
-};
-
 interface UpdateFileEvent {
 	file: string;
 	exists: boolean;
@@ -585,53 +579,6 @@ const appendCacheKey = (url: string, key?: number) => {
 	return `${url}${url.includes("?") ? "&" : "?"}v=${key}`;
 };
 
-const useResize = ({ minWidth, defaultWidth }: UseResizeProps) => {
-	defaultWidth ??= minWidth;
-	const [isResizing, setIsResizing] = useState(false);
-	const [width, setWidth] = useState(defaultWidth);
-	const [target, setTarget] = useState<HTMLDivElement | null>(null);
-
-	const enableResize = useCallback((e: React.PointerEvent) => {
-		if (!isResizing) {
-			e.preventDefault();
-			setTarget(e.target as HTMLDivElement);
-			(e.target as HTMLDivElement).setPointerCapture(e.pointerId);
-			setIsResizing(true);
-		}
-	}, [isResizing]);
-
-	const disableResize = useCallback((e: PointerEvent) => {
-		if (isResizing) {
-			setIsResizing(false);
-			target?.releasePointerCapture(e.pointerId);
-			setTarget(null);
-			Service.command({ code: `require('Script.Dev.Entry').getConfig().drawerWidth = ${width}`, log: false });
-		}
-	}, [isResizing, target, width]);
-
-	const resize = useCallback((e: PointerEvent) => {
-		if (isResizing) {
-			e.preventDefault();
-			const newWidth = e.clientX - resizeHandleWidth;
-			if (newWidth >= minWidth) {
-				setWidth(newWidth);
-			}
-		}
-	}, [minWidth, isResizing]);
-
-	useEffect(() => {
-		document.addEventListener('pointermove', resize);
-		document.addEventListener('pointerup', disableResize);
-
-		return () => {
-			document.removeEventListener('pointermove', resize);
-			document.removeEventListener('pointerup', disableResize);
-		}
-	}, [disableResize, resize]);
-	return { width, enableResize, isResizing };
-};
-
-const resizeHandleWidth = 4;
 const transitionProps = {
 	appear: false,
 	enter: false,
@@ -745,7 +692,8 @@ export default function PersistentDrawerLeft() {
 	const [gameEntries, setGameEntries] = useState<Service.EntryLaunchInfo[]>([]);
 	const [entryView, setEntryView] = useState<"tool" | "game">("tool");
 	const [entryFilter, setEntryFilter] = useState("");
-	const { width: drawerWidth, enableResize, isResizing } = useResize({ minWidth: 170, defaultWidth: Info.drawerWidth });
+	const [drawerWidth, setDrawerWidth] = useState(Math.max(170, Info.drawerWidth ?? 300));
+	const [isResizing, setIsResizing] = useState(false);
 	const [winSize, setWinSize] = useState({
 		width: window.innerWidth,
 		height: window.innerHeight
@@ -754,6 +702,20 @@ export default function PersistentDrawerLeft() {
 	const editorWidth = winSize.width - (drawerOpen ? drawerWidth : 0);
 	const editorHeight = winSize.height - 48 - statusBarHeight;
 	const showFullLogo = drawerWidth > 235;
+	const onSplitterResize = useCallback((sizes: number[]) => {
+		if (!drawerOpen || sizes[0] === undefined) return;
+		setDrawerWidth(Math.max(170, Math.round(sizes[0])));
+	}, [drawerOpen]);
+	const onSplitterResizeEnd = useCallback((sizes: number[]) => {
+		setIsResizing(false);
+		if (!drawerOpen || sizes[0] === undefined) return;
+		const nextWidth = Math.max(170, Math.round(sizes[0]));
+		setDrawerWidth(nextWidth);
+		Service.command({
+			code: `require('Script.Dev.Entry').getConfig().drawerWidth = ${nextWidth}`,
+			log: false
+		});
+	}, [drawerOpen]);
 
 	const [openLog, setOpenLog] = useState<{ title: string, stopOnClose: boolean } | null>(null);
 	const [openBottomLog, setOpenBottomLog] = useState(false);
@@ -936,7 +898,7 @@ export default function PersistentDrawerLeft() {
 
 	const revealTreeNode = useCallback(async (target: string) => {
 		let root = treeDataRef.current.at(0);
-		if (root === undefined || target === root.key) return;
+		if (root === undefined) return;
 		let changed = false;
 		if (isChildFolder(target, root.key)) {
 			const parts = splitRelativePath(root.key, target);
@@ -4817,22 +4779,45 @@ export default function PersistentDrawerLeft() {
 						</Box>
 					</Toolbar>
 				</AppBar>
-				<Drawer
-					sx={{
-						width: drawerWidth,
-						flexShrink: 0,
-						'& .MuiDrawer-paper': {
-							width: drawerWidth,
-							boxSizing: 'border-box',
-							borderRightColor: Color.Line,
-							borderRightWidth: 0.5,
+				<Splitter
+					orientation="horizontal"
+					onResizeStart={() => setIsResizing(true)}
+					onResize={onSplitterResize}
+					onResizeEnd={onSplitterResizeEnd}
+					classNames={{
+						dragger: {
+							default: 'dora-splitter-dragger',
 						},
 					}}
-					variant="persistent"
-					anchor="left"
-					open={drawerOpen}
+					styles={{
+						dragger: {
+							default: {
+								zIndex: 1000,
+								backgroundColor: 'transparent',
+								backgroundImage: `linear-gradient(to right, transparent calc(50% - 0.5px), ${Color.Line} calc(50% - 0.5px), ${Color.Line} calc(50% + 0.5px), transparent calc(50% + 0.5px))`,
+								transition: 'background-image 0.15s ease',
+							},
+							active: {
+								backgroundColor: 'transparent',
+								backgroundImage: `linear-gradient(to right, transparent calc(50% - 0.5px), ${Color.Theme} calc(50% - 0.5px), ${Color.Theme} calc(50% + 0.5px), transparent calc(50% + 0.5px))`,
+							},
+						},
+					}}
+					style={{ width: '100%', height: '100%' }}
 				>
-					<div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+					<Splitter.Panel
+						size={drawerOpen ? drawerWidth : 0}
+						min={drawerOpen ? 170 : 0}
+						max="50%"
+						resizable={drawerOpen}
+						destroyOnHidden={false}
+						style={{
+							overflow: 'hidden',
+							backgroundColor: Color.BackgroundDark,
+							color: Color.TextPrimary,
+						}}
+					>
+					<div style={{ display: 'flex', flexDirection: 'column', width: drawerWidth, height: '100%' }}>
 						<div style={{
 							display: 'flex',
 							alignItems: 'center',
@@ -4929,6 +4914,7 @@ export default function PersistentDrawerLeft() {
 								expandedKeys={expandedKeys}
 								treeData={treeData}
 								scrollRequest={treeScrollRequest}
+								resizing={isResizing}
 								multiSelectMode={multiSelectMode}
 								batchTargetMode={batchTargetMode}
 								onMenuClick={onTreeMenuClick}
@@ -5010,7 +4996,7 @@ export default function PersistentDrawerLeft() {
 								onChange={(event) => setEntryFilter(event.target.value)}
 								sx={{ mx: 1.5, mb: 1, flexShrink: 0 }}
 							/>
-							<MacScrollbar skin='dark' style={{ flex: 1, minHeight: 0, marginRight: resizeHandleWidth }}>
+							<MacScrollbar skin='dark' style={{ flex: 1, minHeight: 0 }}>
 								<Stack spacing={1} sx={{ pl: 1.5, pr: 2, pb: 1.5 }}>
 									{visibleEntries.length === 0 ? (
 										<Typography variant="body2" sx={{ opacity: 0.7 }}>
@@ -5061,29 +5047,17 @@ export default function PersistentDrawerLeft() {
 							</MacScrollbar>
 						</div>
 					</div>
-					<div
-						style={{
-							position: 'absolute',
-							width: resizeHandleWidth,
-							zIndex: 1000,
-							top: 0,
-							right: 0,
-							bottom: 0,
-							cursor: 'col-resize',
-							backgroundColor: isResizing ? Color.Theme + '88' : 'transparent',
-							transition: 'background-color 0.3s',
-						}}
-						onPointerDown={enableResize}
-					/>
-				</Drawer>
+					</Splitter.Panel>
+					<Splitter.Panel min={320} style={{ overflow: 'hidden' }}>
+					<Box sx={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
 				<>{
 					files.map((file, index) => {
 						if (file.agentSessionId) {
 							return <Main
-								open={drawerOpen}
+								open
 								key={file.key}
 								hidden={tabIndex !== index}
-								drawerWidth={drawerWidth}
+								drawerWidth={0}
 							>
 								<DrawerHeader />
 								<ProjectWorkspacePanel
@@ -5164,10 +5138,10 @@ export default function PersistentDrawerLeft() {
 							parentPath = writablePath;
 						}
 						return <Main
-							open={drawerOpen}
+							open
 							key={file.key}
 							hidden={tabIndex !== index}
-							drawerWidth={drawerWidth}
+							drawerWidth={0}
 						>
 							<DrawerHeader />
 							{bodyLua ?
@@ -5735,6 +5709,9 @@ export default function PersistentDrawerLeft() {
 						</Typography>
 					</Box>
 				</Modal>
+					</Box>
+					</Splitter.Panel>
+				</Splitter>
 			</Box>
 			<Box
 				sx={{

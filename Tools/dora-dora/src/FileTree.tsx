@@ -189,6 +189,7 @@ export interface FileTreeProps {
 	expandedKeys: string[];
 	treeData: TreeDataType[];
 	scrollRequest: number;
+	resizing: boolean;
 	multiSelectMode: boolean;
 	batchTargetMode: "copy" | "move" | null;
 	onSelect: (selectedNodes: TreeDataType[]) => void;
@@ -210,6 +211,7 @@ export default memo(function FileTree(props: FileTreeProps) {
 		selectedKeys,
 		checkedKeys,
 		scrollRequest,
+		resizing,
 		multiSelectMode,
 		batchTargetMode,
 	} = props;
@@ -225,7 +227,20 @@ export default memo(function FileTree(props: FileTreeProps) {
 	const scrollContainerRef = useRef<HTMLElement>(null);
 	const [anchorItem, setAnchorItem] = useState<null | { target: Element, data: TreeDataType }>(null);
 	const [menuOpen, setMenuOpen] = useState(false);
+	const [suppressResizeScrollbar, setSuppressResizeScrollbar] = useState(false);
 	const { t } = useTranslation();
+
+	useEffect(() => {
+		if (resizing) {
+			setSuppressResizeScrollbar(true);
+			return;
+		}
+		if (!suppressResizeScrollbar) return;
+		const timer = window.setTimeout(() => {
+			setSuppressResizeScrollbar(false);
+		}, 1000);
+		return () => window.clearTimeout(timer);
+	}, [resizing, suppressResizeScrollbar]);
 
 	useEffect(() => {
 		if (scrollRequest === 0) return;
@@ -337,11 +352,15 @@ export default memo(function FileTree(props: FileTreeProps) {
 		<div style={{ position: "relative", width: "100%", height: "100%" }}>
 			<MacScrollbar
 				ref={scrollContainerRef}
+				className={suppressResizeScrollbar ? "dora-resource-tree-scrollbar-resizing" : undefined}
+				onScroll={() => {
+					if (!resizing) setSuppressResizeScrollbar(false);
+				}}
 				skin='dark'
 				style={{
 					color: Color.Primary,
 					fontSize: '14px',
-					width: 'calc(100% - 4px)',
+					width: '100%',
 					height: '100%',
 				}}
 			>
@@ -495,14 +514,21 @@ export default memo(function FileTree(props: FileTreeProps) {
 					</StyledMenuItem> : null
 				}
 			</StyledMenu>
-			<GlobalStyles styles={{
-				".dora-resource-tree.ant-tree-show-line .ant-tree-indent-unit::before": {
-					insetInlineEnd: "6px !important",
-				},
-				".dora-resource-tree.ant-tree-show-line .ant-tree-switcher-leaf-line::before": {
-					insetInlineStart: "11px !important",
-				},
-			}} />
+				<GlobalStyles styles={{
+					".dora-resource-tree.ant-tree-show-line .ant-tree-indent-unit::before": {
+						insetInlineEnd: "6px !important",
+					},
+					".dora-resource-tree.ant-tree-show-line .ant-tree-switcher-leaf-line::before": {
+						insetInlineStart: "11px !important",
+					},
+					".dora-resource-tree .ant-tree-node-content-wrapper": {
+						borderRadius: "5px !important",
+						transition: "background-color 120ms ease, box-shadow 120ms ease",
+					},
+					".dora-resource-tree .ant-tree-node-content-wrapper.ant-tree-node-selected": {
+						boxShadow: `inset 2px 0 0 ${Color.Theme}`,
+					},
+				}} />
 			<ConfigProvider
 				theme={{
 					algorithm: antdTheme.darkAlgorithm,
@@ -513,14 +539,14 @@ export default memo(function FileTree(props: FileTreeProps) {
 						paddingXS: 4,
 					},
 					components: {
-						Tree: {
-							titleHeight: 24,
-							indentSize: 18,
-							nodeHoverBg: Color.Theme + "22",
-							nodeHoverColor: Color.TextPrimary,
-							nodeSelectedBg: Color.Theme + "66",
-							nodeSelectedColor: Color.TextPrimary,
-						},
+							Tree: {
+								titleHeight: 26,
+								indentSize: 18,
+								nodeHoverBg: Color.SurfaceHover,
+								nodeHoverColor: Color.TextPrimary,
+								nodeSelectedBg: Color.ThemeMuted,
+								nodeSelectedColor: Color.TextPrimary,
+							},
 					},
 				}}
 			>
@@ -711,6 +737,7 @@ export default memo(function FileTree(props: FileTreeProps) {
 	}
 	return prev.treeData === next.treeData &&
 		prev.scrollRequest === next.scrollRequest &&
+		prev.resizing === next.resizing &&
 		prev.multiSelectMode === next.multiSelectMode &&
 		prev.batchTargetMode === next.batchTargetMode &&
 		prev.onSelect === next.onSelect &&

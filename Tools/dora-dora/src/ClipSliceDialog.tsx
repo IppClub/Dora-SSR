@@ -80,7 +80,7 @@ const ClipSliceDialog = memo(function ClipSliceDialog(props: {
 	return (
 		<Dialog open={open} onClose={onClose} fullWidth maxWidth="md" PaperProps={paperSx ? { sx: paperSx } : undefined}>
 			<DialogTitle>{title}</DialogTitle>
-			<DialogContent sx={{ display: "flex", flexDirection: "column", gap: 1.25, background: "#181818" }}>
+			<DialogContent sx={{ display: "flex", flexDirection: "column", gap: 1.25 }}>
 				<div style={{ color: "#8f9aa6", fontSize: 12, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{clipLabel}</div>
 				<TextField size="small" value={filter} onChange={(event) => setFilter(event.currentTarget.value)} placeholder={filterPlaceholder} />
 				<div style={{ minHeight: contentHeight ?? 260, maxHeight: 420, height: contentHeight, overflow: "auto" }}>

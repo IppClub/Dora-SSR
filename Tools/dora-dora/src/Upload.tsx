@@ -6,7 +6,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-import { Container } from '@mui/material';
+import { Box, Container } from '@mui/material';
 import { ConfigProvider, theme, UploadProps } from 'antd';
 import { AiOutlineUpload } from 'react-icons/ai';
 import * as Service from './Service';
@@ -394,13 +394,27 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 					{prop.title}
 				</p>
 			)}
+			<Box sx={{ mb: 2.5 }}>
+				<Typography.Title level={4} style={{ color: Color.TextPrimary, margin: 0, fontWeight: 600 }}>
+					{t("upload.addFilesTitle")}
+				</Typography.Title>
+				<Text type="secondary">
+					{t("upload.addFilesDescription")}
+				</Text>
+			</Box>
 
 			{/* 本地文件上传区域 */}
 			<Collapse
 				defaultActiveKey='1'
 				accordion
 				expandIconPlacement="end"
-				style={{ marginBottom: 20, backgroundColor: Color.Background, borderColor: Color.Line }}
+				style={{
+					marginBottom: 20,
+					backgroundColor: Color.BackgroundDark,
+					borderColor: Color.Line,
+					borderRadius: 10,
+					overflow: "hidden",
+				}}
 				items={[
 					{
 						key: '1',
@@ -411,29 +425,31 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 							</Space>
 						),
 						children: (
-							<Space orientation="vertical" style={{ width: '100%' }}>
-								<Upload {...uprops} style={{ marginBottom: 10 }}>
-									<Button icon={<UploadOutlined />}>{t("upload.selectFile")}</Button>
-								</Upload>
-								<Button
-									onClick={handleUpload}
-									disabled={fileList.length === 0}
-									loading={uploading}
-								>
-									{uploading ? t('upload.uploading') : t('upload.startUpload')}
-								</Button>
-								<div style={{ padding: 10 }} />
-								<Dragger {...props}>
-									<p className="dora-upload-drag-icon" style={{ color: Color.Primary }}>
-										<AiOutlineUpload style={{ fontSize: '40px' }} />
+							<Space orientation="vertical" size={16} style={{ width: '100%' }}>
+								<Dragger {...props} style={{ minHeight: 220, backgroundColor: Color.Background }}>
+									<p className="dora-upload-drag-icon" style={{ color: Color.Theme, marginBottom: 14 }}>
+										<AiOutlineUpload style={{ fontSize: '42px' }} />
 									</p>
-									<p className="dora-upload-text" style={{ color: Color.TextPrimary }}>
+									<p className="dora-upload-text" style={{ color: Color.TextPrimary, fontSize: 16, fontWeight: 500, marginBottom: 8 }}>
 										{t("upload.text")}
 									</p>
-									<p className="dora-upload-hint" style={{ color: Color.TextSecondary }}>
+									<p className="dora-upload-hint" style={{ color: Color.TextSecondary, marginBottom: 0 }}>
 										{t("upload.hint")}
 									</p>
 								</Dragger>
+								<Space wrap>
+									<Upload {...uprops}>
+										<Button type="primary" icon={<UploadOutlined />}>{t("upload.selectFile")}</Button>
+									</Upload>
+									{fileList.length > 0 ? (
+										<Button
+											onClick={handleUpload}
+											loading={uploading}
+										>
+											{uploading ? t('upload.uploading') : `${t('upload.startUpload')} (${fileList.length})`}
+										</Button>
+									) : null}
+								</Space>
 
 								{/* 上传文件列表展示 */}
 								{draggerFileList.length > 0 && (
@@ -662,7 +678,10 @@ const DoraUpload = memo((prop: DoraUploadProp) => {
 				algorithm: theme.darkAlgorithm,
 				token: {
 					colorPrimary: Color.Theme,
+					colorPrimaryHover: "#ffd15f",
+					colorTextLightSolid: Color.BackgroundDark,
 					colorBgContainer: Color.Background,
+					borderRadius: 8,
 				},
 				components: {
 					Input: {

@@ -2,8 +2,10 @@ import { createTheme } from '@mui/material/styles';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Color {
-	export const Background = '#1f1f1f';
-	export const BackgroundDark = '#181818';
+	export const Background = '#1d1d1d';
+	export const BackgroundDark = '#161616';
+	export const SurfaceRaised = '#242424';
+	export const SurfaceHover = '#ffffff0a';
 
 	export const Primary = '#ccc';
 	export const Secondary = '#ccca';
@@ -15,8 +17,10 @@ export namespace Color {
 	export const DisabledBorder = '#414141';
 
 	export const Theme = '#fac03d';
+	export const ThemeMuted = '#fac03d1f';
 
 	export const Line = '#ffffff20';
+	export const LineStrong = '#ffffff38';
 
 	export const Error = '#f44336';
 	export const Warning = '#ff9800';
@@ -49,9 +53,54 @@ export const theme = createTheme({
 		}
 	},
 	components: {
+		MuiDialog: {
+			styleOverrides: {
+				paper: {
+					backgroundColor: Color.BackgroundDark,
+					backgroundImage: 'none',
+					border: `1px solid ${Color.Line}`,
+					borderRadius: 10,
+					boxShadow: '0 20px 60px rgba(0, 0, 0, 0.46)',
+				},
+			},
+		},
+		MuiDialogTitle: {
+			styleOverrides: {
+				root: {
+					backgroundColor: 'inherit',
+				},
+			},
+		},
+		MuiDialogContent: {
+			styleOverrides: {
+				root: {
+					backgroundColor: 'inherit',
+				},
+			},
+		},
+		MuiDialogActions: {
+			styleOverrides: {
+				root: {
+					backgroundColor: 'inherit',
+				},
+			},
+		},
 		MuiButtonBase: {
 			defaultProps: {
 				disableRipple: true,
+			},
+		},
+		MuiButton: {
+			styleOverrides: {
+				root: {
+					borderRadius: 6,
+					textTransform: 'none',
+					'&.Mui-disabled': {
+						color: Color.DisabledText,
+						borderColor: Color.DisabledBorder,
+						backgroundColor: Color.DisabledBackground,
+					},
+				},
 			},
 		},
 		MuiOutlinedInput: {
@@ -84,17 +133,6 @@ export const theme = createTheme({
 				root: {
 					'&.Mui-disabled': {
 						color: Color.DisabledText,
-					},
-				},
-			},
-		},
-		MuiButton: {
-			styleOverrides: {
-				root: {
-					'&.Mui-disabled': {
-						color: Color.DisabledText,
-						borderColor: Color.DisabledBorder,
-						backgroundColor: Color.DisabledBackground,
 					},
 				},
 			},

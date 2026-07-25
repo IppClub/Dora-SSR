@@ -2109,7 +2109,7 @@ const FaceResourceDialog = memo(function FaceResourceDialog(props: {
 		<>
 			<Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
 				<DialogTitle>{t("bodyEditor.chooseFaceResource", "Choose Face Resource")}</DialogTitle>
-				<DialogContent sx={{ display: "flex", flexDirection: "column", gap: 1.25, background: "#181818" }}>
+				<DialogContent sx={{ display: "flex", flexDirection: "column", gap: 1.25 }}>
 					<div style={{ color: "#8f9aa6", fontSize: 12 }}>{resourceBasePath}</div>
 					<TextField
 						size="small"

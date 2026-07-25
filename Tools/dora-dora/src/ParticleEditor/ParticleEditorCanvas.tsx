@@ -418,7 +418,7 @@ const TextureResourceDialog = memo(function TextureResourceDialog(props: {
 		<>
 			<Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
 				<DialogTitle>{t("particleEditor.dialogs.chooseTextureResource", "Choose Texture Resource")}</DialogTitle>
-				<DialogContent sx={{ display: "flex", flexDirection: "column", gap: 1.25, background: "#181818" }}>
+				<DialogContent sx={{ display: "flex", flexDirection: "column", gap: 1.25 }}>
 					<div style={{ color: "#8f9aa6", fontSize: 12 }}>{resourceBasePath}</div>
 					<TextField size="small" value={filter} onChange={(event) => setFilter(event.currentTarget.value)} placeholder={t("particleEditor.dialogs.filterImagesAndClips", "Filter images and clips")} />
 					<div style={{ minHeight: 280, maxHeight: 460, overflow: "auto", border: "1px solid #2b2b2b" }}>

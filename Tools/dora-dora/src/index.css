@@ -70,6 +70,56 @@ code {
 	animation: dora-alert-count-pulse 240ms ease-out;
 }
 
+.dora-splitter-dragger::before {
+	display: none !important;
+}
+
+.dora-splitter-dragger {
+	width: 10px !important;
+	touch-action: none;
+}
+
+@media (pointer: coarse) {
+	.dora-splitter-dragger {
+		width: 24px !important;
+	}
+}
+
+.dora-splitter-dragger::after {
+	background: #ffffff38 !important;
+	transition: background-color 0.15s ease;
+}
+
+.dora-splitter-dragger:hover {
+	background-image: linear-gradient(to right,
+			transparent calc(50% - 0.5px),
+			rgba(250, 192, 61, 0.45) calc(50% - 0.5px),
+			rgba(250, 192, 61, 0.45) calc(50% + 0.5px),
+			transparent calc(50% + 0.5px)) !important;
+}
+
+.dora-splitter-dragger:hover::after {
+	background: rgba(250, 192, 61, 0.75) !important;
+}
+
+.dora-splitter-dragger.ant-splitter-bar-dragger-active {
+	background-image: linear-gradient(to right,
+			transparent calc(50% - 0.5px),
+			rgba(250, 192, 61, 0.8) calc(50% - 0.5px),
+			rgba(250, 192, 61, 0.8) calc(50% + 0.5px),
+			transparent calc(50% + 0.5px)) !important;
+}
+
+.dora-splitter-dragger.ant-splitter-bar-dragger-active::after {
+	background: rgba(250, 192, 61, 0.8) !important;
+}
+
+.dora-resource-tree-scrollbar-resizing .ms-track.ms-y {
+	opacity: 0 !important;
+	pointer-events: none;
+	transition: none !important;
+}
+
 .react-lazylog,
 .ReactVirtualized__Grid.react-lazylog {
 	scrollbar-width: auto !important;
